@@ -1,0 +1,8 @@
+1:1 glyph +$
+1:4 name x
+1:6 glyph |$
+1:9 glyph [
+1:10 tight tvar A
+1:11 tight glyph ]
+1:13 name mold
+1:17 NEWLINE

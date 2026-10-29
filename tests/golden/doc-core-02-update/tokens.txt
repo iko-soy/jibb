@@ -1,0 +1,142 @@
+1:1 glyph ++
+1:4 name update
+1:11 glyph |=
+1:14 glyph [
+1:15 tight glyph =
+1:16 tight name msg
+1:20 name m
+1:21 tight glyph =
+1:22 tight name model
+1:27 tight glyph ]
+2:3 INDENT
+2:3 glyph ?-
+2:6 name msg
+3:5 INDENT
+3:5 glyph [
+3:6 tight lit %typed
+3:13 name t
+3:14 tight glyph ]
+4:7 INDENT
+4:7 glyph ?-
+4:10 glyph (
+4:11 tight name gth
+4:15 glyph (
+4:16 tight name lent
+4:21 glyph (
+4:22 tight name tuba
+4:27 glyph (
+4:28 tight name trip
+4:33 name t
+4:34 tight glyph )
+4:35 tight glyph )
+4:36 tight glyph )
+4:38 lit 80
+4:40 tight glyph )
+5:9 INDENT
+5:9 lit %.y
+5:14 glyph [
+5:15 tight name m
+5:16 tight glyph (
+5:17 tight name draft
+5:22 tight glyph =
+5:23 tight name t
+5:25 name error
+5:30 tight glyph =
+5:31 tight glyph `
+5:32 tight str "Too long"
+5:42 tight glyph )
+5:44 lit ~
+5:45 tight glyph ]
+6:9 NEWLINE
+6:9 lit %.n
+6:14 glyph [
+6:15 tight name m
+6:16 tight glyph (
+6:17 tight name draft
+6:22 tight glyph =
+6:23 tight name t
+6:25 name error
+6:30 tight glyph =
+6:31 tight lit ~
+6:32 tight glyph )
+6:34 lit ~
+6:35 tight glyph ]
+7:5 DEDENT
+7:5 DEDENT
+7:5 NEWLINE
+7:5 lit %submit
+7:20 glyph [
+7:21 tight name m
+7:22 tight glyph (
+7:23 tight name draft
+7:28 tight glyph =
+7:29 tight str ""
+7:31 tight glyph )
+7:33 glyph ~[
+7:35 tight glyph [
+7:36 tight lit %poke
+7:42 glyph (
+7:43 tight wing todo-action.todo
+7:60 glyph [
+7:61 tight lit %add
+7:66 wing draft.m
+7:73 tight glyph ]
+7:74 tight glyph )
+7:76 glyph |=
+7:78 tight lit %acked
+7:84 tight glyph ]
+7:85 tight glyph ]
+7:86 tight glyph ]
+8:5 NEWLINE
+8:5 glyph [
+8:6 tight lit %toggled
+8:15 name id
+8:17 tight glyph ]
+8:20 glyph [
+8:21 tight name m
+8:23 glyph ~[
+8:25 tight glyph [
+8:26 tight lit %poke
+8:32 glyph (
+8:33 tight wing todo-action.todo
+8:50 glyph [
+8:51 tight lit %toggle
+8:59 name id
+8:61 tight glyph ]
+8:62 tight glyph )
+8:64 glyph |=
+8:66 tight lit %acked
+8:72 tight glyph ]
+8:73 tight glyph ]
+8:74 tight glyph ]
+9:5 NEWLINE
+9:5 glyph [
+9:6 tight lit %got
+9:11 name ts
+9:13 tight glyph ]
+9:20 glyph [
+9:21 tight name m
+9:22 tight glyph (
+9:23 tight name todos
+9:28 tight glyph =
+9:29 tight name ts
+9:31 tight glyph )
+9:33 lit ~
+9:34 tight glyph ]
+10:5 NEWLINE
+10:5 glyph [
+10:6 tight lit %acked
+10:13 name err
+10:16 tight glyph ]
+10:20 glyph [
+10:21 tight name m
+10:22 tight glyph (
+10:23 tight name error
+10:28 tight glyph =
+10:29 tight name err
+10:32 tight glyph )
+10:34 lit ~
+10:35 tight glyph ]
+10:36 DEDENT
+10:36 DEDENT
+10:36 NEWLINE

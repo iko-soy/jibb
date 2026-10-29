@@ -1,0 +1,18 @@
+1:1 glyph ++
+1:4 name f
+1:6 glyph |=
+1:9 name n
+1:10 tight glyph =
+1:11 tight aura @ud
+2:3 INDENT
+2:3 glyph ?-
+2:6 name n
+3:5 INDENT
+3:5 lit 0
+3:8 lit ~
+4:3 DEDENT
+4:3 NEWLINE
+4:3 glyph *
+4:6 lit ~
+4:7 DEDENT
+4:7 NEWLINE

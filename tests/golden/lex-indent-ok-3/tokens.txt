@@ -1,0 +1,27 @@
+2:1 glyph +$
+2:4 name msg
+2:8 glyph $?
+4:3 INDENT
+4:3 lit %a
+6:3 NEWLINE
+6:3 lit %b
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name f
+7:6 glyph |=
+7:9 name b
+7:10 tight glyph =
+7:11 tight glyph ?
+8:3 INDENT
+8:3 glyph ?-
+8:6 name b
+10:5 INDENT
+10:5 lit %.y
+10:10 lit 1
+13:5 NEWLINE
+13:5 lit %.n
+13:10 lit 2
+13:11 DEDENT
+13:11 DEDENT
+13:11 NEWLINE

@@ -1,0 +1,9 @@
+1:1 glyph ++
+1:4 name x
+2:3 INDENT
+2:3 glyph ~&
+2:6 str "hi"
+3:3 NEWLINE
+3:3 lit 5
+3:4 DEDENT
+3:4 NEWLINE

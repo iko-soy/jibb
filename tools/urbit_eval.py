@@ -31,6 +31,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 
 from noun import bytes_to_atom, cue
 
@@ -228,14 +229,20 @@ def run_eval(program, jam, timeout=None):
     cmd = [find_urbit(), 'eval'] + (['-j', '-n'] if jam else [])
     res = EvalResult()
     res.timeout = timeout
-    try:
-        proc = subprocess.run(cmd, input=program.encode(),
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              timeout=timeout)
-    except subprocess.TimeoutExpired as e:
-        res.timed_out = True
-        res.trace = [l for l in _clean_lines(e.stdout or b'') if l.strip()]
-        return res
+    # stdout goes to a file, not a pipe: urbit eval exits before a pipe
+    # drains, so piped output is cut off at 64 KB.
+    with tempfile.TemporaryFile() as out:
+        try:
+            proc = subprocess.run(cmd, input=program.encode(),
+                                  stdout=out, stderr=subprocess.PIPE,
+                                  timeout=timeout)
+        except subprocess.TimeoutExpired:
+            res.timed_out = True
+            out.seek(0)
+            res.trace = [l for l in _clean_lines(out.read()) if l.strip()]
+            return res
+        out.seek(0)
+        stdout = out.read()
     res.status = proc.returncode
     for line in _clean_lines(proc.stderr):
         m = BAIL.match(line.strip())
@@ -245,15 +252,15 @@ def run_eval(program, jam, timeout=None):
             res.notes.append(line.rstrip())
     if not res.bail and proc.returncode == 0:
         if not jam:
-            res.text = strip_ansi(proc.stdout.decode('utf-8', 'replace'))
+            res.text = strip_ansi(stdout.decode('utf-8', 'replace'))
             res.ok = True
             return res
-        frame = _newt_frame(proc.stdout)
+        frame = _newt_frame(stdout)
         if frame is not None:
             res.noun = cue(bytes_to_atom(frame))
             res.ok = True
             return res
-    res.trace = [l.rstrip() for l in _clean_lines(proc.stdout) if l.strip()]
+    res.trace = [l.rstrip() for l in _clean_lines(stdout) if l.strip()]
     return res
 
 

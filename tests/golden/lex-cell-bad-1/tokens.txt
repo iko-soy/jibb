@@ -1,0 +1,3 @@
+/tests/golden/lex-cell-bad-1/source.jibb:1:8: unexpected `,`: items are separated by spaces
+++ x [a, b]
+       ^

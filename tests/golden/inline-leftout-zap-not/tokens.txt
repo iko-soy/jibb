@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-zap-not/source.jibb:1:7: `!` begins only `!!`: `!x` is left out, as not is a gate
+++ x !x
+      ^

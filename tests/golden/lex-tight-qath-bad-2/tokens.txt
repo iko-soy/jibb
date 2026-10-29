@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-qath-bad-2/source.jibb:1:12: unexpected `?`: a path carries no query, and a segment holds lowercase letters, digits and - . ~ _
+++ x %/blog?page=2
+           ^

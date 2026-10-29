@@ -1,0 +1,226 @@
+2:1 glyph /=
+2:5 name cart
+2:11 glyph /
+2:12 tight knot ui
+2:14 tight glyph /
+2:15 tight knot stores
+2:21 tight glyph /
+2:22 tight knot cart
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name main
+4:9 glyph (
+4:10 tight name program
+4:18 name init
+4:23 name update
+4:30 name view
+4:35 name subs
+4:39 tight glyph )
+6:1 NEWLINE
+6:1 glyph +$
+6:4 name model
+6:10 glyph [
+6:11 tight name cart
+6:15 tight glyph =
+6:16 tight wing state.cart
+6:27 name note
+6:31 tight glyph =
+6:32 tight aura @t
+6:34 tight glyph ]
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name msg
+7:8 glyph $?
+8:3 INDENT
+8:3 glyph [
+8:4 tight lit %noted
+8:11 name text
+8:15 tight glyph =
+8:16 tight aura @t
+8:18 tight glyph ]
+9:3 NEWLINE
+9:3 lit %add
+10:3 NEWLINE
+10:3 lit %toggle
+11:3 NEWLINE
+11:3 glyph [
+11:4 tight lit %got
+11:9 name cart
+11:13 tight glyph =
+11:14 tight wing state.cart
+11:24 tight glyph ]
+12:3 NEWLINE
+12:3 glyph [
+12:4 tight lit %acked
+12:11 name err
+12:14 tight glyph =
+12:15 tight glyph (
+12:16 tight name unit
+12:21 aura @t
+12:23 tight glyph )
+12:24 tight glyph ]
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name init
+14:9 glyph |=
+14:12 lit ~
+15:3 INDENT
+15:3 glyph [
+15:4 tight glyph [
+15:5 tight lit ~
+15:7 lit %.n
+15:10 tight glyph ]
+15:12 str ""
+15:14 tight glyph ]
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name update
+17:11 glyph |=
+17:14 glyph [
+17:15 tight glyph =
+17:16 tight name msg
+17:20 name m
+17:21 tight glyph =
+17:22 tight name model
+17:27 tight glyph ]
+18:3 INDENT
+18:3 glyph ?-
+18:6 name msg
+19:5 INDENT
+19:5 glyph [
+19:6 tight lit %noted
+19:13 name t
+19:14 tight glyph ]
+19:20 glyph [
+19:21 tight name m
+19:22 tight glyph (
+19:23 tight name note
+19:27 tight glyph =
+19:28 tight name t
+19:29 tight glyph )
+19:31 lit ~
+19:32 tight glyph ]
+20:5 NEWLINE
+20:5 lit %add
+20:20 glyph [
+20:21 tight name m
+20:22 tight glyph (
+20:23 tight name note
+20:27 tight glyph =
+20:28 tight str ""
+20:30 tight glyph )
+20:32 glyph ~[
+20:34 tight glyph [
+20:35 tight lit %poke
+20:41 glyph (
+20:42 tight wing cart-action.cart
+20:59 glyph [
+20:60 tight lit %add
+20:65 wing note.m
+20:71 tight glyph ]
+20:72 tight glyph )
+20:74 glyph |=
+20:76 tight lit %acked
+20:82 tight glyph ]
+20:83 tight glyph ]
+20:84 tight glyph ]
+21:5 NEWLINE
+21:5 lit %toggle
+21:20 glyph [
+21:21 tight name m
+21:23 glyph ~[
+21:25 tight glyph [
+21:26 tight lit %poke
+21:32 glyph (
+21:33 tight wing cart-action.cart
+21:50 lit %toggle
+21:57 tight glyph )
+21:59 glyph |=
+21:61 tight lit %acked
+21:67 tight glyph ]
+21:68 tight glyph ]
+21:69 tight glyph ]
+22:5 NEWLINE
+22:5 glyph [
+22:6 tight lit %got
+22:11 name c
+22:12 tight glyph ]
+22:20 glyph [
+22:21 tight name m
+22:22 tight glyph (
+22:23 tight name cart
+22:27 tight glyph =
+22:28 tight name c
+22:29 tight glyph )
+22:31 lit ~
+22:32 tight glyph ]
+23:5 NEWLINE
+23:5 glyph [
+23:6 tight lit %acked
+23:13 name err
+23:16 tight glyph ]
+23:20 glyph [
+23:21 tight name m
+23:23 lit ~
+23:24 tight glyph ]
+25:1 DEDENT
+25:1 DEDENT
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name subs
+25:9 glyph |=
+25:12 name m
+25:13 tight glyph =
+25:14 tight name model
+26:3 INDENT
+26:3 glyph ~[
+26:5 tight glyph [
+26:6 tight lit %watch
+26:13 glyph (
+26:14 tight wing state.cart
+26:25 glyph |=
+26:27 tight lit %got
+26:31 tight glyph )
+26:32 tight glyph ]
+26:33 tight glyph ]
+28:1 DEDENT
+28:1 NEWLINE
+28:1 glyph ++
+28:4 name view
+28:9 glyph |=
+28:12 name m
+28:13 tight glyph =
+28:14 tight name model
+29:3 INDENT
+29:3 name column
+29:10 glyph ~[
+29:12 tight name gap
+29:15 tight glyph +
+29:16 tight lit %s1
+29:19 tight glyph ]
+29:21 glyph ~[
+30:5 INDENT
+30:5 glyph (
+30:6 tight name text
+30:11 str-head ""
+30:13 tight glyph (
+30:14 tight name lent
+30:19 wing items.cart.m
+30:31 tight glyph )
+30:32 tight str-tail " items"
+30:40 tight glyph )
+31:5 NEWLINE
+31:5 name field
+31:11 str "Item"
+31:18 wing note.m
+31:25 glyph |=
+31:27 tight lit %noted
+32:5 NEWLINE
+32:5 name button
+32:12 str "Add"
+32:18 lit %add
+32:22 DEDENT
+32:22 DEDENT
+32:22 NEWLINE

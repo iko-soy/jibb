@@ -1,0 +1,11 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph ~[
+1:8 tight name pad
+1:11 tight glyph +
+1:12 tight lit %s3
+1:16 name gap
+1:19 tight glyph +
+1:20 tight lit %s2
+1:23 tight glyph ]
+1:24 NEWLINE

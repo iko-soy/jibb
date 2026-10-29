@@ -1,0 +1,7 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph /
+1:7 tight knot posts
+1:12 tight glyph /
+1:13 tight knot ~zod
+1:17 NEWLINE

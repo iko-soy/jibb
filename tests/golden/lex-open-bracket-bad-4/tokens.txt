@@ -1,0 +1,13 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph (
+1:7 tight name column
+1:14 lit ~
+1:16 glyph ~[
+2:5 INDENT
+2:5 glyph (
+2:6 tight name text
+2:11 str "a"
+2:14 tight glyph )
+2:15 DEDENT
+2:15 NEWLINE

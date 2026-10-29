@@ -1,0 +1,20 @@
+1:1 glyph +$
+1:4 name paths
+1:10 glyph $?
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %changes
+2:13 glyph /
+2:14 tight knot updates
+2:22 glyph (
+2:23 tight name facts
+2:29 name todos
+2:35 name todo-update
+2:46 tight glyph )
+2:48 name scry
+2:52 tight glyph =
+2:53 tight glyph /
+2:54 tight knot todos
+2:59 tight glyph ]
+2:60 DEDENT
+2:60 NEWLINE

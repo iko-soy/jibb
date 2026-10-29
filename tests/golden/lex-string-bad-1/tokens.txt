@@ -1,0 +1,3 @@
+/tests/golden/lex-string-bad-1/source.jibb:1:6: there is no '…' form: strings are "…"
+++ x 'milk'
+     ^

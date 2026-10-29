@@ -1,0 +1,3 @@
+/tests/golden/lex-term-bad-1/source.jibb:1:7: `%` begins a term, a loobean or `%/`
+++ x %Add
+      ^

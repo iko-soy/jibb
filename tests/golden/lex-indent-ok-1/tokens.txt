@@ -1,0 +1,41 @@
+1:1 glyph ++
+1:4 name view
+1:9 glyph |=
+1:12 name m
+1:13 tight glyph =
+1:14 tight name model
+2:5 INDENT
+2:5 name column
+2:12 glyph ~[
+2:14 tight name gap
+2:17 tight glyph +
+2:18 tight lit %s1
+2:21 tight glyph ]
+2:23 glyph ~[
+3:6 INDENT
+3:6 glyph (
+3:7 tight name text
+3:12 str "one"
+3:17 tight glyph )
+4:6 NEWLINE
+4:6 name row
+4:10 lit ~
+4:12 glyph ~[
+5:12 INDENT
+5:12 glyph (
+5:13 tight name text
+5:18 str "two"
+5:23 tight glyph )
+6:6 DEDENT
+6:6 NEWLINE
+6:6 glyph (
+6:7 tight name text
+6:12 str "three"
+6:19 tight glyph )
+7:1 DEDENT
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name main
+7:9 name view
+7:13 NEWLINE

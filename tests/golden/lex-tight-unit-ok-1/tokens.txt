@@ -1,0 +1,25 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph ~[
+1:8 tight glyph `
+1:9 tight str "Too long"
+1:20 glyph `
+1:21 tight glyph [
+1:22 tight name a
+1:24 name b
+1:25 tight glyph ]
+1:27 glyph `
+1:28 tight glyph `
+1:29 tight name c
+1:31 glyph `
+1:32 tight glyph %/
+1:34 tight knot blog
+1:39 glyph `
+1:40 tight glyph (
+1:41 tight name f
+1:43 name a
+1:44 tight glyph )
+1:46 glyph `
+1:47 tight lit ~
+1:48 tight glyph ]
+1:49 NEWLINE

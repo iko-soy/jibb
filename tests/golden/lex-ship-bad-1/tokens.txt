@@ -1,0 +1,3 @@
+/tests/golden/lex-ship-bad-1/source.jibb:1:13: a ship is syllables in pairs joined by hyphens, as ~zod, ~marzod or ~sampel-palnet
+++ x ~sampelpalnet
+            ^

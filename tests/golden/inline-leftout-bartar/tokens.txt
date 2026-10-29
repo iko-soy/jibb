@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-bartar/source.jibb:1:7: `|*` is left out: modules are records
+++ x |*  a=*  a
+      ^

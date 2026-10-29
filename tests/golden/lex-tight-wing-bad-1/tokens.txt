@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-wing-bad-1/source.jibb:1:12: unexpected `.`: a `.` joins the names of a wing, as title.p
+++ x title . p
+           ^

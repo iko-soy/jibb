@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-opener-bad-4/source.jibb:1:8: `$-` has only the wide form `$-(sample product)`
++$ x $- (@t @t)
+       ^

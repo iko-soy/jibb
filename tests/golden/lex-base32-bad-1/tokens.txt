@@ -1,0 +1,3 @@
+/tests/golden/lex-base32-bad-1/source.jibb:1:13: a base-32 number is 0v and digits 0-9 and a-v, in groups of five joined by dots, as 0v5.fdf99
+++ x 0v5.fdfz9
+            ^

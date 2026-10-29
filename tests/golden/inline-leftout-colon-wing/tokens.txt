@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-colon-wing/source.jibb:1:8: `a:b` is left out: names never shadow, and `.` reads imports too; write a.b
+++ x a:b
+       ^

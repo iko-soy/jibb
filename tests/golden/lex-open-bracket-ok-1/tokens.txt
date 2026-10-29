@@ -1,0 +1,59 @@
+1:1 glyph ++
+1:4 name items
+2:3 INDENT
+2:3 glyph ~[
+3:5 INDENT
+3:5 glyph (
+3:6 tight name text
+3:11 str "a"
+3:14 tight glyph )
+4:5 NEWLINE
+4:5 name text
+4:10 str "b"
+5:1 DEDENT
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name record
+6:3 INDENT
+6:3 glyph [
+7:5 INDENT
+7:5 name text
+7:9 tight glyph =
+7:10 tight str "milk"
+8:5 NEWLINE
+8:5 name done
+8:9 tight glyph =
+8:10 tight lit %.n
+9:1 DEDENT
+9:1 DEDENT
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name changed
+10:3 INDENT
+10:3 name m
+10:4 tight glyph (
+11:5 INDENT
+11:5 name note
+11:9 tight glyph =
+11:10 tight str "x"
+12:5 NEWLINE
+12:5 name error
+12:10 tight glyph =
+12:11 tight lit ~
+13:1 DEDENT
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name grouped
+14:3 INDENT
+14:3 glyph (
+14:4 tight name f
+14:6 name a
+15:5 INDENT
+15:5 name b
+16:5 NEWLINE
+16:5 name c
+16:6 DEDENT
+16:6 DEDENT
+16:6 NEWLINE

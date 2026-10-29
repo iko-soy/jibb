@@ -1,0 +1,3 @@
+/tests/golden/lex-indent-bad-1/source.jibb:2:1: a tab: Jibb uses spaces only
+ 5
+^

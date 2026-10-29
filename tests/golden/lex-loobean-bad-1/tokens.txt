@@ -1,0 +1,3 @@
+/tests/golden/lex-loobean-bad-1/source.jibb:1:8: the loobeans are `%.y` and `%.n`
+++ x %.x
+       ^

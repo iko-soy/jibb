@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-buccen/source.jibb:1:7: `$%` is left out: `$?` covers unions
++$ x $%
+      ^

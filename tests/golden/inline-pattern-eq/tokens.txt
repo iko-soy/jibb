@@ -1,0 +1,27 @@
+1:1 glyph ++
+1:4 name f
+1:6 glyph |=
+1:9 glyph [
+1:10 tight name a
+1:11 tight glyph =
+1:12 tight aura @
+1:14 name b
+1:15 tight glyph =
+1:16 tight aura @
+1:17 tight glyph ]
+2:3 INDENT
+2:3 glyph ?-
+2:6 glyph (
+2:7 tight name eq
+2:10 name a
+2:12 name b
+2:13 tight glyph )
+3:5 INDENT
+3:5 lit %.y
+3:10 str "equal"
+4:5 NEWLINE
+4:5 lit %.n
+4:10 str "different"
+4:21 DEDENT
+4:21 DEDENT
+4:21 NEWLINE

@@ -1,0 +1,12 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph (
+1:7 tight name turn
+1:12 name ps
+1:15 glyph |=
+1:18 glyph (
+1:19 tight name p
+1:21 wing title.p
+1:28 tight glyph )
+1:29 tight glyph )
+1:30 NEWLINE

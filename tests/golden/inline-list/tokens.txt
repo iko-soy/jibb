@@ -1,0 +1,16 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph ~[
+1:8 tight lit 1
+1:10 lit 2
+1:12 lit 3
+1:13 tight glyph ]
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name y
+2:6 glyph ~[
+2:8 tight name a
+2:10 name b
+2:12 name c
+2:13 tight glyph ]
+2:14 NEWLINE

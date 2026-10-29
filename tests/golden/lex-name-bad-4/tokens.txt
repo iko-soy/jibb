@@ -1,0 +1,3 @@
+/tests/golden/lex-name-bad-4/source.jibb:1:4: unexpected `-`: a name starts with a letter, and Jibb has no operators
+++ -view 5
+   ^

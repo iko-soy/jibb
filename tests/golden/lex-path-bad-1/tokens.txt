@@ -1,0 +1,3 @@
+/tests/golden/lex-path-bad-1/source.jibb:1:7: unexpected `P`: a path segment holds lowercase letters, digits and - . ~ _
++$ x /Posts
+      ^

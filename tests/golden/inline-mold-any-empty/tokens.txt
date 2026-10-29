@@ -1,0 +1,8 @@
+1:1 glyph +$
+1:4 name a
+1:6 glyph *
+2:1 NEWLINE
+2:1 glyph +$
+2:4 name b
+2:6 glyph !!
+2:8 NEWLINE

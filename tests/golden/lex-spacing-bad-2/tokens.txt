@@ -1,0 +1,3 @@
+/tests/golden/lex-spacing-bad-2/source.jibb:1:7: a tab: Jibb uses spaces only
+++ x f a
+      ^

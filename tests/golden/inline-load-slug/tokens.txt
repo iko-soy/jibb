@@ -1,0 +1,15 @@
+1:1 glyph ++
+1:4 name load
+1:9 glyph |=(
+1:12 tight glyph [
+1:13 tight name slug
+1:17 tight glyph =
+1:18 tight aura @ta
+1:21 tight glyph ]
+1:23 glyph (
+1:24 tight wing post.api
+1:33 name slug
+1:38 name same
+1:42 tight glyph )
+1:43 tight glyph )
+1:44 NEWLINE

@@ -1,0 +1,28 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph (
+1:7 tight name f
+1:9 name a
+1:11 name b
+2:3 INDENT
+2:3 name c
+3:3 NEWLINE
+3:3 name g
+3:5 name d
+4:3 NEWLINE
+4:3 glyph (
+4:4 tight name h
+4:6 name e
+4:7 tight glyph )
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name y
+5:6 glyph (
+5:7 tight name f
+6:3 INDENT
+6:3 name a
+7:3 NEWLINE
+7:3 name b
+7:4 DEDENT
+7:4 NEWLINE

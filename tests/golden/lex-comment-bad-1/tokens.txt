@@ -1,0 +1,3 @@
+/tests/golden/lex-comment-bad-1/source.jibb:1:10: a comment starts with `::`
+++ x 5  : not a comment
+         ^
