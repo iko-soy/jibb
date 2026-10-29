@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `[t %draft]`: "A pair ending in `%draft`"
+tests: a cell pattern with a binding name then a tag
+expect: parses

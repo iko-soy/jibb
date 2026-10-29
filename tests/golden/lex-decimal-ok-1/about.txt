@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Decimal row: `1.000`, "`@ud`, or any aura by context; groups of three, as in Hoon"
+tests: decimals below 1.000, and with one and two dot groups
+expect: parses

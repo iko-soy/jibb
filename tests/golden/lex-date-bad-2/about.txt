@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Date row: `~2026.10.23`, `~2026.10.23..14.30.00`, "`@da`"; Literals by context: "`print-date` prints in the theme's zone, Urbit-style, to the minute, as `~2026.10.29..14.30`"
+tests: print-date's minute form written as a literal
+expect: error at 1:24 — a date's time has hours, minutes and seconds, as in Hoon, whose parser stops here too; the minute form is how print-date prints for readers, not a literal

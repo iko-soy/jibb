@@ -1,0 +1,3 @@
+source: Grammar tab, Tag resolution: "`|=%typed` is a case's constructor: against `$-(@t M)` it is `|=(t [%typed t])`, requiring `M` to have a case `[%typed @t]`."
+tests: the constructor, the gate mold it meets, its expansion as a wide gate, and the case it needs
+expect: parses

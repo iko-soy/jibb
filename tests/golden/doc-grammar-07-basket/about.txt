@@ -1,0 +1,3 @@
+source: Grammar tab, section "Example: a store and an island", code block 7 of the tab
+tests: an island module: a `/=` import; blank lines between definitions; a record mold holding a wing mold `state.cart`; a union with term, faced-cell and mold-application cases; `|= ~` with its body below; a pun sample `=msg`; arms whose expressions are cells holding changes (`m(note="")`), lists of cells, parenthesised calls of wings and constructors (`|=%acked`); `(state.cart |=%got)`; a list left open at the end of its line whose items are a parenthesised call with an interpolated group `{(lent items.cart.m)}` and two unparenthesised calls, one ending in `|=%noted`
+expect: parses

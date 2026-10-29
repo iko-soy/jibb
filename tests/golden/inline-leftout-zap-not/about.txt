@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`.=`, `?!`, `=(a b)`, `!x`: `eq` and `not` are gates."
+tests: `!x`, which the doc leaves out, where Hoon would write it
+expect: error at 1:7 — `!x` is left out (not is a gate); `!` can only begin `!!`

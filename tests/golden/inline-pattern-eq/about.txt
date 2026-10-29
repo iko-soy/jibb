@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns: "A name in a pattern always binds anew, so compare values with `?- (eq a b)`."
+tests: a branch on a parenthesised call, with loobean arms
+expect: parses

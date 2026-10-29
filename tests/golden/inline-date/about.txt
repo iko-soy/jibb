@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Date row: `~2026.10.23`, `~2026.10.23..14.30.00`, "`@da`"
+tests: a date, and a date with a time
+expect: parses

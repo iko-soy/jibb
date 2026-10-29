@@ -1,0 +1,1 @@
+++ load |=([slug=@ta] (post.api slug same))

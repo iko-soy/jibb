@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`|%`, `|_`, `|*`: modules are records."
+tests: `|*`, which the doc leaves out, where Hoon would write it
+expect: error at 1:7 — `|*` is left out (modules are records); `|` can only begin `|=` here

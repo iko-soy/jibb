@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`!!` zapzap: a crash, an expression of any type; as a mold, the empty mold."
+tests: the crash as an expression and as a mold
+expect: parses

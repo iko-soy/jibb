@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Term row: `%add`, "A union's case, or that constant atom where an atom is expected"
+tests: a term literal
+expect: parses

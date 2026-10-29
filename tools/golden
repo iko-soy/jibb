@@ -1,0 +1,435 @@
+#!/usr/bin/env python3
+"""Run the golden tests through urbit eval, without a ship.
+
+Each case is a folder, tests/golden/<case>/, holding source.jibb and the
+expected outputs, tokens.txt (the layout pass) and tree.txt (the
+parser).  The runner builds one Hoon program, `!:  =>  <library>
+<harness>`, whose harness calls the library's
+
+    ++  golden  |=  [file=path src=@t]  ^-  [tokens=@t tree=@t]
+
+on every case, each under mule so that one crash doesn't stop the rest,
+with file set to the case's Clay path, /tests/golden/<case>/source/jibb.
+It runs the program with `urbit eval`, decodes the jammed result, and
+compares each output with its file, which holds the output plus one
+trailing newline.
+
+A crash's output is CRASH and its trace.  A crash always fails, and
+--update never writes one.
+
+Exit status: 0 when every case passes, 1 when a case fails or crashes,
+2 when the tests can't run (the library doesn't compile, a usage error).
+"""
+
+import argparse
+import concurrent.futures
+import difflib
+import fnmatch
+import os
+import re
+import sys
+import time
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+
+import urbit_eval as ue  # noqa: E402
+from noun import atom_to_bytes  # noqa: E402
+
+DEFAULT_DIR = os.path.join(ue.ROOT, 'tests', 'golden')
+MAGIC = b'jibb-golden'
+KNOT = re.compile(r'^[a-z0-9\-.~_]+$')
+
+HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
+::  golden:lib on each case under mule and returns one cord of fields,
+::  each <length>:<bytes>, first jibb-golden and the case count, then
+::  per case its name, ok or crash, tokens and tree.
+::
+=>  [lib=. ..zuse]
+|^  %+  rap  3
+    :~  (fields ~['jibb-golden' '{count}'])
+{runs}
+    ==
+::
+++  run
+  |=  [name=@t src=@t]
+  ^-  @t
+  =/  res  (mule |.((golden:lib (file name) src)))
+  ?:  ?=(%| -.res)
+    =/  why=@t  (crash p.res)
+    (fields ~[name 'crash' why why])
+  =/  out=[tokens=@t tree=@t]  p.res
+  (fields ~[name 'ok' tokens.out tree.out])
+::
+++  file
+  |=  name=@
+  ^-  path
+  ~[%tests %golden name %source %jibb]
+::
+++  text
+  |=  lines=(list @t)
+  ^-  @t
+  (rap 3 lines)
+::
+++  crash
+  |=  why=tang
+  ^-  @t
+  =/  lines=wall  (zing (turn (flop why) |=(a=tank (wash [0 80] a))))
+  (rap 3 (join '\0a' `(list @t)`['CRASH' (turn lines crip)]))
+::
+++  fields
+  |=  a=(list @t)
+  ^-  @t
+  %+  rap  3
+  %+  turn  a
+  |=  b=@t
+  (rap 3 ~[(crip (a-co:co (met 3 b))) ':' b ','])
+--
+"""
+
+
+EPILOG = """\
+A file holds its output plus one trailing newline.  A crash's output is
+CRASH and its trace; a crash always fails, and --update never writes one.
+
+Exit status: 0 when every case passes, 1 when a case fails or crashes, 2
+when the tests can't run, as when the library doesn't compile.
+"""
+
+
+class Case:
+    def __init__(self, name, folder):
+        self.name = name
+        self.folder = folder
+        self.source_path = os.path.join(folder, 'source.jibb')
+        with open(self.source_path, 'rb') as f:
+            self.source = f.read()
+        self.crashed = False
+        self.crash_at = None    # the innermost library spot of a crash
+        self.outputs = {}       # 'tokens' and 'tree' -> bytes
+
+
+def find_cases(root, globs):
+    if not os.path.isdir(root):
+        raise ue.ToolError('no such folder: %s' % ue.display_path(root))
+    cases = []
+    for name in sorted(os.listdir(root)):
+        folder = os.path.join(root, name)
+        if not os.path.isdir(folder):
+            continue
+        if not os.path.isfile(os.path.join(folder, 'source.jibb')):
+            warn('skipping %s: it has no source.jibb' % ue.display_path(folder))
+            continue
+        if globs and not any(fnmatch.fnmatchcase(name, g) for g in globs):
+            continue
+        cases.append(Case(name, folder))
+    return cases
+
+
+def run_lines(case):
+    """The harness's call for one case.  The source is written one line
+    per cord, each but the last ending in its newline, so that a NUL
+    before a newline survives; only NULs ending the file are lost, as
+    they are in Clay, where the file is one atom."""
+    lines = case.source.split(b'\n')
+    lines = [line + b'\n' for line in lines[:-1]] + lines[-1:]
+    out = ['        %%+  run  %s' % ue.cord_literal(case.name.encode()),
+           '        %-  text',
+           '        :~  ' + ue.cord_literal(lines[0])]
+    out += ['            ' + ue.cord_literal(line) for line in lines[1:]]
+    out.append('        ==')
+    return out
+
+
+def golden_program(lib_path, cases):
+    prog = ue.library_program(lib_path)
+    runs = '\n'.join(line for case in cases for line in run_lines(case))
+    prog.add(HARNESS.replace('{count}', str(len(cases)))
+                    .replace('{runs}', runs), '(harness)', 'harness')
+    return prog
+
+
+def parse_fields(data):
+    """Split <length>:<bytes>, fields; raise ValueError if malformed."""
+    fields, i = [], 0
+    while i < len(data):
+        colon = data.index(b':', i)
+        end = colon + 1 + int(data[i:colon].replace(b'.', b''))
+        if data[end:end + 1] != b',':
+            raise ValueError('field at byte %d has no closing comma' % i)
+        fields.append(data[colon + 1:end])
+        i = end + 1
+    return fields
+
+
+def crash_text(prog, lines):
+    """A CRASH output, its spots mapped to the library and the harness's
+    frames, which depend on the batch, dropped; and where it crashed."""
+    mapped, spots = ue.map_trace(prog, lines, keep=('lib',))
+    text = '\n'.join(ue.fold_repeats(mapped)).encode('utf-8', 'surrogateescape')
+    return text, ue.focus(spots)
+
+
+def decode(prog, noun, cases):
+    if not isinstance(noun, int):
+        raise ue.ToolError('the harness returned a cell, not a cord')
+    try:
+        fields = parse_fields(atom_to_bytes(noun))
+    except ValueError as e:
+        raise ue.ToolError('the harness output is malformed: %s' % e)
+    if fields[:2] != [MAGIC, str(len(cases)).encode()] or \
+            len(fields) != 2 + 4 * len(cases):
+        raise ue.ToolError('the harness output has the wrong shape')
+    for i, case in enumerate(cases):
+        name, status, tokens, tree = fields[2 + 4 * i:6 + 4 * i]
+        if name != case.name.encode():
+            raise ue.ToolError('the harness output is out of order at %s'
+                               % case.name)
+        case.crashed = status == b'crash'
+        if case.crashed:
+            tokens, case.crash_at = crash_text(
+                prog, tokens.decode('utf-8', 'surrogateescape').split('\n'))
+            tree = tokens
+        case.outputs = {'tokens': tokens, 'tree': tree}
+
+
+def eval_crash(prog, res, case):
+    """Mark a case crashed when its whole eval failed."""
+    case.crashed = True
+    out, case.crash_at = crash_text(prog, ['CRASH', res.describe()] + res.trace)
+    case.outputs = {'tokens': out, 'tree': out}
+
+
+def run_batch(lib_path, cases, opts, top=True):
+    """Run cases in one eval.  If the eval itself dies, which mule can't
+    stop (out of memory, a timeout), run each case alone to find which."""
+    prog = golden_program(lib_path, cases)
+    if opts.save_program and top:
+        with open(opts.save_program, 'wb') as f:
+            f.write(prog.encode())
+    res = ue.run_eval(prog, jam=True, timeout=opts.timeout)
+    if res.ok:
+        decode(prog, res.noun, cases)
+        return
+    if res.is_compile_error():
+        lib = ue.display_path(lib_path)
+        report = ue.failure_report(
+            prog, res, "error: %s doesn't compile" % lib,
+            harness_headline="error: the golden harness doesn't compile "
+            "against %s, whose golden arm must be\n"
+            "  ++  golden  |=  [file=path src=@t]  ^-  [tokens=@t tree=@t]"
+            % lib)
+        hint = ue.lib_hint(ue.read_text(lib_path))
+        raise ue.ToolError(report + ('\n\n' + hint if hint else ''))
+    if len(cases) == 1:
+        eval_crash(prog, res, cases[0])
+        return
+    warn('%s while running %d cases at once; running each alone to find '
+         'which' % (res.describe(), len(cases)))
+    with concurrent.futures.ThreadPoolExecutor(opts.jobs) as pool:
+        for f in [pool.submit(run_batch, lib_path, [c], opts, False)
+                  for c in cases]:
+            f.result()
+
+
+# Output
+
+def colour(code, text):
+    return '\x1b[%sm%s\x1b[0m' % (code, text) if USE_COLOUR else text
+
+
+def warn(msg):
+    print('golden: ' + msg, file=sys.stderr)
+
+
+def visible(line):
+    """A diff line with control characters shown as \\xNN."""
+    return re.sub(r'[\x00-\x1f\x7f]',
+                  lambda m: '\\x%02x' % ord(m.group()), line)
+
+
+def diff_lines(path, expected, actual):
+    """A unified diff of a file's text against an output, or a note."""
+    label = ue.display_path(path)
+    act = actual.decode('utf-8', 'surrogateescape').split('\n')
+    if expected is None:
+        old, fromfile = [], '/dev/null'
+    else:
+        text = expected.decode('utf-8', 'surrogateescape')
+        old = (text[:-1] if text.endswith('\n') else text).split('\n')
+        fromfile = label
+    out = []
+    for line in difflib.unified_diff(old, act, fromfile=fromfile,
+                                     tofile=label + ' (actual)', lineterm=''):
+        line = visible(line)
+        if line.startswith(('+++', '---')):
+            out.append(colour('1', line))
+        elif line.startswith('@@'):
+            out.append(colour('36', line))
+        elif line.startswith('+'):
+            out.append(colour('32', line))
+        elif line.startswith('-'):
+            out.append(colour('31', line))
+        else:
+            out.append(line)
+    if not out:
+        out.append('%s differs only at its end: a file holds the output '
+                   'plus one newline' % label)
+    return out
+
+
+def compare(case):
+    """PASS or FAIL lines for one case."""
+    if case.crashed:
+        out = [colour('31', 'FAIL') + '  %s: crashed' % case.name]
+        out += ['  ' + l for l in case.outputs['tokens']
+                .decode('utf-8', 'surrogateescape').split('\n')]
+        if case.crash_at is not None:
+            out += ['  at %s' % case.crash_at.label(),
+                    case.crash_at.excerpt(indent='    ')]
+        return False, out
+    problems = []
+    for kind in ('tokens', 'tree'):
+        path = os.path.join(case.folder, kind + '.txt')
+        want = case.outputs[kind] + b'\n'
+        if os.path.isfile(path):
+            with open(path, 'rb') as f:
+                expected = f.read()
+            if expected == want:
+                continue
+            problems += diff_lines(path, expected, case.outputs[kind])
+        else:
+            problems.append('%s is missing; tools/golden --update writes '
+                            'it.  The output:' % ue.display_path(path))
+            problems += diff_lines(path, None, case.outputs[kind])
+    if not problems:
+        return True, [colour('32', 'PASS') + '  ' + case.name]
+    return False, ([colour('31', 'FAIL') + '  ' + case.name] +
+                   ['  ' + l for l in problems])
+
+
+def update(case):
+    """Write a case's outputs; returns the paths written."""
+    written = []
+    for kind in ('tokens', 'tree'):
+        path = os.path.join(case.folder, kind + '.txt')
+        want = case.outputs[kind] + b'\n'
+        try:
+            with open(path, 'rb') as f:
+                if f.read() == want:
+                    continue
+        except FileNotFoundError:
+            pass
+        with open(path, 'wb') as f:
+            f.write(want)
+        written.append(path)
+    return written
+
+
+def show(case):
+    out = []
+    for kind in ('tokens', 'tree'):
+        out.append(colour('1', '==> %s: %s <==' % (case.name, kind)))
+        out.append(case.outputs[kind].decode('utf-8', 'surrogateescape'))
+    return out
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(
+        prog='tools/golden',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='Run the golden tests (tests/golden/<case>/source.jibb) '
+                    'through urbit eval and compare the outputs with '
+                    'tokens.txt and tree.txt.',
+        epilog=EPILOG)
+    ap.add_argument('--dir', default=DEFAULT_DIR,
+                    help='the folder of cases (default: tests/golden).  The '
+                    'file path passed to golden stays '
+                    '/tests/golden/<case>/source/jibb')
+    ap.add_argument('--case', action='append', default=[], metavar='GLOB',
+                    help='only cases whose name matches GLOB; repeatable')
+    ap.add_argument('--lib', default=ue.DEFAULT_LIB, metavar='PATH',
+                    help='the library (default: jibb-dev/lib/jibb.hoon)')
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument('--update', action='store_true',
+                      help='write the outputs to tokens.txt and tree.txt')
+    mode.add_argument('--show', action='store_true',
+                      help='print the outputs without comparing')
+    ap.add_argument('--timeout', type=float, default=600, metavar='SECONDS',
+                    help='how long one urbit eval may run (default: 600)')
+    ap.add_argument('--jobs', type=int, default=2, metavar='N',
+                    help='evals at once when cases are rerun one by one '
+                    'after the eval dies (default: 2)')
+    ap.add_argument('--save-program', metavar='FILE',
+                    help='also write the generated Hoon program to FILE')
+    opts = ap.parse_args(argv)
+    # Outputs that aren't UTF-8 are held with surrogateescape; print them
+    # back out as the bytes they were.
+    sys.stdout.reconfigure(errors='surrogateescape')
+
+    try:
+        cases = find_cases(os.path.abspath(opts.dir), opts.case)
+        if not cases:
+            raise ue.ToolError('no cases in %s%s' % (
+                ue.display_path(opts.dir),
+                ' match ' + ' '.join(opts.case) if opts.case else ''))
+        if not os.path.isfile(opts.lib):
+            raise ue.ToolError('no library at %s' % ue.display_path(opts.lib))
+        for case in cases:
+            if not KNOT.match(case.name):
+                warn("%s isn't a knot (@ta), so the case can't be put in "
+                     "Clay" % case.name)
+        if sys.stderr.isatty():
+            print('running %d case%s under urbit eval...' % (
+                len(cases), '' if len(cases) == 1 else 's'),
+                file=sys.stderr, flush=True)
+        start = time.time()
+        run_batch(os.path.abspath(opts.lib), cases, opts)
+        took = time.time() - start
+    except ue.ToolError as e:
+        print(str(e), file=sys.stderr)
+        return 2
+
+    crashed = [c for c in cases if c.crashed]
+    if opts.show:
+        for case in cases:
+            print('\n'.join(show(case)))
+        return 1 if crashed else 0
+
+    if opts.update:
+        written = []
+        for case in cases:
+            if case.crashed:
+                print('\n'.join(compare(case)[1]))
+                print('  not written: a crash is never an expected output')
+                continue
+            for path in update(case):
+                written.append(path)
+                print('wrote %s' % ue.display_path(path))
+        print('%d file%s written, %d case%s crashed (%.1f s)' % (
+            len(written), '' if len(written) == 1 else 's',
+            len(crashed), '' if len(crashed) == 1 else 's', took))
+        return 1 if crashed else 0
+
+    failed = 0
+    for case in cases:
+        ok, lines = compare(case)
+        failed += not ok
+        print('\n'.join(lines))
+    passed = len(cases) - failed
+    summary = '%d case%s: %d passed, %d failed' % (
+        len(cases), '' if len(cases) == 1 else 's', passed, failed)
+    if crashed:
+        summary += ' (%d crashed)' % len(crashed)
+    print(colour('32' if not failed else '31', summary) +
+          ' (%.1f s)' % took)
+    return 1 if failed else 0
+
+
+USE_COLOUR = sys.stdout.isatty() and not os.environ.get('NO_COLOR')
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        sys.exit(130)

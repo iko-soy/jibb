@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Loobean row: `%.y`, `%.n`, "`?`"
+tests: both loobeans as a cell's items
+expect: parses

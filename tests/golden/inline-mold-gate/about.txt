@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Gates: `$-(A B)`. Type variables are capitals, generalized per `++`."
+tests: a gate mold of two type variables
+expect: parses

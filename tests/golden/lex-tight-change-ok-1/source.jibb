@@ -1,0 +1,3 @@
+++ a m(note=text)
+++ b s(items=[item items.s] open=(not open.s))
+++ c cart.m(note="")

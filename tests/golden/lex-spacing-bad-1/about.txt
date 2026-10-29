@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Spacing: one space between items; more for alignment."
+tests: two items with no space between them
+expect: error at 1:18 — items are separated by a space; nothing may follow the `)` of (text "a") directly

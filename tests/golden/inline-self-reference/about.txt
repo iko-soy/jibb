@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "Gates may call themselves and their siblings; other values can't refer to themselves, so `++ title (trim title)` is an error."
+tests: a value defined in terms of itself
+expect: parses: the error the doc names is the checker's, in milestone 2

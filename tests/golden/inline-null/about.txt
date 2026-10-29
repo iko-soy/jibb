@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Null row: `~`, "A constant: the `~` case of any union with one"
+tests: null
+expect: parses

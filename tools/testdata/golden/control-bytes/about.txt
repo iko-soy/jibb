@@ -1,0 +1,3 @@
+From: written for the runner's self-test.
+Tests: tab, CR, NUL (mid-line and before a newline), SOH, DEL, ESC and bytes that aren't UTF-8 survive the trip into Hoon and back.
+Expected: passes; tokens report all 100 bytes.

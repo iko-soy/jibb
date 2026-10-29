@@ -1,0 +1,13 @@
+      ::  an indented comment before the first code line
++$ msg $?
+     ::  a comment deeper than the cases
+  %a
+ ::  a comment shallower than the cases
+  %b
+++ f |= b=?
+  ?- b
+       ::  between arms, deeper than them
+    %.y  1
+  ::  between arms, shallower than them
+
+    %.n  2

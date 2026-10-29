@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns: "Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, not lists or pairs."; the EBNF: `pattern    = term | number | string | ship | loobean | "~" | "*" | name | "[" pattern { pattern } "]" ;`
+tests: a string pattern with an interpolation
+expect: error at 3:7 — patterns take strings without {…}; up to here the pattern is the string "a"

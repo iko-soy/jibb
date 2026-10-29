@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Spacing: one space between items; more for alignment."
+tests: a tab between items
+expect: error at 1:7 — items are separated by spaces, and a tab isn't one

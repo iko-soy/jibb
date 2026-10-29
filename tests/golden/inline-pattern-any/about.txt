@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `*`: "Anything"
+tests: the catch-all `*`
+expect: parses

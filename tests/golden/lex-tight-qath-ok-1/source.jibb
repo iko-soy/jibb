@@ -1,0 +1,5 @@
+++ a %/blog/(slug)
+++ b %/
+++ c %/static/img/logo.png
+++ d %/blog/(slug.p)/comments
+++ e %/todo/(id)

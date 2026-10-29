@@ -1,0 +1,3 @@
+From: written for the runner's self-test.
+Tests: an empty source, which is the cord 0.
+Expected: passes with 0 bytes and 0 lines, and an empty tree.

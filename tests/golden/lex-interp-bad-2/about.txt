@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Interpolation: `{…}` holds any expression; `\{` writes a brace and `\"` a quote; no `<…>`."
+tests: Hoon's `<…>` printing inside an interpolation
+expect: error at 1:8 — there is no <…>: `{…}` already prints by aura, and no expression starts with `<`

@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Comments: `::` to the end of the line."
+tests: comments on their own line, after code, after a definition's name (so its body is below), after a bracket left open (so it still takes the deeper line), and with no space after `::`, holding quotes, braces and closers
+expect: parses: x is 5, y has the body 6, z is a list of one item

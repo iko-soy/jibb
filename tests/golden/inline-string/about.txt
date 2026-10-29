@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the String row: `"milk"`, `"Since {day}"`, "`@t`, a cord; `{…}` prints by aura; tapes come from `trip`; there is no `'…'` form"
+tests: a plain string and a string interpolating a name
+expect: parses

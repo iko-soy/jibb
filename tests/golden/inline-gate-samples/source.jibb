@@ -1,0 +1,4 @@
+++ f |= m=model m
+++ g |= =msg msg
+++ h |= [a=@ b=@]
+  a

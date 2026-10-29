@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Opaque: `poke`, `ask` and `qath`, built only by derived gates, `pure` and application-path literals."
+tests: the opaque molds by name
+expect: parses

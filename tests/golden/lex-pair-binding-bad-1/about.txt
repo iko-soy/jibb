@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Pairs and units: `gap+%s2` and `` `x `` bind tighter than calls, so `pad+%s3 gap+%s2` is two items."
+tests: a pair and a unit written before a call, meant to take it
+expect: parses as calls: x is the pair pad+f applied to a, not the pair pad+(f a); y is the unit `f applied to a, not `(f a)

@@ -1,0 +1,3 @@
+++ x |=(sample expr)
++$ y $?(case case)
++$ z $-(mold mold)

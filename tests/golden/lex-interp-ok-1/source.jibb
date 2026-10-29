@@ -1,0 +1,8 @@
+++ a "Since {day}"
+++ b "{(lent items.cart.m)} items"
+++ c "{n}"
+++ d "left {n} and right {m}"
+++ e "a \{ brace and a \" quote"
+++ f "{add n 1} is a call without parentheses"
+++ g "{^- @ud n} holds a rune"
+++ h "\{x} is text"

@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `[%move %left n]`: "Tagged `%move`, then `%left`"
+tests: a cell pattern with two tags and a binding name
+expect: parses

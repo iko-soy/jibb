@@ -1,0 +1,3 @@
+From: written for tools/ship test.
+Tests: UTF-8 in the source and in tokens.txt and tree.txt comes through %jibb and %txt unchanged.
+Expected: OK

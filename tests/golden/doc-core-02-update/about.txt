@@ -1,0 +1,3 @@
+source: Core language tab, section "Example", code block 2 of the tab
+tests: the todo island's `update` on its own, as the Core language tab quotes it: a module of one `++`; a `?-` arm with its body on the deeper lines holding a nested `?-`; changes, units, lists and constructors in arm expressions. The same text as lines 16-25 of doc-overview-10-todo-list
+expect: parses

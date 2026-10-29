@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Duration row: `~s30`, `~h1.m30`, "`@dr`"
+tests: a one-unit and a two-unit duration
+expect: parses

@@ -1,0 +1,14 @@
++$ step $?
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+
+++ describe |= s=step
+  ?- s
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent at]      t
+    %stop             "stop"

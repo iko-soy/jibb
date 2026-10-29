@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Open brackets: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual."; the EBNF: `open       = INDENT line { NEWLINE line } DEDENT ;`
+tests: brackets inside an open list's items: a list itself left open, a list closed on its line, and a cell left open after a first item on its line; each inner open bracket closes at the next line that isn't deeper, which goes on as the outer list's next item
+expect: parses as a list of four items: the list ~[1 2], the list ~[3 4], the cell [a=1 b=2], and 5

@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`=>`, `=<`, `.*` and `a:b`: names never shadow, and `.` reads imports too."
+tests: `.*`, which the doc leaves out, where Hoon would write it
+expect: error at 1:6 — `.*` is left out; no expression starts with `.`

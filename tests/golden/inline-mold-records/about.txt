@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Records and tuples: `[text=@t done=?]`, `[@t ?]`. Faces are part of the type, so `[a=@ b=@]` and `[x=@ y=@]` don't unify."
+tests: record and tuple molds
+expect: parses

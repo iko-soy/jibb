@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Names: Hoon terms; lowercase letters, digits and hyphens, starting with a letter."
+tests: a capital letter in a definition's name
+expect: error at 1:6 — names are lowercase; `V` can't continue the name my

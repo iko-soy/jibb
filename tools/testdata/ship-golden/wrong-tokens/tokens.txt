@@ -1,0 +1,5 @@
+file: /tests/golden/wrong-tokens/source/jibb
+1| ++ main view
+2| (this line is wrong on purpose)
+3| ++ view
+4|   text "Hi"

@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Term-headed pair row: `gap+%s2`, "`[%gap %s2]`, any operand after the `+`"
+tests: a term-headed pair
+expect: parses

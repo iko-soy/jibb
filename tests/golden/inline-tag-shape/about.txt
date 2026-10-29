@@ -1,0 +1,3 @@
+source: Grammar tab, Tag resolution: "A constraint records the literal's shape, such as `[@t %draft]`"
+tests: a cell mold ending in a tag
+expect: parses

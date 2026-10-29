@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `[a b]`: "Any cell; `b` is the rest"
+tests: a cell pattern of two binding names
+expect: parses

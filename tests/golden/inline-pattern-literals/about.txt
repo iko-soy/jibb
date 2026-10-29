@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `1.000`, `"milk"`, `~zod`: "That literal"
+tests: number, string and ship patterns
+expect: parses

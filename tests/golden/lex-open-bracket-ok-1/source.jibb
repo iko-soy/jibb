@@ -1,0 +1,16 @@
+++ items
+  ~[
+    (text "a")
+    text "b"
+++ record
+  [
+    text="milk"
+    done=%.n
+++ changed
+  m(
+    note="x"
+    error=~
+++ grouped
+  (f a
+    b
+    c

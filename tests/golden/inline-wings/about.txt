@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Wing `title.p`, also for imports and prelude groups, which are records: `card.card`, `space.theme.theme`, `get.by`."
+tests: wings of two and three names
+expect: parses

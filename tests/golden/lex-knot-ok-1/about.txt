@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Knot row: `~.my-post`, "`@ta`"
+tests: knots: the doc's, the empty knot, and one holding each knot character (_ . ~ - and digits)
+expect: parses

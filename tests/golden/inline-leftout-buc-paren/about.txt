@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`|-`, `$(…)`: gates recurse by name."
+tests: `$(…)`, which the doc leaves out, where Hoon would write it
+expect: error at 1:6 — `$(…)` is left out (gates recurse by name); no expression starts with `$`

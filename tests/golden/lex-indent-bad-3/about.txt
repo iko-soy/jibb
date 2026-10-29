@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Indentation is structure: a deeper line continues the line above; returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count."
+tests: an indented top-level line: the first code line, at column 3
+expect: error at 1:3 — the first code line is indented, but there is no line above for it to continue; top-level lines start at column 1 (the spaces alone could still be a blank or comment line)

@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "Tall forms such as `:~`, `:*`, `%:` and `%=`, the closers `==` and `--`, and other wide forms such as `^-(…)` and `?-(…)`: indentation covers them."
+tests: `^-(…)`, which the doc leaves out, where Hoon would write it
+expect: error at 1:8 — the wide form `^-(…)` is left out; `^-` is followed by a space, then its mold

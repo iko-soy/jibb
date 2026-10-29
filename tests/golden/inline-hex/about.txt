@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Hexadecimal row: `0x1f`, "`@ux`"
+tests: a hexadecimal literal
+expect: parses

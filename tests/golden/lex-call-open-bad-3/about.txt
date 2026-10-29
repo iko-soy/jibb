@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Call: `f a b`; parentheses only group. A call open in parentheses puts its head and first arguments on the first line, then one argument per indented line."; the EBNF: `group      = "(" expr ")" | "(" { operand } open ;`
+tests: `(` alone at the end of its line, with the head on the first indented line
+expect: unclear — the prose puts the head on the first line, while the EBNF's "(" { operand } open allows `(` alone; does this parse as the call f a b, or is the end of line 1 an error, at 1:7? (corpus question 5)

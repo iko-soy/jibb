@@ -1,0 +1,3 @@
+From: written for tools/ship test.
+Tests: a library that crashes; ship-stub.hoon crashes when the first line is "crash".
+Expected: CRASHED

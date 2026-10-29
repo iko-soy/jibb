@@ -1,0 +1,4 @@
+++ f |= [a=@ b=@]
+  ?- (eq a b)
+    %.y  "equal"
+    %.n  "different"

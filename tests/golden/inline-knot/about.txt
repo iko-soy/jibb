@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Knot row: `~.my-post`, "`@ta`"
+tests: a knot literal
+expect: parses

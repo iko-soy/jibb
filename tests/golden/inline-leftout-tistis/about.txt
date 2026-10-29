@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "Tall forms such as `:~`, `:*`, `%:` and `%=`, the closers `==` and `--`, and other wide forms such as `^-(…)` and `?-(…)`: indentation covers them."
+tests: `==`, which the doc leaves out, where Hoon would write it
+expect: error at 4:1 — the closer `==` is left out: line 4 isn't deeper, so it closes the open list by itself, and a top-level line must start a definition

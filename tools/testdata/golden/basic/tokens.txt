@@ -1,0 +1,8 @@
+file: /tests/golden/basic/source/jibb
+bytes: 101
+lines: 5
+1| ++ main view
+2| 
+3| ++ view
+4|   column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
+5|     heading 1 "About this ship"

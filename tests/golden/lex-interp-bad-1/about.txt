@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Interpolation: `{…}` holds any expression; `\{` writes a brace and `\"` a quote; no `<…>`."
+tests: an unknown escape
+expect: error at 1:9 — a `\` can begin \{ or \", and \q is neither (nor one of Hoon's); the input stops being valid at the q

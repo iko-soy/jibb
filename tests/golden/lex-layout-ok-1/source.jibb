@@ -1,0 +1,7 @@
+++ view |= m=model
+  column ~ ~[
+    (text "one")
+    row ~ ~[
+      (text "two")
+      (text "three")
+++ main view

@@ -1,0 +1,7 @@
+::  a comment-only line
+++ x 5  ::  a trailing comment
+++ y    ::  a comment where the expression could go; the body is below
+  6
+::no space after the colons; "quotes", {braces} and ]] in a comment mean nothing
+++ z ~[  ::  after a bracket left open
+  1

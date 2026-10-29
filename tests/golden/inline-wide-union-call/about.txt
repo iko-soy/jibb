@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "Their children are operands, so calls inside need parentheses."
+tests: a mold application written without parentheses inside the wide union
+expect: parses as a union of three cases, %a, list and @t, not of %a and (list @t)

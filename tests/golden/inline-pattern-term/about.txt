@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `%add`: "The term"
+tests: a term pattern, then a catch-all
+expect: parses

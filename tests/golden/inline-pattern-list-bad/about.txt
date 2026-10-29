@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns: "Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, not lists or pairs."; the EBNF: `pattern    = term | number | string | ship | loobean | "~" | "*" | name | "[" pattern { pattern } "]" ;`
+tests: a list pattern
+expect: error at 3:6 — patterns take no lists: `~` alone is the null pattern, and `[` right after it opens a list (the opener `~[`)

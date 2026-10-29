@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`$-` buchep: a gate's mold, `$-(sample product)`."
+tests: a gate mold of two named molds
+expect: parses

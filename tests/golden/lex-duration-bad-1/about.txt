@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Duration row: `~s30`, `~h1.m30`, "`@dr`"
+tests: a duration's units run together
+expect: error at 1:9 — a duration's units are separated by dots, as ~h1.m30

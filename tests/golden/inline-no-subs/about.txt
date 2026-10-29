@@ -1,0 +1,3 @@
+source: the first tab ("Jibb — an Elm-architecture UI language for Urbit"), The Elm architecture on Urbit: "`subs` is required, as in Elm's `Browser.element`; `|=(m ~)` means none."
+tests: the wide gate whose body is null
+expect: parses

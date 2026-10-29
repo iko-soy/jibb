@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Hexadecimal row: `0x1f`, "`@ux`"
+tests: hexadecimals: zero, one group, and dot groups of four
+expect: parses

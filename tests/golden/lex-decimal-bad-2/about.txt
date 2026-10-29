@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Decimal row: `1.000`, "`@ud`, or any aura by context; groups of three, as in Hoon"
+tests: a group of four digits after a dot
+expect: error at 1:11 — each group after a dot has exactly three digits

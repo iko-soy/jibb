@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `x`: "Anything", binding `x`
+tests: a bare name as a catch-all that binds
+expect: parses

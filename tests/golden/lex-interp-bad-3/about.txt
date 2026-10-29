@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Interpolation: `{…}` holds any expression; `\{` writes a brace and `\"` a quote; no `<…>`."
+tests: an empty interpolation
+expect: error at 1:8 — `{…}` holds an expression, and there is none

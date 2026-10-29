@@ -1,0 +1,12 @@
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "a")
+
+ ::  a comment at column 2, inside the list
+         ::  a comment at column 10
+    (text "b")
+   
+::  a comment at column 1, still inside the list
+    (text "c")
+      
+++ main view

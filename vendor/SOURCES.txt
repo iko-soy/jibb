@@ -1,0 +1,37 @@
+Pinned copies of files from the urbit/urbit repository (https://github.com/urbit/urbit).
+
+Upstream commit: 50c7f5239610fc72263df7aa99b4d171cfe9d408
+Copied from:     /root/src/urbit (git -C /root/src/urbit rev-parse HEAD)
+
+Each file keeps its upstream path under pkg/: vendor/base-dev/mar/txt.hoon is
+pkg/base-dev/mar/txt.hoon, vendor/landscape/mar/docket-0.hoon is
+pkg/landscape/mar/docket-0.hoon. tools/ship copies everything under
+vendor/<package>/ into each desk it assembles, at the path below the package:
+vendor/base-dev/mar/txt.hoon becomes /mar/txt/hoon. This file is not copied.
+
+Files are unmodified. To update, copy them again from a newer commit and update
+the commit and the hashes here. To check the copies against the hashes below:
+
+    cd vendor && grep -E '^[0-9a-f]{64}  ' SOURCES.txt | sha256sum -c
+
+Why each file is here:
+- base-dev/mar/txt.hoon, txt-diff.hoon: %txt, which %jibb diffs and merges through (grad %txt), and its diff mark
+- base-dev/mar/js.hoon, bill.hoon, kelvin.hoon: marks the doc lists for every app desk (desk.bill, sys.kelvin)
+- base-dev/mar/hoon.hoon, mime.hoon, noun.hoon: marks Clay needs for .hoon files, Unix commits and the grad of %bill, %kelvin and %docket-0
+- base-dev/lib/test.hoon: expect-eq and friends, for the -test thread's test files
+- landscape/mar/docket-0.hoon: docket's mark, for desk.docket-0
+- landscape/lib/docket.hoon, landscape/sur/docket.hoon: imported by docket-0.hoon (/+  dock=docket) and docket.hoon (/-  *docket)
+
+sha256 of each file, from the vendor/ folder:
+55d5196a3a8dbd5323943c06f138c9b9aa8fd955506c4f4b14e5d56ff05abcc6  base-dev/lib/test.hoon
+a0196da4970b8dfdee321a638040a564f95e8000f3b49eccc274ee8de2fae0ff  base-dev/mar/bill.hoon
+a77a0a8e0cd772ae9e7aa8c50d17b783d1969c64f031b6dc1d71f9e63a1cd73e  base-dev/mar/hoon.hoon
+d5d906e6047731d59aeb778af0927fb178ee8b63eea703fb54153768d2a3449a  base-dev/mar/js.hoon
+f23c0150f240d040dd24d99bb54e02c4df736e0f4d2bd5654bbc304082c8125c  base-dev/mar/kelvin.hoon
+f1b94f43735fd3a6b86f5cd4619851bc1af9145281f68a07724c4bea870de535  base-dev/mar/mime.hoon
+7581328f74894baa376d3a80e370808dca3ad3af96bc0ef6e4ac299984744b89  base-dev/mar/noun.hoon
+467e84d67e6dae722cc8545e924fd4d4a95ae1077b28e6d161e9f2f7bbee95ee  base-dev/mar/txt-diff.hoon
+cb76a42e114f3b8f3ac37d09bfe7b1b41bc5c54e6406c0c01fb249af6910bc5d  base-dev/mar/txt.hoon
+031be1e2e944835a3d11a90f26c6c61f9bbd40123d2dd249ff7b728acbb1d025  landscape/lib/docket.hoon
+a0e69786863df79ad837211a44216efa49401b98a1800a86c647639025a9d028  landscape/mar/docket-0.hoon
+dd930bf411fa129551bf78496b23a96e19743ec4534f4a08bfa37c92c71fc029  landscape/sur/docket.hoon

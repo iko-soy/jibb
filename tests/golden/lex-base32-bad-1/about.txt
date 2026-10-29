@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Base 32 row: `0v5.fdf99`, "`@uv`"
+tests: a base-32 number with a digit out of range
+expect: error at 1:13 — base-32 digits are 0-9 and a-v; `z` is not one

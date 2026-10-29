@@ -1,0 +1,6 @@
+file: /tests/golden/unicode-quotes/source/jibb
+bytes: 202
+lines: 3
+1| ++ greet "héllo ☃ 🚀 wörld" 'single' "dq \" \{brace} {x}" \\ back\slash
+2| ::  ünïcödé in a comment: 日本語 — em dash, “curly”
+3| ++ path %/blog/(slug) ~sampel-palnet ~2026.10.23..14.30.00

@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Open brackets: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual."; the EBNF: `open       = INDENT line { NEWLINE line } DEDENT ;`
+tests: two brackets left open at the end of one line, `(` and `~[`
+expect: unclear — the rule says what "a bracket open at line end" does, not what happens when two are: does the last take the deeper lines and both close at the first line that isn't deeper, or is the `(` unclosed (the EBNF's open belongs to one bracket), an error at the end of the file? (corpus question 4)

@@ -1,0 +1,3 @@
+source: Grammar tab, section "Patterns", code block 4 of the tab
+tests: a union `+$ step $?` with one case per deeper line: cells with tags at the head, in the middle and at the end, faced fields, and a bare term; a blank line between definitions; a `?-` whose arms are cell patterns mixing tags and binding names, and a bare term, with their expressions aligned by extra spaces; interpolated strings and a name as arm expressions
+expect: parses

@@ -1,0 +1,431 @@
+#!/usr/bin/env python3
+"""Test tools/golden and tools/hoon against tools/testdata/stub.hoon.
+
+    tools/testdata/selftest            all checks, about half a minute
+    tools/testdata/selftest -k crash   only checks whose name has "crash"
+
+The cases in tools/testdata/golden pass with the stub.  Each check that
+needs a failure (a mismatch, a crash, a broken library) makes it in a
+temporary copy, so the files here never change.  Exit status 0 when
+every check passes.
+"""
+
+import argparse
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+TOOLS = os.path.dirname(HERE)
+ROOT = os.path.dirname(TOOLS)
+GOLDEN = os.path.join(TOOLS, 'golden')
+HOON = os.path.join(TOOLS, 'hoon')
+STUB = os.path.join(HERE, 'stub.hoon')
+CASES = os.path.join(HERE, 'golden')
+
+sys.dont_write_bytecode = True
+
+
+class Check:
+    def __init__(self):
+        self.failures = []
+
+    def expect(self, cond, what):
+        if not cond:
+            self.failures.append(what)
+
+
+def run(*args, stdin=None):
+    """Run a tool; returns (status, stdout and stderr as text)."""
+    env = dict(os.environ, NO_COLOR='1', PYTHONDONTWRITEBYTECODE='1')
+    p = subprocess.run([sys.executable] + list(args), input=stdin,
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                       cwd=ROOT, env=env)
+    return p.returncode, p.stdout.decode('utf-8', 'replace')
+
+
+def golden(*args):
+    return run(GOLDEN, *args)
+
+
+def hoon(*args, stdin=None):
+    return run(HOON, *args, stdin=stdin)
+
+
+def copy_cases(tmp):
+    dest = os.path.join(tmp, 'golden')
+    shutil.copytree(CASES, dest)
+    return dest
+
+
+def add_case(cases, name, source):
+    os.makedirs(os.path.join(cases, name))
+    with open(os.path.join(cases, name, 'source.jibb'), 'wb') as f:
+        f.write(source)
+
+
+def stub_with(tmp, name, old, new):
+    """A copy of the stub with one line's text replaced; returns its path
+    and the line number of the change."""
+    with open(STUB) as f:
+        lines = f.read().split('\n')
+    hits = [i for i, l in enumerate(lines) if old in l]
+    assert len(hits) == 1, (old, hits)
+    lines[hits[0]] = lines[hits[0]].replace(old, new)
+    path = os.path.join(tmp, name)
+    with open(path, 'w') as f:
+        f.write('\n'.join(lines))
+    return path, hits[0] + 1
+
+
+def stub_line(text):
+    with open(STUB) as f:
+        lines = f.read().split('\n')
+    hits = [i + 1 for i, l in enumerate(lines) if text in l]
+    assert len(hits) == 1, (text, hits)
+    return hits[0]
+
+
+def read(path):
+    with open(path, 'rb') as f:
+        return f.read()
+
+
+# The checks.  Each takes a Check and a temporary folder.
+
+def check_doctests(c, tmp):
+    status, out = run(os.path.join(TOOLS, 'noun.py'))
+    c.expect(status == 0, 'noun.py doctests: ' + out)
+    status, out = run('-c', 'import doctest, sys; sys.path.insert(0, %r); '
+                      'import urbit_eval; '
+                      'sys.exit(doctest.testmod(urbit_eval).failed)' % TOOLS)
+    c.expect(status == 0, 'urbit_eval.py doctests: ' + out)
+
+
+def check_all_pass(c, tmp):
+    status, out = golden('--dir', CASES, '--lib', STUB)
+    names = sorted(os.listdir(CASES))
+    c.expect(status == 0, 'exit status %d, not 0:\n%s' % (status, out))
+    for name in names:
+        c.expect(re.search(r'^PASS  %s$' % re.escape(name), out, re.M),
+                 'no PASS line for %s' % name)
+    c.expect('%d cases: %d passed, 0 failed' % (len(names), len(names))
+             in out, 'no summary line:\n' + out)
+
+
+def check_expected_files_by_hand(c, tmp):
+    """The expected files hold what the stub should print, worked out here
+    from each source, so they show that bytes survive the round trip:
+    UTF-8, quotes, backslashes, tabs, CR, NUL and other control bytes."""
+    for name in sorted(os.listdir(CASES)):
+        src = read(os.path.join(CASES, name, 'source.jibb'))
+        lines = src.split(b'\n')
+        if lines[-1] == b'':
+            lines.pop()
+        # Each line is a cord in the stub, so it loses trailing NULs.
+        tree = (lines[0].rstrip(b'\x00') if lines else b'') + b'\n'
+        tokens = [b'file: /tests/golden/%s/source/jibb' % name.encode(),
+                  b'bytes: %d' % len(src.rstrip(b'\x00')),
+                  b'lines: %d' % len(lines)]
+        tokens += [b'%d| %s' % (i + 1, l.rstrip(b'\x00'))
+                   for i, l in enumerate(lines)]
+        c.expect(read(os.path.join(CASES, name, 'tree.txt')) == tree,
+                 '%s/tree.txt is not the first line of the source' % name)
+        c.expect(read(os.path.join(CASES, name, 'tokens.txt')) ==
+                 b'\n'.join(tokens) + b'\n',
+                 "%s/tokens.txt is not what the stub's tokens should be"
+                 % name)
+
+
+def check_mismatch_diff(c, tmp):
+    cases = copy_cases(tmp)
+    with open(os.path.join(cases, 'basic', 'tree.txt'), 'wb') as f:
+        f.write(b'++ main wrong\n')
+    status, out = golden('--dir', cases, '--lib', STUB)
+    c.expect(status == 1, 'exit status %d, not 1' % status)
+    c.expect(re.search(r'^FAIL  basic$', out, re.M), 'no FAIL line:\n' + out)
+    c.expect('basic/tree.txt\n' in out and '(actual)' in out,
+             'no diff header:\n' + out)
+    c.expect(re.search(r'^  -\+\+ main wrong$', out, re.M) and
+             re.search(r'^  \+\+\+ main view$', out, re.M),
+             'the diff lacks the - and + lines:\n' + out)
+    c.expect('PASS  unicode-quotes' in out, 'the other cases should pass')
+
+
+def check_missing_file(c, tmp):
+    cases = copy_cases(tmp)
+    os.remove(os.path.join(cases, 'empty', 'tokens.txt'))
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'empty')
+    c.expect(status == 1, 'exit status %d, not 1' % status)
+    c.expect('empty/tokens.txt is missing' in out,
+             'no word on the missing file:\n' + out)
+    c.expect('+bytes: 0' in out, 'the output is not shown:\n' + out)
+
+
+def check_final_newline(c, tmp):
+    cases = copy_cases(tmp)
+    path = os.path.join(cases, 'basic', 'tree.txt')
+    with open(path, 'wb') as f:
+        f.write(read(os.path.join(CASES, 'basic', 'tree.txt')).rstrip(b'\n'))
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 1, 'exit status %d, not 1' % status)
+    c.expect('differs only at its end' in out,
+             'no word on the final newline:\n' + out)
+
+
+def check_update(c, tmp):
+    cases = copy_cases(tmp)
+    os.remove(os.path.join(cases, 'basic', 'tokens.txt'))
+    with open(os.path.join(cases, 'unicode-quotes', 'tree.txt'), 'wb') as f:
+        f.write(b'stale\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--update')
+    c.expect(status == 0, 'exit status %d, not 0:\n%s' % (status, out))
+    c.expect('wrote ' in out and '2 files written' in out,
+             'it should say it wrote 2 files:\n' + out)
+    for name in os.listdir(CASES):
+        for kind in ('tokens.txt', 'tree.txt'):
+            c.expect(read(os.path.join(cases, name, kind)) ==
+                     read(os.path.join(CASES, name, kind)),
+                     '%s/%s differs after --update' % (name, kind))
+    status, out = golden('--dir', cases, '--lib', STUB)
+    c.expect(status == 0, 'it should pass after --update:\n' + out)
+
+
+def check_show_and_case(c, tmp):
+    status, out = golden('--dir', CASES, '--lib', STUB, '--show',
+                         '--case', 'u*', '--case', 'no-*')
+    c.expect(status == 0, 'exit status %d, not 0' % status)
+    c.expect('==> unicode-quotes: tokens <==' in out and
+             '==> no-final-newline: tree <==' in out and
+             'basic' not in out, 'the wrong cases were shown:\n' + out)
+    c.expect('héllo ☃ 🚀 wörld' in out, 'the text is not shown:\n' + out)
+    status, out = golden('--dir', CASES, '--lib', STUB, '--case', 'nothing*')
+    c.expect(status == 2 and 'no cases' in out,
+             'a glob that matches nothing should fail:\n' + out)
+
+
+def check_crash_isolated(c, tmp):
+    cases = copy_cases(tmp)
+    add_case(cases, 'crashy', b'crash\nmore\n')
+    status, out = golden('--dir', cases, '--lib', STUB)
+    c.expect(status == 1, 'exit status %d, not 1' % status)
+    c.expect('FAIL  crashy: crashed' in out and '\n  CRASH\n' in out,
+             'no crash report:\n' + out)
+    line = stub_line('?>  =(1 2)')
+    c.expect('tools/testdata/stub.hoon:%d:3' % line in out,
+             'the trace should reach the stub line %d:\n%s' % (line, out))
+    c.expect('[%stub-crash /tests/golden/crashy/source/jibb]' in out,
+             'the ~| trace is missing:\n' + out)
+    c.expect('(harness)' not in out, 'harness frames should be dropped')
+    for name in os.listdir(CASES):
+        c.expect('PASS  ' + name in out, '%s should still pass' % name)
+    status, out = golden('--dir', cases, '--lib', STUB, '--update')
+    c.expect(status == 1 and 'not written' in out and
+             not os.path.exists(os.path.join(cases, 'crashy', 'tree.txt')),
+             '--update should not write a crash:\n' + out)
+
+
+def check_eval_death(c, tmp):
+    cases = copy_cases(tmp)
+    add_case(cases, 'bails', b'bail\n')
+    status, out = golden('--dir', cases, '--lib', STUB)
+    c.expect(status == 1, 'exit status %d, not 1' % status)
+    c.expect('running each alone' in out, 'no word on rerunning:\n' + out)
+    c.expect('FAIL  bails: crashed' in out and 'bail: %' in out,
+             'the case that ended the eval is not named:\n' + out)
+    for name in os.listdir(CASES):
+        c.expect('PASS  ' + name in out, '%s should still pass' % name)
+
+
+def check_timeout(c, tmp):
+    cases = copy_cases(tmp)
+    add_case(cases, 'loops', b'loop\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--timeout', '6',
+                         '--case', 'loops', '--case', 'basic')
+    c.expect(status == 1, 'exit status %d, not 1' % status)
+    c.expect('FAIL  loops: crashed' in out and 'timed out after 6 s' in out,
+             'the looping case is not named:\n' + out)
+    c.expect('PASS  basic' in out, 'basic should still pass:\n' + out)
+
+
+def check_type_error_line(c, tmp):
+    lib, line = stub_with(tmp, 'typo.hoon', "?~(lines '' i.lines)",
+                          "?~(lines '' (add i.lines %oops 3))")
+    status, out = golden('--dir', CASES, '--lib', lib)
+    c.expect(status == 2, 'exit status %d, not 2' % status)
+    c.expect("typo.hoon doesn't compile" in out, 'no headline:\n' + out)
+    c.expect(re.search(r'typo\.hoon:%d:\d+' % line, out) and
+             re.search(r'^  %d \| .*%%oops' % line, out, re.M),
+             'the error should point at line %d:\n%s' % (line, out))
+    status, out = hoon('--lib', lib, '(add 1 1)')
+    c.expect(status == 1 and re.search(r'typo\.hoon:%d:' % line, out),
+             'tools/hoon should point at line %d too:\n%s' % (line, out))
+
+
+def check_syntax_error_line(c, tmp):
+    lib, line = stub_with(tmp, 'syntax.hoon', "'| ' i.lines])",
+                          "'| ' i.lines]")
+    status, out = golden('--dir', CASES, '--lib', lib)
+    c.expect(status == 2, 'exit status %d, not 2' % status)
+    c.expect(re.search(r'syntax\.hoon:%d:\d+' % line, out) and
+             'syntax error' in out,
+             'the syntax error should be at line %d:\n%s' % (line, out))
+
+
+def check_big_line_numbers(c, tmp):
+    """Hoon prints line numbers past 999 as 2,554 or 3.411."""
+    pad = '::  padding\n' * 1200
+    with open(STUB) as f:
+        stub = f.read()
+    big = os.path.join(tmp, 'big.hoon')
+    with open(big, 'w') as f:
+        f.write(pad + stub)
+    cases = copy_cases(tmp)
+    add_case(cases, 'crashy', b'crash\n')
+    status, out = golden('--dir', cases, '--lib', big, '--case', 'crashy')
+    line = 1200 + stub_line('?>  =(1 2)')
+    c.expect(status == 1 and 'big.hoon:%d:3' % line in out and
+             re.search(r'^    %d \| +\?>' % line, out, re.M),
+             'a crash at line %d:\n%s' % (line, out))
+    broken = os.path.join(tmp, 'big-broken.hoon')
+    with open(broken, 'w') as f:
+        f.write(pad + stub.replace("?~(lines '' i.lines)",
+                                   "?~(lines '' (add i.lines %oops 3))"))
+    line = 1200 + stub_line("?~(lines '' i.lines)")
+    status, out = golden('--dir', cases, '--lib', broken, '--case', 'crashy')
+    c.expect(status == 2 and 'big-broken.hoon:%d:' % line in out,
+             'a type error at line %d:\n%s' % (line, out))
+    with open(broken, 'w') as f:
+        f.write(pad + stub.replace("'| ' i.lines])", "'| ' i.lines]"))
+    line = 1200 + stub_line("'| ' i.lines])")
+    status, out = golden('--dir', cases, '--lib', broken, '--case', 'crashy')
+    c.expect(status == 2 and 'big-broken.hoon:%d:' % line in out and
+             'syntax error' in out,
+             'a syntax error at line %d:\n%s' % (line, out))
+
+
+def check_trace_parsing(c, tmp):
+    """How eval's failures are read, on traces as eval prints them."""
+    sys.path.insert(0, TOOLS)
+    import urbit_eval as ue
+
+    def result(bail, *trace, timed_out=False):
+        r = ue.EvalResult()
+        r.bail, r.trace, r.timed_out = bail, list(trace), timed_out
+        return r
+
+    compile_time = [
+        result('exit', '{1,234 5}', 'syntax error'),
+        result('exit', '/::[2 1].[9 3]>', '-find.foo'),
+        # a compile-time stack overflow, as recursive molds can cause
+        result('over', '/eval::[2 1].[1,026 10]>', '/eval::[475 7].[475 75]>'),
+        result('exit', '-find.foo'),    # no spots, as under !.
+    ]
+    run_time = [
+        result('exit', '/:<[3.411 3].[3.414 10]>', '[%my-trace 3]'),
+        result('meme', '/:<[2 1].[3 10]>'),
+        result('fail'),
+        result(None, timed_out=True),
+    ]
+    for r in compile_time:
+        c.expect(r.is_compile_error(), 'should be compiling: %r' % r.trace)
+    for r in run_time:
+        c.expect(not r.is_compile_error(), 'should be running: %r' % r.trace)
+
+    prog = ue.Program()
+    prog.add('!:\n=>', '(prefix)', 'prefix')
+    prog.add('\n'.join('lib line %d' % i for i in range(1, 4001)),
+             'lib.hoon', 'lib')
+    prog.add('harness', '(harness)', 'harness')
+    lines, spots = ue.map_trace(prog, [
+        '/::[2 1].[2,004 1]>', '/::[1,236 5].[1,236 9]>',
+        '/:<[3.002 3].[3.003 10]>', '{1,236 7}', 'syntax error'])
+    c.expect(lines == ['lib.hoon:1234:5-9', 'lib.hoon:3000:3-3001:10',
+                       'lib.hoon:1234:7', 'syntax error'],
+             'mapped lines: %r' % lines)
+    c.expect([s.kind for s in spots] == ['lib'] * 3, 'spot kinds')
+    folded = ue.fold_repeats(['out'] + ['a', 'b'] * 50 + ['in'])
+    c.expect(folded == ['out', 'a', 'b',
+                        '(the 2 lines above repeat 49 more times)', 'in'],
+             'folding: %r' % folded)
+
+
+def check_harness_error(c, tmp):
+    lib, _ = stub_with(tmp, 'nogolden.hoon', '++  golden', '++  golden-not')
+    status, out = golden('--dir', CASES, '--lib', lib, '--case', 'basic')
+    c.expect(status == 2 and "golden harness doesn't compile" in out and
+             '-find.golden' in out,
+             'a missing golden arm should be reported:\n' + out)
+
+
+def check_hoon(c, tmp):
+    status, out = hoon('--lib', STUB, '(add 2 2)')
+    c.expect((status, out) == (0, '4\n'), 'add: %d %r' % (status, out))
+    status, out = hoon('--lib', STUB, "(split 'a')")
+    c.expect((status, out) == (0, "<|a|>\n"), 'split: %d %r' % (status, out))
+    status, out = hoon('--lib', STUB, '--raw', '(split (crip "a\\0ab"))')
+    c.expect((status, out) == (0, 'a\nb\n'), 'raw wain: %r' % out)
+    status, out = hoon('--lib', STUB, '--raw', '"a tape"')
+    c.expect((status, out) == (0, 'a tape\n'), 'raw tape: %r' % out)
+    src = os.path.join(CASES, 'unicode-quotes', 'source.jibb')
+    status, out = hoon('--lib', STUB, '--raw', '--cord', 'src=' + src,
+                       'tree:(golden /a/b/jibb src)')
+    c.expect(status == 0 and out.encode() ==
+             read(os.path.join(CASES, 'unicode-quotes', 'tree.txt')),
+             'raw cord through --cord: %r' % out)
+    status, out = hoon('--lib', STUB, '--raw', '[1 2]')
+    c.expect(status == 1 and 'cast it' in out, 'raw cell: %r' % out)
+    status, out = hoon('--lib', STUB, '(golden /a/b/jibb 42)')
+    c.expect(status == 1 and '(expression):1:1' in out and 'nest-fail' in out,
+             'an expression error: %r' % out)
+    expr = os.path.join(tmp, 'expr.hoon')
+    with open(expr, 'w') as f:
+        f.write('::  crash in the stub\n=/  src  (crip "crash")\n'
+                '(golden /x/y/jibb src)\n')
+    status, out = hoon('--lib', STUB, '-f', expr)
+    line = stub_line('?>  =(1 2)')
+    c.expect(status == 1 and 'expr.hoon:3:1' in out and
+             'tools/testdata/stub.hoon:%d:3' % line in out,
+             'a crash from -f FILE: %r' % out)
+    status, out = hoon('--lib', STUB, '-f', '-', stdin=b'(mul 6 7)')
+    c.expect((status, out) == (0, '42\n'), 'stdin: %r' % out)
+
+
+CHECKS = [(name[len('check_'):], fn) for name, fn in globals().items()
+          if name.startswith('check_')]
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(prog='tools/testdata/selftest')
+    ap.add_argument('-k', metavar='WORD',
+                    help='only the checks whose name has WORD')
+    opts = ap.parse_args(argv)
+    failed = 0
+    ran = 0
+    for name, fn in CHECKS:
+        if opts.k and opts.k not in name:
+            continue
+        ran += 1
+        c = Check()
+        with tempfile.TemporaryDirectory(prefix='jibb-selftest-') as tmp:
+            try:
+                fn(c, tmp)
+            except Exception as e:  # report and go on to the next check
+                c.failures.append('%s: %s' % (type(e).__name__, e))
+        if c.failures:
+            failed += 1
+            print('FAIL  %s' % name)
+            for f in c.failures:
+                print('\n'.join('  ' + l for l in str(f).split('\n')))
+        else:
+            print('ok    %s' % name)
+        sys.stdout.flush()
+    print('%d checks, %d failed' % (ran, failed))
+    return 1 if failed or not ran else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

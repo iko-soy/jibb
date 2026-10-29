@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Names: Hoon terms; lowercase letters, digits and hyphens, starting with a letter."
+tests: an underscore in a name used as an expression
+expect: error at 1:8 — names hold lowercase letters, digits and hyphens; `_` can't continue the name my

@@ -1,0 +1,3 @@
+source: Grammar tab, Modules: "`main`'s type decides the kind: `(element !!)` a page; `(page R D)` a page with data, from parameters `R` to data `D`; `(program D X M)` an island, with data, model and messages; `(store S)` a store with state `S`. They're built by `(page load view)`, `(program init update view subs)` and `(store init update)`."
+tests: the four kind molds, with the empty mold and type variables as arguments, and the three builders
+expect: parses

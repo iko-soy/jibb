@@ -1,0 +1,7 @@
+++ view |= m=model
+    column ~[gap+%s1] ~[
+     (text "one")
+     row ~ ~[
+           (text "two")
+     (text "three")
+++ main view

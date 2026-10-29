@@ -1,0 +1,7 @@
++$ a (element !!)
++$ b (page R D)
++$ c (program D X M)
++$ d (store S)
+++ e (page load view)
+++ f (program init update view subs)
+++ g (store init update)

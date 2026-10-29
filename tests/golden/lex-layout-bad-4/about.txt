@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Layout tokens: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE."; the EBNF's comment: "Blank and comment-only lines emit nothing."
+tests: an arm written one level too shallow
+expect: error at 4:3 — line 4 is shallower than the arms, so it closes them (DEDENT) and lands at the body's depth (NEWLINE), after the body's final expression, the ?-

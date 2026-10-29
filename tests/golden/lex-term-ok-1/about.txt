@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Term row: `%add`; the EBNF: `term       = "%" name | "%" digit { digit } | "%&" | "%|" ;`
+tests: terms of a name, of digits, and %& and %|
+expect: parses

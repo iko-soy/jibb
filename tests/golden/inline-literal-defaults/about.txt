@@ -1,0 +1,3 @@
+source: Grammar tab, Literals by context, the table's rows: Tag `%a`, or `~`; Number `5`; Cell `[x xs]`; and "Where a list is expected, `[x xs]` is `x` in front of `xs`."
+tests: the literals the table names
+expect: parses

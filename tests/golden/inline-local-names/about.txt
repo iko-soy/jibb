@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`++` luslus: defines a value, at top level or as local names inside a gate, visible to each other and the final expression." and "`+$` lusbuc: defines a mold, likewise"
+tests: a gate body holding a local value, a local mold, and the final expression
+expect: parses: the body holds two definitions, then the final expression, a cast

@@ -1,0 +1,4 @@
+++ view |= [day=@da n=@ud]
+  column ~[gap+%s1] ~[
+    (text "Updated {day}")     ::  day printed as a date
+    (text "{n} items")         ::  n printed as @ud

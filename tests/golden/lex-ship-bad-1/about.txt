@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Ship row: `~zod`, `~sampel-palnet`, "`@p`"
+tests: a planet with its hyphen left out
+expect: error at 1:13 — ~sampel is a whole ship name; a second pair of syllables needs a hyphen before it, ~sampel-palnet

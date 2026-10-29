@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Call: `f a b`; parentheses only group. A call open in parentheses puts its head and first arguments on the first line, then one argument per indented line."; the EBNF: `group      = "(" expr ")" | "(" { operand } open ;`
+tests: two arguments on one indented line
+expect: parses as f applied to a and the call (b c): an indented line is one argument

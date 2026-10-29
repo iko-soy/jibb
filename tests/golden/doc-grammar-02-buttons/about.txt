@@ -1,0 +1,3 @@
+source: Grammar tab, section "Tag resolution", code block 2 of the tab
+tests: a library with no main: a leading comment line; tall gates whose bodies are on the deeper line, one with a faced sample (`label=@t`) and one with a cell sample holding a type variable (`[label=@t msg=M]`); `++ wide  ^- (list attr)` with two spaces of alignment, a mold application, and the cast's expression on the deeper line; a list of term-headed pairs whose operands are a cell and a term; trailing comments after aligned code
+expect: parses. The block marks add-button as an error ("nothing fixes the union of %add"): that is a type error for the checker in milestone 2, so the parser accepts the module

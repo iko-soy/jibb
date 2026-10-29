@@ -1,0 +1,3 @@
+source: the first tab ("Jibb — an Elm-architecture UI language for Urbit"), The Elm architecture on Urbit: "Pages embed islands as `island main.todo-list ts`, an `(element !!)`"
+tests: a call whose argument is a wing with a hyphenated name
+expect: parses

@@ -1,0 +1,2 @@
++$ paths $?
+  [%changes /updates (facts todos todo-update) scry=/todos]

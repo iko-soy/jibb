@@ -1,0 +1,3 @@
+file: /tests/golden/crash/source/jibb
+1| crash
+2| ++ main view

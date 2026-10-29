@@ -1,0 +1,3 @@
+source: the first tab ("Jibb — an Elm-architecture UI language for Urbit"), Static files: "Pages refer to them by application path, as `(image %/static/img/logo.png "The logo")`."
+tests: an application path whose last knot holds a dot, as a call's argument
+expect: parses

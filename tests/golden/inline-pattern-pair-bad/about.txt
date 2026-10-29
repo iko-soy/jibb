@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns: "Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, not lists or pairs."; the EBNF: `pattern    = term | number | string | ship | loobean | "~" | "*" | name | "[" pattern { pattern } "]" ;`
+tests: a term-headed pair as a pattern
+expect: error at 3:8 — patterns take no pairs: gap is a binding name, and `+` can't follow it; write [%gap %s2]

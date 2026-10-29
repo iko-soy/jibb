@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Comments: `::` to the end of the line."
+tests: a file of comment lines only
+expect: parses as an empty module: the EBNF's `module     = { import NEWLINE } { definition NEWLINE } ;` allows none of either

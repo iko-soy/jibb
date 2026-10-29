@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the List row: `~[1 2 3]`, "`(list A)`"; also Expressions: "Lists: `~[a b c]`, or `~[` at line end with one item per line."
+tests: lists of numbers and of names on one line
+expect: parses

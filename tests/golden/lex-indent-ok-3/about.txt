@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Indentation is structure: a deeper line continues the line above; returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count."
+tests: comment-only lines before the first code line, between a union's cases and between `?-` arms, deeper and shallower than their neighbours, and a blank line between arms
+expect: parses: the first code line counts as the first line, msg has two cases, and the ?- two arms

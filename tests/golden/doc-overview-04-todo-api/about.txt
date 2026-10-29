@@ -1,0 +1,3 @@
+source: the first tab ("Jibb — an Elm-architecture UI language for Urbit"), section "Agent APIs", code block 4 of the tab
+tests: a comment line, `/-` and four `/%` imports, a blank line, then molds: a wing `item.todo`, a name, and a union whose cases are cell molds holding a term, a path mold (`/todos`, `/changes`, and `/todo/[id=@ud]` with a typed segment), and a name or a mold application `(facts todos todo-update)`
+expect: parses

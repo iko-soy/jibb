@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Atoms: `@` and auras such as `@ud`, `@t`, `@p`, `@da`; `?` is a loobean."; also Tag resolution: "for `@tas`, `@ta`, `@` or `*`, makes the tag that constant atom"
+tests: the bare atom mold, auras and the loobean mold
+expect: parses

@@ -1,0 +1,3 @@
+file: /tests/golden/empty/source/jibb
+bytes: 0
+lines: 0

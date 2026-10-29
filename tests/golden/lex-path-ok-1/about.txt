@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Path row: `/posts/~zod`, "`path`"; the EBNF: `pathlit    = "/" knot { "/" knot } ;`, `pathmold   = "/" [ segment { "/" segment } ] ;` and `knot       = { lower | digit | "-" | "." | "~" | "_" } ;`
+tests: a path in an import and as molds: the doc's /posts/~zod, the empty path, and a typed segment between knots (the path literal as an expression is inline-path)
+expect: parses

@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Any noun: `*`. Empty: `!!`."
+tests: the any-noun and empty molds
+expect: parses

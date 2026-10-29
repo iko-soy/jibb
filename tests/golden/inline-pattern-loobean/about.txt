@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `%.y`, `%.n`: "Yes, no"
+tests: the two loobean patterns
+expect: parses

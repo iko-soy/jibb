@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Indentation is structure: a deeper line continues the line above; returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count."
+tests: blank lines (line 4 empty, lines 8 and 11 holding only spaces) and comment-only lines at columns 2, 10 and 1 inside an open list; none of them may close or open a level
+expect: parses, the same as without lines 4-6, 8, 9 and 11: the list holds (text "a"), (text "b") and (text "c")

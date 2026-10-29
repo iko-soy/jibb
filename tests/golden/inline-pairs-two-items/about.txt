@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Pairs and units: `gap+%s2` and `` `x `` bind tighter than calls, so `pad+%s3 gap+%s2` is two items."
+tests: two pairs side by side in a list
+expect: parses as a list of two items, the pairs pad+%s3 and gap+%s2

@@ -1,0 +1,4 @@
+++ a |=%typed
++$ b $-(@t M)
+++ c |=(t [%typed t])
++$ d [%typed @t]

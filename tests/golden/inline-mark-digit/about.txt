@@ -1,0 +1,3 @@
+source: the first tab ("Jibb — an Elm-architecture UI language for Urbit"), Agent APIs: "Any mark name works: `/%  %todo-action-1` gives the type `todo-action-1`, poked with `%todo-action-1`."
+tests: a mark import whose name ends in a digit
+expect: parses

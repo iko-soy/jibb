@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Layout tokens: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE."; the EBNF's comment: "Blank and comment-only lines emit nothing."
+tests: INDENT for lines 2, 3 and 5; NEWLINE for lines 4 and 6, at the same depth as the line before; and for line 7, three DEDENTs, closing the levels at columns 7, 5 and 3, then NEWLINE
+expect: parses: the column's list holds (text "one") and the row, whose list holds (text "two") and (text "three")

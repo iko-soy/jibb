@@ -1,0 +1,3 @@
+source: Grammar tab, Modules: "Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold and its constructor, `todos.todo` a mold and a request."
+tests: the same wings in mold and in value position
+expect: parses

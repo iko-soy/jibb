@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Constants: `%add`, `~` and the loobeans have one value each."
+tests: constant molds
+expect: parses

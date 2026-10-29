@@ -1,0 +1,8 @@
++$ a (list A)
++$ b (unit A)
++$ c (set A)
++$ d (map K V)
++$ e (mop K V)
++$ f (qeu A)
++$ g (jar K V)
++$ h (jug K V)

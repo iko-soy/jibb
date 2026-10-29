@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Layout tokens: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE."; the EBNF's comment: "Blank and comment-only lines emit nothing."
+tests: a line at the same depth meant to continue the one above
+expect: error at 3:3 — line 3 is at the same depth as line 2, so it emits NEWLINE and starts a new item; the body's final expression is `add n`, and nothing may follow it in the body

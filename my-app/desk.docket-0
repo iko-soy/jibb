@@ -1,0 +1,8 @@
+:~  title+'My App'
+    info+'The example Jibb app, built from the worked examples in the Jibb design doc.'
+    color+0x17.734f
+    version+[0 1 0]
+    website+''
+    license+''
+    site+/apps/my-app
+==

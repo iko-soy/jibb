@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "A change takes the same items, as `m(done=%.y)`."
+tests: a change with one named item
+expect: parses

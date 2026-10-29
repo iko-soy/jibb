@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Indentation is structure: a deeper line continues the line above; returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count."
+tests: any deeper column opens a level (4, 1 and 6 spaces deeper here, not 2), and returning to an earlier column closes every level since: line 6 closes the row's list, line 7 the column's list and the gate's body
+expect: parses: the column's open list holds three items, (text "one"), the row and (text "three"); the row's open list holds (text "two")

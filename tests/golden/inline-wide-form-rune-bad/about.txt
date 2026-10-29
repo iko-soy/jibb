@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "Only `|=`, `$?` and `$-` have wide forms: `|=(sample expr)`, `$?(case case)`, `$-(mold mold)`. Their children are operands, so calls inside need parentheses."
+tests: a rune as the body of the wide gate
+expect: error at 1:11 — the wide gate's body is an operand, and a rune is not one; it would need parentheses, |=(n (^- @ud n))

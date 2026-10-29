@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`*mold`: no defaults."
+tests: `*mold`, which the doc leaves out, where Hoon would write it
+expect: error at 1:6 — `*mold` is left out (no defaults); no expression starts with `*`

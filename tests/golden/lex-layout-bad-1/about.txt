@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Layout tokens: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE."; the EBNF's comment: "Blank and comment-only lines emit nothing."
+tests: a deeper line where the grammar takes none: `++ x foo` is complete on its line
+expect: error at 2:3 — line 2 is deeper, so it emits INDENT, but only a definition with nothing after its name, an open bracket, a rune's body, ?- arms or $? cases take a deeper line, and `++ x foo` is none of them

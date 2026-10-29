@@ -1,0 +1,9 @@
+/=  api   /ui/api/blog
+/=  card  /ui/components/card
+
+++ short   1
+++ longer  ~[1    2]
+++ f |= s=*
+  ?- s
+    %a    (add  1  2)
+    *     ~

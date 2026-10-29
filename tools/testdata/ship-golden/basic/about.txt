@@ -1,0 +1,3 @@
+From: worked example 1 (/ui/about.jibb), cut short.
+Tests: an ASCII source with an empty line, through the generated test and the stub.
+Expected: OK

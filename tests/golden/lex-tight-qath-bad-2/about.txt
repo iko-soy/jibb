@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Application path row: "`qath`, checked against routes and static files; no query or fragment"; the first tab, Links and URLs: "They carry no query or fragment, so apps keep their state in the path."
+tests: an application path with a query
+expect: error at 1:12 — an application path carries no query; `?` can't be in a knot

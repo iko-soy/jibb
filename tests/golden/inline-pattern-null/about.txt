@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `~`: "Null"
+tests: the null pattern
+expect: parses

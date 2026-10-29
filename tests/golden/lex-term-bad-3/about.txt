@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Term row: `%add`; the EBNF: `term       = "%" name | "%" digit { digit } | "%&" | "%|" ;`; Decisions: "Hoon's runes as keywords, and its literals"
+tests: numeric terms with and without a dot group
+expect: unclear — the EBNF's "%" digit { digit } makes %1000 a term and %1.000 an error at 1:8, while Hoon writes %1.000 and rejects %1000 (as decimals group in threes); which does Jibb follow? (corpus question 2)

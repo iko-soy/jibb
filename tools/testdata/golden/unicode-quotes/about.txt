@@ -1,0 +1,3 @@
+From: written for the runner's self-test.
+Tests: UTF-8 (2, 3 and 4 bytes), single and double quotes, backslashes and braces survive escaping into a Hoon cord literal.
+Expected: passes; the tree is the first line, byte for byte.

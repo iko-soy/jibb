@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Containers: `(list A)`, `(unit A)`, `(set A)`, `(map K V)`, `(mop K V)`, `(qeu A)`, `(jar K V)`, `(jug K V)`."
+tests: mold applications of one and two type variables
+expect: parses

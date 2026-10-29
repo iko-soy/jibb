@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, "An arm that earlier arms cover, such as a second `%add` or anything after `[%move * *]`, is an error"
+tests: catch-alls inside a cell pattern
+expect: parses

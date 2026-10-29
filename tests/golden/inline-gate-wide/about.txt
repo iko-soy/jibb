@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Inline gate: `|=(p=post.blog title.p)`, or `|=(p title.p)` when the call fixes the type. A bare name in a sample always binds."
+tests: the wide gate with a faced sample and with a bare name as its sample
+expect: parses; in y the bare name p binds, as the doc says, rather than naming a mold

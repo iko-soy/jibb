@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Cell row: `[a b c]`, `[text="milk" done=%.n]`, "A tuple; a record when faced; a cons where a list is expected"; also Expressions: "Faced cells: `[text="milk" done=%.n]`, or one `name=value` per line of an open bracket."
+tests: a cell of three names and a faced cell
+expect: parses

@@ -1,0 +1,4 @@
+++ view |= m=model
+    column ~[gap+%s1] ~[
+      (text "a")
+  (text "b")

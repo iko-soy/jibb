@@ -1,0 +1,3 @@
++$ result |$ [V E] $?
+  [%ok value=V]
+  [%err error=E]

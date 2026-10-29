@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Interpolation: `{…}` holds any expression; `\{` writes a brace and `\"` a quote; no `<…>`."
+tests: interpolations at the end, at the start and alone, two in one string, the escapes \{ and \", and expressions in braces: a group, a call and a rune ("any expression")
+expect: parses; h is the text {x} is text, since \{ writes a brace and a } with no interpolation open is plain text, as in Hoon (corpus question 8)

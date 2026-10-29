@@ -1,0 +1,3 @@
+From: written for tools/ship test.
+Tests: a case without tree.txt; the generated arm passes ~ for it.
+Expected: FAILED, with "tree.txt is missing".

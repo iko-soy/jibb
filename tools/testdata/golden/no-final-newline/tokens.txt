@@ -1,0 +1,5 @@
+file: /tests/golden/no-final-newline/source/jibb
+bytes: 51
+lines: 2
+1| ++ main view
+2| ++ view (text "no newline at the end")

@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`|=` bartis: a gate with a faced sample, `m=model`, `=msg` (`msg=msg`) or `[a=@ b=@]`; the body on the same line or below."
+tests: the three sample forms, with bodies on the same line (f, g) and below (h)
+expect: parses; =msg is the pun msg=msg

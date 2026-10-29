@@ -1,0 +1,4 @@
+++ f |= n=@ud
+  ++ m (add n 1)
+  +$ pair [a=@ud b=@ud]
+  ^- pair [n m]

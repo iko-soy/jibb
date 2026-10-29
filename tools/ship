@@ -1,0 +1,2089 @@
+#!/usr/bin/env python3
+"""Run the Jibb desks on a fake ship: start it, sync desks, run the tests.
+
+    tools/ship start                 start the fake ship in the background
+    tools/ship stop                  stop it
+    tools/ship status                running or not; desks, revisions, mounts
+    tools/ship sync my-app           assemble a desk from its folders, |commit
+    tools/ship test                  sync the jibb-dev test desk, run -test
+    tools/ship gen-tests             write tests/lib/jibb.hoon from tests/golden
+    tools/ship check-commit          prove that |commit stores .jibb files
+    tools/ship scry /cx/=my-app=/ui/about/jibb
+    tools/ship hoon '(add 2 2)'      evaluate Hoon on the ship, as dojo would
+    tools/ship run FILE              run a thread file (a strand) on the ship
+    tools/ship poke hood kiln-commit '[%my-app |]'
+    tools/ship commit|mount|unmount DESK
+    tools/ship log                   the end of the ship's log
+
+The ship is a fake ~zod at /root/urbit/zod (--pier or $JIBB_PIER), run
+with -t in its own session, its output going to <pier>.log (--log or
+$JIBB_SHIP_LOG); a start moves the previous log to <pier>.log.1.
+
+Commands reach the ship over its conn.sock, as khan-eval threads: click
+(/root/src/tools/pkg/click/click, --click or $JIBB_CLICK) formats and
+jams each request, and this script sends it and reads the whole reply.
+It doesn't let click do the sending, because click reads the reply with
+`nc -U -W 1`, which stops after the first 16 KB, so bigger replies came
+back cut off and decoded to garbage.  click's -i quoting escapes only
+single quotes and joins the lines with gaps, so threads are written
+without comments and their backslashes are doubled before click sees
+them.
+
+Exit status: 0 on success, 1 when something failed (a commit, a test, a
+check), 2 when the command couldn't run (a usage error, no ship).
+"""
+
+import argparse
+import datetime
+import hashlib
+import os
+import re
+import shutil
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+PIER = os.environ.get('JIBB_PIER', '/root/urbit/zod')
+CLICK = os.environ.get('JIBB_CLICK', '/root/src/tools/pkg/click/click')
+STUB = os.path.join(ROOT, 'tools', 'testdata', 'ship-stub.hoon')
+GOLDEN = os.path.join(ROOT, 'tests', 'golden')
+TESTS_LIB = os.path.join(ROOT, 'tests', 'lib', 'jibb.hoon')
+
+#  Desks the repo builds, and the folders each is assembled from, in
+#  order.  Every desk gets every package under vendor/.  A folder is
+#  (repo folder, desk folder, folders left out).
+DESKS = {
+    'my-app': [('jibb-dev', '', ['tests']), ('my-app', '', [])],
+    'jibb': [('jibb', '', [])],
+    'jibb-dev': [('jibb-dev', '', []), ('tests', 'tests', [])],
+}
+#  The test desk has no sys.kelvin of its own; Clay refuses a commit
+#  without one, so it gets the %jibb desk's.
+EXTRA = {'jibb-dev': {'sys.kelvin': os.path.join('jibb', 'sys.kelvin')}}
+
+#  Marks whose stored noun is the file's bytes, as a cord.  sync checks
+#  these files by hash; files with other marks, such as desk.bill and
+#  the golden .txt files, are checked by converting the repo's copy on
+#  the ship and comparing the values.  (%txt is not one: it stores a
+#  wain, and vere's +to-wain jet keeps no trace of a final newline.)
+BYTE_MARKS = {'hoon', 'jibb', 'js'}
+
+#  vere's conn.sock closes a connection as soon as it has written the
+#  reply, so a reply bigger than the socket's buffer (about 200 KB) is
+#  cut off.  Threads that may print a lot cut their output to this.
+REPLY_BYTES = 150000
+
+KNOT = re.compile(r'^[a-z0-9\-.~_]+$')
+TERM = re.compile(r'^[a-z][a-z0-9\-]*$')
+
+#  Log lines that come from the ship's own business, not from what we
+#  asked: docket and kiln failing to reach the network on a fake ship.
+NOISE = re.compile(
+    r'^(http: fail \(\d+, \d+\)|docket: (fetching|thread failed|'
+    r'retry)|%retry-too-many|kiln: activation failed|thread-fail$|'
+    r'cancelled$|eyre: replacing existing binding|mdns: )')
+
+
+class Fail(Exception):
+    """Something failed: report it, exit 1."""
+
+
+class Unable(Exception):
+    """The command can't run: report it, exit 2."""
+
+
+def say(msg=''):
+    print(msg, flush=True)
+
+
+_warned = set()
+
+
+def warn(msg):
+    """Print a warning once, however often the code finds it."""
+    if msg not in _warned:
+        _warned.add(msg)
+        print('ship: ' + msg, file=sys.stderr, flush=True)
+
+
+# ---------------------------------------------------------------- nouns
+#
+#  A noun is an int (an atom) or a 2-tuple (a cell).
+
+
+def cue(data):
+    """Decode a jammed noun, without recursion."""
+    total = len(data) * 8
+
+    def bit(i):
+        if i >= total:
+            raise ValueError('cue: ran off the end of the jam')
+        return (data[i >> 3] >> (i & 7)) & 1
+
+    def bits(i, k):
+        if k == 0:
+            return 0
+        if i + k > total:
+            raise ValueError('cue: ran off the end of the jam')
+        v = int.from_bytes(data[i >> 3:(i + k + 7) >> 3], 'little')
+        return (v >> (i & 7)) & ((1 << k) - 1)
+
+    def rub(i):
+        c = 0
+        while bit(i + c) == 0:
+            c += 1
+        if c == 0:
+            return 1, 0
+        b = (1 << (c - 1)) | bits(i + c + 1, c - 1)
+        return c + c + b, bits(i + c + c, b)
+
+    refs = {}
+    stack = []
+    i = 0
+    while True:
+        start = i
+        if bit(i) == 0:
+            length, val = rub(i + 1)
+            i += 1 + length
+            refs[start] = val
+        elif bit(i + 1) == 0:
+            stack.append([start, False, None])
+            i += 2
+            continue
+        else:
+            length, ref = rub(i + 2)
+            i += 2 + length
+            val = refs[ref]
+        while stack:
+            top = stack[-1]
+            if not top[1]:
+                top[1] = True
+                top[2] = val
+                break
+            stack.pop()
+            val = (top[2], val)
+            refs[top[0]] = val
+        else:
+            return val
+
+
+def atom_bytes(a):
+    """An atom's bytes, low byte first, as Hoon cords are."""
+    return a.to_bytes((a.bit_length() + 7) // 8, 'little')
+
+
+def text(a):
+    return atom_bytes(a).decode('utf-8', 'replace')
+
+
+def term(s):
+    return int.from_bytes(s.encode(), 'little')
+
+
+def items(n):
+    """A Hoon list as a Python list."""
+    out = []
+    while isinstance(n, tuple):
+        out.append(n[0])
+        n = n[1]
+    return out
+
+
+def tape(n):
+    return bytes(items(n)).decode('utf-8', 'replace')
+
+
+def path_text(n):
+    return '/' + '/'.join(text(s) for s in items(n))
+
+
+def hoon_cord(data):
+    """A Hoon cord literal holding exactly these bytes."""
+    out = ["'"]
+    for b in data:
+        if b == 0x5c:
+            out.append('\\\\')
+        elif b == 0x27:
+            out.append("\\'")
+        elif 0x20 <= b < 0x7f:
+            out.append(chr(b))
+        else:
+            out.append('\\%02x' % b)
+    out.append("'")
+    return ''.join(out)
+
+
+def hoon_path(segments):
+    """A Hoon path literal.  A segment that isn't a term, such as
+    odd.name_1, goes in as a knot, [~.odd.name_1]: written plain, the
+    parser would read the . as the end of a coin."""
+    return '/' + '/'.join(s if TERM.match(s) else '[~.%s]' % s
+                          for s in segments) if segments else '/'
+
+
+# ---------------------------------------------------------------- tangs
+
+
+def ram(tank):
+    """A tank on one line, as Hoon's +ram:re prints it."""
+    if isinstance(tank, int):
+        return text(tank)
+    tag = text(tank[0])
+    if tag == 'leaf':
+        return tape(tank[1])
+    if tag in ('rose', 'palm'):
+        spec, kids = tank[1]
+        if tag == 'palm':
+            p, (q, (r, s)) = spec
+            sep, opn, cls = tape(p), tape(q) + tape(r), tape(s)
+        else:
+            p, (q, r) = spec
+            sep, opn, cls = tape(p), tape(q), tape(r)
+        return opn + sep.join(ram(k) for k in items(kids)) + cls
+    return repr(tank)
+
+
+def tang_lines(tang):
+    out = []
+    for tank in items(tang):
+        try:
+            out.append(ram(tank))
+        except (TypeError, ValueError):
+            out.append(repr(tank))
+    return out
+
+
+# ---------------------------------------------------------------- the ship
+
+
+def find_urbit(pier):
+    run = os.path.join(pier, '.run')
+    if os.access(run, os.X_OK):
+        return run
+    found = shutil.which('urbit')
+    if not found:
+        raise Unable('no urbit binary: neither %s nor urbit on PATH' % run)
+    return found
+
+
+class Ship:
+    def __init__(self, pier, log, click):
+        self.pier = os.path.realpath(pier)
+        self.log = log or self.pier + '.log'
+        self.click = click
+        self.sock = os.path.join(self.pier, '.urb', 'conn.sock')
+
+    # -- processes
+
+    def processes(self):
+        """(king pid, serf pid) of the urbit running this pier, or None."""
+        king = serf = None
+        for pid in os.listdir('/proc'):
+            if not pid.isdigit():
+                continue
+            try:
+                with open('/proc/%s/cmdline' % pid, 'rb') as f:
+                    args = [a.decode('utf-8', 'replace')
+                            for a in f.read().split(b'\0') if a]
+            except OSError:
+                continue
+            if len(args) < 2 or self.pier not in [
+                    os.path.realpath(a) if a.startswith('/') else a
+                    for a in args[1:]]:
+                continue
+            if args[1] == 'work':
+                serf = int(pid)
+            elif args[1] not in ('eval', 'dock', 'info', 'pack', 'meld'):
+                king = int(pid)
+        return king, serf
+
+    def running(self):
+        king, serf = self.processes()
+        return king or serf
+
+    def require(self):
+        if not self.running():
+            raise Unable('the ship at %s is not running; start it with '
+                         'tools/ship start' % self.pier)
+        if not os.path.exists(self.sock):
+            raise Unable('the ship is running but has no %s yet; wait for '
+                         'it to come up' % self.sock)
+
+    # -- the log
+
+    def log_size(self):
+        try:
+            return os.path.getsize(self.log)
+        except OSError:
+            return 0
+
+    def log_since(self, offset):
+        """The log's lines from a byte offset on, without colours."""
+        try:
+            with open(self.log, 'rb') as f:
+                f.seek(offset)
+                data = f.read()
+        except OSError:
+            return []
+        data = re.sub(rb'\x1b\[[0-9;?]*[A-Za-z]', b'', data)
+        return data.decode('utf-8', 'replace').replace('\r', '').split('\n')
+
+    # -- start and stop
+
+    def start(self, timeout):
+        if self.running():
+            say('the ship is already running (pid %d)' % self.running())
+            self.wait_live(time.time() + timeout, None, 0)
+            return
+        if not os.path.isdir(os.path.join(self.pier, '.urb')):
+            raise Unable('no pier at %s' % self.pier)
+        binary = find_urbit(self.pier)
+        if os.path.exists(self.log) and os.path.getsize(self.log):
+            os.replace(self.log, self.log + '.1')
+        logf = open(self.log, 'ab')
+        logf.write(('tools/ship: starting %s -t %s at %s\n' % (
+            binary, self.pier,
+            datetime.datetime.now().isoformat(timespec='seconds'))).encode())
+        logf.flush()
+        proc = subprocess.Popen(
+            [binary, '-t', self.pier], stdin=subprocess.DEVNULL,
+            stdout=logf, stderr=subprocess.STDOUT,
+            cwd=os.path.dirname(self.pier), start_new_session=True)
+        logf.close()
+        say('starting the ship at %s (pid %d), logging to %s'
+            % (self.pier, proc.pid, self.log))
+        self.wait_live(time.time() + timeout, proc, 0)
+
+    def wait_live(self, deadline, proc, offset):
+        """Wait for the pier to say it's live and for a thread to run."""
+        live = re.compile(r'pier \(\d+\): live')
+        while True:
+            if proc is not None and proc.poll() is not None:
+                tail = '\n'.join(self.log_since(offset)[-30:])
+                raise Unable('the ship exited with status %d; the end of '
+                             'its log:\n%s' % (proc.returncode, tail))
+            if any(live.search(l) for l in self.log_since(offset)) or \
+                    proc is None:
+                if os.path.exists(self.sock):
+                    try:
+                        our = self.thread(OUR, timeout=60)
+                        say('the ship is live: %s' % text(our))
+                        return
+                    except (Fail, OSError) as e:
+                        if time.time() > deadline:
+                            raise Unable('the ship is up but its threads '
+                                         "don't run: %s" % e)
+            if time.time() > deadline:
+                raise Unable('the ship did not come up in time; see %s'
+                             % self.log)
+            time.sleep(0.5)
+
+    def stop(self, timeout, force):
+        king, serf = self.processes()
+        if not king and not serf:
+            say('the ship is not running')
+            return
+        target = king or serf
+        say('stopping the ship (pid %d)' % target)
+        os.kill(target, signal.SIGTERM)
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            if not self.running():
+                say('the ship has stopped')
+                return
+            time.sleep(0.3)
+        if not force:
+            raise Fail('the ship is still running after %ds; tools/ship '
+                       'stop --force kills it' % timeout)
+        for pid in self.processes():
+            if pid:
+                os.kill(pid, signal.SIGKILL)
+        time.sleep(1)
+        say('killed the ship')
+
+    # -- threads
+
+    def thread(self, hoon, timeout=600):
+        """Run a strand on the ship with khan-eval; the noun of its vase.
+
+        hoon is a whole strand, `=/  m  (strand ,vase)  ...`, in the
+        subject khan-eval gives it: strandio, spider and zuse.
+        """
+        if not os.path.exists(self.sock):
+            raise Unable('no %s: is the ship running?' % self.sock)
+        frame = self.request(hoon)
+        reply = self.call(frame, timeout)
+        noun = cue(reply[5:])
+        try:
+            _rid, (kind, rest) = noun
+        except (TypeError, ValueError):
+            raise Fail('a strange reply from the ship: %.200r' % (noun,))
+        if kind == term('avow'):
+            ok, payload = rest
+            if ok == 0:
+                return payload[1]
+            mote, tang = payload
+            raise Fail('the thread failed: %%%s\n%s' % (
+                text(mote), '\n'.join('  ' + l for l in tang_lines(tang))))
+        raise Fail('the ship refused the request: %%%s %.200r'
+                   % (text(kind), rest))
+
+    def request(self, hoon):
+        """The request for a khan-eval thread, as click formats and jams it."""
+        prepared = prepare(hoon)
+        with tempfile.TemporaryDirectory(prefix='jibb-ship-') as tmp:
+            src = os.path.join(tmp, 'thread.hoon')
+            out = os.path.join(tmp, 'request.jam')
+            with open(src, 'w', encoding='ascii') as f:
+                f.write(prepared)
+            res = subprocess.run(
+                [self.click, '-k', '-j', '-b', find_urbit(self.pier),
+                 '-i', src, '-o', out, self.pier],
+                capture_output=True)
+            try:
+                with open(out, 'rb') as f:
+                    frame = f.read()
+            except OSError:
+                frame = b''
+        size = int.from_bytes(frame[1:5], 'little') if len(frame) >= 5 else -1
+        if len(frame) < 6 or frame[0] != 0 or size != len(frame) - 5:
+            err = [l for l in res.stderr.decode('utf-8', 'replace')
+                   .replace('\r', '').split('\n')
+                   if l and not re.match(r'^(loom|lite|eval \()', l)]
+            raise Fail('click could not jam the request:\n  ' +
+                       '\n  '.join(err[-20:] or ['(no output)']))
+        return frame
+
+    def call(self, frame, timeout):
+        """Send a newt frame to conn.sock and read one whole frame back."""
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        try:
+            s.connect(self.sock)
+            s.sendall(frame)
+            buf = b''
+            need = None
+            while need is None or len(buf) < need:
+                chunk = s.recv(1 << 20)
+                if not chunk:
+                    break
+                buf += chunk
+                if need is None and len(buf) >= 5:
+                    need = 5 + int.from_bytes(buf[1:5], 'little')
+        except socket.timeout:
+            raise Fail('no reply from the ship in %ds' % timeout)
+        finally:
+            s.close()
+        if need is None:
+            raise Fail('the ship closed the connection without replying')
+        if len(buf) < need:
+            raise Fail('the reply was cut off after %d of its %d bytes: '
+                       'vere closes conn.sock as soon as it has written a '
+                       'reply, so only what fits in the socket buffer gets '
+                       'through; ask for less' % (len(buf), need))
+        return buf[:need]
+
+
+def prepare(hoon):
+    """Hoon as click -i needs it: no comments, backslashes doubled, and
+    every byte that isn't printable ASCII written as a \\XX escape, all
+    inside the cord click wraps the thread in."""
+    lines = []
+    for line in hoon.split('\n'):
+        line = strip_comment(line).rstrip()
+        if line:
+            lines.append(line)
+    out = []
+    for ch in '\n'.join(lines).encode('utf-8'):
+        if ch == 0x5c:
+            out.append('\\\\')
+        elif ch == 0x0a or 0x20 <= ch < 0x7f:
+            out.append(chr(ch))
+        else:
+            out.append('\\%02x' % ch)
+    return ''.join(out) + '\n'
+
+
+def strip_comment(line):
+    """A line of Hoon without its :: comment, minding quotes."""
+    quote = None
+    i = 0
+    while i < len(line):
+        c = line[i]
+        if quote:
+            if c == '\\':
+                i += 1
+            elif c == quote:
+                quote = None
+        elif c in '\'"':
+            quote = c
+        elif line.startswith('::', i):
+            return line[:i]
+        i += 1
+    return line
+
+
+# ---------------------------------------------------------------- threads
+#
+#  Each is a strand, filled in by fill(): @@NAME@@ is replaced.  No
+#  comments here, since click joins the lines (see prepare()).
+
+OUR = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+(pure:m !>((scot %p our.bowl)))
+"""
+
+#  Mount points, from Clay's %hill, and each desk with its revision.
+DESKS_INFO = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+;<  ~  bind:m  (send-raw-card [%pass /boat %arvo %c %boat ~])
+;<  res=[wire sign-arvo]  bind:m  take-sign-arvo
+=/  sig=sign-arvo  +.res
+=/  mon=(list @tas)  ?.(?=([%clay %hill *] sig) ~ p.sig)
+=/  our  (scot %p our.bowl)
+=/  now  (scot %da now.bowl)
+=/  dez=(list desk)  ~(tap in .^((set desk) %cd /[our]/[%$]/[now]))
+%-  pure:m
+!>  :-  mon
+%+  turn  dez
+|=  d=desk
+[d ud:.^(cass:clay %cw /[our]/[d]/[now])]
+"""
+
+#  |new-desk @@DESK@@, as gen/hood/new-desk.hoon makes it: the %noun,
+#  %hoon, %txt and %kelvin marks and sys.kelvin, from %base.
+NEW_DESK = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  bas=path  /(scot %p our.bowl)/base/(scot %da now.bowl)
+=/  paz=(list path)
+  ~[/mar/noun/hoon /mar/hoon/hoon /mar/txt/hoon /mar/kelvin/hoon /sys/kelvin]
+=/  pages=(map path page:clay)
+  %-  ~(gas by *(map path page:clay))
+  %+  turn  paz
+  |=  p=path
+  [p (rear p) .^(* %cx (weld bas p))]
+;<  ~  bind:m  (poke-our %hood %helm-pass !>((new-desk:cloy %@@DESK@@ ~ pages)))
+(pure:m !>(~))
+"""
+
+#  |mount %@@DESK@@
+MOUNT = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  pax=path  (en-beam [our.bowl %@@DESK@@ da+now.bowl] /)
+;<  ~  bind:m  (poke-our %hood %kiln-mount !>([pax %@@DESK@@]))
+(pure:m !>(~))
+"""
+
+#  |unmount %@@DESK@@
+UNMOUNT = r"""
+=/  m  (strand ,vase)
+;<  ~  bind:m  (poke-our %hood %kiln-unmount !>(`term`%@@DESK@@))
+(pure:m !>(~))
+"""
+
+#  |commit %@@DESK@@, giving the revision before it.
+COMMIT = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  rev=@ud  ud:.^(cass:clay %cw /(scot %p our.bowl)/@@DESK@@/(scot %da now.bowl))
+;<  ~  bind:m  (poke-our %hood %kiln-commit !>([%@@DESK@@ |]))
+(pure:m !>(rev))
+"""
+
+#  |commit %@@DESK@@, and wait for it to land: [%done revision] when
+#  the desk gets a new revision, [%crud term tang] when Clay rejects
+#  the commit, [%none ~] when nothing happens in @@SECS@@ seconds.
+#  Clay's error reaches only dill's %logs watchers (dill no longer
+#  prints errors, and -t sends drum's output nowhere), so the thread
+#  watches %logs while it waits.
+COMMIT_WAIT = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  rev=@ud  ud:.^(cass:clay %cw /(scot %p our.bowl)/@@DESK@@/(scot %da now.bowl))
+=/  until=@da  (add now.bowl (mul ~s1 @@SECS@@))
+=/  finish
+  |=  [res=* rest=?]
+  =/  m  (strand ,vase)
+  ^-  form:m
+  ;<  ~  bind:m  (send-raw-card [%pass /jibb/logs %arvo %d %logs ~])
+  ;<  ~  bind:m  (send-raw-card [%pass /jibb/next %arvo %c %warp our.bowl %@@DESK@@ ~])
+  ;<  ~  bind:m
+    ?.  rest  (pure:(strand ,~) ~)
+    (send-raw-card [%pass /jibb/wait %arvo %b %rest until])
+  (pure:m !>(res))
+;<  ~  bind:m  (send-raw-card [%pass /jibb/logs %arvo %d %logs `~])
+;<  ~  bind:m  (send-raw-card [%pass /jibb/next %arvo %c %warp our.bowl %@@DESK@@ `[%next %w ud+rev /]])
+;<  ~  bind:m  (send-raw-card [%pass /jibb/wait %arvo %b %wait until])
+;<  ~  bind:m  (poke-our %hood %kiln-commit !>([%@@DESK@@ |]))
+|-  ^-  form:m
+=*  loop  $
+;<  [wir=wire sig=sign-arvo]  bind:m  take-sign-arvo
+?:  ?=([%jibb %logs ~] wir)
+  ?.  ?=([%dill %logs %crud %into *] sig)
+    loop
+  =/  cud  ;;([@tas tang] +>+.sig)
+  (finish [%crud -.cud (scag 300 +.cud)] &)
+?:  ?=([%jibb %next ~] wir)
+  ;<  now=@da  bind:m  get-time
+  =/  new=@ud  ud:.^(cass:clay %cw /(scot %p our.bowl)/@@DESK@@/(scot %da now))
+  (finish [%done new] &)
+?:  ?=([%jibb %wait ~] wir)
+  (finish [%none ~] |)
+loop
+"""
+
+#  |merge %@@DESK@@ our %@@FROM@@, =gem %@@GERM@@
+MERGE = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  arg  [%@@DESK@@ our.bowl %@@FROM@@ da+now.bowl %@@GERM@@]
+;<  ~  bind:m  (poke-our %hood %kiln-merge !>(arg))
+(pure:m !>(~))
+"""
+
+#  A page of the desk's manifest, for comparing it with the repo: the
+#  revision; whether +to-wain ends the last line at a final newline, as
+#  vere's jet does, or gives an empty line after it, as the Hoon does;
+#  how many files the desk has; for each file sent with its content,
+#  whether the desk's mark, converting that content from %mime, gives
+#  the stored value; and for the files @@FROM@@ to @@FROM@@ + @@COUNT@@,
+#  the path with [%cord hash] for a cord, [%wain hash] for a %txt file's
+#  lines, each with a newline after it, or [%other 0].  A hash is the
+#  first 8 bytes of the sha-256.  now is fixed across pages.
+MANIFEST = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  @@NOW@@
+=/  pre=path  /(scot %p our.bowl)/@@DESK@@/(scot %da now)
+=/  all=(list path)  .^((list path) %ct pre)
+=/  conv=(list [path ?])
+  %+  turn  `(list [path @t])`@@CONV@@
+  |=  [pax=path c=@t]
+  ?.  .^(? %cu (weld pre pax))  [pax |]
+  =/  have  .^(* %cx (weld pre pax))
+  =/  tub  .^(tube:clay %cc (weld pre /mime/[(rear pax)]))
+  =/  res  (mule |.((tub !>([/text/plain (as-octs:mimes:html c)]))))
+  [pax &(?=(%& -.res) =(q.p.res have))]
+=/  page=(list [path @tas @])
+  %+  turn  (swag [@@FROM@@ @@COUNT@@] all)
+  |=  pax=path
+  =/  have  .^(* %cx (weld pre pax))
+  :-  pax
+  ?@  have  [%cord (end [3 8] (shax have))]
+  ?.  =(%txt (rear pax))  [%other 0]
+  :-  %wain
+  (end [3 8] (shax (rap 3 (turn ;;(wain have) |=(l=@t (cat 3 l '\0a'))))))
+=/  jet=?  =(1 (lent (to-wain:format 'a\0a')))
+(pure:m !>([ud:.^(cass:clay %cw pre) now jet (lent all) conv page]))
+"""
+
+#  -test /=@@DESK@@=/tests, through the %test thread on %base.
+RUN_TEST = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  pax=path  /(scot %p our.bowl)/@@DESK@@/(scot %da now.bowl)/tests
+;<  res=thread-result  bind:m  (await-thread %test !>([~ pax]))
+?-  -.res
+  %&  (pure:m !>([%& ;;(? q.p.res)]))
+  %|  (pure:m !>([%| p.res]))
+==
+"""
+
+def hoon_ud(n):
+    """A number as a Hoon @ud literal: 150.000."""
+    return '{:,}'.format(n).replace(',', '.')
+
+
+#  +fit: printed lines, cut to what a reply can carry (see REPLY_BYTES).
+FIT = r"""
+=/  fit
+  |=  lines=(list @t)
+  =|  [n=@ud out=(list @t)]
+  |-  ^-  (list @t)
+  ?~  lines  (flop out)
+  =.  n  (add n +((met 3 i.lines)))
+  ?:  (gth n @@BYTES@@)
+    %-  flop
+    :_  out
+    (crip "... and {(a-co:co (lent lines))} more lines, cut to fit the reply")
+  $(lines t.lines, out [i.lines out])
+""".replace('@@BYTES@@', hoon_ud(REPLY_BYTES))
+
+#  A Hoon expression, evaluated as dojo would with our, now and eny,
+#  printed as dojo prints it.
+EXPR = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  our  our.bowl
+=/  now  now.bowl
+=/  eny  eny.bowl
+=/  vax=vase
+  !>
+  @@EXPR@@
+""" + FIT + r"""
+(pure:m !>((fit (turn (wash [0 @@WIDTH@@] (sell vax)) crip))))
+"""
+
+#  A strand's result vase, printed as dojo prints it.
+RUN_FILE = r"""
+=/  m  (strand ,vase)
+;<  vax=vase  bind:m
+  @@THREAD@@
+""" + FIT + r"""
+(pure:m !>((fit (turn (wash [0 @@WIDTH@@] (sell vax)) crip))))
+"""
+
+#  A poke, as dojo's :agent &mark value.
+POKE = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  our  our.bowl
+=/  now  now.bowl
+;<  ~  bind:m  (poke-our %@@AGENT@@ %@@MARK@@ !>(@@VALUE@@))
+(pure:m !>(~))
+"""
+
+
+def fill(template, **kw):
+    out = template
+    for k, v in kw.items():
+        out = out.replace('@@%s@@' % k, v)
+    left = re.findall(r'@@[A-Z]+@@', out)
+    if left:
+        raise RuntimeError('unfilled template slots: %s' % left)
+    return out
+
+
+def desk_term(name):
+    if not TERM.match(name):
+        raise Unable('%s is not a desk name: desks are terms, lowercase '
+                     'letters, digits and hyphens, starting with a letter'
+                     % name)
+    return name
+
+
+# ---------------------------------------------------------------- desks
+
+
+def clay_path(rel):
+    """A desk file's Clay path from its Unix path: mar/txt.hoon is
+    /mar/txt/hoon."""
+    segs = rel.split('/')
+    name, ext = segs[-1].rsplit('.', 1)
+    return segs[:-1] + [name, ext]
+
+
+def unix_problem(rel):
+    """Why vere would leave this file out of the desk, or None."""
+    segs = rel.split('/')
+    name = segs[-1]
+    if '.' not in name or name.endswith('.'):
+        return 'it has no extension, so no mark'
+    if name.endswith('~'):
+        return 'it ends in ~'
+    for s in segs:
+        if not KNOT.match(s):
+            return ('%r is not a knot: Clay paths are lowercase letters, '
+                    'digits and - . ~ _' % s)
+    return None
+
+
+def mark_exists(files, mark):
+    """Whether the desk has a mark: Clay looks for mark a-b-c at
+    /mar/a-b-c.hoon, then /mar/a/b-c.hoon, and so on."""
+    parts = mark.split('-')
+    for i in range(len(parts)):
+        rel = '/'.join(['mar'] + parts[:i] + ['-'.join(parts[i:])]) + '.hoon'
+        if rel in files:
+            return True
+    return False
+
+
+class Assembly:
+    """A desk's files: desk-relative Unix path -> (bytes, where from)."""
+
+    def __init__(self, desk):
+        self.desk = desk
+        self.files = {}
+
+    def add(self, rel, data, src):
+        old = self.files.get(rel)
+        if old is not None and old[0] != data:
+            raise Unable('%s/%s comes from both %s and %s, which differ'
+                         % (self.desk, rel, old[1], src))
+        self.files[rel] = (data, src)
+
+    def replace(self, rel, data, src):
+        self.files[rel] = (data, src)
+
+    def add_tree(self, folder, into, skip=(), drop=None):
+        if not os.path.isdir(folder):
+            raise Unable('no folder %s' % show(folder))
+        for dirpath, dirnames, filenames in os.walk(folder):
+            rel_dir = os.path.relpath(dirpath, folder)
+            rel_dir = '' if rel_dir == '.' else rel_dir
+            dirnames[:] = sorted(
+                d for d in dirnames if not d.startswith('.')
+                and os.path.join(rel_dir, d) not in skip)
+            for fn in sorted(filenames):
+                if fn.startswith('.'):
+                    continue
+                rel = os.path.join(rel_dir, fn)
+                if drop and drop(rel):
+                    continue
+                desk_rel = os.path.join(into, rel) if into else rel
+                with open(os.path.join(dirpath, fn), 'rb') as f:
+                    self.add(desk_rel, f.read(), show(os.path.join(dirpath, fn)))
+
+
+def show(path):
+    path = os.path.abspath(path)
+    rel = os.path.relpath(path, ROOT)
+    return path if rel.startswith('..') else rel
+
+
+def assemble(desk, lib=None, golden=None):
+    """The files of one of the repo's desks, checked as vere and Clay
+    will see them.  lib replaces /lib/jibb.hoon; golden, for the
+    jibb-dev test desk, is the folder of golden cases."""
+    if desk not in DESKS:
+        raise Unable('no desk %s here; the repo builds %s'
+                     % (desk, ', '.join(sorted(DESKS))))
+    a = Assembly(desk)
+    vendor = os.path.join(ROOT, 'vendor')
+    for pkg in sorted(os.listdir(vendor)):
+        if os.path.isdir(os.path.join(vendor, pkg)) and not pkg.startswith('.'):
+            a.add_tree(os.path.join(vendor, pkg), '')
+    for folder, into, skip in DESKS[desk]:
+        if folder == 'tests':
+            golden = golden or GOLDEN
+            if os.path.isdir(os.path.join(ROOT, 'tests')):
+                a.add_tree(os.path.join(ROOT, 'tests'), 'tests',
+                           skip=['golden'], drop=lambda rel: rel ==
+                           os.path.join('lib', 'jibb.hoon'))
+            if os.path.isdir(golden):
+                a.add_tree(golden, os.path.join('tests', 'golden'))
+            a.add(os.path.join('tests', 'lib', 'jibb.hoon'),
+                  generate_tests(golden).encode(),
+                  'tools/ship gen-tests --golden %s' % show(golden))
+        else:
+            a.add_tree(os.path.join(ROOT, folder), into, skip=skip)
+    for rel, src in EXTRA.get(desk, {}).items():
+        with open(os.path.join(ROOT, src), 'rb') as f:
+            a.add(rel, f.read(), src)
+    if lib is not None:
+        if 'lib/jibb.hoon' not in a.files:
+            raise Unable('desk %s has no lib/jibb.hoon to replace' % desk)
+        with open(lib, 'rb') as f:
+            a.replace('lib/jibb.hoon', f.read(), show(lib))
+    check_assembly(a)
+    return a
+
+
+def check_assembly(a):
+    problems = []
+    for rel in sorted(a.files):
+        why = unix_problem(rel)
+        if why is None and not mark_exists(a.files, rel.rsplit('.', 1)[1]):
+            why = 'the desk has no mark for .%s files' % rel.rsplit('.', 1)[1]
+        if why is None:
+            continue
+        if rel.startswith('tests/golden/'):
+            warn('leaving %s out of %s: %s' % (a.files[rel][1], a.desk, why))
+            del a.files[rel]
+        else:
+            problems.append('%s (%s): %s' % (rel, a.files[rel][1], why))
+    if 'sys.kelvin' not in a.files:
+        problems.append('no sys.kelvin: Clay refuses a commit without one')
+    if problems:
+        raise Unable('desk %s would not commit as it is:\n  %s'
+                     % (a.desk, '\n  '.join(problems)))
+
+
+# ---------------------------------------------------------------- gen-tests
+
+TESTS_HEADER = """\
+::  tests/lib/jibb.hoon: the golden tests, run on a ship by -test
+::
+::  Generated by tools/ship gen-tests from the cases in
+::  @@SOURCE@@/.  Don't edit it: run tools/ship gen-tests again
+::  after changing the cases.
+::
+::  Each test- arm runs golden:jibb on one case's source.jibb, with the
+::  file set to the case's Clay path, /tests/golden/<case>/source/jibb,
+::  and compares the outputs with tokens.txt and tree.txt, which hold
+::  the output plus one trailing newline, as in tools/golden.  The
+::  files come in at build time through /*; a missing tokens.txt or
+::  tree.txt fails its case.  tools/ship test syncs the jibb-dev desk
+::  and runs these with -test /=jibb-dev=/tests.
+::
+::  The .txt files reach Clay through the %txt mark, as lines, so the
+::  test compares lines: the file's with those of the output plus a
+::  newline.  A %txt file can't show whether it ends in a newline
+::  (vere's +to-wain jet ends the last line there, with no empty line
+::  after it), so only tools/golden, and tools/ship test's own warning,
+::  catch an expected file without its final newline.
+::
+"""
+
+TESTS_HELPERS = r"""::
+::  +check: run golden:jibb on a case and compare both outputs
+::
+++  check
+  |=  [case=@ta src=@t tokens=(unit wain) tree=(unit wain)]
+  ^-  tang
+  =/  out=[tokens=@t tree=@t]
+    (golden:jibb /tests/golden/[case]/source/jibb src)
+  %+  weld
+    (compare (file case "tokens.txt") tokens tokens.out)
+  (compare (file case "tree.txt") tree tree.out)
+::
+++  file
+  |=  [case=@ta name=tape]
+  ^-  tape
+  "tests/golden/{(trip case)}/{name}"
+::
+::  +compare: a file's lines against those of an output plus a newline
+::
+++  compare
+  |=  [name=tape want=(unit wain) got=@t]
+  ^-  tang
+  =/  have=wain  (to-wain:format (cat 3 got '\0a'))
+  ?~  want
+    :-  leaf+"{name} is missing; tools/golden --update writes it"
+    (turn have |=(l=@t leaf+"  | {(trip l)}"))
+  ?:  =(u.want have)
+    ~
+  =/  n=@ud  (first-difference u.want have)
+  :~  leaf+"{name} differs from the output at line {(a-co:co +(n))}:"
+      leaf+"  expected: {(line-at u.want n)}"
+      leaf+"  actual:   {(line-at have n)}"
+  ==
+::
+++  first-difference
+  |=  [a=wain b=wain]
+  =|  n=@ud
+  |-  ^-  @ud
+  ?~  a  n
+  ?~  b  n
+  ?.  =(i.a i.b)  n
+  $(a t.a, b t.b, n +(n))
+::
+++  line-at
+  |=  [lines=wain n=@ud]
+  ^-  tape
+  ?:  (gte n (lent lines))
+    "(the end of the file)"
+  ?:  =('' (snag n lines))
+    "(an empty line)"
+  (trip (snag n lines))
+--
+"""
+
+
+def golden_cases(golden):
+    """[(case name, folder)] for each case folder holding a source.jibb."""
+    if not os.path.isdir(golden):
+        return []
+    cases = []
+    for name in sorted(os.listdir(golden)):
+        folder = os.path.join(golden, name)
+        if not os.path.isdir(folder) or name.startswith('.'):
+            continue
+        if not os.path.isfile(os.path.join(folder, 'source.jibb')):
+            warn('skipping %s: it has no source.jibb' % show(folder))
+            continue
+        if not KNOT.match(name):
+            warn('skipping %s: %r is not a knot, so it has no Clay path '
+                 '(lowercase letters, digits and - . ~ _)' % (show(folder), name))
+            continue
+        cases.append((name, folder))
+    return cases
+
+
+def arm_names(names):
+    """A test- arm name for each case: its name with what a term can't
+    hold made -, and a number added to tell clashes apart."""
+    out, used = [], set()
+    for name in names:
+        base = 'test-' + re.sub(r'[^a-z0-9-]', '-', name)
+        arm, n = base, 1
+        while arm in used:
+            n += 1
+            arm = '%s-%d' % (base, n)
+        used.add(arm)
+        out.append(arm)
+    return out
+
+
+def generate_tests(golden):
+    cases = golden_cases(golden)
+    lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'), '/+  jibb']
+    arms = []
+    for i, ((name, folder), arm) in enumerate(
+            zip(cases, arm_names([c[0] for c in cases])), 1):
+        base = '/tests/golden/%s' % name
+        lines.append('/*  src-%d  %%jibb  %s/source/jibb' % (i, base))
+        #  a knot literal: a case's name may hold . and _, which a
+        #  path literal in Hoon can't, though /* takes them
+        args = ['~.%s' % name, 'src-%d' % i]
+        for kind, face in (('tokens', 'tok'), ('tree', 'tre')):
+            if os.path.isfile(os.path.join(folder, kind + '.txt')):
+                lines.append('/*  %s-%d  %%txt   %s/%s/txt'
+                             % (face, i, base, kind))
+                args.append('`%s-%d' % (face, i))
+            else:
+                args.append('~')
+        arms.append('++  %s\n  (check %s)' % (arm, ' '.join(args)))
+    lines.append('|%')
+    if arms:
+        lines.append('::  one arm per case')
+        lines.append('::')
+    lines.extend(arms)
+    return '\n'.join(lines) + '\n' + TESTS_HELPERS
+
+
+# ---------------------------------------------------------------- sync
+
+
+def desks_info(ship):
+    """(mount points, {desk: revision})."""
+    mon, dez = ship.thread(DESKS_INFO)
+    return ({text(m) for m in items(mon)},
+            {text(d): rev for d, rev in items(dez)})
+
+
+def ensure_desk(ship, desk, quiet=False):
+    """Create the desk if it's missing and mount it; the mount folder."""
+    mounts, revs = desks_info(ship)
+    mount = os.path.join(ship.pier, desk)
+    if desk not in revs:
+        ship.thread(fill(NEW_DESK, DESK=desk))
+        if not quiet:
+            say('%s: created the desk, as |new-desk does' % desk)
+    if desk in mounts and not os.path.isdir(mount):
+        ship.thread(fill(UNMOUNT, DESK=desk))
+        mounts.discard(desk)
+    if desk not in mounts:
+        ship.thread(fill(MOUNT, DESK=desk))
+        deadline = time.time() + 30
+        while not os.path.isfile(os.path.join(mount, 'sys.kelvin')):
+            if time.time() > deadline:
+                raise Fail('%s: mounted, but %s/sys.kelvin never appeared'
+                           % (desk, mount))
+            time.sleep(0.2)
+        if not quiet:
+            say('%s: mounted at %s' % (desk, mount))
+    return mount
+
+
+def mirror(mount, files):
+    """Make the mount folder hold exactly these files (dotfiles aside,
+    which vere ignores); the paths added, changed and deleted."""
+    added, changed, deleted = [], [], []
+    for rel, (data, _src) in sorted(files.items()):
+        path = os.path.join(mount, rel)
+        try:
+            with open(path, 'rb') as f:
+                old = f.read()
+        except FileNotFoundError:
+            old = None
+        if old == data:
+            continue
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb') as f:
+            f.write(data)
+        (added if old is None else changed).append(rel)
+    for dirpath, dirnames, filenames in os.walk(mount, topdown=False):
+        rel_dir = os.path.relpath(dirpath, mount)
+        rel_dir = '' if rel_dir == '.' else rel_dir
+        if any(s.startswith('.') for s in rel_dir.split(os.sep) if s):
+            continue
+        for fn in filenames:
+            rel = os.path.join(rel_dir, fn)
+            if fn.startswith('.') or rel in files:
+                continue
+            os.remove(os.path.join(dirpath, fn))
+            deleted.append(rel)
+        if rel_dir and not os.listdir(dirpath):
+            os.rmdir(dirpath)
+    return added, changed, sorted(deleted)
+
+
+def commit(ship, desk):
+    """|commit the desk; the revision before."""
+    return ship.thread(fill(COMMIT, DESK=desk))
+
+
+MANIFEST_PAGE = 2000    # files per reply; see REPLY_BYTES
+CONV_BYTES = 65536      # bigger files with other marks are only looked for
+
+
+def short_hash(data):
+    """The first 8 bytes of the sha-256, as the atom the ship gives."""
+    return int.from_bytes(hashlib.sha256(data).digest()[:8], 'little')
+
+
+def txt_lines(data, jet):
+    """The wain the %txt mark stores for a file: lines, without the
+    empty one after a final newline if jet, as vere's +to-wain does."""
+    if not data:
+        return []
+    lines = data.split(b'\n')
+    if jet and data.endswith(b'\n'):
+        lines.pop()
+    #  a line is an atom, which can't end in zero bytes
+    return [l.rstrip(b'\0') for l in lines]
+
+
+def verify(ship, desk, files):
+    """Compare the desk with the files; (revision, problems).
+
+    The ship sends its manifest, a short hash of each file, and Python
+    compares: files whose mark stores a cord by the hash of their
+    bytes, %txt files by the hash of their lines, and the rest, which
+    are few and small (desk.bill, sys.kelvin, desk.docket-0), by
+    sending their content to be converted by the desk's own mark.
+    """
+    by_path = {'/' + '/'.join(clay_path(rel)): rel for rel in files}
+    conv = []
+    for pax, rel in sorted(by_path.items()):
+        mark = clay_path(rel)[-1]
+        data = files[rel][0]
+        if mark not in BYTE_MARKS and mark != 'txt' and \
+                len(data) <= CONV_BYTES:
+            conv.append('[%s %s]' % (hoon_path(clay_path(rel)),
+                                     hoon_cord(data)))
+    now, start, total, desk_files = 'now.bowl', 0, None, {}
+    while total is None or start < total:
+        noun = ship.thread(fill(
+            MANIFEST, DESK=desk, NOW=now, FROM=hoon_ud(start),
+            COUNT=hoon_ud(MANIFEST_PAGE),
+            CONV='~[%s]' % ' '.join(conv) if conv else '~'))
+        rev, (da, (jet, (total, (conv_res, page)))) = noun
+        now = '`@da``@`%s' % hoon_ud(da)
+        for pax, (kind, val) in items(page):
+            desk_files[path_text(pax)] = (text(kind), val)
+        start += MANIFEST_PAGE
+    jet = jet == 0
+    problems = []
+    for pax in sorted(set(desk_files) - set(by_path)):
+        problems.append('%s is on the desk but not in the repo' % pax)
+    converted = {path_text(p): ok == 0 for p, ok in items(conv_res)}
+    for pax, rel in sorted(by_path.items()):
+        data, src = files[rel]
+        mark = clay_path(rel)[-1]
+        if pax not in desk_files:
+            problems.append('%s is missing from the desk' % pax)
+            continue
+        kind, val = desk_files[pax]
+        if mark in BYTE_MARKS:
+            same = kind == 'cord' and val == short_hash(data.rstrip(b'\0'))
+        elif mark == 'txt':
+            same = kind == 'wain' and val == short_hash(
+                b''.join(l + b'\n' for l in txt_lines(data, jet)))
+        elif pax in converted:
+            same = converted[pax]
+        else:
+            continue    # too big to send; it's there
+        if not same:
+            problems.append('%s differs from %s' % (pax, src))
+    return rev, problems
+
+
+def sync(ship, desk, lib=None, golden=None, timeout=60, quiet=False):
+    """Assemble a desk, copy it into its mount and |commit; the revision.
+
+    The desk is checked against the repo first: when they already match
+    there's nothing to commit.  Otherwise the commit runs in a thread
+    that waits for the new revision, or for Clay's error.
+    """
+    started = time.time()
+    a = assemble(desk, lib=lib, golden=golden)
+    ship.require()
+    mount = ensure_desk(ship, desk, quiet=quiet)
+    added, changed, deleted = mirror(mount, a.files)
+    rev, problems = verify(ship, desk, a.files)
+    if problems:
+        rev = commit_and_wait(ship, desk, timeout)
+        rev, problems = verify(ship, desk, a.files)
+        if problems:
+            raise Fail('%s: after |commit, at revision %d, the desk still '
+                       "doesn't match the repo:\n  %s"
+                       % (desk, rev, '\n  '.join(problems[:20])))
+        what = 'committed revision %d' % rev
+    else:
+        what = 'nothing to commit: already at revision %d' % rev
+    if not quiet:
+        say('%s: %d files; copied +%d ~%d -%d; %s; the desk matches the '
+            'repo (%.1fs)' % (desk, len(a.files), len(added), len(changed),
+                              len(deleted), what, time.time() - started))
+    return rev
+
+
+def commit_and_wait(ship, desk, timeout):
+    """|commit, and wait for the new revision; raise Clay's error."""
+    noun = ship.thread(fill(COMMIT_WAIT, DESK=desk, SECS=hoon_ud(timeout)),
+                       timeout=timeout + 60)
+    kind, val = noun
+    kind = text(kind)
+    if kind == 'done':
+        return val
+    if kind == 'crud':
+        mote, tang = val
+        raise Fail('%s: Clay rejected the commit: %%%s\n  %s' % (
+            desk, text(mote), '\n  '.join(tang_lines(tang))))
+    raise Fail('%s: |commit changed nothing in %ds, though the mount '
+               "doesn't match the desk" % (desk, timeout))
+
+
+# ---------------------------------------------------------------- scry
+
+
+def parse_scry(spec, care=None):
+    """A scry path as dojo writes it, /cx/=my-app=/ui/about/jibb, into
+    (care, Hoon for the path).  = stands for our, the desk %base and
+    now, in the first three places after the care."""
+    segs = spec.split('/')
+    if not spec.startswith('/'):
+        raise Unable('a scry path starts with /: %s' % spec)
+    segs = segs[1:]
+    if care is None:
+        if not segs or not re.match(r'^[a-z]{2}$', segs[0]):
+            raise Unable('a scry path starts with the vane and care, as '
+                         '/cx/=my-app=/desk/bill: %s' % spec)
+        care, segs = segs[0], segs[1:]
+    #  =desk= is three segments: our, desk, now
+    out = []
+    if segs and segs[0].startswith('=') and segs[0].endswith('=') and \
+            len(segs[0]) > 2:
+        segs = ['=', segs[0][1:-1], '='] + segs[1:]
+    defaults = ['(scot %p our.bowl)', '%base', '(scot %da now)']
+    for i, s in enumerate(segs):
+        if i < 3 and s in ('=', ''):
+            out.append('[%s]' % defaults[i])
+        elif s == '':
+            continue    # a trailing or doubled /
+        elif TERM.match(s):
+            out.append(s)
+        elif KNOT.match(s):
+            out.append('[~.%s]' % s)
+        else:
+            out.append('[%s]' % hoon_cord(s.encode()))
+    return care, '/' + '/'.join(out)
+
+
+#  now is the time the path's = stands for: the ship's now, or for the
+#  later parts of a big --raw read, the time of the first.
+SCRY = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  @@NOW@@
+=/  val  .^(@@TYPE@@ %@@CARE@@ @@PATH@@)
+@@RESULT@@
+"""
+
+#  --raw: [%atom size now part], part being @@SIZE@@ bytes from
+#  @@OFFSET@@ on, or [%cell ~].
+SCRY_RAW = r"""
+=/  raw=*  val
+?^  raw  (pure:m !>([%cell ~]))
+(pure:m !>([%atom (met 3 raw) now (cut 3 [@@OFFSET@@ @@SIZE@@] raw)]))
+"""
+
+SCRY_PRINT = FIT + r"""
+(pure:m !>((fit (turn (wash [0 @@WIDTH@@] (sell !>(val))) crip))))
+"""
+
+
+def cmd_scry(ship, args):
+    ship.require()
+    care, pax = parse_scry(args.path)
+    if not args.raw:
+        noun = ship.thread(fill(SCRY, TYPE=args.type, CARE=care, PATH=pax,
+                                NOW='now.bowl', RESULT=fill(
+                                    SCRY_PRINT, WIDTH=hoon_ud(args.width))))
+        for line in items(noun):
+            say(text(line))
+        return
+    #  an atom comes in parts, all read at the time of the first
+    now, offset, parts, size = 'now.bowl', 0, [], None
+    while size is None or offset < size:
+        noun = ship.thread(fill(SCRY, TYPE=args.type, CARE=care, PATH=pax,
+                                NOW=now, RESULT=fill(
+                                    SCRY_RAW, OFFSET=hoon_ud(offset),
+                                    SIZE=hoon_ud(REPLY_BYTES))))
+        if text(noun[0]) != 'atom':
+            raise Fail('the result is a cell, not an atom; drop --raw')
+        size, (da, part) = noun[1]
+        now = '`@da``@`%s' % hoon_ud(da)
+        want = min(REPLY_BYTES, size - offset)
+        parts.append(atom_bytes(part).ljust(want, b'\0'))
+        offset += want
+    sys.stdout.buffer.write(b''.join(parts))
+    sys.stdout.flush()
+
+
+# ---------------------------------------------------------------- hoon, run, poke
+
+
+def cmd_hoon(ship, args):
+    ship.require()
+    expr = args.expr
+    if args.file:
+        with open(args.file, encoding='utf-8') as f:
+            expr = f.read()
+    if not expr:
+        raise Unable('give an expression, or -f FILE')
+    noun = ship.thread(fill(EXPR, EXPR=indent(expr, 2), WIDTH=hoon_ud(args.width)))
+    for line in items(noun):
+        say(text(line))
+
+
+def cmd_run(ship, args):
+    ship.require()
+    with open(args.file, encoding='utf-8') as f:
+        thread = f.read()
+    noun = ship.thread(fill(RUN_FILE, THREAD=indent(thread, 2),
+                            WIDTH=hoon_ud(args.width)), timeout=args.timeout)
+    for line in items(noun):
+        say(text(line))
+
+
+def cmd_poke(ship, args):
+    ship.require()
+    for name in (args.agent, args.mark):
+        if not TERM.match(name):
+            raise Unable('%s is not a term' % name)
+    ship.thread(fill(POKE, AGENT=args.agent, MARK=args.mark,
+                     VALUE=args.value))
+    say('poked %%%s with %%%s' % (args.agent, args.mark))
+
+
+def indent(text_, n):
+    return '\n'.join((' ' * n + l) if l.strip() else l
+                     for l in text_.strip('\n').split('\n'))
+
+
+# ---------------------------------------------------------------- status, log
+
+
+def cmd_status(ship, args):
+    king, serf = ship.processes()
+    if not king and not serf:
+        say('the ship at %s is not running' % ship.pier)
+        return 3
+    say('the ship at %s is running: pid %s (serf %s), log %s'
+        % (ship.pier, king, serf, ship.log))
+    try:
+        our = ship.thread(OUR, timeout=30)
+        mounts, revs = desks_info(ship)
+    except (Fail, OSError) as e:
+        say('but it does not answer: %s' % e)
+        return 1
+    say('%s is live; its desks:' % text(our))
+    width = max([len(d) for d in revs] + [10])
+    for d in sorted(revs):
+        mount = os.path.join(ship.pier, d)
+        say(('  %%%-*s  revision %-4d %s' % (
+            width, d, revs[d], 'mounted at ' + mount if d in mounts
+            else '')).rstrip())
+    return 0
+
+
+def cmd_log(ship, args):
+    lines = ship.log_since(0)
+    if lines and lines[-1] == '':
+        lines.pop()
+    if not args.all:
+        lines = [l for l in lines if not NOISE.match(l)]
+    for line in lines[-args.lines:]:
+        say(line)
+
+
+def cmd_commit(ship, args):
+    ship.require()
+    try:
+        rev = commit_and_wait(ship, desk_term(args.desk), args.timeout)
+    except Fail as e:
+        if 'changed nothing' not in str(e):
+            raise
+        say('|commit %%%s: no new revision in %ds; nothing to commit?'
+            % (args.desk, args.timeout))
+        return 0
+    say('|commit %%%s: committed revision %d' % (args.desk, rev))
+
+
+def cmd_mount(ship, args):
+    ship.require()
+    mount = ensure_desk(ship, desk_term(args.desk))
+    say('%s is mounted at %s' % (args.desk, mount))
+
+
+def cmd_unmount(ship, args):
+    ship.require()
+    ship.thread(fill(UNMOUNT, DESK=desk_term(args.desk)))
+    say('|unmount %%%s sent' % args.desk)
+
+
+def cmd_sync(ship, args):
+    lib = STUB if args.stub else args.lib
+    for desk in args.desks:
+        sync(ship, desk, lib=lib, golden=args.golden, timeout=args.timeout)
+
+
+def cmd_gen_tests(ship, args):
+    golden = args.golden or GOLDEN
+    out = args.out or TESTS_LIB
+    content = generate_tests(golden)
+    try:
+        with open(out, encoding='utf-8') as f:
+            old = f.read()
+    except FileNotFoundError:
+        old = None
+    n = len(golden_cases(golden))
+    if args.check:
+        if old != content:
+            say('%s is out of date with %s; run tools/ship gen-tests'
+                % (show(out), show(golden)))
+            return 1
+        say('%s is up to date: %d cases' % (show(out), n))
+        return 0
+    if old == content:
+        say('%s is up to date: %d cases' % (show(out), n))
+        return 0
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    with open(out, 'w', encoding='utf-8') as f:
+        f.write(content)
+    say('wrote %s: %d cases from %s' % (show(out), n, show(golden)))
+    return 0
+
+
+# ---------------------------------------------------------------- test
+
+TEST_LINE = re.compile(r'^(OK|FAILED|CRASHED|built) +(/\S*)')
+
+
+def settle(ship, offset, quiet=0.5, limit=5.0):
+    """Wait for the log to stop growing, so a thread's output is in."""
+    deadline = time.time() + limit
+    size = ship.log_size()
+    while time.time() < deadline:
+        time.sleep(quiet)
+        now = ship.log_size()
+        if now == size:
+            break
+        size = now
+    return [l for l in ship.log_since(offset) if l.strip() and not NOISE.match(l)]
+
+
+def cmd_test(ship, args):
+    ship.require()
+    lib = STUB if args.stub else args.lib
+    golden = args.golden or GOLDEN
+    started = time.time()
+    if args.golden is None:
+        content = generate_tests(golden)
+        try:
+            with open(TESTS_LIB, encoding='utf-8') as f:
+                stale = f.read() != content
+        except FileNotFoundError:
+            stale = True
+        if stale:
+            os.makedirs(os.path.dirname(TESTS_LIB), exist_ok=True)
+            with open(TESTS_LIB, 'w', encoding='utf-8') as f:
+                f.write(content)
+            say('updated %s from %s' % (show(TESTS_LIB), show(golden)))
+    for _name, folder in golden_cases(golden):
+        for fn in ('tokens.txt', 'tree.txt'):
+            data = _read(os.path.join(folder, fn))
+            if data and not data.endswith(b'\n'):
+                warn("%s has no final newline: the ship can't see that (the "
+                     "%%txt mark keeps only lines, and vere's +to-wain jet "
+                     "drops a final newline), but tools/golden fails it"
+                     % show(os.path.join(folder, fn)))
+    if not args.no_sync:
+        sync(ship, 'jibb-dev', lib=lib, golden=golden, timeout=args.timeout)
+    synced = time.time()
+    offset = ship.log_size()
+    flag, rest = ship.thread(fill(RUN_TEST, DESK='jibb-dev'),
+                             timeout=args.timeout)
+    lines = settle(ship, offset)
+    for line in lines:
+        say(line)
+    counts = {'OK': 0, 'FAILED': 0, 'CRASHED': 0}
+    for line in lines:
+        m = TEST_LINE.match(line)
+        if m and m.group(1) in counts and '/test-' in m.group(2):
+            counts[m.group(1)] += 1
+    built_failed = any(re.match(r'^FAILED +\S+ \(build\)', l) for l in lines)
+    took = 'sync %.1fs, -test %.1fs' % (synced - started, time.time() - synced)
+    if flag != 0:
+        mote, tang = rest
+        say('-test itself failed: %%%s' % text(mote))
+        for line in tang_lines(tang):
+            say('  ' + line)
+        say('FAIL (%s)' % took)
+        return 1
+    ok = rest == 0
+    summary = '%d OK, %d FAILED, %d CRASHED' % (
+        counts['OK'], counts['FAILED'], counts['CRASHED'])
+    if built_failed:
+        summary += '; a test file failed to build'
+    say('%s: %s (%s)' % ('PASS' if ok else 'FAIL', summary, took))
+    return 0 if ok else 1
+
+
+# ---------------------------------------------------------------- check-commit
+
+#  Each file's value as a cord, read with %cx.
+READ_FILES = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  pre=path  (en-beam [our.bowl %@@DESK@@ da+now.bowl] /)
+=/  paz=(list path)  @@PATHS@@
+%-  pure:m
+!>  %+  turn  paz
+|=  p=path
+?.  .^(? %cu (weld pre p))
+  [p %| ~]
+[p %& .^(@t %cx (weld pre p))]
+"""
+
+#  Each %jibb file through the desk's own tubes: to %mime and back, to
+#  %txt and back.  Also whether +to-wain ends the last line at a final
+#  newline, as vere's jet does, rather than giving an empty line after
+#  it, as the Hoon in zuse does.
+CONVERT = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  bek=beak  [our.bowl %@@DESK@@ da+now.bowl]
+=/  pre=path  (en-beam bek /)
+=/  paz=(list path)  @@PATHS@@
+;<  to-mime=tube:clay  bind:m  (build-tube bek %jibb %mime)
+;<  of-mime=tube:clay  bind:m  (build-tube bek %mime %jibb)
+;<  to-txt=tube:clay  bind:m  (build-tube bek %jibb %txt)
+;<  of-txt=tube:clay  bind:m  (build-tube bek %txt %jibb)
+=/  jet=?  =(1 (lent (to-wain:format 'a\0a')))
+%-  pure:m
+!>  :-  jet
+%+  turn  paz
+|=  p=path
+=/  src=@t  .^(@t %cx (weld pre p))
+=/  mym=mime  !<(mime (to-mime !>(src)))
+=/  wan=wain  !<(wain (to-txt !>(src)))
+=/  bam=@t  !<(@t (of-mime !>(mym)))
+=/  bat=@t  !<(@t (of-txt !>(wan)))
+[p p.mym p.q.mym q.q.mym (of-wain:format wan) (lent wan) bam bat]
+"""
+
+#  Overwrite a desk with a commit that has no parents, as |new-desk,
+#  =hard & does.  It gets what |new-desk puts in a new desk, %base's
+#  %noun, %hoon, %txt and %kelvin marks and sys.kelvin; then the marks
+#  of another desk, if asked; then some %jibb files.  Clay won't commit
+#  a desk without sys.kelvin, nor sys.kelvin without the %kelvin mark.
+RESET_DESK = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  bas=path  /(scot %p our.bowl)/base/(scot %da now.bowl)
+=/  src=path  /(scot %p our.bowl)/@@FROM@@/(scot %da now.bowl)
+=/  new=(list path)
+  ~[/mar/noun/hoon /mar/hoon/hoon /mar/txt/hoon /mar/kelvin/hoon /sys/kelvin]
+=/  pages=(map path page:clay)
+  %-  ~(gas by *(map path page:clay))
+  ;:  weld
+    (turn new |=(p=path [p (rear p) .^(* %cx (weld bas p))]))
+    (turn `(list path)`@@MARKS@@ |=(p=path [p (rear p) .^(* %cx (weld src p))]))
+    `(list [path page:clay])`@@FILES@@
+  ==
+;<  ~  bind:m  (poke-our %hood %helm-pass !>((new-desk:cloy %@@DESK@@ ~ pages)))
+(pure:m !>(~))
+"""
+
+CHECK_OURS = 'jibb-check-ours'
+CHECK_THEIRS = 'jibb-check-theirs'
+
+#  The file the merge checks edit: the start of worked example 3.
+MERGE_BASE = b"""\
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg $?
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+"""
+
+HALF_WRITTEN = {
+    'ui/check-commit/unclosed-string.jibb':
+        b'++ main view\n\n++ view\n  text "Hello, wor',
+    'ui/check-commit/unfinished-rune.jibb':
+        b'++ update |= [=msg m=model]\n  ?- msg\n    [%typed t]\n      ?-\n',
+    'ui/check-commit/cut-utf8.jibb':
+        b'++ title "Caf\xc3',
+    'ui/check-commit/empty.jibb': b'',
+}
+
+#  What kiln prints when a merge ends.
+KILN_SAID = re.compile(r'^(merged with strategy|failed to merge with '
+                       r'strategy|auto merge failed on strategy)')
+
+
+def paths_hoon(rels):
+    return '~[%s]' % ' '.join(hoon_path(clay_path(r)) for r in rels) \
+        if rels else '~'
+
+
+def read_files(ship, desk, rels):
+    """{rel: bytes or None} for files on a desk, read with %cx."""
+    noun = ship.thread(fill(READ_FILES, DESK=desk, PATHS=paths_hoon(rels)))
+    out = {}
+    for rel, (_p, (flag, val)) in zip(rels, items(noun)):
+        out[rel] = atom_bytes(val) if flag == 0 else None
+    return out
+
+
+def wait_until(what, test, timeout):
+    deadline = time.time() + timeout
+    while True:
+        result = test()
+        if result:
+            return result
+        if time.time() > deadline:
+            raise Fail('timed out waiting for %s' % what)
+        time.sleep(0.4)
+
+
+def reset_desk(ship, desk, files=None, marks_from=None):
+    """Overwrite a desk with what |new-desk gives, the marks of another
+    desk if asked, and these files ({rel: bytes}, all %jibb)."""
+    pages = ' '.join('[%s %%jibb %s]' % (hoon_path(clay_path(rel)),
+                                         hoon_cord(data))
+                     for rel, data in sorted((files or {}).items()))
+    ship.thread(fill(
+        RESET_DESK, DESK=desk, FROM=marks_from or 'base',
+        MARKS='.^((list path) %ct (weld src /mar))' if marks_from else '~',
+        FILES='~[%s]' % pages if pages else '~'))
+
+
+def merge_and_wait(ship, desk, source, germ, timeout):
+    """|merge %desk our %source, =gem %germ, and wait for kiln to say
+    how it went: (merged, the lines the ship printed)."""
+    offset = ship.log_size()
+    ship.thread(fill(MERGE, DESK=desk, FROM=source, GERM=germ))
+    said = wait_until('kiln to finish |merge %%%s our %%%s' % (desk, source),
+                      lambda: [l for l in ship.log_since(offset)
+                               if KILN_SAID.match(l)], timeout)
+    return said[0].startswith('merged with'), settle(ship, offset)
+
+
+def change_line(data, n, new):
+    lines = data.split(b'\n')
+    lines[n - 1] = new
+    return b'\n'.join(lines)
+
+
+def commit_edit(ship, desk, rel, data, timeout):
+    """Write a file into a desk's mount and |commit it; wait for it."""
+    mount = os.path.join(ship.pier, desk)
+    path = os.path.join(mount, rel)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'wb') as f:
+        f.write(data)
+    commit_and_wait(ship, desk, timeout)
+    got = read_files(ship, desk, [rel])[rel]
+    if got != data:
+        raise Fail('%s: after |commit, /%s reads back as %r' % (desk, rel, got))
+
+
+def without_final_newline(data):
+    return data[:-1] if data.endswith(b'\n') else data
+
+
+def cmd_check_commit(ship, args):
+    ship.require()
+    results = []
+    started = time.time()
+
+    def check(name, fn):
+        t0 = time.time()
+        try:
+            notes = fn() or []
+            ok = True
+        except Fail as e:
+            notes = str(e).split('\n')
+            ok = False
+        results.append((name, ok))
+        say('%s  %s (%.1fs)' % ('PASS' if ok else 'FAIL', name, time.time() - t0))
+        for note in notes:
+            say('      ' + note)
+
+    a = assemble('my-app')
+    ui = sorted(rel for rel in a.files
+                if rel.startswith('ui/') and rel.endswith('.jibb'))
+
+    def synced():
+        rev = sync(ship, 'my-app', timeout=args.timeout, quiet=True)
+        return ['my-app is at revision %d with the repo\'s %d files, %d of '
+                'them under /ui' % (rev, len(a.files), len(ui))]
+
+    def byte_for_byte():
+        got = read_files(ship, 'my-app', ui)
+        notes, bad = [], []
+        for rel in ui:
+            want = a.files[rel][0]
+            if got[rel] is None:
+                bad.append('/%s is not on the desk' % rel)
+            elif got[rel] != want:
+                bad.append('/%s: %d bytes on the desk, %d in %s'
+                           % (rel, len(got[rel]), len(want), a.files[rel][1]))
+            else:
+                notes.append('%s: %d bytes, identical' % (
+                    '/' + '/'.join(clay_path(rel)), len(want)))
+        if bad:
+            raise Fail('\n'.join(bad))
+        return notes
+
+    def conversions():
+        jet, res = ship.thread(fill(CONVERT, DESK='my-app',
+                                    PATHS=paths_hoon(ui)))
+        jet = jet == 0
+        bad, lost = [], 0
+        for rel, res in zip(ui, items(res)):
+            want = a.files[rel][0]
+            _p, (mite, (size, (octs, (joined, (count, (bam, bat)))))) = res
+            lines = txt_lines(want, jet)
+            back = b'\n'.join(lines)
+            name = '/' + rel
+            if path_text(mite) != '/text/x-jibb':
+                bad.append('%s: to %%mime gives the type %s'
+                           % (name, path_text(mite)))
+            if size != len(want) or atom_bytes(octs) != want:
+                bad.append('%s: to %%mime changes the bytes' % name)
+            if atom_bytes(bam) != want:
+                bad.append('%s: %%mime back to %%jibb changes it' % name)
+            if count != len(lines) or atom_bytes(joined) != back:
+                bad.append('%s: to %%txt gives %d lines, not the file\'s %d'
+                           % (name, count, len(lines)))
+            if atom_bytes(bat) != back:
+                bad.append('%s: %%txt back to %%jibb gives something else '
+                           'than the lines joined' % name)
+            lost += back != want
+        if bad:
+            raise Fail('\n'.join(bad))
+        notes = ['%d files: to %%mime (/text/x-jibb) and back unchanged; to '
+                 '%%txt, one cord per line, and back' % len(ui)]
+        if lost:
+            notes.append(
+                'but: %%txt keeps no final newline, so %d of the %d files '
+                'come back from %%txt without theirs.  The mark is right; '
+                "vere's +to-wain jet ends the last line at a final newline, "
+                'where the Hoon in zuse gives an empty line after it.  %%hoon '
+                'files do the same.' % (lost, len(ui)))
+        return notes
+
+    def half_written():
+        mount = ensure_desk(ship, 'my-app', quiet=True)
+        rels = sorted(HALF_WRITTEN)
+        notes = []
+        try:
+            for rel in rels:
+                path = os.path.join(mount, rel)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, 'wb') as f:
+                    f.write(HALF_WRITTEN[rel])
+            rev = commit_and_wait(ship, 'my-app', args.timeout)
+            got = read_files(ship, 'my-app', rels)
+            notes.append('|commit made revision %d' % rev)
+            for rel in rels:
+                if got[rel] != HALF_WRITTEN[rel]:
+                    raise Fail('/%s committed, but reads back as %r'
+                               % (rel, got[rel]))
+                notes.append('/%s committed and reads back the same: %r'
+                             % (rel, HALF_WRITTEN[rel][-24:]))
+        finally:
+            shutil.rmtree(os.path.join(mount, 'ui', 'check-commit'),
+                          ignore_errors=True)
+            rev = commit_and_wait(ship, 'my-app', args.timeout)
+        left = [r for r, v in read_files(ship, 'my-app', rels).items()
+                if v is not None]
+        if left:
+            raise Fail('deleting them and |commit left %s' % ', '.join(left))
+        notes.append('deleted them again: |commit made revision %d' % rev)
+        return notes
+
+    def merges_by_line():
+        rel = 'ui/merge.jibb'
+        base = MERGE_BASE
+        ours = change_line(base, 5, b'+$ model [todos=(list item.todo) '
+                           b'draft=@t error=(unit @t) note=@t]')
+        theirs = change_line(base, 9, b'  [%toggled id=@ud on=?]')
+        merged = change_line(ours, 9, b'  [%toggled id=@ud on=?]')
+        notes = []
+        prepare_pair(ship, rel, base, args.timeout)
+        commit_edit(ship, CHECK_OURS, rel, ours, args.timeout)
+        commit_edit(ship, CHECK_THEIRS, rel, theirs, args.timeout)
+        notes.append('%%%s changed line 5 and %%%s line 9 of /%s, each with '
+                     '|commit' % (CHECK_OURS, CHECK_THEIRS, rel))
+        cmd = '|merge %%%s our %%%s' % (CHECK_OURS, CHECK_THEIRS)
+        ok, said = merge_and_wait(ship, CHECK_OURS, CHECK_THEIRS, 'auto',
+                                  args.timeout)
+        if not ok:
+            if not any('auto merge failed on strategy %fine' in l
+                       for l in said):
+                raise Fail('%s failed:\n  %s' % (cmd, '\n  '.join(said[:20])))
+            notes.append(
+                "but: %s, with kiln's default =gem %%auto, stops at "
+                '"auto merge failed on strategy %%fine": kiln goes on to '
+                '%%meet only on a %%bad-fine-merge error, and this Clay '
+                'reports %%merge-failed' % cmd)
+            cmd += ', =gem %mate'
+            ok, said = merge_and_wait(ship, CHECK_OURS, CHECK_THEIRS, 'mate',
+                                      args.timeout)
+            if not ok:
+                raise Fail('%s failed:\n  %s' % (cmd, '\n  '.join(said[:20])))
+        got = read_files(ship, CHECK_OURS, [rel])[rel]
+        if got == merged:
+            notes.append('%s: both changes, byte for byte' % cmd)
+        elif got == without_final_newline(merged):
+            notes.append('%s: both changes, line for line' % cmd)
+            notes.append(
+                'but: the merged file has lost its final newline: Clay '
+                'merges through %txt (grad %txt), which keeps none; see '
+                'the %txt note above')
+        else:
+            raise Fail('%s did not give both changes; /%s is now:\n%s'
+                       % (cmd, rel, got))
+        return notes + ['the ship said: ' + l for l in said
+                        if KILN_SAID.match(l)]
+
+    def conflicts_by_line():
+        rel = 'ui/merge.jibb'
+        base = MERGE_BASE
+        ours = change_line(base, 7, b'  [%typed text=@t at=@da]')
+        theirs = change_line(base, 7, b'  [%typed words=@t]')
+        prepare_pair(ship, rel, base, args.timeout)
+        commit_edit(ship, CHECK_OURS, rel, ours, args.timeout)
+        commit_edit(ship, CHECK_THEIRS, rel, theirs, args.timeout)
+        ok, said = merge_and_wait(ship, CHECK_OURS, CHECK_THEIRS, 'mate',
+                                  args.timeout)
+        got = read_files(ship, CHECK_OURS, [rel])[rel]
+        if ok or got != ours or not any('mate-conflict' in l for l in said):
+            raise Fail('a %%mate merge of two changes to line 7 should fail '
+                       'with a conflict and leave %%%s alone; the ship said:'
+                       '\n  %s' % (CHECK_OURS, '\n  '.join(said[:20])))
+        return ['both desks changed line 7: |merge %%%s our %%%s, =gem %%mate '
+                'fails and leaves the file alone' % (CHECK_OURS, CHECK_THEIRS)] \
+            + ['the ship said: ' + l for l in said
+               if KILN_SAID.match(l) or l == 'mate-conflict']
+
+    def clean_up():
+        mounts, revs = desks_info(ship)
+        for desk in (CHECK_OURS, CHECK_THEIRS):
+            if desk in revs:
+                reset_desk(ship, desk)
+            if desk in mounts:
+                ship.thread(fill(UNMOUNT, DESK=desk))
+        rev = sync(ship, 'my-app', timeout=args.timeout, quiet=True)
+        return ['%%%s and %%%s hold only what |new-desk gives and are '
+                'unmounted (Clay keeps desks); my-app matches the repo at '
+                'revision %d' % (CHECK_OURS, CHECK_THEIRS, rev)]
+
+    check('sync my-app: |commit copies the repo onto the desk', synced)
+    check('every /ui .jibb file reads back with %cx byte for byte',
+          byte_for_byte)
+    check('%jibb converts to %mime and back, and to %txt and back',
+          conversions)
+    check('half-written .jibb files still commit', half_written)
+    check('a three-way merge of a .jibb file merges by line', merges_by_line)
+    check('changes to the same line conflict', conflicts_by_line)
+    check('clean up', clean_up)
+    failed = [n for n, ok in results if not ok]
+    say('%s: %d of %d checks passed (%.1fs)' % (
+        'FAIL' if failed else 'PASS', len(results) - len(failed),
+        len(results), time.time() - started))
+    return 1 if failed else 0
+
+
+def prepare_pair(ship, rel, base, timeout):
+    """Reset the merge checks' desks: ours holds my-app's marks and the
+    file, in a commit without parents; theirs takes it with a merge, so
+    that ours's commit is the base of the next merge between them."""
+    _mounts, revs = desks_info(ship)
+    reset_desk(ship, CHECK_OURS, {rel: base}, marks_from='my-app')
+    germ = 'only-that' if revs.get(CHECK_THEIRS) else 'init'
+    ok, said = merge_and_wait(ship, CHECK_THEIRS, CHECK_OURS, germ, timeout)
+    if not ok or read_files(ship, CHECK_THEIRS, [rel])[rel] != base:
+        raise Fail('|merge %%%s our %%%s, =gem %%%s did not give it the file:'
+                   '\n  %s' % (CHECK_THEIRS, CHECK_OURS, germ,
+                               '\n  '.join(said[:20])))
+    for desk in (CHECK_OURS, CHECK_THEIRS):
+        mount = ensure_desk(ship, desk, quiet=True)
+        wait_until('the mount of %s to hold the file' % desk,
+                   lambda: _read(os.path.join(mount, rel)) == base, timeout)
+
+
+def _read(path):
+    try:
+        with open(path, 'rb') as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+# ---------------------------------------------------------------- main
+
+EPILOG = """\
+desks:
+  my-app    vendor/* + jibb-dev (without any tests/) + my-app
+  jibb      vendor/* + jibb
+  jibb-dev  vendor/* + jibb-dev + tests, the test desk: tests/golden from
+            --golden, tests/lib/jibb.hoon generated from it, and sys.kelvin
+            from jibb/
+A sync creates the desk if it's missing (as |new-desk does), mounts it at
+<pier>/<desk>, makes the mount hold exactly the desk's files, runs
+|commit, and waits until the desk matches the repo, checking every file.
+
+Exit status: 0 on success, 1 when something failed, 2 when the command
+couldn't run.  status exits 3 when the ship isn't running.
+"""
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(
+        prog='tools/ship', description=__doc__.split('\n\n')[0],
+        epilog=EPILOG, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--pier', default=PIER,
+                    help='the pier (default %(default)s, or $JIBB_PIER)')
+    ap.add_argument('--log', default=os.environ.get('JIBB_SHIP_LOG'),
+                    help="the ship's log (default <pier>.log, or $JIBB_SHIP_LOG)")
+    ap.add_argument('--click', default=CLICK,
+                    help='click (default %(default)s, or $JIBB_CLICK)')
+    sub = ap.add_subparsers(dest='command', metavar='command')
+    sub.required = True
+
+    p = sub.add_parser('start', help='start the ship in the background')
+    p.add_argument('--timeout', type=int, default=600)
+    p = sub.add_parser('stop', help='stop the ship')
+    p.add_argument('--timeout', type=int, default=120)
+    p.add_argument('--force', action='store_true',
+                   help='kill it if it does not stop in time')
+    sub.add_parser('status', help='whether it runs; its desks and mounts')
+    p = sub.add_parser('log', help="the end of the ship's log")
+    p.add_argument('-n', '--lines', type=int, default=40)
+    p.add_argument('--all', action='store_true',
+                   help="keep docket's and kiln's network noise")
+
+    p = sub.add_parser('sync', help='assemble desks from their folders and '
+                       '|commit them')
+    p.add_argument('desks', nargs='+', metavar='desk')
+    g = p.add_mutually_exclusive_group()
+    g.add_argument('--stub', action='store_true',
+                   help='use tools/testdata/ship-stub.hoon as /lib/jibb.hoon')
+    g.add_argument('--lib', help='use this file as /lib/jibb.hoon')
+    p.add_argument('--golden', help='the golden cases for the jibb-dev desk '
+                   '(default tests/golden)')
+    p.add_argument('--timeout', type=int, default=120,
+                   help='seconds to wait for the commit')
+
+    p = sub.add_parser('test', help='sync the jibb-dev desk and run -test '
+                       'on its /tests')
+    g = p.add_mutually_exclusive_group()
+    g.add_argument('--stub', action='store_true',
+                   help='use tools/testdata/ship-stub.hoon as /lib/jibb.hoon')
+    g.add_argument('--lib', help='use this file as /lib/jibb.hoon')
+    p.add_argument('--golden', help='test these golden cases instead of '
+                   'tests/golden (and leave tests/lib/jibb.hoon alone)')
+    p.add_argument('--no-sync', action='store_true',
+                   help='run -test on the desk as it is')
+    p.add_argument('--timeout', type=int, default=3600)
+
+    p = sub.add_parser('gen-tests', help='write tests/lib/jibb.hoon from '
+                       'the golden cases')
+    p.add_argument('--golden', help='the cases (default tests/golden)')
+    p.add_argument('--out', help='the file (default tests/lib/jibb.hoon)')
+    p.add_argument('--check', action='store_true',
+                   help="don't write; exit 1 if the file is out of date")
+
+    p = sub.add_parser('check-commit', help='prove that |commit stores '
+                       '.jibb files, and leave the desks clean')
+    p.add_argument('--timeout', type=int, default=120)
+
+    p = sub.add_parser('scry', help='scry, as /cx/=my-app=/ui/about/jibb')
+    p.add_argument('path')
+    p.add_argument('--type', default='*', help='the mold (default *)')
+    p.add_argument('--raw', action='store_true',
+                   help="write an atom's bytes, as a file's")
+    p.add_argument('--width', type=int, default=100)
+
+    p = sub.add_parser('hoon', help='evaluate a Hoon expression, with our, '
+                       'now and eny')
+    p.add_argument('expr', nargs='?')
+    p.add_argument('-f', '--file', help='read the expression from a file')
+    p.add_argument('--width', type=int, default=100)
+
+    p = sub.add_parser('run', help='run a thread: a file holding a strand')
+    p.add_argument('file')
+    p.add_argument('--timeout', type=int, default=600)
+    p.add_argument('--width', type=int, default=100)
+
+    p = sub.add_parser('poke', help="poke an agent, as dojo's :agent &mark "
+                       'value')
+    p.add_argument('agent')
+    p.add_argument('mark')
+    p.add_argument('value')
+
+    p = sub.add_parser('commit', help='|commit a desk, and wait for the '
+                       'new revision or the error')
+    p.add_argument('desk')
+    p.add_argument('--timeout', type=int, default=10)
+    for name, what in (('mount', '|mount a desk, creating it if missing'),
+                       ('unmount', '|unmount a desk')):
+        p = sub.add_parser(name, help=what)
+        p.add_argument('desk')
+
+    args = ap.parse_args(argv)
+    ship = Ship(args.pier, args.log, args.click)
+    handlers = {
+        'start': lambda: ship.start(args.timeout),
+        'stop': lambda: ship.stop(args.timeout, args.force),
+        'status': lambda: cmd_status(ship, args),
+        'log': lambda: cmd_log(ship, args),
+        'sync': lambda: cmd_sync(ship, args),
+        'test': lambda: cmd_test(ship, args),
+        'gen-tests': lambda: cmd_gen_tests(ship, args),
+        'check-commit': lambda: cmd_check_commit(ship, args),
+        'scry': lambda: cmd_scry(ship, args),
+        'hoon': lambda: cmd_hoon(ship, args),
+        'run': lambda: cmd_run(ship, args),
+        'poke': lambda: cmd_poke(ship, args),
+        'commit': lambda: cmd_commit(ship, args),
+        'mount': lambda: cmd_mount(ship, args),
+        'unmount': lambda: cmd_unmount(ship, args),
+    }
+    try:
+        return handlers[args.command]() or 0
+    except Fail as e:
+        print('ship: %s' % e, file=sys.stderr)
+        return 1
+    except Unable as e:
+        print('ship: %s' % e, file=sys.stderr)
+        return 2
+    except KeyboardInterrupt:
+        return 130
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

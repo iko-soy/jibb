@@ -1,0 +1,2 @@
+++ x |=(p=post.blog title.p)
+++ y |=(p title.p)

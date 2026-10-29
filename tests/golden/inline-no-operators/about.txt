@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "No operators: `eq a b`, `not x`, `gth a b` are gates."
+tests: equality, negation and comparison written as calls
+expect: parses

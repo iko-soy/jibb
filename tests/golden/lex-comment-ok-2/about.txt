@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Comments: `::` to the end of the line."
+tests: `::` inside a string
+expect: parses: x is the string "a::b", then a comment; `::` in a string is text, as in Hoon's tapes, which Jibb's strings follow (corpus question 10)

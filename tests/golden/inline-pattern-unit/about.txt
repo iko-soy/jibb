@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `[~ x]`: "A unit holding a value"
+tests: a cell pattern with null at its head
+expect: parses

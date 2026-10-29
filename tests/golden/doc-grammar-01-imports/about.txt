@@ -1,0 +1,3 @@
+source: Grammar tab, section "Imports", code block 1 of the tab (after "Imports come first:")
+tests: the three import forms, `/-  todo`, `/%  %todo-action` and `/=  card    /ui/components/card`, with runs of spaces for alignment and a trailing comment on each line; a module of imports only, with no definitions
+expect: parses

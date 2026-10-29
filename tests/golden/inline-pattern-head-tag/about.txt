@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns, the table's row `[%add t]`: "A cell headed by `%add`", binding "`t`, the rest"
+tests: a cell pattern with a tag at its head and a binding name
+expect: parses

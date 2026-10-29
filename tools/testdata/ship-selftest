@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+"""Test tools/ship's test generator and its runner.
+
+    tools/testdata/ship-selftest              the generator, then the ship
+    tools/testdata/ship-selftest --no-ship    the generator only
+    tools/testdata/ship-selftest --many 300   also run 300 made-up cases
+
+The generator checks need no ship: tools/ship gen-tests on no cases, on
+the cases in tools/testdata/ship-golden, on cases whose names clash or
+aren't knots, and on a few hundred made-up cases, and --check.
+
+The ship checks run tools/ship test --stub --golden on the running fake
+ship: the cases in tools/testdata/ship-golden, whose about.txt files
+end with what each should give ("Expected: OK", or FAILED or CRASHED,
+with words the failure must print), then a library that doesn't build,
+and with --many, that many made-up cases that all pass.  They leave the
+jibb-dev desk holding the last run's files; tools/ship test puts back
+the real ones.
+
+Exit status: 0 when every check passes, 1 otherwise.
+"""
+
+import argparse
+import importlib.machinery
+import importlib.util
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+SHIP = os.path.join(ROOT, 'tools', 'ship')
+CASES = os.path.join(HERE, 'ship-golden')
+STUB = os.path.join(HERE, 'ship-stub.hoon')
+
+
+def load_ship():
+    loader = importlib.machinery.SourceFileLoader('ship', SHIP)
+    spec = importlib.util.spec_from_loader('ship', loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+ship = load_ship()
+failures = []
+
+
+def check(name, ok, detail=''):
+    print('%s  %s' % ('ok  ' if ok else 'FAIL', name), flush=True)
+    if not ok:
+        failures.append(name)
+        for line in str(detail).rstrip('\n').split('\n'):
+            print('        ' + line)
+
+
+def run(*args):
+    return subprocess.run([SHIP] + list(args), capture_output=True,
+                          text=True, cwd=ROOT)
+
+
+def stub_output(case, src):
+    """What ship-stub.hoon's golden arm gives, worked out here."""
+    lines = src.split(b'\n')
+    if src.endswith(b'\n'):
+        lines.pop()
+    if not src:
+        lines = []
+
+    def after(label, t):
+        return label if not t else label + b' ' + t
+    tokens = [b'file: /tests/golden/%s/source/jibb' % case.encode()]
+    tokens += [after(b'%d|' % (i + 1), l) for i, l in enumerate(lines)]
+    tree = [b'lines: %d' % len(lines),
+            after(b'first:', lines[0] if lines else b'')]
+    return b'\n'.join(tokens), b'\n'.join(tree)
+
+
+def write_case(golden, case, src, expected=True):
+    folder = os.path.join(golden, case)
+    os.makedirs(folder, exist_ok=True)
+    with open(os.path.join(folder, 'source.jibb'), 'wb') as f:
+        f.write(src)
+    if expected:
+        tokens, tree = stub_output(case, src)
+        for fn, data in (('tokens.txt', tokens), ('tree.txt', tree)):
+            with open(os.path.join(folder, fn), 'wb') as f:
+                f.write(data + b'\n')
+
+
+def arms(text):
+    return re.findall(r'^\+\+  (test-\S*)\n  \(check (.*)\)$', text, re.M)
+
+
+# ---------------------------------------------------------------- generator
+
+
+def generator_checks(tmp):
+    empty = os.path.join(tmp, 'none')
+    os.makedirs(empty)
+    out = ship.generate_tests(empty)
+    check('no cases: a core with the helpers and no test- arms',
+          '/+  jibb\n' in out and '\n|%\n' in out and not arms(out)
+          and out.endswith('\n--\n') and '++  check' in out, out)
+
+    out = ship.generate_tests(CASES)
+    names = sorted(n for n in os.listdir(CASES)
+                   if os.path.isfile(os.path.join(CASES, n, 'source.jibb')))
+    got = arms(out)
+    check('ship-golden: one test- arm per case, in name order',
+          [a for a, _ in got] == ship.arm_names(names), got)
+    check('ship-golden: odd.name_1 becomes test-odd-name-1 with a knot',
+          ('test-odd-name-1', '~.odd.name_1 src-7 `tok-7 `tre-7') in got, got)
+    check('ship-golden: a missing tree.txt is passed as ~',
+          ('test-missing-tree', '~.missing-tree src-5 `tok-5 ~') in got and
+          '/tests/golden/missing-tree/tree/txt' not in out, got)
+    imports = re.findall(r'^/\*  (\S+) +%(\S+) +(\S+)$', out, re.M)
+    check('ship-golden: /* imports source.jibb as %jibb, the rest as %txt',
+          ('src-1', 'jibb', '/tests/golden/basic/source/jibb') in imports and
+          ('tok-1', 'txt', '/tests/golden/basic/tokens/txt') in imports and
+          ('tre-1', 'txt', '/tests/golden/basic/tree/txt') in imports and
+          len(imports) == 3 * len(names) - 1, imports)
+
+    clash = os.path.join(tmp, 'clash')
+    for case in ('a.b', 'a_b', 'a-b', 'Upper', 'has space'):
+        write_case(clash, case, b'++ x\n')
+    os.makedirs(os.path.join(clash, 'no-source'))
+    res = subprocess.run(
+        [SHIP, 'gen-tests', '--golden', clash, '--out',
+         os.path.join(tmp, 'clash.hoon')], capture_output=True, text=True)
+    with open(os.path.join(tmp, 'clash.hoon')) as f:
+        got = [a for a, _ in arms(f.read())]
+    check('clashing names get numbered arms: a-b, a.b, a_b',
+          got == ['test-a-b', 'test-a-b-2', 'test-a-b-3'], got)
+    check('names that are not knots, and folders without source.jibb, '
+          'are skipped with a warning',
+          res.returncode == 0 and "'Upper' is not a knot" in res.stderr and
+          "'has space' is not a knot" in res.stderr and
+          'no-source: it has no source.jibb' in res.stderr, res.stderr)
+
+    many = os.path.join(tmp, 'many')
+    for i in range(400):
+        write_case(many, 'case-%03d' % i, b'++ n %d\n' % i)
+    out = ship.generate_tests(many)
+    got = arms(out)
+    check('400 cases: 400 arms and 1200 imports, faces numbered to 400',
+          len(got) == 400 and len(re.findall(r'^/\* ', out, re.M)) == 1200
+          and '/*  tre-400  %txt   /tests/golden/case-399/tree/txt' in out,
+          len(got))
+
+    target = os.path.join(tmp, 'check.hoon')
+    first = run('gen-tests', '--golden', CASES, '--out', target)
+    same = run('gen-tests', '--golden', CASES, '--out', target, '--check')
+    stale = run('gen-tests', '--golden', many, '--out', target, '--check')
+    check('gen-tests writes, then --check passes, and fails on other cases',
+          first.returncode == 0 and same.returncode == 0 and
+          stale.returncode == 1, '\n'.join(
+              r.stdout + r.stderr for r in (first, same, stale)))
+
+
+# ---------------------------------------------------------------- the ship
+
+RESULT = re.compile(r'^(OK|FAILED|CRASHED) +/tests/lib/jibb/(test-\S+)$')
+EXPECTED = re.compile(r'^Expected: (OK|FAILED|CRASHED)(?:, with "(.*)")?',
+                      re.M)
+
+
+def results(stdout):
+    """{arm: (result, the lines printed after it)}."""
+    out, arm = {}, None
+    for line in stdout.split('\n'):
+        m = RESULT.match(line)
+        if m:
+            arm = m.group(2)
+            out[arm] = (m.group(1), [])
+        elif re.match(r'^(>|built|PASS|FAIL)', line):
+            arm = None
+        elif arm:
+            out[arm][1].append(line)
+    return out
+
+
+def ship_checks(tmp, many):
+    names = sorted(n for n in os.listdir(CASES)
+                   if os.path.isfile(os.path.join(CASES, n, 'source.jibb')))
+    res = run('test', '--stub', '--golden', CASES)
+    print('        ' + (res.stdout.strip().split('\n') or [''])[-1])
+    got = results(res.stdout)
+    for name, arm in zip(names, ship.arm_names(names)):
+        with open(os.path.join(CASES, name, 'about.txt')) as f:
+            m = EXPECTED.search(f.read())
+        want, words = m.group(1), m.group(2)
+        have, said = got.get(arm, ('(no result)', []))
+        ok = have == want and (words is None or
+                               any(words in l for l in said))
+        check('%s: %s%s' % (name, want, ', with "%s"' % words if words
+                            else ''), ok,
+              '%s\n%s' % (have, '\n'.join(said)) + '\n' + res.stderr)
+    n = {k: sum(1 for v in got.values() if v[0] == k)
+         for k in ('OK', 'FAILED', 'CRASHED')}
+    check('the summary counts them, and test exits 1',
+          res.returncode == 1 and
+          'FAIL: %d OK, %d FAILED, %d CRASHED' % (
+              n['OK'], n['FAILED'], n['CRASHED']) in res.stdout,
+          res.stdout[-400:] + res.stderr)
+
+    broken = os.path.join(tmp, 'broken.hoon')
+    with open(STUB) as f:
+        src = f.read()
+    with open(broken, 'w') as f:
+        f.write(src.replace("?:  =('crash' first)", '?:  =(%crash first first)'))
+    res = run('test', '--lib', broken, '--golden', CASES)
+    check('a library that does not build: the error, then FAILED (build)',
+          res.returncode == 1 and re.search(
+              r'syntax error at \[\d+ \d+\] in /lib/jibb/hoon', res.stdout)
+          and 'FAILED  /tests/lib/jibb/hoon (build)' in
+          res.stdout and 'a test file failed to build' in res.stdout,
+          res.stdout[-1500:] + res.stderr)
+
+    if many:
+        golden = os.path.join(tmp, 'many-on-ship')
+        for i in range(many):
+            write_case(golden, 'case-%03d' % i,
+                       b'++ case %d\n\n++ view\n  text "case %d"\n' % (i, i))
+        res = run('test', '--stub', '--golden', golden)
+        print('        ' + (res.stdout.strip().split('\n') or [''])[-1])
+        check('%d made-up cases all pass' % many,
+              res.returncode == 0 and
+              'PASS: %d OK, 0 FAILED, 0 CRASHED' % many in res.stdout,
+              res.stdout[-1500:] + res.stderr)
+
+
+def main():
+    ap = argparse.ArgumentParser(
+        description=__doc__.split('\n\n')[0],
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--no-ship', action='store_true',
+                    help='only the checks that need no ship')
+    ap.add_argument('--many', type=int, default=0, metavar='N',
+                    help='also run N made-up cases on the ship')
+    args = ap.parse_args()
+    tmp = tempfile.mkdtemp(prefix='ship-selftest-')
+    try:
+        generator_checks(tmp)
+        if not args.no_ship:
+            if not ship.Ship(ship.PIER, None, ship.CLICK).running():
+                check('the fake ship is running (tools/ship start)', False)
+            else:
+                ship_checks(tmp, args.many)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    print('%s: %d checks failed' % ('FAIL' if failures else 'PASS',
+                                    len(failures)))
+    return 1 if failures else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

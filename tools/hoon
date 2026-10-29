@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""Evaluate a Hoon expression with the Jibb library as its subject.
+
+    tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
+    tools/hoon --raw 'tree:(golden /a/b/jibb src)' --cord src=foo.jibb
+    tools/hoon -f expr.hoon
+
+The program is `!:  =>  <library>  <expression>`, run by `urbit eval`,
+so every arm of the library, and the standard library, is in scope.  The
+result is printed as Hoon prints it, without colours; --raw prints a
+cord's or tape's text instead.  Errors and crashes are printed with
+their positions mapped back to the library or the expression, and an
+excerpt of the line they point at.
+
+Exit status: 0 on success, 1 when the expression or the library doesn't
+compile or crashes, 2 on a usage error.
+"""
+
+import argparse
+import os
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+
+import urbit_eval as ue  # noqa: E402
+from noun import atom_to_bytes, to_list  # noqa: E402
+
+# For --raw: name the result's shape from its type, as Hoon's printer
+# does (+doge:us), since a list of one-letter cords and a tape are the
+# same noun.
+RAW_HEAD = '=/  jibb-raw'
+RAW_TAIL = r"""=>  [jibb-raw=jibb-raw ..zuse]
+=/  type  -:!>(jibb-raw)
+=/  wine  (~(doge us type) ~(dole us type))
+?+  wine  [%other (crip (scag 300 ~(ram re (skol type))))]
+  [%mato %t]    [%cord jibb-raw]
+  [%mato %ta]   [%cord jibb-raw]
+  [%mato %tas]  [%cord jibb-raw]
+  [%mato %$]    [%cord jibb-raw]
+  [%pear %t *]    [%cord jibb-raw]
+  [%pear %ta *]   [%cord jibb-raw]
+  [%pear %tas *]  [%cord jibb-raw]
+  [%pear %n %0]   [%cord 0]
+  %yarn  [%tape jibb-raw]
+  %wall  [%wain jibb-raw]
+  %wool  [%wall jibb-raw]
+==
+"""
+
+
+EPILOG = """\
+examples:
+  tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
+  tools/hoon --raw --cord src=tests/golden/foo/source.jibb \\
+    'tree:(golden /tests/golden/foo/source/jibb src)'
+
+urbit eval drops ~& output: return what you want to see, or crash under
+~| to see it in the trace.  Exit status: 0 on success, 1 when it doesn't
+compile or crashes, 2 on a usage error.
+"""
+
+
+def cord_binding(spec):
+    """`=/  name=@t  '...'` for a --cord NAME=FILE option."""
+    name, eq, path = spec.partition('=')
+    if not eq or not name or not path:
+        raise ue.ToolError('--cord takes NAME=FILE, not %s' % spec)
+    try:
+        with open(path, 'rb') as f:
+            data = f.read()
+    except OSError as e:
+        raise ue.ToolError('--cord %s: %s' % (spec, e.strerror))
+    return '=/  %s=@t  %s' % (name, ue.cord_literal(data)), name
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(
+        prog='tools/hoon',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='Evaluate a Hoon expression with the library as its '
+                    'subject, under urbit eval, and print the result.',
+        epilog=EPILOG)
+    ap.add_argument('expr', nargs='?', help='the expression')
+    ap.add_argument('-f', '--file', metavar='FILE',
+                    help='read the expression from FILE (- for stdin)')
+    ap.add_argument('--lib', default=ue.DEFAULT_LIB, metavar='PATH',
+                    help='the library (default: jibb-dev/lib/jibb.hoon)')
+    ap.add_argument('--raw', action='store_true',
+                    help="print the text of a cord, a tape, or a list of "
+                         "them (one per line), then a newline, instead of "
+                         "the Hoon literal")
+    ap.add_argument('--cord', action='append', default=[],
+                    metavar='NAME=FILE',
+                    help="bind NAME to FILE's contents as a cord, for the "
+                         "expression to use; repeatable")
+    ap.add_argument('--timeout', type=float, default=600, metavar='SECONDS',
+                    help='how long urbit eval may run (default: 600)')
+    ap.add_argument('--save-program', metavar='FILE',
+                    help='also write the generated Hoon program to FILE')
+    opts = ap.parse_args(argv)
+    if (opts.expr is None) == (opts.file is None):
+        ap.error('give an expression or -f FILE, not both or neither')
+
+    try:
+        if not os.path.isfile(opts.lib):
+            raise ue.ToolError('no library at %s' % ue.display_path(opts.lib))
+        if opts.file == '-':
+            expr, name = sys.stdin.read(), '(stdin)'
+        elif opts.file:
+            expr, name = ue.read_text(opts.file), ue.display_path(opts.file)
+        else:
+            expr, name = opts.expr, '(expression)'
+        if not expr.strip():
+            raise ue.ToolError('the expression is empty')
+        prog = ue.library_program(opts.lib)
+        for spec in opts.cord:
+            line, cname = cord_binding(spec)
+            prog.add(line, '(--cord %s)' % cname, 'harness')
+        if opts.raw:
+            prog.add(RAW_HEAD, '(--raw)', 'harness')
+        prog.add(expr, name, 'expr')
+        if opts.raw:
+            prog.add(RAW_TAIL, '(--raw)', 'harness')
+        if opts.save_program:
+            with open(opts.save_program, 'wb') as f:
+                f.write(prog.encode())
+        res = ue.run_eval(prog, jam=opts.raw, timeout=opts.timeout)
+    except ue.ToolError as e:
+        print(str(e), file=sys.stderr)
+        return 2
+
+    if not res.ok:
+        if res.is_compile_error():
+            headline = "error: it doesn't compile"
+        else:
+            headline = 'error: it crashed: %s' % res.describe()
+        report = ue.failure_report(prog, res, headline)
+        hint = ue.lib_hint(ue.read_text(opts.lib))
+        print(report + ('\n\n' + hint if hint else ''), file=sys.stderr)
+        return 1
+
+    if not opts.raw:
+        out = res.text
+        sys.stdout.write(out if out.endswith('\n') else out + '\n')
+        return 0
+    kind = atom_to_bytes(res.noun.head).decode()
+    value = res.noun.tail
+    if kind == 'other':
+        print('error: --raw prints a cord, a tape, or a list of cords or '
+              'tapes, one per line, but the result has the type %s; cast '
+              'it to @t, tape, wain or wall, or drop --raw'
+              % atom_to_bytes(value).decode('utf-8', 'replace'),
+              file=sys.stderr)
+        return 1
+    if kind == 'cord':
+        text = atom_to_bytes(value)
+    elif kind == 'tape':
+        text = bytes(to_list(value))
+    elif kind == 'wain':
+        text = b'\n'.join(atom_to_bytes(line) for line in to_list(value))
+    else:
+        text = b'\n'.join(bytes(to_list(line)) for line in to_list(value))
+    sys.stdout.buffer.write(text + b'\n')
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        sys.exit(130)

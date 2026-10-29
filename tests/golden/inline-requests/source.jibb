@@ -1,0 +1,3 @@
+++ a (todo-action.todo [%add draft.m])
+++ b (todos.todo |=%got)
+++ c (changes.todo |=%got apply)

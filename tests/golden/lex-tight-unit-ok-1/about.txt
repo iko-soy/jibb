@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Tight forms: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$?(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`."; Literals, the Unit row: `` `x ``, "`(unit A)`"
+tests: units of a string, a cell, a unit, an application path, a group and null (the doc's `` `x `` is inline-unit)
+expect: parses as a list of six units; ``c is a unit of a unit

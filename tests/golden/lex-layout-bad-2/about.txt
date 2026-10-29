@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Layout tokens: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE."; the EBNF's comment: "Blank and comment-only lines emit nothing."
+tests: `++ view` with nothing on its line and no deeper line
+expect: error at 2:1 — line 2 is at the same depth (NEWLINE), so `++ view` gets neither an expression on its line nor a body on deeper lines

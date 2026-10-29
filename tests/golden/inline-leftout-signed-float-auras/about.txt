@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`@s…` and `@r…` auras: errors wherever used, imports included."
+tests: a signed and a floating-point aura
+expect: unclear — they are errors "wherever used", but the EBNF's `aura       = "@" { lower } [ upper ] ;` admits them, so is the error the parser's (at 1:7, the s) or the checker's, in which case milestone 1 parses this module? (corpus question 3)

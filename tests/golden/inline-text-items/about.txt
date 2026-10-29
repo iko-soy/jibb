@@ -1,0 +1,3 @@
+source: Grammar tab, Literals by context: "String literals are always cords, so an element needs `text`, as `(text "{n} items")`."
+tests: a call with an interpolated string
+expect: parses

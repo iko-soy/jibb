@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Term row: `%add`; the EBNF: `term       = "%" name | "%" digit { digit } | "%&" | "%|" ;`
+tests: a numeric term followed by a letter
+expect: error at 1:8 — a numeric term is `%` and digits only

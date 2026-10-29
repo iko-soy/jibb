@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Path row: `/posts/~zod`, "`path`"; the EBNF: `pathlit    = "/" knot { "/" knot } ;`, `pathmold   = "/" [ segment { "/" segment } ] ;` and `knot       = { lower | digit | "-" | "." | "~" | "_" } ;`
+tests: a path with a capital letter
+expect: error at 1:7 — a knot holds lowercase letters, digits and - . ~ _; `/` alone is the empty path

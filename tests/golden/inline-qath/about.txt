@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Application path row: `%/blog`, `%/blog/(slug)`, "`qath`, checked against routes and static files; no query or fragment"; also Lexical rules, Tight forms: "`%/` starts an application path, `%/blog/(slug)`."
+tests: an application path of one knot, and one with an expression segment
+expect: parses

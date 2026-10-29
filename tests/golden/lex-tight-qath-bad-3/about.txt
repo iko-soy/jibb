@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Application path row: "`qath`, checked against routes and static files; no query or fragment"
+tests: an application path with a fragment
+expect: error at 1:12 — an application path carries no fragment; `#` can't be in a knot

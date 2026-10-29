@@ -1,0 +1,3 @@
+source: Grammar tab, section "Literals by context", code block 3 of the tab
+tests: a gate whose sample is a faced cell of two fields; a call whose last argument is a list left open at the end of its line (`~[`), taking one item per deeper line with no closer; parenthesised calls as items; interpolation of a name at the end and at the start of a string; trailing comments after aligned code
+expect: parses

@@ -1,0 +1,6 @@
+++ f |= s=*
+  ?- s
+    1.000   %number
+    "milk"  %string
+    ~zod    %ship
+    *       %other

@@ -1,0 +1,13 @@
+::  /ui/stores/cart.jibb
++$ state [items=(list @t) open=?]
++$ cart-action $?
+  [%add item=@t]
+  %toggle
++$ poke cart-action
+
+++ main (store init update)
+++ init ^- state [~ %.n]
+++ update |= [a=cart-action s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))

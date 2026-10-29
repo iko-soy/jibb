@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Ship row: `~zod`, `~sampel-palnet`, "`@p`"
+tests: a galaxy and a planet
+expect: parses

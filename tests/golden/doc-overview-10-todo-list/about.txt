@@ -1,0 +1,3 @@
+source: the first tab ("Jibb — an Elm-architecture UI language for Urbit"), section "Worked examples", 3. Interactive: /ui/todo-list.jibb, code block 10 of the tab
+tests: the interactive island: a record mold with mold applications; a five-case union; a gate with its body below; a `?-` arm whose body is on the deeper lines, a nested `?-` on a deeply nested call with loobean arms; changes holding a unit of a string (`` error=`"Too long" ``) and a null; arms aligned with extra spaces; lists of cells holding constructors; a list left open inside another open list (`row ~[gap+%s1] ~[`); a pair whose operand is a cell; calls ending in `|=%typed`; a gate whose body is a cell holding a call with a cell argument
+expect: parses

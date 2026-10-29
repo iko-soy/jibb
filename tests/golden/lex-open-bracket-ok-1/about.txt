@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Open brackets: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual."; the EBNF: `open       = INDENT line { NEWLINE line } DEDENT ;`
+tests: each kind of bracket left open at the end of its line: a list `~[`, a cell `[` with one `name=value` per line, a change `m(` with one `name=value` per line, and a group `(f a`; none has a closer
+expect: parses: items is a list of two items, the second line being one item, the call text "b"; record is a faced cell; changed is a change of m with two items; grouped is the call f a b c

@@ -1,0 +1,7 @@
+::  /ui/components/buttons.jibb, a library with no main
+++ add-button |= label=@t
+  button label %add                ::  error: nothing fixes the union of %add
+++ labelled |= [label=@t msg=M]
+  button label msg                 ::  fine: the caller's union
+++ wide  ^- (list attr)
+  ~[width+[%fill 1] pad+%s2]       ::  fine: the cast fixes the tags

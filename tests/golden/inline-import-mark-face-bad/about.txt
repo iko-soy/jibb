@@ -1,0 +1,3 @@
+source: Grammar tab, Imports: "`/%` names a type after its mark, so it takes no face, and any mark name works; Hoon's `/%` binds the mark's core instead."
+tests: a `/%` import given a face, as Hoon's `/%` would be
+expect: error at 1:5 — `/%` takes the mark's term, `%todo-action`, and no face

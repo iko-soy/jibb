@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "On one line, whitespace separates items, so calls need parentheses: `~[(text "hi")]`, which the checker suggests for `~[text "hi"]`."
+tests: a list holding a parenthesised call, and the same call without parentheses
+expect: parses: x is a list of one item, the call (text "hi"); y is a list of two items, the name text and the string "hi" (the checker, in milestone 2, suggests x's form)

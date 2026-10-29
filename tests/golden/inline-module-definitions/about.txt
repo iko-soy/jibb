@@ -1,0 +1,3 @@
+source: Grammar tab, Modules: "`+$ name mold` defines a mold; `++ name expr` a value."
+tests: the two definition forms, written as the doc writes them; a mold and a value may share a name
+expect: parses

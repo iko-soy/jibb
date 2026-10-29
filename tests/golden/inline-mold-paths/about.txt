@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "Paths: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura."
+tests: path molds: one knot, the empty path, and a typed segment
+expect: parses

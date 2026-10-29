@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table, the Knot row: `~.my-post`, "`@ta`"
+tests: a knot with a capital letter
+expect: error at 1:8 — a knot holds lowercase letters, digits and - . ~ _

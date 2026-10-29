@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`|$` barbuc: a generic mold, `|$ [A] mold`."
+tests: a generic mold of one type variable
+expect: parses

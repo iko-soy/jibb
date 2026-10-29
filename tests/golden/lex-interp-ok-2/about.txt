@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Interpolation: `{…}` holds any expression; `\{` writes a brace and `\"` a quote; no `<…>`."
+tests: nested interpolation with strings inside: a string in braces that is itself interpolated, and strings in braces holding a } and an escaped quote
+expect: parses: x's interpolation holds the call weld of two strings, the first interpolating c; in y the } and the \" inside the inner strings end neither those strings nor the interpolation (the } as text is corpus question 8)

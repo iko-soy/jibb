@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Indentation is structure: a deeper line continues the line above; returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count."
+tests: a body indented with a tab
+expect: error at 2:1 — indentation is spaces only

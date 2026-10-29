@@ -1,0 +1,3 @@
+From: worked example 1, cut short.
+Tests: a plain ASCII source through tools/golden and the stub.
+Expected: passes; the stub's tokens list the lines, its tree is the first line.
