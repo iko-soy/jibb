@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 a (aura 1:6 @))
+  (mold 2:1 b (aura 2:6 @ud))
+  (mold 3:1 c (aura 3:6 @t))
+  (mold 4:1 d (aura 4:6 @p))
+  (mold 5:1 e (aura 5:6 @da))
+  (mold 6:1 f (flag 6:6))
+  (mold 7:1 g (aura 7:6 @tas))
+  (mold 8:1 h (aura 8:6 @ta)))

@@ -1,0 +1,3 @@
+/tests/golden/inline-pattern-pair-bad/source.jibb:3:8: expected a space after the pattern, found `+`; patterns take no pairs: write a cell, as [%gap %s2]
+    gap+%s2  1
+       ^

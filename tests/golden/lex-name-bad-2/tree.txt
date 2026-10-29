@@ -1,0 +1,3 @@
+/tests/golden/lex-name-bad-2/source.jibb:1:8: names are lowercase letters, digits and -
+++ x my_view
+       ^

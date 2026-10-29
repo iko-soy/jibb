@@ -1,0 +1,5 @@
+(module
+  (value 1:1 x
+    (call 1:6
+      (lit 1:6 ~)
+      (tuple 1:8 (wing 1:9 a)))))

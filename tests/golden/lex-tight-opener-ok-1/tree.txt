@@ -1,0 +1,12 @@
+(module
+  (value 1:1 a
+    (list 1:6 (lit 1:8 1) (lit 1:10 2)))
+  (value 2:1 b
+    (gate-wide 2:6
+      (bind 2:9 n)
+      (group 2:11
+        (call 2:12 (wing 2:12 add) (wing 2:16 n) (lit 2:18 1)))))
+  (mold 3:1 c
+    (union 3:6 (const 3:9 %a) (const 3:12 %b)))
+  (mold 4:1 d
+    (fn 4:6 (aura 4:9 @t) (aura 4:12 @t))))

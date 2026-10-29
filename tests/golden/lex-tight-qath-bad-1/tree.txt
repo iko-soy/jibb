@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-qath-bad-1/source.jibb:1:7: `%` begins a term, a loobean or `%/`
+++ x % /blog
+      ^

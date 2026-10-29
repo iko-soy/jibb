@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-centis/source.jibb:1:7: `%=` is left out: indentation covers it; write a change, as m(a=b)
+++ x %=  m  note  1
+      ^

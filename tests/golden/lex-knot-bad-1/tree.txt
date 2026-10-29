@@ -1,0 +1,3 @@
+/tests/golden/lex-knot-bad-1/source.jibb:1:8: unexpected `M`: a knot holds lowercase letters, digits and - . ~ _
+++ x ~.My-post
+       ^

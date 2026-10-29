@@ -1,0 +1,21 @@
+(module
+  (value 1:1 items
+    (body 2:3
+      (list 2:3
+        (group 3:5
+          (call 3:6 (wing 3:6 text) (str 3:11 "a")))
+        (call 4:5 (wing 4:5 text) (str 4:10 "b")))))
+  (value 5:1 record
+    (body 6:3
+      (tuple 6:3
+        (face 7:5 text (str 7:10 "milk"))
+        (face 8:5 done (lit 8:10 %.n)))))
+  (value 9:1 changed
+    (body 10:3
+      (change 10:3 m
+        (edit 11:5 note (str 11:10 "x"))
+        (edit 12:5 error (lit 12:11 ~)))))
+  (value 13:1 grouped
+    (body 14:3
+      (group 14:3
+        (call 14:4 (wing 14:4 f) (wing 14:6 a) (wing 15:5 b) (wing 16:5 c))))))

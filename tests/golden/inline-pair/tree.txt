@@ -1,0 +1,3 @@
+(module
+  (value 1:1 x
+    (pair 1:6 gap (lit 1:10 %s2))))

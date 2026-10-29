@@ -1,0 +1,3 @@
+/tests/golden/lex-list-bad-1/source.jibb:1:13: expected `]` to close the `~[` at 1:6, found `)`
+++ x ~[1 2 3)
+            ^

@@ -1,0 +1,5 @@
+(module
+  (value 1:1 x
+    (list 1:6 (lit 1:8 1) (lit 1:10 2) (lit 1:12 3)))
+  (value 2:1 y
+    (list 2:6 (wing 2:8 a) (wing 2:10 b) (wing 2:12 c))))

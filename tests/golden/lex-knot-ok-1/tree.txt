@@ -1,0 +1,4 @@
+(module
+  (value 1:1 a (lit 1:6 ~.my-post))
+  (value 2:1 b (lit 2:6 ~.))
+  (value 3:1 c (lit 3:6 ~.a_b.c~d-1)))

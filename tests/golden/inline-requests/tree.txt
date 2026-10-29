@@ -1,0 +1,12 @@
+(module
+  (value 1:1 a
+    (group 1:6
+      (call 1:7
+        (wing 1:7 todo-action.todo)
+        (tuple 1:24 (lit 1:25 %add) (wing 1:30 draft.m)))))
+  (value 2:1 b
+    (group 2:6
+      (call 2:7 (wing 2:7 todos.todo) (ctor 2:18 %got))))
+  (value 3:1 c
+    (group 3:6
+      (call 3:7 (wing 3:7 changes.todo) (ctor 3:20 %got) (wing 3:27 apply)))))

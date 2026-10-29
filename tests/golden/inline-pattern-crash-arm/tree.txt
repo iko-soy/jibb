@@ -1,0 +1,10 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 s
+        (union 1:11 (const 1:14 %go) (const 1:18 %stop)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 s)
+          (arm 3:5 (lit 3:5 %go) (lit 3:12 1))
+          (arm 4:5 (lit 4:5 %stop) (crash 4:12)))))))

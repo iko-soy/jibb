@@ -1,0 +1,168 @@
+(module
+  (jibb 1:1 todo /ui/api/todo)
+  (value 3:1 main
+    (group 3:9
+      (call 3:10 (wing 3:10 program) (wing 3:18 init) (wing 3:23 update) (wing 3:30 view) (wing 3:35 subs))))
+  (mold 5:1 model
+    (cell 5:10
+      (face 5:11 todos
+        (apply 5:17 list (ref 5:23 item.todo)))
+      (face 5:34 draft (aura 5:40 @t))
+      (face 5:43 error
+        (apply 5:49 unit (aura 5:55 @t)))))
+  (mold 6:1 msg
+    (union 6:8
+      (cell 7:3
+        (const 7:4 %typed)
+        (face 7:11 text (aura 7:16 @t)))
+      (const 8:3 %submit)
+      (cell 9:3
+        (const 9:4 %toggled)
+        (face 9:13 id (aura 9:16 @ud)))
+      (cell 10:3
+        (const 10:4 %got)
+        (face 10:9 todos
+          (apply 10:15 list (ref 10:21 item.todo))))
+      (cell 11:3
+        (const 11:4 %acked)
+        (face 11:11 err
+          (apply 11:15 unit (aura 11:21 @t))))))
+  (value 13:1 init
+    (gate 13:9
+      (face 13:12 ts
+        (apply 13:15 list (ref 13:21 item.todo)))
+      (body 14:3
+        (tuple 14:3 (wing 14:4 ts) (str 14:7 "") (lit 14:10 ~)))))
+  (value 16:1 update
+    (gate 16:11
+      (cell 16:14
+        (pun 16:15 msg)
+        (face 16:20 m (ref 16:22 model)))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 msg)
+          (arm 18:5
+            (cell 18:5 (lit 18:6 %typed) (bind 18:13 t))
+            (body 19:7
+              (branch 19:7
+                (group 19:10
+                  (call 19:11
+                    (wing 19:11 gth)
+                    (group 19:15
+                      (call 19:16
+                        (wing 19:16 lent)
+                        (group 19:21
+                          (call 19:22
+                            (wing 19:22 tuba)
+                            (group 19:27
+                              (call 19:28 (wing 19:28 trip) (wing 19:33 t)))))))
+                    (lit 19:38 80)))
+                (arm 20:9
+                  (lit 20:9 %.y)
+                  (tuple 20:14
+                    (change 20:15 m
+                      (edit 20:17 draft (wing 20:23 t))
+                      (edit 20:25 error
+                        (unit 20:31 (str 20:32 "Too long"))))
+                    (lit 20:44 ~)))
+                (arm 21:9
+                  (lit 21:9 %.n)
+                  (tuple 21:14
+                    (change 21:15 m
+                      (edit 21:17 draft (wing 21:23 t))
+                      (edit 21:25 error (lit 21:31 ~)))
+                    (lit 21:34 ~))))))
+          (arm 22:5
+            (lit 22:5 %submit)
+            (tuple 22:20
+              (change 22:21 m
+                (edit 22:23 draft (str 22:29 "")))
+              (list 22:33
+                (tuple 22:35
+                  (lit 22:36 %poke)
+                  (group 22:42
+                    (call 22:43
+                      (wing 22:43 todo-action.todo)
+                      (tuple 22:60 (lit 22:61 %add) (wing 22:66 draft.m))))
+                  (ctor 22:76 %acked)))))
+          (arm 23:5
+            (cell 23:5 (lit 23:6 %toggled) (bind 23:15 id))
+            (tuple 23:20
+              (wing 23:21 m)
+              (list 23:23
+                (tuple 23:25
+                  (lit 23:26 %poke)
+                  (group 23:32
+                    (call 23:33
+                      (wing 23:33 todo-action.todo)
+                      (tuple 23:50 (lit 23:51 %toggle) (wing 23:59 id))))
+                  (ctor 23:64 %acked)))))
+          (arm 24:5
+            (cell 24:5 (lit 24:6 %got) (bind 24:11 ts))
+            (tuple 24:20
+              (change 24:21 m
+                (edit 24:23 todos (wing 24:29 ts)))
+              (lit 24:33 ~)))
+          (arm 25:5
+            (cell 25:5 (lit 25:6 %acked) (bind 25:13 err))
+            (tuple 25:20
+              (change 25:21 m
+                (edit 25:23 error (wing 25:29 err)))
+              (lit 25:34 ~)))))))
+  (value 27:1 subs
+    (gate 27:9
+      (face 27:12 m (ref 27:14 model))
+      (body 28:3
+        (list 28:3
+          (tuple 28:5
+            (lit 28:6 %watch)
+            (group 28:13
+              (call 28:14 (wing 28:14 todos.todo) (ctor 28:25 %got))))))))
+  (value 30:1 view
+    (gate 30:9
+      (face 30:12 m (ref 30:14 model))
+      (body 31:3
+        (call 31:3
+          (wing 31:3 column)
+          (list 31:10
+            (pair 31:12 gap (lit 31:16 %s2)))
+          (list 31:21
+            (call 32:5 (wing 32:5 heading) (lit 32:13 2) (str 32:15 "Todos"))
+            (call 33:5
+              (wing 33:5 each)
+              (group 33:10
+                (call 33:11 (wing 33:11 turn) (wing 33:16 todos.m) (wing 33:24 row-of))))
+            (call 34:5
+              (wing 34:5 row)
+              (list 34:9
+                (pair 34:11 gap (lit 34:15 %s1)))
+              (list 34:20
+                (call 35:7
+                  (wing 35:7 el)
+                  (list 35:10
+                    (pair 35:12 width
+                      (tuple 35:18 (lit 35:19 %fill) (lit 35:25 1))))
+                  (group 35:29
+                    (call 35:30 (wing 35:30 field) (str 35:36 "New todo") (wing 35:47 draft.m) (ctor 35:55 %typed))))
+                (call 36:7 (wing 36:7 button) (str 36:14 "Add") (lit 36:20 %submit))))
+            (call 37:5
+              (wing 37:5 el)
+              (list 37:8
+                (pair 37:10 tone (lit 37:15 %danger)))
+              (group 37:24
+                (call 37:25
+                  (wing 37:25 text)
+                  (group 37:30
+                    (call 37:31 (wing 37:31 fall) (wing 37:36 error.m) (str 37:44 "")))))))))))
+  (value 39:1 row-of
+    (gate 39:11
+      (face 39:14 t (ref 39:16 item.todo))
+      (body 40:3
+        (tuple 40:3
+          (wing 40:4 id.t)
+          (group 40:9
+            (call 40:10
+              (wing 40:10 toggle)
+              (wing 40:17 done.t)
+              (wing 40:24 text.t)
+              (tuple 40:31 (lit 40:32 %toggled) (wing 40:41 id.t)))))))))

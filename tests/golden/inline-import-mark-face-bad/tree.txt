@@ -1,0 +1,3 @@
+/tests/golden/inline-import-mark-face-bad/source.jibb:1:5: expected a mark's term, as `%todo-action`, found `act`; `/%` takes no face: it names the type after its mark
+/%  act  %todo-action
+    ^

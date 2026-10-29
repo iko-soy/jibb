@@ -1,0 +1,7 @@
+(module
+  (value 1:1 x
+    (gate-wide 1:6
+      (face 1:9 p (ref 1:11 post.blog))
+      (wing 1:21 title.p)))
+  (value 2:1 y
+    (gate-wide 2:6 (bind 2:9 p) (wing 2:11 title.p))))

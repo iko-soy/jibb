@@ -1,0 +1,3 @@
+/tests/golden/lex-duration-bad-1/source.jibb:1:9: a duration is units of d, h, m and s joined by dots, as ~h1.m30
+++ x ~h1m30
+        ^

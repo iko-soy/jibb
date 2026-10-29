@@ -1,0 +1,3 @@
+(module
+  (mold 1:1 x
+    (cell 1:6 (aura 1:7 @t) (const 1:10 %draft))))

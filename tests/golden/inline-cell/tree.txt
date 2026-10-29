@@ -1,0 +1,7 @@
+(module
+  (value 1:1 x
+    (tuple 1:6 (wing 1:7 a) (wing 1:9 b) (wing 1:11 c)))
+  (value 2:1 y
+    (tuple 2:6
+      (face 2:7 text (str 2:12 "milk"))
+      (face 2:19 done (lit 2:24 %.n)))))

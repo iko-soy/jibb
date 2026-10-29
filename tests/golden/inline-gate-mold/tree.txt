@@ -1,0 +1,3 @@
+(module
+  (mold 1:1 x
+    (fn 1:6 (ref 1:9 sample) (ref 1:16 product))))

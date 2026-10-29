@@ -1,0 +1,8 @@
+(module
+  (value 1:1 a (wing 1:6 a.b))
+  (value 2:1 b (wing 2:6 space.theme.theme))
+  (value 3:1 c
+    (group 3:6
+      (call 3:7 (wing 3:7 lent) (wing 3:12 items.cart.m))))
+  (mold 4:1 d
+    (apply 4:6 list (ref 4:12 post.blog))))

@@ -1,0 +1,5 @@
+(module
+  (value 1:1 a (wing 1:6 title.p))
+  (value 2:1 b (wing 2:6 card.card))
+  (value 3:1 c (wing 3:6 space.theme.theme))
+  (value 4:1 d (wing 4:6 get.by)))

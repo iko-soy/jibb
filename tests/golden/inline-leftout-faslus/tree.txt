@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-faslus/source.jibb:1:2: `/+` is left out: code also runs in the browser
+/+  foo
+ ^

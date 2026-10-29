@@ -1,0 +1,7 @@
+(module
+  (value 1:1 x (ctor 1:6 %got))
+  (value 2:1 y
+    (group 2:6
+      (call 2:7 (wing 2:7 state.cart) (ctor 2:18 %got))))
+  (value 3:1 z
+    (list 3:6 (ctor 3:8 %noted) (ctor 3:17 %acked))))

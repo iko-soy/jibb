@@ -1,0 +1,3 @@
+/tests/golden/inline-pattern-interpolated-bad/source.jibb:3:7: expected a pattern, found a string with `{…}`; patterns take strings without `{…}`
+    "a{b}"  1
+      ^

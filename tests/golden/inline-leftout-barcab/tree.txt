@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-barcab/source.jibb:1:7: `|_` is left out: modules are records
+++ x |_  s=@
+      ^

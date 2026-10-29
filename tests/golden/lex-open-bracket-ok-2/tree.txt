@@ -1,0 +1,9 @@
+(module
+  (value 1:1 x
+    (list 1:6
+      (list 2:3 (lit 3:5 1) (lit 4:5 2))
+      (list 5:3 (lit 5:5 3) (lit 5:7 4))
+      (tuple 6:3
+        (face 6:4 a (lit 6:6 1))
+        (face 7:5 b (lit 7:7 2)))
+      (lit 8:3 5))))

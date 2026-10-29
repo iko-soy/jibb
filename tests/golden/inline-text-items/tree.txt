@@ -1,0 +1,6 @@
+(module
+  (value 1:1 x
+    (group 1:6
+      (call 1:7
+        (wing 1:7 text)
+        (str 1:12 (wing 1:14 n) " items")))))

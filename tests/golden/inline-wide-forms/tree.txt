@@ -1,0 +1,7 @@
+(module
+  (value 1:1 x
+    (gate-wide 1:6 (bind 1:9 sample) (wing 1:16 expr)))
+  (mold 2:1 y
+    (union 2:6 (ref 2:9 case) (ref 2:14 case)))
+  (mold 3:1 z
+    (fn 3:6 (ref 3:9 mold) (ref 3:14 mold))))

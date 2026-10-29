@@ -1,0 +1,32 @@
+(module
+  (value 1:1 theme
+    (cast 1:11
+      (ref 1:14 theme)
+      (body 2:3
+        (tuple 2:3
+          (face 2:5 space
+            (tuple 2:11
+              (face 2:12 s1 (str 2:15 "4px"))
+              (face 2:21 s2 (str 2:24 "8px"))
+              (face 2:30 s3 (str 2:33 "16px"))))
+          (face 3:5 tones
+            (tuple 3:11
+              (face 3:12 normal (str 3:19 "#222"))
+              (face 3:26 background (str 3:37 "#fff"))
+              (face 3:44 accent (str 3:51 "#17734f"))
+              (face 3:61 danger (str 3:68 "#b3261e"))
+              (face 3:78 muted (str 3:84 "#5f5f5f"))))
+          (face 4:5 wide (str 4:10 "60rem"))
+          (face 5:5 lang (str 5:10 "en"))
+          (face 6:5 zone (str 6:10 "UTC"))
+          (face 7:5 font
+            (unit 7:10 (qath 7:11 static fonts inter.woff2)))
+          (face 8:5 dark
+            (tuple 8:10
+              (face 8:11 tones
+                (tuple 8:17
+                  (face 8:18 normal (str 8:25 "#eee"))
+                  (face 8:32 background (str 8:43 "#111"))
+                  (face 8:50 accent (str 8:57 "#4c9"))
+                  (face 8:64 danger (str 8:71 "#f28b82"))
+                  (face 8:81 muted (str 8:87 "#aaa")))))))))))

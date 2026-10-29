@@ -1,0 +1,10 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 u
+        (apply 1:11 unit (aura 1:17 @t)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 u)
+          (arm 3:5 (lit 3:5 ~) (str 3:8 ""))
+          (arm 4:5 (any 4:5) (str 4:8 "something")))))))

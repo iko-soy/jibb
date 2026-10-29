@@ -1,0 +1,4 @@
+(module
+  (value 1:1 a (str 1:6 "milk"))
+  (value 2:1 b (str 2:6 ""))
+  (value 3:1 c (str 3:6 "it's fine: 'single quotes', [brackets], ~tildes, %percents and /slashes are text")))

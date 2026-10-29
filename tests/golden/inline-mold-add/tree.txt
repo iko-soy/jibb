@@ -1,0 +1,8 @@
+(module
+  (mold 1:1 x
+    (cell 1:6 (aura 1:7 @) (aura 1:9 @)))
+  (value 2:1 y
+    (gate 2:6
+      (face 2:9 n (aura 2:11 @ud))
+      (group 2:15
+        (call 2:16 (wing 2:16 add) (wing 2:20 n) (lit 2:22 1))))))

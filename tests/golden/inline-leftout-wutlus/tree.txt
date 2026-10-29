@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-wutlus/source.jibb:2:4: `?+` is left out: `?-` is the branch
+  ?+  n  ~
+   ^

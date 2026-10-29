@@ -1,0 +1,5 @@
+(module
+  (value 1:1 a (lit 1:6 0))
+  (value 2:1 b (lit 2:6 42))
+  (value 3:1 c (lit 3:6 1.000))
+  (value 4:1 d (lit 4:6 1.000.000)))

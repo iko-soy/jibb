@@ -1,0 +1,5 @@
+(module
+  (mold 1:1 a (ref 1:6 todo-action.todo))
+  (value 2:1 b (wing 2:6 todo-action.todo))
+  (mold 3:1 c (ref 3:6 todos.todo))
+  (value 4:1 d (wing 4:6 todos.todo)))

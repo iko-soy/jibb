@@ -1,0 +1,13 @@
+(module
+  (value 1:1 x
+    (list 1:6
+      (unit 1:8 (str 1:9 "Too long"))
+      (unit 1:20
+        (tuple 1:21 (wing 1:22 a) (wing 1:24 b)))
+      (unit 1:27
+        (unit 1:28 (wing 1:29 c)))
+      (unit 1:31 (qath 1:32 blog))
+      (unit 1:39
+        (group 1:40
+          (call 1:41 (wing 1:41 f) (wing 1:43 a))))
+      (unit 1:46 (lit 1:47 ~)))))

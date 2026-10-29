@@ -1,0 +1,4 @@
+(module
+  (value 1:1 logo
+    (group 1:9
+      (call 1:10 (wing 1:10 image) (qath 1:16 static img logo.png) (str 1:38 "The logo")))))

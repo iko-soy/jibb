@@ -1,0 +1,4 @@
+(module
+  (value 1:1 x (qath 1:6 blog))
+  (value 2:1 y
+    (qath 2:6 blog (wing 2:14 slug))))

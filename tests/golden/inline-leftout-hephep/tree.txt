@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-hephep/source.jibb:2:1: the closer `--` is left out: indentation covers it
+--
+^

@@ -1,0 +1,7 @@
+(module
+  (value 1:1 x
+    (call 1:6 (wing 1:6 eq) (wing 1:9 a) (wing 1:11 b)))
+  (value 2:1 y
+    (call 2:6 (wing 2:6 not) (wing 2:10 x)))
+  (value 3:1 z
+    (call 3:6 (wing 3:6 gth) (wing 3:10 a) (wing 3:12 b))))

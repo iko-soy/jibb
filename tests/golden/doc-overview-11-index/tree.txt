@@ -1,0 +1,23 @@
+(module
+  (jibb 1:1 todo /ui/api/todo)
+  (jibb 2:1 todo-list /ui/todo-list)
+  (value 4:1 main
+    (group 4:9
+      (call 4:10 (wing 4:10 page) (wing 4:15 load) (wing 4:20 view))))
+  (value 5:1 load
+    (gate-wide 5:9
+      (const 5:12 ~)
+      (group 5:14
+        (call 5:15 (wing 5:15 todos.todo) (wing 5:26 same)))))
+  (value 7:1 view
+    (gate 7:9
+      (face 7:12 ts
+        (apply 7:15 list (ref 7:21 item.todo)))
+      (body 8:3
+        (call 8:3
+          (wing 8:3 column)
+          (list 8:10
+            (pair 8:12 pad (lit 8:16 %s3)))
+          (list 8:21
+            (call 9:5 (wing 9:5 heading) (lit 9:13 1) (str 9:15 "My ship"))
+            (call 10:5 (wing 10:5 island) (wing 10:12 main.todo-list) (wing 10:27 ts))))))))

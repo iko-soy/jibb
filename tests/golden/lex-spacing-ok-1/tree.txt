@@ -1,0 +1,17 @@
+(module
+  (jibb 1:1 api /ui/api/blog)
+  (jibb 2:1 card /ui/components/card)
+  (value 4:1 short (lit 4:12 1))
+  (value 5:1 longer
+    (list 5:12 (lit 5:14 1) (lit 5:19 2)))
+  (value 6:1 f
+    (gate 6:6
+      (face 6:9 s (noun 6:11))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 s)
+          (arm 8:5
+            (lit 8:5 %a)
+            (group 8:11
+              (call 8:12 (wing 8:12 add) (lit 8:17 1) (lit 8:20 2))))
+          (arm 9:5 (any 9:5) (lit 9:11 ~)))))))

@@ -1,0 +1,17 @@
+(module
+  (value 1:1 view
+    (gate 1:9
+      (face 1:12 m (ref 1:14 model))
+      (body 2:3
+        (call 2:3
+          (wing 2:3 column)
+          (list 2:10
+            (pair 2:12 gap (lit 2:16 %s1)))
+          (list 2:21
+            (group 3:5
+              (call 3:6 (wing 3:6 text) (str 3:11 "a")))
+            (group 7:5
+              (call 7:6 (wing 7:6 text) (str 7:11 "b")))
+            (group 10:5
+              (call 10:6 (wing 10:6 text) (str 10:11 "c"))))))))
+  (value 12:1 main (wing 12:9 view)))

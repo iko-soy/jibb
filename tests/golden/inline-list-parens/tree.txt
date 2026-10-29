@@ -1,0 +1,7 @@
+(module
+  (value 1:1 x
+    (list 1:6
+      (group 1:8
+        (call 1:9 (wing 1:9 text) (str 1:14 "hi")))))
+  (value 2:1 y
+    (list 2:6 (wing 2:8 text) (str 2:13 "hi"))))

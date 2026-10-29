@@ -1,0 +1,3 @@
+/tests/golden/inline-imports-after-definition/source.jibb:2:1: expected a definition, found `/-`; imports come first
+/-  todo
+^

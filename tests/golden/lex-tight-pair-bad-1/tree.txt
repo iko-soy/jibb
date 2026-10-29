@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-pair-bad-1/source.jibb:1:12: expected an expression, found `+`; a pair takes no spaces, as gap+%s2
+++ x ~[gap + %s2]
+           ^

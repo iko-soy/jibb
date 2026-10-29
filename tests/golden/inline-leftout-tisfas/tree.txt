@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-tisfas/source.jibb:2:3: expected an expression, found `=`; `=/` is left out: `++` defines values
+  =/  m  (add n 1)
+  ^

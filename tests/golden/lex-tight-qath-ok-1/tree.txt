@@ -1,0 +1,9 @@
+(module
+  (value 1:1 a
+    (qath 1:6 blog (wing 1:14 slug)))
+  (value 2:1 b (qath 2:6))
+  (value 3:1 c (qath 3:6 static img logo.png))
+  (value 4:1 d
+    (qath 4:6 blog (wing 4:14 slug.p) comments))
+  (value 5:1 e
+    (qath 5:6 todo (wing 5:14 id))))

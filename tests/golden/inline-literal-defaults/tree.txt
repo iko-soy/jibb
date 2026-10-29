@@ -1,0 +1,6 @@
+(module
+  (value 1:1 a (lit 1:6 %a))
+  (value 2:1 b (lit 2:6 ~))
+  (value 3:1 c (lit 3:6 5))
+  (value 4:1 d
+    (tuple 4:6 (wing 4:7 x) (wing 4:9 xs))))

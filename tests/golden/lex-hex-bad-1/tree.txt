@@ -1,0 +1,3 @@
+/tests/golden/lex-hex-bad-1/source.jibb:1:8: a hexadecimal number is 0x and digits 0-9 and a-f, in groups of four joined by dots, as 0x1.ffff
+++ x 0xg1
+       ^

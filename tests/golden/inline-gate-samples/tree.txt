@@ -1,0 +1,13 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 m (ref 1:11 model))
+      (wing 1:17 m)))
+  (value 2:1 g
+    (gate 2:6 (pun 2:9 msg) (wing 2:14 msg)))
+  (value 3:1 h
+    (gate 3:6
+      (cell 3:9
+        (face 3:10 a (aura 3:12 @))
+        (face 3:14 b (aura 3:16 @)))
+      (body 4:3 (wing 4:3 a)))))

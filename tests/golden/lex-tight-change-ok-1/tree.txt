@@ -1,0 +1,14 @@
+(module
+  (value 1:1 a
+    (change 1:6 m
+      (edit 1:8 note (wing 1:13 text))))
+  (value 2:1 b
+    (change 2:6 s
+      (edit 2:8 items
+        (tuple 2:14 (wing 2:15 item) (wing 2:20 items.s)))
+      (edit 2:29 open
+        (group 2:34
+          (call 2:35 (wing 2:35 not) (wing 2:39 open.s))))))
+  (value 3:1 c
+    (change 3:6 cart.m
+      (edit 3:13 note (str 3:18 "")))))

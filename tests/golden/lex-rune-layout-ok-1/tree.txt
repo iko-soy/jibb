@@ -1,0 +1,42 @@
+(module
+  (value 1:1 a
+    (gate 1:6
+      (face 1:9 n (aura 1:11 @ud))
+      (call 1:15 (wing 1:15 add) (wing 1:19 n) (lit 1:21 1))))
+  (value 2:1 b
+    (gate 2:6
+      (face 2:9 n (aura 2:11 @ud))
+      (body 3:3
+        (group 3:3
+          (call 3:4 (wing 3:4 add) (wing 3:8 n) (lit 3:10 1))))))
+  (value 4:1 c
+    (cast 4:6 (aura 4:9 @ud) (lit 4:13 5)))
+  (value 5:1 d
+    (cast 5:6
+      (aura 5:9 @ud)
+      (body 6:3 (lit 6:3 5))))
+  (value 7:1 e
+    (gate 7:6
+      (face 7:9 n (aura 7:11 @ud))
+      (body 8:3
+        (trace 8:3
+          (wing 8:6 n)
+          (body 9:5
+            (group 9:5
+              (call 9:6 (wing 9:6 add) (wing 9:10 n) (lit 9:12 1))))))))
+  (value 10:1 f
+    (gate 10:6
+      (face 10:9 b (flag 10:11))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 b)
+          (arm 12:5 (lit 12:5 %.y) (lit 12:10 1))
+          (arm 13:5
+            (lit 13:5 %.n)
+            (body 14:7 (lit 14:7 2)))))))
+  (mold 15:1 g
+    (cell 16:3
+      (face 16:4 a (aura 16:6 @))
+      (face 16:8 b (aura 16:10 @))))
+  (mold 17:1 h
+    (union 18:3 (const 19:5 %a) (const 20:5 %b))))

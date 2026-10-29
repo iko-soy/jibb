@@ -1,0 +1,4 @@
+(module
+  (mold 1:1 a (path 1:6 /todos))
+  (mold 2:1 b (path 2:6 /))
+  (mold 3:1 c (path 3:6 /todo/[id=@ud])))

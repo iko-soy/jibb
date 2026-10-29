@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-sail/source.jibb:1:6: Sail's `;` runes are left out: layout is Jibb's elements
+++ x ;p: hello
+     ^

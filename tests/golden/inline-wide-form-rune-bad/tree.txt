@@ -1,0 +1,3 @@
+/tests/golden/inline-wide-form-rune-bad/source.jibb:1:11: expected an expression, found `^-`; the wide gate's body is an operand, so a rune goes in parentheses
+++ x |=(n ^- @ud n)
+          ^

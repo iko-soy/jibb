@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-zapgar/source.jibb:1:7: `!>` is left out: code also runs in the browser
+++ x !>(5)
+      ^

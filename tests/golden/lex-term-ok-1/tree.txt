@@ -1,0 +1,7 @@
+(module
+  (value 1:1 a (lit 1:6 %add))
+  (value 2:1 b (lit 2:6 %a1-b))
+  (value 3:1 c (lit 3:6 %0))
+  (value 4:1 d (lit 4:6 %42))
+  (value 5:1 e (lit 5:6 %&))
+  (value 6:1 f (lit 6:6 %|)))

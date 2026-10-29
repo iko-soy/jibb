@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-wutcol/source.jibb:2:4: `?:` is left out: `?-` is the branch
+  ?:  b  1  2
+   ^

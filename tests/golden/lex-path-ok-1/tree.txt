@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 card /ui/components/card)
+  (mold 2:1 a (path 2:6 /posts/~zod))
+  (mold 3:1 b (path 3:6 /))
+  (mold 4:1 c (path 4:6 /todo/[id=@ud]/comments)))

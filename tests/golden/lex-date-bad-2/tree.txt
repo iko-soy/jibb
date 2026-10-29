@@ -1,0 +1,3 @@
+/tests/golden/lex-date-bad-2/source.jibb:1:24: a date is ~year.month.day, then optionally ..hours.minutes.seconds, as ~2026.10.23..14.30.00
+++ x ~2026.10.29..14.30
+                       ^

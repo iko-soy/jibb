@@ -1,0 +1,4 @@
+(module
+  (mold 1:1 a (ref 1:6 poke))
+  (mold 2:1 b (ref 2:6 ask))
+  (mold 3:1 c (ref 3:6 qath)))

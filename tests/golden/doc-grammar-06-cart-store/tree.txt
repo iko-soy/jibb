@@ -1,0 +1,39 @@
+(module
+  (mold 2:1 state
+    (cell 2:10
+      (face 2:11 items
+        (apply 2:17 list (aura 2:23 @t)))
+      (face 2:27 open (flag 2:32))))
+  (mold 3:1 cart-action
+    (union 3:16
+      (cell 4:3
+        (const 4:4 %add)
+        (face 4:9 item (aura 4:14 @t)))
+      (const 5:3 %toggle)))
+  (mold 6:1 poke (ref 6:9 cart-action))
+  (value 8:1 main
+    (group 8:9
+      (call 8:10 (wing 8:10 store) (wing 8:16 init) (wing 8:21 update))))
+  (value 9:1 init
+    (cast 9:9
+      (ref 9:12 state)
+      (tuple 9:18 (lit 9:19 ~) (lit 9:21 %.n))))
+  (value 10:1 update
+    (gate 10:11
+      (cell 10:14
+        (face 10:15 a (ref 10:17 cart-action))
+        (face 10:29 s (ref 10:31 state)))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 a)
+          (arm 12:5
+            (cell 12:5 (lit 12:6 %add) (bind 12:11 item))
+            (change 12:18 s
+              (edit 12:20 items
+                (tuple 12:26 (wing 12:27 item) (wing 12:32 items.s)))))
+          (arm 13:5
+            (lit 13:5 %toggle)
+            (change 13:18 s
+              (edit 13:20 open
+                (group 13:25
+                  (call 13:26 (wing 13:26 not) (wing 13:30 open.s)))))))))))

@@ -1,0 +1,11 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 s (noun 1:11))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 s)
+          (arm 3:5 (lit 3:5 1.000) (lit 3:13 %number))
+          (arm 4:5 (str 4:5 "milk") (lit 4:13 %string))
+          (arm 5:5 (lit 5:5 ~zod) (lit 5:13 %ship))
+          (arm 6:5 (any 6:5) (lit 6:13 %other)))))))

@@ -1,0 +1,17 @@
+(module
+  (mold 1:1 a
+    (apply 1:6 list (tvar 1:12 A)))
+  (mold 2:1 b
+    (apply 2:6 unit (tvar 2:12 A)))
+  (mold 3:1 c
+    (apply 3:6 set (tvar 3:11 A)))
+  (mold 4:1 d
+    (apply 4:6 map (tvar 4:11 K) (tvar 4:13 V)))
+  (mold 5:1 e
+    (apply 5:6 mop (tvar 5:11 K) (tvar 5:13 V)))
+  (mold 6:1 f
+    (apply 6:6 qeu (tvar 6:11 A)))
+  (mold 7:1 g
+    (apply 7:6 jar (tvar 7:11 K) (tvar 7:13 V)))
+  (mold 8:1 h
+    (apply 8:6 jug (tvar 8:11 K) (tvar 8:13 V))))

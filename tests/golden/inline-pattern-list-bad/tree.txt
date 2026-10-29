@@ -1,0 +1,3 @@
+/tests/golden/inline-pattern-list-bad/source.jibb:3:6: expected a pattern, found `~[`; patterns take no lists
+    ~[a]  1
+     ^

@@ -1,0 +1,2 @@
+(module
+  (value 1:1 x (lit 1:6 0v5.fdf99)))

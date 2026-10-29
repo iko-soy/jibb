@@ -1,0 +1,3 @@
+(module
+  (value 1:1 x
+    (call 1:6 (wing 1:6 f) (wing 1:8 a) (wing 1:10 b))))

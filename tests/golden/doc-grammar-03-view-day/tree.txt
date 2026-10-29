@@ -1,0 +1,20 @@
+(module
+  (value 1:1 view
+    (gate 1:9
+      (cell 1:12
+        (face 1:13 day (aura 1:17 @da))
+        (face 1:21 n (aura 1:23 @ud)))
+      (body 2:3
+        (call 2:3
+          (wing 2:3 column)
+          (list 2:10
+            (pair 2:12 gap (lit 2:16 %s1)))
+          (list 2:21
+            (group 3:5
+              (call 3:6
+                (wing 3:6 text)
+                (str 3:11 "Updated " (wing 3:21 day))))
+            (group 4:5
+              (call 4:6
+                (wing 4:6 text)
+                (str 4:11 (wing 4:13 n) " items")))))))))

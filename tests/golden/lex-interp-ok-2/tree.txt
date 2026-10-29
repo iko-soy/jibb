@@ -1,0 +1,17 @@
+(module
+  (value 1:1 x
+    (str 1:6
+      "a "
+      (group 1:10
+        (call 1:11
+          (wing 1:11 weld)
+          (str 1:16 "b " (wing 1:20 c) " d")
+          (str 1:26 "e")))
+      " f"))
+  (value 2:1 y
+    (str 2:6
+      (group 2:8
+        (call 2:9 (wing 2:9 f) (str 2:11 "}")))
+      " and "
+      (group 2:22
+        (call 2:23 (wing 2:23 g) (str 2:25 "\""))))))

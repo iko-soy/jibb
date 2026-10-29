@@ -1,0 +1,3 @@
+/tests/golden/lex-name-bad-3/source.jibb:1:4: expected a name, found `2`
+++ 2nd 5
+   ^

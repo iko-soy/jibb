@@ -19,9 +19,9 @@
 ::  fails: an error it finds is its last token (2.0), and +layout-error
 ::  takes it out.
 ::
-::  Status: the types, the printers, +golden and the layout pass
-::  (+layout, +lexer) work. +parse-tokens is a stub that returns an
-::  error; it is implemented next, against the design below. Choices the
+::  Status: the types, the printers, +golden, the layout pass (+layout,
+::  +lexer) and the parser (+parse-tokens, +parser) work, and +golden
+::  checks every tree's spans (+check-spans, section 1). Choices the
 ::  doc leaves open are marked "(doc question)": they follow the most
 ::  likely reading and are listed, with the doc's words, for the doc's
 ::  author to settle. The golden corpus's "expect:" lines give each
@@ -50,8 +50,9 @@
 ::  code, not at the line that closes them. Every node's span holds its
 ::  children's spans, in source order. The printed tree shows starts
 ::  only, and milestone 1's errors use starts only, so ends are first
-::  tested by milestone 2's excerpts; the parser's own tests should check
-::  the two rules above on every golden tree.
+::  used by milestone 2's excerpts. Until then +check-spans tests the two
+::  rules above on every tree +golden prints, and a tree that breaks one
+::  ends with a line "SPAN ERROR: (<kind> <start> to <end>) <why>".
 ::
 ::  ===================================================================
 ::  2. The layout pass (+layout)
@@ -313,14 +314,15 @@
 ::  3. The parser (+parse-tokens)
 ::  ===================================================================
 ::
-::  Hand-written recursive descent over the token list: one arm per EBNF
-::  rule, each taking the remaining tokens and returning (pare node): the
-::  node and the tokens after it, or an error. Steps chain with ;< and
-::  +then, so an error stops the parse:
+::  Hand-written recursive descent over the token list (+parser): one
+::  arm per EBNF rule, each taking the remaining tokens and returning
+::  (pare node): the node and the tokens after it, or an error. Steps
+::  chain with ;< and +then, so an error stops the parse (+read-cast):
 ::
-::    ;<  [s=shape ts=(list token)]  then  (mold ts)
-::    ;<  [e=expr ts=(list token)]   then  (expr-or-body ts)
-::    [%& [%cast [beg.at.rune end:(span-of e)] s e] ts]
+::    ;<  [s=shape after=(list token)]  then  (read-mold ts)
+::    ;<  [e=expr more=(list token)]  then
+::      (read-expr-or-body "the mold" after)
+::    [%& [%cast [beg.at.ket end:(span-of e)] s e] more]
 ::
 ::  Why: after the layout pass the grammar is LL(2). Each choice is made by
 ::  the next token, at most with the one after it and whether it is tight:
@@ -341,10 +343,13 @@
 ::  An operand that isn't where an expression starts (a call's argument,
 ::  an item, a pair's or unit's operand, the wide gate's body) can't be a
 ::  rune, so there |= is a constructor and needs its term at once:
-::  (state.cart |= %got) is an error at the space after |=, 1:20. Loops
-::  over many items (definitions, arms, lines, items) may recurse: vere's
-::  stack takes ten million plain frames, so no Jibb file nests or runs
-::  long enough to overflow it.
+::  (state.cart |= %got) is an error at the space after |=, 1:20. A loop
+::  over many items (definitions, arms, lines, items) is a trap whose
+::  every step, through +then, is a tail call, so a long module grows no
+::  stack. Nesting does, by a few frames a level: 100.000 nested
+::  parentheses parse, and so does a 20.000-line module. +golden's tree
+::  is another matter: its indent grows with depth, so 7.000 nested
+::  parentheses print as 49 MB and 10.000 run out of memory.
 ::
 ::  The EBNF and its nodes (see the types below):
 ::    module      { import NEWLINE } { definition NEWLINE }, then the end
@@ -462,7 +467,8 @@
 ::  out: eq is a gate", = followed tight by / is "=/ is left out: ++
 ::  defines values", and * is "*mold is left out: no defaults"; ^- or ?-
 ::  followed tight by ( is "the wide form ^-(…) is left out: indentation
-::  covers it". Examples:
+::  covers it". The messages quote that code in backticks (2.0), as in
+::  "`=(a b)` is left out: eq is a gate". Examples:
 ::    expected `]` or an item on a deeper line, found a line at the same
 ::      depth
 ::    expected the end of the line, found a deeper line; only a bracket
@@ -816,22 +822,21 @@
 ::  +parse-tokens: tokens to tree (design: section 3)
 ::
 ::    It accepts no error token, so it fails at the first of its own
-::    error and the layout pass's (2.0). The stub reports an error token
-::    that comes first, as the parser will, and fails otherwise.
+::    error and the layout pass's (2.0). +parser does the work.
 ::
 ++  parse-tokens
   |=  [file=path toks=(list token)]
   ^-  (each module error)
-  ?:  ?=([[* * [%error *]] *] toks)
-    (fail file toks "a module")
-  =/  at=loc  ?~(toks [1 1] (where i.toks))
-  [%| file line.at col.at "parser not implemented"]
+  (~(read-module parser file) toks)
 ::
 ::  +golden: both stages printed, or the rendered error
 ::
 ::    tokens: the layout pass's tokens, or its error if it found one
 ::    tree: the parser's tree, or the first error of either stage, which
-::    the parser reports since it accepts no error token (2.0)
+::    the parser reports since it accepts no error token (2.0). A tree
+::    whose spans break section 1's rules (+check-spans) gets a last
+::    line saying how, "SPAN ERROR: …", so every golden case checks
+::    them.
 ::
 ++  golden
   |=  [file=path src=@t]
@@ -843,8 +848,13 @@
   =/  par  (parse-tokens file toks)
   ?:  ?=(%| -.par)  (show-error src p.par)
   ::  a parser that accepted an error token would be wrong; say so
-  ?^  bad  (show-error src u.bad)
-  (show-module p.par)
+  ?^  bad
+    %^  cat  3  (show-error src u.bad)
+    '\0aPARSER ERROR: the parser accepted an error token'
+  =/  tree=@t  (show-module p.par)
+  =/  why=(unit tape)  (check-spans p.par toks)
+  ?~  why  tree
+  (cat 3 tree (crip "\0aSPAN ERROR: {u.why}"))
 ::
 +|  %lexer
 ::
@@ -1595,6 +1605,7 @@
       %indent   "a deeper line"
       %dedent   "a shallower line"
       %newline  "a line at the same depth"
+      %'`'      "`` ` ``"
     ==
   ?-  -.x
     %name      "`{(trip p.x)}`"
@@ -1947,4 +1958,1344 @@
   :+  %|  file
   :+  line.end.at.prev  col.end.at.prev
   "expected {want} right after {(show-found prev)}, found a space"
+::
+::  +fail-why: +fail with a hint after its message, "; <why>"
+::
+::    The layout pass's error, at an error token, stays as it is (2.0).
+::
+++  fail-why
+  |=  [file=path toks=(list token) want=tape why=tape]
+  ^-  [%| p=error]
+  =/  e=[%| p=error]  (fail file toks want)
+  ?:  &(?=(^ toks) ?=([%error *] lex.i.toks))  e
+  e(msg.p (weld msg.p.e "; {why}"))
+::
+::  Token tests for the parser
+::
+::  +is-layout: INDENT, DEDENT or NEWLINE
+::
+++  is-layout
+  |=  t=token
+  ^-  ?
+  ?=(?(%indent %dedent %newline) lex.t)
+::
+::  +is-closer: ) or ], or the } that ends an interpolation
+::
+++  is-closer
+  |=  t=token
+  ^-  ?
+  ?|  =(%')' lex.t)
+      =(%']' lex.t)
+      ?=([?(%str-mid %str-tail) *] lex.t)
+  ==
+::
+::  +ends-call: a token that ends a call, or the operands on a group's
+::  first line, without an error of their own: a layout token, a
+::  closer, or the layout pass's error
+::
+++  ends-call
+  |=  t=token
+  ^-  ?
+  ?|  (is-layout t)
+      (is-closer t)
+      ?=([%error *] lex.t)
+  ==
+::
+::  +is-operand-start: a token an operand starts with; where an operand
+::  goes, |= is the constructor's (section 3)
+::
+++  is-operand-start
+  |=  t=token
+  ^-  ?
+  ?|  ?=(?(%'%/' %'/' %'`' %'(' %'~[' %'[' %'|=(' %'|=') lex.t)
+      ?=([?(%lit %str %str-head %name %wing) *] lex.t)
+  ==
+::
+::  +is-rune: a rune that is never an operand: ^- ~& ?- !!
+::
+++  is-rune
+  |=  t=token
+  ^-  ?
+  ?=(?(%'^-' %'~&' %'?-' %'!!') lex.t)
+::
+::  +is-ctor: |= with a term tight after it, a case's constructor
+::
+++  is-ctor
+  |=  ts=(list token)
+  ^-  ?
+  ?=([[* * %'|='] [* %& [%lit %term *]] *] ts)
+::
+::  +is-rune-start: a rune where an expression starts; |= is a rune
+::  there unless it is the constructor
+::
+++  is-rune-start
+  |=  ts=(list token)
+  ^-  ?
+  ?~  ts  |
+  ?|  (is-rune i.ts)
+      &(=(%'|=' lex.i.ts) !(is-ctor ts))
+  ==
+::
+::  +text-piece: a string's text as its pieces: none when it is empty
+::
+++  text-piece
+  |=  txt=@t
+  ^-  (list piece)
+  ?:(=('' txt) ~ ~[[%text txt]])
+::
+::  +names-of: a name's or a wing's names
+::
+++  names-of
+  |=  x=lexeme
+  ^-  (list term)
+  ?+  x  ~
+    [%name *]  ~[p.x]
+    [%wing *]  p.x
+  ==
+::
+::  +call-of: a call's elements as one expression: one alone is itself
+::
+++  call-of
+  |=  els=(list expr)
+  ^-  expr
+  ?~  els  [%crash *span ~]
+  ?~  t.els  i.els
+  [%call [beg:(span-of i.els) end:(span-of (rear t.els))] i.els t.els]
+::
+::  +bracket-node: a tuple, list or change from its items, ending at fin
+::
+++  bracket-node
+  |=  $:  kind=?(%tuple %list %change)
+          op=token
+          target=(unit [t=token names=(list term)])
+          its=(list item)
+          fin=loc
+      ==
+  ^-  expr
+  ?-    kind
+    %tuple  [%tuple [beg.at.op fin] its]
+    %list   [%list [beg.at.op fin] (turn its |=(i=item val.i))]
+  ::
+      %change
+    =/  beg=loc  ?~(target beg.at.op beg.at.t.u.target)
+    :^  %change  [beg fin]  ?~(target ~ names.u.target)
+    (turn its |=(i=item ^-(edit [at.i ?~(face.i %$ u.face.i) val.i])))
+  ==
+::
++|  %parser
+::
+::  +parser: section 3's recursive descent over one file's tokens
+::
+::    Each +read- arm reads one rule of the EBNF from the head of the
+::    tokens it is given and returns (pare node): the node and the
+::    tokens after it, or the first error. It decides by the next token,
+::    at most with the one after it and whether that one is tight
+::    (section 3), so it never backtracks. A loop over items is a trap
+::    whose every step, through +then, is a tail call, so a long module
+::    grows no stack; only nesting does, and a line's nesting is bounded
+::    by its length.
+::
+++  parser
+  |_  file=path
+  ::
+  ::  +bad: "expected <want>, found <the next token>" (+fail)
+  ::
+  ++  bad
+    |=  [ts=(list token) want=tape]
+    ^-  [%| p=error]
+    (fail file ts want)
+  ::
+  ::  +bad-why: +bad with a hint (+fail-why)
+  ::
+  ++  bad-why
+    |=  [ts=(list token) want=tape why=tape]
+    ^-  [%| p=error]
+    (fail-why file ts want why)
+  ::
+  ::  +bad-space: a tight form that found a space after prev
+  ::  (+fail-space)
+  ::
+  ++  bad-space
+    |=  [prev=token ts=(list token) want=tape]
+    ^-  [%| p=error]
+    (fail-space file prev ts want)
+  ::
+  ::  +bad-at: an error inside a token (section 3, Errors)
+  ::
+  ++  bad-at
+    |=  [at=loc msg=tape]
+    ^-  [%| p=error]
+    [%| file line.at col.at msg]
+  ::
+  ::  +bad-end: a line that should end and goes on
+  ::
+  ++  bad-end
+    |=  ts=(list token)
+    ^-  [%| p=error]
+    ?.  ?=([[* * %indent] *] ts)  (bad ts "the end of the line")
+    %^  bad-why  ts  "the end of the line"
+    %+  weld  "only a bracket open at the end of a line, "
+    "or a rune's body, takes deeper lines"
+  ::
+  ::  +no-space: a token tight after an item, where a space goes
+  ::
+  ++  no-space
+    |=  ts=(list token)
+    ^-  [%| p=error]
+    ?.  ?=([[* * %'='] *] ts)  (bad ts "a space between items")
+    %^  bad-why  ts  "a space between items"
+    "`name=value` goes in a cell, as [a=1], or a change, as m(a=1)"
+  ::
+  ::  +no-operand: a token where an operand goes that starts none, with
+  ::  a hint for the left-out forms the lexer can't see (2.6)
+  ::
+  ++  no-operand
+    |=  ts=(list token)
+    ^-  [%| p=error]
+    =/  want=tape  "an expression"
+    ?:  ?=([[* * %'='] [* %& %'('] *] ts)
+      (bad-why ts want "`=(a b)` is left out: eq is a gate")
+    ?:  ?=([[* * %'='] [* %& %'/'] *] ts)
+      (bad-why ts want "`=/` is left out: `++` defines values")
+    ?:  ?=([[* * %'*'] *] ts)
+      (bad-why ts want "`*mold` is left out: no defaults")
+    ?:  ?=([[* * %'+'] *] ts)
+      (bad-why ts want "a pair takes no spaces, as gap+%s2")
+    ?:  &(?=(^ ts) (is-rune i.ts))
+      (bad-why ts want "a rune here goes in parentheses")
+    (bad ts want)
+  ::
+  ::  +unclosed: where the closer of the bracket op opened should be
+  ::
+  ++  unclosed
+    |=  [op=token close=tape ts=(list token)]
+    ^-  [%| p=error]
+    =/  want=tape
+      "`{close}` to close the {(show-found op)} at {(show-loc beg.at.op)}"
+    ?.  ?=([[* * %indent] *] ts)  (bad ts want)
+    (bad-why ts want "this bracket closes on its line")
+  ::
+  ::  +unclosed-open: a bracket that may be left open, whose line ends
+  ::  with neither its closer nor deeper lines; last is its last item's
+  ::  span, and noun names its items
+  ::
+  ++  unclosed-open
+    |=  [op=token close=tape noun=tape last=(unit span) ts=(list token)]
+    ^-  [%| p=error]
+    ?.  ?=([[* * ?(%newline %dedent)] *] ts)  (unclosed op close ts)
+    ::  its last item ends on a later line: an item left open took them
+    ?:  &(?=(^ last) (gth line.end.u.last line.beg.at.op))
+      %^  bad-why  ts
+        "`{close}` to close the {(show-found op)} at {(show-loc beg.at.op)}"
+      "only the last bracket open at the end of a line takes the deeper lines"
+    (bad ts "`{close}` or {noun} on a deeper line")
+  ::
+  ::  +wide-rune: a rune followed tight; txt( is a left-out wide form
+  ::
+  ++  wide-rune
+    |=  [txt=tape ts=(list token)]
+    ^-  [%| p=error]
+    =/  want=tape  "a space after `{txt}`"
+    ?.  ?=([[* * %'('] *] ts)  (bad ts want)
+    %^  bad-why  ts  want
+    "the wide form `{txt}(…)` is left out: indentation covers it"
+  ::
+  ::  +unnamed: a change's item or line without its name=
+  ::
+  ++  unnamed
+    |=  ts=(list token)
+    ^-  [%| p=error]
+    %^  bad-why  ts  "a named item"
+    "a change's items are named, as in m(done=%.y)"
+  ::
+  ::  +read-module: { import NEWLINE } { definition NEWLINE }, then the
+  ::  end of the tokens
+  ::
+  ++  read-module
+    |=  ts=(list token)
+    ^-  (each module error)
+    =|  ims=(list import)
+    |-  ^-  (each module error)
+    ?:  ?=([[* * ?(%'/-' %'/%' %'/=')] *] ts)
+      ;<  [im=import after=(list token)]  then  (read-import ts)
+      ?.  ?=([[* * %newline] *] after)  (bad-end after)
+      $(ims [im ims], ts t.after)
+    =|  defs=(list def)
+    |-  ^-  (each module error)
+    ?~  ts  [%& (flop ims) (flop defs)]
+    ?:  ?=([[* * ?(%'/-' %'/%' %'/=')] *] ts)
+      (bad-why ts "a definition" "imports come first")
+    ;<  [d=def after=(list token)]  then  (read-def ts)
+    ?.  ?=([[* * %newline] *] after)  (bad-end after)
+    $(defs [d defs], ts t.after)
+  ::
+  ::  +read-import: /- name, /% term, or /= name pathlit
+  ::
+  ++  read-import
+    |=  ts=(list token)
+    ^-  (pare import)
+    ?~  ts  (bad ts "an import")
+    =*  g  i.ts
+    =/  rest=(list token)  t.ts
+    ?:  &(?=(^ rest) tight.i.rest)
+      (bad rest "a space after {(show-found g)}")
+    ?:  =(%'/%' lex.g)
+      ?:  ?=([[* * [%lit %term %tas *]] *] rest)
+        [%& [%mark [beg.at.g end.at.i.rest] val.p.lex.i.rest] t.rest]
+      =/  want=tape  "a mark's term, as `%todo-action`"
+      ?.  ?=([[* * [%name *]] *] rest)  (bad rest want)
+      (bad-why rest want "`/%` takes no face: it names the type after its mark")
+    ?.  ?=([[* * [%name *]] *] rest)  (bad rest "a name")
+    =*  nam  i.rest
+    ?.  =(%'/=' lex.g)
+      [%& [%sur [beg.at.g end.at.nam] p.lex.nam] t.rest]
+    =/  more=(list token)  t.rest
+    ?:  &(?=(^ more) tight.i.more)  (bad more "a space after the name")
+    ?.  ?=([[* * %'/'] *] more)
+      (bad more "a module's path, as /ui/components/card")
+    ;<  [[sp=span segs=(list @ta)] after=(list token)]  then
+      (read-pathlit i.more t.more)
+    [%& [%jibb [beg.at.g end.sp] p.lex.nam segs] after]
+  ::
+  ::  +read-pathlit: after a path's /, its knots, each after a tight /
+  ::  and tight itself; / alone is the empty path
+  ::
+  ++  read-pathlit
+    |=  [sl=token ts=(list token)]
+    ^-  (pare [span (list @ta)])
+    ?.  ?=([[* %& [%knot *]] *] ts)
+      ?:  &(?=(^ ts) tight.i.ts !(is-closer i.ts))
+        (bad ts "a path segment")
+      [%& [at.sl ~] ts]
+    =/  segs=(list @ta)  ~[p.lex.i.ts]
+    =/  fin=loc  end.at.i.ts
+    =/  rest=(list token)  t.ts
+    |-  ^-  (pare [span (list @ta)])
+    ?.  ?=([[* %& %'/'] *] rest)
+      [%& [[beg.at.sl fin] (flop segs)] rest]
+    =/  nex=(list token)  t.rest
+    ?:  ?=([[* %& [%knot *]] *] nex)
+      $(segs [p.lex.i.nex segs], fin end.at.i.nex, rest t.nex)
+    ?:  &(?=(^ nex) tight.i.nex)  (bad nex "a path segment")
+    (bad-space i.rest nex "a path segment")
+  ::
+  ::  +read-def: ++ name, then an expression or a body; +$ name, then a
+  ::  mold on its line or alone on a deeper one
+  ::
+  ++  read-def
+    |=  ts=(list token)
+    ^-  (pare def)
+    ?~  ts  (bad ts "a definition")
+    =*  rune  i.ts
+    ?:  =(%'++' lex.rune)
+      ;<  [nam=term after=(list token)]  then  (read-def-name rune t.ts)
+      ;<  [e=expr more=(list token)]  then
+        (read-expr-or-body "the name" after)
+      [%& [%value [beg.at.rune end:(span-of e)] nam e] more]
+    ?:  (is-closer rune)
+      %^  bad-why  ts  "a definition"
+      "this closes no bracket, as one open at the end of its line needs none"
+    ?.  =(%'+$' lex.rune)  (bad ts "a definition")
+    ;<  [nam=term after=(list token)]  then  (read-def-name rune t.ts)
+    ?:  ?=([[* * %indent] *] after)
+      ;<  [s=shape more=(list token)]  then  (read-mold t.after)
+      ?:  ?=([[* * %dedent] *] more)
+        [%& [%mold [beg.at.rune end:(span-of s)] nam s] t.more]
+      ?.  ?=([[* * %newline] *] more)  (bad-end more)
+      %^  bad-why  more  "the end of the mold"
+      "a `+$` takes one mold; a union is `$?` with its cases below"
+    ?:  ?=([[* * ?(%newline %dedent)] *] after)
+      (bad after "a mold, on its line or a deeper one")
+    ?:  &(?=(^ after) tight.i.after)  (bad after "a space after the name")
+    ;<  [s=shape more=(list token)]  then  (read-mold after)
+    [%& [%mold [beg.at.rune end:(span-of s)] nam s] more]
+  ::
+  ::  +read-def-name: after ++ or +$, a space and a name
+  ::
+  ++  read-def-name
+    |=  [rune=token ts=(list token)]
+    ^-  (pare term)
+    ?:  &(?=(^ ts) tight.i.ts)
+      (bad ts "a space after {(show-found rune)}")
+    ?.  ?=([[* * [%name *]] *] ts)  (bad ts "a name")
+    [%& p.lex.i.ts t.ts]
+  ::
+  ::  +read-expr-or-body: a space and an expression on the line, or a
+  ::  body on deeper lines; what names what comes before, for errors
+  ::
+  ++  read-expr-or-body
+    |=  [what=tape ts=(list token)]
+    ^-  (pare expr)
+    ?:  ?=([[* * %indent] *] ts)  (read-body t.ts)
+    ?:  ?=([[* * ?(%newline %dedent)] *] ts)
+      (bad ts "an expression, or a body on deeper lines")
+    ?:  &(?=(^ ts) tight.i.ts)  (bad ts "a space after {what}")
+    (read-expr ts)
+  ::
+  ::  +read-body: after its INDENT, { definition NEWLINE } expr DEDENT
+  ::
+  ++  read-body
+    |=  ts=(list token)
+    ^-  (pare expr)
+    =|  defs=(list def)
+    |-  ^-  (pare expr)
+    ?:  ?=([[* * ?(%'++' %'+$')] *] ts)
+      ;<  [d=def after=(list token)]  then  (read-def ts)
+      ?:  ?=([[* * %newline] *] after)  $(defs [d defs], ts t.after)
+      ?.  ?=([[* * %dedent] *] after)  (bad-end after)
+      (bad after "the body's final expression, after its definitions")
+    ;<  [e=expr after=(list token)]  then  (read-expr ts)
+    ?:  ?=([[* * %dedent] *] after)
+      =/  ds=(list def)  (flop defs)
+      =/  beg=loc  ?~(ds beg:(span-of e) beg:(span-of i.ds))
+      [%& [%body [beg end:(span-of e)] ds e] t.after]
+    ?.  ?=([[* * %newline] *] after)  (bad-end after)
+    %^  bad-why  after  "the end of the body"
+    "a body's final expression is its last line"
+  ::
+  ::  +read-expr: a rune, or a call
+  ::
+  ++  read-expr
+    |=  ts=(list token)
+    ^-  (pare expr)
+    ?~  ts  (bad ts "an expression")
+    =*  t  i.ts
+    ?+  lex.t  (read-call ts)
+      %'|='  ?:((is-ctor ts) (read-call ts) (read-gate t t.ts))
+      %'^-'  (read-cast t t.ts)
+      %'~&'  (read-trace t t.ts)
+      %'?-'  (read-branch t t.ts)
+      %'!!'  [%& [%crash at.t ~] t.ts]
+    ==
+  ::
+  ::  +read-call: operand { operand }; one operand alone is itself
+  ::
+  ++  read-call
+    |=  ts=(list token)
+    ^-  (pare expr)
+    ;<  [els=(list expr) after=(list token)]  then  (read-operands ts)
+    ?~  els  (no-operand ts)
+    [%& (call-of els) after]
+  ::
+  ::  +read-operands: a call's operands, or those on a group's first
+  ::  line, to the end of the call; each after the first follows a space
+  ::
+  ++  read-operands
+    |=  ts=(list token)
+    ^-  (pare (list expr))
+    =|  els=(list expr)
+    |-  ^-  (pare (list expr))
+    ?~  ts  [%& (flop els) ts]
+    =*  t  i.ts
+    ?:  (ends-call t)  [%& (flop els) ts]
+    ?:  &(tight.t ?=(^ els))  (no-space ts)
+    ?:  (is-operand-start t)
+      ;<  [e=expr more=(list token)]  then  (read-operand ts)
+      $(els [e els], ts more)
+    ?:  &(?=(^ els) (is-rune t))
+      %^  bad-why  ts  "an expression"
+      "inside a call, a rune goes in parentheses"
+    (no-operand ts)
+  ::
+  ::  +read-operand: one operand, told by its first token and, after a
+  ::  name or a wing, by a tight ( or +
+  ::
+  ++  read-operand
+    |=  ts=(list token)
+    ^-  (pare expr)
+    ?~  ts  (bad ts "an expression")
+    =*  t  i.ts
+    ?+  lex.t  (no-operand ts)
+      [%lit *]       [%& [%lit at.t p.lex.t] t.ts]
+      [%str *]       [%& [%str at.t (text-piece p.lex.t)] t.ts]
+      [%str-head *]  (read-string t t.ts)
+      [%name *]      (read-ref t t.ts)
+      [%wing *]      (read-ref t t.ts)
+      %'%/'          (read-qath t t.ts)
+      %'/'           (read-path t t.ts)
+      %'`'           (read-unit t t.ts)
+      %'('           (read-group t t.ts)
+      %'~['          (read-bracket %list t ~ t.ts)
+      %'['           (read-bracket %tuple t ~ t.ts)
+      %'|=('         (read-gate-wide t t.ts)
+      %'|='          (read-ctor t t.ts)
+    ==
+  ::
+  ::  +read-ref: after a name or wing, a tight ( makes a change, and
+  ::  after a name a tight + a pair; else it is a wing
+  ::
+  ++  read-ref
+    |=  [t=token ts=(list token)]
+    ^-  (pare expr)
+    =/  names=(list term)  (names-of lex.t)
+    ?:  ?=([[* %& %'('] *] ts)
+      (read-bracket %change i.ts `[t names] t.ts)
+    ?:  &(?=([[* %& %'+'] *] ts) ?=([%name *] lex.t))
+      (read-pair t p.lex.t i.ts t.ts)
+    [%& [%wing at.t names] ts]
+  ::
+  ::  +read-pair: name+operand, with no spaces
+  ::
+  ++  read-pair
+    |=  [t=token tag=term lus=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  |(?=(~ ts) !tight.i.ts)  (bad-space lus ts "an operand")
+    ;<  [v=expr after=(list token)]  then  (read-operand ts)
+    [%& [%pair [beg.at.t end:(span-of v)] tag v] after]
+  ::
+  ::  +read-unit: ` and an operand, with no space
+  ::
+  ++  read-unit
+    |=  [tic=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  |(?=(~ ts) !tight.i.ts)  (bad-space tic ts "an operand")
+    ;<  [v=expr after=(list token)]  then  (read-operand ts)
+    [%& [%unit [beg.at.tic end:(span-of v)] v] after]
+  ::
+  ::  +read-ctor: |= and a term, with no space: a case's constructor
+  ::
+  ++  read-ctor
+    |=  [bar=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  |(?=(~ ts) !tight.i.ts)  (bad-space bar ts "a term")
+    ?.  ?=([[* * [%lit %term *]] *] ts)  (bad ts "a term")
+    [%& [%ctor [beg.at.bar end.at.i.ts] p.lex.i.ts] t.ts]
+  ::
+  ::  +read-path: a path literal, as /posts/~zod (doc question)
+  ::
+  ++  read-path
+    |=  [sl=token ts=(list token)]
+    ^-  (pare expr)
+    ;<  [[sp=span segs=(list @ta)] after=(list token)]  then
+      (read-pathlit sl ts)
+    [%& [%path sp segs] after]
+  ::
+  ::  +read-qath: %/, then its segments, knots or (expr), each after a
+  ::  tight / and tight itself; %/ alone is the root
+  ::
+  ++  read-qath
+    |=  [cen=token ts=(list token)]
+    ^-  (pare expr)
+    ?.  ?=([[* %& ?([%knot *] %'(')] *] ts)
+      ?:  &(?=(^ ts) tight.i.ts !(is-closer i.ts))
+        (bad ts "a path segment")
+      [%& [%qath at.cen ~] ts]
+    =|  segs=(list qseg)
+    |-  ^-  (pare expr)
+    ;<  [[s=qseg fin=loc] after=(list token)]  then  (read-qseg ts)
+    ?.  ?=([[* %& %'/'] *] after)
+      [%& [%qath [beg.at.cen fin] (flop [s segs])] after]
+    =/  nex=(list token)  t.after
+    ?:  ?=([[* %& ?([%knot *] %'(')] *] nex)
+      $(segs [s segs], ts nex)
+    ?:  &(?=(^ nex) tight.i.nex)  (bad nex "a path segment")
+    (bad-space i.after nex "a path segment")
+  ::
+  ::  +read-qseg: an application path's segment, a knot or (expr), and
+  ::  where it ends
+  ::
+  ++  read-qseg
+    |=  ts=(list token)
+    ^-  (pare [qseg loc])
+    ?:  ?=([[* * [%knot *]] *] ts)
+      [%& [[%knot p.lex.i.ts] end.at.i.ts] t.ts]
+    ?.  ?=([[* * %'('] *] ts)  (bad ts "a path segment")
+    =*  par  i.ts
+    ;<  [e=expr after=(list token)]  then  (read-expr t.ts)
+    ?.  ?=([[* * %')'] *] after)  (unclosed par ")" after)
+    [%& [[%expr e] end.at.i.after] t.after]
+  ::
+  ::  +read-string: after its str-head, a string's interpolations and
+  ::  text: expr { str-mid expr } str-tail
+  ::
+  ++  read-string
+    |=  [head=token ts=(list token)]
+    ^-  (pare expr)
+    =/  ps=(list piece)
+      ?.(?=([%str-head *] lex.head) ~ (text-piece p.lex.head))
+    =/  op=token  head
+    |-  ^-  (pare expr)
+    ;<  [e=expr after=(list token)]  then  (read-expr ts)
+    =.  ps  [[%expr e] ps]
+    ?:  ?=([[* * [%str-mid *]] *] after)
+      $(ps (weld (text-piece p.lex.i.after) ps), op i.after, ts t.after)
+    ?.  ?=([[* * [%str-tail *]] *] after)
+      =/  brace=loc  [line.end.at.op (dec (max 2 col.end.at.op))]
+      (bad after "`}` to close the `\{` at {(show-loc brace)}")
+    =.  ps  (weld (text-piece p.lex.i.after) ps)
+    [%& [%str [beg.at.head end.at.i.after] (flop ps)] t.after]
+  ::
+  ::  +read-group: ( expr ), or ( { operand } and its lines below, left
+  ::  open
+  ::
+  ::    A ( followed by a rune is the closed form. Else the group holds
+  ::    its first line's operands and then its lines as one call, or the
+  ::    one element alone.
+  ::
+  ++  read-group
+    |=  [par=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  (is-rune-start ts)
+      ;<  [e=expr after=(list token)]  then  (read-expr ts)
+      ?.  ?=([[* * %')'] *] after)  (unclosed par ")" after)
+      [%& [%group [beg.at.par end.at.i.after] e] t.after]
+    ;<  [els=(list expr) after=(list token)]  then  (read-operands ts)
+    ?:  ?=([[* * %')'] *] after)
+      ?~  els  (bad after "an expression")
+      [%& [%group [beg.at.par end.at.i.after] (call-of els)] t.after]
+    ?.  ?=([[* * %indent] *] after)
+      =/  last=(unit span)  ?~(els ~ `(span-of (rear els)))
+      (unclosed-open par ")" "an argument" last after)
+    ;<  [ls=(list item) more=(list token)]  then
+      (read-lines %group t.after)
+    =/  inner=expr  (call-of (weld els (turn ls |=(i=item val.i))))
+    [%& [%group [beg.at.par end:(span-of inner)] inner] more]
+  ::
+  ::  +read-bracket: a tuple's, list's or change's items, to its closer
+  ::  on the line, or to the end of its lines below when left open
+  ::
+  ++  read-bracket
+    |=  $:  kind=?(%tuple %list %change)
+            op=token
+            target=(unit [t=token names=(list term)])
+            ts=(list token)
+        ==
+    ^-  (pare expr)
+    =/  close=?(%')' %']')  ?:(?=(%change kind) %')' %']')
+    =|  its=(list item)
+    |-  ^-  (pare expr)
+    ?~  ts  (bad ts "an item")
+    =*  t  i.ts
+    ?:  =(close lex.t)
+      [%& (bracket-node kind op target (flop its) end.at.t) t.ts]
+    ?:  (is-closer t)  (unclosed op (trip close) ts)
+    ?:  ?=(%indent lex.t)
+      ;<  [ls=(list item) more=(list token)]  then  (read-lines kind t.ts)
+      =/  all=(list item)  (weld (flop its) ls)
+      =/  fin=loc  ?~(all end.at.op end.at:(rear all))
+      [%& (bracket-node kind op target all fin) more]
+    ?:  ?=(?(%newline %dedent) lex.t)
+      =/  last=(unit span)  ?~(its ~ `at.i.its)
+      (unclosed-open op (trip close) "an item" last ts)
+    ?:  &(tight.t ?=(^ its))  (no-space ts)
+    ;<  [i=item more=(list token)]  then  (read-item kind ts)
+    $(its [i its], ts more)
+  ::
+  ::  +read-item: [ name= ] operand; a tuple's item may be named, a
+  ::  change's must be, a list's is not
+  ::
+  ++  read-item
+    |=  [kind=?(%tuple %list %change) ts=(list token)]
+    ^-  (pare item)
+    ?:  &(!?=(%list kind) ?=([[* * [%name *]] [* %& %'='] *] ts))
+      =*  nam  i.ts
+      =/  rest=(list token)  t.t.ts
+      ?:  |(?=(~ rest) !tight.i.rest)  (bad-space i.t.ts rest "a value")
+      ;<  [v=expr after=(list token)]  then  (read-operand rest)
+      [%& [[beg.at.nam end:(span-of v)] `p.lex.nam v] after]
+    ?:  ?=(%change kind)  (unnamed ts)
+    ?:  &(?=(^ ts) (is-rune i.ts))
+      %^  bad-why  ts  "an expression"
+      "inside brackets, a rune goes in parentheses"
+    ;<  [v=expr after=(list token)]  then  (read-operand ts)
+    [%& [(span-of v) ~ v] after]
+  ::
+  ::  +read-lines: after an open bracket's INDENT, its lines, an item
+  ::  each, to its DEDENT
+  ::
+  ++  read-lines
+    |=  [kind=?(%tuple %list %change %group) ts=(list token)]
+    ^-  (pare (list item))
+    =|  ls=(list item)
+    |-  ^-  (pare (list item))
+    ;<  [l=item after=(list token)]  then  (read-line kind ts)
+    ?:  ?=([[* * %newline] *] after)  $(ls [l ls], ts t.after)
+    ?:  ?=([[* * %dedent] *] after)  [%& (flop [l ls]) t.after]
+    ?.  ?=([[* * ?(%')' %']')] *] after)  (bad-end after)
+    %^  bad-why  after  "the end of the line"
+    "a bracket open at the end of its line takes no closer"
+  ::
+  ::  +read-line: an open bracket's line, [ name= ] expr; a tuple's may
+  ::  be named, a change's must be, a list's and a group's are not
+  ::  (doc question)
+  ::
+  ++  read-line
+    |=  [kind=?(%tuple %list %change %group) ts=(list token)]
+    ^-  (pare item)
+    ?:  ?&  ?=(?(%tuple %change) kind)
+            ?=([[* * [%name *]] [* %& %'='] *] ts)
+        ==
+      =*  nam  i.ts
+      =/  rest=(list token)  t.t.ts
+      ?:  |(?=(~ rest) !tight.i.rest)  (bad-space i.t.ts rest "a value")
+      ;<  [v=expr after=(list token)]  then  (read-expr rest)
+      [%& [[beg.at.nam end:(span-of v)] `p.lex.nam v] after]
+    ?:  ?=(%change kind)  (unnamed ts)
+    ;<  [v=expr after=(list token)]  then  (read-expr ts)
+    [%& [(span-of v) ~ v] after]
+  ::
+  ::  +read-gate-wide: |=( sample operand ), the one wide expression
+  ::
+  ++  read-gate-wide
+    |=  [op=token ts=(list token)]
+    ^-  (pare expr)
+    ;<  [s=sample after=(list token)]  then  (read-sample ts)
+    ?:  ?=([[* * %')'] *] after)  (bad after "the gate's body")
+    ?:  &(?=(^ after) tight.i.after)  (bad after "a space after the sample")
+    ?:  &(?=(^ after) (is-rune i.after))
+      %^  bad-why  after  "an expression"
+      "the wide gate's body is an operand, so a rune goes in parentheses"
+    ;<  [b=expr more=(list token)]  then  (read-operand after)
+    ?:  ?=([[* * %')'] *] more)
+      [%& [%gate-wide [beg.at.op end.at.i.more] s b] t.more]
+    ?.  &(?=(^ more) !tight.i.more (is-operand-start i.more))
+      (unclosed op ")" more)
+    %^  bad-why  more
+      "`)` to close the `|=(` at {(show-loc beg.at.op)}"
+    "the wide gate's body is one operand, so a call goes in parentheses"
+  ::
+  ::  +read-gate: |= sample, then an expression or a body
+  ::
+  ++  read-gate
+    |=  [bar=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  &(?=(^ ts) tight.i.ts)  (bad ts "a space after `|=`")
+    ;<  [s=sample after=(list token)]  then  (read-sample ts)
+    ;<  [e=expr more=(list token)]  then
+      (read-expr-or-body "the sample" after)
+    [%& [%gate [beg.at.bar end:(span-of e)] s e] more]
+  ::
+  ::  +read-cast: ^- mold, then an expression or a body
+  ::
+  ++  read-cast
+    |=  [ket=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  &(?=(^ ts) tight.i.ts)  (wide-rune "^-" ts)
+    ;<  [s=shape after=(list token)]  then  (read-mold ts)
+    ;<  [e=expr more=(list token)]  then
+      (read-expr-or-body "the mold" after)
+    [%& [%cast [beg.at.ket end:(span-of e)] s e] more]
+  ::
+  ::  +read-trace: ~& expr, then its body below
+  ::
+  ++  read-trace
+    |=  [sig=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  &(?=(^ ts) tight.i.ts)  (bad ts "a space after `~&`")
+    ;<  [v=expr after=(list token)]  then  (read-expr ts)
+    ?.  ?=([[* * %indent] *] after)
+      (bad after "`~&`'s body on deeper lines")
+    ;<  [b=expr more=(list token)]  then  (read-body t.after)
+    [%& [%trace [beg.at.sig end:(span-of b)] v b] more]
+  ::
+  ::  +read-branch: ?- expr, then its arms below, one per line
+  ::
+  ++  read-branch
+    |=  [wut=token ts=(list token)]
+    ^-  (pare expr)
+    ?:  &(?=(^ ts) tight.i.ts)  (wide-rune "?-" ts)
+    ;<  [s=expr after=(list token)]  then  (read-expr ts)
+    ?.  ?=([[* * %indent] *] after)
+      (bad after "`?-`'s arms on deeper lines")
+    =|  arms=(list arm)
+    =/  rest=(list token)  t.after
+    |-  ^-  (pare expr)
+    ;<  [a=arm more=(list token)]  then  (read-arm rest)
+    ?:  ?=([[* * %newline] *] more)  $(arms [a arms], rest t.more)
+    ?.  ?=([[* * %dedent] *] more)  (bad-end more)
+    [%& [%branch [beg.at.wut end.at.a] s (flop [a arms])] t.more]
+  ::
+  ::  +read-arm: a pattern, then an expression or a body
+  ::
+  ++  read-arm
+    |=  ts=(list token)
+    ^-  (pare arm)
+    ;<  [p=pattern after=(list token)]  then  (read-pattern ts)
+    ?:  ?=([[* %& %'+'] *] after)
+      %^  bad-why  after  "a space after the pattern"
+      "patterns take no pairs: write a cell, as [%gap %s2]"
+    ;<  [e=expr more=(list token)]  then
+      (read-expr-or-body "the pattern" after)
+    [%& [[beg:(span-of p) end:(span-of e)] p e] more]
+  ::
+  ::  +read-pattern: a term, number, string, ship, loobean, ~, * or name,
+  ::  or a cell of patterns
+  ::
+  ::    A date, duration or knot fails at its second character, since ~
+  ::    alone is null and no ship goes on so; ~[ at its [; and a string
+  ::    with {…} at its { (section 3, Errors).
+  ::
+  ++  read-pattern
+    |=  ts=(list token)
+    ^-  (pare pattern)
+    ?~  ts  (bad ts "a pattern")
+    =*  t  i.ts
+    =/  next=loc  [line.beg.at.t +(col.beg.at.t)]
+    ?+    lex.t  (bad ts "a pattern")
+        [%lit *]
+      =*  l  p.lex.t
+      ?:  ?=(?(%number %ship %term %loobean %null) form.l)
+        [%& [%lit at.t l] t.ts]
+      =/  what=tape
+        ?-  form.l
+          %date      "dates"
+          %duration  "durations"
+          %knot      "knots"
+        ==
+      %+  bad-at  next
+      ;:  weld
+        "expected a pattern, found {(show-found t)}; patterns take no "
+        what
+        ": compare values with ?- (eq a b)"
+      ==
+    ::
+      [%str *]   [%& [%str at.t p.lex.t] t.ts]
+      %'*'       [%& [%any at.t ~] t.ts]
+      [%name *]  [%& [%bind at.t p.lex.t] t.ts]
+      %'['       (read-cell-pattern t t.ts)
+      %'`'       (bad-why ts "a pattern" "patterns take no units: write [~ x]")
+    ::
+        [%str-head *]
+      %+  bad-at  [line.end.at.t (dec (max 2 col.end.at.t))]
+      %+  weld  "expected a pattern, found a string with `\{…}`; "
+      "patterns take strings without `\{…}`"
+    ::
+        %'~['
+      %+  bad-at  next
+      "expected a pattern, found `~[`; patterns take no lists"
+    ==
+  ::
+  ::  +read-cell-pattern: [ pattern { pattern } ], closed on its line
+  ::
+  ++  read-cell-pattern
+    |=  [op=token ts=(list token)]
+    ^-  (pare pattern)
+    =|  ps=(list pattern)
+    |-  ^-  (pare pattern)
+    ?:  ?=([[* * %']'] *] ts)
+      ?~  ps  (bad ts "a pattern")
+      [%& [%cell [beg.at.op end.at.i.ts] (flop ps)] t.ts]
+    ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
+      (unclosed op "]" ts)
+    ?:  &(?=(^ ps) ?=(^ ts) tight.i.ts)  (no-space ts)
+    ;<  [p=pattern after=(list token)]  then  (read-pattern ts)
+    $(ps [p ps], ts after)
+  ::
+  ::  +read-sample: a gate's sample, a field, except that a bare name
+  ::  binds, alone or in a cell sample at any depth (section 3)
+  ::
+  ++  read-sample
+    |=  ts=(list token)
+    ^-  (pare sample)
+    ?:  ?=([[* * [%name *]] [* %& %'='] *] ts)  (read-face ts)
+    ?:  ?=([[* * [%name *]] *] ts)  [%& [%bind at.i.ts p.lex.i.ts] t.ts]
+    ?:  ?=([[* * %'='] *] ts)  (read-pun i.ts t.ts)
+    ?:  &(?=(^ ts) (is-layout i.ts))  (bad ts "a sample")
+    ?.  ?=([[* * %'['] *] ts)
+      ;<  [s=shape after=(list token)]  then  (read-mold ts)
+      [%& [%bare (span-of s) s] after]
+    =*  op  i.ts
+    =|  ss=(list sample)
+    =/  rest=(list token)  t.ts
+    |-  ^-  (pare sample)
+    ?:  ?=([[* * %']'] *] rest)
+      ?~  ss  (bad rest "a sample")
+      [%& [%cell [beg.at.op end.at.i.rest] (flop ss)] t.rest]
+    ?:  &(?=(^ rest) |((is-closer i.rest) (is-layout i.rest)))
+      (unclosed op "]" rest)
+    ?:  &(?=(^ ss) ?=(^ rest) tight.i.rest)  (no-space rest)
+    ;<  [s=sample after=(list token)]  then  (read-sample rest)
+    $(ss [s ss], rest after)
+  ::
+  ::  +read-field: a cell mold's field: name=mold, =name, or a mold
+  ::
+  ++  read-field
+    |=  ts=(list token)
+    ^-  (pare field)
+    ?:  ?=([[* * [%name *]] [* %& %'='] *] ts)  (read-face ts)
+    ?:  ?=([[* * %'='] *] ts)  (read-pun i.ts t.ts)
+    ;<  [s=shape after=(list token)]  then  (read-mold ts)
+    [%& [%bare (span-of s) s] after]
+  ::
+  ::  +read-face: name=mold, with no spaces
+  ::
+  ++  read-face
+    |=  ts=(list token)
+    ^-  (pare field)
+    ?.  ?=([[* * [%name *]] [* * %'='] *] ts)  (bad ts "a name")
+    =*  nam  i.ts
+    =/  rest=(list token)  t.t.ts
+    ?:  |(?=(~ rest) !tight.i.rest)  (bad-space i.t.ts rest "a mold")
+    ;<  [s=shape after=(list token)]  then  (read-mold rest)
+    [%& [%face [beg.at.nam end:(span-of s)] p.lex.nam s] after]
+  ::
+  ::  +read-pun: =name, with no space, for name=name
+  ::
+  ++  read-pun
+    |=  [tis=token ts=(list token)]
+    ^-  (pare field)
+    ?:  |(?=(~ ts) !tight.i.ts)  (bad-space tis ts "a name")
+    ?.  ?=([[* * [%name *]] *] ts)  (bad ts "a name")
+    [%& [%pun [beg.at.tis end.at.i.ts] p.lex.i.ts] t.ts]
+  ::
+  ::  +read-mold: one mold
+  ::
+  ++  read-mold
+    |=  ts=(list token)
+    ^-  (pare shape)
+    ?~  ts  (bad ts "a mold")
+    =*  t  i.ts
+    ?+    lex.t  (bad ts "a mold")
+      [%aura *]  [%& [%aura at.t p.lex.t] t.ts]
+      %'*'       [%& [%noun at.t ~] t.ts]
+      %'!!'      [%& [%void at.t ~] t.ts]
+      %'?'       [%& [%flag at.t ~] t.ts]
+      [%name *]  [%& [%ref at.t ~[p.lex.t]] t.ts]
+      [%wing *]  [%& [%ref at.t p.lex.t] t.ts]
+      [%tvar *]  [%& [%tvar at.t p.lex.t] t.ts]
+      %'/'       (read-pathmold t t.ts)
+      %'('       (read-apply t t.ts)
+      %'['       (read-cell-mold t t.ts)
+      %'$?'      (read-union t t.ts)
+      %'$?('     (read-union-wide t t.ts)
+      %'$-('     (read-fn t t.ts)
+      %'|$'      (read-generic t t.ts)
+    ::
+        [%lit *]
+      ?.  ?=(?(%null %term %loobean) form.p.lex.t)  (bad ts "a mold")
+      [%& [%const at.t p.lex.t] t.ts]
+    ==
+  ::
+  ::  +read-molds: molds to the ) of the bracket op opened: after a
+  ::  space each, or but the first if not spaced; at least one
+  ::
+  ++  read-molds
+    |=  [op=token spaced=? ts=(list token)]
+    ^-  (pare [(list shape) loc])
+    =|  ms=(list shape)
+    |-  ^-  (pare [(list shape) loc])
+    ?:  ?=([[* * %')'] *] ts)
+      ?~  ms  (bad ts "a mold")
+      [%& [(flop ms) end.at.i.ts] t.ts]
+    ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
+      (unclosed op ")" ts)
+    ?:  &(?=(^ ts) tight.i.ts |(spaced ?=(^ ms)))  (no-space ts)
+    ;<  [m=shape after=(list token)]  then  (read-mold ts)
+    $(ms [m ms], ts after)
+  ::
+  ::  +read-apply: ( ref mold { mold } )
+  ::
+  ++  read-apply
+    |=  [op=token ts=(list token)]
+    ^-  (pare shape)
+    ?.  ?=([[* * ?([%name *] [%wing *])] *] ts)
+      (bad ts "a mold's name, as in (list @t)")
+    ;<  [[ms=(list shape) fin=loc] after=(list token)]  then
+      (read-molds op & t.ts)
+    [%& [%apply [beg.at.op fin] (names-of lex.i.ts) ms] after]
+  ::
+  ::  +read-union-wide: $?( mold { mold } )
+  ::
+  ++  read-union-wide
+    |=  [op=token ts=(list token)]
+    ^-  (pare shape)
+    ;<  [[ms=(list shape) fin=loc] after=(list token)]  then
+      (read-molds op | ts)
+    [%& [%union [beg.at.op fin] ms] after]
+  ::
+  ::  +read-fn: $-( mold mold )
+  ::
+  ++  read-fn
+    |=  [op=token ts=(list token)]
+    ^-  (pare shape)
+    ;<  [a=shape after=(list token)]  then  (read-mold ts)
+    ?:  ?=([[* * %')'] *] after)  (bad after "a mold, the product")
+    ?:  &(?=(^ after) |((is-closer i.after) (is-layout i.after)))
+      (unclosed op ")" after)
+    ?:  &(?=(^ after) tight.i.after)  (no-space after)
+    ;<  [b=shape more=(list token)]  then  (read-mold after)
+    ?.  ?=([[* * %')'] *] more)  (unclosed op ")" more)
+    [%& [%fn [beg.at.op end.at.i.more] a b] t.more]
+  ::
+  ::  +read-cell-mold: [ field { field } ]
+  ::
+  ++  read-cell-mold
+    |=  [op=token ts=(list token)]
+    ^-  (pare shape)
+    =|  fs=(list field)
+    |-  ^-  (pare shape)
+    ?:  ?=([[* * %']'] *] ts)
+      ?~  fs  (bad ts "a mold")
+      [%& [%cell [beg.at.op end.at.i.ts] (flop fs)] t.ts]
+    ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
+      (unclosed op "]" ts)
+    ?:  &(?=(^ fs) ?=(^ ts) tight.i.ts)  (no-space ts)
+    ;<  [f=field after=(list token)]  then  (read-field ts)
+    $(fs [f fs], ts after)
+  ::
+  ::  +read-union: $?, then its cases below, one mold per line
+  ::
+  ++  read-union
+    |=  [buc=token ts=(list token)]
+    ^-  (pare shape)
+    ?.  ?=([[* * %indent] *] ts)
+      ?:  ?=([[* * ?(%newline %dedent)] *] ts)
+        (bad ts "`$?`'s cases on deeper lines")
+      %^  bad-why  ts  "the end of the line"
+      "`$?` takes its cases on deeper lines, one per line, or write $?(%a %b)"
+    =|  cs=(list shape)
+    =/  rest=(list token)  t.ts
+    |-  ^-  (pare shape)
+    ;<  [c=shape after=(list token)]  then  (read-mold rest)
+    ?:  ?=([[* * %newline] *] after)  $(cs [c cs], rest t.after)
+    ?:  ?=([[* * %dedent] *] after)
+      [%& [%union [beg.at.buc end:(span-of c)] (flop [c cs])] t.after]
+    ?:  ?=([[* * %indent] *] after)  (bad-end after)
+    (bad-why after "the end of the line" "a union takes one case per line")
+  ::
+  ::  +read-generic: |$ [ typevar { typevar } ] mold
+  ::
+  ++  read-generic
+    |=  [bar=token ts=(list token)]
+    ^-  (pare shape)
+    ?:  &(?=(^ ts) tight.i.ts)  (bad ts "a space after `|$`")
+    ?.  ?=([[* * %'['] *] ts)
+      (bad ts "`[` and its type variables, as in |$ [M]")
+    =*  op  i.ts
+    =|  vs=(list @t)
+    =/  rest=(list token)  t.ts
+    |-  ^-  (pare shape)
+    ?:  ?=([[* * %']'] *] rest)
+      ?~  vs  (bad rest "a type variable")
+      =/  more=(list token)  t.rest
+      ?:  &(?=(^ more) tight.i.more)  (bad more "a space after `]`")
+      ;<  [b=shape after=(list token)]  then  (read-mold more)
+      [%& [%generic [beg.at.bar end:(span-of b)] (flop vs) b] after]
+    ?:  &(?=(^ rest) |((is-closer i.rest) (is-layout i.rest)))
+      (unclosed op "]" rest)
+    ?:  &(?=(^ vs) ?=(^ rest) tight.i.rest)  (no-space rest)
+    ?.  ?=([[* * [%tvar *]] *] rest)  (bad rest "a type variable")
+    $(vs [p.lex.i.rest vs], rest t.rest)
+  ::
+  ::  +read-pathmold: / [ segment { / segment } ], each / and segment
+  ::  tight; / alone is the empty path
+  ::
+  ++  read-pathmold
+    |=  [sl=token ts=(list token)]
+    ^-  (pare shape)
+    ?.  ?=([[* %& ?([%knot *] %'[')] *] ts)
+      ?:  &(?=(^ ts) tight.i.ts !(is-closer i.ts))
+        (bad ts "a path segment")
+      [%& [%path at.sl ~] ts]
+    =|  segs=(list pseg)
+    |-  ^-  (pare shape)
+    ;<  [[s=pseg fin=loc] after=(list token)]  then  (read-pseg ts)
+    ?.  ?=([[* %& %'/'] *] after)
+      [%& [%path [beg.at.sl fin] (flop [s segs])] after]
+    =/  nex=(list token)  t.after
+    ?:  ?=([[* %& ?([%knot *] %'[')] *] nex)
+      $(segs [s segs], ts nex)
+    ?:  &(?=(^ nex) tight.i.nex)  (bad nex "a path segment")
+    (bad-space i.after nex "a path segment")
+  ::
+  ::  +read-pseg: a path mold's segment, a knot or [name=aura] with no
+  ::  spaces, and where it ends
+  ::
+  ++  read-pseg
+    |=  ts=(list token)
+    ^-  (pare [pseg loc])
+    ?:  ?=([[* * [%knot *]] *] ts)
+      [%& [[%knot p.lex.i.ts] end.at.i.ts] t.ts]
+    ?.  ?=([[* * %'['] *] ts)  (bad ts "a path segment")
+    =*  op  i.ts
+    =/  r1=(list token)  t.ts
+    ?:  |(?=(~ r1) !tight.i.r1)  (bad-space op r1 "a name")
+    ?.  ?=([[* * [%name *]] *] r1)  (bad r1 "a name")
+    =/  r2=(list token)  t.r1
+    ?:  |(?=(~ r2) !tight.i.r2)  (bad-space i.r1 r2 "`=`")
+    ?.  ?=([[* * %'='] *] r2)  (bad r2 "`=`")
+    =/  r3=(list token)  t.r2
+    ?:  |(?=(~ r3) !tight.i.r3)  (bad-space i.r2 r3 "an aura")
+    ?.  ?=([[* * [%aura *]] *] r3)  (bad r3 "an aura")
+    =/  r4=(list token)  t.r3
+    ?:  |(?=(~ r4) !tight.i.r4)  (bad-space i.r3 r4 "`]`")
+    ?.  ?=([[* * %']'] *] r4)  (bad r4 "`]`")
+    =/  at=span  [beg.at.op end.at.i.r4]
+    [%& [[%typed at p.lex.i.r1 p.lex.i.r3] end.at.i.r4] t.r4]
+  --
+::
++|  %span-check
+::
+::  +outline: a node as +check-spans sees it
+::
+::    lead lists the kinds (+kind-of) of token the node may start with,
+::    or is ~ when it starts with its first child; last likewise for its
+::    end, and open lets a bracket that may be left open end with its
+::    last child instead.
+::
++$  outline
+  $~  [%$ *span ~ ~ | ~]
+  $:  kind=@tas
+      at=span
+      lead=(list @)
+      last=(list @)
+      open=?
+      kids=(list outline)
+  ==
+::
+::  +check-spans: whether a module's spans follow section 1's rules
+::
+::    A node starts at its first token and ends where its last token
+::    ends, never at a layout token: at its own token where it has one
+::    there (a rune, a name, an opener or a closer), else where its
+::    first or last child does. Its children's spans lie inside its own
+::    in source order, and so do the module's imports and definitions.
+::    Gives the first node that breaks a rule, and how, or ~.
+::
+++  check-spans
+  |=  [mod=module toks=(list token)]
+  ^-  (unit tape)
+  =/  real=(list token)  (skip toks is-layout)
+  =/  begs=(map loc @)  (malt (turn real |=(t=token [beg.at.t (kind-of t)])))
+  =/  ends=(map loc @)  (malt (turn real |=(t=token [end.at.t (kind-of t)])))
+  %^  check-kids  [begs ends]  ~
+  (weld (turn imports.mod outline-import) (turn defs.mod outline-def))
+::
+::  +kind-of: a token's kind: a glyph, or its lexeme's tag
+::
+++  kind-of
+  |=  t=token
+  ^-  @
+  ?@(lex.t lex.t -.lex.t)
+::
+::  +check-kids: nodes in source order, inside the span in, each checked
+::
+++  check-kids
+  |=  [maps=[begs=(map loc @) ends=(map loc @)] in=(unit span) os=(list outline)]
+  ^-  (unit tape)
+  =|  prev=(unit span)
+  |-  ^-  (unit tape)
+  ?~  os  ~
+  =*  o  i.os
+  ?:  &(?=(^ in) (loc-lth beg.at.o beg.u.in))
+    `(span-bad o "starts before its parent")
+  ?:  &(?=(^ in) (loc-lth end.u.in end.at.o))
+    `(span-bad o "ends after its parent")
+  ?:  &(?=(^ prev) (loc-lth beg.at.o end.u.prev))
+    `(span-bad o "starts before the node before it ends")
+  =/  bad=(unit tape)  (check-outline maps o)
+  ?^  bad  bad
+  $(prev `at.o, os t.os)
+::
+::  +check-outline: one node's start and end, then its children
+::
+++  check-outline
+  |=  [maps=[begs=(map loc @) ends=(map loc @)] o=outline]
+  ^-  (unit tape)
+  =*  ks  kids.o
+  =/  head=(unit span)  ?~(ks ~ `at.i.ks)
+  =/  tail=(unit span)  ?~(ks ~ `at:(rear ks))
+  ?.  (loc-lth beg.at.o end.at.o)  `(span-bad o "is empty")
+  ::  the start: its own token, or its first child's
+  =/  start=(unit tape)
+    ?~  lead.o
+      ?~  head  `"has no token or child to start with"
+      ?:  =(beg.at.o beg.u.head)  ~
+      `"should start where its first child does, at {(show-loc beg.u.head)}"
+    =/  k=(unit @)  (~(get by begs.maps) beg.at.o)
+    ?~  k  `"starts where no token does"
+    ?.  (lien `(list @)`lead.o |=(a=@ =(a u.k)))
+      `"starts at a token of a kind it can't start with"
+    ?:  &(?=(^ head) !(loc-lth beg.at.o beg.u.head))
+      `"should start with its own token, before its first child"
+    ~
+  ?^  start  `(span-bad o u.start)
+  ::  the end: its own token, or its last child's
+  =/  stop=(unit tape)
+    ?:  &(|(?=(~ last.o) open.o) ?=(^ tail) =(end.at.o end.u.tail))  ~
+    ?~  last.o
+      ?~  tail  `"has no token or child to end with"
+      `"should end where its last child does, at {(show-loc end.u.tail)}"
+    =/  k=(unit @)  (~(get by ends.maps) end.at.o)
+    ?~  k  `"ends where no token does"
+    ?.  (lien `(list @)`last.o |=(a=@ =(a u.k)))
+      `"ends at a token of a kind it can't end with"
+    ?:  &(?=(^ tail) !(loc-lth end.u.tail end.at.o))
+      `"should end with its own token, after its last child"
+    ~
+  ?^  stop  `(span-bad o u.stop)
+  (check-kids maps `at.o ks)
+::
+::  +span-bad: a span check's error, naming the node by kind and span
+::
+++  span-bad
+  |=  [o=outline why=tape]
+  ^-  tape
+  "({(trip kind.o)} {(show-loc beg.at.o)} to {(show-loc end.at.o)}) {why}"
+::
+::  +loc-lth: whether a comes before b
+::
+++  loc-lth
+  |=  [a=loc b=loc]
+  ^-  ?
+  ?|  (lth line.a line.b)
+      &(=(line.a line.b) (lth col.a col.b))
+  ==
+::
+++  outline-import
+  |=  i=import
+  ^-  outline
+  ?-  -.i
+    %sur   [%sur at.i ~[%'/-'] ~[%name] | ~]
+    %mark  [%mark at.i ~[%'/%'] ~[%lit] | ~]
+    %jibb  [%jibb at.i ~[%'/='] ~[%'/' %knot] | ~]
+  ==
+::
+++  outline-def
+  |=  d=def
+  ^-  outline
+  ?-  -.d
+    %mold   [%mold at.d ~[%'+$'] ~ | ~[(outline-shape shape.d)]]
+    %value  [%value at.d ~[%'++'] ~ | ~[(outline-expr val.d)]]
+  ==
+::
+++  outline-expr
+  |=  e=expr
+  ^-  outline
+  ?-    -.e
+    %lit    [%lit at.e ~[%lit] ~[%lit] | ~]
+    %str    (outline-str at.e pieces.e)
+    %path   [%path at.e ~[%'/'] ~[%'/' %knot] | ~]
+    %wing   [%wing at.e ~[%name %wing] ~[%name %wing] | ~]
+    %pair   [%pair at.e ~[%name] ~ | ~[(outline-expr val.e)]]
+    %unit   [%unit at.e ~[%'`'] ~ | ~[(outline-expr val.e)]]
+    %group  [%group at.e ~[%'('] ~[%')'] & ~[(outline-expr inner.e)]]
+    %list   [%list at.e ~[%'~['] ~[%']'] & (turn items.e outline-expr)]
+    %tuple  [%tuple at.e ~[%'['] ~[%']'] & (turn items.e outline-item)]
+    %ctor   [%ctor at.e ~[%'|='] ~[%lit] | ~]
+    %crash  [%crash at.e ~[%'!!'] ~[%'!!'] | ~]
+  ::
+      %qath
+    =/  ks=(list outline)
+      %+  murn  segs.e
+      |=(s=qseg ?.(?=(%expr -.s) ~ `(outline-expr p.s)))
+    [%qath at.e ~[%'%/'] ~[%'%/' %knot %')'] | ks]
+  ::
+      %change
+    =/  ks=(list outline)  (turn edits.e outline-edit)
+    [%change at.e ~[%name %wing] ~[%')'] & ks]
+  ::
+      %gate-wide
+    =/  ks=(list outline)
+      ~[(outline-sample sample.e) (outline-expr body.e)]
+    [%gate-wide at.e ~[%'|=('] ~[%')'] | ks]
+  ::
+      %call
+    [%call at.e ~ ~ | [(outline-expr head.e) (turn args.e outline-expr)]]
+  ::
+      %gate
+    =/  ks=(list outline)
+      ~[(outline-sample sample.e) (outline-expr body.e)]
+    [%gate at.e ~[%'|='] ~ | ks]
+  ::
+      %cast
+    =/  ks=(list outline)  ~[(outline-shape shape.e) (outline-expr val.e)]
+    [%cast at.e ~[%'^-'] ~ | ks]
+  ::
+      %trace
+    =/  ks=(list outline)  ~[(outline-expr val.e) (outline-expr then.e)]
+    [%trace at.e ~[%'~&'] ~ | ks]
+  ::
+      %branch
+    =/  ks=(list outline)
+      [(outline-expr subject.e) (turn arms.e outline-arm)]
+    [%branch at.e ~[%'?-'] ~ | ks]
+  ::
+      %body
+    =/  ks=(list outline)
+      (snoc (turn defs.e outline-def) (outline-expr final.e))
+    [%body at.e ~ ~ | ks]
+  ==
+::
+++  outline-str
+  |=  [at=span ps=(list piece)]
+  ^-  outline
+  =/  ks=(list outline)
+    (murn ps |=(p=piece ?.(?=(%expr -.p) ~ `(outline-expr p.p))))
+  ?~  ks  [%str at ~[%str] ~[%str] | ~]
+  [%str at ~[%str-head] ~[%str-tail] | ks]
+::
+++  outline-item
+  |=  i=item
+  ^-  outline
+  ?~  face.i  [%item at.i ~ ~ | ~[(outline-expr val.i)]]
+  [%face at.i ~[%name] ~ | ~[(outline-expr val.i)]]
+::
+++  outline-edit
+  |=  e=edit
+  ^-  outline
+  [%edit at.e ~[%name] ~ | ~[(outline-expr val.e)]]
+::
+++  outline-arm
+  |=  a=arm
+  ^-  outline
+  [%arm at.a ~ ~ | ~[(outline-pattern pat.a) (outline-expr val.a)]]
+::
+++  outline-sample
+  |=  s=sample
+  ^-  outline
+  ?-  -.s
+    %bind  [%bind at.s ~[%name] ~[%name] | ~]
+    %face  [%face at.s ~[%name] ~ | ~[(outline-shape shape.s)]]
+    %pun   [%pun at.s ~[%'='] ~[%name] | ~]
+    %cell  [%cell at.s ~[%'['] ~[%']'] | (turn items.s outline-sample)]
+    %bare  [%bare at.s ~ ~ | ~[(outline-shape shape.s)]]
+  ==
+::
+++  outline-pattern
+  |=  p=pattern
+  ^-  outline
+  ?-  -.p
+    %lit   [%lit at.p ~[%lit] ~[%lit] | ~]
+    %str   [%str at.p ~[%str] ~[%str] | ~]
+    %any   [%any at.p ~[%'*'] ~[%'*'] | ~]
+    %bind  [%bind at.p ~[%name] ~[%name] | ~]
+    %cell  [%cell at.p ~[%'['] ~[%']'] | (turn items.p outline-pattern)]
+  ==
+::
+++  outline-shape
+  |=  s=shape
+  ^-  outline
+  ?-    -.s
+    %aura   [%aura at.s ~[%aura] ~[%aura] | ~]
+    %noun   [%noun at.s ~[%'*'] ~[%'*'] | ~]
+    %void   [%void at.s ~[%'!!'] ~[%'!!'] | ~]
+    %flag   [%flag at.s ~[%'?'] ~[%'?'] | ~]
+    %const  [%const at.s ~[%lit] ~[%lit] | ~]
+    %ref    [%ref at.s ~[%name %wing] ~[%name %wing] | ~]
+    %tvar   [%tvar at.s ~[%tvar] ~[%tvar] | ~]
+    %apply  [%apply at.s ~[%'('] ~[%')'] | (turn args.s outline-shape)]
+    %cell   [%cell at.s ~[%'['] ~[%']'] | (turn fields.s outline-sample)]
+  ::
+      %path
+    =/  ks=(list outline)
+      %+  murn  segs.s
+      |=  g=pseg
+      ^-  (unit outline)
+      ?.  ?=(%typed -.g)  ~
+      `[%typed at.g ~[%'['] ~[%']'] | ~]
+    [%path at.s ~[%'/'] ~[%'/' %knot %']'] & ks]
+  ::
+      %union
+    =/  ks=(list outline)  (turn cases.s outline-shape)
+    [%union at.s ~[%'$?' %'$?('] ~[%')'] & ks]
+  ::
+      %fn
+    =/  ks=(list outline)
+      ~[(outline-shape sample.s) (outline-shape product.s)]
+    [%fn at.s ~[%'$-('] ~[%')'] | ks]
+  ::
+      %generic
+    [%generic at.s ~[%'|$'] ~ | ~[(outline-shape body.s)]]
+  ==
 --

@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-wutzap/source.jibb:1:7: `?!` is left out: eq and not are gates
+++ x ?!  %.y
+      ^

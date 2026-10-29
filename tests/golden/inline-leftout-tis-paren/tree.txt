@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-tis-paren/source.jibb:1:6: expected an expression, found `=`; `=(a b)` is left out: eq is a gate
+++ x =(a b)
+     ^

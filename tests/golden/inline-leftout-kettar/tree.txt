@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-kettar/source.jibb:1:6: expected an expression, found `*`; `*mold` is left out: no defaults
+++ x *@ud
+     ^

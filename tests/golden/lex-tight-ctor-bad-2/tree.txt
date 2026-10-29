@@ -1,0 +1,5 @@
+(module
+  (value 1:1 x
+    (gate 1:6
+      (const 1:9 %got)
+      (body 2:3 (lit 2:3 ~)))))

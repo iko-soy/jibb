@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-colsig/source.jibb:1:7: `:~` is left out: indentation covers it; write ~[…]
+++ x :~  1  2
+      ^

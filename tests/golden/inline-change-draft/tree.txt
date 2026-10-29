@@ -1,0 +1,5 @@
+(module
+  (value 1:1 x
+    (change 1:6 m
+      (edit 1:8 draft (str 1:14 "x"))
+      (edit 1:18 error (lit 1:24 ~)))))

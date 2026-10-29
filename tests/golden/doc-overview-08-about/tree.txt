@@ -1,0 +1,24 @@
+(module
+  (value 1:1 main (wing 1:9 view))
+  (value 3:1 view
+    (body 4:3
+      (call 4:3
+        (wing 4:3 column)
+        (list 4:10
+          (pair 4:12 width
+            (tuple 4:18 (lit 4:19 %fill) (lit 4:25 1)))
+          (pair 4:28 pad (lit 4:32 %s3))
+          (pair 4:36 gap (lit 4:40 %s2)))
+        (list 4:45
+          (call 5:5 (wing 5:5 heading) (lit 5:13 1) (str 5:15 "About this ship"))
+          (call 6:5
+            (wing 6:5 para)
+            (list 6:10
+              (group 6:12
+                (call 6:13 (wing 6:13 text) (str 6:18 "Hosted on Urbit. This page ships no JavaScript.")))))
+          (call 7:5
+            (wing 7:5 el)
+            (list 7:8
+              (pair 7:10 tone (lit 7:15 %accent)))
+            (group 7:24
+              (call 7:25 (wing 7:25 link) (qath 7:30 blog) (str 7:37 "Read the blog")))))))))

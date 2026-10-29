@@ -1,0 +1,12 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (cell 1:9
+        (face 1:10 a (aura 1:12 @))
+        (face 1:14 b (aura 1:16 @)))
+      (body 2:3
+        (branch 2:3
+          (group 2:6
+            (call 2:7 (wing 2:7 eq) (wing 2:10 a) (wing 2:12 b)))
+          (arm 3:5 (lit 3:5 %.y) (str 3:10 "equal"))
+          (arm 4:5 (lit 4:5 %.n) (str 4:10 "different")))))))

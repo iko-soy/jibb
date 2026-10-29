@@ -1,0 +1,11 @@
+(module
+  (mold 2:1 msg
+    (union 2:8 (const 4:3 %a) (const 6:3 %b)))
+  (value 7:1 f
+    (gate 7:6
+      (face 7:9 b (flag 7:11))
+      (body 8:3
+        (branch 8:3
+          (wing 8:6 b)
+          (arm 10:5 (lit 10:5 %.y) (lit 10:10 1))
+          (arm 13:5 (lit 13:5 %.n) (lit 13:10 2)))))))

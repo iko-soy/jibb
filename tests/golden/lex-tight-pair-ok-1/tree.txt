@@ -1,0 +1,18 @@
+(module
+  (value 1:1 x
+    (pair 1:6 a (wing 1:8 b)))
+  (value 2:1 y
+    (list 2:6
+      (pair 2:8 gap (lit 2:12 %s2))
+      (pair 2:16 width
+        (tuple 2:22 (lit 2:23 %fill) (lit 2:29 1)))
+      (pair 2:32 pad
+        (group 2:36
+          (call 2:37 (wing 2:37 f) (wing 2:39 a))))
+      (pair 2:42 mark
+        (unit 2:47 (wing 2:48 b)))
+      (pair 2:50 list
+        (list 2:55 (lit 2:57 1) (lit 2:59 2)))
+      (pair 2:62 link (qath 2:67 blog))
+      (pair 2:74 nested
+        (pair 2:81 a (wing 2:83 b))))))

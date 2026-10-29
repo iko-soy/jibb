@@ -1,0 +1,10 @@
+(module
+  (value 1:1 a (ctor 1:6 %typed))
+  (mold 2:1 b
+    (fn 2:6 (aura 2:9 @t) (tvar 2:12 M)))
+  (value 3:1 c
+    (gate-wide 3:6
+      (bind 3:9 t)
+      (tuple 3:11 (lit 3:12 %typed) (wing 3:19 t))))
+  (mold 4:1 d
+    (cell 4:6 (const 4:7 %typed) (aura 4:14 @t))))

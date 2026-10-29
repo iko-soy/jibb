@@ -1,0 +1,7 @@
+(module
+  (value 1:1 load
+    (gate-wide 1:9
+      (cell 1:12
+        (face 1:13 slug (aura 1:18 @ta)))
+      (group 1:23
+        (call 1:24 (wing 1:24 post.api) (wing 1:33 slug) (wing 1:38 same))))))

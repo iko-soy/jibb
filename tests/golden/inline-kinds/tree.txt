@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 a
+    (apply 1:6 element (void 1:15)))
+  (mold 2:1 b
+    (apply 2:6 page (tvar 2:12 R) (tvar 2:14 D)))
+  (mold 3:1 c
+    (apply 3:6 program (tvar 3:15 D) (tvar 3:17 X) (tvar 3:19 M)))
+  (mold 4:1 d
+    (apply 4:6 store (tvar 4:13 S)))
+  (value 5:1 e
+    (group 5:6
+      (call 5:7 (wing 5:7 page) (wing 5:12 load) (wing 5:17 view))))
+  (value 6:1 f
+    (group 6:6
+      (call 6:7 (wing 6:7 program) (wing 6:15 init) (wing 6:20 update) (wing 6:27 view) (wing 6:32 subs))))
+  (value 7:1 g
+    (group 7:6
+      (call 7:7 (wing 7:7 store) (wing 7:13 init) (wing 7:18 update)))))

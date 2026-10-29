@@ -1,0 +1,3 @@
+/tests/golden/lex-layout-bad-3/source.jibb:3:3: expected the end of the body, found a line at the same depth; a body's final expression is its last line
+  1
+  ^
