@@ -1,0 +1,8 @@
+partial inference; module not checked
+++ both: $-([A B] @) where A is an atom, B is an atom
+++ mix: @
+++ bad: call's sample and argument types do not unify
+++ implicit: $-(A A) where A is an atom
+++ flag: ?
+++ decimal: cast mold and expression type do not unify
+++ relay: cast mold and expression type do not unify

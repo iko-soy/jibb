@@ -4590,8 +4590,8 @@
 ::  Each top-level inferred definition generalizes its free variables, and
 ::  a use instantiates them afresh. Binders inside a gate stay monomorphic;
 ::  capital variables in molds share one allocation within the definition.
-::  Atom constraints tied to an explicit capital are generalized and
-::  printed. Other unresolved aura variables remain unsupported until
+::  Atom constraints tied to an explicit capital or an inferred sample
+::  are generalized and printed. Other aura variables remain unsupported until
 ::  their defaulting and inferred generalization are implemented.
 ::  Bare @ is a separate unrestricted atom type. A directional fit check
 ::  permits concrete atoms to widen to it, never the reverse. A fit that
@@ -4791,7 +4791,7 @@
 ::  A caller supplies the exact noun returned by +read-mold:jibb-import.
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps molds=imolds globals=(list term) externals=iexternals surs=(list term) active=(list term) in-mold=?]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) active=(list term) in-mold=?]
 +$  iresult  (each [typ=itype state=istate] tape)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
 ::
@@ -5034,7 +5034,7 @@
       ?:  |(?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=itype  [%var next.state]
-      [%& t [[name.s [t ~]] env] state(next +(next.state))]
+      [%& t [[name.s [t ~]] env] state(next +(next.state), binders [next.state binders.state])]
     %face
       ?:  |(?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
@@ -5230,9 +5230,9 @@
   ?.  |(?=(%var -.resolved) ?=(%avar -.resolved))  &
   $(caps t.caps)
 ::
-::  Only atom variables tied to an explicit capital are generalized in
-::  this fragment. Other aura variables still need defaulting or inferred
-::  constraints. The printer currently handles one atom constraint.
+::  An atom variable may be generalized when an explicit capital or a
+::  sample binder resolves to it. Decimal-restricted variables still need
+::  defaulting and must not be generalized as arbitrary atom types.
 ::
 ++  atom-var-from-cap
   |=  [n=@ud caps=icaps sub=isub]
@@ -5244,26 +5244,51 @@
     $(caps t.caps)
   $(caps t.caps)
 ::
+++  has-atom-var
+  |=  [n=@ud t=itype]
+  ^-  ?
+  ?-  -.t
+    %var       |
+    %avar      =(n id.t)
+    %nvar      |
+    %atom      |
+    %any-atom  |
+    %flag      |
+    %fn        |($(t sample.t) $(t product.t))
+    %cell      |($(t hed.t) $(t tal.t))
+  ==
+::
+++  atom-var-from-binder
+  |=  [n=@ud binders=(list @ud) sub=isub]
+  ^-  ?
+  ?~  binders  |
+  =/  resolved=itype  (itype-normalize [%var i.binders] sub)
+  ?:  (has-atom-var n resolved)  &
+  $(binders t.binders)
+::
 ++  unsupported-atom-vars
-  |=  [t=itype caps=icaps sub=isub]
+  |=  [t=itype caps=icaps binders=(list @ud) sub=isub]
   ^-  ?
   =/  vars=(list @ud)  (unique-type-vars (itype-vars t))
-  =/  count=@ud  0
   |-
-  ?~  vars  (gth count 1)
+  ?~  vars  |
   ?:  (itype-var-is-atom i.vars t)
-    ?.  (atom-var-from-cap i.vars caps sub)  &
-    $(vars t.vars, count +(count))
+    ?.  |((atom-var-from-cap i.vars caps sub) (atom-var-from-binder i.vars binders sub))  &
+    $(vars t.vars)
   $(vars t.vars)
 ::
 ++  show-atom-constraint
   |=  t=itype
   ^-  tape
   =/  vars=(list @ud)  (unique-type-vars (itype-vars t))
+  =/  printed=?  |
+  =/  out=tape  ""
   |-
-  ?~  vars  ""
+  ?~  vars  out
   ?:  (itype-var-is-atom i.vars t)
-    " where {(show-itype [%avar i.vars] ~)} is an atom"
+    =/  sep=tape  ?:(printed ", " " where ")
+    =/  clause=tape  "{sep}{(show-itype [%avar i.vars] ~)} is an atom"
+    $(vars t.vars, printed &, out (weld out clause))
   $(vars t.vars)
 ::
 ::  Build the supported part of the value environment in dependency order.
@@ -5296,11 +5321,11 @@
   ?:  ?=(%mold -.d)  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ molds globals externals surs ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs ~ |])
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
-  ?:  (unsupported-atom-vars typ caps.state.p.result sub.state.p.result)  $(ds t.ds)
+  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)  $(ds t.ds)
   $(ds t.ds, env [[name.d [typ vars]] env])
@@ -5496,13 +5521,13 @@
     $(ds t.ds, lines [(show-partial-mold d molds) lines])
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ molds globals externals surs ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs ~ |])
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: {p.result}") lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
   =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
-  ?:  (unsupported-atom-vars typ caps.state.p.result sub.state.p.result)
+  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)

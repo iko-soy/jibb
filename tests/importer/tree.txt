@@ -13,7 +13,11 @@ compound-fields: [one=(map @ud (jar @t @ud)) two=(list (jug @t @ud))]
 mop: (mop @ud @t)
 nested-mop: [table=(mop @ud @t) other=@ud]
 two-mops: [a=(mop @ud @t) b=(mop @t @ud)]
-mixed-mop: error: a nested Hoon mop needs source-aware import
+mixed-mop: [a=(mop @ud @t) b=(list @ud)]
+nested-static-mop: [a=(mop @ud @t) b=(map @ud (jar @t @ud))]
+collection-siblings: [a=(mop @ud @t) [b=(set @ud) [c=(qeu @t) [d=(unit @ud) e=(jug @ud @t)]]]]
+dynamic-sibling-mop: error: a nested Hoon mop needs source-aware import
+shadow-list-mop: error: Hoon collection provenance is unavailable or shadowed
 named-mop: error: a nested Hoon mop needs source-aware import
 mop-list: error: a nested Hoon mop needs source-aware import
 signed: error: signed and float auras cannot be imported

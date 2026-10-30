@@ -45,4 +45,19 @@ if result.stdout != expected:
     print('expected:', expected.decode().rstrip(), file=sys.stderr)
     print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
     sys.exit(1)
-print('Clay importer golden: 3 projections passed')
+print('Clay importer golden: 4 projections passed')
+
+# This second report uses Clay-built library cores as well as a Clay-built
+# /sur, then passes the selected reader result into the partial checker.
+try:
+    result = subprocess.run([str(ship), 'run', str(fixtures / 'bridge.txt')],
+                            stdout=subprocess.PIPE, check=True)
+except subprocess.CalledProcessError as error:
+    sys.exit(error.returncode)
+expected = (fixtures / 'bridge-expected.txt').read_bytes()
+if result.stdout != expected:
+    print('Clay bridge differs from tests/clay-fixtures/bridge-expected.txt', file=sys.stderr)
+    print('expected:', expected.decode().rstrip(), file=sys.stderr)
+    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
+    sys.exit(1)
+print('Clay importer/checker bridge golden passed')

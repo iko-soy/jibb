@@ -1,0 +1,4 @@
+source: Overview, Prelude: "The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out"; section 1c includes `lone`, `lest`, `pole`, `quip`, `tree`, `each` and `bloq`.
+tests: The prelude's 1c structural molds, including a one-field face, nonempty and faceless lists, a pair of list and state, a recursive tree, an either mold whose `%|` and `%&` cases have distinct tags, and the bare-atom `bloq`. The source is the complete current prelude.
+expect: parses
+expect-types: a partial inference report, not a checked module; it checks supported union-case disjointness but not the molds as a whole

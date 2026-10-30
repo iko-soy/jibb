@@ -1,7 +1,10 @@
 `small.txt` exercises union and atom-or-cell cases, fields, collections,
 recursion, and unsupported forms. `shadow.txt` checks local generator
-shadowing and missing provenance. The synthetic hold in +bad-branch-fixture
-checks that a failed Hoon branch expansion returns an error. `tlon-epic.txt`, `tlon-presence.txt` and `tlon-docs.txt` are the
+shadowing and missing provenance. `shadow-static.txt` checks that a local
+list shadow alongside a nested ordered map is rejected. Static sibling
+collections and dependent sibling molds are tested separately. The synthetic
+hold in +bad-branch-fixture checks that a failed Hoon branch expansion returns
+an error. `tlon-epic.txt`, `tlon-presence.txt` and `tlon-docs.txt` are the
 unmodified `desk/sur/epic.hoon`, `desk/sur/presence.hoon` and
 `desk/sur/docs.hoon` from tloncorp/tlon-apps at commit
 38f9328f4580000a37a7fdc3ab820fcd65069487; its MIT license is in

@@ -98,3 +98,23 @@
   ?- q.veq
     ~ !!
     [~ product] p.product
+
++$ lone |$ [A] [p=A]
+
++$ lest |$ [A] [i=A t=(list A)]
+
++$ pole |$ [A]
+  ~
+  [A (pole A)]
+
++$ quip |$ [A B] [(list A) B]
+
++$ tree |$ [A]
+  ~
+  [n=A l=(tree A) r=(tree A)]
+
++$ each |$ [A B]
+  [%| p=B]
+  [%& p=A]
+
++$ bloq @

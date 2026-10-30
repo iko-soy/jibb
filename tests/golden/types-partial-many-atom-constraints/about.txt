@@ -1,0 +1,4 @@
+source: type variables used where atoms are required gain atom constraints; multiple constraints print as comma-separated clauses.
+tests: two explicit atom constraints remain independent; an inferred sample constraint generalizes; numeric literals do not become loobeans directly or through that generic.
+expect: parses
+expect-types: a partial inference report, not a checked module

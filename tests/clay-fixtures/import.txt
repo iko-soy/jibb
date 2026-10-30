@@ -9,4 +9,5 @@
 =/  item  (read-mold-in:reader %todo %item (~(play ut tc) (ream '*item')) tc)
 =/  action  (read-mold-in:reader %todo %action (~(play ut tc) (ream '*action')) tc)
 =/  post  (read-mold-in:reader %blog %post (~(play ut bc) (ream '*post')) bc)
-(pure:m !>([(crip (show-result:reader item)) (crip (show-result:reader action)) (crip (show-result:reader post))]))
+=/  title  (read-mold-in:reader %blog %title (~(play ut bc) (ream '*title')) bc)
+(pure:m !>([(crip (show-result:reader item)) (crip (show-result:reader action)) (crip (show-result:reader post)) (crip (show-result:reader title))]))

@@ -1,4 +1,4 @@
 source: Overview, Prelude: "The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out"; 1c, 2q and 3g include `pair`, `trel`, `qual`, `cord`, `knot`, `tape`, `path`, `tank`, `nail`, `edge`, `rule`, `spot` and `toon`.
-tests: The prelude's structural mold declarations, including the byte aura in `tape`, the recursive `tank` union and the `toon` union; source is the complete current prelude.
+tests: The prelude's structural mold declarations, including the byte aura in `tape`, the recursive `tank` union and the `toon` union; source contains the prelude definitions through `toon`.
 expect: parses
 expect-types: a partial inference report, not a checked module; it checks supported union-case disjointness but not the molds as a whole

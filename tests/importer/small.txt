@@ -16,6 +16,9 @@
 +$  nested-mop  [table=((mop @ud @t) lte) other=@ud]
 +$  two-mops  [a=((mop @ud @t) lte) b=((mop @t @ud) lte)]
 +$  mixed-mop  [a=((mop @ud @t) lte) b=(list @ud)]
++$  nested-static-mop  [a=((mop @ud @t) lte) b=(map @ud (jar @t @ud))]
++$  collection-siblings  [a=((mop @ud @t) lte) b=(set @ud) c=(qeu @t) d=(unit @ud) e=(jug @ud @t)]
++$  dynamic-sibling-mop  [a=((mop @ud @t) lte) b=(list word)]
 +$  named-mop  [a=((mop @ud word) lte) b=@ud]
 +$  word  @t
 +$  mop-list  (list ((mop @ud @t) lte))

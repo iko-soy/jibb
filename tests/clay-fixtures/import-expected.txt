@@ -1,4 +1,5 @@
 [ '[id=@ud [done=(union @f:0 @f:1) text=@t]]'
   '(union [add text=@t] [toggle id=@ud])'
   '[title=@t slug=@ta]'
+  '@t'
 ]

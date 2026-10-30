@@ -1,0 +1,44 @@
+(module
+  (value 1:1 both
+    (gate 1:9
+      (face 1:12 p
+        (cell 1:14 (tvar 1:15 A) (tvar 1:17 B)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 p)
+          (arm 3:5
+            (cell 3:5 (bind 3:6 a) (bind 3:8 b))
+            (body 4:7
+              (trace 4:7
+                (cast 4:10 (aura 4:13 @) (wing 4:15 a))
+                (body 5:9
+                  (cast 5:9 (aura 5:12 @) (wing 5:14 b))))))))))
+  (value 6:1 mix
+    (group 6:8
+      (call 6:9
+        (wing 6:9 both)
+        (tuple 6:14 (lit 6:15 ~zod) (str 6:20 "hi")))))
+  (value 7:1 bad
+    (group 7:8
+      (call 7:9
+        (wing 7:9 both)
+        (tuple 7:14
+          (lit 7:15 ~zod)
+          (tuple 7:20 (lit 7:21 ~zod) (str 7:26 "hi"))))))
+  (value 8:1 implicit
+    (gate 8:13
+      (bind 8:16 x)
+      (body 9:3
+        (trace 9:3
+          (cast 9:6 (aura 9:9 @) (wing 9:11 x))
+          (body 10:5 (wing 10:5 x))))))
+  (value 11:1 flag
+    (group 11:9
+      (call 11:10 (wing 11:10 implicit) (lit 11:19 %.y))))
+  (value 12:1 decimal
+    (cast 12:12 (flag 12:15) (lit 12:17 1)))
+  (value 13:1 relay
+    (cast 13:10
+      (flag 13:13)
+      (group 13:15
+        (call 13:16 (wing 13:16 implicit) (lit 13:25 7))))))

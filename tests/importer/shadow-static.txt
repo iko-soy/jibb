@@ -1,0 +1,4 @@
+|%
+++  list  list:..zuse
++$  bad  [a=((mop @ud @t) lte) b=(list @ud)]
+--

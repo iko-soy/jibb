@@ -15,8 +15,9 @@
 ::  unprovably disjoint cases remain unsupported. Source-level overlap in
 ::  other unions, general nested ordered maps, Ford import provenance,
 ::  marks and full error locations still need work. A nested ordered map
-::  is recovered only in records whose other fields, keys and values are
-::  syntactically fixed atom molds; other source shapes fail closed.
+::  is recovered only when its key and value are fixed atom molds and
+::  the other fields are fixed atoms or collections of static atoms;
+::  other source shapes fail closed.
 ::
 ::  The checker has a small bridge for successful unfaced atom and cell
 ::  results; it rejects other importer shapes. Failures return %|; no
@@ -192,8 +193,39 @@
 ::
 ::  Replace direct mop expressions in records with a simple placeholder;
 ::  recover-alias restores each from its original source specs afterward.
-::  Only rewrite a record whose other fields are visibly fixed atom
-::  molds. A general dependent mold could change when a field changes.
+::  Other fields must be fixed atom molds or standard collections with
+::  statically fixed atom arguments. A dependent mold could otherwise
+::  change when a field changes. All collection names are checked below.
+++  static-spec
+  |=  shape=spec
+  ^-  ?
+  ?+  shape  |
+    [%base *]  ?=([%atom *] p.shape)
+    [%make *]
+      ?.  ?=([%wing *] p.shape)  |
+      =/  w=wing  p.p.shape
+      ?.  |(=(w ~[%map]) =(w ~[%set]) =(w ~[%qeu]) =(w ~[%list]) =(w ~[%unit]) =(w ~[%jar]) =(w ~[%jug]))  |
+      (levy q.shape |=(a=spec (static-spec a)))
+  ==
+::
+++  static-arguments
+  |=  args=(list hoon)
+  ^-  ?
+  ?~  args  &
+  ?.  ?=([%ktcl *] i.args)  |
+  ?.  (static-spec p.i.args)  |
+  $(args t.args)
+::
+++  static-collection
+  |=  src=hoon
+  ^-  ?
+  =/  alias  (source-alias src)
+  ?~  alias  |
+  ?>  ?=([%cncl *] src)
+  ?>  ?=([%tsgr *] p.src)
+  ?>  ?=([%cncl *] q.p.src)
+  (static-arguments q.q.p.src)
+::
 ++  patchable-mop-record
   |=  src=hoon
   ^-  ?
@@ -204,7 +236,7 @@
     [%ktls *]  ?=([%sand *] p.src)
     [%cncl *]
       =/  specs  (mop-specs src)
-      ?~  specs  |
+      ?~  specs  (static-collection src)
       &(?=([%base [%atom *]] key.u.specs) ?=([%base [%atom *]] value.u.specs))
   ==
 ::
@@ -511,6 +543,9 @@
       ?^  mop
         [%apply %mop ~[$(typ key.u.mop) $(typ value.u.mop)]]
       ?:  (source-uses q.typ %mop)
+        =/  checked-names=(list term)  ~[%map %set %qeu %list %unit]
+        ?:  (lien checked-names |=(n=term &((source-uses q.typ n) !(alias-safe context n))))
+          [%bad 'Hoon collection provenance is unavailable or shadowed']
         ?.  ?=([%tsls [%note * *] *] q.typ)
           [%bad 'a nested Hoon mop needs source-aware import']
         =/  original=hoon  q.typ
@@ -665,8 +700,10 @@
     [%cell [%face %table expect-mop] [%face %other [%atom %ud ~]]]
   =/  errors  ?:  =((sample %nested-mop) [%& expect-nested-mop])  errors
     ['ordered map field is preserved' errors]
-  =/  errors  ?:  =((sample %mixed-mop) [%| 'a nested Hoon mop needs source-aware import'])  errors
-    ['non-atom sibling remains unsupported' errors]
+  =/  expect-mixed=imported
+    [%cell [%face %a expect-mop] [%face %b [%apply %list ~[[%atom %ud ~]]]]]
+  =/  errors  ?:  =((sample %mixed-mop) [%& expect-mixed])  errors
+    ['static list sibling is preserved' errors]
   =/  errors  ?:  =((sample %named-mop) [%| 'a nested Hoon mop needs source-aware import'])  errors
     ['non-atom argument remains unsupported' errors]
   =/  errors  ?:  =((sample %mop-list) [%| 'a nested Hoon mop needs source-aware import'])  errors
@@ -745,13 +782,14 @@
   ==
 ::
 ++  fixture-output
-  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t]
+  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t]
   ^-  wain
   =/  sc=type  -:(ride -:!>(..zuse) small)
   =/  ec=type  -:(ride -:!>(..zuse) epic)
   =/  pc=type  -:(ride -:!>(..zuse) presence)
   =/  dc=type  -:(ride -:!>(..zuse) docs)
   =/  hc=type  -:(ride -:!>(..zuse) shadow)
+  =/  xc=type  -:(ride -:!>(..zuse) shadow-static)
   =/  sample
     |=  name=term
     (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
@@ -786,6 +824,10 @@
       (crip "nested-mop: {(show-result (sample %nested-mop))}")
       (crip "two-mops: {(show-result (sample %two-mops))}")
       (crip "mixed-mop: {(show-result (sample %mixed-mop))}")
+      (crip "nested-static-mop: {(show-result (sample %nested-static-mop))}")
+      (crip "collection-siblings: {(show-result (sample %collection-siblings))}")
+      (crip "dynamic-sibling-mop: {(show-result (sample %dynamic-sibling-mop))}")
+      (crip "shadow-list-mop: {(show-result (read-mold-in %shadow-static %bad (~(play ut xc) (ream '*bad')) xc))}")
       (crip "named-mop: {(show-result (sample %named-mop))}")
       (crip "mop-list: {(show-result (sample %mop-list))}")
       (crip "signed: {(show-result (sample %signed))}")

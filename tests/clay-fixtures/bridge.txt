@@ -1,0 +1,14 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  blog=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/blog/hoon)
+=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
+=/  jibb=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb/hoon)
+=/  bc=type  -.blog
+=/  title-typ=type  (~(play ut bc) (ream '*title'))
+=/  read-gate=vase  (slap reader (ream 'read-mold-in'))
+=/  title-result=vase  (slym read-gate [%blog %title title-typ bc])
+=/  title=*  +.title-result
+=/  check-gate=vase  (slap jibb (ream 'golden-types-imports'))
+=/  src=@t  '/-  blog\0a++ identity |= x=title.blog x\0a'
+(pure:m (slym check-gate [/ui/test/jibb src ~[[%blog %title title]]]))
