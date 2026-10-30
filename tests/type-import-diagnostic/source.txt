@@ -1,0 +1,13 @@
+/-  fixture
+/%  %bad-mark
++$ alias signed.fixture
++$ box [ok=@t nested=[bad=core.fixture]]
+++ valid |= x=good.fixture x
+++ unused-valid "ok"
+++ sample |= x=signed.fixture x
+++ nested |= x=box x
+++ alias-use ^- alias 1
+++ mark-use |= x=bad-mark x
+++ core-sample |= x=core.fixture x
+++ core-cast ^- core.fixture !!
+++ signed-cast ^- signed.fixture !!

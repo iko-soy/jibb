@@ -1,9 +1,28 @@
 partial inference; module not checked
-++ siblings: local definitions need unsupported inference
-++ later: local definitions need unsupported inference
+++ siblings: $-(@t @p)
+++ later: explicit capital constraints are not supported by partial inference
 ++ captured: $-(A A)
 ++ implicit: $-(A @p)
 ++ local-mono: local definitions need unsupported inference
-++ fresh: local definitions need unsupported inference
+++ fresh: $-(@t @t)
 ++ captured-acyclic: $-(A A)
 ++ implicit-capture: $-(@t @t)
+++ nested: $-(@t @t)
+++ atom: $-(@t @p)
+++ force-equal: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-local-capitals/source.jibb:55:18: first type variable
+  ++ inner |= [a=A b=B] ^- A b
+                 ^
+/tests/golden/types-local-capitals/source.jibb:55:22: second type variable
+  ++ inner |= [a=A b=B] ^- A b
+                     ^
+++ pending: local definitions need unsupported inference
+++ mold-param: $-(A [value=@t count=@ud])
+++ later-share: $-(A A)
+++ atom-bad: call's sample and argument types do not unify
+/tests/golden/types-local-capitals/source.jibb:73:4: called gate has type $-(A A) where A is an atom
+  (inner [x ~zod])
+   ^
+/tests/golden/types-local-capitals/source.jibb:73:10: argument has type [@t @p]
+  (inner [x ~zod])
+         ^

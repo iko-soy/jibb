@@ -124,4 +124,106 @@
           (cast 40:6 (aura 40:9 @t) (wing 40:12 x))
           (body 41:5
             (group 41:5
-              (call 41:6 (wing 41:6 inner) (lit 41:12 %.y)))))))))
+              (call 41:6 (wing 41:6 inner) (lit 41:12 %.y))))))))
+  (value 42:1 nested
+    (gate 42:11
+      (face 42:14 x (aura 42:16 @t))
+      (body 43:3
+        (value 43:3 first
+          (gate 43:12
+            (face 43:15 y (tvar 43:17 A))
+            (body 44:5
+              (value 44:5 inner
+                (gate 44:14
+                  (face 44:17 z (tvar 44:19 B))
+                  (wing 44:21 z)))
+              (trace 45:5
+                (group 45:8
+                  (call 45:9 (wing 45:9 inner) (lit 45:15 ~zod)))
+                (body 46:7 (wing 46:7 y))))))
+        (group 47:3
+          (call 47:4 (wing 47:4 first) (wing 47:10 x))))))
+  (value 48:1 atom
+    (gate 48:9
+      (face 48:12 x (aura 48:14 @t))
+      (body 49:3
+        (value 49:3 inner
+          (gate 49:12
+            (face 49:15 y (tvar 49:17 A))
+            (body 50:5
+              (trace 50:5
+                (cast 50:8 (aura 50:11 @) (wing 50:13 y))
+                (body 51:7 (wing 51:7 y))))))
+        (trace 52:3
+          (group 52:6
+            (call 52:7 (wing 52:7 inner) (wing 52:13 x)))
+          (body 53:5
+            (group 53:5
+              (call 53:6 (wing 53:6 inner) (lit 53:12 ~zod))))))))
+  (value 54:1 force-equal
+    (gate 54:16
+      (face 54:19 x (aura 54:21 @t))
+      (body 55:3
+        (value 55:3 inner
+          (gate 55:12
+            (cell 55:15
+              (face 55:16 a (tvar 55:18 A))
+              (face 55:20 b (tvar 55:22 B)))
+            (cast 55:25 (tvar 55:28 A) (wing 55:30 b))))
+        (group 56:3
+          (call 56:4 (wing 56:4 inner) (wing 56:10 x) (lit 56:12 ~zod))))))
+  (value 57:1 pending
+    (gate 57:12
+      (face 57:15 x (aura 57:17 @t))
+      (body 58:3
+        (value 58:3 inner
+          (gate 58:12
+            (face 58:15 y (tvar 58:17 A))
+            (body 59:5
+              (trace 59:5
+                (lit 59:8 %orphan)
+                (body 60:7 (wing 60:7 y))))))
+        (group 61:3
+          (call 61:4 (wing 61:4 inner) (wing 61:10 x))))))
+  (value 62:1 mold-param
+    (gate 62:15
+      (face 62:18 x (tvar 62:20 A))
+      (body 63:3
+        (mold 63:3 box
+          (generic 63:10 A
+            (cell 63:17
+              (face 63:18 value (tvar 63:24 A))
+              (face 63:26 count (aura 63:32 @ud)))))
+        (cast 64:3
+          (apply 64:6 box (aura 64:11 @t))
+          (tuple 64:15
+            (face 64:16 value (str 64:22 "hi"))
+            (face 64:27 count (lit 64:33 1)))))))
+  (value 65:1 later-share
+    (gate 65:16
+      (bind 65:19 x)
+      (body 66:3
+        (value 66:3 inner
+          (gate 66:12
+            (face 66:15 y (tvar 66:17 A))
+            (wing 66:19 y)))
+        (trace 67:3
+          (group 67:6
+            (call 67:7 (wing 67:7 inner) (wing 67:13 x)))
+          (body 68:5
+            (cast 68:5 (tvar 68:8 A) (wing 68:10 x)))))))
+  (value 69:1 atom-bad
+    (gate 69:13
+      (face 69:16 x (aura 69:18 @t))
+      (body 70:3
+        (value 70:3 inner
+          (gate 70:12
+            (face 70:15 y (tvar 70:17 A))
+            (body 71:5
+              (trace 71:5
+                (cast 71:8 (aura 71:11 @) (wing 71:13 y))
+                (body 72:7 (wing 72:7 y))))))
+        (group 73:3
+          (call 73:4
+            (wing 73:4 inner)
+            (tuple 73:10 (wing 73:11 x) (lit 73:13 ~zod))))))))

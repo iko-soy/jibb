@@ -5839,6 +5839,51 @@
   ?:  ?=(^ (itype-vars typ.u.out))  ~
   `[[typ.u.out ~] state.u.out(params params.state, in-mold in-mold.state)]
 ::
+::  A direct imported reference may carry definite reader evidence. Only
+::  uniquely supplied, declared inputs are used; unsupported data stay generic.
+++  direct-import-invalid
+  |=  [sh=shape state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%ref -.sh)  ~
+  ?~  names.sh  ~
+  =/  n=term  i.names.sh
+  =/  raw=*
+    ?~  t.names.sh
+      ?.  (unique-value-name n marks.state)  ~
+      ?:  (lien surs.state |=(x=term =(x n)))  ~
+      ?:  ?=(^ (find-jibb-interface n jimports.state))  ~
+      ?:  (lien globals.state |=(x=term =(x n)))  ~
+      ?:  (lien reserved-molds.state |=(x=term =(x n)))  ~
+      ?:  (lien molds.state |=(m=[name=term body=shape] =(n name.m)))  ~
+      =/  found=imark-externals  (skim mark-externals.state |=(e=[mark=term result=*] =(mark.e n)))
+      ?~  found  ~
+      ?^  t.found  ~
+      result.i.found
+    ?^  t.t.names.sh  ~
+    =/  mod=term  i.t.names.sh
+    ?:  ?=(^ (find-jibb-interface mod jimports.state))  ~
+    ?.  (unique-value-name mod surs.state)  ~
+    ?:  (lien marks.state |=(x=term =(x mod)))  ~
+    ?:  (lien globals.state |=(x=term =(x mod)))  ~
+    ?:  (lien reserved-molds.state |=(x=term =(x mod)))  ~
+    ?:  (lien molds.state |=(m=[name=term body=shape] =(mod name.m)))  ~
+    =/  found=iexternals  (skim externals.state |=(e=[module=term name=term result=*] &(=(module.e mod) =(name.e n))))
+    ?~  found  ~
+    ?^  t.found  ~
+    result.i.found
+  ?.  ?=([%invalid ?(%aura %core) @] raw)  ~
+  `["{(trip +>.raw)}" ~[[at.sh "invalid imported mold"]]]
+::
+++  direct-sample-invalid
+  |=  [s=sample state=istate]
+  ^-  (unit idiag)
+  ?-  s
+    [%face *]  (direct-import-invalid shape.s state)
+    [%bare *]  (direct-import-invalid shape.s state)
+    [%pun *]  (direct-import-invalid [%ref at.s ~[name.s]] state)
+    *  ~
+  ==
+::
 ++  infer-simple-shape
   |=  [sh=shape state=istate]
   ^-  (unit [typ=itype state=istate])
@@ -6086,6 +6131,145 @@
   ?~  inferred  |
   $(locals t.locals)
 ::
+::  Gather written capitals belonging to one ++. Nested local definitions
+::  establish their own scopes; inline gates remain in the enclosing scope.
++$  icap-site  [name=@t at=span]
+++  scope-shape
+  |=  s=shape
+  ^-  (list icap-site)
+  ?-  -.s
+    %tvar     ~[[name.s at.s]]
+    %apply    (zing (turn args.s scope-shape))
+    %cell     (zing (turn fields.s scope-field))
+    %union    (zing (turn cases.s scope-shape))
+    %fn       (weld (scope-shape sample.s) (scope-shape product.s))
+    %generic
+      =/  inside=(list icap-site)  (scope-shape body.s)
+      (skim inside |=(site=icap-site !(lien vars.s |=(v=@t =(v name.site)))))
+    *  ~
+  ==
+::
+++  scope-field
+  |=  f=field
+  ^-  (list icap-site)
+  ?-  -.f
+    %face  (scope-shape shape.f)
+    %bare  (scope-shape shape.f)
+    %pun   ~
+  ==
+::
+++  scope-sample
+  |=  s=sample
+  ^-  (list icap-site)
+  ?-  -.s
+    %face  (scope-shape shape.s)
+    %bare  (scope-shape shape.s)
+    %cell  (zing (turn items.s scope-sample))
+    *      ~
+  ==
+::
+++  scope-pieces
+  |=  ps=(list piece)
+  ^-  (list icap-site)
+  ?~  ps  ~
+  =/  first=(list icap-site)
+    ?-  -.i.ps
+      %expr  (scope-expr p.i.ps)
+      %text  ~
+    ==
+  (weld first $(ps t.ps))
+::
+++  scope-qsegs
+  |=  ps=(list qseg)
+  ^-  (list icap-site)
+  ?~  ps  ~
+  =/  first=(list icap-site)
+    ?-  -.i.ps
+      %expr  (scope-expr p.i.ps)
+      %knot  ~
+    ==
+  (weld first $(ps t.ps))
+::
+++  scope-edits
+  |=  xs=(list edit)
+  ^-  (list icap-site)
+  ?~  xs  ~
+  =/  first=(list icap-site)  (scope-expr val.i.xs)
+  (weld first $(xs t.xs))
+::
+++  scope-items
+  |=  xs=(list item)
+  ^-  (list icap-site)
+  ?~  xs  ~
+  =/  first=(list icap-site)  (scope-expr val.i.xs)
+  (weld first $(xs t.xs))
+::
+++  scope-arms
+  |=  xs=(list arm)
+  ^-  (list icap-site)
+  ?~  xs  ~
+  =/  first=(list icap-site)  (scope-expr val.i.xs)
+  (weld first $(xs t.xs))
+::
+++  scope-exprs
+  |=  xs=(list expr)
+  ^-  (list icap-site)
+  ?~  xs  ~
+  =/  first=(list icap-site)  (scope-expr i.xs)
+  (weld first $(xs t.xs))
+::
+++  scope-expr
+  |=  e=expr
+  ^-  (list icap-site)
+  ?-  -.e
+    %str     (scope-pieces pieces.e)
+    %qath    (scope-qsegs segs.e)
+    %change  (scope-edits edits.e)
+    %pair    (scope-expr val.e)
+    %unit    (scope-expr val.e)
+    %group   (scope-expr inner.e)
+    %list    (scope-exprs items.e)
+    %tuple   (scope-items items.e)
+    %gate
+      =/  first=(list icap-site)  (scope-sample sample.e)
+      =/  last=(list icap-site)  (scope-expr body.e)
+      (weld first last)
+    %gate-wide
+      =/  first=(list icap-site)  (scope-sample sample.e)
+      =/  last=(list icap-site)  (scope-expr body.e)
+      (weld first last)
+    %call
+      =/  first=(list icap-site)  (scope-expr head.e)
+      =/  last=(list icap-site)  (scope-exprs args.e)
+      (weld first last)
+    %cast
+      =/  first=(list icap-site)  (scope-shape shape.e)
+      =/  last=(list icap-site)  (scope-expr val.e)
+      (weld first last)
+    %trace
+      =/  first=(list icap-site)  (scope-expr val.e)
+      =/  last=(list icap-site)  (scope-expr then.e)
+      (weld first last)
+    %branch
+      =/  first=(list icap-site)  (scope-expr subject.e)
+      =/  last=(list icap-site)  (scope-arms arms.e)
+      (weld first last)
+    %body  (scope-expr final.e)
+    *  ~
+  ==
+::
+++  reserve-cap-sites
+  |=  [sites=(list icap-site) state=istate]
+  ^-  istate
+  ?~  sites  state
+  ?:  ?=(^ (icap-lookup name.i.sites caps.state))  $(sites t.sites)
+  $(sites t.sites, state state(next +(next.state), caps [[name.i.sites next.state at.i.sites] caps.state]))
+::
+++  reserve-def-caps
+  |=  [e=expr state=istate]
+  ^-  istate
+  (reserve-cap-sites (scope-expr e) state)
+::
 ++  infer-local-defs
   |=  [ds=(list def) env=ienv state=istate]
   ^-  ilocal-result
@@ -6098,24 +6282,27 @@
     $(ds (flop remaining), remaining ~, progressed |)
   =/  d=def  i.ds
   ?>  ?=(%value -.d)
-  =/  inferred=iresult  (infer-fragment val.d env state)
+  =/  local-state=istate  (reserve-def-caps val.d state)
+  =/  inferred=iresult  (infer-fragment val.d env local-state)
   =/  retried=?  ?=(%| -.inferred)
-  =?  inferred  retried  (infer-recursive-gate d env state)
+  =?  inferred  retried  (infer-recursive-gate d env local-state)
   ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
-  ::  A new local capital needs lexical scope collection before it can be
-  ::  generalized independently or shared with a later enclosing occurrence.
-  ?.  (levy caps.state.p.inferred |=(cap=icap ?=(^ (icap-lookup name.cap caps.state))))
-    $(ds t.ds, remaining [d remaining])
+  =/  merged=(unit [first=icap second=icap])
+    (merged-capitals caps.state.p.inferred sub.state.p.inferred)
+  ?^  merged
+    [%| ["distinct type variables `{(trip name.first.u.merged)}` and `{(trip name.second.u.merged)}` must not be forced equal; use the same capital for a shared type" ~[[at.first.u.merged "first type variable"] [at.second.u.merged "second type variable"]]]]
+  ?:  (constrained-capitals caps.state.p.inferred sub.state.p.inferred)
+    [%| ["explicit capital constraints are not supported by partial inference" ~]]
   =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
   ?:  |((pending-tags tags.state.p.inferred sub.state.p.inferred) (itype-has-tag typ))
     $(ds t.ds, remaining [d remaining])
   ?:  (unsupported-atom-vars typ caps.state.p.inferred binders.state.p.inferred sub.state.p.inferred)
     $(ds t.ds, remaining [d remaining])
   =/  free=(list @ud)
-    (weld (free-env-vars env sub.state.p.inferred) (free-cap-vars caps.state.p.inferred sub.state.p.inferred))
+    (weld (free-env-vars env sub.state.p.inferred) (free-cap-vars caps.state sub.state.p.inferred))
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
-  $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred, progressed &)
+  $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred(caps caps.state), progressed &)
 ::
 ::  Read only fields of a known record. Unresolved field constraints and
 ::  ambiguous repeated faces are outside this fragment. Imported record
@@ -6540,7 +6727,10 @@
       [%& typ.p.left state.p.right(sub u.joined)]
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
-      ?~  target  [%| ["cast mold is not supported by partial inference" ~]]
+      ?~  target
+        =/  diag=(unit idiag)  (direct-import-invalid shape.e state)
+        ?^  diag  [%| u.diag]
+        [%| ["cast mold is not supported by partial inference" ~]]
       =/  value=iresult
         ?:  &(?=(%union -.typ.u.target) (context-union-branch val.e))
           (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
@@ -6559,13 +6749,19 @@
     %crash  [%& [%var next.state] state(next +(next.state))]
     %gate
       =/  sam=isample-result  (infer-sample sample.e env state)
-      ?:  ?=(%| -.sam)  [%| [p.sam ~]]
+      ?:  ?=(%| -.sam)
+        =/  diag=(unit idiag)  (direct-sample-invalid sample.e state)
+        ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]
+        [%| [p.sam ~]]
       =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
       ?:  ?=(%| -.body)  body
       [%& [%fn typ.p.sam typ.p.body] state.p.body]
     %gate-wide
       =/  sam=isample-result  (infer-sample sample.e env state)
-      ?:  ?=(%| -.sam)  [%| [p.sam ~]]
+      ?:  ?=(%| -.sam)
+        =/  diag=(unit idiag)  (direct-sample-invalid sample.e state)
+        ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]
+        [%| [p.sam ~]]
       =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
       ?:  ?=(%| -.body)  body
       [%& [%fn typ.p.sam typ.p.body] state.p.body]
@@ -7042,7 +7238,15 @@
       %gate-wide  (infer-sample sample.gate env state)
       *           !!
     ==
-  ?:  ?=(%| -.sam)  [%| [p.sam ~]]
+  ?:  ?=(%| -.sam)
+    =/  diag=(unit idiag)
+      ?-  -.gate
+        %gate       (direct-sample-invalid sample.gate state)
+        %gate-wide  (direct-sample-invalid sample.gate state)
+        *           ~
+      ==
+    ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]
+    [%| [p.sam ~]]
   =/  id=@ud  next.state.p.sam
   =/  product=itype  ?~(result [%var id] u.result)
   =/  st=istate  state.p.sam(next +(id))
@@ -7070,6 +7274,7 @@
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude]
+  =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
   ?:  ?=(%| -.result)  $(ds t.ds)
@@ -7541,6 +7746,23 @@
 ::    entries, as [mark result] with the result from +read-mark:jibb-import.
 ::    Unknown, duplicated, failed and undeclared entries never resolve a mold.
 ::
+::  Callers pass unchanged structured reader results; graph validation
+::  remains in the existing bridge, and failures stay available lazily.
+++  reader-result-for-checker
+  |=  result=*
+  ^-  *
+  ?:  ?=([%ok *] result)  [%& +.result]
+  result
+::
+++  golden-types-with-reader-diagnostics
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals]
+  ^-  @t
+  =/  ex=iexternals
+    (turn externals |=(e=[module=term name=term result=*] [module.e name.e (reader-result-for-checker result.e)]))
+  =/  mx=imark-externals
+    (turn mark-externals |=(e=[mark=term result=*] [mark.e (reader-result-for-checker result.e)]))
+  (golden-types-with-marks file src ex mx)
+::
 ++  golden-types-with-marks
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals]
   ^-  @t
@@ -7568,6 +7790,7 @@
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude]
+  =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult
     ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
       (infer-recursive-gate d env initial)

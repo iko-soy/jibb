@@ -39,3 +39,35 @@
       %.n (inner %.y)
   ~& ^- @t x
     (inner %.y)
+++ nested |= x=@t
+  ++ first |= y=A
+    ++ inner |= z=B z
+    ~& (inner ~zod)
+      y
+  (first x)
+++ atom |= x=@t
+  ++ inner |= y=A
+    ~& ^- @ y
+      y
+  ~& (inner x)
+    (inner ~zod)
+++ force-equal |= x=@t
+  ++ inner |= [a=A b=B] ^- A b
+  (inner x ~zod)
+++ pending |= x=@t
+  ++ inner |= y=A
+    ~& %orphan
+      y
+  (inner x)
+++ mold-param |= x=A
+  +$ box |$ [A] [value=A count=@ud]
+  ^- (box @t) [value="hi" count=1]
+++ later-share |= x
+  ++ inner |= y=A y
+  ~& (inner x)
+    ^- A x
+++ atom-bad |= x=@t
+  ++ inner |= y=A
+    ~& ^- @ y
+      y
+  (inner [x ~zod])

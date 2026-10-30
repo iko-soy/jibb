@@ -1,0 +1,13 @@
+The Overview's Hoon import table makes signed and float auras, cores and
+gates errors where used; unused molds are skipped. This fixture compiles a
+/sur file and a mark against zuse and passes unchanged structured reader
+results to the partial checker. Proven errors at direct cast and whole-sample
+references identify the Jibb use site. Valid sibling definitions still infer;
+nested references and aliases remain unsupported by this partial entry point.
+
+Synthetic controls verify that missing, duplicate, unsupported, undeclared or
+unused inputs, shadowing and competing names do not produce a misleading
+import error. Unknown diagnostic codes and malformed messages fail closed;
+these shape checks do not establish the provenance of supplied evidence. The
+same expected report runs under urbit eval and -test on the fake ship, and does
+not claim that the module was checked.

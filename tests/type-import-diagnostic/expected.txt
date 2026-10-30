@@ -1,0 +1,76 @@
+real reader:
+partial inference; module not checked
++$ alias: not checked
++$ box: not checked
+++ valid: $-(@t @t)
+++ unused-valid: @t
+++ sample: signed and float auras cannot be imported
+/ui/test.jibb:7:16: invalid imported mold
+++ sample |= x=signed.fixture x
+               ^
+++ nested: sample mold is not supported by partial inference
+++ alias-use: cast mold is not supported by partial inference
+++ mark-use: signed and float auras cannot be imported
+/ui/test.jibb:10:18: invalid imported mold
+++ mark-use |= x=bad-mark x
+                 ^
+++ core-sample: cores and gates cannot be imported
+/ui/test.jibb:11:21: invalid imported mold
+++ core-sample |= x=core.fixture x
+                    ^
+++ core-cast: cores and gates cannot be imported
+/ui/test.jibb:12:17: invalid imported mold
+++ core-cast ^- core.fixture !!
+                ^
+++ signed-cast: signed and float auras cannot be imported
+/ui/test.jibb:13:19: invalid imported mold
+++ signed-cast ^- signed.fixture !!
+                  ^
+duplicate:
+partial inference; module not checked
+++ cast: cast mold is not supported by partial inference
+++ sample: sample mold is not supported by partial inference
+++ safe: $-(@t @t)
+unsupported:
+partial inference; module not checked
+++ cast: cast mold is not supported by partial inference
+++ sample: sample mold is not supported by partial inference
+++ safe: $-(@t @t)
+unknown code:
+partial inference; module not checked
+++ cast: cast mold is not supported by partial inference
+++ sample: sample mold is not supported by partial inference
+++ safe: $-(@t @t)
+malformed message:
+partial inference; module not checked
+++ cast: cast mold is not supported by partial inference
+++ sample: sample mold is not supported by partial inference
+++ safe: $-(@t @t)
+missing:
+partial inference; module not checked
+++ cast: cast mold is not supported by partial inference
+++ sample: sample mold is not supported by partial inference
+++ safe: $-(@t @t)
+unused:
+partial inference; module not checked
+++ safe: $-(@t @t)
+undeclared:
+partial inference; module not checked
+++ cast: cast mold is not supported by partial inference
+++ safe: $-(@t @t)
+shadow:
+partial inference; module not checked
+++ shadow: sample shadows a name
+++ safe: $-(@t @t)
+import clash:
+partial inference; module not checked
+++ use: sample mold is not supported by partial inference
+++ use-mark: sample mold is not supported by partial inference
+value clash:
+partial inference; module not checked
+++ foo: @t
+++ use: sample mold is not supported by partial inference
+mold clash:
+partial inference; module not checked
++$ foo: not checked
+++ use: sample mold is not supported by partial inference
