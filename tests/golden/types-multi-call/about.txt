@@ -1,0 +1,4 @@
+source: Grammar, Expressions: "Call: `f a b`; parentheses only group." Molds: "Faces are part of the type"; type variables generalize per `++`.
+tests: Multi-argument calls form right-nested samples, retain faces, contextual list and union arguments, shared variables and pending constraints, and infer a suitable unknown callee. Wrong arguments, capital merges and occurs checks report their sites.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,42 @@
++$ msg
+  %add
+  [%noted text=@t]
++$ typed [%typed text=@t]
+++ two |= p=[@t @p] p
+++ three |= p=[@t @p ?] p
+++ two-call (two "hi" ~zod)
+++ three-call (three "hi" ~zod %.y)
+++ rest-call (three "hi" [~zod %.y])
+++ named |= [label=@t ship=@p] [label ship]
+++ named-call (named "hi" ~zod)
+++ repeated |= p=[A A] p
+++ same-text (repeated "a" "b")
+++ different (repeated "a" ~zod)
+++ accepts |= p=[msg (list @t)] p
+++ contextual (accepts %add ~["hi"])
+++ cons-context (accepts %add ["hi" ~])
+++ constructor |= p=[$-(@t typed) @t] p
+++ constructor-call (constructor |=%typed "hi")
+++ invalid-item (accepts %add ~[~zod])
+++ wrong-later (three "hi" ~zod "bad")
+++ too-few (three "hi" ~zod)
+++ too-many (two "hi" ~zod %.y)
+++ unknown |= f (f "hi" ~zod)
+++ capped |= [a=A b=B] (repeated a b)
+++ occurs |= f (f f f)
+++ recurse |= p=[@t @p]
+  ?- %.y
+    %.y p
+    %.n (recurse "hi" ~zod)
+++ pending
+  ~& %unknown
+    (two "hi" ~zod)
+++ pending-null
+  ~& ~
+    (two "hi" ~zod)
+++ unknown-context |= f (f %add ~["hi"])
+++ named-mismatch (named [other="hi" ship=~zod])
+++ wrong-first (three ~zod ~zod %.y)
+++ uncertain-target |= p=[A @p] p
+++ uncertain-failure (uncertain-target "hi" "bad")
+++ uncertain-tag (uncertain-target %mystery "bad")

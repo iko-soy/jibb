@@ -1,0 +1,16 @@
+/ui/lib.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (value 4:1 take
+    (gate 4:9
+      (face 4:12 p
+        (cell 4:14 (aura 4:15 @t) (aura 4:18 @p)))
+      (wing 4:22 p)))
+  (value 5:1 combine
+    (gate 5:12
+      (face 5:15 p
+        (cell 5:17
+          (ref 5:18 msg)
+          (apply 5:22 list (aura 5:28 @t))))
+      (wing 5:33 p))))

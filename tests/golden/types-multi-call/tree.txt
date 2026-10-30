@@ -1,0 +1,169 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %add)
+      (cell 3:3
+        (const 3:4 %noted)
+        (face 3:11 text (aura 3:16 @t)))))
+  (mold 4:1 typed
+    (cell 4:10
+      (const 4:11 %typed)
+      (face 4:18 text (aura 4:23 @t))))
+  (value 5:1 two
+    (gate 5:8
+      (face 5:11 p
+        (cell 5:13 (aura 5:14 @t) (aura 5:17 @p)))
+      (wing 5:21 p)))
+  (value 6:1 three
+    (gate 6:10
+      (face 6:13 p
+        (cell 6:15 (aura 6:16 @t) (aura 6:19 @p) (flag 6:22)))
+      (wing 6:25 p)))
+  (value 7:1 two-call
+    (group 7:13
+      (call 7:14 (wing 7:14 two) (str 7:18 "hi") (lit 7:23 ~zod))))
+  (value 8:1 three-call
+    (group 8:15
+      (call 8:16 (wing 8:16 three) (str 8:22 "hi") (lit 8:27 ~zod) (lit 8:32 %.y))))
+  (value 9:1 rest-call
+    (group 9:14
+      (call 9:15
+        (wing 9:15 three)
+        (str 9:21 "hi")
+        (tuple 9:26 (lit 9:27 ~zod) (lit 9:32 %.y)))))
+  (value 10:1 named
+    (gate 10:10
+      (cell 10:13
+        (face 10:14 label (aura 10:20 @t))
+        (face 10:23 ship (aura 10:28 @p)))
+      (tuple 10:32 (wing 10:33 label) (wing 10:39 ship))))
+  (value 11:1 named-call
+    (group 11:15
+      (call 11:16 (wing 11:16 named) (str 11:22 "hi") (lit 11:27 ~zod))))
+  (value 12:1 repeated
+    (gate 12:13
+      (face 12:16 p
+        (cell 12:18 (tvar 12:19 A) (tvar 12:21 A)))
+      (wing 12:24 p)))
+  (value 13:1 same-text
+    (group 13:14
+      (call 13:15 (wing 13:15 repeated) (str 13:24 "a") (str 13:28 "b"))))
+  (value 14:1 different
+    (group 14:14
+      (call 14:15 (wing 14:15 repeated) (str 14:24 "a") (lit 14:28 ~zod))))
+  (value 15:1 accepts
+    (gate 15:12
+      (face 15:15 p
+        (cell 15:17
+          (ref 15:18 msg)
+          (apply 15:22 list (aura 15:28 @t))))
+      (wing 15:33 p)))
+  (value 16:1 contextual
+    (group 16:15
+      (call 16:16
+        (wing 16:16 accepts)
+        (lit 16:24 %add)
+        (list 16:29 (str 16:31 "hi")))))
+  (value 17:1 cons-context
+    (group 17:17
+      (call 17:18
+        (wing 17:18 accepts)
+        (lit 17:26 %add)
+        (tuple 17:31 (str 17:32 "hi") (lit 17:37 ~)))))
+  (value 18:1 constructor
+    (gate 18:16
+      (face 18:19 p
+        (cell 18:21
+          (fn 18:22 (aura 18:25 @t) (ref 18:28 typed))
+          (aura 18:35 @t)))
+      (wing 18:39 p)))
+  (value 19:1 constructor-call
+    (group 19:21
+      (call 19:22 (wing 19:22 constructor) (ctor 19:34 %typed) (str 19:43 "hi"))))
+  (value 20:1 invalid-item
+    (group 20:17
+      (call 20:18
+        (wing 20:18 accepts)
+        (lit 20:26 %add)
+        (list 20:31 (lit 20:33 ~zod)))))
+  (value 21:1 wrong-later
+    (group 21:16
+      (call 21:17 (wing 21:17 three) (str 21:23 "hi") (lit 21:28 ~zod) (str 21:33 "bad"))))
+  (value 22:1 too-few
+    (group 22:12
+      (call 22:13 (wing 22:13 three) (str 22:19 "hi") (lit 22:24 ~zod))))
+  (value 23:1 too-many
+    (group 23:13
+      (call 23:14 (wing 23:14 two) (str 23:18 "hi") (lit 23:23 ~zod) (lit 23:28 %.y))))
+  (value 24:1 unknown
+    (gate 24:12
+      (bind 24:15 f)
+      (group 24:17
+        (call 24:18 (wing 24:18 f) (str 24:20 "hi") (lit 24:25 ~zod)))))
+  (value 25:1 capped
+    (gate 25:11
+      (cell 25:14
+        (face 25:15 a (tvar 25:17 A))
+        (face 25:19 b (tvar 25:21 B)))
+      (group 25:24
+        (call 25:25 (wing 25:25 repeated) (wing 25:34 a) (wing 25:36 b)))))
+  (value 26:1 occurs
+    (gate 26:11
+      (bind 26:14 f)
+      (group 26:16
+        (call 26:17 (wing 26:17 f) (wing 26:19 f) (wing 26:21 f)))))
+  (value 27:1 recurse
+    (gate 27:12
+      (face 27:15 p
+        (cell 27:17 (aura 27:18 @t) (aura 27:21 @p)))
+      (body 28:3
+        (branch 28:3
+          (lit 28:6 %.y)
+          (arm 29:5 (lit 29:5 %.y) (wing 29:9 p))
+          (arm 30:5
+            (lit 30:5 %.n)
+            (group 30:9
+              (call 30:10 (wing 30:10 recurse) (str 30:18 "hi") (lit 30:23 ~zod))))))))
+  (value 31:1 pending
+    (body 32:3
+      (trace 32:3
+        (lit 32:6 %unknown)
+        (body 33:5
+          (group 33:5
+            (call 33:6 (wing 33:6 two) (str 33:10 "hi") (lit 33:15 ~zod)))))))
+  (value 34:1 pending-null
+    (body 35:3
+      (trace 35:3
+        (lit 35:6 ~)
+        (body 36:5
+          (group 36:5
+            (call 36:6 (wing 36:6 two) (str 36:10 "hi") (lit 36:15 ~zod)))))))
+  (value 37:1 unknown-context
+    (gate 37:20
+      (bind 37:23 f)
+      (group 37:25
+        (call 37:26
+          (wing 37:26 f)
+          (lit 37:28 %add)
+          (list 37:33 (str 37:35 "hi"))))))
+  (value 38:1 named-mismatch
+    (group 38:19
+      (call 38:20
+        (wing 38:20 named)
+        (tuple 38:26
+          (face 38:27 other (str 38:33 "hi"))
+          (face 38:38 ship (lit 38:43 ~zod))))))
+  (value 39:1 wrong-first
+    (group 39:16
+      (call 39:17 (wing 39:17 three) (lit 39:23 ~zod) (lit 39:28 ~zod) (lit 39:33 %.y))))
+  (value 40:1 uncertain-target
+    (gate 40:21
+      (face 40:24 p
+        (cell 40:26 (tvar 40:27 A) (aura 40:29 @p)))
+      (wing 40:33 p)))
+  (value 41:1 uncertain-failure
+    (group 41:22
+      (call 41:23 (wing 41:23 uncertain-target) (str 41:40 "hi") (str 41:45 "bad"))))
+  (value 42:1 uncertain-tag
+    (group 42:18
+      (call 42:19 (wing 42:19 uncertain-target) (lit 42:36 %mystery) (str 42:45 "bad")))))

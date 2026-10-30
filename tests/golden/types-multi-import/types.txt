@@ -1,0 +1,17 @@
+partial inference; module not checked
+++ good: [@t @p]
+++ contextual: [msg.lib (list @t)]
+++ bad-later: call's sample and argument types do not unify
+/tests/golden/types-multi-import/source.jibb:4:15: called gate has type $-([@t @p] [@t @p])
+++ bad-later (take.lib "hi" "no")
+              ^
+/tests/golden/types-multi-import/source.jibb:4:29: argument has type @t
+++ bad-later (take.lib "hi" "no")
+                            ^
+++ bad-tag: call's sample and argument types do not unify
+/tests/golden/types-multi-import/source.jibb:5:13: called gate
+++ bad-tag (combine.lib %wrong ~["hi"])
+            ^
+/tests/golden/types-multi-import/source.jibb:5:25: argument
+++ bad-tag (combine.lib %wrong ~["hi"])
+                        ^

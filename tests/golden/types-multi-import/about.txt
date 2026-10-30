@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; Expressions: "Call: `f a b`; parentheses only group."
+tests: A library's multi-argument gate receives direct, contextual union and list arguments; wrong later arguments and invalid union tags fail with locations.
+expect: parses
+expect-types: a partial inference report

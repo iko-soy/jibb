@@ -5226,7 +5226,7 @@
   problems
 ::
 ::  The expression inference below is deliberately a fragment: bindings,
-::  simple gates, unary calls, fixed-aura literals, and plain strings. The
+::  simple gates, calls, fixed-aura literals, and plain strings. The
 ::  result for unsupported syntax is a diagnostic, never a checked module.
 ::
 +$  ischeme  [typ=itype vars=(list @ud)]
@@ -6565,11 +6565,14 @@
       [%& [%fn typ.p.sam typ.p.body] state.p.body]
     %call
       ?~  args.e  [%| ["call has no argument" ~]]
-      ?^  t.args.e  [%| ["multiple arguments are not supported by partial inference" ~]]
       =/  head=iresult  $(e head.e)
       ?:  ?=(%| -.head)  head
       =/  head-type=itype  (itype-walk typ.p.head sub.state.p.head)
       =/  arg=iresult
+        ?^  t.args.e
+          ?:  ?=(%fn -.head-type)
+            (infer-call-context-args args.e sample.head-type env state.p.head (span-of head.e))
+          (infer-simple-items (turn args.e |=(a=expr [(span-of a) ~ a])) env state.p.head)
         ?:  &(?=(%fn -.head-type) ?=(%union -.sample.head-type) (context-union-branch i.args.e))
           (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
         ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-union-branch i.args.e))
@@ -6584,7 +6587,13 @@
         =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st next.st)
         ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
         ?:  ?=(%bad -.fit)
-          [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
+          =/  bad=(unit [at=span typ=itype])
+            ?~(t.args.e ~ (call-error-site args.e typ.p.arg sample.ht sub.st next.st))
+          =/  whole-args=span
+            ?~(t.args.e (span-of i.args.e) [beg:(span-of i.args.e) end:(span-of (rear args.e))])
+          =/  arg-at=span  ?~(bad whole-args at.u.bad)
+          =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
+          [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
         ?:  &((itype-has-face typ.p.arg sub.fit) (itype-face-asym typ.p.arg sample.ht sub.fit) (itype-output-may-be-cell product.ht sub.fit))
           [%| ["call result face propagation is not supported by partial inference" ~]]
         [%& product.ht st(sub sub.fit, next next.fit)]
@@ -6595,6 +6604,63 @@
       [%& result st(next +(next.st), sub u.uni)]
     *  [%| ["expression is not supported by partial inference" ~]]
   ==
+::
+::  Locate a definite failing argument after the complete sample fit has
+::  failed. If an intermediate fit is uncertain, retain the whole argument
+::  span rather than assigning blame to a particular argument.
+::
+++  call-error-site
+  |=  [args=(list expr) actual=itype expected=itype sub=isub next=@ud]
+  ^-  (unit [at=span typ=itype])
+  ?~  args  ~
+  =/  original=[left=itype right=itype]  [actual expected]
+  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%nvar -.left.original) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%nvar -.right.original))  ~
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(%face -.expected) !?=(%face -.actual))
+    $(expected body.expected)
+  ?~  t.args
+    =/  fit=ifit  (itype-fit actual expected sub next)
+    ?.  ?=(%bad -.fit)  ~
+    `[(span-of i.args) (itype-normalize actual sub)]
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  first=ifit  (itype-fit hed.actual hed.expected sub next)
+  ?:  ?=(%bad -.first)  `[(span-of i.args) (itype-normalize hed.actual sub)]
+  ?:  ?=(%unknown -.first)  ~
+  $(args t.args, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
+::
+::  Context can help each argument while the final fit still checks the
+::  complete right-nested sample, including any faces on its positions.
+::
+++  infer-call-context-arg
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  =/  target=itype  (itype-walk expected sub.state)
+  |-
+  ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?:  &(?=(%union -.target) (context-union-branch e))
+    (infer-union-context e target env state context)
+  ?:  &(?=(%collection -.target) =(%list name.target) (context-union-branch e))
+    (infer-union-context e target env state context)
+  ?:  &(?=(%collection -.target) =(%list name.target) (context-list-expression e))
+    (infer-list-context e target env state context)
+  (infer-fragment e env state)
+::
+++  infer-call-context-args
+  |=  [args=(list expr) expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?~  args  [%| ["call has no argument" ~]]
+  ?~  t.args  (infer-call-context-arg i.args expected env state context)
+  =/  target=itype  (itype-walk expected sub.state)
+  |-
+  ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?.  ?=(%cell -.target)
+    (infer-simple-items (turn args |=(a=expr [(span-of a) ~ a])) env state)
+  =/  head=iresult  (infer-call-context-arg i.args hed.target env state context)
+  ?:  ?=(%| -.head)  head
+  =/  tail=iresult  (infer-call-context-args t.args tal.target env state.p.head context)
+  ?:  ?=(%| -.tail)  tail
+  [%& [%cell typ.p.head typ.p.tail] state.p.tail]
 ::
 ::  Tuple and record expressions preserve their explicitly written faces.
 ::

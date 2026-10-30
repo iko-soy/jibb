@@ -1,0 +1,100 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ typed: not checked
+++ two: $-([@t @p] [@t @p])
+++ three: $-([@t [@p ?]] [@t [@p ?]])
+++ two-call: [@t @p]
+++ three-call: [@t [@p ?]]
+++ rest-call: [@t [@p ?]]
+++ named: $-([label=@t ship=@p] [@t @p])
+++ named-call: [@t @p]
+++ repeated: $-([A A] [A A])
+++ same-text: [@t @t]
+++ different: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:14:15: called gate has type $-([A A] [A A])
+++ different (repeated "a" ~zod)
+              ^
+/tests/golden/types-multi-call/source.jibb:14:24: argument has type [@t @p]
+++ different (repeated "a" ~zod)
+                       ^
+++ accepts: $-([msg (list @t)] [msg (list @t)])
+++ contextual: [msg (list @t)]
+++ cons-context: [msg (list @t)]
+++ constructor: $-([$-(@t [%typed text=@t]) @t] [$-(@t [%typed text=@t]) @t])
+++ constructor-call: [$-(@t [%typed text=@t]) @t]
+++ invalid-item: list item does not fit its expected type
+/tests/golden/types-multi-call/source.jibb:20:18: expected item has type @t
+++ invalid-item (accepts %add ~[~zod])
+                 ^
+/tests/golden/types-multi-call/source.jibb:20:33: list item has type @p
+++ invalid-item (accepts %add ~[~zod])
+                                ^
+++ wrong-later: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:21:17: called gate has type $-([@t [@p ?]] [@t [@p ?]])
+++ wrong-later (three "hi" ~zod "bad")
+                ^
+/tests/golden/types-multi-call/source.jibb:21:33: argument has type @t
+++ wrong-later (three "hi" ~zod "bad")
+                                ^
+++ too-few: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:22:13: called gate has type $-([@t [@p ?]] [@t [@p ?]])
+++ too-few (three "hi" ~zod)
+            ^
+/tests/golden/types-multi-call/source.jibb:22:24: argument has type @p
+++ too-few (three "hi" ~zod)
+                       ^
+++ too-many: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:23:14: called gate has type $-([@t @p] [@t @p])
+++ too-many (two "hi" ~zod %.y)
+             ^
+/tests/golden/types-multi-call/source.jibb:23:18: argument has type [@t [@p ?]]
+++ too-many (two "hi" ~zod %.y)
+                 ^
+++ unknown: $-($-([@t @p] A) A)
+++ capped: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-multi-call/source.jibb:25:17: first type variable
+++ capped |= [a=A b=B] (repeated a b)
+                ^
+/tests/golden/types-multi-call/source.jibb:25:21: second type variable
+++ capped |= [a=A b=B] (repeated a b)
+                    ^
+++ occurs: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:26:17: called gate
+++ occurs |= f (f f f)
+                ^
+/tests/golden/types-multi-call/source.jibb:26:19: argument has type [A A]
+++ occurs |= f (f f f)
+                  ^
+++ recurse: $-([@t @p] [@t @p])
+++ pending: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference
+++ unknown-context: expression is not supported by partial inference
+++ named-mismatch: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:38:20: called gate has type $-([label=@t ship=@p] [@t @p])
+++ named-mismatch (named [other="hi" ship=~zod])
+                   ^
+/tests/golden/types-multi-call/source.jibb:38:26: argument has type [other=@t ship=@p]
+++ named-mismatch (named [other="hi" ship=~zod])
+                         ^
+++ wrong-first: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:39:17: called gate has type $-([@t [@p ?]] [@t [@p ?]])
+++ wrong-first (three ~zod ~zod %.y)
+                ^
+/tests/golden/types-multi-call/source.jibb:39:23: argument has type @p
+++ wrong-first (three ~zod ~zod %.y)
+                      ^
+++ uncertain-target: $-([A @p] [A @p])
+++ uncertain-failure: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:41:23: called gate has type $-([A @p] [A @p])
+++ uncertain-failure (uncertain-target "hi" "bad")
+                      ^
+/tests/golden/types-multi-call/source.jibb:41:45: argument has type @t
+++ uncertain-failure (uncertain-target "hi" "bad")
+                                            ^
+++ uncertain-tag: call's sample and argument types do not unify
+/tests/golden/types-multi-call/source.jibb:42:19: called gate has type $-([A @p] [A @p])
+++ uncertain-tag (uncertain-target %mystery "bad")
+                  ^
+/tests/golden/types-multi-call/source.jibb:42:45: argument has type @t
+++ uncertain-tag (uncertain-target %mystery "bad")
+                                            ^

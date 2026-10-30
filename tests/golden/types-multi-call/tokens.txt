@@ -1,0 +1,370 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %add
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %noted
+3:11 name text
+3:15 tight glyph =
+3:16 tight aura @t
+3:18 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name typed
+4:10 glyph [
+4:11 tight lit %typed
+4:18 name text
+4:22 tight glyph =
+4:23 tight aura @t
+4:25 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name two
+5:8 glyph |=
+5:11 name p
+5:12 tight glyph =
+5:13 tight glyph [
+5:14 tight aura @t
+5:17 aura @p
+5:19 tight glyph ]
+5:21 name p
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name three
+6:10 glyph |=
+6:13 name p
+6:14 tight glyph =
+6:15 tight glyph [
+6:16 tight aura @t
+6:19 aura @p
+6:22 glyph ?
+6:23 tight glyph ]
+6:25 name p
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name two-call
+7:13 glyph (
+7:14 tight name two
+7:18 str "hi"
+7:23 lit ~zod
+7:27 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name three-call
+8:15 glyph (
+8:16 tight name three
+8:22 str "hi"
+8:27 lit ~zod
+8:32 lit %.y
+8:35 tight glyph )
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name rest-call
+9:14 glyph (
+9:15 tight name three
+9:21 str "hi"
+9:26 glyph [
+9:27 tight lit ~zod
+9:32 lit %.y
+9:35 tight glyph ]
+9:36 tight glyph )
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name named
+10:10 glyph |=
+10:13 glyph [
+10:14 tight name label
+10:19 tight glyph =
+10:20 tight aura @t
+10:23 name ship
+10:27 tight glyph =
+10:28 tight aura @p
+10:30 tight glyph ]
+10:32 glyph [
+10:33 tight name label
+10:39 name ship
+10:43 tight glyph ]
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name named-call
+11:15 glyph (
+11:16 tight name named
+11:22 str "hi"
+11:27 lit ~zod
+11:31 tight glyph )
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name repeated
+12:13 glyph |=
+12:16 name p
+12:17 tight glyph =
+12:18 tight glyph [
+12:19 tight tvar A
+12:21 tvar A
+12:22 tight glyph ]
+12:24 name p
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name same-text
+13:14 glyph (
+13:15 tight name repeated
+13:24 str "a"
+13:28 str "b"
+13:31 tight glyph )
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name different
+14:14 glyph (
+14:15 tight name repeated
+14:24 str "a"
+14:28 lit ~zod
+14:32 tight glyph )
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name accepts
+15:12 glyph |=
+15:15 name p
+15:16 tight glyph =
+15:17 tight glyph [
+15:18 tight name msg
+15:22 glyph (
+15:23 tight name list
+15:28 aura @t
+15:30 tight glyph )
+15:31 tight glyph ]
+15:33 name p
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name contextual
+16:15 glyph (
+16:16 tight name accepts
+16:24 lit %add
+16:29 glyph ~[
+16:31 tight str "hi"
+16:35 tight glyph ]
+16:36 tight glyph )
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name cons-context
+17:17 glyph (
+17:18 tight name accepts
+17:26 lit %add
+17:31 glyph [
+17:32 tight str "hi"
+17:37 lit ~
+17:38 tight glyph ]
+17:39 tight glyph )
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name constructor
+18:16 glyph |=
+18:19 name p
+18:20 tight glyph =
+18:21 tight glyph [
+18:22 tight glyph $-(
+18:25 tight aura @t
+18:28 name typed
+18:33 tight glyph )
+18:35 aura @t
+18:37 tight glyph ]
+18:39 name p
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name constructor-call
+19:21 glyph (
+19:22 tight name constructor
+19:34 glyph |=
+19:36 tight lit %typed
+19:43 str "hi"
+19:47 tight glyph )
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name invalid-item
+20:17 glyph (
+20:18 tight name accepts
+20:26 lit %add
+20:31 glyph ~[
+20:33 tight lit ~zod
+20:37 tight glyph ]
+20:38 tight glyph )
+21:1 NEWLINE
+21:1 glyph ++
+21:4 name wrong-later
+21:16 glyph (
+21:17 tight name three
+21:23 str "hi"
+21:28 lit ~zod
+21:33 str "bad"
+21:38 tight glyph )
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name too-few
+22:12 glyph (
+22:13 tight name three
+22:19 str "hi"
+22:24 lit ~zod
+22:28 tight glyph )
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name too-many
+23:13 glyph (
+23:14 tight name two
+23:18 str "hi"
+23:23 lit ~zod
+23:28 lit %.y
+23:31 tight glyph )
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name unknown
+24:12 glyph |=
+24:15 name f
+24:17 glyph (
+24:18 tight name f
+24:20 str "hi"
+24:25 lit ~zod
+24:29 tight glyph )
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name capped
+25:11 glyph |=
+25:14 glyph [
+25:15 tight name a
+25:16 tight glyph =
+25:17 tight tvar A
+25:19 name b
+25:20 tight glyph =
+25:21 tight tvar B
+25:22 tight glyph ]
+25:24 glyph (
+25:25 tight name repeated
+25:34 name a
+25:36 name b
+25:37 tight glyph )
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name occurs
+26:11 glyph |=
+26:14 name f
+26:16 glyph (
+26:17 tight name f
+26:19 name f
+26:21 name f
+26:22 tight glyph )
+27:1 NEWLINE
+27:1 glyph ++
+27:4 name recurse
+27:12 glyph |=
+27:15 name p
+27:16 tight glyph =
+27:17 tight glyph [
+27:18 tight aura @t
+27:21 aura @p
+27:23 tight glyph ]
+28:3 INDENT
+28:3 glyph ?-
+28:6 lit %.y
+29:5 INDENT
+29:5 lit %.y
+29:9 name p
+30:5 NEWLINE
+30:5 lit %.n
+30:9 glyph (
+30:10 tight name recurse
+30:18 str "hi"
+30:23 lit ~zod
+30:27 tight glyph )
+31:1 DEDENT
+31:1 DEDENT
+31:1 NEWLINE
+31:1 glyph ++
+31:4 name pending
+32:3 INDENT
+32:3 glyph ~&
+32:6 lit %unknown
+33:5 INDENT
+33:5 glyph (
+33:6 tight name two
+33:10 str "hi"
+33:15 lit ~zod
+33:19 tight glyph )
+34:1 DEDENT
+34:1 DEDENT
+34:1 NEWLINE
+34:1 glyph ++
+34:4 name pending-null
+35:3 INDENT
+35:3 glyph ~&
+35:6 lit ~
+36:5 INDENT
+36:5 glyph (
+36:6 tight name two
+36:10 str "hi"
+36:15 lit ~zod
+36:19 tight glyph )
+37:1 DEDENT
+37:1 DEDENT
+37:1 NEWLINE
+37:1 glyph ++
+37:4 name unknown-context
+37:20 glyph |=
+37:23 name f
+37:25 glyph (
+37:26 tight name f
+37:28 lit %add
+37:33 glyph ~[
+37:35 tight str "hi"
+37:39 tight glyph ]
+37:40 tight glyph )
+38:1 NEWLINE
+38:1 glyph ++
+38:4 name named-mismatch
+38:19 glyph (
+38:20 tight name named
+38:26 glyph [
+38:27 tight name other
+38:32 tight glyph =
+38:33 tight str "hi"
+38:38 name ship
+38:42 tight glyph =
+38:43 tight lit ~zod
+38:47 tight glyph ]
+38:48 tight glyph )
+39:1 NEWLINE
+39:1 glyph ++
+39:4 name wrong-first
+39:16 glyph (
+39:17 tight name three
+39:23 lit ~zod
+39:28 lit ~zod
+39:33 lit %.y
+39:36 tight glyph )
+40:1 NEWLINE
+40:1 glyph ++
+40:4 name uncertain-target
+40:21 glyph |=
+40:24 name p
+40:25 tight glyph =
+40:26 tight glyph [
+40:27 tight tvar A
+40:29 aura @p
+40:31 tight glyph ]
+40:33 name p
+41:1 NEWLINE
+41:1 glyph ++
+41:4 name uncertain-failure
+41:22 glyph (
+41:23 tight name uncertain-target
+41:40 str "hi"
+41:45 str "bad"
+41:50 tight glyph )
+42:1 NEWLINE
+42:1 glyph ++
+42:4 name uncertain-tag
+42:18 glyph (
+42:19 tight name uncertain-target
+42:36 lit %mystery
+42:45 str "bad"
+42:50 tight glyph )
+42:51 NEWLINE

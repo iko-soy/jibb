@@ -1,0 +1,5 @@
+/=  lib /ui/lib
+++ good (take.lib "hi" ~zod)
+++ contextual (combine.lib %add ~["hi"])
+++ bad-later (take.lib "hi" "no")
+++ bad-tag (combine.lib %wrong ~["hi"])
