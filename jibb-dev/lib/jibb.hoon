@@ -4590,8 +4590,9 @@
 ::  Each top-level inferred definition generalizes its free variables, and
 ::  a use instantiates them afresh. Binders inside a gate stay monomorphic;
 ::  capital variables in molds share one allocation within the definition.
-::  Decimal literals have atom-only variables; until their constraints
-::  can be printed and generalized, an unresolved one is unsupported.
+::  Atom constraints tied to an explicit capital are generalized and
+::  printed. Other unresolved aura variables remain unsupported until
+::  their defaulting and inferred generalization are implemented.
 ::  Bare @ is a separate unrestricted atom type. A directional fit check
 ::  permits concrete atoms to widen to it, never the reverse. A fit that
 ::  needs a not-yet-implemented constraint remains unsupported. Only
@@ -4601,6 +4602,7 @@
   $~  [%var 0]
   $%  [%var id=@ud]
       [%avar id=@ud]
+      [%nvar id=@ud]
       [%atom aura=@ta]
       [%any-atom ~]
       [%flag ~]
@@ -4629,6 +4631,10 @@
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
       $(t u.found)
+    %nvar
+      =/  found=(unit itype)  (itype-lookup id.t sub)
+      ?~  found  t
+      $(t u.found)
   ==
 ::
 ++  itype-occurs
@@ -4638,6 +4644,7 @@
   ?-  -.t
     %var   =(n id.t)
     %avar  =(n id.t)
+    %nvar  =(n id.t)
     %atom  |
     %any-atom  |
     %flag  |
@@ -4663,11 +4670,21 @@
   ?:  ?=(%var -.b)
     ?:  (itype-occurs id.b a sub)  ~
     `[[id.b a] sub]
+  ::  The narrower decimal constraint survives a match with an atom
+  ::  variable; decimal syntax alone does not make it a loobean.
+  ?:  &(?=(%nvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
+  ?:  &(?=(%avar -.a) ?=(%nvar -.b))  `[[id.a b] sub]
+  ?:  ?=(%nvar -.a)
+    ?.  |(?=(%nvar -.b) ?=(%atom -.b))  ~
+    `[[id.a b] sub]
+  ?:  ?=(%nvar -.b)
+    ?.  ?=(%atom -.a)  ~
+    `[[id.b a] sub]
   ?:  ?=(%avar -.a)
-    ?.  |(?=(%avar -.b) ?=(%atom -.b))  ~
+    ?.  |(?=(%avar -.b) ?=(%atom -.b) ?=(%any-atom -.b) ?=(%flag -.b))  ~
     `[[id.a b] sub]
   ?:  ?=(%avar -.b)
-    ?.  ?=(%atom -.a)  ~
+    ?.  |(?=(%atom -.a) ?=(%any-atom -.a) ?=(%flag -.a))  ~
     `[[id.b a] sub]
   ?:  &(?=(%atom -.a) ?=(%atom -.b))  ~
   ?:  &(?=(%fn -.a) ?=(%fn -.b))
@@ -4682,10 +4699,10 @@
 ::
 ::  +itype-fit: one-way widening from an actual type to an expected type
 ::
-::    Variables that would need a generalized atom constraint, and
-::    function compatibility involving unrestricted @, remain unknown.
+::    An unknown variable used where @ is expected gains a fresh atom
+::    constraint. Function compatibility involving @ remains unknown.
 ::
-+$  ifit  $%([%ok sub=isub] [%bad ~] [%unknown ~])
++$  ifit  $%([%ok sub=isub next=@ud] [%bad ~] [%unknown ~])
 ++  itype-has-any-atom
   |=  [t=itype sub=isub]
   ^-  ?
@@ -4693,6 +4710,7 @@
   ?-  -.t
     %var       |
     %avar      |
+    %nvar      |
     %atom      |
     %any-atom  &
     %flag      |
@@ -4701,37 +4719,40 @@
   ==
 ::
 ++  itype-fit
-  |=  [actual=itype expected=itype sub=isub]
+  |=  [actual=itype expected=itype sub=isub next=@ud]
   ^-  ifit
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
-  ?:  =(actual expected)  [%ok sub]
+  ?:  =(actual expected)  [%ok sub next]
   ?:  ?=(%any-atom -.expected)
-    ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%flag -.actual))  [%ok sub]
-    ?:  ?=(%var -.actual)  [%unknown ~]
+    ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%flag -.actual))  [%ok sub next]
+    ?:  ?=(%var -.actual)
+      =/  unified=(unit isub)  (itype-unify actual [%avar next] sub)
+      ?~  unified  [%bad ~]
+      [%ok u.unified +(next)]
     [%bad ~]
   ?:  ?=(%any-atom -.actual)
     ?:  ?=(%var -.expected)
       =/  unified=(unit isub)  (itype-unify actual expected sub)
       ?~  unified  [%bad ~]
-      [%ok u.unified]
-    ?:  ?=(%avar -.expected)  [%unknown ~]
+      [%ok u.unified next]
+    ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
     [%bad ~]
   ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
     =/  first=ifit  $(actual hed.actual, expected hed.expected)
     ?.  ?=(%ok -.first)  first
-    $(actual tal.actual, expected tal.expected, sub sub.first)
+    $(actual tal.actual, expected tal.expected, sub sub.first, next next.first)
   ?:  &(?=(%var -.actual) (itype-has-any-atom expected sub))
     [%unknown ~]
   ?:  |(?=(%var -.actual) ?=(%var -.expected))
     =/  unified=(unit isub)  (itype-unify actual expected sub)
     ?~  unified  [%bad ~]
-    [%ok u.unified]
+    [%ok u.unified next]
   ?:  |((itype-has-any-atom actual sub) (itype-has-any-atom expected sub))
     [%unknown ~]
   =/  unified=(unit isub)  (itype-unify actual expected sub)
   ?~  unified  [%bad ~]
-  [%ok u.unified]
+  [%ok u.unified next]
 ::
 ++  itype-unify-test
   ^-  (list tape)
@@ -4801,6 +4822,7 @@
   ?-  -.t
     %var   ~[id.t]
     %avar  ~[id.t]
+    %nvar  ~[id.t]
     %atom  ~
     %any-atom  ~
     %flag  ~
@@ -4825,12 +4847,36 @@
       =/  found=(unit itype)  (itype-lookup id.t ren)
       ?~  found  t
       u.found
-    %avar  t
+    %avar
+      =/  found=(unit itype)  (itype-lookup id.t ren)
+      ?~  found  t
+      u.found
+    %nvar
+      =/  found=(unit itype)  (itype-lookup id.t ren)
+      ?~  found  t
+      u.found
     %atom  t
     %any-atom  t
     %flag  t
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
+  ==
+::
+::  Variable IDs are unique across the two kinds. Inspecting the
+::  normalized type preserves the atom constraint when renaming.
+::
+++  itype-var-is-atom
+  |=  [n=@ud t=itype]
+  ^-  ?
+  ?-  -.t
+    %var       |
+    %avar      =(n id.t)
+    %nvar      =(n id.t)
+    %atom      |
+    %any-atom  |
+    %flag      |
+    %fn        |($(t sample.t) $(t product.t))
+    %cell      |($(t hed.t) $(t tal.t))
   ==
 ::
 ::  Canonical numbering makes printed variables independent of the order
@@ -4843,7 +4889,8 @@
   =/  n=@ud  0
   |-
   ?~  vars  (itype-rename t ren)
-  $(vars t.vars, ren [[i.vars [%var n]] ren], n +(n))
+  =/  replacement=itype  ?:((itype-var-is-atom i.vars t) [%avar n] [%var n])
+  $(vars t.vars, ren [[i.vars replacement] ren], n +(n))
 ::
 ++  instantiate-scheme
   |=  [scheme=ischeme state=istate]
@@ -4852,7 +4899,9 @@
   =/  vars=(list @ud)  vars.scheme
   |-
   ?~  vars  [(itype-rename typ.scheme ren) state]
-  $(vars t.vars, ren [[i.vars [%var next.state]] ren], state state(next +(next.state)))
+  =/  replacement=itype
+    ?:((itype-var-is-atom i.vars typ.scheme) [%avar next.state] [%var next.state])
+  $(vars t.vars, ren [[i.vars replacement] ren], state state(next +(next.state)))
 ::
 ++  icap-lookup
   |=  [n=@t caps=icaps]
@@ -5006,7 +5055,7 @@
     %lit
       ?-  form.lit.e
         %number    ?:  =(%ud aura.lit.e)
-                     [%& [%avar next.state] state(next +(next.state))]
+                     [%& [%nvar next.state] state(next +(next.state))]
                    [%& [%atom aura.lit.e] state]
         %ship      [%& [%atom %p] state]
         %date      [%& [%atom %da] state]
@@ -5027,6 +5076,10 @@
       =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
       [%& typ.instance state.instance]
     %group  $(e inner.e)
+    %trace
+      =/  traced=iresult  $(e val.e)
+      ?:  ?=(%| -.traced)  traced
+      $(e then.e, state state.p.traced)
     %tuple  (infer-simple-items items.e env state)
     %body
       ?^  defs.e  [%| "local definitions are not supported by partial inference"]
@@ -5062,10 +5115,10 @@
       ?~  target  [%| "cast mold is not supported by partial inference"]
       =/  value=iresult  $(e val.e, state state.u.target)
       ?:  ?=(%| -.value)  value
-      =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value)
+      =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
       ?:  ?=(%unknown -.fit)  [%| "cast constraint is not supported by partial inference"]
       ?:  ?=(%bad -.fit)  [%| "cast mold and expression type do not unify"]
-      [%& typ.u.target state.p.value(sub sub.fit)]
+      [%& typ.u.target state.p.value(sub sub.fit, next next.fit)]
     %crash  [%& [%var next.state] state(next +(next.state))]
     %gate
       =/  sam=isample-result  (infer-sample sample.e env state)
@@ -5089,10 +5142,10 @@
       =/  st=istate  state.p.arg
       =/  ht=itype  (itype-walk typ.p.head sub.st)
       ?:  ?=(%fn -.ht)
-        =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st)
+        =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st next.st)
         ?:  ?=(%unknown -.fit)  [%| "call constraint is not supported by partial inference"]
         ?:  ?=(%bad -.fit)  [%| "call's sample and argument types do not unify"]
-        [%& product.ht st(sub sub.fit)]
+        [%& product.ht st(sub sub.fit, next next.fit)]
       =/  result=itype  [%var next.st]
       =/  uni=(unit isub)  (itype-unify ht [%fn typ.p.arg result] sub.st)
       ?~  uni  [%| "call's sample and argument types do not unify"]
@@ -5152,7 +5205,12 @@
     %var
       ?:  (lth id.t 26)  [(add 65 id.t) ~]
       "T{<id.t>}"
-    %avar  "@"
+    %avar
+      ?:  (lth id.t 26)  [(add 65 id.t) ~]
+      "T{<id.t>}"
+    %nvar
+      ?:  (lth id.t 26)  [(add 65 id.t) ~]
+      "T{<id.t>}"
     %atom  "@{(trip aura.t)}"
     %any-atom  "@"
     %flag  "?"
@@ -5160,33 +5218,53 @@
     %cell  "[{$(t hed.t)} {$(t tal.t)}]"
   ==
 ::
-::  Unfixed aura variables are withheld from the output until inference
-::  can generalize them and the printer represents their constraints.
-::
-++  itype-has-avar
-  |=  t=itype
-  ^-  ?
-  ?-  -.t
-    %avar  &
-    %var   |
-    %atom  |
-    %any-atom  |
-    %flag  |
-    %fn    |($(t sample.t) $(t product.t))
-    %cell  |($(t hed.t) $(t tal.t))
-  ==
-::
 ::  A capital in a written mold is generalized with its enclosing ++.
-::  Until its rigidity and aura constraints are represented, do not
-::  report a type when unification made one more specific.
+::  Atom constraints may remain generic; until full rigidity checking
+::  is implemented, do not report a type if one became more specific.
 ::
 ++  constrained-capitals
   |=  [caps=icaps sub=isub]
   ^-  ?
   ?~  caps  |
   =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
-  ?.  ?=(%var -.resolved)  &
+  ?.  |(?=(%var -.resolved) ?=(%avar -.resolved))  &
   $(caps t.caps)
+::
+::  Only atom variables tied to an explicit capital are generalized in
+::  this fragment. Other aura variables still need defaulting or inferred
+::  constraints. The printer currently handles one atom constraint.
+::
+++  atom-var-from-cap
+  |=  [n=@ud caps=icaps sub=isub]
+  ^-  ?
+  ?~  caps  |
+  =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
+  ?:  ?=(%avar -.resolved)
+    ?:  =(n id.resolved)  &
+    $(caps t.caps)
+  $(caps t.caps)
+::
+++  unsupported-atom-vars
+  |=  [t=itype caps=icaps sub=isub]
+  ^-  ?
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars t))
+  =/  count=@ud  0
+  |-
+  ?~  vars  (gth count 1)
+  ?:  (itype-var-is-atom i.vars t)
+    ?.  (atom-var-from-cap i.vars caps sub)  &
+    $(vars t.vars, count +(count))
+  $(vars t.vars)
+::
+++  show-atom-constraint
+  |=  t=itype
+  ^-  tape
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars t))
+  |-
+  ?~  vars  ""
+  ?:  (itype-var-is-atom i.vars t)
+    " where {(show-itype [%avar i.vars] ~)} is an atom"
+  $(vars t.vars)
 ::
 ::  Build the supported part of the value environment in dependency order.
 ::  Each pass adds successful definitions. Forward references become
@@ -5222,7 +5300,7 @@
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
-  ?:  (itype-has-avar typ)  $(ds t.ds)
+  ?:  (unsupported-atom-vars typ caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)  $(ds t.ds)
   $(ds t.ds, env [[name.d [typ vars]] env])
@@ -5424,12 +5502,12 @@
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
   =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
-  ?:  (itype-has-avar typ)
+  ?:  (unsupported-atom-vars typ caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: too many variables for partial printer") lines])
   =/  printable=itype  (canonical-itype typ vars)
-  =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}")
+  =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}{(show-atom-constraint printable)}")
   $(ds t.ds, lines [line lines])
 --

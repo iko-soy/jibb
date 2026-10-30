@@ -92,14 +92,14 @@ Hoon 135's `3g` section has exactly 12 exports: ten `+$` molds (`coin`, `dime`, 
 | `dime` | `[p=@ta q=@]` in Hoon. The `q` field accepts any atom, as does Jibb `@` after @iko's decision in question 15. |
 | `edge` | `[p=hair q=(unit [p=* q=nail])]`: a parsing position and either no result or a result and remaining input. |
 | `hair` | `[p=@ud q=@ud]`: a parsing position. |
-| `like` | A wet mold builder parameterized by a gate `a=$-(* *)`; its generated gate takes a noun, builds an `edge`-shaped result, and applies `a` to the product on success. Its Hoon wet specialization can retain a product type. Its exact Jibb interface and implementation still need to be worked out; do not substitute an unverified fixed signature. |
+| `like` | A wet mold builder parameterized by a gate `a=$-(* *)`; its generated gate takes a noun, builds an `edge`-shaped result, and applies `a` to the product on success. The prelude declares the generic mold `+$ like |$ [A] [p=hair q=(unit [p=A q=nail])]`. A callable Jibb value form remains open in question 18. |
 | `nail` | `[p=hair q=tape]`: parsing input. |
 | `pint` | `[p=[p=@ q=@] q=[p=@ q=@]]` in Hoon. The four positions accept atoms independently; Jibb `@` now has the same meaning. |
 | `rule` | A gate mold `$-(nail edge)`; Hoon constructs its sample and product from the `nail` and `edge` molds. |
 | `spot` | `[p=path q=pint]`: a file path and range. |
 | `tone` | Three cases: `[%0 product=*]`, `[%1 block=*]`, and `[%2 trace=(list [@ta *])]`. Expose this Hoon mold as `tone.hoon`, distinct from Jibb's styling `tone`. How the prelude presents that qualified mold must agree with its eventual group implementation. |
 | `toon` | Three cases: `[%0 p=*]`, `[%1 p=*]`, and `[%2 p=(list tank)]`. |
-| `wonk` | A wet gate that extracts `p` from the successful `q` of an `edge` and crashes on an absent result. `$-(edge *)` describes its type-erased input and result, but an exact account of the Hoon gate's wet specialization remains open. |
+| `wonk` | A wet gate that extracts `p` from the successful `q` of an `edge` and crashes on an absent result. The prelude's Jibb gate takes `(like A)` and returns its product `A`; it has been parsed but not yet type-checked or run through a backend. |
 
 The following shapes can be written as Jibb declarations once their referenced prelude molds are present:
 
@@ -121,7 +121,7 @@ The following shapes can be written as Jibb declarations once their referenced p
   [%2 p=(list tank)]
 ```
 
-The compiler-result `tone.hoon` has the three cases listed above; the qualified name is a prelude group member, not a `+$` identifier containing a dot. Question 15 in [open-questions.md](open-questions.md) records @iko's decision that `@` is an unrestricted atom, resolving the `dime` and `pint` mismatch. The interfaces of the wet gates still need resolution before the inventory's 3g signatures can be considered complete.
+The compiler-result `tone.hoon` has the three cases listed above; the qualified name is a prelude group member, not a `+$` identifier containing a dot. Question 15 in [open-questions.md](open-questions.md) records @iko's decision that `@` is an unrestricted atom, resolving the `dime` and `pint` mismatch. The callable value form of `like` remains unresolved. The new `like` mold and `wonk` gate parse, but full type and backend validation remain outstanding.
 
 ## 4a
 

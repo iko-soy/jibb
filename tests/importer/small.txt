@@ -14,6 +14,11 @@
 +$  compound-fields  [one=(map @ud (jar @t @ud)) two=(list (jug @t @ud))]
 +$  mop-test  ((mop @ud @t) lte)
 +$  nested-mop  [table=((mop @ud @t) lte) other=@ud]
++$  two-mops  [a=((mop @ud @t) lte) b=((mop @t @ud) lte)]
++$  mixed-mop  [a=((mop @ud @t) lte) b=(list @ud)]
++$  named-mop  [a=((mop @ud word) lte) b=@ud]
++$  word  @t
++$  mop-list  (list ((mop @ud @t) lte))
 +$  signed  @sd
 +$  float  @rd
 +$  gate-test  $-(@ud @ud)

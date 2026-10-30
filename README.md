@@ -86,7 +86,7 @@ A sync with nothing to commit takes about 2 s. A commit adds 3 to 10 s, and 300 
 
 `tools/ship check-commit` proves that `|commit` stores `.jibb` files. It syncs `my-app`, reads every `/ui` file back with `%cx`, byte for byte, and converts `%jibb` to `%mime` and `%txt` and back. It commits half-written files, then deletes them. It merges a file that two desks changed on different lines, and checks that changes to the same line conflict. It can be rerun, and it leaves the two scratch desks it merges with (`%jibb-check-ours` and `%jibb-check-theirs`) holding only what `|new-desk` gives, unmounted.
 
-`tools/clay-fixtures` syncs `my-app` and checks through Clay that its example `/sur` files and marks build. It compares the result with the golden file under `tests/clay-fixtures/`.
+`tools/clay-fixtures` syncs `my-app`, builds its example `/sur` files and marks through Clay, and checks selected molds read from the compiled `/sur` type graphs. It compares both results with golden files under `tests/clay-fixtures/`.
 
 For anything else:
 

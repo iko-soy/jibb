@@ -61,7 +61,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
 | `tools/importer-test` | Compares the partial Hoon importer's diagnostic trees and errors with `tests/importer/tree.txt` under `urbit eval` |
 | `tools/type-import-test` | Composes the Hoon importer with the partial checker and compares `tests/type-import/expected.txt` under eval |
-| `tools/clay-fixtures` | Syncs `my-app` and checks that its example `/sur` files and marks build through Clay on the fake ship |
+| `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, and checks selected imported mold projections on the fake ship |
 | `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
 | `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
@@ -83,7 +83,7 @@ tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date
 tools/ship test                    # the cases pass as -test arms on the ship
 tools/testdata/ship-selftest       # when tools/ship changed
 tools/ship check-commit            # when the mark or the desks changed
-tools/clay-fixtures                # when the my-app Hoon fixtures changed
+tools/clay-fixtures                # when the my-app Hoon fixtures or importer changed
 ```
 
 `tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval.

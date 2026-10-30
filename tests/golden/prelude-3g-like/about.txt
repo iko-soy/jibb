@@ -1,0 +1,4 @@
+source: Overview, Prelude: "The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out"; Hoon 3g includes `like` and `wonk`.
+tests: The prelude's `like` generic edge mold and `wonk` extractor; the callable value form of `like` is a separate, unresolved question. The source is the complete current prelude.
+expect: parses
+expect-types: a partial inference report, not a checked module; generic molds and the `wonk` body are not fully checked yet

@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ keep: $-(A A) where A is an atom
+++ ship: @p
+++ cord: @t
+++ flag: ?
+++ bad: call's sample and argument types do not unify
+++ first: $-([A A] A) where A is an atom
+++ decimal: cast mold and expression type do not unify
+++ relay: cast mold and expression type do not unify

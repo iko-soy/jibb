@@ -1,0 +1,12 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+@@READER@@
+=/  now=@da  now.bowl
+=/  todo=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/todo/hoon)
+=/  blog=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/blog/hoon)
+=/  tc=type  -.todo
+=/  bc=type  -.blog
+=/  item  (read-mold-in:reader %todo %item (~(play ut tc) (ream '*item')) tc)
+=/  action  (read-mold-in:reader %todo %action (~(play ut tc) (ream '*action')) tc)
+=/  post  (read-mold-in:reader %blog %post (~(play ut bc) (ream '*post')) bc)
+(pure:m !>([(crip (show-result:reader item)) (crip (show-result:reader action)) (crip (show-result:reader post))]))

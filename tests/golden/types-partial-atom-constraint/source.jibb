@@ -1,0 +1,14 @@
+++ keep |= x=A
+  ~& ^- @ x
+    x
+++ ship (keep ~zod)
+++ cord (keep "hello")
+++ flag (keep %.y)
+++ bad (keep [~zod "hi"])
+++ first |= p=[A A]
+  ?- p
+    [a b]
+      ~& ^- @ a
+        b
+++ decimal ^- ? 1
+++ relay ^- ? (keep 7)

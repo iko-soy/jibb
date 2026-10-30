@@ -13,8 +13,10 @@
 ::  A direct $^ is read from its original branches and accepted only when
 ::  their imported shapes prove disjoint. Nested $^ and some valid but
 ::  unprovably disjoint cases remain unsupported. Source-level overlap in
-::  other unions, nested ordered maps, Ford import provenance, marks and
-::  full error locations still need work.
+::  other unions, general nested ordered maps, Ford import provenance,
+::  marks and full error locations still need work. A nested ordered map
+::  is recovered only in records whose other fields, keys and values are
+::  syntactically fixed atom molds; other source shapes fail closed.
 ::
 ::  The checker has a small bridge for successful unfaced atom and cell
 ::  results; it rejects other importer shapes. Failures return %|; no
@@ -188,8 +190,37 @@
       ==
   ==
 ::
+::  Replace direct mop expressions in records with a simple placeholder;
+::  recover-alias restores each from its original source specs afterward.
+::  Only rewrite a record whose other fields are visibly fixed atom
+::  molds. A general dependent mold could change when a field changes.
+++  patchable-mop-record
+  |=  src=hoon
+  ^-  ?
+  ?^  -.src  &($(src -.src) $(src +.src))
+  ?+  src  |
+    [%note *]  $(src q.src)
+    [%ktts *]  $(src q.src)
+    [%ktls *]  ?=([%sand *] p.src)
+    [%cncl *]
+      =/  specs  (mop-specs src)
+      ?~  specs  |
+      &(?=([%base [%atom *]] key.u.specs) ?=([%base [%atom *]] value.u.specs))
+  ==
+::
+++  patch-mops
+  |=  src=hoon
+  ^-  hoon
+  ?^  -.src  [$(src -.src) $(src +.src)]
+  ?+  src  src
+    [%note *]  src(q $(src q.src))
+    [%ktts *]  src(q $(src q.src))
+    [%cncl *]  ?:  ?=(^ (mop-specs src))  (ream '*@t')
+               src
+  ==
+::
 ++  recover-alias
-  |=  [src=hoon out=imported]
+  |=  [src=hoon out=imported subject=type module=term sig=signatures seen=visiting context=(unit type)]
   ^-  (each imported @t)
   ?.  (has-hidden-alias src)  [%& out]
   ?^  -.src
@@ -215,6 +246,17 @@
         [%& *]  [%& [%face name.out p.child]]
       ==
     [%cncl *]
+      =/  mop=(unit [key=spec value=spec])  (mop-specs src)
+      ?^  mop
+        =/  attempt=(each [type type] tang)
+          (mule |.([(~(play ut subject) [%kttr key.u.mop]) (~(play ut subject) [%kttr value.u.mop])]))
+        ?-  attempt
+          [%| *]  [%| 'a nested Hoon mop needs source-aware import']
+          [%& *]
+            =/  key  (walk module -.p.attempt sig seen context)
+            =/  val  (walk module +.p.attempt sig seen context)
+            [%& [%apply %mop ~[key val]]]
+        ==
       =/  alias  (source-alias src)
       ?~  alias  [%| 'a nested collection alias needs source-aware import']
       =/  original=(each imported @t)
@@ -361,13 +403,9 @@
   ?@  src  |
   |($(src -.src) $(src +.src))
 ::
-++  mop-arguments-raw
-  |=  h=type
-  ^-  (unit [key=type value=type])
-  ?.  ?=([%hold *] h)  ~
-  =/  original=hoon  q.h
-  ?.  ?=([%tsls [%note * *] *] original)  ~
-  =/  body=hoon  q.p.original
+++  mop-specs-raw
+  |=  body=hoon
+  ^-  (unit [key=spec value=spec])
   ?.  ?=([%cncl *] body)  ~
   ?.  ?=([%tsgr *] p.body)  ~
   =/  b=hoon  q.p.body
@@ -377,7 +415,27 @@
   ?.  =(p.p.p.b ~[%mop])  ~
   =/  specs=(list spec)  ;;((list spec) q.p.b)
   ?.  ?=([* [* ~]] specs)  ~
-  [~ [(~(play ut p.h) [%kttr i.specs]) (~(play ut p.h) [%kttr i.t.specs])]]
+  [~ [i.specs i.t.specs]]
+::
+++  mop-specs
+  |=  body=hoon
+  ^-  (unit [key=spec value=spec])
+  =/  attempt=(each (unit [key=spec value=spec]) tang)
+    (mule |.((mop-specs-raw body)))
+  ?-  attempt
+    [%& *]  p.attempt
+    [%| *]  ~
+  ==
+::
+++  mop-arguments-raw
+  |=  h=type
+  ^-  (unit [key=type value=type])
+  ?.  ?=([%hold *] h)  ~
+  =/  original=hoon  q.h
+  ?.  ?=([%tsls [%note * *] *] original)  ~
+  =/  specs  (mop-specs q.p.original)
+  ?~  specs  ~
+  [~ [(~(play ut p.h) [%kttr key.u.specs]) (~(play ut p.h) [%kttr value.u.specs])]]
 ::
 ++  mop-arguments
   |=  h=type
@@ -453,7 +511,28 @@
       ?^  mop
         [%apply %mop ~[$(typ key.u.mop) $(typ value.u.mop)]]
       ?:  (source-uses q.typ %mop)
-        [%bad 'a nested Hoon mop needs source-aware import']
+        ?.  ?=([%tsls [%note * *] *] q.typ)
+          [%bad 'a nested Hoon mop needs source-aware import']
+        =/  original=hoon  q.typ
+        ?>  ?=([%tsls [%note * *] *] original)
+        =/  source=hoon  q.p.original
+        ?.  (patchable-mop-record source)
+          [%bad 'a nested Hoon mop needs source-aware import']
+        =/  patched=hoon  (patch-mops source)
+        ?:  |(=(source patched) (source-uses patched %mop))
+          [%bad 'a nested Hoon mop needs source-aware import']
+        =/  replacement=hoon  original(q.p patched)
+        =/  attempt=(each type tang)  (mule |.((~(play ut p.typ) replacement)))
+        ?-  attempt
+          [%| *]  [%bad 'a nested Hoon mop needs source-aware import']
+          [%& *]
+            =/  projected  $(typ p.attempt, seen [[typ nm] seen])
+            =/  corrected  (recover-alias source projected p.typ module sig seen context)
+            ?-  corrected
+              [%| *]  [%bad p.corrected]
+              [%& *]  p.corrected
+            ==
+        ==
       =/  branches  (cell-branches typ)
       ?^  branches
         =/  first  $(typ left.u.branches, seen [[typ nm] seen])
@@ -472,14 +551,14 @@
         ?.  hidden  body
         ?.  ?=([%tsls [%note * *] *] q.typ)
           [%bad 'a nested collection alias needs source-aware import']
-        =/  corrected  (recover-alias q.p.q.typ body)
+        =/  corrected  (recover-alias q.p.q.typ body p.typ module sig seen context)
         ?-  corrected
           [%& *]  p.corrected
           [%| *]  [%bad p.corrected]
         ==
       ?.  ?=([%tsls [%note * *] *] q.typ)
         [%bad 'a Hoon collection alias could not be recovered']
-      =/  corrected  (recover-alias q.p.q.typ body)
+      =/  corrected  (recover-alias q.p.q.typ body p.typ module sig seen context)
       ?-  corrected
         [%& *]  p.corrected
         [%| *]  [%bad p.corrected]
@@ -582,8 +661,16 @@
   =/  expect-mop=imported  [%apply %mop ~[[%atom %ud ~] [%atom %t ~]]]
   =/  errors  ?:  =((sample %mop-test) [%& expect-mop])  errors
     ['ordered map name and arguments' errors]
-  =/  errors  ?:  =((sample %nested-mop) [%| 'a nested Hoon mop needs source-aware import'])  errors
-    ['nested ordered map remains unsupported' errors]
+  =/  expect-nested-mop=imported
+    [%cell [%face %table expect-mop] [%face %other [%atom %ud ~]]]
+  =/  errors  ?:  =((sample %nested-mop) [%& expect-nested-mop])  errors
+    ['ordered map field is preserved' errors]
+  =/  errors  ?:  =((sample %mixed-mop) [%| 'a nested Hoon mop needs source-aware import'])  errors
+    ['non-atom sibling remains unsupported' errors]
+  =/  errors  ?:  =((sample %named-mop) [%| 'a nested Hoon mop needs source-aware import'])  errors
+    ['non-atom argument remains unsupported' errors]
+  =/  errors  ?:  =((sample %mop-list) [%| 'a nested Hoon mop needs source-aware import'])  errors
+    ['ordered map in a list remains unsupported' errors]
   =/  errors  ?:  =((sample %signed) [%| 'signed and float auras cannot be imported'])  errors
     ['signed aura rejected' errors]
   =/  errors  ?:  =((sample %float) [%| 'signed and float auras cannot be imported'])  errors
@@ -598,6 +685,8 @@
     ['disjoint cell union' errors]
   =/  errors  ?:  =((sample %invalid-cell) [%| 'a Hoon $^ union has overlapping cases'])  errors
     ['overlapping cell union is rejected' errors]
+  =/  errors  ?:  =((shad %mn) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
+    ['local mop shadow in a field is rejected' errors]
   =/  errors  ?:  =((shad %mm) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
     ['local mop shadow is rejected' errors]
   =/  errors  ?:  =((shad %aa) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
@@ -695,6 +784,10 @@
       (crip "compound-fields: {(show-result (sample %compound-fields))}")
       (crip "mop: {(show-result (sample %mop-test))}")
       (crip "nested-mop: {(show-result (sample %nested-mop))}")
+      (crip "two-mops: {(show-result (sample %two-mops))}")
+      (crip "mixed-mop: {(show-result (sample %mixed-mop))}")
+      (crip "named-mop: {(show-result (sample %named-mop))}")
+      (crip "mop-list: {(show-result (sample %mop-list))}")
       (crip "signed: {(show-result (sample %signed))}")
       (crip "float: {(show-result (sample %float))}")
       (crip "gate: {(show-result (sample %gate-test))}")
@@ -708,6 +801,7 @@
       (crip "chapter-wrapped-hit: {?:(=((chapter-has [~ chapter-tree] %jar) [~ &]) "yes" "no")}")
       (crip "chapter-direct-miss: {?:(=((chapter-has chapter-tree %jug) [~ &]) "yes" "no")}")
       (crip "chapter-wrapped-miss: {?:(=((chapter-has [~ chapter-tree] %jug) [~ &]) "yes" "no")}")
+      (crip "shadow-nested-mop: {(show-result (shad %mn))}")
       (crip "shadow-mop: {(show-result (shad %mm))}")
       (crip "shadow-jar: {(show-result (shad %aa))}")
       (crip "shadow-jug: {(show-result (shad %bb))}")

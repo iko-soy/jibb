@@ -4,7 +4,7 @@ partial inference; module not checked
 ++ widen: @
 ++ flag: @
 ++ narrow: cast mold and expression type do not unify
-++ constrained: cast constraint is not supported by partial inference
+++ constrained: $-(A @) where A is an atom
 ++ nested: call constraint is not supported by partial inference
 +$ open: not checked
 ++ named: $-(@ @)

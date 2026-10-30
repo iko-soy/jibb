@@ -1,0 +1,4 @@
+source: a type variable used where an atom is required gains an atom constraint; printed types show `where A is an atom`.
+tests: the constraint generalizes, is instantiated independently for ship, cord and loobean, rejects a cell, remains shared at two positions, and does not allow decimal literals to become loobeans even through a generic call.
+expect: parses
+expect-types: a partial inference report, not a checked module
