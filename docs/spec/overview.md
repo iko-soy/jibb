@@ -63,9 +63,9 @@ Hoon's runes and literals in an indentation layout, over Hoon's nouns and molds,
 
 | Hoon | Jibb |
 | --- | --- |
-| `$%`, `$?` | `$?` |
-| `$@` | `$?` with an atom case |
-| `$^` | `$?` if its cases differ as nouns, else an error where used |
+| `$%`, `$?` | A union |
+| `$@` | A union with an atom case |
+| `$^` | A union if its cases differ as nouns, else an error where used |
 | `$~` | Dropped |
 | `map`, `set`, `qeu`, `jar`, `jug` | The same, by name, checked with `apt` on arrival |
 | `mop` | `(mop K V)`, read with `on` |
@@ -74,7 +74,7 @@ Hoon's runes and literals in an indentation layout, over Hoon's nouns and molds,
 | Recursive molds, such as `json` | Recursive, matched by name |
 | Cores, gates, vases, signed and float auras | An error where used |
 
-Unused molds are skipped, so unsupported constructs elsewhere in a `/sur` file are fine.
+Unused molds are skipped, so unsupported constructs elsewhere in a `/sur` file are fine. A union without a name, as a field's `?(%approve %deny)`, imports too, though Jibb can't write one.
 
 ## Prelude
 
@@ -138,13 +138,13 @@ Loads and renders run in Nock.
 **Effects.** Commands and subscriptions are library values:
 
 ```jibb
-+$ cmd |$ [M] $?
++$ cmd |$ [M]
   [%poke p=poke reply=$-((unit @t) M)]
   [%go url=@t]
   [%wait gap=@dr msg=M]
   [%now reply=$-(@da M)]
   [%who reply=$-(@p M)]
-+$ sub |$ [M] $?
++$ sub |$ [M]
   [%watch a=(ask M)]
   [%every gap=@dr reply=$-(@da M)]
   [%url reply=$-(path M)]
@@ -290,7 +290,7 @@ Each agent Jibb talks to has `/ui/api/<agent>.jibb`, declaring its pokes in `+$ 
 
 +$ item item.todo
 +$ poke todo-action
-+$ paths $?
++$ paths
   [%todos /todos todos]
   [%changes /changes (facts todos todo-update)]
   [%todo /todo/[id=@ud] todo-item]
@@ -453,7 +453,7 @@ A `page`: each request scries `%blog` and renders in Nock.
 ++ main (program init update view subs)
 
 +$ model [todos=(list item.todo) draft=@t error=(unit @t)]
-+$ msg $?
++$ msg
   [%typed text=@t]
   %submit
   [%toggled id=@ud]

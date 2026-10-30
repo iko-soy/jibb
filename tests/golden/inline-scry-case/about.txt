@@ -1,3 +1,3 @@
 source: the first tab ("Jibb — an Elm-architecture UI language for Urbit"), Agent APIs: "A case can name another scry path, as in `[%changes /updates (facts todos todo-update) scry=/todos]`, used only by pages."
-tests: a union case holding a path mold, a mold application and a faced path mold
+tests: a single case below a definition, holding a path mold, a mold application and a faced path mold
 expect: parses

@@ -1,5 +1,5 @@
       ::  an indented comment before the first code line
-+$ msg $?
++$ msg
      ::  a comment deeper than the cases
   %a
  ::  a comment shallower than the cases

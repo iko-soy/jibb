@@ -1,0 +1,3 @@
+/tests/golden/inline-hoon-union-gate-bad/source.jibb:1:10: expected a space between items, found `(`; a union is a `+$` with its cases below
++$ x $-(?(%a %b) @t)
+         ^

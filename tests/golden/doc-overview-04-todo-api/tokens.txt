@@ -23,7 +23,6 @@
 10:1 NEWLINE
 10:1 glyph +$
 10:4 name paths
-10:10 glyph $?
 11:3 INDENT
 11:3 glyph [
 11:4 tight lit %todos

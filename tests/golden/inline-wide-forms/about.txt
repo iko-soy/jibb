@@ -1,3 +1,3 @@
-source: Grammar tab, Runes: "Only `|=`, `$?` and `$-` have wide forms: `|=(sample expr)`, `$?(case case)`, `$-(mold mold)`."
-tests: the three wide forms, written as the doc writes them
+source: Grammar tab, Runes: "Only `|=` and `$-` have wide forms: `|=(sample expr)` and `$-(mold mold)`."
+tests: the two wide forms, written as the doc writes them
 expect: parses; in x the bare name sample binds and expr is the body

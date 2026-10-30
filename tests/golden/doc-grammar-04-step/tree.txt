@@ -1,6 +1,6 @@
 (module
   (mold 1:1 step
-    (union 1:9
+    (union 2:3
       (cell 2:3
         (const 2:4 %move)
         (const 2:10 %left)

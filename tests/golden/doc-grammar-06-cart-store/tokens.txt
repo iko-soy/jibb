@@ -14,7 +14,6 @@
 3:1 NEWLINE
 3:1 glyph +$
 3:4 name cart-action
-3:16 glyph $?
 4:3 INDENT
 4:3 glyph [
 4:4 tight lit %add

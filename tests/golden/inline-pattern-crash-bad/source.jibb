@@ -1,4 +1,7 @@
-++ f |= s=$?(%go %stop)
++$ action
+  %go
+  %stop
+++ f |= s=action
   ?- s
     %go  1
     !!   2

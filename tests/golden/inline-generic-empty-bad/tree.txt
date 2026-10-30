@@ -1,0 +1,3 @@
+/tests/golden/inline-generic-empty-bad/source.jibb:2:1: expected a mold, on its line or a deeper one, found a line at the same depth
++$ y @
+^

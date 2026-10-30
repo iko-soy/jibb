@@ -1,0 +1,4 @@
+(module
+  (mold 1:1 x
+    (generic 1:6 A
+      (apply 2:3 list (tvar 2:9 A)))))

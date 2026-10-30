@@ -11,7 +11,7 @@
       (face 5:43 error
         (apply 5:49 unit (aura 5:55 @t)))))
   (mold 6:1 msg
-    (union 6:8
+    (union 7:3
       (cell 7:3
         (const 7:4 %typed)
         (face 7:11 text (aura 7:16 @t)))

@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`|$` **barbuc**: a generic mold, right after a `+$`'s name: `+$ result |$ [V E]`, then the mold on its line or the cases below."
+tests: `|=` immediately after a definition name, where `|$` may begin
+expect: error at 1:7 — `|` could begin `|$`, but `=` cannot continue it

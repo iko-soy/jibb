@@ -1,3 +1,3 @@
-source: Grammar tab, Molds: "Generic molds: `+$ result |$ [V E] $?` with cases below."
+source: Grammar tab, Molds: "Generic molds: `+$ result |$ [V E]` with cases below; `|$` goes only right after a `+$`'s name."
 tests: a generic mold of two type variables over a union whose cases are on the deeper lines (the two cases are this case's own; the doc says only "with cases below")
 expect: parses

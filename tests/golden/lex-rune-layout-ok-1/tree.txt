@@ -39,4 +39,4 @@
       (face 16:4 a (aura 16:6 @))
       (face 16:8 b (aura 16:10 @))))
   (mold 17:1 h
-    (union 18:3 (const 19:5 %a) (const 20:5 %b))))
+    (union 18:3 (const 18:3 %a) (const 19:3 %b))))

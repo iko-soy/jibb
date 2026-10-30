@@ -1,0 +1,3 @@
+/tests/golden/inline-generic-field-bad/source.jibb:1:9: expected a mold, found `|$`; `|$` goes right after a `+$`'s name, as in +$ result |$ [V E]
++$ x [a=|$ [A] A]
+        ^

@@ -1,3 +1,3 @@
-source: Grammar tab, Lexical rules: "Tight forms: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$?(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`."
+source: Grammar tab, Lexical rules: "Tight forms: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`."
 tests: `$- (`: the gate mold's opener written with a space
 expect: error at 1:8 — `$-` has only the wide form $-(sample product), so `(` must follow it at once

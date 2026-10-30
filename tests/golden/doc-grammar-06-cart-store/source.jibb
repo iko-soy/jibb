@@ -1,6 +1,6 @@
 ::  /ui/stores/cart.jibb
 +$ state [items=(list @t) open=?]
-+$ cart-action $?
++$ cart-action
   [%add item=@t]
   %toggle
 +$ poke cart-action

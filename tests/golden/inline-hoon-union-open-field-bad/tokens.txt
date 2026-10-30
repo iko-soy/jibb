@@ -1,0 +1,13 @@
+1:1 glyph +$
+1:4 name x
+1:6 glyph [
+2:3 INDENT
+2:3 name dir
+2:6 tight glyph =
+2:7 tight glyph ?
+2:8 tight glyph (
+2:9 tight lit %l
+2:12 lit %r
+2:14 tight glyph )
+2:15 DEDENT
+2:15 NEWLINE

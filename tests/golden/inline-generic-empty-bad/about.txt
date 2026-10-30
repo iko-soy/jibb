@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`|$` **barbuc**: a generic mold, right after a `+$`'s name: `+$ result |$ [V E]`, then the mold on its line or the cases below."
+tests: a generic definition with no body below its type variables
+expect: error at 2:1 — the generic body can follow on a deeper line

@@ -8,7 +8,7 @@
       (face 6:11 cart (ref 6:16 state.cart))
       (face 6:27 note (aura 6:32 @t))))
   (mold 7:1 msg
-    (union 7:8
+    (union 8:3
       (cell 8:3
         (const 8:4 %noted)
         (face 8:11 text (aura 8:16 @t)))

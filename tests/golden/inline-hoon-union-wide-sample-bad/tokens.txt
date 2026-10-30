@@ -1,0 +1,13 @@
+1:1 glyph ++
+1:4 name f
+1:6 glyph |=(
+1:9 tight name s
+1:10 tight glyph =
+1:11 tight glyph ?
+1:12 tight glyph (
+1:13 tight lit %a
+1:16 lit %b
+1:18 tight glyph )
+1:20 name s
+1:21 tight glyph )
+1:22 NEWLINE

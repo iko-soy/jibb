@@ -15,7 +15,7 @@ As of 2026-10-30, at commit ab797a9. The plan is [spec/implementation-plan.md](s
 
 The plan sets no dates: "agree them after milestone 1, once it shows how fast the Hoon work goes". They haven't been agreed yet. Milestone 1's commits run from 2026-10-29 18:13 UTC to 2026-10-30 11:50 UTC.
 
-Decided on 2026-10-30 and not done yet: Jibb drops `$?`, so a `+$` takes a union's cases on the lines below its name. The doc, the parser and the tests still have `$?`. [prompts/drop-union-rune.md](prompts/drop-union-rune.md) briefs the change, which comes before milestone 2.
+On 2026-10-30, @iko decided that Jibb drops `$?`, so a `+$` takes a union's cases on the lines below its name. [prompts/drop-union-rune.md](prompts/drop-union-rune.md) records the change before milestone 2. The repository spec records the decision; the Claude document still needs to be synchronized.
 
 ## Milestone 1: parser and mark
 
@@ -33,7 +33,7 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 344 golden cases: 152 that parse and 192 that fail, each failure at a stated line and column. Each case's `about.txt` quotes the doc's words it tests.
+- 368 golden cases: 153 that parse and 215 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). Each case's `about.txt` quotes the doc's words it tests.
 - They pass under `urbit eval` (`tools/golden`, about 9 s for the corpus) and as `-test` arms on the fake ship (`tools/ship test`).
 - `tools/testdata/selftest` (18 checks) and `tools/testdata/ship-selftest` test the tools themselves.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
@@ -49,19 +49,20 @@ Besides the plan's list:
 | 7c739b7 | 2026-10-30 | Fixes from two independent audits; milestone 1 done |
 | 5a4aa73 | 2026-10-30 | `tools/doc-blocks`, after the doc labelled its Jibb blocks |
 | ab797a9 | 2026-10-30 | The 12 grammar decisions of 2026-10-30: four changed the parser, eight confirmed it |
+| This change | 2026-10-30 | Drop `$?`; `+$` takes union cases below its name |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 344 cases under urbit eval
+tools/golden                      # 368 cases under urbit eval
 tools/hoon check-spans-test       # prints <<>> when the span checker works
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 344 cases as -test arms on the ship
+tools/ship test                   # the same 368 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/ship check-commit           # |commit stores .jibb files
 ```

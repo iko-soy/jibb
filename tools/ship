@@ -1657,7 +1657,7 @@ MERGE_BASE = b"""\
 ++ main (program init update view subs)
 
 +$ model [todos=(list item.todo) draft=@t error=(unit @t)]
-+$ msg $?
++$ msg
   [%typed text=@t]
   %submit
   [%toggled id=@ud]

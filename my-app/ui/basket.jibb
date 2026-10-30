@@ -4,7 +4,7 @@
 ++ main (program init update view subs)
 
 +$ model [cart=state.cart note=@t]
-+$ msg $?
++$ msg
   [%noted text=@t]
   %add
   %toggle

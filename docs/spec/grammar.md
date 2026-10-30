@@ -9,7 +9,7 @@ The syntax the compiler accepts.
 - **Indentation is structure**: a deeper line continues the line above; returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count.
 - **Layout tokens**: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE.
 - **Open brackets**: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual. A mold's `[` and `(` open the same way, with one field or mold per deeper line. A line may leave several brackets open: the deeper lines go to the last one, or to the body of the last rune, and the others close with it, so `(column ~ ~[` above its items needs no `)`.
-- **Tight forms**: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$?(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`.
+- **Tight forms**: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`.
 - **Spacing**: one space between items; more for alignment. That is style, which the formatter keeps: the parser takes one or more spaces between items, and allows spaces after an opener, before a closer and at the end of a line. Faces `name=value`, puns `=name` and typed path segments `[id=@ud]` take no spaces, and a rune is followed by one.
 - **Comments**: `::` to the end of the line, outside strings; inside a string, `::` is text.
 - **Names**: Hoon terms; lowercase letters, digits and hyphens, starting with a letter.
@@ -54,22 +54,21 @@ Every literal reads exactly as Hoon reads it: `1000` is an error (write `1.000`)
 A rune's first children sit on its line, the last taking the rest of it; the others follow, indented.
 
 - `++` **luslus**: defines a value, at top level or as local names at the start of any body (a gate's, an arm's, a `^-`'s, a `~&`'s or a `++`'s), visible to each other and the final expression. Gates may call themselves and their siblings; other values can't refer to themselves, so `++ title (trim title)` is an error.
-- `+$` **lusbuc**: defines a mold, likewise; molds may be recursive.
+- `+$` **lusbuc**: defines a mold, likewise: on its line, or as cases on the lines below, one per line, where several cases make a union and one is just that mold. Molds may be recursive.
 - `|=` **bartis**: a gate with a faced sample, `m=model`, `=msg` (`msg=msg`) or `[a=@ b=@]`; the body on the same line or below.
-- `$?` **bucwut**: a union, one case per line or `$?(%a %b)`; cases must differ as nouns.
 - `?-` **wuthep**: the only branch, exhaustive; the subject on its line, then arms of a pattern and an expression or body. Conditions switch on `%.y` and `%.n`.
 - `^-` **kethep**: a cast; the mold on its line, the expression after it or below.
 - `~&` **sigpam**: prints the value on its line, then runs the body below; output goes to the ship's log or the browser's console.
 - `!!` **zapzap**: a crash, an expression of any type; as a mold, the empty mold. It is an operand, so `f !!` and `~[!!]` need no parentheses.
 - `$-` **buchep**: a gate's mold, `$-(sample product)`.
-- `|$` **barbuc**: a generic mold, `|$ [A] mold`.
+- `|$` **barbuc**: a generic mold, right after a `+$`'s name: `+$ result |$ [V E]`, then the mold on its line or the cases below.
 
-Only `|=`, `$?` and `$-` have wide forms: `|=(sample expr)`, `$?(case case)`, `$-(mold mold)`. Their children are operands, so calls inside need parentheses.
+Only `|=` and `$-` have wide forms: `|=(sample expr)` and `$-(mold mold)`. Their children are operands, so calls inside need parentheses.
 
 Left out on purpose:
 
 - `|%`, `|_`, `|*`: modules are records.
-- `$%`: `$?` covers unions.
+- `$?`, `$%`: a union is a `+$` with its cases below.
 - `?+`, `?:`: `?-` is the branch.
 - `.=`, `?!`, `=(a b)`, `!x`: `eq` and `not` are gates.
 - `=/`: `++` defines values.
@@ -124,18 +123,18 @@ A mold is only a type: never called on a noun, and with no default. Types are in
 - **Atoms**: `@` and auras such as `@ud`, `@t`, `@p`, `@da`; `?` is a loobean. `@` is an atom whose aura isn't known yet, fixed by what it meets: `add` takes `[@ @]` and returns `@`, all one aura, so `(add n 1)` with `n=@ud` is a `@ud`. Different auras never unify. A bare `@` in a `+$` is one aura variable per module, `@ud` if unfixed.
 - **Constants**: `%add`, `~` and the loobeans have one value each.
 - **Records and tuples**: `[text=@t done=?]`, `[@t ?]`. Faces are part of the type, so `[a=@ b=@]` and `[x=@ y=@]` don't unify. A record too long for one line can leave its `[` open, with one field per deeper line, as an expression's bracket does.
-- **Unions**: `$?`; tags take their union from context, as Tag resolution describes. Cases must differ as nouns: at some position of their right-nested cells, one is an atom and the other a cell, or both are different constants. `*`, type variables and molds that can be either, such as `(list A)` or `?`, overlap both. A union whose cases don't all differ is rejected.
+- **Unions**: a `+$` with several cases below it. Every union written in Jibb has a name, so one used in a field, a sample, a cast, a gate's mold or an argument gets its own `+$`; only imports bring in unions without one. Tags take their union from context, as Tag resolution describes. Cases must differ as nouns: at some position of their right-nested cells, one is an atom and the other a cell, or both are different constants. `*`, type variables and molds that can be either, such as `(list A)` or `?`, overlap both. A union whose cases don't all differ is rejected.
 - **Containers**: `(list A)`, `(unit A)`, `(set A)`, `(map K V)`, `(mop K V)`, `(qeu A)`, `(jar K V)`, `(jug K V)`.
 - **Gates**: `$-(A B)`. Type variables are capitals, generalized per `++`.
 - **Paths**: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura. `%/blog/(slug)` is an `qath`, checked against routes and static files.
-- **Generic molds**: `+$ result |$ [V E] $?` with cases below.
+- **Generic molds**: `+$ result |$ [V E]` with cases below; `|$` goes only right after a `+$`'s name.
 - **Any noun**: `*`. **Empty**: `!!`.
 - **Opaque**: `poke`, `ask` and `qath`, built only by derived gates, `pure` and application-path literals. `(facts full diff …)` appears only in an API file's `paths`.
 - **Identity**: recursive molds go by name and module.
 
 ## Tag resolution
 
-A tag literal or `~` gets a fresh type variable and a pending constraint: the variable must become a union with a matching case, or an atom type the term fits. Once unification fixes the variable, each constraint is checked against the union's cases or, for `@tas`, `@ta`, `@` or `*`, makes the tag that constant atom. A literal that matches nothing is an error naming the union, such as "msg has no case %submitt".
+A tag literal or `~` gets a fresh type variable and a pending constraint: the variable must become a union with a matching case, or an atom type the term fits. A mold that isn't a union counts as a union of one case, for tags and for `|=%tag`: `[%go "x"]` fits `+$ go [%go url=@t]`, and `|=%typed` works against `$-(@t M)` when `M` is `[%typed text=@t]`. Once unification fixes the variable, each constraint is checked against the union's cases or, for `@tas`, `@ta`, `@` or `*`, makes the tag that constant atom. A literal that matches nothing is an error naming the union, such as "msg has no case %submitt".
 
 - A constraint records the literal's shape, such as `[@t %draft]`, and matches cases by shape and shared tag positions; a literal in a field position is checked against that field.
 - `|=%typed` is a case's constructor: against `$-(@t M)` it is `|=(t [%typed t])`, requiring `M` to have a case `[%typed @t]`. It works for cases tagged at their head; a bare tag is always a value.
@@ -197,7 +196,7 @@ Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare n
 Tags can sit anywhere in a case, and a case can carry several:
 
 ```jibb
-+$ step $?
++$ step
   [%move %left n=@ud]
   [%move %right n=@ud]
   [text=@t %draft]
@@ -227,8 +226,10 @@ Leaving out `%stop` is an error naming it; to crash instead, write `%stop !!`.
 
 module     = { import NEWLINE } { definition NEWLINE } ;
 import     = "/-" name | "/%" term | "/=" name pathlit ;
-definition = "+$" name ( mold | INDENT mold DEDENT )
+definition = "+$" name [ generic ] ( mold | cases )
            | "++" name ( expr | body ) ;
+generic    = "|$" "[" typevar { typevar } "]" ;
+cases      = INDENT mold { NEWLINE mold } DEDENT ;  (* one case is that mold; more make a union *)
 
 body       = INDENT { definition NEWLINE } expr DEDENT ;
 expr       = rune | call ;
@@ -261,10 +262,7 @@ mold       = aura | "*" | "!!" | "?" | "~" | term | loobean | ref | typevar
            | pathmold
            | "(" ref mold { mold } ")" | "(" ref { mold } mlines
            | "[" field { field } "]" | "[" { field } flines
-           | "$?" INDENT mold { NEWLINE mold } DEDENT
-           | "$?(" mold { mold } ")"
-           | "$-(" mold mold ")"
-           | "|$" "[" typevar { typevar } "]" mold ;
+           | "$-(" mold mold ")" ;
 field      = [ name "=" ] mold | "=" name ;     (* =msg is msg=msg *)
 mlines     = INDENT mold { NEWLINE mold } DEDENT ;    (* a mold's ( left open *)
 flines     = INDENT field { NEWLINE field } DEDENT ;  (* a mold's [ left open *)
@@ -291,7 +289,7 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
 ```jibb
 ::  /ui/stores/cart.jibb
 +$ state [items=(list @t) open=?]
-+$ cart-action $?
++$ cart-action
   [%add item=@t]
   %toggle
 +$ poke cart-action
@@ -311,7 +309,7 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
 ++ main (program init update view subs)
 
 +$ model [cart=state.cart note=@t]
-+$ msg $?
++$ msg
   [%noted text=@t]
   %add
   %toggle

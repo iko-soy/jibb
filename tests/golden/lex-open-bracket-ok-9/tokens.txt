@@ -2,7 +2,6 @@
 1:4 name v
 1:6 glyph (
 1:7 tight name map
-1:11 glyph $?
 2:3 INDENT
 2:3 lit %a
 3:3 NEWLINE
@@ -14,7 +13,6 @@
 4:6 glyph (
 4:7 tight name map
 4:11 aura @ud
-4:15 glyph $?
 5:3 INDENT
 5:3 lit %a
 6:3 NEWLINE

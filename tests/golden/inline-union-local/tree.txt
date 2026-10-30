@@ -1,0 +1,8 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 n (aura 1:11 @ud))
+      (body 2:3
+        (mold 2:3 local
+          (union 3:5 (const 3:5 %a) (const 4:5 %b)))
+        (wing 5:3 n)))))

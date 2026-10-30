@@ -1,6 +1,6 @@
 # Docs
 
-Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv). Where this repo and the doc disagree, the doc wins. This folder keeps a copy of the doc and what the doc doesn't hold: where the build stands, what is still open, and how to work on the code.
+Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), and its repository copy in `spec/`. The repository copy records the 2026-10-30 decision to drop `$?`; the Claude document still needs that change. This folder also holds where the build stands, what is still open, and how to work on the code.
 
 | File | What it holds |
 | --- | --- |
@@ -10,11 +10,11 @@ Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language f
 | [development.md](development.md) | Setting up a machine, the ground rules, the checks to run before pushing |
 | [compiler.md](compiler.md) | A map of `jibb-dev/lib/jibb.hoon`: its API, data, errors and printed formats |
 | [prompts/milestone-2.md](prompts/milestone-2.md) | A brief for the developer who builds milestone 2, types and prelude |
-| [prompts/drop-union-rune.md](prompts/drop-union-rune.md) | A brief for the developer who drops `$?`, as decided on 2026-10-30, before milestone 2 |
+| [prompts/drop-union-rune.md](prompts/drop-union-rune.md) | The completed brief for dropping `$?`, as decided on 2026-10-30, before milestone 2 |
 
 ## The spec
 
-`spec/` is a snapshot of the doc taken on 2026-10-30, after @iko's answers to the 12 grammar questions that day. Each file is one tab, exported as Markdown and not edited:
+`spec/` began as a snapshot of the doc taken on 2026-10-30, after @iko's answers to the 12 grammar questions that day. It has since been edited to record the decision to drop `$?`; the Claude document still needs those edits. Each file corresponds to one tab:
 
 | File | Tab |
 | --- | --- |
@@ -28,7 +28,7 @@ The doc has a sixth tab, "Loom on Urbit", which is empty, so it has no file.
 
 The overview's pipeline diagram, "Jibb pipeline · source to browser in three stages", is embedded content, so the export holds only a placeholder line for it under Architecture. The doc shows it.
 
-The snapshot can go stale. Before relying on a detail, check the doc. To refresh it, export each tab as Markdown again (in a Claude session, the Claude Docs connector's `export` gives each tab's Markdown), replace the files, and run:
+The two copies can diverge. Sync the decision to the Claude document before refreshing this copy, then export each tab as Markdown again (in a Claude session, the Claude Docs connector's `export` gives each tab's Markdown), replace the files, and run:
 
 ```
 git diff docs/spec          # what changed in the doc

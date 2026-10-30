@@ -90,11 +90,8 @@
 17:1 glyph +$
 17:4 name h
 18:3 INDENT
-18:3 glyph $?
-19:5 INDENT
-19:5 lit %a
-20:5 NEWLINE
-20:5 lit %b
-20:7 DEDENT
-20:7 DEDENT
-20:7 NEWLINE
+18:3 lit %a
+19:3 NEWLINE
+19:3 lit %b
+19:5 DEDENT
+19:5 NEWLINE

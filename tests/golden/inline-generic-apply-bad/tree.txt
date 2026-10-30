@@ -1,0 +1,3 @@
+/tests/golden/inline-generic-apply-bad/source.jibb:1:12: expected a mold, found `|$`; `|$` goes right after a `+$`'s name, as in +$ result |$ [V E]
++$ x (list |$ [A] A)
+           ^

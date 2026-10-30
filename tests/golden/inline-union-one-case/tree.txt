@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 go
+    (cell 2:3
+      (const 2:4 %go)
+      (face 2:8 url (aura 2:12 @t))))
+  (mold 3:1 go-inline
+    (cell 3:14
+      (const 3:15 %go)
+      (face 3:19 url (aura 3:23 @t)))))

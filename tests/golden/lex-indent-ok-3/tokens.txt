@@ -1,6 +1,5 @@
 2:1 glyph +$
 2:4 name msg
-2:8 glyph $?
 4:3 INDENT
 4:3 lit %a
 6:3 NEWLINE

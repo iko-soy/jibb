@@ -4,7 +4,6 @@
 1:11 glyph [
 1:12 tight tvar M
 1:13 tight glyph ]
-1:15 glyph $?
 2:3 INDENT
 2:3 glyph [
 2:4 tight lit %poke
@@ -66,7 +65,6 @@
 7:11 glyph [
 7:12 tight tvar M
 7:13 tight glyph ]
-7:15 glyph $?
 8:3 INDENT
 8:3 glyph [
 8:4 tight lit %watch

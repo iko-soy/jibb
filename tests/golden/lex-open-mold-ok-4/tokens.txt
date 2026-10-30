@@ -1,6 +1,5 @@
 1:1 glyph +$
 1:4 name msg
-1:8 glyph $?
 2:3 INDENT
 2:3 glyph [
 2:4 tight lit %add

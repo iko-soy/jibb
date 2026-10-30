@@ -7,7 +7,7 @@
 
 +$ item item.todo
 +$ poke todo-action
-+$ paths $?
++$ paths
   [%todos /todos todos]
   [%changes /changes (facts todos todo-update)]
   [%todo /todo/[id=@ud] todo-item]

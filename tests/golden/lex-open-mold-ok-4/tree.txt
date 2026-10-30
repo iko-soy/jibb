@@ -1,6 +1,6 @@
 (module
   (mold 1:1 msg
-    (union 1:8
+    (union 2:3
       (cell 2:3
         (const 2:4 %add)
         (face 3:5 text (aura 3:10 @t))

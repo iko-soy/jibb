@@ -1,6 +1,6 @@
-+$ v (map $?
++$ v (map
   %a
   %b
-+$ w (map @ud $?
++$ w (map @ud
   %a
   %b

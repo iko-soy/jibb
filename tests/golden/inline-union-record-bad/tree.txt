@@ -1,0 +1,3 @@
+/tests/golden/inline-union-record-bad/source.jibb:2:7: expected the end of the line, found `=`; a `+$`'s lines below are its cases; a record's fields go in a [ left open on the `+$` line
+  name=@t
+      ^

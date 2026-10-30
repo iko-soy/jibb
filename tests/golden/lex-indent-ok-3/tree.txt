@@ -1,6 +1,6 @@
 (module
   (mold 2:1 msg
-    (union 2:8 (const 4:3 %a) (const 6:3 %b)))
+    (union 4:3 (const 4:3 %a) (const 6:3 %b)))
   (value 7:1 f
     (gate 7:6
       (face 7:9 b (flag 7:11))

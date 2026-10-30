@@ -15,10 +15,10 @@
 4:1 DEDENT
 4:1 NEWLINE
 4:1 glyph +$
-4:4 name w
-4:6 glyph $?(
-4:9 tight lit %a
-4:12 glyph [
+4:4 name f
+4:6 glyph $-(
+4:9 tight aura @
+4:11 glyph [
 5:3 INDENT
 5:3 name b
 5:4 tight glyph =
@@ -26,27 +26,16 @@
 6:1 DEDENT
 6:1 NEWLINE
 6:1 glyph +$
-6:4 name f
-6:6 glyph $-(
+6:4 name g
+6:6 glyph [
+6:7 tight name a
+6:8 tight glyph =
 6:9 tight aura @
-6:11 glyph [
+6:11 name b
+6:12 tight glyph =
+6:13 tight glyph (
+6:14 tight name list
 7:3 INDENT
-7:3 name b
-7:4 tight glyph =
-7:5 tight aura @
-8:1 DEDENT
-8:1 NEWLINE
-8:1 glyph +$
-8:4 name g
-8:6 glyph [
-8:7 tight name a
-8:8 tight glyph =
-8:9 tight aura @
-8:11 name b
-8:12 tight glyph =
-8:13 tight glyph (
-8:14 tight name list
-9:3 INDENT
-9:3 aura @t
-9:5 DEDENT
-9:5 NEWLINE
+7:3 aura @t
+7:5 DEDENT
+7:5 NEWLINE

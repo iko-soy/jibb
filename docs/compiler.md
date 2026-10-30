@@ -18,7 +18,7 @@ The plan's Compiler architecture section gives the whole pipeline. Here it is sh
 
 - **One core, no Ford runes.** `urbit eval` runs the library as `=>  <this file>  <expression>`, and a ship builds it as `/lib/jibb.hoon`. So it can't import with `/-` or `/+`, and under `urbit eval` it can't scry. Anything from Clay, such as an imported module's text or a `/sur` file's type, is best passed in by the caller, which keeps every stage testable under eval.
 - **The standard library is the subject.** Under `urbit eval`, as on a ship, the library is built against `..zuse`: `hoon.hoon`, lull and zuse. It reads literals with Hoon's own parser, `nuck:so`. Hoon's type engine, `ut`, is there for milestone 2, and under eval `ride` compiles Hoon source, such as a `/sur` file without Ford runes, into a type, which tests can use in place of Clay's builds.
-- **The doc wins.** Where the file and the doc disagree, the doc is right, and the file's notes quote the doc's words for each rule they implement.
+- **The spec wins.** Where the file and the spec disagree, the spec is right, and the file's notes quote its words for each rule they implement. The repository spec records the decision to drop `$?`, pending synchronization to the Claude document.
 
 ## API
 
@@ -68,7 +68,7 @@ Every node is `[%tag at=span …]`, so `+span-of` finds its span in one place; t
 
 - **Module**: imports (`%sur` for `/-`, `%mark` for `/%`, `%jibb` for `/=`), then definitions (`%mold` for `+$`, `%value` for `++`).
 - **Expressions** (`expr`): `%lit`, `%str`, `%path`, `%qath`, `%wing`, `%change`, `%pair`, `%unit`, `%group`, `%list`, `%tuple`, `%gate-wide`, `%ctor`, `%call`, `%gate`, `%cast`, `%trace`, `%branch`, `%crash`, and `%body` for an indented body, with its local definitions if it has any.
-- **Molds as written** (`shape`): `%aura`, `%noun`, `%void`, `%flag`, `%const`, `%ref`, `%tvar`, `%path`, `%apply`, `%cell`, `%union`, `%fn`, `%generic`.
+- **Molds as written** (`shape`): `%aura`, `%noun`, `%void`, `%flag`, `%const`, `%ref`, `%tvar`, `%path`, `%apply`, `%cell`, `%union`, `%fn`, `%generic`. A `%union` spans its first through last case and has no lead token; a single case is its own mold. `%generic` spans from the `|$` after a `+$` name through its body.
 - **Samples, fields and patterns**: a sample is `%bind`, `%face`, `%pun`, `%cell` or `%bare`, since a bare name binds anywhere in a sample; a pattern is `%lit`, `%str`, `%any`, `%bind` or `%cell`.
 - **Literals** (`lit`) keep the form they matched, their aura and value, and their text as written, which the printers show.
 

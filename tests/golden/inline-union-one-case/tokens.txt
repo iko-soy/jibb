@@ -1,0 +1,20 @@
+1:1 glyph +$
+1:4 name go
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %go
+2:8 name url
+2:11 tight glyph =
+2:12 tight aura @t
+2:14 tight glyph ]
+3:1 DEDENT
+3:1 NEWLINE
+3:1 glyph +$
+3:4 name go-inline
+3:14 glyph [
+3:15 tight lit %go
+3:19 name url
+3:22 tight glyph =
+3:23 tight aura @t
+3:25 tight glyph ]
+3:26 NEWLINE

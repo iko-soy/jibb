@@ -1,0 +1,12 @@
+1:1 glyph +$
+1:4 name x
+2:3 INDENT
+2:3 name name
+2:7 tight glyph =
+2:8 tight aura @t
+3:3 NEWLINE
+3:3 name age
+3:6 tight glyph =
+3:7 tight aura @ud
+3:10 DEDENT
+3:10 NEWLINE

@@ -1,3 +1,3 @@
 source: Grammar tab, Patterns: "Leaving out `%stop` is an error naming it; to crash instead, write `%stop !!`."
-tests: an arm whose expression is the crash `!!`, in a gate whose sample is a wide union
+tests: an arm whose expression is the crash `!!`, in a gate whose sample is a named union
 expect: parses

@@ -7,7 +7,7 @@
   (mold 8:1 item (ref 8:9 item.todo))
   (mold 9:1 poke (ref 9:9 todo-action))
   (mold 10:1 paths
-    (union 10:10
+    (union 11:3
       (cell 11:3 (const 11:4 %todos) (path 11:11 /todos) (ref 11:18 todos))
       (cell 12:3
         (const 12:4 %changes)

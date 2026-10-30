@@ -1,0 +1,3 @@
+/tests/golden/inline-generic-case-bad/source.jibb:2:3: expected a mold, found `|$`; `|$` goes right after a `+$`'s name, as in +$ result |$ [V E]
+  |$ [A] A
+  ^

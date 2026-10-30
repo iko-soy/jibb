@@ -1,0 +1,3 @@
+/tests/golden/inline-gate-after-definition-bad/source.jibb:1:7: expected a mold, found `|=`; a gate's mold is $-(sample product)
++$ x |=
+      ^

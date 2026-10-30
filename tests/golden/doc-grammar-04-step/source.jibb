@@ -1,4 +1,4 @@
-+$ step $?
++$ step
   [%move %left n=@ud]
   [%move %right n=@ud]
   [text=@t %draft]

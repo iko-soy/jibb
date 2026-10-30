@@ -39,7 +39,6 @@
 6:1 NEWLINE
 6:1 glyph +$
 6:4 name msg
-6:8 glyph $?
 7:3 INDENT
 7:3 glyph [
 7:4 tight lit %typed

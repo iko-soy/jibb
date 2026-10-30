@@ -1,0 +1,3 @@
+/tests/golden/inline-gate-field-bad/source.jibb:1:9: expected a mold, found `|=`; a gate's mold is $-(sample product)
++$ x [a=|=]
+        ^

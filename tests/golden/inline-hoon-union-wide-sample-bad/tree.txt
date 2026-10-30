@@ -1,0 +1,3 @@
+/tests/golden/inline-hoon-union-wide-sample-bad/source.jibb:1:12: expected a space after the sample, found `(`; a union is a `+$` with its cases below
+++ f |=(s=?(%a %b) s)
+           ^

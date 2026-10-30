@@ -1,3 +1,3 @@
-source: Grammar tab, Runes: "`$?` bucwut: a union, one case per line or `$?(%a %b)`; cases must differ as nouns."
-tests: the wide union
-expect: parses
+source: Grammar tab, Runes, Left out on purpose: "`$?`, `$%`: a union is a `+$` with its cases below."
+tests: `$?(` with cases on its line
+expect: error at 1:7 — `$?` is left out

@@ -1,3 +1,3 @@
-source: Grammar tab, Lexical rules: "Tight forms: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$?(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`."
+source: Grammar tab, Lexical rules: "Tight forms: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`."
 tests: a change written with a space before its `(`
 expect: error at 1:13 — after a space, `(` opens a group, not a change, and a group's items take no name=; the change is m(note=text)

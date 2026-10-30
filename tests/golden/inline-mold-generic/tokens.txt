@@ -5,7 +5,6 @@
 1:15 tight tvar V
 1:17 tvar E
 1:18 tight glyph ]
-1:20 glyph $?
 2:3 INDENT
 2:3 glyph [
 2:4 tight lit %ok

@@ -1,0 +1,3 @@
+/tests/golden/inline-union-both-bad/source.jibb:2:3: expected the end of the line, found a deeper line; a `+$` takes one mold on its line or its cases below, not both
+  %a
+  ^

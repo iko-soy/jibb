@@ -8,7 +8,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 
 | Decision | Choice | Status |
 | --- | --- | --- |
-| Syntax | Hoon's runes as keywords, and its literals; wide forms only for `\|=`, `$?` and `$-`; changes take record items, as `m(draft="x")`; `.` reads fields, imports and prelude groups; no name may shadow another | Decided 2026-10-29 |
+| Syntax | Hoon's runes as keywords, and its literals; wide forms only for `\|=` and `$-`; changes take record items, as `m(draft="x")`; `.` reads fields, imports and prelude groups; no name may shadow another | Decided 2026-10-30 |
 | Literals | Exactly Hoon's: `1000` is an error, `~2026.2.31` is `~2026.3.3`, and years BC and sub-second groups are dates; `print-date`'s minute form is not a literal | Decided 2026-10-30 |
 | Numeric terms | `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors | Decided 2026-10-30 |
 | Strings | Hoon's escapes: `\\`, `\"`, `\{`, and `\` with two lowercase hex digits; a string and each `{…}` close on the line they open; `::` in a string is text | Decided 2026-10-30 |
@@ -22,7 +22,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Several open brackets | The deeper lines go to the last bracket, or the last rune's body, left open on a line, and the brackets before it close with it: `(column ~ ~[` needs no `)` | Decided 2026-10-30 |
 | Jibb code blocks | Labelled `jibb` in this doc; each is a golden test | Decided 2026-10-30 |
 | Definitions | `++` for values, `+$` for molds; no `=/` | Decided |
-| Unions | `$?` only; tags anywhere; cases differ as nouns; a tag literal or `~` waits for its union, and an unresolved one is an error | Decided 2026-10-29 |
+| Unions | No `$?`: a `+$` with its cases on the lines below is a union, so every union written in Jibb has a name; one case is just that mold; a mold that isn't a union counts as a union of one case for tags and `\|=%tag`; a generic's `\|$` comes right after the `+$`'s name; tags anywhere; cases differ as nouns; a tag literal or `~` waits for its union, and an unresolved one is an error | Decided 2026-10-30 |
 | Branching | `?-` only, loobeans included; exhaustive, with explicit catch-alls; covered arms are errors; failures say `!!` | Decided 2026-10-29 |
 | Equality and negation | The gates `eq` and `not` | Decided |
 | Special rules | No built-ins; type-directed rules are welcome, each listed in the Grammar tab | Decided 2026-10-29 |

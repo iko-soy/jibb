@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-buc-alone/source.jibb:1:7: `$` begins `$-(`
++$ x $
+      ^

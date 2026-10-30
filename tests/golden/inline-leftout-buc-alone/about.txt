@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`+$` **lusbuc**: defines a mold, likewise: on its line, or as cases on the lines below, one per line, where several cases make a union and one is just that mold. Molds may be recursive."; "`|$` **barbuc**: a generic mold, right after a `+$`'s name: `+$ result |$ [V E]`, then the mold on its line or the cases below."
+tests: a `$` alone where a mold goes
+expect: error at 1:7 — `$` begins `$-(`

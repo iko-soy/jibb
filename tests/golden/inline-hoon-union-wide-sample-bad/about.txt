@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`+$` **lusbuc**: defines a mold, likewise: on its line, or as cases on the lines below, one per line, where several cases make a union and one is just that mold. Molds may be recursive."
+tests: Hoon union syntax in a wide gate sample
+expect: error at 1:12 — a union is a `+$` with its cases below

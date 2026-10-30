@@ -50,7 +50,7 @@
 ::  so does editor tooling later. A node starts at its first token and
 ::  ends where its last token ends: its closing token if it has one, else
 ::  its last child's last token, never a layout token. So an open
-::  bracket, a body, ?-'s arms and $?'s cases end with their last line's
+::  bracket, a body, ?-'s arms and a +$'s cases end with their last line's
 ::  code, not at the line that closes them. Every node's span holds its
 ::  children's spans, in source order. The printed tree shows starts
 ::  only, and milestone 1's errors use starts only, so ends are first
@@ -143,7 +143,7 @@
 ::  The layout pass knows nothing of brackets: it emits INDENT, NEWLINE and
 ::  DEDENT by column alone. The parser decides what takes an indented
 ::  block: a bracket left open at the end of its line, a rune's body, ?-'s
-::  arms, $?'s cases, a +$ mold on the next line. A bracket opened and
+::  arms, and a +$'s cases on the next lines. A bracket opened and
 ::  closed on one line is just tokens.
 ::
 ::  2.6 Tokens. After the indentation, tokens are read left to right;
@@ -193,7 +193,7 @@
 ::    /              glyph, then a path segment may follow (2.7)
 ::    ++  +$  +      glyphs
 ::    |=(  |=  |$    glyphs
-::    $?(  $?  $-(   glyphs; $- followed by anything but ( is an error
+::    $-(            glyph; $- followed by anything but ( is an error
 ::                   at 3rd, "`$-` has only the wide form `$-(sample
 ::                   product)`"
 ::    ^-  ?-  !!  ?  glyphs (? alone is the loobean mold; ? then a
@@ -217,7 +217,7 @@
 ::                   at it, "this `}` closes no `{`"
 ::    | $ ^          followed by nothing above or in the table below:
 ::                   an error at 2nd, "`|` begins `|=`, `|=(` or `|$`",
-::                   "`$` begins `$?`, `$?(` or `$-(`", "`^` begins `^-`"
+::                   "`$` begins `$-(`", "`^` begins `^-`"
 ::    :              followed by anything but :, an error at 2nd: the
 ::                   table's :~ :* :- :+ :^ :_ and a:b, else "a comment
 ::                   starts with `::`"
@@ -239,7 +239,7 @@
 ::    |-            2nd    gates recurse by name
 ::    $(            2nd    gates recurse by name (at the $ where an
 ::                         expression goes, as no expression starts $)
-::    $%            2nd    $? covers unions
+::    $?  $%        2nd    a union is a +$ with its cases below
 ::    ?:  ?+        2nd    ?- is the branch, and so for Hoon's other ?
 ::                         runes, ?~ ?= ?. ?@ ?^ ?& ?| ?< ?> (?:: is ?
 ::                         and a comment)
@@ -432,6 +432,12 @@
 ::  100.000 such calls, 8 s of it starting urbit and building the
 ::  library, and most of the rest printing the tree, 46 MB at 100.000.
 ::
+::  @iko decided 2026-10-30 (Decisions): "No `$?`: a `+$` with its cases
+::  on the lines below is a union, so every union written in Jibb has a
+::  name; one case is just that mold; a mold that isn't a union counts as
+::  a union of one case for tags and `|=%tag`; a generic's `|$` comes right
+::  after the `+$`'s name; tags anywhere".
+::
 ::  The EBNF and its nodes (see the types below):
 ::    module      { import NEWLINE } { definition NEWLINE }, then the end
 ::                of the tokens; an import after a definition is the error
@@ -441,9 +447,10 @@
 ::                %& or %| (doc question). /='s path has a segment, as it
 ::                names a module's file: /=  card  / is an error just past
 ::                the / (doc question)
-::    definition  +$ name mold, or the mold alone on a deeper line ->
-::                %mold (both layouts give one node); ++ name expr or body
-::                -> %value (a body becomes a %body expr)
+::    definition  +$ name, optional |$ [vars], then a mold on its line or
+::                cases below -> %mold; one case is that mold, several
+::                are %union. The optional generic wraps either in %generic.
+::                ++ name expr or body -> %value (a body becomes a %body expr)
 ::    body        INDENT { definition NEWLINE } expr DEDENT -> %body
 ::    call        one operand is that operand; more -> %call head args
 ::    operand     literal -> %lit or %str; pathlit -> %path, as a path
@@ -472,14 +479,14 @@
 ::                cell sample at any depth, as b in |= [a=@ b], which is
 ::                a %cell of samples (Decisions: every bare name in a
 ::                sample binds, at any depth). A name inside a mold, as a
-::                in (list a), $-(a b) or $?(a b), is a mold. A cell
+::                in (list a) or $-(a b), is a mold. A cell
 ::                sample's [ has no open form, as a cell pattern's hasn't
 ::                (Decisions)
 ::    mold        aura -> %aura; * -> %noun; !! -> %void; ? -> %flag;
 ::                ~ term loobean -> %const; ref -> %ref; typevar -> %tvar;
 ::                pathmold -> %path; ( ref mold … ) -> %apply; [ field … ]
-::                -> %cell; $? with cases below, and $?( … ) -> %union;
-::                $-( mold mold ) -> %fn; |$ [ typevar … ] mold -> %generic.
+::                -> %cell; $-( mold mold ) -> %fn. Only a +$ definition
+::                introduces %union or %generic.
 ::                A mold's ( and [ may be left open at the end of their
 ::                line, as an expression's brackets can (Decisions):
 ::                ( ref { mold } mlines -> %apply, the name staying on
@@ -490,7 +497,7 @@
 ::                deeper line, which may itself open, to the DEDENT; a
 ::                second item on a line, or a closer, is an error. The
 ::                node is the closed form's, ending with its last item.
-::                $?( and $-( have no open form: $? covers long unions
+::                $-( has no open form.
 ::    field       name=mold -> %face; =name -> %pun; mold -> %bare
 ::    pattern     term number ship loobean ~ -> %lit (dates, durations and
 ::                knots are errors); string without {…} -> %str; * -> %any;
@@ -520,11 +527,11 @@
 ::      holds for every bracket before the last, whether or not it has
 ::      an open form of its own, as the Decisions say "the brackets
 ::      before it close with it": an expression's ( [ and ~[, a change's
-::      (, |=(, a mold's ( [ $?( and $-(, an application path's (…), and
+::      (, |=(, a mold's ( [ and $-(, an application path's (…), and
 ::      a cell sample's [. A segment's ( holds an expression as an
 ::      expression's ( does and needs only its ), so %/a/(f ~[ above its
-::      items is %/a/(f ~[…]), as $?( and $-(, which have no open form
-::      either, close so; a sample's [ that closes so leaves its gate no
+::      items is %/a/(f ~[…]), as $-(, which has no open form
+::      either, closes so; a sample's [ that closes so leaves its gate no
 ::      body. A cell pattern's [ and |$'s [ hold no other bracket, and
 ::      an interpolation's {…} closes on its line (2.9). A rune's body
 ::      or arms that took the lines close the brackets before the rune
@@ -537,9 +544,8 @@
 ::      the line (Errors below). A mold's ( never needs more than its )
 ::      once it holds its name: one that is the last opener on its line
 ::      takes the deeper lines as its open form (Decisions), and one
-::      before a later opener, or before a $? with its cases below,
-::      holds that mold after its name, so it closes with it: (map $?
-::      above its cases is (map $?(…)).
+::      before a later opener holds that mold after its name and closes
+::      with it.
 ::    - Local definitions: at the start of any body, a gate's, an arm's,
 ::      a ^-'s, a ~&'s or a ++'s, as the EBNF's body takes them
 ::      (Decisions); +$ as well as ++, as the Runes prose's "likewise"
@@ -553,14 +559,14 @@
 ::      lines, fields and samples), =name (pun); in a path or application
 ::      path, each / and the segment after it, and all of a typed segment,
 ::      [id=@ud]
-::    - either way: right after an opener ( [ ~[ |=( $?( $-( or {, and
+::    - either way: right after an opener ( [ ~[ |=( $-( or {, and
 ::      right before a closer ) ] or } (the theme example writes `[ space=`),
 ::      the ( and ) of an application path's segment included; inside
 ::      them the expression is spaced as anywhere else, as %/x/(f a)
 ::  A missing space is an error at the tight token, and a space inside
 ::  a tight form, or the end of the line there, is one where it starts
 ::  (Errors). A rune with children, and an import glyph, is followed by
-::  a space (or, for $? with its cases below, the end of the line).
+::  a space.
 ::  Items are separated by one or more spaces; how many isn't checked,
 ::  and a line may end in spaces. Spacing beyond this is style, which
 ::  the formatter keeps: "one space between items; more for alignment"
@@ -603,17 +609,15 @@
 ::      whatever line comes next: at the end of that line, just past its
 ::      last token, "found the end of the line" (+fail-line), as no later
 ::      line can supply it. That is a rune's part on its line (|='s
-::      sample, ^-'s mold, ~&'s value, ?-'s subject, |$'s [ and mold), a
+::      sample, ^-'s mold, ~&'s value, ?-'s subject, |$'s [), a
 ::      name after ++ or +$, an import's parts, and what a bracket that
-::      closes on its line still needs: one with no open form ($?( $-(
+::      closes on its line still needs: one with no open form ($-(
 ::      |=(, a cell sample's or cell pattern's [, |$'s [, an application
 ::      path's (…), a ( before a rune), or a mold's ( before its name,
 ::      which stays on the first line (Decisions); the bracket adds "this
 ::      bracket closes on its line" (+unclosed-want). So `++ x ^-` above
 ::      a deeper line fails at 1:8, "expected a mold, found the end of the
-::      line", and `+$ x $?(%a` above `  %b` at 1:11, "expected `)` to
-::      close the `$?(` at 1:6, found the end of the line; this bracket
-::      closes on its line". Spaces and a comment after the last token
+::      line". Spaces and a comment after the last token
 ::      emit nothing (2.3, 2.6), so they don't move the end of the line:
 ::      `++ x ^-  :: c` fails at 1:8 too. At the end of the file the place
 ::      is the same, and the message says "the end of the file".
@@ -663,7 +667,7 @@
 ::  found `M`". A bracket that closes on its line names, at a closer that
 ::  doesn't match or at its line's end, what it still needs: its closer
 ::  once it holds all it needs, else its next part, as `$-(@)` and `$-(@]`
-::  are "expected a mold, the product", `$?(]` and `$-(]` "expected a
+::  are "expected a mold, the product", and `$-(]` "expected a
 ::  mold", `|=(]` and `|= []` "expected a sample", `|=(a]` "expected the
 ::  gate's body" (+unclosed-want). So does a group's ( with nothing after
 ::  it on its line, as () is no group: `()` and `(]` are "expected an
@@ -767,7 +771,7 @@
 ::            (apply 2:17 list (aura 2:23 @t)))
 ::          (face 2:27 open (flag 2:32))))
 ::      (mold 3:1 cart-action
-::        (union 3:16
+::        (union 4:3
 ::          (cell 4:3
 ::            (const 4:4 %add)
 ::            (face 4:9 item (aura 4:14 @t)))
@@ -863,11 +867,11 @@
 +$  glyph
   $?  %indent  %dedent  %newline                        ::  layout
       %'('  %')'  %'['  %']'                            ::  brackets
-      %'~['  %'|=('  %'$?('  %'$-('                     ::  openers
+      %'~['  %'|=('  %'$-('                     ::  openers
       %'%/'  %'/'                                       ::  paths
       %'+'  %'`'  %'='                                  ::  pair, unit, face
       %'*'  %'?'                                        ::  noun, loobean mold
-      %'++'  %'+$'  %'|='  %'|$'  %'$?'                 ::  runes
+      %'++'  %'+$'  %'|='  %'|$'                 ::  runes
       %'^-'  %'~&'  %'?-'  %'!!'                        ::  runes
       %'/-'  %'/%'  %'/='                               ::  imports
   ==
@@ -1011,9 +1015,9 @@
       [%path at=span segs=(list pseg)]          ::  / /todos /todo/[id=@ud]
       [%apply at=span ref=(list term) args=(list shape)]  ::  (list @t)
       [%cell at=span fields=(list field)]       ::  [text=@t done=?]
-      [%union at=span cases=(list shape)]       ::  $? below, or $?(%a %b)
+      [%union at=span cases=(list shape)]       ::  several +$ cases below
       [%fn at=span sample=shape product=shape]  ::  $-(@t M)
-      [%generic at=span vars=(list @t) body=shape]  ::  |$ [M] $? …
+      [%generic at=span vars=(list @t) body=shape]  ::  +$ name |$ [M] …
   ==
 ::
 ::  +pseg: a path mold's segment, a knot or [name=aura]
@@ -1313,14 +1317,14 @@
       ?:  =('-' b)  (err +(col) "`|-` is left out: gates recurse by name")
       (err +(col) "`|` begins `|=`, `|=(` or `|$`")
     ?:  =('$' a)
-      ?:  &(=('?' b) =('(' c))  (emit 3 %'$?(')
-      ?:  =('?' b)  (emit 2 %'$?')
+      ?:  =('?' b)
+        (err +(col) "`$?` is left out: a union is a `+$` with its cases below")
       ?:  &(=('-' b) =('(' c))  (emit 3 %'$-(')
       ?:  =('-' b)
         (err (add 2 col) "`$-` has only the wide form `$-(sample product)`")
       ?:  =('(' b)  (err +(col) "`$(…)` is left out: gates recurse by name")
-      ?:  =('%' b)  (err +(col) "`$%` is left out: `$?` covers unions")
-      (err +(col) "`$` begins `$?`, `$?(` or `$-(`")
+      ?:  =('%' b)  (err +(col) "`$%` is left out: a union is a `+$` with its cases below")
+      (err +(col) "`$` begins `$-(`")
     ?:  =('^' a)
       ?:  =('-' b)  (emit 2 %'^-')
       (err +(col) "`^` begins `^-`")
@@ -1661,14 +1665,15 @@
 ::  What may begin each place the parser reads (section 3, Errors):
 ::    an expression    a-z 0-9 " ( [ ~ % / ` | ^ ? !
 ::    an operand       a-z 0-9 " ( [ ~ % / ` | !
-::    a mold           a-z A-Z @ * ! ? ~ % / ( [ $ |
+::    a mold           a-z A-Z @ * ! ? ~ % / ( [ $
 ::    a pattern        a-z 0-9 " ~ % * [
 ::  and what may go tight after an operand: . ( + = after a name, a
 ::  closer ) ] }, or the : of a comment
 ::
 ++  expr-mask     0x57ff.ffff.4800.0000.83ff.8126.0000.0000
 ++  operand-mask  0x57ff.ffff.0800.0000.03ff.8126.0000.0000
-++  mold-mask     0x57ff.fffe.0fff.ffff.8000.8532.0000.0000
+++  mold-mask     0x47ff.fffe.0fff.ffff.8000.8532.0000.0000
+++  bar-mask      0x1000.0000.0000.0000.0000.0000.0000.0000
 ++  pattern-mask  0x47ff.fffe.0800.0000.03ff.0424.0000.0000
 ++  after-mask    0x2000.0000.2000.0000.2400.4b00.0000.0000
 ++  plus-mask     0x800.0000.0000                            ::  +
@@ -3005,7 +3010,7 @@
     =*  u  i.ts
     ?:  =(at.u at.t)  |(?=(~ open) !i.open)
     ?:  (is-layout u)  $(ts t.ts, open ~)
-    ?:  ?=(?(%'(' %'[' %'~[' %'|=(' %'$?(' %'$-(') lex.u)
+    ?:  ?=(?(%'(' %'[' %'~[' %'|=(' %'$-(') lex.u)
       $(ts t.ts, open [& open])
     ?:  ?=([%str-head *] lex.u)  $(ts t.ts, open [| open])
     ?:  ?=([%str-mid *] lex.u)  $(ts t.ts, open [| ?~(open ~ t.open)])
@@ -3089,7 +3094,7 @@
     (bad-space i.rest nex "a path segment")
   ::
   ::  +read-def: ++ name, then an expression or a body; +$ name, then a
-  ::  mold on its line or alone on a deeper one. can is what may begin
+  ::  mold on its line or cases on deeper lines. can is what may begin
   ::  a line where a definition goes (+fail-in).
   ::
   ++  read-def
@@ -3111,19 +3116,63 @@
       (bad-in-why ts want can "`+` begins `++` or `+$`")
     ?.  =(%'+$' lex.rune)  (bad-in ts want can)
     ;<  [nam=term after=(list token)]  then  (read-def-name rune t.ts)
-    ?:  ?=([[* * %indent] *] after)
-      ;<  [s=shape more=(list token)]  then  (read-mold t.after)
-      ?:  ?=([[* * %dedent] *] more)
-        [%& [%mold [beg.at.rune end:(span-of s)] nam s] t.more]
-      ?.  ?=([[* * %newline] *] more)  (bad-end-in more 0)
-      %^  bad-why  more  "the end of the mold"
-      "a `+$` takes one mold; a union is `$?` with its cases below"
-    ?:  ?=([[* * ?(%newline %dedent)] *] after)
-      (bad after "a mold, on its line or a deeper one")
     ?:  &(?=(^ after) tight.i.after)
       (no-gap after "a space after the name")
-    ;<  [s=shape more=(list token)]  then  (read-mold after)
+    ?:  ?=([[* * [%error *]] *] after)
+      (bad-in after "a mold" (con mold-mask bar-mask))
+    ?:  ?=([[* * ?(%'|=' %'|=(')] *] after)
+      %:  bad-in-why  after  "a mold"  (con mold-mask bar-mask)
+        "a gate's mold is $-(sample product)"
+      ==
+    ;<  [s=shape more=(list token)]  then
+      ?:  ?=([[* * %'|$'] *] after)
+        (read-generic i.after t.after)
+      (read-def-body after)
     [%& [%mold [beg.at.rune end:(span-of s)] nam s] more]
+  ::
+  ::  +hoon-union: a tight ( immediately after a ? mold
+  ::
+  ++  hoon-union
+    |=  [ts=(list token) after=(list token)]
+    ^-  ?
+    ?.  ?=([[* %& %'('] *] after)  |
+    |-  ^-  ?
+    ?~  ts  |
+    ?:  =(t.ts after)  =(%'?' lex.i.ts)
+    $(ts t.ts)
+  ::
+  ::  +read-def-body: one mold on the definition line or its cases below
+  ::
+  ++  read-def-body
+    |=  ts=(list token)
+    ^-  (pare shape)
+    ?.  ?=([[* * %indent] *] ts)
+      ?:  ?=([[* * ?(%newline %dedent)] *] ts)
+        (bad ts "a mold, on its line or a deeper one")
+      ;<  [s=shape more=(list token)]  then  (read-mold ts)
+      ?:  (hoon-union ts more)
+        (bad-why more "the end of the line" "a union is a `+$` with its cases below")
+      ?:  ?=([[* * %indent] *] more)
+        %^  bad-why  more  "the end of the line"
+        "a `+$` takes one mold on its line or its cases below, not both"
+      [%& s more]
+    =|  cs=(list shape)
+    =/  rest=(list token)  t.ts
+    |-  ^-  (pare shape)
+    ;<  [c=shape after=(list token)]  then  (read-mold rest)
+    ?:  (hoon-union rest after)
+      (bad-why after "the end of the line" "a union is a `+$` with its cases below")
+    ?:  ?=([[* * %newline] *] after)  $(cs [c cs], rest t.after)
+    ?:  ?=([[* * %dedent] *] after)
+      ?~  cs  [%& c t.after]
+      =/  cases=(list shape)  (flop [c cs])
+      [%& [%union [beg:(span-of (rear cs)) end:(span-of c)] cases] t.after]
+    ?:  ?=([[* * %'='] *] after)
+      %^  bad-why  after  "the end of the line"
+      "a `+$`'s lines below are its cases; a record's fields go in a [ left open on the `+$` line"
+    ?:  ?=([[* * %indent] *] after)  (bad-end after)
+    ?:  &(?=(^ after) (stray i.after))  (bad-end after)
+    (bad-why after "the end of the line" "a union takes one case per line")
   ::
   ::  +read-def-name: after ++ or +$, a space and a name
   ::
@@ -3530,6 +3579,8 @@
     ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
       (unclosed-want "a sample" ts)
     ;<  [s=sample after=(list token)]  then  (read-sample ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "a space after the sample" "a union is a `+$` with its cases below")
     ?:  &(?=(^ after) |((is-closer i.after) (is-layout i.after)))
       =/  dm  (doomed ts after "the gate's body")
       ?^  dm  u.dm
@@ -3560,6 +3611,8 @@
       ?:  =('%' (first-char i.ts))  (bad-in ts "a term" cen-mask)
       (no-gap ts "a space after `|=`")
     ;<  [s=sample after=(list token)]  then  (read-sample ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "a space after the sample" "a union is a `+$` with its cases below")
     =/  dm  (doomed ts after "an expression, or a body on deeper lines")
     ?^  dm  u.dm
     ;<  [e=expr more=(list token)]  then
@@ -3573,6 +3626,8 @@
     ^-  (pare expr)
     ?:  &(?=(^ ts) tight.i.ts)  (wide-rune "^-" ts)
     ;<  [s=shape after=(list token)]  then  (read-mold ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "a space after the mold" "a union is a `+$` with its cases below")
     =/  dm  (doomed ts after "an expression, or a body on deeper lines")
     ?^  dm  u.dm
     ;<  [e=expr more=(list token)]  then
@@ -3730,6 +3785,8 @@
       (unclosed op "]" rest)
     ?:  &(?=(^ ss) ?=(^ rest) tight.i.rest)  (no-space rest)
     ;<  [s=sample after=(list token)]  then  (read-sample rest)
+    ?:  (hoon-union rest after)
+      (bad-why after "a space between items" "a union is a `+$` with its cases below")
     $(ss [s ss], rest after)
   ::
   ::  +read-field: a cell mold's field: name=mold, =name, or a mold
@@ -3784,10 +3841,10 @@
       %'/'       (read-pathmold t t.ts)
       %'('       (read-apply t t.ts)
       %'['       (read-cell-mold t t.ts)
-      %'$?'      (read-union t t.ts)
-      %'$?('     (read-union-wide t t.ts)
       %'$-('     (read-fn t t.ts)
-      %'|$'      (read-generic t t.ts)
+      %'|$'      %:  bad-in-why  ts  "a mold"  mold-mask
+        "`|$` goes right after a `+$`'s name, as in +$ result |$ [V E]"
+      ==
     ::
         ?(%'|=' %'|=(')
       %:  bad-in-why  ts  "a mold"  mold-mask
@@ -3800,33 +3857,33 @@
       [%& [%const at.t p.lex.t] t.ts]
     ==
   ::
-  ::  +read-molds: molds to the ) of the bracket op opened, at least one,
-  ::  or to the line that isn't deeper when the last one took the deeper
-  ::  lines (+shut). After an apply's name, each follows a space and the
-  ::  ( may be left open, with one mold per deeper line (mlines); a $?(
-  ::  takes its first mold tight and has no open form.
+  ::  +read-molds: molds after an application name, to its ) or its last
+  ::  mold's deeper lines (+shut). Each follows a space; ( may be left
+  ::  open, with one mold per deeper line (mlines).
   ::
   ++  read-molds
-    |=  [op=token apply=? ts=(list token)]
+    |=  [op=token ts=(list token)]
     ^-  (pare [(list shape) loc])
     =|  ms=(list shape)
     |-  ^-  (pare [(list shape) loc])
     ?:  ?=([[* * %')'] *] ts)
       ?~  ms  (bad ts "a mold")
       [%& [(flop ms) end.at.i.ts] t.ts]
-    ?:  &(apply ?=([[* * %indent] *] ts))
+    ?:  ?=([[* * %indent] *] ts)
       ;<  [ls=(list shape) more=(list token)]  then  (read-mlines t.ts)
       =/  every=(list shape)  (weld (flop ms) ls)
       [%& [every ?~(every end.at.op end:(span-of (rear every)))] more]
     ?:  (shut op ?~(ms ~ `(span-of i.ms)) ts)
       [%& [(flop ms) ?~(ms end.at.op end:(span-of i.ms))] ts]
-    ?:  &(apply ?=([[* * ?(%newline %dedent)] *] ts))
+    ?:  ?=([[* * ?(%newline %dedent)] *] ts)
       (unclosed-open op ")" "a mold" ts)
     ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
       ?~  ms  (unclosed-want "a mold" ts)
       (unclosed op ")" ts)
-    ?:  &(?=(^ ts) tight.i.ts |(apply ?=(^ ms)))  (no-space ts)
+    ?:  &(?=(^ ts) tight.i.ts)  (no-space ts)
     ;<  [m=shape after=(list token)]  then  (read-mold ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "a space between items" "a union is a `+$` with its cases below")
     $(ms [m ms], ts after)
   ::
   ::  +read-apply: ( ref mold { mold } ), or ( ref { mold } and its
@@ -3842,18 +3899,8 @@
       ==
     ?.  ?=([[* * ?([%name *] [%wing *])] *] ts)  (bad-in ts want lower-mask)
     ;<  [[ms=(list shape) fin=loc] after=(list token)]  then
-      (read-molds op & t.ts)
+      (read-molds op t.ts)
     [%& [%apply [beg.at.op fin] (names-of lex.i.ts) ms] after]
-  ::
-  ::  +read-union-wide: $?( mold { mold } ), closed on its line or with
-  ::  its last case's lines (+read-molds)
-  ::
-  ++  read-union-wide
-    |=  [op=token ts=(list token)]
-    ^-  (pare shape)
-    ;<  [[ms=(list shape) fin=loc] after=(list token)]  then
-      (read-molds op | ts)
-    [%& [%union [beg.at.op fin] ms] after]
   ::
   ::  +read-fn: $-( mold mold ), closed on its line, or with the product
   ::  when that took the deeper lines (+shut); a sample that took them
@@ -3865,6 +3912,8 @@
     ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
       (unclosed-want "a mold" ts)
     ;<  [a=shape after=(list token)]  then  (read-mold ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "a space between items" "a union is a `+$` with its cases below")
     =/  want=tape  "a mold, the product"
     ?:  &(?=(^ after) |((is-closer i.after) (is-layout i.after)))
       =/  dm  (doomed ts after want)
@@ -3872,6 +3921,8 @@
       (unclosed-want want after)
     ?:  &(?=(^ after) tight.i.after)  (no-space after)
     ;<  [b=shape more=(list token)]  then  (read-mold after)
+    ?:  (hoon-union after more)
+      (bad-why more "a space between items" "a union is a `+$` with its cases below")
     ?:  ?=([[* * %')'] *] more)
       [%& [%fn [beg.at.op end.at.i.more] a b] t.more]
     ?:  (shut op `(span-of b) more)
@@ -3903,6 +3954,8 @@
       (unclosed op "]" ts)
     ?:  &(?=(^ fs) ?=(^ ts) tight.i.ts)  (no-space ts)
     ;<  [f=field after=(list token)]  then  (read-field ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "a space between items" "a union is a `+$` with its cases below")
     $(fs [f fs], ts after)
   ::
   ::  +read-mlines: after a mold's open ('s INDENT, one mold per line, to
@@ -3916,6 +3969,8 @@
     =/  cf  (closer-first ts "a mold")
     ?^  cf  u.cf
     ;<  [m=shape after=(list token)]  then  (read-mold ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "the end of the line" "a union is a `+$` with its cases below")
     ?:  ?=([[* * %newline] *] after)  $(ms [m ms], ts t.after)
     ?:  ?=([[* * %dedent] *] after)  [%& (flop [m ms]) t.after]
     (mold-line-end after "mold")
@@ -3931,6 +3986,8 @@
     =/  cf  (closer-first ts "a field")
     ?^  cf  u.cf
     ;<  [f=field after=(list token)]  then  (read-field ts)
+    ?:  (hoon-union ts after)
+      (bad-why after "the end of the line" "a union is a `+$` with its cases below")
     ?:  ?=([[* * %newline] *] after)  $(fs [f fs], ts t.after)
     ?:  ?=([[* * %dedent] *] after)  [%& (flop [f fs]) t.after]
     (mold-line-end after "field")
@@ -3947,28 +4004,7 @@
     %^  bad-why  ts  "the end of the line"
     "a bracket open at the end of its line takes one {noun} per line"
   ::
-  ::  +read-union: $?, then its cases below, one mold per line
-  ::
-  ++  read-union
-    |=  [buc=token ts=(list token)]
-    ^-  (pare shape)
-    ?.  ?=([[* * %indent] *] ts)
-      ?:  ?=([[* * ?(%newline %dedent)] *] ts)
-        (bad ts "`$?`'s cases on deeper lines")
-      %^  bad-why  ts  "the end of the line"
-      "`$?` takes its cases on deeper lines, one per line, or write $?(%a %b)"
-    =|  cs=(list shape)
-    =/  rest=(list token)  t.ts
-    |-  ^-  (pare shape)
-    ;<  [c=shape after=(list token)]  then  (read-mold rest)
-    ?:  ?=([[* * %newline] *] after)  $(cs [c cs], rest t.after)
-    ?:  ?=([[* * %dedent] *] after)
-      [%& [%union [beg.at.buc end:(span-of c)] (flop [c cs])] t.after]
-    ?:  ?=([[* * %indent] *] after)  (bad-end after)
-    ?:  &(?=(^ after) (stray i.after))  (bad-end after)
-    (bad-why after "the end of the line" "a union takes one case per line")
-  ::
-  ::  +read-generic: |$ [ typevar { typevar } ] mold
+  ::  +read-generic: |$ [ typevar { typevar } ], then a definition body
   ::
   ++  read-generic
     |=  [bar=token ts=(list token)]
@@ -3984,7 +4020,7 @@
       ?~  vs  (bad rest "a type variable")
       =/  more=(list token)  t.rest
       ?:  &(?=(^ more) tight.i.more)  (no-gap more "a space after `]`")
-      ;<  [b=shape after=(list token)]  then  (read-mold more)
+      ;<  [b=shape after=(list token)]  then  (read-def-body more)
       [%& [%generic [beg.at.bar end:(span-of b)] (flop vs) b] after]
     ?:  &(?=(^ rest) |((is-closer i.rest) (is-layout i.rest)))
       ?~  vs  (unclosed-want "a type variable" rest)
@@ -4065,7 +4101,7 @@
 ::    %two     where the token after its first ends: |=%got, =msg, /- todo
 ::    %shut    at the closer of its first token, an opener closed on its
 ::             line; or with its last child, if that opener is left open
-::             or is a rune, as $? with its cases below
+::             or is a rune with its body below
 ::    %shut2   likewise from the token after its first, a change's (
 ::    %run     at the end of the path it starts: then each tight / and
 ::             knot, and each tight [ or ( to its closer; or with its
@@ -4128,7 +4164,7 @@
     ?:  |(?=(~ t.toks) (is-layout i.t.toks))  ~
     `[beg.at.i.t.toks tight.i.t.toks]
   =.  info  (~(put by info) beg.at.t [k end.at.t nex])
-  ?:  ?=(?(%'(' %'[' %'~[' %'|=(' %'$?(' %'$-(' %str-head) k)
+  ?:  ?=(?(%'(' %'[' %'~[' %'|=(' %'$-(' %str-head) k)
     $(toks t.toks, open [beg.at.t open])
   ?.  ?=(?(%')' %']' %str-mid %str-tail) k)  $(toks t.toks)
   ?~  open  $(toks t.toks)
@@ -4436,7 +4472,7 @@
   ::
       %union
     =/  ks=(list outline)  (turn cases.s outline-shape)
-    [%union at.s ~[%'$?' %'$?('] %shut ks]
+    [%union at.s ~ %kid ks]
   ::
       %fn
     =/  ks=(list outline)
@@ -4477,12 +4513,12 @@
         ['++ x ~[\0a  (f a)\0a++ y 1' ~[[%call [2 4] [2 4] [2 8]]]]
         ::  a literal running on to the next one's end
         ['++ x f 1 2' ~[[%lit [1 8] [1 8] [1 11]]]]
-        ::  a path, a string, a change and a wide union cut short
+        ::  a path, a string, a change and a union cut short
         ['++ x f /a/b c' ~[[%path [1 8] [1 8] [1 10]]]]
         ['++ x f "a{b}c" d' ~[[%str [1 8] [1 8] [1 13]]]]
         ['++ x m(a=1) b' ~[[%change [1 6] [1 6] [1 11]]]]
-        :-  '+$ x $?(%a %b)'
-        ~[[%union [1 6] [1 6] [1 14]] [%mold [1 1] [1 1] [1 14]]]
+        :-  '+$ x\0a  %a\0a  %b'
+        ~[[%union [2 3] [2 3] [2 5]] [%mold [1 1] [1 1] [2 5]]]
         ::  a mold's cell before its closer, a typed segment past its own
         :-  '+$ x [a=[@ @] b=@]'
         ~[[%cell [1 9] [1 9] [1 13]] [%face [1 7] [1 7] [1 13]]]

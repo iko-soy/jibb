@@ -1,10 +1,10 @@
-+$ cmd |$ [M] $?
++$ cmd |$ [M]
   [%poke p=poke reply=$-((unit @t) M)]
   [%go url=@t]
   [%wait gap=@dr msg=M]
   [%now reply=$-(@da M)]
   [%who reply=$-(@p M)]
-+$ sub |$ [M] $?
++$ sub |$ [M]
   [%watch a=(ask M)]
   [%every gap=@dr reply=$-(@da M)]
   [%url reply=$-(path M)]

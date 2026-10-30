@@ -1,7 +1,7 @@
 (module
   (mold 1:1 cmd
     (generic 1:8 M
-      (union 1:15
+      (union 2:3
         (cell 2:3
           (const 2:4 %poke)
           (face 2:10 p (ref 2:12 poke))
@@ -26,7 +26,7 @@
             (fn 6:15 (aura 6:18 @p) (tvar 6:21 M)))))))
   (mold 7:1 sub
     (generic 7:8 M
-      (union 7:15
+      (union 8:3
         (cell 8:3
           (const 8:4 %watch)
           (face 8:11 a

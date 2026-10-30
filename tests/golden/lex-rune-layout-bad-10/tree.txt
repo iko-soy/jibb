@@ -1,3 +1,0 @@
-/tests/golden/lex-rune-layout-bad-10/source.jibb:1:12: expected a mold, found the end of the line
-+$ x |$ [A]
-           ^

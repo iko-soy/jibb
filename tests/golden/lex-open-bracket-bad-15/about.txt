@@ -1,3 +1,3 @@
-source: Grammar tab, Runes: "Only `|=`, `$?` and `$-` have wide forms: `|=(sample expr)`, `$?(case case)`, `$-(mold mold)`. Their children are operands, so calls inside need parentheses."; the EBNF: `gate       = "|=(" ( field | name ) operand ")" ;`
+source: Grammar tab, Runes: "Only `|=` and `$-` have wide forms: `|=(sample expr)` and `$-(mold mold)`. Their children are operands, so calls inside need parentheses."; the EBNF: `gate       = "|=(" ( field | name ) operand ")" ;`
 tests: a wide gate opened alone at the end of its line, its sample and body on the line below
 expect: error at 1:9, the end of line 1 — `|=(` is a wide form with no open form, so it closes on its line, and no later line can give it its sample; the error names the sample it needs first, as `|=()` does, and the `|=(a` of lex-open-bracket-bad-12 its body

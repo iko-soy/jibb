@@ -1,6 +1,5 @@
 1:1 glyph +$
 1:4 name step
-1:9 glyph $?
 2:3 INDENT
 2:3 glyph [
 2:4 tight lit %move
