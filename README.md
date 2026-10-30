@@ -1,6 +1,8 @@
 # Jibb
 
-Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its design doc is the spec, and where this code and the doc disagree, the doc wins.
+Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its design doc, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), is the spec, and where this code and the doc disagree, the doc wins.
+
+Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milestone 2, types and prelude, is next. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and the brief for milestone 2.
 
 ## Layout
 
@@ -10,6 +12,7 @@ Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its 
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
 - `tests/`: golden cases in `golden/<case>/`, and on-ship tests for the `-test` thread in `lib/jibb.hoon`.
 - `tools/`: dev tooling: `golden`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, and `ship`.
+- `docs/`: the doc's tabs as Markdown in `spec/`, the status, the open questions, the development guide, the compiler's map, and briefs for milestones in `prompts/`.
 
 ## Golden tests
 
@@ -46,7 +49,8 @@ tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb
 Every code block the design doc labels `jibb` is a golden case, `doc-<tab>-<n>-<what>`, where `<n>` counts the tab's code blocks, labelled or not. To check that none is missing or stale, export the doc's tabs as Markdown and pass the files, or a folder of them:
 
 ```
-tools/doc-blocks Grammar.md Overview.md Core-language.md
+tools/doc-blocks docs/spec                                 # the snapshot in docs/spec
+tools/doc-blocks Grammar.md Overview.md Core-language.md  # fresh exports
 ```
 
 It matches each labelled block to the case whose `source.jibb` is the block's text plus a newline, and lists the blocks no case holds, each with a diff against the closest unmatched case, and the `doc-*` cases no block holds. Pass every tab with Jibb blocks, or the other tabs' cases count as stale. The exit status is 0 when every block has a case and every case a block, 1 when one doesn't, and 2 when the check can't run, for example because no block is labelled `jibb`.
