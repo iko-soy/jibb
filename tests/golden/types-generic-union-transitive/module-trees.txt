@@ -18,4 +18,10 @@
   (value 3:1 sample
     (cast 3:11
       (apply 3:14 relay (aura 3:21 @t) (aura 3:24 @p))
-      (tuple 3:28 (lit 3:29 %ok) (lit 3:33 ~zod)))))
+      (tuple 3:28 (lit 3:29 %ok) (lit 3:33 ~zod))))
+  (value 4:1 make
+    (gate 4:9
+      (face 4:12 x (tvar 4:14 A))
+      (cast 4:16
+        (apply 4:19 relay (tvar 4:26 A) (tvar 4:28 B))
+        (tuple 4:31 (lit 4:32 %err) (wing 4:37 x))))))

@@ -1,4 +1,4 @@
 source: Grammar, Molds: generic molds are applied with their arguments; Modules: "Everything is exported and read through the import's face".
-tests: Generic aliases swap or repeat a union's arguments, ignore an alias parameter, and keep the original union identity; a local alias and a merge of distinct capitals are handled conservatively.
+tests: Generic aliases swap or repeat a union's arguments, ignore an alias parameter, and keep the original union identity; local aliases retain their scope; a merge of distinct capitals remains unsupported.
 expect: parses
 expect-types: a partial inference report

@@ -35,4 +35,28 @@ partial inference; module not checked
 ++ dollar: $-(%$ %$)
 ++ dollar-choice: $-((%$ %yes) (%$ %yes))
 ++ dollar-value: %$ %yes
+++ text-list: $-((list @t) (list @t))
+++ nested-tags: $-((list ([%x @ud] [%y @t])) (list ([%x @ud] [%y @t])))
+++ get-items: $-([items=(list @t) slots=(unit @ud)] (list @t))
+++ same-list: $-((list @t) (list @t))
+++ wrong-item: call's sample and argument types do not unify
+/test.jibb:30:37: called gate has type $-((list @t) (list @t))
+++ wrong-item |= x=numbers.fixture (text-list x)
+                                    ^
+/test.jibb:30:47: argument has type (list @ud)
+++ wrong-item |= x=numbers.fixture (text-list x)
+                                              ^
+++ wrong-kind: call's sample and argument types do not unify
+/test.jibb:31:35: called gate has type $-((list @t) (list @t))
+++ wrong-kind |= x=maybe.fixture (text-list x)
+                                  ^
+/test.jibb:31:45: argument has type (unit @t)
+++ wrong-kind |= x=maybe.fixture (text-list x)
+                                            ^
+++ bad-kind: sample mold is not supported by partial inference
+++ bad-arity: sample mold is not supported by partial inference
+++ bad-argument: sample mold is not supported by partial inference
+++ bucket-id: $-((map @ud @t) (map @ud @t))
+++ raw-rec: sample mold is not supported by partial inference
+++ direct-list: cast mold is not supported by partial inference
 reader-collapsed: error: a Hoon union has overlapping cases

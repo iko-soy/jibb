@@ -11,6 +11,6 @@ partial inference; module not checked
 ++ ghost-b: (choice @t @p)
 ++ use-ghost: $-((choice @t @p) (choice @t @p))
 ++ interchange: (choice @t @p)
-++ local: cast constraint is not supported by partial inference
+++ local: $-(A (choice A @p))
 ++ local-pass: $-((choice A @p) (choice A @p))
 ++ local-shadow: $-(A (choice @t @p))

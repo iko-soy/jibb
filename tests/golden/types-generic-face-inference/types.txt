@@ -1,0 +1,13 @@
+partial inference; module not checked
++$ choice: cases proven disjoint; mold not checked
+++ make: $-(A (choice A B))
+++ record: $-(A [first=A second=A])
+++ nested: $-(A [outer=[first=A second=A] rest=A])
+++ mismatch: cast mold and expression type do not unify
+/tests/golden/types-generic-face-inference/source.jibb:7:40: cast mold has type [right=@t rest=@ud]
+++ mismatch |= x=[left=@t rest=@ud] ^- [right=@t rest=@ud] x
+                                       ^
+/tests/golden/types-generic-face-inference/source.jibb:7:60: expression has type [left=@t rest=@ud]
+++ mismatch |= x=[left=@t rest=@ud] ^- [right=@t rest=@ud] x
+                                                           ^
+++ uncertain: cast constraint is not supported by partial inference

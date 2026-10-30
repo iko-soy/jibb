@@ -9,4 +9,10 @@
 +$  collapsed      $?([%x @ud] [%x @ud])
 +$  dollar         %$
 +$  dollar-choice  ?(%$ %yes)
++$  texts          (list @t)
++$  numbers        (list @ud)
++$  maybe          (unit @t)
++$  tagged-list  (list $?([%x @ud] [%y @t]))
++$  buckets        (map @ud @t)
++$  collection-rec  [items=(list @t) slots=(unit @ud)]
 --

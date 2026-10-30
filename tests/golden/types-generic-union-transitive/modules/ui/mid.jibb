@@ -1,3 +1,4 @@
 /=  base /ui/base
 +$ relay |$ [A B] (choice.base B A)
 ++ sample ^- (relay @t @p) [%ok ~zod]
+++ make |= x=A ^- (relay A B) [%err x]

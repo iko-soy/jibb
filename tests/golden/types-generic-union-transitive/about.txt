@@ -1,4 +1,4 @@
 source: Grammar, Modules: "Everything is exported and read through the import's face"; Molds: generic molds.
-tests: A concrete value from a transitive alias and uses of the alias retain the underlying union origin, but the partial printer reports its unavailable name rather than hiding generic arguments.
+tests: Concrete and generic values from a transitive alias and uses of the alias retain the underlying union origin, but the partial printer reports its unavailable name rather than hiding generic arguments.
 expect: parses
 expect-types: a partial inference report

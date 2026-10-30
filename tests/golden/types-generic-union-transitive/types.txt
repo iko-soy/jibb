@@ -2,3 +2,4 @@ partial inference; module not checked
 ++ concrete: generic union name is not available in this scope
 ++ via: generic union name is not available in this scope
 ++ generic: generic union name is not available in this scope
+++ via-generic: generic union name is not available in this scope

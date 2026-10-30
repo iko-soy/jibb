@@ -2,3 +2,4 @@
 ++ concrete ^- (relay.mid @t @p) [%ok ~zod]
 ++ via sample.mid
 ++ generic |= x=(relay.mid A B) x
+++ via-generic (make.mid "hi")

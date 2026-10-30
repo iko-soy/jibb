@@ -23,3 +23,15 @@
 ++ dollar |= x=dollar.fixture x
 ++ dollar-choice |= x=dollar-choice.fixture x
 ++ dollar-value ^- dollar-choice.fixture %$
+++ text-list |= x=texts.fixture x
+++ nested-tags |= x=tagged-list.fixture x
+++ get-items |= x=collection-rec.fixture items.x
+++ same-list |= x=texts.fixture (text-list x)
+++ wrong-item |= x=numbers.fixture (text-list x)
+++ wrong-kind |= x=maybe.fixture (text-list x)
+++ bad-kind |= x=bad-kind.fixture x
+++ bad-arity |= x=bad-arity.fixture x
+++ bad-argument |= x=bad-argument.fixture x
+++ bucket-id |= x=buckets.fixture x
+++ raw-rec |= x=raw-rec.fixture x
+++ direct-list |= x=texts.fixture ^- (list @t) x

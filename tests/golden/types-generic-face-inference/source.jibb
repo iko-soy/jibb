@@ -1,0 +1,8 @@
++$ choice |$ [A B]
+  [%one value=A]
+  [%two value=B]
+++ make |= x=A ^- (choice A B) [%one x]
+++ record |= x=A ^- [first=A second=A] [x x]
+++ nested |= x=A ^- [outer=[first=A second=A] rest=A] [[x x] x]
+++ mismatch |= x=[left=@t rest=@ud] ^- [right=@t rest=@ud] x
+++ uncertain |= x=A ^- [first=B rest=@t] [x "hi"]

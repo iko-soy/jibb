@@ -9,4 +9,7 @@
     (gate 4:12
       (face 4:15 x
         (apply 4:17 relay.mid (tvar 4:28 A) (tvar 4:30 B)))
-      (wing 4:33 x))))
+      (wing 4:33 x)))
+  (value 5:1 via-generic
+    (group 5:16
+      (call 5:17 (wing 5:17 make.mid) (str 5:26 "hi")))))

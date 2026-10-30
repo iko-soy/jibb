@@ -33,4 +33,11 @@
 4:30 tvar B
 4:31 tight glyph )
 4:33 name x
-4:34 NEWLINE
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name via-generic
+5:16 glyph (
+5:17 tight wing make.mid
+5:26 str "hi"
+5:30 tight glyph )
+5:31 NEWLINE

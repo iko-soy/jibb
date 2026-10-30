@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Faces are part of record types"; unnamed positions can take faces but two different explicit faces don't unify.
+tests: A generic value fits a faced field with the same type variable, including union payloads and nested or repeated fields. Explicitly mismatched faces remain errors and differing-variable face propagation remains unsupported.
+expect: parses
+expect-types: a partial inference report

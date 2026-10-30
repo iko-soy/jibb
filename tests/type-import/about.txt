@@ -4,8 +4,10 @@ forks whose supplied cases overlap, but a graph alone cannot reveal source
 cases Hoon already collapsed. This fixture compiles a small /sur against zuse,
 selects its molds, and passes the actual reader results to the inference
 fragment. It checks fixed atoms, valid term singletons including Hoon `%$`,
-nested faced records
-and unnamed unions, including matching and mismatched casts. Forged
+nested faced records, unnamed unions, and opaque standard collections.
+Matching and mismatched collections, nested union arguments, and malformed
+collection names and arities are covered; Jibb-written collection molds and
+recursive references remain unsupported. Forged
 unsupported, malformed, singleton and overlapping forks are rejected; the
 reader itself rejects an overlapping source union before Hoon can collapse it.
 A missing import and a duplicate supplied mold fail closed. The types output

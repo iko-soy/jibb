@@ -1,6 +1,6 @@
 partial inference; module not checked
 +$ relay: not checked
-++ make: cast constraint is not supported by partial inference
+++ make: $-(A (choice.base B A))
 ++ reveal: $-((choice.base A B) (choice.base A B))
 ++ with-text: (choice.base @p @t)
 ++ with-ship: cast mold and expression type do not unify

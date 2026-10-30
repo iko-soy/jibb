@@ -4610,6 +4610,7 @@
       [%flag ~]
       [%tag id=@ud literal=lit constructor=?]
       [%const literal=lit]
+      [%collection name=term args=(list itype)]
       [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t) args=(list itype)]
       [%face name=term body=itype]
       [%fn sample=itype product=itype]
@@ -4661,6 +4662,7 @@
     %tag   =(n id.t)
     %const  |
     %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
+    %collection  (lien args.t |=(c=itype (itype-occurs n c sub)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
@@ -4682,6 +4684,9 @@
     ?.  =(origin.a origin.b)  ~
     ?:  &(?=(~ args.a) ?=(~ args.b))  ?:(=(cases.a cases.b) `sub ~)
     ?~  origin.a  ~
+    (itype-unify-args args.a args.b sub)
+  ?:  &(?=(%collection -.a) ?=(%collection -.b))
+    ?.  =(name.a name.b)  ~
     (itype-unify-args args.a args.b sub)
   ?:  ?=(%var -.a)
     ?:  (itype-occurs id.a b sub)  ~
@@ -4750,6 +4755,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
+    %collection  (lien args.t |=(c=itype (itype-has-any-atom c sub)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -4773,6 +4779,14 @@
 ::  Related auras in a structural unification need a common-type rule;
 ::  until that rule is implemented, report an unknown rather than error.
 ::
+++  itype-family-related-collection-args
+  |=  [as=(list itype) bs=(list itype) sub=isub]
+  ^-  ?
+  ?~  as  |
+  ?~  bs  |
+  ?:  (itype-family-related i.as i.bs sub)  &
+  $(as t.as, bs t.bs)
+::
 ++  itype-family-related
   |=  [a=itype b=itype sub=isub]
   ^-  ?
@@ -4781,6 +4795,9 @@
   ?:  &(?=(%atom -.a) ?=(%atom -.b))
     ?.  !=(aura.a aura.b)  |
     |((aura-prefix aura.a aura.b) (aura-prefix aura.b aura.a))
+  ?:  &(?=(%collection -.a) ?=(%collection -.b))
+    ?.  =(name.a name.b)  |
+    (itype-family-related-collection-args args.a args.b sub)
   ?:  &(?=(%face -.a) ?=(%face -.b))
     ?.  =(name.a name.b)  |
     $(a body.a, b body.b)
@@ -4807,6 +4824,7 @@
     %tag       &
     %const     &
     %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
+    %collection  (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
@@ -4834,17 +4852,29 @@
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %collection  (lien args.t |=(c=itype (itype-has-face c sub)))
     %face      &
     %cell      |($(t hed.t) $(t tal.t))
     %fn        |($(t sample.t) $(t product.t))
     *          |
   ==
 ::
+++  itype-face-asym-collection-args
+  |=  [as=(list itype) bs=(list itype) sub=isub]
+  ^-  ?
+  ?~  as  |
+  ?~  bs  |
+  ?:  (itype-face-asym i.as i.bs sub)  &
+  $(as t.as, bs t.bs)
+::
 ++  itype-face-asym
   |=  [a=itype b=itype sub=isub]
   ^-  ?
   =.  a  (itype-walk a sub)
   =.  b  (itype-walk b sub)
+  ?:  &(?=(%collection -.a) ?=(%collection -.b))
+    ?.  =(name.a name.b)  |
+    (itype-face-asym-collection-args args.a args.b sub)
   ?:  &(?=(%face -.a) ?=(%face -.b))  $(a body.a, b body.b)
   ?:  ?=(%face -.a)  !|(?=(%var -.b) ?=(%avar -.b) ?=(%nvar -.b))
   ?:  ?=(%face -.b)  !|(?=(%var -.a) ?=(%avar -.a) ?=(%nvar -.a))
@@ -4878,6 +4908,7 @@
     %var       &
     %cell      &
     %union     &
+    %collection  &
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     *          |
@@ -4898,6 +4929,7 @@
   ^-  ?
   ?-  -.t
     %tag   &
+    %collection  (lien args.t |=(c=itype (itype-has-tag c)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
@@ -4910,6 +4942,7 @@
   ^-  ?
   ?-  -.t
     %union  &
+    %collection  (lien args.t |=(c=itype (itype-has-union c)))
     %face   $(t body.t)
     %fn     |($(t sample.t) $(t product.t))
     %cell   |($(t hed.t) $(t tal.t))
@@ -4927,6 +4960,7 @@
     %union
       ?:  &(?=(~ label.t) ?=(^ args.t))  &
       (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-generic c)))
+    %collection  (lien args.t |=(c=itype (itype-has-hidden-generic c)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
@@ -5054,6 +5088,15 @@
     =/  first=ifit  $(actual hed.actual, expected hed.expected)
     ?.  ?=(%ok -.first)  first
     $(actual tal.actual, expected tal.expected, sub sub.first, next next.first)
+  ::  A field may add a face to an occurrence of the very same type
+  ::  variable. Binding that variable to a face around itself would fail
+  ::  the occurs check, but its underlying type has already matched.
+  ?:  &(?=(%var -.actual) ?=(%face -.expected) =(actual (itype-walk body.expected sub)))
+    [%ok sub next]
+  ::  Differing variables and faces need propagation that is not yet
+  ::  represented. Binding one to the face can create a false mismatch.
+  ?:  &(?=(%var -.actual) ?=(%face -.expected))  [%unknown ~]
+  ?:  &(?=(%face -.actual) ?=(%var -.expected))  [%unknown ~]
   ?:  &(?=(%var -.actual) (itype-has-any-atom expected sub))
     [%unknown ~]
   ?:  |(?=(%var -.actual) ?=(%var -.expected))
@@ -5102,6 +5145,23 @@
     ["a shared type variable should reject incompatible arguments" problems]
   =?  problems  ?=(~ (itype-unify same fine ~))
     ["a shared type variable should accept equal arguments" problems]
+  =/  list-a=itype  [%collection %list ~[a]]
+  =/  list-t=itype  [%collection %list ~[txt]]
+  =/  list-n=itype  [%collection %list ~[num]]
+  =?  problems  ?=(^ (itype-unify a list-a ~))
+    ["occurs check should look through collection arguments" problems]
+  =?  problems  !=((itype-vars list-a) ~[0])
+    ["generalization should see collection argument variables" problems]
+  =?  problems  !=((itype-rename list-a ~[[0 num]]) list-n)
+    ["instantiation should rename collection argument variables" problems]
+  =?  problems  ?=(^ (itype-unify list-t list-n ~))
+    ["collection arguments with different auras should conflict" problems]
+  =?  problems  ?=(^ (itype-unify list-t [%collection %unit ~[txt]] ~))
+    ["different collection names should conflict" problems]
+  =?  problems  !(itype-family-related list-t [%collection %list ~[[%atom 'tD']]] ~)
+    ["collection arguments should preserve aura-family uncertainty" problems]
+  =?  problems  !(itype-face-asym [%collection %list ~[[%face %x txt]]] list-t ~)
+    ["collection arguments should preserve face uncertainty" problems]
   problems
 ::
 ::  The expression inference below is deliberately a fragment: bindings,
@@ -5140,6 +5200,7 @@
   |=  [t=itype sub=isub]
   ^-  itype
   =.  t  (itype-walk t sub)
+  ?:  ?=(%collection -.t)  [%collection name.t (turn args.t |=(c=itype (itype-normalize c sub)))]
   ?:  ?=(%union -.t)
     [%union (turn cases.t |=(c=itype (itype-normalize c sub))) origin.t label.t (turn args.t |=(c=itype (itype-normalize c sub)))]
   ?:  ?=(%face -.t)
@@ -5161,6 +5222,7 @@
   ?-  -.t
     %fn        &
     %cell      |($(t hed.t) $(t tal.t))
+    %collection  (lien args.t |=(c=itype (itype-has-gate c)))
     %face      $(t body.t)
     %union     (lien cases.t |=(c=itype (itype-has-gate c)))
     %tag       |
@@ -5179,6 +5241,7 @@
   ?:  (itype-has-gate t)  t
   ?-  -.t
     %nvar      [%atom %ud]
+    %collection  [%collection name.t (turn args.t |=(c=itype (default-decimals c)))]
     %face      [%face name.t $(t body.t)]
     %cell      [%cell $(t hed.t) $(t tal.t)]
     *          t
@@ -5197,6 +5260,7 @@
     %tag   ~
     %const  ~
     %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
+    %collection  (zing (turn args.t |=(c=itype (itype-vars c))))
     %face  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
     %cell  (weld $(t hed.t) $(t tal.t))
@@ -5233,6 +5297,7 @@
     %tag   t
     %const  t
     %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
+    %collection  [%collection name.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -5254,6 +5319,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
+    %collection  (lien args.t |=(c=itype (itype-var-is-atom n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -5345,6 +5411,18 @@
       =/  aura=@ta  (@ta +<.node)
       ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
       `[%atom aura]
+    %apply
+      ?.  ?=([%apply @ *] node)  ~
+      =/  name=term  (@tas +<.node)
+      =/  arity=@ud
+        ?:  |(=(%list name) =(%unit name) =(%set name) =(%qeu name))  1
+        ?:  |(=(%map name) =(%mop name) =(%jar name) =(%jug name))  2
+        0
+      ?:  =(arity 0)  ~
+      =/  args=(unit (list itype))  (import-to-itypes +>.node)
+      ?~  args  ~
+      ?.  =(arity (lent u.args))  ~
+      `[%collection name u.args]
     %fork
       =/  cases=(unit (list itype))  (import-to-itypes +.node)
       ?~  cases  ~
@@ -5484,6 +5562,7 @@
         ?~  alias  ~
         `(crip "{(trip u.alias)}.{(trip face)}")
       [%union (turn cases.t |=(c=itype (itype-in-import c iface face))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face)))]
+    %collection  [%collection name.t (turn args.t |=(c=itype (itype-in-import c iface face)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -6140,6 +6219,7 @@
       ?~  label.t  (show-itype-cases cases.t sub)
       ?~  args.t  (trip u.label.t)
       "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
+    %collection  "({(trip name.t)} {(show-itype-cases args.t sub)})"
     %face  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
     %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
@@ -6182,6 +6262,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
+    %collection  (lien args.typ |=(c=itype (itype-has-nvar c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
@@ -6258,6 +6339,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
+    %collection  (lien args.t |=(c=itype (has-atom-var n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))

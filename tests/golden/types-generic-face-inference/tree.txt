@@ -1,0 +1,56 @@
+(module
+  (mold 1:1 choice
+    (generic 1:11 A B
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %one)
+          (face 2:9 value (tvar 2:15 A)))
+        (cell 3:3
+          (const 3:4 %two)
+          (face 3:9 value (tvar 3:15 B))))))
+  (value 4:1 make
+    (gate 4:9
+      (face 4:12 x (tvar 4:14 A))
+      (cast 4:16
+        (apply 4:19 choice (tvar 4:27 A) (tvar 4:29 B))
+        (tuple 4:32 (lit 4:33 %one) (wing 4:38 x)))))
+  (value 5:1 record
+    (gate 5:11
+      (face 5:14 x (tvar 5:16 A))
+      (cast 5:18
+        (cell 5:21
+          (face 5:22 first (tvar 5:28 A))
+          (face 5:30 second (tvar 5:37 A)))
+        (tuple 5:40 (wing 5:41 x) (wing 5:43 x)))))
+  (value 6:1 nested
+    (gate 6:11
+      (face 6:14 x (tvar 6:16 A))
+      (cast 6:18
+        (cell 6:21
+          (face 6:22 outer
+            (cell 6:28
+              (face 6:29 first (tvar 6:35 A))
+              (face 6:37 second (tvar 6:44 A))))
+          (face 6:47 rest (tvar 6:52 A)))
+        (tuple 6:55
+          (tuple 6:56 (wing 6:57 x) (wing 6:59 x))
+          (wing 6:62 x)))))
+  (value 7:1 mismatch
+    (gate 7:13
+      (face 7:16 x
+        (cell 7:18
+          (face 7:19 left (aura 7:24 @t))
+          (face 7:27 rest (aura 7:32 @ud))))
+      (cast 7:37
+        (cell 7:40
+          (face 7:41 right (aura 7:47 @t))
+          (face 7:50 rest (aura 7:55 @ud)))
+        (wing 7:60 x))))
+  (value 8:1 uncertain
+    (gate 8:14
+      (face 8:17 x (tvar 8:19 A))
+      (cast 8:21
+        (cell 8:24
+          (face 8:25 first (tvar 8:31 B))
+          (face 8:33 rest (aura 8:38 @t)))
+        (tuple 8:42 (wing 8:43 x) (str 8:45 "hi"))))))
