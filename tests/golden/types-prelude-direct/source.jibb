@@ -1,0 +1,5 @@
+++ echo |= x=(unit A) x
+++ extract |= x=(unit A) (need x)
+++ concrete ^- (unit @t) ~
+++ missing (turn [~ |=(x x)])
+++ shadow |= need need

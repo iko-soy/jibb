@@ -1,0 +1,33 @@
+(module
+  (jibb 1:1 left /ui/left)
+  (jibb 2:1 right /ui/right)
+  (value 3:1 create
+    (cast 3:11
+      (apply 3:14 unit (aura 3:20 @t))
+      (lit 3:24 ~)))
+  (value 4:1 source
+    (group 4:11
+      (call 4:12 (wing 4:12 identity.right) (wing 4:27 value.left))))
+  (value 5:1 direct
+    (group 5:11
+      (call 5:12 (wing 5:12 need) (wing 5:17 value.left))))
+  (value 6:1 fallback
+    (group 6:13
+      (call 6:14
+        (wing 6:14 fall)
+        (tuple 6:19 (wing 6:20 value.left) (str 6:31 "fallback")))))
+  (value 7:1 unavailable
+    (group 7:16
+      (call 7:17
+        (wing 7:17 turn)
+        (tuple 7:22
+          (lit 7:23 ~)
+          (gate-wide 7:25 (bind 7:28 x) (wing 7:30 x))))))
+  (value 8:1 shadow
+    (gate 8:11 (bind 8:14 turn) (wing 8:19 turn)))
+  (value 9:1 unsupported
+    (gate 9:16
+      (face 9:19 x
+        (apply 9:21 list (aura 9:27 @t)))
+      (wing 9:31 x)))
+  (value 10:1 get-gate (wing 10:13 identity.right)))

@@ -5241,7 +5241,7 @@
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  imark-externals  (list [mark=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term)]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -5691,6 +5691,7 @@
     %union
       =/  label=(unit @t)
         ?~  origin.t  ~
+        ?:  =(at.u.origin.t /lib/jibb/prelude/jibb)  `name.u.origin.t
         =/  alias=(unit term)  ~
         =?  alias  &(=(at.u.origin.t at.iface) ?=(^ (find-jibb-mold name.u.origin.t iface)))  `name.u.origin.t
         =?  alias  ?=(~ alias)  (imported-union-alias u.origin.t molds.iface)
@@ -5839,7 +5840,13 @@
         `[u.imported state]
       ?:  (lien active.state |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state)
-      ?~  found  ~
+      ?~  found
+        ?:  (lien molds.state |=(m=[name=term body=shape] =(name.m n)))  ~
+        ?~  prelude.state  ~
+        =/  prelude-entry=(unit ischeme)  (find-jibb-mold n u.prelude.state)
+        ?~  prelude-entry  ~
+        ?^  vars.u.prelude-entry  ~
+        `[typ.u.prelude-entry state]
       =/  out=(unit [typ=itype state=istate])
         $(sh u.found, state state(active [n active.state], in-mold &, params ~))
       ?~  out  ~
@@ -5861,7 +5868,15 @@
         `[(itype-in-import u.applied u.iface i.t.ref.sh) state.u.args]
       ?:  (lien active.state.u.args |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state.u.args)
-      ?~  found  ~
+      ?~  found
+        ?:  (lien molds.state.u.args |=(m=[name=term body=shape] =(name.m n)))  ~
+        ?~  prelude.state.u.args  ~
+        =/  prelude-entry=(unit ischeme)  (find-jibb-mold n u.prelude.state.u.args)
+        ?~  prelude-entry  ~
+        ?~  vars.u.prelude-entry  ~
+        =/  applied=(unit itype)  (template-apply u.prelude-entry types.u.args)
+        ?~  applied  ~
+        `[u.applied state.u.args]
       ?.  ?=(%generic -.u.found)  ~
       ?.  (distinct-params vars.u.found)  ~
       =/  params=(unit iparams)  (bind-params vars.u.found types.u.args)
@@ -6252,7 +6267,12 @@
         =/  instance=[typ=itype state=istate]  (instantiate-scheme u.member state)
         [%& typ.instance state.instance]
       =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
-      ?~  scheme  [%| ["name is not available to partial inference" ~]]
+      ?~  scheme
+        ?~  prelude.state  [%| ["name is not available to partial inference" ~]]
+        =/  prelude-entry=(unit ischeme)  (ienv-lookup i.names.e values.u.prelude.state)
+        ?~  prelude-entry  [%| ["name is not available to partial inference" ~]]
+        =/  inst=[typ=itype state=istate]  (instantiate-scheme u.prelude-entry state)
+        [%& typ.inst state.inst]
       =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
       [%& typ.instance state.instance]
     %group  $(e inner.e)
@@ -6639,7 +6659,7 @@
   |
 ::
 ++  add-supported-defs
-  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path]
+  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
   ^-  ienv
   ?~  ds  env
   =/  d=def  i.ds
@@ -6647,7 +6667,7 @@
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude])
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
@@ -6658,11 +6678,11 @@
   $(ds t.ds, env [[name.d [typ vars]] env])
 ::
 ++  resolve-supported-defs
-  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path]
+  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
   ^-  ienv
   =/  env=ienv  ~
   |-
-  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at)
+  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
   ?:  =(next env)  env
   $(env next)
 ::
@@ -6900,6 +6920,55 @@
   ?:  ?=(%| -.rest)  rest
   [%& [[name.m template.u.t] p.rest]]
 ::
+::  Prepare a provisional interface from the trusted vendored source.
+::  Every declared name remains reserved, but only molds and values this
+::  fragment can infer are usable. Unsupported bodies are not validated,
+::  and imports into the prelude are not supported yet. The fixed origin
+::  gives its named unions the same identity in every importing module.
+::
+++  partial-prelude-molds
+  |=  [molds=imolds state=istate]
+  ^-  imold-types
+  ?~  molds  ~
+  =/  m=[name=term body=shape]  i.molds
+  =/  out=(unit [template=ischeme state=istate])
+    (infer-mold-template body.m state(active [name.m active.state], in-mold &))
+  ?~  out  $(molds t.molds)
+  =.  typ.template.u.out  (label-direct-union typ.template.u.out body.m name.m state)
+  [[name.m template.u.out] $(molds t.molds)]
+::
+++  partial-prelude-interface
+  |=  src=@t
+  ^-  (unit ifile)
+  ?:  =(0 src)  ~
+  =/  at=path  /lib/jibb/prelude/jibb
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  ~
+  ?^  imports.p.parsed  ~
+  ?~  defs.p.parsed  ~
+  ?.  (module-scope-valid p.parsed ~ ~)  ~
+  =/  ds=(list def)  defs.p.parsed
+  =/  molds=imolds  (collect-simple-molds ds)
+  =/  names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  globals=(list term)  (global-value-names ds)
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ ~ ~ ~ ~ ~ | at names ~]
+  =/  mt=imold-types  (partial-prelude-molds molds state)
+  =/  env=ienv  (resolve-supported-defs ds molds globals ~ ~ ~ ~ ~ ~ at ~)
+  `[env mt at]
+::
++$  iprelude  [iface=ifile values=(list term) molds=(list term)]
+::
+++  prepare-prelude
+  |=  src=@t
+  ^-  (unit iprelude)
+  =/  iface=(unit ifile)  (partial-prelude-interface src)
+  ?~  iface  ~
+  =/  parsed  (parse /lib/jibb/prelude/jibb src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  vals=(list term)  (global-value-names defs.p.parsed)
+  =/  ms=(list term)  (turn (collect-simple-molds defs.p.parsed) |=(m=[name=term body=shape] name.m))
+  `[u.iface vals ms]
+::
 ++  module-values-complete
   |=  [ds=(list def) env=ienv]
   ^-  ?
@@ -6921,7 +6990,7 @@
   $(cache t.cache)
 ::
 ++  resolve-jibb-imports
-  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache]
+  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jimports-result
   ?~  imports  [%& [~ cache]]
   ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
@@ -6934,14 +7003,14 @@
   =/  cached=(unit ifile)  (find-jibb-cache at cache)
   =/  iface=jfile-result
     ?^  cached  [%& [u.cached cache]]
-    (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache)
+    (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.iface)  [%| p.iface]
   =/  rest=jimports-result  $(imports t.imports, cache cache.p.iface)
   ?:  ?=(%| -.rest)  rest
   [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest]]
 ::
 ++  infer-jibb-file
-  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache]
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-result
   ?:  ?=([%ui %api *] at)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
   =/  parsed  (parse at src)
@@ -6951,7 +7020,7 @@
   =/  vals=(list term)  (global-value-names defs.mod)
   ?:  (lien vals |=(n=term =(n %main)))
     [%| (crip "module kind needs unsupported inference: {(spud at)}")]
-  =/  js=jimports-result  (resolve-jibb-imports imports.mod externals mark-externals modules active prelude-values prelude-molds cache)
+  =/  js=jimports-result  (resolve-jibb-imports imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.js)  [%| p.js]
   =/  molds=imolds  (collect-simple-molds defs.mod)
   =/  globals=(list term)  (weld prelude-values (weld (import-binding-names imports.mod) vals))
@@ -6959,10 +7028,10 @@
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
-  =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at)
+  =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
   [%& [[env p.mts at] [[at [env p.mts at]] cache.p.js]]]
@@ -6980,8 +7049,10 @@
     'partial inference; module not checked\0aprelude source missing; module import inference unsupported'
   (golden-types-with-marks file src externals mark-externals)
 ::
-::  The caller supplies the actual prelude source. Its current names are
-::  reserved, but its incomplete inventory and types are not checked here.
+::  The caller supplies the actual prelude source. Its declared names are
+::  reserved, and supported inferred types are made available. The inventory
+::  and the checker are incomplete, so this never claims a checked module.
+::  Hosts may prepare the same trusted source once and reuse its interface.
 ::
 ++  golden-types-with-prelude
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prelude-source=@t]
@@ -6991,17 +7062,27 @@
   ?:  =(0 prelude-source)  'partial inference; module not checked\0aprelude source missing; module import inference unsupported'
   =/  prelude  (parse /lib/jibb/prelude/jibb prelude-source)
   ?:  ?=(%| -.prelude)  'partial inference; module not checked\0aprelude source does not parse; module import inference unsupported'
-  =/  prelude-values=(list term)  (global-value-names defs.p.prelude)
-  =/  prelude-molds=(list term)
-    (turn (collect-simple-molds defs.p.prelude) |=(m=[name=term body=shape] name.m))
+  =/  prepared=(unit iprelude)  (prepare-prelude prelude-source)
+  ?~  prepared  'partial inference; module not checked\0aprelude interface is not supported'
+  (golden-types-with-prepared-prelude file src externals mark-externals modules prepared)
+::
+++  golden-types-with-prepared-prelude
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prepared=(unit iprelude)]
+  ^-  @t
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  ?~  prepared  'partial inference; module not checked\0aprelude interface is not supported'
+  =/  prelude-values=(list term)  values.u.prepared
+  =/  prelude-molds=(list term)  molds.u.prepared
+  =/  iface=(unit ifile)  `iface.u.prepared
   ?.  (module-scope-valid p.parsed prelude-values prelude-molds)
     'partial inference; module not checked\0amodule has conflicting names'
   =/  js=jimports-result
-    (resolve-jibb-imports imports.p.parsed externals mark-externals modules ~[file] prelude-values prelude-molds ~)
+    (resolve-jibb-imports imports.p.parsed externals mark-externals modules ~[file] prelude-values prelude-molds ~ iface)
   ?:  ?=(%| -.js)  (of-wain:format ~['partial inference; module not checked' p.js])
   =/  scope-values=(list term)
     (weld prelude-values (weld (collect-sur-imports imports.p.parsed) (collect-mark-imports imports.p.parsed)))
-  (golden-types-in-context file src externals mark-externals resolved.p.js scope-values prelude-molds)
+  (golden-types-in-context file src externals mark-externals resolved.p.js scope-values prelude-molds iface)
 ::
 ::  +golden-types-with-marks: supply declared mark types separately from /sur
 ::    entries, as [mark result] with the result from +read-mark:jibb-import.
@@ -7010,10 +7091,10 @@
 ++  golden-types-with-marks
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals]
   ^-  @t
-  (golden-types-in-context file src externals mark-externals ~ ~ ~)
+  (golden-types-in-context file src externals mark-externals ~ ~ ~ ~)
 ::
 ++  golden-types-in-context
-  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals jimports=ijimports prelude-values=(list term) reserved-molds=(list term)]
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals jimports=ijimports prelude-values=(list term) reserved-molds=(list term) prelude=(unit ifile)]
   ^-  @t
   =.  reserved-molds  (weld reserved-molds (turn jimports |=(j=[face=term interface=ifile] face.j)))
   =/  parsed  (parse file src)
@@ -7023,7 +7104,7 @@
   =/  globals=(list term)  (weld prelude-values (weld (turn jimports |=(j=[face=term interface=ifile] face.j)) (global-value-names ds)))
   =/  surs=(list term)  (collect-sur-imports imports.p.parsed)
   =/  marks=(list term)  (collect-mark-imports imports.p.parsed)
-  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs mark-externals marks jimports reserved-molds file)
+  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs mark-externals marks jimports reserved-molds file prelude)
   =/  lines=(list @t)  ~
   |-
   ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
@@ -7033,7 +7114,7 @@
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude])
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)

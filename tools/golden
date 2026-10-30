@@ -255,8 +255,10 @@ def golden_program(lib_path, cases):
         surs = '(import-types imports.metadata)' if imported else '~'
         marks = '(import-marks marks.metadata)' if imported else '~'
         modules = '(turn modules.metadata |=(item=[label=@t at=path source=@t] [at.item source.item]))'
-        types_value = ('?:(module-check.metadata (golden-types-with-prelude:lib '
-                       'at src %s %s %s prelude-source) %s)' % (surs, marks, modules, types_value))
+        types_value = ('?:(module-check.metadata ?~(prepared-prelude '
+                       '(golden-types-with-prelude:lib at src %s %s %s prelude-source) '
+                       '(golden-types-with-prepared-prelude:lib at src %s %s %s prepared-prelude)) %s)'
+                       % (surs, marks, modules, surs, marks, modules, types_value))
     types_expr = '?:(check.metadata %s \'\')' % types_value
     prelude_helper = ''
     if has_module_types:
@@ -268,6 +270,10 @@ def golden_program(lib_path, cases):
             raise ue.ToolError('cannot read the Jibb prelude %s: %s' % (prelude_path, e))
         prelude_helper = "++  prelude-source\n  ^-  @t\n  (rap 3 `(list @t)`~[%s])\n" % (
             ' '.join(ue.cord_literal(p) for p in parts))
+        prelude_expr = '(rap 3 `(list @t)`~[%s])' % (
+            ' '.join(ue.cord_literal(p) for p in parts))
+        harness = harness.replace('|^  %+  rap  3',
+                                  '=/  prepared-prelude  (prepare-prelude:lib %s)\n|^  %%+  rap  3' % prelude_expr)
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")

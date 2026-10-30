@@ -1165,6 +1165,8 @@ def generate_tests(golden):
             call = '(weld %s (check-module-trees ~.%s %s ~[%s]))' % (
                 call, name, expected_modules, ' '.join(module_fixtures))
         arms.append('++  %s\n  %s' % (arm, call))
+    if has_module_types:
+        lines.append('=/  prepared-prelude  (prepare-prelude:jibb prelude-source)')
     lines.append('|%')
     if arms:
         lines.append('::  one arm per case')
@@ -1286,7 +1288,9 @@ def generate_tests(golden):
     [name.fixture (read-mark:jibb-import name.fixture cor)]
   =/  sources=(list [path=path source=@t])
     (turn modules |=(item=[label=@t at=path source=@t] [at.item source.item]))
-  (golden-types-with-prelude:jibb at src external mark-external sources prelude-source)
+  ?~  prepared-prelude
+    (golden-types-with-prelude:jibb at src external mark-external sources prelude-source)
+  (golden-types-with-prepared-prelude:jibb at src external mark-external sources prepared-prelude)
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 

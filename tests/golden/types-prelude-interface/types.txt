@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ create: (unit @t)
+++ source: (unit @t)
+++ direct: @t
+++ fallback: @t
+++ unavailable: name is not available to partial inference
+++ shadow: sample shadows a name
+++ unsupported: sample mold is not supported by partial inference
+++ get-gate: $-((unit A) (unit A))

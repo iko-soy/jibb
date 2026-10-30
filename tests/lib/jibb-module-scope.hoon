@@ -18,6 +18,10 @@
   =/  okay  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ fixtures prelude)
   =/  empty  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ fixtures '')
   =/  bad  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ fixtures (crip "+$"))
+  =/  duplicate-value=@t  (crip "++ foo |=(x x)\0a++ foo |=(x x)\0a")
+  =/  duplicate-mold=@t  (crip "+$ foo @t\0a+$ foo @p\0a")
+  =/  bad-value  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ fixtures duplicate-value)
+  =/  bad-mold  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ fixtures duplicate-mold)
   =/  conflict=@t  (crip "/= value /ui/dep\0a++ identity |= x x\0a")
   =/  collision  (golden-types-with-prelude:jibb /ui/main/jibb conflict ~ ~ fixtures prelude)
   =/  library=@t  (crip "++ pass |=(x x)\0a")
@@ -29,5 +33,5 @@
   =/  after-fixtures=(list [at=path source=@t])
     [[~[%ui %safe %jibb] library] duplicates]
   =/  after  (golden-types-with-prelude:jibb /ui/main/jibb after-source ~ ~ after-fixtures prelude)
-  (of-wain:format ~[okay empty bad collision duplicate after])
+  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after])
 --

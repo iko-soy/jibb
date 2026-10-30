@@ -1,0 +1,13 @@
+/ui/left.jibb
+(module
+  (value 1:1 value
+    (cast 1:10
+      (apply 1:13 unit (aura 1:19 @t))
+      (tuple 1:23 (lit 1:24 ~) (str 1:26 "hello")))))
+/ui/right.jibb
+(module
+  (value 1:1 identity
+    (gate 1:13
+      (face 1:16 x
+        (apply 1:18 unit (tvar 1:24 A)))
+      (wing 1:27 x))))

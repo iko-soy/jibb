@@ -1,0 +1,25 @@
+(module
+  (value 1:1 echo
+    (gate 1:9
+      (face 1:12 x
+        (apply 1:14 unit (tvar 1:20 A)))
+      (wing 1:23 x)))
+  (value 2:1 extract
+    (gate 2:12
+      (face 2:15 x
+        (apply 2:17 unit (tvar 2:23 A)))
+      (group 2:26
+        (call 2:27 (wing 2:27 need) (wing 2:32 x)))))
+  (value 3:1 concrete
+    (cast 3:13
+      (apply 3:16 unit (aura 3:22 @t))
+      (lit 3:26 ~)))
+  (value 4:1 missing
+    (group 4:12
+      (call 4:13
+        (wing 4:13 turn)
+        (tuple 4:18
+          (lit 4:19 ~)
+          (gate-wide 4:21 (bind 4:24 x) (wing 4:26 x))))))
+  (value 5:1 shadow
+    (gate 5:11 (bind 5:14 need) (wing 5:19 need))))

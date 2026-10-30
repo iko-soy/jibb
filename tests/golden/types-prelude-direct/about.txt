@@ -1,0 +1,4 @@
+source: Overview, Prelude: "Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/prelude`". Grammar, Modules: no name may shadow one already in scope.
+tests: A module with no imports uses the prelude's unit and need, printing unit without a qualifier. Unsupported prelude values still fail closed and their names remain reserved.
+expect: parses
+expect-types: a partial inference report

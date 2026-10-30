@@ -6,6 +6,10 @@ prelude source missing; module import inference unsupported
 partial inference; module not checked
 prelude source does not parse; module import inference unsupported
 partial inference; module not checked
+prelude interface is not supported
+partial inference; module not checked
+prelude interface is not supported
+partial inference; module not checked
 module has conflicting names
 partial inference; module not checked
 duplicate module sources: /ui/dup/jibb

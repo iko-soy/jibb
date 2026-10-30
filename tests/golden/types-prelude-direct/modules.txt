@@ -1,0 +1,1 @@
+# No imported modules: opt in to the prelude-aware checker.

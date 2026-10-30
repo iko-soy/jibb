@@ -1,0 +1,6 @@
+partial inference; module not checked
+++ echo: $-((unit A) (unit A))
+++ extract: $-((unit A) A)
+++ concrete: (unit @t)
+++ missing: name is not available to partial inference
+++ shadow: sample shadows a name
