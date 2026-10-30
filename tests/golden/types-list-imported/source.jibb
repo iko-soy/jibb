@@ -4,3 +4,6 @@
 ++ to-imported |= xs=(list @t) (take xs)
 ++ literal (take ~["hi"])
 ++ bad |= xs=ships.fixture (take xs)
+++ cons (take ["hi" ~])
+++ empty ^- texts.fixture ~
+++ bad-cons ^- texts.fixture [~zod ~]

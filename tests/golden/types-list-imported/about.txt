@@ -1,4 +1,4 @@
 source: Overview, Importing Hoon types: "`/-` and `/%` translate each mold a module uses from `/sur` files and marks"; Grammar, Molds: containers include `(list A)`.
-tests: A real Hoon list import and the prelude list type agree in both directions, a list literal fits an imported sample, and incompatible element types report both sites.
+tests: A real Hoon list import and the prelude list type agree in both directions, list literals, null and cons cells fit imported contexts, and incompatible element types report both sites.
 expect: parses
 expect-types: a partial inference report

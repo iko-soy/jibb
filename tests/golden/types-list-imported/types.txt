@@ -10,3 +10,12 @@ partial inference; module not checked
 /tests/golden/types-list-imported/source.jibb:6:34: argument has type (list @p)
 ++ bad |= xs=ships.fixture (take xs)
                                  ^
+++ cons: (list @t)
+++ empty: (list @t)
+++ bad-cons: list item does not fit its expected type
+/tests/golden/types-list-imported/source.jibb:9:16: expected item has type @t
+++ bad-cons ^- texts.fixture [~zod ~]
+               ^
+/tests/golden/types-list-imported/source.jibb:9:31: list item has type @p
+++ bad-cons ^- texts.fixture [~zod ~]
+                              ^

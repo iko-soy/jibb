@@ -55,4 +55,29 @@
 6:29 tight name take
 6:34 name xs
 6:36 tight glyph )
-6:37 NEWLINE
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name cons
+7:9 glyph (
+7:10 tight name take
+7:15 glyph [
+7:16 tight str "hi"
+7:21 lit ~
+7:22 tight glyph ]
+7:23 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name empty
+8:10 glyph ^-
+8:13 wing texts.fixture
+8:27 lit ~
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name bad-cons
+9:13 glyph ^-
+9:16 wing texts.fixture
+9:30 glyph [
+9:31 tight lit ~zod
+9:36 lit ~
+9:37 tight glyph ]
+9:38 NEWLINE

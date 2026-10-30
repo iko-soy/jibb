@@ -1,0 +1,29 @@
+partial inference; module not checked
+++ empty: (list @t)
+++ one: (list @t)
+++ zero-tail: (list @t)
+++ zero-number: (list @t)
+++ zero-amp: (list @t)
+++ multiple: (list @t)
+++ nested: (list (list @t))
+++ nested-cons: (list (list @t))
+++ take: $-((list @t) (list @t))
+++ call: (list @t)
+++ bad-head: list item does not fit its expected type
+/tests/golden/types-list-cons/source.jibb:11:16: expected item has type @t
+++ bad-head ^- (list @t) [~zod ~]
+               ^
+/tests/golden/types-list-cons/source.jibb:11:27: list item has type @p
+++ bad-head ^- (list @t) [~zod ~]
+                          ^
+++ bad-tail: list tail does not fit its expected type
+/tests/golden/types-list-cons/source.jibb:12:16: expected list has type (list @t)
+++ bad-tail ^- (list @t) ["hi" ~zod]
+               ^
+/tests/golden/types-list-cons/source.jibb:12:32: list tail has type @p
+++ bad-tail ^- (list @t) ["hi" ~zod]
+                               ^
+++ faced: faced cons is not supported by partial inference
+++ three: cons shape is not supported by partial inference
+++ pending: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference

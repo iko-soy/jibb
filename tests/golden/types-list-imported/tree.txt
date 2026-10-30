@@ -25,4 +25,15 @@
     (gate 6:8
       (face 6:11 xs (ref 6:14 ships.fixture))
       (group 6:28
-        (call 6:29 (wing 6:29 take) (wing 6:34 xs))))))
+        (call 6:29 (wing 6:29 take) (wing 6:34 xs)))))
+  (value 7:1 cons
+    (group 7:9
+      (call 7:10
+        (wing 7:10 take)
+        (tuple 7:15 (str 7:16 "hi") (lit 7:21 ~)))))
+  (value 8:1 empty
+    (cast 8:10 (ref 8:13 texts.fixture) (lit 8:27 ~)))
+  (value 9:1 bad-cons
+    (cast 9:13
+      (ref 9:16 texts.fixture)
+      (tuple 9:30 (lit 9:31 ~zod) (lit 9:36 ~)))))

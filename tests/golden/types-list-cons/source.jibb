@@ -1,0 +1,20 @@
+++ empty ^- (list @t) ~
+++ one ^- (list @t) ["a" ~]
+++ zero-tail ^- (list @t) ["a" %$]
+++ zero-number ^- (list @t) ["a" %0]
+++ zero-amp ^- (list @t) ["a" %&]
+++ multiple ^- (list @t) ["a" ["b" ~]]
+++ nested ^- (list (list @t)) [~["a"] ~]
+++ nested-cons ^- (list (list @t)) [["a" ~] ~]
+++ take |= xs=(list @t) xs
+++ call (take ["hi" ~])
+++ bad-head ^- (list @t) [~zod ~]
+++ bad-tail ^- (list @t) ["hi" ~zod]
+++ faced ^- (list @t) [i="hi" t=~]
+++ three ^- (list @t) ["a" "b" ~]
+++ pending
+  ~& %unknown
+    ^- (list @t) ["hi" ~]
+++ pending-null
+  ~& ~
+    ^- (list @t) ["hi" ~]

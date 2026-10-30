@@ -6150,15 +6150,17 @@
     [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
-::  A list literal needs a known list target and the validated prelude list.
-::  Its items receive that target one by one; pending constraints elsewhere
-::  stay in the threaded state. Other list syntax remains unsupported.
+::  A list expression needs a known list target and the validated prelude list.
+::  Literal items and unfaced two-item cons cells receive that target one by
+::  one; pending constraints elsewhere stay in the threaded state.
 ::
-++  context-list-literal
+++  context-list-expression
   |=  e=expr
   ^-  ?
   ?-  -.e
     %list   &
+    %tuple  &
+    %lit    |(=(%null form.lit.e) &(=(%term form.lit.e) =(0 val.lit.e)))
     %group  $(e inner.e)
     %body   ?~(defs.e $(e final.e) |)
     *       |
@@ -6169,7 +6171,6 @@
   ^-  iresult
   ?:  ?=(%group -.e)  $(e inner.e)
   ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
-  ?>  ?=(%list -.e)
   ?~  prelude.state  [%| ["list literal needs the standard prelude in partial inference" ~]]
   ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
     [%| ["list literal needs the standard prelude in partial inference" ~]]
@@ -6182,9 +6183,33 @@
   ?.  =(%list name.target)  [%| ["list context is not supported by partial inference" ~]]
   ?~  args.target  [%| ["list context is not supported by partial inference" ~]]
   ?^  t.args.target  [%| ["list context is not supported by partial inference" ~]]
-  =/  result=iresult  (infer-list-items items.e i.args.target env state context)
-  ?:  ?=(%| -.result)  result
-  [%& target state.p.result]
+  ?:  ?=(%lit -.e)
+    ?.  |(=(%null form.lit.e) &(=(%term form.lit.e) =(0 val.lit.e)))
+      [%| ["list expression is not supported by partial inference" ~]]
+    [%& target state]
+  ?:  ?=(%list -.e)
+    =/  result=iresult  (infer-list-items items.e i.args.target env state context)
+    ?:  ?=(%| -.result)  result
+    [%& target state.p.result]
+  ?.  ?=(%tuple -.e)  [%| ["list expression is not supported by partial inference" ~]]
+  ?~  items.e  [%| ["cons shape is not supported by partial inference" ~]]
+  ?~  t.items.e  [%| ["cons shape is not supported by partial inference" ~]]
+  ?^  t.t.items.e  [%| ["cons shape is not supported by partial inference" ~]]
+  ?^  face.i.items.e  [%| ["faced cons is not supported by partial inference" ~]]
+  ?^  face.i.t.items.e  [%| ["faced cons is not supported by partial inference" ~]]
+  =/  head=iresult  (infer-list-items ~[val.i.items.e] i.args.target env state context)
+  ?:  ?=(%| -.head)  head
+  =/  target=itype  (itype-walk target sub.state.p.head)
+  =/  tail=iresult
+    ?:  (context-list-expression val.i.t.items.e)
+      (infer-list-context val.i.t.items.e target env state.p.head context)
+    (infer-fragment val.i.t.items.e env state.p.head)
+  ?:  ?=(%| -.tail)  tail
+  =/  fit=ifit  (itype-fit typ.p.tail target sub.state.p.tail next.state.p.tail)
+  ?:  ?=(%unknown -.fit)  [%| ["list tail constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    [%| ["list tail does not fit its expected type" ~[[context (site-type-note "expected list" target sub.state.p.tail)] [(span-of val.i.t.items.e) (site-type-note "list tail" typ.p.tail sub.state.p.tail)]]]]
+  [%& target state.p.tail(sub sub.fit, next next.fit)]
 ::
 ++  infer-list-items
   |=  [items=(list expr) expected=itype env=ienv state=istate context=span]
@@ -6194,7 +6219,7 @@
   =/  value=iresult
     ?:  &(?=(%union -.target) (context-union-branch i.items))
       (infer-union-context i.items target env state context)
-    ?:  &(?=(%collection -.target) =(%list name.target) (context-list-literal i.items))
+    ?:  &(?=(%collection -.target) =(%list name.target) (context-list-expression i.items))
       (infer-list-context i.items target env state context)
     (infer-fragment i.items env state)
   ?:  ?=(%| -.value)  value
@@ -6460,7 +6485,7 @@
       =/  value=iresult
         ?:  &(?=(%union -.typ.u.target) (context-union-branch val.e))
           (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
-        ?:  &(?=(%collection -.typ.u.target) =(%list name.typ.u.target) (context-list-literal val.e))
+        ?:  &(?=(%collection -.typ.u.target) =(%list name.typ.u.target) (context-list-expression val.e))
           (infer-list-context val.e typ.u.target env state.u.target at.shape.e)
         $(e val.e, state state.u.target)
       ?:  ?=(%| -.value)  value
@@ -6492,7 +6517,7 @@
       =/  arg=iresult
         ?:  &(?=(%fn -.head-type) ?=(%union -.sample.head-type) (context-union-branch i.args.e))
           (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
-        ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-list-literal i.args.e))
+        ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-list-expression i.args.e))
           (infer-list-context i.args.e sample.head-type env state.p.head (span-of head.e))
         $(e i.args.e, state state.p.head)
       ?:  ?=(%| -.arg)  arg

@@ -1,0 +1,85 @@
+(module
+  (value 1:1 empty
+    (cast 1:10
+      (apply 1:13 list (aura 1:19 @t))
+      (lit 1:23 ~)))
+  (value 2:1 one
+    (cast 2:8
+      (apply 2:11 list (aura 2:17 @t))
+      (tuple 2:21 (str 2:22 "a") (lit 2:26 ~))))
+  (value 3:1 zero-tail
+    (cast 3:14
+      (apply 3:17 list (aura 3:23 @t))
+      (tuple 3:27 (str 3:28 "a") (lit 3:32 %$))))
+  (value 4:1 zero-number
+    (cast 4:16
+      (apply 4:19 list (aura 4:25 @t))
+      (tuple 4:29 (str 4:30 "a") (lit 4:34 %0))))
+  (value 5:1 zero-amp
+    (cast 5:13
+      (apply 5:16 list (aura 5:22 @t))
+      (tuple 5:26 (str 5:27 "a") (lit 5:31 %&))))
+  (value 6:1 multiple
+    (cast 6:13
+      (apply 6:16 list (aura 6:22 @t))
+      (tuple 6:26
+        (str 6:27 "a")
+        (tuple 6:31 (str 6:32 "b") (lit 6:36 ~)))))
+  (value 7:1 nested
+    (cast 7:11
+      (apply 7:14 list
+        (apply 7:20 list (aura 7:26 @t)))
+      (tuple 7:31
+        (list 7:32 (str 7:34 "a"))
+        (lit 7:39 ~))))
+  (value 8:1 nested-cons
+    (cast 8:16
+      (apply 8:19 list
+        (apply 8:25 list (aura 8:31 @t)))
+      (tuple 8:36
+        (tuple 8:37 (str 8:38 "a") (lit 8:42 ~))
+        (lit 8:45 ~))))
+  (value 9:1 take
+    (gate 9:9
+      (face 9:12 xs
+        (apply 9:15 list (aura 9:21 @t)))
+      (wing 9:25 xs)))
+  (value 10:1 call
+    (group 10:9
+      (call 10:10
+        (wing 10:10 take)
+        (tuple 10:15 (str 10:16 "hi") (lit 10:21 ~)))))
+  (value 11:1 bad-head
+    (cast 11:13
+      (apply 11:16 list (aura 11:22 @t))
+      (tuple 11:26 (lit 11:27 ~zod) (lit 11:32 ~))))
+  (value 12:1 bad-tail
+    (cast 12:13
+      (apply 12:16 list (aura 12:22 @t))
+      (tuple 12:26 (str 12:27 "hi") (lit 12:32 ~zod))))
+  (value 13:1 faced
+    (cast 13:10
+      (apply 13:13 list (aura 13:19 @t))
+      (tuple 13:23
+        (face 13:24 i (str 13:26 "hi"))
+        (face 13:31 t (lit 13:33 ~)))))
+  (value 14:1 three
+    (cast 14:10
+      (apply 14:13 list (aura 14:19 @t))
+      (tuple 14:23 (str 14:24 "a") (str 14:28 "b") (lit 14:32 ~))))
+  (value 15:1 pending
+    (body 16:3
+      (trace 16:3
+        (lit 16:6 %unknown)
+        (body 17:5
+          (cast 17:5
+            (apply 17:8 list (aura 17:14 @t))
+            (tuple 17:18 (str 17:19 "hi") (lit 17:24 ~)))))))
+  (value 18:1 pending-null
+    (body 19:3
+      (trace 19:3
+        (lit 19:6 ~)
+        (body 20:5
+          (cast 20:5
+            (apply 20:8 list (aura 20:14 @t))
+            (tuple 20:18 (str 20:19 "hi") (lit 20:24 ~))))))))

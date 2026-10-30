@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: "Where a list is expected, `[x xs]` is `x` in front of `xs`."
+tests: Null, term-zero tails, nested cons and list elements take context, while mismatches, unsupported cells and unrelated pending literals are reported.
+expect: parses
+expect-types: a partial inference report
