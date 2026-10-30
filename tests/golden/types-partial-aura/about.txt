@@ -1,4 +1,4 @@
-source: Grammar tab, Molds: "every expression has a principal type, and there is no subtyping".
+source: Grammar tab, Molds: "every expression has a principal type, and there is no general subtyping".
 tests: partial inference: an open numeric aura, an aura fixed by a cast, and an incompatible cast.
 expect: parses
 expect-types: a partial inference report, not a checked module

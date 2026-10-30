@@ -1,3 +1,3 @@
-source: Grammar tab, Literals table, the Term row: `%add`, `%1.000`; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" ;`; Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"
+source: Grammar tab, Literals table, the Term row: `%add`, `%1.000`; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" | "%$" ;`; Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"
 tests: terms of a name, of a decimal in one group and in groups of three joined by dots, and %& and %|
 expect: parses; a numeric term prints as written, as (lit 7:6 %1.000)

@@ -1,0 +1,11 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  a=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/todo/hoon)
+=/  b=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/blog/hoon)
+=/  c=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-action/hoon)
+=/  d=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todos/hoon)
+=/  e=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-update/hoon)
+=/  f=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-item/hoon)
+=/  g=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/posts/hoon)
+(pure:m !>([?=([%core *] -.a) ?=([%core *] -.b) ?=([%core *] -.c) ?=([%core *] -.d) ?=([%core *] -.e) ?=([%core *] -.f) ?=([%core *] -.g)]))

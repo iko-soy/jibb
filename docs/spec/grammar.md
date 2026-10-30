@@ -26,7 +26,7 @@ The syntax the compiler accepts.
 | Duration | `~s30`, `~h1.m30` | `@dr` |
 | Knot | `~.my-post` | `@ta` |
 | String | `"milk"`, `"Since {day}"` | `@t`, a cord; `{…}` prints by aura; tapes come from `trip`; there is no `'…'` form |
-| Term | `%add`, `%1.000` | A union's case, or that constant atom where an atom is expected; a numeric term is `%` and a decimal as Hoon writes it, so `%1.000`, never `%1000` |
+| Term | `%add`, `%1.000`, `%$` | A union's case, or that constant atom where an atom is expected; a numeric term is `%` and a decimal as Hoon writes it, so `%1.000`, never `%1000` |
 | Loobean | `%.y`, `%.n` | `?` |
 | Null | `~` | A constant: the `~` case of any union with one, such as `(unit A)`, `(list A)`, `(map K V)` or `(set A)` |
 | Unit | `` `x `` | `(unit A)` |
@@ -118,14 +118,14 @@ Every other name is free.
 
 ## Molds
 
-A mold is only a type: never called on a noun, and with no default. Types are inferred, Hindley–Milner with aura variables: every expression has a principal type, and there is no subtyping.
+A mold is only a type: never called on a noun, and with no default. Types are inferred, Hindley–Milner with aura variables: every expression has a principal type, and there is no general subtyping. Two one-way widenings are allowed: a value of a specific atom type fits `@`, and a value of a specific noun type fits `*`; neither rule permits the reverse.
 
-- **Atoms**: `@` and auras such as `@ud`, `@t`, `@p`, `@da`; `?` is a loobean. `@` is an atom whose aura isn't known yet, fixed by what it meets: `add` takes `[@ @]` and returns `@`, all one aura, so `(add n 1)` with `n=@ud` is a `@ud`. Different auras never unify. A bare `@` in a `+$` is one aura variable per module, `@ud` if unfixed. Elsewhere, as in a gate's sample or a cast, each bare `@` is its own aura variable, generalized per `++` if nothing fixes it; atoms that must share an aura take one capital, as `[lo=A hi=A]`.
+- **Atoms**: `@` is any atom, regardless of aura; auras such as `@ud`, `@t`, `@p` and `@da` are specific atom types. An `@ud` value fits where `@` is expected, but an `@` value needs a check to fit `@ud`. Different specific auras never unify. Each bare `@` independently accepts any atom: it is not an aura variable. Atoms that must share a type take one capital, as `[lo=A hi=A]`, with the atom constraint inferred from the body. `add` takes `[A A]` and returns `A`, with `A` constrained to atoms, so `(add n 1)` with `n=@ud` is a `@ud`. `?` is a loobean.
 - **Constants**: `%add`, `~` and the loobeans have one value each.
 - **Records and tuples**: `[text=@t done=?]`, `[@t ?]`. An empty `[]` is an error. Faces are part of the type, so `[a=@ b=@]` and `[x=@ y=@]` don't unify. An unnamed position can unify with a faced position and take its face, so `[0 0]` fits `[x=@ud y=@ud]`; two different faces don't unify. A record too long for one line can leave its `[` open, with one field per deeper line, as an expression's bracket does.
-- **Unions**: a `+$` with several cases below it. Every union written in Jibb has a name, so one used in a field, a sample, a cast, a gate's mold or an argument gets its own `+$`; only imports bring in unions without one. Tags take their union from context, as Tag resolution describes. Cases must differ as nouns: at some position of their right-nested cells, one is an atom and the other a cell, or both are different constants. `*`, type variables and molds that can be either, such as `(list A)` or `?`, overlap both. A union whose cases don't all differ is rejected.
+- **Unions**: a `+$` with several cases below it. Every union written in Jibb has a name, so one used in a field, a sample, a cast, a gate's mold or an argument gets its own `+$`; only imports bring in unions without one. Tags take their union from context, as Tag resolution describes. Cases must differ as nouns: inhabited cases must differ at some position of their right-nested cells, where one is an atom and the other a cell, or both are different constants. `*`, type variables and molds that can be either, such as `(list A)`, can overlap atoms and cells. `?` counts as the two atoms `%.y` and `%.n`: it is disjoint from cells and overlaps the constants 0 and 1. The empty mold `!!` is disjoint from every case; a cell with an empty position at any depth is itself empty and is also disjoint from every case. A union whose cases don't all differ is rejected.
 - **Containers**: `(list A)`, `(unit A)`, `(set A)`, `(map K V)`, `(mop K V)`, `(qeu A)`, `(jar K V)`, `(jug K V)`.
-- **Gates**: `$-(A B)`. Type variables are capitals, generalized per `++`. A capital in a local `++` shares the enclosing `++`'s variable of the same name; use another capital for a different type. A type variable that meets an atom becomes an aura variable, so `++ clamp |= [lo=A hi=A n=A]`, whose body calls `gth` and `max`, works on any one aura. It can become nothing more specific: a body that makes `A` a `@ud` or a list is an error.
+- **Gates**: `$-(A B)`. Type variables are capitals, generalized per `++`. A capital in a local `++` shares the enclosing `++`'s variable of the same name; use another capital for a different type. A type variable used where an atom is required gains an atom constraint, so `++ clamp |= [lo=A hi=A n=A]`, whose body calls `gth` and `max`, works on any one aura. It can become nothing more specific: a body that makes `A` a `@ud` or a list is an error.
 - **Paths**: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura. `%/blog/(slug)` is an `qath`, checked against routes and static files.
 - **Generic molds**: `+$ result |$ [V E]` with cases below; `|$` goes only right after a `+$`'s name.
 - **Noun**: `*`, not a type variable; use a capital for a generic type. A value already known to have a more specific noun type, such as `@ud`, can be used where `*` is expected. **Empty**: `!!`.
@@ -165,7 +165,7 @@ Number and cell literals resolve like tags: each waits for its context and takes
 | Number `5` | Any aura | `@ud` |
 | Cell `[x xs]` | A tuple, a record, a cons | A tuple |
 
-- In `{…}`, an atom prints by its aura: `@ud` as `1.000`, `@da` as a UTC date with sub-seconds, `@p` as a ship, and a bare `@` as `@ud`. `@t`, `@ta`, `@tas` and tapes splice as text; any other cell is an error asking for a printer. Printers are picked when compiling, so an atom whose aura its `++` is generic over, as `n` in `|= n=A` or in a `|= n=@` that nothing fixes, is an error asking for an aura, here and in a `(…)` segment of an application path. For readers, `print-date` prints in the theme's zone, Urbit-style, to the minute, as `~2026.10.29..14.30`; numbers keep Hoon's form.
+- In `{…}`, an atom prints by its aura: `@ud` as `1.000`, `@da` as a UTC date with sub-seconds, `@p` as a ship, and a bare `@` as `@ud`. `@t`, `@ta`, `@tas` and tapes splice as text; any other cell is an error asking for a printer. Printers are picked when compiling, so an atom whose aura its `++` is generic over, as `n` in `|= n=A` when `A` is constrained to atoms, is an error asking for an aura, here and in a `(…)` segment of an application path. For readers, `print-date` prints in the theme's zone, Urbit-style, to the minute, as `~2026.10.29..14.30`; numbers keep Hoon's form.
 - String literals are always cords, so an element needs `text`, as `(text "{n} items")`.
 - Where a list is expected, `[x xs]` is `x` in front of `xs`.
 - A typed segment prints and parses by aura, whether `[id=@ud]` in an agent's paths, a `_` route parameter typed by `load`'s sample, or a `(…)` segment of an application path; `@ta` and `@tas` are raw text.
@@ -278,7 +278,7 @@ literal    = number | string | ship | date | duration | knotlit
            | term | loobean | "~" ;
 number     = decimal | "0x" hex | "0v" base32 ;
 pathlit    = "/" knot { "/" knot } ;
-term       = "%" name | "%" decimal | "%&" | "%|" ;
+term       = "%" name | "%" decimal | "%&" | "%|" | "%$" ;
 loobean    = "%.y" | "%.n" ;
 aura       = "@" { lower } [ upper ] ;
 typevar    = upper ;

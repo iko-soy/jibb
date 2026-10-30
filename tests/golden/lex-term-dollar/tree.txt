@@ -1,0 +1,19 @@
+(module
+  (mold 1:1 cash
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %$)
+        (face 2:7 amount (aura 2:14 @ud)))
+      (const 3:3 %other)))
+  (value 4:1 empty-tag (lit 4:14 %$))
+  (value 5:1 identify
+    (gate 5:13
+      (face 5:16 c (ref 5:18 cash))
+      (body 6:3
+        (branch 6:3
+          (wing 6:6 c)
+          (arm 7:5
+            (cell 7:5 (lit 7:6 %$) (bind 7:9 amount))
+            (wing 7:17 amount))
+          (arm 8:5 (lit 8:5 %other) (lit 8:12 0))))))
+  (value 9:1 make (ctor 9:9 %$)))

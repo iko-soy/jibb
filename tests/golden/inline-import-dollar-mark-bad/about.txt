@@ -1,0 +1,3 @@
+source: `/%` names a type after its mark, and names are lowercase letters, digits and hyphens starting with a letter.
+tests: the `%$` term is a value and cannot be used as a mark name.
+expect: error at 1:6; a mark must be a term made from a name

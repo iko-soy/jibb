@@ -1,15 +1,24 @@
 ::  /lib/jibb-import.hoon: a partial reader of Hoon's type graph
 ::
 ::  +read-mold accepts one selected Hoon type and its module/name, rather
-::  than loading a whole /sur. The caller selects only types actually used.
+::  than loading a whole /sur. +read-mold-in also takes the originating
+::  /sur core and verifies the selected arm; this provenance is required
+::  to identify collections without mistaking a local shadow for one.
+::  The caller selects only types actually used.
 ::  Hoon's %hold nodes retain the generator's Hoon and its bound arguments.
 ::  Comparing that Hoon to the standard generators identifies collections
 ::  before they expand into trees. Recursive holds are tracked by identity;
 ::  a repeated named hold becomes a module-qualified reference.
 ::
-::  This is not yet connected to Jibb's checker: source-level $^ overlap,
-::  imported aliases, marks, ordered maps, and full error locations still
-::  need work. Failures return %|; no partial tree is returned as success.
+::  A direct $^ is read from its original branches and accepted only when
+::  their imported shapes prove disjoint. Nested $^ and some valid but
+::  unprovably disjoint cases remain unsupported. Source-level overlap in
+::  other unions, nested collection arguments, ordered maps, Ford import
+::  provenance, marks and full error locations still need work.
+::
+::  The checker has a small bridge for successful unfaced atom and cell
+::  results; it rejects other importer shapes. Failures return %|; no
+::  partial tree is returned as success.
 ::
 |%
 +$  imported
@@ -51,7 +60,24 @@
 ++  read-mold
   |=  [module=term name=term typ=type]
   ^-  (each imported @t)
-  =/  out  (walk module typ catalog ~)
+  (read-with module name typ ~)
+::
+::  +read-mold-in: accept the /sur core as provenance. The core must be
+::  built directly against zuse and its selected arm must be this type;
+::  imported Ford subjects need a future provenance-aware host.
+++  read-mold-in
+  |=  [module=term name=term typ=type cor=type]
+  ^-  (each imported @t)
+  ?.  ?=([%core *] cor)  [%| 'Hoon module provenance is unavailable']
+  ?.  =(q.q.cor -:!>(..zuse))  [%| 'Hoon module provenance is unavailable']
+  ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
+    [%| 'Hoon module provenance does not match the selected mold']
+  (read-with module name typ [~ cor])
+::
+++  read-with
+  |=  [module=term name=term typ=type context=(unit type)]
+  ^-  (each imported @t)
+  =/  out  (walk module typ catalog ~ context)
   =/  err  (first-bad out)
   ?~  err  [%& out]
   [%| u.err]
@@ -66,11 +92,9 @@
   ~
 ::
 ::  The named wrapper records an alias before Hoon reduces it to a map.
-++  hold-alias
-  |=  h=hoon
+++  source-alias
+  |=  body=hoon
   ^-  (unit term)
-  ?.  ?=([%tsls [%note * *] *] h)  ~
-  =/  body=hoon  q.p.h
   ?.  ?=([%cncl *] body)  ~
   ?.  ?=([%tsgr *] p.body)  ~
   ?.  ?=([%cncl *] q.p.body)  ~
@@ -80,9 +104,62 @@
   ?:  =(w ~[%jug])  [~ %jug]
   ~
 ::
-::  Nested aliases can be erased before their hold is exposed. Until the
-::  source tree is walked in parallel, reject that input instead of
-::  mistaking a jar or jug for its underlying map, or a mop for a tree.
+++  hold-alias
+  |=  h=hoon
+  ^-  (unit term)
+  ?.  ?=([%tsls [%note * *] *] h)  ~
+  (source-alias q.p.h)
+::
+::  Reconcile source aliases with the expanded type in corresponding
+::  cells and fields. Return an error unless every alias is accounted for.
+++  recover-alias
+  |=  [src=hoon out=imported]
+  ^-  (each imported @t)
+  ?.  (has-hidden-alias src)  [%& out]
+  ?^  -.src
+    ?.  ?=([%cell *] out)  [%| 'a nested collection alias needs source-aware import']
+    =/  hed  $(src -.src, out head.out)
+    ?-    hed
+        [%| *]  hed
+        [%& *]
+      =/  tal  $(src +.src, out tail.out)
+      ?-  tal
+        [%| *]  tal
+        [%& *]  [%& [%cell p.hed p.tal]]
+      ==
+    ==
+  ?+  src  [%| 'a nested collection alias needs source-aware import']
+    [%note *]  $(src q.src)
+    [%ktts *]
+      ?.  ?=([%face *] out)  [%| 'a nested collection alias needs source-aware import']
+      ?.  =(p.src name.out)  [%| 'a nested collection alias needs source-aware import']
+      =/  child  $(src q.src, out body.out)
+      ?-  child
+        [%| *]  child
+        [%& *]  [%& [%face name.out p.child]]
+      ==
+    [%cncl *]
+      =/  alias  (source-alias src)
+      ?~  alias  [%| 'a nested collection alias needs source-aware import']
+      ?:  (gth (alias-count src) 1)
+        [%| 'nested collection arguments need source-aware import']
+      ?.  ?=([%apply %map [* [%apply * [* ~]] ~]] out)
+        [%| 'a nested collection alias needs source-aware import']
+      =/  inner  i.args.i.t.args.out
+      ?:  &(?=(%jar u.alias) ?=(%list name.i.t.args.out))
+        [%& [%apply %jar ~[i.args.out inner]]]
+      ?:  &(?=(%jug u.alias) ?=(%set name.i.t.args.out))
+        [%& [%apply %jug ~[i.args.out inner]]]
+      [%| 'a nested collection alias needs source-aware import']
+  ==
+::
+++  alias-count
+  |=  h=*
+  ^-  @ud
+  ?:  |(=(h [%wing ~[%jar]]) =(h [%wing ~[%jug]]) =(h [%wing ~[%mop]]))  1
+  ?@  h  0
+  (add $(h -.h) $(h +.h))
+::
 ++  has-hidden-alias
   |=  h=*
   ^-  ?
@@ -101,6 +178,110 @@
   ?:  =(h [%dtwt [%$ 12]])  &
   |($(h -.h) $(h +.h))
 ::
+++  cell-branches
+  |=  h=type
+  ^-  (unit [left=type right=type])
+  ?.  ?=([%hold *] h)  ~
+  =/  original=hoon  q.h
+  ?.  ?=([%tsls [%note * *] *] original)  ~
+  =/  body=hoon  q.p.original
+  ?.  ?=([%wtcl *] body)  ~
+  ?.  =(p.body [%dtwt [%$ 12]])  ~
+  =/  one=hoon  original(q.p q.body)
+  =/  two=hoon  original(q.p r.body)
+  ::  Branches can rely on narrowing in the original conditional. When a
+  ::  branch cannot be evaluated on its own, report it as unsupported.
+  =/  attempt=(each [type type] tang)
+    (mule |.([(~(play ut p.h) one) (~(play ut p.h) two)]))
+  ?-  attempt
+    [%& *]  [~ p.attempt]
+    [%| *]  ~
+  ==
+::
+++  disjoint
+  |=  [a=imported b=imported]
+  ^-  ?
+  ?:  ?=([%face *] a)  $(a body.a)
+  ?:  ?=([%face *] b)  $(b body.b)
+  ?:  ?=([%fork *] a)
+    (levy cases.a |=(item=imported (disjoint item b)))
+  ?:  ?=([%fork *] b)
+    (levy cases.b |=(item=imported (disjoint a item)))
+  ?:  |(?=([%void *] a) ?=([%void *] b))  &
+  ?:  ?=([%atom *] a)
+    ?:  ?=([%cell *] b)  &
+    ?.  ?=([%atom *] b)  |
+    ?~  value.a  |
+    ?~  value.b  |
+    !=(u.value.a u.value.b)
+  ?:  ?=([%cell *] a)
+    ?:  ?=([%atom *] b)  &
+    ?.  ?=([%cell *] b)  |
+    |($(a head.a, b head.b) $(a tail.a, b tail.b))
+  |
+::
+::  Source names may resolve to a local Hoon arm rather than zuse. A
+::  missing verified subject or any local arm with that name is unsafe.
+::  A chapter's +tome has different wrappers under eval and Clay. Walk
+::  its noun map without relying on either version's field names.
+++  arm-map-has
+  |=  [m=* target=term]
+  ^-  ?
+  ?@  m  |
+  ?@  -.m  |
+  =/  kv=*  -.m
+  ?^  -.kv  |
+  ?:  =(-.kv target)  &
+  =/  children=*  +.m
+  ?@  children  |
+  |($(m -.children) $(m +.children))
+::
+++  arm-map-valid
+  |=  m=*
+  ^-  ?
+  ?@  m  =(m ~)
+  ?@  -.m  |
+  =/  kv=*  -.m
+  ?^  -.kv  |
+  =/  children=*  +.m
+  ?@  children  |
+  &($(m -.children) $(m +.children))
+::
+::  ~ means this is neither supported chapter representation. The
+::  caller treats that as unsafe, not as a validated miss.
+++  chapter-has
+  |=  [chapter=* target=term]
+  ^-  (unit ?)
+  ?:  (arm-map-valid chapter)  [~ (arm-map-has chapter target)]
+  ?@  chapter  ~
+  ?.  (arm-map-valid +.chapter)  ~
+  [~ (arm-map-has +.chapter target)]
+::
+++  chapter-unsafe
+  |=  [chapter=* target=term]
+  ^-  ?
+  =/  has  (chapter-has chapter target)
+  ?~  has  &
+  u.has
+::
+++  alias-safe
+  |=  [context=(unit type) target=term]
+  ^-  ?
+  ?~  context  |
+  =/  cor=type  u.context
+  ?.  ?=([%core *] cor)  |
+  ?.  =(q.q.cor -:!>(..zuse))  |
+  =/  chapters=(map term tome)  q.r.q.cor
+  ?:  (lien ~(tap by chapters) |=(entry=[term tome] (chapter-unsafe +.entry target)))  |
+  &
+::
+++  source-uses
+  |=  [src=* target=term]
+  ^-  ?
+  ?:  =(src [%wing [target ~]])  &
+  ?@  src  |
+  |($(src -.src) $(src +.src))
+::
 ++  match-signature
   |=  [h=hoon sig=signatures]
   ^-  (unit term)
@@ -116,7 +297,7 @@
   $(seen t.seen)
 ::
 ++  walk
-  |=  [module=term typ=type sig=signatures seen=visiting]
+  |=  [module=term typ=type sig=signatures seen=visiting context=(unit type)]
   ^-  imported
   ?-  typ
     %noun  [%noun ~]
@@ -140,6 +321,8 @@
       ?^  named
         =/  name  u.named
         ?:  =(%vase name)  [%bad 'vases cannot be imported']
+        ?.  (alias-safe context name)
+          [%bad 'Hoon collection provenance is unavailable or shadowed']
         =/  first=type
           (~(play ut p.typ) (ream ?:(|(=(%map name) =(%jar name) =(%jug name)) '*key' '*item')))
         =/  first-import  $(typ first)
@@ -153,13 +336,35 @@
         [%ref module u.u.prior]
       =/  nm  (hold-name q.typ)
       ?:  =(nm [~ %vase])  [%bad 'vases cannot be imported']
+      ?:  &((source-uses q.typ %jar) !(alias-safe context %jar))
+        [%bad 'Hoon collection provenance is unavailable or shadowed']
+      ?:  &((source-uses q.typ %jug) !(alias-safe context %jug))
+        [%bad 'Hoon collection provenance is unavailable or shadowed']
+      =/  branches  (cell-branches typ)
+      ?^  branches
+        =/  first  $(typ left.u.branches, seen [[typ nm] seen])
+        =/  second  $(typ right.u.branches, seen [[typ nm] seen])
+        =/  err  (first-bads ~[first second])
+        ?^  err  [%bad u.err]
+        ?:  (disjoint first second)
+          [%fork (sort ~[first second] |=(pair=[imported imported] (dor -.pair +.pair)))]
+        [%bad 'a Hoon $^ union has overlapping cases']
       ?:  (has-cell-union q.typ)
         [%bad 'a Hoon $^ union needs a source-level disjointness check']
       =/  alias  (hold-alias q.typ)
-      ?:  &(?=(~ alias) (has-hidden-alias q.typ))
-        [%bad 'a nested jar, jug or mop needs source-aware import']
+      =/  hidden  (has-hidden-alias q.typ)
       =/  body  $(typ ~(repo ut typ), seen [[typ nm] seen])
-      ?~  alias  body
+      ?~  alias
+        ?.  hidden  body
+        ?.  ?=([%tsls [%note * *] *] q.typ)
+          [%bad 'a nested collection alias needs source-aware import']
+        =/  corrected  (recover-alias q.p.q.typ body)
+        ?-  corrected
+          [%& *]  p.corrected
+          [%| *]  [%bad p.corrected]
+        ==
+      ?:  (gth (alias-count q.typ) 1)
+        [%bad 'nested collection arguments need source-aware import']
       ?.  ?=([%apply %map [* [%apply * [* ~]] ~]] body)
         [%bad 'a Hoon collection alias could not be recovered']
       =/  inner  i.args.i.t.args.body
@@ -196,17 +401,35 @@
   ?~  err  $(xs t.xs)
   err
 ::  +fixture-test: shared golden expectations for eval and the ship.
+::  A synthetic hold whose first $^ branch cannot be evaluated. It tests
+::  that a failed branch probe is reported rather than crashing the host.
+++  bad-branch-fixture
+  ^-  type
+  [%hold -:!>(..zuse) [%tsls [%note [%made %bad ~] [%wtcl [%dtwt [%$ 12]] [%wing ~[%jibb-no-such-branch-name]] [%rock %n 0]]] [%$ 1]]]
+::
 ++  fixture-test
-  |=  [small=@t epic=@t]
+  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t]
   ^-  (list @t)
   =/  sc=type  -:(ride -:!>(..zuse) small)
   =/  ec=type  -:(ride -:!>(..zuse) epic)
+  =/  pc=type  -:(ride -:!>(..zuse) presence)
+  =/  dc=type  -:(ride -:!>(..zuse) docs)
+  =/  hc=type  -:(ride -:!>(..zuse) shadow)
   =/  sample
     |=  name=term
-    (read-mold %small name (~(play ut sc) (ream (cat 3 '*' name))))
+    (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
   =/  tlon
     |=  name=term
-    (read-mold %epic name (~(play ut ec) (ream (cat 3 '*' name))))
+    (read-mold-in %epic name (~(play ut ec) (ream (cat 3 '*' name))) ec)
+  =/  present
+    |=  name=term
+    (read-mold-in %presence name (~(play ut pc) (ream (cat 3 '*' name))) pc)
+  =/  shad
+    |=  name=term
+    (read-mold-in %shadow name (~(play ut hc) (ream (cat 3 '*' name))) hc)
+  =/  docs-type
+    |=  name=term
+    (read-mold-in %docs name (~(play ut dc) (ream (cat 3 '*' name))) dc)
   =/  errors=(list @t)  ~
   =/  expect-action=imported
     [%fork ~[[%cell [%atom %tas [~ %add]] [%face %text [%atom %t ~]]] [%cell [%atom %tas [~ %remove]] [%face %id [%atom %ud ~]]]]]
@@ -234,8 +457,15 @@
     ['jar name and arguments' errors]
   =/  errors  ?:  =((sample %jug-test) [%& expect-jug])  errors
     ['jug name and arguments' errors]
-  =/  errors  ?:  =((sample %nested-jar) [%| 'a nested jar, jug or mop needs source-aware import'])  errors
-    ['nested jar is explicitly unsupported' errors]
+  =/  expect-nested-jar=imported  [%face %field [%apply %jar ~[[%atom %ud ~] [%atom %t ~]]]]
+  =/  errors  ?:  =((sample %nested-jar) [%& expect-nested-jar])  errors
+    ['nested jar is preserved' errors]
+  =/  expect-paired=imported
+    [%cell [%face %values [%apply %jar ~[[%atom %ud ~] [%atom %t ~]]]] [%face %cache [%apply %jug ~[[%atom %ud ~] [%atom %t ~]]]]]
+  =/  errors  ?:  =((sample %paired-aliases) [%& expect-paired])  errors
+    ['multiple collection aliases are preserved' errors]
+  =/  errors  ?:  =((sample %nested-alias) [%| 'nested collection arguments need source-aware import'])  errors
+    ['nested collection arguments remain unsupported' errors]
   =/  errors  ?:  =((sample %signed) [%| 'signed and float auras cannot be imported'])  errors
     ['signed aura rejected' errors]
   =/  errors  ?:  =((sample %float) [%| 'signed and float auras cannot be imported'])  errors
@@ -244,10 +474,24 @@
     ['gate rejected' errors]
   =/  errors  ?:  =((read-mold %std %vase (~(play ut -:!>(..zuse)) (ream '*vase'))) [%| 'vases cannot be imported'])  errors
     ['vase rejected' errors]
-  =/  errors  ?:  =((sample %valid-cell) [%| 'a Hoon $^ union needs a source-level disjointness check'])  errors
-    ['cell union pending disjointness check' errors]
-  =/  errors  ?:  =((sample %invalid-cell) [%| 'a Hoon $^ union needs a source-level disjointness check'])  errors
-    ['overlapping cell union is not accepted' errors]
+  =/  expect-valid=imported
+    [%fork ~[[%cell [%face %x [%atom %ud ~]] [%face %y [%atom %ud ~]]] [%atom %ud ~]]]
+  =/  errors  ?:  =((sample %valid-cell) [%& expect-valid])  errors
+    ['disjoint cell union' errors]
+  =/  errors  ?:  =((sample %invalid-cell) [%| 'a Hoon $^ union has overlapping cases'])  errors
+    ['overlapping cell union is rejected' errors]
+  =/  errors  ?:  =((shad %aa) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
+    ['local jar shadow is rejected' errors]
+  =/  errors  ?:  =((shad %bb) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
+    ['local jug shadow in a field is rejected' errors]
+  =/  errors  ?:  =((read-mold %small %jar-test (~(play ut sc) (ream '*jar-test'))) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
+    ['missing provenance is rejected' errors]
+  =/  expect-timing=imported
+    [%cell [%face %since [%atom %da ~]] [%face %timeout [%apply %unit ~[[%atom %dr ~]]]]]
+  =/  errors  ?:  =((present %timing) [%& expect-timing])  errors
+    ['Tlon presence timing' errors]
+  =/  errors  ?:  =((read-mold %external %bad bad-branch-fixture) [%| 'a Hoon $^ union needs a source-level disjointness check'])  errors
+    ['failed branch expansion is reported' errors]
   =/  expect-saga=imported
     [%fork ~[[%cell [%atom %tas [~ %chi]] [%atom %n [~ 0]]] [%cell [%atom %tas [~ %lev]] [%atom %n [~ 0]]] [%cell [%atom %tas [~ %dex]] [%face %ver [%atom %ud ~]]]]]
   =/  errors  ?:  =((tlon %saga) [%& expect-saga])  errors
@@ -292,16 +536,30 @@
   ==
 ::
 ++  fixture-output
-  |=  [small=@t epic=@t]
+  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t]
   ^-  wain
   =/  sc=type  -:(ride -:!>(..zuse) small)
   =/  ec=type  -:(ride -:!>(..zuse) epic)
+  =/  pc=type  -:(ride -:!>(..zuse) presence)
+  =/  dc=type  -:(ride -:!>(..zuse) docs)
+  =/  hc=type  -:(ride -:!>(..zuse) shadow)
   =/  sample
     |=  name=term
-    (read-mold %small name (~(play ut sc) (ream (cat 3 '*' name))))
+    (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
   =/  tlon
     |=  name=term
-    (read-mold %epic name (~(play ut ec) (ream (cat 3 '*' name))))
+    (read-mold-in %epic name (~(play ut ec) (ream (cat 3 '*' name))) ec)
+  =/  present
+    |=  name=term
+    (read-mold-in %presence name (~(play ut pc) (ream (cat 3 '*' name))) pc)
+  =/  shad
+    |=  name=term
+    (read-mold-in %shadow name (~(play ut hc) (ream (cat 3 '*' name))) hc)
+  =/  docs-type
+    |=  name=term
+    (read-mold-in %docs name (~(play ut dc) (ream (cat 3 '*' name))) dc)
+  =/  chapter-tree=(map term hoon)
+    (~(put by *(map term hoon)) %jar [%zpzp ~])
   =/  vase  (read-mold %std %vase (~(play ut -:!>(..zuse)) (ream '*vase')))
   :~  (crip "action: {(show-result (sample %action))}")
       (crip "optional: {(show-result (sample %optional))}")
@@ -311,12 +569,31 @@
       (crip "jar: {(show-result (sample %jar-test))}")
       (crip "jug: {(show-result (sample %jug-test))}")
       (crip "nested-jar: {(show-result (sample %nested-jar))}")
+      (crip "paired-aliases: {(show-result (sample %paired-aliases))}")
+      (crip "nested-alias: {(show-result (sample %nested-alias))}")
       (crip "signed: {(show-result (sample %signed))}")
       (crip "float: {(show-result (sample %float))}")
       (crip "gate: {(show-result (sample %gate-test))}")
       (crip "vase: {(show-result vase)}")
+      (crip "failed-branch: {(show-result (read-mold %external %bad bad-branch-fixture))}")
       (crip "valid-cell: {(show-result (sample %valid-cell))}")
       (crip "invalid-cell: {(show-result (sample %invalid-cell))}")
+      (crip "chapter-malformed: {?:((chapter-unsafe [%x %y %z] %jar) "unsafe" "wrong")}")
+      (crip "chapter-wrapped-malformed: {?:((chapter-unsafe [~ [%x %y %z]] %jar) "unsafe" "wrong")}")
+      (crip "chapter-direct-hit: {?:(=((chapter-has chapter-tree %jar) [~ &]) "yes" "no")}")
+      (crip "chapter-wrapped-hit: {?:(=((chapter-has [~ chapter-tree] %jar) [~ &]) "yes" "no")}")
+      (crip "chapter-direct-miss: {?:(=((chapter-has chapter-tree %jug) [~ &]) "yes" "no")}")
+      (crip "chapter-wrapped-miss: {?:(=((chapter-has [~ chapter-tree] %jug) [~ &]) "yes" "no")}")
+      (crip "shadow-jar: {(show-result (shad %aa))}")
+      (crip "shadow-jug: {(show-result (shad %bb))}")
+      (crip "no-provenance: {(show-result (read-mold %small %jar-test (~(play ut sc) (ream '*jar-test'))))}")
+      (crip "wrong-provenance: {(show-result (read-mold-in %small %action (~(play ut sc) (ream '*items')) sc))}")
+      (crip "unverified-subject: {(show-result (read-mold-in %std %jar (~(play ut -:!>(..zuse)) (ream '*(jar @ud @t)')) -:!>(..zuse)))}")
+      (crip "presence-topic: {(show-result (present %topic))}")
+      (crip "presence-timing: {(show-result (present %timing))}")
+      (crip "presence-places: {(show-result (present %places))}")
+      (crip "docs-ent: {(show-result (docs-type %ent))}")
+      (crip "docs-nud: {(show-result (docs-type %nud))}")
       (crip "tlon-saga: {(show-result (tlon %saga))}")
       (crip "tlon-epic: {(show-result (tlon %epic))}")
   ==

@@ -1,10 +1,10 @@
 # Prelude inventory: source audit
 
-This is a working inventory, not a completed prelude interface. It lists top-level arms in the Hoon sections selected for inclusion, before checking each signature, unsupported mold, parser exclusion, collision, grouping or Jibb implementation. The first-level arms in selected Hoon doors are listed separately; each still needs classification and a Jibb signature. `3g` is included for audit because the spec names `coin` and `dime` from it; the rest needs classification.
+This is a working inventory, not a completed prelude interface. It lists top-level arms in the Hoon sections selected for inclusion, before checking each signature, unsupported mold, parser exclusion, collision, grouping or Jibb implementation. The first-level arms in selected Hoon doors are listed separately; each still needs classification and a Jibb signature. @iko chose to include all of 3g, with its `tone` exposed as `tone.hoon`, distinct from Jibb's styling type.
 
 The source is the fake ship's `%base` `/sys/hoon.hoon` (Hoon version 135), read through Clay with `tools/ship scry /cx/=base=/sys/hoon/hoon --raw`. SHA-256: `ef538ced0877230f02ff86f9fb7a0abc6833bb1cf0e8675742b4d6ce478fcc92`. It differs in bytes from [upstream Hoon at the inspected commit](https://github.com/urbit/urbit/blob/5a187fededc4582a34fcd6055c67bb63e0917b94/pkg/arvo/sys/hoon.hoon); verify against the actual target ship when updating this inventory.
 
-Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold generators, and need individual inspection. Jibb's loobean `not` and Hoon's bitwise `not.bit` are distinct. Parser helpers are excluded from the intended prelude except the specifically listed `slav` and `slaw`; the raw candidates below still need to be classified.
+Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold generators, and need individual inspection. Jibb's loobean `not` and Hoon's bitwise `not.bit` are distinct. Parser helpers outside 3g are excluded from the intended prelude except the specifically listed `slav` and `slaw`; the raw candidates below still need to be classified.
 
 ## 1a
 
@@ -84,7 +84,44 @@ Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold 
 
 ## 3g
 
-`coin` (mold), `dime` (mold), `edge` (mold), `hair` (mold), `like`, `nail` (mold), `pint` (mold), `rule` (mold), `spot` (mold), `tone` (mold), `toon` (mold), `wonk`.
+Hoon 135's `3g` section has exactly 12 exports: ten `+$` molds (`coin`, `dime`, `edge`, `hair`, `nail`, `pint`, `rule`, `spot`, `tone`, `toon`) and two wet `++` gates (`like`, `wonk`). @iko included the whole section, so the parser-related names below stay in the inventory. Hoon's compiler-result `tone` is exposed as `tone.hoon`; the styling type keeps `tone`.
+
+| Hoon name | Source shape and Jibb audit |
+| --- | --- |
+| `coin` | A union of `[%$ p=dime]`, `[%blob p=*]`, and `[%many p=(list coin)]`. Its `$~` default is dropped: Jibb molds have no default. @iko approved `%$` as a Jibb term literal and pattern on 2026-10-30; the parser implements it and ship verification is pending. Its `%$` case uses the `dime` mold below. |
+| `dime` | `[p=@ta q=@]` in Hoon. The `q` field accepts any atom, as does Jibb `@` after @iko's decision in question 15. |
+| `edge` | `[p=hair q=(unit [p=* q=nail])]`: a parsing position and either no result or a result and remaining input. |
+| `hair` | `[p=@ud q=@ud]`: a parsing position. |
+| `like` | A wet mold builder parameterized by a gate `a=$-(* *)`; its generated gate takes a noun, builds an `edge`-shaped result, and applies `a` to the product on success. Its Hoon wet specialization can retain a product type. Its exact Jibb interface and implementation still need to be worked out; do not substitute an unverified fixed signature. |
+| `nail` | `[p=hair q=tape]`: parsing input. |
+| `pint` | `[p=[p=@ q=@] q=[p=@ q=@]]` in Hoon. The four positions accept atoms independently; Jibb `@` now has the same meaning. |
+| `rule` | A gate mold `$-(nail edge)`; Hoon constructs its sample and product from the `nail` and `edge` molds. |
+| `spot` | `[p=path q=pint]`: a file path and range. |
+| `tone` | Three cases: `[%0 product=*]`, `[%1 block=*]`, and `[%2 trace=(list [@ta *])]`. Expose this Hoon mold as `tone.hoon`, distinct from Jibb's styling `tone`. How the prelude presents that qualified mold must agree with its eventual group implementation. |
+| `toon` | Three cases: `[%0 p=*]`, `[%1 p=*]`, and `[%2 p=(list tank)]`. |
+| `wonk` | A wet gate that extracts `p` from the successful `q` of an `edge` and crashes on an absent result. `$-(edge *)` describes its type-erased input and result, but an exact account of the Hoon gate's wet specialization remains open. |
+
+The following shapes can be written as Jibb declarations once their referenced prelude molds are present:
+
+```text
++$ dime [p=@ta q=@]
++$ hair [p=@ud q=@ud]
++$ nail [p=hair q=tape]
++$ edge [p=hair q=(unit [p=* q=nail])]
++$ pint [p=[p=@ q=@] q=[p=@ q=@]]
++$ rule $-(nail edge)
++$ spot [p=path q=pint]
++$ coin
+  [%$ p=dime]
+  [%blob p=*]
+  [%many p=(list coin)]
++$ toon
+  [%0 p=*]
+  [%1 p=*]
+  [%2 p=(list tank)]
+```
+
+The compiler-result `tone.hoon` has the three cases listed above; the qualified name is a prelude group member, not a `+$` identifier containing a dot. Question 15 in [open-questions.md](open-questions.md) records @iko's decision that `@` is an unrestricted atom, resolving the `dime` and `pint` mismatch. The interfaces of the wet gates still need resolution before the inventory's 3g signatures can be considered complete.
 
 ## 4a
 

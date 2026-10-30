@@ -1,0 +1,10 @@
+1:1 glyph ++
+1:4 name global
+1:11 str "hi"
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name f
+2:6 glyph |=
+2:9 name global
+2:16 name global
+2:22 NEWLINE

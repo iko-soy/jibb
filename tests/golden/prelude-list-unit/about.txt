@@ -1,0 +1,4 @@
+source: Overview, Prelude: "Hoon's standard library regrouped, written in Jibb"; its data molds include `unit` and `list`, its unit helpers include `fall` and `need`, and its list helpers include `weld` and `turn`.
+tests: The current prelude's generic recursive list and unit molds and its Jibb-written helpers; the partial inference report does not yet resolve these molds or check recursive gates.
+expect: parses
+expect-types: a partial inference report, not a checked module

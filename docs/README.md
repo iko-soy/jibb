@@ -1,6 +1,6 @@
 # Docs
 
-Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), and its repository copy in `spec/`. The repository copy records decisions made on 2026-10-30, including dropping `$?` and the milestone 2 type and prelude decisions; the Claude document still needs to be synchronized. This folder also holds where the build stands, what is still open, and how to work on the code.
+Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), and its repository copy in `spec/`. The repository copy records decisions made on 2026-10-30, including dropping `$?`, adding `%$` as a term literal and pattern, making `@` an unrestricted atom, treating `?` as two atoms for union disjointness, and the milestone 2 type and prelude decisions; the Claude document still needs to be synchronized. This folder also holds where the build stands, what is still open, and how to work on the code.
 
 | File | What it holds |
 | --- | --- |

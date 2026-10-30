@@ -169,6 +169,7 @@
 ::                   else is an error at 3rd, "the loobeans are `%.y` and
 ::                   `%.n`"
 ::    %&  %|         term literals, [%f 0] and [%f 1]
+::    %$             the empty term, [%tas 0]
 ::    %a...          term literal: % and a name [a-z][a-z0-9-]*, [%tas name];
 ::                   a capital or _ right after it is an error there,
 ::                   "names are lowercase letters, digits and -"
@@ -890,7 +891,7 @@
 ::      %date      ~2026.10.23             %da
 ::      %duration  ~h1.m30                 %dr
 ::      %knot      ~.my-post               %ta
-::      %term      %add  %1.000  %&  %|    %tas 'add', %ud 1.000, %f 0, %f 1
+::      %term      %add  %1.000  %&  %|  %$  %tas 'add', %ud 1.000, %f 0, %f 1, %tas 0
 ::      %loobean   %.y  %.n                %f 0, %f 1
 ::      %null      ~                       %n 0
 ::
@@ -1422,6 +1423,7 @@
       (err (add 2 col) "the loobeans are `%.y` and `%.n`")
     ?:  =('&' b)  (emit 2 [%lit %term %f 0 '%&'])
     ?:  =('|' b)  (emit 2 [%lit %term %f 1 '%|'])
+    ?:  =('$' b)  (emit 2 [%lit %term %tas 0 '%$'])
     ?:  |(=(':' b) =('-' b) =('+' b) =('^' b) =('~' b))
       %+  err  +(col)
       "`%{[b ~]}` is left out: indentation covers it; a call is (f a b)"
@@ -3056,6 +3058,8 @@
       (no-gap rest "a space after {(show-found g)}")
     ?:  =(%'/%' lex.g)
       ?:  ?=([[* * [%lit %term %tas *]] *] rest)
+        ?:  =(0 val.p.lex.i.rest)
+          (bad-in rest "a mark's term, as `%todo-action`" cen-mask)
         [%& [%mark [beg.at.g end.at.i.rest] val.p.lex.i.rest] t.rest]
       =/  want=tape  "a mark's term, as `%todo-action`"
       ?.  ?=([[* * [%name *]] *] rest)  (bad-in rest want cen-mask)
@@ -4586,9 +4590,10 @@
 ::  Each top-level inferred definition generalizes its free variables, and
 ::  a use instantiates them afresh. Binders inside a gate stay monomorphic;
 ::  capital variables in molds share one allocation within the definition.
-::  Decimal literals and bare @ have atom-only variables; until their
-::  constraints can be printed and generalized, an unresolved one is
-::  reported as unsupported. Only unfaced cells are represented here.
+::  Decimal literals have atom-only variables; until their constraints
+::  can be printed and generalized, an unresolved one is unsupported.
+::  Bare @ is unsupported until its unrestricted-atom rule is implemented.
+::  Only unfaced cells are represented here.
 ::
 +$  itype
   $~  [%var 0]
@@ -4704,7 +4709,11 @@
 +$  ischeme  [typ=itype vars=(list @ud)]
 +$  ienv  (list [name=term scheme=ischeme])
 +$  icaps  (list [name=@t id=@ud])
-+$  istate  [next=@ud sub=isub caps=icaps]
++$  imolds  (list [name=term body=shape])
+::  A caller supplies the exact noun returned by +read-mold:jibb-import.
+::  This core has no Ford dependencies; unrecognized payloads fail closed.
++$  iexternals  (list [module=term name=term result=*])
++$  istate  [next=@ud sub=isub caps=icaps molds=imolds globals=(list term) externals=iexternals surs=(list term) active=(list term) in-mold=?]
 +$  iresult  (each [typ=itype state=istate] tape)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
 ::
@@ -4793,17 +4802,104 @@
   ?:  =(n name.i.caps)  `id.i.caps
   $(caps t.caps)
 ::
+::
+::  Only an unambiguous local name can be expanded. Import faces and
+::  recursive mold identity need the full module interface.
+::
+++  find-simple-mold
+  |=  [n=term molds=imolds]
+  ^-  (unit shape)
+  =/  matches=imolds  (skim molds |=(m=[name=term body=shape] =(n name.m)))
+  ?~  matches  ~
+  ?^  t.matches  ~
+  `body.i.matches
+::
+++  collect-simple-molds
+  |=  ds=(list def)
+  ^-  imolds
+  ?~  ds  ~
+  ?:  ?=(%mold -.i.ds)
+    [[name.i.ds shape.i.ds] $(ds t.ds)]
+  $(ds t.ds)
+::
+::
+::  The importer owns its algebra. Only successful %atom and %cell nouns
+::  in the supported subset are decoded here. In particular a singleton,
+::  face, union, collection or recursive reference must not be widened.
+::
+++  import-to-itype
+  |=  node=*
+  ^-  (unit itype)
+  ?@  node  ~
+  ?+  -.node  ~
+    %atom
+      ?.  ?=([%atom @ ~] node)  ~
+      =/  aura=@ta  (@ta +<.node)
+      ?.  ?=(?(%ud %ux %uv %t %ta %tas %p %da %dr) aura)  ~
+      `[%atom aura]
+    %cell
+      ?.  ?=([%cell * *] node)  ~
+      =/  left=(unit itype)  $(node +<.node)
+      ?~  left  ~
+      =/  right=(unit itype)  $(node +>.node)
+      ?~  right  ~
+      `[%cell u.left u.right]
+  ==
+::
+++  find-imported-mold
+  |=  [module=term name=term externals=iexternals surs=(list term)]
+  ^-  (unit itype)
+  ?.  (lien surs |=(n=term =(n module)))  ~
+  =/  found=iexternals
+    (skim externals |=(e=[module=term name=term result=*] &(=(module module.e) =(name name.e))))
+  ?~  found  ~
+  ?^  t.found  ~
+  =/  result=*  result.i.found
+  ?@  result  ~
+  ?.  ?=(%& -.result)  ~
+  (import-to-itype +.result)
+::
+++  collect-sur-imports
+  |=  imports=(list import)
+  ^-  (list term)
+  ?~  imports  ~
+  ?:  ?=(%sur -.i.imports)
+    [name.i.imports $(imports t.imports)]
+  $(imports t.imports)
+::
 ++  infer-simple-shape
   |=  [sh=shape state=istate]
   ^-  (unit [typ=itype state=istate])
   ?-  -.sh
     %aura
-      ?:  =(0 aura.sh)
-        `[[%avar next.state] state(next +(next.state))]
+      ?:  =(0 aura.sh)  ~
       `[[%atom aura.sh] state]
     %flag  `[[%flag ~] state]
     %cell  (infer-simple-fields fields.sh state)
+    %fn
+      =/  arg=(unit [typ=itype state=istate])  $(sh sample.sh)
+      ?~  arg  ~
+      =/  out=(unit [typ=itype state=istate])  $(sh product.sh, state state.u.arg)
+      ?~  out  ~
+      `[[%fn typ.u.arg typ.u.out] state.u.out]
+    %ref
+      ?~  names.sh  ~
+      =/  n=term  i.names.sh
+      ?^  t.names.sh
+        ?^  t.t.names.sh  ~
+        =/  found=(unit itype)
+          (find-imported-mold i.t.names.sh n externals.state surs.state)
+        ?~  found  ~
+        `[u.found state]
+      ?:  (lien active.state |=(x=term =(x n)))  ~
+      =/  found=(unit shape)  (find-simple-mold n molds.state)
+      ?~  found  ~
+      =/  out=(unit [typ=itype state=istate])
+        $(sh u.found, state state(active [n active.state], in-mold &))
+      ?~  out  ~
+      `[typ.u.out state.u.out(active active.state, in-mold in-mold.state)]
     %tvar
+      ?:  in-mold.state  ~
       =/  n=(unit @ud)  (icap-lookup name.sh caps.state)
       ?^  n  `[[%var u.n] state]
       `[[%var next.state] state(next +(next.state), caps [[name.sh next.state] caps.state])]
@@ -4827,12 +4923,12 @@
   ^-  isample-result
   ?-  -.s
     %bind
-      ?.  ?=(~ (ienv-lookup name.s env))
+      ?:  |(?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=itype  [%var next.state]
       [%& t [[name.s [t ~]] env] state(next +(next.state))]
     %face
-      ?.  ?=(~ (ienv-lookup name.s env))
+      ?:  |(?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
       ?~  t  [%| "sample mold is not supported by partial inference"]
@@ -4969,7 +5065,7 @@
   ?.  ?=(%bind -.i.t.pats)  [%| "branch pattern is not supported by partial inference"]
   =/  one=term  name.i.pats
   =/  two=term  name.i.t.pats
-  ?:  |(=(one two) ?=(^ (ienv-lookup one env)) ?=(^ (ienv-lookup two env)))
+  ?:  |(=(one two) ?=(^ (ienv-lookup one env)) ?=(^ (ienv-lookup two env)) (lien globals.state |=(x=term |(=(x one) =(x two)))))
     [%| "pattern shadows a name"]
   =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  subject
@@ -5022,24 +5118,237 @@
   ?.  ?=(%var -.resolved)  &
   $(caps t.caps)
 ::
+::  Build the supported part of the value environment in dependency order.
+::  Each pass adds successful definitions. Forward references become
+::  available on a later pass; recursive groups and unsupported syntax do
+::  not enter the environment. Generalized definitions are closed, so a
+::  use instantiates its variables afresh.
+::
+++  global-value-names
+  |=  ds=(list def)
+  ^-  (list term)
+  ?~  ds  ~
+  ?:  ?=(%value -.i.ds)
+    [name.i.ds $(ds t.ds)]
+  $(ds t.ds)
+::
+++  unique-value-name
+  |=  [n=term names=(list term)]
+  ^-  ?
+  =/  hits=(list term)  (skim names |=(x=term =(x n)))
+  ?~  hits  |
+  ?~  t.hits  &
+  |
+::
+++  add-supported-defs
+  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term)]
+  ^-  ienv
+  ?~  ds  env
+  =/  d=def  i.ds
+  ?:  ?=(%mold -.d)  $(ds t.ds)
+  ?.  (unique-value-name name.d globals)  $(ds t.ds)
+  ?^  (ienv-lookup name.d env)  $(ds t.ds)
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ molds globals externals surs ~ |])
+  ?:  ?=(%| -.result)  $(ds t.ds)
+  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
+  =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
+  ?:  (itype-has-avar typ)  $(ds t.ds)
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+  ?:  (gth (lent vars) 26)  $(ds t.ds)
+  $(ds t.ds, env [[name.d [typ vars]] env])
+::
+++  resolve-supported-defs
+  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term)]
+  ^-  ienv
+  =/  env=ienv  ~
+  |-
+  =/  next=ienv  (add-supported-defs ds env molds globals externals surs)
+  ?:  =(next env)  env
+  $(env next)
+::
++|  %union-analysis
+::
+::  A conservative projection of written molds onto noun shapes. The
+::  result %unknown never establishes either overlap or disjointness.
+::  Gates, applications, imports and recursive references stay unknown;
+::  another position in a cell may nevertheless prove two cases apart.
+::
++$  upat
+  $~  [%unknown ~]
+  $%  [%unknown ~]
+      [%all ~]
+      [%empty ~]
+      [%atom val=(unit @)]
+      [%flag ~]
+      [%cell hed=upat tal=upat]
+      [%or alts=(list upat)]
+  ==
++$  urelation  ?(%disjoint %overlap %unknown)
++$  upair  [first=span second=span relation=urelation]
+::
+++  project-union-mold
+  |=  [sh=shape molds=imolds seen=(list term)]
+  ^-  upat
+  ?-  -.sh
+    %aura   [%atom ~]
+    %noun   [%all ~]
+    %tvar   [%all ~]
+    %void   [%empty ~]
+    ::  ? is its two atoms, 0 and 1 (Decisions 2026-10-30).
+    %flag   [%flag ~]
+    %const  [%atom `val.lit.sh]
+    %cell   (project-union-fields fields.sh molds seen)
+    %union  [%or (turn cases.sh |=(x=shape (project-union-mold x molds seen)))]
+    %ref
+      ?~  names.sh  [%unknown ~]
+      ?^  t.names.sh  [%unknown ~]
+      =/  n=term  i.names.sh
+      ?:  (lien seen |=(x=term =(x n)))  [%unknown ~]
+      =/  found=(unit shape)  (find-simple-mold n molds)
+      ?~  found  [%unknown ~]
+      $(sh u.found, seen [n seen])
+    *  [%unknown ~]
+  ==
+::
+++  project-union-fields
+  |=  [fields=(list field) molds=imolds seen=(list term)]
+  ^-  upat
+  ?~  fields  [%unknown ~]
+  =/  head=upat
+    ?-  -.i.fields
+      %bare  (project-union-mold shape.i.fields molds seen)
+      %face  (project-union-mold shape.i.fields molds seen)
+      %pun   (project-union-mold [%ref at.i.fields ~[name.i.fields]] molds seen)
+    ==
+  ?~  t.fields  head
+  [%cell head $(fields t.fields)]
+::
+++  union-inhabited
+  |=  p=upat
+  ^-  urelation
+  ?-  -.p
+    %unknown  %unknown
+    %empty    %disjoint
+    %all      %overlap
+    %atom     %overlap
+    %flag     %overlap
+    %cell
+      =/  a=urelation  $(p hed.p)
+      =/  b=urelation  $(p tal.p)
+      ?:  |(=(%disjoint a) =(%disjoint b))  %disjoint
+      ?:  |(=(%unknown a) =(%unknown b))  %unknown
+      %overlap
+    %or
+      =/  alts=(list upat)  alts.p
+      =/  result=urelation  %disjoint
+      |-
+      ?~  alts  result
+      =/  r=urelation  (union-inhabited i.alts)
+      ?:  =(%overlap r)  %overlap
+      $(alts t.alts, result ?:(=(%unknown r) %unknown result))
+  ==
+::
+++  union-relate-alts
+  |=  [alts=(list upat) b=upat]
+  ^-  urelation
+  =/  result=urelation  %disjoint
+  |-
+  ?~  alts  result
+  =/  r=urelation  (union-relate i.alts b)
+  ?:  =(%overlap r)  %overlap
+  $(alts t.alts, result ?:(=(%unknown r) %unknown result))
+::
+++  union-relate
+  |=  [a=upat b=upat]
+  ^-  urelation
+  ?:  |(?=(%empty -.a) ?=(%empty -.b))  %disjoint
+  ?:  ?=(%or -.a)  (union-relate-alts alts.a b)
+  ?:  ?=(%or -.b)  (union-relate-alts alts.b a)
+  ?:  ?=(%all -.a)  (union-inhabited b)
+  ?:  ?=(%all -.b)  (union-inhabited a)
+  ?:  |(?=(%unknown -.a) ?=(%unknown -.b))  %unknown
+  ?:  |(&(?=(%cell -.a) |(?=(%atom -.b) ?=(%flag -.b))) &(?=(%cell -.b) |(?=(%atom -.a) ?=(%flag -.a))))
+    %disjoint
+  ?:  &(?=(%flag -.a) ?=(%flag -.b))  %overlap
+  ?:  &(?=(%flag -.a) ?=(%atom -.b))
+    ?~  val.b  %overlap
+    ?:(|(=(0 u.val.b) =(1 u.val.b)) %overlap %disjoint)
+  ?:  &(?=(%atom -.a) ?=(%flag -.b))
+    ?~  val.a  %overlap
+    ?:(|(=(0 u.val.a) =(1 u.val.a)) %overlap %disjoint)
+  ?:  &(?=(%atom -.a) ?=(%atom -.b))
+    ?~  val.a  %overlap
+    ?~  val.b  %overlap
+    ?:(=(u.val.a u.val.b) %overlap %disjoint)
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))
+    =/  x=urelation  $(a hed.a, b hed.b)
+    =/  y=urelation  $(a tal.a, b tal.b)
+    ?:  |(=(%disjoint x) =(%disjoint y))  %disjoint
+    ?:  |(=(%unknown x) =(%unknown y))  %unknown
+    %overlap
+  %unknown
+::
+++  union-pairs
+  |=  [cases=(list shape) molds=imolds]
+  ^-  (list upair)
+  ?~  cases  ~
+  =/  first=shape  i.cases
+  =/  a=upat  (project-union-mold first molds ~)
+  =/  pairs=(list upair)
+    %+  turn  t.cases
+    |=  second=shape
+    ^-  upair
+    [at.first at.second (union-relate a (project-union-mold second molds ~))]
+  (weld pairs $(cases t.cases))
+::
+++  show-partial-mold
+  |=  [d=def molds=imolds]
+  ^-  @t
+  ?>  ?=(%mold -.d)
+  =/  sh=shape  shape.d
+  =?  sh  ?=(%generic -.sh)  body.sh
+  ?.  ?=(%union -.sh)  (crip "+$ {(trip name.d)}: not checked")
+  =/  pairs=(list upair)  (union-pairs cases.sh molds)
+  =/  overlapping=(list upair)  (skim pairs |=(p=upair =(%overlap relation.p)))
+  ?^  overlapping
+    =/  p=upair  i.overlapping
+    (crip "+$ {(trip name.d)}: overlapping cases at {(show-loc beg.first.p)} and {(show-loc beg.second.p)}; mold not checked")
+  ?:  (lien pairs |=(p=upair =(%unknown relation.p)))
+    (crip "+$ {(trip name.d)}: case disjointness unresolved; mold not checked")
+  (crip "+$ {(trip name.d)}: cases proven disjoint; mold not checked")
+::
 ::  +golden-types: a partial report; it does not claim the module checks
 ::
 ++  golden-types
   |=  [file=path src=@t]
   ^-  @t
+  (golden-types-imports file src ~)
+::
+::  +golden-types-imports: partial inference with caller-supplied /sur types
+::
+::    Each entry is [module mold result], where result is exactly the
+::    noun returned by +read-mold:jibb-import. Only imports declared with
+::    /- are visible. Unrecognized or failed results are unsupported.
+::
+++  golden-types-imports
+  |=  [file=path src=@t externals=iexternals]
+  ^-  @t
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
   =/  ds=(list def)  defs.p.parsed
-  =/  env=ienv  ~
+  =/  molds=imolds  (collect-simple-molds ds)
+  =/  globals=(list term)  (global-value-names ds)
+  =/  surs=(list term)  (collect-sur-imports imports.p.parsed)
+  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs)
   =/  lines=(list @t)  ~
   |-
   ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
   =/  d=def  i.ds
   ?:  ?=(%mold -.d)
-    $(ds t.ds, lines [(crip "+$ {(trip name.d)}: not checked") lines])
-  ?:  ?=(^ (ienv-lookup name.d env))
+    $(ds t.ds, lines [(show-partial-mold d molds) lines])
+  ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ molds globals externals surs ~ |])
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: {p.result}") lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
@@ -5052,5 +5361,5 @@
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: too many variables for partial printer") lines])
   =/  printable=itype  (canonical-itype typ vars)
   =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}")
-  $(ds t.ds, env [[name.d [typ vars]] env], lines [line lines])
+  $(ds t.ds, lines [line lines])
 --

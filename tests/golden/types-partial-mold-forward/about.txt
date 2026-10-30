@@ -1,0 +1,4 @@
+source: Grammar tab, Molds: "every expression has a principal type, and there is no general subtyping".
+tests: a use of a named mold before its definition resolves to @t.
+expect: parses
+expect-types: a partial inference report, not a checked module

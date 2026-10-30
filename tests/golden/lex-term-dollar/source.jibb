@@ -1,0 +1,9 @@
++$ cash
+  [%$ amount=@ud]
+  %other
+++ empty-tag %$
+++ identify |= c=cash
+  ?- c
+    [%$ amount] amount
+    %other 0
+++ make |=%$

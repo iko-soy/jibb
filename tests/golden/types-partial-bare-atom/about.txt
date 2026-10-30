@@ -1,0 +1,3 @@
+source: `@` is an unrestricted bare atom; each occurrence is independent.
+tests: partial inference does not specialize a bare atom to the aura supplied by a call.
+expect: parses; type analysis reports both samples as unsupported

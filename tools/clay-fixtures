@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""Build the example /sur and mark fixtures through Clay on the fake ship."""
+
+from pathlib import Path
+import subprocess
+import sys
+
+root = Path(__file__).resolve().parent.parent
+ship = root / 'tools' / 'ship'
+fixtures = root / 'tests' / 'clay-fixtures'
+try:
+    subprocess.run([str(ship), 'sync', 'my-app'], check=True)
+    result = subprocess.run([str(ship), 'run', str(fixtures / 'build.txt')],
+                            stdout=subprocess.PIPE, check=True)
+except subprocess.CalledProcessError as error:
+    sys.exit(error.returncode)
+expected = (fixtures / 'expected.txt').read_bytes()
+if result.stdout != expected:
+    print('Clay fixture builds differ from tests/clay-fixtures/expected.txt',
+          file=sys.stderr)
+    print('expected:', expected.decode().rstrip(), file=sys.stderr)
+    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
+    sys.exit(1)
+print('Clay fixture builds: 7 passed')

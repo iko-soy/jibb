@@ -1,0 +1,8 @@
+|%
++|  %hiding
+++  jar  |$([key value] (map key (list value)))
+++  jug  |$([key value] (map key (set value)))
++|  %defs
++$  aa  (jar @ud @t)
++$  bb  [field=(jug @ud @t)]
+--

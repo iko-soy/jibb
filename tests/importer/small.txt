@@ -8,9 +8,11 @@
 +$  jar-test  (jar @ud @t)
 +$  jug-test  (jug @ud @t)
 +$  nested-jar  [field=(jar @ud @t)]
++$  paired-aliases  [values=(jar @ud @t) cache=(jug @ud @t)]
++$  nested-alias  (jar @ud (jug @ud @t))
 +$  signed  @sd
 +$  float  @rd
 +$  gate-test  $-(@ud @ud)
-+$  valid-cell  $^(@ud [x=@ud])
++$  valid-cell  $^(@ud [x=@ud y=@ud])
 +$  invalid-cell  $^(@ud @ud)
 --

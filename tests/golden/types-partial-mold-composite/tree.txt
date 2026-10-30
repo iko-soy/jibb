@@ -1,0 +1,13 @@
+(module
+  (mold 1:1 text-pair
+    (cell 1:14 (aura 1:15 @t) (aura 1:18 @t)))
+  (mold 2:1 text-fn
+    (fn 2:12 (aura 2:15 @t) (aura 2:18 @t)))
+  (value 3:1 a-pair
+    (cast 3:11
+      (ref 3:14 text-pair)
+      (tuple 3:24 (str 3:25 "a") (str 3:29 "b"))))
+  (value 4:1 a-gate
+    (gate 4:11
+      (face 4:14 f (ref 4:16 text-fn))
+      (wing 4:24 f))))

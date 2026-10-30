@@ -1,0 +1,7 @@
+|%
++$  title     @t
++$  pair      [@ud @t]
++$  faced     [name=@t]
++$  constant  %yes
++$  choice    ?(%yes %no)
+--

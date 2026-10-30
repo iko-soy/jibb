@@ -3,6 +3,9 @@
 /+  jibb-import
 /*  small     %txt  /tests/importer/small/txt
 /*  epic      %txt  /tests/importer/tlon-epic/txt
+/*  presence  %txt  /tests/importer/tlon-presence/txt
+/*  docs      %txt  /tests/importer/tlon-docs/txt
+/*  shadow    %txt  /tests/importer/shadow/txt
 /*  expected  %txt  /tests/importer/tree/txt
 |%
 ++  lines-to-cord
@@ -14,8 +17,11 @@
   ^-  tang
   ?~  small  ~[leaf+"small importer fixture is missing"]
   ?~  epic  ~[leaf+"Tlon importer fixture is missing"]
+  ?~  presence  ~[leaf+"Tlon presence fixture is missing"]
+  ?~  docs  ~[leaf+"Tlon docs fixture is missing"]
+  ?~  shadow  ~[leaf+"shadow fixture is missing"]
   ?~  expected  ~[leaf+"importer golden output is missing"]
-  =/  actual  (fixture-output:jibb-import (lines-to-cord small) (lines-to-cord epic))
+  =/  actual  (fixture-output:jibb-import (lines-to-cord small) (lines-to-cord epic) (lines-to-cord presence) (lines-to-cord docs) (lines-to-cord shadow))
   ?.  =(actual expected)
     ~[leaf+"importer projection differs from tests/importer/tree.txt"]
   ~

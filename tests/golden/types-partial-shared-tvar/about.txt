@@ -1,4 +1,4 @@
-source: Grammar tab, Molds: "every expression has a principal type, and there is no subtyping".
+source: Grammar tab, Molds: "every expression has a principal type, and there is no general subtyping".
 tests: both positions of [A A] share a type: a matching ship pair checks, while a ship and a cord conflict.
 expect: parses
 expect-types: a partial inference report, not a checked module

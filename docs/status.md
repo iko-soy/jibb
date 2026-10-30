@@ -19,7 +19,7 @@ On 2026-10-30, @iko decided that Jibb drops `$?`, so a `+$` takes a union's case
 
 ## Milestone 2: in progress
 
-The repository spec records the subsequent type-system and prelude decisions; those changes also need synchronization to the Claude document. An initial inference fragment and a standalone Hoon type reader are being tested. The fragment explicitly reports that it does not check a module; the reader is not yet connected to the checker and does not cover every supported Hoon type. The prelude currently has only a few functions, and [prelude-inventory.md](prelude-inventory.md) is a source audit, not the complete inventory or signatures. The milestone remains unfinished.
+The repository spec records the subsequent type-system and prelude decisions; those changes also need synchronization to the Claude document. An initial inference fragment and a standalone Hoon type reader are being tested. The fragment explicitly reports that it does not check a module; a partial bridge passes selected Hoon atoms and unfaced cells into inference, while the reader and bridge do not cover every supported Hoon type. It reads named recursion, several collections, jar and jug in record fields, and direct `$^` unions whose cases can be proved disjoint. Nested `$^`, nested collection arguments, ordered maps, marks and general union disjointness remain unfinished. Collection recognition checks the originating core and fails closed on local shadows or unresolved Ford subjects; its golden fixtures include three real Tlon files. The prelude currently has only a few functions, and [prelude-inventory.md](prelude-inventory.md) is a source audit, not the complete inventory or signatures. The milestone remains unfinished.
 
 ## Milestone 1: parser and mark
 
@@ -37,8 +37,8 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 382 golden cases: 167 that parse and 215 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 382-case corpus passed under `urbit eval` in 26.0 s. On the fake ship, those cases and the importer and unification checks passed: 384 tests in all, with 44.2 s for sync and 15.5 s for the tests.
+- 393 golden cases: 177 that parse and 216 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 393-case corpus passed under `urbit eval` in 20.0 s. The fake ship passed all 396 tests, including the importer, importer/checker bridge and unification checks, with 18.9 s for sync and 8.9 s for tests. The importer golden compares 35 projections; `tools/clay-fixtures` also built all seven example Hoon fixtures through Clay.
 - `tools/testdata/selftest` (19 checks) and `tools/testdata/ship-selftest` test the tools themselves.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -53,23 +53,27 @@ Besides the plan's list:
 | 7c739b7 | 2026-10-30 | Fixes from two independent audits; milestone 1 done |
 | 5a4aa73 | 2026-10-30 | `tools/doc-blocks`, after the doc labelled its Jibb blocks |
 | ab797a9 | 2026-10-30 | The 12 grammar decisions of 2026-10-30: four changed the parser, eight confirmed it |
-| This change | 2026-10-30 | Drop `$?`; `+$` takes union cases below its name |
+| aad6ddb | 2026-10-30 | Drop `$?`; `+$` takes union cases below its name |
+| 1dd92a6 | 2026-10-30 | Begin type inference and Hoon imports |
+| This change | 2026-10-30 | Extend partial inference and importer, record type and prelude decisions |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 382 cases under urbit eval
+tools/golden                      # 393 cases under urbit eval
 tools/importer-test               # the Hoon importer fixture projection
+tools/type-import-test            # the importer/checker bridge fixture
 tools/hoon check-spans-test       # prints <<>> when the span checker works
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 382 cases as -test arms on the ship
+tools/ship test                   # the same 393 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/ship check-commit           # |commit stores .jibb files
+tools/clay-fixtures               # example /sur files and marks build through Clay
 ```
 
 ## What milestone 1 leaves to later milestones

@@ -1,3 +1,3 @@
-source: Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" ;`
+source: Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" | "%$" ;`
 tests: a numeric term ending in a dot
 expect: error at 1:13 — a dot in a decimal is followed by three digits (Decisions), and the line ends after the dot, so the text stops being valid at the end of the line, as `++ x 1.000.` fails at 1:12

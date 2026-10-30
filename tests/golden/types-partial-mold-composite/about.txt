@@ -1,0 +1,4 @@
+source: Grammar tab, Molds: "every expression has a principal type, and there is no general subtyping".
+tests: unfaced tuple and gate molds resolve through their names.
+expect: parses
+expect-types: a partial inference report, not a checked module

@@ -866,10 +866,17 @@ def show(path):
 def assemble(desk, lib=None, golden=None):
     """The files of one of the repo's desks, checked as vere and Clay
     will see them.  lib replaces /lib/jibb.hoon; golden, for the
-    jibb-dev test desk, is the folder of golden cases."""
+    jibb-dev test desk, is the folder of golden cases. When either is
+    overridden, exclude other /tests/lib programs so they don't run
+    against an unrelated library or pollute the custom case results."""
     if desk not in DESKS:
         raise Unable('no desk %s here; the repo builds %s'
                      % (desk, ', '.join(sorted(DESKS))))
+    #  Override runs are harness tests, not tests of the repository's
+    #  importer, checker, or other test files against the replacement lib.
+    isolated = (lib is not None or
+                (golden is not None and
+                 os.path.abspath(golden) != os.path.abspath(GOLDEN)))
     a = Assembly(desk)
     vendor = os.path.join(ROOT, 'vendor')
     for pkg in sorted(os.listdir(vendor)):
@@ -880,8 +887,10 @@ def assemble(desk, lib=None, golden=None):
             golden = golden or GOLDEN
             if os.path.isdir(os.path.join(ROOT, 'tests')):
                 a.add_tree(os.path.join(ROOT, 'tests'), 'tests',
-                           skip=['golden'], drop=lambda rel: rel ==
-                           os.path.join('lib', 'jibb.hoon'))
+                           skip=['golden'], drop=lambda rel:
+                           rel == os.path.join('lib', 'jibb.hoon') or
+                           (isolated and rel.startswith('lib' + os.sep) and
+                            rel.endswith('.hoon')))
             if os.path.isdir(golden):
                 a.add_tree(golden, os.path.join('tests', 'golden'))
             a.add(os.path.join('tests', 'lib', 'jibb.hoon'),

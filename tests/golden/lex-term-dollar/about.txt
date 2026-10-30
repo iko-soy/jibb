@@ -1,0 +1,3 @@
+source: Grammar, Literals table, Term row: `%add`, `%1.000`, `%$`; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" | "%$" ;`
+tests: `%$` as a literal, a union case tag, a pattern, and a constructor
+expect: parses; the term `%$` keeps its source spelling

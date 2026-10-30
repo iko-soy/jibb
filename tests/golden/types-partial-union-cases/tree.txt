@@ -1,0 +1,38 @@
+(module
+  (mold 1:1 tagged
+    (union 2:3
+      (cell 2:3 (const 2:4 %a) (aura 2:7 @t))
+      (cell 3:3 (const 3:4 %b) (aura 3:7 @ud))))
+  (mold 4:1 overlapping
+    (union 5:3
+      (cell 5:3 (const 5:4 %a) (aura 5:7 @t))
+      (cell 6:3 (const 6:4 %a) (aura 6:7 @ud))))
+  (mold 7:1 unresolved
+    (union 8:3 (ref 8:3 mystery) (const 9:3 %a)))
+  (mold 10:1 flag-tag
+    (union 11:3 (flag 11:3) (const 12:3 %hello)))
+  (mold 13:1 flag-cell
+    (union 14:3
+      (flag 14:3)
+      (cell 15:3 (aura 15:4 @t) (aura 15:7 @ud))))
+  (mold 16:1 flag-value
+    (union 17:3 (flag 17:3) (const 18:3 %.y)))
+  (mold 19:1 wildcard
+    (union 20:3 (noun 20:3) (const 21:3 %a)))
+  (mold 22:1 nested
+    (union 23:3
+      (cell 23:3
+        (const 23:4 %a)
+        (cell 23:7 (const 23:8 %b) (aura 23:11 @t)))
+      (cell 24:3
+        (const 24:4 %a)
+        (cell 24:7 (const 24:8 %c) (aura 24:11 @t)))))
+  (mold 25:1 case-a
+    (cell 25:11 (const 25:12 %a) (aura 25:15 @t)))
+  (mold 26:1 through-name
+    (union 27:3
+      (ref 27:3 case-a)
+      (cell 28:3 (const 28:4 %b) (aura 28:7 @t))))
+  (mold 29:1 loop (ref 29:9 loop))
+  (mold 30:1 through-loop
+    (union 31:3 (ref 31:3 loop) (const 32:3 %a))))

@@ -32,6 +32,7 @@ From the header of the file:
 | `+parse-tokens` | `[file=path toks=(list token)]` | `(each module error)` |
 | `+golden` | `[file=path src=@t]` | `[tokens=@t tree=@t]`: both stages printed, or the rendered error |
 | `+golden-types` | `[file=path src=@t]` | A partial inference report; explicitly says the module has not been checked |
+| `+golden-types-imports` | `[file=path src=@t externals=iexternals]` | The same partial report, with selected caller-supplied Hoon mold results |
 | `+show-tokens` | `(list token)` | `@t` |
 | `+show-module` | `module` | `@t` |
 | `+show-error` | `[src=@t error]` | `@t` |
@@ -55,9 +56,9 @@ The core is split into chapters, `+|  %name`, in this order:
 | `%span-check` | `+check-spans`, which `+golden` runs on every tree, and `+check-spans-test` |
 | `%type-inference` | The initial inference fragment and its unification helpers; not yet a module type checker |
 
-The inference fragment supports fixed auras, generic variables and gates, unfaced cells, a two-binder cell pattern, and a complete two-arm loobean branch. It instantiates generalized top-level definitions when they are used. It does not yet check a module, its imports, faces, general patterns, deferred constraints, dependency cycles or errors with both conflicting excerpts. Unsupported forms are reported as such, and the partial output says the module has not been checked.
+The inference fragment supports fixed auras, generic variables and gates, unfaced cells, a two-binder cell pattern, a complete two-arm loobean branch, closed local mold aliases and acyclic forward value references. It instantiates generalized top-level definitions when they are used. It does not yet check a module, its imports, faces, general patterns, deferred constraints, recursive or generic molds, dependency cycles or errors with both conflicting excerpts. The current dependency pass can take quadratic time on long forward chains; the milestone's speed target remains unverified. A separate conservative pass reports unions whose cases are provably disjoint or overlapping and leaves other cases unresolved; it does not claim the mold is checked. Unsupported forms are reported as such, and the partial output says the module has not been checked.
 
-The separate `jibb-dev/lib/jibb-import.hoon` is an unfinished reader for selected Hoon type graphs. It handles several collections and named recursion, but source-aware aliases and disjointness, marks and integration with the checker remain unfinished. Its fixtures include a real Tlon type; `tools/importer-test` compares the internal projection under eval, and the ship test compares the same golden output.
+The separate `jibb-dev/lib/jibb-import.hoon` is an unfinished reader for selected Hoon type graphs. It handles named recursion, several collections, jar and jug in ordinary record fields, and direct `$^` unions whose source branches can be proved disjoint. Nested `$^`, nested collection arguments, ordered maps, general source-level disjointness, marks and complete integration with the checker remain unfinished. `+golden-types-imports` can consume fixed-aura atoms and unfaced cells from caller-supplied reader results for declared `/-` imports; other forms remain unsupported. Its disjointness proof is conservative and can reject a valid union it cannot prove disjoint. Collection recognition requires the originating `/sur` core, built directly against zuse, and rejects locally shadowed names and subjects with unresolved Ford imports. Its fixtures include three real Tlon files; `tools/importer-test` compares the internal projection under eval, and the ship test compares the same golden output. `tools/type-import-test` and the corresponding ship test compose the importer with the inference fragment and compare a separate golden report.
 
 And the design notes:
 

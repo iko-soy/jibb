@@ -1,0 +1,3 @@
+source: cases differ as nouns; `?` contains the two loobean atoms, and union matching does not inspect gates.
+tests: partial case comparison distinguishes different constants and atom/cell positions, reports definite overlap, and leaves an unresolved mold unknown.
+expect: parses; disjoint, overlapping and unresolved cases are reported while each mold remains unchecked

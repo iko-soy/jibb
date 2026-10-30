@@ -1,0 +1,3 @@
+partial inference; module not checked
++$ chain: cases proven disjoint; mold not checked
+++ empty-chain: cast mold is not supported by partial inference

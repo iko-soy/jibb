@@ -1,0 +1,43 @@
+1:1 glyph +$
+1:4 name cash
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %$
+2:7 name amount
+2:13 tight glyph =
+2:14 tight aura @ud
+2:17 tight glyph ]
+3:3 NEWLINE
+3:3 lit %other
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name empty-tag
+4:14 lit %$
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name identify
+5:13 glyph |=
+5:16 name c
+5:17 tight glyph =
+5:18 tight name cash
+6:3 INDENT
+6:3 glyph ?-
+6:6 name c
+7:5 INDENT
+7:5 glyph [
+7:6 tight lit %$
+7:9 name amount
+7:15 tight glyph ]
+7:17 name amount
+8:5 NEWLINE
+8:5 lit %other
+8:12 lit 0
+9:1 DEDENT
+9:1 DEDENT
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name make
+9:9 glyph |=
+9:11 tight lit %$
+9:13 NEWLINE

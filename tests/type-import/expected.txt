@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ f: $-(@t @t)
+++ g: $-([@ud @t] [@ud @t])
+++ face: sample mold is not supported by partial inference
+++ constant: sample mold is not supported by partial inference
+++ choice: sample mold is not supported by partial inference
+++ failed: sample mold is not supported by partial inference
+++ duplicate: sample mold is not supported by partial inference
+++ undeclared: sample mold is not supported by partial inference

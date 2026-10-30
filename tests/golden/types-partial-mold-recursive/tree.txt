@@ -1,0 +1,7 @@
+(module
+  (mold 1:1 chain
+    (union 2:3
+      (const 2:3 ~)
+      (cell 3:3 (aura 3:4 @t) (ref 3:7 chain))))
+  (value 4:1 empty-chain
+    (cast 4:16 (ref 4:19 chain) (lit 4:25 ~))))

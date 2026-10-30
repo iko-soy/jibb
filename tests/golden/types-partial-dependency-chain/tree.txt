@@ -1,0 +1,4 @@
+(module
+  (value 1:1 third (wing 1:10 second))
+  (value 2:1 second (wing 2:11 first))
+  (value 3:1 first (str 3:10 "hi")))

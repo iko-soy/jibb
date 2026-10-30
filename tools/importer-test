@@ -10,7 +10,10 @@ fixture = root / 'tests' / 'importer'
 command = [str(root / 'tools' / 'hoon'), '--lib', str(root / 'jibb-dev' / 'lib' / 'jibb-import.hoon'),
            '--raw', '--cord', 'small=' + str(fixture / 'small.txt'),
            '--cord', 'epic=' + str(fixture / 'tlon-epic.txt'),
-           '(fixture-output small epic)']
+           '--cord', 'presence=' + str(fixture / 'tlon-presence.txt'),
+           '--cord', 'docs=' + str(fixture / 'tlon-docs.txt'),
+           '--cord', 'shadow=' + str(fixture / 'shadow.txt'),
+           '(fixture-output small epic presence docs shadow)']
 result = subprocess.run(command, stdout=subprocess.PIPE)
 if result.returncode:
     sys.exit(result.returncode)
@@ -22,4 +25,4 @@ if result.stdout != expected:
         result.stdout.decode().splitlines(keepends=True),
         fromfile='expected tree.txt', tofile='actual types'))
     sys.exit(1)
-print('importer golden: 16 projections passed')
+print('importer golden: 35 projections passed')

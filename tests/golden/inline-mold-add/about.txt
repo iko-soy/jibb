@@ -1,3 +1,3 @@
-source: Grammar tab, Molds: "`add` takes `[@ @]` and returns `@`, all one aura, so `(add n 1)` with `n=@ud` is a `@ud`."
+source: Grammar tab, Molds: "`add` takes `[A A]` and returns `A`, with `A` constrained to atoms, so `(add n 1)` with `n=@ud` is a `@ud`."
 tests: a cell of bare atoms, and the call in a gate with the sample n=@ud
 expect: parses

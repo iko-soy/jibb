@@ -1,3 +1,3 @@
-source: Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" ;`, which molds and patterns take
+source: Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" | "%$" ;`, which molds and patterns take
 tests: numeric terms as a union's constant molds and as patterns
 expect: parses: code is the union of the constants %200, %404 and %1.000, and label's arms match each

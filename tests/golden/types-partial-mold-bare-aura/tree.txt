@@ -1,0 +1,4 @@
+(module
+  (mold 1:1 vague (aura 1:10 @))
+  (value 2:1 datum
+    (cast 2:10 (ref 2:13 vague) (lit 2:19 1))))

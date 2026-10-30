@@ -1,4 +1,4 @@
-source: Grammar tab, Molds: "every expression has a principal type, and there is no subtyping".
+source: Grammar tab, Molds: "every expression has a principal type, and there is no general subtyping".
 tests: an explicit capital used in a cast to a concrete aura is reported as unsupported until rigid variables are implemented.
 expect: parses
 expect-types: a partial inference report, not a checked module

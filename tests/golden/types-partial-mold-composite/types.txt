@@ -1,0 +1,5 @@
+partial inference; module not checked
++$ text-pair: not checked
++$ text-fn: not checked
+++ a-pair: [@t @t]
+++ a-gate: $-($-(@t @t) $-(@t @t))

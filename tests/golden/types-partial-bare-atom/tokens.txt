@@ -1,0 +1,20 @@
+1:1 glyph ++
+1:4 name f
+1:6 glyph (
+1:7 tight glyph |=(
+1:10 tight name x
+1:11 tight glyph =
+1:12 tight aura @
+1:14 name x
+1:15 tight glyph )
+1:17 lit 0x1f
+1:21 tight glyph )
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name g
+2:6 glyph |=
+2:9 name x
+2:10 tight glyph =
+2:11 tight aura @
+2:13 name x
+2:14 NEWLINE

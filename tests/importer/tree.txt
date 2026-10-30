@@ -5,12 +5,31 @@ containers: [(set @ud) [(qeu @ud) [(list @t) (unit @ud)]]]
 chain: (union [value=@ud next=chain.small] @n:0)
 jar: (jar @ud @t)
 jug: (jug @ud @t)
-nested-jar: error: a nested jar, jug or mop needs source-aware import
+nested-jar: field=(jar @ud @t)
+paired-aliases: [values=(jar @ud @t) cache=(jug @ud @t)]
+nested-alias: error: nested collection arguments need source-aware import
 signed: error: signed and float auras cannot be imported
 float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported
 vase: error: vases cannot be imported
-valid-cell: error: a Hoon $^ union needs a source-level disjointness check
-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
+failed-branch: error: a Hoon $^ union needs a source-level disjointness check
+valid-cell: (union [x=@ud y=@ud] @ud)
+invalid-cell: error: a Hoon $^ union has overlapping cases
+chapter-malformed: unsafe
+chapter-wrapped-malformed: unsafe
+chapter-direct-hit: yes
+chapter-wrapped-hit: yes
+chapter-direct-miss: no
+chapter-wrapped-miss: no
+shadow-jar: error: Hoon collection provenance is unavailable or shadowed
+shadow-jug: error: Hoon collection provenance is unavailable or shadowed
+no-provenance: error: Hoon collection provenance is unavailable or shadowed
+wrong-provenance: error: Hoon module provenance does not match the selected mold
+unverified-subject: error: Hoon module provenance is unavailable
+presence-topic: (union other typing computing)
+presence-timing: [since=@da timeout=(unit @dr)]
+presence-places: (map (list @ta) (map (union other typing computing) (map @p [[since=@da timeout=(unit @dr)] [icon=(unit @t) [text=(unit @t) blob=(unit @t)]]])))
+docs-ent: [(union fil dir) [pa=(list @ta) nam=@t]]
+docs-nud: (union dir=@ta [fil=@ta mar=@ta])
 tlon-saga: (union [chi @n:0] [lev @n:0] [dex ver=@ud])
 tlon-epic: @ud

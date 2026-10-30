@@ -42,7 +42,7 @@ tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
 tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb src)'
 ```
 
-`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file.
+`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file. `tools/type-import-test` checks the importer/checker bridge under eval; the ship suite runs the same fixture.
 
 ### The doc's examples
 
@@ -82,9 +82,11 @@ tools/ship test --stub --golden tools/testdata/ship-golden
 tools/ship test --lib some/other/jibb.hoon
 ```
 
-A sync with nothing to commit takes about 2 s. A commit adds 3 to 10 s, and 300 cases (900 files) sync in about 10 s. `-test` takes 1 to 3 s with the stub library. `--stub` swaps in `tools/testdata/ship-stub.hoon`, and `tools/testdata/ship-selftest` checks the generator and the runner against it with the cases in `tools/testdata/ship-golden`.
+A sync with nothing to commit takes about 2 s. A commit adds 3 to 10 s, and 300 cases (900 files) sync in about 10 s. `-test` takes 1 to 3 s with the stub library. `--stub` swaps in `tools/testdata/ship-stub.hoon`, and `tools/testdata/ship-selftest` checks the generator and the runner against it with the cases in `tools/testdata/ship-golden`. Runs with `--stub`, `--lib`, or a custom `--golden` include only the generated golden test program: the repository's other test programs run with the default library and corpus. A subsequent default `tools/ship test` restores them.
 
 `tools/ship check-commit` proves that `|commit` stores `.jibb` files. It syncs `my-app`, reads every `/ui` file back with `%cx`, byte for byte, and converts `%jibb` to `%mime` and `%txt` and back. It commits half-written files, then deletes them. It merges a file that two desks changed on different lines, and checks that changes to the same line conflict. It can be rerun, and it leaves the two scratch desks it merges with (`%jibb-check-ours` and `%jibb-check-theirs`) holding only what `|new-desk` gives, unmounted.
+
+`tools/clay-fixtures` syncs `my-app` and checks through Clay that its example `/sur` files and marks build. It compares the result with the golden file under `tests/clay-fixtures/`.
 
 For anything else:
 

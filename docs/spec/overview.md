@@ -82,7 +82,7 @@ Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/pr
 
 | Group | Hoon | Jibb |
 | --- | --- | --- |
-| Arithmetic | [1a](https://docs.urbit.org/hoon/stdlib/1a), [2g](https://docs.urbit.org/hoon/stdlib/2g) | Natives over aura variables: `add`, `sub`, `div`, `mod`, `gth`, `max`, `pow` |
+| Arithmetic | [1a](https://docs.urbit.org/hoon/stdlib/1a), [2g](https://docs.urbit.org/hoon/stdlib/2g) | Jibb gates over shared atom-constrained type variables, using private low-level primitives: `add`, `sub`, `div`, `mod`, `gth`, `max`, `pow` |
 | Units | [2a](https://docs.urbit.org/hoon/stdlib/2a) | `fall`, `need`, `bind`, `biff` |
 | Lists | [2b](https://docs.urbit.org/hoon/stdlib/2b) | `turn`, `weld`, `snag`, `lent`, `sort`, `skim`; `(roll xs init f)` takes a start |
 | Maps, sets, queues | [2h](https://docs.urbit.org/hoon/stdlib/2h)–[2m](https://docs.urbit.org/hoon/stdlib/2m), [2o](https://docs.urbit.org/hoon/stdlib/2o) | Plain gates over Hoon's trees, such as `(get.by m k)`; `rep.by` and `rep.in` take a start; ordered maps through lull's `on`, as `(get.on lte m k)` |
@@ -90,7 +90,7 @@ Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/pr
 | Text | [4b](https://docs.urbit.org/hoon/stdlib/4b) | `crip`, `trip`, `cass`, `cuss`, `trim`, `tufa`, `tuba` |
 | Atom printing | [4a](https://docs.urbit.org/hoon/stdlib/4a), [4j](https://docs.urbit.org/hoon/stdlib/4j)–[4m](https://docs.urbit.org/hoon/stdlib/4m) | `scot`, `scow`, `slav`, `slaw`. `print-date` prints Urbit-style in the theme's zone, to the minute, as `~2026.10.29..14.30`, from a zone table jibb-dev keeps current. Numbers print as Hoon does, as `1.000` |
 | Time | [3c](https://docs.urbit.org/hoon/stdlib/3c) | `yore`, `year` |
-| Data molds | [1c](https://docs.urbit.org/hoon/stdlib/1c), [2q](https://docs.urbit.org/hoon/stdlib/2q), `coin` and `dime` from [3g](https://docs.urbit.org/hoon/stdlib/3g) | `unit`, `list`, `pair`, `tape`, `path` and the rest |
+| Data molds | [1c](https://docs.urbit.org/hoon/stdlib/1c), [2q](https://docs.urbit.org/hoon/stdlib/2q), [3g](https://docs.urbit.org/hoon/stdlib/3g) | `unit`, `list`, `pair`, `tape`, `path`, `coin`, `dime` and the rest; Hoon's 3g `tone` is `tone.hoon`, distinct from the styling type |
 | Bits | [2c](https://docs.urbit.org/hoon/stdlib/2c), [2d](https://docs.urbit.org/hoon/stdlib/2d) | Jibb's `not` negates a loobean; Hoon's bitwise `not` is exposed as `not.bit` |
 | Hashing and ordering | [2e](https://docs.urbit.org/hoon/stdlib/2e), [2f](https://docs.urbit.org/hoon/stdlib/2f) | Natives behind maps and sets; `aor` exposed |
 | Signed and floats | [3a](https://docs.urbit.org/hoon/stdlib/3a), [3b](https://docs.urbit.org/hoon/stdlib/3b) | Left out; `@s…` and `@r…` auras are errors, imported ones included |

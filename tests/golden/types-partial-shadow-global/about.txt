@@ -1,0 +1,4 @@
+source: Grammar tab, Modules: "Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included."
+tests: a gate sample cannot shadow a global value.
+expect: parses
+expect-types: a partial inference report, not a checked module

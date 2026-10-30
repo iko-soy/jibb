@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ third: @t
+++ second: @t
+++ first: @t

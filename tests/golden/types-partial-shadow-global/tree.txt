@@ -1,0 +1,4 @@
+(module
+  (value 1:1 global (str 1:11 "hi"))
+  (value 2:1 f
+    (gate 2:6 (bind 2:9 global) (wing 2:16 global))))

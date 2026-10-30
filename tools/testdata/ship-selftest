@@ -151,6 +151,22 @@ def generator_checks(tmp):
         bad_path = False
     check('invalid logical paths are rejected', bad_path)
 
+    normal = ship.assemble('jibb-dev')
+    normal_tests = {p for p in normal.files if p.startswith('tests/lib/') and
+                    p.endswith('.hoon')}
+    check('default assembly keeps the repository test programs',
+          {'tests/lib/jibb.hoon', 'tests/lib/jibb-import.hoon',
+           'tests/lib/jibb-typecheck.hoon', 'tests/lib/jibb-bridge.hoon'}
+          <= normal_tests, sorted(normal_tests))
+    for label, kwargs in (('custom library', {'lib': STUB}),
+                          ('custom goldens', {'golden': CASES}),
+                          ('both overrides', {'lib': STUB, 'golden': CASES})):
+        assembled = ship.assemble('jibb-dev', **kwargs)
+        tests = {p for p in assembled.files if p.startswith('tests/lib/') and
+                 p.endswith('.hoon')}
+        check(label + ' runs only its generated golden tests',
+              tests == {'tests/lib/jibb.hoon'}, sorted(tests))
+
     clash = os.path.join(tmp, 'clash')
     for case in ('a.b', 'a_b', 'a-b', 'Upper', 'has space'):
         write_case(clash, case, b'++ x\n')

@@ -1,0 +1,13 @@
+partial inference; module not checked
++$ tagged: cases proven disjoint; mold not checked
++$ overlapping: overlapping cases at 5:3 and 6:3; mold not checked
++$ unresolved: case disjointness unresolved; mold not checked
++$ flag-tag: cases proven disjoint; mold not checked
++$ flag-cell: cases proven disjoint; mold not checked
++$ flag-value: overlapping cases at 17:3 and 18:3; mold not checked
++$ wildcard: overlapping cases at 20:3 and 21:3; mold not checked
++$ nested: cases proven disjoint; mold not checked
++$ case-a: not checked
++$ through-name: cases proven disjoint; mold not checked
++$ loop: not checked
++$ through-loop: case disjointness unresolved; mold not checked

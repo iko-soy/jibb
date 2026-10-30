@@ -1,0 +1,4 @@
++$ text-pair [@t @t]
++$ text-fn $-(@t @t)
+++ a-pair ^- text-pair ["a" "b"]
+++ a-gate |= f=text-fn f

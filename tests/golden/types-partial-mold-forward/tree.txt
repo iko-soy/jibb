@@ -1,0 +1,4 @@
+(module
+  (value 1:1 text-value
+    (cast 1:15 (ref 1:18 written) (str 1:26 "hi")))
+  (mold 2:1 written (aura 2:12 @t)))

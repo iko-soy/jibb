@@ -1,0 +1,32 @@
++$ tagged
+  [%a @t]
+  [%b @ud]
++$ overlapping
+  [%a @t]
+  [%a @ud]
++$ unresolved
+  mystery
+  %a
++$ flag-tag
+  ?
+  %hello
++$ flag-cell
+  ?
+  [@t @ud]
++$ flag-value
+  ?
+  %.y
++$ wildcard
+  *
+  %a
++$ nested
+  [%a [%b @t]]
+  [%a [%c @t]]
++$ case-a [%a @t]
++$ through-name
+  case-a
+  [%b @t]
++$ loop loop
++$ through-loop
+  loop
+  %a

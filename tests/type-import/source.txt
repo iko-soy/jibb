@@ -1,0 +1,9 @@
+/-  fixture
+++ f |= x=title.fixture x
+++ g |= x=pair.fixture x
+++ face |= x=faced.fixture x
+++ constant |= x=constant.fixture x
+++ choice |= x=choice.fixture x
+++ failed |= x=failed.fixture x
+++ duplicate |= x=duplicate.fixture x
+++ undeclared |= x=title.missing x
