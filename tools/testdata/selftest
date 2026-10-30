@@ -287,6 +287,46 @@ def check_crash_isolated(c, tmp):
              '--update should not write a crash:\n' + out)
 
 
+def check_fixture_crash_isolated(c, tmp):
+    """A bad Hoon fixture must not hide the Jibb parse or other cases."""
+    original = os.path.join(ROOT, 'tests', 'golden', 'types-import-mark')
+    cases = os.path.join(tmp, 'fixture-cases')
+    os.makedirs(cases)
+    for name in ('good', 'bad', 'empty', 'mark-only'):
+        shutil.copytree(original, os.path.join(cases, name))
+    with open(os.path.join(cases, 'bad', 'mar', 'label.txt'), 'w') as f:
+        f.write('not hoon\n')
+    with open(os.path.join(cases, 'empty', 'mar', 'label.txt'), 'w'):
+        pass
+    # Clay's %txt mark treats the last unterminated line as a line too.
+    good = os.path.join(cases, 'good', 'mar', 'label.txt')
+    with open(good, 'rb') as f:
+        without_newline = f.read().rstrip(b'\n')
+    with open(good, 'wb') as f:
+        f.write(without_newline)
+    only = os.path.join(cases, 'mark-only')
+    os.remove(os.path.join(only, 'imports.txt'))
+    with open(os.path.join(only, 'source.jibb'), 'w') as f:
+        f.write('/%  %label\n++ label-id |= x=label x\n')
+    status, out = golden('--dir', cases, '--show')
+    c.expect(status == 1, 'fixture failure must fail the run: %d\n%s' % (status, out))
+    c.expect('==> bad: tokens <==\n1:1' in out and
+             '==> bad: tree <==\n(module' in out and
+             '==> bad: types <==\nCRASH\n/mar/label.txt fixture' in out,
+             'malformed fixture should preserve parse and name the fixture:\n' + out)
+    c.expect('==> empty: types <==\nCRASH\n/mar/label.txt fixture' in out,
+             'empty fixture should name the fixture:\n' + out)
+    for name in ('good', 'mark-only'):
+        c.expect(('==> %s: types <==\npartial inference; module not checked\n'
+                  '++ label-id: $-(@t @t)') % name in out,
+                 'valid fixture should be isolated: ' + name + '\n' + out)
+    expected = read(os.path.join(cases, 'bad', 'types.txt'))
+    status, out = golden('--dir', cases, '--case', 'bad', '--update')
+    c.expect(status == 1 and read(os.path.join(cases, 'bad', 'types.txt')) == expected and
+             'CRASH' in out and '/mar/label.txt fixture' in out,
+             'update must report the fixture crash and leave outputs alone:\n' + out)
+
+
 def check_eval_death(c, tmp):
     cases = copy_cases(tmp)
     add_case(cases, 'bails', b'bail\n')

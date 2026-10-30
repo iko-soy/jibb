@@ -1,0 +1,12 @@
+(module
+  (value 1:1 later (wing 1:10 count))
+  (value 2:1 count (lit 2:10 7))
+  (value 3:1 pair
+    (tuple 3:9 (lit 3:10 1) (lit 3:12 2)))
+  (value 4:1 id
+    (gate 4:7 (bind 4:10 x) (wing 4:12 x)))
+  (value 5:1 applied
+    (group 5:12
+      (call 5:13 (wing 5:13 id) (lit 5:16 5))))
+  (value 6:1 gate
+    (gate 6:9 (bind 6:12 x) (lit 6:14 9))))

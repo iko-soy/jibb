@@ -1140,38 +1140,54 @@ def generate_tests(golden):
 ++  check-import-types
   |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain])]
   ^-  tang
-  ?:  (lien fixtures |=(f=[module=term mold=term source=wain] ?=(~ source.f)))
-    ~[leaf+"an imported Hoon fixture is missing or empty"]
+  =/  result  (mule |.((import-types-result at src fixtures)))
+  ?:  ?=(%| -.result)
+    [leaf+"fixture compilation or type checking crashed" p.result]
+  (compare (file case "types.txt") want p.result)
+::
+++  import-types-result
+  |=  [at=path src=@t fixtures=(list [module=term mold=term source=wain])]
+  ^-  @t
   =/  external=(list [module=term name=term result=*])
     %+  turn  fixtures
     |=  fixture=[module=term mold=term source=wain]
+    ~_  leaf+"/sur/{(trip module.fixture)}.txt fixture"
+    ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
-    =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
-    [module.fixture mold.fixture (read-mold-in:jibb-import module.fixture mold.fixture typ cor)]
-  (compare (file case "types.txt") want (golden-types-imports:jibb at src external))
+    [module.fixture mold.fixture (read-named:jibb-import module.fixture mold.fixture cor)]
+  (golden-types-imports:jibb at src external)
 '''
     if has_marks:
         types_helper += '''::
 ++  check-mark-types
   |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain])]
   ^-  tang
-  ?:  |((lien fixtures |=(f=[module=term mold=term source=wain] ?=(~ source.f))) (lien marks |=(m=[name=term source=wain] ?=(~ source.m))))
-    ~[leaf+"an imported Hoon fixture is missing or empty"]
+  =/  result  (mule |.((mark-types-result at src fixtures marks)))
+  ?:  ?=(%| -.result)
+    [leaf+"fixture compilation or type checking crashed" p.result]
+  (compare (file case "types.txt") want p.result)
+::
+++  mark-types-result
+  |=  [at=path src=@t fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain])]
+  ^-  @t
   =/  external=(list [module=term name=term result=*])
     %+  turn  fixtures
     |=  fixture=[module=term mold=term source=wain]
+    ~_  leaf+"/sur/{(trip module.fixture)}.txt fixture"
+    ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
-    =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
-    [module.fixture mold.fixture (read-mold-in:jibb-import module.fixture mold.fixture typ cor)]
+    [module.fixture mold.fixture (read-named:jibb-import module.fixture mold.fixture cor)]
   =/  mark-external=(list [name=term result=*])
     %+  turn  marks
     |=  fixture=[name=term source=wain]
+    ~_  leaf+"/mar/{(trip name.fixture)}.txt fixture"
+    ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
     [name.fixture (read-mark:jibb-import name.fixture cor)]
-  (compare (file case "types.txt") want (golden-types-with-marks:jibb at src external mark-external))
+  (golden-types-with-marks:jibb at src external mark-external)
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 

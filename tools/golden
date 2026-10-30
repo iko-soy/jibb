@@ -58,12 +58,15 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
   |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t])] src=@t]
   ^-  @t
   =/  at=path  ?~(logical.metadata (file name) u.logical.metadata)
-  =/  res  (mule |.([(golden:lib at src) {types-expr}]))
-  ?:  ?=(%| -.res)
-    =/  why=@t  (crash p.res)
+  =/  parsed  (mule |.((golden:lib at src)))
+  ?:  ?=(%| -.parsed)
+    =/  why=@t  (crash p.parsed)
     (fields ~[name 'crash' why why why])
-  =/  out=[[tokens=@t tree=@t] types=@t]  p.res
-  (fields ~[name 'ok' tokens.out tree.out types.out])
+  =/  out=[tokens=@t tree=@t]  p.parsed
+  =/  typed  (mule |.({types-expr}))
+  ?:  ?=(%| -.typed)
+    (fields ~[name 'types-crash' tokens.out tree.out (crash p.typed)])
+  (fields ~[name 'ok' tokens.out tree.out p.typed])
 ::
 ++  file
   |=  name=@
@@ -98,17 +101,27 @@ IMPORT_HELPER = r"""
   ^-  (list [module=term name=term result=*])
   %+  turn  fixtures
   |=  fixture=[module=term mold=term source=@t]
-  =/  cor=type  -:(ride -:!>(..zuse) source.fixture)
-  =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
-  [module.fixture mold.fixture (read-mold-in:reader module.fixture mold.fixture typ cor)]
+  ~_  leaf+"/sur/{(trip module.fixture)}.txt fixture"
+  =/  source=@t  (fixture-text source.fixture)
+  ?~  source  !!
+  =/  cor=type  -:(ride -:!>(..zuse) source)
+  [module.fixture mold.fixture (read-named:reader module.fixture mold.fixture cor)]
 ::
 ++  import-marks
   |=  fixtures=(list [name=term source=@t])
   ^-  (list [name=term result=*])
   %+  turn  fixtures
   |=  fixture=[name=term source=@t]
-  =/  cor=type  -:(ride -:!>(..zuse) source.fixture)
+  ~_  leaf+"/mar/{(trip name.fixture)}.txt fixture"
+  =/  source=@t  (fixture-text source.fixture)
+  ?~  source  !!
+  =/  cor=type  -:(ride -:!>(..zuse) source)
   [name.fixture (read-mark:reader name.fixture cor)]
+::  Clay's %txt mark supplies lines, with a newline reconstructed per line.
+++  fixture-text
+  |=  source=@t
+  ^-  @t
+  (rap 3 (turn (to-wain:format source) |=(line=@t (cat 3 line '\0a'))))
 """
 
 
@@ -136,6 +149,7 @@ class Case:
         with open(self.source_path, 'rb') as f:
             self.source = f.read()
         self.crashed = False
+        self.crash_kind = 'tokens'  # the output holding a crash's trace
         self.crash_at = None    # the innermost library spot of a crash
         self.outputs = {}       # 'tokens' and 'tree' -> bytes
 
@@ -251,11 +265,15 @@ def decode(prog, noun, cases):
         if name != case.name.encode():
             raise ue.ToolError('the harness output is out of order at %s'
                                % case.name)
-        case.crashed = status == b'crash'
-        if case.crashed:
+        case.crashed = status in (b'crash', b'types-crash')
+        if status == b'crash':
             tokens, case.crash_at = crash_text(
                 prog, tokens.decode('utf-8', 'surrogateescape').split('\n'))
             tree = types = tokens
+        elif status == b'types-crash':
+            case.crash_kind = 'types'
+            types, case.crash_at = crash_text(
+                prog, types.decode('utf-8', 'surrogateescape').split('\n'))
         case.outputs = {'tokens': tokens, 'tree': tree}
         if case.want_types:
             case.outputs['types'] = types
@@ -356,7 +374,7 @@ def compare(case):
     """PASS or FAIL lines for one case."""
     if case.crashed:
         out = [colour('31', 'FAIL') + '  %s: crashed' % case.name]
-        out += ['  ' + l for l in case.outputs['tokens']
+        out += ['  ' + l for l in case.outputs[case.crash_kind]
                 .decode('utf-8', 'surrogateescape').split('\n')]
         if case.crash_at is not None:
             out += ['  at %s' % case.crash_at.label(),

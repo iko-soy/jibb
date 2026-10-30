@@ -20,6 +20,25 @@ Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold 
 
 `biff`, `bind`, `bond`, `both`, `clap`, `clef`, `drop`, `fall`, `flit`, `hunt`, `lift`, `mate`, `need`, `some`.
 
+The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The current Jibb implementations have only been parsed; the checker and backend do not yet validate or run them.
+
+| Name | Hoon behavior | Jibb status |
+| --- | --- | --- |
+| `biff` | Applies a gate returning a unit to a present value; absent stays absent. | Written |
+| `bind` | Applies a gate to a present value and wraps the result; absent stays absent. | Written |
+| `bond` | Calls a fallback trap for an absent unit, otherwise returns its value. | Missing |
+| `both` | Returns a unit of both values when both units are present. | Missing |
+| `clap` | Returns the present unit if only one is present; combines both values with a gate if both are present. | Missing |
+| `clef` | Applies a gate returning a unit when both inputs are present; otherwise returns an absent unit. | Missing |
+| `drop` | Converts an absent unit to an empty list and a present unit to a singleton. | Written |
+| `fall` | Returns the value of a present unit or the supplied fallback. | Written |
+| `flit` | Returns a gate that wraps a value only if it satisfies the predicate. | Missing |
+| `hunt` | Returns the only present unit or chooses between two present values with an ordering gate. | Missing |
+| `lift` | Takes a mold and a unit, then applies the mold to a present value as `bind` does. | Missing; Jibb molds are not callable values |
+| `mate` | Returns the present unit if only one is present; when both are present it returns one if their values are equal and crashes otherwise. | Missing |
+| `need` | Extracts a present value and crashes on an absent unit. | Written |
+| `some` | Wraps a value in a present unit. | Written |
+
 ## 2b
 
 `snoc`, `lure`, `fand`, `find`, `flop`, `gulf`, `homo`, `join`, `bake`, `lent`, `levy`, `lien`, `limo`, `murn`, `oust`, `reap`, `rear`, `reel`, `roll`, `scag`, `skid`, `skim`, `skip`, `slag`, `snag`, `snip`, `sort`, `spin`, `spun`, `swag`, `turn`, `weld`, `snap`, `into`, `welp`, `zing`.
@@ -90,7 +109,7 @@ Hoon 135's `3g` section has exactly 12 exports: ten `+$` molds (`coin`, `dime`, 
 
 | Hoon name | Source shape and Jibb audit |
 | --- | --- |
-| `coin` | A union of `[%$ p=dime]`, `[%blob p=*]`, and `[%many p=(list coin)]`. Its `$~` default is dropped: Jibb molds have no default. @iko approved `%$` as a Jibb term literal and pattern on 2026-10-30; the parser implements it and ship verification is pending. Its `%$` case uses the `dime` mold below. |
+| `coin` | A union of `[%$ p=dime]`, `[%blob p=*]`, and `[%many p=(list coin)]`. Its `$~` default is dropped: Jibb molds have no default. @iko approved `%$` as a Jibb term literal and pattern on 2026-10-30; the parser implements it and its golden cases pass under eval and on the ship. Its `%$` case uses the `dime` mold below. |
 | `dime` | `[p=@ta q=@]` in Hoon. The `q` field accepts any atom, as does Jibb `@` after @iko's decision in question 15. |
 | `edge` | `[p=hair q=(unit [p=* q=nail])]`: a parsing position and either no result or a result and remaining input. |
 | `hair` | `[p=@ud q=@ud]`: a parsing position. |

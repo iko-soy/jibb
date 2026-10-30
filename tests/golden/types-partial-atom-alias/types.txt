@@ -11,7 +11,7 @@ partial inference; module not checked
 /tests/golden/types-partial-atom-alias/source.jibb:8:15: argument has type [@p @t]
 ++ bad (alias [~zod "hi"])
               ^
-++ number: unresolved aura-variable inference
+++ number: @ud
 ++ relay: cast mold and expression type do not unify
 /tests/golden/types-partial-atom-alias/source.jibb:10:13: cast mold has type ?
 ++ relay ^- ? (alias 7)

@@ -57,6 +57,12 @@ shadow-mop: error: Hoon collection provenance is unavailable or shadowed
 shadow-jar: error: Hoon collection provenance is unavailable or shadowed
 shadow-jug: error: Hoon collection provenance is unavailable or shadowed
 no-provenance: error: Hoon collection provenance is unavailable or shadowed
+named-not-mold: error: Hoon mold `not-mold` could not be evaluated: -find.$
+named-present: (map @ud [id=@ud text=@t])
+named-missing: error: Hoon mold `missing` is not declared
+named-invalid-core: error: Hoon module provenance is unavailable
+named-ford-recursive: error: a recursive Hoon mold with Ford imports needs source-aware import
+missing-arm: error: Hoon mold `missing` is not declared
 wrong-provenance: error: Hoon module provenance does not match the selected mold
 unverified-subject: error: Hoon module provenance is unavailable
 presence-topic: (union other typing computing)

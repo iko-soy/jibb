@@ -1,0 +1,7 @@
+Grammar, Literals by context: "A number takes `@ud` only if nothing fixes
+its aura and its `++` isn't generic over it". Partial inference defaults
+numbers when the complete inferred type is gate-free, including tuple
+positions and a polymorphic identity call. A later definition sees the
+defaulted dependency. Gate types remain unsupported until the checker can
+establish which aura variables are generalized. This report does not claim
+that the module has been checked.

@@ -16,7 +16,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 
 ## Golden tests
 
-Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, as described in [docs/development.md](docs/development.md).
+Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, or select marks in `marks.txt` and provide their source in `mar/<name>.txt`, as described in [docs/development.md](docs/development.md).
 
 Run them without a ship. This needs `urbit` on PATH and Python 3.
 
@@ -42,7 +42,7 @@ tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
 tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb src)'
 ```
 
-`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file. `tools/type-import-test` checks the importer/checker bridge under eval; the ship suite runs the same fixture.
+`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file. `tools/type-import-test` and `tools/type-mark-test` check the importer/checker bridges under eval; the ship suite runs the same fixtures.
 
 ### The doc's examples
 
@@ -86,7 +86,7 @@ A sync with nothing to commit takes about 2 s. A commit adds 3 to 10 s, and 300 
 
 `tools/ship check-commit` proves that `|commit` stores `.jibb` files. It syncs `my-app`, reads every `/ui` file back with `%cx`, byte for byte, and converts `%jibb` to `%mime` and `%txt` and back. It commits half-written files, then deletes them. It merges a file that two desks changed on different lines, and checks that changes to the same line conflict. It can be rerun, and it leaves the two scratch desks it merges with (`%jibb-check-ours` and `%jibb-check-theirs`) holding only what `|new-desk` gives, unmounted.
 
-`tools/clay-fixtures` syncs `my-app`, builds its example `/sur` files and marks through Clay, and checks selected molds read from the compiled `/sur` type graphs. It compares both results with golden files under `tests/clay-fixtures/`.
+`tools/clay-fixtures` syncs `my-app`, builds its example `/sur` files and marks through Clay, and checks selected types read from the compiled graphs and passed to the partial checker. It compares the results with golden files under `tests/clay-fixtures/`.
 
 For anything else:
 

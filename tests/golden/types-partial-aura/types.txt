@@ -1,5 +1,5 @@
 partial inference; module not checked
-++ n: unresolved aura-variable inference
+++ n: @ud
 ++ good: @ux
 ++ bad: cast mold and expression type do not unify
 /tests/golden/types-partial-aura/source.jibb:3:11: cast mold has type ?

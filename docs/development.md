@@ -79,7 +79,7 @@ tools/importer-test                # Hoon importer fixture projections match
 tools/type-import-test             # importer/checker bridge golden report matches
 tools/type-mark-test               # mark/checker bridge golden report matches
 tools/hoon check-spans-test        # prints <<>>
-tools/testdata/selftest            # 19 checks, 0 failed
+tools/testdata/selftest            # 20 checks, 0 failed
 tools/doc-blocks docs/spec         # every jibb block has its case
 tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date
 tools/ship test                    # the cases pass as -test arms on the ship
@@ -99,7 +99,9 @@ A case is a folder `tests/golden/<name>/` holding:
 - the expected outputs, `tokens.txt` and `tree.txt`, each the output plus one newline.
 - optionally, `path.txt`, the logical `/ui/.../*.jibb` path to pass to the compiler; the source remains `source.jibb`.
 - optionally, an `expect-types:` line in `about.txt` opts the case into `+golden-types`; `types.txt` holds its output plus one newline and `--update` creates it. A `types.txt` also opts in when the line is absent. This interface is provisional while the checker is under construction.
-- optionally, `imports.txt` selects Hoon `/sur` molds, one `module mold` pair per line. Each module's source goes in `sur/<module>.txt` and is compiled against zuse by both runners. `marks.txt` selects marks, one name per line, with source in `mar/<name>.txt`; both kinds may be supplied together. The reader results go to the partial checker, and a type output is required. These fixtures currently handle only sources without Ford imports, not Jibb module fixtures.
+- optionally, `imports.txt` selects Hoon `/sur` molds, one `module mold` pair per line. Each module's source goes in `sur/<module>.txt` and is compiled against zuse by both runners. `marks.txt` selects marks, one name per line, with source in `mar/<name>.txt`; both kinds may be supplied together. The reader results go to the partial checker, and a type output is required. Both runners reconstruct fixture text from `%txt` lines and identify the fixture if its compilation crashes; a crash fails the case without discarding its successful parse output. These fixtures currently handle only sources without Ford imports, not Jibb module fixtures.
+
+A zero-byte mark fixture currently fails ship synchronization validation after commit. Use a newline-only fixture to test an empty Hoon source on the ship.
 
 Names say what a case is for:
 

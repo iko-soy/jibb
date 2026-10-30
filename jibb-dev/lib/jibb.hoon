@@ -4891,6 +4891,35 @@
     [%cell $(t hed.t) $(t tal.t)]
   t
 ::
+::
+::  Default decimal variables only in types with no gates. A gate can
+::  generalize an aura from its sample, which requires constraint analysis
+::  beyond this fragment; leave those cases unresolved.
+::
+++  itype-has-gate
+  |=  t=itype
+  ^-  ?
+  ?-  -.t
+    %fn        &
+    %cell      |($(t hed.t) $(t tal.t))
+    %var       |
+    %avar      |
+    %nvar      |
+    %atom      |
+    %any-atom  |
+    %flag      |
+  ==
+::
+++  default-decimals
+  |=  t=itype
+  ^-  itype
+  ?:  (itype-has-gate t)  t
+  ?-  -.t
+    %nvar      [%atom %ud]
+    %cell      [%cell $(t hed.t) $(t tal.t)]
+    *          t
+  ==
+::
 ++  itype-vars
   |=  t=itype
   ^-  (list @ud)
@@ -5471,7 +5500,7 @@
   =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks ~ |])
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
-  =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
+  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)  $(ds t.ds)
@@ -5698,7 +5727,7 @@
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
-  =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
+  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))

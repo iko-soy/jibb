@@ -5,7 +5,8 @@ list shadow alongside a nested ordered map is rejected. Static sibling
 collections and dependent sibling molds are tested separately. Nested `$^`
 cases fail closed, while nested `$@` cases remain supported. `ford.txt`
 checks a synthetic imported subject and selected mold; other cases check
-transitive imports, shadowing, malformed subjects and recursion whose
+transitive imports, named mold lookup, missing names, shadowing, malformed
+subjects and recursion whose
 origin cannot yet be established. The mark fixtures check door samples,
 collection provenance, unsupported gates and recursive sample rejection.
 The synthetic hold in +bad-branch-fixture checks that a failed Hoon branch expansion returns

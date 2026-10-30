@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/-  todo` imports molds from a Hoon `/sur` file; unsupported imports are errors where used.
+tests: The selected `/sur` fixture has no `missing` mold. The reader reports the missing name without crashing the golden runner; partial inference does not claim to check the value.
+expect: parses
+expect-types: partial inference reports the imported mold as unsupported

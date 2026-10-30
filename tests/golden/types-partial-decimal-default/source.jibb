@@ -1,0 +1,6 @@
+++ later count
+++ count 7
+++ pair [1 2]
+++ id |= x x
+++ applied (id 5)
+++ gate |= x 9

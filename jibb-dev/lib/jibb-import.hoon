@@ -74,6 +74,9 @@
   ?.  ?=([%core *] cor)  [%| 'Hoon module provenance is unavailable']
   ?:  =(cor -:!>(..zuse))  [%| 'Hoon module provenance is unavailable']
   ?.  (scope-safe cor %$)  [%| 'Hoon module provenance is unavailable']
+  =/  chapters=(map term tome)  q.r.q.cor
+  ?.  (lien ~(tap by chapters) |=(entry=[term tome] =((chapter-has +.entry name) [~ &])))
+    [%| (crip "Hoon mold `{(trip name)}` is not declared")]
   ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
     [%| 'Hoon module provenance does not match the selected mold']
   =/  result  (read-with module name typ [~ cor])
@@ -81,6 +84,30 @@
   ?:  &(!=(q.q.cor -:!>(..zuse)) (contains-ref p.result))
     [%| 'a recursive Hoon mold with Ford imports needs source-aware import']
   result
+::
+::  +read-named is the source-aware entry point for callers that have
+::  not selected a Hoon type yet. Check the core and the local arm
+::  before invoking Hoon's type engine, which otherwise crashes when
+::  the requested name is absent.
+++  read-named
+  |=  [module=term name=term cor=type]
+  ^-  (each imported @t)
+  ?.  ?=([%core *] cor)  [%| 'Hoon module provenance is unavailable']
+  ?:  =(cor -:!>(..zuse))  [%| 'Hoon module provenance is unavailable']
+  ?.  (scope-safe cor %$)  [%| 'Hoon module provenance is unavailable']
+  =/  chapters=(map term tome)  q.r.q.cor
+  ?.  (lien ~(tap by chapters) |=(entry=[term tome] =((chapter-has +.entry name) [~ &])))
+    [%| (crip "Hoon mold `{(trip name)}` is not declared")]
+  =/  attempted=(each type tang)
+    (mule |.((~(play ut cor) (ream (cat 3 '*' name)))))
+  ?-  attempted
+    [%& *]  (read-mold-in module name p.attempted cor)
+    [%| *]
+      =/  lines=wall  (zing (turn (flop p.attempted) |=(a=tank (wash [0 80] a))))
+      =/  rev=wall  (flop lines)
+      ?~  rev  [%| (crip "Hoon mold `{(trip name)}` could not be evaluated")]
+      [%| (crip "Hoon mold `{(trip name)}` could not be evaluated: {i.rev}")]
+  ==
 ::
 ::  A mark door's payload is [sample build-subject]. Its outer sample
 ::  face names the door sample, not the imported mark type. Collection
@@ -956,6 +983,12 @@
       (crip "shadow-jar: {(show-result (shad %aa))}")
       (crip "shadow-jug: {(show-result (shad %bb))}")
       (crip "no-provenance: {(show-result (read-mold %small %jar-test (~(play ut sc) (ream '*jar-test'))))}")
+      (crip "named-not-mold: {(show-result (read-named %small %not-mold sc))}")
+      (crip "named-present: {(show-result (read-named %small %items sc))}")
+      (crip "named-missing: {(show-result (read-named %small %missing sc))}")
+      (crip "named-invalid-core: {(show-result (read-named %small %items [%atom %ud ~]))}")
+      (crip "named-ford-recursive: {(show-result (read-named %ford %recursive fc))}")
+      (crip "missing-arm: {(show-result (read-mold-in %small %missing [%atom %ud ~] sc))}")
       (crip "wrong-provenance: {(show-result (read-mold-in %small %action (~(play ut sc) (ream '*items')) sc))}")
       (crip "unverified-subject: {(show-result (read-mold-in %std %jar (~(play ut -:!>(..zuse)) (ream '*(jar @ud @t)')) -:!>(..zuse)))}")
       (crip "presence-topic: {(show-result (present %topic))}")

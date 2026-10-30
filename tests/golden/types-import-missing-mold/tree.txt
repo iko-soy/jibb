@@ -1,0 +1,6 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 identity
+    (gate 2:13
+      (face 2:16 x (ref 2:18 missing.fixture))
+      (wing 2:34 x))))

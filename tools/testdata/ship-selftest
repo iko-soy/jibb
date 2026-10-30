@@ -177,6 +177,10 @@ def generator_checks(tmp):
           '/tests/golden/molds/mar/label/txt' in out and
           '[%label mark-1-1]' in out and '[%fixture %title imp-1-1]' in out and
           '(golden-types-with-marks:jibb at src external mark-external)' in out, out)
+    check('fixture crashes are caught with the source name on the ship',
+          '(mule |.((mark-types-result at src fixtures marks)))' in out and
+          '/mar/{(trip name.fixture)}.txt fixture' in out and
+          '/sur/{(trip module.fixture)}.txt fixture' in out, out)
     with open(os.path.join(folder, 'marks.txt'), 'a') as f:
         f.write('label\n')
     try:
