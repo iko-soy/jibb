@@ -65,15 +65,15 @@
 8:19 name turn
 9:1 NEWLINE
 9:1 glyph ++
-9:4 name unsupported
-9:16 glyph |=
-9:19 name x
-9:20 tight glyph =
-9:21 tight glyph (
-9:22 tight name list
-9:27 aura @t
-9:29 tight glyph )
-9:31 name x
+9:4 name list-id
+9:12 glyph |=
+9:15 name x
+9:16 tight glyph =
+9:17 tight glyph (
+9:18 tight name list
+9:23 aura @t
+9:25 tight glyph )
+9:27 name x
 10:1 NEWLINE
 10:1 glyph ++
 10:4 name get-gate

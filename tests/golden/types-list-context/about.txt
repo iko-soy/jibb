@@ -1,0 +1,4 @@
+source: Grammar, Literals: `~[1 2 3]` has type `(list A)`; Tag resolution: "A tag literal or `~` gets a fresh type variable and a pending constraint".
+tests: Empty, nonempty and nested lists with cast or known-sample context, contextual tags, an incompatible element, an explicitly written capital, and unrelated pending tag and null literals.
+expect: parses
+expect-types: a partial inference report

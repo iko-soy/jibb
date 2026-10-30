@@ -1,0 +1,17 @@
++$ msg
+  %add
+  %remove
+++ empty ^- (list @t) ~[]
+++ texts ^- (list @t) ~["a" "b"]
+++ tags ^- (list msg) ~[%add %remove]
+++ bad ^- (list @t) ~["hi" ~zod]
+++ nested ^- (list (list @t)) ~[~["hi"] ~[]]
+++ consume |= xs=(list @t) xs
+++ call (consume ~["hi"])
+++ pending
+  ~& %unresolved
+    ^- (list @t) ~["hi"]
+++ pending-null
+  ~& ~
+    ^- (list @t) ~[]
+++ forced |= xs=(list A) ^- (list A) ~["hi"]

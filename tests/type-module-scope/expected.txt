@@ -15,3 +15,16 @@ partial inference; module not checked
 duplicate module sources: /ui/dup/jibb
 partial inference; module not checked
 duplicate module sources: /ui/dup/jibb
+real prelude prepared/wrapper and golden match
+partial inference; module not checked
+++ imported: $-((list @t) (list @t))
+++ imported-literal: list literal needs the standard prelude in partial inference
+++ literal: cast mold is not supported by partial inference
+++ bridge: cast mold is not supported by partial inference
+partial inference; module not checked
+++ imported: $-((list @t) (list @t))
+++ imported-literal: list literal needs the standard prelude in partial inference
+++ literal: cast mold is not supported by partial inference
+++ bridge: cast mold is not supported by partial inference
+partial inference; module not checked
+prelude source does not parse; module import inference unsupported

@@ -1,6 +1,11 @@
 ::  Exercise supplied prelude scope and fail-closed module imports.
 /+  jibb
 /*  expected  %txt  /tests/type-module-scope/expected/txt
+/*  real-prelude  %jibb  /lib/jibb/prelude/jibb
+/*  real-source  %jibb  /tests/golden/types-prelude-interface/source/jibb
+/*  real-left  %jibb  /tests/golden/types-prelude-interface/modules/ui/left/jibb
+/*  real-right  %jibb  /tests/golden/types-prelude-interface/modules/ui/right/jibb
+/*  real-expected  %txt  /tests/golden/types-prelude-interface/types/txt
 |%
 ++  test-module-scope
   ^-  tang
@@ -33,5 +38,30 @@
   =/  after-fixtures=(list [at=path source=@t])
     [[~[%ui %safe %jibb] library] duplicates]
   =/  after  (golden-types-with-prelude:jibb /ui/main/jibb after-source ~ ~ after-fixtures prelude)
-  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after])
+  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after real-parity list-guard])
+::
+++  real-parity
+  ^-  @t
+  =/  fixtures=(list [at=path source=@t])
+    ~[[~[%ui %left %jibb] real-left] [~[%ui %right %jibb] real-right]]
+  =/  prepared  (prepare-prelude:jibb real-prelude)
+  ?~  prepared  'real prelude preparation failed'
+  =/  wrapper  (golden-types-with-prelude:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures real-prelude)
+  =/  actual  (golden-types-with-prepared-prelude:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures prepared)
+  ?.  =(wrapper actual)  'real prelude prepared/wrapper mismatch'
+  ?.  =((to-wain:format (cat 3 actual '\0a')) real-expected)  'real prelude output differs from golden'
+  'real prelude prepared/wrapper and golden match'
+::
+++  list-guard
+  ^-  @t
+  =/  source=@t  (crip "/- fixture\0a++ imported |= x=texts.fixture x\0a++ imported-literal ^- texts.fixture ~[\"hi\"]\0a++ literal ^- (list @t) ~[\"hi\"]\0a++ bridge |= x=texts.fixture ^- (list @t) x\0a")
+  =/  ext=(list [module=term name=term result=*])
+    ~[[%fixture %texts [%& [%apply %list ~[[%atom %t ~]]]]]]
+  =/  omitted=@t  (crip "++ same |=(x x)\0a")
+  =/  changed=@t  (crip "+$ list |$ [A] [A A]\0a")
+  =/  malformed=@t  (crip "+$ list |$ [A]\0a")
+  =/  a  (golden-types-with-prelude:jibb /ui/main/jibb source ext ~ ~ omitted)
+  =/  b  (golden-types-with-prelude:jibb /ui/main/jibb source ext ~ ~ changed)
+  =/  c  (golden-types-with-prelude:jibb /ui/main/jibb source ext ~ ~ malformed)
+  (of-wain:format ~[a b c])
 --

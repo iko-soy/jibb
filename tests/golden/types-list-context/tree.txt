@@ -1,0 +1,59 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (value 4:1 empty
+    (cast 4:10
+      (apply 4:13 list (aura 4:19 @t))
+      (list 4:23)))
+  (value 5:1 texts
+    (cast 5:10
+      (apply 5:13 list (aura 5:19 @t))
+      (list 5:23 (str 5:25 "a") (str 5:29 "b"))))
+  (value 6:1 tags
+    (cast 6:9
+      (apply 6:12 list (ref 6:18 msg))
+      (list 6:23 (lit 6:25 %add) (lit 6:30 %remove))))
+  (value 7:1 bad
+    (cast 7:8
+      (apply 7:11 list (aura 7:17 @t))
+      (list 7:21 (str 7:23 "hi") (lit 7:28 ~zod))))
+  (value 8:1 nested
+    (cast 8:11
+      (apply 8:14 list
+        (apply 8:20 list (aura 8:26 @t)))
+      (list 8:31
+        (list 8:33 (str 8:35 "hi"))
+        (list 8:41))))
+  (value 9:1 consume
+    (gate 9:12
+      (face 9:15 xs
+        (apply 9:18 list (aura 9:24 @t)))
+      (wing 9:28 xs)))
+  (value 10:1 call
+    (group 10:9
+      (call 10:10
+        (wing 10:10 consume)
+        (list 10:18 (str 10:20 "hi")))))
+  (value 11:1 pending
+    (body 12:3
+      (trace 12:3
+        (lit 12:6 %unresolved)
+        (body 13:5
+          (cast 13:5
+            (apply 13:8 list (aura 13:14 @t))
+            (list 13:18 (str 13:20 "hi")))))))
+  (value 14:1 pending-null
+    (body 15:3
+      (trace 15:3
+        (lit 15:6 ~)
+        (body 16:5
+          (cast 16:5
+            (apply 16:8 list (aura 16:14 @t))
+            (list 16:18))))))
+  (value 17:1 forced
+    (gate 17:11
+      (face 17:14 xs
+        (apply 17:17 list (tvar 17:23 A)))
+      (cast 17:26
+        (apply 17:29 list (tvar 17:35 A))
+        (list 17:38 (str 17:40 "hi"))))))

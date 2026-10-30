@@ -1,0 +1,28 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 take
+    (gate 2:9
+      (face 2:12 xs (ref 2:15 texts.fixture))
+      (wing 2:29 xs)))
+  (value 3:1 as-written
+    (gate 3:15
+      (face 3:18 xs (ref 3:21 texts.fixture))
+      (cast 3:35
+        (apply 3:38 list (aura 3:44 @t))
+        (wing 3:48 xs))))
+  (value 4:1 to-imported
+    (gate 4:16
+      (face 4:19 xs
+        (apply 4:22 list (aura 4:28 @t)))
+      (group 4:32
+        (call 4:33 (wing 4:33 take) (wing 4:38 xs)))))
+  (value 5:1 literal
+    (group 5:12
+      (call 5:13
+        (wing 5:13 take)
+        (list 5:18 (str 5:20 "hi")))))
+  (value 6:1 bad
+    (gate 6:8
+      (face 6:11 xs (ref 6:14 ships.fixture))
+      (group 6:28
+        (call 6:29 (wing 6:29 take) (wing 6:34 xs))))))

@@ -12,12 +12,20 @@ fixture = root / 'tests/type-module-scope/expected.txt'
 tests = (root / 'tests/lib/jibb-module-scope.hoon').read_text()
 tests = tests[tests.index('\n|%\n') + 1:]
 expression = ('=/  jibb  .\n=/  expected=wain  (to-wain:format expected-text)\n'
+              '=/  real-prelude=@t  prelude-text\n=/  real-source=@t  source-text\n'
+              '=/  real-left=@t  left-text\n=/  real-right=@t  right-text\n'
+              '=/  real-expected=wain  (to-wain:format types-text)\n'
               '=/  suite\n' + tests + '\nscope-output:suite\n')
 with tempfile.TemporaryDirectory(prefix='jibb-module-scope-') as tmp:
     program = Path(tmp) / 'scope.hoon'
     program.write_text(expression)
     result = subprocess.run([str(root / 'tools/hoon'), '--raw', '-f', str(program),
-                             '--cord', 'expected-text=' + str(fixture)],
+                             '--cord', 'expected-text=' + str(fixture),
+                             '--cord', 'prelude-text=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+                             '--cord', 'source-text=' + str(root / 'tests/golden/types-prelude-interface/source.jibb'),
+                             '--cord', 'left-text=' + str(root / 'tests/golden/types-prelude-interface/modules/ui/left.jibb'),
+                             '--cord', 'right-text=' + str(root / 'tests/golden/types-prelude-interface/modules/ui/right.jibb'),
+                             '--cord', 'types-text=' + str(root / 'tests/golden/types-prelude-interface/types.txt')],
                             stdout=subprocess.PIPE)
 if result.returncode:
     sys.exit(result.returncode)

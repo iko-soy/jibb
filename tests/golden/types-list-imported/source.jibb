@@ -1,0 +1,6 @@
+/-  fixture
+++ take |= xs=texts.fixture xs
+++ as-written |= xs=texts.fixture ^- (list @t) xs
+++ to-imported |= xs=(list @t) (take xs)
+++ literal (take ~["hi"])
+++ bad |= xs=ships.fixture (take xs)

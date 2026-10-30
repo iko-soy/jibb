@@ -6150,6 +6150,60 @@
     [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
+::  A list literal needs a known list target and the validated prelude list.
+::  Its items receive that target one by one; pending constraints elsewhere
+::  stay in the threaded state. Other list syntax remains unsupported.
+::
+++  context-list-literal
+  |=  e=expr
+  ^-  ?
+  ?-  -.e
+    %list   &
+    %group  $(e inner.e)
+    %body   ?~(defs.e $(e final.e) |)
+    *       |
+  ==
+::
+++  infer-list-context
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?>  ?=(%list -.e)
+  ?~  prelude.state  [%| ["list literal needs the standard prelude in partial inference" ~]]
+  ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
+    [%| ["list literal needs the standard prelude in partial inference" ~]]
+  =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
+  ?~  standard  [%| ["list literal needs the standard prelude in partial inference" ~]]
+  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])
+    [%| ["list literal needs the standard prelude in partial inference" ~]]
+  =/  target=itype  (itype-walk expected sub.state)
+  ?.  ?=(%collection -.target)  [%| ["list context is not supported by partial inference" ~]]
+  ?.  =(%list name.target)  [%| ["list context is not supported by partial inference" ~]]
+  ?~  args.target  [%| ["list context is not supported by partial inference" ~]]
+  ?^  t.args.target  [%| ["list context is not supported by partial inference" ~]]
+  =/  result=iresult  (infer-list-items items.e i.args.target env state context)
+  ?:  ?=(%| -.result)  result
+  [%& target state.p.result]
+::
+++  infer-list-items
+  |=  [items=(list expr) expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?~  items  [%& expected state]
+  =/  target=itype  (itype-walk expected sub.state)
+  =/  value=iresult
+    ?:  &(?=(%union -.target) (context-union-branch i.items))
+      (infer-union-context i.items target env state context)
+    ?:  &(?=(%collection -.target) =(%list name.target) (context-list-literal i.items))
+      (infer-list-context i.items target env state context)
+    (infer-fragment i.items env state)
+  ?:  ?=(%| -.value)  value
+  =/  fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
+  ?:  ?=(%unknown -.fit)  [%| ["list item constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    [%| ["list item does not fit its expected type" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
+  $(items t.items, state state.p.value(sub sub.fit, next next.fit))
+::
 ::  The supported unit pattern covers exactly an atom zero and a cell
 ::  headed by zero, with a single binder for its payload. Unresolved
 ::  subjects and all other pattern matrices stay outside this fragment.
@@ -6346,6 +6400,8 @@
       =/  value=iresult
         ?:  &(?=(%union -.typ.u.target) (context-union-branch val.e))
           (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
+        ?:  &(?=(%collection -.typ.u.target) =(%list name.typ.u.target) (context-list-literal val.e))
+          (infer-list-context val.e typ.u.target env state.u.target at.shape.e)
         $(e val.e, state state.u.target)
       ?:  ?=(%| -.value)  value
       =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
@@ -6376,6 +6432,8 @@
       =/  arg=iresult
         ?:  &(?=(%fn -.head-type) ?=(%union -.sample.head-type) (context-union-branch i.args.e))
           (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
+        ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-list-literal i.args.e))
+          (infer-list-context i.args.e sample.head-type env state.p.head (span-of head.e))
         $(e i.args.e, state state.p.head)
       ?:  ?=(%| -.arg)  arg
       =/  st=istate  state.p.arg
@@ -6926,11 +6984,52 @@
 ::  and imports into the prelude are not supported yet. The fixed origin
 ::  gives its named unions the same identity in every importing module.
 ::
+::  Recognize only the complete standard prelude list shape. Its recursive
+::  tail uses the same parameter and the unqualified list name. The reader
+::  verifies Hoon's list provenance before producing the same collection type.
+::  The prelude source and reader output are trusted caller inputs.
+::
+++  standard-prelude-list
+  |=  sh=shape
+  ^-  ?
+  ?.  ?=(%generic -.sh)  |
+  ?~  vars.sh  |
+  ?^  t.vars.sh  |
+  =/  var=@t  i.vars.sh
+  ?.  ?=(%union -.body.sh)  |
+  =/  cs=(list shape)  cases.body.sh
+  ?~  cs  |
+  ?~  t.cs  |
+  ?^  t.t.cs  |
+  ?.  ?=(%const -.i.cs)  |
+  ?.  =(%null form.lit.i.cs)  |
+  ?.  ?=(%cell -.i.t.cs)  |
+  =/  fs=(list field)  fields.i.t.cs
+  ?~  fs  |
+  ?~  t.fs  |
+  ?^  t.t.fs  |
+  ?.  ?=(%face -.i.fs)  |
+  ?.  =(%i name.i.fs)  |
+  ?.  ?=(%tvar -.shape.i.fs)  |
+  ?.  =(var name.shape.i.fs)  |
+  ?.  ?=(%face -.i.t.fs)  |
+  ?.  =(%t name.i.t.fs)  |
+  =/  tail=shape  shape.i.t.fs
+  ?.  ?=(%apply -.tail)  |
+  ?.  =(~[%list] ref.tail)  |
+  ?~  args.tail  |
+  ?^  t.args.tail  |
+  ?.  ?=(%tvar -.i.args.tail)  |
+  =(var name.i.args.tail)
+::
 ++  partial-prelude-molds
   |=  [molds=imolds state=istate]
   ^-  imold-types
   ?~  molds  ~
   =/  m=[name=term body=shape]  i.molds
+  ?:  &(=(at.state /lib/jibb/prelude/jibb) =(%list name.m))
+    ?.  (standard-prelude-list body.m)  $(molds t.molds)
+    [[%list [[%collection %list ~[[%var 0]]] ~[0]]] $(molds t.molds)]
   =/  out=(unit [template=ischeme state=istate])
     (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  out  $(molds t.molds)

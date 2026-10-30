@@ -1,0 +1,143 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %add
+3:3 NEWLINE
+3:3 lit %remove
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name empty
+4:10 glyph ^-
+4:13 glyph (
+4:14 tight name list
+4:19 aura @t
+4:21 tight glyph )
+4:23 glyph ~[
+4:25 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name texts
+5:10 glyph ^-
+5:13 glyph (
+5:14 tight name list
+5:19 aura @t
+5:21 tight glyph )
+5:23 glyph ~[
+5:25 tight str "a"
+5:29 str "b"
+5:32 tight glyph ]
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name tags
+6:9 glyph ^-
+6:12 glyph (
+6:13 tight name list
+6:18 name msg
+6:21 tight glyph )
+6:23 glyph ~[
+6:25 tight lit %add
+6:30 lit %remove
+6:37 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name bad
+7:8 glyph ^-
+7:11 glyph (
+7:12 tight name list
+7:17 aura @t
+7:19 tight glyph )
+7:21 glyph ~[
+7:23 tight str "hi"
+7:28 lit ~zod
+7:32 tight glyph ]
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name nested
+8:11 glyph ^-
+8:14 glyph (
+8:15 tight name list
+8:20 glyph (
+8:21 tight name list
+8:26 aura @t
+8:28 tight glyph )
+8:29 tight glyph )
+8:31 glyph ~[
+8:33 tight glyph ~[
+8:35 tight str "hi"
+8:39 tight glyph ]
+8:41 glyph ~[
+8:43 tight glyph ]
+8:44 tight glyph ]
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name consume
+9:12 glyph |=
+9:15 name xs
+9:17 tight glyph =
+9:18 tight glyph (
+9:19 tight name list
+9:24 aura @t
+9:26 tight glyph )
+9:28 name xs
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name call
+10:9 glyph (
+10:10 tight name consume
+10:18 glyph ~[
+10:20 tight str "hi"
+10:24 tight glyph ]
+10:25 tight glyph )
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name pending
+12:3 INDENT
+12:3 glyph ~&
+12:6 lit %unresolved
+13:5 INDENT
+13:5 glyph ^-
+13:8 glyph (
+13:9 tight name list
+13:14 aura @t
+13:16 tight glyph )
+13:18 glyph ~[
+13:20 tight str "hi"
+13:24 tight glyph ]
+14:1 DEDENT
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name pending-null
+15:3 INDENT
+15:3 glyph ~&
+15:6 lit ~
+16:5 INDENT
+16:5 glyph ^-
+16:8 glyph (
+16:9 tight name list
+16:14 aura @t
+16:16 tight glyph )
+16:18 glyph ~[
+16:20 tight glyph ]
+17:1 DEDENT
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name forced
+17:11 glyph |=
+17:14 name xs
+17:16 tight glyph =
+17:17 tight glyph (
+17:18 tight name list
+17:23 tvar A
+17:24 tight glyph )
+17:26 glyph ^-
+17:29 glyph (
+17:30 tight name list
+17:35 tvar A
+17:36 tight glyph )
+17:38 glyph ~[
+17:40 tight str "hi"
+17:44 tight glyph ]
+17:45 NEWLINE

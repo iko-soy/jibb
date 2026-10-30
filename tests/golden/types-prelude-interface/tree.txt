@@ -25,9 +25,9 @@
           (gate-wide 7:25 (bind 7:28 x) (wing 7:30 x))))))
   (value 8:1 shadow
     (gate 8:11 (bind 8:14 turn) (wing 8:19 turn)))
-  (value 9:1 unsupported
-    (gate 9:16
-      (face 9:19 x
-        (apply 9:21 list (aura 9:27 @t)))
-      (wing 9:31 x)))
+  (value 9:1 list-id
+    (gate 9:12
+      (face 9:15 x
+        (apply 9:17 list (aura 9:23 @t)))
+      (wing 9:27 x)))
   (value 10:1 get-gate (wing 10:13 identity.right)))

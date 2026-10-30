@@ -5,5 +5,5 @@ partial inference; module not checked
 ++ fallback: @t
 ++ unavailable: name is not available to partial inference
 ++ shadow: sample shadows a name
-++ unsupported: sample mold is not supported by partial inference
+++ list-id: $-((list @t) (list @t))
 ++ get-gate: $-((unit A) (unit A))

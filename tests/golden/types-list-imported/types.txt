@@ -1,0 +1,12 @@
+partial inference; module not checked
+++ take: $-((list @t) (list @t))
+++ as-written: $-((list @t) (list @t))
+++ to-imported: $-((list @t) (list @t))
+++ literal: (list @t)
+++ bad: call's sample and argument types do not unify
+/tests/golden/types-list-imported/source.jibb:6:29: called gate has type $-((list @t) (list @t))
+++ bad |= xs=ships.fixture (take xs)
+                            ^
+/tests/golden/types-list-imported/source.jibb:6:34: argument has type (list @p)
+++ bad |= xs=ships.fixture (take xs)
+                                 ^
