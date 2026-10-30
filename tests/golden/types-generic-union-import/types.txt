@@ -1,0 +1,7 @@
+partial inference; module not checked
+++ from-left: (choice.left @t @p)
+++ consume: $-((choice.right @t @p) (choice.right @t @p))
+++ same-origin: (choice.right @t @p)
+++ different: $-((choice.twin @t @p) (choice.twin @t @p))
+++ cross-origin: call constraint is not supported by partial inference
+++ polymorphic: (choice.right @t @p)

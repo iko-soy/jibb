@@ -1,0 +1,9 @@
+/=  left /ui/shared
+/=  right /ui/shared
+/=  twin /ui/twin
+++ from-left ^- (choice.left @t @p) [%ok "hi"]
+++ consume |= x=(choice.right @t @p) x
+++ same-origin (consume from-left)
+++ different |= x=(choice.twin @t @p) x
+++ cross-origin (different from-left)
+++ polymorphic (identity.right from-left)

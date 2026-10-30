@@ -1,0 +1,11 @@
++$ choice |$ [V E]
+  [%ok value=V]
+  [%err error=E]
++$ overlap |$ [A]
+  A
+  @t
+++ few |= x=(choice @t) x
+++ many |= x=(choice @t @p @ud) x
+++ bad-tag ^- (choice @t @p) %missing
+++ bad-payload ^- (choice @t @p) [%ok ~zod]
+++ overlap-use |= x=(overlap @t) x

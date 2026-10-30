@@ -1,0 +1,10 @@
+partial inference; module not checked
++$ choice: cases proven disjoint; mold not checked
++$ phantom: cases proven disjoint; mold not checked
+++ repeated: $-((choice A A) (choice A A))
+++ independent: $-((choice A B) (choice A B))
+++ already-same: $-((choice A A) (choice A A))
+++ merge-call: explicit capital constraints are not supported by partial inference
+++ phantom-cast: explicit capital constraints are not supported by partial inference
+++ local-merge: explicit capital constraints are not supported by partial inference
+++ captured-merge: explicit capital constraints are not supported by partial inference

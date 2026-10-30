@@ -1,0 +1,162 @@
+1:1 glyph +$
+1:4 name choice
+1:11 glyph |$
+1:14 glyph [
+1:15 tight tvar A
+1:17 tvar B
+1:18 tight glyph ]
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %one
+2:9 name value
+2:14 tight glyph =
+2:15 tight tvar A
+2:16 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %two
+3:9 name value
+3:14 tight glyph =
+3:15 tight tvar B
+3:16 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name phantom
+4:12 glyph |$
+4:15 glyph [
+4:16 tight tvar A
+4:17 tight glyph ]
+5:3 INDENT
+5:3 lit %yes
+6:3 NEWLINE
+6:3 lit %no
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name repeated
+7:13 glyph |=
+7:16 name x
+7:17 tight glyph =
+7:18 tight glyph (
+7:19 tight name choice
+7:26 tvar A
+7:28 tvar A
+7:29 tight glyph )
+7:31 name x
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name independent
+8:16 glyph |=
+8:19 name x
+8:20 tight glyph =
+8:21 tight glyph (
+8:22 tight name choice
+8:29 tvar A
+8:31 tvar B
+8:32 tight glyph )
+8:34 name x
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name already-same
+9:17 glyph |=
+9:20 name x
+9:21 tight glyph =
+9:22 tight glyph (
+9:23 tight name choice
+9:30 tvar A
+9:32 tvar A
+9:33 tight glyph )
+9:35 glyph (
+9:36 tight name repeated
+9:45 name x
+9:46 tight glyph )
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name merge-call
+10:15 glyph |=
+10:18 name x
+10:19 tight glyph =
+10:20 tight glyph (
+10:21 tight name choice
+10:28 tvar A
+10:30 tvar B
+10:31 tight glyph )
+10:33 glyph (
+10:34 tight name repeated
+10:43 name x
+10:44 tight glyph )
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name phantom-cast
+11:17 glyph |=
+11:20 name x
+11:21 tight glyph =
+11:22 tight glyph (
+11:23 tight name phantom
+11:31 tvar A
+11:32 tight glyph )
+11:34 glyph ^-
+11:37 glyph (
+11:38 tight name phantom
+11:46 tvar B
+11:47 tight glyph )
+11:49 name x
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name local-merge
+12:16 glyph |=
+12:19 name x
+12:20 tight glyph =
+12:21 tight glyph (
+12:22 tight name choice
+12:29 tvar A
+12:31 tvar B
+12:32 tight glyph )
+13:3 INDENT
+13:3 glyph ++
+13:6 name local
+13:12 glyph |=
+13:15 name y
+13:16 tight glyph =
+13:17 tight glyph (
+13:18 tight name choice
+13:25 tvar A
+13:27 tvar A
+13:28 tight glyph )
+13:30 name y
+14:3 NEWLINE
+14:3 glyph (
+14:4 tight name local
+14:10 name x
+14:11 tight glyph )
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name captured-merge
+15:19 glyph |=
+15:22 name x
+15:23 tight glyph =
+15:24 tight glyph (
+15:25 tight name choice
+15:32 tvar A
+15:34 tvar B
+15:35 tight glyph )
+16:3 INDENT
+16:3 glyph ++
+16:6 name captured
+16:15 glyph |=
+16:18 name flag
+16:22 tight glyph =
+16:23 tight glyph ?
+16:25 name x
+17:3 NEWLINE
+17:3 glyph (
+17:4 tight name repeated
+17:13 glyph (
+17:14 tight name captured
+17:23 lit %.y
+17:26 tight glyph )
+17:27 tight glyph )
+17:28 DEDENT
+17:28 NEWLINE

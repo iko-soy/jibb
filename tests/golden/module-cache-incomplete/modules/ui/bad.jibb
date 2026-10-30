@@ -1,4 +1,5 @@
-+$ choice |$ [A]
++$ original |$ [A]
   [%some value=A]
   %none
++$ choice |$ [A] (original A)
 ++ id |=(x x)

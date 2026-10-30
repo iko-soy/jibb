@@ -1,0 +1,68 @@
+(module
+  (mold 1:1 choice
+    (generic 1:11 A B
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %one)
+          (face 2:9 value (tvar 2:15 A)))
+        (cell 3:3
+          (const 3:4 %two)
+          (face 3:9 value (tvar 3:15 B))))))
+  (mold 4:1 phantom
+    (generic 4:12 A
+      (union 5:3 (const 5:3 %yes) (const 6:3 %no))))
+  (value 7:1 repeated
+    (gate 7:13
+      (face 7:16 x
+        (apply 7:18 choice (tvar 7:26 A) (tvar 7:28 A)))
+      (wing 7:31 x)))
+  (value 8:1 independent
+    (gate 8:16
+      (face 8:19 x
+        (apply 8:21 choice (tvar 8:29 A) (tvar 8:31 B)))
+      (wing 8:34 x)))
+  (value 9:1 already-same
+    (gate 9:17
+      (face 9:20 x
+        (apply 9:22 choice (tvar 9:30 A) (tvar 9:32 A)))
+      (group 9:35
+        (call 9:36 (wing 9:36 repeated) (wing 9:45 x)))))
+  (value 10:1 merge-call
+    (gate 10:15
+      (face 10:18 x
+        (apply 10:20 choice (tvar 10:28 A) (tvar 10:30 B)))
+      (group 10:33
+        (call 10:34 (wing 10:34 repeated) (wing 10:43 x)))))
+  (value 11:1 phantom-cast
+    (gate 11:17
+      (face 11:20 x
+        (apply 11:22 phantom (tvar 11:31 A)))
+      (cast 11:34
+        (apply 11:37 phantom (tvar 11:46 B))
+        (wing 11:49 x))))
+  (value 12:1 local-merge
+    (gate 12:16
+      (face 12:19 x
+        (apply 12:21 choice (tvar 12:29 A) (tvar 12:31 B)))
+      (body 13:3
+        (value 13:3 local
+          (gate 13:12
+            (face 13:15 y
+              (apply 13:17 choice (tvar 13:25 A) (tvar 13:27 A)))
+            (wing 13:30 y)))
+        (group 14:3
+          (call 14:4 (wing 14:4 local) (wing 14:10 x))))))
+  (value 15:1 captured-merge
+    (gate 15:19
+      (face 15:22 x
+        (apply 15:24 choice (tvar 15:32 A) (tvar 15:34 B)))
+      (body 16:3
+        (value 16:3 captured
+          (gate 16:15
+            (face 16:18 flag (flag 16:23))
+            (wing 16:25 x)))
+        (group 17:3
+          (call 17:4
+            (wing 17:4 repeated)
+            (group 17:13
+              (call 17:14 (wing 17:14 captured) (lit 17:23 %.y)))))))))

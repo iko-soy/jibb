@@ -1,0 +1,34 @@
++$ choice |$ [V E]
+  [%ok value=V]
+  [%err error=E]
++$ phantom |$ [A]
+  %yes
+  %no
++$ swapped |$ [A B] (choice B A)
+++ text-choice ^- (choice @t @p) [%ok "hi"]
+++ ship-choice ^- (choice @t @p) [%err ~zod]
+++ text-constructor ^- $-(@t (choice @t @p)) |=%ok
+++ ship-constructor ^- $-(@p (choice @t @p)) |=%err
+++ inverse-choice ^- (choice @p @t) [%ok ~zod]
+++ test-phantom ^- (phantom @t) %yes
+++ phantom-gate ^- (phantom $-(@t @p)) %yes
+++ identity |= x=(choice A B) x
+++ repeated |= x=(choice A A) x
+++ reverse |= x=(swapped A B) x
+++ first (identity text-choice)
+++ second (identity ship-choice)
+++ third (identity inverse-choice)
+++ repeated-call (repeated text-choice)
+++ swap-concrete ^- (swapped @t @p) [%ok ~zod]
+++ wrong-phantom |= x=(phantom @t) ^- (phantom @p) x
+++ forced |= flag=?
+  ^- (choice A @p)
+    ?- flag
+      %.y [%ok "hi"]
+      %.n [%err ~zod]
+++ pending |= flag=?
+  ~& %orphan
+    ^- (choice @t @p)
+      ?- flag
+        %.y [%ok "hi"]
+        %.n [%err ~zod]

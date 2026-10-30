@@ -1,0 +1,4 @@
+(module
+  (jibb 1:1 mid /ui/mid)
+  (value 2:1 text-value (wing 2:15 text.mid))
+  (value 3:1 ship-value (wing 3:15 ship.mid)))

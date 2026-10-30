@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; Molds: recursive molds go by name and module.
+tests: A generic union shared through two faces retains one origin and instantiated arguments, while an identically shaped mold from another module has a different origin.
+expect: parses
+expect-types: a partial inference report

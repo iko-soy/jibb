@@ -1,0 +1,27 @@
+(module
+  (jibb 1:1 left /ui/shared)
+  (jibb 2:1 right /ui/shared)
+  (jibb 3:1 twin /ui/twin)
+  (value 4:1 from-left
+    (cast 4:14
+      (apply 4:17 choice.left (aura 4:30 @t) (aura 4:33 @p))
+      (tuple 4:37 (lit 4:38 %ok) (str 4:42 "hi"))))
+  (value 5:1 consume
+    (gate 5:12
+      (face 5:15 x
+        (apply 5:17 choice.right (aura 5:31 @t) (aura 5:34 @p)))
+      (wing 5:38 x)))
+  (value 6:1 same-origin
+    (group 6:16
+      (call 6:17 (wing 6:17 consume) (wing 6:25 from-left))))
+  (value 7:1 different
+    (gate 7:14
+      (face 7:17 x
+        (apply 7:19 choice.twin (aura 7:32 @t) (aura 7:35 @p)))
+      (wing 7:39 x)))
+  (value 8:1 cross-origin
+    (group 8:17
+      (call 8:18 (wing 8:18 different) (wing 8:28 from-left))))
+  (value 9:1 polymorphic
+    (group 9:16
+      (call 9:17 (wing 9:17 identity.right) (wing 9:32 from-left)))))

@@ -1,0 +1,16 @@
+/ui/base.jibb
+(module
+  (mold 1:1 phantom
+    (generic 1:12 A
+      (union 2:3 (const 2:3 %yes) (const 3:3 %no)))))
+/ui/mid.jibb
+(module
+  (jibb 1:1 base /ui/base)
+  (value 2:1 text
+    (cast 2:9
+      (apply 2:12 phantom.base (aura 2:26 @t))
+      (lit 2:30 %yes)))
+  (value 3:1 ship
+    (cast 3:9
+      (apply 3:12 phantom.base (aura 3:26 @p))
+      (lit 3:30 %yes))))

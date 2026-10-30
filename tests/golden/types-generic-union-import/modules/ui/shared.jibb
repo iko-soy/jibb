@@ -1,0 +1,4 @@
++$ choice |$ [V E]
+  [%ok value=V]
+  [%err error=E]
+++ identity |= x=(choice A B) x

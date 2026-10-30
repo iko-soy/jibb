@@ -1,0 +1,23 @@
+/ui/base.jibb
+(module
+  (mold 1:1 choice
+    (generic 1:11 V E
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %ok)
+          (face 2:8 value (tvar 2:14 V)))
+        (cell 3:3
+          (const 3:4 %err)
+          (face 3:9 error (tvar 3:15 E)))))))
+/ui/mid.jibb
+(module
+  (jibb 1:1 base /ui/base)
+  (mold 2:1 relay
+    (generic 2:10 A B
+      (apply 2:19 choice.base (tvar 2:32 B) (tvar 2:34 A))))
+  (value 3:1 make
+    (gate 3:9
+      (face 3:12 x (tvar 3:14 A))
+      (cast 3:16
+        (apply 3:19 relay (tvar 3:26 A) (tvar 3:28 B))
+        (tuple 3:31 (lit 3:32 %err) (wing 3:37 x))))))

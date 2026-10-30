@@ -235,3 +235,39 @@
     ?- (predicate value)
       %.y `value
       %.n ~
+
+++ murn |= args=[(list A) $-(A (unit B))]
+  ?- args
+    [xs f]
+      ?- xs
+        ~ ~
+        [item rest]
+          ?- (f item)
+            ~ (murn rest f)
+            [~ value] [value (murn rest f)]
+
+++ join |= args=[A (list A)]
+  ?- args
+    [separator xs]
+      ?- xs
+        ~ ~
+        [item rest]
+          ?- rest
+            ~ [item ~]
+            [next more] [item [separator (join separator rest)]]
+
+++ snip |= xs=(list A)
+  ?- xs
+    ~ ~
+    [item rest]
+      ?- rest
+        ~ ~
+        [next more] [item (snip rest)]
+
+++ rear |= xs=(list A)
+  ?- xs
+    ~ !!
+    [item rest]
+      ?- rest
+        ~ item
+        [next more] (rear rest)

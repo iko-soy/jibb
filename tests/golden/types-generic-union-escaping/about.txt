@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; Molds: a generic mold declares its parameters after `|$`.
+tests: A transitive value carries a generic union whose defining module is not directly visible. Its phantom arguments must not be lost to an unnamed printout; the partial printer declines this case.
+expect: parses
+expect-types: a partial inference report

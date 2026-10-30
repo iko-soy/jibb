@@ -1,0 +1,4 @@
+source: Decisions, Type variables: "Capitals, generalized per `++`; a capital in a local `++` shares the enclosing `++`'s variable of that name, and a different type takes a different capital".
+tests: Distinct explicit capitals, repeated capitals, and local captures in generic-union molds. The partial checker must not silently merge distinct explicit capitals pending the doc question; the same repeated capital remains usable.
+expect: parses
+expect-types: a partial inference report

@@ -51,3 +51,7 @@ partial inference; module not checked
 ++ roll: sample mold is not supported by partial inference
 ++ reel: sample mold is not supported by partial inference
 ++ flit: expression is not supported by partial inference
+++ murn: sample mold is not supported by partial inference
+++ join: sample mold is not supported by partial inference
+++ snip: sample mold is not supported by partial inference
+++ rear: sample mold is not supported by partial inference

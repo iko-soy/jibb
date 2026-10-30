@@ -1,0 +1,4 @@
+source: Grammar, Molds: union cases "must differ as nouns"; Tag resolution: "Tags take their union from context".
+tests: Generic union arity, an unknown tag, mismatched payload and an overlapping instantiation do not silently succeed.
+expect: parses
+expect-types: a partial inference report

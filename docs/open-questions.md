@@ -18,7 +18,7 @@ On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treat
 
 ## Questions milestone 2 raises
 
-Found while writing [prompts/milestone-2.md](prompts/milestone-2.md) and checking it against the doc's examples. The numbering is retained so existing references stay valid. Questions 3, 18, 20, 21 and 22 remain open; the other questions are settled.
+Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. The numbering is retained so existing references stay valid. Questions 3, 18, 20, 21, 22 and 23 remain open; the other questions are settled.
 
 1. **Settled: how the prelude identifies jetted functions.** On 2026-10-30, @iko said the prelude functions have working Jibb implementations, and the compiler recognizes their shapes and uses the Hoon versions so jets can fire.
 2. **Settled: how the prelude keeps helpers private.** On 2026-10-30, @iko chose a separate internal prelude module imported by the prelude, without exposing the imported helpers.
@@ -42,6 +42,7 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md) and checkin
 20. **The type of Hoon `clap`.** Hoon allows its two input units and combining gate's result to have different types. If only one unit is present it returns that unit; when both are present it returns the combining gate's result. Jibb branches normally need a common type, while every union written in Jibb has a name. Should the Jibb gate require a shared type, infer an unnamed union of the possible values, or wait for a different typing design? Asked @iko on 2026-10-30. `clap` is not implemented while this is open.
 21. **Duplicate faces in imported Hoon records.** Hoon permits `[a=@ud a=@t]`, and its lookup picks the first `a`. Should Jibb reject the imported type where it is used, use the first field, or permit the type but reject access to the ambiguous field? Asked @iko on 2026-10-30. The inference fragment currently permits the type but declines ambiguous field access (doc question).
 22. **Overlapping imported `$%` and `$?` cases.** The Grammar says a union whose cases don't all differ as nouns is rejected, while the import table explicitly mentions that condition only for `$^`; its `$%` and `$?` row says they become a union. Does the general disjointness rule reject imported `$%` and `$?` cases such as `[%x @ud]` and `[%x @t]` where the type is used? Asked @iko on 2026-10-30. The general rule is the provisional reading (doc question); the importer rejects recognizable overlaps and fails closed when it cannot verify them.
+23. **Converging explicit capitals.** May a body constrain two separately written capitals to the same type? For `++ repeated |= x=(choice A A) x`, should `++ f |= x=(choice A B) (repeated x)` infer `$-((choice A A) (choice A A))`, or reject it because `A` and `B` are distinct? The same issue arises when casting `(phantom A)` to `(phantom B)` and across local captures. Asked @iko on 2026-10-30. Pending an answer, partial inference declines to merge distinct explicitly written capitals (doc question).
 
 ## Grammar questions never put to the doc's author
 

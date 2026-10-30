@@ -1,0 +1,26 @@
+partial inference; module not checked
++$ choice: cases proven disjoint; mold not checked
++$ overlap: overlapping cases; mold not checked
+/tests/golden/types-generic-union-errors/source.jibb:5:3: first union case
+  A
+  ^
+/tests/golden/types-generic-union-errors/source.jibb:6:3: overlapping case
+  @t
+  ^
+++ few: sample mold is not supported by partial inference
+++ many: sample mold is not supported by partial inference
+++ bad-tag: cast mold and expression type do not unify
+/tests/golden/types-generic-union-errors/source.jibb:9:15: cast mold
+++ bad-tag ^- (choice @t @p) %missing
+              ^
+/tests/golden/types-generic-union-errors/source.jibb:9:30: expression
+++ bad-tag ^- (choice @t @p) %missing
+                             ^
+++ bad-payload: cast mold and expression type do not unify
+/tests/golden/types-generic-union-errors/source.jibb:10:19: cast mold
+++ bad-payload ^- (choice @t @p) [%ok ~zod]
+                  ^
+/tests/golden/types-generic-union-errors/source.jibb:10:34: expression
+++ bad-payload ^- (choice @t @p) [%ok ~zod]
+                                 ^
+++ overlap-use: sample mold is not supported by partial inference

@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Every union written in Jibb has a name"; Tag resolution: tags take their union from context. Generic molds are applied with their arguments.
+tests: A two-parameter generic union resolves tagged values and constructors, exercises independent and repeated arguments across identity gates, swapped aliases, fail-closed comparison of different phantom arguments, and a phantom gate argument; an unrelated tag remains unresolved.
+expect: parses
+expect-types: a partial inference report

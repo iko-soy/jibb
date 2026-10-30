@@ -1,4 +1,4 @@
 source: Grammar, Modules: "Everything is exported and read through the import's face"; Imports: "Import cycles are errors".
-tests: A shared library with a generic union mold, which partial inference does not yet support, yields no interface even though one value could be inferred.
+tests: A shared library with a generic alias of a generic union, which partial inference does not yet support, yields no interface even though one value could be inferred.
 expect: parses
 expect-types: a partial inference report

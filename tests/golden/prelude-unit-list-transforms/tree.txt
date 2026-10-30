@@ -624,4 +624,106 @@
               (arm 236:7
                 (lit 236:7 %.y)
                 (unit 236:11 (wing 236:12 value)))
-              (arm 237:7 (lit 237:7 %.n) (lit 237:11 ~)))))))))
+              (arm 237:7 (lit 237:7 %.n) (lit 237:11 ~))))))))
+  (value 239:1 murn
+    (gate 239:9
+      (face 239:12 args
+        (cell 239:17
+          (apply 239:18 list (tvar 239:24 A))
+          (fn 239:27
+            (tvar 239:30 A)
+            (apply 239:32 unit (tvar 239:38 B)))))
+      (body 240:3
+        (branch 240:3
+          (wing 240:6 args)
+          (arm 241:5
+            (cell 241:5 (bind 241:6 xs) (bind 241:9 f))
+            (body 242:7
+              (branch 242:7
+                (wing 242:10 xs)
+                (arm 243:9 (lit 243:9 ~) (lit 243:11 ~))
+                (arm 244:9
+                  (cell 244:9 (bind 244:10 item) (bind 244:15 rest))
+                  (body 245:11
+                    (branch 245:11
+                      (group 245:14
+                        (call 245:15 (wing 245:15 f) (wing 245:17 item)))
+                      (arm 246:13
+                        (lit 246:13 ~)
+                        (group 246:15
+                          (call 246:16 (wing 246:16 murn) (wing 246:21 rest) (wing 246:26 f))))
+                      (arm 247:13
+                        (cell 247:13 (lit 247:14 ~) (bind 247:16 value))
+                        (tuple 247:23
+                          (wing 247:24 value)
+                          (group 247:30
+                            (call 247:31 (wing 247:31 murn) (wing 247:36 rest) (wing 247:41 f)))))))))))))))
+  (value 249:1 join
+    (gate 249:9
+      (face 249:12 args
+        (cell 249:17
+          (tvar 249:18 A)
+          (apply 249:20 list (tvar 249:26 A))))
+      (body 250:3
+        (branch 250:3
+          (wing 250:6 args)
+          (arm 251:5
+            (cell 251:5 (bind 251:6 separator) (bind 251:16 xs))
+            (body 252:7
+              (branch 252:7
+                (wing 252:10 xs)
+                (arm 253:9 (lit 253:9 ~) (lit 253:11 ~))
+                (arm 254:9
+                  (cell 254:9 (bind 254:10 item) (bind 254:15 rest))
+                  (body 255:11
+                    (branch 255:11
+                      (wing 255:14 rest)
+                      (arm 256:13
+                        (lit 256:13 ~)
+                        (tuple 256:15 (wing 256:16 item) (lit 256:21 ~)))
+                      (arm 257:13
+                        (cell 257:13 (bind 257:14 next) (bind 257:19 more))
+                        (tuple 257:25
+                          (wing 257:26 item)
+                          (tuple 257:31
+                            (wing 257:32 separator)
+                            (group 257:42
+                              (call 257:43 (wing 257:43 join) (wing 257:48 separator) (wing 257:58 rest))))))))))))))))
+  (value 259:1 snip
+    (gate 259:9
+      (face 259:12 xs
+        (apply 259:15 list (tvar 259:21 A)))
+      (body 260:3
+        (branch 260:3
+          (wing 260:6 xs)
+          (arm 261:5 (lit 261:5 ~) (lit 261:7 ~))
+          (arm 262:5
+            (cell 262:5 (bind 262:6 item) (bind 262:11 rest))
+            (body 263:7
+              (branch 263:7
+                (wing 263:10 rest)
+                (arm 264:9 (lit 264:9 ~) (lit 264:11 ~))
+                (arm 265:9
+                  (cell 265:9 (bind 265:10 next) (bind 265:15 more))
+                  (tuple 265:21
+                    (wing 265:22 item)
+                    (group 265:27
+                      (call 265:28 (wing 265:28 snip) (wing 265:33 rest))))))))))))
+  (value 267:1 rear
+    (gate 267:9
+      (face 267:12 xs
+        (apply 267:15 list (tvar 267:21 A)))
+      (body 268:3
+        (branch 268:3
+          (wing 268:6 xs)
+          (arm 269:5 (lit 269:5 ~) (crash 269:7))
+          (arm 270:5
+            (cell 270:5 (bind 270:6 item) (bind 270:11 rest))
+            (body 271:7
+              (branch 271:7
+                (wing 271:10 rest)
+                (arm 272:9 (lit 272:9 ~) (wing 272:11 item))
+                (arm 273:9
+                  (cell 273:9 (bind 273:10 next) (bind 273:15 more))
+                  (group 273:21
+                    (call 273:22 (wing 273:22 rear) (wing 273:27 rest))))))))))))

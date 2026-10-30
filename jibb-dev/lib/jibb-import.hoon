@@ -1227,6 +1227,19 @@
   =/  source=hoon  original(q.p (decorate-union-source q.p.original))
   (read-mold %small name typ(q source))
 ::
+::  Synthetic nodes test each part of the direct collection-call proof.
+++  collection-wrapper-fixture
+  ^-  tape
+  =/  call=hoon  [%cncl [%tsgr [%wing ~[[%.y 7]]] [%cncl [%wing ~[%list]] ~]] ~[[%$ 6]]]
+  =/  subject=hoon  [%cncl [%tsgr [%wing ~[[%.y 8]]] [%cncl [%wing ~[%list]] ~]] ~[[%$ 6]]]
+  =/  sample=hoon  [%cncl [%tsgr [%wing ~[[%.y 7]]] [%cncl [%wing ~[%list]] ~]] ~[[%$ 2]]]
+  =/  good=hoon  [%tsls [%note [%made %x ~] call] [%tsls [%dtts [%$ 14] [%$ 2]] [%$ 6]]]
+  =/  tail=hoon  [%tsls [%note [%made %x ~] call] [%$ 6]]
+  =/  args=(list [hoon hoon])  ~[[call good] [subject good] [sample good] [call tail]]
+  =/  flags=(list ?)  (turn args |=(pair=[hoon hoon] (direct-collection-source -.pair +.pair)))
+  ?:  =(flags ~[& | | |])  "valid; forged subject, sample and tail rejected"
+  "wrapper guard failed"
+::
 ++  overlap-fork-fixture
   ^-  type
   =/  nodes=(list type)  ~[[%atom %ud ~] [%atom %t ~]]
@@ -1349,6 +1362,7 @@
       (crip "explicit-three: {(show-result (sample %explicit-three))}")
       (crip "explicit-unknown: {(show-result (sample %explicit-unknown))}")
       (crip "explicit-nested: {(show-result (sample %explicit-nested))}")
+      (crip "collection-union-wrapper: {collection-wrapper-fixture}")
       (crip "collection-union-list: {(show-result (sample %collection-union-list))}")
       (crip "collection-union-set: {(show-result (sample %collection-union-set))}")
       (crip "collection-union-map-key: {(show-result (sample %collection-union-map-key))}")

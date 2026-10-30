@@ -1,0 +1,93 @@
+1:1 glyph +$
+1:4 name choice
+1:11 glyph |$
+1:14 glyph [
+1:15 tight tvar V
+1:17 tvar E
+1:18 tight glyph ]
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %ok
+2:8 name value
+2:13 tight glyph =
+2:14 tight tvar V
+2:15 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %err
+3:9 name error
+3:14 tight glyph =
+3:15 tight tvar E
+3:16 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name overlap
+4:12 glyph |$
+4:15 glyph [
+4:16 tight tvar A
+4:17 tight glyph ]
+5:3 INDENT
+5:3 tvar A
+6:3 NEWLINE
+6:3 aura @t
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name few
+7:8 glyph |=
+7:11 name x
+7:12 tight glyph =
+7:13 tight glyph (
+7:14 tight name choice
+7:21 aura @t
+7:23 tight glyph )
+7:25 name x
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name many
+8:9 glyph |=
+8:12 name x
+8:13 tight glyph =
+8:14 tight glyph (
+8:15 tight name choice
+8:22 aura @t
+8:25 aura @p
+8:28 aura @ud
+8:31 tight glyph )
+8:33 name x
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name bad-tag
+9:12 glyph ^-
+9:15 glyph (
+9:16 tight name choice
+9:23 aura @t
+9:26 aura @p
+9:28 tight glyph )
+9:30 lit %missing
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name bad-payload
+10:16 glyph ^-
+10:19 glyph (
+10:20 tight name choice
+10:27 aura @t
+10:30 aura @p
+10:32 tight glyph )
+10:34 glyph [
+10:35 tight lit %ok
+10:39 lit ~zod
+10:43 tight glyph ]
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name overlap-use
+11:16 glyph |=
+11:19 name x
+11:20 tight glyph =
+11:21 tight glyph (
+11:22 tight name overlap
+11:30 aura @t
+11:32 tight glyph )
+11:34 name x
+11:35 NEWLINE

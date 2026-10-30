@@ -1,0 +1,120 @@
+(module
+  (mold 1:1 choice
+    (generic 1:11 V E
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %ok)
+          (face 2:8 value (tvar 2:14 V)))
+        (cell 3:3
+          (const 3:4 %err)
+          (face 3:9 error (tvar 3:15 E))))))
+  (mold 4:1 phantom
+    (generic 4:12 A
+      (union 5:3 (const 5:3 %yes) (const 6:3 %no))))
+  (mold 7:1 swapped
+    (generic 7:12 A B
+      (apply 7:21 choice (tvar 7:29 B) (tvar 7:31 A))))
+  (value 8:1 text-choice
+    (cast 8:16
+      (apply 8:19 choice (aura 8:27 @t) (aura 8:30 @p))
+      (tuple 8:34 (lit 8:35 %ok) (str 8:39 "hi"))))
+  (value 9:1 ship-choice
+    (cast 9:16
+      (apply 9:19 choice (aura 9:27 @t) (aura 9:30 @p))
+      (tuple 9:34 (lit 9:35 %err) (lit 9:40 ~zod))))
+  (value 10:1 text-constructor
+    (cast 10:21
+      (fn 10:24
+        (aura 10:27 @t)
+        (apply 10:30 choice (aura 10:38 @t) (aura 10:41 @p)))
+      (ctor 10:46 %ok)))
+  (value 11:1 ship-constructor
+    (cast 11:21
+      (fn 11:24
+        (aura 11:27 @p)
+        (apply 11:30 choice (aura 11:38 @t) (aura 11:41 @p)))
+      (ctor 11:46 %err)))
+  (value 12:1 inverse-choice
+    (cast 12:19
+      (apply 12:22 choice (aura 12:30 @p) (aura 12:33 @t))
+      (tuple 12:37 (lit 12:38 %ok) (lit 12:42 ~zod))))
+  (value 13:1 test-phantom
+    (cast 13:17
+      (apply 13:20 phantom (aura 13:29 @t))
+      (lit 13:33 %yes)))
+  (value 14:1 phantom-gate
+    (cast 14:17
+      (apply 14:20 phantom
+        (fn 14:29 (aura 14:32 @t) (aura 14:35 @p)))
+      (lit 14:40 %yes)))
+  (value 15:1 identity
+    (gate 15:13
+      (face 15:16 x
+        (apply 15:18 choice (tvar 15:26 A) (tvar 15:28 B)))
+      (wing 15:31 x)))
+  (value 16:1 repeated
+    (gate 16:13
+      (face 16:16 x
+        (apply 16:18 choice (tvar 16:26 A) (tvar 16:28 A)))
+      (wing 16:31 x)))
+  (value 17:1 reverse
+    (gate 17:12
+      (face 17:15 x
+        (apply 17:17 swapped (tvar 17:26 A) (tvar 17:28 B)))
+      (wing 17:31 x)))
+  (value 18:1 first
+    (group 18:10
+      (call 18:11 (wing 18:11 identity) (wing 18:20 text-choice))))
+  (value 19:1 second
+    (group 19:11
+      (call 19:12 (wing 19:12 identity) (wing 19:21 ship-choice))))
+  (value 20:1 third
+    (group 20:10
+      (call 20:11 (wing 20:11 identity) (wing 20:20 inverse-choice))))
+  (value 21:1 repeated-call
+    (group 21:18
+      (call 21:19 (wing 21:19 repeated) (wing 21:28 text-choice))))
+  (value 22:1 swap-concrete
+    (cast 22:18
+      (apply 22:21 swapped (aura 22:30 @t) (aura 22:33 @p))
+      (tuple 22:37 (lit 22:38 %ok) (lit 22:42 ~zod))))
+  (value 23:1 wrong-phantom
+    (gate 23:18
+      (face 23:21 x
+        (apply 23:23 phantom (aura 23:32 @t)))
+      (cast 23:36
+        (apply 23:39 phantom (aura 23:48 @p))
+        (wing 23:52 x))))
+  (value 24:1 forced
+    (gate 24:11
+      (face 24:14 flag (flag 24:19))
+      (body 25:3
+        (cast 25:3
+          (apply 25:6 choice (tvar 25:14 A) (aura 25:16 @p))
+          (body 26:5
+            (branch 26:5
+              (wing 26:8 flag)
+              (arm 27:7
+                (lit 27:7 %.y)
+                (tuple 27:11 (lit 27:12 %ok) (str 27:16 "hi")))
+              (arm 28:7
+                (lit 28:7 %.n)
+                (tuple 28:11 (lit 28:12 %err) (lit 28:17 ~zod)))))))))
+  (value 29:1 pending
+    (gate 29:12
+      (face 29:15 flag (flag 29:20))
+      (body 30:3
+        (trace 30:3
+          (lit 30:6 %orphan)
+          (body 31:5
+            (cast 31:5
+              (apply 31:8 choice (aura 31:16 @t) (aura 31:19 @p))
+              (body 32:7
+                (branch 32:7
+                  (wing 32:10 flag)
+                  (arm 33:9
+                    (lit 33:9 %.y)
+                    (tuple 33:13 (lit 33:14 %ok) (str 33:18 "hi")))
+                  (arm 34:9
+                    (lit 34:9 %.n)
+                    (tuple 34:13 (lit 34:14 %err) (lit 34:19 ~zod))))))))))))

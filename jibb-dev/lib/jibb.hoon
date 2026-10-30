@@ -4595,9 +4595,10 @@
 ::  their defaulting and inferred generalization are implemented.
 ::  Bare @ is a separate unrestricted atom type. A directional fit check
 ::  permits concrete atoms to widen to it, never the reverse. A fit that
-::  needs a not-yet-implemented constraint remains unsupported. Named closed
-::  unions retain their module of origin separately from their
-::  displayed name. Union printing is informational; it is not Jibb syntax.
+::  needs a not-yet-implemented constraint remains unsupported. Named unions
+::  retain origin and ordered arguments, including phantom arguments, apart
+::  from their display name. Generic cases must be disjoint for all arguments.
+::  Unnamed union printing is informational; it is not Jibb syntax.
 ::
 +$  itype
   $~  [%var 0]
@@ -4609,7 +4610,7 @@
       [%flag ~]
       [%tag id=@ud literal=lit constructor=?]
       [%const literal=lit]
-      [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t)]
+      [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t) args=(list itype)]
       [%face name=term body=itype]
       [%fn sample=itype product=itype]
       [%cell hed=itype tal=itype]
@@ -4659,7 +4660,7 @@
     %flag  |
     %tag   =(n id.t)
     %const  |
-    %union  (lien cases.t |=(c=itype (itype-occurs n c sub)))
+    %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
@@ -4678,8 +4679,10 @@
   =.  b  (itype-walk b sub)
   ?:  =(a b)  `sub
   ?:  &(?=(%union -.a) ?=(%union -.b))
-    ?:  &(=(origin.a origin.b) =(cases.a cases.b))  `sub
-    ~
+    ?.  =(origin.a origin.b)  ~
+    ?:  &(?=(~ args.a) ?=(~ args.b))  ?:(=(cases.a cases.b) `sub ~)
+    ?~  origin.a  ~
+    (itype-unify-args args.a args.b sub)
   ?:  ?=(%var -.a)
     ?:  (itype-occurs id.a b sub)  ~
     `[[id.a b] sub]
@@ -4718,6 +4721,15 @@
     $(a tal.a, b tal.b, sub u.first)
   ~
 ::
+++  itype-unify-args
+  |=  [as=(list itype) bs=(list itype) sub=isub]
+  ^-  (unit isub)
+  ?~  as  ?~(bs `sub ~)
+  ?~  bs  ~
+  =/  next=(unit isub)  (itype-unify i.as i.bs sub)
+  ?~  next  ~
+  $(as t.as, bs t.bs, sub u.next)
+::
 ::  +itype-fit: one-way widening from an actual type to an expected type
 ::
 ::    An unknown variable used where @ is expected gains a fresh atom
@@ -4737,7 +4749,7 @@
     %flag      |
     %tag       |
     %const     |
-    %union     (lien cases.t |=(c=itype (itype-has-any-atom c sub)))
+    %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -4794,7 +4806,7 @@
     %flag      &
     %tag       &
     %const     &
-    %union     (lien cases.typ |=(c=itype (itype-has-fixed-atom c)))
+    %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
@@ -4889,7 +4901,7 @@
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
-    %union  (lien cases.t |=(c=itype (itype-has-tag c)))
+    %union  |((lien cases.t |=(c=itype (itype-has-tag c))) (lien args.t |=(c=itype (itype-has-tag c))))
     *      |
   ==
 ::
@@ -4902,6 +4914,23 @@
     %fn     |($(t sample.t) $(t product.t))
     %cell   |($(t hed.t) $(t tal.t))
     *       |
+  ==
+::
+::  Until a visible generic alias can be selected, expanding a named
+::  generic union would hide phantom arguments and its origin. This is a
+::  limitation of partial inference, not the unnamed-union print notation.
+::
+++  itype-has-hidden-generic
+  |=  t=itype
+  ^-  ?
+  ?-  -.t
+    %union
+      ?:  &(?=(~ label.t) ?=(^ args.t))  &
+      (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-generic c)))
+    %face  $(t body.t)
+    %fn    |($(t sample.t) $(t product.t))
+    %cell  |($(t hed.t) $(t tal.t))
+    *      |
   ==
 ::
 ++  itype-fit-cases
@@ -4951,7 +4980,12 @@
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
   ?:  &(?=(%union -.actual) ?=(%union -.expected))
-    ?:  &(=(origin.actual origin.expected) =(cases.actual cases.expected))  [%ok sub next]
+    ?.  =(origin.actual origin.expected)  [%unknown ~]
+    ?:  &(?=(~ args.actual) ?=(~ args.expected))
+      ?:(=(cases.actual cases.expected) [%ok sub next] [%unknown ~])
+    ?~  origin.actual  [%unknown ~]
+    =/  unified=(unit isub)  (itype-unify-args args.actual args.expected sub)
+    ?^  unified  [%ok u.unified next]
     [%unknown ~]
   ?:  ?=(%union -.actual)  [%unknown ~]
   ?:  &(?=(%union -.expected) |(?=(%avar -.actual) ?=(%nvar -.actual)))  [%unknown ~]
@@ -5106,7 +5140,7 @@
   ^-  itype
   =.  t  (itype-walk t sub)
   ?:  ?=(%union -.t)
-    [%union (turn cases.t |=(c=itype (itype-normalize c sub))) origin.t label.t]
+    [%union (turn cases.t |=(c=itype (itype-normalize c sub))) origin.t label.t (turn args.t |=(c=itype (itype-normalize c sub)))]
   ?:  ?=(%face -.t)
     [%face name.t $(t body.t)]
   ?:  ?=(%fn -.t)
@@ -5161,7 +5195,7 @@
     %flag  ~
     %tag   ~
     %const  ~
-    %union  (zing (turn cases.t |=(c=itype (itype-vars c))))
+    %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
     %face  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
     %cell  (weld $(t hed.t) $(t tal.t))
@@ -5197,7 +5231,7 @@
     %flag  t
     %tag   t
     %const  t
-    %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t]
+    %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -5218,7 +5252,7 @@
     %flag      |
     %tag       |
     %const     |
-    %union     (lien cases.t |=(c=itype (itype-var-is-atom n c)))
+    %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -5403,7 +5437,7 @@
         =?  alias  ?=(~ alias)  (imported-union-alias u.origin.t molds.iface)
         ?~  alias  ~
         `(crip "{(trip u.alias)}.{(trip face)}")
-      [%union (turn cases.t |=(c=itype (itype-in-import c iface face))) origin.t label]
+      [%union (turn cases.t |=(c=itype (itype-in-import c iface face))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -5413,9 +5447,12 @@
 ++  label-direct-union
   |=  [typ=itype body=shape name=term state=istate]
   ^-  itype
-  ?.  &(?=(%union -.body) ?=(%union -.typ))  typ
+  ?.  ?=(%union -.typ)  typ
+  =/  direct=?  ?=(%union -.body)
+  =?  direct  ?=(%generic -.body)  ?=(%union -.body.body)
+  ?.  direct  typ
   ?.  (lien top-molds.state |=(n=term =(n name)))  typ
-  [%union cases.typ `[at.state name] `name]
+  [%union cases.typ `[at.state name] `name args.typ]
 ::
 ::  Generic mold parameters are lexical and distinct from the enclosing
 ::  value's capital variables. Arguments are substituted only once, so
@@ -5481,8 +5518,9 @@
     =/  out=(unit [typ=itype state=istate])
       (infer-simple-shape body.sh state(next next.fresh, params params.fresh, in-mold &))
     ?~  out  ~
-    ::  Generic union identity must include its arguments; defer that case.
-    ?:  ?=(%union -.typ.u.out)  ~
+    ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.sh))  ~
+    =?  typ.u.out  ?=(%union -.typ.u.out)
+      typ.u.out(args (turn vars.fresh |=(n=@ud `itype`[%var n])))
     =/  used=(list @ud)  (itype-vars typ.u.out)
     ?.  (levy used |=(n=@ud (lien vars.fresh |=(p=@ud =(p n)))))  ~
     `[[typ.u.out vars.fresh] state.u.out(params params.state, in-mold in-mold.state)]
@@ -5508,8 +5546,7 @@
       ?.  (levy pairs |=(p=upair =(%disjoint relation.p)))  ~
       =/  cs=(unit [types=(list itype) state=istate])  (infer-shape-args cases.sh state)
       ?~  cs  ~
-      ?:  (lien types.u.cs |=(t=itype ?=(^ (itype-vars t))))  ~
-      `[[%union types.u.cs ~ ~] state.u.cs]
+      `[[%union types.u.cs ~ ~ ~] state.u.cs]
     %cell  (infer-simple-fields fields.sh state)
     %fn
       =/  arg=(unit [typ=itype state=istate])  $(sh sample.sh)
@@ -5569,7 +5606,10 @@
       =/  out=(unit [typ=itype state=istate])
         $(sh body.u.found, state state.u.args(active [n active.state.u.args], in-mold &, params u.params))
       ?~  out  ~
-      ?:  ?=(%union -.typ.u.out)  ~
+      ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.u.found))  ~
+      ?:  &(?=(%union -.typ.u.out) !(lien top-molds.state.u.args |=(x=term =(x n))))  ~
+      =?  typ.u.out  ?=(%union -.typ.u.out)
+        (label-direct-union typ.u.out(args types.u.args) u.found n state.u.args)
       `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args)]
     %tvar
       =/  param=(unit itype)  (iparam-lookup name.sh params.state)
@@ -6048,7 +6088,10 @@
     %flag  "?"
     %tag   (trip txt.literal.t)
     %const  (trip txt.literal.t)
-    %union  ?~(label.t (show-itype-cases cases.t sub) (trip u.label.t))
+    %union
+      ?~  label.t  (show-itype-cases cases.t sub)
+      ?~  args.t  (trip u.label.t)
+      "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
     %face  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
     %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
@@ -6090,7 +6133,7 @@
     %flag      |
     %tag       |
     %const     |
-    %union     (lien cases.typ |=(c=itype (itype-has-nvar c)))
+    %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
@@ -6109,13 +6152,35 @@
 ::  A capital in a written mold is generalized with its enclosing ++.
 ::  Atom constraints may remain generic; until full rigidity checking
 ::  is implemented, do not report a type if one became more specific.
+::  Whether distinct written capitals may become equal is a doc question;
+::  the partial checker leaves such inference unsupported for now.
+::
+++  cap-id-in
+  |=  [n=@ud caps=icaps sub=isub]
+  ^-  ?
+  ?~  caps  |
+  =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
+  =/  ident=(unit @ud)
+    ?+  -.resolved  ~
+      %var   `id.resolved
+      %avar  `id.resolved
+    ==
+  ?~  ident  $(caps t.caps)
+  ?:  =(n u.ident)  &
+  $(caps t.caps)
 ::
 ++  constrained-capitals
   |=  [caps=icaps sub=isub]
   ^-  ?
   ?~  caps  |
   =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
-  ?.  |(?=(%var -.resolved) ?=(%avar -.resolved))  &
+  =/  ident=(unit @ud)
+    ?+  -.resolved  ~
+      %var   `id.resolved
+      %avar  `id.resolved
+    ==
+  ?~  ident  &
+  ?:  (cap-id-in u.ident t.caps sub)  &
   $(caps t.caps)
 ::
 ::  An atom variable may be generalized when an explicit capital, sample
@@ -6144,7 +6209,7 @@
     %flag      |
     %tag       |
     %const     |
-    %union     (lien cases.t |=(c=itype (has-atom-var n c)))
+    %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -6614,6 +6679,8 @@
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
   ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: tag needs context in partial inference") lines])
+  ?:  (itype-has-hidden-generic typ)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: generic union name is not available in this scope") lines])
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))

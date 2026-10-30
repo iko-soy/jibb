@@ -60,6 +60,7 @@ explicit-subsumed: error: a Hoon union has overlapping cases
 explicit-three: (union [a @ud] [b @t] [c @p])
 explicit-unknown: error: a Hoon union needs a source-level disjointness check
 explicit-nested: error: a Hoon union has overlapping cases
+collection-union-wrapper: valid; forged subject, sample and tail rejected
 collection-union-list: (list (union [x @ud] [y @t]))
 collection-union-set: (set (union [x @ud] [y @t]))
 collection-union-map-key: (map (union [x @ud] [y @t]) (list @ud))

@@ -1,0 +1,17 @@
++$ choice |$ [A B]
+  [%one value=A]
+  [%two value=B]
++$ phantom |$ [A]
+  %yes
+  %no
+++ repeated |= x=(choice A A) x
+++ independent |= x=(choice A B) x
+++ already-same |= x=(choice A A) (repeated x)
+++ merge-call |= x=(choice A B) (repeated x)
+++ phantom-cast |= x=(phantom A) ^- (phantom B) x
+++ local-merge |= x=(choice A B)
+  ++ local |= y=(choice A A) y
+  (local x)
+++ captured-merge |= x=(choice A B)
+  ++ captured |= flag=? x
+  (repeated (captured %.y))
