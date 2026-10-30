@@ -6781,8 +6781,8 @@
 ::
 ::  Build the supported part of the value environment in dependency order.
 ::  Each pass adds successful definitions. Forward references become
-::  available on a later pass; recursive groups and unsupported syntax do
-::  not enter the environment. Generalized definitions are closed, so a
+::  available on a later pass; mutually recursive groups and unsupported
+::  syntax do not enter the environment. Generalized definitions are closed, so a
 ::  use instantiates its variables afresh.
 ::
 ++  global-value-names
@@ -6801,6 +6801,25 @@
   ?~  t.hits  &
   |
 ::
+::  A top-level gate may refer to itself through one monomorphic placeholder.
+::  Unify the completed body with that placeholder before generalization;
+::  reporting repeats the same check instead of instantiating the gate's
+::  generalized interface inside its own body. Mutual groups stay unsupported.
+::
+++  infer-recursive-gate
+  |=  [d=def env=ienv state=istate]
+  ^-  iresult
+  ?.  ?=(%value -.d)  [%| ["recursive definition is not a gate" ~]]
+  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
+    [%| ["recursive definition is not a gate" ~]]
+  =/  id=@ud  next.state
+  =/  seeded=ienv  [[name.d [[%var id] ~]] env]
+  =/  out=iresult  (infer-fragment val.d seeded state(next +(id)))
+  ?:  ?=(%| -.out)  out
+  =/  uni=(unit isub)  (itype-unify [%var id] typ.p.out sub.state.p.out)
+  ?~  uni  [%| ["recursive gate constraint is not supported by partial inference" ~]]
+  [%& typ.p.out state.p.out(sub u.uni)]
+::
 ++  add-supported-defs
   |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
   ^-  ienv
@@ -6810,7 +6829,9 @@
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude])
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude]
+  =/  result=iresult  (infer-fragment val.d env initial)
+  =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
@@ -7298,7 +7319,11 @@
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude])
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude]
+  =/  result=iresult
+    ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
+      (infer-recursive-gate d env initial)
+    (infer-fragment val.d env initial)
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)

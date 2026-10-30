@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate"; Molds: "Type variables are capitals, generalized per `++`."
+tests: A single recursive gate is inferred monomorphically during its body and generalized afterward. Value cycles, mutual recursion, changing recursive argument types, occurs checks and unresolved constraints fail closed.
+expect: parses
+expect-types: a partial inference report

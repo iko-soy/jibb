@@ -1,0 +1,55 @@
+++ bounce |= b=?
+  ?- b
+    %.y %.n
+    %.n (bounce %.y)
+++ recur |= x=A
+  ?- %.y
+    %.y x
+    %.n (recur x)
+++ cord-result (recur "hi")
+++ ship-result (recur ~zod)
+++ poly |= x=A (poly [x x])
+++ occurs |= x (x x)
+++ forcing |= x=A
+  ?- %.y
+    %.y ^- @t x
+    %.n (forcing x)
+++ pending |= b=?
+  ?- b
+    %.y %unknown
+    %.n (pending b)
+++ direct-value direct-value
+++ gate-value |= x=A value-cycle
+++ value-cycle gate-value
+++ mutual-a |= x=A (mutual-b x)
+++ mutual-b |= x=A (mutual-a x)
+++ captured |= x=A
+  ++ use |= b=?
+    ?- b
+      %.y x
+      %.n (captured x)
+  (use %.y)
+++ local-rec |= x=A
+  ++ inner |= y=A (inner y)
+  (inner x)
+++ forced-trace |= x=A
+  ~& ^- @t x
+    (forced-trace x)
+++ pending-trace |= x=A
+  ~& %orphan
+    (pending-trace x)
+++ higher |= f=$-(A A)
+  |= x=A
+    ?- %.y
+      %.y (f x)
+      %.n ((higher f) x)
+++ local-self |= x=A
+  ++ call |= y=A (local-self y)
+  (call x)
+++ mixed |= x=A
+  ++ alias mixed
+  ~& (alias "hi")
+    (alias ~zod)
+++ return-self |= x=A return-self
+++ value-a value-b
+++ value-b value-a

@@ -1,0 +1,176 @@
+(module
+  (value 1:1 bounce
+    (gate 1:11
+      (face 1:14 b (flag 1:16))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 b)
+          (arm 3:5 (lit 3:5 %.y) (lit 3:9 %.n))
+          (arm 4:5
+            (lit 4:5 %.n)
+            (group 4:9
+              (call 4:10 (wing 4:10 bounce) (lit 4:17 %.y))))))))
+  (value 5:1 recur
+    (gate 5:10
+      (face 5:13 x (tvar 5:15 A))
+      (body 6:3
+        (branch 6:3
+          (lit 6:6 %.y)
+          (arm 7:5 (lit 7:5 %.y) (wing 7:9 x))
+          (arm 8:5
+            (lit 8:5 %.n)
+            (group 8:9
+              (call 8:10 (wing 8:10 recur) (wing 8:16 x))))))))
+  (value 9:1 cord-result
+    (group 9:16
+      (call 9:17 (wing 9:17 recur) (str 9:23 "hi"))))
+  (value 10:1 ship-result
+    (group 10:16
+      (call 10:17 (wing 10:17 recur) (lit 10:23 ~zod))))
+  (value 11:1 poly
+    (gate 11:9
+      (face 11:12 x (tvar 11:14 A))
+      (group 11:16
+        (call 11:17
+          (wing 11:17 poly)
+          (tuple 11:22 (wing 11:23 x) (wing 11:25 x))))))
+  (value 12:1 occurs
+    (gate 12:11
+      (bind 12:14 x)
+      (group 12:16
+        (call 12:17 (wing 12:17 x) (wing 12:19 x)))))
+  (value 13:1 forcing
+    (gate 13:12
+      (face 13:15 x (tvar 13:17 A))
+      (body 14:3
+        (branch 14:3
+          (lit 14:6 %.y)
+          (arm 15:5
+            (lit 15:5 %.y)
+            (cast 15:9 (aura 15:12 @t) (wing 15:15 x)))
+          (arm 16:5
+            (lit 16:5 %.n)
+            (group 16:9
+              (call 16:10 (wing 16:10 forcing) (wing 16:18 x))))))))
+  (value 17:1 pending
+    (gate 17:12
+      (face 17:15 b (flag 17:17))
+      (body 18:3
+        (branch 18:3
+          (wing 18:6 b)
+          (arm 19:5 (lit 19:5 %.y) (lit 19:9 %unknown))
+          (arm 20:5
+            (lit 20:5 %.n)
+            (group 20:9
+              (call 20:10 (wing 20:10 pending) (wing 20:18 b))))))))
+  (value 21:1 direct-value (wing 21:17 direct-value))
+  (value 22:1 gate-value
+    (gate 22:15
+      (face 22:18 x (tvar 22:20 A))
+      (wing 22:22 value-cycle)))
+  (value 23:1 value-cycle (wing 23:16 gate-value))
+  (value 24:1 mutual-a
+    (gate 24:13
+      (face 24:16 x (tvar 24:18 A))
+      (group 24:20
+        (call 24:21 (wing 24:21 mutual-b) (wing 24:30 x)))))
+  (value 25:1 mutual-b
+    (gate 25:13
+      (face 25:16 x (tvar 25:18 A))
+      (group 25:20
+        (call 25:21 (wing 25:21 mutual-a) (wing 25:30 x)))))
+  (value 26:1 captured
+    (gate 26:13
+      (face 26:16 x (tvar 26:18 A))
+      (body 27:3
+        (value 27:3 use
+          (gate 27:10
+            (face 27:13 b (flag 27:15))
+            (body 28:5
+              (branch 28:5
+                (wing 28:8 b)
+                (arm 29:7 (lit 29:7 %.y) (wing 29:11 x))
+                (arm 30:7
+                  (lit 30:7 %.n)
+                  (group 30:11
+                    (call 30:12 (wing 30:12 captured) (wing 30:21 x))))))))
+        (group 31:3
+          (call 31:4 (wing 31:4 use) (lit 31:8 %.y))))))
+  (value 32:1 local-rec
+    (gate 32:14
+      (face 32:17 x (tvar 32:19 A))
+      (body 33:3
+        (value 33:3 inner
+          (gate 33:12
+            (face 33:15 y (tvar 33:17 A))
+            (group 33:19
+              (call 33:20 (wing 33:20 inner) (wing 33:26 y)))))
+        (group 34:3
+          (call 34:4 (wing 34:4 inner) (wing 34:10 x))))))
+  (value 35:1 forced-trace
+    (gate 35:17
+      (face 35:20 x (tvar 35:22 A))
+      (body 36:3
+        (trace 36:3
+          (cast 36:6 (aura 36:9 @t) (wing 36:12 x))
+          (body 37:5
+            (group 37:5
+              (call 37:6 (wing 37:6 forced-trace) (wing 37:19 x))))))))
+  (value 38:1 pending-trace
+    (gate 38:18
+      (face 38:21 x (tvar 38:23 A))
+      (body 39:3
+        (trace 39:3
+          (lit 39:6 %orphan)
+          (body 40:5
+            (group 40:5
+              (call 40:6 (wing 40:6 pending-trace) (wing 40:20 x))))))))
+  (value 41:1 higher
+    (gate 41:11
+      (face 41:14 f
+        (fn 41:16 (tvar 41:19 A) (tvar 41:21 A)))
+      (body 42:3
+        (gate 42:3
+          (face 42:6 x (tvar 42:8 A))
+          (body 43:5
+            (branch 43:5
+              (lit 43:8 %.y)
+              (arm 44:7
+                (lit 44:7 %.y)
+                (group 44:11
+                  (call 44:12 (wing 44:12 f) (wing 44:14 x))))
+              (arm 45:7
+                (lit 45:7 %.n)
+                (group 45:11
+                  (call 45:12
+                    (group 45:12
+                      (call 45:13 (wing 45:13 higher) (wing 45:20 f)))
+                    (wing 45:23 x))))))))))
+  (value 46:1 local-self
+    (gate 46:15
+      (face 46:18 x (tvar 46:20 A))
+      (body 47:3
+        (value 47:3 call
+          (gate 47:11
+            (face 47:14 y (tvar 47:16 A))
+            (group 47:18
+              (call 47:19 (wing 47:19 local-self) (wing 47:30 y)))))
+        (group 48:3
+          (call 48:4 (wing 48:4 call) (wing 48:9 x))))))
+  (value 49:1 mixed
+    (gate 49:10
+      (face 49:13 x (tvar 49:15 A))
+      (body 50:3
+        (value 50:3 alias (wing 50:12 mixed))
+        (trace 51:3
+          (group 51:6
+            (call 51:7 (wing 51:7 alias) (str 51:13 "hi")))
+          (body 52:5
+            (group 52:5
+              (call 52:6 (wing 52:6 alias) (lit 52:12 ~zod))))))))
+  (value 53:1 return-self
+    (gate 53:16
+      (face 53:19 x (tvar 53:21 A))
+      (wing 53:23 return-self)))
+  (value 54:1 value-a (wing 54:12 value-b))
+  (value 55:1 value-b (wing 55:12 value-a)))

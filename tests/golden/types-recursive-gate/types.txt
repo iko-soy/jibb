@@ -1,0 +1,36 @@
+partial inference; module not checked
+++ bounce: branch widening is not supported by partial inference
+++ recur: $-(A A)
+++ cord-result: @t
+++ ship-result: @p
+++ poly: recursive gate constraint is not supported by partial inference
+++ occurs: call's sample and argument types do not unify
+/tests/golden/types-recursive-gate/source.jibb:12:17: called gate
+++ occurs |= x (x x)
+                ^
+/tests/golden/types-recursive-gate/source.jibb:12:19: argument
+++ occurs |= x (x x)
+                  ^
+++ forcing: branch widening is not supported by partial inference
+++ pending: branch widening is not supported by partial inference
+++ direct-value: name is not available to partial inference
+++ gate-value: name is not available to partial inference
+++ value-cycle: name is not available to partial inference
+++ mutual-a: name is not available to partial inference
+++ mutual-b: name is not available to partial inference
+++ captured: $-(A A)
+++ local-rec: local definitions need unsupported inference
+++ forced-trace: explicit capital constraints are not supported by partial inference
+++ pending-trace: tag needs context in partial inference
+++ higher: $-($-(A A) $-(A A))
+++ local-self: $-(A B)
+++ mixed: call's sample and argument types do not unify
+/tests/golden/types-recursive-gate/source.jibb:52:6: called gate has type $-(@t A)
+    (alias ~zod)
+     ^
+/tests/golden/types-recursive-gate/source.jibb:52:12: argument has type @p
+    (alias ~zod)
+           ^
+++ return-self: recursive gate constraint is not supported by partial inference
+++ value-a: name is not available to partial inference
+++ value-b: name is not available to partial inference
