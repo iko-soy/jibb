@@ -1,0 +1,9 @@
+(module
+  (value 1:1 id
+    (gate-wide 1:7 (bind 1:10 x) (wing 1:12 x)))
+  (value 2:1 word
+    (group 2:9
+      (call 2:10 (wing 2:10 id) (str 2:13 "hello"))))
+  (value 3:1 ship-name
+    (group 3:14
+      (call 3:15 (wing 3:15 id) (lit 3:18 ~zod)))))

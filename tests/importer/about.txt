@@ -1,0 +1,8 @@
+`small.txt` exercises union and atom-or-cell cases, fields, collections,
+recursion, and unsupported forms. `tlon-epic.txt` is the unmodified
+`desk/sur/epic.hoon` from tloncorp/tlon-apps at commit
+38f9328f4580000a37a7fdc3ab820fcd65069487; its MIT license is in
+`tlon-license.txt`. The files use .txt so -test does not build them as
+Hoon tests. The separately stored tree.txt is a diagnostic projection of the internal
+type graph, not the Jibb type printer. It runs under eval and on the fake
+ship; +fixture-test also checks the underlying structured values.

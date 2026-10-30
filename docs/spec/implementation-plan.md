@@ -96,7 +96,6 @@ For milestone 6. An island is one loop over one model: events become messages, `
 
 | Question | Needed by |
 | --- | --- |
-| Are the three proposed core-language rules adopted: gate-free `eq` arguments and map keys, natives that take gates, and no value that depends on itself through a gate? | Milestones 2 and 3 |
 | What is the typography scale for heading levels and the `role` values? | Milestone 4 |
 | Does the Eyre channel CSRF test reproduce on a fake ship? @iko has the write-up; if it does, it goes to Urbit privately. | Milestone 4 |
 | What is the benchmark's bar? Proposed: a keystroke in a 500-row list island renders within one 16 ms frame on a mid-range phone. | Milestone 6 |

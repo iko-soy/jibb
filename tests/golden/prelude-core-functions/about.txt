@@ -1,0 +1,4 @@
+source: Overview, Prelude: "It also holds eq, not, page, program, store, pure, island, and the layout elements and molds"; the Function helpers group includes same, head and tail.
+tests: Initial executable prelude definitions, including identity, pair projections and loobean negation.
+expect: parses
+expect-types: partial inference reports the types of all four prelude gates; it does not check the module.

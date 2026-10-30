@@ -1,0 +1,6 @@
+(module
+  (value 1:1 self-apply
+    (gate-wide 1:15
+      (bind 1:18 x)
+      (group 1:20
+        (call 1:21 (wing 1:21 x) (wing 1:23 x))))))

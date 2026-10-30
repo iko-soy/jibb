@@ -46,6 +46,9 @@ import sys
 import tempfile
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import golden_case
+
 ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 PIER = os.environ.get('JIBB_PIER', '/root/urbit/zod')
 CLICK = os.environ.get('JIBB_CLICK', '/root/src/tools/pkg/click/click')
@@ -928,12 +931,12 @@ TESTS_HEADER = """\
 ::  after changing the cases.
 ::
 ::  Each test- arm runs golden:jibb on one case's source.jibb, with the
-::  file set to the case's Clay path, /tests/golden/<case>/source/jibb,
-::  and compares the outputs with tokens.txt and tree.txt, which hold
-::  the output plus one trailing newline, as in tools/golden.  The
-::  files come in at build time through /*; a missing tokens.txt or
-::  tree.txt fails its case.  tools/ship test syncs the jibb-dev desk
-::  and runs these with -test /=jibb-dev=/tests.
+::  file set to /tests/golden/<case>/source/jibb or the logical path in
+::  path.txt, and compares the outputs with tokens.txt and tree.txt.
+::  Each file holds the output plus one newline. An expect-types: line
+::  or types.txt opts a case into golden-types and its types.txt output.
+::  Files come in through /*; a missing expected output fails its case.
+::  tools/ship test syncs the desk and runs -test /=jibb-dev=/tests.
 ::
 ::  The .txt files reach Clay through the %txt mark, as lines, so the
 ::  test compares lines: the file's with those of the output plus a
@@ -950,8 +953,12 @@ TESTS_HELPERS = r"""::
 ++  check
   |=  [case=@ta src=@t tokens=(unit wain) tree=(unit wain)]
   ^-  tang
-  =/  out=[tokens=@t tree=@t]
-    (golden:jibb /tests/golden/[case]/source/jibb src)
+  (check-at case /tests/golden/[case]/source/jibb src tokens tree)
+::
+++  check-at
+  |=  [case=@ta at=path src=@t tokens=(unit wain) tree=(unit wain)]
+  ^-  tang
+  =/  out=[tokens=@t tree=@t]  (golden:jibb at src)
   %+  weld
     (compare (file case "tokens.txt") tokens tokens.out)
   (compare (file case "tree.txt") tree tree.out)
@@ -1044,7 +1051,14 @@ def generate_tests(golden):
         lines.append('/*  src-%d  %%jibb  %s/source/jibb' % (i, base))
         #  a knot literal: a case's name may hold . and _, which a
         #  path literal in Hoon can't, though /* takes them
-        args = ['~.%s' % name, 'src-%d' % i]
+        try:
+            logical = golden_case.source_path(folder)
+        except ValueError as e:
+            raise Unable(str(e))
+        args = ['~.%s' % name]
+        if logical:
+            args.append(logical)
+        args.append('src-%d' % i)
         for kind, face in (('tokens', 'tok'), ('tree', 'tre')):
             if os.path.isfile(os.path.join(folder, kind + '.txt')):
                 lines.append('/*  %s-%d  %%txt   %s/%s/txt'
@@ -1052,13 +1066,31 @@ def generate_tests(golden):
                 args.append('`%s-%d' % (face, i))
             else:
                 args.append('~')
-        arms.append('++  %s\n  (check %s)' % (arm, ' '.join(args)))
+        call = '(%s %s)' % ('check-at' if logical else 'check', ' '.join(args))
+        if golden_case.wants_types(folder):
+            if os.path.isfile(os.path.join(folder, 'types.txt')):
+                lines.append('/*  typ-%d  %%txt   %s/types/txt' % (i, base))
+                expected_types = '`typ-%d' % i
+            else:
+                expected_types = '~'
+            path = logical or '~[%%tests %%golden ~.%s %%source %%jibb]' % name
+            call = '(weld %s (check-types ~.%s %s src-%d %s))' % (
+                call, name, path, i, expected_types)
+        arms.append('++  %s\n  %s' % (arm, call))
     lines.append('|%')
     if arms:
         lines.append('::  one arm per case')
         lines.append('::')
     lines.extend(arms)
-    return '\n'.join(lines) + '\n' + TESTS_HELPERS
+    types_helper = ''
+    if any(golden_case.wants_types(folder) for _, folder in cases):
+        types_helper = '''::
+++  check-types
+  |=  [case=@ta at=path src=@t want=(unit wain)]
+  ^-  tang
+  (compare (file case "types.txt") want (golden-types:jibb at src))
+'''
+    return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 
 
 # ---------------------------------------------------------------- sync
@@ -1542,7 +1574,7 @@ def cmd_test(ship, args):
                 f.write(content)
             say('updated %s from %s' % (show(TESTS_LIB), show(golden)))
     for _name, folder in golden_cases(golden):
-        for fn in ('tokens.txt', 'tree.txt'):
+        for fn in ('tokens.txt', 'tree.txt', 'types.txt'):
             data = _read(os.path.join(folder, fn))
             if data and not data.endswith(b'\n'):
                 warn("%s has no final newline: the ship can't see that (the "

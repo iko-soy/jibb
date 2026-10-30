@@ -10,4 +10,4 @@
 +$ paths
   [%todos /todos todos]
   [%changes /changes (facts todos todo-update)]
-  [%todo /todo/[id=@ud] todo-item]
+  [%todo-by-id /todo/[id=@ud] todo-item]

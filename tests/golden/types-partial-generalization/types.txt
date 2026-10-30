@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ id: $-(A A)
+++ word: @t
+++ ship-name: @p

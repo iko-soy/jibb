@@ -1,0 +1,7 @@
+::  Fixture for the documented examples; not supplied by the design doc.
+/-  blog
+|_  a=(list post:blog)
+++  grab  |%  ++  noun  (list post:blog)  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

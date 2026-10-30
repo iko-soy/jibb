@@ -1,0 +1,4 @@
+source: Grammar tab, Molds: "every expression has a principal type, and there is no subtyping".
+tests: partial inference reports a tag whose contextual inference is not implemented; the report does not claim the module checks.
+expect: parses
+expect-types: a partial inference report, not a checked module

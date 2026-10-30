@@ -1,0 +1,7 @@
+(module
+  (sur 2:1 blog)
+  (value 4:1 card
+    (gate 4:9
+      (face 4:12 p (ref 4:14 post.blog))
+      (body 5:3
+        (call 5:3 (wing 5:3 text) (wing 5:8 title.p))))))

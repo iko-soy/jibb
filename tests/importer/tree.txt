@@ -1,0 +1,16 @@
+action: (union [add text=@t] [remove id=@ud])
+optional: (union [name=@t stamp=@ud] @ud)
+items: (map @ud [id=@ud text=@t])
+containers: [(set @ud) [(qeu @ud) [(list @t) (unit @ud)]]]
+chain: (union [value=@ud next=chain.small] @n:0)
+jar: (jar @ud @t)
+jug: (jug @ud @t)
+nested-jar: error: a nested jar, jug or mop needs source-aware import
+signed: error: signed and float auras cannot be imported
+float: error: signed and float auras cannot be imported
+gate: error: cores and gates cannot be imported
+vase: error: vases cannot be imported
+valid-cell: error: a Hoon $^ union needs a source-level disjointness check
+invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
+tlon-saga: (union [chi @n:0] [lev @n:0] [dex ver=@ud])
+tlon-epic: @ud

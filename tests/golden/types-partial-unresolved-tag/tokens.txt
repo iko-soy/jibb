@@ -1,0 +1,4 @@
+1:1 glyph ++
+1:4 name message
+1:12 lit %hello
+1:18 NEWLINE

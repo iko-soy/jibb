@@ -13,4 +13,4 @@
         (const 12:4 %changes)
         (path 12:13 /changes)
         (apply 12:22 facts (ref 12:29 todos) (ref 12:35 todo-update)))
-      (cell 13:3 (const 13:4 %todo) (path 13:10 /todo/[id=@ud]) (ref 13:25 todo-item)))))
+      (cell 13:3 (const 13:4 %todo-by-id) (path 13:16 /todo/[id=@ud]) (ref 13:31 todo-item)))))

@@ -1,0 +1,4 @@
+(module
+  (mark 2:1 %posts)
+  (mold 4:1 paths
+    (cell 5:3 (const 5:4 %posts) (path 5:11 /posts) (ref 5:18 posts))))

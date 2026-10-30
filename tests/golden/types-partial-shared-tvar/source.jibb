@@ -1,0 +1,3 @@
+++ dup |= p=[A A] p
+++ good (dup [~zod ~zod])
+++ bad (dup [~zod "hi"])

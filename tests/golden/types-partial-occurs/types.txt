@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ self-apply: call's sample and argument types do not unify

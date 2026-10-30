@@ -1,0 +1,16 @@
+(module
+  (value 1:1 dup
+    (gate 1:8
+      (face 1:11 p
+        (cell 1:13 (tvar 1:14 A) (tvar 1:16 A)))
+      (wing 1:19 p)))
+  (value 2:1 good
+    (group 2:9
+      (call 2:10
+        (wing 2:10 dup)
+        (tuple 2:14 (lit 2:15 ~zod) (lit 2:20 ~zod)))))
+  (value 3:1 bad
+    (group 3:8
+      (call 3:9
+        (wing 3:9 dup)
+        (tuple 3:13 (lit 3:14 ~zod) (str 3:19 "hi"))))))

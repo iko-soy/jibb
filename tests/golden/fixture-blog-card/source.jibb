@@ -1,0 +1,5 @@
+::  Fixture for the documented examples; not supplied by the design doc.
+/-  blog
+
+++ card |= p=post.blog
+  text title.p

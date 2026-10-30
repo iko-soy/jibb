@@ -1,0 +1,16 @@
+(module
+  (value 1:1 head
+    (gate 1:9
+      (face 1:12 p
+        (cell 1:14 (tvar 1:15 A) (tvar 1:17 B)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 p)
+          (arm 3:5
+            (cell 3:5 (bind 3:6 a) (bind 3:8 b))
+            (wing 3:11 a))))))
+  (value 4:1 who
+    (group 4:8
+      (call 4:9
+        (wing 4:9 head)
+        (tuple 4:14 (lit 4:15 ~zod) (str 4:20 "hello"))))))

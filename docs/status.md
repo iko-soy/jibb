@@ -1,11 +1,11 @@
 # Status
 
-As of 2026-10-30, at commit ab797a9. The plan is [spec/implementation-plan.md](spec/implementation-plan.md); each milestone ends with its checks passing on a fake ship.
+As of 2026-10-30. The plan is [spec/implementation-plan.md](spec/implementation-plan.md); each milestone ends with its checks passing on a fake ship.
 
 | # | Milestone | Status |
 | --- | --- | --- |
 | 1 | Parser and mark | Done (7c739b7; the doc's grammar decisions of 2026-10-30 in ab797a9) |
-| 2 | Types and prelude | Next. [prompts/milestone-2.md](prompts/milestone-2.md) briefs the developer |
+| 2 | Types and prelude | In progress. [prompts/milestone-2.md](prompts/milestone-2.md) briefs the developer; the checker and importer are partial |
 | 3 | Core language | Not started |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
@@ -16,6 +16,10 @@ As of 2026-10-30, at commit ab797a9. The plan is [spec/implementation-plan.md](s
 The plan sets no dates: "agree them after milestone 1, once it shows how fast the Hoon work goes". They haven't been agreed yet. Milestone 1's commits run from 2026-10-29 18:13 UTC to 2026-10-30 11:50 UTC.
 
 On 2026-10-30, @iko decided that Jibb drops `$?`, so a `+$` takes a union's cases on the lines below its name. [prompts/drop-union-rune.md](prompts/drop-union-rune.md) records the change before milestone 2. The repository spec records the decision; the Claude document still needs to be synchronized.
+
+## Milestone 2: in progress
+
+The repository spec records the subsequent type-system and prelude decisions; those changes also need synchronization to the Claude document. An initial inference fragment and a standalone Hoon type reader are being tested. The fragment explicitly reports that it does not check a module; the reader is not yet connected to the checker and does not cover every supported Hoon type. The prelude currently has only a few functions, and [prelude-inventory.md](prelude-inventory.md) is a source audit, not the complete inventory or signatures. The milestone remains unfinished.
 
 ## Milestone 1: parser and mark
 
@@ -33,9 +37,9 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 368 golden cases: 153 that parse and 215 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). Each case's `about.txt` quotes the doc's words it tests.
-- They pass under `urbit eval` (`tools/golden`, about 9 s for the corpus) and as `-test` arms on the fake ship (`tools/ship test`).
-- `tools/testdata/selftest` (18 checks) and `tools/testdata/ship-selftest` test the tools themselves.
+- 382 golden cases: 167 that parse and 215 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 382-case corpus passed under `urbit eval` in 26.0 s. On the fake ship, those cases and the importer and unification checks passed: 384 tests in all, with 44.2 s for sync and 15.5 s for the tests.
+- `tools/testdata/selftest` (19 checks) and `tools/testdata/ship-selftest` test the tools themselves.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
 
@@ -56,13 +60,14 @@ Besides the plan's list:
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 368 cases under urbit eval
+tools/golden                      # 382 cases under urbit eval
+tools/importer-test               # the Hoon importer fixture projection
 tools/hoon check-spans-test       # prints <<>> when the span checker works
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 368 cases as -test arms on the ship
+tools/ship test                   # the same 382 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/ship check-commit           # |commit stores .jibb files
 ```
@@ -70,5 +75,5 @@ tools/ship check-commit           # |commit stores .jibb files
 ## What milestone 1 leaves to later milestones
 
 - Errors carry a start only. Spans keep each node's end so that milestone 2's type errors can underline both conflicting sites with excerpts (library section 1).
-- The parser accepts what only the checker can judge: `[]` and `[a]`, `m()`, `!! a`, and the module kinds. The Grammar's buttons example parses, though the doc marks it as a type error.
+- The parser accepts forms for the checker to judge: `[]`, `[a]`, `m()`, `!! a`, and the module kinds. `[]` and `m()` have since been decided to be errors, and `[a]` is `a`; the parser has not changed. The Grammar's buttons example parses, though the doc marks it as a type error.
 - Grammar questions the doc's author hasn't been asked follow the readings in [open-questions.md](open-questions.md).

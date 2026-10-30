@@ -1,0 +1,4 @@
+++ head |= p=[A B]
+  ?- p
+    [a b] a
+++ who (head [~zod "hello"])

@@ -1,0 +1,10 @@
+1:1 glyph ++
+1:4 name self-apply
+1:15 glyph |=(
+1:18 tight name x
+1:20 glyph (
+1:21 tight name x
+1:23 name x
+1:24 tight glyph )
+1:25 tight glyph )
+1:26 NEWLINE

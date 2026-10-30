@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ message: literal needs contextual inference

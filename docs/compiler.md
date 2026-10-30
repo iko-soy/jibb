@@ -31,6 +31,7 @@ From the header of the file:
 | `+parse` | `[file=path src=@t]` | `(each module error)` |
 | `+parse-tokens` | `[file=path toks=(list token)]` | `(each module error)` |
 | `+golden` | `[file=path src=@t]` | `[tokens=@t tree=@t]`: both stages printed, or the rendered error |
+| `+golden-types` | `[file=path src=@t]` | A partial inference report; explicitly says the module has not been checked |
 | `+show-tokens` | `(list token)` | `@t` |
 | `+show-module` | `module` | `@t` |
 | `+show-error` | `[src=@t error]` | `@t` |
@@ -52,6 +53,11 @@ The core is split into chapters, `+|  %name`, in this order:
 | `%parser-helpers` | Error building (`+fail`, `+fail-in`, `+fail-space`, `+fail-line`, `+moved`, …) and the `+then` combinator |
 | `%parser` | The parser's door, `+parser`: one arm per EBNF rule, as `+read-module`, `+read-expr`, `+read-mold` |
 | `%span-check` | `+check-spans`, which `+golden` runs on every tree, and `+check-spans-test` |
+| `%type-inference` | The initial inference fragment and its unification helpers; not yet a module type checker |
+
+The inference fragment supports fixed auras, generic variables and gates, unfaced cells, a two-binder cell pattern, and a complete two-arm loobean branch. It instantiates generalized top-level definitions when they are used. It does not yet check a module, its imports, faces, general patterns, deferred constraints, dependency cycles or errors with both conflicting excerpts. Unsupported forms are reported as such, and the partial output says the module has not been checked.
+
+The separate `jibb-dev/lib/jibb-import.hoon` is an unfinished reader for selected Hoon type graphs. It handles several collections and named recursion, but source-aware aliases and disjointness, marks and integration with the checker remain unfinished. Its fixtures include a real Tlon type; `tools/importer-test` compares the internal projection under eval, and the ship test compares the same golden output.
 
 And the design notes:
 
@@ -91,7 +97,7 @@ Note 4 has examples of each.
 
 ## Tests
 
-`+golden` is the only arm the golden tests call: `tools/golden` runs it under `urbit eval` on every case and compares `tokens.txt` and `tree.txt`; `tools/ship gen-tests` writes a `-test` arm per case that does the same on the ship. Adding a stage, such as the checker's output, means adding a field to `+golden`'s product and teaching both runners, the stub libraries in `tools/testdata` and their self-tests about it.
+`tools/golden` runs `+golden` under `urbit eval` on every case and compares `tokens.txt` and `tree.txt`; opted-in cases also compare `+golden-types` with `types.txt`. `tools/ship gen-tests` writes a `-test` arm per case that does the same on the ship. The type output is provisional until the checker can check complete modules and imports.
 
 ## Speed
 

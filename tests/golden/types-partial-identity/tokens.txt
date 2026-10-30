@@ -1,0 +1,7 @@
+1:1 glyph ++
+1:4 name id
+1:7 glyph |=(
+1:10 tight name x
+1:12 name x
+1:13 tight glyph )
+1:14 NEWLINE

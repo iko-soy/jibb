@@ -74,11 +74,11 @@ Hoon's runes and literals in an indentation layout, over Hoon's nouns and molds,
 | Recursive molds, such as `json` | Recursive, matched by name |
 | Cores, gates, vases, signed and float auras | An error where used |
 
-Unused molds are skipped, so unsupported constructs elsewhere in a `/sur` file are fine. A union without a name, as a field's `?(%approve %deny)`, imports too, though Jibb can't write one.
+Unused molds are skipped, so unsupported constructs elsewhere in a `/sur` file are fine. A union without a name, as a field's `?(%approve %deny)`, imports too, though Jibb can't write one. Messages and printed types show its cases separated by spaces, as `%approve %deny`; this notation is print-only.
 
 ## Prelude
 
-Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/prelude`; an island's bundle carries only what it uses. Only the prelude declares natives, Jibb's jets, and private helpers; Jibb-written gates run unjetted on the ship; *proposed*: list gates such as `turn` become natives that take gates (Core language). It also holds `eq`, `not`, `page`, `program`, `store`, `pure`, `island`, and the layout elements and molds.
+Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/prelude`; an island's bundle carries only what it uses. The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out. Jetted prelude functions have working Jibb implementations; the compiler recognizes their shapes and uses the Hoon versions so jets can fire. They may take gates as arguments (Core language). Private helpers and low-level primitives live in a separate internal prelude module, imported without exposing them; foundational public gates are implemented in Jibb on top of those primitives. The prelude also holds `eq`, `not`, `page`, `program`, `store`, `pure`, `island`, and the layout elements and molds.
 
 | Group | Hoon | Jibb |
 | --- | --- | --- |
@@ -91,10 +91,10 @@ Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/pr
 | Atom printing | [4a](https://docs.urbit.org/hoon/stdlib/4a), [4j](https://docs.urbit.org/hoon/stdlib/4j)–[4m](https://docs.urbit.org/hoon/stdlib/4m) | `scot`, `scow`, `slav`, `slaw`. `print-date` prints Urbit-style in the theme's zone, to the minute, as `~2026.10.29..14.30`, from a zone table jibb-dev keeps current. Numbers print as Hoon does, as `1.000` |
 | Time | [3c](https://docs.urbit.org/hoon/stdlib/3c) | `yore`, `year` |
 | Data molds | [1c](https://docs.urbit.org/hoon/stdlib/1c), [2q](https://docs.urbit.org/hoon/stdlib/2q), `coin` and `dime` from [3g](https://docs.urbit.org/hoon/stdlib/3g) | `unit`, `list`, `pair`, `tape`, `path` and the rest |
-| Bits | [2c](https://docs.urbit.org/hoon/stdlib/2c), [2d](https://docs.urbit.org/hoon/stdlib/2d) | Natives; `met`, `cut`, `rap`, `rip` exposed. Jibb's `not` negates a loobean |
+| Bits | [2c](https://docs.urbit.org/hoon/stdlib/2c), [2d](https://docs.urbit.org/hoon/stdlib/2d) | Jibb's `not` negates a loobean; Hoon's bitwise `not` is exposed as `not.bit` |
 | Hashing and ordering | [2e](https://docs.urbit.org/hoon/stdlib/2e), [2f](https://docs.urbit.org/hoon/stdlib/2f) | Natives behind maps and sets; `aor` exposed |
 | Signed and floats | [3a](https://docs.urbit.org/hoon/stdlib/3a), [3b](https://docs.urbit.org/hoon/stdlib/3b) | Left out; `@s…` and `@r…` auras are errors, imported ones included |
-| Parsers | [4d](https://docs.urbit.org/hoon/stdlib/4d)–[4i](https://docs.urbit.org/hoon/stdlib/4i) | Left out |
+| Parsers | [4d](https://docs.urbit.org/hoon/stdlib/4d)–[4i](https://docs.urbit.org/hoon/stdlib/4i), parser helpers in 4j and 4l | Left out, except the explicitly listed `slav` and `slaw` |
 | The rest | [1b](https://docs.urbit.org/hoon/stdlib/1b), [2p](https://docs.urbit.org/hoon/stdlib/2p), [3d](https://docs.urbit.org/hoon/stdlib/3d), [3f](https://docs.urbit.org/hoon/stdlib/3f), [4c](https://docs.urbit.org/hoon/stdlib/4c), [4n](https://docs.urbit.org/hoon/stdlib/4n), [4o](https://docs.urbit.org/hoon/stdlib/4o), [5a](https://docs.urbit.org/hoon/stdlib/5a)–[5f](https://docs.urbit.org/hoon/stdlib/5f) | Left out; `jam`, `cue` and `fein` run inside the runtime |
 
 Maps are Hoon's trees on both sides, so equal maps are equal nouns. Requests check incoming maps and sets with `apt`.
@@ -152,7 +152,7 @@ Loads and renders run in Nock.
 
 - `poke` and `ask` are opaque, built only by derived gates and `pure`. A constructor such as `(todo-action.todo [%add draft.m])` checks its value and supplies the agent and mark, so one island can poke several agents. The agent's mark rechecks on the ship; a nack's `tang` reaches the reply as text. Store constructors poke the store in the browser.
 - A request such as `(todos.todo |=%got)` comes from a declared path or a store's `state`; its reply always gets full state. A path with diffs also takes a fold, `(changes.todo |=%got apply)`, which the runtime applies first. Facts are checked; a bad one crashes the reply, which counts as a crashed `update`.
-- Islands read agents only by watching. A watch's first fact must be full state, so islands can't watch paths that need a separate scry path. The runtime acks facts, rewatches after a kick or a dropped connection and reseeds from the first fact; a refused watch shows the crash notice.
+- Islands read agents only by watching. A watch's first fact must be full state, so watching a request whose path case has a separate `scry=` path is a type error in an island. The runtime acks facts, rewatches after a kick or a dropped connection and reseeds from the first fact; a refused watch shows the crash notice.
 - Watches match by agent and path, timers by gap, and the newest reply is always used. After each `update`, `subs` is diffed to start and stop watches and timers. `%now` and `%every` give the time, `%who` the owner's `@p` from `/~/name`; `%wait` is a one-shot delay.
 
 Inputs send a message per `input` event, and one per IME composition, so validation runs as you type; only commands reach the ship. After every event, controls reset to the latest view, so a toggle whose poke fails unchecks. A field's text is rewritten only when it differs, which keeps the caret. Fields are read-only until their island starts.
@@ -161,7 +161,7 @@ Inputs send a message per `input` event, and one per IME composition, so validat
 
 - `init` runs on the ship with the page's data and returns only the model, jammed into the page; the browser resumes from it at start. A reload starts from the model the page is served with.
 - A crash in `update` drops the message, keeps the model and shows the standard notice.
-- Stores share state between a page's islands. A store module, written like an API file, has `state`, `+$ poke` and `++ main (store init update)`, where `update` applies a poke. Islands import it with `/=` and use its derived gates: a constructor per poke type, and `(state.cart |=%got)`, whose first fact is the current state and each later fact the next.
+- Stores share state between a page's islands. A store module, written like an API file, has `state`, `+$ poke` and `++ main (store init update)`, where `update` applies a poke. The store's `+$ poke` is a declaration, not a mold. Islands import it with `/=` and use its derived gates: a constructor per poke type, and `(state.cart |=%got)`, whose first fact is the current state and each later fact the next.
 - A store runs in the browser from its `init` when its first island starts, and lasts as long as the page. Islands keep what they watch in their own models.
 - An app is a page whose view is one island under a catch-all route; its `load` passes the path with `pure`. The island's `%url` subscription delivers the path at start and after every change, back and forward included. `go` pushes history, and `go` or `link` within the section changes the island without a reload. Focus then moves to the new view's first heading, which screen readers announce.
 
@@ -177,10 +177,10 @@ Elements are ordinary gates with their own signatures. Containers take attribute
 | `para` | `kids` | Flowing text |
 | `text` | A cord | Text |
 | `heading` | `level words` | `<h1>` to `<h6>` |
-| `each` | `(list [key=* el=(element M)])` | Keyed children; repeated keys match in order |
-| `table` | Columns `(list [header=@t width=length align=align])`, rows `(list [key=* cells=(list (element M))])` | A table with keyed rows |
-| `image` | `src description`, with `src` an application path to a static image or `[url=@t width=@ud height=@ud]` | Boxed to its aspect ratio before loading, never wider than its container; static images are sized from the file; `""` marks it decorative |
-| `link` | `url label` | See Links and URLs |
+| `each` | `(list [key=K el=(element M)])` | Keyed children; repeated keys match in order |
+| `table` | Columns `(list [header=@t width=length align=align])`, rows `(list [key=K cells=(list (element M))])` | A table with keyed rows |
+| `image`, `image-unsafe` | Application path and description; `[url=@t width=@ud height=@ud]` and description, respectively | Boxed to its aspect ratio before loading, never wider than its container; static images are sized from the file; `""` marks it decorative |
+| `link`, `link-unsafe` | Application path and label; unchecked cord and label, respectively | See Links and URLs |
 | `button` | `label msg` | A control |
 | `toggle` | `on label msg` | A control |
 | `field` | `label value reply` | A control; `reply` turns its text into a message, as `\|=%typed` |
@@ -223,7 +223,7 @@ Style attributes compile to atomic classes in one stylesheet built from the them
 
 Both backends escape all text and attributes. In-app links are application paths, `%/blog` or `%/blog/(slug.p)`, checked at compile time against routes and static files; parameters print by aura, and the base path is implicit. They carry no query or fragment, so apps keep their state in the path.
 
-`link`, `image` and `go` also take two kinds of unchecked cord: a root-relative path to another app on the ship, such as `"/apps/groups"`, and an `https`, `mailto` or `tel` URL. A cord starting `//` or `/\` is neither. Any other cord, such as `javascript:`, is drawn as text, and `go` ignores it. External links open in a new tab with `noopener`. Pages send a Content-Security-Policy allowing scripts only from the ship.
+Links, images and navigation also accept two kinds of unchecked cord, through declarations separate from the application-path forms: a root-relative path to another app on the ship, such as `"/apps/groups"`, and an `https`, `mailto` or `tel` URL. `link-unsafe`, `image-unsafe` and `go-unsafe` are the unchecked forms. Both navigation declarations produce the `[%go url=@t]` command; `go` converts the application path to a cord, including the app's base path. A cord starting `//` or `/\` is neither. Any other cord, such as `javascript:`, is drawn as text, and `go` ignores it. External links open in a new tab with `noopener`. Pages send a Content-Security-Policy allowing scripts only from the ship.
 
 ## Stages
 
@@ -293,7 +293,7 @@ Each agent Jibb talks to has `/ui/api/<agent>.jibb`, declaring its pokes in `+$ 
 +$ paths
   [%todos /todos todos]
   [%changes /changes (facts todos todo-update)]
-  [%todo /todo/[id=@ud] todo-item]
+  [%todo-by-id /todo/[id=@ud] todo-item]
 ```
 
 A path case is a request name, a path and a type. A plain mold is full state, which a watch's first fact must carry. `(facts full diff …)` adds diffs, told apart by mark, and its request takes a fold, here `$-([[%todo-update todo-update] todos] todos)`. Pages scry the path, so the agent must answer a peek there. A case can name another scry path, as in `[%changes /updates (facts todos todo-update) scry=/todos]`, used only by pages.
@@ -330,7 +330,7 @@ Pages route by their path under `/ui`; islands, stores and libraries are only im
 - Parameters bind to `load`'s sample by name, which must have exactly those fields; a catch-all's is a `path`.
 - `/apps/my-app/~jibb/` and `/apps/my-app/static/` belong to the host.
 
-Typed segments share one notation across routes, application paths and agent paths. `@ta` and `@tas` are raw text, checked as knots, as `/blog/my-post`; other auras print and parse as Hoon does, so `@ud` is `1.000`. The host splits the raw URL, so dots stay inside segments; a segment that doesn't parse is a 404. `%/todo/(id)` and `[%todo /todo/[id=@ud] todo-item]` print the same way.
+Typed segments share one notation across routes, application paths and agent paths. `@ta` and `@tas` are raw text, checked as knots, as `/blog/my-post`; other auras print and parse as Hoon does, so `@ud` is `1.000`. The host splits the raw URL, so dots stay inside segments; a segment that doesn't parse is a 404. `%/todo/(id)` and `[%todo-by-id /todo/[id=@ud] todo-item]` print the same way.
 
 ### Desk layout
 

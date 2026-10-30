@@ -59,6 +59,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | Tool | What it does |
 | --- | --- |
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
+| `tools/importer-test` | Compares the partial Hoon importer's diagnostic trees and errors with `tests/importer/tree.txt` under `urbit eval` |
 | `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
 | `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
@@ -71,8 +72,9 @@ git clone https://github.com/urbit/tools /root/src/tools
 
 ```
 tools/golden                       # all cases pass
+tools/importer-test                # Hoon importer fixture projections match
 tools/hoon check-spans-test        # prints <<>>
-tools/testdata/selftest            # 18 checks, 0 failed
+tools/testdata/selftest            # 19 checks, 0 failed
 tools/doc-blocks docs/spec         # every jibb block has its case
 tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date
 tools/ship test                    # the cases pass as -test arms on the ship
@@ -80,7 +82,7 @@ tools/testdata/ship-selftest       # when tools/ship changed
 tools/ship check-commit            # when the mark or the desks changed
 ```
 
-`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file.
+`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer.
 
 ## Golden cases
 
@@ -89,6 +91,8 @@ A case is a folder `tests/golden/<name>/` holding:
 - `source.jibb`, the input, ending in one newline;
 - `about.txt`: a `source:` line with the doc's words or block it comes from, a `tests:` line saying what it exercises, and an `expect:` line, either `parses` or `error at <line>:<col>` and why (one case, `inline-leftout-signed-float-auras`, says `unclear`: see grammar question 13 in [open-questions.md](open-questions.md));
 - the expected outputs, `tokens.txt` and `tree.txt`, each the output plus one newline.
+- optionally, `path.txt`, the logical `/ui/.../*.jibb` path to pass to the compiler; the source remains `source.jibb`.
+- optionally, an `expect-types:` line in `about.txt` opts the case into `+golden-types`; `types.txt` holds its output plus one newline and `--update` creates it. A `types.txt` also opts in when the line is absent. This interface is provisional while the checker is under construction.
 
 Names say what a case is for:
 

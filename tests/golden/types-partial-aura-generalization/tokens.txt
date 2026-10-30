@@ -1,0 +1,16 @@
+1:1 glyph ++
+1:4 name id
+1:7 glyph |=(
+1:10 tight name x
+1:12 name x
+1:13 tight glyph )
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name hex
+2:8 glyph ^-
+2:11 aura @ux
+2:15 glyph (
+2:16 tight name id
+2:19 lit 1
+2:20 tight glyph )
+2:21 NEWLINE

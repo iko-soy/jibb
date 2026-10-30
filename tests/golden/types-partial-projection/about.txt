@@ -1,0 +1,4 @@
+source: Grammar tab, Molds: "every expression has a principal type, and there is no subtyping".
+tests: a polymorphic first projection applied to a ship and a cord.
+expect: parses
+expect-types: a partial inference report, not a checked module

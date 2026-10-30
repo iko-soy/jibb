@@ -1,0 +1,4 @@
+source: Grammar tab, Molds: "every expression has a principal type, and there is no subtyping".
+tests: partial inference: a forward reference remains unsupported.
+expect: parses
+expect-types: a partial inference report, not a checked module

@@ -36,7 +36,7 @@ The front end guarantees the backends:
 
 - **No shadowing.** No binding hides another: Jibb forbids it, and generated names start with `_`, which Jibb names can't.
 - **`rec` binds functions.** Every right side of a `rec` is a `lam`.
-- **Functions aren't taken apart.** `cell?`, `eq`, `slot` and `edit` never get a function itself, and `eq` never compares nouns that contain one. Island data and models are already first-order. *Proposed*: so are `eq`'s arguments and map and set keys, and a gate never tells a union's cases apart.
+- **Functions aren't taken apart.** `cell?`, `eq`, `slot` and `edit` never get a function itself, and `eq` never compares nouns that contain one. Island data and models are already first-order. So are `eq`'s arguments and map and set keys, and a gate never tells a union's cases apart.
 - **Strict evaluation.** A call's sample is evaluated before the call, and a node's parts in text order; `if` evaluates only the branch it takes. Only `trace` and `crash` can observe the order, and differential tests compare results and whether a program crashes, not traces. So the backends may evaluate a node's parts in another order, as Nock 10 does with edit's v and e.
 - **Crashes stay crashes.** Where types already guarantee a test, the backends still crash on a violation, as Nock does, instead of carrying on.
 
@@ -141,14 +141,14 @@ lowers to the program below. The model `[todos draft error]` puts `todos` at axi
 
 - Each module lowers to `(module <path> (def name e) …)`, in source order. Its own and the prelude's definitions are named plainly, since no name may shadow another; imports are qualified, as in `api/todo:todo-action`.
 - The linker builds one program per entry: on the ship, each page; in the browser, each island's `update`, `view` and `subs`, and each store. It keeps only the definitions the entry reaches, sorts them by dependency into `let`s and `rec`s, and ends with the entry.
-- Values that aren't gates are computed once per program, before anything calls them; the Nock backend may compute them at build time. *Proposed*: a value that depends on itself, even through a gate, is an error.
+- Values that aren't gates are computed once per program, before anything calls them; the Nock backend may compute them at build time. A value that depends on itself, even through a gate, is an error.
 - A module used as a whole value is a cell of its definitions, in name order.
 
 ## Natives
 
-- Only the prelude declares natives. Each has a Jibb type, a Hoon gate in `/lib/jibb` that calls the standard library, so its jets fire, and a JavaScript function in the runtime. Differential tests check each pair.
+- Jetted prelude functions have working Jibb implementations. Foundational gates use private low-level primitives from the internal prelude module. The compiler recognizes the functions' shapes and uses the corresponding Hoon versions, so their jets can fire. The JavaScript runtime supplies corresponding implementations; differential tests check their behavior.
 - The lowering uses a few private ones: `join` for interpolation, a printer per aura, and the map and set checks in validators.
-- *Proposed*: natives may take gates. On the ship a Jibb gate is shaped like Hoon's, so Hoon's own `turn`, `sort` and `skim` can call it, with their jets where vere has them. In JavaScript they're loops, which keeps long lists off the stack. This would replace the rule that Jibb-written gates such as `turn` run unjetted on the ship. A native only calls such a gate and never takes it apart, so the invariant above still holds.
+- Jetted prelude functions may take gates. On the ship a Jibb gate is shaped like Hoon's, so functions such as `turn`, `sort` and `skim` can call it. In JavaScript native implementations can use loops, which keeps long lists off the stack. Such a function only calls the gate and never takes it apart, so the invariant above still holds.
 
 ## Backends
 

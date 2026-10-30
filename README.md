@@ -2,11 +2,11 @@
 
 Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its design doc, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), is the spec, and where this code and the doc disagree, the doc wins.
 
-Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milestone 2, types and prelude, is next. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and the brief for milestone 2.
+Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milestone 2, types and prelude, is in progress. The type checker and Hoon importer are partial. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and the brief for milestone 2.
 
 ## Layout
 
-- `jibb-dev/`: what app desks vendor: the `%jibb` mark (`mar/jibb.hoon`) and the compiler (`lib/jibb.hoon`, one Hoon core without Ford runes); later the prelude and browser library.
+- `jibb-dev/`: what app desks vendor: the `%jibb` mark, the compiler, the partial Hoon type reader and the beginning of the prelude; later the browser library.
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
@@ -16,7 +16,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 
 ## Golden tests
 
-Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline.
+Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it.
 
 Run them without a ship. This needs `urbit` on PATH and Python 3.
 
@@ -42,7 +42,7 @@ tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
 tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb src)'
 ```
 
-`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes.
+`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file.
 
 ### The doc's examples
 
@@ -74,7 +74,7 @@ tools/ship stop
 | `jibb` | `vendor/*`, then `jibb` |
 | `jibb-dev` | `vendor/*`, then `jibb-dev`, then `tests/`, with `tests/lib/jibb.hoon` generated, and `jibb/sys.kelvin` |
 
-The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, and its `test-` arm compares `golden:jibb` with them. Don't edit that file; `--check` says whether it's up to date. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
+The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the partial inference output. Don't edit that file; `--check` says whether it's up to date. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
 
 ```
 tools/ship test                                   # the library and tests/golden

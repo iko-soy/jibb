@@ -18,6 +18,11 @@
 ::  test that errors are reported at the right lines.
 ::
 |%
+++  golden-types
+  |=  [file=path src=@t]
+  ^-  @t
+  (crip "type of {(spud file)}: {(a-co:co (met 3 src))} bytes")
+::
 ++  golden
   |=  [file=path src=@t]
   ^-  [tokens=@t tree=@t]

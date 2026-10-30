@@ -8,8 +8,9 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 
 | Decision | Choice | Status |
 | --- | --- | --- |
-| Syntax | Hoon's runes as keywords, and its literals; wide forms only for `\|=` and `$-`; changes take record items, as `m(draft="x")`; `.` reads fields, imports and prelude groups; no name may shadow another | Decided 2026-10-30 |
+| Syntax | Hoon's runes as keywords, and its literals; wide forms only for `\|=` and `$-`; changes take one or more record items, as `m(draft="x")`, so `m()` is an error; `.` reads fields, imports and prelude groups; no name may shadow another | Decided 2026-10-30 |
 | Literals | Exactly Hoon's: `1000` is an error, `~2026.2.31` is `~2026.3.3`, and years BC and sub-second groups are dates; `print-date`'s minute form is not a literal | Decided 2026-10-30 |
+| Cells | A single-item cell `[a]` is `a`; an empty `[]` is an error, in expressions and molds | Decided 2026-10-30 |
 | Numeric terms | `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors | Decided 2026-10-30 |
 | Strings | Hoon's escapes: `\\`, `\"`, `\{`, and `\` with two lowercase hex digits; a string and each `{…}` close on the line they open; `::` in a string is text | Decided 2026-10-30 |
 | Spacing | Style, kept by the formatter: one or more spaces between items, and spaces allowed after an opener, before a closer and at the end of a line; faces, puns and typed path segments take no spaces; a rune is followed by one | Decided 2026-10-30 |
@@ -17,27 +18,31 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Crash | `!!` is an operand, so `f !!` and `~[!!]` need no parentheses | Decided 2026-10-30 |
 | Sample names | Every bare name in a sample binds, at any depth: `\|= [a=@ b]` binds `a` and `b` | Decided 2026-10-30 |
 | Local definitions | At the start of any body: a gate's, an arm's, a `^-`'s, a `~&`'s or a `++`'s | Decided 2026-10-30 |
+| Value cycles | A non-gate value that depends on itself, even through a gate, is an error; mutually recursive gates are allowed | Decided 2026-10-30 |
 | Open molds | A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line | Decided 2026-10-30 |
 | Open groups | A `(` alone at line end puts the call's head on the first deeper line | Decided 2026-10-30 |
 | Several open brackets | The deeper lines go to the last bracket, or the last rune's body, left open on a line, and the brackets before it close with it: `(column ~ ~[` needs no `)` | Decided 2026-10-30 |
 | Jibb code blocks | Labelled `jibb` in this doc; each is a golden test | Decided 2026-10-30 |
 | Definitions | `++` for values, `+$` for molds; no `=/` | Decided |
 | Unions | No `$?`: a `+$` with its cases on the lines below is a union, so every union written in Jibb has a name; one case is just that mold; a mold that isn't a union counts as a union of one case for tags and `\|=%tag`; a generic's `\|$` comes right after the `+$`'s name; tags anywhere; cases differ as nouns; a tag literal or `~` waits for its union, and an unresolved one is an error | Decided 2026-10-30 |
+| Printed unnamed unions | Print the cases separated by spaces, as `%approve %deny`; this is print-only, not Jibb syntax | Decided 2026-10-30 |
+| Printed gate-free constraints | Print the type followed by `where A contains no gates`, as `$-([A A] ?) where A contains no gates` | Decided 2026-10-30 |
 | Branching | `?-` only, loobeans included; exhaustive, with explicit catch-alls; covered arms are errors; failures say `!!` | Decided 2026-10-29 |
-| Equality and negation | The gates `eq` and `not` | Decided |
+| Equality and negation | The gates `eq` and `not`, with Hoon's bitwise `not` exposed as `not.bit`; `eq`'s arguments and map and set keys contain no gates, even nested; the checker infers and generalizes that constraint; union matching never inspects a gate to distinguish cases | Decided 2026-10-30 |
 | Special rules | No built-ins; type-directed rules are welcome, each listed in the Grammar tab | Decided 2026-10-29 |
-| Inference | Hindley–Milner with aura variables; a bare `@` in a `+$` is one per module, `@ud` if unfixed, and elsewhere each is its own, generalized per `++`; a number takes `@ud` only where its `++` isn't generic over its aura; different auras never unify; faces are part of record types; principal types | Decided 2026-10-30 |
+| Inference | Hindley–Milner with aura variables; a bare `@` in a `+$` is one per module, `@ud` if unfixed, and elsewhere each is its own, generalized per `++`; a number takes `@ud` only where its `++` isn't generic over its aura; different auras never unify; faces are part of record types, and an unnamed position can take a face but two different faces don't unify; principal types | Decided 2026-10-30 |
 | Effects | The library unions `cmd` and `sub`; pokes and requests are opaque, from derived gates and `pure`; islands read agents only by watching; replies get full state, and diffs take a fold; timers carry the time; `%who` gives the owner's `@p`; nacks reach replies as text | Decided 2026-10-29 |
-| Agent APIs | `/ui/api/<agent>.jibb` with `+$ poke` and `+$ paths`, over the agent's mark types; a case is a name, a path and a type, with `(facts full diff …)` for diffs, told apart by mark; an optional scry path, for pages; typed segments by aura | Decided 2026-10-29 |
+| Agent APIs | `/ui/api/<agent>.jibb` with `+$ poke` and `+$ paths`, over the agent's mark types; a case is a name, a path and a type, with `(facts full diff …)` for diffs, told apart by mark; an optional scry path, for pages; an island watching such a request has a type error; typed segments by aura | Decided 2026-10-30 |
 | Mark names | Any name: `/%` names types after marks, and constructors poke with their type's mark; no alias marks | Decided 2026-10-26 |
-| Derived gates | API files and stores give a constructor per poke type and a checked request per path or store state; clashing names are errors | Decided 2026-10-29 |
+| Derived gates | API files and stores give a constructor per poke type and a checked request per path or store state; clashing names are errors, including a derived name that clashes with an import face | Decided 2026-10-30 |
 | Hoon types | A fixed translation table; `map`, `set`, `qeu`, `jar`, `jug` by name; `mop` as `(mop K V)`, read with `on`; unused molds skipped | Decided 2026-10-29 |
 | Layout | Indentation; juxtaposed calls; a bracket open at line end takes one item per line, with no closer | Decided |
 | Elements | Ordinary gates; containers take attribute lists; `stack` switches at `wide`; `el` adds attributes and wins; headings 1 to 6; `form` sends on Enter, the innermost when nested; `image` from an application path, sized from the file, or a sized URL; no focus control for now | Decided 2026-10-29 |
 | Long calls | One argument per line inside parentheses | Decided |
 | Inline gates | Hoon's wide form; the mold may be inferred; a bare sample name binds; `\|=%got` is a case's constructor, typed by the gate expected; a bare tag is always a value | Decided 2026-10-29 |
 | Empty mold | `!!`, with no values; the expression has any type; pages are `(element !!)`, which keeps islands out of islands | Decided 2026-10-29 |
-| Type variables | Capitals, generalized per `++`; one that meets an atom becomes an aura variable, and nothing more specific | Decided 2026-10-30 |
+| Noun mold | `*` is the noun type, not a type variable; use a capital for a generic type; a value of a more specific noun type can be used where `*` is expected | Decided 2026-10-30 |
+| Type variables | Capitals, generalized per `++`; a capital in a local `++` shares the enclosing `++`'s variable of that name, and a different type takes a different capital; one that meets an atom becomes an aura variable, and nothing more specific | Decided 2026-10-30 |
 | Loobean mold | `?`, switched with `?-` | Decided 2026-10-26 |
 | Defaults | None | Decided |
 | Modules | Records, not cores | Decided |
@@ -62,16 +67,16 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Inputs | A message per input event, none mid-composition; controls reset to the latest view after every event; fields read-only until the island starts | Decided 2026-10-29 |
 | Transactions | None; one poke per command | Decided |
 | Reloads | Restart from the model the page is served with | Decided 2026-10-29 |
-| Shared state | Stores: browser agents written like API files, with `state`, `+$ poke` and `(store init update)`; poked and watched through derived gates; one per page | Decided 2026-10-29 |
+| Shared state | Stores: browser agents written like API files, with `state`, `+$ poke` and `(store init update)`; the store's `+$ poke` is a declaration, not a mold; poked and watched through derived gates; one per page | Decided 2026-10-30 |
 | Subscriptions | By agent and path, shared per page; the first fact is full state, so no paths that need a scry path | Decided 2026-10-29 |
 | Apps | One island under a catch-all route, given the path by `pure`; `%url` delivers the path on every change; in-section links act as `go`; focus moves to the first heading | Decided 2026-10-29 |
 | Layout vocabulary | Jibb's elements and theme tokens; the stylesheet comes from the theme alone; chars and fill are inline; `[%fill n]` below 1 counts as 1 | Decided 2026-10-29 |
 | Responsive layout | `stack` switches at the theme's `wide` | Decided 2026-10-29 |
 | Theme | A prelude mold with every token required: spaces, five tones with `normal` and `background`, language, zone, `wide`, and an optional static font; 4.5:1 contrast enforced | Decided 2026-10-29 |
 | Dark mode | Hand-written dark tones under `dark`, used when the reader prefers dark | Decided 2026-10-27 |
-| Links | All text escaped; in-app links are application paths, as `%/blog/(slug)`, with no query or fragment, checked at compile time against routes and static files; `link`, `image` and `go` also take unchecked `https`, `mailto` and `tel` URLs and root-relative cords such as `"/apps/groups"`; other cords render as text; a CSP on every page | Decided 2026-10-29 |
+| Links | All text escaped; in-app links are application paths, as `%/blog/(slug)`, with no query or fragment, checked at compile time against routes and static files; paths and unchecked `https`, `mailto` and `tel` URLs and root-relative cords such as `"/apps/groups"` have separate declarations; `link-unsafe`, `image-unsafe` and `go-unsafe` are the unchecked forms; both navigation declarations produce `[%go url=@t]`, with `go` converting the path to a cord including the app's base path; other cords render as text; a CSP on every page | Decided 2026-10-30 |
 | Data layer | Hoon's nouns: units, treaps, loobeans | Decided |
-| Prelude | Hoon's standard library regrouped: arithmetic over aura variables, units, lists, maps, sets, queues, ordered maps, function helpers, text, atom printing, a zoned date printer, time and data molds; folds take a start; bits and hashing as natives; no signed, float or parser gates, and signed or float auras are errors | Decided 2026-10-29 |
+| Prelude | Hoon's standard library regrouped: all names from the listed sections except explicitly excluded groups, including arithmetic over aura variables, units, lists, maps, sets, queues, ordered maps, function helpers, text, atom printing, a zoned date printer, time and data molds; folds take a start; jetted functions have working Jibb implementations, whose shapes the compiler recognizes to use the Hoon versions, and may take gates; private helpers and low-level primitives live in a separate internal module imported without exposing them, with public foundational gates implemented in Jibb on those primitives; no signed, float or parser gates except `slav` and `slaw`, and signed or float auras are errors | Decided 2026-10-30 |
 | Wire format | Noun channels; Jibb's own noun codec in the browser | Decided 2026-10-29 |
 | Hosting | One thin host agent on `%jibb` binds, caches and serves every Jibb desk; each desk vendors jibb-dev, names its base path in docket's `site+`, and builds and renders with its own copy through fixed entry points; install `%jibb` first; app agents stay plain Hoon; pokes only from the ship | Decided 2026-10-29 |
 | Private pages | Served by the host per request and never cached; non-owners go to the login page | Decided 2026-10-29 |

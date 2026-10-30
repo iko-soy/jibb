@@ -1,0 +1,6 @@
+(module
+  (value 1:1 n (lit 1:6 1))
+  (value 2:1 good
+    (cast 2:9 (aura 2:12 @ux) (lit 2:16 1)))
+  (value 3:1 bad
+    (cast 3:8 (flag 3:11) (lit 3:13 1))))

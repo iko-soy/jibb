@@ -1,0 +1,8 @@
+(module
+  (value 1:1 id
+    (gate-wide 1:7 (bind 1:10 x) (wing 1:12 x)))
+  (value 2:1 hex
+    (cast 2:8
+      (aura 2:11 @ux)
+      (group 2:15
+        (call 2:16 (wing 2:16 id) (lit 2:19 1))))))

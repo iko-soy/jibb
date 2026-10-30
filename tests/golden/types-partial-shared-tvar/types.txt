@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ dup: $-([A A] [A A])
+++ good: [@p @p]
+++ bad: call's sample and argument types do not unify

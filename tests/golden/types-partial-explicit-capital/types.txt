@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ f: explicit capital constraints are not supported by partial inference

@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ n: unresolved aura-variable inference
+++ good: @ux
+++ bad: cast mold and expression type do not unify

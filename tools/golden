@@ -9,7 +9,9 @@ parser).  The runner builds one Hoon program, `!:  =>  <library>
     ++  golden  |=  [file=path src=@t]  ^-  [tokens=@t tree=@t]
 
 on every case, each under mule so that one crash doesn't stop the rest,
-with file set to the case's Clay path, /tests/golden/<case>/source/jibb.
+with file set to the case's Clay path, /tests/golden/<case>/source/jibb,
+or its logical /ui path from path.txt. Cases with an expect-types: line
+or types.txt also call +golden-types and compare its output with types.txt.
 It runs the program with `urbit eval`, decodes the jammed result, and
 compares each output with its file, which holds the output plus one
 trailing newline.
@@ -34,6 +36,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
 import urbit_eval as ue  # noqa: E402
+import golden_case  # noqa: E402
 from noun import atom_to_bytes  # noqa: E402
 
 DEFAULT_DIR = os.path.join(ue.ROOT, 'tests', 'golden')
@@ -43,7 +46,7 @@ KNOT = re.compile(r'^[a-z0-9\-.~_]+$')
 HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
 ::  golden:lib on each case under mule and returns one cord of fields,
 ::  each <length>:<bytes>, first jibb-golden and the case count, then
-::  per case its name, ok or crash, tokens and tree.
+::  per case its name, ok or crash, tokens, tree and types.
 ::
 =>  [lib=. ..zuse]
 |^  %+  rap  3
@@ -52,14 +55,15 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
     ==
 ::
 ++  run
-  |=  [name=@t src=@t]
+  |=  [name=@t metadata=[logical=(unit path) check=?] src=@t]
   ^-  @t
-  =/  res  (mule |.((golden:lib (file name) src)))
+  =/  at=path  ?~(logical.metadata (file name) u.logical.metadata)
+  =/  res  (mule |.([(golden:lib at src) {types-expr}]))
   ?:  ?=(%| -.res)
     =/  why=@t  (crash p.res)
-    (fields ~[name 'crash' why why])
-  =/  out=[tokens=@t tree=@t]  p.res
-  (fields ~[name 'ok' tokens.out tree.out])
+    (fields ~[name 'crash' why why why])
+  =/  out=[[tokens=@t tree=@t] types=@t]  p.res
+  (fields ~[name 'ok' tokens.out tree.out types.out])
 ::
 ++  file
   |=  name=@
@@ -102,6 +106,11 @@ class Case:
         self.name = name
         self.folder = folder
         self.source_path = os.path.join(folder, 'source.jibb')
+        try:
+            self.logical_path = golden_case.source_path(folder)
+        except ValueError as e:
+            raise ue.ToolError(str(e))
+        self.want_types = golden_case.wants_types(folder)
         with open(self.source_path, 'rb') as f:
             self.source = f.read()
         self.crashed = False
@@ -134,7 +143,10 @@ def run_lines(case):
     into several cords, as Hoon reads a long cord literal in about
     quadratic time (ue.cord_pieces)."""
     lines = ue.cord_pieces(case.source)
-    out = ['        %%+  run  %s' % ue.cord_literal(case.name.encode()),
+    out = ['        %%^  run  %s  [%s %s]' % (
+               ue.cord_literal(case.name.encode()),
+               '`' + case.logical_path if case.logical_path else '~',
+               '%.y' if case.want_types else '%.n'),
            '        %-  text',
            '        :~  ' + ue.cord_literal(lines[0])]
     out += ['            ' + ue.cord_literal(line) for line in lines[1:]]
@@ -146,7 +158,11 @@ def golden_program(lib_path, cases):
     prog = ue.library_program(lib_path)
     runs = '\n'.join(line for case in cases for line in run_lines(case))
     prog.add(HARNESS.replace('{count}', str(len(cases)))
-                    .replace('{runs}', runs), '(harness)', 'harness')
+                    .replace('{runs}', runs)
+                    .replace('{types-expr}',
+                             '?:(check.metadata (golden-types:lib at src) \'\')'
+                             if any(c.want_types for c in cases) else "''"),
+             '(harness)', 'harness')
     return prog
 
 
@@ -179,10 +195,10 @@ def decode(prog, noun, cases):
     except ValueError as e:
         raise ue.ToolError('the harness output is malformed: %s' % e)
     if fields[:2] != [MAGIC, str(len(cases)).encode()] or \
-            len(fields) != 2 + 4 * len(cases):
+            len(fields) != 2 + 5 * len(cases):
         raise ue.ToolError('the harness output has the wrong shape')
     for i, case in enumerate(cases):
-        name, status, tokens, tree = fields[2 + 4 * i:6 + 4 * i]
+        name, status, tokens, tree, types = fields[2 + 5 * i:7 + 5 * i]
         if name != case.name.encode():
             raise ue.ToolError('the harness output is out of order at %s'
                                % case.name)
@@ -190,8 +206,10 @@ def decode(prog, noun, cases):
         if case.crashed:
             tokens, case.crash_at = crash_text(
                 prog, tokens.decode('utf-8', 'surrogateescape').split('\n'))
-            tree = tokens
+            tree = types = tokens
         case.outputs = {'tokens': tokens, 'tree': tree}
+        if case.want_types:
+            case.outputs['types'] = types
 
 
 def eval_crash(prog, res, case):
@@ -199,6 +217,8 @@ def eval_crash(prog, res, case):
     case.crashed = True
     out, case.crash_at = crash_text(prog, ['CRASH', res.describe()] + res.trace)
     case.outputs = {'tokens': out, 'tree': out}
+    if case.want_types:
+        case.outputs['types'] = out
 
 
 def run_batch(lib_path, cases, opts, top=True):
@@ -214,12 +234,16 @@ def run_batch(lib_path, cases, opts, top=True):
         return
     if res.is_compile_error():
         lib = ue.display_path(lib_path)
+        signature = ("error: the golden harness doesn't compile "
+                     "against %s, whose golden arm must be\n"
+                     "  ++  golden  |=  [file=path src=@t]  ^-  [tokens=@t tree=@t]"
+                     % lib)
+        if any(c.want_types for c in cases):
+            signature += ("\nand whose golden-types arm must be\n"
+                          "  ++  golden-types  |=  [file=path src=@t]  ^-  @t")
         report = ue.failure_report(
             prog, res, "error: %s doesn't compile" % lib,
-            harness_headline="error: the golden harness doesn't compile "
-            "against %s, whose golden arm must be\n"
-            "  ++  golden  |=  [file=path src=@t]  ^-  [tokens=@t tree=@t]"
-            % lib)
+            harness_headline=signature)
         hint = ue.lib_hint(ue.read_text(lib_path))
         raise ue.ToolError(report + ('\n\n' + hint if hint else ''))
     if len(cases) == 1:
@@ -290,7 +314,7 @@ def compare(case):
                     case.crash_at.excerpt(indent='    ')]
         return False, out
     problems = []
-    for kind in ('tokens', 'tree'):
+    for kind in case.outputs:
         path = os.path.join(case.folder, kind + '.txt')
         want = case.outputs[kind] + b'\n'
         if os.path.isfile(path):
@@ -312,7 +336,7 @@ def compare(case):
 def update(case):
     """Write a case's outputs; returns the paths written."""
     written = []
-    for kind in ('tokens', 'tree'):
+    for kind in case.outputs:
         path = os.path.join(case.folder, kind + '.txt')
         want = case.outputs[kind] + b'\n'
         try:
@@ -329,7 +353,7 @@ def update(case):
 
 def show(case):
     out = []
-    for kind in ('tokens', 'tree'):
+    for kind in case.outputs:
         out.append(colour('1', '==> %s: %s <==' % (case.name, kind)))
         out.append(case.outputs[kind].decode('utf-8', 'surrogateescape'))
     return out
@@ -341,19 +365,19 @@ def main(argv):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='Run the golden tests (tests/golden/<case>/source.jibb) '
                     'through urbit eval and compare the outputs with '
-                    'tokens.txt and tree.txt.',
+                    'tokens.txt, tree.txt and any opted-in types.txt.',
         epilog=EPILOG)
     ap.add_argument('--dir', default=DEFAULT_DIR,
                     help='the folder of cases (default: tests/golden).  The '
-                    'file path passed to golden stays '
-                    '/tests/golden/<case>/source/jibb')
+                    'file path passed to golden defaults to '
+                    '/tests/golden/<case>/source/jibb; path.txt overrides it')
     ap.add_argument('--case', action='append', default=[], metavar='GLOB',
                     help='only cases whose name matches GLOB; repeatable')
     ap.add_argument('--lib', default=ue.DEFAULT_LIB, metavar='PATH',
                     help='the library (default: jibb-dev/lib/jibb.hoon)')
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument('--update', action='store_true',
-                      help='write the outputs to tokens.txt and tree.txt')
+                      help='write tokens.txt, tree.txt and any opted-in types.txt')
     mode.add_argument('--show', action='store_true',
                       help='print the outputs without comparing')
     ap.add_argument('--timeout', type=float, default=600, metavar='SECONDS',

@@ -124,6 +124,33 @@ def generator_checks(tmp):
           ('tre-1', 'txt', '/tests/golden/basic/tree/txt') in imports and
           len(imports) == 3 * len(names) - 1, imports)
 
+    logical = os.path.join(tmp, 'logical')
+    write_case(logical, 'api', b'++ x\n')
+    with open(os.path.join(logical, 'api', 'path.txt'), 'w') as f:
+        f.write('/ui/api/todo.jibb\n')
+    with open(os.path.join(logical, 'api', 'types.txt'), 'w') as f:
+        f.write('expected\n')
+    out = ship.generate_tests(logical)
+    check('logical path and types output are passed to golden',
+          '(check-at ~.api ~[~.ui ~.api ~.todo ~.jibb] src-1' in out and
+          '/*  typ-1  %txt   /tests/golden/api/types/txt' in out and
+          '(golden-types:jibb at src)' in out, out)
+    os.remove(os.path.join(logical, 'api', 'types.txt'))
+    with open(os.path.join(logical, 'api', 'about.txt'), 'w') as f:
+        f.write('expect-types: partial report\n')
+    out = ship.generate_tests(logical)
+    check('missing opted-in types are passed as a missing expectation',
+          'src-1 ~)' in out and '++  check-types' in out, out)
+    with open(os.path.join(logical, 'api', 'path.txt'), 'w') as f:
+        f.write('/ui/api/../todo.jibb\n')
+    try:
+        ship.generate_tests(logical)
+    except ship.Unable:
+        bad_path = True
+    else:
+        bad_path = False
+    check('invalid logical paths are rejected', bad_path)
+
     clash = os.path.join(tmp, 'clash')
     for case in ('a.b', 'a_b', 'a-b', 'Upper', 'has space'):
         write_case(clash, case, b'++ x\n')
@@ -206,6 +233,24 @@ def ship_checks(tmp, many):
           'FAIL: %d OK, %d FAILED, %d CRASHED' % (
               n['OK'], n['FAILED'], n['CRASHED']) in res.stdout,
           res.stdout[-400:] + res.stderr)
+
+    logical = os.path.join(tmp, 'logical-on-ship')
+    src = b'++ api\n'
+    write_case(logical, 'api', src)
+    folder = os.path.join(logical, 'api')
+    with open(os.path.join(folder, 'path.txt'), 'w') as f:
+        f.write('/ui/api/todo.jibb\n')
+    tokens, _tree = stub_output('api', src)
+    with open(os.path.join(folder, 'tokens.txt'), 'wb') as f:
+        f.write(tokens.replace(b'/tests/golden/api/source/jibb',
+                               b'/ui/api/todo/jibb') + b'\n')
+    with open(os.path.join(folder, 'types.txt'), 'wb') as f:
+        f.write(b'type of /ui/api/todo/jibb: %d bytes\n' % len(src))
+    res = run('test', '--stub', '--golden', logical)
+    check('logical path and type output pass on the ship',
+          res.returncode == 0 and
+          'PASS: 1 OK, 0 FAILED, 0 CRASHED' in res.stdout,
+          res.stdout[-1500:] + res.stderr)
 
     broken = os.path.join(tmp, 'broken.hoon')
     with open(STUB) as f:

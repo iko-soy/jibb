@@ -1,0 +1,2 @@
+(module
+  (value 1:1 message (lit 1:12 %hello)))

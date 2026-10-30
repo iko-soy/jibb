@@ -1,0 +1,3 @@
+source: Overview, Agent APIs: "Each agent Jibb talks to has /ui/api/<agent>.jibb, declaring its pokes in +$ poke and its paths in +$ paths, over types from the agent's own marks through /%."
+tests: A blog API fixture used by the documented published-page example; path.txt supplies its API path.
+expect: parses; type checking and mark imports wait for milestone 2.

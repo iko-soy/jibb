@@ -1,0 +1,7 @@
+::  Fixture for the documented examples; not supplied by the design doc.
+/-  todo
+|_  a=update:todo
+++  grab  |%  ++  noun  update:todo  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

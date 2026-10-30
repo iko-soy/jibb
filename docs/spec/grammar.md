@@ -30,7 +30,7 @@ The syntax the compiler accepts.
 | Loobean | `%.y`, `%.n` | `?` |
 | Null | `~` | A constant: the `~` case of any union with one, such as `(unit A)`, `(list A)`, `(map K V)` or `(set A)` |
 | Unit | `` `x `` | `(unit A)` |
-| Cell | `[a b c]`, `[text="milk" done=%.n]` | A tuple; a record when faced; a cons where a list is expected |
+| Cell | `[a b c]`, `[text="milk" done=%.n]` | A tuple; a record when faced; a cons where a list is expected. `[a]` is `a`; `[]` is an error |
 | List | `~[1 2 3]` | `(list A)` |
 | Term-headed pair | `gap+%s2` | `[%gap %s2]`, any operand after the `+` |
 | Path | `/posts/~zod` | `path` |
@@ -42,7 +42,7 @@ Every literal reads exactly as Hoon reads it: `1000` is an error (write `1.000`)
 
 - **Call**: `f a b`; parentheses only group. A call open in parentheses puts its head and first arguments on the first line, then one argument per indented line; a `(` alone at the end of a line puts the head on the first indented line.
 - **Lists**: `~[a b c]`, or `~[` at line end with one item per line. On one line, whitespace separates items, so calls need parentheses: `~[(text "hi")]`, which the checker suggests for `~[text "hi"]`. On indented lines, each line is an item.
-- **Faced cells**: `[text="milk" done=%.n]`, or one `name=value` per line of an open bracket. A change takes the same items, as `m(done=%.y)`.
+- **Faced cells**: `[text="milk" done=%.n]`, or one `name=value` per line of an open bracket. A change takes one or more of the same items, as `m(done=%.y)`; `m()` is an error.
 - **Pairs and units**: `gap+%s2` and `` `x `` bind tighter than calls, so `pad+%s3 gap+%s2` is two items.
 - **Wing** `title.p`, also for imports and prelude groups, which are records: `card.card`, `space.theme.theme`, `get.by`. **Change** `m(draft="x" error=~)`.
 - **Inline gate**: `|=(p=post.blog title.p)`, or `|=(p title.p)` when the call fixes the type. A bare name in a sample always binds. `|=%got` is case `%got`'s constructor, typed by the gate expected. A bare name binds at any depth of a sample, so `|= [a=@ b]` binds `a` and `b`.
@@ -53,7 +53,7 @@ Every literal reads exactly as Hoon reads it: `1000` is an error (write `1.000`)
 
 A rune's first children sit on its line, the last taking the rest of it; the others follow, indented.
 
-- `++` **luslus**: defines a value, at top level or as local names at the start of any body (a gate's, an arm's, a `^-`'s, a `~&`'s or a `++`'s), visible to each other and the final expression. Gates may call themselves and their siblings; other values can't refer to themselves, so `++ title (trim title)` is an error.
+- `++` **luslus**: defines a value, at top level or as local names at the start of any body (a gate's, an arm's, a `^-`'s, a `~&`'s or a `++`'s), visible to each other and the final expression. Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate, so `++ title (trim title)` is an error.
 - `+$` **lusbuc**: defines a mold, likewise: on its line, or as cases on the lines below, one per line, where several cases make a union and one is just that mold. Molds may be recursive.
 - `|=` **bartis**: a gate with a faced sample, `m=model`, `=msg` (`msg=msg`) or `[a=@ b=@]`; the body on the same line or below.
 - `?-` **wuthep**: the only branch, exhaustive; the subject on its line, then arms of a pattern and an expression or body. Conditions switch on `%.y` and `%.n`.
@@ -101,8 +101,8 @@ A file is a module: imports, then definitions.
 - Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included.
 - Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold and its constructor, `todos.todo` a mold and a request.
 - `main`'s type decides the kind: `(element !!)` a page; `(page R D)` a page with data, from parameters `R` to data `D`; `(program D X M)` an island, with data, model and messages; `(store S)` a store with state `S`. They're built by `(page load view)`, `(program init update view subs)` and `(store init update)`. A module without `main` is a library.
-- Everything is exported and read through the import's face, as `card.card`. Only the prelude has private names.
-- An API module, `/ui/api/<agent>.jibb`, also exports derived gates: a constructor per `poke` type, adding the agent and mark, and a request per `paths` case, taking a reply over full state, plus a fold for `(facts full diff …)`. A store exports a constructor per `poke` type and a `state` request. Clashing derived names are errors.
+- Everything is exported and read through the import's face, as `card.card`. The prelude keeps private helpers in a separate internal module; it imports them without exposing them.
+- An API module, `/ui/api/<agent>.jibb`, also exports derived gates: a constructor per `poke` type, adding the agent and mark, and a request per `paths` case, taking a reply over full state, plus a fold for `(facts full diff …)`. An island that watches a request whose case has a separate `scry=` path has a type error. A store's `+$ poke` is a declaration, not a mold; a store exports a constructor per `poke` type and a `state` request. Clashing derived names are errors, including a derived name that clashes with an import face.
 
 Names the host reads, by file:
 
@@ -122,15 +122,17 @@ A mold is only a type: never called on a noun, and with no default. Types are in
 
 - **Atoms**: `@` and auras such as `@ud`, `@t`, `@p`, `@da`; `?` is a loobean. `@` is an atom whose aura isn't known yet, fixed by what it meets: `add` takes `[@ @]` and returns `@`, all one aura, so `(add n 1)` with `n=@ud` is a `@ud`. Different auras never unify. A bare `@` in a `+$` is one aura variable per module, `@ud` if unfixed. Elsewhere, as in a gate's sample or a cast, each bare `@` is its own aura variable, generalized per `++` if nothing fixes it; atoms that must share an aura take one capital, as `[lo=A hi=A]`.
 - **Constants**: `%add`, `~` and the loobeans have one value each.
-- **Records and tuples**: `[text=@t done=?]`, `[@t ?]`. Faces are part of the type, so `[a=@ b=@]` and `[x=@ y=@]` don't unify. A record too long for one line can leave its `[` open, with one field per deeper line, as an expression's bracket does.
+- **Records and tuples**: `[text=@t done=?]`, `[@t ?]`. An empty `[]` is an error. Faces are part of the type, so `[a=@ b=@]` and `[x=@ y=@]` don't unify. An unnamed position can unify with a faced position and take its face, so `[0 0]` fits `[x=@ud y=@ud]`; two different faces don't unify. A record too long for one line can leave its `[` open, with one field per deeper line, as an expression's bracket does.
 - **Unions**: a `+$` with several cases below it. Every union written in Jibb has a name, so one used in a field, a sample, a cast, a gate's mold or an argument gets its own `+$`; only imports bring in unions without one. Tags take their union from context, as Tag resolution describes. Cases must differ as nouns: at some position of their right-nested cells, one is an atom and the other a cell, or both are different constants. `*`, type variables and molds that can be either, such as `(list A)` or `?`, overlap both. A union whose cases don't all differ is rejected.
 - **Containers**: `(list A)`, `(unit A)`, `(set A)`, `(map K V)`, `(mop K V)`, `(qeu A)`, `(jar K V)`, `(jug K V)`.
-- **Gates**: `$-(A B)`. Type variables are capitals, generalized per `++`. A type variable that meets an atom becomes an aura variable, so `++ clamp |= [lo=A hi=A n=A]`, whose body calls `gth` and `max`, works on any one aura. It can become nothing more specific: a body that makes `A` a `@ud` or a list is an error.
+- **Gates**: `$-(A B)`. Type variables are capitals, generalized per `++`. A capital in a local `++` shares the enclosing `++`'s variable of the same name; use another capital for a different type. A type variable that meets an atom becomes an aura variable, so `++ clamp |= [lo=A hi=A n=A]`, whose body calls `gth` and `max`, works on any one aura. It can become nothing more specific: a body that makes `A` a `@ud` or a list is an error.
 - **Paths**: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura. `%/blog/(slug)` is an `qath`, checked against routes and static files.
 - **Generic molds**: `+$ result |$ [V E]` with cases below; `|$` goes only right after a `+$`'s name.
-- **Any noun**: `*`. **Empty**: `!!`.
+- **Noun**: `*`, not a type variable; use a capital for a generic type. A value already known to have a more specific noun type, such as `@ud`, can be used where `*` is expected. **Empty**: `!!`.
 - **Opaque**: `poke`, `ask` and `qath`, built only by derived gates, `pure` and application-path literals. `(facts full diff …)` appears only in an API file's `paths`.
 - **Identity**: recursive molds go by name and module.
+
+`eq`'s arguments and map and set keys must contain no gates, even nested inside another value. The checker infers this gate-free constraint on type variables and retains it when generalizing a `++`, so a generic helper that calls `eq` stays generic over gate-free types. Printed types show the constraint as `$-([A A] ?) where A contains no gates`. Union-case matching treats gates as opaque and never inspects a gate to distinguish cases.
 
 ## Tag resolution
 
@@ -138,7 +140,7 @@ A tag literal or `~` gets a fresh type variable and a pending constraint: the va
 
 - A constraint records the literal's shape, such as `[@t %draft]`, and matches cases by shape and shared tag positions; a literal in a field position is checked against that field.
 - `|=%typed` is a case's constructor: against `$-(@t M)` it is `|=(t [%typed t])`, requiring `M` to have a case `[%typed @t]`. It works for cases tagged at their head; a bare tag is always a value.
-- A constrained variable, and any it mentions, doesn't generalize; it stays open until something in the module fixes it. An island's `main` fixes its messages, so islands resolve their own tags.
+- A variable constrained by tag resolution, and any it mentions, doesn't generalize; it stays open until something in the module fixes it. An island's `main` fixes its messages, so islands resolve their own tags. The inferred gate-free constraint is retained when a type variable is generalized.
 - A constraint still open when its module is checked is an error asking for a `^-`; the checker never guesses. Library helpers can cast, as in `^- (list attr)`.
 - Wing access, changes and `?-` on a type not yet known wait the same way.
 - Patterns need none of this; they're checked against the subject's type.
@@ -238,7 +240,7 @@ operand    = literal | qath | ref | change | pair | unit | group | list | tuple
            | gate | ctor | pathlit | "!!" ;
 ref        = wing ;
 wing       = name { "." name } ;
-change     = wing "(" { item } ")" | wing "(" { item } open ;   (* no space before "("; items named *)
+change     = wing "(" item { item } ")" | wing "(" { item } open ;   (* no space before "("; items named *)
 pair       = name "+" operand ;                           (* [%name operand] *)
 unit       = "`" operand ;                                (* [~ operand] *)
 group      = "(" expr ")" | "(" { operand } open ;

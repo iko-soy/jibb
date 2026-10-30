@@ -11,6 +11,7 @@
 ::    +parse         [file=path src=@t]           (each module error)
 ::    +parse-tokens  [file=path toks=(list token)] (each module error)
 ::    +golden        [file=path src=@t]           [tokens=@t tree=@t]
+::    +golden-types  [file=path src=@t]           @t (partial inference)
 ::    +show-tokens   (list token)                 @t
 ::    +show-module   module                       @t
 ::    +show-error    [src=@t error]               @t
@@ -19,7 +20,7 @@
 ::  fails: an error it finds is its last token (2.0), and +layout-error
 ::  takes it out.
 ::
-::  Status: the types, the printers, +golden, the layout pass (+layout,
+::  Status: the syntax types, the printers, +golden, the layout pass (+layout,
 ::  +lexer) and the parser (+parse-tokens, +parser) work, and +golden
 ::  checks every tree's spans (+check-spans, section 1). Choices the
 ::  doc leaves open are marked "(doc question)": they follow the most
@@ -27,7 +28,9 @@
 ::  author to settle. Those the author has settled, in the Decisions
 ::  tab's rows of 2026-10-30, are marked "(Decisions)" beside the rule
 ::  decided. The golden corpus's "expect:" lines give each error's
-::  position. The layout pass's errors sit there, except where the
+::  position. A partial inference fragment is in %type-inference; its
+::  output explicitly says the module has not been checked. The layout
+::  pass's errors sit there, except where the
 ::  parser finds an earlier error first, as in `++ 2nd 5`, or moves one
 ::  back to the start of its text, as in `++ x @sd` (2.0, 2.8, and
 ::  section 3, Errors).
@@ -4572,4 +4575,482 @@
   =?  at.o  &(=(kind kind.o) =(beg beg.at.o))  at
   :-  o(kids $(os kids.o))
   $(os t.os)
+::
++|  %type-inference
+::
+::  Preliminary type inference substrate. These types are internal and do
+::  not yet represent every Jibb mold. In particular this is not a complete
+::  module checker. A substitution is an association list whose first entry
+::  for a variable is its binding. The occurs check prevents infinite types;
+::  recursive named molds need their own representation, not cyclic vars.
+::  Each top-level inferred definition generalizes its free variables, and
+::  a use instantiates them afresh. Binders inside a gate stay monomorphic;
+::  capital variables in molds share one allocation within the definition.
+::  Decimal literals and bare @ have atom-only variables; until their
+::  constraints can be printed and generalized, an unresolved one is
+::  reported as unsupported. Only unfaced cells are represented here.
+::
++$  itype
+  $~  [%var 0]
+  $%  [%var id=@ud]
+      [%avar id=@ud]
+      [%atom aura=@ta]
+      [%flag ~]
+      [%fn sample=itype product=itype]
+      [%cell hed=itype tal=itype]
+  ==
++$  ibinding  [id=@ud val=itype]
++$  isub  (list ibinding)
+::
+++  itype-lookup
+  |=  [n=@ud sub=isub]
+  ^-  (unit itype)
+  ?~  sub  ~
+  ?:  =(n id.i.sub)  `val.i.sub
+  $(sub t.sub)
+::
+++  itype-walk
+  |=  [t=itype sub=isub]
+  ^-  itype
+  ?+  -.t  t
+    %var
+      =/  found=(unit itype)  (itype-lookup id.t sub)
+      ?~  found  t
+      $(t u.found)
+    %avar
+      =/  found=(unit itype)  (itype-lookup id.t sub)
+      ?~  found  t
+      $(t u.found)
+  ==
+::
+++  itype-occurs
+  |=  [n=@ud t=itype sub=isub]
+  ^-  ?
+  =.  t  (itype-walk t sub)
+  ?-  -.t
+    %var   =(n id.t)
+    %avar  =(n id.t)
+    %atom  |
+    %flag  |
+    %fn    |($(t sample.t) $(t product.t))
+    %cell  |($(t hed.t) $(t tal.t))
+  ==
+::
+::  +itype-unify: consistent substitutions, or ~ for a mismatch
+::
+::    Different concrete auras conflict. A variable may become an atom or
+::    a function, but cannot contain itself. Aura-only variables and faces
+::    require further distinctions before this supports general Jibb.
+::
+++  itype-unify
+  |=  [a=itype b=itype sub=isub]
+  ^-  (unit isub)
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  =(a b)  `sub
+  ?:  ?=(%var -.a)
+    ?:  (itype-occurs id.a b sub)  ~
+    `[[id.a b] sub]
+  ?:  ?=(%var -.b)
+    ?:  (itype-occurs id.b a sub)  ~
+    `[[id.b a] sub]
+  ?:  ?=(%avar -.a)
+    ?.  |(?=(%avar -.b) ?=(%atom -.b))  ~
+    `[[id.a b] sub]
+  ?:  ?=(%avar -.b)
+    ?.  ?=(%atom -.a)  ~
+    `[[id.b a] sub]
+  ?:  &(?=(%atom -.a) ?=(%atom -.b))  ~
+  ?:  &(?=(%fn -.a) ?=(%fn -.b))
+    =/  first=(unit isub)  $(a sample.a, b sample.b)
+    ?~  first  ~
+    $(a product.a, b product.b, sub u.first)
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))
+    =/  first=(unit isub)  $(a hed.a, b hed.b)
+    ?~  first  ~
+    $(a tal.a, b tal.b, sub u.first)
+  ~
+::
+++  itype-unify-test
+  ^-  (list tape)
+  =/  a=itype  [%var 0]
+  =/  b=itype  [%var 1]
+  =/  txt=itype  [%atom %t]
+  =/  num=itype  [%atom %ud]
+  =/  same=itype  [%fn a a]
+  =/  mismatch=itype  [%fn txt num]
+  =/  fine=itype  [%fn txt txt]
+  =/  sub=(unit isub)  (itype-unify a b ~)
+  ?~  sub  ~["variables should unify"]
+  =/  sub2=(unit isub)  (itype-unify b txt u.sub)
+  ?~  sub2  ~["a chained variable should unify"]
+  =/  problems=(list tape)  ~
+  =?  problems  !=((itype-walk a u.sub2) txt)
+    ["substitutions should follow chains" problems]
+  =?  problems  ?=(^ (itype-unify txt num ~))
+    ["different concrete auras should conflict" problems]
+  =?  problems  ?=(^ (itype-unify a [%fn a txt] ~))
+    ["occurs check should reject an infinite type" problems]
+  =?  problems  ?=(^ (itype-unify same mismatch ~))
+    ["a shared type variable should reject incompatible arguments" problems]
+  =?  problems  ?=(~ (itype-unify same fine ~))
+    ["a shared type variable should accept equal arguments" problems]
+  problems
+::
+::  The expression inference below is deliberately a fragment: bindings,
+::  simple gates, unary calls, fixed-aura literals, and plain strings. The
+::  result for unsupported syntax is a diagnostic, never a checked module.
+::
++$  ischeme  [typ=itype vars=(list @ud)]
++$  ienv  (list [name=term scheme=ischeme])
++$  icaps  (list [name=@t id=@ud])
++$  istate  [next=@ud sub=isub caps=icaps]
++$  iresult  (each [typ=itype state=istate] tape)
++$  isample-result  (each [typ=itype env=ienv state=istate] tape)
+::
+++  ienv-lookup
+  |=  [name=term env=ienv]
+  ^-  (unit ischeme)
+  ?~  env  ~
+  ?:  =(name name.i.env)  `scheme.i.env
+  $(env t.env)
+::
+::  Generalized variables are renamed freshly on each use. The renaming
+::  substitutes only once, so an old variable and its fresh number may
+::  coincide without forming a substitution cycle.
+::
+++  itype-normalize
+  |=  [t=itype sub=isub]
+  ^-  itype
+  =.  t  (itype-walk t sub)
+  ?:  ?=(%fn -.t)
+    [%fn $(t sample.t) $(t product.t)]
+  ?:  ?=(%cell -.t)
+    [%cell $(t hed.t) $(t tal.t)]
+  t
+::
+++  itype-vars
+  |=  t=itype
+  ^-  (list @ud)
+  ?-  -.t
+    %var   ~[id.t]
+    %avar  ~[id.t]
+    %atom  ~
+    %flag  ~
+    %fn    (weld $(t sample.t) $(t product.t))
+    %cell  (weld $(t hed.t) $(t tal.t))
+  ==
+::
+++  unique-type-vars
+  |=  ns=(list @ud)
+  ^-  (list @ud)
+  =/  out=(list @ud)  ~
+  |-
+  ?~  ns  (flop out)
+  ?:  (lien out |=(x=@ud =(x i.ns)))  $(ns t.ns)
+  $(ns t.ns, out [i.ns out])
+::
+++  itype-rename
+  |=  [t=itype ren=isub]
+  ^-  itype
+  ?-  -.t
+    %var
+      =/  found=(unit itype)  (itype-lookup id.t ren)
+      ?~  found  t
+      u.found
+    %avar  t
+    %atom  t
+    %flag  t
+    %fn    [%fn $(t sample.t) $(t product.t)]
+    %cell  [%cell $(t hed.t) $(t tal.t)]
+  ==
+::
+::  Canonical numbering makes printed variables independent of the order
+::  the unifier happened to allocate intermediates.
+::
+++  canonical-itype
+  |=  [t=itype vars=(list @ud)]
+  ^-  itype
+  =/  ren=isub  ~
+  =/  n=@ud  0
+  |-
+  ?~  vars  (itype-rename t ren)
+  $(vars t.vars, ren [[i.vars [%var n]] ren], n +(n))
+::
+++  instantiate-scheme
+  |=  [scheme=ischeme state=istate]
+  ^-  [typ=itype state=istate]
+  =/  ren=isub  ~
+  =/  vars=(list @ud)  vars.scheme
+  |-
+  ?~  vars  [(itype-rename typ.scheme ren) state]
+  $(vars t.vars, ren [[i.vars [%var next.state]] ren], state state(next +(next.state)))
+::
+++  icap-lookup
+  |=  [n=@t caps=icaps]
+  ^-  (unit @ud)
+  ?~  caps  ~
+  ?:  =(n name.i.caps)  `id.i.caps
+  $(caps t.caps)
+::
+++  infer-simple-shape
+  |=  [sh=shape state=istate]
+  ^-  (unit [typ=itype state=istate])
+  ?-  -.sh
+    %aura
+      ?:  =(0 aura.sh)
+        `[[%avar next.state] state(next +(next.state))]
+      `[[%atom aura.sh] state]
+    %flag  `[[%flag ~] state]
+    %cell  (infer-simple-fields fields.sh state)
+    %tvar
+      =/  n=(unit @ud)  (icap-lookup name.sh caps.state)
+      ?^  n  `[[%var u.n] state]
+      `[[%var next.state] state(next +(next.state), caps [[name.sh next.state] caps.state])]
+    *      ~
+  ==
+::
+++  infer-simple-fields
+  |=  [fields=(list field) state=istate]
+  ^-  (unit [typ=itype state=istate])
+  ?~  fields  ~
+  ?.  ?=(%bare -.i.fields)  ~
+  =/  head=(unit [typ=itype state=istate])  (infer-simple-shape shape.i.fields state)
+  ?~  head  ~
+  ?~  t.fields  head
+  =/  tail=(unit [typ=itype state=istate])  $(fields t.fields, state state.u.head)
+  ?~  tail  ~
+  `[[%cell typ.u.head typ.u.tail] state.u.tail]
+::
+++  infer-sample
+  |=  [s=sample env=ienv state=istate]
+  ^-  isample-result
+  ?-  -.s
+    %bind
+      ?.  ?=(~ (ienv-lookup name.s env))
+        [%| "sample shadows a name"]
+      =/  t=itype  [%var next.state]
+      [%& t [[name.s [t ~]] env] state(next +(next.state))]
+    %face
+      ?.  ?=(~ (ienv-lookup name.s env))
+        [%| "sample shadows a name"]
+      =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
+      ?~  t  [%| "sample mold is not supported by partial inference"]
+      [%& typ.u.t [[name.s [typ.u.t ~]] env] state.u.t]
+    %bare
+      =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
+      ?~  t  [%| "sample mold is not supported by partial inference"]
+      [%& typ.u.t env state.u.t]
+    *  [%| "sample is not supported by partial inference"]
+  ==
+::
+++  infer-fragment
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  ?-  -.e
+    %lit
+      ?-  form.lit.e
+        %number    ?:  =(%ud aura.lit.e)
+                     [%& [%avar next.state] state(next +(next.state))]
+                   [%& [%atom aura.lit.e] state]
+        %ship      [%& [%atom %p] state]
+        %date      [%& [%atom %da] state]
+        %duration  [%& [%atom %dr] state]
+        %knot      [%& [%atom %ta] state]
+        %loobean   [%& [%flag ~] state]
+        *          [%| "literal needs contextual inference"]
+      ==
+    %str
+      =/  interpolated=?  (lien pieces.e |=(p=piece ?=(%expr -.p)))
+      ?:  interpolated  [%| "interpolation is not supported by partial inference"]
+      [%& [%atom %t] state]
+    %wing
+      ?~  names.e  [%| "empty wing"]
+      ?^  t.names.e  [%| "field access is not supported by partial inference"]
+      =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
+      ?~  scheme  [%| "name is not available to partial inference"]
+      =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
+      [%& typ.instance state.instance]
+    %group  $(e inner.e)
+    %tuple  (infer-simple-items items.e env state)
+    %body
+      ?^  defs.e  [%| "local definitions are not supported by partial inference"]
+      $(e final.e)
+    %branch
+      ?~  arms.e  [%| "branch is not supported by partial inference"]
+      ?~  t.arms.e  (infer-cell-branch e env state)
+      ?^  t.t.arms.e  [%| "branch is not supported by partial inference"]
+      =/  x=arm  i.arms.e
+      =/  y=arm  i.t.arms.e
+      ?.  ?=(%lit -.pat.x)  [%| "branch pattern is not supported by partial inference"]
+      ?.  ?=(%lit -.pat.y)  [%| "branch pattern is not supported by partial inference"]
+      ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
+        [%| "branch pattern is not supported by partial inference"]
+      ?:  =(val.lit.pat.x val.lit.pat.y)
+        [%| "branch does not cover both loobeans"]
+      =/  subject=iresult  $(e subject.e)
+      ?:  ?=(%| -.subject)  subject
+      =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
+      ?~  su  [%| "loobean branch subject does not unify with ?"]
+      =/  left=iresult  $(e val.x, state state.p.subject(sub u.su))
+      ?:  ?=(%| -.left)  left
+      =/  right=iresult  $(e val.y, state state.p.left)
+      ?:  ?=(%| -.right)  right
+      =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
+      ?~  joined  [%| "branch arms have incompatible types"]
+      [%& typ.p.left state.p.right(sub u.joined)]
+    %cast
+      =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
+      ?~  target  [%| "cast mold is not supported by partial inference"]
+      =/  value=iresult  $(e val.e, state state.u.target)
+      ?:  ?=(%| -.value)  value
+      =/  uni=(unit isub)  (itype-unify typ.u.target typ.p.value sub.state.p.value)
+      ?~  uni  [%| "cast mold and expression type do not unify"]
+      [%& typ.u.target state.p.value(sub u.uni)]
+    %crash  [%& [%var next.state] state(next +(next.state))]
+    %gate
+      =/  sam=isample-result  (infer-sample sample.e env state)
+      ?:  ?=(%| -.sam)  [%| p.sam]
+      =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
+      ?:  ?=(%| -.body)  body
+      [%& [%fn typ.p.sam typ.p.body] state.p.body]
+    %gate-wide
+      =/  sam=isample-result  (infer-sample sample.e env state)
+      ?:  ?=(%| -.sam)  [%| p.sam]
+      =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
+      ?:  ?=(%| -.body)  body
+      [%& [%fn typ.p.sam typ.p.body] state.p.body]
+    %call
+      ?~  args.e  [%| "call has no argument"]
+      ?^  t.args.e  [%| "multiple arguments are not supported by partial inference"]
+      =/  head=iresult  $(e head.e)
+      ?:  ?=(%| -.head)  head
+      =/  arg=iresult  $(e i.args.e, state state.p.head)
+      ?:  ?=(%| -.arg)  arg
+      =/  st=istate  state.p.arg
+      =/  result=itype  [%var next.st]
+      =/  uni=(unit isub)
+        (itype-unify typ.p.head [%fn typ.p.arg result] sub.st)
+      ?~  uni  [%| "call's sample and argument types do not unify"]
+      [%& result st(next +(next.st), sub u.uni)]
+    *  [%| "expression is not supported by partial inference"]
+  ==
+::
+::  Unfaced tuple expressions are the one supported cell construction.
+::  Faced cells wait for the representation to preserve record faces.
+::
+++  infer-simple-items
+  |=  [items=(list item) env=ienv state=istate]
+  ^-  iresult
+  ?~  items  [%| "empty cell is not supported by partial inference"]
+  ?^  face.i.items  [%| "record faces are not supported by partial inference"]
+  =/  head=iresult  (infer-fragment val.i.items env state)
+  ?:  ?=(%| -.head)  head
+  ?~  t.items  head
+  =/  tail=iresult  $(items t.items, state state.p.head)
+  ?:  ?=(%| -.tail)  tail
+  [%& [%cell typ.p.head typ.p.tail] state.p.tail]
+::
+::  A single two-binder cell pattern covers every value of a cell type.
+::  No other pattern matrix is implemented here.
+::
+++  infer-cell-branch
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  ?>  ?=(%branch -.e)
+  ?~  arms.e  [%| "branch is not supported by partial inference"]
+  =/  arm=arm  i.arms.e
+  ?.  ?=(%cell -.pat.arm)  [%| "branch pattern is not supported by partial inference"]
+  =/  pats=(list pattern)  items.pat.arm
+  ?~  pats  [%| "branch pattern is not supported by partial inference"]
+  ?~  t.pats  [%| "branch pattern is not supported by partial inference"]
+  ?^  t.t.pats  [%| "branch pattern is not supported by partial inference"]
+  ?.  ?=(%bind -.i.pats)  [%| "branch pattern is not supported by partial inference"]
+  ?.  ?=(%bind -.i.t.pats)  [%| "branch pattern is not supported by partial inference"]
+  =/  one=term  name.i.pats
+  =/  two=term  name.i.t.pats
+  ?:  |(=(one two) ?=(^ (ienv-lookup one env)) ?=(^ (ienv-lookup two env)))
+    [%| "pattern shadows a name"]
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  st=istate  state.p.subject
+  =/  head=itype  [%var next.st]
+  =/  tail=itype  [%var +(next.st)]
+  =/  sub=(unit isub)  (itype-unify typ.p.subject [%cell head tail] sub.st)
+  ?~  sub  [%| "cell pattern does not match the subject type"]
+  (infer-fragment val.arm [[one [head ~]] [two [tail ~]] env] st(next (add 2 next.st), sub u.sub))
+::
+++  show-itype
+  |=  [t=itype sub=isub]
+  ^-  tape
+  =.  t  (itype-walk t sub)
+  ?-  -.t
+    %var
+      ?:  (lth id.t 26)  [(add 65 id.t) ~]
+      "T{<id.t>}"
+    %avar  "@"
+    %atom  "@{(trip aura.t)}"
+    %flag  "?"
+    %fn    "$-({$(t sample.t)} {$(t product.t)})"
+    %cell  "[{$(t hed.t)} {$(t tal.t)}]"
+  ==
+::
+::  Unfixed aura variables are withheld from the output until inference
+::  can generalize them and the printer represents their constraints.
+::
+++  itype-has-avar
+  |=  t=itype
+  ^-  ?
+  ?-  -.t
+    %avar  &
+    %var   |
+    %atom  |
+    %flag  |
+    %fn    |($(t sample.t) $(t product.t))
+    %cell  |($(t hed.t) $(t tal.t))
+  ==
+::
+::  A capital in a written mold is generalized with its enclosing ++.
+::  Until its rigidity and aura constraints are represented, do not
+::  report a type when unification made one more specific.
+::
+++  constrained-capitals
+  |=  [caps=icaps sub=isub]
+  ^-  ?
+  ?~  caps  |
+  =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
+  ?.  ?=(%var -.resolved)  &
+  $(caps t.caps)
+::
+::  +golden-types: a partial report; it does not claim the module checks
+::
+++  golden-types
+  |=  [file=path src=@t]
+  ^-  @t
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  =/  ds=(list def)  defs.p.parsed
+  =/  env=ienv  ~
+  =/  lines=(list @t)  ~
+  |-
+  ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
+  =/  d=def  i.ds
+  ?:  ?=(%mold -.d)
+    $(ds t.ds, lines [(crip "+$ {(trip name.d)}: not checked") lines])
+  ?:  ?=(^ (ienv-lookup name.d env))
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~])
+  ?:  ?=(%| -.result)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: {p.result}") lines])
+  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
+  =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
+  ?:  (itype-has-avar typ)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+  ?:  (gth (lent vars) 26)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: too many variables for partial printer") lines])
+  =/  printable=itype  (canonical-itype typ vars)
+  =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}")
+  $(ds t.ds, env [[name.d [typ vars]] env], lines [line lines])
 --

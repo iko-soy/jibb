@@ -1,0 +1,5 @@
+partial inference; module not checked
+++ same: $-(A A)
+++ head: $-([A B] A)
+++ tail: $-([A B] B)
+++ not: $-(? ?)

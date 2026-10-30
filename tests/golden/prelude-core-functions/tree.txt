@@ -1,0 +1,33 @@
+(module
+  (value 2:1 same
+    (gate 2:9
+      (face 2:12 x (tvar 2:14 A))
+      (wing 2:16 x)))
+  (value 4:1 head
+    (gate 4:9
+      (face 4:12 p
+        (cell 4:14 (tvar 4:15 A) (tvar 4:17 B)))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 p)
+          (arm 6:5
+            (cell 6:5 (bind 6:6 a) (bind 6:8 b))
+            (wing 6:11 a))))))
+  (value 8:1 tail
+    (gate 8:9
+      (face 8:12 p
+        (cell 8:14 (tvar 8:15 A) (tvar 8:17 B)))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 p)
+          (arm 10:5
+            (cell 10:5 (bind 10:6 a) (bind 10:8 b))
+            (wing 10:11 b))))))
+  (value 12:1 not
+    (gate 12:8
+      (face 12:11 b (flag 12:13))
+      (body 13:3
+        (branch 13:3
+          (wing 13:6 b)
+          (arm 14:5 (lit 14:5 %.y) (lit 14:9 %.n))
+          (arm 15:5 (lit 15:5 %.n) (lit 15:9 %.y)))))))

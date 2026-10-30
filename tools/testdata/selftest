@@ -74,7 +74,9 @@ def stub_with(tmp, name, old, new):
     and the line number of the change."""
     with open(STUB) as f:
         lines = f.read().split('\n')
-    hits = [i for i, l in enumerate(lines) if old in l]
+    hits = [i for i, l in enumerate(lines) if l == old]
+    if not hits:
+        hits = [i for i, l in enumerate(lines) if old in l]
     assert len(hits) == 1, (old, hits)
     lines[hits[0]] = lines[hits[0]].replace(old, new)
     path = os.path.join(tmp, name)
@@ -140,6 +142,35 @@ def check_expected_files_by_hand(c, tmp):
                  b'\n'.join(tokens) + b'\n',
                  "%s/tokens.txt is not what the stub's tokens should be"
                  % name)
+
+
+def check_types_and_logical_path(c, tmp):
+    cases = copy_cases(tmp)
+    folder = os.path.join(cases, 'basic')
+    with open(os.path.join(folder, 'path.txt'), 'w') as f:
+        f.write('/ui/api/todo.jibb\n')
+    with open(os.path.join(folder, 'about.txt'), 'a') as f:
+        f.write('expect-types: partial report\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 1 and 'types.txt is missing' in out,
+             'missing types file: %d\n%s' % (status, out))
+    status, out = golden('--dir', cases, '--lib', STUB, '--update',
+                         '--case', 'basic')
+    c.expect(status == 0, 'update types: %d\n%s' % (status, out))
+    actual = read(os.path.join(folder, 'types.txt'))
+    c.expect(actual.startswith(b'type of /ui/api/todo/jibb:'), repr(actual))
+    c.expect(read(os.path.join(folder, 'tokens.txt')).startswith(
+             b'file: /ui/api/todo/jibb\n'), 'wrong logical path in tokens')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 0, 'compare types: %d\n%s' % (status, out))
+    with open(os.path.join(folder, 'types.txt'), 'wb') as f:
+        f.write(b'wrong\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 1 and 'types.txt' in out, 'type mismatch: ' + out)
+    with open(os.path.join(folder, 'path.txt'), 'w') as f:
+        f.write('/ui/api/../todo.jibb\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2, 'invalid path: %d\n%s' % (status, out))
 
 
 def check_mismatch_diff(c, tmp):

@@ -1,0 +1,16 @@
+|%
++$  action  $%([%add text=@t] [%remove id=@ud])
++$  item  [id=@ud text=@t]
++$  optional  $@(@ud [name=@t stamp=@ud])
++$  items  (map @ud item)
++$  chain  $@(~ [value=@ud next=chain])
++$  containers  [(set @ud) (qeu @ud) (list @t) (unit @ud)]
++$  jar-test  (jar @ud @t)
++$  jug-test  (jug @ud @t)
++$  nested-jar  [field=(jar @ud @t)]
++$  signed  @sd
++$  float  @rd
++$  gate-test  $-(@ud @ud)
++$  valid-cell  $^(@ud [x=@ud])
++$  invalid-cell  $^(@ud @ud)
+--
