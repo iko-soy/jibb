@@ -156,6 +156,26 @@
         ~ ~
         [~ value] (f value)
 
+++ both |= args=[(unit A) (unit B)]
+  ?- args
+    [first second]
+      ?- first
+        ~ ~
+        [~ a]
+          ?- second
+            ~ ~
+            [~ b] `[a b]
+
+++ clef |= args=[(unit A) (unit B) $-([A B] (unit C))]
+  ?- args
+    [first second combine]
+      ?- first
+        ~ ~
+        [~ a]
+          ?- second
+            ~ ~
+            [~ b] (combine a b)
+
 ++ skim |= args=[(list A) $-(A ?)]
   ?- args
     [xs predicate]

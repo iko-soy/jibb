@@ -1,0 +1,4 @@
+1:1 glyph ++
+1:4 name main
+1:9 lit 1
+1:10 NEWLINE

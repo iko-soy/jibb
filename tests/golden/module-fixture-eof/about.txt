@@ -1,0 +1,3 @@
+source: Grammar, Modules: `+$` takes a mold on its line or its cases on the lines below.
+tests: The root module parses. The supplied module fixture ends without a newline after `+$ x`; both runners preserve those bytes and report the fixture's missing mold at the same location.
+expect: parses; the fixture's tree is an error at its end of file

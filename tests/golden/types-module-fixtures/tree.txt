@@ -1,0 +1,23 @@
+(module
+  (sur 1:1 blog)
+  (jibb 2:1 api /ui/api/blog)
+  (jibb 3:1 card /ui/components/card)
+  (value 5:1 main
+    (group 5:9
+      (call 5:10 (wing 5:10 page) (wing 5:15 load) (wing 5:20 view))))
+  (value 6:1 load
+    (gate-wide 6:9
+      (const 6:12 ~)
+      (group 6:14
+        (call 6:15 (wing 6:15 posts.api) (wing 6:25 same)))))
+  (value 8:1 view
+    (gate 8:9
+      (face 8:12 ps
+        (apply 8:15 list (ref 8:21 post.blog)))
+      (body 9:3
+        (call 9:3
+          (wing 9:3 column)
+          (list 9:10
+            (pair 9:12 gap (lit 9:16 %s2)))
+          (group 9:21
+            (call 9:22 (wing 9:22 turn) (wing 9:27 ps) (wing 9:30 card.card))))))))

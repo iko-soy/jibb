@@ -5182,6 +5182,65 @@
     *  [%| "sample is not supported by partial inference"]
   ==
 ::
+::  Local definitions generalize only variables outside their enclosing
+::  environment and explicit-capital scope. Unresolved groups stay
+::  unsupported: this fragment does not infer recursive definitions.
+::
++$  ilocal-result  (each [env=ienv state=istate] idiag)
+++  free-env-vars
+  |=  [env=ienv sub=isub]
+  ^-  (list @ud)
+  ?~  env  ~
+  =/  sc=ischeme  scheme.i.env
+  =/  ids=(list @ud)  (unique-type-vars (itype-vars typ.sc))
+  =/  free=(list @ud)  ~
+  |-
+  ?~  ids  (weld free (free-env-vars t.env sub))
+  ?:  (lien vars.sc |=(n=@ud =(n i.ids)))  $(ids t.ids)
+  =/  resolved=itype  (itype-normalize [%var i.ids] sub)
+  $(ids t.ids, free (weld (itype-vars resolved) free))
+::
+++  free-cap-vars
+  |=  [caps=icaps sub=isub]
+  ^-  (list @ud)
+  ?~  caps  ~
+  (weld (itype-vars (itype-normalize [%var id.i.caps] sub)) $(caps t.caps))
+::
+++  local-names-valid
+  |=  [ds=(list def) env=ienv state=istate]
+  ^-  ?
+  =/  names=(list term)  (global-value-names ds)
+  |-
+  ?~  ds  &
+  ?.  ?=(%value -.i.ds)  |
+  ?.  (unique-value-name name.i.ds names)  |
+  ?:  ?=(^ (ienv-lookup name.i.ds env))  |
+  ?:  (lien globals.state |=(n=term =(n name.i.ds)))  |
+  $(ds t.ds)
+::
+++  infer-local-defs
+  |=  [ds=(list def) env=ienv state=istate]
+  ^-  ilocal-result
+  =/  remaining=(list def)  ~
+  =/  progressed=?  |
+  |-
+  ?~  ds
+    ?~  remaining  [%& env state]
+    ?.  progressed  [%| ["local definitions need unsupported inference" ~]]
+    $(ds (flop remaining), remaining ~, progressed |)
+  =/  d=def  i.ds
+  ?>  ?=(%value -.d)
+  =/  inferred=iresult  (infer-fragment val.d env state)
+  ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
+  =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
+  ?:  (unsupported-atom-vars typ caps.state.p.inferred binders.state.p.inferred sub.state.p.inferred)
+    $(ds t.ds, remaining [d remaining])
+  =/  free=(list @ud)
+    (weld (free-env-vars env sub.state.p.inferred) (free-cap-vars caps.state.p.inferred sub.state.p.inferred))
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+  =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
+  $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred, progressed &)
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -5216,8 +5275,16 @@
       $(e then.e, state state.p.traced)
     %tuple  (infer-simple-items items.e env state)
     %body
-      ?^  defs.e  [%| ["local definitions are not supported by partial inference" ~]]
-      $(e final.e)
+      ?~  defs.e  $(e final.e)
+      =/  local-names=(list term)  (global-value-names defs.e)
+      ?.  (local-names-valid defs.e env state)
+        [%| ["local definitions shadow a name or use an unsupported mold" ~]]
+      =/  local-state=istate  state(globals (weld local-names globals.state))
+      =/  locals=ilocal-result  (infer-local-defs defs.e env local-state)
+      ?:  ?=(%| -.locals)  locals
+      =/  result=iresult  $(e final.e, env env.p.locals, state state.p.locals)
+      ?:  ?=(%| -.result)  result
+      [%& typ.p.result state.p.result(globals globals.state)]
     %branch
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e  (infer-cell-branch e env state)

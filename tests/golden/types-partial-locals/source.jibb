@@ -1,0 +1,44 @@
+++ global |= g g
+++ good |= x
+  ++ first (id ~zod)
+  ++ id |= y y
+  ++ capture |= y x
+  [(capture first) (capture (id "hi"))]
+++ conflict |= x
+  ++ capture |= y x
+  ~& ^- @t (capture ~zod)
+    ^- @p (capture "hi")
+++ duplicate |= x
+  ++ f x
+  ++ f x
+  x
+++ shadow |= x
+  ++ x ~zod
+  x
+++ global-shadow |= x
+  ++ global x
+  x
+++ missing |= x
+  ++ a b
+  ++ b a
+  x
+++ caps |= x=A
+  ++ same |= y=A y
+  ~& (same "hi")
+    (same ~zod)
+++ unused-bad |= x
+  ++ unknown nope
+  x
+++ local-mold |= x
+  +$ item @t
+  x
+++ wrap |= y |=(z y)
+++ through-global |= x
+  ++ local (wrap x)
+  ~& ^- @t (local ~zod)
+    ^- @p (local "hi")
+++ nested-shadow |= x
+  ++ f |= y
+    ++ f y
+    y
+  x

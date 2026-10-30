@@ -1,0 +1,4 @@
+source: Overview, worked example 2: the published page imports its API and card component with `/=`.
+tests: The case carries two Jibb module sources at their logical paths; both runners parse and compare their trees. This only checks the fixture sources, not module import resolution or typing.
+expect: parses
+expect-types: a partial report that does not claim module checking

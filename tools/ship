@@ -1054,12 +1054,15 @@ def generate_tests(golden):
     cases = golden_cases(golden)
     has_imports = False
     has_marks = False
+    has_modules = False
     for _, folder in cases:
         try:
             sur = golden_case.sur_imports(folder)
             marks = golden_case.mark_imports(folder)
+            modules = golden_case.module_fixtures(folder)
             has_imports |= bool(sur or marks)
             has_marks |= bool(marks)
+            has_modules |= bool(modules)
         except ValueError as e:
             raise Unable(str(e))
     lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'),
@@ -1075,6 +1078,7 @@ def generate_tests(golden):
             logical = golden_case.source_path(folder)
             imports = golden_case.sur_imports(folder)
             marks = golden_case.mark_imports(folder)
+            modules = golden_case.module_fixtures(folder)
         except ValueError as e:
             raise Unable(str(e))
         args = ['~.%s' % name]
@@ -1121,6 +1125,20 @@ def generate_tests(golden):
             else:
                 call = '(weld %s (check-types ~.%s %s src-%d %s))' % (
                     call, name, path, i, expected_types)
+        if modules:
+            if os.path.isfile(os.path.join(folder, 'module-trees.txt')):
+                lines.append('/*  mtre-%d  %%txt  %s/module-trees/txt' % (i, base))
+                expected_modules = '`mtre-%d' % i
+            else:
+                expected_modules = '~'
+            fixtures = []
+            for j, (module, at, _) in enumerate(modules, 1):
+                face = 'mod-%d-%d' % (i, j)
+                lines.append('/*  %s  %%jibb  %s/modules%s/jibb' %
+                             (face, base, module[:-5]))
+                fixtures.append('[%s %s %s]' % (hoon_cord(module.encode()), at, face))
+            call = '(weld %s (check-module-trees ~.%s %s ~[%s]))' % (
+                call, name, expected_modules, ' '.join(fixtures))
         arms.append('++  %s\n  %s' % (arm, call))
     lines.append('|%')
     if arms:
@@ -1188,6 +1206,29 @@ def generate_tests(golden):
     =/  cor=type  -:(ride -:!>(..zuse) text)
     [name.fixture (read-mark:jibb-import name.fixture cor)]
   (golden-types-with-marks:jibb at src external mark-external)
+'''
+    if has_modules:
+        types_helper += '''::
+++  check-module-trees
+  |=  [case=@ta want=(unit wain) fixtures=(list [label=@t at=path source=@t])]
+  ^-  tang
+  =/  result  (mule |.((module-trees-result fixtures)))
+  ?:  ?=(%| -.result)
+    [leaf+"module fixture parsing crashed" p.result]
+  (compare (file case "module-trees.txt") want p.result)
+::
+++  module-trees-result
+  |=  fixtures=(list [label=@t at=path source=@t])
+  ^-  @t
+  =/  actual=@t
+    %+  rap  3
+    %+  join  '\\0a'
+    %+  turn  fixtures
+    |=  fixture=[label=@t at=path source=@t]
+    ~_  leaf+(trip label.fixture)
+    =/  out  (golden:jibb at.fixture source.fixture)
+    (rap 3 ~[label.fixture '\\0a' tree.out])
+  actual
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 
@@ -1673,7 +1714,7 @@ def cmd_test(ship, args):
                 f.write(content)
             say('updated %s from %s' % (show(TESTS_LIB), show(golden)))
     for _name, folder in golden_cases(golden):
-        for fn in ('tokens.txt', 'tree.txt', 'types.txt'):
+        for fn in ('tokens.txt', 'tree.txt', 'types.txt', 'module-trees.txt'):
             data = _read(os.path.join(folder, fn))
             if data and not data.endswith(b'\n'):
                 warn("%s has no final newline: the ship can't see that (the "

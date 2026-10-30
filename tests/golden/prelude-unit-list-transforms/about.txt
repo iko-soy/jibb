@@ -1,4 +1,4 @@
-source: Overview, Prelude: "The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out"; Hoon 2a includes `drop`, `bind` and `biff`, and 2b includes `skim` and `skip`.
-tests: The complete current prelude parses, including unit-to-list conversion, unit mapping and flat mapping, and the complementary list filters. Both filters retain the order of their selected items.
+source: Overview, Prelude: "The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out"; Hoon 2a includes `drop`, `bind`, `biff`, `both` and `clef`, and 2b includes `skim` and `skip`.
+tests: The complete current prelude parses, including unit-to-list conversion, unit mapping and flat mapping, two ways to combine units, and the complementary list filters. Both filters retain the order of their selected items.
 expect: parses
 expect-types: a partial inference report, not a checked module; unit and list gate typing is not complete

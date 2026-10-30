@@ -287,6 +287,36 @@ def check_crash_isolated(c, tmp):
              '--update should not write a crash:\n' + out)
 
 
+def check_module_fixtures(c, tmp):
+    cases = copy_cases(tmp)
+    folder = os.path.join(cases, 'basic')
+    module = os.path.join(folder, 'modules', 'ui', 'card.jibb')
+    os.makedirs(os.path.dirname(module))
+    with open(module, 'w') as f:
+        f.write('++ card 1\n')
+    manifest = os.path.join(folder, 'modules.txt')
+    with open(manifest, 'w') as f:
+        f.write('/ui/card.jibb\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic', '--update')
+    actual = read(os.path.join(folder, 'module-trees.txt'))
+    c.expect(status == 0 and actual == b'/ui/card.jibb\n++ card 1\n',
+             'module trees update: %d %r\n%s' % (status, actual, out))
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 0, 'module trees compare: ' + out)
+    with open(manifest, 'w') as f:
+        f.write('/ui/../card.jibb\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2 and 'path components' in out, 'invalid module path: ' + out)
+    with open(manifest, 'w') as f:
+        f.write('/ui/card.jibb\n/ui/card.jibb\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2 and 'duplicate module fixture' in out, 'duplicate module: ' + out)
+    with open(manifest, 'w') as f:
+        f.write('/ui/missing.jibb\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2 and 'no fixture' in out, 'missing module: ' + out)
+
+
 def check_fixture_crash_isolated(c, tmp):
     """A bad Hoon fixture must not hide the Jibb parse or other cases."""
     original = os.path.join(ROOT, 'tests', 'golden', 'types-import-mark')

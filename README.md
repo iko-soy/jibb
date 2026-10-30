@@ -16,7 +16,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 
 ## Golden tests
 
-Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, or select marks in `marks.txt` and provide their source in `mar/<name>.txt`, as described in [docs/development.md](docs/development.md).
+Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, or select marks in `marks.txt` and provide their source in `mar/<name>.txt`. `modules.txt` selects Jibb source fixtures, currently parsed but not typechecked; their trees go in `module-trees.txt`. See [docs/development.md](docs/development.md).
 
 Run them without a ship. This needs `urbit` on PATH and Python 3.
 

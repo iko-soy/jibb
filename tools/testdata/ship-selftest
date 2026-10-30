@@ -151,6 +151,30 @@ def generator_checks(tmp):
         bad_path = False
     check('invalid logical paths are rejected', bad_path)
 
+    module_cases = os.path.join(tmp, 'modules')
+    write_case(module_cases, 'main', b'++ main 1\n')
+    folder = os.path.join(module_cases, 'main')
+    os.makedirs(os.path.join(folder, 'modules', 'ui'))
+    with open(os.path.join(folder, 'modules', 'ui', 'card.jibb'), 'w') as f:
+        f.write('++ card 1\n')
+    with open(os.path.join(folder, 'modules.txt'), 'w') as f:
+        f.write('/ui/card.jibb\n')
+    out = ship.generate_tests(module_cases)
+    check('Jibb module fixtures are parsed with their logical paths',
+          '/tests/golden/main/modules/ui/card/jibb' in out and
+          "['/ui/card.jibb' ~[~.ui ~.card ~.jibb] mod-1-1]" in out and
+          '(golden:jibb at.fixture source.fixture)' in out and
+          '(check-module-trees ~.main ~' in out, out)
+    with open(os.path.join(folder, 'modules.txt'), 'a') as f:
+        f.write('/ui/card.jibb\n')
+    try:
+        ship.generate_tests(module_cases)
+    except ship.Unable as e:
+        duplicate_module = 'duplicate module fixture' in str(e)
+    else:
+        duplicate_module = False
+    check('duplicate module fixtures are rejected', duplicate_module)
+
     imported = os.path.join(tmp, 'imported')
     write_case(imported, 'molds', b'/-  fixture\n++ x 1\n')
     folder = os.path.join(imported, 'molds')

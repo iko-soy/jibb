@@ -1,0 +1,122 @@
+(module
+  (value 1:1 global
+    (gate 1:11 (bind 1:14 g) (wing 1:16 g)))
+  (value 2:1 good
+    (gate 2:9
+      (bind 2:12 x)
+      (body 3:3
+        (value 3:3 first
+          (group 3:12
+            (call 3:13 (wing 3:13 id) (lit 3:16 ~zod))))
+        (value 4:3 id
+          (gate 4:9 (bind 4:12 y) (wing 4:14 y)))
+        (value 5:3 capture
+          (gate 5:14 (bind 5:17 y) (wing 5:19 x)))
+        (tuple 6:3
+          (group 6:4
+            (call 6:5 (wing 6:5 capture) (wing 6:13 first)))
+          (group 6:20
+            (call 6:21
+              (wing 6:21 capture)
+              (group 6:29
+                (call 6:30 (wing 6:30 id) (str 6:33 "hi")))))))))
+  (value 7:1 conflict
+    (gate 7:13
+      (bind 7:16 x)
+      (body 8:3
+        (value 8:3 capture
+          (gate 8:14 (bind 8:17 y) (wing 8:19 x)))
+        (trace 9:3
+          (cast 9:6
+            (aura 9:9 @t)
+            (group 9:12
+              (call 9:13 (wing 9:13 capture) (lit 9:21 ~zod))))
+          (body 10:5
+            (cast 10:5
+              (aura 10:8 @p)
+              (group 10:11
+                (call 10:12 (wing 10:12 capture) (str 10:20 "hi")))))))))
+  (value 11:1 duplicate
+    (gate 11:14
+      (bind 11:17 x)
+      (body 12:3
+        (value 12:3 f (wing 12:8 x))
+        (value 13:3 f (wing 13:8 x))
+        (wing 14:3 x))))
+  (value 15:1 shadow
+    (gate 15:11
+      (bind 15:14 x)
+      (body 16:3
+        (value 16:3 x (lit 16:8 ~zod))
+        (wing 17:3 x))))
+  (value 18:1 global-shadow
+    (gate 18:18
+      (bind 18:21 x)
+      (body 19:3
+        (value 19:3 global (wing 19:13 x))
+        (wing 20:3 x))))
+  (value 21:1 missing
+    (gate 21:12
+      (bind 21:15 x)
+      (body 22:3
+        (value 22:3 a (wing 22:8 b))
+        (value 23:3 b (wing 23:8 a))
+        (wing 24:3 x))))
+  (value 25:1 caps
+    (gate 25:9
+      (face 25:12 x (tvar 25:14 A))
+      (body 26:3
+        (value 26:3 same
+          (gate 26:11
+            (face 26:14 y (tvar 26:16 A))
+            (wing 26:18 y)))
+        (trace 27:3
+          (group 27:6
+            (call 27:7 (wing 27:7 same) (str 27:12 "hi")))
+          (body 28:5
+            (group 28:5
+              (call 28:6 (wing 28:6 same) (lit 28:11 ~zod))))))))
+  (value 29:1 unused-bad
+    (gate 29:15
+      (bind 29:18 x)
+      (body 30:3
+        (value 30:3 unknown (wing 30:14 nope))
+        (wing 31:3 x))))
+  (value 32:1 local-mold
+    (gate 32:15
+      (bind 32:18 x)
+      (body 33:3
+        (mold 33:3 item (aura 33:11 @t))
+        (wing 34:3 x))))
+  (value 35:1 wrap
+    (gate 35:9
+      (bind 35:12 y)
+      (gate-wide 35:14 (bind 35:17 z) (wing 35:19 y))))
+  (value 36:1 through-global
+    (gate 36:19
+      (bind 36:22 x)
+      (body 37:3
+        (value 37:3 local
+          (group 37:12
+            (call 37:13 (wing 37:13 wrap) (wing 37:18 x))))
+        (trace 38:3
+          (cast 38:6
+            (aura 38:9 @t)
+            (group 38:12
+              (call 38:13 (wing 38:13 local) (lit 38:19 ~zod))))
+          (body 39:5
+            (cast 39:5
+              (aura 39:8 @p)
+              (group 39:11
+                (call 39:12 (wing 39:12 local) (str 39:18 "hi")))))))))
+  (value 40:1 nested-shadow
+    (gate 40:18
+      (bind 40:21 x)
+      (body 41:3
+        (value 41:3 f
+          (gate 41:8
+            (bind 41:11 y)
+            (body 42:5
+              (value 42:5 f (wing 42:10 y))
+              (wing 43:5 y))))
+        (wing 44:3 x)))))

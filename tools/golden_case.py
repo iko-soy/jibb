@@ -17,6 +17,11 @@ def source_path(folder):
     except UnicodeError:
         raise ValueError('%s: path must be UTF-8' % filename)
     path = raw[:-1] if raw.endswith('\n') else raw
+    return ui_path(path, filename)
+
+
+def ui_path(path, filename):
+    """Validate a logical Jibb path and render it as a Hoon path."""
     parts = path.split('/')
     if len(parts) < 3 or parts[:2] != ['', 'ui'] or not parts[-1].endswith('.jibb'):
         raise ValueError('%s: expected an absolute /ui/.../*.jibb path' % filename)
@@ -94,4 +99,29 @@ def mark_imports(folder):
         out.append((mark, fixture))
     if out and not wants_types(folder):
         raise ValueError('%s: imported marks require a types output' % filename)
+    return out
+
+
+def module_fixtures(folder):
+    """Logical Jibb paths, Hoon paths, and sources in a case's modules tree."""
+    filename = os.path.join(folder, 'modules.txt')
+    try:
+        with open(filename, encoding='utf-8') as f:
+            lines = list(f)
+    except FileNotFoundError:
+        return []
+    except UnicodeError:
+        raise ValueError('%s: module paths must be UTF-8' % filename)
+    out, seen = [], set()
+    for number, line in enumerate(lines, 1):
+        logical = line[:-1] if line.endswith('\n') else line
+        where = '%s:%d' % (filename, number)
+        hoon_path = ui_path(logical, where)
+        if logical in seen:
+            raise ValueError('%s: duplicate module fixture' % where)
+        fixture = os.path.join(folder, 'modules', *logical.split('/')[1:])
+        if not os.path.isfile(fixture):
+            raise ValueError('%s: no fixture at %s' % (where, fixture))
+        seen.add(logical)
+        out.append((logical, hoon_path, fixture))
     return out

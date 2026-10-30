@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ main: multiple arguments are not supported by partial inference
+++ load: sample mold is not supported by partial inference
+++ view: sample mold is not supported by partial inference

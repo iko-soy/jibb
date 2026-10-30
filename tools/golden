@@ -46,7 +46,7 @@ KNOT = re.compile(r'^[a-z0-9\-.~_]+$')
 HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
 ::  golden:lib on each case under mule and returns one cord of fields,
 ::  each <length>:<bytes>, first jibb-golden and the case count, then
-::  per case its name, ok or crash, tokens, tree and types.
+::  per case its name, status, tokens, tree, types and module trees.
 ::
 =>  [lib=. ..zuse]
 |^  %+  rap  3
@@ -55,18 +55,21 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
     ==
 ::
 ++  run
-  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t])] src=@t]
+  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t]) modules=(list [label=@t at=path source=@t])] src=@t]
   ^-  @t
   =/  at=path  ?~(logical.metadata (file name) u.logical.metadata)
   =/  parsed  (mule |.((golden:lib at src)))
   ?:  ?=(%| -.parsed)
     =/  why=@t  (crash p.parsed)
-    (fields ~[name 'crash' why why why])
+    (fields ~[name 'crash' why why why why])
   =/  out=[tokens=@t tree=@t]  p.parsed
   =/  typed  (mule |.({types-expr}))
   ?:  ?=(%| -.typed)
-    (fields ~[name 'types-crash' tokens.out tree.out (crash p.typed)])
-  (fields ~[name 'ok' tokens.out tree.out p.typed])
+    (fields ~[name 'types-crash' tokens.out tree.out (crash p.typed) ''])
+  =/  modules  (mule |.({modules-expr}))
+  ?:  ?=(%| -.modules)
+    (fields ~[name 'modules-crash' tokens.out tree.out p.typed (crash p.modules)])
+  (fields ~[name 'ok' tokens.out tree.out p.typed p.modules])
 ::
 ++  file
   |=  name=@
@@ -92,7 +95,21 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
   |=  b=@t
   (rap 3 ~[(crip (a-co:co (met 3 b))) ':' b ','])
 {import-helper}
+{module-helper}
 --
+"""
+
+MODULE_HELPER = r"""
+++  module-trees
+  |=  fixtures=(list [label=@t at=path source=@t])
+  ^-  @t
+  %+  rap  3
+  %+  join  '\0a'
+  %+  turn  fixtures
+  |=  fixture=[label=@t at=path source=@t]
+  ~_  leaf+(trip label.fixture)
+  =/  out  (golden:lib at.fixture source.fixture)
+  (rap 3 ~[label.fixture '\0a' tree.out])
 """
 
 IMPORT_HELPER = r"""
@@ -143,6 +160,7 @@ class Case:
             self.logical_path = golden_case.source_path(folder)
             self.imports = golden_case.sur_imports(folder)
             self.marks = golden_case.mark_imports(folder)
+            self.modules = golden_case.module_fixtures(folder)
         except ValueError as e:
             raise ue.ToolError(str(e))
         self.want_types = golden_case.wants_types(folder)
@@ -193,10 +211,17 @@ def run_lines(case):
         source = '(rap 3 `(list @t)`~[%s])' % ' '.join(ue.cord_literal(p) for p in parts)
         fixtures.append('[%%%s %s]' % (name, source))
     marks = '~[' + ' '.join(fixtures) + ']' if fixtures else '~'
-    out = ['        %%^  run  %s  [%s %s %s %s]' % (
+    fixtures = []
+    for logical, at, path in case.modules:
+        with open(path, 'rb') as f:
+            parts = ue.cord_pieces(f.read())
+        source = '(rap 3 `(list @t)`~[%s])' % ' '.join(ue.cord_literal(p) for p in parts)
+        fixtures.append('[%s %s %s]' % (ue.cord_literal(logical.encode()), at, source))
+    modules = '~[' + ' '.join(fixtures) + ']' if fixtures else '~'
+    out = ['        %%^  run  %s  [%s %s %s %s %s]' % (
                ue.cord_literal(case.name.encode()),
                '`' + case.logical_path if case.logical_path else '~',
-               '%.y' if case.want_types else '%.n', imports, marks),
+               '%.y' if case.want_types else '%.n', imports, marks, modules),
            '        %-  text',
            '        :~  ' + ue.cord_literal(lines[0])]
     out += ['            ' + ue.cord_literal(line) for line in lines[1:]]
@@ -209,6 +234,7 @@ def golden_program(lib_path, cases):
     runs = '\n'.join(line for case in cases for line in run_lines(case))
     imported = any(c.imports or c.marks for c in cases)
     has_marks = any(c.marks for c in cases)
+    has_modules = any(c.modules for c in cases)
     harness = HARNESS
     if imported:
         reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
@@ -224,7 +250,9 @@ def golden_program(lib_path, cases):
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")
-                    .replace('{import-helper}', IMPORT_HELPER if imported else ''),
+                    .replace('{import-helper}', IMPORT_HELPER if imported else '')
+                    .replace('{modules-expr}', '(module-trees modules.metadata)' if has_modules else "''")
+                    .replace('{module-helper}', MODULE_HELPER if has_modules else ''),
              '(harness)', 'harness')
     return prog
 
@@ -258,14 +286,14 @@ def decode(prog, noun, cases):
     except ValueError as e:
         raise ue.ToolError('the harness output is malformed: %s' % e)
     if fields[:2] != [MAGIC, str(len(cases)).encode()] or \
-            len(fields) != 2 + 5 * len(cases):
+            len(fields) != 2 + 6 * len(cases):
         raise ue.ToolError('the harness output has the wrong shape')
     for i, case in enumerate(cases):
-        name, status, tokens, tree, types = fields[2 + 5 * i:7 + 5 * i]
+        name, status, tokens, tree, types, modules = fields[2 + 6 * i:8 + 6 * i]
         if name != case.name.encode():
             raise ue.ToolError('the harness output is out of order at %s'
                                % case.name)
-        case.crashed = status in (b'crash', b'types-crash')
+        case.crashed = status in (b'crash', b'types-crash', b'modules-crash')
         if status == b'crash':
             tokens, case.crash_at = crash_text(
                 prog, tokens.decode('utf-8', 'surrogateescape').split('\n'))
@@ -274,9 +302,15 @@ def decode(prog, noun, cases):
             case.crash_kind = 'types'
             types, case.crash_at = crash_text(
                 prog, types.decode('utf-8', 'surrogateescape').split('\n'))
+        elif status == b'modules-crash':
+            case.crash_kind = 'module-trees'
+            modules, case.crash_at = crash_text(
+                prog, modules.decode('utf-8', 'surrogateescape').split('\n'))
         case.outputs = {'tokens': tokens, 'tree': tree}
         if case.want_types:
             case.outputs['types'] = types
+        if case.modules:
+            case.outputs['module-trees'] = modules
 
 
 def eval_crash(prog, res, case):

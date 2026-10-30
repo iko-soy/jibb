@@ -27,9 +27,9 @@ The following is an audit of the Hoon 135 bodies, not a completed Jibb interface
 | `biff` | Applies a gate returning a unit to a present value; absent stays absent. | Written |
 | `bind` | Applies a gate to a present value and wraps the result; absent stays absent. | Written |
 | `bond` | Calls a fallback trap for an absent unit, otherwise returns its value. | Missing |
-| `both` | Returns a unit of both values when both units are present. | Missing |
-| `clap` | Returns the present unit if only one is present; combines both values with a gate if both are present. | Missing |
-| `clef` | Applies a gate returning a unit when both inputs are present; otherwise returns an absent unit. | Missing |
+| `both` | Returns a unit of both values when both units are present. | Written |
+| `clap` | Returns the present unit if only one is present; combines both values with a gate if both are present. | Missing; Hoon permits different input and output types |
+| `clef` | Applies a gate returning a unit when both inputs are present; otherwise returns an absent unit. | Written |
 | `drop` | Converts an absent unit to an empty list and a present unit to a singleton. | Written |
 | `fall` | Returns the value of a present unit or the supplied fallback. | Written |
 | `flit` | Returns a gate that wraps a value only if it satisfies the predicate. | Missing |
