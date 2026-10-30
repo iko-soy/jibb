@@ -42,7 +42,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Inline gates | Hoon's wide form; the mold may be inferred; a bare sample name binds; `\|=%got` is a case's constructor, typed by the gate expected; a bare tag is always a value | Decided 2026-10-29 |
 | Empty mold | `!!`, with no values; the expression has any type; pages are `(element !!)`, which keeps islands out of islands | Decided 2026-10-29 |
 | Noun mold | `*` is the noun type, not a type variable; use a capital for a generic type; a value of a more specific noun type can be used where `*` is expected | Decided 2026-10-30 |
-| Type variables | Capitals, generalized per `++`; a capital in a local `++` shares the enclosing `++`'s variable of that name, and a different type takes a different capital; a body cannot force distinct capitals to be equal, so a shared type uses the same capital; one used where an atom is required gains an inferred atom constraint, and cannot be fixed to a more specific type in its body | Decided 2026-10-30 |
+| Type variables | Capitals, generalized per `++`; a capital in a local `++` shares the enclosing `++`'s variable of that name if the enclosing `++` also uses it; otherwise it is introduced and generalized locally; a different type takes a different capital; a body cannot force distinct capitals to be equal, so a shared type uses the same capital; one used where an atom is required gains an inferred atom constraint, and cannot be fixed to a more specific type in its body | Decided 2026-10-30 |
 | Loobean mold | `?`, switched with `?-` | Decided 2026-10-26 |
 | Defaults | None | Decided |
 | Modules | Records, not cores | Decided |
