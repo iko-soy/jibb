@@ -1,0 +1,4 @@
+|%
++$  lists  (list @ud)
++$  wrapped  item:small
+--

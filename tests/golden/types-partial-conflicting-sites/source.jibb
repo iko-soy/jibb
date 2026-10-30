@@ -1,0 +1,5 @@
+++ f |= x=@t x
+++ bad-call (f ~zod)
+++ bad-cast ^- @ud "hello"
+++ narrow |= x=@
+  ^- @t x

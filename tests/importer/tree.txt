@@ -17,6 +17,14 @@ mixed-mop: [a=(mop @ud @t) b=(list @ud)]
 nested-static-mop: [a=(mop @ud @t) b=(map @ud (jar @t @ud))]
 collection-siblings: [a=(mop @ud @t) [b=(set @ud) [c=(qeu @t) [d=(unit @ud) e=(jug @ud @t)]]]]
 dynamic-sibling-mop: error: a nested Hoon mop needs source-aware import
+ford-list: (list @ud)
+ford-imported: [id=@ud text=@t]
+ford-transitive: (list @ud)
+ford-shadow: error: Hoon collection provenance is unavailable or shadowed
+ford-transitive-shadow: error: Hoon collection provenance is unavailable or shadowed
+ford-shadow-face: unsafe
+ford-unknown: unsafe
+ford-mismatched-core: unsafe
 shadow-list-mop: error: Hoon collection provenance is unavailable or shadowed
 named-mop: error: a nested Hoon mop needs source-aware import
 mop-list: error: a nested Hoon mop needs source-aware import

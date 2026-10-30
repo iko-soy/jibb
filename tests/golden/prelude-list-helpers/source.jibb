@@ -1,0 +1,138 @@
+::  Initial prelude functions. The rest of the inventory is still to come.
+++ same |= x=A x
+
+++ head |= p=[A B]
+  ?- p
+    [a b] a
+
+++ tail |= p=[A B]
+  ?- p
+    [a b] b
+
+++ not |= b=?
+  ?- b
+    %.y %.n
+    %.n %.y
+
++$ list |$ [A]
+  ~
+  [i=A t=(list A)]
+
++$ unit |$ [A]
+  ~
+  [~ u=A]
+
+++ fall |= args=[(unit A) A]
+  ?- args
+    [maybe fallback]
+      ?- maybe
+        ~ fallback
+        [~ value] value
+
+++ need |= maybe=(unit A)
+  ?- maybe
+    ~ !!
+    [~ value] value
+
+++ weld |= args=[(list A) (list A)]
+  ?- args
+    [xs ys]
+      ?- xs
+        ~ ys
+        [item rest] [item (weld rest ys)]
+
+++ turn |= args=[(list A) $-(A B)]
+  ?- args
+    [xs f]
+      ?- xs
+        ~ ~
+        [item rest] [(f item) (turn rest f)]
+
++$ dime [p=@ta q=@]
+
++$ hair [p=@ud q=@ud]
+
++$ pint [p=[p=@ q=@] q=[p=@ q=@]]
+
++$ coin
+  [%$ p=dime]
+  [%blob p=*]
+  [%many p=(list coin)]
+
++$ pair |$ [A B] [p=A q=B]
+
++$ trel |$ [A B C] [p=A q=B r=C]
+
++$ qual |$ [A B C D] [p=A q=B r=C s=D]
+
++$ cord @t
+
++$ knot @ta
+
++$ tape (list @tD)
+
++$ path (list knot)
+
++$ tank
+  cord
+  [%leaf p=tape]
+  [%palm p=(qual tape tape tape tape) q=(list tank)]
+  [%rose p=(trel tape tape tape) q=(list tank)]
+
++$ nail [p=hair q=tape]
+
++$ edge [p=hair q=(unit [p=* q=nail])]
+
++$ rule $-(nail edge)
+
++$ spot [p=path q=pint]
+
++$ toon
+  [%0 p=*]
+  [%1 p=*]
+  [%2 p=(list tank)]
+
++$ like |$ [A] [p=hair q=(unit [p=A q=nail])]
+
+++ wonk |= veq=(like A)
+  ?- q.veq
+    ~ !!
+    [~ product] p.product
+
++$ lone |$ [A] [p=A]
+
++$ lest |$ [A] [i=A t=(list A)]
+
++$ pole |$ [A]
+  ~
+  [A (pole A)]
+
++$ quip |$ [A B] [(list A) B]
+
++$ tree |$ [A]
+  ~
+  [n=A l=(tree A) r=(tree A)]
+
++$ each |$ [A B]
+  [%| p=B]
+  [%& p=A]
+
++$ bloq @
+
+++ some |= item=A `item
+
+++ lure |= item=A
+  ^- (list A) [item ~]
+
+++ snoc |= args=[(list A) A]
+  ?- args
+    [xs item] (weld xs [item ~])
+
+++ flop |= xs=(list A)
+  ++ reverse-into |= args=[(list A) (list A)]
+    ?- args
+      [rest acc]
+        ?- rest
+          ~ acc
+          [item more] (reverse-into more [item acc])
+  (reverse-into xs ~)

@@ -1,0 +1,4 @@
+source: a Hoon subaura fits its parent aura; the reverse needs a check, and unrelated specific auras stay distinct.
+tests: unsigned and text subauras widen toward their parents, narrowing and sibling casts fail with both sites, and a generic join that needs a common-type rule remains unsupported.
+expect: parses
+expect-types: a partial inference report, not a checked module

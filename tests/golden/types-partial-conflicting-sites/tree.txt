@@ -1,0 +1,15 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 x (aura 1:11 @t))
+      (wing 1:14 x)))
+  (value 2:1 bad-call
+    (group 2:13
+      (call 2:14 (wing 2:14 f) (lit 2:16 ~zod))))
+  (value 3:1 bad-cast
+    (cast 3:13 (aura 3:16 @ud) (str 3:20 "hello")))
+  (value 4:1 narrow
+    (gate 4:11
+      (face 4:14 x (aura 4:16 @))
+      (body 5:3
+        (cast 5:3 (aura 5:6 @t) (wing 5:9 x))))))

@@ -1,0 +1,23 @@
+partial inference; module not checked
+++ f: $-(@t @t)
+++ bad-call: call's sample and argument types do not unify
+/tests/golden/types-partial-conflicting-sites/source.jibb:2:14: called gate has type $-(@t @t)
+++ bad-call (f ~zod)
+             ^
+/tests/golden/types-partial-conflicting-sites/source.jibb:2:16: argument has type @p
+++ bad-call (f ~zod)
+               ^
+++ bad-cast: cast mold and expression type do not unify
+/tests/golden/types-partial-conflicting-sites/source.jibb:3:16: cast mold has type @ud
+++ bad-cast ^- @ud "hello"
+               ^
+/tests/golden/types-partial-conflicting-sites/source.jibb:3:20: expression has type @t
+++ bad-cast ^- @ud "hello"
+                   ^
+++ narrow: cast mold and expression type do not unify
+/tests/golden/types-partial-conflicting-sites/source.jibb:5:6: cast mold has type @t
+  ^- @t x
+     ^
+/tests/golden/types-partial-conflicting-sites/source.jibb:5:9: expression has type @
+  ^- @t x
+        ^

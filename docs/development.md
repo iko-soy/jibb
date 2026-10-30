@@ -61,7 +61,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
 | `tools/importer-test` | Compares the partial Hoon importer's diagnostic trees and errors with `tests/importer/tree.txt` under `urbit eval` |
 | `tools/type-import-test` | Composes the Hoon importer with the partial checker and compares `tests/type-import/expected.txt` under eval |
-| `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, and checks selected imported mold projections on the fake ship |
+| `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, checks selected imported mold projections and the partial checker, and records a Ford-import subject shape on the fake ship |
 | `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
 | `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |

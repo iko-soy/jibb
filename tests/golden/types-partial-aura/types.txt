@@ -2,3 +2,9 @@ partial inference; module not checked
 ++ n: unresolved aura-variable inference
 ++ good: @ux
 ++ bad: cast mold and expression type do not unify
+/tests/golden/types-partial-aura/source.jibb:3:11: cast mold has type ?
+++ bad ^- ? 1
+          ^
+/tests/golden/types-partial-aura/source.jibb:3:13: expression
+++ bad ^- ? 1
+            ^

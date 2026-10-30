@@ -14,7 +14,8 @@ command = [str(root / 'tools' / 'hoon'), '--lib', str(root / 'jibb-dev' / 'lib' 
            '--cord', 'docs=' + str(fixture / 'tlon-docs.txt'),
            '--cord', 'shadow=' + str(fixture / 'shadow.txt'),
            '--cord', 'shadow-static=' + str(fixture / 'shadow-static.txt'),
-           '(fixture-output small epic presence docs shadow shadow-static)']
+           '--cord', 'ford=' + str(fixture / 'ford.txt'),
+           '(fixture-output small epic presence docs shadow shadow-static ford)']
 result = subprocess.run(command, stdout=subprocess.PIPE)
 if result.returncode:
     sys.exit(result.returncode)
@@ -26,4 +27,4 @@ if result.stdout != expected:
         result.stdout.decode().splitlines(keepends=True),
         fromfile='expected tree.txt', tofile='actual types'))
     sys.exit(1)
-print('importer golden: 49 projections passed')
+print('importer golden: 57 projections passed')

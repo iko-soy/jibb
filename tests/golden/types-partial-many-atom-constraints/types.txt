@@ -2,7 +2,25 @@ partial inference; module not checked
 ++ both: $-([A B] @) where A is an atom, B is an atom
 ++ mix: @
 ++ bad: call's sample and argument types do not unify
+/tests/golden/types-partial-many-atom-constraints/source.jibb:7:9: called gate has type $-([A B] @) where A is an atom, B is an atom
+++ bad (both [~zod [~zod "hi"]])
+        ^
+/tests/golden/types-partial-many-atom-constraints/source.jibb:7:14: argument has type [@p [@p @t]]
+++ bad (both [~zod [~zod "hi"]])
+             ^
 ++ implicit: $-(A A) where A is an atom
 ++ flag: ?
 ++ decimal: cast mold and expression type do not unify
+/tests/golden/types-partial-many-atom-constraints/source.jibb:12:15: cast mold has type ?
+++ decimal ^- ? 1
+              ^
+/tests/golden/types-partial-many-atom-constraints/source.jibb:12:17: expression
+++ decimal ^- ? 1
+                ^
 ++ relay: cast mold and expression type do not unify
+/tests/golden/types-partial-many-atom-constraints/source.jibb:13:13: cast mold has type ?
+++ relay ^- ? (implicit 7)
+            ^
+/tests/golden/types-partial-many-atom-constraints/source.jibb:13:15: expression
+++ relay ^- ? (implicit 7)
+              ^

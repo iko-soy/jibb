@@ -4,6 +4,24 @@ partial inference; module not checked
 ++ cord: @t
 ++ flag: ?
 ++ bad: call's sample and argument types do not unify
+/tests/golden/types-partial-atom-constraint/source.jibb:7:9: called gate has type $-(A A) where A is an atom
+++ bad (keep [~zod "hi"])
+        ^
+/tests/golden/types-partial-atom-constraint/source.jibb:7:14: argument has type [@p @t]
+++ bad (keep [~zod "hi"])
+             ^
 ++ first: $-([A A] A) where A is an atom
 ++ decimal: cast mold and expression type do not unify
+/tests/golden/types-partial-atom-constraint/source.jibb:13:15: cast mold has type ?
+++ decimal ^- ? 1
+              ^
+/tests/golden/types-partial-atom-constraint/source.jibb:13:17: expression
+++ decimal ^- ? 1
+                ^
 ++ relay: cast mold and expression type do not unify
+/tests/golden/types-partial-atom-constraint/source.jibb:14:13: cast mold has type ?
+++ relay ^- ? (keep 7)
+            ^
+/tests/golden/types-partial-atom-constraint/source.jibb:14:15: expression
+++ relay ^- ? (keep 7)
+              ^

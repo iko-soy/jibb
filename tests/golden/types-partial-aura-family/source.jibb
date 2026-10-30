@@ -1,0 +1,10 @@
+++ decimal |= x=@ud ^- @u x
+++ hex ^- @u 0x1f
+++ base32 |= x=@uv ^- @u x
+++ text |= x=@tD ^- @t x
+++ narrow |= x=@t ^- @tD x
+++ siblings |= x=@ux ^- @ud x
+++ dup |= p=[A A] p
+++ join |= x=@u (dup [0x1f x])
+++ accept |= n=@u n
+++ via-call |= x=@ud (accept x)

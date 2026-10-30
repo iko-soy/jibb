@@ -2,3 +2,9 @@ partial inference; module not checked
 ++ dup: $-([A A] [A A])
 ++ good: [@p @p]
 ++ bad: call's sample and argument types do not unify
+/tests/golden/types-partial-shared-tvar/source.jibb:3:9: called gate has type $-([A A] [A A])
+++ bad (dup [~zod "hi"])
+        ^
+/tests/golden/types-partial-shared-tvar/source.jibb:3:13: argument has type [@p @t]
+++ bad (dup [~zod "hi"])
+            ^

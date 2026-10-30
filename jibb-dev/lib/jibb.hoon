@@ -4718,9 +4718,43 @@
     %cell      |($(t hed.t) $(t tal.t))
   ==
 ::
+::
+::  Hoon aura families are textual prefixes: @tD is in @t, and @uvJ
+::  is in @uv and @u. Jibb permits widening toward the prefix only.
+::
+++  aura-prefix
+  |=  [parent=@ta child=@ta]
+  ^-  ?
+  =/  a=tape  (trip parent)
+  =/  b=tape  (trip child)
+  |-
+  ?~  a  &
+  ?~  b  |
+  ?.  =(i.a i.b)  |
+  $(a t.a, b t.b)
+::
+::  Related auras in a structural unification need a common-type rule;
+::  until that rule is implemented, report an unknown rather than error.
+::
+++  itype-family-related
+  |=  [a=itype b=itype sub=isub]
+  ^-  ?
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  &(?=(%atom -.a) ?=(%atom -.b))
+    ?.  !=(aura.a aura.b)  |
+    |((aura-prefix aura.a aura.b) (aura-prefix aura.b aura.a))
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))
+    |($(a hed.a, b hed.b) $(a tal.a, b tal.b))
+  ?:  &(?=(%fn -.a) ?=(%fn -.b))
+    |($(a sample.a, b sample.b) $(a product.a, b product.b))
+  |
+::
 ++  itype-fit
   |=  [actual=itype expected=itype sub=isub next=@ud]
   ^-  ifit
+  =/  uncertain=?
+    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%var -.expected) ?=(%avar -.expected) ?=(%nvar -.expected))
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
@@ -4738,6 +4772,10 @@
       [%ok u.unified next]
     ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
     [%bad ~]
+  ?:  &(?=(%atom -.actual) ?=(%atom -.expected))
+    ?:  (aura-prefix aura.expected aura.actual)  [%ok sub next]
+    ?:  &((aura-prefix aura.actual aura.expected) uncertain)  [%unknown ~]
+    [%bad ~]
   ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
     =/  first=ifit  $(actual hed.actual, expected hed.expected)
     ?.  ?=(%ok -.first)  first
@@ -4746,12 +4784,16 @@
     [%unknown ~]
   ?:  |(?=(%var -.actual) ?=(%var -.expected))
     =/  unified=(unit isub)  (itype-unify actual expected sub)
-    ?~  unified  [%bad ~]
+    ?~  unified
+      ?:  (itype-family-related actual expected sub)  [%unknown ~]
+      [%bad ~]
     [%ok u.unified next]
   ?:  |((itype-has-any-atom actual sub) (itype-has-any-atom expected sub))
     [%unknown ~]
   =/  unified=(unit isub)  (itype-unify actual expected sub)
-  ?~  unified  [%bad ~]
+  ?~  unified
+    ?:  (itype-family-related actual expected sub)  [%unknown ~]
+    [%bad ~]
   [%ok u.unified next]
 ::
 ++  itype-unify-test
@@ -4792,7 +4834,8 @@
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) active=(list term) in-mold=?]
-+$  iresult  (each [typ=itype state=istate] tape)
++$  idiag  [msg=tape sites=(list [at=span note=tape])]
++$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
 ::
 ++  ienv-lookup
@@ -4943,7 +4986,7 @@
     %atom
       ?.  ?=([%atom @ ~] node)  ~
       =/  aura=@ta  (@ta +<.node)
-      ?.  ?=(?(%ud %ux %uv %t %ta %tas %p %da %dr) aura)  ~
+      ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
       `[%atom aura]
     %cell
       ?.  ?=([%cell * *] node)  ~
@@ -5062,17 +5105,17 @@
         %duration  [%& [%atom %dr] state]
         %knot      [%& [%atom %ta] state]
         %loobean   [%& [%flag ~] state]
-        *          [%| "literal needs contextual inference"]
+        *          [%| ["literal needs contextual inference" ~]]
       ==
     %str
       =/  interpolated=?  (lien pieces.e |=(p=piece ?=(%expr -.p)))
-      ?:  interpolated  [%| "interpolation is not supported by partial inference"]
+      ?:  interpolated  [%| ["interpolation is not supported by partial inference" ~]]
       [%& [%atom %t] state]
     %wing
-      ?~  names.e  [%| "empty wing"]
-      ?^  t.names.e  [%| "field access is not supported by partial inference"]
+      ?~  names.e  [%| ["empty wing" ~]]
+      ?^  t.names.e  [%| ["field access is not supported by partial inference" ~]]
       =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
-      ?~  scheme  [%| "name is not available to partial inference"]
+      ?~  scheme  [%| ["name is not available to partial inference" ~]]
       =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
       [%& typ.instance state.instance]
     %group  $(e inner.e)
@@ -5082,59 +5125,60 @@
       $(e then.e, state state.p.traced)
     %tuple  (infer-simple-items items.e env state)
     %body
-      ?^  defs.e  [%| "local definitions are not supported by partial inference"]
+      ?^  defs.e  [%| ["local definitions are not supported by partial inference" ~]]
       $(e final.e)
     %branch
-      ?~  arms.e  [%| "branch is not supported by partial inference"]
+      ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e  (infer-cell-branch e env state)
-      ?^  t.t.arms.e  [%| "branch is not supported by partial inference"]
+      ?^  t.t.arms.e  [%| ["branch is not supported by partial inference" ~]]
       =/  x=arm  i.arms.e
       =/  y=arm  i.t.arms.e
-      ?.  ?=(%lit -.pat.x)  [%| "branch pattern is not supported by partial inference"]
-      ?.  ?=(%lit -.pat.y)  [%| "branch pattern is not supported by partial inference"]
+      ?.  ?=(%lit -.pat.x)  [%| ["branch pattern is not supported by partial inference" ~]]
+      ?.  ?=(%lit -.pat.y)  [%| ["branch pattern is not supported by partial inference" ~]]
       ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
-        [%| "branch pattern is not supported by partial inference"]
+        [%| ["branch pattern is not supported by partial inference" ~]]
       ?:  =(val.lit.pat.x val.lit.pat.y)
-        [%| "branch does not cover both loobeans"]
+        [%| ["branch does not cover both loobeans" ~]]
       =/  subject=iresult  $(e subject.e)
       ?:  ?=(%| -.subject)  subject
       =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
-      ?~  su  [%| "loobean branch subject does not unify with ?"]
+      ?~  su  [%| ["loobean branch subject does not unify with ?" ~]]
       =/  left=iresult  $(e val.x, state state.p.subject(sub u.su))
       ?:  ?=(%| -.left)  left
       =/  right=iresult  $(e val.y, state state.p.left)
       ?:  ?=(%| -.right)  right
       =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
       ?~  joined
-        ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right))
-          [%| "branch widening is not supported by partial inference"]
-        [%| "branch arms have incompatible types"]
+        ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right) (itype-family-related typ.p.left typ.p.right sub.state.p.right))
+          [%| ["branch widening is not supported by partial inference" ~]]
+        [%| ["branch arms have incompatible types" ~]]
       [%& typ.p.left state.p.right(sub u.joined)]
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
-      ?~  target  [%| "cast mold is not supported by partial inference"]
+      ?~  target  [%| ["cast mold is not supported by partial inference" ~]]
       =/  value=iresult  $(e val.e, state state.u.target)
       ?:  ?=(%| -.value)  value
       =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
-      ?:  ?=(%unknown -.fit)  [%| "cast constraint is not supported by partial inference"]
-      ?:  ?=(%bad -.fit)  [%| "cast mold and expression type do not unify"]
+      ?:  ?=(%unknown -.fit)  [%| ["cast constraint is not supported by partial inference" ~]]
+      ?:  ?=(%bad -.fit)
+        [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-type-note "expression" typ.p.value sub.state.p.value)]]]]
       [%& typ.u.target state.p.value(sub sub.fit, next next.fit)]
     %crash  [%& [%var next.state] state(next +(next.state))]
     %gate
       =/  sam=isample-result  (infer-sample sample.e env state)
-      ?:  ?=(%| -.sam)  [%| p.sam]
+      ?:  ?=(%| -.sam)  [%| [p.sam ~]]
       =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
       ?:  ?=(%| -.body)  body
       [%& [%fn typ.p.sam typ.p.body] state.p.body]
     %gate-wide
       =/  sam=isample-result  (infer-sample sample.e env state)
-      ?:  ?=(%| -.sam)  [%| p.sam]
+      ?:  ?=(%| -.sam)  [%| [p.sam ~]]
       =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
       ?:  ?=(%| -.body)  body
       [%& [%fn typ.p.sam typ.p.body] state.p.body]
     %call
-      ?~  args.e  [%| "call has no argument"]
-      ?^  t.args.e  [%| "multiple arguments are not supported by partial inference"]
+      ?~  args.e  [%| ["call has no argument" ~]]
+      ?^  t.args.e  [%| ["multiple arguments are not supported by partial inference" ~]]
       =/  head=iresult  $(e head.e)
       ?:  ?=(%| -.head)  head
       =/  arg=iresult  $(e i.args.e, state state.p.head)
@@ -5143,14 +5187,16 @@
       =/  ht=itype  (itype-walk typ.p.head sub.st)
       ?:  ?=(%fn -.ht)
         =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st next.st)
-        ?:  ?=(%unknown -.fit)  [%| "call constraint is not supported by partial inference"]
-        ?:  ?=(%bad -.fit)  [%| "call's sample and argument types do not unify"]
+        ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
+        ?:  ?=(%bad -.fit)
+          [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
         [%& product.ht st(sub sub.fit, next next.fit)]
       =/  result=itype  [%var next.st]
       =/  uni=(unit isub)  (itype-unify ht [%fn typ.p.arg result] sub.st)
-      ?~  uni  [%| "call's sample and argument types do not unify"]
+      ?~  uni
+        [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
       [%& result st(next +(next.st), sub u.uni)]
-    *  [%| "expression is not supported by partial inference"]
+    *  [%| ["expression is not supported by partial inference" ~]]
   ==
 ::
 ::  Unfaced tuple expressions are the one supported cell construction.
@@ -5159,8 +5205,8 @@
 ++  infer-simple-items
   |=  [items=(list item) env=ienv state=istate]
   ^-  iresult
-  ?~  items  [%| "empty cell is not supported by partial inference"]
-  ?^  face.i.items  [%| "record faces are not supported by partial inference"]
+  ?~  items  [%| ["empty cell is not supported by partial inference" ~]]
+  ?^  face.i.items  [%| ["record faces are not supported by partial inference" ~]]
   =/  head=iresult  (infer-fragment val.i.items env state)
   ?:  ?=(%| -.head)  head
   ?~  t.items  head
@@ -5175,26 +5221,26 @@
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
   ?>  ?=(%branch -.e)
-  ?~  arms.e  [%| "branch is not supported by partial inference"]
+  ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
   =/  arm=arm  i.arms.e
-  ?.  ?=(%cell -.pat.arm)  [%| "branch pattern is not supported by partial inference"]
+  ?.  ?=(%cell -.pat.arm)  [%| ["branch pattern is not supported by partial inference" ~]]
   =/  pats=(list pattern)  items.pat.arm
-  ?~  pats  [%| "branch pattern is not supported by partial inference"]
-  ?~  t.pats  [%| "branch pattern is not supported by partial inference"]
-  ?^  t.t.pats  [%| "branch pattern is not supported by partial inference"]
-  ?.  ?=(%bind -.i.pats)  [%| "branch pattern is not supported by partial inference"]
-  ?.  ?=(%bind -.i.t.pats)  [%| "branch pattern is not supported by partial inference"]
+  ?~  pats  [%| ["branch pattern is not supported by partial inference" ~]]
+  ?~  t.pats  [%| ["branch pattern is not supported by partial inference" ~]]
+  ?^  t.t.pats  [%| ["branch pattern is not supported by partial inference" ~]]
+  ?.  ?=(%bind -.i.pats)  [%| ["branch pattern is not supported by partial inference" ~]]
+  ?.  ?=(%bind -.i.t.pats)  [%| ["branch pattern is not supported by partial inference" ~]]
   =/  one=term  name.i.pats
   =/  two=term  name.i.t.pats
   ?:  |(=(one two) ?=(^ (ienv-lookup one env)) ?=(^ (ienv-lookup two env)) (lien globals.state |=(x=term |(=(x one) =(x two)))))
-    [%| "pattern shadows a name"]
+    [%| ["pattern shadows a name" ~]]
   =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  subject
   =/  st=istate  state.p.subject
   =/  head=itype  [%var next.st]
   =/  tail=itype  [%var +(next.st)]
   =/  sub=(unit isub)  (itype-unify typ.p.subject [%cell head tail] sub.st)
-  ?~  sub  [%| "cell pattern does not match the subject type"]
+  ?~  sub  [%| ["cell pattern does not match the subject type" ~]]
   (infer-fragment val.arm [[one [head ~]] [two [tail ~]] env] st(next (add 2 next.st), sub u.sub))
 ::
 ++  show-itype
@@ -5217,6 +5263,33 @@
     %fn    "$-({$(t sample.t)} {$(t product.t)})"
     %cell  "[{$(t hed.t)} {$(t tal.t)}]"
   ==
+::
+::  Include the type at a conflicting site where it can be printed.
+::  A lone unresolved variable or decimal variable keeps the neutral label.
+::
+++  itype-has-nvar
+  |=  typ=itype
+  ^-  ?
+  ?-  -.typ
+    %nvar      &
+    %var       |
+    %avar      |
+    %atom      |
+    %any-atom  |
+    %flag      |
+    %fn        |($(typ sample.typ) $(typ product.typ))
+    %cell      |($(typ hed.typ) $(typ tal.typ))
+  ==
+::
+++  site-type-note
+  |=  [label=tape typ=itype sub=isub]
+  ^-  tape
+  =/  normalized=itype  (itype-normalize typ sub)
+  ?:  |(?=(%var -.normalized) ?=(%avar -.normalized) (itype-has-nvar normalized))  label
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
+  ?:  (gth (lent vars) 26)  label
+  =/  printable=itype  (canonical-itype normalized vars)
+  "{label} has type {(show-itype printable ~)}{(show-atom-constraint printable)}"
 ::
 ::  A capital in a written mold is generalized with its enclosing ++.
 ::  Atom constraints may remain generic; until full rigidity checking
@@ -5490,6 +5563,18 @@
     (crip "+$ {(trip name.d)}: case disjointness unresolved; mold not checked")
   (crip "+$ {(trip name.d)}: cases proven disjoint; mold not checked")
 ::
+::  +show-inference-diagnostic: a partial report with both source sites
+::
+++  show-inference-diagnostic
+  |=  [file=path src=@t name=term diagnostic=idiag]
+  ^-  @t
+  =/  summary=@t  (crip "++ {(trip name)}: {msg.diagnostic}")
+  =/  excerpts=(list @t)
+    %+  turn  sites.diagnostic
+    |=  site=[at=span note=tape]
+    (show-error src [file line.beg.at.site col.beg.at.site note.site])
+  (of-wain:format [summary excerpts])
+::
 ::  +golden-types: a partial report; it does not claim the module checks
 ::
 ++  golden-types
@@ -5523,7 +5608,7 @@
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
   =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs ~ |])
   ?:  ?=(%| -.result)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: {p.result}") lines])
+    $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
   =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)

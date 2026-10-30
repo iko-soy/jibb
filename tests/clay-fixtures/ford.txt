@@ -1,0 +1,13 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/import-fixture/hoon)
+=/  cor=type  -.src
+?.  ?=([%core *] cor)  (pure:m !>('not a core'))
+=/  subject=type  q.q.cor
+=/  cell=?  ?=([%cell *] subject)
+=/  face=?  ?=([%cell [%face %blog *] *] subject)
+=/  core=?  ?=([%cell [%face %blog [%core *]] *] subject)
+=/  tail=?  ?:(?=([%cell *] subject) =(q.subject -:!>(..zuse)) |)
+=/  payload=?  =(p.cor subject)
+(pure:m !>([cell face core tail payload]))

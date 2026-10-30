@@ -14,6 +14,8 @@ Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold 
 
 `bite` (mold), `bloq` (mold), `each`, `gate` (mold), `list`, `lone`, `lest`, `mold` (mold), `pair`, `pole`, `qual`, `quip`, `step`, `trap`, `tree`, `trel`, `unit`.
 
+@iko chose to expose Hoon `step` as `step.hoon`, so it does not clash with the Grammar's `step` example. Hoon's `step` uses `@u`. @iko chose one-way widening across Hoon aura families, such as `@ud` and `@ux` into `@u` and `@tD` into `@t`; the reverse needs a check (see [question 19](open-questions.md)). The prelude group needed to expose `step.hoon` is not implemented. Hoon's `bite` is a union of `bloq` and `[bloq=bloq step=step]`; its declaration awaits that group.
+
 ## 2a
 
 `biff`, `bind`, `bond`, `both`, `clap`, `clef`, `drop`, `fall`, `flit`, `hunt`, `lift`, `mate`, `need`, `some`.

@@ -1,0 +1,23 @@
+partial inference; module not checked
+++ decimal: $-(@ud @u)
+++ hex: @u
+++ base32: $-(@uv @u)
+++ text: $-(@tD @t)
+++ narrow: cast mold and expression type do not unify
+/tests/golden/types-partial-aura-family/source.jibb:5:22: cast mold has type @tD
+++ narrow |= x=@t ^- @tD x
+                     ^
+/tests/golden/types-partial-aura-family/source.jibb:5:26: expression has type @t
+++ narrow |= x=@t ^- @tD x
+                         ^
+++ siblings: cast mold and expression type do not unify
+/tests/golden/types-partial-aura-family/source.jibb:6:25: cast mold has type @ud
+++ siblings |= x=@ux ^- @ud x
+                        ^
+/tests/golden/types-partial-aura-family/source.jibb:6:29: expression has type @ux
+++ siblings |= x=@ux ^- @ud x
+                            ^
+++ dup: $-([A A] [A A])
+++ join: call constraint is not supported by partial inference
+++ accept: $-(@u @u)
+++ via-call: $-(@ud @u)

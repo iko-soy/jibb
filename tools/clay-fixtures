@@ -61,3 +61,31 @@ if result.stdout != expected:
     print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
     sys.exit(1)
 print('Clay importer/checker bridge golden passed')
+
+# A /sur with a Ford import has a different parent subject. This golden
+# records the actual shape for provenance work without claiming support.
+try:
+    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford.txt')],
+                            stdout=subprocess.PIPE, check=True)
+except subprocess.CalledProcessError as error:
+    sys.exit(error.returncode)
+expected = (fixtures / 'ford-expected.txt').read_bytes()
+if result.stdout != expected:
+    print('Clay Ford subject differs from tests/clay-fixtures/ford-expected.txt', file=sys.stderr)
+    print('expected:', expected.decode().rstrip(), file=sys.stderr)
+    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
+    sys.exit(1)
+print('Clay Ford subject golden passed')
+
+try:
+    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford-import.txt')],
+                            stdout=subprocess.PIPE, check=True)
+except subprocess.CalledProcessError as error:
+    sys.exit(error.returncode)
+expected = (fixtures / 'ford-import-expected.txt').read_bytes()
+if result.stdout != expected:
+    print('Clay Ford import differs from tests/clay-fixtures/ford-import-expected.txt', file=sys.stderr)
+    print('expected:', expected.decode().rstrip(), file=sys.stderr)
+    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
+    sys.exit(1)
+print('Clay Ford importer golden passed')

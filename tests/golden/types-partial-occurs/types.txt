@@ -1,2 +1,8 @@
 partial inference; module not checked
 ++ self-apply: call's sample and argument types do not unify
+/tests/golden/types-partial-occurs/source.jibb:1:21: called gate
+++ self-apply |=(x (x x))
+                    ^
+/tests/golden/types-partial-occurs/source.jibb:1:23: argument
+++ self-apply |=(x (x x))
+                      ^

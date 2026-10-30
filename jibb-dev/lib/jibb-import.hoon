@@ -13,8 +13,8 @@
 ::  A direct $^ is read from its original branches and accepted only when
 ::  their imported shapes prove disjoint. Nested $^ and some valid but
 ::  unprovably disjoint cases remain unsupported. Source-level overlap in
-::  other unions, general nested ordered maps, Ford import provenance,
-::  marks and full error locations still need work. A nested ordered map
+::  other unions, general nested ordered maps, broader Ford subject
+::  shapes, marks and full error locations still need work. A nested ordered map
 ::  is recovered only when its key and value are fixed atom molds and
 ::  the other fields are fixed atoms or collections of static atoms;
 ::  other source shapes fail closed.
@@ -66,13 +66,14 @@
   (read-with module name typ ~)
 ::
 ::  +read-mold-in: accept the /sur core as provenance. The core must be
-::  built directly against zuse and its selected arm must be this type;
-::  imported Ford subjects need a future provenance-aware host.
+::  built against zuse or validated Ford imports, and its selected arm
+::  must be this type. Unknown subject shapes fail closed.
 ++  read-mold-in
   |=  [module=term name=term typ=type cor=type]
   ^-  (each imported @t)
   ?.  ?=([%core *] cor)  [%| 'Hoon module provenance is unavailable']
-  ?.  =(q.q.cor -:!>(..zuse))  [%| 'Hoon module provenance is unavailable']
+  ?:  =(cor -:!>(..zuse))  [%| 'Hoon module provenance is unavailable']
+  ?.  (scope-safe cor %$)  [%| 'Hoon module provenance is unavailable']
   ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
     [%| 'Hoon module provenance does not match the selected mold']
   (read-with module name typ [~ cor])
@@ -417,16 +418,33 @@
   ?~  has  &
   u.has
 ::
+::  Verify every lexical subject layer until the exact standard subject.
+::  Refuse unknown forms, malformed chapters, mismatched core payloads,
+::  faces that shadow the selected name, and imported arms of that name.
+++  scope-safe
+  |=  [scope=type target=term]
+  ^-  ?
+  ?:  =(scope -:!>(..zuse))  &
+  ?-  scope
+    [%cell *]
+      ?.  ?=([%face *] p.scope)  |
+      ?^  p.p.scope  |
+      ?:  =(p.p.scope target)  |
+      ?.  ?=([%core *] q.p.scope)  |
+      &($(scope q.p.scope) $(scope q.scope))
+    [%core *]
+      ?.  =(p.scope q.q.scope)  |
+      =/  chapters=(map term tome)  q.r.q.scope
+      ?:  (lien ~(tap by chapters) |=(entry=[term tome] (chapter-unsafe +.entry target)))  |
+      $(scope p.scope)
+    *  |
+  ==
+::
 ++  alias-safe
   |=  [context=(unit type) target=term]
   ^-  ?
   ?~  context  |
-  =/  cor=type  u.context
-  ?.  ?=([%core *] cor)  |
-  ?.  =(q.q.cor -:!>(..zuse))  |
-  =/  chapters=(map term tome)  q.r.q.cor
-  ?:  (lien ~(tap by chapters) |=(entry=[term tome] (chapter-unsafe +.entry target)))  |
-  &
+  (scope-safe u.context target)
 ::
 ++  source-uses
   |=  [src=* target=term]
@@ -782,7 +800,7 @@
   ==
 ::
 ++  fixture-output
-  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t]
+  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t ford=@t]
   ^-  wain
   =/  sc=type  -:(ride -:!>(..zuse) small)
   =/  ec=type  -:(ride -:!>(..zuse) epic)
@@ -790,6 +808,16 @@
   =/  dc=type  -:(ride -:!>(..zuse) docs)
   =/  hc=type  -:(ride -:!>(..zuse) shadow)
   =/  xc=type  -:(ride -:!>(..zuse) shadow-static)
+  =/  fp=type  [%cell [%face %small sc] -:!>(..zuse)]
+  =/  fc=type  -:(ride fp ford)
+  ?>  ?=([%core *] fc)
+  =/  only-list=@t  '|%\0a+$  lists  (list @ud)\0a--\0a'
+  =/  tp=type  [%cell [%face %intermediate fc] -:!>(..zuse)]
+  =/  tc=type  -:(ride tp only-list)
+  =/  sp=type  [%cell [%face %small xc] -:!>(..zuse)]
+  =/  shc=type  -:(ride sp only-list)
+  =/  tshp=type  [%cell [%face %intermediate shc] -:!>(..zuse)]
+  =/  tshc=type  -:(ride tshp only-list)
   =/  sample
     |=  name=term
     (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
@@ -827,6 +855,14 @@
       (crip "nested-static-mop: {(show-result (sample %nested-static-mop))}")
       (crip "collection-siblings: {(show-result (sample %collection-siblings))}")
       (crip "dynamic-sibling-mop: {(show-result (sample %dynamic-sibling-mop))}")
+      (crip "ford-list: {(show-result (read-mold-in %ford %lists (~(play ut fc) (ream '*lists')) fc))}")
+      (crip "ford-imported: {(show-result (read-mold-in %ford %wrapped (~(play ut fc) (ream '*wrapped')) fc))}")
+      (crip "ford-transitive: {(show-result (read-mold-in %ford %lists (~(play ut tc) (ream '*lists')) tc))}")
+      (crip "ford-shadow: {(show-result (read-mold-in %ford %lists (~(play ut shc) (ream '*lists')) shc))}")
+      (crip "ford-transitive-shadow: {(show-result (read-mold-in %ford %lists (~(play ut tshc) (ream '*lists')) tshc))}")
+      (crip "ford-shadow-face: {?:((scope-safe [%cell [%face %list sc] -:!>(..zuse)] %list) "wrong" "unsafe")}")
+      (crip "ford-unknown: {?:((scope-safe [%cell [%atom %ud ~] -:!>(..zuse)] %list) "wrong" "unsafe")}")
+      (crip "ford-mismatched-core: {?:((scope-safe fc(p -:!>(..zuse)) %list) "wrong" "unsafe")}")
       (crip "shadow-list-mop: {(show-result (read-mold-in %shadow-static %bad (~(play ut xc) (ream '*bad')) xc))}")
       (crip "named-mop: {(show-result (sample %named-mop))}")
       (crip "mop-list: {(show-result (sample %mop-list))}")

@@ -118,3 +118,21 @@
   [%& p=A]
 
 +$ bloq @
+
+++ some |= item=A `item
+
+++ lure |= item=A
+  ^- (list A) [item ~]
+
+++ snoc |= args=[(list A) A]
+  ?- args
+    [xs item] (weld xs [item ~])
+
+++ flop |= xs=(list A)
+  ++ reverse-into |= args=[(list A) (list A)]
+    ?- args
+      [rest acc]
+        ?- rest
+          ~ acc
+          [item more] (reverse-into more [item acc])
+  (reverse-into xs ~)
