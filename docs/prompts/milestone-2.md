@@ -6,6 +6,8 @@ A brief for the developer who builds milestone 2 of Jibb. Paste it as the first 
 
 You are building milestone 2 of Jibb, a UI language for Urbit: a Hoon dialect with an indentation layout. Its spec is @iko's design doc, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), copied into `docs/spec/`. Milestone 1 built the layout pass and the parser in Hoon, in `jibb-dev/lib/jibb.hoon`. Milestone 2 adds the type checker, the imports, and the prelude.
 
+Before you start, check `docs/status.md`. If dropping `$?`, which @iko decided on 2026-10-30, isn't done yet, do it first, as [drop-union-rune.md](drop-union-rune.md) says: it changes the grammar this brief describes.
+
 ## Read first
 
 1. `docs/README.md`, `docs/status.md` and `docs/development.md`: where things stand, the ground rules, how to set up a machine.

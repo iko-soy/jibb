@@ -10,6 +10,7 @@ Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language f
 | [development.md](development.md) | Setting up a machine, the ground rules, the checks to run before pushing |
 | [compiler.md](compiler.md) | A map of `jibb-dev/lib/jibb.hoon`: its API, data, errors and printed formats |
 | [prompts/milestone-2.md](prompts/milestone-2.md) | A brief for the developer who builds milestone 2, types and prelude |
+| [prompts/drop-union-rune.md](prompts/drop-union-rune.md) | A brief for the developer who drops `$?`, as decided on 2026-10-30, before milestone 2 |
 
 ## The spec
 

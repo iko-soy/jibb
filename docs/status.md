@@ -15,6 +15,8 @@ As of 2026-10-30, at commit ab797a9. The plan is [spec/implementation-plan.md](s
 
 The plan sets no dates: "agree them after milestone 1, once it shows how fast the Hoon work goes". They haven't been agreed yet. Milestone 1's commits run from 2026-10-29 18:13 UTC to 2026-10-30 11:50 UTC.
 
+Decided on 2026-10-30 and not done yet: Jibb drops `$?`, so a `+$` takes a union's cases on the lines below its name. The doc, the parser and the tests still have `$?`. [prompts/drop-union-rune.md](prompts/drop-union-rune.md) briefs the change, which comes before milestone 2.
+
 ## Milestone 1: parser and mark
 
 What the plan asks for, and where it is:
