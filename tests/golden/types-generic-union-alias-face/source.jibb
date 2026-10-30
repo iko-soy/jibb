@@ -1,0 +1,6 @@
+/=  base /ui/base
++$ relay |$ [A B] (choice.base B A)
+++ make |= x=A ^- (relay A B) [%err x]
+++ reveal |= v=(relay A B) v
+++ with-text ^- (relay @t @p) [%err "hi"]
+++ with-ship ^- (relay @t @p) [%err ~zod]

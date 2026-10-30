@@ -15,9 +15,7 @@
   (mold 2:1 relay
     (generic 2:10 A B
       (apply 2:19 choice.base (tvar 2:32 B) (tvar 2:34 A))))
-  (value 3:1 make
-    (gate 3:9
-      (face 3:12 x (tvar 3:14 A))
-      (cast 3:16
-        (apply 3:19 relay (tvar 3:26 A) (tvar 3:28 B))
-        (tuple 3:31 (lit 3:32 %err) (wing 3:37 x))))))
+  (value 3:1 sample
+    (cast 3:11
+      (apply 3:14 relay (aura 3:21 @t) (aura 3:24 @p))
+      (tuple 3:28 (lit 3:29 %ok) (lit 3:33 ~zod)))))

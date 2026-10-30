@@ -4,9 +4,7 @@
     (cast 2:13
       (apply 2:16 relay.mid (aura 2:27 @t) (aura 2:30 @p))
       (tuple 2:34 (lit 2:35 %ok) (lit 2:39 ~zod))))
-  (value 3:1 via
-    (group 3:8
-      (call 3:9 (wing 3:9 make.mid) (str 3:18 "hi"))))
+  (value 3:1 via (wing 3:8 sample.mid))
   (value 4:1 generic
     (gate 4:12
       (face 4:15 x

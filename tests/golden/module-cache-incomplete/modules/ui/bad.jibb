@@ -1,5 +1,2 @@
-+$ original |$ [A]
-  [%some value=A]
-  %none
-+$ choice |$ [A] (original A)
++$ recursive [next=recursive value=@t]
 ++ id |=(x x)

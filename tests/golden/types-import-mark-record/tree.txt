@@ -9,7 +9,7 @@
     (gate 4:10
       (face 4:13 item (ref 4:18 note))
       (wing 4:23 title.meta.item)))
-  (value 5:1 unsupported
+  (value 5:1 echo-choice
     (gate 5:16
       (face 5:19 item (ref 5:24 choice))
       (wing 5:31 item))))

@@ -1,0 +1,23 @@
++$ choice |$ [A B]
+  [%one value=A]
+  [%two value=B]
++$ reverse |$ [A B] (choice B A)
++$ repeat |$ [A] (choice A A)
++$ extra |$ [A B] (choice A @p)
+++ reverse-value ^- (reverse @t @p) [%one ~zod]
+++ reverse-gate |= x=(reverse A B) x
+++ repeat-gate |= x=(repeat A) x
+++ repeated-call |= x=(choice A B) (repeat-gate x)
+++ ghost-a ^- (extra @t @p) [%one "hi"]
+++ ghost-b ^- (extra @t @ud) [%one "hi"]
+++ use-ghost |= x=(extra @t @p) x
+++ interchange (use-ghost ghost-b)
+++ local |= x=A
+  +$ alias |$ [B] (choice B @p)
+  ^- (alias A) [%one x]
+++ local-pass |= x=(choice A @p)
+  +$ alias |$ [B] (choice B @p)
+  ^- (alias A) x
+++ local-shadow |= x=A
+  +$ alias |$ [A] (choice A @p)
+  ^- (alias @t) [%one "hi"]

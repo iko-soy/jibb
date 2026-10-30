@@ -1,0 +1,24 @@
+(module
+  (jibb 1:1 base /ui/base)
+  (mold 2:1 relay
+    (generic 2:10 A B
+      (apply 2:19 choice.base (tvar 2:32 B) (tvar 2:34 A))))
+  (value 3:1 make
+    (gate 3:9
+      (face 3:12 x (tvar 3:14 A))
+      (cast 3:16
+        (apply 3:19 relay (tvar 3:26 A) (tvar 3:28 B))
+        (tuple 3:31 (lit 3:32 %err) (wing 3:37 x)))))
+  (value 4:1 reveal
+    (gate 4:11
+      (face 4:14 v
+        (apply 4:16 relay (tvar 4:23 A) (tvar 4:25 B)))
+      (wing 4:28 v)))
+  (value 5:1 with-text
+    (cast 5:14
+      (apply 5:17 relay (aura 5:24 @t) (aura 5:27 @p))
+      (tuple 5:31 (lit 5:32 %err) (str 5:37 "hi"))))
+  (value 6:1 with-ship
+    (cast 6:14
+      (apply 6:17 relay (aura 6:24 @t) (aura 6:27 @p))
+      (tuple 6:31 (lit 6:32 %err) (lit 6:37 ~zod)))))

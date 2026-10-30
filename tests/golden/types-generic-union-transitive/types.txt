@@ -1,2 +1,4 @@
 partial inference; module not checked
-module mold needs unsupported inference: /ui/mid/jibb
+++ concrete: generic union name is not available in this scope
+++ via: generic union name is not available in this scope
+++ generic: generic union name is not available in this scope

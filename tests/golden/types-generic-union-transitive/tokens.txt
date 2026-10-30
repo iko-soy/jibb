@@ -20,10 +20,7 @@
 3:1 NEWLINE
 3:1 glyph ++
 3:4 name via
-3:8 glyph (
-3:9 tight wing make.mid
-3:18 str "hi"
-3:22 tight glyph )
+3:8 wing sample.mid
 4:1 NEWLINE
 4:1 glyph ++
 4:4 name generic

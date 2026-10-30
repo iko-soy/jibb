@@ -4,8 +4,35 @@ partial inference; module not checked
 ++ face: $-([name=@t age=@ud] [name=@t age=@ud])
 ++ read-name: $-([name=@t age=@ud] @t)
 ++ nested: $-([entry=[name=@t age=@ud] number=@ud] @t)
-++ constant: sample mold is not supported by partial inference
-++ choice: sample mold is not supported by partial inference
+++ constant: $-(%yes %yes)
+++ choice: $-((%no %yes) (%no %yes))
 ++ failed: sample mold is not supported by partial inference
 ++ duplicate: sample mold is not supported by partial inference
 ++ undeclared: sample mold is not supported by partial inference
+++ yes: %no %yes
+++ absent: cast mold and expression type do not unify
+/test.jibb:13:14: cast mold
+++ absent ^- choice.fixture %other
+             ^
+/test.jibb:13:29: expression
+++ absent ^- choice.fixture %other
+                            ^
+++ status: $-([status=(%deny %approve) text=@t] (%deny %approve))
+++ nested-yes: [status=(%deny %approve) text=@t]
+++ nested-absent: cast mold and expression type do not unify
+/test.jibb:16:21: cast mold
+++ nested-absent ^- nested-choice.fixture [%other "hi"]
+                    ^
+/test.jibb:16:43: expression
+++ nested-absent ^- nested-choice.fixture [%other "hi"]
+                                          ^
+++ overlap: sample mold is not supported by partial inference
+++ malformed: sample mold is not supported by partial inference
+++ collapsed: sample mold is not supported by partial inference
+++ one-case: sample mold is not supported by partial inference
+++ bad-term: sample mold is not supported by partial inference
+++ nested-overlap: sample mold is not supported by partial inference
+++ dollar: $-(%$ %$)
+++ dollar-choice: $-((%$ %yes) (%$ %yes))
+++ dollar-value: %$ %yes
+reader-collapsed: error: a Hoon union has overlapping cases

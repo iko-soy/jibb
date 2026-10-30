@@ -5,4 +5,8 @@
 +$  nested    [entry=faced number=@ud]
 +$  constant  %yes
 +$  choice    ?(%yes %no)
++$  nested-choice  [status=?(%approve %deny) text=@t]
++$  collapsed      $?([%x @ud] [%x @ud])
++$  dollar         %$
++$  dollar-choice  ?(%$ %yes)
 --

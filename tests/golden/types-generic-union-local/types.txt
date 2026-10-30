@@ -11,12 +11,12 @@ partial inference; module not checked
 ++ phantom-gate: (phantom $-(@t @p))
 ++ identity: $-((choice A B) (choice A B))
 ++ repeated: $-((choice A A) (choice A A))
-++ reverse: sample mold is not supported by partial inference
+++ reverse: $-((choice A B) (choice A B))
 ++ first: (choice @t @p)
 ++ second: (choice @t @p)
 ++ third: (choice @p @t)
 ++ repeated-call: call constraint is not supported by partial inference
-++ swap-concrete: cast mold is not supported by partial inference
+++ swap-concrete: (choice @p @t)
 ++ wrong-phantom: cast constraint is not supported by partial inference
 ++ forced: explicit capital constraints are not supported by partial inference
 ++ pending: tag needs context in partial inference

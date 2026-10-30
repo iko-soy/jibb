@@ -1,4 +1,4 @@
 partial inference; module not checked
 ++ echo: $-([meta=[title=@t count=@ud] id=@ud] [meta=[title=@t count=@ud] id=@ud])
 ++ title: $-([meta=[title=@t count=@ud] id=@ud] @t)
-++ unsupported: sample mold is not supported by partial inference
+++ echo-choice: $-([kind=(%on %off) id=@ud] [kind=(%on %off) id=@ud])

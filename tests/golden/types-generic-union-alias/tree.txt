@@ -1,0 +1,86 @@
+(module
+  (mold 1:1 choice
+    (generic 1:11 A B
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %one)
+          (face 2:9 value (tvar 2:15 A)))
+        (cell 3:3
+          (const 3:4 %two)
+          (face 3:9 value (tvar 3:15 B))))))
+  (mold 4:1 reverse
+    (generic 4:12 A B
+      (apply 4:21 choice (tvar 4:29 B) (tvar 4:31 A))))
+  (mold 5:1 repeat
+    (generic 5:11 A
+      (apply 5:18 choice (tvar 5:26 A) (tvar 5:28 A))))
+  (mold 6:1 extra
+    (generic 6:10 A B
+      (apply 6:19 choice (tvar 6:27 A) (aura 6:29 @p))))
+  (value 7:1 reverse-value
+    (cast 7:18
+      (apply 7:21 reverse (aura 7:30 @t) (aura 7:33 @p))
+      (tuple 7:37 (lit 7:38 %one) (lit 7:43 ~zod))))
+  (value 8:1 reverse-gate
+    (gate 8:17
+      (face 8:20 x
+        (apply 8:22 reverse (tvar 8:31 A) (tvar 8:33 B)))
+      (wing 8:36 x)))
+  (value 9:1 repeat-gate
+    (gate 9:16
+      (face 9:19 x
+        (apply 9:21 repeat (tvar 9:29 A)))
+      (wing 9:32 x)))
+  (value 10:1 repeated-call
+    (gate 10:18
+      (face 10:21 x
+        (apply 10:23 choice (tvar 10:31 A) (tvar 10:33 B)))
+      (group 10:36
+        (call 10:37 (wing 10:37 repeat-gate) (wing 10:49 x)))))
+  (value 11:1 ghost-a
+    (cast 11:12
+      (apply 11:15 extra (aura 11:22 @t) (aura 11:25 @p))
+      (tuple 11:29 (lit 11:30 %one) (str 11:35 "hi"))))
+  (value 12:1 ghost-b
+    (cast 12:12
+      (apply 12:15 extra (aura 12:22 @t) (aura 12:25 @ud))
+      (tuple 12:30 (lit 12:31 %one) (str 12:36 "hi"))))
+  (value 13:1 use-ghost
+    (gate 13:14
+      (face 13:17 x
+        (apply 13:19 extra (aura 13:26 @t) (aura 13:29 @p)))
+      (wing 13:33 x)))
+  (value 14:1 interchange
+    (group 14:16
+      (call 14:17 (wing 14:17 use-ghost) (wing 14:27 ghost-b))))
+  (value 15:1 local
+    (gate 15:10
+      (face 15:13 x (tvar 15:15 A))
+      (body 16:3
+        (mold 16:3 alias
+          (generic 16:12 B
+            (apply 16:19 choice (tvar 16:27 B) (aura 16:29 @p))))
+        (cast 17:3
+          (apply 17:6 alias (tvar 17:13 A))
+          (tuple 17:16 (lit 17:17 %one) (wing 17:22 x))))))
+  (value 18:1 local-pass
+    (gate 18:15
+      (face 18:18 x
+        (apply 18:20 choice (tvar 18:28 A) (aura 18:30 @p)))
+      (body 19:3
+        (mold 19:3 alias
+          (generic 19:12 B
+            (apply 19:19 choice (tvar 19:27 B) (aura 19:29 @p))))
+        (cast 20:3
+          (apply 20:6 alias (tvar 20:13 A))
+          (wing 20:16 x)))))
+  (value 21:1 local-shadow
+    (gate 21:17
+      (face 21:20 x (tvar 21:22 A))
+      (body 22:3
+        (mold 22:3 alias
+          (generic 22:12 A
+            (apply 22:19 choice (tvar 22:27 A) (aura 22:29 @p))))
+        (cast 23:3
+          (apply 23:6 alias (aura 23:13 @t))
+          (tuple 23:17 (lit 23:18 %one) (str 23:23 "hi")))))))

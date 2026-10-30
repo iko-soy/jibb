@@ -1,7 +1,13 @@
-The checker accepts caller-supplied results from the Hoon type reader. This
-fixture compiles a small /sur against zuse, selects its molds, and passes the
-actual reader results to the inference fragment. It checks fixed atoms, nested
-faced records, and failures that must remain unsupported until the checker can
-translate them. A missing import and a duplicate supplied mold fail closed.
-The types output is partial and does not claim that the module was checked.
-The same fixture runs under urbit eval and through -test on the fake ship.
+The checker accepts unchanged, successful results from the source-aware Hoon
+reader as a trusted boundary. It independently rejects malformed graphs and
+forks whose supplied cases overlap, but a graph alone cannot reveal source
+cases Hoon already collapsed. This fixture compiles a small /sur against zuse,
+selects its molds, and passes the actual reader results to the inference
+fragment. It checks fixed atoms, valid term singletons including Hoon `%$`,
+nested faced records
+and unnamed unions, including matching and mismatched casts. Forged
+unsupported, malformed, singleton and overlapping forks are rejected; the
+reader itself rejects an overlapping source union before Hoon can collapse it.
+A missing import and a duplicate supplied mold fail closed. The types output
+is partial and does not claim that the module was checked. The same fixture
+runs under urbit eval and through -test on the fake ship.

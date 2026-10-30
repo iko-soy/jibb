@@ -130,6 +130,19 @@ if result.stdout != expected:
 print('Clay nested Ford union importer golden passed')
 
 try:
+    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford-nested-union-bridge.txt')],
+                            stdout=subprocess.PIPE, check=True)
+except subprocess.CalledProcessError as error:
+    sys.exit(error.returncode)
+expected = (fixtures / 'ford-nested-union-bridge-expected.txt').read_bytes()
+if result.stdout != expected:
+    print('Clay nested union bridge differs from tests/clay-fixtures/ford-nested-union-bridge-expected.txt', file=sys.stderr)
+    print('expected:', expected.decode().rstrip(), file=sys.stderr)
+    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
+    sys.exit(1)
+print('Clay nested Ford union importer/checker bridge golden passed')
+
+try:
     result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-shape.txt')],
                             stdout=subprocess.PIPE, check=True)
 except subprocess.CalledProcessError as error:

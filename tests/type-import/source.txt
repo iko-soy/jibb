@@ -9,3 +9,17 @@
 ++ failed |= x=failed.fixture x
 ++ duplicate |= x=duplicate.fixture x
 ++ undeclared |= x=title.missing x
+++ yes ^- choice.fixture %yes
+++ absent ^- choice.fixture %other
+++ status |= x=nested-choice.fixture status.x
+++ nested-yes ^- nested-choice.fixture [%approve "hi"]
+++ nested-absent ^- nested-choice.fixture [%other "hi"]
+++ overlap |= x=overlap.fixture x
+++ malformed |= x=malformed.fixture x
+++ collapsed |= x=collapsed.fixture x
+++ one-case |= x=one-case.fixture x
+++ bad-term |= x=bad-term.fixture x
+++ nested-overlap |= x=nested-overlap.fixture x
+++ dollar |= x=dollar.fixture x
+++ dollar-choice |= x=dollar-choice.fixture x
+++ dollar-value ^- dollar-choice.fixture %$

@@ -1,0 +1,4 @@
+source: Grammar, Molds: generic molds are applied with their arguments and faces are part of record types.
+tests: A swapped imported alias handles concrete tagged payloads; the variable-dependent record-face case remains unsupported until its occurs-check and face propagation are represented.
+expect: parses
+expect-types: a partial inference report

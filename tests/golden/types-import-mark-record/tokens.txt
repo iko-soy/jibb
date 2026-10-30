@@ -21,7 +21,7 @@
 4:23 wing title.meta.item
 5:1 NEWLINE
 5:1 glyph ++
-5:4 name unsupported
+5:4 name echo-choice
 5:16 glyph |=
 5:19 name item
 5:23 tight glyph =

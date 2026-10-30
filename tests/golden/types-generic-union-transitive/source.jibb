@@ -1,4 +1,4 @@
 /=  mid /ui/mid
 ++ concrete ^- (relay.mid @t @p) [%ok ~zod]
-++ via (make.mid "hi")
+++ via sample.mid
 ++ generic |= x=(relay.mid A B) x

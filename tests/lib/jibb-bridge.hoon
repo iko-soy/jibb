@@ -23,7 +23,7 @@
   =/  cor=type  -:(ride -:!>(..zuse) sur-text)
   =/  read
     |=  name=term
-    (read-mold-in:jibb-import %fixture name (~(play ut cor) (ream (cat 3 '*' name))) cor)
+    (read-named:jibb-import %fixture name cor)
   =/  external=(list [module=term name=term result=*])
     :~  [%fixture %title (read %title)]
         [%fixture %pair (read %pair)]
@@ -31,10 +31,20 @@
         [%fixture %nested (read %nested)]
         [%fixture %constant (read %constant)]
         [%fixture %choice (read %choice)]
+        [%fixture %nested-choice (read %nested-choice)]
+        [%fixture %collapsed (read %collapsed)]
+        [%fixture %dollar (read %dollar)]
+        [%fixture %dollar-choice (read %dollar-choice)]
+        [%fixture %overlap [%& [%fork ~[[%atom %tas [~ %a]] [%atom %tas [~ %a]]]]]]
+        [%fixture %malformed [%& [%fork [[%atom %tas [~ %a]] 42]]]]
+        [%fixture %one-case [%& [%fork ~[[%atom %tas [~ %a]]]]]]
+        [%fixture %bad-term [%& [%fork ~[[%atom %tas [~ %a]] [%atom %tas [~ 'Bad']]]]]]
+        [%fixture %nested-overlap [%& [%face %status [%fork ~[[%atom %tas [~ %a]] [%atom %tas [~ %a]]]]]]]
         [%fixture %failed [%| 'unsupported Hoon type']]
         [%fixture %duplicate [%& [%atom %t ~]]]
         [%fixture %duplicate [%& [%atom %ud ~]]]
         [%missing %title [%& [%atom %t ~]]]
     ==
-  (golden-types-imports:jibb /test/jibb src external)
+  =/  report=@t  (golden-types-imports:jibb /test/jibb src external)
+  (cat 3 report (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}"))
 --

@@ -5059,6 +5059,7 @@
   ?:  |(?=(%var -.actual) ?=(%var -.expected))
     =/  unified=(unit isub)  (itype-unify actual expected sub)
     ?~  unified
+      ?:  |(?=(%face -.actual) ?=(%face -.expected))  [%unknown ~]
       ?:  (itype-family-related actual expected sub)  [%unknown ~]
       [%bad ~]
     [%ok u.unified next]
@@ -5314,9 +5315,12 @@
   $(ds t.ds)
 ::
 ::
-::  The importer owns its algebra. Fixed atoms, cells and Jibb-named faces
-::  are decoded recursively. Singletons, unions, collections, recursive
-::  references and invalid face names remain unsupported, never widened.
+::  The caller supplies unchanged results from the source-aware importer.
+::  That boundary is trusted for source provenance: a fork alone cannot
+::  reveal cases Hoon collapsed before it was constructed. Validate the
+::  supplied graph independently, including pairwise disjointness. Fixed
+::  atoms, term singletons, cells, faces and proven forks are decoded;
+::  unsupported singletons, collections and recursive references fail.
 ::
 ++  jibb-face-name
   |=  name=@
@@ -5332,10 +5336,22 @@
   ?@  node  ~
   ?+  -.node  ~
     %atom
+      ?:  ?=([%atom %tas [~ @]] node)
+        =/  value=@  +>+.node
+        ?.  |(=(value 0) (jibb-face-name value))  ~
+        =/  printed=@t  ?:(=(value 0) '%$' (cat 3 '%' value))
+        `[%const [%term %tas value printed]]
       ?.  ?=([%atom @ ~] node)  ~
       =/  aura=@ta  (@ta +<.node)
       ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
       `[%atom aura]
+    %fork
+      =/  cases=(unit (list itype))  (import-to-itypes +.node)
+      ?~  cases  ~
+      ?~  u.cases  ~
+      ?~  t.u.cases  ~
+      ?.  (import-cases-disjoint u.cases)  ~
+      `[%union u.cases ~ ~ ~]
     %face
       ?.  ?=([%face @ *] node)  ~
       =/  name=@  +<.node
@@ -5351,6 +5367,36 @@
       ?~  right  ~
       `[%cell u.left u.right]
   ==
+::
+++  import-to-itypes
+  |=  nodes=*
+  ^-  (unit (list itype))
+  ?@  nodes  ?:(=(nodes 0) `~ ~)
+  =/  first  (import-to-itype -.nodes)
+  ?~  first  ~
+  =/  rest  $(nodes +.nodes)
+  ?~  rest  ~
+  `[u.first u.rest]
+::
+++  import-type-pattern
+  |=  typ=itype
+  ^-  upat
+  ?-  -.typ
+    %atom   [%atom ~]
+    %const  [%atom `val.literal.typ]
+    %face   $(typ body.typ)
+    %cell   [%cell $(typ hed.typ) $(typ tal.typ)]
+    %union  [%or (turn cases.typ |=(t=itype (import-type-pattern t)))]
+    *       [%unknown ~]
+  ==
+::
+++  import-cases-disjoint
+  |=  cases=(list itype)
+  ^-  ?
+  ?~  cases  &
+  =/  first=upat  (import-type-pattern i.cases)
+  ?.  (levy t.cases |=(t=itype =(%disjoint (union-relate first (import-type-pattern t)))))  |
+  $(cases t.cases)
 ::
 ++  find-imported-mold
   |=  [module=term name=term externals=iexternals surs=(list term)]
@@ -5457,6 +5503,8 @@
 ::  Generic mold parameters are lexical and distinct from the enclosing
 ::  value's capital variables. Arguments are substituted only once, so
 ::  an argument's variable ID cannot be captured by a template ID.
+::  A generic alias of a named union keeps the underlying union's origin
+::  and substituted argument order; an originless union stays unsupported.
 ::
 ++  iparam-lookup
   |=  [name=@t params=iparams]
@@ -5518,8 +5566,8 @@
     =/  out=(unit [typ=itype state=istate])
       (infer-simple-shape body.sh state(next next.fresh, params params.fresh, in-mold &))
     ?~  out  ~
-    ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.sh))  ~
-    =?  typ.u.out  ?=(%union -.typ.u.out)
+    ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.sh) ?=(~ origin.typ.u.out))  ~
+    =?  typ.u.out  &(?=(%union -.typ.u.out) ?=(%union -.body.sh))
       typ.u.out(args (turn vars.fresh |=(n=@ud `itype`[%var n])))
     =/  used=(list @ud)  (itype-vars typ.u.out)
     ?.  (levy used |=(n=@ud (lien vars.fresh |=(p=@ud =(p n)))))  ~
@@ -5606,9 +5654,9 @@
       =/  out=(unit [typ=itype state=istate])
         $(sh body.u.found, state state.u.args(active [n active.state.u.args], in-mold &, params u.params))
       ?~  out  ~
-      ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.u.found))  ~
-      ?:  &(?=(%union -.typ.u.out) !(lien top-molds.state.u.args |=(x=term =(x n))))  ~
-      =?  typ.u.out  ?=(%union -.typ.u.out)
+      ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.u.found) ?=(~ origin.typ.u.out))  ~
+      ?:  &(?=(%union -.typ.u.out) ?=(%union -.body.u.found) !(lien top-molds.state.u.args |=(x=term =(x n))))  ~
+      =?  typ.u.out  &(?=(%union -.typ.u.out) ?=(%union -.body.u.found))
         (label-direct-union typ.u.out(args types.u.args) u.found n state.u.args)
       `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args)]
     %tvar

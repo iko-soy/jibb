@@ -1,14 +1,8 @@
 /ui/bad.jibb
 (module
-  (mold 1:1 original
-    (generic 1:13 A
-      (union 2:3
-        (cell 2:3
-          (const 2:4 %some)
-          (face 2:10 value (tvar 2:16 A)))
-        (const 3:3 %none))))
-  (mold 4:1 choice
-    (generic 4:11 A
-      (apply 4:18 original (tvar 4:28 A))))
-  (value 5:1 id
-    (gate-wide 5:7 (bind 5:10 x) (wing 5:12 x))))
+  (mold 1:1 recursive
+    (cell 1:14
+      (face 1:15 next (ref 1:20 recursive))
+      (face 1:30 value (aura 1:36 @t))))
+  (value 2:1 id
+    (gate-wide 2:7 (bind 2:10 x) (wing 2:12 x))))
