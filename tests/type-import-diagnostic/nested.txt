@@ -1,0 +1,11 @@
+/- foo
++$ alias bad.foo
++$ recursive recursive
+++ nested |= [a=@t b=bad.foo] a
+++ cast ^- [a=@t b=bad.foo] !!
+++ func ^- $-(@t bad.foo) !!
+++ alias-use ^- alias !!
+++ first-unsupported ^- [a=* b=bad.foo] !!
+++ recursive-first ^- [a=recursive b=bad.foo] !!
+++ shadow |= [a=@t a=bad.foo] a
+++ first-invalid |= [a=bad.foo b=bad.foo] a

@@ -3,6 +3,7 @@
 /*  sur       %txt  /tests/type-import-diagnostic/sur/txt
 /*  mark      %txt  /tests/type-import-diagnostic/mark/txt
 /*  source    %txt  /tests/type-import-diagnostic/source/txt
+/*  nested    %txt  /tests/type-import-diagnostic/nested/txt
 /*  expected  %txt  /tests/type-import-diagnostic/expected/txt
 |%
 ++  text
@@ -14,13 +15,14 @@
   ?~  sur  ~[leaf+"diagnostic /sur fixture is missing"]
   ?~  mark  ~[leaf+"diagnostic mark fixture is missing"]
   ?~  source  ~[leaf+"diagnostic source fixture is missing"]
+  ?~  nested  ~[leaf+"diagnostic nested source is missing"]
   ?~  expected  ~[leaf+"diagnostic expected output is missing"]
-  =/  got  (diagnostic-output (text sur) (text mark) (text source))
+  =/  got  (diagnostic-output (text sur) (text mark) (text source) (text nested))
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"import diagnostic output differs from tests/type-import-diagnostic/expected.txt"]
   ~
 ++  diagnostic-output
-  |=  [sur-text=@t mark-text=@t src=@t]
+  |=  [sur-text=@t mark-text=@t src=@t nested-src=@t]
   ^-  @t
   =/  cor=type  -:(ride -:!>(..zuse) sur-text)
   =/  mark-cor=type  -:(ride -:!>(..zuse) mark-text)
@@ -37,6 +39,7 @@
   =/  shadow=@t  (crip "/- foo\0a++ shadow |= shadow=bad.foo shadow\0a++ safe |= x=@t x\0a")
   =/  invalid  [%invalid %aura 'signed and float auras cannot be imported']
   =/  unsupported  [%unsupported 'Hoon type is unsupported']
+  =/  nested-report  (golden-types-with-reader-diagnostics:jibb /ui/test/jibb nested-src ~[[%foo %bad invalid]] ~)
   =/  dup  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad invalid] [%foo %bad invalid]] ~)
   =/  inconclusive  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad unsupported]] ~)
   =/  bad-code  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad [%invalid %other 'forged']]] ~)
@@ -52,5 +55,5 @@
   =/  ic  (golden-types-with-reader-diagnostics:jibb /test/jibb import-clash ~[[%foo %bad invalid]] ~[[%foo invalid]])
   =/  vc  (golden-types-with-reader-diagnostics:jibb /test/jibb value-clash ~[[%foo %bad invalid]] ~)
   =/  mc  (golden-types-with-reader-diagnostics:jibb /test/jibb mold-clash ~ ~[[%foo invalid]])
-  (of-wain:format ~['real reader:' real 'duplicate:' dup 'unsupported:' inconclusive 'unknown code:' bad-code 'malformed message:' bad-message 'missing:' missing 'unused:' unused 'undeclared:' absent 'shadow:' collision 'import clash:' ic 'value clash:' vc 'mold clash:' mc])
+  (of-wain:format ~['real reader:' real 'nested:' nested-report 'duplicate:' dup 'unsupported:' inconclusive 'unknown code:' bad-code 'malformed message:' bad-message 'missing:' missing 'unused:' unused 'undeclared:' absent 'shadow:' collision 'import clash:' ic 'value clash:' vc 'mold clash:' mc])
 --

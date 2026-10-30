@@ -5874,15 +5874,67 @@
   ?.  ?=([%invalid ?(%aura %core) @] raw)  ~
   `["{(trip +>.raw)}" ~[[at.sh "invalid imported mold"]]]
 ::
-++  direct-sample-invalid
-  |=  [s=sample state=istate]
+::  Replay only the shape branches whose evaluation order we can prove.
+::  Successful prefixes must be checked before descending to a failure.
+++  nested-import-invalid
+  |=  [sh=shape state=istate]
   ^-  (unit idiag)
-  ?-  s
-    [%face *]  (direct-import-invalid shape.s state)
-    [%bare *]  (direct-import-invalid shape.s state)
-    [%pun *]  (direct-import-invalid [%ref at.s ~[name.s]] state)
+  ?:  ?=(^ (infer-simple-shape sh state))  ~
+  ?-  -.sh
+    %ref
+      =/  direct=(unit idiag)  (direct-import-invalid sh state)
+      ?^  direct  direct
+      ?~  names.sh  ~
+      ?^  t.names.sh  ~
+      =/  n=term  i.names.sh
+      ?:  (lien marks.state |=(x=term =(x n)))  ~
+      ?:  (lien active.state |=(x=term =(x n)))  ~
+      =/  found=(unit shape)  (find-simple-mold n molds.state)
+      ?~  found  ~
+      $(sh u.found, state state(active [n active.state], in-mold &, params ~))
+    %fn
+      =/  first=(unit [typ=itype state=istate])  (infer-simple-shape sample.sh state)
+      ?~  first  $(sh sample.sh)
+      $(sh product.sh, state state.u.first)
+    %cell  (nested-field-invalid fields.sh state)
     *  ~
   ==
+::
+++  nested-field-invalid
+  |=  [fields=(list field) state=istate]
+  ^-  (unit idiag)
+  ?~  fields  ~
+  =/  sh=shape
+    ?-  -.i.fields
+      %bare  shape.i.fields
+      %face  shape.i.fields
+      %pun   [%ref at.i.fields ~[name.i.fields]]
+    ==
+  =/  out=(unit [typ=itype state=istate])  (infer-simple-shape sh state)
+  ?~  out  (nested-import-invalid sh state)
+  $(fields t.fields, state state.u.out)
+::
+++  sample-import-invalid
+  |=  [s=sample env=ienv state=istate]
+  ^-  (unit idiag)
+  =/  result=isample-result  (infer-sample s env state)
+  ?:  ?=(%& -.result)  ~
+  ?.  =(p.result "sample mold is not supported by partial inference")  ~
+  ?-  s
+    [%face *]  (nested-import-invalid shape.s state)
+    [%bare *]  (nested-import-invalid shape.s state)
+    [%pun *]  (nested-import-invalid [%ref at.s ~[name.s]] state)
+    [%cell *]  (nested-samples-invalid items.s env state)
+    *  ~
+  ==
+::
+++  nested-samples-invalid
+  |=  [items=(list sample) env=ienv state=istate]
+  ^-  (unit idiag)
+  ?~  items  ~
+  =/  head=isample-result  (infer-sample i.items env state)
+  ?:  ?=(%| -.head)  (sample-import-invalid i.items env state)
+  $(items t.items, env env.p.head, state state.p.head)
 ::
 ++  infer-simple-shape
   |=  [sh=shape state=istate]
@@ -6728,7 +6780,7 @@
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
       ?~  target
-        =/  diag=(unit idiag)  (direct-import-invalid shape.e state)
+        =/  diag=(unit idiag)  (nested-import-invalid shape.e state)
         ?^  diag  [%| u.diag]
         [%| ["cast mold is not supported by partial inference" ~]]
       =/  value=iresult
@@ -6750,7 +6802,7 @@
     %gate
       =/  sam=isample-result  (infer-sample sample.e env state)
       ?:  ?=(%| -.sam)
-        =/  diag=(unit idiag)  (direct-sample-invalid sample.e state)
+        =/  diag=(unit idiag)  (sample-import-invalid sample.e env state)
         ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]
         [%| [p.sam ~]]
       =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
@@ -6759,7 +6811,7 @@
     %gate-wide
       =/  sam=isample-result  (infer-sample sample.e env state)
       ?:  ?=(%| -.sam)
-        =/  diag=(unit idiag)  (direct-sample-invalid sample.e state)
+        =/  diag=(unit idiag)  (sample-import-invalid sample.e env state)
         ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]
         [%| [p.sam ~]]
       =/  body=iresult  $(e body.e, env env.p.sam, state state.p.sam)
@@ -7241,8 +7293,8 @@
   ?:  ?=(%| -.sam)
     =/  diag=(unit idiag)
       ?-  -.gate
-        %gate       (direct-sample-invalid sample.gate state)
-        %gate-wide  (direct-sample-invalid sample.gate state)
+        %gate       (sample-import-invalid sample.gate env state)
+        %gate-wide  (sample-import-invalid sample.gate env state)
         *           ~
       ==
     ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]

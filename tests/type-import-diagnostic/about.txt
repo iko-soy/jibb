@@ -1,9 +1,11 @@
 The Overview's Hoon import table makes signed and float auras, cores and
 gates errors where used; unused molds are skipped. This fixture compiles a
 /sur file and a mark against zuse and passes unchanged structured reader
-results to the partial checker. Proven errors at direct cast and whole-sample
-references identify the Jibb use site. Valid sibling definitions still infer;
-nested references and aliases remain unsupported by this partial entry point.
+results to the partial checker. Proven errors identify the Jibb use site for direct or nested record and
+function casts, cell samples, and non-generic local aliases. Ordered replay
+stops at an unsupported prefix, cycle or shadowing failure; unions, generic
+applications and transitive modules remain unsupported. Valid sibling
+definitions still infer.
 
 Synthetic controls verify that missing, duplicate, unsupported, undeclared or
 unused inputs, shadowing and competing names do not produce a misleading

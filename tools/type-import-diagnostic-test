@@ -16,9 +16,10 @@ expression = ('=/  jibb  .\n=/  jibb-import\n' + reader +
               '\n=/  sur=wain  (to-wain:format sur-text)\n'
               '=/  mark=wain  (to-wain:format mark-text)\n'
               '=/  source=wain  (to-wain:format source-text)\n'
+              '=/  nested=wain  (to-wain:format nested-text)\n'
               '=/  expected=wain  (to-wain:format expected-text)\n'
               '=/  bridge\n' + tests +
-              '\n(diagnostic-output:bridge sur-text mark-text source-text)\n')
+              '\n(diagnostic-output:bridge sur-text mark-text source-text nested-text)\n')
 with tempfile.TemporaryDirectory(prefix='jibb-type-import-') as tmp:
     program = Path(tmp) / 'bridge.hoon'
     program.write_text(expression)
@@ -27,6 +28,7 @@ with tempfile.TemporaryDirectory(prefix='jibb-type-import-') as tmp:
         '--cord', 'sur-text=' + str(fixture / 'sur.txt'),
         '--cord', 'mark-text=' + str(fixture / 'mark.txt'),
         '--cord', 'source-text=' + str(fixture / 'source.txt'),
+        '--cord', 'nested-text=' + str(fixture / 'nested.txt'),
         '--cord', 'expected-text=' + str(fixture / 'expected.txt')],
         stdout=subprocess.PIPE)
 if result.returncode:
