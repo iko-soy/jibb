@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-change-bad-7/source.jibb:1:8: expected a named item, found `1`; a change's items are named, as in m(done=%.y)
+++ x m(1)
+       ^

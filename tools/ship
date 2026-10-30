@@ -598,13 +598,15 @@ COMMIT = r"""
 (pure:m !>(rev))
 """
 
-#  |commit %@@DESK@@, and wait for it to land: [%done revision] when
-#  the desk gets a new revision, [%crud term tang] when Clay rejects
-#  the commit, [%none ~] when nothing happens in @@SECS@@ seconds.
+#  Change a desk with @@ACT@@ and wait for the change to land: [%done
+#  revision] when the desk gets a new revision, [%crud term tang] when
+#  Clay rejects it, [%none ~] when nothing happens in @@SECS@@ seconds.
+#  The change is a |commit (COMMIT_ACT) or deletions (DELETE_ACT), and
+#  Clay names a rejected one by its task, @@MOTE@@: %into or %info.
 #  Clay's error reaches only dill's %logs watchers (dill no longer
 #  prints errors, and -t sends drum's output nowhere), so the thread
 #  watches %logs while it waits.
-COMMIT_WAIT = r"""
+CHANGE_WAIT = r"""
 =/  m  (strand ,vase)
 ;<  =bowl:spider  bind:m  get-bowl
 =/  rev=@ud  ud:.^(cass:clay %cw /(scot %p our.bowl)/@@DESK@@/(scot %da now.bowl))
@@ -622,12 +624,12 @@ COMMIT_WAIT = r"""
 ;<  ~  bind:m  (send-raw-card [%pass /jibb/logs %arvo %d %logs `~])
 ;<  ~  bind:m  (send-raw-card [%pass /jibb/next %arvo %c %warp our.bowl %@@DESK@@ `[%next %w ud+rev /]])
 ;<  ~  bind:m  (send-raw-card [%pass /jibb/wait %arvo %b %wait until])
-;<  ~  bind:m  (poke-our %hood %kiln-commit !>([%@@DESK@@ |]))
+;<  ~  bind:m  @@ACT@@
 |-  ^-  form:m
 =*  loop  $
 ;<  [wir=wire sig=sign-arvo]  bind:m  take-sign-arvo
 ?:  ?=([%jibb %logs ~] wir)
-  ?.  ?=([%dill %logs %crud %into *] sig)
+  ?.  ?=([%dill %logs %crud %@@MOTE@@ *] sig)
     loop
   =/  cud  ;;([@tas tang] +>+.sig)
   (finish [%crud -.cud (scag 300 +.cud)] &)
@@ -639,6 +641,14 @@ COMMIT_WAIT = r"""
   (finish [%none ~] |)
 loop
 """
+
+#  |commit %@@DESK@@
+COMMIT_ACT = '(poke-our %hood %kiln-commit !>([%@@DESK@@ |]))'
+
+#  Delete the files @@PATHS@@ from %@@DESK@@ through Clay, with a %info
+#  task, as a |commit does for files deleted from the mount.
+DELETE_ACT = ('(send-raw-card [%pass /jibb/info %arvo %c %info %@@DESK@@ %& '
+              '(turn `(list path)`@@PATHS@@ |=(p=path [p %del ~]))])')
 
 #  |merge %@@DESK@@ our %@@FROM@@, =gem %@@GERM@@
 MERGE = r"""
@@ -1145,7 +1155,8 @@ def txt_lines(data, jet):
 
 
 def verify(ship, desk, files):
-    """Compare the desk with the files; (revision, problems).
+    """Compare the desk with the files; (revision, problems, extra), extra
+    being the paths of the desk's files that aren't among the files.
 
     The ship sends its manifest, a short hash of each file, and Python
     compares: files whose mark stores a cord by the hash of their
@@ -1175,7 +1186,8 @@ def verify(ship, desk, files):
         start += MANIFEST_PAGE
     jet = jet == 0
     problems = []
-    for pax in sorted(set(desk_files) - set(by_path)):
+    extra = sorted(set(desk_files) - set(by_path))
+    for pax in extra:
         problems.append('%s is on the desk but not in the repo' % pax)
     converted = {path_text(p): ok == 0 for p, ok in items(conv_res)}
     for pax, rel in sorted(by_path.items()):
@@ -1196,30 +1208,40 @@ def verify(ship, desk, files):
             continue    # too big to send; it's there
         if not same:
             problems.append('%s differs from %s' % (pax, src))
-    return rev, problems
+    return rev, problems, extra
 
 
 def sync(ship, desk, lib=None, golden=None, timeout=60, quiet=False):
     """Assemble a desk, copy it into its mount and |commit; the revision.
 
     The desk is checked against the repo first: when they already match
-    there's nothing to commit.  Otherwise the commit runs in a thread
-    that waits for the new revision, or for Clay's error.
+    there's nothing to commit.  Files on the desk that the repo doesn't
+    have are deleted through Clay first, since a |commit deletes only
+    the files vere has seen in the mount, and vere forgets them when
+    the ship restarts.  Then the commit runs in a thread that waits for
+    the new revision, or for Clay's error.
     """
     started = time.time()
     a = assemble(desk, lib=lib, golden=golden)
     ship.require()
     mount = ensure_desk(ship, desk, quiet=quiet)
+    rev, problems, extra = verify(ship, desk, a.files)
+    done = []
+    if extra:
+        rev = delete_and_wait(ship, desk, extra, timeout)
+        done.append('deleted %d from the desk in revision %d'
+                    % (len(extra), rev))
     added, changed, deleted = mirror(mount, a.files)
-    rev, problems = verify(ship, desk, a.files)
-    if problems:
+    if len(problems) > len(extra):
         rev = commit_and_wait(ship, desk, timeout)
-        rev, problems = verify(ship, desk, a.files)
+        done.append('committed revision %d' % rev)
+    if done:
+        rev, problems, _ = verify(ship, desk, a.files)
         if problems:
             raise Fail('%s: after |commit, at revision %d, the desk still '
                        "doesn't match the repo:\n  %s"
                        % (desk, rev, '\n  '.join(problems[:20])))
-        what = 'committed revision %d' % rev
+        what = '; '.join(done)
     else:
         what = 'nothing to commit: already at revision %d' % rev
     if not quiet:
@@ -1231,7 +1253,25 @@ def sync(ship, desk, lib=None, golden=None, timeout=60, quiet=False):
 
 def commit_and_wait(ship, desk, timeout):
     """|commit, and wait for the new revision; raise Clay's error."""
-    noun = ship.thread(fill(COMMIT_WAIT, DESK=desk, SECS=hoon_ud(timeout)),
+    return change_and_wait(ship, desk, fill(COMMIT_ACT, DESK=desk), 'into',
+                           'the commit', timeout)
+
+
+def delete_and_wait(ship, desk, paths, timeout):
+    """Delete files from the desk ('/a/b/hoon') through Clay, and wait
+    for the new revision; raise Clay's error."""
+    act = fill(DELETE_ACT, DESK=desk, PATHS='~[%s]' % ' '.join(
+        hoon_path(p.split('/')[1:]) for p in paths))
+    return change_and_wait(ship, desk, act, 'info',
+                           'the deletion of %d files' % len(paths), timeout)
+
+
+def change_and_wait(ship, desk, act, mote, what, timeout):
+    """Change the desk with act, a CHANGE_WAIT action whose rejection
+    Clay names %mote, and wait for the new revision; raise Clay's error.
+    what names the change in errors."""
+    noun = ship.thread(fill(CHANGE_WAIT, ACT=act, MOTE=mote, DESK=desk,
+                            SECS=hoon_ud(timeout)),
                        timeout=timeout + 60)
     kind, val = noun
     kind = text(kind)
@@ -1239,10 +1279,9 @@ def commit_and_wait(ship, desk, timeout):
         return val
     if kind == 'crud':
         mote, tang = val
-        raise Fail('%s: Clay rejected the commit: %%%s\n  %s' % (
-            desk, text(mote), '\n  '.join(tang_lines(tang))))
-    raise Fail('%s: |commit changed nothing in %ds, though the mount '
-               "doesn't match the desk" % (desk, timeout))
+        raise Fail('%s: Clay rejected %s: %%%s\n  %s' % (
+            desk, what, text(mote), '\n  '.join(tang_lines(tang))))
+    raise Fail('%s: %s changed nothing in %ds' % (desk, what, timeout))
 
 
 # ---------------------------------------------------------------- scry

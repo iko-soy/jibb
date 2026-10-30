@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: `rune       = "|=" field ( expr | body ) | …`
+tests: a gate's cell sample left open, its fields on the lines below
+expect: error at 1:13, the end of line 1 — a gate's cell sample has no open form, as only a mold's [ and ( open (Decisions): its [ closes on its line, so no later line can give it its fields; the error is at the line's end (library 2.0) and names the sample it needs first, as `|= []` does

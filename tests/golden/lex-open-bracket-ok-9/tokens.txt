@@ -1,0 +1,23 @@
+1:1 glyph +$
+1:4 name v
+1:6 glyph (
+1:7 tight name map
+1:11 glyph $?
+2:3 INDENT
+2:3 lit %a
+3:3 NEWLINE
+3:3 lit %b
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name w
+4:6 glyph (
+4:7 tight name map
+4:11 aura @ud
+4:15 glyph $?
+5:3 INDENT
+5:3 lit %a
+6:3 NEWLINE
+6:3 lit %b
+6:5 DEDENT
+6:5 NEWLINE

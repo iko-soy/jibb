@@ -1,0 +1,9 @@
+1:1 glyph ++
+1:4 name x
+1:6 name m
+1:7 tight glyph (
+1:8 tight wing a.b
+1:11 tight glyph =
+1:12 tight lit 1
+1:13 tight glyph )
+1:14 NEWLINE

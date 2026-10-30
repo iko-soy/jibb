@@ -1,0 +1,7 @@
+1:1 glyph ++
+1:4 name x
+1:6 glyph ^-
+2:3 INDENT
+2:3 aura @
+2:4 DEDENT
+2:4 NEWLINE

@@ -1,0 +1,3 @@
+/tests/golden/lex-open-mold-bad-9/source.jibb:1:19: expected an expression, or a body on deeper lines, found the end of the line; the deeper lines go to the last bracket or rune left open on this line
+++ g |= a=(map @ud
+                  ^

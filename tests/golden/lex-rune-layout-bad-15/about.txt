@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "A rune's first children sit on its line, the last taking the rest of it; the others follow, indented."; "`|$` barbuc: a generic mold, `|$ [A] mold`."; the EBNF: mold's `"|$" "[" typevar { typevar } "]" mold`
+tests: a generic mold's `[` of type variables left open at the end of its line
+expect: error at 1:11, the end of line 1 — `|$`'s `[` has only the closed form in the EBNF, so it closes on its line, and no later line can give it its `]` (library 2.0); the error names the closer it needs, as it holds a type variable

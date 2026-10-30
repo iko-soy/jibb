@@ -90,6 +90,43 @@ def cord_literal(data):
     return ''.join(out)
 
 
+CORD_PIECE = 1024
+
+
+def cord_pieces(data, size=CORD_PIECE):
+    """data cut into pieces whose cord literals `rap 3` joins back into
+    data: one piece per line, ending in its newline, and a line longer
+    than size cut about every size bytes, since Hoon reads a cord
+    literal in about quadratic time (a 72 KB one takes 11 s).  A piece
+    is an atom, which loses NULs at its end, so a cut moves past NULs;
+    only the NULs ending data are lost, as in Clay, where a file is one
+    atom.
+
+    >>> cord_pieces(b'ab\\ncd')
+    [b'ab\\n', b'cd']
+    >>> cord_pieces(b'abcdefg\\n', 3)
+    [b'abc', b'def', b'g\\n']
+    >>> cord_pieces(b'ab\\x00\\x00cdef', 3)
+    [b'ab\\x00\\x00c', b'def']
+    >>> cord_pieces(b'')
+    [b'']
+    """
+    lines = data.split(b'\n')
+    lines = [line + b'\n' for line in lines[:-1]] + lines[-1:]
+    pieces = []
+    for line in lines:
+        start = 0
+        while len(line) - start > size:
+            cut = start + size
+            while cut < len(line) and line[cut - 1] == 0:
+                cut += 1
+            pieces.append(line[start:cut])
+            start = cut
+        if start < len(line) or not pieces:
+            pieces.append(line[start:])
+    return pieces
+
+
 def read_text(path):
     """A file's text, losslessly: bytes that aren't UTF-8 survive."""
     with open(path, 'rb') as f:

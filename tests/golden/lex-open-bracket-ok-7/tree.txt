@@ -1,0 +1,18 @@
+(module
+  (value 1:1 x
+    (group 1:6
+      (gate 1:7
+        (bind 1:10 a)
+        (body 2:3 (wing 2:3 b)))))
+  (value 3:1 y
+    (tuple 3:6
+      (wing 3:7 a)
+      (group 3:9
+        (gate 3:10
+          (bind 3:13 x)
+          (body 4:3 (lit 4:3 ~))))))
+  (value 5:1 z
+    (group 5:6
+      (trace 5:7
+        (call 5:10 (wing 5:10 a) (wing 5:12 b))
+        (body 6:3 (wing 6:3 c))))))

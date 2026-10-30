@@ -1,0 +1,7 @@
++$ x [
+  a=@
+  :: the second field
+
+  b=@
+:: at column 1
+  c=@

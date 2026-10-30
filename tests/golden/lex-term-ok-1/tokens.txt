@@ -21,4 +21,12 @@
 6:1 glyph ++
 6:4 name f
 6:6 lit %|
-6:8 NEWLINE
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name g
+7:6 lit %1.000
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name h
+8:6 lit %1.000.000
+8:16 NEWLINE

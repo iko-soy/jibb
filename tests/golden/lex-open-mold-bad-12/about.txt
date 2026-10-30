@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"[" { field } flines` and `flines     = INDENT field { NEWLINE field } DEDENT ;`
+tests: a mold's [ left open at the end of the file
+expect: error at 1:7, the end of the file — a [ left open takes at least one field from the deeper lines below (Decisions), and there are none

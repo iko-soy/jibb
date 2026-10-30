@@ -1,0 +1,19 @@
+(module
+  (mold 1:1 model
+    (cell 1:10
+      (face 2:3 todos
+        (apply 2:9 list (ref 2:15 item.todo)))
+      (face 3:3 draft (aura 3:9 @t))
+      (face 4:3 error
+        (apply 4:9 unit (aura 4:15 @t)))))
+  (mold 5:1 model2
+    (cell 5:11
+      (face 5:12 todos
+        (apply 5:18 list (ref 5:24 item.todo)))
+      (face 5:35 draft (aura 5:41 @t))
+      (face 5:44 error
+        (apply 5:50 unit (aura 5:56 @t)))))
+  (mold 6:1 pair
+    (cell 6:9
+      (face 6:10 a (aura 6:12 @))
+      (face 7:3 b (aura 7:5 @)))))

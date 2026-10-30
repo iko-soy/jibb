@@ -1,3 +1,3 @@
-/tests/golden/lex-term-bad-3/source.jibb:1:8: unexpected `.`: a numeric term is `%` and digits only, as %1000
-++ x %1.000
-       ^
+/tests/golden/lex-term-bad-3/source.jibb:2:10: a numeric term is `%` and a decimal, digits in groups of three joined by dots, as %1.000
+++ y %1000
+         ^

@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"(" ref { mold } mlines` and `mlines     = INDENT mold { NEWLINE mold } DEDENT ;`
+tests: an apply left open after its name, with no deeper line below
+expect: error at 2:1 — a ( left open takes its molds from the deeper lines below (Decisions), and line 2 isn't deeper, so map has no mold

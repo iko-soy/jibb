@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Several open brackets: The deeper lines go to the last bracket, or the last rune's body, left open on a line, and the brackets before it close with it: `(column ~ ~[` needs no `)`"; Grammar tab, Lexical rules: "A line may leave several brackets open: the deeper lines go to the last one, or to the body of the last rune, and the others close with it, so `(column ~ ~[` above its items needs no `)`."
+tests: two brackets left open at the end of one line, `(` and `~[`
+expect: parses as (column ~ ~[(text "a")]) in a group: the `~[`, the last bracket left open on line 1, takes the deeper line, and the `(` closes with it, both ending where (text "a") ends (Decisions)

@@ -1,0 +1,15 @@
+1:1 glyph +$
+1:4 name x
+1:6 glyph |$
+1:9 glyph [
+1:10 tight tvar A
+2:3 INDENT
+2:3 tvar B
+2:4 tight glyph ]
+2:6 glyph (
+2:7 tight name pair
+2:12 tvar A
+2:14 tvar B
+2:15 tight glyph )
+2:16 DEDENT
+2:16 NEWLINE

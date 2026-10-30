@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Sample names: Every bare name in a sample binds, at any depth: `|= [a=@ b]` binds `a` and `b`"; Grammar tab, Expressions: "A bare name binds at any depth of a sample, so `|= [a=@ b]` binds `a` and `b`."
+tests: bare names in cell samples: the Decisions' own example, and names in a cell inside a cell
+expect: parses: in f, b is a (bind …) beside the face a=@; in g, a and b are binds at two depths, and c=@ a face

@@ -1,0 +1,3 @@
+source: Grammar tab, Literals: "Application path | `%/blog`, `%/blog/(slug)`"; the EBNF: `qath       = "%/" [ asegment { "/" asegment } ] ;` and `asegment   = knot | "(" expr ")" ;`
+tests: an application path's `(…)` segment opened at the end of its line, its expression on the line below
+expect: error at 1:14, the end of line 1 — a segment's `(` has only the closed form `"(" expr ")"`, so it closes on its line, and no later line can give it its expression (library 2.0); the error names the expression it needs, as `%/blog/()` does

@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"$-(" mold mold ")"`
+tests: a gate's mold opened alone at the end of its line, its molds on the line below
+expect: error at 1:9, the end of line 1 — only a mold's [ and ( open (Decisions), so $-( closes on its line and no later line can give it its sample; the error names the mold it needs, as `$-()` does

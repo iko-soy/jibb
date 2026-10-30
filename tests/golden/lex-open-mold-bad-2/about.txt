@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"[" { field } flines` and `flines     = INDENT field { NEWLINE field } DEDENT ;`
+tests: two fields on a line of an open cell mold
+expect: error at 2:7 — a [ left open takes one field per deeper line (Decisions), and a=@ is whole, so the line should end before b

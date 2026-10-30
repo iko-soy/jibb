@@ -1,0 +1,8 @@
+1:1 glyph +$
+1:4 name x
+1:6 glyph $?(
+1:9 tight lit %a
+2:3 INDENT
+2:3 lit %b
+2:5 DEDENT
+2:5 NEWLINE

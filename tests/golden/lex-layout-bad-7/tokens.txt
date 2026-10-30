@@ -1,0 +1,6 @@
+1:1 glyph /-
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name x
+2:6 lit 1
+2:7 NEWLINE

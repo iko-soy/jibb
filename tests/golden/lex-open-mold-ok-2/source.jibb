@@ -1,0 +1,5 @@
++$ dict (map
+  @ud
+  @t
++$ index (map @ud
+  @t

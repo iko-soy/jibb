@@ -1,0 +1,8 @@
+(module
+  (mold 1:1 v
+    (apply 1:6 map
+      (union 1:11 (const 2:3 %a) (const 3:3 %b))))
+  (mold 4:1 w
+    (apply 4:6 map
+      (aura 4:11 @ud)
+      (union 4:15 (const 5:3 %a) (const 6:3 %b)))))

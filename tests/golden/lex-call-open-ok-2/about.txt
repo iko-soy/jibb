@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "Call: `f a b`; parentheses only group. A call open in parentheses puts its head and first arguments on the first line, then one argument per indented line; a `(` alone at the end of a line puts the head on the first indented line."; the EBNF: `group      = "(" expr ")" | "(" { operand } open ;`; Decisions, 2026-10-30: "Open groups: A `(` alone at line end puts the call's head on the first deeper line"
+tests: `(` alone at the end of its line, with the head on the first indented line
+expect: parses as the call f a b in a group: a `(` alone at the end of its line puts the call's head on the first deeper line (Decisions)

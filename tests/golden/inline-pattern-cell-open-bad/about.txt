@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: `pattern    = term | number | string | ship | loobean | "~" | "*" | name | "[" pattern { pattern } "]" ;`
+tests: a cell pattern left open at the end of its line, its second pattern below
+expect: error at 3:8, the end of line 3 — a cell pattern has no open form, as only a mold's [ and ( open (Decisions): its [ closes on its line, so once that line ends without its ] no later line can close it, and the error is at the line's end, the first character where the text stops being valid (library 2.0)

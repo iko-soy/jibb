@@ -1,0 +1,13 @@
+(module
+  (mold 1:1 m
+    (cell 1:6
+      (face 2:3 a
+        (cell 2:5
+          (face 3:5 x (aura 3:7 @))
+          (face 4:5 y (aura 4:7 @))))
+      (face 5:3 b
+        (apply 5:5 map
+          (aura 5:10 @ud)
+          (cell 6:5
+            (face 7:7 c (aura 7:9 @)))))
+      (face 8:3 d (aura 8:5 @)))))

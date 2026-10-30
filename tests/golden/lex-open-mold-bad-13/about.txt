@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"
+tests: a line deeper still below an open mold's field
+expect: error at 3:5 — an open mold takes one field per deeper line, and a=@ ends its line, so a line deeper than it is something nothing takes

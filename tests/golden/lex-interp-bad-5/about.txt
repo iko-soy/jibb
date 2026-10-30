@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Strings: Hoon's escapes: `\\`, `\"`, `\{`, and `\` with two lowercase hex digits; a string and each `{…}` close on the line they open; `::` in a string is text"
+tests: an interpolation left open at the end of its line
+expect: error at 1:11, the end of line 1 — each {…} closes on the line it opens (Decisions), and this one has no } on its line

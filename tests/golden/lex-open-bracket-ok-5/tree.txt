@@ -1,0 +1,22 @@
+(module
+  (mold 1:1 v
+    (apply 1:6 map
+      (aura 1:11 @ud)
+      (cell 1:15
+        (face 2:3 a (aura 2:5 @))
+        (face 3:3 b (aura 3:5 @)))))
+  (mold 4:1 w
+    (union 4:6
+      (const 4:9 %a)
+      (cell 4:12
+        (face 5:3 b (aura 5:5 @)))))
+  (mold 6:1 f
+    (fn 6:6
+      (aura 6:9 @)
+      (cell 6:11
+        (face 7:3 b (aura 7:5 @)))))
+  (mold 8:1 g
+    (cell 8:6
+      (face 8:7 a (aura 8:9 @))
+      (face 8:11 b
+        (apply 8:13 list (aura 9:3 @t))))))

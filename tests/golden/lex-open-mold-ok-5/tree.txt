@@ -1,0 +1,8 @@
+(module
+  (mold 1:1 model
+    (cell 2:3
+      (face 3:5 a (aura 3:7 @))
+      (face 4:5 b (aura 4:7 @))))
+  (mold 5:1 dict
+    (apply 6:3 map (aura 6:8 @ud) (aura 7:5 @t)))
+  (value 8:1 x (lit 8:6 1)))

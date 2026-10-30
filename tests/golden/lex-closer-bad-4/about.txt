@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Brackets opened and closed on one line work as usual."; the EBNF: `group      = "(" expr ")" | "(" { operand } open ;`
+tests: a `(` followed by a `]`, with nothing inside
+expect: error at 1:7 — a group holds an expression, and `]` begins none; the error names the expression the `(` still needs, as `()` does, rather than its closer (library section 3, Errors)

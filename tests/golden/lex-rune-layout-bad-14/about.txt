@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "A rune's first children sit on its line, the last taking the rest of it; the others follow, indented."; "`?-` wuthep: the only branch, exhaustive; the subject on its line, then arms of a pattern and an expression or body."; the EBNF: `arm        = pattern ( expr | body ) ;`
+tests: an arm whose pattern ends its line, with the next arm at the same depth
+expect: error at 4:5 — an arm's body may go on deeper lines, so line 3 may end after the pattern %.y; line 4 is at the same depth, so the arm gets no expression, and the error is at that line, which a deeper one would have fixed

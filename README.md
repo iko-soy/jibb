@@ -18,9 +18,9 @@ Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it co
 Run them without a ship. This needs `urbit` on PATH and Python 3.
 
 ```
-tools/golden                      # every case: PASS or FAIL, a diff per failure, a summary
-tools/golden --case 'grammar-*'   # only the cases matching a glob
-tools/golden --show --case foo    # print the outputs, don't compare
+tools/golden                         # every case: PASS or FAIL, a diff per failure, a summary
+tools/golden --case 'doc-grammar-*'  # only the cases matching a glob
+tools/golden --show --case foo       # print the outputs, don't compare
 ```
 
 When outputs change on purpose, regenerate them, then review the diff before committing:
@@ -62,7 +62,7 @@ tools/ship log                  # the end of its log
 tools/ship stop
 ```
 
-`tools/ship sync <desk>` assembles a desk from the repo's folders, creates it if it's missing (as `|new-desk` does), mounts it, makes the mount hold exactly those files, runs `|commit` and waits until the desk matches the repo, checking every file. If Clay rejects the commit, it prints Clay's error, which the log doesn't show.
+`tools/ship sync <desk>` assembles a desk from the repo's folders, creates it if it's missing (as `|new-desk` does), mounts it, deletes from the desk through Clay the files the repo doesn't have, makes the mount hold exactly the repo's files, runs `|commit` and waits until the desk matches the repo, checking every file. If Clay rejects the commit, it prints Clay's error, which the log doesn't show.
 
 | Desk | Assembled from |
 | --- | --- |
@@ -97,4 +97,5 @@ What the ship does that you might not expect:
 
 - `|merge` with kiln's default strategy, `%auto`, stops at "auto merge failed on strategy %fine" whenever a fast-forward isn't possible: kiln moves on to `%meet` only on a `%bad-fine-merge` error, and this Clay reports `%merge-failed`. Pass `=gem %mate`.
 - `%txt` keeps no final newline: vere's `+to-wain` jet ends the last line there, where the Hoon in zuse gives an empty line after it. So a `.jibb` file that a three-way merge changes, which goes through `%txt` (`grad %txt`, as `%hoon` does), loses its final newline. Likewise the ship can't tell a golden `tokens.txt` or `tree.txt` that lacks its final newline; `tools/golden` and `tools/ship test` catch it.
+- `|commit` deletes from the desk only the files vere has seen in the mount since the ship started: the ones it wrote there and the ones an earlier `|commit` found. So after a restart, a file deleted from the mount before the next `|commit` stays on the desk. That is why `tools/ship sync` deletes such files through Clay, with a `%info` task.
 - conn.sock closes the connection as soon as it has written a reply, so a reply bigger than the socket buffer, about 200 KB, is cut off. `tools/ship` keeps its replies small and reads big files in parts.

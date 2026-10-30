@@ -1,0 +1,15 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (cell 1:9
+        (face 1:10 a (aura 1:12 @))
+        (bind 1:14 b))
+      (wing 1:17 a)))
+  (value 2:1 g
+    (gate 2:6
+      (cell 2:9
+        (bind 2:10 a)
+        (cell 2:12
+          (bind 2:13 b)
+          (face 2:15 c (aura 2:17 @))))
+      (wing 2:21 b))))

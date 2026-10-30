@@ -1,0 +1,19 @@
+(module
+  (value 1:1 y
+    (tuple 1:6
+      (wing 1:7 a)
+      (list 1:9 (lit 2:3 1) (lit 3:3 2))))
+  (value 4:1 z
+    (change 4:6 m
+      (edit 4:8 a
+        (list 4:10 (lit 5:3 1)))))
+  (value 6:1 w
+    (list 6:6
+      (group 6:8
+        (call 6:9 (wing 6:9 f) (wing 7:5 a) (wing 8:5 b)))))
+  (value 9:1 u
+    (list 9:6
+      (tuple 10:3
+        (wing 10:4 a)
+        (list 10:6 (lit 11:5 1)))
+      (wing 12:3 b))))

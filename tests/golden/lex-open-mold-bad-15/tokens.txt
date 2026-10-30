@@ -1,0 +1,8 @@
+1:1 glyph +$
+1:4 name x
+1:6 glyph $-(
+2:3 INDENT
+2:3 aura @
+2:5 aura @
+2:6 DEDENT
+2:6 NEWLINE

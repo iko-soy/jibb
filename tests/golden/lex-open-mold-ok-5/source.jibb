@@ -1,0 +1,8 @@
++$ model
+  [
+    a=@
+    b=@
++$ dict
+  (map @ud
+    @t
+++ x 1

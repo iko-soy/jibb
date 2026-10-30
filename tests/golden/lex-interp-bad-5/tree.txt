@@ -1,0 +1,3 @@
+/tests/golden/lex-interp-bad-5/source.jibb:1:11: this `{` has no `}` on its line
+++ x "a {b
+          ^

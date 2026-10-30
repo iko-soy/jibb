@@ -1,0 +1,3 @@
+/tests/golden/inline-pattern-crash-bad/source.jibb:4:5: expected a pattern, found `!!`
+    !!   2
+    ^

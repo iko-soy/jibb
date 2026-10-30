@@ -1,0 +1,5 @@
+(module
+  (mold 1:1 dict
+    (apply 1:9 map (aura 2:3 @ud) (aura 3:3 @t)))
+  (mold 4:1 index
+    (apply 4:10 map (aura 4:15 @ud) (aura 5:3 @t))))

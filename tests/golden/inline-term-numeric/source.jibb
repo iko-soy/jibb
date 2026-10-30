@@ -1,0 +1,6 @@
++$ code $?(%200 %404 %1.000)
+++ label |= c=code
+  ?- c
+    %200    "ok"
+    %404    "not found"
+    %1.000  "a thousand"

@@ -1,3 +1,3 @@
-source: Grammar tab, Literals table, the Decimal row: `1.000`, "`@ud`, or any aura by context; groups of three, as in Hoon"
+source: Grammar tab, Literals table, the Decimal row: `1.000`, "`@ud`, or any aura by context; groups of three, as in Hoon"; Decisions, 2026-10-30: "Literals: Exactly Hoon's: `1000` is an error, `~2026.2.31` is `~2026.3.3`, and years BC and sub-second groups are dates; `print-date`'s minute form is not a literal"
 tests: 1000 instead of 1.000
-expect: error at 1:9 — decimals group digits in threes, as in Hoon: 100 may be followed by a dot, not by a fourth digit (Hoon's own parser stops here too)
+expect: error at 1:9 — decimals group digits in threes, as in Hoon: 100 may be followed by a dot, not by a fourth digit (Hoon's own parser stops here too; Decisions)

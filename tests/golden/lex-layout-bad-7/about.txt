@@ -1,0 +1,3 @@
+source: Grammar tab, Imports: `/-  todo`, `/%  %todo-action` and `/=  card    /ui/components/card`; the EBNF: `import     = "/-" name | "/%" term | "/=" name pathlit ;`
+tests: a `/-` import with nothing after it on its line
+expect: error at 1:3, the end of line 1 — an import's name goes on its line, so whatever line comes next can't supply it, and the text stops being valid where line 1 ends (library 2.0), not at line 2

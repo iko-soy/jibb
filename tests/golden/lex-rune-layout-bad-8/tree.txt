@@ -1,0 +1,3 @@
+/tests/golden/lex-rune-layout-bad-8/source.jibb:1:8: expected an expression, found the end of the line
+++ x ?-
+       ^

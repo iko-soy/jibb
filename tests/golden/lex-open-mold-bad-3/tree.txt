@@ -1,0 +1,3 @@
+/tests/golden/lex-open-mold-bad-3/source.jibb:2:7: expected the end of the line, found `@t`; a bracket open at the end of its line takes one mold per line
+  @ud @t
+      ^

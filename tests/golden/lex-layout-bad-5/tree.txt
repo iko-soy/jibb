@@ -1,0 +1,3 @@
+/tests/golden/lex-layout-bad-5/source.jibb:1:3: expected a name, found the end of the line
+++
+  ^

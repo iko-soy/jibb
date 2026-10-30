@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"[" { field } flines` and `flines     = INDENT field { NEWLINE field } DEDENT ;`
+tests: a mold's [ left open at the end of its line, with no deeper line below
+expect: error at 2:1 — a [ left open takes its fields from the deeper lines below (Decisions), at least one, as flines needs, and line 2 isn't deeper; as for an expression (lex-open-bracket-bad-1)

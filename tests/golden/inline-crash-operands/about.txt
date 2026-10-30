@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Crash: `!!` is an operand, so `f !!` and `~[!!]` need no parentheses"; the EBNF: `operand    = literal | qath | ref | change | pair | unit | group | list | tuple | gate | ctor | pathlit | "!!" ;`
+tests: `!!` in each place an operand goes: a call's argument, in a group's call, a list's and a cell's item, a unit, a pair's value, a change's item, the wide gate's body, an application path's segment, and alone in a group
+expect: parses; each `!!` is a (crash …) where the operand goes, needing no parentheses (Decisions)

@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"(" ref { mold } mlines` and `mlines     = INDENT mold { NEWLINE mold } DEDENT ;`
+tests: an explicit closer at the end of an open apply's last line
+expect: error at 2:5 — a bracket left open takes no closer (Decisions): line 2 is the mold @t, and nothing on it opened a bracket for this ) to close, as for an expression (lex-open-bracket-bad-3)

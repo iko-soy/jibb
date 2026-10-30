@@ -1,0 +1,12 @@
+1:1 glyph ++
+1:4 name g
+1:6 glyph |=(
+1:9 tight name a
+1:10 tight glyph =
+1:11 tight glyph (
+1:12 tight name map
+1:16 aura @ud
+2:3 INDENT
+2:3 aura @t
+2:5 DEDENT
+2:5 NEWLINE

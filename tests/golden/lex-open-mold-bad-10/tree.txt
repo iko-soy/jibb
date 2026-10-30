@@ -1,0 +1,3 @@
+/tests/golden/lex-open-mold-bad-10/source.jibb:2:1: expected `]` or a field on a deeper line, found a line at the same depth
+++ y 1
+^

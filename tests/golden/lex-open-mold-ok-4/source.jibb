@@ -1,0 +1,6 @@
++$ msg $?
+  [%add
+    text=@t
+    n=@ud
+  [%del id=@ud]
+  %toggle

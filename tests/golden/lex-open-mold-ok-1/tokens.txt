@@ -1,0 +1,55 @@
+1:1 glyph +$
+1:4 name model
+1:10 glyph [
+2:3 INDENT
+2:3 name todos
+2:8 tight glyph =
+2:9 tight glyph (
+2:10 tight name list
+2:15 wing item.todo
+2:24 tight glyph )
+3:3 NEWLINE
+3:3 name draft
+3:8 tight glyph =
+3:9 tight aura @t
+4:3 NEWLINE
+4:3 name error
+4:8 tight glyph =
+4:9 tight glyph (
+4:10 tight name unit
+4:15 aura @t
+4:17 tight glyph )
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph +$
+5:4 name model2
+5:11 glyph [
+5:12 tight name todos
+5:17 tight glyph =
+5:18 tight glyph (
+5:19 tight name list
+5:24 wing item.todo
+5:33 tight glyph )
+5:35 name draft
+5:40 tight glyph =
+5:41 tight aura @t
+5:44 name error
+5:49 tight glyph =
+5:50 tight glyph (
+5:51 tight name unit
+5:56 aura @t
+5:58 tight glyph )
+5:59 tight glyph ]
+6:1 NEWLINE
+6:1 glyph +$
+6:4 name pair
+6:9 glyph [
+6:10 tight name a
+6:11 tight glyph =
+6:12 tight aura @
+7:3 INDENT
+7:3 name b
+7:4 tight glyph =
+7:5 tight aura @
+7:6 DEDENT
+7:6 NEWLINE

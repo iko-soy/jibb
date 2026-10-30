@@ -1,0 +1,26 @@
+1:1 glyph +$
+1:4 name msg
+1:8 glyph $?
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %add
+3:5 INDENT
+3:5 name text
+3:9 tight glyph =
+3:10 tight aura @t
+4:5 NEWLINE
+4:5 name n
+4:6 tight glyph =
+4:7 tight aura @ud
+5:3 DEDENT
+5:3 NEWLINE
+5:3 glyph [
+5:4 tight lit %del
+5:9 name id
+5:11 tight glyph =
+5:12 tight aura @ud
+5:15 tight glyph ]
+6:3 NEWLINE
+6:3 lit %toggle
+6:10 DEDENT
+6:10 NEWLINE

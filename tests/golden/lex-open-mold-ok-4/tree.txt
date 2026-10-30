@@ -1,0 +1,11 @@
+(module
+  (mold 1:1 msg
+    (union 1:8
+      (cell 2:3
+        (const 2:4 %add)
+        (face 3:5 text (aura 3:10 @t))
+        (face 4:5 n (aura 4:7 @ud)))
+      (cell 5:3
+        (const 5:4 %del)
+        (face 5:9 id (aura 5:12 @ud)))
+      (const 6:3 %toggle))))

@@ -1,0 +1,17 @@
+1:1 glyph +$
+1:4 name x
+1:6 glyph [
+2:3 INDENT
+2:3 name a
+2:4 tight glyph =
+2:5 tight aura @
+5:3 NEWLINE
+5:3 name b
+5:4 tight glyph =
+5:5 tight aura @
+7:3 NEWLINE
+7:3 name c
+7:4 tight glyph =
+7:5 tight aura @
+7:6 DEDENT
+7:6 NEWLINE

@@ -1,3 +1,3 @@
-source: Grammar tab, Literals table, the Duration row: `~s30`, `~h1.m30`, "`@dr`"
+source: Grammar tab, Literals table, the Duration row: `~s30`, `~h1.m30`, "`@dr`"; Decisions, 2026-10-30: "Literals: Exactly Hoon's: `1000` is an error, `~2026.2.31` is `~2026.3.3`, and years BC and sub-second groups are dates; `print-date`'s minute form is not a literal"
 tests: a duration with five sub-second groups, one more than Hoon's reader takes
-expect: error at 1:30 — a date or duration takes at most four sub-second groups; the fifth begins at the dot (design question 29)
+expect: error at 1:30 — a date or duration takes at most four sub-second groups, as Hoon's reader does, and Jibb's literals are exactly Hoon's (Decisions); the fifth begins at the dot

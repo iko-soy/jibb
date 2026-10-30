@@ -1,0 +1,3 @@
+/tests/golden/lex-call-open-bad-4/source.jibb:2:1: expected the call's head on a deeper line, found a line at the same depth
+++ y 1
+^

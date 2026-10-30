@@ -1,0 +1,12 @@
+(module
+  (mold 1:1 code
+    (union 1:9 (const 1:12 %200) (const 1:17 %404) (const 1:22 %1.000)))
+  (value 2:1 label
+    (gate 2:10
+      (face 2:13 c (ref 2:15 code))
+      (body 3:3
+        (branch 3:3
+          (wing 3:6 c)
+          (arm 4:5 (lit 4:5 %200) (str 4:13 "ok"))
+          (arm 5:5 (lit 5:5 %404) (str 5:13 "not found"))
+          (arm 6:5 (lit 6:5 %1.000) (str 6:13 "a thousand")))))))

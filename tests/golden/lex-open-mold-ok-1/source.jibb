@@ -1,0 +1,7 @@
++$ model [
+  todos=(list item.todo)
+  draft=@t
+  error=(unit @t)
++$ model2 [todos=(list item.todo) draft=@t error=(unit @t)]
++$ pair [a=@
+  b=@

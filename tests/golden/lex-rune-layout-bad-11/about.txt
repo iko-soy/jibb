@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`^-` kethep: a cast; the mold on its line, the expression after it or below."; Lexical rules: "Comments: `::` to the end of the line, outside strings"; the EBNF: `rune       = … | "^-" mold ( expr | body ) | …`
+tests: a cast's mold on the line below a `^-` that ends its line with spaces and a comment
+expect: error at 1:8, the end of line 1, just past the `^-`, its last token — the spaces and the comment after it emit nothing, so they don't move the end of the line (library section 3, Errors), and the mold goes on the `^-`'s line, as in lex-rune-layout-bad-5

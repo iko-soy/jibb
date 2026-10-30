@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-change-bad-8/source.jibb:1:9: expected `=` right after `a`, found a string; this string has no closing `"` on its line
+++ x m(a"x)
+        ^

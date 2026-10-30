@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; Grammar tab, Lexical rules: "A mold's `[` and `(` open the same way, with one field or mold per deeper line."; the EBNF: mold's `"[" { field } flines` and `flines     = INDENT field { NEWLINE field } DEDENT ;`
+tests: a cell mold left open at the end of its line, alone and after a first field
+expect: parses: model is the cell of three faced fields, the tree of its one-line form model2 but for spans, ending where error=(unit @t) ends; pair is the cell [a=@ b=@]

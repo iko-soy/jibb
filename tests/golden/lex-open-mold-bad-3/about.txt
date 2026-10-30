@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"(" ref { mold } mlines` and `mlines     = INDENT mold { NEWLINE mold } DEDENT ;`
+tests: two molds on a line of an open apply
+expect: error at 2:7 — a ( left open takes one mold per deeper line (Decisions), so the line should end after @ud

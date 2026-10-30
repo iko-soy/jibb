@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; Grammar tab, Lexical rules: "A mold's `[` and `(` open the same way, with one field or mold per deeper line."; the EBNF: mold's `"(" ref { mold } mlines` and `mlines     = INDENT mold { NEWLINE mold } DEDENT ;`
+tests: an apply left open at the end of its line, after its name alone and after its name and a first mold
+expect: parses: dict and index are both (map @ud @t), each ending where @t ends

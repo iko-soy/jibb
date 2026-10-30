@@ -1,0 +1,9 @@
+(module
+  (value 1:1 x
+    (group 1:6
+      (call 1:7
+        (wing 1:7 column)
+        (lit 1:14 ~)
+        (list 1:16
+          (group 2:5
+            (call 2:6 (wing 2:6 text) (str 2:11 "a"))))))))

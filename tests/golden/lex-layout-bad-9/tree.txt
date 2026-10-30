@@ -1,0 +1,3 @@
+/tests/golden/lex-layout-bad-9/source.jibb:1:8: expected a module's path, as /ui/components/card, found the end of the line
+/= card
+       ^

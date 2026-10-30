@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; Grammar tab, Lexical rules: "A mold's `[` and `(` open the same way, with one field or mold per deeper line."; the EBNF: mold's `"[" { field } flines` and `flines     = INDENT field { NEWLINE field } DEDENT ;`
+tests: open molds on the lines of an open mold: a field's cell left open, and an apply left open whose line below is a [ alone, open again
+expect: parses: m is the cell of the fields a, b and d; a's mold is the cell [x=@ y=@], which takes the lines deeper still; b's is (map @ud [c=@]); d=@, back at the first field's depth, is m's third field

@@ -1,3 +1,0 @@
-source: Grammar tab, Lexical rules: "Spacing: one space between items; more for alignment."
-tests: a space after an opener and before a closer in brackets closed on their line
-expect: unclear — the first tab's theme example writes `[ space=[…]` with a space after a bracket left open, but nothing shows a space before a closer, or after an opener of a bracket closed on its line; are they allowed? If not, the first error is at 1:7 (the space after `[`) or, if only spaces before a closer are out, at 1:12 (the `]`). (corpus question 7)

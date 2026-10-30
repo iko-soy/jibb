@@ -130,9 +130,10 @@ def run_lines(case):
     """The harness's call for one case.  The source is written one line
     per cord, each but the last ending in its newline, so that a NUL
     before a newline survives; only NULs ending the file are lost, as
-    they are in Clay, where the file is one atom."""
-    lines = case.source.split(b'\n')
-    lines = [line + b'\n' for line in lines[:-1]] + lines[-1:]
+    they are in Clay, where the file is one atom.  A long line is cut
+    into several cords, as Hoon reads a long cord literal in about
+    quadratic time (ue.cord_pieces)."""
+    lines = ue.cord_pieces(case.source)
     out = ['        %%+  run  %s' % ue.cord_literal(case.name.encode()),
            '        %-  text',
            '        :~  ' + ue.cord_literal(lines[0])]

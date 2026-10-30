@@ -1,0 +1,3 @@
+/tests/golden/lex-term-bad-13/source.jibb:2:5: a numeric term is `%` and a decimal, digits in groups of three joined by dots, as %1.000
+  %0x1f
+    ^

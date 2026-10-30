@@ -1,0 +1,6 @@
+(module
+  (mold 1:1 x
+    (cell 1:6
+      (face 2:3 a (aura 2:5 @))
+      (face 5:3 b (aura 5:5 @))
+      (face 7:3 c (aura 7:5 @)))))

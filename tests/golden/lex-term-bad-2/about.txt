@@ -1,3 +1,3 @@
-source: Grammar tab, Literals table, the Term row: `%add`; the EBNF: `term       = "%" name | "%" digit { digit } | "%&" | "%|" ;`
+source: Grammar tab, Literals table, the Term row: `%add`, `%1.000`; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" ;`; Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"
 tests: a numeric term followed by a letter
-expect: error at 1:8 — a numeric term is `%` and digits only
+expect: error at 1:8 — a numeric term is `%` and a decimal (Decisions), read as a number literal is, and 9a fails at its a, as `++ x 9a` fails at 1:7, one column earlier for want of the %

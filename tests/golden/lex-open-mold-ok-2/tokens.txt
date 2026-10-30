@@ -1,0 +1,19 @@
+1:1 glyph +$
+1:4 name dict
+1:9 glyph (
+1:10 tight name map
+2:3 INDENT
+2:3 aura @ud
+3:3 NEWLINE
+3:3 aura @t
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name index
+4:10 glyph (
+4:11 tight name map
+4:15 aura @ud
+5:3 INDENT
+5:3 aura @t
+5:5 DEDENT
+5:5 NEWLINE

@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Layout tokens: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE."; the EBNF: `definition = "+$" name ( mold | INDENT mold DEDENT ) | "++" name ( expr | body ) ;`
+tests: `+$ x` with nothing on its line and no deeper line
+expect: error at 2:1 — a +$'s mold may go on a deeper line, so line 1 may end after the name; line 2 is at the same depth, so x gets no mold, and the error is at that line, which a deeper one would have fixed, as for `++ view` in lex-layout-bad-2

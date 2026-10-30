@@ -1,0 +1,3 @@
+source: Grammar tab, Molds: "**Constants**: `%add`, `~` and the loobeans have one value each."; the EBNF: `mold       = aura | "*" | "!!" | "?" | "~" | term | …`
+tests: null with a letter right after it, where a mold goes
+expect: error at 1:7, the x, as `++ x ~x` (lex-null-bad-1) — ~ alone is a mold, and no ~ literal goes on with x; the mold took the ~, so the error stays at the x

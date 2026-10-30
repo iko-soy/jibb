@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Several open brackets: The deeper lines go to the last bracket, or the last rune's body, left open on a line, and the brackets before it close with it: `(column ~ ~[` needs no `)`"; the EBNF: `"?-" expr INDENT arm { NEWLINE arm } DEDENT`
+tests: a `?-` whose subject's list is left open, taking the deeper lines its arms need
+expect: error at 1:13 — the `~[`, the last bracket left open, takes the deeper lines (Decisions), and a rune is no bracket that closes with them: no later line can give the `?-` its arms, so the text stops being valid at the end of line 1

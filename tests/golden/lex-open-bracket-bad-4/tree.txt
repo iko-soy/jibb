@@ -1,3 +1,0 @@
-/tests/golden/lex-open-bracket-bad-4/source.jibb:1:18: expected `)` to close the `(` at 1:6, found the end of the line; the deeper lines go to the last bracket or rune left open on this line
-++ x (column ~ ~[
-                 ^

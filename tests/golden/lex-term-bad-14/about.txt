@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Numeric terms: `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors"; the EBNF: `term       = "%" name | "%" decimal | "%&" | "%|" ;`
+tests: a numeric term of 0 and a letter that Hoon reads as no aura at all
+expect: error at 1:8, the x: %0 alone is a term, and nothing continues it with a letter, as for %0x1f (lex-term-bad-8), so the x is the first character where the text stops being a valid module (library 2.0, 2.6), though the number 0xg fails one character later, at the g

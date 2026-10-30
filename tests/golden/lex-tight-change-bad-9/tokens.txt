@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-change-bad-9/source.jibb:1:10: the closer `==` is left out: indentation covers it
+++ x m(a==1)
+         ^

@@ -1,0 +1,3 @@
+/tests/golden/inline-pattern-cell-open-bad/source.jibb:3:8: expected `]` to close the `[` at 3:5, found the end of the line; this bracket closes on its line
+    [%a
+       ^

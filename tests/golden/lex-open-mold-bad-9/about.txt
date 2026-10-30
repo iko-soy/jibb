@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line" and "Several open brackets: The deeper lines go to the last bracket, or the last rune's body, left open on a line, and the brackets before it close with it: `(column ~ ~[` needs no `)`"
+tests: an open mold in a tall gate's sample
+expect: error at 1:19 — the sample's ( is the last bracket left open on line 1, so it takes the deeper line (Decisions), which leaves the gate no body: none on its line, and no later line can give one

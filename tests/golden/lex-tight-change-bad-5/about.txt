@@ -1,0 +1,3 @@
+source: Grammar tab, Expressions: "**Faced cells**: `[text="milk" done=%.n]`, or one `name=value` per line of an open bracket. A change takes the same items, as `m(done=%.y)`."; the EBNF: `change     = wing "(" { item } ")" | wing "(" { item } open ;   (* no space before "("; items named *)`
+tests: a change's item named by a wing, as Hoon's %= allows
+expect: error at 1:9, the dot: an item's name is a name, which `a` could still begin and the dot can't continue, as `++ a.b 1` fails at its dot (library section 3, Errors)

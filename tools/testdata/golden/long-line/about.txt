@@ -1,0 +1,3 @@
+From: written for the runner's self-test.
+Tests: a line longer than the 1024 bytes tools/golden puts in one cord literal is cut into several, which join back into the same bytes, NULs at a cut and at the start of a piece included.
+Expected: passes; tokens report all 2613 bytes.

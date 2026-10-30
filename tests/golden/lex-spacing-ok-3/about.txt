@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Spacing: one space between items; more for alignment. That is style, which the formatter keeps: the parser takes one or more spaces between items, and allows spaces after an opener, before a closer and at the end of a line."; Decisions, 2026-10-30: "Spacing: Style, kept by the formatter: one or more spaces between items, and spaces allowed after an opener, before a closer and at the end of a line; faces, puns and typed path segments take no spaces; a rune is followed by one"
+tests: a space after an opener and before a closer in brackets closed on their line
+expect: parses, as [a b] and ~[1 2]: spaces after an opener and before a closer are allowed (Decisions)

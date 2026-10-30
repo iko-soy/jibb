@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-change-bad-4/source.jibb:1:9: expected `=` right after `b`, found `)`; a change's items are named, as in m(done=%.y)
+++ x m(b)
+        ^

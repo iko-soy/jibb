@@ -1,0 +1,3 @@
+source: Grammar tab, Imports: `/-  todo`, `/%  %todo-action` and `/=  card    /ui/components/card`; the EBNF: `import     = "/-" name | "/%" term | "/=" name pathlit ;`
+tests: a `/=` import with its path on the line below
+expect: error at 1:8, the end of line 1 — the module's path goes on the import's line, so no later line can supply it (library 2.0)

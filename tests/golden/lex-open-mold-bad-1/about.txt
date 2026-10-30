@@ -1,0 +1,3 @@
+source: Decisions, 2026-10-30: "Open molds: A mold's `[` and `(` may be left open at line end, one field or mold per deeper line; a `(` keeps the mold's name on its first line"; the EBNF: mold's `"(" ref { mold } mlines` and `mlines     = INDENT mold { NEWLINE mold } DEDENT ;`
+tests: a mold's ( alone at the end of its line, its name on the line below
+expect: error at 1:7, the end of line 1 — a mold's ( keeps the mold's name on its first line (Decisions), so no later line can give a ( alone at the end of a line its name, and the error is at the line's end, just past the ( (library 2.0); an expression's ( alone opens a group instead (lex-call-open-ok-2)

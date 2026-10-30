@@ -1,0 +1,3 @@
+/tests/golden/lex-null-bad-2/source.jibb:1:7: `~` alone is null, and nothing here reads as a ship, date, duration or knot
++$ x ~x
+      ^

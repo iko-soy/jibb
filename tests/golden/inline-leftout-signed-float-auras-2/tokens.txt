@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-signed-float-auras-2/source.jibb:1:9: signed and floating-point auras are left out of Jibb
+++ x m(@sd=1)
+        ^

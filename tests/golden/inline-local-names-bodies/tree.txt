@@ -1,0 +1,29 @@
+(module
+  (value 1:1 a
+    (cast 1:6
+      (aura 1:9 @)
+      (body 2:3
+        (value 2:3 one (lit 2:10 1))
+        (wing 3:3 one))))
+  (value 4:1 b
+    (trace 4:6
+      (lit 4:9 1)
+      (body 5:3
+        (value 5:3 two (lit 5:10 2))
+        (wing 6:3 two))))
+  (value 7:1 c
+    (body 8:3
+      (value 8:3 three (lit 8:12 3))
+      (wing 9:3 three)))
+  (value 10:1 d
+    (gate 10:6
+      (face 10:9 n (aura 10:11 @))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 n)
+          (arm 12:5
+            (lit 12:5 0)
+            (body 13:7
+              (value 13:7 four (lit 13:15 4))
+              (wing 14:7 four)))
+          (arm 15:5 (any 15:5) (wing 15:8 n)))))))

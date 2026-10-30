@@ -1,0 +1,12 @@
+(module
+  (value 1:1 g
+    (gate-wide 1:6
+      (bind 1:9 a)
+      (list 1:11 (lit 2:3 1) (lit 3:3 2))))
+  (value 4:1 h
+    (group 4:6
+      (call 4:7
+        (wing 4:7 f)
+        (gate-wide 4:9
+          (bind 4:12 a)
+          (list 4:14 (lit 5:3 1)))))))

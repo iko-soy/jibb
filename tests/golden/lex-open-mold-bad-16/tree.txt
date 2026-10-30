@@ -1,0 +1,3 @@
+/tests/golden/lex-open-mold-bad-16/source.jibb:1:10: expected a mold, the product, found the end of the line; this bracket closes on its line
++$ x $-(@
+         ^

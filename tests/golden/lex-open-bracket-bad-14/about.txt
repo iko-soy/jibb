@@ -1,0 +1,3 @@
+source: Grammar tab, Literals: "Application path | `%/blog`, `%/blog/(slug)`"; the EBNF: `asegment   = knot | "(" expr ")" ;`; Decisions, 2026-10-30: "Several open brackets: The deeper lines go to the last bracket, or the last rune's body, left open on a line, and the brackets before it close with it: `(column ~ ~[` needs no `)`"
+tests: an application path's `(…)` segment holding a call's head at the end of its line, its argument on the line below
+expect: error at 1:15, the end of line 1 — the segment's `(` is the last opener on line 1 and has no open form, so it closes on its line and the deeper line can't go to it (library 2.0); it closes with the deeper lines only when a later opener on its line takes them, as `%/blog/(f ~[` does (lex-open-bracket-ok-8)
