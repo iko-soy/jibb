@@ -1,0 +1,8 @@
++$ point [x=@t y=@p]
+++ echo |= p=point p
+++ tuple ^- point ["hi" ~zod]
+++ named ^- point [x="hi" y=~zod]
+++ first |= p=point x.p
+++ cell-sample |= [a=@t b=@p] [a b]
+++ missing |= p=point z.p
+++ mismatch |= p=point ^- [a=@t b=@p] p

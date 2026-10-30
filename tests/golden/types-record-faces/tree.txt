@@ -1,0 +1,41 @@
+(module
+  (mold 1:1 point
+    (cell 1:10
+      (face 1:11 x (aura 1:13 @t))
+      (face 1:16 y (aura 1:18 @p))))
+  (value 2:1 echo
+    (gate 2:9
+      (face 2:12 p (ref 2:14 point))
+      (wing 2:20 p)))
+  (value 3:1 tuple
+    (cast 3:10
+      (ref 3:13 point)
+      (tuple 3:19 (str 3:20 "hi") (lit 3:25 ~zod))))
+  (value 4:1 named
+    (cast 4:10
+      (ref 4:13 point)
+      (tuple 4:19
+        (face 4:20 x (str 4:22 "hi"))
+        (face 4:27 y (lit 4:29 ~zod)))))
+  (value 5:1 first
+    (gate 5:10
+      (face 5:13 p (ref 5:15 point))
+      (wing 5:21 x.p)))
+  (value 6:1 cell-sample
+    (gate 6:16
+      (cell 6:19
+        (face 6:20 a (aura 6:22 @t))
+        (face 6:25 b (aura 6:27 @p)))
+      (tuple 6:31 (wing 6:32 a) (wing 6:34 b))))
+  (value 7:1 missing
+    (gate 7:12
+      (face 7:15 p (ref 7:17 point))
+      (wing 7:23 z.p)))
+  (value 8:1 mismatch
+    (gate 8:13
+      (face 8:16 p (ref 8:18 point))
+      (cast 8:24
+        (cell 8:27
+          (face 8:28 a (aura 8:30 @t))
+          (face 8:33 b (aura 8:35 @p)))
+        (wing 8:39 p)))))

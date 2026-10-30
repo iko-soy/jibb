@@ -1438,6 +1438,32 @@
 /*  tok-435  %txt   /tests/golden/types-partial-unresolved-tag/tokens/txt
 /*  tre-435  %txt   /tests/golden/types-partial-unresolved-tag/tree/txt
 /*  typ-435  %txt   /tests/golden/types-partial-unresolved-tag/types/txt
+/*  src-436  %jibb  /tests/golden/types-record-bound-variable/source/jibb
+/*  tok-436  %txt   /tests/golden/types-record-bound-variable/tokens/txt
+/*  tre-436  %txt   /tests/golden/types-record-bound-variable/tree/txt
+/*  typ-436  %txt   /tests/golden/types-record-bound-variable/types/txt
+/*  src-437  %jibb  /tests/golden/types-record-faces/source/jibb
+/*  tok-437  %txt   /tests/golden/types-record-faces/tokens/txt
+/*  tre-437  %txt   /tests/golden/types-record-faces/tree/txt
+/*  typ-437  %txt   /tests/golden/types-record-faces/types/txt
+/*  src-438  %jibb  /tests/golden/types-record-import/source/jibb
+/*  tok-438  %txt   /tests/golden/types-record-import/tokens/txt
+/*  tre-438  %txt   /tests/golden/types-record-import/tree/txt
+/*  mod-438-1  %jibb  /tests/golden/types-record-import/modules/ui/lib/jibb
+/*  typ-438  %txt   /tests/golden/types-record-import/types/txt
+/*  mtre-438  %txt  /tests/golden/types-record-import/module-trees/txt
+/*  src-439  %jibb  /tests/golden/types-record-local-scheme/source/jibb
+/*  tok-439  %txt   /tests/golden/types-record-local-scheme/tokens/txt
+/*  tre-439  %txt   /tests/golden/types-record-local-scheme/tree/txt
+/*  typ-439  %txt   /tests/golden/types-record-local-scheme/types/txt
+/*  src-440  %jibb  /tests/golden/types-record-nested/source/jibb
+/*  tok-440  %txt   /tests/golden/types-record-nested/tokens/txt
+/*  tre-440  %txt   /tests/golden/types-record-nested/tree/txt
+/*  typ-440  %txt   /tests/golden/types-record-nested/types/txt
+/*  src-441  %jibb  /tests/golden/types-record-to-tuple/source/jibb
+/*  tok-441  %txt   /tests/golden/types-record-to-tuple/tokens/txt
+/*  tre-441  %txt   /tests/golden/types-record-to-tuple/tree/txt
+/*  typ-441  %txt   /tests/golden/types-record-to-tuple/types/txt
 |%
 ::  one arm per case
 ::
@@ -2311,6 +2337,18 @@
   (weld (check ~.types-partial-union-edges src-434 `tok-434 `tre-434) (check-types ~.types-partial-union-edges ~[%tests %golden ~.types-partial-union-edges %source %jibb] src-434 `typ-434))
 ++  test-types-partial-unresolved-tag
   (weld (check ~.types-partial-unresolved-tag src-435 `tok-435 `tre-435) (check-types ~.types-partial-unresolved-tag ~[%tests %golden ~.types-partial-unresolved-tag %source %jibb] src-435 `typ-435))
+++  test-types-record-bound-variable
+  (weld (check ~.types-record-bound-variable src-436 `tok-436 `tre-436) (check-types ~.types-record-bound-variable ~[%tests %golden ~.types-record-bound-variable %source %jibb] src-436 `typ-436))
+++  test-types-record-faces
+  (weld (check ~.types-record-faces src-437 `tok-437 `tre-437) (check-types ~.types-record-faces ~[%tests %golden ~.types-record-faces %source %jibb] src-437 `typ-437))
+++  test-types-record-import
+  (weld (weld (check ~.types-record-import src-438 `tok-438 `tre-438) (check-module-types ~.types-record-import ~[%tests %golden ~.types-record-import %source %jibb] src-438 `typ-438 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-438-1]])) (check-module-trees ~.types-record-import `mtre-438 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-438-1]]))
+++  test-types-record-local-scheme
+  (weld (check ~.types-record-local-scheme src-439 `tok-439 `tre-439) (check-types ~.types-record-local-scheme ~[%tests %golden ~.types-record-local-scheme %source %jibb] src-439 `typ-439))
+++  test-types-record-nested
+  (weld (check ~.types-record-nested src-440 `tok-440 `tre-440) (check-types ~.types-record-nested ~[%tests %golden ~.types-record-nested %source %jibb] src-440 `typ-440))
+++  test-types-record-to-tuple
+  (weld (check ~.types-record-to-tuple src-441 `tok-441 `tre-441) (check-types ~.types-record-to-tuple ~[%tests %golden ~.types-record-to-tuple %source %jibb] src-441 `typ-441))
 ::
 ::  +check: run golden:jibb on a case and compare both outputs
 ::

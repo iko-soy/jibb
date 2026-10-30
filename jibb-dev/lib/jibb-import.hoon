@@ -11,8 +11,9 @@
 ::  a repeated named hold becomes a module-qualified reference.
 ::
 ::  A direct $^ is read from its original branches and accepted only when
-::  their imported shapes prove disjoint. Nested $^ and some valid but
-::  unprovably disjoint cases remain unsupported. Source-level overlap in
+::  their imported shapes prove disjoint. A single nested $^ in a
+::  static record is checked by splitting and reassembling its branches;
+::  other nested forms and unprovably disjoint cases remain unsupported. Source-level overlap in
 ::  other unions, general nested ordered maps, broader Ford subject
 ::  shapes, ambiguous recursive origins and full error locations still
 ::  need work. A nested ordered map is recovered only when its key and
@@ -428,6 +429,77 @@
     [%| *]  ~
   ==
 ::
+::  A static branch contains only literal atom molds and record cells.
+++  fixed-cell-mold
+  |=  h=hoon
+  ^-  ?
+  ?^  -.h  &($(h -.h) $(h +.h))
+  ?+  h  |
+    [%note *]  $(h q.h)
+    [%ktts *]  $(h q.h)
+    [%ktls *]  ?=([%sand *] p.h)
+  ==
+::
+::  Return two source records with a single $^ replaced by each branch.
+++  split-cell-record
+  |=  [h=hoon axis=@ud]
+  ^-  (unit [one=hoon two=hoon])
+  ?^  -.h
+    =/  left  $(h -.h, axis (mul 2 axis))
+    =/  right  $(h +.h, axis (add 1 (mul 2 axis)))
+    ?^  left
+      ?^  right  ~
+      ?.  (fixed-cell-mold +.h)  ~
+      [~ [[one.u.left +.h] [two.u.left +.h]]]
+    ?~  right  ~
+    ?.  (fixed-cell-mold -.h)  ~
+    [~ [[-.h one.u.right] [-.h two.u.right]]]
+  ?+  h  ~
+    [%note *]
+      =/  out  $(h q.h)
+      ?~  out  ~
+      [~ [h(q one.u.out) h(q two.u.out)]]
+    [%ktts *]
+      =/  out  $(h q.h)
+      ?~  out  ~
+      [~ [h(q one.u.out) h(q two.u.out)]]
+    [%wtcl *]
+      ?.  =(p.h [%dtwt [%$ (mul 2 axis)]])  ~
+      ?.  &((fixed-cell-mold q.h) (fixed-cell-mold r.h))  ~
+      [~ [q.h r.h]]
+  ==
+::
+::  Reassemble a split source record. Non-union fields must have remained
+::  unchanged; the replaced field must have provably disjoint branches.
+++  merge-cell-record
+  |=  [h=hoon axis=@ud a=imported b=imported]
+  ^-  (each imported @t)
+  ?^  -.h
+    ?.  &(?=([%cell *] a) ?=([%cell *] b))
+      [%| 'a nested Hoon $^ union needs a source-level disjointness check']
+    =/  left  $(h -.h, axis (mul 2 axis), a head.a, b head.b)
+    ?.  ?=([%& *] left)  left
+    =/  right  $(h +.h, axis (add 1 (mul 2 axis)), a tail.a, b tail.b)
+    ?.  ?=([%& *] right)  right
+    [%& [%cell p.left p.right]]
+  ?+  h
+    ?:  =(a b)  [%& a]
+    [%| 'a nested Hoon $^ union needs a source-level disjointness check']
+    [%note *]  $(h q.h)
+    [%ktts *]
+      ?.  &(?=([%face *] a) ?=([%face *] b))
+        [%| 'a nested Hoon $^ union needs a source-level disjointness check']
+      ?.  &(=(p.h name.a) =(p.h name.b))
+        [%| 'a nested Hoon $^ union needs a source-level disjointness check']
+      =/  child  $(h q.h, a body.a, b body.b)
+      ?.  ?=([%& *] child)  child
+      [%& [%face name.a p.child]]
+    [%wtcl *]
+      ?.  =(p.h [%dtwt [%$ (mul 2 axis)]])
+        [%| 'a nested Hoon $^ union needs a source-level disjointness check']
+      ?.  (disjoint a b)  [%| 'a Hoon $^ union has overlapping cases']
+      [%& [%fork (sort ~[a b] |=(pair=[imported imported] (dor -.pair +.pair)))]]
+  ==
 ++  disjoint
   |=  [a=imported b=imported]
   ^-  ?
@@ -721,7 +793,25 @@
           [%fork (sort ~[first second] |=(pair=[imported imported] (dor -.pair +.pair)))]
         [%bad 'a Hoon $^ union has overlapping cases']
       ?:  (has-cell-union q.typ)
-        [%bad 'a Hoon $^ union needs a source-level disjointness check']
+        ?.  ?=([%tsls [%note * *] *] q.typ)
+          [%bad 'a Hoon $^ union needs a source-level disjointness check']
+        =/  original=hoon  q.typ
+        ?>  ?=([%tsls [%note * *] *] original)
+        =/  body=hoon  q.p.original
+        =/  split  (split-cell-record body 6)
+        ?~  split  [%bad 'a Hoon $^ union needs a source-level disjointness check']
+        =/  try=(each [type type] tang)
+          (mule |.([(~(play ut p.typ) original(q.p one.u.split)) (~(play ut p.typ) original(q.p two.u.split))]))
+        ?.  ?=([%& *] try)  [%bad 'a Hoon $^ union needs a source-level disjointness check']
+        =/  first  $(typ -.p.try, seen [[typ nm] seen])
+        =/  second  $(typ +.p.try, seen [[typ nm] seen])
+        =/  err  (first-bads ~[first second])
+        ?^  err  [%bad u.err]
+        =/  combined  (merge-cell-record body 6 first second)
+        ?-  combined
+          [%& *]  p.combined
+          [%| *]  [%bad p.combined]
+        ==
       =/  alias  (hold-alias q.typ)
       =/  hidden  (has-hidden-alias q.typ)
       =/  body  $(typ ~(repo ut typ), seen [[typ nm] seen])
@@ -1032,6 +1122,15 @@
       (crip "set-direct-invalid-cell: {(show-result (sample %set-direct-invalid-cell))}")
       (crip "map-key-invalid-cell: {(show-result (sample %map-key-invalid-cell))}")
       (crip "nested-atom-cell: {(show-result (sample %nested-atom-cell))}")
+      (crip "nested-first-cell: {(show-result (sample %nested-first-cell))}")
+      (crip "nested-alias-cell: {(show-result (sample %nested-alias-cell))}")
+      (crip "nested-multiple-cell: {(show-result (sample %nested-multiple-cell))}")
+      (crip "nested-named-sibling: {(show-result (sample %nested-named-sibling))}")
+      (crip "nested-list-sibling: {(show-result (sample %nested-list-sibling))}")
+      (crip "nested-validated-sibling: {(show-result (sample %nested-validated-sibling))}")
+      (crip "nested-validated-branch: {(show-result (sample %nested-validated-branch))}")
+      (crip "nested-named-branch: {(show-result (sample %nested-named-branch))}")
+      (crip "nested-ford-cell: {(show-result (read-named %outer %nested trans))}")
       (crip "nested-valid-cell: {(show-result (sample %nested-valid-cell))}")
       (crip "nested-invalid-cell: {(show-result (sample %nested-invalid-cell))}")
       (crip "valid-cell: {(show-result (sample %valid-cell))}")

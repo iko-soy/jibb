@@ -1,0 +1,5 @@
+partial inference; module not checked
+++ id: $-(A A)
+++ constrained: $-([x=@t y=@p] [x=@t y=@p])
+++ bound-first: cast constraint is not supported by partial inference
+++ sample: [x=@t y=@p]

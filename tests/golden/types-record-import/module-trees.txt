@@ -1,0 +1,9 @@
+/ui/lib.jibb
+(module
+  (value 1:1 echo
+    (gate 1:9
+      (face 1:12 p
+        (cell 1:14
+          (face 1:15 x (aura 1:17 @t))
+          (face 1:20 y (aura 1:22 @p))))
+      (wing 1:26 p))))

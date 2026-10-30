@@ -1,0 +1,17 @@
+(module
+  (value 1:1 plain
+    (gate 1:10
+      (face 1:13 p
+        (cell 1:15 (aura 1:16 @t) (aura 1:19 @p)))
+      (wing 1:23 p)))
+  (value 2:1 data
+    (tuple 2:9
+      (face 2:10 x (str 2:12 "hi"))
+      (face 2:17 y (lit 2:19 ~zod))))
+  (value 3:1 called
+    (group 3:11
+      (call 3:12 (wing 3:12 plain) (wing 3:18 data))))
+  (value 4:1 cast
+    (cast 4:9
+      (cell 4:12 (aura 4:13 @t) (aura 4:16 @p))
+      (wing 4:20 data))))

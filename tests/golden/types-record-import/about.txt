@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; Molds: "Faces are part of the type".
+tests: An imported gate carries its faced sample and result across a module interface.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,24 @@
+(module
+  (mold 1:1 outer
+    (cell 1:10
+      (face 1:11 inner
+        (cell 1:17
+          (face 1:18 x (aura 1:20 @t))
+          (face 1:23 y (aura 1:25 @p))))
+      (face 1:29 enabled (flag 1:37))))
+  (value 2:1 extract
+    (gate 2:12
+      (face 2:15 p (ref 2:17 outer))
+      (wing 2:23 x.inner.p)))
+  (value 3:1 keep
+    (gate-wide 3:9 (bind 3:12 v) (wing 3:14 v)))
+  (value 4:1 saved
+    (group 4:10
+      (call 4:11
+        (wing 4:11 keep)
+        (tuple 4:16
+          (face 4:17 inner
+            (tuple 4:23
+              (face 4:24 x (str 4:26 "hi"))
+              (face 4:31 y (lit 4:33 ~zod))))
+          (face 4:39 enabled (lit 4:47 %.y)))))))

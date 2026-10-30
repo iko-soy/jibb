@@ -1,0 +1,5 @@
+++ keep-local |= r
+  ++ identity |=(x x)
+  (identity r)
+++ record (keep-local [x="hi" y=~zod])
+++ binders |= [a b] [a b]

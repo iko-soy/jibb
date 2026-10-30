@@ -1,0 +1,33 @@
+(module
+  (value 1:1 id
+    (gate-wide 1:7 (bind 1:10 x) (wing 1:12 x)))
+  (value 2:1 constrained
+    (gate 2:16
+      (bind 2:19 x)
+      (cast 2:21
+        (cell 2:24
+          (face 2:25 x (aura 2:27 @t))
+          (face 2:30 y (aura 2:32 @p)))
+        (group 2:36
+          (call 2:37 (wing 2:37 id) (wing 2:40 x))))))
+  (value 3:1 bound-first
+    (gate 3:16
+      (bind 3:19 v)
+      (body 4:3
+        (trace 4:3
+          (cast 4:6
+            (cell 4:9 (aura 4:10 @t) (aura 4:13 @p))
+            (wing 4:17 v))
+          (body 5:5
+            (cast 5:5
+              (cell 5:8
+                (face 5:9 x (aura 5:11 @t))
+                (face 5:14 y (aura 5:16 @p)))
+              (wing 5:20 v)))))))
+  (value 6:1 sample
+    (group 6:11
+      (call 6:12
+        (wing 6:12 id)
+        (tuple 6:15
+          (face 6:16 x (str 6:18 "hi"))
+          (face 6:23 y (lit 6:25 ~zod)))))))

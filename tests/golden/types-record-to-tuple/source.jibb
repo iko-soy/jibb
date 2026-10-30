@@ -1,0 +1,4 @@
+++ plain |= p=[@t @p] p
+++ data [x="hi" y=~zod]
+++ called (plain data)
+++ cast ^- [@t @p] data

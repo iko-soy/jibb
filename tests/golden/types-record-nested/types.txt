@@ -1,0 +1,5 @@
+partial inference; module not checked
++$ outer: not checked
+++ extract: $-([inner=[x=@t y=@p] enabled=?] @t)
+++ keep: $-(A A)
+++ saved: [inner=[x=@t y=@p] enabled=?]

@@ -1,0 +1,4 @@
++$ outer [inner=[x=@t y=@p] enabled=?]
+++ extract |= p=outer x.inner.p
+++ keep |=(v v)
+++ saved (keep [inner=[x="hi" y=~zod] enabled=%.y])

@@ -4606,6 +4606,7 @@
       [%atom aura=@ta]
       [%any-atom ~]
       [%flag ~]
+      [%face name=term body=itype]
       [%fn sample=itype product=itype]
       [%cell hed=itype tal=itype]
   ==
@@ -4648,6 +4649,7 @@
     %atom  |
     %any-atom  |
     %flag  |
+    %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
   ==
@@ -4687,6 +4689,9 @@
     ?.  |(?=(%atom -.a) ?=(%any-atom -.a) ?=(%flag -.a))  ~
     `[[id.b a] sub]
   ?:  &(?=(%atom -.a) ?=(%atom -.b))  ~
+  ?:  &(?=(%face -.a) ?=(%face -.b))
+    ?.  =(name.a name.b)  ~
+    $(a body.a, b body.b)
   ?:  &(?=(%fn -.a) ?=(%fn -.b))
     =/  first=(unit isub)  $(a sample.a, b sample.b)
     ?~  first  ~
@@ -4714,6 +4719,7 @@
     %atom      |
     %any-atom  &
     %flag      |
+    %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
   ==
@@ -4744,6 +4750,9 @@
   ?:  &(?=(%atom -.a) ?=(%atom -.b))
     ?.  !=(aura.a aura.b)  |
     |((aura-prefix aura.a aura.b) (aura-prefix aura.b aura.a))
+  ?:  &(?=(%face -.a) ?=(%face -.b))
+    ?.  =(name.a name.b)  |
+    $(a body.a, b body.b)
   ?:  &(?=(%cell -.a) ?=(%cell -.b))
     |($(a hed.a, b hed.b) $(a tal.a, b tal.b))
   ?:  &(?=(%fn -.a) ?=(%fn -.b))
@@ -4764,6 +4773,7 @@
     %atom      &
     %any-atom  &
     %flag      &
+    %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
   ==
@@ -4781,6 +4791,63 @@
   ?:  &(?=(%any-atom -.b) |(?=(%atom -.a) ?=(%flag -.a)))  `b
   ~
 ::
+::  Unifying an already-bound tuple with a faced position would need to
+::  update the bound type. Until substitutions can retain that information,
+::  variable-dependent face merges stay unresolved.
+::
+++  itype-has-face
+  |=  [t=itype sub=isub]
+  ^-  ?
+  =.  t  (itype-walk t sub)
+  ?-  -.t
+    %face      &
+    %cell      |($(t hed.t) $(t tal.t))
+    %fn        |($(t sample.t) $(t product.t))
+    *          |
+  ==
+::
+++  itype-face-asym
+  |=  [a=itype b=itype sub=isub]
+  ^-  ?
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  &(?=(%face -.a) ?=(%face -.b))  $(a body.a, b body.b)
+  ?:  ?=(%face -.a)  !|(?=(%var -.b) ?=(%avar -.b) ?=(%nvar -.b))
+  ?:  ?=(%face -.b)  !|(?=(%var -.a) ?=(%avar -.a) ?=(%nvar -.a))
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))  |($(a hed.a, b hed.b) $(a tal.a, b tal.b))
+  ?:  &(?=(%fn -.a) ?=(%fn -.b))  |($(a sample.a, b sample.b) $(a product.a, b product.b))
+  |
+::
+::  A successful cast keeps any explicit faces from either side while
+::  retaining the target's aura choices. Both faces have already matched.
+::
+++  itype-merge-faces
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  itype
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(%face -.actual) ?=(%face -.expected))
+    [%face name.expected $(actual body.actual, expected body.expected)]
+  ?:  ?=(%face -.actual)
+    [%face name.actual $(actual body.actual)]
+  ?:  ?=(%face -.expected)
+    [%face name.expected $(expected body.expected)]
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    [%cell $(actual hed.actual, expected hed.expected) $(actual tal.actual, expected tal.expected)]
+  expected
+::
+++  itype-output-may-be-cell
+  |=  [t=itype sub=isub]
+  ^-  ?
+  =.  t  (itype-walk t sub)
+  ?-  -.t
+    %var       &
+    %cell      &
+    %face      $(t body.t)
+    %fn        |($(t sample.t) $(t product.t))
+    *          |
+  ==
+::
 ++  itype-fit
   |=  [actual=itype expected=itype sub=isub next=@ud]
   ^-  ifit
@@ -4789,6 +4856,7 @@
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
+  ?:  &(uncertain (itype-face-asym actual expected sub))  [%unknown ~]
   ?:  ?=(%any-atom -.expected)
     ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%flag -.actual))  [%ok sub next]
     ?:  ?=(%var -.actual)
@@ -4819,6 +4887,12 @@
       ?:  (itype-family-related actual expected sub)  [%unknown ~]
       [%bad ~]
     [%ok u.unified next]
+  ?:  &(?=(%face -.actual) ?=(%face -.expected))
+    ?.  =(name.actual name.expected)  [%bad ~]
+    $(actual body.actual, expected body.expected)
+  ?:  ?=(%face -.actual)  $(actual body.actual)
+  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  (itype-face-asym actual expected sub)  [%unknown ~]
   ?:  |((itype-has-any-atom actual sub) (itype-has-any-atom expected sub))
     [%unknown ~]
   =/  unified=(unit isub)  (itype-unify actual expected sub)
@@ -4888,6 +4962,8 @@
   |=  [t=itype sub=isub]
   ^-  itype
   =.  t  (itype-walk t sub)
+  ?:  ?=(%face -.t)
+    [%face name.t $(t body.t)]
   ?:  ?=(%fn -.t)
     [%fn $(t sample.t) $(t product.t)]
   ?:  ?=(%cell -.t)
@@ -4905,6 +4981,7 @@
   ?-  -.t
     %fn        &
     %cell      |($(t hed.t) $(t tal.t))
+    %face      $(t body.t)
     %var       |
     %avar      |
     %nvar      |
@@ -4919,6 +4996,7 @@
   ?:  (itype-has-gate t)  t
   ?-  -.t
     %nvar      [%atom %ud]
+    %face      [%face name.t $(t body.t)]
     %cell      [%cell $(t hed.t) $(t tal.t)]
     *          t
   ==
@@ -4933,6 +5011,7 @@
     %atom  ~
     %any-atom  ~
     %flag  ~
+    %face  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
     %cell  (weld $(t hed.t) $(t tal.t))
   ==
@@ -4965,6 +5044,7 @@
     %atom  t
     %any-atom  t
     %flag  t
+    %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
   ==
@@ -4982,6 +5062,7 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
   ==
@@ -5176,13 +5257,25 @@
   |=  [fields=(list field) state=istate]
   ^-  (unit [typ=itype state=istate])
   ?~  fields  ~
-  ?.  ?=(%bare -.i.fields)  ~
-  =/  head=(unit [typ=itype state=istate])  (infer-simple-shape shape.i.fields state)
+  =/  field-shape=shape
+    ?-  -.i.fields
+      %bare  shape.i.fields
+      %face  shape.i.fields
+      %pun   [%ref at.i.fields ~[name.i.fields]]
+    ==
+  =/  head=(unit [typ=itype state=istate])  (infer-simple-shape field-shape state)
   ?~  head  ~
-  ?~  t.fields  head
+  =/  t=itype  typ.u.head
+  =.  t
+    ?-  -.i.fields
+      %bare  t
+      %face  [%face name.i.fields t]
+      %pun   [%face name.i.fields t]
+    ==
+  ?~  t.fields  `[t state.u.head]
   =/  tail=(unit [typ=itype state=istate])  $(fields t.fields, state state.u.head)
   ?~  tail  ~
-  `[[%cell typ.u.head typ.u.tail] state.u.tail]
+  `[[%cell t typ.u.tail] state.u.tail]
 ::
 ++  infer-sample
   |=  [s=sample env=ienv state=istate]
@@ -5203,8 +5296,33 @@
       =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
       ?~  t  [%| "sample mold is not supported by partial inference"]
       [%& typ.u.t env state.u.t]
-    *  [%| "sample is not supported by partial inference"]
+    %pun
+      $(s [%face at.s name.s [%ref at.s ~[name.s]]])
+    %cell
+      (infer-sample-items items.s env state)
   ==
+::
+::  Cell-sample binders are faces on their positions; at the top of a
+::  sample a binder only supplies a name for the whole sample.
+::
+++  infer-sample-items
+  |=  [items=(list sample) env=ienv state=istate]
+  ^-  isample-result
+  ?~  items  [%| "empty sample is not supported by partial inference"]
+  =/  head=isample-result  (infer-sample i.items env state)
+  ?:  ?=(%| -.head)  head
+  =/  ht=itype  typ.p.head
+  =.  ht
+    ?-  -.i.items
+      %bind  [%face name.i.items ht]
+      %face  [%face name.i.items ht]
+      %pun   [%face name.i.items ht]
+      *      ht
+    ==
+  ?~  t.items  [%& ht env.p.head state.p.head]
+  =/  tail=isample-result  $(items t.items, env env.p.head, state state.p.head)
+  ?:  ?=(%| -.tail)  tail
+  [%& [%cell ht typ.p.tail] env.p.tail state.p.tail]
 ::
 ::  Local definitions generalize only variables outside their enclosing
 ::  environment and explicit-capital scope. Unresolved groups stay
@@ -5300,6 +5418,38 @@
   =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
   $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred, progressed &)
 ::
+::  Read only fields of a known record. Unresolved field constraints and
+::  ambiguous repeated faces are outside this fragment.
+::
+++  record-fields-named
+  |=  [name=term t=itype sub=isub]
+  ^-  (list itype)
+  =.  t  (itype-walk t sub)
+  ?:  ?=(%face -.t)
+    ?:(=(name name.t) ~[body.t] ~)
+  ?.  ?=(%cell -.t)  ~
+  =/  first=(list itype)  ~
+  =/  head=itype  (itype-walk hed.t sub)
+  =?  first  ?=(%face -.head)  ?:(=(name name.head) ~[body.head] ~)
+  (weld first $(t tal.t))
+::
+++  infer-field-wing
+  |=  [names=(list term) env=ienv state=istate]
+  ^-  iresult
+  =/  reverse=(list term)  (flop names)
+  ?~  reverse  [%| ["empty wing" ~]]
+  =/  scheme=(unit ischeme)  (ienv-lookup i.reverse env)
+  ?~  scheme  [%| ["field access is not supported by partial inference" ~]]
+  =/  inst=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
+  =/  fields=(list term)  t.reverse
+  =/  typ=itype  typ.inst
+  |-
+  ?~  fields  [%& typ state.inst]
+  =/  found=(list itype)  (record-fields-named i.fields typ sub.state.inst)
+  ?~  found  [%| ["field is not available to partial inference" ~]]
+  ?^  t.found  [%| ["field name is ambiguous in partial inference" ~]]
+  $(fields t.fields, typ i.found)
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -5323,9 +5473,9 @@
     %wing
       ?~  names.e  [%| ["empty wing" ~]]
       ?^  t.names.e
-        ?^  t.t.names.e  [%| ["field access is not supported by partial inference" ~]]
+        ?^  t.t.names.e  (infer-field-wing names.e env state)
         =/  iface=(unit ifile)  (find-jibb-interface i.t.names.e jimports.state)
-        ?~  iface  [%| ["field access is not supported by partial inference" ~]]
+        ?~  iface  (infer-field-wing names.e env state)
         =/  member=(unit ischeme)  (ienv-lookup i.names.e values.u.iface)
         ?~  member  [%| ["module member is not available to partial inference" ~]]
         =/  instance=[typ=itype state=istate]  (instantiate-scheme u.member state)
@@ -5386,6 +5536,8 @@
       ?~  joined
         =/  common=(unit itype)  (itype-concrete-join typ.p.left typ.p.right sub.state.p.right)
         ?^  common  [%& u.common state.p.right]
+        ?:  |((itype-has-face typ.p.left sub.state.p.right) (itype-has-face typ.p.right sub.state.p.right))
+          [%| ["record branch matching is not supported by partial inference" ~]]
         ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right) (itype-family-related typ.p.left typ.p.right sub.state.p.right))
           [%| ["branch widening is not supported by partial inference" ~]]
         [%| ["branch arms have incompatible types" ~[[(span-of val.x) (site-type-note "first arm" typ.p.left sub.state.p.right)] [(span-of val.y) (site-type-note "second arm" typ.p.right sub.state.p.right)]]]]
@@ -5399,7 +5551,8 @@
       ?:  ?=(%unknown -.fit)  [%| ["cast constraint is not supported by partial inference" ~]]
       ?:  ?=(%bad -.fit)
         [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-type-note "expression" typ.p.value sub.state.p.value)]]]]
-      [%& typ.u.target state.p.value(sub sub.fit, next next.fit)]
+      =/  merged=itype  (itype-merge-faces typ.p.value typ.u.target sub.fit)
+      [%& merged state.p.value(sub sub.fit, next next.fit)]
     %crash  [%& [%var next.state] state(next +(next.state))]
     %gate
       =/  sam=isample-result  (infer-sample sample.e env state)
@@ -5427,6 +5580,8 @@
         ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
         ?:  ?=(%bad -.fit)
           [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
+        ?:  &((itype-has-face typ.p.arg sub.fit) (itype-face-asym typ.p.arg sample.ht sub.fit) (itype-output-may-be-cell product.ht sub.fit))
+          [%| ["call result face propagation is not supported by partial inference" ~]]
         [%& product.ht st(sub sub.fit, next next.fit)]
       =/  result=itype  [%var next.st]
       =/  uni=(unit isub)  (itype-unify ht [%fn typ.p.arg result] sub.st)
@@ -5443,13 +5598,14 @@
   |=  [items=(list item) env=ienv state=istate]
   ^-  iresult
   ?~  items  [%| ["empty cell is not supported by partial inference" ~]]
-  ?^  face.i.items  [%| ["record faces are not supported by partial inference" ~]]
   =/  head=iresult  (infer-fragment val.i.items env state)
   ?:  ?=(%| -.head)  head
-  ?~  t.items  head
+  =/  ht=itype  typ.p.head
+  =.  ht  ?~(face.i.items ht [%face u.face.i.items ht])
+  ?~  t.items  [%& ht state.p.head]
   =/  tail=iresult  $(items t.items, state state.p.head)
   ?:  ?=(%| -.tail)  tail
-  [%& [%cell typ.p.head typ.p.tail] state.p.tail]
+  [%& [%cell ht typ.p.tail] state.p.tail]
 ::
 ::  A single two-binder cell pattern covers every value of a cell type.
 ::  No other pattern matrix is implemented here.
@@ -5474,6 +5630,8 @@
   =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  subject
   =/  st=istate  state.p.subject
+  ?:  (itype-has-face typ.p.subject sub.st)
+    [%| ["record patterns are not supported by partial inference" ~]]
   =/  head=itype  [%var next.st]
   =/  tail=itype  [%var +(next.st)]
   =/  sub=(unit isub)  (itype-unify typ.p.subject [%cell head tail] sub.st)
@@ -5497,9 +5655,17 @@
     %atom  "@{(trip aura.t)}"
     %any-atom  "@"
     %flag  "?"
+    %face  "[{(trip name.t)}={$(t body.t)}]"
     %fn    "$-({$(t sample.t)} {$(t product.t)})"
-    %cell  "[{$(t hed.t)} {$(t tal.t)}]"
+    %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
   ==
+::
+++  show-itype-item
+  |=  [t=itype sub=isub]
+  ^-  tape
+  =.  t  (itype-walk t sub)
+  ?:  ?=(%face -.t)  "{(trip name.t)}={(show-itype body.t sub)}"
+  (show-itype t sub)
 ::
 ::  Include the type at a conflicting site where it can be printed.
 ::  A lone unresolved variable or decimal variable keeps the neutral label.
@@ -5514,6 +5680,7 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
   ==
@@ -5564,6 +5731,7 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
   ==

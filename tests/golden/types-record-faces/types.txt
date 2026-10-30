@@ -1,0 +1,15 @@
+partial inference; module not checked
++$ point: not checked
+++ echo: $-([x=@t y=@p] [x=@t y=@p])
+++ tuple: [x=@t y=@p]
+++ named: [x=@t y=@p]
+++ first: $-([x=@t y=@p] @t)
+++ cell-sample: $-([a=@t b=@p] [@t @p])
+++ missing: field is not available to partial inference
+++ mismatch: cast mold and expression type do not unify
+/tests/golden/types-record-faces/source.jibb:8:27: cast mold has type [a=@t b=@p]
+++ mismatch |= p=point ^- [a=@t b=@p] p
+                          ^
+/tests/golden/types-record-faces/source.jibb:8:39: expression has type [x=@t y=@p]
+++ mismatch |= p=point ^- [a=@t b=@p] p
+                                      ^

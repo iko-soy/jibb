@@ -1,0 +1,20 @@
+(module
+  (value 1:1 keep-local
+    (gate 1:15
+      (bind 1:18 r)
+      (body 2:3
+        (value 2:3 identity
+          (gate-wide 2:15 (bind 2:18 x) (wing 2:20 x)))
+        (group 3:3
+          (call 3:4 (wing 3:4 identity) (wing 3:13 r))))))
+  (value 4:1 record
+    (group 4:11
+      (call 4:12
+        (wing 4:12 keep-local)
+        (tuple 4:23
+          (face 4:24 x (str 4:26 "hi"))
+          (face 4:31 y (lit 4:33 ~zod))))))
+  (value 5:1 binders
+    (gate 5:12
+      (cell 5:15 (bind 5:16 a) (bind 5:18 b))
+      (tuple 5:21 (wing 5:22 a) (wing 5:24 b)))))

@@ -1,0 +1,16 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 value
+    (group 2:10
+      (call 2:11
+        (wing 2:11 echo.lib)
+        (tuple 2:20
+          (face 2:21 x (str 2:23 "hi"))
+          (face 2:28 y (lit 2:30 ~zod))))))
+  (value 3:1 first
+    (gate 3:10
+      (face 3:13 p
+        (cell 3:15
+          (face 3:16 x (aura 3:18 @t))
+          (face 3:21 y (aura 3:23 @p))))
+      (wing 3:27 x.p))))

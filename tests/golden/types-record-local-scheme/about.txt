@@ -1,0 +1,4 @@
+source: Grammar, Runes: "A sample's mold may be left out" and "Local definitions may start any body"; Molds: "Faces are part of the type".
+tests: A local polymorphic identity preserves a named record's faces, and a sample with bare cell binders infers their types.
+expect: parses
+expect-types: a partial inference report

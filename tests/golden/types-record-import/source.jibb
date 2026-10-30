@@ -1,0 +1,3 @@
+/=  lib /ui/lib
+++ value (echo.lib [x="hi" y=~zod])
+++ first |= p=[x=@t y=@p] x.p

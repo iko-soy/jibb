@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Faces are part of the type" and "An unnamed position can unify with a faced position and take its face"; Expressions: "Wing ... also for imports and prelude groups".
+tests: Nested named fields and records passed through a generalized identity retain their faces.
+expect: parses
+expect-types: a partial inference report

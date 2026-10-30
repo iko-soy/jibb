@@ -1,0 +1,6 @@
+++ id |=(x x)
+++ constrained |= x ^- [x=@t y=@p] (id x)
+++ bound-first |= v
+  ~& ^- [@t @p] v
+    ^- [x=@t y=@p] v
+++ sample (id [x="hi" y=~zod])

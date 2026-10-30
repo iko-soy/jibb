@@ -56,8 +56,17 @@ map-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointnes
 set-direct-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 map-key-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 nested-atom-cell: [left=(union [a=@ud b=@t] @ud) right=(union [c=@ud d=@t] @t)]
-nested-valid-cell: error: a Hoon $^ union needs a source-level disjointness check
-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
+nested-first-cell: [value=(union [a=@ud b=@t] @ud) id=@t]
+nested-alias-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
+nested-multiple-cell: error: a Hoon $^ union needs a source-level disjointness check
+nested-named-sibling: error: a Hoon $^ union needs a source-level disjointness check
+nested-list-sibling: error: a Hoon $^ union needs a source-level disjointness check
+nested-validated-sibling: error: a Hoon $^ union needs a source-level disjointness check
+nested-validated-branch: error: a Hoon $^ union needs a source-level disjointness check
+nested-named-branch: error: a Hoon $^ union needs a source-level disjointness check
+nested-ford-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
+nested-valid-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
+nested-invalid-cell: error: a Hoon $^ union has overlapping cases
 valid-cell: (union [x=@ud y=@ud] @ud)
 invalid-cell: error: a Hoon $^ union has overlapping cases
 chapter-malformed: unsafe

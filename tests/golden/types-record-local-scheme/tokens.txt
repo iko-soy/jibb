@@ -1,0 +1,44 @@
+1:1 glyph ++
+1:4 name keep-local
+1:15 glyph |=
+1:18 name r
+2:3 INDENT
+2:3 glyph ++
+2:6 name identity
+2:15 glyph |=(
+2:18 tight name x
+2:20 name x
+2:21 tight glyph )
+3:3 NEWLINE
+3:3 glyph (
+3:4 tight name identity
+3:13 name r
+3:14 tight glyph )
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name record
+4:11 glyph (
+4:12 tight name keep-local
+4:23 glyph [
+4:24 tight name x
+4:25 tight glyph =
+4:26 tight str "hi"
+4:31 name y
+4:32 tight glyph =
+4:33 tight lit ~zod
+4:37 tight glyph ]
+4:38 tight glyph )
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name binders
+5:12 glyph |=
+5:15 glyph [
+5:16 tight name a
+5:18 name b
+5:19 tight glyph ]
+5:21 glyph [
+5:22 tight name a
+5:24 name b
+5:25 tight glyph ]
+5:26 NEWLINE

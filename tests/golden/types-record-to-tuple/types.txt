@@ -1,0 +1,5 @@
+partial inference; module not checked
+++ plain: $-([@t @p] [@t @p])
+++ data: [x=@t y=@p]
+++ called: call result face propagation is not supported by partial inference
+++ cast: [x=@t y=@p]
