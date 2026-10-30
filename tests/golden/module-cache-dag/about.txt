@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/=` imports a Jibb module and import cycles are errors.
+tests: A shared acyclic graph imports each library twice under distinct faces; the reachable identity still infers.
+expect: parses
+expect-types: a partial inference report

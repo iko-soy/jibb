@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: records and unions import from Hoon; Grammar, Imports: `/%` names a type after its mark.
+tests: A real mark door's faced, nested record reaches partial inference, including a nested field read. A different mark with a union in a faced field remains unsupported rather than being widened.
+expect: parses
+expect-types: a partial report showing the record and rejecting the unsupported union

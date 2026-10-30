@@ -1,0 +1,7 @@
+/ui/lib.jibb
+(module
+  (sur 1:1 fixture)
+  (value 2:1 id
+    (gate 2:7
+      (face 2:10 item (ref 2:15 entry.fixture))
+      (wing 2:29 item))))

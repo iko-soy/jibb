@@ -1,7 +1,7 @@
 The checker accepts caller-supplied results from the Hoon type reader. This
 fixture compiles a small /sur against zuse, selects its molds, and passes the
-actual reader results to the inference fragment. It checks both supported
-unfaced types and failures that must remain unsupported until the checker can
+actual reader results to the inference fragment. It checks fixed atoms, nested
+faced records, and failures that must remain unsupported until the checker can
 translate them. A missing import and a duplicate supplied mold fail closed.
 The types output is partial and does not claim that the module was checked.
 The same fixture runs under urbit eval and through -test on the fake ship.

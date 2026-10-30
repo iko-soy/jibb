@@ -1,0 +1,46 @@
+/ui/n0.jibb
+(module
+  (jibb 1:1 left /ui/n1)
+  (jibb 2:1 right /ui/n1)
+  (value 3:1 id
+    (gate-wide 3:7 (bind 3:10 x) (wing 3:12 x))))
+/ui/n1.jibb
+(module
+  (jibb 1:1 left /ui/n2)
+  (jibb 2:1 right /ui/n2)
+  (value 3:1 id
+    (gate-wide 3:7 (bind 3:10 x) (wing 3:12 x))))
+/ui/n2.jibb
+(module
+  (jibb 1:1 left /ui/n3)
+  (jibb 2:1 right /ui/n3)
+  (value 3:1 id
+    (gate-wide 3:7 (bind 3:10 x) (wing 3:12 x))))
+/ui/n3.jibb
+(module
+  (jibb 1:1 left /ui/n4)
+  (jibb 2:1 right /ui/n4)
+  (value 3:1 id
+    (gate-wide 3:7 (bind 3:10 x) (wing 3:12 x))))
+/ui/n4.jibb
+(module
+  (jibb 1:1 left /ui/n5)
+  (jibb 2:1 right /ui/n5)
+  (value 3:1 id
+    (gate-wide 3:7 (bind 3:10 x) (wing 3:12 x))))
+/ui/n5.jibb
+(module
+  (jibb 1:1 left /ui/n6)
+  (jibb 2:1 right /ui/n6)
+  (value 3:1 id
+    (gate-wide 3:7 (bind 3:10 x) (wing 3:12 x))))
+/ui/n6.jibb
+(module
+  (jibb 1:1 left /ui/n7)
+  (jibb 2:1 right /ui/n7)
+  (value 3:1 id
+    (gate-wide 3:7 (bind 3:10 x) (wing 3:12 x))))
+/ui/n7.jibb
+(module
+  (value 1:1 id
+    (gate-wide 1:7 (bind 1:10 x) (wing 1:12 x))))

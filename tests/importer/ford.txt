@@ -2,6 +2,7 @@
 +$  lists  (list @ud)
 +$  wrapped  item:small
 +$  recursive  chain:small
++$  tagged-record  nested-tagged:small
 +$  nested-record  nested-valid-cell:small
 +$  local  $@(~ [v=@ud next=local])
 --

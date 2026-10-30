@@ -1,0 +1,6 @@
+/ui/bad.jibb
+(module
+  (mold 1:1 choice
+    (union 2:3 (const 2:3 %a) (const 3:3 %b)))
+  (value 4:1 id
+    (gate-wide 4:7 (bind 4:10 x) (wing 4:12 x))))

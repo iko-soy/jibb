@@ -2,5 +2,6 @@ The partial checker may use a mark only when that mark is explicitly
 imported with /%. The caller supplies mark results separately from /sur
 results. This report tests a supported aura, a supplied but undeclared mark,
 a same-named /sur import, a local mold collision, a failed importer result,
-duplicate supplied results, and an unsupported faced payload. Only the first
+duplicate supplied results, an unsupported union nested in a faced payload,
+and uppercase and empty face names that Jibb cannot write. Only the first
 resolves; every report states that the module has not been checked.

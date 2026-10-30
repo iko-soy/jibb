@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 a /ui/n0)
+  (value 2:1 value
+    (group 2:10
+      (call 2:11 (wing 2:11 id.a) (str 2:16 "hi")))))

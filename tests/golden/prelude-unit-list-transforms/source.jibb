@@ -196,6 +196,26 @@
             %.y (skip rest predicate)
             %.n [item (skip rest predicate)]
 
+++ levy |= args=[(list A) $-(A ?)]
+  ?- args
+    [xs predicate]
+      ?- xs
+        ~ %.y
+        [item rest]
+          ?- (predicate item)
+            %.y (levy rest predicate)
+            %.n %.n
+
+++ lien |= args=[(list A) $-(A ?)]
+  ?- args
+    [xs predicate]
+      ?- xs
+        ~ %.n
+        [item rest]
+          ?- (predicate item)
+            %.y %.y
+            %.n (lien rest predicate)
+
 ++ roll |= args=[(list A) B $-([A B] B)]
   ?- args
     [xs start combine]

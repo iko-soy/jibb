@@ -1,0 +1,4 @@
+/ui/shared.jibb
+(module
+  (value 1:1 id
+    (gate-wide 1:7 (bind 1:10 x) (wing 1:12 x))))

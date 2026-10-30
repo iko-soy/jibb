@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; Imports: "Import cycles are errors".
+tests: A cycle reached after a previously checked sibling dependency is still reported.
+expect: parses
+expect-types: a partial inference report

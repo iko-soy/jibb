@@ -1,0 +1,2 @@
+partial inference; module not checked
+module mold needs unsupported inference: /ui/bad/jibb

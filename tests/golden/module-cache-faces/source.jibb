@@ -1,0 +1,4 @@
+/=  first /ui/shared
+/=  second /ui/shared
+++ ship (id.first ~zod)
+++ text-value (id.second "hi")

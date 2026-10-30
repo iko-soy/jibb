@@ -1,4 +1,5 @@
 |%
 +$  wrapped  recursive:intermediate
++$  tagged  tagged-record:intermediate
 +$  nested  nested-record:intermediate
 --

@@ -28,6 +28,7 @@
     :~  [%fixture %title (read %title)]
         [%fixture %pair (read %pair)]
         [%fixture %faced (read %faced)]
+        [%fixture %nested (read %nested)]
         [%fixture %constant (read %constant)]
         [%fixture %choice (read %choice)]
         [%fixture %failed [%| 'unsupported Hoon type']]

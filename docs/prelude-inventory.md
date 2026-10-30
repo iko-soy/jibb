@@ -43,7 +43,7 @@ The following is an audit of the Hoon 135 bodies, not a completed Jibb interface
 
 `snoc`, `lure`, `fand`, `find`, `flop`, `gulf`, `homo`, `join`, `bake`, `lent`, `levy`, `lien`, `limo`, `murn`, `oust`, `reap`, `rear`, `reel`, `roll`, `scag`, `skid`, `skim`, `skip`, `slag`, `snag`, `snip`, `sort`, `spin`, `spun`, `swag`, `turn`, `weld`, `snap`, `into`, `welp`, `zing`.
 
-The current prelude writes `snoc`, `lure`, `flop`, `reel`, `roll`, `skim`, `skip`, `turn` and `weld`. The folds take an explicit initial value as the Prelude table specifies. These implementations still need checker and backend validation.
+The current prelude writes `snoc`, `lure`, `flop`, `levy`, `lien`, `reel`, `roll`, `skim`, `skip`, `turn` and `weld`. The folds take an explicit initial value as the Prelude table specifies. These implementations still need checker and backend validation.
 
 ## 2c
 

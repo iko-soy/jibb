@@ -1,0 +1,2 @@
+/=  lib /ui/lib
+++ echo |= item=[meta=[title=@t count=@ud] id=@ud] (id.lib item)

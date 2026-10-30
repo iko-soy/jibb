@@ -46,5 +46,7 @@ partial inference; module not checked
 ++ clef: sample mold is not supported by partial inference
 ++ skim: sample mold is not supported by partial inference
 ++ skip: sample mold is not supported by partial inference
+++ levy: sample mold is not supported by partial inference
+++ lien: sample mold is not supported by partial inference
 ++ roll: sample mold is not supported by partial inference
 ++ reel: sample mold is not supported by partial inference

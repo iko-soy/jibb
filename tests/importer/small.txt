@@ -36,6 +36,12 @@
 +$  set-direct-invalid-cell  (set $^(@ud @ud))
 +$  map-key-invalid-cell  (map $^(@ud @ud) @t)
 +$  nested-atom-cell  [left=$@(@ud [a=@ud b=@t]) right=$@(@t [c=@ud d=@t])]
++$  nested-tags  [id=@ud value=$^(%foo %bar)]
++$  nested-tags-overlap  [id=@ud value=$^(%foo %foo)]
++$  nested-tagged  [id=@ud value=$^([%foo @t] [%bar @ud])]
++$  nested-tagged-bckt  [id=@ud value=$^([%foo bckt=@t] [%bar bckt=@ud])]
++$  nested-tagged-overlap  [id=@ud value=$^([%foo @t] [%foo @ud])]
++$  nested-tagged-alias  nested-tagged
 +$  nested-first-cell  [value=$^(@ud [a=@ud b=@t]) id=@t]
 +$  nested-alias-cell  nested-valid-cell
 +$  nested-multiple-cell  [id=$^(@ud @ud) value=$^(@ud [a=@ud b=@t])]

@@ -1,0 +1,5 @@
+|_  a=[meta=[title=@t count=@ud] id=@ud]
+++  grab  |%  ++  noun  [meta=[title=@t count=@ud] id=@ud]  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

@@ -1,7 +1,9 @@
 partial inference; module not checked
 ++ f: $-(@t @t)
 ++ g: $-([@ud @t] [@ud @t])
-++ face: sample mold is not supported by partial inference
+++ face: $-([name=@t age=@ud] [name=@t age=@ud])
+++ read-name: $-([name=@t age=@ud] @t)
+++ nested: $-([entry=[name=@t age=@ud] number=@ud] @t)
 ++ constant: sample mold is not supported by partial inference
 ++ choice: sample mold is not supported by partial inference
 ++ failed: sample mold is not supported by partial inference

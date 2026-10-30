@@ -1,0 +1,3 @@
+/=  first /ui/bad
+/=  second /ui/bad
+++ result (id.first "hi")

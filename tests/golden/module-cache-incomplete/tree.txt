@@ -1,0 +1,6 @@
+(module
+  (jibb 1:1 first /ui/bad)
+  (jibb 2:1 second /ui/bad)
+  (value 3:1 result
+    (group 3:11
+      (call 3:12 (wing 3:12 id.first) (str 3:21 "hi")))))

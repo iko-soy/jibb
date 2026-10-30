@@ -429,15 +429,22 @@
     [%| *]  ~
   ==
 ::
-::  A static branch contains only literal atom molds and record cells.
+::  A static branch contains atom molds, exact tag constants and cells.
+::  A tag shape must compare the current axis to the same atom it returns.
 ++  fixed-cell-mold
-  |=  h=hoon
+  |=  [h=hoon axis=@ud]
   ^-  ?
-  ?^  -.h  &($(h -.h) $(h +.h))
+  ?^  -.h
+    &($(h -.h, axis (mul 2 axis)) $(h +.h, axis (add 1 (mul 2 axis))))
   ?+  h  |
     [%note *]  $(h q.h)
     [%ktts *]  $(h q.h)
     [%ktls *]  ?=([%sand *] p.h)
+    [%wtgr *]
+      ?.  ?=([%dtts [%$ *] [%rock %$ *]] p.h)  |
+      ?.  ?=([%rock %tas *] q.h)  |
+      ?^  q.q.h  |
+      &(=(p.p.p.h axis) =(q.q.p.h q.q.h))
   ==
 ::
 ::  Return two source records with a single $^ replaced by each branch.
@@ -449,10 +456,10 @@
     =/  right  $(h +.h, axis (add 1 (mul 2 axis)))
     ?^  left
       ?^  right  ~
-      ?.  (fixed-cell-mold +.h)  ~
+      ?.  (fixed-cell-mold +.h (add 1 (mul 2 axis)))  ~
       [~ [[one.u.left +.h] [two.u.left +.h]]]
     ?~  right  ~
-    ?.  (fixed-cell-mold -.h)  ~
+    ?.  (fixed-cell-mold -.h (mul 2 axis))  ~
     [~ [[-.h one.u.right] [-.h two.u.right]]]
   ?+  h  ~
     [%note *]
@@ -465,7 +472,7 @@
       [~ [h(q one.u.out) h(q two.u.out)]]
     [%wtcl *]
       ?.  =(p.h [%dtwt [%$ (mul 2 axis)]])  ~
-      ?.  &((fixed-cell-mold q.h) (fixed-cell-mold r.h))  ~
+      ?.  &((fixed-cell-mold q.h axis) (fixed-cell-mold r.h axis))  ~
       [~ [q.h r.h]]
   ==
 ::
@@ -1122,6 +1129,17 @@
       (crip "set-direct-invalid-cell: {(show-result (sample %set-direct-invalid-cell))}")
       (crip "map-key-invalid-cell: {(show-result (sample %map-key-invalid-cell))}")
       (crip "nested-atom-cell: {(show-result (sample %nested-atom-cell))}")
+      (crip "nested-tags: {(show-result (sample %nested-tags))}")
+      (crip "nested-tags-overlap: {(show-result (sample %nested-tags-overlap))}")
+      (crip "nested-tagged: {(show-result (sample %nested-tagged))}")
+      (crip "nested-tagged-bckt: {(show-result (sample %nested-tagged-bckt))}")
+      (crip "nested-tagged-overlap: {(show-result (sample %nested-tagged-overlap))}")
+      (crip "nested-tagged-alias: {(show-result (sample %nested-tagged-alias))}")
+      (crip "nested-tagged-ford: {(show-result (read-named %outer %tagged trans))}")
+      (crip "tag-static-valid: {?:((fixed-cell-mold [%wtgr [%dtts [%$ 13] [%rock %$ %foo]] [%rock %tas %foo]] 13) "yes" "no")}")
+      (crip "tag-static-wrong-axis: {?:((fixed-cell-mold [%wtgr [%dtts [%$ 12] [%rock %$ %foo]] [%rock %tas %foo]] 13) "wrong" "no")}")
+      (crip "tag-static-nonconstant: {?:((fixed-cell-mold [%wtgr [%dtts [%$ 13] [%rock %$ %foo]] [%$ 13]] 13) "wrong" "no")}")
+      (crip "tag-static-wrong-value: {?:((fixed-cell-mold [%wtgr [%dtts [%$ 13] [%rock %$ %foo]] [%rock %tas %bar]] 13) "wrong" "no")}")
       (crip "nested-first-cell: {(show-result (sample %nested-first-cell))}")
       (crip "nested-alias-cell: {(show-result (sample %nested-alias-cell))}")
       (crip "nested-multiple-cell: {(show-result (sample %nested-multiple-cell))}")

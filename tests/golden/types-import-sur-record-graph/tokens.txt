@@ -1,0 +1,32 @@
+1:1 glyph /=
+1:5 name lib
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot lib
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name echo
+2:9 glyph |=
+2:12 name item
+2:16 tight glyph =
+2:17 tight glyph [
+2:18 tight name meta
+2:22 tight glyph =
+2:23 tight glyph [
+2:24 tight name title
+2:29 tight glyph =
+2:30 tight aura @t
+2:33 name count
+2:38 tight glyph =
+2:39 tight aura @ud
+2:42 tight glyph ]
+2:44 name id
+2:46 tight glyph =
+2:47 tight aura @ud
+2:50 tight glyph ]
+2:52 glyph (
+2:53 tight wing id.lib
+2:60 name item
+2:64 tight glyph )
+2:65 NEWLINE

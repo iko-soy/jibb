@@ -1,0 +1,3 @@
+partial inference; module not checked
+++ ship: @p
+++ text-value: @t

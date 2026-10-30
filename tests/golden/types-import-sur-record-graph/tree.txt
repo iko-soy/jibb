@@ -1,0 +1,13 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 echo
+    (gate 2:9
+      (face 2:12 item
+        (cell 2:17
+          (face 2:18 meta
+            (cell 2:23
+              (face 2:24 title (aura 2:30 @t))
+              (face 2:33 count (aura 2:39 @ud))))
+          (face 2:44 id (aura 2:47 @ud))))
+      (group 2:52
+        (call 2:53 (wing 2:53 id.lib) (wing 2:60 item))))))

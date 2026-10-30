@@ -1,0 +1,2 @@
+partial inference; module not checked
+import cycle at /ui/a/jibb

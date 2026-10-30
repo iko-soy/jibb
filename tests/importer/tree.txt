@@ -56,6 +56,17 @@ map-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointnes
 set-direct-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 map-key-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 nested-atom-cell: [left=(union [a=@ud b=@t] @ud) right=(union [c=@ud d=@t] @t)]
+nested-tags: [id=@ud value=(union foo bar)]
+nested-tags-overlap: error: a Hoon $^ union has overlapping cases
+nested-tagged: [id=@ud value=(union [foo @t] [bar @ud])]
+nested-tagged-bckt: [id=@ud value=(union [foo bckt=@t] [bar bckt=@ud])]
+nested-tagged-overlap: error: a Hoon $^ union has overlapping cases
+nested-tagged-alias: [id=@ud value=(union [foo @t] [bar @ud])]
+nested-tagged-ford: [id=@ud value=(union [foo @t] [bar @ud])]
+tag-static-valid: yes
+tag-static-wrong-axis: no
+tag-static-nonconstant: no
+tag-static-wrong-value: no
 nested-first-cell: [value=(union [a=@ud b=@t] @ud) id=@t]
 nested-alias-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
 nested-multiple-cell: error: a Hoon $^ union needs a source-level disjointness check

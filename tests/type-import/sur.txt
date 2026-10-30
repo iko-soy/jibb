@@ -1,7 +1,8 @@
 |%
 +$  title     @t
 +$  pair      [@ud @t]
-+$  faced     [name=@t]
++$  faced     [name=@t age=@ud]
++$  nested    [entry=faced number=@ud]
 +$  constant  %yes
 +$  choice    ?(%yes %no)
 --

@@ -1,0 +1,4 @@
+(module
+  (jibb 1:1 first /ui/safe)
+  (jibb 2:1 second /ui/a)
+  (value 3:1 result (lit 3:11 1)))

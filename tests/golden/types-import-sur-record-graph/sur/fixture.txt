@@ -1,0 +1,3 @@
+|%
++$  entry  [meta=[title=@t count=@ud] id=@ud]
+--

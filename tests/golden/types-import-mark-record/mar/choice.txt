@@ -1,0 +1,5 @@
+|_  a=[kind=?(%on %off) id=@ud]
+++  grab  |%  ++  noun  [kind=?(%on %off) id=@ud]  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; Imports: "Import cycles are errors".
+tests: The same library reached under two faces has independently instantiated identity schemes.
+expect: parses
+expect-types: a partial inference report

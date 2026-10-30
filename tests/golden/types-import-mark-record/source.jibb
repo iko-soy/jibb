@@ -1,0 +1,5 @@
+/%  %note
+/%  %choice
+++ echo |= item=note item
+++ title |= item=note title.meta.item
+++ unsupported |= item=choice item

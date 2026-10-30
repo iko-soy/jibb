@@ -2,6 +2,8 @@
 ++ f |= x=title.fixture x
 ++ g |= x=pair.fixture x
 ++ face |= x=faced.fixture x
+++ read-name |= x=faced.fixture name.x
+++ nested |= x=nested.fixture name.entry.x
 ++ constant |= x=constant.fixture x
 ++ choice |= x=choice.fixture x
 ++ failed |= x=failed.fixture x

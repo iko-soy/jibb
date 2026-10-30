@@ -5123,9 +5123,17 @@
   $(ds t.ds)
 ::
 ::
-::  The importer owns its algebra. Only successful %atom and %cell nouns
-::  in the supported subset are decoded here. In particular a singleton,
-::  face, union, collection or recursive reference must not be widened.
+::  The importer owns its algebra. Fixed atoms, cells and Jibb-named faces
+::  are decoded recursively. Singletons, unions, collections, recursive
+::  references and invalid face names remain unsupported, never widened.
+::
+++  jibb-face-name
+  |=  name=@
+  ^-  ?
+  =/  chars=tape  (trip (@t name))
+  ?~  chars  |
+  ?.  (is-lower i.chars)  |
+  (levy t.chars |=(c=@tD (in c name-mask)))
 ::
 ++  import-to-itype
   |=  node=*
@@ -5137,6 +5145,13 @@
       =/  aura=@ta  (@ta +<.node)
       ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
       `[%atom aura]
+    %face
+      ?.  ?=([%face @ *] node)  ~
+      =/  name=@  +<.node
+      ?.  (jibb-face-name name)  ~
+      =/  body=(unit itype)  $(node +>.node)
+      ?~  body  ~
+      `[%face (@tas name) u.body]
     %cell
       ?.  ?=([%cell * *] node)  ~
       =/  left=(unit itype)  $(node +<.node)
@@ -6014,8 +6029,9 @@
 ::
 +$  jsource  [at=path source=@t]
 +$  jbundle  (list jsource)
-+$  jfile-result  (each ifile @t)
-+$  jimports-result  (each ijimports @t)
++$  jcache  (list [at=path iface=ifile])
++$  jfile-result  (each [iface=ifile cache=jcache] @t)
++$  jimports-result  (each [resolved=ijimports cache=jcache] @t)
 ::
 ++  import-binding-names
   |=  imports=(list import)
@@ -6064,10 +6080,22 @@
   ?~  (ienv-lookup name.i.ds env)  |
   $(ds t.ds)
 ::
+::  Cache only completed interfaces for this invocation. The source bundle,
+::  imported Hoon types and prelude are fixed for the whole graph. Check the
+::  active path and duplicate sources before consulting it, so a cache hit
+::  cannot hide a cycle or ambiguous source.
+::
+++  find-jibb-cache
+  |=  [at=path cache=jcache]
+  ^-  (unit ifile)
+  ?~  cache  ~
+  ?:  =(at at.i.cache)  `iface.i.cache
+  $(cache t.cache)
+::
 ++  resolve-jibb-imports
-  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term)]
+  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache]
   ^-  jimports-result
-  ?~  imports  [%& ~]
+  ?~  imports  [%& [~ cache]]
   ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
   =/  at=path  (weld path.i.imports `path`~[%jibb])
   ?:  (lien active |=(p=path =(p at)))
@@ -6075,14 +6103,17 @@
   =/  found=jbundle  (skim modules |=(m=jsource =(at at.m)))
   ?~  found  [%| (crip "module source missing: {(spud at)}")]
   ?^  t.found  [%| (crip "duplicate module sources: {(spud at)}")]
-  =/  iface=jfile-result  (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds)
+  =/  cached=(unit ifile)  (find-jibb-cache at cache)
+  =/  iface=jfile-result
+    ?^  cached  [%& [u.cached cache]]
+    (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache)
   ?:  ?=(%| -.iface)  [%| p.iface]
-  =/  rest=jimports-result  $(imports t.imports)
+  =/  rest=jimports-result  $(imports t.imports, cache cache.p.iface)
   ?:  ?=(%| -.rest)  rest
-  [%& [[face.i.imports p.iface] p.rest]]
+  [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest]]
 ::
 ++  infer-jibb-file
-  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term)]
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache]
   ^-  jfile-result
   ?:  ?=([%ui %api *] at)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
   =/  parsed  (parse at src)
@@ -6092,20 +6123,20 @@
   =/  vals=(list term)  (global-value-names defs.mod)
   ?:  (lien vals |=(n=term =(n %main)))
     [%| (crip "module kind needs unsupported inference: {(spud at)}")]
-  =/  js=jimports-result  (resolve-jibb-imports imports.mod externals mark-externals modules active prelude-values prelude-molds)
+  =/  js=jimports-result  (resolve-jibb-imports imports.mod externals mark-externals modules active prelude-values prelude-molds cache)
   ?:  ?=(%| -.js)  [%| p.js]
   =/  molds=imolds  (collect-simple-molds defs.mod)
   =/  globals=(list term)  (weld prelude-values (weld (import-binding-names imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  marks=(list term)  (collect-mark-imports imports.mod)
-  =/  reserved=(list term)  (weld prelude-molds (turn p.js |=(j=[face=term interface=ifile] face.j)))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks p.js reserved ~ |]
+  =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ |]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
-  =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks p.js reserved)
+  =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved)
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
-  [%& [env p.mts]]
+  [%& [[env p.mts] [[at [env p.mts]] cache.p.js]]]
 ::
 ::  +golden-types-with-modules fails closed for imports without prelude
 ::  scope. +golden-types-with-prelude resolves supported library graphs;
@@ -6137,11 +6168,11 @@
   ?.  (module-scope-valid p.parsed prelude-values prelude-molds)
     'partial inference; module not checked\0amodule has conflicting names'
   =/  js=jimports-result
-    (resolve-jibb-imports imports.p.parsed externals mark-externals modules ~[file] prelude-values prelude-molds)
+    (resolve-jibb-imports imports.p.parsed externals mark-externals modules ~[file] prelude-values prelude-molds ~)
   ?:  ?=(%| -.js)  (of-wain:format ~['partial inference; module not checked' p.js])
   =/  scope-values=(list term)
     (weld prelude-values (weld (collect-sur-imports imports.p.parsed) (collect-mark-imports imports.p.parsed)))
-  (golden-types-in-context file src externals mark-externals p.js scope-values prelude-molds)
+  (golden-types-in-context file src externals mark-externals resolved.p.js scope-values prelude-molds)
 ::
 ::  +golden-types-with-marks: supply declared mark types separately from /sur
 ::    entries, as [mark result] with the result from +read-mark:jibb-import.

@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/-` imports Hoon molds and `/=` imports Jibb modules; Molds: "Faces are part of the type".
+tests: A Jibb library imports a nested faced Hoon record, exports a gate over it and the caller uses that gate with the faces intact. The root does not import the Hoon mold directly.
+expect: parses
+expect-types: a partial report with the nested record faces
