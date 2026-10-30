@@ -1722,10 +1722,14 @@
 /*  tok-493  %txt   /tests/golden/types-union-unresolved-flow/tokens/txt
 /*  tre-493  %txt   /tests/golden/types-union-unresolved-flow/tree/txt
 /*  typ-493  %txt   /tests/golden/types-union-unresolved-flow/types/txt
-/*  src-494  %jibb  /tests/golden/types-unit-patterns/source/jibb
-/*  tok-494  %txt   /tests/golden/types-unit-patterns/tokens/txt
-/*  tre-494  %txt   /tests/golden/types-unit-patterns/tree/txt
-/*  typ-494  %txt   /tests/golden/types-unit-patterns/types/txt
+/*  src-494  %jibb  /tests/golden/types-unit-context/source/jibb
+/*  tok-494  %txt   /tests/golden/types-unit-context/tokens/txt
+/*  tre-494  %txt   /tests/golden/types-unit-context/tree/txt
+/*  typ-494  %txt   /tests/golden/types-unit-context/types/txt
+/*  src-495  %jibb  /tests/golden/types-unit-patterns/source/jibb
+/*  tok-495  %txt   /tests/golden/types-unit-patterns/tokens/txt
+/*  tre-495  %txt   /tests/golden/types-unit-patterns/tree/txt
+/*  typ-495  %txt   /tests/golden/types-unit-patterns/types/txt
 |%
 ::  one arm per case
 ::
@@ -2715,8 +2719,10 @@
   (weld (check ~.types-union-unresolved src-492 `tok-492 `tre-492) (check-types ~.types-union-unresolved ~[%tests %golden ~.types-union-unresolved %source %jibb] src-492 `typ-492))
 ++  test-types-union-unresolved-flow
   (weld (check ~.types-union-unresolved-flow src-493 `tok-493 `tre-493) (check-types ~.types-union-unresolved-flow ~[%tests %golden ~.types-union-unresolved-flow %source %jibb] src-493 `typ-493))
+++  test-types-unit-context
+  (weld (check ~.types-unit-context src-494 `tok-494 `tre-494) (check-types ~.types-unit-context ~[%tests %golden ~.types-unit-context %source %jibb] src-494 `typ-494))
 ++  test-types-unit-patterns
-  (weld (check ~.types-unit-patterns src-494 `tok-494 `tre-494) (check-types ~.types-unit-patterns ~[%tests %golden ~.types-unit-patterns %source %jibb] src-494 `typ-494))
+  (weld (check ~.types-unit-patterns src-495 `tok-495 `tre-495) (check-types ~.types-unit-patterns ~[%tests %golden ~.types-unit-patterns %source %jibb] src-495 `typ-495))
 ::
 ::  +check: run golden:jibb on a case and compare both outputs
 ::

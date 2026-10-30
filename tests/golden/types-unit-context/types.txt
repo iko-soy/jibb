@@ -1,0 +1,27 @@
+partial inference; module not checked
++$ maybe: cases proven disjoint; mold not checked
++$ msg: cases proven disjoint; mold not checked
+++ cast: $-(maybe msg)
+++ reversed: $-(maybe msg)
+++ consume: $-(msg @t)
+++ call: $-(maybe @t)
+++ nested: $-(maybe msg)
+++ bad-empty: branch arm does not fit its expected union
+/tests/golden/types-unit-context/source.jibb:32:6: expected union
+  ^- msg
+     ^
+/tests/golden/types-unit-context/source.jibb:34:9: branch arm
+      ~ %missing
+        ^
+++ bad-present: branch arm does not fit its expected union
+/tests/golden/types-unit-context/source.jibb:37:6: expected union
+  ^- msg
+     ^
+/tests/golden/types-unit-context/source.jibb:40:16: branch arm
+      [~ text] %missing
+               ^
+++ unknown: unit branch subject is not supported by partial inference
+++ shadow: pattern binder shadows a name
+++ pending: tag needs context in partial inference
+++ nested-unit: $-(maybe msg)
+++ pending-null: `~` needs context in partial inference

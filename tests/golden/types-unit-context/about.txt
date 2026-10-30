@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: "A tag literal or `~` gets a fresh type variable and a pending constraint"; Patterns: "A name in a pattern always binds anew".
+tests: A cast or known sample supplies union context to both unit branch arms, including nested unit and loobean branches; bad cases, unknown subjects, shadowing and unrelated pending tags or nulls fail closed.
+expect: parses
+expect-types: a partial inference report

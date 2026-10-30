@@ -1,0 +1,70 @@
++$ maybe
+  ~
+  [~ value=@t]
++$ msg
+  %add
+  [%note text=@t]
+++ cast |= x=maybe
+  ^- msg
+    ?- x
+      ~ %add
+      [~ text] [%note text]
+++ reversed |= x=maybe
+  ^- msg
+    ?- x
+      [~ text] [%note text]
+      ~ %add
+++ consume |= x=msg "ok"
+++ call |= x=maybe
+  (consume
+    ?- x
+      ~ %add
+      [~ text] [%note text]
+++ nested |= x=maybe
+  ^- msg
+    ?- x
+      ~
+        ?- %.y
+          %.y %add
+          %.n [%note "hi"]
+      [~ text] [%note text]
+++ bad-empty |= x=maybe
+  ^- msg
+    ?- x
+      ~ %missing
+      [~ text] [%note text]
+++ bad-present |= x=maybe
+  ^- msg
+    ?- x
+      ~ %add
+      [~ text] %missing
+++ unknown |= x
+  ^- msg
+    ?- x
+      ~ %add
+      [~ text] [%note text]
+++ shadow |= x=maybe
+  ^- msg
+    ?- x
+      ~ %add
+      [~ x] [%note x]
+++ pending |= x=maybe
+  ~& %unknown
+    ^- msg
+      ?- x
+        ~ %add
+        [~ text] [%note text]
+++ nested-unit |= x=maybe
+  ^- msg
+    ?- x
+      ~
+        ?- x
+          ~ %add
+          [~ inner] [%note inner]
+      [~ text] [%note text]
+++ pending-null |= x=maybe
+  ~& ~
+    ^- msg
+      ?- x
+        ~ %add
+        [~ text] [%note text]

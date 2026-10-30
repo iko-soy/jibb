@@ -6084,7 +6084,7 @@
   ?^  t.found  [%| ["field name is ambiguous in partial inference" ~]]
   $(fields t.fields, typ i.found)
 ::
-::  Propagate a known union through a direct loobean branch. Empty bodies
+::  Propagate a known union through supported loobean and unit branches. Empty bodies
 ::  and groups are transparent; bodies with definitions keep their normal
 ::  scoping and wait for general bidirectional inference.
 ::
@@ -6109,6 +6109,8 @@
     ?^  t.t.arms.e  [%| ["branch is not supported by partial inference" ~]]
     =/  x=arm  i.arms.e
     =/  y=arm  i.t.arms.e
+    ?:  |((unit-empty-pattern pat.x) (unit-empty-pattern pat.y))
+      (infer-unit-branch e env state `[expected context])
     ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))
       [%| ["branch pattern is not supported by partial inference" ~]]
     ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
@@ -6181,7 +6183,7 @@
   ~
 ::
 ++  infer-unit-branch
-  |=  [e=expr env=ienv state=istate]
+  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
   ^-  iresult
   ?>  ?=(%branch -.e)
   ?~  arms.e  [%| ["unit branch is not supported by partial inference" ~]]
@@ -6204,10 +6206,15 @@
   =/  payload=(unit itype)  (unit-union-payload typ)
   ?~  payload  [%| ["unit branch subject is not supported by partial inference" ~]]
   =/  extended=ienv  [[u.binder [u.payload ~]] env]
-  =/  left=iresult  (infer-fragment val.x ?:(first-empty env extended) state.p.subject)
+  =/  left=iresult
+    ?~  expected  (infer-fragment val.x ?:(first-empty env extended) state.p.subject)
+    (infer-union-context val.x typ.u.expected ?:(first-empty env extended) state.p.subject context.u.expected)
   ?:  ?=(%| -.left)  left
-  =/  right=iresult  (infer-fragment val.y ?:(first-empty extended env) state.p.left)
+  =/  right=iresult
+    ?~  expected  (infer-fragment val.y ?:(first-empty extended env) state.p.left)
+    (infer-union-context val.y typ.u.expected ?:(first-empty extended env) state.p.left context.u.expected)
   ?:  ?=(%| -.right)  right
+  ?^  expected  [%& typ.u.expected state.p.right]
   =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
   ?~  joined  [%| ["unit branch results need unsupported inference" ~]]
   [%& typ.p.left state.p.right(sub u.joined)]
@@ -6280,7 +6287,7 @@
       =/  x=arm  i.arms.e
       =/  y=arm  i.t.arms.e
       ?:  |((unit-empty-pattern pat.x) (unit-empty-pattern pat.y))
-        (infer-unit-branch e env state)
+        (infer-unit-branch e env state ~)
       ?.  ?=(%lit -.pat.x)  [%| ["branch pattern is not supported by partial inference" ~]]
       ?.  ?=(%lit -.pat.y)  [%| ["branch pattern is not supported by partial inference" ~]]
       ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
