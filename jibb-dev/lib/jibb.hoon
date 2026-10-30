@@ -4618,6 +4618,7 @@
   ==
 +$  ibinding  [id=@ud val=itype]
 +$  isub  (list ibinding)
++$  ipending  [id=@ud literal=lit]
 ::
 ++  itype-lookup
   |=  [n=@ud sub=isub]
@@ -4915,10 +4916,17 @@
   ==
 ::
 ++  pending-tags
-  |=  [tags=(list @ud) sub=isub]
+  |=  [tags=(list ipending) sub=isub]
   ^-  ?
   ?~  tags  |
-  ?~  (itype-lookup i.tags sub)  &
+  ?~  (itype-lookup id.i.tags sub)  &
+  $(tags t.tags)
+::
+++  pending-null
+  |=  [tags=(list ipending) sub=isub]
+  ^-  ?
+  ?~  tags  |
+  ?:  &(?=(%null form.literal.i.tags) ?=(~ (itype-lookup id.i.tags sub)))  &
   $(tags t.tags)
 ::
 ::  Tags remain constrained until a mold selects a case or permitted atom
@@ -5000,6 +5008,7 @@
   ?.  ?=(%cell -.c)  $(cases t.cases)
   =/  head=itype  (itype-walk hed.c sub)
   ?.  ?=(%const -.head)  $(cases t.cases)
+  ?.  =(%term form.literal.head)  $(cases t.cases)
   ?.  =(val.literal.head val.tag)  $(cases t.cases)
   ?^  found  [%unknown ~]
   =/  trial=ifit  (itype-fit sample tal.c sub next)
@@ -5180,7 +5189,7 @@
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  imark-externals  (list [mark=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list @ud) in-mold=? at=path top-molds=(list term)]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -5666,7 +5675,7 @@
       `[[%atom aura.sh] state]
     %flag  `[[%flag ~] state]
     %const
-      ?.  =(%term form.lit.sh)  ~
+      ?.  |(=(%term form.lit.sh) =(%null form.lit.sh))  ~
       `[[%const lit.sh] state]
     %union
       =/  pairs=(list upair)  (union-pairs cases.sh molds.state)
@@ -6011,8 +6020,8 @@
         %duration  [%& [%atom %dr] state]
         %knot      [%& [%atom %ta] state]
         %loobean   [%& [%flag ~] state]
-        %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [next.state tags.state])]
-        *          [%| ["literal needs contextual inference" ~]]
+        %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
+        %null      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
       ==
     %str
       =/  interpolated=?  (lien pieces.e |=(p=piece ?=(%expr -.p)))
@@ -6034,7 +6043,7 @@
       =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
       [%& typ.instance state.instance]
     %group  $(e inner.e)
-    %ctor  [%& [%tag next.state tag.e &] state(next +(next.state), tags [next.state tags.state])]
+    %ctor  [%& [%tag next.state tag.e &] state(next +(next.state), tags [[next.state tag.e] tags.state])]
     %trace
       =/  traced=iresult  $(e val.e)
       ?:  ?=(%| -.traced)  traced
@@ -6807,6 +6816,8 @@
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
+  ?:  (pending-null tags.state.p.result sub.state.p.result)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: `~` needs context in partial inference") lines])
   ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: tag needs context in partial inference") lines])
   ?:  (itype-has-hidden-generic typ)

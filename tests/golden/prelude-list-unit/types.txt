@@ -5,7 +5,7 @@ partial inference; module not checked
 ++ not: $-(? ?)
 +$ list: cases proven disjoint; mold not checked
 +$ unit: cases proven disjoint; mold not checked
-++ fall: sample mold is not supported by partial inference
-++ need: sample mold is not supported by partial inference
+++ fall: branch pattern is not supported by partial inference
+++ need: branch pattern is not supported by partial inference
 ++ weld: sample mold is not supported by partial inference
 ++ turn: sample mold is not supported by partial inference

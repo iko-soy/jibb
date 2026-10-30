@@ -1,0 +1,9 @@
+partial inference; module not checked
++$ maybe: cases proven disjoint; mold not checked
+++ loose: `~` needs context in partial inference
+++ id: $-(A A)
+++ through: `~` needs context in partial inference
+++ ignored: `~` needs context in partial inference
+++ only-one: `~` needs context in partial inference
+++ null-then-tag: tag needs context in partial inference
+++ tag-then-null: `~` needs context in partial inference

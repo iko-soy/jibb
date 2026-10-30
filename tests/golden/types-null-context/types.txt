@@ -1,0 +1,13 @@
+partial inference; module not checked
++$ maybe: cases proven disjoint; mold not checked
++$ dollar: not checked
+++ empty: maybe
+++ present: maybe
+++ bad-constructor: cast mold and expression type do not unify
+/tests/golden/types-null-context/source.jibb:7:23: cast mold
+++ bad-constructor ^- $-(@t maybe) |=%$
+                      ^
+/tests/golden/types-null-context/source.jibb:7:36: expression
+++ bad-constructor ^- $-(@t maybe) |=%$
+                                   ^
+++ dollar-constructor: $-(@t [%$ value=@t])

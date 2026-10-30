@@ -1,0 +1,8 @@
+1:1 glyph +$
+1:4 name collide
+2:3 INDENT
+2:3 lit ~
+3:3 NEWLINE
+3:3 lit %$
+3:5 DEDENT
+3:5 NEWLINE

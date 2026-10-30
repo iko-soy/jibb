@@ -1,0 +1,57 @@
+1:1 glyph +$
+1:4 name maybe
+2:3 INDENT
+2:3 lit ~
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit ~
+3:6 name value
+3:11 tight glyph =
+3:12 tight aura @t
+3:14 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name dollar
+4:11 glyph [
+4:12 tight lit %$
+4:15 name value
+4:20 tight glyph =
+4:21 tight aura @t
+4:23 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name empty
+5:10 glyph ^-
+5:13 name maybe
+5:19 lit ~
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name present
+6:12 glyph ^-
+6:15 name maybe
+6:21 glyph [
+6:22 tight lit ~
+6:24 str "hi"
+6:28 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name bad-constructor
+7:20 glyph ^-
+7:23 glyph $-(
+7:26 tight aura @t
+7:29 name maybe
+7:34 tight glyph )
+7:36 glyph |=
+7:38 tight lit %$
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name dollar-constructor
+8:23 glyph ^-
+8:26 glyph $-(
+8:29 tight aura @t
+8:32 name dollar
+8:38 tight glyph )
+8:40 glyph |=
+8:42 tight lit %$
+8:44 NEWLINE

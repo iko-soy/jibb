@@ -5,8 +5,8 @@ partial inference; module not checked
 ++ not: $-(? ?)
 +$ list: cases proven disjoint; mold not checked
 +$ unit: cases proven disjoint; mold not checked
-++ fall: sample mold is not supported by partial inference
-++ need: sample mold is not supported by partial inference
+++ fall: branch pattern is not supported by partial inference
+++ need: branch pattern is not supported by partial inference
 ++ weld: sample mold is not supported by partial inference
 ++ turn: sample mold is not supported by partial inference
 +$ dime: not checked
@@ -39,11 +39,11 @@ partial inference; module not checked
 ++ lure: cast mold is not supported by partial inference
 ++ snoc: sample mold is not supported by partial inference
 ++ flop: sample mold is not supported by partial inference
-++ drop: sample mold is not supported by partial inference
-++ bind: sample mold is not supported by partial inference
-++ biff: sample mold is not supported by partial inference
-++ both: sample mold is not supported by partial inference
-++ clef: sample mold is not supported by partial inference
+++ drop: branch pattern is not supported by partial inference
+++ bind: branch pattern is not supported by partial inference
+++ biff: branch pattern is not supported by partial inference
+++ both: branch pattern is not supported by partial inference
+++ clef: branch pattern is not supported by partial inference
 ++ skim: sample mold is not supported by partial inference
 ++ skip: sample mold is not supported by partial inference
 ++ levy: sample mold is not supported by partial inference

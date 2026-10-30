@@ -1,0 +1,18 @@
++$ maybe
+  ~
+  [~ value=@t]
+++ loose ~
+++ id |=(x x)
+++ through (id ~)
+++ ignored
+  ~& ~
+    ^- maybe ~
+++ only-one
+  ~& ^- maybe ~
+    ~
+++ null-then-tag
+  ~& ^- maybe ~
+    %unknown
+++ tag-then-null
+  ~& ^- @tas %known
+    ~

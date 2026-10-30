@@ -1,0 +1,4 @@
+source: Grammar, Molds: union cases "must differ as nouns".
+tests: Null and the `%$` term have the same noun and overlap.
+expect: parses
+expect-types: a partial inference report

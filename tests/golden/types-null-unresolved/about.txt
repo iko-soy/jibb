@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: a tag or `~` has no default; an unresolved constraint needs a `^-`.
+tests: Null without a fixing context remains unresolved, including in discarded traces and through a generic identity; a contextual null in a separate expression does not resolve it. A resolved null and an unresolved tag, and the reverse, keep their distinct diagnostics.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 maybe
+    (union 2:3
+      (const 2:3 ~)
+      (cell 3:3
+        (const 3:4 ~)
+        (face 3:6 value (aura 3:12 @t)))))
+  (mold 4:1 dollar
+    (cell 4:11
+      (const 4:12 %$)
+      (face 4:15 value (aura 4:21 @t))))
+  (value 5:1 empty
+    (cast 5:10 (ref 5:13 maybe) (lit 5:19 ~)))
+  (value 6:1 present
+    (cast 6:12
+      (ref 6:15 maybe)
+      (tuple 6:21 (lit 6:22 ~) (str 6:24 "hi"))))
+  (value 7:1 bad-constructor
+    (cast 7:20
+      (fn 7:23 (aura 7:26 @t) (ref 7:29 maybe))
+      (ctor 7:36 %$)))
+  (value 8:1 dollar-constructor
+    (cast 8:23
+      (fn 8:26 (aura 8:29 @t) (ref 8:32 dollar))
+      (ctor 8:40 %$))))
