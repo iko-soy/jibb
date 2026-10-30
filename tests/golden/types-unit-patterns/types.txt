@@ -5,6 +5,9 @@ partial inference; module not checked
 ++ shadow: pattern binder shadows a name
 ++ unknown: unit branch subject is not supported by partial inference
 ++ missing: branch pattern is not supported by partial inference
-++ duplicate: branch is not supported by partial inference
+++ duplicate: branch arm is covered by earlier arms
+/tests/golden/types-unit-patterns/source.jibb:26:5: covered arm
+    ~ !!
+    ^
 ++ pending: unit branch results need unsupported inference
 ++ unrelated: tag needs context in partial inference

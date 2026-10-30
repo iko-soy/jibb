@@ -1,0 +1,25 @@
+partial inference; module not checked
++$ choice: cases proven disjoint; mold not checked
+++ complete: $-(choice @t)
+++ missing: missing union case %c
+++ duplicate: branch arm is covered by earlier arms
+/tests/golden/types-union-patterns/source.jibb:18:5: covered arm
+    %b "again"
+    ^
+++ wildcard: $-(choice @t)
+++ covered: branch arm is covered by earlier arms
+/tests/golden/types-union-patterns/source.jibb:27:5: covered arm
+    %c "never"
+    ^
+++ shadow: pattern binder shadows a name
++$ flags: cases proven disjoint; mold not checked
+++ partial: partial union pattern is not supported by partial inference
+++ not-known: branch is not supported by partial inference
++$ digits: cases proven disjoint; mold not checked
+++ as-booleans: $-(digits @t)
++$ option: cases proven disjoint; mold not checked
+++ null-option: $-(option @t)
++$ output: cases proven disjoint; mold not checked
+++ context: contextual union-pattern branch is not supported by partial inference
+++ context-list: contextual union-pattern branch is not supported by partial inference
+++ grouped-subject: union-pattern branch subject is not supported by partial inference

@@ -1,0 +1,74 @@
++$ choice
+  [%a value=@t]
+  %b
+  %c
+++ complete |= v=choice
+  ?- v
+    [%a payload] payload
+    %b "b"
+    %c "c"
+++ missing |= v=choice
+  ?- v
+    [%a payload] payload
+    %b "b"
+++ duplicate |= v=choice
+  ?- v
+    [%a payload] payload
+    %b "b"
+    %b "again"
+    %c "c"
+++ wildcard |= v=choice
+  ?- v
+    [%a payload] payload
+    * "other"
+++ covered |= v=choice
+  ?- v
+    * "all"
+    %c "never"
+++ shadow |= v=choice
+  ?- v
+    [%a complete] complete
+    %b "b"
+    %c "c"
++$ flags
+  [%flag enabled=?]
+  %none
+++ partial |= v=flags
+  ?- v
+    [%flag %.y] "yes"
+    [%flag %.n] "no"
+    %none "absent"
+++ not-known |= v
+  ?- v
+    %a "a"
+    %b "b"
+    %c "c"
++$ digits
+  %$
+  %1
+++ as-booleans |= v=digits
+  ?- v
+    %.y "zero"
+    %.n "one"
++$ option
+  ~
+  %some
+++ null-option |= v=option
+  ?- v
+    ~ "none"
+    %some "some"
++$ output
+  %left
+  %right
+++ context |= v=digits
+  ^- output ?- v
+    %.y %left
+    %.n %right
+++ context-list |= v=digits
+  ^- (list @t) ?- v
+    %.y ~["left"]
+    %.n ~["right"]
+++ grouped-subject |= v=digits
+  ?- (v)
+    %.y "zero"
+    %.n "one"

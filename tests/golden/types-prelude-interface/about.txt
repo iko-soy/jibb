@@ -1,4 +1,4 @@
 source: Overview, Prelude: "Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/prelude`". Grammar, Modules: no name may shadow one already in scope.
-tests: A unit constructed in one module passes through another module's generic identity and the root's prelude helpers, preserving one origin and printing `unit` unqualified. The prelude list mold is available; unavailable prelude values remain reserved and fail closed, and a sample cannot shadow one.
+tests: A unit constructed in one module passes through another module's generic identity and the root's prelude helpers, preserving one origin and printing `unit` unqualified. The prelude list mold is available; a zero inside a single tuple passed to `turn` remains unsupported instead of reporting a false mismatch, and a sample cannot shadow a prelude name.
 expect: parses
 expect-types: a partial inference report

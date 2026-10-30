@@ -37,4 +37,51 @@
         (lit 10:6 %unknown)
         (body 11:5
           (group 11:5
-            (call 11:6 (wing 11:6 lure) (str 11:11 "hi"))))))))
+            (call 11:6 (wing 11:6 lure) (str 11:11 "hi")))))))
+  (value 12:1 turn-text
+    (group 12:14
+      (call 12:15
+        (wing 12:15 turn)
+        (list 12:20 (str 12:22 "a"))
+        (gate-wide 12:27 (bind 12:30 x) (wing 12:32 x)))))
+  (value 13:1 turn-ships
+    (group 13:15
+      (call 13:16
+        (wing 13:16 turn)
+        (list 13:21 (lit 13:23 ~zod))
+        (gate-wide 13:29 (bind 13:32 x) (wing 13:34 x)))))
+  (value 14:1 turn-map
+    (group 14:13
+      (call 14:14
+        (wing 14:14 turn)
+        (list 14:19 (str 14:21 "a"))
+        (gate-wide 14:26 (bind 14:29 x) (lit 14:31 ~zod)))))
+  (value 15:1 turn-empty
+    (group 15:15
+      (call 15:16
+        (wing 15:16 turn)
+        (list 15:21)
+        (gate-wide 15:25
+          (face 15:28 x (aura 15:30 @t))
+          (wing 15:33 x)))))
+  (value 16:1 turn-nested
+    (group 16:16
+      (call 16:17
+        (wing 16:17 turn)
+        (group 16:22
+          (cast 16:23
+            (apply 16:26 list
+              (apply 16:32 list (aura 16:38 @t)))
+            (list 16:43
+              (list 16:45 (str 16:47 "a")))))
+        (gate-wide 16:54 (bind 16:57 x) (wing 16:59 x)))))
+  (value 17:1 turn-import (wing 17:16 mapped.lib))
+  (value 18:1 turn-mismatch
+    (group 18:18
+      (call 18:19
+        (wing 18:19 turn)
+        (list 18:24 (str 18:26 "a"))
+        (gate-wide 18:31
+          (bind 18:34 x)
+          (group 18:36
+            (cast 18:37 (aura 18:40 @p) (wing 18:43 x))))))))

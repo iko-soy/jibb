@@ -16,13 +16,13 @@
       (call 6:14
         (wing 6:14 fall)
         (tuple 6:19 (wing 6:20 value.left) (str 6:31 "fallback")))))
-  (value 7:1 unavailable
-    (group 7:16
-      (call 7:17
-        (wing 7:17 turn)
-        (tuple 7:22
-          (lit 7:23 ~)
-          (gate-wide 7:25 (bind 7:28 x) (wing 7:30 x))))))
+  (value 7:1 tuple-call
+    (group 7:15
+      (call 7:16
+        (wing 7:16 turn)
+        (tuple 7:21
+          (lit 7:22 ~)
+          (gate-wide 7:24 (bind 7:27 x) (wing 7:29 x))))))
   (value 8:1 shadow
     (gate 8:11 (bind 8:14 turn) (wing 8:19 turn)))
   (value 9:1 list-id

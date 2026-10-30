@@ -244,29 +244,36 @@
 47:9 name f
 47:10 tight glyph ]
 48:7 INDENT
-48:7 glyph ?-
-48:10 name xs
+48:7 glyph ^-
+48:10 glyph (
+48:11 tight name list
+48:16 tvar B
+48:17 tight glyph )
 49:9 INDENT
-49:9 lit ~
-49:11 lit ~
-50:9 NEWLINE
-50:9 glyph [
-50:10 tight name item
-50:15 name rest
-50:19 tight glyph ]
-50:21 glyph [
-50:22 tight glyph (
-50:23 tight name f
-50:25 name item
-50:29 tight glyph )
-50:31 glyph (
-50:32 tight name turn
-50:37 name rest
-50:42 name f
-50:43 tight glyph )
-50:44 tight glyph ]
-50:45 DEDENT
-50:45 DEDENT
-50:45 DEDENT
-50:45 DEDENT
-50:45 NEWLINE
+49:9 glyph ?-
+49:12 name xs
+50:11 INDENT
+50:11 lit ~
+50:13 lit ~
+51:11 NEWLINE
+51:11 glyph [
+51:12 tight name item
+51:17 name rest
+51:21 tight glyph ]
+51:23 glyph [
+51:24 tight glyph (
+51:25 tight name f
+51:27 name item
+51:31 tight glyph )
+51:33 glyph (
+51:34 tight name turn
+51:39 name rest
+51:44 name f
+51:45 tight glyph )
+51:46 tight glyph ]
+51:47 DEDENT
+51:47 DEDENT
+51:47 DEDENT
+51:47 DEDENT
+51:47 DEDENT
+51:47 NEWLINE

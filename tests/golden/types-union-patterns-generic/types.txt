@@ -1,0 +1,13 @@
+partial inference; module not checked
++$ result: cases proven disjoint; mold not checked
+++ either-value: $-((result A A) A)
+++ concrete: $-((result @t @p) @t)
+++ missing: branch arm is covered by earlier arms
+/tests/golden/types-union-patterns-generic/source.jibb:15:5: covered arm
+    [%ok again] again
+    ^
+++ nested: partial union pattern is not supported by partial inference
+++ different: union branch result matching needs unsupported inference
+++ forced: explicit capital constraints are not supported by partial inference
+++ reused: $-((result A A) A)
+++ pending: union branch result matching needs unsupported inference

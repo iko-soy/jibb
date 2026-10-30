@@ -5084,6 +5084,10 @@
       =/  trial=ifit  (itype-fit-ctor-cases literal.actual sample.expected cases sub next)
       ?.  ?=(%ok -.trial)  trial
       [%ok [[id.actual expected] sub.trial] next.trial]
+    ::  Zero may be the empty list. A nested cell fit lacks the context
+    ::  needed to resolve it here, so do not report a definite mismatch.
+    ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
+      [%unknown ~]
     ?:  ?=(%const -.expected)
       ?:(=(val.literal.actual val.literal.expected) [%ok [[id.actual expected] sub] next] [%bad ~])
     ?:  ?=(%atom -.expected)
@@ -5101,6 +5105,8 @@
       [%ok u.u next]
     ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
     ?:  ?=(%face -.expected)  $(expected body.expected)
+    ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
+      [%unknown ~]
     ?:  ?=(%const -.expected)
       ?:(=(val.literal.actual val.literal.expected) [%ok sub next] [%bad ~])
     ?:  ?=(%atom -.expected)
@@ -6426,6 +6432,9 @@
       [%| ["branch does not cover both loobeans" ~]]
     =/  subject=iresult  (infer-fragment subject.e env state)
     ?:  ?=(%| -.subject)  subject
+    =/  subject-type=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+    ?:  ?=(%union -.subject-type)
+      [%| ["contextual union-pattern branch is not supported by partial inference" ~]]
     =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
     ?~  su  [%| ["loobean branch subject does not unify with ?" ~]]
     =/  left=iresult  $(e val.x, state state.p.subject(sub u.su))
@@ -6695,6 +6704,116 @@
     [%| ["a cell in interpolation needs a printer" ~[[(span-of p.i.ps) "cell without a printer"]]]]
   [%| ["interpolation type needs unsupported inference" ~]]
 ::
+::  Whole-case coverage for a known union. A pattern that might cover
+::  only part of a case stays unsupported until the general pattern matrix.
++$  imatch  ?(%full %none %unknown)
+++  union-pattern-items
+  |=  [ps=(list pattern) t=itype]
+  ^-  imatch
+  ?~  ps  %unknown
+  ?~  t.ps  (union-pattern i.ps t)
+  =.  t  ?:(?=(%face -.t) body.t t)
+  ?.  ?=(%cell -.t)
+    ?:  |(?=(%atom -.t) ?=(%any-atom -.t) ?=(%flag -.t) ?=(%const -.t))  %none
+    %unknown
+  =/  a=imatch  (union-pattern i.ps hed.t)
+  =/  b=imatch  $(ps t.ps, t tal.t)
+  ?:  |(=(%none a) =(%none b))  %none
+  ?:(&(=(%full a) =(%full b)) %full %unknown)
+::
+++  union-pattern
+  |=  [p=pattern t=itype]
+  ^-  imatch
+  =.  t  ?:(?=(%face -.t) body.t t)
+  ?-  -.p
+    %any   %full
+    %bind  %full
+    %lit
+      ?:  ?=(%const -.t)  ?:(=(val.literal.t val.lit.p) %full %none)
+      ?:  ?=(%cell -.t)  %none
+      ?:  ?=(%flag -.t)
+        ?:(|(=(0 val.lit.p) =(1 val.lit.p)) %unknown %none)
+      %unknown
+    %str  ?:(?=(%cell -.t) %none %unknown)
+    %cell  (union-pattern-items items.p t)
+  ==
+::
+++  union-pattern-has-bind
+  |=  p=pattern
+  ^-  ?
+  ?:  ?=(%bind -.p)  &
+  ?.  ?=(%cell -.p)  |
+  (lien items.p union-pattern-has-bind)
+::
+++  union-pattern-bind-items
+  |=  [ps=(list pattern) t=itype env=ienv globals=(list term)]
+  ^-  (unit ienv)
+  ?~  ps  ~
+  ?~  t.ps  (union-pattern-bind i.ps t env globals)
+  =.  t  ?:(?=(%face -.t) body.t t)
+  ?.  ?=(%cell -.t)  ~
+  =/  first=(unit ienv)  (union-pattern-bind i.ps hed.t env globals)
+  ?~  first  ~
+  $(ps t.ps, t tal.t, env u.first)
+::
+++  union-pattern-bind
+  |=  [p=pattern t=itype env=ienv globals=(list term)]
+  ^-  (unit ienv)
+  =.  t  ?:(?=(%face -.t) body.t t)
+  ?:  ?=(%bind -.p)
+    ?:  |(?=(^ (ienv-lookup name.p env)) (lien globals |=(n=term =(n name.p))))  ~
+    `[[name.p [t ~]] env]
+  ?:  ?=(%cell -.p)  (union-pattern-bind-items items.p t env globals)
+  `env
+::
+++  infer-known-union-branch
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  ?>  ?=(%branch -.e)
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
+  =/  cases=(list itype)  cases.typ
+  =/  remaining=(list itype)  cases
+  =/  arms=(list arm)  arms.e
+  =/  st=istate  state.p.subject
+  =/  answer=(unit itype)  ~
+  |-
+  ?~  arms
+    ?^  remaining
+      [%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
+    ?~  answer  [%| ["empty union branch is not supported by partial inference" ~]]
+    [%& u.answer st]
+  =/  a=arm  i.arms
+  ?:  (lien remaining |=(c=itype =(%unknown (union-pattern pat.a c))))
+    [%| ["partial union pattern is not supported by partial inference" ~]]
+  =/  matching=(list itype)  (skim remaining |=(c=itype =(%full (union-pattern pat.a c))))
+  ?~  matching
+    ?:  (lien cases |=(c=itype =(%full (union-pattern pat.a c))))
+      [%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
+    [%| ["union pattern is not supported by partial inference" ~]]
+  ?:  &(?=(^ t.matching) (union-pattern-has-bind pat.a))
+    [%| ["a union pattern binding several cases is not supported by partial inference" ~]]
+  =/  bound=(unit ienv)  (union-pattern-bind pat.a i.matching env globals.st)
+  ?~  bound  [%| ["pattern binder shadows a name" ~]]
+  =/  body=iresult  (infer-fragment val.a u.bound st)
+  ?:  ?=(%| -.body)  body
+  =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
+  =/  mismatch=?  ?~(answer | !=((itype-normalize u.answer sub.state.p.body) result))
+  ?:  mismatch  [%| ["union branch result matching needs unsupported inference" ~]]
+  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, answer `result)
+::
+++  known-union-subject
+  |=  [e=expr env=ienv state=istate]
+  ^-  (unit itype)
+  ?.  ?=(%wing -.e)  ~
+  =/  subject=iresult  (infer-fragment e env state)
+  ?:  ?=(%| -.subject)  ~
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%union -.typ)  ~
+  `typ
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -6761,19 +6880,26 @@
     %branch
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e  (infer-cell-branch e env state)
-      ?^  t.t.arms.e  [%| ["branch is not supported by partial inference" ~]]
+      ?^  t.t.arms.e  (infer-known-union-branch e env state)
+      =/  known=(unit itype)  (known-union-subject subject.e env state)
+      ?:  &(?=(^ known) ?=(~ (unit-union-payload u.known)))
+        (infer-known-union-branch e env state)
       =/  x=arm  i.arms.e
       =/  y=arm  i.t.arms.e
       ?:  |((unit-empty-pattern pat.x) (unit-empty-pattern pat.y))
         (infer-unit-branch e env state ~)
-      ?.  ?=(%lit -.pat.x)  [%| ["branch pattern is not supported by partial inference" ~]]
-      ?.  ?=(%lit -.pat.y)  [%| ["branch pattern is not supported by partial inference" ~]]
+      ?.  ?=(%lit -.pat.x)  (infer-known-union-branch e env state)
+      ?.  ?=(%lit -.pat.y)  (infer-known-union-branch e env state)
       ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
-        [%| ["branch pattern is not supported by partial inference" ~]]
+        (infer-known-union-branch e env state)
+      ?^  known  (infer-known-union-branch e env state)
       ?:  =(val.lit.pat.x val.lit.pat.y)
         [%| ["branch does not cover both loobeans" ~]]
       =/  subject=iresult  $(e subject.e)
       ?:  ?=(%| -.subject)  subject
+      =/  subject-type=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+      ?:  ?=(%union -.subject-type)
+        [%| ["union-pattern branch subject is not supported by partial inference" ~]]
       =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
       ?~  su  [%| ["loobean branch subject does not unify with ?" ~]]
       =/  left=iresult  $(e val.x, state state.p.subject(sub u.su))

@@ -1,0 +1,152 @@
+(module
+  (mold 1:1 choice
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %a)
+        (face 2:7 value (aura 2:13 @t)))
+      (const 3:3 %b)
+      (const 4:3 %c)))
+  (value 5:1 complete
+    (gate 5:13
+      (face 5:16 v (ref 5:18 choice))
+      (body 6:3
+        (branch 6:3
+          (wing 6:6 v)
+          (arm 7:5
+            (cell 7:5 (lit 7:6 %a) (bind 7:9 payload))
+            (wing 7:18 payload))
+          (arm 8:5 (lit 8:5 %b) (str 8:8 "b"))
+          (arm 9:5 (lit 9:5 %c) (str 9:8 "c"))))))
+  (value 10:1 missing
+    (gate 10:12
+      (face 10:15 v (ref 10:17 choice))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 v)
+          (arm 12:5
+            (cell 12:5 (lit 12:6 %a) (bind 12:9 payload))
+            (wing 12:18 payload))
+          (arm 13:5 (lit 13:5 %b) (str 13:8 "b"))))))
+  (value 14:1 duplicate
+    (gate 14:14
+      (face 14:17 v (ref 14:19 choice))
+      (body 15:3
+        (branch 15:3
+          (wing 15:6 v)
+          (arm 16:5
+            (cell 16:5 (lit 16:6 %a) (bind 16:9 payload))
+            (wing 16:18 payload))
+          (arm 17:5 (lit 17:5 %b) (str 17:8 "b"))
+          (arm 18:5 (lit 18:5 %b) (str 18:8 "again"))
+          (arm 19:5 (lit 19:5 %c) (str 19:8 "c"))))))
+  (value 20:1 wildcard
+    (gate 20:13
+      (face 20:16 v (ref 20:18 choice))
+      (body 21:3
+        (branch 21:3
+          (wing 21:6 v)
+          (arm 22:5
+            (cell 22:5 (lit 22:6 %a) (bind 22:9 payload))
+            (wing 22:18 payload))
+          (arm 23:5 (any 23:5) (str 23:7 "other"))))))
+  (value 24:1 covered
+    (gate 24:12
+      (face 24:15 v (ref 24:17 choice))
+      (body 25:3
+        (branch 25:3
+          (wing 25:6 v)
+          (arm 26:5 (any 26:5) (str 26:7 "all"))
+          (arm 27:5 (lit 27:5 %c) (str 27:8 "never"))))))
+  (value 28:1 shadow
+    (gate 28:11
+      (face 28:14 v (ref 28:16 choice))
+      (body 29:3
+        (branch 29:3
+          (wing 29:6 v)
+          (arm 30:5
+            (cell 30:5 (lit 30:6 %a) (bind 30:9 complete))
+            (wing 30:19 complete))
+          (arm 31:5 (lit 31:5 %b) (str 31:8 "b"))
+          (arm 32:5 (lit 32:5 %c) (str 32:8 "c"))))))
+  (mold 33:1 flags
+    (union 34:3
+      (cell 34:3
+        (const 34:4 %flag)
+        (face 34:10 enabled (flag 34:18)))
+      (const 35:3 %none)))
+  (value 36:1 partial
+    (gate 36:12
+      (face 36:15 v (ref 36:17 flags))
+      (body 37:3
+        (branch 37:3
+          (wing 37:6 v)
+          (arm 38:5
+            (cell 38:5 (lit 38:6 %flag) (lit 38:12 %.y))
+            (str 38:17 "yes"))
+          (arm 39:5
+            (cell 39:5 (lit 39:6 %flag) (lit 39:12 %.n))
+            (str 39:17 "no"))
+          (arm 40:5 (lit 40:5 %none) (str 40:11 "absent"))))))
+  (value 41:1 not-known
+    (gate 41:14
+      (bind 41:17 v)
+      (body 42:3
+        (branch 42:3
+          (wing 42:6 v)
+          (arm 43:5 (lit 43:5 %a) (str 43:8 "a"))
+          (arm 44:5 (lit 44:5 %b) (str 44:8 "b"))
+          (arm 45:5 (lit 45:5 %c) (str 45:8 "c"))))))
+  (mold 46:1 digits
+    (union 47:3 (const 47:3 %$) (const 48:3 %1)))
+  (value 49:1 as-booleans
+    (gate 49:16
+      (face 49:19 v (ref 49:21 digits))
+      (body 50:3
+        (branch 50:3
+          (wing 50:6 v)
+          (arm 51:5 (lit 51:5 %.y) (str 51:9 "zero"))
+          (arm 52:5 (lit 52:5 %.n) (str 52:9 "one"))))))
+  (mold 53:1 option
+    (union 54:3 (const 54:3 ~) (const 55:3 %some)))
+  (value 56:1 null-option
+    (gate 56:16
+      (face 56:19 v (ref 56:21 option))
+      (body 57:3
+        (branch 57:3
+          (wing 57:6 v)
+          (arm 58:5 (lit 58:5 ~) (str 58:7 "none"))
+          (arm 59:5 (lit 59:5 %some) (str 59:11 "some"))))))
+  (mold 60:1 output
+    (union 61:3 (const 61:3 %left) (const 62:3 %right)))
+  (value 63:1 context
+    (gate 63:12
+      (face 63:15 v (ref 63:17 digits))
+      (body 64:3
+        (cast 64:3
+          (ref 64:6 output)
+          (branch 64:13
+            (wing 64:16 v)
+            (arm 65:5 (lit 65:5 %.y) (lit 65:9 %left))
+            (arm 66:5 (lit 66:5 %.n) (lit 66:9 %right)))))))
+  (value 67:1 context-list
+    (gate 67:17
+      (face 67:20 v (ref 67:22 digits))
+      (body 68:3
+        (cast 68:3
+          (apply 68:6 list (aura 68:12 @t))
+          (branch 68:16
+            (wing 68:19 v)
+            (arm 69:5
+              (lit 69:5 %.y)
+              (list 69:9 (str 69:11 "left")))
+            (arm 70:5
+              (lit 70:5 %.n)
+              (list 70:9 (str 70:11 "right"))))))))
+  (value 71:1 grouped-subject
+    (gate 71:20
+      (face 71:23 v (ref 71:25 digits))
+      (body 72:3
+        (branch 72:3
+          (group 72:6 (wing 72:7 v))
+          (arm 73:5 (lit 73:5 %.y) (str 73:9 "zero"))
+          (arm 74:5 (lit 74:5 %.n) (str 74:9 "one")))))))

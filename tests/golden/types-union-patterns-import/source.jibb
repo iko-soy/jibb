@@ -1,0 +1,5 @@
+/= lib /ui/lib
+++ show |= v=msg.lib
+  ?- v
+    [%noted words] words
+    %add "add"

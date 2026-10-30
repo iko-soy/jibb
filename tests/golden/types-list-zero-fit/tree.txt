@@ -1,0 +1,91 @@
+(module
+  (value 1:1 nil-arg
+    (gate 1:12
+      (face 1:15 f
+        (fn 1:17
+          (cell 1:20
+            (apply 1:21 list (aura 1:27 @t))
+            (aura 1:31 @t))
+          (aura 1:35 @t)))
+      (group 1:39
+        (call 1:40
+          (wing 1:40 f)
+          (tuple 1:42 (lit 1:43 ~) (str 1:45 "ok"))))))
+  (value 2:1 zero-arg
+    (gate 2:13
+      (face 2:16 f
+        (fn 2:18
+          (cell 2:21
+            (apply 2:22 list (aura 2:28 @t))
+            (aura 2:32 @t))
+          (aura 2:36 @t)))
+      (group 2:40
+        (call 2:41
+          (wing 2:41 f)
+          (tuple 2:43 (lit 2:44 %$) (str 2:47 "ok"))))))
+  (value 3:1 zero-one-arg
+    (gate 3:17
+      (face 3:20 f
+        (fn 3:22
+          (cell 3:25
+            (apply 3:26 list (aura 3:32 @t))
+            (aura 3:36 @t))
+          (aura 3:40 @t)))
+      (group 3:44
+        (call 3:45
+          (wing 3:45 f)
+          (tuple 3:47 (lit 3:48 %1) (str 3:51 "ok"))))))
+  (value 4:1 multi-arg
+    (gate 4:14
+      (face 4:17 f
+        (fn 4:19
+          (cell 4:22
+            (apply 4:23 list (aura 4:29 @t))
+            (aura 4:33 @t))
+          (aura 4:37 @t)))
+      (group 4:41
+        (call 4:42 (wing 4:42 f) (lit 4:44 ~) (str 4:46 "ok")))))
+  (value 5:1 constant
+    (gate 5:13
+      (cell 5:16
+        (face 5:17 f
+          (fn 5:19
+            (cell 5:22
+              (apply 5:23 list (aura 5:29 @t))
+              (aura 5:33 @t))
+            (aura 5:37 @t)))
+        (face 5:41 z (const 5:43 ~)))
+      (group 5:46
+        (call 5:47
+          (wing 5:47 f)
+          (tuple 5:49 (wing 5:50 z) (str 5:52 "ok"))))))
+  (value 6:1 nonzero-constant
+    (gate 6:21
+      (cell 6:24
+        (face 6:25 f
+          (fn 6:27
+            (cell 6:30
+              (apply 6:31 list (aura 6:37 @t))
+              (aura 6:41 @t))
+            (aura 6:45 @t)))
+        (face 6:49 z (const 6:51 %1)))
+      (group 6:55
+        (call 6:56
+          (wing 6:56 f)
+          (tuple 6:58 (wing 6:59 z) (str 6:61 "ok"))))))
+  (value 7:1 reverse
+    (gate 7:12
+      (cell 7:15
+        (face 7:16 f
+          (fn 7:18 (const 7:21 %$) (aura 7:24 @t)))
+        (face 7:28 xs
+          (apply 7:31 list (aura 7:37 @t))))
+      (group 7:42
+        (call 7:43 (wing 7:43 f) (wing 7:45 xs)))))
+  (value 8:1 turn-tuple
+    (group 8:15
+      (call 8:16
+        (wing 8:16 turn)
+        (tuple 8:21
+          (lit 8:22 ~)
+          (gate-wide 8:24 (bind 8:27 x) (wing 8:29 x)))))))

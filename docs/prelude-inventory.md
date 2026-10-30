@@ -43,7 +43,7 @@ The following is an audit of the Hoon 135 bodies, not a completed Jibb interface
 
 `snoc`, `lure`, `fand`, `find`, `flop`, `gulf`, `homo`, `join`, `bake`, `lent`, `levy`, `lien`, `limo`, `murn`, `oust`, `reap`, `rear`, `reel`, `roll`, `scag`, `skid`, `skim`, `skip`, `slag`, `snag`, `snip`, `sort`, `spin`, `spun`, `swag`, `turn`, `weld`, `snap`, `into`, `welp`, `zing`.
 
-The current prelude writes `snoc`, `lure`, `flop`, `join`, `levy`, `lien`, `murn`, `rear`, `reel`, `roll`, `skim`, `skip`, `snip`, `turn` and `weld`. `murn` keeps the present products of its gate in order; `join` inserts a separator between items; `snip` drops the last item, and `rear` returns it or crashes on an empty list. The folds take an explicit initial value as the Prelude table specifies. The partial checker infers `snoc`, `lure` and `weld` using the validated prelude `list` mold; most other list helpers remain unsupported by that fragment. Backend validation remains outstanding for all of them.
+The current prelude writes `snoc`, `lure`, `flop`, `join`, `levy`, `lien`, `murn`, `rear`, `reel`, `roll`, `skim`, `skip`, `snip`, `turn` and `weld`. `murn` keeps the present products of its gate in order; `join` inserts a separator between items; `snip` drops the last item, and `rear` returns it or crashes on an empty list. The folds take an explicit initial value as the Prelude table specifies. The partial checker infers `snoc`, `lure`, `weld` and `turn` using the validated prelude `list` mold; most other list helpers remain unsupported by that fragment. Backend validation remains outstanding for all of them.
 
 ## 2c
 

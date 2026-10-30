@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all"; Imports: names from a Jibb module are read through its face.
+tests: A known imported union can be matched exhaustively with a tagged payload and a bare term; its name remains qualified in the inferred type.
+expect: parses
+expect-types: a partial inference report

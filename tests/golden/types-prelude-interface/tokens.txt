@@ -46,17 +46,17 @@
 6:42 tight glyph )
 7:1 NEWLINE
 7:1 glyph ++
-7:4 name unavailable
-7:16 glyph (
-7:17 tight name turn
-7:22 glyph [
-7:23 tight lit ~
-7:25 glyph |=(
-7:28 tight name x
-7:30 name x
-7:31 tight glyph )
-7:32 tight glyph ]
-7:33 tight glyph )
+7:4 name tuple-call
+7:15 glyph (
+7:16 tight name turn
+7:21 glyph [
+7:22 tight lit ~
+7:24 glyph |=(
+7:27 tight name x
+7:29 name x
+7:30 tight glyph )
+7:31 tight glyph ]
+7:32 tight glyph )
 8:1 NEWLINE
 8:1 glyph ++
 8:4 name shadow

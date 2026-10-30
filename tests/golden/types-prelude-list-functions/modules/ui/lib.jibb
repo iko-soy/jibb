@@ -1,1 +1,2 @@
 ++ value (lure ~zod)
+++ mapped (turn ~["a"] |=(x ~zod))

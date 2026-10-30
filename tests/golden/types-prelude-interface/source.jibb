@@ -4,7 +4,7 @@
 ++ source (identity.right value.left)
 ++ direct (need value.left)
 ++ fallback (fall [value.left "fallback"])
-++ unavailable (turn [~ |=(x x)])
+++ tuple-call (turn [~ |=(x x)])
 ++ shadow |= turn turn
 ++ list-id |= x=(list @t) x
 ++ get-gate identity.right

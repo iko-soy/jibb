@@ -13,3 +13,16 @@ partial inference; module not checked
 ++ mismatch (weld ~["a"] ~[~zod])
                            ^
 ++ pending: tag needs context in partial inference
+++ turn-text: (list @t)
+++ turn-ships: (list @p)
+++ turn-map: (list @p)
+++ turn-empty: (list @t)
+++ turn-nested: (list (list @t))
+++ turn-import: (list @p)
+++ turn-mismatch: call's sample and argument types do not unify
+/tests/golden/types-prelude-list-functions/source.jibb:18:19: called gate has type $-([(list @t) $-(@t A)] (list A))
+++ turn-mismatch (turn ~["a"] |=(x (^- @p x)))
+                  ^
+/tests/golden/types-prelude-list-functions/source.jibb:18:31: argument has type $-(@p @p)
+++ turn-mismatch (turn ~["a"] |=(x (^- @p x)))
+                              ^

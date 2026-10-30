@@ -9,3 +9,10 @@
 ++ pending
   ~& %unknown
     (lure "hi")
+++ turn-text (turn ~["a"] |=(x x))
+++ turn-ships (turn ~[~zod] |=(x x))
+++ turn-map (turn ~["a"] |=(x ~zod))
+++ turn-empty (turn ~[] |=(x=@t x))
+++ turn-nested (turn (^- (list (list @t)) ~[~["a"]]) |=(x x))
+++ turn-import mapped.lib
+++ turn-mismatch (turn ~["a"] |=(x (^- @p x)))

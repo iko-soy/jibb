@@ -1,0 +1,36 @@
++$ result |$ [V E]
+  [%ok value=V]
+  [%err error=E]
+++ either-value |= r=(result A A)
+  ?- r
+    [%ok value] value
+    [%err error] error
+++ concrete |= r=(result @t @p)
+  ?- r
+    [%ok value] value
+    [%err error] "failed"
+++ missing |= r=(result @t @p)
+  ?- r
+    [%ok value] value
+    [%ok again] again
+++ nested |= r=(result @t @p)
+  ?- r
+    [%ok "x"] "hit"
+    [%ok *] "other"
+    [%err error] "failed"
+++ different |= r=(result A B)
+  ?- r
+    [%ok value] value
+    [%err error] error
+++ forced |= r=(result A A)
+  ?- r
+    [%ok value] ^- @t value
+    [%err error] error
+++ reused |= r=(result A A)
+  ?- r
+    [%ok item] item
+    [%err item] item
+++ pending |= r=(result @t @p)
+  ?- r
+    [%ok value] %orphan
+    [%err error] %orphan

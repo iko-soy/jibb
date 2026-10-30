@@ -1,0 +1,4 @@
+source: Grammar, Literals: `~` is "A constant: the `~` case of any union with one, such as `(unit A)`, `(list A)`, `(map K V)` or `(set A)`".
+tests: A zero-valued literal or constant nested in a tuple supplied to a list sample is not a definite mismatch; this partial checker does not yet propagate the list context into that tuple. Nonzero atoms and passing an arbitrary list where the zero constant is required remain definite mismatches. Separate call arguments do receive list context, and the prelude `turn` tuple also fails closed.
+expect: parses
+expect-types: a partial inference report

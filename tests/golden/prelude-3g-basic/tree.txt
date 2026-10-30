@@ -111,43 +111,46 @@
           (arm 47:5
             (cell 47:5 (bind 47:6 xs) (bind 47:9 f))
             (body 48:7
-              (branch 48:7
-                (wing 48:10 xs)
-                (arm 49:9 (lit 49:9 ~) (lit 49:11 ~))
-                (arm 50:9
-                  (cell 50:9 (bind 50:10 item) (bind 50:15 rest))
-                  (tuple 50:21
-                    (group 50:22
-                      (call 50:23 (wing 50:23 f) (wing 50:25 item)))
-                    (group 50:31
-                      (call 50:32 (wing 50:32 turn) (wing 50:37 rest) (wing 50:42 f))))))))))))
-  (mold 52:1 dime
-    (cell 52:9
-      (face 52:10 p (aura 52:12 @ta))
-      (face 52:16 q (aura 52:18 @))))
-  (mold 54:1 hair
-    (cell 54:9
-      (face 54:10 p (aura 54:12 @ud))
-      (face 54:16 q (aura 54:18 @ud))))
-  (mold 56:1 pint
-    (cell 56:9
-      (face 56:10 p
-        (cell 56:12
-          (face 56:13 p (aura 56:15 @))
-          (face 56:17 q (aura 56:19 @))))
-      (face 56:22 q
-        (cell 56:24
-          (face 56:25 p (aura 56:27 @))
-          (face 56:29 q (aura 56:31 @))))))
-  (mold 58:1 coin
-    (union 59:3
-      (cell 59:3
-        (const 59:4 %$)
-        (face 59:7 p (ref 59:9 dime)))
+              (cast 48:7
+                (apply 48:10 list (tvar 48:16 B))
+                (body 49:9
+                  (branch 49:9
+                    (wing 49:12 xs)
+                    (arm 50:11 (lit 50:11 ~) (lit 50:13 ~))
+                    (arm 51:11
+                      (cell 51:11 (bind 51:12 item) (bind 51:17 rest))
+                      (tuple 51:23
+                        (group 51:24
+                          (call 51:25 (wing 51:25 f) (wing 51:27 item)))
+                        (group 51:33
+                          (call 51:34 (wing 51:34 turn) (wing 51:39 rest) (wing 51:44 f))))))))))))))
+  (mold 53:1 dime
+    (cell 53:9
+      (face 53:10 p (aura 53:12 @ta))
+      (face 53:16 q (aura 53:18 @))))
+  (mold 55:1 hair
+    (cell 55:9
+      (face 55:10 p (aura 55:12 @ud))
+      (face 55:16 q (aura 55:18 @ud))))
+  (mold 57:1 pint
+    (cell 57:9
+      (face 57:10 p
+        (cell 57:12
+          (face 57:13 p (aura 57:15 @))
+          (face 57:17 q (aura 57:19 @))))
+      (face 57:22 q
+        (cell 57:24
+          (face 57:25 p (aura 57:27 @))
+          (face 57:29 q (aura 57:31 @))))))
+  (mold 59:1 coin
+    (union 60:3
       (cell 60:3
-        (const 60:4 %blob)
-        (face 60:10 p (noun 60:12)))
+        (const 60:4 %$)
+        (face 60:7 p (ref 60:9 dime)))
       (cell 61:3
-        (const 61:4 %many)
-        (face 61:10 p
-          (apply 61:12 list (ref 61:18 coin)))))))
+        (const 61:4 %blob)
+        (face 61:10 p (noun 61:12)))
+      (cell 62:3
+        (const 62:4 %many)
+        (face 62:10 p
+          (apply 62:12 list (ref 62:18 coin)))))))

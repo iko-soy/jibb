@@ -1,0 +1,8 @@
+++ nil-arg |= f=$-([(list @t) @t] @t) (f [~ "ok"])
+++ zero-arg |= f=$-([(list @t) @t] @t) (f [%$ "ok"])
+++ zero-one-arg |= f=$-([(list @t) @t] @t) (f [%1 "ok"])
+++ multi-arg |= f=$-([(list @t) @t] @t) (f ~ "ok")
+++ constant |= [f=$-([(list @t) @t] @t) z=~] (f [z "ok"])
+++ nonzero-constant |= [f=$-([(list @t) @t] @t) z=%1] (f [z "ok"])
+++ reverse |= [f=$-(%$ @t) xs=(list @t)] (f xs)
+++ turn-tuple (turn [~ |=(x x)])

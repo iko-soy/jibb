@@ -1,0 +1,117 @@
+(module
+  (mold 1:1 result
+    (generic 1:11 V E
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %ok)
+          (face 2:8 value (tvar 2:14 V)))
+        (cell 3:3
+          (const 3:4 %err)
+          (face 3:9 error (tvar 3:15 E))))))
+  (value 4:1 either-value
+    (gate 4:17
+      (face 4:20 r
+        (apply 4:22 result (tvar 4:30 A) (tvar 4:32 A)))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 r)
+          (arm 6:5
+            (cell 6:5 (lit 6:6 %ok) (bind 6:10 value))
+            (wing 6:17 value))
+          (arm 7:5
+            (cell 7:5 (lit 7:6 %err) (bind 7:11 error))
+            (wing 7:18 error))))))
+  (value 8:1 concrete
+    (gate 8:13
+      (face 8:16 r
+        (apply 8:18 result (aura 8:26 @t) (aura 8:29 @p)))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 r)
+          (arm 10:5
+            (cell 10:5 (lit 10:6 %ok) (bind 10:10 value))
+            (wing 10:17 value))
+          (arm 11:5
+            (cell 11:5 (lit 11:6 %err) (bind 11:11 error))
+            (str 11:18 "failed"))))))
+  (value 12:1 missing
+    (gate 12:12
+      (face 12:15 r
+        (apply 12:17 result (aura 12:25 @t) (aura 12:28 @p)))
+      (body 13:3
+        (branch 13:3
+          (wing 13:6 r)
+          (arm 14:5
+            (cell 14:5 (lit 14:6 %ok) (bind 14:10 value))
+            (wing 14:17 value))
+          (arm 15:5
+            (cell 15:5 (lit 15:6 %ok) (bind 15:10 again))
+            (wing 15:17 again))))))
+  (value 16:1 nested
+    (gate 16:11
+      (face 16:14 r
+        (apply 16:16 result (aura 16:24 @t) (aura 16:27 @p)))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 r)
+          (arm 18:5
+            (cell 18:5 (lit 18:6 %ok) (str 18:10 "x"))
+            (str 18:15 "hit"))
+          (arm 19:5
+            (cell 19:5 (lit 19:6 %ok) (any 19:10))
+            (str 19:13 "other"))
+          (arm 20:5
+            (cell 20:5 (lit 20:6 %err) (bind 20:11 error))
+            (str 20:18 "failed"))))))
+  (value 21:1 different
+    (gate 21:14
+      (face 21:17 r
+        (apply 21:19 result (tvar 21:27 A) (tvar 21:29 B)))
+      (body 22:3
+        (branch 22:3
+          (wing 22:6 r)
+          (arm 23:5
+            (cell 23:5 (lit 23:6 %ok) (bind 23:10 value))
+            (wing 23:17 value))
+          (arm 24:5
+            (cell 24:5 (lit 24:6 %err) (bind 24:11 error))
+            (wing 24:18 error))))))
+  (value 25:1 forced
+    (gate 25:11
+      (face 25:14 r
+        (apply 25:16 result (tvar 25:24 A) (tvar 25:26 A)))
+      (body 26:3
+        (branch 26:3
+          (wing 26:6 r)
+          (arm 27:5
+            (cell 27:5 (lit 27:6 %ok) (bind 27:10 value))
+            (cast 27:17 (aura 27:20 @t) (wing 27:23 value)))
+          (arm 28:5
+            (cell 28:5 (lit 28:6 %err) (bind 28:11 error))
+            (wing 28:18 error))))))
+  (value 29:1 reused
+    (gate 29:11
+      (face 29:14 r
+        (apply 29:16 result (tvar 29:24 A) (tvar 29:26 A)))
+      (body 30:3
+        (branch 30:3
+          (wing 30:6 r)
+          (arm 31:5
+            (cell 31:5 (lit 31:6 %ok) (bind 31:10 item))
+            (wing 31:16 item))
+          (arm 32:5
+            (cell 32:5 (lit 32:6 %err) (bind 32:11 item))
+            (wing 32:17 item))))))
+  (value 33:1 pending
+    (gate 33:12
+      (face 33:15 r
+        (apply 33:17 result (aura 33:25 @t) (aura 33:28 @p)))
+      (body 34:3
+        (branch 34:3
+          (wing 34:6 r)
+          (arm 35:5
+            (cell 35:5 (lit 35:6 %ok) (bind 35:10 value))
+            (lit 35:17 %orphan))
+          (arm 36:5
+            (cell 36:5 (lit 36:6 %err) (bind 36:11 error))
+            (lit 36:18 %orphan)))))))

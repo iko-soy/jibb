@@ -2,4 +2,10 @@
 (module
   (value 1:1 value
     (group 1:10
-      (call 1:11 (wing 1:11 lure) (lit 1:16 ~zod)))))
+      (call 1:11 (wing 1:11 lure) (lit 1:16 ~zod))))
+  (value 2:1 mapped
+    (group 2:11
+      (call 2:12
+        (wing 2:12 turn)
+        (list 2:17 (str 2:19 "a"))
+        (gate-wide 2:24 (bind 2:27 x) (lit 2:29 ~zod))))))

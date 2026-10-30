@@ -3,7 +3,7 @@ partial inference; module not checked
 ++ source: (unit @t)
 ++ direct: @t
 ++ fallback: @t
-++ unavailable: name is not available to partial inference
+++ tuple-call: call constraint is not supported by partial inference
 ++ shadow: sample shadows a name
 ++ list-id: $-((list @t) (list @t))
 ++ get-gate: $-((unit A) (unit A))

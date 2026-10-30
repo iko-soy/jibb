@@ -14,12 +14,12 @@
     (cast 3:13
       (apply 3:16 unit (aura 3:22 @t))
       (lit 3:26 ~)))
-  (value 4:1 missing
-    (group 4:12
-      (call 4:13
-        (wing 4:13 turn)
-        (tuple 4:18
-          (lit 4:19 ~)
-          (gate-wide 4:21 (bind 4:24 x) (wing 4:26 x))))))
+  (value 4:1 tuple-call
+    (group 4:15
+      (call 4:16
+        (wing 4:16 turn)
+        (tuple 4:21
+          (lit 4:22 ~)
+          (gate-wide 4:24 (bind 4:27 x) (wing 4:29 x))))))
   (value 5:1 shadow
     (gate 5:11 (bind 5:14 need) (wing 5:19 need))))

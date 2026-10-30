@@ -111,115 +111,118 @@
           (arm 47:5
             (cell 47:5 (bind 47:6 xs) (bind 47:9 f))
             (body 48:7
-              (branch 48:7
-                (wing 48:10 xs)
-                (arm 49:9 (lit 49:9 ~) (lit 49:11 ~))
-                (arm 50:9
-                  (cell 50:9 (bind 50:10 item) (bind 50:15 rest))
-                  (tuple 50:21
-                    (group 50:22
-                      (call 50:23 (wing 50:23 f) (wing 50:25 item)))
-                    (group 50:31
-                      (call 50:32 (wing 50:32 turn) (wing 50:37 rest) (wing 50:42 f))))))))))))
-  (mold 52:1 dime
-    (cell 52:9
-      (face 52:10 p (aura 52:12 @ta))
-      (face 52:16 q (aura 52:18 @))))
-  (mold 54:1 hair
-    (cell 54:9
-      (face 54:10 p (aura 54:12 @ud))
-      (face 54:16 q (aura 54:18 @ud))))
-  (mold 56:1 pint
-    (cell 56:9
-      (face 56:10 p
-        (cell 56:12
-          (face 56:13 p (aura 56:15 @))
-          (face 56:17 q (aura 56:19 @))))
-      (face 56:22 q
-        (cell 56:24
-          (face 56:25 p (aura 56:27 @))
-          (face 56:29 q (aura 56:31 @))))))
-  (mold 58:1 coin
-    (union 59:3
-      (cell 59:3
-        (const 59:4 %$)
-        (face 59:7 p (ref 59:9 dime)))
+              (cast 48:7
+                (apply 48:10 list (tvar 48:16 B))
+                (body 49:9
+                  (branch 49:9
+                    (wing 49:12 xs)
+                    (arm 50:11 (lit 50:11 ~) (lit 50:13 ~))
+                    (arm 51:11
+                      (cell 51:11 (bind 51:12 item) (bind 51:17 rest))
+                      (tuple 51:23
+                        (group 51:24
+                          (call 51:25 (wing 51:25 f) (wing 51:27 item)))
+                        (group 51:33
+                          (call 51:34 (wing 51:34 turn) (wing 51:39 rest) (wing 51:44 f))))))))))))))
+  (mold 53:1 dime
+    (cell 53:9
+      (face 53:10 p (aura 53:12 @ta))
+      (face 53:16 q (aura 53:18 @))))
+  (mold 55:1 hair
+    (cell 55:9
+      (face 55:10 p (aura 55:12 @ud))
+      (face 55:16 q (aura 55:18 @ud))))
+  (mold 57:1 pint
+    (cell 57:9
+      (face 57:10 p
+        (cell 57:12
+          (face 57:13 p (aura 57:15 @))
+          (face 57:17 q (aura 57:19 @))))
+      (face 57:22 q
+        (cell 57:24
+          (face 57:25 p (aura 57:27 @))
+          (face 57:29 q (aura 57:31 @))))))
+  (mold 59:1 coin
+    (union 60:3
       (cell 60:3
-        (const 60:4 %blob)
-        (face 60:10 p (noun 60:12)))
+        (const 60:4 %$)
+        (face 60:7 p (ref 60:9 dime)))
       (cell 61:3
-        (const 61:4 %many)
-        (face 61:10 p
-          (apply 61:12 list (ref 61:18 coin))))))
-  (mold 63:1 pair
-    (generic 63:9 A B
-      (cell 63:18
-        (face 63:19 p (tvar 63:21 A))
-        (face 63:23 q (tvar 63:25 B)))))
-  (mold 65:1 trel
-    (generic 65:9 A B C
-      (cell 65:20
-        (face 65:21 p (tvar 65:23 A))
-        (face 65:25 q (tvar 65:27 B))
-        (face 65:29 r (tvar 65:31 C)))))
-  (mold 67:1 qual
-    (generic 67:9 A B C D
-      (cell 67:22
-        (face 67:23 p (tvar 67:25 A))
-        (face 67:27 q (tvar 67:29 B))
-        (face 67:31 r (tvar 67:33 C))
-        (face 67:35 s (tvar 67:37 D)))))
-  (mold 69:1 cord (aura 69:9 @t))
-  (mold 71:1 knot (aura 71:9 @ta))
-  (mold 73:1 tape
-    (apply 73:9 list (aura 73:15 @tD)))
-  (mold 75:1 path
-    (apply 75:9 list (ref 75:15 knot)))
-  (mold 77:1 tank
-    (union 78:3
-      (ref 78:3 cord)
-      (cell 79:3
-        (const 79:4 %leaf)
-        (face 79:10 p (ref 79:12 tape)))
+        (const 61:4 %blob)
+        (face 61:10 p (noun 61:12)))
+      (cell 62:3
+        (const 62:4 %many)
+        (face 62:10 p
+          (apply 62:12 list (ref 62:18 coin))))))
+  (mold 64:1 pair
+    (generic 64:9 A B
+      (cell 64:18
+        (face 64:19 p (tvar 64:21 A))
+        (face 64:23 q (tvar 64:25 B)))))
+  (mold 66:1 trel
+    (generic 66:9 A B C
+      (cell 66:20
+        (face 66:21 p (tvar 66:23 A))
+        (face 66:25 q (tvar 66:27 B))
+        (face 66:29 r (tvar 66:31 C)))))
+  (mold 68:1 qual
+    (generic 68:9 A B C D
+      (cell 68:22
+        (face 68:23 p (tvar 68:25 A))
+        (face 68:27 q (tvar 68:29 B))
+        (face 68:31 r (tvar 68:33 C))
+        (face 68:35 s (tvar 68:37 D)))))
+  (mold 70:1 cord (aura 70:9 @t))
+  (mold 72:1 knot (aura 72:9 @ta))
+  (mold 74:1 tape
+    (apply 74:9 list (aura 74:15 @tD)))
+  (mold 76:1 path
+    (apply 76:9 list (ref 76:15 knot)))
+  (mold 78:1 tank
+    (union 79:3
+      (ref 79:3 cord)
       (cell 80:3
-        (const 80:4 %palm)
-        (face 80:10 p
-          (apply 80:12 qual (ref 80:18 tape) (ref 80:23 tape) (ref 80:28 tape) (ref 80:33 tape)))
-        (face 80:39 q
-          (apply 80:41 list (ref 80:47 tank))))
+        (const 80:4 %leaf)
+        (face 80:10 p (ref 80:12 tape)))
       (cell 81:3
-        (const 81:4 %rose)
+        (const 81:4 %palm)
         (face 81:10 p
-          (apply 81:12 trel (ref 81:18 tape) (ref 81:23 tape) (ref 81:28 tape)))
-        (face 81:34 q
-          (apply 81:36 list (ref 81:42 tank))))))
-  (mold 83:1 nail
-    (cell 83:9
-      (face 83:10 p (ref 83:12 hair))
-      (face 83:17 q (ref 83:19 tape))))
-  (mold 85:1 edge
-    (cell 85:9
-      (face 85:10 p (ref 85:12 hair))
-      (face 85:17 q
-        (apply 85:19 unit
-          (cell 85:25
-            (face 85:26 p (noun 85:28))
-            (face 85:30 q (ref 85:32 nail)))))))
-  (mold 87:1 rule
-    (fn 87:9 (ref 87:12 nail) (ref 87:17 edge)))
-  (mold 89:1 spot
-    (cell 89:9
-      (face 89:10 p (ref 89:12 path))
-      (face 89:17 q (ref 89:19 pint))))
-  (mold 91:1 toon
-    (union 92:3
-      (cell 92:3
-        (const 92:4 %0)
-        (face 92:7 p (noun 92:9)))
+          (apply 81:12 qual (ref 81:18 tape) (ref 81:23 tape) (ref 81:28 tape) (ref 81:33 tape)))
+        (face 81:39 q
+          (apply 81:41 list (ref 81:47 tank))))
+      (cell 82:3
+        (const 82:4 %rose)
+        (face 82:10 p
+          (apply 82:12 trel (ref 82:18 tape) (ref 82:23 tape) (ref 82:28 tape)))
+        (face 82:34 q
+          (apply 82:36 list (ref 82:42 tank))))))
+  (mold 84:1 nail
+    (cell 84:9
+      (face 84:10 p (ref 84:12 hair))
+      (face 84:17 q (ref 84:19 tape))))
+  (mold 86:1 edge
+    (cell 86:9
+      (face 86:10 p (ref 86:12 hair))
+      (face 86:17 q
+        (apply 86:19 unit
+          (cell 86:25
+            (face 86:26 p (noun 86:28))
+            (face 86:30 q (ref 86:32 nail)))))))
+  (mold 88:1 rule
+    (fn 88:9 (ref 88:12 nail) (ref 88:17 edge)))
+  (mold 90:1 spot
+    (cell 90:9
+      (face 90:10 p (ref 90:12 path))
+      (face 90:17 q (ref 90:19 pint))))
+  (mold 92:1 toon
+    (union 93:3
       (cell 93:3
-        (const 93:4 %1)
+        (const 93:4 %0)
         (face 93:7 p (noun 93:9)))
       (cell 94:3
-        (const 94:4 %2)
-        (face 94:7 p
-          (apply 94:9 list (ref 94:15 tank)))))))
+        (const 94:4 %1)
+        (face 94:7 p (noun 94:9)))
+      (cell 95:3
+        (const 95:4 %2)
+        (face 95:7 p
+          (apply 95:9 list (ref 95:15 tank)))))))

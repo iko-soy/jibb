@@ -1,0 +1,12 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 show
+    (gate 2:9
+      (face 2:12 v (ref 2:14 msg.lib))
+      (body 3:3
+        (branch 3:3
+          (wing 3:6 v)
+          (arm 4:5
+            (cell 4:5 (lit 4:6 %noted) (bind 4:13 words))
+            (wing 4:20 words))
+          (arm 5:5 (lit 5:5 %add) (str 5:10 "add")))))))

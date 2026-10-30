@@ -111,13 +111,16 @@
           (arm 47:5
             (cell 47:5 (bind 47:6 xs) (bind 47:9 f))
             (body 48:7
-              (branch 48:7
-                (wing 48:10 xs)
-                (arm 49:9 (lit 49:9 ~) (lit 49:11 ~))
-                (arm 50:9
-                  (cell 50:9 (bind 50:10 item) (bind 50:15 rest))
-                  (tuple 50:21
-                    (group 50:22
-                      (call 50:23 (wing 50:23 f) (wing 50:25 item)))
-                    (group 50:31
-                      (call 50:32 (wing 50:32 turn) (wing 50:37 rest) (wing 50:42 f)))))))))))))
+              (cast 48:7
+                (apply 48:10 list (tvar 48:16 B))
+                (body 49:9
+                  (branch 49:9
+                    (wing 49:12 xs)
+                    (arm 50:11 (lit 50:11 ~) (lit 50:13 ~))
+                    (arm 51:11
+                      (cell 51:11 (bind 51:12 item) (bind 51:17 rest))
+                      (tuple 51:23
+                        (group 51:24
+                          (call 51:25 (wing 51:25 f) (wing 51:27 item)))
+                        (group 51:33
+                          (call 51:34 (wing 51:34 turn) (wing 51:39 rest) (wing 51:44 f)))))))))))))))

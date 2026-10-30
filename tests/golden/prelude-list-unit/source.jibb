@@ -45,6 +45,7 @@
 ++ turn |= args=[(list A) $-(A B)]
   ?- args
     [xs f]
-      ?- xs
-        ~ ~
-        [item rest] [(f item) (turn rest f)]
+      ^- (list B)
+        ?- xs
+          ~ ~
+          [item rest] [(f item) (turn rest f)]

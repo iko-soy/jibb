@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all"; Molds: "Type variables are capitals, generalized per `++`."
+tests: Matching generic union cases preserves shared payload variables and concrete payload types. Different result variables, partial patterns, unresolved result tags and an explicit capital forced concrete remain unsupported. The same binder name can be reused in separate arms, and a duplicate arm is dead.
+expect: parses
+expect-types: a partial inference report
