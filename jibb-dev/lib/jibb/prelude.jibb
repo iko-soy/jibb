@@ -166,6 +166,16 @@
             ~ ~
             [~ b] `[a b]
 
+++ clap |= args=[(unit A) (unit A) $-([A A] A)]
+  ?- args
+    [first second combine]
+      ?- first
+        ~ second
+        [~ a]
+          ?- second
+            ~ first
+            [~ b] `(combine a b)
+
 ++ clef |= args=[(unit A) (unit B) $-([A B] (unit C))]
   ?- args
     [first second combine]

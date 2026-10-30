@@ -1,0 +1,4 @@
+source: Decisions, Type variables: "Capitals, generalized per `++`"; "a different type takes a different capital".
+tests: Different explicitly written capitals cannot be forced equal via a call or cast; their source sites are reported. Repeated spelling, independent capitals and concrete-forcing controls retain their intended behavior.
+expect: parses
+expect-types: a partial inference report

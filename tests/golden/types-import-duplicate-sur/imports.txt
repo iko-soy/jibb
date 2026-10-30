@@ -1,0 +1,3 @@
+fixture direct
+fixture nested
+fixture valid

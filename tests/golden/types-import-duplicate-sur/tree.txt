@@ -1,0 +1,18 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 direct-id
+    (gate 2:14
+      (face 2:17 x (ref 2:19 direct.fixture))
+      (wing 2:34 x)))
+  (value 3:1 nested-id
+    (gate 3:14
+      (face 3:17 x (ref 3:19 nested.fixture))
+      (wing 3:34 x)))
+  (value 4:1 valid-id
+    (gate 4:13
+      (face 4:16 x (ref 4:18 valid.fixture))
+      (wing 4:32 x)))
+  (value 5:1 valid-read
+    (gate 5:15
+      (face 5:18 x (ref 5:20 valid.fixture))
+      (wing 5:34 same.nested.x))))

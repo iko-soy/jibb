@@ -36,4 +36,17 @@
   (value 9:1 bad-cons
     (cast 9:13
       (ref 9:16 texts.fixture)
-      (tuple 9:30 (lit 9:31 ~zod) (lit 9:36 ~)))))
+      (tuple 9:30 (lit 9:31 ~zod) (lit 9:36 ~))))
+  (value 10:1 branch
+    (gate 10:11
+      (face 10:14 b (flag 10:16))
+      (body 11:3
+        (cast 11:3
+          (ref 11:6 texts.fixture)
+          (body 12:5
+            (branch 12:5
+              (wing 12:8 b)
+              (arm 13:7 (lit 13:7 %.y) (list 13:11))
+              (arm 14:7
+                (lit 14:7 %.n)
+                (tuple 14:11 (str 14:12 "hi") (lit 14:17 ~))))))))))

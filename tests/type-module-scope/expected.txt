@@ -18,6 +18,7 @@ duplicate module sources: /ui/dup/jibb
 real prelude prepared/wrapper and golden match
 partial inference; module not checked
 ++ imported: $-((list @t) (list @t))
+++ imported-branch: list literal needs the standard prelude in partial inference
 ++ imported-cons: list literal needs the standard prelude in partial inference
 ++ imported-empty: list literal needs the standard prelude in partial inference
 ++ imported-pattern: list pattern needs the standard prelude in partial inference
@@ -26,6 +27,7 @@ partial inference; module not checked
 ++ bridge: cast mold is not supported by partial inference
 partial inference; module not checked
 ++ imported: $-((list @t) (list @t))
+++ imported-branch: list literal needs the standard prelude in partial inference
 ++ imported-cons: list literal needs the standard prelude in partial inference
 ++ imported-empty: list literal needs the standard prelude in partial inference
 ++ imported-pattern: list pattern needs the standard prelude in partial inference

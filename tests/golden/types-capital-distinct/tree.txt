@@ -1,0 +1,33 @@
+(module
+  (value 1:1 repeat
+    (gate 1:11
+      (face 1:14 p
+        (cell 1:16 (tvar 1:17 A) (tvar 1:19 A)))
+      (wing 1:22 p)))
+  (value 2:1 same
+    (gate 2:9
+      (face 2:12 p
+        (cell 2:14 (tvar 2:15 A) (tvar 2:17 A)))
+      (wing 2:20 p)))
+  (value 3:1 independent
+    (gate 3:16
+      (face 3:19 p
+        (cell 3:21 (tvar 3:22 A) (tvar 3:24 B)))
+      (wing 3:27 p)))
+  (value 4:1 bad-call
+    (gate 4:13
+      (face 4:16 p
+        (cell 4:18 (tvar 4:19 A) (tvar 4:21 B)))
+      (group 4:24
+        (call 4:25 (wing 4:25 repeat) (wing 4:32 p)))))
+  (value 5:1 bad-cast
+    (gate 5:13
+      (face 5:16 p
+        (cell 5:18 (tvar 5:19 A) (tvar 5:21 B)))
+      (cast 5:24
+        (cell 5:27 (tvar 5:28 A) (tvar 5:30 A))
+        (wing 5:33 p))))
+  (value 6:1 concrete
+    (gate 6:13
+      (face 6:16 x (tvar 6:18 A))
+      (cast 6:20 (aura 6:23 @t) (wing 6:26 x)))))

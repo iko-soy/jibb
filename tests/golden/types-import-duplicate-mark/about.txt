@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: `/%` translates marks; Grammar, Molds: "Faces are part of the type".
+tests: A mark with a duplicate face in a nested record is reported unsupported where used by the partial checker.
+expect: parses
+expect-types: a partial inference report

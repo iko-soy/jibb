@@ -1,0 +1,6 @@
+|%
++$  direct  [same=@t same=@ud]
++$  nested  [outer=[same=@t same=@ud] id=@ud]
++$  valid  [same=@t nested=[same=@ud other=@t]]
++$  unused  [same=@t same=@ud]
+--

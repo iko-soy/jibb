@@ -1,0 +1,5 @@
+|_  a=[nested=[same=@t same=@ud] id=@ud]
+++  grab  |%  ++  noun  [nested=[same=@t same=@ud] id=@ud]  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

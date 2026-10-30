@@ -54,7 +54,7 @@
 ::
 ++  list-guard
   ^-  @t
-  =/  source=@t  (crip "/- fixture\0a++ imported |= x=texts.fixture x\0a++ imported-cons ^- texts.fixture [\"hi\" ~]\0a++ imported-empty ^- texts.fixture ~\0a++ imported-pattern |= xs=texts.fixture\0a  ?- xs\0a    ~ !!\0a    [item rest] item\0a++ imported-literal ^- texts.fixture ~[\"hi\"]\0a++ literal ^- (list @t) ~[\"hi\"]\0a++ bridge |= x=texts.fixture ^- (list @t) x\0a")
+  =/  source=@t  (crip "/- fixture\0a++ imported |= x=texts.fixture x\0a++ imported-branch |= b=?\0a  ^- texts.fixture\0a    ?- b\0a      %.y ~[]\0a      %.n [\"hi\" ~]\0a++ imported-cons ^- texts.fixture [\"hi\" ~]\0a++ imported-empty ^- texts.fixture ~\0a++ imported-pattern |= xs=texts.fixture\0a  ?- xs\0a    ~ !!\0a    [item rest] item\0a++ imported-literal ^- texts.fixture ~[\"hi\"]\0a++ literal ^- (list @t) ~[\"hi\"]\0a++ bridge |= x=texts.fixture ^- (list @t) x\0a")
   =/  ext=(list [module=term name=term result=*])
     ~[[%fixture %texts [%& [%apply %list ~[[%atom %t ~]]]]]]
   =/  omitted=@t  (crip "++ same |=(x x)\0a")

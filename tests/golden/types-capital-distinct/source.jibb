@@ -1,0 +1,6 @@
+++ repeat |= p=[A A] p
+++ same |= p=[A A] p
+++ independent |= p=[A B] p
+++ bad-call |= p=[A B] (repeat p)
+++ bad-cast |= p=[A B] ^- [A A] p
+++ concrete |= x=A ^- @t x

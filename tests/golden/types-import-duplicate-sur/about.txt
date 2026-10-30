@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Faces are part of the type"; Overview, Importing Hoon types: "Unused molds are skipped".
+tests: A used imported Hoon record with duplicate sibling faces, including a nested record, is reported unsupported by the partial checker; identical names at separate nesting levels remain valid and an unselected duplicate mold is skipped.
+expect: parses
+expect-types: a partial inference report

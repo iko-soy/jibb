@@ -4,7 +4,31 @@ partial inference; module not checked
 ++ repeated: $-((choice A A) (choice A A))
 ++ independent: $-((choice A B) (choice A B))
 ++ already-same: $-((choice A A) (choice A A))
-++ merge-call: explicit capital constraints are not supported by partial inference
-++ phantom-cast: explicit capital constraints are not supported by partial inference
-++ local-merge: explicit capital constraints are not supported by partial inference
-++ captured-merge: explicit capital constraints are not supported by partial inference
+++ merge-call: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-generic-union-capitals/source.jibb:10:28: first type variable
+++ merge-call |= x=(choice A B) (repeated x)
+                           ^
+/tests/golden/types-generic-union-capitals/source.jibb:10:30: second type variable
+++ merge-call |= x=(choice A B) (repeated x)
+                             ^
+++ phantom-cast: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-generic-union-capitals/source.jibb:11:31: first type variable
+++ phantom-cast |= x=(phantom A) ^- (phantom B) x
+                              ^
+/tests/golden/types-generic-union-capitals/source.jibb:11:46: second type variable
+++ phantom-cast |= x=(phantom A) ^- (phantom B) x
+                                             ^
+++ local-merge: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-generic-union-capitals/source.jibb:12:29: first type variable
+++ local-merge |= x=(choice A B)
+                            ^
+/tests/golden/types-generic-union-capitals/source.jibb:12:31: second type variable
+++ local-merge |= x=(choice A B)
+                              ^
+++ captured-merge: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-generic-union-capitals/source.jibb:15:32: first type variable
+++ captured-merge |= x=(choice A B)
+                               ^
+/tests/golden/types-generic-union-capitals/source.jibb:15:34: second type variable
+++ captured-merge |= x=(choice A B)
+                                 ^

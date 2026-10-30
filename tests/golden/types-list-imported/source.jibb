@@ -7,3 +7,8 @@
 ++ cons (take ["hi" ~])
 ++ empty ^- texts.fixture ~
 ++ bad-cons ^- texts.fixture [~zod ~]
+++ branch |= b=?
+  ^- texts.fixture
+    ?- b
+      %.y ~[]
+      %.n ["hi" ~]

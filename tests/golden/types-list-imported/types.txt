@@ -19,3 +19,4 @@ partial inference; module not checked
 /tests/golden/types-list-imported/source.jibb:9:31: list item has type @p
 ++ bad-cons ^- texts.fixture [~zod ~]
                               ^
+++ branch: $-(? (list @t))

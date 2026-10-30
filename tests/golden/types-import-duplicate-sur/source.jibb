@@ -1,0 +1,5 @@
+/-  fixture
+++ direct-id |= x=direct.fixture x
+++ nested-id |= x=nested.fixture x
+++ valid-id |= x=valid.fixture x
+++ valid-read |= x=valid.fixture same.nested.x

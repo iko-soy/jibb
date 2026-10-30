@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all"; Literals by context: "Where a list is expected, `[x xs]` is `x` in front of `xs`."
+tests: List casts and known-sample calls provide context through complete loobean, unit and list branches, including recursive and nested forms; bad arms and unrelated constraints fail closed.
+expect: parses
+expect-types: a partial inference report

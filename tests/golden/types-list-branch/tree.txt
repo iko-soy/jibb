@@ -1,0 +1,237 @@
+(module
+  (value 1:1 copy
+    (gate 1:9
+      (face 1:12 xs
+        (apply 1:15 list (aura 1:21 @t)))
+      (body 2:3
+        (cast 2:3
+          (apply 2:6 list (aura 2:12 @t))
+          (body 3:5
+            (branch 3:5
+              (wing 3:8 xs)
+              (arm 4:7 (lit 4:7 ~) (lit 4:9 ~))
+              (arm 5:7
+                (cell 5:7 (bind 5:8 item) (bind 5:13 rest))
+                (tuple 5:19
+                  (wing 5:20 item)
+                  (group 5:25
+                    (call 5:26 (wing 5:26 copy) (wing 5:31 rest)))))))))))
+  (value 6:1 copy-reverse
+    (gate 6:17
+      (face 6:20 xs
+        (apply 6:23 list (aura 6:29 @t)))
+      (body 7:3
+        (cast 7:3
+          (apply 7:6 list (aura 7:12 @t))
+          (body 8:5
+            (branch 8:5
+              (wing 8:8 xs)
+              (arm 9:7
+                (cell 9:7 (bind 9:8 item) (bind 9:13 rest))
+                (tuple 9:19
+                  (wing 9:20 item)
+                  (group 9:25
+                    (call 9:26 (wing 9:26 copy-reverse) (wing 9:39 rest)))))
+              (arm 10:7 (lit 10:7 ~) (lit 10:9 ~))))))))
+  (value 11:1 boolean
+    (gate 11:12
+      (face 11:15 b (flag 11:17))
+      (body 12:3
+        (cast 12:3
+          (apply 12:6 list (aura 12:12 @t))
+          (body 13:5
+            (branch 13:5
+              (wing 13:8 b)
+              (arm 14:7 (lit 14:7 %.y) (list 14:11))
+              (arm 15:7
+                (lit 15:7 %.n)
+                (tuple 15:11 (str 15:12 "hi") (lit 15:17 ~)))))))))
+  (value 16:1 unit-branch
+    (gate 16:16
+      (face 16:19 x
+        (apply 16:21 unit (aura 16:27 @t)))
+      (body 17:3
+        (cast 17:3
+          (apply 17:6 list (aura 17:12 @t))
+          (body 18:5
+            (branch 18:5
+              (wing 18:8 x)
+              (arm 19:7 (lit 19:7 ~) (list 19:9))
+              (arm 20:7
+                (cell 20:7 (lit 20:8 ~) (bind 20:10 item))
+                (tuple 20:16 (wing 20:17 item) (lit 20:22 ~)))))))))
+  (value 21:1 nested
+    (gate 21:11
+      (face 21:14 xs
+        (apply 21:17 list (aura 21:23 @t)))
+      (body 22:3
+        (cast 22:3
+          (apply 22:6 list (aura 22:12 @t))
+          (body 23:5
+            (branch 23:5
+              (wing 23:8 xs)
+              (arm 24:7
+                (lit 24:7 ~)
+                (body 25:9
+                  (branch 25:9
+                    (lit 25:12 %.y)
+                    (arm 26:11 (lit 26:11 %.y) (list 26:15))
+                    (arm 27:11
+                      (lit 27:11 %.n)
+                      (tuple 27:15 (str 27:16 "x") (lit 27:20 ~))))))
+              (arm 28:7
+                (cell 28:7 (bind 28:8 item) (bind 28:13 rest))
+                (tuple 28:19
+                  (wing 28:20 item)
+                  (group 28:25
+                    (call 28:26 (wing 28:26 copy) (wing 28:31 rest)))))))))))
+  (value 29:1 consume
+    (gate 29:12
+      (face 29:15 xs
+        (apply 29:18 list (aura 29:24 @t)))
+      (wing 29:28 xs)))
+  (value 30:1 call
+    (gate 30:9
+      (face 30:12 b (flag 30:14))
+      (body 31:3
+        (group 31:3
+          (call 31:4
+            (wing 31:4 consume)
+            (branch 32:5
+              (wing 32:8 b)
+              (arm 33:7 (lit 33:7 %.y) (list 33:11))
+              (arm 34:7
+                (lit 34:7 %.n)
+                (tuple 34:11 (str 34:12 "hi") (lit 34:17 ~)))))))))
+  (value 35:1 bad-head
+    (gate 35:13
+      (face 35:16 b (flag 35:18))
+      (body 36:3
+        (cast 36:3
+          (apply 36:6 list (aura 36:12 @t))
+          (body 37:5
+            (branch 37:5
+              (wing 37:8 b)
+              (arm 38:7 (lit 38:7 %.y) (list 38:11))
+              (arm 39:7
+                (lit 39:7 %.n)
+                (tuple 39:11 (lit 39:12 ~zod) (lit 39:17 ~)))))))))
+  (value 40:1 bad-tail
+    (gate 40:13
+      (face 40:16 b (flag 40:18))
+      (body 41:3
+        (cast 41:3
+          (apply 41:6 list (aura 41:12 @t))
+          (body 42:5
+            (branch 42:5
+              (wing 42:8 b)
+              (arm 43:7
+                (lit 43:7 %.y)
+                (tuple 43:11 (str 43:12 "hi") (lit 43:17 ~zod)))
+              (arm 44:7 (lit 44:7 %.n) (list 44:11))))))))
+  (value 45:1 pending
+    (gate 45:12
+      (face 45:15 b (flag 45:17))
+      (body 46:3
+        (trace 46:3
+          (lit 46:6 %unknown)
+          (body 47:5
+            (cast 47:5
+              (apply 47:8 list (aura 47:14 @t))
+              (body 48:7
+                (branch 48:7
+                  (wing 48:10 b)
+                  (arm 49:9 (lit 49:9 %.y) (list 49:13))
+                  (arm 50:9
+                    (lit 50:9 %.n)
+                    (tuple 50:13 (str 50:14 "hi") (lit 50:19 ~)))))))))))
+  (value 51:1 pending-null
+    (gate 51:17
+      (face 51:20 b (flag 51:22))
+      (body 52:3
+        (trace 52:3
+          (lit 52:6 ~)
+          (body 53:5
+            (cast 53:5
+              (apply 53:8 list (aura 53:14 @t))
+              (body 54:7
+                (branch 54:7
+                  (wing 54:10 b)
+                  (arm 55:9 (lit 55:9 %.y) (list 55:13))
+                  (arm 56:9
+                    (lit 56:9 %.n)
+                    (tuple 56:13 (str 56:14 "hi") (lit 56:19 ~)))))))))))
+  (value 57:1 incomplete
+    (gate 57:15
+      (face 57:18 xs
+        (apply 57:21 list (aura 57:27 @t)))
+      (body 58:3
+        (cast 58:3
+          (apply 58:6 list (aura 58:12 @t))
+          (body 59:5
+            (branch 59:5
+              (wing 59:8 xs)
+              (arm 60:7 (lit 60:7 ~) (list 60:9))))))))
+  (value 61:1 duplicate
+    (gate 61:14
+      (face 61:17 xs
+        (apply 61:20 list (aura 61:26 @t)))
+      (body 62:3
+        (cast 62:3
+          (apply 62:6 list (aura 62:12 @t))
+          (body 63:5
+            (branch 63:5
+              (wing 63:8 xs)
+              (arm 64:7 (lit 64:7 ~) (list 64:9))
+              (arm 65:7 (lit 65:7 ~) (list 65:9))
+              (arm 66:7
+                (cell 66:7 (bind 66:8 item) (bind 66:13 rest))
+                (tuple 66:19 (wing 66:20 item) (lit 66:25 ~)))))))))
+  (value 67:1 opposite
+    (gate 67:13
+      (face 67:16 b (flag 67:18))
+      (body 68:3
+        (cast 68:3
+          (apply 68:6 list (aura 68:12 @t))
+          (body 69:5
+            (branch 69:5
+              (wing 69:8 b)
+              (arm 70:7
+                (lit 70:7 %.y)
+                (tuple 70:11 (lit 70:12 ~zod) (lit 70:17 ~)))
+              (arm 71:7
+                (lit 71:7 %.n)
+                (tuple 71:11 (str 71:12 "hi") (lit 71:17 ~)))))))))
+  (value 72:1 escape
+    (gate 72:11
+      (face 72:14 xs
+        (apply 72:17 list (aura 72:23 @t)))
+      (body 73:3
+        (cast 73:3
+          (apply 73:6 list (aura 73:12 @t))
+          (body 74:5
+            (branch 74:5
+              (wing 74:8 xs)
+              (arm 75:7
+                (lit 75:7 ~)
+                (tuple 75:9 (wing 75:10 item) (lit 75:15 ~)))
+              (arm 76:7
+                (cell 76:7 (bind 76:8 item) (bind 76:13 rest))
+                (tuple 76:19 (wing 76:20 item) (lit 76:25 ~)))))))))
+  (value 77:1 bad-recursive
+    (gate 77:18
+      (face 77:21 xs
+        (apply 77:24 list (aura 77:30 @t)))
+      (body 78:3
+        (cast 78:3
+          (apply 78:6 list (aura 78:12 @t))
+          (body 79:5
+            (branch 79:5
+              (wing 79:8 xs)
+              (arm 80:7 (lit 80:7 ~) (list 80:9))
+              (arm 81:7
+                (cell 81:7 (bind 81:8 item) (bind 81:13 rest))
+                (tuple 81:19
+                  (wing 81:20 item)
+                  (group 81:25
+                    (call 81:26 (wing 81:26 bad-recursive) (lit 81:40 ~zod))))))))))))

@@ -1,0 +1,19 @@
+partial inference; module not checked
+++ repeat: $-([A A] [A A])
+++ same: $-([A A] [A A])
+++ independent: $-([A B] [A B])
+++ bad-call: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-capital-distinct/source.jibb:4:19: first type variable
+++ bad-call |= p=[A B] (repeat p)
+                  ^
+/tests/golden/types-capital-distinct/source.jibb:4:21: second type variable
+++ bad-call |= p=[A B] (repeat p)
+                    ^
+++ bad-cast: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-capital-distinct/source.jibb:5:19: first type variable
+++ bad-cast |= p=[A B] ^- [A A] p
+                  ^
+/tests/golden/types-capital-distinct/source.jibb:5:21: second type variable
+++ bad-cast |= p=[A B] ^- [A A] p
+                    ^
+++ concrete: explicit capital constraints are not supported by partial inference

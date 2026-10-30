@@ -1,0 +1,35 @@
+partial inference; module not checked
+++ copy: $-((list @t) (list @t))
+++ copy-reverse: $-((list @t) (list @t))
+++ boolean: $-(? (list @t))
+++ unit-branch: $-((unit @t) (list @t))
+++ nested: $-((list @t) (list @t))
+++ consume: $-((list @t) (list @t))
+++ call: $-(? (list @t))
+++ bad-head: list item does not fit its expected type
+/tests/golden/types-list-branch/source.jibb:36:6: expected item has type @t
+  ^- (list @t)
+     ^
+/tests/golden/types-list-branch/source.jibb:39:12: list item has type @p
+      %.n [~zod ~]
+           ^
+++ bad-tail: list tail does not fit its expected type
+/tests/golden/types-list-branch/source.jibb:41:6: expected list has type (list @t)
+  ^- (list @t)
+     ^
+/tests/golden/types-list-branch/source.jibb:43:17: list tail has type @p
+      %.y ["hi" ~zod]
+                ^
+++ pending: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference
+++ incomplete: branch pattern is not supported by partial inference
+++ duplicate: branch is not supported by partial inference
+++ opposite: list item does not fit its expected type
+/tests/golden/types-list-branch/source.jibb:68:6: expected item has type @t
+  ^- (list @t)
+     ^
+/tests/golden/types-list-branch/source.jibb:70:12: list item has type @p
+      %.y [~zod ~]
+           ^
+++ escape: name is not available to partial inference
+++ bad-recursive: recursive gate constraint is not supported by partial inference

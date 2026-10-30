@@ -80,4 +80,30 @@
 9:31 tight lit ~zod
 9:36 lit ~
 9:37 tight glyph ]
-9:38 NEWLINE
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name branch
+10:11 glyph |=
+10:14 name b
+10:15 tight glyph =
+10:16 tight glyph ?
+11:3 INDENT
+11:3 glyph ^-
+11:6 wing texts.fixture
+12:5 INDENT
+12:5 glyph ?-
+12:8 name b
+13:7 INDENT
+13:7 lit %.y
+13:11 glyph ~[
+13:13 tight glyph ]
+14:7 NEWLINE
+14:7 lit %.n
+14:11 glyph [
+14:12 tight str "hi"
+14:17 lit ~
+14:18 tight glyph ]
+14:19 DEDENT
+14:19 DEDENT
+14:19 DEDENT
+14:19 NEWLINE

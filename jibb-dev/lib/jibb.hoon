@@ -5234,7 +5234,8 @@
 +$  imold-types  (list [name=term template=ischeme])
 +$  ifile  [values=ienv molds=imold-types at=path]
 +$  ijimports  (list [face=term interface=ifile])
-+$  icaps  (list [name=@t id=@ud])
++$  icap  [name=@t id=@ud at=span]
++$  icaps  (list icap)
 +$  iparams  (list [name=@t typ=itype])
 +$  imolds  (list [name=term body=shape])
 ::  A caller supplies the exact noun returned by +read-mold:jibb-import.
@@ -5524,6 +5525,48 @@
   $(pats t.pats)
 ::
 ::
+::
+::  Repeated faces along an imported record spine fail closed. Hoon's type
+::  graph can erase unfaced nested-cell boundaries, so that alone does not
+::  prove the original source repeated a name within one record. A faced
+::  body and each union alternative have separate scopes. Check recursive
+::  roots before making them opaque; unused molds are never inspected.
+::
+++  imported-faces-valid
+  |=  node=*
+  ^-  ?
+  ?@  node  &
+  ?+  -.node  &
+    %face  ?:(?=([%face @ *] node) $(node +>.node) |)
+    %cell  ?:(?=([%cell * *] node) (imported-record-faces-valid node ~) |)
+    %fork  (imported-faces-valid-list +.node)
+    %apply  ?:(?=([%apply @ *] node) (imported-faces-valid-list +>.node) |)
+  ==
+::
+++  imported-faces-valid-list
+  |=  nodes=*
+  ^-  ?
+  ?@  nodes  =(nodes 0)
+  ?.  (imported-faces-valid -.nodes)  |
+  $(nodes +.nodes)
+::
+++  imported-record-faces-valid
+  |=  [node=* names=(list @)]
+  ^-  ?
+  ?:  ?=([%cell * *] node)
+    =/  head=*  +<.node
+    =/  rest=*  +>.node
+    ?:  ?=([%face @ *] head)
+      ?:  (lien names |=(n=@ =(n +<.head)))  |
+      ?.  (imported-faces-valid +>.head)  |
+      $(node rest, names [+<.head names])
+    ?.  (imported-faces-valid head)  |
+    $(node rest)
+  ?:  ?=([%face @ *] node)
+    ?:  (lien names |=(n=@ =(n +<.node)))  |
+    (imported-faces-valid +>.node)
+  (imported-faces-valid node)
+::
 ++  import-to-itype
   |=  node=*
   ^-  (unit itype)
@@ -5616,6 +5659,7 @@
   ?@  result  ~
   ?.  ?=(%& -.result)  ~
   =/  node=*  +.result
+  ?.  (imported-faces-valid node)  ~
   ?@  node  (import-to-itype node)
   ?:  ?=(%ref -.node)  (import-to-itype node)
   =/  pattern=(unit irec-pattern)  (rec-pattern node module name)
@@ -5651,6 +5695,7 @@
   =/  result=*  result.i.found
   ?@  result  ~
   ?.  ?=(%& -.result)  ~
+  ?.  (imported-faces-valid +.result)  ~
   (import-to-itype +.result)
 ::
 ++  find-jibb-interface
@@ -5895,7 +5940,7 @@
       ?:  in-mold.state  ~
       =/  n=(unit @ud)  (icap-lookup name.sh caps.state)
       ?^  n  `[[%var u.n] state]
-      `[[%var next.state] state(next +(next.state), caps [[name.sh next.state] caps.state])]
+      `[[%var next.state] state(next +(next.state), caps [[name.sh next.state at.sh] caps.state])]
     *      ~
   ==
 ::
@@ -6067,8 +6112,8 @@
   $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred, progressed &)
 ::
 ::  Read only fields of a known record. Unresolved field constraints and
-::  ambiguous repeated faces are outside this fragment (doc question:
-::  whether duplicate imported Hoon faces are valid or select a field).
+::  ambiguous repeated faces are outside this fragment. Imported record
+::  spines with repeated names are unavailable when used.
 ::
 ++  record-fields-named
   |=  [name=term t=itype sub=isub]
@@ -6099,9 +6144,9 @@
   ?^  t.found  [%| ["field name is ambiguous in partial inference" ~]]
   $(fields t.fields, typ i.found)
 ::
-::  Propagate a known union through supported loobean and unit branches. Empty bodies
-::  and groups are transparent; bodies with definitions keep their normal
-::  scoping and wait for general bidirectional inference.
+::  Propagate a known union or list through supported loobean, unit and list
+::  branches. Empty bodies and groups are transparent; bodies with definitions
+::  keep their normal scoping and wait for general bidirectional inference.
 ::
 ++  context-union-branch
   |=  e=expr
@@ -6118,6 +6163,8 @@
   ^-  iresult
   ?:  ?=(%group -.e)  $(e inner.e)
   ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?:  &(?=(%collection -.expected) =(%list name.expected) (context-list-expression e))
+    (infer-list-context e expected env state context)
   ?:  ?=(%branch -.e)
     ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
     ?~  t.arms.e  [%| ["branch pattern is not supported by partial inference" ~]]
@@ -6145,8 +6192,12 @@
   ?:  ?=(%| -.value)  value
   =/  fit=ifit  (itype-fit typ.p.value expected sub.state.p.value next.state.p.value)
   ?:  ?=(%unknown -.fit)
+    ?:  &(?=(%collection -.expected) =(%list name.expected))
+      [%| ["branch list constraint is not supported by partial inference" ~]]
     [%| ["branch union constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
+    ?:  &(?=(%collection -.expected) =(%list name.expected))
+      [%| ["branch arm does not fit its expected list" ~[[context "expected list"] [(span-of e) "branch arm"]]]]
     [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
@@ -6218,6 +6269,8 @@
   =/  target=itype  (itype-walk expected sub.state)
   =/  value=iresult
     ?:  &(?=(%union -.target) (context-union-branch i.items))
+      (infer-union-context i.items target env state context)
+    ?:  &(?=(%collection -.target) =(%list name.target) (context-union-branch i.items))
       (infer-union-context i.items target env state context)
     ?:  &(?=(%collection -.target) =(%list name.target) (context-list-expression i.items))
       (infer-list-context i.items target env state context)
@@ -6485,6 +6538,8 @@
       =/  value=iresult
         ?:  &(?=(%union -.typ.u.target) (context-union-branch val.e))
           (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
+        ?:  &(?=(%collection -.typ.u.target) =(%list name.typ.u.target) (context-union-branch val.e))
+          (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
         ?:  &(?=(%collection -.typ.u.target) =(%list name.typ.u.target) (context-list-expression val.e))
           (infer-list-context val.e typ.u.target env state.u.target at.shape.e)
         $(e val.e, state state.u.target)
@@ -6516,6 +6571,8 @@
       =/  head-type=itype  (itype-walk typ.p.head sub.state.p.head)
       =/  arg=iresult
         ?:  &(?=(%fn -.head-type) ?=(%union -.sample.head-type) (context-union-branch i.args.e))
+          (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
+        ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-union-branch i.args.e))
           (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
         ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-list-expression i.args.e))
           (infer-list-context i.args.e sample.head-type env state.p.head (span-of head.e))
@@ -6675,8 +6732,8 @@
 ::  A capital in a written mold is generalized with its enclosing ++.
 ::  Atom constraints may remain generic; until full rigidity checking
 ::  is implemented, do not report a type if one became more specific.
-::  Whether distinct written capitals may become equal is a doc question;
-::  the partial checker leaves such inference unsupported for now.
+::  Distinct written capitals cannot be forced equal; use the same
+::  capital where a type must be shared (Decisions 2026-10-30).
 ::
 ++  cap-id-in
   |=  [n=@ud caps=icaps sub=isub]
@@ -6690,6 +6747,35 @@
     ==
   ?~  ident  $(caps t.caps)
   ?:  =(n u.ident)  &
+  $(caps t.caps)
+::
+++  cap-with-id
+  |=  [n=@ud caps=icaps sub=isub]
+  ^-  (unit icap)
+  ?~  caps  ~
+  =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
+  =/  ident=(unit @ud)
+    ?+  -.resolved  ~
+      %var   `id.resolved
+      %avar  `id.resolved
+    ==
+  ?~  ident  $(caps t.caps)
+  ?:  =(n u.ident)  `i.caps
+  $(caps t.caps)
+::
+++  merged-capitals
+  |=  [caps=icaps sub=isub]
+  ^-  (unit [first=icap second=icap])
+  ?~  caps  ~
+  =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
+  =/  ident=(unit @ud)
+    ?+  -.resolved  ~
+      %var   `id.resolved
+      %avar  `id.resolved
+    ==
+  ?~  ident  $(caps t.caps)
+  =/  found=(unit icap)  (cap-with-id u.ident t.caps sub)
+  ?^  found  `[u.found i.caps]
   $(caps t.caps)
 ::
 ++  constrained-capitals
@@ -7392,6 +7478,12 @@
     (infer-fragment val.d env initial)
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
+  =/  merged=(unit [first=icap second=icap])
+    (merged-capitals caps.state.p.result sub.state.p.result)
+  ?^  merged
+    =/  diag=idiag
+      ["distinct type variables `{(trip name.first.u.merged)}` and `{(trip name.second.u.merged)}` must not be forced equal; use the same capital for a shared type" ~[[at.first.u.merged "first type variable"] [at.second.u.merged "second type variable"]]]
+    $(ds t.ds, lines [(show-inference-diagnostic file src name.d diag) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))

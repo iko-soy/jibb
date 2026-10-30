@@ -63,7 +63,7 @@ Hoon's runes and literals in an indentation layout, over Hoon's nouns and molds,
 
 | Hoon | Jibb |
 | --- | --- |
-| `$%`, `$?` | A union |
+| `$%`, `$?` | A union if its cases differ as nouns, else an error where used |
 | `$@` | A union with an atom case |
 | `$^` | A union if its cases differ as nouns, else an error where used |
 | `$~` | Dropped |
@@ -72,7 +72,7 @@ Hoon's runes and literals in an indentation layout, over Hoon's nouns and molds,
 | Other `$\|` | Its base type |
 | `%0`, `%&`, `%\|` | Tags |
 | Recursive molds, such as `json` | Recursive, matched by name |
-| Cores, gates, vases, signed and float auras | An error where used |
+| Records with duplicate field names; cores, gates, vases, signed and float auras | An error where used |
 
 Unused molds are skipped, so unsupported constructs elsewhere in a `/sur` file are fine. A union without a name, as a field's `?(%approve %deny)`, imports too, though Jibb can't write one. Messages and printed types show its cases separated by spaces, as `%approve %deny`; this notation is print-only.
 
@@ -83,7 +83,7 @@ Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/pr
 | Group | Hoon | Jibb |
 | --- | --- | --- |
 | Arithmetic | [1a](https://docs.urbit.org/hoon/stdlib/1a), [2g](https://docs.urbit.org/hoon/stdlib/2g) | Jibb gates over shared atom-constrained type variables, using private low-level primitives: `add`, `sub`, `div`, `mod`, `gth`, `max`, `pow` |
-| Units | [2a](https://docs.urbit.org/hoon/stdlib/2a) | `fall`, `need`, `bind`, `biff` |
+| Units | [2a](https://docs.urbit.org/hoon/stdlib/2a) | `fall`, `need`, `bind`, `biff`, `clap`; `clap` takes two units of the same type and a gate combining two values of that type into one of that type |
 | Lists | [2b](https://docs.urbit.org/hoon/stdlib/2b) | `turn`, `weld`, `snag`, `lent`, `sort`, `skim`; `(roll xs init f)` takes a start |
 | Maps, sets, queues | [2h](https://docs.urbit.org/hoon/stdlib/2h)–[2m](https://docs.urbit.org/hoon/stdlib/2m), [2o](https://docs.urbit.org/hoon/stdlib/2o) | Plain gates over Hoon's trees, such as `(get.by m k)`; `rep.by` and `rep.in` take a start; ordered maps through lull's `on`, as `(get.on lte m k)` |
 | Function helpers | [2n](https://docs.urbit.org/hoon/stdlib/2n) | `same`, `head`, `tail`, `cork`, `cury` |

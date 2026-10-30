@@ -6,7 +6,13 @@ partial inference; module not checked
 ++ reverse-value: (choice @p @t)
 ++ reverse-gate: $-((choice A B) (choice A B))
 ++ repeat-gate: $-((choice A A) (choice A A))
-++ repeated-call: explicit capital constraints are not supported by partial inference
+++ repeated-call: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-generic-union-alias/source.jibb:10:31: first type variable
+++ repeated-call |= x=(choice A B) (repeat-gate x)
+                              ^
+/tests/golden/types-generic-union-alias/source.jibb:10:33: second type variable
+++ repeated-call |= x=(choice A B) (repeat-gate x)
+                                ^
 ++ ghost-a: (choice @t @p)
 ++ ghost-b: (choice @t @p)
 ++ use-ghost: $-((choice @t @p) (choice @t @p))

@@ -386,9 +386,8 @@
   ?:  ?=([%bckt ^ ^] h)  &
   |($(h -.h) $(h +.h))
 ::
-::  (doc question 22) The Grammar's disjointness rule is applied to
-::  imported $% and $? too. The import table singles out $^, so @iko
-::  has been asked whether that general rule also covers those unions.
+::  The Grammar's disjointness rule applies to imported $% and $? too;
+::  @iko confirmed the rule for imported unions on 2026-10-30.
 ++  has-spec-general-union
   |=  h=*
   ^-  ?
