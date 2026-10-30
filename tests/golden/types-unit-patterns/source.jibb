@@ -1,0 +1,36 @@
++$ maybe
+  ~
+  [~ value=@t]
+++ need |= x=maybe
+  ?- x
+    ~ !!
+    [~ value] value
+++ reverse |= x=maybe
+  ?- x
+    [~ value] value
+    ~ !!
+++ shadow |= x=maybe
+  ?- x
+    ~ !!
+    [~ x] x
+++ unknown |= x
+  ?- x
+    ~ !!
+    [~ value] value
+++ missing |= x=maybe
+  ?- x
+    ~ !!
+++ duplicate |= x=maybe
+  ?- x
+    ~ !!
+    ~ !!
+    [~ value] value
+++ pending |= x=maybe
+  ?- x
+    ~ %none
+    [~ value] %some
+++ unrelated |= x=maybe
+  ~& %unknown
+    ?- x
+      ~ !!
+      [~ value] value

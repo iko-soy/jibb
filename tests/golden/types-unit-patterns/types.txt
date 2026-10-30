@@ -1,0 +1,10 @@
+partial inference; module not checked
++$ maybe: cases proven disjoint; mold not checked
+++ need: $-(maybe @t)
+++ reverse: $-(maybe @t)
+++ shadow: pattern binder shadows a name
+++ unknown: unit branch subject is not supported by partial inference
+++ missing: branch pattern is not supported by partial inference
+++ duplicate: branch is not supported by partial inference
+++ pending: unit branch results need unsupported inference
+++ unrelated: tag needs context in partial inference

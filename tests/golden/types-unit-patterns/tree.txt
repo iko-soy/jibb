@@ -1,0 +1,88 @@
+(module
+  (mold 1:1 maybe
+    (union 2:3
+      (const 2:3 ~)
+      (cell 3:3
+        (const 3:4 ~)
+        (face 3:6 value (aura 3:12 @t)))))
+  (value 4:1 need
+    (gate 4:9
+      (face 4:12 x (ref 4:14 maybe))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 x)
+          (arm 6:5 (lit 6:5 ~) (crash 6:7))
+          (arm 7:5
+            (cell 7:5 (lit 7:6 ~) (bind 7:8 value))
+            (wing 7:15 value))))))
+  (value 8:1 reverse
+    (gate 8:12
+      (face 8:15 x (ref 8:17 maybe))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 x)
+          (arm 10:5
+            (cell 10:5 (lit 10:6 ~) (bind 10:8 value))
+            (wing 10:15 value))
+          (arm 11:5 (lit 11:5 ~) (crash 11:7))))))
+  (value 12:1 shadow
+    (gate 12:11
+      (face 12:14 x (ref 12:16 maybe))
+      (body 13:3
+        (branch 13:3
+          (wing 13:6 x)
+          (arm 14:5 (lit 14:5 ~) (crash 14:7))
+          (arm 15:5
+            (cell 15:5 (lit 15:6 ~) (bind 15:8 x))
+            (wing 15:11 x))))))
+  (value 16:1 unknown
+    (gate 16:12
+      (bind 16:15 x)
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 x)
+          (arm 18:5 (lit 18:5 ~) (crash 18:7))
+          (arm 19:5
+            (cell 19:5 (lit 19:6 ~) (bind 19:8 value))
+            (wing 19:15 value))))))
+  (value 20:1 missing
+    (gate 20:12
+      (face 20:15 x (ref 20:17 maybe))
+      (body 21:3
+        (branch 21:3
+          (wing 21:6 x)
+          (arm 22:5 (lit 22:5 ~) (crash 22:7))))))
+  (value 23:1 duplicate
+    (gate 23:14
+      (face 23:17 x (ref 23:19 maybe))
+      (body 24:3
+        (branch 24:3
+          (wing 24:6 x)
+          (arm 25:5 (lit 25:5 ~) (crash 25:7))
+          (arm 26:5 (lit 26:5 ~) (crash 26:7))
+          (arm 27:5
+            (cell 27:5 (lit 27:6 ~) (bind 27:8 value))
+            (wing 27:15 value))))))
+  (value 28:1 pending
+    (gate 28:12
+      (face 28:15 x (ref 28:17 maybe))
+      (body 29:3
+        (branch 29:3
+          (wing 29:6 x)
+          (arm 30:5 (lit 30:5 ~) (lit 30:7 %none))
+          (arm 31:5
+            (cell 31:5 (lit 31:6 ~) (bind 31:8 value))
+            (lit 31:15 %some))))))
+  (value 32:1 unrelated
+    (gate 32:14
+      (face 32:17 x (ref 32:19 maybe))
+      (body 33:3
+        (trace 33:3
+          (lit 33:6 %unknown)
+          (body 34:5
+            (branch 34:5
+              (wing 34:8 x)
+              (arm 35:7 (lit 35:7 ~) (crash 35:9))
+              (arm 36:7
+                (cell 36:7 (lit 36:8 ~) (bind 36:10 value))
+                (wing 36:17 value)))))))))

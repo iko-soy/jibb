@@ -11,19 +11,19 @@ partial inference; module not checked
 ++ undeclared: sample mold is not supported by partial inference
 ++ yes: %no %yes
 ++ absent: cast mold and expression type do not unify
-/test.jibb:13:14: cast mold
+/test.jibb:14:14: cast mold
 ++ absent ^- choice.fixture %other
              ^
-/test.jibb:13:29: expression
+/test.jibb:14:29: expression
 ++ absent ^- choice.fixture %other
                             ^
 ++ status: $-([status=(%deny %approve) text=@t] (%deny %approve))
 ++ nested-yes: [status=(%deny %approve) text=@t]
 ++ nested-absent: cast mold and expression type do not unify
-/test.jibb:16:21: cast mold
+/test.jibb:17:21: cast mold
 ++ nested-absent ^- nested-choice.fixture [%other "hi"]
                     ^
-/test.jibb:16:43: expression
+/test.jibb:17:43: expression
 ++ nested-absent ^- nested-choice.fixture [%other "hi"]
                                           ^
 ++ overlap: sample mold is not supported by partial inference
@@ -40,17 +40,17 @@ partial inference; module not checked
 ++ get-items: $-([items=(list @t) slots=(unit @ud)] (list @t))
 ++ same-list: $-((list @t) (list @t))
 ++ wrong-item: call's sample and argument types do not unify
-/test.jibb:30:37: called gate has type $-((list @t) (list @t))
+/test.jibb:31:37: called gate has type $-((list @t) (list @t))
 ++ wrong-item |= x=numbers.fixture (text-list x)
                                     ^
-/test.jibb:30:47: argument has type (list @ud)
+/test.jibb:31:47: argument has type (list @ud)
 ++ wrong-item |= x=numbers.fixture (text-list x)
                                               ^
 ++ wrong-kind: call's sample and argument types do not unify
-/test.jibb:31:35: called gate has type $-((list @t) (list @t))
+/test.jibb:32:35: called gate has type $-((list @t) (list @t))
 ++ wrong-kind |= x=maybe.fixture (text-list x)
                                   ^
-/test.jibb:31:45: argument has type (unit @t)
+/test.jibb:32:45: argument has type (unit @t)
 ++ wrong-kind |= x=maybe.fixture (text-list x)
                                             ^
 ++ bad-kind: sample mold is not supported by partial inference
@@ -59,4 +59,32 @@ partial inference; module not checked
 ++ bucket-id: $-((map @ud @t) (map @ud @t))
 ++ raw-rec: sample mold is not supported by partial inference
 ++ direct-list: cast mold is not supported by partial inference
+++ chain-id: $-(chain.fixture chain.fixture)
+++ chain-again: $-(chain.fixture chain.fixture)
+++ other-id: $-(other.fixture other.fixture)
+++ chain-mismatch: call's sample and argument types do not unify
+/test.jibb:42:39: called gate has type $-(chain.fixture chain.fixture)
+++ chain-mismatch |= x=other.fixture (chain-id x)
+                                      ^
+/test.jibb:42:48: argument has type other.fixture
+++ chain-mismatch |= x=other.fixture (chain-id x)
+                                               ^
+++ recursive-field: field is not available to partial inference
+++ chain-null: cast constraint is not supported by partial inference
+++ chain-alias: sample mold is not supported by partial inference
+++ foreign-ref: sample mold is not supported by partial inference
+++ overlap-ref: sample mold is not supported by partial inference
+++ raw-ref: sample mold is not supported by partial inference
+++ raw-null: sample mold is not supported by partial inference
+++ cross-module: call's sample and argument types do not unify
+/test.jibb:50:36: called gate has type $-(chain.fixture chain.fixture)
+++ cross-module |= x=chain.second (chain-id x)
+                                   ^
+/test.jibb:50:45: argument has type chain.second
+++ cross-module |= x=chain.second (chain-id x)
+                                            ^
+++ chain-pattern: recursive pattern is not supported by partial inference
+++ chain-branch: recursive branch matching is not supported by partial inference
 reader-collapsed: error: a Hoon union has overlapping cases
+partial inference; module not checked
+++ use: recursive mold name is not available in this scope

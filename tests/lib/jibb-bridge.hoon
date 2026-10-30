@@ -31,6 +31,14 @@
         [%fixture %nested (read %nested)]
         [%fixture %constant (read %constant)]
         [%fixture %choice (read %choice)]
+        [%fixture %chain (read %chain)]
+        [%second %chain (read-named:jibb-import %second %chain cor)]
+        [%fixture %other (read %other)]
+        [%fixture %alias (read %alias)]
+        [%fixture %foreign-ref [%& [%cell [%atom %ud ~] [%ref %other %foreign-ref]]]]
+        [%fixture %overlap-ref [%& [%fork ~[[%atom %n [~ 0]] [%atom %tas [~ 0]] [%cell [%atom %ud ~] [%ref %fixture %overlap-ref]]]]]]
+        [%fixture %raw-ref [%& [%ref %fixture %raw-ref]]]
+        [%fixture %raw-null [%& [%atom %n [~ 0]]]]
         [%fixture %texts (read %texts)]
         [%fixture %numbers (read %numbers)]
         [%fixture %maybe (read %maybe)]
@@ -56,5 +64,10 @@
         [%missing %title [%& [%atom %t ~]]]
     ==
   =/  report=@t  (golden-types-imports:jibb /test/jibb src external)
-  (cat 3 report (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}"))
+  =/  dep=@t  (crip "/- fixture\0a++ chain-id |= x=chain.fixture x\0a")
+  =/  root=@t  (crip "/= helper /ui/helper\0a++ use chain-id.helper\0a")
+  =/  prelude=@t  (crip "++ prelude-id |= x x\0a")
+  =/  modules=(list [at=path source=@t])  ~[[~[%ui %helper %jibb] dep]]
+  =/  hidden=@t  (golden-types-with-prelude:jibb /ui/main/jibb root external ~ modules prelude)
+  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") hidden))
 --

@@ -4611,6 +4611,7 @@
       [%tag id=@ud literal=lit constructor=?]
       [%const literal=lit]
       [%collection name=term args=(list itype)]
+      [%recursive module=term name=term label=(unit @t)]
       [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t) args=(list itype)]
       [%face name=term body=itype]
       [%fn sample=itype product=itype]
@@ -4663,6 +4664,7 @@
     %tag   =(n id.t)
     %const  |
     %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
+    %recursive  |
     %collection  (lien args.t |=(c=itype (itype-occurs n c sub)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
@@ -4681,6 +4683,8 @@
   =.  a  (itype-walk a sub)
   =.  b  (itype-walk b sub)
   ?:  =(a b)  `sub
+  ?:  &(?=(%recursive -.a) ?=(%recursive -.b))
+    ?:(&(=(module.a module.b) =(name.a name.b)) `sub ~)
   ?:  &(?=(%union -.a) ?=(%union -.b))
     ?.  =(origin.a origin.b)  ~
     ?:  &(?=(~ args.a) ?=(~ args.b))  ?:(=(cases.a cases.b) `sub ~)
@@ -4756,6 +4760,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
+    %recursive  |
     %collection  (lien args.t |=(c=itype (itype-has-any-atom c sub)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -4825,6 +4830,7 @@
     %tag       &
     %const     &
     %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
+    %recursive  |
     %collection  (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
@@ -4909,6 +4915,7 @@
     %var       &
     %cell      &
     %union     &
+    %recursive  &
     %collection  &
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -4975,6 +4982,32 @@
     *      |
   ==
 ::
+++  itype-has-recursive
+  |=  t=itype
+  ^-  ?
+  ?-  -.t
+    %recursive  &
+    %collection  (lien args.t |=(c=itype (itype-has-recursive c)))
+    %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-recursive c)))
+    %face  $(t body.t)
+    %cell  |($(t hed.t) $(t tal.t))
+    %fn    |($(t sample.t) $(t product.t))
+    *      |
+  ==
+::
+++  itype-has-hidden-recursive
+  |=  t=itype
+  ^-  ?
+  ?-  -.t
+    %recursive  ?=(~ label.t)
+    %collection  (lien args.t |=(c=itype (itype-has-hidden-recursive c)))
+    %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-recursive c)))
+    %face  $(t body.t)
+    %cell  |($(t hed.t) $(t tal.t))
+    %fn    |($(t sample.t) $(t product.t))
+    *      |
+  ==
+::
 ++  itype-fit-cases
   |=  [actual=itype cases=(list itype) sub=isub next=@ud]
   ^-  ifit
@@ -5022,6 +5055,9 @@
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
+  ?:  &(?=(%recursive -.actual) ?=(%recursive -.expected))
+    ?:(&(=(module.actual module.expected) =(name.actual name.expected)) [%ok sub next] [%bad ~])
+  ?:  &(|(?=(%recursive -.actual) ?=(%recursive -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
   ?:  &(?=(%union -.actual) ?=(%union -.expected))
     ?.  =(origin.actual origin.expected)  [%unknown ~]
     ?:  &(?=(~ args.actual) ?=(~ args.expected))
@@ -5112,6 +5148,7 @@
     =/  unified=(unit isub)  (itype-unify actual expected sub)
     ?~  unified
       ?:  |(?=(%face -.actual) ?=(%face -.expected))  [%unknown ~]
+      ?:  |((itype-has-recursive (itype-normalize actual sub)) (itype-has-recursive (itype-normalize expected sub)))  [%unknown ~]
       ?:  (itype-family-related actual expected sub)  [%unknown ~]
       [%bad ~]
     [%ok u.unified next]
@@ -5126,6 +5163,7 @@
   =/  unified=(unit isub)  (itype-unify actual expected sub)
   ?~  unified
     ?:  |((itype-has-union (itype-normalize actual sub)) (itype-has-union (itype-normalize expected sub)))  [%unknown ~]
+    ?:  |((itype-has-recursive (itype-normalize actual sub)) (itype-has-recursive (itype-normalize expected sub)))  [%unknown ~]
     ?:  (itype-family-related actual expected sub)  [%unknown ~]
     [%bad ~]
   [%ok u.unified next]
@@ -5171,6 +5209,20 @@
     ["collection arguments should preserve aura-family uncertainty" problems]
   =?  problems  !(itype-face-asym [%collection %list ~[[%face %x txt]]] list-t ~)
     ["collection arguments should preserve face uncertainty" problems]
+  =/  recursive=itype  [%recursive %fixture %chain `'chain.fixture']
+  =/  same-recursive=itype  [%recursive %fixture %chain ~]
+  =/  other-recursive=itype  [%recursive %other %chain `'chain.other']
+  =?  problems  ?=(~ (itype-unify recursive same-recursive ~))
+    ["recursive identity should not depend on its visible name" problems]
+  =?  problems  ?=(^ (itype-unify recursive other-recursive ~))
+    ["recursive identity should include the source module" problems]
+  =/  recursive-fit=ifit  (itype-fit recursive txt ~ 0)
+  =?  problems  !?=(%unknown -.recursive-fit)
+    ["opaque recursive types should not be unfolded by a fit" problems]
+  =/  nested-fit=ifit
+    (itype-fit [%collection %list ~[a]] list-t ~[[0 recursive]] 1)
+  =?  problems  !?=(%unknown -.nested-fit)
+    ["recursive types behind substitutions should remain uncertain" problems]
   problems
 ::
 ::  The expression inference below is deliberately a fragment: bindings,
@@ -5231,6 +5283,7 @@
   ?-  -.t
     %fn        &
     %cell      |($(t hed.t) $(t tal.t))
+    %recursive  |
     %collection  (lien args.t |=(c=itype (itype-has-gate c)))
     %face      $(t body.t)
     %union     (lien cases.t |=(c=itype (itype-has-gate c)))
@@ -5269,6 +5322,7 @@
     %tag   ~
     %const  ~
     %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
+    %recursive  ~
     %collection  (zing (turn args.t |=(c=itype (itype-vars c))))
     %face  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
@@ -5306,6 +5360,7 @@
     %tag   t
     %const  t
     %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
+    %recursive  t
     %collection  [%collection name.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
@@ -5328,6 +5383,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
+    %recursive  |
     %collection  (lien args.t |=(c=itype (itype-var-is-atom n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -5404,6 +5460,69 @@
   ?~  chars  |
   ?.  (is-lower i.chars)  |
   (levy t.chars |=(c=@tD (in c name-mask)))
+::
+::  A source-aware reader result is trusted for origin. Validate every
+::  supplied branch and keep the recursive mold opaque: unfolding its
+::  root while naming only its tail would change its type identity.
++$  irec-pattern  [pat=upat has=?]
+++  rec-pattern
+  |=  [node=* module=term name=term]
+  ^-  (unit irec-pattern)
+  ?@  node  ~
+  ?+  -.node  ~
+    %atom
+      ?:  ?=([%atom %n [~ @]] node)
+        ?.  =(0 +>+.node)  ~
+        `[[%atom `0] |]
+      ?:  ?=([%atom %tas [~ @]] node)
+        =/  value=@  +>+.node
+        ?.  |(=(value 0) (jibb-face-name value))  ~
+        `[[%atom `value] |]
+      ?.  ?=([%atom @ ~] node)  ~
+      =/  aura=@ta  (@ta +<.node)
+      ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
+      `[[%atom ~] |]
+    %ref
+      ?.  ?=([%ref @ @] node)  ~
+      ?.  &(=(module +<.node) =(name +>.node))  ~
+      `[[%unknown ~] &]
+    %face
+      ?.  ?=([%face @ *] node)  ~
+      ?.  (jibb-face-name +<.node)  ~
+      $(node +>.node)
+    %cell
+      ?.  ?=([%cell * *] node)  ~
+      =/  left  $(node +<.node)
+      ?~  left  ~
+      =/  right  $(node +>.node)
+      ?~  right  ~
+      `[[%cell pat.u.left pat.u.right] |(has.u.left has.u.right)]
+    %fork
+      =/  cases  (rec-patterns +.node module name)
+      ?~  cases  ~
+      ?~  pats.u.cases  ~
+      ?~  t.pats.u.cases  ~
+      ?.  (rec-patterns-disjoint pats.u.cases)  ~
+      `[[%or pats.u.cases] has.u.cases]
+  ==
+::
+++  rec-patterns
+  |=  [nodes=* module=term name=term]
+  ^-  (unit [pats=(list upat) has=?])
+  ?@  nodes  ?:(=(nodes 0) `[~ |] ~)
+  =/  first  (rec-pattern -.nodes module name)
+  ?~  first  ~
+  =/  rest  $(nodes +.nodes)
+  ?~  rest  ~
+  `[[pat.u.first pats.u.rest] |(has.u.first has.u.rest)]
+::
+++  rec-patterns-disjoint
+  |=  pats=(list upat)
+  ^-  ?
+  ?~  pats  &
+  ?.  (levy t.pats |=(p=upat =(%disjoint (union-relate i.pats p))))  |
+  $(pats t.pats)
+::
 ::
 ++  import-to-itype
   |=  node=*
@@ -5496,7 +5615,14 @@
   =/  result=*  result.i.found
   ?@  result  ~
   ?.  ?=(%& -.result)  ~
-  (import-to-itype +.result)
+  =/  node=*  +.result
+  ?@  node  (import-to-itype node)
+  ?:  ?=(%ref -.node)  (import-to-itype node)
+  =/  pattern=(unit irec-pattern)  (rec-pattern node module name)
+  ?~  pattern  (import-to-itype node)
+  ?.  has.u.pattern  (import-to-itype node)
+  `[%recursive module name `(crip "{(trip name)}.{(trip module)}")]
+
 ::
 ++  collect-sur-imports
   |=  imports=(list import)
@@ -5571,6 +5697,7 @@
         ?~  alias  ~
         `(crip "{(trip u.alias)}.{(trip face)}")
       [%union (turn cases.t |=(c=itype (itype-in-import c iface face))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face)))]
+    %recursive  [%recursive module.t name.t ~]
     %collection  [%collection name.t (turn args.t |=(c=itype (itype-in-import c iface face)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
@@ -6006,6 +6133,85 @@
     [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
+::  The supported unit pattern covers exactly an atom zero and a cell
+::  headed by zero, with a single binder for its payload. Unresolved
+::  subjects and all other pattern matrices stay outside this fragment.
+::
+++  unit-empty-pattern
+  |=  p=pattern
+  ^-  ?
+  ?.  ?=(%lit -.p)  |
+  =(%null form.lit.p)
+::
+++  unit-payload-pattern
+  |=  p=pattern
+  ^-  (unit term)
+  ?.  ?=(%cell -.p)  ~
+  ?~  items.p  ~
+  ?~  t.items.p  ~
+  ?^  t.t.items.p  ~
+  ?.  (unit-empty-pattern i.items.p)  ~
+  ?.  ?=(%bind -.i.t.items.p)  ~
+  `name.i.t.items.p
+::
+++  unit-empty-case
+  |=  t=itype
+  ^-  ?
+  ?.  ?=(%const -.t)  |
+  =(0 val.literal.t)
+::
+++  unit-payload-case
+  |=  t=itype
+  ^-  (unit itype)
+  ?.  ?=(%cell -.t)  ~
+  ?.  (unit-empty-case hed.t)  ~
+  =/  payload=itype  tal.t
+  =?  payload  ?=(%face -.payload)  body.payload
+  `payload
+::
+++  unit-union-payload
+  |=  t=itype
+  ^-  (unit itype)
+  ?.  ?=(%union -.t)  ~
+  ?~  cases.t  ~
+  ?~  t.cases.t  ~
+  ?^  t.t.cases.t  ~
+  ?:  (unit-empty-case i.cases.t)  (unit-payload-case i.t.cases.t)
+  ?:  (unit-empty-case i.t.cases.t)  (unit-payload-case i.cases.t)
+  ~
+::
+++  infer-unit-branch
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  ?>  ?=(%branch -.e)
+  ?~  arms.e  [%| ["unit branch is not supported by partial inference" ~]]
+  ?~  t.arms.e  [%| ["unit branch is not supported by partial inference" ~]]
+  ?^  t.t.arms.e  [%| ["unit branch is not supported by partial inference" ~]]
+  =/  x=arm  i.arms.e
+  =/  y=arm  i.t.arms.e
+  =/  first-empty=?  (unit-empty-pattern pat.x)
+  =/  first-name=(unit term)  (unit-payload-pattern pat.x)
+  =/  second-name=(unit term)  (unit-payload-pattern pat.y)
+  ?.  |(&(first-empty ?=(^ second-name)) &((unit-empty-pattern pat.y) ?=(^ first-name)))
+    [%| ["unit branch pattern is not supported by partial inference" ~]]
+  =/  binder=(unit term)  ?:(first-empty second-name first-name)
+  ?~  binder  [%| ["unit branch pattern is not supported by partial inference" ~]]
+  ?:  |(?=(^ (ienv-lookup u.binder env)) (lien globals.state |=(n=term =(n u.binder))))
+    [%| ["pattern binder shadows a name" ~]]
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  =/  payload=(unit itype)  (unit-union-payload typ)
+  ?~  payload  [%| ["unit branch subject is not supported by partial inference" ~]]
+  =/  extended=ienv  [[u.binder [u.payload ~]] env]
+  =/  left=iresult  (infer-fragment val.x ?:(first-empty env extended) state.p.subject)
+  ?:  ?=(%| -.left)  left
+  =/  right=iresult  (infer-fragment val.y ?:(first-empty extended env) state.p.left)
+  ?:  ?=(%| -.right)  right
+  =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
+  ?~  joined  [%| ["unit branch results need unsupported inference" ~]]
+  [%& typ.p.left state.p.right(sub u.joined)]
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -6073,6 +6279,8 @@
       ?^  t.t.arms.e  [%| ["branch is not supported by partial inference" ~]]
       =/  x=arm  i.arms.e
       =/  y=arm  i.t.arms.e
+      ?:  |((unit-empty-pattern pat.x) (unit-empty-pattern pat.y))
+        (infer-unit-branch e env state)
       ?.  ?=(%lit -.pat.x)  [%| ["branch pattern is not supported by partial inference" ~]]
       ?.  ?=(%lit -.pat.y)  [%| ["branch pattern is not supported by partial inference" ~]]
       ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
@@ -6093,6 +6301,8 @@
         [%| ["branch widening is not supported by partial inference" ~]]
       =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
       ?~  joined
+        ?:  |((itype-has-recursive ltype) (itype-has-recursive rtype))
+          [%| ["recursive branch matching is not supported by partial inference" ~]]
         ?:  |((itype-has-tag ltype) (itype-has-tag rtype) (itype-has-union ltype) (itype-has-union rtype))
           [%| ["branch tag or union context is not supported by partial inference" ~]]
         =/  common=(unit itype)  (itype-concrete-join typ.p.left typ.p.right sub.state.p.right)
@@ -6197,6 +6407,8 @@
   =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  subject
   =/  st=istate  state.p.subject
+  ?:  (itype-has-recursive (itype-normalize typ.p.subject sub.st))
+    [%| ["recursive pattern is not supported by partial inference" ~]]
   ?:  (itype-has-face typ.p.subject sub.st)
     [%| ["record patterns are not supported by partial inference" ~]]
   =/  head=itype  [%var next.st]
@@ -6228,6 +6440,7 @@
       ?~  label.t  (show-itype-cases cases.t sub)
       ?~  args.t  (trip u.label.t)
       "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
+    %recursive  ?~(label.t "recursive mold" (trip u.label.t))
     %collection  "({(trip name.t)} {(show-itype-cases args.t sub)})"
     %face  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
@@ -6271,6 +6484,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
+    %recursive  |
     %collection  (lien args.typ |=(c=itype (itype-has-nvar c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
@@ -6282,6 +6496,7 @@
   ^-  tape
   =/  normalized=itype  (itype-normalize typ sub)
   ?:  |(?=(%var -.normalized) ?=(%avar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
+  ?:  (itype-has-hidden-recursive normalized)  label
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
   ?:  (gth (lent vars) 26)  label
   =/  printable=itype  (canonical-itype normalized vars)
@@ -6348,6 +6563,7 @@
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
+    %recursive  |
     %collection  (lien args.t |=(c=itype (has-atom-var n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -6820,6 +7036,8 @@
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: `~` needs context in partial inference") lines])
   ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: tag needs context in partial inference") lines])
+  ?:  (itype-has-hidden-recursive typ)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive mold name is not available in this scope") lines])
   ?:  (itype-has-hidden-generic typ)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: generic union name is not available in this scope") lines])
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)

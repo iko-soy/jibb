@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all" and "A name in a pattern always binds anew"; Modules: no name may shadow one already in scope.
+tests: A known unit-shaped union is matched in either arm order; shadowed binders, unknown subjects, missing or duplicate arms, unresolved result tags and a discarded unrelated tag are not silently accepted.
+expect: parses
+expect-types: a partial inference report

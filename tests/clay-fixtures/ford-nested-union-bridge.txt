@@ -2,11 +2,13 @@
 ;<  =bowl:spider  bind:m  get-bowl
 =/  now=@da  now.bowl
 =/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/import-fixture/hoon)
+=/  blog=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/blog/hoon)
 =/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
 =/  jibb=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb/hoon)
 =/  read-gate=vase  (slap reader (ream 'read-named'))
 =/  result=vase  (slym read-gate [%import-fixture %nested -.src])
 =/  sample-result=vase  (slym read-gate [%import-fixture %sample -.src])
+=/  chain-result=vase  (slym read-gate [%blog %chain -.blog])
 =/  check-gate=vase  (slap jibb (ream 'golden-types-imports'))
-=/  text=@t  '/-  import-fixture\0a++ value |= x=nested.import-fixture value.x\0a++ values |= x=sample.import-fixture values.x\0a'
-(pure:m (slym check-gate [/ui/test/jibb text ~[[%import-fixture %nested +.result] [%import-fixture %sample +.sample-result]]]))
+=/  text=@t  '/-  import-fixture\0a/-  blog\0a++ value |= x=nested.import-fixture value.x\0a++ values |= x=sample.import-fixture values.x\0a++ chain |= x=chain.blog x\0a'
+(pure:m (slym check-gate [/ui/test/jibb text ~[[%import-fixture %nested +.result] [%import-fixture %sample +.sample-result] [%blog %chain +.chain-result]]]))

@@ -15,4 +15,7 @@
 +$  tagged-list  (list $?([%x @ud] [%y @t]))
 +$  buckets        (map @ud @t)
 +$  collection-rec  [items=(list @t) slots=(unit @ud)]
++$  chain  $@(~ [value=@ud next=chain])
++$  other  $@(~ [value=@ud next=other])
++$  alias  chain
 --

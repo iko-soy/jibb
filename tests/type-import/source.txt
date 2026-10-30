@@ -1,4 +1,5 @@
 /-  fixture
+/-  second
 ++ f |= x=title.fixture x
 ++ g |= x=pair.fixture x
 ++ face |= x=faced.fixture x
@@ -35,3 +36,22 @@
 ++ bucket-id |= x=buckets.fixture x
 ++ raw-rec |= x=raw-rec.fixture x
 ++ direct-list |= x=texts.fixture ^- (list @t) x
+++ chain-id |= x=chain.fixture x
+++ chain-again |= x=chain.fixture (chain-id x)
+++ other-id |= x=other.fixture x
+++ chain-mismatch |= x=other.fixture (chain-id x)
+++ recursive-field |= x=chain.fixture next.x
+++ chain-null ^- chain.fixture ~
+++ chain-alias |= x=alias.fixture x
+++ foreign-ref |= x=foreign-ref.fixture x
+++ overlap-ref |= x=overlap-ref.fixture x
+++ raw-ref |= x=raw-ref.fixture x
+++ raw-null |= x=raw-null.fixture x
+++ cross-module |= x=chain.second (chain-id x)
+++ chain-pattern |= x=chain.fixture
+  ?- x
+    [a b] a
+++ chain-branch |= [flag=? left=chain.fixture right=@t]
+  ?- flag
+    %.y left
+    %.n right
