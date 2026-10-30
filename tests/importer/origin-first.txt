@@ -1,0 +1,4 @@
+|%
++$  pick-one  chain:first
++$  pick-two  chain:second
+--

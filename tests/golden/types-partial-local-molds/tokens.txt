@@ -1,0 +1,170 @@
+1:1 glyph +$
+1:4 name shared
+1:11 aura @t
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name local
+2:10 glyph |=
+2:13 name x
+3:3 INDENT
+3:3 glyph +$
+3:6 name alias
+3:12 name other
+4:3 NEWLINE
+4:3 glyph +$
+4:6 name other
+4:12 aura @t
+5:3 NEWLINE
+5:3 glyph ++
+5:6 name identify
+5:15 glyph |=
+5:18 name y
+5:19 tight glyph =
+5:20 tight name alias
+5:26 name y
+6:3 NEWLINE
+6:3 glyph (
+6:4 tight name identify
+6:13 name x
+6:14 tight glyph )
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name sample
+7:11 glyph |=
+7:14 name x
+7:15 tight glyph =
+7:16 tight name hidden
+8:3 INDENT
+8:3 glyph +$
+8:6 name hidden
+8:13 aura @t
+9:3 NEWLINE
+9:3 name x
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name duplicate
+10:14 glyph |=
+10:17 name x
+11:3 INDENT
+11:3 glyph +$
+11:6 name a
+11:8 aura @t
+12:3 NEWLINE
+12:3 glyph +$
+12:6 name a
+12:8 aura @p
+13:3 NEWLINE
+13:3 name x
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name shadow
+14:11 glyph |=
+14:14 name x
+15:3 INDENT
+15:3 glyph +$
+15:6 name shared
+15:13 aura @p
+16:3 NEWLINE
+16:3 name x
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name recursive
+17:14 glyph |=
+17:17 name x
+18:3 INDENT
+18:3 glyph +$
+18:6 name loop
+18:11 name loop
+19:3 NEWLINE
+19:3 name x
+20:1 DEDENT
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name unused-union
+20:17 glyph |=
+20:20 name x
+21:3 INDENT
+21:3 glyph +$
+21:6 name option
+22:5 INDENT
+22:5 lit %yes
+23:5 NEWLINE
+23:5 lit %no
+24:3 DEDENT
+24:3 NEWLINE
+24:3 name x
+25:1 DEDENT
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name same-names
+25:15 glyph |=
+25:18 name x
+26:3 INDENT
+26:3 glyph +$
+26:6 name alias
+26:12 aura @t
+27:3 NEWLINE
+27:3 glyph ++
+27:6 name alias
+27:12 glyph |=
+27:15 name y
+27:16 tight glyph =
+27:17 tight name alias
+27:23 name y
+28:3 NEWLINE
+28:3 glyph (
+28:4 tight name alias
+28:10 name x
+28:11 tight glyph )
+29:1 DEDENT
+29:1 NEWLINE
+29:1 glyph ++
+29:4 name no-leak
+29:12 glyph |=
+29:15 name x
+30:3 INDENT
+30:3 glyph ++
+30:6 name inside
+30:13 glyph |=
+30:16 name y
+31:5 INDENT
+31:5 glyph +$
+31:8 name hidden
+31:15 aura @t
+32:5 NEWLINE
+32:5 name y
+33:3 DEDENT
+33:3 NEWLINE
+33:3 glyph ^-
+33:6 name hidden
+33:13 name x
+34:1 DEDENT
+34:1 NEWLINE
+34:1 glyph ++
+34:4 name nested-shadow
+34:18 glyph |=
+34:21 name x
+35:3 INDENT
+35:3 glyph +$
+35:6 name outer
+35:12 aura @t
+36:3 NEWLINE
+36:3 glyph ++
+36:6 name inside
+36:13 glyph |=
+36:16 name y
+37:5 INDENT
+37:5 glyph +$
+37:8 name outer
+37:14 aura @p
+38:5 NEWLINE
+38:5 name y
+39:3 DEDENT
+39:3 NEWLINE
+39:3 name x
+39:4 DEDENT
+39:4 NEWLINE

@@ -1,0 +1,1 @@
+"(union [value=@ud next=chain.blog] @n:0)"

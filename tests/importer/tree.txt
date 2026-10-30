@@ -18,15 +18,20 @@ nested-static-mop: [a=(mop @ud @t) b=(map @ud (jar @t @ud))]
 collection-siblings: [a=(mop @ud @t) [b=(set @ud) [c=(qeu @t) [d=(unit @ud) e=(jug @ud @t)]]]]
 dynamic-sibling-mop: error: a nested Hoon mop needs source-aware import
 mark-record: [id=@ud text=@t]
-mark-recursive: error: a recursive Hoon mark needs source-aware import
+mark-recursive: (union [value=@ud next=chain.small] @n:0)
 mark-gate: error: cores and gates cannot be imported
 mark-list: (list @ud)
 mark-shadow: error: Hoon collection provenance is unavailable or shadowed
 mark-not-core: error: Hoon mark provenance is unavailable
 ford-list: (list @ud)
 ford-imported: [id=@ud text=@t]
-ford-recursive: error: a recursive Hoon mold with Ford imports needs source-aware import
-ford-local-recursive: error: a recursive Hoon mold with Ford imports needs source-aware import
+ford-recursive: (union [value=@ud next=chain.small] @n:0)
+ford-local-recursive: (union [v=@ud next=local.ford] @n:0)
+ford-recursive-transitive: (union [value=@ud next=chain.small] @n:0)
+ford-recursive-ambiguous: error: a recursive Hoon mold needs unambiguous source provenance
+ford-recursive-transitive-ambiguous: error: a recursive Hoon mold needs unambiguous source provenance
+ford-recursive-distinct-first: (union [value=@ud next=chain.first] @n:0)
+ford-recursive-distinct-second: (union [value=@ud next=chain.second] @n:0)
 ford-transitive: (list @ud)
 ford-shadow: error: Hoon collection provenance is unavailable or shadowed
 ford-transitive-shadow: error: Hoon collection provenance is unavailable or shadowed
@@ -56,12 +61,14 @@ shadow-nested-mop: error: Hoon collection provenance is unavailable or shadowed
 shadow-mop: error: Hoon collection provenance is unavailable or shadowed
 shadow-jar: error: Hoon collection provenance is unavailable or shadowed
 shadow-jug: error: Hoon collection provenance is unavailable or shadowed
+no-provenance-atom: @t
+no-provenance-recursive: error: a recursive Hoon mold needs unambiguous source provenance
 no-provenance: error: Hoon collection provenance is unavailable or shadowed
 named-not-mold: error: Hoon mold `not-mold` could not be evaluated: -find.$
 named-present: (map @ud [id=@ud text=@t])
 named-missing: error: Hoon mold `missing` is not declared
 named-invalid-core: error: Hoon module provenance is unavailable
-named-ford-recursive: error: a recursive Hoon mold with Ford imports needs source-aware import
+named-ford-recursive: (union [value=@ud next=chain.small] @n:0)
 missing-arm: error: Hoon mold `missing` is not declared
 wrong-provenance: error: Hoon module provenance does not match the selected mold
 unverified-subject: error: Hoon module provenance is unavailable

@@ -14,8 +14,9 @@
 ::  their imported shapes prove disjoint. Nested $^ and some valid but
 ::  unprovably disjoint cases remain unsupported. Source-level overlap in
 ::  other unions, general nested ordered maps, broader Ford subject
-::  shapes, recursive mark types and full error locations still need work. A nested ordered map
-::  is recovered only when its key and value are fixed atom molds and
+::  shapes, ambiguous recursive origins and full error locations still
+::  need work. A nested ordered map is recovered only when its key and
+::  value are fixed atom molds and
 ::  the other fields are fixed atoms or collections of static atoms;
 ::  other source shapes fail closed.
 ::
@@ -81,8 +82,6 @@
     [%| 'Hoon module provenance does not match the selected mold']
   =/  result  (read-with module name typ [~ cor])
   ?.  ?=([%& *] result)  result
-  ?:  &(!=(q.q.cor -:!>(..zuse)) (contains-ref p.result))
-    [%| 'a recursive Hoon mold with Ford imports needs source-aware import']
   result
 ::
 ::  +read-named is the source-aware entry point for callers that have
@@ -123,23 +122,7 @@
   =/  raw=type  ?:(?=([%face *] sample) q.sample sample)
   =/  result  (read-with name name raw [~ q.p.cor])
   ?.  ?=([%& *] result)  result
-  ?:  (contains-ref p.result)
-    [%| 'a recursive Hoon mark needs source-aware import']
   result
-::
-::  Until recursive holds retain their originating module, a Ford import
-::  could otherwise label another module's recursive reference as local.
-++  contains-ref
-  |=  out=imported
-  ^-  ?
-  ?-  out
-    [%ref *]  &
-    [%cell *]  |($(out head.out) $(out tail.out))
-    [%face *]  $(out body.out)
-    [%fork *]  (lien cases.out |=(item=imported (contains-ref item)))
-    [%apply *]  (lien args.out |=(item=imported (contains-ref item)))
-    *  |
-  ==
 ::
 ++  read-with
   |=  [module=term name=term typ=type context=(unit type)]
@@ -594,6 +577,51 @@
   ?:  =(typ typ.i.seen)  [~ name.i.seen]
   $(seen t.seen)
 ::
+::  Find the source module for an exact recursive hold by evaluating
+::  locally declared arms of each validated core in the subject. An
+::  unlabelled core, failed evaluation, or multiple labels is ambiguous.
+++  origin-candidates
+  |=  [scope=type label=(unit term) name=term typ=type]
+  ^-  (list (unit term))
+  ?:  =(scope -:!>(..zuse))  ~
+  ?-  scope
+    [%cell *]
+      ?.  ?=([%face *] p.scope)  ~[~]
+      ?^  p.p.scope  ~[~]
+      %+  weld
+        $(scope q.p.scope, label [~ p.p.scope])
+      $(scope q.scope, label ~)
+    [%core *]
+      =/  chapters=(map term tome)  q.r.q.scope
+      =/  present=?  (lien ~(tap by chapters) |=(entry=[term tome] =((chapter-has +.entry name) [~ &])))
+      =/  own=(list (unit term))
+        ?.  present  ~
+        =/  trial=(each type tang)  (mule |.((~(play ut scope) (ream (cat 3 '*' name)))))
+        ?-  trial
+          [%| *]  ~[~]
+          [%& *]  ?:  =(p.trial typ)  ~[label]
+                    ~
+        ==
+      (weld own $(scope p.scope, label ~))
+    *  ~[~]
+  ==
+::
+++  ref-origin
+  |=  [module=term name=term typ=type context=(unit type)]
+  ^-  (unit term)
+  ?~  context  ~
+  =/  found  (origin-candidates u.context [~ module] name typ)
+  ?~  found  ~
+  ?~  i.found  ~
+  =/  choice=term  u.i.found
+  =/  same
+    |=  item=(unit term)
+    ^-  ?
+    ?~  item  |
+    =(u.item choice)
+  ?.  (levy t.found same)  ~
+  [~ choice]
+::
 ++  walk
   |=  [module=term typ=type sig=signatures seen=visiting context=(unit type)]
   ^-  imported
@@ -631,7 +659,9 @@
       =/  prior=(unit (unit term))  (find-seen typ seen)
       ?^  prior
         ?~  u.prior  [%bad 'an anonymous recursive Hoon mold cannot be named']
-        [%ref module u.u.prior]
+        =/  origin  (ref-origin module u.u.prior typ context)
+        ?~  origin  [%bad 'a recursive Hoon mold needs unambiguous source provenance']
+        [%ref u.origin u.u.prior]
       =/  nm  (hold-name q.typ)
       ?:  =(nm [~ %vase])  [%bad 'vases cannot be imported']
       ?:  &((source-uses q.typ %jar) !(alias-safe context %jar))
@@ -883,7 +913,7 @@
   ==
 ::
 ++  fixture-output
-  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t ford=@t mark=@t mark-rec=@t mark-gate=@t mark-basic=@t]
+  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t ford=@t mark=@t mark-rec=@t mark-gate=@t mark-basic=@t origin-trans=@t origin-first=@t origin-other=@t]
   ^-  wain
   =/  sc=type  -:(ride -:!>(..zuse) small)
   =/  ec=type  -:(ride -:!>(..zuse) epic)
@@ -892,6 +922,7 @@
   =/  hc=type  -:(ride -:!>(..zuse) shadow)
   =/  xc=type  -:(ride -:!>(..zuse) shadow-static)
   =/  fp=type  [%cell [%face %small sc] -:!>(..zuse)]
+  =/  other=type  -:(ride -:!>(..zuse) origin-other)
   =/  fc=type  -:(ride fp ford)
   ?>  ?=([%core *] fc)
   =/  only-list=@t  '|%\0a+$  lists  (list @ud)\0a--\0a'
@@ -906,6 +937,13 @@
   =/  mark-shadow-core=type  -:(ride sp mark-basic)
   =/  tshp=type  [%cell [%face %intermediate shc] -:!>(..zuse)]
   =/  tshc=type  -:(ride tshp only-list)
+  =/  trans=type  -:(ride tp origin-trans)
+  =/  ambiguous-parent=type  [%cell [%face %first sc] [%cell [%face %second sc] -:!>(..zuse)]]
+  =/  ambiguous=type  -:(ride ambiguous-parent origin-first)
+  =/  distinct-parent=type  [%cell [%face %first sc] [%cell [%face %second other] -:!>(..zuse)]]
+  =/  distinct=type  -:(ride distinct-parent origin-first)
+  =/  trans-amb-parent=type  [%cell [%face %intermediate fc] [%cell [%face %second sc] -:!>(..zuse)]]
+  =/  trans-amb=type  -:(ride trans-amb-parent origin-trans)
   =/  sample
     |=  name=term
     (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
@@ -953,6 +991,11 @@
       (crip "ford-imported: {(show-result (read-mold-in %ford %wrapped (~(play ut fc) (ream '*wrapped')) fc))}")
       (crip "ford-recursive: {(show-result (read-mold-in %ford %recursive (~(play ut fc) (ream '*recursive')) fc))}")
       (crip "ford-local-recursive: {(show-result (read-mold-in %ford %local (~(play ut fc) (ream '*local')) fc))}")
+      (crip "ford-recursive-transitive: {(show-result (read-named %outer %wrapped trans))}")
+      (crip "ford-recursive-ambiguous: {(show-result (read-named %outer %pick-one ambiguous))}")
+      (crip "ford-recursive-transitive-ambiguous: {(show-result (read-named %outer %wrapped trans-amb))}")
+      (crip "ford-recursive-distinct-first: {(show-result (read-named %outer %pick-one distinct))}")
+      (crip "ford-recursive-distinct-second: {(show-result (read-named %outer %pick-two distinct))}")
       (crip "ford-transitive: {(show-result (read-mold-in %ford %lists (~(play ut tc) (ream '*lists')) tc))}")
       (crip "ford-shadow: {(show-result (read-mold-in %ford %lists (~(play ut shc) (ream '*lists')) shc))}")
       (crip "ford-transitive-shadow: {(show-result (read-mold-in %ford %lists (~(play ut tshc) (ream '*lists')) tshc))}")
@@ -982,6 +1025,8 @@
       (crip "shadow-mop: {(show-result (shad %mm))}")
       (crip "shadow-jar: {(show-result (shad %aa))}")
       (crip "shadow-jug: {(show-result (shad %bb))}")
+      (crip "no-provenance-atom: {(show-result (read-mold %small %word (~(play ut sc) (ream '*word'))))}")
+      (crip "no-provenance-recursive: {(show-result (read-mold %wrong %alias (~(play ut sc) (ream '*chain'))))}")
       (crip "no-provenance: {(show-result (read-mold %small %jar-test (~(play ut sc) (ream '*jar-test'))))}")
       (crip "named-not-mold: {(show-result (read-named %small %not-mold sc))}")
       (crip "named-present: {(show-result (read-named %small %items sc))}")

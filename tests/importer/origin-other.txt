@@ -1,0 +1,4 @@
+|%
++$  chain  $@(~ [value=@ud next=chain])
++$  extra  @t
+--

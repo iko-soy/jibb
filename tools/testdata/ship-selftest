@@ -165,6 +165,41 @@ def generator_checks(tmp):
           "['/ui/card.jibb' ~[~.ui ~.card ~.jibb] mod-1-1]" in out and
           '(golden:jibb at.fixture source.fixture)' in out and
           '(check-module-trees ~.main ~' in out, out)
+    with open(os.path.join(folder, 'types.txt'), 'w') as f:
+        f.write('partial\n')
+    out = ship.generate_tests(module_cases)
+    check('Jibb module sources are also supplied to the partial checker',
+          '(check-module-types ~.main' in out and
+          '(golden-types-with-modules:jibb at src external mark-external sources)' in out and
+          "['/ui/card.jibb' ~[~.ui ~.card ~.jibb] mod-1-1]" in out and
+          'src-1 `typ-1 ~ ~ ~[[' in out and '~[]' not in out, out)
+    os.makedirs(os.path.join(folder, 'sur'))
+    os.makedirs(os.path.join(folder, 'mar'))
+    with open(os.path.join(folder, 'sur', 'fixture.txt'), 'w') as f:
+        f.write('|%\n+$  title  @t\n--\n')
+    with open(os.path.join(folder, 'mar', 'label.txt'), 'w') as f:
+        f.write('|_  a=@t\n--\n')
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('fixture title\n')
+    with open(os.path.join(folder, 'marks.txt'), 'w') as f:
+        f.write('label\n')
+    out = ship.generate_tests(module_cases)
+    check('Hoon molds, marks and Jibb modules are supplied together',
+          '[%fixture %title imp-1-1]' in out and '[%label mark-1-1]' in out and
+          "['/ui/card.jibb' ~[~.ui ~.card ~.jibb] mod-1-1]" in out and
+          '(check-module-types ~.main' in out, out)
+    os.remove(os.path.join(folder, 'imports.txt'))
+    out = ship.generate_tests(module_cases)
+    check('Jibb modules and marks work without /sur fixtures',
+          'src-1 `typ-1 ~ ~[[%label mark-1-1]] ~[[' in out and
+          '~[]' not in out, out)
+    os.remove(os.path.join(folder, 'marks.txt'))
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('fixture title\n')
+    out = ship.generate_tests(module_cases)
+    check('Jibb modules and /sur fixtures work without marks',
+          'src-1 `typ-1 ~[[%fixture %title imp-1-1]] ~ ~[[' in out and
+          '~[]' not in out, out)
     with open(os.path.join(folder, 'modules.txt'), 'a') as f:
         f.write('/ui/card.jibb\n')
     try:
@@ -205,6 +240,12 @@ def generator_checks(tmp):
           '(mule |.((mark-types-result at src fixtures marks)))' in out and
           '/mar/{(trip name.fixture)}.txt fixture' in out and
           '/sur/{(trip module.fixture)}.txt fixture' in out, out)
+    os.remove(os.path.join(folder, 'imports.txt'))
+    out = ship.generate_tests(imported)
+    check('mark-only fixtures use a valid empty /sur list',
+          'src-1 `typ-1 ~ ~[[%label mark-1-1]]' in out and '~[]' not in out, out)
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('fixture title\n')
     with open(os.path.join(folder, 'marks.txt'), 'a') as f:
         f.write('label\n')
     try:

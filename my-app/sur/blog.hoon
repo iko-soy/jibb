@@ -2,4 +2,5 @@
 |%
 +$  title  @t
 +$  post  [title=title slug=@ta]
++$  chain  $@(~ [value=@ud next=chain])
 --

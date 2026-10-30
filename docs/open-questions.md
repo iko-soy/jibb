@@ -18,7 +18,7 @@ On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treat
 
 ## Questions milestone 2 raises
 
-Found while writing [prompts/milestone-2.md](prompts/milestone-2.md) and checking it against the doc's examples. The numbering is retained so existing references stay valid. The prelude inventory in question 3 and the `like` representation in question 18 remain open; the other questions are settled.
+Found while writing [prompts/milestone-2.md](prompts/milestone-2.md) and checking it against the doc's examples. The numbering is retained so existing references stay valid. The prelude inventory in question 3, the `like` representation in question 18, and the type of `clap` in question 20 remain open; the other questions are settled.
 
 1. **Settled: how the prelude identifies jetted functions.** On 2026-10-30, @iko said the prelude functions have working Jibb implementations, and the compiler recognizes their shapes and uses the Hoon versions so jets can fire.
 2. **Settled: how the prelude keeps helpers private.** On 2026-10-30, @iko chose a separate internal prelude module imported by the prelude, without exposing the imported helpers.
@@ -39,6 +39,7 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md) and checkin
 17. **Settled: empty cases in union disjointness.** On 2026-10-30, @iko said `!!` is disjoint from every case. A cell containing an empty position at any depth is itself empty and is also disjoint from every case.
 18. **The two uses of Hoon `like`.** Hoon `+like` is a wet mold builder, but the gate it returns is callable and applies its supplied gate to the product. In a verified Hoon 135 example, applying `(like f)` to `[[1 2] [7 8 ~]]` produces an edge whose product is `8` when `f` is identity and `42` when `f` returns `42`; the resulting nail is the original input. Jibb molds are types, not callable values. The prelude now declares a generic `(like A)` mold and a `wonk` extractor; both parse, but their full type and backend validation remain outstanding. Should it also expose a value gate under `like`? If so, should the value preserve Hoon's input shape and behavior, or instead map the product of an already constructed edge? @iko is reviewing these alternatives; the exact public signature is not yet decided.
 19. **Settled: Hoon aura families and `step.hoon`.** On 2026-10-30, @iko chose `step.hoon` for Hoon 1c `step`, avoiding a clash with the Grammar example's `step`, and chose one-way widening across Hoon aura families: for example, `@ud` and `@ux` fit `@u`, and `@tD` fits `@t`. The reverse needs a check. The `step.hoon` group representation is not implemented yet.
+20. **The type of Hoon `clap`.** Hoon allows its two input units and combining gate's result to have different types. If only one unit is present it returns that unit; when both are present it returns the combining gate's result. Jibb branches normally need a common type, while every union written in Jibb has a name. Should the Jibb gate require a shared type, infer an unnamed union of the possible values, or wait for a different typing design? Asked @iko on 2026-10-30. `clap` is not implemented while this is open.
 
 ## Grammar questions never put to the doc's author
 

@@ -5212,11 +5212,45 @@
   =/  names=(list term)  (global-value-names ds)
   |-
   ?~  ds  &
-  ?.  ?=(%value -.i.ds)  |
+  ?:  ?=(%mold -.i.ds)  $(ds t.ds)
   ?.  (unique-value-name name.i.ds names)  |
   ?:  ?=(^ (ienv-lookup name.i.ds env))  |
   ?:  (lien globals.state |=(n=term =(n name.i.ds)))  |
   $(ds t.ds)
+::
+::  The supported local molds are nonrecursive simple aliases. Validate
+::  all of them, including unused ones, before checking any local values.
+::  The enclosing gate sample was checked before this scope was entered.
+::
+++  local-value-defs
+  |=  ds=(list def)
+  ^-  (list def)
+  ?~  ds  ~
+  ?:  ?=(%mold -.i.ds)  $(ds t.ds)
+  [i.ds $(ds t.ds)]
+::
+++  local-mold-names-valid
+  |=  [locals=imolds state=istate]
+  ^-  ?
+  =/  names=(list term)  (turn locals |=(m=[name=term body=shape] name.m))
+  |-
+  ?~  locals  &
+  =/  n=term  name.i.locals
+  ?.  (unique-value-name n names)  |
+  ?:  (lien molds.state |=(m=[name=term body=shape] =(n name.m)))  |
+  ?:  (lien marks.state |=(m=term =(n m)))  |
+  ?:  (lien surs.state |=(m=term =(n m)))  |
+  $(locals t.locals)
+::
+++  local-molds-supported
+  |=  [locals=imolds state=istate]
+  ^-  ?
+  ?~  locals  &
+  =/  m=[name=term body=shape]  i.locals
+  =/  inferred=(unit [typ=itype state=istate])
+    (infer-simple-shape body.m state(active [name.m active.state], in-mold &))
+  ?~  inferred  |
+  $(locals t.locals)
 ::
 ++  infer-local-defs
   |=  [ds=(list def) env=ienv state=istate]
@@ -5278,13 +5312,20 @@
       ?~  defs.e  $(e final.e)
       =/  local-names=(list term)  (global-value-names defs.e)
       ?.  (local-names-valid defs.e env state)
-        [%| ["local definitions shadow a name or use an unsupported mold" ~]]
-      =/  local-state=istate  state(globals (weld local-names globals.state))
-      =/  locals=ilocal-result  (infer-local-defs defs.e env local-state)
+        [%| ["local definitions shadow a name" ~]]
+      =/  local-molds=imolds  (collect-simple-molds defs.e)
+      ?.  (local-mold-names-valid local-molds state)
+        [%| ["local molds shadow a name" ~]]
+      =/  local-state=istate
+        state(globals (weld local-names globals.state), molds (weld local-molds molds.state))
+      ?.  (local-molds-supported local-molds local-state)
+        [%| ["local molds need unsupported inference" ~]]
+      =/  values=(list def)  (local-value-defs defs.e)
+      =/  locals=ilocal-result  (infer-local-defs values env local-state)
       ?:  ?=(%| -.locals)  locals
       =/  result=iresult  $(e final.e, env env.p.locals, state state.p.locals)
       ?:  ?=(%| -.result)  result
-      [%& typ.p.result state.p.result(globals globals.state)]
+      [%& typ.p.result state.p.result(globals globals.state, molds molds.state)]
     %branch
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e  (infer-cell-branch e env state)
@@ -5765,6 +5806,34 @@
   |=  [file=path src=@t externals=iexternals]
   ^-  @t
   (golden-types-with-marks file src externals ~)
+::
+::  +golden-types-with-modules: record supplied Jibb sources separately.
+::    Module imports are not resolved yet; neither supplied nor missing
+::    source makes the partial report a checked module.
+::
+++  golden-types-with-modules
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=(list [at=path source=@t])]
+  ^-  @t
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  =/  report=@t  (golden-types-with-marks file src externals mark-externals)
+  =/  imports=(list import)  imports.p.parsed
+  =/  lines=(list @t)  ~
+  |-
+  ?~  imports
+    ?~  lines  report
+    (of-wain:format [report (flop lines)])
+  ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
+  =/  at=path  (weld path.i.imports `path`~[%jibb])
+  =/  found=(list [at=path source=@t])
+    (skim modules |=(m=[at=path source=@t] =(at at.m)))
+  =/  status=tape
+    ?~  found  "source missing"
+    ?^  t.found  "duplicate sources"
+    "source supplied"
+  =/  line=@t
+    (crip "/= {(trip face.i.imports)} {(spud path.i.imports)}: {status}; module import is not supported by partial inference")
+  $(imports t.imports, lines [line lines])
 ::
 ::  +golden-types-with-marks: supply declared mark types separately from /sur
 ::    entries, as [mark result] with the result from +read-mark:jibb-import.

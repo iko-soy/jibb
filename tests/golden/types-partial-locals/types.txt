@@ -8,9 +8,9 @@ partial inference; module not checked
 /tests/golden/types-partial-locals/source.jibb:10:11: expression has type @t
     ^- @p (capture "hi")
           ^
-++ duplicate: local definitions shadow a name or use an unsupported mold
-++ shadow: local definitions shadow a name or use an unsupported mold
-++ global-shadow: local definitions shadow a name or use an unsupported mold
+++ duplicate: local definitions shadow a name
+++ shadow: local definitions shadow a name
+++ global-shadow: local definitions shadow a name
 ++ missing: local definitions need unsupported inference
 ++ caps: call's sample and argument types do not unify
 /tests/golden/types-partial-locals/source.jibb:28:6: called gate has type $-(@t @t)
@@ -20,7 +20,7 @@ partial inference; module not checked
     (same ~zod)
           ^
 ++ unused-bad: local definitions need unsupported inference
-++ local-mold: local definitions shadow a name or use an unsupported mold
+++ local-mold: $-(A A)
 ++ wrap: $-(A $-(B A))
 ++ through-global: cast mold and expression type do not unify
 /tests/golden/types-partial-locals/source.jibb:39:8: cast mold has type @p

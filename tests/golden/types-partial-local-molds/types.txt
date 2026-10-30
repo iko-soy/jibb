@@ -1,0 +1,11 @@
+partial inference; module not checked
++$ shared: not checked
+++ local: $-(@t @t)
+++ sample: sample mold is not supported by partial inference
+++ duplicate: local molds shadow a name
+++ shadow: local molds shadow a name
+++ recursive: local molds need unsupported inference
+++ unused-union: local molds need unsupported inference
+++ same-names: $-(@t @t)
+++ no-leak: cast mold is not supported by partial inference
+++ nested-shadow: local definitions need unsupported inference

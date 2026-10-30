@@ -235,18 +235,26 @@ def golden_program(lib_path, cases):
     imported = any(c.imports or c.marks for c in cases)
     has_marks = any(c.marks for c in cases)
     has_modules = any(c.modules for c in cases)
+    has_module_types = any(c.modules and c.want_types for c in cases)
     harness = HARNESS
     if imported:
         reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
         harness = harness.replace('=>  [lib=. ..zuse]',
                                   '=/  jibb-lib  .\n=/  reader\n' + reader +
                                   '\n=>  [lib=jibb-lib reader=reader ..zuse]')
-    types_expr = ("?:(check.metadata (golden-types-with-marks:lib at src "
-                  "(import-types imports.metadata) (import-marks marks.metadata)) '')"
+    types_value = ("(golden-types-with-marks:lib at src "
+                  "(import-types imports.metadata) (import-marks marks.metadata))"
                   if has_marks else
-                  "?:(check.metadata ?~(imports.metadata (golden-types:lib at src) "
-                  "(golden-types-imports:lib at src (import-types imports.metadata))) '')"
-                  if imported else "?:(check.metadata (golden-types:lib at src) '')")
+                  "?~(imports.metadata (golden-types:lib at src) "
+                  "(golden-types-imports:lib at src (import-types imports.metadata)))"
+                  if imported else "(golden-types:lib at src)")
+    if has_module_types:
+        surs = '(import-types imports.metadata)' if imported else '~'
+        marks = '(import-marks marks.metadata)' if imported else '~'
+        modules = '(turn modules.metadata |=(item=[label=@t at=path source=@t] [at.item source.item]))'
+        types_value = ('?~(modules.metadata %s (golden-types-with-modules:lib '
+                       'at src %s %s %s))' % (types_value, surs, marks, modules))
+    types_expr = '?:(check.metadata %s \'\')' % types_value
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")

@@ -1,0 +1,39 @@
++$ shared @t
+++ local |= x
+  +$ alias other
+  +$ other @t
+  ++ identify |= y=alias y
+  (identify x)
+++ sample |= x=hidden
+  +$ hidden @t
+  x
+++ duplicate |= x
+  +$ a @t
+  +$ a @p
+  x
+++ shadow |= x
+  +$ shared @p
+  x
+++ recursive |= x
+  +$ loop loop
+  x
+++ unused-union |= x
+  +$ option
+    %yes
+    %no
+  x
+++ same-names |= x
+  +$ alias @t
+  ++ alias |= y=alias y
+  (alias x)
+++ no-leak |= x
+  ++ inside |= y
+    +$ hidden @t
+    y
+  ^- hidden x
+++ nested-shadow |= x
+  +$ outer @t
+  ++ inside |= y
+    +$ outer @p
+    y
+  x

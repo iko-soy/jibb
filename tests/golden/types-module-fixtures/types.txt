@@ -2,3 +2,5 @@ partial inference; module not checked
 ++ main: multiple arguments are not supported by partial inference
 ++ load: sample mold is not supported by partial inference
 ++ view: sample mold is not supported by partial inference
+/= api /ui/api/blog: source supplied; module import is not supported by partial inference
+/= card /ui/components/card: source supplied; module import is not supported by partial inference

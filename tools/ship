@@ -1050,11 +1050,17 @@ def arm_names(names):
     return out
 
 
+def hoon_list(items):
+    """Render a Hoon list, including the empty list, which is just ~."""
+    return '~[' + ' '.join(items) + ']' if items else '~'
+
+
 def generate_tests(golden):
     cases = golden_cases(golden)
     has_imports = False
     has_marks = False
     has_modules = False
+    has_module_types = False
     for _, folder in cases:
         try:
             sur = golden_case.sur_imports(folder)
@@ -1063,10 +1069,11 @@ def generate_tests(golden):
             has_imports |= bool(sur or marks)
             has_marks |= bool(marks)
             has_modules |= bool(modules)
+            has_module_types |= bool(modules and golden_case.wants_types(folder))
         except ValueError as e:
             raise Unable(str(e))
     lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'),
-             '/+  jibb, jibb-import' if has_imports else '/+  jibb']
+             '/+  jibb, jibb-import' if has_imports or has_module_types else '/+  jibb']
     arms = []
     for i, ((name, folder), arm) in enumerate(
             zip(cases, arm_names([c[0] for c in cases])), 1):
@@ -1093,6 +1100,12 @@ def generate_tests(golden):
             else:
                 args.append('~')
         call = '(%s %s)' % ('check-at' if logical else 'check', ' '.join(args))
+        module_fixtures = []
+        for j, (module, at, _) in enumerate(modules, 1):
+            face = 'mod-%d-%d' % (i, j)
+            lines.append('/*  %s  %%jibb  %s/modules%s/jibb' %
+                         (face, base, module[:-5]))
+            module_fixtures.append('[%s %s %s]' % (hoon_cord(module.encode()), at, face))
         if golden_case.wants_types(folder):
             if os.path.isfile(os.path.join(folder, 'types.txt')):
                 lines.append('/*  typ-%d  %%txt   %s/types/txt' % (i, base))
@@ -1100,7 +1113,7 @@ def generate_tests(golden):
             else:
                 expected_types = '~'
             path = logical or '~[%%tests %%golden ~.%s %%source %%jibb]' % name
-            if marks:
+            if modules:
                 fixtures = []
                 for j, (module, mold, _) in enumerate(imports, 1):
                     face = 'imp-%d-%d' % (i, j)
@@ -1111,9 +1124,23 @@ def generate_tests(golden):
                     face = 'mark-%d-%d' % (i, j)
                     lines.append('/*  %s  %%txt  %s/mar/%s/txt' % (face, base, mark))
                     mark_fixtures.append('[%%%s %s]' % (mark, face))
-                call = '(weld %s (check-mark-types ~.%s %s src-%d %s ~[%s] ~[%s]))' % (
-                    call, name, path, i, expected_types, ' '.join(fixtures),
-                    ' '.join(mark_fixtures))
+                call = '(weld %s (check-module-types ~.%s %s src-%d %s %s %s %s))' % (
+                    call, name, path, i, expected_types, hoon_list(fixtures),
+                    hoon_list(mark_fixtures), hoon_list(module_fixtures))
+            elif marks:
+                fixtures = []
+                for j, (module, mold, _) in enumerate(imports, 1):
+                    face = 'imp-%d-%d' % (i, j)
+                    lines.append('/*  %s  %%txt  %s/sur/%s/txt' % (face, base, module))
+                    fixtures.append('[%%%s %%%s %s]' % (module, mold, face))
+                mark_fixtures = []
+                for j, (mark, _) in enumerate(marks, 1):
+                    face = 'mark-%d-%d' % (i, j)
+                    lines.append('/*  %s  %%txt  %s/mar/%s/txt' % (face, base, mark))
+                    mark_fixtures.append('[%%%s %s]' % (mark, face))
+                call = '(weld %s (check-mark-types ~.%s %s src-%d %s %s %s))' % (
+                    call, name, path, i, expected_types, hoon_list(fixtures),
+                    hoon_list(mark_fixtures))
             elif imports:
                 fixtures = []
                 for j, (module, mold, _) in enumerate(imports, 1):
@@ -1131,14 +1158,8 @@ def generate_tests(golden):
                 expected_modules = '`mtre-%d' % i
             else:
                 expected_modules = '~'
-            fixtures = []
-            for j, (module, at, _) in enumerate(modules, 1):
-                face = 'mod-%d-%d' % (i, j)
-                lines.append('/*  %s  %%jibb  %s/modules%s/jibb' %
-                             (face, base, module[:-5]))
-                fixtures.append('[%s %s %s]' % (hoon_cord(module.encode()), at, face))
             call = '(weld %s (check-module-trees ~.%s %s ~[%s]))' % (
-                call, name, expected_modules, ' '.join(fixtures))
+                call, name, expected_modules, ' '.join(module_fixtures))
         arms.append('++  %s\n  %s' % (arm, call))
     lines.append('|%')
     if arms:
@@ -1229,6 +1250,39 @@ def generate_tests(golden):
     =/  out  (golden:jibb at.fixture source.fixture)
     (rap 3 ~[label.fixture '\\0a' tree.out])
   actual
+'''
+    if has_module_types:
+        types_helper += '''::
+++  check-module-types
+  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain]) modules=(list [label=@t at=path source=@t])]
+  ^-  tang
+  =/  result  (mule |.((module-types-result at src fixtures marks modules)))
+  ?:  ?=(%| -.result)
+    [leaf+"fixture compilation or type checking crashed" p.result]
+  (compare (file case "types.txt") want p.result)
+::
+++  module-types-result
+  |=  [at=path src=@t fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain]) modules=(list [label=@t at=path source=@t])]
+  ^-  @t
+  =/  external=(list [module=term name=term result=*])
+    %+  turn  fixtures
+    |=  fixture=[module=term mold=term source=wain]
+    ~_  leaf+"/sur/{(trip module.fixture)}.txt fixture"
+    ?~  source.fixture  !!
+    =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
+    =/  cor=type  -:(ride -:!>(..zuse) text)
+    [module.fixture mold.fixture (read-named:jibb-import module.fixture mold.fixture cor)]
+  =/  mark-external=(list [name=term result=*])
+    %+  turn  marks
+    |=  fixture=[name=term source=wain]
+    ~_  leaf+"/mar/{(trip name.fixture)}.txt fixture"
+    ?~  source.fixture  !!
+    =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
+    =/  cor=type  -:(ride -:!>(..zuse) text)
+    [name.fixture (read-mark:jibb-import name.fixture cor)]
+  =/  sources=(list [path=path source=@t])
+    (turn modules |=(item=[label=@t at=path source=@t] [at.item source.item]))
+  (golden-types-with-modules:jibb at src external mark-external sources)
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 

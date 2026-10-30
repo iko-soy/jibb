@@ -12,6 +12,9 @@
 /*  mark-rec  %txt  /tests/importer/mark-recursive/txt
 /*  mark-gate  %txt  /tests/importer/mark-gate/txt
 /*  mark-basic  %txt  /tests/importer/mark-list/txt
+/*  origin-trans  %txt  /tests/importer/origin-transitive/txt
+/*  origin-first  %txt  /tests/importer/origin-first/txt
+/*  origin-other  %txt  /tests/importer/origin-other/txt
 /*  expected  %txt  /tests/importer/tree/txt
 |%
 ++  lines-to-cord
@@ -32,8 +35,11 @@
   ?~  mark-rec  ~[leaf+"recursive mark fixture is missing"]
   ?~  mark-gate  ~[leaf+"gate mark fixture is missing"]
   ?~  mark-basic  ~[leaf+"list mark fixture is missing"]
+  ?~  origin-trans  ~[leaf+"transitive origin fixture is missing"]
+  ?~  origin-first  ~[leaf+"origin alias fixture is missing"]
+  ?~  origin-other  ~[leaf+"distinct origin fixture is missing"]
   ?~  expected  ~[leaf+"importer golden output is missing"]
-  =/  actual  (fixture-output:jibb-import (lines-to-cord small) (lines-to-cord epic) (lines-to-cord presence) (lines-to-cord docs) (lines-to-cord shadow) (lines-to-cord shadow-static) (lines-to-cord ford) (lines-to-cord mark) (lines-to-cord mark-rec) (lines-to-cord mark-gate) (lines-to-cord mark-basic))
+  =/  actual  (fixture-output:jibb-import (lines-to-cord small) (lines-to-cord epic) (lines-to-cord presence) (lines-to-cord docs) (lines-to-cord shadow) (lines-to-cord shadow-static) (lines-to-cord ford) (lines-to-cord mark) (lines-to-cord mark-rec) (lines-to-cord mark-gate) (lines-to-cord mark-basic) (lines-to-cord origin-trans) (lines-to-cord origin-first) (lines-to-cord origin-other))
   ?.  =(actual expected)
     ~[leaf+"importer projection differs from tests/importer/tree.txt"]
   ~

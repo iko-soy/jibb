@@ -3,6 +3,6 @@ may shadow one already in scope". Definitions at the start of a body are
 visible to one another and its final expression. Partial inference resolves
 acyclic local values, generalizing their free variables except those captured
 from enclosing bindings or explicit capitals. It declines recursive groups,
-local molds, duplicate names and shadowing. A module remains unchecked.
+duplicate names and shadowing; simple local molds are now supported. A module remains unchecked.
 expect: parses
 expect-types: a partial inference report, not a checked module

@@ -1,0 +1,80 @@
+(module
+  (mold 1:1 shared (aura 1:11 @t))
+  (value 2:1 local
+    (gate 2:10
+      (bind 2:13 x)
+      (body 3:3
+        (mold 3:3 alias (ref 3:12 other))
+        (mold 4:3 other (aura 4:12 @t))
+        (value 5:3 identify
+          (gate 5:15
+            (face 5:18 y (ref 5:20 alias))
+            (wing 5:26 y)))
+        (group 6:3
+          (call 6:4 (wing 6:4 identify) (wing 6:13 x))))))
+  (value 7:1 sample
+    (gate 7:11
+      (face 7:14 x (ref 7:16 hidden))
+      (body 8:3
+        (mold 8:3 hidden (aura 8:13 @t))
+        (wing 9:3 x))))
+  (value 10:1 duplicate
+    (gate 10:14
+      (bind 10:17 x)
+      (body 11:3
+        (mold 11:3 a (aura 11:8 @t))
+        (mold 12:3 a (aura 12:8 @p))
+        (wing 13:3 x))))
+  (value 14:1 shadow
+    (gate 14:11
+      (bind 14:14 x)
+      (body 15:3
+        (mold 15:3 shared (aura 15:13 @p))
+        (wing 16:3 x))))
+  (value 17:1 recursive
+    (gate 17:14
+      (bind 17:17 x)
+      (body 18:3
+        (mold 18:3 loop (ref 18:11 loop))
+        (wing 19:3 x))))
+  (value 20:1 unused-union
+    (gate 20:17
+      (bind 20:20 x)
+      (body 21:3
+        (mold 21:3 option
+          (union 22:5 (const 22:5 %yes) (const 23:5 %no)))
+        (wing 24:3 x))))
+  (value 25:1 same-names
+    (gate 25:15
+      (bind 25:18 x)
+      (body 26:3
+        (mold 26:3 alias (aura 26:12 @t))
+        (value 27:3 alias
+          (gate 27:12
+            (face 27:15 y (ref 27:17 alias))
+            (wing 27:23 y)))
+        (group 28:3
+          (call 28:4 (wing 28:4 alias) (wing 28:10 x))))))
+  (value 29:1 no-leak
+    (gate 29:12
+      (bind 29:15 x)
+      (body 30:3
+        (value 30:3 inside
+          (gate 30:13
+            (bind 30:16 y)
+            (body 31:5
+              (mold 31:5 hidden (aura 31:15 @t))
+              (wing 32:5 y))))
+        (cast 33:3 (ref 33:6 hidden) (wing 33:13 x)))))
+  (value 34:1 nested-shadow
+    (gate 34:18
+      (bind 34:21 x)
+      (body 35:3
+        (mold 35:3 outer (aura 35:12 @t))
+        (value 36:3 inside
+          (gate 36:13
+            (bind 36:16 y)
+            (body 37:5
+              (mold 37:5 outer (aura 37:14 @p))
+              (wing 38:5 y))))
+        (wing 39:3 x)))))
