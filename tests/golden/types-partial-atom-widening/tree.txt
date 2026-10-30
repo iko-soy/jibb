@@ -1,0 +1,35 @@
+(module
+  (value 1:1 atom-id
+    (gate 1:12
+      (face 1:15 x (aura 1:17 @))
+      (wing 1:19 x)))
+  (value 2:1 call
+    (group 2:9
+      (call 2:10 (wing 2:10 atom-id) (lit 2:18 ~zod))))
+  (value 3:1 widen
+    (cast 3:10 (aura 3:13 @) (lit 3:15 ~zod)))
+  (value 4:1 flag
+    (cast 4:9 (aura 4:12 @) (lit 4:14 %.y)))
+  (value 5:1 narrow
+    (gate 5:11
+      (face 5:14 x (aura 5:16 @))
+      (cast 5:18 (aura 5:21 @ud) (wing 5:25 x))))
+  (value 6:1 constrained
+    (gate 6:16
+      (face 6:19 x (tvar 6:21 A))
+      (cast 6:23 (aura 6:26 @) (wing 6:28 x))))
+  (value 7:1 nested
+    (gate 7:11
+      (bind 7:14 x)
+      (gate-wide 7:16
+        (face 7:19 f
+          (fn 7:21
+            (cell 7:24 (aura 7:25 @) (aura 7:27 @))
+            (aura 7:30 @t)))
+        (group 7:34
+          (call 7:35 (wing 7:35 f) (wing 7:37 x))))))
+  (mold 8:1 open (aura 8:9 @))
+  (value 9:1 named
+    (gate 9:10
+      (face 9:13 x (ref 9:15 open))
+      (wing 9:20 x))))

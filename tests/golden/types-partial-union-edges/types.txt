@@ -1,0 +1,9 @@
+partial inference; module not checked
++$ empty: cases proven disjoint; mold not checked
++$ empty-cell: cases proven disjoint; mold not checked
++$ inner: cases proven disjoint; mold not checked
++$ named-disjoint: cases proven disjoint; mold not checked
++$ named-overlap: overlapping cases at 14:3 and 15:3; mold not checked
++$ opaque: case disjointness unresolved; mold not checked
++$ tagged-gates: cases proven disjoint; mold not checked
++$ same-tag-gates: case disjointness unresolved; mold not checked

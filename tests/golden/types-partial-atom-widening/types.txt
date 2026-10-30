@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ atom-id: $-(@ @)
+++ call: @
+++ widen: @
+++ flag: @
+++ narrow: cast mold and expression type do not unify
+++ constrained: cast constraint is not supported by partial inference
+++ nested: call constraint is not supported by partial inference
++$ open: not checked
+++ named: $-(@ @)

@@ -1,3 +1,4 @@
-source: `@` is an unrestricted bare atom; each occurrence is independent.
-tests: partial inference does not specialize a bare atom to the aura supplied by a call.
-expect: parses; type analysis reports both samples as unsupported
+source: `@` is any atom, independently at each occurrence; a specific atom fits where `@` is expected.
+tests: an unrestricted sample accepts a specific atom and retains its unrestricted result type.
+expect: parses
+expect-types: a partial inference report, not a checked module

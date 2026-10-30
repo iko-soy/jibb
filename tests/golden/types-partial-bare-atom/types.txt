@@ -1,3 +1,3 @@
 partial inference; module not checked
-++ f: sample mold is not supported by partial inference
-++ g: sample mold is not supported by partial inference
+++ f: @
+++ g: $-(@ @)

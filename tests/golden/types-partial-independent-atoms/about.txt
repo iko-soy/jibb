@@ -1,0 +1,4 @@
+source: each bare `@` independently accepts any atom; a specific atom fits where `@` is expected.
+tests: two fields independently widen a ship and a cord and remain unrestricted in the result.
+expect: parses
+expect-types: a partial inference report, not a checked module

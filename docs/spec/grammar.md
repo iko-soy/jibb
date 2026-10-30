@@ -132,7 +132,7 @@ A mold is only a type: never called on a noun, and with no default. Types are in
 - **Opaque**: `poke`, `ask` and `qath`, built only by derived gates, `pure` and application-path literals. `(facts full diff …)` appears only in an API file's `paths`.
 - **Identity**: recursive molds go by name and module.
 
-`eq`'s arguments and map and set keys must contain no gates, even nested inside another value. The checker infers this gate-free constraint on type variables and retains it when generalizing a `++`, so a generic helper that calls `eq` stays generic over gate-free types. Printed types show the constraint as `$-([A A] ?) where A contains no gates`. Union-case matching treats gates as opaque and never inspects a gate to distinguish cases.
+`eq`'s arguments and map and set keys must contain no gates, even nested inside another value. The checker infers this gate-free constraint on type variables and retains it when generalizing a `++`, so a generic helper that calls `eq` stays generic over gate-free types. Printed types show the constraint as `$-([A A] ?) where A contains no gates`. An inferred atom constraint prints as `$-([A A] A) where A is an atom`. Union-case matching treats gates as opaque and never inspects a gate to distinguish cases.
 
 ## Tag resolution
 

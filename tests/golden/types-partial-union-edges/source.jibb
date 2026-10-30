@@ -1,0 +1,24 @@
++$ empty
+  !!
+  %a
++$ empty-cell
+  [%a !!]
+  [%a @t]
++$ inner
+  %a
+  %b
++$ named-disjoint
+  inner
+  %c
++$ named-overlap
+  inner
+  %b
++$ opaque
+  $-(@t @t)
+  @ud
++$ tagged-gates
+  [%a $-(@t @t)]
+  [%b $-(@t @t)]
++$ same-tag-gates
+  [%a $-(@t @t)]
+  [%a $-(@ud @ud)]

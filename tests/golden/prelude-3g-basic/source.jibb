@@ -1,0 +1,60 @@
+::  Initial prelude functions. The rest of the inventory is still to come.
+++ same |= x=A x
+
+++ head |= p=[A B]
+  ?- p
+    [a b] a
+
+++ tail |= p=[A B]
+  ?- p
+    [a b] b
+
+++ not |= b=?
+  ?- b
+    %.y %.n
+    %.n %.y
+
++$ list |$ [A]
+  ~
+  [i=A t=(list A)]
+
++$ unit |$ [A]
+  ~
+  [~ u=A]
+
+++ fall |= args=[(unit A) A]
+  ?- args
+    [maybe fallback]
+      ?- maybe
+        ~ fallback
+        [~ value] value
+
+++ need |= maybe=(unit A)
+  ?- maybe
+    ~ !!
+    [~ value] value
+
+++ weld |= args=[(list A) (list A)]
+  ?- args
+    [xs ys]
+      ?- xs
+        ~ ys
+        [item rest] [item (weld rest ys)]
+
+++ turn |= args=[(list A) $-(A B)]
+  ?- args
+    [xs f]
+      ?- xs
+        ~ ~
+        [item rest] [(f item) (turn rest f)]
+
++$ dime [p=@ta q=@]
+
++$ hair [p=@ud q=@ud]
+
++$ pint [p=[p=@ q=@] q=[p=@ q=@]]
+
++$ coin
+  [%$ p=dime]
+  [%blob p=*]
+  [%many p=(list coin)]

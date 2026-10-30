@@ -1,0 +1,97 @@
+1:1 glyph +$
+1:4 name empty
+2:3 INDENT
+2:3 glyph !!
+3:3 NEWLINE
+3:3 lit %a
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name empty-cell
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %a
+5:7 glyph !!
+5:9 tight glyph ]
+6:3 NEWLINE
+6:3 glyph [
+6:4 tight lit %a
+6:7 aura @t
+6:9 tight glyph ]
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name inner
+8:3 INDENT
+8:3 lit %a
+9:3 NEWLINE
+9:3 lit %b
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph +$
+10:4 name named-disjoint
+11:3 INDENT
+11:3 name inner
+12:3 NEWLINE
+12:3 lit %c
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph +$
+13:4 name named-overlap
+14:3 INDENT
+14:3 name inner
+15:3 NEWLINE
+15:3 lit %b
+16:1 DEDENT
+16:1 NEWLINE
+16:1 glyph +$
+16:4 name opaque
+17:3 INDENT
+17:3 glyph $-(
+17:6 tight aura @t
+17:9 aura @t
+17:11 tight glyph )
+18:3 NEWLINE
+18:3 aura @ud
+19:1 DEDENT
+19:1 NEWLINE
+19:1 glyph +$
+19:4 name tagged-gates
+20:3 INDENT
+20:3 glyph [
+20:4 tight lit %a
+20:7 glyph $-(
+20:10 tight aura @t
+20:13 aura @t
+20:15 tight glyph )
+20:16 tight glyph ]
+21:3 NEWLINE
+21:3 glyph [
+21:4 tight lit %b
+21:7 glyph $-(
+21:10 tight aura @t
+21:13 aura @t
+21:15 tight glyph )
+21:16 tight glyph ]
+22:1 DEDENT
+22:1 NEWLINE
+22:1 glyph +$
+22:4 name same-tag-gates
+23:3 INDENT
+23:3 glyph [
+23:4 tight lit %a
+23:7 glyph $-(
+23:10 tight aura @t
+23:13 aura @t
+23:15 tight glyph )
+23:16 tight glyph ]
+24:3 NEWLINE
+24:3 glyph [
+24:4 tight lit %a
+24:7 glyph $-(
+24:10 tight aura @ud
+24:14 aura @ud
+24:17 tight glyph )
+24:18 tight glyph ]
+24:19 DEDENT
+24:19 NEWLINE

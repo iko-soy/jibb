@@ -7,7 +7,11 @@ jar: (jar @ud @t)
 jug: (jug @ud @t)
 nested-jar: field=(jar @ud @t)
 paired-aliases: [values=(jar @ud @t) cache=(jug @ud @t)]
-nested-alias: error: nested collection arguments need source-aware import
+nested-alias: (jar @ud (jug @ud @t))
+compound: (map @ud (list (jar @ud (jug @t @ud))))
+compound-fields: [one=(map @ud (jar @t @ud)) two=(list (jug @t @ud))]
+mop: (mop @ud @t)
+nested-mop: error: a nested Hoon mop needs source-aware import
 signed: error: signed and float auras cannot be imported
 float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported
@@ -21,6 +25,7 @@ chapter-direct-hit: yes
 chapter-wrapped-hit: yes
 chapter-direct-miss: no
 chapter-wrapped-miss: no
+shadow-mop: error: Hoon collection provenance is unavailable or shadowed
 shadow-jar: error: Hoon collection provenance is unavailable or shadowed
 shadow-jug: error: Hoon collection provenance is unavailable or shadowed
 no-provenance: error: Hoon collection provenance is unavailable or shadowed

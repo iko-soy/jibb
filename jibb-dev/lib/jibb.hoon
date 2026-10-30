@@ -4592,14 +4592,17 @@
 ::  capital variables in molds share one allocation within the definition.
 ::  Decimal literals have atom-only variables; until their constraints
 ::  can be printed and generalized, an unresolved one is unsupported.
-::  Bare @ is unsupported until its unrestricted-atom rule is implemented.
-::  Only unfaced cells are represented here.
+::  Bare @ is a separate unrestricted atom type. A directional fit check
+::  permits concrete atoms to widen to it, never the reverse. A fit that
+::  needs a not-yet-implemented constraint remains unsupported. Only
+::  unfaced cells are represented here.
 ::
 +$  itype
   $~  [%var 0]
   $%  [%var id=@ud]
       [%avar id=@ud]
       [%atom aura=@ta]
+      [%any-atom ~]
       [%flag ~]
       [%fn sample=itype product=itype]
       [%cell hed=itype tal=itype]
@@ -4636,6 +4639,7 @@
     %var   =(n id.t)
     %avar  =(n id.t)
     %atom  |
+    %any-atom  |
     %flag  |
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
@@ -4675,6 +4679,59 @@
     ?~  first  ~
     $(a tal.a, b tal.b, sub u.first)
   ~
+::
+::  +itype-fit: one-way widening from an actual type to an expected type
+::
+::    Variables that would need a generalized atom constraint, and
+::    function compatibility involving unrestricted @, remain unknown.
+::
++$  ifit  $%([%ok sub=isub] [%bad ~] [%unknown ~])
+++  itype-has-any-atom
+  |=  [t=itype sub=isub]
+  ^-  ?
+  =.  t  (itype-walk t sub)
+  ?-  -.t
+    %var       |
+    %avar      |
+    %atom      |
+    %any-atom  &
+    %flag      |
+    %fn        |($(t sample.t) $(t product.t))
+    %cell      |($(t hed.t) $(t tal.t))
+  ==
+::
+++  itype-fit
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  ifit
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  =(actual expected)  [%ok sub]
+  ?:  ?=(%any-atom -.expected)
+    ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%flag -.actual))  [%ok sub]
+    ?:  ?=(%var -.actual)  [%unknown ~]
+    [%bad ~]
+  ?:  ?=(%any-atom -.actual)
+    ?:  ?=(%var -.expected)
+      =/  unified=(unit isub)  (itype-unify actual expected sub)
+      ?~  unified  [%bad ~]
+      [%ok u.unified]
+    ?:  ?=(%avar -.expected)  [%unknown ~]
+    [%bad ~]
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    =/  first=ifit  $(actual hed.actual, expected hed.expected)
+    ?.  ?=(%ok -.first)  first
+    $(actual tal.actual, expected tal.expected, sub sub.first)
+  ?:  &(?=(%var -.actual) (itype-has-any-atom expected sub))
+    [%unknown ~]
+  ?:  |(?=(%var -.actual) ?=(%var -.expected))
+    =/  unified=(unit isub)  (itype-unify actual expected sub)
+    ?~  unified  [%bad ~]
+    [%ok u.unified]
+  ?:  |((itype-has-any-atom actual sub) (itype-has-any-atom expected sub))
+    [%unknown ~]
+  =/  unified=(unit isub)  (itype-unify actual expected sub)
+  ?~  unified  [%bad ~]
+  [%ok u.unified]
 ::
 ++  itype-unify-test
   ^-  (list tape)
@@ -4745,6 +4802,7 @@
     %var   ~[id.t]
     %avar  ~[id.t]
     %atom  ~
+    %any-atom  ~
     %flag  ~
     %fn    (weld $(t sample.t) $(t product.t))
     %cell  (weld $(t hed.t) $(t tal.t))
@@ -4769,6 +4827,7 @@
       u.found
     %avar  t
     %atom  t
+    %any-atom  t
     %flag  t
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -4872,7 +4931,7 @@
   ^-  (unit [typ=itype state=istate])
   ?-  -.sh
     %aura
-      ?:  =(0 aura.sh)  ~
+      ?:  =(0 aura.sh)  `[[%any-atom ~] state]
       `[[%atom aura.sh] state]
     %flag  `[[%flag ~] state]
     %cell  (infer-simple-fields fields.sh state)
@@ -4993,16 +5052,20 @@
       =/  right=iresult  $(e val.y, state state.p.left)
       ?:  ?=(%| -.right)  right
       =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
-      ?~  joined  [%| "branch arms have incompatible types"]
+      ?~  joined
+        ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right))
+          [%| "branch widening is not supported by partial inference"]
+        [%| "branch arms have incompatible types"]
       [%& typ.p.left state.p.right(sub u.joined)]
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
       ?~  target  [%| "cast mold is not supported by partial inference"]
       =/  value=iresult  $(e val.e, state state.u.target)
       ?:  ?=(%| -.value)  value
-      =/  uni=(unit isub)  (itype-unify typ.u.target typ.p.value sub.state.p.value)
-      ?~  uni  [%| "cast mold and expression type do not unify"]
-      [%& typ.u.target state.p.value(sub u.uni)]
+      =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value)
+      ?:  ?=(%unknown -.fit)  [%| "cast constraint is not supported by partial inference"]
+      ?:  ?=(%bad -.fit)  [%| "cast mold and expression type do not unify"]
+      [%& typ.u.target state.p.value(sub sub.fit)]
     %crash  [%& [%var next.state] state(next +(next.state))]
     %gate
       =/  sam=isample-result  (infer-sample sample.e env state)
@@ -5024,9 +5087,14 @@
       =/  arg=iresult  $(e i.args.e, state state.p.head)
       ?:  ?=(%| -.arg)  arg
       =/  st=istate  state.p.arg
+      =/  ht=itype  (itype-walk typ.p.head sub.st)
+      ?:  ?=(%fn -.ht)
+        =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st)
+        ?:  ?=(%unknown -.fit)  [%| "call constraint is not supported by partial inference"]
+        ?:  ?=(%bad -.fit)  [%| "call's sample and argument types do not unify"]
+        [%& product.ht st(sub sub.fit)]
       =/  result=itype  [%var next.st]
-      =/  uni=(unit isub)
-        (itype-unify typ.p.head [%fn typ.p.arg result] sub.st)
+      =/  uni=(unit isub)  (itype-unify ht [%fn typ.p.arg result] sub.st)
       ?~  uni  [%| "call's sample and argument types do not unify"]
       [%& result st(next +(next.st), sub u.uni)]
     *  [%| "expression is not supported by partial inference"]
@@ -5086,6 +5154,7 @@
       "T{<id.t>}"
     %avar  "@"
     %atom  "@{(trip aura.t)}"
+    %any-atom  "@"
     %flag  "?"
     %fn    "$-({$(t sample.t)} {$(t product.t)})"
     %cell  "[{$(t hed.t)} {$(t tal.t)}]"
@@ -5101,6 +5170,7 @@
     %avar  &
     %var   |
     %atom  |
+    %any-atom  |
     %flag  |
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))

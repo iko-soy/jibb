@@ -171,6 +171,19 @@ def check_types_and_logical_path(c, tmp):
         f.write('/ui/api/../todo.jibb\n')
     status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
     c.expect(status == 2, 'invalid path: %d\n%s' % (status, out))
+    os.remove(os.path.join(folder, 'path.txt'))
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('missing title\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2 and 'no fixture' in out, 'missing fixture: ' + out)
+    os.makedirs(os.path.join(folder, 'sur'))
+    with open(os.path.join(folder, 'sur', 'missing.txt'), 'w') as f:
+        f.write('|%\n+$  title  @t\n--\n')
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('missing title\nmissing title\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2 and 'duplicate imported mold' in out,
+             'duplicate imported mold: ' + out)
 
 
 def check_mismatch_diff(c, tmp):

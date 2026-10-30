@@ -1,0 +1,4 @@
+source: Overview, Prelude: "The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out"; 3g includes `dime`, `hair`, `pint` and `coin`.
+tests: The prelude's 3g atom and position molds, and the recursive `coin` union with its `%$` term case; bare `@` fields accept atoms independently.
+expect: parses
+expect-types: a partial inference report, not a checked module; union-case disjointness is checked but the molds remain unchecked

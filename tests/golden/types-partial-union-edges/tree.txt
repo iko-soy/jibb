@@ -1,0 +1,33 @@
+(module
+  (mold 1:1 empty
+    (union 2:3 (void 2:3) (const 3:3 %a)))
+  (mold 4:1 empty-cell
+    (union 5:3
+      (cell 5:3 (const 5:4 %a) (void 5:7))
+      (cell 6:3 (const 6:4 %a) (aura 6:7 @t))))
+  (mold 7:1 inner
+    (union 8:3 (const 8:3 %a) (const 9:3 %b)))
+  (mold 10:1 named-disjoint
+    (union 11:3 (ref 11:3 inner) (const 12:3 %c)))
+  (mold 13:1 named-overlap
+    (union 14:3 (ref 14:3 inner) (const 15:3 %b)))
+  (mold 16:1 opaque
+    (union 17:3
+      (fn 17:3 (aura 17:6 @t) (aura 17:9 @t))
+      (aura 18:3 @ud)))
+  (mold 19:1 tagged-gates
+    (union 20:3
+      (cell 20:3
+        (const 20:4 %a)
+        (fn 20:7 (aura 20:10 @t) (aura 20:13 @t)))
+      (cell 21:3
+        (const 21:4 %b)
+        (fn 21:7 (aura 21:10 @t) (aura 21:13 @t)))))
+  (mold 22:1 same-tag-gates
+    (union 23:3
+      (cell 23:3
+        (const 23:4 %a)
+        (fn 23:7 (aura 23:10 @t) (aura 23:13 @t)))
+      (cell 24:3
+        (const 24:4 %a)
+        (fn 24:7 (aura 24:10 @ud) (aura 24:14 @ud))))))

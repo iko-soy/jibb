@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/-  todo` imports molds from a Hoon `/sur` file.
+tests: a golden case supplies its own Hoon source and selected molds; both the eval and ship runners pass the reader's results into partial inference.
+expect: parses
+expect-types: a partial report with the imported atom and unfaced cell types

@@ -1,0 +1,3 @@
+source: `!!` is the empty mold; union cases differ as nouns, and matching never inspects gates to distinguish cases.
+tests: empty molds and cells containing them are disjoint; named unions compare each case; gates remain opaque unless tags differ.
+expect: parses; empty and distinct tags are disjoint, a shared named case overlaps, and gate-only distinctions remain unresolved

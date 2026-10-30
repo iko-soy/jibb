@@ -47,3 +47,14 @@
       ?- xs
         ~ ~
         [item rest] [(f item) (turn rest f)]
+
++$ dime [p=@ta q=@]
+
++$ hair [p=@ud q=@ud]
+
++$ pint [p=[p=@ q=@] q=[p=@ q=@]]
+
++$ coin
+  [%$ p=dime]
+  [%blob p=*]
+  [%many p=(list coin)]

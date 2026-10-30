@@ -1,0 +1,15 @@
+partial inference; module not checked
+++ same: $-(A A)
+++ head: $-([A B] A)
+++ tail: $-([A B] B)
+++ not: $-(? ?)
++$ list: cases proven disjoint; mold not checked
++$ unit: cases proven disjoint; mold not checked
+++ fall: sample mold is not supported by partial inference
+++ need: sample mold is not supported by partial inference
+++ weld: sample mold is not supported by partial inference
+++ turn: sample mold is not supported by partial inference
++$ dime: not checked
++$ hair: not checked
++$ pint: not checked
++$ coin: cases proven disjoint; mold not checked

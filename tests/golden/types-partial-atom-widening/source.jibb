@@ -1,0 +1,9 @@
+++ atom-id |= x=@ x
+++ call (atom-id ~zod)
+++ widen ^- @ ~zod
+++ flag ^- @ %.y
+++ narrow |= x=@ ^- @ud x
+++ constrained |= x=A ^- @ x
+++ nested |= x |=(f=$-([@ @] @t) (f x))
++$ open @
+++ named |= x=open x

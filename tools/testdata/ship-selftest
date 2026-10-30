@@ -151,6 +151,51 @@ def generator_checks(tmp):
         bad_path = False
     check('invalid logical paths are rejected', bad_path)
 
+    imported = os.path.join(tmp, 'imported')
+    write_case(imported, 'molds', b'/-  fixture\n++ x 1\n')
+    folder = os.path.join(imported, 'molds')
+    os.makedirs(os.path.join(folder, 'sur'))
+    with open(os.path.join(folder, 'types.txt'), 'w') as f:
+        f.write('expected\n')
+    with open(os.path.join(folder, 'sur', 'fixture.txt'), 'w') as f:
+        f.write('|%\n+$  title  @t\n--\n')
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('fixture title\n')
+    out = ship.generate_tests(imported)
+    check('selected Hoon molds are supplied to the checker on the ship',
+          '/+  jibb, jibb-import\n' in out and
+          '/tests/golden/molds/sur/fixture/txt' in out and
+          '[%fixture %title imp-1-1]' in out and
+          '(golden-types-imports:jibb at src external)' in out, out)
+    with open(os.path.join(folder, 'imports.txt'), 'a') as f:
+        f.write('fixture title\n')
+    try:
+        ship.generate_tests(imported)
+    except ship.Unable as e:
+        bad_import = 'duplicate imported mold' in str(e)
+    else:
+        bad_import = False
+    check('duplicate imported molds are rejected', bad_import)
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('missing title\n')
+    try:
+        ship.generate_tests(imported)
+    except ship.Unable as e:
+        missing_import = 'no fixture' in str(e)
+    else:
+        missing_import = False
+    check('missing imported Hoon fixtures are rejected', missing_import)
+    with open(os.path.join(folder, 'imports.txt'), 'w') as f:
+        f.write('fixture title\n')
+    os.remove(os.path.join(folder, 'types.txt'))
+    try:
+        ship.generate_tests(imported)
+    except ship.Unable as e:
+        no_types = 'require a types output' in str(e)
+    else:
+        no_types = False
+    check('import fixtures require type output', no_types)
+
     normal = ship.assemble('jibb-dev')
     normal_tests = {p for p in normal.files if p.startswith('tests/lib/') and
                     p.endswith('.hoon')}

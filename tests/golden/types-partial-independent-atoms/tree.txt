@@ -1,0 +1,11 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 p
+        (cell 1:11 (aura 1:12 @) (aura 1:14 @)))
+      (wing 1:17 p)))
+  (value 2:1 x
+    (group 2:6
+      (call 2:7
+        (wing 2:7 f)
+        (tuple 2:9 (lit 2:10 ~zod) (str 2:15 "hi"))))))

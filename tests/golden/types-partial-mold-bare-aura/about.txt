@@ -1,4 +1,4 @@
-source: Grammar tab, Molds: "every expression has a principal type, and there is no general subtyping".
-tests: a bare-aura mold is explicitly unsupported by partial inference.
+source: `@` is any atom; a specific atom fits where `@` is expected.
+tests: a named unrestricted atom mold accepts a decimal value and remains unrestricted.
 expect: parses
 expect-types: a partial inference report, not a checked module

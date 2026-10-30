@@ -1,0 +1,4 @@
+source: `@` is any atom; a specific atom fits `@`, but an `@` value needs a check to fit a specific aura. Shared atom types use an atom-constrained capital.
+tests: calls and casts widen concrete atoms and loobeans, reject unchecked narrowing, and leave uninferred atom constraints unsupported.
+expect: parses
+expect-types: a partial inference report, not a checked module

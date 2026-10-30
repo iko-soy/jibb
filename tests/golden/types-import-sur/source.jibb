@@ -1,0 +1,3 @@
+/-  fixture
+++ identity |= x=title.fixture x
+++ pair-identity |= x=pair.fixture x

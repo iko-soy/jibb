@@ -1052,7 +1052,14 @@ def arm_names(names):
 
 def generate_tests(golden):
     cases = golden_cases(golden)
-    lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'), '/+  jibb']
+    has_imports = False
+    for _, folder in cases:
+        try:
+            has_imports |= bool(golden_case.sur_imports(folder))
+        except ValueError as e:
+            raise Unable(str(e))
+    lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'),
+             '/+  jibb, jibb-import' if has_imports else '/+  jibb']
     arms = []
     for i, ((name, folder), arm) in enumerate(
             zip(cases, arm_names([c[0] for c in cases])), 1):
@@ -1062,6 +1069,7 @@ def generate_tests(golden):
         #  path literal in Hoon can't, though /* takes them
         try:
             logical = golden_case.source_path(folder)
+            imports = golden_case.sur_imports(folder)
         except ValueError as e:
             raise Unable(str(e))
         args = ['~.%s' % name]
@@ -1083,8 +1091,17 @@ def generate_tests(golden):
             else:
                 expected_types = '~'
             path = logical or '~[%%tests %%golden ~.%s %%source %%jibb]' % name
-            call = '(weld %s (check-types ~.%s %s src-%d %s))' % (
-                call, name, path, i, expected_types)
+            if imports:
+                fixtures = []
+                for j, (module, mold, _) in enumerate(imports, 1):
+                    face = 'imp-%d-%d' % (i, j)
+                    lines.append('/*  %s  %%txt  %s/sur/%s/txt' % (face, base, module))
+                    fixtures.append('[%%%s %%%s %s]' % (module, mold, face))
+                call = '(weld %s (check-import-types ~.%s %s src-%d %s ~[%s]))' % (
+                    call, name, path, i, expected_types, ' '.join(fixtures))
+            else:
+                call = '(weld %s (check-types ~.%s %s src-%d %s))' % (
+                    call, name, path, i, expected_types)
         arms.append('++  %s\n  %s' % (arm, call))
     lines.append('|%')
     if arms:
@@ -1098,6 +1115,22 @@ def generate_tests(golden):
   |=  [case=@ta at=path src=@t want=(unit wain)]
   ^-  tang
   (compare (file case "types.txt") want (golden-types:jibb at src))
+'''
+    if has_imports:
+        types_helper += '''::
+++  check-import-types
+  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain])]
+  ^-  tang
+  ?:  (lien fixtures |=(f=[module=term mold=term source=wain] ?=(~ source.f)))
+    ~[leaf+"an imported Hoon fixture is missing or empty"]
+  =/  external=(list [module=term name=term result=*])
+    %+  turn  fixtures
+    |=  fixture=[module=term mold=term source=wain]
+    =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
+    =/  cor=type  -:(ride -:!>(..zuse) text)
+    =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
+    [module.fixture mold.fixture (read-mold-in:jibb-import module.fixture mold.fixture typ cor)]
+  (compare (file case "types.txt") want (golden-types-imports:jibb at src external))
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 

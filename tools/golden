@@ -55,7 +55,7 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
     ==
 ::
 ++  run
-  |=  [name=@t metadata=[logical=(unit path) check=?] src=@t]
+  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t])] src=@t]
   ^-  @t
   =/  at=path  ?~(logical.metadata (file name) u.logical.metadata)
   =/  res  (mule |.([(golden:lib at src) {types-expr}]))
@@ -88,7 +88,19 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
   %+  turn  a
   |=  b=@t
   (rap 3 ~[(crip (a-co:co (met 3 b))) ':' b ','])
+{import-helper}
 --
+"""
+
+IMPORT_HELPER = r"""
+++  import-types
+  |=  fixtures=(list [module=term mold=term source=@t])
+  ^-  (list [module=term name=term result=*])
+  %+  turn  fixtures
+  |=  fixture=[module=term mold=term source=@t]
+  =/  cor=type  -:(ride -:!>(..zuse) source.fixture)
+  =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
+  [module.fixture mold.fixture (read-mold-in:reader module.fixture mold.fixture typ cor)]
 """
 
 
@@ -108,6 +120,7 @@ class Case:
         self.source_path = os.path.join(folder, 'source.jibb')
         try:
             self.logical_path = golden_case.source_path(folder)
+            self.imports = golden_case.sur_imports(folder)
         except ValueError as e:
             raise ue.ToolError(str(e))
         self.want_types = golden_case.wants_types(folder)
@@ -143,10 +156,17 @@ def run_lines(case):
     into several cords, as Hoon reads a long cord literal in about
     quadratic time (ue.cord_pieces)."""
     lines = ue.cord_pieces(case.source)
-    out = ['        %%^  run  %s  [%s %s]' % (
+    fixtures = []
+    for module, mold, path in case.imports:
+        with open(path, 'rb') as f:
+            parts = ue.cord_pieces(f.read())
+        source = '(rap 3 `(list @t)`~[%s])' % ' '.join(ue.cord_literal(p) for p in parts)
+        fixtures.append('[%%%s %%%s %s]' % (module, mold, source))
+    imports = '~[' + ' '.join(fixtures) + ']' if fixtures else '~'
+    out = ['        %%^  run  %s  [%s %s %s]' % (
                ue.cord_literal(case.name.encode()),
                '`' + case.logical_path if case.logical_path else '~',
-               '%.y' if case.want_types else '%.n'),
+               '%.y' if case.want_types else '%.n', imports),
            '        %-  text',
            '        :~  ' + ue.cord_literal(lines[0])]
     out += ['            ' + ue.cord_literal(line) for line in lines[1:]]
@@ -157,11 +177,20 @@ def run_lines(case):
 def golden_program(lib_path, cases):
     prog = ue.library_program(lib_path)
     runs = '\n'.join(line for case in cases for line in run_lines(case))
-    prog.add(HARNESS.replace('{count}', str(len(cases)))
+    imported = any(c.imports for c in cases)
+    harness = HARNESS
+    if imported:
+        reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
+        harness = harness.replace('=>  [lib=. ..zuse]',
+                                  '=/  jibb-lib  .\n=/  reader\n' + reader +
+                                  '\n=>  [lib=jibb-lib reader=reader ..zuse]')
+    types_expr = ("?:(check.metadata ?~(imports.metadata (golden-types:lib at src) "
+                  "(golden-types-imports:lib at src (import-types imports.metadata))) '')"
+                  if imported else "?:(check.metadata (golden-types:lib at src) '')")
+    prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
-                    .replace('{types-expr}',
-                             '?:(check.metadata (golden-types:lib at src) \'\')'
-                             if any(c.want_types for c in cases) else "''"),
+                    .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")
+                    .replace('{import-helper}', IMPORT_HELPER if imported else ''),
              '(harness)', 'harness')
     return prog
 

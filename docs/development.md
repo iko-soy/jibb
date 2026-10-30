@@ -97,6 +97,7 @@ A case is a folder `tests/golden/<name>/` holding:
 - the expected outputs, `tokens.txt` and `tree.txt`, each the output plus one newline.
 - optionally, `path.txt`, the logical `/ui/.../*.jibb` path to pass to the compiler; the source remains `source.jibb`.
 - optionally, an `expect-types:` line in `about.txt` opts the case into `+golden-types`; `types.txt` holds its output plus one newline and `--update` creates it. A `types.txt` also opts in when the line is absent. This interface is provisional while the checker is under construction.
+- optionally, `imports.txt` selects Hoon `/sur` molds, one `module mold` pair per line. Each module's source goes in `sur/<module>.txt` and is compiled against zuse by both runners. The selected reader results go to the partial checker; a type output is required. This currently handles only sources without Ford imports, not marks or Jibb module fixtures.
 
 Names say what a case is for:
 

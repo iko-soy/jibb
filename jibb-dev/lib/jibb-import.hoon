@@ -13,8 +13,8 @@
 ::  A direct $^ is read from its original branches and accepted only when
 ::  their imported shapes prove disjoint. Nested $^ and some valid but
 ::  unprovably disjoint cases remain unsupported. Source-level overlap in
-::  other unions, nested collection arguments, ordered maps, Ford import
-::  provenance, marks and full error locations still need work.
+::  other unions, nested ordered maps, Ford import provenance, marks and
+::  full error locations still need work.
 ::
 ::  The checker has a small bridge for successful unfaced atom and cell
 ::  results; it rejects other importer shapes. Failures return %|; no
@@ -102,6 +102,11 @@
   =/  w=wing  p.p.q.p.body
   ?:  =(w ~[%jar])  [~ %jar]
   ?:  =(w ~[%jug])  [~ %jug]
+  ?:  =(w ~[%map])  [~ %map]
+  ?:  =(w ~[%set])  [~ %set]
+  ?:  =(w ~[%qeu])  [~ %qeu]
+  ?:  =(w ~[%list])  [~ %list]
+  ?:  =(w ~[%unit])  [~ %unit]
   ~
 ::
 ++  hold-alias
@@ -112,6 +117,77 @@
 ::
 ::  Reconcile source aliases with the expanded type in corresponding
 ::  cells and fields. Return an error unless every alias is accounted for.
+++  recover-spec
+  |=  [src=spec out=imported]
+  ^-  (each imported @t)
+  ?.  (has-hidden-alias src)  [%& out]
+  ?.  ?=([%make [%wing *] *] src)
+    [%| 'nested collection arguments need source-aware import']
+  =/  w=wing  p.p.src
+  =/  name=term
+    ?:  =(w ~[%jar])  %jar
+    ?:  =(w ~[%jug])  %jug
+    ?:  =(w ~[%map])  %map
+    ?:  =(w ~[%set])  %set
+    ?:  =(w ~[%qeu])  %qeu
+    ?:  =(w ~[%list])  %list
+    ?:  =(w ~[%unit])  %unit
+    %$
+  ?:  =(%$ name)  [%| 'nested collection arguments need source-aware import']
+  =/  original=(each imported @t)
+    ?:  |(=(%jar name) =(%jug name))
+      ?.  ?=([%apply %map [* [%apply * [* ~]] ~]] out)
+        [%| 'nested collection arguments need source-aware import']
+      =/  inn  i.args.i.t.args.out
+      ?.  |(&(?=(%jar name) ?=(%list name.i.t.args.out)) &(?=(%jug name) ?=(%set name.i.t.args.out)))
+        [%| 'nested collection arguments need source-aware import']
+      [%& [%apply name ~[i.args.out inn]]]
+    [%& out]
+  ?.  ?=([%& *] original)  original
+  =/  fixed=imported  p.original
+  ?.  ?=([%apply *] fixed)  [%| 'nested collection arguments need source-aware import']
+  ?.  =(name name.fixed)  [%| 'nested collection arguments need source-aware import']
+  =/  args  (recover-specs q.src args.fixed)
+  ?-  args
+    [%| *]  args
+    [%& *]  [%& [%apply name p.args]]
+  ==
+::
+++  recover-specs
+  |=  [src=(list spec) args=(list imported)]
+  ^-  (each (list imported) @t)
+  ?~  src  ?~(args [%& ~] [%| 'collection argument count mismatch'])
+  ?~  args  [%| 'collection argument count mismatch']
+  =/  first  (recover-spec i.src i.args)
+  ?-  first
+    [%| *]  [%| p.first]
+    [%& *]
+      =/  rest  $(src t.src, args t.args)
+      ?-  rest
+        [%| *]  rest
+        [%& *]  [%& [p.first p.rest]]
+      ==
+  ==
+::
+++  recover-hoons
+  |=  [src=(list hoon) args=(list imported)]
+  ^-  (each (list imported) @t)
+  ?~  src  ?~(args [%& ~] [%| 'collection argument count mismatch'])
+  ?~  args  [%| 'collection argument count mismatch']
+  =/  first=(each imported @t)
+    ?.  (has-hidden-alias i.src)  [%& i.args]
+    ?.  ?=([%ktcl *] i.src)  [%| 'nested collection arguments need source-aware import']
+    (recover-spec p.i.src i.args)
+  ?-  first
+    [%| *]  [%| p.first]
+    [%& *]
+      =/  rest  $(src t.src, args t.args)
+      ?-  rest
+        [%| *]  rest
+        [%& *]  [%& [p.first p.rest]]
+      ==
+  ==
+::
 ++  recover-alias
   |=  [src=hoon out=imported]
   ^-  (each imported @t)
@@ -141,24 +217,27 @@
     [%cncl *]
       =/  alias  (source-alias src)
       ?~  alias  [%| 'a nested collection alias needs source-aware import']
-      ?:  (gth (alias-count src) 1)
-        [%| 'nested collection arguments need source-aware import']
-      ?.  ?=([%apply %map [* [%apply * [* ~]] ~]] out)
-        [%| 'a nested collection alias needs source-aware import']
-      =/  inner  i.args.i.t.args.out
-      ?:  &(?=(%jar u.alias) ?=(%list name.i.t.args.out))
-        [%& [%apply %jar ~[i.args.out inner]]]
-      ?:  &(?=(%jug u.alias) ?=(%set name.i.t.args.out))
-        [%& [%apply %jug ~[i.args.out inner]]]
-      [%| 'a nested collection alias needs source-aware import']
+      =/  original=(each imported @t)
+        ?:  |(=(%jar u.alias) =(%jug u.alias))
+          ?.  ?=([%apply %map [* [%apply * [* ~]] ~]] out)
+            [%| 'a nested collection alias needs source-aware import']
+          =/  inner  i.args.i.t.args.out
+          ?.  |(&(?=(%jar u.alias) ?=(%list name.i.t.args.out)) &(?=(%jug u.alias) ?=(%set name.i.t.args.out)))
+            [%| 'a nested collection alias needs source-aware import']
+          [%& [%apply u.alias ~[i.args.out inner]]]
+        [%& out]
+      ?.  ?=([%& *] original)  original
+      =/  fixed=imported  p.original
+      ?.  ?=([%apply *] fixed)  [%| 'a nested collection alias needs source-aware import']
+      ?.  =(name.fixed u.alias)  [%| 'a nested collection alias needs source-aware import']
+      ?>  ?=([%tsgr *] p.src)
+      ?>  ?=([%cncl *] q.p.src)
+      =/  args  (recover-hoons q.q.p.src args.fixed)
+      ?-  args
+        [%| *]  [%| p.args]
+        [%& *]  [%& [%apply u.alias p.args]]
+      ==
   ==
-::
-++  alias-count
-  |=  h=*
-  ^-  @ud
-  ?:  |(=(h [%wing ~[%jar]]) =(h [%wing ~[%jug]]) =(h [%wing ~[%mop]]))  1
-  ?@  h  0
-  (add $(h -.h) $(h +.h))
 ::
 ++  has-hidden-alias
   |=  h=*
@@ -282,6 +361,34 @@
   ?@  src  |
   |($(src -.src) $(src +.src))
 ::
+++  mop-arguments-raw
+  |=  h=type
+  ^-  (unit [key=type value=type])
+  ?.  ?=([%hold *] h)  ~
+  =/  original=hoon  q.h
+  ?.  ?=([%tsls [%note * *] *] original)  ~
+  =/  body=hoon  q.p.original
+  ?.  ?=([%cncl *] body)  ~
+  ?.  ?=([%tsgr *] p.body)  ~
+  =/  b=hoon  q.p.body
+  ?.  ?=([%cncl *] b)  ~
+  ?.  ?=([%cncl *] p.b)  ~
+  ?.  ?=([%wing *] p.p.b)  ~
+  ?.  =(p.p.p.b ~[%mop])  ~
+  =/  specs=(list spec)  ;;((list spec) q.p.b)
+  ?.  ?=([* [* ~]] specs)  ~
+  [~ [(~(play ut p.h) [%kttr i.specs]) (~(play ut p.h) [%kttr i.t.specs])]]
+::
+++  mop-arguments
+  |=  h=type
+  ^-  (unit [key=type value=type])
+  =/  attempt=(each (unit [key=type value=type]) tang)
+    (mule |.((mop-arguments-raw h)))
+  ?-  attempt
+    [%& *]  p.attempt
+    [%| *]  ~
+  ==
+::
 ++  match-signature
   |=  [h=hoon sig=signatures]
   ^-  (unit term)
@@ -340,6 +447,13 @@
         [%bad 'Hoon collection provenance is unavailable or shadowed']
       ?:  &((source-uses q.typ %jug) !(alias-safe context %jug))
         [%bad 'Hoon collection provenance is unavailable or shadowed']
+      ?:  &((source-uses q.typ %mop) !(alias-safe context %mop))
+        [%bad 'Hoon collection provenance is unavailable or shadowed']
+      =/  mop  (mop-arguments typ)
+      ?^  mop
+        [%apply %mop ~[$(typ key.u.mop) $(typ value.u.mop)]]
+      ?:  (source-uses q.typ %mop)
+        [%bad 'a nested Hoon mop needs source-aware import']
       =/  branches  (cell-branches typ)
       ?^  branches
         =/  first  $(typ left.u.branches, seen [[typ nm] seen])
@@ -363,16 +477,13 @@
           [%& *]  p.corrected
           [%| *]  [%bad p.corrected]
         ==
-      ?:  (gth (alias-count q.typ) 1)
-        [%bad 'nested collection arguments need source-aware import']
-      ?.  ?=([%apply %map [* [%apply * [* ~]] ~]] body)
+      ?.  ?=([%tsls [%note * *] *] q.typ)
         [%bad 'a Hoon collection alias could not be recovered']
-      =/  inner  i.args.i.t.args.body
-      ?:  &(?=(%jar u.alias) ?=(%list name.i.t.args.body))
-        [%apply %jar ~[i.args.body inner]]
-      ?:  &(?=(%jug u.alias) ?=(%set name.i.t.args.body))
-        [%apply %jug ~[i.args.body inner]]
-      [%bad 'a Hoon collection alias could not be recovered']
+      =/  corrected  (recover-alias q.p.q.typ body)
+      ?-  corrected
+        [%& *]  p.corrected
+        [%| *]  [%bad p.corrected]
+      ==
   ==
 ::
 ++  first-bad
@@ -464,8 +575,15 @@
     [%cell [%face %values [%apply %jar ~[[%atom %ud ~] [%atom %t ~]]]] [%face %cache [%apply %jug ~[[%atom %ud ~] [%atom %t ~]]]]]
   =/  errors  ?:  =((sample %paired-aliases) [%& expect-paired])  errors
     ['multiple collection aliases are preserved' errors]
-  =/  errors  ?:  =((sample %nested-alias) [%| 'nested collection arguments need source-aware import'])  errors
-    ['nested collection arguments remain unsupported' errors]
+  =/  expect-nested-alias=imported
+    [%apply %jar ~[[%atom %ud ~] [%apply %jug ~[[%atom %ud ~] [%atom %t ~]]]]]
+  =/  errors  ?:  =((sample %nested-alias) [%& expect-nested-alias])  errors
+    ['nested collection arguments preserve names' errors]
+  =/  expect-mop=imported  [%apply %mop ~[[%atom %ud ~] [%atom %t ~]]]
+  =/  errors  ?:  =((sample %mop-test) [%& expect-mop])  errors
+    ['ordered map name and arguments' errors]
+  =/  errors  ?:  =((sample %nested-mop) [%| 'a nested Hoon mop needs source-aware import'])  errors
+    ['nested ordered map remains unsupported' errors]
   =/  errors  ?:  =((sample %signed) [%| 'signed and float auras cannot be imported'])  errors
     ['signed aura rejected' errors]
   =/  errors  ?:  =((sample %float) [%| 'signed and float auras cannot be imported'])  errors
@@ -480,6 +598,8 @@
     ['disjoint cell union' errors]
   =/  errors  ?:  =((sample %invalid-cell) [%| 'a Hoon $^ union has overlapping cases'])  errors
     ['overlapping cell union is rejected' errors]
+  =/  errors  ?:  =((shad %mm) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
+    ['local mop shadow is rejected' errors]
   =/  errors  ?:  =((shad %aa) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
     ['local jar shadow is rejected' errors]
   =/  errors  ?:  =((shad %bb) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
@@ -571,6 +691,10 @@
       (crip "nested-jar: {(show-result (sample %nested-jar))}")
       (crip "paired-aliases: {(show-result (sample %paired-aliases))}")
       (crip "nested-alias: {(show-result (sample %nested-alias))}")
+      (crip "compound: {(show-result (sample %compound))}")
+      (crip "compound-fields: {(show-result (sample %compound-fields))}")
+      (crip "mop: {(show-result (sample %mop-test))}")
+      (crip "nested-mop: {(show-result (sample %nested-mop))}")
       (crip "signed: {(show-result (sample %signed))}")
       (crip "float: {(show-result (sample %float))}")
       (crip "gate: {(show-result (sample %gate-test))}")
@@ -584,6 +708,7 @@
       (crip "chapter-wrapped-hit: {?:(=((chapter-has [~ chapter-tree] %jar) [~ &]) "yes" "no")}")
       (crip "chapter-direct-miss: {?:(=((chapter-has chapter-tree %jug) [~ &]) "yes" "no")}")
       (crip "chapter-wrapped-miss: {?:(=((chapter-has [~ chapter-tree] %jug) [~ &]) "yes" "no")}")
+      (crip "shadow-mop: {(show-result (shad %mm))}")
       (crip "shadow-jar: {(show-result (shad %aa))}")
       (crip "shadow-jug: {(show-result (shad %bb))}")
       (crip "no-provenance: {(show-result (read-mold %small %jar-test (~(play ut sc) (ream '*jar-test'))))}")

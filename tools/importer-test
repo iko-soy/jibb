@@ -25,4 +25,4 @@ if result.stdout != expected:
         result.stdout.decode().splitlines(keepends=True),
         fromfile='expected tree.txt', tofile='actual types'))
     sys.exit(1)
-print('importer golden: 35 projections passed')
+print('importer golden: 40 projections passed')

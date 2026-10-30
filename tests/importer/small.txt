@@ -10,6 +10,10 @@
 +$  nested-jar  [field=(jar @ud @t)]
 +$  paired-aliases  [values=(jar @ud @t) cache=(jug @ud @t)]
 +$  nested-alias  (jar @ud (jug @ud @t))
++$  compound  (map @ud (list (jar @ud (jug @t @ud))))
++$  compound-fields  [one=(map @ud (jar @t @ud)) two=(list (jug @t @ud))]
++$  mop-test  ((mop @ud @t) lte)
++$  nested-mop  [table=((mop @ud @t) lte) other=@ud]
 +$  signed  @sd
 +$  float  @rd
 +$  gate-test  $-(@ud @ud)
