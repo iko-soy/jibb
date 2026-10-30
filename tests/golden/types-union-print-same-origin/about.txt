@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; recursive mold identity uses name and module.
+tests: Two faces import the same module; its named union may print through either face but the type remains compatible.
+expect: parses
+expect-types: a partial inference report

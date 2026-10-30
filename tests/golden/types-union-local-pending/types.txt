@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ outer: local definitions need unsupported inference

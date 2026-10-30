@@ -1,0 +1,12 @@
+(module
+  (jibb 1:1 first /ui/shared)
+  (jibb 2:1 second /ui/shared)
+  (value 3:1 selected
+    (cast 3:13 (ref 3:16 msg.first) (lit 3:26 %add)))
+  (value 4:1 consume
+    (gate 4:12
+      (face 4:15 x (ref 4:17 msg.second))
+      (wing 4:28 x)))
+  (value 5:1 passed
+    (group 5:11
+      (call 5:12 (wing 5:12 consume) (wing 5:20 selected)))))

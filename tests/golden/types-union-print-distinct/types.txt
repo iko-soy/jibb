@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ a: $-(msg.left msg.left)
+++ b: $-(msg.right msg.right)
+++ c: $-(msg.twin msg.twin)
+++ from-left: msg.left
+++ cross: call constraint is not supported by partial inference
+++ apply: $-($-(msg.left @t) @t)
+++ other: $-(msg.twin @t)
+++ higher: call constraint is not supported by partial inference

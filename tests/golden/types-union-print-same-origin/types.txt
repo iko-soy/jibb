@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ selected: msg.first
+++ consume: $-(msg.second msg.second)
+++ passed: msg.second

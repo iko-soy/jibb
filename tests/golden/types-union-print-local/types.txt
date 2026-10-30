@@ -1,0 +1,5 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ alias: not checked
+++ direct: $-(msg msg)
+++ via: $-(msg msg)

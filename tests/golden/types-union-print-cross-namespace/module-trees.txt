@@ -1,0 +1,6 @@
+/ui/lib.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (value 4:1 msg
+    (gate-wide 4:8 (bind 4:11 x) (wing 4:13 x))))

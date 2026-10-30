@@ -1,0 +1,6 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ wrapped: not checked
++$ handler: not checked
+++ echo: $-([state=msg title=@t] [state=msg title=@t])
+++ keep: $-($-(msg msg) $-(msg msg))

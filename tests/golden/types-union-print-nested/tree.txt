@@ -1,0 +1,17 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (mold 4:1 wrapped
+    (cell 4:12
+      (face 4:13 state (ref 4:19 msg))
+      (face 4:23 title (aura 4:29 @t))))
+  (mold 5:1 handler
+    (fn 5:12 (ref 5:15 msg) (ref 5:19 msg)))
+  (value 6:1 echo
+    (gate 6:9
+      (face 6:12 x (ref 6:14 wrapped))
+      (wing 6:22 x)))
+  (value 7:1 keep
+    (gate 7:9
+      (face 7:12 x (ref 7:14 handler))
+      (wing 7:22 x))))

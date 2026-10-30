@@ -3,4 +3,4 @@ partial inference; module not checked
 ++ only-one: tag needs context in partial inference
 ++ choose: branch tag or union context is not supported by partial inference
 ++ id: $-(A A)
-++ through: union type printing is not supported by partial inference
+++ through: msg

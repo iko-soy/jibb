@@ -4595,8 +4595,9 @@
 ::  their defaulting and inferred generalization are implemented.
 ::  Bare @ is a separate unrestricted atom type. A directional fit check
 ::  permits concrete atoms to widen to it, never the reverse. A fit that
-::  needs a not-yet-implemented constraint remains unsupported. Only
-::  unfaced cells are represented here.
+::  needs a not-yet-implemented constraint remains unsupported. Named closed
+::  unions retain their module of origin separately from their
+::  displayed name. Union printing is informational; it is not Jibb syntax.
 ::
 +$  itype
   $~  [%var 0]
@@ -4608,7 +4609,7 @@
       [%flag ~]
       [%tag id=@ud literal=lit constructor=?]
       [%const literal=lit]
-      [%union cases=(list itype)]
+      [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t)]
       [%face name=term body=itype]
       [%fn sample=itype product=itype]
       [%cell hed=itype tal=itype]
@@ -4676,6 +4677,9 @@
   =.  a  (itype-walk a sub)
   =.  b  (itype-walk b sub)
   ?:  =(a b)  `sub
+  ?:  &(?=(%union -.a) ?=(%union -.b))
+    ?:  &(=(origin.a origin.b) =(cases.a cases.b))  `sub
+    ~
   ?:  ?=(%var -.a)
     ?:  (itype-occurs id.a b sub)  ~
     `[[id.a b] sub]
@@ -4946,7 +4950,9 @@
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
-  ?:  &(?=(%union -.actual) ?=(%union -.expected))  [%unknown ~]
+  ?:  &(?=(%union -.actual) ?=(%union -.expected))
+    ?:  &(=(origin.actual origin.expected) =(cases.actual cases.expected))  [%ok sub next]
+    [%unknown ~]
   ?:  ?=(%union -.actual)  [%unknown ~]
   ?:  &(?=(%union -.expected) |(?=(%avar -.actual) ?=(%nvar -.actual)))  [%unknown ~]
   ?:  &(?=(%union -.expected) !?=(%var -.actual))
@@ -5032,6 +5038,7 @@
     [%unknown ~]
   =/  unified=(unit isub)  (itype-unify actual expected sub)
   ?~  unified
+    ?:  |((itype-has-union (itype-normalize actual sub)) (itype-has-union (itype-normalize expected sub)))  [%unknown ~]
     ?:  (itype-family-related actual expected sub)  [%unknown ~]
     [%bad ~]
   [%ok u.unified next]
@@ -5069,7 +5076,7 @@
 +$  ischeme  [typ=itype vars=(list @ud)]
 +$  ienv  (list [name=term scheme=ischeme])
 +$  imold-types  (list [name=term template=ischeme])
-+$  ifile  [values=ienv molds=imold-types]
++$  ifile  [values=ienv molds=imold-types at=path]
 +$  ijimports  (list [face=term interface=ifile])
 +$  icaps  (list [name=@t id=@ud])
 +$  iparams  (list [name=@t typ=itype])
@@ -5078,7 +5085,7 @@
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  imark-externals  (list [mark=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list @ud) in-mold=?]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list @ud) in-mold=? at=path top-molds=(list term)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -5099,7 +5106,7 @@
   ^-  itype
   =.  t  (itype-walk t sub)
   ?:  ?=(%union -.t)
-    [%union (turn cases.t |=(c=itype (itype-normalize c sub)))]
+    [%union (turn cases.t |=(c=itype (itype-normalize c sub))) origin.t label.t]
   ?:  ?=(%face -.t)
     [%face name.t $(t body.t)]
   ?:  ?=(%fn -.t)
@@ -5190,7 +5197,7 @@
     %flag  t
     %tag   t
     %const  t
-    %union  [%union (turn cases.t |=(c=itype (itype-rename c ren)))]
+    %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -5369,6 +5376,47 @@
   ?:  =(name name.i.ms)  `template.i.ms
   $(ms t.ms)
 ::
+::  An exported alias may name a union from another module. Only a
+::  nongeneric alias of the same origin is usable through this import face.
+::
+++  imported-union-alias
+  |=  [origin=[at=path name=term] molds=imold-types]
+  ^-  (unit term)
+  ?~  molds  ~
+  =/  template=ischeme  template.i.molds
+  ?:  &(?=(~ vars.template) ?=(%union -.typ.template))
+    ?:(=(`origin origin.typ.template) `name.i.molds $(molds t.molds))
+  $(molds t.molds)
+::
+::  Only names exported by this directly imported module are visible through
+::  its face. Other origins retain identity but print as unnamed unions.
+::
+++  itype-in-import
+  |=  [t=itype iface=ifile face=term]
+  ^-  itype
+  ?-  -.t
+    %union
+      =/  label=(unit @t)
+        ?~  origin.t  ~
+        =/  alias=(unit term)  ~
+        =?  alias  &(=(at.u.origin.t at.iface) ?=(^ (find-jibb-mold name.u.origin.t iface)))  `name.u.origin.t
+        =?  alias  ?=(~ alias)  (imported-union-alias u.origin.t molds.iface)
+        ?~  alias  ~
+        `(crip "{(trip u.alias)}.{(trip face)}")
+      [%union (turn cases.t |=(c=itype (itype-in-import c iface face))) origin.t label]
+    %face  [%face name.t $(t body.t)]
+    %fn    [%fn $(t sample.t) $(t product.t)]
+    %cell  [%cell $(t hed.t) $(t tal.t)]
+    *      t
+  ==
+::
+++  label-direct-union
+  |=  [typ=itype body=shape name=term state=istate]
+  ^-  itype
+  ?.  &(?=(%union -.body) ?=(%union -.typ))  typ
+  ?.  (lien top-molds.state |=(n=term =(n name)))  typ
+  [%union cases.typ `[at.state name] `name]
+::
 ::  Generic mold parameters are lexical and distinct from the enclosing
 ::  value's capital variables. Arguments are substituted only once, so
 ::  an argument's variable ID cannot be captured by a template ID.
@@ -5433,6 +5481,8 @@
     =/  out=(unit [typ=itype state=istate])
       (infer-simple-shape body.sh state(next next.fresh, params params.fresh, in-mold &))
     ?~  out  ~
+    ::  Generic union identity must include its arguments; defer that case.
+    ?:  ?=(%union -.typ.u.out)  ~
     =/  used=(list @ud)  (itype-vars typ.u.out)
     ?.  (levy used |=(n=@ud (lien vars.fresh |=(p=@ud =(p n)))))  ~
     `[[typ.u.out vars.fresh] state.u.out(params params.state, in-mold in-mold.state)]
@@ -5459,7 +5509,7 @@
       =/  cs=(unit [types=(list itype) state=istate])  (infer-shape-args cases.sh state)
       ?~  cs  ~
       ?:  (lien types.u.cs |=(t=itype ?=(^ (itype-vars t))))  ~
-      `[[%union types.u.cs] state.u.cs]
+      `[[%union types.u.cs ~ ~] state.u.cs]
     %cell  (infer-simple-fields fields.sh state)
     %fn
       =/  arg=(unit [typ=itype state=istate])  $(sh sample.sh)
@@ -5477,7 +5527,7 @@
           =/  found=(unit ischeme)  (find-jibb-mold n u.iface)
           ?~  found  ~
           ?^  vars.u.found  ~
-          `[typ.u.found state]
+          `[(itype-in-import typ.u.found u.iface i.t.names.sh) state]
         =/  found=(unit itype)
           (find-imported-mold i.t.names.sh n externals.state surs.state)
         ?~  found  ~
@@ -5493,7 +5543,7 @@
       =/  out=(unit [typ=itype state=istate])
         $(sh u.found, state state(active [n active.state], in-mold &, params ~))
       ?~  out  ~
-      `[typ.u.out state.u.out(active active.state, in-mold in-mold.state, params params.state)]
+      `[(label-direct-union typ.u.out u.found n state) state.u.out(active active.state, in-mold in-mold.state, params params.state)]
     %apply
       ?~  ref.sh  ~
       =/  args=(unit [types=(list itype) state=istate])  (infer-shape-args args.sh state)
@@ -5508,7 +5558,7 @@
         ?~  vars.u.template  ~
         =/  applied=(unit itype)  (template-apply u.template types.u.args)
         ?~  applied  ~
-        `[u.applied state.u.args]
+        `[(itype-in-import u.applied u.iface i.t.ref.sh) state.u.args]
       ?:  (lien active.state.u.args |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state.u.args)
       ?~  found  ~
@@ -5519,6 +5569,7 @@
       =/  out=(unit [typ=itype state=istate])
         $(sh body.u.found, state state.u.args(active [n active.state.u.args], in-mold &, params u.params))
       ?~  out  ~
+      ?:  ?=(%union -.typ.u.out)  ~
       `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args)]
     %tvar
       =/  param=(unit itype)  (iparam-lookup name.sh params.state)
@@ -5759,6 +5810,7 @@
         ?~  iface  (infer-field-wing names.e env state)
         =/  member=(unit ischeme)  (ienv-lookup i.names.e values.u.iface)
         ?~  member  [%| ["module member is not available to partial inference" ~]]
+        =.  typ.u.member  (itype-in-import typ.u.member u.iface i.t.names.e)
         =/  instance=[typ=itype state=istate]  (instantiate-scheme u.member state)
         [%& typ.instance state.instance]
       =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
@@ -5940,9 +5992,9 @@
     %flag  "?"
     %tag   (trip txt.literal.t)
     %const  (trip txt.literal.t)
-    %union  "<union>"
-    %face  "[{(trip name.t)}={$(t body.t)}]"
-    %fn    "$-({$(t sample.t)} {$(t product.t)})"
+    %union  ?~(label.t (show-itype-cases cases.t sub) (trip u.label.t))
+    %face  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
+    %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
     %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
   ==
 ::
@@ -5950,8 +6002,22 @@
   |=  [t=itype sub=isub]
   ^-  tape
   =.  t  (itype-walk t sub)
-  ?:  ?=(%face -.t)  "{(trip name.t)}={(show-itype body.t sub)}"
+  ?:  ?=(%face -.t)  "{(trip name.t)}={(show-itype-context body.t sub)}"
+  (show-itype-context t sub)
+::
+++  show-itype-context
+  |=  [t=itype sub=isub]
+  ^-  tape
+  =.  t  (itype-walk t sub)
+  ?:  &(?=(%union -.t) ?=(~ label.t))  "({(show-itype t sub)})"
   (show-itype t sub)
+::
+++  show-itype-cases
+  |=  [cases=(list itype) sub=isub]
+  ^-  tape
+  ?~  cases  ""
+  ?~  t.cases  (show-itype-context i.cases sub)
+  "{(show-itype-context i.cases sub)} {$(cases t.cases)}"
 ::
 ::  Include the type at a conflicting site where it can be printed.
 ::  A lone unresolved variable or decimal variable keeps the neutral label.
@@ -6090,14 +6156,15 @@
   |
 ::
 ++  add-supported-defs
-  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term)]
+  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path]
   ^-  ienv
   ?~  ds  env
   =/  d=def  i.ds
   ?:  ?=(%mold -.d)  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ |])
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top])
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
@@ -6108,11 +6175,11 @@
   $(ds t.ds, env [[name.d [typ vars]] env])
 ::
 ++  resolve-supported-defs
-  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term)]
+  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path]
   ^-  ienv
   =/  env=ienv  ~
   |-
-  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds)
+  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at)
   ?:  =(next env)  env
   $(env next)
 ::
@@ -6345,6 +6412,7 @@
   =/  t=(unit [template=ischeme state=istate])
     (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  t  [%| 'module mold needs unsupported inference']
+  =.  typ.template.u.t  (label-direct-union typ.template.u.t body.m name.m state)
   =/  rest=(each imold-types @t)  $(molds t.molds)
   ?:  ?=(%| -.rest)  rest
   [%& [[name.m template.u.t] p.rest]]
@@ -6407,13 +6475,14 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ |]
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
-  =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved)
+  =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at)
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
-  [%& [[env p.mts] [[at [env p.mts]] cache.p.js]]]
+  [%& [[env p.mts at] [[at [env p.mts at]] cache.p.js]]]
 ::
 ::  +golden-types-with-modules fails closed for imports without prelude
 ::  scope. +golden-types-with-prelude resolves supported library graphs;
@@ -6471,7 +6540,7 @@
   =/  globals=(list term)  (weld prelude-values (weld (turn jimports |=(j=[face=term interface=ifile] face.j)) (global-value-names ds)))
   =/  surs=(list term)  (collect-sur-imports imports.p.parsed)
   =/  marks=(list term)  (collect-mark-imports imports.p.parsed)
-  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs mark-externals marks jimports reserved-molds)
+  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs mark-externals marks jimports reserved-molds file)
   =/  lines=(list @t)  ~
   |-
   ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
@@ -6480,7 +6549,8 @@
     $(ds t.ds, lines [(show-partial-mold file src d molds) lines])
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ |])
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top])
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
@@ -6488,8 +6558,6 @@
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
   ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: tag needs context in partial inference") lines])
-  ?:  (itype-has-union typ)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: union type printing is not supported by partial inference") lines])
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))

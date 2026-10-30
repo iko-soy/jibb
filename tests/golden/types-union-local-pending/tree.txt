@@ -1,0 +1,5 @@
+(module
+  (value 1:1 outer
+    (body 2:3
+      (value 2:3 hidden (lit 2:13 %add))
+      (lit 3:3 1))))

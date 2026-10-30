@@ -1,0 +1,5 @@
++$ typed [%typed text=@t]
++$ wrapper [make=$-(@t typed) id=@ud]
++$ reversed [text=@t tag=%typed]
+++ value ^- wrapper [make=|=%typed id=1]
+++ bad ^- $-(@t reversed) |=%typed

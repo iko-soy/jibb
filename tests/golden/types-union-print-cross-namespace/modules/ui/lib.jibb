@@ -1,0 +1,4 @@
++$ msg
+  %add
+  %remove
+++ msg |=(x x)

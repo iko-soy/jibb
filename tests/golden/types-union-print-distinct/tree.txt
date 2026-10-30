@@ -1,0 +1,34 @@
+(module
+  (jibb 1:1 left /ui/left)
+  (jibb 2:1 right /ui/right)
+  (jibb 3:1 twin /ui/twin)
+  (value 4:1 a
+    (gate 4:6
+      (face 4:9 x (ref 4:11 msg.left))
+      (wing 4:20 x)))
+  (value 5:1 b
+    (gate 5:6
+      (face 5:9 x (ref 5:11 msg.right))
+      (wing 5:21 x)))
+  (value 6:1 c
+    (gate 6:6
+      (face 6:9 x (ref 6:11 msg.twin))
+      (wing 6:20 x)))
+  (value 7:1 from-left
+    (cast 7:14 (ref 7:17 msg.left) (lit 7:26 %add)))
+  (value 8:1 cross
+    (group 8:10
+      (call 8:11 (wing 8:11 c) (wing 8:13 from-left))))
+  (value 9:1 apply
+    (gate 9:10
+      (face 9:13 f
+        (fn 9:15 (ref 9:18 msg.left) (aura 9:27 @t)))
+      (group 9:31
+        (call 9:32 (wing 9:32 f) (wing 9:34 from-left)))))
+  (value 10:1 other
+    (gate 10:10
+      (face 10:13 x (ref 10:15 msg.twin))
+      (str 10:24 "hi")))
+  (value 11:1 higher
+    (group 11:11
+      (call 11:12 (wing 11:12 apply) (wing 11:18 other)))))

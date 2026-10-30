@@ -1,0 +1,4 @@
+source: Grammar, Molds and Tag resolution: union cases must differ as nouns; tags take their union from context.
+tests: Two cases with the same head tag and overlapping atom payloads are detected as overlapping.
+expect: parses
+expect-types: a partial inference report

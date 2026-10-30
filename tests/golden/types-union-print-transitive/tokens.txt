@@ -1,0 +1,15 @@
+1:1 glyph /=
+1:5 name mid
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot mid
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name echo
+2:9 glyph |=
+2:12 name x
+2:13 tight glyph =
+2:14 tight wing relay.mid
+2:24 name x
+2:25 NEWLINE

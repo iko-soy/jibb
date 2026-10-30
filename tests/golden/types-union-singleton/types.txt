@@ -4,7 +4,7 @@ partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ go-value: [%go url=@t]
 ++ constructor: $-(@t [%typed text=@t])
-++ union-constructor: union type printing is not supported by partial inference
+++ union-constructor: $-(@t msg)
 ++ wrong-input: cast mold and expression type do not unify
 /tests/golden/types-union-singleton/source.jibb:9:19: cast mold has type $-(@ud [%typed text=@t])
 ++ wrong-input ^- $-(@ud typed) |=%typed

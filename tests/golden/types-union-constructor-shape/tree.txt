@@ -1,0 +1,24 @@
+(module
+  (mold 1:1 typed
+    (cell 1:10
+      (const 1:11 %typed)
+      (face 1:18 text (aura 1:23 @t))))
+  (mold 2:1 wrapper
+    (cell 2:12
+      (face 2:13 make
+        (fn 2:18 (aura 2:21 @t) (ref 2:24 typed)))
+      (face 2:31 id (aura 2:34 @ud))))
+  (mold 3:1 reversed
+    (cell 3:13
+      (face 3:14 text (aura 3:19 @t))
+      (face 3:22 tag (const 3:26 %typed))))
+  (value 4:1 value
+    (cast 4:10
+      (ref 4:13 wrapper)
+      (tuple 4:21
+        (face 4:22 make (ctor 4:27 %typed))
+        (face 4:36 id (lit 4:39 1)))))
+  (value 5:1 bad
+    (cast 5:8
+      (fn 5:11 (aura 5:14 @t) (ref 5:17 reversed))
+      (ctor 5:27 %typed))))

@@ -1,0 +1,5 @@
+/=  first /ui/shared
+/=  second /ui/shared
+++ selected ^- msg.first %add
+++ consume |= x=msg.second x
+++ passed (consume selected)

@@ -1,0 +1,6 @@
++$ msg
+  %add
+  %remove
++$ alias msg
+++ direct |= x=msg x
+++ via |= x=alias x

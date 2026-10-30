@@ -1,0 +1,4 @@
++$ broken
+  [%same @t]
+  [%same @ud]
+++ identity |=(x x)

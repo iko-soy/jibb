@@ -1,0 +1,12 @@
+partial inference; module not checked
++$ typed: not checked
++$ wrapper: not checked
++$ reversed: not checked
+++ value: [make=$-(@t [%typed text=@t]) id=@ud]
+++ bad: cast mold and expression type do not unify
+/tests/golden/types-union-constructor-shape/source.jibb:5:11: cast mold has type $-(@t [text=@t tag=%typed])
+++ bad ^- $-(@t reversed) |=%typed
+          ^
+/tests/golden/types-union-constructor-shape/source.jibb:5:27: expression
+++ bad ^- $-(@t reversed) |=%typed
+                          ^

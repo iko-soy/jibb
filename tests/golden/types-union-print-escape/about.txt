@@ -1,0 +1,4 @@
+source: Grammar, Molds and Modules: every Jibb union has a name and names are read through module faces; unnamed unions print their cases.
+tests: A body-local union that escapes a gate must not print an out-of-scope mold name.
+expect: parses
+expect-types: a partial inference report

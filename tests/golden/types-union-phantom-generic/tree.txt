@@ -1,0 +1,8 @@
+(module
+  (mold 1:1 phantom
+    (generic 1:12 A
+      (union 2:3 (const 2:3 %add) (const 3:3 %remove))))
+  (value 4:1 example
+    (cast 4:12
+      (apply 4:15 phantom (aura 4:24 @t))
+      (lit 4:28 %add))))

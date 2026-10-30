@@ -1,0 +1,5 @@
+++ create |= x=?
+  +$ local-state
+    %add
+    %remove
+  ^- local-state %add

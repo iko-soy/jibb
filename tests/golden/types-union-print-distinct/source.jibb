@@ -1,0 +1,11 @@
+/=  left /ui/left
+/=  right /ui/right
+/=  twin /ui/twin
+++ a |= x=msg.left x
+++ b |= x=msg.right x
+++ c |= x=msg.twin x
+++ from-left ^- msg.left %add
+++ cross (c from-left)
+++ apply |= f=$-(msg.left @t) (f from-left)
+++ other |= x=msg.twin "hi"
+++ higher (apply other)

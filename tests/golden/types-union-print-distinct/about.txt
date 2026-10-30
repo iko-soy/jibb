@@ -1,0 +1,4 @@
+source: Grammar, Molds and Modules: every Jibb union has a name and names are read through module faces; unnamed unions print their cases.
+tests: Imported union molds with the same local name remain distinguishable in printed types; equal cases from different modules are not silently equated, including in higher-order gate arguments.
+expect: parses
+expect-types: a partial inference report

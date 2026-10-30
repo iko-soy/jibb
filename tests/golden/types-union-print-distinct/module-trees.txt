@@ -1,0 +1,12 @@
+/ui/left.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove))))
+/ui/right.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %start) (const 3:3 %stop))))
+/ui/twin.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove))))

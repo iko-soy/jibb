@@ -1,0 +1,12 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (mold 4:1 alias (ref 4:10 msg))
+  (value 5:1 direct
+    (gate 5:11
+      (face 5:14 x (ref 5:16 msg))
+      (wing 5:20 x)))
+  (value 6:1 via
+    (gate 6:8
+      (face 6:11 x (ref 6:13 alias))
+      (wing 6:19 x))))

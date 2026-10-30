@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ echo: $-(relay.mid relay.mid)

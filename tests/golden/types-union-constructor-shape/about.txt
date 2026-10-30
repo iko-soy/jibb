@@ -1,0 +1,4 @@
+source: Grammar, Molds and Tag resolution: union cases must differ as nouns; tags take their union from context.
+tests: A constructor can resolve inside a typed record, but cannot use a tag that is not at the case head.
+expect: parses
+expect-types: a partial inference report

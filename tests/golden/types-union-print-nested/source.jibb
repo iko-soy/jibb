@@ -1,0 +1,7 @@
++$ msg
+  %add
+  %remove
++$ wrapped [state=msg title=@t]
++$ handler $-(msg msg)
+++ echo |= x=wrapped x
+++ keep |= x=handler x

@@ -1,0 +1,4 @@
+source: Grammar, Molds and Tag resolution: union cases must differ as nouns; tags take their union from context.
+tests: A tag left unresolved in a discarded local definition does not disappear.
+expect: parses
+expect-types: a partial inference report

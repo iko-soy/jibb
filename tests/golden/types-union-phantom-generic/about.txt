@@ -1,0 +1,4 @@
+source: Grammar, Molds: a generic mold declares its parameters after `|$`, and a union takes its cases below its name.
+tests: A generic union remains unsupported even when its parameter is unused, until its type identity retains the arguments.
+expect: parses
+expect-types: a partial inference report

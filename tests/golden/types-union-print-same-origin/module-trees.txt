@@ -1,0 +1,4 @@
+/ui/shared.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove))))

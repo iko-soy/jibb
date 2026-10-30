@@ -1,0 +1,8 @@
+/ui/mid.jibb
+(module
+  (jibb 1:1 base /ui/base)
+  (mold 2:1 relay (ref 2:10 state.base)))
+/ui/base.jibb
+(module
+  (mold 1:1 state
+    (union 2:3 (const 2:3 %on) (const 3:3 %off))))

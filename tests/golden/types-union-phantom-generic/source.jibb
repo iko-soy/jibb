@@ -1,0 +1,4 @@
++$ phantom |$ [A]
+  %add
+  %remove
+++ example ^- (phantom @t) %add

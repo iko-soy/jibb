@@ -1,4 +1,4 @@
 partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 +$ alias: not checked
-++ via: union type printing is not supported by partial inference
+++ via: msg

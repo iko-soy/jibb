@@ -1,0 +1,9 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 by-type
+    (gate 2:12
+      (face 2:15 x (ref 2:17 msg.lib))
+      (wing 2:25 x)))
+  (value 3:1 by-value
+    (group 3:13
+      (call 3:14 (wing 3:14 msg.lib) (lit 3:22 ~zod)))))
