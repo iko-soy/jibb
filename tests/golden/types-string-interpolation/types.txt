@@ -1,0 +1,33 @@
+partial inference; module not checked
+++ render: $-([day=@da [n=@ud [ship=@p words=@t]]] @t)
+++ bare: $-(@ @t)
+++ repeat: $-(@ud @t)
+++ nested: $-(@t @t)
+++ record: a cell in interpolation needs a printer
+/tests/golden/types-string-interpolation/source.jibb:5:27: cell without a printer
+++ record |= x=[@t @ud] "{x}"
+                          ^
+++ gate: interpolation type needs unsupported inference
+++ generic: interpolation type needs unsupported inference
+++ unknown: interpolation type needs unsupported inference
+++ pending: interpolation type needs unsupported inference
+++ other-pending: tag needs context in partial inference
+++ tape: $-((list @tD) @t)
+++ non-tape: interpolation type needs unsupported inference
+++ number: @t
+++ number-cast: @t
+++ generic-atom: a generic atom in interpolation needs an aura
+/tests/golden/types-string-interpolation/source.jibb:19:7: atom with a generic aura
+    "{n}"
+      ^
+++ fixed-first: $-(@ud @t)
+++ fixed-later: interpolation type needs unsupported inference
+++ explicit-force: explicit capital constraints are not supported by partial inference
+++ clash: cast mold and expression type do not unify
+/tests/golden/types-string-interpolation/source.jibb:27:34: cast mold has type @t
+++ clash |= [x=@t y=@p] "{x} {^- @t y}"
+                                 ^
+/tests/golden/types-string-interpolation/source.jibb:27:37: expression has type @p
+++ clash |= [x=@t y=@p] "{x} {^- @t y}"
+                                    ^
+++ invalid-expression: name is not available to partial inference

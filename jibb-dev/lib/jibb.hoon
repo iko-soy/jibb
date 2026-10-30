@@ -5226,7 +5226,7 @@
   problems
 ::
 ::  The expression inference below is deliberately a fragment: bindings,
-::  simple gates, calls, fixed-aura literals, and plain strings. The
+::  simple gates, calls, fixed-aura literals, and some interpolated strings. The
 ::  result for unsupported syntax is a diagnostic, never a checked module.
 ::
 +$  ischeme  [typ=itype vars=(list @ud)]
@@ -6671,6 +6671,30 @@
   ?~  joined  [%| ["unit branch results need unsupported inference" ~]]
   [%& typ.p.left state.p.right(sub u.joined)]
 ::
+::  Infer pieces in order, retaining their substitutions and pending tags.
+::  A bare decimal literal has no outside type constraint, so it takes its
+::  normal @ud default here. Other open numeric and aura variables wait for
+::  deferred constraints, which this fragment does not implement yet.
+++  infer-string-pieces
+  |=  [ps=(list piece) env=ienv state=istate]
+  ^-  iresult
+  ?~  ps  [%& [%atom %t] state]
+  ?:  ?=(%text -.i.ps)  $(ps t.ps)
+  =/  item=iresult  (infer-fragment p.i.ps env state)
+  ?:  ?=(%| -.item)  item
+  =/  t=itype  (itype-normalize typ.p.item sub.state.p.item)
+  ?:  |(?=(%atom -.t) ?=(%any-atom -.t))
+    $(ps t.ps, state state.p.item)
+  ?:  &(?=(%nvar -.t) ?=(%lit -.p.i.ps) =(%number form.lit.p.i.ps))
+    $(ps t.ps, state state.p.item)
+  ?:  &(?=(%collection -.t) =(%list name.t) =(~[[%atom 'tD']] args.t))
+    $(ps t.ps, state state.p.item)
+  ?:  &(?=(%avar -.t) (atom-var-from-cap id.t caps.state.p.item sub.state.p.item))
+    [%| ["a generic atom in interpolation needs an aura" ~[[(span-of p.i.ps) "atom with a generic aura"]]]]
+  ?:  ?=(%cell -.t)
+    [%| ["a cell in interpolation needs a printer" ~[[(span-of p.i.ps) "cell without a printer"]]]]
+  [%| ["interpolation type needs unsupported inference" ~]]
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -6688,10 +6712,7 @@
         %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
         %null      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
       ==
-    %str
-      =/  interpolated=?  (lien pieces.e |=(p=piece ?=(%expr -.p)))
-      ?:  interpolated  [%| ["interpolation is not supported by partial inference" ~]]
-      [%& [%atom %t] state]
+    %str  (infer-string-pieces pieces.e env state)
     %wing
       ?~  names.e  [%| ["empty wing" ~]]
       ?^  t.names.e

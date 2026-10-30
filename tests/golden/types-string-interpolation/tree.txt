@@ -1,0 +1,109 @@
+(module
+  (value 1:1 render
+    (gate 1:11
+      (cell 1:14
+        (face 1:15 day (aura 1:19 @da))
+        (face 1:23 n (aura 1:25 @ud))
+        (face 1:29 ship (aura 1:34 @p))
+        (face 1:37 words (aura 1:43 @t)))
+      (str 1:47 "Updated " (wing 1:57 day) ": " (wing 1:64 n) " by " (wing 1:71 ship) ", " (wing 1:79 words))))
+  (value 2:1 bare
+    (gate 2:9
+      (face 2:12 x (aura 2:14 @))
+      (str 2:16 (wing 2:18 x))))
+  (value 3:1 repeat
+    (gate 3:11
+      (face 3:14 n (aura 3:16 @ud))
+      (str 3:20 (wing 3:22 n) " then " (wing 3:31 n))))
+  (value 4:1 nested
+    (gate 4:11
+      (face 4:14 x (aura 4:16 @t))
+      (str 4:19
+        (group 4:21
+          (call 4:22 (wing 4:22 same) (wing 4:27 x))))))
+  (value 5:1 record
+    (gate 5:11
+      (face 5:14 x
+        (cell 5:16 (aura 5:17 @t) (aura 5:20 @ud)))
+      (str 5:25 (wing 5:27 x))))
+  (value 6:1 gate
+    (gate 6:9
+      (face 6:12 x
+        (fn 6:14 (aura 6:17 @t) (aura 6:20 @t)))
+      (str 6:24 (wing 6:26 x))))
+  (value 7:1 generic
+    (gate 7:12
+      (face 7:15 x (tvar 7:17 A))
+      (str 7:19 (wing 7:21 x))))
+  (value 8:1 unknown
+    (gate 8:12
+      (bind 8:15 x)
+      (str 8:17 (wing 8:19 x))))
+  (value 9:1 pending
+    (gate 9:12
+      (face 9:15 x (aura 9:17 @t))
+      (str 9:20 (lit 9:22 %orphan))))
+  (value 10:1 other-pending
+    (gate 10:18
+      (face 10:21 x (aura 10:23 @t))
+      (body 11:3
+        (trace 11:3
+          (lit 11:6 %orphan)
+          (body 12:5
+            (str 12:5 (wing 12:7 x)))))))
+  (value 13:1 tape
+    (gate 13:9
+      (face 13:12 x
+        (apply 13:14 list (aura 13:20 @tD)))
+      (str 13:25 (wing 13:27 x))))
+  (value 14:1 non-tape
+    (gate 14:13
+      (face 14:16 x
+        (apply 14:18 list (aura 14:24 @t)))
+      (str 14:28 (wing 14:30 x))))
+  (value 15:1 number
+    (str 15:11 "number " (lit 15:20 1)))
+  (value 16:1 number-cast
+    (str 16:16
+      "number "
+      (cast 16:25 (aura 16:28 @ud) (lit 16:32 1))))
+  (value 17:1 generic-atom
+    (gate 17:17
+      (face 17:20 n (tvar 17:22 A))
+      (body 18:3
+        (trace 18:3
+          (cast 18:6 (aura 18:9 @) (wing 18:11 n))
+          (body 19:5
+            (str 19:5 (wing 19:7 n)))))))
+  (value 20:1 fixed-first
+    (gate 20:16
+      (bind 20:19 n)
+      (body 21:3
+        (trace 21:3
+          (cast 21:6 (aura 21:9 @ud) (wing 21:13 n))
+          (body 22:5
+            (str 22:5 (wing 22:7 n)))))))
+  (value 23:1 fixed-later
+    (gate 23:16
+      (bind 23:19 n)
+      (body 24:3
+        (trace 24:3
+          (str 24:6 (wing 24:8 n))
+          (body 25:5
+            (cast 25:5 (aura 25:8 @ud) (wing 25:12 n)))))))
+  (value 26:1 explicit-force
+    (gate 26:19
+      (face 26:22 x (tvar 26:24 A))
+      (str 26:26
+        (cast 26:28 (aura 26:31 @ud) (wing 26:35 x)))))
+  (value 27:1 clash
+    (gate 27:10
+      (cell 27:13
+        (face 27:14 x (aura 27:16 @t))
+        (face 27:19 y (aura 27:21 @p)))
+      (str 27:25
+        (wing 27:27 x)
+        " "
+        (cast 27:31 (aura 27:34 @t) (wing 27:37 y)))))
+  (value 28:1 invalid-expression
+    (str 28:23 (wing 28:25 missing))))

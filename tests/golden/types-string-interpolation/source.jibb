@@ -1,0 +1,28 @@
+++ render |= [day=@da n=@ud ship=@p words=@t] "Updated {day}: {n} by {ship}, {words}"
+++ bare |= x=@ "{x}"
+++ repeat |= n=@ud "{n} then {n}"
+++ nested |= x=@t "{(same x)}"
+++ record |= x=[@t @ud] "{x}"
+++ gate |= x=$-(@t @t) "{x}"
+++ generic |= x=A "{x}"
+++ unknown |= x "{x}"
+++ pending |= x=@t "{%orphan}"
+++ other-pending |= x=@t
+  ~& %orphan
+    "{x}"
+++ tape |= x=(list @tD) "{x}"
+++ non-tape |= x=(list @t) "{x}"
+++ number "number {1}"
+++ number-cast "number {^- @ud 1}"
+++ generic-atom |= n=A
+  ~& ^- @ n
+    "{n}"
+++ fixed-first |= n
+  ~& ^- @ud n
+    "{n}"
+++ fixed-later |= n
+  ~& "{n}"
+    ^- @ud n
+++ explicit-force |= x=A "{^- @ud x}"
+++ clash |= [x=@t y=@p] "{x} {^- @t y}"
+++ invalid-expression "{missing}"

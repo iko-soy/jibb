@@ -1,0 +1,4 @@
+source: Grammar, Expressions: "In `{…}`, an atom prints by its aura"; "`@t`, `@ta`, `@tas` and tapes splice as text; any other cell is an error asking for a printer"; "an atom whose aura its `++` is generic over ... is an error asking for an aura".
+tests: Known auras, unrestricted atoms, tapes and isolated decimal literals infer as cords. A known tuple needs a printer and a generic atom needs an aura, each at the interpolated expression. Unresolved variables, tags, gates and non-tape lists stay unsupported; unrelated pending constraints and errors inside a piece are retained. An earlier cast can fix an aura, but a later cast needs deferred inference.
+expect: parses
+expect-types: a partial inference report
