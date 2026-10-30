@@ -317,6 +317,27 @@ def check_module_fixtures(c, tmp):
     c.expect(status == 2 and 'no fixture' in out, 'missing module: ' + out)
 
 
+def check_empty_module_bundle(c, tmp):
+    cases = copy_cases(tmp)
+    folder = os.path.join(cases, 'basic')
+    with open(os.path.join(folder, 'modules.txt'), 'w') as f:
+        f.write('# no modules\n')
+    with open(os.path.join(folder, 'about.txt'), 'a') as f:
+        f.write('expect-types: test module input\n')
+    lib, _ = stub_with(tmp, 'module-stub.hoon', '--',
+                       "++  golden-types-with-prelude\n"
+                       "  |=  [file=path src=@t surs=* marks=* modules=* prelude=@t]\n"
+                       "  ^-  @t\n"
+                       "  ?~(prelude 'missing prelude' ?~(modules 'empty module bundle' 'unexpected modules'))\n"
+                       "--")
+    status, out = golden('--dir', cases, '--lib', lib, '--case', 'basic', '--update')
+    actual = read(os.path.join(folder, 'types.txt'))
+    c.expect(status == 0 and actual == b'empty module bundle\n',
+             'empty bundle should reach module checker: %d %r\n%s' % (status, actual, out))
+    c.expect(not os.path.exists(os.path.join(folder, 'module-trees.txt')),
+             'empty bundle should not require a fixture tree output')
+
+
 def check_fixture_crash_isolated(c, tmp):
     """A bad Hoon fixture must not hide the Jibb parse or other cases."""
     original = os.path.join(ROOT, 'tests', 'golden', 'types-import-mark')

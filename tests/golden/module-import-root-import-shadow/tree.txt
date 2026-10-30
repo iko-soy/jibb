@@ -1,0 +1,7 @@
+(module
+  (sur 1:1 fixture)
+  (mark 2:1 %label)
+  (value 3:1 shadow-sur
+    (gate-wide 3:15 (bind 3:18 fixture) (wing 3:26 fixture)))
+  (value 4:1 shadow-mark
+    (gate-wide 4:16 (bind 4:19 label) (wing 4:25 label))))

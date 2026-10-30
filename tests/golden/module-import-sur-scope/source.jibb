@@ -1,0 +1,4 @@
+/-  fixture
+/=  lib /ui/lib
+++ root |= x=title.fixture x
+++ imported (identity.lib "hi")

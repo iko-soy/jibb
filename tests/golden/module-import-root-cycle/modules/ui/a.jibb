@@ -1,0 +1,2 @@
+/=  main /ui/main
+++ identity |=(x (identity.main x))

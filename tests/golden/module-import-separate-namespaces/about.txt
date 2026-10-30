@@ -1,0 +1,4 @@
+source: Grammar, Modules: "No name may shadow one already in scope, imports and the prelude included"; molds and values have separate namespaces.
+tests: A mold and a value may share a name because their namespaces are separate.
+expect: parses
+expect-types: a partial inference report

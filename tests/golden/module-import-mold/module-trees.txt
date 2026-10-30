@@ -1,0 +1,3 @@
+/ui/lib.jibb
+(module
+  (mold 1:1 title (aura 1:10 @t)))

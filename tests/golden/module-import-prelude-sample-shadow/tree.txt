@@ -1,0 +1,4 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 f
+    (gate-wide 2:6 (bind 2:9 same) (wing 2:14 same))))

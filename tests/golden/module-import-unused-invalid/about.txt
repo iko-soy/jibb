@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/=` imports a Jibb module; import cycles are errors.
+tests: An unused malformed fixture is parsed in module-trees but must not invalidate import inference.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ ship: @p
+++ text-value: @t
+++ bad: call's sample and argument types do not unify
+/tests/golden/module-import-atom-scheme/source.jibb:4:9: called gate has type $-(A A) where A is an atom
+++ bad (alias.mid [~zod "hi"])
+        ^
+/tests/golden/module-import-atom-scheme/source.jibb:4:19: argument has type [@p @t]
+++ bad (alias.mid [~zod "hi"])
+                  ^

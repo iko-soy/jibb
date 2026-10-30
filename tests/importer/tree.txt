@@ -46,6 +46,15 @@ float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported
 vase: error: vases cannot be imported
 failed-branch: error: a Hoon $^ union needs a source-level disjointness check
+list-bckt-field: (list [bckt=@ud value=@t])
+list-noun-overlap: error: a Hoon $^ union needs a source-level disjointness check
+list-null-overlap: error: a Hoon $^ union needs a source-level disjointness check
+list-nested-atom-cell: (list [id=@ud value=(union [a=@ud b=@t] @ud)])
+list-nested-valid-cell: error: a Hoon $^ union needs a source-level disjointness check
+list-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
+map-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
+set-direct-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
+map-key-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 nested-atom-cell: [left=(union [a=@ud b=@t] @ud) right=(union [c=@ud d=@t] @t)]
 nested-valid-cell: error: a Hoon $^ union needs a source-level disjointness check
 nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check

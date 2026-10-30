@@ -504,4 +504,57 @@
                         (tuple 197:17
                           (wing 197:18 item)
                           (group 197:23
-                            (call 197:24 (wing 197:24 skip) (wing 197:29 rest) (wing 197:34 predicate))))))))))))))))
+                            (call 197:24 (wing 197:24 skip) (wing 197:29 rest) (wing 197:34 predicate)))))))))))))))
+  (value 199:1 roll
+    (gate 199:9
+      (face 199:12 args
+        (cell 199:17
+          (apply 199:18 list (tvar 199:24 A))
+          (tvar 199:27 B)
+          (fn 199:29
+            (cell 199:32 (tvar 199:33 A) (tvar 199:35 B))
+            (tvar 199:38 B))))
+      (body 200:3
+        (branch 200:3
+          (wing 200:6 args)
+          (arm 201:5
+            (cell 201:5 (bind 201:6 xs) (bind 201:9 start) (bind 201:15 combine))
+            (body 202:7
+              (branch 202:7
+                (wing 202:10 xs)
+                (arm 203:9 (lit 203:9 ~) (wing 203:11 start))
+                (arm 204:9
+                  (cell 204:9 (bind 204:10 item) (bind 204:15 rest))
+                  (group 204:21
+                    (call 204:22
+                      (wing 204:22 roll)
+                      (wing 204:27 rest)
+                      (group 204:32
+                        (call 204:33 (wing 204:33 combine) (wing 204:41 item) (wing 204:46 start)))
+                      (wing 204:53 combine)))))))))))
+  (value 206:1 reel
+    (gate 206:9
+      (face 206:12 args
+        (cell 206:17
+          (apply 206:18 list (tvar 206:24 A))
+          (tvar 206:27 B)
+          (fn 206:29
+            (cell 206:32 (tvar 206:33 A) (tvar 206:35 B))
+            (tvar 206:38 B))))
+      (body 207:3
+        (branch 207:3
+          (wing 207:6 args)
+          (arm 208:5
+            (cell 208:5 (bind 208:6 xs) (bind 208:9 start) (bind 208:15 combine))
+            (body 209:7
+              (branch 209:7
+                (wing 209:10 xs)
+                (arm 210:9 (lit 210:9 ~) (wing 210:11 start))
+                (arm 211:9
+                  (cell 211:9 (bind 211:10 item) (bind 211:15 rest))
+                  (group 211:21
+                    (call 211:22
+                      (wing 211:22 combine)
+                      (wing 211:30 item)
+                      (group 211:35
+                        (call 211:36 (wing 211:36 reel) (wing 211:41 rest) (wing 211:46 start) (wing 211:52 combine))))))))))))))

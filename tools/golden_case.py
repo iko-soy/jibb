@@ -115,6 +115,8 @@ def module_fixtures(folder):
     out, seen = [], set()
     for number, line in enumerate(lines, 1):
         logical = line[:-1] if line.endswith('\n') else line
+        if not logical.strip() or logical.lstrip().startswith('#'):
+            continue
         where = '%s:%d' % (filename, number)
         hoon_path = ui_path(logical, where)
         if logical in seen:
@@ -125,3 +127,8 @@ def module_fixtures(folder):
         seen.add(logical)
         out.append((logical, hoon_path, fixture))
     return out
+
+
+def wants_modules(folder):
+    """A manifest, even without sources, opts into module import checking."""
+    return os.path.isfile(os.path.join(folder, 'modules.txt'))

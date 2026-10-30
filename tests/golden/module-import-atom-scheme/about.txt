@@ -1,0 +1,4 @@
+source: Grammar, Modules: "No name may shadow one already in scope, imports and the prelude included"; type variables are generalized per `++`.
+tests: An exported atom-constrained gate re-exported by an intermediate module is instantiated independently for @p and @t and rejects a cell.
+expect: parses
+expect-types: a partial inference report

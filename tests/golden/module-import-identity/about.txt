@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/=` imports a Jibb module; import cycles are errors.
+tests: An imported identity is instantiated independently for a cord and a ship.
+expect: parses
+expect-types: a partial inference report

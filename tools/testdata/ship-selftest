@@ -170,9 +170,19 @@ def generator_checks(tmp):
     out = ship.generate_tests(module_cases)
     check('Jibb module sources are also supplied to the partial checker',
           '(check-module-types ~.main' in out and
-          '(golden-types-with-modules:jibb at src external mark-external sources)' in out and
+          '/*  prelude-source  %jibb  /lib/jibb/prelude/jibb' in out and
+          '(golden-types-with-prelude:jibb at src external mark-external sources prelude-source)' in out and
           "['/ui/card.jibb' ~[~.ui ~.card ~.jibb] mod-1-1]" in out and
           'src-1 `typ-1 ~ ~ ~[[' in out and '~[]' not in out, out)
+    with open(os.path.join(folder, 'modules.txt'), 'w') as f:
+        f.write('# no module fixtures\n')
+    out = ship.generate_tests(module_cases)
+    check('an empty module bundle still opts into module checking',
+          '(check-module-types ~.main' in out and
+          'src-1 `typ-1 ~ ~ ~)' in out and
+          '(check-module-trees ~.main' not in out and '~[]' not in out, out)
+    with open(os.path.join(folder, 'modules.txt'), 'w') as f:
+        f.write('/ui/card.jibb\n')
     os.makedirs(os.path.join(folder, 'sur'))
     os.makedirs(os.path.join(folder, 'mar'))
     with open(os.path.join(folder, 'sur', 'fixture.txt'), 'w') as f:

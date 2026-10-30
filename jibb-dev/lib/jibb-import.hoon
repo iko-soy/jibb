@@ -372,6 +372,16 @@
 ::  checked for disjointness. The tested axis follows the field path;
 ::  tracking that path distinguishes a nested $^ from an ordinary $@.
 ::  Other Hoon code can look the same, so some valid molds may be rejected.
+::  Collection argument syntax retains $^ as %bckt, before Hoon
+::  reduces the resulting type and can collapse overlapping cases. Until
+::  argument-level disjointness is checked, reject those source forms.
+++  has-spec-cell-union
+  |=  h=*
+  ^-  ?
+  ?@  h  |
+  ?:  ?=([%bckt ^ ^] h)  &
+  |($(h -.h) $(h +.h))
+::
 ++  has-cell-union
   |=  h=hoon
   ^-  ?
@@ -643,6 +653,8 @@
       [%fork (sort cases |=(pair=[imported imported] (dor -.pair +.pair)))]
     [%hint *]  $(typ q.typ)
     [%hold *]
+      ?:  &(?=([%tsls [%note * *] *] q.typ) (has-spec-cell-union q.typ))
+        [%bad 'a Hoon $^ union needs a source-level disjointness check']
       =/  named=(unit term)  (match-signature q.typ sig)
       ?^  named
         =/  name  u.named
@@ -1010,6 +1022,15 @@
       (crip "gate: {(show-result (sample %gate-test))}")
       (crip "vase: {(show-result vase)}")
       (crip "failed-branch: {(show-result (read-mold %external %bad bad-branch-fixture))}")
+      (crip "list-bckt-field: {(show-result (sample %list-bckt-field))}")
+      (crip "list-noun-overlap: {(show-result (sample %list-noun-overlap))}")
+      (crip "list-null-overlap: {(show-result (sample %list-null-overlap))}")
+      (crip "list-nested-atom-cell: {(show-result (sample %list-nested-atom-cell))}")
+      (crip "list-nested-valid-cell: {(show-result (sample %list-nested-valid-cell))}")
+      (crip "list-nested-invalid-cell: {(show-result (sample %list-nested-invalid-cell))}")
+      (crip "map-nested-invalid-cell: {(show-result (sample %map-nested-invalid-cell))}")
+      (crip "set-direct-invalid-cell: {(show-result (sample %set-direct-invalid-cell))}")
+      (crip "map-key-invalid-cell: {(show-result (sample %map-key-invalid-cell))}")
       (crip "nested-atom-cell: {(show-result (sample %nested-atom-cell))}")
       (crip "nested-valid-cell: {(show-result (sample %nested-valid-cell))}")
       (crip "nested-invalid-cell: {(show-result (sample %nested-invalid-cell))}")

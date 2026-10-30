@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/=` imports a Jibb module; import cycles are errors.
+tests: An explicit empty source bundle reports the missing imported module.
+expect: parses
+expect-types: a partial inference report

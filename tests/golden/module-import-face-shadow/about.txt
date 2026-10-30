@@ -1,0 +1,4 @@
+source: Grammar, Modules: "No name may shadow one already in scope, imports and the prelude included"; type variables are generalized per `++`.
+tests: A body-local mold cannot shadow an imported module face.
+expect: parses
+expect-types: a partial inference report

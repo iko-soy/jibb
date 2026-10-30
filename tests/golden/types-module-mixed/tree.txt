@@ -2,12 +2,11 @@
   (sur 1:1 fixture)
   (mark 2:1 %label)
   (jibb 3:1 extra /ui/helper)
-  (jibb 4:1 missing /ui/missing)
-  (value 5:1 label-id
+  (value 4:1 label-id
+    (gate 4:13
+      (face 4:16 x (ref 4:18 label))
+      (wing 4:24 x)))
+  (value 5:1 title-id
     (gate 5:13
-      (face 5:16 x (ref 5:18 label))
-      (wing 5:24 x)))
-  (value 6:1 title-id
-    (gate 6:13
-      (face 6:16 x (ref 6:18 title.fixture))
-      (wing 6:32 x))))
+      (face 5:16 x (ref 5:18 title.fixture))
+      (wing 5:32 x))))

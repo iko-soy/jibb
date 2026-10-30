@@ -1,0 +1,4 @@
+/ui/lib.jibb
+/ui/lib.jibb:1:10: expected a mold, on its line or a deeper one, found the end of the file
++$ broken
+         ^

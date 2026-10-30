@@ -1,0 +1,3 @@
+/=  lib /ui/lib
+++ f |= x=thing.lib x
+++ y (thing.lib "hi")

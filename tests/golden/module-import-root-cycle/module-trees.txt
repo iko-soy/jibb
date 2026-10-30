@@ -1,0 +1,8 @@
+/ui/a.jibb
+(module
+  (jibb 1:1 main /ui/main)
+  (value 2:1 identity
+    (gate-wide 2:13
+      (bind 2:16 x)
+      (group 2:18
+        (call 2:19 (wing 2:19 identity.main) (wing 2:33 x))))))

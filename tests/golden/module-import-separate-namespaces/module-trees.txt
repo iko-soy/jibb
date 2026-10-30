@@ -1,0 +1,5 @@
+/ui/lib.jibb
+(module
+  (mold 1:1 thing (aura 1:10 @t))
+  (value 2:1 thing
+    (gate-wide 2:10 (bind 2:13 x) (wing 2:15 x))))

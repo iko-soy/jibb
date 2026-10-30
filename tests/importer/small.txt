@@ -26,6 +26,15 @@
 +$  signed  @sd
 +$  float  @rd
 +$  gate-test  $-(@ud @ud)
++$  list-bckt-field  (list [bckt=@ud value=@t])
++$  list-noun-overlap  (list $^(* @ud))
++$  list-null-overlap  (list $^(~ @ud))
++$  list-nested-atom-cell  (list [id=@ud value=$@(@ud [a=@ud b=@t])])
++$  list-nested-valid-cell  (list [id=@ud value=$^(@ud [a=@ud b=@t])])
++$  list-nested-invalid-cell  (list [id=@ud value=$^(@ud @ud)])
++$  map-nested-invalid-cell  (map @ud [id=@ud value=$^(@ud @ud)])
++$  set-direct-invalid-cell  (set $^(@ud @ud))
++$  map-key-invalid-cell  (map $^(@ud @ud) @t)
 +$  nested-atom-cell  [left=$@(@ud [a=@ud b=@t]) right=$@(@t [c=@ud d=@t])]
 +$  nested-valid-cell  [id=@ud value=$^(@ud [a=@ud b=@t])]
 +$  nested-invalid-cell  [id=@ud value=$^(@ud @ud)]

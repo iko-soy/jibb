@@ -1,0 +1,13 @@
+/ui/mid.jibb
+(module
+  (jibb 1:1 base /ui/base)
+  (value 2:1 alias (wing 2:10 keep.base)))
+/ui/base.jibb
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (bind 1:12 x)
+      (body 2:3
+        (trace 2:3
+          (cast 2:6 (aura 2:9 @) (wing 2:11 x))
+          (body 3:5 (wing 3:5 x)))))))

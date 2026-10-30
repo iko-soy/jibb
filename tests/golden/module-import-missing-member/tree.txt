@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 x
+    (group 2:6
+      (call 2:7 (wing 2:7 absent.lib) (str 2:18 "hi")))))

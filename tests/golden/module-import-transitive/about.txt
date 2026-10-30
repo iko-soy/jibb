@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/=` imports a Jibb module; import cycles are errors.
+tests: Imported modules use a transitive, explicitly supplied A-to-B-to-C dependency chain.
+expect: parses
+expect-types: a partial inference report

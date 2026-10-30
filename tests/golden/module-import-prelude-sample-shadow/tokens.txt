@@ -1,0 +1,14 @@
+1:1 glyph /=
+1:5 name lib
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot lib
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name f
+2:6 glyph |=(
+2:9 tight name same
+2:14 name same
+2:18 tight glyph )
+2:19 NEWLINE

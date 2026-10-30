@@ -1,0 +1,8 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 f
+    (gate 2:6
+      (bind 2:9 x)
+      (body 3:3
+        (mold 3:3 lib (aura 3:10 @t))
+        (wing 4:3 x)))))

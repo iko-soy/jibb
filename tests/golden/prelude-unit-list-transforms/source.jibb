@@ -195,3 +195,17 @@
           ?- (predicate item)
             %.y (skip rest predicate)
             %.n [item (skip rest predicate)]
+
+++ roll |= args=[(list A) B $-([A B] B)]
+  ?- args
+    [xs start combine]
+      ?- xs
+        ~ start
+        [item rest] (roll rest (combine item start) combine)
+
+++ reel |= args=[(list A) B $-([A B] B)]
+  ?- args
+    [xs start combine]
+      ?- xs
+        ~ start
+        [item rest] (combine item (reel rest start combine))

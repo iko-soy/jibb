@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/=` imports a Jibb module; import cycles are errors.
+tests: A cycle back to the root uses its explicit logical path.
+expect: parses
+expect-types: a partial inference report

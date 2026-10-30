@@ -1,4 +1,4 @@
 source: Grammar, Imports: `/-` imports Hoon molds, `/%` imports a mark type and `/=` imports a Jibb module.
-tests: The partial checker receives a Hoon mold, a mark and one Jibb module source together; it can infer the two supported Hoon types but reports Jibb module resolution unsupported for both the supplied source and the missing source.
+tests: The partial checker receives a Hoon mold, a mark and a Jibb library module together; it infers the two supported Hoon types without claiming the module is fully checked.
 expect: parses
 expect-types: a partial report; Jibb module import resolution is unsupported

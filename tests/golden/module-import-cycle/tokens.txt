@@ -1,0 +1,14 @@
+1:1 glyph /=
+1:5 name a
+1:7 glyph /
+1:8 tight knot ui
+1:10 tight glyph /
+1:11 tight knot a
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name text
+2:9 glyph (
+2:10 tight wing identity.a
+2:21 str "hi"
+2:25 tight glyph )
+2:26 NEWLINE

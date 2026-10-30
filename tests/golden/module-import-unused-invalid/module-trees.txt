@@ -1,0 +1,8 @@
+/ui/good.jibb
+(module
+  (value 1:1 identity
+    (gate-wide 1:13 (bind 1:16 x) (wing 1:18 x))))
+/ui/unused.jibb
+/ui/unused.jibb:1:10: expected a mold, on its line or a deeper one, found the end of the file
++$ broken
+         ^

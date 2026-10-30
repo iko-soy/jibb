@@ -1,0 +1,8 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 text
+    (group 2:9
+      (call 2:10 (wing 2:10 identity.lib) (str 2:23 "hi"))))
+  (value 3:1 ship
+    (group 3:9
+      (call 3:10 (wing 3:10 identity.lib) (lit 3:23 ~zod)))))

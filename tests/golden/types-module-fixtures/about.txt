@@ -1,4 +1,4 @@
 source: Overview, worked example 2: the published page imports its API and card component with `/=`.
-tests: The case carries two Jibb module sources at their logical paths; both runners parse and compare their trees and supply them to partial inference. Module import resolution and typing remain unsupported.
+tests: The case carries two Jibb module sources at their logical paths; both runners parse and compare their trees and supply them to partial inference. The API module needs unsupported inference.
 expect: parses
 expect-types: a partial report that does not claim module checking

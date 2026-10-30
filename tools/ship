@@ -1069,11 +1069,14 @@ def generate_tests(golden):
             has_imports |= bool(sur or marks)
             has_marks |= bool(marks)
             has_modules |= bool(modules)
-            has_module_types |= bool(modules and golden_case.wants_types(folder))
+            has_module_types |= bool(golden_case.wants_modules(folder) and
+                                     golden_case.wants_types(folder))
         except ValueError as e:
             raise Unable(str(e))
     lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'),
              '/+  jibb, jibb-import' if has_imports or has_module_types else '/+  jibb']
+    if has_module_types:
+        lines.append('/*  prelude-source  %jibb  /lib/jibb/prelude/jibb')
     arms = []
     for i, ((name, folder), arm) in enumerate(
             zip(cases, arm_names([c[0] for c in cases])), 1):
@@ -1086,6 +1089,7 @@ def generate_tests(golden):
             imports = golden_case.sur_imports(folder)
             marks = golden_case.mark_imports(folder)
             modules = golden_case.module_fixtures(folder)
+            want_modules = golden_case.wants_modules(folder)
         except ValueError as e:
             raise Unable(str(e))
         args = ['~.%s' % name]
@@ -1113,7 +1117,7 @@ def generate_tests(golden):
             else:
                 expected_types = '~'
             path = logical or '~[%%tests %%golden ~.%s %%source %%jibb]' % name
-            if modules:
+            if want_modules:
                 fixtures = []
                 for j, (module, mold, _) in enumerate(imports, 1):
                     face = 'imp-%d-%d' % (i, j)
@@ -1282,7 +1286,7 @@ def generate_tests(golden):
     [name.fixture (read-mark:jibb-import name.fixture cor)]
   =/  sources=(list [path=path source=@t])
     (turn modules |=(item=[label=@t at=path source=@t] [at.item source.item]))
-  (golden-types-with-modules:jibb at src external mark-external sources)
+  (golden-types-with-prelude:jibb at src external mark-external sources prelude-source)
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 

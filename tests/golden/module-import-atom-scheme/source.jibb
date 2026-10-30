@@ -1,0 +1,4 @@
+/=  mid /ui/mid
+++ ship (alias.mid ~zod)
+++ text-value (alias.mid "hello")
+++ bad (alias.mid [~zod "hi"])

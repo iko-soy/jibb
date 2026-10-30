@@ -55,7 +55,7 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
     ==
 ::
 ++  run
-  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t]) modules=(list [label=@t at=path source=@t])] src=@t]
+  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t]) module-check=? modules=(list [label=@t at=path source=@t])] src=@t]
   ^-  @t
   =/  at=path  ?~(logical.metadata (file name) u.logical.metadata)
   =/  parsed  (mule |.((golden:lib at src)))
@@ -96,6 +96,7 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
   (rap 3 ~[(crip (a-co:co (met 3 b))) ':' b ','])
 {import-helper}
 {module-helper}
+{prelude-helper}
 --
 """
 
@@ -161,6 +162,7 @@ class Case:
             self.imports = golden_case.sur_imports(folder)
             self.marks = golden_case.mark_imports(folder)
             self.modules = golden_case.module_fixtures(folder)
+            self.want_modules = golden_case.wants_modules(folder)
         except ValueError as e:
             raise ue.ToolError(str(e))
         self.want_types = golden_case.wants_types(folder)
@@ -218,10 +220,11 @@ def run_lines(case):
         source = '(rap 3 `(list @t)`~[%s])' % ' '.join(ue.cord_literal(p) for p in parts)
         fixtures.append('[%s %s %s]' % (ue.cord_literal(logical.encode()), at, source))
     modules = '~[' + ' '.join(fixtures) + ']' if fixtures else '~'
-    out = ['        %%^  run  %s  [%s %s %s %s %s]' % (
+    out = ['        %%^  run  %s  [%s %s %s %s %s %s]' % (
                ue.cord_literal(case.name.encode()),
                '`' + case.logical_path if case.logical_path else '~',
-               '%.y' if case.want_types else '%.n', imports, marks, modules),
+               '%.y' if case.want_types else '%.n', imports, marks,
+               '%.y' if case.want_modules else '%.n', modules),
            '        %-  text',
            '        :~  ' + ue.cord_literal(lines[0])]
     out += ['            ' + ue.cord_literal(line) for line in lines[1:]]
@@ -235,7 +238,7 @@ def golden_program(lib_path, cases):
     imported = any(c.imports or c.marks for c in cases)
     has_marks = any(c.marks for c in cases)
     has_modules = any(c.modules for c in cases)
-    has_module_types = any(c.modules and c.want_types for c in cases)
+    has_module_types = any(c.want_modules and c.want_types for c in cases)
     harness = HARNESS
     if imported:
         reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
@@ -252,15 +255,26 @@ def golden_program(lib_path, cases):
         surs = '(import-types imports.metadata)' if imported else '~'
         marks = '(import-marks marks.metadata)' if imported else '~'
         modules = '(turn modules.metadata |=(item=[label=@t at=path source=@t] [at.item source.item]))'
-        types_value = ('?~(modules.metadata %s (golden-types-with-modules:lib '
-                       'at src %s %s %s))' % (types_value, surs, marks, modules))
+        types_value = ('?:(module-check.metadata (golden-types-with-prelude:lib '
+                       'at src %s %s %s prelude-source) %s)' % (surs, marks, modules, types_value))
     types_expr = '?:(check.metadata %s \'\')' % types_value
+    prelude_helper = ''
+    if has_module_types:
+        prelude_path = os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb', 'prelude.jibb')
+        try:
+            with open(prelude_path, 'rb') as f:
+                parts = ue.cord_pieces(f.read())
+        except OSError as e:
+            raise ue.ToolError('cannot read the Jibb prelude %s: %s' % (prelude_path, e))
+        prelude_helper = "++  prelude-source\n  ^-  @t\n  (rap 3 `(list @t)`~[%s])\n" % (
+            ' '.join(ue.cord_literal(p) for p in parts))
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")
                     .replace('{import-helper}', IMPORT_HELPER if imported else '')
                     .replace('{modules-expr}', '(module-trees modules.metadata)' if has_modules else "''")
-                    .replace('{module-helper}', MODULE_HELPER if has_modules else ''),
+                    .replace('{module-helper}', MODULE_HELPER if has_modules else '')
+                    .replace('{prelude-helper}', prelude_helper),
              '(harness)', 'harness')
     return prog
 

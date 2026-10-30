@@ -1,0 +1,4 @@
+source: Grammar, Modules: "No name may shadow one already in scope, imports and the prelude included".
+tests: Samples in the root module cannot shadow names declared by `/-` or `/%`; an explicit empty Jibb module bundle opts into module-aware checking.
+expect: parses
+expect-types: partial inference reports each shadowing sample

@@ -1,0 +1,20 @@
+/ui/a.jibb
+(module
+  (jibb 1:1 b /ui/b)
+  (value 2:1 identity
+    (gate-wide 2:13
+      (bind 2:16 x)
+      (group 2:18
+        (call 2:19 (wing 2:19 identity.b) (wing 2:30 x))))))
+/ui/b.jibb
+(module
+  (jibb 1:1 c /ui/c)
+  (value 2:1 identity
+    (gate-wide 2:13
+      (bind 2:16 x)
+      (group 2:18
+        (call 2:19 (wing 2:19 identity.c) (wing 2:30 x))))))
+/ui/c.jibb
+(module
+  (value 1:1 identity
+    (gate-wide 1:13 (bind 1:16 x) (wing 1:18 x))))

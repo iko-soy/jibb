@@ -11,26 +11,19 @@
 3:14 tight glyph /
 3:15 tight knot helper
 4:1 NEWLINE
-4:1 glyph /=
-4:5 name missing
-4:13 glyph /
-4:14 tight knot ui
-4:16 tight glyph /
-4:17 tight knot missing
+4:1 glyph ++
+4:4 name label-id
+4:13 glyph |=
+4:16 name x
+4:17 tight glyph =
+4:18 tight name label
+4:24 name x
 5:1 NEWLINE
 5:1 glyph ++
-5:4 name label-id
+5:4 name title-id
 5:13 glyph |=
 5:16 name x
 5:17 tight glyph =
-5:18 tight name label
-5:24 name x
-6:1 NEWLINE
-6:1 glyph ++
-6:4 name title-id
-6:13 glyph |=
-6:16 name x
-6:17 tight glyph =
-6:18 tight wing title.fixture
-6:32 name x
-6:33 NEWLINE
+5:18 tight wing title.fixture
+5:32 name x
+5:33 NEWLINE

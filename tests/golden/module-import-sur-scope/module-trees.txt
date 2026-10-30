@@ -1,0 +1,6 @@
+/ui/lib.jibb
+(module
+  (value 1:1 identity
+    (gate 1:13
+      (face 1:16 x (ref 1:18 title.fixture))
+      (wing 1:32 x))))

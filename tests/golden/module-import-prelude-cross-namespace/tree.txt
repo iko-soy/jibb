@@ -1,0 +1,3 @@
+(module
+  (value 1:1 list
+    (gate-wide 1:9 (bind 1:12 x) (wing 1:14 x))))

@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Compare the module/prelude scope report under urbit eval."""
+
+from pathlib import Path
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+fixture = root / 'tests/type-module-scope/expected.txt'
+tests = (root / 'tests/lib/jibb-module-scope.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  expected=wain  (to-wain:format expected-text)\n'
+              '=/  suite\n' + tests + '\nscope-output:suite\n')
+with tempfile.TemporaryDirectory(prefix='jibb-module-scope-') as tmp:
+    program = Path(tmp) / 'scope.hoon'
+    program.write_text(expression)
+    result = subprocess.run([str(root / 'tools/hoon'), '--raw', '-f', str(program),
+                             '--cord', 'expected-text=' + str(fixture)],
+                            stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected = fixture.read_bytes()
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual types'))
+    sys.exit(1)
+print('module/prelude scope golden passed')

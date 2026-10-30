@@ -1200,10 +1200,118 @@
 197:34 name predicate
 197:43 tight glyph )
 197:44 tight glyph ]
-197:45 DEDENT
-197:45 DEDENT
-197:45 DEDENT
-197:45 DEDENT
-197:45 DEDENT
-197:45 DEDENT
-197:45 NEWLINE
+199:1 DEDENT
+199:1 DEDENT
+199:1 DEDENT
+199:1 DEDENT
+199:1 DEDENT
+199:1 DEDENT
+199:1 NEWLINE
+199:1 glyph ++
+199:4 name roll
+199:9 glyph |=
+199:12 name args
+199:16 tight glyph =
+199:17 tight glyph [
+199:18 tight glyph (
+199:19 tight name list
+199:24 tvar A
+199:25 tight glyph )
+199:27 tvar B
+199:29 glyph $-(
+199:32 tight glyph [
+199:33 tight tvar A
+199:35 tvar B
+199:36 tight glyph ]
+199:38 tvar B
+199:39 tight glyph )
+199:40 tight glyph ]
+200:3 INDENT
+200:3 glyph ?-
+200:6 name args
+201:5 INDENT
+201:5 glyph [
+201:6 tight name xs
+201:9 name start
+201:15 name combine
+201:22 tight glyph ]
+202:7 INDENT
+202:7 glyph ?-
+202:10 name xs
+203:9 INDENT
+203:9 lit ~
+203:11 name start
+204:9 NEWLINE
+204:9 glyph [
+204:10 tight name item
+204:15 name rest
+204:19 tight glyph ]
+204:21 glyph (
+204:22 tight name roll
+204:27 name rest
+204:32 glyph (
+204:33 tight name combine
+204:41 name item
+204:46 name start
+204:51 tight glyph )
+204:53 name combine
+204:60 tight glyph )
+206:1 DEDENT
+206:1 DEDENT
+206:1 DEDENT
+206:1 DEDENT
+206:1 NEWLINE
+206:1 glyph ++
+206:4 name reel
+206:9 glyph |=
+206:12 name args
+206:16 tight glyph =
+206:17 tight glyph [
+206:18 tight glyph (
+206:19 tight name list
+206:24 tvar A
+206:25 tight glyph )
+206:27 tvar B
+206:29 glyph $-(
+206:32 tight glyph [
+206:33 tight tvar A
+206:35 tvar B
+206:36 tight glyph ]
+206:38 tvar B
+206:39 tight glyph )
+206:40 tight glyph ]
+207:3 INDENT
+207:3 glyph ?-
+207:6 name args
+208:5 INDENT
+208:5 glyph [
+208:6 tight name xs
+208:9 name start
+208:15 name combine
+208:22 tight glyph ]
+209:7 INDENT
+209:7 glyph ?-
+209:10 name xs
+210:9 INDENT
+210:9 lit ~
+210:11 name start
+211:9 NEWLINE
+211:9 glyph [
+211:10 tight name item
+211:15 name rest
+211:19 tight glyph ]
+211:21 glyph (
+211:22 tight name combine
+211:30 name item
+211:35 glyph (
+211:36 tight name reel
+211:41 name rest
+211:46 name start
+211:52 name combine
+211:59 tight glyph )
+211:60 tight glyph )
+211:61 DEDENT
+211:61 DEDENT
+211:61 DEDENT
+211:61 DEDENT
+211:61 NEWLINE

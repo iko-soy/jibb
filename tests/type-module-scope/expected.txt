@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ identity: $-(@t @t)
+++ atom: @p
+partial inference; module not checked
+prelude source missing; module import inference unsupported
+partial inference; module not checked
+prelude source does not parse; module import inference unsupported
+partial inference; module not checked
+module has conflicting names

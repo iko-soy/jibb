@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/=` imports a Jibb module; import cycles are errors.
+tests: A module may not see the root module’s Hoon import without declaring it.
+expect: parses
+expect-types: a partial inference report
