@@ -6806,6 +6806,69 @@
 ::  reporting repeats the same check instead of instantiating the gate's
 ::  generalized interface inside its own body. Mutual groups stay unsupported.
 ::
+++  direct-self-call
+  |=  [e=expr name=term]
+  ^-  ?
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?.  ?=(%call -.e)  |
+  ?.  ?=(%wing -.head.e)  |
+  =(names.head.e ~[name])
+::
+++  branch-base-arm
+  |=  [e=expr name=term]
+  ^-  (unit expr)
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?.  ?=(%branch -.e)  ~
+  ?~  arms.e  ~
+  ?~  t.arms.e  ~
+  ?^  t.t.arms.e  ~
+  =/  x=arm  i.arms.e
+  =/  y=arm  i.t.arms.e
+  ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))  ~
+  ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))  ~
+  ?:  =(val.lit.pat.x val.lit.pat.y)  ~
+  =/  first=?  (direct-self-call val.x name)
+  =/  second=?  (direct-self-call val.y name)
+  ?:  =(first second)  ~
+  `?:(first val.y val.x)
+::
+::  Infer the base arm independently, with the self binding removed. Only
+::  a closed type whose constraints resolved can seed the recursive result.
+::  The regular body inference then checks both arms with shared state.
+::
+++  recursive-branch-seed
+  |=  [d=def env=ienv state=istate]
+  ^-  (unit itype)
+  ?.  ?=(%value -.d)  ~
+  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  ~
+  =/  gate=expr  val.d
+  =/  body=expr
+    ?-  -.gate
+      %gate       body.gate
+      %gate-wide  body.gate
+      *           !!
+    ==
+  =/  base=(unit expr)  (branch-base-arm body name.d)
+  ?~  base  ~
+  =/  outer=ienv  (skim env |=(entry=[name=term scheme=ischeme] !=(name.entry name.d)))
+  =/  sam=isample-result
+    ?-  -.gate
+      %gate       (infer-sample sample.gate outer state)
+      %gate-wide  (infer-sample sample.gate outer state)
+      *           !!
+    ==
+  ?:  ?=(%| -.sam)  ~
+  =/  inferred=iresult  (infer-fragment u.base env.p.sam state.p.sam)
+  ?:  ?=(%| -.inferred)  ~
+  ?:  (pending-tags tags.state.p.inferred sub.state.p.inferred)  ~
+  ?:  (constrained-capitals caps.state.p.inferred sub.state.p.inferred)  ~
+  =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
+  ?:  ?=(^ (itype-vars typ))  ~
+  ?:  (itype-has-tag typ)  ~
+  `typ
+::
 ++  infer-recursive-gate
   |=  [d=def env=ienv state=istate]
   ^-  iresult
@@ -6813,10 +6876,13 @@
   ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
     [%| ["recursive definition is not a gate" ~]]
   =/  id=@ud  next.state
-  =/  seeded=ienv  [[name.d [[%var id] ~]] env]
-  =/  out=iresult  (infer-fragment val.d seeded state(next +(id)))
+  =/  result=(unit itype)  (recursive-branch-seed d env state)
+  =/  seed=itype  ?~(result [%var id] [%fn [%var +(id)] u.result])
+  =/  next=@ud  ?~(result +(id) +(+(id)))
+  =/  seeded=ienv  [[name.d [seed ~]] env]
+  =/  out=iresult  (infer-fragment val.d seeded state(next next))
   ?:  ?=(%| -.out)  out
-  =/  uni=(unit isub)  (itype-unify [%var id] typ.p.out sub.state.p.out)
+  =/  uni=(unit isub)  (itype-unify seed typ.p.out sub.state.p.out)
   ?~  uni  [%| ["recursive gate constraint is not supported by partial inference" ~]]
   [%& typ.p.out state.p.out(sub u.uni)]
 ::

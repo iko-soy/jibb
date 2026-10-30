@@ -1,0 +1,103 @@
+++ text-forward |= b=?
+  ?- b
+    %.y "done"
+    %.n (text-forward %.y)
+++ text-reverse |= b=?
+  ?- b
+    %.n (text-reverse %.y)
+    %.y "done"
+++ ship-result |= b=?
+  ?- b
+    %.y ~zod
+    %.n (ship-result %.y)
+++ flag-result |= b=?
+  ?- b
+    %.y %.y
+    %.n (flag-result %.y)
+++ record-result |= b=?
+  ?- b
+    %.y [who=~zod label="ok"]
+    %.n (record-result %.y)
+++ list-result |= b=?
+  ?- b
+    %.y ^- (list @t) ~["ok"]
+    %.n (list-result %.y)
+++ input-base |= x=A
+  ?- %.y
+    %.y x
+    %.n (input-base x)
+++ inferred-base |= x
+  ?- %.y
+    %.y x
+    %.n (inferred-base x)
+++ captured |= x=A
+  ++ inner |= b=? x
+  ?- %.y
+    %.y (inner %.y)
+    %.n (captured x)
+++ forced |= x=A
+  ?- %.y
+    %.y ^- @t x
+    %.n (forced x)
+++ pending |= b=?
+  ?- b
+    %.y %unknown
+    %.n (pending b)
+++ pending-null |= b=?
+  ?- b
+    %.y ~
+    %.n (pending-null b)
+++ dependent |= b=?
+  ?- b
+    %.y "ok"
+    %.n "other"
+++ nonself |= b=?
+  ?- b
+    %.y "ok"
+    %.n (text-forward b)
+++ polymorphic |= x=A
+  ?- %.y
+    %.y "ok"
+    %.n (polymorphic [x x])
+++ no-base |= b=? (no-base b)
+++ malformed |= b=?
+  ?- b
+    %.y "ok"
+    %.y (malformed b)
+++ mixed |= b=?
+  ++ self mixed
+  ~& ^- @p (self b)
+    ?- b
+      %.y "ok"
+      %.n (mixed b)
+++ sample-base |= b=?
+  ?- b
+    %.y b
+    %.n (sample-base %.y)
+++ sample-mismatch |= b=?
+  ?- b
+    %.y "ok"
+    %.n (sample-mismatch "wrong")
+++ self-subject |= b=?
+  ?- (self-subject b)
+    %.y "ok"
+    %.n (self-subject b)
+++ aura-base |= b=?
+  ?- b
+    %.y ^- @u 0x1f
+    %.n (aura-base b)
+++ aura-conflict |= b=?
+  ~& ^- @t (aura-conflict b)
+    ?- b
+      %.y 0x1f
+      %.n (aura-conflict b)
+++ traced |= b=?
+  ?- b
+    %.y "ok"
+    %.n
+      ~& "trace"
+        (traced b)
+++ unresolved-number |= b=?
+  ?- b
+    %.y 1
+    %.n (unresolved-number b)

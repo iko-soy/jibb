@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Gates may call themselves and their siblings"; Molds: "Type variables are capitals, generalized per `++`."
+tests: A self-recursive branch uses a closed base case in either order; unknown, captured, forced and incompatible types remain sound or fail closed.
+expect: parses
+expect-types: a partial inference report

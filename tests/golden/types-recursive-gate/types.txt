@@ -1,5 +1,5 @@
 partial inference; module not checked
-++ bounce: branch widening is not supported by partial inference
+++ bounce: $-(? ?)
 ++ recur: $-(A A)
 ++ cord-result: @t
 ++ ship-result: @p
