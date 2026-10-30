@@ -1,0 +1,32 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 imported-head
+    (gate 2:18
+      (face 2:21 xs (ref 2:24 texts.fixture))
+      (body 3:3
+        (branch 3:3
+          (wing 3:6 xs)
+          (arm 4:5 (lit 4:5 ~) (crash 4:7))
+          (arm 5:5
+            (cell 5:5 (bind 5:6 item) (bind 5:11 rest))
+            (wing 5:17 item))))))
+  (value 6:1 imported-tail
+    (gate 6:18
+      (face 6:21 xs (ref 6:24 texts.fixture))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 xs)
+          (arm 8:5
+            (cell 8:5 (bind 8:6 item) (bind 8:11 rest))
+            (wing 8:17 rest))
+          (arm 9:5 (lit 9:5 ~) (crash 9:7))))))
+  (value 10:1 set-shape
+    (gate 10:14
+      (face 10:17 xs (ref 10:20 text-set.fixture))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 xs)
+          (arm 12:5 (lit 12:5 ~) (crash 12:7))
+          (arm 13:5
+            (cell 13:5 (bind 13:6 item) (bind 13:11 rest))
+            (wing 13:17 item)))))))

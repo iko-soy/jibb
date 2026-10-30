@@ -1,0 +1,13 @@
+/-  fixture
+++ imported-head |= xs=texts.fixture
+  ?- xs
+    ~ !!
+    [item rest] item
+++ imported-tail |= xs=texts.fixture
+  ?- xs
+    [item rest] rest
+    ~ !!
+++ set-shape |= xs=text-set.fixture
+  ?- xs
+    ~ !!
+    [item rest] item

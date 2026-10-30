@@ -6251,6 +6251,64 @@
   ?:  (unit-empty-case i.t.cases.t)  (unit-payload-case i.cases.t)
   ~
 ::
+::  List matching currently covers exactly null and a cell of two binders.
+::  The head has the element type and the tail has the whole list type.
+::  Other patterns and lists whose element mold is empty remain unsupported.
+::
+++  list-payload-pattern
+  |=  p=pattern
+  ^-  (unit [head=term tail=term])
+  ?.  ?=(%cell -.p)  ~
+  ?~  items.p  ~
+  ?~  t.items.p  ~
+  ?^  t.t.items.p  ~
+  ?.  ?=(%bind -.i.items.p)  ~
+  ?.  ?=(%bind -.i.t.items.p)  ~
+  `[name.i.items.p name.i.t.items.p]
+::
+++  infer-list-branch
+  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span]) typ=itype]
+  ^-  iresult
+  ?>  ?=(%branch -.e)
+  ?>  ?=(%collection -.typ)
+  ?.  =(%list name.typ)  [%| ["list pattern is not supported by partial inference" ~]]
+  ?~  prelude.state  [%| ["list pattern needs the standard prelude in partial inference" ~]]
+  ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
+    [%| ["list pattern needs the standard prelude in partial inference" ~]]
+  =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
+  ?~  standard  [%| ["list pattern needs the standard prelude in partial inference" ~]]
+  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])
+    [%| ["list pattern needs the standard prelude in partial inference" ~]]
+  ?~  args.typ  [%| ["list pattern is not supported by partial inference" ~]]
+  ?^  t.args.typ  [%| ["list pattern is not supported by partial inference" ~]]
+  ?~  arms.e  [%| ["list branch is not supported by partial inference" ~]]
+  ?~  t.arms.e  [%| ["list branch is not supported by partial inference" ~]]
+  ?^  t.t.arms.e  [%| ["list branch is not supported by partial inference" ~]]
+  =/  x=arm  i.arms.e
+  =/  y=arm  i.t.arms.e
+  =/  first-empty=?  (unit-empty-pattern pat.x)
+  =/  first-name=(unit [head=term tail=term])  (list-payload-pattern pat.x)
+  =/  second-name=(unit [head=term tail=term])  (list-payload-pattern pat.y)
+  ?.  |(&(first-empty ?=(^ second-name)) &((unit-empty-pattern pat.y) ?=(^ first-name)))
+    [%| ["list branch pattern is not supported by partial inference" ~]]
+  =/  binder=(unit [head=term tail=term])  ?:(first-empty second-name first-name)
+  ?~  binder  [%| ["list branch pattern is not supported by partial inference" ~]]
+  ?:  |(=(head.u.binder tail.u.binder) ?=(^ (ienv-lookup head.u.binder env)) ?=(^ (ienv-lookup tail.u.binder env)) (lien globals.state |=(n=term |(=(n head.u.binder) =(n tail.u.binder)))))
+    [%| ["pattern binder shadows a name" ~]]
+  =/  extended=ienv  [[head.u.binder [i.args.typ ~]] [tail.u.binder [typ ~]] env]
+  =/  left=iresult
+    ?~  expected  (infer-fragment val.x ?:(first-empty env extended) state)
+    (infer-union-context val.x typ.u.expected ?:(first-empty env extended) state context.u.expected)
+  ?:  ?=(%| -.left)  left
+  =/  right=iresult
+    ?~  expected  (infer-fragment val.y ?:(first-empty extended env) state.p.left)
+    (infer-union-context val.y typ.u.expected ?:(first-empty extended env) state.p.left context.u.expected)
+  ?:  ?=(%| -.right)  right
+  ?^  expected  [%& typ.u.expected state.p.right]
+  =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
+  ?~  joined  [%| ["list branch results need unsupported inference" ~]]
+  [%& typ.p.left state.p.right(sub u.joined)]
+::
 ++  infer-unit-branch
   |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
   ^-  iresult
@@ -6258,6 +6316,11 @@
   ?~  arms.e  [%| ["unit branch is not supported by partial inference" ~]]
   ?~  t.arms.e  [%| ["unit branch is not supported by partial inference" ~]]
   ?^  t.t.arms.e  [%| ["unit branch is not supported by partial inference" ~]]
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?:  &(?=(%collection -.typ) =(%list name.typ))
+    (infer-list-branch e env state.p.subject expected typ)
   =/  x=arm  i.arms.e
   =/  y=arm  i.t.arms.e
   =/  first-empty=?  (unit-empty-pattern pat.x)
@@ -6269,9 +6332,6 @@
   ?~  binder  [%| ["unit branch pattern is not supported by partial inference" ~]]
   ?:  |(?=(^ (ienv-lookup u.binder env)) (lien globals.state |=(n=term =(n u.binder))))
     [%| ["pattern binder shadows a name" ~]]
-  =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  subject
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   =/  payload=(unit itype)  (unit-union-payload typ)
   ?~  payload  [%| ["unit branch subject is not supported by partial inference" ~]]
   =/  extended=ienv  [[u.binder [u.payload ~]] env]

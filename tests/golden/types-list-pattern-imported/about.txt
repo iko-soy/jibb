@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all"; Molds: containers include `(list A)` and `(set A)`.
+tests: A real Hoon list import supports head and tail patterns in either order; an imported set is not silently treated as a list.
+expect: parses
+expect-types: a partial inference report

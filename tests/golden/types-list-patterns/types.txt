@@ -1,0 +1,17 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ first-item: $-((list @t) @t)
+++ rest-items: $-((list @t) (list @t))
+++ with-context: $-((list @t) msg)
+++ shadow: pattern binder shadows a name
+++ duplicate: pattern binder shadows a name
+++ unknown: unit branch pattern is not supported by partial inference
+++ not-list: unit branch pattern is not supported by partial inference
+++ missing: branch pattern is not supported by partial inference
+++ invalid: list branch pattern is not supported by partial inference
+++ unresolved: list branch results need unsupported inference
+++ duplicate-arm: branch is not supported by partial inference
+++ unrelated: tag needs context in partial inference
+++ empty-elements: sample mold is not supported by partial inference
++$ maybe: cases proven disjoint; mold not checked
+++ unit-shape: unit branch pattern is not supported by partial inference

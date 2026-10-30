@@ -1,0 +1,64 @@
++$ msg
+  %empty
+  [%item text=@t]
+++ first-item |= xs=(list @t)
+  ?- xs
+    ~ !!
+    [item rest] item
+++ rest-items |= xs=(list @t)
+  ?- xs
+    [item rest] rest
+    ~ !!
+++ with-context |= xs=(list @t)
+  ^- msg
+    ?- xs
+      ~ %empty
+      [item rest] [%item item]
+++ shadow |= xs=(list @t)
+  ?- xs
+    ~ !!
+    [xs rest] xs
+++ duplicate |= xs=(list @t)
+  ?- xs
+    ~ !!
+    [item item] item
+++ unknown |= xs
+  ?- xs
+    ~ !!
+    [item rest] item
+++ not-list |= xs=@t
+  ?- xs
+    ~ !!
+    [item rest] item
+++ missing |= xs=(list @t)
+  ?- xs
+    ~ !!
+++ invalid |= xs=(list @t)
+  ?- xs
+    ~ !!
+    [%tag rest] rest
+++ unresolved |= xs=(list @t)
+  ?- xs
+    ~ %empty
+    [item rest] %more
+++ duplicate-arm |= xs=(list @t)
+  ?- xs
+    ~ !!
+    ~ !!
+    [item rest] item
+++ unrelated |= xs=(list @t)
+  ~& %pending
+    ?- xs
+      ~ !!
+      [item rest] item
+++ empty-elements |= xs=(list !!)
+  ?- xs
+    ~ !!
+    [item rest] item
++$ maybe
+  ~
+  [~ value=@t]
+++ unit-shape |= xs=maybe
+  ?- xs
+    ~ !!
+    [item rest] item

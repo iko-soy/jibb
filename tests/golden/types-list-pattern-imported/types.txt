@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ imported-head: $-((list @t) @t)
+++ imported-tail: $-((list @t) (list @t))
+++ set-shape: unit branch pattern is not supported by partial inference

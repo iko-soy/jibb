@@ -1,0 +1,168 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %empty)
+      (cell 3:3
+        (const 3:4 %item)
+        (face 3:10 text (aura 3:15 @t)))))
+  (value 4:1 first-item
+    (gate 4:15
+      (face 4:18 xs
+        (apply 4:21 list (aura 4:27 @t)))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 xs)
+          (arm 6:5 (lit 6:5 ~) (crash 6:7))
+          (arm 7:5
+            (cell 7:5 (bind 7:6 item) (bind 7:11 rest))
+            (wing 7:17 item))))))
+  (value 8:1 rest-items
+    (gate 8:15
+      (face 8:18 xs
+        (apply 8:21 list (aura 8:27 @t)))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 xs)
+          (arm 10:5
+            (cell 10:5 (bind 10:6 item) (bind 10:11 rest))
+            (wing 10:17 rest))
+          (arm 11:5 (lit 11:5 ~) (crash 11:7))))))
+  (value 12:1 with-context
+    (gate 12:17
+      (face 12:20 xs
+        (apply 12:23 list (aura 12:29 @t)))
+      (body 13:3
+        (cast 13:3
+          (ref 13:6 msg)
+          (body 14:5
+            (branch 14:5
+              (wing 14:8 xs)
+              (arm 15:7 (lit 15:7 ~) (lit 15:9 %empty))
+              (arm 16:7
+                (cell 16:7 (bind 16:8 item) (bind 16:13 rest))
+                (tuple 16:19 (lit 16:20 %item) (wing 16:26 item)))))))))
+  (value 17:1 shadow
+    (gate 17:11
+      (face 17:14 xs
+        (apply 17:17 list (aura 17:23 @t)))
+      (body 18:3
+        (branch 18:3
+          (wing 18:6 xs)
+          (arm 19:5 (lit 19:5 ~) (crash 19:7))
+          (arm 20:5
+            (cell 20:5 (bind 20:6 xs) (bind 20:9 rest))
+            (wing 20:15 xs))))))
+  (value 21:1 duplicate
+    (gate 21:14
+      (face 21:17 xs
+        (apply 21:20 list (aura 21:26 @t)))
+      (body 22:3
+        (branch 22:3
+          (wing 22:6 xs)
+          (arm 23:5 (lit 23:5 ~) (crash 23:7))
+          (arm 24:5
+            (cell 24:5 (bind 24:6 item) (bind 24:11 item))
+            (wing 24:17 item))))))
+  (value 25:1 unknown
+    (gate 25:12
+      (bind 25:15 xs)
+      (body 26:3
+        (branch 26:3
+          (wing 26:6 xs)
+          (arm 27:5 (lit 27:5 ~) (crash 27:7))
+          (arm 28:5
+            (cell 28:5 (bind 28:6 item) (bind 28:11 rest))
+            (wing 28:17 item))))))
+  (value 29:1 not-list
+    (gate 29:13
+      (face 29:16 xs (aura 29:19 @t))
+      (body 30:3
+        (branch 30:3
+          (wing 30:6 xs)
+          (arm 31:5 (lit 31:5 ~) (crash 31:7))
+          (arm 32:5
+            (cell 32:5 (bind 32:6 item) (bind 32:11 rest))
+            (wing 32:17 item))))))
+  (value 33:1 missing
+    (gate 33:12
+      (face 33:15 xs
+        (apply 33:18 list (aura 33:24 @t)))
+      (body 34:3
+        (branch 34:3
+          (wing 34:6 xs)
+          (arm 35:5 (lit 35:5 ~) (crash 35:7))))))
+  (value 36:1 invalid
+    (gate 36:12
+      (face 36:15 xs
+        (apply 36:18 list (aura 36:24 @t)))
+      (body 37:3
+        (branch 37:3
+          (wing 37:6 xs)
+          (arm 38:5 (lit 38:5 ~) (crash 38:7))
+          (arm 39:5
+            (cell 39:5 (lit 39:6 %tag) (bind 39:11 rest))
+            (wing 39:17 rest))))))
+  (value 40:1 unresolved
+    (gate 40:15
+      (face 40:18 xs
+        (apply 40:21 list (aura 40:27 @t)))
+      (body 41:3
+        (branch 41:3
+          (wing 41:6 xs)
+          (arm 42:5 (lit 42:5 ~) (lit 42:7 %empty))
+          (arm 43:5
+            (cell 43:5 (bind 43:6 item) (bind 43:11 rest))
+            (lit 43:17 %more))))))
+  (value 44:1 duplicate-arm
+    (gate 44:18
+      (face 44:21 xs
+        (apply 44:24 list (aura 44:30 @t)))
+      (body 45:3
+        (branch 45:3
+          (wing 45:6 xs)
+          (arm 46:5 (lit 46:5 ~) (crash 46:7))
+          (arm 47:5 (lit 47:5 ~) (crash 47:7))
+          (arm 48:5
+            (cell 48:5 (bind 48:6 item) (bind 48:11 rest))
+            (wing 48:17 item))))))
+  (value 49:1 unrelated
+    (gate 49:14
+      (face 49:17 xs
+        (apply 49:20 list (aura 49:26 @t)))
+      (body 50:3
+        (trace 50:3
+          (lit 50:6 %pending)
+          (body 51:5
+            (branch 51:5
+              (wing 51:8 xs)
+              (arm 52:7 (lit 52:7 ~) (crash 52:9))
+              (arm 53:7
+                (cell 53:7 (bind 53:8 item) (bind 53:13 rest))
+                (wing 53:19 item))))))))
+  (value 54:1 empty-elements
+    (gate 54:19
+      (face 54:22 xs
+        (apply 54:25 list (void 54:31)))
+      (body 55:3
+        (branch 55:3
+          (wing 55:6 xs)
+          (arm 56:5 (lit 56:5 ~) (crash 56:7))
+          (arm 57:5
+            (cell 57:5 (bind 57:6 item) (bind 57:11 rest))
+            (wing 57:17 item))))))
+  (mold 58:1 maybe
+    (union 59:3
+      (const 59:3 ~)
+      (cell 60:3
+        (const 60:4 ~)
+        (face 60:6 value (aura 60:12 @t)))))
+  (value 61:1 unit-shape
+    (gate 61:15
+      (face 61:18 xs (ref 61:21 maybe))
+      (body 62:3
+        (branch 62:3
+          (wing 62:6 xs)
+          (arm 63:5 (lit 63:5 ~) (crash 63:7))
+          (arm 64:5
+            (cell 64:5 (bind 64:6 item) (bind 64:11 rest))
+            (wing 64:17 item)))))))
