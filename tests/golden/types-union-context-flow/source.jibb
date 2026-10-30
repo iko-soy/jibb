@@ -1,0 +1,13 @@
++$ msg
+  %add
+  %remove
+++ only-one
+  ~& ^- msg %add
+    %unknown
+++ choose |= b=?
+  ^- msg
+    ?- b
+      %.y %add
+      %.n %remove
+++ id |=(x x)
+++ through ^- msg (id %add)

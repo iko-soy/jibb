@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: tags take their union from context and constrained variables do not generalize.
+tests: Resolving one tag does not resolve another; union context can reach tags in a branch and through a generic call when supported.
+expect: parses
+expect-types: a partial inference report

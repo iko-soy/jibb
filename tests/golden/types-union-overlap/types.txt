@@ -1,0 +1,9 @@
+partial inference; module not checked
++$ overlap: overlapping cases; mold not checked
+/tests/golden/types-union-overlap/source.jibb:2:3: first union case
+  @t
+  ^
+/tests/golden/types-union-overlap/source.jibb:3:3: overlapping case
+  @ud
+  ^
+++ identity: $-(A A)

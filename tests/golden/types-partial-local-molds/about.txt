@@ -2,7 +2,8 @@ Grammar, Modules: "Local definitions may start any body, visible to each
 other and the final expression"; a gate's sample cannot see a mold in that
 gate's body. Partial inference supports acyclic local aliases of simple
 molds and resolves them in any order. It rejects duplicate or shadowed molds
-and leaves recursive or union molds unsupported, even if unused. Mold and
+and leaves recursive molds unsupported, even if unused. A closed disjoint
+union mold is accepted, including when unused. Mold and
 value namespaces remain separate. The report does not claim the module is
 checked.
 expect: parses

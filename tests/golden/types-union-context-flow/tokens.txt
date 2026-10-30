@@ -1,0 +1,58 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %add
+3:3 NEWLINE
+3:3 lit %remove
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name only-one
+5:3 INDENT
+5:3 glyph ~&
+5:6 glyph ^-
+5:9 name msg
+5:13 lit %add
+6:5 INDENT
+6:5 lit %unknown
+7:1 DEDENT
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name choose
+7:11 glyph |=
+7:14 name b
+7:15 tight glyph =
+7:16 tight glyph ?
+8:3 INDENT
+8:3 glyph ^-
+8:6 name msg
+9:5 INDENT
+9:5 glyph ?-
+9:8 name b
+10:7 INDENT
+10:7 lit %.y
+10:11 lit %add
+11:7 NEWLINE
+11:7 lit %.n
+11:11 lit %remove
+12:1 DEDENT
+12:1 DEDENT
+12:1 DEDENT
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name id
+12:7 glyph |=(
+12:10 tight name x
+12:12 name x
+12:13 tight glyph )
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name through
+13:12 glyph ^-
+13:15 name msg
+13:19 glyph (
+13:20 tight name id
+13:23 lit %add
+13:27 tight glyph )
+13:28 NEWLINE

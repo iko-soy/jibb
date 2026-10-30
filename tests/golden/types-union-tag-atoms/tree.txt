@@ -1,0 +1,11 @@
+(module
+  (value 1:1 zero
+    (cast 1:9 (flag 1:12) (lit 1:14 %$)))
+  (value 2:1 one
+    (cast 2:8 (flag 2:11) (lit 2:13 %1)))
+  (value 3:1 two
+    (cast 3:8 (flag 3:11) (lit 3:13 %2)))
+  (value 4:1 numeric
+    (cast 4:12 (aura 4:15 @tas) (lit 4:20 %1)))
+  (value 5:1 bit
+    (cast 5:8 (aura 5:11 @ta) (lit 5:15 %&))))

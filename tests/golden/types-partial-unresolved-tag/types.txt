@@ -1,2 +1,2 @@
 partial inference; module not checked
-++ message: literal needs contextual inference
+++ message: tag needs context in partial inference

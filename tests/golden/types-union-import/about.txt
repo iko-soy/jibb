@@ -1,0 +1,4 @@
+source: Grammar, Molds and Modules: tags take their union from context and modules export their definitions through an import face.
+tests: A closed union exported by a Jibb library supplies the context of a tag in its caller.
+expect: parses
+expect-types: a partial inference report

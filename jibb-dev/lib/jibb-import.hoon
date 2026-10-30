@@ -383,6 +383,30 @@
   ?:  ?=([%bckt ^ ^] h)  &
   |($(h -.h) $(h +.h))
 ::
+::  (doc question 22) The Grammar's disjointness rule is applied to
+::  imported $% and $? too. The import table singles out $^, so @iko
+::  has been asked whether that general rule also covers those unions.
+++  has-spec-general-union
+  |=  h=*
+  ^-  ?
+  ?@  h  |
+  ?:  ?=([%bcwt [^ [^ *]]] h)  &
+  ?:  ?=([%bccn [^ [^ *]]] h)  &
+  |($(h -.h) $(h +.h))
+::
+++  has-fits-union
+  |=  h=*
+  ^-  ?
+  ?@  h  |
+  ?:  ?=([%wtcl [%fits *] * *] h)  &
+  |($(h -.h) $(h +.h))
+::
+++  fits-union-at
+  |=  [h=hoon axis=@ud]
+  ^-  ?
+  ?.  ?=([%fits *] h)  |
+  |(=(q.h ~[[%.y axis]]) =(q.h ~[[%.y (mul 2 axis)]]))
+::
 ++  has-cell-union
   |=  h=hoon
   ^-  ?
@@ -403,6 +427,7 @@
     |($(h -.h, axis (mul 2 axis)) $(h +.h, axis (add 1 (mul 2 axis))))
   ?+  h  (has-cell-union-any h)
     [%note *]  $(h q.h)
+    [%dbug *]  $(h q.h)
     [%ktts *]  $(h q.h)
     [%wtcl *]
       ?:  =(p.h [%dtwt [%$ (mul 2 axis)]])  &
@@ -438,9 +463,17 @@
     &($(h -.h, axis (mul 2 axis)) $(h +.h, axis (add 1 (mul 2 axis))))
   ?+  h  |
     [%note *]  $(h q.h)
+    [%dbug *]  $(h q.h)
     [%ktts *]  $(h q.h)
     [%ktls *]  ?=([%sand *] p.h)
+    [%cncl *]
+      ?:  =(h [%cncl [%tsgr [%wing ~[[%.y 7]]] [%wing ~[%path]]] ~[[%$ axis]]])  &
+      (static-collection h)
+    [%wtcl *]
+      ?.  (fits-union-at p.h axis)  |
+      &($(h q.h) $(h r.h))
     [%wtgr *]
+      ?:  =(h [%wtgr [%dtts [%bust %noun] [%$ axis]] [%rock %n 0]])  &
       ?.  ?=([%dtts [%$ *] [%rock %$ *]] p.h)  |
       ?.  ?=([%rock %tas *] q.h)  |
       ?^  q.q.h  |
@@ -466,12 +499,16 @@
       =/  out  $(h q.h)
       ?~  out  ~
       [~ [h(q one.u.out) h(q two.u.out)]]
+    [%dbug *]
+      =/  out  $(h q.h)
+      ?~  out  ~
+      [~ [h(q one.u.out) h(q two.u.out)]]
     [%ktts *]
       =/  out  $(h q.h)
       ?~  out  ~
       [~ [h(q one.u.out) h(q two.u.out)]]
     [%wtcl *]
-      ?.  =(p.h [%dtwt [%$ (mul 2 axis)]])  ~
+      ?.  |(=(p.h [%dtwt [%$ (mul 2 axis)]]) (fits-union-at p.h axis))  ~
       ?.  &((fixed-cell-mold q.h axis) (fixed-cell-mold r.h axis))  ~
       [~ [q.h r.h]]
   ==
@@ -493,6 +530,7 @@
     ?:  =(a b)  [%& a]
     [%| 'a nested Hoon $^ union needs a source-level disjointness check']
     [%note *]  $(h q.h)
+    [%dbug *]  $(h q.h)
     [%ktts *]
       ?.  &(?=([%face *] a) ?=([%face *] b))
         [%| 'a nested Hoon $^ union needs a source-level disjointness check']
@@ -502,11 +540,26 @@
       ?.  ?=([%& *] child)  child
       [%& [%face name.a p.child]]
     [%wtcl *]
-      ?.  =(p.h [%dtwt [%$ (mul 2 axis)]])
-        [%| 'a nested Hoon $^ union needs a source-level disjointness check']
-      ?.  (disjoint a b)  [%| 'a Hoon $^ union has overlapping cases']
-      [%& [%fork (sort ~[a b] |=(pair=[imported imported] (dor -.pair +.pair)))]]
+      ?.  |(=(p.h [%dtwt [%$ (mul 2 axis)]]) (fits-union-at p.h axis))
+        [%| 'a Hoon union needs a source-level disjointness check']
+      ?.  (disjoint a b)
+        ?:  ?=([%fits *] p.h)  [%| 'a Hoon union has overlapping cases']
+        [%| 'a Hoon $^ union has overlapping cases']
+      [%& [%fork (sort (weld (union-cases a) (union-cases b)) |=(pair=[imported imported] (dor -.pair +.pair)))]]
   ==
+++  union-cases
+  |=  a=imported
+  ^-  (list imported)
+  ?.  ?=([%fork *] a)  ~[a]
+  (zing (turn cases.a |=(item=imported (union-cases item))))
+::
+++  all-disjoint
+  |=  cases=(list imported)
+  ^-  ?
+  ?~  cases  &
+  ?.  (levy t.cases |=(item=imported (disjoint i.cases item)))  |
+  $(cases t.cases)
+::
 ++  disjoint
   |=  [a=imported b=imported]
   ^-  ?
@@ -729,11 +782,16 @@
     [%fork *]
       =/  cases=(list imported)
         (turn ~(tap in:..zuse p.typ) |=(t=type ^$(typ t)))
+      =/  err  (first-bads cases)
+      ?^  err  [%bad u.err]
+      ?.  (all-disjoint cases)  [%bad 'a Hoon union has overlapping cases']
       [%fork (sort cases |=(pair=[imported imported] (dor -.pair +.pair)))]
     [%hint *]  $(typ q.typ)
     [%hold *]
       ?:  &(?=([%tsls [%note * *] *] q.typ) (has-spec-cell-union q.typ))
         [%bad 'a Hoon $^ union needs a source-level disjointness check']
+      ?:  &(?=([%tsls [%note * *] *] q.typ) (has-spec-general-union q.typ))
+        [%bad 'a Hoon union needs a source-level disjointness check']
       =/  named=(unit term)  (match-signature q.typ sig)
       ?^  named
         =/  name  u.named
@@ -799,17 +857,23 @@
         ?:  (disjoint first second)
           [%fork (sort ~[first second] |=(pair=[imported imported] (dor -.pair +.pair)))]
         [%bad 'a Hoon $^ union has overlapping cases']
-      ?:  (has-cell-union q.typ)
+      ?:  |((has-cell-union q.typ) (has-fits-union q.typ))
+        =/  cannot=@t
+          ?:  (has-fits-union q.typ)  'a Hoon union needs a source-level disjointness check'
+          'a Hoon $^ union needs a source-level disjointness check'
+        =/  checked-names=(list term)  ~[%map %set %qeu %list %unit %jar %jug %path]
+        ?:  (lien checked-names |=(n=term &((source-uses q.typ n) !(alias-safe context n))))
+          [%bad 'Hoon collection provenance is unavailable or shadowed']
         ?.  ?=([%tsls [%note * *] *] q.typ)
-          [%bad 'a Hoon $^ union needs a source-level disjointness check']
+          [%bad cannot]
         =/  original=hoon  q.typ
         ?>  ?=([%tsls [%note * *] *] original)
         =/  body=hoon  q.p.original
         =/  split  (split-cell-record body 6)
-        ?~  split  [%bad 'a Hoon $^ union needs a source-level disjointness check']
+        ?~  split  [%bad cannot]
         =/  try=(each [type type] tang)
           (mule |.([(~(play ut p.typ) original(q.p one.u.split)) (~(play ut p.typ) original(q.p two.u.split))]))
-        ?.  ?=([%& *] try)  [%bad 'a Hoon $^ union needs a source-level disjointness check']
+        ?.  ?=([%& *] try)  [%bad cannot]
         =/  first  $(typ -.p.try, seen [[typ nm] seen])
         =/  second  $(typ +.p.try, seen [[typ nm] seen])
         =/  err  (first-bads ~[first second])
@@ -1021,6 +1085,39 @@
     [%| *]  "error: {(trip p.result)}"
   ==
 ::
+::  Clay includes debug spans around source nodes. Reproduce that
+::  shape without Clay so the same regression runs under eval and -test.
+++  decorate-union-source
+  |=  h=hoon
+  ^-  hoon
+  =/  at=spot  [/tests/importer/synthetic/hoon [[1 1] [1 2]]]
+  ?^  -.h  [%dbug at [$(h -.h) $(h +.h)]]
+  ?+  h  [%dbug at h]
+    [%note *]  [%dbug at h(q $(h q.h))]
+    [%ktts *]  [%dbug at h(q $(h q.h))]
+    [%wtcl *]  [%dbug at h(q $(h q.h), r $(h r.h))]
+  ==
+::
+++  debug-union-fixture
+  |=  [cor=type name=term]
+  ^-  (each imported @t)
+  =/  typ=type  (~(play ut cor) (ream (cat 3 '*' name)))
+  ?.  ?=([%hold *] typ)  [%| 'synthetic union is not a hold']
+  =/  original=hoon  q.typ
+  ?.  ?=([%tsls [%note * *] *] original)  [%| 'synthetic union source is unavailable']
+  =/  source=hoon  original(q.p (decorate-union-source q.p.original))
+  (read-mold %small name typ(q source))
+::
+++  overlap-fork-fixture
+  ^-  type
+  =/  nodes=(list type)  ~[[%atom %ud ~] [%atom %t ~]]
+  [%fork (silt nodes)]
+::
+++  invalid-fork-fixture
+  ^-  type
+  =/  nodes=(list type)  ~[[%atom %ud ~] [%atom %sd ~]]
+  [%fork (silt nodes)]
+::
 ++  fixture-output
   |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t ford=@t mark=@t mark-rec=@t mark-gate=@t mark-basic=@t origin-trans=@t origin-first=@t origin-other=@t]
   ^-  wain
@@ -1119,6 +1216,26 @@
       (crip "gate: {(show-result (sample %gate-test))}")
       (crip "vase: {(show-result vase)}")
       (crip "failed-branch: {(show-result (read-mold %external %bad bad-branch-fixture))}")
+      (crip "debug-union: {(show-result (debug-union-fixture sc %action))}")
+      (crip "debug-union-overlap: {(show-result (debug-union-fixture sc %explicit-wut-overlap))}")
+      (crip "debug-nested-cell: {(show-result (debug-union-fixture sc %nested-valid-cell))}")
+      (crip "debug-nested-cell-overlap: {(show-result (debug-union-fixture sc %nested-invalid-cell))}")
+      (crip "explicit-graph: {(show-result (read-mold %raw %raw overlap-fork-fixture))}")
+      (crip "explicit-graph-unsupported: {(show-result (read-mold %raw %raw invalid-fork-fixture))}")
+      (crip "explicit-wut-safe: {(show-result (sample %explicit-wut-safe))}")
+      (crip "explicit-percent-overlap: {(show-result (sample %explicit-percent-overlap))}")
+      (crip "explicit-wut-overlap: {(show-result (sample %explicit-wut-overlap))}")
+      (crip "explicit-collapsed: {(show-result (sample %explicit-collapsed))}")
+      (crip "explicit-subsumed: {(show-result (sample %explicit-subsumed))}")
+      (crip "explicit-three: {(show-result (sample %explicit-three))}")
+      (crip "explicit-unknown: {(show-result (sample %explicit-unknown))}")
+      (crip "explicit-nested: {(show-result (sample %explicit-nested))}")
+      (crip "explicit-list: {(show-result (sample %explicit-list))}")
+      (crip "explicit-set: {(show-result (sample %explicit-set))}")
+      (crip "explicit-faces: {(show-result (sample %explicit-faces))}")
+      (crip "explicit-alias: {(show-result (sample %explicit-alias))}")
+      (crip "explicit-ford: {(show-result (read-named %outer %bad-union trans))}")
+      (crip "explicit-shadow-path: {(show-result (read-named %shadow %path-shadow xc))}")
       (crip "list-bckt-field: {(show-result (sample %list-bckt-field))}")
       (crip "list-noun-overlap: {(show-result (sample %list-noun-overlap))}")
       (crip "list-null-overlap: {(show-result (sample %list-null-overlap))}")

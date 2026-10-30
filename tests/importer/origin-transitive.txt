@@ -1,5 +1,6 @@
 |%
 +$  wrapped  recursive:intermediate
++$  bad-union  bad-union:intermediate
 +$  tagged  tagged-record:intermediate
 +$  nested  nested-record:intermediate
 --

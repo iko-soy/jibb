@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %noted)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %add)))
+  (value 4:1 simple
+    (cast 4:11 (ref 4:14 msg) (lit 4:18 %add)))
+  (value 5:1 record
+    (cast 5:11
+      (ref 5:14 msg)
+      (tuple 5:18 (lit 5:19 %noted) (str 5:26 "hi"))))
+  (value 6:1 wrong
+    (cast 6:10 (ref 6:13 msg) (lit 6:17 %missing))))

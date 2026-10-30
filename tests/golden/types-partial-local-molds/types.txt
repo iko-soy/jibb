@@ -5,7 +5,7 @@ partial inference; module not checked
 ++ duplicate: local molds shadow a name
 ++ shadow: local molds shadow a name
 ++ recursive: local molds need unsupported inference
-++ unused-union: local molds need unsupported inference
+++ unused-union: $-(A A)
 ++ same-names: $-(@t @t)
 ++ no-leak: cast mold is not supported by partial inference
 ++ nested-shadow: local definitions need unsupported inference

@@ -1,0 +1,33 @@
+partial inference; module not checked
++$ go: not checked
++$ typed: not checked
++$ msg: cases proven disjoint; mold not checked
+++ go-value: [%go url=@t]
+++ constructor: $-(@t [%typed text=@t])
+++ union-constructor: union type printing is not supported by partial inference
+++ wrong-input: cast mold and expression type do not unify
+/tests/golden/types-union-singleton/source.jibb:9:19: cast mold has type $-(@ud [%typed text=@t])
+++ wrong-input ^- $-(@ud typed) |=%typed
+                  ^
+/tests/golden/types-union-singleton/source.jibb:9:33: expression
+++ wrong-input ^- $-(@ud typed) |=%typed
+                                ^
+++ missing: cast mold and expression type do not unify
+/tests/golden/types-union-singleton/source.jibb:10:15: cast mold has type $-(@t [%typed text=@t])
+++ missing ^- $-(@t typed) |=%missing
+              ^
+/tests/golden/types-union-singleton/source.jibb:10:28: expression
+++ missing ^- $-(@t typed) |=%missing
+                           ^
+++ no-context: tag needs context in partial inference
+++ use: $-($-(@t [%typed text=@t]) [%typed text=@t])
+++ test: [%typed text=@t]
+++ bad-call: call's sample and argument types do not unify
+/tests/golden/types-union-singleton/source.jibb:14:14: called gate has type $-($-(@t [%typed text=@t]) [%typed text=@t])
+++ bad-call (use |=%nope)
+             ^
+/tests/golden/types-union-singleton/source.jibb:14:18: argument
+++ bad-call (use |=%nope)
+                 ^
+++ id: $-(A A)
+++ through: tag needs context in partial inference

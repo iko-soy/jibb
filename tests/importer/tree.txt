@@ -46,6 +46,26 @@ float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported
 vase: error: vases cannot be imported
 failed-branch: error: a Hoon $^ union needs a source-level disjointness check
+debug-union: (union [add text=@t] [remove id=@ud])
+debug-union-overlap: error: a Hoon union has overlapping cases
+debug-nested-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
+debug-nested-cell-overlap: error: a Hoon $^ union has overlapping cases
+explicit-graph: error: a Hoon union has overlapping cases
+explicit-graph-unsupported: error: signed and float auras cannot be imported
+explicit-wut-safe: (union [ok @ud] [err @t])
+explicit-percent-overlap: error: a Hoon union has overlapping cases
+explicit-wut-overlap: error: a Hoon union has overlapping cases
+explicit-collapsed: error: a Hoon union has overlapping cases
+explicit-subsumed: error: a Hoon union has overlapping cases
+explicit-three: (union [a @ud] [b @t] [c @p])
+explicit-unknown: error: a Hoon union needs a source-level disjointness check
+explicit-nested: error: a Hoon union has overlapping cases
+explicit-list: error: a Hoon union needs a source-level disjointness check
+explicit-set: error: a Hoon union needs a source-level disjointness check
+explicit-faces: (list [bcwt=@t bccn=@ud])
+explicit-alias: error: a Hoon union has overlapping cases
+explicit-ford: error: a Hoon union has overlapping cases
+explicit-shadow-path: error: Hoon collection provenance is unavailable or shadowed
 list-bckt-field: (list [bckt=@ud value=@t])
 list-noun-overlap: error: a Hoon $^ union needs a source-level disjointness check
 list-null-overlap: error: a Hoon $^ union needs a source-level disjointness check
@@ -71,7 +91,7 @@ nested-first-cell: [value=(union [a=@ud b=@t] @ud) id=@t]
 nested-alias-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
 nested-multiple-cell: error: a Hoon $^ union needs a source-level disjointness check
 nested-named-sibling: error: a Hoon $^ union needs a source-level disjointness check
-nested-list-sibling: error: a Hoon $^ union needs a source-level disjointness check
+nested-list-sibling: [id=(list @ud) value=(union [a=@ud b=@t] @ud)]
 nested-validated-sibling: error: a Hoon $^ union needs a source-level disjointness check
 nested-validated-branch: error: a Hoon $^ union needs a source-level disjointness check
 nested-named-branch: error: a Hoon $^ union needs a source-level disjointness check

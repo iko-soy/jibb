@@ -1,0 +1,26 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (value 4:1 only-one
+    (body 5:3
+      (trace 5:3
+        (cast 5:6 (ref 5:9 msg) (lit 5:13 %add))
+        (body 6:5 (lit 6:5 %unknown)))))
+  (value 7:1 choose
+    (gate 7:11
+      (face 7:14 b (flag 7:16))
+      (body 8:3
+        (cast 8:3
+          (ref 8:6 msg)
+          (body 9:5
+            (branch 9:5
+              (wing 9:8 b)
+              (arm 10:7 (lit 10:7 %.y) (lit 10:11 %add))
+              (arm 11:7 (lit 11:7 %.n) (lit 11:11 %remove))))))))
+  (value 12:1 id
+    (gate-wide 12:7 (bind 12:10 x) (wing 12:12 x)))
+  (value 13:1 through
+    (cast 13:12
+      (ref 13:15 msg)
+      (group 13:19
+        (call 13:20 (wing 13:20 id) (lit 13:23 %add))))))

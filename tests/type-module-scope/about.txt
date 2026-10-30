@@ -3,3 +3,5 @@ source. Names from the prelude occupy separate value and mold namespaces;
 import faces cannot shadow either. This synthetic prelude exercises a value
 whose name is used as an imported mold and a mold whose name is used as an
 imported value. Empty and malformed prelude sources fail closed.
+Duplicate module sources are rejected both directly and after a distinct
+sibling module has been cached; they cannot produce an interface.

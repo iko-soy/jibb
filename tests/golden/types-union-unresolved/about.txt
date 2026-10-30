@@ -1,0 +1,4 @@
+source: Grammar, Molds and Tag resolution: a `+$` with cases forms a union; tags take their union from context.
+tests: A tag with no context stays unresolved and asks for a type rather than being guessed.
+expect: parses
+expect-types: a partial inference report

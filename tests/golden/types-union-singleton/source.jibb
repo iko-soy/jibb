@@ -1,0 +1,16 @@
++$ go [%go url=@t]
++$ typed [%typed text=@t]
++$ msg
+  [%noted text=@t]
+  %add
+++ go-value ^- go [%go "hi"]
+++ constructor ^- $-(@t typed) |=%typed
+++ union-constructor ^- $-(@t msg) |=%noted
+++ wrong-input ^- $-(@ud typed) |=%typed
+++ missing ^- $-(@t typed) |=%missing
+++ no-context |=%typed
+++ use |= f=$-(@t typed) (f "hi")
+++ test (use |=%typed)
+++ bad-call (use |=%nope)
+++ id |=(x x)
+++ through (id |=%typed)

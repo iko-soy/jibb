@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: "A constrained variable, and any it mentions, doesn't generalize" and an unresolved tag needs context.
+tests: An unresolved tag remains unresolved through an alias, a cell, a gate and a discarded trace; partial inference must not guess a type.
+expect: parses
+expect-types: a partial inference report

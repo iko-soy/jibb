@@ -1,0 +1,8 @@
+/ui/lib.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %noted)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %add))))

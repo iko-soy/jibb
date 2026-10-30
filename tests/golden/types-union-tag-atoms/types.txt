@@ -1,0 +1,12 @@
+partial inference; module not checked
+++ zero: ?
+++ one: ?
+++ two: cast mold and expression type do not unify
+/tests/golden/types-union-tag-atoms/source.jibb:3:11: cast mold has type ?
+++ two ^- ? %2
+          ^
+/tests/golden/types-union-tag-atoms/source.jibb:3:13: expression
+++ two ^- ? %2
+            ^
+++ numeric: @tas
+++ bit: @ta

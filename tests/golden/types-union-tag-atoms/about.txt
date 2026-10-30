@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: a tag may fit an atom type by its noun value; a loobean has the two atoms `%.y` and `%.n`.
+tests: `%$` and `%1` fit a loobean by value, `%2` does not, and `%1` and `%&` fit the requested atom auras.
+expect: parses
+expect-types: a partial inference report

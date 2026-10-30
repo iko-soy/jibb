@@ -1,0 +1,23 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %noted
+2:11 name text
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 lit %add
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name alias
+4:10 name msg
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name via
+5:8 glyph ^-
+5:11 name alias
+5:17 lit %add
+5:21 NEWLINE

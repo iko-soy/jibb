@@ -1562,6 +1562,44 @@
 /*  tok-459  %txt   /tests/golden/types-record-to-tuple/tokens/txt
 /*  tre-459  %txt   /tests/golden/types-record-to-tuple/tree/txt
 /*  typ-459  %txt   /tests/golden/types-record-to-tuple/types/txt
+/*  src-460  %jibb  /tests/golden/types-union-alias/source/jibb
+/*  tok-460  %txt   /tests/golden/types-union-alias/tokens/txt
+/*  tre-460  %txt   /tests/golden/types-union-alias/tree/txt
+/*  typ-460  %txt   /tests/golden/types-union-alias/types/txt
+/*  src-461  %jibb  /tests/golden/types-union-context-flow/source/jibb
+/*  tok-461  %txt   /tests/golden/types-union-context-flow/tokens/txt
+/*  tre-461  %txt   /tests/golden/types-union-context-flow/tree/txt
+/*  typ-461  %txt   /tests/golden/types-union-context-flow/types/txt
+/*  src-462  %jibb  /tests/golden/types-union-import/source/jibb
+/*  tok-462  %txt   /tests/golden/types-union-import/tokens/txt
+/*  tre-462  %txt   /tests/golden/types-union-import/tree/txt
+/*  mod-462-1  %jibb  /tests/golden/types-union-import/modules/ui/lib/jibb
+/*  typ-462  %txt   /tests/golden/types-union-import/types/txt
+/*  mtre-462  %txt  /tests/golden/types-union-import/module-trees/txt
+/*  src-463  %jibb  /tests/golden/types-union-overlap/source/jibb
+/*  tok-463  %txt   /tests/golden/types-union-overlap/tokens/txt
+/*  tre-463  %txt   /tests/golden/types-union-overlap/tree/txt
+/*  typ-463  %txt   /tests/golden/types-union-overlap/types/txt
+/*  src-464  %jibb  /tests/golden/types-union-singleton/source/jibb
+/*  tok-464  %txt   /tests/golden/types-union-singleton/tokens/txt
+/*  tre-464  %txt   /tests/golden/types-union-singleton/tree/txt
+/*  typ-464  %txt   /tests/golden/types-union-singleton/types/txt
+/*  src-465  %jibb  /tests/golden/types-union-tag-atoms/source/jibb
+/*  tok-465  %txt   /tests/golden/types-union-tag-atoms/tokens/txt
+/*  tre-465  %txt   /tests/golden/types-union-tag-atoms/tree/txt
+/*  typ-465  %txt   /tests/golden/types-union-tag-atoms/types/txt
+/*  src-466  %jibb  /tests/golden/types-union-tags/source/jibb
+/*  tok-466  %txt   /tests/golden/types-union-tags/tokens/txt
+/*  tre-466  %txt   /tests/golden/types-union-tags/tree/txt
+/*  typ-466  %txt   /tests/golden/types-union-tags/types/txt
+/*  src-467  %jibb  /tests/golden/types-union-unresolved/source/jibb
+/*  tok-467  %txt   /tests/golden/types-union-unresolved/tokens/txt
+/*  tre-467  %txt   /tests/golden/types-union-unresolved/tree/txt
+/*  typ-467  %txt   /tests/golden/types-union-unresolved/types/txt
+/*  src-468  %jibb  /tests/golden/types-union-unresolved-flow/source/jibb
+/*  tok-468  %txt   /tests/golden/types-union-unresolved-flow/tokens/txt
+/*  tre-468  %txt   /tests/golden/types-union-unresolved-flow/tree/txt
+/*  typ-468  %txt   /tests/golden/types-union-unresolved-flow/types/txt
 |%
 ::  one arm per case
 ::
@@ -2483,6 +2521,24 @@
   (weld (check ~.types-record-nested src-458 `tok-458 `tre-458) (check-types ~.types-record-nested ~[%tests %golden ~.types-record-nested %source %jibb] src-458 `typ-458))
 ++  test-types-record-to-tuple
   (weld (check ~.types-record-to-tuple src-459 `tok-459 `tre-459) (check-types ~.types-record-to-tuple ~[%tests %golden ~.types-record-to-tuple %source %jibb] src-459 `typ-459))
+++  test-types-union-alias
+  (weld (check ~.types-union-alias src-460 `tok-460 `tre-460) (check-types ~.types-union-alias ~[%tests %golden ~.types-union-alias %source %jibb] src-460 `typ-460))
+++  test-types-union-context-flow
+  (weld (check ~.types-union-context-flow src-461 `tok-461 `tre-461) (check-types ~.types-union-context-flow ~[%tests %golden ~.types-union-context-flow %source %jibb] src-461 `typ-461))
+++  test-types-union-import
+  (weld (weld (check ~.types-union-import src-462 `tok-462 `tre-462) (check-module-types ~.types-union-import ~[%tests %golden ~.types-union-import %source %jibb] src-462 `typ-462 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-462-1]])) (check-module-trees ~.types-union-import `mtre-462 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-462-1]]))
+++  test-types-union-overlap
+  (weld (check ~.types-union-overlap src-463 `tok-463 `tre-463) (check-types ~.types-union-overlap ~[%tests %golden ~.types-union-overlap %source %jibb] src-463 `typ-463))
+++  test-types-union-singleton
+  (weld (check ~.types-union-singleton src-464 `tok-464 `tre-464) (check-types ~.types-union-singleton ~[%tests %golden ~.types-union-singleton %source %jibb] src-464 `typ-464))
+++  test-types-union-tag-atoms
+  (weld (check ~.types-union-tag-atoms src-465 `tok-465 `tre-465) (check-types ~.types-union-tag-atoms ~[%tests %golden ~.types-union-tag-atoms %source %jibb] src-465 `typ-465))
+++  test-types-union-tags
+  (weld (check ~.types-union-tags src-466 `tok-466 `tre-466) (check-types ~.types-union-tags ~[%tests %golden ~.types-union-tags %source %jibb] src-466 `typ-466))
+++  test-types-union-unresolved
+  (weld (check ~.types-union-unresolved src-467 `tok-467 `tre-467) (check-types ~.types-union-unresolved ~[%tests %golden ~.types-union-unresolved %source %jibb] src-467 `typ-467))
+++  test-types-union-unresolved-flow
+  (weld (check ~.types-union-unresolved-flow src-468 `tok-468 `tre-468) (check-types ~.types-union-unresolved-flow ~[%tests %golden ~.types-union-unresolved-flow %source %jibb] src-468 `typ-468))
 ::
 ::  +check: run golden:jibb on a case and compare both outputs
 ::

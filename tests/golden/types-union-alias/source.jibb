@@ -1,0 +1,5 @@
++$ msg
+  [%noted text=@t]
+  %add
++$ alias msg
+++ via ^- alias %add

@@ -26,6 +26,18 @@
 +$  signed  @sd
 +$  float  @rd
 +$  gate-test  $-(@ud @ud)
++$  explicit-wut-safe  $?([%ok @ud] [%err @t])
++$  explicit-percent-overlap  $%([%x @ud] [%x @t])
++$  explicit-wut-overlap  $?([%x @ud] [%x @t])
++$  explicit-collapsed  $?([%x @ud] [%x @ud])
++$  explicit-subsumed  $?(@u @ud)
++$  explicit-three  $?([%a @ud] [%b @t] [%c @p])
++$  explicit-unknown  $?([%x word] [%y @t])
++$  explicit-nested  [value=$?([%x @ud] [%x @t]) other=@ud]
++$  explicit-list  (list $?([%x @ud] [%x @t]))
++$  explicit-set  (set $%([%x @ud] [%x @ud]))
++$  explicit-faces  (list [bcwt=@t bccn=@ud])
++$  explicit-alias  explicit-wut-overlap
 +$  list-bckt-field  (list [bckt=@ud value=@t])
 +$  list-noun-overlap  (list $^(* @ud))
 +$  list-null-overlap  (list $^(~ @ud))

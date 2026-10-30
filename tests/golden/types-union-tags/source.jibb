@@ -1,0 +1,6 @@
++$ msg
+  [%noted text=@t]
+  %add
+++ simple ^- msg %add
+++ record ^- msg [%noted "hi"]
+++ wrong ^- msg %missing

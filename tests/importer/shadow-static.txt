@@ -1,4 +1,6 @@
 |%
 ++  list  list:..zuse
+++  path  path:..zuse
++$  path-shadow  [?(%fil %dir) pa=path nam=@t]
 +$  bad  [a=((mop @ud @t) lte) b=(list @ud)]
 --

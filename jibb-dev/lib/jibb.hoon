@@ -4606,6 +4606,9 @@
       [%atom aura=@ta]
       [%any-atom ~]
       [%flag ~]
+      [%tag id=@ud literal=lit constructor=?]
+      [%const literal=lit]
+      [%union cases=(list itype)]
       [%face name=term body=itype]
       [%fn sample=itype product=itype]
       [%cell hed=itype tal=itype]
@@ -4636,6 +4639,10 @@
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
       $(t u.found)
+    %tag
+      =/  found=(unit itype)  (itype-lookup id.t sub)
+      ?~  found  t
+      $(t u.found)
   ==
 ::
 ++  itype-occurs
@@ -4649,6 +4656,9 @@
     %atom  |
     %any-atom  |
     %flag  |
+    %tag   =(n id.t)
+    %const  |
+    %union  (lien cases.t |=(c=itype (itype-occurs n c sub)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
@@ -4688,6 +4698,8 @@
   ?:  ?=(%avar -.b)
     ?.  |(?=(%atom -.a) ?=(%any-atom -.a) ?=(%flag -.a))  ~
     `[[id.b a] sub]
+  ?:  &(?=(%const -.a) ?=(%const -.b))
+    ?:(=(val.literal.a val.literal.b) `sub ~)
   ?:  &(?=(%atom -.a) ?=(%atom -.b))  ~
   ?:  &(?=(%face -.a) ?=(%face -.b))
     ?.  =(name.a name.b)  ~
@@ -4719,6 +4731,9 @@
     %atom      |
     %any-atom  &
     %flag      |
+    %tag       |
+    %const     |
+    %union     (lien cases.t |=(c=itype (itype-has-any-atom c sub)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -4773,6 +4788,9 @@
     %atom      &
     %any-atom  &
     %flag      &
+    %tag       &
+    %const     &
+    %union     (lien cases.typ |=(c=itype (itype-has-fixed-atom c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
@@ -4843,10 +4861,82 @@
   ?-  -.t
     %var       &
     %cell      &
+    %union     &
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     *          |
   ==
+::
+++  pending-tags
+  |=  [tags=(list @ud) sub=isub]
+  ^-  ?
+  ?~  tags  |
+  ?~  (itype-lookup i.tags sub)  &
+  $(tags t.tags)
+::
+::  Tags remain constrained until a mold selects a case or permitted atom
+::  type. Never generalize an unresolved tag through aliases or cells.
+::
+++  itype-has-tag
+  |=  t=itype
+  ^-  ?
+  ?-  -.t
+    %tag   &
+    %face  $(t body.t)
+    %fn    |($(t sample.t) $(t product.t))
+    %cell  |($(t hed.t) $(t tal.t))
+    %union  (lien cases.t |=(c=itype (itype-has-tag c)))
+    *      |
+  ==
+::
+++  itype-has-union
+  |=  t=itype
+  ^-  ?
+  ?-  -.t
+    %union  &
+    %face   $(t body.t)
+    %fn     |($(t sample.t) $(t product.t))
+    %cell   |($(t hed.t) $(t tal.t))
+    *       |
+  ==
+::
+++  itype-fit-cases
+  |=  [actual=itype cases=(list itype) sub=isub next=@ud]
+  ^-  ifit
+  =/  good=(unit ifit)  ~
+  =/  pending=?  |
+  |-
+  ?~  cases
+    ?:  pending  [%unknown ~]
+    ?~  good  [%bad ~]
+    u.good
+  =/  trial=ifit  (itype-fit actual i.cases sub next)
+  ?-  -.trial
+    %unknown  $(cases t.cases, pending &)
+    %bad      $(cases t.cases)
+    %ok
+      ?^  good  [%unknown ~]
+      $(cases t.cases, good `trial)
+  ==
+::
+::  A constructor needs a case with its tag at the head and a payload
+::  compatible with the expected gate sample. Other case forms do not
+::  identify a constructor.
+::
+++  itype-fit-ctor-cases
+  |=  [tag=lit sample=itype cases=(list itype) sub=isub next=@ud]
+  ^-  ifit
+  =/  found=(unit ifit)  ~
+  |-
+  ?~  cases  ?~(found [%bad ~] u.found)
+  =/  c=itype  (itype-walk i.cases sub)
+  ?.  ?=(%cell -.c)  $(cases t.cases)
+  =/  head=itype  (itype-walk hed.c sub)
+  ?.  ?=(%const -.head)  $(cases t.cases)
+  ?.  =(val.literal.head val.tag)  $(cases t.cases)
+  ?^  found  [%unknown ~]
+  =/  trial=ifit  (itype-fit sample tal.c sub next)
+  $(cases t.cases, found `trial)
 ::
 ++  itype-fit
   |=  [actual=itype expected=itype sub=isub next=@ud]
@@ -4856,6 +4946,51 @@
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
+  ?:  &(?=(%union -.actual) ?=(%union -.expected))  [%unknown ~]
+  ?:  ?=(%union -.actual)  [%unknown ~]
+  ?:  &(?=(%union -.expected) |(?=(%avar -.actual) ?=(%nvar -.actual)))  [%unknown ~]
+  ?:  &(?=(%union -.expected) !?=(%var -.actual))
+    (itype-fit-cases actual cases.expected sub next)
+  ?:  ?=(%tag -.actual)
+    ?:  ?=(%var -.expected)
+      =/  u=(unit isub)  (itype-unify actual expected sub)
+      ?~  u  [%bad ~]
+      [%ok u.u next]
+    ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
+    ?:  ?=(%face -.expected)  $(expected body.expected)
+    ?:  constructor.actual
+      ?.  ?=(%fn -.expected)  [%bad ~]
+      =/  product=itype  (itype-walk product.expected sub)
+      =/  cases=(list itype)  ?:(?=(%union -.product) cases.product ~[product])
+      =/  trial=ifit  (itype-fit-ctor-cases literal.actual sample.expected cases sub next)
+      ?.  ?=(%ok -.trial)  trial
+      [%ok [[id.actual expected] sub.trial] next.trial]
+    ?:  ?=(%const -.expected)
+      ?:(=(val.literal.actual val.literal.expected) [%ok [[id.actual expected] sub] next] [%bad ~])
+    ?:  ?=(%atom -.expected)
+      ?:  |(=(%tas aura.expected) =(%ta aura.expected))
+        [%ok [[id.actual expected] sub] next]
+      [%bad ~]
+    ?:  ?=(%flag -.expected)
+      ?:(|(=(0 val.literal.actual) =(1 val.literal.actual)) [%ok [[id.actual expected] sub] next] [%bad ~])
+    ?:  ?=(%any-atom -.expected)  [%ok [[id.actual expected] sub] next]
+    [%bad ~]
+  ?:  ?=(%const -.actual)
+    ?:  ?=(%var -.expected)
+      =/  u=(unit isub)  (itype-unify actual expected sub)
+      ?~  u  [%bad ~]
+      [%ok u.u next]
+    ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
+    ?:  ?=(%face -.expected)  $(expected body.expected)
+    ?:  ?=(%const -.expected)
+      ?:(=(val.literal.actual val.literal.expected) [%ok sub next] [%bad ~])
+    ?:  ?=(%atom -.expected)
+      ?:  |(=(%tas aura.expected) =(%ta aura.expected))  [%ok sub next]
+      [%bad ~]
+    ?:  ?=(%flag -.expected)
+      ?:(|(=(0 val.literal.actual) =(1 val.literal.actual)) [%ok sub next] [%bad ~])
+    ?:  ?=(%any-atom -.expected)  [%ok sub next]
+    [%bad ~]
   ?:  &(uncertain (itype-face-asym actual expected sub))  [%unknown ~]
   ?:  ?=(%any-atom -.expected)
     ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%flag -.actual))  [%ok sub next]
@@ -4943,7 +5078,7 @@
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  imark-externals  (list [mark=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) in-mold=?]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list @ud) in-mold=?]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -4963,6 +5098,8 @@
   |=  [t=itype sub=isub]
   ^-  itype
   =.  t  (itype-walk t sub)
+  ?:  ?=(%union -.t)
+    [%union (turn cases.t |=(c=itype (itype-normalize c sub)))]
   ?:  ?=(%face -.t)
     [%face name.t $(t body.t)]
   ?:  ?=(%fn -.t)
@@ -4983,6 +5120,9 @@
     %fn        &
     %cell      |($(t hed.t) $(t tal.t))
     %face      $(t body.t)
+    %union     (lien cases.t |=(c=itype (itype-has-gate c)))
+    %tag       |
+    %const     |
     %var       |
     %avar      |
     %nvar      |
@@ -5012,6 +5152,9 @@
     %atom  ~
     %any-atom  ~
     %flag  ~
+    %tag   ~
+    %const  ~
+    %union  (zing (turn cases.t |=(c=itype (itype-vars c))))
     %face  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
     %cell  (weld $(t hed.t) $(t tal.t))
@@ -5045,6 +5188,9 @@
     %atom  t
     %any-atom  t
     %flag  t
+    %tag   t
+    %const  t
+    %union  [%union (turn cases.t |=(c=itype (itype-rename c ren)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -5063,6 +5209,9 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %tag       |
+    %const     |
+    %union     (lien cases.t |=(c=itype (itype-var-is-atom n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -5301,6 +5450,16 @@
       ?:  =(0 aura.sh)  `[[%any-atom ~] state]
       `[[%atom aura.sh] state]
     %flag  `[[%flag ~] state]
+    %const
+      ?.  =(%term form.lit.sh)  ~
+      `[[%const lit.sh] state]
+    %union
+      =/  pairs=(list upair)  (union-pairs cases.sh molds.state)
+      ?.  (levy pairs |=(p=upair =(%disjoint relation.p)))  ~
+      =/  cs=(unit [types=(list itype) state=istate])  (infer-shape-args cases.sh state)
+      ?~  cs  ~
+      ?:  (lien types.u.cs |=(t=itype ?=(^ (itype-vars t))))  ~
+      `[[%union types.u.cs] state.u.cs]
     %cell  (infer-simple-fields fields.sh state)
     %fn
       =/  arg=(unit [typ=itype state=istate])  $(sh sample.sh)
@@ -5528,6 +5687,8 @@
   =/  inferred=iresult  (infer-fragment val.d env state)
   ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
   =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
+  ?:  |((pending-tags tags.state.p.inferred sub.state.p.inferred) (itype-has-tag typ))
+    $(ds t.ds, remaining [d remaining])
   ?:  (unsupported-atom-vars typ caps.state.p.inferred binders.state.p.inferred sub.state.p.inferred)
     $(ds t.ds, remaining [d remaining])
   =/  free=(list @ud)
@@ -5583,6 +5744,7 @@
         %duration  [%& [%atom %dr] state]
         %knot      [%& [%atom %ta] state]
         %loobean   [%& [%flag ~] state]
+        %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [next.state tags.state])]
         *          [%| ["literal needs contextual inference" ~]]
       ==
     %str
@@ -5604,6 +5766,7 @@
       =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
       [%& typ.instance state.instance]
     %group  $(e inner.e)
+    %ctor  [%& [%tag next.state tag.e &] state(next +(next.state), tags [next.state tags.state])]
     %trace
       =/  traced=iresult  $(e val.e)
       ?:  ?=(%| -.traced)  traced
@@ -5653,6 +5816,8 @@
         [%| ["branch widening is not supported by partial inference" ~]]
       =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
       ?~  joined
+        ?:  |((itype-has-tag ltype) (itype-has-tag rtype) (itype-has-union ltype) (itype-has-union rtype))
+          [%| ["branch tag or union context is not supported by partial inference" ~]]
         =/  common=(unit itype)  (itype-concrete-join typ.p.left typ.p.right sub.state.p.right)
         ?^  common  [%& u.common state.p.right]
         ?:  |((itype-has-face typ.p.left sub.state.p.right) (itype-has-face typ.p.right sub.state.p.right))
@@ -5710,8 +5875,7 @@
     *  [%| ["expression is not supported by partial inference" ~]]
   ==
 ::
-::  Unfaced tuple expressions are the one supported cell construction.
-::  Faced cells wait for the representation to preserve record faces.
+::  Tuple and record expressions preserve their explicitly written faces.
 ::
 ++  infer-simple-items
   |=  [items=(list item) env=ienv state=istate]
@@ -5774,6 +5938,9 @@
     %atom  "@{(trip aura.t)}"
     %any-atom  "@"
     %flag  "?"
+    %tag   (trip txt.literal.t)
+    %const  (trip txt.literal.t)
+    %union  "<union>"
     %face  "[{(trip name.t)}={$(t body.t)}]"
     %fn    "$-({$(t sample.t)} {$(t product.t)})"
     %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
@@ -5799,6 +5966,9 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %tag       |
+    %const     |
+    %union     (lien cases.typ |=(c=itype (itype-has-nvar c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
@@ -5808,7 +5978,7 @@
   |=  [label=tape typ=itype sub=isub]
   ^-  tape
   =/  normalized=itype  (itype-normalize typ sub)
-  ?:  |(?=(%var -.normalized) ?=(%avar -.normalized) (itype-has-nvar normalized))  label
+  ?:  |(?=(%var -.normalized) ?=(%avar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
   ?:  (gth (lent vars) 26)  label
   =/  printable=itype  (canonical-itype normalized vars)
@@ -5850,6 +6020,9 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %tag       |
+    %const     |
+    %union     (lien cases.t |=(c=itype (has-atom-var n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -5924,10 +6097,11 @@
   ?:  ?=(%mold -.d)  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ |])
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
+  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  $(ds t.ds)
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)  $(ds t.ds)
@@ -6233,7 +6407,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ |]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ |]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
   =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved)
@@ -6306,12 +6480,16 @@
     $(ds t.ds, lines [(show-partial-mold file src d molds) lines])
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ |])
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
+  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: tag needs context in partial inference") lines])
+  ?:  (itype-has-union typ)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: union type printing is not supported by partial inference") lines])
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))

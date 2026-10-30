@@ -1,0 +1,4 @@
+source: Grammar, Molds and Tag resolution: a `+$` with cases forms a union; tags take their union from context.
+tests: A nonunion mold counts as a union of one for tagged cells and a tagged constructor. A constructor also works against a union or as a typed argument; wrong input, missing tag and missing context fail, including through a polymorphic identity.
+expect: parses
+expect-types: a partial inference report

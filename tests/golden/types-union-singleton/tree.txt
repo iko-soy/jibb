@@ -1,0 +1,53 @@
+(module
+  (mold 1:1 go
+    (cell 1:7
+      (const 1:8 %go)
+      (face 1:12 url (aura 1:16 @t))))
+  (mold 2:1 typed
+    (cell 2:10
+      (const 2:11 %typed)
+      (face 2:18 text (aura 2:23 @t))))
+  (mold 3:1 msg
+    (union 4:3
+      (cell 4:3
+        (const 4:4 %noted)
+        (face 4:11 text (aura 4:16 @t)))
+      (const 5:3 %add)))
+  (value 6:1 go-value
+    (cast 6:13
+      (ref 6:16 go)
+      (tuple 6:19 (lit 6:20 %go) (str 6:24 "hi"))))
+  (value 7:1 constructor
+    (cast 7:16
+      (fn 7:19 (aura 7:22 @t) (ref 7:25 typed))
+      (ctor 7:32 %typed)))
+  (value 8:1 union-constructor
+    (cast 8:22
+      (fn 8:25 (aura 8:28 @t) (ref 8:31 msg))
+      (ctor 8:36 %noted)))
+  (value 9:1 wrong-input
+    (cast 9:16
+      (fn 9:19 (aura 9:22 @ud) (ref 9:26 typed))
+      (ctor 9:33 %typed)))
+  (value 10:1 missing
+    (cast 10:12
+      (fn 10:15 (aura 10:18 @t) (ref 10:21 typed))
+      (ctor 10:28 %missing)))
+  (value 11:1 no-context (ctor 11:15 %typed))
+  (value 12:1 use
+    (gate 12:8
+      (face 12:11 f
+        (fn 12:13 (aura 12:16 @t) (ref 12:19 typed)))
+      (group 12:26
+        (call 12:27 (wing 12:27 f) (str 12:29 "hi")))))
+  (value 13:1 test
+    (group 13:9
+      (call 13:10 (wing 13:10 use) (ctor 13:14 %typed))))
+  (value 14:1 bad-call
+    (group 14:13
+      (call 14:14 (wing 14:14 use) (ctor 14:18 %nope))))
+  (value 15:1 id
+    (gate-wide 15:7 (bind 15:10 x) (wing 15:12 x)))
+  (value 16:1 through
+    (group 16:12
+      (call 16:13 (wing 16:13 id) (ctor 16:16 %typed)))))

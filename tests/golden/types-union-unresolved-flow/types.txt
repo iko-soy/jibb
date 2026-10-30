@@ -1,0 +1,6 @@
+partial inference; module not checked
+++ first: tag needs context in partial inference
+++ alias: name is not available to partial inference
+++ cell: tag needs context in partial inference
+++ gate: tag needs context in partial inference
+++ traced: tag needs context in partial inference

@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ alone: tag needs context in partial inference

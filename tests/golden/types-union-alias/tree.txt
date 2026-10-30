@@ -1,0 +1,10 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %noted)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %add)))
+  (mold 4:1 alias (ref 4:10 msg))
+  (value 5:1 via
+    (cast 5:8 (ref 5:11 alias) (lit 5:17 %add))))

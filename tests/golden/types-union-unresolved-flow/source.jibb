@@ -1,0 +1,7 @@
+++ first %add
+++ alias first
+++ cell [%add 1]
+++ gate |= x %add
+++ traced
+  ~& %add
+    1

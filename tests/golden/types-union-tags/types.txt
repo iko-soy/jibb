@@ -1,0 +1,11 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ simple: union type printing is not supported by partial inference
+++ record: union type printing is not supported by partial inference
+++ wrong: cast mold and expression type do not unify
+/tests/golden/types-union-tags/source.jibb:6:13: cast mold
+++ wrong ^- msg %missing
+            ^
+/tests/golden/types-union-tags/source.jibb:6:17: expression
+++ wrong ^- msg %missing
+                ^

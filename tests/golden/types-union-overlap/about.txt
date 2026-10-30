@@ -1,0 +1,4 @@
+source: Grammar, Molds and Tag resolution: a `+$` with cases forms a union; tags take their union from context.
+tests: A union whose atom cases overlap is reported and cannot be treated as a valid type.
+expect: parses
+expect-types: a partial inference report

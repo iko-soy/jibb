@@ -1,0 +1,4 @@
+source: Grammar, Molds and Tag resolution: a `+$` with cases forms a union; tags take their union from context.
+tests: A local alias retains the named union context for a bare tag.
+expect: parses
+expect-types: a partial inference report

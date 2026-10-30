@@ -7,3 +7,7 @@ partial inference; module not checked
 prelude source does not parse; module import inference unsupported
 partial inference; module not checked
 module has conflicting names
+partial inference; module not checked
+duplicate module sources: /ui/dup/jibb
+partial inference; module not checked
+duplicate module sources: /ui/dup/jibb

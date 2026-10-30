@@ -1,0 +1,5 @@
+(module
+  (mold 1:1 overlap
+    (union 2:3 (aura 2:3 @t) (aura 3:3 @ud)))
+  (value 4:1 identity
+    (gate-wide 4:13 (bind 4:16 x) (wing 4:18 x))))
