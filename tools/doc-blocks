@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+"""Check the design doc's Jibb code blocks against the golden cases.
+
+Every code block the doc labels `jibb` is a golden test: some case
+tests/golden/doc-*/ holds it as source.jibb, the block's text plus one
+trailing newline.  Export each tab of the doc as Markdown and pass the
+files, or a folder of them:
+
+    tools/doc-blocks Grammar.md Overview.md Core-language.md
+    tools/doc-blocks exports/
+
+Each labelled block is matched to the cases with the same source.  The
+check prints every block with its case, then each block that no case
+holds (a new or changed example), with a diff against the closest
+unmatched case, and each doc-* case that no block holds (an example
+changed or gone from the doc).
+
+A block's number counts every fenced block in its file, labelled or
+not, as the case names do: doc-grammar-06-cart-store is the sixth block
+of the Grammar tab.
+
+Exit status: 0 when every block has a case and every case a block, 1
+when one doesn't, 2 when the check can't run, as when no file has a
+block labelled jibb.
+"""
+
+import argparse
+import difflib
+import fnmatch
+import os
+import re
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+
+import urbit_eval as ue  # noqa: E402
+
+DEFAULT_DIR = os.path.join(ue.ROOT, 'tests', 'golden')
+LANGUAGE = 'jibb'
+OPENER = re.compile(r'^( {0,3})(`{3,}|~{3,})(.*)$')
+
+
+class Block:
+    def __init__(self, path, number, line, info, text):
+        self.path = path
+        self.number = number    # among every fenced block in the file
+        self.line = line        # of the opening fence, from 1
+        self.info = info
+        self.text = text        # the lines between the fences
+
+    @property
+    def language(self):
+        return self.info.split()[0] if self.info.split() else ''
+
+    @property
+    def source(self):
+        """The text as a case holds it, with one trailing newline."""
+        return self.text + '\n'
+
+    def where(self):
+        return '%s block %d, line %d' % (self.path, self.number, self.line)
+
+
+def fenced_blocks(path):
+    """Every fenced code block in a Markdown file, as CommonMark reads
+    them: a fence of three or more backticks or tildes, indented up to
+    three spaces, closed by a fence of the same kind at least as long,
+    or by the end of the file."""
+    with open(path, encoding='utf-8') as f:
+        lines = f.read().split('\n')
+    blocks = []
+    i = 0
+    while i < len(lines):
+        m = OPENER.match(lines[i])
+        if not m or (m.group(2)[0] == '`' and '`' in m.group(3)):
+            i += 1
+            continue
+        indent, fence, info = len(m.group(1)), m.group(2), m.group(3)
+        closer = re.compile(r'^ {0,3}%s%s* *$' % (re.escape(fence),
+                                                  re.escape(fence[0])))
+        j = i + 1
+        while j < len(lines) and not closer.match(lines[j]):
+            j += 1
+        body = [re.sub(r'^ {0,%d}' % indent, '', l) if indent else l
+                for l in lines[i + 1:j]]
+        blocks.append(Block(path, len(blocks) + 1, i + 1, info.strip(),
+                            '\n'.join(body)))
+        i = j + 1
+    return blocks
+
+
+def export_files(paths):
+    files = []
+    for path in paths:
+        if os.path.isdir(path):
+            names = sorted(n for n in os.listdir(path) if n.endswith('.md'))
+            if not names:
+                raise ue.ToolError('no .md files in %s'
+                                   % path)
+            files += [os.path.normpath(os.path.join(path, n)) for n in names]
+        elif os.path.isfile(path):
+            files.append(os.path.normpath(path))
+        else:
+            raise ue.ToolError('no such file: %s' % path)
+    return files
+
+
+def doc_cases(root, globs):
+    """The doc-* cases' sources, by name."""
+    if not os.path.isdir(root):
+        raise ue.ToolError('no such folder: %s' % ue.display_path(root))
+    cases = {}
+    for name in sorted(os.listdir(root)):
+        path = os.path.join(root, name, 'source.jibb')
+        if not name.startswith('doc-') or not os.path.isfile(path):
+            continue
+        if globs and not any(fnmatch.fnmatchcase(name, g) for g in globs):
+            continue
+        with open(path, encoding='utf-8') as f:
+            cases[name] = f.read()
+    return cases
+
+
+def closest(text, cases):
+    """The case whose source is most like text, or None."""
+    best, score = None, 0.0
+    for name, source in cases.items():
+        s = difflib.SequenceMatcher(None, source, text).ratio()
+        if s > score:
+            best, score = name, s
+    return best if score >= 0.5 else None
+
+
+def diff(root, name, source, block):
+    old = source[:-1] if source.endswith('\n') else source
+    return list(difflib.unified_diff(
+        old.split('\n'), block.text.split('\n'),
+        fromfile=ue.display_path(os.path.join(root, name, 'source.jibb')),
+        tofile=block.where(), lineterm=''))
+
+
+def count(n, noun):
+    return '%d %s%s' % (n, noun, '' if n == 1 else 's')
+
+
+def check(files, root, globs):
+    blocks = [b for f in files for b in fenced_blocks(f)
+              if b.language == LANGUAGE]
+    if not blocks:
+        raise ue.ToolError(
+            'no code block is labelled %s in %s; export the doc again'
+            % (LANGUAGE, ', '.join(files)))
+    cases = doc_cases(root, globs)
+    held = set()
+    new = []
+    width = max(len(b.where()) for b in blocks)
+    for b in blocks:
+        names = [n for n, s in cases.items() if s == b.source]
+        held.update(names)
+        if names:
+            print('ok     %-*s  %s' % (width, b.where(), ', '.join(names)))
+        else:
+            new.append(b)
+            print('NEW    %-*s  no case holds it' % (width, b.where()))
+    stale = {n: s for n, s in cases.items() if n not in held}
+    for b in new:
+        print()
+        print('NEW    %s: no doc-* case holds it' % b.where())
+        name = closest(b.source, stale)
+        if name:
+            print('       the closest case no block holds is %s:' % name)
+            for line in diff(root, name, stale[name], b):
+                print('       ' + line)
+        else:
+            first = b.text.split('\n')[0]
+            print('       it starts: %s' % first)
+    if stale:
+        print()
+    for name in stale:
+        print('STALE  %s: no block labelled %s holds its source'
+              % (name, LANGUAGE))
+    print()
+    print('%s labelled %s, %s: %s without a case, %s without a block'
+          % (count(len(blocks), 'block'), LANGUAGE,
+             count(len(cases), 'doc-* case'), count(len(new), 'block'),
+             count(len(stale), 'case')))
+    return 1 if new or stale else 0
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(
+        prog='tools/doc-blocks',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='Check that every code block the design doc labels '
+                    'jibb is the source of a golden case '
+                    'tests/golden/doc-*/, and every such case is a block.',
+        epilog='Exit status: 0 when every block has a case and every case '
+               'a block, 1 when one\ndoesn\'t, 2 when the check can\'t run.')
+    ap.add_argument('exports', nargs='+', metavar='FILE',
+                    help='a Markdown export of a tab of the doc, or a '
+                    'folder of them; pass every tab with Jibb blocks')
+    ap.add_argument('--dir', default=DEFAULT_DIR,
+                    help='the folder of cases (default: tests/golden)')
+    ap.add_argument('--case', action='append', default=[], metavar='GLOB',
+                    help='only doc-* cases whose name matches GLOB; '
+                    'repeatable')
+    opts = ap.parse_args(argv)
+    try:
+        return check(export_files(opts.exports), opts.dir, opts.case)
+    except ue.ToolError as e:
+        print('doc-blocks: %s' % e, file=sys.stderr)
+        return 2
+    except (OSError, UnicodeDecodeError) as e:
+        print('doc-blocks: %s' % e, file=sys.stderr)
+        return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

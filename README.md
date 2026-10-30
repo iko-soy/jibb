@@ -9,7 +9,7 @@ Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its 
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
 - `tests/`: golden cases in `golden/<case>/`, and on-ship tests for the `-test` thread in `lib/jibb.hoon`.
-- `tools/`: dev tooling: `golden` and `hoon`, with their self-test in `testdata/`.
+- `tools/`: dev tooling: `golden`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, and `ship`.
 
 ## Golden tests
 
@@ -39,7 +39,17 @@ tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
 tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb src)'
 ```
 
-`tools/testdata/selftest` tests both tools against a stub library.
+`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes.
+
+### The doc's examples
+
+Every code block the design doc labels `jibb` is a golden case, `doc-<tab>-<n>-<what>`, where `<n>` counts the tab's code blocks, labelled or not. To check that none is missing or stale, export the doc's tabs as Markdown and pass the files, or a folder of them:
+
+```
+tools/doc-blocks Grammar.md Overview.md Core-language.md
+```
+
+It matches each labelled block to the case whose `source.jibb` is the block's text plus a newline, and lists the blocks no case holds, each with a diff against the closest unmatched case, and the `doc-*` cases no block holds. Pass every tab with Jibb blocks, or the other tabs' cases count as stale. The exit status is 0 when every block has a case and every case a block, 1 when one doesn't, and 2 when the check can't run, for example because no block is labelled `jibb`.
 
 ## Fake ship
 

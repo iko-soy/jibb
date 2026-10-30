@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Test tools/golden and tools/hoon against tools/testdata/stub.hoon.
+"""Test tools/golden and tools/hoon against tools/testdata/stub.hoon,
+and tools/doc-blocks against Markdown it writes.
 
     tools/testdata/selftest            all checks, about half a minute
     tools/testdata/selftest -k crash   only checks whose name has "crash"
@@ -23,7 +24,8 @@ TOOLS = os.path.dirname(HERE)
 ROOT = os.path.dirname(TOOLS)
 GOLDEN = os.path.join(TOOLS, 'golden')
 HOON = os.path.join(TOOLS, 'hoon')
-STUB = os.path.join(HERE, 'stub.hoon')
+DOC_BLOCKS = os.path.join(TOOLS, 'doc-blocks')
+STUB =os.path.join(HERE, 'stub.hoon')
 CASES = os.path.join(HERE, 'golden')
 
 sys.dont_write_bytecode = True
@@ -394,7 +396,46 @@ def check_hoon(c, tmp):
     c.expect((status, out) == (0, '42\n'), 'stdin: %r' % out)
 
 
-CHECKS = [(name[len('check_'):], fn) for name, fn in globals().items()
+def check_doc_blocks(c, tmp):
+    cases = os.path.join(tmp, 'golden')
+    add_case(cases, 'doc-tab-01-one', b'++ one  1\n')
+    add_case(cases, 'doc-tab-03-three', b'++ three  3\n')
+    add_case(cases, 'inline-other', b'++ other  0\n')
+    export = os.path.join(tmp, 'Tab.md')
+
+    def doc_blocks(*blocks):
+        with open(export, 'w') as f:
+            f.write('# Tab\n\n' + '\n\nText.\n\n'.join(blocks) + '\n')
+        return run(DOC_BLOCKS, export, '--dir', cases)
+
+    one = '```jibb\n++ one  1\n```'
+    hoon = '```hoon\n++  one  1\n```'
+    status, out = doc_blocks(one, hoon, '```jibb\n++ three  3\n```')
+    c.expect(status == 0 and
+             re.search(r'^ok +\S*Tab\.md block 3, line 15 +doc-tab-03-three$',
+                       out, re.M) and
+             '2 blocks labelled jibb, 2 doc-* cases: 0 blocks without a '
+             'case, 0 cases without a block' in out,
+             'every block has a case: %d\n%s' % (status, out))
+    status, out = doc_blocks(one, hoon, '```jibb\n++ three  4\n```')
+    c.expect(status == 1 and
+             re.search(r'^NEW +\S*Tab\.md block 3, line 15: no doc-\* case '
+                       r'holds it$', out, re.M) and
+             '-++ three  3\n' in out and '+++ three  4\n' in out and
+             re.search(r'^STALE  doc-tab-03-three: ', out, re.M),
+             'a changed block: %d\n%s' % (status, out))
+    status, out = doc_blocks(one, hoon, '```\n++ three  3\n```')
+    c.expect(status == 1 and 'NEW' not in out and
+             re.search(r'^STALE  doc-tab-03-three: ', out, re.M),
+             'a block without its label: %d\n%s' % (status, out))
+    status, out = doc_blocks(one, '  ~~~~ jibb\n  ++ three  3\n  ~~~~')
+    c.expect(status == 0, 'an indented tilde fence: %d\n%s' % (status, out))
+    status, out = doc_blocks('```\n++ one  1\n```')
+    c.expect(status == 2 and 'no code block is labelled jibb' in out,
+             'no labelled block: %d\n%s' % (status, out))
+
+
+CHECKS =[(name[len('check_'):], fn) for name, fn in globals().items()
           if name.startswith('check_')]
 
 
