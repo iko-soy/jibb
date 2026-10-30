@@ -1,0 +1,21 @@
+partial inference; module not checked
+++ keep: $-(A A) where A is an atom
+++ alias: $-(A A) where A is an atom
+++ ship: @p
+++ cord: @t
+++ flag: ?
+++ bad: call's sample and argument types do not unify
+/tests/golden/types-partial-atom-alias/source.jibb:8:9: called gate has type $-(A A) where A is an atom
+++ bad (alias [~zod "hi"])
+        ^
+/tests/golden/types-partial-atom-alias/source.jibb:8:15: argument has type [@p @t]
+++ bad (alias [~zod "hi"])
+              ^
+++ number: unresolved aura-variable inference
+++ relay: cast mold and expression type do not unify
+/tests/golden/types-partial-atom-alias/source.jibb:10:13: cast mold has type ?
+++ relay ^- ? (alias 7)
+            ^
+/tests/golden/types-partial-atom-alias/source.jibb:10:15: expression
+++ relay ^- ? (alias 7)
+              ^

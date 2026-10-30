@@ -1,0 +1,11 @@
+(module
+  (sur 1:1 fixture)
+  (mark 2:1 %label)
+  (value 3:1 label-id
+    (gate 3:13
+      (face 3:16 x (ref 3:18 label))
+      (wing 3:24 x)))
+  (value 4:1 title-id
+    (gate 4:13
+      (face 4:16 x (ref 4:18 title.fixture))
+      (wing 4:32 x))))

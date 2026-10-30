@@ -1053,9 +1053,13 @@ def arm_names(names):
 def generate_tests(golden):
     cases = golden_cases(golden)
     has_imports = False
+    has_marks = False
     for _, folder in cases:
         try:
-            has_imports |= bool(golden_case.sur_imports(folder))
+            sur = golden_case.sur_imports(folder)
+            marks = golden_case.mark_imports(folder)
+            has_imports |= bool(sur or marks)
+            has_marks |= bool(marks)
         except ValueError as e:
             raise Unable(str(e))
     lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'),
@@ -1070,6 +1074,7 @@ def generate_tests(golden):
         try:
             logical = golden_case.source_path(folder)
             imports = golden_case.sur_imports(folder)
+            marks = golden_case.mark_imports(folder)
         except ValueError as e:
             raise Unable(str(e))
         args = ['~.%s' % name]
@@ -1091,7 +1096,21 @@ def generate_tests(golden):
             else:
                 expected_types = '~'
             path = logical or '~[%%tests %%golden ~.%s %%source %%jibb]' % name
-            if imports:
+            if marks:
+                fixtures = []
+                for j, (module, mold, _) in enumerate(imports, 1):
+                    face = 'imp-%d-%d' % (i, j)
+                    lines.append('/*  %s  %%txt  %s/sur/%s/txt' % (face, base, module))
+                    fixtures.append('[%%%s %%%s %s]' % (module, mold, face))
+                mark_fixtures = []
+                for j, (mark, _) in enumerate(marks, 1):
+                    face = 'mark-%d-%d' % (i, j)
+                    lines.append('/*  %s  %%txt  %s/mar/%s/txt' % (face, base, mark))
+                    mark_fixtures.append('[%%%s %s]' % (mark, face))
+                call = '(weld %s (check-mark-types ~.%s %s src-%d %s ~[%s] ~[%s]))' % (
+                    call, name, path, i, expected_types, ' '.join(fixtures),
+                    ' '.join(mark_fixtures))
+            elif imports:
                 fixtures = []
                 for j, (module, mold, _) in enumerate(imports, 1):
                     face = 'imp-%d-%d' % (i, j)
@@ -1131,6 +1150,28 @@ def generate_tests(golden):
     =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
     [module.fixture mold.fixture (read-mold-in:jibb-import module.fixture mold.fixture typ cor)]
   (compare (file case "types.txt") want (golden-types-imports:jibb at src external))
+'''
+    if has_marks:
+        types_helper += '''::
+++  check-mark-types
+  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain])]
+  ^-  tang
+  ?:  |((lien fixtures |=(f=[module=term mold=term source=wain] ?=(~ source.f))) (lien marks |=(m=[name=term source=wain] ?=(~ source.m))))
+    ~[leaf+"an imported Hoon fixture is missing or empty"]
+  =/  external=(list [module=term name=term result=*])
+    %+  turn  fixtures
+    |=  fixture=[module=term mold=term source=wain]
+    =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
+    =/  cor=type  -:(ride -:!>(..zuse) text)
+    =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
+    [module.fixture mold.fixture (read-mold-in:jibb-import module.fixture mold.fixture typ cor)]
+  =/  mark-external=(list [name=term result=*])
+    %+  turn  marks
+    |=  fixture=[name=term source=wain]
+    =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
+    =/  cor=type  -:(ride -:!>(..zuse) text)
+    [name.fixture (read-mark:jibb-import name.fixture cor)]
+  (compare (file case "types.txt") want (golden-types-with-marks:jibb at src external mark-external))
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 

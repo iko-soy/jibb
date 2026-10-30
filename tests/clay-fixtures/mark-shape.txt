@@ -1,0 +1,14 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  mark=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-action/hoon)
+=/  cor=type  -.mark
+?.  ?=([%core *] cor)  (pure:m !>('not a core'))
+=/  payload=type  p.cor
+?.  ?=([%cell *] payload)  (pure:m !>('payload is not a cell'))
+=/  tail=type  q.payload
+=/  face=?  ?=([%face %a *] p.payload)
+=/  same=?  =(payload q.q.cor)
+=/  imported=?  ?=([%cell [%face %todo [%core *]] *] tail)
+=/  zuse=?  ?:(?=([%cell *] tail) =(q.tail -:!>(..zuse)) |)
+(pure:m !>([face same imported zuse]))

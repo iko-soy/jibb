@@ -1,0 +1,20 @@
+++ join |= b=?
+  ?- b
+    %.y ^- @u 0x1f
+    %.n 0x1f
+++ reverse |= b=?
+  ?- b
+    %.y 0x1f
+    %.n ^- @u 0x1f
+++ atom |= b=?
+  ?- b
+    %.y ^- @ ~zod
+    %.n "hi"
+++ unknown |= x
+  ?- %.y
+    %.y x
+    %.n 0x1f
+++ siblings |= b=?
+  ?- b
+    %.y ^- @ud 1
+    %.n 0x1f

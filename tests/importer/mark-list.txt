@@ -1,0 +1,5 @@
+|_  a=(list @ud)
+++  grab  |%  ++  noun  (list @ud)  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

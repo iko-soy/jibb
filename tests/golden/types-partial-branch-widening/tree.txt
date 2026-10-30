@@ -1,0 +1,49 @@
+(module
+  (value 1:1 join
+    (gate 1:9
+      (face 1:12 b (flag 1:14))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 b)
+          (arm 3:5
+            (lit 3:5 %.y)
+            (cast 3:9 (aura 3:12 @u) (lit 3:15 0x1f)))
+          (arm 4:5 (lit 4:5 %.n) (lit 4:9 0x1f))))))
+  (value 5:1 reverse
+    (gate 5:12
+      (face 5:15 b (flag 5:17))
+      (body 6:3
+        (branch 6:3
+          (wing 6:6 b)
+          (arm 7:5 (lit 7:5 %.y) (lit 7:9 0x1f))
+          (arm 8:5
+            (lit 8:5 %.n)
+            (cast 8:9 (aura 8:12 @u) (lit 8:15 0x1f)))))))
+  (value 9:1 atom
+    (gate 9:9
+      (face 9:12 b (flag 9:14))
+      (body 10:3
+        (branch 10:3
+          (wing 10:6 b)
+          (arm 11:5
+            (lit 11:5 %.y)
+            (cast 11:9 (aura 11:12 @) (lit 11:14 ~zod)))
+          (arm 12:5 (lit 12:5 %.n) (str 12:9 "hi"))))))
+  (value 13:1 unknown
+    (gate 13:12
+      (bind 13:15 x)
+      (body 14:3
+        (branch 14:3
+          (lit 14:6 %.y)
+          (arm 15:5 (lit 15:5 %.y) (wing 15:9 x))
+          (arm 16:5 (lit 16:5 %.n) (lit 16:9 0x1f))))))
+  (value 17:1 siblings
+    (gate 17:13
+      (face 17:16 b (flag 17:18))
+      (body 18:3
+        (branch 18:3
+          (wing 18:6 b)
+          (arm 19:5
+            (lit 19:5 %.y)
+            (cast 19:9 (aura 19:12 @ud) (lit 19:16 1)))
+          (arm 20:5 (lit 20:5 %.n) (lit 20:9 0x1f)))))))

@@ -61,7 +61,8 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
 | `tools/importer-test` | Compares the partial Hoon importer's diagnostic trees and errors with `tests/importer/tree.txt` under `urbit eval` |
 | `tools/type-import-test` | Composes the Hoon importer with the partial checker and compares `tests/type-import/expected.txt` under eval |
-| `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, checks selected imported mold projections and the partial checker, and records a Ford-import subject shape on the fake ship |
+| `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
+| `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, checks selected mold and mark projections and the partial checker, and records Ford and mark subject shapes on the fake ship |
 | `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
 | `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
@@ -76,6 +77,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 tools/golden                       # all cases pass
 tools/importer-test                # Hoon importer fixture projections match
 tools/type-import-test             # importer/checker bridge golden report matches
+tools/type-mark-test               # mark/checker bridge golden report matches
 tools/hoon check-spans-test        # prints <<>>
 tools/testdata/selftest            # 19 checks, 0 failed
 tools/doc-blocks docs/spec         # every jibb block has its case
@@ -86,7 +88,7 @@ tools/ship check-commit            # when the mark or the desks changed
 tools/clay-fixtures                # when the my-app Hoon fixtures or importer changed
 ```
 
-`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval.
+`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval. The mark bridge has its own `tests/lib/jibb-mark-bridge.hoon` ship test and `tools/type-mark-test` eval test; both compare the same fixture report.
 
 ## Golden cases
 
@@ -97,7 +99,7 @@ A case is a folder `tests/golden/<name>/` holding:
 - the expected outputs, `tokens.txt` and `tree.txt`, each the output plus one newline.
 - optionally, `path.txt`, the logical `/ui/.../*.jibb` path to pass to the compiler; the source remains `source.jibb`.
 - optionally, an `expect-types:` line in `about.txt` opts the case into `+golden-types`; `types.txt` holds its output plus one newline and `--update` creates it. A `types.txt` also opts in when the line is absent. This interface is provisional while the checker is under construction.
-- optionally, `imports.txt` selects Hoon `/sur` molds, one `module mold` pair per line. Each module's source goes in `sur/<module>.txt` and is compiled against zuse by both runners. The selected reader results go to the partial checker; a type output is required. This currently handles only sources without Ford imports, not marks or Jibb module fixtures.
+- optionally, `imports.txt` selects Hoon `/sur` molds, one `module mold` pair per line. Each module's source goes in `sur/<module>.txt` and is compiled against zuse by both runners. `marks.txt` selects marks, one name per line, with source in `mar/<name>.txt`; both kinds may be supplied together. The reader results go to the partial checker, and a type output is required. These fixtures currently handle only sources without Ford imports, not Jibb module fixtures.
 
 Names say what a case is for:
 

@@ -1,0 +1,46 @@
+partial inference; module not checked
+++ same: $-(A A)
+++ head: $-([A B] A)
+++ tail: $-([A B] B)
+++ not: $-(? ?)
++$ list: cases proven disjoint; mold not checked
++$ unit: cases proven disjoint; mold not checked
+++ fall: sample mold is not supported by partial inference
+++ need: sample mold is not supported by partial inference
+++ weld: sample mold is not supported by partial inference
+++ turn: sample mold is not supported by partial inference
++$ dime: not checked
++$ hair: not checked
++$ pint: not checked
++$ coin: cases proven disjoint; mold not checked
++$ pair: not checked
++$ trel: not checked
++$ qual: not checked
++$ cord: not checked
++$ knot: not checked
++$ tape: not checked
++$ path: not checked
++$ tank: cases proven disjoint; mold not checked
++$ nail: not checked
++$ edge: not checked
++$ rule: not checked
++$ spot: not checked
++$ toon: cases proven disjoint; mold not checked
++$ like: not checked
+++ wonk: sample mold is not supported by partial inference
++$ lone: not checked
++$ lest: not checked
++$ pole: cases proven disjoint; mold not checked
++$ quip: not checked
++$ tree: cases proven disjoint; mold not checked
++$ each: cases proven disjoint; mold not checked
++$ bloq: not checked
+++ some: expression is not supported by partial inference
+++ lure: cast mold is not supported by partial inference
+++ snoc: sample mold is not supported by partial inference
+++ flop: sample mold is not supported by partial inference
+++ drop: sample mold is not supported by partial inference
+++ bind: sample mold is not supported by partial inference
+++ biff: sample mold is not supported by partial inference
+++ skim: sample mold is not supported by partial inference
+++ skip: sample mold is not supported by partial inference

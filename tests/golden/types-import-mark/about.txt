@@ -1,0 +1,4 @@
+source: Grammar, Imports: `/%` names a type after its mark; `/-  todo` imports molds from a Hoon `/sur` file.
+tests: Both runners compile a mark fixture and a `/sur` fixture, then provide their selected types to the partial checker together.
+expect: parses
+expect-types: a partial report with the imported mark and `/sur` atom types

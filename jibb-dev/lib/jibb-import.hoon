@@ -14,7 +14,7 @@
 ::  their imported shapes prove disjoint. Nested $^ and some valid but
 ::  unprovably disjoint cases remain unsupported. Source-level overlap in
 ::  other unions, general nested ordered maps, broader Ford subject
-::  shapes, marks and full error locations still need work. A nested ordered map
+::  shapes, recursive mark types and full error locations still need work. A nested ordered map
 ::  is recovered only when its key and value are fixed atom molds and
 ::  the other fields are fixed atoms or collections of static atoms;
 ::  other source shapes fail closed.
@@ -76,7 +76,43 @@
   ?.  (scope-safe cor %$)  [%| 'Hoon module provenance is unavailable']
   ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
     [%| 'Hoon module provenance does not match the selected mold']
-  (read-with module name typ [~ cor])
+  =/  result  (read-with module name typ [~ cor])
+  ?.  ?=([%& *] result)  result
+  ?:  &(!=(q.q.cor -:!>(..zuse)) (contains-ref p.result))
+    [%| 'a recursive Hoon mold with Ford imports needs source-aware import']
+  result
+::
+::  A mark door's payload is [sample build-subject]. Its outer sample
+::  face names the door sample, not the imported mark type. Collection
+::  lookup for the sample happened against the pre-door build subject.
+++  read-mark
+  |=  [name=term cor=type]
+  ^-  (each imported @t)
+  ?.  ?=([%core *] cor)  [%| 'Hoon mark provenance is unavailable']
+  ?.  ?=([%cell *] p.cor)  [%| 'Hoon mark sample is unavailable']
+  ?.  =(p.cor q.q.cor)  [%| 'Hoon mark provenance is unavailable']
+  ?.  (scope-safe q.p.cor %$)  [%| 'Hoon mark provenance is unavailable']
+  =/  sample=type  p.p.cor
+  =/  raw=type  ?:(?=([%face *] sample) q.sample sample)
+  =/  result  (read-with name name raw [~ q.p.cor])
+  ?.  ?=([%& *] result)  result
+  ?:  (contains-ref p.result)
+    [%| 'a recursive Hoon mark needs source-aware import']
+  result
+::
+::  Until recursive holds retain their originating module, a Ford import
+::  could otherwise label another module's recursive reference as local.
+++  contains-ref
+  |=  out=imported
+  ^-  ?
+  ?-  out
+    [%ref *]  &
+    [%cell *]  |($(out head.out) $(out tail.out))
+    [%face *]  $(out body.out)
+    [%fork *]  (lien cases.out |=(item=imported (contains-ref item)))
+    [%apply *]  (lien args.out |=(item=imported (contains-ref item)))
+    *  |
+  ==
 ::
 ++  read-with
   |=  [module=term name=term typ=type context=(unit type)]
@@ -323,14 +359,34 @@
 ::
 ::  $^ is lowered to a conditional by Hoon's parser; conservatively
 ::  reject its distinctive test until the original branches have been
-::  checked for disjointness. Other Hoon code can produce the same test,
-::  so this partial reader may reject some supported molds too.
+::  checked for disjointness. The tested axis follows the field path;
+::  tracking that path distinguishes a nested $^ from an ordinary $@.
+::  Other Hoon code can look the same, so some valid molds may be rejected.
 ++  has-cell-union
+  |=  h=hoon
+  ^-  ?
+  ?.  ?=([%tsls [%note * *] *] h)  (has-cell-union-any h)
+  (has-cell-union-at q.p.h 6)
+::
+++  has-cell-union-any
   |=  h=*
   ^-  ?
   ?@  h  |
   ?:  =(h [%dtwt [%$ 12]])  &
   |($(h -.h) $(h +.h))
+::
+++  has-cell-union-at
+  |=  [h=hoon axis=@ud]
+  ^-  ?
+  ?^  -.h
+    |($(h -.h, axis (mul 2 axis)) $(h +.h, axis (add 1 (mul 2 axis))))
+  ?+  h  (has-cell-union-any h)
+    [%note *]  $(h q.h)
+    [%ktts *]  $(h q.h)
+    [%wtcl *]
+      ?:  =(p.h [%dtwt [%$ (mul 2 axis)]])  &
+      |($(h q.h) $(h r.h))
+  ==
 ::
 ++  cell-branches
   |=  h=type
@@ -800,7 +856,7 @@
   ==
 ::
 ++  fixture-output
-  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t ford=@t]
+  |=  [small=@t epic=@t presence=@t docs=@t shadow=@t shadow-static=@t ford=@t mark=@t mark-rec=@t mark-gate=@t mark-basic=@t]
   ^-  wain
   =/  sc=type  -:(ride -:!>(..zuse) small)
   =/  ec=type  -:(ride -:!>(..zuse) epic)
@@ -816,6 +872,11 @@
   =/  tc=type  -:(ride tp only-list)
   =/  sp=type  [%cell [%face %small xc] -:!>(..zuse)]
   =/  shc=type  -:(ride sp only-list)
+  =/  mark-core=type  -:(ride fp mark)
+  =/  mark-rec-core=type  -:(ride fp mark-rec)
+  =/  mark-gate-core=type  -:(ride -:!>(..zuse) mark-gate)
+  =/  mark-basic-core=type  -:(ride -:!>(..zuse) mark-basic)
+  =/  mark-shadow-core=type  -:(ride sp mark-basic)
   =/  tshp=type  [%cell [%face %intermediate shc] -:!>(..zuse)]
   =/  tshc=type  -:(ride tshp only-list)
   =/  sample
@@ -855,8 +916,16 @@
       (crip "nested-static-mop: {(show-result (sample %nested-static-mop))}")
       (crip "collection-siblings: {(show-result (sample %collection-siblings))}")
       (crip "dynamic-sibling-mop: {(show-result (sample %dynamic-sibling-mop))}")
+      (crip "mark-record: {(show-result (read-mark %todo-item mark-core))}")
+      (crip "mark-recursive: {(show-result (read-mark %recursive mark-rec-core))}")
+      (crip "mark-gate: {(show-result (read-mark %bad mark-gate-core))}")
+      (crip "mark-list: {(show-result (read-mark %list-mark mark-basic-core))}")
+      (crip "mark-shadow: {(show-result (read-mark %list-mark mark-shadow-core))}")
+      (crip "mark-not-core: {(show-result (read-mark %bad [%atom %ud ~]))}")
       (crip "ford-list: {(show-result (read-mold-in %ford %lists (~(play ut fc) (ream '*lists')) fc))}")
       (crip "ford-imported: {(show-result (read-mold-in %ford %wrapped (~(play ut fc) (ream '*wrapped')) fc))}")
+      (crip "ford-recursive: {(show-result (read-mold-in %ford %recursive (~(play ut fc) (ream '*recursive')) fc))}")
+      (crip "ford-local-recursive: {(show-result (read-mold-in %ford %local (~(play ut fc) (ream '*local')) fc))}")
       (crip "ford-transitive: {(show-result (read-mold-in %ford %lists (~(play ut tc) (ream '*lists')) tc))}")
       (crip "ford-shadow: {(show-result (read-mold-in %ford %lists (~(play ut shc) (ream '*lists')) shc))}")
       (crip "ford-transitive-shadow: {(show-result (read-mold-in %ford %lists (~(play ut tshc) (ream '*lists')) tshc))}")
@@ -871,6 +940,9 @@
       (crip "gate: {(show-result (sample %gate-test))}")
       (crip "vase: {(show-result vase)}")
       (crip "failed-branch: {(show-result (read-mold %external %bad bad-branch-fixture))}")
+      (crip "nested-atom-cell: {(show-result (sample %nested-atom-cell))}")
+      (crip "nested-valid-cell: {(show-result (sample %nested-valid-cell))}")
+      (crip "nested-invalid-cell: {(show-result (sample %nested-invalid-cell))}")
       (crip "valid-cell: {(show-result (sample %valid-cell))}")
       (crip "invalid-cell: {(show-result (sample %invalid-cell))}")
       (crip "chapter-malformed: {?:((chapter-unsafe [%x %y %z] %jar) "unsafe" "wrong")}")

@@ -15,7 +15,11 @@ command = [str(root / 'tools' / 'hoon'), '--lib', str(root / 'jibb-dev' / 'lib' 
            '--cord', 'shadow=' + str(fixture / 'shadow.txt'),
            '--cord', 'shadow-static=' + str(fixture / 'shadow-static.txt'),
            '--cord', 'ford=' + str(fixture / 'ford.txt'),
-           '(fixture-output small epic presence docs shadow shadow-static ford)']
+           '--cord', 'mark=' + str(fixture / 'mark.txt'),
+           '--cord', 'mark-rec=' + str(fixture / 'mark-recursive.txt'),
+           '--cord', 'mark-gate=' + str(fixture / 'mark-gate.txt'),
+           '--cord', 'mark-basic=' + str(fixture / 'mark-list.txt'),
+           '(fixture-output small epic presence docs shadow shadow-static ford mark mark-rec mark-gate mark-basic)']
 result = subprocess.run(command, stdout=subprocess.PIPE)
 if result.returncode:
     sys.exit(result.returncode)
@@ -27,4 +31,4 @@ if result.stdout != expected:
         result.stdout.decode().splitlines(keepends=True),
         fromfile='expected tree.txt', tofile='actual types'))
     sys.exit(1)
-print('importer golden: 57 projections passed')
+print('importer golden: 68 projections passed')

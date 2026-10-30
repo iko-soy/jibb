@@ -1,0 +1,4 @@
+/-  fixture
+/%  %label
+++ label-id |= x=label x
+++ title-id |= x=title.fixture x

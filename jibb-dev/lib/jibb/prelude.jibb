@@ -136,3 +136,42 @@
           ~ acc
           [item more] (reverse-into more [item acc])
   (reverse-into xs ~)
+
+++ drop |= maybe=(unit A)
+  ?- maybe
+    ~ ~
+    [~ value] [value ~]
+
+++ bind |= args=[(unit A) $-(A B)]
+  ?- args
+    [maybe f]
+      ?- maybe
+        ~ ~
+        [~ value] `(f value)
+
+++ biff |= args=[(unit A) $-(A (unit B))]
+  ?- args
+    [maybe f]
+      ?- maybe
+        ~ ~
+        [~ value] (f value)
+
+++ skim |= args=[(list A) $-(A ?)]
+  ?- args
+    [xs predicate]
+      ?- xs
+        ~ ~
+        [item rest]
+          ?- (predicate item)
+            %.y [item (skim rest predicate)]
+            %.n (skim rest predicate)
+
+++ skip |= args=[(list A) $-(A ?)]
+  ?- args
+    [xs predicate]
+      ?- xs
+        ~ ~
+        [item rest]
+          ?- (predicate item)
+            %.y (skip rest predicate)
+            %.n [item (skip rest predicate)]

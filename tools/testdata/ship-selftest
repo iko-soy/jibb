@@ -167,6 +167,26 @@ def generator_checks(tmp):
           '/tests/golden/molds/sur/fixture/txt' in out and
           '[%fixture %title imp-1-1]' in out and
           '(golden-types-imports:jibb at src external)' in out, out)
+    os.makedirs(os.path.join(folder, 'mar'))
+    with open(os.path.join(folder, 'mar', 'label.txt'), 'w') as f:
+        f.write('|_  a=@t\n--\n')
+    with open(os.path.join(folder, 'marks.txt'), 'w') as f:
+        f.write('label\n')
+    out = ship.generate_tests(imported)
+    check('Hoon marks and molds are supplied together on the ship',
+          '/tests/golden/molds/mar/label/txt' in out and
+          '[%label mark-1-1]' in out and '[%fixture %title imp-1-1]' in out and
+          '(golden-types-with-marks:jibb at src external mark-external)' in out, out)
+    with open(os.path.join(folder, 'marks.txt'), 'a') as f:
+        f.write('label\n')
+    try:
+        ship.generate_tests(imported)
+    except ship.Unable as e:
+        duplicate_mark = 'duplicate imported mark' in str(e)
+    else:
+        duplicate_mark = False
+    check('duplicate imported marks are rejected', duplicate_mark)
+    os.remove(os.path.join(folder, 'marks.txt'))
     with open(os.path.join(folder, 'imports.txt'), 'a') as f:
         f.write('fixture title\n')
     try:

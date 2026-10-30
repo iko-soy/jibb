@@ -67,3 +67,31 @@ def sur_imports(folder):
     if out and not wants_types(folder):
         raise ValueError('%s: imported molds require a types output' % filename)
     return out
+
+
+def mark_imports(folder):
+    """Selected mark names and plain-text Hoon source fixtures, in file order."""
+    filename = os.path.join(folder, 'marks.txt')
+    try:
+        with open(filename, encoding='utf-8') as f:
+            lines = list(f)
+    except FileNotFoundError:
+        return []
+    except UnicodeError:
+        raise ValueError('%s: marks must be UTF-8' % filename)
+    out, seen = [], set()
+    for number, line in enumerate(lines, 1):
+        parts = line.split()
+        if len(parts) != 1 or not TERM.fullmatch(parts[0]):
+            raise ValueError('%s:%d: expected a mark name' % (filename, number))
+        mark = parts[0]
+        if mark in seen:
+            raise ValueError('%s:%d: duplicate imported mark' % (filename, number))
+        fixture = os.path.join(folder, 'mar', mark + '.txt')
+        if not os.path.isfile(fixture):
+            raise ValueError('%s:%d: no fixture at %s' % (filename, number, fixture))
+        seen.add(mark)
+        out.append((mark, fixture))
+    if out and not wants_types(folder):
+        raise ValueError('%s: imported marks require a types output' % filename)
+    return out

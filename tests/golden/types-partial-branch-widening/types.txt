@@ -1,0 +1,12 @@
+partial inference; module not checked
+++ join: $-(? @u)
+++ reverse: $-(? @u)
+++ atom: $-(? @)
+++ unknown: branch widening is not supported by partial inference
+++ siblings: branch arms have incompatible types
+/tests/golden/types-partial-branch-widening/source.jibb:19:9: first arm has type @ud
+    %.y ^- @ud 1
+        ^
+/tests/golden/types-partial-branch-widening/source.jibb:20:9: second arm has type @ux
+    %.n 0x1f
+        ^

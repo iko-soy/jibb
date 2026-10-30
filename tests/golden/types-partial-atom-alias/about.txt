@@ -1,0 +1,4 @@
+source: a type variable used where an atom is required gains an atom constraint, generalized per `++`.
+tests: an alias preserves the inferred atom constraint and instantiates it independently; decimal literals remain unable to become loobeans through it.
+expect: parses
+expect-types: a partial inference report, not a checked module

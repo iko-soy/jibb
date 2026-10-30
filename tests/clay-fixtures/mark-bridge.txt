@@ -1,0 +1,11 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  mark=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/label/hoon)
+=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
+=/  jibb=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb/hoon)
+=/  read-gate=vase  (slap reader (ream 'read-mark'))
+=/  label-result=vase  (slym read-gate [%label -.mark])
+=/  check-gate=vase  (slap jibb (ream 'golden-types-with-marks'))
+=/  src=@t  '/%  %label\0a++ identity |= x=label x\0a'
+(pure:m (slym check-gate [/ui/test/jibb src ~ ~[[%label +.label-result]]]))

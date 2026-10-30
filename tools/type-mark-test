@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""Compare the mark/checker bridge fixture under urbit eval."""
+
+from pathlib import Path
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+fixture = root / 'tests' / 'type-mark'
+tests = (root / 'tests/lib/jibb-mark-bridge.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n' +
+              ''.join('=/  ' + n + '=wain  (to-wain:format ' + n + '-text)\n'
+                      for n in ('declared', 'missing', 'sur', 'collision', 'expected')) +
+              '=/  bridge\n' + tests +
+              '\n(bridge-output:bridge declared-text missing-text sur-text collision-text)\n')
+with tempfile.TemporaryDirectory(prefix='jibb-type-mark-') as tmp:
+    program = Path(tmp) / 'bridge.hoon'
+    program.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--raw', '-f', str(program)]
+    for name in ('declared', 'missing', 'sur', 'collision', 'expected'):
+        command += ['--cord', name + '-text=' + str(fixture / (name + '.txt'))]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected = (fixture / 'expected.txt').read_bytes()
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual types'))
+    sys.exit(1)
+print('mark/checker bridge golden passed')

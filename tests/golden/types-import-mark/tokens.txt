@@ -1,0 +1,22 @@
+1:1 glyph /-
+1:5 name fixture
+2:1 NEWLINE
+2:1 glyph /%
+2:5 lit %label
+3:1 NEWLINE
+3:1 glyph ++
+3:4 name label-id
+3:13 glyph |=
+3:16 name x
+3:17 tight glyph =
+3:18 tight name label
+3:24 name x
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name title-id
+4:13 glyph |=
+4:16 name x
+4:17 tight glyph =
+4:18 tight wing title.fixture
+4:32 name x
+4:33 NEWLINE

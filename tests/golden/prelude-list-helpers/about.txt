@@ -1,4 +1,4 @@
 source: Overview, Prelude: "The exported inventory includes all names from the Hoon library sections listed below, excluding the groups explicitly left out"; Hoon 2a and 2b include `some`, `lure`, `snoc` and `flop`.
-tests: The prelude's unit constructor, singleton list, append-one gate and tail-recursive list reversal; the local reversal helper shares the enclosing type variable. The source is the complete current prelude.
+tests: The prelude through its unit constructor, singleton list, append-one gate and tail-recursive list reversal; the local reversal helper shares the enclosing type variable.
 expect: parses
 expect-types: a partial inference report, not a checked module; unit, list and recursive helper typing is not complete

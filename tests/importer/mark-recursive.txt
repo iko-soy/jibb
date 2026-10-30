@@ -1,0 +1,5 @@
+|_  a=chain:small
+++  grab  |%  ++  noun  chain:small  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

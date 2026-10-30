@@ -17,8 +17,16 @@ mixed-mop: [a=(mop @ud @t) b=(list @ud)]
 nested-static-mop: [a=(mop @ud @t) b=(map @ud (jar @t @ud))]
 collection-siblings: [a=(mop @ud @t) [b=(set @ud) [c=(qeu @t) [d=(unit @ud) e=(jug @ud @t)]]]]
 dynamic-sibling-mop: error: a nested Hoon mop needs source-aware import
+mark-record: [id=@ud text=@t]
+mark-recursive: error: a recursive Hoon mark needs source-aware import
+mark-gate: error: cores and gates cannot be imported
+mark-list: (list @ud)
+mark-shadow: error: Hoon collection provenance is unavailable or shadowed
+mark-not-core: error: Hoon mark provenance is unavailable
 ford-list: (list @ud)
 ford-imported: [id=@ud text=@t]
+ford-recursive: error: a recursive Hoon mold with Ford imports needs source-aware import
+ford-local-recursive: error: a recursive Hoon mold with Ford imports needs source-aware import
 ford-transitive: (list @ud)
 ford-shadow: error: Hoon collection provenance is unavailable or shadowed
 ford-transitive-shadow: error: Hoon collection provenance is unavailable or shadowed
@@ -33,6 +41,9 @@ float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported
 vase: error: vases cannot be imported
 failed-branch: error: a Hoon $^ union needs a source-level disjointness check
+nested-atom-cell: [left=(union [a=@ud b=@t] @ud) right=(union [c=@ud d=@t] @t)]
+nested-valid-cell: error: a Hoon $^ union needs a source-level disjointness check
+nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 valid-cell: (union [x=@ud y=@ud] @ud)
 invalid-cell: error: a Hoon $^ union has overlapping cases
 chapter-malformed: unsafe

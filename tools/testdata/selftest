@@ -184,6 +184,19 @@ def check_types_and_logical_path(c, tmp):
     status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
     c.expect(status == 2 and 'duplicate imported mold' in out,
              'duplicate imported mold: ' + out)
+    os.remove(os.path.join(folder, 'imports.txt'))
+    with open(os.path.join(folder, 'marks.txt'), 'w') as f:
+        f.write('missing\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2 and 'no fixture' in out, 'missing mark fixture: ' + out)
+    os.makedirs(os.path.join(folder, 'mar'))
+    with open(os.path.join(folder, 'mar', 'missing.txt'), 'w') as f:
+        f.write('|_  a=@t\n--\n')
+    with open(os.path.join(folder, 'marks.txt'), 'w') as f:
+        f.write('missing\nmissing\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic')
+    c.expect(status == 2 and 'duplicate imported mark' in out,
+             'duplicate imported mark: ' + out)
 
 
 def check_mismatch_diff(c, tmp):

@@ -4750,6 +4750,37 @@
     |($(a sample.a, b sample.b) $(a product.a, b product.b))
   |
 ::
+::  A branch whose two result types are already concrete can use an
+::  explicitly present parent aura (or @) as its result. This does not
+::  guess a parent for sibling auras or solve variable-dependent joins.
+::
+++  itype-has-fixed-atom
+  |=  typ=itype
+  ^-  ?
+  ?-  -.typ
+    %var       |
+    %avar      |
+    %nvar      |
+    %atom      &
+    %any-atom  &
+    %flag      &
+    %fn        |($(typ sample.typ) $(typ product.typ))
+    %cell      |($(typ hed.typ) $(typ tal.typ))
+  ==
+::
+++  itype-concrete-join
+  |=  [a=itype b=itype sub=isub]
+  ^-  (unit itype)
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  &(?=(%atom -.a) ?=(%atom -.b))
+    ?:  (aura-prefix aura.a aura.b)  `a
+    ?:  (aura-prefix aura.b aura.a)  `b
+    ~
+  ?:  &(?=(%any-atom -.a) |(?=(%atom -.b) ?=(%flag -.b)))  `a
+  ?:  &(?=(%any-atom -.b) |(?=(%atom -.a) ?=(%flag -.a)))  `b
+  ~
+::
 ++  itype-fit
   |=  [actual=itype expected=itype sub=isub next=@ud]
   ^-  ifit
@@ -4833,7 +4864,8 @@
 ::  A caller supplies the exact noun returned by +read-mold:jibb-import.
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) active=(list term) in-mold=?]
++$  imark-externals  (list [mark=term result=*])
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) active=(list term) in-mold=?]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -4944,7 +4976,11 @@
   ?~  vars  [(itype-rename typ.scheme ren) state]
   =/  replacement=itype
     ?:((itype-var-is-atom i.vars typ.scheme) [%avar next.state] [%var next.state])
-  $(vars t.vars, ren [[i.vars replacement] ren], state state(next +(next.state)))
+  ::  A generalized atom variable is a valid origin for re-generalizing
+  ::  an alias, just as a sample binder is.
+  =/  st=istate  state(next +(next.state))
+  =?  binders.st  ?=(%avar -.replacement)  [next.state binders.state]
+  $(vars t.vars, ren [[i.vars replacement] ren], state st)
 ::
 ++  icap-lookup
   |=  [n=@t caps=icaps]
@@ -5018,6 +5054,27 @@
     [name.i.imports $(imports t.imports)]
   $(imports t.imports)
 ::
+++  collect-mark-imports
+  |=  imports=(list import)
+  ^-  (list term)
+  ?~  imports  ~
+  ?:  ?=(%mark -.i.imports)
+    [mark.i.imports $(imports t.imports)]
+  $(imports t.imports)
+::
+++  find-imported-mark
+  |=  [name=term externals=imark-externals marks=(list term)]
+  ^-  (unit itype)
+  ?.  (unique-value-name name marks)  ~
+  =/  found=imark-externals
+    (skim externals |=(e=[mark=term result=*] =(name mark.e)))
+  ?~  found  ~
+  ?^  t.found  ~
+  =/  result=*  result.i.found
+  ?@  result  ~
+  ?.  ?=(%& -.result)  ~
+  (import-to-itype +.result)
+::
 ++  infer-simple-shape
   |=  [sh=shape state=istate]
   ^-  (unit [typ=itype state=istate])
@@ -5042,6 +5099,11 @@
           (find-imported-mold i.t.names.sh n externals.state surs.state)
         ?~  found  ~
         `[u.found state]
+      ?:  (lien marks.state |=(x=term =(x n)))
+        ?^  (find-simple-mold n molds.state)  ~
+        =/  imported=(unit itype)  (find-imported-mark n mark-externals.state marks.state)
+        ?~  imported  ~
+        `[u.imported state]
       ?:  (lien active.state |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state)
       ?~  found  ~
@@ -5147,11 +5209,17 @@
       ?:  ?=(%| -.left)  left
       =/  right=iresult  $(e val.y, state state.p.left)
       ?:  ?=(%| -.right)  right
+      =/  ltype=itype  (itype-normalize typ.p.left sub.state.p.right)
+      =/  rtype=itype  (itype-normalize typ.p.right sub.state.p.right)
+      ?:  &(!=(ltype rtype) |(?=(^ (itype-vars ltype)) ?=(^ (itype-vars rtype))) |((itype-has-fixed-atom ltype) (itype-has-fixed-atom rtype)))
+        [%| ["branch widening is not supported by partial inference" ~]]
       =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
       ?~  joined
+        =/  common=(unit itype)  (itype-concrete-join typ.p.left typ.p.right sub.state.p.right)
+        ?^  common  [%& u.common state.p.right]
         ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right) (itype-family-related typ.p.left typ.p.right sub.state.p.right))
           [%| ["branch widening is not supported by partial inference" ~]]
-        [%| ["branch arms have incompatible types" ~]]
+        [%| ["branch arms have incompatible types" ~[[(span-of val.x) (site-type-note "first arm" typ.p.left sub.state.p.right)] [(span-of val.y) (site-type-note "second arm" typ.p.right sub.state.p.right)]]]]
       [%& typ.p.left state.p.right(sub u.joined)]
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
@@ -5303,8 +5371,8 @@
   ?.  |(?=(%var -.resolved) ?=(%avar -.resolved))  &
   $(caps t.caps)
 ::
-::  An atom variable may be generalized when an explicit capital or a
-::  sample binder resolves to it. Decimal-restricted variables still need
+::  An atom variable may be generalized when an explicit capital, sample
+::  binder or instantiated constraint resolves to it. Decimal variables need
 ::  defaulting and must not be generalized as arbitrary atom types.
 ::
 ++  atom-var-from-cap
@@ -5336,6 +5404,11 @@
   ^-  ?
   ?~  binders  |
   =/  resolved=itype  (itype-normalize [%var i.binders] sub)
+  ::  An instantiated atom variable is not itself a substitution, so
+  ::  its origin still walks as an unbound variable of the same ID.
+  ?:  ?=(%var -.resolved)
+    ?:  =(n id.resolved)  &
+    $(binders t.binders)
   ?:  (has-atom-var n resolved)  &
   $(binders t.binders)
 ::
@@ -5346,6 +5419,7 @@
   |-
   ?~  vars  |
   ?:  (itype-var-is-atom i.vars t)
+    ?.  (has-atom-var i.vars t)  &
     ?.  |((atom-var-from-cap i.vars caps sub) (atom-var-from-binder i.vars binders sub))  &
     $(vars t.vars)
   $(vars t.vars)
@@ -5387,14 +5461,14 @@
   |
 ::
 ++  add-supported-defs
-  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term)]
+  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term)]
   ^-  ienv
   ?~  ds  env
   =/  d=def  i.ds
   ?:  ?=(%mold -.d)  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks ~ |])
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (itype-normalize typ.p.result sub.state.p.result)
@@ -5404,11 +5478,11 @@
   $(ds t.ds, env [[name.d [typ vars]] env])
 ::
 ++  resolve-supported-defs
-  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term)]
+  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term)]
   ^-  ienv
   =/  env=ienv  ~
   |-
-  =/  next=ienv  (add-supported-defs ds env molds globals externals surs)
+  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks)
   ?:  =(next env)  env
   $(env next)
 ::
@@ -5548,7 +5622,7 @@
   (weld pairs $(cases t.cases))
 ::
 ++  show-partial-mold
-  |=  [d=def molds=imolds]
+  |=  [file=path src=@t d=def molds=imolds]
   ^-  @t
   ?>  ?=(%mold -.d)
   =/  sh=shape  shape.d
@@ -5558,7 +5632,10 @@
   =/  overlapping=(list upair)  (skim pairs |=(p=upair =(%overlap relation.p)))
   ?^  overlapping
     =/  p=upair  i.overlapping
-    (crip "+$ {(trip name.d)}: overlapping cases at {(show-loc beg.first.p)} and {(show-loc beg.second.p)}; mold not checked")
+    =/  summary=@t  (crip "+$ {(trip name.d)}: overlapping cases; mold not checked")
+    =/  first=@t  (show-error src [file line.beg.first.p col.beg.first.p "first union case"])
+    =/  second=@t  (show-error src [file line.beg.second.p col.beg.second.p "overlapping case"])
+    (of-wain:format ~[summary first second])
   ?:  (lien pairs |=(p=upair =(%unknown relation.p)))
     (crip "+$ {(trip name.d)}: case disjointness unresolved; mold not checked")
   (crip "+$ {(trip name.d)}: cases proven disjoint; mold not checked")
@@ -5591,22 +5668,32 @@
 ++  golden-types-imports
   |=  [file=path src=@t externals=iexternals]
   ^-  @t
+  (golden-types-with-marks file src externals ~)
+::
+::  +golden-types-with-marks: supply declared mark types separately from /sur
+::    entries, as [mark result] with the result from +read-mark:jibb-import.
+::    Unknown, duplicated, failed and undeclared entries never resolve a mold.
+::
+++  golden-types-with-marks
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals]
+  ^-  @t
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
   =/  ds=(list def)  defs.p.parsed
   =/  molds=imolds  (collect-simple-molds ds)
   =/  globals=(list term)  (global-value-names ds)
   =/  surs=(list term)  (collect-sur-imports imports.p.parsed)
-  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs)
+  =/  marks=(list term)  (collect-mark-imports imports.p.parsed)
+  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs mark-externals marks)
   =/  lines=(list @t)  ~
   |-
   ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
   =/  d=def  i.ds
   ?:  ?=(%mold -.d)
-    $(ds t.ds, lines [(show-partial-mold d molds) lines])
+    $(ds t.ds, lines [(show-partial-mold file src d molds) lines])
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks ~ |])
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)

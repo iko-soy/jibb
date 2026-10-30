@@ -1,11 +1,29 @@
 partial inference; module not checked
 +$ tagged: cases proven disjoint; mold not checked
-+$ overlapping: overlapping cases at 5:3 and 6:3; mold not checked
++$ overlapping: overlapping cases; mold not checked
+/tests/golden/types-partial-union-cases/source.jibb:5:3: first union case
+  [%a @t]
+  ^
+/tests/golden/types-partial-union-cases/source.jibb:6:3: overlapping case
+  [%a @ud]
+  ^
 +$ unresolved: case disjointness unresolved; mold not checked
 +$ flag-tag: cases proven disjoint; mold not checked
 +$ flag-cell: cases proven disjoint; mold not checked
-+$ flag-value: overlapping cases at 17:3 and 18:3; mold not checked
-+$ wildcard: overlapping cases at 20:3 and 21:3; mold not checked
++$ flag-value: overlapping cases; mold not checked
+/tests/golden/types-partial-union-cases/source.jibb:17:3: first union case
+  ?
+  ^
+/tests/golden/types-partial-union-cases/source.jibb:18:3: overlapping case
+  %.y
+  ^
++$ wildcard: overlapping cases; mold not checked
+/tests/golden/types-partial-union-cases/source.jibb:20:3: first union case
+  *
+  ^
+/tests/golden/types-partial-union-cases/source.jibb:21:3: overlapping case
+  %a
+  ^
 +$ nested: cases proven disjoint; mold not checked
 +$ case-a: not checked
 +$ through-name: cases proven disjoint; mold not checked

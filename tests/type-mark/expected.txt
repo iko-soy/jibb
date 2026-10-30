@@ -1,0 +1,15 @@
+partial inference; module not checked
+++ identity: $-(@t @t)
+partial inference; module not checked
+++ identity: sample mold is not supported by partial inference
+partial inference; module not checked
+++ identity: sample mold is not supported by partial inference
+partial inference; module not checked
++$ label: not checked
+++ identity: sample mold is not supported by partial inference
+partial inference; module not checked
+++ identity: sample mold is not supported by partial inference
+partial inference; module not checked
+++ identity: sample mold is not supported by partial inference
+partial inference; module not checked
+++ identity: sample mold is not supported by partial inference

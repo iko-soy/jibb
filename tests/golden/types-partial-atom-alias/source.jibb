@@ -1,0 +1,10 @@
+++ keep |= x=A
+  ~& ^- @ x
+    x
+++ alias keep
+++ ship (alias ~zod)
+++ cord (alias "hello")
+++ flag (alias %.y)
+++ bad (alias [~zod "hi"])
+++ number (alias 7)
+++ relay ^- ? (alias 7)

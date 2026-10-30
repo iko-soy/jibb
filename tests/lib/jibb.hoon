@@ -1164,116 +1164,134 @@
 /*  tok-379  %txt   /tests/golden/prelude-list-unit/tokens/txt
 /*  tre-379  %txt   /tests/golden/prelude-list-unit/tree/txt
 /*  typ-379  %txt   /tests/golden/prelude-list-unit/types/txt
-/*  src-380  %jibb  /tests/golden/types-import-sur/source/jibb
-/*  tok-380  %txt   /tests/golden/types-import-sur/tokens/txt
-/*  tre-380  %txt   /tests/golden/types-import-sur/tree/txt
-/*  typ-380  %txt   /tests/golden/types-import-sur/types/txt
-/*  imp-380-1  %txt  /tests/golden/types-import-sur/sur/fixture/txt
-/*  imp-380-2  %txt  /tests/golden/types-import-sur/sur/fixture/txt
-/*  src-381  %jibb  /tests/golden/types-partial-apply/source/jibb
-/*  tok-381  %txt   /tests/golden/types-partial-apply/tokens/txt
-/*  tre-381  %txt   /tests/golden/types-partial-apply/tree/txt
-/*  typ-381  %txt   /tests/golden/types-partial-apply/types/txt
-/*  src-382  %jibb  /tests/golden/types-partial-atom-constraint/source/jibb
-/*  tok-382  %txt   /tests/golden/types-partial-atom-constraint/tokens/txt
-/*  tre-382  %txt   /tests/golden/types-partial-atom-constraint/tree/txt
-/*  typ-382  %txt   /tests/golden/types-partial-atom-constraint/types/txt
-/*  src-383  %jibb  /tests/golden/types-partial-atom-widening/source/jibb
-/*  tok-383  %txt   /tests/golden/types-partial-atom-widening/tokens/txt
-/*  tre-383  %txt   /tests/golden/types-partial-atom-widening/tree/txt
-/*  typ-383  %txt   /tests/golden/types-partial-atom-widening/types/txt
-/*  src-384  %jibb  /tests/golden/types-partial-aura/source/jibb
-/*  tok-384  %txt   /tests/golden/types-partial-aura/tokens/txt
-/*  tre-384  %txt   /tests/golden/types-partial-aura/tree/txt
-/*  typ-384  %txt   /tests/golden/types-partial-aura/types/txt
-/*  src-385  %jibb  /tests/golden/types-partial-aura-family/source/jibb
-/*  tok-385  %txt   /tests/golden/types-partial-aura-family/tokens/txt
-/*  tre-385  %txt   /tests/golden/types-partial-aura-family/tree/txt
-/*  typ-385  %txt   /tests/golden/types-partial-aura-family/types/txt
-/*  src-386  %jibb  /tests/golden/types-partial-aura-generalization/source/jibb
-/*  tok-386  %txt   /tests/golden/types-partial-aura-generalization/tokens/txt
-/*  tre-386  %txt   /tests/golden/types-partial-aura-generalization/tree/txt
-/*  typ-386  %txt   /tests/golden/types-partial-aura-generalization/types/txt
-/*  src-387  %jibb  /tests/golden/types-partial-bare-atom/source/jibb
-/*  tok-387  %txt   /tests/golden/types-partial-bare-atom/tokens/txt
-/*  tre-387  %txt   /tests/golden/types-partial-bare-atom/tree/txt
-/*  typ-387  %txt   /tests/golden/types-partial-bare-atom/types/txt
-/*  src-388  %jibb  /tests/golden/types-partial-conflicting-sites/source/jibb
-/*  tok-388  %txt   /tests/golden/types-partial-conflicting-sites/tokens/txt
-/*  tre-388  %txt   /tests/golden/types-partial-conflicting-sites/tree/txt
-/*  typ-388  %txt   /tests/golden/types-partial-conflicting-sites/types/txt
-/*  src-389  %jibb  /tests/golden/types-partial-dependency-chain/source/jibb
-/*  tok-389  %txt   /tests/golden/types-partial-dependency-chain/tokens/txt
-/*  tre-389  %txt   /tests/golden/types-partial-dependency-chain/tree/txt
-/*  typ-389  %txt   /tests/golden/types-partial-dependency-chain/types/txt
-/*  src-390  %jibb  /tests/golden/types-partial-explicit-capital/source/jibb
-/*  tok-390  %txt   /tests/golden/types-partial-explicit-capital/tokens/txt
-/*  tre-390  %txt   /tests/golden/types-partial-explicit-capital/tree/txt
-/*  typ-390  %txt   /tests/golden/types-partial-explicit-capital/types/txt
-/*  src-391  %jibb  /tests/golden/types-partial-forward/source/jibb
-/*  tok-391  %txt   /tests/golden/types-partial-forward/tokens/txt
-/*  tre-391  %txt   /tests/golden/types-partial-forward/tree/txt
-/*  typ-391  %txt   /tests/golden/types-partial-forward/types/txt
-/*  src-392  %jibb  /tests/golden/types-partial-generalization/source/jibb
-/*  tok-392  %txt   /tests/golden/types-partial-generalization/tokens/txt
-/*  tre-392  %txt   /tests/golden/types-partial-generalization/tree/txt
-/*  typ-392  %txt   /tests/golden/types-partial-generalization/types/txt
-/*  src-393  %jibb  /tests/golden/types-partial-identity/source/jibb
-/*  tok-393  %txt   /tests/golden/types-partial-identity/tokens/txt
-/*  tre-393  %txt   /tests/golden/types-partial-identity/tree/txt
-/*  typ-393  %txt   /tests/golden/types-partial-identity/types/txt
-/*  src-394  %jibb  /tests/golden/types-partial-independent-atoms/source/jibb
-/*  tok-394  %txt   /tests/golden/types-partial-independent-atoms/tokens/txt
-/*  tre-394  %txt   /tests/golden/types-partial-independent-atoms/tree/txt
-/*  typ-394  %txt   /tests/golden/types-partial-independent-atoms/types/txt
-/*  src-395  %jibb  /tests/golden/types-partial-many-atom-constraints/source/jibb
-/*  tok-395  %txt   /tests/golden/types-partial-many-atom-constraints/tokens/txt
-/*  tre-395  %txt   /tests/golden/types-partial-many-atom-constraints/tree/txt
-/*  typ-395  %txt   /tests/golden/types-partial-many-atom-constraints/types/txt
-/*  src-396  %jibb  /tests/golden/types-partial-mold-bare-aura/source/jibb
-/*  tok-396  %txt   /tests/golden/types-partial-mold-bare-aura/tokens/txt
-/*  tre-396  %txt   /tests/golden/types-partial-mold-bare-aura/tree/txt
-/*  typ-396  %txt   /tests/golden/types-partial-mold-bare-aura/types/txt
-/*  src-397  %jibb  /tests/golden/types-partial-mold-composite/source/jibb
-/*  tok-397  %txt   /tests/golden/types-partial-mold-composite/tokens/txt
-/*  tre-397  %txt   /tests/golden/types-partial-mold-composite/tree/txt
-/*  typ-397  %txt   /tests/golden/types-partial-mold-composite/types/txt
-/*  src-398  %jibb  /tests/golden/types-partial-mold-forward/source/jibb
-/*  tok-398  %txt   /tests/golden/types-partial-mold-forward/tokens/txt
-/*  tre-398  %txt   /tests/golden/types-partial-mold-forward/tree/txt
-/*  typ-398  %txt   /tests/golden/types-partial-mold-forward/types/txt
-/*  src-399  %jibb  /tests/golden/types-partial-mold-recursive/source/jibb
-/*  tok-399  %txt   /tests/golden/types-partial-mold-recursive/tokens/txt
-/*  tre-399  %txt   /tests/golden/types-partial-mold-recursive/tree/txt
-/*  typ-399  %txt   /tests/golden/types-partial-mold-recursive/types/txt
-/*  src-400  %jibb  /tests/golden/types-partial-occurs/source/jibb
-/*  tok-400  %txt   /tests/golden/types-partial-occurs/tokens/txt
-/*  tre-400  %txt   /tests/golden/types-partial-occurs/tree/txt
-/*  typ-400  %txt   /tests/golden/types-partial-occurs/types/txt
-/*  src-401  %jibb  /tests/golden/types-partial-projection/source/jibb
-/*  tok-401  %txt   /tests/golden/types-partial-projection/tokens/txt
-/*  tre-401  %txt   /tests/golden/types-partial-projection/tree/txt
-/*  typ-401  %txt   /tests/golden/types-partial-projection/types/txt
-/*  src-402  %jibb  /tests/golden/types-partial-shadow-global/source/jibb
-/*  tok-402  %txt   /tests/golden/types-partial-shadow-global/tokens/txt
-/*  tre-402  %txt   /tests/golden/types-partial-shadow-global/tree/txt
-/*  typ-402  %txt   /tests/golden/types-partial-shadow-global/types/txt
-/*  src-403  %jibb  /tests/golden/types-partial-shared-tvar/source/jibb
-/*  tok-403  %txt   /tests/golden/types-partial-shared-tvar/tokens/txt
-/*  tre-403  %txt   /tests/golden/types-partial-shared-tvar/tree/txt
-/*  typ-403  %txt   /tests/golden/types-partial-shared-tvar/types/txt
-/*  src-404  %jibb  /tests/golden/types-partial-union-cases/source/jibb
-/*  tok-404  %txt   /tests/golden/types-partial-union-cases/tokens/txt
-/*  tre-404  %txt   /tests/golden/types-partial-union-cases/tree/txt
-/*  typ-404  %txt   /tests/golden/types-partial-union-cases/types/txt
-/*  src-405  %jibb  /tests/golden/types-partial-union-edges/source/jibb
-/*  tok-405  %txt   /tests/golden/types-partial-union-edges/tokens/txt
-/*  tre-405  %txt   /tests/golden/types-partial-union-edges/tree/txt
-/*  typ-405  %txt   /tests/golden/types-partial-union-edges/types/txt
-/*  src-406  %jibb  /tests/golden/types-partial-unresolved-tag/source/jibb
-/*  tok-406  %txt   /tests/golden/types-partial-unresolved-tag/tokens/txt
-/*  tre-406  %txt   /tests/golden/types-partial-unresolved-tag/tree/txt
-/*  typ-406  %txt   /tests/golden/types-partial-unresolved-tag/types/txt
+/*  src-380  %jibb  /tests/golden/prelude-unit-list-transforms/source/jibb
+/*  tok-380  %txt   /tests/golden/prelude-unit-list-transforms/tokens/txt
+/*  tre-380  %txt   /tests/golden/prelude-unit-list-transforms/tree/txt
+/*  typ-380  %txt   /tests/golden/prelude-unit-list-transforms/types/txt
+/*  src-381  %jibb  /tests/golden/types-import-mark/source/jibb
+/*  tok-381  %txt   /tests/golden/types-import-mark/tokens/txt
+/*  tre-381  %txt   /tests/golden/types-import-mark/tree/txt
+/*  typ-381  %txt   /tests/golden/types-import-mark/types/txt
+/*  imp-381-1  %txt  /tests/golden/types-import-mark/sur/fixture/txt
+/*  mark-381-1  %txt  /tests/golden/types-import-mark/mar/label/txt
+/*  src-382  %jibb  /tests/golden/types-import-sur/source/jibb
+/*  tok-382  %txt   /tests/golden/types-import-sur/tokens/txt
+/*  tre-382  %txt   /tests/golden/types-import-sur/tree/txt
+/*  typ-382  %txt   /tests/golden/types-import-sur/types/txt
+/*  imp-382-1  %txt  /tests/golden/types-import-sur/sur/fixture/txt
+/*  imp-382-2  %txt  /tests/golden/types-import-sur/sur/fixture/txt
+/*  src-383  %jibb  /tests/golden/types-partial-apply/source/jibb
+/*  tok-383  %txt   /tests/golden/types-partial-apply/tokens/txt
+/*  tre-383  %txt   /tests/golden/types-partial-apply/tree/txt
+/*  typ-383  %txt   /tests/golden/types-partial-apply/types/txt
+/*  src-384  %jibb  /tests/golden/types-partial-atom-alias/source/jibb
+/*  tok-384  %txt   /tests/golden/types-partial-atom-alias/tokens/txt
+/*  tre-384  %txt   /tests/golden/types-partial-atom-alias/tree/txt
+/*  typ-384  %txt   /tests/golden/types-partial-atom-alias/types/txt
+/*  src-385  %jibb  /tests/golden/types-partial-atom-constraint/source/jibb
+/*  tok-385  %txt   /tests/golden/types-partial-atom-constraint/tokens/txt
+/*  tre-385  %txt   /tests/golden/types-partial-atom-constraint/tree/txt
+/*  typ-385  %txt   /tests/golden/types-partial-atom-constraint/types/txt
+/*  src-386  %jibb  /tests/golden/types-partial-atom-widening/source/jibb
+/*  tok-386  %txt   /tests/golden/types-partial-atom-widening/tokens/txt
+/*  tre-386  %txt   /tests/golden/types-partial-atom-widening/tree/txt
+/*  typ-386  %txt   /tests/golden/types-partial-atom-widening/types/txt
+/*  src-387  %jibb  /tests/golden/types-partial-aura/source/jibb
+/*  tok-387  %txt   /tests/golden/types-partial-aura/tokens/txt
+/*  tre-387  %txt   /tests/golden/types-partial-aura/tree/txt
+/*  typ-387  %txt   /tests/golden/types-partial-aura/types/txt
+/*  src-388  %jibb  /tests/golden/types-partial-aura-family/source/jibb
+/*  tok-388  %txt   /tests/golden/types-partial-aura-family/tokens/txt
+/*  tre-388  %txt   /tests/golden/types-partial-aura-family/tree/txt
+/*  typ-388  %txt   /tests/golden/types-partial-aura-family/types/txt
+/*  src-389  %jibb  /tests/golden/types-partial-aura-generalization/source/jibb
+/*  tok-389  %txt   /tests/golden/types-partial-aura-generalization/tokens/txt
+/*  tre-389  %txt   /tests/golden/types-partial-aura-generalization/tree/txt
+/*  typ-389  %txt   /tests/golden/types-partial-aura-generalization/types/txt
+/*  src-390  %jibb  /tests/golden/types-partial-bare-atom/source/jibb
+/*  tok-390  %txt   /tests/golden/types-partial-bare-atom/tokens/txt
+/*  tre-390  %txt   /tests/golden/types-partial-bare-atom/tree/txt
+/*  typ-390  %txt   /tests/golden/types-partial-bare-atom/types/txt
+/*  src-391  %jibb  /tests/golden/types-partial-branch-widening/source/jibb
+/*  tok-391  %txt   /tests/golden/types-partial-branch-widening/tokens/txt
+/*  tre-391  %txt   /tests/golden/types-partial-branch-widening/tree/txt
+/*  typ-391  %txt   /tests/golden/types-partial-branch-widening/types/txt
+/*  src-392  %jibb  /tests/golden/types-partial-conflicting-sites/source/jibb
+/*  tok-392  %txt   /tests/golden/types-partial-conflicting-sites/tokens/txt
+/*  tre-392  %txt   /tests/golden/types-partial-conflicting-sites/tree/txt
+/*  typ-392  %txt   /tests/golden/types-partial-conflicting-sites/types/txt
+/*  src-393  %jibb  /tests/golden/types-partial-dependency-chain/source/jibb
+/*  tok-393  %txt   /tests/golden/types-partial-dependency-chain/tokens/txt
+/*  tre-393  %txt   /tests/golden/types-partial-dependency-chain/tree/txt
+/*  typ-393  %txt   /tests/golden/types-partial-dependency-chain/types/txt
+/*  src-394  %jibb  /tests/golden/types-partial-explicit-capital/source/jibb
+/*  tok-394  %txt   /tests/golden/types-partial-explicit-capital/tokens/txt
+/*  tre-394  %txt   /tests/golden/types-partial-explicit-capital/tree/txt
+/*  typ-394  %txt   /tests/golden/types-partial-explicit-capital/types/txt
+/*  src-395  %jibb  /tests/golden/types-partial-forward/source/jibb
+/*  tok-395  %txt   /tests/golden/types-partial-forward/tokens/txt
+/*  tre-395  %txt   /tests/golden/types-partial-forward/tree/txt
+/*  typ-395  %txt   /tests/golden/types-partial-forward/types/txt
+/*  src-396  %jibb  /tests/golden/types-partial-generalization/source/jibb
+/*  tok-396  %txt   /tests/golden/types-partial-generalization/tokens/txt
+/*  tre-396  %txt   /tests/golden/types-partial-generalization/tree/txt
+/*  typ-396  %txt   /tests/golden/types-partial-generalization/types/txt
+/*  src-397  %jibb  /tests/golden/types-partial-identity/source/jibb
+/*  tok-397  %txt   /tests/golden/types-partial-identity/tokens/txt
+/*  tre-397  %txt   /tests/golden/types-partial-identity/tree/txt
+/*  typ-397  %txt   /tests/golden/types-partial-identity/types/txt
+/*  src-398  %jibb  /tests/golden/types-partial-independent-atoms/source/jibb
+/*  tok-398  %txt   /tests/golden/types-partial-independent-atoms/tokens/txt
+/*  tre-398  %txt   /tests/golden/types-partial-independent-atoms/tree/txt
+/*  typ-398  %txt   /tests/golden/types-partial-independent-atoms/types/txt
+/*  src-399  %jibb  /tests/golden/types-partial-many-atom-constraints/source/jibb
+/*  tok-399  %txt   /tests/golden/types-partial-many-atom-constraints/tokens/txt
+/*  tre-399  %txt   /tests/golden/types-partial-many-atom-constraints/tree/txt
+/*  typ-399  %txt   /tests/golden/types-partial-many-atom-constraints/types/txt
+/*  src-400  %jibb  /tests/golden/types-partial-mold-bare-aura/source/jibb
+/*  tok-400  %txt   /tests/golden/types-partial-mold-bare-aura/tokens/txt
+/*  tre-400  %txt   /tests/golden/types-partial-mold-bare-aura/tree/txt
+/*  typ-400  %txt   /tests/golden/types-partial-mold-bare-aura/types/txt
+/*  src-401  %jibb  /tests/golden/types-partial-mold-composite/source/jibb
+/*  tok-401  %txt   /tests/golden/types-partial-mold-composite/tokens/txt
+/*  tre-401  %txt   /tests/golden/types-partial-mold-composite/tree/txt
+/*  typ-401  %txt   /tests/golden/types-partial-mold-composite/types/txt
+/*  src-402  %jibb  /tests/golden/types-partial-mold-forward/source/jibb
+/*  tok-402  %txt   /tests/golden/types-partial-mold-forward/tokens/txt
+/*  tre-402  %txt   /tests/golden/types-partial-mold-forward/tree/txt
+/*  typ-402  %txt   /tests/golden/types-partial-mold-forward/types/txt
+/*  src-403  %jibb  /tests/golden/types-partial-mold-recursive/source/jibb
+/*  tok-403  %txt   /tests/golden/types-partial-mold-recursive/tokens/txt
+/*  tre-403  %txt   /tests/golden/types-partial-mold-recursive/tree/txt
+/*  typ-403  %txt   /tests/golden/types-partial-mold-recursive/types/txt
+/*  src-404  %jibb  /tests/golden/types-partial-occurs/source/jibb
+/*  tok-404  %txt   /tests/golden/types-partial-occurs/tokens/txt
+/*  tre-404  %txt   /tests/golden/types-partial-occurs/tree/txt
+/*  typ-404  %txt   /tests/golden/types-partial-occurs/types/txt
+/*  src-405  %jibb  /tests/golden/types-partial-projection/source/jibb
+/*  tok-405  %txt   /tests/golden/types-partial-projection/tokens/txt
+/*  tre-405  %txt   /tests/golden/types-partial-projection/tree/txt
+/*  typ-405  %txt   /tests/golden/types-partial-projection/types/txt
+/*  src-406  %jibb  /tests/golden/types-partial-shadow-global/source/jibb
+/*  tok-406  %txt   /tests/golden/types-partial-shadow-global/tokens/txt
+/*  tre-406  %txt   /tests/golden/types-partial-shadow-global/tree/txt
+/*  typ-406  %txt   /tests/golden/types-partial-shadow-global/types/txt
+/*  src-407  %jibb  /tests/golden/types-partial-shared-tvar/source/jibb
+/*  tok-407  %txt   /tests/golden/types-partial-shared-tvar/tokens/txt
+/*  tre-407  %txt   /tests/golden/types-partial-shared-tvar/tree/txt
+/*  typ-407  %txt   /tests/golden/types-partial-shared-tvar/types/txt
+/*  src-408  %jibb  /tests/golden/types-partial-union-cases/source/jibb
+/*  tok-408  %txt   /tests/golden/types-partial-union-cases/tokens/txt
+/*  tre-408  %txt   /tests/golden/types-partial-union-cases/tree/txt
+/*  typ-408  %txt   /tests/golden/types-partial-union-cases/types/txt
+/*  src-409  %jibb  /tests/golden/types-partial-union-edges/source/jibb
+/*  tok-409  %txt   /tests/golden/types-partial-union-edges/tokens/txt
+/*  tre-409  %txt   /tests/golden/types-partial-union-edges/tree/txt
+/*  typ-409  %txt   /tests/golden/types-partial-union-edges/types/txt
+/*  src-410  %jibb  /tests/golden/types-partial-unresolved-tag/source/jibb
+/*  tok-410  %txt   /tests/golden/types-partial-unresolved-tag/tokens/txt
+/*  tre-410  %txt   /tests/golden/types-partial-unresolved-tag/tree/txt
+/*  typ-410  %txt   /tests/golden/types-partial-unresolved-tag/types/txt
 |%
 ::  one arm per case
 ::
@@ -2035,60 +2053,68 @@
   (weld (check ~.prelude-list-helpers src-378 `tok-378 `tre-378) (check-types ~.prelude-list-helpers ~[%tests %golden ~.prelude-list-helpers %source %jibb] src-378 `typ-378))
 ++  test-prelude-list-unit
   (weld (check ~.prelude-list-unit src-379 `tok-379 `tre-379) (check-types ~.prelude-list-unit ~[%tests %golden ~.prelude-list-unit %source %jibb] src-379 `typ-379))
+++  test-prelude-unit-list-transforms
+  (weld (check ~.prelude-unit-list-transforms src-380 `tok-380 `tre-380) (check-types ~.prelude-unit-list-transforms ~[%tests %golden ~.prelude-unit-list-transforms %source %jibb] src-380 `typ-380))
+++  test-types-import-mark
+  (weld (check ~.types-import-mark src-381 `tok-381 `tre-381) (check-mark-types ~.types-import-mark ~[%tests %golden ~.types-import-mark %source %jibb] src-381 `typ-381 ~[[%fixture %title imp-381-1]] ~[[%label mark-381-1]]))
 ++  test-types-import-sur
-  (weld (check ~.types-import-sur src-380 `tok-380 `tre-380) (check-import-types ~.types-import-sur ~[%tests %golden ~.types-import-sur %source %jibb] src-380 `typ-380 ~[[%fixture %title imp-380-1] [%fixture %pair imp-380-2]]))
+  (weld (check ~.types-import-sur src-382 `tok-382 `tre-382) (check-import-types ~.types-import-sur ~[%tests %golden ~.types-import-sur %source %jibb] src-382 `typ-382 ~[[%fixture %title imp-382-1] [%fixture %pair imp-382-2]]))
 ++  test-types-partial-apply
-  (weld (check ~.types-partial-apply src-381 `tok-381 `tre-381) (check-types ~.types-partial-apply ~[%tests %golden ~.types-partial-apply %source %jibb] src-381 `typ-381))
+  (weld (check ~.types-partial-apply src-383 `tok-383 `tre-383) (check-types ~.types-partial-apply ~[%tests %golden ~.types-partial-apply %source %jibb] src-383 `typ-383))
+++  test-types-partial-atom-alias
+  (weld (check ~.types-partial-atom-alias src-384 `tok-384 `tre-384) (check-types ~.types-partial-atom-alias ~[%tests %golden ~.types-partial-atom-alias %source %jibb] src-384 `typ-384))
 ++  test-types-partial-atom-constraint
-  (weld (check ~.types-partial-atom-constraint src-382 `tok-382 `tre-382) (check-types ~.types-partial-atom-constraint ~[%tests %golden ~.types-partial-atom-constraint %source %jibb] src-382 `typ-382))
+  (weld (check ~.types-partial-atom-constraint src-385 `tok-385 `tre-385) (check-types ~.types-partial-atom-constraint ~[%tests %golden ~.types-partial-atom-constraint %source %jibb] src-385 `typ-385))
 ++  test-types-partial-atom-widening
-  (weld (check ~.types-partial-atom-widening src-383 `tok-383 `tre-383) (check-types ~.types-partial-atom-widening ~[%tests %golden ~.types-partial-atom-widening %source %jibb] src-383 `typ-383))
+  (weld (check ~.types-partial-atom-widening src-386 `tok-386 `tre-386) (check-types ~.types-partial-atom-widening ~[%tests %golden ~.types-partial-atom-widening %source %jibb] src-386 `typ-386))
 ++  test-types-partial-aura
-  (weld (check ~.types-partial-aura src-384 `tok-384 `tre-384) (check-types ~.types-partial-aura ~[%tests %golden ~.types-partial-aura %source %jibb] src-384 `typ-384))
+  (weld (check ~.types-partial-aura src-387 `tok-387 `tre-387) (check-types ~.types-partial-aura ~[%tests %golden ~.types-partial-aura %source %jibb] src-387 `typ-387))
 ++  test-types-partial-aura-family
-  (weld (check ~.types-partial-aura-family src-385 `tok-385 `tre-385) (check-types ~.types-partial-aura-family ~[%tests %golden ~.types-partial-aura-family %source %jibb] src-385 `typ-385))
+  (weld (check ~.types-partial-aura-family src-388 `tok-388 `tre-388) (check-types ~.types-partial-aura-family ~[%tests %golden ~.types-partial-aura-family %source %jibb] src-388 `typ-388))
 ++  test-types-partial-aura-generalization
-  (weld (check ~.types-partial-aura-generalization src-386 `tok-386 `tre-386) (check-types ~.types-partial-aura-generalization ~[%tests %golden ~.types-partial-aura-generalization %source %jibb] src-386 `typ-386))
+  (weld (check ~.types-partial-aura-generalization src-389 `tok-389 `tre-389) (check-types ~.types-partial-aura-generalization ~[%tests %golden ~.types-partial-aura-generalization %source %jibb] src-389 `typ-389))
 ++  test-types-partial-bare-atom
-  (weld (check ~.types-partial-bare-atom src-387 `tok-387 `tre-387) (check-types ~.types-partial-bare-atom ~[%tests %golden ~.types-partial-bare-atom %source %jibb] src-387 `typ-387))
+  (weld (check ~.types-partial-bare-atom src-390 `tok-390 `tre-390) (check-types ~.types-partial-bare-atom ~[%tests %golden ~.types-partial-bare-atom %source %jibb] src-390 `typ-390))
+++  test-types-partial-branch-widening
+  (weld (check ~.types-partial-branch-widening src-391 `tok-391 `tre-391) (check-types ~.types-partial-branch-widening ~[%tests %golden ~.types-partial-branch-widening %source %jibb] src-391 `typ-391))
 ++  test-types-partial-conflicting-sites
-  (weld (check ~.types-partial-conflicting-sites src-388 `tok-388 `tre-388) (check-types ~.types-partial-conflicting-sites ~[%tests %golden ~.types-partial-conflicting-sites %source %jibb] src-388 `typ-388))
+  (weld (check ~.types-partial-conflicting-sites src-392 `tok-392 `tre-392) (check-types ~.types-partial-conflicting-sites ~[%tests %golden ~.types-partial-conflicting-sites %source %jibb] src-392 `typ-392))
 ++  test-types-partial-dependency-chain
-  (weld (check ~.types-partial-dependency-chain src-389 `tok-389 `tre-389) (check-types ~.types-partial-dependency-chain ~[%tests %golden ~.types-partial-dependency-chain %source %jibb] src-389 `typ-389))
+  (weld (check ~.types-partial-dependency-chain src-393 `tok-393 `tre-393) (check-types ~.types-partial-dependency-chain ~[%tests %golden ~.types-partial-dependency-chain %source %jibb] src-393 `typ-393))
 ++  test-types-partial-explicit-capital
-  (weld (check ~.types-partial-explicit-capital src-390 `tok-390 `tre-390) (check-types ~.types-partial-explicit-capital ~[%tests %golden ~.types-partial-explicit-capital %source %jibb] src-390 `typ-390))
+  (weld (check ~.types-partial-explicit-capital src-394 `tok-394 `tre-394) (check-types ~.types-partial-explicit-capital ~[%tests %golden ~.types-partial-explicit-capital %source %jibb] src-394 `typ-394))
 ++  test-types-partial-forward
-  (weld (check ~.types-partial-forward src-391 `tok-391 `tre-391) (check-types ~.types-partial-forward ~[%tests %golden ~.types-partial-forward %source %jibb] src-391 `typ-391))
+  (weld (check ~.types-partial-forward src-395 `tok-395 `tre-395) (check-types ~.types-partial-forward ~[%tests %golden ~.types-partial-forward %source %jibb] src-395 `typ-395))
 ++  test-types-partial-generalization
-  (weld (check ~.types-partial-generalization src-392 `tok-392 `tre-392) (check-types ~.types-partial-generalization ~[%tests %golden ~.types-partial-generalization %source %jibb] src-392 `typ-392))
+  (weld (check ~.types-partial-generalization src-396 `tok-396 `tre-396) (check-types ~.types-partial-generalization ~[%tests %golden ~.types-partial-generalization %source %jibb] src-396 `typ-396))
 ++  test-types-partial-identity
-  (weld (check ~.types-partial-identity src-393 `tok-393 `tre-393) (check-types ~.types-partial-identity ~[%tests %golden ~.types-partial-identity %source %jibb] src-393 `typ-393))
+  (weld (check ~.types-partial-identity src-397 `tok-397 `tre-397) (check-types ~.types-partial-identity ~[%tests %golden ~.types-partial-identity %source %jibb] src-397 `typ-397))
 ++  test-types-partial-independent-atoms
-  (weld (check ~.types-partial-independent-atoms src-394 `tok-394 `tre-394) (check-types ~.types-partial-independent-atoms ~[%tests %golden ~.types-partial-independent-atoms %source %jibb] src-394 `typ-394))
+  (weld (check ~.types-partial-independent-atoms src-398 `tok-398 `tre-398) (check-types ~.types-partial-independent-atoms ~[%tests %golden ~.types-partial-independent-atoms %source %jibb] src-398 `typ-398))
 ++  test-types-partial-many-atom-constraints
-  (weld (check ~.types-partial-many-atom-constraints src-395 `tok-395 `tre-395) (check-types ~.types-partial-many-atom-constraints ~[%tests %golden ~.types-partial-many-atom-constraints %source %jibb] src-395 `typ-395))
+  (weld (check ~.types-partial-many-atom-constraints src-399 `tok-399 `tre-399) (check-types ~.types-partial-many-atom-constraints ~[%tests %golden ~.types-partial-many-atom-constraints %source %jibb] src-399 `typ-399))
 ++  test-types-partial-mold-bare-aura
-  (weld (check ~.types-partial-mold-bare-aura src-396 `tok-396 `tre-396) (check-types ~.types-partial-mold-bare-aura ~[%tests %golden ~.types-partial-mold-bare-aura %source %jibb] src-396 `typ-396))
+  (weld (check ~.types-partial-mold-bare-aura src-400 `tok-400 `tre-400) (check-types ~.types-partial-mold-bare-aura ~[%tests %golden ~.types-partial-mold-bare-aura %source %jibb] src-400 `typ-400))
 ++  test-types-partial-mold-composite
-  (weld (check ~.types-partial-mold-composite src-397 `tok-397 `tre-397) (check-types ~.types-partial-mold-composite ~[%tests %golden ~.types-partial-mold-composite %source %jibb] src-397 `typ-397))
+  (weld (check ~.types-partial-mold-composite src-401 `tok-401 `tre-401) (check-types ~.types-partial-mold-composite ~[%tests %golden ~.types-partial-mold-composite %source %jibb] src-401 `typ-401))
 ++  test-types-partial-mold-forward
-  (weld (check ~.types-partial-mold-forward src-398 `tok-398 `tre-398) (check-types ~.types-partial-mold-forward ~[%tests %golden ~.types-partial-mold-forward %source %jibb] src-398 `typ-398))
+  (weld (check ~.types-partial-mold-forward src-402 `tok-402 `tre-402) (check-types ~.types-partial-mold-forward ~[%tests %golden ~.types-partial-mold-forward %source %jibb] src-402 `typ-402))
 ++  test-types-partial-mold-recursive
-  (weld (check ~.types-partial-mold-recursive src-399 `tok-399 `tre-399) (check-types ~.types-partial-mold-recursive ~[%tests %golden ~.types-partial-mold-recursive %source %jibb] src-399 `typ-399))
+  (weld (check ~.types-partial-mold-recursive src-403 `tok-403 `tre-403) (check-types ~.types-partial-mold-recursive ~[%tests %golden ~.types-partial-mold-recursive %source %jibb] src-403 `typ-403))
 ++  test-types-partial-occurs
-  (weld (check ~.types-partial-occurs src-400 `tok-400 `tre-400) (check-types ~.types-partial-occurs ~[%tests %golden ~.types-partial-occurs %source %jibb] src-400 `typ-400))
+  (weld (check ~.types-partial-occurs src-404 `tok-404 `tre-404) (check-types ~.types-partial-occurs ~[%tests %golden ~.types-partial-occurs %source %jibb] src-404 `typ-404))
 ++  test-types-partial-projection
-  (weld (check ~.types-partial-projection src-401 `tok-401 `tre-401) (check-types ~.types-partial-projection ~[%tests %golden ~.types-partial-projection %source %jibb] src-401 `typ-401))
+  (weld (check ~.types-partial-projection src-405 `tok-405 `tre-405) (check-types ~.types-partial-projection ~[%tests %golden ~.types-partial-projection %source %jibb] src-405 `typ-405))
 ++  test-types-partial-shadow-global
-  (weld (check ~.types-partial-shadow-global src-402 `tok-402 `tre-402) (check-types ~.types-partial-shadow-global ~[%tests %golden ~.types-partial-shadow-global %source %jibb] src-402 `typ-402))
+  (weld (check ~.types-partial-shadow-global src-406 `tok-406 `tre-406) (check-types ~.types-partial-shadow-global ~[%tests %golden ~.types-partial-shadow-global %source %jibb] src-406 `typ-406))
 ++  test-types-partial-shared-tvar
-  (weld (check ~.types-partial-shared-tvar src-403 `tok-403 `tre-403) (check-types ~.types-partial-shared-tvar ~[%tests %golden ~.types-partial-shared-tvar %source %jibb] src-403 `typ-403))
+  (weld (check ~.types-partial-shared-tvar src-407 `tok-407 `tre-407) (check-types ~.types-partial-shared-tvar ~[%tests %golden ~.types-partial-shared-tvar %source %jibb] src-407 `typ-407))
 ++  test-types-partial-union-cases
-  (weld (check ~.types-partial-union-cases src-404 `tok-404 `tre-404) (check-types ~.types-partial-union-cases ~[%tests %golden ~.types-partial-union-cases %source %jibb] src-404 `typ-404))
+  (weld (check ~.types-partial-union-cases src-408 `tok-408 `tre-408) (check-types ~.types-partial-union-cases ~[%tests %golden ~.types-partial-union-cases %source %jibb] src-408 `typ-408))
 ++  test-types-partial-union-edges
-  (weld (check ~.types-partial-union-edges src-405 `tok-405 `tre-405) (check-types ~.types-partial-union-edges ~[%tests %golden ~.types-partial-union-edges %source %jibb] src-405 `typ-405))
+  (weld (check ~.types-partial-union-edges src-409 `tok-409 `tre-409) (check-types ~.types-partial-union-edges ~[%tests %golden ~.types-partial-union-edges %source %jibb] src-409 `typ-409))
 ++  test-types-partial-unresolved-tag
-  (weld (check ~.types-partial-unresolved-tag src-406 `tok-406 `tre-406) (check-types ~.types-partial-unresolved-tag ~[%tests %golden ~.types-partial-unresolved-tag %source %jibb] src-406 `typ-406))
+  (weld (check ~.types-partial-unresolved-tag src-410 `tok-410 `tre-410) (check-types ~.types-partial-unresolved-tag ~[%tests %golden ~.types-partial-unresolved-tag %source %jibb] src-410 `typ-410))
 ::
 ::  +check: run golden:jibb on a case and compare both outputs
 ::
@@ -2163,4 +2189,24 @@
     =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
     [module.fixture mold.fixture (read-mold-in:jibb-import module.fixture mold.fixture typ cor)]
   (compare (file case "types.txt") want (golden-types-imports:jibb at src external))
+::
+++  check-mark-types
+  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain])]
+  ^-  tang
+  ?:  |((lien fixtures |=(f=[module=term mold=term source=wain] ?=(~ source.f))) (lien marks |=(m=[name=term source=wain] ?=(~ source.m))))
+    ~[leaf+"an imported Hoon fixture is missing or empty"]
+  =/  external=(list [module=term name=term result=*])
+    %+  turn  fixtures
+    |=  fixture=[module=term mold=term source=wain]
+    =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\0a'))))
+    =/  cor=type  -:(ride -:!>(..zuse) text)
+    =/  typ=type  (~(play ut cor) (ream (cat 3 '*' mold.fixture)))
+    [module.fixture mold.fixture (read-mold-in:jibb-import module.fixture mold.fixture typ cor)]
+  =/  mark-external=(list [name=term result=*])
+    %+  turn  marks
+    |=  fixture=[name=term source=wain]
+    =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\0a'))))
+    =/  cor=type  -:(ride -:!>(..zuse) text)
+    [name.fixture (read-mark:jibb-import name.fixture cor)]
+  (compare (file case "types.txt") want (golden-types-with-marks:jibb at src external mark-external))
 --

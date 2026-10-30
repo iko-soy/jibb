@@ -1,0 +1,31 @@
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (face 1:12 x (tvar 1:14 A))
+      (body 2:3
+        (trace 2:3
+          (cast 2:6 (aura 2:9 @) (wing 2:11 x))
+          (body 3:5 (wing 3:5 x))))))
+  (value 4:1 alias (wing 4:10 keep))
+  (value 5:1 ship
+    (group 5:9
+      (call 5:10 (wing 5:10 alias) (lit 5:16 ~zod))))
+  (value 6:1 cord
+    (group 6:9
+      (call 6:10 (wing 6:10 alias) (str 6:16 "hello"))))
+  (value 7:1 flag
+    (group 7:9
+      (call 7:10 (wing 7:10 alias) (lit 7:16 %.y))))
+  (value 8:1 bad
+    (group 8:8
+      (call 8:9
+        (wing 8:9 alias)
+        (tuple 8:15 (lit 8:16 ~zod) (str 8:21 "hi")))))
+  (value 9:1 number
+    (group 9:11
+      (call 9:12 (wing 9:12 alias) (lit 9:18 7))))
+  (value 10:1 relay
+    (cast 10:10
+      (flag 10:13)
+      (group 10:15
+        (call 10:16 (wing 10:16 alias) (lit 10:22 7))))))

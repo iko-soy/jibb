@@ -1,4 +1,6 @@
 |%
 +$  lists  (list @ud)
 +$  wrapped  item:small
++$  recursive  chain:small
++$  local  $@(~ [v=@ud next=local])
 --

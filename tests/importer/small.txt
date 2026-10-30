@@ -25,6 +25,9 @@
 +$  signed  @sd
 +$  float  @rd
 +$  gate-test  $-(@ud @ud)
++$  nested-atom-cell  [left=$@(@ud [a=@ud b=@t]) right=$@(@t [c=@ud d=@t])]
++$  nested-valid-cell  [id=@ud value=$^(@ud [a=@ud b=@t])]
++$  nested-invalid-cell  [id=@ud value=$^(@ud @ud)]
 +$  valid-cell  $^(@ud [x=@ud y=@ud])
 +$  invalid-cell  $^(@ud @ud)
 --

@@ -1,0 +1,4 @@
+source: a specific atom fits `@`, and a subaura fits its parent; different specific auras do not unify.
+tests: a branch joins an already present parent aura or unrestricted atom in either order; unresolved variable-dependent joins stay unsupported, and sibling auras remain distinct.
+expect: parses
+expect-types: a partial inference report, not a checked module

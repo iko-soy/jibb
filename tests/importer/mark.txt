@@ -1,0 +1,5 @@
+|_  a=item:small
+++  grab  |%  ++  noun  item:small  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--
