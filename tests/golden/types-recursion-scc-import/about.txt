@@ -1,0 +1,4 @@
+source: Grammar, Runes: "Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate"; Modules: "Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included."
+tests: A library exports a mutual-recursive group and its polymorphic result can be instantiated independently at downstream text and ship sites.
+expect: parses
+expect-types: a partial inference report

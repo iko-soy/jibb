@@ -1,0 +1,45 @@
+(module
+  (value 1:1 bad-a
+    (gate 1:10
+      (face 1:13 x (aura 1:15 @t))
+      (group 1:18
+        (call 1:19 (wing 1:19 bad-b) (wing 1:25 x)))))
+  (value 2:1 bad-b
+    (gate 2:10
+      (face 2:13 y (aura 2:15 @p))
+      (group 2:18
+        (call 2:19 (wing 2:19 bad-a) (wing 2:25 y)))))
+  (value 3:1 outside
+    (group 3:12
+      (call 3:13 (wing 3:13 bad-a) (str 3:19 "hi"))))
+  (value 4:1 poison-a
+    (gate 4:13
+      (face 4:16 x (aura 4:18 @t))
+      (group 4:21
+        (call 4:22 (wing 4:22 poison-b) (wing 4:31 x)))))
+  (value 5:1 poison-b
+    (gate 5:13
+      (face 5:16 x (aura 5:18 @t))
+      (body 6:3
+        (trace 6:3
+          (lit 6:6 %orphan)
+          (body 7:5
+            (group 7:5
+              (call 7:6 (wing 7:6 poison-a) (wing 7:15 x))))))))
+  (value 8:1 value-a (wing 8:12 value-b))
+  (value 9:1 value-b
+    (gate 9:12
+      (face 9:15 x (aura 9:17 @t))
+      (wing 9:20 value-a)))
+  (value 10:1 recursive-a
+    (gate 10:16
+      (bind 10:19 x)
+      (group 10:21
+        (call 10:22
+          (wing 10:22 recursive-b)
+          (tuple 10:34 (wing 10:35 x) (wing 10:37 x))))))
+  (value 11:1 recursive-b
+    (gate 11:16
+      (bind 11:19 x)
+      (group 11:21
+        (call 11:22 (wing 11:22 recursive-a) (wing 11:34 x))))))

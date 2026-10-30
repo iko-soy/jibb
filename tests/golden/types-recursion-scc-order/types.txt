@@ -1,0 +1,5 @@
+partial inference; module not checked
+++ dependent: A
+++ right: $-(@t A)
+++ independent: @t
+++ left: $-(@t A)

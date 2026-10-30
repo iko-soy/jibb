@@ -1,0 +1,2 @@
+++ left |= x=@t (right x)
+++ right |= y=@t (left y)

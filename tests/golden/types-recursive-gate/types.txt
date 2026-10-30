@@ -22,8 +22,8 @@ partial inference; module not checked
 ++ direct-value: name is not available to partial inference
 ++ gate-value: name is not available to partial inference
 ++ value-cycle: name is not available to partial inference
-++ mutual-a: name is not available to partial inference
-++ mutual-b: name is not available to partial inference
+++ mutual-a: $-(A B)
+++ mutual-b: $-(A B)
 ++ captured: $-(A A)
 ++ local-rec: $-(A B)
 ++ forced-trace: explicit capital constraints are not supported by partial inference

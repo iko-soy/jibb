@@ -1,0 +1,4 @@
+source: Grammar, Runes: "Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate"; Modules: "Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included."
+tests: Incompatible samples, an unresolved literal, a value in a cycle and an occurs-check cycle do not export inferred schemes to siblings or downstream definitions.
+expect: parses
+expect-types: a partial inference report

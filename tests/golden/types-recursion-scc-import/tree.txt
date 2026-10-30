@@ -1,0 +1,12 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 text
+    (cast 2:9
+      (aura 2:12 @t)
+      (group 2:15
+        (call 2:16 (wing 2:16 left.lib) (str 2:25 "hello")))))
+  (value 3:1 ship
+    (cast 3:9
+      (aura 3:12 @p)
+      (group 3:15
+        (call 3:16 (wing 3:16 right.lib) (str 3:26 "hello"))))))

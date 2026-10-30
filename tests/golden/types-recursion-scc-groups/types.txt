@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ left: $-(@t A)
+++ right: $-(@t A)
+++ third: $-(@p A)
+++ fourth: $-(@p A)
+++ fifth: $-(@p A)
+++ poly-a: $-(A B)
+++ poly-b: $-(A B)
+++ call-text: A
+++ call-ship: A

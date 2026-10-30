@@ -1,0 +1,11 @@
+++ outer |= x=@t
+  ++ one |= flag=? (two flag)
+  ++ two |= flag=?
+    ?- flag
+      %.y x
+      %.n (one flag)
+  (one %.y)
+++ global-a |= x=@t
+  ++ inner |= y=@t (global-b y)
+  (inner x)
+++ global-b |= x=@t (global-a x)

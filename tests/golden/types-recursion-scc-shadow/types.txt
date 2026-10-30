@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ first: sample shadows a name
+++ second: name is not available to partial inference
+++ safe: $-(@t @t)

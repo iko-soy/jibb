@@ -1,0 +1,12 @@
+/ui/lib.jibb
+(module
+  (value 1:1 left
+    (gate 1:9
+      (face 1:12 x (aura 1:14 @t))
+      (group 1:17
+        (call 1:18 (wing 1:18 right) (wing 1:24 x)))))
+  (value 2:1 right
+    (gate 2:10
+      (face 2:13 y (aura 2:15 @t))
+      (group 2:18
+        (call 2:19 (wing 2:19 left) (wing 2:24 y))))))

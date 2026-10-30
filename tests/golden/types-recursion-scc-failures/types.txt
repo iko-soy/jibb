@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ bad-a: name is not available to partial inference
+++ bad-b: name is not available to partial inference
+++ outside: name is not available to partial inference
+++ poison-a: name is not available to partial inference
+++ poison-b: name is not available to partial inference
+++ value-a: name is not available to partial inference
+++ value-b: name is not available to partial inference
+++ recursive-a: name is not available to partial inference
+++ recursive-b: name is not available to partial inference

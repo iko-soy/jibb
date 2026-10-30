@@ -1,0 +1,4 @@
+source: Grammar, Runes: "Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate"; Modules: "Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included."
+tests: A library containing an incompatible mutual-recursion group does not export a partial interface, even if an independent member can be inferred.
+expect: parses
+expect-types: a partial inference report

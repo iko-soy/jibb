@@ -1,0 +1,39 @@
+(module
+  (value 1:1 outer
+    (gate 1:10
+      (face 1:13 x (aura 1:15 @t))
+      (body 2:3
+        (value 2:3 one
+          (gate 2:10
+            (face 2:13 flag (flag 2:18))
+            (group 2:20
+              (call 2:21 (wing 2:21 two) (wing 2:25 flag)))))
+        (value 3:3 two
+          (gate 3:10
+            (face 3:13 flag (flag 3:18))
+            (body 4:5
+              (branch 4:5
+                (wing 4:8 flag)
+                (arm 5:7 (lit 5:7 %.y) (wing 5:11 x))
+                (arm 6:7
+                  (lit 6:7 %.n)
+                  (group 6:11
+                    (call 6:12 (wing 6:12 one) (wing 6:16 flag))))))))
+        (group 7:3
+          (call 7:4 (wing 7:4 one) (lit 7:8 %.y))))))
+  (value 8:1 global-a
+    (gate 8:13
+      (face 8:16 x (aura 8:18 @t))
+      (body 9:3
+        (value 9:3 inner
+          (gate 9:12
+            (face 9:15 y (aura 9:17 @t))
+            (group 9:20
+              (call 9:21 (wing 9:21 global-b) (wing 9:30 y)))))
+        (group 10:3
+          (call 10:4 (wing 10:4 inner) (wing 10:10 x))))))
+  (value 11:1 global-b
+    (gate 11:13
+      (face 11:16 x (aura 11:18 @t))
+      (group 11:21
+        (call 11:22 (wing 11:22 global-a) (wing 11:31 x))))))

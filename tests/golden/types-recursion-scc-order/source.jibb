@@ -1,0 +1,4 @@
+++ dependent (left "x")
+++ right |= y=@t (left y)
+++ independent "ok"
+++ left |= x=@t (right x)

@@ -1,0 +1,11 @@
+++ bad-a |= x=@t (bad-b x)
+++ bad-b |= y=@p (bad-a y)
+++ outside (bad-a "hi")
+++ poison-a |= x=@t (poison-b x)
+++ poison-b |= x=@t
+  ~& %orphan
+    (poison-a x)
+++ value-a value-b
+++ value-b |= x=@t value-a
+++ recursive-a |= x (recursive-b [x x])
+++ recursive-b |= x (recursive-a x)

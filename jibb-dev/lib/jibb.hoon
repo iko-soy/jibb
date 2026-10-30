@@ -7337,6 +7337,208 @@
   ?~  uni  [%| ["recursive gate constraint is not supported by partial inference" ~]]
   [%& [%fn typ.p.sam typ.p.out] state.p.out(sub u.uni)]
 ::
+++  dependency-root
+  |=  names=(list term)
+  ^-  (list term)
+  ?~  names  ~
+  ~[(rear names)]
+::
+++  dependency-exprs
+  |=  xs=(list expr)
+  ^-  (list term)
+  ?~  xs  ~
+  =/  first=(list term)  (dependency-expr i.xs)
+  (weld first $(xs t.xs))
+::
+++  dependency-pieces
+  |=  xs=(list piece)
+  ^-  (list term)
+  ?~  xs  ~
+  =/  first=(list term)
+    ?-  -.i.xs
+      %expr  (dependency-expr p.i.xs)
+      %text  ~
+    ==
+  (weld first $(xs t.xs))
+::
+++  dependency-qsegs
+  |=  xs=(list qseg)
+  ^-  (list term)
+  ?~  xs  ~
+  =/  first=(list term)
+    ?-  -.i.xs
+      %expr  (dependency-expr p.i.xs)
+      %knot  ~
+    ==
+  (weld first $(xs t.xs))
+::
+++  dependency-items
+  |=  xs=(list item)
+  ^-  (list term)
+  ?~  xs  ~
+  =/  first=(list term)  (dependency-expr val.i.xs)
+  (weld first $(xs t.xs))
+::
+++  dependency-edits
+  |=  xs=(list edit)
+  ^-  (list term)
+  ?~  xs  ~
+  =/  first=(list term)  (dependency-expr val.i.xs)
+  (weld first $(xs t.xs))
+::
+++  dependency-arms
+  |=  xs=(list arm)
+  ^-  (list term)
+  ?~  xs  ~
+  =/  first=(list term)  (dependency-expr val.i.xs)
+  (weld first $(xs t.xs))
+::
+++  dependency-defs
+  |=  xs=(list def)
+  ^-  (list term)
+  ?~  xs  ~
+  =/  first=(list term)
+    ?:  ?=(%value -.i.xs)  (dependency-expr val.i.xs)
+    ~
+  (weld first $(xs t.xs))
+::
+++  dependency-expr
+  |=  e=expr
+  ^-  (list term)
+  ?-  -.e
+    %str     (dependency-pieces pieces.e)
+    %qath    (dependency-qsegs segs.e)
+    %wing    (dependency-root names.e)
+    %change
+      =/  first=(list term)  (dependency-root target.e)
+      =/  last=(list term)  (dependency-edits edits.e)
+      (weld first last)
+    %pair    (dependency-expr val.e)
+    %unit    (dependency-expr val.e)
+    %group   (dependency-expr inner.e)
+    %list    (dependency-exprs items.e)
+    %tuple   (dependency-items items.e)
+    %gate       (dependency-expr body.e)
+    %gate-wide  (dependency-expr body.e)
+    %call
+      =/  first=(list term)  (dependency-expr head.e)
+      =/  last=(list term)  (dependency-exprs args.e)
+      (weld first last)
+    %cast       (dependency-expr val.e)
+    %trace
+      =/  first=(list term)  (dependency-expr val.e)
+      =/  last=(list term)  (dependency-expr then.e)
+      (weld first last)
+    %branch
+      =/  first=(list term)  (dependency-expr subject.e)
+      =/  last=(list term)  (dependency-arms arms.e)
+      (weld first last)
+    %body
+      =/  first=(list term)  (dependency-defs defs.e)
+      =/  last=(list term)  (dependency-expr final.e)
+      (weld first last)
+    *  ~
+  ==
+::
+::  Infer a cyclic top-level component with one monomorphic seed per gate.
+::  All members must succeed before any scheme is available; local cyclic
+::  groups, pending constraints and unresolved branch joins remain partial.
++$  igate-entry  [name=term typ=itype body=expr env=ienv caps=icaps]
++$  igate-seeds  (each [entries=(list igate-entry) state=istate] idiag)
+++  seed-gate-group
+  |=  [ds=(list def) env=ienv state=istate]
+  ^-  igate-seeds
+  ?~  ds  [%& [~ state]]
+  =/  d=def  i.ds
+  ?.  ?=(%value -.d)  [%| ["recursive group contains a non-gate" ~]]
+  =/  gate=expr  val.d
+  ?.  |(?=(%gate -.gate) ?=(%gate-wide -.gate))
+    [%| ["recursive group contains a non-gate" ~]]
+  =/  initial=istate  (reserve-def-caps gate state)
+  =/  sam=isample-result
+    ?-  -.gate
+      %gate       (infer-sample sample.gate env initial)
+      %gate-wide  (infer-sample sample.gate env initial)
+      *           !!
+    ==
+  ?:  ?=(%| -.sam)  [%| [p.sam ~]]
+  =/  body=expr
+    ?-  -.gate
+      %gate       body.gate
+      %gate-wide  body.gate
+      *           !!
+    ==
+  =/  seed=itype  [%fn typ.p.sam [%var next.state.p.sam]]
+  =/  entry=igate-entry  [name.d seed body env.p.sam caps.state.p.sam]
+  =/  after=istate  state.p.sam(next +(next.state.p.sam), caps caps.state)
+  =/  rest=igate-seeds  $(ds t.ds, state after)
+  ?:  ?=(%| -.rest)  rest
+  [%& [[entry entries.p.rest] state.p.rest]]
+::
+++  group-seed-env
+  |=  [entries=(list igate-entry) env=ienv]
+  ^-  ienv
+  ?~  entries  env
+  [[name.i.entries [typ.i.entries ~]] $(entries t.entries)]
+::
+++  infer-gate-group-bodies
+  |=  [entries=(list igate-entry) seeds=ienv state=istate]
+  ^-  igate-seeds
+  ?~  entries  [%& [~ state]]
+  =/  entry=igate-entry  i.entries
+  ?>  ?=(%fn -.typ.entry)
+  =/  scope=ienv  (weld seeds env.entry)
+  =/  out=iresult  (infer-fragment body.entry scope state(caps caps.entry))
+  ?:  ?=(%| -.out)  out
+  =/  uni=(unit isub)  (itype-unify product.typ.entry typ.p.out sub.state.p.out)
+  ?~  uni  [%| ["recursive group constraint is not supported by partial inference" ~]]
+  =.  caps.entry  caps.state.p.out
+  =/  after=istate  state.p.out(sub u.uni, caps caps.state)
+  =/  rest=igate-seeds  $(entries t.entries, state after)
+  ?:  ?=(%| -.rest)  rest
+  [%& [[entry entries.p.rest] state.p.rest]]
+::
+++  group-schemes
+  |=  [entries=(list igate-entry) env=ienv outer=istate state=istate]
+  ^-  (each ienv idiag)
+  ?~  entries  [%& ~]
+  =/  entry=igate-entry  i.entries
+  =/  merged=(unit [first=icap second=icap])  (merged-capitals caps.entry sub.state)
+  ?^  merged
+    [%| ["distinct type variables must not be forced equal" ~[[at.first.u.merged "first type variable"] [at.second.u.merged "second type variable"]]]]
+  ?:  (constrained-capitals caps.entry sub.state)
+    [%| ["explicit capital constraints are not supported by partial inference" ~]]
+  =/  typ=itype  (itype-normalize typ.entry sub.state)
+  ?:  |((itype-has-tag typ) (itype-has-hidden-generic typ) (itype-has-hidden-recursive typ) (unsupported-atom-vars typ caps.entry binders.state sub.state))
+    [%| ["recursive group needs unsupported inference" ~]]
+  =/  free=(list @ud)  (weld (free-env-vars env sub.state) (free-cap-vars caps.outer sub.state))
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+  =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
+  ?:  (gth (lent vars) 26)  [%| ["recursive group needs too many type variables" ~]]
+  =/  rest=(each ienv idiag)  $(entries t.entries)
+  ?:  ?=(%| -.rest)  rest
+  [%& [[name.entry [typ vars]] p.rest]]
+::
+++  infer-gate-group
+  |=  [ds=(list def) env=ienv state=istate]
+  ^-  ilocal-result
+  =/  names=(list term)  (global-value-names ds)
+  ?.  (levy names |=(n=term (unique-value-name n names)))
+    [%| ["recursive group contains duplicate names" ~]]
+  ?:  (lien names |=(n=term ?=(^ (ienv-lookup n env))))
+    [%| ["recursive group shadows a name" ~]]
+  =/  scoped=istate  state(globals (weld names globals.state))
+  =/  seeded=igate-seeds  (seed-gate-group ds env scoped)
+  ?:  ?=(%| -.seeded)  seeded
+  =/  seeds=ienv  (group-seed-env entries.p.seeded ~)
+  =/  body=igate-seeds  (infer-gate-group-bodies entries.p.seeded seeds state.p.seeded)
+  ?:  ?=(%| -.body)  body
+  ?:  (pending-tags tags.state.p.body sub.state.p.body)
+    [%| ["recursive group has unresolved literal constraints" ~]]
+  =/  schemes=(each ienv idiag)  (group-schemes entries.p.body env state state.p.body)
+  ?:  ?=(%| -.schemes)  schemes
+  [%& [(weld p.schemes env) state.p.body(globals globals.state)]]
+::
 ++  add-supported-defs
   |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
   ^-  ienv
@@ -7359,14 +7561,137 @@
   ?:  (gth (lent vars) 26)  $(ds t.ds)
   $(ds t.ds, env [[name.d [typ vars]] env])
 ::
++$  iresolved  [env=ienv grouped=(list term)]
++$  iadj  (map term (list term))
++$  ivisited  (map term ?)
++$  iwork  (list [name=term done=?])
++$  iwresult  [seen=ivisited order=(list term)]
++$  icresult  [seen=ivisited component=(list term)]
++$  icomponents  (list (list term))
+++  graph-nameset
+  |=  [names=(list term) seen=ivisited]
+  ^-  ivisited
+  ?~  names  seen
+  $(names t.names, seen (~(put by seen) i.names &))
+::
+++  graph-edges
+  |=  [name=term graph=iadj]
+  ^-  (list term)
+  =/  found=(unit (list term))  (~(get by graph) name)
+  ?~  found  ~
+  u.found
+::
+++  graph-make-forward
+  |=  [ds=(list def) names=ivisited graph=iadj]
+  ^-  iadj
+  ?~  ds  graph
+  ?.  ?=(%value -.i.ds)  $(ds t.ds)
+  =/  deps=(list term)  (dependency-expr val.i.ds)
+  =.  deps  (skim deps |=(n=term ?=(^ (~(get by names) n))))
+  $(ds t.ds, graph (~(put by graph) name.i.ds deps))
+::
+++  graph-add-reverse
+  |=  [name=term edges=(list term) reverse=iadj]
+  ^-  iadj
+  ?~  edges  reverse
+  =/  prior=(list term)  (graph-edges i.edges reverse)
+  $(edges t.edges, reverse (~(put by reverse) i.edges [name prior]))
+::
+++  graph-reverse
+  |=  [names=(list term) graph=iadj reverse=iadj]
+  ^-  iadj
+  ?~  names  reverse
+  =.  reverse  (graph-add-reverse i.names (graph-edges i.names graph) reverse)
+  $(names t.names)
+::
+++  graph-order
+  |=  [todo=iwork seen=ivisited order=(list term) graph=iadj]
+  ^-  iwresult
+  ?~  todo  [seen order]
+  =/  event=[name=term done=?]  i.todo
+  ?:  done.event  $(todo t.todo, order [name.event order])
+  ?:  ?=(^ (~(get by seen) name.event))  $(todo t.todo)
+  =.  seen  (~(put by seen) name.event &)
+  =/  children=iwork  (turn (graph-edges name.event graph) |=(n=term [n |]))
+  $(todo (weld children [[name.event &] t.todo]))
+::
+++  graph-collect
+  |=  [todo=(list term) seen=ivisited component=(list term) graph=iadj]
+  ^-  icresult
+  ?~  todo  [seen component]
+  ?:  ?=(^ (~(get by seen) i.todo))  $(todo t.todo)
+  =.  seen  (~(put by seen) i.todo &)
+  $(todo (weld (graph-edges i.todo graph) t.todo), component [i.todo component])
+::
+++  graph-collect-all
+  |=  [order=(list term) seen=ivisited graph=iadj comps=icomponents]
+  ^-  icomponents
+  ?~  order  comps
+  ?:  ?=(^ (~(get by seen) i.order))  $(order t.order)
+  =/  found=icresult  (graph-collect ~[i.order] seen ~ graph)
+  $(order t.order, seen seen.found, comps [component.found comps])
+::
+::  Two depth-first passes find components before group inference. Maps
+::  preserve the graph identity; duplicate global names fail closed.
+++  graph-components
+  |=  [ds=(list def) names=(list term)]
+  ^-  icomponents
+  =/  nameset=ivisited  ~
+  =/  pending=(list term)  names
+  |-
+  ?^  pending
+    ?:  ?=(^ (~(get by nameset) i.pending))  ~
+    $(pending t.pending, nameset (~(put by nameset) i.pending &))
+  =/  graph=iadj  (graph-make-forward ds nameset ~)
+  =/  reverse=iadj  (graph-reverse names graph ~)
+  =/  order=iwresult  (graph-order (turn names |=(n=term [n |])) ~ ~ graph)
+  (graph-collect-all order.order ~ reverse ~)
+::
+++  graph-cycle
+  |=  [component=(list term) graph=iadj]
+  ^-  ?
+  ?~  component  |
+  ?^  t.component  &
+  (lien (graph-edges i.component graph) |=(x=term =(x i.component)))
+::
+++  add-groups
+  |=  [ds=(list def) components=icomponents graph=iadj env=ienv grouped=(list term) state=istate]
+  ^-  iresolved
+  ?~  components  [env grouped]
+  =/  component=(list term)  i.components
+  ?.  (graph-cycle component graph)  $(components t.components)
+  ?:  (lien component |=(n=term ?=(^ (ienv-lookup n env))))  $(components t.components)
+  =/  members=(list def)
+    %+  skim  ds
+    |=  d=def
+    &(?=(%value -.d) (lien component |=(n=term =(n name.d))))
+  ?.  =((lent members) (lent component))  $(components t.components)
+  ?.  (levy component |=(n=term (unique-value-name n globals.state)))  $(components t.components)
+  =/  result=ilocal-result  (infer-gate-group members env state)
+  ?:  ?=(%| -.result)  $(components t.components)
+  $(components t.components, env env.p.result, grouped (weld component grouped))
+::
+++  resolve-groups
+  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
+  ^-  iresolved
+  =/  env=ienv  ~
+  =/  grouped=(list term)  ~
+  =/  names=(list term)  (global-value-names ds)
+  =/  nameset=ivisited  (graph-nameset names ~)
+  =/  graph=iadj  (graph-make-forward ds nameset ~)
+  =/  components=icomponents  (graph-components ds names)
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  |-
+  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude]
+  =/  out=iresolved  (add-groups ds components graph next grouped initial)
+  ?:  =(env env.out)  out
+  $(env env.out, grouped grouped.out)
+::
 ++  resolve-supported-defs
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
   ^-  ienv
-  =/  env=ienv  ~
-  |-
-  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
-  ?:  =(next env)  env
-  $(env next)
+  env:(resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
 ::
 +|  %union-analysis
 ::
@@ -7852,7 +8177,8 @@
   =/  globals=(list term)  (weld prelude-values (weld (turn jimports |=(j=[face=term interface=ifile] face.j)) (global-value-names ds)))
   =/  surs=(list term)  (collect-sur-imports imports.p.parsed)
   =/  marks=(list term)  (collect-mark-imports imports.p.parsed)
-  =/  env=ienv  (resolve-supported-defs ds molds globals externals surs mark-externals marks jimports reserved-molds file prelude)
+  =/  resolution=iresolved  (resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds file prelude)
+  =/  env=ienv  env.resolution
   =/  lines=(list @t)  ~
   |-
   ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
@@ -7861,6 +8187,12 @@
     $(ds t.ds, lines [(show-partial-mold file src d molds) lines])
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
+  ?:  (lien grouped.resolution |=(n=term =(n name.d)))
+    =/  found=(unit ischeme)  (ienv-lookup name.d env)
+    ?~  found  $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive group unavailable") lines])
+    =/  typ=itype  (canonical-itype typ.u.found vars.u.found)
+    =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
+    $(ds t.ds, lines [line lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude]
   =.  initial  (reserve-def-caps val.d initial)

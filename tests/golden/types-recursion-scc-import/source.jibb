@@ -1,0 +1,3 @@
+/= lib /ui/lib
+++ text ^- @t (left.lib "hello")
+++ ship ^- @p (right.lib "hello")

@@ -1,0 +1,15 @@
+(module
+  (value 1:1 first
+    (gate 1:10
+      (face 1:13 second (aura 1:20 @t))
+      (group 1:23
+        (call 1:24 (wing 1:24 second) (wing 1:31 second)))))
+  (value 2:1 second
+    (gate 2:11
+      (face 2:14 x (aura 2:16 @t))
+      (group 2:19
+        (call 2:20 (wing 2:20 first) (wing 2:26 x)))))
+  (value 3:1 safe
+    (gate 3:9
+      (face 3:12 x (aura 3:14 @t))
+      (wing 3:17 x))))

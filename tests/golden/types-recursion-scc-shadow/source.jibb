@@ -1,0 +1,3 @@
+++ first |= second=@t (second second)
+++ second |= x=@t (first x)
+++ safe |= x=@t x
