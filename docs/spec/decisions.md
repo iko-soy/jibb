@@ -26,7 +26,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Branching | `?-` only, loobeans included; exhaustive, with explicit catch-alls; covered arms are errors; failures say `!!` | Decided 2026-10-29 |
 | Equality and negation | The gates `eq` and `not` | Decided |
 | Special rules | No built-ins; type-directed rules are welcome, each listed in the Grammar tab | Decided 2026-10-29 |
-| Inference | Hindley–Milner with aura variables; a bare `@` in a `+$` is one per module, `@ud` if unfixed; different auras never unify; faces are part of record types; principal types | Decided 2026-10-29 |
+| Inference | Hindley–Milner with aura variables; a bare `@` in a `+$` is one per module, `@ud` if unfixed, and elsewhere each is its own, generalized per `++`; a number takes `@ud` only where its `++` isn't generic over its aura; different auras never unify; faces are part of record types; principal types | Decided 2026-10-30 |
 | Effects | The library unions `cmd` and `sub`; pokes and requests are opaque, from derived gates and `pure`; islands read agents only by watching; replies get full state, and diffs take a fold; timers carry the time; `%who` gives the owner's `@p`; nacks reach replies as text | Decided 2026-10-29 |
 | Agent APIs | `/ui/api/<agent>.jibb` with `+$ poke` and `+$ paths`, over the agent's mark types; a case is a name, a path and a type, with `(facts full diff …)` for diffs, told apart by mark; an optional scry path, for pages; typed segments by aura | Decided 2026-10-29 |
 | Mark names | Any name: `/%` names types after marks, and constructors poke with their type's mark; no alias marks | Decided 2026-10-26 |
@@ -37,14 +37,14 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Long calls | One argument per line inside parentheses | Decided |
 | Inline gates | Hoon's wide form; the mold may be inferred; a bare sample name binds; `\|=%got` is a case's constructor, typed by the gate expected; a bare tag is always a value | Decided 2026-10-29 |
 | Empty mold | `!!`, with no values; the expression has any type; pages are `(element !!)`, which keeps islands out of islands | Decided 2026-10-29 |
-| Type variables | Capitals, generalized per `++` | Decided 2026-10-29 |
+| Type variables | Capitals, generalized per `++`; one that meets an atom becomes an aura variable, and nothing more specific | Decided 2026-10-30 |
 | Loobean mold | `?`, switched with `?-` | Decided 2026-10-26 |
 | Defaults | None | Decided |
 | Modules | Records, not cores | Decided |
 | Kinds | The type of `main`: `(element !!)`, `(page R D)`, `(program D X M)` or `(store S)`; other names by file kind, in the Grammar tab | Decided 2026-10-29 |
 | Type identity | Recursive molds by name and module | Decided 2026-10-29 |
 | Binding patterns | In `?-` arms; the last position binds the rest | Decided 2026-10-29 |
-| Text | Strings are written only as `"…"` and are always cords; tapes come from `trip`; `{…}` prints by aura, a bare `@` as `@ud`; `print-date` prints Urbit-style to the minute in the theme's zone, from jibb-dev's zone table; numbers keep Hoon's form | Decided 2026-10-29 |
+| Text | Strings are written only as `"…"` and are always cords; tapes come from `trip`; `{…}` prints by aura, a bare `@` as `@ud`, and an atom whose aura its `++` is generic over is an error; `print-date` prints Urbit-style to the minute in the theme's zone, from jibb-dev's zone table; numbers keep Hoon's form | Decided 2026-10-30 |
 | Auras | Soft, through aura variables | Decided 2026-10-29 |
 | Crashes | As in Hoon; an island keeps its model and shows the standard notice; a failing page, or one rendering a control outside an island, gets Jibb's error page; no render limit, so an endless render stalls the ship | Decided 2026-10-29 |
 | Refinement types | None | Decided |

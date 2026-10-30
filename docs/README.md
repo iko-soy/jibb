@@ -14,7 +14,7 @@ Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language f
 
 ## The spec
 
-`spec/` began as a snapshot of the doc taken on 2026-10-30, after @iko's answers to the 12 grammar questions that day. It has since been edited to record the decision to drop `$?`; the Claude document still needs those edits. Each file corresponds to one tab:
+`spec/` began as a snapshot of the doc taken on 2026-10-30, after @iko's answers to the 12 grammar questions that day. It has since been edited to record the decision to drop `$?`; the Claude document still needs those edits. It also has the doc's rules of the same day for gates generic over auras. Each file corresponds to one tab:
 
 | File | Tab |
 | --- | --- |

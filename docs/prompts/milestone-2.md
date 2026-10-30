@@ -53,7 +53,7 @@ And from the plan's Risks:
    1. how the prelude declares natives;
    2. how it marks private names;
    3. what the prelude holds, and whether milestone 2 writes "the prelude's types", as the plan says, or "the core prelude gates", as the Decisions tab's Build order says;
-   4. aura and type variables in a gate's molds;
+   4. whether a capital in a local `++` is the enclosing `++`'s (the rest of that question was settled on 2026-10-30);
    5. `[]` and `[a]`;
    6. `m()`;
    7. how to check the doc's blocks that aren't whole modules;
@@ -72,9 +72,9 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 
 **Types and inference** (Grammar: Molds, Modules, Runes, Expressions; Decisions: Inference, Type variables, Sample names, Inline gates)
 - Hindley–Milner with aura variables: "every expression has a principal type, and there is no subtyping".
-- "`@` is an atom whose aura isn't known yet, fixed by what it meets": `add` takes `[@ @]` and returns `@`, all one aura. "Different auras never unify." "A bare `@` in a `+$` is one aura variable per module, `@ud` if unfixed."
+- "`@` is an atom whose aura isn't known yet, fixed by what it meets": `add` takes `[@ @]` and returns `@`, all one aura. "Different auras never unify." "A bare `@` in a `+$` is one aura variable per module, `@ud` if unfixed." Elsewhere, "as in a gate's sample or a cast, each bare `@` is its own aura variable, generalized per `++` if nothing fixes it; atoms that must share an aura take one capital".
 - Faces are part of record types: `[a=@ b=@]` and `[x=@ y=@]` don't unify. Whether a tuple meets a record is open question 8.
-- Type variables are capitals, "generalized per `++`". Names "may refer to each other in any order", so infer `++` definitions in dependency order, a group of mutually recursive ones together.
+- Type variables are capitals, "generalized per `++`". "A type variable that meets an atom becomes an aura variable", so `++ clamp |= [lo=A hi=A n=A]`, calling `gth` and `max`, works on any one aura; "It can become nothing more specific: a body that makes `A` a `@ud` or a list is an error." Whether a capital in a local `++` is the enclosing one's is open question 4. Names "may refer to each other in any order", so infer `++` definitions in dependency order, a group of mutually recursive ones together.
 - "Gates may call themselves and their siblings; other values can't refer to themselves, so `++ title (trim title)` is an error." Molds may be recursive, and "recursive molds go by name and module".
 - A sample's mold may be left out: every bare name in a sample binds, at any depth, as in `|=(p title.p)` "when the call fixes the type", `|= [a=@ b]` and `|=(m ~)`.
 - Generic molds: `+$ result |$ [V E]` with cases below, applied as `(result V E)`; `|$` goes right after a `+$`'s name, and the prelude's `cmd` and `sub` use `|$ [M]`.
@@ -87,8 +87,8 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 - `|=%typed` is a case's constructor: "against `$-(@t M)` it is `|=(t [%typed t])`, requiring `M` to have a case `[%typed @t]`. It works for cases tagged at their head; a bare tag is always a value."
 - "A constrained variable, and any it mentions, doesn't generalize; it stays open until something in the module fixes it. An island's `main` fixes its messages." A constraint still open when the module is checked "is an error asking for a `^-`; the checker never guesses".
 - "Wing access, changes and `?-` on a type not yet known wait the same way." Patterns don't: they're checked against the subject's type.
-- Number and cell literals each "takes a default when its `++` is checked": a number `@ud`, a cell a tuple. A cell can also become a record or, where a list is expected, a cons.
-- In `{…}`, atoms print by aura, a bare `@` as `@ud`; `@t`, `@ta`, `@tas` and tapes splice as text; "any other cell is an error asking for a printer". String literals are always cords.
+- Number and cell literals each "takes a default when its `++` is checked": a number `@ud`, a cell a tuple. But "A number takes `@ud` only if nothing fixes its aura and its `++` isn't generic over it", so `++ inc |= n=A (add n 1)` stays generic: unlike a tag's, a number's variable doesn't stop its `++` from generalizing. A cell can also become a record or, where a list is expected, a cons.
+- In `{…}`, atoms print by aura, a bare `@` as `@ud`; `@t`, `@ta`, `@tas` and tapes splice as text; "any other cell is an error asking for a printer". "Printers are picked when compiling", so an atom whose aura its `++` is generic over "is an error asking for an aura", in `{…}` and in a `(…)` segment of an application path. String literals are always cords.
 
 **Unions** (Grammar: Molds, Runes; Decisions: Unions)
 - Every union written in Jibb is a named `+$` with its cases below. One case is just that mold; a mold that isn't a union counts as a union of one case for tags and `|=%tag`. Imported types can contain unnamed unions.
@@ -130,7 +130,7 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 - Element signatures are in the Layout and styling table; what `link`, `image` and `go` take is open question 10. "The same attribute twice in a literal list is an error."
 
 **Errors**
-- Each one the Grammar tab describes needs a golden case with its message. A start on the list: an aura mismatch; mismatched faces; "msg has no case %submitt"; an unresolved tag, as the Grammar's `add-button` ("nothing fixes the union of %add"); an open constraint at the end of a module; a `|=%tag` whose union has no such case tagged at its head; a union whose cases overlap; a missing `?-` case, named; an arm that earlier arms cover; a value that refers to itself; a shadowed name, including a prelude or imported one; a cell in `{…}` with no printer; `~[text "hi"]`, where the checker suggests `~[(text "hi")]`; clashing derived names; an import cycle; from an import, a signed or float aura, a core, gate or vase, or a `$^` whose cases don't differ as nouns, each where used; a `(facts …)` outside an API file's `paths`; a gate in island data or a model, naming the field; a repeated attribute in a literal list. Read the Grammar tab, and the other tabs' mentions of "error" and "the checker", and make the list complete.
+- Each one the Grammar tab describes needs a golden case with its message. A start on the list: an aura mismatch; mismatched faces; "msg has no case %submitt"; an unresolved tag, as the Grammar's `add-button` ("nothing fixes the union of %add"); an open constraint at the end of a module; a `|=%tag` whose union has no such case tagged at its head; a union whose cases overlap; a missing `?-` case, named; an arm that earlier arms cover; a value that refers to itself; a shadowed name, including a prelude or imported one; a cell in `{…}` with no printer; an atom of a generic aura in `{…}` or a path's `(…)`; a capital that a body makes a `@ud` or a list; `~[text "hi"]`, where the checker suggests `~[(text "hi")]`; clashing derived names; an import cycle; from an import, a signed or float aura, a core, gate or vase, or a `$^` whose cases don't differ as nouns, each where used; a `(facts …)` outside an API file's `paths`; a gate in island data or a model, naming the field; a repeated attribute in a literal list. Read the Grammar tab, and the other tabs' mentions of "error" and "the checker", and make the list complete.
 - For a `+$` whose cases overlap or do not fit, suggest that a record or tuple leaves its `[` open on the `+$` line. `+$ pt` above `@t` and `[@ud @ud]` is a valid union.
 - "Each error names both conflicting sites, with excerpts." Today's `error` is `[file line col msg]`, a start only; spans keep each node's end so that a type error can underline both sites.
 - Messages name things in the doc's words and quote the code they're about in backticks, as milestone 1's do. Their wording is fixed by the golden tests once written.
