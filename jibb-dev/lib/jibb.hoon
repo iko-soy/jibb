@@ -5781,6 +5781,55 @@
   ?^  t.found  [%| ["field name is ambiguous in partial inference" ~]]
   $(fields t.fields, typ i.found)
 ::
+::  Propagate a known union through a direct loobean branch. Empty bodies
+::  and groups are transparent; bodies with definitions keep their normal
+::  scoping and wait for general bidirectional inference.
+::
+++  context-union-branch
+  |=  e=expr
+  ^-  ?
+  ?-  -.e
+    %branch  &
+    %group   $(e inner.e)
+    %body    ?~(defs.e $(e final.e) |)
+    *        |
+  ==
+::
+++  infer-union-context
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?:  ?=(%branch -.e)
+    ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
+    ?~  t.arms.e  [%| ["branch pattern is not supported by partial inference" ~]]
+    ?^  t.t.arms.e  [%| ["branch is not supported by partial inference" ~]]
+    =/  x=arm  i.arms.e
+    =/  y=arm  i.t.arms.e
+    ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))
+      [%| ["branch pattern is not supported by partial inference" ~]]
+    ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
+      [%| ["branch pattern is not supported by partial inference" ~]]
+    ?:  =(val.lit.pat.x val.lit.pat.y)
+      [%| ["branch does not cover both loobeans" ~]]
+    =/  subject=iresult  (infer-fragment subject.e env state)
+    ?:  ?=(%| -.subject)  subject
+    =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
+    ?~  su  [%| ["loobean branch subject does not unify with ?" ~]]
+    =/  left=iresult  $(e val.x, state state.p.subject(sub u.su))
+    ?:  ?=(%| -.left)  left
+    =/  right=iresult  $(e val.y, state state.p.left)
+    ?:  ?=(%| -.right)  right
+    [%& expected state.p.right]
+  =/  value=iresult  (infer-fragment e env state)
+  ?:  ?=(%| -.value)  value
+  =/  fit=ifit  (itype-fit typ.p.value expected sub.state.p.value next.state.p.value)
+  ?:  ?=(%unknown -.fit)
+    [%| ["branch union constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
+  [%& expected state.p.value(sub sub.fit, next next.fit)]
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -5881,7 +5930,10 @@
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
       ?~  target  [%| ["cast mold is not supported by partial inference" ~]]
-      =/  value=iresult  $(e val.e, state state.u.target)
+      =/  value=iresult
+        ?:  &(?=(%union -.typ.u.target) (context-union-branch val.e))
+          (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
+        $(e val.e, state state.u.target)
       ?:  ?=(%| -.value)  value
       =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
       ?:  ?=(%unknown -.fit)  [%| ["cast constraint is not supported by partial inference" ~]]
@@ -5907,7 +5959,11 @@
       ?^  t.args.e  [%| ["multiple arguments are not supported by partial inference" ~]]
       =/  head=iresult  $(e head.e)
       ?:  ?=(%| -.head)  head
-      =/  arg=iresult  $(e i.args.e, state state.p.head)
+      =/  head-type=itype  (itype-walk typ.p.head sub.state.p.head)
+      =/  arg=iresult
+        ?:  &(?=(%fn -.head-type) ?=(%union -.sample.head-type) (context-union-branch i.args.e))
+          (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
+        $(e i.args.e, state state.p.head)
       ?:  ?=(%| -.arg)  arg
       =/  st=istate  state.p.arg
       =/  ht=itype  (itype-walk typ.p.head sub.st)

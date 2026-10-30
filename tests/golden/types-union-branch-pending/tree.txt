@@ -1,0 +1,48 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (value 4:1 unresolved
+    (gate 4:15
+      (face 4:18 b (flag 4:20))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 b)
+          (arm 6:5 (lit 6:5 %.y) (lit 6:9 %add))
+          (arm 7:5 (lit 7:5 %.n) (lit 7:9 %remove))))))
+  (value 8:1 discarded
+    (gate 8:14
+      (face 8:17 b (flag 8:19))
+      (body 9:3
+        (trace 9:3
+          (lit 9:6 %unknown)
+          (body 10:5
+            (cast 10:5
+              (ref 10:8 msg)
+              (body 11:7
+                (branch 11:7
+                  (wing 11:10 b)
+                  (arm 12:9 (lit 12:9 %.y) (lit 12:13 %add))
+                  (arm 13:9 (lit 13:9 %.n) (lit 13:13 %remove))))))))))
+  (value 14:1 one-open
+    (gate 14:13
+      (face 14:16 b (flag 14:18))
+      (body 15:3
+        (trace 15:3
+          (cast 15:6 (ref 15:9 msg) (lit 15:13 %add))
+          (body 16:5
+            (branch 16:5
+              (wing 16:8 b)
+              (arm 17:7 (lit 17:7 %.y) (lit 17:11 %add))
+              (arm 18:7 (lit 18:7 %.n) (lit 18:11 %unknown))))))))
+  (value 19:1 local-pending
+    (gate 19:18
+      (face 19:21 b (flag 19:23))
+      (body 20:3
+        (value 20:3 ignored (lit 20:14 %unknown))
+        (cast 21:3
+          (ref 21:6 msg)
+          (body 22:5
+            (branch 22:5
+              (wing 22:8 b)
+              (arm 23:7 (lit 23:7 %.y) (lit 23:11 %add))
+              (arm 24:7 (lit 24:7 %.n) (lit 24:11 %remove)))))))))

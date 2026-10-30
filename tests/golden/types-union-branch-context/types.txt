@@ -1,0 +1,24 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ choose: $-(? msg)
+++ records: $-(? msg)
+++ bad: branch arm does not fit its expected union
+/tests/golden/types-union-branch-context/source.jibb:16:6: expected union
+  ^- msg
+     ^
+/tests/golden/types-union-branch-context/source.jibb:19:11: branch arm
+      %.n %missing
+          ^
+++ bad-first: branch arm does not fit its expected union
+/tests/golden/types-union-branch-context/source.jibb:21:6: expected union
+  ^- msg
+     ^
+/tests/golden/types-union-branch-context/source.jibb:23:11: branch arm
+      %.y %missing
+          ^
+++ nested: $-(? msg)
+++ grouped: $-(? msg)
+++ consume: $-(msg @t)
+++ call: $-(? @t)
+++ repeated: branch does not cover both loobeans
+++ non-loobean: branch pattern is not supported by partial inference

@@ -4,9 +4,13 @@ shadowing and missing provenance. `shadow-static.txt` checks that a local
 list shadow alongside a nested ordered map is rejected. Static sibling
 collections and dependent sibling molds are tested separately. Explicit Hoon `$%`, `$?` and `$^` unions are checked from source where
 their branches are static, including cases Hoon would collapse. Materialized
-forks are checked too. Named or validated branches, multiple nested unions,
-and explicit unions in collection arguments fail closed; nested `$@` cases
-remain supported. The provisional reading is recorded in doc question 22. `ford.txt`
+forks are checked too. A standard list, set, map or unit can have one direct
+explicit union argument when the exact call wrapper and collection provenance
+are validated and all union cases are static and pairwise disjoint. Cases
+cover overlap, collapsed branches, multiple or nested unions, dependent
+branches and a shadowed collection. A direct forged-wrapper regression
+still needs a test that compiles in practical time. Unsupported forms fail
+closed; nested `$@` cases remain supported. The provisional reading is recorded in doc question 22. `ford.txt`
 checks a synthetic imported subject and selected mold; other cases check
 transitive imports, named mold lookup, missing names, shadowing, unprovenanced
 recursive holds, malformed

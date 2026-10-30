@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: "A constrained variable, and any it mentions, doesn't generalize" and "A constraint still open when its module is checked is an error asking for a `^-`; the checker never guesses."
+tests: Tags lacking context remain unresolved in branches and ignored traces even when another tag has union context.
+expect: parses
+expect-types: a partial inference report

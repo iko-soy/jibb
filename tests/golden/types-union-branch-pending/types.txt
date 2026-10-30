@@ -1,0 +1,6 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ unresolved: branch tag or union context is not supported by partial inference
+++ discarded: tag needs context in partial inference
+++ one-open: branch tag or union context is not supported by partial inference
+++ local-pending: local definitions need unsupported inference

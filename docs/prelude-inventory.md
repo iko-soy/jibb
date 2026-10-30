@@ -32,7 +32,7 @@ The following is an audit of the Hoon 135 bodies, not a completed Jibb interface
 | `clef` | Applies a gate returning a unit when both inputs are present; otherwise returns an absent unit. | Written |
 | `drop` | Converts an absent unit to an empty list and a present unit to a singleton. | Written |
 | `fall` | Returns the value of a present unit or the supplied fallback. | Written |
-| `flit` | Returns a gate that wraps a value only if it satisfies the predicate. | Missing |
+| `flit` | Returns a gate that wraps a value only if it satisfies the predicate. | Written |
 | `hunt` | Returns the only present unit or chooses between two present values with an ordering gate. | Missing |
 | `lift` | Takes a mold and a unit, then applies the mold to a present value as `bind` does. | Missing; Jibb molds are not callable values |
 | `mate` | Returns the present unit if only one is present; when both are present it returns one if their values are equal and crashes otherwise. | Missing |

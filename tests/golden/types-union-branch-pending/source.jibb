@@ -1,0 +1,24 @@
++$ msg
+  %add
+  %remove
+++ unresolved |= b=?
+  ?- b
+    %.y %add
+    %.n %remove
+++ discarded |= b=?
+  ~& %unknown
+    ^- msg
+      ?- b
+        %.y %add
+        %.n %remove
+++ one-open |= b=?
+  ~& ^- msg %add
+    ?- b
+      %.y %add
+      %.n %unknown
+++ local-pending |= b=?
+  ++ ignored %unknown
+  ^- msg
+    ?- b
+      %.y %add
+      %.n %remove

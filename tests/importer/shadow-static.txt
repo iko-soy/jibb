@@ -3,4 +3,5 @@
 ++  path  path:..zuse
 +$  path-shadow  [?(%fil %dir) pa=path nam=@t]
 +$  bad  [a=((mop @ud @t) lte) b=(list @ud)]
++$  collection-union-shadow  (list $?([%x @ud] [%y @t]))
 --

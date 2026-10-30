@@ -229,3 +229,9 @@
       ?- xs
         ~ start
         [item rest] (combine item (reel rest start combine))
+
+++ flit |= predicate=$-(A ?)
+  |= value=A
+    ?- (predicate value)
+      %.y `value
+      %.n ~

@@ -1,6 +1,6 @@
 partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ only-one: tag needs context in partial inference
-++ choose: branch tag or union context is not supported by partial inference
+++ choose: $-(? msg)
 ++ id: $-(A A)
 ++ through: msg

@@ -1,0 +1,54 @@
++$ msg
+  %add
+  %remove
+  [%noted text=@t]
+++ choose |= b=?
+  ^- msg
+    ?- b
+      %.y %add
+      %.n %remove
+++ records |= b=?
+  ^- msg
+    ?- b
+      %.y [%noted "hi"]
+      %.n %add
+++ bad |= b=?
+  ^- msg
+    ?- b
+      %.y %add
+      %.n %missing
+++ bad-first |= b=?
+  ^- msg
+    ?- b
+      %.y %missing
+      %.n %remove
+++ nested |= b=?
+  ^- msg
+    ?- b
+      %.y
+        ?- b
+          %.y %add
+          %.n %remove
+      %.n %remove
+++ grouped |= b=?
+  ^- msg
+    (
+      ?- b
+        %.y %add
+        %.n %remove
+++ consume |= x=msg "ok"
+++ call |= b=?
+  (consume
+    ?- b
+      %.y %add
+      %.n %remove
+++ repeated |= b=?
+  ^- msg
+    ?- b
+      %.y %add
+      %.y %remove
+++ non-loobean |= x=@t
+  ^- msg
+    ?- x
+      "a" %add
+      * %remove

@@ -60,8 +60,18 @@ explicit-subsumed: error: a Hoon union has overlapping cases
 explicit-three: (union [a @ud] [b @t] [c @p])
 explicit-unknown: error: a Hoon union needs a source-level disjointness check
 explicit-nested: error: a Hoon union has overlapping cases
-explicit-list: error: a Hoon union needs a source-level disjointness check
-explicit-set: error: a Hoon union needs a source-level disjointness check
+collection-union-list: (list (union [x @ud] [y @t]))
+collection-union-set: (set (union [x @ud] [y @t]))
+collection-union-map-key: (map (union [x @ud] [y @t]) (list @ud))
+collection-union-map-value: (map (list @ud) (union [x=@ud y=@t] @ud))
+collection-union-unit: (unit (union x y z))
+collection-union-collapsed: error: a Hoon union has overlapping cases
+collection-union-multiple: error: a Hoon union needs a source-level disjointness check
+collection-union-nested: error: a Hoon union needs a source-level disjointness check
+collection-union-dependent: error: a Hoon union needs a source-level disjointness check
+collection-union-shadow: error: Hoon collection provenance is unavailable or shadowed
+explicit-list: error: a Hoon union has overlapping cases
+explicit-set: error: a Hoon union has overlapping cases
 explicit-faces: (list [bcwt=@t bccn=@ud])
 explicit-alias: error: a Hoon union has overlapping cases
 explicit-ford: error: a Hoon union has overlapping cases
@@ -73,8 +83,8 @@ list-nested-atom-cell: (list [id=@ud value=(union [a=@ud b=@t] @ud)])
 list-nested-valid-cell: error: a Hoon $^ union needs a source-level disjointness check
 list-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 map-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
-set-direct-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
-map-key-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
+set-direct-invalid-cell: error: a Hoon $^ union has overlapping cases
+map-key-invalid-cell: error: a Hoon $^ union has overlapping cases
 nested-atom-cell: [left=(union [a=@ud b=@t] @ud) right=(union [c=@ud d=@t] @t)]
 nested-tags: [id=@ud value=(union foo bar)]
 nested-tags-overlap: error: a Hoon $^ union has overlapping cases

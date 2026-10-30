@@ -16,7 +16,10 @@
 ::  other nested forms and unprovably disjoint cases remain unsupported. Source-level overlap in
 ::  other unions, general nested ordered maps, broader Ford subject
 ::  shapes, ambiguous recursive origins and full error locations still
-::  need work. A nested ordered map is recovered only when its key and
+::  need work. One direct union argument to a standard collection is
+::  recovered only from its exact call wrapper, static independent cases,
+::  proven disjoint branches and unshadowed standard names. Other source
+::  shapes fail closed. A nested ordered map is recovered only when its key and
 ::  value are fixed atom molds and
 ::  the other fields are fixed atoms or collections of static atoms;
 ::  other source shapes fail closed.
@@ -764,6 +767,123 @@
   ?.  (levy t.found same)  ~
   [~ choice]
 ::
+::
+::  A collection case is independent of the subject only when its
+::  original spec uses literal atoms, tags and finite record structure.
+++  static-union-spec
+  |=  s=spec
+  ^-  ?
+  ?+  s  |
+    [%base *]  ?=([%atom *] p.s)
+    [%leaf *]  &
+    [%bcts *]  ?@  p.s  $(s q.s)
+               |
+    [%bccl *]  (static-union-specs p.s)
+  ==
+::
+++  static-union-specs
+  |=  parts=(list spec)
+  ^-  ?
+  ?~  parts  &
+  &((static-union-spec i.parts) $(parts t.parts))
+::
+++  union-spec-parts
+  |=  s=spec
+  ^-  (unit (list spec))
+  ?+  s  ~
+    [%bcwt *]  [~ p.s]
+    [%bccn *]  [~ p.s]
+    [%bckt *]  [~ ~[p.s q.s]]
+  ==
+::
+::  Select one direct union argument, replacing exactly that spec with
+::  @t. The other arguments must be static and cannot contain unions.
+++  safe-union-parts
+  |=  cases=(list spec)
+  ^-  ?
+  ?~  cases  |
+  ?~  t.cases  |
+  =/  rest=(list spec)  t.cases
+  &((static-union-spec i.cases) (levy rest |=(part=spec (static-union-spec part))))
+::
+++  split-union-arguments
+  |=  [args=(list hoon) index=@ud]
+  ^-  (unit [args=(list hoon) cases=(list spec) index=@ud])
+  ?~  args  ~
+  ?.  ?=([%ktcl *] i.args)  ~
+  =/  cases  (union-spec-parts p.i.args)
+  ?^  cases
+    ?.  (safe-union-parts u.cases)  ~
+    ?.  (static-arguments t.args)  ~
+    [~ [[[%ktcl [%base [%atom %t]]] t.args] u.cases index]]
+  ?.  (static-spec p.i.args)  ~
+  =/  rest  $(args t.args, index +(index))
+  ?~  rest  ~
+  [~ [[i.args args.u.rest] cases.u.rest index.u.rest]]
+::
+++  replace-union-argument
+  |=  [args=(list imported) index=@ud union=imported]
+  ^-  (unit (list imported))
+  ?~  args  ~
+  ?:  =(index 0)
+    ?.  =([%atom %t ~] i.args)  ~
+    [~ [union t.args]]
+  =/  rest  $(args t.args, index (dec index))
+  ?~  rest  ~
+  [~ [i.args u.rest]]
+::
+::  Accept only the compiler's direct collection call wrapper.
+++  direct-collection-source
+  |=  [body=hoon original=hoon]
+  ^-  ?
+  ?.  ?=([%cncl [%tsgr * [%cncl *]] *] body)  |
+  ?.  =(p.p.body [%wing ~[[%.y 7]]])  |
+  ?.  =(q.body ~[[%$ 6]])  |
+  ?.  ?=([%tsls * *] original)  |
+  =(q.original [%tsls [%dtts [%$ 14] [%$ 2]] [%$ 6]])
+::
+++  collection-union
+  |=  [typ=type module=term sig=signatures seen=visiting context=(unit type)]
+  ^-  imported
+  ?.  ?=([%hold *] typ)  [%bad 'a Hoon union needs a source-level disjointness check']
+  =/  is-cell=?  (has-spec-cell-union q.typ)
+  =/  unsupported=@t
+    ?:  is-cell  'a Hoon $^ union needs a source-level disjointness check'
+    'a Hoon union needs a source-level disjointness check'
+  =/  original=hoon  q.typ
+  ?.  ?=([%tsls [%note * *] *] original)  [%bad unsupported]
+  =/  body=hoon  q.p.original
+  =/  alias  (source-alias body)
+  ?~  alias  [%bad unsupported]
+  ?.  (alias-safe context u.alias)  [%bad 'Hoon collection provenance is unavailable or shadowed']
+  =/  names=(list term)  ~[%map %set %qeu %list %unit %jar %jug]
+  ?:  (lien names |=(n=term &((source-uses body n) !(alias-safe context n))))
+    [%bad 'Hoon collection provenance is unavailable or shadowed']
+  ?.  (direct-collection-source body original)  [%bad unsupported]
+  ?>  ?=([%cncl [%tsgr * [%cncl *]] *] body)
+  =/  split  (split-union-arguments q.q.p.body 0)
+  ?~  split  [%bad unsupported]
+  =/  tried=(each (list type) tang)
+    (mule |.((turn cases.u.split |=(s=spec (~(play ut p.typ) [%kttr s])))))
+  ?.  ?=([%& *] tried)  [%bad unsupported]
+  =/  cases=(list imported)
+    (turn p.tried |=(t=type (walk module t sig seen context)))
+  =/  err  (first-bads cases)
+  ?^  err  [%bad u.err]
+  ?.  (all-disjoint cases)
+    [%bad ?:(is-cell 'a Hoon $^ union has overlapping cases' 'a Hoon union has overlapping cases')]
+  =/  rewritten=hoon  original(q.p body(q.q.p args.u.split))
+  =/  attempt=(each type tang)  (mule |.((~(play ut p.typ) rewritten)))
+  ?.  ?=([%& *] attempt)  [%bad unsupported]
+  =/  out=imported  (walk module p.attempt sig seen context)
+  ?.  ?=([%apply *] out)  [%bad unsupported]
+  ?.  =(name.out u.alias)  [%bad unsupported]
+  =/  replacement=imported
+    [%fork (sort cases |=(pair=[imported imported] (dor -.pair +.pair)))]
+  =/  args  (replace-union-argument args.out index.u.split replacement)
+  ?~  args  [%bad unsupported]
+  [%apply name.out u.args]
+::
 ++  walk
   |=  [module=term typ=type sig=signatures seen=visiting context=(unit type)]
   ^-  imported
@@ -788,10 +908,9 @@
       [%fork (sort cases |=(pair=[imported imported] (dor -.pair +.pair)))]
     [%hint *]  $(typ q.typ)
     [%hold *]
-      ?:  &(?=([%tsls [%note * *] *] q.typ) (has-spec-cell-union q.typ))
-        [%bad 'a Hoon $^ union needs a source-level disjointness check']
-      ?:  &(?=([%tsls [%note * *] *] q.typ) (has-spec-general-union q.typ))
-        [%bad 'a Hoon union needs a source-level disjointness check']
+      ?:  &(?=([%tsls [%note * *] *] q.typ) |((has-spec-cell-union q.typ) (has-spec-general-union q.typ)))
+        =/  nm  (hold-name q.typ)
+        (collection-union typ module sig [[typ nm] seen] context)
       =/  named=(unit term)  (match-signature q.typ sig)
       ?^  named
         =/  name  u.named
@@ -1230,6 +1349,16 @@
       (crip "explicit-three: {(show-result (sample %explicit-three))}")
       (crip "explicit-unknown: {(show-result (sample %explicit-unknown))}")
       (crip "explicit-nested: {(show-result (sample %explicit-nested))}")
+      (crip "collection-union-list: {(show-result (sample %collection-union-list))}")
+      (crip "collection-union-set: {(show-result (sample %collection-union-set))}")
+      (crip "collection-union-map-key: {(show-result (sample %collection-union-map-key))}")
+      (crip "collection-union-map-value: {(show-result (sample %collection-union-map-value))}")
+      (crip "collection-union-unit: {(show-result (sample %collection-union-unit))}")
+      (crip "collection-union-collapsed: {(show-result (sample %collection-union-collapsed))}")
+      (crip "collection-union-multiple: {(show-result (sample %collection-union-multiple))}")
+      (crip "collection-union-nested: {(show-result (sample %collection-union-nested))}")
+      (crip "collection-union-dependent: {(show-result (sample %collection-union-dependent))}")
+      (crip "collection-union-shadow: {(show-result (read-named %shadow %collection-union-shadow xc))}")
       (crip "explicit-list: {(show-result (sample %explicit-list))}")
       (crip "explicit-set: {(show-result (sample %explicit-set))}")
       (crip "explicit-faces: {(show-result (sample %explicit-faces))}")

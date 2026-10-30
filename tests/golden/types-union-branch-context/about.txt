@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: "tags take their union from context"; Patterns: "An arm that earlier arms cover ... is an error."
+tests: An explicit union cast or known sample supplies branch result context, including tagged records, nested and grouped branches; invalid tags, duplicate patterns and unsupported subjects are reported without claiming a complete check.
+expect: parses
+expect-types: a partial inference report

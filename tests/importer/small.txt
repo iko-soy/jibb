@@ -66,4 +66,13 @@
 +$  nested-invalid-cell  [id=@ud value=$^(@ud @ud)]
 +$  valid-cell  $^(@ud [x=@ud y=@ud])
 +$  invalid-cell  $^(@ud @ud)
++$  collection-union-list  (list $?([%x @ud] [%y @t]))
++$  collection-union-set  (set $%([%x @ud] [%y @t]))
++$  collection-union-map-key  (map $?([%x @ud] [%y @t]) (list @ud))
++$  collection-union-map-value  (map (list @ud) $^(@ud [x=@ud y=@t]))
++$  collection-union-unit  (unit $?(%x %y %z))
++$  collection-union-collapsed  (list $?([%x @ud] [%x @ud]))
++$  collection-union-multiple  (map $?([%x @ud] [%y @t]) $?([%a @ud] [%b @t]))
++$  collection-union-nested  (list [id=@ud value=$?([%x @ud] [%y @t])])
++$  collection-union-dependent  (list $?(action [%x @t]))
 --

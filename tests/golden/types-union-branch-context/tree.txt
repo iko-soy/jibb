@@ -1,0 +1,120 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %add)
+      (const 3:3 %remove)
+      (cell 4:3
+        (const 4:4 %noted)
+        (face 4:11 text (aura 4:16 @t)))))
+  (value 5:1 choose
+    (gate 5:11
+      (face 5:14 b (flag 5:16))
+      (body 6:3
+        (cast 6:3
+          (ref 6:6 msg)
+          (body 7:5
+            (branch 7:5
+              (wing 7:8 b)
+              (arm 8:7 (lit 8:7 %.y) (lit 8:11 %add))
+              (arm 9:7 (lit 9:7 %.n) (lit 9:11 %remove))))))))
+  (value 10:1 records
+    (gate 10:12
+      (face 10:15 b (flag 10:17))
+      (body 11:3
+        (cast 11:3
+          (ref 11:6 msg)
+          (body 12:5
+            (branch 12:5
+              (wing 12:8 b)
+              (arm 13:7
+                (lit 13:7 %.y)
+                (tuple 13:11 (lit 13:12 %noted) (str 13:19 "hi")))
+              (arm 14:7 (lit 14:7 %.n) (lit 14:11 %add))))))))
+  (value 15:1 bad
+    (gate 15:8
+      (face 15:11 b (flag 15:13))
+      (body 16:3
+        (cast 16:3
+          (ref 16:6 msg)
+          (body 17:5
+            (branch 17:5
+              (wing 17:8 b)
+              (arm 18:7 (lit 18:7 %.y) (lit 18:11 %add))
+              (arm 19:7 (lit 19:7 %.n) (lit 19:11 %missing))))))))
+  (value 20:1 bad-first
+    (gate 20:14
+      (face 20:17 b (flag 20:19))
+      (body 21:3
+        (cast 21:3
+          (ref 21:6 msg)
+          (body 22:5
+            (branch 22:5
+              (wing 22:8 b)
+              (arm 23:7 (lit 23:7 %.y) (lit 23:11 %missing))
+              (arm 24:7 (lit 24:7 %.n) (lit 24:11 %remove))))))))
+  (value 25:1 nested
+    (gate 25:11
+      (face 25:14 b (flag 25:16))
+      (body 26:3
+        (cast 26:3
+          (ref 26:6 msg)
+          (body 27:5
+            (branch 27:5
+              (wing 27:8 b)
+              (arm 28:7
+                (lit 28:7 %.y)
+                (body 29:9
+                  (branch 29:9
+                    (wing 29:12 b)
+                    (arm 30:11 (lit 30:11 %.y) (lit 30:15 %add))
+                    (arm 31:11 (lit 31:11 %.n) (lit 31:15 %remove)))))
+              (arm 32:7 (lit 32:7 %.n) (lit 32:11 %remove))))))))
+  (value 33:1 grouped
+    (gate 33:12
+      (face 33:15 b (flag 33:17))
+      (body 34:3
+        (cast 34:3
+          (ref 34:6 msg)
+          (body 35:5
+            (group 35:5
+              (branch 36:7
+                (wing 36:10 b)
+                (arm 37:9 (lit 37:9 %.y) (lit 37:13 %add))
+                (arm 38:9 (lit 38:9 %.n) (lit 38:13 %remove)))))))))
+  (value 39:1 consume
+    (gate 39:12
+      (face 39:15 x (ref 39:17 msg))
+      (str 39:21 "ok")))
+  (value 40:1 call
+    (gate 40:9
+      (face 40:12 b (flag 40:14))
+      (body 41:3
+        (group 41:3
+          (call 41:4
+            (wing 41:4 consume)
+            (branch 42:5
+              (wing 42:8 b)
+              (arm 43:7 (lit 43:7 %.y) (lit 43:11 %add))
+              (arm 44:7 (lit 44:7 %.n) (lit 44:11 %remove))))))))
+  (value 45:1 repeated
+    (gate 45:13
+      (face 45:16 b (flag 45:18))
+      (body 46:3
+        (cast 46:3
+          (ref 46:6 msg)
+          (body 47:5
+            (branch 47:5
+              (wing 47:8 b)
+              (arm 48:7 (lit 48:7 %.y) (lit 48:11 %add))
+              (arm 49:7 (lit 49:7 %.y) (lit 49:11 %remove))))))))
+  (value 50:1 non-loobean
+    (gate 50:16
+      (face 50:19 x (aura 50:21 @t))
+      (body 51:3
+        (cast 51:3
+          (ref 51:6 msg)
+          (body 52:5
+            (branch 52:5
+              (wing 52:8 x)
+              (arm 53:7 (str 53:7 "a") (lit 53:11 %add))
+              (arm 54:7 (any 54:7) (lit 54:9 %remove)))))))))

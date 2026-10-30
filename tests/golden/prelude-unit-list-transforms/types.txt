@@ -50,3 +50,4 @@ partial inference; module not checked
 ++ lien: sample mold is not supported by partial inference
 ++ roll: sample mold is not supported by partial inference
 ++ reel: sample mold is not supported by partial inference
+++ flit: expression is not supported by partial inference

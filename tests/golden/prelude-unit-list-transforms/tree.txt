@@ -609,4 +609,19 @@
                       (wing 231:22 combine)
                       (wing 231:30 item)
                       (group 231:35
-                        (call 231:36 (wing 231:36 reel) (wing 231:41 rest) (wing 231:46 start) (wing 231:52 combine))))))))))))))
+                        (call 231:36 (wing 231:36 reel) (wing 231:41 rest) (wing 231:46 start) (wing 231:52 combine)))))))))))))
+  (value 233:1 flit
+    (gate 233:9
+      (face 233:12 predicate
+        (fn 233:22 (tvar 233:25 A) (flag 233:27)))
+      (body 234:3
+        (gate 234:3
+          (face 234:6 value (tvar 234:12 A))
+          (body 235:5
+            (branch 235:5
+              (group 235:8
+                (call 235:9 (wing 235:9 predicate) (wing 235:19 value)))
+              (arm 236:7
+                (lit 236:7 %.y)
+                (unit 236:11 (wing 236:12 value)))
+              (arm 237:7 (lit 237:7 %.n) (lit 237:11 ~)))))))))

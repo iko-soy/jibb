@@ -1424,8 +1424,39 @@
 231:52 name combine
 231:59 tight glyph )
 231:60 tight glyph )
-231:61 DEDENT
-231:61 DEDENT
-231:61 DEDENT
-231:61 DEDENT
-231:61 NEWLINE
+233:1 DEDENT
+233:1 DEDENT
+233:1 DEDENT
+233:1 DEDENT
+233:1 NEWLINE
+233:1 glyph ++
+233:4 name flit
+233:9 glyph |=
+233:12 name predicate
+233:21 tight glyph =
+233:22 tight glyph $-(
+233:25 tight tvar A
+233:27 glyph ?
+233:28 tight glyph )
+234:3 INDENT
+234:3 glyph |=
+234:6 name value
+234:11 tight glyph =
+234:12 tight tvar A
+235:5 INDENT
+235:5 glyph ?-
+235:8 glyph (
+235:9 tight name predicate
+235:19 name value
+235:24 tight glyph )
+236:7 INDENT
+236:7 lit %.y
+236:11 glyph `
+236:12 tight name value
+237:7 NEWLINE
+237:7 lit %.n
+237:11 lit ~
+237:12 DEDENT
+237:12 DEDENT
+237:12 DEDENT
+237:12 NEWLINE
