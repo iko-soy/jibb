@@ -36,3 +36,14 @@ partial inference; module not checked
 ++ bridge: cast mold is not supported by partial inference
 partial inference; module not checked
 prelude source does not parse; module import inference unsupported
+partial inference; module not checked
+++ attempt: name is not available to partial inference
+partial inference; module not checked
+++ attempt: name is not available to partial inference
+partial inference; module not checked
+++ attempt: name is not available to partial inference
+partial inference; module not checked
+prelude source does not parse; module import inference unsupported
+partial inference; module not checked
+++ attempt: name is not available to partial inference
+++ direct: sample mold is not supported by partial inference

@@ -1,0 +1,4 @@
+source: Overview, Prelude: "Jetted prelude functions have working Jibb implementations"; Molds: type variables are generalized per `++`.
+tests: The actual prelude list helpers infer and instantiate independently for cords and ships, including through an imported module; incompatible list elements and unrelated unresolved tags fail closed.
+expect: parses
+expect-types: a partial inference report

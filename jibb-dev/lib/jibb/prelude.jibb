@@ -37,9 +37,10 @@
 ++ weld |= args=[(list A) (list A)]
   ?- args
     [xs ys]
-      ?- xs
-        ~ ys
-        [item rest] [item (weld rest ys)]
+      ^- (list A)
+        ?- xs
+          ~ ys
+          [item rest] [item (weld rest ys)]
 
 ++ turn |= args=[(list A) $-(A B)]
   ?- args

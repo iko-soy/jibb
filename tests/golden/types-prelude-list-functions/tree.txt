@@ -1,0 +1,40 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 texts
+    (group 2:10
+      (call 2:11 (wing 2:11 lure) (str 2:16 "hi"))))
+  (value 3:1 ships
+    (group 3:10
+      (call 3:11 (wing 3:11 lure) (lit 3:16 ~zod))))
+  (value 4:1 joined
+    (group 4:11
+      (call 4:12
+        (wing 4:12 weld)
+        (list 4:17 (str 4:19 "a"))
+        (list 4:24 (str 4:26 "b")))))
+  (value 5:1 joined-ships
+    (group 5:17
+      (call 5:18
+        (wing 5:18 weld)
+        (list 5:23 (lit 5:25 ~zod))
+        (list 5:31 (lit 5:33 ~zod)))))
+  (value 6:1 appended
+    (group 6:13
+      (call 6:14
+        (wing 6:14 snoc)
+        (list 6:19 (str 6:21 "a"))
+        (str 6:26 "b"))))
+  (value 7:1 imported (wing 7:13 value.lib))
+  (value 8:1 mismatch
+    (group 8:13
+      (call 8:14
+        (wing 8:14 weld)
+        (list 8:19 (str 8:21 "a"))
+        (list 8:26 (lit 8:28 ~zod)))))
+  (value 9:1 pending
+    (body 10:3
+      (trace 10:3
+        (lit 10:6 %unknown)
+        (body 11:5
+          (group 11:5
+            (call 11:6 (wing 11:6 lure) (str 11:11 "hi"))))))))

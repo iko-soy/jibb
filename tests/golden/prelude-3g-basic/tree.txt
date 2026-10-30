@@ -87,64 +87,67 @@
           (arm 39:5
             (cell 39:5 (bind 39:6 xs) (bind 39:9 ys))
             (body 40:7
-              (branch 40:7
-                (wing 40:10 xs)
-                (arm 41:9 (lit 41:9 ~) (wing 41:11 ys))
-                (arm 42:9
-                  (cell 42:9 (bind 42:10 item) (bind 42:15 rest))
-                  (tuple 42:21
-                    (wing 42:22 item)
-                    (group 42:27
-                      (call 42:28 (wing 42:28 weld) (wing 42:33 rest) (wing 42:38 ys))))))))))))
-  (value 44:1 turn
-    (gate 44:9
-      (face 44:12 args
-        (cell 44:17
-          (apply 44:18 list (tvar 44:24 A))
-          (fn 44:27 (tvar 44:30 A) (tvar 44:32 B))))
-      (body 45:3
-        (branch 45:3
-          (wing 45:6 args)
-          (arm 46:5
-            (cell 46:5 (bind 46:6 xs) (bind 46:9 f))
-            (body 47:7
-              (branch 47:7
-                (wing 47:10 xs)
-                (arm 48:9 (lit 48:9 ~) (lit 48:11 ~))
-                (arm 49:9
-                  (cell 49:9 (bind 49:10 item) (bind 49:15 rest))
-                  (tuple 49:21
-                    (group 49:22
-                      (call 49:23 (wing 49:23 f) (wing 49:25 item)))
-                    (group 49:31
-                      (call 49:32 (wing 49:32 turn) (wing 49:37 rest) (wing 49:42 f))))))))))))
-  (mold 51:1 dime
-    (cell 51:9
-      (face 51:10 p (aura 51:12 @ta))
-      (face 51:16 q (aura 51:18 @))))
-  (mold 53:1 hair
-    (cell 53:9
-      (face 53:10 p (aura 53:12 @ud))
-      (face 53:16 q (aura 53:18 @ud))))
-  (mold 55:1 pint
-    (cell 55:9
-      (face 55:10 p
-        (cell 55:12
-          (face 55:13 p (aura 55:15 @))
-          (face 55:17 q (aura 55:19 @))))
-      (face 55:22 q
-        (cell 55:24
-          (face 55:25 p (aura 55:27 @))
-          (face 55:29 q (aura 55:31 @))))))
-  (mold 57:1 coin
-    (union 58:3
-      (cell 58:3
-        (const 58:4 %$)
-        (face 58:7 p (ref 58:9 dime)))
+              (cast 40:7
+                (apply 40:10 list (tvar 40:16 A))
+                (body 41:9
+                  (branch 41:9
+                    (wing 41:12 xs)
+                    (arm 42:11 (lit 42:11 ~) (wing 42:13 ys))
+                    (arm 43:11
+                      (cell 43:11 (bind 43:12 item) (bind 43:17 rest))
+                      (tuple 43:23
+                        (wing 43:24 item)
+                        (group 43:29
+                          (call 43:30 (wing 43:30 weld) (wing 43:35 rest) (wing 43:40 ys))))))))))))))
+  (value 45:1 turn
+    (gate 45:9
+      (face 45:12 args
+        (cell 45:17
+          (apply 45:18 list (tvar 45:24 A))
+          (fn 45:27 (tvar 45:30 A) (tvar 45:32 B))))
+      (body 46:3
+        (branch 46:3
+          (wing 46:6 args)
+          (arm 47:5
+            (cell 47:5 (bind 47:6 xs) (bind 47:9 f))
+            (body 48:7
+              (branch 48:7
+                (wing 48:10 xs)
+                (arm 49:9 (lit 49:9 ~) (lit 49:11 ~))
+                (arm 50:9
+                  (cell 50:9 (bind 50:10 item) (bind 50:15 rest))
+                  (tuple 50:21
+                    (group 50:22
+                      (call 50:23 (wing 50:23 f) (wing 50:25 item)))
+                    (group 50:31
+                      (call 50:32 (wing 50:32 turn) (wing 50:37 rest) (wing 50:42 f))))))))))))
+  (mold 52:1 dime
+    (cell 52:9
+      (face 52:10 p (aura 52:12 @ta))
+      (face 52:16 q (aura 52:18 @))))
+  (mold 54:1 hair
+    (cell 54:9
+      (face 54:10 p (aura 54:12 @ud))
+      (face 54:16 q (aura 54:18 @ud))))
+  (mold 56:1 pint
+    (cell 56:9
+      (face 56:10 p
+        (cell 56:12
+          (face 56:13 p (aura 56:15 @))
+          (face 56:17 q (aura 56:19 @))))
+      (face 56:22 q
+        (cell 56:24
+          (face 56:25 p (aura 56:27 @))
+          (face 56:29 q (aura 56:31 @))))))
+  (mold 58:1 coin
+    (union 59:3
       (cell 59:3
-        (const 59:4 %blob)
-        (face 59:10 p (noun 59:12)))
+        (const 59:4 %$)
+        (face 59:7 p (ref 59:9 dime)))
       (cell 60:3
-        (const 60:4 %many)
-        (face 60:10 p
-          (apply 60:12 list (ref 60:18 coin)))))))
+        (const 60:4 %blob)
+        (face 60:10 p (noun 60:12)))
+      (cell 61:3
+        (const 61:4 %many)
+        (face 61:10 p
+          (apply 61:12 list (ref 61:18 coin)))))))

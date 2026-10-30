@@ -1,0 +1,15 @@
+partial inference; module not checked
+++ texts: (list @t)
+++ ships: (list @p)
+++ joined: (list @t)
+++ joined-ships: (list @p)
+++ appended: (list @t)
+++ imported: (list @p)
+++ mismatch: list item does not fit its expected type
+/tests/golden/types-prelude-list-functions/source.jibb:8:14: expected item has type @t
+++ mismatch (weld ~["a"] ~[~zod])
+             ^
+/tests/golden/types-prelude-list-functions/source.jibb:8:28: list item has type @p
+++ mismatch (weld ~["a"] ~[~zod])
+                           ^
+++ pending: tag needs context in partial inference

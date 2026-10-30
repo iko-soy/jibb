@@ -1,0 +1,11 @@
+/=  lib /ui/lib
+++ texts (lure "hi")
+++ ships (lure ~zod)
+++ joined (weld ~["a"] ~["b"])
+++ joined-ships (weld ~[~zod] ~[~zod])
+++ appended (snoc ~["a"] "b")
+++ imported value.lib
+++ mismatch (weld ~["a"] ~[~zod])
+++ pending
+  ~& %unknown
+    (lure "hi")

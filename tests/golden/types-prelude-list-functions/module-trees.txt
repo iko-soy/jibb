@@ -1,0 +1,5 @@
+/ui/lib.jibb
+(module
+  (value 1:1 value
+    (group 1:10
+      (call 1:11 (wing 1:11 lure) (lit 1:16 ~zod)))))

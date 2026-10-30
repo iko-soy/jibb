@@ -11,3 +11,6 @@ that source-wrapper and prepared-interface outputs agree with each other and
 with the golden report under eval and on the ship.
 An imported list stays representable with an omitted or altered prelude
 list, but its list literals, cons, null and list patterns, including literals in branches, fail closed; a malformed prelude is rejected.
+Prelude helpers cannot infer through a missing or altered canonical list, or
+through a local mold that shadows the prelude's list. A noncanonical list
+cannot leak through a transitive prelude mold alias either.

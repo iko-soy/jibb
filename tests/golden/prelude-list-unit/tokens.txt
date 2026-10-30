@@ -190,76 +190,83 @@
 39:9 name ys
 39:11 tight glyph ]
 40:7 INDENT
-40:7 glyph ?-
-40:10 name xs
+40:7 glyph ^-
+40:10 glyph (
+40:11 tight name list
+40:16 tvar A
+40:17 tight glyph )
 41:9 INDENT
-41:9 lit ~
-41:11 name ys
-42:9 NEWLINE
-42:9 glyph [
-42:10 tight name item
-42:15 name rest
-42:19 tight glyph ]
-42:21 glyph [
-42:22 tight name item
-42:27 glyph (
-42:28 tight name weld
-42:33 name rest
-42:38 name ys
-42:40 tight glyph )
-42:41 tight glyph ]
-44:1 DEDENT
-44:1 DEDENT
-44:1 DEDENT
-44:1 DEDENT
-44:1 NEWLINE
-44:1 glyph ++
-44:4 name turn
-44:9 glyph |=
-44:12 name args
-44:16 tight glyph =
-44:17 tight glyph [
-44:18 tight glyph (
-44:19 tight name list
-44:24 tvar A
-44:25 tight glyph )
-44:27 glyph $-(
-44:30 tight tvar A
-44:32 tvar B
-44:33 tight glyph )
-44:34 tight glyph ]
-45:3 INDENT
-45:3 glyph ?-
-45:6 name args
-46:5 INDENT
-46:5 glyph [
-46:6 tight name xs
-46:9 name f
-46:10 tight glyph ]
-47:7 INDENT
-47:7 glyph ?-
-47:10 name xs
-48:9 INDENT
-48:9 lit ~
-48:11 lit ~
-49:9 NEWLINE
-49:9 glyph [
-49:10 tight name item
-49:15 name rest
-49:19 tight glyph ]
-49:21 glyph [
-49:22 tight glyph (
-49:23 tight name f
-49:25 name item
-49:29 tight glyph )
-49:31 glyph (
-49:32 tight name turn
-49:37 name rest
-49:42 name f
-49:43 tight glyph )
-49:44 tight glyph ]
-49:45 DEDENT
-49:45 DEDENT
-49:45 DEDENT
-49:45 DEDENT
-49:45 NEWLINE
+41:9 glyph ?-
+41:12 name xs
+42:11 INDENT
+42:11 lit ~
+42:13 name ys
+43:11 NEWLINE
+43:11 glyph [
+43:12 tight name item
+43:17 name rest
+43:21 tight glyph ]
+43:23 glyph [
+43:24 tight name item
+43:29 glyph (
+43:30 tight name weld
+43:35 name rest
+43:40 name ys
+43:42 tight glyph )
+43:43 tight glyph ]
+45:1 DEDENT
+45:1 DEDENT
+45:1 DEDENT
+45:1 DEDENT
+45:1 DEDENT
+45:1 NEWLINE
+45:1 glyph ++
+45:4 name turn
+45:9 glyph |=
+45:12 name args
+45:16 tight glyph =
+45:17 tight glyph [
+45:18 tight glyph (
+45:19 tight name list
+45:24 tvar A
+45:25 tight glyph )
+45:27 glyph $-(
+45:30 tight tvar A
+45:32 tvar B
+45:33 tight glyph )
+45:34 tight glyph ]
+46:3 INDENT
+46:3 glyph ?-
+46:6 name args
+47:5 INDENT
+47:5 glyph [
+47:6 tight name xs
+47:9 name f
+47:10 tight glyph ]
+48:7 INDENT
+48:7 glyph ?-
+48:10 name xs
+49:9 INDENT
+49:9 lit ~
+49:11 lit ~
+50:9 NEWLINE
+50:9 glyph [
+50:10 tight name item
+50:15 name rest
+50:19 tight glyph ]
+50:21 glyph [
+50:22 tight glyph (
+50:23 tight name f
+50:25 name item
+50:29 tight glyph )
+50:31 glyph (
+50:32 tight name turn
+50:37 name rest
+50:42 name f
+50:43 tight glyph )
+50:44 tight glyph ]
+50:45 DEDENT
+50:45 DEDENT
+50:45 DEDENT
+50:45 DEDENT
+50:45 NEWLINE

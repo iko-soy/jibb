@@ -7390,9 +7390,17 @@
   =/  molds=imolds  (collect-simple-molds ds)
   =/  names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   =/  globals=(list term)  (global-value-names ds)
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ ~ ~ ~ ~ ~ | at names ~]
+  ::  Remove raw list before inferring any template, so an altered list
+  ::  cannot leak through an alias. Its name remains reserved either way.
+  =/  declared=?  (lien names |=(name=term =(%list name)))
+  =/  env-molds=imolds  molds
+  =?  env-molds  declared
+    (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
+  =/  reserved=(list term)  ?:(declared ~[%list] ~)
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ ~ reserved ~ ~ ~ | at names ~]
   =/  mt=imold-types  (partial-prelude-molds molds state)
-  =/  env=ienv  (resolve-supported-defs ds molds globals ~ ~ ~ ~ ~ ~ at ~)
+  =/  partial=ifile  [~ mt at]
+  =/  env=ienv  (resolve-supported-defs ds env-molds globals ~ ~ ~ ~ ~ reserved at `partial)
   `[env mt at]
 ::
 +$  iprelude  [iface=ifile values=(list term) molds=(list term)]

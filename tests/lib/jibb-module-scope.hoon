@@ -38,7 +38,7 @@
   =/  after-fixtures=(list [at=path source=@t])
     [[~[%ui %safe %jibb] library] duplicates]
   =/  after  (golden-types-with-prelude:jibb /ui/main/jibb after-source ~ ~ after-fixtures prelude)
-  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after real-parity list-guard])
+  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after real-parity list-guard self-prelude-guards])
 ::
 ++  real-parity
   ^-  @t
@@ -64,4 +64,20 @@
   =/  b  (golden-types-with-prelude:jibb /ui/main/jibb source ext ~ ~ changed)
   =/  c  (golden-types-with-prelude:jibb /ui/main/jibb source ext ~ ~ malformed)
   (of-wain:format ~[a b c])
+::
+++  self-prelude-guards
+  ^-  @t
+  =/  src=@t  (crip "++ attempt (helper \"hi\")\0a")
+  =/  altered=@t  (crip "+$ list |$ [A] [A A]\0a++ helper |= x=@t ^- (list @t) [x x]\0a")
+  =/  omitted=@t  (crip "++ helper |= x=@t ^- (list @t) [x x]\0a")
+  =/  shadow=@t  (crip "+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a++ helper |= x=@t\0a  +$ list @t\0a  ^- list x\0a")
+  =/  malformed=@t  (crip "+$ list |$ [A]\0a")
+  =/  alias-source=@t  (crip "++ attempt (helper \"hi\")\0a++ direct |= x=hidden x\0a")
+  =/  alias-prelude=@t  (crip "+$ list |$ [A] [A A]\0a+$ hidden (list @t)\0a++ helper |= x=hidden x\0a")
+  =/  a  (golden-types-with-prelude:jibb /ui/main/jibb src ~ ~ ~ altered)
+  =/  b  (golden-types-with-prelude:jibb /ui/main/jibb src ~ ~ ~ omitted)
+  =/  c  (golden-types-with-prelude:jibb /ui/main/jibb src ~ ~ ~ shadow)
+  =/  d  (golden-types-with-prelude:jibb /ui/main/jibb src ~ ~ ~ malformed)
+  =/  e  (golden-types-with-prelude:jibb /ui/main/jibb alias-source ~ ~ ~ alias-prelude)
+  (of-wain:format ~[a b c d e])
 --
