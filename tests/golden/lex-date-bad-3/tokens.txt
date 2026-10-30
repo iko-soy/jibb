@@ -1,0 +1,3 @@
+/tests/golden/lex-date-bad-3/source.jibb:1:43: a date or duration takes at most four sub-second groups
+++ x ~2026.1.1..1.1.1..0000.0000.0000.0000.0000
+                                          ^

@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`?+`, `?:`: `?-` is the branch."
+tests: `?~`, a branching rune the list doesn't name
+expect: error at 1:7 — `?~` is left out: `?-` is the branch (design question 30)

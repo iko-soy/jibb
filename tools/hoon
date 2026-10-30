@@ -71,7 +71,16 @@ def cord_binding(spec):
             data = f.read()
     except OSError as e:
         raise ue.ToolError('--cord %s: %s' % (spec, e.strerror))
-    return '=/  %s=@t  %s' % (name, ue.cord_literal(data)), name
+    # One literal per line, joined by rap: Hoon reads one long cord
+    # literal in more than linear time.
+    lines = [l + b'\n' for l in data.split(b'\n')]
+    lines[-1] = lines[-1][:-1]
+    if not lines[-1]:
+        lines.pop()
+    if not lines:
+        return "=/  %s=@t  ''" % name, name
+    cords = ' '.join(ue.cord_literal(l) for l in lines)
+    return '=/  %s=@t  (rap 3 `(list @t)`~[%s])' % (name, cords), name
 
 
 def main(argv):

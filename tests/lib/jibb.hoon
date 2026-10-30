@@ -21,689 +21,1273 @@
 ::
 /+  jibb
 /*  src-1  %jibb  /tests/golden/doc-core-02-update/source/jibb
+/*  tok-1  %txt   /tests/golden/doc-core-02-update/tokens/txt
+/*  tre-1  %txt   /tests/golden/doc-core-02-update/tree/txt
 /*  src-2  %jibb  /tests/golden/doc-grammar-01-imports/source/jibb
+/*  tok-2  %txt   /tests/golden/doc-grammar-01-imports/tokens/txt
+/*  tre-2  %txt   /tests/golden/doc-grammar-01-imports/tree/txt
 /*  src-3  %jibb  /tests/golden/doc-grammar-02-buttons/source/jibb
+/*  tok-3  %txt   /tests/golden/doc-grammar-02-buttons/tokens/txt
+/*  tre-3  %txt   /tests/golden/doc-grammar-02-buttons/tree/txt
 /*  src-4  %jibb  /tests/golden/doc-grammar-03-view-day/source/jibb
+/*  tok-4  %txt   /tests/golden/doc-grammar-03-view-day/tokens/txt
+/*  tre-4  %txt   /tests/golden/doc-grammar-03-view-day/tree/txt
 /*  src-5  %jibb  /tests/golden/doc-grammar-04-step/source/jibb
+/*  tok-5  %txt   /tests/golden/doc-grammar-04-step/tokens/txt
+/*  tre-5  %txt   /tests/golden/doc-grammar-04-step/tree/txt
 /*  src-6  %jibb  /tests/golden/doc-grammar-06-cart-store/source/jibb
+/*  tok-6  %txt   /tests/golden/doc-grammar-06-cart-store/tokens/txt
+/*  tre-6  %txt   /tests/golden/doc-grammar-06-cart-store/tree/txt
 /*  src-7  %jibb  /tests/golden/doc-grammar-07-basket/source/jibb
+/*  tok-7  %txt   /tests/golden/doc-grammar-07-basket/tokens/txt
+/*  tre-7  %txt   /tests/golden/doc-grammar-07-basket/tree/txt
 /*  src-8  %jibb  /tests/golden/doc-overview-01-cmd-sub/source/jibb
+/*  tok-8  %txt   /tests/golden/doc-overview-01-cmd-sub/tokens/txt
+/*  tre-8  %txt   /tests/golden/doc-overview-01-cmd-sub/tree/txt
 /*  src-9  %jibb  /tests/golden/doc-overview-02-theme/source/jibb
+/*  tok-9  %txt   /tests/golden/doc-overview-02-theme/tokens/txt
+/*  tre-9  %txt   /tests/golden/doc-overview-02-theme/tree/txt
 /*  src-10  %jibb  /tests/golden/doc-overview-04-todo-api/source/jibb
+/*  tok-10  %txt   /tests/golden/doc-overview-04-todo-api/tokens/txt
+/*  tre-10  %txt   /tests/golden/doc-overview-04-todo-api/tree/txt
 /*  src-11  %jibb  /tests/golden/doc-overview-08-about/source/jibb
+/*  tok-11  %txt   /tests/golden/doc-overview-08-about/tokens/txt
+/*  tre-11  %txt   /tests/golden/doc-overview-08-about/tree/txt
 /*  src-12  %jibb  /tests/golden/doc-overview-09-blog-index/source/jibb
+/*  tok-12  %txt   /tests/golden/doc-overview-09-blog-index/tokens/txt
+/*  tre-12  %txt   /tests/golden/doc-overview-09-blog-index/tree/txt
 /*  src-13  %jibb  /tests/golden/doc-overview-10-todo-list/source/jibb
+/*  tok-13  %txt   /tests/golden/doc-overview-10-todo-list/tokens/txt
+/*  tre-13  %txt   /tests/golden/doc-overview-10-todo-list/tree/txt
 /*  src-14  %jibb  /tests/golden/doc-overview-11-index/source/jibb
+/*  tok-14  %txt   /tests/golden/doc-overview-11-index/tokens/txt
+/*  tre-14  %txt   /tests/golden/doc-overview-11-index/tree/txt
 /*  src-15  %jibb  /tests/golden/inline-base32/source/jibb
+/*  tok-15  %txt   /tests/golden/inline-base32/tokens/txt
+/*  tre-15  %txt   /tests/golden/inline-base32/tree/txt
 /*  src-16  %jibb  /tests/golden/inline-call/source/jibb
+/*  tok-16  %txt   /tests/golden/inline-call/tokens/txt
+/*  tre-16  %txt   /tests/golden/inline-call/tree/txt
 /*  src-17  %jibb  /tests/golden/inline-cell/source/jibb
+/*  tok-17  %txt   /tests/golden/inline-cell/tokens/txt
+/*  tre-17  %txt   /tests/golden/inline-cell/tree/txt
 /*  src-18  %jibb  /tests/golden/inline-change-done/source/jibb
+/*  tok-18  %txt   /tests/golden/inline-change-done/tokens/txt
+/*  tre-18  %txt   /tests/golden/inline-change-done/tree/txt
 /*  src-19  %jibb  /tests/golden/inline-change-draft/source/jibb
+/*  tok-19  %txt   /tests/golden/inline-change-draft/tokens/txt
+/*  tre-19  %txt   /tests/golden/inline-change-draft/tree/txt
 /*  src-20  %jibb  /tests/golden/inline-crash/source/jibb
+/*  tok-20  %txt   /tests/golden/inline-crash/tokens/txt
+/*  tre-20  %txt   /tests/golden/inline-crash/tree/txt
 /*  src-21  %jibb  /tests/golden/inline-ctor-typed/source/jibb
+/*  tok-21  %txt   /tests/golden/inline-ctor-typed/tokens/txt
+/*  tre-21  %txt   /tests/golden/inline-ctor-typed/tree/txt
 /*  src-22  %jibb  /tests/golden/inline-date/source/jibb
+/*  tok-22  %txt   /tests/golden/inline-date/tokens/txt
+/*  tre-22  %txt   /tests/golden/inline-date/tree/txt
 /*  src-23  %jibb  /tests/golden/inline-decimal/source/jibb
+/*  tok-23  %txt   /tests/golden/inline-decimal/tokens/txt
+/*  tre-23  %txt   /tests/golden/inline-decimal/tree/txt
 /*  src-24  %jibb  /tests/golden/inline-duration/source/jibb
+/*  tok-24  %txt   /tests/golden/inline-duration/tokens/txt
+/*  tre-24  %txt   /tests/golden/inline-duration/tree/txt
 /*  src-25  %jibb  /tests/golden/inline-fold-mold/source/jibb
+/*  tok-25  %txt   /tests/golden/inline-fold-mold/tokens/txt
+/*  tre-25  %txt   /tests/golden/inline-fold-mold/tree/txt
 /*  src-26  %jibb  /tests/golden/inline-gate-mold/source/jibb
+/*  tok-26  %txt   /tests/golden/inline-gate-mold/tokens/txt
+/*  tre-26  %txt   /tests/golden/inline-gate-mold/tree/txt
 /*  src-27  %jibb  /tests/golden/inline-gate-samples/source/jibb
+/*  tok-27  %txt   /tests/golden/inline-gate-samples/tokens/txt
+/*  tre-27  %txt   /tests/golden/inline-gate-samples/tree/txt
 /*  src-28  %jibb  /tests/golden/inline-gate-wide/source/jibb
+/*  tok-28  %txt   /tests/golden/inline-gate-wide/tokens/txt
+/*  tre-28  %txt   /tests/golden/inline-gate-wide/tree/txt
 /*  src-29  %jibb  /tests/golden/inline-generic-mold/source/jibb
+/*  tok-29  %txt   /tests/golden/inline-generic-mold/tokens/txt
+/*  tre-29  %txt   /tests/golden/inline-generic-mold/tree/txt
 /*  src-30  %jibb  /tests/golden/inline-hex/source/jibb
+/*  tok-30  %txt   /tests/golden/inline-hex/tokens/txt
+/*  tre-30  %txt   /tests/golden/inline-hex/tree/txt
 /*  src-31  %jibb  /tests/golden/inline-import-mark-face-bad/source/jibb
-/*  src-32  %jibb  /tests/golden/inline-imports-after-definition/source/jibb
-/*  src-33  %jibb  /tests/golden/inline-island/source/jibb
-/*  src-34  %jibb  /tests/golden/inline-kinds/source/jibb
-/*  src-35  %jibb  /tests/golden/inline-knot/source/jibb
-/*  src-36  %jibb  /tests/golden/inline-leftout-barcab/source/jibb
-/*  src-37  %jibb  /tests/golden/inline-leftout-barcen/source/jibb
-/*  src-38  %jibb  /tests/golden/inline-leftout-barhep/source/jibb
-/*  src-39  %jibb  /tests/golden/inline-leftout-bartar/source/jibb
-/*  src-40  %jibb  /tests/golden/inline-leftout-buc-paren/source/jibb
-/*  src-41  %jibb  /tests/golden/inline-leftout-buccen/source/jibb
-/*  src-42  %jibb  /tests/golden/inline-leftout-cencol/source/jibb
-/*  src-43  %jibb  /tests/golden/inline-leftout-centis/source/jibb
-/*  src-44  %jibb  /tests/golden/inline-leftout-colon-wing/source/jibb
-/*  src-45  %jibb  /tests/golden/inline-leftout-colsig/source/jibb
-/*  src-46  %jibb  /tests/golden/inline-leftout-coltar/source/jibb
-/*  src-47  %jibb  /tests/golden/inline-leftout-dottar/source/jibb
-/*  src-48  %jibb  /tests/golden/inline-leftout-dottis/source/jibb
-/*  src-49  %jibb  /tests/golden/inline-leftout-faslus/source/jibb
-/*  src-50  %jibb  /tests/golden/inline-leftout-hephep/source/jibb
-/*  src-51  %jibb  /tests/golden/inline-leftout-kethep-wide/source/jibb
-/*  src-52  %jibb  /tests/golden/inline-leftout-kettar/source/jibb
-/*  src-53  %jibb  /tests/golden/inline-leftout-sail/source/jibb
-/*  src-54  %jibb  /tests/golden/inline-leftout-sigbar/source/jibb
-/*  src-55  %jibb  /tests/golden/inline-leftout-signed-float-auras/source/jibb
-/*  src-56  %jibb  /tests/golden/inline-leftout-tis-paren/source/jibb
-/*  src-57  %jibb  /tests/golden/inline-leftout-tisfas/source/jibb
-/*  src-58  %jibb  /tests/golden/inline-leftout-tisgal/source/jibb
-/*  src-59  %jibb  /tests/golden/inline-leftout-tisgar/source/jibb
-/*  src-60  %jibb  /tests/golden/inline-leftout-tistis/source/jibb
-/*  src-61  %jibb  /tests/golden/inline-leftout-wutcol/source/jibb
-/*  src-62  %jibb  /tests/golden/inline-leftout-wuthep-wide/source/jibb
-/*  src-63  %jibb  /tests/golden/inline-leftout-wutlus/source/jibb
-/*  src-64  %jibb  /tests/golden/inline-leftout-wutzap/source/jibb
-/*  src-65  %jibb  /tests/golden/inline-leftout-zap-not/source/jibb
-/*  src-66  %jibb  /tests/golden/inline-leftout-zapgar/source/jibb
-/*  src-67  %jibb  /tests/golden/inline-list/source/jibb
-/*  src-68  %jibb  /tests/golden/inline-list-parens/source/jibb
-/*  src-69  %jibb  /tests/golden/inline-literal-defaults/source/jibb
-/*  src-70  %jibb  /tests/golden/inline-load-slug/source/jibb
-/*  src-71  %jibb  /tests/golden/inline-local-names/source/jibb
-/*  src-72  %jibb  /tests/golden/inline-loobean/source/jibb
-/*  src-73  %jibb  /tests/golden/inline-mark-digit/source/jibb
-/*  src-74  %jibb  /tests/golden/inline-module-definitions/source/jibb
-/*  src-75  %jibb  /tests/golden/inline-mold-add/source/jibb
-/*  src-76  %jibb  /tests/golden/inline-mold-any-empty/source/jibb
-/*  src-77  %jibb  /tests/golden/inline-mold-atoms/source/jibb
-/*  src-78  %jibb  /tests/golden/inline-mold-constants/source/jibb
-/*  src-79  %jibb  /tests/golden/inline-mold-containers/source/jibb
-/*  src-80  %jibb  /tests/golden/inline-mold-gate/source/jibb
-/*  src-81  %jibb  /tests/golden/inline-mold-generic/source/jibb
-/*  src-82  %jibb  /tests/golden/inline-mold-opaque/source/jibb
-/*  src-83  %jibb  /tests/golden/inline-mold-paths/source/jibb
-/*  src-84  %jibb  /tests/golden/inline-mold-records/source/jibb
-/*  src-85  %jibb  /tests/golden/inline-namespaces/source/jibb
-/*  src-86  %jibb  /tests/golden/inline-no-operators/source/jibb
-/*  src-87  %jibb  /tests/golden/inline-no-subs/source/jibb
-/*  src-88  %jibb  /tests/golden/inline-null/source/jibb
-/*  src-89  %jibb  /tests/golden/inline-pair/source/jibb
-/*  src-90  %jibb  /tests/golden/inline-pairs-two-items/source/jibb
-/*  src-91  %jibb  /tests/golden/inline-path/source/jibb
-/*  src-92  %jibb  /tests/golden/inline-pattern-any/source/jibb
-/*  src-93  %jibb  /tests/golden/inline-pattern-cell/source/jibb
-/*  src-94  %jibb  /tests/golden/inline-pattern-crash-arm/source/jibb
-/*  src-95  %jibb  /tests/golden/inline-pattern-date-bad/source/jibb
-/*  src-96  %jibb  /tests/golden/inline-pattern-eq/source/jibb
-/*  src-97  %jibb  /tests/golden/inline-pattern-head-tag/source/jibb
-/*  src-98  %jibb  /tests/golden/inline-pattern-interpolated-bad/source/jibb
-/*  src-99  %jibb  /tests/golden/inline-pattern-list-bad/source/jibb
-/*  src-100  %jibb  /tests/golden/inline-pattern-literals/source/jibb
-/*  src-101  %jibb  /tests/golden/inline-pattern-loobean/source/jibb
-/*  src-102  %jibb  /tests/golden/inline-pattern-move-any/source/jibb
-/*  src-103  %jibb  /tests/golden/inline-pattern-name/source/jibb
-/*  src-104  %jibb  /tests/golden/inline-pattern-null/source/jibb
-/*  src-105  %jibb  /tests/golden/inline-pattern-pair-bad/source/jibb
-/*  src-106  %jibb  /tests/golden/inline-pattern-tail-tag/source/jibb
-/*  src-107  %jibb  /tests/golden/inline-pattern-term/source/jibb
-/*  src-108  %jibb  /tests/golden/inline-pattern-two-tags/source/jibb
-/*  src-109  %jibb  /tests/golden/inline-pattern-unit/source/jibb
-/*  src-110  %jibb  /tests/golden/inline-qath/source/jibb
-/*  src-111  %jibb  /tests/golden/inline-requests/source/jibb
-/*  src-112  %jibb  /tests/golden/inline-scry-case/source/jibb
-/*  src-113  %jibb  /tests/golden/inline-self-reference/source/jibb
-/*  src-114  %jibb  /tests/golden/inline-ship/source/jibb
-/*  src-115  %jibb  /tests/golden/inline-static-image/source/jibb
-/*  src-116  %jibb  /tests/golden/inline-string/source/jibb
-/*  src-117  %jibb  /tests/golden/inline-tag-shape/source/jibb
-/*  src-118  %jibb  /tests/golden/inline-term/source/jibb
-/*  src-119  %jibb  /tests/golden/inline-text-items/source/jibb
-/*  src-120  %jibb  /tests/golden/inline-union-wide/source/jibb
-/*  src-121  %jibb  /tests/golden/inline-unit/source/jibb
-/*  src-122  %jibb  /tests/golden/inline-wide-form-rune-bad/source/jibb
-/*  src-123  %jibb  /tests/golden/inline-wide-forms/source/jibb
-/*  src-124  %jibb  /tests/golden/inline-wide-union-call/source/jibb
-/*  src-125  %jibb  /tests/golden/inline-wings/source/jibb
-/*  src-126  %jibb  /tests/golden/lex-base32-bad-1/source/jibb
-/*  src-127  %jibb  /tests/golden/lex-base32-ok-1/source/jibb
-/*  src-128  %jibb  /tests/golden/lex-call-open-bad-1/source/jibb
-/*  src-129  %jibb  /tests/golden/lex-call-open-bad-2/source/jibb
-/*  src-130  %jibb  /tests/golden/lex-call-open-bad-3/source/jibb
-/*  src-131  %jibb  /tests/golden/lex-call-open-ok-1/source/jibb
-/*  src-132  %jibb  /tests/golden/lex-cell-bad-1/source/jibb
-/*  src-133  %jibb  /tests/golden/lex-cell-ok-1/source/jibb
-/*  src-134  %jibb  /tests/golden/lex-comment-bad-1/source/jibb
-/*  src-135  %jibb  /tests/golden/lex-comment-ok-1/source/jibb
-/*  src-136  %jibb  /tests/golden/lex-comment-ok-2/source/jibb
-/*  src-137  %jibb  /tests/golden/lex-comment-ok-3/source/jibb
-/*  src-138  %jibb  /tests/golden/lex-date-bad-1/source/jibb
-/*  src-139  %jibb  /tests/golden/lex-date-bad-2/source/jibb
-/*  src-140  %jibb  /tests/golden/lex-date-ok-1/source/jibb
-/*  src-141  %jibb  /tests/golden/lex-decimal-bad-1/source/jibb
-/*  src-142  %jibb  /tests/golden/lex-decimal-bad-2/source/jibb
-/*  src-143  %jibb  /tests/golden/lex-decimal-ok-1/source/jibb
-/*  src-144  %jibb  /tests/golden/lex-duration-bad-1/source/jibb
-/*  src-145  %jibb  /tests/golden/lex-duration-ok-1/source/jibb
-/*  src-146  %jibb  /tests/golden/lex-hex-bad-1/source/jibb
-/*  src-147  %jibb  /tests/golden/lex-hex-ok-1/source/jibb
-/*  src-148  %jibb  /tests/golden/lex-indent-bad-1/source/jibb
-/*  src-149  %jibb  /tests/golden/lex-indent-bad-2/source/jibb
-/*  src-150  %jibb  /tests/golden/lex-indent-bad-3/source/jibb
-/*  src-151  %jibb  /tests/golden/lex-indent-ok-1/source/jibb
-/*  src-152  %jibb  /tests/golden/lex-indent-ok-2/source/jibb
-/*  src-153  %jibb  /tests/golden/lex-indent-ok-3/source/jibb
-/*  src-154  %jibb  /tests/golden/lex-interp-bad-1/source/jibb
-/*  src-155  %jibb  /tests/golden/lex-interp-bad-2/source/jibb
-/*  src-156  %jibb  /tests/golden/lex-interp-bad-3/source/jibb
-/*  src-157  %jibb  /tests/golden/lex-interp-bad-4/source/jibb
-/*  src-158  %jibb  /tests/golden/lex-interp-ok-1/source/jibb
-/*  src-159  %jibb  /tests/golden/lex-interp-ok-2/source/jibb
-/*  src-160  %jibb  /tests/golden/lex-knot-bad-1/source/jibb
-/*  src-161  %jibb  /tests/golden/lex-knot-ok-1/source/jibb
-/*  src-162  %jibb  /tests/golden/lex-layout-bad-1/source/jibb
-/*  src-163  %jibb  /tests/golden/lex-layout-bad-2/source/jibb
-/*  src-164  %jibb  /tests/golden/lex-layout-bad-3/source/jibb
-/*  src-165  %jibb  /tests/golden/lex-layout-bad-4/source/jibb
-/*  src-166  %jibb  /tests/golden/lex-layout-ok-1/source/jibb
-/*  src-167  %jibb  /tests/golden/lex-list-bad-1/source/jibb
-/*  src-168  %jibb  /tests/golden/lex-list-ok-1/source/jibb
-/*  src-169  %jibb  /tests/golden/lex-loobean-bad-1/source/jibb
-/*  src-170  %jibb  /tests/golden/lex-loobean-ok-1/source/jibb
-/*  src-171  %jibb  /tests/golden/lex-name-bad-1/source/jibb
-/*  src-172  %jibb  /tests/golden/lex-name-bad-2/source/jibb
-/*  src-173  %jibb  /tests/golden/lex-name-bad-3/source/jibb
-/*  src-174  %jibb  /tests/golden/lex-name-bad-4/source/jibb
-/*  src-175  %jibb  /tests/golden/lex-name-ok-1/source/jibb
-/*  src-176  %jibb  /tests/golden/lex-null-bad-1/source/jibb
-/*  src-177  %jibb  /tests/golden/lex-null-ok-1/source/jibb
-/*  src-178  %jibb  /tests/golden/lex-open-bracket-bad-1/source/jibb
-/*  src-179  %jibb  /tests/golden/lex-open-bracket-bad-2/source/jibb
-/*  src-180  %jibb  /tests/golden/lex-open-bracket-bad-3/source/jibb
-/*  src-181  %jibb  /tests/golden/lex-open-bracket-bad-4/source/jibb
-/*  src-182  %jibb  /tests/golden/lex-open-bracket-ok-1/source/jibb
-/*  src-183  %jibb  /tests/golden/lex-open-bracket-ok-2/source/jibb
-/*  src-184  %jibb  /tests/golden/lex-pair-binding-bad-1/source/jibb
-/*  src-185  %jibb  /tests/golden/lex-pair-binding-ok-1/source/jibb
-/*  src-186  %jibb  /tests/golden/lex-path-bad-1/source/jibb
-/*  src-187  %jibb  /tests/golden/lex-path-ok-1/source/jibb
-/*  src-188  %jibb  /tests/golden/lex-rune-layout-bad-1/source/jibb
-/*  src-189  %jibb  /tests/golden/lex-rune-layout-bad-2/source/jibb
-/*  src-190  %jibb  /tests/golden/lex-rune-layout-bad-3/source/jibb
-/*  src-191  %jibb  /tests/golden/lex-rune-layout-bad-4/source/jibb
-/*  src-192  %jibb  /tests/golden/lex-rune-layout-ok-1/source/jibb
-/*  src-193  %jibb  /tests/golden/lex-ship-bad-1/source/jibb
-/*  src-194  %jibb  /tests/golden/lex-ship-ok-1/source/jibb
-/*  src-195  %jibb  /tests/golden/lex-spacing-bad-1/source/jibb
-/*  src-196  %jibb  /tests/golden/lex-spacing-bad-2/source/jibb
-/*  src-197  %jibb  /tests/golden/lex-spacing-bad-3/source/jibb
-/*  src-198  %jibb  /tests/golden/lex-spacing-bad-4/source/jibb
-/*  src-199  %jibb  /tests/golden/lex-spacing-ok-1/source/jibb
-/*  src-200  %jibb  /tests/golden/lex-string-bad-1/source/jibb
-/*  src-201  %jibb  /tests/golden/lex-string-bad-2/source/jibb
-/*  src-202  %jibb  /tests/golden/lex-string-ok-1/source/jibb
-/*  src-203  %jibb  /tests/golden/lex-term-bad-1/source/jibb
-/*  src-204  %jibb  /tests/golden/lex-term-bad-2/source/jibb
-/*  src-205  %jibb  /tests/golden/lex-term-bad-3/source/jibb
-/*  src-206  %jibb  /tests/golden/lex-term-ok-1/source/jibb
-/*  src-207  %jibb  /tests/golden/lex-tight-change-bad-1/source/jibb
-/*  src-208  %jibb  /tests/golden/lex-tight-change-bad-2/source/jibb
-/*  src-209  %jibb  /tests/golden/lex-tight-change-ok-1/source/jibb
-/*  src-210  %jibb  /tests/golden/lex-tight-ctor-bad-1/source/jibb
-/*  src-211  %jibb  /tests/golden/lex-tight-ctor-bad-2/source/jibb
-/*  src-212  %jibb  /tests/golden/lex-tight-ctor-ok-1/source/jibb
-/*  src-213  %jibb  /tests/golden/lex-tight-opener-bad-1/source/jibb
-/*  src-214  %jibb  /tests/golden/lex-tight-opener-bad-2/source/jibb
-/*  src-215  %jibb  /tests/golden/lex-tight-opener-bad-3/source/jibb
-/*  src-216  %jibb  /tests/golden/lex-tight-opener-bad-4/source/jibb
-/*  src-217  %jibb  /tests/golden/lex-tight-opener-ok-1/source/jibb
-/*  src-218  %jibb  /tests/golden/lex-tight-pair-bad-1/source/jibb
-/*  src-219  %jibb  /tests/golden/lex-tight-pair-ok-1/source/jibb
-/*  src-220  %jibb  /tests/golden/lex-tight-qath-bad-1/source/jibb
-/*  src-221  %jibb  /tests/golden/lex-tight-qath-bad-2/source/jibb
-/*  src-222  %jibb  /tests/golden/lex-tight-qath-bad-3/source/jibb
-/*  src-223  %jibb  /tests/golden/lex-tight-qath-ok-1/source/jibb
-/*  src-224  %jibb  /tests/golden/lex-tight-unit-bad-1/source/jibb
-/*  src-225  %jibb  /tests/golden/lex-tight-unit-ok-1/source/jibb
-/*  src-226  %jibb  /tests/golden/lex-tight-wing-bad-1/source/jibb
-/*  src-227  %jibb  /tests/golden/lex-tight-wing-ok-1/source/jibb
+/*  tok-31  %txt   /tests/golden/inline-import-mark-face-bad/tokens/txt
+/*  tre-31  %txt   /tests/golden/inline-import-mark-face-bad/tree/txt
+/*  src-32  %jibb  /tests/golden/inline-import-root-bad/source/jibb
+/*  tok-32  %txt   /tests/golden/inline-import-root-bad/tokens/txt
+/*  tre-32  %txt   /tests/golden/inline-import-root-bad/tree/txt
+/*  src-33  %jibb  /tests/golden/inline-imports-after-definition/source/jibb
+/*  tok-33  %txt   /tests/golden/inline-imports-after-definition/tokens/txt
+/*  tre-33  %txt   /tests/golden/inline-imports-after-definition/tree/txt
+/*  src-34  %jibb  /tests/golden/inline-island/source/jibb
+/*  tok-34  %txt   /tests/golden/inline-island/tokens/txt
+/*  tre-34  %txt   /tests/golden/inline-island/tree/txt
+/*  src-35  %jibb  /tests/golden/inline-kinds/source/jibb
+/*  tok-35  %txt   /tests/golden/inline-kinds/tokens/txt
+/*  tre-35  %txt   /tests/golden/inline-kinds/tree/txt
+/*  src-36  %jibb  /tests/golden/inline-knot/source/jibb
+/*  tok-36  %txt   /tests/golden/inline-knot/tokens/txt
+/*  tre-36  %txt   /tests/golden/inline-knot/tree/txt
+/*  src-37  %jibb  /tests/golden/inline-leftout-barcab/source/jibb
+/*  tok-37  %txt   /tests/golden/inline-leftout-barcab/tokens/txt
+/*  tre-37  %txt   /tests/golden/inline-leftout-barcab/tree/txt
+/*  src-38  %jibb  /tests/golden/inline-leftout-barcen/source/jibb
+/*  tok-38  %txt   /tests/golden/inline-leftout-barcen/tokens/txt
+/*  tre-38  %txt   /tests/golden/inline-leftout-barcen/tree/txt
+/*  src-39  %jibb  /tests/golden/inline-leftout-barcen-2/source/jibb
+/*  tok-39  %txt   /tests/golden/inline-leftout-barcen-2/tokens/txt
+/*  tre-39  %txt   /tests/golden/inline-leftout-barcen-2/tree/txt
+/*  src-40  %jibb  /tests/golden/inline-leftout-barcen-3/source/jibb
+/*  tok-40  %txt   /tests/golden/inline-leftout-barcen-3/tokens/txt
+/*  tre-40  %txt   /tests/golden/inline-leftout-barcen-3/tree/txt
+/*  src-41  %jibb  /tests/golden/inline-leftout-barhep/source/jibb
+/*  tok-41  %txt   /tests/golden/inline-leftout-barhep/tokens/txt
+/*  tre-41  %txt   /tests/golden/inline-leftout-barhep/tree/txt
+/*  src-42  %jibb  /tests/golden/inline-leftout-bartar/source/jibb
+/*  tok-42  %txt   /tests/golden/inline-leftout-bartar/tokens/txt
+/*  tre-42  %txt   /tests/golden/inline-leftout-bartar/tree/txt
+/*  src-43  %jibb  /tests/golden/inline-leftout-buc-paren/source/jibb
+/*  tok-43  %txt   /tests/golden/inline-leftout-buc-paren/tokens/txt
+/*  tre-43  %txt   /tests/golden/inline-leftout-buc-paren/tree/txt
+/*  src-44  %jibb  /tests/golden/inline-leftout-buc-paren-2/source/jibb
+/*  tok-44  %txt   /tests/golden/inline-leftout-buc-paren-2/tokens/txt
+/*  tre-44  %txt   /tests/golden/inline-leftout-buc-paren-2/tree/txt
+/*  src-45  %jibb  /tests/golden/inline-leftout-buccen/source/jibb
+/*  tok-45  %txt   /tests/golden/inline-leftout-buccen/tokens/txt
+/*  tre-45  %txt   /tests/golden/inline-leftout-buccen/tree/txt
+/*  src-46  %jibb  /tests/golden/inline-leftout-cencol/source/jibb
+/*  tok-46  %txt   /tests/golden/inline-leftout-cencol/tokens/txt
+/*  tre-46  %txt   /tests/golden/inline-leftout-cencol/tree/txt
+/*  src-47  %jibb  /tests/golden/inline-leftout-cenhep/source/jibb
+/*  tok-47  %txt   /tests/golden/inline-leftout-cenhep/tokens/txt
+/*  tre-47  %txt   /tests/golden/inline-leftout-cenhep/tree/txt
+/*  src-48  %jibb  /tests/golden/inline-leftout-centis/source/jibb
+/*  tok-48  %txt   /tests/golden/inline-leftout-centis/tokens/txt
+/*  tre-48  %txt   /tests/golden/inline-leftout-centis/tree/txt
+/*  src-49  %jibb  /tests/golden/inline-leftout-colhep/source/jibb
+/*  tok-49  %txt   /tests/golden/inline-leftout-colhep/tokens/txt
+/*  tre-49  %txt   /tests/golden/inline-leftout-colhep/tree/txt
+/*  src-50  %jibb  /tests/golden/inline-leftout-colon-wing/source/jibb
+/*  tok-50  %txt   /tests/golden/inline-leftout-colon-wing/tokens/txt
+/*  tre-50  %txt   /tests/golden/inline-leftout-colon-wing/tree/txt
+/*  src-51  %jibb  /tests/golden/inline-leftout-colsig/source/jibb
+/*  tok-51  %txt   /tests/golden/inline-leftout-colsig/tokens/txt
+/*  tre-51  %txt   /tests/golden/inline-leftout-colsig/tree/txt
+/*  src-52  %jibb  /tests/golden/inline-leftout-coltar/source/jibb
+/*  tok-52  %txt   /tests/golden/inline-leftout-coltar/tokens/txt
+/*  tre-52  %txt   /tests/golden/inline-leftout-coltar/tree/txt
+/*  src-53  %jibb  /tests/golden/inline-leftout-dottar/source/jibb
+/*  tok-53  %txt   /tests/golden/inline-leftout-dottar/tokens/txt
+/*  tre-53  %txt   /tests/golden/inline-leftout-dottar/tree/txt
+/*  src-54  %jibb  /tests/golden/inline-leftout-dottis/source/jibb
+/*  tok-54  %txt   /tests/golden/inline-leftout-dottis/tokens/txt
+/*  tre-54  %txt   /tests/golden/inline-leftout-dottis/tree/txt
+/*  src-55  %jibb  /tests/golden/inline-leftout-faslus/source/jibb
+/*  tok-55  %txt   /tests/golden/inline-leftout-faslus/tokens/txt
+/*  tre-55  %txt   /tests/golden/inline-leftout-faslus/tree/txt
+/*  src-56  %jibb  /tests/golden/inline-leftout-hephep/source/jibb
+/*  tok-56  %txt   /tests/golden/inline-leftout-hephep/tokens/txt
+/*  tre-56  %txt   /tests/golden/inline-leftout-hephep/tree/txt
+/*  src-57  %jibb  /tests/golden/inline-leftout-kethep-wide/source/jibb
+/*  tok-57  %txt   /tests/golden/inline-leftout-kethep-wide/tokens/txt
+/*  tre-57  %txt   /tests/golden/inline-leftout-kethep-wide/tree/txt
+/*  src-58  %jibb  /tests/golden/inline-leftout-kettar/source/jibb
+/*  tok-58  %txt   /tests/golden/inline-leftout-kettar/tokens/txt
+/*  tre-58  %txt   /tests/golden/inline-leftout-kettar/tree/txt
+/*  src-59  %jibb  /tests/golden/inline-leftout-miccol/source/jibb
+/*  tok-59  %txt   /tests/golden/inline-leftout-miccol/tokens/txt
+/*  tre-59  %txt   /tests/golden/inline-leftout-miccol/tree/txt
+/*  src-60  %jibb  /tests/golden/inline-leftout-sail/source/jibb
+/*  tok-60  %txt   /tests/golden/inline-leftout-sail/tokens/txt
+/*  tre-60  %txt   /tests/golden/inline-leftout-sail/tree/txt
+/*  src-61  %jibb  /tests/golden/inline-leftout-sigbar/source/jibb
+/*  tok-61  %txt   /tests/golden/inline-leftout-sigbar/tokens/txt
+/*  tre-61  %txt   /tests/golden/inline-leftout-sigbar/tree/txt
+/*  src-62  %jibb  /tests/golden/inline-leftout-signed-float-auras/source/jibb
+/*  tok-62  %txt   /tests/golden/inline-leftout-signed-float-auras/tokens/txt
+/*  tre-62  %txt   /tests/golden/inline-leftout-signed-float-auras/tree/txt
+/*  src-63  %jibb  /tests/golden/inline-leftout-sigpam-wide/source/jibb
+/*  tok-63  %txt   /tests/golden/inline-leftout-sigpam-wide/tokens/txt
+/*  tre-63  %txt   /tests/golden/inline-leftout-sigpam-wide/tree/txt
+/*  src-64  %jibb  /tests/golden/inline-leftout-tis-paren/source/jibb
+/*  tok-64  %txt   /tests/golden/inline-leftout-tis-paren/tokens/txt
+/*  tre-64  %txt   /tests/golden/inline-leftout-tis-paren/tree/txt
+/*  src-65  %jibb  /tests/golden/inline-leftout-tisfas/source/jibb
+/*  tok-65  %txt   /tests/golden/inline-leftout-tisfas/tokens/txt
+/*  tre-65  %txt   /tests/golden/inline-leftout-tisfas/tree/txt
+/*  src-66  %jibb  /tests/golden/inline-leftout-tisgal/source/jibb
+/*  tok-66  %txt   /tests/golden/inline-leftout-tisgal/tokens/txt
+/*  tre-66  %txt   /tests/golden/inline-leftout-tisgal/tree/txt
+/*  src-67  %jibb  /tests/golden/inline-leftout-tisgal-2/source/jibb
+/*  tok-67  %txt   /tests/golden/inline-leftout-tisgal-2/tokens/txt
+/*  tre-67  %txt   /tests/golden/inline-leftout-tisgal-2/tree/txt
+/*  src-68  %jibb  /tests/golden/inline-leftout-tisgar/source/jibb
+/*  tok-68  %txt   /tests/golden/inline-leftout-tisgar/tokens/txt
+/*  tre-68  %txt   /tests/golden/inline-leftout-tisgar/tree/txt
+/*  src-69  %jibb  /tests/golden/inline-leftout-tislus/source/jibb
+/*  tok-69  %txt   /tests/golden/inline-leftout-tislus/tokens/txt
+/*  tre-69  %txt   /tests/golden/inline-leftout-tislus/tree/txt
+/*  src-70  %jibb  /tests/golden/inline-leftout-tistis/source/jibb
+/*  tok-70  %txt   /tests/golden/inline-leftout-tistis/tokens/txt
+/*  tre-70  %txt   /tests/golden/inline-leftout-tistis/tree/txt
+/*  src-71  %jibb  /tests/golden/inline-leftout-wutcol/source/jibb
+/*  tok-71  %txt   /tests/golden/inline-leftout-wutcol/tokens/txt
+/*  tre-71  %txt   /tests/golden/inline-leftout-wutcol/tree/txt
+/*  src-72  %jibb  /tests/golden/inline-leftout-wutcol-2/source/jibb
+/*  tok-72  %txt   /tests/golden/inline-leftout-wutcol-2/tokens/txt
+/*  tre-72  %txt   /tests/golden/inline-leftout-wutcol-2/tree/txt
+/*  src-73  %jibb  /tests/golden/inline-leftout-wuthep-wide/source/jibb
+/*  tok-73  %txt   /tests/golden/inline-leftout-wuthep-wide/tokens/txt
+/*  tre-73  %txt   /tests/golden/inline-leftout-wuthep-wide/tree/txt
+/*  src-74  %jibb  /tests/golden/inline-leftout-wutlus/source/jibb
+/*  tok-74  %txt   /tests/golden/inline-leftout-wutlus/tokens/txt
+/*  tre-74  %txt   /tests/golden/inline-leftout-wutlus/tree/txt
+/*  src-75  %jibb  /tests/golden/inline-leftout-wutsig/source/jibb
+/*  tok-75  %txt   /tests/golden/inline-leftout-wutsig/tokens/txt
+/*  tre-75  %txt   /tests/golden/inline-leftout-wutsig/tree/txt
+/*  src-76  %jibb  /tests/golden/inline-leftout-wutzap/source/jibb
+/*  tok-76  %txt   /tests/golden/inline-leftout-wutzap/tokens/txt
+/*  tre-76  %txt   /tests/golden/inline-leftout-wutzap/tree/txt
+/*  src-77  %jibb  /tests/golden/inline-leftout-zap-not/source/jibb
+/*  tok-77  %txt   /tests/golden/inline-leftout-zap-not/tokens/txt
+/*  tre-77  %txt   /tests/golden/inline-leftout-zap-not/tree/txt
+/*  src-78  %jibb  /tests/golden/inline-leftout-zapgar/source/jibb
+/*  tok-78  %txt   /tests/golden/inline-leftout-zapgar/tokens/txt
+/*  tre-78  %txt   /tests/golden/inline-leftout-zapgar/tree/txt
+/*  src-79  %jibb  /tests/golden/inline-list/source/jibb
+/*  tok-79  %txt   /tests/golden/inline-list/tokens/txt
+/*  tre-79  %txt   /tests/golden/inline-list/tree/txt
+/*  src-80  %jibb  /tests/golden/inline-list-parens/source/jibb
+/*  tok-80  %txt   /tests/golden/inline-list-parens/tokens/txt
+/*  tre-80  %txt   /tests/golden/inline-list-parens/tree/txt
+/*  src-81  %jibb  /tests/golden/inline-literal-defaults/source/jibb
+/*  tok-81  %txt   /tests/golden/inline-literal-defaults/tokens/txt
+/*  tre-81  %txt   /tests/golden/inline-literal-defaults/tree/txt
+/*  src-82  %jibb  /tests/golden/inline-load-slug/source/jibb
+/*  tok-82  %txt   /tests/golden/inline-load-slug/tokens/txt
+/*  tre-82  %txt   /tests/golden/inline-load-slug/tree/txt
+/*  src-83  %jibb  /tests/golden/inline-local-names/source/jibb
+/*  tok-83  %txt   /tests/golden/inline-local-names/tokens/txt
+/*  tre-83  %txt   /tests/golden/inline-local-names/tree/txt
+/*  src-84  %jibb  /tests/golden/inline-loobean/source/jibb
+/*  tok-84  %txt   /tests/golden/inline-loobean/tokens/txt
+/*  tre-84  %txt   /tests/golden/inline-loobean/tree/txt
+/*  src-85  %jibb  /tests/golden/inline-mark-digit/source/jibb
+/*  tok-85  %txt   /tests/golden/inline-mark-digit/tokens/txt
+/*  tre-85  %txt   /tests/golden/inline-mark-digit/tree/txt
+/*  src-86  %jibb  /tests/golden/inline-module-definitions/source/jibb
+/*  tok-86  %txt   /tests/golden/inline-module-definitions/tokens/txt
+/*  tre-86  %txt   /tests/golden/inline-module-definitions/tree/txt
+/*  src-87  %jibb  /tests/golden/inline-mold-add/source/jibb
+/*  tok-87  %txt   /tests/golden/inline-mold-add/tokens/txt
+/*  tre-87  %txt   /tests/golden/inline-mold-add/tree/txt
+/*  src-88  %jibb  /tests/golden/inline-mold-any-empty/source/jibb
+/*  tok-88  %txt   /tests/golden/inline-mold-any-empty/tokens/txt
+/*  tre-88  %txt   /tests/golden/inline-mold-any-empty/tree/txt
+/*  src-89  %jibb  /tests/golden/inline-mold-atoms/source/jibb
+/*  tok-89  %txt   /tests/golden/inline-mold-atoms/tokens/txt
+/*  tre-89  %txt   /tests/golden/inline-mold-atoms/tree/txt
+/*  src-90  %jibb  /tests/golden/inline-mold-constants/source/jibb
+/*  tok-90  %txt   /tests/golden/inline-mold-constants/tokens/txt
+/*  tre-90  %txt   /tests/golden/inline-mold-constants/tree/txt
+/*  src-91  %jibb  /tests/golden/inline-mold-containers/source/jibb
+/*  tok-91  %txt   /tests/golden/inline-mold-containers/tokens/txt
+/*  tre-91  %txt   /tests/golden/inline-mold-containers/tree/txt
+/*  src-92  %jibb  /tests/golden/inline-mold-gate/source/jibb
+/*  tok-92  %txt   /tests/golden/inline-mold-gate/tokens/txt
+/*  tre-92  %txt   /tests/golden/inline-mold-gate/tree/txt
+/*  src-93  %jibb  /tests/golden/inline-mold-generic/source/jibb
+/*  tok-93  %txt   /tests/golden/inline-mold-generic/tokens/txt
+/*  tre-93  %txt   /tests/golden/inline-mold-generic/tree/txt
+/*  src-94  %jibb  /tests/golden/inline-mold-opaque/source/jibb
+/*  tok-94  %txt   /tests/golden/inline-mold-opaque/tokens/txt
+/*  tre-94  %txt   /tests/golden/inline-mold-opaque/tree/txt
+/*  src-95  %jibb  /tests/golden/inline-mold-paths/source/jibb
+/*  tok-95  %txt   /tests/golden/inline-mold-paths/tokens/txt
+/*  tre-95  %txt   /tests/golden/inline-mold-paths/tree/txt
+/*  src-96  %jibb  /tests/golden/inline-mold-records/source/jibb
+/*  tok-96  %txt   /tests/golden/inline-mold-records/tokens/txt
+/*  tre-96  %txt   /tests/golden/inline-mold-records/tree/txt
+/*  src-97  %jibb  /tests/golden/inline-namespaces/source/jibb
+/*  tok-97  %txt   /tests/golden/inline-namespaces/tokens/txt
+/*  tre-97  %txt   /tests/golden/inline-namespaces/tree/txt
+/*  src-98  %jibb  /tests/golden/inline-no-operators/source/jibb
+/*  tok-98  %txt   /tests/golden/inline-no-operators/tokens/txt
+/*  tre-98  %txt   /tests/golden/inline-no-operators/tree/txt
+/*  src-99  %jibb  /tests/golden/inline-no-subs/source/jibb
+/*  tok-99  %txt   /tests/golden/inline-no-subs/tokens/txt
+/*  tre-99  %txt   /tests/golden/inline-no-subs/tree/txt
+/*  src-100  %jibb  /tests/golden/inline-null/source/jibb
+/*  tok-100  %txt   /tests/golden/inline-null/tokens/txt
+/*  tre-100  %txt   /tests/golden/inline-null/tree/txt
+/*  src-101  %jibb  /tests/golden/inline-pair/source/jibb
+/*  tok-101  %txt   /tests/golden/inline-pair/tokens/txt
+/*  tre-101  %txt   /tests/golden/inline-pair/tree/txt
+/*  src-102  %jibb  /tests/golden/inline-pairs-two-items/source/jibb
+/*  tok-102  %txt   /tests/golden/inline-pairs-two-items/tokens/txt
+/*  tre-102  %txt   /tests/golden/inline-pairs-two-items/tree/txt
+/*  src-103  %jibb  /tests/golden/inline-path/source/jibb
+/*  tok-103  %txt   /tests/golden/inline-path/tokens/txt
+/*  tre-103  %txt   /tests/golden/inline-path/tree/txt
+/*  src-104  %jibb  /tests/golden/inline-pattern-any/source/jibb
+/*  tok-104  %txt   /tests/golden/inline-pattern-any/tokens/txt
+/*  tre-104  %txt   /tests/golden/inline-pattern-any/tree/txt
+/*  src-105  %jibb  /tests/golden/inline-pattern-cell/source/jibb
+/*  tok-105  %txt   /tests/golden/inline-pattern-cell/tokens/txt
+/*  tre-105  %txt   /tests/golden/inline-pattern-cell/tree/txt
+/*  src-106  %jibb  /tests/golden/inline-pattern-crash-arm/source/jibb
+/*  tok-106  %txt   /tests/golden/inline-pattern-crash-arm/tokens/txt
+/*  tre-106  %txt   /tests/golden/inline-pattern-crash-arm/tree/txt
+/*  src-107  %jibb  /tests/golden/inline-pattern-date-bad/source/jibb
+/*  tok-107  %txt   /tests/golden/inline-pattern-date-bad/tokens/txt
+/*  tre-107  %txt   /tests/golden/inline-pattern-date-bad/tree/txt
+/*  src-108  %jibb  /tests/golden/inline-pattern-duration-bad/source/jibb
+/*  tok-108  %txt   /tests/golden/inline-pattern-duration-bad/tokens/txt
+/*  tre-108  %txt   /tests/golden/inline-pattern-duration-bad/tree/txt
+/*  src-109  %jibb  /tests/golden/inline-pattern-eq/source/jibb
+/*  tok-109  %txt   /tests/golden/inline-pattern-eq/tokens/txt
+/*  tre-109  %txt   /tests/golden/inline-pattern-eq/tree/txt
+/*  src-110  %jibb  /tests/golden/inline-pattern-face-bad/source/jibb
+/*  tok-110  %txt   /tests/golden/inline-pattern-face-bad/tokens/txt
+/*  tre-110  %txt   /tests/golden/inline-pattern-face-bad/tree/txt
+/*  src-111  %jibb  /tests/golden/inline-pattern-head-tag/source/jibb
+/*  tok-111  %txt   /tests/golden/inline-pattern-head-tag/tokens/txt
+/*  tre-111  %txt   /tests/golden/inline-pattern-head-tag/tree/txt
+/*  src-112  %jibb  /tests/golden/inline-pattern-interpolated-bad/source/jibb
+/*  tok-112  %txt   /tests/golden/inline-pattern-interpolated-bad/tokens/txt
+/*  tre-112  %txt   /tests/golden/inline-pattern-interpolated-bad/tree/txt
+/*  src-113  %jibb  /tests/golden/inline-pattern-list-bad/source/jibb
+/*  tok-113  %txt   /tests/golden/inline-pattern-list-bad/tokens/txt
+/*  tre-113  %txt   /tests/golden/inline-pattern-list-bad/tree/txt
+/*  src-114  %jibb  /tests/golden/inline-pattern-literals/source/jibb
+/*  tok-114  %txt   /tests/golden/inline-pattern-literals/tokens/txt
+/*  tre-114  %txt   /tests/golden/inline-pattern-literals/tree/txt
+/*  src-115  %jibb  /tests/golden/inline-pattern-loobean/source/jibb
+/*  tok-115  %txt   /tests/golden/inline-pattern-loobean/tokens/txt
+/*  tre-115  %txt   /tests/golden/inline-pattern-loobean/tree/txt
+/*  src-116  %jibb  /tests/golden/inline-pattern-move-any/source/jibb
+/*  tok-116  %txt   /tests/golden/inline-pattern-move-any/tokens/txt
+/*  tre-116  %txt   /tests/golden/inline-pattern-move-any/tree/txt
+/*  src-117  %jibb  /tests/golden/inline-pattern-name/source/jibb
+/*  tok-117  %txt   /tests/golden/inline-pattern-name/tokens/txt
+/*  tre-117  %txt   /tests/golden/inline-pattern-name/tree/txt
+/*  src-118  %jibb  /tests/golden/inline-pattern-null/source/jibb
+/*  tok-118  %txt   /tests/golden/inline-pattern-null/tokens/txt
+/*  tre-118  %txt   /tests/golden/inline-pattern-null/tree/txt
+/*  src-119  %jibb  /tests/golden/inline-pattern-pair-bad/source/jibb
+/*  tok-119  %txt   /tests/golden/inline-pattern-pair-bad/tokens/txt
+/*  tre-119  %txt   /tests/golden/inline-pattern-pair-bad/tree/txt
+/*  src-120  %jibb  /tests/golden/inline-pattern-tail-tag/source/jibb
+/*  tok-120  %txt   /tests/golden/inline-pattern-tail-tag/tokens/txt
+/*  tre-120  %txt   /tests/golden/inline-pattern-tail-tag/tree/txt
+/*  src-121  %jibb  /tests/golden/inline-pattern-term/source/jibb
+/*  tok-121  %txt   /tests/golden/inline-pattern-term/tokens/txt
+/*  tre-121  %txt   /tests/golden/inline-pattern-term/tree/txt
+/*  src-122  %jibb  /tests/golden/inline-pattern-two-tags/source/jibb
+/*  tok-122  %txt   /tests/golden/inline-pattern-two-tags/tokens/txt
+/*  tre-122  %txt   /tests/golden/inline-pattern-two-tags/tree/txt
+/*  src-123  %jibb  /tests/golden/inline-pattern-unit/source/jibb
+/*  tok-123  %txt   /tests/golden/inline-pattern-unit/tokens/txt
+/*  tre-123  %txt   /tests/golden/inline-pattern-unit/tree/txt
+/*  src-124  %jibb  /tests/golden/inline-qath/source/jibb
+/*  tok-124  %txt   /tests/golden/inline-qath/tokens/txt
+/*  tre-124  %txt   /tests/golden/inline-qath/tree/txt
+/*  src-125  %jibb  /tests/golden/inline-requests/source/jibb
+/*  tok-125  %txt   /tests/golden/inline-requests/tokens/txt
+/*  tre-125  %txt   /tests/golden/inline-requests/tree/txt
+/*  src-126  %jibb  /tests/golden/inline-scry-case/source/jibb
+/*  tok-126  %txt   /tests/golden/inline-scry-case/tokens/txt
+/*  tre-126  %txt   /tests/golden/inline-scry-case/tree/txt
+/*  src-127  %jibb  /tests/golden/inline-self-reference/source/jibb
+/*  tok-127  %txt   /tests/golden/inline-self-reference/tokens/txt
+/*  tre-127  %txt   /tests/golden/inline-self-reference/tree/txt
+/*  src-128  %jibb  /tests/golden/inline-ship/source/jibb
+/*  tok-128  %txt   /tests/golden/inline-ship/tokens/txt
+/*  tre-128  %txt   /tests/golden/inline-ship/tree/txt
+/*  src-129  %jibb  /tests/golden/inline-static-image/source/jibb
+/*  tok-129  %txt   /tests/golden/inline-static-image/tokens/txt
+/*  tre-129  %txt   /tests/golden/inline-static-image/tree/txt
+/*  src-130  %jibb  /tests/golden/inline-string/source/jibb
+/*  tok-130  %txt   /tests/golden/inline-string/tokens/txt
+/*  tre-130  %txt   /tests/golden/inline-string/tree/txt
+/*  src-131  %jibb  /tests/golden/inline-tag-shape/source/jibb
+/*  tok-131  %txt   /tests/golden/inline-tag-shape/tokens/txt
+/*  tre-131  %txt   /tests/golden/inline-tag-shape/tree/txt
+/*  src-132  %jibb  /tests/golden/inline-term/source/jibb
+/*  tok-132  %txt   /tests/golden/inline-term/tokens/txt
+/*  tre-132  %txt   /tests/golden/inline-term/tree/txt
+/*  src-133  %jibb  /tests/golden/inline-text-items/source/jibb
+/*  tok-133  %txt   /tests/golden/inline-text-items/tokens/txt
+/*  tre-133  %txt   /tests/golden/inline-text-items/tree/txt
+/*  src-134  %jibb  /tests/golden/inline-union-wide/source/jibb
+/*  tok-134  %txt   /tests/golden/inline-union-wide/tokens/txt
+/*  tre-134  %txt   /tests/golden/inline-union-wide/tree/txt
+/*  src-135  %jibb  /tests/golden/inline-unit/source/jibb
+/*  tok-135  %txt   /tests/golden/inline-unit/tokens/txt
+/*  tre-135  %txt   /tests/golden/inline-unit/tree/txt
+/*  src-136  %jibb  /tests/golden/inline-wide-form-rune-bad/source/jibb
+/*  tok-136  %txt   /tests/golden/inline-wide-form-rune-bad/tokens/txt
+/*  tre-136  %txt   /tests/golden/inline-wide-form-rune-bad/tree/txt
+/*  src-137  %jibb  /tests/golden/inline-wide-forms/source/jibb
+/*  tok-137  %txt   /tests/golden/inline-wide-forms/tokens/txt
+/*  tre-137  %txt   /tests/golden/inline-wide-forms/tree/txt
+/*  src-138  %jibb  /tests/golden/inline-wide-union-call/source/jibb
+/*  tok-138  %txt   /tests/golden/inline-wide-union-call/tokens/txt
+/*  tre-138  %txt   /tests/golden/inline-wide-union-call/tree/txt
+/*  src-139  %jibb  /tests/golden/inline-wings/source/jibb
+/*  tok-139  %txt   /tests/golden/inline-wings/tokens/txt
+/*  tre-139  %txt   /tests/golden/inline-wings/tree/txt
+/*  src-140  %jibb  /tests/golden/lex-base32-bad-1/source/jibb
+/*  tok-140  %txt   /tests/golden/lex-base32-bad-1/tokens/txt
+/*  tre-140  %txt   /tests/golden/lex-base32-bad-1/tree/txt
+/*  src-141  %jibb  /tests/golden/lex-base32-ok-1/source/jibb
+/*  tok-141  %txt   /tests/golden/lex-base32-ok-1/tokens/txt
+/*  tre-141  %txt   /tests/golden/lex-base32-ok-1/tree/txt
+/*  src-142  %jibb  /tests/golden/lex-blob-bad-1/source/jibb
+/*  tok-142  %txt   /tests/golden/lex-blob-bad-1/tokens/txt
+/*  tre-142  %txt   /tests/golden/lex-blob-bad-1/tree/txt
+/*  src-143  %jibb  /tests/golden/lex-call-open-bad-1/source/jibb
+/*  tok-143  %txt   /tests/golden/lex-call-open-bad-1/tokens/txt
+/*  tre-143  %txt   /tests/golden/lex-call-open-bad-1/tree/txt
+/*  src-144  %jibb  /tests/golden/lex-call-open-bad-2/source/jibb
+/*  tok-144  %txt   /tests/golden/lex-call-open-bad-2/tokens/txt
+/*  tre-144  %txt   /tests/golden/lex-call-open-bad-2/tree/txt
+/*  src-145  %jibb  /tests/golden/lex-call-open-bad-3/source/jibb
+/*  tok-145  %txt   /tests/golden/lex-call-open-bad-3/tokens/txt
+/*  tre-145  %txt   /tests/golden/lex-call-open-bad-3/tree/txt
+/*  src-146  %jibb  /tests/golden/lex-call-open-ok-1/source/jibb
+/*  tok-146  %txt   /tests/golden/lex-call-open-ok-1/tokens/txt
+/*  tre-146  %txt   /tests/golden/lex-call-open-ok-1/tree/txt
+/*  src-147  %jibb  /tests/golden/lex-cell-bad-1/source/jibb
+/*  tok-147  %txt   /tests/golden/lex-cell-bad-1/tokens/txt
+/*  tre-147  %txt   /tests/golden/lex-cell-bad-1/tree/txt
+/*  src-148  %jibb  /tests/golden/lex-cell-ok-1/source/jibb
+/*  tok-148  %txt   /tests/golden/lex-cell-ok-1/tokens/txt
+/*  tre-148  %txt   /tests/golden/lex-cell-ok-1/tree/txt
+/*  src-149  %jibb  /tests/golden/lex-closer-bad-1/source/jibb
+/*  tok-149  %txt   /tests/golden/lex-closer-bad-1/tokens/txt
+/*  tre-149  %txt   /tests/golden/lex-closer-bad-1/tree/txt
+/*  src-150  %jibb  /tests/golden/lex-closer-bad-2/source/jibb
+/*  tok-150  %txt   /tests/golden/lex-closer-bad-2/tokens/txt
+/*  tre-150  %txt   /tests/golden/lex-closer-bad-2/tree/txt
+/*  src-151  %jibb  /tests/golden/lex-closer-bad-3/source/jibb
+/*  tok-151  %txt   /tests/golden/lex-closer-bad-3/tokens/txt
+/*  tre-151  %txt   /tests/golden/lex-closer-bad-3/tree/txt
+/*  src-152  %jibb  /tests/golden/lex-codepoint-bad-1/source/jibb
+/*  tok-152  %txt   /tests/golden/lex-codepoint-bad-1/tokens/txt
+/*  tre-152  %txt   /tests/golden/lex-codepoint-bad-1/tree/txt
+/*  src-153  %jibb  /tests/golden/lex-comment-bad-1/source/jibb
+/*  tok-153  %txt   /tests/golden/lex-comment-bad-1/tokens/txt
+/*  tre-153  %txt   /tests/golden/lex-comment-bad-1/tree/txt
+/*  src-154  %jibb  /tests/golden/lex-comment-ok-1/source/jibb
+/*  tok-154  %txt   /tests/golden/lex-comment-ok-1/tokens/txt
+/*  tre-154  %txt   /tests/golden/lex-comment-ok-1/tree/txt
+/*  src-155  %jibb  /tests/golden/lex-comment-ok-2/source/jibb
+/*  tok-155  %txt   /tests/golden/lex-comment-ok-2/tokens/txt
+/*  tre-155  %txt   /tests/golden/lex-comment-ok-2/tree/txt
+/*  src-156  %jibb  /tests/golden/lex-comment-ok-3/source/jibb
+/*  tok-156  %txt   /tests/golden/lex-comment-ok-3/tokens/txt
+/*  tre-156  %txt   /tests/golden/lex-comment-ok-3/tree/txt
+/*  src-157  %jibb  /tests/golden/lex-date-bad-1/source/jibb
+/*  tok-157  %txt   /tests/golden/lex-date-bad-1/tokens/txt
+/*  tre-157  %txt   /tests/golden/lex-date-bad-1/tree/txt
+/*  src-158  %jibb  /tests/golden/lex-date-bad-2/source/jibb
+/*  tok-158  %txt   /tests/golden/lex-date-bad-2/tokens/txt
+/*  tre-158  %txt   /tests/golden/lex-date-bad-2/tree/txt
+/*  src-159  %jibb  /tests/golden/lex-date-bad-3/source/jibb
+/*  tok-159  %txt   /tests/golden/lex-date-bad-3/tokens/txt
+/*  tre-159  %txt   /tests/golden/lex-date-bad-3/tree/txt
+/*  src-160  %jibb  /tests/golden/lex-date-ok-1/source/jibb
+/*  tok-160  %txt   /tests/golden/lex-date-ok-1/tokens/txt
+/*  tre-160  %txt   /tests/golden/lex-date-ok-1/tree/txt
+/*  src-161  %jibb  /tests/golden/lex-decimal-bad-1/source/jibb
+/*  tok-161  %txt   /tests/golden/lex-decimal-bad-1/tokens/txt
+/*  tre-161  %txt   /tests/golden/lex-decimal-bad-1/tree/txt
+/*  src-162  %jibb  /tests/golden/lex-decimal-bad-2/source/jibb
+/*  tok-162  %txt   /tests/golden/lex-decimal-bad-2/tokens/txt
+/*  tre-162  %txt   /tests/golden/lex-decimal-bad-2/tree/txt
+/*  src-163  %jibb  /tests/golden/lex-decimal-ok-1/source/jibb
+/*  tok-163  %txt   /tests/golden/lex-decimal-ok-1/tokens/txt
+/*  tre-163  %txt   /tests/golden/lex-decimal-ok-1/tree/txt
+/*  src-164  %jibb  /tests/golden/lex-duration-bad-1/source/jibb
+/*  tok-164  %txt   /tests/golden/lex-duration-bad-1/tokens/txt
+/*  tre-164  %txt   /tests/golden/lex-duration-bad-1/tree/txt
+/*  src-165  %jibb  /tests/golden/lex-duration-bad-2/source/jibb
+/*  tok-165  %txt   /tests/golden/lex-duration-bad-2/tokens/txt
+/*  tre-165  %txt   /tests/golden/lex-duration-bad-2/tree/txt
+/*  src-166  %jibb  /tests/golden/lex-duration-ok-1/source/jibb
+/*  tok-166  %txt   /tests/golden/lex-duration-ok-1/tokens/txt
+/*  tre-166  %txt   /tests/golden/lex-duration-ok-1/tree/txt
+/*  src-167  %jibb  /tests/golden/lex-hex-bad-1/source/jibb
+/*  tok-167  %txt   /tests/golden/lex-hex-bad-1/tokens/txt
+/*  tre-167  %txt   /tests/golden/lex-hex-bad-1/tree/txt
+/*  src-168  %jibb  /tests/golden/lex-hex-ok-1/source/jibb
+/*  tok-168  %txt   /tests/golden/lex-hex-ok-1/tokens/txt
+/*  tre-168  %txt   /tests/golden/lex-hex-ok-1/tree/txt
+/*  src-169  %jibb  /tests/golden/lex-indent-bad-1/source/jibb
+/*  tok-169  %txt   /tests/golden/lex-indent-bad-1/tokens/txt
+/*  tre-169  %txt   /tests/golden/lex-indent-bad-1/tree/txt
+/*  src-170  %jibb  /tests/golden/lex-indent-bad-2/source/jibb
+/*  tok-170  %txt   /tests/golden/lex-indent-bad-2/tokens/txt
+/*  tre-170  %txt   /tests/golden/lex-indent-bad-2/tree/txt
+/*  src-171  %jibb  /tests/golden/lex-indent-bad-3/source/jibb
+/*  tok-171  %txt   /tests/golden/lex-indent-bad-3/tokens/txt
+/*  tre-171  %txt   /tests/golden/lex-indent-bad-3/tree/txt
+/*  src-172  %jibb  /tests/golden/lex-indent-ok-1/source/jibb
+/*  tok-172  %txt   /tests/golden/lex-indent-ok-1/tokens/txt
+/*  tre-172  %txt   /tests/golden/lex-indent-ok-1/tree/txt
+/*  src-173  %jibb  /tests/golden/lex-indent-ok-2/source/jibb
+/*  tok-173  %txt   /tests/golden/lex-indent-ok-2/tokens/txt
+/*  tre-173  %txt   /tests/golden/lex-indent-ok-2/tree/txt
+/*  src-174  %jibb  /tests/golden/lex-indent-ok-3/source/jibb
+/*  tok-174  %txt   /tests/golden/lex-indent-ok-3/tokens/txt
+/*  tre-174  %txt   /tests/golden/lex-indent-ok-3/tree/txt
+/*  src-175  %jibb  /tests/golden/lex-interp-bad-1/source/jibb
+/*  tok-175  %txt   /tests/golden/lex-interp-bad-1/tokens/txt
+/*  tre-175  %txt   /tests/golden/lex-interp-bad-1/tree/txt
+/*  src-176  %jibb  /tests/golden/lex-interp-bad-2/source/jibb
+/*  tok-176  %txt   /tests/golden/lex-interp-bad-2/tokens/txt
+/*  tre-176  %txt   /tests/golden/lex-interp-bad-2/tree/txt
+/*  src-177  %jibb  /tests/golden/lex-interp-bad-3/source/jibb
+/*  tok-177  %txt   /tests/golden/lex-interp-bad-3/tokens/txt
+/*  tre-177  %txt   /tests/golden/lex-interp-bad-3/tree/txt
+/*  src-178  %jibb  /tests/golden/lex-interp-bad-4/source/jibb
+/*  tok-178  %txt   /tests/golden/lex-interp-bad-4/tokens/txt
+/*  tre-178  %txt   /tests/golden/lex-interp-bad-4/tree/txt
+/*  src-179  %jibb  /tests/golden/lex-interp-ok-1/source/jibb
+/*  tok-179  %txt   /tests/golden/lex-interp-ok-1/tokens/txt
+/*  tre-179  %txt   /tests/golden/lex-interp-ok-1/tree/txt
+/*  src-180  %jibb  /tests/golden/lex-interp-ok-2/source/jibb
+/*  tok-180  %txt   /tests/golden/lex-interp-ok-2/tokens/txt
+/*  tre-180  %txt   /tests/golden/lex-interp-ok-2/tree/txt
+/*  src-181  %jibb  /tests/golden/lex-knot-bad-1/source/jibb
+/*  tok-181  %txt   /tests/golden/lex-knot-bad-1/tokens/txt
+/*  tre-181  %txt   /tests/golden/lex-knot-bad-1/tree/txt
+/*  src-182  %jibb  /tests/golden/lex-knot-ok-1/source/jibb
+/*  tok-182  %txt   /tests/golden/lex-knot-ok-1/tokens/txt
+/*  tre-182  %txt   /tests/golden/lex-knot-ok-1/tree/txt
+/*  src-183  %jibb  /tests/golden/lex-layout-bad-1/source/jibb
+/*  tok-183  %txt   /tests/golden/lex-layout-bad-1/tokens/txt
+/*  tre-183  %txt   /tests/golden/lex-layout-bad-1/tree/txt
+/*  src-184  %jibb  /tests/golden/lex-layout-bad-2/source/jibb
+/*  tok-184  %txt   /tests/golden/lex-layout-bad-2/tokens/txt
+/*  tre-184  %txt   /tests/golden/lex-layout-bad-2/tree/txt
+/*  src-185  %jibb  /tests/golden/lex-layout-bad-3/source/jibb
+/*  tok-185  %txt   /tests/golden/lex-layout-bad-3/tokens/txt
+/*  tre-185  %txt   /tests/golden/lex-layout-bad-3/tree/txt
+/*  src-186  %jibb  /tests/golden/lex-layout-bad-4/source/jibb
+/*  tok-186  %txt   /tests/golden/lex-layout-bad-4/tokens/txt
+/*  tre-186  %txt   /tests/golden/lex-layout-bad-4/tree/txt
+/*  src-187  %jibb  /tests/golden/lex-layout-ok-1/source/jibb
+/*  tok-187  %txt   /tests/golden/lex-layout-ok-1/tokens/txt
+/*  tre-187  %txt   /tests/golden/lex-layout-ok-1/tree/txt
+/*  src-188  %jibb  /tests/golden/lex-list-bad-1/source/jibb
+/*  tok-188  %txt   /tests/golden/lex-list-bad-1/tokens/txt
+/*  tre-188  %txt   /tests/golden/lex-list-bad-1/tree/txt
+/*  src-189  %jibb  /tests/golden/lex-list-ok-1/source/jibb
+/*  tok-189  %txt   /tests/golden/lex-list-ok-1/tokens/txt
+/*  tre-189  %txt   /tests/golden/lex-list-ok-1/tree/txt
+/*  src-190  %jibb  /tests/golden/lex-loobean-bad-1/source/jibb
+/*  tok-190  %txt   /tests/golden/lex-loobean-bad-1/tokens/txt
+/*  tre-190  %txt   /tests/golden/lex-loobean-bad-1/tree/txt
+/*  src-191  %jibb  /tests/golden/lex-loobean-ok-1/source/jibb
+/*  tok-191  %txt   /tests/golden/lex-loobean-ok-1/tokens/txt
+/*  tre-191  %txt   /tests/golden/lex-loobean-ok-1/tree/txt
+/*  src-192  %jibb  /tests/golden/lex-name-bad-1/source/jibb
+/*  tok-192  %txt   /tests/golden/lex-name-bad-1/tokens/txt
+/*  tre-192  %txt   /tests/golden/lex-name-bad-1/tree/txt
+/*  src-193  %jibb  /tests/golden/lex-name-bad-2/source/jibb
+/*  tok-193  %txt   /tests/golden/lex-name-bad-2/tokens/txt
+/*  tre-193  %txt   /tests/golden/lex-name-bad-2/tree/txt
+/*  src-194  %jibb  /tests/golden/lex-name-bad-3/source/jibb
+/*  tok-194  %txt   /tests/golden/lex-name-bad-3/tokens/txt
+/*  tre-194  %txt   /tests/golden/lex-name-bad-3/tree/txt
+/*  src-195  %jibb  /tests/golden/lex-name-bad-4/source/jibb
+/*  tok-195  %txt   /tests/golden/lex-name-bad-4/tokens/txt
+/*  tre-195  %txt   /tests/golden/lex-name-bad-4/tree/txt
+/*  src-196  %jibb  /tests/golden/lex-name-bad-5/source/jibb
+/*  tok-196  %txt   /tests/golden/lex-name-bad-5/tokens/txt
+/*  tre-196  %txt   /tests/golden/lex-name-bad-5/tree/txt
+/*  src-197  %jibb  /tests/golden/lex-name-bad-6/source/jibb
+/*  tok-197  %txt   /tests/golden/lex-name-bad-6/tokens/txt
+/*  tre-197  %txt   /tests/golden/lex-name-bad-6/tree/txt
+/*  src-198  %jibb  /tests/golden/lex-name-ok-1/source/jibb
+/*  tok-198  %txt   /tests/golden/lex-name-ok-1/tokens/txt
+/*  tre-198  %txt   /tests/golden/lex-name-ok-1/tree/txt
+/*  src-199  %jibb  /tests/golden/lex-null-bad-1/source/jibb
+/*  tok-199  %txt   /tests/golden/lex-null-bad-1/tokens/txt
+/*  tre-199  %txt   /tests/golden/lex-null-bad-1/tree/txt
+/*  src-200  %jibb  /tests/golden/lex-null-ok-1/source/jibb
+/*  tok-200  %txt   /tests/golden/lex-null-ok-1/tokens/txt
+/*  tre-200  %txt   /tests/golden/lex-null-ok-1/tree/txt
+/*  src-201  %jibb  /tests/golden/lex-open-bracket-bad-1/source/jibb
+/*  tok-201  %txt   /tests/golden/lex-open-bracket-bad-1/tokens/txt
+/*  tre-201  %txt   /tests/golden/lex-open-bracket-bad-1/tree/txt
+/*  src-202  %jibb  /tests/golden/lex-open-bracket-bad-2/source/jibb
+/*  tok-202  %txt   /tests/golden/lex-open-bracket-bad-2/tokens/txt
+/*  tre-202  %txt   /tests/golden/lex-open-bracket-bad-2/tree/txt
+/*  src-203  %jibb  /tests/golden/lex-open-bracket-bad-3/source/jibb
+/*  tok-203  %txt   /tests/golden/lex-open-bracket-bad-3/tokens/txt
+/*  tre-203  %txt   /tests/golden/lex-open-bracket-bad-3/tree/txt
+/*  src-204  %jibb  /tests/golden/lex-open-bracket-bad-4/source/jibb
+/*  tok-204  %txt   /tests/golden/lex-open-bracket-bad-4/tokens/txt
+/*  tre-204  %txt   /tests/golden/lex-open-bracket-bad-4/tree/txt
+/*  src-205  %jibb  /tests/golden/lex-open-bracket-bad-5/source/jibb
+/*  tok-205  %txt   /tests/golden/lex-open-bracket-bad-5/tokens/txt
+/*  tre-205  %txt   /tests/golden/lex-open-bracket-bad-5/tree/txt
+/*  src-206  %jibb  /tests/golden/lex-open-bracket-ok-1/source/jibb
+/*  tok-206  %txt   /tests/golden/lex-open-bracket-ok-1/tokens/txt
+/*  tre-206  %txt   /tests/golden/lex-open-bracket-ok-1/tree/txt
+/*  src-207  %jibb  /tests/golden/lex-open-bracket-ok-2/source/jibb
+/*  tok-207  %txt   /tests/golden/lex-open-bracket-ok-2/tokens/txt
+/*  tre-207  %txt   /tests/golden/lex-open-bracket-ok-2/tree/txt
+/*  src-208  %jibb  /tests/golden/lex-pair-binding-bad-1/source/jibb
+/*  tok-208  %txt   /tests/golden/lex-pair-binding-bad-1/tokens/txt
+/*  tre-208  %txt   /tests/golden/lex-pair-binding-bad-1/tree/txt
+/*  src-209  %jibb  /tests/golden/lex-pair-binding-ok-1/source/jibb
+/*  tok-209  %txt   /tests/golden/lex-pair-binding-ok-1/tokens/txt
+/*  tre-209  %txt   /tests/golden/lex-pair-binding-ok-1/tree/txt
+/*  src-210  %jibb  /tests/golden/lex-path-bad-1/source/jibb
+/*  tok-210  %txt   /tests/golden/lex-path-bad-1/tokens/txt
+/*  tre-210  %txt   /tests/golden/lex-path-bad-1/tree/txt
+/*  src-211  %jibb  /tests/golden/lex-path-ok-1/source/jibb
+/*  tok-211  %txt   /tests/golden/lex-path-ok-1/tokens/txt
+/*  tre-211  %txt   /tests/golden/lex-path-ok-1/tree/txt
+/*  src-212  %jibb  /tests/golden/lex-rune-layout-bad-1/source/jibb
+/*  tok-212  %txt   /tests/golden/lex-rune-layout-bad-1/tokens/txt
+/*  tre-212  %txt   /tests/golden/lex-rune-layout-bad-1/tree/txt
+/*  src-213  %jibb  /tests/golden/lex-rune-layout-bad-2/source/jibb
+/*  tok-213  %txt   /tests/golden/lex-rune-layout-bad-2/tokens/txt
+/*  tre-213  %txt   /tests/golden/lex-rune-layout-bad-2/tree/txt
+/*  src-214  %jibb  /tests/golden/lex-rune-layout-bad-3/source/jibb
+/*  tok-214  %txt   /tests/golden/lex-rune-layout-bad-3/tokens/txt
+/*  tre-214  %txt   /tests/golden/lex-rune-layout-bad-3/tree/txt
+/*  src-215  %jibb  /tests/golden/lex-rune-layout-bad-4/source/jibb
+/*  tok-215  %txt   /tests/golden/lex-rune-layout-bad-4/tokens/txt
+/*  tre-215  %txt   /tests/golden/lex-rune-layout-bad-4/tree/txt
+/*  src-216  %jibb  /tests/golden/lex-rune-layout-ok-1/source/jibb
+/*  tok-216  %txt   /tests/golden/lex-rune-layout-ok-1/tokens/txt
+/*  tre-216  %txt   /tests/golden/lex-rune-layout-ok-1/tree/txt
+/*  src-217  %jibb  /tests/golden/lex-ship-bad-1/source/jibb
+/*  tok-217  %txt   /tests/golden/lex-ship-bad-1/tokens/txt
+/*  tre-217  %txt   /tests/golden/lex-ship-bad-1/tree/txt
+/*  src-218  %jibb  /tests/golden/lex-ship-ok-1/source/jibb
+/*  tok-218  %txt   /tests/golden/lex-ship-ok-1/tokens/txt
+/*  tre-218  %txt   /tests/golden/lex-ship-ok-1/tree/txt
+/*  src-219  %jibb  /tests/golden/lex-spacing-bad-1/source/jibb
+/*  tok-219  %txt   /tests/golden/lex-spacing-bad-1/tokens/txt
+/*  tre-219  %txt   /tests/golden/lex-spacing-bad-1/tree/txt
+/*  src-220  %jibb  /tests/golden/lex-spacing-bad-2/source/jibb
+/*  tok-220  %txt   /tests/golden/lex-spacing-bad-2/tokens/txt
+/*  tre-220  %txt   /tests/golden/lex-spacing-bad-2/tree/txt
+/*  src-221  %jibb  /tests/golden/lex-spacing-bad-3/source/jibb
+/*  tok-221  %txt   /tests/golden/lex-spacing-bad-3/tokens/txt
+/*  tre-221  %txt   /tests/golden/lex-spacing-bad-3/tree/txt
+/*  src-222  %jibb  /tests/golden/lex-spacing-bad-4/source/jibb
+/*  tok-222  %txt   /tests/golden/lex-spacing-bad-4/tokens/txt
+/*  tre-222  %txt   /tests/golden/lex-spacing-bad-4/tree/txt
+/*  src-223  %jibb  /tests/golden/lex-spacing-ok-1/source/jibb
+/*  tok-223  %txt   /tests/golden/lex-spacing-ok-1/tokens/txt
+/*  tre-223  %txt   /tests/golden/lex-spacing-ok-1/tree/txt
+/*  src-224  %jibb  /tests/golden/lex-string-bad-1/source/jibb
+/*  tok-224  %txt   /tests/golden/lex-string-bad-1/tokens/txt
+/*  tre-224  %txt   /tests/golden/lex-string-bad-1/tree/txt
+/*  src-225  %jibb  /tests/golden/lex-string-bad-2/source/jibb
+/*  tok-225  %txt   /tests/golden/lex-string-bad-2/tokens/txt
+/*  tre-225  %txt   /tests/golden/lex-string-bad-2/tree/txt
+/*  src-226  %jibb  /tests/golden/lex-string-ok-1/source/jibb
+/*  tok-226  %txt   /tests/golden/lex-string-ok-1/tokens/txt
+/*  tre-226  %txt   /tests/golden/lex-string-ok-1/tree/txt
+/*  src-227  %jibb  /tests/golden/lex-term-bad-1/source/jibb
+/*  tok-227  %txt   /tests/golden/lex-term-bad-1/tokens/txt
+/*  tre-227  %txt   /tests/golden/lex-term-bad-1/tree/txt
+/*  src-228  %jibb  /tests/golden/lex-term-bad-2/source/jibb
+/*  tok-228  %txt   /tests/golden/lex-term-bad-2/tokens/txt
+/*  tre-228  %txt   /tests/golden/lex-term-bad-2/tree/txt
+/*  src-229  %jibb  /tests/golden/lex-term-bad-3/source/jibb
+/*  tok-229  %txt   /tests/golden/lex-term-bad-3/tokens/txt
+/*  tre-229  %txt   /tests/golden/lex-term-bad-3/tree/txt
+/*  src-230  %jibb  /tests/golden/lex-term-ok-1/source/jibb
+/*  tok-230  %txt   /tests/golden/lex-term-ok-1/tokens/txt
+/*  tre-230  %txt   /tests/golden/lex-term-ok-1/tree/txt
+/*  src-231  %jibb  /tests/golden/lex-tight-change-bad-1/source/jibb
+/*  tok-231  %txt   /tests/golden/lex-tight-change-bad-1/tokens/txt
+/*  tre-231  %txt   /tests/golden/lex-tight-change-bad-1/tree/txt
+/*  src-232  %jibb  /tests/golden/lex-tight-change-bad-2/source/jibb
+/*  tok-232  %txt   /tests/golden/lex-tight-change-bad-2/tokens/txt
+/*  tre-232  %txt   /tests/golden/lex-tight-change-bad-2/tree/txt
+/*  src-233  %jibb  /tests/golden/lex-tight-change-ok-1/source/jibb
+/*  tok-233  %txt   /tests/golden/lex-tight-change-ok-1/tokens/txt
+/*  tre-233  %txt   /tests/golden/lex-tight-change-ok-1/tree/txt
+/*  src-234  %jibb  /tests/golden/lex-tight-ctor-bad-1/source/jibb
+/*  tok-234  %txt   /tests/golden/lex-tight-ctor-bad-1/tokens/txt
+/*  tre-234  %txt   /tests/golden/lex-tight-ctor-bad-1/tree/txt
+/*  src-235  %jibb  /tests/golden/lex-tight-ctor-bad-2/source/jibb
+/*  tok-235  %txt   /tests/golden/lex-tight-ctor-bad-2/tokens/txt
+/*  tre-235  %txt   /tests/golden/lex-tight-ctor-bad-2/tree/txt
+/*  src-236  %jibb  /tests/golden/lex-tight-ctor-ok-1/source/jibb
+/*  tok-236  %txt   /tests/golden/lex-tight-ctor-ok-1/tokens/txt
+/*  tre-236  %txt   /tests/golden/lex-tight-ctor-ok-1/tree/txt
+/*  src-237  %jibb  /tests/golden/lex-tight-opener-bad-1/source/jibb
+/*  tok-237  %txt   /tests/golden/lex-tight-opener-bad-1/tokens/txt
+/*  tre-237  %txt   /tests/golden/lex-tight-opener-bad-1/tree/txt
+/*  src-238  %jibb  /tests/golden/lex-tight-opener-bad-2/source/jibb
+/*  tok-238  %txt   /tests/golden/lex-tight-opener-bad-2/tokens/txt
+/*  tre-238  %txt   /tests/golden/lex-tight-opener-bad-2/tree/txt
+/*  src-239  %jibb  /tests/golden/lex-tight-opener-bad-3/source/jibb
+/*  tok-239  %txt   /tests/golden/lex-tight-opener-bad-3/tokens/txt
+/*  tre-239  %txt   /tests/golden/lex-tight-opener-bad-3/tree/txt
+/*  src-240  %jibb  /tests/golden/lex-tight-opener-bad-4/source/jibb
+/*  tok-240  %txt   /tests/golden/lex-tight-opener-bad-4/tokens/txt
+/*  tre-240  %txt   /tests/golden/lex-tight-opener-bad-4/tree/txt
+/*  src-241  %jibb  /tests/golden/lex-tight-opener-ok-1/source/jibb
+/*  tok-241  %txt   /tests/golden/lex-tight-opener-ok-1/tokens/txt
+/*  tre-241  %txt   /tests/golden/lex-tight-opener-ok-1/tree/txt
+/*  src-242  %jibb  /tests/golden/lex-tight-pair-bad-1/source/jibb
+/*  tok-242  %txt   /tests/golden/lex-tight-pair-bad-1/tokens/txt
+/*  tre-242  %txt   /tests/golden/lex-tight-pair-bad-1/tree/txt
+/*  src-243  %jibb  /tests/golden/lex-tight-pair-bad-2/source/jibb
+/*  tok-243  %txt   /tests/golden/lex-tight-pair-bad-2/tokens/txt
+/*  tre-243  %txt   /tests/golden/lex-tight-pair-bad-2/tree/txt
+/*  src-244  %jibb  /tests/golden/lex-tight-pair-bad-3/source/jibb
+/*  tok-244  %txt   /tests/golden/lex-tight-pair-bad-3/tokens/txt
+/*  tre-244  %txt   /tests/golden/lex-tight-pair-bad-3/tree/txt
+/*  src-245  %jibb  /tests/golden/lex-tight-pair-ok-1/source/jibb
+/*  tok-245  %txt   /tests/golden/lex-tight-pair-ok-1/tokens/txt
+/*  tre-245  %txt   /tests/golden/lex-tight-pair-ok-1/tree/txt
+/*  src-246  %jibb  /tests/golden/lex-tight-qath-bad-1/source/jibb
+/*  tok-246  %txt   /tests/golden/lex-tight-qath-bad-1/tokens/txt
+/*  tre-246  %txt   /tests/golden/lex-tight-qath-bad-1/tree/txt
+/*  src-247  %jibb  /tests/golden/lex-tight-qath-bad-2/source/jibb
+/*  tok-247  %txt   /tests/golden/lex-tight-qath-bad-2/tokens/txt
+/*  tre-247  %txt   /tests/golden/lex-tight-qath-bad-2/tree/txt
+/*  src-248  %jibb  /tests/golden/lex-tight-qath-bad-3/source/jibb
+/*  tok-248  %txt   /tests/golden/lex-tight-qath-bad-3/tokens/txt
+/*  tre-248  %txt   /tests/golden/lex-tight-qath-bad-3/tree/txt
+/*  src-249  %jibb  /tests/golden/lex-tight-qath-ok-1/source/jibb
+/*  tok-249  %txt   /tests/golden/lex-tight-qath-ok-1/tokens/txt
+/*  tre-249  %txt   /tests/golden/lex-tight-qath-ok-1/tree/txt
+/*  src-250  %jibb  /tests/golden/lex-tight-unit-bad-1/source/jibb
+/*  tok-250  %txt   /tests/golden/lex-tight-unit-bad-1/tokens/txt
+/*  tre-250  %txt   /tests/golden/lex-tight-unit-bad-1/tree/txt
+/*  src-251  %jibb  /tests/golden/lex-tight-unit-ok-1/source/jibb
+/*  tok-251  %txt   /tests/golden/lex-tight-unit-ok-1/tokens/txt
+/*  tre-251  %txt   /tests/golden/lex-tight-unit-ok-1/tree/txt
+/*  src-252  %jibb  /tests/golden/lex-tight-wing-bad-1/source/jibb
+/*  tok-252  %txt   /tests/golden/lex-tight-wing-bad-1/tokens/txt
+/*  tre-252  %txt   /tests/golden/lex-tight-wing-bad-1/tree/txt
+/*  src-253  %jibb  /tests/golden/lex-tight-wing-ok-1/source/jibb
+/*  tok-253  %txt   /tests/golden/lex-tight-wing-ok-1/tokens/txt
+/*  tre-253  %txt   /tests/golden/lex-tight-wing-ok-1/tree/txt
 |%
 ::  one arm per case
 ::
 ++  test-doc-core-02-update
-  (check ~.doc-core-02-update src-1 ~ ~)
+  (check ~.doc-core-02-update src-1 `tok-1 `tre-1)
 ++  test-doc-grammar-01-imports
-  (check ~.doc-grammar-01-imports src-2 ~ ~)
+  (check ~.doc-grammar-01-imports src-2 `tok-2 `tre-2)
 ++  test-doc-grammar-02-buttons
-  (check ~.doc-grammar-02-buttons src-3 ~ ~)
+  (check ~.doc-grammar-02-buttons src-3 `tok-3 `tre-3)
 ++  test-doc-grammar-03-view-day
-  (check ~.doc-grammar-03-view-day src-4 ~ ~)
+  (check ~.doc-grammar-03-view-day src-4 `tok-4 `tre-4)
 ++  test-doc-grammar-04-step
-  (check ~.doc-grammar-04-step src-5 ~ ~)
+  (check ~.doc-grammar-04-step src-5 `tok-5 `tre-5)
 ++  test-doc-grammar-06-cart-store
-  (check ~.doc-grammar-06-cart-store src-6 ~ ~)
+  (check ~.doc-grammar-06-cart-store src-6 `tok-6 `tre-6)
 ++  test-doc-grammar-07-basket
-  (check ~.doc-grammar-07-basket src-7 ~ ~)
+  (check ~.doc-grammar-07-basket src-7 `tok-7 `tre-7)
 ++  test-doc-overview-01-cmd-sub
-  (check ~.doc-overview-01-cmd-sub src-8 ~ ~)
+  (check ~.doc-overview-01-cmd-sub src-8 `tok-8 `tre-8)
 ++  test-doc-overview-02-theme
-  (check ~.doc-overview-02-theme src-9 ~ ~)
+  (check ~.doc-overview-02-theme src-9 `tok-9 `tre-9)
 ++  test-doc-overview-04-todo-api
-  (check ~.doc-overview-04-todo-api src-10 ~ ~)
+  (check ~.doc-overview-04-todo-api src-10 `tok-10 `tre-10)
 ++  test-doc-overview-08-about
-  (check ~.doc-overview-08-about src-11 ~ ~)
+  (check ~.doc-overview-08-about src-11 `tok-11 `tre-11)
 ++  test-doc-overview-09-blog-index
-  (check ~.doc-overview-09-blog-index src-12 ~ ~)
+  (check ~.doc-overview-09-blog-index src-12 `tok-12 `tre-12)
 ++  test-doc-overview-10-todo-list
-  (check ~.doc-overview-10-todo-list src-13 ~ ~)
+  (check ~.doc-overview-10-todo-list src-13 `tok-13 `tre-13)
 ++  test-doc-overview-11-index
-  (check ~.doc-overview-11-index src-14 ~ ~)
+  (check ~.doc-overview-11-index src-14 `tok-14 `tre-14)
 ++  test-inline-base32
-  (check ~.inline-base32 src-15 ~ ~)
+  (check ~.inline-base32 src-15 `tok-15 `tre-15)
 ++  test-inline-call
-  (check ~.inline-call src-16 ~ ~)
+  (check ~.inline-call src-16 `tok-16 `tre-16)
 ++  test-inline-cell
-  (check ~.inline-cell src-17 ~ ~)
+  (check ~.inline-cell src-17 `tok-17 `tre-17)
 ++  test-inline-change-done
-  (check ~.inline-change-done src-18 ~ ~)
+  (check ~.inline-change-done src-18 `tok-18 `tre-18)
 ++  test-inline-change-draft
-  (check ~.inline-change-draft src-19 ~ ~)
+  (check ~.inline-change-draft src-19 `tok-19 `tre-19)
 ++  test-inline-crash
-  (check ~.inline-crash src-20 ~ ~)
+  (check ~.inline-crash src-20 `tok-20 `tre-20)
 ++  test-inline-ctor-typed
-  (check ~.inline-ctor-typed src-21 ~ ~)
+  (check ~.inline-ctor-typed src-21 `tok-21 `tre-21)
 ++  test-inline-date
-  (check ~.inline-date src-22 ~ ~)
+  (check ~.inline-date src-22 `tok-22 `tre-22)
 ++  test-inline-decimal
-  (check ~.inline-decimal src-23 ~ ~)
+  (check ~.inline-decimal src-23 `tok-23 `tre-23)
 ++  test-inline-duration
-  (check ~.inline-duration src-24 ~ ~)
+  (check ~.inline-duration src-24 `tok-24 `tre-24)
 ++  test-inline-fold-mold
-  (check ~.inline-fold-mold src-25 ~ ~)
+  (check ~.inline-fold-mold src-25 `tok-25 `tre-25)
 ++  test-inline-gate-mold
-  (check ~.inline-gate-mold src-26 ~ ~)
+  (check ~.inline-gate-mold src-26 `tok-26 `tre-26)
 ++  test-inline-gate-samples
-  (check ~.inline-gate-samples src-27 ~ ~)
+  (check ~.inline-gate-samples src-27 `tok-27 `tre-27)
 ++  test-inline-gate-wide
-  (check ~.inline-gate-wide src-28 ~ ~)
+  (check ~.inline-gate-wide src-28 `tok-28 `tre-28)
 ++  test-inline-generic-mold
-  (check ~.inline-generic-mold src-29 ~ ~)
+  (check ~.inline-generic-mold src-29 `tok-29 `tre-29)
 ++  test-inline-hex
-  (check ~.inline-hex src-30 ~ ~)
+  (check ~.inline-hex src-30 `tok-30 `tre-30)
 ++  test-inline-import-mark-face-bad
-  (check ~.inline-import-mark-face-bad src-31 ~ ~)
+  (check ~.inline-import-mark-face-bad src-31 `tok-31 `tre-31)
+++  test-inline-import-root-bad
+  (check ~.inline-import-root-bad src-32 `tok-32 `tre-32)
 ++  test-inline-imports-after-definition
-  (check ~.inline-imports-after-definition src-32 ~ ~)
+  (check ~.inline-imports-after-definition src-33 `tok-33 `tre-33)
 ++  test-inline-island
-  (check ~.inline-island src-33 ~ ~)
+  (check ~.inline-island src-34 `tok-34 `tre-34)
 ++  test-inline-kinds
-  (check ~.inline-kinds src-34 ~ ~)
+  (check ~.inline-kinds src-35 `tok-35 `tre-35)
 ++  test-inline-knot
-  (check ~.inline-knot src-35 ~ ~)
+  (check ~.inline-knot src-36 `tok-36 `tre-36)
 ++  test-inline-leftout-barcab
-  (check ~.inline-leftout-barcab src-36 ~ ~)
+  (check ~.inline-leftout-barcab src-37 `tok-37 `tre-37)
 ++  test-inline-leftout-barcen
-  (check ~.inline-leftout-barcen src-37 ~ ~)
+  (check ~.inline-leftout-barcen src-38 `tok-38 `tre-38)
+++  test-inline-leftout-barcen-2
+  (check ~.inline-leftout-barcen-2 src-39 `tok-39 `tre-39)
+++  test-inline-leftout-barcen-3
+  (check ~.inline-leftout-barcen-3 src-40 `tok-40 `tre-40)
 ++  test-inline-leftout-barhep
-  (check ~.inline-leftout-barhep src-38 ~ ~)
+  (check ~.inline-leftout-barhep src-41 `tok-41 `tre-41)
 ++  test-inline-leftout-bartar
-  (check ~.inline-leftout-bartar src-39 ~ ~)
+  (check ~.inline-leftout-bartar src-42 `tok-42 `tre-42)
 ++  test-inline-leftout-buc-paren
-  (check ~.inline-leftout-buc-paren src-40 ~ ~)
+  (check ~.inline-leftout-buc-paren src-43 `tok-43 `tre-43)
+++  test-inline-leftout-buc-paren-2
+  (check ~.inline-leftout-buc-paren-2 src-44 `tok-44 `tre-44)
 ++  test-inline-leftout-buccen
-  (check ~.inline-leftout-buccen src-41 ~ ~)
+  (check ~.inline-leftout-buccen src-45 `tok-45 `tre-45)
 ++  test-inline-leftout-cencol
-  (check ~.inline-leftout-cencol src-42 ~ ~)
+  (check ~.inline-leftout-cencol src-46 `tok-46 `tre-46)
+++  test-inline-leftout-cenhep
+  (check ~.inline-leftout-cenhep src-47 `tok-47 `tre-47)
 ++  test-inline-leftout-centis
-  (check ~.inline-leftout-centis src-43 ~ ~)
+  (check ~.inline-leftout-centis src-48 `tok-48 `tre-48)
+++  test-inline-leftout-colhep
+  (check ~.inline-leftout-colhep src-49 `tok-49 `tre-49)
 ++  test-inline-leftout-colon-wing
-  (check ~.inline-leftout-colon-wing src-44 ~ ~)
+  (check ~.inline-leftout-colon-wing src-50 `tok-50 `tre-50)
 ++  test-inline-leftout-colsig
-  (check ~.inline-leftout-colsig src-45 ~ ~)
+  (check ~.inline-leftout-colsig src-51 `tok-51 `tre-51)
 ++  test-inline-leftout-coltar
-  (check ~.inline-leftout-coltar src-46 ~ ~)
+  (check ~.inline-leftout-coltar src-52 `tok-52 `tre-52)
 ++  test-inline-leftout-dottar
-  (check ~.inline-leftout-dottar src-47 ~ ~)
+  (check ~.inline-leftout-dottar src-53 `tok-53 `tre-53)
 ++  test-inline-leftout-dottis
-  (check ~.inline-leftout-dottis src-48 ~ ~)
+  (check ~.inline-leftout-dottis src-54 `tok-54 `tre-54)
 ++  test-inline-leftout-faslus
-  (check ~.inline-leftout-faslus src-49 ~ ~)
+  (check ~.inline-leftout-faslus src-55 `tok-55 `tre-55)
 ++  test-inline-leftout-hephep
-  (check ~.inline-leftout-hephep src-50 ~ ~)
+  (check ~.inline-leftout-hephep src-56 `tok-56 `tre-56)
 ++  test-inline-leftout-kethep-wide
-  (check ~.inline-leftout-kethep-wide src-51 ~ ~)
+  (check ~.inline-leftout-kethep-wide src-57 `tok-57 `tre-57)
 ++  test-inline-leftout-kettar
-  (check ~.inline-leftout-kettar src-52 ~ ~)
+  (check ~.inline-leftout-kettar src-58 `tok-58 `tre-58)
+++  test-inline-leftout-miccol
+  (check ~.inline-leftout-miccol src-59 `tok-59 `tre-59)
 ++  test-inline-leftout-sail
-  (check ~.inline-leftout-sail src-53 ~ ~)
+  (check ~.inline-leftout-sail src-60 `tok-60 `tre-60)
 ++  test-inline-leftout-sigbar
-  (check ~.inline-leftout-sigbar src-54 ~ ~)
+  (check ~.inline-leftout-sigbar src-61 `tok-61 `tre-61)
 ++  test-inline-leftout-signed-float-auras
-  (check ~.inline-leftout-signed-float-auras src-55 ~ ~)
+  (check ~.inline-leftout-signed-float-auras src-62 `tok-62 `tre-62)
+++  test-inline-leftout-sigpam-wide
+  (check ~.inline-leftout-sigpam-wide src-63 `tok-63 `tre-63)
 ++  test-inline-leftout-tis-paren
-  (check ~.inline-leftout-tis-paren src-56 ~ ~)
+  (check ~.inline-leftout-tis-paren src-64 `tok-64 `tre-64)
 ++  test-inline-leftout-tisfas
-  (check ~.inline-leftout-tisfas src-57 ~ ~)
+  (check ~.inline-leftout-tisfas src-65 `tok-65 `tre-65)
 ++  test-inline-leftout-tisgal
-  (check ~.inline-leftout-tisgal src-58 ~ ~)
+  (check ~.inline-leftout-tisgal src-66 `tok-66 `tre-66)
+++  test-inline-leftout-tisgal-2
+  (check ~.inline-leftout-tisgal-2 src-67 `tok-67 `tre-67)
 ++  test-inline-leftout-tisgar
-  (check ~.inline-leftout-tisgar src-59 ~ ~)
+  (check ~.inline-leftout-tisgar src-68 `tok-68 `tre-68)
+++  test-inline-leftout-tislus
+  (check ~.inline-leftout-tislus src-69 `tok-69 `tre-69)
 ++  test-inline-leftout-tistis
-  (check ~.inline-leftout-tistis src-60 ~ ~)
+  (check ~.inline-leftout-tistis src-70 `tok-70 `tre-70)
 ++  test-inline-leftout-wutcol
-  (check ~.inline-leftout-wutcol src-61 ~ ~)
+  (check ~.inline-leftout-wutcol src-71 `tok-71 `tre-71)
+++  test-inline-leftout-wutcol-2
+  (check ~.inline-leftout-wutcol-2 src-72 `tok-72 `tre-72)
 ++  test-inline-leftout-wuthep-wide
-  (check ~.inline-leftout-wuthep-wide src-62 ~ ~)
+  (check ~.inline-leftout-wuthep-wide src-73 `tok-73 `tre-73)
 ++  test-inline-leftout-wutlus
-  (check ~.inline-leftout-wutlus src-63 ~ ~)
+  (check ~.inline-leftout-wutlus src-74 `tok-74 `tre-74)
+++  test-inline-leftout-wutsig
+  (check ~.inline-leftout-wutsig src-75 `tok-75 `tre-75)
 ++  test-inline-leftout-wutzap
-  (check ~.inline-leftout-wutzap src-64 ~ ~)
+  (check ~.inline-leftout-wutzap src-76 `tok-76 `tre-76)
 ++  test-inline-leftout-zap-not
-  (check ~.inline-leftout-zap-not src-65 ~ ~)
+  (check ~.inline-leftout-zap-not src-77 `tok-77 `tre-77)
 ++  test-inline-leftout-zapgar
-  (check ~.inline-leftout-zapgar src-66 ~ ~)
+  (check ~.inline-leftout-zapgar src-78 `tok-78 `tre-78)
 ++  test-inline-list
-  (check ~.inline-list src-67 ~ ~)
+  (check ~.inline-list src-79 `tok-79 `tre-79)
 ++  test-inline-list-parens
-  (check ~.inline-list-parens src-68 ~ ~)
+  (check ~.inline-list-parens src-80 `tok-80 `tre-80)
 ++  test-inline-literal-defaults
-  (check ~.inline-literal-defaults src-69 ~ ~)
+  (check ~.inline-literal-defaults src-81 `tok-81 `tre-81)
 ++  test-inline-load-slug
-  (check ~.inline-load-slug src-70 ~ ~)
+  (check ~.inline-load-slug src-82 `tok-82 `tre-82)
 ++  test-inline-local-names
-  (check ~.inline-local-names src-71 ~ ~)
+  (check ~.inline-local-names src-83 `tok-83 `tre-83)
 ++  test-inline-loobean
-  (check ~.inline-loobean src-72 ~ ~)
+  (check ~.inline-loobean src-84 `tok-84 `tre-84)
 ++  test-inline-mark-digit
-  (check ~.inline-mark-digit src-73 ~ ~)
+  (check ~.inline-mark-digit src-85 `tok-85 `tre-85)
 ++  test-inline-module-definitions
-  (check ~.inline-module-definitions src-74 ~ ~)
+  (check ~.inline-module-definitions src-86 `tok-86 `tre-86)
 ++  test-inline-mold-add
-  (check ~.inline-mold-add src-75 ~ ~)
+  (check ~.inline-mold-add src-87 `tok-87 `tre-87)
 ++  test-inline-mold-any-empty
-  (check ~.inline-mold-any-empty src-76 ~ ~)
+  (check ~.inline-mold-any-empty src-88 `tok-88 `tre-88)
 ++  test-inline-mold-atoms
-  (check ~.inline-mold-atoms src-77 ~ ~)
+  (check ~.inline-mold-atoms src-89 `tok-89 `tre-89)
 ++  test-inline-mold-constants
-  (check ~.inline-mold-constants src-78 ~ ~)
+  (check ~.inline-mold-constants src-90 `tok-90 `tre-90)
 ++  test-inline-mold-containers
-  (check ~.inline-mold-containers src-79 ~ ~)
+  (check ~.inline-mold-containers src-91 `tok-91 `tre-91)
 ++  test-inline-mold-gate
-  (check ~.inline-mold-gate src-80 ~ ~)
+  (check ~.inline-mold-gate src-92 `tok-92 `tre-92)
 ++  test-inline-mold-generic
-  (check ~.inline-mold-generic src-81 ~ ~)
+  (check ~.inline-mold-generic src-93 `tok-93 `tre-93)
 ++  test-inline-mold-opaque
-  (check ~.inline-mold-opaque src-82 ~ ~)
+  (check ~.inline-mold-opaque src-94 `tok-94 `tre-94)
 ++  test-inline-mold-paths
-  (check ~.inline-mold-paths src-83 ~ ~)
+  (check ~.inline-mold-paths src-95 `tok-95 `tre-95)
 ++  test-inline-mold-records
-  (check ~.inline-mold-records src-84 ~ ~)
+  (check ~.inline-mold-records src-96 `tok-96 `tre-96)
 ++  test-inline-namespaces
-  (check ~.inline-namespaces src-85 ~ ~)
+  (check ~.inline-namespaces src-97 `tok-97 `tre-97)
 ++  test-inline-no-operators
-  (check ~.inline-no-operators src-86 ~ ~)
+  (check ~.inline-no-operators src-98 `tok-98 `tre-98)
 ++  test-inline-no-subs
-  (check ~.inline-no-subs src-87 ~ ~)
+  (check ~.inline-no-subs src-99 `tok-99 `tre-99)
 ++  test-inline-null
-  (check ~.inline-null src-88 ~ ~)
+  (check ~.inline-null src-100 `tok-100 `tre-100)
 ++  test-inline-pair
-  (check ~.inline-pair src-89 ~ ~)
+  (check ~.inline-pair src-101 `tok-101 `tre-101)
 ++  test-inline-pairs-two-items
-  (check ~.inline-pairs-two-items src-90 ~ ~)
+  (check ~.inline-pairs-two-items src-102 `tok-102 `tre-102)
 ++  test-inline-path
-  (check ~.inline-path src-91 ~ ~)
+  (check ~.inline-path src-103 `tok-103 `tre-103)
 ++  test-inline-pattern-any
-  (check ~.inline-pattern-any src-92 ~ ~)
+  (check ~.inline-pattern-any src-104 `tok-104 `tre-104)
 ++  test-inline-pattern-cell
-  (check ~.inline-pattern-cell src-93 ~ ~)
+  (check ~.inline-pattern-cell src-105 `tok-105 `tre-105)
 ++  test-inline-pattern-crash-arm
-  (check ~.inline-pattern-crash-arm src-94 ~ ~)
+  (check ~.inline-pattern-crash-arm src-106 `tok-106 `tre-106)
 ++  test-inline-pattern-date-bad
-  (check ~.inline-pattern-date-bad src-95 ~ ~)
+  (check ~.inline-pattern-date-bad src-107 `tok-107 `tre-107)
+++  test-inline-pattern-duration-bad
+  (check ~.inline-pattern-duration-bad src-108 `tok-108 `tre-108)
 ++  test-inline-pattern-eq
-  (check ~.inline-pattern-eq src-96 ~ ~)
+  (check ~.inline-pattern-eq src-109 `tok-109 `tre-109)
+++  test-inline-pattern-face-bad
+  (check ~.inline-pattern-face-bad src-110 `tok-110 `tre-110)
 ++  test-inline-pattern-head-tag
-  (check ~.inline-pattern-head-tag src-97 ~ ~)
+  (check ~.inline-pattern-head-tag src-111 `tok-111 `tre-111)
 ++  test-inline-pattern-interpolated-bad
-  (check ~.inline-pattern-interpolated-bad src-98 ~ ~)
+  (check ~.inline-pattern-interpolated-bad src-112 `tok-112 `tre-112)
 ++  test-inline-pattern-list-bad
-  (check ~.inline-pattern-list-bad src-99 ~ ~)
+  (check ~.inline-pattern-list-bad src-113 `tok-113 `tre-113)
 ++  test-inline-pattern-literals
-  (check ~.inline-pattern-literals src-100 ~ ~)
+  (check ~.inline-pattern-literals src-114 `tok-114 `tre-114)
 ++  test-inline-pattern-loobean
-  (check ~.inline-pattern-loobean src-101 ~ ~)
+  (check ~.inline-pattern-loobean src-115 `tok-115 `tre-115)
 ++  test-inline-pattern-move-any
-  (check ~.inline-pattern-move-any src-102 ~ ~)
+  (check ~.inline-pattern-move-any src-116 `tok-116 `tre-116)
 ++  test-inline-pattern-name
-  (check ~.inline-pattern-name src-103 ~ ~)
+  (check ~.inline-pattern-name src-117 `tok-117 `tre-117)
 ++  test-inline-pattern-null
-  (check ~.inline-pattern-null src-104 ~ ~)
+  (check ~.inline-pattern-null src-118 `tok-118 `tre-118)
 ++  test-inline-pattern-pair-bad
-  (check ~.inline-pattern-pair-bad src-105 ~ ~)
+  (check ~.inline-pattern-pair-bad src-119 `tok-119 `tre-119)
 ++  test-inline-pattern-tail-tag
-  (check ~.inline-pattern-tail-tag src-106 ~ ~)
+  (check ~.inline-pattern-tail-tag src-120 `tok-120 `tre-120)
 ++  test-inline-pattern-term
-  (check ~.inline-pattern-term src-107 ~ ~)
+  (check ~.inline-pattern-term src-121 `tok-121 `tre-121)
 ++  test-inline-pattern-two-tags
-  (check ~.inline-pattern-two-tags src-108 ~ ~)
+  (check ~.inline-pattern-two-tags src-122 `tok-122 `tre-122)
 ++  test-inline-pattern-unit
-  (check ~.inline-pattern-unit src-109 ~ ~)
+  (check ~.inline-pattern-unit src-123 `tok-123 `tre-123)
 ++  test-inline-qath
-  (check ~.inline-qath src-110 ~ ~)
+  (check ~.inline-qath src-124 `tok-124 `tre-124)
 ++  test-inline-requests
-  (check ~.inline-requests src-111 ~ ~)
+  (check ~.inline-requests src-125 `tok-125 `tre-125)
 ++  test-inline-scry-case
-  (check ~.inline-scry-case src-112 ~ ~)
+  (check ~.inline-scry-case src-126 `tok-126 `tre-126)
 ++  test-inline-self-reference
-  (check ~.inline-self-reference src-113 ~ ~)
+  (check ~.inline-self-reference src-127 `tok-127 `tre-127)
 ++  test-inline-ship
-  (check ~.inline-ship src-114 ~ ~)
+  (check ~.inline-ship src-128 `tok-128 `tre-128)
 ++  test-inline-static-image
-  (check ~.inline-static-image src-115 ~ ~)
+  (check ~.inline-static-image src-129 `tok-129 `tre-129)
 ++  test-inline-string
-  (check ~.inline-string src-116 ~ ~)
+  (check ~.inline-string src-130 `tok-130 `tre-130)
 ++  test-inline-tag-shape
-  (check ~.inline-tag-shape src-117 ~ ~)
+  (check ~.inline-tag-shape src-131 `tok-131 `tre-131)
 ++  test-inline-term
-  (check ~.inline-term src-118 ~ ~)
+  (check ~.inline-term src-132 `tok-132 `tre-132)
 ++  test-inline-text-items
-  (check ~.inline-text-items src-119 ~ ~)
+  (check ~.inline-text-items src-133 `tok-133 `tre-133)
 ++  test-inline-union-wide
-  (check ~.inline-union-wide src-120 ~ ~)
+  (check ~.inline-union-wide src-134 `tok-134 `tre-134)
 ++  test-inline-unit
-  (check ~.inline-unit src-121 ~ ~)
+  (check ~.inline-unit src-135 `tok-135 `tre-135)
 ++  test-inline-wide-form-rune-bad
-  (check ~.inline-wide-form-rune-bad src-122 ~ ~)
+  (check ~.inline-wide-form-rune-bad src-136 `tok-136 `tre-136)
 ++  test-inline-wide-forms
-  (check ~.inline-wide-forms src-123 ~ ~)
+  (check ~.inline-wide-forms src-137 `tok-137 `tre-137)
 ++  test-inline-wide-union-call
-  (check ~.inline-wide-union-call src-124 ~ ~)
+  (check ~.inline-wide-union-call src-138 `tok-138 `tre-138)
 ++  test-inline-wings
-  (check ~.inline-wings src-125 ~ ~)
+  (check ~.inline-wings src-139 `tok-139 `tre-139)
 ++  test-lex-base32-bad-1
-  (check ~.lex-base32-bad-1 src-126 ~ ~)
+  (check ~.lex-base32-bad-1 src-140 `tok-140 `tre-140)
 ++  test-lex-base32-ok-1
-  (check ~.lex-base32-ok-1 src-127 ~ ~)
+  (check ~.lex-base32-ok-1 src-141 `tok-141 `tre-141)
+++  test-lex-blob-bad-1
+  (check ~.lex-blob-bad-1 src-142 `tok-142 `tre-142)
 ++  test-lex-call-open-bad-1
-  (check ~.lex-call-open-bad-1 src-128 ~ ~)
+  (check ~.lex-call-open-bad-1 src-143 `tok-143 `tre-143)
 ++  test-lex-call-open-bad-2
-  (check ~.lex-call-open-bad-2 src-129 ~ ~)
+  (check ~.lex-call-open-bad-2 src-144 `tok-144 `tre-144)
 ++  test-lex-call-open-bad-3
-  (check ~.lex-call-open-bad-3 src-130 ~ ~)
+  (check ~.lex-call-open-bad-3 src-145 `tok-145 `tre-145)
 ++  test-lex-call-open-ok-1
-  (check ~.lex-call-open-ok-1 src-131 ~ ~)
+  (check ~.lex-call-open-ok-1 src-146 `tok-146 `tre-146)
 ++  test-lex-cell-bad-1
-  (check ~.lex-cell-bad-1 src-132 ~ ~)
+  (check ~.lex-cell-bad-1 src-147 `tok-147 `tre-147)
 ++  test-lex-cell-ok-1
-  (check ~.lex-cell-ok-1 src-133 ~ ~)
+  (check ~.lex-cell-ok-1 src-148 `tok-148 `tre-148)
+++  test-lex-closer-bad-1
+  (check ~.lex-closer-bad-1 src-149 `tok-149 `tre-149)
+++  test-lex-closer-bad-2
+  (check ~.lex-closer-bad-2 src-150 `tok-150 `tre-150)
+++  test-lex-closer-bad-3
+  (check ~.lex-closer-bad-3 src-151 `tok-151 `tre-151)
+++  test-lex-codepoint-bad-1
+  (check ~.lex-codepoint-bad-1 src-152 `tok-152 `tre-152)
 ++  test-lex-comment-bad-1
-  (check ~.lex-comment-bad-1 src-134 ~ ~)
+  (check ~.lex-comment-bad-1 src-153 `tok-153 `tre-153)
 ++  test-lex-comment-ok-1
-  (check ~.lex-comment-ok-1 src-135 ~ ~)
+  (check ~.lex-comment-ok-1 src-154 `tok-154 `tre-154)
 ++  test-lex-comment-ok-2
-  (check ~.lex-comment-ok-2 src-136 ~ ~)
+  (check ~.lex-comment-ok-2 src-155 `tok-155 `tre-155)
 ++  test-lex-comment-ok-3
-  (check ~.lex-comment-ok-3 src-137 ~ ~)
+  (check ~.lex-comment-ok-3 src-156 `tok-156 `tre-156)
 ++  test-lex-date-bad-1
-  (check ~.lex-date-bad-1 src-138 ~ ~)
+  (check ~.lex-date-bad-1 src-157 `tok-157 `tre-157)
 ++  test-lex-date-bad-2
-  (check ~.lex-date-bad-2 src-139 ~ ~)
+  (check ~.lex-date-bad-2 src-158 `tok-158 `tre-158)
+++  test-lex-date-bad-3
+  (check ~.lex-date-bad-3 src-159 `tok-159 `tre-159)
 ++  test-lex-date-ok-1
-  (check ~.lex-date-ok-1 src-140 ~ ~)
+  (check ~.lex-date-ok-1 src-160 `tok-160 `tre-160)
 ++  test-lex-decimal-bad-1
-  (check ~.lex-decimal-bad-1 src-141 ~ ~)
+  (check ~.lex-decimal-bad-1 src-161 `tok-161 `tre-161)
 ++  test-lex-decimal-bad-2
-  (check ~.lex-decimal-bad-2 src-142 ~ ~)
+  (check ~.lex-decimal-bad-2 src-162 `tok-162 `tre-162)
 ++  test-lex-decimal-ok-1
-  (check ~.lex-decimal-ok-1 src-143 ~ ~)
+  (check ~.lex-decimal-ok-1 src-163 `tok-163 `tre-163)
 ++  test-lex-duration-bad-1
-  (check ~.lex-duration-bad-1 src-144 ~ ~)
+  (check ~.lex-duration-bad-1 src-164 `tok-164 `tre-164)
+++  test-lex-duration-bad-2
+  (check ~.lex-duration-bad-2 src-165 `tok-165 `tre-165)
 ++  test-lex-duration-ok-1
-  (check ~.lex-duration-ok-1 src-145 ~ ~)
+  (check ~.lex-duration-ok-1 src-166 `tok-166 `tre-166)
 ++  test-lex-hex-bad-1
-  (check ~.lex-hex-bad-1 src-146 ~ ~)
+  (check ~.lex-hex-bad-1 src-167 `tok-167 `tre-167)
 ++  test-lex-hex-ok-1
-  (check ~.lex-hex-ok-1 src-147 ~ ~)
+  (check ~.lex-hex-ok-1 src-168 `tok-168 `tre-168)
 ++  test-lex-indent-bad-1
-  (check ~.lex-indent-bad-1 src-148 ~ ~)
+  (check ~.lex-indent-bad-1 src-169 `tok-169 `tre-169)
 ++  test-lex-indent-bad-2
-  (check ~.lex-indent-bad-2 src-149 ~ ~)
+  (check ~.lex-indent-bad-2 src-170 `tok-170 `tre-170)
 ++  test-lex-indent-bad-3
-  (check ~.lex-indent-bad-3 src-150 ~ ~)
+  (check ~.lex-indent-bad-3 src-171 `tok-171 `tre-171)
 ++  test-lex-indent-ok-1
-  (check ~.lex-indent-ok-1 src-151 ~ ~)
+  (check ~.lex-indent-ok-1 src-172 `tok-172 `tre-172)
 ++  test-lex-indent-ok-2
-  (check ~.lex-indent-ok-2 src-152 ~ ~)
+  (check ~.lex-indent-ok-2 src-173 `tok-173 `tre-173)
 ++  test-lex-indent-ok-3
-  (check ~.lex-indent-ok-3 src-153 ~ ~)
+  (check ~.lex-indent-ok-3 src-174 `tok-174 `tre-174)
 ++  test-lex-interp-bad-1
-  (check ~.lex-interp-bad-1 src-154 ~ ~)
+  (check ~.lex-interp-bad-1 src-175 `tok-175 `tre-175)
 ++  test-lex-interp-bad-2
-  (check ~.lex-interp-bad-2 src-155 ~ ~)
+  (check ~.lex-interp-bad-2 src-176 `tok-176 `tre-176)
 ++  test-lex-interp-bad-3
-  (check ~.lex-interp-bad-3 src-156 ~ ~)
+  (check ~.lex-interp-bad-3 src-177 `tok-177 `tre-177)
 ++  test-lex-interp-bad-4
-  (check ~.lex-interp-bad-4 src-157 ~ ~)
+  (check ~.lex-interp-bad-4 src-178 `tok-178 `tre-178)
 ++  test-lex-interp-ok-1
-  (check ~.lex-interp-ok-1 src-158 ~ ~)
+  (check ~.lex-interp-ok-1 src-179 `tok-179 `tre-179)
 ++  test-lex-interp-ok-2
-  (check ~.lex-interp-ok-2 src-159 ~ ~)
+  (check ~.lex-interp-ok-2 src-180 `tok-180 `tre-180)
 ++  test-lex-knot-bad-1
-  (check ~.lex-knot-bad-1 src-160 ~ ~)
+  (check ~.lex-knot-bad-1 src-181 `tok-181 `tre-181)
 ++  test-lex-knot-ok-1
-  (check ~.lex-knot-ok-1 src-161 ~ ~)
+  (check ~.lex-knot-ok-1 src-182 `tok-182 `tre-182)
 ++  test-lex-layout-bad-1
-  (check ~.lex-layout-bad-1 src-162 ~ ~)
+  (check ~.lex-layout-bad-1 src-183 `tok-183 `tre-183)
 ++  test-lex-layout-bad-2
-  (check ~.lex-layout-bad-2 src-163 ~ ~)
+  (check ~.lex-layout-bad-2 src-184 `tok-184 `tre-184)
 ++  test-lex-layout-bad-3
-  (check ~.lex-layout-bad-3 src-164 ~ ~)
+  (check ~.lex-layout-bad-3 src-185 `tok-185 `tre-185)
 ++  test-lex-layout-bad-4
-  (check ~.lex-layout-bad-4 src-165 ~ ~)
+  (check ~.lex-layout-bad-4 src-186 `tok-186 `tre-186)
 ++  test-lex-layout-ok-1
-  (check ~.lex-layout-ok-1 src-166 ~ ~)
+  (check ~.lex-layout-ok-1 src-187 `tok-187 `tre-187)
 ++  test-lex-list-bad-1
-  (check ~.lex-list-bad-1 src-167 ~ ~)
+  (check ~.lex-list-bad-1 src-188 `tok-188 `tre-188)
 ++  test-lex-list-ok-1
-  (check ~.lex-list-ok-1 src-168 ~ ~)
+  (check ~.lex-list-ok-1 src-189 `tok-189 `tre-189)
 ++  test-lex-loobean-bad-1
-  (check ~.lex-loobean-bad-1 src-169 ~ ~)
+  (check ~.lex-loobean-bad-1 src-190 `tok-190 `tre-190)
 ++  test-lex-loobean-ok-1
-  (check ~.lex-loobean-ok-1 src-170 ~ ~)
+  (check ~.lex-loobean-ok-1 src-191 `tok-191 `tre-191)
 ++  test-lex-name-bad-1
-  (check ~.lex-name-bad-1 src-171 ~ ~)
+  (check ~.lex-name-bad-1 src-192 `tok-192 `tre-192)
 ++  test-lex-name-bad-2
-  (check ~.lex-name-bad-2 src-172 ~ ~)
+  (check ~.lex-name-bad-2 src-193 `tok-193 `tre-193)
 ++  test-lex-name-bad-3
-  (check ~.lex-name-bad-3 src-173 ~ ~)
+  (check ~.lex-name-bad-3 src-194 `tok-194 `tre-194)
 ++  test-lex-name-bad-4
-  (check ~.lex-name-bad-4 src-174 ~ ~)
+  (check ~.lex-name-bad-4 src-195 `tok-195 `tre-195)
+++  test-lex-name-bad-5
+  (check ~.lex-name-bad-5 src-196 `tok-196 `tre-196)
+++  test-lex-name-bad-6
+  (check ~.lex-name-bad-6 src-197 `tok-197 `tre-197)
 ++  test-lex-name-ok-1
-  (check ~.lex-name-ok-1 src-175 ~ ~)
+  (check ~.lex-name-ok-1 src-198 `tok-198 `tre-198)
 ++  test-lex-null-bad-1
-  (check ~.lex-null-bad-1 src-176 ~ ~)
+  (check ~.lex-null-bad-1 src-199 `tok-199 `tre-199)
 ++  test-lex-null-ok-1
-  (check ~.lex-null-ok-1 src-177 ~ ~)
+  (check ~.lex-null-ok-1 src-200 `tok-200 `tre-200)
 ++  test-lex-open-bracket-bad-1
-  (check ~.lex-open-bracket-bad-1 src-178 ~ ~)
+  (check ~.lex-open-bracket-bad-1 src-201 `tok-201 `tre-201)
 ++  test-lex-open-bracket-bad-2
-  (check ~.lex-open-bracket-bad-2 src-179 ~ ~)
+  (check ~.lex-open-bracket-bad-2 src-202 `tok-202 `tre-202)
 ++  test-lex-open-bracket-bad-3
-  (check ~.lex-open-bracket-bad-3 src-180 ~ ~)
+  (check ~.lex-open-bracket-bad-3 src-203 `tok-203 `tre-203)
 ++  test-lex-open-bracket-bad-4
-  (check ~.lex-open-bracket-bad-4 src-181 ~ ~)
+  (check ~.lex-open-bracket-bad-4 src-204 `tok-204 `tre-204)
+++  test-lex-open-bracket-bad-5
+  (check ~.lex-open-bracket-bad-5 src-205 `tok-205 `tre-205)
 ++  test-lex-open-bracket-ok-1
-  (check ~.lex-open-bracket-ok-1 src-182 ~ ~)
+  (check ~.lex-open-bracket-ok-1 src-206 `tok-206 `tre-206)
 ++  test-lex-open-bracket-ok-2
-  (check ~.lex-open-bracket-ok-2 src-183 ~ ~)
+  (check ~.lex-open-bracket-ok-2 src-207 `tok-207 `tre-207)
 ++  test-lex-pair-binding-bad-1
-  (check ~.lex-pair-binding-bad-1 src-184 ~ ~)
+  (check ~.lex-pair-binding-bad-1 src-208 `tok-208 `tre-208)
 ++  test-lex-pair-binding-ok-1
-  (check ~.lex-pair-binding-ok-1 src-185 ~ ~)
+  (check ~.lex-pair-binding-ok-1 src-209 `tok-209 `tre-209)
 ++  test-lex-path-bad-1
-  (check ~.lex-path-bad-1 src-186 ~ ~)
+  (check ~.lex-path-bad-1 src-210 `tok-210 `tre-210)
 ++  test-lex-path-ok-1
-  (check ~.lex-path-ok-1 src-187 ~ ~)
+  (check ~.lex-path-ok-1 src-211 `tok-211 `tre-211)
 ++  test-lex-rune-layout-bad-1
-  (check ~.lex-rune-layout-bad-1 src-188 ~ ~)
+  (check ~.lex-rune-layout-bad-1 src-212 `tok-212 `tre-212)
 ++  test-lex-rune-layout-bad-2
-  (check ~.lex-rune-layout-bad-2 src-189 ~ ~)
+  (check ~.lex-rune-layout-bad-2 src-213 `tok-213 `tre-213)
 ++  test-lex-rune-layout-bad-3
-  (check ~.lex-rune-layout-bad-3 src-190 ~ ~)
+  (check ~.lex-rune-layout-bad-3 src-214 `tok-214 `tre-214)
 ++  test-lex-rune-layout-bad-4
-  (check ~.lex-rune-layout-bad-4 src-191 ~ ~)
+  (check ~.lex-rune-layout-bad-4 src-215 `tok-215 `tre-215)
 ++  test-lex-rune-layout-ok-1
-  (check ~.lex-rune-layout-ok-1 src-192 ~ ~)
+  (check ~.lex-rune-layout-ok-1 src-216 `tok-216 `tre-216)
 ++  test-lex-ship-bad-1
-  (check ~.lex-ship-bad-1 src-193 ~ ~)
+  (check ~.lex-ship-bad-1 src-217 `tok-217 `tre-217)
 ++  test-lex-ship-ok-1
-  (check ~.lex-ship-ok-1 src-194 ~ ~)
+  (check ~.lex-ship-ok-1 src-218 `tok-218 `tre-218)
 ++  test-lex-spacing-bad-1
-  (check ~.lex-spacing-bad-1 src-195 ~ ~)
+  (check ~.lex-spacing-bad-1 src-219 `tok-219 `tre-219)
 ++  test-lex-spacing-bad-2
-  (check ~.lex-spacing-bad-2 src-196 ~ ~)
+  (check ~.lex-spacing-bad-2 src-220 `tok-220 `tre-220)
 ++  test-lex-spacing-bad-3
-  (check ~.lex-spacing-bad-3 src-197 ~ ~)
+  (check ~.lex-spacing-bad-3 src-221 `tok-221 `tre-221)
 ++  test-lex-spacing-bad-4
-  (check ~.lex-spacing-bad-4 src-198 ~ ~)
+  (check ~.lex-spacing-bad-4 src-222 `tok-222 `tre-222)
 ++  test-lex-spacing-ok-1
-  (check ~.lex-spacing-ok-1 src-199 ~ ~)
+  (check ~.lex-spacing-ok-1 src-223 `tok-223 `tre-223)
 ++  test-lex-string-bad-1
-  (check ~.lex-string-bad-1 src-200 ~ ~)
+  (check ~.lex-string-bad-1 src-224 `tok-224 `tre-224)
 ++  test-lex-string-bad-2
-  (check ~.lex-string-bad-2 src-201 ~ ~)
+  (check ~.lex-string-bad-2 src-225 `tok-225 `tre-225)
 ++  test-lex-string-ok-1
-  (check ~.lex-string-ok-1 src-202 ~ ~)
+  (check ~.lex-string-ok-1 src-226 `tok-226 `tre-226)
 ++  test-lex-term-bad-1
-  (check ~.lex-term-bad-1 src-203 ~ ~)
+  (check ~.lex-term-bad-1 src-227 `tok-227 `tre-227)
 ++  test-lex-term-bad-2
-  (check ~.lex-term-bad-2 src-204 ~ ~)
+  (check ~.lex-term-bad-2 src-228 `tok-228 `tre-228)
 ++  test-lex-term-bad-3
-  (check ~.lex-term-bad-3 src-205 ~ ~)
+  (check ~.lex-term-bad-3 src-229 `tok-229 `tre-229)
 ++  test-lex-term-ok-1
-  (check ~.lex-term-ok-1 src-206 ~ ~)
+  (check ~.lex-term-ok-1 src-230 `tok-230 `tre-230)
 ++  test-lex-tight-change-bad-1
-  (check ~.lex-tight-change-bad-1 src-207 ~ ~)
+  (check ~.lex-tight-change-bad-1 src-231 `tok-231 `tre-231)
 ++  test-lex-tight-change-bad-2
-  (check ~.lex-tight-change-bad-2 src-208 ~ ~)
+  (check ~.lex-tight-change-bad-2 src-232 `tok-232 `tre-232)
 ++  test-lex-tight-change-ok-1
-  (check ~.lex-tight-change-ok-1 src-209 ~ ~)
+  (check ~.lex-tight-change-ok-1 src-233 `tok-233 `tre-233)
 ++  test-lex-tight-ctor-bad-1
-  (check ~.lex-tight-ctor-bad-1 src-210 ~ ~)
+  (check ~.lex-tight-ctor-bad-1 src-234 `tok-234 `tre-234)
 ++  test-lex-tight-ctor-bad-2
-  (check ~.lex-tight-ctor-bad-2 src-211 ~ ~)
+  (check ~.lex-tight-ctor-bad-2 src-235 `tok-235 `tre-235)
 ++  test-lex-tight-ctor-ok-1
-  (check ~.lex-tight-ctor-ok-1 src-212 ~ ~)
+  (check ~.lex-tight-ctor-ok-1 src-236 `tok-236 `tre-236)
 ++  test-lex-tight-opener-bad-1
-  (check ~.lex-tight-opener-bad-1 src-213 ~ ~)
+  (check ~.lex-tight-opener-bad-1 src-237 `tok-237 `tre-237)
 ++  test-lex-tight-opener-bad-2
-  (check ~.lex-tight-opener-bad-2 src-214 ~ ~)
+  (check ~.lex-tight-opener-bad-2 src-238 `tok-238 `tre-238)
 ++  test-lex-tight-opener-bad-3
-  (check ~.lex-tight-opener-bad-3 src-215 ~ ~)
+  (check ~.lex-tight-opener-bad-3 src-239 `tok-239 `tre-239)
 ++  test-lex-tight-opener-bad-4
-  (check ~.lex-tight-opener-bad-4 src-216 ~ ~)
+  (check ~.lex-tight-opener-bad-4 src-240 `tok-240 `tre-240)
 ++  test-lex-tight-opener-ok-1
-  (check ~.lex-tight-opener-ok-1 src-217 ~ ~)
+  (check ~.lex-tight-opener-ok-1 src-241 `tok-241 `tre-241)
 ++  test-lex-tight-pair-bad-1
-  (check ~.lex-tight-pair-bad-1 src-218 ~ ~)
+  (check ~.lex-tight-pair-bad-1 src-242 `tok-242 `tre-242)
+++  test-lex-tight-pair-bad-2
+  (check ~.lex-tight-pair-bad-2 src-243 `tok-243 `tre-243)
+++  test-lex-tight-pair-bad-3
+  (check ~.lex-tight-pair-bad-3 src-244 `tok-244 `tre-244)
 ++  test-lex-tight-pair-ok-1
-  (check ~.lex-tight-pair-ok-1 src-219 ~ ~)
+  (check ~.lex-tight-pair-ok-1 src-245 `tok-245 `tre-245)
 ++  test-lex-tight-qath-bad-1
-  (check ~.lex-tight-qath-bad-1 src-220 ~ ~)
+  (check ~.lex-tight-qath-bad-1 src-246 `tok-246 `tre-246)
 ++  test-lex-tight-qath-bad-2
-  (check ~.lex-tight-qath-bad-2 src-221 ~ ~)
+  (check ~.lex-tight-qath-bad-2 src-247 `tok-247 `tre-247)
 ++  test-lex-tight-qath-bad-3
-  (check ~.lex-tight-qath-bad-3 src-222 ~ ~)
+  (check ~.lex-tight-qath-bad-3 src-248 `tok-248 `tre-248)
 ++  test-lex-tight-qath-ok-1
-  (check ~.lex-tight-qath-ok-1 src-223 ~ ~)
+  (check ~.lex-tight-qath-ok-1 src-249 `tok-249 `tre-249)
 ++  test-lex-tight-unit-bad-1
-  (check ~.lex-tight-unit-bad-1 src-224 ~ ~)
+  (check ~.lex-tight-unit-bad-1 src-250 `tok-250 `tre-250)
 ++  test-lex-tight-unit-ok-1
-  (check ~.lex-tight-unit-ok-1 src-225 ~ ~)
+  (check ~.lex-tight-unit-ok-1 src-251 `tok-251 `tre-251)
 ++  test-lex-tight-wing-bad-1
-  (check ~.lex-tight-wing-bad-1 src-226 ~ ~)
+  (check ~.lex-tight-wing-bad-1 src-252 `tok-252 `tre-252)
 ++  test-lex-tight-wing-ok-1
-  (check ~.lex-tight-wing-ok-1 src-227 ~ ~)
+  (check ~.lex-tight-wing-ok-1 src-253 `tok-253 `tre-253)
 ::
 ::  +check: run golden:jibb on a case and compare both outputs
 ::

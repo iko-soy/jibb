@@ -1,3 +1,3 @@
-/tests/golden/inline-leftout-cencol/source.jibb:1:7: `%:` is left out: indentation covers it
+/tests/golden/inline-leftout-cencol/source.jibb:1:7: `%:` is left out: indentation covers it; a call is (f a b)
 ++ x %:  f  a  b
       ^

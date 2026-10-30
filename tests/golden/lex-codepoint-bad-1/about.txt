@@ -1,0 +1,3 @@
+source: Grammar tab, Literals table: the String row, "`@t`, a cord; … there is no `'…'` form"; Decisions: "Hoon's runes as keywords, and its literals"
+tests: a `~-` literal, Hoon's @c, here of a control character
+expect: error at 1:7 — Jibb writes no @c literals

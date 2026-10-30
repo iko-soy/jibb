@@ -1,0 +1,3 @@
+/tests/golden/lex-blob-bad-1/source.jibb:1:8: Jibb writes no blob literals
+++ x ~0v0000d
+       ^

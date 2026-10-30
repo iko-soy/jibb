@@ -1,0 +1,3 @@
+/tests/golden/lex-codepoint-bad-1/source.jibb:1:7: Jibb writes no @c literals
+++ x ~-~1.
+      ^

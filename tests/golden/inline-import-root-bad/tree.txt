@@ -1,0 +1,3 @@
+/tests/golden/inline-import-root-bad/source.jibb:1:12: expected a path segment right after `/`, found the end of the file
+/=  card  /
+           ^

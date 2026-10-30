@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "Sail's `;` runes: layout is Jibb's elements." and "Tall forms such as `:~`, `:*`, `%:` and `%=` … indentation covers them."
+tests: `;:`, Hoon's call of a gate on several arguments, which is not a Sail rune
+expect: error at 1:6 — `;:` is left out: nest the calls, as (add a (add b c)) (design question 30)

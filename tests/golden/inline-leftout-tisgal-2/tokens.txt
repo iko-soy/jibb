@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-tisgal-2/source.jibb:1:8: `=<` is left out: names never shadow, and `.` reads imports too
++$ x [=< a]
+       ^

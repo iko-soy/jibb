@@ -1,0 +1,3 @@
+source: Grammar tab, the EBNF: `name       = lower { lower | digit | "-" } ;`
+tests: a name that starts with a capital letter
+expect: error at 1:4 — a name starts with a lowercase letter; a capital begins a type variable, which can't be defined

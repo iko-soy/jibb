@@ -1,0 +1,3 @@
+source: Grammar tab, the EBNF: `definition = "+$" name ( mold | INDENT mold DEDENT ) | "++" name ( expr | body ) ;` and `wing       = name { "." name } ;`
+tests: a wing where a definition's name goes
+expect: error at 1:5 — a definition's name has no `.`; `a` alone could still be the name

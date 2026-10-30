@@ -1,0 +1,3 @@
+/tests/golden/lex-closer-bad-2/source.jibb:4:4: the closer `==` is left out: indentation covers it
+  ==
+   ^

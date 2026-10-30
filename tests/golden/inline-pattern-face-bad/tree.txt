@@ -1,0 +1,3 @@
+/tests/golden/inline-pattern-face-bad/source.jibb:3:7: expected a space between items, found `=`; patterns take no `name=`: a bare name binds, as [a b]
+    [a=1]  1
+      ^

@@ -1,0 +1,3 @@
+/tests/golden/lex-name-bad-5/source.jibb:1:4: expected a name, found `F`; a name starts with a lowercase letter
+++ Foo 1
+   ^

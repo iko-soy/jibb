@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "Tall forms such as `:~`, `:*`, `%:` and `%=`, the closers `==` and `--`, and other wide forms such as `^-(…)` and `?-(…)`: indentation covers them."
+tests: a wide `~&`, which the list doesn't name
+expect: error at 1:8 — a rune is followed by a space; the wide form `~&(…)` is left out: indentation covers it (design question 30)

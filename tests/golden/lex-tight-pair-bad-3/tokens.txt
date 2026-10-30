@@ -1,0 +1,3 @@
+/tests/golden/lex-tight-pair-bad-3/source.jibb:1:10: `%` begins a term, a loobean or `%/`
+++ x a+ %[
+         ^

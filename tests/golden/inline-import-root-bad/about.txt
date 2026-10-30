@@ -1,0 +1,3 @@
+source: Grammar tab, Imports: `/=  card    /ui/components/card  ::  a Jibb module`; the EBNF: `import     = "/-" name | "/%" term | "/=" name pathlit ;` and `pathlit    = "/" knot { "/" knot } ;`
+tests: a `/=` import whose path is `/` alone
+expect: error at 1:12 — a `/=` import names a module's file, so its path needs a segment right after the `/` (design question 28)

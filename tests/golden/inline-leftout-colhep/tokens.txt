@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-colhep/source.jibb:1:7: `:-` is left out: indentation covers it; write a cell as [a b]
+++ x :-(a b)
+      ^

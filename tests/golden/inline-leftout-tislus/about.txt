@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "`=/`: `++` defines values."
+tests: `=+`, a rune like `=/` that the list doesn't name
+expect: error at 1:6 — no expression starts with `=`; `=+` is left out: `++` defines values (design question 30)

@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, "Left out on purpose": "Tall forms such as `:~`, `:*`, `%:` and `%=`, the closers `==` and `--`, and other wide forms such as `^-(…)` and `?-(…)`: indentation covers them."
+tests: a `?-` closed with `==`, as Hoon writes it
+expect: error at 4:3 — the closer `==` is left out: indentation covers it

@@ -1,0 +1,15 @@
+1:1 glyph ++
+1:4 name f
+2:3 INDENT
+2:3 glyph ?-
+2:7 name a
+3:5 INDENT
+3:5 glyph [
+3:6 tight name a
+3:7 tight glyph =
+3:8 tight lit 1
+3:9 tight glyph ]
+3:12 lit 1
+3:13 DEDENT
+3:13 DEDENT
+3:13 NEWLINE

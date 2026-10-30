@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-buc-paren-2/source.jibb:1:7: `$(…)` is left out: gates recurse by name
++$ x $(a)
+      ^

@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns: "A name in a pattern always binds anew"; the EBNF: `pattern    = term | number | string | ship | loobean | "~" | "*" | name | "[" pattern { pattern } "]" ;`
+tests: a cell pattern with a face, `a=1`
+expect: error at 3:7 — patterns take no `name=`: after the name a, which binds, the `=` starts no pattern

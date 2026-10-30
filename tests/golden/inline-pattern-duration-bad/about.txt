@@ -1,0 +1,3 @@
+source: Grammar tab, the EBNF: `pattern    = term | number | string | ship | loobean | "~" | "*" | name | "[" pattern { pattern } "]" ;`; "Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, not lists or pairs."
+tests: a duration as a pattern
+expect: error at 3:7 — patterns take no durations; `~s` could still begin a ship, as ~sev, so the 3 is the first character no pattern takes (design question 24)

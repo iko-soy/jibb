@@ -1,3 +1,3 @@
-/tests/golden/lex-tight-opener-bad-2/source.jibb:1:17: expected a term right after `|=`, found a space
+/tests/golden/lex-tight-opener-bad-2/source.jibb:1:17: expected `(` or a term right after `|=`, found a space; a gate in an operand is |=(a body)
 ++ x (turn ps |= (p title.p))
                 ^

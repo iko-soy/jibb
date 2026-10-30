@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Open brackets: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual."; the EBNF: `open       = INDENT line { NEWLINE line } DEDENT ;`; `"~&" expr body`
+tests: a `~&` whose line ends with an open list: the list takes the deeper line, which leaves the `~&` no body below
+expect: error at 1:13 — once the `~[` takes the deeper lines, no later line can give the `~&` its body, so the text stops being valid at the end of line 1 (design question 21)

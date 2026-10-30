@@ -1,0 +1,3 @@
+/tests/golden/inline-pattern-duration-bad/source.jibb:3:7: expected a pattern, found `~s30`; patterns take no durations: compare values with ?- (eq a b)
+    ~s30  1
+      ^

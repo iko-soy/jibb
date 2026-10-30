@@ -1,0 +1,3 @@
+/tests/golden/inline-leftout-barcen-2/source.jibb:1:2: `|%` is left out: modules are records
+|%
+ ^
