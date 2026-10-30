@@ -1,0 +1,12 @@
+partial inference; module not checked
+++ copy: $-((list @t) (list @t))
+++ generic: $-(A A)
+++ independently: $-(@t @p)
+++ collide: local definitions need unsupported inference
+++ cycle: local definitions need unsupported inference
+++ mutual: local definitions need unsupported inference
+++ pending: local definitions need unsupported inference
+++ alias-mono: local definitions need unsupported inference
+++ occurs: local definitions need unsupported inference
+++ captures: local definitions need unsupported inference
+++ via-gate: local definitions need unsupported inference

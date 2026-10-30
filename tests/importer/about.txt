@@ -9,12 +9,12 @@ explicit union argument when the exact call wrapper and collection provenance
 are validated and all union cases are static and pairwise disjoint. Cases
 cover overlap, collapsed branches, multiple or nested unions, dependent
 branches, forged subject, sample and tail wrappers, and a shadowed
-collection. Unsupported forms fail closed; nested `$@` cases remain supported. The provisional reading is recorded in doc question 22. `ford.txt`
+collection. Unsupported forms fail closed; nested `$@` cases remain supported. The union disjointness rule was confirmed in question 22. `ford.txt`
 checks a synthetic imported subject and selected mold; other cases check
 transitive imports, named mold lookup, missing names, shadowing, unprovenanced
 recursive holds, malformed
 subjects and recursive references through local, imported and transitive
-cores, including ambiguous and independently defined origins. The mark fixtures check door samples,
+cores, including ambiguous and independently defined origins. Structured diagnostic cases distinguish proven invalid auras and cores from union disjointness, provenance and source checks the reader cannot verify; a locally shadowed vase and unstructured failure text that mimics an aura error must stay unsupported. The mark fixtures check door samples,
 collection provenance, unsupported gates and recursive sample provenance.
 The synthetic hold in +bad-branch-fixture checks that a failed Hoon branch expansion returns
 an error. `tlon-epic.txt`, `tlon-presence.txt` and `tlon-docs.txt` are the

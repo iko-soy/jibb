@@ -40,6 +40,12 @@
       [%apply name=term args=(list imported)]
       [%ref module=term name=term]
       [%bad reason=@t]
+      [%invalid code=?(%aura %core) reason=@t]
+  ==
++$  import-diagnostic
+  $%  [%ok value=imported]
+      [%invalid code=?(%aura %core) message=@t]
+      [%unsupported message=@t]
   ==
 +$  signatures  (list [name=term code=hoon])
 +$  visiting    (list [typ=type name=(unit term)])
@@ -127,6 +133,42 @@
   =/  result  (read-with name name raw [~ q.p.cor])
   ?.  ?=([%& *] result)  result
   result
+::
+++  read-named-diagnostic
+  |=  [module=term name=term cor=type]
+  ^-  import-diagnostic
+  =/  result=(each imported @t)  (read-named module name cor)
+  ?:  ?=(%& -.result)  [%ok p.result]
+  ?.  ?=([%core *] cor)  [%unsupported p.result]
+  ?:  =(cor -:!>(..zuse))  [%unsupported p.result]
+  ?.  (scope-safe cor %$)  [%unsupported p.result]
+  =/  chapters=(map term tome)  q.r.q.cor
+  ?.  (lien ~(tap by chapters) |=(entry=[term tome] =((chapter-has +.entry name) [~ &])))
+    [%unsupported p.result]
+  =/  selected=(each type tang)  (mule |.((~(play ut cor) (ream (cat 3 '*' name)))))
+  ?.  ?=(%& -.selected)  [%unsupported p.result]
+  =/  again=(each imported tang)  (mule |.((walk module p.selected catalog ~ [~ cor])))
+  ?.  ?=(%& -.again)  [%unsupported p.result]
+  =/  evidence=(unit import-diagnostic)  (first-invalid p.again)
+  ?~  evidence  [%unsupported p.result]
+  u.evidence
+::
+++  read-mark-diagnostic
+  |=  [name=term cor=type]
+  ^-  import-diagnostic
+  =/  result=(each imported @t)  (read-mark name cor)
+  ?:  ?=(%& -.result)  [%ok p.result]
+  ?.  ?=([%core *] cor)  [%unsupported p.result]
+  ?.  ?=([%cell *] p.cor)  [%unsupported p.result]
+  ?.  =(p.cor q.q.cor)  [%unsupported p.result]
+  ?.  (scope-safe q.p.cor %$)  [%unsupported p.result]
+  =/  sample=type  p.p.cor
+  =/  raw=type  ?:(?=([%face *] sample) q.sample sample)
+  =/  again=(each imported tang)  (mule |.((walk name raw catalog ~ [~ q.p.cor])))
+  ?.  ?=(%& -.again)  [%unsupported p.result]
+  =/  evidence=(unit import-diagnostic)  (first-invalid p.again)
+  ?~  evidence  [%unsupported p.result]
+  u.evidence
 ::
 ++  read-with
   |=  [module=term name=term typ=type context=(unit type)]
@@ -545,8 +587,8 @@
       ?.  |(=(p.h [%dtwt [%$ (mul 2 axis)]]) (fits-union-at p.h axis))
         [%| 'a Hoon union needs a source-level disjointness check']
       ?.  (disjoint a b)
-        ?:  ?=([%fits *] p.h)  [%| 'a Hoon union has overlapping cases']
-        [%| 'a Hoon $^ union has overlapping cases']
+        ?:  ?=([%fits *] p.h)  [%| 'Hoon union disjointness could not be verified']
+        [%| 'Hoon $^ union disjointness could not be verified']
       [%& [%fork (sort (weld (union-cases a) (union-cases b)) |=(pair=[imported imported] (dor -.pair +.pair)))]]
   ==
 ++  union-cases
@@ -870,7 +912,7 @@
   =/  err  (first-bads cases)
   ?^  err  [%bad u.err]
   ?.  (all-disjoint cases)
-    [%bad ?:(is-cell 'a Hoon $^ union has overlapping cases' 'a Hoon union has overlapping cases')]
+    [%bad ?:(is-cell 'Hoon $^ union disjointness could not be verified' 'Hoon union disjointness could not be verified')]
   =/  rewritten=hoon  original(q.p body(q.q.p args.u.split))
   =/  attempt=(each type tang)  (mule |.((~(play ut p.typ) rewritten)))
   ?.  ?=([%& *] attempt)  [%bad unsupported]
@@ -891,10 +933,10 @@
     %void  [%void ~]
     [%atom *]
       ?:  |(=('s' (cut 3 [0 1] p.typ)) =('r' (cut 3 [0 1] p.typ)))
-        [%bad 'signed and float auras cannot be imported']
+        [%invalid %aura 'signed and float auras cannot be imported']
       [%atom p.typ q.typ]
     [%cell *]  [%cell $(typ p.typ) $(typ q.typ)]
-    [%core *]  [%bad 'cores and gates cannot be imported']
+    [%core *]  [%invalid %core 'cores and gates cannot be imported']
     [%face *]
       ?@  p.typ  [%face p.typ $(typ q.typ)]
       [%bad 'a complex Hoon face needs translation']
@@ -903,7 +945,7 @@
         (turn ~(tap in:..zuse p.typ) |=(t=type ^$(typ t)))
       =/  err  (first-bads cases)
       ?^  err  [%bad u.err]
-      ?.  (all-disjoint cases)  [%bad 'a Hoon union has overlapping cases']
+      ?.  (all-disjoint cases)  [%bad 'Hoon union disjointness could not be verified']
       [%fork (sort cases |=(pair=[imported imported] (dor -.pair +.pair)))]
     [%hint *]  $(typ q.typ)
     [%hold *]
@@ -930,7 +972,7 @@
         ?~  origin  [%bad 'a recursive Hoon mold needs unambiguous source provenance']
         [%ref u.origin u.u.prior]
       =/  nm  (hold-name q.typ)
-      ?:  =(nm [~ %vase])  [%bad 'vases cannot be imported']
+      ?:  =(nm [~ %vase])  [%bad 'a Hoon type named vase needs source provenance']
       ?:  &((source-uses q.typ %jar) !(alias-safe context %jar))
         [%bad 'Hoon collection provenance is unavailable or shadowed']
       ?:  &((source-uses q.typ %jug) !(alias-safe context %jug))
@@ -974,7 +1016,7 @@
         ?^  err  [%bad u.err]
         ?:  (disjoint first second)
           [%fork (sort ~[first second] |=(pair=[imported imported] (dor -.pair +.pair)))]
-        [%bad 'a Hoon $^ union has overlapping cases']
+        [%bad 'Hoon $^ union disjointness could not be verified']
       ?:  |((has-cell-union q.typ) (has-fits-union q.typ))
         =/  cannot=@t
           ?:  (has-fits-union q.typ)  'a Hoon union needs a source-level disjointness check'
@@ -1031,6 +1073,7 @@
     [%atom *]  ~
     [%ref *]  ~
     [%bad *]  [~ reason.out]
+    [%invalid *]  [~ reason.out]
     [%face *]  $(out body.out)
     [%cell *]
       =/  err  $(out head.out)
@@ -1047,6 +1090,34 @@
   =/  err  (first-bad i.xs)
   ?~  err  $(xs t.xs)
   err
+::
+++  first-invalid
+  |=  out=imported
+  ^-  (unit import-diagnostic)
+  ?-  out
+    [%noun *]  ~
+    [%void *]  ~
+    [%atom *]  ~
+    [%ref *]  ~
+    [%bad *]  `[%unsupported reason.out]
+    [%invalid *]  `[%invalid code.out reason.out]
+    [%face *]  $(out body.out)
+    [%cell *]
+      =/  first  $(out head.out)
+      ?~  first  $(out tail.out)
+      first
+    [%fork *]  (first-invalids cases.out)
+    [%apply *]  (first-invalids args.out)
+  ==
+::
+++  first-invalids
+  |=  xs=(list imported)
+  ^-  (unit import-diagnostic)
+  ?~  xs  ~
+  =/  first  (first-invalid i.xs)
+  ?~  first  $(xs t.xs)
+  first
+::
 ::  +fixture-test: shared golden expectations for eval and the ship.
 ::  A synthetic hold whose first $^ branch cannot be evaluated. It tests
 ::  that a failed branch probe is reported rather than crashing the host.
@@ -1142,7 +1213,7 @@
     [%fork ~[[%cell [%face %x [%atom %ud ~]] [%face %y [%atom %ud ~]]] [%atom %ud ~]]]
   =/  errors  ?:  =((sample %valid-cell) [%& expect-valid])  errors
     ['disjoint cell union' errors]
-  =/  errors  ?:  =((sample %invalid-cell) [%| 'a Hoon $^ union has overlapping cases'])  errors
+  =/  errors  ?:  =((sample %invalid-cell) [%| 'Hoon $^ union disjointness could not be verified'])  errors
     ['overlapping cell union is rejected' errors]
   =/  errors  ?:  =((shad %mn) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
     ['local mop shadow in a field is rejected' errors]
@@ -1186,6 +1257,7 @@
     [%apply *]  "({(trip name.out)} {(show-imports args.out)})"
     [%ref *]  "{(trip name.out)}.{(trip module.out)}"
     [%bad *]  "error: {(trip reason.out)}"
+    [%invalid *]  "error: {(trip reason.out)}"
   ==
 ::
 ++  show-imports
@@ -1201,6 +1273,15 @@
   ?-  result
     [%& *]  (show-import p.result)
     [%| *]  "error: {(trip p.result)}"
+  ==
+::
+++  show-import-diagnostic
+  |=  result=import-diagnostic
+  ^-  tape
+  ?-  result
+    [%ok *]  (show-import value.result)
+    [%invalid *]  "invalid/{(trip code.result)}: {(trip message.result)}"
+    [%unsupported *]  "unsupported: {(trip message.result)}"
   ==
 ::
 ::  Clay includes debug spans around source nodes. Reproduce that
@@ -1271,6 +1352,10 @@
   =/  mark-rec-core=type  -:(ride fp mark-rec)
   =/  mark-gate-core=type  -:(ride -:!>(..zuse) mark-gate)
   =/  mark-basic-core=type  -:(ride -:!>(..zuse) mark-basic)
+  =/  fake-vase=type  -:(ride -:!>(..zuse) '|%\0a+$  vase  @ud\0a--\0a')
+  =/  spoof=(unit import-diagnostic)
+    (first-invalid [%bad 'signed and float auras cannot be imported'])
+  ?>  ?=(^ spoof)
   =/  mark-shadow-core=type  -:(ride sp mark-basic)
   =/  tshp=type  [%cell [%face %intermediate shc] -:!>(..zuse)]
   =/  tshc=type  -:(ride tshp only-list)
@@ -1430,6 +1515,14 @@
       (crip "named-missing: {(show-result (read-named %small %missing sc))}")
       (crip "named-invalid-core: {(show-result (read-named %small %items [%atom %ud ~]))}")
       (crip "named-ford-recursive: {(show-result (read-named %ford %recursive fc))}")
+      (crip "diagnostic-items: {(show-import-diagnostic (read-named-diagnostic %small %items sc))}")
+      (crip "diagnostic-signed: {(show-import-diagnostic (read-named-diagnostic %small %signed sc))}")
+      (crip "diagnostic-float: {(show-import-diagnostic (read-named-diagnostic %small %float sc))}")
+      (crip "diagnostic-overlap: {(show-import-diagnostic (read-named-diagnostic %small %explicit-percent-overlap sc))}")
+      (crip "diagnostic-unproved: {(show-import-diagnostic (read-named-diagnostic %small %list-nested-invalid-cell sc))}")
+      (crip "diagnostic-mark-gate: {(show-import-diagnostic (read-mark-diagnostic %bad mark-gate-core))}")
+      (crip "diagnostic-shadow-vase: {(show-import-diagnostic (read-named-diagnostic %fake %vase fake-vase))}")
+      (crip "diagnostic-spoof: {(show-import-diagnostic u.spoof)}")
       (crip "missing-arm: {(show-result (read-mold-in %small %missing [%atom %ud ~] sc))}")
       (crip "wrong-provenance: {(show-result (read-mold-in %small %action (~(play ut sc) (ream '*items')) sc))}")
       (crip "unverified-subject: {(show-result (read-mold-in %std %jar (~(play ut -:!>(..zuse)) (ream '*(jar @ud @t)')) -:!>(..zuse)))}")

@@ -1,0 +1,54 @@
+++ copy |= xs=(list @t)
+  ++ recur |= ys=(list @t)
+    ^- (list @t) ?- ys
+      ~ ~
+      [item rest] [item (recur rest)]
+  (recur xs)
+++ generic |= x=A
+  ++ recur |= y=A
+    ?- %.y
+      %.y x
+      %.n (recur y)
+  (recur x)
+++ independently |= x=@t
+  ++ recur |= y
+    ?- %.y
+      %.y y
+      %.n (recur y)
+  ~& (recur x)
+    (recur ~zod)
+++ collide |= x=@t
+  ++ recur |= recur=@t (recur recur)
+  (recur x)
+++ cycle |= x=@t
+  ++ y z
+  ++ z y
+  y
+++ mutual |= x=@t
+  ++ a |= y=@t (b y)
+  ++ b |= y=@t (a y)
+  (a x)
+++ pending |= x=@t
+  ++ recur |= y=@t
+    ~& %orphan
+      (recur y)
+  (recur x)
+++ alias-mono |= x=@t
+  ++ recur |= y=A
+    ++ alias recur
+    ~& (alias "hi")
+      (alias ~zod)
+  (recur x)
+++ occurs |= x=@t
+  ++ recur |= y (recur recur)
+  (recur x)
+++ captures |= x=A
+  ++ recur |= flag=?
+    ?- flag
+      %.y ^- @t x
+      %.n (recur %.y)
+  (recur %.y)
+++ via-gate |= x=@t
+  ++ value (gate x)
+  ++ gate |= y=@t value
+  value

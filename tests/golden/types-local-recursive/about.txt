@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate"; Molds: "Type variables are capitals, generalized per `++`."
+tests: A body-local recursive gate uses a monomorphic self reference and generalizes independently where allowed. Recursive list copy, capture and bare-binder polymorphism infer; name collisions, value and mutual cycles, unresolved tags, incompatible recursive aliases, self-application and explicit-capital forcing remain unsupported in this fragment.
+expect: parses
+expect-types: a partial inference report

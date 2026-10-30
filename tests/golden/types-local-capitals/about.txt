@@ -1,0 +1,4 @@
+source: Grammar, Molds: "A capital in a local `++` shares the enclosing `++`'s variable of the same name if the enclosing `++` also uses it; otherwise the local `++` introduces and generalizes its own variable."
+tests: A recursive local gate captures a capital in its enclosing sample; a bare local binder generalizes independently. The partial checker conservatively leaves new written local capitals unsupported, including acyclic definitions, siblings and a capital written later in the enclosing body. Recursive self aliases remain monomorphic.
+expect: parses
+expect-types: a partial inference report

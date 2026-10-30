@@ -1,0 +1,127 @@
+(module
+  (value 1:1 siblings
+    (gate 1:13
+      (face 1:16 x (aura 1:18 @t))
+      (body 2:3
+        (value 2:3 first
+          (gate 2:12
+            (face 2:15 y (tvar 2:17 A))
+            (wing 2:19 y)))
+        (value 3:3 second
+          (gate 3:13
+            (face 3:16 z (tvar 3:18 A))
+            (wing 3:20 z)))
+        (trace 4:3
+          (group 4:6
+            (call 4:7 (wing 4:7 first) (wing 4:13 x)))
+          (body 5:5
+            (group 5:5
+              (call 5:6 (wing 5:6 second) (lit 5:13 ~zod))))))))
+  (value 6:1 later
+    (gate 6:10
+      (bind 6:13 x)
+      (body 7:3
+        (value 7:3 inner
+          (gate 7:12
+            (face 7:15 y (tvar 7:17 A))
+            (wing 7:19 y)))
+        (trace 8:3
+          (group 8:6
+            (call 8:7 (wing 8:7 inner) (str 8:13 "hi")))
+          (body 9:5
+            (cast 9:5 (tvar 9:8 A) (wing 9:10 x)))))))
+  (value 10:1 captured
+    (gate 10:13
+      (face 10:16 x (tvar 10:18 A))
+      (body 11:3
+        (value 11:3 inner
+          (gate 11:12
+            (face 11:15 y (tvar 11:17 A))
+            (body 12:5
+              (branch 12:5
+                (lit 12:8 %.y)
+                (arm 13:7 (lit 13:7 %.y) (wing 13:11 x))
+                (arm 14:7
+                  (lit 14:7 %.n)
+                  (group 14:11
+                    (call 14:12 (wing 14:12 inner) (wing 14:18 y))))))))
+        (group 15:3
+          (call 15:4 (wing 15:4 inner) (wing 15:10 x))))))
+  (value 16:1 implicit
+    (gate 16:13
+      (bind 16:16 x)
+      (body 17:3
+        (value 17:3 inner
+          (gate 17:12
+            (bind 17:15 y)
+            (body 18:5
+              (branch 18:5
+                (lit 18:8 %.y)
+                (arm 19:7 (lit 19:7 %.y) (wing 19:11 y))
+                (arm 20:7
+                  (lit 20:7 %.n)
+                  (group 20:11
+                    (call 20:12 (wing 20:12 inner) (wing 20:18 y))))))))
+        (trace 21:3
+          (group 21:6
+            (call 21:7 (wing 21:7 inner) (str 21:13 "hi")))
+          (body 22:5
+            (group 22:5
+              (call 22:6 (wing 22:6 inner) (lit 22:12 ~zod))))))))
+  (value 23:1 local-mono
+    (gate 23:15
+      (face 23:18 x (tvar 23:20 A))
+      (body 24:3
+        (value 24:3 inner
+          (gate 24:12
+            (face 24:15 y (tvar 24:17 A))
+            (body 25:5
+              (value 25:5 alias (wing 25:14 inner))
+              (trace 26:5
+                (group 26:8
+                  (call 26:9 (wing 26:9 alias) (str 26:15 "hi")))
+                (body 27:7
+                  (group 27:7
+                    (call 27:8 (wing 27:8 alias) (lit 27:14 ~zod))))))))
+        (group 28:3
+          (call 28:4 (wing 28:4 inner) (wing 28:10 x))))))
+  (value 29:1 fresh
+    (gate 29:10
+      (face 29:13 x (aura 29:15 @t))
+      (body 30:3
+        (value 30:3 inner
+          (gate 30:12
+            (face 30:15 y (tvar 30:17 A))
+            (wing 30:19 y)))
+        (group 31:3
+          (call 31:4 (wing 31:4 inner) (wing 31:10 x))))))
+  (value 32:1 captured-acyclic
+    (gate 32:21
+      (face 32:24 x (tvar 32:26 A))
+      (body 33:3
+        (value 33:3 inner
+          (gate 33:12
+            (face 33:15 y (tvar 33:17 A))
+            (wing 33:19 y)))
+        (group 34:3
+          (call 34:4 (wing 34:4 inner) (wing 34:10 x))))))
+  (value 35:1 implicit-capture
+    (gate 35:21
+      (bind 35:24 x)
+      (body 36:3
+        (value 36:3 inner
+          (gate 36:12
+            (face 36:15 flag (flag 36:20))
+            (body 37:5
+              (branch 37:5
+                (wing 37:8 flag)
+                (arm 38:7 (lit 38:7 %.y) (wing 38:11 x))
+                (arm 39:7
+                  (lit 39:7 %.n)
+                  (group 39:11
+                    (call 39:12 (wing 39:12 inner) (lit 39:18 %.y))))))))
+        (trace 40:3
+          (cast 40:6 (aura 40:9 @t) (wing 40:12 x))
+          (body 41:5
+            (group 41:5
+              (call 41:6 (wing 41:6 inner) (lit 41:12 %.y)))))))))

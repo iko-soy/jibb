@@ -85,6 +85,6 @@ partial inference; module not checked
                                             ^
 ++ chain-pattern: recursive pattern is not supported by partial inference
 ++ chain-branch: recursive branch matching is not supported by partial inference
-reader-collapsed: error: a Hoon union has overlapping cases
+reader-collapsed: error: Hoon union disjointness could not be verified
 partial inference; module not checked
 ++ use: recursive mold name is not available in this scope

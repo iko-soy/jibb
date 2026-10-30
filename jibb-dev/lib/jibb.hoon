@@ -6016,8 +6016,8 @@
   [%& [%cell ht typ.p.tail] env.p.tail state.p.tail]
 ::
 ::  Local definitions generalize only variables outside their enclosing
-::  environment and explicit-capital scope. Unresolved groups stay
-::  unsupported: this fragment does not infer recursive definitions.
+::  environment and explicit-capital scope. Single self-recursive gates
+::  use a monomorphic placeholder; mutually recursive groups stay unsupported.
 ::
 +$  ilocal-result  (each [env=ienv state=istate] idiag)
 ++  free-env-vars
@@ -6099,7 +6099,13 @@
   =/  d=def  i.ds
   ?>  ?=(%value -.d)
   =/  inferred=iresult  (infer-fragment val.d env state)
+  =/  retried=?  ?=(%| -.inferred)
+  =?  inferred  retried  (infer-recursive-gate d env state)
   ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
+  ::  A new local capital needs lexical scope collection before it can be
+  ::  generalized independently or shared with a later enclosing occurrence.
+  ?.  (levy caps.state.p.inferred |=(cap=icap ?=(^ (icap-lookup name.cap caps.state))))
+    $(ds t.ds, remaining [d remaining])
   =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
   ?:  |((pending-tags tags.state.p.inferred sub.state.p.inferred) (itype-has-tag typ))
     $(ds t.ds, remaining [d remaining])

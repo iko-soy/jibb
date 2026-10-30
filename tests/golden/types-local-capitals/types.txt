@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ siblings: local definitions need unsupported inference
+++ later: local definitions need unsupported inference
+++ captured: $-(A A)
+++ implicit: $-(A @p)
+++ local-mono: local definitions need unsupported inference
+++ fresh: local definitions need unsupported inference
+++ captured-acyclic: $-(A A)
+++ implicit-capture: $-(@t @t)

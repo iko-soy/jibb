@@ -1,0 +1,41 @@
+++ siblings |= x=@t
+  ++ first |= y=A y
+  ++ second |= z=A z
+  ~& (first x)
+    (second ~zod)
+++ later |= x
+  ++ inner |= y=A y
+  ~& (inner "hi")
+    ^- A x
+++ captured |= x=A
+  ++ inner |= y=A
+    ?- %.y
+      %.y x
+      %.n (inner y)
+  (inner x)
+++ implicit |= x
+  ++ inner |= y
+    ?- %.y
+      %.y y
+      %.n (inner y)
+  ~& (inner "hi")
+    (inner ~zod)
+++ local-mono |= x=A
+  ++ inner |= y=A
+    ++ alias inner
+    ~& (alias "hi")
+      (alias ~zod)
+  (inner x)
+++ fresh |= x=@t
+  ++ inner |= y=A y
+  (inner x)
+++ captured-acyclic |= x=A
+  ++ inner |= y=A y
+  (inner x)
+++ implicit-capture |= x
+  ++ inner |= flag=?
+    ?- flag
+      %.y x
+      %.n (inner %.y)
+  ~& ^- @t x
+    (inner %.y)

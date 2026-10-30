@@ -25,7 +25,7 @@ partial inference; module not checked
 ++ mutual-a: name is not available to partial inference
 ++ mutual-b: name is not available to partial inference
 ++ captured: $-(A A)
-++ local-rec: local definitions need unsupported inference
+++ local-rec: $-(A B)
 ++ forced-trace: explicit capital constraints are not supported by partial inference
 ++ pending-trace: tag needs context in partial inference
 ++ higher: $-($-(A A) $-(A A))

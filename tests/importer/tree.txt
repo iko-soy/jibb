@@ -47,35 +47,35 @@ gate: error: cores and gates cannot be imported
 vase: error: vases cannot be imported
 failed-branch: error: a Hoon $^ union needs a source-level disjointness check
 debug-union: (union [add text=@t] [remove id=@ud])
-debug-union-overlap: error: a Hoon union has overlapping cases
+debug-union-overlap: error: Hoon union disjointness could not be verified
 debug-nested-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
-debug-nested-cell-overlap: error: a Hoon $^ union has overlapping cases
-explicit-graph: error: a Hoon union has overlapping cases
+debug-nested-cell-overlap: error: Hoon $^ union disjointness could not be verified
+explicit-graph: error: Hoon union disjointness could not be verified
 explicit-graph-unsupported: error: signed and float auras cannot be imported
 explicit-wut-safe: (union [ok @ud] [err @t])
-explicit-percent-overlap: error: a Hoon union has overlapping cases
-explicit-wut-overlap: error: a Hoon union has overlapping cases
-explicit-collapsed: error: a Hoon union has overlapping cases
-explicit-subsumed: error: a Hoon union has overlapping cases
+explicit-percent-overlap: error: Hoon union disjointness could not be verified
+explicit-wut-overlap: error: Hoon union disjointness could not be verified
+explicit-collapsed: error: Hoon union disjointness could not be verified
+explicit-subsumed: error: Hoon union disjointness could not be verified
 explicit-three: (union [a @ud] [b @t] [c @p])
 explicit-unknown: error: a Hoon union needs a source-level disjointness check
-explicit-nested: error: a Hoon union has overlapping cases
+explicit-nested: error: Hoon union disjointness could not be verified
 collection-union-wrapper: valid; forged subject, sample and tail rejected
 collection-union-list: (list (union [x @ud] [y @t]))
 collection-union-set: (set (union [x @ud] [y @t]))
 collection-union-map-key: (map (union [x @ud] [y @t]) (list @ud))
 collection-union-map-value: (map (list @ud) (union [x=@ud y=@t] @ud))
 collection-union-unit: (unit (union x y z))
-collection-union-collapsed: error: a Hoon union has overlapping cases
+collection-union-collapsed: error: Hoon union disjointness could not be verified
 collection-union-multiple: error: a Hoon union needs a source-level disjointness check
 collection-union-nested: error: a Hoon union needs a source-level disjointness check
 collection-union-dependent: error: a Hoon union needs a source-level disjointness check
 collection-union-shadow: error: Hoon collection provenance is unavailable or shadowed
-explicit-list: error: a Hoon union has overlapping cases
-explicit-set: error: a Hoon union has overlapping cases
+explicit-list: error: Hoon union disjointness could not be verified
+explicit-set: error: Hoon union disjointness could not be verified
 explicit-faces: (list [bcwt=@t bccn=@ud])
-explicit-alias: error: a Hoon union has overlapping cases
-explicit-ford: error: a Hoon union has overlapping cases
+explicit-alias: error: Hoon union disjointness could not be verified
+explicit-ford: error: Hoon union disjointness could not be verified
 explicit-shadow-path: error: Hoon collection provenance is unavailable or shadowed
 list-bckt-field: (list [bckt=@ud value=@t])
 list-noun-overlap: error: a Hoon $^ union needs a source-level disjointness check
@@ -84,14 +84,14 @@ list-nested-atom-cell: (list [id=@ud value=(union [a=@ud b=@t] @ud)])
 list-nested-valid-cell: error: a Hoon $^ union needs a source-level disjointness check
 list-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
 map-nested-invalid-cell: error: a Hoon $^ union needs a source-level disjointness check
-set-direct-invalid-cell: error: a Hoon $^ union has overlapping cases
-map-key-invalid-cell: error: a Hoon $^ union has overlapping cases
+set-direct-invalid-cell: error: Hoon $^ union disjointness could not be verified
+map-key-invalid-cell: error: Hoon $^ union disjointness could not be verified
 nested-atom-cell: [left=(union [a=@ud b=@t] @ud) right=(union [c=@ud d=@t] @t)]
 nested-tags: [id=@ud value=(union foo bar)]
-nested-tags-overlap: error: a Hoon $^ union has overlapping cases
+nested-tags-overlap: error: Hoon $^ union disjointness could not be verified
 nested-tagged: [id=@ud value=(union [foo @t] [bar @ud])]
 nested-tagged-bckt: [id=@ud value=(union [foo bckt=@t] [bar bckt=@ud])]
-nested-tagged-overlap: error: a Hoon $^ union has overlapping cases
+nested-tagged-overlap: error: Hoon $^ union disjointness could not be verified
 nested-tagged-alias: [id=@ud value=(union [foo @t] [bar @ud])]
 nested-tagged-ford: [id=@ud value=(union [foo @t] [bar @ud])]
 tag-static-valid: yes
@@ -108,9 +108,9 @@ nested-validated-branch: error: a Hoon $^ union needs a source-level disjointnes
 nested-named-branch: error: a Hoon $^ union needs a source-level disjointness check
 nested-ford-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
 nested-valid-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
-nested-invalid-cell: error: a Hoon $^ union has overlapping cases
+nested-invalid-cell: error: Hoon $^ union disjointness could not be verified
 valid-cell: (union [x=@ud y=@ud] @ud)
-invalid-cell: error: a Hoon $^ union has overlapping cases
+invalid-cell: error: Hoon $^ union disjointness could not be verified
 chapter-malformed: unsafe
 chapter-wrapped-malformed: unsafe
 chapter-direct-hit: yes
@@ -129,6 +129,14 @@ named-present: (map @ud [id=@ud text=@t])
 named-missing: error: Hoon mold `missing` is not declared
 named-invalid-core: error: Hoon module provenance is unavailable
 named-ford-recursive: (union [value=@ud next=chain.small] @n:0)
+diagnostic-items: (map @ud [id=@ud text=@t])
+diagnostic-signed: invalid/aura: signed and float auras cannot be imported
+diagnostic-float: invalid/aura: signed and float auras cannot be imported
+diagnostic-overlap: unsupported: Hoon union disjointness could not be verified
+diagnostic-unproved: unsupported: a Hoon $^ union needs a source-level disjointness check
+diagnostic-mark-gate: invalid/core: cores and gates cannot be imported
+diagnostic-shadow-vase: unsupported: a Hoon type named vase needs source provenance
+diagnostic-spoof: unsupported: signed and float auras cannot be imported
 missing-arm: error: Hoon mold `missing` is not declared
 wrong-provenance: error: Hoon module provenance does not match the selected mold
 unverified-subject: error: Hoon module provenance is unavailable
