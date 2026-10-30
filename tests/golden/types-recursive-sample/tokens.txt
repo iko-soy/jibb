@@ -1,0 +1,344 @@
+1:1 glyph ++
+1:4 name recurse
+1:12 glyph |=
+1:15 glyph [
+1:16 tight name first
+1:21 tight glyph =
+1:22 tight aura @t
+1:25 name second
+1:31 tight glyph =
+1:32 tight aura @p
+1:34 tight glyph ]
+2:3 INDENT
+2:3 glyph ?-
+2:6 lit %.y
+3:5 INDENT
+3:5 lit %.y
+3:9 glyph [
+3:10 tight name first
+3:16 name second
+3:22 tight glyph ]
+4:5 NEWLINE
+4:5 lit %.n
+4:9 glyph (
+4:10 tight name recurse
+4:18 name first
+4:24 name second
+4:30 tight glyph )
+5:1 DEDENT
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name wrong-arg
+5:14 glyph |=
+5:17 glyph [
+5:18 tight name first
+5:23 tight glyph =
+5:24 tight aura @t
+5:27 name second
+5:33 tight glyph =
+5:34 tight aura @p
+5:36 tight glyph ]
+5:38 glyph (
+5:39 tight name wrong-arg
+5:49 name first
+5:55 name first
+5:60 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name wrong-face
+6:15 glyph |=
+6:18 glyph [
+6:19 tight name first
+6:24 tight glyph =
+6:25 tight aura @t
+6:28 name second
+6:34 tight glyph =
+6:35 tight aura @p
+6:37 tight glyph ]
+6:39 glyph (
+6:40 tight name wrong-face
+6:51 glyph [
+6:52 tight name other
+6:57 tight glyph =
+6:58 tight name first
+6:64 name second
+6:70 tight glyph =
+6:71 tight name second
+6:77 tight glyph ]
+6:78 tight glyph )
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name shadow
+7:11 glyph |=
+7:14 glyph [
+7:15 tight name shadow
+7:21 tight glyph =
+7:22 tight aura @t
+7:25 name second
+7:31 tight glyph =
+7:32 tight aura @p
+7:34 tight glyph ]
+7:36 glyph (
+7:37 tight name shadow
+7:44 name shadow
+7:51 name second
+7:57 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name capture
+8:12 glyph |=
+8:15 glyph [
+8:16 tight name first
+8:21 tight glyph =
+8:22 tight tvar A
+8:24 name second
+8:30 tight glyph =
+8:31 tight tvar B
+8:32 tight glyph ]
+9:3 INDENT
+9:3 glyph ++
+9:6 name inner
+9:12 glyph |=
+9:15 name flag
+9:19 tight glyph =
+9:20 tight glyph ?
+9:22 name first
+10:3 NEWLINE
+10:3 glyph ?-
+10:6 lit %.y
+11:5 INDENT
+11:5 lit %.y
+11:9 glyph (
+11:10 tight name inner
+11:16 lit %.y
+11:19 tight glyph )
+12:5 NEWLINE
+12:5 lit %.n
+12:9 glyph (
+12:10 tight name capture
+12:18 name first
+12:24 name second
+12:30 tight glyph )
+13:1 DEDENT
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name alias-use
+13:14 glyph |=
+13:17 glyph [
+13:18 tight name first
+13:23 tight glyph =
+13:24 tight tvar A
+13:26 name second
+13:32 tight glyph =
+13:33 tight tvar A
+13:34 tight glyph ]
+14:3 INDENT
+14:3 glyph ++
+14:6 name alias
+14:12 name alias-use
+15:3 NEWLINE
+15:3 glyph ~&
+15:6 glyph (
+15:7 tight name alias
+15:13 str "hi"
+15:18 str "hi"
+15:22 tight glyph )
+16:5 INDENT
+16:5 glyph (
+16:6 tight name alias
+16:12 lit ~zod
+16:17 lit ~zod
+16:21 tight glyph )
+17:1 DEDENT
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name self-apply
+17:15 glyph |=
+17:18 glyph [
+17:19 tight name first
+17:24 tight glyph =
+17:25 tight tvar A
+17:27 name second
+17:33 tight glyph =
+17:34 tight tvar B
+17:35 tight glyph ]
+17:37 glyph (
+17:38 tight name self-apply
+17:49 name self-apply
+17:60 name second
+17:66 tight glyph )
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name forced
+18:11 glyph |=
+18:14 glyph [
+18:15 tight name first
+18:20 tight glyph =
+18:21 tight tvar A
+18:23 name second
+18:29 tight glyph =
+18:30 tight tvar B
+18:31 tight glyph ]
+19:3 INDENT
+19:3 glyph ~&
+19:6 glyph ^-
+19:9 aura @t
+19:12 name first
+20:5 INDENT
+20:5 glyph (
+20:6 tight name forced
+20:13 name first
+20:19 name second
+20:25 tight glyph )
+21:1 DEDENT
+21:1 DEDENT
+21:1 NEWLINE
+21:1 glyph ++
+21:4 name pending
+21:12 glyph |=
+21:15 glyph [
+21:16 tight name first
+21:21 tight glyph =
+21:22 tight tvar A
+21:24 name second
+21:30 tight glyph =
+21:31 tight tvar B
+21:32 tight glyph ]
+22:3 INDENT
+22:3 glyph ~&
+22:6 lit %unknown
+23:5 INDENT
+23:5 glyph (
+23:6 tight name pending
+23:14 name first
+23:20 name second
+23:26 tight glyph )
+24:1 DEDENT
+24:1 DEDENT
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name pending-null
+24:17 glyph |=
+24:20 glyph [
+24:21 tight name first
+24:26 tight glyph =
+24:27 tight tvar A
+24:29 name second
+24:35 tight glyph =
+24:36 tight tvar B
+24:37 tight glyph ]
+25:3 INDENT
+25:3 glyph ~&
+25:6 lit ~
+26:5 INDENT
+26:5 glyph (
+26:6 tight name pending-null
+26:19 name first
+26:25 name second
+26:31 tight glyph )
+27:1 DEDENT
+27:1 DEDENT
+27:1 NEWLINE
+27:1 glyph ++
+27:4 name early-base
+27:15 glyph |=
+27:18 glyph [
+27:19 tight name first
+27:24 tight glyph =
+27:25 tight aura @t
+27:28 name second
+27:34 tight glyph =
+27:35 tight aura @p
+27:37 tight glyph ]
+28:3 INDENT
+28:3 glyph ?-
+28:6 lit %.y
+29:5 INDENT
+29:5 lit %.y
+29:9 str "ok"
+30:5 NEWLINE
+30:5 lit %.n
+30:9 glyph (
+30:10 tight name early-base
+30:21 name first
+30:27 name second
+30:33 tight glyph )
+31:1 DEDENT
+31:1 DEDENT
+31:1 NEWLINE
+31:1 glyph ++
+31:4 name late-base
+31:14 glyph |=
+31:17 glyph [
+31:18 tight name first
+31:23 tight glyph =
+31:24 tight aura @t
+31:27 name second
+31:33 tight glyph =
+31:34 tight aura @p
+31:36 tight glyph ]
+32:3 INDENT
+32:3 glyph ?-
+32:6 lit %.y
+33:5 INDENT
+33:5 lit %.n
+33:9 glyph (
+33:10 tight name late-base
+33:20 name first
+33:26 name second
+33:32 tight glyph )
+34:5 NEWLINE
+34:5 lit %.y
+34:9 str "ok"
+35:1 DEDENT
+35:1 DEDENT
+35:1 NEWLINE
+35:1 glyph ++
+35:4 name generic
+35:12 glyph |=
+35:15 glyph [
+35:16 tight name first
+35:21 tight glyph =
+35:22 tight tvar A
+35:24 name second
+35:30 tight glyph =
+35:31 tight tvar B
+35:32 tight glyph ]
+36:3 INDENT
+36:3 glyph ?-
+36:6 lit %.y
+37:5 INDENT
+37:5 lit %.y
+37:9 glyph [
+37:10 tight name first
+37:16 name second
+37:22 tight glyph ]
+38:5 NEWLINE
+38:5 lit %.n
+38:9 glyph (
+38:10 tight name generic
+38:18 name first
+38:24 name second
+38:30 tight glyph )
+39:1 DEDENT
+39:1 DEDENT
+39:1 NEWLINE
+39:1 glyph ++
+39:4 name generic-one
+39:16 glyph (
+39:17 tight name generic
+39:25 str "hi"
+39:30 lit ~zod
+39:34 tight glyph )
+40:1 NEWLINE
+40:1 glyph ++
+40:4 name generic-two
+40:16 glyph (
+40:17 tight name generic
+40:25 lit ~zod
+40:30 str "hi"
+40:34 tight glyph )
+40:35 NEWLINE

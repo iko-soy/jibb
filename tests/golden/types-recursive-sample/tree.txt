@@ -1,0 +1,161 @@
+(module
+  (value 1:1 recurse
+    (gate 1:12
+      (cell 1:15
+        (face 1:16 first (aura 1:22 @t))
+        (face 1:25 second (aura 1:32 @p)))
+      (body 2:3
+        (branch 2:3
+          (lit 2:6 %.y)
+          (arm 3:5
+            (lit 3:5 %.y)
+            (tuple 3:9 (wing 3:10 first) (wing 3:16 second)))
+          (arm 4:5
+            (lit 4:5 %.n)
+            (group 4:9
+              (call 4:10 (wing 4:10 recurse) (wing 4:18 first) (wing 4:24 second))))))))
+  (value 5:1 wrong-arg
+    (gate 5:14
+      (cell 5:17
+        (face 5:18 first (aura 5:24 @t))
+        (face 5:27 second (aura 5:34 @p)))
+      (group 5:38
+        (call 5:39 (wing 5:39 wrong-arg) (wing 5:49 first) (wing 5:55 first)))))
+  (value 6:1 wrong-face
+    (gate 6:15
+      (cell 6:18
+        (face 6:19 first (aura 6:25 @t))
+        (face 6:28 second (aura 6:35 @p)))
+      (group 6:39
+        (call 6:40
+          (wing 6:40 wrong-face)
+          (tuple 6:51
+            (face 6:52 other (wing 6:58 first))
+            (face 6:64 second (wing 6:71 second)))))))
+  (value 7:1 shadow
+    (gate 7:11
+      (cell 7:14
+        (face 7:15 shadow (aura 7:22 @t))
+        (face 7:25 second (aura 7:32 @p)))
+      (group 7:36
+        (call 7:37 (wing 7:37 shadow) (wing 7:44 shadow) (wing 7:51 second)))))
+  (value 8:1 capture
+    (gate 8:12
+      (cell 8:15
+        (face 8:16 first (tvar 8:22 A))
+        (face 8:24 second (tvar 8:31 B)))
+      (body 9:3
+        (value 9:3 inner
+          (gate 9:12
+            (face 9:15 flag (flag 9:20))
+            (wing 9:22 first)))
+        (branch 10:3
+          (lit 10:6 %.y)
+          (arm 11:5
+            (lit 11:5 %.y)
+            (group 11:9
+              (call 11:10 (wing 11:10 inner) (lit 11:16 %.y))))
+          (arm 12:5
+            (lit 12:5 %.n)
+            (group 12:9
+              (call 12:10 (wing 12:10 capture) (wing 12:18 first) (wing 12:24 second))))))))
+  (value 13:1 alias-use
+    (gate 13:14
+      (cell 13:17
+        (face 13:18 first (tvar 13:24 A))
+        (face 13:26 second (tvar 13:33 A)))
+      (body 14:3
+        (value 14:3 alias (wing 14:12 alias-use))
+        (trace 15:3
+          (group 15:6
+            (call 15:7 (wing 15:7 alias) (str 15:13 "hi") (str 15:18 "hi")))
+          (body 16:5
+            (group 16:5
+              (call 16:6 (wing 16:6 alias) (lit 16:12 ~zod) (lit 16:17 ~zod))))))))
+  (value 17:1 self-apply
+    (gate 17:15
+      (cell 17:18
+        (face 17:19 first (tvar 17:25 A))
+        (face 17:27 second (tvar 17:34 B)))
+      (group 17:37
+        (call 17:38 (wing 17:38 self-apply) (wing 17:49 self-apply) (wing 17:60 second)))))
+  (value 18:1 forced
+    (gate 18:11
+      (cell 18:14
+        (face 18:15 first (tvar 18:21 A))
+        (face 18:23 second (tvar 18:30 B)))
+      (body 19:3
+        (trace 19:3
+          (cast 19:6 (aura 19:9 @t) (wing 19:12 first))
+          (body 20:5
+            (group 20:5
+              (call 20:6 (wing 20:6 forced) (wing 20:13 first) (wing 20:19 second))))))))
+  (value 21:1 pending
+    (gate 21:12
+      (cell 21:15
+        (face 21:16 first (tvar 21:22 A))
+        (face 21:24 second (tvar 21:31 B)))
+      (body 22:3
+        (trace 22:3
+          (lit 22:6 %unknown)
+          (body 23:5
+            (group 23:5
+              (call 23:6 (wing 23:6 pending) (wing 23:14 first) (wing 23:20 second))))))))
+  (value 24:1 pending-null
+    (gate 24:17
+      (cell 24:20
+        (face 24:21 first (tvar 24:27 A))
+        (face 24:29 second (tvar 24:36 B)))
+      (body 25:3
+        (trace 25:3
+          (lit 25:6 ~)
+          (body 26:5
+            (group 26:5
+              (call 26:6 (wing 26:6 pending-null) (wing 26:19 first) (wing 26:25 second))))))))
+  (value 27:1 early-base
+    (gate 27:15
+      (cell 27:18
+        (face 27:19 first (aura 27:25 @t))
+        (face 27:28 second (aura 27:35 @p)))
+      (body 28:3
+        (branch 28:3
+          (lit 28:6 %.y)
+          (arm 29:5 (lit 29:5 %.y) (str 29:9 "ok"))
+          (arm 30:5
+            (lit 30:5 %.n)
+            (group 30:9
+              (call 30:10 (wing 30:10 early-base) (wing 30:21 first) (wing 30:27 second))))))))
+  (value 31:1 late-base
+    (gate 31:14
+      (cell 31:17
+        (face 31:18 first (aura 31:24 @t))
+        (face 31:27 second (aura 31:34 @p)))
+      (body 32:3
+        (branch 32:3
+          (lit 32:6 %.y)
+          (arm 33:5
+            (lit 33:5 %.n)
+            (group 33:9
+              (call 33:10 (wing 33:10 late-base) (wing 33:20 first) (wing 33:26 second))))
+          (arm 34:5 (lit 34:5 %.y) (str 34:9 "ok"))))))
+  (value 35:1 generic
+    (gate 35:12
+      (cell 35:15
+        (face 35:16 first (tvar 35:22 A))
+        (face 35:24 second (tvar 35:31 B)))
+      (body 36:3
+        (branch 36:3
+          (lit 36:6 %.y)
+          (arm 37:5
+            (lit 37:5 %.y)
+            (tuple 37:9 (wing 37:10 first) (wing 37:16 second)))
+          (arm 38:5
+            (lit 38:5 %.n)
+            (group 38:9
+              (call 38:10 (wing 38:10 generic) (wing 38:18 first) (wing 38:24 second))))))))
+  (value 39:1 generic-one
+    (group 39:16
+      (call 39:17 (wing 39:17 generic) (str 39:25 "hi") (lit 39:30 ~zod))))
+  (value 40:1 generic-two
+    (group 40:16
+      (call 40:17 (wing 40:17 generic) (lit 40:25 ~zod) (str 40:30 "hi")))))

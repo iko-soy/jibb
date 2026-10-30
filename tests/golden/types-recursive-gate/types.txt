@@ -3,7 +3,13 @@ partial inference; module not checked
 ++ recur: $-(A A)
 ++ cord-result: @t
 ++ ship-result: @p
-++ poly: recursive gate constraint is not supported by partial inference
+++ poly: call's sample and argument types do not unify
+/tests/golden/types-recursive-gate/source.jibb:11:17: called gate has type $-(A B)
+++ poly |= x=A (poly [x x])
+                ^
+/tests/golden/types-recursive-gate/source.jibb:11:22: argument has type [A A]
+++ poly |= x=A (poly [x x])
+                     ^
 ++ occurs: call's sample and argument types do not unify
 /tests/golden/types-recursive-gate/source.jibb:12:17: called gate
 ++ occurs |= x (x x)

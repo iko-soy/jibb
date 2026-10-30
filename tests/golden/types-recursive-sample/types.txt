@@ -1,0 +1,40 @@
+partial inference; module not checked
+++ recurse: $-([first=@t second=@p] [@t @p])
+++ wrong-arg: call's sample and argument types do not unify
+/tests/golden/types-recursive-sample/source.jibb:5:39: called gate has type $-([first=@t second=@p] A)
+++ wrong-arg |= [first=@t second=@p] (wrong-arg first first)
+                                      ^
+/tests/golden/types-recursive-sample/source.jibb:5:55: argument has type @t
+++ wrong-arg |= [first=@t second=@p] (wrong-arg first first)
+                                                      ^
+++ wrong-face: call's sample and argument types do not unify
+/tests/golden/types-recursive-sample/source.jibb:6:40: called gate has type $-([first=@t second=@p] A)
+++ wrong-face |= [first=@t second=@p] (wrong-face [other=first second=second])
+                                       ^
+/tests/golden/types-recursive-sample/source.jibb:6:51: argument has type [other=@t second=@p]
+++ wrong-face |= [first=@t second=@p] (wrong-face [other=first second=second])
+                                                  ^
+++ shadow: sample shadows a name
+++ capture: $-([first=A second=B] A)
+++ alias-use: call's sample and argument types do not unify
+/tests/golden/types-recursive-sample/source.jibb:16:6: called gate has type $-([first=@t second=@t] A)
+    (alias ~zod ~zod)
+     ^
+/tests/golden/types-recursive-sample/source.jibb:16:12: argument has type @p
+    (alias ~zod ~zod)
+           ^
+++ self-apply: call's sample and argument types do not unify
+/tests/golden/types-recursive-sample/source.jibb:17:38: called gate has type $-([first=A second=B] C)
+++ self-apply |= [first=A second=B] (self-apply self-apply second)
+                                     ^
+/tests/golden/types-recursive-sample/source.jibb:17:49: argument has type $-([first=A second=B] C)
+++ self-apply |= [first=A second=B] (self-apply self-apply second)
+                                                ^
+++ forced: call constraint is not supported by partial inference
+++ pending: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference
+++ early-base: $-([first=@t second=@p] @t)
+++ late-base: $-([first=@t second=@p] @t)
+++ generic: $-([first=A second=B] [A B])
+++ generic-one: [@t @p]
+++ generic-two: [@p @t]

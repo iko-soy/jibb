@@ -1,0 +1,40 @@
+++ recurse |= [first=@t second=@p]
+  ?- %.y
+    %.y [first second]
+    %.n (recurse first second)
+++ wrong-arg |= [first=@t second=@p] (wrong-arg first first)
+++ wrong-face |= [first=@t second=@p] (wrong-face [other=first second=second])
+++ shadow |= [shadow=@t second=@p] (shadow shadow second)
+++ capture |= [first=A second=B]
+  ++ inner |= flag=? first
+  ?- %.y
+    %.y (inner %.y)
+    %.n (capture first second)
+++ alias-use |= [first=A second=A]
+  ++ alias alias-use
+  ~& (alias "hi" "hi")
+    (alias ~zod ~zod)
+++ self-apply |= [first=A second=B] (self-apply self-apply second)
+++ forced |= [first=A second=B]
+  ~& ^- @t first
+    (forced first second)
+++ pending |= [first=A second=B]
+  ~& %unknown
+    (pending first second)
+++ pending-null |= [first=A second=B]
+  ~& ~
+    (pending-null first second)
+++ early-base |= [first=@t second=@p]
+  ?- %.y
+    %.y "ok"
+    %.n (early-base first second)
+++ late-base |= [first=@t second=@p]
+  ?- %.y
+    %.n (late-base first second)
+    %.y "ok"
+++ generic |= [first=A second=B]
+  ?- %.y
+    %.y [first second]
+    %.n (generic first second)
+++ generic-one (generic "hi" ~zod)
+++ generic-two (generic ~zod "hi")

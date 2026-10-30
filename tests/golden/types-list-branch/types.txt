@@ -32,4 +32,10 @@ partial inference; module not checked
       %.y [~zod ~]
            ^
 ++ escape: name is not available to partial inference
-++ bad-recursive: recursive gate constraint is not supported by partial inference
+++ bad-recursive: call's sample and argument types do not unify
+/tests/golden/types-list-branch/source.jibb:81:26: called gate has type $-((list @t) A)
+      [item rest] [item (bad-recursive ~zod)]
+                         ^
+/tests/golden/types-list-branch/source.jibb:81:40: argument has type @p
+      [item rest] [item (bad-recursive ~zod)]
+                                       ^

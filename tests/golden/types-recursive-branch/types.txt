@@ -13,7 +13,13 @@ partial inference; module not checked
 ++ pending-null: branch widening is not supported by partial inference
 ++ dependent: $-(? @t)
 ++ nonself: $-(? @t)
-++ polymorphic: recursive gate constraint is not supported by partial inference
+++ polymorphic: call's sample and argument types do not unify
+/tests/golden/types-recursive-branch/source.jibb:61:10: called gate has type $-(A @t)
+    %.n (polymorphic [x x])
+         ^
+/tests/golden/types-recursive-branch/source.jibb:61:22: argument has type [A A]
+    %.n (polymorphic [x x])
+                     ^
 ++ no-base: $-(? A)
 ++ malformed: branch does not cover both loobeans
 ++ mixed: branch arms have incompatible types
@@ -24,7 +30,13 @@ partial inference; module not checked
       %.n (mixed b)
           ^
 ++ sample-base: $-(? ?)
-++ sample-mismatch: recursive gate constraint is not supported by partial inference
+++ sample-mismatch: call's sample and argument types do not unify
+/tests/golden/types-recursive-branch/source.jibb:80:10: called gate has type $-(? @t)
+    %.n (sample-mismatch "wrong")
+         ^
+/tests/golden/types-recursive-branch/source.jibb:80:26: argument has type @t
+    %.n (sample-mismatch "wrong")
+                         ^
 ++ self-subject: loobean branch subject does not unify with ?
 ++ aura-base: $-(? @u)
 ++ aura-conflict: branch arms have incompatible types

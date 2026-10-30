@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Gates may call themselves and their siblings"; Modules: no name may shadow one already in scope.
+tests: Named recursive samples retain their fields and monomorphic self type; scope violations, incompatible arguments, unresolved literals, explicit-capital constraints and recursive occurs checks are reported or fail closed.
+expect: parses
+expect-types: a partial inference report

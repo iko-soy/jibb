@@ -6954,6 +6954,7 @@
   |
 ::
 ::  A top-level gate may refer to itself through one monomorphic placeholder.
+::  Its declared sample is inferred first and preserves its field faces.
 ::  Unify the completed body with that placeholder before generalization;
 ::  reporting repeats the same check instead of instantiating the gate's
 ::  generalized interface inside its own body. Mutual groups stay unsupported.
@@ -7027,16 +7028,31 @@
   ?.  ?=(%value -.d)  [%| ["recursive definition is not a gate" ~]]
   ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
     [%| ["recursive definition is not a gate" ~]]
-  =/  id=@ud  next.state
   =/  result=(unit itype)  (recursive-branch-seed d env state)
-  =/  seed=itype  ?~(result [%var id] [%fn [%var +(id)] u.result])
-  =/  next=@ud  ?~(result +(id) +(+(id)))
-  =/  seeded=ienv  [[name.d [seed ~]] env]
-  =/  out=iresult  (infer-fragment val.d seeded state(next next))
+  =/  gate=expr  val.d
+  =/  sam=isample-result
+    ?-  -.gate
+      %gate       (infer-sample sample.gate env state)
+      %gate-wide  (infer-sample sample.gate env state)
+      *           !!
+    ==
+  ?:  ?=(%| -.sam)  [%| [p.sam ~]]
+  =/  id=@ud  next.state.p.sam
+  =/  product=itype  ?~(result [%var id] u.result)
+  =/  st=istate  state.p.sam(next +(id))
+  =/  seed=itype  [%fn typ.p.sam product]
+  =/  seeded=ienv  [[name.d [seed ~]] env.p.sam]
+  =/  body=expr
+    ?-  -.gate
+      %gate       body.gate
+      %gate-wide  body.gate
+      *           !!
+    ==
+  =/  out=iresult  (infer-fragment body seeded st)
   ?:  ?=(%| -.out)  out
-  =/  uni=(unit isub)  (itype-unify seed typ.p.out sub.state.p.out)
+  =/  uni=(unit isub)  (itype-unify product typ.p.out sub.state.p.out)
   ?~  uni  [%| ["recursive gate constraint is not supported by partial inference" ~]]
-  [%& typ.p.out state.p.out(sub u.uni)]
+  [%& [%fn typ.p.sam typ.p.out] state.p.out(sub u.uni)]
 ::
 ++  add-supported-defs
   |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
