@@ -1,0 +1,6 @@
++$ chain |$ [A]
+  ~
+  [A (chain A)]
++$ loop |$ [A] [value=A rest=(loop A)]
+++ a |= x=(chain @t) x
+++ b |= x=(loop @t) x

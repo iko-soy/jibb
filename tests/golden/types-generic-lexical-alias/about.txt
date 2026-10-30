@@ -1,0 +1,4 @@
+source: Grammar, Molds: generic molds declare parameters after `|$`.
+tests: A non-generic alias cannot silently capture a generic caller's parameter with the same spelling; this partial checker leaves the use unsupported.
+expect: parses
+expect-types: a partial inference report

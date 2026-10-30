@@ -1,0 +1,21 @@
+(module
+  (mold 1:1 mapper
+    (generic 1:11 A B
+      (fn 1:20 (tvar 1:23 A) (tvar 1:25 B))))
+  (mold 2:1 duo
+    (generic 2:8 A B
+      (cell 2:17
+        (face 2:18 left (tvar 2:23 A))
+        (face 2:25 right (tvar 2:31 B)))))
+  (value 3:1 gate
+    (cast 3:9
+      (apply 3:12 mapper (aura 3:20 @t) (aura 3:23 @t))
+      (gate 3:27
+        (face 3:30 x (aura 3:32 @t))
+        (wing 3:35 x))))
+  (value 4:1 pair
+    (cast 4:9
+      (apply 4:12 duo (aura 4:17 @t) (aura 4:20 @p))
+      (tuple 4:24
+        (face 4:25 left (str 4:30 "hi"))
+        (face 4:35 right (lit 4:41 ~zod))))))

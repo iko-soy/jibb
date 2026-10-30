@@ -1,0 +1,3 @@
+/=  lib /ui/lib
+++ make |= [x=A y=B] ^- (reverse.lib A B) [left=y right=x]
+++ concrete ^- (reverse.lib @t @p) [left=~zod right="hi"]

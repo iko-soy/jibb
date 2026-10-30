@@ -1,0 +1,7 @@
+/ui/lib.jibb
+(module
+  (mold 1:1 carrier
+    (generic 1:12 A
+      (cell 1:19
+        (face 1:20 payload (tvar 1:28 A))
+        (face 1:30 count (aura 1:36 @ud))))))

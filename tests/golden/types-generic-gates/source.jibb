@@ -1,0 +1,4 @@
++$ mapper |$ [A B] $-(A B)
++$ duo |$ [A B] [left=A right=B]
+++ gate ^- (mapper @t @t) |= x=@t x
+++ pair ^- (duo @t @p) [left="hi" right=~zod]

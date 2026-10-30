@@ -1,0 +1,4 @@
+source: Grammar, Molds: generic mold parameters are declared by `|$`.
+tests: A nested generic's parameter named A is local to it and does not capture the caller's A; the fixed inner type stays @t while the outer type is @p.
+expect: parses
+expect-types: a partial inference report

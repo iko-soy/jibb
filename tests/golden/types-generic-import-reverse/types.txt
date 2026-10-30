@@ -1,0 +1,3 @@
+partial inference; module not checked
+++ make: $-([x=A y=B] [left=B right=A])
+++ concrete: [left=@p right=@t]

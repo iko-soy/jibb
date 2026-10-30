@@ -1,0 +1,14 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 cord
+    (cast 2:9
+      (apply 2:12 carrier.lib (aura 2:25 @t))
+      (tuple 2:29
+        (face 2:30 payload (str 2:38 "hi"))
+        (face 2:43 count (lit 2:49 1)))))
+  (value 3:1 ship
+    (cast 3:9
+      (apply 3:12 carrier.lib (aura 3:25 @p))
+      (tuple 3:29
+        (face 3:30 payload (lit 3:38 ~zod))
+        (face 3:43 count (lit 3:49 2))))))

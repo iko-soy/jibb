@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ make: $-(A [value=@t count=@ud])

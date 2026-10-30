@@ -1,0 +1,3 @@
++$ stray [field=A count=@ud]
++$ box |$ [A] stray
+++ example ^- (box @t) [field="hi" count=1]

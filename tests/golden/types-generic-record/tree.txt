@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 carrier
+    (generic 1:12 A
+      (cell 1:19
+        (face 1:20 payload (tvar 1:28 A))
+        (face 1:30 count (aura 1:36 @ud)))))
+  (value 2:1 cord
+    (cast 2:9
+      (apply 2:12 carrier (aura 2:21 @t))
+      (tuple 2:25
+        (face 2:26 payload (str 2:34 "hi"))
+        (face 2:39 count (lit 2:45 1)))))
+  (value 3:1 ship
+    (cast 3:9
+      (apply 3:12 carrier (aura 3:21 @p))
+      (tuple 3:25
+        (face 3:26 payload (lit 3:34 ~zod))
+        (face 3:39 count (lit 3:45 2))))))

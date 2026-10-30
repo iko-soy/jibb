@@ -1,0 +1,23 @@
+(module
+  (mold 1:1 carrier
+    (generic 1:12 A
+      (cell 1:19
+        (face 1:20 payload (tvar 1:28 A))
+        (face 1:30 count (aura 1:36 @ud)))))
+  (mold 2:1 duo
+    (generic 2:8 A B
+      (cell 2:17
+        (face 2:18 left (tvar 2:23 A))
+        (face 2:25 right (tvar 2:31 B)))))
+  (value 3:1 too-many
+    (cast 3:13
+      (apply 3:16 carrier (aura 3:25 @t) (aura 3:28 @p))
+      (tuple 3:32
+        (face 3:33 payload (str 3:41 "hi"))
+        (face 3:46 count (lit 3:52 1)))))
+  (value 4:1 too-few
+    (cast 4:12
+      (apply 4:15 duo (aura 4:20 @t))
+      (tuple 4:24
+        (face 4:25 left (str 4:30 "hi"))
+        (face 4:35 right (lit 4:41 ~zod))))))

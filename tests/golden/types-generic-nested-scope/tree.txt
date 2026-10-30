@@ -1,0 +1,21 @@
+(module
+  (mold 1:1 inner
+    (generic 1:10 A
+      (cell 1:17
+        (face 1:18 payload (tvar 1:26 A))
+        (face 1:28 count (aura 1:34 @ud)))))
+  (mold 2:1 outer
+    (generic 2:10 A
+      (cell 2:17
+        (face 2:18 fixed
+          (apply 2:24 inner (aura 2:31 @t)))
+        (face 2:35 bound (tvar 2:41 A)))))
+  (value 3:1 ship
+    (cast 3:9
+      (apply 3:12 outer (aura 3:19 @p))
+      (tuple 3:23
+        (face 3:24 fixed
+          (tuple 3:30
+            (face 3:31 payload (str 3:39 "hi"))
+            (face 3:44 count (lit 3:50 1))))
+        (face 3:53 bound (lit 3:59 ~zod))))))

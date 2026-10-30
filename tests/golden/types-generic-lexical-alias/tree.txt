@@ -1,0 +1,13 @@
+(module
+  (mold 1:1 stray
+    (cell 1:10
+      (face 1:11 field (tvar 1:17 A))
+      (face 1:19 count (aura 1:25 @ud))))
+  (mold 2:1 box
+    (generic 2:8 A (ref 2:15 stray)))
+  (value 3:1 example
+    (cast 3:12
+      (apply 3:15 box (aura 3:20 @t))
+      (tuple 3:24
+        (face 3:25 field (str 3:31 "hi"))
+        (face 3:36 count (lit 3:42 1))))))

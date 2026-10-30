@@ -1,0 +1,4 @@
+source: Grammar, Molds: generic molds name their own parameters after `|$`; gates generalize capitals per `++`.
+tests: A body-local generic parameter spelled A stays distinct from the enclosing gate's A when the generic is instantiated at @t.
+expect: parses
+expect-types: a partial inference report

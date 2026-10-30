@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Generic molds" are defined with `|$` after a `+$` name; type variables are capitals.
+tests: Nonrecursive generic gate and two-parameter record molds retain independent parameter types.
+expect: parses
+expect-types: a partial inference report

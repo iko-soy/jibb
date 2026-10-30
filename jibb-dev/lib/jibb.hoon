@@ -4933,16 +4933,17 @@
 ::
 +$  ischeme  [typ=itype vars=(list @ud)]
 +$  ienv  (list [name=term scheme=ischeme])
-+$  imold-types  (list [name=term typ=itype])
++$  imold-types  (list [name=term template=ischeme])
 +$  ifile  [values=ienv molds=imold-types]
 +$  ijimports  (list [face=term interface=ifile])
 +$  icaps  (list [name=@t id=@ud])
++$  iparams  (list [name=@t typ=itype])
 +$  imolds  (list [name=term body=shape])
 ::  A caller supplies the exact noun returned by +read-mold:jibb-import.
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  imark-externals  (list [mark=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) active=(list term) in-mold=?]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) in-mold=?]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -5212,12 +5213,85 @@
 ::
 ++  find-jibb-mold
   |=  [name=term iface=ifile]
-  ^-  (unit itype)
+  ^-  (unit ischeme)
   =/  ms=imold-types  molds.iface
   |-
   ?~  ms  ~
-  ?:  =(name name.i.ms)  `typ.i.ms
+  ?:  =(name name.i.ms)  `template.i.ms
   $(ms t.ms)
+::
+::  Generic mold parameters are lexical and distinct from the enclosing
+::  value's capital variables. Arguments are substituted only once, so
+::  an argument's variable ID cannot be captured by a template ID.
+::
+++  iparam-lookup
+  |=  [name=@t params=iparams]
+  ^-  (unit itype)
+  ?~  params  ~
+  ?:  =(name name.i.params)  `typ.i.params
+  $(params t.params)
+::
+++  distinct-params
+  |=  names=(list @t)
+  ^-  ?
+  ?~  names  &
+  ?:  (lien t.names |=(n=@t =(n i.names)))  |
+  $(names t.names)
+::
+++  bind-params
+  |=  [names=(list @t) args=(list itype)]
+  ^-  (unit iparams)
+  ?~  names  ?~(args `~ ~)
+  ?~  args  ~
+  =/  rest=(unit iparams)  $(names t.names, args t.args)
+  ?~  rest  ~
+  `[[i.names i.args] u.rest]
+::
+++  template-apply
+  |=  [template=ischeme args=(list itype)]
+  ^-  (unit itype)
+  =/  vars=(list @ud)  vars.template
+  =/  ren=isub  ~
+  |-
+  ?~  vars  ?~(args `(itype-rename typ.template ren) ~)
+  ?~  args  ~
+  $(vars t.vars, args t.args, ren [[i.vars i.args] ren])
+::
+++  infer-shape-args
+  |=  [args=(list shape) state=istate]
+  ^-  (unit [types=(list itype) state=istate])
+  ?~  args  `[~ state]
+  =/  head=(unit [typ=itype state=istate])  (infer-simple-shape i.args state)
+  ?~  head  ~
+  =/  tail=(unit [types=(list itype) state=istate])  $(args t.args, state state.u.head)
+  ?~  tail  ~
+  `[[typ.u.head types.u.tail] state.u.tail]
+::
+++  fresh-mold-params
+  |=  [names=(list @t) next=@ud]
+  ^-  [params=iparams vars=(list @ud) next=@ud]
+  ?~  names  [~ ~ next]
+  =/  rest=[params=iparams vars=(list @ud) next=@ud]  $(names t.names, next +(next))
+  [[[i.names [%var next]] params.rest] [next vars.rest] next.rest]
+::
+++  infer-mold-template
+  |=  [sh=shape state=istate]
+  ^-  (unit [template=ischeme state=istate])
+  ?:  ?=(%generic -.sh)
+    ?~  vars.sh  ~
+    ?.  (distinct-params vars.sh)  ~
+    =/  fresh=[params=iparams vars=(list @ud) next=@ud]  (fresh-mold-params vars.sh next.state)
+    =/  out=(unit [typ=itype state=istate])
+      (infer-simple-shape body.sh state(next next.fresh, params params.fresh, in-mold &))
+    ?~  out  ~
+    =/  used=(list @ud)  (itype-vars typ.u.out)
+    ?.  (levy used |=(n=@ud (lien vars.fresh |=(p=@ud =(p n)))))  ~
+    `[[typ.u.out vars.fresh] state.u.out(params params.state, in-mold in-mold.state)]
+  =/  out=(unit [typ=itype state=istate])
+    (infer-simple-shape sh state(params ~, in-mold &))
+  ?~  out  ~
+  ?:  ?=(^ (itype-vars typ.u.out))  ~
+  `[[typ.u.out ~] state.u.out(params params.state, in-mold in-mold.state)]
 ::
 ++  infer-simple-shape
   |=  [sh=shape state=istate]
@@ -5241,9 +5315,10 @@
         ?^  t.t.names.sh  ~
         =/  iface=(unit ifile)  (find-jibb-interface i.t.names.sh jimports.state)
         ?^  iface
-          =/  found=(unit itype)  (find-jibb-mold n u.iface)
+          =/  found=(unit ischeme)  (find-jibb-mold n u.iface)
           ?~  found  ~
-          `[u.found state]
+          ?^  vars.u.found  ~
+          `[typ.u.found state]
         =/  found=(unit itype)
           (find-imported-mold i.t.names.sh n externals.state surs.state)
         ?~  found  ~
@@ -5257,10 +5332,38 @@
       =/  found=(unit shape)  (find-simple-mold n molds.state)
       ?~  found  ~
       =/  out=(unit [typ=itype state=istate])
-        $(sh u.found, state state(active [n active.state], in-mold &))
+        $(sh u.found, state state(active [n active.state], in-mold &, params ~))
       ?~  out  ~
-      `[typ.u.out state.u.out(active active.state, in-mold in-mold.state)]
+      `[typ.u.out state.u.out(active active.state, in-mold in-mold.state, params params.state)]
+    %apply
+      ?~  ref.sh  ~
+      =/  args=(unit [types=(list itype) state=istate])  (infer-shape-args args.sh state)
+      ?~  args  ~
+      =/  n=term  i.ref.sh
+      ?^  t.ref.sh
+        ?^  t.t.ref.sh  ~
+        =/  iface=(unit ifile)  (find-jibb-interface i.t.ref.sh jimports.state.u.args)
+        ?~  iface  ~
+        =/  template=(unit ischeme)  (find-jibb-mold n u.iface)
+        ?~  template  ~
+        ?~  vars.u.template  ~
+        =/  applied=(unit itype)  (template-apply u.template types.u.args)
+        ?~  applied  ~
+        `[u.applied state.u.args]
+      ?:  (lien active.state.u.args |=(x=term =(x n)))  ~
+      =/  found=(unit shape)  (find-simple-mold n molds.state.u.args)
+      ?~  found  ~
+      ?.  ?=(%generic -.u.found)  ~
+      ?.  (distinct-params vars.u.found)  ~
+      =/  params=(unit iparams)  (bind-params vars.u.found types.u.args)
+      ?~  params  ~
+      =/  out=(unit [typ=itype state=istate])
+        $(sh body.u.found, state state.u.args(active [n active.state.u.args], in-mold &, params u.params))
+      ?~  out  ~
+      `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args)]
     %tvar
+      =/  param=(unit itype)  (iparam-lookup name.sh params.state)
+      ?^  param  `[u.param state]
       ?:  in-mold.state  ~
       =/  n=(unit @ud)  (icap-lookup name.sh caps.state)
       ?^  n  `[[%var u.n] state]
@@ -5405,8 +5508,8 @@
   ^-  ?
   ?~  locals  &
   =/  m=[name=term body=shape]  i.locals
-  =/  inferred=(unit [typ=itype state=istate])
-    (infer-simple-shape body.m state(active [name.m active.state], in-mold &))
+  =/  inferred=(unit [template=ischeme state=istate])
+    (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  inferred  |
   $(locals t.locals)
 ::
@@ -5434,7 +5537,8 @@
   $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred, progressed &)
 ::
 ::  Read only fields of a known record. Unresolved field constraints and
-::  ambiguous repeated faces are outside this fragment.
+::  ambiguous repeated faces are outside this fragment (doc question:
+::  whether duplicate imported Hoon faces are valid or select a field).
 ::
 ++  record-fields-named
   |=  [name=term t=itype sub=isub]
@@ -5820,7 +5924,7 @@
   ?:  ?=(%mold -.d)  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ |])
   ?:  ?=(%| -.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
@@ -6064,13 +6168,12 @@
   ^-  (each imold-types @t)
   ?~  molds  [%& ~]
   =/  m=[name=term body=shape]  i.molds
-  =/  t=(unit [typ=itype state=istate])
-    (infer-simple-shape body.m state(active [name.m active.state], in-mold &))
+  =/  t=(unit [template=ischeme state=istate])
+    (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  t  [%| 'module mold needs unsupported inference']
-  ?:  ?=(^ (itype-vars typ.u.t))  [%| 'module mold has unsupported variables']
   =/  rest=(each imold-types @t)  $(molds t.molds)
   ?:  ?=(%| -.rest)  rest
-  [%& [[name.m typ.u.t] p.rest]]
+  [%& [[name.m template.u.t] p.rest]]
 ::
 ++  module-values-complete
   |=  [ds=(list def) env=ienv]
@@ -6130,7 +6233,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ |]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ |]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
   =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved)
@@ -6203,7 +6306,7 @@
     $(ds t.ds, lines [(show-partial-mold file src d molds) lines])
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
-  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ |])
+  =/  result=iresult  (infer-fragment val.d env [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ |])
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)

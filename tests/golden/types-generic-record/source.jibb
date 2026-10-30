@@ -1,0 +1,3 @@
++$ carrier |$ [A] [payload=A count=@ud]
+++ cord ^- (carrier @t) [payload="hi" count=1]
+++ ship ^- (carrier @p) [payload=~zod count=2]

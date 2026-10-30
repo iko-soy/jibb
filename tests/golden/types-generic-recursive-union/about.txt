@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Generic molds" are defined with `|$` after a `+$` name; type variables are capitals.
+tests: Recursive generic and union bodies are explicitly unsupported by this bounded inference slice.
+expect: parses
+expect-types: a partial inference report

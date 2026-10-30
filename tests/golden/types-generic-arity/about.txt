@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Generic molds" are defined with `|$` after a `+$` name; type variables are capitals.
+tests: Generic applications with too many or too few arguments fail closed.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Generic molds" are defined with `|$` after a `+$` name; type variables are capitals.
+tests: A local generic mold body mentioning an enclosing capital is not silently captured or conflated with its own parameter.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,3 @@
++$ twin |$ [A] [left=A right=A]
+++ good ^- (twin @t) [left="hi" right="bye"]
+++ bad ^- (twin @t) [left="hi" right=~zod]

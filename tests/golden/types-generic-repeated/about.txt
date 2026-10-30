@@ -1,0 +1,4 @@
+source: Grammar, Molds: type variables are capitals; a generic mold names its parameters after `|$`.
+tests: Repeated occurrences of one generic parameter retain the same type, accepting two cords and rejecting a cord paired with a ship.
+expect: parses
+expect-types: a partial inference report with the conflicting sites

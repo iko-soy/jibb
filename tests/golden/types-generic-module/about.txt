@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Everything is exported and read through the import's face"; Molds: generic molds.
+tests: A generic record mold exported by a Jibb library is independently instantiated in its caller.
+expect: parses
+expect-types: a partial inference report

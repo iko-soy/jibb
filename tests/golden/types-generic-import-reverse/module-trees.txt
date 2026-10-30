@@ -1,0 +1,7 @@
+/ui/lib.jibb
+(module
+  (mold 1:1 reverse
+    (generic 1:12 A B
+      (cell 1:21
+        (face 1:22 left (tvar 1:27 B))
+        (face 1:29 right (tvar 1:35 A))))))

@@ -1,0 +1,3 @@
++$ inner |$ [A] [payload=A count=@ud]
++$ outer |$ [A] [fixed=(inner @t) bound=A]
+++ ship ^- (outer @p) [fixed=[payload="hi" count=1] bound=~zod]

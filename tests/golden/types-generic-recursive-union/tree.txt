@@ -1,0 +1,24 @@
+(module
+  (mold 1:1 chain
+    (generic 1:10 A
+      (union 2:3
+        (const 2:3 ~)
+        (cell 3:3
+          (tvar 3:4 A)
+          (apply 3:6 chain (tvar 3:13 A))))))
+  (mold 4:1 loop
+    (generic 4:9 A
+      (cell 4:16
+        (face 4:17 value (tvar 4:23 A))
+        (face 4:25 rest
+          (apply 4:30 loop (tvar 4:36 A))))))
+  (value 5:1 a
+    (gate 5:6
+      (face 5:9 x
+        (apply 5:11 chain (aura 5:18 @t)))
+      (wing 5:22 x)))
+  (value 6:1 b
+    (gate 6:6
+      (face 6:9 x
+        (apply 6:11 loop (aura 6:17 @t)))
+      (wing 6:21 x))))

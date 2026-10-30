@@ -1,0 +1,4 @@
+partial inference; module not checked
++$ carrier: not checked
+++ cord: [payload=@t count=@ud]
+++ ship: [payload=@p count=@ud]

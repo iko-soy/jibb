@@ -1,0 +1,4 @@
+partial inference; module not checked
++$ stray: not checked
++$ box: not checked
+++ example: cast mold is not supported by partial inference

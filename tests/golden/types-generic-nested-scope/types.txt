@@ -1,0 +1,4 @@
+partial inference; module not checked
++$ inner: not checked
++$ outer: not checked
+++ ship: [fixed=[payload=@t count=@ud] bound=@p]

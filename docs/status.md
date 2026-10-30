@@ -19,7 +19,7 @@ On 2026-10-30, @iko decided that Jibb drops `$?`, so a `+$` takes a union's case
 
 ## Milestone 2: in progress
 
-The repository spec records the subsequent type-system and prelude decisions; those changes also need synchronization to the Claude document. An initial inference fragment and a standalone Hoon type reader are being tested. The fragment explicitly reports that it does not check a module; partial bridges pass selected Hoon atoms and nested faced or unfaced cells from `/sur` molds and marks into inference. The reader handles mark samples, recursive molds whose origins can be verified through Ford imports, nested collections, direct ordered maps, certain ordered-map fields, and direct `$^` unions whose cases can be proved disjoint. Ambiguous recursive origins fail closed; one nested `$^` in a static record of aura and constant-tag molds is checked, while other nested `$^`, nested ordered maps, general union disjointness and complete import integration remain unfinished. The partial checker resolves a subset of ordinary library imports in dependency order using supplied Jibb sources and the current prelude names, caches completed interfaces per run, and detects missing sources and cycles. It does not yet check API or kind semantics, and the prelude inventory is incomplete. The inference fragment supports unrestricted `@`, selected one-way widenings including aura-family ancestors, generalized atom constraints arising from explicit capitals or bare sample binders, acyclic local value definitions with captures, simple acyclic local mold aliases, and selected faced record casts and field reads. Variable-dependent face merges remain unsupported. Unfixed decimal literals default to `@ud` in gate-free inferred types; recursive local groups, more complex local molds, other constraint cases and defaulting inside gate types still need work. Collection recognition checks the originating core and fails closed on shadows or unsupported Ford subject shapes; its golden fixtures include three real Tlon files. The prelude currently has only a few functions, and [prelude-inventory.md](prelude-inventory.md) is a source audit, not the complete inventory or signatures. The milestone remains unfinished.
+The repository spec records the subsequent type-system and prelude decisions; those changes also need synchronization to the Claude document. An initial inference fragment and a standalone Hoon type reader are being tested. The fragment explicitly reports that it does not check a module; partial bridges pass selected Hoon atoms and nested faced or unfaced cells from `/sur` molds and marks into inference. The reader handles mark samples, recursive molds whose origins can be verified through Ford imports, nested collections, direct ordered maps, certain ordered-map fields, and direct `$^` unions whose cases can be proved disjoint. Ambiguous recursive origins fail closed; one nested `$^` in a static record of aura and constant-tag molds is checked, while other nested `$^`, nested ordered maps, general union disjointness and complete import integration remain unfinished. The partial checker resolves a subset of ordinary library imports in dependency order using supplied Jibb sources and the current prelude names, caches completed interfaces per run, and detects missing sources and cycles. It does not yet check API or kind semantics, and the prelude inventory is incomplete. The inference fragment supports unrestricted `@`, selected one-way widenings including aura-family ancestors, generalized atom constraints arising from explicit capitals or bare sample binders, acyclic local value definitions with captures, simple and nonrecursive generic mold aliases, and selected faced record casts and field reads. Variable-dependent face merges remain unsupported. Unfixed decimal literals default to `@ud` in gate-free inferred types; recursive local groups, recursive and union generic molds, other constraint cases and defaulting inside gate types still need work. Collection recognition checks the originating core and fails closed on shadows or unsupported Ford subject shapes; its golden fixtures include three real Tlon files. The prelude currently has only a few functions, and [prelude-inventory.md](prelude-inventory.md) is a source audit, not the complete inventory or signatures. The milestone remains unfinished.
 
 ## Milestone 1: parser and mark
 
@@ -37,8 +37,8 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 447 golden cases: 231 that parse and 216 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 447-case corpus passed under `urbit eval` in 32.4 s. The fake ship passed all 452 tests, including the importer, importer/checker and mark/checker bridges, module scope and unification checks, with 22.3 s for sync and 34.3 s for tests. The importer golden compares 110 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- 459 golden cases: 243 that parse and 216 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 459-case corpus passed under `urbit eval` in 33.6 s. The fake ship passed all 464 tests, including the importer, importer/checker and mark/checker bridges, module scope and unification checks, with 24.0 s for sync and 29.8 s for tests. The importer golden compares 110 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks) and `tools/testdata/ship-selftest` test the tools themselves.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -66,14 +66,15 @@ Besides the plan's list:
 | 8b9c9ac | 2026-10-30 | Preserve recursive import origins, infer simple local molds, and supply Jibb module sources to the partial checker |
 | 529736a | 2026-10-30 | Infer supported library import graphs and guard nested Hoon `$^` in collections |
 | 8bf1b12 | 2026-10-30 | Infer selected record faces and check nested `$^` in static Hoon records |
-| This change | 2026-10-30 | Cache library interfaces, preserve imported Hoon record faces, and check nested tagged unions |
+| d8ac47d | 2026-10-30 | Cache library interfaces, preserve imported Hoon record faces, and check nested tagged unions |
+| This change | 2026-10-30 | Infer nonrecursive generic mold aliases with lexical parameters |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 447 cases under urbit eval
+tools/golden                      # 459 cases under urbit eval
 tools/importer-test               # the Hoon importer fixture projection
 tools/type-import-test            # the importer/checker bridge fixture
 tools/type-mark-test              # the mark/checker bridge fixture
@@ -83,7 +84,7 @@ tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 447 cases as -test arms on the ship
+tools/ship test                   # the same 459 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/ship check-commit           # |commit stores .jibb files
 tools/clay-fixtures               # example /sur files and marks build through Clay

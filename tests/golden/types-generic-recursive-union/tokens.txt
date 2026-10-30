@@ -1,0 +1,58 @@
+1:1 glyph +$
+1:4 name chain
+1:10 glyph |$
+1:13 glyph [
+1:14 tight tvar A
+1:15 tight glyph ]
+2:3 INDENT
+2:3 lit ~
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight tvar A
+3:6 glyph (
+3:7 tight name chain
+3:13 tvar A
+3:14 tight glyph )
+3:15 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name loop
+4:9 glyph |$
+4:12 glyph [
+4:13 tight tvar A
+4:14 tight glyph ]
+4:16 glyph [
+4:17 tight name value
+4:22 tight glyph =
+4:23 tight tvar A
+4:25 name rest
+4:29 tight glyph =
+4:30 tight glyph (
+4:31 tight name loop
+4:36 tvar A
+4:37 tight glyph )
+4:38 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name a
+5:6 glyph |=
+5:9 name x
+5:10 tight glyph =
+5:11 tight glyph (
+5:12 tight name chain
+5:18 aura @t
+5:20 tight glyph )
+5:22 name x
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name b
+6:6 glyph |=
+6:9 name x
+6:10 tight glyph =
+6:11 tight glyph (
+6:12 tight name loop
+6:17 aura @t
+6:19 tight glyph )
+6:21 name x
+6:22 NEWLINE

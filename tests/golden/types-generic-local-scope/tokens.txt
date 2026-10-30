@@ -1,0 +1,37 @@
+1:1 glyph ++
+1:4 name make
+1:9 glyph |=
+1:12 name x
+1:13 tight glyph =
+1:14 tight tvar A
+2:3 INDENT
+2:3 glyph +$
+2:6 name box
+2:10 glyph |$
+2:13 glyph [
+2:14 tight tvar B
+2:15 tight glyph ]
+2:17 glyph [
+2:18 tight name outer
+2:23 tight glyph =
+2:24 tight tvar A
+2:26 name inner
+2:31 tight glyph =
+2:32 tight tvar B
+2:33 tight glyph ]
+3:3 NEWLINE
+3:3 glyph ^-
+3:6 glyph (
+3:7 tight name box
+3:11 aura @t
+3:13 tight glyph )
+3:15 glyph [
+3:16 tight name outer
+3:21 tight glyph =
+3:22 tight name x
+3:24 name inner
+3:29 tight glyph =
+3:30 tight str "hi"
+3:34 tight glyph ]
+3:35 DEDENT
+3:35 NEWLINE

@@ -1,0 +1,5 @@
+partial inference; module not checked
++$ chain: cases proven disjoint; mold not checked
++$ loop: not checked
+++ a: sample mold is not supported by partial inference
+++ b: sample mold is not supported by partial inference

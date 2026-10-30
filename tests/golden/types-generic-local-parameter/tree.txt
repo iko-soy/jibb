@@ -1,0 +1,15 @@
+(module
+  (value 1:1 make
+    (gate 1:9
+      (face 1:12 x (tvar 1:14 A))
+      (body 2:3
+        (mold 2:3 box
+          (generic 2:10 A
+            (cell 2:17
+              (face 2:18 value (tvar 2:24 A))
+              (face 2:26 count (aura 2:32 @ud)))))
+        (cast 3:3
+          (apply 3:6 box (aura 3:11 @t))
+          (tuple 3:15
+            (face 3:16 value (str 3:22 "hi"))
+            (face 3:27 count (lit 3:33 1))))))))

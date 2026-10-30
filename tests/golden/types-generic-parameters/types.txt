@@ -1,0 +1,5 @@
+partial inference; module not checked
++$ duplicate: not checked
++$ undeclared: not checked
+++ a: cast mold is not supported by partial inference
+++ b: cast mold is not supported by partial inference

@@ -1,0 +1,18 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 make
+    (gate 2:9
+      (cell 2:12
+        (face 2:13 x (tvar 2:15 A))
+        (face 2:17 y (tvar 2:19 B)))
+      (cast 2:22
+        (apply 2:25 reverse.lib (tvar 2:38 A) (tvar 2:40 B))
+        (tuple 2:43
+          (face 2:44 left (wing 2:49 y))
+          (face 2:51 right (wing 2:57 x))))))
+  (value 3:1 concrete
+    (cast 3:13
+      (apply 3:16 reverse.lib (aura 3:29 @t) (aura 3:32 @p))
+      (tuple 3:36
+        (face 3:37 left (lit 3:42 ~zod))
+        (face 3:47 right (str 3:53 "hi"))))))

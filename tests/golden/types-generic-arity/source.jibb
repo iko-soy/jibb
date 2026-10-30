@@ -1,0 +1,4 @@
++$ carrier |$ [A] [payload=A count=@ud]
++$ duo |$ [A B] [left=A right=B]
+++ too-many ^- (carrier @t @p) [payload="hi" count=1]
+++ too-few ^- (duo @t) [left="hi" right=~zod]

@@ -1,0 +1,5 @@
+partial inference; module not checked
++$ mapper: not checked
++$ duo: not checked
+++ gate: $-(@t @t)
+++ pair: [left=@t right=@p]

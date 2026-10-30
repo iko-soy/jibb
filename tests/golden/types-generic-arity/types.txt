@@ -1,0 +1,5 @@
+partial inference; module not checked
++$ carrier: not checked
++$ duo: not checked
+++ too-many: cast mold is not supported by partial inference
+++ too-few: cast mold is not supported by partial inference

@@ -1,0 +1,4 @@
+source: Grammar, Molds: "Generic molds" are defined with `|$` after a `+$` name; type variables are capitals.
+tests: A named generic record is independently instantiated at cord and ship types.
+expect: parses
+expect-types: a partial inference report

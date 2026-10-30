@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 twin
+    (generic 1:9 A
+      (cell 1:16
+        (face 1:17 left (tvar 1:22 A))
+        (face 1:24 right (tvar 1:30 A)))))
+  (value 2:1 good
+    (cast 2:9
+      (apply 2:12 twin (aura 2:18 @t))
+      (tuple 2:22
+        (face 2:23 left (str 2:28 "hi"))
+        (face 2:33 right (str 2:39 "bye")))))
+  (value 3:1 bad
+    (cast 3:8
+      (apply 3:11 twin (aura 3:17 @t))
+      (tuple 3:21
+        (face 3:22 left (str 3:27 "hi"))
+        (face 3:32 right (lit 3:38 ~zod))))))

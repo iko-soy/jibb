@@ -1,0 +1,4 @@
++$ duplicate |$ [A A] [left=A right=A]
++$ undeclared |$ [A] [left=A right=B]
+++ a ^- (duplicate @t @p) [left="hi" right=~zod]
+++ b ^- (undeclared @t) [left="hi" right=~zod]
