@@ -1,0 +1,59 @@
+(module
+  (value 1:1 concrete
+    (gate 1:13
+      (face 1:16 x (ref 1:18 qath))
+      (cast 1:23
+        (cell 1:26
+          (face 1:27 field (ref 1:33 qath))
+          (face 1:38 yes (flag 1:42)))
+        (tuple 1:45 (wing 1:46 x) (lit 1:48 %.y)))))
+  (value 2:1 reverse
+    (gate 2:12
+      (face 2:15 x
+        (cell 2:17
+          (face 2:18 field (ref 2:24 qath))
+          (face 2:29 yes (flag 2:33))))
+      (cast 2:36
+        (cell 2:39 (ref 2:40 qath) (flag 2:45))
+        (wing 2:48 x))))
+  (value 3:1 mismatch
+    (gate 3:13
+      (face 3:16 x
+        (cell 3:18
+          (face 3:19 bad (ref 3:23 qath))
+          (face 3:28 yes (flag 3:32))))
+      (cast 3:35
+        (cell 3:38
+          (face 3:39 good (ref 3:44 qath))
+          (face 3:49 yes (flag 3:53)))
+        (wing 3:56 x))))
+  (value 4:1 previously-bound
+    (gate 4:21
+      (bind 4:24 x)
+      (body 5:3
+        (trace 5:3
+          (cast 5:6 (ref 5:9 qath) (wing 5:14 x))
+          (body 6:5
+            (cast 6:5
+              (cell 6:8
+                (face 6:9 field (ref 6:15 qath))
+                (face 6:20 yes (flag 6:24)))
+              (tuple 6:27 (wing 6:28 x) (lit 6:30 %.y))))))))
+  (value 7:1 nested-bad
+    (gate 7:15
+      (face 7:18 x
+        (cell 7:20
+          (face 7:21 outer
+            (cell 7:27
+              (face 7:28 bad (ref 7:32 qath))
+              (face 7:37 yes (flag 7:41))))
+          (face 7:44 done (flag 7:49))))
+      (body 8:3
+        (cast 8:3
+          (cell 8:6
+            (face 8:7 outer
+              (cell 8:13
+                (face 8:14 good (ref 8:19 qath))
+                (face 8:24 yes (flag 8:28))))
+            (face 8:31 done (flag 8:36)))
+          (wing 8:39 x))))))

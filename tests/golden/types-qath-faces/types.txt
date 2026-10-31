@@ -1,0 +1,18 @@
+partial inference; module not checked
+++ concrete: $-(qath [field=qath yes=?])
+++ reverse: $-([field=qath yes=?] [field=qath yes=?])
+++ mismatch: cast mold and expression type do not unify
+/tests/golden/types-qath-faces/source.jibb:3:38: cast mold has type [good=qath yes=?]
+++ mismatch |= x=[bad=qath yes=?] ^- [good=qath yes=?] x
+                                     ^
+/tests/golden/types-qath-faces/source.jibb:3:56: expression has type [bad=qath yes=?]
+++ mismatch |= x=[bad=qath yes=?] ^- [good=qath yes=?] x
+                                                       ^
+++ previously-bound: cast constraint is not supported by partial inference
+++ nested-bad: cast mold and expression type do not unify
+/tests/golden/types-qath-faces/source.jibb:8:6: cast mold has type [outer=[good=qath yes=?] done=?]
+  ^- [outer=[good=qath yes=?] done=?] x
+     ^
+/tests/golden/types-qath-faces/source.jibb:8:39: expression has type [outer=[bad=qath yes=?] done=?]
+  ^- [outer=[good=qath yes=?] done=?] x
+                                      ^

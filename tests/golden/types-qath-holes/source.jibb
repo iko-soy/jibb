@@ -1,0 +1,18 @@
+++ resolved |= x=qath ^- _ x
+++ literal ^- _ %/foo
+++ nested ^- _ ^- qath [i=~.hello t=[i=~.world t=~]]
+++ isolated |= [p=qath other=_] p
+++ local-hole
+  ++ ignored |= x=_ x
+  ^- qath [i=~.hello t=~]
+++ pending-construction
+  ~& %orphan
+    ^- qath [i=~.hello t=~]
+++ pending-literal
+  ~& %orphan
+    %/foo
+++ wrong-head ^- qath [i=~zod t=~]
+++ record-number [path=%/foo n=1]
+++ nested-number [payload=[path=%/foo] n=1]
+++ composite-hole ^- _ [path=%/foo n=1]
+++ returned-gate [path=%/foo f=|=(x x) n=1]

@@ -1,0 +1,7 @@
++$ alpha
+  ~
+  [i=@ta t=alpha]
++$ exported alpha
++$ route qath
+++ identity |= x=alpha x
+++ qidentity |= x=qath x

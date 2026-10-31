@@ -68,6 +68,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-api-paths-test` | Checks partial API path analysis with real todo mark samples against `tests/type-api-paths/expected.txt` under eval |
 | `tools/type-hole-guards-test` | Runs the shared hole-defaulting and API interface guards under eval; the same checks run on the ship |
 | `tools/type-list-alias-test` | Runs the shared prelude list-alias and provenance guards under eval and on the ship |
+| `tools/type-qath-guards-test` | Runs source-provenance, recursive unfolding and face guards under eval and on the ship |
 | `tools/type-module-scope-test` | Checks the partial module checker’s prelude boundary and duplicate-source rejection against `tests/type-module-scope/expected.txt` under eval |
 | `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, checks selected mold and mark projections and the partial checker, and records Ford and mark subject shapes on the fake ship |
 | `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
@@ -92,6 +93,7 @@ tools/type-poke-test               # source-backed poke/API bridge report matche
 tools/type-api-paths-test          # partial API path analysis report matches
 tools/type-hole-guards-test        # hole defaulting and API guards pass
 tools/type-list-alias-test         # prelude list-alias guards pass
+tools/type-qath-guards-test         # qath source and unfolding guards pass
 tools/type-module-scope-test       # module/prelude scope golden report matches
 tools/hoon check-spans-test        # prints <<>>
 tools/hoon itype-unify-test        # type-unification controls pass

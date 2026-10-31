@@ -38,6 +38,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Derived gates | API files and stores give a constructor per poke type and a checked request per path or store state; clashing names are errors, including a derived name that clashes with an import face | Decided 2026-10-30 |
 | Hoon types | A fixed translation table; `map`, `set`, `qeu`, `jar`, `jug` by name; `mop` as `(mop K V)`, read with `on`; imported `$%`, `$?` and `$^` cases must differ as nouns, and records with duplicate field names are errors where used; unused molds skipped | Decided 2026-10-30 |
 | Record fields | Duplicate field names in a Jibb-written record are an error, as they are in an imported Hoon record | Decided 2026-10-31 |
+| Record projection | The explicit type-directed operation `proj` takes a record and uses its expected result type to select its fields; no projection is inserted automatically. `proj` is reserved and cannot be defined or imported under that name. The result has exactly the fields declared by its type | Decided 2026-10-31 |
 | Layout | Indentation; juxtaposed calls; a bracket open at line end takes one item per line, with no closer | Decided |
 | Elements | Ordinary gates; containers take attribute lists; `stack` switches at `wide`; `el` adds attributes and wins; headings 1 to 6; `form` sends on Enter, the innermost when nested; `image` from an application path, sized from the file, or a sized URL; no focus control for now | Decided 2026-10-29 |
 | Long calls | One argument per line inside parentheses | Decided |

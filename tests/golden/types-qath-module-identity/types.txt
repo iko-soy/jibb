@@ -1,0 +1,18 @@
+partial inference; module not checked
+++ same-origin: $-(alpha.one alpha.other)
+++ same-alias: $-(alpha.one alpha.other)
+++ different: call's sample and argument types do not unify
+/tests/golden/types-qath-module-identity/source.jibb:7:30: called gate has type $-(alpha.two alpha.two)
+++ different |= x=alpha.one (identity.two x)
+                             ^
+/tests/golden/types-qath-module-identity/source.jibb:7:43: argument has type alpha.one
+++ different |= x=alpha.one (identity.two x)
+                                          ^
+++ transit: $-(result.mid result.mid)
+++ prelude: $-(qath qath)
+++ public-alias: $-(qath qath)
+++ same-tail: $-(alpha.other alpha.one)
+++ other-tail: recursive mold cell does not fit its source shape
+++ qath-tail: recursive mold cell does not fit its source shape
+++ list-to-qath: cast constraint is not supported by partial inference
+++ qath-to-list: cast constraint is not supported by partial inference

@@ -1,0 +1,78 @@
+(module
+  (value 1:1 resolved
+    (gate 1:13
+      (face 1:16 x (ref 1:18 qath))
+      (cast 1:23 (hole 1:26) (wing 1:28 x))))
+  (value 2:1 literal
+    (cast 2:12 (hole 2:15) (qath 2:17 foo)))
+  (value 3:1 nested
+    (cast 3:11
+      (hole 3:14)
+      (cast 3:16
+        (ref 3:19 qath)
+        (tuple 3:24
+          (face 3:25 i (lit 3:27 ~.hello))
+          (face 3:35 t
+            (tuple 3:37
+              (face 3:38 i (lit 3:40 ~.world))
+              (face 3:48 t (lit 3:50 ~))))))))
+  (value 4:1 isolated
+    (gate 4:13
+      (cell 4:16
+        (face 4:17 p (ref 4:19 qath))
+        (face 4:24 other (hole 4:30)))
+      (wing 4:33 p)))
+  (value 5:1 local-hole
+    (body 6:3
+      (value 6:3 ignored
+        (gate 6:14
+          (face 6:17 x (hole 6:19))
+          (wing 6:21 x)))
+      (cast 7:3
+        (ref 7:6 qath)
+        (tuple 7:11
+          (face 7:12 i (lit 7:14 ~.hello))
+          (face 7:22 t (lit 7:24 ~))))))
+  (value 8:1 pending-construction
+    (body 9:3
+      (trace 9:3
+        (lit 9:6 %orphan)
+        (body 10:5
+          (cast 10:5
+            (ref 10:8 qath)
+            (tuple 10:13
+              (face 10:14 i (lit 10:16 ~.hello))
+              (face 10:24 t (lit 10:26 ~))))))))
+  (value 11:1 pending-literal
+    (body 12:3
+      (trace 12:3
+        (lit 12:6 %orphan)
+        (body 13:5 (qath 13:5 foo)))))
+  (value 14:1 wrong-head
+    (cast 14:15
+      (ref 14:18 qath)
+      (tuple 14:23
+        (face 14:24 i (lit 14:26 ~zod))
+        (face 14:31 t (lit 14:33 ~)))))
+  (value 15:1 record-number
+    (tuple 15:18
+      (face 15:19 path (qath 15:24 foo))
+      (face 15:30 n (lit 15:32 1))))
+  (value 16:1 nested-number
+    (tuple 16:18
+      (face 16:19 payload
+        (tuple 16:27
+          (face 16:28 path (qath 16:33 foo))))
+      (face 16:40 n (lit 16:42 1))))
+  (value 17:1 composite-hole
+    (cast 17:19
+      (hole 17:22)
+      (tuple 17:24
+        (face 17:25 path (qath 17:30 foo))
+        (face 17:36 n (lit 17:38 1)))))
+  (value 18:1 returned-gate
+    (tuple 18:18
+      (face 18:19 path (qath 18:24 foo))
+      (face 18:30 f
+        (gate-wide 18:32 (bind 18:35 x) (wing 18:37 x)))
+      (face 18:40 n (lit 18:42 1)))))

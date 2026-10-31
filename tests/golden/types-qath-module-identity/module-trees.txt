@@ -1,0 +1,44 @@
+/ui/one.jibb
+(module
+  (mold 1:1 alpha
+    (union 2:3
+      (const 2:3 ~)
+      (cell 3:3
+        (face 3:4 i (aura 3:6 @ta))
+        (face 3:10 t (ref 3:12 alpha)))))
+  (mold 4:1 exported (ref 4:13 alpha))
+  (mold 5:1 route (ref 5:10 qath))
+  (value 6:1 identity
+    (gate 6:13
+      (face 6:16 x (ref 6:18 alpha))
+      (wing 6:24 x)))
+  (value 7:1 qidentity
+    (gate 7:14
+      (face 7:17 x (ref 7:19 qath))
+      (wing 7:24 x))))
+/ui/two.jibb
+(module
+  (mold 1:1 alpha
+    (union 2:3
+      (const 2:3 ~)
+      (cell 3:3
+        (face 3:4 i (aura 3:6 @ta))
+        (face 3:10 t (ref 3:12 alpha)))))
+  (value 4:1 identity
+    (gate 4:13
+      (face 4:16 x (ref 4:18 alpha))
+      (wing 4:24 x))))
+/ui/mid.jibb
+(module
+  (jibb 1:1 base /ui/one)
+  (mold 2:1 result (ref 2:11 exported.base))
+  (value 3:1 forward
+    (gate 3:12
+      (face 3:15 x (ref 3:17 result))
+      (group 3:24
+        (call 3:25 (wing 3:25 identity.base) (wing 3:39 x)))))
+  (value 4:1 forward-q
+    (gate 4:14
+      (face 4:17 x (ref 4:19 qath))
+      (group 4:24
+        (call 4:25 (wing 4:25 qidentity.base) (wing 4:40 x))))))

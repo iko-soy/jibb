@@ -1,0 +1,4 @@
+source: Molds: named recursive molds retain their source identity across module aliases and reexports.
+tests: Equivalent imports and aliases of a recursive mold, a transitive alias, the public prelude qath, different source origins and list comparisons.
+expect: parses
+expect-types: a partial inference report; recursive-origin mismatches are rejected and list comparisons remain unsupported.

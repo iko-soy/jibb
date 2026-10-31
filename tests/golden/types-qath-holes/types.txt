@@ -1,0 +1,22 @@
+partial inference; module not checked
+++ resolved: $-(qath qath)
+++ literal: qath
+++ nested: qath
+++ isolated: type hole needs a determined type
+/tests/golden/types-qath-holes/source.jibb:4:30: unresolved type hole
+++ isolated |= [p=qath other=_] p
+                             ^
+++ local-hole: type hole needs a determined type
+/tests/golden/types-qath-holes/source.jibb:6:19: unresolved type hole
+  ++ ignored |= x=_ x
+                  ^
+++ pending-construction: tag needs context in partial inference
+++ pending-literal: tag needs context in partial inference
+++ wrong-head: recursive mold cell does not fit its source shape
+++ record-number: [path=qath n=@ud]
+++ nested-number: [payload=[path=qath] n=@ud]
+++ composite-hole: type hole needs unsupported inference
+/tests/golden/types-qath-holes/source.jibb:17:22: type hole
+++ composite-hole ^- _ [path=%/foo n=1]
+                     ^
+++ returned-gate: unresolved aura-variable inference

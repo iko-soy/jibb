@@ -1,0 +1,70 @@
+(module
+  (jibb 1:1 one /ui/one)
+  (jibb 2:1 other /ui/one)
+  (jibb 3:1 two /ui/two)
+  (jibb 4:1 mid /ui/mid)
+  (value 5:1 same-origin
+    (gate 5:16
+      (face 5:19 x (ref 5:21 alpha.one))
+      (group 5:31
+        (call 5:32 (wing 5:32 identity.other) (wing 5:47 x)))))
+  (value 6:1 same-alias
+    (gate 6:15
+      (face 6:18 x (ref 6:20 exported.one))
+      (group 6:33
+        (call 6:34 (wing 6:34 identity.other) (wing 6:49 x)))))
+  (value 7:1 different
+    (gate 7:14
+      (face 7:17 x (ref 7:19 alpha.one))
+      (group 7:29
+        (call 7:30 (wing 7:30 identity.two) (wing 7:43 x)))))
+  (value 8:1 transit
+    (gate 8:12
+      (face 8:15 x (ref 8:17 result.mid))
+      (group 8:28
+        (call 8:29 (wing 8:29 forward.mid) (wing 8:41 x)))))
+  (value 9:1 prelude
+    (gate 9:12
+      (face 9:15 x (ref 9:17 qath))
+      (group 9:22
+        (call 9:23 (wing 9:23 qidentity.one) (wing 9:37 x)))))
+  (value 10:1 public-alias
+    (gate 10:17
+      (face 10:20 x (ref 10:22 route.one))
+      (group 10:32
+        (call 10:33 (wing 10:33 forward-q.mid) (wing 10:47 x)))))
+  (value 11:1 same-tail
+    (gate 11:14
+      (face 11:17 x (ref 11:19 alpha.other))
+      (cast 11:31
+        (ref 11:34 alpha.one)
+        (tuple 11:44
+          (face 11:45 i (lit 11:47 ~.hello))
+          (face 11:55 t (wing 11:57 x))))))
+  (value 12:1 other-tail
+    (gate 12:15
+      (face 12:18 x (ref 12:20 alpha.two))
+      (cast 12:30
+        (ref 12:33 alpha.one)
+        (tuple 12:43
+          (face 12:44 i (lit 12:46 ~.hello))
+          (face 12:54 t (wing 12:56 x))))))
+  (value 13:1 qath-tail
+    (gate 13:14
+      (face 13:17 x (ref 13:19 qath))
+      (cast 13:24
+        (ref 13:27 alpha.one)
+        (tuple 13:37
+          (face 13:38 i (lit 13:40 ~.hello))
+          (face 13:48 t (wing 13:50 x))))))
+  (value 14:1 list-to-qath
+    (gate 14:17
+      (face 14:20 x
+        (apply 14:22 list (aura 14:28 @ta)))
+      (cast 14:33 (ref 14:36 qath) (wing 14:41 x))))
+  (value 15:1 qath-to-list
+    (gate 15:17
+      (face 15:20 x (ref 15:22 qath))
+      (cast 15:27
+        (apply 15:30 list (aura 15:36 @ta))
+        (wing 15:41 x)))))

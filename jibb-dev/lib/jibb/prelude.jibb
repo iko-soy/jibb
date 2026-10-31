@@ -1,5 +1,6 @@
 /= internal /lib/jibb/internal
 +$ poke poke.internal
++$ qath qath.internal
 
 ::  Initial prelude functions. The rest of the inventory is still to come.
 

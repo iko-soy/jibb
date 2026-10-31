@@ -1,0 +1,19 @@
+++ empty ^- qath ~
+++ one ^- qath [~.blog ~]
+++ named ^- qath [i=~.blog t=~]
+++ nested ^- qath [~.blog [~.post ~]]
+++ identity |= x=qath x
+++ first |= x=qath
+  ?- x
+    ~ ~.none
+    [piece remainder] piece
+++ rest |= x=qath
+  ?- x
+    ~ x
+    [piece remainder] remainder
+++ literal %/blog/post
+++ root %/
+++ dynamic |= slug=@ta %/blog/(slug)
+++ bad-head ^- qath [~zod ~]
+++ bad-tail ^- qath [~.blog ~zod]
+++ bad-face ^- qath [wrong=~.blog t=~]

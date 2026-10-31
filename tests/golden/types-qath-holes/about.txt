@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: type holes, and the transparent qath type.
+tests: Holes determined by qath resolve, while independent local/sample holes and pending tags survive contextual construction and static literals; a fixed incompatible head is rejected; decimal defaulting works in qath-containing records and remains conservative for composite holes or actual gates.
+expect: parses
+expect-types: a partial inference report

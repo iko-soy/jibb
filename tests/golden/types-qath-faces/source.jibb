@@ -1,0 +1,8 @@
+++ concrete |= x=qath ^- [field=qath yes=?] [x %.y]
+++ reverse |= x=[field=qath yes=?] ^- [qath ?] x
+++ mismatch |= x=[bad=qath yes=?] ^- [good=qath yes=?] x
+++ previously-bound |= x
+  ~& ^- qath x
+    ^- [field=qath yes=?] [x %.y]
+++ nested-bad |= x=[outer=[bad=qath yes=?] done=?]
+  ^- [outer=[good=qath yes=?] done=?] x

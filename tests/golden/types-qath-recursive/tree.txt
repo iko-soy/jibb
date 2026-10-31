@@ -1,0 +1,63 @@
+(module
+  (value 1:1 empty
+    (cast 1:10 (ref 1:13 qath) (lit 1:18 ~)))
+  (value 2:1 one
+    (cast 2:8
+      (ref 2:11 qath)
+      (tuple 2:16 (lit 2:17 ~.blog) (lit 2:24 ~))))
+  (value 3:1 named
+    (cast 3:10
+      (ref 3:13 qath)
+      (tuple 3:18
+        (face 3:19 i (lit 3:21 ~.blog))
+        (face 3:28 t (lit 3:30 ~)))))
+  (value 4:1 nested
+    (cast 4:11
+      (ref 4:14 qath)
+      (tuple 4:19
+        (lit 4:20 ~.blog)
+        (tuple 4:27 (lit 4:28 ~.post) (lit 4:35 ~)))))
+  (value 5:1 identity
+    (gate 5:13
+      (face 5:16 x (ref 5:18 qath))
+      (wing 5:23 x)))
+  (value 6:1 first
+    (gate 6:10
+      (face 6:13 x (ref 6:15 qath))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 x)
+          (arm 8:5 (lit 8:5 ~) (lit 8:7 ~.none))
+          (arm 9:5
+            (cell 9:5 (bind 9:6 piece) (bind 9:12 remainder))
+            (wing 9:23 piece))))))
+  (value 10:1 rest
+    (gate 10:9
+      (face 10:12 x (ref 10:14 qath))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 x)
+          (arm 12:5 (lit 12:5 ~) (wing 12:7 x))
+          (arm 13:5
+            (cell 13:5 (bind 13:6 piece) (bind 13:12 remainder))
+            (wing 13:23 remainder))))))
+  (value 14:1 literal (qath 14:12 blog post))
+  (value 15:1 root (qath 15:9))
+  (value 16:1 dynamic
+    (gate 16:12
+      (face 16:15 slug (aura 16:20 @ta))
+      (qath 16:24 blog (wing 16:32 slug))))
+  (value 17:1 bad-head
+    (cast 17:13
+      (ref 17:16 qath)
+      (tuple 17:21 (lit 17:22 ~zod) (lit 17:27 ~))))
+  (value 18:1 bad-tail
+    (cast 18:13
+      (ref 18:16 qath)
+      (tuple 18:21 (lit 18:22 ~.blog) (lit 18:29 ~zod))))
+  (value 19:1 bad-face
+    (cast 19:13
+      (ref 19:16 qath)
+      (tuple 19:21
+        (face 19:22 wrong (lit 19:28 ~.blog))
+        (face 19:35 t (lit 19:37 ~))))))

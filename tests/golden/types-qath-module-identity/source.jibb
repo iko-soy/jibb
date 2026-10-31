@@ -1,0 +1,15 @@
+/= one /ui/one
+/= other /ui/one
+/= two /ui/two
+/= mid /ui/mid
+++ same-origin |= x=alpha.one (identity.other x)
+++ same-alias |= x=exported.one (identity.other x)
+++ different |= x=alpha.one (identity.two x)
+++ transit |= x=result.mid (forward.mid x)
+++ prelude |= x=qath (qidentity.one x)
+++ public-alias |= x=route.one (forward-q.mid x)
+++ same-tail |= x=alpha.other ^- alpha.one [i=~.hello t=x]
+++ other-tail |= x=alpha.two ^- alpha.one [i=~.hello t=x]
+++ qath-tail |= x=qath ^- alpha.one [i=~.hello t=x]
+++ list-to-qath |= x=(list @ta) ^- qath x
+++ qath-to-list |= x=qath ^- (list @ta) x

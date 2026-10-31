@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: faces are part of a record type; unnamed fields may acquire faces.
+tests: Concrete qath values fit faced fields in both directions, distinct explicit faces conflict, and a previously bound inference variable does not silently acquire an unresolved face.
+expect: parses
+expect-types: a partial inference report

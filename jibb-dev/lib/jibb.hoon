@@ -4627,6 +4627,7 @@
       [%const literal=lit]
       [%collection name=term args=(list itype)]
       [%recursive module=term name=term label=(unit @t)]
+      [%jrec at=path name=term label=(unit @t) head=term aura=@ta tail=term]
       [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t) args=(list itype)]
       [%face name=term body=itype]
       [%fn sample=itype product=itype]
@@ -4681,6 +4682,7 @@
     %const  |
     %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
     %recursive  |
+    %jrec       |
     %collection  (lien args.t |=(c=itype (itype-occurs n c sub)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
@@ -4699,6 +4701,8 @@
   =.  a  (itype-walk a sub)
   =.  b  (itype-walk b sub)
   ?:  =(a b)  `sub
+  ?:  &(?=(%jrec -.a) ?=(%jrec -.b))
+    ?:(&(=(at.a at.b) =(name.a name.b) =(head.a head.b) =(aura.a aura.b) =(tail.a tail.b)) `sub ~)
   ?:  &(?=(%recursive -.a) ?=(%recursive -.b))
     ?:(&(=(module.a module.b) =(name.a name.b)) `sub ~)
   ?:  &(?=(%union -.a) ?=(%union -.b))
@@ -4778,6 +4782,7 @@
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
     %recursive  |
+    %jrec       |
     %collection  (lien args.t |=(c=itype (itype-has-any-atom c sub)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -4849,6 +4854,7 @@
     %const     &
     %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
     %recursive  |
+    %jrec       |
     %collection  (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
@@ -4934,6 +4940,7 @@
     %cell      &
     %union     &
     %recursive  &
+    %jrec       &
     %noun       &
     %collection  &
     %face      $(t body.t)
@@ -5006,6 +5013,7 @@
   ^-  ?
   ?-  -.t
     %recursive  &
+    %jrec       &
     %collection  (lien args.t |=(c=itype (itype-has-recursive c)))
     %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-recursive c)))
     %face  $(t body.t)
@@ -5019,6 +5027,7 @@
   ^-  ?
   ?-  -.t
     %recursive  ?=(~ label.t)
+    %jrec       ?=(~ label.t)
     %collection  (lien args.t |=(c=itype (itype-has-hidden-recursive c)))
     %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-recursive c)))
     %face  $(t body.t)
@@ -5085,6 +5094,11 @@
     [%ok sub next]
   ::  An arbitrary noun is not known to fit a narrower type.
   ?:  &(?=(%noun -.actual) !?=(%var -.expected))  [%unknown ~]
+  ?:  &(!uncertain ?=(%jrec -.actual) ?=(%face -.expected))  $(expected body.expected)
+  ?:  &(!uncertain ?=(%face -.actual) ?=(%jrec -.expected))  $(actual body.actual)
+  ?:  &(?=(%jrec -.actual) ?=(%jrec -.expected))
+    ?:(&(=(at.actual at.expected) =(name.actual name.expected) =(head.actual head.expected) =(aura.actual aura.expected) =(tail.actual tail.expected)) [%ok sub next] [%bad ~])
+  ?:  &(|(?=(%jrec -.actual) ?=(%jrec -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
   ?:  &(?=(%recursive -.actual) ?=(%recursive -.expected))
     ?:(&(=(module.actual module.expected) =(name.actual name.expected)) [%ok sub next] [%bad ~])
   ?:  &(|(?=(%recursive -.actual) ?=(%recursive -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
@@ -5295,7 +5309,10 @@
 ::  Hole obligations survive discarded expressions until their owning
 ::  definition has inferred; their source spans support unresolved reports.
 +$  ihole  [id=@ud at=span]
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole)]
+::  Recursive-mold unfolding spends fuel in the threaded inference state.
+::  Retries can restart from an earlier state, so this bounds an attempt,
+::  not all parsing or module-checking work.
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -5340,6 +5357,7 @@
     %fn        &
     %cell      |($(t hed.t) $(t tal.t))
     %recursive  |
+    %jrec       |
     %collection  (lien args.t |=(c=itype (itype-has-gate c)))
     %face      $(t body.t)
     %union     (lien cases.t |=(c=itype (itype-has-gate c)))
@@ -5465,6 +5483,7 @@
     %const  ~
     %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
     %recursive  ~
+    %jrec       ~
     %collection  (zing (turn args.t |=(c=itype (itype-vars c))))
     %face  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
@@ -5504,6 +5523,7 @@
     %const  t
     %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %recursive  t
+    %jrec       t
     %collection  [%collection name.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
@@ -5528,6 +5548,7 @@
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
     %recursive  |
+    %jrec       |
     %collection  (lien args.t |=(c=itype (itype-var-is-atom n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -5935,6 +5956,14 @@
 ::  Names exported by the directly imported module are visible through its
 ::  face; a matching prelude alias is also visible without a qualifier.
 ::
+++  jrec-alias
+  |=  [origin=path name=term molds=imold-types]
+  ^-  (unit term)
+  ?~  molds  ~
+  =/  template=ischeme  template.i.molds
+  ?:  &(?=(~ vars.template) ?=(%jrec -.typ.template) =(at.typ.template origin) =(name.typ.template name))  `name.i.molds
+  $(molds t.molds)
+::
 ++  itype-in-import
   |=  [t=itype iface=ifile face=term prelude=(unit ifile)]
   ^-  itype
@@ -5954,6 +5983,12 @@
         `(crip "{(trip u.alias)}.{(trip face)}")
       [%union (turn cases.t |=(c=itype (itype-in-import c iface face prelude))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face prelude)))]
     %recursive  [%recursive module.t name.t ~]
+    %jrec
+      =/  public=(unit term)  ?~(prelude ~ (jrec-alias at.t name.t molds.u.prelude))
+      ?^  public  t(label `u.public)
+      =/  alias=(unit term)  (jrec-alias at.t name.t molds.iface)
+      ?~  alias  t(label ~)
+      t(label `(crip "{(trip u.alias)}.{(trip face)}"))
     %collection  [%collection name.t (turn args.t |=(c=itype (itype-in-import c iface face prelude)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
@@ -6027,9 +6062,46 @@
   =/  rest=[params=iparams vars=(list @ud) next=@ud]  $(names t.names, next +(next))
   [[[i.names [%var next]] params.rest] [next vars.rest] next.rest]
 ::
+::  Recognize a unique top-level source mold with exactly a null case and a
+::  faced atom-headed cell whose faced tail names that same mold. Its Jibb
+::  path and name provide nominal identity. Other recursive shapes fail closed;
+::  construction and matching expose the proven shape one layer at a time.
+++  simple-source-recursive
+  |=  [name=term sh=shape state=istate]
+  ^-  (unit itype)
+  ?.  (lien top-molds.state |=(n=term =(n name)))  ~
+  =/  original=(unit shape)  (find-simple-mold name molds.state)
+  ?~  original  ~
+  ?.  =(u.original sh)  ~
+  ?.  ?=(%union -.sh)  ~
+  =/  cs=(list shape)  cases.sh
+  ?~  cs  ~
+  ?~  t.cs  ~
+  ?^  t.t.cs  ~
+  ?.  ?=(%const -.i.cs)  ~
+  ?.  =(%null form.lit.i.cs)  ~
+  ?.  ?=(%cell -.i.t.cs)  ~
+  =/  fs=(list field)  fields.i.t.cs
+  ?~  fs  ~
+  ?~  t.fs  ~
+  ?^  t.t.fs  ~
+  ?.  ?=(%face -.i.fs)  ~
+  ?.  ?=(%aura -.shape.i.fs)  ~
+  ?.  !=(0 aura.shape.i.fs)  ~
+  ?.  ?=(%face -.i.t.fs)  ~
+  ?.  !=(name.i.fs name.i.t.fs)  ~
+  =/  tail=shape  shape.i.t.fs
+  ?.  ?=(%ref -.tail)  ~
+  ?.  =(names.tail ~[name])  ~
+  `[%jrec at.state name `name name.i.fs aura.shape.i.fs name.i.t.fs]
+::
 ++  infer-mold-template
   |=  [sh=shape state=istate]
   ^-  (unit [template=ischeme state=istate])
+  =/  direct=(unit itype)
+    ?.  ?=([@ ~] active.state)  ~
+    (simple-source-recursive i.active.state sh state)
+  ?^  direct  `[[u.direct ~] state]
   ?:  ?=(%generic -.sh)
     ?~  vars.sh  ~
     ?.  (distinct-params vars.sh)  ~
@@ -6203,6 +6275,8 @@
         ?~  prelude-entry  ~
         ?^  vars.u.prelude-entry  ~
         `[typ.u.prelude-entry state]
+      =/  direct=(unit itype)  (simple-source-recursive n u.found state)
+      ?^  direct  `[u.direct state]
       =/  out=(unit [typ=itype state=istate])
         $(sh u.found, state state(active [n active.state], in-mold &, params ~))
       ?~  out  ~
@@ -7261,9 +7335,40 @@
     [%| ["single-case branch result needs context in partial inference" ~]]
   [%& typ.u.expected state.p.body(sub sub.fit, next next.fit)]
 ::
+::  This view is used only by pattern analysis, never exported or bound as
+::  the subject. Only null plus a two-binder/wildcard cell is supported; its
+::  tail keeps the original recursive type. Other patterns fail closed.
+++  jrec-match-view
+  |=  [e=expr subject=iresult]
+  ^-  iresult
+  ?:  ?=(%| -.subject)  subject
+  ?.  ?=(%branch -.e)  subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%jrec -.typ)  subject
+  ?~  arms.e  subject
+  ?~  t.arms.e  subject
+  ?^  t.t.arms.e  subject
+  =/  x=pattern  pat.i.arms.e
+  =/  y=pattern  pat.i.t.arms.e
+  =/  empty=?  &(?=(%lit -.x) =(%null form.lit.x))
+  =/  full=pattern  ?:(empty y x)
+  ?.  |(empty &(?=(%lit -.y) =(%null form.lit.y)))  subject
+  ?.  ?=(%cell -.full)  subject
+  ?~  items.full  subject
+  ?~  t.items.full  subject
+  ?^  t.t.items.full  subject
+  ?.  |(?=(%bind -.i.items.full) ?=(%any -.i.items.full))  subject
+  ?.  |(?=(%bind -.i.t.items.full) ?=(%any -.i.t.items.full))  subject
+  ?:  =(0 jrec-fuel.state.p.subject)
+    [%| ["recursive mold unfolding needs unsupported inference" ~]]
+  =/  nil=itype  [%const [%null %n 0 '~']]
+  =/  cell=itype  [%cell [%face head.typ [%atom aura.typ]] [%face tail.typ typ]]
+  [%& [%union ~[nil cell] ~ ~ ~] state.p.subject(jrec-fuel (dec jrec-fuel.state.p.subject))]
+::
 ++  infer-known-union-branch-subject
   |=  [e=expr env=ienv subject=iresult]
   ^-  iresult
+  =.  subject  (jrec-match-view e subject)
   =/  whole=(unit iresult)  (infer-known-union-whole e env subject)
   ?~  whole  (infer-known-union-finite e env subject ~)
   u.whole
@@ -7277,6 +7382,7 @@
 ++  infer-known-union-context-subject
   |=  [e=expr expected=itype env=ienv subject=iresult context=span]
   ^-  iresult
+  =.  subject  (jrec-match-view e subject)
   =/  whole=(unit iresult)  (infer-known-union-context-whole e expected env subject context)
   ?~  whole  (infer-known-union-finite e env subject `[expected context])
   u.whole
@@ -7328,7 +7434,7 @@
   =/  subject=iresult  (infer-fragment e env state)
   ?:  ?=(%| -.subject)  ?:((union-subject-call e) `subject ~)
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%union -.typ)  ~
+  ?.  |(?=(%union -.typ) ?=(%jrec -.typ))  ~
   `subject
 ::
 ::
@@ -7478,6 +7584,15 @@
   =/  head=expr  [%lit at.e [%term %tas tag.e (crip ['%' (trip tag.e)])]]
   [%tuple at.e ~[[at.e ~ head] [(span-of val.e) ~ val.e]]]
 ::
+::  A segment costs one shared step; dynamic segments are not handled yet.
+++  qath-static-fuel
+  |=  [segs=(list qseg) fuel=@ud]
+  ^-  (unit @ud)
+  ?~  segs  `fuel
+  ?:  =(0 fuel)  ~
+  ?.  ?=(%knot -.i.segs)  ~
+  $(segs t.segs, fuel (dec fuel))
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -7520,6 +7635,21 @@
       ?:  ?=(%| -.result)  result
       [%& [%collection %list ~[element]] state.p.result]
     %str  (infer-string-pieces pieces.e env state)
+    %qath
+      ?~  prelude.state  [%| ["application path needs the standard prelude in partial inference" ~]]
+      ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
+        [%| ["application path needs the standard prelude in partial inference" ~]]
+      =/  standard=(unit ischeme)  (find-jibb-mold %qath u.prelude.state)
+      ?~  standard  [%| ["application path needs the standard prelude in partial inference" ~]]
+      ?.  ?=(~ vars.u.standard)  [%| ["application path mold needs unsupported inference" ~]]
+      =/  typ=itype  typ.u.standard
+      ?.  ?=(%jrec -.typ)  [%| ["application path mold needs unsupported inference" ~]]
+      ?.  &(=(at.typ /lib/jibb/internal/jibb) =(%qath name.typ) =(%i head.typ) =(%ta aura.typ) =(%t tail.typ))
+        [%| ["application path mold needs unsupported inference" ~]]
+      ?:  =(0 jrec-fuel.state)  [%| ["recursive mold unfolding needs unsupported inference" ~]]
+      =/  remain=(unit @ud)  (qath-static-fuel segs.e (dec jrec-fuel.state))
+      ?~  remain  [%| ["application path segments need unsupported inference" ~]]
+      [%& typ state(jrec-fuel u.remain)]
     %wing
       ?~  names.e  [%| ["empty wing" ~]]
       ?^  t.names.e
@@ -7805,6 +7935,22 @@
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ::  Only the source-proven one-layer cell is exposed. Each recursive
+  ::  descent consumes one written tuple; named values use ordinary fit.
+  ?:  &(?=(%jrec -.target) ?=(%lit -.e) =(%null form.lit.e))
+    ?:  =(0 jrec-fuel.state)  [%| ["recursive mold unfolding needs unsupported inference" ~]]
+    [%& target state(jrec-fuel (dec jrec-fuel.state))]
+  ?:  &(?=(%jrec -.target) ?=(%tuple -.e))
+    ?:  =(0 jrec-fuel.state)  [%| ["recursive mold unfolding needs unsupported inference" ~]]
+    =.  state  state(jrec-fuel (dec jrec-fuel.state))
+    =/  shape=itype
+      [%cell [%face head.target [%atom aura.target]] [%face tail.target target]]
+    =/  value=iresult  (infer-call-context-items items.e shape env state context)
+    ?:  ?=(%| -.value)  value
+    =/  fit=ifit  (itype-fit typ.p.value shape sub.state.p.value next.state.p.value)
+    ?:  ?=(%unknown -.fit)  [%| ["recursive mold cell constraint needs unsupported inference" ~]]
+    ?:  ?=(%bad -.fit)  [%| ["recursive mold cell does not fit its source shape" ~]]
+    [%& target state.p.value(sub sub.fit, next next.fit)]
   ?:  ?=(%call -.e)  (infer-contextual-call e target env state)
   ?:  (single-structured-pattern e)
     (infer-single-case-branch e env state `[target context])
@@ -7929,7 +8075,7 @@
   ?~  t.names  |
   =.  typ  (itype-walk typ sub)
   ?:  ?=(%cell -.typ)  $(typ tal.typ, names t.names)
-  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%noun -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
+  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%jrec -.typ) ?=(%noun -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
 ::
 ++  cell-binder-pattern
   |=  e=expr
@@ -8001,6 +8147,7 @@
       ?~  args.t  (trip u.label.t)
       "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
     %recursive  ?~(label.t "recursive mold" (trip u.label.t))
+    %jrec       ?~(label.t "recursive mold" (trip u.label.t))
     %collection  "({(trip name.t)} {(show-itype-cases args.t sub)})"
     %face  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
@@ -8046,6 +8193,7 @@
     %const     |
     %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
     %recursive  |
+    %jrec       |
     %collection  (lien args.typ |=(c=itype (itype-has-nvar c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
@@ -8155,6 +8303,7 @@
     %const     |
     %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
     %recursive  |
+    %jrec       |
     %collection  (lien args.t |=(c=itype (has-atom-var n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -8545,7 +8694,7 @@
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256]
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
@@ -8682,7 +8831,7 @@
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   |-
   =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256]
   =/  out=iresolved  (add-groups ds components graph next grouped initial)
   ?:  =(env env.out)  out
   $(env env.out, grouped grouped.out)
@@ -9426,6 +9575,7 @@
 ++  prelude-label
   |=  [typ=itype name=term]
   ^-  itype
+  ?:  ?=(%jrec -.typ)  typ(label `name)
   ?.  ?=(%union -.typ)  typ
   ?^  args.typ  typ
   typ(label `name)
@@ -9476,7 +9626,7 @@
   =/  js=ijimports  ~[[face.i.imports.mod private-primitive-interface]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  ~
   =/  env=ienv  (resolve-supported-defs defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
@@ -9514,7 +9664,7 @@
   =?  env-molds  declared
     (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
   =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~]
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256]
   ::  Other prelude molds may use list only after its source has passed
   ::  the standard-list check. The raw declaration remains removed.
   =/  declared-list=(unit shape)  (find-simple-mold %list molds)
@@ -9901,7 +10051,7 @@
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
   =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
@@ -10032,7 +10182,7 @@
     =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
     $(ds t.ds, lines [line lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256]
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult
     ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))

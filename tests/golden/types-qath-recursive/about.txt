@@ -1,0 +1,4 @@
+source: Grammar, Molds and Paths; Overview, Links and URLs: qath is a transparent source-defined recursive type, and application paths have that type.
+tests: Construction, positional and named fields, nested cells, same-type identity, simple exhaustive inspection, static literals, and conservative failures for dynamic segments and incompatible heads, tails and field names. Route and static-file validation is deferred to milestone 4.
+expect: parses
+expect-types: a partial inference report

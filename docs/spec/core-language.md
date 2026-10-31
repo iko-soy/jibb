@@ -71,7 +71,7 @@ axis   = digit { digit } ;                                (* at least 1 *)
 
 ## Lowering from Jibb
 
-Types, faces and casts leave nothing behind; everything else lowers by these rules.
+Types, faces and casts leave nothing behind. Everything else lowers by these rules.
 
 | Jibb | Core language |
 | --- | --- |
@@ -82,6 +82,7 @@ Types, faces and casts leave nothing behind; everything else lowers by these rul
 | `gap+%s2` | `(cons %gap %s2)` |
 | `/posts/~zod`, `%/blog/(slug)` | A list of knots, typed segments printed by their aura's native; the runtime adds the base path to an application path |
 | `title.p`, `space.theme.theme` | `slot` at the field's axis, nested for longer wings |
+| `(proj record)` | Apply a `lam` to the source once; its body constructs the expected record from the required fields using `slot` and `cons`, discarding extra fields |
 | `card.card`, an import | The qualified name `components/card:card` |
 | `m(draft=t error=~)` | One `edit` per item, in order: `(edit 7 (edit 6 m t) ~)` |
 | `f a b c` | `(app f (cons a (cons b c)))`: the arguments are the sample |
