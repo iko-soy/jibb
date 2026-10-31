@@ -1,0 +1,4 @@
+source: Grammar, unions and type variables: named disjoint unions retain their origin and type arguments when passed through polymorphic gates.
+tests: Local, imported and generic unions pass through identity; independently instantiated arguments and same-capital reuse retain their types. Different origins, incompatible generic arguments and explicit-capital forcing stay unsupported or report their established error. Faced results, self-application and unresolved tags check that constraints are not lost. The module report remains partial.
+expect: parses
+expect-types: a partial inference report

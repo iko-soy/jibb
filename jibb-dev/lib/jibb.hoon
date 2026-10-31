@@ -5057,6 +5057,8 @@
   ^-  ifit
   =/  uncertain=?
     |(?=(%var -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%var -.expected) ?=(%avar -.expected) ?=(%nvar -.expected))
+  =/  actual-open=?
+    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%nvar -.actual))
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
@@ -5080,6 +5082,15 @@
     =/  unified=(unit isub)  (itype-unify-args args.actual args.expected sub)
     ?^  unified  [%ok u.unified next]
     [%unknown ~]
+  ::  A known union can instantiate an unconstrained sample directly;
+  ::  preserve unknown results for variable-bound union origins.
+  ?:  &(!actual-open ?=(%union -.actual) ?=(%var -.expected))
+    ?~  origin.actual  [%unknown ~]
+    =/  normalized=itype  (itype-normalize actual sub)
+    ?:  |((itype-has-tag normalized) (itype-has-recursive normalized) (itype-has-any-atom actual sub))  [%unknown ~]
+    =/  unified=(unit isub)  (itype-unify actual expected sub)
+    ?~  unified  [%unknown ~]
+    [%ok u.unified next]
   ::  A concrete union value in a tuple may acquire the expected field's
   ::  face. A variable-bound union still needs face propagation support.
   ?:  &(!uncertain ?=(%union -.actual) ?=(%face -.expected))

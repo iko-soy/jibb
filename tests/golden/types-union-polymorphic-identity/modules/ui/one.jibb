@@ -1,0 +1,4 @@
++$ tag
+  %left
+  %right
+++ pass |= x=tag x

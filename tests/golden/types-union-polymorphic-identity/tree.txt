@@ -1,0 +1,152 @@
+(module
+  (jibb 1:1 one /ui/one)
+  (jibb 2:1 two /ui/two)
+  (mold 3:1 local-msg
+    (union 4:3 (const 4:3 %left) (const 5:3 %right)))
+  (mold 6:1 other-msg
+    (union 7:3 (const 7:3 %left) (const 8:3 %right)))
+  (mold 9:1 choice
+    (generic 9:11 A
+      (union 10:3
+        (cell 10:3
+          (const 10:4 %some)
+          (face 10:10 value (tvar 10:16 A)))
+        (const 11:3 %none))))
+  (value 12:1 local-id
+    (gate 12:13 (bind 12:16 x) (wing 12:18 x)))
+  (value 13:1 select-first
+    (gate 13:17
+      (cell 13:20
+        (face 13:21 a (tvar 13:23 A))
+        (face 13:25 b (tvar 13:27 A)))
+      (wing 13:30 a)))
+  (value 14:1 use-local
+    (gate 14:14
+      (face 14:17 x (ref 14:19 local-msg))
+      (group 14:29
+        (call 14:30 (wing 14:30 local-id) (wing 14:39 x)))))
+  (value 15:1 use-other
+    (gate 15:14
+      (face 15:17 x (ref 15:19 other-msg))
+      (group 15:29
+        (call 15:30 (wing 15:30 local-id) (wing 15:39 x)))))
+  (value 16:1 use-import
+    (gate 16:15
+      (face 16:18 x (ref 16:20 tag.one))
+      (group 16:28
+        (call 16:29 (wing 16:29 local-id) (wing 16:38 x)))))
+  (value 17:1 use-different
+    (gate 17:18
+      (cell 17:21
+        (face 17:22 a (ref 17:24 local-msg))
+        (face 17:34 b (ref 17:36 other-msg)))
+      (group 17:47
+        (call 17:48 (wing 17:48 select-first) (wing 17:61 a) (wing 17:63 b)))))
+  (value 18:1 use-import-origins
+    (gate 18:23
+      (cell 18:26
+        (face 18:27 a (ref 18:29 tag.one))
+        (face 18:37 b (ref 18:39 tag.two)))
+      (group 18:48
+        (call 18:49 (wing 18:49 select-first) (wing 18:62 a) (wing 18:64 b)))))
+  (value 19:1 generic
+    (gate 19:12
+      (face 19:15 x
+        (apply 19:17 choice (tvar 19:25 A)))
+      (group 19:28
+        (call 19:29 (wing 19:29 local-id) (wing 19:38 x)))))
+  (value 20:1 as-text
+    (gate 20:12
+      (face 20:15 x
+        (apply 20:17 choice (aura 20:25 @t)))
+      (group 20:29
+        (call 20:30 (wing 20:30 generic) (wing 20:38 x)))))
+  (value 21:1 as-ship
+    (gate 21:12
+      (face 21:15 x
+        (apply 21:17 choice (aura 21:25 @p)))
+      (group 21:29
+        (call 21:30 (wing 21:30 generic) (wing 21:38 x)))))
+  (value 22:1 repeated
+    (gate 22:13
+      (cell 22:16
+        (face 22:17 a
+          (apply 22:19 choice (tvar 22:27 A)))
+        (face 22:30 b
+          (apply 22:32 choice (tvar 22:40 A))))
+      (group 22:44
+        (call 22:45 (wing 22:45 select-first) (wing 22:58 a) (wing 22:60 b)))))
+  (value 23:1 mismatch
+    (gate 23:13
+      (cell 23:16
+        (face 23:17 a
+          (apply 23:19 choice (aura 23:27 @t)))
+        (face 23:31 b
+          (apply 23:33 choice (aura 23:41 @p))))
+      (group 23:46
+        (call 23:47 (wing 23:47 select-first) (wing 23:60 a) (wing 23:62 b)))))
+  (value 24:1 face-result
+    (gate 24:16
+      (face 24:19 x (ref 24:21 local-msg))
+      (group 24:31
+        (call 24:32
+          (wing 24:32 local-id)
+          (tuple 24:41
+            (face 24:42 field (wing 24:48 x))
+            (face 24:50 flag (lit 24:55 %.y)))))))
+  (value 25:1 explicit
+    (gate 25:13
+      (cell 25:16
+        (face 25:17 x (tvar 25:19 A))
+        (face 25:21 y (ref 25:23 local-msg)))
+      (group 25:34
+        (call 25:35 (wing 25:35 select-first) (wing 25:48 x) (wing 25:50 y)))))
+  (value 26:1 pending
+    (gate 26:12
+      (face 26:15 x (ref 26:17 local-msg))
+      (body 27:3
+        (trace 27:3
+          (lit 27:6 %dangling)
+          (body 28:5
+            (group 28:5
+              (call 28:6 (wing 28:6 local-id) (wing 28:15 x))))))))
+  (value 29:1 unresolved
+    (group 29:15
+      (call 29:16 (wing 29:16 local-id) (lit 29:25 %dangling))))
+  (value 30:1 same-choice
+    (gate 30:16
+      (cell 30:19
+        (face 30:20 a
+          (apply 30:22 choice (tvar 30:30 A)))
+        (face 30:33 b
+          (apply 30:35 choice (tvar 30:43 A))))
+      (group 30:47
+        (call 30:48 (wing 30:48 select-first) (wing 30:61 a) (wing 30:63 b)))))
+  (value 31:1 distinct-choice
+    (gate 31:20
+      (cell 31:23
+        (face 31:24 a
+          (apply 31:26 choice (tvar 31:34 A)))
+        (face 31:37 b
+          (apply 31:39 choice (tvar 31:47 B))))
+      (group 31:51
+        (call 31:52 (wing 31:52 select-first) (wing 31:65 a) (wing 31:67 b)))))
+  (value 32:1 self-apply
+    (gate 32:15
+      (bind 32:18 x)
+      (group 32:20
+        (call 32:21 (wing 32:21 x) (wing 32:23 x)))))
+  (value 33:1 faced-choice
+    (gate 33:17
+      (face 33:20 x
+        (apply 33:22 choice (tvar 33:30 A)))
+      (cast 33:33
+        (cell 33:36
+          (face 33:37 item
+            (apply 33:42 choice (tvar 33:50 A)))
+          (face 33:53 flag (flag 33:58)))
+        (tuple 33:61
+          (face 33:62 item
+            (group 33:67
+              (call 33:68 (wing 33:68 local-id) (wing 33:77 x))))
+          (face 33:80 flag (lit 33:85 %.y)))))))

@@ -1,0 +1,36 @@
+partial inference; module not checked
++$ local-msg: cases proven disjoint; mold not checked
++$ other-msg: cases proven disjoint; mold not checked
++$ choice: cases proven disjoint; mold not checked
+++ local-id: $-(A A)
+++ select-first: $-([a=A b=A] A)
+++ use-local: $-(local-msg local-msg)
+++ use-other: $-(other-msg other-msg)
+++ use-import: $-(tag.one tag.one)
+++ use-different: call constraint is not supported by partial inference
+++ use-import-origins: call constraint is not supported by partial inference
+++ generic: $-((choice A) (choice A))
+++ as-text: $-((choice @t) (choice @t))
+++ as-ship: $-((choice @p) (choice @p))
+++ repeated: $-([a=(choice A) b=(choice A)] (choice A))
+++ mismatch: call constraint is not supported by partial inference
+++ face-result: $-(local-msg [field=local-msg flag=?])
+++ explicit: call constraint is not supported by partial inference
+++ pending: tag needs context in partial inference
+++ unresolved: tag needs context in partial inference
+++ same-choice: $-([a=(choice A) b=(choice A)] (choice A))
+++ distinct-choice: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-union-polymorphic-identity/source.jibb:31:34: first type variable
+++ distinct-choice |= [a=(choice A) b=(choice B)] (select-first a b)
+                                 ^
+/tests/golden/types-union-polymorphic-identity/source.jibb:31:47: second type variable
+++ distinct-choice |= [a=(choice A) b=(choice B)] (select-first a b)
+                                              ^
+++ self-apply: call's sample and argument types do not unify
+/tests/golden/types-union-polymorphic-identity/source.jibb:32:21: called gate
+++ self-apply |= x (x x)
+                    ^
+/tests/golden/types-union-polymorphic-identity/source.jibb:32:23: argument
+++ self-apply |= x (x x)
+                      ^
+++ faced-choice: $-((choice A) [item=(choice A) flag=?])

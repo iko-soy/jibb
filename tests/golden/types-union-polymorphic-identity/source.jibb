@@ -1,0 +1,33 @@
+/= one /ui/one
+/= two /ui/two
++$ local-msg
+  %left
+  %right
++$ other-msg
+  %left
+  %right
++$ choice |$ [A]
+  [%some value=A]
+  %none
+++ local-id |= x x
+++ select-first |= [a=A b=A] a
+++ use-local |= x=local-msg (local-id x)
+++ use-other |= x=other-msg (local-id x)
+++ use-import |= x=tag.one (local-id x)
+++ use-different |= [a=local-msg b=other-msg] (select-first a b)
+++ use-import-origins |= [a=tag.one b=tag.two] (select-first a b)
+++ generic |= x=(choice A) (local-id x)
+++ as-text |= x=(choice @t) (generic x)
+++ as-ship |= x=(choice @p) (generic x)
+++ repeated |= [a=(choice A) b=(choice A)] (select-first a b)
+++ mismatch |= [a=(choice @t) b=(choice @p)] (select-first a b)
+++ face-result |= x=local-msg (local-id [field=x flag=%.y])
+++ explicit |= [x=A y=local-msg] (select-first x y)
+++ pending |= x=local-msg
+  ~& %dangling
+    (local-id x)
+++ unresolved (local-id %dangling)
+++ same-choice |= [a=(choice A) b=(choice A)] (select-first a b)
+++ distinct-choice |= [a=(choice A) b=(choice B)] (select-first a b)
+++ self-apply |= x (x x)
+++ faced-choice |= x=(choice A) ^- [item=(choice A) flag=?] [item=(local-id x) flag=%.y]

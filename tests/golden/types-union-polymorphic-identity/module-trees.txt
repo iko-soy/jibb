@@ -1,0 +1,16 @@
+/ui/one.jibb
+(module
+  (mold 1:1 tag
+    (union 2:3 (const 2:3 %left) (const 3:3 %right)))
+  (value 4:1 pass
+    (gate 4:9
+      (face 4:12 x (ref 4:14 tag))
+      (wing 4:18 x))))
+/ui/two.jibb
+(module
+  (mold 1:1 tag
+    (union 2:3 (const 2:3 %left) (const 3:3 %right)))
+  (value 4:1 pass
+    (gate 4:9
+      (face 4:12 x (ref 4:14 tag))
+      (wing 4:18 x))))
