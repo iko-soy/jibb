@@ -385,29 +385,35 @@
   $(xs t.xs, ys t.ys)
 
 ::
-::  A finite, positive witness for two three-field tagged source cases.
-::  The final @t fields admit noun zero. Each middle field is either an
-::  explicit singleton or exactly two explicit singletons. Match noun
-::  values independently of their aura labels; other shapes are unknown.
-++  witness-atom-values
-  |=  node=imported
-  ^-  (unit (list @))
-  ?:  ?=([%atom *] node)
-    ?~  value.node  ~
-    `~[u.value.node]
-  ?.  ?=([%fork [* [* ~]]] node)  ~
-  ?.  &(?=([%atom *] i.cases.node) ?=([%atom *] i.t.cases.node))  ~
-  ?~  value.i.cases.node  ~
-  ?~  value.i.t.cases.node  ~
-  `~[u.value.i.cases.node u.value.i.t.cases.node]
-++  witness-tagged-case
-  |=  node=imported
-  ^-  (unit [head=@ middle=(list @)])
-  ?.  ?=([%cell [%atom %tas [~ @]] [%cell * [%atom %t ~]]] node)  ~
-  =/  middle  (witness-atom-values head.tail.node)
-  ?~  middle  ~
-  `[u.value.head.node u.middle]
-++  overlap-zero-source
+::  Unlike the disjoint-reader fallback, source overlap may have repeated
+::  tags. Bound both raw case traversal and the number of pair attempts.
+++  overlap-source-cases
+  |=  [cases=(list spec) fuel=@ud left=@ud]
+  ^-  (unit (list tagged-case))
+  ?~  cases  `~
+  ?:  =(left 0)  ~
+  =/  remaining=(unit @ud)  (bounded-no-spec-unions i.cases fuel)
+  ?~  remaining  ~
+  =/  tag=(unit @)  (tagged-head i.cases)
+  ?~  tag  ~
+  =/  rest  $(cases t.cases, fuel u.remaining, left (dec left))
+  ?~  rest  ~
+  `[[u.tag i.cases] u.rest]
+++  overlap-repeated-tag
+  |=  cases=(list tagged-case)
+  ^-  ?
+  ?~  cases  |
+  ?:  (lien t.cases |=(c=tagged-case =(tag.c tag.i.cases)))  &
+  $(cases t.cases)
+++  overlap-projections-match
+  |=  [xs=(list tagged-case) ys=(list imported)]
+  ^-  ?
+  ?~  xs  ?=(~ ys)
+  ?~  ys  |
+  ?.  ?=([%cell [%atom %tas [~ @]] *] i.ys)  |
+  ?.  =(tag.i.xs u.value.head.i.ys)  |
+  $(xs t.xs, ys t.ys)
+++  overlap-source-witness
   |=  [module=term name=term cor=type]
   ^-  ?
   ?.  ?=([%core *] cor)  |
@@ -417,29 +423,100 @@
   ?~  shape  |
   =/  body=(unit spec)  (tagged-default-union u.shape 4)
   ?~  body  |
-  ?.  ?=([%bcwt [* [* ~]]] u.body)  |
-  =/  one=spec  i.p.u.body
-  =/  two=spec  i.t.p.u.body
-  =/  first=(unit @)  (tagged-head one)
-  =/  second=(unit @)  (tagged-head two)
-  ?~  first  |
-  ?~  second  |
-  ?.  =(u.first u.second)  |
-  =/  cases=(list tagged-case)  ~[[u.first one] [u.second two]]
-  ?.  ?=(^ (safe-source-tagged-fuel-mode cases cor ~[name] 4.096 |))  |
+  ?.  ?=([%bcwt *] u.body)  |
+  =/  cases=(unit (list tagged-case))  (overlap-source-cases p.u.body 4.096 128)
+  ?~  cases  |
+  ?.  (overlap-repeated-tag u.cases)  |
+  ?.  ?=(^ (safe-source-tagged-fuel-mode u.cases cor ~[name] 4.096 |))  |
   =/  tried=(each (list type) tang)
-    (mule |.((turn cases |=(c=tagged-case (~(play ut cor) [%kttr branch.c])))))
-  ?.  ?=([%& [* [* ~]]] tried)  |
+    (mule |.((turn u.cases |=(c=tagged-case (~(play ut cor) [%kttr branch.c])))))
+  ?.  ?=([%& *] tried)  |
   =/  projected=(each (list imported) tang)
     (mule |.((turn p.tried |=(t=type (walk module t catalog ~ `cor)))))
-  ?.  ?=([%& [* [* ~]]] projected)  |
+  ?.  ?=([%& *] projected)  |
   ?^  (first-bads p.projected)  |
-  =/  a  (witness-tagged-case i.p.projected)
-  =/  b  (witness-tagged-case i.t.p.projected)
-  ?~  a  |
-  ?~  b  |
-  ?.  &(=(head.u.a u.first) =(head.u.b u.second) =(head.u.a head.u.b))  |
-  (lien middle.u.a |=(n=@ (lien middle.u.b |=(m=@ =(n m)))))
+  ?.  (overlap-projections-match u.cases p.projected)  |
+  =/  witness=(unit overlap-proof-result)  (overlap-case-pairs p.projected 4.096)
+  ?~  witness  |
+  found.u.witness
+::
+::  Positive overlap evidence only: false means no proof, not disjointness.
+::  Fuel is shared across all examined nodes and sibling alternatives.
++$  overlap-proof-result  [found=? left=@ud]
+++  overlap-known-atom
+  |=  aura=term
+  ^-  ?
+  (lien `(list term)`~[%t %tas %ud %f] |=(n=term =(n aura)))
+++  overlap-inhabited-list
+  |=  [xs=(list imported) fuel=@ud]
+  ^-  (unit overlap-proof-result)
+  ?~  xs  `[| fuel]
+  ?:  =(0 fuel)  ~
+  =/  one=(unit overlap-proof-result)  (overlap-inhabited i.xs (dec fuel))
+  ?~  one  ~
+  ?:  found.u.one  one
+  $(xs t.xs, fuel left.u.one)
+++  overlap-inhabited
+  |=  [x=imported fuel=@ud]
+  ^-  (unit overlap-proof-result)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?-  x
+    [%noun *]  `[& fuel]
+    [%void *]  `[| fuel]
+    [%atom *]  `[|(?=(^ value.x) (overlap-known-atom aura.x)) fuel]
+    [%face *]  $(x body.x)
+    [%named *]  $(x body.x)
+    [%fork *]  (overlap-inhabited-list cases.x fuel)
+    [%cell *]
+      =/  a=(unit overlap-proof-result)  $(x head.x)
+      ?~  a  ~
+      ?.  found.u.a  a
+      $(x tail.x, fuel left.u.a)
+    *  `[| fuel]
+  ==
+++  overlap-pair-list
+  |=  [xs=(list imported) y=imported fuel=@ud]
+  ^-  (unit overlap-proof-result)
+  ?~  xs  `[| fuel]
+  ?:  =(0 fuel)  ~
+  =/  p=(unit overlap-proof-result)  (overlap-pair i.xs y (dec fuel))
+  ?~  p  ~
+  ?:  found.u.p  p
+  $(xs t.xs, fuel left.u.p)
+++  overlap-pair
+  |=  [a=imported b=imported fuel=@ud]
+  ^-  (unit overlap-proof-result)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?:  ?=([%face *] a)  $(a body.a)
+  ?:  ?=([%face *] b)  $(b body.b)
+  ?:  ?=([%named *] a)  $(a body.a)
+  ?:  ?=([%named *] b)  $(b body.b)
+  ?:  ?=([%fork *] a)  (overlap-pair-list cases.a b fuel)
+  ?:  ?=([%fork *] b)  (overlap-pair-list cases.b a fuel)
+  ?:  ?=([%noun *] a)  (overlap-inhabited b fuel)
+  ?:  ?=([%noun *] b)  (overlap-inhabited a fuel)
+  ?:  &(?=([%cell *] a) ?=([%cell *] b))
+    =/  p=(unit overlap-proof-result)  $(a head.a, b head.b)
+    ?~  p  ~
+    ?.  found.u.p  p
+    $(a tail.a, b tail.b, fuel left.u.p)
+  ?.  &(?=([%atom *] a) ?=([%atom *] b))  `[| fuel]
+  ?^  value.a
+    ?^  value.b  `[=(u.value.a u.value.b) fuel]
+    `[&(=(u.value.a 0) (overlap-known-atom aura.b)) fuel]
+  ?^  value.b  `[&(=(u.value.b 0) (overlap-known-atom aura.a)) fuel]
+  `[&((overlap-known-atom aura.a) (overlap-known-atom aura.b)) fuel]
+++  overlap-case-pairs
+  |=  [xs=(list imported) fuel=@ud]
+  ^-  (unit overlap-proof-result)
+  ?~  xs  `[| fuel]
+  ?:  =(0 fuel)  ~
+  =/  p=(unit overlap-proof-result)  (overlap-pair-list t.xs i.xs (dec fuel))
+  ?~  p  ~
+  ?:  found.u.p  p
+  $(xs t.xs, fuel left.u.p)
 ::
 ::  +read-mold-in: accept the /sur core as provenance. The core must be
 ::  built against zuse or validated Ford imports, and its selected arm
@@ -455,7 +532,7 @@
     [%| (crip "Hoon mold `{(trip name)}` is not declared")]
   ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
     [%| 'Hoon module provenance does not match the selected mold']
-  =/  overlap=(each ? tang)  (mule |.((overlap-zero-source module name cor)))
+  =/  overlap=(each ? tang)  (mule |.((overlap-source-witness module name cor)))
   ?:  &(?=(%& -.overlap) p.overlap)  [%| 'Hoon union cases overlap']
   =/  result  (read-with module name typ [~ cor])
   ?:  ?=([%& *] result)  result
@@ -557,7 +634,7 @@
     [%unsupported p.result]
   =/  selected=(each type tang)  (mule |.((~(play ut cor) (ream (cat 3 '*' name)))))
   ?.  ?=(%& -.selected)  [%unsupported p.result]
-  =/  overlap=(each ? tang)  (mule |.((overlap-zero-source module name cor)))
+  =/  overlap=(each ? tang)  (mule |.((overlap-source-witness module name cor)))
   ?:  &(?=(%& -.overlap) p.overlap)  [%invalid %overlap 'Hoon union cases overlap']
   =/  again=(each imported tang)  (mule |.((walk module p.selected catalog ~ [~ cor])))
   ?.  ?=(%& -.again)  [%unsupported p.result]

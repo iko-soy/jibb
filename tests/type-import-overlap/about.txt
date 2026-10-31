@@ -1,12 +1,12 @@
 Source-aware Hoon `$?` cases are independently evaluated before the reader
 proves a shared runtime noun or a disjoint pair of literal outer tags. The
-positive overlap witness handles exactly two cases, each projecting to three
-fields: a term singleton, a singleton or two-singleton fork, and an `@t`
-tail. The singleton comparison uses noun values regardless of aura, and the
-`@t` tail admits noun zero. Other overlap shapes remain unsupported.
+positive overlap witness checks supported projected atoms, cells, faces and
+forks across the original cases. It compares singleton noun values regardless
+of aura. Some overlap shapes remain unsupported.
 
-The mixed-aura zero and nonzero controls prove actual overlap; unequal, opaque
-and other unproven payloads remain unsupported. The structured diagnostic
+The mixed-aura zero and nonzero controls prove actual overlap. Boolean tails
+share loobean nouns, and `~` is the null singleton, which overlaps `@t`; unequal,
+opaque and other unproven payloads remain unsupported. The structured diagnostic
 bridge reports a definite overlap at the Jibb use site, while the disjoint
 case infers and an unresolved case stays unsupported. The Hoon source case
 locations are unavailable in this fixture and are not claimed. This is a

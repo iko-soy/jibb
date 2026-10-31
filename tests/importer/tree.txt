@@ -74,8 +74,8 @@ explicit-graph: error: Hoon union disjointness could not be verified
 explicit-graph-unsupported: error: signed and float auras cannot be imported
 explicit-wut-safe: (union [ok @ud] [err @t])
 explicit-percent-overlap: error: Hoon union disjointness could not be verified
-explicit-wut-overlap: error: Hoon union disjointness could not be verified
-explicit-collapsed: error: Hoon union disjointness could not be verified
+explicit-wut-overlap: error: Hoon union cases overlap
+explicit-collapsed: error: Hoon union cases overlap
 explicit-subsumed: error: Hoon union disjointness could not be verified
 explicit-three: (union [a @ud] [b @t] [c @p])
 explicit-unknown: (union [x @t] [y @t])

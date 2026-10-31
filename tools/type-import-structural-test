@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Run the shared structural source-overlap fixture under urbit eval."""
+from pathlib import Path
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+fixture = root / 'tests/type-import-structural'
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-import-structural.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+program = ('=/  jibb  .\n=/  jibb-import\n' + reader +
+           '\n=/  sur=wain  (to-wain:format sur-text)\n'
+           '=/  source=wain  (to-wain:format source-text)\n'
+           '=/  expected=wain  (to-wain:format expected-text)\n'
+           '=/  bridge\n' + tests + '\n(structural-output:bridge sur-text source-text)\n')
+with tempfile.TemporaryDirectory(prefix='jibb-import-structural-') as tmp:
+    path = Path(tmp) / 'bridge.hoon'
+    path.write_text(program)
+    result = subprocess.run([str(root / 'tools/hoon'), '--raw', '-f', str(path),
+        '--cord', 'sur-text=' + str(fixture / 'sur.txt'),
+        '--cord', 'source-text=' + str(fixture / 'source.txt'),
+        '--cord', 'expected-text=' + str(fixture / 'expected.txt')], stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if '--capture' in sys.argv:
+    sys.stdout.buffer.write(result.stdout)
+    sys.exit()
+expected = (fixture / 'expected.txt').read_bytes()
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True), fromfile='expected', tofile='actual'))
+    sys.exit(1)
+print('structural source-overlap bridge passed')

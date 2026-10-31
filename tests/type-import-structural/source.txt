@@ -1,0 +1,5 @@
+/-  fixture
+++  overlap  |=  x=deep-match.fixture  x
+++  distinct  |=  x=separate-alias.fixture  x
+++  unknown  |=  x=different-aura.fixture  x
+++  multi  |=  x=later-overlap.fixture  x

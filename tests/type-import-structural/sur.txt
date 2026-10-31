@@ -1,0 +1,12 @@
+|%
++$  scalar  ?(%$ %one)
++$  same-alias  $?([%tag scalar @t] [%tag %$ @t])
++$  separate-alias  $?([%tag %one @t] [%tag %two @t])
++$  deep-match  $?([%tag [%inner [%.y %three]] @t] [%tag [%inner [%$ %three]] @t])
++$  deep-distinct  $?([%tag [%inner [%one %three]] @t] [%tag [%inner [%two %three]] @t])
++$  tail-distinct  $?([%tag %$ %one] [%tag %.y %two])
++$  later-overlap  $?([%x %one @t] [%y %one @t] [%tag %.y @t] [%tag %$ @t])
++$  many-safe  $?([%tag %one @t] [%tag %two @t] [%tag %three @t])
++$  open-atoms  $?([%tag @t @ud] [%tag @tas @t])
++$  different-aura  $?([%tag @p @t] [%tag @t @t])
+--

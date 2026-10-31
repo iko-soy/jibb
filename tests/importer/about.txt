@@ -10,7 +10,8 @@ are validated and all union cases are static and pairwise disjoint. Cases
 cover overlap, collapsed branches, multiple or nested unions, dependent
 branches, forged subject, sample and tail wrappers, and a shadowed
 collection. `explicit-unknown` has distinct outer tags and a local `word` alias
-for `@t`, so its source cases can be proved disjoint. Tagged source cases exercise bare null payloads, overlapping tags and hidden
+for `@t`, so its source cases can be proved disjoint. `explicit-wut-overlap` and `explicit-collapsed`
+now have positive overlap witnesses from the original source cases. Tagged source cases exercise bare null payloads, overlapping tags and hidden
 invalid dependencies, named payload dependencies, valid and collapsed enums,
 direct and transitively aliased overlaps, nested collections, shadowed jar and
 jug dependencies, Ford-name collisions, zuse local-name precedence and the

@@ -31,6 +31,7 @@ through -test on the fake ship.
 The real-reader mixed-zero case places `%$` and `?` under the same outer tag;
 both allow the noun zero, so the reader reports definite overlap. The distinct-tag
 `%$`/`?` case and distinct-tag term singletons are successful reader/checker
-controls. The overlap error points at the Jibb use site; the Hoon source case
+controls. The reader also reports definite overlap for the collapsed source
+whose two cases are both `[%x @ud]`. The overlap error points at the Jibb use site; the Hoon source case
 positions are not available in this fixture. These are source-aware
 reads and the checker report remains partial.

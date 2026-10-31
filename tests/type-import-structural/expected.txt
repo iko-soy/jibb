@@ -1,0 +1,41 @@
+same-alias: invalid/overlap: Hoon union cases overlap
+separate-alias: (union [tag [one @t]] [tag [two @t]])
+deep-match: invalid/overlap: Hoon union cases overlap
+deep-distinct: (union [tag [[inner [one three]] @t]] [tag [[inner [two three]] @t]])
+tail-distinct: unsupported: a Hoon union needs a source-level disjointness check
+later-overlap: invalid/overlap: Hoon union cases overlap
+many-safe: (union [tag [one @t]] [tag [two @t]] [tag [three @t]])
+open-atoms: invalid/overlap: Hoon union cases overlap
+different-aura: unsupported: Hoon union disjointness could not be verified
+same literal: ok
+different literals: ok
+named expands: ok
+opaque declines: ok
+opaque versus noun: ok
+unknown aura: ok
+open admits zero: ok
+different tail: ok
+nested face: ok
+fork later case: ok
+empty fuel: ok
+cell needs both: ok
+later pair: ok
+pair fuel: ok
+void: ok
+void position: ok
+opaque apply: ok
+source node fuel: ok
+source case cap: ok
+wrong projected head: ok
+wrong case count: ok
+partial inference; module not checked
+++ overlap: Hoon union cases overlap
+/ui/structural.jibb:2:20: invalid imported mold
+++  overlap  |=  x=deep-match.fixture  x
+                   ^
+++ distinct: $-(([%tag [%one @t]] [%tag [%two @t]]) ([%tag [%one @t]] [%tag [%two @t]]))
+++ unknown: sample mold is not supported by partial inference
+++ multi: Hoon union cases overlap
+/ui/structural.jibb:5:18: invalid imported mold
+++  multi  |=  x=later-overlap.fixture  x
+                 ^

@@ -110,7 +110,7 @@ partial inference; module not checked
                    ^
 ++ separate-tags: $-(([%left [%$ @t]] [%right [? @t]]) ([%left [%$ @t]] [%right [? @t]]))
 ++ separate-terms: $-(([%left [%$ @t]] [%right [%yes @t]]) ([%left [%$ @t]] [%right [%yes @t]]))
-reader-collapsed: error: Hoon union disjointness could not be verified
+reader-collapsed: error: Hoon union cases overlap
 reader-mixed-zero: error: Hoon union cases overlap
 reader-separate-tags: (union [left [ @t]] [right [(union @f:0 @f:1) @t]])
 reader-separate-terms: (union [left [ @t]] [right [yes @t]])

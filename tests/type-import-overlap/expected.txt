@@ -11,8 +11,8 @@ unsupported-gate: unsupported: a Hoon union needs a source-level disjointness ch
 dollar-percent: (union [left [ @t]] [right [yes @t]])
 identical: invalid/overlap: Hoon union cases overlap
 cross-zero: invalid/overlap: Hoon union cases overlap
-boolean-tail: unsupported: a Hoon union needs a source-level disjointness check
-empty-tail: unsupported: a Hoon union needs a source-level disjointness check
+boolean-tail: invalid/overlap: Hoon union cases overlap
+empty-tail: invalid/overlap: Hoon union cases overlap
 bounded source screen controls passed
 mismatched-selected: error: Hoon module provenance does not match the selected mold
 missing: error: Hoon mold `missing` is not declared

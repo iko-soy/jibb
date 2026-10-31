@@ -1,0 +1,14 @@
+The actual Hoon source includes local aliases, nested cells, equal and unequal
+singleton nouns, open auras and three-/four-case unions. The reader reports a
+definite overlap only when its bounded structural witness finds a shared noun;
+otherwise ordinary source-aware disjointness checks can still recover a union,
+or the outcome remains unsupported. The checker report is partial and points
+to the Jibb mold use; source-case positions are unavailable here.
+
+Low-level controls exercise void at the root and in a cell, opaque references
+and applications, named and faced nodes, nested alternatives, source/tag
+mismatches and source, pair and type-node fuel. The attempted Hoon source form
+`+$ never !!` did not compile, so the void controls use an actual `%void`
+reader node and do not claim a source-level empty mold. The positive proof
+only bounds specific traversals; Hoon play, projection, chapter lookup, atom
+byte sizes and the preexisting whole-graph checks are outside those budgets.

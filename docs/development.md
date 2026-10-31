@@ -63,6 +63,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-import-default-test` | Compares default-wrapped union source proofs and adversarial cases under eval; the same golden runs on the ship |
 | `tools/type-import-test` | Composes the Hoon importer with the partial checker and compares `tests/type-import/expected.txt` under eval |
 | `tools/type-import-overlap-test` | Checks source-aware Hoon union overlap, provenance and proof-budget controls under eval; the same fixture runs on the ship |
+| `tools/type-import-structural-test` | Checks multi-case and nested Hoon union overlap witnesses under eval and on the ship |
 | `tools/type-tlon-test` | Runs the real Tlon presence source through the importer and partial checker, comparing `tests/type-tlon/expected.txt` under eval |
 | `tools/type-import-diagnostic-test` | Compares the structured reader diagnostic bridge report under eval |
 | `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
@@ -106,6 +107,7 @@ tools/importer-test                # Hoon importer fixture projections match
 tools/type-import-default-test     # default-wrapped source proofs match
 tools/type-import-test             # importer/checker bridge golden report matches
 tools/type-import-overlap-test     # source-aware Hoon overlap and provenance controls
+tools/type-import-structural-test  # nested and multi-case Hoon overlap controls
 tools/type-tlon-test               # real Tlon importer/checker report matches
 tools/type-import-diagnostic-test  # direct structured reader diagnostics match
 tools/type-mark-test               # mark/checker bridge golden report matches

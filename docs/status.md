@@ -51,7 +51,7 @@ An eval and ship fixture now reports partial inference for the unchanged todo is
 
 The prelude now writes `lth`, `gte` and `lte` in Jibb using `gth` and `not`. Supported generic and concrete calls infer, including loobeans; mismatched explicit auras fail. Execution, jet recognition and complete import checking remain unfinished.
 
-The Hoon reader can prove a narrow two-case overlap from the original `$?` source and report it at a Jibb use site. It independently evaluates each case and compares runtime noun values; supported distinct head tags also prove disjoint. Other overlaps, Hoon case locations and mark-reader overlap diagnostics remain unfinished. The new `$?` case screen allows at most 128 cases and 4,096 source noun nodes; the overlap proof has a separate 4,096-node dependency budget. Neither bounds chapter lookup, Hoon evaluation or graph walks.
+The Hoon reader can prove overlaps among supported original `$?` source cases, including nested cells and unions with more than two cases, and report them at a Jibb use site. It evaluates each case independently and compares runtime noun values. Other overlaps, Hoon case locations and mark-reader overlap diagnostics remain unfinished. The source screen allows at most 128 cases and 4,096 source noun nodes; dependency checking and pairwise witness analysis each have a separate 4,096-node budget. These budgets do not bound chapter lookup, Hoon evaluation or graph walks.
 
 Restricted-number promotion now skips an environment scan when a definition has no written capitals. In a single startup-inclusive pair on 2,000 independent gates, output was identical and user CPU fell from 71.67 to 38.26 seconds; wall time was 72.80 versus 51.66 seconds with other checks running. This is a partial-inference measurement, not a complete checker or a bound on dependent modules.
 
@@ -72,7 +72,7 @@ What the plan asks for, and where it is:
 Besides the plan's list:
 
 - 652 golden cases: 432 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 652-case corpus passed under `urbit eval` in 96.7 s while other checks were running. The fake ship passed all 685 tests, including the source-overlap fixture, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 92.0 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- The 652-case corpus passed under `urbit eval` in 112.2 s while other checks were running. The fake ship passed all 686 tests, including the source-overlap and structural-overlap fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 83.2 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -173,7 +173,8 @@ Besides the plan's list:
 | cc8e389 | 2026-10-31 | Add source-backed list length and real todo regression |
 | 4da6891 | 2026-10-31 | Add source-backed comparisons and nested Hoon union controls |
 | 09db390 | 2026-10-31 | Skip unnecessary inference environment scans |
-| This change | 2026-10-31 | Diagnose source-proven Hoon union overlaps |
+| 179d717 | 2026-10-31 | Diagnose source-proven Hoon union overlaps |
+| This change | 2026-10-31 | Prove structural overlaps across Hoon union cases |
 
 ## Checking it
 
@@ -185,6 +186,7 @@ tools/importer-test               # the Hoon importer fixture projection
 tools/type-import-default-test    # default-wrapped source proof golden
 tools/type-import-test            # the importer/checker bridge fixture
 tools/type-import-overlap-test    # source-aware Hoon overlap and provenance fixture
+tools/type-import-structural-test # structural overlap and multi-case source fixture
 tools/type-tlon-test              # the real Tlon reader/checker fixture
 tools/type-mark-test              # the mark/checker bridge fixture
 tools/type-poke-test              # the source-backed poke/API fixture
