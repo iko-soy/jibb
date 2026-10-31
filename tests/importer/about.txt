@@ -9,7 +9,11 @@ explicit union argument when the exact call wrapper and collection provenance
 are validated and all union cases are static and pairwise disjoint. Cases
 cover overlap, collapsed branches, multiple or nested unions, dependent
 branches, forged subject, sample and tail wrappers, and a shadowed
-collection. Unsupported forms fail closed; nested `$@` cases remain supported. The union disjointness rule was confirmed in question 22. `ford.txt`
+collection. Tagged source cases exercise named payload dependencies, valid and collapsed enums,
+direct and transitively aliased overlaps, nested collections, shadowed jar and
+jug dependencies, Ford-name collisions, zuse local-name precedence and the
+shared proof budget. Four real `presence` unions exercise the same path.
+Unsupported forms fail closed; nested `$@` cases remain supported. The union disjointness rule was confirmed in question 22. `ford.txt`
 checks a synthetic imported subject and selected mold; other cases check
 transitive imports, named mold lookup, missing names, shadowing, unprovenanced
 recursive holds, malformed

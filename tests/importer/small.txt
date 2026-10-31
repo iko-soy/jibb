@@ -75,4 +75,30 @@
 +$  collection-union-multiple  (map $?([%x @ud] [%y @t]) $?([%a @ud] [%b @t]))
 +$  collection-union-nested  (list [id=@ud value=$?([%x @ud] [%y @t])])
 +$  collection-union-dependent  (list $?(action [%x @t]))
++$  tag-word  @t
++$  tag-valid  $%([%ok a=tag-word] [%err a=@ud])
++$  tag-duplicate  $%([%x a=@ud] [%x b=@t])
++$  tag-collapsed  $%([%x a=@ud] [%x a=@ud])
++$  tag-invalid-cell  $^(@ud @ud)
++$  tag-invalid-chain  tag-invalid-cell
++$  tag-invalid-direct  $%([%ok a=$^(@ud @ud)] [%err a=@t])
++$  tag-invalid-alias  $%([%ok a=tag-invalid-chain] [%err a=@t])
++$  tag-invalid-list  $%([%ok a=(list tag-invalid-cell)] [%err a=@t])
++$  tag-valid-enum  ?(%a %b)
++$  tag-invalid-enum  ?(%a %a)
++$  tag-enum-good  $%([%ok a=tag-valid-enum] [%err a=@t])
++$  tag-enum-bad  $%([%ok a=tag-invalid-enum] [%err a=@t])
++$  tag-nested-good  $%([%ok a=(list (unit @t))] [%err a=@t])
++$  tag-fuel-0  @t
++$  tag-fuel-1  [tag-fuel-0 tag-fuel-0]
++$  tag-fuel-2  [tag-fuel-1 tag-fuel-1]
++$  tag-fuel-3  [tag-fuel-2 tag-fuel-2]
++$  tag-fuel-4  [tag-fuel-3 tag-fuel-3]
++$  tag-fuel-5  [tag-fuel-4 tag-fuel-4]
++$  tag-fuel-6  [tag-fuel-5 tag-fuel-5]
++$  tag-fuel-7  [tag-fuel-6 tag-fuel-6]
++$  tag-fuel-8  [tag-fuel-7 tag-fuel-7]
++$  tag-fuel-9  [tag-fuel-8 tag-fuel-8]
++$  tag-fuel-10  [tag-fuel-9 tag-fuel-9]
++$  tag-fuel-11  [tag-fuel-10 tag-fuel-10]
 --

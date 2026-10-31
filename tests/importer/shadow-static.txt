@@ -4,4 +4,8 @@
 +$  path-shadow  [?(%fil %dir) pa=path nam=@t]
 +$  bad  [a=((mop @ud @t) lte) b=(list @ud)]
 +$  collection-union-shadow  (list $?([%x @ud] [%y @t]))
+++  map  map:..zuse
+++  set  set:..zuse
++$  tag-shadow-jar  $%([%ok a=(jar @ud @t)] [%err a=@ud])
++$  tag-shadow-jug  $%([%ok a=(jug @ud @t)] [%err a=@ud])
 --

@@ -76,6 +76,193 @@
   ^-  (each imported @t)
   (read-with module name typ ~)
 ::
+::  When Hoon's expanded type has lost source cases, inspect the exact
+::  selected local arm. Restrict this fallback to distinct literal head tags
+::  and proven-safe dependencies, then verify each projected branch again.
++$  tagged-case  [tag=@ branch=spec]
+::  Clay and eval expose different versions of the spec union. Inspect a
+::  help wrapper as a noun before checking its contained spec.
+++  source-gist-tail
+  |=  raw=*
+  ^-  (unit *)
+  ?.  ?=([%gist [%help *] *] raw)  ~
+  `+.+.raw
+::
+++  tagged-head
+  |=  branch=spec
+  ^-  (unit @)
+  =/  gist=(unit *)  (source-gist-tail branch)
+  ?^  gist  $(branch ;;(spec u.gist))
+  ?+  branch  ~
+    [%bccl *]
+      ?~  t.p.branch  ~
+      ?.  ?=([%leaf %tas @] i.p.branch)  ~
+      `q.i.p.branch
+  ==
+::
+++  tagged-cases
+  |=  [cases=(list spec) tags=(list @)]
+  ^-  (unit (list tagged-case))
+  ?~  cases  `~
+  ?:  |((has-spec-cell-union i.cases) (has-spec-general-union i.cases))  ~
+  =/  tag=(unit @)  (tagged-head i.cases)
+  ?~  tag  ~
+  ?:  (lien tags |=(x=@ =(x u.tag)))  ~
+  =/  rest  $(cases t.cases, tags [u.tag tags])
+  ?~  rest  ~
+  `[[u.tag i.cases] u.rest]
+::
+::  Benign source annotations have different typed representations on
+::  Clay and under eval. Inspect the wrapper as a noun, and validate the
+::  contained Hoon before examining an arm.
+++  source-note-tail
+  |=  raw=*
+  ^-  (unit *)
+  ?:  ?=([%note [%help *] *] raw)  `+.+.raw
+  ?:  ?=([%dbug * *] raw)  `+.+.raw
+  ~
+::
+++  tagged-source-code
+  |=  [code=hoon name=term]
+  ^-  (unit (list tagged-case))
+  =/  note=(unit *)  (source-note-tail code)
+  ?^  note  $(code ;;(hoon u.note))
+  ?+  code  ~
+    [%ktcl *]
+      ?.  ?=([%name * [%bccn *]] p.code)  ~
+      ?.  =(name p.p.code)  ~
+      =/  cases=(list spec)  p.q.p.code
+      ?~  cases  ~
+      ?~  t.cases  ~
+      (tagged-cases cases ~)
+  ==
+::
+::  Source proof for dependencies of an explicitly tagged union. Only
+::  simple local molds, standard collections and distinct term enums are
+::  accepted; computed molds, nested cell unions and cycles fail closed.
+::  One shared fuel budget bounds repeated visits through acyclic aliases;
+::  exhaustion or an inherited same-name arm leaves the result unsupported.
+++  local-arm-source
+  |=  [cor=type name=term]
+  ^-  (unit hoon)
+  ?.  ?=([%core *] cor)  ~
+  =/  chapters=(map term tome)  q.r.q.cor
+  =/  all=(list [term tome])  ~(tap by chapters)
+  ?:  (lien all |=(e=[term tome] &(!=(-.e %$) (chapter-unsafe +.e name))))  ~
+  =/  chapter=(unit tome)  (~(get by chapters) %$)
+  ?~  chapter  ~
+  (chapter-source u.chapter name)
+::
+++  local-mold-spec
+  |=  [code=hoon name=term]
+  ^-  (unit spec)
+  =/  note=(unit *)  (source-note-tail code)
+  ?^  note  $(code ;;(hoon u.note))
+  ?+  code  ~
+    [%ktcl *]
+      ?.  ?=([%name * *] p.code)  ~
+      ?.  =(name p.p.code)  ~
+      `q.p.code
+  ==
+::
+++  safe-source-enum
+  |=  [cases=(list spec) seen=(list @) fuel=@ud]
+  ^-  (unit @ud)
+  ?~  cases  `fuel
+  ?:  =(fuel 0)  ~
+  ?.  ?=([%leaf %tas @] i.cases)  ~
+  ?:  (lien seen |=(n=@ =(n q.i.cases)))  ~
+  $(cases t.cases, seen [q.i.cases seen], fuel (dec fuel))
+::
+++  safe-source-specs
+  |=  [xs=(list spec) cor=type seen=(list term) fuel=@ud]
+  ^-  (unit @ud)
+  ?~  xs  `fuel
+  =/  left=(unit @ud)  (safe-source-spec i.xs cor seen fuel)
+  ?~  left  ~
+  $(xs t.xs, fuel u.left)
+::
+++  safe-source-name
+  |=  [name=term cor=type seen=(list term) fuel=@ud]
+  ^-  (unit @ud)
+  ?:  (lien seen |=(x=term =(name x)))  ~
+  =/  arm=(unit hoon)  (local-arm-source cor name)
+  ?~  arm
+    ?.  &(|(=(name %ship) =(name %path)) (scope-safe cor name))  ~
+    `fuel
+  ?.  ?=([%core *] cor)  ~
+  ?.  (scope-safe p.cor name)  ~
+  =/  body=(unit spec)  (local-mold-spec u.arm name)
+  ?~  body  ~
+  (safe-source-spec u.body cor [name seen] fuel)
+::
+++  safe-source-spec
+  |=  [shape=spec cor=type seen=(list term) fuel=@ud]
+  ^-  (unit @ud)
+  ?:  =(fuel 0)  ~
+  =.  fuel  (dec fuel)
+  =/  gist=(unit *)  (source-gist-tail shape)
+  ?^  gist  $(shape ;;(spec u.gist))
+  ?+  shape  ~
+    [%base *]  ?:(?=([%atom *] p.shape) `fuel ~)
+    [%leaf *]  `fuel
+    [%bcts *]  ?@  p.shape  $(shape q.shape)
+               ~
+    [%bccl *]  (safe-source-specs p.shape cor seen fuel)
+    [%bcwt *]  (safe-source-enum p.shape ~ fuel)
+    [%like *]
+      ?.  ?=([@ ~] p.shape)  ~
+      ?.  ?=(~ q.shape)  ~
+      (safe-source-name i.p.shape cor seen fuel)
+    [%make *]
+      ?.  ?=([%wing [@ ~]] p.shape)  ~
+      =/  n=term  i.p.p.shape
+      ?.  (lien `(list term)`~[%map %set %qeu %list %unit %jar %jug] |=(x=term =(x n)))  ~
+      ?.  (scope-safe cor n)  ~
+      (safe-source-specs q.shape cor seen fuel)
+  ==
+::
+++  safe-source-tagged
+  |=  [cases=(list tagged-case) cor=type seen=(list term) fuel=@ud]
+  ^-  ?
+  ?~  cases  &
+  =/  left=(unit @ud)  (safe-source-spec branch.i.cases cor seen fuel)
+  ?~  left  |
+  $(cases t.cases, fuel u.left)
+::
+++  tagged-union-fallback
+  |=  [module=term name=term cor=type]
+  ^-  (unit (each imported @t))
+  ?.  ?=([%core *] cor)  ~
+  =/  chapters=(map term tome)  q.r.q.cor
+  =/  other=(list [term tome])  ~(tap by chapters)
+  ?:  (lien other |=(e=[term tome] &(!=(-.e %$) (chapter-unsafe +.e name))))  ~
+  =/  chapter=(unit tome)  (~(get by chapters) %$)
+  ?~  chapter  ~
+  =/  selected=(unit hoon)  (chapter-source u.chapter name)
+  ?~  selected  ~
+  =/  cases  (tagged-source-code u.selected name)
+  ?~  cases  ~
+  ?.  (safe-source-tagged u.cases cor ~[name] 4.096)  ~
+  =/  tried=(each (list type) tang)
+    (mule |.((turn u.cases |=(c=tagged-case (~(play ut cor) [%kttr branch.c])))))
+  ?.  ?=([%& *] tried)  ~
+  =/  projected=(each (list imported) tang)
+    (mule |.((turn p.tried |=(t=type (walk module t catalog ~ `cor)))))
+  ?.  ?=([%& *] projected)  ~
+  ?^  (first-bads p.projected)  ~
+  ?.  (all-disjoint p.projected)  ~
+  =/  xs=(list tagged-case)  u.cases
+  =/  ys=(list imported)  p.projected
+  |-
+  ?~  xs
+    ?^  ys  ~
+    `[%& [%fork (sort p.projected |=(pair=[imported imported] (dor -.pair +.pair)))]]
+  ?~  ys  ~
+  ?.  ?=([%cell [%atom %tas [~ @]] *] i.ys)  ~
+  ?.  =(tag.i.xs u.value.head.i.ys)  ~
+  $(xs t.xs, ys t.ys)
+::
 ::  +read-mold-in: accept the /sur core as provenance. The core must be
 ::  built against zuse or validated Ford imports, and its selected arm
 ::  must be this type. Unknown subject shapes fail closed.
@@ -91,8 +278,12 @@
   ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
     [%| 'Hoon module provenance does not match the selected mold']
   =/  result  (read-with module name typ [~ cor])
-  ?.  ?=([%& *] result)  result
-  result
+  ?:  ?=([%& *] result)  result
+  =/  fallback=(each (unit (each imported @t)) tang)
+    (mule |.((tagged-union-fallback module name cor)))
+  ?:  ?=(%| -.fallback)  result
+  ?~  p.fallback  result
+  u.p.fallback
 ::
 ::  +read-named is the source-aware entry point for callers that have
 ::  not selected a Hoon type yet. Check the core and the local arm
@@ -662,6 +853,32 @@
   ?@  chapter  ~
   ?.  (arm-map-valid +.chapter)  ~
   [~ (arm-map-has +.chapter target)]
+::
+::  Return a unique source arm from either validated tome wrapper. Walk
+::  the noun map rather than relying on fields that differ on Clay.
+++  arm-map-sources
+  |=  [m=* target=term]
+  ^-  (list hoon)
+  ?@  m  ~
+  =/  kv=*  -.m
+  =/  children=*  +.m
+  =/  found=(list hoon)  ?:(=(-.kv target) ~[;;(hoon +.kv)] ~)
+  (weld found (weld $(m -.children) $(m +.children)))
+::
+++  chapter-source
+  |=  [chapter=* target=term]
+  ^-  (unit hoon)
+  ?:  (arm-map-valid chapter)  (unique-arm-source chapter target)
+  ?@  chapter  ~
+  ?.  (arm-map-valid +.chapter)  ~
+  (unique-arm-source +.chapter target)
+::
+++  unique-arm-source
+  |=  [arms=* target=term]
+  ^-  (unit hoon)
+  =/  sources=(list hoon)  (arm-map-sources arms target)
+  ?.  ?=([* ~] sources)  ~
+  `i.sources
 ::
 ++  chapter-unsafe
   |=  [chapter=* target=term]
@@ -1366,6 +1583,13 @@
   =/  distinct=type  -:(ride distinct-parent origin-first)
   =/  trans-amb-parent=type  [%cell [%face %intermediate fc] [%cell [%face %second sc] -:!>(..zuse)]]
   =/  trans-amb=type  -:(ride trans-amb-parent origin-trans)
+  =/  tag-child=@t
+    '|%\0a+$  tag-invalid-cell  @t\0a+$  choice  $%([%ok a=tag-invalid-cell] [%err a=@ud])\0a--\0a'
+  =/  tag-collision=type  -:(ride [%cell [%face %base sc] -:!>(..zuse)] tag-child)
+  =/  tag-clean=type  -:(ride [%cell [%face %base other] -:!>(..zuse)] tag-child)
+  =/  tag-zuse=@t
+    '|%\0a+$  ship  @t\0a+$  path  @ud\0a+$  choice  $%([%ok who=ship] [%err where=path])\0a--\0a'
+  =/  tag-zuse-core=type  -:(ride -:!>(..zuse) tag-zuse)
   =/  sample
     |=  name=term
     (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
@@ -1526,6 +1750,26 @@
       (crip "missing-arm: {(show-result (read-mold-in %small %missing [%atom %ud ~] sc))}")
       (crip "wrong-provenance: {(show-result (read-mold-in %small %action (~(play ut sc) (ream '*items')) sc))}")
       (crip "unverified-subject: {(show-result (read-mold-in %std %jar (~(play ut -:!>(..zuse)) (ream '*(jar @ud @t)')) -:!>(..zuse)))}")
+      (crip "tag-ford-collision: {(show-result (read-named %child %choice tag-collision))}")
+      (crip "tag-ford-clean: {(show-result (read-named %child %choice tag-clean))}")
+      (crip "tag-zuse-local: {(show-result (read-named %child %choice tag-zuse-core))}")
+      (crip "tag-valid: {(show-result (sample %tag-valid))}")
+      (crip "tag-duplicate: {(show-result (sample %tag-duplicate))}")
+      (crip "tag-collapsed: {(show-result (sample %tag-collapsed))}")
+      (crip "tag-invalid-direct: {(show-result (sample %tag-invalid-direct))}")
+      (crip "tag-invalid-alias: {(show-result (sample %tag-invalid-alias))}")
+      (crip "tag-invalid-list: {(show-result (sample %tag-invalid-list))}")
+      (crip "tag-enum-good: {(show-result (sample %tag-enum-good))}")
+      (crip "tag-enum-bad: {(show-result (sample %tag-enum-bad))}")
+      (crip "tag-nested-good: {(show-result (sample %tag-nested-good))}")
+      (crip "tag-shadow-jar: {(show-result (read-named %shadow-static %tag-shadow-jar xc))}")
+      (crip "tag-shadow-jug: {(show-result (read-named %shadow-static %tag-shadow-jug xc))}")
+      (crip "tag-fuel-small: {?:(?=(^ (safe-source-name %tag-fuel-2 sc ~ 64)) "yes" "no")}")
+      (crip "tag-fuel-large: {?:(?=(~ (safe-source-name %tag-fuel-11 sc ~ 64)) "rejected" "wrong")}")
+      (crip "presence-action-1: {(show-result (present %action-1))}")
+      (crip "presence-command-1: {(show-result (present %command-1))}")
+      (crip "presence-update-1: {(show-result (present %update-1))}")
+      (crip "presence-response-1: {(show-result (present %response-1))}")
       (crip "presence-topic: {(show-result (present %topic))}")
       (crip "presence-timing: {(show-result (present %timing))}")
       (crip "presence-places: {(show-result (present %places))}")
