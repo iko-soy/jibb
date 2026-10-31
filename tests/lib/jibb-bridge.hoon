@@ -136,7 +136,7 @@
         [%fixture %raw-rec [%& [%ref %fixture %chain]]]
         [%fixture %bad-arity [%& [%apply %list ~[[%atom %t ~] [%atom %ud ~]]]]]
         [%fixture %bad-argument [%& [%apply %list ~[[%fork ~[[%atom %tas [~ %a]] [%atom %tas [~ %a]]]]]]]]
-        [%fixture %mixed-zero (read %mixed-zero)]
+        [%fixture %mixed-zero (read-named-diagnostic:jibb-import %fixture %mixed-zero cor)]
         [%fixture %separate-tags (read %separate-tags)]
         [%fixture %separate-terms (read %separate-terms)]
         [%fixture %nested-choice (read %nested-choice)]
@@ -153,7 +153,7 @@
         [%fixture %duplicate [%& [%atom %ud ~]]]
         [%missing %title [%& [%atom %t ~]]]
     ==
-  =/  report=@t  (golden-types-imports:jibb /test/jibb src external)
+  =/  report=@t  (golden-types-with-reader-diagnostics:jibb /test/jibb src external ~)
   =/  dep=@t  (crip "/- fixture\0a++ chain-id |= x=chain.fixture x\0a")
   =/  root=@t  (crip "/= helper /ui/helper\0a++ use chain-id.helper\0a")
   =/  prelude=@t  (crip "++ prelude-id |= x x\0a")

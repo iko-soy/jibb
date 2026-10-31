@@ -1,0 +1,26 @@
+mixed-zero: invalid/overlap: Hoon union cases overlap
+nonzero: invalid/overlap: Hoon union cases overlap
+unequal-singletons: unsupported: a Hoon union needs a source-level disjointness check
+swapped: invalid/overlap: Hoon union cases overlap
+separate-tags: (union [left [ @t]] [right [(union @f:0 @f:1) @t]])
+separate-terms: (union [left [ @t]] [right [yes @t]])
+different-value: unsupported: a Hoon union needs a source-level disjointness check
+different-tail: unsupported: a Hoon union needs a source-level disjointness check
+unknown-middle: unsupported: a Hoon union needs a source-level disjointness check
+unsupported-gate: unsupported: a Hoon union needs a source-level disjointness check
+dollar-percent: (union [left [ @t]] [right [yes @t]])
+identical: invalid/overlap: Hoon union cases overlap
+cross-zero: invalid/overlap: Hoon union cases overlap
+boolean-tail: unsupported: a Hoon union needs a source-level disjointness check
+empty-tail: unsupported: a Hoon union needs a source-level disjointness check
+bounded source screen controls passed
+mismatched-selected: error: Hoon module provenance does not match the selected mold
+missing: error: Hoon mold `missing` is not declared
+bare-zuse: error: Hoon module provenance is unavailable
+partial inference; module not checked
+++ overlap: Hoon union cases overlap
+/ui/test.jibb:2:17: invalid imported mold
+++ overlap |= x=mixed-zero.fixture x
+                ^
+++ disjoint: $-(([%left [%$ @t]] [%right [? @t]]) ([%left [%$ @t]] [%right [? @t]]))
+++ unknown: sample mold is not supported by partial inference

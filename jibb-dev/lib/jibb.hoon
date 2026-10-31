@@ -6589,7 +6589,7 @@
     ?~  found  ~
     ?^  t.found  ~
     result.i.found
-  ?.  ?=([%invalid ?(%aura %core) @] raw)  ~
+  ?.  ?=([%invalid ?(%aura %core %overlap) @] raw)  ~
   `["{(trip +>.raw)}" ~[[at.sh "invalid imported mold"]]]
 ::
 ::  Replay only the shape branches whose evaluation order we can prove.

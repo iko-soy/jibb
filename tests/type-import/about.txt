@@ -29,7 +29,8 @@ claim that the module was checked. The same fixture runs under urbit eval and
 through -test on the fake ship.
 
 The real-reader mixed-zero case places `%$` and `?` under the same outer tag;
-both allow the noun zero. It must fail closed. The distinct-tag `%$`/`?`
-case records the current conservative limitation, while distinct-tag term
-singletons are a successful reader/checker control. These are source-aware
+both allow the noun zero, so the reader reports definite overlap. The distinct-tag
+`%$`/`?` case and distinct-tag term singletons are successful reader/checker
+controls. The overlap error points at the Jibb use site; the Hoon source case
+positions are not available in this fixture. These are source-aware
 reads and the checker report remains partial.

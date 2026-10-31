@@ -1,0 +1,4 @@
+/- fixture
+++ overlap |= x=mixed-zero.fixture x
+++ disjoint |= x=separate-tags.fixture x
+++ unknown |= x=unknown-middle.fixture x

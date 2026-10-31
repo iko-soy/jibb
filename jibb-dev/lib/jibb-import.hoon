@@ -47,7 +47,7 @@
   ==
 +$  import-diagnostic
   $%  [%ok value=imported]
-      [%invalid code=?(%aura %core) message=@t]
+      [%invalid code=?(%aura %core %overlap) message=@t]
       [%unsupported message=@t]
   ==
 +$  signatures  (list [name=term code=hoon])
@@ -132,6 +132,35 @@
   =/  rest  $(cases t.cases, tags [u.tag tags])
   ?~  rest  ~
   `[[u.tag i.cases] u.rest]
+
+::
+::  Bound the new $? branch screen independently of the existing $% path.
+::  Count raw noun nodes across all cases, and cap pairwise tag comparisons.
+++  bounded-no-spec-unions
+  |=  [h=* fuel=@ud]
+  ^-  (unit @ud)
+  ?:  =(fuel 0)  ~
+  =.  fuel  (dec fuel)
+  ?@  h  `fuel
+  ?:  ?=([%bckt ^ ^] h)  ~
+  ?:  ?=([%bcwt [^ [^ *]]] h)  ~
+  ?:  ?=([%bccn [^ [^ *]]] h)  ~
+  =/  left=(unit @ud)  $(h -.h)
+  ?~  left  ~
+  $(h +.h, fuel u.left)
+++  tagged-bounded-cases
+  |=  [cases=(list spec) tags=(list @) fuel=@ud left=@ud]
+  ^-  (unit (list tagged-case))
+  ?~  cases  `~
+  ?:  =(left 0)  ~
+  =/  remaining=(unit @ud)  (bounded-no-spec-unions i.cases fuel)
+  ?~  remaining  ~
+  =/  tag=(unit @)  (tagged-head i.cases)
+  ?~  tag  ~
+  ?:  (lien tags |=(x=@ =(x u.tag)))  ~
+  =/  rest  $(cases t.cases, tags [u.tag tags], fuel u.remaining, left (dec left))
+  ?~  rest  ~
+  `[[u.tag i.cases] u.rest]
 ::
 ::  Benign source annotations have different typed representations on
 ::  Clay and under eval. Inspect the wrapper as a noun, and validate the
@@ -170,11 +199,19 @@
   ?~  found  ~
   =/  body=(unit spec)  (tagged-default-union u.found 4)
   ?~  body  ~
-  ?.  ?=([%bccn *] u.body)  ~
-  =/  cases=(list spec)  p.u.body
-  ?~  cases  ~
-  ?~  t.cases  ~
-  (tagged-cases cases ~)
+  ?-  u.body
+    [%bccn *]
+      =/  cases=(list spec)  p.u.body
+      ?~  cases  ~
+      ?~  t.cases  ~
+      (tagged-cases cases ~)
+    [%bcwt *]
+      =/  cases=(list spec)  p.u.body
+      ?~  cases  ~
+      ?~  t.cases  ~
+      (tagged-bounded-cases cases ~ 4.096 128)
+    *  ~
+  ==
 ::
 ::  Source proof for dependencies of an explicitly tagged union. Only
 ::  simple local molds, standard collections and distinct term enums are
@@ -346,6 +383,63 @@
   ?.  ?=([%cell [%atom %tas [~ @]] *] i.ys)  ~
   ?.  =(tag.i.xs u.value.head.i.ys)  ~
   $(xs t.xs, ys t.ys)
+
+::
+::  A finite, positive witness for two three-field tagged source cases.
+::  The final @t fields admit noun zero. Each middle field is either an
+::  explicit singleton or exactly two explicit singletons. Match noun
+::  values independently of their aura labels; other shapes are unknown.
+++  witness-atom-values
+  |=  node=imported
+  ^-  (unit (list @))
+  ?:  ?=([%atom *] node)
+    ?~  value.node  ~
+    `~[u.value.node]
+  ?.  ?=([%fork [* [* ~]]] node)  ~
+  ?.  &(?=([%atom *] i.cases.node) ?=([%atom *] i.t.cases.node))  ~
+  ?~  value.i.cases.node  ~
+  ?~  value.i.t.cases.node  ~
+  `~[u.value.i.cases.node u.value.i.t.cases.node]
+++  witness-tagged-case
+  |=  node=imported
+  ^-  (unit [head=@ middle=(list @)])
+  ?.  ?=([%cell [%atom %tas [~ @]] [%cell * [%atom %t ~]]] node)  ~
+  =/  middle  (witness-atom-values head.tail.node)
+  ?~  middle  ~
+  `[u.value.head.node u.middle]
+++  overlap-zero-source
+  |=  [module=term name=term cor=type]
+  ^-  ?
+  ?.  ?=([%core *] cor)  |
+  =/  selected=(unit hoon)  (local-arm-source cor name)
+  ?~  selected  |
+  =/  shape=(unit spec)  (local-mold-spec u.selected name)
+  ?~  shape  |
+  =/  body=(unit spec)  (tagged-default-union u.shape 4)
+  ?~  body  |
+  ?.  ?=([%bcwt [* [* ~]]] u.body)  |
+  =/  one=spec  i.p.u.body
+  =/  two=spec  i.t.p.u.body
+  =/  first=(unit @)  (tagged-head one)
+  =/  second=(unit @)  (tagged-head two)
+  ?~  first  |
+  ?~  second  |
+  ?.  =(u.first u.second)  |
+  =/  cases=(list tagged-case)  ~[[u.first one] [u.second two]]
+  ?.  ?=(^ (safe-source-tagged-fuel-mode cases cor ~[name] 4.096 |))  |
+  =/  tried=(each (list type) tang)
+    (mule |.((turn cases |=(c=tagged-case (~(play ut cor) [%kttr branch.c])))))
+  ?.  ?=([%& [* [* ~]]] tried)  |
+  =/  projected=(each (list imported) tang)
+    (mule |.((turn p.tried |=(t=type (walk module t catalog ~ `cor)))))
+  ?.  ?=([%& [* [* ~]]] projected)  |
+  ?^  (first-bads p.projected)  |
+  =/  a  (witness-tagged-case i.p.projected)
+  =/  b  (witness-tagged-case i.t.p.projected)
+  ?~  a  |
+  ?~  b  |
+  ?.  &(=(head.u.a u.first) =(head.u.b u.second) =(head.u.a head.u.b))  |
+  (lien middle.u.a |=(n=@ (lien middle.u.b |=(m=@ =(n m)))))
 ::
 ::  +read-mold-in: accept the /sur core as provenance. The core must be
 ::  built against zuse or validated Ford imports, and its selected arm
@@ -361,6 +455,8 @@
     [%| (crip "Hoon mold `{(trip name)}` is not declared")]
   ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
     [%| 'Hoon module provenance does not match the selected mold']
+  =/  overlap=(each ? tang)  (mule |.((overlap-zero-source module name cor)))
+  ?:  &(?=(%& -.overlap) p.overlap)  [%| 'Hoon union cases overlap']
   =/  result  (read-with module name typ [~ cor])
   ?:  ?=([%& *] result)  result
   =/  fallback=(each (unit (each imported @t)) tang)
@@ -461,6 +557,8 @@
     [%unsupported p.result]
   =/  selected=(each type tang)  (mule |.((~(play ut cor) (ream (cat 3 '*' name)))))
   ?.  ?=(%& -.selected)  [%unsupported p.result]
+  =/  overlap=(each ? tang)  (mule |.((overlap-zero-source module name cor)))
+  ?:  &(?=(%& -.overlap) p.overlap)  [%invalid %overlap 'Hoon union cases overlap']
   =/  again=(each imported tang)  (mule |.((walk module p.selected catalog ~ [~ cor])))
   ?.  ?=(%& -.again)  [%unsupported p.result]
   =/  evidence=(unit import-diagnostic)  (first-invalid p.again)

@@ -9,7 +9,8 @@ explicit union argument when the exact call wrapper and collection provenance
 are validated and all union cases are static and pairwise disjoint. Cases
 cover overlap, collapsed branches, multiple or nested unions, dependent
 branches, forged subject, sample and tail wrappers, and a shadowed
-collection. Tagged source cases exercise bare null payloads, overlapping tags and hidden
+collection. `explicit-unknown` has distinct outer tags and a local `word` alias
+for `@t`, so its source cases can be proved disjoint. Tagged source cases exercise bare null payloads, overlapping tags and hidden
 invalid dependencies, named payload dependencies, valid and collapsed enums,
 direct and transitively aliased overlaps, nested collections, shadowed jar and
 jug dependencies, Ford-name collisions, zuse local-name precedence and the

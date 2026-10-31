@@ -104,12 +104,15 @@ partial inference; module not checked
 ++ flag-extra: sample mold is not supported by partial inference
 ++ flag-faced: sample mold is not supported by partial inference
 ++ flag-malformed: sample mold is not supported by partial inference
-++ mixed-zero: sample mold is not supported by partial inference
-++ separate-tags: sample mold is not supported by partial inference
+++ mixed-zero: Hoon union cases overlap
+/test.jibb:81:20: invalid imported mold
+++ mixed-zero |= x=mixed-zero.fixture x
+                   ^
+++ separate-tags: $-(([%left [%$ @t]] [%right [? @t]]) ([%left [%$ @t]] [%right [? @t]]))
 ++ separate-terms: $-(([%left [%$ @t]] [%right [%yes @t]]) ([%left [%$ @t]] [%right [%yes @t]]))
 reader-collapsed: error: Hoon union disjointness could not be verified
-reader-mixed-zero: error: a Hoon union needs a source-level disjointness check
-reader-separate-tags: error: a Hoon union needs a source-level disjointness check
+reader-mixed-zero: error: Hoon union cases overlap
+reader-separate-tags: (union [left [ @t]] [right [(union @f:0 @f:1) @t]])
 reader-separate-terms: (union [left [ @t]] [right [yes @t]])
 partial inference; module not checked
 ++ use: recursive mold name is not available in this scope

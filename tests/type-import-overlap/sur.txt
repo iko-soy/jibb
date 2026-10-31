@@ -1,0 +1,17 @@
+|%
++$  mixed-zero  $?([%tag %$ @t] [%tag ? @t])
++$  nonzero  $?([%tag %.n @t] [%tag ? @t])
++$  unequal-singletons  $?([%tag %.n @t] [%tag %$ @t])
++$  swapped  $?([%tag ? @t] [%tag %$ @t])
++$  separate-tags  $?([%left %$ @t] [%right ? @t])
++$  separate-terms  $?([%left %$ @t] [%right %yes @t])
++$  different-value  $?([%tag %yes @t] [%tag ? @t])
++$  different-tail  $?([%tag %$ @t] [%tag ? @p])
++$  unknown-middle  $?([%tag * @t] [%tag ? @t])
++$  unsupported-gate  $?([%tag %$ @t] [%tag ? $-(@t @t)])
++$  dollar-percent  $%([%left %$ @t] [%right %yes @t])
++$  identical  $?([%tag %$ @t] [%tag %$ @t])
++$  cross-zero  $?([%tag %.y @t] [%tag %$ @t])
++$  boolean-tail  $?([%tag %$ ?] [%tag ? ?])
++$  empty-tail  $?([%tag %$ ~] [%tag ? @t])
+--

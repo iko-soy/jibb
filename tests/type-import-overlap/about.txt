@@ -1,0 +1,24 @@
+Source-aware Hoon `$?` cases are independently evaluated before the reader
+proves a shared runtime noun or a disjoint pair of literal outer tags. The
+positive overlap witness handles exactly two cases, each projecting to three
+fields: a term singleton, a singleton or two-singleton fork, and an `@t`
+tail. The singleton comparison uses noun values regardless of aura, and the
+`@t` tail admits noun zero. Other overlap shapes remain unsupported.
+
+The mixed-aura zero and nonzero controls prove actual overlap; unequal, opaque
+and other unproven payloads remain unsupported. The structured diagnostic
+bridge reports a definite overlap at the Jibb use site, while the disjoint
+case infers and an unresolved case stays unsupported. The Hoon source case
+locations are unavailable in this fixture and are not claimed. This is a
+partial report and does not prove the whole module was checked. This named
+reader proof is not a mark-reader overlap diagnostic.
+
+The existing 4,096 source-proof fuel limits dependency-spec visits. Chapter
+lookup, Hoon play, type projection, parsing and all other work are outside
+that limit. Unknown or exhausted source proof stays unsupported.
+
+The added `$?` source screen caps the total raw noun nodes at 4,096 and
+the case count at 128 before checking tags. The shared guard exercises exact
+and exceeded budgets, deep and wide inputs, nested union forms, and unknown
+source cases. These limits do not meter atom sizes, chapter lookup, Hoon play,
+reader projection or other work. The pre-existing `$%` path is unchanged.

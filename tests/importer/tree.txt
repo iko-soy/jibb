@@ -78,7 +78,7 @@ explicit-wut-overlap: error: Hoon union disjointness could not be verified
 explicit-collapsed: error: Hoon union disjointness could not be verified
 explicit-subsumed: error: Hoon union disjointness could not be verified
 explicit-three: (union [a @ud] [b @t] [c @p])
-explicit-unknown: error: a Hoon union needs a source-level disjointness check
+explicit-unknown: (union [x @t] [y @t])
 explicit-nested: error: Hoon union disjointness could not be verified
 collection-union-wrapper: valid; forged subject, sample and tail rejected
 collection-union-list: (list (union [x @ud] [y @t]))
