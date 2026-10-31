@@ -373,3 +373,6 @@
 ++ late |= second=B |= first=A [first second]
 
 ++ succ |= x=A (add x 1)
+
+++ trip |= value=@t (trip-text.internal value)
+++ tuba |= values=(list @tD) (tuba-text.internal values)

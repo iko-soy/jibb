@@ -18,6 +18,8 @@
 ::  Private compiler primitive wrappers; execution is a later milestone.
 ++ add-atom |= args=[A A] (raw-add.core args)
 ++ dec-atom |= atom=A (raw-dec.core atom)
+++ trip-text |= value=@t (raw-trip.core value)
+++ tuba-text |= values (raw-tuba.core values)
 
 ::  Transparent request data. Identity and path fields are writable and do not
 ::  prove a schema or watchability. A future executor must bind them to checked

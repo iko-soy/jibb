@@ -1,0 +1,26 @@
+partial inference; module not checked
+++ to-tape: (list @tD)
+++ to-codepoints: (list @c)
+++ empty-codepoints: (list @c)
+++ count-codepoints: $-(@t @ud)
+++ bad-trip: call's sample and argument types do not unify
+/tests/golden/types-prelude-text/source.jibb:6:14: called gate has type $-(@t (list @tD))
+++ bad-trip (trip ~zod)
+             ^
+/tests/golden/types-prelude-text/source.jibb:6:19: argument has type @p
+++ bad-trip (trip ~zod)
+                  ^
+++ bad-tuba: call's sample and argument types do not unify
+/tests/golden/types-prelude-text/source.jibb:7:14: called gate has type $-((list @tD) (list @c))
+++ bad-tuba (tuba "abc")
+             ^
+/tests/golden/types-prelude-text/source.jibb:7:19: argument has type @t
+++ bad-tuba (tuba "abc")
+                  ^
+++ bad-tuba-items: list item does not fit its expected type
+/tests/golden/types-prelude-text/source.jibb:8:20: expected item has type @tD
+++ bad-tuba-items (tuba ~[~zod])
+                   ^
+/tests/golden/types-prelude-text/source.jibb:8:27: list item has type @p
+++ bad-tuba-items (tuba ~[~zod])
+                          ^

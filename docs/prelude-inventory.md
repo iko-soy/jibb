@@ -162,6 +162,8 @@ The compiler-result `tone.hoon` has the three cases listed above; the qualified 
 
 `at`, `cass`, `cuss`, `crip`, `mesc`, `runt`, `sand`, `sane`, `ruth`, `trim`, `trip`, `teff`, `taft`, `tuba`, `tufa`, `tuft`, `wack`, `wick`, `woad`, `wood`.
 
+The prelude writes `trip` and `tuba` over private primitives. Their inferred types are `$-(@t (list @tD))` and `$-((list @tD) (list @c))`, matching the target ship's Hoon 135 definitions. Composition with `lent` and invalid argument controls pass in the partial checker; primitive lowering, execution and jet recognition remain unfinished.
+
 ## 4k
 
 `co`.

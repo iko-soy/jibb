@@ -1,0 +1,8 @@
+++ to-tape (trip "abc")
+++ to-codepoints (tuba (trip "abc"))
+++ empty-codepoints (tuba ~)
+++ count-codepoints |= value=@t
+  (lent (tuba (trip value)))
+++ bad-trip (trip ~zod)
+++ bad-tuba (tuba "abc")
+++ bad-tuba-items (tuba ~[~zod])

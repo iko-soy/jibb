@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Prelude: "Text ... crip, trip, cass, cuss, trim, tufa, tuba"; the target ship's Hoon 135 definitions give trip and tuba their tape and UTF-32 types.
+tests: Source-backed trip and tuba wrappers preserve cord, tape and UTF-32 list types through composition and generic list length. Empty input infers; non-cord and non-tape arguments fail. Primitive lowering and execution remain unfinished. The module report is partial.
+expect: parses
+expect-types: a partial inference report

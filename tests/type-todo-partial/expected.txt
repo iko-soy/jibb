@@ -4,7 +4,7 @@ partial inference; module not checked
 +$ model: not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ init: `~` needs context in partial inference
-++ update: name is not available to partial inference
+++ update: branch tag or union context is not supported by partial inference
 ++ subs: call constraint is not supported by partial inference
 ++ view: name is not available to partial inference
 ++ row-of: name is not available to partial inference

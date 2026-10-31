@@ -11419,7 +11419,12 @@
   =/  plus=ischeme  [[%fn [%cell b b] b] ~[0]]
   =/  minus=ischeme  [[%fn b b] ~[0]]
   =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0]]
-  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~ ~]
+  =/  utf8=itype  [%atom 'tD']
+  =/  tape=itype  [%collection %list ~[utf8]]
+  =/  codepoints=itype  [%collection %list ~[[%atom %c]]]
+  =/  text-trip=ischeme  [[%fn [%atom %t] tape] ~]
+  =/  text-tuba=ischeme  [[%fn tape codepoints] ~]
+  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater] [%raw-trip text-trip] [%raw-tuba text-tuba]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~ ~]
 ::
 ++  infer-private-internal
   |=  [src=@t public-source=@t]

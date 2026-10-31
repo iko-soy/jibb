@@ -1,0 +1,36 @@
+(module
+  (value 1:1 to-tape
+    (group 1:12
+      (call 1:13 (wing 1:13 trip) (str 1:18 "abc"))))
+  (value 2:1 to-codepoints
+    (group 2:18
+      (call 2:19
+        (wing 2:19 tuba)
+        (group 2:24
+          (call 2:25 (wing 2:25 trip) (str 2:30 "abc"))))))
+  (value 3:1 empty-codepoints
+    (group 3:21
+      (call 3:22 (wing 3:22 tuba) (lit 3:27 ~))))
+  (value 4:1 count-codepoints
+    (gate 4:21
+      (face 4:24 value (aura 4:30 @t))
+      (body 5:3
+        (group 5:3
+          (call 5:4
+            (wing 5:4 lent)
+            (group 5:9
+              (call 5:10
+                (wing 5:10 tuba)
+                (group 5:15
+                  (call 5:16 (wing 5:16 trip) (wing 5:21 value))))))))))
+  (value 6:1 bad-trip
+    (group 6:13
+      (call 6:14 (wing 6:14 trip) (lit 6:19 ~zod))))
+  (value 7:1 bad-tuba
+    (group 7:13
+      (call 7:14 (wing 7:14 tuba) (str 7:19 "abc"))))
+  (value 8:1 bad-tuba-items
+    (group 8:19
+      (call 8:20
+        (wing 8:20 tuba)
+        (list 8:25 (lit 8:27 ~zod))))))
