@@ -6454,6 +6454,8 @@
       [%| ["branch list constraint is not supported by partial inference" ~]]
     [%| ["branch union constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
+    =/  missing=(unit idiag)  (missing-union-tag e expected sub.state.p.value context)
+    ?^  missing  [%| u.missing]
     ?:  &(?=(%collection -.expected) =(%list name.expected))
       [%| ["branch arm does not fit its expected list" ~[[context "expected list"] [(span-of e) "branch arm"]]]]
     [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
@@ -6530,6 +6532,8 @@
   =/  fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
   ?:  ?=(%unknown -.fit)  [%| ["list item constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
+    =/  missing=(unit idiag)  (missing-union-tag i.items target sub.state.p.value context)
+    ?^  missing  [%| u.missing]
     [%| ["list item does not fit its expected type" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
   $(items t.items, state state.p.value(sub sub.fit, next next.fit))
 ::
@@ -6949,6 +6953,56 @@
     [%union ~[nil [%cell nil [%face %u [%var v]]]] `[at %unit] `%unit ~[[%var v]]]
   =(typ.template expected)
 ::
+::  A named missing-case diagnostic needs more than a failed fit: a case
+::  with that tag but the wrong payload is not a missing case. Unknown
+::  shapes and atom types that accept terms keep the proof conservative.
++$  itag-presence  ?(%yes %no %maybe)
+++  tag-presence-cases
+  |=  [cases=(list itype) value=@ sub=isub]
+  ^-  itag-presence
+  ?~  cases  %no
+  =/  first=itag-presence  (tag-presence i.cases value sub)
+  ?:  =(%yes first)  %yes
+  =/  rest=itag-presence  $(cases t.cases)
+  ?:  =(%yes rest)  %yes
+  ?:  |(=(%maybe first) =(%maybe rest))  %maybe
+  %no
+::
+++  tag-presence
+  |=  [t=itype value=@ sub=isub]
+  ^-  itag-presence
+  =.  t  (itype-walk t sub)
+  ?-  -.t
+    %const  ?:(=(value val.literal.t) %yes %no)
+    %flag  ?:(|(=(value 0) =(value 1)) %yes %no)
+    %atom  ?:(|(=(%tas aura.t) =(%ta aura.t)) %maybe %no)
+    %face  $(t body.t)
+    %cell
+      =/  first=itag-presence  $(t hed.t)
+      ?:  =(%yes first)  %yes
+      =/  rest=itag-presence  $(t tal.t)
+      ?:  =(%yes rest)  %yes
+      ?:  |(=(%maybe first) =(%maybe rest))  %maybe
+      %no
+    %union  (tag-presence-cases cases.t value sub)
+    *  %maybe
+  ==
+::
+++  missing-union-tag
+  |=  [e=expr expected=itype sub=isub context=span]
+  ^-  (unit idiag)
+  ?.  ?=(%lit -.e)  ~
+  ?.  =(%term form.lit.e)  ~
+  =.  expected  (itype-walk expected sub)
+  |-
+  ?:  ?=(%face -.expected)  $(expected (itype-walk body.expected sub))
+  ?.  ?=(%union -.expected)  ~
+  ?.  =(%no (tag-presence-cases cases.expected val.lit.e sub))  ~
+  =/  label=tape
+    ?~  label.expected  "union {(show-itype expected sub)}"
+    (show-itype expected sub)
+  `["{label} has no case `{(trip txt.lit.e)}`" ~[[context "expected union"] [(span-of e) "tag"]]]
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -7087,6 +7141,8 @@
       =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
       ?:  ?=(%unknown -.fit)  [%| ["cast constraint is not supported by partial inference" ~]]
       ?:  ?=(%bad -.fit)
+        =/  missing=(unit idiag)  (missing-union-tag val.e typ.u.target sub.state.p.value at.shape.e)
+        ?^  missing  [%| u.missing]
         [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-type-note "expression" typ.p.value sub.state.p.value)]]]]
       =/  merged=itype  (itype-merge-faces typ.p.value typ.u.target sub.fit)
       [%& merged state.p.value(sub sub.fit, next next.fit)]
@@ -7129,10 +7185,14 @@
         =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st next.st)
         ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
         ?:  ?=(%bad -.fit)
+          ?~  t.args.e
+            =/  missing=(unit idiag)  (missing-union-tag i.args.e sample.ht sub.st (span-of head.e))
+            ?^  missing  [%| u.missing]
+            [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
           =/  bad=(unit [at=span typ=itype])
-            ?~(t.args.e ~ (call-error-site args.e typ.p.arg sample.ht sub.st next.st))
+            (call-error-site args.e typ.p.arg sample.ht sub.st next.st)
           =/  whole-args=span
-            ?~(t.args.e (span-of i.args.e) [beg:(span-of i.args.e) end:(span-of (rear args.e))])
+            [beg:(span-of i.args.e) end:(span-of (rear args.e))]
           =/  arg-at=span  ?~(bad whole-args at.u.bad)
           =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
           [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
@@ -7199,6 +7259,8 @@
   =/  fit=ifit  (itype-fit typ.p.value payload sub.state.p.value next.state.p.value)
   ?:  ?=(%unknown -.fit)  [%| ["unit payload constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
+    =/  missing=(unit idiag)  (missing-union-tag val.e payload sub.state.p.value context)
+    ?^  missing  [%| u.missing]
     [%| ["unit payload does not fit its expected type" ~[[context (site-type-note "expected unit payload" payload sub.state.p.value)] [(span-of val.e) (site-type-note "payload" typ.p.value sub.state.p.value)]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::

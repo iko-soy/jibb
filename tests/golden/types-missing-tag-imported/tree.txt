@@ -1,0 +1,18 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 good
+    (cast 2:9 (ref 2:12 choice.fixture) (lit 2:27 %yes)))
+  (value 3:1 bad
+    (cast 3:8 (ref 3:11 choice.fixture) (lit 3:26 %other)))
+  (value 4:1 nested
+    (gate 4:11
+      (face 4:14 x (ref 4:16 nested-choice.fixture))
+      (cast 4:38 (aura 4:41 @t) (wing 4:44 text.x))))
+  (value 5:1 get-status
+    (gate 5:15
+      (face 5:18 x (ref 5:20 nested-choice.fixture))
+      (wing 5:42 status.x)))
+  (value 6:1 via-field
+    (gate 6:14
+      (face 6:17 x (ref 6:19 nested-choice.fixture))
+      (cast 6:41 (ref 6:44 choice.fixture) (wing 6:59 status.x)))))

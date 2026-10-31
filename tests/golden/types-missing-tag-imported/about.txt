@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: an unmatched literal names the union; Overview, Importing Hoon types: Hoon unions can import without a Jibb name.
+tests: A real imported Hoon union prints its cases in the missing-tag diagnostic, and a nested unnamed union retains its field context. Unsupported conversions remain partial.
+expect: parses
+expect-types: a partial inference report

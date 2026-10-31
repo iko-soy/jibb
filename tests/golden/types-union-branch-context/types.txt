@@ -2,18 +2,18 @@ partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ choose: $-(? msg)
 ++ records: $-(? msg)
-++ bad: branch arm does not fit its expected union
+++ bad: msg has no case `%missing`
 /tests/golden/types-union-branch-context/source.jibb:16:6: expected union
   ^- msg
      ^
-/tests/golden/types-union-branch-context/source.jibb:19:11: branch arm
+/tests/golden/types-union-branch-context/source.jibb:19:11: tag
       %.n %missing
           ^
-++ bad-first: branch arm does not fit its expected union
+++ bad-first: msg has no case `%missing`
 /tests/golden/types-union-branch-context/source.jibb:21:6: expected union
   ^- msg
      ^
-/tests/golden/types-union-branch-context/source.jibb:23:11: branch arm
+/tests/golden/types-union-branch-context/source.jibb:23:11: tag
       %.y %missing
           ^
 ++ nested: $-(? msg)

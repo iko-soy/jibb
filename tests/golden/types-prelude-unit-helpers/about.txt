@@ -1,0 +1,4 @@
+source: Overview, Prelude: Hoon standard-library gates are regrouped into the prelude, with Jibb implementations.
+tests: The actual prelude exposes bind, biff, both and flit with independently instantiated unit payloads. A mismatched gate argument reports both sites, and an unrelated tag stays pending. clap and clef remain unsupported.
+expect: parses
+expect-types: a partial inference report

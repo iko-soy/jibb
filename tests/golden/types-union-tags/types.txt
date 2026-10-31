@@ -2,10 +2,10 @@ partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ simple: msg
 ++ record: msg
-++ wrong: cast mold and expression type do not unify
-/tests/golden/types-union-tags/source.jibb:6:13: cast mold
+++ wrong: msg has no case `%missing`
+/tests/golden/types-union-tags/source.jibb:6:13: expected union
 ++ wrong ^- msg %missing
             ^
-/tests/golden/types-union-tags/source.jibb:6:17: expression
+/tests/golden/types-union-tags/source.jibb:6:17: tag
 ++ wrong ^- msg %missing
                 ^

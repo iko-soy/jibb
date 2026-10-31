@@ -1,0 +1,11 @@
+++ bind-text (bind `"hi" |=(x x))
+++ bind-ship (bind `~zod |=(x x))
+++ biff-text (biff `"hi" |=(x `x))
+++ both-mixed (both `"hi" `~zod)
+++ clap-text (clap `"hi" `"there" |=(p=[@t @t] "yes"))
+++ clef-mixed (clef `"hi" `~zod |=(p=[@t @p] `"ok"))
+++ flit-text ((flit |=(x=@t %.y)) "hi")
+++ wrong (bind `~zod |=(x=@t x))
+++ pending
+  ~& %open
+    (both `"hi" `~zod)

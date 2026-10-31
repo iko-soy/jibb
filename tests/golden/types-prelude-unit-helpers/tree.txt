@@ -1,0 +1,75 @@
+(module
+  (value 1:1 bind-text
+    (group 1:14
+      (call 1:15
+        (wing 1:15 bind)
+        (unit 1:20 (str 1:21 "hi"))
+        (gate-wide 1:26 (bind 1:29 x) (wing 1:31 x)))))
+  (value 2:1 bind-ship
+    (group 2:14
+      (call 2:15
+        (wing 2:15 bind)
+        (unit 2:20 (lit 2:21 ~zod))
+        (gate-wide 2:26 (bind 2:29 x) (wing 2:31 x)))))
+  (value 3:1 biff-text
+    (group 3:14
+      (call 3:15
+        (wing 3:15 biff)
+        (unit 3:20 (str 3:21 "hi"))
+        (gate-wide 3:26
+          (bind 3:29 x)
+          (unit 3:31 (wing 3:32 x))))))
+  (value 4:1 both-mixed
+    (group 4:15
+      (call 4:16
+        (wing 4:16 both)
+        (unit 4:21 (str 4:22 "hi"))
+        (unit 4:27 (lit 4:28 ~zod)))))
+  (value 5:1 clap-text
+    (group 5:14
+      (call 5:15
+        (wing 5:15 clap)
+        (unit 5:20 (str 5:21 "hi"))
+        (unit 5:26 (str 5:27 "there"))
+        (gate-wide 5:35
+          (face 5:38 p
+            (cell 5:40 (aura 5:41 @t) (aura 5:44 @t)))
+          (str 5:48 "yes")))))
+  (value 6:1 clef-mixed
+    (group 6:15
+      (call 6:16
+        (wing 6:16 clef)
+        (unit 6:21 (str 6:22 "hi"))
+        (unit 6:27 (lit 6:28 ~zod))
+        (gate-wide 6:33
+          (face 6:36 p
+            (cell 6:38 (aura 6:39 @t) (aura 6:42 @p)))
+          (unit 6:46 (str 6:47 "ok"))))))
+  (value 7:1 flit-text
+    (group 7:14
+      (call 7:15
+        (group 7:15
+          (call 7:16
+            (wing 7:16 flit)
+            (gate-wide 7:21
+              (face 7:24 x (aura 7:26 @t))
+              (lit 7:29 %.y))))
+        (str 7:35 "hi"))))
+  (value 8:1 wrong
+    (group 8:10
+      (call 8:11
+        (wing 8:11 bind)
+        (unit 8:16 (lit 8:17 ~zod))
+        (gate-wide 8:22
+          (face 8:25 x (aura 8:27 @t))
+          (wing 8:30 x)))))
+  (value 9:1 pending
+    (body 10:3
+      (trace 10:3
+        (lit 10:6 %open)
+        (body 11:5
+          (group 11:5
+            (call 11:6
+              (wing 11:6 both)
+              (unit 11:11 (str 11:12 "hi"))
+              (unit 11:17 (lit 11:18 ~zod)))))))))

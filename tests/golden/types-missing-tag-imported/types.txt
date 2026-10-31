@@ -1,0 +1,12 @@
+partial inference; module not checked
+++ good: %no %yes
+++ bad: union %no %yes has no case `%other`
+/tests/golden/types-missing-tag-imported/source.jibb:3:11: expected union
+++ bad ^- choice.fixture %other
+          ^
+/tests/golden/types-missing-tag-imported/source.jibb:3:26: tag
+++ bad ^- choice.fixture %other
+                         ^
+++ nested: $-([status=(%deny %approve) text=@t] @t)
+++ get-status: $-([status=(%deny %approve) text=@t] (%deny %approve))
+++ via-field: cast constraint is not supported by partial inference

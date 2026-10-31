@@ -1,0 +1,6 @@
+/- fixture
+++ good ^- choice.fixture %yes
+++ bad ^- choice.fixture %other
+++ nested |= x=nested-choice.fixture ^- @t text.x
+++ get-status |= x=nested-choice.fixture status.x
+++ via-field |= x=nested-choice.fixture ^- choice.fixture status.x

@@ -146,21 +146,21 @@
 
 ++ bind |= args=[(unit A) $-(A B)]
   ?- args
-    [maybe f]
+    [maybe f] ^- (unit B)
       ?- maybe
         ~ ~
         [~ value] `(f value)
 
 ++ biff |= args=[(unit A) $-(A (unit B))]
   ?- args
-    [maybe f]
+    [maybe f] ^- (unit B)
       ?- maybe
         ~ ~
         [~ value] (f value)
 
 ++ both |= args=[(unit A) (unit B)]
   ?- args
-    [first second]
+    [first second] ^- (unit [A B])
       ?- first
         ~ ~
         [~ a]
@@ -244,9 +244,10 @@
 
 ++ flit |= predicate=$-(A ?)
   |= value=A
-    ?- (predicate value)
-      %.y `value
-      %.n ~
+    ^- (unit A)
+      ?- (predicate value)
+        %.y `value
+        %.n ~
 
 ++ murn |= args=[(list A) $-(A (unit B))]
   ?- args

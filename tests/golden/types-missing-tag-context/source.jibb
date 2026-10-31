@@ -1,0 +1,17 @@
++$ msg
+  %go
+  [%typed text=@t]
+++ items ^- (list msg) ~[%go %missing]
+++ existing ^- (list msg) ~[%typed]
+++ arm |= x=? ^- msg
+  ?- x
+    %.y %go
+    %.n %missing
+++ existing-arm |= x=? ^- msg
+  ?- x
+    %.y %go
+    %.n %typed
+++ unrelated
+  ~& %other
+    ^- msg %go
+++ unit ^- (unit msg) `%missing

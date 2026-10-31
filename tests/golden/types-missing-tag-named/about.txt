@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: an unmatched literal is an error naming its union, such as "msg has no case %submitt".
+tests: A definitely absent tag names the known union and both sites. Existing tags with incompatible shape retain the usual mismatch; unconstrained or discarded tags remain pending. Partial inference stays conservative for unproven shapes.
+expect: parses
+expect-types: a partial inference report

@@ -41,7 +41,7 @@ partial inference; module not checked
 ++ flop: sample mold is not supported by partial inference
 ++ drop: unit branch results need unsupported inference
 ++ bind: unit construction needs the standard prelude in partial inference
-++ biff: unit branch results need unsupported inference
+++ biff: $-([(unit A) $-(A (unit B))] (unit B))
 ++ both: unit construction needs the standard prelude in partial inference
 ++ clap: branch pattern is not supported by partial inference
 ++ clef: branch pattern is not supported by partial inference

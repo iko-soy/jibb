@@ -1,0 +1,16 @@
+partial inference; module not checked
+++ bind-text: (unit @t)
+++ bind-ship: (unit @p)
+++ biff-text: (unit @t)
+++ both-mixed: (unit [@t @p])
+++ clap-text: name is not available to partial inference
+++ clef-mixed: name is not available to partial inference
+++ flit-text: (unit @t)
+++ wrong: call's sample and argument types do not unify
+/tests/golden/types-prelude-unit-helpers/source.jibb:8:11: called gate
+++ wrong (bind `~zod |=(x=@t x))
+          ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:8:22: argument has type $-(@t @t)
+++ wrong (bind `~zod |=(x=@t x))
+                     ^
+++ pending: tag needs context in partial inference

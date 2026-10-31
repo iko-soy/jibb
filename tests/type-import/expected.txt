@@ -10,11 +10,11 @@ partial inference; module not checked
 ++ duplicate: sample mold is not supported by partial inference
 ++ undeclared: sample mold is not supported by partial inference
 ++ yes: %no %yes
-++ absent: cast mold and expression type do not unify
-/test.jibb:14:14: cast mold
+++ absent: union %no %yes has no case `%other`
+/test.jibb:14:14: expected union
 ++ absent ^- choice.fixture %other
              ^
-/test.jibb:14:29: expression
+/test.jibb:14:29: tag
 ++ absent ^- choice.fixture %other
                             ^
 ++ status: $-([status=(%deny %approve) text=@t] (%deny %approve))

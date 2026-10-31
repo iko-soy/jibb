@@ -1,0 +1,45 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %go)
+      (cell 3:3
+        (const 3:4 %typed)
+        (face 3:11 text (aura 3:16 @t)))))
+  (value 4:1 items
+    (cast 4:10
+      (apply 4:13 list (ref 4:19 msg))
+      (list 4:24 (lit 4:26 %go) (lit 4:30 %missing))))
+  (value 5:1 existing
+    (cast 5:13
+      (apply 5:16 list (ref 5:22 msg))
+      (list 5:27 (lit 5:29 %typed))))
+  (value 6:1 arm
+    (gate 6:8
+      (face 6:11 x (flag 6:13))
+      (cast 6:15
+        (ref 6:18 msg)
+        (body 7:3
+          (branch 7:3
+            (wing 7:6 x)
+            (arm 8:5 (lit 8:5 %.y) (lit 8:9 %go))
+            (arm 9:5 (lit 9:5 %.n) (lit 9:9 %missing)))))))
+  (value 10:1 existing-arm
+    (gate 10:17
+      (face 10:20 x (flag 10:22))
+      (cast 10:24
+        (ref 10:27 msg)
+        (body 11:3
+          (branch 11:3
+            (wing 11:6 x)
+            (arm 12:5 (lit 12:5 %.y) (lit 12:9 %go))
+            (arm 13:5 (lit 13:5 %.n) (lit 13:9 %typed)))))))
+  (value 14:1 unrelated
+    (body 15:3
+      (trace 15:3
+        (lit 15:6 %other)
+        (body 16:5
+          (cast 16:5 (ref 16:8 msg) (lit 16:12 %go))))))
+  (value 17:1 unit
+    (cast 17:9
+      (apply 17:12 unit (ref 17:18 msg))
+      (unit 17:23 (lit 17:24 %missing)))))

@@ -1,0 +1,155 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %typed
+2:11 name text
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 lit %add
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name choice
+4:11 glyph |$
+4:14 glyph [
+4:15 tight tvar A
+4:16 tight glyph ]
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %some
+5:10 name value
+5:15 tight glyph =
+5:16 tight tvar A
+5:17 tight glyph ]
+6:3 NEWLINE
+6:3 lit %none
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name wrapped
+7:12 glyph [
+7:13 tight lit %wrapper
+7:22 name payload
+7:29 tight glyph =
+7:30 tight name msg
+7:33 tight glyph ]
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name good
+8:9 glyph ^-
+8:12 name msg
+8:16 lit %add
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name bad
+9:8 glyph ^-
+9:11 name msg
+9:15 lit %submitt
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name good-head
+10:14 glyph ^-
+10:17 name msg
+10:21 glyph [
+10:22 tight lit %typed
+10:29 str "ok"
+10:33 tight glyph ]
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name bad-head
+11:13 glyph ^-
+11:16 name msg
+11:20 glyph [
+11:21 tight lit %other
+11:28 str "ok"
+11:32 tight glyph ]
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name payload
+12:12 glyph ^-
+12:15 name msg
+12:19 glyph [
+12:20 tight lit %typed
+12:27 lit ~zod
+12:31 tight glyph ]
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name tag-only
+13:13 glyph ^-
+13:16 name msg
+13:20 lit %typed
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name nested
+14:11 glyph ^-
+14:14 name wrapped
+14:22 glyph [
+14:23 tight lit %wrapper
+14:32 lit %submitt
+14:40 tight glyph ]
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name generic
+15:12 glyph ^-
+15:15 glyph (
+15:16 tight name choice
+15:23 aura @t
+15:25 tight glyph )
+15:27 lit %missing
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name generic-payload
+16:20 glyph ^-
+16:23 glyph (
+16:24 tight name choice
+16:31 aura @t
+16:33 tight glyph )
+16:35 glyph [
+16:36 tight lit %some
+16:42 lit ~zod
+16:46 tight glyph ]
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name take
+17:9 glyph |=
+17:12 name x
+17:13 tight glyph =
+17:14 tight name msg
+17:18 str "ok"
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name call
+18:9 glyph (
+18:10 tight name take
+18:15 lit %submitt
+18:23 tight glyph )
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name absent
+19:11 lit %submitt
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name discarded
+21:3 INDENT
+21:3 glyph ~&
+21:6 lit %submitt
+22:5 INDENT
+22:5 glyph ^-
+22:8 name msg
+22:12 lit %add
+23:1 DEDENT
+23:1 DEDENT
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name generic-unknown
+23:20 glyph |=
+23:23 name x
+23:24 tight glyph =
+23:25 tight tvar A
+23:27 glyph ^-
+23:30 tvar A
+23:32 lit %submitt
+23:40 NEWLINE

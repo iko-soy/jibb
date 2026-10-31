@@ -1,0 +1,38 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ items: msg has no case `%missing`
+/tests/golden/types-missing-tag-context/source.jibb:4:13: expected union
+++ items ^- (list msg) ~[%go %missing]
+            ^
+/tests/golden/types-missing-tag-context/source.jibb:4:30: tag
+++ items ^- (list msg) ~[%go %missing]
+                             ^
+++ existing: list item does not fit its expected type
+/tests/golden/types-missing-tag-context/source.jibb:5:16: expected item
+++ existing ^- (list msg) ~[%typed]
+               ^
+/tests/golden/types-missing-tag-context/source.jibb:5:29: list item
+++ existing ^- (list msg) ~[%typed]
+                            ^
+++ arm: msg has no case `%missing`
+/tests/golden/types-missing-tag-context/source.jibb:6:18: expected union
+++ arm |= x=? ^- msg
+                 ^
+/tests/golden/types-missing-tag-context/source.jibb:9:9: tag
+    %.n %missing
+        ^
+++ existing-arm: branch arm does not fit its expected union
+/tests/golden/types-missing-tag-context/source.jibb:10:27: expected union
+++ existing-arm |= x=? ^- msg
+                          ^
+/tests/golden/types-missing-tag-context/source.jibb:13:9: branch arm
+    %.n %typed
+        ^
+++ unrelated: tag needs context in partial inference
+++ unit: msg has no case `%missing`
+/tests/golden/types-missing-tag-context/source.jibb:17:12: expected union
+++ unit ^- (unit msg) `%missing
+           ^
+/tests/golden/types-missing-tag-context/source.jibb:17:24: tag
+++ unit ^- (unit msg) `%missing
+                       ^

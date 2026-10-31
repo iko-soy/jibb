@@ -1,0 +1,66 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ choice: cases proven disjoint; mold not checked
++$ wrapped: not checked
+++ good: msg
+++ bad: msg has no case `%submitt`
+/tests/golden/types-missing-tag-named/source.jibb:9:11: expected union
+++ bad ^- msg %submitt
+          ^
+/tests/golden/types-missing-tag-named/source.jibb:9:15: tag
+++ bad ^- msg %submitt
+              ^
+++ good-head: msg
+++ bad-head: cast mold and expression type do not unify
+/tests/golden/types-missing-tag-named/source.jibb:11:16: cast mold
+++ bad-head ^- msg [%other "ok"]
+               ^
+/tests/golden/types-missing-tag-named/source.jibb:11:20: expression
+++ bad-head ^- msg [%other "ok"]
+                   ^
+++ payload: cast mold and expression type do not unify
+/tests/golden/types-missing-tag-named/source.jibb:12:15: cast mold
+++ payload ^- msg [%typed ~zod]
+              ^
+/tests/golden/types-missing-tag-named/source.jibb:12:19: expression
+++ payload ^- msg [%typed ~zod]
+                  ^
+++ tag-only: cast mold and expression type do not unify
+/tests/golden/types-missing-tag-named/source.jibb:13:16: cast mold
+++ tag-only ^- msg %typed
+               ^
+/tests/golden/types-missing-tag-named/source.jibb:13:20: expression
+++ tag-only ^- msg %typed
+                   ^
+++ nested: cast mold and expression type do not unify
+/tests/golden/types-missing-tag-named/source.jibb:14:14: cast mold
+++ nested ^- wrapped [%wrapper %submitt]
+             ^
+/tests/golden/types-missing-tag-named/source.jibb:14:22: expression
+++ nested ^- wrapped [%wrapper %submitt]
+                     ^
+++ generic: (choice @t) has no case `%missing`
+/tests/golden/types-missing-tag-named/source.jibb:15:15: expected union
+++ generic ^- (choice @t) %missing
+              ^
+/tests/golden/types-missing-tag-named/source.jibb:15:27: tag
+++ generic ^- (choice @t) %missing
+                          ^
+++ generic-payload: cast mold and expression type do not unify
+/tests/golden/types-missing-tag-named/source.jibb:16:23: cast mold
+++ generic-payload ^- (choice @t) [%some ~zod]
+                      ^
+/tests/golden/types-missing-tag-named/source.jibb:16:35: expression
+++ generic-payload ^- (choice @t) [%some ~zod]
+                                  ^
+++ take: $-(msg @t)
+++ call: msg has no case `%submitt`
+/tests/golden/types-missing-tag-named/source.jibb:18:10: expected union
+++ call (take %submitt)
+         ^
+/tests/golden/types-missing-tag-named/source.jibb:18:15: tag
+++ call (take %submitt)
+              ^
+++ absent: tag needs context in partial inference
+++ discarded: tag needs context in partial inference
+++ generic-unknown: explicit capital constraints are not supported by partial inference

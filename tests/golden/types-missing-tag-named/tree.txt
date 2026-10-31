@@ -1,0 +1,66 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %add)))
+  (mold 4:1 choice
+    (generic 4:11 A
+      (union 5:3
+        (cell 5:3
+          (const 5:4 %some)
+          (face 5:10 value (tvar 5:16 A)))
+        (const 6:3 %none))))
+  (mold 7:1 wrapped
+    (cell 7:12
+      (const 7:13 %wrapper)
+      (face 7:22 payload (ref 7:30 msg))))
+  (value 8:1 good
+    (cast 8:9 (ref 8:12 msg) (lit 8:16 %add)))
+  (value 9:1 bad
+    (cast 9:8 (ref 9:11 msg) (lit 9:15 %submitt)))
+  (value 10:1 good-head
+    (cast 10:14
+      (ref 10:17 msg)
+      (tuple 10:21 (lit 10:22 %typed) (str 10:29 "ok"))))
+  (value 11:1 bad-head
+    (cast 11:13
+      (ref 11:16 msg)
+      (tuple 11:20 (lit 11:21 %other) (str 11:28 "ok"))))
+  (value 12:1 payload
+    (cast 12:12
+      (ref 12:15 msg)
+      (tuple 12:19 (lit 12:20 %typed) (lit 12:27 ~zod))))
+  (value 13:1 tag-only
+    (cast 13:13 (ref 13:16 msg) (lit 13:20 %typed)))
+  (value 14:1 nested
+    (cast 14:11
+      (ref 14:14 wrapped)
+      (tuple 14:22 (lit 14:23 %wrapper) (lit 14:32 %submitt))))
+  (value 15:1 generic
+    (cast 15:12
+      (apply 15:15 choice (aura 15:23 @t))
+      (lit 15:27 %missing)))
+  (value 16:1 generic-payload
+    (cast 16:20
+      (apply 16:23 choice (aura 16:31 @t))
+      (tuple 16:35 (lit 16:36 %some) (lit 16:42 ~zod))))
+  (value 17:1 take
+    (gate 17:9
+      (face 17:12 x (ref 17:14 msg))
+      (str 17:18 "ok")))
+  (value 18:1 call
+    (group 18:9
+      (call 18:10 (wing 18:10 take) (lit 18:15 %submitt))))
+  (value 19:1 absent (lit 19:11 %submitt))
+  (value 20:1 discarded
+    (body 21:3
+      (trace 21:3
+        (lit 21:6 %submitt)
+        (body 22:5
+          (cast 22:5 (ref 22:8 msg) (lit 22:12 %add))))))
+  (value 23:1 generic-unknown
+    (gate 23:20
+      (face 23:23 x (tvar 23:25 A))
+      (cast 23:27 (tvar 23:30 A) (lit 23:32 %submitt)))))

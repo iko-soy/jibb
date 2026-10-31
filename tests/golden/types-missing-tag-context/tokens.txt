@@ -1,0 +1,98 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %go
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %typed
+3:11 name text
+3:15 tight glyph =
+3:16 tight aura @t
+3:18 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name items
+4:10 glyph ^-
+4:13 glyph (
+4:14 tight name list
+4:19 name msg
+4:22 tight glyph )
+4:24 glyph ~[
+4:26 tight lit %go
+4:30 lit %missing
+4:38 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name existing
+5:13 glyph ^-
+5:16 glyph (
+5:17 tight name list
+5:22 name msg
+5:25 tight glyph )
+5:27 glyph ~[
+5:29 tight lit %typed
+5:35 tight glyph ]
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name arm
+6:8 glyph |=
+6:11 name x
+6:12 tight glyph =
+6:13 tight glyph ?
+6:15 glyph ^-
+6:18 name msg
+7:3 INDENT
+7:3 glyph ?-
+7:6 name x
+8:5 INDENT
+8:5 lit %.y
+8:9 lit %go
+9:5 NEWLINE
+9:5 lit %.n
+9:9 lit %missing
+10:1 DEDENT
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name existing-arm
+10:17 glyph |=
+10:20 name x
+10:21 tight glyph =
+10:22 tight glyph ?
+10:24 glyph ^-
+10:27 name msg
+11:3 INDENT
+11:3 glyph ?-
+11:6 name x
+12:5 INDENT
+12:5 lit %.y
+12:9 lit %go
+13:5 NEWLINE
+13:5 lit %.n
+13:9 lit %typed
+14:1 DEDENT
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name unrelated
+15:3 INDENT
+15:3 glyph ~&
+15:6 lit %other
+16:5 INDENT
+16:5 glyph ^-
+16:8 name msg
+16:12 lit %go
+17:1 DEDENT
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name unit
+17:9 glyph ^-
+17:12 glyph (
+17:13 tight name unit
+17:18 name msg
+17:21 tight glyph )
+17:23 glyph `
+17:24 tight lit %missing
+17:32 NEWLINE

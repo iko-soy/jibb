@@ -1,0 +1,21 @@
+|%
++$  title     @t
++$  pair      [@ud @t]
++$  faced     [name=@t age=@ud]
++$  nested    [entry=faced number=@ud]
++$  constant  %yes
++$  choice    ?(%yes %no)
++$  nested-choice  [status=?(%approve %deny) text=@t]
++$  collapsed      $?([%x @ud] [%x @ud])
++$  dollar         %$
++$  dollar-choice  ?(%$ %yes)
++$  texts          (list @t)
++$  numbers        (list @ud)
++$  maybe          (unit @t)
++$  tagged-list  (list $?([%x @ud] [%y @t]))
++$  buckets        (map @ud @t)
++$  collection-rec  [items=(list @t) slots=(unit @ud)]
++$  chain  $@(~ [value=@ud next=chain])
++$  other  $@(~ [value=@ud next=other])
++$  alias  chain
+--

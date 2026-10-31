@@ -1,0 +1,23 @@
++$ msg
+  [%typed text=@t]
+  %add
++$ choice |$ [A]
+  [%some value=A]
+  %none
++$ wrapped [%wrapper payload=msg]
+++ good ^- msg %add
+++ bad ^- msg %submitt
+++ good-head ^- msg [%typed "ok"]
+++ bad-head ^- msg [%other "ok"]
+++ payload ^- msg [%typed ~zod]
+++ tag-only ^- msg %typed
+++ nested ^- wrapped [%wrapper %submitt]
+++ generic ^- (choice @t) %missing
+++ generic-payload ^- (choice @t) [%some ~zod]
+++ take |= x=msg "ok"
+++ call (take %submitt)
+++ absent %submitt
+++ discarded
+  ~& %submitt
+    ^- msg %add
+++ generic-unknown |= x=A ^- A %submitt

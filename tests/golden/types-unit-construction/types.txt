@@ -9,11 +9,11 @@ partial inference; module not checked
 ++ same-first: (unit @t)
 ++ same-second: (unit @p)
 ++ ctx: (unit msg)
-++ bad-tag: unit payload does not fit its expected type
-/tests/golden/types-unit-construction/source.jibb:17:15: expected unit payload
+++ bad-tag: msg has no case `%bad`
+/tests/golden/types-unit-construction/source.jibb:17:15: expected union
 ++ bad-tag ^- (unit msg) `%bad
               ^
-/tests/golden/types-unit-construction/source.jibb:17:27: payload
+/tests/golden/types-unit-construction/source.jibb:17:27: tag
 ++ bad-tag ^- (unit msg) `%bad
                           ^
 ++ missing-tag: tag needs context in partial inference

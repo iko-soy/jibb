@@ -49,7 +49,7 @@ And from the plan's Risks:
 
 ## First steps
 
-1. **Specify the prelude inventory.** The checker needs the prelude's complete exported inventory and signatures; include all names from the listed Hoon library sections except explicitly excluded groups, as `docs/open-questions.md` question 3 records. The prelude imports private helpers and low-level primitives from a separate internal module without exposing them; its public foundational gates are implemented in Jibb on those primitives.
+1. **Specify the prelude inventory.** The checker needs the prelude's complete exported inventory and signatures; include all names from the listed Hoon library sections except explicitly excluded groups, as `docs/open-questions.md` question 3 records. The prelude imports private helpers and low-level primitives from a separate internal module without exposing them; its public foundational gates are implemented in Jibb on those primitives. How that module supplies opaque types such as `poke` is still awaiting @iko’s answer: question 24 records the alternatives of a compiler-provided private interface or syntax for private opaque declarations.
 
    The plan's three core-language rules were adopted: gate-free `eq` arguments and map and set keys, with gates opaque for union matching; jetted prelude functions taking gates; and rejection of a non-gate value that depends on itself even through a gate.
 2. **Start the importer early**, as the plan's Risks ask: first on a small `/sur` file, then on Tlon's. "Suggested design" below has a way in.
