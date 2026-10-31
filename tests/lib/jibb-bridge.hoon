@@ -136,6 +136,9 @@
         [%fixture %raw-rec [%& [%ref %fixture %chain]]]
         [%fixture %bad-arity [%& [%apply %list ~[[%atom %t ~] [%atom %ud ~]]]]]
         [%fixture %bad-argument [%& [%apply %list ~[[%fork ~[[%atom %tas [~ %a]] [%atom %tas [~ %a]]]]]]]]
+        [%fixture %mixed-zero (read %mixed-zero)]
+        [%fixture %separate-tags (read %separate-tags)]
+        [%fixture %separate-terms (read %separate-terms)]
         [%fixture %nested-choice (read %nested-choice)]
         [%fixture %collapsed (read %collapsed)]
         [%fixture %dollar (read %dollar)]
@@ -161,5 +164,5 @@
     (crip "/- fixture\0a++ canonical ^- (unit @t) `\"hi\"\0a++ lookalike ^- zero-lookalike.fixture `\"hi\"\0a")
   =/  unit-report=@t
     (golden-types-with-prelude:jibb /ui/unit-client/jibb unit-client external ~ ~ unit-prelude)
-  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' (cat 3 noun-synthetic (cat 3 '\0a' (cat 3 recursive-list-synthetic (cat 3 '\0a' named-recursive-synthetic))))))))))
+  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0areader-mixed-zero: {(show-result:jibb-import (read %mixed-zero))}\0areader-separate-tags: {(show-result:jibb-import (read %separate-tags))}\0areader-separate-terms: {(show-result:jibb-import (read %separate-terms))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' (cat 3 noun-synthetic (cat 3 '\0a' (cat 3 recursive-list-synthetic (cat 3 '\0a' named-recursive-synthetic))))))))))
 --

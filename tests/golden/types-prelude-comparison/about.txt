@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Molds, Atoms: "Comparison may take loobeans and returns `?`." The prelude inventory includes `lth`, `gte`, and `lte`.
+tests: Source-backed comparisons infer for less, greater and equal ordered operands, both loobean orders, a shared generic atom type and matching hex auras. Distinct explicit auras fail closed. The report is partial; backend lowering, execution and jet recognition remain unverified.
+expect: parses
+expect-types: a partial inference report

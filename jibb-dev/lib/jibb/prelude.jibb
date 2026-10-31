@@ -350,3 +350,15 @@
     ?- xs
       ~ 0
       [item rest] (add 1 (lent rest))
+
+++ lth |= args=[A A]
+  ?- args
+    [x y] (gth y x)
+
+++ gte |= args=[A A]
+  ?- args
+    [x y] (not (gth y x))
+
+++ lte |= args=[A A]
+  ?- args
+    [x y] (not (gth x y))

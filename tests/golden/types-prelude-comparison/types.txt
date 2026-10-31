@@ -1,0 +1,31 @@
+partial inference; module not checked
+++ less: ?
+++ greater: ?
+++ equal: ?
+++ gte-less: ?
+++ gte-greater: ?
+++ gte-equal: ?
+++ lte-less: ?
+++ lte-greater: ?
+++ lte-equal: ?
+++ flags-forward: ?
+++ flags-reverse: ?
+++ flags-equal: ?
+++ hex: ?
+++ generic-lth: $-([a=A b=A] ?) where A is an atom
+++ generic-gte: $-([a=A b=A] ?) where A is an atom
+++ generic-lte: $-([a=A b=A] ?) where A is an atom
+++ bad-aura: call's sample and argument types do not unify
+/tests/golden/types-prelude-comparison/source.jibb:17:14: called gate has type $-([A A] ?) where A is an atom
+++ bad-aura (lth 0x1 (^- @ud 1))
+             ^
+/tests/golden/types-prelude-comparison/source.jibb:17:18: argument has type [@ux @ud]
+++ bad-aura (lth 0x1 (^- @ud 1))
+                 ^
+++ bad-kind: call's sample and argument types do not unify
+/tests/golden/types-prelude-comparison/source.jibb:18:14: called gate has type $-([A A] ?) where A is an atom
+++ bad-kind (gte ~zod "text")
+             ^
+/tests/golden/types-prelude-comparison/source.jibb:18:18: argument has type [@p @t]
+++ bad-kind (gte ~zod "text")
+                 ^

@@ -21,4 +21,7 @@
 +$  zero-choice  $@(~ [text=@t n=@ud])
 +$  zero-nested  [entry=zero-choice code=@ud]
 +$  zero-lookalike  $@(~ [~ @t])
++$  mixed-zero  $?([%tag %$ @t] [%tag ? @t])
++$  separate-tags  $?([%left %$ @t] [%right ? @t])
++$  separate-terms  $?([%left %$ @t] [%right %yes @t])
 --

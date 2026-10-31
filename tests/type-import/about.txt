@@ -22,8 +22,14 @@ Jibb-written collection molds remain unsupported.
 A self-recursive /sur mold is an opaque module/name identity. Distinct names
 or modules conflict; aliases, foreign references, unfolding and out-of-scope
 names remain unsupported. The fixture checks these limits as well as malformed
-references and overlapping recursive graphs. The reader itself rejects an
-overlapping source union before Hoon can collapse it. A missing import and a
+references and overlapping recursive graphs. The reader rejects the overlapping
+source union instead of publishing a collapsed result. A missing import and a
 duplicate supplied mold fail closed. The types output is partial and does not
 claim that the module was checked. The same fixture runs under urbit eval and
 through -test on the fake ship.
+
+The real-reader mixed-zero case places `%$` and `?` under the same outer tag;
+both allow the noun zero. It must fail closed. The distinct-tag `%$`/`?`
+case records the current conservative limitation, while distinct-tag term
+singletons are a successful reader/checker control. These are source-aware
+reads and the checker report remains partial.

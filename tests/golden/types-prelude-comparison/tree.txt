@@ -1,0 +1,71 @@
+(module
+  (value 1:1 less
+    (group 1:9
+      (call 1:10 (wing 1:10 lth) (lit 1:14 1) (lit 1:16 2))))
+  (value 2:1 greater
+    (group 2:12
+      (call 2:13 (wing 2:13 lth) (lit 2:17 2) (lit 2:19 1))))
+  (value 3:1 equal
+    (group 3:10
+      (call 3:11 (wing 3:11 lth) (lit 3:15 1) (lit 3:17 1))))
+  (value 4:1 gte-less
+    (group 4:13
+      (call 4:14 (wing 4:14 gte) (lit 4:18 1) (lit 4:20 2))))
+  (value 5:1 gte-greater
+    (group 5:16
+      (call 5:17 (wing 5:17 gte) (lit 5:21 2) (lit 5:23 1))))
+  (value 6:1 gte-equal
+    (group 6:14
+      (call 6:15 (wing 6:15 gte) (lit 6:19 1) (lit 6:21 1))))
+  (value 7:1 lte-less
+    (group 7:13
+      (call 7:14 (wing 7:14 lte) (lit 7:18 1) (lit 7:20 2))))
+  (value 8:1 lte-greater
+    (group 8:16
+      (call 8:17 (wing 8:17 lte) (lit 8:21 2) (lit 8:23 1))))
+  (value 9:1 lte-equal
+    (group 9:14
+      (call 9:15 (wing 9:15 lte) (lit 9:19 1) (lit 9:21 1))))
+  (value 10:1 flags-forward
+    (group 10:18
+      (call 10:19 (wing 10:19 gte) (lit 10:23 %.y) (lit 10:27 %.n))))
+  (value 11:1 flags-reverse
+    (group 11:18
+      (call 11:19 (wing 11:19 lte) (lit 11:23 %.n) (lit 11:27 %.y))))
+  (value 12:1 flags-equal
+    (group 12:16
+      (call 12:17 (wing 12:17 lth) (lit 12:21 %.y) (lit 12:25 %.y))))
+  (value 13:1 hex
+    (group 13:8
+      (call 13:9 (wing 13:9 lth) (lit 13:13 0x1) (lit 13:17 0x2))))
+  (value 14:1 generic-lth
+    (gate 14:16
+      (cell 14:19
+        (face 14:20 a (tvar 14:22 A))
+        (face 14:24 b (tvar 14:26 A)))
+      (group 14:29
+        (call 14:30 (wing 14:30 lth) (wing 14:34 a) (wing 14:36 b)))))
+  (value 15:1 generic-gte
+    (gate 15:16
+      (cell 15:19
+        (face 15:20 a (tvar 15:22 A))
+        (face 15:24 b (tvar 15:26 A)))
+      (group 15:29
+        (call 15:30 (wing 15:30 gte) (wing 15:34 a) (wing 15:36 b)))))
+  (value 16:1 generic-lte
+    (gate 16:16
+      (cell 16:19
+        (face 16:20 a (tvar 16:22 A))
+        (face 16:24 b (tvar 16:26 A)))
+      (group 16:29
+        (call 16:30 (wing 16:30 lte) (wing 16:34 a) (wing 16:36 b)))))
+  (value 17:1 bad-aura
+    (group 17:13
+      (call 17:14
+        (wing 17:14 lth)
+        (lit 17:18 0x1)
+        (group 17:22
+          (cast 17:23 (aura 17:26 @ud) (lit 17:30 1))))))
+  (value 18:1 bad-kind
+    (group 18:13
+      (call 18:14 (wing 18:14 gte) (lit 18:18 ~zod) (str 18:23 "text")))))

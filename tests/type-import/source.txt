@@ -76,3 +76,8 @@
 ++ flag-extra |= x=flag-extra.fixture x
 ++ flag-faced |= x=flag-faced.fixture x
 ++ flag-malformed |= x=flag-malformed.fixture x
+
+::  Real source-aware nested mixed-aura cases.
+++ mixed-zero |= x=mixed-zero.fixture x
+++ separate-tags |= x=separate-tags.fixture x
+++ separate-terms |= x=separate-terms.fixture x

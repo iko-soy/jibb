@@ -14,7 +14,7 @@ Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold 
 
 `add`, `dec`, `div`, `dvr`, `gte`, `gth`, `lte`, `lth`, `max`, `min`, `mod`, `mul`, `sub`.
 
-The source-backed `gth` gate calls a compiler-supplied private comparison interface. The partial checker accepts supported equal-aura atom arguments, including loobeans, and returns `?`; lowering, jet recognition and execution remain unfinished. The public `add` and `dec` gates are written in Jibb over private primitive interfaces. The partial checker infers a shared atom type that excludes loobeans, including through supported generic calls. Primitive execution and jet recognition remain unfinished.
+The source-backed `gth` gate calls a compiler-supplied private comparison interface. The partial checker accepts supported equal-aura atom arguments, including loobeans, and returns `?`; lowering, jet recognition and execution remain unfinished. The public `add` and `dec` gates are written in Jibb over private primitive interfaces. The partial checker infers a shared atom type that excludes loobeans, including through supported generic calls. The Jibb-written `lth`, `gte` and `lte` gates compose `gth` and `not`; supported calls infer a shared atom constraint and return `?`. Primitive execution and jet recognition remain unfinished.
 
 ## 1c
 

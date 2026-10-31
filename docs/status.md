@@ -49,6 +49,8 @@ The shared prelude interface reserves every name present in the supplied vendore
 
 An eval and ship fixture now reports partial inference for the unchanged todo island with its real API and Hoon readers. It verifies that the source fixtures match `my-app` and exercises missing or duplicate imports; the report does not claim the module or island has been checked. The prelude also has a Jibb-written recursive `lent` whose supported generic calls infer `@ud`. Execution and shape-based jet recognition remain future backend work. Nested union tests check equal runtime nouns, different nested tags, empty fields and unknown inhabitation.
 
+The prelude now writes `lth`, `gte` and `lte` in Jibb using `gth` and `not`. Supported generic and concrete calls infer, including loobeans; mismatched explicit auras fail. A source-aware Hoon import fixture records that nested mixed-zero overlaps are rejected conservatively and that some disjoint flag cases also remain unsupported. Execution, jet recognition and complete import checking remain unfinished.
+
 ## Milestone 1: parser and mark
 
 What the plan asks for, and where it is:
@@ -65,8 +67,8 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 651 golden cases: 431 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 651-case corpus passed under `urbit eval` in 106.1 s while other checks were running. The fake ship passed all 683 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report, with 77.1 s for sync and 77.3 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- 652 golden cases: 432 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 652-case corpus passed under `urbit eval` in 122.4 s while other checks were running. The fake ship passed all 684 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report, with 107.1 s for sync and 75.9 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -164,7 +166,8 @@ Besides the plan's list:
 | 72acdb3 | 2026-10-31 | Infer selected nested union payloads from context |
 | 706035c | 2026-10-31 | Analyze gate-free source molds with field witnesses |
 | 651b8ec | 2026-10-31 | Match source-proven gate samples in direct calls |
-| This change | 2026-10-31 | Add source-backed list length and real todo regression |
+| cc8e389 | 2026-10-31 | Add source-backed list length and real todo regression |
+| This change | 2026-10-31 | Add source-backed comparisons and nested Hoon union controls |
 
 ## Checking it
 
