@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Effects: "`poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally. Derived gates and `pure` also construct requests."
+tests: Source-backed pure values at independent and generic types, agent and store constructors, missing and exhaustive union branches, prior unit state, path identity, numeric defaulting and pending constraints. Receiver mismatches and unimplemented contexts remain unsupported; no runtime or watch validation is claimed.
+expect: parses
+expect-types: a partial inference report

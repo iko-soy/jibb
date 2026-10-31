@@ -1,0 +1,55 @@
+++ pure-cord (pure "hello")
+++ pure-ship (pure ~zod)
+++ pure-generic |= x=A (pure x)
+++ explicit-pure ^- (ask @t) [%pure "hello"]
+++ wrong-pure ^- (ask @p) [%pure "hello"]
+++ no-state ^- (unit *) ~
+++ zero-state ^- (unit *) `0
+++ no-ud ^- (unit @ud) ~
+++ zero-ud ^- (unit @ud) `0
+++ some-state ^- (unit *) `~zod
+++ agent |= [p=(list @ta) rec=$-([mark=@tas state=(unit *) fact=*] [state=* message=@t])]
+  ^- (ask @t) [%agent api="/ui/api/demo" case=%plain agent=%demo path=p scry=~ receive=rec]
+++ scry-agent |= [p=(list @ta) rec=$-([mark=@tas state=(unit *) fact=*] [state=* message=@t])]
+  ^- (ask @t) [%agent api="/ui/api/demo" case=%plain agent=%demo path=p scry=`p receive=rec]
+++ wrong-agent |= [p=(list @ta) rec=$-([mark=@tas state=(unit *) fact=*] [state=* message=@p])]
+  ^- (ask @t) [%agent api="/ui/api/demo" case=%plain agent=%demo path=p scry=~ receive=rec]
+++ receiver |= input=[mark=@tas state=(unit *) fact=*]
+  ?- state.input
+    ~ [state=fact.input message="first"]
+    [~ prior] [state=prior message="next"]
+++ direct-path ^- (ask @t)
+  [%agent api="/ui/api/demo" case=%plain agent=%demo path=~[%items] scry=~ receive=|=(input=[mark=@tas state=(unit *) fact=*] [state=0 message="ok"])]
+++ fold-example |= [change=[%delta @ud] previous=@ud] previous
+++ erased-fact-as-ud |= input=[mark=@tas state=(unit *) fact=*] ^- @ud fact.input
+++ erased-state-as-ud |= input=[mark=@tas state=(unit *) fact=*]
+  ?- state.input
+    ~ 0
+    [~ previous] ^- @ud previous
+++ pure-number (pure 1)
+++ pure-typed-number ^- (ask @ud) (pure 1)
+++ pure-unresolved |= value=A
+  ~& %pending
+    (pure value)
+++ identity-path |= value=path value
+++ identity-qath |= value=qath value
+++ path-as-qath |= value=path ^- qath value
+++ qath-as-path |= value=qath ^- path value
+++ path-consumer |= value=path value
+++ application-path (path-consumer %/items)
+++ ordinary-path ^- path ~[~.items]
+++ ask-from-ordinary (agent ordinary-path |=(v=[mark=@tas state=(unit *) fact=*] [state=0 message="ok"]))
+++ ask-from-qath (agent %/items |=(v=[mark=@tas state=(unit *) fact=*] [state=0 message="ok"]))
+++ store |= rec=$-([state=(unit *) fact=*] [state=* message=@t])
+  ^- (ask @t) [%store module="/ui/store/cart" name=%state receive=rec]
+++ wrong-store |= rec=$-([state=(unit *) fact=*] [state=* message=@p])
+  ^- (ask @t) [%store module="/ui/store/cart" name=%state receive=rec]
+++ incomplete |= value=(ask @t)
+  ?- value
+    [%pure p] p
+    [%agent a b c d e f] "agent"
+++ complete |= value=(ask @t)
+  ?- value
+    [%pure p] p
+    [%agent a b c d e f] "agent"
+    [%store a b c] "store"

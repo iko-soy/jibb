@@ -10089,7 +10089,7 @@
   [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~]
 ::
 ++  infer-private-internal
-  |=  src=@t
+  |=  [src=@t public-source=@t]
   ^-  (unit ifile)
   =/  at=path  /lib/jibb/internal/jibb
   =/  parsed  (parse at src)
@@ -10107,16 +10107,65 @@
   ?:  (lien vals |=(n=term =(n %main)))  ~
   =/  molds=imolds  (collect-simple-molds defs.mod)
   =/  globals=(list term)  (weld (import-binding-names imports.mod) vals)
-  =/  js=ijimports  ~[[face.i.imports.mod private-primitive-interface]]
+  ::  The private source can use the public list and unit molds before the
+  ::  prelude is otherwise prepared.  Re-read the trusted public source here
+  ::  and admit only its validated canonical templates; do not accept schemes
+  ::  supplied independently by the caller.
+  =/  public=(each module error)  (parse /lib/jibb/prelude/jibb public-source)
+  ?:  ?=(%| -.public)  ~
+  ?^  (duplicate-defs defs.p.public)  ~
+  ?.  (module-scope-valid p.public ~ ~)  ~
+  =/  source-molds=imolds  (collect-simple-molds defs.p.public)
+  =/  written-list=(unit shape)  (find-simple-mold %list source-molds)
+  =/  source-list=(unit ischeme)
+    ?~  written-list  ~
+    ?.  (standard-prelude-list u.written-list)  ~
+    `[[%collection %list ~[[%var 0]]] ~[0]]
+  ::  Derive the public unit template from its actual source, then compare
+  ::  the complete nominal template before making it available privately.
+  =/  unit-decl=(unit shape)  (find-simple-mold %unit source-molds)
+  =/  source-unit=(unit ischeme)
+    ?~  unit-decl  ~
+    =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
+    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~]
+    =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
+    =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~]
+    =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
+    ?~  found  ~
+    ?.  (standard-unit-template u.found /lib/jibb/prelude/jibb)  ~
+    found
+  =/  primitive=ifile  private-primitive-interface
+  =?  primitive  ?=(^ source-list)
+    primitive(molds [[%list u.source-list] molds.primitive])
+  =?  primitive  ?=(^ source-unit)
+    primitive(molds [[%unit u.source-unit] molds.primitive])
+  =/  js=ijimports  ~[[face.i.imports.mod primitive]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
-  ?:  ?=(%| -.mts)  ~
+  =/  usable=(unit imold-types)
+    ?:  ?=(%& -.mts)  `p.mts
+    ::  Missing public templates may make an unrelated internal mold
+    ::  unavailable.  Validate all molds once with isolated canonical
+    ::  templates before admitting only those inferred using the actual
+    ::  source-backed templates.  The proof interface is never exported.
+    ?.  |(?=(~ source-list) ?=(~ source-unit))  ~
+    =/  nil=itype  [%const [%null %n 0 '~']]
+    =/  canonical-unit=ischeme
+      [[%union ~[nil [%cell nil [%face %u [%var 0]]]] `[/lib/jibb/prelude/jibb %unit] `%unit ~[[%var 0]]] ~[0]]
+    =/  canonical-list=ischeme  [[%collection %list ~[[%var 0]]] ~[0]]
+    =/  proof-primitive=ifile  private-primitive-interface
+    =.  molds.proof-primitive  ~[[%list canonical-list] [%unit canonical-unit]]
+    =/  proof-imports=ijimports  ~[[face.i.imports.mod proof-primitive]]
+    =/  proof=(each imold-types @t)  (module-mold-types molds state(jimports proof-imports))
+    ?:  ?=(%| -.proof)  ~
+    `(partial-prelude-molds molds state)
+  ?~  usable  ~
   =/  resolution=iresolved  (resolve-groups defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
   =/  env=ienv  env.resolution
   ?.  (module-values-complete defs.mod env)  ~
-  `[env p.mts at ~ artifacts.resolution ~ `src]
+  `[env u.usable at ~ artifacts.resolution ~ `src]
 ::
 ++  partial-prelude-interface-with-internal
   |=  [src=@t internal-source=(unit @t)]
@@ -10132,7 +10181,7 @@
     ?.  ?=([[%jibb *] ~] imports.p.parsed)  ~
     ?.  =(path.i.imports.p.parsed /lib/jibb/internal)  ~
     ?~  internal-source  ~
-    =/  built=(unit ifile)  (infer-private-internal u.internal-source)
+    =/  built=(unit ifile)  (infer-private-internal u.internal-source src)
     ?~  built  ~
     `~[[face.i.imports.p.parsed u.built]]
   ?~  private  ~

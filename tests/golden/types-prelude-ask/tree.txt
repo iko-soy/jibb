@@ -1,0 +1,335 @@
+(module
+  (value 1:1 pure-cord
+    (group 1:14
+      (call 1:15 (wing 1:15 pure) (str 1:20 "hello"))))
+  (value 2:1 pure-ship
+    (group 2:14
+      (call 2:15 (wing 2:15 pure) (lit 2:20 ~zod))))
+  (value 3:1 pure-generic
+    (gate 3:17
+      (face 3:20 x (tvar 3:22 A))
+      (group 3:24
+        (call 3:25 (wing 3:25 pure) (wing 3:30 x)))))
+  (value 4:1 explicit-pure
+    (cast 4:18
+      (apply 4:21 ask (aura 4:26 @t))
+      (tuple 4:30 (lit 4:31 %pure) (str 4:37 "hello"))))
+  (value 5:1 wrong-pure
+    (cast 5:15
+      (apply 5:18 ask (aura 5:23 @p))
+      (tuple 5:27 (lit 5:28 %pure) (str 5:34 "hello"))))
+  (value 6:1 no-state
+    (cast 6:13
+      (apply 6:16 unit (noun 6:22))
+      (lit 6:25 ~)))
+  (value 7:1 zero-state
+    (cast 7:15
+      (apply 7:18 unit (noun 7:24))
+      (unit 7:27 (lit 7:28 0))))
+  (value 8:1 no-ud
+    (cast 8:10
+      (apply 8:13 unit (aura 8:19 @ud))
+      (lit 8:24 ~)))
+  (value 9:1 zero-ud
+    (cast 9:12
+      (apply 9:15 unit (aura 9:21 @ud))
+      (unit 9:26 (lit 9:27 0))))
+  (value 10:1 some-state
+    (cast 10:15
+      (apply 10:18 unit (noun 10:24))
+      (unit 10:27 (lit 10:28 ~zod))))
+  (value 11:1 agent
+    (gate 11:10
+      (cell 11:13
+        (face 11:14 p
+          (apply 11:16 list (aura 11:22 @ta)))
+        (face 11:27 rec
+          (fn 11:31
+            (cell 11:34
+              (face 11:35 mark (aura 11:40 @tas))
+              (face 11:45 state
+                (apply 11:51 unit (noun 11:57)))
+              (face 11:60 fact (noun 11:65)))
+            (cell 11:68
+              (face 11:69 state (noun 11:75))
+              (face 11:77 message (aura 11:85 @t))))))
+      (body 12:3
+        (cast 12:3
+          (apply 12:6 ask (aura 12:11 @t))
+          (tuple 12:15
+            (lit 12:16 %agent)
+            (face 12:23 api (str 12:27 "/ui/api/demo"))
+            (face 12:42 case (lit 12:47 %plain))
+            (face 12:54 agent (lit 12:60 %demo))
+            (face 12:66 path (wing 12:71 p))
+            (face 12:73 scry (lit 12:78 ~))
+            (face 12:80 receive (wing 12:88 rec)))))))
+  (value 13:1 scry-agent
+    (gate 13:15
+      (cell 13:18
+        (face 13:19 p
+          (apply 13:21 list (aura 13:27 @ta)))
+        (face 13:32 rec
+          (fn 13:36
+            (cell 13:39
+              (face 13:40 mark (aura 13:45 @tas))
+              (face 13:50 state
+                (apply 13:56 unit (noun 13:62)))
+              (face 13:65 fact (noun 13:70)))
+            (cell 13:73
+              (face 13:74 state (noun 13:80))
+              (face 13:82 message (aura 13:90 @t))))))
+      (body 14:3
+        (cast 14:3
+          (apply 14:6 ask (aura 14:11 @t))
+          (tuple 14:15
+            (lit 14:16 %agent)
+            (face 14:23 api (str 14:27 "/ui/api/demo"))
+            (face 14:42 case (lit 14:47 %plain))
+            (face 14:54 agent (lit 14:60 %demo))
+            (face 14:66 path (wing 14:71 p))
+            (face 14:73 scry
+              (unit 14:78 (wing 14:79 p)))
+            (face 14:81 receive (wing 14:89 rec)))))))
+  (value 15:1 wrong-agent
+    (gate 15:16
+      (cell 15:19
+        (face 15:20 p
+          (apply 15:22 list (aura 15:28 @ta)))
+        (face 15:33 rec
+          (fn 15:37
+            (cell 15:40
+              (face 15:41 mark (aura 15:46 @tas))
+              (face 15:51 state
+                (apply 15:57 unit (noun 15:63)))
+              (face 15:66 fact (noun 15:71)))
+            (cell 15:74
+              (face 15:75 state (noun 15:81))
+              (face 15:83 message (aura 15:91 @p))))))
+      (body 16:3
+        (cast 16:3
+          (apply 16:6 ask (aura 16:11 @t))
+          (tuple 16:15
+            (lit 16:16 %agent)
+            (face 16:23 api (str 16:27 "/ui/api/demo"))
+            (face 16:42 case (lit 16:47 %plain))
+            (face 16:54 agent (lit 16:60 %demo))
+            (face 16:66 path (wing 16:71 p))
+            (face 16:73 scry (lit 16:78 ~))
+            (face 16:80 receive (wing 16:88 rec)))))))
+  (value 17:1 receiver
+    (gate 17:13
+      (face 17:16 input
+        (cell 17:22
+          (face 17:23 mark (aura 17:28 @tas))
+          (face 17:33 state
+            (apply 17:39 unit (noun 17:45)))
+          (face 17:48 fact (noun 17:53))))
+      (body 18:3
+        (branch 18:3
+          (wing 18:6 state.input)
+          (arm 19:5
+            (lit 19:5 ~)
+            (tuple 19:7
+              (face 19:8 state (wing 19:14 fact.input))
+              (face 19:25 message (str 19:33 "first"))))
+          (arm 20:5
+            (cell 20:5 (lit 20:6 ~) (bind 20:8 prior))
+            (tuple 20:15
+              (face 20:16 state (wing 20:22 prior))
+              (face 20:28 message (str 20:36 "next"))))))))
+  (value 21:1 direct-path
+    (cast 21:16
+      (apply 21:19 ask (aura 21:24 @t))
+      (body 22:3
+        (tuple 22:3
+          (lit 22:4 %agent)
+          (face 22:11 api (str 22:15 "/ui/api/demo"))
+          (face 22:30 case (lit 22:35 %plain))
+          (face 22:42 agent (lit 22:48 %demo))
+          (face 22:54 path
+            (list 22:59 (lit 22:61 %items)))
+          (face 22:69 scry (lit 22:74 ~))
+          (face 22:76 receive
+            (gate-wide 22:84
+              (face 22:87 input
+                (cell 22:93
+                  (face 22:94 mark (aura 22:99 @tas))
+                  (face 22:104 state
+                    (apply 22:110 unit (noun 22:116)))
+                  (face 22:119 fact (noun 22:124))))
+              (tuple 22:127
+                (face 22:128 state (lit 22:134 0))
+                (face 22:136 message (str 22:144 "ok")))))))))
+  (value 23:1 fold-example
+    (gate 23:17
+      (cell 23:20
+        (face 23:21 change
+          (cell 23:28 (const 23:29 %delta) (aura 23:36 @ud)))
+        (face 23:41 previous (aura 23:50 @ud)))
+      (wing 23:55 previous)))
+  (value 24:1 erased-fact-as-ud
+    (gate 24:22
+      (face 24:25 input
+        (cell 24:31
+          (face 24:32 mark (aura 24:37 @tas))
+          (face 24:42 state
+            (apply 24:48 unit (noun 24:54)))
+          (face 24:57 fact (noun 24:62))))
+      (cast 24:65 (aura 24:68 @ud) (wing 24:72 fact.input))))
+  (value 25:1 erased-state-as-ud
+    (gate 25:23
+      (face 25:26 input
+        (cell 25:32
+          (face 25:33 mark (aura 25:38 @tas))
+          (face 25:43 state
+            (apply 25:49 unit (noun 25:55)))
+          (face 25:58 fact (noun 25:63))))
+      (body 26:3
+        (branch 26:3
+          (wing 26:6 state.input)
+          (arm 27:5 (lit 27:5 ~) (lit 27:7 0))
+          (arm 28:5
+            (cell 28:5 (lit 28:6 ~) (bind 28:8 previous))
+            (cast 28:18 (aura 28:21 @ud) (wing 28:25 previous)))))))
+  (value 29:1 pure-number
+    (group 29:16
+      (call 29:17 (wing 29:17 pure) (lit 29:22 1))))
+  (value 30:1 pure-typed-number
+    (cast 30:22
+      (apply 30:25 ask (aura 30:30 @ud))
+      (group 30:35
+        (call 30:36 (wing 30:36 pure) (lit 30:41 1)))))
+  (value 31:1 pure-unresolved
+    (gate 31:20
+      (face 31:23 value (tvar 31:29 A))
+      (body 32:3
+        (trace 32:3
+          (lit 32:6 %pending)
+          (body 33:5
+            (group 33:5
+              (call 33:6 (wing 33:6 pure) (wing 33:11 value))))))))
+  (value 34:1 identity-path
+    (gate 34:18
+      (face 34:21 value (ref 34:27 path))
+      (wing 34:32 value)))
+  (value 35:1 identity-qath
+    (gate 35:18
+      (face 35:21 value (ref 35:27 qath))
+      (wing 35:32 value)))
+  (value 36:1 path-as-qath
+    (gate 36:17
+      (face 36:20 value (ref 36:26 path))
+      (cast 36:31 (ref 36:34 qath) (wing 36:39 value))))
+  (value 37:1 qath-as-path
+    (gate 37:17
+      (face 37:20 value (ref 37:26 qath))
+      (cast 37:31 (ref 37:34 path) (wing 37:39 value))))
+  (value 38:1 path-consumer
+    (gate 38:18
+      (face 38:21 value (ref 38:27 path))
+      (wing 38:32 value)))
+  (value 39:1 application-path
+    (group 39:21
+      (call 39:22 (wing 39:22 path-consumer) (qath 39:36 items))))
+  (value 40:1 ordinary-path
+    (cast 40:18
+      (ref 40:21 path)
+      (list 40:26 (lit 40:28 ~.items))))
+  (value 41:1 ask-from-ordinary
+    (group 41:22
+      (call 41:23
+        (wing 41:23 agent)
+        (wing 41:29 ordinary-path)
+        (gate-wide 41:43
+          (face 41:46 v
+            (cell 41:48
+              (face 41:49 mark (aura 41:54 @tas))
+              (face 41:59 state
+                (apply 41:65 unit (noun 41:71)))
+              (face 41:74 fact (noun 41:79))))
+          (tuple 41:82
+            (face 41:83 state (lit 41:89 0))
+            (face 41:91 message (str 41:99 "ok")))))))
+  (value 42:1 ask-from-qath
+    (group 42:18
+      (call 42:19
+        (wing 42:19 agent)
+        (qath 42:25 items)
+        (gate-wide 42:33
+          (face 42:36 v
+            (cell 42:38
+              (face 42:39 mark (aura 42:44 @tas))
+              (face 42:49 state
+                (apply 42:55 unit (noun 42:61)))
+              (face 42:64 fact (noun 42:69))))
+          (tuple 42:72
+            (face 42:73 state (lit 42:79 0))
+            (face 42:81 message (str 42:89 "ok")))))))
+  (value 43:1 store
+    (gate 43:10
+      (face 43:13 rec
+        (fn 43:17
+          (cell 43:20
+            (face 43:21 state
+              (apply 43:27 unit (noun 43:33)))
+            (face 43:36 fact (noun 43:41)))
+          (cell 43:44
+            (face 43:45 state (noun 43:51))
+            (face 43:53 message (aura 43:61 @t)))))
+      (body 44:3
+        (cast 44:3
+          (apply 44:6 ask (aura 44:11 @t))
+          (tuple 44:15
+            (lit 44:16 %store)
+            (face 44:23 module (str 44:30 "/ui/store/cart"))
+            (face 44:47 name (lit 44:52 %state))
+            (face 44:59 receive (wing 44:67 rec)))))))
+  (value 45:1 wrong-store
+    (gate 45:16
+      (face 45:19 rec
+        (fn 45:23
+          (cell 45:26
+            (face 45:27 state
+              (apply 45:33 unit (noun 45:39)))
+            (face 45:42 fact (noun 45:47)))
+          (cell 45:50
+            (face 45:51 state (noun 45:57))
+            (face 45:59 message (aura 45:67 @p)))))
+      (body 46:3
+        (cast 46:3
+          (apply 46:6 ask (aura 46:11 @t))
+          (tuple 46:15
+            (lit 46:16 %store)
+            (face 46:23 module (str 46:30 "/ui/store/cart"))
+            (face 46:47 name (lit 46:52 %state))
+            (face 46:59 receive (wing 46:67 rec)))))))
+  (value 47:1 incomplete
+    (gate 47:15
+      (face 47:18 value
+        (apply 47:24 ask (aura 47:29 @t)))
+      (body 48:3
+        (branch 48:3
+          (wing 48:6 value)
+          (arm 49:5
+            (cell 49:5 (lit 49:6 %pure) (bind 49:12 p))
+            (wing 49:15 p))
+          (arm 50:5
+            (cell 50:5 (lit 50:6 %agent) (bind 50:13 a) (bind 50:15 b) (bind 50:17 c) (bind 50:19 d) (bind 50:21 e) (bind 50:23 f))
+            (str 50:26 "agent"))))))
+  (value 51:1 complete
+    (gate 51:13
+      (face 51:16 value
+        (apply 51:22 ask (aura 51:27 @t)))
+      (body 52:3
+        (branch 52:3
+          (wing 52:6 value)
+          (arm 53:5
+            (cell 53:5 (lit 53:6 %pure) (bind 53:12 p))
+            (wing 53:15 p))
+          (arm 54:5
+            (cell 54:5 (lit 54:6 %agent) (bind 54:13 a) (bind 54:15 b) (bind 54:17 c) (bind 54:19 d) (bind 54:21 e) (bind 54:23 f))
+            (str 54:26 "agent"))
+          (arm 55:5
+            (cell 55:5 (lit 55:6 %store) (bind 55:13 a) (bind 55:15 b) (bind 55:17 c))
+            (str 55:20 "store")))))))

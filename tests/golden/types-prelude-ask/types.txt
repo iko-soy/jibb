@@ -1,0 +1,41 @@
+partial inference; module not checked
+++ pure-cord: (ask @t)
+++ pure-ship: (ask @p)
+++ pure-generic: $-(A (ask A))
+++ explicit-pure: (ask @t)
+++ wrong-pure: cast mold and expression type do not unify
+/tests/golden/types-prelude-ask/source.jibb:5:18: cast mold
+++ wrong-pure ^- (ask @p) [%pure "hello"]
+                 ^
+/tests/golden/types-prelude-ask/source.jibb:5:27: expression
+++ wrong-pure ^- (ask @p) [%pure "hello"]
+                          ^
+++ no-state: (unit *)
+++ zero-state: (unit *)
+++ no-ud: (unit @ud)
+++ zero-ud: (unit @ud)
+++ some-state: (unit *)
+++ agent: $-([p=(list @ta) rec=$-([mark=@tas [state=(unit *) fact=*]] [state=* message=@t])] (ask @t))
+++ scry-agent: $-([p=(list @ta) rec=$-([mark=@tas [state=(unit *) fact=*]] [state=* message=@t])] (ask @t))
+++ wrong-agent: cast constraint is not supported by partial inference
+++ receiver: $-([mark=@tas [state=(unit *) fact=*]] [state=* message=@t])
+++ direct-path: list item needs context in partial inference
+++ fold-example: $-([change=[%delta @ud] previous=@ud] @ud)
+++ erased-fact-as-ud: cast constraint is not supported by partial inference
+++ erased-state-as-ud: cast constraint is not supported by partial inference
+++ pure-number: unresolved aura-variable inference
+++ pure-typed-number: (ask @ud)
+++ pure-unresolved: tag needs context in partial inference
+++ identity-path: $-((list @ta) (list @ta))
+++ identity-qath: $-(qath qath)
+++ path-as-qath: cast constraint is not supported by partial inference
+++ qath-as-path: cast constraint is not supported by partial inference
+++ path-consumer: $-((list @ta) (list @ta))
+++ application-path: call constraint is not supported by partial inference
+++ ordinary-path: (list @ta)
+++ ask-from-ordinary: call constraint is not supported by partial inference
+++ ask-from-qath: call constraint is not supported by partial inference
+++ store: $-($-([state=(unit *) fact=*] [state=* message=@t]) (ask @t))
+++ wrong-store: cast constraint is not supported by partial inference
+++ incomplete: missing union case [%store [module=@t [name=@tas receive=$-([state=(unit *) fact=*] [state=* message=@t])]]]
+++ complete: $-((ask @t) @t)

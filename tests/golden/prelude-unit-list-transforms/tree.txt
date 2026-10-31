@@ -960,4 +960,13 @@
     (gate 336:8
       (face 336:11 atom (tvar 336:16 A))
       (group 336:18
-        (call 336:19 (wing 336:19 dec-atom.internal) (wing 336:37 atom))))))
+        (call 336:19 (wing 336:19 dec-atom.internal) (wing 336:37 atom)))))
+  (mold 338:1 ask
+    (generic 338:8 M
+      (apply 338:15 ask.internal (tvar 338:29 M))))
+  (value 339:1 pure
+    (gate 339:9
+      (face 339:12 x (tvar 339:14 M))
+      (cast 339:16
+        (apply 339:19 ask (tvar 339:24 M))
+        (tuple 339:27 (lit 339:28 %pure) (wing 339:34 x))))))

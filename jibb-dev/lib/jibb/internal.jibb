@@ -18,3 +18,14 @@
 ::  Private compiler primitive wrappers; execution is a later milestone.
 ++ add-atom |= args=[A A] (raw-add.core args)
 ++ dec-atom |= atom=A (raw-dec.core atom)
+
+::  Transparent request data. Identity and path fields are writable and do not
+::  prove a schema or watchability. A future executor must bind them to checked
+::  source evidence and validate facts and state; generated receivers must
+::  decode before calling typed replies or folds. Runtime validation, watch
+::  provenance and effect execution are not implemented.
++$ agent-path (list.core @ta)
++$ ask |$ [M]
+  [%pure value=M]
+  [%agent api=@t case=@tas agent=@tas path=agent-path scry=(unit.core agent-path) receive=$-([mark=@tas state=(unit.core *) fact=*] [state=* message=M])]
+  [%store module=@t name=@tas receive=$-([state=(unit.core *) fact=*] [state=* message=M])]

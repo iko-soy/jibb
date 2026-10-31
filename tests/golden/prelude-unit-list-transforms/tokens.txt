@@ -2204,4 +2204,31 @@
 336:19 tight wing dec-atom.internal
 336:37 name atom
 336:41 tight glyph )
-336:42 NEWLINE
+338:1 NEWLINE
+338:1 glyph +$
+338:4 name ask
+338:8 glyph |$
+338:11 glyph [
+338:12 tight tvar M
+338:13 tight glyph ]
+338:15 glyph (
+338:16 tight wing ask.internal
+338:29 tvar M
+338:30 tight glyph )
+339:1 NEWLINE
+339:1 glyph ++
+339:4 name pure
+339:9 glyph |=
+339:12 name x
+339:13 tight glyph =
+339:14 tight tvar M
+339:16 glyph ^-
+339:19 glyph (
+339:20 tight name ask
+339:24 tvar M
+339:25 tight glyph )
+339:27 glyph [
+339:28 tight lit %pure
+339:34 name x
+339:35 tight glyph ]
+339:36 NEWLINE

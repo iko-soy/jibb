@@ -68,3 +68,5 @@ partial inference; module not checked
 ++ gth: field access is not supported by partial inference
 ++ add: field access is not supported by partial inference
 ++ dec: field access is not supported by partial inference
++$ ask: not checked
+++ pure: cast mold is not supported by partial inference
