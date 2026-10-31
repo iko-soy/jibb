@@ -1,0 +1,10 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ whole: $-(msg @t)
+++ partial: union pattern expansion needs unsupported inference
++$ under: cases proven disjoint; mold not checked
+++ allowed: $-(under @t)
++$ over: cases proven disjoint; mold not checked
+++ capped: union pattern expansion needs unsupported inference
++$ empty-msg: cases proven disjoint; mold not checked
+++ one: sample mold is not supported by partial inference

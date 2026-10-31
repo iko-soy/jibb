@@ -1,0 +1,35 @@
++$ msg
+  [%go a=? b=? c=? d=? e=? f=? g=?]
+  %other
+++ whole |= input=msg
+  ?- input
+    [%go * * * * * * *] "ok"
+    %other "other"
+++ partial |= input=msg
+  ?- input
+    [%go %.y * * * * * *] "ok"
+    * "other"
+
++$ under
+  [%item a=? b=? c=? d=? e=?]
+  %other
+++ allowed |= m=under
+  ?- m
+    [%item %.y * * * *] "a"
+    [%item %.n * * * *] "b"
+    %other "c"
++$ over
+  [%item a=? b=? c=? d=? e=? f=?]
+  %other
+++ capped |= m=over
+  ?- m
+    [%item %.y * * * * *] "a"
+    [%item %.n * * * * *] "b"
+    %other "c"
+
++$ empty-msg
+  !!
+  %a
+++ one |= m=empty-msg
+  ?- m
+    %a "yes"

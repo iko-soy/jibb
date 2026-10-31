@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all"; Molds: the empty mold `!!` has no values.
+tests: Whole-case matching remains available without expanding many booleans. Partial matching succeeds below the implementation's 64-alternative limit and fails closed above it; empty union cases remain unsupported rather than falsely checked.
+expect: parses
+expect-types: a partial inference report

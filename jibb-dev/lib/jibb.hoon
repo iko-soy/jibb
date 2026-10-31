@@ -6704,8 +6704,9 @@
     [%| ["a cell in interpolation needs a printer" ~[[(span-of p.i.ps) "cell without a printer"]]]]
   [%| ["interpolation type needs unsupported inference" ~]]
 ::
-::  Whole-case coverage for a known union. A pattern that might cover
-::  only part of a case stays unsupported until the general pattern matrix.
+::  Whole-case coverage for a known union. When a pattern may cover only
+::  part of a case, finite loobean refinements are tried below; other
+::  partial coverage stays unsupported until the general pattern matrix.
 +$  imatch  ?(%full %none %unknown)
 ++  union-pattern-items
   |=  [ps=(list pattern) t=itype]
@@ -6766,14 +6767,56 @@
   ?:  ?=(%cell -.p)  (union-pattern-bind-items items.p t env globals)
   `env
 ::
-++  infer-known-union-branch
+::  Split loobean fields into finite refinements for partial patterns.
+::  Keep original cases for binder types and preserve whole-case matching
+::  before trying refinements. Cap products at 64; unknown, empty or opaque
+::  shapes stay unsupported rather than implying complete pattern checking.
++$  ifinite  [origin=@ud base=itype part=itype]
+++  finite-product
+  |=  [hs=(list itype) ts=(list itype) out=(list itype)]
+  ^-  (list itype)
+  ?~  hs  out
+  =/  rows=(list itype)  (turn ts |=(t=itype [%cell i.hs t]))
+  $(hs t.hs, out (weld rows out))
+::
+++  finite-type
+  |=  t=itype
+  ^-  (unit (list itype))
+  ?-  -.t
+    %flag
+      `~[[%const [%loobean %f 0 '%.y']] [%const [%loobean %f 1 '%.n']]]
+    %face
+      =/  body=(unit (list itype))  $(t body.t)
+      ?~  body  ~
+      `(turn u.body |=(x=itype [%face name.t x]))
+    %cell
+      =/  hed=(unit (list itype))  $(t hed.t)
+      ?~  hed  ~
+      =/  tal=(unit (list itype))  $(t tal.t)
+      ?~  tal  ~
+      ?:  (gth (mul (lent u.hed) (lent u.tal)) 64)  ~
+      `(finite-product u.hed u.tal ~)
+    *  `~[t]
+  ==
+::
+++  finite-cases
+  |=  [xs=(list itype) out=(list ifinite) origin=@ud]
+  ^-  (unit (list ifinite))
+  ?~  xs  `out
+  =/  parts=(unit (list itype))  (finite-type i.xs)
+  ?~  parts  ~
+  ?:  (gth (add (lent out) (lent u.parts)) 64)  ~
+  =/  rows=(list ifinite)  (turn u.parts |=(t=itype [origin i.xs t]))
+  $(xs t.xs, out (weld out rows), origin +(origin))
+::
+++  infer-known-union-whole
   |=  [e=expr env=ienv state=istate]
-  ^-  iresult
+  ^-  (unit iresult)
   ?>  ?=(%branch -.e)
   =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  subject
+  ?:  ?=(%| -.subject)  `subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
+  ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
   =/  cases=(list itype)  cases.typ
   =/  remaining=(list itype)  cases
   =/  arms=(list arm)  arms.e
@@ -6782,27 +6825,74 @@
   |-
   ?~  arms
     ?^  remaining
-      [%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
-    ?~  answer  [%| ["empty union branch is not supported by partial inference" ~]]
-    [%& u.answer st]
+      `[%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
+    ?~  answer  `[%| ["empty union branch is not supported by partial inference" ~]]
+    `[%& u.answer st]
   =/  a=arm  i.arms
   ?:  (lien remaining |=(c=itype =(%unknown (union-pattern pat.a c))))
-    [%| ["partial union pattern is not supported by partial inference" ~]]
+    ~
   =/  matching=(list itype)  (skim remaining |=(c=itype =(%full (union-pattern pat.a c))))
   ?~  matching
     ?:  (lien cases |=(c=itype =(%full (union-pattern pat.a c))))
+      `[%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
+    `[%| ["union pattern is not supported by partial inference" ~]]
+  ?:  &(?=(^ t.matching) (union-pattern-has-bind pat.a))
+    `[%| ["a union pattern binding several cases is not supported by partial inference" ~]]
+  =/  bound=(unit ienv)  (union-pattern-bind pat.a i.matching env globals.st)
+  ?~  bound  `[%| ["pattern binder shadows a name" ~]]
+  =/  body=iresult  (infer-fragment val.a u.bound st)
+  ?:  ?=(%| -.body)  `body
+  =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
+  =/  mismatch=?  ?~(answer | !=((itype-normalize u.answer sub.state.p.body) result))
+  ?:  mismatch  `[%| ["union branch result matching needs unsupported inference" ~]]
+  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, answer `result)
+::
+++  infer-known-union-finite
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  ?>  ?=(%branch -.e)
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
+  =/  expanded=(unit (list ifinite))  (finite-cases cases.typ ~ 0)
+  ?~  expanded  [%| ["union pattern expansion needs unsupported inference" ~]]
+  =/  cases=(list ifinite)  u.expanded
+  =/  remaining=(list ifinite)  cases
+  =/  arms=(list arm)  arms.e
+  =/  st=istate  state.p.subject
+  =/  answer=(unit itype)  ~
+  |-
+  ?~  arms
+    ?^  remaining
+      [%| ["missing union case {(show-itype part.i.remaining sub.st)}" ~]]
+    ?~  answer  [%| ["empty union branch is not supported by partial inference" ~]]
+    [%& u.answer st]
+  =/  a=arm  i.arms
+  ?:  (lien remaining |=(c=ifinite =(%unknown (union-pattern pat.a part.c))))
+    [%| ["partial union pattern is not supported by partial inference" ~]]
+  =/  matching=(list ifinite)  (skim remaining |=(c=ifinite =(%full (union-pattern pat.a part.c))))
+  ?~  matching
+    ?:  (lien cases |=(c=ifinite =(%full (union-pattern pat.a part.c))))
       [%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
     [%| ["union pattern is not supported by partial inference" ~]]
-  ?:  &(?=(^ t.matching) (union-pattern-has-bind pat.a))
+  ?:  &((union-pattern-has-bind pat.a) (lien t.matching |=(c=ifinite !=(origin.c origin.i.matching))))
     [%| ["a union pattern binding several cases is not supported by partial inference" ~]]
-  =/  bound=(unit ienv)  (union-pattern-bind pat.a i.matching env globals.st)
+  =/  bound=(unit ienv)  (union-pattern-bind pat.a base.i.matching env globals.st)
   ?~  bound  [%| ["pattern binder shadows a name" ~]]
   =/  body=iresult  (infer-fragment val.a u.bound st)
   ?:  ?=(%| -.body)  body
   =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
   =/  mismatch=?  ?~(answer | !=((itype-normalize u.answer sub.state.p.body) result))
   ?:  mismatch  [%| ["union branch result matching needs unsupported inference" ~]]
-  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, answer `result)
+  $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body, answer `result)
+::
+++  infer-known-union-branch
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  =/  whole=(unit iresult)  (infer-known-union-whole e env state)
+  ?~  whole  (infer-known-union-finite e env state)
+  u.whole
 ::
 ++  known-union-subject
   |=  [e=expr env=ienv state=istate]

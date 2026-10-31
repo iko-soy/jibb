@@ -1,0 +1,110 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %p)
+        (face 2:7 left (flag 2:12))
+        (face 2:14 right (flag 2:20)))
+      (const 3:3 %other)))
+  (value 4:1 boolean-table
+    (gate 4:18
+      (face 4:21 m (ref 4:23 msg))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 m)
+          (arm 6:5
+            (cell 6:5 (lit 6:6 %p) (lit 6:9 %.y) (lit 6:13 %.y))
+            (str 6:18 "a"))
+          (arm 7:5
+            (cell 7:5 (lit 7:6 %p) (lit 7:9 %.y) (lit 7:13 %.n))
+            (str 7:18 "b"))
+          (arm 8:5
+            (cell 8:5 (lit 8:6 %p) (lit 8:9 %.n) (lit 8:13 %.y))
+            (str 8:18 "c"))
+          (arm 9:5
+            (cell 9:5 (lit 9:6 %p) (lit 9:9 %.n) (lit 9:13 %.n))
+            (str 9:18 "d"))
+          (arm 10:5 (lit 10:5 %other) (str 10:12 "e"))))))
+  (value 11:1 wildcard
+    (gate 11:13
+      (face 11:16 m (ref 11:18 msg))
+      (body 12:3
+        (branch 12:3
+          (wing 12:6 m)
+          (arm 13:5
+            (cell 13:5 (lit 13:6 %p) (lit 13:9 %.y) (any 13:13))
+            (str 13:16 "a"))
+          (arm 14:5
+            (cell 14:5 (lit 14:6 %p) (lit 14:9 %.n) (any 14:13))
+            (str 14:16 "b"))
+          (arm 15:5 (lit 15:5 %other) (str 15:12 "e"))))))
+  (value 16:1 covered
+    (gate 16:12
+      (face 16:15 m (ref 16:17 msg))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 m)
+          (arm 18:5
+            (cell 18:5 (lit 18:6 %p) (lit 18:9 %.y) (any 18:13))
+            (str 18:16 "a"))
+          (arm 19:5
+            (cell 19:5 (lit 19:6 %p) (lit 19:9 %.y) (lit 19:13 %.n))
+            (str 19:18 "b"))
+          (arm 20:5 (any 20:5) (str 20:7 "e"))))))
+  (mold 22:1 choice
+    (union 23:3
+      (cell 23:3
+        (const 23:4 %a)
+        (face 23:7 on (flag 23:10)))
+      (const 24:3 %other)))
+  (value 25:1 missing
+    (gate 25:12
+      (face 25:15 x (ref 25:17 choice))
+      (body 26:3
+        (branch 26:3
+          (wing 26:6 x)
+          (arm 27:5
+            (cell 27:5 (lit 27:6 %a) (lit 27:9 %.y))
+            (str 27:14 "yes"))
+          (arm 28:5 (lit 28:5 %other) (str 28:12 "other"))))))
+  (value 29:1 typed
+    (gate 29:10
+      (face 29:13 x (ref 29:15 choice))
+      (body 30:3
+        (branch 30:3
+          (wing 30:6 x)
+          (arm 31:5
+            (cell 31:5 (lit 31:6 %a) (bind 31:9 value))
+            (wing 31:16 value))
+          (arm 32:5 (lit 32:5 %other) (lit 32:12 %.n))))))
+  (value 33:1 duplicate
+    (gate 33:14
+      (face 33:17 x (ref 33:19 choice))
+      (body 34:3
+        (branch 34:3
+          (wing 34:6 x)
+          (arm 35:5
+            (cell 35:5 (lit 35:6 %a) (lit 35:9 %.y))
+            (str 35:14 "yes"))
+          (arm 36:5
+            (cell 36:5 (lit 36:6 %a) (lit 36:9 %$))
+            (str 36:13 "duplicate"))
+          (arm 37:5 (any 37:5) (str 37:7 "other"))))))
+  (value 38:1 shadow
+    (gate 38:11
+      (face 38:14 x (ref 38:16 choice))
+      (body 39:3
+        (branch 39:3
+          (wing 39:6 x)
+          (arm 40:5
+            (cell 40:5 (lit 40:6 %a) (bind 40:9 missing))
+            (str 40:18 "yes"))
+          (arm 41:5 (lit 41:5 %other) (str 41:12 "other"))))))
+  (value 42:1 many-bind
+    (gate 42:14
+      (face 42:17 x (ref 42:19 choice))
+      (body 43:3
+        (branch 43:3
+          (wing 43:6 x)
+          (arm 44:5 (bind 44:5 value) (str 44:11 "anything"))
+          (arm 45:5 (lit 45:5 %other) (str 45:12 "dead")))))))

@@ -1,0 +1,48 @@
++$ msg |$ [A B]
+  [%ok bit=? val=A]
+  [%err bit=? val=B]
+++ shared |= m=(msg A A)
+  ?- m
+    [%ok %.y value] value
+    [%ok %.n value] value
+    [%err %.y value] value
+    [%err %.n value] value
+++ different |= m=(msg A B)
+  ?- m
+    [%ok %.y value] value
+    [%ok %.n value] value
+    [%err %.y value] value
+    [%err %.n value] value
+++ forced |= m=(msg A B)
+  ?- m
+    [%ok %.y value] ^- @t value
+    [%ok %.n value] ^- @t value
+    [%err %.y *] "x"
+    [%err %.n *] "x"
+++ earlier |= m=(msg @t @t)
+  ?- m
+    [%ok %.y *] unknown
+    [%ok %.n *] "x"
+    [%err * *] "x"
+
++$ choice |$ [A]
+  [%hit on=? payload=A]
+  %other
+++ getter |= input=(choice @t)
+  ?- input
+    [%hit %.y payload] payload
+    [%hit %.n payload] payload
+    %other "other"
+++ flag |= input=(choice @t)
+  ?- input
+    [%hit on *] on
+    %other %.n
+++ atom-parts |= input=(choice @t)
+  ?- input
+    [%hit %.y "hello"] "yes"
+    * "no"
+++ pending |= input=(choice @t)
+  ?- input
+    [%hit %.y *] %unknown
+    [%hit %.n *] %unknown
+    %other %unknown

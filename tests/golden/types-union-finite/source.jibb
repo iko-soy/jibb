@@ -1,0 +1,45 @@
++$ msg
+  [%p left=? right=?]
+  %other
+++ boolean-table |= m=msg
+  ?- m
+    [%p %.y %.y] "a"
+    [%p %.y %.n] "b"
+    [%p %.n %.y] "c"
+    [%p %.n %.n] "d"
+    %other "e"
+++ wildcard |= m=msg
+  ?- m
+    [%p %.y *] "a"
+    [%p %.n *] "b"
+    %other "e"
+++ covered |= m=msg
+  ?- m
+    [%p %.y *] "a"
+    [%p %.y %.n] "b"
+    * "e"
+
++$ choice
+  [%a on=?]
+  %other
+++ missing |= x=choice
+  ?- x
+    [%a %.y] "yes"
+    %other "other"
+++ typed |= x=choice
+  ?- x
+    [%a value] value
+    %other %.n
+++ duplicate |= x=choice
+  ?- x
+    [%a %.y] "yes"
+    [%a %$] "duplicate"
+    * "other"
+++ shadow |= x=choice
+  ?- x
+    [%a missing] "yes"
+    %other "other"
+++ many-bind |= x=choice
+  ?- x
+    value "anything"
+    %other "dead"

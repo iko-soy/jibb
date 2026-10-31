@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all"; "An arm that earlier arms cover ... is an error"; "A name in a pattern always binds anew".
+tests: Two boolean fields are split into finite alternatives for complete tables and wildcard patterns. A missing alternative is named, a covered partial arm is rejected even when it uses a different spelling of zero, and a whole-case binder retains its original `?` type. Shadowing and a binder spanning different union cases fail closed.
+expect: parses
+expect-types: a partial inference report

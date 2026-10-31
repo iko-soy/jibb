@@ -13,7 +13,7 @@ partial inference; module not checked
     ^
 ++ shadow: pattern binder shadows a name
 +$ flags: cases proven disjoint; mold not checked
-++ partial: partial union pattern is not supported by partial inference
+++ partial: $-(flags @t)
 ++ not-known: branch is not supported by partial inference
 +$ digits: cases proven disjoint; mold not checked
 ++ as-booleans: $-(digits @t)

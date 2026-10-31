@@ -1,0 +1,11 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ shared: $-((msg A A) A)
+++ different: union branch result matching needs unsupported inference
+++ forced: explicit capital constraints are not supported by partial inference
+++ earlier: name is not available to partial inference
++$ choice: cases proven disjoint; mold not checked
+++ getter: $-((choice @t) @t)
+++ flag: $-((choice @t) ?)
+++ atom-parts: partial union pattern is not supported by partial inference
+++ pending: union branch result matching needs unsupported inference

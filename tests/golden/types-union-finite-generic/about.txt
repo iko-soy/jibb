@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "Every case needs an arm or a catch-all"; Molds: "Type variables are capitals, generalized per `++`."
+tests: Boolean refinements preserve generic payload and binder types; a shared payload variable infers, while distinct arm result variables, forcing an explicit capital, unresolved tags and partial string matches remain unsupported. An unavailable name in an earlier arm is not masked by pattern checking.
+expect: parses
+expect-types: a partial inference report
