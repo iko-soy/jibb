@@ -1,0 +1,16 @@
+|%
++$  inner-good  $~([%lev ~] $%([%lev ~] [%dex ver=@ud]))
++$  outer-good  $%([%wrapped payload=inner-good] [%empty ~])
++$  inner-bad   $~([%dup ~] $%([%dup ~] [%dup value=@t]))
++$  outer-bad   $%([%wrapped payload=inner-bad] [%empty ~])
++$  inner-four  $~([%lev ~] $~([%lev ~] $~([%lev ~] $~([%lev ~] $%([%lev ~] [%dex ver=@ud])))))
++$  inner-deep  $~([%lev ~] $~([%lev ~] $~([%lev ~] $~([%lev ~] $~([%lev ~] $%([%lev ~] [%dex ver=@ud]))))))
++$  outer-deep  $%([%wrapped payload=inner-deep] [%empty ~])
++$  inner-rec   $~([%end ~] $%([%end ~] [%next tail=inner-rec]))
++$  outer-rec   $%([%wrapped payload=inner-rec] [%empty ~])
++$  inner-bad-rec  $~([%dup ~] $%([%dup ~] [%dup next=(unit inner-bad-rec)]))
++$  outer-bad-rec  $%([%wrapped payload=inner-bad-rec] [%empty ~])
++$  inner-mutual   $~([%stop ~] $%([%stop ~] [%next tail=loop-b]))
++$  loop-b         inner-mutual
++$  outer-mutual   $%([%wrapped payload=inner-mutual] [%empty ~])
+--

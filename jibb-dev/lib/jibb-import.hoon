@@ -151,16 +151,27 @@
   ?:  =(left 0)  ~
   $(raw u.wrapper, left (dec left))
 ::
+::  A bounded $~ source wrapper changes the default, not the mold.
+::  Each annotation chain and default chain is separately bounded.
+++  tagged-default-union
+  |=  [body=spec left=@ud]
+  ^-  (unit spec)
+  =/  plain=(unit *)  (source-unwrap body 4)
+  ?~  plain  ~
+  =.  body  ;;(spec u.plain)
+  ?.  ?=([%bcsg *] body)  `body
+  ?:  =(left 0)  ~
+  $(body q.body, left (dec left))
+::
 ++  tagged-source-code
   |=  [code=hoon name=term]
   ^-  (unit (list tagged-case))
   =/  found=(unit spec)  (local-mold-spec code name)
   ?~  found  ~
-  =/  plain=(unit *)  (source-unwrap u.found 4)
-  ?~  plain  ~
-  =/  body=spec  ;;(spec u.plain)
-  ?.  ?=([%bccn *] body)  ~
-  =/  cases=(list spec)  p.body
+  =/  body=(unit spec)  (tagged-default-union u.found 4)
+  ?~  body  ~
+  ?.  ?=([%bccn *] u.body)  ~
+  =/  cases=(list spec)  p.u.body
   ?~  cases  ~
   ?~  t.cases  ~
   (tagged-cases cases ~)
@@ -250,6 +261,7 @@
   ?+  shape  ~
     [%base *]  ?:(|(?=([%atom *] p.shape) =(%flag p.shape) =(%null p.shape)) `fuel ~)
     [%leaf *]  `fuel
+    [%bcsg *]  $(shape q.shape)
     [%bcts *]  ?@  p.shape  $(shape q.shape)
                ~
     [%bccl *]  (safe-source-specs-mode p.shape cor seen fuel allow-nested)

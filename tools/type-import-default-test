@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+"""Compare the source-aware default-wrapper fixture under urbit eval."""
+
+from pathlib import Path
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+fixture = root / 'tests/type-import-default'
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-import-default.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb-import\n' + reader +
+              '\n=/  tlon=wain  ~\n=/  controls=wain  ~\n'
+              '=/  parent=wain  ~\n=/  expected=wain  ~\n'
+              '=/  fixture\n' + tests +
+              '\n(fixture-output:fixture tlon-text controls-text parent-text)\n')
+with tempfile.TemporaryDirectory(prefix='jibb-import-default-') as tmp:
+    program = Path(tmp) / 'fixture.hoon'
+    program.write_text(expression)
+    result = subprocess.run([
+        str(root / 'tools/hoon'), '--raw', '-f', str(program),
+        '--cord', 'tlon-text=' + str(fixture / 'tlon.txt'),
+        '--cord', 'controls-text=' + str(fixture / 'controls.txt'),
+        '--cord', 'parent-text=' + str(fixture / 'parent.txt')],
+        stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected = (fixture / 'expected.txt').read_bytes()
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual types'))
+    sys.exit(1)
+print('default-wrapper importer golden passed')

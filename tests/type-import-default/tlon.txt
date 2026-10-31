@@ -1,0 +1,18 @@
+|%
+::  $saga: version synchronisation state
+::    %dex: publisher is ahead
+::    %lev: we are ahead
+::    %chi: full sync
+::
++$  saga
+  $~  [%lev ~]
+  $%  [%dex ver=@ud]
+      [%lev ~]
+      [%chi ~]
+  ==
+
++$  epic  @ud
+
+:: A downstream tagged message using the unmodified saga mold.
++$  saga-envelope  $%([%value saga=saga] [%reset ~])
+--

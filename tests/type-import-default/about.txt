@@ -1,0 +1,1 @@
+The tlon.txt fixture preserves the vendored Tlon epic/saga source and adds a clearly labeled downstream saga-envelope arm. The controls exercise overlapping and recursive defaulted unions, a Ford same-name shadow, and four/five source-wrapper bounds. The reader validates selected source, projected branches and disjointness; no checker or runtime behavior is claimed.

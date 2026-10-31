@@ -303,6 +303,7 @@ def generator_checks(tmp):
                     p.endswith('.hoon')}
     check('default assembly keeps the repository test programs',
           {'tests/lib/jibb.hoon', 'tests/lib/jibb-import.hoon',
+           'tests/lib/jibb-import-default.hoon',
            'tests/lib/jibb-typecheck.hoon', 'tests/lib/jibb-bridge.hoon',
            'tests/lib/jibb-arithmetic-guards.hoon',
            'tests/lib/jibb-positional-face-guards.hoon',

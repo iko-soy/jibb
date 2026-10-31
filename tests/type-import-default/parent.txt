@@ -1,0 +1,3 @@
+|%
++$  inner-good  $%([%danger ~] [%danger value=@t])
+--

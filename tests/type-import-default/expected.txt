@@ -1,0 +1,9 @@
+saga: (union [chi @n:0] [lev @n:0] [dex ver=@ud])
+saga-envelope: (union [value saga=(union [chi @n:0] [lev @n:0] [dex ver=@ud])] [reset @n:0])
+outer-good: (union [empty @n:0] [wrapped payload=(union [lev @n:0] [dex ver=@ud])])
+outer-overlap: error: a Hoon union needs a source-level disjointness check
+recursive-overlap: error: a Hoon union needs a source-level disjointness check
+mutual-recursion: error: a Hoon union needs a source-level disjointness check
+shadow: error: a Hoon union needs a source-level disjointness check
+default-wrapper-bound: four accepted; five rejected
+malformed-wrapper: rejected
