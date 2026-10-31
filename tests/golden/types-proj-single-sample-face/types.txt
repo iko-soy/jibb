@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ scalar-sink: $-(@t @t)
+++ record-sink: $-([a=@t] @t)
+++ scalar-direct: proj needs an expected record type
+++ record-direct: @t
+++ scalar-branch: proj needs an expected record type
+++ record-branch: proj needs an expected record type
+++ scalar-trace: proj needs an expected record type
+++ record-trace: @t

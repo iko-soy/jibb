@@ -1,0 +1,117 @@
+(module
+  (value 1:1 scalar-sink
+    (gate 1:16
+      (face 1:19 x (aura 1:21 @t))
+      (wing 1:24 x)))
+  (value 2:1 record-sink
+    (gate 2:16
+      (face 2:19 x
+        (cell 2:21
+          (face 2:22 a (aura 2:24 @t))))
+      (wing 2:28 a.x)))
+  (value 3:1 scalar-direct
+    (group 3:18
+      (call 3:19
+        (wing 3:19 scalar-sink)
+        (group 3:31
+          (call 3:32
+            (wing 3:32 proj)
+            (tuple 3:37
+              (face 3:38 x (str 3:40 "hi"))
+              (face 3:45 a (str 3:47 "wrong"))
+              (face 3:55 other (lit 3:61 ~zod))))))))
+  (value 4:1 record-direct
+    (group 4:18
+      (call 4:19
+        (wing 4:19 record-sink)
+        (group 4:31
+          (call 4:32
+            (wing 4:32 proj)
+            (tuple 4:37
+              (face 4:38 x (lit 4:40 ~zod))
+              (face 4:45 a (str 4:47 "hi"))
+              (face 4:52 other (lit 4:58 %.y))))))))
+  (value 5:1 scalar-branch
+    (gate 5:18
+      (face 5:21 flag (flag 5:26))
+      (body 6:3
+        (group 6:3
+          (call 6:4
+            (wing 6:4 scalar-sink)
+            (branch 7:5
+              (wing 7:8 flag)
+              (arm 8:7
+                (lit 8:7 %.y)
+                (group 8:11
+                  (call 8:12
+                    (wing 8:12 proj)
+                    (tuple 8:17
+                      (face 8:18 x (str 8:20 "hi"))
+                      (face 8:25 a (str 8:27 "wrong"))
+                      (face 8:35 other (lit 8:41 ~zod))))))
+              (arm 9:7
+                (lit 9:7 %.n)
+                (group 9:11
+                  (call 9:12
+                    (wing 9:12 proj)
+                    (tuple 9:17
+                      (face 9:18 x (str 9:20 "hi"))
+                      (face 9:25 a (str 9:27 "wrong"))
+                      (face 9:35 other (lit 9:41 ~zod))))))))))))
+  (value 10:1 record-branch
+    (gate 10:18
+      (face 10:21 flag (flag 10:26))
+      (body 11:3
+        (group 11:3
+          (call 11:4
+            (wing 11:4 record-sink)
+            (branch 12:5
+              (wing 12:8 flag)
+              (arm 13:7
+                (lit 13:7 %.y)
+                (group 13:11
+                  (call 13:12
+                    (wing 13:12 proj)
+                    (tuple 13:17
+                      (face 13:18 x (lit 13:20 ~zod))
+                      (face 13:25 a (str 13:27 "hi"))
+                      (face 13:32 other (lit 13:38 %.y))))))
+              (arm 14:7
+                (lit 14:7 %.n)
+                (group 14:11
+                  (call 14:12
+                    (wing 14:12 proj)
+                    (tuple 14:17
+                      (face 14:18 x (lit 14:20 ~zod))
+                      (face 14:25 a (str 14:27 "hi"))
+                      (face 14:32 other (lit 14:38 %.y))))))))))))
+  (value 15:1 scalar-trace
+    (body 16:3
+      (group 16:3
+        (call 16:4
+          (wing 16:4 scalar-sink)
+          (trace 17:5
+            (str 17:8 "trace")
+            (body 18:7
+              (group 18:7
+                (call 18:8
+                  (wing 18:8 proj)
+                  (tuple 18:13
+                    (face 18:14 x (str 18:16 "hi"))
+                    (face 18:21 a (str 18:23 "wrong"))
+                    (face 18:31 other (lit 18:37 ~zod)))))))))))
+  (value 19:1 record-trace
+    (body 20:3
+      (group 20:3
+        (call 20:4
+          (wing 20:4 record-sink)
+          (trace 21:5
+            (str 21:8 "trace")
+            (body 22:7
+              (group 22:7
+                (call 22:8
+                  (wing 22:8 proj)
+                  (tuple 22:13
+                    (face 22:14 x (lit 22:16 ~zod))
+                    (face 22:21 a (str 22:23 "hi"))
+                    (face 22:28 other (lit 22:34 %.y))))))))))))

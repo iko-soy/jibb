@@ -1,0 +1,243 @@
+(module
+  (value 1:1 sink
+    (gate 1:9
+      (face 1:12 r
+        (cell 1:14
+          (face 1:15 x (aura 1:17 @t))))
+      (wing 1:21 x.r)))
+  (value 2:1 first
+    (cast 2:10
+      (cell 2:13
+        (face 2:14 x (aura 2:16 @t)))
+      (group 2:20
+        (call 2:21
+          (wing 2:21 proj)
+          (tuple 2:26
+            (face 2:27 x (str 2:29 "hi"))
+            (face 2:34 middle (lit 2:41 ~zod))
+            (face 2:46 last (lit 2:51 %.y)))))))
+  (value 3:1 middle
+    (cast 3:11
+      (cell 3:14
+        (face 3:15 x (aura 3:17 @t)))
+      (group 3:21
+        (call 3:22
+          (wing 3:22 proj)
+          (tuple 3:27
+            (face 3:28 first (lit 3:34 ~zod))
+            (face 3:39 x (str 3:41 "hi"))
+            (face 3:46 last (lit 3:51 %.y)))))))
+  (value 4:1 last
+    (cast 4:9
+      (cell 4:12
+        (face 4:13 x (aura 4:15 @t)))
+      (group 4:19
+        (call 4:20
+          (wing 4:20 proj)
+          (tuple 4:25
+            (face 4:26 first (lit 4:32 ~zod))
+            (face 4:37 middle (lit 4:44 %.y))
+            (face 4:48 x (str 4:50 "hi")))))))
+  (value 5:1 call-context
+    (group 5:17
+      (call 5:18
+        (wing 5:18 sink)
+        (group 5:23
+          (call 5:24
+            (wing 5:24 proj)
+            (tuple 5:29
+              (face 5:30 x (str 5:32 "hi"))
+              (face 5:37 middle (lit 5:44 ~zod))
+              (face 5:49 last (lit 5:54 %.y))))))))
+  (value 6:1 source
+    (gate 6:11
+      (face 6:14 v (aura 6:16 @t))
+      (tuple 6:19
+        (face 6:20 first (lit 6:26 ~zod))
+        (face 6:31 x (wing 6:33 v))
+        (face 6:35 last (lit 6:40 %.y)))))
+  (value 7:1 computed
+    (cast 7:13
+      (cell 7:16
+        (face 7:17 x (aura 7:19 @t)))
+      (group 7:23
+        (call 7:24
+          (wing 7:24 proj)
+          (group 7:29
+            (call 7:30 (wing 7:30 source) (str 7:37 "hi")))))))
+  (value 8:1 exact
+    (cast 8:10
+      (cell 8:13
+        (face 8:14 x (aura 8:16 @t)))
+      (group 8:20
+        (call 8:21
+          (wing 8:21 proj)
+          (tuple 8:26
+            (face 8:27 x (str 8:29 "hi")))))))
+  (value 9:1 generic
+    (gate 9:12
+      (face 9:15 v (tvar 9:17 A))
+      (cast 9:19
+        (cell 9:22
+          (face 9:23 x (tvar 9:25 A)))
+        (group 9:28
+          (call 9:29
+            (wing 9:29 proj)
+            (tuple 9:34
+              (face 9:35 first (str 9:41 "hi"))
+              (face 9:46 x (wing 9:48 v))
+              (face 9:50 last (lit 9:55 %.y))))))))
+  (value 10:1 generic-call
+    (group 10:17
+      (call 10:18 (wing 10:18 generic) (lit 10:26 ~zod))))
+  (value 11:1 missing
+    (cast 11:12
+      (cell 11:15
+        (face 11:16 x (aura 11:18 @t)))
+      (group 11:22
+        (call 11:23
+          (wing 11:23 proj)
+          (tuple 11:28
+            (face 11:29 first (str 11:35 "hi"))
+            (face 11:40 middle (lit 11:47 ~zod))
+            (face 11:52 last (lit 11:57 %.y)))))))
+  (value 12:1 mismatch
+    (cast 12:13
+      (cell 12:16
+        (face 12:17 x (aura 12:19 @t)))
+      (group 12:23
+        (call 12:24
+          (wing 12:24 proj)
+          (tuple 12:29
+            (face 12:30 x (lit 12:32 ~zod))
+            (face 12:37 middle (str 12:44 "hi"))
+            (face 12:49 last (lit 12:54 %.y)))))))
+  (value 13:1 pending-tag
+    (cast 13:16
+      (cell 13:19
+        (face 13:20 x (aura 13:22 @t)))
+      (group 13:26
+        (call 13:27
+          (wing 13:27 proj)
+          (tuple 13:32
+            (face 13:33 x (str 13:35 "hi"))
+            (face 13:40 middle (lit 13:47 ~zod))
+            (face 13:52 last (lit 13:57 %orphan)))))))
+  (value 14:1 pending-null
+    (cast 14:17
+      (cell 14:20
+        (face 14:21 x (aura 14:23 @t)))
+      (group 14:27
+        (call 14:28
+          (wing 14:28 proj)
+          (tuple 14:33
+            (face 14:34 x (str 14:36 "hi"))
+            (face 14:41 middle (lit 14:48 ~zod))
+            (face 14:53 last (lit 14:58 ~)))))))
+  (value 15:1 without-context
+    (group 15:20
+      (call 15:21
+        (wing 15:21 proj)
+        (tuple 15:26
+          (face 15:27 x (str 15:29 "hi"))
+          (face 15:34 middle (lit 15:41 ~zod))
+          (face 15:46 last (lit 15:51 %.y))))))
+  (value 16:1 direct-width
+    (cast 16:17
+      (cell 16:20
+        (face 16:21 x (aura 16:23 @t)))
+      (tuple 16:27
+        (face 16:28 x (str 16:30 "hi"))
+        (face 16:35 middle (lit 16:42 ~zod))
+        (face 16:47 last (lit 16:52 %.y)))))
+  (value 18:1 nested-scalar
+    (cast 18:18
+      (cell 18:21
+        (face 18:22 x (aura 18:24 @t))
+        (face 18:27 y (aura 18:29 @p)))
+      (tuple 18:33
+        (face 18:34 x
+          (group 18:36
+            (call 18:37
+              (wing 18:37 proj)
+              (tuple 18:42
+                (face 18:43 x (str 18:45 "hi"))
+                (face 18:50 middle (lit 18:57 ~zod))
+                (face 18:62 last (lit 18:67 %.y))))))
+        (face 18:73 y (lit 18:75 ~zod)))))
+  (value 19:1 nested-proj
+    (gate 19:16
+      (face 19:19 r
+        (cell 19:21
+          (face 19:22 x (aura 19:24 @t))
+          (face 19:27 y (aura 19:29 @p))))
+      (wing 19:33 r)))
+  (value 20:1 nested-call
+    (group 20:16
+      (call 20:17
+        (wing 20:17 nested-proj)
+        (tuple 20:29
+          (face 20:30 x
+            (group 20:32
+              (call 20:33
+                (wing 20:33 proj)
+                (tuple 20:38
+                  (face 20:39 x (str 20:41 "hi"))
+                  (face 20:46 middle (lit 20:53 ~zod))
+                  (face 20:58 last (lit 20:63 %.y))))))
+          (face 20:69 y (lit 20:71 ~zod))))))
+  (value 21:1 nested-record
+    (cast 21:18
+      (cell 21:21
+        (face 21:22 inner
+          (cell 21:28
+            (face 21:29 x (aura 21:31 @t))))
+        (face 21:35 y (aura 21:37 @p)))
+      (tuple 21:41
+        (face 21:42 inner
+          (group 21:48
+            (call 21:49
+              (wing 21:49 proj)
+              (tuple 21:54
+                (face 21:55 x (str 21:57 "hi"))
+                (face 21:62 middle (lit 21:69 ~zod))
+                (face 21:74 last (lit 21:79 %.y))))))
+        (face 21:85 y (lit 21:87 ~zod)))))
+  (value 22:1 scalar-positional
+    (gate 22:22
+      (cell 22:25
+        (face 22:26 x (aura 22:28 @t))
+        (face 22:31 y (aura 22:33 @p)))
+      (wing 22:37 x)))
+  (value 23:1 scalar-positional-bad
+    (group 23:26
+      (call 23:27
+        (wing 23:27 scalar-positional)
+        (group 23:45
+          (call 23:46
+            (wing 23:46 proj)
+            (tuple 23:51
+              (face 23:52 x (str 23:54 "hi"))
+              (face 23:59 middle (lit 23:66 ~zod))
+              (face 23:71 last (lit 23:76 %.y)))))
+        (lit 23:82 ~zod))))
+  (value 24:1 record-positional
+    (gate 24:22
+      (cell 24:25
+        (face 24:26 x
+          (cell 24:28
+            (face 24:29 x (aura 24:31 @t))))
+        (face 24:35 y (aura 24:37 @p)))
+      (wing 24:41 x)))
+  (value 25:1 record-positional-good
+    (group 25:27
+      (call 25:28
+        (wing 25:28 record-positional)
+        (group 25:46
+          (call 25:47
+            (wing 25:47 proj)
+            (tuple 25:52
+              (face 25:53 x (str 25:55 "hi"))
+              (face 25:60 middle (lit 25:67 ~zod))
+              (face 25:72 last (lit 25:77 %.y)))))
+        (lit 25:83 ~zod)))))

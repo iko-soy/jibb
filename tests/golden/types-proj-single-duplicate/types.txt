@@ -1,0 +1,8 @@
+partial inference; module not checked
+record field `x` is repeated
+/tests/golden/types-proj-single-duplicate/source.jibb:1:31: first field
+++ duplicate ^- [x=@t] (proj [x="hi" x="again" last=%.y])
+                              ^
+/tests/golden/types-proj-single-duplicate/source.jibb:1:38: repeated field
+++ duplicate ^- [x=@t] (proj [x="hi" x="again" last=%.y])
+                                     ^

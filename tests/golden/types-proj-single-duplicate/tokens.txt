@@ -1,0 +1,23 @@
+1:1 glyph ++
+1:4 name duplicate
+1:14 glyph ^-
+1:17 glyph [
+1:18 tight name x
+1:19 tight glyph =
+1:20 tight aura @t
+1:22 tight glyph ]
+1:24 glyph (
+1:25 tight name proj
+1:30 glyph [
+1:31 tight name x
+1:32 tight glyph =
+1:33 tight str "hi"
+1:38 name x
+1:39 tight glyph =
+1:40 tight str "again"
+1:48 name last
+1:52 tight glyph =
+1:53 tight lit %.y
+1:56 tight glyph ]
+1:57 tight glyph )
+1:58 NEWLINE

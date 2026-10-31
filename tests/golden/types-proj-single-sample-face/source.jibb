@@ -1,0 +1,22 @@
+++ scalar-sink |= x=@t x
+++ record-sink |= x=[a=@t] a.x
+++ scalar-direct (scalar-sink (proj [x="hi" a="wrong" other=~zod]))
+++ record-direct (record-sink (proj [x=~zod a="hi" other=%.y]))
+++ scalar-branch |= flag=?
+  (scalar-sink
+    ?- flag
+      %.y (proj [x="hi" a="wrong" other=~zod])
+      %.n (proj [x="hi" a="wrong" other=~zod])
+++ record-branch |= flag=?
+  (record-sink
+    ?- flag
+      %.y (proj [x=~zod a="hi" other=%.y])
+      %.n (proj [x=~zod a="hi" other=%.y])
+++ scalar-trace
+  (scalar-sink
+    ~& "trace"
+      (proj [x="hi" a="wrong" other=~zod])
+++ record-trace
+  (record-sink
+    ~& "trace"
+      (proj [x=~zod a="hi" other=%.y])

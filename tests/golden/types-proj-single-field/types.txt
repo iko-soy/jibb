@@ -1,0 +1,31 @@
+partial inference; module not checked
+++ sink: $-([x=@t] @t)
+++ first: [x=@t]
+++ middle: [x=@t]
+++ last: [x=@t]
+++ call-context: @t
+++ source: $-(@t [first=@p [x=@t last=?]])
+++ computed: [x=@t]
+++ exact: [x=@t]
+++ generic: $-(A [x=A])
+++ generic-call: [x=@p]
+++ missing: proj constraint needs unsupported inference
+++ mismatch: proj constraint needs unsupported inference
+++ pending-tag: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference
+++ without-context: proj needs an expected record type
+++ direct-width: cast mold and expression type do not unify
+/tests/golden/types-proj-single-field/source.jibb:16:20: cast mold has type [x=@t]
+++ direct-width ^- [x=@t] [x="hi" middle=~zod last=%.y]
+                   ^
+/tests/golden/types-proj-single-field/source.jibb:16:27: expression has type [x=@t [middle=@p last=?]]
+++ direct-width ^- [x=@t] [x="hi" middle=~zod last=%.y]
+                          ^
+++ nested-scalar: proj needs an expected record type
+++ nested-proj: $-([x=@t y=@p] [x=@t y=@p])
+++ nested-call: proj needs an expected record type
+++ nested-record: [inner=[x=@t] y=@p]
+++ scalar-positional: $-([x=@t y=@p] @t)
+++ scalar-positional-bad: proj needs an expected record type
+++ record-positional: $-([x=[x=@t] y=@p] [x=@t])
+++ record-positional-good: [x=@t]

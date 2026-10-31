@@ -4618,11 +4618,12 @@
 ::  The supported fragment selects uniquely faced fields from a known record
 ::  in source order (reordering is a doc question). It records the original
 ::  call, source and target types, and source axes with its definition;
-::  checked module interfaces retain that evidence and their source, including
+::  A single selected field keeps its face and uses one source axis.
+::  Checked module interfaces retain that evidence and their source, including
 ::  the private prelude dependency. A later lowerer must replace the call by
 ::  an inline gate applied to the operand once; no lowering is implemented yet.
 ::  Ordinary fits never insert a projection. Unknown or variable-origin record
-::  spines, single-item targets, nested projected fields and projections in
+::  spines, implicit narrowing inside selected fields, and projections in
 ::  recursive groups remain unsupported. Directional fits bound faced-spine
 ::  proofs to fewer than 1,024 cells; the projection planner has a separate
 ::  4,096-step bound. These are inference limits, not language limits.
@@ -5412,7 +5413,7 @@
 ++  width-proj-shape
   |=  [actual=itype expected=itype sub=isub]
   ^-  (unit [source=iwfields target=iwfields])
-  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  ?.  &(|(?=(%cell -.actual) ?=(%face -.actual)) |(?=(%cell -.expected) ?=(%face -.expected)))  ~
   =/  source=(unit iwfields)  (width-scan actual sub 1 4.096)
   =/  target=(unit iwfields)  (width-scan expected sub 1 4.096)
   ?~  source  ~
@@ -8099,7 +8100,7 @@
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  (unit iresult)
   ?.  ?=(%tuple -.e)  ~
-  ?.  ?=(%cell -.expected)  ~
+  ?.  |(?=(%cell -.expected) ?=(%face -.expected))  ~
   =/  source=(unit iwfields)  (width-literal-fields items.e 1 4.096)
   =/  target=(unit iwfields)  (width-scan expected sub.state 1 4.096)
   ?~  source  ~
@@ -8133,7 +8134,7 @@
   ^-  iresult
   ?>  ?=(%call -.e)
   ?~  args.e  [%| ["proj needs one record" ~]]
-  ?.  ?=(%cell -.expected)  [%| ["proj needs an expected record type" ~]]
+  ?.  |(?=(%cell -.expected) ?=(%face -.expected))  [%| ["proj needs an expected record type" ~]]
   =/  value=iresult  (infer-proj-source i.args.e expected env state context)
   ?:  ?=(%| -.value)  value
   =/  shape=(unit [source=iwfields target=iwfields])
@@ -8210,12 +8211,20 @@
   (infer-fragment e env state)
 ::
 ::  Preserve each written face; the final complete sample fit checks faces.
+::  A tuple or positional field face belongs to the enclosing sample,
+::  not to the expression at that position. A second face, if present,
+::  is part of the value's own expected type.
+++  projection-field-target
+  |=  expected=itype
+  ^-  itype
+  ?:(?=(%face -.expected) body.expected expected)
+::
 ++  infer-call-context-items
   |=  [items=(list item) expected=itype env=ienv state=istate context=span]
   ^-  iresult
   ?~  items  [%| ["empty cell is not supported by partial inference" ~]]
   ?~  t.items
-    =/  last=iresult  (infer-call-context-arg val.i.items expected env state context)
+    =/  last=iresult  (infer-call-context-arg val.i.items (projection-field-target expected) env state context)
     ?:  ?=(%| -.last)  last
     =/  typ=itype  typ.p.last
     =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
@@ -8224,7 +8233,7 @@
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
   ?.  ?=(%cell -.target)  (infer-simple-items items env state)
-  =/  head=iresult  (infer-call-context-arg val.i.items hed.target env state context)
+  =/  head=iresult  (infer-call-context-arg val.i.items (projection-field-target hed.target) env state context)
   ?:  ?=(%| -.head)  head
   =/  typ=itype  typ.p.head
   =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
@@ -8236,13 +8245,13 @@
   |=  [args=(list expr) expected=itype env=ienv state=istate context=span]
   ^-  iresult
   ?~  args  [%| ["call has no argument" ~]]
-  ?~  t.args  (infer-call-context-arg i.args expected env state context)
+  ?~  t.args  (infer-call-context-arg i.args (projection-field-target expected) env state context)
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
   ?.  ?=(%cell -.target)
     (infer-simple-items (turn args |=(a=expr [(span-of a) ~ a])) env state)
-  =/  head=iresult  (infer-call-context-arg i.args hed.target env state context)
+  =/  head=iresult  (infer-call-context-arg i.args (projection-field-target hed.target) env state context)
   ?:  ?=(%| -.head)  head
   =/  tail=iresult  (infer-call-context-args t.args tal.target env state.p.head context)
   ?:  ?=(%| -.tail)  tail

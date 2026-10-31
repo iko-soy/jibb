@@ -1,0 +1,25 @@
+++ sink |= r=[x=@t] x.r
+++ first ^- [x=@t] (proj [x="hi" middle=~zod last=%.y])
+++ middle ^- [x=@t] (proj [first=~zod x="hi" last=%.y])
+++ last ^- [x=@t] (proj [first=~zod middle=%.y x="hi"])
+++ call-context (sink (proj [x="hi" middle=~zod last=%.y]))
+++ source |= v=@t [first=~zod x=v last=%.y]
+++ computed ^- [x=@t] (proj (source "hi"))
+++ exact ^- [x=@t] (proj [x="hi"])
+++ generic |= v=A ^- [x=A] (proj [first="hi" x=v last=%.y])
+++ generic-call (generic ~zod)
+++ missing ^- [x=@t] (proj [first="hi" middle=~zod last=%.y])
+++ mismatch ^- [x=@t] (proj [x=~zod middle="hi" last=%.y])
+++ pending-tag ^- [x=@t] (proj [x="hi" middle=~zod last=%orphan])
+++ pending-null ^- [x=@t] (proj [x="hi" middle=~zod last=~])
+++ without-context (proj [x="hi" middle=~zod last=%.y])
+++ direct-width ^- [x=@t] [x="hi" middle=~zod last=%.y]
+:: The outer label x expects an atom, not a one-field record to be projected.
+++ nested-scalar ^- [x=@t y=@p] [x=(proj [x="hi" middle=~zod last=%.y]) y=~zod]
+++ nested-proj |= r=[x=@t y=@p] r
+++ nested-call (nested-proj [x=(proj [x="hi" middle=~zod last=%.y]) y=~zod])
+++ nested-record ^- [inner=[x=@t] y=@p] [inner=(proj [x="hi" middle=~zod last=%.y]) y=~zod]
+++ scalar-positional |= [x=@t y=@p] x
+++ scalar-positional-bad (scalar-positional (proj [x="hi" middle=~zod last=%.y]) ~zod)
+++ record-positional |= [x=[x=@t] y=@p] x
+++ record-positional-good (record-positional (proj [x="hi" middle=~zod last=%.y]) ~zod)

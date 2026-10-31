@@ -78,6 +78,45 @@
   ?~  private-deps  ~["private prelude dependency is missing"]
   =/  private-defs=(list iwidth-definition:jibb)  (skim definitions.i.private-deps |=(d=iwidth-definition:jibb =(%project name.d)))
   ?~  private-defs  ~["private dependency projection evidence is missing"]
+  proj-single-errors
+++  proj-single-errors
+  ^-  (list tape)
+  =/  src=@t  '++ first ^- [x=@t] (proj [x="hi" middle=~zod last=%.y])\0a++ middle ^- [x=@t] (proj [first=~zod x="hi" last=%.y])\0a++ last ^- [x=@t] (proj [first=~zod middle=%.y x="hi"])\0a++ exact ^- [x=@t] (proj [x="hi"])\0a++ effect |= x=@t\0a  ~& "effect"\0a    x\0a++ retained ^- [x=@t] (proj [x="hi" middle=~zod last=(effect "once")])\0a'
+  =/  built=jfile-result:jibb  (infer-jibb-file:jibb /ui/single/jibb src ~ ~ ~ ~ ~ ~ ~ ~)
+  ?:  ?=(%| -.built)  ~["single-field projection fixture did not infer"]
+  =/  defs=(list iwidth-definition:jibb)  elaborations.iface.p.built
+  =/  first=(list iwidth-definition:jibb)  (skim defs |=(d=iwidth-definition:jibb =(%first name.d)))
+  =/  middle=(list iwidth-definition:jibb)  (skim defs |=(d=iwidth-definition:jibb =(%middle name.d)))
+  =/  last=(list iwidth-definition:jibb)  (skim defs |=(d=iwidth-definition:jibb =(%last name.d)))
+  =/  exact=(list iwidth-definition:jibb)  (skim defs |=(d=iwidth-definition:jibb =(%exact name.d)))
+  =/  retained=(list iwidth-definition:jibb)  (skim defs |=(d=iwidth-definition:jibb =(%retained name.d)))
+  ?~  first  ~["first-field projection evidence is missing"]
+  ?~  middle  ~["middle-field projection evidence is missing"]
+  ?~  last  ~["last-field projection evidence is missing"]
+  ?~  exact  ~["exact single-field projection evidence is missing"]
+  ?~  retained  ~["discarded effect projection evidence is missing"]
+  ?~  projections.i.first  ~["first-field projection action is missing"]
+  ?~  projections.i.middle  ~["middle-field projection action is missing"]
+  ?~  projections.i.last  ~["last-field projection action is missing"]
+  ?~  projections.i.exact  ~["exact single-field projection action is missing"]
+  ?~  projections.i.retained  ~["discarded effect projection action is missing"]
+  ?.  =(steps.i.projections.i.first ~[[%x 2]])  ~["first-field projection axis is incorrect"]
+  ?.  =(steps.i.projections.i.middle ~[[%x 6]])  ~["middle-field projection axis is incorrect"]
+  ?.  =(steps.i.projections.i.last ~[[%x 7]])  ~["last-field projection axis is incorrect"]
+  ?.  =(steps.i.projections.i.exact ~[[%x 1]])  ~["exact single-field projection axis is incorrect"]
+  ?:  !=(1 (lent projections.i.retained))  ~["discarded effect projection has multiple actions"]
+  =/  call=expr:jibb  original.i.projections.i.retained
+  ?.  ?=(%call -.call)  ~["single-field intrinsic call was not retained"]
+  ?.  ?=([* ~] args.call)  ~["single-field source was not retained once"]
+  =/  tuple=expr:jibb  i.args.call
+  ?.  ?=(%tuple -.tuple)  ~["single-field source tuple was not retained"]
+  =/  fields=(list item:jibb)  items.tuple
+  ?~  fields  ~["single-field source lacks its first field"]
+  ?~  t.fields  ~["single-field source lacks its middle field"]
+  ?~  t.t.fields  ~["single-field source lacks its discarded field"]
+  =/  effect=expr:jibb  val.i.t.t.fields
+  ?.  ?=(%group -.effect)  ~["single-field discarded effect was not retained"]
+  ?.  ?=(%call -.inner.effect)  ~["single-field discarded effect call was not retained"]
   ~
 ++  test-proj-guards
   ^-  tang

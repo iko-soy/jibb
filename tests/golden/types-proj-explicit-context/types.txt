@@ -5,7 +5,7 @@ partial inference; module not checked
 ++ direct: [a=@t b=@p]
 ++ from-call: [a=@t b=@p]
 ++ into-call: @t
-++ nested: proj needs an expected record type
+++ nested: [result=[a=@t b=@p] done=?]
 ++ generic: $-(A [a=@t b=A])
 ++ no-context: proj needs an expected record type
 ++ unknown-target: proj needs an expected record type
@@ -23,7 +23,7 @@ partial inference; module not checked
 ++ alias: name is not available to partial inference
 ++ alias-use: name is not available to partial inference
 ++ two-arguments: name is not available to partial inference
-++ one-field: proj needs an expected record type
+++ one-field: [a=@t]
 ++ exact-record: [a=@t b=@p]
 ++ positional-generic: $-([a=@t b=A] @t)
 ++ positional-generic-call: @t

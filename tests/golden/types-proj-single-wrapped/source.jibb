@@ -1,0 +1,26 @@
+++ scalar-branch |= flag=?
+  ^- [x=@t y=@p]
+    [
+      x=(?- flag
+        %.y (proj [x="a" extra=~zod])
+        %.n (proj [x="b" extra=~zod])
+      y=~zod
+++ nested-branch |= flag=?
+  ^- [inner=[x=@t] y=@p]
+    [
+      inner=(?- flag
+        %.y (proj [x="a" extra=~zod])
+        %.n (proj [x="b" extra=~zod])
+      y=~zod
+++ scalar-trace
+  ^- [x=@t y=@p]
+    [
+      x=(~& "trace"
+        (proj [x="a" extra=~zod])
+      y=~zod
+++ nested-trace
+  ^- [inner=[x=@t] y=@p]
+    [
+      inner=(~& "trace"
+        (proj [x="a" extra=~zod])
+      y=~zod

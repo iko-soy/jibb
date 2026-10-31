@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Records and tuples: "The explicit type-directed operation `(proj record)` selects fields from its argument according to the expected result type" and "`proj` is reserved: a module cannot define or import another name `proj`".
+tests: Scalar and nested one-field record samples through direct, branch and trace arguments. A sample face x must not become the target, and a nested field a must not be replaced by that sample face.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,12 @@
+(module
+  (value 1:1 duplicate
+    (cast 1:14
+      (cell 1:17
+        (face 1:18 x (aura 1:20 @t)))
+      (group 1:24
+        (call 1:25
+          (wing 1:25 proj)
+          (tuple 1:30
+            (face 1:31 x (str 1:33 "hi"))
+            (face 1:38 x (str 1:40 "again"))
+            (face 1:48 last (lit 1:53 %.y))))))))

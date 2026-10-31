@@ -1,0 +1,107 @@
+(module
+  (value 1:1 scalar-branch
+    (gate 1:18
+      (face 1:21 flag (flag 1:26))
+      (body 2:3
+        (cast 2:3
+          (cell 2:6
+            (face 2:7 x (aura 2:9 @t))
+            (face 2:12 y (aura 2:14 @p)))
+          (body 3:5
+            (tuple 3:5
+              (face 4:7 x
+                (group 4:9
+                  (branch 4:10
+                    (wing 4:13 flag)
+                    (arm 5:9
+                      (lit 5:9 %.y)
+                      (group 5:13
+                        (call 5:14
+                          (wing 5:14 proj)
+                          (tuple 5:19
+                            (face 5:20 x (str 5:22 "a"))
+                            (face 5:26 extra (lit 5:32 ~zod))))))
+                    (arm 6:9
+                      (lit 6:9 %.n)
+                      (group 6:13
+                        (call 6:14
+                          (wing 6:14 proj)
+                          (tuple 6:19
+                            (face 6:20 x (str 6:22 "b"))
+                            (face 6:26 extra (lit 6:32 ~zod)))))))))
+              (face 7:7 y (lit 7:9 ~zod))))))))
+  (value 8:1 nested-branch
+    (gate 8:18
+      (face 8:21 flag (flag 8:26))
+      (body 9:3
+        (cast 9:3
+          (cell 9:6
+            (face 9:7 inner
+              (cell 9:13
+                (face 9:14 x (aura 9:16 @t))))
+            (face 9:20 y (aura 9:22 @p)))
+          (body 10:5
+            (tuple 10:5
+              (face 11:7 inner
+                (group 11:13
+                  (branch 11:14
+                    (wing 11:17 flag)
+                    (arm 12:9
+                      (lit 12:9 %.y)
+                      (group 12:13
+                        (call 12:14
+                          (wing 12:14 proj)
+                          (tuple 12:19
+                            (face 12:20 x (str 12:22 "a"))
+                            (face 12:26 extra (lit 12:32 ~zod))))))
+                    (arm 13:9
+                      (lit 13:9 %.n)
+                      (group 13:13
+                        (call 13:14
+                          (wing 13:14 proj)
+                          (tuple 13:19
+                            (face 13:20 x (str 13:22 "b"))
+                            (face 13:26 extra (lit 13:32 ~zod)))))))))
+              (face 14:7 y (lit 14:9 ~zod))))))))
+  (value 15:1 scalar-trace
+    (body 16:3
+      (cast 16:3
+        (cell 16:6
+          (face 16:7 x (aura 16:9 @t))
+          (face 16:12 y (aura 16:14 @p)))
+        (body 17:5
+          (tuple 17:5
+            (face 18:7 x
+              (group 18:9
+                (trace 18:10
+                  (str 18:13 "trace")
+                  (body 19:9
+                    (group 19:9
+                      (call 19:10
+                        (wing 19:10 proj)
+                        (tuple 19:15
+                          (face 19:16 x (str 19:18 "a"))
+                          (face 19:22 extra (lit 19:28 ~zod)))))))))
+            (face 20:7 y (lit 20:9 ~zod)))))))
+  (value 21:1 nested-trace
+    (body 22:3
+      (cast 22:3
+        (cell 22:6
+          (face 22:7 inner
+            (cell 22:13
+              (face 22:14 x (aura 22:16 @t))))
+          (face 22:20 y (aura 22:22 @p)))
+        (body 23:5
+          (tuple 23:5
+            (face 24:7 inner
+              (group 24:13
+                (trace 24:14
+                  (str 24:17 "trace")
+                  (body 25:9
+                    (group 25:9
+                      (call 25:10
+                        (wing 25:10 proj)
+                        (tuple 25:15
+                          (face 25:16 x (str 25:18 "a"))
+                          (face 25:22 extra (lit 25:28 ~zod)))))))))
+            (face 26:7 y (lit 26:9 ~zod))))))))

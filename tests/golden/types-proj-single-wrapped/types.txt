@@ -1,0 +1,5 @@
+partial inference; module not checked
+++ scalar-branch: proj needs an expected record type
+++ nested-branch: proj needs an expected record type
+++ scalar-trace: proj needs an expected record type
+++ nested-trace: [inner=[x=@t] y=@p]
