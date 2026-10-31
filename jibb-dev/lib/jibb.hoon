@@ -10553,6 +10553,48 @@
   =/  watch=?(%watchable %not-watchable)  ?~(scry.path.p %watchable %not-watchable)
   `[u.evidence p u.params full.p u.fold watch]
 ::
+::  Check ordinary API molds and values plus every declared mark type using
+::  the same trusted source, prepared prelude and reader inputs as path
+::  evidence.  Keep elaborations with those inputs for a later interface.
+::  This is partial analysis: an unused /- core is not independently checked,
+::  definitions needing derived values remain unsupported, and no complete
+::  API, request or constructor is exported or given runtime behavior.
++$  iapi-support-evidence
+  [paths=iapi-path-evidence values=ienv molds=imold-types marks=(list iapi-mark-type) elaborations=(list iwidth-definition)]
+++  api-support-analysis-source
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
+  ^-  (each iapi-support-evidence @t)
+  =/  path-result  (api-path-evidence-source file src externals marks modules prepared)
+  ?:  ?=(%| -.path-result)  [%| p.path-result]
+  =/  evidence=iapi-path-evidence  p.path-result
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'API source does not parse']
+  =/  mod=module  p.parsed
+  =/  ordinary=(list def)
+    (skim defs.mod |=(d=def !&(?=(%mold -.d) |(=(%paths name.d) =(%poke name.d)))))
+  =/  prep=iprelude  prepared.evidence
+  ?.  (module-scope-valid mod(defs ordinary) values.prep molds.prep)  [%| 'API ordinary scope needs unsupported inference']
+  =/  vals=(list term)  (global-value-names ordinary)
+  ?:  (lien vals |=(n=term =(n %main)))  [%| 'API module kind needs unsupported inference']
+  =/  declared=(list term)  (collect-mark-imports imports.mod)
+  =/  mark-types=(unit (list iapi-mark-type))  (api-diff-types declared marks declared)
+  ?~  mark-types  [%| 'API declared marks need unsupported inference']
+  =/  prelude=(unit ifile)  `iface.prep
+  =/  deps=jimports-result
+    (resolve-jibb-imports imports.mod externals marks modules ~[file] values.prep molds.prep dependencies.evidence prelude)
+  ?:  ?=(%| -.deps)  [%| p.deps]
+  =/  molds=imolds  (collect-simple-molds ordinary)
+  =/  globals=(list term)  (weld values.prep (weld (import-binding-names imports.mod) vals))
+  =/  surs=(list term)  (collect-sur-imports imports.mod)
+  =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~]
+  =/  mts=(each imold-types @t)  (module-mold-types molds state)
+  ?:  ?=(%| -.mts)  [%| p.mts]
+  =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
+  ?.  (module-values-complete ordinary env.resolution)  [%| 'API ordinary definitions need unsupported inference']
+  [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution]]
+::
 ++  api-mark-exports
   |=  [marks=(list term) all=(list term) externals=imark-externals]
   ^-  imold-types

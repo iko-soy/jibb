@@ -1,1 +1,1 @@
-normal watchable; scry not watchable; missing and duplicate unknown; request parts checked
+normal watchable; scry not watchable; missing and duplicate unknown; request parts checked; support definitions checked

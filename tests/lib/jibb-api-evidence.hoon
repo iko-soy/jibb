@@ -68,6 +68,46 @@
   ?.  ?=([%| *] (api-path-evidence-source:jibb /ui/api/demo/jibb api ~ marks indirect prepared))  'transitive private import accepted'
   =/  cyclic=jbundle:jibb  ~[[/ui/dep/jibb '/= back /ui/dep\0a++ value "x"\0a']]
   ?.  ?=([%| *] (api-path-evidence-source:jibb /ui/api/demo/jibb api ~ marks cyclic prepared))  'cycle accepted'
+  ::  Analyze ordinary support definitions; this is not a checked API.
+  =/  support  (api-support-analysis-source:jibb /ui/api/demo/jibb api externals marks modules prepared)
+  ?:  ?=(%| -.support)  p.support
+  ?.  =(source.paths.p.support api)  'support source not retained'
+  ?.  =(marks.paths.p.support marks)  'support mark graphs not retained'
+  =/  bad-leaf=jbundle:jibb
+    ~[[/ui/dep/jibb '/= leaf /ui/leaf\0a++ value missing.leaf\0a'] [/ui/leaf/jibb '++ broken missing\0a']]
+  =/  duplicate-reader=imark-externals:jibb  [[%todo [%& [%atom %t ~]]] marks]
+  =/  bads=(list [label=@t source=@t bundle=jbundle:jibb readers=imark-externals:jibb])
+    :~  ['unused duplicate mold' (cat 3 api '+$ broken [a=@t a=@p]\0a') modules marks]
+        ['unused missing mold' (cat 3 api '+$ broken missing\0a') modules marks]
+        ['unused missing value' (cat 3 api '++ broken missing-value\0a') modules marks]
+        ['unused unsupported gate' (cat 3 api '++ broken |= x=A (missing-gate x)\0a') modules marks]
+        ['reserved value clash' (cat 3 api '++ forbidden "x"\0a') modules marks]
+        ['reserved mold clash' (cat 3 api '+$ hidden @t\0a') modules marks]
+        ['duplicate mark declaration' (cat 3 '/% %todo\0a' api) modules marks]
+        ['missing mark declaration' '/% %todo\0a+$ paths [%items /items absent]\0a' ~ marks]
+        ['unused unavailable mark' (cat 3 '/% %missing-mark\0a' api) modules marks]
+        ['missing dependency' api ~ marks]
+        ['transitive private import' api indirect marks]
+        ['dependency cycle' api cyclic marks]
+        ['bad reachable dependency' api bad-leaf marks]
+        ['missing reader mark' api modules ~]
+        ['duplicate reader mark' api modules duplicate-reader]
+    ==
+  =/  failures=(list @t)
+    %+  turn  bads
+    |=  entry=[label=@t source=@t bundle=jbundle:jibb readers=imark-externals:jibb]
+    =/  analysis  (api-support-analysis-source:jibb /ui/api/demo/jibb source.entry externals readers.entry bundle.entry prepared)
+    ?:  ?=(%| -.analysis)  ''
+    label.entry
+  =.  failures  (skim failures |=(x=@t !=(x '')))
+  ?^  failures  (crip "unexpected support: {(trip i.failures)}")
+  ::  An unused /sur face is not selected by this partial entry point.
+  =/  unused-sur  (cat 3 '/- ignored\0a' api)
+  =/  lazy  (api-support-analysis-source:jibb /ui/api/demo/jibb unused-sur externals marks modules prepared)
+  ?:  ?=(%| -.lazy)  'unused /sur face unexpectedly inspected'
+  =/  unreachable=jbundle:jibb  [[/ui/unused/jibb '+$ broken [a=@t a=@p]\0a'] modules]
+  =/  not-reached  (api-support-analysis-source:jibb /ui/api/demo/jibb api externals marks unreachable prepared)
+  ?:  ?=(%| -.not-reached)  'unreachable bad module inspected'
   =/  normal=@t  '/% %full\0a/% %delta\0a/% %second\0a+$ paths\0a  [%plain /plain full]\0a  [%changes /changes (facts full delta second)]\0a  [%by-id /things/[id=@ud] full]\0a  [%by-pair /things/[id=@ud]/[slug=@ta] (facts full delta)]\0a  [%out-of-order /things/[zeta=@ud]/[alpha=@ta] (facts full delta)]\0a  [%separate /watch/[id=@ud] (facts full delta) scry=/peek/[id=@ud]]\0a  [%unknown /watch/[id=@xyz] full]\0a'
   =/  prep=(unit iprelude:jibb)  prepared
   ?~  prep  'minimal prelude unavailable'
@@ -123,7 +163,7 @@
   ?.  ?=(^ scry.path.path.u.scry)  'scry path metadata dropped'
   ?.  =(fold.u.scry `expected-fold)  'scry fold type changed'
   ?.  ?=(~ (api-request-parts:jibb `ev %unknown))  'unknown parameter aura accepted'
-  'normal watchable; scry not watchable; missing and duplicate unknown; request parts checked'
+  'normal watchable; scry not watchable; missing and duplicate unknown; request parts checked; support definitions checked'
 ++  real-evidence-status
   |=  [prelude=@t internal=@t sur=@t action=@t todos=@t update=@t item=@t api=@t]
   ^-  @t
@@ -182,11 +222,27 @@
   ?.  =(%not-watchable watchability.u.by-id-parts)  'real scry declaration classified watchable'
   ?.  ?=([* ~] parameters.u.by-id-parts)  'real id parameter missing'
   ?.  &(=(name.i.parameters.u.by-id-parts %id) =(typ.i.parameters.u.by-id-parts [%atom %ud]))  'real id parameter wrong'
+  ::  Check the ordinary alias and value using the real /sur reader.
+  =/  item-import=*  (read-named:jibb-import %todo %item todo)
+  =/  ex=iexternals:jibb  ~[[%todo %item item-import]]
+  =/  extended=@t  (cat 3 api '\0a++ copy |= x=item x\0a')
+  =/  support  (api-support-analysis-source:jibb /ui/api/todo/jibb extended ex marks ~ prepared)
+  ?:  ?=(%| -.support)  p.support
+  ?.  =(source.paths.p.support extended)  'real API support source lost'
+  ?.  =(marks.paths.p.support marks)  'real API support mark graph lost'
+  ?.  ?=(^ (ienv-lookup:jibb %copy values.p.support))  'real imported helper value unavailable'
+  =/  named=(list [name=term template=ischeme:jibb])
+    (skim molds.p.support |=(m=[name=term template=ischeme:jibb] =(%item name.m)))
+  ?.  ?=([* ~] named)  'real imported helper mold unavailable'
+  =/  item-type=(unit itype:jibb)  (find-imported-mold:jibb %todo %item ex ~[%todo])
+  ?~  item-type  'real /sur item graph unavailable'
+  ?.  =(typ.template.i.named u.item-type)  'real helper differs from reader graph'
+  ?.  =((lent marks.p.support) 4)  'real API declared marks incomplete'
   'real todo path evidence passed'
 ++  test-api-evidence-synthetic
   ^-  tang
   =/  outcome=@t  synthetic-evidence-status
-  ?:  =(outcome 'normal watchable; scry not watchable; missing and duplicate unknown; request parts checked')  ~
+  ?:  =(outcome 'normal watchable; scry not watchable; missing and duplicate unknown; request parts checked; support definitions checked')  ~
   ~[leaf+(trip outcome)]
 ++  test-api-evidence-real
   ^-  tang
