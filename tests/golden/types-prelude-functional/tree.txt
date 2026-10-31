@@ -1,0 +1,65 @@
+(module
+  (value 1:1 pick
+    (gate 1:9
+      (face 1:12 p
+        (cell 1:14 (aura 1:15 @t) (aura 1:18 @p)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 p)
+          (arm 3:5
+            (cell 3:5 (bind 3:6 a) (bind 3:8 b))
+            (wing 3:11 a))))))
+  (value 4:1 curried
+    (group 4:12
+      (call 4:13 (wing 4:13 cury) (wing 4:18 pick) (str 4:23 "hi"))))
+  (value 5:1 use-cury
+    (group 5:13
+      (call 5:14 (wing 5:14 curried) (lit 5:22 ~zod))))
+  (value 6:1 right-curried
+    (group 6:18
+      (call 6:19 (wing 6:19 curr) (wing 6:24 pick) (lit 6:29 ~zod))))
+  (value 7:1 use-curr
+    (group 7:13
+      (call 7:14 (wing 7:14 right-curried) (str 7:28 "hi"))))
+  (value 8:1 polymorphic
+    (group 8:16
+      (call 8:17 (wing 8:17 cork) (wing 8:22 same) (wing 8:27 same))))
+  (value 9:1 use-text
+    (group 9:13
+      (call 9:14 (wing 9:14 polymorphic) (str 9:26 "hello"))))
+  (value 10:1 use-ship
+    (group 10:13
+      (call 10:14 (wing 10:14 polymorphic) (lit 10:26 ~zod))))
+  (value 11:1 textify
+    (gate 11:12
+      (face 11:15 x (aura 11:17 @p))
+      (str 11:20 "text")))
+  (value 12:1 shipify
+    (gate 12:12
+      (face 12:15 x (aura 12:17 @t))
+      (lit 12:20 ~zod)))
+  (value 13:1 forward
+    (group 13:12
+      (call 13:13 (wing 13:13 cork) (wing 13:18 shipify) (wing 13:26 textify))))
+  (value 14:1 backward
+    (group 14:13
+      (call 14:14 (wing 14:14 corl) (wing 14:19 textify) (wing 14:27 shipify))))
+  (value 15:1 use-forward
+    (group 15:16
+      (call 15:17 (wing 15:17 forward) (str 15:25 "hello"))))
+  (value 16:1 use-backward
+    (group 16:17
+      (call 16:18 (wing 16:18 backward) (str 16:27 "hello"))))
+  (value 17:1 bad-compose
+    (group 17:16
+      (call 17:17 (wing 17:17 cork) (wing 17:22 shipify) (wing 17:30 shipify))))
+  (value 18:1 faced-cury
+    (group 18:15
+      (call 18:16
+        (wing 18:16 cury)
+        (gate-wide 18:21
+          (cell 18:24
+            (face 18:25 a (aura 18:27 @t))
+            (face 18:30 b (aura 18:32 @p)))
+          (wing 18:36 a))
+        (str 18:39 "hi")))))

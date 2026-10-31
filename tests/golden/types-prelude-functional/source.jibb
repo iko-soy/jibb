@@ -1,0 +1,18 @@
+++ pick |= p=[@t @p]
+  ?- p
+    [a b] a
+++ curried (cury pick "hi")
+++ use-cury (curried ~zod)
+++ right-curried (curr pick ~zod)
+++ use-curr (right-curried "hi")
+++ polymorphic (cork same same)
+++ use-text (polymorphic "hello")
+++ use-ship (polymorphic ~zod)
+++ textify |= x=@p "text"
+++ shipify |= x=@t ~zod
+++ forward (cork shipify textify)
+++ backward (corl textify shipify)
+++ use-forward (forward "hello")
+++ use-backward (backward "hello")
+++ bad-compose (cork shipify shipify)
+++ faced-cury (cury |=([a=@t b=@p] a) "hi")

@@ -183,16 +183,16 @@
   ?:  (lien seen |=(n=@ =(n q.i.cases)))  ~
   $(cases t.cases, seen [q.i.cases seen], fuel (dec fuel))
 ::
-++  safe-source-specs
-  |=  [xs=(list spec) cor=type seen=(list term) fuel=@ud]
+++  safe-source-specs-mode
+  |=  [xs=(list spec) cor=type seen=(list term) fuel=@ud allow-nested=?]
   ^-  (unit @ud)
   ?~  xs  `fuel
-  =/  left=(unit @ud)  (safe-source-spec i.xs cor seen fuel)
+  =/  left=(unit @ud)  (safe-source-spec-mode i.xs cor seen fuel allow-nested)
   ?~  left  ~
   $(xs t.xs, fuel u.left)
 ::
-++  safe-source-name
-  |=  [name=term cor=type seen=(list term) fuel=@ud]
+++  safe-source-name-mode
+  |=  [name=term cor=type seen=(list term) fuel=@ud allow-nested=?]
   ^-  (unit @ud)
   ?:  (lien seen |=(x=term =(name x)))  ~
   =/  arm=(unit hoon)  (local-arm-source cor name)
@@ -203,10 +203,10 @@
   ?.  (scope-safe p.cor name)  ~
   =/  body=(unit spec)  (local-mold-spec u.arm name)
   ?~  body  ~
-  (safe-source-spec u.body cor [name seen] fuel)
+  (safe-source-spec-mode u.body cor [name seen] fuel allow-nested)
 ::
-++  safe-source-spec
-  |=  [shape=spec cor=type seen=(list term) fuel=@ud]
+++  safe-source-spec-mode
+  |=  [shape=spec cor=type seen=(list term) fuel=@ud allow-nested=?]
   ^-  (unit @ud)
   ?:  =(fuel 0)  ~
   =.  fuel  (dec fuel)
@@ -217,27 +217,47 @@
     [%leaf *]  `fuel
     [%bcts *]  ?@  p.shape  $(shape q.shape)
                ~
-    [%bccl *]  (safe-source-specs p.shape cor seen fuel)
+    [%bccl *]  (safe-source-specs-mode p.shape cor seen fuel allow-nested)
+    [%bccn *]
+      ::  A source proof may cross one named union dependency. Deeper
+      ::  named unions stay unsupported to bound recursive reprojection.
+      ?.  allow-nested  ~
+      ?.  ?=([* [* ~]] seen)  ~
+      =/  cases=(unit (list tagged-case))  (tagged-cases p.shape ~)
+      ?~  cases  ~
+      ?~  u.cases  ~
+      ?~  t.u.cases  ~
+      (safe-source-tagged-fuel-mode u.cases cor seen fuel allow-nested)
     [%bcwt *]  (safe-source-enum p.shape ~ fuel)
     [%like *]
       ?.  ?=([@ ~] p.shape)  ~
       ?.  ?=(~ q.shape)  ~
-      (safe-source-name i.p.shape cor seen fuel)
+      (safe-source-name-mode i.p.shape cor seen fuel allow-nested)
     [%make *]
       ?.  ?=([%wing [@ ~]] p.shape)  ~
       =/  n=term  i.p.p.shape
       ?.  (lien `(list term)`~[%map %set %qeu %list %unit %jar %jug] |=(x=term =(x n)))  ~
       ?.  (scope-safe cor n)  ~
-      (safe-source-specs q.shape cor seen fuel)
+      (safe-source-specs-mode q.shape cor seen fuel allow-nested)
   ==
+::
+++  safe-source-tagged-fuel-mode
+  |=  [cases=(list tagged-case) cor=type seen=(list term) fuel=@ud allow-nested=?]
+  ^-  (unit @ud)
+  ?~  cases  `fuel
+  =/  left=(unit @ud)  (safe-source-spec-mode branch.i.cases cor seen fuel allow-nested)
+  ?~  left  ~
+  $(cases t.cases, fuel u.left)
+::
+++  safe-source-name
+  |=  [name=term cor=type seen=(list term) fuel=@ud]
+  ^-  (unit @ud)
+  (safe-source-name-mode name cor seen fuel &)
 ::
 ++  safe-source-tagged
   |=  [cases=(list tagged-case) cor=type seen=(list term) fuel=@ud]
   ^-  ?
-  ?~  cases  &
-  =/  left=(unit @ud)  (safe-source-spec branch.i.cases cor seen fuel)
-  ?~  left  |
-  $(cases t.cases, fuel u.left)
+  ?=(^ (safe-source-tagged-fuel-mode cases cor seen fuel &))
 ::
 ++  tagged-union-fallback
   |=  [module=term name=term cor=type]
@@ -252,7 +272,9 @@
   ?~  selected  ~
   =/  cases  (tagged-source-code u.selected name)
   ?~  cases  ~
-  ?.  (safe-source-tagged u.cases cor ~[name] 4.096)  ~
+  ::  Preserve the original budget when no nested union recovery is needed.
+  =/  plain=?  ?=(^ (safe-source-tagged-fuel-mode u.cases cor ~[name] 4.096 |))
+  ?.  |(plain (safe-source-tagged u.cases cor ~[name] 256))  ~
   =/  tried=(each (list type) tang)
     (mule |.((turn u.cases |=(c=tagged-case (~(play ut cor) [%kttr branch.c])))))
   ?.  ?=([%& *] tried)  ~
@@ -1189,6 +1211,35 @@
   ?~  args  [%bad unsupported]
   [%apply name.out u.args]
 ::
+::  A nested named tagged union may be recovered only if its hold is
+::  exactly the selected arm of this core. Provenance and all original
+::  source cases are checked by the same fallback as a top-level arm.
+++  nested-tagged-union
+  |=  [module=term typ=type context=(unit type)]
+  ^-  (unit imported)
+  ?~  context  ~
+  ?.  ?=([%core *] u.context)  ~
+  ?.  ?=([%hold *] typ)  ~
+  =/  n=(unit term)  (hold-name q.typ)
+  ?~  n  ~
+  ::  The outer proof has a shared budget. Bound each nested re-proof as
+  ::  well, so rebuilding a shared source DAG cannot grow without limit.
+  =/  source=(unit hoon)  (local-arm-source u.context u.n)
+  ?~  source  ~
+  =/  cases=(unit (list tagged-case))  (tagged-source-code u.source u.n)
+  ?~  cases  ~
+  ?.  (safe-source-tagged u.cases u.context ~[u.n] 256)  ~
+  =/  selected=(each type tang)
+    (mule |.((~(play ut u.context) (ream (cat 3 '*' u.n)))))
+  ?.  ?=([%& *] selected)  ~
+  ?.  =(p.selected typ)  ~
+  =/  attempt=(each (unit (each imported @t)) tang)
+    (mule |.((tagged-union-fallback module u.n u.context)))
+  ?.  ?=([%& *] attempt)  ~
+  ?~  p.attempt  ~
+  ?.  ?=([%& [%fork *]] u.p.attempt)  ~
+  `p.u.p.attempt
+::
 ++  walk
   |=  [module=term typ=type sig=signatures seen=visiting context=(unit type)]
   ^-  imported
@@ -1213,6 +1264,8 @@
       [%fork (sort cases |=(pair=[imported imported] (dor -.pair +.pair)))]
     [%hint *]  $(typ q.typ)
     [%hold *]
+      =/  nested=(unit imported)  (nested-tagged-union module typ context)
+      ?^  nested  u.nested
       ?:  &(?=([%tsls [%note * *] *] q.typ) |((has-spec-cell-union q.typ) (has-spec-general-union q.typ)))
         =/  nm  (hold-name q.typ)
         (collection-union typ module sig [[typ nm] seen] context)
@@ -1668,6 +1721,12 @@
   =/  tag-zuse=@t
     '|%\0a+$  ship  @t\0a+$  path  @ud\0a+$  choice  $%([%ok who=ship] [%err where=path])\0a--\0a'
   =/  tag-zuse-core=type  -:(ride -:!>(..zuse) tag-zuse)
+  =/  nest-parent-src=@t
+    '|%\0a+$  tag-nest-inner  $%([%foreign @t] [%foreign @t])\0a--\0a'
+  =/  nest-parent=type  -:(ride -:!>(..zuse) nest-parent-src)
+  =/  nest-child-src=@t
+    '|%\0a+$  tag-nest-inner  $%([%left @t] [%right @ud])\0a+$  tag-nest-middle  $%([%one x=tag-nest-inner] [%two ~])\0a--\0a'
+  =/  nest-collision=type  -:(ride [%cell [%face %base nest-parent] -:!>(..zuse)] nest-child-src)
   =/  sample
     |=  name=term
     (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
@@ -1841,6 +1900,18 @@
       (crip "tag-ford-collision: {(show-result (read-named %child %choice tag-collision))}")
       (crip "tag-ford-clean: {(show-result (read-named %child %choice tag-clean))}")
       (crip "tag-zuse-local: {(show-result (read-named %child %choice tag-zuse-core))}")
+      (crip "tag-nest-inner: {(show-result (sample %tag-nest-inner))}")
+      (crip "tag-nest-middle: {(show-result (sample %tag-nest-middle))}")
+      (crip "tag-nest-diamond: {(show-result (sample %tag-nest-diamond))}")
+      (crip "tag-nest-deep: {(show-result (sample %tag-nest-deep))}")
+      (crip "tag-nest-hidden: {(show-result (sample %tag-nest-hidden))}")
+      (crip "tag-nest-overlap: {(show-result (sample %tag-nest-overlap))}")
+      (crip "tag-nest-recursive: {(show-result (sample %tag-nest-recursive-outer))}")
+      (crip "tag-nest-many: {(show-result (sample %tag-nest-many))}")
+      (crip "tag-nest-shadow: {(show-result (read-named %shadow-static %tag-nest-shadow xc))}")
+      (crip "tag-nest-wrong-hold: {?~((nested-tagged-union %small (~(play ut other) (ream '*chain')) `sc) "unsupported" "BAD")}")
+      (crip "tag-nest-ford-collision: {(show-result (read-named %outer %tag-nest-middle nest-collision))}")
+      (crip "tag-flat-large: {?:(&(?=(~ (safe-source-name-mode %tag-fuel-7 sc ~ 256 |)) ?=(^ (safe-source-name-mode %tag-fuel-7 sc ~ 4.096 |)) ?=([%& *] (sample %tag-flat-large))) "supported above 256" "BAD")}")
       (crip "tag-null-good: {(show-result (sample %tag-null-good))}")
       (crip "tag-null-duplicate: {(show-result (sample %tag-null-duplicate))}")
       (crip "tag-null-hidden: {(show-result (sample %tag-null-hidden))}")

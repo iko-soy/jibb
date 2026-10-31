@@ -7239,10 +7239,21 @@
   ?.  ?=(%ok -.first)  ~
   $(items t.items, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
 ::
+::  A term-headed pair is the same noun as a two-item cell. Preserve the
+::  whole pair span for the synthetic head and the value's own span for
+::  the payload; unresolved term constraints follow ordinary cell inference.
+++  pair-as-cell
+  |=  e=expr
+  ^-  expr
+  ?>  ?=(%pair -.e)
+  =/  head=expr  [%lit at.e [%term %tas tag.e (crip ['%' (trip tag.e)])]]
+  [%tuple at.e ~[[at.e ~ head] [(span-of val.e) ~ val.e]]]
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
   ?-  -.e
+    %pair  $(e (pair-as-cell e))
     %lit
       ?-  form.lit.e
         %number    ?:  =(%ud aura.lit.e)
@@ -7521,6 +7532,7 @@
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
+  ?:  ?=(%pair -.e)  $(e (pair-as-cell e))
   ?:  ?=(%group -.e)  $(e inner.e)
   ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
   ?:  ?=(%trace -.e)

@@ -1,0 +1,86 @@
+(module
+  (mold 1:1 spacing
+    (union 2:3 (const 2:3 %s0) (const 3:3 %s1) (const 4:3 %s2) (const 5:3 %s3)))
+  (mold 6:1 length
+    (union 7:3
+      (cell 7:3
+        (const 7:4 %fill)
+        (face 7:10 n (aura 7:12 @ud)))
+      (const 8:3 %shrink)))
+  (mold 9:1 attr
+    (union 10:3
+      (cell 10:3 (const 10:4 %gap) (ref 10:9 spacing))
+      (cell 11:3 (const 11:4 %pad) (ref 11:9 spacing))
+      (cell 12:3 (const 12:4 %width) (ref 12:11 length))))
+  (mold 13:1 other-attr
+    (union 14:3
+      (cell 14:3 (const 14:4 %gap) (ref 14:9 spacing))
+      (cell 15:3 (const 15:4 %pad) (ref 15:9 spacing))
+      (cell 16:3 (const 16:4 %width) (ref 16:11 length))))
+  (value 17:1 one
+    (cast 17:8
+      (ref 17:11 attr)
+      (pair 17:16 gap (lit 17:20 %s2))))
+  (value 18:1 equiv
+    (cast 18:10
+      (ref 18:13 attr)
+      (tuple 18:18 (lit 18:19 %gap) (lit 18:24 %s2))))
+  (value 19:1 attrs
+    (cast 19:10
+      (apply 19:13 list (ref 19:19 attr))
+      (list 19:25
+        (pair 19:27 gap (lit 19:31 %s2))
+        (pair 19:35 pad (lit 19:39 %s3))
+        (pair 19:43 width
+          (tuple 19:49 (lit 19:50 %fill) (lit 19:56 1))))))
+  (value 20:1 gap-structural
+    (cast 20:19
+      (cell 20:22 (aura 20:23 @tas) (aura 20:28 @tas))
+      (pair 20:34 gap (lit 20:38 %s2))))
+  (value 21:1 nested
+    (cast 21:11
+      (ref 21:14 attr)
+      (pair 21:19 width
+        (tuple 21:25 (lit 21:26 %fill) (lit 21:32 1)))))
+  (value 22:1 mismatch
+    (cast 22:13
+      (ref 22:16 attr)
+      (pair 22:21 gap (lit 22:25 %shrink))))
+  (value 23:1 missing
+    (cast 23:12
+      (ref 23:15 attr)
+      (pair 23:20 width
+        (tuple 23:26 (lit 23:27 %oops) (lit 23:33 1)))))
+  (value 24:1 pending
+    (pair 24:12 gap (lit 24:16 %s2)))
+  (value 25:1 cross-origin
+    (cast 25:17
+      (ref 25:20 attr)
+      (cast 25:25
+        (ref 25:28 other-attr)
+        (pair 25:39 gap (lit 25:43 %s2)))))
+  (value 26:1 noun-pair
+    (cast 26:14
+      (cell 26:17 (noun 26:18) (noun 26:20))
+      (pair 26:23 gap (lit 26:27 %s2))))
+  (value 27:1 atom-pair
+    (cast 27:14
+      (cell 27:17 (aura 27:18 @ta) (aura 27:22 @tas))
+      (pair 27:28 gap (lit 27:32 %s2))))
+  (value 28:1 wrong-head
+    (cast 28:15
+      (cell 28:18 (aura 28:19 @ud) (aura 28:23 @tas))
+      (pair 28:29 gap (lit 28:33 %s2))))
+  (value 29:1 wrong-number
+    (cast 29:17
+      (ref 29:20 attr)
+      (pair 29:25 width
+        (tuple 29:31 (lit 29:32 %fill) (str 29:38 "hi")))))
+  (value 30:1 unrelated
+    (body 31:3
+      (trace 31:3
+        (lit 31:6 %dangling)
+        (body 32:5
+          (cast 32:5
+            (ref 32:8 attr)
+            (pair 32:13 gap (lit 32:17 %s2))))))))

@@ -791,4 +791,74 @@
                 (arm 292:9
                   (cell 292:9 (bind 292:10 next) (bind 292:15 more))
                   (group 292:21
-                    (call 292:22 (wing 292:22 rear) (wing 292:27 rest))))))))))))
+                    (call 292:22 (wing 292:22 rear) (wing 292:27 rest)))))))))))
+  (value 294:1 cork
+    (gate 294:9
+      (face 294:12 gates
+        (cell 294:18
+          (fn 294:19 (tvar 294:22 A) (tvar 294:24 B))
+          (fn 294:27 (tvar 294:30 B) (tvar 294:32 C))))
+      (body 295:3
+        (branch 295:3
+          (wing 295:6 gates)
+          (arm 296:5
+            (cell 296:5 (bind 296:6 f) (bind 296:8 g))
+            (gate 296:11
+              (face 296:14 x (tvar 296:16 A))
+              (group 296:18
+                (call 296:19
+                  (wing 296:19 g)
+                  (group 296:21
+                    (call 296:22 (wing 296:22 f) (wing 296:24 x)))))))))))
+  (value 298:1 corl
+    (gate 298:9
+      (face 298:12 gates
+        (cell 298:18
+          (fn 298:19 (tvar 298:22 B) (tvar 298:24 C))
+          (fn 298:27 (tvar 298:30 A) (tvar 298:32 B))))
+      (body 299:3
+        (branch 299:3
+          (wing 299:6 gates)
+          (arm 300:5
+            (cell 300:5 (bind 300:6 f) (bind 300:8 g))
+            (gate 300:11
+              (face 300:14 x (tvar 300:16 A))
+              (group 300:18
+                (call 300:19
+                  (wing 300:19 f)
+                  (group 300:21
+                    (call 300:22 (wing 300:22 g) (wing 300:24 x)))))))))))
+  (value 302:1 cury
+    (gate 302:9
+      (face 302:12 args
+        (cell 302:17
+          (fn 302:18
+            (cell 302:21 (tvar 302:22 A) (tvar 302:24 B))
+            (tvar 302:27 C))
+          (tvar 302:30 A)))
+      (body 303:3
+        (branch 303:3
+          (wing 303:6 args)
+          (arm 304:5
+            (cell 304:5 (bind 304:6 f) (bind 304:8 a))
+            (gate 304:11
+              (face 304:14 b (tvar 304:16 B))
+              (group 304:18
+                (call 304:19 (wing 304:19 f) (wing 304:21 a) (wing 304:23 b)))))))))
+  (value 306:1 curr
+    (gate 306:9
+      (face 306:12 args
+        (cell 306:17
+          (fn 306:18
+            (cell 306:21 (tvar 306:22 A) (tvar 306:24 B))
+            (tvar 306:27 C))
+          (tvar 306:30 B)))
+      (body 307:3
+        (branch 307:3
+          (wing 307:6 args)
+          (arm 308:5
+            (cell 308:5 (bind 308:6 f) (bind 308:8 b))
+            (gate 308:11
+              (face 308:14 a (tvar 308:16 A))
+              (group 308:18
+                (call 308:19 (wing 308:19 f) (wing 308:21 a) (wing 308:23 b))))))))))

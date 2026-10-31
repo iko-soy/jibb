@@ -8,4 +8,6 @@
 ++  set  set:..zuse
 +$  tag-shadow-jar  $%([%ok a=(jar @ud @t)] [%err a=@ud])
 +$  tag-shadow-jug  $%([%ok a=(jug @ud @t)] [%err a=@ud])
++$  tag-nest-inner  $%([%left value=(list @t)] [%right value=@ud])
++$  tag-nest-shadow  $%([%one x=tag-nest-inner] [%two ~])
 --

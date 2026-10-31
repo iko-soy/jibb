@@ -153,6 +153,18 @@ unverified-subject: error: Hoon module provenance is unavailable
 tag-ford-collision: error: a Hoon union needs a source-level disjointness check
 tag-ford-clean: (union [ok a=@t] [err a=@ud])
 tag-zuse-local: (union [ok who=@t] [err where=@ud])
+tag-nest-inner: (union [left value=@t] [right value=@ud])
+tag-nest-middle: (union [one x=(union [left value=@t] [right value=@ud])] [two @n:0])
+tag-nest-diamond: (union [one [x=(union [left value=@t] [right value=@ud]) y=(union [left value=@t] [right value=@ud])]] [two @n:0])
+tag-nest-deep: error: a Hoon union needs a source-level disjointness check
+tag-nest-hidden: error: a Hoon union needs a source-level disjointness check
+tag-nest-overlap: error: a Hoon union needs a source-level disjointness check
+tag-nest-recursive: error: a Hoon union needs a source-level disjointness check
+tag-nest-many: error: a Hoon union needs a source-level disjointness check
+tag-nest-shadow: error: a Hoon union needs a source-level disjointness check
+tag-nest-wrong-hold: unsupported
+tag-nest-ford-collision: error: a Hoon union needs a source-level disjointness check
+tag-flat-large: supported above 256
 tag-null-good: (union [ok @n:0] [err message=@t])
 tag-null-duplicate: error: Hoon union disjointness could not be verified
 tag-null-hidden: error: a Hoon union needs a source-level disjointness check

@@ -1,0 +1,4 @@
+source: Grammar, Literals: `gap+%s2` is `[%gap %s2]`, with any operand after the `+`. Tag resolution and Literals by context: tags and cells wait for a known type.
+tests: A synthetic attribute union checks pair syntax against equivalent cells, nested `%fill` payloads and lists; atom and noun contexts, incompatible values, open tags and distinct union origins are also covered. Duplicate attribute checking is separate and remains unimplemented.
+expect: parses
+expect-types: a partial inference report

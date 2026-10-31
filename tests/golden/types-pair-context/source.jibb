@@ -1,0 +1,32 @@
++$ spacing
+  %s0
+  %s1
+  %s2
+  %s3
++$ length
+  [%fill n=@ud]
+  %shrink
++$ attr
+  [%gap spacing]
+  [%pad spacing]
+  [%width length]
++$ other-attr
+  [%gap spacing]
+  [%pad spacing]
+  [%width length]
+++ one ^- attr gap+%s2
+++ equiv ^- attr [%gap %s2]
+++ attrs ^- (list attr) ~[gap+%s2 pad+%s3 width+[%fill 1]]
+++ gap-structural ^- [@tas @tas] gap+%s2
+++ nested ^- attr width+[%fill 1]
+++ mismatch ^- attr gap+%shrink
+++ missing ^- attr width+[%oops 1]
+++ pending gap+%s2
+++ cross-origin ^- attr ^- other-attr gap+%s2
+++ noun-pair ^- [* *] gap+%s2
+++ atom-pair ^- [@ta @tas] gap+%s2
+++ wrong-head ^- [@ud @tas] gap+%s2
+++ wrong-number ^- attr width+[%fill "hi"]
+++ unrelated
+  ~& %dangling
+    ^- attr gap+%s2

@@ -7,4 +7,12 @@
   (value 3:1 action
     (gate 3:11
       (face 3:14 x (ref 3:16 a-note.notes))
-      (wing 3:29 x))))
+      (wing 3:29 x)))
+  (value 4:1 notebook-update
+    (gate 4:20
+      (face 4:23 x (ref 4:25 u-notebook.notes))
+      (wing 4:42 x)))
+  (value 5:1 notes-update
+    (gate 5:17
+      (face 5:20 x (ref 5:22 u-notes.notes))
+      (wing 5:36 x))))

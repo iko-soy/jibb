@@ -57,3 +57,7 @@ partial inference; module not checked
 ++ join: sample mold is not supported by partial inference
 ++ snip: sample mold is not supported by partial inference
 ++ rear: sample mold is not supported by partial inference
+++ cork: $-([$-(A B) $-(B C)] $-(A C))
+++ corl: $-([$-(A B) $-(C A)] $-(C B))
+++ cury: $-([$-([A B] C) A] $-(B C))
+++ curr: $-([$-([A B] C) B] $-(A C))

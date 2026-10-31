@@ -16,4 +16,20 @@
 3:15 tight glyph =
 3:16 tight wing a-note.notes
 3:29 name x
-3:30 NEWLINE
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name notebook-update
+4:20 glyph |=
+4:23 name x
+4:24 tight glyph =
+4:25 tight wing u-notebook.notes
+4:42 name x
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name notes-update
+5:17 glyph |=
+5:20 name x
+5:21 tight glyph =
+5:22 tight wing u-notes.notes
+5:36 name x
+5:37 NEWLINE

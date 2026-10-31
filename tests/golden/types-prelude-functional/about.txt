@@ -1,0 +1,4 @@
+source: Overview, Prelude, Function helpers: `cork` and `cury` are source-backed gates from Hoon section 2n; the selected section also includes `corl` and `curr`.
+tests: The actual prelude composes gates in either order and curries either side of an unfaced pair. Generic uses instantiate independently; incompatible composition reports a conflict, and a faced-sample currying case stays unsupported in the partial checker. Runtime behavior awaits the backend.
+expect: parses
+expect-types: a partial inference report

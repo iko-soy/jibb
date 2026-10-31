@@ -95,6 +95,8 @@ The current prelude writes `snoc`, `lure`, `flop`, `join`, `levy`, `lien`, `murn
 
 `aftr`, `cork`, `corl`, `cury`, `curr`, `fore`, `head`, `same`, `succ`, `tail`, `test`, `lead`, `late`.
 
+The source-backed `cork` and `corl` compose gates forward and backward, respectively; `cury` and `curr` bind the first and second item of an unfaced pair. The partial checker infers their polymorphic types. Their runtime implementations remain to be validated by a backend.
+
 ## 2o
 
 `jar`, `jug`, `map`, `qeu`, `set`.

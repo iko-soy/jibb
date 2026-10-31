@@ -1,0 +1,43 @@
+partial inference; module not checked
++$ spacing: cases proven disjoint; mold not checked
++$ length: cases proven disjoint; mold not checked
++$ attr: cases proven disjoint; mold not checked
++$ other-attr: cases proven disjoint; mold not checked
+++ one: attr
+++ equiv: attr
+++ attrs: (list attr)
+++ gap-structural: [@tas @tas]
+++ nested: attr
+++ mismatch: cast mold and expression type do not unify
+/tests/golden/types-pair-context/source.jibb:22:16: cast mold
+++ mismatch ^- attr gap+%shrink
+               ^
+/tests/golden/types-pair-context/source.jibb:22:21: expression
+++ mismatch ^- attr gap+%shrink
+                    ^
+++ missing: cast mold and expression type do not unify
+/tests/golden/types-pair-context/source.jibb:23:15: cast mold
+++ missing ^- attr width+[%oops 1]
+              ^
+/tests/golden/types-pair-context/source.jibb:23:20: expression
+++ missing ^- attr width+[%oops 1]
+                   ^
+++ pending: tag needs context in partial inference
+++ cross-origin: cast constraint is not supported by partial inference
+++ noun-pair: [* *]
+++ atom-pair: [@ta @tas]
+++ wrong-head: cast mold and expression type do not unify
+/tests/golden/types-pair-context/source.jibb:28:18: cast mold has type [@ud @tas]
+++ wrong-head ^- [@ud @tas] gap+%s2
+                 ^
+/tests/golden/types-pair-context/source.jibb:28:29: expression
+++ wrong-head ^- [@ud @tas] gap+%s2
+                            ^
+++ wrong-number: cast mold and expression type do not unify
+/tests/golden/types-pair-context/source.jibb:29:20: cast mold
+++ wrong-number ^- attr width+[%fill "hi"]
+                   ^
+/tests/golden/types-pair-context/source.jibb:29:25: expression
+++ wrong-number ^- attr width+[%fill "hi"]
+                        ^
+++ unrelated: tag needs context in partial inference

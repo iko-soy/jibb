@@ -1,0 +1,145 @@
+1:1 glyph ++
+1:4 name pick
+1:9 glyph |=
+1:12 name p
+1:13 tight glyph =
+1:14 tight glyph [
+1:15 tight aura @t
+1:18 aura @p
+1:20 tight glyph ]
+2:3 INDENT
+2:3 glyph ?-
+2:6 name p
+3:5 INDENT
+3:5 glyph [
+3:6 tight name a
+3:8 name b
+3:9 tight glyph ]
+3:11 name a
+4:1 DEDENT
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name curried
+4:12 glyph (
+4:13 tight name cury
+4:18 name pick
+4:23 str "hi"
+4:27 tight glyph )
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name use-cury
+5:13 glyph (
+5:14 tight name curried
+5:22 lit ~zod
+5:26 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name right-curried
+6:18 glyph (
+6:19 tight name curr
+6:24 name pick
+6:29 lit ~zod
+6:33 tight glyph )
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name use-curr
+7:13 glyph (
+7:14 tight name right-curried
+7:28 str "hi"
+7:32 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name polymorphic
+8:16 glyph (
+8:17 tight name cork
+8:22 name same
+8:27 name same
+8:31 tight glyph )
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name use-text
+9:13 glyph (
+9:14 tight name polymorphic
+9:26 str "hello"
+9:33 tight glyph )
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name use-ship
+10:13 glyph (
+10:14 tight name polymorphic
+10:26 lit ~zod
+10:30 tight glyph )
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name textify
+11:12 glyph |=
+11:15 name x
+11:16 tight glyph =
+11:17 tight aura @p
+11:20 str "text"
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name shipify
+12:12 glyph |=
+12:15 name x
+12:16 tight glyph =
+12:17 tight aura @t
+12:20 lit ~zod
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name forward
+13:12 glyph (
+13:13 tight name cork
+13:18 name shipify
+13:26 name textify
+13:33 tight glyph )
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name backward
+14:13 glyph (
+14:14 tight name corl
+14:19 name textify
+14:27 name shipify
+14:34 tight glyph )
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name use-forward
+15:16 glyph (
+15:17 tight name forward
+15:25 str "hello"
+15:32 tight glyph )
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name use-backward
+16:17 glyph (
+16:18 tight name backward
+16:27 str "hello"
+16:34 tight glyph )
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name bad-compose
+17:16 glyph (
+17:17 tight name cork
+17:22 name shipify
+17:30 name shipify
+17:37 tight glyph )
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name faced-cury
+18:15 glyph (
+18:16 tight name cury
+18:21 glyph |=(
+18:24 tight glyph [
+18:25 tight name a
+18:26 tight glyph =
+18:27 tight aura @t
+18:30 name b
+18:31 tight glyph =
+18:32 tight aura @p
+18:34 tight glyph ]
+18:36 name a
+18:37 tight glyph )
+18:39 str "hi"
+18:43 tight glyph )
+18:44 NEWLINE

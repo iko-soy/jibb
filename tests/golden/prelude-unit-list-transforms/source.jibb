@@ -290,3 +290,19 @@
       ?- rest
         ~ item
         [next more] (rear rest)
+
+++ cork |= gates=[$-(A B) $-(B C)]
+  ?- gates
+    [f g] |= x=A (g (f x))
+
+++ corl |= gates=[$-(B C) $-(A B)]
+  ?- gates
+    [f g] |= x=A (f (g x))
+
+++ cury |= args=[$-([A B] C) A]
+  ?- args
+    [f a] |= b=B (f a b)
+
+++ curr |= args=[$-([A B] C) B]
+  ?- args
+    [f b] |= a=A (f a b)

@@ -1,3 +1,5 @@
 /- notes
 ++ update |= x=u-note.notes x
 ++ action |= x=a-note.notes x
+++ notebook-update |= x=u-notebook.notes x
+++ notes-update |= x=u-notes.notes x

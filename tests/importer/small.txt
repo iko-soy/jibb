@@ -101,6 +101,7 @@
 +$  tag-fuel-9  [tag-fuel-8 tag-fuel-8]
 +$  tag-fuel-10  [tag-fuel-9 tag-fuel-9]
 +$  tag-fuel-11  [tag-fuel-10 tag-fuel-10]
++$  tag-flat-large  $%([%ok value=tag-fuel-7] [%err ~])
 ::  Ford mark sample source-proof fixtures.
 +$  mark-flag-item  [done=? text=@t]
 +$  mark-flag-valid  $%([%added item=mark-flag-item] [%removed id=@ud])
@@ -110,4 +111,15 @@
 +$  tag-null-good  $%([%ok ~] [%err message=@t])
 +$  tag-null-duplicate  $%([%same ~] [%same ~])
 +$  tag-null-hidden  $%([%ok value=tag-invalid-chain] [%err ~])
+::  One named tagged union layer; deeper, overlapping and cyclic cases fail.
++$  tag-nest-inner  $%([%left value=@t] [%right value=@ud])
++$  tag-nest-middle  $%([%one x=tag-nest-inner] [%two ~])
++$  tag-nest-diamond  $%([%one x=tag-nest-inner y=tag-nest-inner] [%two ~])
++$  tag-nest-deep  $%([%up x=tag-nest-middle] [%down ~])
++$  tag-nest-duplicate  $%([%same @t] [%same @t])
++$  tag-nest-hidden  $%([%one x=tag-nest-duplicate] [%two ~])
++$  tag-nest-overlap  $%([%one x=tag-invalid-cell] [%two ~])
++$  tag-nest-recursive  $%([%step next=(unit tag-nest-recursive)] [%done ~])
++$  tag-nest-recursive-outer  $%([%one x=tag-nest-recursive] [%two ~])
++$  tag-nest-many  $%([%one x0=tag-nest-inner x1=tag-nest-inner x2=tag-nest-inner x3=tag-nest-inner x4=tag-nest-inner x5=tag-nest-inner x6=tag-nest-inner x7=tag-nest-inner x8=tag-nest-inner x9=tag-nest-inner x10=tag-nest-inner x11=tag-nest-inner x12=tag-nest-inner x13=tag-nest-inner x14=tag-nest-inner x15=tag-nest-inner x16=tag-nest-inner x17=tag-nest-inner x18=tag-nest-inner x19=tag-nest-inner x20=tag-nest-inner x21=tag-nest-inner x22=tag-nest-inner x23=tag-nest-inner x24=tag-nest-inner x25=tag-nest-inner x26=tag-nest-inner x27=tag-nest-inner x28=tag-nest-inner x29=tag-nest-inner x30=tag-nest-inner x31=tag-nest-inner x32=tag-nest-inner x33=tag-nest-inner x34=tag-nest-inner x35=tag-nest-inner x36=tag-nest-inner x37=tag-nest-inner x38=tag-nest-inner x39=tag-nest-inner] [%two ~])
 --
