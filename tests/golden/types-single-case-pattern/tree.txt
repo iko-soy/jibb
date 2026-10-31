@@ -1,0 +1,182 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 2:1 extract
+    (gate 2:12
+      (face 2:15 p (ref 2:17 packet))
+      (body 3:3
+        (branch 3:3
+          (wing 3:6 p)
+          (arm 4:5
+            (cell 4:5 (lit 4:6 %go) (bind 4:10 u))
+            (wing 4:13 u))))))
+  (value 5:1 fallback
+    (gate 5:13
+      (face 5:16 p (ref 5:18 packet))
+      (body 6:3
+        (branch 6:3
+          (wing 6:6 p)
+          (arm 7:5 (bind 7:5 value) (wing 7:11 value))))))
+  (value 8:1 missing
+    (gate 8:12
+      (face 8:15 p (ref 8:17 packet))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 p)
+          (arm 10:5
+            (cell 10:5 (lit 10:6 %stop) (bind 10:12 u))
+            (wing 10:15 u))))))
+  (value 11:1 shadow
+    (gate 11:11
+      (face 11:14 p (ref 11:16 packet))
+      (body 12:3
+        (branch 12:3
+          (wing 12:6 p)
+          (arm 13:5
+            (cell 13:5 (lit 13:6 %go) (bind 13:10 same))
+            (wing 13:16 same))))))
+  (value 14:1 unknown
+    (gate 14:12
+      (bind 14:15 p)
+      (body 15:3
+        (branch 15:3
+          (wing 15:6 p)
+          (arm 16:5
+            (cell 16:5 (lit 16:6 %go) (bind 16:10 u))
+            (wing 16:13 u))))))
+  (value 17:1 invalid
+    (gate 17:12
+      (face 17:15 p (aura 17:17 @t))
+      (body 18:3
+        (branch 18:3
+          (wing 18:6 p)
+          (arm 19:5
+            (cell 19:5 (lit 19:6 %go) (bind 19:10 u))
+            (wing 19:13 u))))))
+  (value 20:1 pending
+    (gate 20:12
+      (face 20:15 p (ref 20:17 packet))
+      (body 21:3
+        (trace 21:3
+          (lit 21:6 %dangling)
+          (body 22:5
+            (branch 22:5
+              (wing 22:8 p)
+              (arm 23:7
+                (cell 23:7 (lit 23:8 %go) (bind 23:12 u))
+                (wing 23:15 u))))))))
+  (value 24:1 pending-result
+    (gate 24:19
+      (face 24:22 p (ref 24:24 packet))
+      (body 25:3
+        (branch 25:3
+          (wing 25:6 p)
+          (arm 26:5
+            (cell 26:5 (lit 26:6 %go) (bind 26:10 u))
+            (lit 26:13 %dangling))))))
+  (value 27:1 duplicate
+    (gate 27:14
+      (face 27:17 p (ref 27:19 packet))
+      (body 28:3
+        (branch 28:3
+          (wing 28:6 p)
+          (arm 29:5
+            (cell 29:5 (lit 29:6 %go) (bind 29:10 u) (bind 29:12 u))
+            (wing 29:15 u))))))
+  (value 30:1 extra
+    (gate 30:10
+      (face 30:13 p (ref 30:15 packet))
+      (body 31:3
+        (branch 31:3
+          (wing 31:6 p)
+          (arm 32:5
+            (cell 32:5 (lit 32:6 %go) (bind 32:10 u))
+            (wing 32:13 u))
+          (arm 33:5 (any 33:5) (str 33:7 "dead"))))))
+  (value 34:1 contextual
+    (cast 34:15
+      (fn 34:18 (ref 34:21 packet) (aura 34:28 @t))
+      (body 35:3
+        (gate 35:3
+          (face 35:6 p (ref 35:8 packet))
+          (body 36:5
+            (branch 36:5
+              (wing 36:8 p)
+              (arm 37:7
+                (cell 37:7 (lit 37:8 %go) (bind 37:12 u))
+                (wing 37:15 u))))))))
+  (mold 38:1 msg
+    (union 39:3 (const 39:3 %fine) (const 40:3 %other)))
+  (value 41:1 contextual-union
+    (gate 41:21
+      (face 41:24 p (ref 41:26 packet))
+      (cast 41:33
+        (ref 41:36 msg)
+        (body 42:3
+          (branch 42:3
+            (wing 42:6 p)
+            (arm 43:5
+              (cell 43:5 (lit 43:6 %go) (bind 43:10 u))
+              (lit 43:13 %fine)))))))
+  (value 44:1 bad-union
+    (gate 44:14
+      (face 44:17 p (ref 44:19 packet))
+      (cast 44:26
+        (ref 44:29 msg)
+        (body 45:3
+          (branch 45:3
+            (wing 45:6 p)
+            (arm 46:5
+              (cell 46:5 (lit 46:6 %go) (bind 46:10 u))
+              (lit 46:13 %oops)))))))
+  (value 47:1 contextual-list
+    (gate 47:20
+      (face 47:23 p (ref 47:25 packet))
+      (cast 47:32
+        (apply 47:35 list (aura 47:41 @t))
+        (body 48:3
+          (branch 48:3
+            (wing 48:6 p)
+            (arm 49:5
+              (cell 49:5 (lit 49:6 %go) (bind 49:10 u))
+              (list 49:13 (wing 49:15 u))))))))
+  (value 50:1 bad-list
+    (gate 50:13
+      (face 50:16 p (ref 50:18 packet))
+      (cast 50:25
+        (apply 50:28 list (aura 50:34 @t))
+        (body 51:3
+          (branch 51:3
+            (wing 51:6 p)
+            (arm 52:5
+              (cell 52:5 (lit 52:6 %go) (bind 52:10 u))
+              (list 52:13 (lit 52:15 ~zod))))))))
+  (value 53:1 forced-capital
+    (gate 53:19
+      (cell 53:22
+        (face 53:23 x (tvar 53:25 A))
+        (face 53:27 p (ref 53:29 packet)))
+      (cast 53:37
+        (tvar 53:40 A)
+        (body 54:3
+          (branch 54:3
+            (wing 54:6 p)
+            (arm 55:5
+              (cell 55:5 (lit 55:6 %go) (bind 55:10 u))
+              (str 55:13 "text")))))))
+  (value 56:1 unrelated-context
+    (gate 56:22
+      (face 56:25 p (ref 56:27 packet))
+      (cast 56:34
+        (ref 56:37 msg)
+        (body 57:3
+          (trace 57:3
+            (lit 57:6 %dangling)
+            (body 58:5
+              (branch 58:5
+                (wing 58:8 p)
+                (arm 59:7
+                  (cell 59:7 (lit 59:8 %go) (bind 59:12 u))
+                  (lit 59:15 %fine))))))))))

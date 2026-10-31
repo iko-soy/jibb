@@ -1,0 +1,4 @@
+source: Overview, Effects: `cmd` is a generic union with `%poke`, `%go`, `%wait`, `%now` and `%who` cases; a poke carries a reply over `(unit @t)`.
+tests: The doc-exact source-backed prelude mold and its five cases infer, retain independently instantiated message types, and work in list context. Incorrect URL, message, callback result and list item types report mismatches; an unsupported callback sample or cross-instantiation fails closed. The full module remains unchecked.
+expect: parses
+expect-types: a partial inference report

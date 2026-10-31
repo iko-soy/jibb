@@ -61,3 +61,4 @@ partial inference; module not checked
 ++ corl: $-([$-(A B) $-(C A)] $-(C B))
 ++ cury: $-([$-([A B] C) A] $-(B C))
 ++ curr: $-([$-([A B] C) B] $-(A C))
++$ cmd: cases proven disjoint; mold not checked

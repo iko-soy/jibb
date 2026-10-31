@@ -306,3 +306,10 @@
 ++ curr |= args=[$-([A B] C) B]
   ?- args
     [f b] |= a=A (f a b)
+
++$ cmd |$ [M]
+  [%poke p=poke reply=$-((unit @t) M)]
+  [%go url=@t]
+  [%wait gap=@dr msg=M]
+  [%now reply=$-(@da M)]
+  [%who reply=$-(@p M)]

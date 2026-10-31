@@ -6,6 +6,8 @@ The source is the fake ship's `%base` `/sys/hoon.hoon` (Hoon version 135), read 
 
 The vendored prelude defines `poke` in its private internal module and re-exports it as a transparent type. The partial checker resolves its supported source shape and a narrow imported API constructor; complete checking of the private body, other API shapes, effect lowering and runtime execution remain unfinished. `ask` and `qath` are not yet defined there.
 
+The prelude also declares the generic `cmd` mold exactly as in Overview, Effects. The partial checker infers its five cases and independent message types in the supported examples; complete module checking and backend validation remain outstanding. The related `sub` declaration awaits the `ask` representation decision.
+
 Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold generators, and need individual inspection. Jibb's loobean `not` and Hoon's bitwise `not.bit` are distinct. Parser helpers outside 3g are excluded from the intended prelude except the specifically listed `slav` and `slaw`; the raw candidates below still need to be classified.
 
 ## 1a

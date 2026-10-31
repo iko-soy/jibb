@@ -1,0 +1,50 @@
+partial inference; module not checked
+++ identity: $-((cmd @t) (cmd @t))
+++ generic: $-((cmd A) (cmd A))
+++ nav: (cmd @t)
+++ time: (cmd @t)
+++ bad: cast mold and expression type do not unify
+/tests/golden/types-prelude-cmd/source.jibb:5:11: cast mold
+++ bad ^- (cmd @t) [%go url=~zod]
+          ^
+/tests/golden/types-prelude-cmd/source.jibb:5:20: expression
+++ bad ^- (cmd @t) [%go url=~zod]
+                   ^
+++ send: $-(poke (cmd @t))
+++ wait: (cmd @t)
+++ who: (cmd @t)
+++ wrong-message: cast mold and expression type do not unify
+/tests/golden/types-prelude-cmd/source.jibb:10:21: cast mold
+++ wrong-message ^- (cmd @t) [%wait ~s30 ~zod]
+                    ^
+/tests/golden/types-prelude-cmd/source.jibb:10:30: expression
+++ wrong-message ^- (cmd @t) [%wait ~s30 ~zod]
+                             ^
+++ wrap: $-(A (cmd A))
+++ wrap-text: (cmd @t)
+++ wrap-ship: (cmd @p)
+++ wrong-reply: cast mold and expression type do not unify
+/tests/golden/types-prelude-cmd/source.jibb:14:19: cast mold
+++ wrong-reply ^- (cmd @t) [%who |=(p=@p ~zod)]
+                  ^
+/tests/golden/types-prelude-cmd/source.jibb:14:28: expression
+++ wrong-reply ^- (cmd @t) [%who |=(p=@p ~zod)]
+                           ^
+++ commands: (list (cmd @t))
+++ commands-bad: list item does not fit its expected type
+/tests/golden/types-prelude-cmd/source.jibb:16:20: expected item
+++ commands-bad ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 ~zod]]
+                   ^
+/tests/golden/types-prelude-cmd/source.jibb:16:52: list item
+++ commands-bad ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 ~zod]]
+                                                   ^
+++ wrong-poke: cast constraint is not supported by partial inference
+++ wrong-case: cast mold and expression type do not unify
+/tests/golden/types-prelude-cmd/source.jibb:19:18: cast mold
+++ wrong-case ^- (cmd @t) %oops
+                 ^
+/tests/golden/types-prelude-cmd/source.jibb:19:27: expression
+++ wrong-case ^- (cmd @t) %oops
+                          ^
+++ use-text: $-((cmd @t) (cmd @t))
+++ cross: call constraint is not supported by partial inference

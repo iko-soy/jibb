@@ -1,0 +1,59 @@
++$ packet [%go url=@t]
+++ extract |= p=packet
+  ?- p
+    [%go u] u
+++ fallback |= p=packet
+  ?- p
+    value value
+++ missing |= p=packet
+  ?- p
+    [%stop u] u
+++ shadow |= p=packet
+  ?- p
+    [%go same] same
+++ unknown |= p
+  ?- p
+    [%go u] u
+++ invalid |= p=@t
+  ?- p
+    [%go u] u
+++ pending |= p=packet
+  ~& %dangling
+    ?- p
+      [%go u] u
+++ pending-result |= p=packet
+  ?- p
+    [%go u] %dangling
+++ duplicate |= p=packet
+  ?- p
+    [%go u u] u
+++ extra |= p=packet
+  ?- p
+    [%go u] u
+    * "dead"
+++ contextual ^- $-(packet @t)
+  |= p=packet
+    ?- p
+      [%go u] u
++$ msg
+  %fine
+  %other
+++ contextual-union |= p=packet ^- msg
+  ?- p
+    [%go u] %fine
+++ bad-union |= p=packet ^- msg
+  ?- p
+    [%go u] %oops
+++ contextual-list |= p=packet ^- (list @t)
+  ?- p
+    [%go u] ~[u]
+++ bad-list |= p=packet ^- (list @t)
+  ?- p
+    [%go u] ~[~zod]
+++ forced-capital |= [x=A p=packet] ^- A
+  ?- p
+    [%go u] "text"
+++ unrelated-context |= p=packet ^- msg
+  ~& %dangling
+    ?- p
+      [%go u] %fine

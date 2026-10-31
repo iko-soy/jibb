@@ -1,0 +1,21 @@
+++ identity |= x=(cmd @t) x
+++ generic |= x=(cmd A) x
+++ nav ^- (cmd @t) [%go url="/home"]
+++ time ^- (cmd @t) [%now reply=|=(d=@da "done")]
+++ bad ^- (cmd @t) [%go url=~zod]
+++ send |= p=poke
+  ^- (cmd @t) [%poke p |=(r=(unit @t) "done")]
+++ wait ^- (cmd @t) [%wait ~s30 "done"]
+++ who ^- (cmd @t) [%who |=(p=@p "done")]
+++ wrong-message ^- (cmd @t) [%wait ~s30 ~zod]
+++ wrap |= x=A ^- (cmd A) [%wait ~s30 x]
+++ wrap-text (wrap "hello")
+++ wrap-ship (wrap ~zod)
+++ wrong-reply ^- (cmd @t) [%who |=(p=@p ~zod)]
+++ commands ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 "done"]]
+++ commands-bad ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 ~zod]]
+++ wrong-poke |= p=poke
+  ^- (cmd @t) [%poke p |=(r=@p "done")]
+++ wrong-case ^- (cmd @t) %oops
+++ use-text |= x=(cmd @t) x
+++ cross (use-text (wrap ~zod))

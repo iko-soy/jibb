@@ -7079,6 +7079,50 @@
   ?:  mismatch  [%| ["union branch result matching needs unsupported inference" ~]]
   $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body, answer `result)
 ::
+::  Prove a one-arm record pattern covers a known, non-union subject.
+::  Variable or partial matches stay unsupported; binding uses the same
+::  scope and original payload types as the existing union matcher.
+++  single-structured-pattern
+  |=  e=expr
+  ^-  ?
+  ?.  ?=(%branch -.e)  |
+  ?~  arms.e  |
+  ?^  t.arms.e  |
+  =/  p=pattern  pat.i.arms.e
+  ?.  ?=(%cell -.p)  |
+  !(levy items.p |=(x=pattern ?=(%bind -.x)))
+::
+++  infer-single-case-branch
+  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
+  ^-  iresult
+  ?>  (single-structured-pattern e)
+  ?>  ?=(%branch -.e)
+  ?>  ?=(^ arms.e)
+  =/  a=arm  i.arms.e
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  st=istate  state.p.subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.st)
+  ?:  ?=(%union -.typ)  [%| ["single-case pattern needs unsupported inference" ~]]
+  ?.  =(%full (union-pattern pat.a typ))
+    [%| ["single-case pattern needs unsupported inference" ~]]
+  =/  bound=(unit ienv)  (union-pattern-bind pat.a typ env globals.st)
+  ?~  bound  [%| ["pattern binder shadows a name" ~]]
+  ?~  expected  (infer-fragment val.a u.bound st)
+  =/  body=iresult  (infer-call-context-arg val.a typ.u.expected u.bound st context.u.expected)
+  ?:  ?=(%| -.body)  body
+  =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
+  ?:  ?=(%unknown -.fit)  [%| ["single-case branch result constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    =/  missing=(unit idiag)  (missing-union-tag val.a typ.u.expected sub.state.p.body context.u.expected)
+    ?^  missing  [%| u.missing]
+    =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body typ.u.expected sub.state.p.body next.state.p.body context.u.expected)
+    ?^  nested  [%| u.nested]
+    [%| ["single-case branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.a) "branch arm"]]]]
+  ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
+    [%| ["single-case branch result needs context in partial inference" ~]]
+  [%& typ.u.expected state.p.body(sub sub.fit, next next.fit)]
+::
 ++  infer-known-union-branch
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -7343,7 +7387,9 @@
       [%& typ.p.result state.p.result(globals globals.state, molds molds.state)]
     %branch
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
-      ?~  t.arms.e  (infer-cell-branch e env state)
+      ?~  t.arms.e
+        ?:  (single-structured-pattern e)  (infer-single-case-branch e env state ~)
+        (infer-cell-branch e env state)
       ?^  t.t.arms.e  (infer-known-union-branch e env state)
       =/  known=(unit itype)  (known-union-subject subject.e env state)
       ?:  &(?=(^ known) ?=(~ (unit-union-payload u.known)))
@@ -7542,6 +7588,8 @@
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?:  (single-structured-pattern e)
+    (infer-single-case-branch e env state `[target context])
   ::  In a loobean-singleton context retain the written loobean noun;
   ::  the usual final fit decides whether that value is permitted.
   =/  singleton=(unit itype)

@@ -1762,308 +1762,316 @@
 /*  tok-498  %txt   /tests/golden/types-partial-unresolved-tag/tokens/txt
 /*  tre-498  %txt   /tests/golden/types-partial-unresolved-tag/tree/txt
 /*  typ-498  %txt   /tests/golden/types-partial-unresolved-tag/types/txt
-/*  src-499  %jibb  /tests/golden/types-prelude-direct/source/jibb
-/*  tok-499  %txt   /tests/golden/types-prelude-direct/tokens/txt
-/*  tre-499  %txt   /tests/golden/types-prelude-direct/tree/txt
-/*  typ-499  %txt   /tests/golden/types-prelude-direct/types/txt
-/*  src-500  %jibb  /tests/golden/types-prelude-functional/source/jibb
-/*  tok-500  %txt   /tests/golden/types-prelude-functional/tokens/txt
-/*  tre-500  %txt   /tests/golden/types-prelude-functional/tree/txt
-/*  typ-500  %txt   /tests/golden/types-prelude-functional/types/txt
-/*  src-501  %jibb  /tests/golden/types-prelude-interface/source/jibb
-/*  tok-501  %txt   /tests/golden/types-prelude-interface/tokens/txt
-/*  tre-501  %txt   /tests/golden/types-prelude-interface/tree/txt
-/*  mod-501-1  %jibb  /tests/golden/types-prelude-interface/modules/ui/left/jibb
-/*  mod-501-2  %jibb  /tests/golden/types-prelude-interface/modules/ui/right/jibb
-/*  typ-501  %txt   /tests/golden/types-prelude-interface/types/txt
-/*  mtre-501  %txt  /tests/golden/types-prelude-interface/module-trees/txt
-/*  src-502  %jibb  /tests/golden/types-prelude-list-functions/source/jibb
-/*  tok-502  %txt   /tests/golden/types-prelude-list-functions/tokens/txt
-/*  tre-502  %txt   /tests/golden/types-prelude-list-functions/tree/txt
-/*  mod-502-1  %jibb  /tests/golden/types-prelude-list-functions/modules/ui/lib/jibb
-/*  typ-502  %txt   /tests/golden/types-prelude-list-functions/types/txt
-/*  mtre-502  %txt  /tests/golden/types-prelude-list-functions/module-trees/txt
-/*  src-503  %jibb  /tests/golden/types-prelude-list-helpers/source/jibb
-/*  tok-503  %txt   /tests/golden/types-prelude-list-helpers/tokens/txt
-/*  tre-503  %txt   /tests/golden/types-prelude-list-helpers/tree/txt
-/*  typ-503  %txt   /tests/golden/types-prelude-list-helpers/types/txt
-/*  src-504  %jibb  /tests/golden/types-prelude-unit-helpers/source/jibb
-/*  tok-504  %txt   /tests/golden/types-prelude-unit-helpers/tokens/txt
-/*  tre-504  %txt   /tests/golden/types-prelude-unit-helpers/tree/txt
-/*  typ-504  %txt   /tests/golden/types-prelude-unit-helpers/types/txt
-/*  src-505  %jibb  /tests/golden/types-record-bound-variable/source/jibb
-/*  tok-505  %txt   /tests/golden/types-record-bound-variable/tokens/txt
-/*  tre-505  %txt   /tests/golden/types-record-bound-variable/tree/txt
-/*  typ-505  %txt   /tests/golden/types-record-bound-variable/types/txt
-/*  src-506  %jibb  /tests/golden/types-record-cast-context/source/jibb
-/*  tok-506  %txt   /tests/golden/types-record-cast-context/tokens/txt
-/*  tre-506  %txt   /tests/golden/types-record-cast-context/tree/txt
-/*  typ-506  %txt   /tests/golden/types-record-cast-context/types/txt
-/*  src-507  %jibb  /tests/golden/types-record-change/source/jibb
-/*  tok-507  %txt   /tests/golden/types-record-change/tokens/txt
-/*  tre-507  %txt   /tests/golden/types-record-change/tree/txt
-/*  typ-507  %txt   /tests/golden/types-record-change/types/txt
-/*  src-508  %jibb  /tests/golden/types-record-change-generic/source/jibb
-/*  tok-508  %txt   /tests/golden/types-record-change-generic/tokens/txt
-/*  tre-508  %txt   /tests/golden/types-record-change-generic/tree/txt
-/*  typ-508  %txt   /tests/golden/types-record-change-generic/types/txt
-/*  src-509  %jibb  /tests/golden/types-record-faces/source/jibb
-/*  tok-509  %txt   /tests/golden/types-record-faces/tokens/txt
-/*  tre-509  %txt   /tests/golden/types-record-faces/tree/txt
-/*  typ-509  %txt   /tests/golden/types-record-faces/types/txt
-/*  src-510  %jibb  /tests/golden/types-record-import/source/jibb
-/*  tok-510  %txt   /tests/golden/types-record-import/tokens/txt
-/*  tre-510  %txt   /tests/golden/types-record-import/tree/txt
-/*  mod-510-1  %jibb  /tests/golden/types-record-import/modules/ui/lib/jibb
-/*  typ-510  %txt   /tests/golden/types-record-import/types/txt
-/*  mtre-510  %txt  /tests/golden/types-record-import/module-trees/txt
-/*  src-511  %jibb  /tests/golden/types-record-local-scheme/source/jibb
-/*  tok-511  %txt   /tests/golden/types-record-local-scheme/tokens/txt
-/*  tre-511  %txt   /tests/golden/types-record-local-scheme/tree/txt
-/*  typ-511  %txt   /tests/golden/types-record-local-scheme/types/txt
-/*  src-512  %jibb  /tests/golden/types-record-nested/source/jibb
-/*  tok-512  %txt   /tests/golden/types-record-nested/tokens/txt
-/*  tre-512  %txt   /tests/golden/types-record-nested/tree/txt
-/*  typ-512  %txt   /tests/golden/types-record-nested/types/txt
-/*  src-513  %jibb  /tests/golden/types-record-to-tuple/source/jibb
-/*  tok-513  %txt   /tests/golden/types-record-to-tuple/tokens/txt
-/*  tre-513  %txt   /tests/golden/types-record-to-tuple/tree/txt
-/*  typ-513  %txt   /tests/golden/types-record-to-tuple/types/txt
-/*  src-514  %jibb  /tests/golden/types-recursion-scc-failures/source/jibb
-/*  tok-514  %txt   /tests/golden/types-recursion-scc-failures/tokens/txt
-/*  tre-514  %txt   /tests/golden/types-recursion-scc-failures/tree/txt
-/*  typ-514  %txt   /tests/golden/types-recursion-scc-failures/types/txt
-/*  src-515  %jibb  /tests/golden/types-recursion-scc-groups/source/jibb
-/*  tok-515  %txt   /tests/golden/types-recursion-scc-groups/tokens/txt
-/*  tre-515  %txt   /tests/golden/types-recursion-scc-groups/tree/txt
-/*  typ-515  %txt   /tests/golden/types-recursion-scc-groups/types/txt
-/*  src-516  %jibb  /tests/golden/types-recursion-scc-import/source/jibb
-/*  tok-516  %txt   /tests/golden/types-recursion-scc-import/tokens/txt
-/*  tre-516  %txt   /tests/golden/types-recursion-scc-import/tree/txt
-/*  mod-516-1  %jibb  /tests/golden/types-recursion-scc-import/modules/ui/lib/jibb
-/*  typ-516  %txt   /tests/golden/types-recursion-scc-import/types/txt
-/*  mtre-516  %txt  /tests/golden/types-recursion-scc-import/module-trees/txt
-/*  src-517  %jibb  /tests/golden/types-recursion-scc-import-bad/source/jibb
-/*  tok-517  %txt   /tests/golden/types-recursion-scc-import-bad/tokens/txt
-/*  tre-517  %txt   /tests/golden/types-recursion-scc-import-bad/tree/txt
-/*  mod-517-1  %jibb  /tests/golden/types-recursion-scc-import-bad/modules/ui/lib/jibb
-/*  typ-517  %txt   /tests/golden/types-recursion-scc-import-bad/types/txt
-/*  mtre-517  %txt  /tests/golden/types-recursion-scc-import-bad/module-trees/txt
-/*  src-518  %jibb  /tests/golden/types-recursion-scc-local/source/jibb
-/*  tok-518  %txt   /tests/golden/types-recursion-scc-local/tokens/txt
-/*  tre-518  %txt   /tests/golden/types-recursion-scc-local/tree/txt
-/*  typ-518  %txt   /tests/golden/types-recursion-scc-local/types/txt
-/*  src-519  %jibb  /tests/golden/types-recursion-scc-order/source/jibb
-/*  tok-519  %txt   /tests/golden/types-recursion-scc-order/tokens/txt
-/*  tre-519  %txt   /tests/golden/types-recursion-scc-order/tree/txt
-/*  typ-519  %txt   /tests/golden/types-recursion-scc-order/types/txt
-/*  src-520  %jibb  /tests/golden/types-recursion-scc-shadow/source/jibb
-/*  tok-520  %txt   /tests/golden/types-recursion-scc-shadow/tokens/txt
-/*  tre-520  %txt   /tests/golden/types-recursion-scc-shadow/tree/txt
-/*  typ-520  %txt   /tests/golden/types-recursion-scc-shadow/types/txt
-/*  src-521  %jibb  /tests/golden/types-recursive-branch/source/jibb
-/*  tok-521  %txt   /tests/golden/types-recursive-branch/tokens/txt
-/*  tre-521  %txt   /tests/golden/types-recursive-branch/tree/txt
-/*  typ-521  %txt   /tests/golden/types-recursive-branch/types/txt
-/*  src-522  %jibb  /tests/golden/types-recursive-gate/source/jibb
-/*  tok-522  %txt   /tests/golden/types-recursive-gate/tokens/txt
-/*  tre-522  %txt   /tests/golden/types-recursive-gate/tree/txt
-/*  typ-522  %txt   /tests/golden/types-recursive-gate/types/txt
-/*  src-523  %jibb  /tests/golden/types-recursive-sample/source/jibb
-/*  tok-523  %txt   /tests/golden/types-recursive-sample/tokens/txt
-/*  tre-523  %txt   /tests/golden/types-recursive-sample/tree/txt
-/*  typ-523  %txt   /tests/golden/types-recursive-sample/types/txt
-/*  src-524  %jibb  /tests/golden/types-scope-library-poke/source/jibb
-/*  tok-524  %txt   /tests/golden/types-scope-library-poke/tokens/txt
-/*  tre-524  %txt   /tests/golden/types-scope-library-poke/tree/txt
-/*  typ-524  %txt   /tests/golden/types-scope-library-poke/types/txt
-/*  src-525  %jibb  /tests/golden/types-scope-root-api/source/jibb
-/*  tok-525  %txt   /tests/golden/types-scope-root-api/tokens/txt
-/*  tre-525  %txt   /tests/golden/types-scope-root-api/tree/txt
-/*  typ-525  %txt   /tests/golden/types-scope-root-api/types/txt
-/*  src-526  %jibb  /tests/golden/types-scope-store-duplicate/source/jibb
-/*  tok-526  %txt   /tests/golden/types-scope-store-duplicate/tokens/txt
-/*  tre-526  %txt   /tests/golden/types-scope-store-duplicate/tree/txt
-/*  typ-526  %txt   /tests/golden/types-scope-store-duplicate/types/txt
-/*  src-527  %jibb  /tests/golden/types-scope-store-shadow/source/jibb
-/*  tok-527  %txt   /tests/golden/types-scope-store-shadow/tokens/txt
-/*  tre-527  %txt   /tests/golden/types-scope-store-shadow/tree/txt
-/*  typ-527  %txt   /tests/golden/types-scope-store-shadow/types/txt
-/*  src-528  %jibb  /tests/golden/types-string-interpolation/source/jibb
-/*  tok-528  %txt   /tests/golden/types-string-interpolation/tokens/txt
-/*  tre-528  %txt   /tests/golden/types-string-interpolation/tree/txt
-/*  typ-528  %txt   /tests/golden/types-string-interpolation/types/txt
-/*  src-529  %jibb  /tests/golden/types-tuple-context/source/jibb
-/*  tok-529  %txt   /tests/golden/types-tuple-context/tokens/txt
-/*  tre-529  %txt   /tests/golden/types-tuple-context/tree/txt
-/*  typ-529  %txt   /tests/golden/types-tuple-context/types/txt
-/*  src-530  %jibb  /tests/golden/types-tuple-context-nested/source/jibb
-/*  tok-530  %txt   /tests/golden/types-tuple-context-nested/tokens/txt
-/*  tre-530  %txt   /tests/golden/types-tuple-context-nested/tree/txt
-/*  typ-530  %txt   /tests/golden/types-tuple-context-nested/types/txt
-/*  src-531  %jibb  /tests/golden/types-union-alias/source/jibb
-/*  tok-531  %txt   /tests/golden/types-union-alias/tokens/txt
-/*  tre-531  %txt   /tests/golden/types-union-alias/tree/txt
-/*  typ-531  %txt   /tests/golden/types-union-alias/types/txt
-/*  src-532  %jibb  /tests/golden/types-union-branch-context/source/jibb
-/*  tok-532  %txt   /tests/golden/types-union-branch-context/tokens/txt
-/*  tre-532  %txt   /tests/golden/types-union-branch-context/tree/txt
-/*  typ-532  %txt   /tests/golden/types-union-branch-context/types/txt
-/*  src-533  %jibb  /tests/golden/types-union-branch-pending/source/jibb
-/*  tok-533  %txt   /tests/golden/types-union-branch-pending/tokens/txt
-/*  tre-533  %txt   /tests/golden/types-union-branch-pending/tree/txt
-/*  typ-533  %txt   /tests/golden/types-union-branch-pending/types/txt
-/*  src-534  %jibb  /tests/golden/types-union-constructor-shape/source/jibb
-/*  tok-534  %txt   /tests/golden/types-union-constructor-shape/tokens/txt
-/*  tre-534  %txt   /tests/golden/types-union-constructor-shape/tree/txt
-/*  typ-534  %txt   /tests/golden/types-union-constructor-shape/types/txt
-/*  src-535  %jibb  /tests/golden/types-union-context-flow/source/jibb
-/*  tok-535  %txt   /tests/golden/types-union-context-flow/tokens/txt
-/*  tre-535  %txt   /tests/golden/types-union-context-flow/tree/txt
-/*  typ-535  %txt   /tests/golden/types-union-context-flow/types/txt
-/*  src-536  %jibb  /tests/golden/types-union-finite/source/jibb
-/*  tok-536  %txt   /tests/golden/types-union-finite/tokens/txt
-/*  tre-536  %txt   /tests/golden/types-union-finite/tree/txt
-/*  typ-536  %txt   /tests/golden/types-union-finite/types/txt
-/*  src-537  %jibb  /tests/golden/types-union-finite-context/source/jibb
-/*  tok-537  %txt   /tests/golden/types-union-finite-context/tokens/txt
-/*  tre-537  %txt   /tests/golden/types-union-finite-context/tree/txt
-/*  typ-537  %txt   /tests/golden/types-union-finite-context/types/txt
-/*  src-538  %jibb  /tests/golden/types-union-finite-generic/source/jibb
-/*  tok-538  %txt   /tests/golden/types-union-finite-generic/tokens/txt
-/*  tre-538  %txt   /tests/golden/types-union-finite-generic/tree/txt
-/*  typ-538  %txt   /tests/golden/types-union-finite-generic/types/txt
-/*  src-539  %jibb  /tests/golden/types-union-finite-limit/source/jibb
-/*  tok-539  %txt   /tests/golden/types-union-finite-limit/tokens/txt
-/*  tre-539  %txt   /tests/golden/types-union-finite-limit/tree/txt
-/*  typ-539  %txt   /tests/golden/types-union-finite-limit/types/txt
-/*  src-540  %jibb  /tests/golden/types-union-import/source/jibb
-/*  tok-540  %txt   /tests/golden/types-union-import/tokens/txt
-/*  tre-540  %txt   /tests/golden/types-union-import/tree/txt
-/*  mod-540-1  %jibb  /tests/golden/types-union-import/modules/ui/lib/jibb
-/*  typ-540  %txt   /tests/golden/types-union-import/types/txt
-/*  mtre-540  %txt  /tests/golden/types-union-import/module-trees/txt
-/*  src-541  %jibb  /tests/golden/types-union-local-pending/source/jibb
-/*  tok-541  %txt   /tests/golden/types-union-local-pending/tokens/txt
-/*  tre-541  %txt   /tests/golden/types-union-local-pending/tree/txt
-/*  typ-541  %txt   /tests/golden/types-union-local-pending/types/txt
-/*  src-542  %jibb  /tests/golden/types-union-overlap/source/jibb
-/*  tok-542  %txt   /tests/golden/types-union-overlap/tokens/txt
-/*  tre-542  %txt   /tests/golden/types-union-overlap/tree/txt
-/*  typ-542  %txt   /tests/golden/types-union-overlap/types/txt
-/*  src-543  %jibb  /tests/golden/types-union-overlap-nested/source/jibb
-/*  tok-543  %txt   /tests/golden/types-union-overlap-nested/tokens/txt
-/*  tre-543  %txt   /tests/golden/types-union-overlap-nested/tree/txt
-/*  typ-543  %txt   /tests/golden/types-union-overlap-nested/types/txt
-/*  src-544  %jibb  /tests/golden/types-union-pattern-result-context/source/jibb
-/*  tok-544  %txt   /tests/golden/types-union-pattern-result-context/tokens/txt
-/*  tre-544  %txt   /tests/golden/types-union-pattern-result-context/tree/txt
-/*  typ-544  %txt   /tests/golden/types-union-pattern-result-context/types/txt
-/*  src-545  %jibb  /tests/golden/types-union-pattern-result-controls/source/jibb
-/*  tok-545  %txt   /tests/golden/types-union-pattern-result-controls/tokens/txt
-/*  tre-545  %txt   /tests/golden/types-union-pattern-result-controls/tree/txt
-/*  typ-545  %txt   /tests/golden/types-union-pattern-result-controls/types/txt
-/*  src-546  %jibb  /tests/golden/types-union-patterns/source/jibb
-/*  tok-546  %txt   /tests/golden/types-union-patterns/tokens/txt
-/*  tre-546  %txt   /tests/golden/types-union-patterns/tree/txt
-/*  typ-546  %txt   /tests/golden/types-union-patterns/types/txt
-/*  src-547  %jibb  /tests/golden/types-union-patterns-generic/source/jibb
-/*  tok-547  %txt   /tests/golden/types-union-patterns-generic/tokens/txt
-/*  tre-547  %txt   /tests/golden/types-union-patterns-generic/tree/txt
-/*  typ-547  %txt   /tests/golden/types-union-patterns-generic/types/txt
-/*  src-548  %jibb  /tests/golden/types-union-patterns-import/source/jibb
-/*  tok-548  %txt   /tests/golden/types-union-patterns-import/tokens/txt
-/*  tre-548  %txt   /tests/golden/types-union-patterns-import/tree/txt
-/*  mod-548-1  %jibb  /tests/golden/types-union-patterns-import/modules/ui/lib/jibb
-/*  typ-548  %txt   /tests/golden/types-union-patterns-import/types/txt
-/*  mtre-548  %txt  /tests/golden/types-union-patterns-import/module-trees/txt
-/*  src-549  %jibb  /tests/golden/types-union-phantom-generic/source/jibb
-/*  tok-549  %txt   /tests/golden/types-union-phantom-generic/tokens/txt
-/*  tre-549  %txt   /tests/golden/types-union-phantom-generic/tree/txt
-/*  typ-549  %txt   /tests/golden/types-union-phantom-generic/types/txt
-/*  src-550  %jibb  /tests/golden/types-union-print-cross-namespace/source/jibb
-/*  tok-550  %txt   /tests/golden/types-union-print-cross-namespace/tokens/txt
-/*  tre-550  %txt   /tests/golden/types-union-print-cross-namespace/tree/txt
-/*  mod-550-1  %jibb  /tests/golden/types-union-print-cross-namespace/modules/ui/lib/jibb
-/*  typ-550  %txt   /tests/golden/types-union-print-cross-namespace/types/txt
-/*  mtre-550  %txt  /tests/golden/types-union-print-cross-namespace/module-trees/txt
-/*  src-551  %jibb  /tests/golden/types-union-print-distinct/source/jibb
-/*  tok-551  %txt   /tests/golden/types-union-print-distinct/tokens/txt
-/*  tre-551  %txt   /tests/golden/types-union-print-distinct/tree/txt
-/*  mod-551-1  %jibb  /tests/golden/types-union-print-distinct/modules/ui/left/jibb
-/*  mod-551-2  %jibb  /tests/golden/types-union-print-distinct/modules/ui/right/jibb
-/*  mod-551-3  %jibb  /tests/golden/types-union-print-distinct/modules/ui/twin/jibb
-/*  typ-551  %txt   /tests/golden/types-union-print-distinct/types/txt
-/*  mtre-551  %txt  /tests/golden/types-union-print-distinct/module-trees/txt
-/*  src-552  %jibb  /tests/golden/types-union-print-escape/source/jibb
-/*  tok-552  %txt   /tests/golden/types-union-print-escape/tokens/txt
-/*  tre-552  %txt   /tests/golden/types-union-print-escape/tree/txt
-/*  typ-552  %txt   /tests/golden/types-union-print-escape/types/txt
-/*  src-553  %jibb  /tests/golden/types-union-print-local/source/jibb
-/*  tok-553  %txt   /tests/golden/types-union-print-local/tokens/txt
-/*  tre-553  %txt   /tests/golden/types-union-print-local/tree/txt
-/*  typ-553  %txt   /tests/golden/types-union-print-local/types/txt
-/*  src-554  %jibb  /tests/golden/types-union-print-nested/source/jibb
-/*  tok-554  %txt   /tests/golden/types-union-print-nested/tokens/txt
-/*  tre-554  %txt   /tests/golden/types-union-print-nested/tree/txt
-/*  typ-554  %txt   /tests/golden/types-union-print-nested/types/txt
-/*  src-555  %jibb  /tests/golden/types-union-print-same-origin/source/jibb
-/*  tok-555  %txt   /tests/golden/types-union-print-same-origin/tokens/txt
-/*  tre-555  %txt   /tests/golden/types-union-print-same-origin/tree/txt
-/*  mod-555-1  %jibb  /tests/golden/types-union-print-same-origin/modules/ui/shared/jibb
-/*  typ-555  %txt   /tests/golden/types-union-print-same-origin/types/txt
-/*  mtre-555  %txt  /tests/golden/types-union-print-same-origin/module-trees/txt
-/*  src-556  %jibb  /tests/golden/types-union-print-transitive/source/jibb
-/*  tok-556  %txt   /tests/golden/types-union-print-transitive/tokens/txt
-/*  tre-556  %txt   /tests/golden/types-union-print-transitive/tree/txt
-/*  mod-556-1  %jibb  /tests/golden/types-union-print-transitive/modules/ui/mid/jibb
-/*  mod-556-2  %jibb  /tests/golden/types-union-print-transitive/modules/ui/base/jibb
-/*  typ-556  %txt   /tests/golden/types-union-print-transitive/types/txt
-/*  mtre-556  %txt  /tests/golden/types-union-print-transitive/module-trees/txt
-/*  src-557  %jibb  /tests/golden/types-union-singleton/source/jibb
-/*  tok-557  %txt   /tests/golden/types-union-singleton/tokens/txt
-/*  tre-557  %txt   /tests/golden/types-union-singleton/tree/txt
-/*  typ-557  %txt   /tests/golden/types-union-singleton/types/txt
-/*  src-558  %jibb  /tests/golden/types-union-tag-atoms/source/jibb
-/*  tok-558  %txt   /tests/golden/types-union-tag-atoms/tokens/txt
-/*  tre-558  %txt   /tests/golden/types-union-tag-atoms/tree/txt
-/*  typ-558  %txt   /tests/golden/types-union-tag-atoms/types/txt
-/*  src-559  %jibb  /tests/golden/types-union-tags/source/jibb
-/*  tok-559  %txt   /tests/golden/types-union-tags/tokens/txt
-/*  tre-559  %txt   /tests/golden/types-union-tags/tree/txt
-/*  typ-559  %txt   /tests/golden/types-union-tags/types/txt
-/*  src-560  %jibb  /tests/golden/types-union-unresolved/source/jibb
-/*  tok-560  %txt   /tests/golden/types-union-unresolved/tokens/txt
-/*  tre-560  %txt   /tests/golden/types-union-unresolved/tree/txt
-/*  typ-560  %txt   /tests/golden/types-union-unresolved/types/txt
-/*  src-561  %jibb  /tests/golden/types-union-unresolved-flow/source/jibb
-/*  tok-561  %txt   /tests/golden/types-union-unresolved-flow/tokens/txt
-/*  tre-561  %txt   /tests/golden/types-union-unresolved-flow/tree/txt
-/*  typ-561  %txt   /tests/golden/types-union-unresolved-flow/types/txt
-/*  src-562  %jibb  /tests/golden/types-unit-construction/source/jibb
-/*  tok-562  %txt   /tests/golden/types-unit-construction/tokens/txt
-/*  tre-562  %txt   /tests/golden/types-unit-construction/tree/txt
-/*  typ-562  %txt   /tests/golden/types-unit-construction/types/txt
-/*  src-563  %jibb  /tests/golden/types-unit-context/source/jibb
-/*  tok-563  %txt   /tests/golden/types-unit-context/tokens/txt
-/*  tre-563  %txt   /tests/golden/types-unit-context/tree/txt
-/*  typ-563  %txt   /tests/golden/types-unit-context/types/txt
-/*  src-564  %jibb  /tests/golden/types-unit-patterns/source/jibb
-/*  tok-564  %txt   /tests/golden/types-unit-patterns/tokens/txt
-/*  tre-564  %txt   /tests/golden/types-unit-patterns/tree/txt
-/*  typ-564  %txt   /tests/golden/types-unit-patterns/types/txt
-/*  src-565  %jibb  /tests/golden/types-value-cycle-shadow/source/jibb
-/*  tok-565  %txt   /tests/golden/types-value-cycle-shadow/tokens/txt
-/*  tre-565  %txt   /tests/golden/types-value-cycle-shadow/tree/txt
-/*  typ-565  %txt   /tests/golden/types-value-cycle-shadow/types/txt
-/*  src-566  %jibb  /tests/golden/types-value-cycle-unsupported/source/jibb
-/*  tok-566  %txt   /tests/golden/types-value-cycle-unsupported/tokens/txt
-/*  tre-566  %txt   /tests/golden/types-value-cycle-unsupported/tree/txt
-/*  typ-566  %txt   /tests/golden/types-value-cycle-unsupported/types/txt
-/*  src-567  %jibb  /tests/golden/types-value-cycles/source/jibb
-/*  tok-567  %txt   /tests/golden/types-value-cycles/tokens/txt
-/*  tre-567  %txt   /tests/golden/types-value-cycles/tree/txt
-/*  typ-567  %txt   /tests/golden/types-value-cycles/types/txt
+/*  src-499  %jibb  /tests/golden/types-prelude-cmd/source/jibb
+/*  tok-499  %txt   /tests/golden/types-prelude-cmd/tokens/txt
+/*  tre-499  %txt   /tests/golden/types-prelude-cmd/tree/txt
+/*  typ-499  %txt   /tests/golden/types-prelude-cmd/types/txt
+/*  src-500  %jibb  /tests/golden/types-prelude-direct/source/jibb
+/*  tok-500  %txt   /tests/golden/types-prelude-direct/tokens/txt
+/*  tre-500  %txt   /tests/golden/types-prelude-direct/tree/txt
+/*  typ-500  %txt   /tests/golden/types-prelude-direct/types/txt
+/*  src-501  %jibb  /tests/golden/types-prelude-functional/source/jibb
+/*  tok-501  %txt   /tests/golden/types-prelude-functional/tokens/txt
+/*  tre-501  %txt   /tests/golden/types-prelude-functional/tree/txt
+/*  typ-501  %txt   /tests/golden/types-prelude-functional/types/txt
+/*  src-502  %jibb  /tests/golden/types-prelude-interface/source/jibb
+/*  tok-502  %txt   /tests/golden/types-prelude-interface/tokens/txt
+/*  tre-502  %txt   /tests/golden/types-prelude-interface/tree/txt
+/*  mod-502-1  %jibb  /tests/golden/types-prelude-interface/modules/ui/left/jibb
+/*  mod-502-2  %jibb  /tests/golden/types-prelude-interface/modules/ui/right/jibb
+/*  typ-502  %txt   /tests/golden/types-prelude-interface/types/txt
+/*  mtre-502  %txt  /tests/golden/types-prelude-interface/module-trees/txt
+/*  src-503  %jibb  /tests/golden/types-prelude-list-functions/source/jibb
+/*  tok-503  %txt   /tests/golden/types-prelude-list-functions/tokens/txt
+/*  tre-503  %txt   /tests/golden/types-prelude-list-functions/tree/txt
+/*  mod-503-1  %jibb  /tests/golden/types-prelude-list-functions/modules/ui/lib/jibb
+/*  typ-503  %txt   /tests/golden/types-prelude-list-functions/types/txt
+/*  mtre-503  %txt  /tests/golden/types-prelude-list-functions/module-trees/txt
+/*  src-504  %jibb  /tests/golden/types-prelude-list-helpers/source/jibb
+/*  tok-504  %txt   /tests/golden/types-prelude-list-helpers/tokens/txt
+/*  tre-504  %txt   /tests/golden/types-prelude-list-helpers/tree/txt
+/*  typ-504  %txt   /tests/golden/types-prelude-list-helpers/types/txt
+/*  src-505  %jibb  /tests/golden/types-prelude-unit-helpers/source/jibb
+/*  tok-505  %txt   /tests/golden/types-prelude-unit-helpers/tokens/txt
+/*  tre-505  %txt   /tests/golden/types-prelude-unit-helpers/tree/txt
+/*  typ-505  %txt   /tests/golden/types-prelude-unit-helpers/types/txt
+/*  src-506  %jibb  /tests/golden/types-record-bound-variable/source/jibb
+/*  tok-506  %txt   /tests/golden/types-record-bound-variable/tokens/txt
+/*  tre-506  %txt   /tests/golden/types-record-bound-variable/tree/txt
+/*  typ-506  %txt   /tests/golden/types-record-bound-variable/types/txt
+/*  src-507  %jibb  /tests/golden/types-record-cast-context/source/jibb
+/*  tok-507  %txt   /tests/golden/types-record-cast-context/tokens/txt
+/*  tre-507  %txt   /tests/golden/types-record-cast-context/tree/txt
+/*  typ-507  %txt   /tests/golden/types-record-cast-context/types/txt
+/*  src-508  %jibb  /tests/golden/types-record-change/source/jibb
+/*  tok-508  %txt   /tests/golden/types-record-change/tokens/txt
+/*  tre-508  %txt   /tests/golden/types-record-change/tree/txt
+/*  typ-508  %txt   /tests/golden/types-record-change/types/txt
+/*  src-509  %jibb  /tests/golden/types-record-change-generic/source/jibb
+/*  tok-509  %txt   /tests/golden/types-record-change-generic/tokens/txt
+/*  tre-509  %txt   /tests/golden/types-record-change-generic/tree/txt
+/*  typ-509  %txt   /tests/golden/types-record-change-generic/types/txt
+/*  src-510  %jibb  /tests/golden/types-record-faces/source/jibb
+/*  tok-510  %txt   /tests/golden/types-record-faces/tokens/txt
+/*  tre-510  %txt   /tests/golden/types-record-faces/tree/txt
+/*  typ-510  %txt   /tests/golden/types-record-faces/types/txt
+/*  src-511  %jibb  /tests/golden/types-record-import/source/jibb
+/*  tok-511  %txt   /tests/golden/types-record-import/tokens/txt
+/*  tre-511  %txt   /tests/golden/types-record-import/tree/txt
+/*  mod-511-1  %jibb  /tests/golden/types-record-import/modules/ui/lib/jibb
+/*  typ-511  %txt   /tests/golden/types-record-import/types/txt
+/*  mtre-511  %txt  /tests/golden/types-record-import/module-trees/txt
+/*  src-512  %jibb  /tests/golden/types-record-local-scheme/source/jibb
+/*  tok-512  %txt   /tests/golden/types-record-local-scheme/tokens/txt
+/*  tre-512  %txt   /tests/golden/types-record-local-scheme/tree/txt
+/*  typ-512  %txt   /tests/golden/types-record-local-scheme/types/txt
+/*  src-513  %jibb  /tests/golden/types-record-nested/source/jibb
+/*  tok-513  %txt   /tests/golden/types-record-nested/tokens/txt
+/*  tre-513  %txt   /tests/golden/types-record-nested/tree/txt
+/*  typ-513  %txt   /tests/golden/types-record-nested/types/txt
+/*  src-514  %jibb  /tests/golden/types-record-to-tuple/source/jibb
+/*  tok-514  %txt   /tests/golden/types-record-to-tuple/tokens/txt
+/*  tre-514  %txt   /tests/golden/types-record-to-tuple/tree/txt
+/*  typ-514  %txt   /tests/golden/types-record-to-tuple/types/txt
+/*  src-515  %jibb  /tests/golden/types-recursion-scc-failures/source/jibb
+/*  tok-515  %txt   /tests/golden/types-recursion-scc-failures/tokens/txt
+/*  tre-515  %txt   /tests/golden/types-recursion-scc-failures/tree/txt
+/*  typ-515  %txt   /tests/golden/types-recursion-scc-failures/types/txt
+/*  src-516  %jibb  /tests/golden/types-recursion-scc-groups/source/jibb
+/*  tok-516  %txt   /tests/golden/types-recursion-scc-groups/tokens/txt
+/*  tre-516  %txt   /tests/golden/types-recursion-scc-groups/tree/txt
+/*  typ-516  %txt   /tests/golden/types-recursion-scc-groups/types/txt
+/*  src-517  %jibb  /tests/golden/types-recursion-scc-import/source/jibb
+/*  tok-517  %txt   /tests/golden/types-recursion-scc-import/tokens/txt
+/*  tre-517  %txt   /tests/golden/types-recursion-scc-import/tree/txt
+/*  mod-517-1  %jibb  /tests/golden/types-recursion-scc-import/modules/ui/lib/jibb
+/*  typ-517  %txt   /tests/golden/types-recursion-scc-import/types/txt
+/*  mtre-517  %txt  /tests/golden/types-recursion-scc-import/module-trees/txt
+/*  src-518  %jibb  /tests/golden/types-recursion-scc-import-bad/source/jibb
+/*  tok-518  %txt   /tests/golden/types-recursion-scc-import-bad/tokens/txt
+/*  tre-518  %txt   /tests/golden/types-recursion-scc-import-bad/tree/txt
+/*  mod-518-1  %jibb  /tests/golden/types-recursion-scc-import-bad/modules/ui/lib/jibb
+/*  typ-518  %txt   /tests/golden/types-recursion-scc-import-bad/types/txt
+/*  mtre-518  %txt  /tests/golden/types-recursion-scc-import-bad/module-trees/txt
+/*  src-519  %jibb  /tests/golden/types-recursion-scc-local/source/jibb
+/*  tok-519  %txt   /tests/golden/types-recursion-scc-local/tokens/txt
+/*  tre-519  %txt   /tests/golden/types-recursion-scc-local/tree/txt
+/*  typ-519  %txt   /tests/golden/types-recursion-scc-local/types/txt
+/*  src-520  %jibb  /tests/golden/types-recursion-scc-order/source/jibb
+/*  tok-520  %txt   /tests/golden/types-recursion-scc-order/tokens/txt
+/*  tre-520  %txt   /tests/golden/types-recursion-scc-order/tree/txt
+/*  typ-520  %txt   /tests/golden/types-recursion-scc-order/types/txt
+/*  src-521  %jibb  /tests/golden/types-recursion-scc-shadow/source/jibb
+/*  tok-521  %txt   /tests/golden/types-recursion-scc-shadow/tokens/txt
+/*  tre-521  %txt   /tests/golden/types-recursion-scc-shadow/tree/txt
+/*  typ-521  %txt   /tests/golden/types-recursion-scc-shadow/types/txt
+/*  src-522  %jibb  /tests/golden/types-recursive-branch/source/jibb
+/*  tok-522  %txt   /tests/golden/types-recursive-branch/tokens/txt
+/*  tre-522  %txt   /tests/golden/types-recursive-branch/tree/txt
+/*  typ-522  %txt   /tests/golden/types-recursive-branch/types/txt
+/*  src-523  %jibb  /tests/golden/types-recursive-gate/source/jibb
+/*  tok-523  %txt   /tests/golden/types-recursive-gate/tokens/txt
+/*  tre-523  %txt   /tests/golden/types-recursive-gate/tree/txt
+/*  typ-523  %txt   /tests/golden/types-recursive-gate/types/txt
+/*  src-524  %jibb  /tests/golden/types-recursive-sample/source/jibb
+/*  tok-524  %txt   /tests/golden/types-recursive-sample/tokens/txt
+/*  tre-524  %txt   /tests/golden/types-recursive-sample/tree/txt
+/*  typ-524  %txt   /tests/golden/types-recursive-sample/types/txt
+/*  src-525  %jibb  /tests/golden/types-scope-library-poke/source/jibb
+/*  tok-525  %txt   /tests/golden/types-scope-library-poke/tokens/txt
+/*  tre-525  %txt   /tests/golden/types-scope-library-poke/tree/txt
+/*  typ-525  %txt   /tests/golden/types-scope-library-poke/types/txt
+/*  src-526  %jibb  /tests/golden/types-scope-root-api/source/jibb
+/*  tok-526  %txt   /tests/golden/types-scope-root-api/tokens/txt
+/*  tre-526  %txt   /tests/golden/types-scope-root-api/tree/txt
+/*  typ-526  %txt   /tests/golden/types-scope-root-api/types/txt
+/*  src-527  %jibb  /tests/golden/types-scope-store-duplicate/source/jibb
+/*  tok-527  %txt   /tests/golden/types-scope-store-duplicate/tokens/txt
+/*  tre-527  %txt   /tests/golden/types-scope-store-duplicate/tree/txt
+/*  typ-527  %txt   /tests/golden/types-scope-store-duplicate/types/txt
+/*  src-528  %jibb  /tests/golden/types-scope-store-shadow/source/jibb
+/*  tok-528  %txt   /tests/golden/types-scope-store-shadow/tokens/txt
+/*  tre-528  %txt   /tests/golden/types-scope-store-shadow/tree/txt
+/*  typ-528  %txt   /tests/golden/types-scope-store-shadow/types/txt
+/*  src-529  %jibb  /tests/golden/types-single-case-pattern/source/jibb
+/*  tok-529  %txt   /tests/golden/types-single-case-pattern/tokens/txt
+/*  tre-529  %txt   /tests/golden/types-single-case-pattern/tree/txt
+/*  typ-529  %txt   /tests/golden/types-single-case-pattern/types/txt
+/*  src-530  %jibb  /tests/golden/types-string-interpolation/source/jibb
+/*  tok-530  %txt   /tests/golden/types-string-interpolation/tokens/txt
+/*  tre-530  %txt   /tests/golden/types-string-interpolation/tree/txt
+/*  typ-530  %txt   /tests/golden/types-string-interpolation/types/txt
+/*  src-531  %jibb  /tests/golden/types-tuple-context/source/jibb
+/*  tok-531  %txt   /tests/golden/types-tuple-context/tokens/txt
+/*  tre-531  %txt   /tests/golden/types-tuple-context/tree/txt
+/*  typ-531  %txt   /tests/golden/types-tuple-context/types/txt
+/*  src-532  %jibb  /tests/golden/types-tuple-context-nested/source/jibb
+/*  tok-532  %txt   /tests/golden/types-tuple-context-nested/tokens/txt
+/*  tre-532  %txt   /tests/golden/types-tuple-context-nested/tree/txt
+/*  typ-532  %txt   /tests/golden/types-tuple-context-nested/types/txt
+/*  src-533  %jibb  /tests/golden/types-union-alias/source/jibb
+/*  tok-533  %txt   /tests/golden/types-union-alias/tokens/txt
+/*  tre-533  %txt   /tests/golden/types-union-alias/tree/txt
+/*  typ-533  %txt   /tests/golden/types-union-alias/types/txt
+/*  src-534  %jibb  /tests/golden/types-union-branch-context/source/jibb
+/*  tok-534  %txt   /tests/golden/types-union-branch-context/tokens/txt
+/*  tre-534  %txt   /tests/golden/types-union-branch-context/tree/txt
+/*  typ-534  %txt   /tests/golden/types-union-branch-context/types/txt
+/*  src-535  %jibb  /tests/golden/types-union-branch-pending/source/jibb
+/*  tok-535  %txt   /tests/golden/types-union-branch-pending/tokens/txt
+/*  tre-535  %txt   /tests/golden/types-union-branch-pending/tree/txt
+/*  typ-535  %txt   /tests/golden/types-union-branch-pending/types/txt
+/*  src-536  %jibb  /tests/golden/types-union-constructor-shape/source/jibb
+/*  tok-536  %txt   /tests/golden/types-union-constructor-shape/tokens/txt
+/*  tre-536  %txt   /tests/golden/types-union-constructor-shape/tree/txt
+/*  typ-536  %txt   /tests/golden/types-union-constructor-shape/types/txt
+/*  src-537  %jibb  /tests/golden/types-union-context-flow/source/jibb
+/*  tok-537  %txt   /tests/golden/types-union-context-flow/tokens/txt
+/*  tre-537  %txt   /tests/golden/types-union-context-flow/tree/txt
+/*  typ-537  %txt   /tests/golden/types-union-context-flow/types/txt
+/*  src-538  %jibb  /tests/golden/types-union-finite/source/jibb
+/*  tok-538  %txt   /tests/golden/types-union-finite/tokens/txt
+/*  tre-538  %txt   /tests/golden/types-union-finite/tree/txt
+/*  typ-538  %txt   /tests/golden/types-union-finite/types/txt
+/*  src-539  %jibb  /tests/golden/types-union-finite-context/source/jibb
+/*  tok-539  %txt   /tests/golden/types-union-finite-context/tokens/txt
+/*  tre-539  %txt   /tests/golden/types-union-finite-context/tree/txt
+/*  typ-539  %txt   /tests/golden/types-union-finite-context/types/txt
+/*  src-540  %jibb  /tests/golden/types-union-finite-generic/source/jibb
+/*  tok-540  %txt   /tests/golden/types-union-finite-generic/tokens/txt
+/*  tre-540  %txt   /tests/golden/types-union-finite-generic/tree/txt
+/*  typ-540  %txt   /tests/golden/types-union-finite-generic/types/txt
+/*  src-541  %jibb  /tests/golden/types-union-finite-limit/source/jibb
+/*  tok-541  %txt   /tests/golden/types-union-finite-limit/tokens/txt
+/*  tre-541  %txt   /tests/golden/types-union-finite-limit/tree/txt
+/*  typ-541  %txt   /tests/golden/types-union-finite-limit/types/txt
+/*  src-542  %jibb  /tests/golden/types-union-import/source/jibb
+/*  tok-542  %txt   /tests/golden/types-union-import/tokens/txt
+/*  tre-542  %txt   /tests/golden/types-union-import/tree/txt
+/*  mod-542-1  %jibb  /tests/golden/types-union-import/modules/ui/lib/jibb
+/*  typ-542  %txt   /tests/golden/types-union-import/types/txt
+/*  mtre-542  %txt  /tests/golden/types-union-import/module-trees/txt
+/*  src-543  %jibb  /tests/golden/types-union-local-pending/source/jibb
+/*  tok-543  %txt   /tests/golden/types-union-local-pending/tokens/txt
+/*  tre-543  %txt   /tests/golden/types-union-local-pending/tree/txt
+/*  typ-543  %txt   /tests/golden/types-union-local-pending/types/txt
+/*  src-544  %jibb  /tests/golden/types-union-overlap/source/jibb
+/*  tok-544  %txt   /tests/golden/types-union-overlap/tokens/txt
+/*  tre-544  %txt   /tests/golden/types-union-overlap/tree/txt
+/*  typ-544  %txt   /tests/golden/types-union-overlap/types/txt
+/*  src-545  %jibb  /tests/golden/types-union-overlap-nested/source/jibb
+/*  tok-545  %txt   /tests/golden/types-union-overlap-nested/tokens/txt
+/*  tre-545  %txt   /tests/golden/types-union-overlap-nested/tree/txt
+/*  typ-545  %txt   /tests/golden/types-union-overlap-nested/types/txt
+/*  src-546  %jibb  /tests/golden/types-union-pattern-result-context/source/jibb
+/*  tok-546  %txt   /tests/golden/types-union-pattern-result-context/tokens/txt
+/*  tre-546  %txt   /tests/golden/types-union-pattern-result-context/tree/txt
+/*  typ-546  %txt   /tests/golden/types-union-pattern-result-context/types/txt
+/*  src-547  %jibb  /tests/golden/types-union-pattern-result-controls/source/jibb
+/*  tok-547  %txt   /tests/golden/types-union-pattern-result-controls/tokens/txt
+/*  tre-547  %txt   /tests/golden/types-union-pattern-result-controls/tree/txt
+/*  typ-547  %txt   /tests/golden/types-union-pattern-result-controls/types/txt
+/*  src-548  %jibb  /tests/golden/types-union-patterns/source/jibb
+/*  tok-548  %txt   /tests/golden/types-union-patterns/tokens/txt
+/*  tre-548  %txt   /tests/golden/types-union-patterns/tree/txt
+/*  typ-548  %txt   /tests/golden/types-union-patterns/types/txt
+/*  src-549  %jibb  /tests/golden/types-union-patterns-generic/source/jibb
+/*  tok-549  %txt   /tests/golden/types-union-patterns-generic/tokens/txt
+/*  tre-549  %txt   /tests/golden/types-union-patterns-generic/tree/txt
+/*  typ-549  %txt   /tests/golden/types-union-patterns-generic/types/txt
+/*  src-550  %jibb  /tests/golden/types-union-patterns-import/source/jibb
+/*  tok-550  %txt   /tests/golden/types-union-patterns-import/tokens/txt
+/*  tre-550  %txt   /tests/golden/types-union-patterns-import/tree/txt
+/*  mod-550-1  %jibb  /tests/golden/types-union-patterns-import/modules/ui/lib/jibb
+/*  typ-550  %txt   /tests/golden/types-union-patterns-import/types/txt
+/*  mtre-550  %txt  /tests/golden/types-union-patterns-import/module-trees/txt
+/*  src-551  %jibb  /tests/golden/types-union-phantom-generic/source/jibb
+/*  tok-551  %txt   /tests/golden/types-union-phantom-generic/tokens/txt
+/*  tre-551  %txt   /tests/golden/types-union-phantom-generic/tree/txt
+/*  typ-551  %txt   /tests/golden/types-union-phantom-generic/types/txt
+/*  src-552  %jibb  /tests/golden/types-union-print-cross-namespace/source/jibb
+/*  tok-552  %txt   /tests/golden/types-union-print-cross-namespace/tokens/txt
+/*  tre-552  %txt   /tests/golden/types-union-print-cross-namespace/tree/txt
+/*  mod-552-1  %jibb  /tests/golden/types-union-print-cross-namespace/modules/ui/lib/jibb
+/*  typ-552  %txt   /tests/golden/types-union-print-cross-namespace/types/txt
+/*  mtre-552  %txt  /tests/golden/types-union-print-cross-namespace/module-trees/txt
+/*  src-553  %jibb  /tests/golden/types-union-print-distinct/source/jibb
+/*  tok-553  %txt   /tests/golden/types-union-print-distinct/tokens/txt
+/*  tre-553  %txt   /tests/golden/types-union-print-distinct/tree/txt
+/*  mod-553-1  %jibb  /tests/golden/types-union-print-distinct/modules/ui/left/jibb
+/*  mod-553-2  %jibb  /tests/golden/types-union-print-distinct/modules/ui/right/jibb
+/*  mod-553-3  %jibb  /tests/golden/types-union-print-distinct/modules/ui/twin/jibb
+/*  typ-553  %txt   /tests/golden/types-union-print-distinct/types/txt
+/*  mtre-553  %txt  /tests/golden/types-union-print-distinct/module-trees/txt
+/*  src-554  %jibb  /tests/golden/types-union-print-escape/source/jibb
+/*  tok-554  %txt   /tests/golden/types-union-print-escape/tokens/txt
+/*  tre-554  %txt   /tests/golden/types-union-print-escape/tree/txt
+/*  typ-554  %txt   /tests/golden/types-union-print-escape/types/txt
+/*  src-555  %jibb  /tests/golden/types-union-print-local/source/jibb
+/*  tok-555  %txt   /tests/golden/types-union-print-local/tokens/txt
+/*  tre-555  %txt   /tests/golden/types-union-print-local/tree/txt
+/*  typ-555  %txt   /tests/golden/types-union-print-local/types/txt
+/*  src-556  %jibb  /tests/golden/types-union-print-nested/source/jibb
+/*  tok-556  %txt   /tests/golden/types-union-print-nested/tokens/txt
+/*  tre-556  %txt   /tests/golden/types-union-print-nested/tree/txt
+/*  typ-556  %txt   /tests/golden/types-union-print-nested/types/txt
+/*  src-557  %jibb  /tests/golden/types-union-print-same-origin/source/jibb
+/*  tok-557  %txt   /tests/golden/types-union-print-same-origin/tokens/txt
+/*  tre-557  %txt   /tests/golden/types-union-print-same-origin/tree/txt
+/*  mod-557-1  %jibb  /tests/golden/types-union-print-same-origin/modules/ui/shared/jibb
+/*  typ-557  %txt   /tests/golden/types-union-print-same-origin/types/txt
+/*  mtre-557  %txt  /tests/golden/types-union-print-same-origin/module-trees/txt
+/*  src-558  %jibb  /tests/golden/types-union-print-transitive/source/jibb
+/*  tok-558  %txt   /tests/golden/types-union-print-transitive/tokens/txt
+/*  tre-558  %txt   /tests/golden/types-union-print-transitive/tree/txt
+/*  mod-558-1  %jibb  /tests/golden/types-union-print-transitive/modules/ui/mid/jibb
+/*  mod-558-2  %jibb  /tests/golden/types-union-print-transitive/modules/ui/base/jibb
+/*  typ-558  %txt   /tests/golden/types-union-print-transitive/types/txt
+/*  mtre-558  %txt  /tests/golden/types-union-print-transitive/module-trees/txt
+/*  src-559  %jibb  /tests/golden/types-union-singleton/source/jibb
+/*  tok-559  %txt   /tests/golden/types-union-singleton/tokens/txt
+/*  tre-559  %txt   /tests/golden/types-union-singleton/tree/txt
+/*  typ-559  %txt   /tests/golden/types-union-singleton/types/txt
+/*  src-560  %jibb  /tests/golden/types-union-tag-atoms/source/jibb
+/*  tok-560  %txt   /tests/golden/types-union-tag-atoms/tokens/txt
+/*  tre-560  %txt   /tests/golden/types-union-tag-atoms/tree/txt
+/*  typ-560  %txt   /tests/golden/types-union-tag-atoms/types/txt
+/*  src-561  %jibb  /tests/golden/types-union-tags/source/jibb
+/*  tok-561  %txt   /tests/golden/types-union-tags/tokens/txt
+/*  tre-561  %txt   /tests/golden/types-union-tags/tree/txt
+/*  typ-561  %txt   /tests/golden/types-union-tags/types/txt
+/*  src-562  %jibb  /tests/golden/types-union-unresolved/source/jibb
+/*  tok-562  %txt   /tests/golden/types-union-unresolved/tokens/txt
+/*  tre-562  %txt   /tests/golden/types-union-unresolved/tree/txt
+/*  typ-562  %txt   /tests/golden/types-union-unresolved/types/txt
+/*  src-563  %jibb  /tests/golden/types-union-unresolved-flow/source/jibb
+/*  tok-563  %txt   /tests/golden/types-union-unresolved-flow/tokens/txt
+/*  tre-563  %txt   /tests/golden/types-union-unresolved-flow/tree/txt
+/*  typ-563  %txt   /tests/golden/types-union-unresolved-flow/types/txt
+/*  src-564  %jibb  /tests/golden/types-unit-construction/source/jibb
+/*  tok-564  %txt   /tests/golden/types-unit-construction/tokens/txt
+/*  tre-564  %txt   /tests/golden/types-unit-construction/tree/txt
+/*  typ-564  %txt   /tests/golden/types-unit-construction/types/txt
+/*  src-565  %jibb  /tests/golden/types-unit-context/source/jibb
+/*  tok-565  %txt   /tests/golden/types-unit-context/tokens/txt
+/*  tre-565  %txt   /tests/golden/types-unit-context/tree/txt
+/*  typ-565  %txt   /tests/golden/types-unit-context/types/txt
+/*  src-566  %jibb  /tests/golden/types-unit-patterns/source/jibb
+/*  tok-566  %txt   /tests/golden/types-unit-patterns/tokens/txt
+/*  tre-566  %txt   /tests/golden/types-unit-patterns/tree/txt
+/*  typ-566  %txt   /tests/golden/types-unit-patterns/types/txt
+/*  src-567  %jibb  /tests/golden/types-value-cycle-shadow/source/jibb
+/*  tok-567  %txt   /tests/golden/types-value-cycle-shadow/tokens/txt
+/*  tre-567  %txt   /tests/golden/types-value-cycle-shadow/tree/txt
+/*  typ-567  %txt   /tests/golden/types-value-cycle-shadow/types/txt
+/*  src-568  %jibb  /tests/golden/types-value-cycle-unsupported/source/jibb
+/*  tok-568  %txt   /tests/golden/types-value-cycle-unsupported/tokens/txt
+/*  tre-568  %txt   /tests/golden/types-value-cycle-unsupported/tree/txt
+/*  typ-568  %txt   /tests/golden/types-value-cycle-unsupported/types/txt
+/*  src-569  %jibb  /tests/golden/types-value-cycles/source/jibb
+/*  tok-569  %txt   /tests/golden/types-value-cycles/tokens/txt
+/*  tre-569  %txt   /tests/golden/types-value-cycles/tree/txt
+/*  typ-569  %txt   /tests/golden/types-value-cycles/types/txt
 =/  prepared-prelude  (prepare-prelude-with-internal:jibb prelude-source internal-source)
 |%
 ::  one arm per case
@@ -3064,144 +3072,148 @@
   (weld (check ~.types-partial-union-edges src-497 `tok-497 `tre-497) (check-types ~.types-partial-union-edges ~[%tests %golden ~.types-partial-union-edges %source %jibb] src-497 `typ-497))
 ++  test-types-partial-unresolved-tag
   (weld (check ~.types-partial-unresolved-tag src-498 `tok-498 `tre-498) (check-types ~.types-partial-unresolved-tag ~[%tests %golden ~.types-partial-unresolved-tag %source %jibb] src-498 `typ-498))
+++  test-types-prelude-cmd
+  (weld (check ~.types-prelude-cmd src-499 `tok-499 `tre-499) (check-module-types ~.types-prelude-cmd ~[%tests %golden ~.types-prelude-cmd %source %jibb] src-499 `typ-499 ~ ~ ~))
 ++  test-types-prelude-direct
-  (weld (check ~.types-prelude-direct src-499 `tok-499 `tre-499) (check-module-types ~.types-prelude-direct ~[%tests %golden ~.types-prelude-direct %source %jibb] src-499 `typ-499 ~ ~ ~))
+  (weld (check ~.types-prelude-direct src-500 `tok-500 `tre-500) (check-module-types ~.types-prelude-direct ~[%tests %golden ~.types-prelude-direct %source %jibb] src-500 `typ-500 ~ ~ ~))
 ++  test-types-prelude-functional
-  (weld (check ~.types-prelude-functional src-500 `tok-500 `tre-500) (check-module-types ~.types-prelude-functional ~[%tests %golden ~.types-prelude-functional %source %jibb] src-500 `typ-500 ~ ~ ~))
+  (weld (check ~.types-prelude-functional src-501 `tok-501 `tre-501) (check-module-types ~.types-prelude-functional ~[%tests %golden ~.types-prelude-functional %source %jibb] src-501 `typ-501 ~ ~ ~))
 ++  test-types-prelude-interface
-  (weld (weld (check ~.types-prelude-interface src-501 `tok-501 `tre-501) (check-module-types ~.types-prelude-interface ~[%tests %golden ~.types-prelude-interface %source %jibb] src-501 `typ-501 ~ ~ ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-501-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-501-2]])) (check-module-trees ~.types-prelude-interface `mtre-501 ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-501-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-501-2]]))
+  (weld (weld (check ~.types-prelude-interface src-502 `tok-502 `tre-502) (check-module-types ~.types-prelude-interface ~[%tests %golden ~.types-prelude-interface %source %jibb] src-502 `typ-502 ~ ~ ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-502-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-502-2]])) (check-module-trees ~.types-prelude-interface `mtre-502 ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-502-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-502-2]]))
 ++  test-types-prelude-list-functions
-  (weld (weld (check ~.types-prelude-list-functions src-502 `tok-502 `tre-502) (check-module-types ~.types-prelude-list-functions ~[%tests %golden ~.types-prelude-list-functions %source %jibb] src-502 `typ-502 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-502-1]])) (check-module-trees ~.types-prelude-list-functions `mtre-502 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-502-1]]))
+  (weld (weld (check ~.types-prelude-list-functions src-503 `tok-503 `tre-503) (check-module-types ~.types-prelude-list-functions ~[%tests %golden ~.types-prelude-list-functions %source %jibb] src-503 `typ-503 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-503-1]])) (check-module-trees ~.types-prelude-list-functions `mtre-503 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-503-1]]))
 ++  test-types-prelude-list-helpers
-  (weld (check ~.types-prelude-list-helpers src-503 `tok-503 `tre-503) (check-module-types ~.types-prelude-list-helpers ~[%tests %golden ~.types-prelude-list-helpers %source %jibb] src-503 `typ-503 ~ ~ ~))
+  (weld (check ~.types-prelude-list-helpers src-504 `tok-504 `tre-504) (check-module-types ~.types-prelude-list-helpers ~[%tests %golden ~.types-prelude-list-helpers %source %jibb] src-504 `typ-504 ~ ~ ~))
 ++  test-types-prelude-unit-helpers
-  (weld (check ~.types-prelude-unit-helpers src-504 `tok-504 `tre-504) (check-module-types ~.types-prelude-unit-helpers ~[%tests %golden ~.types-prelude-unit-helpers %source %jibb] src-504 `typ-504 ~ ~ ~))
+  (weld (check ~.types-prelude-unit-helpers src-505 `tok-505 `tre-505) (check-module-types ~.types-prelude-unit-helpers ~[%tests %golden ~.types-prelude-unit-helpers %source %jibb] src-505 `typ-505 ~ ~ ~))
 ++  test-types-record-bound-variable
-  (weld (check ~.types-record-bound-variable src-505 `tok-505 `tre-505) (check-types ~.types-record-bound-variable ~[%tests %golden ~.types-record-bound-variable %source %jibb] src-505 `typ-505))
+  (weld (check ~.types-record-bound-variable src-506 `tok-506 `tre-506) (check-types ~.types-record-bound-variable ~[%tests %golden ~.types-record-bound-variable %source %jibb] src-506 `typ-506))
 ++  test-types-record-cast-context
-  (weld (check ~.types-record-cast-context src-506 `tok-506 `tre-506) (check-module-types ~.types-record-cast-context ~[%tests %golden ~.types-record-cast-context %source %jibb] src-506 `typ-506 ~ ~ ~))
+  (weld (check ~.types-record-cast-context src-507 `tok-507 `tre-507) (check-module-types ~.types-record-cast-context ~[%tests %golden ~.types-record-cast-context %source %jibb] src-507 `typ-507 ~ ~ ~))
 ++  test-types-record-change
-  (weld (check ~.types-record-change src-507 `tok-507 `tre-507) (check-module-types ~.types-record-change ~[%tests %golden ~.types-record-change %source %jibb] src-507 `typ-507 ~ ~ ~))
+  (weld (check ~.types-record-change src-508 `tok-508 `tre-508) (check-module-types ~.types-record-change ~[%tests %golden ~.types-record-change %source %jibb] src-508 `typ-508 ~ ~ ~))
 ++  test-types-record-change-generic
-  (weld (check ~.types-record-change-generic src-508 `tok-508 `tre-508) (check-module-types ~.types-record-change-generic ~[%tests %golden ~.types-record-change-generic %source %jibb] src-508 `typ-508 ~ ~ ~))
+  (weld (check ~.types-record-change-generic src-509 `tok-509 `tre-509) (check-module-types ~.types-record-change-generic ~[%tests %golden ~.types-record-change-generic %source %jibb] src-509 `typ-509 ~ ~ ~))
 ++  test-types-record-faces
-  (weld (check ~.types-record-faces src-509 `tok-509 `tre-509) (check-types ~.types-record-faces ~[%tests %golden ~.types-record-faces %source %jibb] src-509 `typ-509))
+  (weld (check ~.types-record-faces src-510 `tok-510 `tre-510) (check-types ~.types-record-faces ~[%tests %golden ~.types-record-faces %source %jibb] src-510 `typ-510))
 ++  test-types-record-import
-  (weld (weld (check ~.types-record-import src-510 `tok-510 `tre-510) (check-module-types ~.types-record-import ~[%tests %golden ~.types-record-import %source %jibb] src-510 `typ-510 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-510-1]])) (check-module-trees ~.types-record-import `mtre-510 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-510-1]]))
+  (weld (weld (check ~.types-record-import src-511 `tok-511 `tre-511) (check-module-types ~.types-record-import ~[%tests %golden ~.types-record-import %source %jibb] src-511 `typ-511 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-511-1]])) (check-module-trees ~.types-record-import `mtre-511 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-511-1]]))
 ++  test-types-record-local-scheme
-  (weld (check ~.types-record-local-scheme src-511 `tok-511 `tre-511) (check-types ~.types-record-local-scheme ~[%tests %golden ~.types-record-local-scheme %source %jibb] src-511 `typ-511))
+  (weld (check ~.types-record-local-scheme src-512 `tok-512 `tre-512) (check-types ~.types-record-local-scheme ~[%tests %golden ~.types-record-local-scheme %source %jibb] src-512 `typ-512))
 ++  test-types-record-nested
-  (weld (check ~.types-record-nested src-512 `tok-512 `tre-512) (check-types ~.types-record-nested ~[%tests %golden ~.types-record-nested %source %jibb] src-512 `typ-512))
+  (weld (check ~.types-record-nested src-513 `tok-513 `tre-513) (check-types ~.types-record-nested ~[%tests %golden ~.types-record-nested %source %jibb] src-513 `typ-513))
 ++  test-types-record-to-tuple
-  (weld (check ~.types-record-to-tuple src-513 `tok-513 `tre-513) (check-types ~.types-record-to-tuple ~[%tests %golden ~.types-record-to-tuple %source %jibb] src-513 `typ-513))
+  (weld (check ~.types-record-to-tuple src-514 `tok-514 `tre-514) (check-types ~.types-record-to-tuple ~[%tests %golden ~.types-record-to-tuple %source %jibb] src-514 `typ-514))
 ++  test-types-recursion-scc-failures
-  (weld (check ~.types-recursion-scc-failures src-514 `tok-514 `tre-514) (check-module-types ~.types-recursion-scc-failures ~[%tests %golden ~.types-recursion-scc-failures %source %jibb] src-514 `typ-514 ~ ~ ~))
+  (weld (check ~.types-recursion-scc-failures src-515 `tok-515 `tre-515) (check-module-types ~.types-recursion-scc-failures ~[%tests %golden ~.types-recursion-scc-failures %source %jibb] src-515 `typ-515 ~ ~ ~))
 ++  test-types-recursion-scc-groups
-  (weld (check ~.types-recursion-scc-groups src-515 `tok-515 `tre-515) (check-module-types ~.types-recursion-scc-groups ~[%tests %golden ~.types-recursion-scc-groups %source %jibb] src-515 `typ-515 ~ ~ ~))
+  (weld (check ~.types-recursion-scc-groups src-516 `tok-516 `tre-516) (check-module-types ~.types-recursion-scc-groups ~[%tests %golden ~.types-recursion-scc-groups %source %jibb] src-516 `typ-516 ~ ~ ~))
 ++  test-types-recursion-scc-import
-  (weld (weld (check ~.types-recursion-scc-import src-516 `tok-516 `tre-516) (check-module-types ~.types-recursion-scc-import ~[%tests %golden ~.types-recursion-scc-import %source %jibb] src-516 `typ-516 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-516-1]])) (check-module-trees ~.types-recursion-scc-import `mtre-516 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-516-1]]))
+  (weld (weld (check ~.types-recursion-scc-import src-517 `tok-517 `tre-517) (check-module-types ~.types-recursion-scc-import ~[%tests %golden ~.types-recursion-scc-import %source %jibb] src-517 `typ-517 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-517-1]])) (check-module-trees ~.types-recursion-scc-import `mtre-517 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-517-1]]))
 ++  test-types-recursion-scc-import-bad
-  (weld (weld (check ~.types-recursion-scc-import-bad src-517 `tok-517 `tre-517) (check-module-types ~.types-recursion-scc-import-bad ~[%tests %golden ~.types-recursion-scc-import-bad %source %jibb] src-517 `typ-517 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-517-1]])) (check-module-trees ~.types-recursion-scc-import-bad `mtre-517 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-517-1]]))
+  (weld (weld (check ~.types-recursion-scc-import-bad src-518 `tok-518 `tre-518) (check-module-types ~.types-recursion-scc-import-bad ~[%tests %golden ~.types-recursion-scc-import-bad %source %jibb] src-518 `typ-518 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-518-1]])) (check-module-trees ~.types-recursion-scc-import-bad `mtre-518 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-518-1]]))
 ++  test-types-recursion-scc-local
-  (weld (check ~.types-recursion-scc-local src-518 `tok-518 `tre-518) (check-module-types ~.types-recursion-scc-local ~[%tests %golden ~.types-recursion-scc-local %source %jibb] src-518 `typ-518 ~ ~ ~))
+  (weld (check ~.types-recursion-scc-local src-519 `tok-519 `tre-519) (check-module-types ~.types-recursion-scc-local ~[%tests %golden ~.types-recursion-scc-local %source %jibb] src-519 `typ-519 ~ ~ ~))
 ++  test-types-recursion-scc-order
-  (weld (check ~.types-recursion-scc-order src-519 `tok-519 `tre-519) (check-module-types ~.types-recursion-scc-order ~[%tests %golden ~.types-recursion-scc-order %source %jibb] src-519 `typ-519 ~ ~ ~))
+  (weld (check ~.types-recursion-scc-order src-520 `tok-520 `tre-520) (check-module-types ~.types-recursion-scc-order ~[%tests %golden ~.types-recursion-scc-order %source %jibb] src-520 `typ-520 ~ ~ ~))
 ++  test-types-recursion-scc-shadow
-  (weld (check ~.types-recursion-scc-shadow src-520 `tok-520 `tre-520) (check-module-types ~.types-recursion-scc-shadow ~[%tests %golden ~.types-recursion-scc-shadow %source %jibb] src-520 `typ-520 ~ ~ ~))
+  (weld (check ~.types-recursion-scc-shadow src-521 `tok-521 `tre-521) (check-module-types ~.types-recursion-scc-shadow ~[%tests %golden ~.types-recursion-scc-shadow %source %jibb] src-521 `typ-521 ~ ~ ~))
 ++  test-types-recursive-branch
-  (weld (check ~.types-recursive-branch src-521 `tok-521 `tre-521) (check-module-types ~.types-recursive-branch ~[%tests %golden ~.types-recursive-branch %source %jibb] src-521 `typ-521 ~ ~ ~))
+  (weld (check ~.types-recursive-branch src-522 `tok-522 `tre-522) (check-module-types ~.types-recursive-branch ~[%tests %golden ~.types-recursive-branch %source %jibb] src-522 `typ-522 ~ ~ ~))
 ++  test-types-recursive-gate
-  (weld (check ~.types-recursive-gate src-522 `tok-522 `tre-522) (check-types ~.types-recursive-gate ~[%tests %golden ~.types-recursive-gate %source %jibb] src-522 `typ-522))
+  (weld (check ~.types-recursive-gate src-523 `tok-523 `tre-523) (check-types ~.types-recursive-gate ~[%tests %golden ~.types-recursive-gate %source %jibb] src-523 `typ-523))
 ++  test-types-recursive-sample
-  (weld (check ~.types-recursive-sample src-523 `tok-523 `tre-523) (check-types ~.types-recursive-sample ~[%tests %golden ~.types-recursive-sample %source %jibb] src-523 `typ-523))
+  (weld (check ~.types-recursive-sample src-524 `tok-524 `tre-524) (check-types ~.types-recursive-sample ~[%tests %golden ~.types-recursive-sample %source %jibb] src-524 `typ-524))
 ++  test-types-scope-library-poke
-  (weld (check-at ~.types-scope-library-poke ~[~.ui ~.lib ~.library ~.jibb] src-524 `tok-524 `tre-524) (check-module-types ~.types-scope-library-poke ~[~.ui ~.lib ~.library ~.jibb] src-524 `typ-524 ~ ~ ~))
+  (weld (check-at ~.types-scope-library-poke ~[~.ui ~.lib ~.library ~.jibb] src-525 `tok-525 `tre-525) (check-module-types ~.types-scope-library-poke ~[~.ui ~.lib ~.library ~.jibb] src-525 `typ-525 ~ ~ ~))
 ++  test-types-scope-root-api
-  (weld (check-at ~.types-scope-root-api ~[~.ui ~.api ~.todo ~.jibb] src-525 `tok-525 `tre-525) (check-module-types ~.types-scope-root-api ~[~.ui ~.api ~.todo ~.jibb] src-525 `typ-525 ~ ~ ~))
+  (weld (check-at ~.types-scope-root-api ~[~.ui ~.api ~.todo ~.jibb] src-526 `tok-526 `tre-526) (check-module-types ~.types-scope-root-api ~[~.ui ~.api ~.todo ~.jibb] src-526 `typ-526 ~ ~ ~))
 ++  test-types-scope-store-duplicate
-  (weld (check-at ~.types-scope-store-duplicate ~[~.ui ~.stores ~.cart ~.jibb] src-526 `tok-526 `tre-526) (check-module-types ~.types-scope-store-duplicate ~[~.ui ~.stores ~.cart ~.jibb] src-526 `typ-526 ~ ~ ~))
+  (weld (check-at ~.types-scope-store-duplicate ~[~.ui ~.stores ~.cart ~.jibb] src-527 `tok-527 `tre-527) (check-module-types ~.types-scope-store-duplicate ~[~.ui ~.stores ~.cart ~.jibb] src-527 `typ-527 ~ ~ ~))
 ++  test-types-scope-store-shadow
-  (weld (check-at ~.types-scope-store-shadow ~[~.ui ~.stores ~.cart ~.jibb] src-527 `tok-527 `tre-527) (check-module-types ~.types-scope-store-shadow ~[~.ui ~.stores ~.cart ~.jibb] src-527 `typ-527 ~ ~ ~))
+  (weld (check-at ~.types-scope-store-shadow ~[~.ui ~.stores ~.cart ~.jibb] src-528 `tok-528 `tre-528) (check-module-types ~.types-scope-store-shadow ~[~.ui ~.stores ~.cart ~.jibb] src-528 `typ-528 ~ ~ ~))
+++  test-types-single-case-pattern
+  (weld (check ~.types-single-case-pattern src-529 `tok-529 `tre-529) (check-module-types ~.types-single-case-pattern ~[%tests %golden ~.types-single-case-pattern %source %jibb] src-529 `typ-529 ~ ~ ~))
 ++  test-types-string-interpolation
-  (weld (check ~.types-string-interpolation src-528 `tok-528 `tre-528) (check-module-types ~.types-string-interpolation ~[%tests %golden ~.types-string-interpolation %source %jibb] src-528 `typ-528 ~ ~ ~))
+  (weld (check ~.types-string-interpolation src-530 `tok-530 `tre-530) (check-module-types ~.types-string-interpolation ~[%tests %golden ~.types-string-interpolation %source %jibb] src-530 `typ-530 ~ ~ ~))
 ++  test-types-tuple-context
-  (weld (check ~.types-tuple-context src-529 `tok-529 `tre-529) (check-module-types ~.types-tuple-context ~[%tests %golden ~.types-tuple-context %source %jibb] src-529 `typ-529 ~ ~ ~))
+  (weld (check ~.types-tuple-context src-531 `tok-531 `tre-531) (check-module-types ~.types-tuple-context ~[%tests %golden ~.types-tuple-context %source %jibb] src-531 `typ-531 ~ ~ ~))
 ++  test-types-tuple-context-nested
-  (weld (check ~.types-tuple-context-nested src-530 `tok-530 `tre-530) (check-module-types ~.types-tuple-context-nested ~[%tests %golden ~.types-tuple-context-nested %source %jibb] src-530 `typ-530 ~ ~ ~))
+  (weld (check ~.types-tuple-context-nested src-532 `tok-532 `tre-532) (check-module-types ~.types-tuple-context-nested ~[%tests %golden ~.types-tuple-context-nested %source %jibb] src-532 `typ-532 ~ ~ ~))
 ++  test-types-union-alias
-  (weld (check ~.types-union-alias src-531 `tok-531 `tre-531) (check-types ~.types-union-alias ~[%tests %golden ~.types-union-alias %source %jibb] src-531 `typ-531))
+  (weld (check ~.types-union-alias src-533 `tok-533 `tre-533) (check-types ~.types-union-alias ~[%tests %golden ~.types-union-alias %source %jibb] src-533 `typ-533))
 ++  test-types-union-branch-context
-  (weld (check ~.types-union-branch-context src-532 `tok-532 `tre-532) (check-types ~.types-union-branch-context ~[%tests %golden ~.types-union-branch-context %source %jibb] src-532 `typ-532))
+  (weld (check ~.types-union-branch-context src-534 `tok-534 `tre-534) (check-types ~.types-union-branch-context ~[%tests %golden ~.types-union-branch-context %source %jibb] src-534 `typ-534))
 ++  test-types-union-branch-pending
-  (weld (check ~.types-union-branch-pending src-533 `tok-533 `tre-533) (check-types ~.types-union-branch-pending ~[%tests %golden ~.types-union-branch-pending %source %jibb] src-533 `typ-533))
+  (weld (check ~.types-union-branch-pending src-535 `tok-535 `tre-535) (check-types ~.types-union-branch-pending ~[%tests %golden ~.types-union-branch-pending %source %jibb] src-535 `typ-535))
 ++  test-types-union-constructor-shape
-  (weld (check ~.types-union-constructor-shape src-534 `tok-534 `tre-534) (check-types ~.types-union-constructor-shape ~[%tests %golden ~.types-union-constructor-shape %source %jibb] src-534 `typ-534))
+  (weld (check ~.types-union-constructor-shape src-536 `tok-536 `tre-536) (check-types ~.types-union-constructor-shape ~[%tests %golden ~.types-union-constructor-shape %source %jibb] src-536 `typ-536))
 ++  test-types-union-context-flow
-  (weld (check ~.types-union-context-flow src-535 `tok-535 `tre-535) (check-types ~.types-union-context-flow ~[%tests %golden ~.types-union-context-flow %source %jibb] src-535 `typ-535))
+  (weld (check ~.types-union-context-flow src-537 `tok-537 `tre-537) (check-types ~.types-union-context-flow ~[%tests %golden ~.types-union-context-flow %source %jibb] src-537 `typ-537))
 ++  test-types-union-finite
-  (weld (check ~.types-union-finite src-536 `tok-536 `tre-536) (check-module-types ~.types-union-finite ~[%tests %golden ~.types-union-finite %source %jibb] src-536 `typ-536 ~ ~ ~))
+  (weld (check ~.types-union-finite src-538 `tok-538 `tre-538) (check-module-types ~.types-union-finite ~[%tests %golden ~.types-union-finite %source %jibb] src-538 `typ-538 ~ ~ ~))
 ++  test-types-union-finite-context
-  (weld (check ~.types-union-finite-context src-537 `tok-537 `tre-537) (check-module-types ~.types-union-finite-context ~[%tests %golden ~.types-union-finite-context %source %jibb] src-537 `typ-537 ~ ~ ~))
+  (weld (check ~.types-union-finite-context src-539 `tok-539 `tre-539) (check-module-types ~.types-union-finite-context ~[%tests %golden ~.types-union-finite-context %source %jibb] src-539 `typ-539 ~ ~ ~))
 ++  test-types-union-finite-generic
-  (weld (check ~.types-union-finite-generic src-538 `tok-538 `tre-538) (check-module-types ~.types-union-finite-generic ~[%tests %golden ~.types-union-finite-generic %source %jibb] src-538 `typ-538 ~ ~ ~))
+  (weld (check ~.types-union-finite-generic src-540 `tok-540 `tre-540) (check-module-types ~.types-union-finite-generic ~[%tests %golden ~.types-union-finite-generic %source %jibb] src-540 `typ-540 ~ ~ ~))
 ++  test-types-union-finite-limit
-  (weld (check ~.types-union-finite-limit src-539 `tok-539 `tre-539) (check-module-types ~.types-union-finite-limit ~[%tests %golden ~.types-union-finite-limit %source %jibb] src-539 `typ-539 ~ ~ ~))
+  (weld (check ~.types-union-finite-limit src-541 `tok-541 `tre-541) (check-module-types ~.types-union-finite-limit ~[%tests %golden ~.types-union-finite-limit %source %jibb] src-541 `typ-541 ~ ~ ~))
 ++  test-types-union-import
-  (weld (weld (check ~.types-union-import src-540 `tok-540 `tre-540) (check-module-types ~.types-union-import ~[%tests %golden ~.types-union-import %source %jibb] src-540 `typ-540 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-540-1]])) (check-module-trees ~.types-union-import `mtre-540 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-540-1]]))
+  (weld (weld (check ~.types-union-import src-542 `tok-542 `tre-542) (check-module-types ~.types-union-import ~[%tests %golden ~.types-union-import %source %jibb] src-542 `typ-542 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-542-1]])) (check-module-trees ~.types-union-import `mtre-542 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-542-1]]))
 ++  test-types-union-local-pending
-  (weld (check ~.types-union-local-pending src-541 `tok-541 `tre-541) (check-types ~.types-union-local-pending ~[%tests %golden ~.types-union-local-pending %source %jibb] src-541 `typ-541))
+  (weld (check ~.types-union-local-pending src-543 `tok-543 `tre-543) (check-types ~.types-union-local-pending ~[%tests %golden ~.types-union-local-pending %source %jibb] src-543 `typ-543))
 ++  test-types-union-overlap
-  (weld (check ~.types-union-overlap src-542 `tok-542 `tre-542) (check-types ~.types-union-overlap ~[%tests %golden ~.types-union-overlap %source %jibb] src-542 `typ-542))
+  (weld (check ~.types-union-overlap src-544 `tok-544 `tre-544) (check-types ~.types-union-overlap ~[%tests %golden ~.types-union-overlap %source %jibb] src-544 `typ-544))
 ++  test-types-union-overlap-nested
-  (weld (check ~.types-union-overlap-nested src-543 `tok-543 `tre-543) (check-types ~.types-union-overlap-nested ~[%tests %golden ~.types-union-overlap-nested %source %jibb] src-543 `typ-543))
+  (weld (check ~.types-union-overlap-nested src-545 `tok-545 `tre-545) (check-types ~.types-union-overlap-nested ~[%tests %golden ~.types-union-overlap-nested %source %jibb] src-545 `typ-545))
 ++  test-types-union-pattern-result-context
-  (weld (check ~.types-union-pattern-result-context src-544 `tok-544 `tre-544) (check-module-types ~.types-union-pattern-result-context ~[%tests %golden ~.types-union-pattern-result-context %source %jibb] src-544 `typ-544 ~ ~ ~))
+  (weld (check ~.types-union-pattern-result-context src-546 `tok-546 `tre-546) (check-module-types ~.types-union-pattern-result-context ~[%tests %golden ~.types-union-pattern-result-context %source %jibb] src-546 `typ-546 ~ ~ ~))
 ++  test-types-union-pattern-result-controls
-  (weld (check ~.types-union-pattern-result-controls src-545 `tok-545 `tre-545) (check-module-types ~.types-union-pattern-result-controls ~[%tests %golden ~.types-union-pattern-result-controls %source %jibb] src-545 `typ-545 ~ ~ ~))
+  (weld (check ~.types-union-pattern-result-controls src-547 `tok-547 `tre-547) (check-module-types ~.types-union-pattern-result-controls ~[%tests %golden ~.types-union-pattern-result-controls %source %jibb] src-547 `typ-547 ~ ~ ~))
 ++  test-types-union-patterns
-  (weld (check ~.types-union-patterns src-546 `tok-546 `tre-546) (check-module-types ~.types-union-patterns ~[%tests %golden ~.types-union-patterns %source %jibb] src-546 `typ-546 ~ ~ ~))
+  (weld (check ~.types-union-patterns src-548 `tok-548 `tre-548) (check-module-types ~.types-union-patterns ~[%tests %golden ~.types-union-patterns %source %jibb] src-548 `typ-548 ~ ~ ~))
 ++  test-types-union-patterns-generic
-  (weld (check ~.types-union-patterns-generic src-547 `tok-547 `tre-547) (check-module-types ~.types-union-patterns-generic ~[%tests %golden ~.types-union-patterns-generic %source %jibb] src-547 `typ-547 ~ ~ ~))
+  (weld (check ~.types-union-patterns-generic src-549 `tok-549 `tre-549) (check-module-types ~.types-union-patterns-generic ~[%tests %golden ~.types-union-patterns-generic %source %jibb] src-549 `typ-549 ~ ~ ~))
 ++  test-types-union-patterns-import
-  (weld (weld (check ~.types-union-patterns-import src-548 `tok-548 `tre-548) (check-module-types ~.types-union-patterns-import ~[%tests %golden ~.types-union-patterns-import %source %jibb] src-548 `typ-548 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-548-1]])) (check-module-trees ~.types-union-patterns-import `mtre-548 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-548-1]]))
+  (weld (weld (check ~.types-union-patterns-import src-550 `tok-550 `tre-550) (check-module-types ~.types-union-patterns-import ~[%tests %golden ~.types-union-patterns-import %source %jibb] src-550 `typ-550 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-550-1]])) (check-module-trees ~.types-union-patterns-import `mtre-550 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-550-1]]))
 ++  test-types-union-phantom-generic
-  (weld (check ~.types-union-phantom-generic src-549 `tok-549 `tre-549) (check-types ~.types-union-phantom-generic ~[%tests %golden ~.types-union-phantom-generic %source %jibb] src-549 `typ-549))
+  (weld (check ~.types-union-phantom-generic src-551 `tok-551 `tre-551) (check-types ~.types-union-phantom-generic ~[%tests %golden ~.types-union-phantom-generic %source %jibb] src-551 `typ-551))
 ++  test-types-union-print-cross-namespace
-  (weld (weld (check ~.types-union-print-cross-namespace src-550 `tok-550 `tre-550) (check-module-types ~.types-union-print-cross-namespace ~[%tests %golden ~.types-union-print-cross-namespace %source %jibb] src-550 `typ-550 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-550-1]])) (check-module-trees ~.types-union-print-cross-namespace `mtre-550 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-550-1]]))
+  (weld (weld (check ~.types-union-print-cross-namespace src-552 `tok-552 `tre-552) (check-module-types ~.types-union-print-cross-namespace ~[%tests %golden ~.types-union-print-cross-namespace %source %jibb] src-552 `typ-552 ~ ~ ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-552-1]])) (check-module-trees ~.types-union-print-cross-namespace `mtre-552 ~[['/ui/lib.jibb' ~[~.ui ~.lib ~.jibb] mod-552-1]]))
 ++  test-types-union-print-distinct
-  (weld (weld (check ~.types-union-print-distinct src-551 `tok-551 `tre-551) (check-module-types ~.types-union-print-distinct ~[%tests %golden ~.types-union-print-distinct %source %jibb] src-551 `typ-551 ~ ~ ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-551-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-551-2] ['/ui/twin.jibb' ~[~.ui ~.twin ~.jibb] mod-551-3]])) (check-module-trees ~.types-union-print-distinct `mtre-551 ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-551-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-551-2] ['/ui/twin.jibb' ~[~.ui ~.twin ~.jibb] mod-551-3]]))
+  (weld (weld (check ~.types-union-print-distinct src-553 `tok-553 `tre-553) (check-module-types ~.types-union-print-distinct ~[%tests %golden ~.types-union-print-distinct %source %jibb] src-553 `typ-553 ~ ~ ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-553-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-553-2] ['/ui/twin.jibb' ~[~.ui ~.twin ~.jibb] mod-553-3]])) (check-module-trees ~.types-union-print-distinct `mtre-553 ~[['/ui/left.jibb' ~[~.ui ~.left ~.jibb] mod-553-1] ['/ui/right.jibb' ~[~.ui ~.right ~.jibb] mod-553-2] ['/ui/twin.jibb' ~[~.ui ~.twin ~.jibb] mod-553-3]]))
 ++  test-types-union-print-escape
-  (weld (check ~.types-union-print-escape src-552 `tok-552 `tre-552) (check-types ~.types-union-print-escape ~[%tests %golden ~.types-union-print-escape %source %jibb] src-552 `typ-552))
+  (weld (check ~.types-union-print-escape src-554 `tok-554 `tre-554) (check-types ~.types-union-print-escape ~[%tests %golden ~.types-union-print-escape %source %jibb] src-554 `typ-554))
 ++  test-types-union-print-local
-  (weld (check ~.types-union-print-local src-553 `tok-553 `tre-553) (check-types ~.types-union-print-local ~[%tests %golden ~.types-union-print-local %source %jibb] src-553 `typ-553))
+  (weld (check ~.types-union-print-local src-555 `tok-555 `tre-555) (check-types ~.types-union-print-local ~[%tests %golden ~.types-union-print-local %source %jibb] src-555 `typ-555))
 ++  test-types-union-print-nested
-  (weld (check ~.types-union-print-nested src-554 `tok-554 `tre-554) (check-types ~.types-union-print-nested ~[%tests %golden ~.types-union-print-nested %source %jibb] src-554 `typ-554))
+  (weld (check ~.types-union-print-nested src-556 `tok-556 `tre-556) (check-types ~.types-union-print-nested ~[%tests %golden ~.types-union-print-nested %source %jibb] src-556 `typ-556))
 ++  test-types-union-print-same-origin
-  (weld (weld (check ~.types-union-print-same-origin src-555 `tok-555 `tre-555) (check-module-types ~.types-union-print-same-origin ~[%tests %golden ~.types-union-print-same-origin %source %jibb] src-555 `typ-555 ~ ~ ~[['/ui/shared.jibb' ~[~.ui ~.shared ~.jibb] mod-555-1]])) (check-module-trees ~.types-union-print-same-origin `mtre-555 ~[['/ui/shared.jibb' ~[~.ui ~.shared ~.jibb] mod-555-1]]))
+  (weld (weld (check ~.types-union-print-same-origin src-557 `tok-557 `tre-557) (check-module-types ~.types-union-print-same-origin ~[%tests %golden ~.types-union-print-same-origin %source %jibb] src-557 `typ-557 ~ ~ ~[['/ui/shared.jibb' ~[~.ui ~.shared ~.jibb] mod-557-1]])) (check-module-trees ~.types-union-print-same-origin `mtre-557 ~[['/ui/shared.jibb' ~[~.ui ~.shared ~.jibb] mod-557-1]]))
 ++  test-types-union-print-transitive
-  (weld (weld (check ~.types-union-print-transitive src-556 `tok-556 `tre-556) (check-module-types ~.types-union-print-transitive ~[%tests %golden ~.types-union-print-transitive %source %jibb] src-556 `typ-556 ~ ~ ~[['/ui/mid.jibb' ~[~.ui ~.mid ~.jibb] mod-556-1] ['/ui/base.jibb' ~[~.ui ~.base ~.jibb] mod-556-2]])) (check-module-trees ~.types-union-print-transitive `mtre-556 ~[['/ui/mid.jibb' ~[~.ui ~.mid ~.jibb] mod-556-1] ['/ui/base.jibb' ~[~.ui ~.base ~.jibb] mod-556-2]]))
+  (weld (weld (check ~.types-union-print-transitive src-558 `tok-558 `tre-558) (check-module-types ~.types-union-print-transitive ~[%tests %golden ~.types-union-print-transitive %source %jibb] src-558 `typ-558 ~ ~ ~[['/ui/mid.jibb' ~[~.ui ~.mid ~.jibb] mod-558-1] ['/ui/base.jibb' ~[~.ui ~.base ~.jibb] mod-558-2]])) (check-module-trees ~.types-union-print-transitive `mtre-558 ~[['/ui/mid.jibb' ~[~.ui ~.mid ~.jibb] mod-558-1] ['/ui/base.jibb' ~[~.ui ~.base ~.jibb] mod-558-2]]))
 ++  test-types-union-singleton
-  (weld (check ~.types-union-singleton src-557 `tok-557 `tre-557) (check-types ~.types-union-singleton ~[%tests %golden ~.types-union-singleton %source %jibb] src-557 `typ-557))
+  (weld (check ~.types-union-singleton src-559 `tok-559 `tre-559) (check-types ~.types-union-singleton ~[%tests %golden ~.types-union-singleton %source %jibb] src-559 `typ-559))
 ++  test-types-union-tag-atoms
-  (weld (check ~.types-union-tag-atoms src-558 `tok-558 `tre-558) (check-types ~.types-union-tag-atoms ~[%tests %golden ~.types-union-tag-atoms %source %jibb] src-558 `typ-558))
+  (weld (check ~.types-union-tag-atoms src-560 `tok-560 `tre-560) (check-types ~.types-union-tag-atoms ~[%tests %golden ~.types-union-tag-atoms %source %jibb] src-560 `typ-560))
 ++  test-types-union-tags
-  (weld (check ~.types-union-tags src-559 `tok-559 `tre-559) (check-types ~.types-union-tags ~[%tests %golden ~.types-union-tags %source %jibb] src-559 `typ-559))
+  (weld (check ~.types-union-tags src-561 `tok-561 `tre-561) (check-types ~.types-union-tags ~[%tests %golden ~.types-union-tags %source %jibb] src-561 `typ-561))
 ++  test-types-union-unresolved
-  (weld (check ~.types-union-unresolved src-560 `tok-560 `tre-560) (check-types ~.types-union-unresolved ~[%tests %golden ~.types-union-unresolved %source %jibb] src-560 `typ-560))
+  (weld (check ~.types-union-unresolved src-562 `tok-562 `tre-562) (check-types ~.types-union-unresolved ~[%tests %golden ~.types-union-unresolved %source %jibb] src-562 `typ-562))
 ++  test-types-union-unresolved-flow
-  (weld (check ~.types-union-unresolved-flow src-561 `tok-561 `tre-561) (check-types ~.types-union-unresolved-flow ~[%tests %golden ~.types-union-unresolved-flow %source %jibb] src-561 `typ-561))
+  (weld (check ~.types-union-unresolved-flow src-563 `tok-563 `tre-563) (check-types ~.types-union-unresolved-flow ~[%tests %golden ~.types-union-unresolved-flow %source %jibb] src-563 `typ-563))
 ++  test-types-unit-construction
-  (weld (check ~.types-unit-construction src-562 `tok-562 `tre-562) (check-module-types ~.types-unit-construction ~[%tests %golden ~.types-unit-construction %source %jibb] src-562 `typ-562 ~ ~ ~))
+  (weld (check ~.types-unit-construction src-564 `tok-564 `tre-564) (check-module-types ~.types-unit-construction ~[%tests %golden ~.types-unit-construction %source %jibb] src-564 `typ-564 ~ ~ ~))
 ++  test-types-unit-context
-  (weld (check ~.types-unit-context src-563 `tok-563 `tre-563) (check-module-types ~.types-unit-context ~[%tests %golden ~.types-unit-context %source %jibb] src-563 `typ-563 ~ ~ ~))
+  (weld (check ~.types-unit-context src-565 `tok-565 `tre-565) (check-module-types ~.types-unit-context ~[%tests %golden ~.types-unit-context %source %jibb] src-565 `typ-565 ~ ~ ~))
 ++  test-types-unit-patterns
-  (weld (check ~.types-unit-patterns src-564 `tok-564 `tre-564) (check-types ~.types-unit-patterns ~[%tests %golden ~.types-unit-patterns %source %jibb] src-564 `typ-564))
+  (weld (check ~.types-unit-patterns src-566 `tok-566 `tre-566) (check-types ~.types-unit-patterns ~[%tests %golden ~.types-unit-patterns %source %jibb] src-566 `typ-566))
 ++  test-types-value-cycle-shadow
-  (weld (check ~.types-value-cycle-shadow src-565 `tok-565 `tre-565) (check-module-types ~.types-value-cycle-shadow ~[%tests %golden ~.types-value-cycle-shadow %source %jibb] src-565 `typ-565 ~ ~ ~))
+  (weld (check ~.types-value-cycle-shadow src-567 `tok-567 `tre-567) (check-module-types ~.types-value-cycle-shadow ~[%tests %golden ~.types-value-cycle-shadow %source %jibb] src-567 `typ-567 ~ ~ ~))
 ++  test-types-value-cycle-unsupported
-  (weld (check ~.types-value-cycle-unsupported src-566 `tok-566 `tre-566) (check-module-types ~.types-value-cycle-unsupported ~[%tests %golden ~.types-value-cycle-unsupported %source %jibb] src-566 `typ-566 ~ ~ ~))
+  (weld (check ~.types-value-cycle-unsupported src-568 `tok-568 `tre-568) (check-module-types ~.types-value-cycle-unsupported ~[%tests %golden ~.types-value-cycle-unsupported %source %jibb] src-568 `typ-568 ~ ~ ~))
 ++  test-types-value-cycles
-  (weld (check ~.types-value-cycles src-567 `tok-567 `tre-567) (check-module-types ~.types-value-cycles ~[%tests %golden ~.types-value-cycles %source %jibb] src-567 `typ-567 ~ ~ ~))
+  (weld (check ~.types-value-cycles src-569 `tok-569 `tre-569) (check-module-types ~.types-value-cycles ~[%tests %golden ~.types-value-cycles %source %jibb] src-569 `typ-569 ~ ~ ~))
 ::
 ::  +check: run golden:jibb on a case and compare both outputs
 ::

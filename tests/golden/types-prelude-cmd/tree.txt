@@ -1,0 +1,122 @@
+(module
+  (value 1:1 identity
+    (gate 1:13
+      (face 1:16 x
+        (apply 1:18 cmd (aura 1:23 @t)))
+      (wing 1:27 x)))
+  (value 2:1 generic
+    (gate 2:12
+      (face 2:15 x
+        (apply 2:17 cmd (tvar 2:22 A)))
+      (wing 2:25 x)))
+  (value 3:1 nav
+    (cast 3:8
+      (apply 3:11 cmd (aura 3:16 @t))
+      (tuple 3:20
+        (lit 3:21 %go)
+        (face 3:25 url (str 3:29 "/home")))))
+  (value 4:1 time
+    (cast 4:9
+      (apply 4:12 cmd (aura 4:17 @t))
+      (tuple 4:21
+        (lit 4:22 %now)
+        (face 4:27 reply
+          (gate-wide 4:33
+            (face 4:36 d (aura 4:38 @da))
+            (str 4:42 "done"))))))
+  (value 5:1 bad
+    (cast 5:8
+      (apply 5:11 cmd (aura 5:16 @t))
+      (tuple 5:20
+        (lit 5:21 %go)
+        (face 5:25 url (lit 5:29 ~zod)))))
+  (value 6:1 send
+    (gate 6:9
+      (face 6:12 p (ref 6:14 poke))
+      (body 7:3
+        (cast 7:3
+          (apply 7:6 cmd (aura 7:11 @t))
+          (tuple 7:15
+            (lit 7:16 %poke)
+            (wing 7:22 p)
+            (gate-wide 7:24
+              (face 7:27 r
+                (apply 7:29 unit (aura 7:35 @t)))
+              (str 7:39 "done")))))))
+  (value 8:1 wait
+    (cast 8:9
+      (apply 8:12 cmd (aura 8:17 @t))
+      (tuple 8:21 (lit 8:22 %wait) (lit 8:28 ~s30) (str 8:33 "done"))))
+  (value 9:1 who
+    (cast 9:8
+      (apply 9:11 cmd (aura 9:16 @t))
+      (tuple 9:20
+        (lit 9:21 %who)
+        (gate-wide 9:26
+          (face 9:29 p (aura 9:31 @p))
+          (str 9:34 "done")))))
+  (value 10:1 wrong-message
+    (cast 10:18
+      (apply 10:21 cmd (aura 10:26 @t))
+      (tuple 10:30 (lit 10:31 %wait) (lit 10:37 ~s30) (lit 10:42 ~zod))))
+  (value 11:1 wrap
+    (gate 11:9
+      (face 11:12 x (tvar 11:14 A))
+      (cast 11:16
+        (apply 11:19 cmd (tvar 11:24 A))
+        (tuple 11:27 (lit 11:28 %wait) (lit 11:34 ~s30) (wing 11:39 x)))))
+  (value 12:1 wrap-text
+    (group 12:14
+      (call 12:15 (wing 12:15 wrap) (str 12:20 "hello"))))
+  (value 13:1 wrap-ship
+    (group 13:14
+      (call 13:15 (wing 13:15 wrap) (lit 13:20 ~zod))))
+  (value 14:1 wrong-reply
+    (cast 14:16
+      (apply 14:19 cmd (aura 14:24 @t))
+      (tuple 14:28
+        (lit 14:29 %who)
+        (gate-wide 14:34
+          (face 14:37 p (aura 14:39 @p))
+          (lit 14:42 ~zod)))))
+  (value 15:1 commands
+    (cast 15:13
+      (apply 15:16 list
+        (apply 15:22 cmd (aura 15:27 @t)))
+      (list 15:32
+        (tuple 15:34 (lit 15:35 %go) (str 15:39 "/home"))
+        (tuple 15:48 (lit 15:49 %wait) (lit 15:55 ~s30) (str 15:60 "done")))))
+  (value 16:1 commands-bad
+    (cast 16:17
+      (apply 16:20 list
+        (apply 16:26 cmd (aura 16:31 @t)))
+      (list 16:36
+        (tuple 16:38 (lit 16:39 %go) (str 16:43 "/home"))
+        (tuple 16:52 (lit 16:53 %wait) (lit 16:59 ~s30) (lit 16:64 ~zod)))))
+  (value 17:1 wrong-poke
+    (gate 17:15
+      (face 17:18 p (ref 17:20 poke))
+      (body 18:3
+        (cast 18:3
+          (apply 18:6 cmd (aura 18:11 @t))
+          (tuple 18:15
+            (lit 18:16 %poke)
+            (wing 18:22 p)
+            (gate-wide 18:24
+              (face 18:27 r (aura 18:29 @p))
+              (str 18:32 "done")))))))
+  (value 19:1 wrong-case
+    (cast 19:15
+      (apply 19:18 cmd (aura 19:23 @t))
+      (lit 19:27 %oops)))
+  (value 20:1 use-text
+    (gate 20:13
+      (face 20:16 x
+        (apply 20:18 cmd (aura 20:23 @t)))
+      (wing 20:27 x)))
+  (value 21:1 cross
+    (group 21:10
+      (call 21:11
+        (wing 21:11 use-text)
+        (group 21:20
+          (call 21:21 (wing 21:21 wrap) (lit 21:26 ~zod)))))))

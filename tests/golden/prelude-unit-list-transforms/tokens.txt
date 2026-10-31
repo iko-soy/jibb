@@ -1979,6 +1979,67 @@
 308:21 name a
 308:23 name b
 308:24 tight glyph )
-308:25 DEDENT
-308:25 DEDENT
-308:25 NEWLINE
+310:1 DEDENT
+310:1 DEDENT
+310:1 NEWLINE
+310:1 glyph +$
+310:4 name cmd
+310:8 glyph |$
+310:11 glyph [
+310:12 tight tvar M
+310:13 tight glyph ]
+311:3 INDENT
+311:3 glyph [
+311:4 tight lit %poke
+311:10 name p
+311:11 tight glyph =
+311:12 tight name poke
+311:17 name reply
+311:22 tight glyph =
+311:23 tight glyph $-(
+311:26 tight glyph (
+311:27 tight name unit
+311:32 aura @t
+311:34 tight glyph )
+311:36 tvar M
+311:37 tight glyph )
+311:38 tight glyph ]
+312:3 NEWLINE
+312:3 glyph [
+312:4 tight lit %go
+312:8 name url
+312:11 tight glyph =
+312:12 tight aura @t
+312:14 tight glyph ]
+313:3 NEWLINE
+313:3 glyph [
+313:4 tight lit %wait
+313:10 name gap
+313:13 tight glyph =
+313:14 tight aura @dr
+313:18 name msg
+313:21 tight glyph =
+313:22 tight tvar M
+313:23 tight glyph ]
+314:3 NEWLINE
+314:3 glyph [
+314:4 tight lit %now
+314:9 name reply
+314:14 tight glyph =
+314:15 tight glyph $-(
+314:18 tight aura @da
+314:22 tvar M
+314:23 tight glyph )
+314:24 tight glyph ]
+315:3 NEWLINE
+315:3 glyph [
+315:4 tight lit %who
+315:9 name reply
+315:14 tight glyph =
+315:15 tight glyph $-(
+315:18 tight aura @p
+315:21 tvar M
+315:22 tight glyph )
+315:23 tight glyph ]
+315:24 DEDENT
+315:24 NEWLINE

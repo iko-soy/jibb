@@ -9,6 +9,6 @@ partial inference; module not checked
 ++ atom: cell pattern does not match the subject type
 ++ too-many: cell pattern does not match the subject type
 ++ record: record patterns are not supported by partial inference
-++ nested: branch pattern is not supported by partial inference
-++ wildcard: branch pattern is not supported by partial inference
+++ nested: $-([@t [[@p ?] @ux]] @ux)
+++ wildcard: $-([@t [@p ?]] ?)
 ++ pending: tag needs context in partial inference

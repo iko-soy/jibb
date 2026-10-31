@@ -861,4 +861,29 @@
             (gate 308:11
               (face 308:14 a (tvar 308:16 A))
               (group 308:18
-                (call 308:19 (wing 308:19 f) (wing 308:21 a) (wing 308:23 b))))))))))
+                (call 308:19 (wing 308:19 f) (wing 308:21 a) (wing 308:23 b)))))))))
+  (mold 310:1 cmd
+    (generic 310:8 M
+      (union 311:3
+        (cell 311:3
+          (const 311:4 %poke)
+          (face 311:10 p (ref 311:12 poke))
+          (face 311:17 reply
+            (fn 311:23
+              (apply 311:26 unit (aura 311:32 @t))
+              (tvar 311:36 M))))
+        (cell 312:3
+          (const 312:4 %go)
+          (face 312:8 url (aura 312:12 @t)))
+        (cell 313:3
+          (const 313:4 %wait)
+          (face 313:10 gap (aura 313:14 @dr))
+          (face 313:18 msg (tvar 313:22 M)))
+        (cell 314:3
+          (const 314:4 %now)
+          (face 314:9 reply
+            (fn 314:15 (aura 314:18 @da) (tvar 314:22 M))))
+        (cell 315:3
+          (const 315:4 %who)
+          (face 315:9 reply
+            (fn 315:15 (aura 315:18 @p) (tvar 315:21 M))))))))

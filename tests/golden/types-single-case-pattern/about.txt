@@ -1,0 +1,4 @@
+source: Grammar, pattern matching: a known single-case mold can be matched by an exhaustive single pattern, with binders scoped to the arm.
+tests: Literal-headed and catch-all patterns, union and list result contexts, bad payloads, shadowed or duplicate binders, incomplete patterns, unknown subjects, pending literals and explicit capitals. Unproven cases remain unsupported. The module report remains partial.
+expect: parses
+expect-types: a partial inference report
