@@ -94,6 +94,16 @@ partial inference; module not checked
 ++ zero-flag-duplicate: sample mold is not supported by partial inference
 ++ zero-lookalike: $-(([~ @t] ~) ([~ @t] ~))
 ++ zero-lookalike-value: unit construction needs the standard prelude in partial inference
+++ flag-forward: $-(? ?)
+++ flag-reverse: $-(? ?)
+++ flag-open: sample mold is not supported by partial inference
+++ flag-invalid: sample mold is not supported by partial inference
+++ flag-duplicate: sample mold is not supported by partial inference
+++ flag-null-overlap: sample mold is not supported by partial inference
+++ flag-term-overlap: sample mold is not supported by partial inference
+++ flag-extra: sample mold is not supported by partial inference
+++ flag-faced: sample mold is not supported by partial inference
+++ flag-malformed: sample mold is not supported by partial inference
 reader-collapsed: error: Hoon union disjointness could not be verified
 partial inference; module not checked
 ++ use: recursive mold name is not available in this scope

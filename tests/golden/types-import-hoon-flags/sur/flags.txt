@@ -1,0 +1,7 @@
+|%
++$  flag  ?
++$  yes   %.y
++$  no    %.n
++$  record  [on=? yes=%.y no=%.n]
++$  either  $?(%.y [%x @t])
+--

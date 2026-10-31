@@ -64,3 +64,15 @@
 ++ zero-flag-duplicate |= x=zero-flag-overlap.fixture x
 ++ zero-lookalike |= x=zero-lookalike.fixture x
 ++ zero-lookalike-value ^- zero-lookalike.fixture `"hi"
+
+::  Hoon flags use exactly the zero/one %f singleton fork.
+++ flag-forward |= x=flag-forward.fixture x
+++ flag-reverse |= x=flag-reverse.fixture x
+++ flag-open |= x=flag-open.fixture x
+++ flag-invalid |= x=flag-invalid.fixture x
+++ flag-duplicate |= x=flag-duplicate.fixture x
+++ flag-null-overlap |= x=flag-null-overlap.fixture x
+++ flag-term-overlap |= x=flag-term-overlap.fixture x
+++ flag-extra |= x=flag-extra.fixture x
+++ flag-faced |= x=flag-faced.fixture x
+++ flag-malformed |= x=flag-malformed.fixture x

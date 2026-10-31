@@ -5604,6 +5604,12 @@
   ?@  node  ~
   ?+  -.node  ~
     %atom
+      ::  A Hoon loobean singleton is one of the two Jibb loobeans.
+      ?:  ?=([%atom %f [~ @]] node)
+        =/  value=@  +>+.node
+        ?.  |(=(value 0) =(value 1))  ~
+        =/  printed=@t  ?:(=(value 0) '%.y' '%.n')
+        `[%const [%loobean %f value printed]]
       ::  Hoon's null singleton is the same noun as Jibb's `~` mold.
       ::  Other non-term singleton atoms remain unsupported here.
       ?:  ?=([%atom %n [~ @]] node)
@@ -5631,10 +5637,15 @@
       ?.  =(arity (lent u.args))  ~
       `[%collection name u.args]
     %fork
-      =/  cases=(unit (list itype))  (import-to-itypes +.node)
+      ::  Hoon's ordinary ? mold is the fork of its two %f singletons.
+      =/  raw=*  +.node
+      ?:  |(=(raw ~[[%atom %f `0] [%atom %f `1]]) =(raw ~[[%atom %f `1] [%atom %f `0]]))
+        `[%flag ~]
+      =/  cases=(unit (list itype))  (import-to-itypes raw)
       ?~  cases  ~
       ?~  u.cases  ~
       ?~  t.u.cases  ~
+      ?:  (import-has-loobean-singleton u.cases)  ~
       ?.  (import-cases-disjoint u.cases)  ~
       `[%union u.cases ~ ~ ~]
     %face
@@ -5653,6 +5664,20 @@
       `[%cell u.left u.right]
   ==
 ::
+++  import-direct-loobean
+  |=  t=itype
+  ^-  ?
+  ?:  ?=(%face -.t)  $(t body.t)
+  ?:  ?=(%union -.t)  (import-has-loobean-singleton cases.t)
+  ?=([%const [%loobean *]] t)
+::
+++  import-has-loobean-singleton
+  |=  cases=(list itype)
+  ^-  ?
+  ?~  cases  |
+  ?:  (import-direct-loobean i.cases)  &
+  $(cases t.cases)
+::
 ++  import-to-itypes
   |=  nodes=*
   ^-  (unit (list itype))
@@ -5668,6 +5693,7 @@
   ^-  upat
   ?-  -.typ
     %atom   [%atom ~]
+    %flag   [%or ~[[%atom `0] [%atom `1]]]
     %const  [%atom `val.literal.typ]
     %face   $(typ body.typ)
     %cell   [%cell $(typ hed.typ) $(typ tal.typ)]
@@ -7490,6 +7516,15 @@
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ::  In a loobean-singleton context retain the written loobean noun;
+  ::  the usual final fit decides whether that value is permitted.
+  =/  singleton=(unit itype)
+    ?.  ?=(%lit -.e)  ~
+    ?.  =(%loobean form.lit.e)  ~
+    ?.  ?=(%const -.target)  ~
+    ?.  =(%loobean form.literal.target)  ~
+    `[%const lit.e]
+  ?^  singleton  [%& u.singleton state]
   =/  known=(unit itype)
     ?:  ?=(%branch -.e)  (known-union-subject subject.e env state)
     ~

@@ -1,0 +1,4 @@
+source: Grammar, Literals: loobeans `%.y`, `%.n` have type `?`; Patterns: `?-` is exhaustive. Overview, Importing Hoon types: `/-` translates each mold a module uses.
+tests: A real compiled `/sur` provides `?`, its two singleton values and nested faced fields. The partial checker matches the imported flag exhaustively, accepts each matching singleton and reports incompatible singleton casts; nested field types remain available.
+expect: parses
+expect-types: a partial inference report

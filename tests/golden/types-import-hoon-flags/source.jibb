@@ -1,0 +1,14 @@
+/- flags
+++ flag |= b=flag.flags ?- b
+  %.y "yes"
+  %.n "no"
+++ yes |= x=yes.flags x
+++ no |= x=no.flags x
+++ nested |= x=record.flags x
+++ use-yes ^- yes.flags %.y
+++ bad-yes ^- yes.flags %.n
+++ use-no ^- no.flags %.n
+++ bad-no ^- no.flags %.y
+++ read-flag |= x=record.flags on.x
+++ read-yes |= x=record.flags yes.x
+++ read-no |= x=record.flags no.x

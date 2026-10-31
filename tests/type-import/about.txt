@@ -7,7 +7,10 @@ fixed atoms, term singletons including Hoon `%$`, nested faced records,
 unnamed unions and opaque standard collections. A nonrecursive `$@` with a
 null singleton supports null and record values, including within another
 record. Forged nonzero `%n` atoms and overlapping null/term or null/flag cases
-stay unsupported. A structurally unit-like import does not gain unit
+stay unsupported. A Hoon boolean's exact two-singleton `%f` fork imports
+as `?`, including in either supplied order. Open `%f`, out-of-range values,
+duplicates, overlapping zero constants, extra or faced cases and malformed
+forks stay unsupported. A structurally unit-like import does not gain unit
 construction even when a canonical prelude unit is supplied; constructing
 that canonical unit succeeds. It covers matching and
 mismatched collections, nested union arguments, and malformed collection names

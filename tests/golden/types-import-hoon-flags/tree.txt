@@ -1,0 +1,41 @@
+(module
+  (sur 1:1 flags)
+  (value 2:1 flag
+    (gate 2:9
+      (face 2:12 b (ref 2:14 flag.flags))
+      (branch 2:25
+        (wing 2:28 b)
+        (arm 3:3 (lit 3:3 %.y) (str 3:7 "yes"))
+        (arm 4:3 (lit 4:3 %.n) (str 4:7 "no")))))
+  (value 5:1 yes
+    (gate 5:8
+      (face 5:11 x (ref 5:13 yes.flags))
+      (wing 5:23 x)))
+  (value 6:1 no
+    (gate 6:7
+      (face 6:10 x (ref 6:12 no.flags))
+      (wing 6:21 x)))
+  (value 7:1 nested
+    (gate 7:11
+      (face 7:14 x (ref 7:16 record.flags))
+      (wing 7:29 x)))
+  (value 8:1 use-yes
+    (cast 8:12 (ref 8:15 yes.flags) (lit 8:25 %.y)))
+  (value 9:1 bad-yes
+    (cast 9:12 (ref 9:15 yes.flags) (lit 9:25 %.n)))
+  (value 10:1 use-no
+    (cast 10:11 (ref 10:14 no.flags) (lit 10:23 %.n)))
+  (value 11:1 bad-no
+    (cast 11:11 (ref 11:14 no.flags) (lit 11:23 %.y)))
+  (value 12:1 read-flag
+    (gate 12:14
+      (face 12:17 x (ref 12:19 record.flags))
+      (wing 12:32 on.x)))
+  (value 13:1 read-yes
+    (gate 13:13
+      (face 13:16 x (ref 13:18 record.flags))
+      (wing 13:31 yes.x)))
+  (value 14:1 read-no
+    (gate 14:12
+      (face 14:15 x (ref 14:17 record.flags))
+      (wing 14:30 no.x))))

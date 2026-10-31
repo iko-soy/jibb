@@ -1,0 +1,24 @@
+partial inference; module not checked
+++ flag: $-(? @t)
+++ yes: $-(%.y %.y)
+++ no: $-(%.n %.n)
+++ nested: $-([on=? [yes=%.y no=%.n]] [on=? [yes=%.y no=%.n]])
+++ use-yes: %.y
+++ bad-yes: cast mold and expression type do not unify
+/tests/golden/types-import-hoon-flags/source.jibb:9:15: cast mold has type %.y
+++ bad-yes ^- yes.flags %.n
+              ^
+/tests/golden/types-import-hoon-flags/source.jibb:9:25: expression has type %.n
+++ bad-yes ^- yes.flags %.n
+                        ^
+++ use-no: %.n
+++ bad-no: cast mold and expression type do not unify
+/tests/golden/types-import-hoon-flags/source.jibb:11:14: cast mold has type %.n
+++ bad-no ^- no.flags %.y
+             ^
+/tests/golden/types-import-hoon-flags/source.jibb:11:23: expression has type %.y
+++ bad-no ^- no.flags %.y
+                      ^
+++ read-flag: $-([on=? [yes=%.y no=%.n]] ?)
+++ read-yes: $-([on=? [yes=%.y no=%.n]] %.y)
+++ read-no: $-([on=? [yes=%.y no=%.n]] %.n)

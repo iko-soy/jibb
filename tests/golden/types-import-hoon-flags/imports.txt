@@ -1,0 +1,4 @@
+flags flag
+flags yes
+flags no
+flags record
