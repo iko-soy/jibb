@@ -373,6 +373,75 @@ def results(stdout):
     return out
 
 
+def deletion_checks():
+    # Model a full golden desk being replaced by the much smaller stub desk.
+    paths = ['/tests/golden/case-%04d/source/jibb' % i for i in range(3000)]
+    paths += ['/tests/golden/%s-%04d/tree/txt' % ('a' * 200, i)
+              for i in range(400)]
+    batches = ship.delete_batches('jibb-dev', paths, 60)
+    requests = [ship.fill(ship.CHANGE_WAIT, ACT=act, MOTE='info',
+                          DESK='jibb-dev', SECS=ship.hoon_ud(60))
+                for _batch, act in batches]
+    check('large deletion requests are bounded and preserve every path in order',
+          len(batches) > 1 and
+          [path for batch, _act in batches for path in batch] == paths and
+          all(ship.click_argument_bytes(req) <= ship.DELETE_REQUEST_BYTES
+              for req in requests) and
+          all(act == ship.delete_action('jibb-dev', batch)
+              for batch, act in batches))
+
+    # click -i adds an escape before every quote and two spaces per newline.
+    check('click argument sizing includes quote and newline escaping',
+          ship.click_argument_bytes("a'b\nc") == len(b"a\\'b  c") + 1)
+
+    original = ship.change_and_wait
+    calls = []
+    try:
+        def fake_change(_ship, desk, act, mote, what, timeout):
+            calls.append((desk, act, mote, what, timeout))
+            return len(calls)
+        ship.change_and_wait = fake_change
+        rev = ship.delete_and_wait(None, 'jibb-dev', paths, 60)
+        check('deletion waits for each batch and returns the last revision',
+              len(calls) == len(batches) and rev == len(batches) and
+              [call[1] for call in calls] == [act for _batch, act in batches])
+
+        calls.clear()
+        rev = ship.delete_and_wait(None, 'jibb-dev', [], 60)
+        check('empty deletion retains its original single-call behavior',
+              rev == 1 and len(calls) == 1 and
+              calls[0][1] == ship.delete_action('jibb-dev', []))
+
+        calls.clear()
+        def fail_second(*args):
+            calls.append(args)
+            if len(calls) == 2:
+                raise ship.Fail('Clay rejected the batch')
+            return 1
+        ship.change_and_wait = fail_second
+        try:
+            ship.delete_and_wait(None, 'jibb-dev', paths, 60)
+        except ship.Fail:
+            stopped = len(calls) == 2
+        else:
+            stopped = False
+        check('a failed deletion stops subsequent batches', stopped)
+
+        calls.clear()
+        ship.change_and_wait = fake_change
+        try:
+            ship.delete_and_wait(None, 'jibb-dev',
+                                 paths[:1024] + ['/tests/' + 'x' * 70000 + '/txt'],
+                                 60)
+        except ship.Unable:
+            rejected = not calls
+        else:
+            rejected = False
+        check('an oversized path is rejected before any deletion', rejected)
+    finally:
+        ship.change_and_wait = original
+
+
 def ship_checks(tmp, many):
     names = sorted(n for n in os.listdir(CASES)
                    if os.path.isfile(os.path.join(CASES, n, 'source.jibb')))
@@ -453,6 +522,7 @@ def main():
     tmp = tempfile.mkdtemp(prefix='ship-selftest-')
     try:
         generator_checks(tmp)
+        deletion_checks()
         if not args.no_ship:
             if not ship.Ship(ship.PIER, None, ship.CLICK).running():
                 check('the fake ship is running (tools/ship start)', False)

@@ -1,0 +1,56 @@
++$ msg
+  %good
+  %other
+++ local-id |= x x
+++ empty-list ^- (list @t) (local-id ~)
+++ filled-list ^- (list @t) (local-id ~["hi"])
+++ wrong-list ^- (list @t) (local-id ~[~zod])
+++ unit-value ^- (unit msg) (local-id `%good)
+++ union-value ^- msg (local-id %good)
+++ union-bad ^- msg (local-id %wrong)
+++ nested ^- (list (unit msg)) (local-id ~[`%good])
+++ rec-value ^- [field=(list @t)] (local-id [field=~])
+++ already |= x=@ud ^- @u (local-id x)
+++ bad-aura |= x=@p ^- @t (local-id x)
+++ capital |= x=A ^- A (local-id "text")
+++ trace-tag ^- (list @t)
+  ~& %dangling
+    (local-id ~)
+++ trace-null ^- (list @t)
+  ~& ~
+    (local-id ~)
+++ unresolved (local-id %dangling)
+++ no-context (local-id ~)
+++ local-keep |= [a=A b=A] a
+++ repeated-good ^- @t (local-keep "hi" "bye")
+++ repeated-bad ^- @t (local-keep "hi" ~zod)
+++ rec-good ^- [field=(list @t) flag=?] (local-id [field=~ flag=%.y])
+++ rec-bad ^- [field=(list @t) flag=?] (local-id [field=~[~zod] flag=%.y])
+++ wrap-identity |= x=A ^- A (local-id x)
+++ wrap-forced |= x=A ^- @t (local-id x)
+++ retain |= x=@t (local-id x)
+++ result-later |= x ^- (list @t) (local-id x)
+++ result-repeated ^- (list @t) (local-keep ~ ~)
+++ result-repeated-bad ^- (list @t) (local-keep ~ ~[~zod])
+++ recursive |= [flag=? value]
+  ^- (list @t)
+    ?- flag
+      %.y (local-id value)
+      %.n (recursive flag value)
+++ captured |= sample
+  ++ local |= ignored sample
+  ^- (list @t) (local ~zod)
+++ captured-bad |= sample
+  ++ local |= ignored sample
+  ~& ^- @t sample
+    ^- @p (local ~zod)
++$ choice |$ [A]
+  [%one value=A]
+  %none
+++ param-list |= x=(list A) ^- (list A) (local-id ~)
+++ param-list-text (param-list ~["hi"])
+++ param-list-ship (param-list ~[~zod])
+++ param-union |= x=A ^- (choice A) (local-id [%one x])
+++ param-union-text (param-union "hi")
+++ param-union-ship (param-union ~zod)
+++ nested-tag-unknown (local-id [%one %dangling])

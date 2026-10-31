@@ -7474,51 +7474,59 @@
       [%& [%fn typ.p.sam typ.p.body] state.p.body]
     %call
       ?~  args.e  [%| ["call has no argument" ~]]
-      =/  head=iresult  $(e head.e)
-      ?:  ?=(%| -.head)  head
-      =/  head-type=itype  (itype-walk typ.p.head sub.state.p.head)
-      =/  arg=iresult
-        ?^  t.args.e
-          ?:  ?=(%fn -.head-type)
-            (infer-call-context-args args.e sample.head-type env state.p.head (span-of head.e))
-          (infer-simple-items (turn args.e |=(a=expr [(span-of a) ~ a])) env state.p.head)
-        ?:  ?=(%fn -.head-type)
-          (infer-call-context-arg i.args.e sample.head-type env state.p.head (span-of head.e))
-        $(e i.args.e, state state.p.head)
-      ?:  ?=(%| -.arg)  arg
-      =/  st=istate  state.p.arg
-      =/  ht=itype  (itype-walk typ.p.head sub.st)
-      ?:  ?=(%fn -.ht)
-        =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st next.st)
-        ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
-        ?:  ?=(%bad -.fit)
-          ?~  t.args.e
-            =/  missing=(unit idiag)  (missing-union-tag i.args.e sample.ht sub.st (span-of head.e))
-            ?^  missing  [%| u.missing]
-            =/  nested=(unit idiag)  (nested-missing-tag i.args.e typ.p.arg sample.ht sub.st next.st (span-of head.e))
-            ?^  nested  [%| u.nested]
-            [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
-          =/  bad=(unit [at=span typ=itype])
-            (call-error-site args.e typ.p.arg sample.ht sub.st next.st)
-          =/  whole-args=span
-            [beg:(span-of i.args.e) end:(span-of (rear args.e))]
-          =/  arg-at=span  ?~(bad whole-args at.u.bad)
-          =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
-          [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
-        ?:  &((itype-has-face typ.p.arg sub.fit) (itype-face-asym typ.p.arg sample.ht sub.fit) (itype-output-may-be-cell product.ht sub.fit))
-          [%| ["call result face propagation is not supported by partial inference" ~]]
-        [%& product.ht st(sub sub.fit, next next.fit)]
-      =/  result=itype  [%var next.st]
-      =/  uni=(unit isub)  (itype-unify ht [%fn typ.p.arg result] sub.st)
-      ?~  uni
-        [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
-      [%& result st(next +(next.st), sub u.uni)]
+      (infer-call-with-head e env state (infer-fragment head.e env state))
     *  [%| ["expression is not supported by partial inference" ~]]
   ==
 ::
 ::  Locate a definite failing argument after the complete sample fit has
 ::  failed. If an intermediate fit is uncertain, retain the whole argument
 ::  span rather than assigning blame to a particular argument.
+::
+::  Check a call using the head already inferred in this state.  Keeping
+::  this shared avoids evaluating or instantiating a contextual head twice.
+++  infer-call-with-head
+  |=  [e=expr env=ienv state=istate head=iresult]
+  ^-  iresult
+  ?>  ?=(%call -.e)
+  ?~  args.e  [%| ["call has no argument" ~]]
+  ?:  ?=(%| -.head)  head
+  =/  head-type=itype  (itype-walk typ.p.head sub.state.p.head)
+  =/  arg=iresult
+    ?^  t.args.e
+      ?:  ?=(%fn -.head-type)
+        (infer-call-context-args args.e sample.head-type env state.p.head (span-of head.e))
+      (infer-simple-items (turn args.e |=(a=expr [(span-of a) ~ a])) env state.p.head)
+    ?:  ?=(%fn -.head-type)
+      (infer-call-context-arg i.args.e sample.head-type env state.p.head (span-of head.e))
+    (infer-fragment i.args.e env state.p.head)
+  ?:  ?=(%| -.arg)  arg
+  =/  st=istate  state.p.arg
+  =/  ht=itype  (itype-walk typ.p.head sub.st)
+  ?:  ?=(%fn -.ht)
+    =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st next.st)
+    ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
+    ?:  ?=(%bad -.fit)
+      ?~  t.args.e
+        =/  missing=(unit idiag)  (missing-union-tag i.args.e sample.ht sub.st (span-of head.e))
+        ?^  missing  [%| u.missing]
+        =/  nested=(unit idiag)  (nested-missing-tag i.args.e typ.p.arg sample.ht sub.st next.st (span-of head.e))
+        ?^  nested  [%| u.nested]
+        [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
+      =/  bad=(unit [at=span typ=itype])
+        (call-error-site args.e typ.p.arg sample.ht sub.st next.st)
+      =/  whole-args=span
+        [beg:(span-of i.args.e) end:(span-of (rear args.e))]
+      =/  arg-at=span  ?~(bad whole-args at.u.bad)
+      =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
+      [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
+    ?:  &((itype-has-face typ.p.arg sub.fit) (itype-face-asym typ.p.arg sample.ht sub.fit) (itype-output-may-be-cell product.ht sub.fit))
+      [%| ["call result face propagation is not supported by partial inference" ~]]
+    [%& product.ht st(sub sub.fit, next next.fit)]
+  =/  result=itype  [%var next.st]
+  =/  uni=(unit isub)  (itype-unify ht [%fn typ.p.arg result] sub.st)
+  ?~  uni
+    [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
+  [%& result st(next +(next.st), sub u.uni)]
 ::
 ++  call-error-site
   |=  [args=(list expr) actual=itype expected=itype sub=isub next=@ud]
@@ -7575,6 +7583,26 @@
     [%| ["unit payload does not fit its expected type" ~[[context (site-type-note "expected unit payload" payload sub.state.p.value)] [(span-of val.e) (site-type-note "payload" typ.p.value sub.state.p.value)]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
+::  A known gate whose result is still an inference variable can receive
+::  an enclosing target before its argument is inferred. Other products
+::  and unresolved calls use the existing directional path unchanged.
+++  infer-contextual-call
+  |=  [e=expr expected=itype env=ienv state=istate]
+  ^-  iresult
+  ?>  ?=(%call -.e)
+  ?~  args.e  [%| ["call has no argument" ~]]
+  =/  head=iresult  (infer-fragment head.e env state)
+  ?:  ?=(%| -.head)  head
+  =/  ht=itype  (itype-walk typ.p.head sub.state.p.head)
+  ?.  ?=(%fn -.ht)  (infer-call-with-head e env state head)
+  =/  result=itype  (itype-walk product.ht sub.state.p.head)
+  ?.  ?=(%var -.result)  (infer-call-with-head e env state head)
+  ?:  |(?=(%var -.expected) ?=(%avar -.expected) ?=(%nvar -.expected) (itype-has-tag (itype-normalize expected sub.state.p.head)))
+    (infer-call-with-head e env state head)
+  =/  sub=(unit isub)  (itype-unify result expected sub.state.p.head)
+  ?~  sub  (infer-call-with-head e env state head)
+  (infer-call-with-head e env state [%& typ.p.head state.p.head(sub u.sub)])
+::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
@@ -7588,6 +7616,7 @@
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?:  ?=(%call -.e)  (infer-contextual-call e target env state)
   ?:  (single-structured-pattern e)
     (infer-single-case-branch e env state `[target context])
   ::  In a loobean-singleton context retain the written loobean noun;

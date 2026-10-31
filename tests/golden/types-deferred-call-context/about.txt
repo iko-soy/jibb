@@ -1,0 +1,4 @@
+source: Grammar, literals by context and type variables: calls can receive expected result types while preserving shared type variables and pending constraints.
+tests: A known identity-like gate receives list, null, unit, union and nested record contexts. Incorrect items, tags, auras and repeated arguments report errors; unrelated pending literals and explicit capital restrictions remain. Generic list and union results instantiate independently, captured variables retain their scope, and unsupported recursive inference fails closed. The module report remains partial.
+expect: parses
+expect-types: a partial inference report

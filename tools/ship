@@ -1492,13 +1492,50 @@ def commit_and_wait(ship, desk, timeout):
                            'the commit', timeout)
 
 
-def delete_and_wait(ship, desk, paths, timeout):
-    """Delete files from the desk ('/a/b/hoon') through Clay, and wait
-    for the new revision; raise Clay's error."""
-    act = fill(DELETE_ACT, DESK=desk, PATHS='~[%s]' % ' '.join(
+# click -i still passes the formatted thread as one argument to click-format.
+# Keep well below Linux's per-argument limit, including click's escaping.
+DELETE_REQUEST_BYTES = 60000
+DELETE_BATCH_PATHS = 1024
+
+
+def click_argument_bytes(hoon):
+    """Bytes in click-format's single command argument, including its NUL."""
+    src = prepare(hoon).rstrip('\n')
+    return len(src.replace("'", "\\'").replace('\n', '  ').encode('ascii')) + 1
+
+
+def delete_action(desk, paths):
+    return fill(DELETE_ACT, DESK=desk, PATHS='~[%s]' % ' '.join(
         hoon_path(p.split('/')[1:]) for p in paths))
-    return change_and_wait(ship, desk, act, 'info',
-                           'the deletion of %d files' % len(paths), timeout)
+
+
+def delete_batches(desk, paths, timeout):
+    """Preflight bounded deletion requests before changing the desk."""
+    def partition(batch):
+        act = delete_action(desk, batch)
+        request = fill(CHANGE_WAIT, ACT=act, MOTE='info', DESK=desk,
+                       SECS=hoon_ud(timeout))
+        if click_argument_bytes(request) <= DELETE_REQUEST_BYTES:
+            return [(batch, act)]
+        if len(batch) <= 1:
+            raise Unable('a Clay deletion path is too long for click')
+        mid = len(batch) // 2
+        return partition(batch[:mid]) + partition(batch[mid:])
+
+    batches = []
+    for start in range(0, len(paths), DELETE_BATCH_PATHS):
+        batches.extend(partition(paths[start:start + DELETE_BATCH_PATHS]))
+    # Preserve the existing empty-list behavior for direct callers.
+    return batches or partition([])
+
+
+def delete_and_wait(ship, desk, paths, timeout):
+    """Delete files through Clay, waiting for each resulting revision."""
+    batches = delete_batches(desk, paths, timeout)
+    for batch, act in batches:
+        rev = change_and_wait(ship, desk, act, 'info',
+                              'the deletion of %d files' % len(batch), timeout)
+    return rev
 
 
 def change_and_wait(ship, desk, act, mote, what, timeout):

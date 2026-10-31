@@ -1,0 +1,272 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %good) (const 3:3 %other)))
+  (value 4:1 local-id
+    (gate 4:13 (bind 4:16 x) (wing 4:18 x)))
+  (value 5:1 empty-list
+    (cast 5:15
+      (apply 5:18 list (aura 5:24 @t))
+      (group 5:28
+        (call 5:29 (wing 5:29 local-id) (lit 5:38 ~)))))
+  (value 6:1 filled-list
+    (cast 6:16
+      (apply 6:19 list (aura 6:25 @t))
+      (group 6:29
+        (call 6:30
+          (wing 6:30 local-id)
+          (list 6:39 (str 6:41 "hi"))))))
+  (value 7:1 wrong-list
+    (cast 7:15
+      (apply 7:18 list (aura 7:24 @t))
+      (group 7:28
+        (call 7:29
+          (wing 7:29 local-id)
+          (list 7:38 (lit 7:40 ~zod))))))
+  (value 8:1 unit-value
+    (cast 8:15
+      (apply 8:18 unit (ref 8:24 msg))
+      (group 8:29
+        (call 8:30
+          (wing 8:30 local-id)
+          (unit 8:39 (lit 8:40 %good))))))
+  (value 9:1 union-value
+    (cast 9:16
+      (ref 9:19 msg)
+      (group 9:23
+        (call 9:24 (wing 9:24 local-id) (lit 9:33 %good)))))
+  (value 10:1 union-bad
+    (cast 10:14
+      (ref 10:17 msg)
+      (group 10:21
+        (call 10:22 (wing 10:22 local-id) (lit 10:31 %wrong)))))
+  (value 11:1 nested
+    (cast 11:11
+      (apply 11:14 list
+        (apply 11:20 unit (ref 11:26 msg)))
+      (group 11:32
+        (call 11:33
+          (wing 11:33 local-id)
+          (list 11:42
+            (unit 11:44 (lit 11:45 %good)))))))
+  (value 12:1 rec-value
+    (cast 12:14
+      (cell 12:17
+        (face 12:18 field
+          (apply 12:24 list (aura 12:30 @t))))
+      (group 12:35
+        (call 12:36
+          (wing 12:36 local-id)
+          (tuple 12:45
+            (face 12:46 field (lit 12:52 ~)))))))
+  (value 13:1 already
+    (gate 13:12
+      (face 13:15 x (aura 13:17 @ud))
+      (cast 13:21
+        (aura 13:24 @u)
+        (group 13:27
+          (call 13:28 (wing 13:28 local-id) (wing 13:37 x))))))
+  (value 14:1 bad-aura
+    (gate 14:13
+      (face 14:16 x (aura 14:18 @p))
+      (cast 14:21
+        (aura 14:24 @t)
+        (group 14:27
+          (call 14:28 (wing 14:28 local-id) (wing 14:37 x))))))
+  (value 15:1 capital
+    (gate 15:12
+      (face 15:15 x (tvar 15:17 A))
+      (cast 15:19
+        (tvar 15:22 A)
+        (group 15:24
+          (call 15:25 (wing 15:25 local-id) (str 15:34 "text"))))))
+  (value 16:1 trace-tag
+    (cast 16:14
+      (apply 16:17 list (aura 16:23 @t))
+      (body 17:3
+        (trace 17:3
+          (lit 17:6 %dangling)
+          (body 18:5
+            (group 18:5
+              (call 18:6 (wing 18:6 local-id) (lit 18:15 ~))))))))
+  (value 19:1 trace-null
+    (cast 19:15
+      (apply 19:18 list (aura 19:24 @t))
+      (body 20:3
+        (trace 20:3
+          (lit 20:6 ~)
+          (body 21:5
+            (group 21:5
+              (call 21:6 (wing 21:6 local-id) (lit 21:15 ~))))))))
+  (value 22:1 unresolved
+    (group 22:15
+      (call 22:16 (wing 22:16 local-id) (lit 22:25 %dangling))))
+  (value 23:1 no-context
+    (group 23:15
+      (call 23:16 (wing 23:16 local-id) (lit 23:25 ~))))
+  (value 24:1 local-keep
+    (gate 24:15
+      (cell 24:18
+        (face 24:19 a (tvar 24:21 A))
+        (face 24:23 b (tvar 24:25 A)))
+      (wing 24:28 a)))
+  (value 25:1 repeated-good
+    (cast 25:18
+      (aura 25:21 @t)
+      (group 25:24
+        (call 25:25 (wing 25:25 local-keep) (str 25:36 "hi") (str 25:41 "bye")))))
+  (value 26:1 repeated-bad
+    (cast 26:17
+      (aura 26:20 @t)
+      (group 26:23
+        (call 26:24 (wing 26:24 local-keep) (str 26:35 "hi") (lit 26:40 ~zod)))))
+  (value 27:1 rec-good
+    (cast 27:13
+      (cell 27:16
+        (face 27:17 field
+          (apply 27:23 list (aura 27:29 @t)))
+        (face 27:33 flag (flag 27:38)))
+      (group 27:41
+        (call 27:42
+          (wing 27:42 local-id)
+          (tuple 27:51
+            (face 27:52 field (lit 27:58 ~))
+            (face 27:60 flag (lit 27:65 %.y)))))))
+  (value 28:1 rec-bad
+    (cast 28:12
+      (cell 28:15
+        (face 28:16 field
+          (apply 28:22 list (aura 28:28 @t)))
+        (face 28:32 flag (flag 28:37)))
+      (group 28:40
+        (call 28:41
+          (wing 28:41 local-id)
+          (tuple 28:50
+            (face 28:51 field
+              (list 28:57 (lit 28:59 ~zod)))
+            (face 28:65 flag (lit 28:70 %.y)))))))
+  (value 29:1 wrap-identity
+    (gate 29:18
+      (face 29:21 x (tvar 29:23 A))
+      (cast 29:25
+        (tvar 29:28 A)
+        (group 29:30
+          (call 29:31 (wing 29:31 local-id) (wing 29:40 x))))))
+  (value 30:1 wrap-forced
+    (gate 30:16
+      (face 30:19 x (tvar 30:21 A))
+      (cast 30:23
+        (aura 30:26 @t)
+        (group 30:29
+          (call 30:30 (wing 30:30 local-id) (wing 30:39 x))))))
+  (value 31:1 retain
+    (gate 31:11
+      (face 31:14 x (aura 31:16 @t))
+      (group 31:19
+        (call 31:20 (wing 31:20 local-id) (wing 31:29 x)))))
+  (value 32:1 result-later
+    (gate 32:17
+      (bind 32:20 x)
+      (cast 32:22
+        (apply 32:25 list (aura 32:31 @t))
+        (group 32:35
+          (call 32:36 (wing 32:36 local-id) (wing 32:45 x))))))
+  (value 33:1 result-repeated
+    (cast 33:20
+      (apply 33:23 list (aura 33:29 @t))
+      (group 33:33
+        (call 33:34 (wing 33:34 local-keep) (lit 33:45 ~) (lit 33:47 ~)))))
+  (value 34:1 result-repeated-bad
+    (cast 34:24
+      (apply 34:27 list (aura 34:33 @t))
+      (group 34:37
+        (call 34:38
+          (wing 34:38 local-keep)
+          (lit 34:49 ~)
+          (list 34:51 (lit 34:53 ~zod))))))
+  (value 35:1 recursive
+    (gate 35:14
+      (cell 35:17
+        (face 35:18 flag (flag 35:23))
+        (bind 35:25 value))
+      (body 36:3
+        (cast 36:3
+          (apply 36:6 list (aura 36:12 @t))
+          (body 37:5
+            (branch 37:5
+              (wing 37:8 flag)
+              (arm 38:7
+                (lit 38:7 %.y)
+                (group 38:11
+                  (call 38:12 (wing 38:12 local-id) (wing 38:21 value))))
+              (arm 39:7
+                (lit 39:7 %.n)
+                (group 39:11
+                  (call 39:12 (wing 39:12 recursive) (wing 39:22 flag) (wing 39:27 value))))))))))
+  (value 40:1 captured
+    (gate 40:13
+      (bind 40:16 sample)
+      (body 41:3
+        (value 41:3 local
+          (gate 41:12 (bind 41:15 ignored) (wing 41:23 sample)))
+        (cast 42:3
+          (apply 42:6 list (aura 42:12 @t))
+          (group 42:16
+            (call 42:17 (wing 42:17 local) (lit 42:23 ~zod)))))))
+  (value 43:1 captured-bad
+    (gate 43:17
+      (bind 43:20 sample)
+      (body 44:3
+        (value 44:3 local
+          (gate 44:12 (bind 44:15 ignored) (wing 44:23 sample)))
+        (trace 45:3
+          (cast 45:6 (aura 45:9 @t) (wing 45:12 sample))
+          (body 46:5
+            (cast 46:5
+              (aura 46:8 @p)
+              (group 46:11
+                (call 46:12 (wing 46:12 local) (lit 46:18 ~zod)))))))))
+  (mold 47:1 choice
+    (generic 47:11 A
+      (union 48:3
+        (cell 48:3
+          (const 48:4 %one)
+          (face 48:9 value (tvar 48:15 A)))
+        (const 49:3 %none))))
+  (value 50:1 param-list
+    (gate 50:15
+      (face 50:18 x
+        (apply 50:20 list (tvar 50:26 A)))
+      (cast 50:29
+        (apply 50:32 list (tvar 50:38 A))
+        (group 50:41
+          (call 50:42 (wing 50:42 local-id) (lit 50:51 ~))))))
+  (value 51:1 param-list-text
+    (group 51:20
+      (call 51:21
+        (wing 51:21 param-list)
+        (list 51:32 (str 51:34 "hi")))))
+  (value 52:1 param-list-ship
+    (group 52:20
+      (call 52:21
+        (wing 52:21 param-list)
+        (list 52:32 (lit 52:34 ~zod)))))
+  (value 53:1 param-union
+    (gate 53:16
+      (face 53:19 x (tvar 53:21 A))
+      (cast 53:23
+        (apply 53:26 choice (tvar 53:34 A))
+        (group 53:37
+          (call 53:38
+            (wing 53:38 local-id)
+            (tuple 53:47 (lit 53:48 %one) (wing 53:53 x)))))))
+  (value 54:1 param-union-text
+    (group 54:21
+      (call 54:22 (wing 54:22 param-union) (str 54:34 "hi"))))
+  (value 55:1 param-union-ship
+    (group 55:21
+      (call 55:22 (wing 55:22 param-union) (lit 55:34 ~zod))))
+  (value 56:1 nested-tag-unknown
+    (group 56:23
+      (call 56:24
+        (wing 56:24 local-id)
+        (tuple 56:33 (lit 56:34 %one) (lit 56:39 %dangling))))))

@@ -1,0 +1,82 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ local-id: $-(A A)
+++ empty-list: (list @t)
+++ filled-list: (list @t)
+++ wrong-list: list item does not fit its expected type
+/tests/golden/types-deferred-call-context/source.jibb:7:29: expected item has type @t
+++ wrong-list ^- (list @t) (local-id ~[~zod])
+                            ^
+/tests/golden/types-deferred-call-context/source.jibb:7:40: list item has type @p
+++ wrong-list ^- (list @t) (local-id ~[~zod])
+                                       ^
+++ unit-value: (unit msg)
+++ union-value: msg
+++ union-bad: msg has no case `%wrong`
+/tests/golden/types-deferred-call-context/source.jibb:10:22: expected union
+++ union-bad ^- msg (local-id %wrong)
+                     ^
+/tests/golden/types-deferred-call-context/source.jibb:10:31: tag
+++ union-bad ^- msg (local-id %wrong)
+                              ^
+++ nested: (list (unit msg))
+++ rec-value: cons shape is not supported by partial inference
+++ already: $-(@ud @u)
+++ bad-aura: call's sample and argument types do not unify
+/tests/golden/types-deferred-call-context/source.jibb:14:28: called gate has type $-(@t @t)
+++ bad-aura |= x=@p ^- @t (local-id x)
+                           ^
+/tests/golden/types-deferred-call-context/source.jibb:14:37: argument has type @p
+++ bad-aura |= x=@p ^- @t (local-id x)
+                                    ^
+++ capital: explicit capital constraints are not supported by partial inference
+++ trace-tag: tag needs context in partial inference
+++ trace-null: `~` needs context in partial inference
+++ unresolved: tag needs context in partial inference
+++ no-context: `~` needs context in partial inference
+++ local-keep: $-([a=A b=A] A)
+++ repeated-good: @t
+++ repeated-bad: call's sample and argument types do not unify
+/tests/golden/types-deferred-call-context/source.jibb:26:24: called gate has type $-([a=@t b=@t] @t)
+++ repeated-bad ^- @t (local-keep "hi" ~zod)
+                       ^
+/tests/golden/types-deferred-call-context/source.jibb:26:35: argument has type [@t @p]
+++ repeated-bad ^- @t (local-keep "hi" ~zod)
+                                  ^
+++ rec-good: [field=(list @t) flag=?]
+++ rec-bad: list item does not fit its expected type
+/tests/golden/types-deferred-call-context/source.jibb:28:41: expected item has type @t
+++ rec-bad ^- [field=(list @t) flag=?] (local-id [field=~[~zod] flag=%.y])
+                                        ^
+/tests/golden/types-deferred-call-context/source.jibb:28:59: list item has type @p
+++ rec-bad ^- [field=(list @t) flag=?] (local-id [field=~[~zod] flag=%.y])
+                                                          ^
+++ wrap-identity: $-(A A)
+++ wrap-forced: explicit capital constraints are not supported by partial inference
+++ retain: $-(@t @t)
+++ result-later: $-((list @t) (list @t))
+++ result-repeated: (list @t)
+++ result-repeated-bad: list item does not fit its expected type
+/tests/golden/types-deferred-call-context/source.jibb:34:38: expected item has type @t
+++ result-repeated-bad ^- (list @t) (local-keep ~ ~[~zod])
+                                     ^
+/tests/golden/types-deferred-call-context/source.jibb:34:53: list item has type @p
+++ result-repeated-bad ^- (list @t) (local-keep ~ ~[~zod])
+                                                    ^
+++ recursive: call constraint is not supported by partial inference
+++ captured: $-((list @t) (list @t))
+++ captured-bad: cast mold and expression type do not unify
+/tests/golden/types-deferred-call-context/source.jibb:46:8: cast mold has type @p
+    ^- @p (local ~zod)
+       ^
+/tests/golden/types-deferred-call-context/source.jibb:46:11: expression has type @t
+    ^- @p (local ~zod)
+          ^
++$ choice: cases proven disjoint; mold not checked
+++ param-list: $-((list A) (list A))
+++ param-list-text: (list @t)
+++ param-list-ship: (list @p)
+++ param-union: $-(A (choice A))
+++ param-union-text: (choice @t)
+++ param-union-ship: (choice @p)
+++ nested-tag-unknown: tag needs context in partial inference
