@@ -1,0 +1,13 @@
+/= dep /ui/alias-helper
++$ equivalent |$ [A B] (each A B)
++$ swapped |$ [A B] (each B A)
++$ repeated |$ [A] (each A A)
++$ fixed |$ [A] (each A @p)
+++ direct |= x=(each A B) x
+++ alias-id |= x=(equivalent A B) x
+++ reversed |= x=(swapped A B) x
+++ reversed-concrete |= x=(swapped @t @p) x
+++ repeated-id |= x=(repeated A) x
+++ fixed-id |= x=(fixed A) x
+++ imported identity.dep
+++ imported-concrete |= x=(each @t @p) (identity.dep x)

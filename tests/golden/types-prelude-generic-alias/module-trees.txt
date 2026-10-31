@@ -1,0 +1,10 @@
+/ui/alias-helper.jibb
+(module
+  (mold 1:1 alias
+    (generic 1:10 A B
+      (apply 1:19 each (tvar 1:25 A) (tvar 1:27 B))))
+  (value 2:1 identity
+    (gate 2:13
+      (face 2:16 x
+        (apply 2:18 alias (tvar 2:25 A) (tvar 2:27 B)))
+      (wing 2:30 x))))

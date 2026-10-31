@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Generic molds: "`+$ result |$ [V E]` with cases below"; Modules: "Everything is exported and read through the import's face".
+tests: Direct, aliased and imported uses of the real public prelude's generic each union retain its public name and arguments; swapped, repeated and fixed user aliases retain their source meaning. The separate shared generic-alias guard covers source-backed private-to-public re-exports.
+expect: parses
+expect-types: a partial inference report

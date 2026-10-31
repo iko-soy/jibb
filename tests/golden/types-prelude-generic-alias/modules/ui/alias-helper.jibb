@@ -1,0 +1,2 @@
++$ alias |$ [A B] (each A B)
+++ identity |= x=(alias A B) x

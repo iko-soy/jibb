@@ -6162,16 +6162,31 @@
     ?:(=(`origin origin.typ.template) `name.i.molds $(molds t.molds))
   $(molds t.molds)
 ::
-::  A public non-generic alias names exactly its origin and arguments.
-::  Reusing only an origin could print a different generic instantiation.
+::  A prelude union alias is a display name, not a new union identity.  An
+::  identity-generic alias can carry the origin's arguments only when the
+::  origin, arity and ordered parameters match.  Swapped, repeated, fixed
+::  or phantom parameters cannot be printed that way and remain unsupported
+::  when their only available name is private.  A nongeneric alias of a
+::  generic instantiation cannot be printed with the origin's arguments.
+++  identity-union-parameters
+  |=  [vars=(list @ud) args=(list itype)]
+  ^-  ?
+  ?~  vars  ?=(~ args)
+  ?~  args  |
+  ?.  =([%var i.vars] i.args)  |
+  $(vars t.vars, args t.args)
 ++  prelude-union-alias
   |=  [origin=[at=path name=term] args=(list itype) molds=imold-types]
   ^-  (unit term)
-  ?^  args  ~
   ?~  molds  ~
   =/  template=ischeme  template.i.molds
-  ?:  &(?=(~ vars.template) ?=(%union -.typ.template))
-    ?:(&(=(`origin origin.typ.template) =(args args.typ.template)) `name.i.molds $(molds t.molds))
+  ?.  ?=(%union -.typ.template)  $(molds t.molds)
+  ?.  =(`origin origin.typ.template)  $(molds t.molds)
+  ?~  vars.template
+    ?^  args  $(molds t.molds)
+    ?:(=(args args.typ.template) `name.i.molds $(molds t.molds))
+  ?:  &((identity-union-parameters vars.template args.typ.template) =((lent vars.template) (lent args)))
+    `name.i.molds
   $(molds t.molds)
 ::
 ::  Names exported by the directly imported module are visible through its
@@ -10015,11 +10030,14 @@
   =(var name.i.args.tail)
 ::
 ++  prelude-label
-  |=  [typ=itype name=term]
+  |=  [typ=itype name=term vars=(list @ud)]
   ^-  itype
   ?:  ?=(%jrec -.typ)  typ(label `name)
   ?.  ?=(%union -.typ)  typ
-  ?^  args.typ  typ
+  ?.  (identity-union-parameters vars args.typ)
+    ?~  origin.typ  typ
+    ?:  =(at.u.origin.typ /lib/jibb/internal/jibb)  typ(label ~)
+    typ
   typ(label `name)
 ::
 ++  partial-prelude-molds
@@ -10034,7 +10052,7 @@
     (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  out  $(molds t.molds)
   =.  typ.template.u.out  (label-direct-union typ.template.u.out body.m name.m state)
-  =.  typ.template.u.out  (prelude-label typ.template.u.out name.m)
+  =.  typ.template.u.out  (prelude-label typ.template.u.out name.m vars.template.u.out)
   [[name.m template.u.out] $(molds t.molds)]
 ::
 ::  A compiler-owned interface available only to the dedicated

@@ -304,7 +304,8 @@ def generator_checks(tmp):
     check('default assembly keeps the repository test programs',
           {'tests/lib/jibb.hoon', 'tests/lib/jibb-import.hoon',
            'tests/lib/jibb-typecheck.hoon', 'tests/lib/jibb-bridge.hoon',
-           'tests/lib/jibb-arithmetic-guards.hoon'}
+           'tests/lib/jibb-arithmetic-guards.hoon',
+           'tests/lib/jibb-generic-alias.hoon'}
           <= normal_tests, sorted(normal_tests))
     for label, kwargs in (('custom library', {'lib': STUB}),
                           ('custom goldens', {'golden': CASES}),

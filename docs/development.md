@@ -68,6 +68,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-api-paths-test` | Checks partial API path analysis with real todo mark samples against `tests/type-api-paths/expected.txt` under eval |
 | `tools/type-hole-guards-test` | Runs the shared hole-defaulting and API interface guards under eval; the same checks run on the ship |
 | `tools/type-list-alias-test` | Runs the shared prelude list-alias and provenance guards under eval and on the ship |
+| `tools/type-generic-alias-test` | Runs public/private generic union alias and provenance guards under eval and on the ship |
 | `tools/type-qath-guards-test` | Runs source-provenance, recursive unfolding and face guards under eval and on the ship |
 | `tools/type-proj-guards-test` | Runs projection evidence, name-scope and dependency guards under eval and on the ship |
 | `tools/type-arithmetic-guards-test` | Runs restricted atom-variable, unification and projection guards under eval and on the ship |
@@ -95,6 +96,7 @@ tools/type-poke-test               # source-backed poke/API bridge report matche
 tools/type-api-paths-test          # partial API path analysis report matches
 tools/type-hole-guards-test        # hole defaulting and API guards pass
 tools/type-list-alias-test         # prelude list-alias guards pass
+tools/type-generic-alias-test      # generic union alias guards pass
 tools/type-qath-guards-test         # qath source and unfolding guards pass
 tools/type-proj-guards-test         # projection evidence and scope guards pass
 tools/type-arithmetic-guards-test   # arithmetic constraint guards pass

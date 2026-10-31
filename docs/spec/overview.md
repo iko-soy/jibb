@@ -97,6 +97,8 @@ Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/pr
 | Parsers | [4d](https://docs.urbit.org/hoon/stdlib/4d)–[4i](https://docs.urbit.org/hoon/stdlib/4i), parser helpers in 4j and 4l | Left out, except the explicitly listed `slav` and `slaw` |
 | The rest | [1b](https://docs.urbit.org/hoon/stdlib/1b), [2p](https://docs.urbit.org/hoon/stdlib/2p), [3d](https://docs.urbit.org/hoon/stdlib/3d), [3f](https://docs.urbit.org/hoon/stdlib/3f), [4c](https://docs.urbit.org/hoon/stdlib/4c), [4n](https://docs.urbit.org/hoon/stdlib/4n), [4o](https://docs.urbit.org/hoon/stdlib/4o), [5a](https://docs.urbit.org/hoon/stdlib/5a)–[5f](https://docs.urbit.org/hoon/stdlib/5f) | Left out; `jam`, `cue` and `fein` run inside the runtime |
 
+The prelude's `(like A)` mold describes a result with a product of type `A`. Its value gate `(like convert result)` maps a present product with `convert=$-(A B)` and returns `(like B)`, preserving the position and remaining input; an absent result stays absent.
+
 Maps are Hoon's trees on both sides, so equal maps are equal nouns. Requests check incoming maps and sets with `apt`.
 
 ## The Elm architecture on Urbit

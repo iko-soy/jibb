@@ -123,7 +123,7 @@ Hoon 135's `3g` section has exactly 12 exports: ten `+$` molds (`coin`, `dime`, 
 | `dime` | `[p=@ta q=@]` in Hoon. The `q` field accepts any atom, as does Jibb `@` after @iko's decision in question 15. |
 | `edge` | `[p=hair q=(unit [p=* q=nail])]`: a parsing position and either no result or a result and remaining input. |
 | `hair` | `[p=@ud q=@ud]`: a parsing position. |
-| `like` | A wet mold builder parameterized by a gate `a=$-(* *)`; its generated gate takes a noun, builds an `edge`-shaped result, and applies `a` to the product on success. The prelude declares the generic mold `+$ like |$ [A] [p=hair q=(unit [p=A q=nail])]`. A callable Jibb value form remains open in question 18. |
+| `like` | A wet mold builder parameterized by a gate `a=$-(* *)`; its generated gate takes a noun, builds an `edge`-shaped result, and applies `a` to the product on success. The prelude declares the generic mold `+$ like |$ [A] [p=hair q=(unit [p=A q=nail])]`. @iko chose a separate Jibb value gate that maps the product of an existing result; that gate is not yet implemented. |
 | `nail` | `[p=hair q=tape]`: parsing input. |
 | `pint` | `[p=[p=@ q=@] q=[p=@ q=@]]` in Hoon. The four positions accept atoms independently; Jibb `@` now has the same meaning. |
 | `rule` | A gate mold `$-(nail edge)`; Hoon constructs its sample and product from the `nail` and `edge` molds. |
@@ -152,7 +152,7 @@ The following shapes can be written as Jibb declarations once their referenced p
   [%2 p=(list tank)]
 ```
 
-The compiler-result `tone.hoon` has the three cases listed above; the qualified name is a prelude group member, not a `+$` identifier containing a dot. Question 15 in [open-questions.md](open-questions.md) records @iko's decision that `@` is an unrestricted atom, resolving the `dime` and `pint` mismatch. The callable value form of `like` remains unresolved. The new `like` mold and `wonk` gate parse, but full type and backend validation remain outstanding.
+The compiler-result `tone.hoon` has the three cases listed above; the qualified name is a prelude group member, not a `+$` identifier containing a dot. Question 15 in [open-questions.md](open-questions.md) records @iko's decision that `@` is an unrestricted atom, resolving the `dime` and `pint` mismatch. The value form of `like` maps an existing result's product and remains to be implemented. The `like` mold and `wonk` gate parse, but full type and backend validation remain outstanding.
 
 ## 4a
 
