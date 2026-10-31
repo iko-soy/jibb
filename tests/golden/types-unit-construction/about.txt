@@ -1,0 +1,4 @@
+source: Grammar, Literals: a backtick constructs a `(unit A)`; Tag resolution: tags and `~` take their type from context.
+tests: Unit construction uses the validated prelude shape, preserves generic and nested payload types, and makes prelude some available at independent types. Unresolved payloads and discarded literals stay pending. Payload constraints and unrelated user-defined unions fail closed where their compatibility is not yet supported.
+expect: parses
+expect-types: a partial inference report

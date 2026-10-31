@@ -1,0 +1,24 @@
++$ state [items=(list @t) open=?]
++$ msg
+  %go
+  %stay
++$ inner [payload=msg xs=(list @t)]
++$ outer [data=inner title=@t]
+++ init ^- state [~ %.n]
+++ full ^- state [~["x"] %.y]
+++ nested ^- outer [[%go ~["x"]] "ok"]
+++ faced ^- inner [payload=%stay xs=~]
+++ wrong-face ^- inner [wrong=%go xs=~]
+++ wrong-count ^- inner [%go ~ "extra"]
+++ wrong-tag ^- inner [%oops ~]
+++ wrong-item ^- inner [%go ~[~zod]]
+++ wrong-flag ^- state [~ "no"]
+++ shared |= x=A ^- [left=A right=A] [x x]
+++ forced |= x=A ^- [left=A right=A] [x "hi"]
+++ pending-tag
+  ~& %unused
+    ^- state [~ %.n]
+++ pending-null
+  ~& ~
+    ^- state [~ %.n]
+++ unknown |= x ^- [left=A right=A] [x x]

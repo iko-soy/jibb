@@ -1,0 +1,49 @@
+partial inference; module not checked
++$ state: not checked
++$ msg: cases proven disjoint; mold not checked
++$ inner: not checked
++$ outer: not checked
+++ init: [items=(list @t) open=?]
+++ full: [items=(list @t) open=?]
+++ nested: [data=[payload=msg xs=(list @t)] title=@t]
+++ faced: [payload=msg xs=(list @t)]
+++ wrong-face: cast mold and expression type do not unify
+/tests/golden/types-record-cast-context/source.jibb:11:18: cast mold
+++ wrong-face ^- inner [wrong=%go xs=~]
+                 ^
+/tests/golden/types-record-cast-context/source.jibb:11:24: expression
+++ wrong-face ^- inner [wrong=%go xs=~]
+                       ^
+++ wrong-count: cast mold and expression type do not unify
+/tests/golden/types-record-cast-context/source.jibb:12:19: cast mold
+++ wrong-count ^- inner [%go ~ "extra"]
+                  ^
+/tests/golden/types-record-cast-context/source.jibb:12:25: expression
+++ wrong-count ^- inner [%go ~ "extra"]
+                        ^
+++ wrong-tag: cast mold and expression type do not unify
+/tests/golden/types-record-cast-context/source.jibb:13:17: cast mold
+++ wrong-tag ^- inner [%oops ~]
+                ^
+/tests/golden/types-record-cast-context/source.jibb:13:23: expression
+++ wrong-tag ^- inner [%oops ~]
+                      ^
+++ wrong-item: list item does not fit its expected type
+/tests/golden/types-record-cast-context/source.jibb:14:18: expected item has type @t
+++ wrong-item ^- inner [%go ~[~zod]]
+                 ^
+/tests/golden/types-record-cast-context/source.jibb:14:31: list item has type @p
+++ wrong-item ^- inner [%go ~[~zod]]
+                              ^
+++ wrong-flag: cast mold and expression type do not unify
+/tests/golden/types-record-cast-context/source.jibb:15:18: cast mold has type [items=(list @t) open=?]
+++ wrong-flag ^- state [~ "no"]
+                 ^
+/tests/golden/types-record-cast-context/source.jibb:15:24: expression has type [(list @t) @t]
+++ wrong-flag ^- state [~ "no"]
+                       ^
+++ shared: $-(A [left=A right=A])
+++ forced: explicit capital constraints are not supported by partial inference
+++ pending-tag: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference
+++ unknown: cast constraint is not supported by partial inference

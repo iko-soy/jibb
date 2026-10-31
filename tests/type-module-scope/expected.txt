@@ -47,3 +47,12 @@ prelude source does not parse; module import inference unsupported
 partial inference; module not checked
 ++ attempt: name is not available to partial inference
 ++ direct: sample mold is not supported by partial inference
+partial inference; module not checked
+++ x: unit construction needs the standard prelude in partial inference
+partial inference; module not checked
+++ x: unit construction needs the standard prelude in partial inference
+partial inference; module not checked
+prelude source does not parse; module import inference unsupported
+partial inference; module not checked
++$ unit: not checked
+++ x: unit construction needs the standard prelude in partial inference

@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: cells become records, tuples or list cons according to their expected type; Tag resolution: tags and `~` take their type from context.
+tests: Record casts supply nested field context to lists and union tags, including the cart-store initializer. Faced and unfaced cells fit when their fields agree; incorrect faces, arity, tags, list items and other fields fail. Shared capitals stay shared, unrelated pending literals remain pending and uncertain constraints fail closed. Diagnostic expected-type sites point to the cast mold, not the original field declaration.
+expect: parses
+expect-types: a partial inference report

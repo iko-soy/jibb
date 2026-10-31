@@ -35,14 +35,14 @@ partial inference; module not checked
 +$ tree: cases proven disjoint; mold not checked
 +$ each: cases proven disjoint; mold not checked
 +$ bloq: not checked
-++ some: expression is not supported by partial inference
+++ some: unit construction needs the standard prelude in partial inference
 ++ lure: cast mold is not supported by partial inference
 ++ snoc: sample mold is not supported by partial inference
 ++ flop: sample mold is not supported by partial inference
 ++ drop: unit branch results need unsupported inference
-++ bind: expression is not supported by partial inference
+++ bind: unit construction needs the standard prelude in partial inference
 ++ biff: unit branch results need unsupported inference
-++ both: expression is not supported by partial inference
+++ both: unit construction needs the standard prelude in partial inference
 ++ clap: branch pattern is not supported by partial inference
 ++ clef: branch pattern is not supported by partial inference
 ++ skim: sample mold is not supported by partial inference
@@ -51,7 +51,7 @@ partial inference; module not checked
 ++ lien: sample mold is not supported by partial inference
 ++ roll: sample mold is not supported by partial inference
 ++ reel: sample mold is not supported by partial inference
-++ flit: expression is not supported by partial inference
+++ flit: unit construction needs the standard prelude in partial inference
 ++ murn: sample mold is not supported by partial inference
 ++ join: sample mold is not supported by partial inference
 ++ snip: sample mold is not supported by partial inference

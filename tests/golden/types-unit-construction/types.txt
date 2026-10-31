@@ -1,0 +1,20 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ other: cases proven disjoint; mold not checked
++$ mimic: cases proven disjoint; mold not checked
+++ direct: $-(A (unit A))
+++ str: (unit @t)
+++ ship: (unit @p)
+++ nested: (unit (unit @t))
+++ same-first: (unit @t)
+++ same-second: (unit @p)
+++ ctx: cast constraint is not supported by partial inference
+++ bad-tag: cast constraint is not supported by partial inference
+++ missing-tag: tag needs context in partial inference
+++ discarded-tag: tag needs context in partial inference
+++ discarded-null: `~` needs context in partial inference
+++ mismatch: cast constraint is not supported by partial inference
+++ other-unit: cast constraint is not supported by partial inference
+++ force: explicit capital constraints are not supported by partial inference
+++ null-payload: `~` needs context in partial inference
+++ tag-payload: cast constraint is not supported by partial inference

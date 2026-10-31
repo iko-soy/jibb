@@ -1,0 +1,105 @@
+(module
+  (mold 1:1 state
+    (cell 1:10
+      (face 1:11 items
+        (apply 1:17 list (aura 1:23 @t)))
+      (face 1:27 open (flag 1:32))))
+  (mold 2:1 msg
+    (union 3:3 (const 3:3 %go) (const 4:3 %stay)))
+  (mold 5:1 inner
+    (cell 5:10
+      (face 5:11 payload (ref 5:19 msg))
+      (face 5:23 xs
+        (apply 5:26 list (aura 5:32 @t)))))
+  (mold 6:1 outer
+    (cell 6:10
+      (face 6:11 data (ref 6:16 inner))
+      (face 6:22 title (aura 6:28 @t))))
+  (value 7:1 init
+    (cast 7:9
+      (ref 7:12 state)
+      (tuple 7:18 (lit 7:19 ~) (lit 7:21 %.n))))
+  (value 8:1 full
+    (cast 8:9
+      (ref 8:12 state)
+      (tuple 8:18
+        (list 8:19 (str 8:21 "x"))
+        (lit 8:26 %.y))))
+  (value 9:1 nested
+    (cast 9:11
+      (ref 9:14 outer)
+      (tuple 9:20
+        (tuple 9:21
+          (lit 9:22 %go)
+          (list 9:26 (str 9:28 "x")))
+        (str 9:34 "ok"))))
+  (value 10:1 faced
+    (cast 10:10
+      (ref 10:13 inner)
+      (tuple 10:19
+        (face 10:20 payload (lit 10:28 %stay))
+        (face 10:34 xs (lit 10:37 ~)))))
+  (value 11:1 wrong-face
+    (cast 11:15
+      (ref 11:18 inner)
+      (tuple 11:24
+        (face 11:25 wrong (lit 11:31 %go))
+        (face 11:35 xs (lit 11:38 ~)))))
+  (value 12:1 wrong-count
+    (cast 12:16
+      (ref 12:19 inner)
+      (tuple 12:25 (lit 12:26 %go) (lit 12:30 ~) (str 12:32 "extra"))))
+  (value 13:1 wrong-tag
+    (cast 13:14
+      (ref 13:17 inner)
+      (tuple 13:23 (lit 13:24 %oops) (lit 13:30 ~))))
+  (value 14:1 wrong-item
+    (cast 14:15
+      (ref 14:18 inner)
+      (tuple 14:24
+        (lit 14:25 %go)
+        (list 14:29 (lit 14:31 ~zod)))))
+  (value 15:1 wrong-flag
+    (cast 15:15
+      (ref 15:18 state)
+      (tuple 15:24 (lit 15:25 ~) (str 15:27 "no"))))
+  (value 16:1 shared
+    (gate 16:11
+      (face 16:14 x (tvar 16:16 A))
+      (cast 16:18
+        (cell 16:21
+          (face 16:22 left (tvar 16:27 A))
+          (face 16:29 right (tvar 16:35 A)))
+        (tuple 16:38 (wing 16:39 x) (wing 16:41 x)))))
+  (value 17:1 forced
+    (gate 17:11
+      (face 17:14 x (tvar 17:16 A))
+      (cast 17:18
+        (cell 17:21
+          (face 17:22 left (tvar 17:27 A))
+          (face 17:29 right (tvar 17:35 A)))
+        (tuple 17:38 (wing 17:39 x) (str 17:41 "hi")))))
+  (value 18:1 pending-tag
+    (body 19:3
+      (trace 19:3
+        (lit 19:6 %unused)
+        (body 20:5
+          (cast 20:5
+            (ref 20:8 state)
+            (tuple 20:14 (lit 20:15 ~) (lit 20:17 %.n)))))))
+  (value 21:1 pending-null
+    (body 22:3
+      (trace 22:3
+        (lit 22:6 ~)
+        (body 23:5
+          (cast 23:5
+            (ref 23:8 state)
+            (tuple 23:14 (lit 23:15 ~) (lit 23:17 %.n)))))))
+  (value 24:1 unknown
+    (gate 24:12
+      (bind 24:15 x)
+      (cast 24:17
+        (cell 24:20
+          (face 24:21 left (tvar 24:26 A))
+          (face 24:28 right (tvar 24:34 A)))
+        (tuple 24:37 (wing 24:38 x) (wing 24:40 x))))))

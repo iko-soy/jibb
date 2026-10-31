@@ -1,0 +1,71 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (mold 4:1 other
+    (union 5:3 (const 5:3 %one) (const 6:3 %two)))
+  (mold 7:1 mimic
+    (generic 7:10 A
+      (union 8:3
+        (const 8:3 ~)
+        (cell 9:3
+          (const 9:4 ~)
+          (face 9:6 u (tvar 9:8 A))))))
+  (value 10:1 direct
+    (gate 10:11
+      (face 10:14 x (tvar 10:16 A))
+      (unit 10:18 (wing 10:19 x))))
+  (value 11:1 str
+    (unit 11:8 (str 11:9 "hi")))
+  (value 12:1 ship
+    (unit 12:9 (lit 12:10 ~zod)))
+  (value 13:1 nested
+    (unit 13:11
+      (unit 13:12 (str 13:13 "hi"))))
+  (value 14:1 same-first
+    (group 14:15
+      (call 14:16 (wing 14:16 some) (str 14:21 "hi"))))
+  (value 15:1 same-second
+    (group 15:16
+      (call 15:17 (wing 15:17 some) (lit 15:22 ~zod))))
+  (value 16:1 ctx
+    (cast 16:8
+      (apply 16:11 unit (ref 16:17 msg))
+      (unit 16:22 (lit 16:23 %go))))
+  (value 17:1 bad-tag
+    (cast 17:12
+      (apply 17:15 unit (ref 17:21 msg))
+      (unit 17:26 (lit 17:27 %bad))))
+  (value 18:1 missing-tag
+    (unit 18:16 (lit 18:17 %go)))
+  (value 19:1 discarded-tag
+    (body 20:3
+      (trace 20:3
+        (lit 20:6 %other)
+        (body 21:5
+          (unit 21:5 (str 21:6 "hi"))))))
+  (value 22:1 discarded-null
+    (body 23:3
+      (trace 23:3
+        (lit 23:6 ~)
+        (body 24:5
+          (unit 24:5 (str 24:6 "hi"))))))
+  (value 25:1 mismatch
+    (cast 25:13
+      (apply 25:16 unit (aura 25:22 @p))
+      (unit 25:26 (str 25:27 "hi"))))
+  (value 26:1 other-unit
+    (cast 26:15
+      (apply 26:18 mimic (aura 26:25 @t))
+      (unit 26:29 (str 26:30 "hi"))))
+  (value 27:1 force
+    (gate 27:10
+      (face 27:13 x (tvar 27:15 A))
+      (cast 27:17
+        (apply 27:20 unit (tvar 27:26 A))
+        (unit 27:29 (str 27:30 "hi")))))
+  (value 28:1 null-payload
+    (unit 28:17 (lit 28:18 ~)))
+  (value 29:1 tag-payload
+    (cast 29:16
+      (apply 29:19 unit (aura 29:25 @tas))
+      (unit 29:31 (lit 29:32 %go)))))

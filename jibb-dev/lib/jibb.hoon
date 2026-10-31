@@ -6938,6 +6938,20 @@
     [%| ["change field and replacement do not unify" ~[[at.entry (site-type-note "expected replacement" expected sub.state.p.value)] [(span-of val.entry) (site-type-note "replacement" typ.p.value sub.state.p.value)]]]]
   $(edits t.edits, state state.p.value(sub sub.fit, next next.fit), seen [name.entry seen])
 ::
+::  Backtick constructs the canonical prelude unit, after checking its
+::  prepared template has the standard null and [~ u=A] cases.
+++  standard-unit-template
+  |=  [template=ischeme at=path]
+  ^-  ?
+  ?.  =(at /lib/jibb/prelude/jibb)  |
+  ?~  vars.template  |
+  ?^  t.vars.template  |
+  =/  v=@ud  i.vars.template
+  =/  nil=itype  [%const [%null %n 0 '~']]
+  =/  expected=itype
+    [%union ~[nil [%cell nil [%face %u [%var v]]]] `[at %unit] `%unit ~[[%var v]]]
+  =(typ.template expected)
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -6955,6 +6969,17 @@
         %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
         %null      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
       ==
+    %unit
+      ?~  prelude.state  [%| ["unit construction needs the standard prelude in partial inference" ~]]
+      =/  standard=(unit ischeme)  (find-jibb-mold %unit u.prelude.state)
+      ?~  standard  [%| ["unit construction needs the standard prelude in partial inference" ~]]
+      ?.  (standard-unit-template u.standard at.u.prelude.state)
+        [%| ["unit construction needs the standard prelude in partial inference" ~]]
+      =/  value=iresult  $(e val.e)
+      ?:  ?=(%| -.value)  value
+      =/  result=(unit itype)  (template-apply u.standard ~[typ.p.value])
+      ?~  result  [%| ["unit construction is not supported by partial inference" ~]]
+      [%& u.result state.p.value]
     %str  (infer-string-pieces pieces.e env state)
     %wing
       ?~  names.e  [%| ["empty wing" ~]]
@@ -7060,13 +7085,7 @@
         ?^  diag  [%| u.diag]
         [%| ["cast mold is not supported by partial inference" ~]]
       =/  value=iresult
-        ?:  &(?=(%union -.typ.u.target) (context-union-branch val.e))
-          (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
-        ?:  &(?=(%collection -.typ.u.target) =(%list name.typ.u.target) (context-union-branch val.e))
-          (infer-union-context val.e typ.u.target env state.u.target at.shape.e)
-        ?:  &(?=(%collection -.typ.u.target) =(%list name.typ.u.target) (context-list-expression val.e))
-          (infer-list-context val.e typ.u.target env state.u.target at.shape.e)
-        $(e val.e, state state.u.target)
+        (infer-call-context-arg val.e typ.u.target env state.u.target at.shape.e)
       ?:  ?=(%| -.value)  value
       =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
       ?:  ?=(%unknown -.fit)  [%| ["cast constraint is not supported by partial inference" ~]]
@@ -7155,8 +7174,8 @@
   ?:  ?=(%unknown -.first)  ~
   $(args t.args, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
 ::
-::  Context can help each argument while the final fit still checks the
-::  complete right-nested sample, including any faces on its positions.
+::  Context can help a call argument or cast value while the final fit
+::  checks the complete right-nested type, including any written faces.
 ::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]

@@ -1,0 +1,29 @@
++$ msg
+  %go
+  %stay
++$ other
+  %one
+  %two
++$ mimic |$ [A]
+  ~
+  [~ u=A]
+++ direct |= x=A `x
+++ str `"hi"
+++ ship `~zod
+++ nested ``"hi"
+++ same-first (some "hi")
+++ same-second (some ~zod)
+++ ctx ^- (unit msg) `%go
+++ bad-tag ^- (unit msg) `%bad
+++ missing-tag `%go
+++ discarded-tag
+  ~& %other
+    `"hi"
+++ discarded-null
+  ~& ~
+    `"hi"
+++ mismatch ^- (unit @p) `"hi"
+++ other-unit ^- (mimic @t) `"hi"
+++ force |= x=A ^- (unit A) `"hi"
+++ null-payload `~
+++ tag-payload ^- (unit @tas) `%go

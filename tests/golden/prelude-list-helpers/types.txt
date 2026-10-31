@@ -35,7 +35,7 @@ partial inference; module not checked
 +$ tree: cases proven disjoint; mold not checked
 +$ each: cases proven disjoint; mold not checked
 +$ bloq: not checked
-++ some: expression is not supported by partial inference
+++ some: unit construction needs the standard prelude in partial inference
 ++ lure: cast mold is not supported by partial inference
 ++ snoc: sample mold is not supported by partial inference
 ++ flop: sample mold is not supported by partial inference
