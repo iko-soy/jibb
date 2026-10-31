@@ -15,3 +15,12 @@ partial inference; module not checked
 /tests/type-todo-api/negative.jibb:5:32: argument
 ++ bad-action (todo-action.api [%typo text="hello"])
                                ^
++$ msg: cases proven disjoint; mold not checked
+++ missing: call's sample and argument types do not unify
+/tests/type-todo-api/negative.jibb:9:26: called gate
+++ missing ^- (ask msg) (todos.api |=%absent)
+                         ^
+/tests/type-todo-api/negative.jibb:9:36: argument
+++ missing ^- (ask msg) (todos.api |=%absent)
+                                   ^
+++ pending: tag needs context in partial inference

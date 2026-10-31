@@ -76,6 +76,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-todo-api-test` | Exercises the actual todo API through the real Hoon readers and partial checker |
 | `tools/type-closed-gate-guards-test` | Checks closed gate sample labels and face uncertainty under eval and on the ship |
 | `tools/type-constructor-fit-guards-test` | Checks constructor-case uncertainty and known mismatches under eval and on the ship |
+| `tools/type-nested-union-guards-test` | Checks nested tagged-union case selection and uncertainty under eval and on the ship |
 | `tools/type-sub-guards-test` | Checks source-backed subscription mold dependencies under eval and on the ship |
 | `tools/type-ask-guards-test` | Runs ask origin and canonical list/unit bootstrap guards under eval and on the ship |
 | `tools/type-request-guards-test` | Runs request evidence, source consistency and cache provenance guards under eval and on the ship |
@@ -113,6 +114,7 @@ tools/type-qath-guards-test         # qath source and unfolding guards pass
 tools/type-todo-api-test            # real todo API partial inference and reader guards pass
 tools/type-closed-gate-guards-test  # closed gate fit guards pass
 tools/type-constructor-fit-guards-test # constructor fit guards pass
+tools/type-nested-union-guards-test # nested union selector guards pass
 tools/type-sub-guards-test          # subscription source guards pass
 tools/type-ask-guards-test          # ask source and bootstrap guards pass
 tools/type-request-guards-test      # request evidence and cache guards pass

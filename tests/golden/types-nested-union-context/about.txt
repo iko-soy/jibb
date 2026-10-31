@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: "Number and cell literals resolve like tags: each waits for its context"; Molds: "Tags take their union from context".
+tests: Nested named-union expressions, invalid and unknown contexts, shared and independent generic variables, unresolved tags and nulls. Unproven case coverage remains unsupported. This is a partial inference report.
+expect: parses
+expect-types: a partial inference report

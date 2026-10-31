@@ -1,0 +1,30 @@
++$ length
+  [%fill n=@ud]
+  %shrink
++$ attr
+  [%width length]
+  [%gap @tas]
+++ number-id |= x=@ud x
+++ plain ^- attr width+[%fill 1]
+++ direct ^- attr [%width [%fill 1]]
+++ list ^- (list attr) ~[width+[%fill 1]]
+++ accept |= value=attr value
+++ call (accept width+[%fill 1])
+++ simple-call ^- attr width+[%fill (number-id 1)]
+++ grouped-call ^- attr width+[%fill ((number-id 1))]
+++ cast-call ^- attr width+[%fill (^- @ud (number-id 1))]
+++ nested-call ^- attr width+[%fill (number-id (number-id 1))]
+++ bad-tag ^- attr width+[%missing 1]
+++ bad-number ^- attr width+[%fill "bad"]
+++ pending
+  ~& %unrelated
+    ^- attr width+[%fill (number-id 1)]
+++ singleton ^- attr width+%shrink
++$ event
+  [%got value=@t]
+  %idle
++$ envelope
+  [%handler callback=$-(@t event)]
+  [%empty value=@ud]
+++ constructor ^- envelope [%handler |=%got]
+++ unknown-target |= x=A ^- A width+[%fill (number-id 1)]

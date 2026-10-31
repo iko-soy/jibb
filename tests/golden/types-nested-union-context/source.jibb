@@ -1,0 +1,59 @@
++$ msg
+  %go
+  %stay
++$ alt
+  %go
+  %stay
++$ payload |$ [A]
+  [%value item=A]
+  %empty
++$ box |$ [A]
+  [%wrap item=(payload A)]
+  %none
++$ reverse |$ [A B]
+  [%left item=A]
+  [%right item=B]
+++ lift |= x=A ^- (payload A) [%value x]
+++ direct ^- (payload msg) (lift %go)
+++ nested ^- (box msg) [%wrap (lift %go)]
+++ nested-alias |= p=(payload msg) ^- (box msg) [%wrap p]
+++ nested-typed ^- (box msg) [%wrap (lift (^- msg %go))]
+++ nested-cord ^- (box @t) [%wrap (lift "hi")]
+++ nested-ship ^- (box @p) [%wrap (lift ~zod)]
+++ independent |= [t=@t p=@p]
+  [(^- (box @t) [%wrap (lift t)]) (^- (box @p) [%wrap (lift p)])]
+++ wrong-payload ^- (box @t) [%wrap (lift ~zod)]
+++ wrong-tag ^- (box msg) [%wrap (lift %absent)]
+++ wrong-origin |= x=alt ^- (box msg) [%wrap (lift x)]
+++ generic |= x=A ^- (box A) [%wrap (lift x)]
+++ repeated |= x=A ^- [a=(box A) b=(box A)] [a=[%wrap (lift x)] b=[%wrap (lift x)]]
+++ unrelated-pending
+  ~& %orphan
+    ^- (box msg) [%wrap (lift %go)]
+++ pending-null
+  ~& ~
+    ^- (box msg) [%wrap (lift %go)]
+++ discarded-constructor
+  ~& |=%orphan
+    ^- (box msg) [%wrap (lift %go)]
+++ unknown-output [%wrap (lift %go)]
+++ unknown-target |= x=A ^- A [%wrap (lift %go)]
+++ outer-callback |= [p=(payload A) fn=$-((payload A) B)] (fn p)
+++ ctor-context ^- (box @t) (outer-callback (lift "hi") |=%wrap)
+++ other-case ^- (box @t) %none
++$ full-payload |$ [A]
+  [%value item=A]
+  [%skip code=@ud]
++$ full-box |$ [A]
+  [%wrap item=(full-payload A)]
+  [%other code=@ud]
+++ make-full |= x=A ^- (full-payload A) [%value x]
+++ full-valid ^- (full-box msg) [%wrap (make-full %go)]
+++ full-cord ^- (full-box @t) [%wrap (make-full "hi")]
+++ full-ship ^- (full-box @p) [%wrap (make-full ~zod)]
+++ full-generic |= x=A ^- (full-box A) [%wrap (make-full x)]
+++ full-wrong ^- (full-box @t) [%wrap (make-full ~zod)]
+++ full-missing ^- (full-box msg) [%wrap (make-full %missing)]
+++ full-pending
+  ~& %orphan
+    ^- (full-box msg) [%wrap (make-full %go)]

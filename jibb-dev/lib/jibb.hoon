@@ -8435,6 +8435,60 @@
     $(cases t.cases, found &)
   $(cases t.cases)
 ::
+::  Select a written literal-headed case only when every competing case is
+::  also an explicit singleton-headed cell and exactly one matches. Opaque,
+::  variable-bound and differently shaped cases keep inference unchanged.
+::  This first slice supplies context to a directly called payload. Plain
+::  literal data and other expressions retain their existing inference path.
+++  contextual-atomic-arguments
+  |=  args=(list expr)
+  ^-  ?
+  ?~  args  &
+  ?.  ?=(?(%lit %wing %ctor) -.i.args)  |
+  $(args t.args)
+++  contextual-direct-payload-call
+  |=  e=expr
+  ^-  ?
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?.  ?=(%call -.e)  |
+  ?.  ?=(%wing -.head.e)  |
+  ?~  args.e  |
+  (contextual-atomic-arguments args.e)
+::
+::  A walked variable may have concealed a union inside a substituted
+::  structure before this arm was called. Decline in that case rather than
+::  deriving provenance from the already-walked type.
+++  contextual-simple-sub
+  |=  sub=isub
+  ^-  ?
+  ?~  sub  &
+  ?:  ?=(?(%cell %face %fn %union %collection) -.val.i.sub)  |
+  $(sub t.sub)
+::
+++  contextual-direct-union
+  |=  target=itype
+  ^-  ?
+  ?:  ?=(%face -.target)  $(target body.target)
+  ?=(%union -.target)
+++  contextual-tagged-case
+  |=  [target=itype tag=@ sub=isub]
+  ^-  (unit itype)
+  ?.  ?=(%union -.target)  ~
+  =/  remaining=(list itype)  cases.target
+  =/  found=(unit itype)  ~
+  =/  seen=(set @)  *(set @)
+  |-
+  ?~  remaining  found
+  =/  c=itype  i.remaining
+  ?.  ?=(%cell -.c)  ~
+  =/  head=itype  hed.c
+  ?.  ?=(%const -.head)  ~
+  ?:  (~(has in:..zuse seen) val.literal.head)  ~
+  =.  seen  (~(put in:..zuse seen) val.literal.head)
+  ?:  =(tag val.literal.head)
+    $(remaining t.remaining, found `c)
+  $(remaining t.remaining)
+::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
@@ -8495,6 +8549,34 @@
     (infer-union-context e target env state context)
   ?:  &(?=(%collection -.target) =(%list name.target) (context-list-expression e))
     (infer-list-context e target env state context)
+  ::  A literal-headed tuple can receive the unique case's payload
+  ::  context. The ordinary final fit still checks the complete union.
+  =/  selected=(unit itype)
+    ?.  &((contextual-simple-sub sub.state) (contextual-direct-union expected) ?=(%union -.target) ?=(%tuple -.e) ?=(^ items.e))  ~
+    ?~  t.items.e  ~
+    ?^  t.t.items.e  ~
+    ?.  (contextual-direct-payload-call val.i.t.items.e)  ~
+    =/  first=item  i.items.e
+    ?.  &(?=(~ face.first) ?=(%lit -.val.first) |(=(%term form.lit.val.first) =(%null form.lit.val.first) =(%loobean form.lit.val.first)))  ~
+    (contextual-tagged-case target val.lit.val.first sub.state)
+  ?^  selected
+    ?>  ?=(%tuple -.e)
+    ::  On this bounded shallow-call shape, preserve any inference that
+    ::  already fits before trying the new contextual path. Neither pass
+    ::  can recursively select a nested tuple from the atomic arguments.
+    =/  ordinary=(unit iresult)
+      =/  initial=iresult  (infer-fragment e env state)
+      ?:  ?=(%| -.initial)  ~
+      =/  fit=ifit  (itype-fit typ.p.initial target sub.state.p.initial next.state.p.initial)
+      ?.  ?=(%ok -.fit)  ~
+      `initial
+    ?^  ordinary  u.ordinary
+    =/  value=iresult  (infer-call-context-items items.e u.selected env state context)
+    ?:  ?=(%| -.value)  value
+    =/  fit=ifit  (itype-fit typ.p.value u.selected sub.state.p.value next.state.p.value)
+    ?:  ?=(%unknown -.fit)  [%| ["tagged case needs unsupported inference" ~]]
+    ?:  ?=(%bad -.fit)  [%| ["tagged case does not fit its expected type" ~[[context "expected union case"] [(span-of e) "value"]]]]
+    [%& typ.p.value state.p.value(sub sub.fit, next next.fit)]
   ?:  &(?=(%cell -.target) ?=(%tuple -.e))
     (infer-call-context-items items.e target env state context)
   (infer-fragment e env state)

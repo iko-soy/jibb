@@ -1,0 +1,20 @@
++$ msg
+  %idle
+  %busy
++$ other
+  %idle
+  %busy
+++ direct ^- (ask msg) (pure %idle)
+++ watch ^- (sub msg) [%watch (pure %idle)]
+++ watch-typed ^- (sub msg) [%watch (pure (^- msg %idle))]
+++ watch-cord ^- (sub @t) [%watch (pure "hi")]
+++ watch-ship ^- (sub @p) [%watch (pure ~zod)]
+++ wrong ^- (sub @t) [%watch (pure ~zod)]
+++ missing ^- (sub msg) [%watch (pure %missing)]
+++ alien |= x=other ^- (sub msg) [%watch (pure x)]
+++ generic |= x=A ^- (sub A) [%watch (pure x)]
+++ pending
+  ~& %orphan
+    ^- (sub msg) [%watch (pure %idle)]
+++ unknown |= x=A [%watch (pure x)]
+++ unknown-target |= x=A ^- A [%watch (pure %idle)]

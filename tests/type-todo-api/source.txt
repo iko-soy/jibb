@@ -12,3 +12,10 @@
 ++ todos-id |= x=todos.api x
 ++ update-id |= x=todo-update.api x
 ++ item-mark-id |= x=todo-item.api x
++$ model [todos=(list item.api) draft=@t error=(unit @t)]
++$ msg
+  [%got todos=(list item.api)]
+  %other
+++ subs |= m=model
+  ^- (list (sub msg))
+    ~[[%watch (todos.api |=%got)]]

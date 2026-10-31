@@ -1,0 +1,27 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ other: cases proven disjoint; mold not checked
+++ direct: (ask msg)
+++ watch: (sub msg)
+++ watch-typed: (sub msg)
+++ watch-cord: (sub @t)
+++ watch-ship: (sub @p)
+++ wrong: call's sample and argument types do not unify
+/tests/golden/types-prelude-sub-nested/source.jibb:12:31: called gate
+++ wrong ^- (sub @t) [%watch (pure ~zod)]
+                              ^
+/tests/golden/types-prelude-sub-nested/source.jibb:12:36: argument has type @p
+++ wrong ^- (sub @t) [%watch (pure ~zod)]
+                                   ^
+++ missing: msg has no case `%missing`
+/tests/golden/types-prelude-sub-nested/source.jibb:13:34: expected union
+++ missing ^- (sub msg) [%watch (pure %missing)]
+                                 ^
+/tests/golden/types-prelude-sub-nested/source.jibb:13:39: tag
+++ missing ^- (sub msg) [%watch (pure %missing)]
+                                      ^
+++ alien: call constraint is not supported by partial inference
+++ generic: $-(A (sub A))
+++ pending: tag needs context in partial inference
+++ unknown: tag needs context in partial inference
+++ unknown-target: explicit capital constraints are not supported by partial inference

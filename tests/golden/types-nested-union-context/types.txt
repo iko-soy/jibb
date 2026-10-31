@@ -1,0 +1,49 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ alt: cases proven disjoint; mold not checked
++$ payload: cases proven disjoint; mold not checked
++$ box: cases proven disjoint; mold not checked
++$ reverse: cases proven disjoint; mold not checked
+++ lift: $-(A (payload A))
+++ direct: (payload msg)
+++ nested: cast constraint is not supported by partial inference
+++ nested-alias: cast constraint is not supported by partial inference
+++ nested-typed: cast constraint is not supported by partial inference
+++ nested-cord: cast constraint is not supported by partial inference
+++ nested-ship: cast constraint is not supported by partial inference
+++ independent: cast constraint is not supported by partial inference
+++ wrong-payload: cast constraint is not supported by partial inference
+++ wrong-tag: cast constraint is not supported by partial inference
+++ wrong-origin: cast constraint is not supported by partial inference
+++ generic: cast constraint is not supported by partial inference
+++ repeated: cast constraint is not supported by partial inference
+++ unrelated-pending: cast constraint is not supported by partial inference
+++ pending-null: cast constraint is not supported by partial inference
+++ discarded-constructor: cast constraint is not supported by partial inference
+++ unknown-output: tag needs context in partial inference
+++ unknown-target: explicit capital constraints are not supported by partial inference
+++ outer-callback: $-([p=(payload A) fn=$-((payload A) B)] B)
+++ ctor-context: (box @t)
+++ other-case: (box @t)
++$ full-payload: cases proven disjoint; mold not checked
++$ full-box: cases proven disjoint; mold not checked
+++ make-full: $-(A (full-payload A))
+++ full-valid: (full-box msg)
+++ full-cord: (full-box @t)
+++ full-ship: (full-box @p)
+++ full-generic: $-(A (full-box A))
+++ full-wrong: call's sample and argument types do not unify
+/tests/golden/types-nested-union-context/source.jibb:55:40: called gate
+++ full-wrong ^- (full-box @t) [%wrap (make-full ~zod)]
+                                       ^
+/tests/golden/types-nested-union-context/source.jibb:55:50: argument has type @p
+++ full-wrong ^- (full-box @t) [%wrap (make-full ~zod)]
+                                                 ^
+++ full-missing: msg has no case `%missing`
+/tests/golden/types-nested-union-context/source.jibb:56:43: expected union
+++ full-missing ^- (full-box msg) [%wrap (make-full %missing)]
+                                          ^
+/tests/golden/types-nested-union-context/source.jibb:56:53: tag
+++ full-missing ^- (full-box msg) [%wrap (make-full %missing)]
+                                                    ^
+++ full-pending: tag needs context in partial inference

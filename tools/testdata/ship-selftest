@@ -314,7 +314,8 @@ def generator_checks(tmp):
            'tests/lib/jibb-closed-gate-guards.hoon',
            'tests/lib/jibb-todo-api.hoon',
            'tests/lib/jibb-constructor-fit-guards.hoon',
-           'tests/lib/jibb-sub-guards.hoon'}
+           'tests/lib/jibb-sub-guards.hoon',
+           'tests/lib/jibb-nested-union-guards.hoon'}
           <= normal_tests, sorted(normal_tests))
     for label, kwargs in (('custom library', {'lib': STUB}),
                           ('custom goldens', {'golden': CASES}),

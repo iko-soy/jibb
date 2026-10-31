@@ -1,0 +1,100 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %idle) (const 3:3 %busy)))
+  (mold 4:1 other
+    (union 5:3 (const 5:3 %idle) (const 6:3 %busy)))
+  (value 7:1 direct
+    (cast 7:11
+      (apply 7:14 ask (ref 7:19 msg))
+      (group 7:24
+        (call 7:25 (wing 7:25 pure) (lit 7:30 %idle)))))
+  (value 8:1 watch
+    (cast 8:10
+      (apply 8:13 sub (ref 8:18 msg))
+      (tuple 8:23
+        (lit 8:24 %watch)
+        (group 8:31
+          (call 8:32 (wing 8:32 pure) (lit 8:37 %idle))))))
+  (value 9:1 watch-typed
+    (cast 9:16
+      (apply 9:19 sub (ref 9:24 msg))
+      (tuple 9:29
+        (lit 9:30 %watch)
+        (group 9:37
+          (call 9:38
+            (wing 9:38 pure)
+            (group 9:43
+              (cast 9:44 (ref 9:47 msg) (lit 9:51 %idle))))))))
+  (value 10:1 watch-cord
+    (cast 10:15
+      (apply 10:18 sub (aura 10:23 @t))
+      (tuple 10:27
+        (lit 10:28 %watch)
+        (group 10:35
+          (call 10:36 (wing 10:36 pure) (str 10:41 "hi"))))))
+  (value 11:1 watch-ship
+    (cast 11:15
+      (apply 11:18 sub (aura 11:23 @p))
+      (tuple 11:27
+        (lit 11:28 %watch)
+        (group 11:35
+          (call 11:36 (wing 11:36 pure) (lit 11:41 ~zod))))))
+  (value 12:1 wrong
+    (cast 12:10
+      (apply 12:13 sub (aura 12:18 @t))
+      (tuple 12:22
+        (lit 12:23 %watch)
+        (group 12:30
+          (call 12:31 (wing 12:31 pure) (lit 12:36 ~zod))))))
+  (value 13:1 missing
+    (cast 13:12
+      (apply 13:15 sub (ref 13:20 msg))
+      (tuple 13:25
+        (lit 13:26 %watch)
+        (group 13:33
+          (call 13:34 (wing 13:34 pure) (lit 13:39 %missing))))))
+  (value 14:1 alien
+    (gate 14:10
+      (face 14:13 x (ref 14:15 other))
+      (cast 14:21
+        (apply 14:24 sub (ref 14:29 msg))
+        (tuple 14:34
+          (lit 14:35 %watch)
+          (group 14:42
+            (call 14:43 (wing 14:43 pure) (wing 14:48 x)))))))
+  (value 15:1 generic
+    (gate 15:12
+      (face 15:15 x (tvar 15:17 A))
+      (cast 15:19
+        (apply 15:22 sub (tvar 15:27 A))
+        (tuple 15:30
+          (lit 15:31 %watch)
+          (group 15:38
+            (call 15:39 (wing 15:39 pure) (wing 15:44 x)))))))
+  (value 16:1 pending
+    (body 17:3
+      (trace 17:3
+        (lit 17:6 %orphan)
+        (body 18:5
+          (cast 18:5
+            (apply 18:8 sub (ref 18:13 msg))
+            (tuple 18:18
+              (lit 18:19 %watch)
+              (group 18:26
+                (call 18:27 (wing 18:27 pure) (lit 18:32 %idle)))))))))
+  (value 19:1 unknown
+    (gate 19:12
+      (face 19:15 x (tvar 19:17 A))
+      (tuple 19:19
+        (lit 19:20 %watch)
+        (group 19:27
+          (call 19:28 (wing 19:28 pure) (wing 19:33 x))))))
+  (value 20:1 unknown-target
+    (gate 20:19
+      (face 20:22 x (tvar 20:24 A))
+      (cast 20:26
+        (tvar 20:29 A)
+        (tuple 20:31
+          (lit 20:32 %watch)
+          (group 20:39
+            (call 20:40 (wing 20:40 pure) (lit 20:45 %idle))))))))

@@ -16,7 +16,7 @@ partial inference; module not checked
 ++ complete: union branch result matching needs unsupported inference
 +$ my-msg: cases proven disjoint; mold not checked
 ++ take-watch: $-((sub my-msg) (ask my-msg))
-++ watch-pure: cast constraint is not supported by partial inference
+++ watch-pure: (sub my-msg)
 ++ watch-generic: $-((ask A) (sub A))
 ++ independent-text: $-((ask @t) (sub @t))
 ++ independent-ship: $-((ask @p) (sub @p))

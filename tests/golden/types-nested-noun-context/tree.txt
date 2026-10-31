@@ -1,0 +1,162 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %ready) (const 3:3 %idle)))
+  (mold 4:1 inner
+    (generic 4:10 A
+      (union 5:3
+        (cell 5:3
+          (const 5:4 %one)
+          (face 5:9 item (tvar 5:14 A)))
+        (cell 6:3
+          (const 6:4 %two)
+          (face 6:9 item (tvar 6:14 A))))))
+  (mold 7:1 null-out
+    (generic 7:13 A
+      (union 8:3
+        (cell 8:3
+          (const 8:4 ~)
+          (face 8:6 item
+            (apply 8:11 inner (tvar 8:18 A))))
+        (cell 9:3
+          (const 9:4 %other)
+          (face 9:11 value (aura 9:17 @ud))))))
+  (mold 10:1 flag-out
+    (generic 10:13 A
+      (union 11:3
+        (cell 11:3
+          (const 11:4 %.y)
+          (face 11:8 item
+            (apply 11:13 inner (tvar 11:20 A))))
+        (cell 12:3
+          (const 12:4 %other)
+          (face 12:11 value (aura 12:17 @ud))))))
+  (mold 13:1 term-out
+    (generic 13:13 A
+      (union 14:3
+        (cell 14:3
+          (const 14:4 %$)
+          (face 14:7 item
+            (apply 14:12 inner (tvar 14:19 A))))
+        (cell 15:3
+          (const 15:4 %other)
+          (face 15:11 value (aura 15:17 @ud))))))
+  (mold 16:1 competitors
+    (generic 16:16 A
+      (union 17:3
+        (cell 17:3
+          (const 17:4 ~)
+          (face 17:6 item
+            (apply 17:11 inner (tvar 17:18 A))))
+        (cell 18:3
+          (const 18:4 %.y)
+          (face 18:8 value (aura 18:14 @p))))))
+  (value 19:1 inner
+    (gate 19:10
+      (face 19:13 x (tvar 19:15 A))
+      (cast 19:17
+        (apply 19:20 inner (tvar 19:27 A))
+        (tuple 19:30 (lit 19:31 %one) (wing 19:36 x)))))
+  (value 20:1 null-null
+    (cast 20:14
+      (apply 20:17 null-out (ref 20:27 msg))
+      (tuple 20:32
+        (lit 20:33 ~)
+        (group 20:35
+          (call 20:36 (wing 20:36 inner) (lit 20:42 %ready))))))
+  (value 21:1 flag-null
+    (cast 21:14
+      (apply 21:17 null-out (ref 21:27 msg))
+      (tuple 21:32
+        (lit 21:33 %.y)
+        (group 21:37
+          (call 21:38 (wing 21:38 inner) (lit 21:44 %ready))))))
+  (value 22:1 term-null
+    (cast 22:14
+      (apply 22:17 null-out (ref 22:27 msg))
+      (tuple 22:32
+        (lit 22:33 %$)
+        (group 22:36
+          (call 22:37 (wing 22:37 inner) (lit 22:43 %ready))))))
+  (value 23:1 null-flag
+    (cast 23:14
+      (apply 23:17 flag-out (ref 23:27 msg))
+      (tuple 23:32
+        (lit 23:33 ~)
+        (group 23:35
+          (call 23:36 (wing 23:36 inner) (lit 23:42 %ready))))))
+  (value 24:1 flag-flag
+    (cast 24:14
+      (apply 24:17 flag-out (ref 24:27 msg))
+      (tuple 24:32
+        (lit 24:33 %.y)
+        (group 24:37
+          (call 24:38 (wing 24:38 inner) (lit 24:44 %ready))))))
+  (value 25:1 term-flag
+    (cast 25:14
+      (apply 25:17 flag-out (ref 25:27 msg))
+      (tuple 25:32
+        (lit 25:33 %$)
+        (group 25:36
+          (call 25:37 (wing 25:37 inner) (lit 25:43 %ready))))))
+  (value 26:1 null-term
+    (cast 26:14
+      (apply 26:17 term-out (ref 26:27 msg))
+      (tuple 26:32
+        (lit 26:33 ~)
+        (group 26:35
+          (call 26:36 (wing 26:36 inner) (lit 26:42 %ready))))))
+  (value 27:1 flag-term
+    (cast 27:14
+      (apply 27:17 term-out (ref 27:27 msg))
+      (tuple 27:32
+        (lit 27:33 %.y)
+        (group 27:37
+          (call 27:38 (wing 27:38 inner) (lit 27:44 %ready))))))
+  (value 28:1 term-term
+    (cast 28:14
+      (apply 28:17 term-out (ref 28:27 msg))
+      (tuple 28:32
+        (lit 28:33 %$)
+        (group 28:36
+          (call 28:37 (wing 28:37 inner) (lit 28:43 %ready))))))
+  (value 29:1 wrong-inner
+    (cast 29:16
+      (apply 29:19 null-out (ref 29:29 msg))
+      (tuple 29:34
+        (lit 29:35 %$)
+        (group 29:38
+          (call 29:39 (wing 29:39 inner) (lit 29:45 %missing))))))
+  (value 30:1 wrong-payload
+    (cast 30:18
+      (apply 30:21 flag-out (aura 30:31 @t))
+      (tuple 30:35
+        (lit 30:36 ~)
+        (group 30:38
+          (call 30:39 (wing 30:39 inner) (lit 30:45 ~zod))))))
+  (value 31:1 pending
+    (body 32:3
+      (trace 32:3
+        (lit 32:6 %orphan)
+        (body 33:5
+          (cast 33:5
+            (apply 33:8 term-out (ref 33:18 msg))
+            (tuple 33:23
+              (lit 33:24 %.y)
+              (group 33:28
+                (call 33:29 (wing 33:29 inner) (lit 33:35 %ready)))))))))
+  (value 34:1 unknown-target
+    (gate 34:19
+      (face 34:22 x (tvar 34:24 A))
+      (cast 34:26
+        (tvar 34:29 A)
+        (tuple 34:31
+          (lit 34:32 ~)
+          (group 34:34
+            (call 34:35 (wing 34:35 inner) (lit 34:41 %ready)))))))
+  (value 35:1 ambiguous
+    (cast 35:14
+      (apply 35:17 competitors (ref 35:30 msg))
+      (tuple 35:35
+        (lit 35:36 ~)
+        (group 35:38
+          (call 35:39 (wing 35:39 inner) (lit 35:45 %ready)))))))

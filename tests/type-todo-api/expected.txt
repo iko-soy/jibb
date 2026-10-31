@@ -12,3 +12,6 @@ partial inference; module not checked
 ++ todos-id: $-((list [id=@ud [done=? text=@t]]) (list [id=@ud [done=? text=@t]]))
 ++ update-id: $-(([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]) ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]))
 ++ item-mark-id: $-([id=@ud [done=? text=@t]] [id=@ud [done=? text=@t]])
++$ model: not checked
++$ msg: cases proven disjoint; mold not checked
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))

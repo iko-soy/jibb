@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: "It works for cases whose head is a literal with the same noun as the tag, regardless of how that literal is written"; `|=%$` also constructs a case headed by `%.y` or `~`.
+tests: Null, loobean-zero and term-zero input/head combinations with nested generic payloads; missing, mismatched, ambiguous and unknown contexts remain conservative.
+expect: parses
+expect-types: a partial inference report

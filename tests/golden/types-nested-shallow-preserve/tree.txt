@@ -1,0 +1,136 @@
+(module
+  (mold 1:1 length
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %fill)
+        (face 2:10 n (aura 2:12 @ud)))
+      (const 3:3 %shrink)))
+  (mold 4:1 attr
+    (union 5:3
+      (cell 5:3 (const 5:4 %width) (ref 5:11 length))
+      (cell 6:3 (const 6:4 %gap) (aura 6:9 @tas))))
+  (value 7:1 number-id
+    (gate 7:14
+      (face 7:17 x (aura 7:19 @ud))
+      (wing 7:23 x)))
+  (value 8:1 plain
+    (cast 8:10
+      (ref 8:13 attr)
+      (pair 8:18 width
+        (tuple 8:24 (lit 8:25 %fill) (lit 8:31 1)))))
+  (value 9:1 direct
+    (cast 9:11
+      (ref 9:14 attr)
+      (tuple 9:19
+        (lit 9:20 %width)
+        (tuple 9:27 (lit 9:28 %fill) (lit 9:34 1)))))
+  (value 10:1 list
+    (cast 10:9
+      (apply 10:12 list (ref 10:18 attr))
+      (list 10:24
+        (pair 10:26 width
+          (tuple 10:32 (lit 10:33 %fill) (lit 10:39 1))))))
+  (value 11:1 accept
+    (gate 11:11
+      (face 11:14 value (ref 11:20 attr))
+      (wing 11:25 value)))
+  (value 12:1 call
+    (group 12:9
+      (call 12:10
+        (wing 12:10 accept)
+        (pair 12:17 width
+          (tuple 12:23 (lit 12:24 %fill) (lit 12:30 1))))))
+  (value 13:1 simple-call
+    (cast 13:16
+      (ref 13:19 attr)
+      (pair 13:24 width
+        (tuple 13:30
+          (lit 13:31 %fill)
+          (group 13:37
+            (call 13:38 (wing 13:38 number-id) (lit 13:48 1)))))))
+  (value 14:1 grouped-call
+    (cast 14:17
+      (ref 14:20 attr)
+      (pair 14:25 width
+        (tuple 14:31
+          (lit 14:32 %fill)
+          (group 14:38
+            (group 14:39
+              (call 14:40 (wing 14:40 number-id) (lit 14:50 1))))))))
+  (value 15:1 cast-call
+    (cast 15:14
+      (ref 15:17 attr)
+      (pair 15:22 width
+        (tuple 15:28
+          (lit 15:29 %fill)
+          (group 15:35
+            (cast 15:36
+              (aura 15:39 @ud)
+              (group 15:43
+                (call 15:44 (wing 15:44 number-id) (lit 15:54 1)))))))))
+  (value 16:1 nested-call
+    (cast 16:16
+      (ref 16:19 attr)
+      (pair 16:24 width
+        (tuple 16:30
+          (lit 16:31 %fill)
+          (group 16:37
+            (call 16:38
+              (wing 16:38 number-id)
+              (group 16:48
+                (call 16:49 (wing 16:49 number-id) (lit 16:59 1)))))))))
+  (value 17:1 bad-tag
+    (cast 17:12
+      (ref 17:15 attr)
+      (pair 17:20 width
+        (tuple 17:26 (lit 17:27 %missing) (lit 17:36 1)))))
+  (value 18:1 bad-number
+    (cast 18:15
+      (ref 18:18 attr)
+      (pair 18:23 width
+        (tuple 18:29 (lit 18:30 %fill) (str 18:36 "bad")))))
+  (value 19:1 pending
+    (body 20:3
+      (trace 20:3
+        (lit 20:6 %unrelated)
+        (body 21:5
+          (cast 21:5
+            (ref 21:8 attr)
+            (pair 21:13 width
+              (tuple 21:19
+                (lit 21:20 %fill)
+                (group 21:26
+                  (call 21:27 (wing 21:27 number-id) (lit 21:37 1))))))))))
+  (value 22:1 singleton
+    (cast 22:14
+      (ref 22:17 attr)
+      (pair 22:22 width (lit 22:28 %shrink))))
+  (mold 23:1 event
+    (union 24:3
+      (cell 24:3
+        (const 24:4 %got)
+        (face 24:9 value (aura 24:15 @t)))
+      (const 25:3 %idle)))
+  (mold 26:1 envelope
+    (union 27:3
+      (cell 27:3
+        (const 27:4 %handler)
+        (face 27:13 callback
+          (fn 27:22 (aura 27:25 @t) (ref 27:28 event))))
+      (cell 28:3
+        (const 28:4 %empty)
+        (face 28:11 value (aura 28:17 @ud)))))
+  (value 29:1 constructor
+    (cast 29:16
+      (ref 29:19 envelope)
+      (tuple 29:28 (lit 29:29 %handler) (ctor 29:38 %got))))
+  (value 30:1 unknown-target
+    (gate 30:19
+      (face 30:22 x (tvar 30:24 A))
+      (cast 30:26
+        (tvar 30:29 A)
+        (pair 30:31 width
+          (tuple 30:37
+            (lit 30:38 %fill)
+            (group 30:44
+              (call 30:45 (wing 30:45 number-id) (lit 30:55 1)))))))))

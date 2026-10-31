@@ -27,7 +27,7 @@ The internal prelude also defines `qath` as a transparent recursive knot sequenc
 
 The internal prelude defines a transparent generic `ask` with pure, agent and store cases, re-exported alongside the Jibb-written `pure` gate. The partial checker infers supported constructors and exhaustive matches. Agent and store receivers operate on raw nouns; their fields do not prove schema validity or watchability. The public prelude now defines the documented source-backed `sub` union; supported `%watch` payloads retain the public `(ask M)` type. Constructing a `sub` does not prove that its request is watchable. Request lowering, checked decoding, runtime validation and island watch checking remain unimplemented.
 
-Known same-origin generic-union result context can now constrain a call before its arguments are inferred. An unresolved or opaque constructor target stays unsupported rather than producing a definite mismatch; proven missing tags still report errors. A todo request with explicit `(ask msg)` context can infer `|=%got`, while its uncontextualized form and the nested todo subscription remain unsupported.
+Known same-origin generic-union result context can now constrain a call before its arguments are inferred. An unresolved or opaque constructor target stays unsupported rather than producing a definite mismatch; proven missing tags still report errors. A todo request with explicit `(ask msg)` context can infer `|=%got`; its uncontextualized form remains unsupported. A two-item literal-headed tuple can receive payload context from a known union of uniquely headed literal cells when its payload is a shallow wing-headed call with literal, wing or constructor arguments. Existing inference takes precedence when it fits; otherwise the checker tries the contextual path once. It conservatively declines that path when any substitution has a structural root, as well as for duplicate or opaque competitors. The guard scans substitutions per eligible tuple and may add one shallow inference; no global linear-time bound is claimed. This allows an explicitly typed todo subscription body to infer, but does not check the island or prove request watchability.
 
 The API path analyzer can retain its source, complete prepared prelude, reader results and resolved dependencies as evidence, and classify a unique declaration as watchable, not watchable or unknown. It does not yet prove the provenance of request values or check island subscriptions. Prepared artifacts and reader results remain trusted host inputs.
 
@@ -59,8 +59,8 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 645 golden cases: 425 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 645-case corpus passed under `urbit eval` in 119.8 s while other checks were running. The fake ship passed all 671 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor and sub guards, with 102.2 s for sync and 97.1 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- 649 golden cases: 429 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 649-case corpus passed under `urbit eval` in 96.0 s while other checks were running. The fake ship passed all 676 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub and nested-union guards, with 71.8 s for sync and 85.7 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -154,14 +154,15 @@ Besides the plan's list:
 | ae1ec26 | 2026-10-31 | Prove selected default-wrapped Hoon unions from source |
 | dde791c | 2026-10-31 | Infer a source-backed request-gate type through ordinary imports |
 | a1c5f35 | 2026-10-31 | Infer supported multi-path requests and named closed folds |
-| This change | 2026-10-31 | Propagate union context, define subscriptions and match literal nouns |
+| 911ca0c | 2026-10-31 | Propagate union context, define subscriptions and match literal nouns |
+| This change | 2026-10-31 | Infer selected nested union payloads from context |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 645 cases under urbit eval
+tools/golden                      # 649 cases under urbit eval
 tools/importer-test               # the Hoon importer fixture projection
 tools/type-import-default-test    # default-wrapped source proof golden
 tools/type-import-test            # the importer/checker bridge fixture
@@ -183,7 +184,7 @@ tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 645 cases as -test arms on the ship
+tools/ship test                   # the same 649 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
 tools/ship check-commit           # |commit stores .jibb files

@@ -1,0 +1,4 @@
+source: Overview, Effects: `+$ sub |$ [M]` includes `[%watch a=(ask M)]`; "A request such as `(todos.todo |=%got)` comes from a declared path or a store's `state`."
+tests: Source-backed `(sub msg)` context reaches nested `pure`, including independent and generic uses, missing tags, mismatched payloads, distinct origins and pending constraints. This is a partial inference report and does not prove a value is watchable or executable.
+expect: parses
+expect-types: a partial inference report

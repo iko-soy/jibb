@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: "Number and cell literals resolve like tags: each waits for its context"; Literals: `gap+%s2` is `[%gap %s2]`.
+tests: Previously supported nested pair and direct-cell contexts stay inferred through lists and calls; calls, groups, casts and constructors preserve errors and pending constraints. Unknown targets fail closed.
+expect: parses
+expect-types: a partial inference report
