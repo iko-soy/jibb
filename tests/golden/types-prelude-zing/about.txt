@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Prelude: "Hoon's standard library regrouped, written in Jibb"; the Lists row includes section 2b.
+tests: Source-backed zing infers empty and nested text lists, ship elements, independently generic element types and gate elements, and reports both sites for a non-list. The Jibb type is homogeneous (list (list A)) to (list A); Hoon's raw heterogeneous noun-list behavior is outside this type. This checks partial inference only; backend execution and jet recognition remain unverified.
+expect: parses
+expect-types: a partial inference report

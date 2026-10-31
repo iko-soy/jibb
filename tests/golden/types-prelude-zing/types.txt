@@ -1,0 +1,13 @@
+partial inference; module not checked
+++ empty: (list @t)
+++ nested: (list @t)
+++ ships: (list @p)
+++ generic: $-((list (list A)) (list A))
+++ gates: $-((list (list $-(A B))) (list $-(A B)))
+++ bad: call's sample and argument types do not unify
+/tests/golden/types-prelude-zing/source.jibb:6:9: called gate has type $-((list (list A)) (list A))
+++ bad (zing "not a list of lists")
+        ^
+/tests/golden/types-prelude-zing/source.jibb:6:14: argument has type @t
+++ bad (zing "not a list of lists")
+             ^

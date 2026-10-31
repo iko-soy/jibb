@@ -26,7 +26,7 @@ The source-backed `gth` gate calls a compiler-supplied private comparison interf
 
 `biff`, `bind`, `bond`, `both`, `clap`, `clef`, `drop`, `fall`, `flit`, `hunt`, `lift`, `mate`, `need`, `some`.
 
-The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `bond`, `both`, `clap`, `clef`, `drop` and `flit`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. Backend validation remains outstanding for all of them.
+The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `bond`, `both`, `clap`, `clef`, `drop` and `flit`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. `zing` concatenates homogeneous lists in order; Hoon’s raw `zing` can also flatten heterogeneous noun lists, which this Jibb type does not express. A Hoon translation agrees with Hoon `zing` on selected finite inputs; this is not Jibb execution. Backend validation and jet recognition remain outstanding for all of them.
 
 | Name | Hoon behavior | Jibb status |
 | --- | --- | --- |
@@ -49,7 +49,7 @@ The following is an audit of the Hoon 135 bodies, not a completed Jibb interface
 
 `snoc`, `lure`, `fand`, `find`, `flop`, `gulf`, `homo`, `join`, `bake`, `lent`, `levy`, `lien`, `limo`, `murn`, `oust`, `reap`, `rear`, `reel`, `roll`, `scag`, `skid`, `skim`, `skip`, `slag`, `snag`, `snip`, `sort`, `spin`, `spun`, `swag`, `turn`, `weld`, `snap`, `into`, `welp`, `zing`.
 
-The current prelude writes `snoc`, `lure`, `flop`, `join`, `lent`, `levy`, `lien`, `murn`, `rear`, `reel`, `roll`, `skim`, `skip`, `snip`, `turn` and `weld`. `lent` counts items by recursion and `add`; `murn` keeps the present products of its gate in order; `join` inserts a separator between items; `snip` drops the last item, and `rear` returns it or crashes on an empty list. The folds take an explicit initial value as the Prelude table specifies. The partial checker infers `snoc`, `lure`, `weld`, `turn`, `flop`, `rear`, `skim`, `skip`, `murn`, `join`, `snip`, `lent`, `levy` and `lien` using the validated prelude `list` mold; other list helpers remain limited by that fragment. The result casts on `drop`, `skim`, `skip`, `murn`, `join`, `snip`, `levy` and `lien` state their existing result types without changing their bodies. Backend validation remains outstanding for all of them.
+The current prelude writes `snoc`, `lure`, `flop`, `join`, `lent`, `zing`, `levy`, `lien`, `murn`, `rear`, `reel`, `roll`, `skim`, `skip`, `snip`, `turn` and `weld`. `lent` counts items by recursion and `add`; `murn` keeps the present products of its gate in order; `join` inserts a separator between items; `snip` drops the last item, and `rear` returns it or crashes on an empty list. The folds take an explicit initial value as the Prelude table specifies. The partial checker infers `snoc`, `lure`, `weld`, `turn`, `flop`, `rear`, `skim`, `skip`, `murn`, `join`, `snip`, `lent`, `zing`, `levy` and `lien` using the validated prelude `list` mold; other list helpers remain limited by that fragment. The result casts on `drop`, `skim`, `skip`, `murn`, `join`, `snip`, `levy` and `lien` state their existing result types without changing their bodies. Backend validation remains outstanding for all of them.
 
 ## 2c
 

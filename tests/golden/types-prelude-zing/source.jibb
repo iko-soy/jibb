@@ -1,0 +1,6 @@
+++ empty (zing (^- (list (list @t)) ~))
+++ nested (zing ~[~["a" "b"] ~[] ~["c"]])
+++ ships (zing ~[~[~zod] ~[~nec]])
+++ generic |= xss=(list (list A)) (zing xss)
+++ gates |= xss=(list (list $-(A B))) (zing xss)
+++ bad (zing "not a list of lists")

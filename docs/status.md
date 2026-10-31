@@ -49,6 +49,8 @@ The repository spec records the subsequent type-system and prelude decisions, in
 
 The shared prelude interface reserves every name present in the supplied vendored source and makes only supported inferred entries available, including `list`, `unit`, `same`, `fall`, `need`, `bond`, `lure`, `weld`, `snoc`, `turn` and `lent`. The validated standard `list` mold is injected when the prelude’s own gates are inferred; `weld` and `turn` have ordinary explicit result casts. An absent or altered `list` is not injected, and an altered declaration cannot leak through direct or transitive mold aliases. The same validated template is available when prelude mold aliases are prepared, so supported direct and transitive aliases can use it. Unsupported entries such as most list helpers remain reserved but unavailable; backend validation of the helpers remains outstanding. All callers use the same prelude origin, so a library can export a type containing unqualified `(unit A)` to another module. The source-only `+prepare-prelude` rejects empty, malformed, conflicting or import-bearing source; `+prepare-prelude-with-internal` also accepts the supported private internal import. Prepared values are trusted and must come unchanged from the matching preparation arm. When canonical public list or unit templates are missing or altered, independently inferred private molds remain available, while molds that depend on those templates do not. The module-scope fixture compares the prepared and source-taking paths against the real prelude and a two-module golden under eval and on the ship. The source and checker remain incomplete, so this does not establish complete shadowing coverage or a checked module.
 
+The prelude also has a Jibb-written `zing` that concatenates homogeneous lists via `weld`. Its focused golden infers empty, nested text, ship, generic and gate-element lists and reports a non-list error; the same golden passes on the ship. A Hoon translation agrees with Hoon `zing` on selected finite inputs, not on Jibb execution. Hoon’s raw helper additionally accepts heterogeneous noun lists, which the Jibb signature does not express. Backend lowering and jet recognition remain unverified.
+
 An eval and ship fixture now reports partial inference for the unchanged todo island with its real API and Hoon readers. It verifies that the source fixtures match `my-app` and exercises missing or duplicate imports; the report does not claim the module or island has been checked. The prelude also has a Jibb-written recursive `lent` whose supported generic calls infer `@ud`. Execution and shape-based jet recognition remain future backend work. Nested union tests check equal runtime nouns, different nested tags, empty fields and unknown inhabitation.
 
 The prelude now writes `lth`, `gte` and `lte` in Jibb using `gth` and `not`. Supported generic and concrete calls infer, including loobeans; mismatched explicit auras fail. Execution, jet recognition and complete import checking remain unfinished.
@@ -73,8 +75,8 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 652 golden cases: 432 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 652-case corpus passed under `urbit eval` in 110.7 s while other checks were running. The fake ship passed all 687 tests, including the source-overlap, structural-overlap and generic-recursion fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 90.8 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- 653 golden cases: 433 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 653-case corpus passed under `urbit eval` in 107.5 s while other checks were running. The fake ship passed all 688 tests, including the source-overlap, structural-overlap and generic-recursion fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 94.5 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -177,14 +179,15 @@ Besides the plan's list:
 | 09db390 | 2026-10-31 | Skip unnecessary inference environment scans |
 | 179d717 | 2026-10-31 | Diagnose source-proven Hoon union overlaps |
 | 142f2e2 | 2026-10-31 | Prove structural overlaps across Hoon union cases |
-| This change | 2026-10-31 | Track source-proven generic recursive identities |
+| c96597d | 2026-10-31 | Track source-proven generic recursive identities |
+| This change | 2026-10-31 | Add source-backed list flattening |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 652 cases under urbit eval
+tools/golden                      # 653 cases under urbit eval
 tools/importer-test               # the Hoon importer fixture projection
 tools/type-import-default-test    # default-wrapped source proof golden
 tools/type-import-test            # the importer/checker bridge fixture
@@ -209,7 +212,7 @@ tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 652 cases as -test arms on the ship
+tools/ship test                   # the same 653 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
 tools/ship check-commit           # |commit stores .jibb files

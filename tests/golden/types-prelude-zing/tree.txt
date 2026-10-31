@@ -1,0 +1,43 @@
+(module
+  (value 1:1 empty
+    (group 1:10
+      (call 1:11
+        (wing 1:11 zing)
+        (group 1:16
+          (cast 1:17
+            (apply 1:20 list
+              (apply 1:26 list (aura 1:32 @t)))
+            (lit 1:37 ~))))))
+  (value 2:1 nested
+    (group 2:11
+      (call 2:12
+        (wing 2:12 zing)
+        (list 2:17
+          (list 2:19 (str 2:21 "a") (str 2:25 "b"))
+          (list 2:30)
+          (list 2:34 (str 2:36 "c"))))))
+  (value 3:1 ships
+    (group 3:10
+      (call 3:11
+        (wing 3:11 zing)
+        (list 3:16
+          (list 3:18 (lit 3:20 ~zod))
+          (list 3:26 (lit 3:28 ~nec))))))
+  (value 4:1 generic
+    (gate 4:12
+      (face 4:15 xss
+        (apply 4:19 list
+          (apply 4:25 list (tvar 4:31 A))))
+      (group 4:35
+        (call 4:36 (wing 4:36 zing) (wing 4:41 xss)))))
+  (value 5:1 gates
+    (gate 5:10
+      (face 5:13 xss
+        (apply 5:17 list
+          (apply 5:23 list
+            (fn 5:29 (tvar 5:32 A) (tvar 5:34 B)))))
+      (group 5:39
+        (call 5:40 (wing 5:40 zing) (wing 5:45 xss)))))
+  (value 6:1 bad
+    (group 6:8
+      (call 6:9 (wing 6:9 zing) (str 6:14 "not a list of lists")))))

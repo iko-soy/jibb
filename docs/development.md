@@ -137,6 +137,7 @@ tools/type-arithmetic-guards-test   # arithmetic constraint guards pass
 tools/type-module-scope-test       # module/prelude scope golden report matches
 tools/hoon check-spans-test        # prints <<>>
 tools/hoon itype-unify-test        # type-unification controls pass
+tools/hoon -f tools/testdata/zing-hoon-reference.hoon # Hoon translation agrees on four inputs
 tools/testdata/selftest            # 22 checks, 0 failed
 tools/doc-blocks docs/spec         # every jibb block has its case
 tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date

@@ -362,3 +362,9 @@
 ++ lte |= args=[A A]
   ?- args
     [x y] (not (gth x y))
+
+++ zing |= xss=(list (list A))
+  ^- (list A)
+    ?- xss
+      ~ ~
+      [xs rest] (weld xs (zing rest))
