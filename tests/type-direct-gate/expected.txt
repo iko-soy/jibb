@@ -1,0 +1,86 @@
+partial inference; module not checked
++$ message: cases proven disjoint; mold not checked
+++ init: $-(@t @ud)
+++ update: $-([msg=message state=@ud] [@ud (list (cmd message))])
+++ view: $-(@ud [%node item=message])
+++ subs: $-(@ud (list (sub message)))
+++ direct: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud [%node item=message]) subs=$-(@ud (list (sub message)))]]]
+++ wrong-init: $-(@p @ud)
+++ different-data: [init=$-(@p @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud [%node item=message]) subs=$-(@ud (list (sub message)))]]]
+++ wrong-update: $-([msg=message state=@p] [@p (list (cmd message))])
+++ mismatched-model: call constraint is not supported by partial inference
+++ wrong-view: $-(@p [%node item=message])
+++ mismatched-view: call constraint is not supported by partial inference
+++ wrong-subs: $-(@p (list (sub message)))
+++ mismatched-subs: call constraint is not supported by partial inference
++$ other: cases proven disjoint; mold not checked
+++ wrong-msg-update: $-([msg=other state=@ud] [@ud (list (cmd other))])
+++ mismatched-message: call constraint is not supported by partial inference
+++ pending: tag needs context in partial inference
+++ program-value: $-([init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B [%node item=C]) subs=$-(B (list (sub C)))]]] [init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B [%node item=C]) subs=$-(B (list (sub C)))]]])
+++ update-unfaced: $-([message @ud] [@ud (list (cmd message))])
+++ direct-unfaced: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud [%node item=message]) subs=$-(@ud (list (sub message)))]]]
++$ record: not checked
+++ init-record: $-(@t [count=@ud label=@t])
+++ update-record: $-([msg=message state=[count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
+++ update-record-unfaced: $-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
+++ view-record: $-([count=@ud label=@t] [%node item=message])
+++ subs-record: $-([count=@ud label=@t] (list (sub message)))
+++ program-record: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] [%node item=message]) subs=$-([count=@ud label=@t] (list (sub message)))]]]
+++ program-record-unfaced: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] [%node item=message]) subs=$-([count=@ud label=@t] (list (sub message)))]]]
+++ bad-update-record: $-([msg=message state=[other=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
+++ program-wrong-nested-face: call constraint is not supported by partial inference
+++ update-pending: tag needs context in partial inference
+++ program-pending: name is not available to partial inference
+++ update-proj: $-([msg=message state=[count=@ud [label=@t extra=?]]] [[count=@ud label=@t] (list (cmd message))])
+++ pass-fn: $-($-([A B] C) $-([A B] C))
+++ pass-named: $-([msg=message state=@ud] [@ud (list (cmd message))])
+++ pass-unnamed: $-([message @ud] [@ud (list (cmd message))])
+++ forced-same: $-($-([A A] @t) $-([A A] @t))
+++ forced-distinct: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/sub/client.jibb:55:29: first type variable
+++ forced-distinct |= f=$-([A B] @t) (forced-same f)
+                            ^
+/tests/sub/client.jibb:55:31: second type variable
+++ forced-distinct |= f=$-([A B] @t) (forced-same f)
+                              ^
+++ known-label: $-($-([left=@t right=@p] @ud) $-([left=@t right=@p] @ud))
+++ matching-label: $-([left=@t right=@p] @ud)
+++ different-label: $-([x=@t y=@p] @ud)
+++ match-label: $-([left=@t right=@p] @ud)
+++ mismatch-label: call's sample and argument types do not unify
+/tests/sub/client.jibb:60:20: called gate has type $-($-([left=@t right=@p] @ud) $-([left=@t right=@p] @ud))
+++ mismatch-label (known-label different-label)
+                   ^
+/tests/sub/client.jibb:60:32: argument has type $-([x=@t y=@p] @ud)
+++ mismatch-label (known-label different-label)
+                               ^
+++ unknown-call: $-($-([A B] C) $-([A B] C))
+++ update-proj-good: $-([msg=message state=[count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
+++ program-projection: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] [%node item=message]) subs=$-([count=@ud label=@t] (list (sub message)))]]]
+++ program-alias: $-([init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B [%node item=C]) subs=$-(B (list (sub C)))]]] [init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B [%node item=C]) subs=$-(B (list (sub C)))]]])
+++ through-head-alias: call constraint is not supported by partial inference
+++ update-alias: $-([msg=message state=@ud] [@ud (list (cmd message))])
+++ through-arg-alias: call constraint is not supported by partial inference
+++ select-update: branch tag or union context is not supported by partial inference
+++ through-branch: name is not available to partial inference
+++ local-shadow: sample shadows a name
+++ nested-layout: $-([a=@t [x=@t y=@p]] @t)
+++ flat-layout: $-([a=@t [x=@t y=@p]] @t)
+++ nested-accept: call constraint is not supported by partial inference
+++ flat-accept: call constraint is not supported by partial inference
+++ higher-nested: $-([@t [x=@t y=@p]] @t)
+++ higher-flat: $-([@t [x=@t y=@p]] @t)
+++ nested-ret: $-([a=@t [x=@t y=@p]] [x=@t y=@p])
+++ flat-ret: $-([a=@t [x=@t y=@p]] [x=@t y=@p])
+++ higher-generic-nested: [x=@t y=@p]
+++ higher-generic-flat: call constraint is not supported by partial inference
+++ global-id: $-(A A)
+++ capture-good: $-([a=@t state=A] A)
+++ capture-text: @t
+++ capture-ship: @p
+++ capture-bad: $-([a=A state=B] A)
+++ capture-distinct: call constraint is not supported by partial inference
+++ capture-caller: call constraint is not supported by partial inference
+++ capture-local: call constraint is not supported by partial inference
+++ capture-distinct-caller: call constraint is not supported by partial inference

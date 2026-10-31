@@ -312,6 +312,8 @@ def generator_checks(tmp):
            'tests/lib/jibb-ask-guards.hoon',
            'tests/lib/jibb-request-guards.hoon',
            'tests/lib/jibb-closed-gate-guards.hoon',
+           'tests/lib/jibb-direct-gate-guards.hoon',
+           'tests/lib/jibb-direct-gate-source.hoon',
            'tests/lib/jibb-todo-api.hoon',
            'tests/lib/jibb-constructor-fit-guards.hoon',
            'tests/lib/jibb-sub-guards.hoon',
@@ -319,6 +321,9 @@ def generator_checks(tmp):
            'tests/lib/jibb-gate-free-guards.hoon',
            'tests/lib/jibb-gate-free-source.hoon'}
           <= normal_tests, sorted(normal_tests))
+    check('direct gate source and golden are assembled',
+          {'tests/type-direct-gate/source.txt', 'tests/type-direct-gate/expected.txt'}
+          <= set(normal.files))
     for label, kwargs in (('custom library', {'lib': STUB}),
                           ('custom goldens', {'golden': CASES}),
                           ('both overrides', {'lib': STUB, 'golden': CASES})):

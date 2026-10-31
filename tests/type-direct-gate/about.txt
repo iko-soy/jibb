@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: “A body can't force two distinct capitals to be equal; use the same capital wherever a type must be shared.”
+tests: A source-backed test prelude with a deliberately synthetic element and program exercises direct named and unnamed higher-order gates, record-valued models, nested field faces, incompatible samples, shared and distinct capitals, pending tags, aliases, captured and distinct capitals, equal-flattened source layouts, and projection-bearing bodies. It does not establish an island kind, runtime representation, or watchability.
+expect: parses
+expect-types: a partial inference report

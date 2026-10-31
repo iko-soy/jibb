@@ -5674,7 +5674,8 @@
     %jrec       [%yes & fuel ~]
   ==
 ::
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection)]
++$  igate-prelude-evidence  [iface=ifile gates=(map term def)]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) gate-defs=(map term def) head-evidence=(unit igate-prelude-evidence)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -8257,6 +8258,234 @@
   ?:  ?=(%| -.out)  [%| p.out]
   [%& [e typ.p.out sub.state.p.out (flop projections.state.p.out)]]
 ::
+::  Source-bound gate-layout evidence, confined to checked root gate
+::  definitions and direct unshadowed prelude calls. The prepared prelude
+::  interface and its retained source are trusted as a matching artifact.
+::  Layouts identify sample binder faces; they do not change call arity or
+::  authorize stripping nested value faces. Unknown origins use ordinary fit.
+++  direct-written-gates
+  |=  [ds=(list def) out=ivisited]
+  ^-  ivisited
+  ?~  ds  out
+  ?:  ?=(%mold -.i.ds)  $(ds t.ds)
+  ?.  |(?=(%gate -.val.i.ds) ?=(%gate-wide -.val.i.ds))  $(ds t.ds)
+  $(ds t.ds, out (~(put by out) name.i.ds &))
+++  direct-may-use-prelude
+  |=  [ds=(list def) root=ivisited heads=ivisited]
+  ^-  ?
+  ?~  ds  |
+  ?:  ?=(%mold -.i.ds)  $(ds t.ds)
+  =/  refs=(list term)  (dependency-expr val.i.ds)
+  =/  has-root=?  (lien refs |=(n=term ?=(^ (~(get by root) n))))
+  =/  has-head=?  (lien refs |=(n=term ?=(^ (~(get by heads) n))))
+  ?:  &(has-root has-head)  &
+  $(ds t.ds)
+++  direct-unique-names
+  |=  [names=(list term) seen=ivisited]
+  ^-  ?
+  ?~  names  &
+  ?:  ?=(^ (~(get by seen) i.names))  |
+  $(names t.names, seen (~(put by seen) i.names &))
+++  direct-prelude-evidence
+  |=  [ds=(list def) prelude=(unit ifile)]
+  ^-  (unit igate-prelude-evidence)
+  ?~  prelude  ~
+  ?~  source.u.prelude  ~
+  =/  root=ivisited  (direct-written-gates ds ~)
+  =/  names=(list term)  (turn values.u.prelude |=(e=[name=term scheme=ischeme] name.e))
+  =/  heads=ivisited  (graph-nameset names ~)
+  ?.  (direct-may-use-prelude ds root heads)  ~
+  =/  parsed  (parse at.u.prelude u.source.u.prelude)
+  ?:  ?=(%| -.parsed)  ~
+  ?^  (duplicate-defs defs.p.parsed)  ~
+  ?.  (direct-unique-names (global-value-names defs.p.parsed) ~)  ~
+  =/  gates=(map term def)  (direct-checked-gates defs.p.parsed values.u.prelude)
+  `[u.prelude gates]
+++  direct-checked-gates
+  |=  [ds=(list def) env=ienv]
+  ^-  (map term def)
+  =/  names=(list term)  (turn env |=(e=[name=term scheme=ischeme] name.e))
+  =/  known=ivisited  (graph-nameset names ~)
+  =/  out=(map term def)  ~
+  |-
+  ?~  ds  out
+  =/  d=def  i.ds
+  ?:  ?=(%mold -.d)  $(ds t.ds)
+  ?.  ?=(^ (~(get by known) name.d))  $(ds t.ds)
+  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  $(ds t.ds)
+  $(ds t.ds, out (~(put by out) name.d d))
+++  direct-find-gate
+  |=  [n=term ds=(list def)]
+  ^-  (unit def)
+  ?~  ds  ~
+  ?:  &(?=(%value -.i.ds) =(n name.i.ds))  `i.ds
+  $(ds t.ds)
+++  direct-gate-sample
+  |=  d=def
+  ^-  (unit sample)
+  ?.  ?=(%value -.d)  ~
+  ?-  -.val.d
+    %gate       `sample.val.d
+    %gate-wide  `sample.val.d
+    *           ~
+  ==
+++  direct-sample-name
+  |=  sam=sample
+  ^-  (unit term)
+  ?-  -.sam
+    %bind  `name.sam
+    %face  `name.sam
+    %pun   `name.sam
+    *      ~
+  ==
+++  direct-field-name
+  |=  f=field
+  ^-  (unit term)
+  ?-  -.f
+    %face  `name.f
+    %pun   `name.f
+    *      ~
+  ==
+++  direct-slot-body
+  |=  [typ=itype name=(unit term)]
+  ^-  (unit itype)
+  ?~  name  `typ
+  ?.  ?=(%face -.typ)  ~
+  ?.  =(name.typ u.name)  ~
+  `body.typ
+++  direct-invariant
+  |=  [a=itype b=itype sub=isub next=@ud]
+  ^-  ifit
+  ?:  (itype-face-asym a b sub)  [%unknown ~]
+  =/  forward=ifit  (itype-fit a b sub next)
+  ?.  ?=(%ok -.forward)  [%unknown ~]
+  ?:  (itype-face-asym a b sub.forward)  [%unknown ~]
+  =/  reverse=ifit  (itype-fit b a sub.forward next.forward)
+  ?.  ?=(%ok -.reverse)  [%unknown ~]
+  reverse
+++  direct-function-fit
+  |=  [a=itype b=itype sam=sample sh=shape sub=isub next=@ud]
+  ^-  ifit
+  ?.  &(?=(%fn -.a) ?=(%fn -.b) ?=(%cell -.sam) ?=(%fn -.sh))  [%unknown ~]
+  ?.  ?=(%cell -.sample.sh)  [%unknown ~]
+  =/  as=(list sample)  items.sam
+  =/  bs=(list field)  fields.sample.sh
+  ?~  as  [%unknown ~]
+  ?~  t.as  [%unknown ~]
+  ?^  t.t.as  [%unknown ~]
+  ?~  bs  [%unknown ~]
+  ?~  t.bs  [%unknown ~]
+  ?^  t.t.bs  [%unknown ~]
+  ?.  &(?=(%cell -.sample.a) ?=(%cell -.sample.b))  [%unknown ~]
+  =/  an=(unit term)  (direct-sample-name i.as)
+  =/  bn=(unit term)  (direct-field-name i.bs)
+  ?:  &(?=(^ an) ?=(^ bn) !=(u.an u.bn))  [%unknown ~]
+  =/  x=(unit itype)  (direct-slot-body hed.sample.a an)
+  =/  y=(unit itype)  (direct-slot-body hed.sample.b bn)
+  ?~  x  [%unknown ~]
+  ?~  y  [%unknown ~]
+  =/  first=ifit  (direct-invariant u.x u.y sub next)
+  ?.  ?=(%ok -.first)  [%unknown ~]
+  =.  an  (direct-sample-name i.t.as)
+  =.  bn  (direct-field-name i.t.bs)
+  ?:  &(?=(^ an) ?=(^ bn) !=(u.an u.bn))  [%unknown ~]
+  =/  x2=(unit itype)  (direct-slot-body tal.sample.a an)
+  =/  y2=(unit itype)  (direct-slot-body tal.sample.b bn)
+  ?~  x2  [%unknown ~]
+  ?~  y2  [%unknown ~]
+  =/  second=ifit  (direct-invariant u.x2 u.y2 sub.first next.first)
+  ?.  ?=(%ok -.second)  [%unknown ~]
+  (direct-invariant product.a product.b sub.second next.second)
+::  This is a tentative proof: its caller must require closed call samples
+::  and repeat every positional check under the stable final substitution.
+++  direct-positional-fit
+  |=  [args=(list expr) slots=(list sample) actual=itype expected=itype env=ienv state=istate sub=isub next=@ud]
+  ^-  ifit
+  ?~  args  [%unknown ~]
+  ?~  slots  [%unknown ~]
+  =/  last=?  ?=(~ t.args)
+  ?:  !=(last ?=(~ t.slots))  [%unknown ~]
+  =/  split=(unit [left=itype right=itype])
+    ?:  last  `[actual expected]
+    ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+    `[hed.actual hed.expected]
+  ?~  split  [%unknown ~]
+  =/  x=itype  left.u.split
+  =/  y=itype  right.u.split
+  =/  expected-name=(unit term)  (direct-sample-name i.slots)
+  =/  expected-body=(unit itype)  (direct-slot-body y expected-name)
+  ?~  expected-body  [%unknown ~]
+  =.  y  u.expected-body
+  =/  fit=ifit  (itype-fit x y sub next)
+  =/  accepted=?  &(?=(%ok -.fit) !(itype-positional-slot-face-asym x y sub.fit))
+  =/  result=(unit ifit)
+    ?:  accepted  `fit
+    ?.  &(?=(%face -.i.slots) ?=(%fn -.shape.i.slots))  ~
+    ?.  ?=(%wing -.i.args)  ~
+    ?.  ?=([@ ~] names.i.args)  ~
+    ?.  (unique-value-name i.names.i.args globals.state)  ~
+    =/  source=(unit def)  (~(get by gate-defs.state) i.names.i.args)
+    ?~  source  ~
+    =/  sample=(unit sample)  (direct-gate-sample u.source)
+    ?~  sample  ~
+    =/  trial=ifit  (direct-function-fit x y u.sample shape.i.slots sub next)
+    ?.  ?=(%ok -.trial)  ~
+    `trial
+  ?~  result  [%unknown ~]
+  =.  fit  u.result
+  ?:  last  fit
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  [%unknown ~]
+  ?.  ?=(%ok -.fit)  [%unknown ~]
+  $(args t.args, slots t.slots, actual tal.actual, expected tal.expected, sub sub.fit, next next.fit)
+++  direct-any-gate-arg
+  |=  [args=(list expr) defs=(map term def)]
+  ^-  ?
+  ?~  args  |
+  =/  found=?
+    ?.  ?=(%wing -.i.args)  |
+    ?.  ?=([@ ~] names.i.args)  |
+    ?=(^ (~(get by defs) i.names.i.args))
+  ?:  found  &
+  $(args t.args)
+++  direct-gate-call-fit
+  |=  [e=expr actual=itype expected=itype env=ienv state=istate]
+  ^-  (unit ifit)
+  ?.  ?=(%call -.e)  ~
+  ?~  args.e  ~
+  ?~  t.args.e  ~
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  ?.  ?=(%wing -.head.e)  ~
+  ?.  ?=([@ ~] names.head.e)  ~
+  ?.  ?=(~ (ienv-lookup i.names.head.e env))  ~
+  ?.  (unique-value-name i.names.head.e globals.state)  ~
+  ?.  (direct-any-gate-arg args.e gate-defs.state)  ~
+  ?~  prelude.state  ~
+  ?~  source.u.prelude.state  ~
+  ?~  head-evidence.state  ~
+  ?.  =(u.prelude.state iface.u.head-evidence.state)  ~
+  ?.  ?=(^ (ienv-lookup i.names.head.e values.u.prelude.state))  ~
+  =/  head=(unit def)  (~(get by gates.u.head-evidence.state) i.names.head.e)
+  ?~  head  ~
+  =/  sam=(unit sample)  (direct-gate-sample u.head)
+  ?~  sam  ~
+  ?.  ?=(%cell -.u.sam)  ~
+  =/  fit=ifit  (direct-positional-fit args.e items.u.sam actual expected env state sub.state next.state)
+  ?.  ?=(%ok -.fit)  ~
+  ::  Enclosing inference may add constraints after this call. Only a
+  ::  closed call-sample proof can remain stable under those later bindings.
+  =/  actual-final=itype  (itype-normalize actual sub.fit)
+  =/  expected-final=itype  (itype-normalize expected sub.fit)
+  ?^  (itype-vars actual-final)  ~
+  ?^  (itype-vars expected-final)  ~
+  ?:  |((itype-has-tag actual-final) (itype-has-tag expected-final))  ~
+  ::  A later argument may resolve a variable used by an earlier slot.
+  ::  Recheck every fit and face against the completed substitution; no
+  ::  additional binding or fresh variable is permitted in the second pass.
+  =/  verified=ifit  (direct-positional-fit args.e items.u.sam actual expected env state sub.fit next.fit)
+  ?.  ?=(%ok -.verified)  ~
+  ?.  &(=(sub.fit sub.verified) =(next.fit next.verified))  ~
+  `fit
+::
 ++  infer-call-with-head
   |=  [e=expr env=ienv state=istate head=iresult]
   ^-  iresult
@@ -8283,6 +8512,10 @@
     =/  fit=ifit
       ?^  t.args.e  (itype-fit-inner typ.p.arg sample.ht sub.st next.st & |)
       (itype-fit typ.p.arg sample.ht sub.st next.st)
+    =/  direct=(unit ifit)
+      ?:  ?=(%ok -.fit)  ~
+      (direct-gate-call-fit e typ.p.arg sample.ht env st)
+    =.  fit  ?~(direct fit u.direct)
     ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
     ?:  ?=(%bad -.fit)
       ?~  t.args.e
@@ -8299,6 +8532,7 @@
       =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
       [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
     =/  face-asym=?
+      ?^  direct  |
       ?^  t.args.e  (itype-positional-face-asym args.e typ.p.arg sample.ht sub.fit)
       (itype-face-asym typ.p.arg sample.ht sub.fit)
     ?:  &((itype-has-face typ.p.arg sub.fit) face-asym (itype-output-may-be-cell product.ht sub.fit))
@@ -9130,6 +9364,7 @@
 ++  infer-recursive-gate
   |=  [d=def env=ienv state=istate]
   ^-  iresult
+  =.  gate-defs.state  ~
   ?.  ?=(%value -.d)  [%| ["recursive definition is not a gate" ~]]
   ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
     [%| ["recursive definition is not a gate" ~]]
@@ -9358,7 +9593,7 @@
     [%| ["recursive group contains duplicate names" ~]]
   ?:  (lien names |=(n=term ?=(^ (ienv-lookup n env))))
     [%| ["recursive group shadows a name" ~]]
-  =/  scoped=istate  state(globals (weld names globals.state))
+  =/  scoped=istate  state(globals (weld names globals.state), gate-defs ~)
   =/  seeded=igate-seeds  (seed-gate-group ds env scoped)
   ?:  ?=(%| -.seeded)  seeded
   =/  seeds=ienv  (group-seed-env entries.p.seeded ~)
@@ -9392,7 +9627,7 @@
   `[entry u.rest]
 ::
 ++  add-supported-defs
-  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition)]
+  |=  [ds=(list def) all-defs=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition)]
   ^-  [env=ienv artifacts=(list iwidth-definition)]
   ?~  ds  [env artifacts]
   =/  d=def  i.ds
@@ -9400,7 +9635,9 @@
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~]
+  =.  gate-defs.initial  checked
+  =.  head-evidence.initial  heads
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
@@ -9419,7 +9656,8 @@
   ?~  finalized  $(ds t.ds)
   =?  artifacts  ?=(^ u.finalized)
     [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
-  $(ds t.ds, env [[name.d [typ vars]] env])
+  =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
+  $(ds t.ds, env [[name.d [typ vars]] env], checked checked)
 ::
 +$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition)]
 +$  iadj  (map term (list term))
@@ -9542,10 +9780,11 @@
   =/  graph=iadj  (graph-make-forward ds nameset ~)
   =/  components=icomponents  (graph-components ds names)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
   |-
   =/  next=[env=ienv artifacts=(list iwidth-definition)]
-    (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts)
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~]
+    (add-supported-defs ds ds (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts)
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~]
   =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
   ?:  =(env env.out)  out
   $(env env.out, grouped grouped.out, artifacts artifacts.out)
@@ -10418,7 +10657,7 @@
   =/  source-unit=(unit ischeme)
     ?~  unit-decl  ~
     =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
-    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~]
+    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~ ~ ~]
     =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
     =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~]
     =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
@@ -10433,7 +10672,7 @@
   =/  js=ijimports  ~[[face.i.imports.mod primitive]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   =/  usable=(unit imold-types)
     ?:  ?=(%& -.mts)  `p.mts
@@ -10489,7 +10728,7 @@
   =?  env-molds  declared
     (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
   =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~]
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~ ~ ~]
   ::  Other prelude molds may use list only after its source has passed
   ::  the standard-list check. The raw declaration remains removed.
   =/  declared-list=(unit shape)  (find-simple-mold %list molds)
@@ -11018,7 +11257,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
@@ -11052,7 +11291,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
@@ -11434,7 +11673,7 @@
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
   =/  resolution=iresolved  (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
@@ -11490,7 +11729,7 @@
   =/  declared=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld molds.u.prepared (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn ms |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~]
+  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~ ~ ~]
   =/  inferred=(unit [template=ischeme state=istate])
     (infer-mold-template shape.i.selected state(active ~[name], in-mold &))
   ?~  inferred  [%| 'selected mold needs unsupported inference']
@@ -11607,6 +11846,8 @@
   =/  resolution=iresolved  (resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds file prelude)
   =/  cycles=(list icycle)  (definite-value-cycles ds globals)
   =/  env=ienv  env.resolution
+  =/  source-defs=(map term def)  (direct-checked-gates ds env)
+  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
   =/  lines=(list @t)  ~
   |-
   ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
@@ -11626,7 +11867,9 @@
     =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
     $(ds t.ds, lines [line lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~ ~ ~]
+  =.  gate-defs.initial  source-defs
+  =.  head-evidence.initial  heads
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult
     ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))

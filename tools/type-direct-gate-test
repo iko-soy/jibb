@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""Check source-backed direct gate layouts and provenance under eval."""
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--update', action='store_true')
+args = parser.parse_args()
+fixture = root / 'tests/type-direct-gate'
+prelude = root / 'jibb-dev/lib/jibb/prelude.jibb'
+internal = root / 'jibb-dev/lib/jibb/internal.jibb'
+
+def body(name):
+    text = (root / 'tests/lib' / name).read_text()
+    return text[text.index('\n|%\n') + 1:]
+
+def run(program, cords=()):
+    with tempfile.TemporaryDirectory(prefix='jibb-direct-gate-') as tmp:
+        path = Path(tmp) / 'test.hoon'
+        path.write_text(program)
+        return subprocess.run([str(root / 'tools/hoon'), '--lib', args.lib, '--raw',
+                               '-f', str(path), *cords], stdout=subprocess.PIPE)
+
+source_program = ('=/  jibb  .\n=/  real-prelude=@t  prelude\n=/  real-internal=@t  internal\n'
+                  '=/  source=wain  (to-wain:format source-text)\n=/  expected=wain  ~\n'
+                  '=/  suite\n' + body('jibb-direct-gate-source.hoon') +
+                  '\n^-  @t\n=/  prepared=(unit iprelude:jibb)  (direct-gate-prepared:suite real-prelude real-internal)\n'
+                  '=/  failures=(list tape)  (direct-gate-projection-errors:suite prepared)\n'
+                  '?~  failures  (direct-gate-source-output:suite source-text prepared)\n'
+                  '(of-wain:format (turn failures crip))\n')
+result = run(source_program, ['--cord', 'source-text=' + str(fixture / 'source.txt'),
+                              '--cord', 'prelude=' + str(prelude),
+                              '--cord', 'internal=' + str(internal)])
+if result.returncode:
+    sys.exit(result.returncode)
+expected_path = fixture / 'expected.txt'
+if args.update:
+    expected_path.write_bytes(result.stdout)
+else:
+    expected = expected_path.read_bytes()
+    if result.stdout != expected:
+        sys.stderr.writelines(difflib.unified_diff(
+            expected.decode().splitlines(keepends=True),
+            result.stdout.decode().splitlines(keepends=True),
+            fromfile='expected.txt', tofile='actual types'))
+        sys.exit(1)
+
+guard_program = ('=/  jibb  .\n=/  suite\n' + body('jibb-direct-gate-guards.hoon') +
+                 '\n=/  failures=(list tape)  direct-gate-guard-errors:suite\n^-  @t\n'
+                 "?~  failures  'direct gate guards passed'\n"
+                 '(of-wain:format (turn failures crip))\n')
+result = run(guard_program)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'direct gate guards passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('direct gate source and provenance guards passed')

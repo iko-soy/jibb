@@ -1,0 +1,96 @@
++$ message
+  %start
+  %stop
+++ init |= input=@t ^- @ud 1
+++ update |= [msg=message state=@ud]
+  ^- [@ud (list (cmd message))] [state ~]
+++ view |= state=@ud ^- (element message) [%node %start]
+++ subs |= state=@ud ^- (list (sub message)) ~
+++ direct (program init update view subs)
+++ wrong-init |= input=@p ^- @ud 1
+++ different-data (program wrong-init update view subs)
+++ wrong-update |= [msg=message state=@p]
+  ^- [@p (list (cmd message))] [state ~]
+++ mismatched-model (program init wrong-update view subs)
+++ wrong-view |= state=@p ^- (element message) [%node %start]
+++ mismatched-view (program init update wrong-view subs)
+++ wrong-subs |= state=@p ^- (list (sub message)) ~
+++ mismatched-subs (program init update view wrong-subs)
++$ other
+  %start
+  %stop
+++ wrong-msg-update |= [msg=other state=@ud]
+  ^- [@ud (list (cmd other))] [state ~]
+++ mismatched-message (program init wrong-msg-update view subs)
+++ pending
+  ~& %unrelated
+    (program init update view subs)
+++ program-value program
+++ update-unfaced |= input=[message @ud]
+  ^- [@ud (list (cmd message))] [0 ~]
+++ direct-unfaced (program init update-unfaced view subs)
++$ record [count=@ud label=@t]
+++ init-record |= input=@t ^- record [count=0 label=input]
+++ update-record |= [msg=message state=record]
+  ^- [record (list (cmd message))] [state ~]
+++ update-record-unfaced |= args=[message record]
+  ^- [record (list (cmd message))] [[count=0 label=""] ~]
+++ view-record |= state=record ^- (element message) [%node %start]
+++ subs-record |= state=record ^- (list (sub message)) ~
+++ program-record (program init-record update-record view-record subs-record)
+++ program-record-unfaced (program init-record update-record-unfaced view-record subs-record)
+++ bad-update-record |= [msg=message state=[other=@ud label=@t]]
+  ^- [record (list (cmd message))] [[count=0 label=""] ~]
+++ program-wrong-nested-face (program init-record bad-update-record view-record subs-record)
+++ update-pending |= [msg=message state=record]
+  ~& %orphan
+    ^- [record (list (cmd message))] [state ~]
+++ program-pending (program init-record update-pending view-record subs-record)
+++ update-proj |= [msg=message state=[count=@ud label=@t extra=?]]
+  ^- [record (list (cmd message))] [(proj state) ~]
+++ pass-fn |= f=$-([A B] C) f
+++ pass-named (pass-fn update)
+++ pass-unnamed (pass-fn update-unfaced)
+++ forced-same |= f=$-([A A] @t) f
+++ forced-distinct |= f=$-([A B] @t) (forced-same f)
+++ known-label |= f=$-([left=@t right=@p] @ud) f
+++ matching-label |= [left=@t right=@p] ^- @ud 0
+++ different-label |= [x=@t y=@p] ^- @ud 0
+++ match-label (known-label matching-label)
+++ mismatch-label (known-label different-label)
+++ unknown-call |= f (pass-fn f)
+++ update-proj-good |= [msg=message state=record]
+  ^- [record (list (cmd message))]
+    [(proj [count=0 label="projected" extra=%.y]) ~]
+++ program-projection (program init-record update-proj-good view-record subs-record)
+++ program-alias program
+++ through-head-alias (program-alias init update view subs)
+++ update-alias update
+++ through-arg-alias (program init update-alias view subs)
+++ select-update |= flag=?
+  ?- flag
+    %.y update
+    %.n update-unfaced
+++ through-branch (program init (select-update %.y) view subs)
+++ local-shadow |= update (program init update view subs)
+++ nested-layout |= [a=@t [x=@t y=@p]] a
+++ flat-layout |= [a=@t x=@t y=@p] a
+++ nested-accept (choose-layout nested-layout ["first" ["second" ~zod]])
+++ flat-accept (choose-layout flat-layout ["first" ["second" ~zod]])
+++ higher-nested (higher nested-layout %.y)
+++ higher-flat (higher flat-layout %.y)
+++ nested-ret |= [a=@t [x=@t y=@p]] [x=x y=y]
+++ flat-ret |= [a=@t x=@t y=@p] [x=x y=y]
+++ higher-generic-nested (higher-generic nested-ret [x="two" y=~zod])
+++ higher-generic-flat (higher-generic flat-ret [x="two" y=~zod])
+++ global-id |= x=A x
+++ capture-good |= [a=@t state=A] (global-id state)
+++ capture-text (higher-generic capture-good "hello")
+++ capture-ship (higher-generic capture-good ~zod)
+++ capture-bad |= [a=A state=B] (global-id a)
+++ capture-distinct (higher-generic capture-bad ~zod)
+++ capture-caller |= value=A (higher-generic capture-good value)
+++ capture-local |= value=A
+  ++ local-function |= [a=@t state=A] value
+  (higher-generic local-function value)
+++ capture-distinct-caller |= [left=A right=B] ^- B (higher-generic capture-good left)
