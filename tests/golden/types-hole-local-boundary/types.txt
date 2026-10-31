@@ -1,0 +1,17 @@
+partial inference; module not checked
+++ later: type hole needs a determined type
+/tests/golden/types-hole-local-boundary/source.jibb:2:14: unresolved type hole
+  ++ id |= x=_ x
+             ^
+++ ignored: type hole needs a determined type
+/tests/golden/types-hole-local-boundary/source.jibb:5:14: unresolved type hole
+  ++ id |= y=_ y
+             ^
+++ resolved: @t
+++ self: type hole needs a determined type
+/tests/golden/types-hole-local-boundary/source.jibb:10:14: unresolved type hole
+++ self |= x=_ (self x)
+             ^
+++ mutual: local definitions need unsupported inference
+++ grouped-a: name is not available to partial inference
+++ grouped-b: name is not available to partial inference

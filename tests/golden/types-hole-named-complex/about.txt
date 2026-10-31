@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: a definition must determine its own type holes.
+tests: An applied named mold containing a hole must not be repaired by its use; partial analysis may fail closed.
+expect: parses
+expect-types: a partial inference report

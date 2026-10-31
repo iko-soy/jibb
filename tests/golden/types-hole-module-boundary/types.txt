@@ -1,0 +1,2 @@
+partial inference; module not checked
+module definitions need unsupported inference: /ui/lib/jibb

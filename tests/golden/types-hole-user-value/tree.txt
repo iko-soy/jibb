@@ -1,0 +1,10 @@
+(module
+  (value 1:1 id
+    (gate 1:7
+      (face 1:10 x (hole 1:12))
+      (wing 1:14 x)))
+  (value 2:1 later
+    (group 2:10
+      (call 2:11 (wing 2:11 id) (str 2:14 "hello"))))
+  (value 3:1 independent
+    (cast 3:16 (hole 3:19) (str 3:21 "resolved"))))

@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: a definition must determine its own type holes.
+tests: Local definition boundaries, unused locals, a locally solved hole, and recursive groups.
+expect: parses
+expect-types: a partial inference report

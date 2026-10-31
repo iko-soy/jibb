@@ -1,0 +1,6 @@
+partial inference; module not checked
++$ generic: type hole needs a determined type
+/tests/golden/types-hole-generic-mold/source.jibb:1:33: unresolved type hole
++$ generic |$ [A] [left=A right=_]
+                                ^
+++ later: sample mold is not supported by partial inference

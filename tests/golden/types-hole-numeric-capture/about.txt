@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: a definition must determine its own type holes.
+tests: Decimal defaults and ordering when a hole shares a written or captured variable, plus discarded pending expressions.
+expect: parses
+expect-types: a partial inference report

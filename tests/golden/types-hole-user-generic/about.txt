@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: a definition must determine its own type holes.
+tests: The user’s `A` example and independent instantiations; one independent unresolved sample must not disappear.
+expect: parses
+expect-types: a partial inference report

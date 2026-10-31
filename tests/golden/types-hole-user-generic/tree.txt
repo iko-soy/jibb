@@ -1,0 +1,31 @@
+(module
+  (value 1:1 id
+    (gate 1:7
+      (face 1:10 x (tvar 1:12 A))
+      (cast 1:14 (hole 1:17) (wing 1:19 x))))
+  (value 2:1 use-text
+    (group 2:13
+      (call 2:14 (wing 2:14 id) (str 2:17 "hello"))))
+  (value 3:1 use-ship
+    (group 3:13
+      (call 3:14 (wing 3:14 id) (lit 3:17 ~zod))))
+  (value 4:1 record
+    (gate 4:11
+      (face 4:14 x (tvar 4:16 A))
+      (cast 4:18
+        (cell 4:21
+          (face 4:22 value (hole 4:28)))
+        (tuple 4:31
+          (face 4:32 value (wing 4:38 x))))))
+  (value 5:1 same
+    (gate 5:9
+      (cell 5:12
+        (face 5:13 a (tvar 5:15 A))
+        (face 5:17 b (hole 5:19)))
+      (cast 5:22 (tvar 5:25 A) (wing 5:27 b))))
+  (value 6:1 distinct
+    (gate 6:13
+      (face 6:16 x (tvar 6:18 A))
+      (gate 6:20
+        (face 6:23 y (hole 6:25))
+        (cast 6:27 (hole 6:30) (wing 6:32 x))))))

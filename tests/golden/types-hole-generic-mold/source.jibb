@@ -1,0 +1,2 @@
++$ generic |$ [A] [left=A right=_]
+++ later |= x=(generic @t) x

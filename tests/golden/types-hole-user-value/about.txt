@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: a definition must determine its own type holes.
+tests: An identity with an unconstrained hole stays invalid even when a later definition calls it with a cord.
+expect: parses
+expect-types: a partial inference report

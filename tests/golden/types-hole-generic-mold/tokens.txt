@@ -1,0 +1,26 @@
+1:1 glyph +$
+1:4 name generic
+1:12 glyph |$
+1:15 glyph [
+1:16 tight tvar A
+1:17 tight glyph ]
+1:19 glyph [
+1:20 tight name left
+1:24 tight glyph =
+1:25 tight tvar A
+1:27 name right
+1:32 tight glyph =
+1:33 tight glyph _
+1:34 tight glyph ]
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name later
+2:10 glyph |=
+2:13 name x
+2:14 tight glyph =
+2:15 tight glyph (
+2:16 tight name generic
+2:24 aura @t
+2:26 tight glyph )
+2:28 name x
+2:29 NEWLINE

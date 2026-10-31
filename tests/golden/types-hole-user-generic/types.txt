@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ id: $-(A A)
+++ use-text: @t
+++ use-ship: @p
+++ record: $-(A [value=A])
+++ same: $-([a=A b=A] A)
+++ distinct: type hole needs a determined type
+/tests/golden/types-hole-user-generic/source.jibb:6:25: unresolved type hole
+++ distinct |= x=A |= y=_ ^- _ x
+                        ^

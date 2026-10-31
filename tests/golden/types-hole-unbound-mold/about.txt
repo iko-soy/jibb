@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: named molds must determine their own holes.
+tests: An unbound capital prevents a definite structural-hole error until the invalid mold is otherwise understood.
+expect: parses
+expect-types: a partial inference report

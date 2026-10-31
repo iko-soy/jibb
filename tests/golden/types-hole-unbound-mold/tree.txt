@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 invalid
+    (cell 1:12
+      (face 1:13 left (tvar 1:18 A))
+      (face 1:20 right (hole 1:26))))
+  (value 2:1 later
+    (gate 2:10
+      (face 2:13 x (ref 2:15 invalid))
+      (wing 2:23 x))))

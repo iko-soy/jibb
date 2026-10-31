@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ cast: @t
+++ sample: $-(@t @t)
+++ separate: $-([@t @p] [@t @p])
+++ decimal: @ud
+++ atom: $-(@ @)
+++ unresolved-tag: type hole needs unsupported inference
+/tests/golden/types-hole-concrete/source.jibb:6:22: type hole
+++ unresolved-tag ^- _ %foo
+                     ^

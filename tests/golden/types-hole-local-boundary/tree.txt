@@ -1,0 +1,55 @@
+(module
+  (value 1:1 later
+    (body 2:3
+      (value 2:3 id
+        (gate 2:9
+          (face 2:12 x (hole 2:14))
+          (wing 2:16 x)))
+      (group 3:3
+        (call 3:4 (wing 3:4 id) (str 3:7 "hello")))))
+  (value 4:1 ignored
+    (gate 4:12
+      (face 4:15 x (aura 4:17 @t))
+      (body 5:3
+        (value 5:3 id
+          (gate 5:9
+            (face 5:12 y (hole 5:14))
+            (wing 5:16 y)))
+        (wing 6:3 x))))
+  (value 7:1 resolved
+    (body 8:3
+      (value 8:3 id
+        (gate 8:9
+          (face 8:12 x (hole 8:14))
+          (cast 8:16 (aura 8:19 @t) (wing 8:22 x))))
+      (group 9:3
+        (call 9:4 (wing 9:4 id) (str 9:7 "hello")))))
+  (value 10:1 self
+    (gate 10:9
+      (face 10:12 x (hole 10:14))
+      (group 10:16
+        (call 10:17 (wing 10:17 self) (wing 10:22 x)))))
+  (value 11:1 mutual
+    (body 12:3
+      (value 12:3 left
+        (gate 12:11
+          (face 12:14 x (hole 12:16))
+          (group 12:18
+            (call 12:19 (wing 12:19 right) (wing 12:25 x)))))
+      (value 13:3 right
+        (gate 13:12
+          (face 13:15 x (hole 13:17))
+          (group 13:19
+            (call 13:20 (wing 13:20 left) (wing 13:25 x)))))
+      (group 14:3
+        (call 14:4 (wing 14:4 left) (str 14:9 "hello")))))
+  (value 15:1 grouped-a
+    (gate 15:14
+      (face 15:17 x (hole 15:19))
+      (group 15:21
+        (call 15:22 (wing 15:22 grouped-b) (wing 15:32 x)))))
+  (value 16:1 grouped-b
+    (gate 16:14
+      (face 16:17 x (aura 16:19 @t))
+      (group 16:22
+        (call 16:23 (wing 16:23 grouped-a) (wing 16:33 x))))))

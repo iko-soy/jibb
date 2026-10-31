@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: a definition must determine its own type holes.
+tests: The user’s `[item=_]` named mold remains unresolved even if a later use supplies @t.
+expect: parses
+expect-types: a partial inference report

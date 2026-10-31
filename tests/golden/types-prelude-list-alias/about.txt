@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: named generic molds and the source-backed prelude.
+tests: The verified prelude list is available to path, tape and their dependent aliases; a generic list alias has independent @t and @p uses and rejects an incompatible item.
+expect: parses
+expect-types: a partial inference report

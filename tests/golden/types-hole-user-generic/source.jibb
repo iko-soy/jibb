@@ -1,0 +1,6 @@
+++ id |= x=A ^- _ x
+++ use-text (id "hello")
+++ use-ship (id ~zod)
+++ record |= x=A ^- [value=_] [value=x]
+++ same |= [a=A b=_] ^- A b
+++ distinct |= x=A |= y=_ ^- _ x

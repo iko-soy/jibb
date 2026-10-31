@@ -1,0 +1,6 @@
+partial inference; module not checked
++$ box: type hole needs a determined type
+/tests/golden/types-hole-user-named/source.jibb:1:14: unresolved type hole
++$ box [item=_]
+             ^
+++ later: sample mold is not supported by partial inference

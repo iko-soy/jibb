@@ -1,0 +1,6 @@
+++ cast ^- _ "hello"
+++ sample |= x=_ ^- @t x
+++ separate |= x=[_ _] ^- [@t @p] x
+++ decimal ^- _ 1
+++ atom |= x=@ ^- _ x
+++ unresolved-tag ^- _ %foo

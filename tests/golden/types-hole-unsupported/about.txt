@@ -1,4 +1,4 @@
-source: Grammar, Types and molds: `_` is an inferred type hole.
-tests: Parsing accepts holes in samples and casts; the current partial inference explicitly reports those shapes unsupported.
+source: Grammar, Types and molds: a value definition must determine its own type holes.
+tests: An unconstrained sample hole reports its source site, while a cast hole can resolve to @t from its expression.
 expect: parses
 expect-types: a partial inference report

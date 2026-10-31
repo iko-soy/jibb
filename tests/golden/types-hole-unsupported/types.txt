@@ -1,3 +1,6 @@
 partial inference; module not checked
-++ identity: sample mold is not supported by partial inference
-++ cast: cast mold is not supported by partial inference
+++ identity: type hole needs a determined type
+/tests/golden/types-hole-unsupported/source.jibb:1:18: unresolved type hole
+++ identity |= x=_ x
+                 ^
+++ cast: @t

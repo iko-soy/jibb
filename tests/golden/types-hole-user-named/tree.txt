@@ -1,0 +1,11 @@
+(module
+  (mold 1:1 box
+    (cell 1:8
+      (face 1:9 item (hole 1:14))))
+  (value 2:1 later
+    (gate 2:10
+      (face 2:13 x (ref 2:15 box))
+      (cast 2:19
+        (cell 2:22
+          (face 2:23 item (aura 2:28 @t)))
+        (wing 2:32 x)))))

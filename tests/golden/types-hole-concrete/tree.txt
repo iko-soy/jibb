@@ -1,0 +1,22 @@
+(module
+  (value 1:1 cast
+    (cast 1:9 (hole 1:12) (str 1:14 "hello")))
+  (value 2:1 sample
+    (gate 2:11
+      (face 2:14 x (hole 2:16))
+      (cast 2:18 (aura 2:21 @t) (wing 2:24 x))))
+  (value 3:1 separate
+    (gate 3:13
+      (face 3:16 x
+        (cell 3:18 (hole 3:19) (hole 3:21)))
+      (cast 3:24
+        (cell 3:27 (aura 3:28 @t) (aura 3:31 @p))
+        (wing 3:35 x))))
+  (value 4:1 decimal
+    (cast 4:12 (hole 4:15) (lit 4:17 1)))
+  (value 5:1 atom
+    (gate 5:9
+      (face 5:12 x (aura 5:14 @))
+      (cast 5:16 (hole 5:19) (wing 5:21 x))))
+  (value 6:1 unresolved-tag
+    (cast 6:19 (hole 6:22) (lit 6:24 %foo))))

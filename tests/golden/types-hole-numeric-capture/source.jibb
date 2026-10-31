@@ -1,0 +1,19 @@
+++ same |= [a=A b=A] a
+++ independent ^- _ 1
+++ first |= x=A ^- _ (same x 1)
+++ second |= x=A ^- _ (same 1 x)
+++ capture |= x
+  ++ local ^- _ (same x 1)
+  ^- @ux x
+++ local-independent |= x=@t
+  ++ local ^- _ 1
+  x
+++ unresolved-tag
+  ~& %orphan
+    ^- _ 1
+++ discarded-number
+  ~& 1
+    ^- _ "hello"
+++ captured-second |= x
+  ++ local ^- _ (same 1 x)
+  ^- @ux x

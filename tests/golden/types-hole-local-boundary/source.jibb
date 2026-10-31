@@ -1,0 +1,16 @@
+++ later
+  ++ id |= x=_ x
+  (id "hello")
+++ ignored |= x=@t
+  ++ id |= y=_ y
+  x
+++ resolved
+  ++ id |= x=_ ^- @t x
+  (id "hello")
+++ self |= x=_ (self x)
+++ mutual
+  ++ left |= x=_ (right x)
+  ++ right |= x=_ (left x)
+  (left "hello")
+++ grouped-a |= x=_ (grouped-b x)
+++ grouped-b |= x=@t (grouped-a x)

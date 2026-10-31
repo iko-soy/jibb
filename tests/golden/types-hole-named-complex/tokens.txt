@@ -1,0 +1,20 @@
+1:1 glyph +$
+1:4 name applied
+1:12 glyph (
+1:13 tight name list
+1:18 glyph _
+1:19 tight glyph )
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name later
+2:10 glyph |=
+2:13 name x
+2:14 tight glyph =
+2:15 tight name applied
+2:23 glyph ^-
+2:26 glyph (
+2:27 tight name list
+2:32 aura @t
+2:34 tight glyph )
+2:36 name x
+2:37 NEWLINE

@@ -1,0 +1,11 @@
+(module
+  (mold 1:1 generic
+    (generic 1:12 A
+      (cell 1:19
+        (face 1:20 left (tvar 1:25 A))
+        (face 1:27 right (hole 1:33)))))
+  (value 2:1 later
+    (gate 2:10
+      (face 2:13 x
+        (apply 2:15 generic (aura 2:24 @t)))
+      (wing 2:28 x))))

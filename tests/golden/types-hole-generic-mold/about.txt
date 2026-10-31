@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: named molds must determine their own holes.
+tests: A declared generic parameter does not determine a separate hole in the same record, and later application cannot repair it.
+expect: parses
+expect-types: a partial inference report

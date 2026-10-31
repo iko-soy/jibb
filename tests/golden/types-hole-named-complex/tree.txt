@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 applied
+    (apply 1:12 list (hole 1:18)))
+  (value 2:1 later
+    (gate 2:10
+      (face 2:13 x (ref 2:15 applied))
+      (cast 2:23
+        (apply 2:26 list (aura 2:32 @t))
+        (wing 2:36 x)))))

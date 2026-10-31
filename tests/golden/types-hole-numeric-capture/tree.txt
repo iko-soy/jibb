@@ -1,0 +1,62 @@
+(module
+  (value 1:1 same
+    (gate 1:9
+      (cell 1:12
+        (face 1:13 a (tvar 1:15 A))
+        (face 1:17 b (tvar 1:19 A)))
+      (wing 1:22 a)))
+  (value 2:1 independent
+    (cast 2:16 (hole 2:19) (lit 2:21 1)))
+  (value 3:1 first
+    (gate 3:10
+      (face 3:13 x (tvar 3:15 A))
+      (cast 3:17
+        (hole 3:20)
+        (group 3:22
+          (call 3:23 (wing 3:23 same) (wing 3:28 x) (lit 3:30 1))))))
+  (value 4:1 second
+    (gate 4:11
+      (face 4:14 x (tvar 4:16 A))
+      (cast 4:18
+        (hole 4:21)
+        (group 4:23
+          (call 4:24 (wing 4:24 same) (lit 4:29 1) (wing 4:31 x))))))
+  (value 5:1 capture
+    (gate 5:12
+      (bind 5:15 x)
+      (body 6:3
+        (value 6:3 local
+          (cast 6:12
+            (hole 6:15)
+            (group 6:17
+              (call 6:18 (wing 6:18 same) (wing 6:23 x) (lit 6:25 1)))))
+        (cast 7:3 (aura 7:6 @ux) (wing 7:10 x)))))
+  (value 8:1 local-independent
+    (gate 8:22
+      (face 8:25 x (aura 8:27 @t))
+      (body 9:3
+        (value 9:3 local
+          (cast 9:12 (hole 9:15) (lit 9:17 1)))
+        (wing 10:3 x))))
+  (value 11:1 unresolved-tag
+    (body 12:3
+      (trace 12:3
+        (lit 12:6 %orphan)
+        (body 13:5
+          (cast 13:5 (hole 13:8) (lit 13:10 1))))))
+  (value 14:1 discarded-number
+    (body 15:3
+      (trace 15:3
+        (lit 15:6 1)
+        (body 16:5
+          (cast 16:5 (hole 16:8) (str 16:10 "hello"))))))
+  (value 17:1 captured-second
+    (gate 17:20
+      (bind 17:23 x)
+      (body 18:3
+        (value 18:3 local
+          (cast 18:12
+            (hole 18:15)
+            (group 18:17
+              (call 18:18 (wing 18:18 same) (lit 18:23 1) (wing 18:25 x)))))
+        (cast 19:3 (aura 19:6 @ux) (wing 19:10 x))))))

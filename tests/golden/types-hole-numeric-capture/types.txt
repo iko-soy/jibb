@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ same: $-([a=A b=A] A)
+++ independent: @ud
+++ first: call constraint is not supported by partial inference
+++ second: call constraint is not supported by partial inference
+++ capture: local definitions need unsupported inference
+++ local-independent: $-(@t @t)
+++ unresolved-tag: tag needs context in partial inference
+++ discarded-number: @t
+++ captured-second: local definitions need unsupported inference

@@ -1,0 +1,2 @@
++$ applied (list _)
+++ later |= x=applied ^- (list @t) x

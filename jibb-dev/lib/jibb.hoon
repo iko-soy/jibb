@@ -5292,7 +5292,10 @@
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  imark-externals  (list [mark=term result=*])
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile)]
+::  Hole obligations survive discarded expressions until their owning
+::  definition has inferred; their source spans support unresolved reports.
++$  ihole  [id=@ud at=span]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -5362,6 +5365,90 @@
     %cell      [%cell $(t hed.t) $(t tal.t)]
     *          t
   ==
+::
+::  A hole is solved only by a fully determined type or a written
+::  in-scope type variable. Ordinary fresh variables are not evidence.
+::  Compare representatives after substitution, since unification can
+::  orient a written capital toward the hole rather than the reverse.
+++  hole-variable-id
+  |=  t=itype
+  ^-  (unit @ud)
+  ?-  -.t
+    %var   `id.t
+    %avar  `id.t
+    %nvar  `id.t
+    %tag   `id.t
+    *  ~
+  ==
+++  hole-same-variable
+  |=  [a=itype b=itype]
+  ^-  ?
+  =/  x=(unit @ud)  (hole-variable-id a)
+  ?~  x  |
+  =/  y=(unit @ud)  (hole-variable-id b)
+  ?~  y  |
+  =(u.x u.y)
+++  hole-known
+  |=  [t=itype state=istate]
+  ^-  ?
+  =.  t  (itype-walk t sub.state)
+  ?-  -.t
+    ?(%var %avar %nvar)
+      ?:  (lien caps.state |=(c=icap (hole-same-variable t (itype-walk [%var id.c] sub.state))))  &
+      (lien params.state |=(p=[name=@t typ=itype] (hole-same-variable t (itype-walk typ.p sub.state))))
+    %tag  |
+    %any-atom  &
+    %union  &((levy cases.t |=(c=itype (hole-known c state))) (levy args.t |=(c=itype (hole-known c state))))
+    %collection  (levy args.t |=(c=itype (hole-known c state)))
+    %face  $(t body.t)
+    %fn  &($(t sample.t) $(t product.t))
+    %cell  &($(t hed.t) $(t tal.t))
+    *  &
+  ==
+++  default-hole-numbers
+  |=  [all=(list ihole) prior=(list ihole) state=istate env=ienv permit=?]
+  ^-  istate
+  ::  Do not default a named capital or a variable captured from env.
+  ?.  permit  state
+  ?:  =(all prior)  state
+  ?~  all  state
+  =/  t=itype  (itype-walk [%var id.i.all] sub.state)
+  =/  free=(list @ud)  (free-env-vars env sub.state)
+  =?  state  &(?=(%nvar -.t) !(hole-known t state) !(lien free |=(id=@ud =(id id.t))))
+    state(sub [[id.t [%atom %ud]] sub.state])
+  $(all t.all)
+::
+::  Only obligations created inside this definition belong to it.
+++  holes-created
+  |=  [all=(list ihole) prior=(list ihole)]
+  ^-  (list ihole)
+  ?:  =(all prior)  ~
+  ?~  all  ~
+  [i.all $(all t.all)]
+++  hole-uncertain
+  |=  [t=itype state=istate]
+  ^-  ?
+  =.  t  (itype-walk t sub.state)
+  ?-  -.t
+    ?(%tag %nvar %avar)  !(hole-known t state)
+    %union  |((lien cases.t |=(c=itype (hole-uncertain c state))) (lien args.t |=(c=itype (hole-uncertain c state))))
+    %collection  (lien args.t |=(c=itype (hole-uncertain c state)))
+    %face  $(t body.t)
+    %fn  |($(t sample.t) $(t product.t))
+    %cell  |($(t hed.t) $(t tal.t))
+    *  |
+  ==
+::
+++  unresolved-hole
+  |=  [all=(list ihole) prior=(list ihole) state=istate]
+  ^-  (unit idiag)
+  =/  work=(list ihole)  (flop (holes-created all prior))
+  |-
+  ?~  work  ~
+  ?:  (hole-known [%var id.i.work] state)  $(work t.work)
+  ?:  (hole-uncertain [%var id.i.work] state)
+    `["type hole needs unsupported inference" ~[[at.i.work "type hole"]]]
+  `["type hole needs a determined type" ~[[at.i.work "unresolved type hole"]]]
 ::
 ++  itype-vars
   |=  t=itype
@@ -5950,17 +6037,19 @@
     =/  out=(unit [typ=itype state=istate])
       (infer-simple-shape body.sh state(next next.fresh, params params.fresh, in-mold &))
     ?~  out  ~
+    ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
     ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.sh) ?=(~ origin.typ.u.out))  ~
     =?  typ.u.out  &(?=(%union -.typ.u.out) ?=(%union -.body.sh))
       typ.u.out(args (turn vars.fresh |=(n=@ud `itype`[%var n])))
     =/  used=(list @ud)  (itype-vars typ.u.out)
     ?.  (levy used |=(n=@ud (lien vars.fresh |=(p=@ud =(p n)))))  ~
-    `[[typ.u.out vars.fresh] state.u.out(params params.state, in-mold in-mold.state)]
+    `[[typ.u.out vars.fresh] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
   =/  out=(unit [typ=itype state=istate])
     (infer-simple-shape sh state(params ~, in-mold &))
   ?~  out  ~
+  ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
   ?:  ?=(^ (itype-vars typ.u.out))  ~
-  `[[typ.u.out ~] state.u.out(params params.state, in-mold in-mold.state)]
+  `[[typ.u.out ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
 ::
 ::  A direct imported reference may carry definite reader evidence. Only
 ::  uniquely supplied, declared inputs are used; unsupported data stay generic.
@@ -6063,6 +6152,7 @@
   |=  [sh=shape state=istate]
   ^-  (unit [typ=itype state=istate])
   ?-  -.sh
+    %hole  `[[%var next.state] state(next +(next.state), holes [[next.state at.sh] holes.state])]
     %aura
       ?:  =(0 aura.sh)  `[[%any-atom ~] state]
       `[[%atom aura.sh] state]
@@ -6116,7 +6206,8 @@
       =/  out=(unit [typ=itype state=istate])
         $(sh u.found, state state(active [n active.state], in-mold &, params ~))
       ?~  out  ~
-      `[(label-direct-union typ.u.out u.found n state) state.u.out(active active.state, in-mold in-mold.state, params params.state)]
+      ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
+      `[(label-direct-union typ.u.out u.found n state) state.u.out(active active.state, in-mold in-mold.state, params params.state, holes holes.state)]
     %apply
       ?~  ref.sh  ~
       =/  args=(unit [types=(list itype) state=istate])  (infer-shape-args args.sh state)
@@ -6150,11 +6241,12 @@
       =/  out=(unit [typ=itype state=istate])
         $(sh body.u.found, state state.u.args(active [n active.state.u.args], in-mold &, params u.params))
       ?~  out  ~
+      ?^  (unresolved-hole holes.state.u.out holes.state.u.args state.u.out)  ~
       ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.u.found) ?=(~ origin.typ.u.out))  ~
       ?:  &(?=(%union -.typ.u.out) ?=(%union -.body.u.found) !(lien top-molds.state.u.args |=(x=term =(x n))))  ~
       =?  typ.u.out  &(?=(%union -.typ.u.out) ?=(%union -.body.u.found))
         (label-direct-union typ.u.out(args types.u.args) u.found n state.u.args)
-      `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args)]
+      `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args, holes holes.state.u.args)]
     %tvar
       =/  param=(unit itype)  (iparam-lookup name.sh params.state)
       ?^  param  `[u.param state]
@@ -6469,6 +6561,9 @@
   =/  retried=?  ?=(%| -.inferred)
   =?  inferred  retried  (infer-recursive-gate d env local-state)
   ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
+  =.  state.p.inferred  (default-hole-numbers holes.state.p.inferred holes.state state.p.inferred env !(itype-has-gate (itype-normalize typ.p.inferred sub.state.p.inferred)))
+  =/  hole=(unit idiag)  (unresolved-hole holes.state.p.inferred holes.state state.p.inferred)
+  ?^  hole  [%| u.hole]
   =/  merged=(unit [first=icap second=icap])
     (merged-capitals caps.state.p.inferred sub.state.p.inferred)
   ?^  merged
@@ -6484,7 +6579,7 @@
     (weld (free-env-vars env sub.state.p.inferred) (free-cap-vars caps.state sub.state.p.inferred))
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
-  $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred(caps caps.state), progressed &)
+  $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred(caps caps.state, holes holes.state), progressed &)
 ::
 ::  Try complete cyclic local groups after individual definitions stall.
 ::  Components with non-gates or unresolved constraints stay unavailable.
@@ -7467,6 +7562,9 @@
         [%| ["local molds shadow a name" ~]]
       =/  local-state=istate
         state(globals (weld local-names globals.state), molds (weld local-molds molds.state))
+      =/  mold-hole=(unit span)  (simple-local-mold-hole defs.e)
+      ?^  mold-hole
+        [%| ["type hole needs a determined type" ~[[u.mold-hole "unresolved type hole"]]]]
       ?.  (local-molds-supported local-molds local-state)
         [%| ["local molds need unsupported inference" ~]]
       =/  values=(list def)  (local-value-defs defs.e)
@@ -8429,6 +8527,9 @@
   =/  seeds=ienv  (group-seed-env entries.p.seeded ~)
   =/  body=igate-seeds  (infer-gate-group-bodies entries.p.seeded seeds state.p.seeded)
   ?:  ?=(%| -.body)  body
+  ::  Per-member ownership through mutual recursion is not implemented.
+  ?:  !=(holes.state.p.body holes.state)
+    [%| ["holes in recursive groups need unsupported inference" ~]]
   ?:  (pending-tags tags.state.p.body sub.state.p.body)
     [%| ["recursive group has unresolved literal constraints" ~]]
   =/  schemes=(each ienv idiag)  (group-schemes entries.p.body env state state.p.body)
@@ -8444,11 +8545,13 @@
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~]
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
   ?:  ?=(%| -.result)  $(ds t.ds)
+  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
+  ?^  (unresolved-hole holes.state.p.result holes.initial state.p.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
   ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  $(ds t.ds)
@@ -8579,7 +8682,7 @@
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   |-
   =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~]
   =/  out=iresolved  (add-groups ds components graph next grouped initial)
   ?:  =(env env.out)  out
   $(env env.out, grouped grouped.out)
@@ -8841,11 +8944,142 @@
     [at.first at.second (union-relate a (project-union-mold second molds ~))]
   (weld pairs $(cases t.cases))
 ::
+::  A closed structural mold supplies no equation to determine a hole.
+::  Applications, references, unbound capitals and unions are unproved.
+++  simple-mold-hole
+  |=  sh=shape
+  ^-  (unit (unit span))
+  ?:  ?=(%generic -.sh)
+    ?~  vars.sh  ~
+    ?.  (distinct-params vars.sh)  ~
+    (simple-mold-hole-in body.sh vars.sh)
+  (simple-mold-hole-in sh ~)
+++  simple-mold-hole-in
+  |=  [sh=shape vars=(list @t)]
+  ^-  (unit (unit span))
+  ?-  -.sh
+    %hole  ``at.sh
+    ?(%aura %noun %void %flag %const)  `~
+    %tvar  ?:((lien vars |=(v=@t =(v name.sh))) `~ ~)
+    %cell  (simple-mold-field-holes fields.sh vars)
+    %fn
+      =/  a=(unit (unit span))  $(sh sample.sh)
+      ?~  a  ~
+      =/  b=(unit (unit span))  $(sh product.sh)
+      ?~  b  ~
+      `?~(u.a u.b u.a)
+    %generic  ~
+    *  ~
+  ==
+++  simple-mold-field-holes
+  |=  [fields=(list field) vars=(list @t)]
+  ^-  (unit (unit span))
+  ?~  fields  `~
+  =/  f=field  i.fields
+  =/  first=(unit (unit span))
+    ?-  -.f
+      %face  (simple-mold-hole-in shape.f vars)
+      %bare  (simple-mold-hole-in shape.f vars)
+      %pun   ~
+    ==
+  ?~  first  ~
+  =/  rest=(unit (unit span))  $(fields t.fields)
+  ?~  rest  ~
+  `?~(u.first u.rest u.first)
+++  simple-local-mold-hole
+  |=  defs=(list def)
+  ^-  (unit span)
+  ?~  defs  ~
+  ?.  ?=(%mold -.i.defs)  $(defs t.defs)
+  =/  found=(unit (unit span))  (simple-mold-hole shape.i.defs)
+  ?~  found  $(defs t.defs)
+  ?^  u.found  u.found
+  $(defs t.defs)
+::
+::  A partial prelude may omit unsupported declarations, but may not
+::  publish an interface while a named mold's hole remains unchecked.
+++  shape-has-hole
+  |=  sh=shape
+  ^-  ?
+  ?-  -.sh
+    %hole  &
+    %path  (lien segs.sh |=(s=pseg ?=(%inferred -.s)))
+    %apply  (lien args.sh shape-has-hole)
+    %union  (lien cases.sh shape-has-hole)
+    %cell  (lien fields.sh field-has-hole)
+    %fn  |($(sh sample.sh) $(sh product.sh))
+    %generic  $(sh body.sh)
+    *  |
+  ==
+++  field-has-hole
+  |=  f=field
+  ^-  ?
+  ?-  -.f
+    %face  (shape-has-hole shape.f)
+    %bare  (shape-has-hole shape.f)
+    %pun   |
+  ==
+++  named-mold-has-hole
+  |=  ds=(list def)
+  ^-  ?
+  ?~  ds  |
+  ?:  &(?=(%mold -.i.ds) (shape-has-hole shape.i.ds))  &
+  $(ds t.ds)
+::
+++  sample-has-hole
+  |=  sam=sample
+  ^-  ?
+  ?-  -.sam
+    %face  (shape-has-hole shape.sam)
+    %bare  (shape-has-hole shape.sam)
+    %cell  (lien items.sam sample-has-hole)
+    *  |
+  ==
+++  def-has-hole
+  |=  d=def
+  ^-  ?
+  ?-  -.d
+    %mold   (shape-has-hole shape.d)
+    %value  (expr-has-hole val.d)
+  ==
+++  expr-has-hole
+  |=  e=expr
+  ^-  ?
+  ?-  -.e
+    %str  (lien pieces.e |=(p=piece ?:(?=(%expr -.p) (expr-has-hole p.p) |)))
+    %qath  (lien segs.e |=(p=qseg ?:(?=(%expr -.p) (expr-has-hole p.p) |)))
+    %change  (lien edits.e |=(p=edit (expr-has-hole val.p)))
+    %pair  $(e val.e)
+    %unit  $(e val.e)
+    %group  $(e inner.e)
+    %list  (lien items.e expr-has-hole)
+    %tuple  (lien items.e |=(i=item (expr-has-hole val.i)))
+    ?(%gate %gate-wide)  |((sample-has-hole sample.e) $(e body.e))
+    %cast  |((shape-has-hole shape.e) $(e val.e))
+    %call  |($(e head.e) (lien args.e expr-has-hole))
+    %trace  |($(e val.e) $(e then.e))
+    %branch  |($(e subject.e) (lien arms.e |=(a=arm (expr-has-hole val.a))))
+    %body  |((lien defs.e def-has-hole) $(e final.e))
+    *  |
+  ==
+++  hole-values-present
+  |=  [ds=(list def) env=ienv]
+  ^-  ?
+  ?~  ds  &
+  ?.  ?=(%value -.i.ds)  $(ds t.ds)
+  ?:  (expr-has-hole val.i.ds)
+    ?.  ?=(^ (ienv-lookup name.i.ds env))  |
+    $(ds t.ds)
+  $(ds t.ds)
 ++  show-partial-mold
   |=  [file=path src=@t d=def molds=imolds]
   ^-  @t
   ?>  ?=(%mold -.d)
   =/  sh=shape  shape.d
+  =/  hole=(unit (unit span))  (simple-mold-hole sh)
+  ?:  &(?=(^ hole) ?=(^ u.hole))
+    =/  text=@t  (show-error src [file line.beg.u.u.hole col.beg.u.u.hole "unresolved type hole"])
+    (of-wain:format ~[(crip "+$ {(trip name.d)}: type hole needs a determined type") text])
   =?  sh  ?=(%generic -.sh)  body.sh
   ?.  ?=(%union -.sh)  (crip "+$ {(trip name.d)}: not checked")
   =/  pairs=(list upair)  (union-pairs cases.sh molds)
@@ -9242,7 +9476,7 @@
   =/  js=ijimports  ~[[face.i.imports.mod private-primitive-interface]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  ~
   =/  env=ienv  (resolve-supported-defs defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
@@ -9256,6 +9490,7 @@
   =/  at=path  /lib/jibb/prelude/jibb
   =/  parsed  (parse at src)
   ?:  ?=(%| -.parsed)  ~
+  ?:  (named-mold-has-hole defs.p.parsed)  ~
   ?^  (duplicate-defs defs.p.parsed)  ~
   =/  private=(unit ijimports)
     ?~  imports.p.parsed  `~
@@ -9279,8 +9514,15 @@
   =?  env-molds  declared
     (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
   =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~]
-  =/  mt=imold-types  (partial-prelude-molds molds state)
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~]
+  ::  Other prelude molds may use list only after its source has passed
+  ::  the standard-list check. The raw declaration remains removed.
+  =/  declared-list=(unit shape)  (find-simple-mold %list molds)
+  =/  mold-prelude=(unit ifile)
+    ?~  declared-list  ~
+    ?.  (standard-prelude-list u.declared-list)  ~
+    `[~ ~[[%list [[%collection %list ~[[%var 0]]] ~[0]]]] at ~]
+  =/  mt=imold-types  (partial-prelude-molds molds state(prelude mold-prelude))
   =/  partial=ifile  [~ mt at ~]
   ::  An explicitly qualified re-export must resolve. Other unsupported
   ::  prelude declarations remain reserved but absent from the interface.
@@ -9293,6 +9535,7 @@
     ?=(^ t.names.sh)
   ?.  (levy required |=(m=[name=term body=shape] ?=(^ (find-jibb-mold name.m partial))))  ~
   =/  env=ienv  (resolve-supported-defs ds env-molds globals ~ ~ ~ ~ u.private reserved at `partial)
+  ?.  (hole-values-present ds env)  ~
   `[env mt at ~]
 ::
 ++  partial-prelude-interface
@@ -9543,6 +9786,7 @@
 ++  api-path-analysis
   |=  [mod=module externals=imark-externals prelude-values=(list term) prelude-molds=(list term)]
   ^-  (unit (list iapi-path-typed))
+  ?:  (lien defs.mod def-has-hole)  ~
   ?^  (duplicate-defs defs.mod)  ~
   =/  ds=(list def)  defs.mod
   =/  declarations=(list def)
@@ -9598,6 +9842,7 @@
 ++  api-poke-interface
   |=  [at=path mod=module mark-externals=imark-externals prelude-values=(list term) prelude-molds=(list term) prelude=(unit ifile)]
   ^-  (unit ifile)
+  ?:  (lien defs.mod def-has-hole)  ~
   ?.  ?=([%ui %api @ %jibb ~] at)  ~
   ?^  (duplicate-defs defs.mod)  ~
   ?~  prelude  ~
@@ -9656,7 +9901,7 @@
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
   =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
@@ -9787,7 +10032,7 @@
     =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
     $(ds t.ds, lines [line lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~]
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult
     ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
@@ -9795,6 +10040,10 @@
     (infer-fragment val.d env initial)
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
+  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
+  =/  hole=(unit idiag)  (unresolved-hole holes.state.p.result holes.initial state.p.result)
+  ?^  hole
+    $(ds t.ds, lines [(show-inference-diagnostic file src name.d u.hole) lines])
   =/  merged=(unit [first=icap second=icap])
     (merged-capitals caps.state.p.result sub.state.p.result)
   ?^  merged

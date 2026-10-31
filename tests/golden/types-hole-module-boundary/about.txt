@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: a definition must determine its own type holes.
+tests: A module export cannot generalize an unresolved hole that the importing call later fixes.
+expect: parses
+expect-types: a partial inference report

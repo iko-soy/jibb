@@ -1,0 +1,6 @@
+/ui/lib.jibb
+(module
+  (value 1:1 id
+    (gate 1:7
+      (face 1:10 x (hole 1:12))
+      (wing 1:14 x))))

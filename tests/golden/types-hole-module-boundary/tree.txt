@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 use
+    (group 2:8
+      (call 2:9 (wing 2:9 id.lib) (str 2:16 "hello")))))

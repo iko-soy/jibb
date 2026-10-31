@@ -1,0 +1,7 @@
+partial inference; module not checked
+++ id: type hole needs a determined type
+/tests/golden/types-hole-user-value/source.jibb:1:12: unresolved type hole
+++ id |= x=_ x
+           ^
+++ later: name is not available to partial inference
+++ independent: @t
