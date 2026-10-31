@@ -8,7 +8,7 @@ p.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
 a = p.parse_args()
 core = (root / 'tests/lib/jibb-deferred-resolver.hoon').read_text()
 core = core[core.index('\n|%\n') + 1:]
-names = ['good', 'conflict', 'missing', 'hole', 'duplicate', 'face', 'store', 'public', 'internal']
+names = ['good', 'conflict', 'missing', 'hole', 'duplicate', 'face', 'store', 'stability-early', 'stability-late', 'stability-simple-early', 'stability-simple-late', 'stability-output-early', 'stability-output-late', 'stability-slot-early', 'stability-slot-late', 'public', 'internal']
 bindings = ''.join('=/  '+n+'=wain  (to-wain:format '+n+'-text)\n' for n in names if n not in ('public', 'internal'))
 bindings += ''.join('=/  '+n+'=@t  '+n+'-text\n' for n in ('public', 'internal'))
 program = ('=/  jibb  .\n' + bindings + '=/  expected=wain  (to-wain:format expected-text)\n=/  suite\n' + core +

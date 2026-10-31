@@ -7,6 +7,14 @@
 /*  duplicate  %txt  /tests/type-deferred-resolver/duplicate/txt
 /*  face  %txt  /tests/type-deferred-resolver/face/txt
 /*  store  %txt  /tests/type-deferred-resolver/store/txt
+/*  stability-early  %txt  /tests/type-deferred-resolver/stability-early/txt
+/*  stability-late  %txt  /tests/type-deferred-resolver/stability-late/txt
+/*  stability-simple-early  %txt  /tests/type-deferred-resolver/stability-simple-early/txt
+/*  stability-simple-late  %txt  /tests/type-deferred-resolver/stability-simple-late/txt
+/*  stability-output-early  %txt  /tests/type-deferred-resolver/stability-output-early/txt
+/*  stability-output-late  %txt  /tests/type-deferred-resolver/stability-output-late/txt
+/*  stability-slot-early  %txt  /tests/type-deferred-resolver/stability-slot-early/txt
+/*  stability-slot-late  %txt  /tests/type-deferred-resolver/stability-slot-late/txt
 /*  public  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
 /*  expected  %txt  /tests/type-deferred-resolver/expected/txt
@@ -83,5 +91,23 @@
   ^-  tang
   =/  result=@t  (resolver-report (text good) (text conflict) (text missing) (text hole) (text duplicate) (text face) (text store) public internal)
   ?.  =((to-wain:format (cat 3 result '\0a')) expected)  ~[leaf+"deferred resolver report differs"]
-  ~
+  =/  closed=itype:jibb  [%cell [%face %foo [%atom %t]] [%atom %t]]
+  =/  open=itype:jibb  [%cell [%face %foo [%var 500]] [%atom %t]]
+  =/  tag=itype:jibb  [%tag 501 *lit:jibb |]
+  ?.  (dg-stable-call-fit:jibb closed closed [%atom %t] ~ &)  ~[leaf+"closed positional fit declined"]
+  ?:  (dg-stable-call-fit:jibb open open [%atom %t] ~ &)  ~[leaf+"open positional face accepted"]
+  ?:  (dg-stable-call-fit:jibb closed closed tag ~ &)  ~[leaf+"pending positional result accepted"]
+  ?.  (dg-stable-call-fit:jibb open open [%atom %t] ~ |)  ~[leaf+"equal single argument declined"]
+  =/  samples=(list wain)
+    ~[stability-early stability-late stability-simple-early stability-simple-late stability-output-early stability-output-late stability-slot-early stability-slot-late]
+  |-
+  ?~  samples  ~
+  ?~  i.samples  ~[leaf+"deferred stability source missing"]
+  =/  at=path  /ui/stability/jibb
+  =/  src=@t  (text i.samples)
+  =/  parsed  (parse:jibb at src)
+  ?:  ?=(%| -.parsed)  ~[leaf+"deferred stability source does not parse"]
+  =/  result=jfile-result:jibb  (infer-jibb-file:jibb at src ~ ~ ~ ~[at] ~ ~ ~ ~)
+  ?:  ?=(%& -.result)  ~[leaf+"unstable deferred fit published an interface"]
+  $(samples t.samples)
 --

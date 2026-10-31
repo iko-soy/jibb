@@ -1,0 +1,9 @@
++$ single [%got value=@t]
+++ send |= f=$-(@t A) f
+++ pending (send |=%got)
+++ finish ^- $-(@t single) pending
+++ accept |= [foo=@t bar=@t] %idle
+++ foo-value ^- [foo=@t] "a"
+++ bar-value ^- [bar=@t] "b"
+++ value (accept foo-value bar-value)
+++ reveal ^- * value

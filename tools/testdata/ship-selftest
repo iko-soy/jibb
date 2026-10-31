@@ -353,7 +353,11 @@ def generator_checks(tmp):
     check('deferred transaction and resolver sources are assembled',
           {'tests/type-deferred/nested-src.txt', 'tests/type-deferred/principal-src.txt',
            'tests/type-deferred/expected.txt', 'tests/type-deferred-resolver/good.txt',
-           'tests/type-deferred-resolver/store.txt', 'tests/type-deferred-resolver/expected.txt'}
+           'tests/type-deferred-resolver/store.txt', 'tests/type-deferred-resolver/expected.txt',
+           'tests/type-deferred-resolver/stability-early.txt', 'tests/type-deferred-resolver/stability-late.txt',
+           'tests/type-deferred-resolver/stability-simple-early.txt', 'tests/type-deferred-resolver/stability-simple-late.txt',
+           'tests/type-deferred-resolver/stability-output-early.txt', 'tests/type-deferred-resolver/stability-output-late.txt',
+           'tests/type-deferred-resolver/stability-slot-early.txt', 'tests/type-deferred-resolver/stability-slot-late.txt'}
           <= set(normal.files))
     check('cell branch sources are assembled',
           {'tests/type-cell-branch/good.txt', 'tests/type-cell-branch/bad.txt'}

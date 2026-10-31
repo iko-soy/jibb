@@ -1,3 +1,5 @@
 source: docs/spec/grammar.md, Tag resolution: “A variable constrained by tag resolution, and any it mentions, doesn't generalize; it stays open until something in the module fixes it.”
 
 Import-free, no-prelude ordinary library resolution: principal generalized result and matching report, with conflicting constructors, holes, duplicate bindings, nested faces and store kind rejected atomically. Resolved imports and the actual prepared prelude are also checked as fail-closed boundaries.
+
+Both source orders decline when a later substitution changes a previously checked face-propagation condition. Controls cover compound and direct calls, an unresolved result tag that becomes `*`, and an unresolved positional slot that becomes faced. Positive low-level checks preserve closed positional fits and equal single-argument fits with open variables.

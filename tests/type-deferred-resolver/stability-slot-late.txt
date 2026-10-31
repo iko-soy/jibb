@@ -1,0 +1,9 @@
++$ single [%got value=@t]
+++ request |= f=$-(@t A) f
+++ label |= x=A [foo=x]
+++ accept |= x=[[foo=A] @t] x
+++ pending (request |=%got)
+++ first (pending "hello")
+++ labeled (label first)
+++ finish ^- $-(@t single) pending
+++ value (accept labeled "b")

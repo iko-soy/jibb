@@ -1,0 +1,6 @@
++$ single [%got value=@t]
+++ request |= f=$-(@t A) f
+++ accept |= x=[foo=A] x
+++ waiting (request |=%got)
+++ reveal ^- $-(@t single) waiting
+++ wrapped (accept waiting)

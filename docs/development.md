@@ -203,4 +203,4 @@ Write `source.jibb` and `about.txt` by hand, run `tools/golden --update --case <
 
 A short subject in the imperative, then a body that says what changed and why, wrapped at 72 columns, as in `git log`. Each commit leaves every check passing.
 
-`tools/type-deferred-test` exercises the bounded, source-owned constructor transaction and low-level freshness/replay guards. `tools/type-deferred-resolver-test` checks the experimental import-free library resolver, report consistency, and atomic failure. These checks do not establish island-kind or watchability support.
+`tools/type-deferred-test` exercises the bounded, source-owned constructor transaction and low-level freshness/replay guards. `tools/type-deferred-resolver-test` checks the experimental import-free library resolver, report consistency, atomic failure, and that both source orders of a late face constraint decline. These checks do not establish island-kind or watchability support.

@@ -8529,6 +8529,8 @@
         =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value typ.u.target sub.state.p.value next.state.p.value at.shape.e)
         ?^  nested  [%| u.nested]
         [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-type-note "expression" typ.p.value sub.state.p.value)]]]]
+      ?:  &(?=(^ defer.state.p.value) !(dg-stable-fit typ.p.value typ.u.target sub.fit))
+        [%| ["deferred cast fit needs stable inference" ~]]
       =/  merged=itype  (itype-merge-faces typ.p.value typ.u.target sub.fit)
       [%& merged state.p.value(sub sub.fit, next next.fit)]
     %crash  [%& [%var next.state] state(next +(next.state))]
@@ -8857,6 +8859,8 @@
       =/  arg-at=span  ?~(bad whole-args at.u.bad)
       =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
       [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
+    ?:  &(?=(^ defer.st) !(dg-stable-call-fit typ.p.arg sample.ht product.ht sub.fit ?=(^ t.args.e)))
+      [%| ["deferred call fit needs stable inference" ~]]
     =/  face-asym=?
       ?^  direct  |
       ?^  t.args.e  (itype-positional-face-asym args.e typ.p.arg sample.ht sub.fit)
@@ -12589,6 +12593,56 @@
   ?~  rest  ~
   `[[name.i.env [normalized vars.s]] u.rest]
 ::
+::  Deferred inference uses only source forms whose successful fit sites are
+::  guarded below; a shared source-node budget bounds this screen.
+++  dg-safe-expressions
+  |=  [todo=(list expr) fuel=@ud]
+  ^-  (unit @ud)
+  ?~  todo  `fuel
+  =/  first=(unit @ud)  (dg-safe-expression i.todo fuel)
+  ?~  first  ~
+  $(todo t.todo, fuel u.first)
+++  dg-safe-expression
+  |=  [e=expr fuel=@ud]
+  ^-  (unit @ud)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?+  -.e  ~
+    ?(%lit %ctor)  `fuel
+    %wing  ?:(?=([@ ~] names.e) `fuel ~)
+    %str
+      ?.  (levy pieces.e |=(p=piece ?=(%text -.p)))  ~
+      `fuel
+    %group  $(e inner.e, fuel fuel)
+    %body
+      ?^  defs.e  ~
+      $(e final.e, fuel fuel)
+    %gate  $(e body.e, fuel fuel)
+    %gate-wide  $(e body.e, fuel fuel)
+    %cast  $(e val.e, fuel fuel)
+    %call
+      =/  head=(unit @ud)  $(e head.e, fuel fuel)
+      ?~  head  ~
+      (dg-safe-expressions args.e u.head)
+  ==
+::  Exact normalized equality is preserved by all later substitutions.
+::  The bounded scan declines opaque types and oversized inputs.
+++  dg-stable-fit
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  ?
+  ?~  (dg-scan ~[actual expected] sub 512 ~)  |
+  =((itype-normalize actual sub) (itype-normalize expected sub))
+::
+::  A positional call peels sample-slot faces during its separate face check.
+::  Require its argument, sample and result closed so that check stays valid.
+++  dg-stable-call-fit
+  |=  [actual=itype expected=itype product=itype sub=isub positional=?]
+  ^-  ?
+  =/  checked=(unit dgscan)  (dg-scan ~[actual expected product] sub 512 ~)
+  ?~  checked  |
+  ?:  &(positional ?=(^ ids.u.checked))  |
+  =((itype-normalize actual sub) (itype-normalize expected sub))
+::
 ++  dg-stage
   |=  [ds=(list def) base=ienv env=ienv state=istate pending=(list dgo) fuel=@ud]
   ^-  (unit dgcommit)
@@ -12611,6 +12665,7 @@
   ?:  ?=(%mold -.d)  $(ds t.ds, fuel (dec fuel))
   ?^  (ienv-lookup name.d base)  $(ds t.ds, fuel (dec fuel))
   ?^  (ienv-lookup name.d env)  ~
+  ?~  (dg-safe-expression val.d 512)  ~
   =/  local=istate  (reserve-def-caps val.d state)
   :: This first slice declines all written capitals and holes/projections.
   ?^  caps.local  ~
