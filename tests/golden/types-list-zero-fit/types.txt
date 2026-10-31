@@ -1,6 +1,6 @@
 partial inference; module not checked
-++ nil-arg: call constraint is not supported by partial inference
-++ zero-arg: call constraint is not supported by partial inference
+++ nil-arg: $-($-([(list @t) @t] @t) @t)
+++ zero-arg: $-($-([(list @t) @t] @t) @t)
 ++ zero-one-arg: call's sample and argument types do not unify
 /tests/golden/types-list-zero-fit/source.jibb:3:45: called gate has type $-([(list @t) @t] @t)
 ++ zero-one-arg |= f=$-([(list @t) @t] @t) (f [%1 "ok"])
@@ -24,4 +24,4 @@ partial inference; module not checked
 /tests/golden/types-list-zero-fit/source.jibb:7:45: argument has type (list @t)
 ++ reverse |= [f=$-(%$ @t) xs=(list @t)] (f xs)
                                             ^
-++ turn-tuple: call constraint is not supported by partial inference
+++ turn-tuple: (list A)

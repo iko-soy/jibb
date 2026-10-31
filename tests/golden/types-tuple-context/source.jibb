@@ -1,0 +1,7 @@
+++ empty (turn [~ |=(x x)])
+++ two (turn ~ |=(x x))
+++ yes (turn [~["hi"] |=(x x)])
+++ target |= p=[xs=(list @t) f=$-(@t @t)] p
+++ faced (target [xs=~ f=|=(x x)])
+++ wrong (target [items=~ f=|=(x x)])
+++ unknown |= f (f [~ |=(x x)])

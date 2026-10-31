@@ -1,0 +1,14 @@
+partial inference; module not checked
+++ empty: (list A)
+++ two: (list A)
+++ yes: (list @t)
+++ target: $-([xs=(list @t) f=$-(@t @t)] [xs=(list @t) f=$-(@t @t)])
+++ faced: [xs=(list @t) f=$-(@t @t)]
+++ wrong: call's sample and argument types do not unify
+/tests/golden/types-tuple-context/source.jibb:6:11: called gate has type $-([xs=(list @t) f=$-(@t @t)] [xs=(list @t) f=$-(@t @t)])
+++ wrong (target [items=~ f=|=(x x)])
+          ^
+/tests/golden/types-tuple-context/source.jibb:6:18: argument has type [items=(list @t) f=$-(A A)]
+++ wrong (target [items=~ f=|=(x x)])
+                 ^
+++ unknown: `~` needs context in partial inference

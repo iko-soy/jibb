@@ -1,0 +1,55 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ take: $-([payload=msg xs=(list @t)] [payload=msg xs=(list @t)])
+++ ok: [payload=msg xs=(list @t)]
+++ bad-tag: call's sample and argument types do not unify
+/tests/golden/types-tuple-context-nested/source.jibb:6:13: called gate
+++ bad-tag (take [payload=%oops xs=~])
+            ^
+/tests/golden/types-tuple-context-nested/source.jibb:6:18: argument
+++ bad-tag (take [payload=%oops xs=~])
+                 ^
+++ bad-face: call's sample and argument types do not unify
+/tests/golden/types-tuple-context-nested/source.jibb:7:14: called gate
+++ bad-face (take [wrong=%go xs=~])
+             ^
+/tests/golden/types-tuple-context-nested/source.jibb:7:19: argument
+++ bad-face (take [wrong=%go xs=~])
+                  ^
+++ extra: call's sample and argument types do not unify
+/tests/golden/types-tuple-context-nested/source.jibb:8:11: called gate
+++ extra (take [payload=%go xs=~ extra="x"])
+          ^
+/tests/golden/types-tuple-context-nested/source.jibb:8:16: argument
+++ extra (take [payload=%go xs=~ extra="x"])
+               ^
+++ nest: $-([data=[payload=msg xs=(list @t)] z=@p] [data=[payload=msg xs=(list @t)] z=@p])
+++ nested: [data=[payload=msg xs=(list @t)] z=@p]
+++ unconstrained: `~` needs context in partial inference
+++ pending: tag needs context in partial inference
+++ wrong-item: list item does not fit its expected type
+/tests/golden/types-tuple-context-nested/source.jibb:15:16: expected item has type @t
+++ wrong-item (take [payload=%go xs=~[~zod]])
+               ^
+/tests/golden/types-tuple-context-nested/source.jibb:15:39: list item has type @p
+++ wrong-item (take [payload=%go xs=~[~zod]])
+                                      ^
+++ discarded-null: `~` needs context in partial inference
+++ generic: $-([left=A right=A] [left=A right=A])
+++ generic-bad: call's sample and argument types do not unify
+/tests/golden/types-tuple-context-nested/source.jibb:20:17: called gate has type $-([left=A right=A] [left=A right=A])
+++ generic-bad (generic [left=~zod right="hi"])
+                ^
+/tests/golden/types-tuple-context-nested/source.jibb:20:25: argument has type [left=@p right=@t]
+++ generic-bad (generic [left=~zod right="hi"])
+                        ^
++$ typed: not checked
+++ use-ctor: $-([f=$-(@t [%typed text=@t]) payload=@t] [f=$-(@t [%typed text=@t]) payload=@t])
+++ constructor: [f=$-(@t [%typed text=@t]) payload=@t]
+++ bad-constructor: call's sample and argument types do not unify
+/tests/golden/types-tuple-context-nested/source.jibb:24:21: called gate has type $-([f=$-(@t [%typed text=@t]) payload=@t] [f=$-(@t [%typed text=@t]) payload=@t])
+++ bad-constructor (use-ctor [f=|=%other payload="hi"])
+                    ^
+/tests/golden/types-tuple-context-nested/source.jibb:24:30: argument
+++ bad-constructor (use-ctor [f=|=%other payload="hi"])
+                             ^

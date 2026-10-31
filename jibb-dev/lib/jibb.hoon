@@ -6904,6 +6904,40 @@
   ?.  ?=(%union -.typ)  ~
   `typ
 ::
+::  Infer changes only against a fully known record spine. Retain the
+::  target type; unknown spines and repeated edits remain unsupported.
+++  change-spine-known
+  |=  [t=itype sub=isub]
+  ^-  ?
+  =.  t  (itype-walk t sub)
+  ?:  ?=(%face -.t)  &
+  ?.  ?=(%cell -.t)  |
+  =/  first=itype  (itype-walk hed.t sub)
+  ?.  ?=(%face -.first)  |
+  $(t tal.t)
+::
+++  infer-change-edits
+  |=  [edits=(list edit) target=itype env=ienv state=istate seen=(list term)]
+  ^-  iresult
+  ?~  edits  [%& target state]
+  =/  entry=edit  i.edits
+  ?:  (lien seen |=(name=term =(name name.entry)))
+    [%| ["repeated change fields are not supported by partial inference" ~]]
+  ?.  (change-spine-known target sub.state)
+    [%| ["change target needs a known record in partial inference" ~]]
+  =/  found=(list itype)  (record-fields-named name.entry target sub.state)
+  ?~  found
+    [%| ["record has no field `{(trip name.entry)}`" ~[[at.entry "unknown field"]]]]
+  ?^  t.found  [%| ["change field is ambiguous in partial inference" ~]]
+  =/  expected=itype  i.found
+  =/  value=iresult  (infer-call-context-arg val.entry expected env state at.entry)
+  ?:  ?=(%| -.value)  value
+  =/  fit=ifit  (itype-fit typ.p.value expected sub.state.p.value next.state.p.value)
+  ?:  ?=(%unknown -.fit)  [%| ["change field constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    [%| ["change field and replacement do not unify" ~[[at.entry (site-type-note "expected replacement" expected sub.state.p.value)] [(span-of val.entry) (site-type-note "replacement" typ.p.value sub.state.p.value)]]]]
+  $(edits t.edits, state state.p.value(sub sub.fit, next next.fit), seen [name.entry seen])
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -6943,6 +6977,11 @@
       =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
       [%& typ.instance state.instance]
     %group  $(e inner.e)
+    %change
+      ?~  edits.e  [%| ["a change takes at least one field" ~[[at.e "empty change"]]]]
+      =/  target=iresult  $(e [%wing at.e target.e])
+      ?:  ?=(%| -.target)  target
+      (infer-change-edits edits.e typ.p.target env state.p.target ~)
     %ctor  [%& [%tag next.state tag.e &] state(next +(next.state), tags [[next.state tag.e] tags.state])]
     %trace
       =/  traced=iresult  $(e val.e)
@@ -7064,12 +7103,8 @@
           ?:  ?=(%fn -.head-type)
             (infer-call-context-args args.e sample.head-type env state.p.head (span-of head.e))
           (infer-simple-items (turn args.e |=(a=expr [(span-of a) ~ a])) env state.p.head)
-        ?:  &(?=(%fn -.head-type) ?=(%union -.sample.head-type) (context-union-branch i.args.e))
-          (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
-        ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-union-branch i.args.e))
-          (infer-union-context i.args.e sample.head-type env state.p.head (span-of head.e))
-        ?:  &(?=(%fn -.head-type) ?=(%collection -.sample.head-type) =(%list name.sample.head-type) (context-list-expression i.args.e))
-          (infer-list-context i.args.e sample.head-type env state.p.head (span-of head.e))
+        ?:  ?=(%fn -.head-type)
+          (infer-call-context-arg i.args.e sample.head-type env state.p.head (span-of head.e))
         $(e i.args.e, state state.p.head)
       ?:  ?=(%| -.arg)  arg
       =/  st=istate  state.p.arg
@@ -7135,7 +7170,32 @@
     (infer-union-context e target env state context)
   ?:  &(?=(%collection -.target) =(%list name.target) (context-list-expression e))
     (infer-list-context e target env state context)
+  ?:  &(?=(%cell -.target) ?=(%tuple -.e))
+    (infer-call-context-items items.e target env state context)
   (infer-fragment e env state)
+::
+::  Preserve each written face; the final complete sample fit checks faces.
+++  infer-call-context-items
+  |=  [items=(list item) expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?~  items  [%| ["empty cell is not supported by partial inference" ~]]
+  ?~  t.items
+    =/  last=iresult  (infer-call-context-arg val.i.items expected env state context)
+    ?:  ?=(%| -.last)  last
+    =/  typ=itype  typ.p.last
+    =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
+    [%& typ state.p.last]
+  =/  target=itype  (itype-walk expected sub.state)
+  |-
+  ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?.  ?=(%cell -.target)  (infer-simple-items items env state)
+  =/  head=iresult  (infer-call-context-arg val.i.items hed.target env state context)
+  ?:  ?=(%| -.head)  head
+  =/  typ=itype  typ.p.head
+  =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
+  =/  tail=iresult  (infer-call-context-items t.items tal.target env state.p.head context)
+  ?:  ?=(%| -.tail)  tail
+  [%& [%cell typ typ.p.tail] state.p.tail]
 ::
 ++  infer-call-context-args
   |=  [args=(list expr) expected=itype env=ienv state=istate context=span]

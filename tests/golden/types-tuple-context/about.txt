@@ -1,0 +1,4 @@
+source: Grammar, Literals: a cell is "A tuple; a record when faced; a cons where a list is expected"; Expressions: a call supplies its arguments to a gate's sample.
+tests: A known sample supplies context to the positions of a single tuple argument, including an empty list and a gate. Explicit faces are retained, incompatible faces fail, and an unknown callee does not guess a list type.
+expect: parses
+expect-types: a partial inference report

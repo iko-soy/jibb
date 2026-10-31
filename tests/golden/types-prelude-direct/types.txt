@@ -2,5 +2,5 @@ partial inference; module not checked
 ++ echo: $-((unit A) (unit A))
 ++ extract: $-((unit A) A)
 ++ concrete: (unit @t)
-++ tuple-call: call constraint is not supported by partial inference
+++ tuple-call: (list A)
 ++ shadow: sample shadows a name

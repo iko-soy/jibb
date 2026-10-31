@@ -1,0 +1,99 @@
+(module
+  (mold 1:1 state
+    (cell 1:10
+      (face 1:11 items
+        (apply 1:17 list (aura 1:23 @t)))
+      (face 1:27 open (flag 1:32))
+      (face 1:34 name (aura 1:39 @t))
+      (face 1:42 nested
+        (cell 1:49
+          (face 1:50 word (aura 1:55 @t))))))
+  (mold 2:1 actions
+    (union 3:3 (const 3:3 %start) (const 4:3 %stop)))
+  (mold 5:1 model
+    (cell 5:10
+      (face 5:11 mode (ref 5:16 actions))
+      (face 5:24 data
+        (apply 5:29 unit (aura 5:35 @t)))))
+  (value 6:1 flip
+    (gate 6:9
+      (face 6:12 s (ref 6:14 state))
+      (change 6:20 s
+        (edit 6:22 open
+          (group 6:27
+            (call 6:28 (wing 6:28 not) (wing 6:32 open.s)))))))
+  (value 7:1 put
+    (gate 7:8
+      (cell 7:11
+        (face 7:12 s (ref 7:14 state))
+        (face 7:20 item (aura 7:25 @t)))
+      (change 7:29 s
+        (edit 7:31 items
+          (tuple 7:37 (wing 7:38 item) (wing 7:43 items.s))))))
+  (value 8:1 clear
+    (gate 8:10
+      (face 8:13 s (ref 8:15 state))
+      (change 8:21 s
+        (edit 8:23 items (lit 8:29 ~))
+        (edit 8:31 name (str 8:36 "")))))
+  (value 9:1 multiple
+    (gate 9:13
+      (face 9:16 s (ref 9:18 state))
+      (change 9:24 s
+        (edit 9:26 name (str 9:31 "ok"))
+        (edit 9:36 open (lit 9:41 %.y)))))
+  (value 10:1 nested
+    (gate 10:11
+      (face 10:14 s (ref 10:16 state))
+      (change 10:22 nested.s
+        (edit 10:31 word (str 10:36 "hello")))))
+  (value 11:1 no-field
+    (gate 11:13
+      (face 11:16 s (ref 11:18 state))
+      (change 11:24 s
+        (edit 11:26 missing (str 11:34 "bad")))))
+  (value 12:1 mismatch
+    (gate 12:13
+      (face 12:16 s (ref 12:18 state))
+      (change 12:24 s
+        (edit 12:26 name (lit 12:31 ~zod)))))
+  (value 13:1 wrong-list
+    (gate 13:15
+      (face 13:18 s (ref 13:20 state))
+      (change 13:26 s
+        (edit 13:28 items
+          (tuple 13:34 (lit 13:35 ~zod) (wing 13:40 items.s))))))
+  (value 14:1 unknown
+    (gate 14:12
+      (bind 14:15 x)
+      (change 14:17 x
+        (edit 14:19 name (str 14:24 "ok")))))
+  (value 15:1 empty
+    (gate 15:10
+      (face 15:13 s (ref 15:15 state))
+      (change 15:21 s)))
+  (value 16:1 tag
+    (gate 16:8
+      (face 16:11 m (ref 16:13 model))
+      (change 16:19 m
+        (edit 16:21 mode (lit 16:26 %start))
+        (edit 16:33 data (lit 16:38 ~)))))
+  (value 17:1 bad-tag
+    (gate 17:12
+      (face 17:15 m (ref 17:17 model))
+      (change 17:23 m
+        (edit 17:25 mode (lit 17:30 %missing)))))
+  (value 18:1 unfaced
+    (gate 18:12
+      (face 18:15 s
+        (cell 18:17 (aura 18:18 @t) (aura 18:21 @p)))
+      (change 18:25 s
+        (edit 18:27 name (str 18:32 "ok")))))
+  (value 19:1 mixed-spine
+    (gate 19:16
+      (face 19:19 s
+        (cell 19:21
+          (face 19:22 name (aura 19:27 @t))
+          (aura 19:30 @p)))
+      (change 19:34 s
+        (edit 19:36 name (str 19:41 "ok"))))))

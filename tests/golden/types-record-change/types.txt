@@ -1,0 +1,42 @@
+partial inference; module not checked
++$ state: not checked
++$ actions: cases proven disjoint; mold not checked
++$ model: not checked
+++ flip: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
+++ put: $-([s=[items=(list @t) [open=? [name=@t nested=[word=@t]]]] item=@t] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
+++ clear: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
+++ multiple: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
+++ nested: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [word=@t])
+++ no-field: record has no field `missing`
+/tests/golden/types-record-change/source.jibb:11:26: unknown field
+++ no-field |= s=state s(missing="bad")
+                         ^
+++ mismatch: change field and replacement do not unify
+/tests/golden/types-record-change/source.jibb:12:26: expected replacement has type @t
+++ mismatch |= s=state s(name=~zod)
+                         ^
+/tests/golden/types-record-change/source.jibb:12:31: replacement has type @p
+++ mismatch |= s=state s(name=~zod)
+                              ^
+++ wrong-list: list item does not fit its expected type
+/tests/golden/types-record-change/source.jibb:13:28: expected item has type @t
+++ wrong-list |= s=state s(items=[~zod items.s])
+                           ^
+/tests/golden/types-record-change/source.jibb:13:35: list item has type @p
+++ wrong-list |= s=state s(items=[~zod items.s])
+                                  ^
+++ unknown: change target needs a known record in partial inference
+++ empty: a change takes at least one field
+/tests/golden/types-record-change/source.jibb:15:21: empty change
+++ empty |= s=state s()
+                    ^
+++ tag: $-([mode=actions data=(unit @t)] [mode=actions data=(unit @t)])
+++ bad-tag: change field and replacement do not unify
+/tests/golden/types-record-change/source.jibb:17:25: expected replacement
+++ bad-tag |= m=model m(mode=%missing)
+                        ^
+/tests/golden/types-record-change/source.jibb:17:30: replacement
+++ bad-tag |= m=model m(mode=%missing)
+                             ^
+++ unfaced: change target needs a known record in partial inference
+++ mixed-spine: change target needs a known record in partial inference

@@ -1,0 +1,19 @@
++$ state [items=(list @t) open=? name=@t nested=[word=@t]]
++$ actions
+  %start
+  %stop
++$ model [mode=actions data=(unit @t)]
+++ flip |= s=state s(open=(not open.s))
+++ put |= [s=state item=@t] s(items=[item items.s])
+++ clear |= s=state s(items=~ name="")
+++ multiple |= s=state s(name="ok" open=%.y)
+++ nested |= s=state nested.s(word="hello")
+++ no-field |= s=state s(missing="bad")
+++ mismatch |= s=state s(name=~zod)
+++ wrong-list |= s=state s(items=[~zod items.s])
+++ unknown |= x x(name="ok")
+++ empty |= s=state s()
+++ tag |= m=model m(mode=%start data=~)
+++ bad-tag |= m=model m(mode=%missing)
+++ unfaced |= s=[@t @p] s(name="ok")
+++ mixed-spine |= s=[name=@t @p] s(name="ok")

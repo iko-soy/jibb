@@ -1,0 +1,66 @@
+(module
+  (mold 1:1 box
+    (generic 1:8 A
+      (cell 1:15
+        (face 1:16 value (tvar 1:22 A))
+        (face 1:24 keep (tvar 1:29 A)))))
+  (value 2:1 keep
+    (gate 2:9
+      (cell 2:12
+        (face 2:13 s
+          (apply 2:15 box (tvar 2:20 A)))
+        (face 2:23 v (tvar 2:25 A)))
+      (change 2:28 s
+        (edit 2:30 value (wing 2:36 v)))))
+  (value 3:1 force
+    (gate 3:10
+      (face 3:13 s
+        (apply 3:15 box (tvar 3:20 A)))
+      (change 3:23 s
+        (edit 3:25 value (str 3:31 "constant")))))
+  (value 4:1 mixed
+    (gate 4:10
+      (cell 4:13
+        (face 4:14 s
+          (apply 4:16 box (aura 4:21 @t)))
+        (face 4:25 v (aura 4:27 @p)))
+      (change 4:31 s
+        (edit 4:33 value (wing 4:39 v)))))
+  (value 5:1 duplicate
+    (gate 5:14
+      (cell 5:17
+        (face 5:18 s
+          (apply 5:20 box (aura 5:25 @t)))
+        (face 5:29 v (aura 5:31 @t)))
+      (change 5:35 s
+        (edit 5:37 value (wing 5:43 v))
+        (edit 5:45 value (wing 5:51 v)))))
+  (value 6:1 unrelated
+    (gate 6:14
+      (cell 6:17
+        (face 6:18 s
+          (apply 6:20 box (aura 6:25 @t)))
+        (face 6:29 v (aura 6:31 @t)))
+      (body 7:3
+        (trace 7:3
+          (lit 7:6 %orphan)
+          (body 8:5
+            (change 8:5 s
+              (edit 8:7 value (wing 8:13 v))))))))
+  (value 9:1 invalid-value
+    (gate 9:18
+      (cell 9:21
+        (face 9:22 s
+          (apply 9:24 box (aura 9:29 @t)))
+        (face 9:33 v (aura 9:35 @t)))
+      (change 9:39 s
+        (edit 9:41 value (wing 9:47 missing)))))
+  (mold 10:1 ambiguous
+    (cell 10:14
+      (face 10:15 same (aura 10:20 @t))
+      (face 10:23 same (aura 10:28 @p))))
+  (value 11:1 ambiguous-field
+    (gate 11:20
+      (face 11:23 s (ref 11:25 ambiguous))
+      (change 11:35 s
+        (edit 11:37 same (str 11:42 "x"))))))

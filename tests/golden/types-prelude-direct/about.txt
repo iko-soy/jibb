@@ -1,4 +1,4 @@
 source: Overview, Prelude: "Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/prelude`". Grammar, Modules: no name may shadow one already in scope.
-tests: A module with no imports uses the prelude's unit and need, printing unit without a qualifier. The prelude `turn` is available, but a list zero nested inside a single tuple argument remains unsupported instead of reporting a false mismatch. Prelude names remain reserved.
+tests: A module with no imports uses the prelude's unit and need, printing unit without a qualifier. The prelude `turn` is available, and list context reaches a zero nested inside its single tuple argument. Prelude names remain reserved.
 expect: parses
 expect-types: a partial inference report

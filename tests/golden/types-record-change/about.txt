@@ -1,0 +1,4 @@
+source: Grammar, Expressions: "A change takes one or more of the same items, as `m(done=%.y)`; `m()` is an error"; Tag resolution: tags and `~` take their type from context.
+tests: Known record fields can be changed, including nested targets, multiple fields, list cons/zero and union tags. Missing fields, invalid replacements and empty changes report sites; unknown and partially unfaced targets fail closed. Replacement errors identify the edit and value, not the original field declaration.
+expect: parses
+expect-types: a partial inference report

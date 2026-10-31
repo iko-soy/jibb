@@ -1,0 +1,11 @@
++$ box |$ [A] [value=A keep=A]
+++ keep |= [s=(box A) v=A] s(value=v)
+++ force |= s=(box A) s(value="constant")
+++ mixed |= [s=(box @t) v=@p] s(value=v)
+++ duplicate |= [s=(box @t) v=@t] s(value=v value=v)
+++ unrelated |= [s=(box @t) v=@t]
+  ~& %orphan
+    s(value=v)
+++ invalid-value |= [s=(box @t) v=@t] s(value=missing)
++$ ambiguous [same=@t same=@p]
+++ ambiguous-field |= s=ambiguous s(same="x")

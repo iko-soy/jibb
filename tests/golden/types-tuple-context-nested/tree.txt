@@ -1,0 +1,140 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 4:1 take
+    (gate 4:9
+      (face 4:12 p
+        (cell 4:14
+          (face 4:15 payload (ref 4:23 msg))
+          (face 4:27 xs
+            (apply 4:30 list (aura 4:36 @t)))))
+      (wing 4:41 p)))
+  (value 5:1 ok
+    (group 5:7
+      (call 5:8
+        (wing 5:8 take)
+        (tuple 5:13
+          (face 5:14 payload (lit 5:22 %go))
+          (face 5:26 xs (lit 5:29 ~))))))
+  (value 6:1 bad-tag
+    (group 6:12
+      (call 6:13
+        (wing 6:13 take)
+        (tuple 6:18
+          (face 6:19 payload (lit 6:27 %oops))
+          (face 6:33 xs (lit 6:36 ~))))))
+  (value 7:1 bad-face
+    (group 7:13
+      (call 7:14
+        (wing 7:14 take)
+        (tuple 7:19
+          (face 7:20 wrong (lit 7:26 %go))
+          (face 7:30 xs (lit 7:33 ~))))))
+  (value 8:1 extra
+    (group 8:10
+      (call 8:11
+        (wing 8:11 take)
+        (tuple 8:16
+          (face 8:17 payload (lit 8:25 %go))
+          (face 8:29 xs (lit 8:32 ~))
+          (face 8:34 extra (str 8:40 "x"))))))
+  (value 9:1 nest
+    (gate 9:9
+      (face 9:12 p
+        (cell 9:14
+          (face 9:15 data
+            (cell 9:20
+              (face 9:21 payload (ref 9:29 msg))
+              (face 9:33 xs
+                (apply 9:36 list (aura 9:42 @t)))))
+          (face 9:47 z (aura 9:49 @p))))
+      (wing 9:53 p)))
+  (value 10:1 nested
+    (group 10:11
+      (call 10:12
+        (wing 10:12 nest)
+        (tuple 10:17
+          (face 10:18 data
+            (tuple 10:23
+              (face 10:24 payload (lit 10:32 %stay))
+              (face 10:38 xs (lit 10:41 ~))))
+          (face 10:44 z (lit 10:46 ~zod))))))
+  (value 11:1 unconstrained
+    (gate 11:18
+      (bind 11:21 f)
+      (group 11:23
+        (call 11:24
+          (wing 11:24 f)
+          (tuple 11:26
+            (face 11:27 payload (lit 11:35 %go))
+            (face 11:39 xs (lit 11:42 ~)))))))
+  (value 12:1 pending
+    (body 13:3
+      (trace 13:3
+        (lit 13:6 %unused)
+        (body 14:5
+          (group 14:5
+            (call 14:6
+              (wing 14:6 take)
+              (tuple 14:11
+                (face 14:12 payload (lit 14:20 %go))
+                (face 14:24 xs (lit 14:27 ~)))))))))
+  (value 15:1 wrong-item
+    (group 15:15
+      (call 15:16
+        (wing 15:16 take)
+        (tuple 15:21
+          (face 15:22 payload (lit 15:30 %go))
+          (face 15:34 xs
+            (list 15:37 (lit 15:39 ~zod)))))))
+  (value 16:1 discarded-null
+    (body 17:3
+      (trace 17:3
+        (lit 17:6 ~)
+        (body 18:5
+          (group 18:5
+            (call 18:6
+              (wing 18:6 take)
+              (tuple 18:11
+                (face 18:12 payload (lit 18:20 %go))
+                (face 18:24 xs (lit 18:27 ~)))))))))
+  (value 19:1 generic
+    (gate 19:12
+      (face 19:15 p
+        (cell 19:17
+          (face 19:18 left (tvar 19:23 A))
+          (face 19:25 right (tvar 19:31 A))))
+      (wing 19:34 p)))
+  (value 20:1 generic-bad
+    (group 20:16
+      (call 20:17
+        (wing 20:17 generic)
+        (tuple 20:25
+          (face 20:26 left (lit 20:31 ~zod))
+          (face 20:36 right (str 20:42 "hi"))))))
+  (mold 21:1 typed
+    (cell 21:10
+      (const 21:11 %typed)
+      (face 21:18 text (aura 21:23 @t))))
+  (value 22:1 use-ctor
+    (gate 22:13
+      (face 22:16 p
+        (cell 22:18
+          (face 22:19 f
+            (fn 22:21 (aura 22:24 @t) (ref 22:27 typed)))
+          (face 22:34 payload (aura 22:42 @t))))
+      (wing 22:46 p)))
+  (value 23:1 constructor
+    (group 23:16
+      (call 23:17
+        (wing 23:17 use-ctor)
+        (tuple 23:26
+          (face 23:27 f (ctor 23:29 %typed))
+          (face 23:38 payload (str 23:46 "hi"))))))
+  (value 24:1 bad-constructor
+    (group 24:20
+      (call 24:21
+        (wing 24:21 use-ctor)
+        (tuple 24:30
+          (face 24:31 f (ctor 24:33 %other))
+          (face 24:42 payload (str 24:50 "hi")))))))

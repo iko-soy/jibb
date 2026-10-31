@@ -1,0 +1,24 @@
++$ msg
+  %go
+  %stay
+++ take |= p=[payload=msg xs=(list @t)] p
+++ ok (take [payload=%go xs=~])
+++ bad-tag (take [payload=%oops xs=~])
+++ bad-face (take [wrong=%go xs=~])
+++ extra (take [payload=%go xs=~ extra="x"])
+++ nest |= p=[data=[payload=msg xs=(list @t)] z=@p] p
+++ nested (nest [data=[payload=%stay xs=~] z=~zod])
+++ unconstrained |= f (f [payload=%go xs=~])
+++ pending
+  ~& %unused
+    (take [payload=%go xs=~])
+++ wrong-item (take [payload=%go xs=~[~zod]])
+++ discarded-null
+  ~& ~
+    (take [payload=%go xs=~])
+++ generic |= p=[left=A right=A] p
+++ generic-bad (generic [left=~zod right="hi"])
++$ typed [%typed text=@t]
+++ use-ctor |= p=[f=$-(@t typed) payload=@t] p
+++ constructor (use-ctor [f=|=%typed payload="hi"])
+++ bad-constructor (use-ctor [f=|=%other payload="hi"])

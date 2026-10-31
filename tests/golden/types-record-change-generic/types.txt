@@ -1,0 +1,16 @@
+partial inference; module not checked
++$ box: not checked
+++ keep: $-([s=[value=A keep=A] v=A] [value=A keep=A])
+++ force: explicit capital constraints are not supported by partial inference
+++ mixed: change field and replacement do not unify
+/tests/golden/types-record-change-generic/source.jibb:4:33: expected replacement has type @t
+++ mixed |= [s=(box @t) v=@p] s(value=v)
+                                ^
+/tests/golden/types-record-change-generic/source.jibb:4:39: replacement has type @p
+++ mixed |= [s=(box @t) v=@p] s(value=v)
+                                      ^
+++ duplicate: repeated change fields are not supported by partial inference
+++ unrelated: tag needs context in partial inference
+++ invalid-value: name is not available to partial inference
++$ ambiguous: not checked
+++ ambiguous-field: change field is ambiguous in partial inference

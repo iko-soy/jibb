@@ -1,0 +1,55 @@
+(module
+  (value 1:1 empty
+    (group 1:10
+      (call 1:11
+        (wing 1:11 turn)
+        (tuple 1:16
+          (lit 1:17 ~)
+          (gate-wide 1:19 (bind 1:22 x) (wing 1:24 x))))))
+  (value 2:1 two
+    (group 2:8
+      (call 2:9
+        (wing 2:9 turn)
+        (lit 2:14 ~)
+        (gate-wide 2:16 (bind 2:19 x) (wing 2:21 x)))))
+  (value 3:1 yes
+    (group 3:8
+      (call 3:9
+        (wing 3:9 turn)
+        (tuple 3:14
+          (list 3:15 (str 3:17 "hi"))
+          (gate-wide 3:23 (bind 3:26 x) (wing 3:28 x))))))
+  (value 4:1 target
+    (gate 4:11
+      (face 4:14 p
+        (cell 4:16
+          (face 4:17 xs
+            (apply 4:20 list (aura 4:26 @t)))
+          (face 4:30 f
+            (fn 4:32 (aura 4:35 @t) (aura 4:38 @t)))))
+      (wing 4:43 p)))
+  (value 5:1 faced
+    (group 5:10
+      (call 5:11
+        (wing 5:11 target)
+        (tuple 5:18
+          (face 5:19 xs (lit 5:22 ~))
+          (face 5:24 f
+            (gate-wide 5:26 (bind 5:29 x) (wing 5:31 x)))))))
+  (value 6:1 wrong
+    (group 6:10
+      (call 6:11
+        (wing 6:11 target)
+        (tuple 6:18
+          (face 6:19 items (lit 6:25 ~))
+          (face 6:27 f
+            (gate-wide 6:29 (bind 6:32 x) (wing 6:34 x)))))))
+  (value 7:1 unknown
+    (gate 7:12
+      (bind 7:15 f)
+      (group 7:17
+        (call 7:18
+          (wing 7:18 f)
+          (tuple 7:20
+            (lit 7:21 ~)
+            (gate-wide 7:23 (bind 7:26 x) (wing 7:28 x))))))))

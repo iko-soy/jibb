@@ -1,0 +1,7 @@
+partial inference; module not checked
++$ state: not checked
++$ cart-action: cases proven disjoint; mold not checked
++$ poke: not checked
+++ main: name is not available to partial inference
+++ init: cast constraint is not supported by partial inference
+++ update: $-([a=cart-action s=[items=(list @t) open=?]] [items=(list @t) open=?])
