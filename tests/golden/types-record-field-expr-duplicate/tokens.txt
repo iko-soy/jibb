@@ -1,0 +1,22 @@
+1:1 glyph ++
+1:4 name good
+1:9 glyph [
+1:10 tight name value
+1:15 tight glyph =
+1:16 tight str "ok"
+1:21 name flag
+1:25 tight glyph =
+1:26 tight lit %.y
+1:29 tight glyph ]
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name bad
+2:8 glyph [
+2:9 tight name value
+2:14 tight glyph =
+2:15 tight str "one"
+2:21 name value
+2:26 tight glyph =
+2:27 tight str "two"
+2:32 tight glyph ]
+2:33 NEWLINE

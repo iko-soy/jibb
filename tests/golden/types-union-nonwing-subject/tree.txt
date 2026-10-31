@@ -1,0 +1,257 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %item)
+        (face 2:10 flag (flag 2:15))
+        (face 2:17 text (aura 2:22 @t)))
+      (const 3:3 %none)))
+  (mold 4:1 result
+    (union 5:3 (const 5:3 %good) (const 6:3 %empty)))
+  (value 7:1 local-id
+    (gate 7:13 (bind 7:16 x) (wing 7:18 x)))
+  (value 8:1 passthrough
+    (gate 8:16
+      (face 8:19 x (ref 8:21 input))
+      (wing 8:27 x)))
+  (value 9:1 grouped
+    (gate 9:12
+      (face 9:15 x (ref 9:17 input))
+      (cast 9:23
+        (apply 9:26 list (aura 9:32 @t))
+        (body 10:3
+          (branch 10:3
+            (group 10:6 (wing 10:7 x))
+            (arm 11:5
+              (cell 11:5 (lit 11:6 %item) (bind 11:12 flag) (bind 11:17 text))
+              (list 11:23 (wing 11:25 text)))
+            (arm 12:5 (lit 12:5 %none) (lit 12:11 ~)))))))
+  (value 13:1 call
+    (gate 13:9
+      (face 13:12 x (ref 13:14 input))
+      (cast 13:20
+        (apply 13:23 list (aura 13:29 @t))
+        (body 14:3
+          (branch 14:3
+            (group 14:6
+              (call 14:7 (wing 14:7 local-id) (wing 14:16 x)))
+            (arm 15:5
+              (cell 15:5 (lit 15:6 %item) (bind 15:12 flag) (bind 15:17 text))
+              (list 15:23 (wing 15:25 text)))
+            (arm 16:5 (lit 16:5 %none) (lit 16:11 ~)))))))
+  (value 17:1 nested
+    (gate 17:11
+      (face 17:14 x (ref 17:16 input))
+      (cast 17:22
+        (ref 17:25 result)
+        (body 18:3
+          (branch 18:3
+            (group 18:6
+              (call 18:7
+                (wing 18:7 local-id)
+                (group 18:16
+                  (call 18:17 (wing 18:17 passthrough) (wing 18:29 x)))))
+            (arm 19:5
+              (cell 19:5 (lit 19:6 %item) (bind 19:12 flag) (bind 19:17 text))
+              (lit 19:23 %good))
+            (arm 20:5 (lit 20:5 %none) (lit 20:11 %empty)))))))
+  (value 21:1 finite
+    (gate 21:11
+      (face 21:14 x (ref 21:16 input))
+      (cast 21:22
+        (apply 21:25 list (aura 21:31 @t))
+        (body 22:3
+          (branch 22:3
+            (group 22:6
+              (call 22:7 (wing 22:7 local-id) (wing 22:16 x)))
+            (arm 23:5
+              (cell 23:5 (lit 23:6 %item) (lit 23:12 %.y) (bind 23:16 text))
+              (list 23:22 (wing 23:24 text)))
+            (arm 24:5
+              (cell 24:5 (lit 24:6 %item) (lit 24:12 %.n) (bind 24:16 text))
+              (list 24:22))
+            (arm 25:5 (lit 25:5 %none) (lit 25:11 ~)))))))
+  (value 26:1 wrong
+    (gate 26:10
+      (face 26:13 x (ref 26:15 input))
+      (cast 26:21
+        (ref 26:24 result)
+        (body 27:3
+          (branch 27:3
+            (group 27:6
+              (call 27:7 (wing 27:7 local-id) (wing 27:16 x)))
+            (arm 28:5
+              (cell 28:5 (lit 28:6 %item) (bind 28:12 flag) (bind 28:17 text))
+              (lit 28:23 %missing))
+            (arm 29:5 (lit 29:5 %none) (lit 29:11 %empty)))))))
+  (value 30:1 missing
+    (gate 30:12
+      (face 30:15 x (ref 30:17 input))
+      (cast 30:23
+        (apply 30:26 list (aura 30:32 @t))
+        (body 31:3
+          (branch 31:3
+            (group 31:6
+              (call 31:7 (wing 31:7 local-id) (wing 31:16 x)))
+            (arm 32:5 (lit 32:5 %none) (lit 32:11 ~)))))))
+  (value 33:1 dead
+    (gate 33:9
+      (face 33:12 x (ref 33:14 input))
+      (cast 33:20
+        (apply 33:23 list (aura 33:29 @t))
+        (body 34:3
+          (branch 34:3
+            (group 34:6
+              (call 34:7 (wing 34:7 local-id) (wing 34:16 x)))
+            (arm 35:5 (lit 35:5 %none) (lit 35:11 ~))
+            (arm 36:5 (lit 36:5 %none) (lit 36:11 ~))
+            (arm 37:5
+              (cell 37:5 (lit 37:6 %item) (bind 37:12 flag) (bind 37:17 text))
+              (list 37:23 (wing 37:25 text))))))))
+  (value 38:1 shadow
+    (gate 38:11
+      (face 38:14 x (ref 38:16 input))
+      (cast 38:22
+        (ref 38:25 result)
+        (body 39:3
+          (branch 39:3
+            (group 39:6
+              (call 39:7 (wing 39:7 local-id) (wing 39:16 x)))
+            (arm 40:5
+              (cell 40:5 (lit 40:6 %item) (bind 40:12 flag) (bind 40:17 same))
+              (lit 40:23 %good))
+            (arm 41:5 (lit 41:5 %none) (lit 41:11 %empty)))))))
+  (value 42:1 pending
+    (gate 42:12
+      (face 42:15 x (ref 42:17 input))
+      (cast 42:23
+        (ref 42:26 result)
+        (body 43:3
+          (trace 43:3
+            (lit 43:6 %dangling)
+            (body 44:5
+              (branch 44:5
+                (group 44:8
+                  (call 44:9 (wing 44:9 local-id) (wing 44:18 x)))
+                (arm 45:7
+                  (cell 45:7 (lit 45:8 %item) (bind 45:14 flag) (bind 45:19 text))
+                  (lit 45:25 %good))
+                (arm 46:7 (lit 46:7 %none) (lit 46:13 %empty)))))))))
+  (value 47:1 unknown
+    (gate 47:12
+      (bind 47:15 x)
+      (cast 47:17
+        (apply 47:20 list (aura 47:26 @t))
+        (body 48:3
+          (branch 48:3
+            (group 48:6
+              (call 48:7 (wing 48:7 local-id) (wing 48:16 x)))
+            (arm 49:5
+              (cell 49:5 (lit 49:6 %item) (bind 49:12 flag) (bind 49:17 text))
+              (list 49:23 (wing 49:25 text)))
+            (arm 50:5 (lit 50:5 %none) (lit 50:11 ~)))))))
+  (value 51:1 nonunion
+    (gate 51:13
+      (face 51:16 x (aura 51:18 @t))
+      (cast 51:21
+        (apply 51:24 list (aura 51:30 @t))
+        (body 52:3
+          (branch 52:3
+            (group 52:6
+              (call 52:7 (wing 52:7 local-id) (wing 52:16 x)))
+            (arm 53:5
+              (cell 53:5 (lit 53:6 %item) (bind 53:12 flag) (bind 53:17 text))
+              (list 53:23 (wing 53:25 text)))
+            (arm 54:5 (lit 54:5 %none) (lit 54:11 ~)))))))
+  (value 55:1 explicit
+    (gate 55:13
+      (cell 55:16
+        (face 55:17 x (ref 55:19 input))
+        (face 55:25 y (tvar 55:27 A)))
+      (cast 55:30
+        (apply 55:33 list (tvar 55:39 A))
+        (body 56:3
+          (branch 56:3
+            (group 56:6
+              (call 56:7 (wing 56:7 local-id) (wing 56:16 x)))
+            (arm 57:5
+              (cell 57:5 (lit 57:6 %item) (bind 57:12 flag) (bind 57:17 text))
+              (list 57:23 (str 57:25 "text")))
+            (arm 58:5 (lit 58:5 %none) (lit 58:11 ~)))))))
+  (mold 59:1 payload
+    (generic 59:12 A
+      (union 60:3
+        (cell 60:3
+          (const 60:4 %present)
+          (face 60:13 value (tvar 60:19 A)))
+        (const 61:3 %none))))
+  (value 62:1 shared
+    (gate 62:11
+      (cell 62:14
+        (face 62:15 x
+          (apply 62:17 payload (tvar 62:26 A)))
+        (face 62:29 y (tvar 62:31 A)))
+      (cast 62:34
+        (apply 62:37 list (tvar 62:43 A))
+        (body 63:3
+          (branch 63:3
+            (group 63:6
+              (call 63:7 (wing 63:7 local-id) (wing 63:16 x)))
+            (arm 64:5
+              (cell 64:5 (lit 64:6 %present) (bind 64:15 v))
+              (list 64:18 (wing 64:20 y) (wing 64:22 v)))
+            (arm 65:5 (lit 65:5 %none) (lit 65:11 ~)))))))
+  (value 66:1 bad-subject
+    (gate 66:16
+      (face 66:19 x (ref 66:21 input))
+      (cast 66:27
+        (ref 66:30 result)
+        (body 67:3
+          (branch 67:3
+            (group 67:6
+              (call 67:7 (wing 67:7 passthrough) (str 67:19 "wrong")))
+            (arm 68:5
+              (cell 68:5 (lit 68:6 %item) (bind 68:12 flag) (bind 68:17 text))
+              (lit 68:23 %missing))
+            (arm 69:5 (lit 69:5 %none) (lit 69:11 %empty)))))))
+  (value 70:1 first-of
+    (gate 70:13
+      (cell 70:16 (bind 70:17 a) (bind 70:19 b))
+      (wing 70:22 a)))
+  (value 71:1 pending-subject
+    (gate 71:20
+      (face 71:23 x (ref 71:25 input))
+      (cast 71:31
+        (ref 71:34 result)
+        (body 72:3
+          (branch 72:3
+            (group 72:6
+              (call 72:7 (wing 72:7 first-of) (wing 72:16 x) (lit 72:18 %dangling)))
+            (arm 73:5
+              (cell 73:5 (lit 73:6 %item) (bind 73:12 flag) (bind 73:17 text))
+              (lit 73:23 %good))
+            (arm 74:5 (lit 74:5 %none) (lit 74:11 %empty)))))))
+  (value 75:1 duplicate-flag-subject
+    (gate 75:27
+      (face 75:30 x (aura 75:32 @t))
+      (cast 75:35
+        (apply 75:38 list (aura 75:44 @t))
+        (body 76:3
+          (branch 76:3
+            (group 76:6
+              (call 76:7 (wing 76:7 passthrough) (wing 76:19 x)))
+            (arm 77:5 (lit 77:5 %.y) (list 77:9))
+            (arm 78:5 (lit 78:5 %.y) (list 78:9)))))))
+  (value 79:1 bad-unit-subject
+    (gate 79:21
+      (face 79:24 x (aura 79:26 @t))
+      (cast 79:29
+        (apply 79:32 list (aura 79:38 @t))
+        (body 80:3
+          (branch 80:3
+            (group 80:6
+              (call 80:7 (wing 80:7 passthrough) (wing 80:19 x)))
+            (arm 81:5 (lit 81:5 ~) (list 81:7))
+            (arm 82:5
+              (cell 82:5 (lit 82:6 ~) (bind 82:8 value))
+              (list 82:15))))))))

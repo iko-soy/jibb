@@ -68,7 +68,8 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 - A sample's mold may be left out: every bare name in a sample binds, at any depth, as in `|=(p title.p)` "when the call fixes the type", `|= [a=@ b]` and `|=(m ~)`.
 - Generic molds: `+$ result |$ [V E]` with cases below, applied as `(result V E)`; `|$` goes right after a `+$`'s name, and the prelude's `cmd` and `sub` use `|$ [M]`.
 - `!!` is the empty mold, and as an expression it has any type. `*` is the noun type, not a type variable; generic positions such as the keys in `each` and `table` use a capital. A value of a more specific noun type can be used where `*` is expected.
-- `poke` is transparent and re-exported from the source-backed internal prelude. `ask` and `qath` are opaque, built only by derived gates, `pure` and application-path literals.
+- `_` is an inferable hole wherever a mold can appear, including an inferred path-segment aura. A hole resolved to an explicitly named generic variable is resolved; an unconstrained hole is an error. A named mold or value definition must determine its own holes without constraints from later uses.
+- `poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally. Derived gates and `pure` also construct requests; application-path literals have type `qath`.
 - The Literals table gives every other literal its type: `0x1f` a `@ux`, ships `@p`, dates `@da`, durations `@dr`, `~.knot` a `@ta`, strings `@t`, `` `x `` a `(unit A)`, `~[…]` a `(list A)`, `gap+%s2` the pair `[%gap %s2]`, `/posts/~zod` a `path`, `%/blog` a `qath`.
 
 **Tags, `~`, numbers and cells wait for their context** (Grammar: Tag resolution, Literals by context)

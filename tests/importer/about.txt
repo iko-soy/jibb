@@ -54,3 +54,8 @@ unmodified `desk/sur/epic.hoon`, `desk/sur/presence.hoon` and
 Hoon tests. The separately stored `tree.txt` is a diagnostic projection of the
 internal type graph, not the Jibb type printer. It runs under eval and on the fake
 ship; +fixture-test also checks the underlying structured values.
+
+The nested recursive cases retain a source-proven named owner for one nested
+tagged union, including repeated uses. Duplicate tags, hidden overlaps,
+mutual recursion and overlapping outer cases remain unsupported. The owner
+probe ensures another named boundary does not supply the parent's self-reference.

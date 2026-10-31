@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 broken
+    (cell 1:11
+      (face 1:12 outer
+        (cell 1:18
+          (face 1:19 value (aura 1:25 @t))
+          (face 1:28 value (aura 1:34 @p))))
+      (face 1:38 tag (aura 1:42 @t))))
+  (value 2:1 value (str 2:10 "ok")))

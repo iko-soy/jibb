@@ -1,0 +1,4 @@
++$ root /_
++$ child /item/_x
+++ show %/_
++$ inferred /items/[id=_]

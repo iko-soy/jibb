@@ -1,4 +1,0 @@
-source: Grammar, Expressions and Imports: a wing selects a named field, and a module import gives access through its face.
-tests: An imported record with two same-named fields does not allow an arbitrary choice; ambiguous selection stays unsupported.
-expect: parses
-expect-types: a partial inference report

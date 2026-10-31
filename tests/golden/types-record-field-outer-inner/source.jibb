@@ -1,0 +1,2 @@
++$ fine [value=@t nested=[value=@p other=?]]
+++ identity |= x=fine x

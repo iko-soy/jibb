@@ -1,4 +1,4 @@
 source: Grammar, Patterns: "Every case needs an arm or a catch-all"; "An arm that earlier arms cover ... is an error"; "A name in a pattern always binds anew".
-tests: Whole cases of a closed tagged union match payload binders and catch-alls; missing cases and covered arms are named, and shadowing fails. A boolean pattern can cover part of a case when all finite alternatives are accounted for; other partial patterns stay unsupported. Null and loobean patterns are compared by noun value. A union-result or list-result context and a complex union subject stay unsupported rather than reporting a loobean mismatch.
+tests: Whole cases of a closed tagged union match payload binders and catch-alls; missing cases and covered arms are named, and shadowing fails. A boolean pattern can cover part of a case when all finite alternatives are accounted for; other partial patterns stay unsupported. Null and loobean patterns are compared by noun value. Union and list result contexts propagate through supported branches, and a grouped known-union subject can be matched; unknown or unproven subjects remain unsupported.
 expect: parses
 expect-types: a partial inference report

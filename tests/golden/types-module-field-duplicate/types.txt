@@ -1,0 +1,8 @@
+partial inference; module not checked
+record field `x` is repeated
+/ui/lib.jibb:1:15: first field
+++ ambiguous [x="hi" x=~zod]
+              ^
+/ui/lib.jibb:1:22: repeated field
+++ ambiguous [x="hi" x=~zod]
+                     ^

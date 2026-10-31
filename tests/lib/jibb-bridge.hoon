@@ -60,6 +60,34 @@
     "recursive-list {(trip name.test)}: {?:(=(yes good.test) "ok" "BAD")}"
   (of-wain:format (turn out |=(line=tape (crip line))))
 ::
+++  named-recursive-synthetic
+  ^-  @t
+  =/  good=*
+    [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes %node]]]]]]
+  =/  duplicate=*
+    [%fork ~[[%atom %n [~ 0]] [%cell [%face %dup [%atom %tas [~ %branch]]] [%face %dup [%apply %list ~[[%ref %notes %node]]]]]]]
+  =/  tests=(list [name=@t node=* good=?])
+    :~  ['valid' [%named %notes %node good] &]
+        ['wrong-module' [%named %notes %node [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%ref %other %node]]]]] |]
+        ['wrong-name' [%named %notes %node [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%ref %notes %other]]]]] |]
+        ['no-reference' [%named %notes %node [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%atom %ud ~]]]]] |]
+        ['overlap' [%named %notes %node [%fork ~[[%atom %n [~ 0]] [%apply %list ~[[%ref %notes %node]]]]]] |]
+        ['duplicate-faces' [%named %notes %node duplicate] |]
+        ['malformed' [%named %notes %node] |]
+        ['wrong-arity' [%named %notes %node [%apply %list ~[[%ref %notes %node] [%atom %t ~]]]] |]
+        ['bare-reference' [%named %notes %node [%ref %notes %node]] |]
+        ['non-fork' [%named %notes %node [%cell [%atom %ud ~] [%ref %notes %node]]] |]
+    ==
+  =/  out=wall
+    %+  turn  tests
+    |=  test=[name=@t node=* good=?]
+    =/  got=(unit itype:jibb)
+      (find-imported-mold:jibb %notes %outer ~[[%notes %outer [%& [%cell [%atom %ud ~] node.test]]]] ~[%notes])
+    =/  yes=?  ?=([~ [%cell [%atom %ud] [%recursive %notes %node *]]] got)
+    "named-recursive {(trip name.test)}: {?:(=(yes good.test) "ok" "BAD")}"
+  (of-wain:format (turn out |=(line=tape (crip line))))
+::
+::
 ++  bridge-output
   |=  [sur-text=@t src=@t]
   ^-  @t
@@ -133,5 +161,5 @@
     (crip "/- fixture\0a++ canonical ^- (unit @t) `\"hi\"\0a++ lookalike ^- zero-lookalike.fixture `\"hi\"\0a")
   =/  unit-report=@t
     (golden-types-with-prelude:jibb /ui/unit-client/jibb unit-client external ~ ~ unit-prelude)
-  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' (cat 3 noun-synthetic (cat 3 '\0a' recursive-list-synthetic))))))))
+  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' (cat 3 noun-synthetic (cat 3 '\0a' (cat 3 recursive-list-synthetic (cat 3 '\0a' named-recursive-synthetic))))))))))
 --

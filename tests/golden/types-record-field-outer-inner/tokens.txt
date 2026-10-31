@@ -1,0 +1,26 @@
+1:1 glyph +$
+1:4 name fine
+1:9 glyph [
+1:10 tight name value
+1:15 tight glyph =
+1:16 tight aura @t
+1:19 name nested
+1:25 tight glyph =
+1:26 tight glyph [
+1:27 tight name value
+1:32 tight glyph =
+1:33 tight aura @p
+1:36 name other
+1:41 tight glyph =
+1:42 tight glyph ?
+1:43 tight glyph ]
+1:44 tight glyph ]
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name identity
+2:13 glyph |=
+2:16 name x
+2:17 tight glyph =
+2:18 tight name fine
+2:23 name x
+2:24 NEWLINE

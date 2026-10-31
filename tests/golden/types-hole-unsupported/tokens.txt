@@ -1,0 +1,14 @@
+1:1 glyph ++
+1:4 name identity
+1:13 glyph |=
+1:16 name x
+1:17 tight glyph =
+1:18 tight glyph _
+1:20 name x
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name cast
+2:9 glyph ^-
+2:12 glyph _
+2:14 str "hello"
+2:21 NEWLINE

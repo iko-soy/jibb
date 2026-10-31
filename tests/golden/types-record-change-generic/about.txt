@@ -1,4 +1,4 @@
 source: Grammar, Molds: "Type variables are capitals, generalized per `++`"; Modules: no name may shadow one already in scope.
-tests: A replacement preserves shared generic field variables; forcing a written capital concrete stays unsupported and a mismatched replacement reports both sites. Unrelated tags and invalid expressions stay visible; repeated edits and ambiguous faces fail closed.
+tests: A replacement preserves shared generic field variables; forcing a written capital concrete stays unsupported and a mismatched replacement reports both sites. Unrelated tags and invalid expressions stay visible; repeated edits fail closed.
 expect: parses
 expect-types: a partial inference report

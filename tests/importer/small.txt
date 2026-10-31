@@ -136,6 +136,16 @@
 +$  tag-nest-overlap  $%([%one x=tag-invalid-cell] [%two ~])
 +$  tag-nest-recursive  $%([%step next=(unit tag-nest-recursive)] [%done ~])
 +$  tag-nest-recursive-outer  $%([%one x=tag-nest-recursive] [%two ~])
+::  One nested source-proven recursive union retains its own named owner.
++$  tag-nest-rec-list  $%([%branch children=(list tag-nest-rec-list)] [%leaf @t])
++$  tag-nest-rec-list-outer  $%([%nested item=tag-nest-rec-list] [%other ~])
++$  tag-nest-rec-repeat  $%([%nested a=tag-nest-rec-list b=tag-nest-rec-list] [%other ~])
++$  tag-nest-rec-duplicate  $%([%same children=(list tag-nest-rec-duplicate)] [%same @t])
++$  tag-nest-rec-bad-outer  $%([%nested item=tag-nest-rec-duplicate] [%other ~])
++$  tag-nest-rec-hidden  $%([%branch children=(list tag-nest-rec-hidden) item=tag-invalid-cell] [%leaf @t])
++$  tag-nest-rec-hidden-outer  $%([%nested item=tag-nest-rec-hidden] [%other ~])
++$  tag-nest-rec-mutual-outer  $%([%nested item=tag-mutual-a] [%other ~])
++$  tag-nest-rec-outer-overlap  $%([%same item=tag-nest-rec-list] [%same @t])
 ::  Direct self-recursive tagged roots and conservative rejection controls.
 +$  tag-self  $%([%branch children=(list tag-self)] [%leaf value=@t])
 +$  tag-self-tail  $%([%branch next=tag-self-tail] [%leaf value=@t])

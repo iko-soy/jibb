@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: record fields have distinct names in each record scope.
+tests: A parent record and its nested child may use the same face spelling.
+expect: parses
+expect-types: a partial inference report

@@ -127,3 +127,13 @@ recursive-list other-collection: ok
 recursive-list malformed-reference: ok
 recursive-list null-overlap: ok
 recursive-list duplicate-faces: ok
+named-recursive valid: ok
+named-recursive wrong-module: ok
+named-recursive wrong-name: ok
+named-recursive no-reference: ok
+named-recursive overlap: ok
+named-recursive duplicate-faces: ok
+named-recursive malformed: ok
+named-recursive wrong-arity: ok
+named-recursive bare-reference: ok
+named-recursive non-fork: ok

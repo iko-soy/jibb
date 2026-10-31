@@ -48,4 +48,12 @@
 7:23 tight glyph =
 7:24 tight wing import-node.notes
 7:42 name x
-7:43 NEWLINE
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name notebook-action-identity
+8:29 glyph |=
+8:32 name x
+8:33 tight glyph =
+8:34 tight wing a-notebook.notes
+8:51 name x
+8:52 NEWLINE

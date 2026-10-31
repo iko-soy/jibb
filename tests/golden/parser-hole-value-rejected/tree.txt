@@ -1,0 +1,3 @@
+/tests/golden/parser-hole-value-rejected/source.jibb:1:8: expected an expression, found `_`
+++ bad _
+       ^

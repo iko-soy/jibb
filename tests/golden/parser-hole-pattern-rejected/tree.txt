@@ -1,0 +1,3 @@
+/tests/golden/parser-hole-pattern-rejected/source.jibb:3:5: expected a pattern, found `_`
+    _ "no"
+    ^

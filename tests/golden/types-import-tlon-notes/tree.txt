@@ -23,4 +23,8 @@
   (value 7:1 import-node-id
     (gate 7:19
       (face 7:22 x (ref 7:24 import-node.notes))
-      (wing 7:42 x))))
+      (wing 7:42 x)))
+  (value 8:1 notebook-action-identity
+    (gate 8:29
+      (face 8:32 x (ref 8:34 a-notebook.notes))
+      (wing 8:51 x))))

@@ -1,0 +1,3 @@
+/tests/golden/parser-hole-parameter-rejected/source.jibb:1:12: expected a type variable, found `_`
++$ bad |$ [_] @t
+           ^

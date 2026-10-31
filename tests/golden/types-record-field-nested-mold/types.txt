@@ -1,0 +1,8 @@
+partial inference; module not checked
+record field `value` is repeated
+/tests/golden/types-record-field-nested-mold/source.jibb:1:19: first field
++$ broken [outer=[value=@t value=@p] tag=@t]
+                  ^
+/tests/golden/types-record-field-nested-mold/source.jibb:1:28: repeated field
++$ broken [outer=[value=@t value=@p] tag=@t]
+                           ^

@@ -10,5 +10,5 @@
     [%move %left n]   "left {n}"
     [%move %right n]  "right {n}"
     [t %draft]        t
-    [t %sent at]      t
+    [t %sent sent-at] t
     %stop             "stop"

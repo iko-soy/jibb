@@ -1,4 +1,4 @@
 source: Grammar, Patterns: `?-` is exhaustive and an earlier arm makes a covered arm an error; Literals by context: `~` and cells take their type from context.
-tests: A known union subject with whole-case arms receives a result context through casts, including list and cell positions. Missing and covered arms, incorrect results, unresolved tags and explicit capitals are checked or kept unsupported; partial and non-wing patterns remain unsupported.
+tests: A known union subject with whole-case arms receives a result context through casts, including list and cell positions. Missing and covered arms, incorrect results, unresolved tags and explicit capitals are checked or kept unsupported; unproven partial patterns and unknown subjects remain unsupported; a known union returned by a call can be matched.
 expect: parses
 expect-types: a partial inference report

@@ -1,0 +1,5 @@
+(module
+  (mold 1:1 root (path 1:9 /_))
+  (mold 2:1 child (path 2:10 /item/_x))
+  (value 3:1 show (qath 3:9 _))
+  (mold 4:1 inferred (path 4:13 /items/[id=_])))

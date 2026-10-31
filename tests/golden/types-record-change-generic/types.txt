@@ -12,5 +12,3 @@ partial inference; module not checked
 ++ duplicate: repeated change fields are not supported by partial inference
 ++ unrelated: tag needs context in partial inference
 ++ invalid-value: name is not available to partial inference
-+$ ambiguous: not checked
-++ ambiguous-field: change field is ambiguous in partial inference

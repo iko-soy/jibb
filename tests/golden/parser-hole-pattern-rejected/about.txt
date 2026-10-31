@@ -1,0 +1,3 @@
+source: Grammar, Types and molds: `_` is an inferred type hole.
+tests: A type hole is not a branch-pattern wildcard.
+expect: error at 3:5

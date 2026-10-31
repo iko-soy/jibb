@@ -8,7 +8,8 @@
 ::  Hoon's %hold nodes retain the generator's Hoon and its bound arguments.
 ::  Comparing that Hoon to the standard generators identifies collections
 ::  before they expand into trees. Recursive holds are tracked by identity;
-::  a repeated named hold becomes a module-qualified reference.
+::  a repeated named hold becomes a module-qualified reference. A proven
+::  nested self-recursive tagged union retains its own named boundary.
 ::
 ::  A direct $^ is read from its original branches and accepted only when
 ::  their imported shapes prove disjoint. A single nested $^ in a
@@ -38,6 +39,7 @@
       [%cell head=imported tail=imported]
       [%face name=term body=imported]
       [%fork cases=(list imported)]
+      [%named module=term name=term body=imported]
       [%apply name=term args=(list imported)]
       [%ref module=term name=term]
       [%bad reason=@t]
@@ -213,12 +215,19 @@
 ++  safe-source-name-mode
   |=  [name=term cor=type seen=(list term) fuel=@ud allow-nested=?]
   ^-  (unit @ud)
-  ::  A direct revisit of the selected root is a recursive reference.
-  ::  Other cycles and inherited same-name bindings remain unavailable.
+  ::  Permit a direct root revisit or one proven nested self-revisit.
+  ::  Mutual cycles and inherited same-name bindings remain unavailable.
   ?:  (lien seen |=(x=term =(name x)))
-    ?.  =(seen ~[name])  ~
     ?.  ?=([%core *] cor)  ~
     ?.  (scope-safe p.cor name)  ~
+    ?:  =(seen ~[name])  `fuel
+    ?.  allow-nested  ~
+    ?.  ?=([* [* ~]] seen)  ~
+    ?.  =(i.seen name)  ~
+    =/  selected=(unit hoon)  (local-arm-source cor name)
+    ?~  selected  ~
+    =/  cases=(unit (list tagged-case))  (tagged-source-code u.selected name)
+    ?~  cases  ~
     `fuel
   =/  arm=(unit hoon)  (local-arm-source cor name)
   ?~  arm
@@ -383,6 +392,7 @@
   ^-  ?
   ?-  node
     [%ref *]  &
+    [%named *]  $(node body.node)
     [%face *]  $(node body.node)
     [%cell *]  |($(node head.node) $(node tail.node))
     [%fork *]  (lien cases.node |=(child=imported (mark-has-ref child)))
@@ -901,6 +911,8 @@
   ^-  ?
   ?:  ?=([%face *] a)  $(a body.a)
   ?:  ?=([%face *] b)  $(b body.b)
+  ?:  ?=([%named *] a)  $(a body.a)
+  ?:  ?=([%named *] b)  $(b body.b)
   ?:  ?=([%fork *] a)
     (levy cases.a |=(item=imported (disjoint item b)))
   ?:  ?=([%fork *] b)
@@ -1301,6 +1313,20 @@
   ?.  ?=([%& [%fork *]] u.p.attempt)  ~
   `p.u.p.attempt
 ::
+::  Keep the proven owner boundary when a nested union refers to itself.
+++  contains-named-ref
+  |=  [node=imported module=term name=term]
+  ^-  ?
+  ?-  node
+    [%ref *]  &(=(module module.node) =(name name.node))
+    [%named *]  |
+    [%face *]  $(node body.node)
+    [%cell *]  |($(node head.node) $(node tail.node))
+    [%fork *]  (lien cases.node |=(child=imported (contains-named-ref child module name)))
+    [%apply *]  (lien args.node |=(child=imported (contains-named-ref child module name)))
+    *  |
+  ==
+::
 ++  walk
   |=  [module=term typ=type sig=signatures seen=visiting context=(unit type)]
   ^-  imported
@@ -1332,7 +1358,12 @@
         ?~  origin  [%bad 'a recursive Hoon mold needs unambiguous source provenance']
         [%ref u.origin u.u.prior]
       =/  nested=(unit imported)  (nested-tagged-union module typ context)
-      ?^  nested  u.nested
+      ?^  nested
+        ?:  ?=(~ seen)  u.nested
+        =/  name=(unit term)  (hold-name q.typ)
+        ?~  name  u.nested
+        ?.  (contains-named-ref u.nested module u.name)  u.nested
+        [%named module u.name u.nested]
       ?:  &(?=([%tsls [%note * *] *] q.typ) |((has-spec-cell-union q.typ) (has-spec-general-union q.typ)))
         =/  nm  (hold-name q.typ)
         (collection-union typ module sig [[typ nm] seen] context)
@@ -1454,6 +1485,7 @@
     [%bad *]  [~ reason.out]
     [%invalid *]  [~ reason.out]
     [%face *]  $(out body.out)
+    [%named *]  $(out body.out)
     [%cell *]
       =/  err  $(out head.out)
       ?~  err  $(out tail.out)
@@ -1481,6 +1513,7 @@
     [%bad *]  `[%unsupported reason.out]
     [%invalid *]  `[%invalid code.out reason.out]
     [%face *]  $(out body.out)
+    [%named *]  $(out body.out)
     [%cell *]
       =/  first  $(out head.out)
       ?~  first  $(out tail.out)
@@ -1633,6 +1666,7 @@
     [%cell *]  "[{(show-import head.out)} {(show-import tail.out)}]"
     [%face *]  "{(trip name.out)}={(show-import body.out)}"
     [%fork *]  "(union {(show-imports cases.out)})"
+    [%named *]  "(named {(trip name.out)}.{(trip module.out)} {(show-import body.out)})"
     [%apply *]  "({(trip name.out)} {(show-imports args.out)})"
     [%ref *]  "{(trip name.out)}.{(trip module.out)}"
     [%bad *]  "error: {(trip reason.out)}"
@@ -2033,6 +2067,13 @@
       (crip "tag-nest-hidden: {(show-result (sample %tag-nest-hidden))}")
       (crip "tag-nest-overlap: {(show-result (sample %tag-nest-overlap))}")
       (crip "tag-nest-recursive: {(show-result (sample %tag-nest-recursive-outer))}")
+      (crip "tag-nest-rec-list: {(show-result (sample %tag-nest-rec-list-outer))}")
+      (crip "tag-nest-rec-repeat: {(show-result (sample %tag-nest-rec-repeat))}")
+      (crip "tag-nest-rec-duplicate: {(show-result (sample %tag-nest-rec-bad-outer))}")
+      (crip "tag-nest-rec-hidden: {(show-result (sample %tag-nest-rec-hidden-outer))}")
+      (crip "tag-nest-rec-mutual: {(show-result (sample %tag-nest-rec-mutual-outer))}")
+      (crip "tag-nest-rec-outer-overlap: {(show-result (sample %tag-nest-rec-outer-overlap))}")
+      (crip "tag-nest-rec-owner: {?:(&((contains-named-ref [%ref %small %tag-self] %small %tag-self) !(contains-named-ref [%named %small %other [%ref %small %tag-self]] %small %tag-self)) "yes" "wrong")}")
       (crip "tag-nest-many: {(show-result (sample %tag-nest-many))}")
       (crip "tag-nest-shadow: {(show-result (read-named %shadow-static %tag-nest-shadow xc))}")
       (crip "tag-nest-wrong-hold: {?~((nested-tagged-union %small (~(play ut other) (ream '*chain')) `sc) "unsupported" "BAD")}")

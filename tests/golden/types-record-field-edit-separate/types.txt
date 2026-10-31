@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ edit: $-([left=[value=@t other=?] right=[value=@p other=?]] [left=[value=@t other=?] right=[value=@p other=?]])

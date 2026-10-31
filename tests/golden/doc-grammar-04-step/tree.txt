@@ -33,6 +33,6 @@
             (cell 12:5 (bind 12:6 t) (lit 12:8 %draft))
             (wing 12:23 t))
           (arm 13:5
-            (cell 13:5 (bind 13:6 t) (lit 13:8 %sent) (bind 13:14 at))
+            (cell 13:5 (bind 13:6 t) (lit 13:8 %sent) (bind 13:14 sent-at))
             (wing 13:23 t))
           (arm 14:5 (lit 14:5 %stop) (str 14:23 "stop")))))))

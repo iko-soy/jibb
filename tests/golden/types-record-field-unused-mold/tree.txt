@@ -1,0 +1,6 @@
+(module
+  (mold 1:1 unused
+    (cell 1:11
+      (face 1:12 name (aura 1:17 @t))
+      (face 1:20 name (aura 1:25 @p))))
+  (value 2:1 value (str 2:10 "ok")))

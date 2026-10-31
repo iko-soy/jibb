@@ -74,8 +74,8 @@
 13:5 glyph [
 13:6 tight name t
 13:8 lit %sent
-13:14 name at
-13:16 tight glyph ]
+13:14 name sent-at
+13:21 tight glyph ]
 13:23 name t
 14:5 NEWLINE
 14:5 lit %stop

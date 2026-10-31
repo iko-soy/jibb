@@ -1,0 +1,47 @@
+(module
+  (mold 1:1 unused (hole 1:11))
+  (mold 2:1 nested
+    (cell 2:11
+      (face 2:12 a (hole 2:14))
+      (face 2:16 b
+        (fn 2:18
+          (hole 2:21)
+          (apply 2:23 list (hole 2:29))))))
+  (mold 3:1 alias
+    (generic 3:10 A
+      (apply 3:17 pair (tvar 3:23 A) (hole 3:25))))
+  (value 4:1 identity
+    (gate 4:13
+      (face 4:16 x (hole 4:18))
+      (wing 4:20 x)))
+  (value 5:1 inferred
+    (cast 5:13 (hole 5:16) (str 5:18 "hello")))
+  (value 6:1 cast-nested
+    (gate 6:16
+      (face 6:19 x
+        (cell 6:21
+          (fn 6:22 (hole 6:25) (hole 6:27))
+          (apply 6:30 list (hole 6:36))))
+      (cast 6:40
+        (cell 6:43
+          (face 6:44 first (hole 6:50))
+          (face 6:52 second (hole 6:59)))
+        (tuple 6:62 (wing 6:63 x) (wing 6:65 x)))))
+  (value 7:1 bare-sample
+    (gate 7:16 (hole 7:19) (str 7:21 "hello")))
+  (value 8:1 cell-sample
+    (gate 8:16
+      (cell 8:19
+        (face 8:20 a (hole 8:22))
+        (face 8:24 b (hole 8:26)))
+      (tuple 8:29 (wing 8:30 a) (wing 8:32 b))))
+  (value 9:1 local
+    (gate 9:10
+      (face 9:13 x (aura 9:15 @t))
+      (body 10:3
+        (value 10:3 inside
+          (gate 10:13
+            (face 10:16 y (hole 10:18))
+            (cast 10:20 (hole 10:23) (wing 10:25 y))))
+        (group 11:3
+          (call 11:4 (wing 11:4 inside) (wing 11:11 x)))))))

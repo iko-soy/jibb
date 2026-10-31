@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ okay: [left=[value=@t yes=?] right=[value=@p yes=?]]

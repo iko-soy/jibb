@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: record fields have distinct names in each record scope.
+tests: A repeated face within a nested record is rejected at both sites.
+expect: parses
+expect-types: a partial inference report

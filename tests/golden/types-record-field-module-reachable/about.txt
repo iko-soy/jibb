@@ -1,0 +1,4 @@
+source: Grammar, Types and molds; Imports: record fields are distinct within each record scope.
+tests: A reachable module rejects an unused duplicate-faced mold and retains its own source sites.
+expect: parses
+expect-types: a partial inference report

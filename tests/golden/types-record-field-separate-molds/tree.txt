@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 fine
+    (cell 1:9
+      (face 1:10 left
+        (cell 1:15
+          (face 1:16 value (aura 1:22 @t))
+          (face 1:25 count (aura 1:31 @ud))))
+      (face 1:36 right
+        (cell 1:42
+          (face 1:43 value (aura 1:49 @p))
+          (face 1:52 count (flag 1:58))))))
+  (value 2:1 identity
+    (gate 2:13
+      (face 2:16 x (ref 2:18 fine))
+      (wing 2:23 x))))

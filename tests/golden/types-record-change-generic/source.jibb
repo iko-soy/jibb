@@ -7,5 +7,3 @@
   ~& %orphan
     s(value=v)
 ++ invalid-value |= [s=(box @t) v=@t] s(value=missing)
-+$ ambiguous [same=@t same=@p]
-++ ambiguous-field |= s=ambiguous s(same="x")

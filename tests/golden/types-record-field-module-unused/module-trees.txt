@@ -1,0 +1,10 @@
+/ui/good.jibb
+(module
+  (value 1:1 item (str 1:9 "hello")))
+/ui/unused.jibb
+(module
+  (mold 1:1 unused
+    (cell 1:11
+      (face 1:12 value (aura 1:18 @t))
+      (face 1:21 value (aura 1:27 @p))))
+  (value 2:1 item (str 2:9 "hello")))

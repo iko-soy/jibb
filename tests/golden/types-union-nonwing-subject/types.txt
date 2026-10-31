@@ -1,0 +1,45 @@
+partial inference; module not checked
++$ input: cases proven disjoint; mold not checked
++$ result: cases proven disjoint; mold not checked
+++ local-id: $-(A A)
+++ passthrough: $-(input input)
+++ grouped: $-(input (list @t))
+++ call: $-(input (list @t))
+++ nested: branch pattern is not supported by partial inference
+++ finite: $-(input (list @t))
+++ wrong: result has no case `%missing`
+/tests/golden/types-union-nonwing-subject/source.jibb:26:24: expected union
+++ wrong |= x=input ^- result
+                       ^
+/tests/golden/types-union-nonwing-subject/source.jibb:28:23: tag
+    [%item flag text] %missing
+                      ^
+++ missing: missing union case [%item [flag=? text=@t]]
+++ dead: branch arm is covered by earlier arms
+/tests/golden/types-union-nonwing-subject/source.jibb:36:5: covered arm
+    %none ~
+    ^
+++ shadow: pattern binder shadows a name
+++ pending: tag needs context in partial inference
+++ unknown: branch pattern is not supported by partial inference
+++ nonunion: branch pattern is not supported by partial inference
+++ explicit: explicit capital constraints are not supported by partial inference
++$ payload: cases proven disjoint; mold not checked
+++ shared: $-([x=(payload A) y=A] (list A))
+++ bad-subject: call's sample and argument types do not unify
+/tests/golden/types-union-nonwing-subject/source.jibb:67:7: called gate
+  ?- (passthrough "wrong")
+      ^
+/tests/golden/types-union-nonwing-subject/source.jibb:67:19: argument has type @t
+  ?- (passthrough "wrong")
+                  ^
+++ first-of: $-([a=A b=B] A)
+++ pending-subject: tag needs context in partial inference
+++ duplicate-flag-subject: branch does not cover both loobeans
+++ bad-unit-subject: call's sample and argument types do not unify
+/tests/golden/types-union-nonwing-subject/source.jibb:80:7: called gate
+  ?- (passthrough x)
+      ^
+/tests/golden/types-union-nonwing-subject/source.jibb:80:19: argument has type @t
+  ?- (passthrough x)
+                  ^

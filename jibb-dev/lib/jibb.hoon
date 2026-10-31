@@ -874,7 +874,7 @@
       %'~['  %'|=('  %'$-('                     ::  openers
       %'%/'  %'/'                                       ::  paths
       %'+'  %'`'  %'='                                  ::  pair, unit, face
-      %'*'  %'?'                                        ::  noun, loobean mold
+      %'*'  %'?'  %'_'                                ::  noun, loobean, type hole
       %'++'  %'+$'  %'|='  %'|$'                 ::  runes
       %'^-'  %'~&'  %'?-'  %'!!'                        ::  runes
       %'/-'  %'/%'  %'/='                               ::  imports
@@ -1016,6 +1016,7 @@
       [%const at=span =lit]                     ::  ~ %add %.y
       [%ref at=span names=(list term)]          ::  state item.todo
       [%tvar at=span name=@t]                   ::  M
+      [%hole at=span ~]                         ::  _
       [%path at=span segs=(list pseg)]          ::  / /todos /todo/[id=@ud]
       [%apply at=span ref=(list term) args=(list shape)]  ::  (list @t)
       [%cell at=span fields=(list field)]       ::  [text=@t done=?]
@@ -1024,9 +1025,9 @@
       [%generic at=span vars=(list @t) body=shape]  ::  +$ name |$ [M] …
   ==
 ::
-::  +pseg: a path mold's segment, a knot or [name=aura]
+::  +pseg: a path mold's segment, a knot, [name=aura], or [name=_]
 ::
-+$  pseg  $%([%knot p=@ta] [%typed at=span name=term aura=@ta])
++$  pseg  $%([%knot p=@ta] [%typed at=span name=term aura=@ta] [%inferred at=span name=term hole-at=span])
 ::
 +|  %api
 ::
@@ -1295,6 +1296,7 @@
       (emit 1 %'=')
     ?:  =('`' a)  (emit 1 %'`')
     ?:  =('*' a)  (emit 1 %'*')
+    ?:  =('_' a)  (emit 1 %'_')
     ?:  =('~' a)
       ?:  =('[' b)  (emit 2 %'~[')
       ?:  =('&' b)  (emit 2 %'~&')
@@ -1670,14 +1672,14 @@
 ::  What may begin each place the parser reads (section 3, Errors):
 ::    an expression    a-z 0-9 " ( [ ~ % / ` | ^ ? !
 ::    an operand       a-z 0-9 " ( [ ~ % / ` | !
-::    a mold           a-z A-Z @ * ! ? ~ % / ( [ $
+::    a mold           a-z A-Z @ * ! ? ~ % / ( [ $ _
 ::    a pattern        a-z 0-9 " ~ % * [
 ::  and what may go tight after an operand: . ( + = after a name, a
 ::  closer ) ] }, or the : of a comment
 ::
 ++  expr-mask     0x57ff.ffff.4800.0000.83ff.8126.0000.0000
 ++  operand-mask  0x57ff.ffff.0800.0000.03ff.8126.0000.0000
-++  mold-mask     0x47ff.fffe.0fff.ffff.8000.8532.0000.0000
+++  mold-mask     0x47ff.fffe.8fff.ffff.8000.8532.0000.0000
 ++  bar-mask      0x1000.0000.0000.0000.0000.0000.0000.0000
 ++  pattern-mask  0x47ff.fffe.0800.0000.03ff.0424.0000.0000
 ++  after-mask    0x2000.0000.2000.0000.2400.4b00.0000.0000
@@ -2107,6 +2109,7 @@
   ?-  -.s
     %knot   (weld "/" (trip p.s))
     %typed  "/[{(trip name.s)}=@{(trip aura.s)}]"
+    %inferred  "/[{(trip name.s)}=_]"
   ==
 ::
 ++  show-tvars
@@ -2318,6 +2321,7 @@
     %const    (nod "const" at.s (show-lit lit.s) ~)
     %ref      (nod "ref" at.s (show-names names.s) ~)
     %tvar     (nod "tvar" at.s (trip name.s) ~)
+    %hole     (nod "hole" at.s "" ~)
     %path     (nod "path" at.s (show-psegs segs.s) ~)
     %apply    (nod "apply" at.s (show-names ref.s) (turn args.s sexp-shape))
     %cell     (nod "cell" at.s "" (turn fields.s sexp-field))
@@ -3842,6 +3846,7 @@
       %'*'       [%& [%noun at.t ~] t.ts]
       %'!!'      [%& [%void at.t ~] t.ts]
       %'?'       [%& [%flag at.t ~] t.ts]
+      %'_'       [%& [%hole at.t ~] t.ts]
       [%name *]  [%& [%ref at.t ~[p.lex.t]] t.ts]
       [%wing *]  [%& [%ref at.t p.lex.t] t.ts]
       [%tvar *]  [%& [%tvar at.t p.lex.t] t.ts]
@@ -4058,7 +4063,7 @@
     ?:  &(?=(^ nex) tight.i.nex)  (bad nex "a path segment")
     (bad-space i.after nex "a path segment")
   ::
-  ::  +read-pseg: a path mold's segment, a knot or [name=aura] with no
+  ::  +read-pseg: a path mold's knot, [name=aura], or [name=_] with no
   ::  spaces, and where it ends
   ::
   ++  read-pseg
@@ -4075,13 +4080,16 @@
     ?:  |(?=(~ r2) !tight.i.r2)  (bad-space i.r1 r2 "`=`")
     ?.  ?=([[* * %'='] *] r2)  (bad-in r2 "`=`" tis-mask)
     =/  r3=(list token)  t.r2
-    ?:  |(?=(~ r3) !tight.i.r3)  (bad-space i.r2 r3 "an aura")
-    ?.  ?=([[* * [%aura *]] *] r3)  (bad-in r3 "an aura" pat-mask)
+    ?:  |(?=(~ r3) !tight.i.r3)  (bad-space i.r2 r3 "an aura or type hole")
+    ?.  ?=([[* * ?([%aura *] %'_')] *] r3)  (bad-in r3 "an aura or type hole" (con pat-mask (bex 95)))
     =/  r4=(list token)  t.r3
     ?:  |(?=(~ r4) !tight.i.r4)  (bad-space i.r3 r4 "`]`")
     ?.  ?=([[* * %']'] *] r4)  (bad-in r4 "`]`" ser-mask)
     =/  at=span  [beg.at.op end.at.i.r4]
-    [%& [[%typed at p.lex.i.r1 p.lex.i.r3] end.at.i.r4] t.r4]
+    =/  seg=pseg
+      ?:  ?=(%'_' lex.i.r3)  [%inferred at p.lex.i.r1 at.i.r3]
+      [%typed at p.lex.i.r1 p.lex.i.r3]
+    [%& [seg end.at.i.r4] t.r4]
   --
 ::
 +|  %span-check
@@ -4465,6 +4473,7 @@
     %const  [%const at.s ~[%lit] %one ~]
     %ref    [%ref at.s ~[%name %wing] %one ~]
     %tvar   [%tvar at.s ~[%tvar] %one ~]
+    %hole   [%hole at.s ~[%'_'] %one ~]
     %apply  [%apply at.s ~[%'('] %shut (turn args.s outline-shape)]
     %cell   [%cell at.s ~[%'['] %shut (turn fields.s outline-sample)]
   ::
@@ -4473,8 +4482,11 @@
       %+  murn  segs.s
       |=  g=pseg
       ^-  (unit outline)
-      ?.  ?=(%typed -.g)  ~
-      `[%typed at.g ~[%'['] %shut ~]
+      ?-  -.g
+        %knot  ~
+        %typed  `[%typed at.g ~[%'['] %shut ~]
+        %inferred  `[%typed at.g ~[%'['] %shut ~[[%hole hole-at.g ~[%'_'] %one ~]]]
+      ==
     [%path at.s ~[%'/'] %run ks]
   ::
       %union
@@ -4534,6 +4546,8 @@
             [%path [1 9] [1 9] [1 21]]
             [%face [1 7] [1 7] [1 21]]
         ==
+        ::  an inferred path aura's hole spanning its = as well
+        ['+$ x /a/[id=_]' ~[[%hole [1 13] [1 12] [1 14]]]]
         ::  an import's path cut short
         ['/=  c  /ui/c' ~[[%jibb [1 1] [1 1] [1 11]]]]
         ::  brackets that close with the deeper lines, cut at their line's
@@ -5588,6 +5602,10 @@
     %cell  ?:(?=([%cell * *] node) (imported-record-faces-valid node ~) |)
     %fork  (imported-faces-valid-list +.node)
     %apply  ?:(?=([%apply @ *] node) (imported-faces-valid-list +>.node) |)
+    %named
+      ?.  ?=([%named @ @ *] node)  |
+      =/  n=[%named module=@ name=@ body=*]  ;;([%named module=@ name=@ body=*] node)
+      (imported-faces-valid body.n)
   ==
 ::
 ++  imported-faces-valid-list
@@ -5641,6 +5659,15 @@
       =/  aura=@ta  (@ta +<.node)
       ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
       `[%atom aura]
+    %named
+      ?.  ?=([%named @ @ *] node)  ~
+      =/  n=[%named module=@ name=@ body=*]  ;;([%named module=@ name=@ body=*] node)
+      ?.  &((jibb-face-name module.n) (jibb-face-name name.n))  ~
+      ?.  ?=([%fork *] body.n)  ~
+      =/  proof=(unit irec-pattern)  (rec-pattern body.n (@tas module.n) (@tas name.n))
+      ?~  proof  ~
+      ?.  has.u.proof  ~
+      `[%recursive (@tas module.n) (@tas name.n) `(crip "{(trip name.n)}.{(trip module.n)}")]
     %apply
       ?.  ?=([%apply @ *] node)  ~
       =/  name=term  (@tas +<.node)
@@ -6961,10 +6988,9 @@
   $(xs t.xs, out (weld out rows), origin +(origin))
 ::
 ++  infer-known-union-whole
-  |=  [e=expr env=ienv state=istate]
+  |=  [e=expr env=ienv subject=iresult]
   ^-  (unit iresult)
   ?>  ?=(%branch -.e)
-  =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  `subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
@@ -6999,10 +7025,9 @@
   $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, answer `result)
 ::
 ++  infer-known-union-context-whole
-  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  |=  [e=expr expected=itype env=ienv subject=iresult context=span]
   ^-  (unit iresult)
   ?>  ?=(%branch -.e)
-  =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  `subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
@@ -7044,10 +7069,9 @@
   $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body(sub sub.fit, next next.fit), answer `expected)
 ::
 ++  infer-known-union-finite
-  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
+  |=  [e=expr env=ienv subject=iresult expected=(unit [typ=itype context=span])]
   ^-  iresult
   ?>  ?=(%branch -.e)
-  =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
@@ -7142,29 +7166,76 @@
     [%| ["single-case branch result needs context in partial inference" ~]]
   [%& typ.u.expected state.p.body(sub sub.fit, next next.fit)]
 ::
+++  infer-known-union-branch-subject
+  |=  [e=expr env=ienv subject=iresult]
+  ^-  iresult
+  =/  whole=(unit iresult)  (infer-known-union-whole e env subject)
+  ?~  whole  (infer-known-union-finite e env subject ~)
+  u.whole
+::
 ++  infer-known-union-branch
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
-  =/  whole=(unit iresult)  (infer-known-union-whole e env state)
-  ?~  whole  (infer-known-union-finite e env state ~)
+  ?>  ?=(%branch -.e)
+  (infer-known-union-branch-subject e env (infer-fragment subject.e env state))
+::
+++  infer-known-union-context-subject
+  |=  [e=expr expected=itype env=ienv subject=iresult context=span]
+  ^-  iresult
+  =/  whole=(unit iresult)  (infer-known-union-context-whole e expected env subject context)
+  ?~  whole  (infer-known-union-finite e env subject `[expected context])
   u.whole
 ::
-++  infer-known-union-context
-  |=  [e=expr expected=itype env=ienv state=istate context=span]
-  ^-  iresult
-  =/  whole=(unit iresult)  (infer-known-union-context-whole e expected env state context)
-  ?~  whole  (infer-known-union-finite e env state `[expected context])
-  u.whole
+::  Limit speculative subject inference to wings and shallow calls;
+::  grouping is peeled linearly and cannot introduce a nested branch.
+++  simple-union-subject-arg
+  |=  e=expr
+  ^-  ?
+  ?-  -.e
+    %wing  &
+    %lit   &
+    %str   !(lien pieces.e |=(p=piece ?=(%expr -.p)))
+    *      |
+  ==
+::
+++  safe-union-subject
+  |=  e=expr
+  ^-  ?
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  ?=(%wing -.e)  &
+  ?.  ?=(%call -.e)  |
+  ?.  ?=(%wing -.head.e)  |
+  (levy args.e simple-union-subject-arg)
+::
+++  duplicate-loobean-arms
+  |=  e=expr
+  ^-  ?
+  ?.  ?=(%branch -.e)  |
+  ?~  arms.e  |
+  ?~  t.arms.e  |
+  ?^  t.t.arms.e  |
+  =/  x=pattern  pat.i.arms.e
+  =/  y=pattern  pat.i.t.arms.e
+  ?.  &(?=(%lit -.x) ?=(%lit -.y))  |
+  ?.  &(=(%loobean form.lit.x) =(%loobean form.lit.y))  |
+  =(val.lit.x val.lit.y)
+::
+++  union-subject-call
+  |=  e=expr
+  ^-  ?
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?=(%call -.e)
 ::
 ++  known-union-subject
   |=  [e=expr env=ienv state=istate]
-  ^-  (unit itype)
-  ?.  ?=(%wing -.e)  ~
+  ^-  (unit iresult)
+  ?.  (safe-union-subject e)  ~
   =/  subject=iresult  (infer-fragment e env state)
-  ?:  ?=(%| -.subject)  ~
+  ?:  ?=(%| -.subject)  ?:((union-subject-call e) `subject ~)
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  ~
-  `typ
+  `subject
+::
 ::
 ::  Infer changes only against a fully known record spine. Retain the
 ::  target type; unknown spines and repeated edits remain unsupported.
@@ -7410,9 +7481,10 @@
         ?:  (single-structured-pattern e)  (infer-single-case-branch e env state ~)
         (infer-cell-branch e env state ~)
       ?^  t.t.arms.e  (infer-known-union-branch e env state)
-      =/  known=(unit itype)  (known-union-subject subject.e env state)
-      ?:  &(?=(^ known) ?=(~ (unit-union-payload u.known)))
-        (infer-known-union-branch e env state)
+      =/  known=(unit iresult)  (known-union-subject subject.e env state)
+      ?:  &(?=(^ known) ?=(%| -.u.known) !(duplicate-loobean-arms e))  u.known
+      ?:  &(?=(^ known) ?=(%& -.u.known) ?=(~ (unit-union-payload (itype-normalize typ.p.u.known sub.state.p.u.known))))
+        (infer-known-union-branch-subject e env u.known)
       =/  x=arm  i.arms.e
       =/  y=arm  i.t.arms.e
       ?:  |((unit-empty-pattern pat.x) (unit-empty-pattern pat.y))
@@ -7421,7 +7493,7 @@
       ?.  ?=(%lit -.pat.y)  (infer-known-union-branch e env state)
       ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
         (infer-known-union-branch e env state)
-      ?^  known  (infer-known-union-branch e env state)
+      ?:  &(?=(^ known) ?=(%& -.u.known))  (infer-known-union-branch-subject e env u.known)
       ?:  =(val.lit.pat.x val.lit.pat.y)
         [%| ["branch does not cover both loobeans" ~]]
       =/  subject=iresult  $(e subject.e)
@@ -7649,11 +7721,12 @@
     ?.  =(%loobean form.literal.target)  ~
     `[%const lit.e]
   ?^  singleton  [%& u.singleton state]
-  =/  known=(unit itype)
+  =/  known=(unit iresult)
     ?:  ?=(%branch -.e)  (known-union-subject subject.e env state)
     ~
-  ?:  &(?=(^ known) ?=(~ (unit-union-payload u.known)))
-    (infer-known-union-context e target env state context)
+  ?:  &(?=(^ known) ?=(%| -.u.known) !(duplicate-loobean-arms e))  u.known
+  ?:  &(?=(^ known) ?=(%& -.u.known) ?=(~ (unit-union-payload (itype-normalize typ.p.u.known sub.state.p.u.known))))
+    (infer-known-union-context-subject e target env u.known context)
   ?:  &(?=(%union -.target) ?=(%unit -.e))
     (infer-unit-context e target env state context)
   ?:  &(?=(%flag -.target) (context-union-branch e))
@@ -8799,6 +8872,21 @@
     (show-error src [file line.beg.at.site col.beg.at.site note.site])
   (of-wain:format [summary excerpts])
 ::
+::  Both written field sites are shown in the source that declares them.
+++  show-duplicate-fields
+  |=  [file=path src=@t diagnostic=idiag]
+  ^-  @t
+  =/  excerpts=(list @t)
+    %+  turn  sites.diagnostic
+    |=  site=[at=span note=tape]
+    (show-error src [file line.beg.at.site col.beg.at.site note.site])
+  (of-wain:format [(crip msg.diagnostic) excerpts])
+::
+++  duplicate-fields-report
+  |=  [file=path src=@t diagnostic=idiag]
+  ^-  @t
+  (of-wain:format ~['partial inference; module not checked' (show-duplicate-fields file src diagnostic)])
+::
 ::  +golden-types: a partial report; it does not claim the module checks
 ::
 ++  golden-types
@@ -8828,6 +8916,180 @@
 +$  jfile-result  (each [iface=ifile cache=jcache] @t)
 +$  jimports-result  (each [resolved=ijimports cache=jcache] @t)
 ::
+::  Written record fields each have their own lexical record scope.
++$  written-fields  (map term span)
+++  duplicate-written-field
+  |=  [name=term at=span seen=written-fields]
+  ^-  (unit idiag)
+  =/  prior=(unit span)  (~(get by seen) name)
+  ?~  prior  ~
+  `["record field `{(trip name)}` is repeated" ~[[u.prior "first field"] [at "repeated field"]]]
+++  duplicate-shapes
+  |=  xs=(list shape)
+  ^-  (unit idiag)
+  ?~  xs  ~
+  =/  first  (duplicate-shape i.xs)
+  ?^  first  first
+  $(xs t.xs)
+++  duplicate-fields
+  |=  [fields=(list field) seen=written-fields]
+  ^-  (unit idiag)
+  ?~  fields  ~
+  =/  f=field  i.fields
+  =/  n=(unit term)
+    ?-  -.f
+      %face  `name.f
+      %pun   `name.f
+      %bare  ~
+    ==
+  =/  dup=(unit idiag)  ?~(n ~ (duplicate-written-field u.n at.f seen))
+  ?^  dup  dup
+  =/  inner=(unit idiag)
+    ?-  -.f
+      %face  (duplicate-shape shape.f)
+      %pun   ~
+      %bare  (duplicate-shape shape.f)
+    ==
+  ?^  inner  inner
+  $(fields t.fields, seen ?~(n seen (~(put by seen) u.n at.f)))
+++  duplicate-shape
+  |=  s=shape
+  ^-  (unit idiag)
+  ?-  -.s
+    %cell  (duplicate-fields fields.s ~)
+    %apply  (duplicate-shapes args.s)
+    %union  (duplicate-shapes cases.s)
+    %fn
+      =/  left  (duplicate-shape sample.s)
+      ?^  left  left
+      (duplicate-shape product.s)
+    %generic  (duplicate-shape body.s)
+    *  ~
+  ==
+++  duplicate-samples
+  |=  [items=(list sample) seen=written-fields]
+  ^-  (unit idiag)
+  ?~  items  ~
+  =/  a=sample  i.items
+  =/  n=(unit term)
+    ?-  -.a
+      %bind  `name.a
+      %face  `name.a
+      %pun   `name.a
+      *      ~
+    ==
+  =/  dup=(unit idiag)  ?~(n ~ (duplicate-written-field u.n at.a seen))
+  ?^  dup  dup
+  =/  inner  (duplicate-sample a)
+  ?^  inner  inner
+  $(items t.items, seen ?~(n seen (~(put by seen) u.n at.a)))
+++  duplicate-sample
+  |=  s=sample
+  ^-  (unit idiag)
+  ?-  -.s
+    %cell  (duplicate-samples items.s ~)
+    %face  (duplicate-shape shape.s)
+    %bare  (duplicate-shape shape.s)
+    *  ~
+  ==
+++  duplicate-exprs
+  |=  xs=(list expr)
+  ^-  (unit idiag)
+  ?~  xs  ~
+  =/  first  (duplicate-expr i.xs)
+  ?^  first  first
+  $(xs t.xs)
+++  duplicate-items
+  |=  [items=(list item) seen=written-fields]
+  ^-  (unit idiag)
+  ?~  items  ~
+  =/  a=item  i.items
+  =/  dup=(unit idiag)  ?~(face.a ~ (duplicate-written-field u.face.a at.a seen))
+  ?^  dup  dup
+  =/  inner  (duplicate-expr val.a)
+  ?^  inner  inner
+  $(items t.items, seen ?~(face.a seen (~(put by seen) u.face.a at.a)))
+++  duplicate-pieces
+  |=  pieces=(list piece)
+  ^-  (unit idiag)
+  ?~  pieces  ~
+  =/  first=(unit idiag)  ?:(?=(%expr -.i.pieces) (duplicate-expr p.i.pieces) ~)
+  ?^  first  first
+  $(pieces t.pieces)
+++  duplicate-qsegs
+  |=  segs=(list qseg)
+  ^-  (unit idiag)
+  ?~  segs  ~
+  =/  first=(unit idiag)  ?:(?=(%expr -.i.segs) (duplicate-expr p.i.segs) ~)
+  ?^  first  first
+  $(segs t.segs)
+++  duplicate-edits
+  |=  edits=(list edit)
+  ^-  (unit idiag)
+  ?~  edits  ~
+  =/  first  (duplicate-expr val.i.edits)
+  ?^  first  first
+  $(edits t.edits)
+++  duplicate-arms
+  |=  arms=(list arm)
+  ^-  (unit idiag)
+  ?~  arms  ~
+  =/  first  (duplicate-expr val.i.arms)
+  ?^  first  first
+  $(arms t.arms)
+++  duplicate-defs
+  |=  defs=(list def)
+  ^-  (unit idiag)
+  ?~  defs  ~
+  =/  first=(unit idiag)
+    ?-  -.i.defs
+      %mold   (duplicate-shape shape.i.defs)
+      %value  (duplicate-expr val.i.defs)
+    ==
+  ?^  first  first
+  $(defs t.defs)
+++  duplicate-expr
+  |=  e=expr
+  ^-  (unit idiag)
+  ?-  -.e
+    %str  (duplicate-pieces pieces.e)
+    %qath  (duplicate-qsegs segs.e)
+    %change  (duplicate-edits edits.e)
+    %pair  (duplicate-expr val.e)
+    %unit  (duplicate-expr val.e)
+    %group  (duplicate-expr inner.e)
+    %list  (duplicate-exprs items.e)
+    %tuple  (duplicate-items items.e ~)
+    %gate-wide
+      =/  first  (duplicate-sample sample.e)
+      ?^  first  first
+      (duplicate-expr body.e)
+    %gate
+      =/  first  (duplicate-sample sample.e)
+      ?^  first  first
+      (duplicate-expr body.e)
+    %cast
+      =/  first  (duplicate-shape shape.e)
+      ?^  first  first
+      (duplicate-expr val.e)
+    %call
+      =/  first  (duplicate-expr head.e)
+      ?^  first  first
+      (duplicate-exprs args.e)
+    %trace
+      =/  first  (duplicate-expr val.e)
+      ?^  first  first
+      (duplicate-expr then.e)
+    %branch
+      =/  first  (duplicate-expr subject.e)
+      ?^  first  first
+      (duplicate-arms arms.e)
+    %body
+      =/  first  (duplicate-defs defs.e)
+      ?^  first  first
+      (duplicate-expr final.e)
+    *  ~
+  ==
 ++  import-binding-names
   |=  imports=(list import)
   ^-  (list term)
@@ -8965,6 +9227,7 @@
   =/  parsed  (parse at src)
   ?:  ?=(%| -.parsed)  ~
   =/  mod=module  p.parsed
+  ?^  (duplicate-defs defs.mod)  ~
   ?~  imports.mod
     =/  built=jfile-result  (infer-jibb-file at src ~ ~ ~ ~[at] ~ ~ ~ ~)
     ?:  ?=(%| -.built)  ~
@@ -8993,6 +9256,7 @@
   =/  at=path  /lib/jibb/prelude/jibb
   =/  parsed  (parse at src)
   ?:  ?=(%| -.parsed)  ~
+  ?^  (duplicate-defs defs.p.parsed)  ~
   =/  private=(unit ijimports)
     ?~  imports.p.parsed  `~
     ?.  ?=([[%jibb *] ~] imports.p.parsed)  ~
@@ -9148,7 +9412,7 @@
   ?~  segments  `~
   ?:  ?=(%knot -.i.segments)  $(segments t.segments)
   =/  seg=pseg  i.segments
-  ?>  ?=(%typed -.seg)
+  ?.  ?=(%typed -.seg)  ~
   ?:  =(0 aura.seg)  ~
   ?:  (lien seen |=(n=term =(n name.seg)))  ~
   =/  rest=(unit (list iapi-parameter))  $(segments t.segments, seen [name.seg seen])
@@ -9279,6 +9543,7 @@
 ++  api-path-analysis
   |=  [mod=module externals=imark-externals prelude-values=(list term) prelude-molds=(list term)]
   ^-  (unit (list iapi-path-typed))
+  ?^  (duplicate-defs defs.mod)  ~
   =/  ds=(list def)  defs.mod
   =/  declarations=(list def)
     (skim ds |=(d=def &(?=(%mold -.d) =(%paths name.d))))
@@ -9306,9 +9571,11 @@
   |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
   ^-  (each (list iapi-path-typed) @t)
   ?.  ?=([%ui %api @ %jibb ~] file)  [%| 'API path analysis requires /ui/api/<agent>.jibb']
-  ?~  prepared  [%| 'API path analysis needs the prepared prelude']
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  [%| 'API path source does not parse']
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
+  ?~  prepared  [%| 'API path analysis needs the prepared prelude']
   =/  prelude=(unit ifile)  `iface.u.prepared
   =/  deps=jimports-result
     (resolve-jibb-imports imports.p.parsed externals marks modules ~[file] values.u.prepared molds.u.prepared ~ prelude)
@@ -9332,6 +9599,7 @@
   |=  [at=path mod=module mark-externals=imark-externals prelude-values=(list term) prelude-molds=(list term) prelude=(unit ifile)]
   ^-  (unit ifile)
   ?.  ?=([%ui %api @ %jibb ~] at)  ~
+  ?^  (duplicate-defs defs.mod)  ~
   ?~  prelude  ~
   ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  ~
   =/  poke=(unit ischeme)  (find-jibb-mold %poke u.prelude)
@@ -9367,6 +9635,8 @@
   =/  parsed  (parse at src)
   ?:  ?=(%| -.parsed)  [%| (crip "module source does not parse: {(spud at)}")]
   =/  mod=module  p.parsed
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.mod)
+  ?^  duplicate  [%| (show-duplicate-fields at src u.duplicate)]
   ?:  ?=([%ui %api *] at)
     =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
     ?~  iface  [%| (crip "API module needs unsupported inference: {(spud at)}")]
@@ -9403,6 +9673,8 @@
   ^-  @t
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
   ?:  (lien imports.p.parsed |=(i=import ?=(%jibb -.i)))
     'partial inference; module not checked\0aprelude source missing; module import inference unsupported'
   (golden-types-with-marks file src externals mark-externals)
@@ -9417,6 +9689,8 @@
   ^-  @t
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
   ?:  =(0 prelude-source)  'partial inference; module not checked\0aprelude source missing; module import inference unsupported'
   =/  prelude  (parse /lib/jibb/prelude/jibb prelude-source)
   ?:  ?=(%| -.prelude)  'partial inference; module not checked\0aprelude source does not parse; module import inference unsupported'
@@ -9435,6 +9709,8 @@
   ^-  @t
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
   ?~  prepared  'partial inference; module not checked\0aprelude interface is not supported'
   =/  prelude-values=(list term)  values.u.prepared
   =/  prelude-molds=(list term)  molds.u.prepared
@@ -9482,6 +9758,8 @@
   =.  reserved-molds  (weld reserved-molds (turn jimports |=(j=[face=term interface=ifile] face.j)))
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
   =/  ds=(list def)  defs.p.parsed
   =/  molds=imolds  (collect-simple-molds ds)
   =/  globals=(list term)  (weld prelude-values (weld (turn jimports |=(j=[face=term interface=ifile] face.j)) (global-value-names ds)))

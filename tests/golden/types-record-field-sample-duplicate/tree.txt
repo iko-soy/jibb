@@ -1,0 +1,7 @@
+(module
+  (value 1:1 invalid
+    (gate 1:12
+      (cell 1:15
+        (face 1:16 value (aura 1:22 @t))
+        (face 1:25 value (aura 1:31 @p)))
+      (wing 1:35 value))))

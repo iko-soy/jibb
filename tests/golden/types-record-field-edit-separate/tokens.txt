@@ -1,0 +1,51 @@
+1:1 glyph ++
+1:4 name edit
+1:9 glyph |=
+1:12 name x
+1:13 tight glyph =
+1:14 tight glyph [
+1:15 tight name left
+1:19 tight glyph =
+1:20 tight glyph [
+1:21 tight name value
+1:26 tight glyph =
+1:27 tight aura @t
+1:30 name other
+1:35 tight glyph =
+1:36 tight glyph ?
+1:37 tight glyph ]
+1:39 name right
+1:44 tight glyph =
+1:45 tight glyph [
+1:46 tight name value
+1:51 tight glyph =
+1:52 tight aura @p
+1:55 name other
+1:60 tight glyph =
+1:61 tight glyph ?
+1:62 tight glyph ]
+1:63 tight glyph ]
+1:65 name x
+1:66 tight glyph (
+1:67 tight name left
+1:71 tight glyph =
+1:72 tight glyph [
+1:73 tight name value
+1:78 tight glyph =
+1:79 tight str "a"
+1:83 name other
+1:88 tight glyph =
+1:89 tight lit %.y
+1:92 tight glyph ]
+1:94 name right
+1:99 tight glyph =
+1:100 tight glyph [
+1:101 tight name value
+1:106 tight glyph =
+1:107 tight lit ~zod
+1:112 name other
+1:117 tight glyph =
+1:118 tight lit %.n
+1:121 tight glyph ]
+1:122 tight glyph )
+1:123 NEWLINE

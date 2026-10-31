@@ -1,0 +1,11 @@
+(module
+  (value 1:1 okay
+    (tuple 1:9
+      (face 1:10 left
+        (tuple 1:15
+          (face 1:16 value (str 1:22 "text"))
+          (face 1:29 yes (lit 1:33 %.y))))
+      (face 1:38 right
+        (tuple 1:44
+          (face 1:45 value (lit 1:51 ~zod))
+          (face 1:56 yes (lit 1:60 %.n)))))))

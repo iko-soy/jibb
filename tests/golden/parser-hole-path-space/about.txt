@@ -1,0 +1,3 @@
+source: Grammar, Types and molds: `_` is an inferred type hole.
+tests: A path-segment type hole must remain tight after the field's `=`.
+expect: error at 1:14

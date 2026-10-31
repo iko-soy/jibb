@@ -1,0 +1,3 @@
+partial inference; module not checked
++$ fine: not checked
+++ identity: $-([left=[value=@t count=@ud] right=[value=@p count=?]] [left=[value=@t count=@ud] right=[value=@p count=?]])

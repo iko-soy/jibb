@@ -1,0 +1,9 @@
+1:1 glyph +$
+1:4 name path
+1:9 glyph /
+1:10 tight glyph [
+1:11 tight name id
+1:13 tight glyph =
+1:15 glyph _
+1:16 tight glyph ]
+1:17 NEWLINE

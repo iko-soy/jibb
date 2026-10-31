@@ -142,28 +142,4 @@
 9:46 tight glyph =
 9:47 tight name missing
 9:54 tight glyph )
-10:1 NEWLINE
-10:1 glyph +$
-10:4 name ambiguous
-10:14 glyph [
-10:15 tight name same
-10:19 tight glyph =
-10:20 tight aura @t
-10:23 name same
-10:27 tight glyph =
-10:28 tight aura @p
-10:30 tight glyph ]
-11:1 NEWLINE
-11:1 glyph ++
-11:4 name ambiguous-field
-11:20 glyph |=
-11:23 name s
-11:24 tight glyph =
-11:25 tight name ambiguous
-11:35 name s
-11:36 tight glyph (
-11:37 tight name same
-11:41 tight glyph =
-11:42 tight str "x"
-11:45 tight glyph )
-11:46 NEWLINE
+9:55 NEWLINE

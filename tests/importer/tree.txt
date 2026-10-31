@@ -169,7 +169,14 @@ tag-nest-diamond: (union [one [x=(union [left value=@t] [right value=@ud]) y=(un
 tag-nest-deep: error: a Hoon union needs a source-level disjointness check
 tag-nest-hidden: error: a Hoon union needs a source-level disjointness check
 tag-nest-overlap: error: a Hoon union needs a source-level disjointness check
-tag-nest-recursive: error: a Hoon union needs a source-level disjointness check
+tag-nest-recursive: (union [one x=(named tag-nest-recursive.small (union [done @n:0] [step next=(unit tag-nest-recursive.small)]))] [two @n:0])
+tag-nest-rec-list: (union [other @n:0] [nested item=(named tag-nest-rec-list.small (union [leaf @t] [branch children=(list tag-nest-rec-list.small)]))])
+tag-nest-rec-repeat: (union [other @n:0] [nested [a=(named tag-nest-rec-list.small (union [leaf @t] [branch children=(list tag-nest-rec-list.small)])) b=(named tag-nest-rec-list.small (union [leaf @t] [branch children=(list tag-nest-rec-list.small)]))]])
+tag-nest-rec-duplicate: error: a Hoon union needs a source-level disjointness check
+tag-nest-rec-hidden: error: a Hoon union needs a source-level disjointness check
+tag-nest-rec-mutual: error: a Hoon union needs a source-level disjointness check
+tag-nest-rec-outer-overlap: error: a Hoon union needs a source-level disjointness check
+tag-nest-rec-owner: yes
 tag-nest-many: error: a Hoon union needs a source-level disjointness check
 tag-nest-shadow: error: a Hoon union needs a source-level disjointness check
 tag-nest-wrong-hold: unsupported
@@ -181,7 +188,7 @@ tag-self-hidden: error: a Hoon union needs a source-level disjointness check
 tag-self-indirect: error: a Hoon union needs a source-level disjointness check
 tag-mutual-a: error: a Hoon union needs a source-level disjointness check
 tag-mutual-b: error: a Hoon union needs a source-level disjointness check
-tag-self-pair: [one=(list (union [leaf value=@t] [branch children=(list tag-self.small)])) two=(list (union [leaf value=@t] [branch children=(list tag-self.small)]))]
+tag-self-pair: [one=(list (named tag-self.small (union [leaf value=@t] [branch children=(list tag-self.small)]))) two=(list (named tag-self.small (union [leaf value=@t] [branch children=(list tag-self.small)])))]
 tag-self-ford-collision: error: a Hoon union needs a source-level disjointness check
 tag-self-wrong-core: error: Hoon module provenance does not match the selected mold
 tag-flat-large: supported above 256

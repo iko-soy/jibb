@@ -1,0 +1,8 @@
+1:1 glyph +$
+1:4 name bad
+1:8 glyph |$
+1:11 glyph [
+1:12 tight glyph _
+1:13 tight glyph ]
+1:15 aura @t
+1:17 NEWLINE

@@ -5,3 +5,4 @@
 ++ notes-update |= x=u-notes.notes x
 ++ log-identity |= x=log.notes x
 ++ import-node-id |= x=import-node.notes x
+++ notebook-action-identity |= x=a-notebook.notes x

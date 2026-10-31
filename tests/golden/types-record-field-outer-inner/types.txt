@@ -1,0 +1,3 @@
+partial inference; module not checked
++$ fine: not checked
+++ identity: $-([value=@t nested=[value=@p other=?]] [value=@t nested=[value=@p other=?]])

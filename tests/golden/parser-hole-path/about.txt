@@ -1,0 +1,3 @@
+source: Grammar, Types and molds: `_` is an inferred type hole.
+tests: Underscores in `/_` and `%/_` remain literal path knots, while `[id=_]` is a typed-segment hole.
+expect: parses

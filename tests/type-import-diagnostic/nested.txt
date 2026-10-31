@@ -7,5 +7,5 @@
 ++ alias-use ^- alias !!
 ++ first-unsupported ^- [a=* b=bad.foo] !!
 ++ recursive-first ^- [a=recursive b=bad.foo] !!
-++ shadow |= [a=@t a=bad.foo] a
+++ shadow |= [a=@t [a=bad.foo b=@t]] a
 ++ first-invalid |= [a=bad.foo b=bad.foo] a

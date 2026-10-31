@@ -1,0 +1,3 @@
+/tests/golden/parser-hole-path-space/source.jibb:1:14: expected an aura or type hole right after `=`, found a space
++$ path /[id= _]
+             ^

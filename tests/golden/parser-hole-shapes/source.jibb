@@ -1,0 +1,11 @@
++$ unused _
++$ nested [a=_ b=$-(_ (list _))]
++$ alias |$ [A] (pair A _)
+++ identity |= x=_ x
+++ inferred ^- _ "hello"
+++ cast-nested |= x=[$-(_ _) (list _)] ^- [first=_ second=_] [x x]
+++ bare-sample |= _ "hello"
+++ cell-sample |= [a=_ b=_] [a b]
+++ local |= x=@t
+  ++ inside |= y=_ ^- _ y
+  (inside x)

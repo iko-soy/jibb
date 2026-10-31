@@ -1,0 +1,8 @@
+partial inference; module not checked
+record field `value` is repeated
+/tests/golden/types-record-field-sample-duplicate/source.jibb:1:16: first field
+++ invalid |= [value=@t value=@p] value
+               ^
+/tests/golden/types-record-field-sample-duplicate/source.jibb:1:25: repeated field
+++ invalid |= [value=@t value=@p] value
+                        ^

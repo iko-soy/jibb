@@ -1,0 +1,2 @@
++$ fine [left=[value=@t count=@ud] right=[value=@p count=?]]
+++ identity |= x=fine x

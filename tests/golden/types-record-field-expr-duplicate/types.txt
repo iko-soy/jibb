@@ -1,0 +1,8 @@
+partial inference; module not checked
+record field `value` is repeated
+/tests/golden/types-record-field-expr-duplicate/source.jibb:2:9: first field
+++ bad [value="one" value="two"]
+        ^
+/tests/golden/types-record-field-expr-duplicate/source.jibb:2:21: repeated field
+++ bad [value="one" value="two"]
+                    ^

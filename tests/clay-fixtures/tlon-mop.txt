@@ -6,9 +6,15 @@
 =/  read-gate=vase  (slap reader (ream 'read-named'))
 =/  result=vase  (slym read-gate [%notes %log -.src])
 =/  recursive=vase  (slym read-gate [%notes %import-node -.src])
+=/  nested=vase  (slym read-gate [%notes %a-notebook -.src])
 =/  contains-ref
   |=  node=*
   ?:  =(node [%ref %notes %import-node])  &
   ?@  node  |
   |($(node -.node) $(node +.node))
-(pure:m !>([?=([%& [%apply %mop [[%atom %da ~] [%fork *] ~]]] +.result) &(?=([%& [%fork *]] +.recursive) (contains-ref +.recursive))]))
+=/  contains-named
+  |=  node=*
+  ?:  ?=([%named %notes %import-node [%fork *]] node)  (contains-ref node)
+  ?@  node  |
+  |($(node -.node) $(node +.node))
+(pure:m !>([?=([%& [%apply %mop [[%atom %da ~] [%fork *] ~]]] +.result) &(?=([%& [%fork *]] +.recursive) (contains-ref +.recursive)) &(?=([%& [%fork *]] +.nested) (contains-named +.nested))]))

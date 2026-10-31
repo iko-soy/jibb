@@ -1,0 +1,2 @@
+++ identity |= x=_ x
+++ cast ^- _ "hello"

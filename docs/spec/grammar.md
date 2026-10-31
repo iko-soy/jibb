@@ -91,7 +91,7 @@ Imports come first:
 /=  card    /ui/components/card  ::  a Jibb module
 ```
 
-An imported Hoon record with duplicate field names is an error where used; imported union cases must differ as nouns. `/%` names a type after its mark, so it takes no face, and any mark name works; Hoon's `/%` binds the mark's core instead. Derived constructors such as `todo-action.todo` supply the agent and mark, so code never writes one. API modules re-export their `/%` types, not `/-` faces or `/=` modules. Import cycles are errors.
+An imported Hoon record with duplicate field names is an error where used; imported union cases must differ as nouns. `/%` names a type after its mark, so it takes no face, and any mark name works; Hoon's `/%` binds the mark's core instead. Derived constructors such as `todo-action.todo` supply the agent and mark, so callers need not write those details. API modules re-export their `/%` types, not `/-` faces or `/=` modules. Import cycles are errors.
 
 ## Modules
 
@@ -120,20 +120,21 @@ Every other name is free.
 
 A mold is only a type: never called on a noun, and with no default. Types are inferred, Hindley–Milner with aura variables: every expression has a principal type, and there is no general subtyping. These one-way widenings are allowed: a value of a specific atom type fits `@`, a value of a specific noun type fits `*`, and a more specific aura fits an ancestor in its Hoon aura family; the reverse of each widening needs a check.
 
-- **Atoms**: `@` is any atom, regardless of aura; auras such as `@ud`, `@t`, `@p` and `@da` are specific atom types. An `@ud` value fits where `@` is expected, but an `@` value needs a check to fit `@ud`. A more specific aura also fits an ancestor in its Hoon aura family: `@ud` and `@ux` fit `@u`, and `@tD` fits `@t`. The reverse needs a check. Distinct specific auras remain distinct; sharing an ancestor does not make them unify. Each bare `@` independently accepts any atom: it is not an aura variable. Atoms that must share a type take one capital, as `[lo=A hi=A]`, with the atom constraint inferred from the body. `add` takes `[A A]` and returns `A`, with `A` constrained to atoms, so `(add n 1)` with `n=@ud` is a `@ud`. `?` is a loobean.
+- **Partial annotations**: `_` may appear wherever a mold may appear. It marks a part of the type for the checker to infer, so a type annotation can specify only the parts it needs to. A hole inferred to be a named type variable is resolved: in `++ id |= x=A ^- _ x`, the result hole is `A`. An unconstrained hole is an error. A named mold or value definition must determine its own holes: `+$ box [item=_]` and `++ id |= x=_ x` do not determine their holes, and later uses cannot fix them.
+- **Atoms**: `@` is any atom, regardless of aura; auras such as `@ud`, `@t`, `@p` and `@da` are specific atom types. An `@ud` value fits where `@` is expected, but an `@` value needs a check to fit `@ud`. A more specific aura also fits an ancestor in its Hoon aura family: `@ud` and `@ux` fit `@u`, and `@tD` fits `@t`. The reverse needs a check. Distinct specific auras remain distinct; sharing an ancestor does not make them unify. Each bare `@` independently accepts any atom: it is not an aura variable. Atoms that must share a type take one capital, as `[lo=A hi=A]`, with the atom constraint inferred from the body. `add` takes `[A A]` and returns `A`, with `A` constrained to atoms, so `(add n 1)` with `n=@ud` is a `@ud`. Arithmetic rejects loobean operands: `?` contains only 0 and 1, while an arithmetic result need not. Comparison may take loobeans and returns `?`.
 - **Constants**: `%add`, `~` and the loobeans have one value each.
-- **Records and tuples**: `[text=@t done=?]`, `[@t ?]`. An empty `[]` is an error. Faces are part of the type, so `[a=@ b=@]` and `[x=@ y=@]` don't unify. An unnamed position can unify with a faced position and take its face, so `[0 0]` fits `[x=@ud y=@ud]`; two different faces don't unify. A record too long for one line can leave its `[` open, with one field per deeper line, as an expression's bracket does.
+- **Records and tuples**: `[text=@t done=?]`, `[@t ?]`. An empty `[]` is an error. Duplicate field names in a record are an error. Faces are part of the type, so `[a=@ b=@]` and `[x=@ y=@]` don't unify. An unnamed position can unify with a faced position and take its face, so `[0 0]` fits `[x=@ud y=@ud]`; two different faces don't unify. A record too long for one line can leave its `[` open, with one field per deeper line, as an expression's bracket does.
 - **Unions**: a `+$` with several cases below it. Every union written in Jibb has a name, so one used in a field, a sample, a cast, a gate's mold or an argument gets its own `+$`; only imports bring in unions without one. Tags take their union from context, as Tag resolution describes. Cases must differ as nouns: inhabited cases must differ at some position of their right-nested cells, where one is an atom and the other a cell, or both are different constants. `*`, type variables and molds that can be either, such as `(list A)`, can overlap atoms and cells. `?` counts as the two atoms `%.y` and `%.n`: it is disjoint from cells and overlaps the constants 0 and 1. The empty mold `!!` is disjoint from every case; a cell with an empty position at any depth is itself empty and is also disjoint from every case. A union whose cases don't all differ is rejected.
 - **Containers**: `(list A)`, `(unit A)`, `(set A)`, `(map K V)`, `(mop K V)`, `(qeu A)`, `(jar K V)`, `(jug K V)`.
 - **Gates**: `$-(A B)`. Type variables are capitals, generalized per `++`. A capital in a local `++` shares the enclosing `++`'s variable of the same name if the enclosing `++` also uses it; otherwise the local `++` introduces and generalizes its own variable. For example, `++ inner |= y=A y` uses the enclosing `A` when its enclosing gate has a sample `x=A`; if the enclosing `++` does not use `A`, `inner` generalizes its own `A`. Use another capital for a different type. A body can't force two distinct capitals to be equal; use the same capital wherever a type must be shared. A type variable used where an atom is required gains an atom constraint, so `++ clamp |= [lo=A hi=A n=A]`, whose body calls `gth` and `max`, works on any one aura. It can become nothing more specific: a body that makes `A` a `@ud` or a list is an error.
-- **Paths**: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura. `%/blog/(slug)` is an `qath`, checked against routes and static files.
+- **Paths**: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura. A typed segment may use `_` for an inferred aura; it still must resolve to an aura that the path rules can print and parse. `%/blog/(slug)` is an `qath`, checked against routes and static files.
 - **Generic molds**: `+$ result |$ [V E]` with cases below; `|$` goes only right after a `+$`'s name.
 - **Noun**: `*`, not a type variable; use a capital for a generic type. A value already known to have a more specific noun type, such as `@ud`, can be used where `*` is expected. **Empty**: `!!`.
 - **Pokes**: `poke` is defined in the source-backed private internal prelude module and re-exported by the public prelude as an ordinary transparent type. Ordinary modules can construct and inspect its values.
-- **Opaque**: `ask` and `qath`, built only by derived gates, `pure` and application-path literals. `(facts full diff …)` appears only in an API file's `paths`.
+- **Effect and application-path types**: `poke`, `ask` and `qath` are transparent types, defined in the internal prelude and re-exported normally; callers can construct and inspect their values. Derived gates and `pure` also construct requests, and application-path literals have type `qath`. `(facts full diff …)` appears only in an API file's `paths`.
 - **Identity**: recursive molds go by name and module.
 
-`eq`'s arguments and map and set keys must contain no gates, even nested inside another value. The checker infers this gate-free constraint on type variables and retains it when generalizing a `++`, so a generic helper that calls `eq` stays generic over gate-free types. Printed types show the constraint as `$-([A A] ?) where A contains no gates`. An inferred atom constraint prints as `$-([A A] A) where A is an atom`. Multiple clauses are comma-separated, as `where A is an atom, B contains no gates`. Union-case matching treats gates as opaque and never inspects a gate to distinguish cases.
+`eq`'s arguments and map and set keys must contain no gates, even nested inside another value. The checker infers this gate-free constraint on type variables and retains it when generalizing a `++`, so a generic helper that calls `eq` stays generic over gate-free types. Printed types show the constraint as `$-([A A] ?) where A contains no gates`. An inferred atom constraint prints as `$-([A A] A) where A is an atom`; an arithmetic atom constraint that excludes loobeans prints as `where A is an atom other than ?`. Multiple clauses are comma-separated, as `where A is an atom, B contains no gates`. Union-case matching treats gates as opaque and never inspects a gate to distinguish cases.
 
 ## Tag resolution
 
@@ -211,7 +212,7 @@ Tags can sit anywhere in a case, and a case can carry several:
     [%move %left n]   "left {n}"
     [%move %right n]  "right {n}"
     [t %draft]        t
-    [t %sent at]      t
+    [t %sent sent-at] t
     %stop             "stop"
 ```
 
@@ -261,7 +262,7 @@ rune       = "|=" field ( expr | body )
            | "?-" expr INDENT arm { NEWLINE arm } DEDENT ;
 arm        = pattern ( expr | body ) ;     (* every case covered; see Patterns *)
 
-mold       = aura | "*" | "!!" | "?" | "~" | term | loobean | ref | typevar
+mold       = aura | "_" | "*" | "!!" | "?" | "~" | term | loobean | ref | typevar
            | pathmold
            | "(" ref mold { mold } ")" | "(" ref { mold } mlines
            | "[" field { field } "]" | "[" { field } flines
@@ -270,7 +271,7 @@ field      = [ name "=" ] mold | "=" name ;     (* =msg is msg=msg *)
 mlines     = INDENT mold { NEWLINE mold } DEDENT ;    (* a mold's ( left open *)
 flines     = INDENT field { NEWLINE field } DEDENT ;  (* a mold's [ left open *)
 pathmold   = "/" [ segment { "/" segment } ] ;
-segment    = knot | "[" name "=" aura "]" ;
+segment    = knot | "[" name "=" ( aura | "_" ) "]" ;
 
 pattern    = term | number | string | ship | loobean | "~" | "*" | name
            | "[" pattern { pattern } "]" ;

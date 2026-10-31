@@ -1,0 +1,4 @@
+source: Grammar, pattern matching: branch subjects can be expressions, and known union cases support coverage and contextual result checking.
+tests: Grouped and call subjects are inferred once before matching, including finite loobean refinements and a shared generic substitution. Wrong tags, missing and dead arms, shadowing, pending subject and body literals, unknown subjects, explicit capitals and call errors retain their appropriate failures. Deeply nested calls remain unsupported. The module report is partial.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,8 @@
+partial inference; module not checked
+record field `value` is repeated
+/ui/lib.jibb:1:12: first field
++$ unused [value=@t value=@p]
+           ^
+/ui/lib.jibb:1:21: repeated field
++$ unused [value=@t value=@p]
+                    ^

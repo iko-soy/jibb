@@ -15,7 +15,7 @@ partial inference; module not checked
     ^
 ++ unknown: partial union pattern is not supported by partial inference
 ++ from-call: $-((list @t) (list @t))
-++ non-wing: branch pattern is not supported by partial inference
+++ non-wing: $-(msg (list @t))
 ++ generic: $-([a=msg x=A] (list A))
 ++ generic-bad: explicit capital constraints are not supported by partial inference
 ++ pending-tag: tag needs context in partial inference

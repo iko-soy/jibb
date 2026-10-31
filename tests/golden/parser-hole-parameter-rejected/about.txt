@@ -1,0 +1,3 @@
+source: Grammar, Types and molds: `_` is an inferred type hole.
+tests: An anonymous hole is not a named generic parameter.
+expect: error at 1:12

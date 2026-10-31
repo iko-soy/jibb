@@ -1,0 +1,22 @@
+(module
+  (value 1:1 edit
+    (gate 1:9
+      (face 1:12 x
+        (cell 1:14
+          (face 1:15 left
+            (cell 1:20
+              (face 1:21 value (aura 1:27 @t))
+              (face 1:30 other (flag 1:36))))
+          (face 1:39 right
+            (cell 1:45
+              (face 1:46 value (aura 1:52 @p))
+              (face 1:55 other (flag 1:61))))))
+      (change 1:65 x
+        (edit 1:67 left
+          (tuple 1:72
+            (face 1:73 value (str 1:79 "a"))
+            (face 1:83 other (lit 1:89 %.y))))
+        (edit 1:94 right
+          (tuple 1:100
+            (face 1:101 value (lit 1:107 ~zod))
+            (face 1:112 other (lit 1:118 %.n))))))))

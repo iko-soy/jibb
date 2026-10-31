@@ -54,13 +54,4 @@
           (apply 9:24 box (aura 9:29 @t)))
         (face 9:33 v (aura 9:35 @t)))
       (change 9:39 s
-        (edit 9:41 value (wing 9:47 missing)))))
-  (mold 10:1 ambiguous
-    (cell 10:14
-      (face 10:15 same (aura 10:20 @t))
-      (face 10:23 same (aura 10:28 @p))))
-  (value 11:1 ambiguous-field
-    (gate 11:20
-      (face 11:23 s (ref 11:25 ambiguous))
-      (change 11:35 s
-        (edit 11:37 same (str 11:42 "x"))))))
+        (edit 9:41 value (wing 9:47 missing))))))

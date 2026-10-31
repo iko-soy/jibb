@@ -1,0 +1,22 @@
+1:1 glyph +$
+1:4 name broken
+1:11 glyph [
+1:12 tight name outer
+1:17 tight glyph =
+1:18 tight glyph [
+1:19 tight name value
+1:24 tight glyph =
+1:25 tight aura @t
+1:28 name value
+1:33 tight glyph =
+1:34 tight aura @p
+1:36 tight glyph ]
+1:38 name tag
+1:41 tight glyph =
+1:42 tight aura @t
+1:44 tight glyph ]
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name value
+2:10 str "ok"
+2:14 NEWLINE

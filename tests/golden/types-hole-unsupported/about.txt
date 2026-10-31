@@ -1,0 +1,4 @@
+source: Grammar, Types and molds: `_` is an inferred type hole.
+tests: Parsing accepts holes in samples and casts; the current partial inference explicitly reports those shapes unsupported.
+expect: parses
+expect-types: a partial inference report

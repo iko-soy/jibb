@@ -1,0 +1,4 @@
+source: Grammar, Types and molds; Imports: record fields are distinct within each record scope.
+tests: A reachable imported module with duplicate record-expression faces is rejected at both source sites.
+expect: parses
+expect-types: a partial inference report
