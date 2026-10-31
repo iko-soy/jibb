@@ -2984,7 +2984,7 @@
 ++  test-types-unit-construction
   (weld (check ~.types-unit-construction src-533 `tok-533 `tre-533) (check-module-types ~.types-unit-construction ~[%tests %golden ~.types-unit-construction %source %jibb] src-533 `typ-533 ~ ~ ~))
 ++  test-types-unit-context
-  (weld (check ~.types-unit-context src-534 `tok-534 `tre-534) (check-types ~.types-unit-context ~[%tests %golden ~.types-unit-context %source %jibb] src-534 `typ-534))
+  (weld (check ~.types-unit-context src-534 `tok-534 `tre-534) (check-module-types ~.types-unit-context ~[%tests %golden ~.types-unit-context %source %jibb] src-534 `typ-534 ~ ~ ~))
 ++  test-types-unit-patterns
   (weld (check ~.types-unit-patterns src-535 `tok-535 `tre-535) (check-types ~.types-unit-patterns ~[%tests %golden ~.types-unit-patterns %source %jibb] src-535 `typ-535))
 ::

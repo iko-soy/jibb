@@ -1,182 +1,220 @@
 (module
-  (mold 1:1 maybe
-    (union 2:3
-      (const 2:3 ~)
-      (cell 3:3
-        (const 3:4 ~)
-        (face 3:6 value (aura 3:12 @t)))))
-  (mold 4:1 msg
-    (union 5:3
-      (const 5:3 %add)
-      (cell 6:3
-        (const 6:4 %note)
-        (face 6:10 text (aura 6:15 @t)))))
-  (value 7:1 cast
-    (gate 7:9
-      (face 7:12 x (ref 7:14 maybe))
-      (body 8:3
-        (cast 8:3
-          (ref 8:6 msg)
-          (body 9:5
-            (branch 9:5
-              (wing 9:8 x)
-              (arm 10:7 (lit 10:7 ~) (lit 10:9 %add))
-              (arm 11:7
-                (cell 11:7 (lit 11:8 ~) (bind 11:10 text))
-                (tuple 11:16 (lit 11:17 %note) (wing 11:23 text)))))))))
-  (value 12:1 reversed
-    (gate 12:13
-      (face 12:16 x (ref 12:18 maybe))
-      (body 13:3
-        (cast 13:3
-          (ref 13:6 msg)
-          (body 14:5
-            (branch 14:5
-              (wing 14:8 x)
-              (arm 15:7
-                (cell 15:7 (lit 15:8 ~) (bind 15:10 text))
-                (tuple 15:16 (lit 15:17 %note) (wing 15:23 text)))
-              (arm 16:7 (lit 16:7 ~) (lit 16:9 %add))))))))
-  (value 17:1 consume
-    (gate 17:12
-      (face 17:15 x (ref 17:17 msg))
-      (str 17:21 "ok")))
-  (value 18:1 call
-    (gate 18:9
-      (face 18:12 x (ref 18:14 maybe))
-      (body 19:3
-        (group 19:3
-          (call 19:4
-            (wing 19:4 consume)
-            (branch 20:5
-              (wing 20:8 x)
-              (arm 21:7 (lit 21:7 ~) (lit 21:9 %add))
-              (arm 22:7
-                (cell 22:7 (lit 22:8 ~) (bind 22:10 text))
-                (tuple 22:16 (lit 22:17 %note) (wing 22:23 text)))))))))
-  (value 23:1 nested
-    (gate 23:11
-      (face 23:14 x (ref 23:16 maybe))
-      (body 24:3
-        (cast 24:3
-          (ref 24:6 msg)
-          (body 25:5
-            (branch 25:5
-              (wing 25:8 x)
-              (arm 26:7
-                (lit 26:7 ~)
-                (body 27:9
-                  (branch 27:9
-                    (lit 27:12 %.y)
-                    (arm 28:11 (lit 28:11 %.y) (lit 28:15 %add))
-                    (arm 29:11
-                      (lit 29:11 %.n)
-                      (tuple 29:15 (lit 29:16 %note) (str 29:22 "hi"))))))
-              (arm 30:7
-                (cell 30:7 (lit 30:8 ~) (bind 30:10 text))
-                (tuple 30:16 (lit 30:17 %note) (wing 30:23 text)))))))))
-  (value 31:1 bad-empty
-    (gate 31:14
-      (face 31:17 x (ref 31:19 maybe))
-      (body 32:3
-        (cast 32:3
-          (ref 32:6 msg)
-          (body 33:5
-            (branch 33:5
-              (wing 33:8 x)
-              (arm 34:7 (lit 34:7 ~) (lit 34:9 %missing))
-              (arm 35:7
-                (cell 35:7 (lit 35:8 ~) (bind 35:10 text))
-                (tuple 35:16 (lit 35:17 %note) (wing 35:23 text)))))))))
-  (value 36:1 bad-present
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (mold 4:1 mimic
+    (generic 4:10 A
+      (union 5:3
+        (const 5:3 ~)
+        (cell 6:3
+          (const 6:4 ~)
+          (face 6:6 u (tvar 6:8 A))))))
+  (mold 7:1 record
+    (cell 7:11
+      (face 7:12 u
+        (apply 7:14 unit (ref 7:20 msg)))
+      (face 7:25 xs
+        (apply 7:28 list
+          (apply 7:34 unit (aura 7:40 @t))))))
+  (value 8:1 valid
+    (cast 8:10
+      (apply 8:13 unit (ref 8:19 msg))
+      (unit 8:24 (lit 8:25 %go))))
+  (value 9:1 invalid
+    (cast 9:12
+      (apply 9:15 unit (ref 9:21 msg))
+      (unit 9:26 (lit 9:27 %bad))))
+  (value 10:1 str
+    (cast 10:8
+      (apply 10:11 unit (aura 10:17 @t))
+      (unit 10:21 (str 10:22 "hi"))))
+  (value 11:1 wrong
+    (cast 11:10
+      (apply 11:13 unit (aura 11:19 @t))
+      (unit 11:23 (lit 11:24 ~zod))))
+  (value 12:1 nest
+    (cast 12:9
+      (apply 12:12 unit
+        (apply 12:18 unit (aura 12:24 @t)))
+      (unit 12:29
+        (unit 12:30 (str 12:31 "hi")))))
+  (value 13:1 nested-bad
+    (cast 13:15
+      (apply 13:18 unit
+        (apply 13:24 unit (aura 13:30 @t)))
+      (unit 13:35
+        (unit 13:36 (lit 13:37 ~zod)))))
+  (value 14:1 lis
+    (cast 14:8
+      (apply 14:11 unit
+        (apply 14:17 list (aura 14:23 @t)))
+      (unit 14:28
+        (list 14:29 (str 14:31 "hi")))))
+  (value 15:1 list-bad
+    (cast 15:13
+      (apply 15:16 unit
+        (apply 15:22 list (aura 15:28 @t)))
+      (unit 15:33
+        (list 15:34 (lit 15:36 ~zod)))))
+  (value 16:1 accept
+    (gate 16:11
+      (face 16:14 x
+        (apply 16:16 unit (ref 16:22 msg)))
+      (wing 16:27 x)))
+  (value 17:1 call
+    (group 17:9
+      (call 17:10
+        (wing 17:10 accept)
+        (unit 17:17 (lit 17:18 %stay)))))
+  (value 18:1 bad-call
+    (group 18:13
+      (call 18:14
+        (wing 18:14 accept)
+        (unit 18:21 (lit 18:22 %bad)))))
+  (value 19:1 field
+    (cast 19:10
+      (ref 19:13 record)
+      (tuple 19:20
+        (unit 19:21 (lit 19:22 %go))
+        (list 19:26
+          (unit 19:28 (str 19:29 "hi"))))))
+  (value 20:1 field-bad
+    (cast 20:14
+      (ref 20:17 record)
+      (tuple 20:24
+        (unit 20:25 (lit 20:26 %bad))
+        (list 20:31
+          (unit 20:33 (str 20:34 "hi"))))))
+  (value 21:1 mimic-mismatch
+    (cast 21:19
+      (apply 21:22 mimic (aura 21:29 @t))
+      (unit 21:33 (str 21:34 "hi"))))
+  (value 22:1 without-context
+    (unit 22:20 (lit 22:21 %go)))
+  (value 23:1 pending
+    (body 24:3
+      (trace 24:3
+        (lit 24:6 %other)
+        (body 25:5
+          (cast 25:5
+            (apply 25:8 unit (ref 25:14 msg))
+            (unit 25:19 (lit 25:20 %go)))))))
+  (value 26:1 pending-null
+    (body 27:3
+      (trace 27:3
+        (lit 27:6 ~)
+        (body 28:5
+          (cast 28:5
+            (apply 28:8 unit (aura 28:14 @t))
+            (unit 28:18 (str 28:19 "hi")))))))
+  (value 29:1 preserve
+    (gate 29:13
+      (face 29:16 x (tvar 29:18 A))
+      (cast 29:20
+        (apply 29:23 unit (tvar 29:29 A))
+        (unit 29:32 (wing 29:33 x)))))
+  (value 30:1 force
+    (gate 30:10
+      (face 30:13 x (tvar 30:15 A))
+      (cast 30:17
+        (apply 30:20 unit (tvar 30:26 A))
+        (unit 30:29 (str 30:30 "hi")))))
+  (mold 31:1 alt
+    (union 32:3 (const 32:3 %go) (const 33:3 %stay)))
+  (value 34:1 field-wrong-payload
+    (cast 34:24
+      (ref 34:27 record)
+      (tuple 34:34
+        (unit 34:35 (lit 34:36 %go))
+        (list 34:40
+          (unit 34:42 (lit 34:43 ~zod))))))
+  (value 35:1 wrong-name
+    (cast 35:15
+      (ref 35:18 record)
+      (tuple 35:25
+        (face 35:26 wrong
+          (unit 35:32 (lit 35:33 %go)))
+        (face 35:37 xs
+          (list 35:40
+            (unit 35:42 (str 35:43 "hi")))))))
+  (value 36:1 wrong-union
     (gate 36:16
-      (face 36:19 x (ref 36:21 maybe))
-      (body 37:3
-        (cast 37:3
-          (ref 37:6 msg)
-          (body 38:5
-            (branch 38:5
-              (wing 38:8 x)
-              (arm 39:7 (lit 39:7 ~) (lit 39:9 %add))
-              (arm 40:7
-                (cell 40:7 (lit 40:8 ~) (bind 40:10 text))
-                (lit 40:16 %missing))))))))
-  (value 41:1 unknown
-    (gate 41:12
-      (bind 41:15 x)
-      (body 42:3
-        (cast 42:3
-          (ref 42:6 msg)
-          (body 43:5
-            (branch 43:5
-              (wing 43:8 x)
-              (arm 44:7 (lit 44:7 ~) (lit 44:9 %add))
-              (arm 45:7
-                (cell 45:7 (lit 45:8 ~) (bind 45:10 text))
-                (tuple 45:16 (lit 45:17 %note) (wing 45:23 text)))))))))
-  (value 46:1 shadow
-    (gate 46:11
-      (face 46:14 x (ref 46:16 maybe))
-      (body 47:3
-        (cast 47:3
-          (ref 47:6 msg)
-          (body 48:5
-            (branch 48:5
-              (wing 48:8 x)
-              (arm 49:7 (lit 49:7 ~) (lit 49:9 %add))
-              (arm 50:7
-                (cell 50:7 (lit 50:8 ~) (bind 50:10 x))
-                (tuple 50:13 (lit 50:14 %note) (wing 50:20 x)))))))))
-  (value 51:1 pending
-    (gate 51:12
-      (face 51:15 x (ref 51:17 maybe))
-      (body 52:3
-        (trace 52:3
-          (lit 52:6 %unknown)
-          (body 53:5
-            (cast 53:5
-              (ref 53:8 msg)
-              (body 54:7
-                (branch 54:7
-                  (wing 54:10 x)
-                  (arm 55:9 (lit 55:9 ~) (lit 55:11 %add))
-                  (arm 56:9
-                    (cell 56:9 (lit 56:10 ~) (bind 56:12 text))
-                    (tuple 56:18 (lit 56:19 %note) (wing 56:25 text)))))))))))
-  (value 57:1 nested-unit
-    (gate 57:16
-      (face 57:19 x (ref 57:21 maybe))
-      (body 58:3
-        (cast 58:3
-          (ref 58:6 msg)
-          (body 59:5
-            (branch 59:5
-              (wing 59:8 x)
-              (arm 60:7
-                (lit 60:7 ~)
-                (body 61:9
-                  (branch 61:9
-                    (wing 61:12 x)
-                    (arm 62:11 (lit 62:11 ~) (lit 62:13 %add))
-                    (arm 63:11
-                      (cell 63:11 (lit 63:12 ~) (bind 63:14 inner))
-                      (tuple 63:21 (lit 63:22 %note) (wing 63:28 inner))))))
-              (arm 64:7
-                (cell 64:7 (lit 64:8 ~) (bind 64:10 text))
-                (tuple 64:16 (lit 64:17 %note) (wing 64:23 text)))))))))
-  (value 65:1 pending-null
-    (gate 65:17
-      (face 65:20 x (ref 65:22 maybe))
-      (body 66:3
-        (trace 66:3
-          (lit 66:6 ~)
-          (body 67:5
-            (cast 67:5
-              (ref 67:8 msg)
-              (body 68:7
-                (branch 68:7
-                  (wing 68:10 x)
-                  (arm 69:9 (lit 69:9 ~) (lit 69:11 %add))
-                  (arm 70:9
-                    (cell 70:9 (lit 70:10 ~) (bind 70:12 text))
-                    (tuple 70:18 (lit 70:19 %note) (wing 70:25 text))))))))))))
+      (face 36:19 x (ref 36:21 alt))
+      (cast 36:25
+        (ref 36:28 record)
+        (tuple 36:35
+          (unit 36:36 (wing 36:37 x))
+          (list 36:39
+            (unit 36:41 (str 36:42 "hi")))))))
+  (value 37:1 no-field-context
+    (gate 37:21
+      (face 37:24 x (tvar 37:26 A))
+      (cast 37:28
+        (cell 37:31
+          (face 37:32 a (tvar 37:34 A)))
+        (tuple 37:37
+          (face 37:38 wrong (wing 37:44 x))))))
+  (value 38:1 known-left
+    (gate 38:15
+      (face 38:18 x (ref 38:20 msg))
+      (cast 38:24
+        (cell 38:27
+          (face 38:28 a (ref 38:30 msg)))
+        (tuple 38:35
+          (face 38:36 a (wing 38:38 x))))))
+  (value 39:1 mismatch-left
+    (gate 39:18
+      (face 39:21 x (ref 39:23 msg))
+      (cast 39:27
+        (cell 39:30
+          (face 39:31 a (ref 39:33 alt)))
+        (tuple 39:38
+          (face 39:39 a (wing 39:41 x))))))
+  (value 40:1 contextual
+    (gate 40:15
+      (face 40:18 x (tvar 40:20 A))
+      (cast 40:22
+        (cell 40:25
+          (face 40:26 a (tvar 40:28 A))
+          (face 40:30 b
+            (apply 40:32 unit (tvar 40:38 A))))
+        (tuple 40:42
+          (face 40:43 a (wing 40:45 x))
+          (face 40:47 b
+            (unit 40:49 (wing 40:50 x)))))))
+  (value 41:1 contextual-bad
+    (gate 41:19
+      (face 41:22 x (tvar 41:24 A))
+      (cast 41:26
+        (cell 41:29
+          (face 41:30 a (tvar 41:32 A))
+          (face 41:34 b
+            (apply 41:36 unit (tvar 41:42 A))))
+        (tuple 41:46
+          (face 41:47 a (wing 41:49 x))
+          (face 41:51 b
+            (unit 41:53 (str 41:54 "hi")))))))
+  (value 42:1 nested-units
+    (cast 42:17
+      (apply 42:20 list
+        (apply 42:26 unit (ref 42:32 msg)))
+      (list 42:38
+        (unit 42:40 (lit 42:41 %go))
+        (unit 42:45 (lit 42:46 %stay)))))
+  (value 43:1 nested-units-bad
+    (cast 43:21
+      (apply 43:24 list
+        (apply 43:30 unit (ref 43:36 msg)))
+      (list 43:42
+        (unit 43:44 (lit 43:45 %go))
+        (unit 43:49 (lit 43:50 %oops)))))
+  (value 44:1 case-discarded
+    (body 45:3
+      (trace 45:3
+        (lit 45:6 %pending)
+        (body 46:5
+          (cast 46:5
+            (ref 46:8 record)
+            (tuple 46:15
+              (unit 46:16 (lit 46:17 %go))
+              (list 46:21
+                (unit 46:23 (str 46:24 "hi"))))))))))

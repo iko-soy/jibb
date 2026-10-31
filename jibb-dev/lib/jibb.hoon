@@ -5066,6 +5066,10 @@
     =/  unified=(unit isub)  (itype-unify-args args.actual args.expected sub)
     ?^  unified  [%ok u.unified next]
     [%unknown ~]
+  ::  A concrete union value in a tuple may acquire the expected field's
+  ::  face. A variable-bound union still needs face propagation support.
+  ?:  &(!uncertain ?=(%union -.actual) ?=(%face -.expected))
+    $(expected body.expected)
   ?:  ?=(%union -.actual)  [%unknown ~]
   ?:  &(?=(%union -.expected) |(?=(%avar -.actual) ?=(%nvar -.actual)))  [%unknown ~]
   ?:  &(?=(%union -.expected) !?=(%var -.actual))
@@ -6521,14 +6525,7 @@
   ^-  iresult
   ?~  items  [%& expected state]
   =/  target=itype  (itype-walk expected sub.state)
-  =/  value=iresult
-    ?:  &(?=(%union -.target) (context-union-branch i.items))
-      (infer-union-context i.items target env state context)
-    ?:  &(?=(%collection -.target) =(%list name.target) (context-union-branch i.items))
-      (infer-union-context i.items target env state context)
-    ?:  &(?=(%collection -.target) =(%list name.target) (context-list-expression i.items))
-      (infer-list-context i.items target env state context)
-    (infer-fragment i.items env state)
+  =/  value=iresult  (infer-call-context-arg i.items target env state context)
   ?:  ?=(%| -.value)  value
   =/  fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
   ?:  ?=(%unknown -.fit)  [%| ["list item constraint is not supported by partial inference" ~]]
@@ -7177,12 +7174,42 @@
 ::  Context can help a call argument or cast value while the final fit
 ::  checks the complete right-nested type, including any written faces.
 ::
+::  Context can resolve the payload of a canonical prelude unit, but an
+::  unrelated union with a similar noun shape is not the same mold.
+++  infer-unit-context
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?>  ?=(%unit -.e)
+  ?>  ?=(%union -.expected)
+  ?~  prelude.state  (infer-fragment e env state)
+  =/  standard=(unit ischeme)  (find-jibb-mold %unit u.prelude.state)
+  ?~  standard  (infer-fragment e env state)
+  ?.  (standard-unit-template u.standard at.u.prelude.state)  (infer-fragment e env state)
+  ?.  =(origin.expected `[at.u.prelude.state %unit])  (infer-fragment e env state)
+  ?~  args.expected  (infer-fragment e env state)
+  ?^  t.args.expected  (infer-fragment e env state)
+  =/  payload=itype  i.args.expected
+  =/  canonical=(unit itype)  (template-apply u.standard ~[payload])
+  ?~  canonical  (infer-fragment e env state)
+  ?>  ?=(%union -.u.canonical)
+  ?.  =((itype-normalize expected(label ~) sub.state) (itype-normalize u.canonical(label ~) sub.state))
+    (infer-fragment e env state)
+  =/  value=iresult  (infer-call-context-arg val.e payload env state context)
+  ?:  ?=(%| -.value)  value
+  =/  fit=ifit  (itype-fit typ.p.value payload sub.state.p.value next.state.p.value)
+  ?:  ?=(%unknown -.fit)  [%| ["unit payload constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    [%| ["unit payload does not fit its expected type" ~[[context (site-type-note "expected unit payload" payload sub.state.p.value)] [(span-of val.e) (site-type-note "payload" typ.p.value sub.state.p.value)]]]]
+  [%& expected state.p.value(sub sub.fit, next next.fit)]
+::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?:  &(?=(%union -.target) ?=(%unit -.e))
+    (infer-unit-context e target env state context)
   ?:  &(?=(%union -.target) (context-union-branch e))
     (infer-union-context e target env state context)
   ?:  &(?=(%collection -.target) =(%list name.target) (context-union-branch e))

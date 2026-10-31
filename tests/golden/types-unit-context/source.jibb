@@ -1,70 +1,46 @@
-+$ maybe
-  ~
-  [~ value=@t]
 +$ msg
-  %add
-  [%note text=@t]
-++ cast |= x=maybe
-  ^- msg
-    ?- x
-      ~ %add
-      [~ text] [%note text]
-++ reversed |= x=maybe
-  ^- msg
-    ?- x
-      [~ text] [%note text]
-      ~ %add
-++ consume |= x=msg "ok"
-++ call |= x=maybe
-  (consume
-    ?- x
-      ~ %add
-      [~ text] [%note text]
-++ nested |= x=maybe
-  ^- msg
-    ?- x
-      ~
-        ?- %.y
-          %.y %add
-          %.n [%note "hi"]
-      [~ text] [%note text]
-++ bad-empty |= x=maybe
-  ^- msg
-    ?- x
-      ~ %missing
-      [~ text] [%note text]
-++ bad-present |= x=maybe
-  ^- msg
-    ?- x
-      ~ %add
-      [~ text] %missing
-++ unknown |= x
-  ^- msg
-    ?- x
-      ~ %add
-      [~ text] [%note text]
-++ shadow |= x=maybe
-  ^- msg
-    ?- x
-      ~ %add
-      [~ x] [%note x]
-++ pending |= x=maybe
-  ~& %unknown
-    ^- msg
-      ?- x
-        ~ %add
-        [~ text] [%note text]
-++ nested-unit |= x=maybe
-  ^- msg
-    ?- x
-      ~
-        ?- x
-          ~ %add
-          [~ inner] [%note inner]
-      [~ text] [%note text]
-++ pending-null |= x=maybe
+  %go
+  %stay
++$ mimic |$ [A]
+  ~
+  [~ u=A]
++$ record [u=(unit msg) xs=(list (unit @t))]
+++ valid ^- (unit msg) `%go
+++ invalid ^- (unit msg) `%bad
+++ str ^- (unit @t) `"hi"
+++ wrong ^- (unit @t) `~zod
+++ nest ^- (unit (unit @t)) ``"hi"
+++ nested-bad ^- (unit (unit @t)) ``~zod
+++ lis ^- (unit (list @t)) `~["hi"]
+++ list-bad ^- (unit (list @t)) `~[~zod]
+++ accept |= x=(unit msg) x
+++ call (accept `%stay)
+++ bad-call (accept `%bad)
+++ field ^- record [`%go ~[`"hi"]]
+++ field-bad ^- record [`%bad ~[`"hi"]]
+++ mimic-mismatch ^- (mimic @t) `"hi"
+++ without-context `%go
+++ pending
+  ~& %other
+    ^- (unit msg) `%go
+++ pending-null
   ~& ~
-    ^- msg
-      ?- x
-        ~ %add
-        [~ text] [%note text]
+    ^- (unit @t) `"hi"
+++ preserve |= x=A ^- (unit A) `x
+++ force |= x=A ^- (unit A) `"hi"
++$ alt
+  %go
+  %stay
+++ field-wrong-payload ^- record [`%go ~[`~zod]]
+++ wrong-name ^- record [wrong=`%go xs=~[`"hi"]]
+++ wrong-union |= x=alt ^- record [`x ~[`"hi"]]
+++ no-field-context |= x=A ^- [a=A] [wrong=x]
+++ known-left |= x=msg ^- [a=msg] [a=x]
+++ mismatch-left |= x=msg ^- [a=alt] [a=x]
+++ contextual |= x=A ^- [a=A b=(unit A)] [a=x b=`x]
+++ contextual-bad |= x=A ^- [a=A b=(unit A)] [a=x b=`"hi"]
+++ nested-units ^- (list (unit msg)) ~[`%go `%stay]
+++ nested-units-bad ^- (list (unit msg)) ~[`%go `%oops]
+++ case-discarded
+  ~& %pending
+    ^- record [`%go ~[`"hi"]]

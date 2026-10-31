@@ -1,27 +1,95 @@
 partial inference; module not checked
-+$ maybe: cases proven disjoint; mold not checked
 +$ msg: cases proven disjoint; mold not checked
-++ cast: $-(maybe msg)
-++ reversed: $-(maybe msg)
-++ consume: $-(msg @t)
-++ call: $-(maybe @t)
-++ nested: $-(maybe msg)
-++ bad-empty: branch arm does not fit its expected union
-/tests/golden/types-unit-context/source.jibb:32:6: expected union
-  ^- msg
-     ^
-/tests/golden/types-unit-context/source.jibb:34:9: branch arm
-      ~ %missing
-        ^
-++ bad-present: branch arm does not fit its expected union
-/tests/golden/types-unit-context/source.jibb:37:6: expected union
-  ^- msg
-     ^
-/tests/golden/types-unit-context/source.jibb:40:16: branch arm
-      [~ text] %missing
++$ mimic: cases proven disjoint; mold not checked
++$ record: not checked
+++ valid: (unit msg)
+++ invalid: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:9:15: expected unit payload
+++ invalid ^- (unit msg) `%bad
+              ^
+/tests/golden/types-unit-context/source.jibb:9:27: payload
+++ invalid ^- (unit msg) `%bad
+                          ^
+++ str: (unit @t)
+++ wrong: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:11:13: expected unit payload has type @t
+++ wrong ^- (unit @t) `~zod
+            ^
+/tests/golden/types-unit-context/source.jibb:11:24: payload has type @p
+++ wrong ^- (unit @t) `~zod
+                       ^
+++ nest: (unit (unit @t))
+++ nested-bad: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:13:18: expected unit payload has type @t
+++ nested-bad ^- (unit (unit @t)) ``~zod
+                 ^
+/tests/golden/types-unit-context/source.jibb:13:37: payload has type @p
+++ nested-bad ^- (unit (unit @t)) ``~zod
+                                    ^
+++ lis: (unit (list @t))
+++ list-bad: list item does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:15:16: expected item has type @t
+++ list-bad ^- (unit (list @t)) `~[~zod]
                ^
-++ unknown: unit branch subject is not supported by partial inference
-++ shadow: pattern binder shadows a name
+/tests/golden/types-unit-context/source.jibb:15:36: list item has type @p
+++ list-bad ^- (unit (list @t)) `~[~zod]
+                                   ^
+++ accept: $-((unit msg) (unit msg))
+++ call: (unit msg)
+++ bad-call: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:18:14: expected unit payload
+++ bad-call (accept `%bad)
+             ^
+/tests/golden/types-unit-context/source.jibb:18:22: payload
+++ bad-call (accept `%bad)
+                     ^
+++ field: [u=(unit msg) xs=(list (unit @t))]
+++ field-bad: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:20:17: expected unit payload
+++ field-bad ^- record [`%bad ~[`"hi"]]
+                ^
+/tests/golden/types-unit-context/source.jibb:20:26: payload
+++ field-bad ^- record [`%bad ~[`"hi"]]
+                         ^
+++ mimic-mismatch: cast constraint is not supported by partial inference
+++ without-context: tag needs context in partial inference
 ++ pending: tag needs context in partial inference
-++ nested-unit: $-(maybe msg)
 ++ pending-null: `~` needs context in partial inference
+++ preserve: $-(A (unit A))
+++ force: explicit capital constraints are not supported by partial inference
++$ alt: cases proven disjoint; mold not checked
+++ field-wrong-payload: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:34:27: expected unit payload has type @t
+++ field-wrong-payload ^- record [`%go ~[`~zod]]
+                          ^
+/tests/golden/types-unit-context/source.jibb:34:43: payload has type @p
+++ field-wrong-payload ^- record [`%go ~[`~zod]]
+                                          ^
+++ wrong-name: cast mold and expression type do not unify
+/tests/golden/types-unit-context/source.jibb:35:18: cast mold
+++ wrong-name ^- record [wrong=`%go xs=~[`"hi"]]
+                 ^
+/tests/golden/types-unit-context/source.jibb:35:25: expression
+++ wrong-name ^- record [wrong=`%go xs=~[`"hi"]]
+                        ^
+++ wrong-union: unit payload constraint is not supported by partial inference
+++ no-field-context: cast mold and expression type do not unify
+/tests/golden/types-unit-context/source.jibb:37:31: cast mold has type [a=A]
+++ no-field-context |= x=A ^- [a=A] [wrong=x]
+                              ^
+/tests/golden/types-unit-context/source.jibb:37:37: expression has type [wrong=A]
+++ no-field-context |= x=A ^- [a=A] [wrong=x]
+                                    ^
+++ known-left: $-(msg [a=msg])
+++ mismatch-left: cast constraint is not supported by partial inference
+++ contextual: $-(A [a=A b=(unit A)])
+++ contextual-bad: explicit capital constraints are not supported by partial inference
+++ nested-units: (list (unit msg))
+++ nested-units-bad: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:43:24: expected unit payload
+++ nested-units-bad ^- (list (unit msg)) ~[`%go `%oops]
+                       ^
+/tests/golden/types-unit-context/source.jibb:43:50: payload
+++ nested-units-bad ^- (list (unit msg)) ~[`%go `%oops]
+                                                 ^
+++ case-discarded: tag needs context in partial inference

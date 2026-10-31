@@ -1,4 +1,4 @@
-source: Grammar, Tag resolution: "A tag literal or `~` gets a fresh type variable and a pending constraint"; Patterns: "A name in a pattern always binds anew".
-tests: A cast or known sample supplies union context to both unit branch arms, including nested unit and loobean branches; bad cases, unknown subjects, shadowing and unrelated pending tags or nulls fail closed.
+source: Grammar, Literals: a backtick constructs a `(unit A)`; Tag resolution: tags and `~` take their type from context; Literals by context: cells and lists take their type from context.
+tests: Known standard unit payloads supply context through casts, calls, nested units, lists and record fields. Invalid tags, auras and faces report errors; different union origins and concrete forcing of written capitals fail closed. Shared capitals and unrelated pending literals are preserved.
 expect: parses
 expect-types: a partial inference report
