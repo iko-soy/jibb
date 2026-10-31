@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Run the shared closed-cell branch guard, including its ship test arm."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+a = p.parse_args()
+core = (root / 'tests/lib/jibb-cell-branch.hoon').read_text()
+core = core[core.index('\n|%\n') + 1:]
+program = ('=/  jibb  .\n'
+           '=/  public=@t  public-text\n'
+           '=/  internal=@t  internal-text\n'
+           '=/  good=wain  (to-wain:format good-text)\n'
+           '=/  bad=wain  (to-wain:format bad-text)\n'
+           '=/  suite\n' + core +
+           '\n^-  @t\n=/  checked=tang  test-cell-branch:suite\n'
+           '?~  checked  \'cell branch guards passed\'\n(crip "{<checked>}")\n')
+fixtures = {
+    'public': root / 'jibb-dev/lib/jibb/prelude.jibb',
+    'internal': root / 'jibb-dev/lib/jibb/internal.jibb',
+    'good': root / 'tests/type-cell-branch/good.txt',
+    'bad': root / 'tests/type-cell-branch/bad.txt',
+}
+with tempfile.TemporaryDirectory(prefix='jibb-cell-branch-') as d:
+    path = Path(d) / 'guard.hoon'
+    path.write_text(program)
+    command = [str(root / 'tools/hoon'), '--lib', a.lib, '--raw', '-f', str(path)]
+    for name, fixture in fixtures.items():
+        if not fixture.is_file() or fixture.stat().st_size == 0:
+            sys.exit('missing or empty fixture: ' + str(fixture))
+        command.extend(['--cord', name + '-text=' + str(fixture)])
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'cell branch guards passed\n':
+    sys.stderr.write(result.stdout.decode(errors='replace'))
+    sys.exit(1)
+print('cell branch guards passed')

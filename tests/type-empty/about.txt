@@ -1,0 +1,3 @@
+source: Grammar, Molds: the empty mold `!!` has no values. Patterns: every case needs an arm or a catch-all; an already-covered arm is an error.
+tests: Checked interfaces retain empty molds and nested empty cell positions; only inhabited union cases need coverage. Standard list and unit null values remain inhabited, while their empty payload arms are unreachable. Fixed opaque reachability, late capital constraints, proof limits and directional fit are checked conservatively. The report is partial, and runtime behavior is not tested.
+expect: shared eval and ship guard

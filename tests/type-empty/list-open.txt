@@ -1,0 +1,3 @@
+++ no |= xs=(list A)
+  ?- xs
+    ~ "nil"

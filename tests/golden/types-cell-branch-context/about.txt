@@ -1,0 +1,4 @@
+source: Grammar, Branching and Molds — branch arms share the expected result type; unresolved tags need context; written record faces remain part of values.
+tests: Closed cell result context flows into bounded loobean branches. The checker preserves previously inferred cases and faces, leaves wrong or inconsistent fields, unresolved tags, and open generic context unsupported.
+expect: parses
+expect-types: a partial inference report

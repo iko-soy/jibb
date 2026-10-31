@@ -1,0 +1,11 @@
+++ list-id |= xs=(list !!) xs
+++ unit-id |= maybe=(unit !!) maybe
+++ list-only |= xs=(list !!)
+  ?- xs
+    ~ "nil"
+++ list-only-context |= xs=(list !!)
+  ^- @t ?- xs
+    ~ "nil"
+++ unit-only |= maybe=(unit !!)
+  ?- maybe
+    ~ "nil"

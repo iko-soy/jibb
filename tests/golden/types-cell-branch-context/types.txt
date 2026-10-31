@@ -1,0 +1,11 @@
+partial inference; module not checked
+++ choose: $-(? [@t (unit @t)])
+++ bad: branch tag or union context is not supported by partial inference
+++ pending: branch tag or union context is not supported by partial inference
+++ already: $-(? [@t @t])
++$ rec: not checked
+++ named: $-(? [name=@t place=(unit @t)])
+++ wrong: branch tag or union context is not supported by partial inference
+++ different: branch tag or union context is not supported by partial inference
+++ open: branch widening is not supported by partial inference
+++ waiting: branch tag or union context is not supported by partial inference

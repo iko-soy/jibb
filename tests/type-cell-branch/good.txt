@@ -1,0 +1,3 @@
+++ probe ?- flag
+  %.y ["yes" ~]
+  %.n ["no" ~]

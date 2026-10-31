@@ -4667,6 +4667,7 @@
       [%any-atom ~]
       [%flag ~]
       [%noun ~]
+      [%empty ~]
       [%tag id=@ud literal=lit constructor=?]
       [%const literal=lit]
       [%collection name=term args=(list itype)]
@@ -4725,6 +4726,88 @@
       $(t u.found)
   ==
 ::
+::  Prove only emptiness; unknown types are never treated as empty.
+::  A shared node budget bounds each proof attempt.
+++  itype-empty-cases
+  |=  [xs=(list itype) sub=isub fuel=@ud]
+  ^-  (unit [empty=? left=@ud])
+  ?~  xs  `[& fuel]
+  =/  first=(unit [empty=? left=@ud])  (itype-empty-proof i.xs sub fuel)
+  ?~  first  ~
+  ?.  empty.u.first  `[| left.u.first]
+  $(xs t.xs, fuel left.u.first)
+++  itype-empty-proof
+  |=  [typ=itype sub=isub fuel=@ud]
+  ^-  (unit [empty=? left=@ud])
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  typ  (itype-walk typ sub)
+  ?-  -.typ
+    %empty  `[& fuel]
+    %face   $(typ body.typ)
+    %cell
+      =/  left=(unit [empty=? left=@ud])  $(typ hed.typ)
+      ?~  left  ~
+      ?:  empty.u.left  `[& left.u.left]
+      $(typ tal.typ, fuel left.u.left)
+    %union  (itype-empty-cases cases.typ sub fuel)
+    *  `[| fuel]
+  ==
+::  Prove reachability separately from emptiness. An unresolved fixed
+::  recursive type is not presumed inhabited. A written, still-unconstrained
+::  capital is existentially inhabited for pattern reachability; the normal
+::  definition-boundary checks reject subsequently constrained capitals.
+++  itype-inhabited-cases
+  |=  [xs=(list itype) sub=isub caps=icaps fuel=@ud pending=?]
+  ^-  (unit [result=?(%yes %no %unknown) left=@ud])
+  ?~  xs  `[?:(pending %unknown %no) fuel]
+  =/  first=(unit [result=?(%yes %no %unknown) left=@ud])
+    (itype-inhabited-proof i.xs sub caps fuel)
+  ?~  first  ~
+  ?:  =(%yes result.u.first)  first
+  $(xs t.xs, fuel left.u.first, pending |(pending =(%unknown result.u.first)))
+++  itype-inhabited-proof
+  |=  [typ=itype sub=isub caps=icaps fuel=@ud]
+  ^-  (unit [result=?(%yes %no %unknown) left=@ud])
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  typ  (itype-walk typ sub)
+  ?-  -.typ
+    %empty  `[%no fuel]
+    ?(%atom %any-atom %flag %const %noun %avar %rvar %nvar %rnvar %fn %jrec)  `[%yes fuel]
+    %var
+      ?:  (lien caps |=(c=icap (hole-same-variable typ (itype-walk [%var id.c] sub))))  `[%yes fuel]
+      `[%unknown fuel]
+    %face  $(typ body.typ)
+    %cell
+      =/  head=(unit [result=?(%yes %no %unknown) left=@ud])  $(typ hed.typ)
+      ?~  head  ~
+      ?:  =(%no result.u.head)  head
+      =/  tail=(unit [result=?(%yes %no %unknown) left=@ud])  $(typ tal.typ, fuel left.u.head)
+      ?~  tail  ~
+      ?:  =(%no result.u.tail)  tail
+      ?:  |(=(%unknown result.u.head) =(%unknown result.u.tail))  `[%unknown left.u.tail]
+      `[%yes left.u.tail]
+    %union  (itype-inhabited-cases cases.typ sub caps fuel |)
+    %collection
+      ?.  &(|(=(%list name.typ) =(%unit name.typ)) ?=([* ~] args.typ))  `[%unknown fuel]
+      `[%yes fuel]
+    %grec  ?:((grec-tree-proof name.typ proof.typ) `[%yes fuel] `[%unknown fuel])
+    *  `[%unknown fuel]
+  ==
+++  itype-live-cases
+  |=  [xs=(list itype) sub=isub caps=icaps fuel=@ud]
+  ^-  (unit (list itype))
+  ?~  xs  `~
+  =/  first=(unit [result=?(%yes %no %unknown) left=@ud])
+    (itype-inhabited-proof i.xs sub caps fuel)
+  ?~  first  ~
+  ?:  =(%unknown result.u.first)  ~
+  =/  rest=(unit (list itype))  $(xs t.xs, fuel left.u.first)
+  ?~  rest  ~
+  ?:  =(%no result.u.first)  rest
+  `[i.xs u.rest]
+::
 ++  itype-occurs
   |=  [n=@ud t=itype sub=isub]
   ^-  ?
@@ -4739,6 +4822,7 @@
     %any-atom  |
     %flag  |
     %noun  |
+    %empty  |
     %tag   =(n id.t)
     %const  |
     %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
@@ -4871,6 +4955,7 @@
     %any-atom  &
     %flag      |
     %noun  |
+    %empty  |
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
@@ -4946,6 +5031,7 @@
     %any-atom  &
     %flag      &
     %noun  |
+    %empty  |
     %tag       &
     %const     &
     %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
@@ -5271,7 +5357,14 @@
 ++  itype-fit
   |=  [actual=itype expected=itype sub=isub next=@ud]
   ^-  ifit
-  (itype-fit-inner actual expected sub next | |)
+  =/  result=ifit  (itype-fit-inner actual expected sub next | |)
+  ?:  ?=(%ok -.result)  result
+  =/  source=itype  (itype-walk actual sub)
+  ?.  ?=(?(%empty %face %cell %union) -.source)  result
+  =/  empty=(unit [empty=? left=@ud])  (itype-empty-proof actual sub 256)
+  ?~  empty  [%unknown ~]
+  ?:  empty.u.empty  [%ok sub next]
+  result
 ++  itype-fit-inner
   |=  [actual=itype expected=itype sub=isub next=@ud skip-width=? spine-proof=?]
   ^-  ifit
@@ -5290,6 +5383,7 @@
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
+  ?:  &(?=(%empty -.expected) |(?=(%cell -.actual) ?=(%face -.actual) ?=(%union -.actual) ?=(%grec -.actual) ?=(%recursive -.actual)))  [%unknown ~]
   ::  The relation of the source loobean mold to explicit @f is not yet
   ::  established. Keep it unsupported rather than asserting a mismatch.
   ?:  &(?=(%flag -.actual) ?=(%atom -.expected) =(%f aura.expected))  [%unknown ~]
@@ -5678,6 +5772,7 @@
       =/  head=igate-free  $(typ hed.typ, path [[%head ~] path])
       =/  tail=igate-free  $(typ tal.typ, fuel left.head, path [[%tail ~] path])
       =/  inhabited=?  &(inhabited.head inhabited.tail)
+      ?:  |(&(=(%yes verdict.head) !inhabited.head) &(=(%yes verdict.tail) !inhabited.tail))  [%yes | left.tail ~]
       ?:  &(=(%no verdict.head) inhabited.tail)  head(left left.tail)
       ?:  &(=(%no verdict.tail) inhabited.head)  tail
       ?:  |(!=(%yes verdict.head) !=(%yes verdict.tail))  [%unknown inhabited left.tail ~]
@@ -5691,6 +5786,7 @@
       ?~  cases.typ  [%unknown | fuel ~]
       (gate-free-types cases.typ fuel path 0)
     %noun       [%unknown & fuel ~]
+    %empty      [%yes | fuel ~]
     %var        [%unknown | fuel ~]
     %avar       [%yes & fuel ~]
     %rvar       [%yes & fuel ~]
@@ -5766,6 +5862,7 @@
     %any-atom  |
     %flag      |
     %noun  |
+    %empty  |
   ==
 ::
 ++  default-decimals
@@ -5897,6 +5994,7 @@
     %any-atom  ~
     %flag  ~
     %noun  ~
+    %empty  ~
     %tag   ~
     %const  ~
     %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
@@ -5946,6 +6044,7 @@
     %any-atom  t
     %flag  t
     %noun  t
+    %empty  t
     %tag   t
     %const  t
     %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
@@ -5974,6 +6073,7 @@
     %any-atom  |
     %flag      |
     %noun  |
+    %empty  |
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
@@ -5998,6 +6098,7 @@
     %any-atom  |
     %flag      |
     %noun  |
+    %empty  |
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-restricted n c))) (lien args.t |=(c=itype (itype-var-is-restricted n c))))
@@ -6300,6 +6401,7 @@
   ^-  upat
   ?-  -.typ
     %noun   [%all ~]
+    %empty  [%empty ~]
     %atom   [%atom ~]
     %flag   [%or ~[[%atom `0] [%atom `1]]]
     %const  [%atom `val.literal.typ]
@@ -6735,6 +6837,7 @@
       `[[%atom aura.sh] state]
     %flag  `[[%flag ~] state]
     %noun  `[[%noun ~] state]
+    %void  `[[%empty ~] state]
     %const
       ?.  |(=(%term form.lit.sh) =(%null form.lit.sh) =(%loobean form.lit.sh))  ~
       ?:  &(=(%loobean form.lit.sh) !|(=(0 val.lit.sh) =(1 val.lit.sh)))  ~
@@ -7255,6 +7358,8 @@
   ?:  &(?=(%collection -.expected) =(%list name.expected) (context-list-expression e))
     (infer-list-context e expected env state context)
   ?:  ?=(%branch -.e)
+    =/  empty-list=(unit iresult)  (empty-list-null-branch e env state `[expected context])
+    ?^  empty-list  u.empty-list
     ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
     ?~  t.arms.e  [%| ["branch pattern is not supported by partial inference" ~]]
     ?^  t.t.arms.e  [%| ["branch is not supported by partial inference" ~]]
@@ -7472,6 +7577,11 @@
     [%| ["list pattern needs the standard prelude in partial inference" ~]]
   ?~  args.typ  [%| ["list pattern is not supported by partial inference" ~]]
   ?^  t.args.typ  [%| ["list pattern is not supported by partial inference" ~]]
+  =/  item-live=(unit [result=?(%yes %no %unknown) left=@ud])
+    (itype-inhabited-proof i.args.typ sub.state caps.state 256)
+  ?~  item-live  [%| ["list element reachability needs unsupported inference" ~]]
+  ?:  =(%unknown result.u.item-live)  [%| ["list element reachability needs unsupported inference" ~]]
+  ?:  =(%no result.u.item-live)  [%| ["list nonempty pattern is unreachable" ~]]
   ?~  arms.e  [%| ["list branch is not supported by partial inference" ~]]
   ?~  t.arms.e  [%| ["list branch is not supported by partial inference" ~]]
   ?^  t.t.arms.e  [%| ["list branch is not supported by partial inference" ~]]
@@ -7525,6 +7635,11 @@
     [%| ["pattern binder shadows a name" ~]]
   =/  payload=(unit itype)  (unit-union-payload typ)
   ?~  payload  [%| ["unit branch subject is not supported by partial inference" ~]]
+  =/  payload-live=(unit [result=?(%yes %no %unknown) left=@ud])
+    (itype-inhabited-proof u.payload sub.state.p.subject caps.state.p.subject 256)
+  ?~  payload-live  [%| ["unit payload reachability needs unsupported inference" ~]]
+  ?:  =(%unknown result.u.payload-live)  [%| ["unit payload reachability needs unsupported inference" ~]]
+  ?:  =(%no result.u.payload-live)  [%| ["unit present pattern is unreachable" ~]]
   =/  extended=ienv  [[u.binder [u.payload ~]] env]
   =/  left=iresult
     ?~  expected  (infer-fragment val.x ?:(first-empty env extended) state.p.subject)
@@ -7677,7 +7792,9 @@
   ?:  ?=(%| -.subject)  `subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
-  =/  cases=(list itype)  cases.typ
+  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
+  ?~  live  ~
+  =/  cases=(list itype)  u.live
   =/  remaining=(list itype)  cases
   =/  arms=(list arm)  arms.e
   =/  st=istate  state.p.subject
@@ -7714,7 +7831,9 @@
   ?:  ?=(%| -.subject)  `subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
-  =/  cases=(list itype)  cases.typ
+  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
+  ?~  live  ~
+  =/  cases=(list itype)  u.live
   =/  remaining=(list itype)  cases
   =/  arms=(list arm)  arms.e
   =/  st=istate  state.p.subject
@@ -7758,7 +7877,9 @@
   ?:  ?=(%| -.subject)  subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
-  =/  expanded=(unit (list ifinite))  (finite-cases cases.typ ~ 0)
+  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
+  ?~  live  [%| ["union emptiness needs unsupported inference" ~]]
+  =/  expanded=(unit (list ifinite))  (finite-cases u.live ~ 0)
   ?~  expanded  [%| ["union pattern expansion needs unsupported inference" ~]]
   =/  cases=(list ifinite)  u.expanded
   =/  remaining=(list ifinite)  cases
@@ -8008,6 +8129,64 @@
   ?.  |(?=(%union -.typ) ?=(%jrec -.typ) &(?=(%grec -.typ) (grec-direct-context typ.p.subject sub.state.p.subject)))  ~
   `subject
 ::
+::  A direct wing with an already-known union may skip genuinely empty cases
+::  when checking a one-arm match. Other subjects keep their existing path.
+::  A directly known canonical list of an empty element contains only null.
+::  This helper never refines an opaque or variable-bound subject.
+++  empty-list-null-branch
+  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
+  ^-  (unit iresult)
+  ?.  ?=(%branch -.e)  ~
+  ?~  arms.e  ~
+  ?^  t.arms.e  ~
+  ?.  (unit-empty-pattern pat.i.arms.e)  ~
+  ?.  ?=(%wing -.subject.e)  ~
+  ?.  ?=([@ ~] names.subject.e)  ~
+  =/  scheme=(unit ischeme)  (ienv-lookup i.names.subject.e env)
+  ?~  scheme  ~
+  ?.  ?=(%collection -.typ.u.scheme)  ~
+  ?.  =(%list name.typ.u.scheme)  ~
+  ?~  prelude.state  ~
+  ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)  ~
+  =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
+  ?~  standard  ~
+  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])  ~
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  ~
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%collection -.typ)  ~
+  ?.  =(%list name.typ)  ~
+  ?~  args.typ  ~
+  ?^  t.args.typ  ~
+  =/  proof=(unit [empty=? left=@ud])  (itype-empty-proof i.args.typ sub.state.p.subject 256)
+  ?~  proof  ~
+  ?.  empty.u.proof  ~
+  ?~  expected  `(infer-fragment val.i.arms.e env state.p.subject)
+  =/  body=iresult  (infer-call-context-arg val.i.arms.e typ.u.expected env state.p.subject context.u.expected)
+  ?:  ?=(%| -.body)  `body
+  =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
+  ?:  ?=(%unknown -.fit)  `[%| ["single-case branch result constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)  `[%| ["single-case branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.i.arms.e) "branch arm"]]]]
+  ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
+    `[%| ["single-case branch result needs context in partial inference" ~]]
+  `[%& typ.p.body state.p.body(sub sub.fit, next next.fit)]
+::
+++  known-empty-union-wing
+  |=  [e=expr env=ienv state=istate]
+  ^-  (unit iresult)
+  ?.  ?=(%wing -.e)  ~
+  ?.  ?=([@ ~] names.e)  ~
+  =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
+  ?~  scheme  ~
+  ?.  (contextual-direct-union typ.u.scheme)  ~
+  =/  subject=iresult  (infer-fragment e env state)
+  ?:  ?=(%| -.subject)  ~
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%union -.typ)  ~
+  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
+  ?~  live  ~
+  ?:  =(u.live cases.typ)  ~
+  `subject
 ::
 ::  Infer changes only against a fully known record spine. Retain the
 ::  target type; unknown spines and repeated edits remain unsupported.
@@ -8277,6 +8456,10 @@
     %branch
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e
+        =/  empty-list=(unit iresult)  (empty-list-null-branch e env state ~)
+        ?^  empty-list  u.empty-list
+        =/  empty-union=(unit iresult)  (known-empty-union-wing subject.e env state)
+        ?^  empty-union  (infer-known-union-branch-subject e env u.empty-union)
         =/  single=(unit iresult)  (grec-single-wing-subject subject.e env state)
         ?^  single  (infer-known-union-branch-subject e env u.single)
         ?:  (single-structured-pattern e)  (infer-single-case-branch e env state ~)
@@ -8945,6 +9128,106 @@
     $(remaining t.remaining, found `c)
   $(remaining t.remaining)
 ::
+::  A bounded syntactic screen: no nested branch, cast, gate or local body
+::  can re-enter cell-branch retry during either inference attempt.
+++  closed-cell-retry-safe
+  |=  [todo=(list expr) fuel=@ud]
+  ^-  ?
+  ?~  todo  &
+  ?:  =(0 fuel)  |
+  =/  e=expr  i.todo
+  =.  fuel  (dec fuel)
+  ?+  -.e  |
+    %lit    $(todo t.todo)
+    %wing   $(todo t.todo)
+    %ctor   $(todo t.todo)
+    %path   $(todo t.todo)
+    %crash  $(todo t.todo)
+    %str
+      ?.  (levy pieces.e |=(p=piece ?=(%text -.p)))  |
+      $(todo t.todo)
+    %group  $(todo [inner.e t.todo])
+    %pair   $(todo [val.e t.todo])
+    %unit   $(todo [val.e t.todo])
+    %list   $(todo (weld items.e t.todo))
+    %tuple  $(todo (weld (turn items.e |=(i=item val.i)) t.todo))
+    %change  $(todo (weld (turn edits.e |=(ed=edit val.ed)) t.todo))
+    %call   $(todo [head.e (weld args.e t.todo)])
+    %trace  $(todo [val.e then.e t.todo])
+  ==
+::
+++  closed-cell-sub-safe
+  |=  [sub=isub fuel=@ud]
+  ^-  ?
+  ?~  sub  &
+  ?:  =(0 fuel)  |
+  ?:  ?=(?(%cell %face %fn %union %collection %grec %jrec %recursive) -.val.i.sub)  |
+  $(sub t.sub, fuel (dec fuel))
+::
+++  closed-cell-branch-eligible
+  |=  [e=expr expected=itype sub=isub]
+  ^-  ?
+  ?.  &(?=(%branch -.e) ?=(%cell -.expected) (closed-cell-sub-safe sub 512))  |
+  ?~  arms.e  |
+  ?~  t.arms.e  |
+  ?^  t.t.arms.e  |
+  =/  x=arm  i.arms.e
+  =/  y=arm  i.t.arms.e
+  ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))  |
+  ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))  |
+  ?:  =(val.lit.pat.x val.lit.pat.y)  |
+  (closed-cell-retry-safe ~[subject.e val.x val.y] 512)
+::
+::  Attempt ordinary inference first; retry from the same state only for
+::  the bounded non-reentrant syntax above. Preserve original value faces.
+++  infer-closed-cell-branch
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?>  (closed-cell-branch-eligible e expected sub.state)
+  ?>  ?=(%branch -.e)
+  ?>  ?=(^ arms.e)
+  ?>  ?=(^ t.arms.e)
+  =/  ordinary=iresult  (infer-fragment e env state)
+  =/  ordinary-good=?
+    ?:  ?=(%| -.ordinary)  |
+    =/  fit=ifit  (itype-fit typ.p.ordinary expected sub.state.p.ordinary next.state.p.ordinary)
+    ?=(%ok -.fit)
+  ?:  ordinary-good  ordinary
+  =/  attempt=(unit iresult)
+    =/  x=arm  i.arms.e
+    =/  y=arm  i.t.arms.e
+    =/  subject=iresult  (infer-fragment subject.e env state)
+    ?:  ?=(%| -.subject)  ~
+    =/  subject-type=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+    ?:  ?=(%union -.subject-type)  ~
+    =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
+    ?~  su  ~
+    =/  left=iresult  (infer-call-context-arg val.x expected env state.p.subject(sub u.su) context)
+    ?:  ?=(%| -.left)  ~
+    =/  lf=ifit  (itype-fit typ.p.left expected sub.state.p.left next.state.p.left)
+    ?.  ?=(%ok -.lf)  ~
+    =/  right=iresult  (infer-call-context-arg val.y expected env state.p.left(sub sub.lf, next next.lf) context)
+    ?:  ?=(%| -.right)  ~
+    =/  rf=ifit  (itype-fit typ.p.right expected sub.state.p.right next.state.p.right)
+    ?.  ?=(%ok -.rf)  ~
+    =/  sub=isub  sub.rf
+    =/  next=@ud  next.rf
+    =/  lt=itype  (itype-normalize typ.p.left sub)
+    =/  rt=itype  (itype-normalize typ.p.right sub)
+    =/  et=itype  (itype-normalize expected sub)
+    ?.  =(lt rt)  ~
+    ?:  |(?=(^ (itype-vars lt)) ?=(^ (itype-vars rt)) ?=(^ (itype-vars et)))  ~
+    ?:  |((itype-has-tag lt) (itype-has-tag rt) (itype-has-tag et))  ~
+    =/  lcheck=ifit  (itype-fit typ.p.left expected sub next)
+    ?.  ?=(%ok -.lcheck)  ~
+    ?.  &(=(sub.lcheck sub) =(next.lcheck next))  ~
+    =/  rcheck=ifit  (itype-fit typ.p.right expected sub next)
+    ?.  ?=(%ok -.rcheck)  ~
+    ?.  &(=(sub.rcheck sub) =(next.rcheck next))  ~
+    `[%& typ.p.left state.p.right(sub sub, next next)]
+  ?~  attempt  ordinary
+  u.attempt
+::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
@@ -8994,8 +9277,12 @@
     ?:  ?=(%bad -.fit)  [%| ["recursive mold cell does not fit its source shape" ~]]
     [%& target state.p.value(sub sub.fit, next next.fit)]
   ?:  ?=(%call -.e)  (infer-contextual-call e target env state)
+  =/  empty-list=(unit iresult)  (empty-list-null-branch e env state `[target context])
+  ?^  empty-list  u.empty-list
   ?:  (single-structured-pattern e)
     ?>  ?=(%branch -.e)
+    =/  empty-union=(unit iresult)  (known-empty-union-wing subject.e env state)
+    ?^  empty-union  (infer-known-union-context-subject e target env u.empty-union context)
     =/  single=(unit iresult)  (grec-single-wing-subject subject.e env state)
     ?^  single  (infer-known-union-context-subject e target env u.single context)
     (infer-single-case-branch e env state `[target context])
@@ -9017,6 +9304,8 @@
     (infer-known-union-context-subject e target env u.known context)
   ?:  &(?=(%union -.target) ?=(%unit -.e))
     (infer-unit-context e target env state context)
+  ?:  (closed-cell-branch-eligible e expected sub.state)
+    (infer-closed-cell-branch e expected env state context)
   ?:  &(?=(%flag -.target) (context-union-branch e))
     (infer-union-context e target env state context)
   ?:  &(?=(%union -.target) (context-union-branch e))
@@ -9226,6 +9515,7 @@
     %any-atom  "@"
     %flag  "?"
     %noun  "*"
+    %empty  "!!"
     %tag   (trip txt.literal.t)
     %const  (trip txt.literal.t)
     %union
@@ -9278,6 +9568,7 @@
     %any-atom  |
     %flag      |
     %noun  |
+    %empty  |
     %tag       |
     %const     |
     %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
@@ -9395,6 +9686,7 @@
     %any-atom  |
     %flag      |
     %noun  |
+    %empty  |
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
@@ -12200,6 +12492,7 @@
     %any-atom  $(todo t.todo)
     %flag  $(todo t.todo)
     %noun  $(todo t.todo)
+    %empty  $(todo t.todo)
     %const  $(todo t.todo)
   ==
 ::

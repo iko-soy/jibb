@@ -1,0 +1,4 @@
+++ probe |= xs=(list !!)
+  ?- xs
+    ~ "nil"
+    [x rest] "cons"

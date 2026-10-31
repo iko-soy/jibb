@@ -1,0 +1,11 @@
++$ never !!
++$ box |$ [A] [x=A y=@t]
++$ split
+  [%dead [!! @t]]
+  [%live @t]
+++ identity |= x=never x
+++ generic-empty |= x=(box !!) x
+++ select |= x=split
+  ?- x
+    [%live text] text
+++ crash ^- !! !!

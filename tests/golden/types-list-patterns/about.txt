@@ -1,4 +1,4 @@
 source: Grammar, Patterns: "Every case needs an arm or a catch-all"; "A name in a pattern always binds anew". Modules: no name may shadow an in-scope name.
-tests: Both orders of an exhaustive list branch bind the head and tail with their respective types; unsupported subjects or patterns, conflicting binders, and unrelated unresolved tags fail closed.
+tests: Both orders of an exhaustive list branch bind the head and tail with their respective types; unsupported subjects or patterns, conflicting binders, and unrelated unresolved tags fail closed; a nonempty arm of `(list !!)` is unreachable.
 expect: parses
 expect-types: a partial inference report

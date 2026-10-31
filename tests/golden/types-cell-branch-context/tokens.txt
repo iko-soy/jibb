@@ -1,0 +1,308 @@
+1:1 glyph ++
+1:4 name choose
+1:11 glyph |=
+1:14 name flag
+1:18 tight glyph =
+1:19 tight glyph ?
+2:3 INDENT
+2:3 glyph ^-
+2:6 glyph [
+2:7 tight aura @t
+2:10 glyph (
+2:11 tight name unit
+2:16 aura @t
+2:18 tight glyph )
+2:19 tight glyph ]
+2:21 glyph ?-
+2:24 name flag
+3:5 INDENT
+3:5 lit %.y
+3:9 glyph [
+3:10 tight str "yes"
+3:16 lit ~
+3:17 tight glyph ]
+4:5 NEWLINE
+4:5 lit %.n
+4:9 glyph [
+4:10 tight str "no"
+4:15 lit ~
+4:16 tight glyph ]
+5:1 DEDENT
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name bad
+5:8 glyph |=
+5:11 name flag
+5:15 tight glyph =
+5:16 tight glyph ?
+6:3 INDENT
+6:3 glyph ^-
+6:6 glyph [
+6:7 tight aura @t
+6:10 glyph (
+6:11 tight name unit
+6:16 aura @t
+6:18 tight glyph )
+6:19 tight glyph ]
+6:21 glyph ?-
+6:24 name flag
+7:5 INDENT
+7:5 lit %.y
+7:9 glyph [
+7:10 tight str "yes"
+7:16 lit ~
+7:17 tight glyph ]
+8:5 NEWLINE
+8:5 lit %.n
+8:9 glyph [
+8:10 tight lit ~zod
+8:15 lit ~
+8:16 tight glyph ]
+9:1 DEDENT
+9:1 DEDENT
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name pending
+9:12 glyph |=
+9:15 name flag
+9:19 tight glyph =
+9:20 tight glyph ?
+10:3 INDENT
+10:3 glyph ^-
+10:6 glyph [
+10:7 tight aura @t
+10:10 glyph (
+10:11 tight name unit
+10:16 aura @t
+10:18 tight glyph )
+10:19 tight glyph ]
+10:21 glyph ?-
+10:24 name flag
+11:5 INDENT
+11:5 lit %.y
+11:9 glyph [
+11:10 tight str "yes"
+11:16 lit ~
+11:17 tight glyph ]
+12:5 NEWLINE
+12:5 lit %.n
+12:9 glyph [
+12:10 tight lit %waiting
+12:19 lit ~
+12:20 tight glyph ]
+13:1 DEDENT
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name already
+13:12 glyph |=
+13:15 name flag
+13:19 tight glyph =
+13:20 tight glyph ?
+14:3 INDENT
+14:3 glyph ^-
+14:6 glyph [
+14:7 tight aura @t
+14:10 aura @t
+14:12 tight glyph ]
+14:14 glyph ?-
+14:17 name flag
+15:5 INDENT
+15:5 lit %.y
+15:9 glyph [
+15:10 tight str "yes"
+15:16 str "a"
+15:19 tight glyph ]
+16:5 NEWLINE
+16:5 lit %.n
+16:9 glyph [
+16:10 tight str "no"
+16:15 str "b"
+16:18 tight glyph ]
+17:1 DEDENT
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph +$
+17:4 name rec
+17:8 glyph [
+17:9 tight name name
+17:13 tight glyph =
+17:14 tight aura @t
+17:17 name place
+17:22 tight glyph =
+17:23 tight glyph (
+17:24 tight name unit
+17:29 aura @t
+17:31 tight glyph )
+17:32 tight glyph ]
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name named
+18:10 glyph |=
+18:13 name flag
+18:17 tight glyph =
+18:18 tight glyph ?
+19:3 INDENT
+19:3 glyph ^-
+19:6 name rec
+19:10 glyph ?-
+19:13 name flag
+20:5 INDENT
+20:5 lit %.y
+20:9 glyph [
+20:10 tight name name
+20:14 tight glyph =
+20:15 tight str "yes"
+20:21 name place
+20:26 tight glyph =
+20:27 tight lit ~
+20:28 tight glyph ]
+21:5 NEWLINE
+21:5 lit %.n
+21:9 glyph [
+21:10 tight name name
+21:14 tight glyph =
+21:15 tight str "no"
+21:20 name place
+21:25 tight glyph =
+21:26 tight lit ~
+21:27 tight glyph ]
+22:1 DEDENT
+22:1 DEDENT
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name wrong
+22:10 glyph |=
+22:13 name flag
+22:17 tight glyph =
+22:18 tight glyph ?
+23:3 INDENT
+23:3 glyph ^-
+23:6 name rec
+23:10 glyph ?-
+23:13 name flag
+24:5 INDENT
+24:5 lit %.y
+24:9 glyph [
+24:10 tight name name
+24:14 tight glyph =
+24:15 tight str "yes"
+24:21 name place
+24:26 tight glyph =
+24:27 tight lit ~
+24:28 tight glyph ]
+25:5 NEWLINE
+25:5 lit %.n
+25:9 glyph [
+25:10 tight name other
+25:15 tight glyph =
+25:16 tight str "no"
+25:21 name place
+25:26 tight glyph =
+25:27 tight lit ~
+25:28 tight glyph ]
+26:1 DEDENT
+26:1 DEDENT
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name different
+26:14 glyph |=
+26:17 name flag
+26:21 tight glyph =
+26:22 tight glyph ?
+27:3 INDENT
+27:3 glyph ^-
+27:6 name rec
+27:10 glyph ?-
+27:13 name flag
+28:5 INDENT
+28:5 lit %.y
+28:9 glyph [
+28:10 tight name name
+28:14 tight glyph =
+28:15 tight str "yes"
+28:21 name place
+28:26 tight glyph =
+28:27 tight lit ~
+28:28 tight glyph ]
+29:5 NEWLINE
+29:5 lit %.n
+29:9 glyph [
+29:10 tight str "no"
+29:15 lit ~
+29:16 tight glyph ]
+30:1 DEDENT
+30:1 DEDENT
+30:1 NEWLINE
+30:1 glyph ++
+30:4 name open
+30:9 glyph |=
+30:12 glyph [
+30:13 tight name flag
+30:17 tight glyph =
+30:18 tight glyph ?
+30:20 name value
+30:25 tight glyph =
+30:26 tight tvar A
+30:27 tight glyph ]
+31:3 INDENT
+31:3 glyph ^-
+31:6 glyph [
+31:7 tight tvar A
+31:9 glyph (
+31:10 tight name unit
+31:15 tvar A
+31:16 tight glyph )
+31:17 tight glyph ]
+31:19 glyph ?-
+31:22 name flag
+32:5 INDENT
+32:5 lit %.y
+32:9 glyph [
+32:10 tight name value
+32:16 lit ~
+32:17 tight glyph ]
+33:5 NEWLINE
+33:5 lit %.n
+33:9 glyph [
+33:10 tight name value
+33:16 lit ~
+33:17 tight glyph ]
+34:1 DEDENT
+34:1 DEDENT
+34:1 NEWLINE
+34:1 glyph ++
+34:4 name waiting
+34:12 glyph |=
+34:15 name flag
+34:19 tight glyph =
+34:20 tight glyph ?
+35:3 INDENT
+35:3 glyph ^-
+35:6 name rec
+35:10 glyph ?-
+35:13 name flag
+36:5 INDENT
+36:5 lit %.y
+36:9 glyph [
+36:10 tight name name
+36:14 tight glyph =
+36:15 tight str "yes"
+36:21 name place
+36:26 tight glyph =
+36:27 tight lit ~
+36:28 tight glyph ]
+37:5 NEWLINE
+37:5 lit %.n
+37:9 glyph [
+37:10 tight name name
+37:14 tight glyph =
+37:15 tight lit %waiting
+37:24 name place
+37:29 tight glyph =
+37:30 tight lit ~
+37:31 tight glyph ]
+37:32 DEDENT
+37:32 DEDENT
+37:32 NEWLINE

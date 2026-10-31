@@ -1,0 +1,156 @@
+(module
+  (value 1:1 choose
+    (gate 1:11
+      (face 1:14 flag (flag 1:19))
+      (body 2:3
+        (cast 2:3
+          (cell 2:6
+            (aura 2:7 @t)
+            (apply 2:10 unit (aura 2:16 @t)))
+          (branch 2:21
+            (wing 2:24 flag)
+            (arm 3:5
+              (lit 3:5 %.y)
+              (tuple 3:9 (str 3:10 "yes") (lit 3:16 ~)))
+            (arm 4:5
+              (lit 4:5 %.n)
+              (tuple 4:9 (str 4:10 "no") (lit 4:15 ~))))))))
+  (value 5:1 bad
+    (gate 5:8
+      (face 5:11 flag (flag 5:16))
+      (body 6:3
+        (cast 6:3
+          (cell 6:6
+            (aura 6:7 @t)
+            (apply 6:10 unit (aura 6:16 @t)))
+          (branch 6:21
+            (wing 6:24 flag)
+            (arm 7:5
+              (lit 7:5 %.y)
+              (tuple 7:9 (str 7:10 "yes") (lit 7:16 ~)))
+            (arm 8:5
+              (lit 8:5 %.n)
+              (tuple 8:9 (lit 8:10 ~zod) (lit 8:15 ~))))))))
+  (value 9:1 pending
+    (gate 9:12
+      (face 9:15 flag (flag 9:20))
+      (body 10:3
+        (cast 10:3
+          (cell 10:6
+            (aura 10:7 @t)
+            (apply 10:10 unit (aura 10:16 @t)))
+          (branch 10:21
+            (wing 10:24 flag)
+            (arm 11:5
+              (lit 11:5 %.y)
+              (tuple 11:9 (str 11:10 "yes") (lit 11:16 ~)))
+            (arm 12:5
+              (lit 12:5 %.n)
+              (tuple 12:9 (lit 12:10 %waiting) (lit 12:19 ~))))))))
+  (value 13:1 already
+    (gate 13:12
+      (face 13:15 flag (flag 13:20))
+      (body 14:3
+        (cast 14:3
+          (cell 14:6 (aura 14:7 @t) (aura 14:10 @t))
+          (branch 14:14
+            (wing 14:17 flag)
+            (arm 15:5
+              (lit 15:5 %.y)
+              (tuple 15:9 (str 15:10 "yes") (str 15:16 "a")))
+            (arm 16:5
+              (lit 16:5 %.n)
+              (tuple 16:9 (str 16:10 "no") (str 16:15 "b"))))))))
+  (mold 17:1 rec
+    (cell 17:8
+      (face 17:9 name (aura 17:14 @t))
+      (face 17:17 place
+        (apply 17:23 unit (aura 17:29 @t)))))
+  (value 18:1 named
+    (gate 18:10
+      (face 18:13 flag (flag 18:18))
+      (body 19:3
+        (cast 19:3
+          (ref 19:6 rec)
+          (branch 19:10
+            (wing 19:13 flag)
+            (arm 20:5
+              (lit 20:5 %.y)
+              (tuple 20:9
+                (face 20:10 name (str 20:15 "yes"))
+                (face 20:21 place (lit 20:27 ~))))
+            (arm 21:5
+              (lit 21:5 %.n)
+              (tuple 21:9
+                (face 21:10 name (str 21:15 "no"))
+                (face 21:20 place (lit 21:26 ~)))))))))
+  (value 22:1 wrong
+    (gate 22:10
+      (face 22:13 flag (flag 22:18))
+      (body 23:3
+        (cast 23:3
+          (ref 23:6 rec)
+          (branch 23:10
+            (wing 23:13 flag)
+            (arm 24:5
+              (lit 24:5 %.y)
+              (tuple 24:9
+                (face 24:10 name (str 24:15 "yes"))
+                (face 24:21 place (lit 24:27 ~))))
+            (arm 25:5
+              (lit 25:5 %.n)
+              (tuple 25:9
+                (face 25:10 other (str 25:16 "no"))
+                (face 25:21 place (lit 25:27 ~)))))))))
+  (value 26:1 different
+    (gate 26:14
+      (face 26:17 flag (flag 26:22))
+      (body 27:3
+        (cast 27:3
+          (ref 27:6 rec)
+          (branch 27:10
+            (wing 27:13 flag)
+            (arm 28:5
+              (lit 28:5 %.y)
+              (tuple 28:9
+                (face 28:10 name (str 28:15 "yes"))
+                (face 28:21 place (lit 28:27 ~))))
+            (arm 29:5
+              (lit 29:5 %.n)
+              (tuple 29:9 (str 29:10 "no") (lit 29:15 ~))))))))
+  (value 30:1 open
+    (gate 30:9
+      (cell 30:12
+        (face 30:13 flag (flag 30:18))
+        (face 30:20 value (tvar 30:26 A)))
+      (body 31:3
+        (cast 31:3
+          (cell 31:6
+            (tvar 31:7 A)
+            (apply 31:9 unit (tvar 31:15 A)))
+          (branch 31:19
+            (wing 31:22 flag)
+            (arm 32:5
+              (lit 32:5 %.y)
+              (tuple 32:9 (wing 32:10 value) (lit 32:16 ~)))
+            (arm 33:5
+              (lit 33:5 %.n)
+              (tuple 33:9 (wing 33:10 value) (lit 33:16 ~))))))))
+  (value 34:1 waiting
+    (gate 34:12
+      (face 34:15 flag (flag 34:20))
+      (body 35:3
+        (cast 35:3
+          (ref 35:6 rec)
+          (branch 35:10
+            (wing 35:13 flag)
+            (arm 36:5
+              (lit 36:5 %.y)
+              (tuple 36:9
+                (face 36:10 name (str 36:15 "yes"))
+                (face 36:21 place (lit 36:27 ~))))
+            (arm 37:5
+              (lit 37:5 %.n)
+              (tuple 37:9
+                (face 37:10 name (lit 37:15 %waiting))
+                (face 37:24 place (lit 37:30 ~))))))))))

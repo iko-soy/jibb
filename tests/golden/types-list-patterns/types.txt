@@ -12,6 +12,6 @@ partial inference; module not checked
 ++ unresolved: list branch results need unsupported inference
 ++ duplicate-arm: branch is not supported by partial inference
 ++ unrelated: tag needs context in partial inference
-++ empty-elements: sample mold is not supported by partial inference
+++ empty-elements: list nonempty pattern is unreachable
 +$ maybe: cases proven disjoint; mold not checked
 ++ unit-shape: unit branch pattern is not supported by partial inference

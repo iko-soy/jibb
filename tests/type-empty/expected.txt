@@ -1,0 +1,59 @@
+empty mold exported: ok
+live union selector preserves type: ok
+overlap parses and is rejected: ok
+dead empty case parses and is rejected: ok
+missing live case parses and is rejected: ok
+standard list and unit identities checked: ok
+single null list gate keeps its exact sample and result: ok
+contextual single null list gate checks: ok
+contextual single null list arm retains faces: ok
+one null arm on inhabited list declines: ok
+one null arm on generic list declines: ok
+empty list nonempty arm parses and is rejected: ok
+empty unit present arm parses and is rejected: ok
+nested empty proof: ok
+list of empty is inhabited: ok
+gate returning empty is not empty: ok
+unbound type not proved empty: ok
+unbound inference type reachability unknown: ok
+written capital can have a value: ok
+bound empty capital is unreachable: ok
+opaque recursion reachability unknown: ok
+opaque union case declines coverage proof: ok
+one proof node exhausted: ok
+two proof nodes succeed: ok
+empty fits a concrete type: ok
+empty cell fits a concrete type: ok
+inhabited atom does not fit empty: ok
+empty gate-bearing cell is gate-free: ok
+list of empty is gate-free and inhabited: ok
+partial inference; module not checked
++$ never: not checked
++$ box: not checked
++$ split: cases proven disjoint; mold not checked
+++ identity: $-(!! !!)
+++ generic-empty: $-([x=!! y=@t] [x=!! y=@t])
+++ select: $-(split @t)
+++ crash: !!
+partial inference; module not checked
++$ broken: overlapping cases; mold not checked
+/tests/empty.jibb:2:3: first union case
+  [%tag [%.y @t]]
+  ^
+/tests/empty.jibb:3:3: overlapping case
+  [%tag [%$ @p]]
+  ^
+partial inference; module not checked
++$ split: cases proven disjoint; mold not checked
+++ select: union pattern is not supported by partial inference
+partial inference; module not checked
++$ split: cases proven disjoint; mold not checked
+++ select: union pattern is not supported by partial inference
+partial inference; module not checked
+++ probe: list nonempty pattern is unreachable
+partial inference; module not checked
+++ probe: unit present pattern is unreachable
+partial inference; module not checked
+++ probe-late: explicit capital constraints are not supported by partial inference
+++ probe-outer: explicit capital constraints are not supported by partial inference
+++ probe-rec: explicit capital constraints are not supported by partial inference

@@ -1,0 +1,16 @@
+++ probe-late |= xs=(list A)
+  ?- xs
+    ~ !!
+    [item rest] ^- !! item
+++ probe-outer |= xs=(list A)
+  ++ inspect |= ys=(list A)
+    ?- ys
+      ~ !!
+      [item rest] ^- !! item
+  (inspect xs)
+++ probe-rec |= xs=(list A)
+  ?- xs
+    ~ !!
+    [item rest]
+      ~& ^- !! item
+        (probe-rec rest)

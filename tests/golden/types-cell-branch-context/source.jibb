@@ -1,0 +1,37 @@
+++ choose |= flag=?
+  ^- [@t (unit @t)] ?- flag
+    %.y ["yes" ~]
+    %.n ["no" ~]
+++ bad |= flag=?
+  ^- [@t (unit @t)] ?- flag
+    %.y ["yes" ~]
+    %.n [~zod ~]
+++ pending |= flag=?
+  ^- [@t (unit @t)] ?- flag
+    %.y ["yes" ~]
+    %.n [%waiting ~]
+++ already |= flag=?
+  ^- [@t @t] ?- flag
+    %.y ["yes" "a"]
+    %.n ["no" "b"]
++$ rec [name=@t place=(unit @t)]
+++ named |= flag=?
+  ^- rec ?- flag
+    %.y [name="yes" place=~]
+    %.n [name="no" place=~]
+++ wrong |= flag=?
+  ^- rec ?- flag
+    %.y [name="yes" place=~]
+    %.n [other="no" place=~]
+++ different |= flag=?
+  ^- rec ?- flag
+    %.y [name="yes" place=~]
+    %.n ["no" ~]
+++ open |= [flag=? value=A]
+  ^- [A (unit A)] ?- flag
+    %.y [value ~]
+    %.n [value ~]
+++ waiting |= flag=?
+  ^- rec ?- flag
+    %.y [name="yes" place=~]
+    %.n [name=%waiting place=~]

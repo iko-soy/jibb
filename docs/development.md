@@ -77,6 +77,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-generic-pattern-test` | Checks source-backed recursive patterns, catch-all coverage, state and per-attempt fuel/arm limits under eval and on the ship |
 | `tools/type-deferred-test` | Checks the bounded source-owned deferred inference transaction under eval and on the ship |
 | `tools/type-deferred-resolver-test` | Checks deferred resolution, report consistency and atomic failure under eval and on the ship |
+| `tools/type-cell-branch-test` | Checks closed-cell branch context, rollback and bounded retry screens under eval and on the ship |
 | `tools/type-generic-alias-test` | Runs public/private generic union alias and provenance guards under eval and on the ship |
 | `tools/type-positional-face-guards-test` | Runs positional-call and nested-face guards under eval and on the ship |
 | `tools/type-qath-guards-test` | Runs source-provenance, recursive unfolding and face guards under eval and on the ship |
@@ -86,6 +87,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-closed-gate-guards-test` | Checks closed gate sample labels and face uncertainty under eval and on the ship |
 | `tools/type-constructor-fit-guards-test` | Checks constructor-case uncertainty and known mismatches under eval and on the ship |
 | `tools/type-nested-union-guards-test` | Checks nested tagged-union case selection and uncertainty under eval and on the ship |
+| `tools/type-empty-test` | Checks source-backed empty molds, inhabitedness, coverage and proof budgets under eval and on the ship |
 | `tools/type-gate-free-guards-test` | Checks bounded gate-free verdicts, inhabitation and witness paths under eval and on the ship |
 | `tools/type-gate-free-source-test` | Checks source-backed todo mold analysis through the real readers under eval and on the ship |
 | `tools/type-sub-guards-test` | Checks source-backed subscription mold dependencies under eval and on the ship |
@@ -132,9 +134,11 @@ tools/type-generic-construction-test # source-backed recursive construction and 
 tools/type-generic-pattern-test      # source-backed recursive patterns and bounds
 tools/type-deferred-test             # source-owned deferred inference guards
 tools/type-deferred-resolver-test    # resolver consistency and failure guards
+tools/type-cell-branch-test          # contextual branch rollback and bounds
 tools/type-closed-gate-guards-test  # closed gate fit guards pass
 tools/type-constructor-fit-guards-test # constructor fit guards pass
 tools/type-nested-union-guards-test # nested union selector guards pass
+tools/type-empty-test              # empty mold and uninhabited-case guards pass
 tools/type-gate-free-guards-test   # bounded gate-free classifier guards pass
 tools/type-gate-free-source-test   # real todo mold analysis and source guards pass
 tools/type-sub-guards-test          # subscription source guards pass

@@ -1,0 +1,4 @@
+++ probe |= maybe=(unit !!)
+  ?- maybe
+    ~ "nil"
+    [~ x] "some"
