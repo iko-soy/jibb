@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Agent APIs: "A path case is a request name, a path and a type. A plain mold is full state"; Effects: "its reply always gets full state."
+tests: A real mark and one plain API path infer imported request calls at independent cord, ship and generic reply types; wrong callbacks, non-gates, extra arguments and pending constraints remain failures or unsupported. This partial report neither checks watchability nor implements request lowering or runtime validation.
+expect: parses
+expect-types: partial inference; module not checked

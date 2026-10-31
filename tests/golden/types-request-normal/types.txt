@@ -1,0 +1,26 @@
+partial inference; module not checked
+++ cord: (ask @t)
+++ ship: (ask @p)
+++ generic: $-($-(@t A) (ask A))
+++ wrong-callback: call's sample and argument types do not unify
+/tests/golden/types-request-normal/source.jibb:5:20: called gate
+++ wrong-callback (plain.api |=(x=@p "wrong"))
+                   ^
+/tests/golden/types-request-normal/source.jibb:5:30: argument has type $-(@p @t)
+++ wrong-callback (plain.api |=(x=@p "wrong"))
+                             ^
+++ wrong-value: call's sample and argument types do not unify
+/tests/golden/types-request-normal/source.jibb:6:17: called gate
+++ wrong-value (plain.api "wrong")
+                ^
+/tests/golden/types-request-normal/source.jibb:6:27: argument has type @t
+++ wrong-value (plain.api "wrong")
+                          ^
+++ extra: call's sample and argument types do not unify
+/tests/golden/types-request-normal/source.jibb:7:11: called gate
+++ extra (plain.api |=(x=@t "ok") "extra")
+          ^
+/tests/golden/types-request-normal/source.jibb:7:21: argument has type [$-(@t @t) @t]
+++ extra (plain.api |=(x=@t "ok") "extra")
+                    ^
+++ pending: tag needs context in partial inference

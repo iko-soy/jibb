@@ -1,0 +1,50 @@
+(module
+  (jibb 1:1 api /ui/api/demo)
+  (value 2:1 cord
+    (group 2:9
+      (call 2:10
+        (wing 2:10 plain.api)
+        (gate-wide 2:20
+          (face 2:23 x (aura 2:25 @t))
+          (str 2:28 "ok")))))
+  (value 3:1 ship
+    (group 3:9
+      (call 3:10
+        (wing 3:10 plain.api)
+        (gate-wide 3:20
+          (face 3:23 x (aura 3:25 @t))
+          (lit 3:28 ~zod)))))
+  (value 4:1 generic
+    (gate 4:12
+      (face 4:15 convert
+        (fn 4:23 (aura 4:26 @t) (tvar 4:29 A)))
+      (group 4:32
+        (call 4:33 (wing 4:33 plain.api) (wing 4:43 convert)))))
+  (value 5:1 wrong-callback
+    (group 5:19
+      (call 5:20
+        (wing 5:20 plain.api)
+        (gate-wide 5:30
+          (face 5:33 x (aura 5:35 @p))
+          (str 5:38 "wrong")))))
+  (value 6:1 wrong-value
+    (group 6:16
+      (call 6:17 (wing 6:17 plain.api) (str 6:27 "wrong"))))
+  (value 7:1 extra
+    (group 7:10
+      (call 7:11
+        (wing 7:11 plain.api)
+        (gate-wide 7:21
+          (face 7:24 x (aura 7:26 @t))
+          (str 7:29 "ok"))
+        (str 7:35 "extra"))))
+  (value 8:1 pending
+    (trace 8:12
+      (lit 8:15 %pending)
+      (body 9:3
+        (group 9:3
+          (call 9:4
+            (wing 9:4 plain.api)
+            (gate-wide 9:14
+              (face 9:17 x (aura 9:19 @t))
+              (str 9:22 "ok"))))))))

@@ -1,0 +1,9 @@
+/= api /ui/api/demo
+++ cord (plain.api |=(x=@t "ok"))
+++ ship (plain.api |=(x=@t ~zod))
+++ generic |= convert=$-(@t A) (plain.api convert)
+++ wrong-callback (plain.api |=(x=@p "wrong"))
+++ wrong-value (plain.api "wrong")
+++ extra (plain.api |=(x=@t "ok") "extra")
+++ pending ~& %pending
+  (plain.api |=(x=@t "ok"))

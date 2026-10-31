@@ -4628,6 +4628,21 @@
 ::  proofs to fewer than 1,024 cells; the projection planner has a separate
 ::  4,096-step bound. These are inference limits, not language limits.
 ::
+::  A single plain API path with one full mark can expose a polymorphic
+::  request-gate type through ordinary imports. Its source-derived schema,
+::  canonical API path and complete dependency evidence travel with checked
+::  interfaces. The closure is bound to the exact supplied bundle, prelude,
+::  scope and trusted reader results; unknown cached entries are rebuilt.
+::  Request-bearing closures are limited to 256 source paths and requests.
+::  This is type inference only: there is no request lowering, runtime schema
+::  validator or proof that an arbitrary ask value is watchable.
+::
+::  In one synthetic eval of a 48-module deep and 48-module wide request-free
+::  graph, baseline versus certificate inference took 21.53 s versus 23.10 s
+::  elapsed (21.10 s versus 22.34 s CPU), including startup. The deep cache's
+::  jam grew from 2,402 to 4,209 bytes (+1,807 bytes). These single-run figures
+::  are not production memory or performance benchmarks.
+::
 +$  itype
   $~  [%var 0]
   $%  [%var id=@ud]
@@ -5396,7 +5411,15 @@
 +$  iderived  [name=term agent=term mark=term]
 +$  iwidth-definition  [name=term original=expr typ=itype sub=isub projections=(list iwprojection)]
 +$  iwidth-dependency  [at=path source=(unit @t) definitions=(list iwidth-definition)]
-+$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t)]
+::  Nonrecursive request evidence is compiler-owned metadata, not a property
+::  of an arbitrary ask value. Reader graphs and source inputs are trusted.
++$  irequest-evidence
+  [api-at=path name=term path=iapi-path-typed api-source=@t public-source=@t internal-source=@t prelude-values=(list term) prelude-molds=(list term) externals=iexternals marks=imark-externals]
+::  A unit distinguishes a verified empty closure from a detached legacy file.
+::  The opaque prelude is an exact trusted input, not a recursive interface mold.
++$  irequest-graph
+  [paths=(set path) requests=(list irequest-evidence) bundle-input=* prelude-input=* prelude-values=(list term) prelude-molds=(list term) externals=iexternals marks=imark-externals]
++$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t) graph=(unit irequest-graph)]
 +$  ijimports  (list [face=term interface=ifile])
 +$  icap  [name=@t id=@ud at=span]
 +$  icaps  (list icap)
@@ -10086,7 +10109,7 @@
   =/  plus=ischeme  [[%fn [%cell b b] b] ~[0]]
   =/  minus=ischeme  [[%fn b b] ~[0]]
   =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0]]
-  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~]
+  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~ ~]
 ::
 ++  infer-private-internal
   |=  [src=@t public-source=@t]
@@ -10129,7 +10152,7 @@
     =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
     =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~]
     =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
-    =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~]
+    =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~]
     =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
     ?~  found  ~
     ?.  (standard-unit-template u.found /lib/jibb/prelude/jibb)  ~
@@ -10165,7 +10188,7 @@
   =/  resolution=iresolved  (resolve-groups defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
   =/  env=ienv  env.resolution
   ?.  (module-values-complete defs.mod env)  ~
-  `[env u.usable at ~ artifacts.resolution ~ `src]
+  `[env u.usable at ~ artifacts.resolution ~ `src ~]
 ::
 ++  partial-prelude-interface-with-internal
   |=  [src=@t internal-source=(unit @t)]
@@ -10205,9 +10228,9 @@
   =/  mold-prelude=(unit ifile)
     ?~  declared-list  ~
     ?.  (standard-prelude-list u.declared-list)  ~
-    `[~ ~[[%list [[%collection %list ~[[%var 0]]] ~[0]]]] at ~ ~ ~ ~]
+    `[~ ~[[%list [[%collection %list ~[[%var 0]]] ~[0]]]] at ~ ~ ~ ~ ~]
   =/  mt=imold-types  (partial-prelude-molds molds state(prelude mold-prelude))
-  =/  partial=ifile  [~ mt at ~ ~ ~ ~]
+  =/  partial=ifile  [~ mt at ~ ~ ~ ~ ~]
   ::  An explicitly qualified re-export must resolve. Other unsupported
   ::  prelude declarations remain reserved but absent from the interface.
   =/  required=imolds
@@ -10224,7 +10247,7 @@
   =/  deps=(list iwidth-dependency)
     ?~  u.private  ~
     ~[[at.interface.i.u.private source.interface.i.u.private elaborations.interface.i.u.private]]
-  `[env mt at ~ artifacts.resolution deps `src]
+  `[env mt at ~ artifacts.resolution deps `src ~]
 ::
 ++  partial-prelude-interface
   |=  src=@t
@@ -10275,6 +10298,66 @@
   ?:  =(at at.i.cache)  `iface.i.cache
   $(cache t.cache)
 ::
+::  These certificates retain the complete checked source closure. The
+::  trusted host must supply the identical prepared prelude and reader nouns.
+::  Exact bundle equality binds all source paths and versions; the set
+::  retains transitive paths for active-cycle checks. Request-bearing graphs
+::  alone have a size limit; incompatible diamond evidence fails closed.
+++  request-graph-requests-add
+  |=  [pending=(list irequest-evidence) acc=(list irequest-evidence) fuel=@ud]
+  ^-  (unit (list irequest-evidence))
+  ?~  pending  `acc
+  ?:  =(0 fuel)  ~
+  =/  hit=(list irequest-evidence)
+    (skim acc |=(x=irequest-evidence &(=(api-at.x api-at.i.pending) =(name.x name.i.pending))))
+  ?^  hit
+    ?.  ?=([* ~] hit)  ~
+    ?.  =(i.hit i.pending)  ~
+    $(pending t.pending, fuel (dec fuel))
+  $(pending t.pending, acc [i.pending acc], fuel (dec fuel))
+++  request-graph-inputs-match
+  |=  [g=irequest-graph externals=iexternals marks=imark-externals modules=jbundle values=(list term) molds=(list term) prelude=(unit ifile)]
+  ^-  ?
+  ?&  =(bundle-input.g modules)
+      =(prelude-input.g prelude)
+      =(prelude-values.g values)
+      =(prelude-molds.g molds)
+      =(externals.g externals)
+      =(marks.g marks)
+  ==
+++  request-graph-merge
+  |=  [imports=ijimports g=irequest-graph fuel=@ud]
+  ^-  (unit irequest-graph)
+  ?~  imports  `g
+  ?:  =(0 fuel)  ~
+  =/  child=ifile  interface.i.imports
+  ?~  graph.child  ~
+  =/  cg=irequest-graph  u.graph.child
+  ?.  ?&  =(bundle-input.g bundle-input.cg)
+           =(prelude-input.g prelude-input.cg)
+           =(prelude-values.g prelude-values.cg)
+           =(prelude-molds.g prelude-molds.cg)
+           =(externals.g externals.cg)
+           =(marks.g marks.cg)
+       ==
+    ~
+  =/  merged=(set path)  (~(uni in:..zuse paths.g) paths.cg)
+  =/  rs=(unit (list irequest-evidence))
+    (request-graph-requests-add requests.cg requests.g (add 1 (lent requests.cg)))
+  ?~  rs  ~
+  ?:  &(?=(^ u.rs) |((gth (lent ~(tap in:..zuse merged)) 256) (gth (lent u.rs) 256)))  ~
+  $(imports t.imports, g g(paths merged, requests u.rs), fuel (dec fuel))
+++  request-graph-reusable
+  |=  [f=ifile src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) values=(list term) molds=(list term) prelude=(unit ifile)]
+  ^-  ?
+  ?~  source.f  |
+  ?.  =(u.source.f src)  |
+  ?~  graph.f  |
+  =/  g=irequest-graph  u.graph.f
+  ?.  (request-graph-inputs-match g externals marks modules values molds prelude)  |
+  ?.  (~(has in:..zuse paths.g) at.f)  |
+  !(lien active |=(p=path (~(has in:..zuse paths.g) p)))
+::
 ++  resolve-jibb-imports
   |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jimports-result
@@ -10292,7 +10375,16 @@
   ?^  t.found  [%| (crip "duplicate module sources: {(spud at)}")]
   =/  cached=(unit ifile)  (find-jibb-cache at cache)
   =/  iface=jfile-result
-    ?^  cached  [%& [u.cached cache]]
+    ?^  cached
+      ?.  =(at.u.cached at)  [%| 'cached module identity needs unsupported inference']
+      ?~  graph.u.cached
+        ::  A detached legacy interface has unknown evidence. Rebuild it
+        ::  against the current graph, without retaining any stale entry.
+        =/  clean=jcache  (skim cache |=(x=[at=path iface=ifile] !=(at.x at)))
+        (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds clean prelude)
+      ?.  (request-graph-reusable u.cached source.i.found externals mark-externals modules active prelude-values prelude-molds prelude)
+        [%| 'cached module evidence needs unsupported inference']
+      [%& [u.cached cache]]
     (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.iface)  [%| p.iface]
   =/  rest=jimports-result  $(imports t.imports, cache cache.p.iface)
@@ -10542,6 +10634,27 @@
     (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared)
   ?~  paths  [%| 'API path declaration needs unsupported analysis']
   [%& [file src u.prepared externals marks cache.p.deps u.paths]]
+::  Graph-aware variant preserves the caller active stack and cache.
+++  api-path-evidence-graph
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
+  ^-  (each iapi-path-evidence @t)
+  ?~  active  [%| 'API analysis needs an active graph']
+  ?.  =(i.active file)  [%| 'API analysis active graph does not start at the source']
+  ?:  (lien t.active |=(p=path =(p file)))  [%| 'API analysis active graph contains a cycle']
+  ?.  ?=([%ui %api @ %jibb ~] file)  [%| 'API path evidence requires /ui/api/<agent>.jibb']
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'API path evidence source does not parse']
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
+  ?~  prepared  [%| 'API path evidence needs the prepared prelude']
+  =/  public=ifile  iface.u.prepared
+  =/  deps=jimports-result
+    (resolve-jibb-imports imports.p.parsed externals marks modules active values.u.prepared molds.u.prepared cache `public)
+  ?:  ?=(%| -.deps)  [%| p.deps]
+  =/  paths=(unit (list iapi-path-typed))
+    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared)
+  ?~  paths  [%| 'API path declaration needs unsupported analysis']
+  [%& [file src u.prepared externals marks cache.p.deps u.paths]]
 ::
 ::  This query classifies a unique path declaration only.  Missing evidence
 ::  or a nonunique name is unknown; it proves nothing about an ask value.
@@ -10643,6 +10756,175 @@
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
   ?.  (module-values-complete ordinary env.resolution)  [%| 'API ordinary definitions need unsupported inference']
   [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution]]
+::  Preserve the same graph context through supporting definitions.
+++  api-support-analysis-graph
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
+  ^-  (each iapi-support-evidence @t)
+  =/  path-result  (api-path-evidence-graph file src externals marks modules active cache prepared)
+  ?:  ?=(%| -.path-result)  [%| p.path-result]
+  =/  evidence=iapi-path-evidence  p.path-result
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'API source does not parse']
+  =/  mod=module  p.parsed
+  =/  ordinary=(list def)
+    (skim defs.mod |=(d=def !&(?=(%mold -.d) |(=(%paths name.d) =(%poke name.d)))))
+  =/  prep=iprelude  prepared.evidence
+  ?.  (module-scope-valid mod(defs ordinary) values.prep molds.prep)  [%| 'API ordinary scope needs unsupported inference']
+  =/  vals=(list term)  (global-value-names ordinary)
+  ?:  (lien vals |=(n=term =(n %main)))  [%| 'API module kind needs unsupported inference']
+  =/  declared=(list term)  (collect-mark-imports imports.mod)
+  =/  mark-types=(unit (list iapi-mark-type))  (api-diff-types declared marks declared)
+  ?~  mark-types  [%| 'API declared marks need unsupported inference']
+  =/  prelude=(unit ifile)  `iface.prep
+  =/  deps=jimports-result
+    (resolve-jibb-imports imports.mod externals marks modules active values.prep molds.prep dependencies.evidence prelude)
+  ?:  ?=(%| -.deps)  [%| p.deps]
+  =/  molds=imolds  (collect-simple-molds ordinary)
+  =/  globals=(list term)  (weld values.prep (weld (import-binding-names imports.mod) vals))
+  =/  surs=(list term)  (collect-sur-imports imports.mod)
+  =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~]
+  =/  mts=(each imold-types @t)  (module-mold-types molds state)
+  ?:  ?=(%| -.mts)  [%| p.mts]
+  =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
+  ?.  (module-values-complete ordinary env.resolution)  [%| 'API ordinary definitions need unsupported inference']
+  [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution]]
+::
+::  Type-analysis artifact for one plain request. The resolver may publish
+::  its interface only together with trusted source and reader evidence.
+::  No lowering or runtime validator exists.
+::  Value watchability remains unproved even for a watchable declaration.
++$  ione-request-interface
+  [support=iapi-support-evidence parts=iapi-request-parts iface=ifile]
+++  request-compatible-ask
+  |=  prelude=iprelude
+  ^-  (unit ischeme)
+  =/  public=ifile  iface.prelude
+  ?.  =(at.public /lib/jibb/prelude/jibb)  ~
+  =/  ask=(unit ischeme)  (find-jibb-mold %ask public)
+  ?~  ask  ~
+  ?.  ?=([@ ~] vars.u.ask)  ~
+  ?.  ?=(%union -.typ.u.ask)  ~
+  ?.  =(origin.typ.u.ask `[/lib/jibb/internal/jibb %ask])  ~
+  ?.  (identity-union-parameters vars.u.ask args.typ.u.ask)  ~
+  =/  m=@ud  i.vars.u.ask
+  ?:  (itype-var-is-atom m typ.u.ask)  ~
+  ?.  (levy (itype-vars typ.u.ask) |=(n=@ud =(n m)))  ~
+  ?:  (itype-has-tag typ.u.ask)  ~
+  =/  private=(list iwidth-dependency)
+    (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
+  ?.  ?=([* ~] private)  ~
+  ?~  source.i.private  ~
+  =/  path=(unit ischeme)  (find-jibb-mold %path public)
+  ?~  path  ~
+  ?^  vars.u.path  ~
+  =/  path-type=itype  [%collection %list ~[[%atom %ta]]]
+  ?.  =(typ.u.path path-type)  ~
+  =/  unit-template=(unit ischeme)  (find-jibb-mold %unit public)
+  ?~  unit-template  ~
+  ?.  (standard-unit-template u.unit-template /lib/jibb/prelude/jibb)  ~
+  =/  state-unit=(unit itype)  (template-apply u.unit-template ~[[%noun ~]])
+  ?~  state-unit  ~
+  =/  path-unit=(unit itype)  (template-apply u.unit-template ~[path-type])
+  ?~  path-unit  ~
+  =/  output=itype  [%cell [%face %state [%noun ~]] [%face %message [%var m]]]
+  =/  agent-input=itype  [%cell [%face %mark [%atom %tas]] [%cell [%face %state u.state-unit] [%face %fact [%noun ~]]]]
+  =/  store-input=itype  [%cell [%face %state u.state-unit] [%face %fact [%noun ~]]]
+  =/  pure-case=itype  [%cell [%const [%term %tas %pure '%pure']] [%face %value [%var m]]]
+  =/  agent-case=itype
+    [%cell [%const [%term %tas %agent '%agent']] [%cell [%face %api [%atom %t]] [%cell [%face %case [%atom %tas]] [%cell [%face %agent [%atom %tas]] [%cell [%face %path path-type] [%cell [%face %scry u.path-unit] [%face %receive [%fn agent-input output]]]]]]]]
+  =/  store-case=itype
+    [%cell [%const [%term %tas %store '%store']] [%cell [%face %module [%atom %t]] [%cell [%face %name [%atom %tas]] [%face %receive [%fn store-input output]]]]]
+  ?.  =(cases.typ.u.ask ~[pure-case agent-case store-case])  ~
+  ask
+::
+::  The first supported standalone API has exactly one mark import and one
+::  plain path declaration, with no other definitions or imports.  No partial
+::  success is published when source, schema, or a required mold is unknown.
+++  one-request-interface-source
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
+  ^-  (each ione-request-interface @t)
+  =/  out  (api-support-analysis-source file src externals marks modules prepared)
+  ?:  ?=(%| -.out)  [%| p.out]
+  =/  support=iapi-support-evidence  p.out
+  =/  ev=iapi-path-evidence  paths.support
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
+  =/  mod=module  p.parsed
+  ?.  ?=([[%mark *] ~] imports.mod)  [%| 'request imports need unsupported inference']
+  ?.  ?=([[%mold *] ~] defs.mod)  [%| 'request definitions need unsupported inference']
+  ?.  =(%paths name.i.defs.mod)  [%| 'request declaration needs unsupported inference']
+  ?.  ?=([* ~] paths.ev)  [%| 'request count needs unsupported inference']
+  =/  p=iapi-path-typed  i.paths.ev
+  =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
+  ?~  parts  [%| 'request components need unsupported inference']
+  ?^  parameters.u.parts  [%| 'request parameters need unsupported inference']
+  ?^  fold.u.parts  [%| 'request fold needs unsupported inference']
+  ?^  scry.path.p  [%| 'request scry needs unsupported inference']
+  ?.  ?=([* ~] marks.support)  [%| 'request marks need unsupported inference']
+  ?^  (itype-vars reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
+  ?:  (itype-has-tag reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
+  =/  ask=(unit ischeme)  (request-compatible-ask prepared.ev)
+  ?~  ask  [%| 'request ask needs unsupported inference']
+  =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
+  ?~  result  [%| 'request ask needs unsupported inference']
+  =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
+  =/  scheme=ischeme  [[%fn callback u.result] ~[0]]
+  =/  mark=iapi-mark-type  i.marks.support
+  =/  prelude=iprelude  prepared.ev
+  =/  public=ifile  iface.prelude
+  ?~  source.public  [%| 'request prelude source needs unsupported inference']
+  =/  private=(list iwidth-dependency)
+    (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
+  ?.  ?=([* ~] private)  [%| 'request internal source needs unsupported inference']
+  ?~  source.i.private  [%| 'request internal source needs unsupported inference']
+  =/  req=irequest-evidence
+    [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
+  =/  interface=ifile  [~[[name.path.p scheme]] ~[[name.mark [typ.mark ~]]] file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
+  [%& [support u.parts interface]]
+::  Graph-aware request artifact; resolver use remains type-only.
+++  one-request-interface-graph
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
+  ^-  (each ione-request-interface @t)
+  =/  out  (api-support-analysis-graph file src externals marks modules active cache prepared)
+  ?:  ?=(%| -.out)  [%| p.out]
+  =/  support=iapi-support-evidence  p.out
+  =/  ev=iapi-path-evidence  paths.support
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
+  =/  mod=module  p.parsed
+  ?.  ?=([[%mark *] ~] imports.mod)  [%| 'request imports need unsupported inference']
+  ?.  ?=([[%mold *] ~] defs.mod)  [%| 'request definitions need unsupported inference']
+  ?.  =(%paths name.i.defs.mod)  [%| 'request declaration needs unsupported inference']
+  ?.  ?=([* ~] paths.ev)  [%| 'request count needs unsupported inference']
+  =/  p=iapi-path-typed  i.paths.ev
+  =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
+  ?~  parts  [%| 'request components need unsupported inference']
+  ?^  parameters.u.parts  [%| 'request parameters need unsupported inference']
+  ?^  fold.u.parts  [%| 'request fold needs unsupported inference']
+  ?^  scry.path.p  [%| 'request scry needs unsupported inference']
+  ?.  ?=([* ~] marks.support)  [%| 'request marks need unsupported inference']
+  ?^  (itype-vars reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
+  ?:  (itype-has-tag reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
+  =/  ask=(unit ischeme)  (request-compatible-ask prepared.ev)
+  ?~  ask  [%| 'request ask needs unsupported inference']
+  =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
+  ?~  result  [%| 'request ask needs unsupported inference']
+  =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
+  =/  scheme=ischeme  [[%fn callback u.result] ~[0]]
+  =/  mark=iapi-mark-type  i.marks.support
+  =/  prelude=iprelude  prepared.ev
+  =/  public=ifile  iface.prelude
+  ?~  source.public  [%| 'request prelude source needs unsupported inference']
+  =/  private=(list iwidth-dependency)
+    (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
+  ?.  ?=([* ~] private)  [%| 'request internal source needs unsupported inference']
+  ?~  source.i.private  [%| 'request internal source needs unsupported inference']
+  =/  req=irequest-evidence
+    [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
+  =/  interface=ifile  [~[[name.path.p scheme]] ~[[name.mark [typ.mark ~]]] file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
+  [%& [support u.parts interface]]
 ::
 ++  api-mark-exports
   |=  [marks=(list term) all=(list term) externals=imark-externals]
@@ -10687,7 +10969,7 @@
   =/  mark=(unit itype)  (find-imported-mark n mark-externals marks)
   ?~  mark  ~
   =/  sc=ischeme  [[%fn u.mark typ.u.poke] ~]
-  `[~[[n sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]] ~ ~ ~]
+  `[~[[n sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]] ~ ~ ~ ~]
 ::
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
@@ -10699,9 +10981,16 @@
   ?^  duplicate  [%| (show-duplicate-fields at src u.duplicate)]
   ?:  ?=([%ui %api *] at)
     =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
-    ?~  iface  [%| (crip "API module needs unsupported inference: {(spud at)}")]
-    =/  checked=ifile  u.iface(source `src)
-    [%& [checked [[at checked] cache]]]
+    ?^  iface
+      =/  checked=ifile  u.iface(source `src, graph `[(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals])
+      [%& [checked [[at checked] cache]]]
+    ?~  prelude  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+    =/  prepared=iprelude  [u.prelude prelude-values prelude-molds]
+    =/  request=(each ione-request-interface @t)
+      (one-request-interface-graph at src externals mark-externals modules active cache `prepared)
+    ?:  ?=(%| -.request)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+    =/  checked=ifile  iface.p.request
+    [%& [checked [[at checked] dependencies.paths.support.p.request]]]
   ?.  (module-scope-valid mod prelude-values prelude-molds)
     ?:  (pending-declared-poke at mod prelude-values prelude-molds)
       [%| (crip "module kind or scope needs unsupported inference: {(spud at)}")]
@@ -10724,7 +11013,10 @@
   =/  env=ienv  env.resolution
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
-  =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src]
+  =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals]
+  =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
+  ?~  graph  [%| 'module request evidence needs unsupported inference']
+  =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph]
   [%& [iface [[at iface] cache.p.js]]]
 ::
 ::  +golden-types-with-modules fails closed for imports without prelude

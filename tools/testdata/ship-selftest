@@ -309,7 +309,8 @@ def generator_checks(tmp):
            'tests/lib/jibb-positional-face-guards.hoon',
            'tests/lib/jibb-generic-alias.hoon',
            'tests/lib/jibb-api-evidence.hoon',
-           'tests/lib/jibb-ask-guards.hoon'}
+           'tests/lib/jibb-ask-guards.hoon',
+           'tests/lib/jibb-request-guards.hoon'}
           <= normal_tests, sorted(normal_tests))
     for label, kwargs in (('custom library', {'lib': STUB}),
                           ('custom goldens', {'golden': CASES}),

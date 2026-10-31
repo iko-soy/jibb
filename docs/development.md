@@ -74,6 +74,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-positional-face-guards-test` | Runs positional-call and nested-face guards under eval and on the ship |
 | `tools/type-qath-guards-test` | Runs source-provenance, recursive unfolding and face guards under eval and on the ship |
 | `tools/type-ask-guards-test` | Runs ask origin and canonical list/unit bootstrap guards under eval and on the ship |
+| `tools/type-request-guards-test` | Runs request evidence, source consistency and cache provenance guards under eval and on the ship |
 | `tools/type-proj-guards-test` | Runs projection evidence, name-scope and dependency guards under eval and on the ship |
 | `tools/type-arithmetic-guards-test` | Runs restricted atom-variable, unification and projection guards under eval and on the ship |
 | `tools/type-module-scope-test` | Checks the partial module checker’s prelude boundary and duplicate-source rejection against `tests/type-module-scope/expected.txt` under eval |
@@ -106,6 +107,7 @@ tools/type-generic-alias-test      # generic union alias guards pass
 tools/type-positional-face-guards-test # positional sample face guards pass
 tools/type-qath-guards-test         # qath source and unfolding guards pass
 tools/type-ask-guards-test          # ask source and bootstrap guards pass
+tools/type-request-guards-test      # request evidence and cache guards pass
 tools/type-proj-guards-test         # projection evidence and scope guards pass
 tools/type-arithmetic-guards-test   # arithmetic constraint guards pass
 tools/type-module-scope-test       # module/prelude scope golden report matches
