@@ -14,7 +14,10 @@ forks stay unsupported. A structurally unit-like import does not gain unit
 construction even when a canonical prelude unit is supplied; constructing
 that canonical unit succeeds. It covers matching and
 mismatched collections, nested union arguments, and malformed collection names
-and arities. Jibb-written collection molds remain unsupported.
+and arities. An imported `*` can widen a value, while malformed nouns,
+overlapping direct or nested union cases, and unknown gate or empty cases
+stay unsupported. Distinct tagged cases with a noun payload remain disjoint.
+Jibb-written collection molds remain unsupported.
 
 A self-recursive /sur mold is an opaque module/name identity. Distinct names
 or modules conflict; aliases, foreign references, unfolding and out-of-scope

@@ -110,3 +110,11 @@ partial inference; module not checked
 partial inference; module not checked
 ++ canonical: (unit @t)
 ++ lookalike: cast constraint is not supported by partial inference
+noun: *
+malformed: unsupported
+noun-atom: unsupported
+noun-cell: unsupported
+nested-overlap: unsupported
+separate-tags: [%a *] [%b @ud]
+unknown-gate: unsupported
+unknown-empty: unsupported

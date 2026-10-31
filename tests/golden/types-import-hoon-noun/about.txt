@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: `*` imports as any noun; Grammar, Molds: a typed value fits `*` but the reverse requires a check.
+tests: A real compiled `/sur` imports `*` directly and in a faced record; typed values widen; narrowing a noun to a cord remains unsupported. An imported tagged union with a noun payload and an overlapping noun union remain unsupported in the partial bridge.
+expect: parses
+expect-types: a partial inference report

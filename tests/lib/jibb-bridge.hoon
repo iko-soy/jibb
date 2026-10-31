@@ -17,6 +17,25 @@
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"import bridge output differs from tests/type-import/expected.txt"]
   ~
+++  noun-synthetic
+  ^-  @t
+  =/  tests=(list [name=@t val=*])
+    :~  ['noun' [%noun ~]]
+        ['malformed' [%noun 1]]
+        ['noun-atom' [%fork ~[[%noun ~] [%atom %ud ~]]]]
+        ['noun-cell' [%fork ~[[%noun ~] [%cell [%atom %t ~] [%atom %ud ~]]]]]
+        ['nested-overlap' [%fork ~[[%cell [%atom %tas `0] [%noun ~]] [%cell [%atom %tas `0] [%atom %ud ~]]]]]
+        ['separate-tags' [%fork ~[[%cell [%atom %tas `%a] [%noun ~]] [%cell [%atom %tas `%b] [%atom %ud ~]]]]]
+        ['unknown-gate' [%fork ~[[%noun ~] [%gate ~]]]]
+        ['unknown-empty' [%fork ~[[%noun ~] [%void ~]]]]
+    ==
+  =/  out=wall
+    %+  turn  tests
+    |=  t=[name=@t val=*]
+    =/  got=(unit itype:jibb)  (import-to-itype:jibb val.t)
+    "{(trip name.t)}: {?~(got "unsupported" (show-itype:jibb u.got ~))}"
+  (of-wain:format (turn out |=(line=tape (crip line))))
+::
 ++  bridge-output
   |=  [sur-text=@t src=@t]
   ^-  @t
@@ -90,5 +109,5 @@
     (crip "/- fixture\0a++ canonical ^- (unit @t) `\"hi\"\0a++ lookalike ^- zero-lookalike.fixture `\"hi\"\0a")
   =/  unit-report=@t
     (golden-types-with-prelude:jibb /ui/unit-client/jibb unit-client external ~ ~ unit-prelude)
-  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' unit-report))))
+  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' noun-synthetic))))))
 --

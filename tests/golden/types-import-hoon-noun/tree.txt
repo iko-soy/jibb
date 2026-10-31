@@ -1,0 +1,28 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 direct
+    (gate 2:11
+      (face 2:14 x (ref 2:16 any.fixture))
+      (wing 2:28 x)))
+  (value 3:1 payload
+    (gate 3:12
+      (face 3:15 x (ref 3:17 payload.fixture))
+      (wing 3:33 x)))
+  (value 4:1 widen
+    (cast 4:10 (ref 4:13 any.fixture) (str 4:25 "hello")))
+  (value 5:1 nested
+    (cast 5:11
+      (ref 5:14 payload.fixture)
+      (tuple 5:30 (str 5:31 "hello") (lit 5:39 7))))
+  (value 6:1 narrow
+    (gate 6:11
+      (face 6:14 x (ref 6:16 any.fixture))
+      (cast 6:28 (aura 6:31 @t) (wing 6:34 x))))
+  (value 7:1 option
+    (gate 7:11
+      (face 7:14 x (ref 7:16 option.fixture))
+      (wing 7:31 x)))
+  (value 8:1 overlap
+    (gate 8:12
+      (face 8:15 x (ref 8:17 overlap.fixture))
+      (wing 8:33 x))))

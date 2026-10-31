@@ -5603,6 +5603,7 @@
   ^-  (unit itype)
   ?@  node  ~
   ?+  -.node  ~
+    %noun  ?:(=(node [%noun ~]) `[%noun ~] ~)
     %atom
       ::  A Hoon loobean singleton is one of the two Jibb loobeans.
       ?:  ?=([%atom %f [~ @]] node)
@@ -5692,6 +5693,7 @@
   |=  typ=itype
   ^-  upat
   ?-  -.typ
+    %noun   [%all ~]
     %atom   [%atom ~]
     %flag   [%or ~[[%atom `0] [%atom `1]]]
     %const  [%atom `val.literal.typ]

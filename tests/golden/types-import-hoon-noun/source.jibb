@@ -1,0 +1,8 @@
+/- fixture
+++ direct |= x=any.fixture x
+++ payload |= x=payload.fixture x
+++ widen ^- any.fixture "hello"
+++ nested ^- payload.fixture ["hello" 7]
+++ narrow |= x=any.fixture ^- @t x
+++ option |= x=option.fixture x
+++ overlap |= x=overlap.fixture x
