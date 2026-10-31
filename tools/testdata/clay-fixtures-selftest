@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""Exercise Clay fixture scratch-desk cleanup without contacting a ship."""
+
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+# Both the normal and copied scratch `ship` are this fake.  It emits the
+# checked-in reports, records each operation, and injects one chosen failure.
+FAKE_SHIP = r'''#!/usr/bin/env python3
+import json, os, pathlib, signal, sys
+here = pathlib.Path(__file__).resolve()
+args = sys.argv[1:]
+scratch = 'jibb-clay-tlon-' in str(here)
+kind = ('scratch-sync' if scratch else 'normal-sync') if args[0] == 'sync' else pathlib.Path(args[1]).name
+with open(os.environ['JIBB_CLAY_TEST_LOG'], 'a') as out:
+    out.write(json.dumps({'kind': kind, 'ship': str(here),
+                          'probe': (here.parents[1] / 'my-app/sur/mop-tlon-probe.hoon').exists()}) + '\n')
+scenario = os.environ['JIBB_CLAY_TEST_SCENARIO']
+if scratch and args[0] == 'sync':
+    assert (here.parents[1] / 'my-app/sur/mop-tlon-probe.hoon').read_bytes() == pathlib.Path(os.environ['JIBB_CLAY_TEST_NOTES']).read_bytes()
+    if scenario == 'sync-failure':
+        sys.exit(7)
+if kind == 'tlon-mop.txt':
+    if scenario == 'thread-failure':
+        sys.exit(9)
+    if scenario in ('interrupt', 'interrupt-int'):
+        os.kill(os.getppid(), signal.SIGTERM if scenario == 'interrupt' else signal.SIGINT)
+    if scenario == 'mismatch':
+        sys.stdout.write('wrong report\n')
+        sys.exit(0)
+if kind == 'normal-sync':
+    with open(os.environ['JIBB_CLAY_TEST_LOG']) as log:
+        n = sum(json.loads(line)['kind'] == 'normal-sync' for line in log)
+    if n == 2 and scenario == 'restore-failure':
+        sys.exit(11)
+    if n == 2 and scenario in ('restore-interrupt', 'restore-interrupt-int'):
+        os.kill(os.getppid(), signal.SIGTERM if scenario == 'restore-interrupt' else signal.SIGINT)
+if args[0] == 'run':
+    name = pathlib.Path(args[1]).name
+    if name == 'import.hoon':
+        name = 'import.txt'
+    expected = 'expected.txt' if name == 'build.txt' else name.replace('.txt', '-expected.txt')
+    sys.stdout.buffer.write((pathlib.Path(os.environ['JIBB_CLAY_TEST_FIXTURES']) / expected).read_bytes())
+'''
+
+
+def exercise(scenario):
+    with tempfile.TemporaryDirectory(prefix='jibb-clay-selftest-') as tmp:
+        root = Path(tmp)
+        (root / 'tools').mkdir()
+        (root / 'my-app/sur').mkdir(parents=True)
+        (root / 'my-app/sur/keep.hoon').write_text('original\n')
+        shutil.copy2(ROOT / 'tools/clay-fixtures', root / 'tools/clay-fixtures')
+        shutil.copy2(ROOT / 'tools/golden_case.py', root / 'tools/golden_case.py')
+        fake = root / 'tools/ship'
+        fake.write_text(FAKE_SHIP)
+        fake.chmod(0o755)
+        for name in ('vendor', 'jibb-dev', 'tests'):
+            (root / name).symlink_to(ROOT / name, target_is_directory=True)
+        log = root / 'calls.jsonl'
+        env = dict(os.environ, JIBB_CLAY_TEST_LOG=str(log),
+                   JIBB_CLAY_TEST_SCENARIO=scenario,
+                   JIBB_CLAY_TEST_FIXTURES=str(ROOT / 'tests/clay-fixtures'),
+                   JIBB_CLAY_TEST_NOTES=str(ROOT / 'tests/golden/types-import-tlon-notes/sur/notes.txt'))
+        result = subprocess.run([sys.executable, str(root / 'tools/clay-fixtures')],
+                                env=env, capture_output=True, text=True, timeout=30)
+        events = [json.loads(line) for line in log.read_text().splitlines()]
+        kinds = [e['kind'] for e in events]
+        assert kinds.count('scratch-sync') == 1, (scenario, kinds, result.stderr)
+        assert kinds.count('normal-sync') == 2, (scenario, kinds, result.stderr)
+        scratch = kinds.index('scratch-sync')
+        restore = [i for i, kind in enumerate(kinds) if kind == 'normal-sync'][1]
+        assert scratch < restore, (scenario, kinds)
+        assert events[scratch]['probe'] and not events[restore]['probe'], scenario
+        assert not Path(events[scratch]['ship']).exists(), scenario
+        assert (root / 'my-app/sur/keep.hoon').read_text() == 'original\n', scenario
+        assert not (root / 'my-app/sur/mop-tlon-probe.hoon').exists(), scenario
+        if scenario in ('success', 'restore-interrupt', 'restore-interrupt-int'):
+            assert result.returncode == 0, (scenario, result.stderr)
+            assert 'Clay Tlon named-mold mop importer golden passed' in result.stdout
+            assert 'mark-bridge.txt' in kinds
+        else:
+            assert result.returncode != 0, scenario
+            assert 'mark-bridge.txt' not in kinds
+        if scenario == 'sync-failure':
+            assert 'tlon-mop.txt' not in kinds
+        else:
+            assert scratch < kinds.index('tlon-mop.txt') < restore
+        print('ok   ', scenario)
+
+
+def main():
+    for scenario in ('success', 'sync-failure', 'thread-failure', 'mismatch',
+                     'interrupt', 'interrupt-int', 'restore-failure',
+                     'restore-interrupt', 'restore-interrupt-int'):
+        exercise(scenario)
+    print('PASS: 9 scratch-desk cleanup checks')
+
+
+if __name__ == '__main__':
+    main()

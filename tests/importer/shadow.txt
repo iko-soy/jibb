@@ -5,6 +5,9 @@
 ++  jug  |$([key value] (map key (set value)))
 +|  %defs
 +$  mm  ((mop @ud @t) lte)
++$  key  @ud
++$  val  @t
++$  mmw  ((mop key val) lte)
 +$  mn  [table=((mop @ud @t) lte) other=@ud]
 +$  aa  (jar @ud @t)
 +$  bb  [field=(jug @ud @t)]

@@ -1,0 +1,19 @@
+partial inference; module not checked
+++ all-text: ?
+++ all-ship: ?
+++ any-text: ?
+++ any-ship: ?
+++ bad-all: call's sample and argument types do not unify
+/tests/golden/types-prelude-predicates/source.jibb:5:13: called gate has type $-([(list @t) $-(@t ?)] ?)
+++ bad-all (levy ~["a"] |=(x=@p %.y))
+            ^
+/tests/golden/types-prelude-predicates/source.jibb:5:25: argument has type $-(@p ?)
+++ bad-all (levy ~["a"] |=(x=@p %.y))
+                        ^
+++ bad-any: call's sample and argument types do not unify
+/tests/golden/types-prelude-predicates/source.jibb:6:13: called gate has type $-([(list @p) $-(@p ?)] ?)
+++ bad-any (lien ~[~zod] |=(x=@t %.y))
+            ^
+/tests/golden/types-prelude-predicates/source.jibb:6:26: argument has type $-(@t ?)
+++ bad-any (lien ~[~zod] |=(x=@t %.y))
+                         ^

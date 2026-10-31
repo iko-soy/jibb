@@ -1,0 +1,83 @@
+++ choose |= [flag=? item=@t] ^- ?
+  ?- flag
+    %.y %.y
+    %.n %.n
+++ list-check |= xs=(list @t) ^- ?
+  ?- xs
+    ~ %.y
+    [item rest] %.n
+++ arg-check |= args=[(list @t) $-(@t ?)] ^- ?
+  ?- args
+    [xs predicate]
+      ?- xs
+        ~ %.y
+        [item rest]
+          ?- (predicate item)
+            %.y %.y
+            %.n %.n
+++ wrong-result |= flag=? ^- ?
+  ?- flag
+    %.y "bad"
+    %.n %.n
+++ open-tag |= flag=? ^- ?
+  ~& %dangling
+    ?- flag
+      %.y %.y
+      %.n %.n
+++ open-null |= flag=? ^- ?
+  ~& ~
+    ?- flag
+      %.y %.y
+      %.n %.n
+++ repeated-arm |= flag=? ^- ?
+  ?- flag
+    %.y %.y
+    %.y %.n
+++ incomplete |= flag=? ^- ?
+  ?- flag
+    %.y %.y
+++ list-missing |= xs=(list @t) ^- ?
+  ?- xs
+    ~ %.y
+++ list-shadow |= xs=(list @t) ^- ?
+  ?- xs
+    ~ %.y
+    [same rest] %.n
+++ cell-shadow |= pair=[@t @p] ^- ?
+  ?- pair
+    [same b] %.y
+++ capital |= [a=A b=A] ^- ?
+  ?- [a b]
+    [x y] ~& ^- @t x
+      %.y
++$ choice
+  %left
+  %right
+++ known-union |= a=choice ^- ?
+  ?- a
+    %left %.y
+    %right %.n
+++ bad-union |= a=choice ^- ?
+  ?- a
+    %left %.y
+    %right "wrong"
+++ reversed |= xs=(list @t) ^- ?
+  ?- xs
+    [item rest] %.n
+    ~ %.y
+++ unit-test |= maybe=(unit @t) ^- ?
+  ?- maybe
+    [~ x] %.y
+    ~ %.n
+++ wrong-subject |= x=@t ^- ?
+  ?- x
+    ~ %.n
+    [item rest] %.y
+++ duplicate-binder |= pair=[@t @p] ^- ?
+  ?- pair
+    [x x] %.y
+++ shared |= [a=A b=A] ^- ?
+  ?- [a b]
+    [x y]
+      ~& ^- A x
+        %.y

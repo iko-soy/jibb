@@ -2,6 +2,8 @@
 """Build and inspect example /sur and mark fixtures through Clay."""
 
 from pathlib import Path
+import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -141,6 +143,47 @@ if result.stdout != expected:
     print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
     sys.exit(1)
 print('Clay nested Ford union importer/checker bridge golden passed')
+
+# Build the real Tlon source in a temporary desk assembly.  It lives in the
+# golden corpus rather than an app desk; the normal desk is restored even if
+# the temporary sync, thread, or comparison fails.
+def stop_for_signal(signum, frame):
+    raise InterruptedError('interrupted during temporary Clay fixture')
+
+previous = signal.signal(signal.SIGTERM, stop_for_signal)
+previous_int = signal.getsignal(signal.SIGINT)
+try:
+    with tempfile.TemporaryDirectory(prefix='jibb-clay-tlon-') as tmp:
+        scratch = Path(tmp)
+        (scratch / 'tools').mkdir()
+        shutil.copy2(ship, scratch / 'tools/ship')
+        shutil.copy2(root / 'tools/golden_case.py', scratch / 'tools/golden_case.py')
+        for folder in ('vendor', 'jibb-dev', 'tests'):
+            (scratch / folder).symlink_to(root / folder, target_is_directory=True)
+        shutil.copytree(root / 'my-app', scratch / 'my-app')
+        shutil.copy2(root / 'tests/golden/types-import-tlon-notes/sur/notes.txt',
+                     scratch / 'my-app/sur/mop-tlon-probe.hoon')
+        try:
+            subprocess.run([sys.executable, str(scratch / 'tools/ship'),
+                            'sync', 'my-app'], check=True)
+            result = subprocess.run([str(ship), 'run', str(fixtures / 'tlon-mop.txt')],
+                                    stdout=subprocess.PIPE, check=True)
+            expected = (fixtures / 'tlon-mop-expected.txt').read_bytes()
+            if result.stdout != expected:
+                print('Clay Tlon mop import differs from tests/clay-fixtures/tlon-mop-expected.txt',
+                      file=sys.stderr)
+                print('expected:', expected.decode().rstrip(), file=sys.stderr)
+                print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
+                raise SystemExit(1)
+        finally:
+            # A second termination request must not interrupt desk restoration.
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            subprocess.run([str(ship), 'sync', 'my-app'], check=True)
+finally:
+    signal.signal(signal.SIGTERM, previous)
+    signal.signal(signal.SIGINT, previous_int)
+print('Clay Tlon named-mold mop importer golden passed')
 
 try:
     result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-shape.txt')],

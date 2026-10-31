@@ -1,0 +1,6 @@
+++ all-text (levy ~["a" "b"] |=(x=@t %.y))
+++ all-ship (levy ~[~zod] |=(x=@p %.n))
+++ any-text (lien ~["a"] |=(x=@t %.n))
+++ any-ship (lien ~[~zod] |=(x=@p %.y))
+++ bad-all (levy ~["a"] |=(x=@p %.y))
+++ bad-any (lien ~[~zod] |=(x=@t %.y))

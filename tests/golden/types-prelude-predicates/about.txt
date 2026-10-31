@@ -1,0 +1,4 @@
+source: Overview, Prelude: the Hoon 2b list gates are written in Jibb and retain their ordinary behavior.
+tests: The source-backed `levy` and `lien` infer when applied independently to cord and ship lists. A predicate whose sample differs from the list element is rejected; the module report remains partial and runtime validation is outstanding.
+expect: parses
+expect-types: a partial inference report

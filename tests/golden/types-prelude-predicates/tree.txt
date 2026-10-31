@@ -1,0 +1,49 @@
+(module
+  (value 1:1 all-text
+    (group 1:13
+      (call 1:14
+        (wing 1:14 levy)
+        (list 1:19 (str 1:21 "a") (str 1:25 "b"))
+        (gate-wide 1:30
+          (face 1:33 x (aura 1:35 @t))
+          (lit 1:38 %.y)))))
+  (value 2:1 all-ship
+    (group 2:13
+      (call 2:14
+        (wing 2:14 levy)
+        (list 2:19 (lit 2:21 ~zod))
+        (gate-wide 2:27
+          (face 2:30 x (aura 2:32 @p))
+          (lit 2:35 %.n)))))
+  (value 3:1 any-text
+    (group 3:13
+      (call 3:14
+        (wing 3:14 lien)
+        (list 3:19 (str 3:21 "a"))
+        (gate-wide 3:26
+          (face 3:29 x (aura 3:31 @t))
+          (lit 3:34 %.n)))))
+  (value 4:1 any-ship
+    (group 4:13
+      (call 4:14
+        (wing 4:14 lien)
+        (list 4:19 (lit 4:21 ~zod))
+        (gate-wide 4:27
+          (face 4:30 x (aura 4:32 @p))
+          (lit 4:35 %.y)))))
+  (value 5:1 bad-all
+    (group 5:12
+      (call 5:13
+        (wing 5:13 levy)
+        (list 5:18 (str 5:20 "a"))
+        (gate-wide 5:25
+          (face 5:28 x (aura 5:30 @p))
+          (lit 5:33 %.y)))))
+  (value 6:1 bad-any
+    (group 6:12
+      (call 6:13
+        (wing 6:13 lien)
+        (list 6:18 (lit 6:20 ~zod))
+        (gate-wide 6:26
+          (face 6:29 x (aura 6:31 @t))
+          (lit 6:34 %.y))))))

@@ -74,6 +74,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
 | `tools/testdata/selftest` | Tests `tools/golden` and `tools/hoon` against a stub library, and `tools/doc-blocks` against Markdown it writes |
 | `tools/testdata/ship-selftest` | Tests `tools/ship`'s test generator and runner against a stub library on the ship |
+| `tools/testdata/clay-fixtures-selftest` | Tests temporary Clay fixture cleanup and signal handling without a ship |
 
 `tools/golden` starts `urbit eval` once and builds the library, which takes about 8 s, then runs every case under `mule`, so a crash fails only its own case.
 
@@ -96,8 +97,9 @@ tools/doc-blocks docs/spec         # every jibb block has its case
 tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date
 tools/ship test                    # the cases pass as -test arms on the ship
 tools/testdata/ship-selftest       # when tools/ship changed
+tools/testdata/clay-fixtures-selftest  # scratch fixture cleanup without a ship
 tools/ship check-commit            # when the mark or the desks changed
-tools/clay-fixtures                # when the my-app Hoon fixtures or importer changed
+tools/clay-fixtures                # builds example fixtures and real Tlon notes through Clay
 ```
 
 `tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. Sync preflights and splits large deletion lists into bounded click requests, waiting for each Clay revision; a failure stops later batches. The ship self-test exercises this when switching from the full desk to a smaller fixture desk. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval. `tests/lib/jibb-tlon-bridge.hoon` and `tools/type-tlon-test` run the real Tlon presence reader/checker fixture on both. The structured reader diagnostics have their own `tests/lib/jibb-import-diagnostic.hoon` ship test and `tools/type-import-diagnostic-test` eval test. The mark bridge has its own `tests/lib/jibb-mark-bridge.hoon` ship test and `tools/type-mark-test` eval test; both compare the same fixture report. `tests/lib/jibb-poke-bridge.hoon` and `tools/type-poke-test` share the source-backed prelude and poke-only API fixture. `tests/lib/jibb-api-paths.hoon` and `tools/type-api-paths-test` share partial path analysis over the real todo marks; this does not generate request interfaces. `tests/lib/jibb-module-scope.hoon` and `tools/type-module-scope-test` compare the prelude scope report on the ship and under eval.

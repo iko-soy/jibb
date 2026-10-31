@@ -1,0 +1,33 @@
+partial inference; module not checked
+++ choose: $-([flag=? item=@t] ?)
+++ list-check: $-((list @t) ?)
+++ arg-check: $-([(list @t) $-(@t ?)] ?)
+++ wrong-result: branch arm does not fit its expected loobean
+/tests/golden/types-flag-branch-context/source.jibb:18:30: expected loobean
+++ wrong-result |= flag=? ^- ?
+                             ^
+/tests/golden/types-flag-branch-context/source.jibb:20:9: branch arm
+    %.y "bad"
+        ^
+++ open-tag: tag needs context in partial inference
+++ open-null: `~` needs context in partial inference
+++ repeated-arm: branch does not cover both loobeans
+++ incomplete: branch pattern is not supported by partial inference
+++ list-missing: branch pattern is not supported by partial inference
+++ list-shadow: pattern binder shadows a name
+++ cell-shadow: pattern shadows a name
+++ capital: explicit capital constraints are not supported by partial inference
++$ choice: cases proven disjoint; mold not checked
+++ known-union: $-(choice ?)
+++ bad-union: union branch arm does not fit its expected type
+/tests/golden/types-flag-branch-context/source.jibb:60:29: expected type
+++ bad-union |= a=choice ^- ?
+                            ^
+/tests/golden/types-flag-branch-context/source.jibb:63:12: branch arm
+    %right "wrong"
+           ^
+++ reversed: $-((list @t) ?)
+++ unit-test: $-((unit @t) ?)
+++ wrong-subject: unit branch pattern is not supported by partial inference
+++ duplicate-binder: pattern shadows a name
+++ shared: $-([a=A b=A] ?)

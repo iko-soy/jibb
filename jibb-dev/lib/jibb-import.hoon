@@ -90,19 +90,29 @@
   ?:  ?=([%dbug * *] raw)  `+.+.raw
   ~
 ::
+::  Bound metadata work separately from semantic source-node visits.
+++  source-unwrap
+  |=  [raw=* left=@ud]
+  ^-  (unit *)
+  =/  wrapper=(unit *)  (source-gist-tail raw)
+  ?~  wrapper  `raw
+  ?:  =(left 0)  ~
+  $(raw u.wrapper, left (dec left))
+::
 ++  tagged-term
   |=  leaf=spec
   ^-  (unit @)
-  =/  gist=(unit *)  (source-gist-tail leaf)
-  ?^  gist  $(leaf ;;(spec u.gist))
-  ?.  ?=([%leaf %tas @] leaf)  ~
-  `q.leaf
+  =/  plain=(unit *)  (source-unwrap leaf 4)
+  ?~  plain  ~
+  ?.  ?=([%leaf %tas @] u.plain)  ~
+  `+.+.u.plain
 ::
 ++  tagged-head
   |=  branch=spec
   ^-  (unit @)
-  =/  gist=(unit *)  (source-gist-tail branch)
-  ?^  gist  $(branch ;;(spec u.gist))
+  =/  plain=(unit *)  (source-unwrap branch 4)
+  ?~  plain  ~
+  =.  branch  ;;(spec u.plain)
   ?+  branch  ~
     [%bccl *]
       ?~  t.p.branch  ~
@@ -131,15 +141,22 @@
   ?:  ?=([%dbug * *] raw)  `+.+.raw
   ~
 ::
+++  source-note-unwrap
+  |=  [raw=* left=@ud]
+  ^-  (unit *)
+  =/  wrapper=(unit *)  (source-note-tail raw)
+  ?~  wrapper  `raw
+  ?:  =(left 0)  ~
+  $(raw u.wrapper, left (dec left))
+::
 ++  tagged-source-code
   |=  [code=hoon name=term]
   ^-  (unit (list tagged-case))
   =/  found=(unit spec)  (local-mold-spec code name)
   ?~  found  ~
-  =/  body=spec  u.found
-  |-
-  =/  gist=(unit *)  (source-gist-tail body)
-  ?^  gist  $(body ;;(spec u.gist))
+  =/  plain=(unit *)  (source-unwrap u.found 4)
+  ?~  plain  ~
+  =/  body=spec  ;;(spec u.plain)
   ?.  ?=([%bccn *] body)  ~
   =/  cases=(list spec)  p.body
   ?~  cases  ~
@@ -165,8 +182,9 @@
 ++  local-mold-spec
   |=  [code=hoon name=term]
   ^-  (unit spec)
-  =/  note=(unit *)  (source-note-tail code)
-  ?^  note  $(code ;;(hoon u.note))
+  =/  plain=(unit *)  (source-note-unwrap code 4)
+  ?~  plain  ~
+  =.  code  ;;(hoon u.plain)
   ?+  code  ~
     [%ktcl *]
       ?.  ?=([%name * *] p.code)  ~
@@ -179,9 +197,10 @@
   ^-  (unit @ud)
   ?~  cases  `fuel
   ?:  =(fuel 0)  ~
-  ?.  ?=([%leaf %tas @] i.cases)  ~
-  ?:  (lien seen |=(n=@ =(n q.i.cases)))  ~
-  $(cases t.cases, seen [q.i.cases seen], fuel (dec fuel))
+  =/  tag=(unit @)  (tagged-term i.cases)
+  ?~  tag  ~
+  ?:  (lien seen |=(n=@ =(n u.tag)))  ~
+  $(cases t.cases, seen [u.tag seen], fuel (dec fuel))
 ::
 ++  safe-source-specs-mode
   |=  [xs=(list spec) cor=type seen=(list term) fuel=@ud allow-nested=?]
@@ -208,10 +227,11 @@
 ++  safe-source-spec-mode
   |=  [shape=spec cor=type seen=(list term) fuel=@ud allow-nested=?]
   ^-  (unit @ud)
+  =/  plain=(unit *)  (source-unwrap shape 4)
+  ?~  plain  ~
+  =.  shape  ;;(spec u.plain)
   ?:  =(fuel 0)  ~
   =.  fuel  (dec fuel)
-  =/  gist=(unit *)  (source-gist-tail shape)
-  ?^  gist  $(shape ;;(spec u.gist))
   ?+  shape  ~
     [%base *]  ?:(|(?=([%atom *] p.shape) =(%flag p.shape) =(%null p.shape)) `fuel ~)
     [%leaf *]  `fuel
@@ -234,8 +254,9 @@
       ?.  ?=(~ q.shape)  ~
       (safe-source-name-mode i.p.shape cor seen fuel allow-nested)
     [%make *]
-      ?.  ?=([%wing [@ ~]] p.shape)  ~
-      =/  n=term  i.p.p.shape
+      =/  wing=(unit term)  (source-single-wing p.shape)
+      ?~  wing  ~
+      =/  n=term  u.wing
       ?.  (lien `(list term)`~[%map %set %qeu %list %unit %jar %jug] |=(x=term =(x n)))  ~
       ?.  (scope-safe cor n)  ~
       (safe-source-specs-mode q.shape cor seen fuel allow-nested)
@@ -991,17 +1012,46 @@
   ?@  src  |
   |($(src -.src) $(src +.src))
 ::
+::  Clay can wrap each call component in source-location metadata.
+::  Peel only those wrappers; malformed casts are trapped by +mop-specs.
+++  mop-source-code
+  |=  code=hoon
+  ^-  hoon
+  =/  plain=(unit *)  (source-unwrap code 4)
+  ?~  plain  !!
+  ;;(hoon u.plain)
+::
+++  source-single-wing
+  |=  raw=*
+  ^-  (unit term)
+  =/  plain=(unit *)  (source-unwrap raw 4)
+  ?~  plain  ~
+  ?.  ?=([%wing [@ ~]] u.plain)  ~
+  `;;(term -.+.u.plain)
+::
 ++  mop-specs-raw
   |=  body=hoon
   ^-  (unit [key=spec value=spec])
+  =.  body  (mop-source-code body)
   ?.  ?=([%cncl *] body)  ~
   ?.  ?=([%tsgr *] p.body)  ~
-  =/  b=hoon  q.p.body
+  =/  b=hoon  (mop-source-code q.p.body)
   ?.  ?=([%cncl *] b)  ~
-  ?.  ?=([%cncl *] p.b)  ~
-  ?.  ?=([%wing *] p.p.b)  ~
-  ?.  =(p.p.p.b ~[%mop])  ~
-  =/  specs=(list spec)  ;;((list spec) q.p.b)
+  =/  call=hoon  (mop-source-code p.b)
+  ?.  ?=([%cncl *] call)  ~
+  =/  w=(unit term)  (source-single-wing p.call)
+  ?~  w  ~
+  ?.  =(u.w %mop)  ~
+  =/  raw=*  q.call
+  =/  wings=(unit [key=spec value=spec])
+    ?.  ?=([* [* ~]] raw)  ~
+    =/  a=(unit term)  (source-single-wing -.raw)
+    =/  b=(unit term)  (source-single-wing -.+.raw)
+    ?~  a  ~
+    ?~  b  ~
+    [~ [[%like ~[u.a] ~] [%like ~[u.b] ~]]]
+  ?^  wings  wings
+  =/  specs=(list spec)  ;;((list spec) raw)
   ?.  ?=([* [* ~]] specs)  ~
   [~ [i.specs i.t.specs]]
 ::
@@ -1298,7 +1348,8 @@
         [%bad 'Hoon collection provenance is unavailable or shadowed']
       =/  mop  (mop-arguments typ)
       ?^  mop
-        [%apply %mop ~[$(typ key.u.mop) $(typ value.u.mop)]]
+        ::  An exact revisit fails closed without guessing a name.
+        [%apply %mop ~[$(typ key.u.mop, seen [[typ ~] seen]) $(typ value.u.mop, seen [[typ ~] seen])]]
       ?:  (source-uses q.typ %mop)
         =/  checked-names=(list term)  ~[%map %set %qeu %list %unit]
         ?:  (lien checked-names |=(n=term &((source-uses q.typ n) !(alias-safe context n))))
@@ -1642,6 +1693,49 @@
   ?:  ?=(%& -.invalid)  "malformed spec accepted"
   "valid wrapper; duplicate and malformed rejected"
 ::
+::  The same named-operand call with Clay-style source-location wrappers.
+++  debug-mop-fixture
+  |=  cor=type
+  ^-  tape
+  =/  typ=type  (~(play ut cor) (ream '*mop-wing-valid'))
+  ?>  ?=([%hold *] typ)
+  =/  original=hoon  q.typ
+  ?>  ?=([%tsls [%note * *] *] original)
+  =/  body=hoon  q.p.original
+  ?>  ?=([%cncl *] body)
+  ?>  ?=([%tsgr *] p.body)
+  =/  b=hoon  q.p.body
+  ?>  ?=([%cncl *] b)
+  =/  call=hoon  p.b
+  ?>  ?=([%cncl *] call)
+  ?>  ?=([* [* ~]] q.call)
+  =/  at=spot  [/tests/importer/synthetic/hoon [[1 1] [1 2]]]
+  =/  inner=hoon  call(p [%dbug at p.call], q ~[[%dbug at i.q.call] [%dbug at i.t.q.call]])
+  =/  outer=hoon  body(p p.body(q b(p [%dbug at inner])))
+  =/  mixed=hoon  body(p p.body(q b(p inner)))
+  =/  multi=hoon  body(p p.body(q b(p call(p [%dbug at [%wing ~[%one %two]]]))))
+  =/  plain=(unit [key=spec value=spec])  (mop-specs body)
+  ?~  plain  "unwrapped mop not recognized"
+  ?.  =((mop-specs [%dbug at outer]) plain)  "wrapped mop not recognized"
+  ?.  =((mop-specs mixed) plain)  "mixed mop not recognized"
+  ?^  (mop-specs multi)  "multi-segment callee accepted"
+  ?^  (mop-specs [%dbug at [%sand %ud 42]])  "malformed call accepted"
+  ?^  (source-single-wing [%dbug at 42])  "malformed wing accepted"
+  ?^  (source-single-wing [%dbug at [%wing ~[%one %two]]])  "multi-segment operand accepted"
+  =/  four=*  [%dbug at [%dbug at [%dbug at [%dbug at [%wing ~[%mop]]]]]]
+  =/  five=*  [%dbug at four]
+  ?~  (source-single-wing four)  "four wrappers rejected"
+  ?^  (source-single-wing five)  "wrapper limit exceeded"
+  ?~  (source-note-unwrap four 4)  "four note wrappers rejected"
+  ?^  (source-note-unwrap five 4)  "note wrapper limit exceeded"
+  =/  selected=(unit hoon)  (local-arm-source cor %tag-valid)
+  ?~  selected  "selected union not found"
+  =/  arm-four=hoon  [%dbug at [%dbug at [%dbug at [%dbug at u.selected]]]]
+  =/  arm-five=hoon  [%dbug at arm-four]
+  ?~  (tagged-source-code arm-four %tag-valid)  "four wrapped selected arms rejected"
+  ?^  (tagged-source-code arm-five %tag-valid)  "selected arm wrapper limit exceeded"
+  "wrapped and mixed calls accepted; malformed, multi-segment and excessive wrappers rejected"
+::
 ::  Synthetic nodes test each part of the direct collection-call proof.
 ++  collection-wrapper-fixture
   ^-  tape
@@ -1727,6 +1821,10 @@
   =/  nest-child-src=@t
     '|%\0a+$  tag-nest-inner  $%([%left @t] [%right @ud])\0a+$  tag-nest-middle  $%([%one x=tag-nest-inner] [%two ~])\0a--\0a'
   =/  nest-collision=type  -:(ride [%cell [%face %base nest-parent] -:!>(..zuse)] nest-child-src)
+  =/  mop-ford-parent=type
+    -:(ride -:!>(..zuse) '|%\0a+$  value  ?(%same %same)\0a--\0a')
+  =/  mop-ford-child=type
+    -:(ride [%cell [%face %value mop-ford-parent] -:!>(..zuse)] '|%\0a+$  key  @ud\0a+$  value  @t\0a+$  mm  ((mop key value) lte)\0a--\0a')
   =/  sample
     |=  name=term
     (read-mold-in %small name (~(play ut sc) (ream (cat 3 '*' name))) sc)
@@ -1797,6 +1895,16 @@
       (crip "shadow-list-mop: {(show-result (read-mold-in %shadow-static %bad (~(play ut xc) (ream '*bad')) xc))}")
       (crip "named-mop: {(show-result (sample %named-mop))}")
       (crip "mop-list: {(show-result (sample %mop-list))}")
+      (crip "mop-wing-valid: {(show-result (sample %mop-wing-valid))}")
+      (crip "mop-wing-invalid-key: {(show-result (sample %mop-wing-invalid-key))}")
+      (crip "mop-wing-invalid-key-alias: {(show-result (sample %mop-wing-invalid-key-alias))}")
+      (crip "mop-wing-invalid-value: {(show-result (sample %mop-wing-invalid-value))}")
+      (crip "mop-wing-invalid-value-alias: {(show-result (sample %mop-wing-invalid-value-alias))}")
+      (crip "mop-wing-rec-key: {(show-result (sample %mop-wing-rec-key))}")
+      (crip "mop-wing-rec-value: {(show-result (sample %mop-wing-rec-value))}")
+      (crip "mop-wing-shadow: {(show-result (read-named %shadow %mmw hc))}")
+      (crip "mop-wing-ford-collision: {(show-result (read-named %child %mm mop-ford-child))}")
+      (crip "mop-wing-debug: {(debug-mop-fixture sc)}")
       (crip "signed: {(show-result (sample %signed))}")
       (crip "float: {(show-result (sample %float))}")
       (crip "gate: {(show-result (sample %gate-test))}")

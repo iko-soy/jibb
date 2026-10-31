@@ -1,0 +1,4 @@
+source: Grammar, patterns and literals by context: known result types apply to complete branches, with pattern binders scoped to each arm.
+tests: An expected loobean reaches both list arm orders, a unit branch and a binder-only cell arm. Incompatible results, repeated or missing patterns, duplicate and shadowed binders, non-list subjects, pending literals and explicit capital restrictions retain their diagnostics. Named union matching and a shared generic capital are controls. The module report remains partial.
+expect: parses
+expect-types: a partial inference report

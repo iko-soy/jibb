@@ -1,0 +1,8 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/mop-tlon-probe/hoon)
+=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
+=/  read-gate=vase  (slap reader (ream 'read-named'))
+=/  result=vase  (slym read-gate [%notes %log -.src])
+(pure:m !>(?=([%& [%apply %mop [[%atom %da ~] [%fork *] ~]]] +.result)))

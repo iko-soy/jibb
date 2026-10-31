@@ -22,6 +22,21 @@
 +$  dynamic-sibling-mop  [a=((mop @ud @t) lte) b=(list word)]
 +$  named-mop  [a=((mop @ud word) lte) b=@ud]
 +$  word  @t
++$  mop-key  @ud
++$  mop-valid-enum  ?(%one %two)
++$  mop-invalid-enum  ?(%one %one)
++$  mop-invalid-enum-alias  mop-invalid-enum
++$  mop-invalid-value  $%([%same value=@t] [%same value=@t])
++$  mop-invalid-value-alias  mop-invalid-value
++$  mop-wing-valid  ((mop mop-key mop-valid-enum) lte)
++$  mop-wing-invalid-key  ((mop mop-invalid-enum mop-key) lte)
++$  mop-wing-invalid-key-alias  ((mop mop-invalid-enum-alias mop-key) lte)
++$  mop-wing-invalid-value  ((mop mop-key mop-invalid-value) lte)
++$  mop-wing-invalid-value-alias  ((mop mop-key mop-invalid-value-alias) lte)
++$  mop-rec-value  $@(~ [data=@ud children=((mop @ud mop-rec-value) lte)])
++$  mop-rec-key  $@(~ [data=@ud children=((mop mop-rec-key @ud) gor)])
++$  mop-wing-rec-value  ((mop mop-key mop-rec-value) lte)
++$  mop-wing-rec-key  ((mop mop-rec-key mop-key) gor)
 +$  mop-list  (list ((mop @ud @t) lte))
 +$  signed  @sd
 +$  float  @rd

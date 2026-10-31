@@ -6562,6 +6562,7 @@
   ?:  ?=(%unknown -.fit)
     ?:  &(?=(%collection -.expected) =(%list name.expected))
       [%| ["branch list constraint is not supported by partial inference" ~]]
+    ?:  ?=(%flag -.expected)  [%| ["branch loobean constraint is not supported by partial inference" ~]]
     [%| ["branch union constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
     =/  missing=(unit idiag)  (missing-union-tag e expected sub.state.p.value context)
@@ -6570,6 +6571,8 @@
     ?^  nested  [%| u.nested]
     ?:  &(?=(%collection -.expected) =(%list name.expected))
       [%| ["branch arm does not fit its expected list" ~[[context "expected list"] [(span-of e) "branch arm"]]]]
+    ?:  ?=(%flag -.expected)
+      [%| ["branch arm does not fit its expected loobean" ~[[context "expected loobean"] [(span-of e) "branch arm"]]]]
     [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
@@ -7389,7 +7392,7 @@
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e
         ?:  (single-structured-pattern e)  (infer-single-case-branch e env state ~)
-        (infer-cell-branch e env state)
+        (infer-cell-branch e env state ~)
       ?^  t.t.arms.e  (infer-known-union-branch e env state)
       =/  known=(unit itype)  (known-union-subject subject.e env state)
       ?:  &(?=(^ known) ?=(~ (unit-union-payload u.known)))
@@ -7619,6 +7622,8 @@
   ?:  ?=(%call -.e)  (infer-contextual-call e target env state)
   ?:  (single-structured-pattern e)
     (infer-single-case-branch e env state `[target context])
+  ?:  (cell-binder-pattern e)
+    (infer-cell-branch e env state `[target context])
   ::  In a loobean-singleton context retain the written loobean noun;
   ::  the usual final fit decides whether that value is permitted.
   =/  singleton=(unit itype)
@@ -7635,6 +7640,8 @@
     (infer-known-union-context e target env state context)
   ?:  &(?=(%union -.target) ?=(%unit -.e))
     (infer-unit-context e target env state context)
+  ?:  &(?=(%flag -.target) (context-union-branch e))
+    (infer-union-context e target env state context)
   ?:  &(?=(%union -.target) (context-union-branch e))
     (infer-union-context e target env state context)
   ?:  &(?=(%collection -.target) =(%list name.target) (context-union-branch e))
@@ -7737,8 +7744,17 @@
   ?:  ?=(%cell -.typ)  $(typ tal.typ, names t.names)
   |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%noun -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
 ::
+++  cell-binder-pattern
+  |=  e=expr
+  ^-  ?
+  ?.  ?=(%branch -.e)  |
+  ?~  arms.e  |
+  ?^  t.arms.e  |
+  ?.  ?=(%cell -.pat.i.arms.e)  |
+  !(single-structured-pattern e)
+::
 ++  infer-cell-branch
-  |=  [e=expr env=ienv state=istate]
+  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
   ^-  iresult
   ?>  ?=(%branch -.e)
   ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
@@ -7762,7 +7778,16 @@
   =/  binders=[typ=itype env=ienv next=@ud]  (cell-pattern-types p.names env next.st)
   =/  sub=(unit isub)  (itype-unify typ.p.subject typ.binders sub.st)
   ?~  sub  [%| ["cell pattern does not match the subject type" ~]]
-  (infer-fragment val.arm env.binders st(next next.binders, sub u.sub))
+  =.  st  st(next next.binders, sub u.sub)
+  ?~  expected  (infer-fragment val.arm env.binders st)
+  =/  body=iresult  (infer-call-context-arg val.arm typ.u.expected env.binders st context.u.expected)
+  ?:  ?=(%| -.body)  body
+  =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
+  ?:  ?=(%unknown -.fit)  [%| ["cell branch result constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)  [%| ["cell branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.arm) "branch arm"]]]]
+  ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
+    [%| ["cell branch result needs context in partial inference" ~]]
+  [%& typ.u.expected state.p.body(sub sub.fit, next next.fit)]
 ::
 ++  show-itype
   |=  [t=itype sub=isub]

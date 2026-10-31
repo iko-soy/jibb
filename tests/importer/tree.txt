@@ -50,6 +50,16 @@ ford-mismatched-core: unsafe
 shadow-list-mop: error: Hoon collection provenance is unavailable or shadowed
 named-mop: error: a nested Hoon mop needs source-aware import
 mop-list: error: a nested Hoon mop needs source-aware import
+mop-wing-valid: (mop @ud (union one two))
+mop-wing-invalid-key: error: Hoon union disjointness could not be verified
+mop-wing-invalid-key-alias: error: Hoon union disjointness could not be verified
+mop-wing-invalid-value: error: Hoon union disjointness could not be verified
+mop-wing-invalid-value-alias: error: Hoon union disjointness could not be verified
+mop-wing-rec-key: error: a nested Hoon mop needs source-aware import
+mop-wing-rec-value: error: a nested Hoon mop needs source-aware import
+mop-wing-shadow: error: Hoon collection provenance is unavailable or shadowed
+mop-wing-ford-collision: (mop @ud @t)
+mop-wing-debug: wrapped and mixed calls accepted; malformed, multi-segment and excessive wrappers rejected
 signed: error: signed and float auras cannot be imported
 float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported

@@ -14,6 +14,13 @@ invalid dependencies, named payload dependencies, valid and collapsed enums,
 direct and transitively aliased overlaps, nested collections, shadowed jar and
 jug dependencies, Ford-name collisions, zuse local-name precedence and the
 shared proof budget. Four real `presence` unions exercise the same path.
+An ordered map can have two simple named mold operands. Fixtures cover a
+valid enum, overlapping and collapsed union operands and aliases in both
+positions, recursive key and value molds, a shadowed `mop`, and a local mold
+whose name collides with an inherited Ford face. An exact recursive mop hold
+revisited through an operand is rejected without guessing its origin.
+Mixed and fully wrapped Clay source locations are accepted; malformed calls
+and multi-segment callee or operand wings are rejected.
 One named tagged union can occur inside another when the source proof and
 both disjointness checks succeed. Repeated dependencies, hidden overlap,
 deeper nesting, recursion, collection shadowing, and Ford-name collisions

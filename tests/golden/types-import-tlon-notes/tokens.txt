@@ -32,4 +32,12 @@
 5:21 tight glyph =
 5:22 tight wing u-notes.notes
 5:36 name x
-5:37 NEWLINE
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name log-identity
+6:17 glyph |=
+6:20 name x
+6:21 tight glyph =
+6:22 tight wing log.notes
+6:32 name x
+6:33 NEWLINE
