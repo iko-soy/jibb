@@ -55,3 +55,12 @@
   ?- flag
     %.y left
     %.n right
+++ zero-id |= x=zero-choice.fixture x
+++ zero-empty ^- zero-choice.fixture ~
+++ zero-record ^- zero-choice.fixture ["hi" 1]
+++ zero-field |= x=zero-nested.fixture entry.x
+++ zero-invalid |= x=zero-nonzero.fixture x
+++ zero-duplicate |= x=zero-overlap.fixture x
+++ zero-flag-duplicate |= x=zero-flag-overlap.fixture x
+++ zero-lookalike |= x=zero-lookalike.fixture x
+++ zero-lookalike-value ^- zero-lookalike.fixture `"hi"

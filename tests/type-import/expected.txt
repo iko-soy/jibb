@@ -75,7 +75,7 @@ partial inference; module not checked
 ++ foreign-ref: sample mold is not supported by partial inference
 ++ overlap-ref: sample mold is not supported by partial inference
 ++ raw-ref: sample mold is not supported by partial inference
-++ raw-null: sample mold is not supported by partial inference
+++ raw-null: $-(~ ~)
 ++ cross-module: call's sample and argument types do not unify
 /test.jibb:50:36: called gate has type $-(chain.fixture chain.fixture)
 ++ cross-module |= x=chain.second (chain-id x)
@@ -85,6 +85,18 @@ partial inference; module not checked
                                             ^
 ++ chain-pattern: recursive pattern is not supported by partial inference
 ++ chain-branch: recursive branch matching is not supported by partial inference
+++ zero-id: $-(([text=@t n=@ud] ~) ([text=@t n=@ud] ~))
+++ zero-empty: [text=@t n=@ud] ~
+++ zero-record: [text=@t n=@ud] ~
+++ zero-field: $-([entry=([text=@t n=@ud] ~) code=@ud] ([text=@t n=@ud] ~))
+++ zero-invalid: sample mold is not supported by partial inference
+++ zero-duplicate: sample mold is not supported by partial inference
+++ zero-flag-duplicate: sample mold is not supported by partial inference
+++ zero-lookalike: $-(([~ @t] ~) ([~ @t] ~))
+++ zero-lookalike-value: unit construction needs the standard prelude in partial inference
 reader-collapsed: error: Hoon union disjointness could not be verified
 partial inference; module not checked
 ++ use: recursive mold name is not available in this scope
+partial inference; module not checked
+++ canonical: (unit @t)
+++ lookalike: cast constraint is not supported by partial inference

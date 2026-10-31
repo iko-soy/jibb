@@ -4,7 +4,12 @@ forks whose supplied cases overlap, but a graph alone cannot reveal source
 cases Hoon already collapsed. This fixture compiles a small /sur against zuse,
 selects its molds, and passes the actual reader results to inference. It checks
 fixed atoms, term singletons including Hoon `%$`, nested faced records,
-unnamed unions and opaque standard collections. It covers matching and
+unnamed unions and opaque standard collections. A nonrecursive `$@` with a
+null singleton supports null and record values, including within another
+record. Forged nonzero `%n` atoms and overlapping null/term or null/flag cases
+stay unsupported. A structurally unit-like import does not gain unit
+construction even when a canonical prelude unit is supplied; constructing
+that canonical unit succeeds. It covers matching and
 mismatched collections, nested union arguments, and malformed collection names
 and arities. Jibb-written collection molds remain unsupported.
 

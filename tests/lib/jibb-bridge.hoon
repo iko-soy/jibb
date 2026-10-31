@@ -39,6 +39,12 @@
         [%fixture %overlap-ref [%& [%fork ~[[%atom %n [~ 0]] [%atom %tas [~ 0]] [%cell [%atom %ud ~] [%ref %fixture %overlap-ref]]]]]]
         [%fixture %raw-ref [%& [%ref %fixture %raw-ref]]]
         [%fixture %raw-null [%& [%atom %n [~ 0]]]]
+        [%fixture %zero-choice (read %zero-choice)]
+        [%fixture %zero-nested (read %zero-nested)]
+        [%fixture %zero-lookalike (read %zero-lookalike)]
+        [%fixture %zero-nonzero [%& [%atom %n [~ 1]]]]
+        [%fixture %zero-overlap [%& [%fork ~[[%atom %n [~ 0]] [%atom %tas [~ 0]]]]]]
+        [%fixture %zero-flag-overlap [%& [%fork ~[[%atom %n [~ 0]] [%atom %f [~ 0]]]]]]
         [%fixture %texts (read %texts)]
         [%fixture %numbers (read %numbers)]
         [%fixture %maybe (read %maybe)]
@@ -69,5 +75,10 @@
   =/  prelude=@t  (crip "++ prelude-id |= x x\0a")
   =/  modules=(list [at=path source=@t])  ~[[~[%ui %helper %jibb] dep]]
   =/  hidden=@t  (golden-types-with-prelude:jibb /ui/main/jibb root external ~ modules prelude)
-  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") hidden))
+  =/  unit-prelude=@t  (crip "+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a")
+  =/  unit-client=@t
+    (crip "/- fixture\0a++ canonical ^- (unit @t) `\"hi\"\0a++ lookalike ^- zero-lookalike.fixture `\"hi\"\0a")
+  =/  unit-report=@t
+    (golden-types-with-prelude:jibb /ui/unit-client/jibb unit-client external ~ ~ unit-prelude)
+  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' unit-report))))
 --

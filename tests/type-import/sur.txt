@@ -18,4 +18,7 @@
 +$  chain  $@(~ [value=@ud next=chain])
 +$  other  $@(~ [value=@ud next=other])
 +$  alias  chain
++$  zero-choice  $@(~ [text=@t n=@ud])
++$  zero-nested  [entry=zero-choice code=@ud]
++$  zero-lookalike  $@(~ [~ @t])
 --

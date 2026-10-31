@@ -5583,6 +5583,11 @@
   ?@  node  ~
   ?+  -.node  ~
     %atom
+      ::  Hoon's null singleton is the same noun as Jibb's `~` mold.
+      ::  Other non-term singleton atoms remain unsupported here.
+      ?:  ?=([%atom %n [~ @]] node)
+        ?.  =(0 +>+.node)  ~
+        `[%const [%null %n 0 '~']]
       ?:  ?=([%atom %tas [~ @]] node)
         =/  value=@  +>+.node
         ?.  |(=(value 0) (jibb-face-name value))  ~
