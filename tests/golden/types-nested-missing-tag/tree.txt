@@ -1,0 +1,79 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (mold 4:1 state
+    (cell 4:10
+      (face 4:11 title (aura 4:17 @t))
+      (face 4:20 choice (ref 4:27 msg))))
+  (mold 5:1 nested-state
+    (cell 5:17
+      (face 5:18 inner (ref 5:24 state))
+      (face 5:30 count (aura 5:36 @ud))))
+  (value 6:1 valid
+    (cast 6:10
+      (ref 6:13 state)
+      (tuple 6:19 (str 6:20 "hi") (lit 6:25 %add))))
+  (value 7:1 bad
+    (cast 7:8
+      (ref 7:11 state)
+      (tuple 7:17 (str 7:18 "hi") (lit 7:23 %missing))))
+  (value 8:1 earlier
+    (cast 8:12
+      (ref 8:15 state)
+      (tuple 8:21 (lit 8:22 ~zod) (lit 8:27 %missing))))
+  (value 9:1 face
+    (cast 9:9
+      (ref 9:12 state)
+      (tuple 9:18
+        (face 9:19 other (str 9:25 "hi"))
+        (face 9:30 choice (lit 9:37 %missing)))))
+  (value 10:1 nested
+    (cast 10:11
+      (ref 10:14 nested-state)
+      (tuple 10:27
+        (tuple 10:28 (str 10:29 "hi") (lit 10:34 %missing))
+        (lit 10:44 7))))
+  (value 11:1 face-tag
+    (cast 11:13
+      (ref 11:16 state)
+      (tuple 11:22
+        (face 11:23 title (str 11:29 "hi"))
+        (face 11:34 wrong (lit 11:40 %missing)))))
+  (value 12:1 take
+    (gate 12:9
+      (face 12:12 x (ref 12:14 state))
+      (wing 12:20 x)))
+  (value 13:1 bad-call
+    (group 13:13
+      (call 13:14
+        (wing 13:14 take)
+        (tuple 13:19 (str 13:20 "hi") (lit 13:25 %missing)))))
+  (value 14:1 bad-unit
+    (cast 14:13
+      (apply 14:16 unit (ref 14:22 state))
+      (unit 14:29
+        (tuple 14:30 (str 14:31 "hi") (lit 14:36 %missing)))))
+  (value 15:1 bad-list
+    (cast 15:13
+      (apply 15:16 list (ref 15:22 state))
+      (list 15:29
+        (tuple 15:31 (str 15:32 "hi") (lit 15:37 %missing)))))
+  (value 16:1 pending
+    (gate 16:12
+      (bind 16:15 f)
+      (group 16:17
+        (call 16:18
+          (wing 16:18 f)
+          (tuple 16:20 (str 16:21 "hi") (lit 16:26 %missing))))))
+  (value 17:1 variable
+    (gate 17:13
+      (face 17:16 x (tvar 17:18 A))
+      (cast 17:20
+        (cell 17:23 (tvar 17:24 A) (ref 17:26 msg))
+        (tuple 17:31 (wing 17:32 x) (lit 17:34 %missing)))))
+  (value 18:1 unresolved
+    (gate 18:15
+      (face 18:18 x (tvar 18:20 A))
+      (cast 18:22
+        (cell 18:25 (tvar 18:26 A) (tvar 18:28 A))
+        (tuple 18:31 (wing 18:32 x) (lit 18:34 %missing))))))

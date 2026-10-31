@@ -1,0 +1,71 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ state: not checked
++$ nested-state: not checked
+++ valid: [title=@t choice=msg]
+++ bad: msg has no case `%missing`
+/tests/golden/types-nested-missing-tag/source.jibb:7:11: expected union
+++ bad ^- state ["hi" %missing]
+          ^
+/tests/golden/types-nested-missing-tag/source.jibb:7:23: tag
+++ bad ^- state ["hi" %missing]
+                      ^
+++ earlier: cast mold and expression type do not unify
+/tests/golden/types-nested-missing-tag/source.jibb:8:15: cast mold
+++ earlier ^- state [~zod %missing]
+              ^
+/tests/golden/types-nested-missing-tag/source.jibb:8:21: expression
+++ earlier ^- state [~zod %missing]
+                    ^
+++ face: cast mold and expression type do not unify
+/tests/golden/types-nested-missing-tag/source.jibb:9:12: cast mold
+++ face ^- state [other="hi" choice=%missing]
+           ^
+/tests/golden/types-nested-missing-tag/source.jibb:9:18: expression
+++ face ^- state [other="hi" choice=%missing]
+                 ^
+++ nested: msg has no case `%missing`
+/tests/golden/types-nested-missing-tag/source.jibb:10:14: expected union
+++ nested ^- nested-state [["hi" %missing] 7]
+             ^
+/tests/golden/types-nested-missing-tag/source.jibb:10:34: tag
+++ nested ^- nested-state [["hi" %missing] 7]
+                                 ^
+++ face-tag: cast mold and expression type do not unify
+/tests/golden/types-nested-missing-tag/source.jibb:11:16: cast mold
+++ face-tag ^- state [title="hi" wrong=%missing]
+               ^
+/tests/golden/types-nested-missing-tag/source.jibb:11:22: expression
+++ face-tag ^- state [title="hi" wrong=%missing]
+                     ^
+++ take: $-([title=@t choice=msg] [title=@t choice=msg])
+++ bad-call: msg has no case `%missing`
+/tests/golden/types-nested-missing-tag/source.jibb:13:14: expected union
+++ bad-call (take ["hi" %missing])
+             ^
+/tests/golden/types-nested-missing-tag/source.jibb:13:25: tag
+++ bad-call (take ["hi" %missing])
+                        ^
+++ bad-unit: msg has no case `%missing`
+/tests/golden/types-nested-missing-tag/source.jibb:14:16: expected union
+++ bad-unit ^- (unit state) `["hi" %missing]
+               ^
+/tests/golden/types-nested-missing-tag/source.jibb:14:36: tag
+++ bad-unit ^- (unit state) `["hi" %missing]
+                                   ^
+++ bad-list: msg has no case `%missing`
+/tests/golden/types-nested-missing-tag/source.jibb:15:16: expected union
+++ bad-list ^- (list state) ~[["hi" %missing]]
+               ^
+/tests/golden/types-nested-missing-tag/source.jibb:15:37: tag
+++ bad-list ^- (list state) ~[["hi" %missing]]
+                                    ^
+++ pending: tag needs context in partial inference
+++ variable: msg has no case `%missing`
+/tests/golden/types-nested-missing-tag/source.jibb:17:23: expected union
+++ variable |= x=A ^- [A msg] [x %missing]
+                      ^
+/tests/golden/types-nested-missing-tag/source.jibb:17:34: tag
+++ variable |= x=A ^- [A msg] [x %missing]
+                                 ^
+++ unresolved: explicit capital constraints are not supported by partial inference

@@ -2,13 +2,13 @@ partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ take: $-([payload=msg xs=(list @t)] [payload=msg xs=(list @t)])
 ++ ok: [payload=msg xs=(list @t)]
-++ bad-tag: call's sample and argument types do not unify
-/tests/golden/types-tuple-context-nested/source.jibb:6:13: called gate
+++ bad-tag: msg has no case `%oops`
+/tests/golden/types-tuple-context-nested/source.jibb:6:13: expected union
 ++ bad-tag (take [payload=%oops xs=~])
             ^
-/tests/golden/types-tuple-context-nested/source.jibb:6:18: argument
+/tests/golden/types-tuple-context-nested/source.jibb:6:27: tag
 ++ bad-tag (take [payload=%oops xs=~])
-                 ^
+                          ^
 ++ bad-face: call's sample and argument types do not unify
 /tests/golden/types-tuple-context-nested/source.jibb:7:14: called gate
 ++ bad-face (take [wrong=%go xs=~])

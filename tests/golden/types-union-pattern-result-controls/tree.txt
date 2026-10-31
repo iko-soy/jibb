@@ -1,0 +1,161 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %text)
+        (face 2:10 value (aura 2:16 @t)))
+      (const 3:3 %clear)))
+  (mold 4:1 reply
+    (union 5:3 (const 5:3 %yes) (const 6:3 %no)))
+  (value 7:1 choose
+    (gate 7:11
+      (face 7:14 a (ref 7:16 msg))
+      (cast 7:20
+        (ref 7:23 reply)
+        (body 8:3
+          (branch 8:3
+            (wing 8:6 a)
+            (arm 9:5
+              (cell 9:5 (lit 9:6 %text) (bind 9:12 v))
+              (lit 9:15 %yes))
+            (arm 10:5 (lit 10:5 %clear) (lit 10:12 %no)))))))
+  (value 11:1 invalid
+    (gate 11:12
+      (face 11:15 a (ref 11:17 msg))
+      (cast 11:21
+        (ref 11:24 reply)
+        (body 12:3
+          (branch 12:3
+            (wing 12:6 a)
+            (arm 13:5
+              (cell 13:5 (lit 13:6 %text) (bind 13:12 v))
+              (lit 13:15 %missing))
+            (arm 14:5 (lit 14:5 %clear) (lit 14:12 %no)))))))
+  (value 15:1 dead
+    (gate 15:9
+      (face 15:12 a (ref 15:14 msg))
+      (cast 15:18
+        (apply 15:21 list (aura 15:27 @t))
+        (body 16:3
+          (branch 16:3
+            (wing 16:6 a)
+            (arm 17:5 (lit 17:5 %clear) (lit 17:12 ~))
+            (arm 18:5 (lit 18:5 %clear) (lit 18:12 ~))
+            (arm 19:5
+              (cell 19:5 (lit 19:6 %text) (bind 19:12 v))
+              (list 19:15 (wing 19:17 v))))))))
+  (value 20:1 unknown
+    (gate 20:12
+      (face 20:15 a (ref 20:17 msg))
+      (cast 20:21
+        (apply 20:24 list (aura 20:30 @t))
+        (body 21:3
+          (branch 21:3
+            (wing 21:6 a)
+            (arm 22:5
+              (cell 22:5 (lit 22:6 %text) (str 22:12 "x"))
+              (list 22:17))
+            (arm 23:5 (lit 23:5 %clear) (list 23:12))
+            (arm 24:5 (any 24:5) (list 24:7)))))))
+  (value 25:1 from-call
+    (gate 25:14
+      (face 25:17 x
+        (apply 25:19 list (aura 25:25 @t)))
+      (wing 25:29 x)))
+  (value 26:1 non-wing
+    (gate 26:13
+      (face 26:16 a (ref 26:18 msg))
+      (cast 26:22
+        (apply 26:25 list (aura 26:31 @t))
+        (body 27:3
+          (branch 27:3
+            (group 27:6
+              (call 27:7 (wing 27:7 same) (wing 27:12 a)))
+            (arm 28:5 (lit 28:5 %clear) (lit 28:12 ~))
+            (arm 29:5
+              (cell 29:5 (lit 29:6 %text) (bind 29:12 v))
+              (list 29:15 (wing 29:17 v))))))))
+  (value 30:1 generic
+    (gate 30:12
+      (cell 30:15
+        (face 30:16 a (ref 30:18 msg))
+        (face 30:22 x (tvar 30:24 A)))
+      (cast 30:27
+        (apply 30:30 list (tvar 30:36 A))
+        (body 31:3
+          (branch 31:3
+            (wing 31:6 a)
+            (arm 32:5 (lit 32:5 %clear) (lit 32:12 ~))
+            (arm 33:5
+              (cell 33:5 (lit 33:6 %text) (bind 33:12 v))
+              (list 33:15 (wing 33:17 x))))))))
+  (value 34:1 generic-bad
+    (gate 34:16
+      (cell 34:19
+        (face 34:20 a (ref 34:22 msg))
+        (face 34:26 x (tvar 34:28 A)))
+      (cast 34:31
+        (apply 34:34 list (tvar 34:40 A))
+        (body 35:3
+          (branch 35:3
+            (wing 35:6 a)
+            (arm 36:5 (lit 36:5 %clear) (lit 36:12 ~))
+            (arm 37:5
+              (cell 37:5 (lit 37:6 %text) (bind 37:12 v))
+              (list 37:15 (str 37:17 "hi"))))))))
+  (value 38:1 pending-tag
+    (gate 38:16
+      (face 38:19 a (ref 38:21 msg))
+      (cast 38:25
+        (apply 38:28 list (aura 38:34 @t))
+        (body 39:3
+          (trace 39:3
+            (lit 39:6 %missing)
+            (body 40:5
+              (branch 40:5
+                (wing 40:8 a)
+                (arm 41:7 (lit 41:7 %clear) (lit 41:14 ~))
+                (arm 42:7
+                  (cell 42:7 (lit 42:8 %text) (bind 42:14 v))
+                  (list 42:17 (wing 42:19 v))))))))))
+  (value 43:1 unknown-target
+    (gate 43:19
+      (cell 43:22
+        (face 43:23 a (ref 43:25 msg))
+        (face 43:29 x (tvar 43:31 A)))
+      (cast 43:34
+        (tvar 43:37 A)
+        (body 44:3
+          (branch 44:3
+            (wing 44:6 a)
+            (arm 45:5
+              (cell 45:5 (lit 45:6 %text) (bind 45:12 v))
+              (lit 45:15 %yes))
+            (arm 46:5 (lit 46:5 %clear) (lit 46:12 %no)))))))
+  (value 47:1 nested-missing
+    (gate 47:19
+      (face 47:22 a (ref 47:24 msg))
+      (cast 47:28
+        (cell 47:31 (ref 47:32 reply) (aura 47:38 @t))
+        (body 48:3
+          (branch 48:3
+            (wing 48:6 a)
+            (arm 49:5
+              (cell 49:5 (lit 49:6 %text) (bind 49:12 v))
+              (tuple 49:15 (lit 49:16 %missing) (wing 49:25 v)))
+            (arm 50:5
+              (lit 50:5 %clear)
+              (tuple 50:12 (lit 50:13 %yes) (str 50:18 "ok"))))))))
+  (value 51:1 argument
+    (gate 51:13
+      (face 51:16 a (ref 51:18 msg))
+      (body 52:3
+        (group 52:3
+          (call 52:4
+            (wing 52:4 from-call)
+            (branch 53:5
+              (wing 53:8 a)
+              (arm 54:7 (lit 54:7 %clear) (lit 54:14 ~))
+              (arm 55:7
+                (cell 55:7 (lit 55:8 %text) (bind 55:14 v))
+                (list 55:17 (wing 55:19 v))))))))))

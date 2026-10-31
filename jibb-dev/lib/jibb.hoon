@@ -6456,6 +6456,8 @@
   ?:  ?=(%bad -.fit)
     =/  missing=(unit idiag)  (missing-union-tag e expected sub.state.p.value context)
     ?^  missing  [%| u.missing]
+    =/  nested=(unit idiag)  (nested-missing-tag e typ.p.value expected sub.state.p.value next.state.p.value context)
+    ?^  nested  [%| u.nested]
     ?:  &(?=(%collection -.expected) =(%list name.expected))
       [%| ["branch arm does not fit its expected list" ~[[context "expected list"] [(span-of e) "branch arm"]]]]
     [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
@@ -6534,6 +6536,8 @@
   ?:  ?=(%bad -.fit)
     =/  missing=(unit idiag)  (missing-union-tag i.items target sub.state.p.value context)
     ?^  missing  [%| u.missing]
+    =/  nested=(unit idiag)  (nested-missing-tag i.items typ.p.value target sub.state.p.value next.state.p.value context)
+    ?^  nested  [%| u.nested]
     [%| ["list item does not fit its expected type" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
   $(items t.items, state state.p.value(sub sub.fit, next next.fit))
 ::
@@ -6848,6 +6852,51 @@
   ?:  mismatch  `[%| ["union branch result matching needs unsupported inference" ~]]
   $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, answer `result)
 ::
+++  infer-known-union-context
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?>  ?=(%branch -.e)
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
+  =/  cases=(list itype)  cases.typ
+  =/  remaining=(list itype)  cases
+  =/  arms=(list arm)  arms.e
+  =/  st=istate  state.p.subject
+  =/  answer=(unit itype)  ~
+  |-
+  ?~  arms
+    ?^  remaining
+      [%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
+    ?~  answer  [%| ["empty union branch is not supported by partial inference" ~]]
+    [%& expected st]
+  =/  a=arm  i.arms
+  ?:  (lien remaining |=(c=itype =(%unknown (union-pattern pat.a c))))
+    [%| ["partial union pattern is not supported by partial inference" ~]]
+  =/  matching=(list itype)  (skim remaining |=(c=itype =(%full (union-pattern pat.a c))))
+  ?~  matching
+    ?:  (lien cases |=(c=itype =(%full (union-pattern pat.a c))))
+      [%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
+    [%| ["union pattern is not supported by partial inference" ~]]
+  ?:  &(?=(^ t.matching) (union-pattern-has-bind pat.a))
+    [%| ["a union pattern binding several cases is not supported by partial inference" ~]]
+  =/  bound=(unit ienv)  (union-pattern-bind pat.a i.matching env globals.st)
+  ?~  bound  [%| ["pattern binder shadows a name" ~]]
+  =/  body=iresult  (infer-call-context-arg val.a expected u.bound st context)
+  ?:  ?=(%| -.body)  body
+  =/  fit=ifit  (itype-fit typ.p.body expected sub.state.p.body next.state.p.body)
+  ?:  ?=(%unknown -.fit)  [%| ["union branch result constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    =/  missing=(unit idiag)  (missing-union-tag val.a expected sub.state.p.body context)
+    ?^  missing  [%| u.missing]
+    =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body expected sub.state.p.body next.state.p.body context)
+    ?^  nested  [%| u.nested]
+    [%| ["union branch arm does not fit its expected type" ~[[context "expected type"] [(span-of val.a) "branch arm"]]]]
+  ?:  (itype-has-tag (itype-normalize expected sub.fit))
+    [%| ["union branch result needs context in partial inference" ~]]
+  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body(sub sub.fit, next next.fit), answer `expected)
+::
 ++  infer-known-union-finite
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -7003,6 +7052,44 @@
     (show-itype expected sub)
   `["{label} has no case `{(trip txt.lit.e)}`" ~[[context "expected union"] [(span-of e) "tag"]]]
 ::
+::  Locate a missing tag inside a syntactic tuple only by replaying the
+::  directional fit in source order. Uncertain or earlier failures stop
+::  the walk, preserving the generic diagnostic rather than guessing.
+++  nested-missing-tag
+  |=  [e=expr actual=itype expected=itype sub=isub next=@ud context=span]
+  ^-  (unit idiag)
+  =/  original=[left=itype right=itype]  [actual expected]
+  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%nvar -.left.original) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%nvar -.right.original))  ~
+  =/  fit=ifit  (itype-fit actual expected sub next)
+  ?.  ?=(%bad -.fit)  ~
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(%face -.actual) ?=(%face -.expected))
+    ?.  =(name.actual name.expected)  ~
+    $(actual body.actual, expected body.expected)
+  ?:  ?=(%face -.actual)  $(actual body.actual)
+  ?:  ?=(%face -.expected)  $(expected body.expected)
+  =/  direct=(unit idiag)  (missing-union-tag e expected sub context)
+  ?^  direct  direct
+  ?.  ?=(%tuple -.e)  ~
+  (nested-missing-items items.e actual expected sub next context)
+::
+++  nested-missing-items
+  |=  [items=(list item) actual=itype expected=itype sub=isub next=@ud context=span]
+  ^-  (unit idiag)
+  ?~  items  ~
+  ?~  t.items  (nested-missing-tag val.i.items actual expected sub next context)
+  =/  original=[left=itype right=itype]  [actual expected]
+  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%nvar -.left.original) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%nvar -.right.original))  ~
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  first=ifit  (itype-fit hed.actual hed.expected sub next)
+  ?:  ?=(%bad -.first)
+    (nested-missing-tag val.i.items hed.actual hed.expected sub next context)
+  ?.  ?=(%ok -.first)  ~
+  $(items t.items, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
+::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
@@ -7143,6 +7230,8 @@
       ?:  ?=(%bad -.fit)
         =/  missing=(unit idiag)  (missing-union-tag val.e typ.u.target sub.state.p.value at.shape.e)
         ?^  missing  [%| u.missing]
+        =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value typ.u.target sub.state.p.value next.state.p.value at.shape.e)
+        ?^  nested  [%| u.nested]
         [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-type-note "expression" typ.p.value sub.state.p.value)]]]]
       =/  merged=itype  (itype-merge-faces typ.p.value typ.u.target sub.fit)
       [%& merged state.p.value(sub sub.fit, next next.fit)]
@@ -7188,6 +7277,8 @@
           ?~  t.args.e
             =/  missing=(unit idiag)  (missing-union-tag i.args.e sample.ht sub.st (span-of head.e))
             ?^  missing  [%| u.missing]
+            =/  nested=(unit idiag)  (nested-missing-tag i.args.e typ.p.arg sample.ht sub.st next.st (span-of head.e))
+            ?^  nested  [%| u.nested]
             [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
           =/  bad=(unit [at=span typ=itype])
             (call-error-site args.e typ.p.arg sample.ht sub.st next.st)
@@ -7261,15 +7352,28 @@
   ?:  ?=(%bad -.fit)
     =/  missing=(unit idiag)  (missing-union-tag val.e payload sub.state.p.value context)
     ?^  missing  [%| u.missing]
+    =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value payload sub.state.p.value next.state.p.value context)
+    ?^  nested  [%| u.nested]
     [%| ["unit payload does not fit its expected type" ~[[context (site-type-note "expected unit payload" payload sub.state.p.value)] [(span-of val.e) (site-type-note "payload" typ.p.value sub.state.p.value)]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?:  ?=(%trace -.e)
+    =/  traced=iresult  (infer-fragment val.e env state)
+    ?:  ?=(%| -.traced)  traced
+    $(e then.e, state state.p.traced)
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  =/  known=(unit itype)
+    ?:  ?=(%branch -.e)  (known-union-subject subject.e env state)
+    ~
+  ?:  &(?=(^ known) ?=(~ (unit-union-payload u.known)))
+    (infer-known-union-context e target env state context)
   ?:  &(?=(%union -.target) ?=(%unit -.e))
     (infer-unit-context e target env state context)
   ?:  &(?=(%union -.target) (context-union-branch e))

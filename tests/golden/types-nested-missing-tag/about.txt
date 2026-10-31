@@ -1,0 +1,4 @@
+source: Grammar, Tag resolution: "A literal that matches nothing is an error naming the union, such as `msg has no case %submitt`." Type errors name both conflicting sites.
+tests: A missing tag inside a tuple or record names its union and tag site in casts, calls, unit payloads and list items. An earlier incompatible field or a wrong written face keeps the original mismatch; nested tuples work too. An unconstrained tag remains pending, and a written capital is not forced by diagnostic replay.
+expect: parses
+expect-types: a partial inference report

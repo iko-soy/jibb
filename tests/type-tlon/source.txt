@@ -1,0 +1,6 @@
+/-  presence
+++ action |= x=action-1.presence x
+++ command |= x=command-1.presence x
+++ update |= x=update-1.presence x
+++ response |= x=response-1.presence x
+++ context |= x=key.presence context.x

@@ -1,0 +1,96 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %noted)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %clear)))
+  (mold 4:1 state
+    (cell 4:10
+      (face 4:11 text (aura 4:16 @t))))
+  (value 5:1 update
+    (gate 5:11
+      (cell 5:14
+        (face 5:15 a (ref 5:17 msg))
+        (face 5:21 s (ref 5:23 state)))
+      (body 6:3
+        (cast 6:3
+          (cell 6:6
+            (ref 6:7 state)
+            (apply 6:13 list (aura 6:19 @t)))
+          (body 7:5
+            (branch 7:5
+              (wing 7:8 a)
+              (arm 8:7
+                (cell 8:7 (lit 8:8 %noted) (bind 8:15 txt))
+                (tuple 8:20
+                  (change 8:21 s
+                    (edit 8:23 text (wing 8:28 txt)))
+                  (list 8:33 (wing 8:35 txt))))
+              (arm 9:7
+                (lit 9:7 %clear)
+                (tuple 9:14 (wing 9:15 s) (lit 9:17 ~)))))))))
+  (value 10:1 bad
+    (gate 10:8
+      (cell 10:11
+        (face 10:12 a (ref 10:14 msg))
+        (face 10:18 s (ref 10:20 state)))
+      (body 11:3
+        (cast 11:3
+          (cell 11:6
+            (ref 11:7 state)
+            (apply 11:13 list (aura 11:19 @t)))
+          (body 12:5
+            (branch 12:5
+              (wing 12:8 a)
+              (arm 13:7
+                (cell 13:7 (lit 13:8 %noted) (bind 13:15 txt))
+                (tuple 13:20
+                  (change 13:21 s
+                    (edit 13:23 text (wing 13:28 txt)))
+                  (list 13:33 (lit 13:35 ~zod))))
+              (arm 14:7
+                (lit 14:7 %clear)
+                (tuple 14:14 (wing 14:15 s) (lit 14:17 ~)))))))))
+  (value 15:1 missing
+    (gate 15:12
+      (cell 15:15
+        (face 15:16 a (ref 15:18 msg))
+        (face 15:22 s (ref 15:24 state)))
+      (body 16:3
+        (cast 16:3
+          (cell 16:6
+            (ref 16:7 state)
+            (apply 16:13 list (aura 16:19 @t)))
+          (body 17:5
+            (branch 17:5
+              (wing 17:8 a)
+              (arm 18:7
+                (lit 18:7 %clear)
+                (tuple 18:14 (wing 18:15 s) (lit 18:17 ~)))))))))
+  (value 19:1 pending
+    (gate 19:12
+      (cell 19:15
+        (face 19:16 a (ref 19:18 msg))
+        (face 19:22 s (ref 19:24 state)))
+      (body 20:3
+        (cast 20:3
+          (cell 20:6
+            (ref 20:7 state)
+            (apply 20:13 list (aura 20:19 @t)))
+          (body 21:5
+            (branch 21:5
+              (wing 21:8 a)
+              (arm 22:7
+                (cell 22:7 (lit 22:8 %noted) (bind 22:15 txt))
+                (body 23:9
+                  (trace 23:9
+                    (lit 23:12 %unknown)
+                    (body 24:11
+                      (tuple 24:11
+                        (change 24:12 s
+                          (edit 24:14 text (wing 24:19 txt)))
+                        (lit 24:24 ~))))))
+              (arm 25:7
+                (lit 25:7 %clear)
+                (tuple 25:14 (wing 25:15 s) (lit 25:17 ~))))))))))

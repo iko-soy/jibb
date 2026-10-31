@@ -1,0 +1,30 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ reply: cases proven disjoint; mold not checked
+++ choose: $-(msg reply)
+++ invalid: reply has no case `%missing`
+/tests/golden/types-union-pattern-result-controls/source.jibb:11:24: expected union
+++ invalid |= a=msg ^- reply
+                       ^
+/tests/golden/types-union-pattern-result-controls/source.jibb:13:15: tag
+    [%text v] %missing
+              ^
+++ dead: branch arm is covered by earlier arms
+/tests/golden/types-union-pattern-result-controls/source.jibb:18:5: covered arm
+    %clear ~
+    ^
+++ unknown: partial union pattern is not supported by partial inference
+++ from-call: $-((list @t) (list @t))
+++ non-wing: branch pattern is not supported by partial inference
+++ generic: $-([a=msg x=A] (list A))
+++ generic-bad: explicit capital constraints are not supported by partial inference
+++ pending-tag: tag needs context in partial inference
+++ unknown-target: union branch result needs context in partial inference
+++ nested-missing: reply has no case `%missing`
+/tests/golden/types-union-pattern-result-controls/source.jibb:47:31: expected union
+++ nested-missing |= a=msg ^- [reply @t]
+                              ^
+/tests/golden/types-union-pattern-result-controls/source.jibb:49:16: tag
+    [%text v] [%missing v]
+               ^
+++ argument: $-(msg (list @t))

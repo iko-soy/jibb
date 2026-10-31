@@ -1,0 +1,184 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %add
+3:3 NEWLINE
+3:3 lit %remove
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name state
+4:10 glyph [
+4:11 tight name title
+4:16 tight glyph =
+4:17 tight aura @t
+4:20 name choice
+4:26 tight glyph =
+4:27 tight name msg
+4:30 tight glyph ]
+5:1 NEWLINE
+5:1 glyph +$
+5:4 name nested-state
+5:17 glyph [
+5:18 tight name inner
+5:23 tight glyph =
+5:24 tight name state
+5:30 name count
+5:35 tight glyph =
+5:36 tight aura @ud
+5:39 tight glyph ]
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name valid
+6:10 glyph ^-
+6:13 name state
+6:19 glyph [
+6:20 tight str "hi"
+6:25 lit %add
+6:29 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name bad
+7:8 glyph ^-
+7:11 name state
+7:17 glyph [
+7:18 tight str "hi"
+7:23 lit %missing
+7:31 tight glyph ]
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name earlier
+8:12 glyph ^-
+8:15 name state
+8:21 glyph [
+8:22 tight lit ~zod
+8:27 lit %missing
+8:35 tight glyph ]
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name face
+9:9 glyph ^-
+9:12 name state
+9:18 glyph [
+9:19 tight name other
+9:24 tight glyph =
+9:25 tight str "hi"
+9:30 name choice
+9:36 tight glyph =
+9:37 tight lit %missing
+9:45 tight glyph ]
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name nested
+10:11 glyph ^-
+10:14 name nested-state
+10:27 glyph [
+10:28 tight glyph [
+10:29 tight str "hi"
+10:34 lit %missing
+10:42 tight glyph ]
+10:44 lit 7
+10:45 tight glyph ]
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name face-tag
+11:13 glyph ^-
+11:16 name state
+11:22 glyph [
+11:23 tight name title
+11:28 tight glyph =
+11:29 tight str "hi"
+11:34 name wrong
+11:39 tight glyph =
+11:40 tight lit %missing
+11:48 tight glyph ]
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name take
+12:9 glyph |=
+12:12 name x
+12:13 tight glyph =
+12:14 tight name state
+12:20 name x
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name bad-call
+13:13 glyph (
+13:14 tight name take
+13:19 glyph [
+13:20 tight str "hi"
+13:25 lit %missing
+13:33 tight glyph ]
+13:34 tight glyph )
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name bad-unit
+14:13 glyph ^-
+14:16 glyph (
+14:17 tight name unit
+14:22 name state
+14:27 tight glyph )
+14:29 glyph `
+14:30 tight glyph [
+14:31 tight str "hi"
+14:36 lit %missing
+14:44 tight glyph ]
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name bad-list
+15:13 glyph ^-
+15:16 glyph (
+15:17 tight name list
+15:22 name state
+15:27 tight glyph )
+15:29 glyph ~[
+15:31 tight glyph [
+15:32 tight str "hi"
+15:37 lit %missing
+15:45 tight glyph ]
+15:46 tight glyph ]
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name pending
+16:12 glyph |=
+16:15 name f
+16:17 glyph (
+16:18 tight name f
+16:20 glyph [
+16:21 tight str "hi"
+16:26 lit %missing
+16:34 tight glyph ]
+16:35 tight glyph )
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name variable
+17:13 glyph |=
+17:16 name x
+17:17 tight glyph =
+17:18 tight tvar A
+17:20 glyph ^-
+17:23 glyph [
+17:24 tight tvar A
+17:26 name msg
+17:29 tight glyph ]
+17:31 glyph [
+17:32 tight name x
+17:34 lit %missing
+17:42 tight glyph ]
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name unresolved
+18:15 glyph |=
+18:18 name x
+18:19 tight glyph =
+18:20 tight tvar A
+18:22 glyph ^-
+18:25 glyph [
+18:26 tight tvar A
+18:28 tvar A
+18:29 tight glyph ]
+18:31 glyph [
+18:32 tight name x
+18:34 lit %missing
+18:42 tight glyph ]
+18:43 NEWLINE

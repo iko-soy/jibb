@@ -61,6 +61,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
 | `tools/importer-test` | Compares the partial Hoon importer's diagnostic trees and errors with `tests/importer/tree.txt` under `urbit eval` |
 | `tools/type-import-test` | Composes the Hoon importer with the partial checker and compares `tests/type-import/expected.txt` under eval |
+| `tools/type-tlon-test` | Runs the real Tlon presence source through the importer and partial checker, comparing `tests/type-tlon/expected.txt` under eval |
 | `tools/type-import-diagnostic-test` | Compares the structured reader diagnostic bridge report under eval |
 | `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
 | `tools/type-module-scope-test` | Checks the partial module checker’s prelude boundary and duplicate-source rejection against `tests/type-module-scope/expected.txt` under eval |
@@ -79,6 +80,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 tools/golden                       # all cases pass
 tools/importer-test                # Hoon importer fixture projections match
 tools/type-import-test             # importer/checker bridge golden report matches
+tools/type-tlon-test               # real Tlon importer/checker report matches
 tools/type-import-diagnostic-test  # direct structured reader diagnostics match
 tools/type-mark-test               # mark/checker bridge golden report matches
 tools/type-module-scope-test       # module/prelude scope golden report matches
@@ -92,7 +94,7 @@ tools/ship check-commit            # when the mark or the desks changed
 tools/clay-fixtures                # when the my-app Hoon fixtures or importer changed
 ```
 
-`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval. The structured reader diagnostics have their own `tests/lib/jibb-import-diagnostic.hoon` ship test and `tools/type-import-diagnostic-test` eval test. The mark bridge has its own `tests/lib/jibb-mark-bridge.hoon` ship test and `tools/type-mark-test` eval test; both compare the same fixture report. `tests/lib/jibb-module-scope.hoon` and `tools/type-module-scope-test` compare the prelude scope report on the ship and under eval.
+`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval. `tests/lib/jibb-tlon-bridge.hoon` and `tools/type-tlon-test` run the real Tlon presence reader/checker fixture on both. The structured reader diagnostics have their own `tests/lib/jibb-import-diagnostic.hoon` ship test and `tools/type-import-diagnostic-test` eval test. The mark bridge has its own `tests/lib/jibb-mark-bridge.hoon` ship test and `tools/type-mark-test` eval test; both compare the same fixture report. `tests/lib/jibb-module-scope.hoon` and `tools/type-module-scope-test` compare the prelude scope report on the ship and under eval.
 
 ## Golden cases
 

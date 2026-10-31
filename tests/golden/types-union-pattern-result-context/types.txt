@@ -1,0 +1,13 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ state: not checked
+++ update: $-([a=msg s=[text=@t]] [text=@t (list @t)])
+++ bad: list item does not fit its expected type
+/tests/golden/types-union-pattern-result-context/source.jibb:11:6: expected item has type @t
+  ^- [state (list @t)]
+     ^
+/tests/golden/types-union-pattern-result-context/source.jibb:13:35: list item has type @p
+      [%noted txt] [s(text=txt) ~[~zod]]
+                                  ^
+++ missing: missing union case [%noted text=@t]
+++ pending: tag needs context in partial inference

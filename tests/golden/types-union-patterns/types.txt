@@ -20,6 +20,6 @@ partial inference; module not checked
 +$ option: cases proven disjoint; mold not checked
 ++ null-option: $-(option @t)
 +$ output: cases proven disjoint; mold not checked
-++ context: contextual union-pattern branch is not supported by partial inference
-++ context-list: contextual union-pattern branch is not supported by partial inference
+++ context: $-(digits output)
+++ context-list: $-(digits (list @t))
 ++ grouped-subject: union-pattern branch subject is not supported by partial inference

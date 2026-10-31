@@ -21,13 +21,13 @@ partial inference; module not checked
 /tests/golden/types-record-cast-context/source.jibb:12:25: expression
 ++ wrong-count ^- inner [%go ~ "extra"]
                         ^
-++ wrong-tag: cast mold and expression type do not unify
-/tests/golden/types-record-cast-context/source.jibb:13:17: cast mold
+++ wrong-tag: msg has no case `%oops`
+/tests/golden/types-record-cast-context/source.jibb:13:17: expected union
 ++ wrong-tag ^- inner [%oops ~]
                 ^
-/tests/golden/types-record-cast-context/source.jibb:13:23: expression
+/tests/golden/types-record-cast-context/source.jibb:13:24: tag
 ++ wrong-tag ^- inner [%oops ~]
-                      ^
+                       ^
 ++ wrong-item: list item does not fit its expected type
 /tests/golden/types-record-cast-context/source.jibb:14:18: expected item has type @t
 ++ wrong-item ^- inner [%go ~[~zod]]

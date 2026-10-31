@@ -1,0 +1,18 @@
++$ msg
+  %add
+  %remove
++$ state [title=@t choice=msg]
++$ nested-state [inner=state count=@ud]
+++ valid ^- state ["hi" %add]
+++ bad ^- state ["hi" %missing]
+++ earlier ^- state [~zod %missing]
+++ face ^- state [other="hi" choice=%missing]
+++ nested ^- nested-state [["hi" %missing] 7]
+++ face-tag ^- state [title="hi" wrong=%missing]
+++ take |= x=state x
+++ bad-call (take ["hi" %missing])
+++ bad-unit ^- (unit state) `["hi" %missing]
+++ bad-list ^- (list state) ~[["hi" %missing]]
+++ pending |= f (f ["hi" %missing])
+++ variable |= x=A ^- [A msg] [x %missing]
+++ unresolved |= x=A ^- [A A] [x %missing]

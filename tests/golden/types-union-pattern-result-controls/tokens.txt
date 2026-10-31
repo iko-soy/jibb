@@ -1,0 +1,357 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %text
+2:10 name value
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 lit %clear
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name reply
+5:3 INDENT
+5:3 lit %yes
+6:3 NEWLINE
+6:3 lit %no
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name choose
+7:11 glyph |=
+7:14 name a
+7:15 tight glyph =
+7:16 tight name msg
+7:20 glyph ^-
+7:23 name reply
+8:3 INDENT
+8:3 glyph ?-
+8:6 name a
+9:5 INDENT
+9:5 glyph [
+9:6 tight lit %text
+9:12 name v
+9:13 tight glyph ]
+9:15 lit %yes
+10:5 NEWLINE
+10:5 lit %clear
+10:12 lit %no
+11:1 DEDENT
+11:1 DEDENT
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name invalid
+11:12 glyph |=
+11:15 name a
+11:16 tight glyph =
+11:17 tight name msg
+11:21 glyph ^-
+11:24 name reply
+12:3 INDENT
+12:3 glyph ?-
+12:6 name a
+13:5 INDENT
+13:5 glyph [
+13:6 tight lit %text
+13:12 name v
+13:13 tight glyph ]
+13:15 lit %missing
+14:5 NEWLINE
+14:5 lit %clear
+14:12 lit %no
+15:1 DEDENT
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name dead
+15:9 glyph |=
+15:12 name a
+15:13 tight glyph =
+15:14 tight name msg
+15:18 glyph ^-
+15:21 glyph (
+15:22 tight name list
+15:27 aura @t
+15:29 tight glyph )
+16:3 INDENT
+16:3 glyph ?-
+16:6 name a
+17:5 INDENT
+17:5 lit %clear
+17:12 lit ~
+18:5 NEWLINE
+18:5 lit %clear
+18:12 lit ~
+19:5 NEWLINE
+19:5 glyph [
+19:6 tight lit %text
+19:12 name v
+19:13 tight glyph ]
+19:15 glyph ~[
+19:17 tight name v
+19:18 tight glyph ]
+20:1 DEDENT
+20:1 DEDENT
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name unknown
+20:12 glyph |=
+20:15 name a
+20:16 tight glyph =
+20:17 tight name msg
+20:21 glyph ^-
+20:24 glyph (
+20:25 tight name list
+20:30 aura @t
+20:32 tight glyph )
+21:3 INDENT
+21:3 glyph ?-
+21:6 name a
+22:5 INDENT
+22:5 glyph [
+22:6 tight lit %text
+22:12 str "x"
+22:15 tight glyph ]
+22:17 glyph ~[
+22:19 tight glyph ]
+23:5 NEWLINE
+23:5 lit %clear
+23:12 glyph ~[
+23:14 tight glyph ]
+24:5 NEWLINE
+24:5 glyph *
+24:7 glyph ~[
+24:9 tight glyph ]
+25:1 DEDENT
+25:1 DEDENT
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name from-call
+25:14 glyph |=
+25:17 name x
+25:18 tight glyph =
+25:19 tight glyph (
+25:20 tight name list
+25:25 aura @t
+25:27 tight glyph )
+25:29 name x
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name non-wing
+26:13 glyph |=
+26:16 name a
+26:17 tight glyph =
+26:18 tight name msg
+26:22 glyph ^-
+26:25 glyph (
+26:26 tight name list
+26:31 aura @t
+26:33 tight glyph )
+27:3 INDENT
+27:3 glyph ?-
+27:6 glyph (
+27:7 tight name same
+27:12 name a
+27:13 tight glyph )
+28:5 INDENT
+28:5 lit %clear
+28:12 lit ~
+29:5 NEWLINE
+29:5 glyph [
+29:6 tight lit %text
+29:12 name v
+29:13 tight glyph ]
+29:15 glyph ~[
+29:17 tight name v
+29:18 tight glyph ]
+30:1 DEDENT
+30:1 DEDENT
+30:1 NEWLINE
+30:1 glyph ++
+30:4 name generic
+30:12 glyph |=
+30:15 glyph [
+30:16 tight name a
+30:17 tight glyph =
+30:18 tight name msg
+30:22 name x
+30:23 tight glyph =
+30:24 tight tvar A
+30:25 tight glyph ]
+30:27 glyph ^-
+30:30 glyph (
+30:31 tight name list
+30:36 tvar A
+30:37 tight glyph )
+31:3 INDENT
+31:3 glyph ?-
+31:6 name a
+32:5 INDENT
+32:5 lit %clear
+32:12 lit ~
+33:5 NEWLINE
+33:5 glyph [
+33:6 tight lit %text
+33:12 name v
+33:13 tight glyph ]
+33:15 glyph ~[
+33:17 tight name x
+33:18 tight glyph ]
+34:1 DEDENT
+34:1 DEDENT
+34:1 NEWLINE
+34:1 glyph ++
+34:4 name generic-bad
+34:16 glyph |=
+34:19 glyph [
+34:20 tight name a
+34:21 tight glyph =
+34:22 tight name msg
+34:26 name x
+34:27 tight glyph =
+34:28 tight tvar A
+34:29 tight glyph ]
+34:31 glyph ^-
+34:34 glyph (
+34:35 tight name list
+34:40 tvar A
+34:41 tight glyph )
+35:3 INDENT
+35:3 glyph ?-
+35:6 name a
+36:5 INDENT
+36:5 lit %clear
+36:12 lit ~
+37:5 NEWLINE
+37:5 glyph [
+37:6 tight lit %text
+37:12 name v
+37:13 tight glyph ]
+37:15 glyph ~[
+37:17 tight str "hi"
+37:21 tight glyph ]
+38:1 DEDENT
+38:1 DEDENT
+38:1 NEWLINE
+38:1 glyph ++
+38:4 name pending-tag
+38:16 glyph |=
+38:19 name a
+38:20 tight glyph =
+38:21 tight name msg
+38:25 glyph ^-
+38:28 glyph (
+38:29 tight name list
+38:34 aura @t
+38:36 tight glyph )
+39:3 INDENT
+39:3 glyph ~&
+39:6 lit %missing
+40:5 INDENT
+40:5 glyph ?-
+40:8 name a
+41:7 INDENT
+41:7 lit %clear
+41:14 lit ~
+42:7 NEWLINE
+42:7 glyph [
+42:8 tight lit %text
+42:14 name v
+42:15 tight glyph ]
+42:17 glyph ~[
+42:19 tight name v
+42:20 tight glyph ]
+43:1 DEDENT
+43:1 DEDENT
+43:1 DEDENT
+43:1 NEWLINE
+43:1 glyph ++
+43:4 name unknown-target
+43:19 glyph |=
+43:22 glyph [
+43:23 tight name a
+43:24 tight glyph =
+43:25 tight name msg
+43:29 name x
+43:30 tight glyph =
+43:31 tight tvar A
+43:32 tight glyph ]
+43:34 glyph ^-
+43:37 tvar A
+44:3 INDENT
+44:3 glyph ?-
+44:6 name a
+45:5 INDENT
+45:5 glyph [
+45:6 tight lit %text
+45:12 name v
+45:13 tight glyph ]
+45:15 lit %yes
+46:5 NEWLINE
+46:5 lit %clear
+46:12 lit %no
+47:1 DEDENT
+47:1 DEDENT
+47:1 NEWLINE
+47:1 glyph ++
+47:4 name nested-missing
+47:19 glyph |=
+47:22 name a
+47:23 tight glyph =
+47:24 tight name msg
+47:28 glyph ^-
+47:31 glyph [
+47:32 tight name reply
+47:38 aura @t
+47:40 tight glyph ]
+48:3 INDENT
+48:3 glyph ?-
+48:6 name a
+49:5 INDENT
+49:5 glyph [
+49:6 tight lit %text
+49:12 name v
+49:13 tight glyph ]
+49:15 glyph [
+49:16 tight lit %missing
+49:25 name v
+49:26 tight glyph ]
+50:5 NEWLINE
+50:5 lit %clear
+50:12 glyph [
+50:13 tight lit %yes
+50:18 str "ok"
+50:22 tight glyph ]
+51:1 DEDENT
+51:1 DEDENT
+51:1 NEWLINE
+51:1 glyph ++
+51:4 name argument
+51:13 glyph |=
+51:16 name a
+51:17 tight glyph =
+51:18 tight name msg
+52:3 INDENT
+52:3 glyph (
+52:4 tight name from-call
+53:5 INDENT
+53:5 glyph ?-
+53:8 name a
+54:7 INDENT
+54:7 lit %clear
+54:14 lit ~
+55:7 NEWLINE
+55:7 glyph [
+55:8 tight lit %text
+55:14 name v
+55:15 tight glyph ]
+55:17 glyph ~[
+55:19 tight name v
+55:20 tight glyph ]
+55:21 DEDENT
+55:21 DEDENT
+55:21 DEDENT
+55:21 NEWLINE

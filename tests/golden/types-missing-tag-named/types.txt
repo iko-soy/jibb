@@ -32,13 +32,13 @@ partial inference; module not checked
 /tests/golden/types-missing-tag-named/source.jibb:13:20: expression
 ++ tag-only ^- msg %typed
                    ^
-++ nested: cast mold and expression type do not unify
-/tests/golden/types-missing-tag-named/source.jibb:14:14: cast mold
+++ nested: msg has no case `%submitt`
+/tests/golden/types-missing-tag-named/source.jibb:14:14: expected union
 ++ nested ^- wrapped [%wrapper %submitt]
              ^
-/tests/golden/types-missing-tag-named/source.jibb:14:22: expression
+/tests/golden/types-missing-tag-named/source.jibb:14:32: tag
 ++ nested ^- wrapped [%wrapper %submitt]
-                     ^
+                               ^
 ++ generic: (choice @t) has no case `%missing`
 /tests/golden/types-missing-tag-named/source.jibb:15:15: expected union
 ++ generic ^- (choice @t) %missing

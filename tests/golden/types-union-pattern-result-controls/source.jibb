@@ -1,0 +1,55 @@
++$ msg
+  [%text value=@t]
+  %clear
++$ reply
+  %yes
+  %no
+++ choose |= a=msg ^- reply
+  ?- a
+    [%text v] %yes
+    %clear %no
+++ invalid |= a=msg ^- reply
+  ?- a
+    [%text v] %missing
+    %clear %no
+++ dead |= a=msg ^- (list @t)
+  ?- a
+    %clear ~
+    %clear ~
+    [%text v] ~[v]
+++ unknown |= a=msg ^- (list @t)
+  ?- a
+    [%text "x"] ~[]
+    %clear ~[]
+    * ~[]
+++ from-call |= x=(list @t) x
+++ non-wing |= a=msg ^- (list @t)
+  ?- (same a)
+    %clear ~
+    [%text v] ~[v]
+++ generic |= [a=msg x=A] ^- (list A)
+  ?- a
+    %clear ~
+    [%text v] ~[x]
+++ generic-bad |= [a=msg x=A] ^- (list A)
+  ?- a
+    %clear ~
+    [%text v] ~["hi"]
+++ pending-tag |= a=msg ^- (list @t)
+  ~& %missing
+    ?- a
+      %clear ~
+      [%text v] ~[v]
+++ unknown-target |= [a=msg x=A] ^- A
+  ?- a
+    [%text v] %yes
+    %clear %no
+++ nested-missing |= a=msg ^- [reply @t]
+  ?- a
+    [%text v] [%missing v]
+    %clear [%yes "ok"]
+++ argument |= a=msg
+  (from-call
+    ?- a
+      %clear ~
+      [%text v] ~[v]

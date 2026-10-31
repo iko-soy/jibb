@@ -1,0 +1,6 @@
+The real Tlon presence /sur fixture is the unmodified upstream file and
+license in tests/importer. Its action-1, command-1, update-1 and response-1
+unions have distinct literal head tags and named record and collection
+payloads. These Jibb identity gates and a field read exercise the actual
+source-aware reader and checker together. The report is partial inference,
+not a claim that the module has been checked.

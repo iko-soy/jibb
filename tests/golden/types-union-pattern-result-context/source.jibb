@@ -1,0 +1,25 @@
++$ msg
+  [%noted text=@t]
+  %clear
++$ state [text=@t]
+++ update |= [a=msg s=state]
+  ^- [state (list @t)]
+    ?- a
+      [%noted txt] [s(text=txt) ~[txt]]
+      %clear [s ~]
+++ bad |= [a=msg s=state]
+  ^- [state (list @t)]
+    ?- a
+      [%noted txt] [s(text=txt) ~[~zod]]
+      %clear [s ~]
+++ missing |= [a=msg s=state]
+  ^- [state (list @t)]
+    ?- a
+      %clear [s ~]
+++ pending |= [a=msg s=state]
+  ^- [state (list @t)]
+    ?- a
+      [%noted txt]
+        ~& %unknown
+          [s(text=txt) ~]
+      %clear [s ~]

@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+"""Run the real Tlon importer/checker bridge fixture under urbit eval."""
+
+from pathlib import Path
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+fixture = root / 'tests' / 'type-tlon'
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-tlon-bridge.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  jibb-import\n' + reader +
+              '\n=/  presence=wain  (to-wain:format sur-text)\n'
+              '=/  source=wain  (to-wain:format source-text)\n'
+              '=/  expected=wain  (to-wain:format expected-text)\n'
+              '=/  bridge\n' + tests +
+              '\n(bridge-output:bridge sur-text source-text)\n')
+with tempfile.TemporaryDirectory(prefix='jibb-type-tlon-') as tmp:
+    program = Path(tmp) / 'bridge.hoon'
+    program.write_text(expression)
+    result = subprocess.run([
+        str(root / 'tools/hoon'), '--raw', '-f', str(program),
+        '--cord', 'sur-text=' + str(root / 'tests/importer/tlon-presence.txt'),
+        '--cord', 'source-text=' + str(fixture / 'source.txt'),
+        '--cord', 'expected-text=' + str(fixture / 'expected.txt')],
+        stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected = (fixture / 'expected.txt').read_bytes()
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual types'))
+    sys.exit(1)
+print('Tlon importer/checker bridge golden passed')

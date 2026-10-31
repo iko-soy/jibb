@@ -42,7 +42,7 @@ tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
 tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb src)'
 ```
 
-`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file. `tools/type-import-test` and `tools/type-mark-test` check the importer/checker bridges under eval; the ship suite runs the same fixtures.
+`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file. `tools/type-import-test`, `tools/type-tlon-test` and `tools/type-mark-test` check the importer/checker bridges under eval; the ship suite runs the same fixtures.
 
 ### The doc's examples
 

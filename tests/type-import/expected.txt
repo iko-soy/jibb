@@ -19,13 +19,13 @@ partial inference; module not checked
                             ^
 ++ status: $-([status=(%deny %approve) text=@t] (%deny %approve))
 ++ nested-yes: [status=(%deny %approve) text=@t]
-++ nested-absent: cast mold and expression type do not unify
-/test.jibb:17:21: cast mold
+++ nested-absent: union %deny %approve has no case `%other`
+/test.jibb:17:21: expected union
 ++ nested-absent ^- nested-choice.fixture [%other "hi"]
                     ^
-/test.jibb:17:43: expression
+/test.jibb:17:44: tag
 ++ nested-absent ^- nested-choice.fixture [%other "hi"]
-                                          ^
+                                           ^
 ++ overlap: sample mold is not supported by partial inference
 ++ malformed: sample mold is not supported by partial inference
 ++ collapsed: sample mold is not supported by partial inference
