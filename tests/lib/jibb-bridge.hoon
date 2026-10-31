@@ -36,6 +36,30 @@
     "{(trip name.t)}: {?~(got "unsupported" (show-itype:jibb u.got ~))}"
   (of-wain:format (turn out |=(line=tape (crip line))))
 ::
+::  Recursive list arguments must be valid, same-origin graphs. The
+::  entire imported recursive mold remains nominal and does not unfold.
+++  recursive-list-synthetic
+  ^-  @t
+  =/  tests=(list [name=@t node=* good=?])
+    :~  ['valid' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes %node]]]]]] &]
+        ['wrong-module' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %other %node]]]]]] |]
+        ['wrong-name' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes %other]]]]]] |]
+        ['two-arguments' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes %node] [%atom %t ~]]]]]] |]
+        ['no-argument' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~]]]] |]
+        ['other-collection' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %set ~[[%ref %notes %node]]]]]] |]
+        ['malformed-reference' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes]]]]]] |]
+        ['null-overlap' [%fork ~[[%atom %n [~ 0]] [%apply %list ~[[%ref %notes %node]]]]] |]
+        ['duplicate-faces' [%fork ~[[%atom %n [~ 0]] [%cell [%face %dup [%atom %tas [~ %branch]]] [%face %dup [%apply %list ~[[%ref %notes %node]]]]]]] |]
+    ==
+  =/  out=wall
+    %+  turn  tests
+    |=  test=[name=@t node=* good=?]
+    =/  got=(unit itype:jibb)
+      (find-imported-mold:jibb %notes %node ~[[%notes %node [%& node.test]]] ~[%notes])
+    =/  yes=?  ?=([~ [%recursive *]] got)
+    "recursive-list {(trip name.test)}: {?:(=(yes good.test) "ok" "BAD")}"
+  (of-wain:format (turn out |=(line=tape (crip line))))
+::
 ++  bridge-output
   |=  [sur-text=@t src=@t]
   ^-  @t
@@ -109,5 +133,5 @@
     (crip "/- fixture\0a++ canonical ^- (unit @t) `\"hi\"\0a++ lookalike ^- zero-lookalike.fixture `\"hi\"\0a")
   =/  unit-report=@t
     (golden-types-with-prelude:jibb /ui/unit-client/jibb unit-client external ~ ~ unit-prelude)
-  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' noun-synthetic))))))
+  (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' (cat 3 noun-synthetic (cat 3 '\0a' recursive-list-synthetic))))))))
 --

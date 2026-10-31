@@ -315,3 +315,5 @@
   [%wait gap=@dr msg=M]
   [%now reply=$-(@da M)]
   [%who reply=$-(@p M)]
+
+++ gth |= args=[A A] (gth-atom.internal args)

@@ -2049,5 +2049,19 @@
 317:21 tvar M
 317:22 tight glyph )
 317:23 tight glyph ]
-317:24 DEDENT
-317:24 NEWLINE
+319:1 DEDENT
+319:1 NEWLINE
+319:1 glyph ++
+319:4 name gth
+319:8 glyph |=
+319:11 name args
+319:15 tight glyph =
+319:16 tight glyph [
+319:17 tight tvar A
+319:19 tvar A
+319:20 tight glyph ]
+319:22 glyph (
+319:23 tight wing gth-atom.internal
+319:41 name args
+319:45 tight glyph )
+319:46 NEWLINE

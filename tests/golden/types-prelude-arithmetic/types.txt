@@ -1,0 +1,32 @@
+partial inference; module not checked
+++ compare-bools: ?
+++ compare-bool-gate: $-([a=? b=?] ?)
+++ compare-decimal: ?
+++ compare-hex: ?
+++ compare-generic: $-(A ?) where A is an atom
+++ bad-mixed: call's sample and argument types do not unify
+/tests/golden/types-prelude-arithmetic/source.jibb:6:15: called gate has type $-([A A] ?) where A is an atom
+++ bad-mixed (gth ~zod "hi")
+              ^
+/tests/golden/types-prelude-arithmetic/source.jibb:6:19: argument has type [@p @t]
+++ bad-mixed (gth ~zod "hi")
+                  ^
+++ bad-cell: call's sample and argument types do not unify
+/tests/golden/types-prelude-arithmetic/source.jibb:7:14: called gate has type $-([A A] ?) where A is an atom
+++ bad-cell (gth [1 2] [3 4])
+             ^
+/tests/golden/types-prelude-arithmetic/source.jibb:7:18: argument
+++ bad-cell (gth [1 2] [3 4])
+                 ^
+++ atom-id: $-(A A) where A is an atom
+++ atom-id-bool: ?
+++ atom-id-text: @t
+++ unavailable-add: name is not available to partial inference
+++ unavailable-add-decimal: name is not available to partial inference
+++ unavailable-add-hex: name is not available to partial inference
+++ unavailable-dec: name is not available to partial inference
+++ unavailable-dec-hex: name is not available to partial inference
+++ unavailable-length: name is not available to partial inference
+++ captured: name is not available to partial inference
+++ captured-local: local definitions need unsupported inference
+++ inc: name is not available to partial inference

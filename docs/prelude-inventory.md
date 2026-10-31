@@ -14,6 +14,8 @@ Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold 
 
 `add`, `dec`, `div`, `dvr`, `gte`, `gth`, `lte`, `lth`, `max`, `min`, `mod`, `mul`, `sub`.
 
+The source-backed `gth` gate calls a compiler-supplied private comparison interface. The partial checker accepts supported equal-aura atom arguments, including loobeans, and returns `?`; lowering, jet recognition and execution remain unfinished. `add` and `dec` are not yet exposed: treating every atom-constrained type as closed under arithmetic would incorrectly infer loobean results for operations that can produce other atoms.
+
 ## 1c
 
 `bite` (mold), `bloq` (mold), `each`, `gate` (mold), `list`, `lone`, `lest`, `mold` (mold), `pair`, `pole`, `qual`, `quip`, `step`, `trap`, `tree`, `trel`, `unit`.

@@ -4,3 +4,4 @@
 ++ notebook-update |= x=u-notebook.notes x
 ++ notes-update |= x=u-notes.notes x
 ++ log-identity |= x=log.notes x
+++ import-node-id |= x=import-node.notes x

@@ -19,4 +19,8 @@
   (value 6:1 log-identity
     (gate 6:17
       (face 6:20 x (ref 6:22 log.notes))
-      (wing 6:32 x))))
+      (wing 6:32 x)))
+  (value 7:1 import-node-id
+    (gate 7:19
+      (face 7:22 x (ref 7:24 import-node.notes))
+      (wing 7:42 x))))

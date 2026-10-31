@@ -39,7 +39,31 @@
   =/  after-fixtures=(list [at=path source=@t])
     [[~[%ui %safe %jibb] library] duplicates]
   =/  after  (golden-types-with-prelude:jibb /ui/main/jibb after-source ~ ~ after-fixtures prelude)
-  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after real-parity list-guard self-prelude-guards unit-construction-guard open-list-guard])
+  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after real-parity list-guard self-prelude-guards unit-construction-guard open-list-guard primitive-guards])
+::
+++  primitive-guards
+  ^-  @t
+  =/  prepared  (prepare-prelude-with-internal:jibb real-prelude real-internal)
+  ?~  prepared  'private primitive preparation failed'
+  =/  direct=@t  (crip "/= hidden /lib/jibb/primitives\0a++ attempt 1\0a")
+  =/  transitive=@t  (crip "/= relay /ui/relay\0a++ attempt value.relay\0a")
+  =/  relay=@t  (crip "/= hidden /lib/jibb/primitives\0a++ value 1\0a")
+  =/  fake=@t  (crip "++ raw-add |= x x\0a")
+  =/  fixtures=(list [at=path source=@t])
+    ~[[/lib/jibb/primitives/jibb fake] [/ui/relay/jibb relay]]
+  =/  expected=@t  (crip "partial inference; module not checked\0athe prelude primitive interface is private")
+  =/  a  (golden-types-with-prepared-prelude:jibb /ui/direct/jibb direct ~ ~ fixtures prepared)
+  =/  b  (golden-types-with-prepared-prelude:jibb /ui/transitive/jibb transitive ~ ~ fixtures prepared)
+  =/  c  (golden-types-with-prepared-prelude:jibb /lib/jibb/internal/jibb direct ~ ~ fixtures prepared)
+  ?.  &(=(a expected) =(b expected) =(c expected))
+    'private primitive import guard failed'
+  =/  bad-internal=@t  (crip "/= core /lib/jibb/not-primitives\0a+$ poke @t\0a")
+  =/  bad-public=@t  (crip "/= core /lib/jibb/primitives\0a++ identity |= x x\0a")
+  ?^  (prepare-prelude-with-internal:jibb real-prelude bad-internal)
+    'invalid internal primitive source accepted'
+  ?^  (prepare-prelude-with-internal:jibb bad-public real-internal)
+    'public primitive import accepted'
+  'private primitive source and import guards passed'
 ::
 ++  real-parity
   ^-  @t

@@ -118,3 +118,12 @@ nested-overlap: unsupported
 separate-tags: [%a *] [%b @ud]
 unknown-gate: unsupported
 unknown-empty: unsupported
+recursive-list valid: ok
+recursive-list wrong-module: ok
+recursive-list wrong-name: ok
+recursive-list two-arguments: ok
+recursive-list no-argument: ok
+recursive-list other-collection: ok
+recursive-list malformed-reference: ok
+recursive-list null-overlap: ok
+recursive-list duplicate-faces: ok

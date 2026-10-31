@@ -5,4 +5,10 @@
 =/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
 =/  read-gate=vase  (slap reader (ream 'read-named'))
 =/  result=vase  (slym read-gate [%notes %log -.src])
-(pure:m !>(?=([%& [%apply %mop [[%atom %da ~] [%fork *] ~]]] +.result)))
+=/  recursive=vase  (slym read-gate [%notes %import-node -.src])
+=/  contains-ref
+  |=  node=*
+  ?:  =(node [%ref %notes %import-node])  &
+  ?@  node  |
+  |($(node -.node) $(node +.node))
+(pure:m !>([?=([%& [%apply %mop [[%atom %da ~] [%fork *] ~]]] +.result) &(?=([%& [%fork *]] +.recursive) (contains-ref +.recursive))]))

@@ -62,3 +62,4 @@ partial inference; module not checked
 ++ cury: $-([$-([A B] C) A] $-(B C))
 ++ curr: $-([$-([A B] C) B] $-(A C))
 +$ cmd: cases proven disjoint; mold not checked
+++ gth: field access is not supported by partial inference

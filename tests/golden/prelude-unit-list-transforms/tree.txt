@@ -892,4 +892,10 @@
         (cell 317:3
           (const 317:4 %who)
           (face 317:9 reply
-            (fn 317:15 (aura 317:18 @p) (tvar 317:21 M))))))))
+            (fn 317:15 (aura 317:18 @p) (tvar 317:21 M)))))))
+  (value 319:1 gth
+    (gate 319:8
+      (face 319:11 args
+        (cell 319:16 (tvar 319:17 A) (tvar 319:19 A)))
+      (group 319:22
+        (call 319:23 (wing 319:23 gth-atom.internal) (wing 319:41 args))))))

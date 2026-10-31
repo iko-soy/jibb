@@ -1,0 +1,23 @@
+++ compare-bools (gth %.n %.y)
+++ compare-bool-gate |= [a=? b=?] (gth a b)
+++ compare-decimal (gth 1 2)
+++ compare-hex (gth 0x1 0x2)
+++ compare-generic |= n=A (gth n n)
+++ bad-mixed (gth ~zod "hi")
+++ bad-cell (gth [1 2] [3 4])
+++ atom-id |= x=A
+  ~& ^- @ x
+    x
+++ atom-id-bool (atom-id %.n)
+++ atom-id-text (atom-id "hi")
+++ unavailable-add (add %.n %.n)
+++ unavailable-add-decimal (add 1 2)
+++ unavailable-add-hex (add 0x1 0x2)
+++ unavailable-dec (dec %.n)
+++ unavailable-dec-hex (dec 0x2)
+++ unavailable-length (lent ~["a"])
+++ captured |= x=? (add x x)
+++ captured-local |= x=?
+  ++ local |= y=? (add x y)
+  (local x)
+++ inc |= n=A (add n 1)

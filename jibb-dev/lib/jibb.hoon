@@ -5518,6 +5518,11 @@
       ?.  ?=([%ref @ @] node)  ~
       ?.  &(=(module +<.node) =(name +>.node))  ~
       `[[%unknown ~] &]
+    %apply
+      ?.  ?=([%apply %list [* ~]] node)  ~
+      =/  item  $(node -.+>.node)
+      ?~  item  ~
+      `[[%or ~[[%atom `0] [%cell pat.u.item [%unknown ~]]]] has.u.item]
     %face
       ?.  ?=([%face @ *] node)  ~
       ?.  (jibb-face-name +<.node)  ~
@@ -8933,6 +8938,43 @@
   =.  typ.template.u.out  (prelude-label typ.template.u.out name.m)
   [[name.m template.u.out] $(molds t.molds)]
 ::
+::  A compiler-owned interface available only to the dedicated
+::  internal-prelude preparation path, never the ordinary module resolver.
+++  private-primitive-interface
+  ^-  ifile
+  =/  a=itype  [%avar 0]
+  =/  pair=itype  [%cell a a]
+  =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0]]
+  [~[[%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~]
+::
+++  infer-private-internal
+  |=  src=@t
+  ^-  (unit ifile)
+  =/  at=path  /lib/jibb/internal/jibb
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  mod=module  p.parsed
+  ?~  imports.mod
+    =/  built=jfile-result  (infer-jibb-file at src ~ ~ ~ ~[at] ~ ~ ~ ~)
+    ?:  ?=(%| -.built)  ~
+    `iface.p.built
+  ?.  ?=([[%jibb *] ~] imports.mod)  ~
+  ?.  =(path.i.imports.mod /lib/jibb/primitives)  ~
+  ?.  (module-scope-valid mod ~ ~)  ~
+  =/  vals=(list term)  (global-value-names defs.mod)
+  ?:  (lien vals |=(n=term =(n %main)))  ~
+  =/  molds=imolds  (collect-simple-molds defs.mod)
+  =/  globals=(list term)  (weld (import-binding-names imports.mod) vals)
+  =/  js=ijimports  ~[[face.i.imports.mod private-primitive-interface]]
+  =/  reserved=(list term)  ~[face.i.imports.mod]
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~]
+  =/  mts=(each imold-types @t)  (module-mold-types molds state)
+  ?:  ?=(%| -.mts)  ~
+  =/  env=ienv  (resolve-supported-defs defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
+  ?.  (module-values-complete defs.mod env)  ~
+  `[env p.mts at ~]
+::
 ++  partial-prelude-interface-with-internal
   |=  [src=@t internal-source=(unit @t)]
   ^-  (unit ifile)
@@ -8945,10 +8987,9 @@
     ?.  ?=([[%jibb *] ~] imports.p.parsed)  ~
     ?.  =(path.i.imports.p.parsed /lib/jibb/internal)  ~
     ?~  internal-source  ~
-    =/  built=jfile-result
-      (infer-jibb-file /lib/jibb/internal/jibb u.internal-source ~ ~ ~ ~[/lib/jibb/internal/jibb] ~ ~ ~ ~)
-    ?:  ?=(%| -.built)  ~
-    `~[[face.i.imports.p.parsed iface.p.built]]
+    =/  built=(unit ifile)  (infer-private-internal u.internal-source)
+    ?~  built  ~
+    `~[[face.i.imports.p.parsed u.built]]
   ?~  private  ~
   ?~  defs.p.parsed  ~
   ?.  (module-scope-valid p.parsed ~ ~)  ~
@@ -9036,6 +9077,8 @@
   =/  at=path  (weld path.i.imports `path`~[%jibb])
   ?:  =(at /lib/jibb/internal/jibb)
     [%| 'the prelude internal module is private']
+  ?:  =(at /lib/jibb/primitives/jibb)
+    [%| 'the prelude primitive interface is private']
   ?:  (lien active |=(p=path =(p at)))
     [%| (crip "import cycle at {(spud at)}")]
   =/  found=jbundle  (skim modules |=(m=jsource =(at at.m)))

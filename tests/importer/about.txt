@@ -21,6 +21,10 @@ whose name collides with an inherited Ford face. An exact recursive mop hold
 revisited through an operand is rejected without guessing its origin.
 Mixed and fully wrapped Clay source locations are accepted; malformed calls
 and multi-segment callee or operand wings are rejected.
+Direct self-recursive tagged roots retain their verified module and mold name,
+including through a list and repeated fields. Duplicate cases, hidden invalid
+unions, recursion through an alias, mutual cycles, inherited same-name faces,
+and a hold selected from the wrong core remain unsupported.
 One named tagged union can occur inside another when the source proof and
 both disjointness checks succeed. Repeated dependencies, hidden overlap,
 deeper nesting, recursion, collection shadowing, and Ford-name collisions

@@ -1,0 +1,85 @@
+(module
+  (value 1:1 compare-bools
+    (group 1:18
+      (call 1:19 (wing 1:19 gth) (lit 1:23 %.n) (lit 1:27 %.y))))
+  (value 2:1 compare-bool-gate
+    (gate 2:22
+      (cell 2:25
+        (face 2:26 a (flag 2:28))
+        (face 2:30 b (flag 2:32)))
+      (group 2:35
+        (call 2:36 (wing 2:36 gth) (wing 2:40 a) (wing 2:42 b)))))
+  (value 3:1 compare-decimal
+    (group 3:20
+      (call 3:21 (wing 3:21 gth) (lit 3:25 1) (lit 3:27 2))))
+  (value 4:1 compare-hex
+    (group 4:16
+      (call 4:17 (wing 4:17 gth) (lit 4:21 0x1) (lit 4:25 0x2))))
+  (value 5:1 compare-generic
+    (gate 5:20
+      (face 5:23 n (tvar 5:25 A))
+      (group 5:27
+        (call 5:28 (wing 5:28 gth) (wing 5:32 n) (wing 5:34 n)))))
+  (value 6:1 bad-mixed
+    (group 6:14
+      (call 6:15 (wing 6:15 gth) (lit 6:19 ~zod) (str 6:24 "hi"))))
+  (value 7:1 bad-cell
+    (group 7:13
+      (call 7:14
+        (wing 7:14 gth)
+        (tuple 7:18 (lit 7:19 1) (lit 7:21 2))
+        (tuple 7:24 (lit 7:25 3) (lit 7:27 4)))))
+  (value 8:1 atom-id
+    (gate 8:12
+      (face 8:15 x (tvar 8:17 A))
+      (body 9:3
+        (trace 9:3
+          (cast 9:6 (aura 9:9 @) (wing 9:11 x))
+          (body 10:5 (wing 10:5 x))))))
+  (value 11:1 atom-id-bool
+    (group 11:17
+      (call 11:18 (wing 11:18 atom-id) (lit 11:26 %.n))))
+  (value 12:1 atom-id-text
+    (group 12:17
+      (call 12:18 (wing 12:18 atom-id) (str 12:26 "hi"))))
+  (value 13:1 unavailable-add
+    (group 13:20
+      (call 13:21 (wing 13:21 add) (lit 13:25 %.n) (lit 13:29 %.n))))
+  (value 14:1 unavailable-add-decimal
+    (group 14:28
+      (call 14:29 (wing 14:29 add) (lit 14:33 1) (lit 14:35 2))))
+  (value 15:1 unavailable-add-hex
+    (group 15:24
+      (call 15:25 (wing 15:25 add) (lit 15:29 0x1) (lit 15:33 0x2))))
+  (value 16:1 unavailable-dec
+    (group 16:20
+      (call 16:21 (wing 16:21 dec) (lit 16:25 %.n))))
+  (value 17:1 unavailable-dec-hex
+    (group 17:24
+      (call 17:25 (wing 17:25 dec) (lit 17:29 0x2))))
+  (value 18:1 unavailable-length
+    (group 18:23
+      (call 18:24
+        (wing 18:24 lent)
+        (list 18:29 (str 18:31 "a")))))
+  (value 19:1 captured
+    (gate 19:13
+      (face 19:16 x (flag 19:18))
+      (group 19:20
+        (call 19:21 (wing 19:21 add) (wing 19:25 x) (wing 19:27 x)))))
+  (value 20:1 captured-local
+    (gate 20:19
+      (face 20:22 x (flag 20:24))
+      (body 21:3
+        (value 21:3 local
+          (gate 21:12
+            (face 21:15 y (flag 21:17))
+            (group 21:19
+              (call 21:20 (wing 21:20 add) (wing 21:24 x) (wing 21:26 y)))))
+        (group 22:3
+          (call 22:4 (wing 22:4 local) (wing 22:10 x))))))
+  (value 23:1 inc
+    (gate 23:8
+      (face 23:11 n (tvar 23:13 A))
+      (group 23:15
+        (call 23:16 (wing 23:16 add) (wing 23:20 n) (lit 23:22 1))))))

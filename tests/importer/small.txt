@@ -136,5 +136,15 @@
 +$  tag-nest-overlap  $%([%one x=tag-invalid-cell] [%two ~])
 +$  tag-nest-recursive  $%([%step next=(unit tag-nest-recursive)] [%done ~])
 +$  tag-nest-recursive-outer  $%([%one x=tag-nest-recursive] [%two ~])
+::  Direct self-recursive tagged roots and conservative rejection controls.
++$  tag-self  $%([%branch children=(list tag-self)] [%leaf value=@t])
++$  tag-self-tail  $%([%branch next=tag-self-tail] [%leaf value=@t])
++$  tag-self-duplicate  $%([%same children=(list tag-self-duplicate)] [%same value=@t])
++$  tag-self-hidden  $%([%branch children=(list tag-self-hidden) other=tag-invalid-chain] [%leaf value=@t])
++$  tag-self-indirect  $%([%branch children=(list tag-self-alias)] [%leaf value=@t])
++$  tag-self-alias  tag-self-indirect
++$  tag-mutual-a  $%([%next value=(unit tag-mutual-b)] [%stop ~])
++$  tag-mutual-b  $%([%next value=(unit tag-mutual-a)] [%stop ~])
++$  tag-self-pair  [one=(list tag-self) two=(list tag-self)]
 +$  tag-nest-many  $%([%one x0=tag-nest-inner x1=tag-nest-inner x2=tag-nest-inner x3=tag-nest-inner x4=tag-nest-inner x5=tag-nest-inner x6=tag-nest-inner x7=tag-nest-inner x8=tag-nest-inner x9=tag-nest-inner x10=tag-nest-inner x11=tag-nest-inner x12=tag-nest-inner x13=tag-nest-inner x14=tag-nest-inner x15=tag-nest-inner x16=tag-nest-inner x17=tag-nest-inner x18=tag-nest-inner x19=tag-nest-inner x20=tag-nest-inner x21=tag-nest-inner x22=tag-nest-inner x23=tag-nest-inner x24=tag-nest-inner x25=tag-nest-inner x26=tag-nest-inner x27=tag-nest-inner x28=tag-nest-inner x29=tag-nest-inner x30=tag-nest-inner x31=tag-nest-inner x32=tag-nest-inner x33=tag-nest-inner x34=tag-nest-inner x35=tag-nest-inner x36=tag-nest-inner x37=tag-nest-inner x38=tag-nest-inner x39=tag-nest-inner] [%two ~])
 --

@@ -213,7 +213,13 @@
 ++  safe-source-name-mode
   |=  [name=term cor=type seen=(list term) fuel=@ud allow-nested=?]
   ^-  (unit @ud)
-  ?:  (lien seen |=(x=term =(name x)))  ~
+  ::  A direct revisit of the selected root is a recursive reference.
+  ::  Other cycles and inherited same-name bindings remain unavailable.
+  ?:  (lien seen |=(x=term =(name x)))
+    ?.  =(seen ~[name])  ~
+    ?.  ?=([%core *] cor)  ~
+    ?.  (scope-safe p.cor name)  ~
+    `fuel
   =/  arm=(unit hoon)  (local-arm-source cor name)
   ?~  arm
     ?.  &(|(=(name %ship) =(name %path)) (scope-safe cor name))  ~
@@ -299,8 +305,13 @@
   =/  tried=(each (list type) tang)
     (mule |.((turn u.cases |=(c=tagged-case (~(play ut cor) [%kttr branch.c])))))
   ?.  ?=([%& *] tried)  ~
+  ::  Record the selected hold before projecting branches so an exact
+  ::  recursive revisit can retain its independently verified origin.
+  =/  selected-type=(each type tang)
+    (mule |.((~(play ut cor) (ream (cat 3 '*' name)))))
+  ?.  ?=([%& *] selected-type)  ~
   =/  projected=(each (list imported) tang)
-    (mule |.((turn p.tried |=(t=type (walk module t catalog ~ `cor)))))
+    (mule |.((turn p.tried |=(t=type (walk module t catalog ~[[p.selected-type [~ name]]] `cor)))))
   ?.  ?=([%& *] projected)  ~
   ?^  (first-bads p.projected)  ~
   ?.  (all-disjoint p.projected)  ~
@@ -1314,6 +1325,12 @@
       [%fork (sort cases |=(pair=[imported imported] (dor -.pair +.pair)))]
     [%hint *]  $(typ q.typ)
     [%hold *]
+      =/  prior=(unit (unit term))  (find-seen typ seen)
+      ?^  prior
+        ?~  u.prior  [%bad 'an anonymous recursive Hoon mold cannot be named']
+        =/  origin  (ref-origin module u.u.prior typ context)
+        ?~  origin  [%bad 'a recursive Hoon mold needs unambiguous source provenance']
+        [%ref u.origin u.u.prior]
       =/  nested=(unit imported)  (nested-tagged-union module typ context)
       ?^  nested  u.nested
       ?:  &(?=([%tsls [%note * *] *] q.typ) |((has-spec-cell-union q.typ) (has-spec-general-union q.typ)))
@@ -1332,12 +1349,6 @@
           =/  second=type  (~(play ut p.typ) (ream '*value'))
           [%apply name ~[first-import $(typ second)]]
         [%apply name ~[first-import]]
-      =/  prior=(unit (unit term))  (find-seen typ seen)
-      ?^  prior
-        ?~  u.prior  [%bad 'an anonymous recursive Hoon mold cannot be named']
-        =/  origin  (ref-origin module u.u.prior typ context)
-        ?~  origin  [%bad 'a recursive Hoon mold needs unambiguous source provenance']
-        [%ref u.origin u.u.prior]
       =/  nm  (hold-name q.typ)
       ?:  =(nm [~ %vase])  [%bad 'a Hoon type named vase needs source provenance']
       ?:  &((source-uses q.typ %jar) !(alias-safe context %jar))
@@ -1821,6 +1832,13 @@
   =/  nest-child-src=@t
     '|%\0a+$  tag-nest-inner  $%([%left @t] [%right @ud])\0a+$  tag-nest-middle  $%([%one x=tag-nest-inner] [%two ~])\0a--\0a'
   =/  nest-collision=type  -:(ride [%cell [%face %base nest-parent] -:!>(..zuse)] nest-child-src)
+  =/  self-parent=type
+    -:(ride -:!>(..zuse) '|%\0a+$  tag-self  ?(%same %same)\0a--\0a')
+  =/  self-child=@t
+    '|%\0a+$  tag-self  $%([%branch children=(list tag-self)] [%leaf value=@t])\0a--\0a'
+  =/  self-collision=type  -:(ride [%cell [%face %tag-self self-parent] -:!>(..zuse)] self-child)
+  =/  self-other=type
+    -:(ride -:!>(..zuse) '|%\0a+$  tag-self  $%([%branch children=(list tag-self)] [%leaf value=@ud])\0a--\0a')
   =/  mop-ford-parent=type
     -:(ride -:!>(..zuse) '|%\0a+$  value  ?(%same %same)\0a--\0a')
   =/  mop-ford-child=type
@@ -2019,6 +2037,16 @@
       (crip "tag-nest-shadow: {(show-result (read-named %shadow-static %tag-nest-shadow xc))}")
       (crip "tag-nest-wrong-hold: {?~((nested-tagged-union %small (~(play ut other) (ream '*chain')) `sc) "unsupported" "BAD")}")
       (crip "tag-nest-ford-collision: {(show-result (read-named %outer %tag-nest-middle nest-collision))}")
+      (crip "tag-self: {(show-result (sample %tag-self))}")
+      (crip "tag-self-tail: {(show-result (sample %tag-self-tail))}")
+      (crip "tag-self-duplicate: {(show-result (sample %tag-self-duplicate))}")
+      (crip "tag-self-hidden: {(show-result (sample %tag-self-hidden))}")
+      (crip "tag-self-indirect: {(show-result (sample %tag-self-indirect))}")
+      (crip "tag-mutual-a: {(show-result (sample %tag-mutual-a))}")
+      (crip "tag-mutual-b: {(show-result (sample %tag-mutual-b))}")
+      (crip "tag-self-pair: {(show-result (sample %tag-self-pair))}")
+      (crip "tag-self-ford-collision: {(show-result (read-named %child %tag-self self-collision))}")
+      (crip "tag-self-wrong-core: {(show-result (read-mold-in %other %tag-self (~(play ut sc) (ream '*tag-self')) self-other))}")
       (crip "tag-flat-large: {?:(&(?=(~ (safe-source-name-mode %tag-fuel-7 sc ~ 256 |)) ?=(^ (safe-source-name-mode %tag-fuel-7 sc ~ 4.096 |)) ?=([%& *] (sample %tag-flat-large))) "supported above 256" "BAD")}")
       (crip "tag-null-good: {(show-result (sample %tag-null-good))}")
       (crip "tag-null-duplicate: {(show-result (sample %tag-null-duplicate))}")
