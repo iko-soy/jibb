@@ -171,9 +171,10 @@ def generator_checks(tmp):
     check('Jibb module sources are also supplied to the partial checker',
           '(check-module-types ~.main' in out and
           '/*  prelude-source  %jibb  /lib/jibb/prelude/jibb' in out and
-          '=/  prepared-prelude  (prepare-prelude:jibb prelude-source)' in out and
+          '/*  internal-source  %jibb  /lib/jibb/internal/jibb' in out and
+          '=/  prepared-prelude  (prepare-prelude-with-internal:jibb prelude-source internal-source)' in out and
           '(golden-types-with-prepared-prelude:jibb at src external mark-external sources prepared-prelude)' in out and
-          '(golden-types-with-prelude:jibb at src external mark-external sources prelude-source)' in out and
+          '(golden-types-with-prelude-and-internal:jibb at src external mark-external sources prelude-source internal-source)' in out and
           "['/ui/card.jibb' ~[~.ui ~.card ~.jibb] mod-1-1]" in out and
           'src-1 `typ-1 ~ ~ ~[[' in out and '~[]' not in out, out)
     with open(os.path.join(folder, 'modules.txt'), 'w') as f:

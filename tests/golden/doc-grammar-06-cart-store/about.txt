@@ -1,4 +1,4 @@
 source: Grammar tab, section "Example: a store and an island", code block 6 of the tab (block 5 is the EBNF)
 tests: a store module: a record mold with a mold application and the loobean mold `?`; a union with its cases below; a mold that is a name; a blank line; `++ main (store init update)`; a cast with its mold and expression on one line, `^- state [~ %.n]`; a gate with a cell sample; `?-` arms whose expressions are changes, `s(items=[item items.s])` and `s(open=(not open.s))`
 expect: parses
-expect-types: a partial inference report
+expect-types: a partial inference report; store kind and declaration scope remain unresolved

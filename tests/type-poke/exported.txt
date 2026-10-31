@@ -1,0 +1,9 @@
+/= public /ui/public
+/= fake /ui/internal
+++ pass |= x=exposed.public ^- poke x
+++ fake-to-real |= x=faux.fake ^- poke x
+++ real-to-fake |= x=poke ^- faux.fake x
+++ match-tag |= x=poke
+  ?- x
+    %agent "a"
+    * "b"

@@ -1,0 +1,8 @@
+1:1 glyph +$
+1:4 name poke
+1:9 aura @t
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name value
+2:10 str "ok"
+2:14 NEWLINE

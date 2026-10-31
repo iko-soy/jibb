@@ -325,16 +325,16 @@ def check_empty_module_bundle(c, tmp):
     with open(os.path.join(folder, 'about.txt'), 'a') as f:
         f.write('expect-types: test module input\n')
     lib, _ = stub_with(tmp, 'module-stub.hoon', '--',
-                       "++  prepare-prelude\n"
-                       "  |=  prelude=@t\n"
+                       "++  prepare-prelude-with-internal\n"
+                       "  |=  [prelude=@t internal=@t]\n"
                        "  ^-  (unit @t)\n"
                        "  `prelude\n"
                        "++  golden-types-with-prepared-prelude\n"
                        "  |=  [file=path src=@t surs=* marks=* modules=* prelude=(unit @t)]\n"
                        "  ^-  @t\n"
                        "  ?~(prelude 'missing prelude' ?~(modules 'empty module bundle' 'unexpected modules'))\n"
-                       "++  golden-types-with-prelude\n"
-                       "  |=  [file=path src=@t surs=* marks=* modules=* prelude=@t]\n"
+                       "++  golden-types-with-prelude-and-internal\n"
+                       "  |=  [file=path src=@t surs=* marks=* modules=* prelude=@t internal=@t]\n"
                        "  ^-  @t\n"
                        "  ?~(prelude 'missing prelude' ?~(modules 'empty module bundle' 'unexpected modules'))\n"
                        "--")
@@ -347,20 +347,20 @@ def check_empty_module_bundle(c, tmp):
     c.expect(not os.path.exists(os.path.join(folder, 'module-trees.txt')),
              'empty bundle should not require a fixture tree output')
     generated = read(program)
-    c.expect(generated.count(b'(prepare-prelude:lib ') == 1 and
-             generated.find(b'|^  %+  rap') > generated.find(b'(prepare-prelude:lib '),
+    c.expect(generated.count(b'(prepare-prelude-with-internal:lib ') == 1 and
+             generated.find(b'|^  %+  rap') > generated.find(b'(prepare-prelude-with-internal:lib '),
              'prelude preparation should occur once before the case loop')
     fallback, _ = stub_with(tmp, 'fallback-stub.hoon', '--',
-                            "++  prepare-prelude\n"
-                            "  |=  prelude=@t\n"
+                            "++  prepare-prelude-with-internal\n"
+                            "  |=  [prelude=@t internal=@t]\n"
                             "  ^-  (unit @t)\n"
                             "  ~\n"
                             "++  golden-types-with-prepared-prelude\n"
                             "  |=  [file=path src=@t surs=* marks=* modules=* prelude=(unit @t)]\n"
                             "  ^-  @t\n"
                             "  'unexpected prepared path'\n"
-                            "++  golden-types-with-prelude\n"
-                            "  |=  [file=path src=@t surs=* marks=* modules=* prelude=@t]\n"
+                            "++  golden-types-with-prelude-and-internal\n"
+                            "  |=  [file=path src=@t surs=* marks=* modules=* prelude=@t internal=@t]\n"
                             "  ^-  @t\n"
                             "  'prelude preparation failed'\n"
                             "--")

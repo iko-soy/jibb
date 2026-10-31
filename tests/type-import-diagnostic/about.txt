@@ -3,7 +3,7 @@ gates errors where used; unused molds are skipped. This fixture compiles a
 /sur file and a mark against zuse and passes unchanged structured reader
 results to the partial checker. Proven errors identify the Jibb use site for direct or nested record and
 function casts, cell samples, and non-generic local aliases. Ordered replay
-stops at an unsupported prefix, cycle or shadowing failure; unions, generic
+passes a supported noun (`*`) prefix and stops at an unsupported prefix, cycle or shadowing failure; unions, generic
 applications and transitive modules remain unsupported. Valid sibling
 definitions still infer.
 

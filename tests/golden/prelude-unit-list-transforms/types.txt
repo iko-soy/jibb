@@ -1,4 +1,5 @@
 partial inference; module not checked
++$ poke: not checked
 ++ same: $-(A A)
 ++ head: $-([A B] A)
 ++ tail: $-([A B] B)

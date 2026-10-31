@@ -1,0 +1,4 @@
++$ faux
+  [%agent agent=@tas mark=@tas payload=@t]
+  [%store module=@t action=@tas payload=@t]
+++ hold |= x=faux x

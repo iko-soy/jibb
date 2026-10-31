@@ -52,7 +52,10 @@ partial inference; module not checked
 /ui/test.jibb:2:10: invalid imported mold
 +$ alias bad.foo
          ^
-++ first-unsupported: cast mold is not supported by partial inference
+++ first-unsupported: signed and float auras cannot be imported
+/ui/test.jibb:8:32: invalid imported mold
+++ first-unsupported ^- [a=* b=bad.foo] !!
+                               ^
 ++ recursive-first: cast mold is not supported by partial inference
 ++ shadow: sample shadows a name
 ++ first-invalid: signed and float auras cannot be imported

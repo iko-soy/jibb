@@ -1,0 +1,7 @@
+The internal prelude defines poke, while the public prelude re-exports it as an
+ordinary transparent type. A real Hoon mark is compiled and read by the importer
+before the partial checker builds a poke-only API interface. The reports cover
+the constructor and mark mismatch, aliases and re-exports, ordinary construction
+and inspection, private import boundaries, unsupported or invalid API declarations,
+and preparation failures. The report remains partial; effect lowering and runtime
+execution are not verified.

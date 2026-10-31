@@ -1,0 +1,3 @@
++$ poke @t
++$ poke @p
+++ main (store init update)

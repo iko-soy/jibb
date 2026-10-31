@@ -1,0 +1,3 @@
+(module
+  (mold 1:1 poke (aura 1:9 @t))
+  (value 2:1 value (str 2:10 "ok")))

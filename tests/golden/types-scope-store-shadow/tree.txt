@@ -1,0 +1,6 @@
+(module
+  (mold 1:1 poke (aura 1:9 @t))
+  (value 2:1 same (str 2:9 "bad"))
+  (value 3:1 main
+    (group 3:9
+      (call 3:10 (wing 3:10 store) (wing 3:16 init) (wing 3:21 update)))))

@@ -1,0 +1,7 @@
+1:1 glyph /%
+1:4 lit %todo-action
+2:1 NEWLINE
+2:1 glyph +$
+2:4 name poke
+2:9 name todo-action
+2:20 NEWLINE

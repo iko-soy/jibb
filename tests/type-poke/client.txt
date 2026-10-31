@@ -1,0 +1,23 @@
+/= todo /ui/api/todo
++$ copy poke
++$ double copy
+++ good (todo-action.todo "ok")
+++ pass |= x=poke x
+++ pass-alias |= x=copy x
+++ direct ^- poke [%agent %todo %todo-action "x"]
+++ alias ^- double [%agent %todo %todo-action "x"]
+++ getter |= x=poke payload.x
+++ inspect |= x=poke
+  ?- x
+    [%agent a b c] "agent"
+    [%store a b c] "store"
+++ change |= x=poke x(payload="new")
+++ cast-atom ^- poke 0
+++ leaked |= x=copy ^- @t x
+++ split |= x=poke
+  ?- x
+    [a b] a
+++ number [(todo-action.todo "write") 1]
+++ bad-constructor (todo-action.todo ~zod)
+++ bad-mark ^- poke [%agent %todo 0x1f "x"]
+++ bad-case ^- poke [%alien %todo %todo-action "x"]

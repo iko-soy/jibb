@@ -1,0 +1,3 @@
++$ poke @t
+++ same "bad"
+++ main (store init update)

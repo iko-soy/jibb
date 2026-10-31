@@ -1,1793 +1,1806 @@
-2:1 glyph ++
-2:4 name same
-2:9 glyph |=
-2:12 name x
-2:13 tight glyph =
-2:14 tight tvar A
-2:16 name x
-4:1 NEWLINE
-4:1 glyph ++
-4:4 name head
-4:9 glyph |=
-4:12 name p
-4:13 tight glyph =
-4:14 tight glyph [
-4:15 tight tvar A
-4:17 tvar B
-4:18 tight glyph ]
-5:3 INDENT
-5:3 glyph ?-
-5:6 name p
-6:5 INDENT
-6:5 glyph [
-6:6 tight name a
-6:8 name b
-6:9 tight glyph ]
-6:11 name a
-8:1 DEDENT
-8:1 DEDENT
-8:1 NEWLINE
-8:1 glyph ++
-8:4 name tail
-8:9 glyph |=
-8:12 name p
-8:13 tight glyph =
-8:14 tight glyph [
-8:15 tight tvar A
-8:17 tvar B
-8:18 tight glyph ]
-9:3 INDENT
-9:3 glyph ?-
-9:6 name p
-10:5 INDENT
-10:5 glyph [
-10:6 tight name a
-10:8 name b
-10:9 tight glyph ]
-10:11 name b
-12:1 DEDENT
-12:1 DEDENT
-12:1 NEWLINE
-12:1 glyph ++
-12:4 name not
-12:8 glyph |=
-12:11 name b
-12:12 tight glyph =
-12:13 tight glyph ?
-13:3 INDENT
-13:3 glyph ?-
-13:6 name b
-14:5 INDENT
-14:5 lit %.y
-14:9 lit %.n
-15:5 NEWLINE
-15:5 lit %.n
-15:9 lit %.y
-17:1 DEDENT
-17:1 DEDENT
-17:1 NEWLINE
-17:1 glyph +$
-17:4 name list
-17:9 glyph |$
-17:12 glyph [
-17:13 tight tvar A
-17:14 tight glyph ]
-18:3 INDENT
-18:3 lit ~
-19:3 NEWLINE
-19:3 glyph [
-19:4 tight name i
-19:5 tight glyph =
-19:6 tight tvar A
-19:8 name t
-19:9 tight glyph =
-19:10 tight glyph (
-19:11 tight name list
-19:16 tvar A
-19:17 tight glyph )
-19:18 tight glyph ]
-21:1 DEDENT
-21:1 NEWLINE
-21:1 glyph +$
-21:4 name unit
-21:9 glyph |$
-21:12 glyph [
-21:13 tight tvar A
-21:14 tight glyph ]
-22:3 INDENT
-22:3 lit ~
-23:3 NEWLINE
-23:3 glyph [
-23:4 tight lit ~
-23:6 name u
-23:7 tight glyph =
-23:8 tight tvar A
-23:9 tight glyph ]
-25:1 DEDENT
-25:1 NEWLINE
-25:1 glyph ++
-25:4 name fall
-25:9 glyph |=
-25:12 name args
-25:16 tight glyph =
-25:17 tight glyph [
-25:18 tight glyph (
-25:19 tight name unit
-25:24 tvar A
-25:25 tight glyph )
-25:27 tvar A
-25:28 tight glyph ]
-26:3 INDENT
-26:3 glyph ?-
-26:6 name args
-27:5 INDENT
-27:5 glyph [
-27:6 tight name maybe
-27:12 name fallback
-27:20 tight glyph ]
-28:7 INDENT
-28:7 glyph ?-
-28:10 name maybe
-29:9 INDENT
-29:9 lit ~
-29:11 name fallback
-30:9 NEWLINE
-30:9 glyph [
-30:10 tight lit ~
-30:12 name value
-30:17 tight glyph ]
-30:19 name value
-32:1 DEDENT
-32:1 DEDENT
-32:1 DEDENT
-32:1 DEDENT
-32:1 NEWLINE
-32:1 glyph ++
-32:4 name need
-32:9 glyph |=
-32:12 name maybe
-32:17 tight glyph =
-32:18 tight glyph (
-32:19 tight name unit
-32:24 tvar A
-32:25 tight glyph )
-33:3 INDENT
-33:3 glyph ?-
-33:6 name maybe
-34:5 INDENT
-34:5 lit ~
-34:7 glyph !!
-35:5 NEWLINE
-35:5 glyph [
-35:6 tight lit ~
-35:8 name value
-35:13 tight glyph ]
-35:15 name value
-37:1 DEDENT
-37:1 DEDENT
-37:1 NEWLINE
-37:1 glyph ++
-37:4 name weld
-37:9 glyph |=
-37:12 name args
-37:16 tight glyph =
-37:17 tight glyph [
-37:18 tight glyph (
-37:19 tight name list
-37:24 tvar A
-37:25 tight glyph )
-37:27 glyph (
-37:28 tight name list
-37:33 tvar A
-37:34 tight glyph )
-37:35 tight glyph ]
-38:3 INDENT
-38:3 glyph ?-
-38:6 name args
-39:5 INDENT
-39:5 glyph [
-39:6 tight name xs
-39:9 name ys
-39:11 tight glyph ]
-40:7 INDENT
-40:7 glyph ^-
-40:10 glyph (
-40:11 tight name list
-40:16 tvar A
-40:17 tight glyph )
-41:9 INDENT
-41:9 glyph ?-
-41:12 name xs
-42:11 INDENT
-42:11 lit ~
-42:13 name ys
-43:11 NEWLINE
-43:11 glyph [
-43:12 tight name item
-43:17 name rest
-43:21 tight glyph ]
-43:23 glyph [
-43:24 tight name item
-43:29 glyph (
-43:30 tight name weld
-43:35 name rest
-43:40 name ys
-43:42 tight glyph )
-43:43 tight glyph ]
-45:1 DEDENT
-45:1 DEDENT
-45:1 DEDENT
-45:1 DEDENT
-45:1 DEDENT
-45:1 NEWLINE
-45:1 glyph ++
-45:4 name turn
-45:9 glyph |=
-45:12 name args
-45:16 tight glyph =
-45:17 tight glyph [
-45:18 tight glyph (
-45:19 tight name list
-45:24 tvar A
-45:25 tight glyph )
-45:27 glyph $-(
-45:30 tight tvar A
-45:32 tvar B
-45:33 tight glyph )
-45:34 tight glyph ]
-46:3 INDENT
-46:3 glyph ?-
-46:6 name args
-47:5 INDENT
-47:5 glyph [
-47:6 tight name xs
-47:9 name f
-47:10 tight glyph ]
-48:7 INDENT
-48:7 glyph ^-
-48:10 glyph (
-48:11 tight name list
-48:16 tvar B
-48:17 tight glyph )
-49:9 INDENT
-49:9 glyph ?-
-49:12 name xs
-50:11 INDENT
-50:11 lit ~
-50:13 lit ~
-51:11 NEWLINE
-51:11 glyph [
-51:12 tight name item
-51:17 name rest
-51:21 tight glyph ]
-51:23 glyph [
-51:24 tight glyph (
-51:25 tight name f
-51:27 name item
-51:31 tight glyph )
-51:33 glyph (
-51:34 tight name turn
-51:39 name rest
-51:44 name f
-51:45 tight glyph )
-51:46 tight glyph ]
-53:1 DEDENT
-53:1 DEDENT
-53:1 DEDENT
-53:1 DEDENT
-53:1 DEDENT
-53:1 NEWLINE
-53:1 glyph +$
-53:4 name dime
-53:9 glyph [
-53:10 tight name p
-53:11 tight glyph =
-53:12 tight aura @ta
-53:16 name q
-53:17 tight glyph =
-53:18 tight aura @
-53:19 tight glyph ]
-55:1 NEWLINE
-55:1 glyph +$
-55:4 name hair
-55:9 glyph [
-55:10 tight name p
-55:11 tight glyph =
-55:12 tight aura @ud
-55:16 name q
-55:17 tight glyph =
-55:18 tight aura @ud
-55:21 tight glyph ]
-57:1 NEWLINE
-57:1 glyph +$
-57:4 name pint
-57:9 glyph [
-57:10 tight name p
-57:11 tight glyph =
-57:12 tight glyph [
-57:13 tight name p
-57:14 tight glyph =
-57:15 tight aura @
-57:17 name q
-57:18 tight glyph =
-57:19 tight aura @
-57:20 tight glyph ]
-57:22 name q
-57:23 tight glyph =
-57:24 tight glyph [
-57:25 tight name p
-57:26 tight glyph =
-57:27 tight aura @
-57:29 name q
-57:30 tight glyph =
-57:31 tight aura @
-57:32 tight glyph ]
-57:33 tight glyph ]
-59:1 NEWLINE
-59:1 glyph +$
-59:4 name coin
-60:3 INDENT
-60:3 glyph [
-60:4 tight lit %$
-60:7 name p
-60:8 tight glyph =
-60:9 tight name dime
-60:13 tight glyph ]
-61:3 NEWLINE
-61:3 glyph [
-61:4 tight lit %blob
-61:10 name p
-61:11 tight glyph =
-61:12 tight glyph *
-61:13 tight glyph ]
-62:3 NEWLINE
-62:3 glyph [
-62:4 tight lit %many
-62:10 name p
-62:11 tight glyph =
-62:12 tight glyph (
-62:13 tight name list
-62:18 name coin
-62:22 tight glyph )
-62:23 tight glyph ]
-64:1 DEDENT
-64:1 NEWLINE
-64:1 glyph +$
-64:4 name pair
-64:9 glyph |$
-64:12 glyph [
-64:13 tight tvar A
-64:15 tvar B
-64:16 tight glyph ]
-64:18 glyph [
-64:19 tight name p
-64:20 tight glyph =
-64:21 tight tvar A
-64:23 name q
-64:24 tight glyph =
-64:25 tight tvar B
-64:26 tight glyph ]
-66:1 NEWLINE
-66:1 glyph +$
-66:4 name trel
-66:9 glyph |$
-66:12 glyph [
-66:13 tight tvar A
-66:15 tvar B
-66:17 tvar C
-66:18 tight glyph ]
-66:20 glyph [
-66:21 tight name p
-66:22 tight glyph =
-66:23 tight tvar A
-66:25 name q
-66:26 tight glyph =
-66:27 tight tvar B
-66:29 name r
-66:30 tight glyph =
-66:31 tight tvar C
-66:32 tight glyph ]
-68:1 NEWLINE
-68:1 glyph +$
-68:4 name qual
-68:9 glyph |$
-68:12 glyph [
-68:13 tight tvar A
-68:15 tvar B
-68:17 tvar C
-68:19 tvar D
-68:20 tight glyph ]
-68:22 glyph [
-68:23 tight name p
-68:24 tight glyph =
-68:25 tight tvar A
-68:27 name q
-68:28 tight glyph =
-68:29 tight tvar B
-68:31 name r
-68:32 tight glyph =
-68:33 tight tvar C
-68:35 name s
-68:36 tight glyph =
-68:37 tight tvar D
-68:38 tight glyph ]
-70:1 NEWLINE
-70:1 glyph +$
-70:4 name cord
-70:9 aura @t
-72:1 NEWLINE
-72:1 glyph +$
-72:4 name knot
-72:9 aura @ta
-74:1 NEWLINE
-74:1 glyph +$
-74:4 name tape
-74:9 glyph (
-74:10 tight name list
-74:15 aura @tD
-74:18 tight glyph )
-76:1 NEWLINE
-76:1 glyph +$
-76:4 name path
-76:9 glyph (
-76:10 tight name list
-76:15 name knot
-76:19 tight glyph )
-78:1 NEWLINE
-78:1 glyph +$
-78:4 name tank
-79:3 INDENT
-79:3 name cord
-80:3 NEWLINE
-80:3 glyph [
-80:4 tight lit %leaf
-80:10 name p
-80:11 tight glyph =
-80:12 tight name tape
-80:16 tight glyph ]
-81:3 NEWLINE
-81:3 glyph [
-81:4 tight lit %palm
-81:10 name p
-81:11 tight glyph =
-81:12 tight glyph (
-81:13 tight name qual
-81:18 name tape
-81:23 name tape
-81:28 name tape
-81:33 name tape
-81:37 tight glyph )
-81:39 name q
-81:40 tight glyph =
-81:41 tight glyph (
-81:42 tight name list
-81:47 name tank
-81:51 tight glyph )
-81:52 tight glyph ]
-82:3 NEWLINE
-82:3 glyph [
-82:4 tight lit %rose
-82:10 name p
-82:11 tight glyph =
-82:12 tight glyph (
-82:13 tight name trel
-82:18 name tape
-82:23 name tape
-82:28 name tape
-82:32 tight glyph )
-82:34 name q
-82:35 tight glyph =
-82:36 tight glyph (
-82:37 tight name list
-82:42 name tank
-82:46 tight glyph )
-82:47 tight glyph ]
-84:1 DEDENT
-84:1 NEWLINE
-84:1 glyph +$
-84:4 name nail
-84:9 glyph [
-84:10 tight name p
+1:1 glyph /=
+1:4 name internal
+1:13 glyph /
+1:14 tight knot lib
+1:17 tight glyph /
+1:18 tight knot jibb
+1:22 tight glyph /
+1:23 tight knot internal
+2:1 NEWLINE
+2:1 glyph +$
+2:4 name poke
+2:9 wing poke.internal
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name same
+5:9 glyph |=
+5:12 name x
+5:13 tight glyph =
+5:14 tight tvar A
+5:16 name x
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name head
+7:9 glyph |=
+7:12 name p
+7:13 tight glyph =
+7:14 tight glyph [
+7:15 tight tvar A
+7:17 tvar B
+7:18 tight glyph ]
+8:3 INDENT
+8:3 glyph ?-
+8:6 name p
+9:5 INDENT
+9:5 glyph [
+9:6 tight name a
+9:8 name b
+9:9 tight glyph ]
+9:11 name a
+11:1 DEDENT
+11:1 DEDENT
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name tail
+11:9 glyph |=
+11:12 name p
+11:13 tight glyph =
+11:14 tight glyph [
+11:15 tight tvar A
+11:17 tvar B
+11:18 tight glyph ]
+12:3 INDENT
+12:3 glyph ?-
+12:6 name p
+13:5 INDENT
+13:5 glyph [
+13:6 tight name a
+13:8 name b
+13:9 tight glyph ]
+13:11 name b
+15:1 DEDENT
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name not
+15:8 glyph |=
+15:11 name b
+15:12 tight glyph =
+15:13 tight glyph ?
+16:3 INDENT
+16:3 glyph ?-
+16:6 name b
+17:5 INDENT
+17:5 lit %.y
+17:9 lit %.n
+18:5 NEWLINE
+18:5 lit %.n
+18:9 lit %.y
+20:1 DEDENT
+20:1 DEDENT
+20:1 NEWLINE
+20:1 glyph +$
+20:4 name list
+20:9 glyph |$
+20:12 glyph [
+20:13 tight tvar A
+20:14 tight glyph ]
+21:3 INDENT
+21:3 lit ~
+22:3 NEWLINE
+22:3 glyph [
+22:4 tight name i
+22:5 tight glyph =
+22:6 tight tvar A
+22:8 name t
+22:9 tight glyph =
+22:10 tight glyph (
+22:11 tight name list
+22:16 tvar A
+22:17 tight glyph )
+22:18 tight glyph ]
+24:1 DEDENT
+24:1 NEWLINE
+24:1 glyph +$
+24:4 name unit
+24:9 glyph |$
+24:12 glyph [
+24:13 tight tvar A
+24:14 tight glyph ]
+25:3 INDENT
+25:3 lit ~
+26:3 NEWLINE
+26:3 glyph [
+26:4 tight lit ~
+26:6 name u
+26:7 tight glyph =
+26:8 tight tvar A
+26:9 tight glyph ]
+28:1 DEDENT
+28:1 NEWLINE
+28:1 glyph ++
+28:4 name fall
+28:9 glyph |=
+28:12 name args
+28:16 tight glyph =
+28:17 tight glyph [
+28:18 tight glyph (
+28:19 tight name unit
+28:24 tvar A
+28:25 tight glyph )
+28:27 tvar A
+28:28 tight glyph ]
+29:3 INDENT
+29:3 glyph ?-
+29:6 name args
+30:5 INDENT
+30:5 glyph [
+30:6 tight name maybe
+30:12 name fallback
+30:20 tight glyph ]
+31:7 INDENT
+31:7 glyph ?-
+31:10 name maybe
+32:9 INDENT
+32:9 lit ~
+32:11 name fallback
+33:9 NEWLINE
+33:9 glyph [
+33:10 tight lit ~
+33:12 name value
+33:17 tight glyph ]
+33:19 name value
+35:1 DEDENT
+35:1 DEDENT
+35:1 DEDENT
+35:1 DEDENT
+35:1 NEWLINE
+35:1 glyph ++
+35:4 name need
+35:9 glyph |=
+35:12 name maybe
+35:17 tight glyph =
+35:18 tight glyph (
+35:19 tight name unit
+35:24 tvar A
+35:25 tight glyph )
+36:3 INDENT
+36:3 glyph ?-
+36:6 name maybe
+37:5 INDENT
+37:5 lit ~
+37:7 glyph !!
+38:5 NEWLINE
+38:5 glyph [
+38:6 tight lit ~
+38:8 name value
+38:13 tight glyph ]
+38:15 name value
+40:1 DEDENT
+40:1 DEDENT
+40:1 NEWLINE
+40:1 glyph ++
+40:4 name weld
+40:9 glyph |=
+40:12 name args
+40:16 tight glyph =
+40:17 tight glyph [
+40:18 tight glyph (
+40:19 tight name list
+40:24 tvar A
+40:25 tight glyph )
+40:27 glyph (
+40:28 tight name list
+40:33 tvar A
+40:34 tight glyph )
+40:35 tight glyph ]
+41:3 INDENT
+41:3 glyph ?-
+41:6 name args
+42:5 INDENT
+42:5 glyph [
+42:6 tight name xs
+42:9 name ys
+42:11 tight glyph ]
+43:7 INDENT
+43:7 glyph ^-
+43:10 glyph (
+43:11 tight name list
+43:16 tvar A
+43:17 tight glyph )
+44:9 INDENT
+44:9 glyph ?-
+44:12 name xs
+45:11 INDENT
+45:11 lit ~
+45:13 name ys
+46:11 NEWLINE
+46:11 glyph [
+46:12 tight name item
+46:17 name rest
+46:21 tight glyph ]
+46:23 glyph [
+46:24 tight name item
+46:29 glyph (
+46:30 tight name weld
+46:35 name rest
+46:40 name ys
+46:42 tight glyph )
+46:43 tight glyph ]
+48:1 DEDENT
+48:1 DEDENT
+48:1 DEDENT
+48:1 DEDENT
+48:1 DEDENT
+48:1 NEWLINE
+48:1 glyph ++
+48:4 name turn
+48:9 glyph |=
+48:12 name args
+48:16 tight glyph =
+48:17 tight glyph [
+48:18 tight glyph (
+48:19 tight name list
+48:24 tvar A
+48:25 tight glyph )
+48:27 glyph $-(
+48:30 tight tvar A
+48:32 tvar B
+48:33 tight glyph )
+48:34 tight glyph ]
+49:3 INDENT
+49:3 glyph ?-
+49:6 name args
+50:5 INDENT
+50:5 glyph [
+50:6 tight name xs
+50:9 name f
+50:10 tight glyph ]
+51:7 INDENT
+51:7 glyph ^-
+51:10 glyph (
+51:11 tight name list
+51:16 tvar B
+51:17 tight glyph )
+52:9 INDENT
+52:9 glyph ?-
+52:12 name xs
+53:11 INDENT
+53:11 lit ~
+53:13 lit ~
+54:11 NEWLINE
+54:11 glyph [
+54:12 tight name item
+54:17 name rest
+54:21 tight glyph ]
+54:23 glyph [
+54:24 tight glyph (
+54:25 tight name f
+54:27 name item
+54:31 tight glyph )
+54:33 glyph (
+54:34 tight name turn
+54:39 name rest
+54:44 name f
+54:45 tight glyph )
+54:46 tight glyph ]
+56:1 DEDENT
+56:1 DEDENT
+56:1 DEDENT
+56:1 DEDENT
+56:1 DEDENT
+56:1 NEWLINE
+56:1 glyph +$
+56:4 name dime
+56:9 glyph [
+56:10 tight name p
+56:11 tight glyph =
+56:12 tight aura @ta
+56:16 name q
+56:17 tight glyph =
+56:18 tight aura @
+56:19 tight glyph ]
+58:1 NEWLINE
+58:1 glyph +$
+58:4 name hair
+58:9 glyph [
+58:10 tight name p
+58:11 tight glyph =
+58:12 tight aura @ud
+58:16 name q
+58:17 tight glyph =
+58:18 tight aura @ud
+58:21 tight glyph ]
+60:1 NEWLINE
+60:1 glyph +$
+60:4 name pint
+60:9 glyph [
+60:10 tight name p
+60:11 tight glyph =
+60:12 tight glyph [
+60:13 tight name p
+60:14 tight glyph =
+60:15 tight aura @
+60:17 name q
+60:18 tight glyph =
+60:19 tight aura @
+60:20 tight glyph ]
+60:22 name q
+60:23 tight glyph =
+60:24 tight glyph [
+60:25 tight name p
+60:26 tight glyph =
+60:27 tight aura @
+60:29 name q
+60:30 tight glyph =
+60:31 tight aura @
+60:32 tight glyph ]
+60:33 tight glyph ]
+62:1 NEWLINE
+62:1 glyph +$
+62:4 name coin
+63:3 INDENT
+63:3 glyph [
+63:4 tight lit %$
+63:7 name p
+63:8 tight glyph =
+63:9 tight name dime
+63:13 tight glyph ]
+64:3 NEWLINE
+64:3 glyph [
+64:4 tight lit %blob
+64:10 name p
+64:11 tight glyph =
+64:12 tight glyph *
+64:13 tight glyph ]
+65:3 NEWLINE
+65:3 glyph [
+65:4 tight lit %many
+65:10 name p
+65:11 tight glyph =
+65:12 tight glyph (
+65:13 tight name list
+65:18 name coin
+65:22 tight glyph )
+65:23 tight glyph ]
+67:1 DEDENT
+67:1 NEWLINE
+67:1 glyph +$
+67:4 name pair
+67:9 glyph |$
+67:12 glyph [
+67:13 tight tvar A
+67:15 tvar B
+67:16 tight glyph ]
+67:18 glyph [
+67:19 tight name p
+67:20 tight glyph =
+67:21 tight tvar A
+67:23 name q
+67:24 tight glyph =
+67:25 tight tvar B
+67:26 tight glyph ]
+69:1 NEWLINE
+69:1 glyph +$
+69:4 name trel
+69:9 glyph |$
+69:12 glyph [
+69:13 tight tvar A
+69:15 tvar B
+69:17 tvar C
+69:18 tight glyph ]
+69:20 glyph [
+69:21 tight name p
+69:22 tight glyph =
+69:23 tight tvar A
+69:25 name q
+69:26 tight glyph =
+69:27 tight tvar B
+69:29 name r
+69:30 tight glyph =
+69:31 tight tvar C
+69:32 tight glyph ]
+71:1 NEWLINE
+71:1 glyph +$
+71:4 name qual
+71:9 glyph |$
+71:12 glyph [
+71:13 tight tvar A
+71:15 tvar B
+71:17 tvar C
+71:19 tvar D
+71:20 tight glyph ]
+71:22 glyph [
+71:23 tight name p
+71:24 tight glyph =
+71:25 tight tvar A
+71:27 name q
+71:28 tight glyph =
+71:29 tight tvar B
+71:31 name r
+71:32 tight glyph =
+71:33 tight tvar C
+71:35 name s
+71:36 tight glyph =
+71:37 tight tvar D
+71:38 tight glyph ]
+73:1 NEWLINE
+73:1 glyph +$
+73:4 name cord
+73:9 aura @t
+75:1 NEWLINE
+75:1 glyph +$
+75:4 name knot
+75:9 aura @ta
+77:1 NEWLINE
+77:1 glyph +$
+77:4 name tape
+77:9 glyph (
+77:10 tight name list
+77:15 aura @tD
+77:18 tight glyph )
+79:1 NEWLINE
+79:1 glyph +$
+79:4 name path
+79:9 glyph (
+79:10 tight name list
+79:15 name knot
+79:19 tight glyph )
+81:1 NEWLINE
+81:1 glyph +$
+81:4 name tank
+82:3 INDENT
+82:3 name cord
+83:3 NEWLINE
+83:3 glyph [
+83:4 tight lit %leaf
+83:10 name p
+83:11 tight glyph =
+83:12 tight name tape
+83:16 tight glyph ]
+84:3 NEWLINE
+84:3 glyph [
+84:4 tight lit %palm
+84:10 name p
 84:11 tight glyph =
-84:12 tight name hair
-84:17 name q
-84:18 tight glyph =
-84:19 tight name tape
-84:23 tight glyph ]
-86:1 NEWLINE
-86:1 glyph +$
-86:4 name edge
-86:9 glyph [
-86:10 tight name p
-86:11 tight glyph =
-86:12 tight name hair
-86:17 name q
-86:18 tight glyph =
-86:19 tight glyph (
-86:20 tight name unit
-86:25 glyph [
-86:26 tight name p
-86:27 tight glyph =
-86:28 tight glyph *
-86:30 name q
-86:31 tight glyph =
-86:32 tight name nail
-86:36 tight glyph ]
-86:37 tight glyph )
-86:38 tight glyph ]
-88:1 NEWLINE
-88:1 glyph +$
-88:4 name rule
-88:9 glyph $-(
-88:12 tight name nail
-88:17 name edge
-88:21 tight glyph )
-90:1 NEWLINE
-90:1 glyph +$
-90:4 name spot
-90:9 glyph [
-90:10 tight name p
-90:11 tight glyph =
-90:12 tight name path
-90:17 name q
-90:18 tight glyph =
-90:19 tight name pint
-90:23 tight glyph ]
-92:1 NEWLINE
-92:1 glyph +$
-92:4 name toon
-93:3 INDENT
-93:3 glyph [
-93:4 tight lit %0
-93:7 name p
-93:8 tight glyph =
-93:9 tight glyph *
-93:10 tight glyph ]
-94:3 NEWLINE
-94:3 glyph [
-94:4 tight lit %1
-94:7 name p
-94:8 tight glyph =
-94:9 tight glyph *
-94:10 tight glyph ]
-95:3 NEWLINE
-95:3 glyph [
-95:4 tight lit %2
-95:7 name p
-95:8 tight glyph =
-95:9 tight glyph (
-95:10 tight name list
-95:15 name tank
-95:19 tight glyph )
-95:20 tight glyph ]
-97:1 DEDENT
-97:1 NEWLINE
-97:1 glyph +$
-97:4 name like
-97:9 glyph |$
-97:12 glyph [
-97:13 tight tvar A
-97:14 tight glyph ]
-97:16 glyph [
-97:17 tight name p
-97:18 tight glyph =
-97:19 tight name hair
-97:24 name q
-97:25 tight glyph =
-97:26 tight glyph (
-97:27 tight name unit
-97:32 glyph [
-97:33 tight name p
-97:34 tight glyph =
-97:35 tight tvar A
-97:37 name q
-97:38 tight glyph =
-97:39 tight name nail
-97:43 tight glyph ]
-97:44 tight glyph )
-97:45 tight glyph ]
-99:1 NEWLINE
-99:1 glyph ++
-99:4 name wonk
-99:9 glyph |=
-99:12 name veq
-99:15 tight glyph =
-99:16 tight glyph (
-99:17 tight name like
-99:22 tvar A
-99:23 tight glyph )
-100:3 INDENT
-100:3 glyph ?-
-100:6 wing q.veq
-101:5 INDENT
-101:5 lit ~
-101:7 glyph !!
-102:5 NEWLINE
-102:5 glyph [
-102:6 tight lit ~
-102:8 name product
-102:15 tight glyph ]
-102:17 wing p.product
-104:1 DEDENT
-104:1 DEDENT
-104:1 NEWLINE
-104:1 glyph +$
-104:4 name lone
-104:9 glyph |$
-104:12 glyph [
-104:13 tight tvar A
-104:14 tight glyph ]
-104:16 glyph [
-104:17 tight name p
-104:18 tight glyph =
-104:19 tight tvar A
-104:20 tight glyph ]
-106:1 NEWLINE
-106:1 glyph +$
-106:4 name lest
-106:9 glyph |$
-106:12 glyph [
-106:13 tight tvar A
-106:14 tight glyph ]
-106:16 glyph [
-106:17 tight name i
-106:18 tight glyph =
-106:19 tight tvar A
-106:21 name t
-106:22 tight glyph =
-106:23 tight glyph (
-106:24 tight name list
-106:29 tvar A
-106:30 tight glyph )
-106:31 tight glyph ]
-108:1 NEWLINE
-108:1 glyph +$
-108:4 name pole
-108:9 glyph |$
-108:12 glyph [
-108:13 tight tvar A
-108:14 tight glyph ]
-109:3 INDENT
-109:3 lit ~
-110:3 NEWLINE
-110:3 glyph [
-110:4 tight tvar A
-110:6 glyph (
-110:7 tight name pole
-110:12 tvar A
-110:13 tight glyph )
-110:14 tight glyph ]
-112:1 DEDENT
-112:1 NEWLINE
-112:1 glyph +$
-112:4 name quip
-112:9 glyph |$
-112:12 glyph [
-112:13 tight tvar A
-112:15 tvar B
-112:16 tight glyph ]
-112:18 glyph [
-112:19 tight glyph (
-112:20 tight name list
-112:25 tvar A
-112:26 tight glyph )
-112:28 tvar B
-112:29 tight glyph ]
-114:1 NEWLINE
-114:1 glyph +$
-114:4 name tree
-114:9 glyph |$
-114:12 glyph [
-114:13 tight tvar A
-114:14 tight glyph ]
-115:3 INDENT
-115:3 lit ~
-116:3 NEWLINE
-116:3 glyph [
-116:4 tight name n
-116:5 tight glyph =
-116:6 tight tvar A
-116:8 name l
-116:9 tight glyph =
-116:10 tight glyph (
-116:11 tight name tree
-116:16 tvar A
-116:17 tight glyph )
-116:19 name r
-116:20 tight glyph =
-116:21 tight glyph (
-116:22 tight name tree
-116:27 tvar A
-116:28 tight glyph )
-116:29 tight glyph ]
-118:1 DEDENT
-118:1 NEWLINE
-118:1 glyph +$
-118:4 name each
-118:9 glyph |$
-118:12 glyph [
-118:13 tight tvar A
-118:15 tvar B
-118:16 tight glyph ]
-119:3 INDENT
+84:12 tight glyph (
+84:13 tight name qual
+84:18 name tape
+84:23 name tape
+84:28 name tape
+84:33 name tape
+84:37 tight glyph )
+84:39 name q
+84:40 tight glyph =
+84:41 tight glyph (
+84:42 tight name list
+84:47 name tank
+84:51 tight glyph )
+84:52 tight glyph ]
+85:3 NEWLINE
+85:3 glyph [
+85:4 tight lit %rose
+85:10 name p
+85:11 tight glyph =
+85:12 tight glyph (
+85:13 tight name trel
+85:18 name tape
+85:23 name tape
+85:28 name tape
+85:32 tight glyph )
+85:34 name q
+85:35 tight glyph =
+85:36 tight glyph (
+85:37 tight name list
+85:42 name tank
+85:46 tight glyph )
+85:47 tight glyph ]
+87:1 DEDENT
+87:1 NEWLINE
+87:1 glyph +$
+87:4 name nail
+87:9 glyph [
+87:10 tight name p
+87:11 tight glyph =
+87:12 tight name hair
+87:17 name q
+87:18 tight glyph =
+87:19 tight name tape
+87:23 tight glyph ]
+89:1 NEWLINE
+89:1 glyph +$
+89:4 name edge
+89:9 glyph [
+89:10 tight name p
+89:11 tight glyph =
+89:12 tight name hair
+89:17 name q
+89:18 tight glyph =
+89:19 tight glyph (
+89:20 tight name unit
+89:25 glyph [
+89:26 tight name p
+89:27 tight glyph =
+89:28 tight glyph *
+89:30 name q
+89:31 tight glyph =
+89:32 tight name nail
+89:36 tight glyph ]
+89:37 tight glyph )
+89:38 tight glyph ]
+91:1 NEWLINE
+91:1 glyph +$
+91:4 name rule
+91:9 glyph $-(
+91:12 tight name nail
+91:17 name edge
+91:21 tight glyph )
+93:1 NEWLINE
+93:1 glyph +$
+93:4 name spot
+93:9 glyph [
+93:10 tight name p
+93:11 tight glyph =
+93:12 tight name path
+93:17 name q
+93:18 tight glyph =
+93:19 tight name pint
+93:23 tight glyph ]
+95:1 NEWLINE
+95:1 glyph +$
+95:4 name toon
+96:3 INDENT
+96:3 glyph [
+96:4 tight lit %0
+96:7 name p
+96:8 tight glyph =
+96:9 tight glyph *
+96:10 tight glyph ]
+97:3 NEWLINE
+97:3 glyph [
+97:4 tight lit %1
+97:7 name p
+97:8 tight glyph =
+97:9 tight glyph *
+97:10 tight glyph ]
+98:3 NEWLINE
+98:3 glyph [
+98:4 tight lit %2
+98:7 name p
+98:8 tight glyph =
+98:9 tight glyph (
+98:10 tight name list
+98:15 name tank
+98:19 tight glyph )
+98:20 tight glyph ]
+100:1 DEDENT
+100:1 NEWLINE
+100:1 glyph +$
+100:4 name like
+100:9 glyph |$
+100:12 glyph [
+100:13 tight tvar A
+100:14 tight glyph ]
+100:16 glyph [
+100:17 tight name p
+100:18 tight glyph =
+100:19 tight name hair
+100:24 name q
+100:25 tight glyph =
+100:26 tight glyph (
+100:27 tight name unit
+100:32 glyph [
+100:33 tight name p
+100:34 tight glyph =
+100:35 tight tvar A
+100:37 name q
+100:38 tight glyph =
+100:39 tight name nail
+100:43 tight glyph ]
+100:44 tight glyph )
+100:45 tight glyph ]
+102:1 NEWLINE
+102:1 glyph ++
+102:4 name wonk
+102:9 glyph |=
+102:12 name veq
+102:15 tight glyph =
+102:16 tight glyph (
+102:17 tight name like
+102:22 tvar A
+102:23 tight glyph )
+103:3 INDENT
+103:3 glyph ?-
+103:6 wing q.veq
+104:5 INDENT
+104:5 lit ~
+104:7 glyph !!
+105:5 NEWLINE
+105:5 glyph [
+105:6 tight lit ~
+105:8 name product
+105:15 tight glyph ]
+105:17 wing p.product
+107:1 DEDENT
+107:1 DEDENT
+107:1 NEWLINE
+107:1 glyph +$
+107:4 name lone
+107:9 glyph |$
+107:12 glyph [
+107:13 tight tvar A
+107:14 tight glyph ]
+107:16 glyph [
+107:17 tight name p
+107:18 tight glyph =
+107:19 tight tvar A
+107:20 tight glyph ]
+109:1 NEWLINE
+109:1 glyph +$
+109:4 name lest
+109:9 glyph |$
+109:12 glyph [
+109:13 tight tvar A
+109:14 tight glyph ]
+109:16 glyph [
+109:17 tight name i
+109:18 tight glyph =
+109:19 tight tvar A
+109:21 name t
+109:22 tight glyph =
+109:23 tight glyph (
+109:24 tight name list
+109:29 tvar A
+109:30 tight glyph )
+109:31 tight glyph ]
+111:1 NEWLINE
+111:1 glyph +$
+111:4 name pole
+111:9 glyph |$
+111:12 glyph [
+111:13 tight tvar A
+111:14 tight glyph ]
+112:3 INDENT
+112:3 lit ~
+113:3 NEWLINE
+113:3 glyph [
+113:4 tight tvar A
+113:6 glyph (
+113:7 tight name pole
+113:12 tvar A
+113:13 tight glyph )
+113:14 tight glyph ]
+115:1 DEDENT
+115:1 NEWLINE
+115:1 glyph +$
+115:4 name quip
+115:9 glyph |$
+115:12 glyph [
+115:13 tight tvar A
+115:15 tvar B
+115:16 tight glyph ]
+115:18 glyph [
+115:19 tight glyph (
+115:20 tight name list
+115:25 tvar A
+115:26 tight glyph )
+115:28 tvar B
+115:29 tight glyph ]
+117:1 NEWLINE
+117:1 glyph +$
+117:4 name tree
+117:9 glyph |$
+117:12 glyph [
+117:13 tight tvar A
+117:14 tight glyph ]
+118:3 INDENT
+118:3 lit ~
+119:3 NEWLINE
 119:3 glyph [
-119:4 tight lit %|
-119:7 name p
-119:8 tight glyph =
-119:9 tight tvar B
-119:10 tight glyph ]
-120:3 NEWLINE
-120:3 glyph [
-120:4 tight lit %&
-120:7 name p
-120:8 tight glyph =
-120:9 tight tvar A
-120:10 tight glyph ]
-122:1 DEDENT
-122:1 NEWLINE
-122:1 glyph +$
-122:4 name bloq
-122:9 aura @
-124:1 NEWLINE
-124:1 glyph ++
-124:4 name some
-124:9 glyph |=
-124:12 name item
-124:16 tight glyph =
-124:17 tight tvar A
-124:19 glyph `
-124:20 tight name item
-126:1 NEWLINE
-126:1 glyph ++
-126:4 name lure
-126:9 glyph |=
-126:12 name item
-126:16 tight glyph =
-126:17 tight tvar A
-127:3 INDENT
-127:3 glyph ^-
-127:6 glyph (
-127:7 tight name list
-127:12 tvar A
-127:13 tight glyph )
-127:15 glyph [
-127:16 tight name item
-127:21 lit ~
-127:22 tight glyph ]
-129:1 DEDENT
+119:4 tight name n
+119:5 tight glyph =
+119:6 tight tvar A
+119:8 name l
+119:9 tight glyph =
+119:10 tight glyph (
+119:11 tight name tree
+119:16 tvar A
+119:17 tight glyph )
+119:19 name r
+119:20 tight glyph =
+119:21 tight glyph (
+119:22 tight name tree
+119:27 tvar A
+119:28 tight glyph )
+119:29 tight glyph ]
+121:1 DEDENT
+121:1 NEWLINE
+121:1 glyph +$
+121:4 name each
+121:9 glyph |$
+121:12 glyph [
+121:13 tight tvar A
+121:15 tvar B
+121:16 tight glyph ]
+122:3 INDENT
+122:3 glyph [
+122:4 tight lit %|
+122:7 name p
+122:8 tight glyph =
+122:9 tight tvar B
+122:10 tight glyph ]
+123:3 NEWLINE
+123:3 glyph [
+123:4 tight lit %&
+123:7 name p
+123:8 tight glyph =
+123:9 tight tvar A
+123:10 tight glyph ]
+125:1 DEDENT
+125:1 NEWLINE
+125:1 glyph +$
+125:4 name bloq
+125:9 aura @
+127:1 NEWLINE
+127:1 glyph ++
+127:4 name some
+127:9 glyph |=
+127:12 name item
+127:16 tight glyph =
+127:17 tight tvar A
+127:19 glyph `
+127:20 tight name item
 129:1 NEWLINE
 129:1 glyph ++
-129:4 name snoc
+129:4 name lure
 129:9 glyph |=
-129:12 name args
+129:12 name item
 129:16 tight glyph =
-129:17 tight glyph [
-129:18 tight glyph (
-129:19 tight name list
-129:24 tvar A
-129:25 tight glyph )
-129:27 tvar A
-129:28 tight glyph ]
+129:17 tight tvar A
 130:3 INDENT
-130:3 glyph ?-
-130:6 name args
-131:5 INDENT
-131:5 glyph [
-131:6 tight name xs
-131:9 name item
-131:13 tight glyph ]
-131:15 glyph (
-131:16 tight name weld
-131:21 name xs
-131:24 glyph [
-131:25 tight name item
-131:30 lit ~
-131:31 tight glyph ]
-131:32 tight glyph )
-133:1 DEDENT
-133:1 DEDENT
-133:1 NEWLINE
-133:1 glyph ++
-133:4 name flop
-133:9 glyph |=
-133:12 name xs
-133:14 tight glyph =
-133:15 tight glyph (
-133:16 tight name list
-133:21 tvar A
-133:22 tight glyph )
-134:3 INDENT
-134:3 glyph ++
-134:6 name reverse-into
-134:19 glyph |=
-134:22 name args
-134:26 tight glyph =
-134:27 tight glyph [
-134:28 tight glyph (
-134:29 tight name list
-134:34 tvar A
-134:35 tight glyph )
-134:37 glyph (
-134:38 tight name list
-134:43 tvar A
-134:44 tight glyph )
-134:45 tight glyph ]
-135:5 INDENT
-135:5 glyph ?-
-135:8 name args
-136:7 INDENT
-136:7 glyph [
-136:8 tight name rest
-136:13 name acc
-136:16 tight glyph ]
-137:9 INDENT
-137:9 glyph ?-
-137:12 name rest
-138:11 INDENT
-138:11 lit ~
-138:13 name acc
-139:11 NEWLINE
-139:11 glyph [
-139:12 tight name item
-139:17 name more
-139:21 tight glyph ]
-139:23 glyph (
-139:24 tight name reverse-into
-139:37 name more
-139:42 glyph [
-139:43 tight name item
-139:48 name acc
-139:51 tight glyph ]
-139:52 tight glyph )
-140:3 DEDENT
-140:3 DEDENT
-140:3 DEDENT
-140:3 DEDENT
-140:3 NEWLINE
-140:3 glyph (
-140:4 tight name reverse-into
-140:17 name xs
-140:20 lit ~
-140:21 tight glyph )
-142:1 DEDENT
-142:1 NEWLINE
-142:1 glyph ++
-142:4 name drop
-142:9 glyph |=
-142:12 name maybe
-142:17 tight glyph =
-142:18 tight glyph (
-142:19 tight name unit
-142:24 tvar A
-142:25 tight glyph )
-143:3 INDENT
-143:3 glyph ?-
-143:6 name maybe
-144:5 INDENT
-144:5 lit ~
-144:7 lit ~
-145:5 NEWLINE
-145:5 glyph [
-145:6 tight lit ~
-145:8 name value
-145:13 tight glyph ]
-145:15 glyph [
-145:16 tight name value
-145:22 lit ~
-145:23 tight glyph ]
-147:1 DEDENT
-147:1 DEDENT
-147:1 NEWLINE
-147:1 glyph ++
-147:4 name bind
-147:9 glyph |=
-147:12 name args
-147:16 tight glyph =
-147:17 tight glyph [
-147:18 tight glyph (
-147:19 tight name unit
-147:24 tvar A
-147:25 tight glyph )
-147:27 glyph $-(
-147:30 tight tvar A
-147:32 tvar B
-147:33 tight glyph )
-147:34 tight glyph ]
-148:3 INDENT
-148:3 glyph ?-
-148:6 name args
-149:5 INDENT
-149:5 glyph [
-149:6 tight name maybe
-149:12 name f
-149:13 tight glyph ]
-149:15 glyph ^-
-149:18 glyph (
-149:19 tight name unit
-149:24 tvar B
-149:25 tight glyph )
-150:7 INDENT
-150:7 glyph ?-
-150:10 name maybe
-151:9 INDENT
-151:9 lit ~
-151:11 lit ~
-152:9 NEWLINE
-152:9 glyph [
-152:10 tight lit ~
-152:12 name value
-152:17 tight glyph ]
-152:19 glyph `
-152:20 tight glyph (
-152:21 tight name f
-152:23 name value
-152:28 tight glyph )
-154:1 DEDENT
-154:1 DEDENT
-154:1 DEDENT
-154:1 DEDENT
-154:1 NEWLINE
-154:1 glyph ++
-154:4 name biff
-154:9 glyph |=
-154:12 name args
-154:16 tight glyph =
-154:17 tight glyph [
-154:18 tight glyph (
-154:19 tight name unit
-154:24 tvar A
-154:25 tight glyph )
-154:27 glyph $-(
-154:30 tight tvar A
-154:32 glyph (
-154:33 tight name unit
-154:38 tvar B
-154:39 tight glyph )
-154:40 tight glyph )
-154:41 tight glyph ]
-155:3 INDENT
-155:3 glyph ?-
-155:6 name args
-156:5 INDENT
-156:5 glyph [
-156:6 tight name maybe
-156:12 name f
-156:13 tight glyph ]
-156:15 glyph ^-
-156:18 glyph (
-156:19 tight name unit
-156:24 tvar B
-156:25 tight glyph )
-157:7 INDENT
-157:7 glyph ?-
-157:10 name maybe
-158:9 INDENT
-158:9 lit ~
-158:11 lit ~
-159:9 NEWLINE
-159:9 glyph [
-159:10 tight lit ~
-159:12 name value
-159:17 tight glyph ]
-159:19 glyph (
-159:20 tight name f
-159:22 name value
-159:27 tight glyph )
-161:1 DEDENT
-161:1 DEDENT
-161:1 DEDENT
-161:1 DEDENT
-161:1 NEWLINE
-161:1 glyph ++
-161:4 name both
-161:9 glyph |=
-161:12 name args
-161:16 tight glyph =
-161:17 tight glyph [
-161:18 tight glyph (
-161:19 tight name unit
-161:24 tvar A
-161:25 tight glyph )
-161:27 glyph (
-161:28 tight name unit
-161:33 tvar B
-161:34 tight glyph )
-161:35 tight glyph ]
-162:3 INDENT
-162:3 glyph ?-
-162:6 name args
-163:5 INDENT
-163:5 glyph [
-163:6 tight name first
-163:12 name second
-163:18 tight glyph ]
-163:20 glyph ^-
-163:23 glyph (
-163:24 tight name unit
-163:29 glyph [
-163:30 tight tvar A
-163:32 tvar B
-163:33 tight glyph ]
-163:34 tight glyph )
-164:7 INDENT
-164:7 glyph ?-
-164:10 name first
-165:9 INDENT
-165:9 lit ~
-165:11 lit ~
-166:9 NEWLINE
-166:9 glyph [
-166:10 tight lit ~
-166:12 name a
-166:13 tight glyph ]
-167:11 INDENT
-167:11 glyph ?-
-167:14 name second
-168:13 INDENT
-168:13 lit ~
-168:15 lit ~
-169:13 NEWLINE
-169:13 glyph [
-169:14 tight lit ~
-169:16 name b
-169:17 tight glyph ]
-169:19 glyph `
-169:20 tight glyph [
-169:21 tight name a
-169:23 name b
-169:24 tight glyph ]
-171:1 DEDENT
-171:1 DEDENT
-171:1 DEDENT
-171:1 DEDENT
-171:1 DEDENT
-171:1 DEDENT
-171:1 NEWLINE
-171:1 glyph ++
-171:4 name clap
-171:9 glyph |=
-171:12 name args
-171:16 tight glyph =
-171:17 tight glyph [
-171:18 tight glyph (
-171:19 tight name unit
-171:24 tvar A
-171:25 tight glyph )
-171:27 glyph (
-171:28 tight name unit
-171:33 tvar A
-171:34 tight glyph )
-171:36 glyph $-(
-171:39 tight glyph [
-171:40 tight tvar A
-171:42 tvar A
-171:43 tight glyph ]
-171:45 tvar A
-171:46 tight glyph )
-171:47 tight glyph ]
-172:3 INDENT
-172:3 glyph ?-
-172:6 name args
-173:5 INDENT
-173:5 glyph [
-173:6 tight name first
-173:12 name second
-173:19 name combine
-173:26 tight glyph ]
-173:28 glyph ^-
-173:31 glyph (
-173:32 tight name unit
-173:37 tvar A
-173:38 tight glyph )
-174:7 INDENT
-174:7 glyph ?-
-174:10 name first
-175:9 INDENT
-175:9 lit ~
-175:11 name second
-176:9 NEWLINE
-176:9 glyph [
-176:10 tight lit ~
-176:12 name a
-176:13 tight glyph ]
-177:11 INDENT
-177:11 glyph ?-
-177:14 name second
-178:13 INDENT
-178:13 lit ~
-178:15 name first
-179:13 NEWLINE
-179:13 glyph [
-179:14 tight lit ~
-179:16 name b
-179:17 tight glyph ]
-179:19 glyph `
-179:20 tight glyph (
-179:21 tight name combine
-179:29 name a
-179:31 name b
-179:32 tight glyph )
-181:1 DEDENT
-181:1 DEDENT
-181:1 DEDENT
-181:1 DEDENT
-181:1 DEDENT
-181:1 DEDENT
-181:1 NEWLINE
-181:1 glyph ++
-181:4 name clef
-181:9 glyph |=
-181:12 name args
-181:16 tight glyph =
-181:17 tight glyph [
-181:18 tight glyph (
-181:19 tight name unit
-181:24 tvar A
-181:25 tight glyph )
-181:27 glyph (
-181:28 tight name unit
-181:33 tvar B
-181:34 tight glyph )
-181:36 glyph $-(
-181:39 tight glyph [
-181:40 tight tvar A
-181:42 tvar B
-181:43 tight glyph ]
-181:45 glyph (
-181:46 tight name unit
-181:51 tvar C
-181:52 tight glyph )
-181:53 tight glyph )
-181:54 tight glyph ]
-182:3 INDENT
-182:3 glyph ?-
-182:6 name args
-183:5 INDENT
-183:5 glyph [
-183:6 tight name first
-183:12 name second
-183:19 name combine
-183:26 tight glyph ]
-183:28 glyph ^-
-183:31 glyph (
-183:32 tight name unit
-183:37 tvar C
-183:38 tight glyph )
-184:7 INDENT
-184:7 glyph ?-
-184:10 name first
-185:9 INDENT
-185:9 lit ~
-185:11 lit ~
-186:9 NEWLINE
-186:9 glyph [
-186:10 tight lit ~
-186:12 name a
-186:13 tight glyph ]
-187:11 INDENT
-187:11 glyph ?-
-187:14 name second
-188:13 INDENT
-188:13 lit ~
-188:15 lit ~
-189:13 NEWLINE
-189:13 glyph [
-189:14 tight lit ~
-189:16 name b
-189:17 tight glyph ]
-189:19 glyph (
-189:20 tight name combine
-189:28 name a
-189:30 name b
-189:31 tight glyph )
-191:1 DEDENT
-191:1 DEDENT
-191:1 DEDENT
-191:1 DEDENT
-191:1 DEDENT
-191:1 DEDENT
-191:1 NEWLINE
-191:1 glyph ++
-191:4 name skim
-191:9 glyph |=
-191:12 name args
-191:16 tight glyph =
-191:17 tight glyph [
-191:18 tight glyph (
-191:19 tight name list
-191:24 tvar A
-191:25 tight glyph )
-191:27 glyph $-(
-191:30 tight tvar A
-191:32 glyph ?
-191:33 tight glyph )
-191:34 tight glyph ]
-192:3 INDENT
-192:3 glyph ?-
-192:6 name args
-193:5 INDENT
-193:5 glyph [
-193:6 tight name xs
-193:9 name predicate
-193:18 tight glyph ]
-194:7 INDENT
-194:7 glyph ?-
-194:10 name xs
-195:9 INDENT
-195:9 lit ~
-195:11 lit ~
-196:9 NEWLINE
-196:9 glyph [
-196:10 tight name item
-196:15 name rest
-196:19 tight glyph ]
-197:11 INDENT
-197:11 glyph ?-
-197:14 glyph (
-197:15 tight name predicate
-197:25 name item
-197:29 tight glyph )
-198:13 INDENT
-198:13 lit %.y
-198:17 glyph [
-198:18 tight name item
-198:23 glyph (
-198:24 tight name skim
-198:29 name rest
-198:34 name predicate
-198:43 tight glyph )
-198:44 tight glyph ]
-199:13 NEWLINE
-199:13 lit %.n
-199:17 glyph (
-199:18 tight name skim
-199:23 name rest
-199:28 name predicate
-199:37 tight glyph )
-201:1 DEDENT
-201:1 DEDENT
-201:1 DEDENT
-201:1 DEDENT
-201:1 DEDENT
-201:1 DEDENT
-201:1 NEWLINE
-201:1 glyph ++
-201:4 name skip
-201:9 glyph |=
-201:12 name args
-201:16 tight glyph =
-201:17 tight glyph [
-201:18 tight glyph (
-201:19 tight name list
-201:24 tvar A
-201:25 tight glyph )
-201:27 glyph $-(
-201:30 tight tvar A
-201:32 glyph ?
-201:33 tight glyph )
-201:34 tight glyph ]
-202:3 INDENT
-202:3 glyph ?-
-202:6 name args
-203:5 INDENT
-203:5 glyph [
-203:6 tight name xs
-203:9 name predicate
-203:18 tight glyph ]
-204:7 INDENT
-204:7 glyph ?-
-204:10 name xs
-205:9 INDENT
-205:9 lit ~
-205:11 lit ~
-206:9 NEWLINE
-206:9 glyph [
-206:10 tight name item
-206:15 name rest
-206:19 tight glyph ]
-207:11 INDENT
-207:11 glyph ?-
-207:14 glyph (
-207:15 tight name predicate
-207:25 name item
-207:29 tight glyph )
-208:13 INDENT
-208:13 lit %.y
-208:17 glyph (
-208:18 tight name skip
-208:23 name rest
-208:28 name predicate
-208:37 tight glyph )
-209:13 NEWLINE
-209:13 lit %.n
-209:17 glyph [
-209:18 tight name item
-209:23 glyph (
-209:24 tight name skip
-209:29 name rest
-209:34 name predicate
-209:43 tight glyph )
-209:44 tight glyph ]
-211:1 DEDENT
-211:1 DEDENT
-211:1 DEDENT
-211:1 DEDENT
-211:1 DEDENT
-211:1 DEDENT
-211:1 NEWLINE
-211:1 glyph ++
-211:4 name levy
-211:9 glyph |=
-211:12 name args
-211:16 tight glyph =
-211:17 tight glyph [
-211:18 tight glyph (
-211:19 tight name list
-211:24 tvar A
-211:25 tight glyph )
-211:27 glyph $-(
-211:30 tight tvar A
-211:32 glyph ?
-211:33 tight glyph )
-211:34 tight glyph ]
-212:3 INDENT
-212:3 glyph ?-
-212:6 name args
-213:5 INDENT
-213:5 glyph [
-213:6 tight name xs
-213:9 name predicate
-213:18 tight glyph ]
-214:7 INDENT
-214:7 glyph ?-
-214:10 name xs
-215:9 INDENT
-215:9 lit ~
-215:11 lit %.y
-216:9 NEWLINE
-216:9 glyph [
-216:10 tight name item
-216:15 name rest
-216:19 tight glyph ]
-217:11 INDENT
-217:11 glyph ?-
-217:14 glyph (
-217:15 tight name predicate
-217:25 name item
-217:29 tight glyph )
-218:13 INDENT
-218:13 lit %.y
-218:17 glyph (
-218:18 tight name levy
-218:23 name rest
-218:28 name predicate
-218:37 tight glyph )
-219:13 NEWLINE
-219:13 lit %.n
-219:17 lit %.n
-221:1 DEDENT
-221:1 DEDENT
-221:1 DEDENT
-221:1 DEDENT
-221:1 DEDENT
-221:1 DEDENT
-221:1 NEWLINE
-221:1 glyph ++
-221:4 name lien
-221:9 glyph |=
-221:12 name args
-221:16 tight glyph =
-221:17 tight glyph [
-221:18 tight glyph (
-221:19 tight name list
-221:24 tvar A
-221:25 tight glyph )
-221:27 glyph $-(
-221:30 tight tvar A
-221:32 glyph ?
-221:33 tight glyph )
-221:34 tight glyph ]
-222:3 INDENT
-222:3 glyph ?-
-222:6 name args
-223:5 INDENT
-223:5 glyph [
-223:6 tight name xs
-223:9 name predicate
-223:18 tight glyph ]
-224:7 INDENT
-224:7 glyph ?-
-224:10 name xs
-225:9 INDENT
-225:9 lit ~
-225:11 lit %.n
-226:9 NEWLINE
-226:9 glyph [
-226:10 tight name item
-226:15 name rest
-226:19 tight glyph ]
-227:11 INDENT
-227:11 glyph ?-
-227:14 glyph (
-227:15 tight name predicate
-227:25 name item
-227:29 tight glyph )
-228:13 INDENT
-228:13 lit %.y
-228:17 lit %.y
-229:13 NEWLINE
-229:13 lit %.n
-229:17 glyph (
-229:18 tight name lien
-229:23 name rest
-229:28 name predicate
-229:37 tight glyph )
-231:1 DEDENT
-231:1 DEDENT
-231:1 DEDENT
-231:1 DEDENT
-231:1 DEDENT
-231:1 DEDENT
-231:1 NEWLINE
-231:1 glyph ++
-231:4 name roll
-231:9 glyph |=
-231:12 name args
-231:16 tight glyph =
-231:17 tight glyph [
-231:18 tight glyph (
-231:19 tight name list
-231:24 tvar A
-231:25 tight glyph )
-231:27 tvar B
-231:29 glyph $-(
-231:32 tight glyph [
-231:33 tight tvar A
-231:35 tvar B
-231:36 tight glyph ]
-231:38 tvar B
-231:39 tight glyph )
-231:40 tight glyph ]
-232:3 INDENT
-232:3 glyph ?-
-232:6 name args
-233:5 INDENT
-233:5 glyph [
-233:6 tight name xs
-233:9 name start
-233:15 name combine
-233:22 tight glyph ]
-234:7 INDENT
-234:7 glyph ?-
-234:10 name xs
-235:9 INDENT
-235:9 lit ~
-235:11 name start
-236:9 NEWLINE
-236:9 glyph [
-236:10 tight name item
-236:15 name rest
-236:19 tight glyph ]
-236:21 glyph (
-236:22 tight name roll
-236:27 name rest
-236:32 glyph (
-236:33 tight name combine
-236:41 name item
-236:46 name start
-236:51 tight glyph )
-236:53 name combine
-236:60 tight glyph )
-238:1 DEDENT
-238:1 DEDENT
-238:1 DEDENT
-238:1 DEDENT
-238:1 NEWLINE
-238:1 glyph ++
-238:4 name reel
-238:9 glyph |=
-238:12 name args
-238:16 tight glyph =
-238:17 tight glyph [
-238:18 tight glyph (
-238:19 tight name list
-238:24 tvar A
-238:25 tight glyph )
-238:27 tvar B
-238:29 glyph $-(
-238:32 tight glyph [
-238:33 tight tvar A
-238:35 tvar B
-238:36 tight glyph ]
-238:38 tvar B
-238:39 tight glyph )
-238:40 tight glyph ]
-239:3 INDENT
-239:3 glyph ?-
-239:6 name args
-240:5 INDENT
-240:5 glyph [
-240:6 tight name xs
-240:9 name start
-240:15 name combine
-240:22 tight glyph ]
-241:7 INDENT
-241:7 glyph ?-
-241:10 name xs
-242:9 INDENT
-242:9 lit ~
-242:11 name start
-243:9 NEWLINE
-243:9 glyph [
-243:10 tight name item
-243:15 name rest
-243:19 tight glyph ]
-243:21 glyph (
-243:22 tight name combine
-243:30 name item
-243:35 glyph (
-243:36 tight name reel
-243:41 name rest
-243:46 name start
-243:52 name combine
-243:59 tight glyph )
-243:60 tight glyph )
-245:1 DEDENT
-245:1 DEDENT
-245:1 DEDENT
-245:1 DEDENT
-245:1 NEWLINE
-245:1 glyph ++
-245:4 name flit
-245:9 glyph |=
-245:12 name predicate
-245:21 tight glyph =
-245:22 tight glyph $-(
-245:25 tight tvar A
-245:27 glyph ?
-245:28 tight glyph )
-246:3 INDENT
-246:3 glyph |=
-246:6 name value
-246:11 tight glyph =
-246:12 tight tvar A
-247:5 INDENT
-247:5 glyph ^-
-247:8 glyph (
-247:9 tight name unit
-247:14 tvar A
-247:15 tight glyph )
-248:7 INDENT
-248:7 glyph ?-
-248:10 glyph (
-248:11 tight name predicate
-248:21 name value
-248:26 tight glyph )
-249:9 INDENT
-249:9 lit %.y
-249:13 glyph `
-249:14 tight name value
-250:9 NEWLINE
-250:9 lit %.n
-250:13 lit ~
-252:1 DEDENT
-252:1 DEDENT
-252:1 DEDENT
-252:1 DEDENT
-252:1 NEWLINE
-252:1 glyph ++
-252:4 name murn
-252:9 glyph |=
-252:12 name args
-252:16 tight glyph =
-252:17 tight glyph [
-252:18 tight glyph (
-252:19 tight name list
-252:24 tvar A
-252:25 tight glyph )
-252:27 glyph $-(
-252:30 tight tvar A
-252:32 glyph (
-252:33 tight name unit
-252:38 tvar B
-252:39 tight glyph )
-252:40 tight glyph )
-252:41 tight glyph ]
-253:3 INDENT
-253:3 glyph ?-
-253:6 name args
-254:5 INDENT
-254:5 glyph [
-254:6 tight name xs
-254:9 name f
-254:10 tight glyph ]
-255:7 INDENT
-255:7 glyph ?-
-255:10 name xs
-256:9 INDENT
-256:9 lit ~
-256:11 lit ~
-257:9 NEWLINE
-257:9 glyph [
-257:10 tight name item
-257:15 name rest
-257:19 tight glyph ]
-258:11 INDENT
-258:11 glyph ?-
-258:14 glyph (
-258:15 tight name f
-258:17 name item
-258:21 tight glyph )
-259:13 INDENT
-259:13 lit ~
-259:15 glyph (
-259:16 tight name murn
-259:21 name rest
-259:26 name f
-259:27 tight glyph )
-260:13 NEWLINE
-260:13 glyph [
-260:14 tight lit ~
-260:16 name value
-260:21 tight glyph ]
-260:23 glyph [
-260:24 tight name value
-260:30 glyph (
-260:31 tight name murn
-260:36 name rest
-260:41 name f
-260:42 tight glyph )
-260:43 tight glyph ]
-262:1 DEDENT
-262:1 DEDENT
-262:1 DEDENT
-262:1 DEDENT
-262:1 DEDENT
-262:1 DEDENT
-262:1 NEWLINE
-262:1 glyph ++
-262:4 name join
-262:9 glyph |=
-262:12 name args
-262:16 tight glyph =
-262:17 tight glyph [
-262:18 tight tvar A
-262:20 glyph (
-262:21 tight name list
-262:26 tvar A
+130:3 glyph ^-
+130:6 glyph (
+130:7 tight name list
+130:12 tvar A
+130:13 tight glyph )
+130:15 glyph [
+130:16 tight name item
+130:21 lit ~
+130:22 tight glyph ]
+132:1 DEDENT
+132:1 NEWLINE
+132:1 glyph ++
+132:4 name snoc
+132:9 glyph |=
+132:12 name args
+132:16 tight glyph =
+132:17 tight glyph [
+132:18 tight glyph (
+132:19 tight name list
+132:24 tvar A
+132:25 tight glyph )
+132:27 tvar A
+132:28 tight glyph ]
+133:3 INDENT
+133:3 glyph ?-
+133:6 name args
+134:5 INDENT
+134:5 glyph [
+134:6 tight name xs
+134:9 name item
+134:13 tight glyph ]
+134:15 glyph (
+134:16 tight name weld
+134:21 name xs
+134:24 glyph [
+134:25 tight name item
+134:30 lit ~
+134:31 tight glyph ]
+134:32 tight glyph )
+136:1 DEDENT
+136:1 DEDENT
+136:1 NEWLINE
+136:1 glyph ++
+136:4 name flop
+136:9 glyph |=
+136:12 name xs
+136:14 tight glyph =
+136:15 tight glyph (
+136:16 tight name list
+136:21 tvar A
+136:22 tight glyph )
+137:3 INDENT
+137:3 glyph ++
+137:6 name reverse-into
+137:19 glyph |=
+137:22 name args
+137:26 tight glyph =
+137:27 tight glyph [
+137:28 tight glyph (
+137:29 tight name list
+137:34 tvar A
+137:35 tight glyph )
+137:37 glyph (
+137:38 tight name list
+137:43 tvar A
+137:44 tight glyph )
+137:45 tight glyph ]
+138:5 INDENT
+138:5 glyph ?-
+138:8 name args
+139:7 INDENT
+139:7 glyph [
+139:8 tight name rest
+139:13 name acc
+139:16 tight glyph ]
+140:9 INDENT
+140:9 glyph ?-
+140:12 name rest
+141:11 INDENT
+141:11 lit ~
+141:13 name acc
+142:11 NEWLINE
+142:11 glyph [
+142:12 tight name item
+142:17 name more
+142:21 tight glyph ]
+142:23 glyph (
+142:24 tight name reverse-into
+142:37 name more
+142:42 glyph [
+142:43 tight name item
+142:48 name acc
+142:51 tight glyph ]
+142:52 tight glyph )
+143:3 DEDENT
+143:3 DEDENT
+143:3 DEDENT
+143:3 DEDENT
+143:3 NEWLINE
+143:3 glyph (
+143:4 tight name reverse-into
+143:17 name xs
+143:20 lit ~
+143:21 tight glyph )
+145:1 DEDENT
+145:1 NEWLINE
+145:1 glyph ++
+145:4 name drop
+145:9 glyph |=
+145:12 name maybe
+145:17 tight glyph =
+145:18 tight glyph (
+145:19 tight name unit
+145:24 tvar A
+145:25 tight glyph )
+146:3 INDENT
+146:3 glyph ?-
+146:6 name maybe
+147:5 INDENT
+147:5 lit ~
+147:7 lit ~
+148:5 NEWLINE
+148:5 glyph [
+148:6 tight lit ~
+148:8 name value
+148:13 tight glyph ]
+148:15 glyph [
+148:16 tight name value
+148:22 lit ~
+148:23 tight glyph ]
+150:1 DEDENT
+150:1 DEDENT
+150:1 NEWLINE
+150:1 glyph ++
+150:4 name bind
+150:9 glyph |=
+150:12 name args
+150:16 tight glyph =
+150:17 tight glyph [
+150:18 tight glyph (
+150:19 tight name unit
+150:24 tvar A
+150:25 tight glyph )
+150:27 glyph $-(
+150:30 tight tvar A
+150:32 tvar B
+150:33 tight glyph )
+150:34 tight glyph ]
+151:3 INDENT
+151:3 glyph ?-
+151:6 name args
+152:5 INDENT
+152:5 glyph [
+152:6 tight name maybe
+152:12 name f
+152:13 tight glyph ]
+152:15 glyph ^-
+152:18 glyph (
+152:19 tight name unit
+152:24 tvar B
+152:25 tight glyph )
+153:7 INDENT
+153:7 glyph ?-
+153:10 name maybe
+154:9 INDENT
+154:9 lit ~
+154:11 lit ~
+155:9 NEWLINE
+155:9 glyph [
+155:10 tight lit ~
+155:12 name value
+155:17 tight glyph ]
+155:19 glyph `
+155:20 tight glyph (
+155:21 tight name f
+155:23 name value
+155:28 tight glyph )
+157:1 DEDENT
+157:1 DEDENT
+157:1 DEDENT
+157:1 DEDENT
+157:1 NEWLINE
+157:1 glyph ++
+157:4 name biff
+157:9 glyph |=
+157:12 name args
+157:16 tight glyph =
+157:17 tight glyph [
+157:18 tight glyph (
+157:19 tight name unit
+157:24 tvar A
+157:25 tight glyph )
+157:27 glyph $-(
+157:30 tight tvar A
+157:32 glyph (
+157:33 tight name unit
+157:38 tvar B
+157:39 tight glyph )
+157:40 tight glyph )
+157:41 tight glyph ]
+158:3 INDENT
+158:3 glyph ?-
+158:6 name args
+159:5 INDENT
+159:5 glyph [
+159:6 tight name maybe
+159:12 name f
+159:13 tight glyph ]
+159:15 glyph ^-
+159:18 glyph (
+159:19 tight name unit
+159:24 tvar B
+159:25 tight glyph )
+160:7 INDENT
+160:7 glyph ?-
+160:10 name maybe
+161:9 INDENT
+161:9 lit ~
+161:11 lit ~
+162:9 NEWLINE
+162:9 glyph [
+162:10 tight lit ~
+162:12 name value
+162:17 tight glyph ]
+162:19 glyph (
+162:20 tight name f
+162:22 name value
+162:27 tight glyph )
+164:1 DEDENT
+164:1 DEDENT
+164:1 DEDENT
+164:1 DEDENT
+164:1 NEWLINE
+164:1 glyph ++
+164:4 name both
+164:9 glyph |=
+164:12 name args
+164:16 tight glyph =
+164:17 tight glyph [
+164:18 tight glyph (
+164:19 tight name unit
+164:24 tvar A
+164:25 tight glyph )
+164:27 glyph (
+164:28 tight name unit
+164:33 tvar B
+164:34 tight glyph )
+164:35 tight glyph ]
+165:3 INDENT
+165:3 glyph ?-
+165:6 name args
+166:5 INDENT
+166:5 glyph [
+166:6 tight name first
+166:12 name second
+166:18 tight glyph ]
+166:20 glyph ^-
+166:23 glyph (
+166:24 tight name unit
+166:29 glyph [
+166:30 tight tvar A
+166:32 tvar B
+166:33 tight glyph ]
+166:34 tight glyph )
+167:7 INDENT
+167:7 glyph ?-
+167:10 name first
+168:9 INDENT
+168:9 lit ~
+168:11 lit ~
+169:9 NEWLINE
+169:9 glyph [
+169:10 tight lit ~
+169:12 name a
+169:13 tight glyph ]
+170:11 INDENT
+170:11 glyph ?-
+170:14 name second
+171:13 INDENT
+171:13 lit ~
+171:15 lit ~
+172:13 NEWLINE
+172:13 glyph [
+172:14 tight lit ~
+172:16 name b
+172:17 tight glyph ]
+172:19 glyph `
+172:20 tight glyph [
+172:21 tight name a
+172:23 name b
+172:24 tight glyph ]
+174:1 DEDENT
+174:1 DEDENT
+174:1 DEDENT
+174:1 DEDENT
+174:1 DEDENT
+174:1 DEDENT
+174:1 NEWLINE
+174:1 glyph ++
+174:4 name clap
+174:9 glyph |=
+174:12 name args
+174:16 tight glyph =
+174:17 tight glyph [
+174:18 tight glyph (
+174:19 tight name unit
+174:24 tvar A
+174:25 tight glyph )
+174:27 glyph (
+174:28 tight name unit
+174:33 tvar A
+174:34 tight glyph )
+174:36 glyph $-(
+174:39 tight glyph [
+174:40 tight tvar A
+174:42 tvar A
+174:43 tight glyph ]
+174:45 tvar A
+174:46 tight glyph )
+174:47 tight glyph ]
+175:3 INDENT
+175:3 glyph ?-
+175:6 name args
+176:5 INDENT
+176:5 glyph [
+176:6 tight name first
+176:12 name second
+176:19 name combine
+176:26 tight glyph ]
+176:28 glyph ^-
+176:31 glyph (
+176:32 tight name unit
+176:37 tvar A
+176:38 tight glyph )
+177:7 INDENT
+177:7 glyph ?-
+177:10 name first
+178:9 INDENT
+178:9 lit ~
+178:11 name second
+179:9 NEWLINE
+179:9 glyph [
+179:10 tight lit ~
+179:12 name a
+179:13 tight glyph ]
+180:11 INDENT
+180:11 glyph ?-
+180:14 name second
+181:13 INDENT
+181:13 lit ~
+181:15 name first
+182:13 NEWLINE
+182:13 glyph [
+182:14 tight lit ~
+182:16 name b
+182:17 tight glyph ]
+182:19 glyph `
+182:20 tight glyph (
+182:21 tight name combine
+182:29 name a
+182:31 name b
+182:32 tight glyph )
+184:1 DEDENT
+184:1 DEDENT
+184:1 DEDENT
+184:1 DEDENT
+184:1 DEDENT
+184:1 DEDENT
+184:1 NEWLINE
+184:1 glyph ++
+184:4 name clef
+184:9 glyph |=
+184:12 name args
+184:16 tight glyph =
+184:17 tight glyph [
+184:18 tight glyph (
+184:19 tight name unit
+184:24 tvar A
+184:25 tight glyph )
+184:27 glyph (
+184:28 tight name unit
+184:33 tvar B
+184:34 tight glyph )
+184:36 glyph $-(
+184:39 tight glyph [
+184:40 tight tvar A
+184:42 tvar B
+184:43 tight glyph ]
+184:45 glyph (
+184:46 tight name unit
+184:51 tvar C
+184:52 tight glyph )
+184:53 tight glyph )
+184:54 tight glyph ]
+185:3 INDENT
+185:3 glyph ?-
+185:6 name args
+186:5 INDENT
+186:5 glyph [
+186:6 tight name first
+186:12 name second
+186:19 name combine
+186:26 tight glyph ]
+186:28 glyph ^-
+186:31 glyph (
+186:32 tight name unit
+186:37 tvar C
+186:38 tight glyph )
+187:7 INDENT
+187:7 glyph ?-
+187:10 name first
+188:9 INDENT
+188:9 lit ~
+188:11 lit ~
+189:9 NEWLINE
+189:9 glyph [
+189:10 tight lit ~
+189:12 name a
+189:13 tight glyph ]
+190:11 INDENT
+190:11 glyph ?-
+190:14 name second
+191:13 INDENT
+191:13 lit ~
+191:15 lit ~
+192:13 NEWLINE
+192:13 glyph [
+192:14 tight lit ~
+192:16 name b
+192:17 tight glyph ]
+192:19 glyph (
+192:20 tight name combine
+192:28 name a
+192:30 name b
+192:31 tight glyph )
+194:1 DEDENT
+194:1 DEDENT
+194:1 DEDENT
+194:1 DEDENT
+194:1 DEDENT
+194:1 DEDENT
+194:1 NEWLINE
+194:1 glyph ++
+194:4 name skim
+194:9 glyph |=
+194:12 name args
+194:16 tight glyph =
+194:17 tight glyph [
+194:18 tight glyph (
+194:19 tight name list
+194:24 tvar A
+194:25 tight glyph )
+194:27 glyph $-(
+194:30 tight tvar A
+194:32 glyph ?
+194:33 tight glyph )
+194:34 tight glyph ]
+195:3 INDENT
+195:3 glyph ?-
+195:6 name args
+196:5 INDENT
+196:5 glyph [
+196:6 tight name xs
+196:9 name predicate
+196:18 tight glyph ]
+197:7 INDENT
+197:7 glyph ?-
+197:10 name xs
+198:9 INDENT
+198:9 lit ~
+198:11 lit ~
+199:9 NEWLINE
+199:9 glyph [
+199:10 tight name item
+199:15 name rest
+199:19 tight glyph ]
+200:11 INDENT
+200:11 glyph ?-
+200:14 glyph (
+200:15 tight name predicate
+200:25 name item
+200:29 tight glyph )
+201:13 INDENT
+201:13 lit %.y
+201:17 glyph [
+201:18 tight name item
+201:23 glyph (
+201:24 tight name skim
+201:29 name rest
+201:34 name predicate
+201:43 tight glyph )
+201:44 tight glyph ]
+202:13 NEWLINE
+202:13 lit %.n
+202:17 glyph (
+202:18 tight name skim
+202:23 name rest
+202:28 name predicate
+202:37 tight glyph )
+204:1 DEDENT
+204:1 DEDENT
+204:1 DEDENT
+204:1 DEDENT
+204:1 DEDENT
+204:1 DEDENT
+204:1 NEWLINE
+204:1 glyph ++
+204:4 name skip
+204:9 glyph |=
+204:12 name args
+204:16 tight glyph =
+204:17 tight glyph [
+204:18 tight glyph (
+204:19 tight name list
+204:24 tvar A
+204:25 tight glyph )
+204:27 glyph $-(
+204:30 tight tvar A
+204:32 glyph ?
+204:33 tight glyph )
+204:34 tight glyph ]
+205:3 INDENT
+205:3 glyph ?-
+205:6 name args
+206:5 INDENT
+206:5 glyph [
+206:6 tight name xs
+206:9 name predicate
+206:18 tight glyph ]
+207:7 INDENT
+207:7 glyph ?-
+207:10 name xs
+208:9 INDENT
+208:9 lit ~
+208:11 lit ~
+209:9 NEWLINE
+209:9 glyph [
+209:10 tight name item
+209:15 name rest
+209:19 tight glyph ]
+210:11 INDENT
+210:11 glyph ?-
+210:14 glyph (
+210:15 tight name predicate
+210:25 name item
+210:29 tight glyph )
+211:13 INDENT
+211:13 lit %.y
+211:17 glyph (
+211:18 tight name skip
+211:23 name rest
+211:28 name predicate
+211:37 tight glyph )
+212:13 NEWLINE
+212:13 lit %.n
+212:17 glyph [
+212:18 tight name item
+212:23 glyph (
+212:24 tight name skip
+212:29 name rest
+212:34 name predicate
+212:43 tight glyph )
+212:44 tight glyph ]
+214:1 DEDENT
+214:1 DEDENT
+214:1 DEDENT
+214:1 DEDENT
+214:1 DEDENT
+214:1 DEDENT
+214:1 NEWLINE
+214:1 glyph ++
+214:4 name levy
+214:9 glyph |=
+214:12 name args
+214:16 tight glyph =
+214:17 tight glyph [
+214:18 tight glyph (
+214:19 tight name list
+214:24 tvar A
+214:25 tight glyph )
+214:27 glyph $-(
+214:30 tight tvar A
+214:32 glyph ?
+214:33 tight glyph )
+214:34 tight glyph ]
+215:3 INDENT
+215:3 glyph ?-
+215:6 name args
+216:5 INDENT
+216:5 glyph [
+216:6 tight name xs
+216:9 name predicate
+216:18 tight glyph ]
+217:7 INDENT
+217:7 glyph ?-
+217:10 name xs
+218:9 INDENT
+218:9 lit ~
+218:11 lit %.y
+219:9 NEWLINE
+219:9 glyph [
+219:10 tight name item
+219:15 name rest
+219:19 tight glyph ]
+220:11 INDENT
+220:11 glyph ?-
+220:14 glyph (
+220:15 tight name predicate
+220:25 name item
+220:29 tight glyph )
+221:13 INDENT
+221:13 lit %.y
+221:17 glyph (
+221:18 tight name levy
+221:23 name rest
+221:28 name predicate
+221:37 tight glyph )
+222:13 NEWLINE
+222:13 lit %.n
+222:17 lit %.n
+224:1 DEDENT
+224:1 DEDENT
+224:1 DEDENT
+224:1 DEDENT
+224:1 DEDENT
+224:1 DEDENT
+224:1 NEWLINE
+224:1 glyph ++
+224:4 name lien
+224:9 glyph |=
+224:12 name args
+224:16 tight glyph =
+224:17 tight glyph [
+224:18 tight glyph (
+224:19 tight name list
+224:24 tvar A
+224:25 tight glyph )
+224:27 glyph $-(
+224:30 tight tvar A
+224:32 glyph ?
+224:33 tight glyph )
+224:34 tight glyph ]
+225:3 INDENT
+225:3 glyph ?-
+225:6 name args
+226:5 INDENT
+226:5 glyph [
+226:6 tight name xs
+226:9 name predicate
+226:18 tight glyph ]
+227:7 INDENT
+227:7 glyph ?-
+227:10 name xs
+228:9 INDENT
+228:9 lit ~
+228:11 lit %.n
+229:9 NEWLINE
+229:9 glyph [
+229:10 tight name item
+229:15 name rest
+229:19 tight glyph ]
+230:11 INDENT
+230:11 glyph ?-
+230:14 glyph (
+230:15 tight name predicate
+230:25 name item
+230:29 tight glyph )
+231:13 INDENT
+231:13 lit %.y
+231:17 lit %.y
+232:13 NEWLINE
+232:13 lit %.n
+232:17 glyph (
+232:18 tight name lien
+232:23 name rest
+232:28 name predicate
+232:37 tight glyph )
+234:1 DEDENT
+234:1 DEDENT
+234:1 DEDENT
+234:1 DEDENT
+234:1 DEDENT
+234:1 DEDENT
+234:1 NEWLINE
+234:1 glyph ++
+234:4 name roll
+234:9 glyph |=
+234:12 name args
+234:16 tight glyph =
+234:17 tight glyph [
+234:18 tight glyph (
+234:19 tight name list
+234:24 tvar A
+234:25 tight glyph )
+234:27 tvar B
+234:29 glyph $-(
+234:32 tight glyph [
+234:33 tight tvar A
+234:35 tvar B
+234:36 tight glyph ]
+234:38 tvar B
+234:39 tight glyph )
+234:40 tight glyph ]
+235:3 INDENT
+235:3 glyph ?-
+235:6 name args
+236:5 INDENT
+236:5 glyph [
+236:6 tight name xs
+236:9 name start
+236:15 name combine
+236:22 tight glyph ]
+237:7 INDENT
+237:7 glyph ?-
+237:10 name xs
+238:9 INDENT
+238:9 lit ~
+238:11 name start
+239:9 NEWLINE
+239:9 glyph [
+239:10 tight name item
+239:15 name rest
+239:19 tight glyph ]
+239:21 glyph (
+239:22 tight name roll
+239:27 name rest
+239:32 glyph (
+239:33 tight name combine
+239:41 name item
+239:46 name start
+239:51 tight glyph )
+239:53 name combine
+239:60 tight glyph )
+241:1 DEDENT
+241:1 DEDENT
+241:1 DEDENT
+241:1 DEDENT
+241:1 NEWLINE
+241:1 glyph ++
+241:4 name reel
+241:9 glyph |=
+241:12 name args
+241:16 tight glyph =
+241:17 tight glyph [
+241:18 tight glyph (
+241:19 tight name list
+241:24 tvar A
+241:25 tight glyph )
+241:27 tvar B
+241:29 glyph $-(
+241:32 tight glyph [
+241:33 tight tvar A
+241:35 tvar B
+241:36 tight glyph ]
+241:38 tvar B
+241:39 tight glyph )
+241:40 tight glyph ]
+242:3 INDENT
+242:3 glyph ?-
+242:6 name args
+243:5 INDENT
+243:5 glyph [
+243:6 tight name xs
+243:9 name start
+243:15 name combine
+243:22 tight glyph ]
+244:7 INDENT
+244:7 glyph ?-
+244:10 name xs
+245:9 INDENT
+245:9 lit ~
+245:11 name start
+246:9 NEWLINE
+246:9 glyph [
+246:10 tight name item
+246:15 name rest
+246:19 tight glyph ]
+246:21 glyph (
+246:22 tight name combine
+246:30 name item
+246:35 glyph (
+246:36 tight name reel
+246:41 name rest
+246:46 name start
+246:52 name combine
+246:59 tight glyph )
+246:60 tight glyph )
+248:1 DEDENT
+248:1 DEDENT
+248:1 DEDENT
+248:1 DEDENT
+248:1 NEWLINE
+248:1 glyph ++
+248:4 name flit
+248:9 glyph |=
+248:12 name predicate
+248:21 tight glyph =
+248:22 tight glyph $-(
+248:25 tight tvar A
+248:27 glyph ?
+248:28 tight glyph )
+249:3 INDENT
+249:3 glyph |=
+249:6 name value
+249:11 tight glyph =
+249:12 tight tvar A
+250:5 INDENT
+250:5 glyph ^-
+250:8 glyph (
+250:9 tight name unit
+250:14 tvar A
+250:15 tight glyph )
+251:7 INDENT
+251:7 glyph ?-
+251:10 glyph (
+251:11 tight name predicate
+251:21 name value
+251:26 tight glyph )
+252:9 INDENT
+252:9 lit %.y
+252:13 glyph `
+252:14 tight name value
+253:9 NEWLINE
+253:9 lit %.n
+253:13 lit ~
+255:1 DEDENT
+255:1 DEDENT
+255:1 DEDENT
+255:1 DEDENT
+255:1 NEWLINE
+255:1 glyph ++
+255:4 name murn
+255:9 glyph |=
+255:12 name args
+255:16 tight glyph =
+255:17 tight glyph [
+255:18 tight glyph (
+255:19 tight name list
+255:24 tvar A
+255:25 tight glyph )
+255:27 glyph $-(
+255:30 tight tvar A
+255:32 glyph (
+255:33 tight name unit
+255:38 tvar B
+255:39 tight glyph )
+255:40 tight glyph )
+255:41 tight glyph ]
+256:3 INDENT
+256:3 glyph ?-
+256:6 name args
+257:5 INDENT
+257:5 glyph [
+257:6 tight name xs
+257:9 name f
+257:10 tight glyph ]
+258:7 INDENT
+258:7 glyph ?-
+258:10 name xs
+259:9 INDENT
+259:9 lit ~
+259:11 lit ~
+260:9 NEWLINE
+260:9 glyph [
+260:10 tight name item
+260:15 name rest
+260:19 tight glyph ]
+261:11 INDENT
+261:11 glyph ?-
+261:14 glyph (
+261:15 tight name f
+261:17 name item
+261:21 tight glyph )
+262:13 INDENT
+262:13 lit ~
+262:15 glyph (
+262:16 tight name murn
+262:21 name rest
+262:26 name f
 262:27 tight glyph )
-262:28 tight glyph ]
-263:3 INDENT
-263:3 glyph ?-
-263:6 name args
-264:5 INDENT
-264:5 glyph [
-264:6 tight name separator
-264:16 name xs
-264:18 tight glyph ]
-265:7 INDENT
-265:7 glyph ?-
-265:10 name xs
-266:9 INDENT
-266:9 lit ~
-266:11 lit ~
-267:9 NEWLINE
-267:9 glyph [
-267:10 tight name item
-267:15 name rest
-267:19 tight glyph ]
-268:11 INDENT
-268:11 glyph ?-
-268:14 name rest
-269:13 INDENT
-269:13 lit ~
-269:15 glyph [
-269:16 tight name item
-269:21 lit ~
-269:22 tight glyph ]
-270:13 NEWLINE
-270:13 glyph [
-270:14 tight name next
-270:19 name more
-270:23 tight glyph ]
-270:25 glyph [
-270:26 tight name item
-270:31 glyph [
-270:32 tight name separator
-270:42 glyph (
-270:43 tight name join
-270:48 name separator
-270:58 name rest
-270:62 tight glyph )
-270:63 tight glyph ]
-270:64 tight glyph ]
-272:1 DEDENT
-272:1 DEDENT
-272:1 DEDENT
-272:1 DEDENT
-272:1 DEDENT
-272:1 DEDENT
-272:1 NEWLINE
-272:1 glyph ++
-272:4 name snip
-272:9 glyph |=
-272:12 name xs
-272:14 tight glyph =
-272:15 tight glyph (
-272:16 tight name list
-272:21 tvar A
-272:22 tight glyph )
-273:3 INDENT
-273:3 glyph ?-
-273:6 name xs
-274:5 INDENT
-274:5 lit ~
-274:7 lit ~
-275:5 NEWLINE
-275:5 glyph [
-275:6 tight name item
-275:11 name rest
-275:15 tight glyph ]
-276:7 INDENT
-276:7 glyph ?-
-276:10 name rest
-277:9 INDENT
-277:9 lit ~
-277:11 lit ~
-278:9 NEWLINE
-278:9 glyph [
-278:10 tight name next
-278:15 name more
-278:19 tight glyph ]
-278:21 glyph [
-278:22 tight name item
-278:27 glyph (
-278:28 tight name snip
-278:33 name rest
-278:37 tight glyph )
-278:38 tight glyph ]
-280:1 DEDENT
-280:1 DEDENT
-280:1 DEDENT
-280:1 DEDENT
-280:1 NEWLINE
-280:1 glyph ++
-280:4 name rear
-280:9 glyph |=
-280:12 name xs
-280:14 tight glyph =
-280:15 tight glyph (
-280:16 tight name list
-280:21 tvar A
-280:22 tight glyph )
-281:3 INDENT
-281:3 glyph ?-
-281:6 name xs
-282:5 INDENT
-282:5 lit ~
-282:7 glyph !!
-283:5 NEWLINE
-283:5 glyph [
-283:6 tight name item
-283:11 name rest
-283:15 tight glyph ]
-284:7 INDENT
-284:7 glyph ?-
-284:10 name rest
-285:9 INDENT
-285:9 lit ~
-285:11 name item
-286:9 NEWLINE
-286:9 glyph [
-286:10 tight name next
-286:15 name more
-286:19 tight glyph ]
-286:21 glyph (
-286:22 tight name rear
-286:27 name rest
-286:31 tight glyph )
-286:32 DEDENT
-286:32 DEDENT
-286:32 DEDENT
-286:32 DEDENT
-286:32 NEWLINE
+263:13 NEWLINE
+263:13 glyph [
+263:14 tight lit ~
+263:16 name value
+263:21 tight glyph ]
+263:23 glyph [
+263:24 tight name value
+263:30 glyph (
+263:31 tight name murn
+263:36 name rest
+263:41 name f
+263:42 tight glyph )
+263:43 tight glyph ]
+265:1 DEDENT
+265:1 DEDENT
+265:1 DEDENT
+265:1 DEDENT
+265:1 DEDENT
+265:1 DEDENT
+265:1 NEWLINE
+265:1 glyph ++
+265:4 name join
+265:9 glyph |=
+265:12 name args
+265:16 tight glyph =
+265:17 tight glyph [
+265:18 tight tvar A
+265:20 glyph (
+265:21 tight name list
+265:26 tvar A
+265:27 tight glyph )
+265:28 tight glyph ]
+266:3 INDENT
+266:3 glyph ?-
+266:6 name args
+267:5 INDENT
+267:5 glyph [
+267:6 tight name separator
+267:16 name xs
+267:18 tight glyph ]
+268:7 INDENT
+268:7 glyph ?-
+268:10 name xs
+269:9 INDENT
+269:9 lit ~
+269:11 lit ~
+270:9 NEWLINE
+270:9 glyph [
+270:10 tight name item
+270:15 name rest
+270:19 tight glyph ]
+271:11 INDENT
+271:11 glyph ?-
+271:14 name rest
+272:13 INDENT
+272:13 lit ~
+272:15 glyph [
+272:16 tight name item
+272:21 lit ~
+272:22 tight glyph ]
+273:13 NEWLINE
+273:13 glyph [
+273:14 tight name next
+273:19 name more
+273:23 tight glyph ]
+273:25 glyph [
+273:26 tight name item
+273:31 glyph [
+273:32 tight name separator
+273:42 glyph (
+273:43 tight name join
+273:48 name separator
+273:58 name rest
+273:62 tight glyph )
+273:63 tight glyph ]
+273:64 tight glyph ]
+275:1 DEDENT
+275:1 DEDENT
+275:1 DEDENT
+275:1 DEDENT
+275:1 DEDENT
+275:1 DEDENT
+275:1 NEWLINE
+275:1 glyph ++
+275:4 name snip
+275:9 glyph |=
+275:12 name xs
+275:14 tight glyph =
+275:15 tight glyph (
+275:16 tight name list
+275:21 tvar A
+275:22 tight glyph )
+276:3 INDENT
+276:3 glyph ?-
+276:6 name xs
+277:5 INDENT
+277:5 lit ~
+277:7 lit ~
+278:5 NEWLINE
+278:5 glyph [
+278:6 tight name item
+278:11 name rest
+278:15 tight glyph ]
+279:7 INDENT
+279:7 glyph ?-
+279:10 name rest
+280:9 INDENT
+280:9 lit ~
+280:11 lit ~
+281:9 NEWLINE
+281:9 glyph [
+281:10 tight name next
+281:15 name more
+281:19 tight glyph ]
+281:21 glyph [
+281:22 tight name item
+281:27 glyph (
+281:28 tight name snip
+281:33 name rest
+281:37 tight glyph )
+281:38 tight glyph ]
+283:1 DEDENT
+283:1 DEDENT
+283:1 DEDENT
+283:1 DEDENT
+283:1 NEWLINE
+283:1 glyph ++
+283:4 name rear
+283:9 glyph |=
+283:12 name xs
+283:14 tight glyph =
+283:15 tight glyph (
+283:16 tight name list
+283:21 tvar A
+283:22 tight glyph )
+284:3 INDENT
+284:3 glyph ?-
+284:6 name xs
+285:5 INDENT
+285:5 lit ~
+285:7 glyph !!
+286:5 NEWLINE
+286:5 glyph [
+286:6 tight name item
+286:11 name rest
+286:15 tight glyph ]
+287:7 INDENT
+287:7 glyph ?-
+287:10 name rest
+288:9 INDENT
+288:9 lit ~
+288:11 name item
+289:9 NEWLINE
+289:9 glyph [
+289:10 tight name next
+289:15 name more
+289:19 tight glyph ]
+289:21 glyph (
+289:22 tight name rear
+289:27 name rest
+289:31 tight glyph )
+289:32 DEDENT
+289:32 DEDENT
+289:32 DEDENT
+289:32 DEDENT
+289:32 NEWLINE

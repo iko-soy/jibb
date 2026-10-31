@@ -256,7 +256,7 @@ def golden_program(lib_path, cases):
         marks = '(import-marks marks.metadata)' if imported else '~'
         modules = '(turn modules.metadata |=(item=[label=@t at=path source=@t] [at.item source.item]))'
         types_value = ('?:(module-check.metadata ?~(prepared-prelude '
-                       '(golden-types-with-prelude:lib at src %s %s %s prelude-source) '
+                       '(golden-types-with-prelude-and-internal:lib at src %s %s %s prelude-source internal-source) '
                        '(golden-types-with-prepared-prelude:lib at src %s %s %s prepared-prelude)) %s)'
                        % (surs, marks, modules, surs, marks, modules, types_value))
     types_expr = '?:(check.metadata %s \'\')' % types_value
@@ -268,12 +268,22 @@ def golden_program(lib_path, cases):
                 parts = ue.cord_pieces(f.read())
         except OSError as e:
             raise ue.ToolError('cannot read the Jibb prelude %s: %s' % (prelude_path, e))
+        internal_path = os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb', 'internal.jibb')
+        try:
+            with open(internal_path, 'rb') as f:
+                internal_parts = ue.cord_pieces(f.read())
+        except OSError as e:
+            raise ue.ToolError('cannot read the internal Jibb prelude %s: %s' % (internal_path, e))
         prelude_helper = "++  prelude-source\n  ^-  @t\n  (rap 3 `(list @t)`~[%s])\n" % (
             ' '.join(ue.cord_literal(p) for p in parts))
+        prelude_helper += "++  internal-source\n  ^-  @t\n  (rap 3 `(list @t)`~[%s])\n" % (
+            ' '.join(ue.cord_literal(p) for p in internal_parts))
         prelude_expr = '(rap 3 `(list @t)`~[%s])' % (
             ' '.join(ue.cord_literal(p) for p in parts))
+        internal_expr = '(rap 3 `(list @t)`~[%s])' % (
+            ' '.join(ue.cord_literal(p) for p in internal_parts))
         harness = harness.replace('|^  %+  rap  3',
-                                  '=/  prepared-prelude  (prepare-prelude:lib %s)\n|^  %%+  rap  3' % prelude_expr)
+                                  '=/  prepared-prelude  (prepare-prelude-with-internal:lib %s %s)\n|^  %%+  rap  3' % (prelude_expr, internal_expr))
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")

@@ -4,6 +4,8 @@ This is a working inventory, not a completed prelude interface. It lists top-lev
 
 The source is the fake ship's `%base` `/sys/hoon.hoon` (Hoon version 135), read through Clay with `tools/ship scry /cx/=base=/sys/hoon/hoon --raw`. SHA-256: `ef538ced0877230f02ff86f9fb7a0abc6833bb1cf0e8675742b4d6ce478fcc92`. It differs in bytes from [upstream Hoon at the inspected commit](https://github.com/urbit/urbit/blob/5a187fededc4582a34fcd6055c67bb63e0917b94/pkg/arvo/sys/hoon.hoon); verify against the actual target ship when updating this inventory.
 
+The vendored prelude defines `poke` in its private internal module and re-exports it as a transparent type. The partial checker resolves its supported source shape and a narrow imported API constructor; complete checking of the private body, other API shapes, effect lowering and runtime execution remain unfinished. `ask` and `qath` are not yet defined there.
+
 Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold generators, and need individual inspection. Jibb's loobean `not` and Hoon's bitwise `not.bit` are distinct. Parser helpers outside 3g are excluded from the intended prelude except the specifically listed `slav` and `slaw`; the raw candidates below still need to be classified.
 
 ## 1a

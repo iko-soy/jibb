@@ -1077,6 +1077,7 @@ def generate_tests(golden):
              '/+  jibb, jibb-import' if has_imports or has_module_types else '/+  jibb']
     if has_module_types:
         lines.append('/*  prelude-source  %jibb  /lib/jibb/prelude/jibb')
+        lines.append('/*  internal-source  %jibb  /lib/jibb/internal/jibb')
     arms = []
     for i, ((name, folder), arm) in enumerate(
             zip(cases, arm_names([c[0] for c in cases])), 1):
@@ -1166,7 +1167,7 @@ def generate_tests(golden):
                 call, name, expected_modules, ' '.join(module_fixtures))
         arms.append('++  %s\n  %s' % (arm, call))
     if has_module_types:
-        lines.append('=/  prepared-prelude  (prepare-prelude:jibb prelude-source)')
+        lines.append('=/  prepared-prelude  (prepare-prelude-with-internal:jibb prelude-source internal-source)')
     lines.append('|%')
     if arms:
         lines.append('::  one arm per case')
@@ -1289,7 +1290,7 @@ def generate_tests(golden):
   =/  sources=(list [path=path source=@t])
     (turn modules |=(item=[label=@t at=path source=@t] [at.item source.item]))
   ?~  prepared-prelude
-    (golden-types-with-prelude:jibb at src external mark-external sources prelude-source)
+    (golden-types-with-prelude-and-internal:jibb at src external mark-external sources prelude-source internal-source)
   (golden-types-with-prepared-prelude:jibb at src external mark-external sources prepared-prelude)
 '''
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')

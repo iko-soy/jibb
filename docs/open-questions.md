@@ -44,7 +44,7 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking i
 22. **Settled: overlapping imported `$%` and `$?` cases.** On 2026-10-30, @iko confirmed that the general union disjointness rule rejects imported `$%` and `$?` cases that overlap as nouns where the type is used, as it does for `$^`. The importer rejects recognizable overlaps and fails closed when it cannot verify them.
 23. **Settled: converging explicit capitals.** On 2026-10-30, @iko chose that a body cannot force two separately written capitals to be equal. For `++ repeated |= x=(choice A A) x`, `++ f |= x=(choice A B) (repeated x)` is an error; use `A` in both positions when the type must be shared. This also applies across local captures and within generic mold applications.
 
-24. **Settled: how the internal prelude provides `poke`.** On 2026-10-31, @iko chose to define `poke` in the source-backed private internal prelude module and expose only its opaque type through the public prelude. The checker hides its representation from ordinary modules; derived gates and `pure` remain its builders. This settles `poke`; it does not decide the representation of `ask` or `qath`.
+24. **Settled: how the internal prelude provides `poke`.** On 2026-10-31, @iko chose to define `poke` in the source-backed private internal prelude module and re-export it through the public prelude as an ordinary transparent type. Ordinary modules can construct and inspect its values. This settles `poke`; it does not decide the representation of `ask` or `qath`.
 
 ## Grammar questions never put to the doc's author
 

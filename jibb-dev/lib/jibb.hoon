@@ -4608,6 +4608,7 @@
       [%atom aura=@ta]
       [%any-atom ~]
       [%flag ~]
+      [%noun ~]
       [%tag id=@ud literal=lit constructor=?]
       [%const literal=lit]
       [%collection name=term args=(list itype)]
@@ -4661,6 +4662,7 @@
     %atom  |
     %any-atom  |
     %flag  |
+    %noun  |
     %tag   =(n id.t)
     %const  |
     %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
@@ -4757,6 +4759,7 @@
     %atom      |
     %any-atom  &
     %flag      |
+    %noun  |
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
@@ -4827,6 +4830,7 @@
     %atom      &
     %any-atom  &
     %flag      &
+    %noun  |
     %tag       &
     %const     &
     %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
@@ -4916,6 +4920,7 @@
     %cell      &
     %union     &
     %recursive  &
+    %noun       &
     %collection  &
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -5055,6 +5060,15 @@
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
+  ::  Any value can be used where a noun is expected. An unresolved
+  ::  bare tag is fixed as a constant; a constructor still needs a gate.
+  ?:  ?=(%noun -.expected)
+    ?:  ?=(%tag -.actual)
+      ?:  constructor.actual  [%unknown ~]
+      [%ok [[id.actual expected] sub] next]
+    [%ok sub next]
+  ::  An arbitrary noun is not known to fit a narrower type.
+  ?:  &(?=(%noun -.actual) !?=(%var -.expected))  [%unknown ~]
   ?:  &(?=(%recursive -.actual) ?=(%recursive -.expected))
     ?:(&(=(module.actual module.expected) =(name.actual name.expected)) [%ok sub next] [%bad ~])
   ?:  &(|(?=(%recursive -.actual) ?=(%recursive -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
@@ -5242,7 +5256,8 @@
 +$  ischeme  [typ=itype vars=(list @ud)]
 +$  ienv  (list [name=term scheme=ischeme])
 +$  imold-types  (list [name=term template=ischeme])
-+$  ifile  [values=ienv molds=imold-types at=path]
++$  iderived  [name=term agent=term mark=term]
++$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived)]
 +$  ijimports  (list [face=term interface=ifile])
 +$  icap  [name=@t id=@ud at=span]
 +$  icaps  (list icap)
@@ -5288,6 +5303,8 @@
 ::  generalize an aura from its sample, which requires constraint analysis
 ::  beyond this fragment; leave those cases unresolved.
 ::
+::  This helper only controls decimal defaulting in visible types. A noun
+::  may contain gates and is not proof of a gate-free value.
 ++  itype-has-gate
   |=  t=itype
   ^-  ?
@@ -5306,6 +5323,7 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %noun  |
   ==
 ::
 ++  default-decimals
@@ -5330,6 +5348,7 @@
     %atom  ~
     %any-atom  ~
     %flag  ~
+    %noun  ~
     %tag   ~
     %const  ~
     %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
@@ -5368,6 +5387,7 @@
     %atom  t
     %any-atom  t
     %flag  t
+    %noun  t
     %tag   t
     %const  t
     %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
@@ -5391,6 +5411,7 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %noun  |
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
@@ -5741,25 +5762,41 @@
     ?:(=(`origin origin.typ.template) `name.i.molds $(molds t.molds))
   $(molds t.molds)
 ::
-::  Only names exported by this directly imported module are visible through
-::  its face. Other origins retain identity but print as unnamed unions.
+::  A public non-generic alias names exactly its origin and arguments.
+::  Reusing only an origin could print a different generic instantiation.
+++  prelude-union-alias
+  |=  [origin=[at=path name=term] args=(list itype) molds=imold-types]
+  ^-  (unit term)
+  ?^  args  ~
+  ?~  molds  ~
+  =/  template=ischeme  template.i.molds
+  ?:  &(?=(~ vars.template) ?=(%union -.typ.template))
+    ?:(&(=(`origin origin.typ.template) =(args args.typ.template)) `name.i.molds $(molds t.molds))
+  $(molds t.molds)
+::
+::  Names exported by the directly imported module are visible through its
+::  face; a matching prelude alias is also visible without a qualifier.
 ::
 ++  itype-in-import
-  |=  [t=itype iface=ifile face=term]
+  |=  [t=itype iface=ifile face=term prelude=(unit ifile)]
   ^-  itype
   ?-  -.t
     %union
       =/  label=(unit @t)
         ?~  origin.t  ~
         ?:  =(at.u.origin.t /lib/jibb/prelude/jibb)  `name.u.origin.t
+        =/  public=(unit term)
+          ?~  prelude  ~
+          (prelude-union-alias u.origin.t args.t molds.u.prelude)
+        ?^  public  `u.public
         =/  alias=(unit term)  ~
         =?  alias  &(=(at.u.origin.t at.iface) ?=(^ (find-jibb-mold name.u.origin.t iface)))  `name.u.origin.t
         =?  alias  ?=(~ alias)  (imported-union-alias u.origin.t molds.iface)
         ?~  alias  ~
         `(crip "{(trip u.alias)}.{(trip face)}")
-      [%union (turn cases.t |=(c=itype (itype-in-import c iface face))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face)))]
+      [%union (turn cases.t |=(c=itype (itype-in-import c iface face prelude))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face prelude)))]
     %recursive  [%recursive module.t name.t ~]
-    %collection  [%collection name.t (turn args.t |=(c=itype (itype-in-import c iface face)))]
+    %collection  [%collection name.t (turn args.t |=(c=itype (itype-in-import c iface face prelude)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
@@ -5959,6 +5996,7 @@
       ?:  =(0 aura.sh)  `[[%any-atom ~] state]
       `[[%atom aura.sh] state]
     %flag  `[[%flag ~] state]
+    %noun  `[[%noun ~] state]
     %const
       ?.  |(=(%term form.lit.sh) =(%null form.lit.sh))  ~
       `[[%const lit.sh] state]
@@ -5985,7 +6023,7 @@
           =/  found=(unit ischeme)  (find-jibb-mold n u.iface)
           ?~  found  ~
           ?^  vars.u.found  ~
-          `[(itype-in-import typ.u.found u.iface i.t.names.sh) state]
+          `[(itype-in-import typ.u.found u.iface i.t.names.sh prelude.state) state]
         =/  found=(unit itype)
           (find-imported-mold i.t.names.sh n externals.state surs.state)
         ?~  found  ~
@@ -6022,7 +6060,7 @@
         ?~  vars.u.template  ~
         =/  applied=(unit itype)  (template-apply u.template types.u.args)
         ?~  applied  ~
-        `[(itype-in-import u.applied u.iface i.t.ref.sh) state.u.args]
+        `[(itype-in-import u.applied u.iface i.t.ref.sh prelude.state.u.args) state.u.args]
       ?:  (lien active.state.u.args |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state.u.args)
       ?~  found
@@ -7210,7 +7248,7 @@
         ?~  iface  (infer-field-wing names.e env state)
         =/  member=(unit ischeme)  (ienv-lookup i.names.e values.u.iface)
         ?~  member  [%| ["module member is not available to partial inference" ~]]
-        =.  typ.u.member  (itype-in-import typ.u.member u.iface i.t.names.e)
+        =.  typ.u.member  (itype-in-import typ.u.member u.iface i.t.names.e prelude.state)
         =/  instance=[typ=itype state=istate]  (instantiate-scheme u.member state)
         [%& typ.instance state.instance]
       =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
@@ -7559,7 +7597,7 @@
   ?~  t.names  |
   =.  typ  (itype-walk typ sub)
   ?:  ?=(%cell -.typ)  $(typ tal.typ, names t.names)
-  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
+  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%noun -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
 ::
 ++  infer-cell-branch
   |=  [e=expr env=ienv state=istate]
@@ -7605,6 +7643,7 @@
     %atom  "@{(trip aura.t)}"
     %any-atom  "@"
     %flag  "?"
+    %noun  "*"
     %tag   (trip txt.literal.t)
     %const  (trip txt.literal.t)
     %union
@@ -7652,6 +7691,7 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %noun  |
     %tag       |
     %const     |
     %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
@@ -7760,6 +7800,7 @@
     %atom      |
     %any-atom  |
     %flag      |
+    %noun  |
     %tag       |
     %const     |
     %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
@@ -8517,6 +8558,22 @@
   ?.  (levy vals |=(n=term &((unique-value-name n vals) !(lien prelude-values |=(v=term =(n v))))))  |
   (levy mold-names |=(n=term &((unique-value-name n mold-names) !(lien prelude-molds |=(m=term =(n m))))))
 ::
+::  In an API file or before main's kind is known, a lone `+$ poke`
+::  may be a declaration rather than a mold that shadows the prelude. Do not call
+::  that one collision definite, and do not hide unrelated scope errors.
+++  pending-declared-poke
+  |=  [at=path mod=module prelude-values=(list term) prelude-molds=(list term)]
+  ^-  ?
+  ?.  (lien prelude-molds |=(n=term =(%poke n)))  |
+  ?.  |(?=([%ui %api @ %jibb ~] at) (lien defs.mod |=(d=def &(?=(%value -.d) =(%main name.d)))))  |
+  =/  pokes=(list def)
+    (skim defs.mod |=(d=def &(?=(%mold -.d) =(%poke name.d))))
+  ?~  pokes  |
+  ?^  t.pokes  |
+  =/  remaining=(list def)
+    (skim defs.mod |=(d=def !&(?=(%mold -.d) =(%poke name.d))))
+  (module-scope-valid mod(defs remaining) prelude-values prelude-molds)
+::
 ++  module-mold-types
   |=  [molds=imolds state=istate]
   ^-  (each imold-types @t)
@@ -8532,9 +8589,9 @@
 ::
 ::  Prepare a provisional interface from the trusted vendored source.
 ::  Every declared name remains reserved, but only molds and values this
-::  fragment can infer are usable. Unsupported bodies are not validated,
-::  and imports into the prelude are not supported yet. The fixed origin
-::  gives its named unions the same identity in every importing module.
+::  fragment can infer are usable. Unsupported bodies are not validated.
+::  An optional internal source supplies the prelude's one supported import;
+::  clients cannot import that path directly. Named unions retain their origin.
 ::
 ::  Recognize only the complete standard prelude list shape. Its recursive
 ::  tail uses the same parameter and the unqualified list name. The reader
@@ -8574,6 +8631,13 @@
   ?.  ?=(%tvar -.i.args.tail)  |
   =(var name.i.args.tail)
 ::
+++  prelude-label
+  |=  [typ=itype name=term]
+  ^-  itype
+  ?.  ?=(%union -.typ)  typ
+  ?^  args.typ  typ
+  typ(label `name)
+::
 ++  partial-prelude-molds
   |=  [molds=imolds state=istate]
   ^-  imold-types
@@ -8586,22 +8650,32 @@
     (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  out  $(molds t.molds)
   =.  typ.template.u.out  (label-direct-union typ.template.u.out body.m name.m state)
+  =.  typ.template.u.out  (prelude-label typ.template.u.out name.m)
   [[name.m template.u.out] $(molds t.molds)]
 ::
-++  partial-prelude-interface
-  |=  src=@t
+++  partial-prelude-interface-with-internal
+  |=  [src=@t internal-source=(unit @t)]
   ^-  (unit ifile)
   ?:  =(0 src)  ~
   =/  at=path  /lib/jibb/prelude/jibb
   =/  parsed  (parse at src)
   ?:  ?=(%| -.parsed)  ~
-  ?^  imports.p.parsed  ~
+  =/  private=(unit ijimports)
+    ?~  imports.p.parsed  `~
+    ?.  ?=([[%jibb *] ~] imports.p.parsed)  ~
+    ?.  =(path.i.imports.p.parsed /lib/jibb/internal)  ~
+    ?~  internal-source  ~
+    =/  built=jfile-result
+      (infer-jibb-file /lib/jibb/internal/jibb u.internal-source ~ ~ ~ ~[/lib/jibb/internal/jibb] ~ ~ ~ ~)
+    ?:  ?=(%| -.built)  ~
+    `~[[face.i.imports.p.parsed iface.p.built]]
+  ?~  private  ~
   ?~  defs.p.parsed  ~
   ?.  (module-scope-valid p.parsed ~ ~)  ~
   =/  ds=(list def)  defs.p.parsed
   =/  molds=imolds  (collect-simple-molds ds)
   =/  names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  globals=(list term)  (global-value-names ds)
+  =/  globals=(list term)  (weld (import-binding-names imports.p.parsed) (global-value-names ds))
   ::  Remove raw list before inferring any template, so an altered list
   ::  cannot leak through an alias. Its name remains reserved either way.
   =/  declared=?  (lien names |=(name=term =(%list name)))
@@ -8609,11 +8683,26 @@
   =?  env-molds  declared
     (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
   =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ ~ reserved ~ ~ ~ | at names ~]
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~]
   =/  mt=imold-types  (partial-prelude-molds molds state)
-  =/  partial=ifile  [~ mt at]
-  =/  env=ienv  (resolve-supported-defs ds env-molds globals ~ ~ ~ ~ ~ reserved at `partial)
-  `[env mt at]
+  =/  partial=ifile  [~ mt at ~]
+  ::  An explicitly qualified re-export must resolve. Other unsupported
+  ::  prelude declarations remain reserved but absent from the interface.
+  =/  required=imolds
+    %+  skim  molds
+    |=  m=[name=term body=shape]
+    =/  sh=shape  body.m
+    ?.  ?=(%ref -.sh)  |
+    ?~  names.sh  |
+    ?=(^ t.names.sh)
+  ?.  (levy required |=(m=[name=term body=shape] ?=(^ (find-jibb-mold name.m partial))))  ~
+  =/  env=ienv  (resolve-supported-defs ds env-molds globals ~ ~ ~ ~ u.private reserved at `partial)
+  `[env mt at ~]
+::
+++  partial-prelude-interface
+  |=  src=@t
+  ^-  (unit ifile)
+  (partial-prelude-interface-with-internal src ~)
 ::
 +$  iprelude  [iface=ifile values=(list term) molds=(list term)]
 ::
@@ -8621,6 +8710,17 @@
   |=  src=@t
   ^-  (unit iprelude)
   =/  iface=(unit ifile)  (partial-prelude-interface src)
+  ?~  iface  ~
+  =/  parsed  (parse /lib/jibb/prelude/jibb src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  vals=(list term)  (global-value-names defs.p.parsed)
+  =/  ms=(list term)  (turn (collect-simple-molds defs.p.parsed) |=(m=[name=term body=shape] name.m))
+  `[u.iface vals ms]
+::
+++  prepare-prelude-with-internal
+  |=  [src=@t internal-source=@t]
+  ^-  (unit iprelude)
+  =/  iface=(unit ifile)  (partial-prelude-interface-with-internal src `internal-source)
   ?~  iface  ~
   =/  parsed  (parse /lib/jibb/prelude/jibb src)
   ?:  ?=(%| -.parsed)  ~
@@ -8654,6 +8754,8 @@
   ?~  imports  [%& [~ cache]]
   ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
   =/  at=path  (weld path.i.imports `path`~[%jibb])
+  ?:  =(at /lib/jibb/internal/jibb)
+    [%| 'the prelude internal module is private']
   ?:  (lien active |=(p=path =(p at)))
     [%| (crip "import cycle at {(spud at)}")]
   =/  found=jbundle  (skim modules |=(m=jsource =(at at.m)))
@@ -8668,14 +8770,63 @@
   ?:  ?=(%| -.rest)  rest
   [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest]]
 ::
+++  api-mark-exports
+  |=  [marks=(list term) all=(list term) externals=imark-externals]
+  ^-  imold-types
+  ?~  marks  ~
+  =/  t=(unit itype)  (find-imported-mark i.marks externals all)
+  ?~  t  $(marks t.marks)
+  [[i.marks [u.t ~]] $(marks t.marks)]
+::
+::  Experimental direct poke-only API. Unsupported API declarations fail
+::  as a whole; supplied mark reader results retain their existing boundary.
+++  api-poke-interface
+  |=  [at=path mod=module mark-externals=imark-externals prelude-values=(list term) prelude-molds=(list term) prelude=(unit ifile)]
+  ^-  (unit ifile)
+  ?.  ?=([%ui %api @ %jibb ~] at)  ~
+  ?~  prelude  ~
+  ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  ~
+  =/  poke=(unit ischeme)  (find-jibb-mold %poke u.prelude)
+  ?~  poke  ~
+  ?.  ?=(%union -.typ.u.poke)  ~
+  ?^  vars.u.poke  ~
+  =/  compatible=?
+    %+  lien  cases.typ.u.poke
+    |=  c=itype
+    ?=([%cell [%const [%term %tas %agent *]] [%cell [%face %agent [%atom %tas]] [%cell [%face %mark [%atom %tas]] [%face %payload [%noun ~]]]]] c)
+  ?.  compatible  ~
+  ?.  (module-scope-valid mod(defs ~) prelude-values prelude-molds)  ~
+  ?.  (levy imports.mod |=(i=import ?=(%mark -.i)))  ~
+  =/  marks=(list term)  (collect-mark-imports imports.mod)
+  ?.  ?=([@ ~] marks)  ~
+  =/  ds=(list def)  defs.mod
+  ?.  ?=([[%mold *] ~] ds)  ~
+  ?.  =(%poke name.i.ds)  ~
+  =/  sh=shape  shape.i.ds
+  ?.  ?=([%ref *] sh)  ~
+  ?.  ?=([@ ~] names.sh)  ~
+  =/  n=term  i.names.sh
+  ?.  (unique-value-name n marks)  ~
+  ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))  ~
+  =/  mark=(unit itype)  (find-imported-mark n mark-externals marks)
+  ?~  mark  ~
+  =/  sc=ischeme  [[%fn u.mark typ.u.poke] ~]
+  `[~[[n sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]]]
+::
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-result
-  ?:  ?=([%ui %api *] at)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
   =/  parsed  (parse at src)
   ?:  ?=(%| -.parsed)  [%| (crip "module source does not parse: {(spud at)}")]
   =/  mod=module  p.parsed
-  ?.  (module-scope-valid mod prelude-values prelude-molds)  [%| (crip "module has conflicting names: {(spud at)}")]
+  ?:  ?=([%ui %api *] at)
+    =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
+    ?~  iface  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+    [%& [u.iface [[at u.iface] cache]]]
+  ?.  (module-scope-valid mod prelude-values prelude-molds)
+    ?:  (pending-declared-poke at mod prelude-values prelude-molds)
+      [%| (crip "module kind or scope needs unsupported inference: {(spud at)}")]
+    [%| (crip "module has conflicting names: {(spud at)}")]
   =/  vals=(list term)  (global-value-names defs.mod)
   ?:  (lien vals |=(n=term =(n %main)))
     [%| (crip "module kind needs unsupported inference: {(spud at)}")]
@@ -8693,7 +8844,7 @@
   =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
-  [%& [[env p.mts at] [[at [env p.mts at]] cache.p.js]]]
+  [%& [[env p.mts at ~] [[at [env p.mts at ~]] cache.p.js]]]
 ::
 ::  +golden-types-with-modules fails closed for imports without prelude
 ::  scope. +golden-types-with-prelude resolves supported library graphs;
@@ -8725,6 +8876,12 @@
   ?~  prepared  'partial inference; module not checked\0aprelude interface is not supported'
   (golden-types-with-prepared-prelude file src externals mark-externals modules prepared)
 ::
+++  golden-types-with-prelude-and-internal
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prelude-source=@t internal-source=@t]
+  ^-  @t
+  =/  prepared=(unit iprelude)  (prepare-prelude-with-internal prelude-source internal-source)
+  (golden-types-with-prepared-prelude file src externals mark-externals modules prepared)
+::
 ++  golden-types-with-prepared-prelude
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prepared=(unit iprelude)]
   ^-  @t
@@ -8735,6 +8892,8 @@
   =/  prelude-molds=(list term)  molds.u.prepared
   =/  iface=(unit ifile)  `iface.u.prepared
   ?.  (module-scope-valid p.parsed prelude-values prelude-molds)
+    ?:  (pending-declared-poke file p.parsed prelude-values prelude-molds)
+      'partial inference; module not checked\0amodule kind or scope needs unsupported inference'
     'partial inference; module not checked\0amodule has conflicting names'
   =/  js=jimports-result
     (resolve-jibb-imports imports.p.parsed externals mark-externals modules ~[file] prelude-values prelude-molds ~ iface)

@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Compare the source-backed private poke/API fixture under urbit eval."""
+
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--update', action='store_true')
+args = parser.parse_args()
+fixture = root / 'tests/type-poke'
+names = ('mark', 'api', 'client', 'direct', 'alias', 'public', 'fake',
+         'exported', 'transitive', 'inner', 'impostor-client', 'impostor')
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-poke-bridge.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  jibb-import\n' + reader +
+              '\n=/  prelude=@t  prelude-text\n=/  internal=@t  internal-text\n' +
+              ''.join('=/  ' + n + '=wain  (to-wain:format ' + n + '-text)\n' for n in names) +
+              '=/  expected=wain  (to-wain:format expected-text)\n' +
+              '=/  bridge\n' + tests +
+              '\n(bridge-output:bridge prelude internal ' + ' '.join(n + '-text' for n in names) + ')\n')
+with tempfile.TemporaryDirectory(prefix='jibb-type-poke-') as tmp:
+    program = Path(tmp) / 'bridge.hoon'
+    program.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(program),
+               '--cord', 'prelude-text=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal-text=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name in names + ('expected',):
+        command += ['--cord', name + '-text=' + str(fixture / (name + '.txt'))]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected = (fixture / 'expected.txt').read_bytes()
+if args.update:
+    (fixture / 'expected.txt').write_bytes(result.stdout)
+    print('updated private poke/API bridge golden')
+    sys.exit(0)
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual types'))
+    sys.exit(1)
+print('private poke/API bridge golden passed')

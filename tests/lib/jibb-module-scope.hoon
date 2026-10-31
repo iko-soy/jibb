@@ -2,6 +2,7 @@
 /+  jibb
 /*  expected  %txt  /tests/type-module-scope/expected/txt
 /*  real-prelude  %jibb  /lib/jibb/prelude/jibb
+/*  real-internal  %jibb  /lib/jibb/internal/jibb
 /*  real-source  %jibb  /tests/golden/types-prelude-interface/source/jibb
 /*  real-left  %jibb  /tests/golden/types-prelude-interface/modules/ui/left/jibb
 /*  real-right  %jibb  /tests/golden/types-prelude-interface/modules/ui/right/jibb
@@ -44,9 +45,9 @@
   ^-  @t
   =/  fixtures=(list [at=path source=@t])
     ~[[~[%ui %left %jibb] real-left] [~[%ui %right %jibb] real-right]]
-  =/  prepared  (prepare-prelude:jibb real-prelude)
+  =/  prepared  (prepare-prelude-with-internal:jibb real-prelude real-internal)
   ?~  prepared  'real prelude preparation failed'
-  =/  wrapper  (golden-types-with-prelude:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures real-prelude)
+  =/  wrapper  (golden-types-with-prelude-and-internal:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures real-prelude real-internal)
   =/  actual  (golden-types-with-prepared-prelude:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures prepared)
   ?.  =(wrapper actual)  'real prelude prepared/wrapper mismatch'
   ?.  =((to-wain:format (cat 3 actual '\0a')) real-expected)  'real prelude output differs from golden'

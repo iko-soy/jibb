@@ -49,7 +49,7 @@ And from the plan's Risks:
 
 ## First steps
 
-1. **Specify the prelude inventory.** The checker needs the prelude's complete exported inventory and signatures; include all names from the listed Hoon library sections except explicitly excluded groups, as `docs/open-questions.md` question 3 records. The prelude imports private helpers and low-level primitives from a separate internal module without exposing them; its public foundational gates are implemented in Jibb on those primitives. The source-backed internal module defines `poke`; the public prelude exposes only its opaque type, and the checker hides its representation from ordinary modules, as question 24 records. Derived gates and `pure` remain its builders. This decision does not specify the representation of `ask` or `qath`.
+1. **Specify the prelude inventory.** The checker needs the prelude's complete exported inventory and signatures; include all names from the listed Hoon library sections except explicitly excluded groups, as `docs/open-questions.md` question 3 records. The prelude imports private helpers and low-level primitives from a separate internal module without exposing them; its public foundational gates are implemented in Jibb on those primitives. The source-backed internal module defines `poke`; the public prelude re-exports it as an ordinary transparent type that modules can construct and inspect, as question 24 records. This decision does not specify the representation of `ask` or `qath`.
 
    The plan's three core-language rules were adopted: gate-free `eq` arguments and map and set keys, with gates opaque for union matching; jetted prelude functions taking gates; and rejection of a non-gate value that depends on itself even through a gate.
 2. **Start the importer early**, as the plan's Risks ask: first on a small `/sur` file, then on Tlon's. "Suggested design" below has a way in.
@@ -68,7 +68,7 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 - A sample's mold may be left out: every bare name in a sample binds, at any depth, as in `|=(p title.p)` "when the call fixes the type", `|= [a=@ b]` and `|=(m ~)`.
 - Generic molds: `+$ result |$ [V E]` with cases below, applied as `(result V E)`; `|$` goes right after a `+$`'s name, and the prelude's `cmd` and `sub` use `|$ [M]`.
 - `!!` is the empty mold, and as an expression it has any type. `*` is the noun type, not a type variable; generic positions such as the keys in `each` and `table` use a capital. A value of a more specific noun type can be used where `*` is expected.
-- `poke`, `ask` and `qath` are opaque, built only by derived gates, `pure` and application-path literals.
+- `poke` is transparent and re-exported from the source-backed internal prelude. `ask` and `qath` are opaque, built only by derived gates, `pure` and application-path literals.
 - The Literals table gives every other literal its type: `0x1f` a `@ux`, ships `@p`, dates `@da`, durations `@dr`, `~.knot` a `@ta`, strings `@t`, `` `x `` a `(unit A)`, `~[…]` a `(list A)`, `gap+%s2` the pair `[%gap %s2]`, `/posts/~zod` a `path`, `%/blog` a `qath`.
 
 **Tags, `~`, numbers and cells wait for their context** (Grammar: Tag resolution, Literals by context)

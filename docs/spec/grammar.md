@@ -129,7 +129,8 @@ A mold is only a type: never called on a noun, and with no default. Types are in
 - **Paths**: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura. `%/blog/(slug)` is an `qath`, checked against routes and static files.
 - **Generic molds**: `+$ result |$ [V E]` with cases below; `|$` goes only right after a `+$`'s name.
 - **Noun**: `*`, not a type variable; use a capital for a generic type. A value already known to have a more specific noun type, such as `@ud`, can be used where `*` is expected. **Empty**: `!!`.
-- **Opaque**: `poke`, `ask` and `qath`, built only by derived gates, `pure` and application-path literals. `poke` is defined in the source-backed private internal prelude module; the public prelude exposes only its opaque type, and the checker hides its representation from ordinary modules. Pokes are built by derived gates and `pure`. `(facts full diff …)` appears only in an API file's `paths`.
+- **Pokes**: `poke` is defined in the source-backed private internal prelude module and re-exported by the public prelude as an ordinary transparent type. Ordinary modules can construct and inspect its values.
+- **Opaque**: `ask` and `qath`, built only by derived gates, `pure` and application-path literals. `(facts full diff …)` appears only in an API file's `paths`.
 - **Identity**: recursive molds go by name and module.
 
 `eq`'s arguments and map and set keys must contain no gates, even nested inside another value. The checker infers this gate-free constraint on type variables and retains it when generalizing a `++`, so a generic helper that calls `eq` stays generic over gate-free types. Printed types show the constraint as `$-([A A] ?) where A contains no gates`. An inferred atom constraint prints as `$-([A A] A) where A is an atom`. Multiple clauses are comma-separated, as `where A is an atom, B contains no gates`. Union-case matching treats gates as opaque and never inspects a gate to distinguish cases.
@@ -339,4 +340,4 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
     button "Add" %add
 ```
 
-A store is written like an API file: `state`, `+$ poke` and `(store init update)`. Islands poke it with derived constructors and watch it with `(state.cart |=%got)`, whose first fact is the current state and each later fact the next. It runs in the browser, shared by the page's islands.
+A store is written like an API file: `state`, `+$ poke` and `(store init update)`. Islands can poke it with derived constructors and watch it with `(state.cart |=%got)`, whose first fact is the current state and each later fact the next. It runs in the browser, shared by the page's islands.

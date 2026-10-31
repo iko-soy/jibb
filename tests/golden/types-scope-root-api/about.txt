@@ -1,0 +1,4 @@
+source: Grammar, Modules: API and store `+$ poke` lines are declarations, not molds; no name may shadow one already in scope.
+tests: The partial checker reports uncertain API/store scope as unsupported, while definite duplicate declarations and unrelated prelude shadowing remain errors. A library mold cannot shadow the prelude poke type.
+expect: parses
+expect-types: a partial inference report

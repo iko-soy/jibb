@@ -1,0 +1,6 @@
+::  Representation for agent and in-process store pokes.
+::  The prelude re-exports this mold; effect lowering and the runtime must
+::  agree on these cells when effect execution is implemented.
++$ poke
+  [%agent agent=@tas mark=@tas payload=*]
+  [%store module=@t action=@tas payload=*]
