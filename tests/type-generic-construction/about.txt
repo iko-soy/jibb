@@ -1,0 +1,9 @@
+source: docs/spec/grammar.md:57,135 — “Molds may be recursive”; “recursive molds go by name and module”.
+
+This shared eval/ship fixture checks a narrow source-proven tree construction
+slice. It exercises both recognized source shapes, type arguments and aliases,
+nominal origins, contextual field and payload constraints, shared fuel, and
+unrelated pending state. The source reports are explicitly partial; a separate
+owner check requires the entire library to succeed before interface export.
+The view and substitution scan limits do not bound all inference or retries.
+No runtime lowering, watchability, island acceptance or backend claim is made.

@@ -1,0 +1,65 @@
+complete owner: ok
+owner exports constructed nominal values: ok
+invalid owner declined: ok
+view spends one step: ok
+view retains argument and child identity: ok
+zero view fuel declined: ok
+malformed proof declined: ok
+foreign recursive tail retained: ok
+zero inference fuel declined: ok
+one-step leaf retains nominal identity: ok
+one-step node succeeds: ok
+nested one-step declined: ok
+nested two-step succeeds: ok
+siblings share fuel: ok
+same-state retry agrees: ok
+failed retry agrees: ok
+argument binding retains source identity: ok
+pending tag retained: ok
+pending hole retained: ok
+projection evidence retained: ok
+hidden variable declined: ok
+scan exact limit: ok
+scan over limit declined: ok
+faced scan exact limit: ok
+faced scan over limit declined: ok
+structural substitution declined: ok
+partial inference; module not checked
+++ text-event: $-(@t @t)
+++ ship-event: $-(@t @p)
+++ leaf: (element.first @t)
+++ ship-leaf: (element.first @p)
+++ node: (element.first @t)
+++ ship-node: (element.first @p)
+++ nested: (element.first @t)
+++ wrong-event: recursive mold case does not fit its source shape
+++ wrong-leaf: recursive mold case does not fit its source shape
+++ wrong-label: recursive mold case does not fit its source shape
+++ bad-tag: recursive mold constructor has no matching case
+++ foreign: list item constraint is not supported by partial inference
+++ generic: $-($-(@t A) (element.first A))
+++ pending: tag needs context in partial inference
+++ extra: recursive mold case does not fit its source shape
+++ misplaced: recursive mold case does not fit its source shape
+++ bad-child: list item constraint is not supported by partial inference
+++ bad-children: recursive mold case needs unsupported inference
+++ label-swap: recursive mold case does not fit its source shape
+++ wrong-nominal: list item constraint is not supported by partial inference
+++ wrong-argument: list item constraint is not supported by partial inference
+++ keep-generic: $-($-(@t A) (element.first A))
+partial inference; module not checked
+++ text-event: $-(@t @t)
+++ ship-event: $-(@t @p)
+++ via-leaf: (alias.via @t)
+++ via-node: (alias.via @p)
+++ cross-alias: $-((alias.via @t) (element.first @t))
+++ cross-owner: $-((element.again @t) (alias.via @t))
+++ wrong-owner: list item constraint is not supported by partial inference
+++ wrong-arg: list item constraint is not supported by partial inference
+partial inference; module not checked
+++ leaf: (element.first @t)
+++ node: (element.first @p)
+++ nested: (element.first @t)
+++ generic: $-(A (element.first A))
+++ wrong-owner: list item constraint is not supported by partial inference
+++ wrong-field: recursive mold case needs unsupported inference

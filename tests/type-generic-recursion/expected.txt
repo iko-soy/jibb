@@ -11,7 +11,7 @@ alteration rejects repeated line: ok
 gate freedom unknown: ok
 gate defaulting conservative: ok
 unused mold hole declined: ok
-constructor declined: ok
+invalid constructor declined: ok
 matching declined: ok
 nonuniform recursion declined: ok
 identical local shadow declined: ok

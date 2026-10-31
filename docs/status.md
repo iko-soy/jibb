@@ -25,7 +25,7 @@ On 2026-10-31, @iko chose explicit, result-directed `(proj record)` to construct
 
 The internal prelude also defines `qath` as a transparent recursive knot sequence, re-exported by the public prelude. The partial checker recognizes its source identity, supports selected null/cell construction and matching, and types static application-path literals. Construction and matching for other recursive shapes, broader patterns and dynamic application-path segments remain unsupported. A 256-step limit applies per inference attempt, not to parsing or retries; checking routes and static files remains milestone 4.
 
-The checker also recognizes a limited source-proven generic recursive tree in an import-free defining module. Its opaque identity retains the defining path, mold name and type arguments, including across supported imports and aliases. Construction, pattern matching, unfolding and gate-free proof for this shape remain unsupported; this is not yet the prelude's `element` implementation or island checking. The source index uses fixed-shape checks during mold collection. A single startup-inclusive comparison of 1,000 ordinary gates produced identical reports and used 29.12 seconds of user CPU before the shared-resolver refactor and 28.55 seconds after it, with other work running; it is not a general performance bound.
+The checker also recognizes a limited source-proven generic recursive tree in an import-free defining module. Its nominal identity retains the defining path, mold name and type arguments, including across supported imports and aliases. With a known expected type it can construct supported tagged cases by checking one source-proven layer at a time. Pattern matching, general structural fits and gate-free proof remain unsupported; this is not yet the prelude's `element` implementation or island checking. The source index uses fixed-shape checks during mold collection. Each construction attempt has 256 unfolding steps and at most 4,096 face and substitution visits per view; parsing, other inference and retries remain outside those limits. A single startup-inclusive comparison of 1,000 ordinary gates produced identical reports and used 29.12 seconds of user CPU before the shared-resolver refactor and 28.55 seconds after it, with other work running; it is not a general performance bound.
 
 The internal prelude defines a transparent generic `ask` with pure, agent and store cases, re-exported alongside the Jibb-written `pure` gate. The partial checker infers supported constructors and exhaustive matches. Agent and store receivers operate on raw nouns; their fields do not prove schema validity or watchability. The public prelude now defines the documented source-backed `sub` union; supported `%watch` payloads retain the public `(ask M)` type. Constructing a `sub` does not prove that its request is watchable. Request lowering, checked decoding, runtime validation and island watch checking remain unimplemented.
 
@@ -76,7 +76,7 @@ What the plan asks for, and where it is:
 Besides the plan's list:
 
 - 653 golden cases: 433 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 653-case corpus passed under `urbit eval` in 107.5 s while other checks were running. The fake ship passed all 688 tests, including the source-overlap, structural-overlap and generic-recursion fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 94.5 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- The 653-case corpus passed under `urbit eval` in 105.9 s while other checks were running. The fake ship passed all 689 tests, including the source-overlap, structural-overlap, generic-recursion and generic-construction fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 98.2 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -180,7 +180,8 @@ Besides the plan's list:
 | 179d717 | 2026-10-31 | Diagnose source-proven Hoon union overlaps |
 | 142f2e2 | 2026-10-31 | Prove structural overlaps across Hoon union cases |
 | c96597d | 2026-10-31 | Track source-proven generic recursive identities |
-| This change | 2026-10-31 | Add source-backed list flattening |
+| 190a9d5 | 2026-10-31 | Add source-backed list flattening |
+| This change | 2026-10-31 | Check source-proven recursive tree construction |
 
 ## Checking it
 
@@ -202,6 +203,7 @@ tools/type-hole-guards-test       # hole defaulting and API interface guards
 tools/type-list-alias-test        # prelude list-alias guards
 tools/type-generic-alias-test     # generic union alias guards
 tools/type-generic-recursion-test # source-proven generic recursion guards
+tools/type-generic-construction-test # source-proven recursive construction guards
 tools/type-positional-face-guards-test # positional sample face guards
 tools/type-qath-guards-test       # qath source and unfolding guards
 tools/type-ask-guards-test        # ask source and bootstrap guards

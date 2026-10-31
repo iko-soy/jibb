@@ -1,0 +1,4 @@
+++ leaf [%text value="x"]
+++ node [%node event=text-event children=~]
+++ nested [%node event=text-event children=~[[%text value="x"]]]
+++ siblings [%node event=text-event children=~[[%text value="x"] [%text value="y"]]]

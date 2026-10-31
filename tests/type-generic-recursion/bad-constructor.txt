@@ -5,4 +5,4 @@
 ++ ship-id |= x=(element @p) x
 ++ generic-id |= x=(element A) x
 
-++ construct ^- (element @t) [%text value="hi"]
+++ construct ^- (element @t) [%text value=~zod]

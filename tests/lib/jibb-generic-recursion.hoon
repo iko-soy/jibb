@@ -156,7 +156,7 @@
   ?~  expected  ~[leaf+"recursive expected output is missing"]
   =/  invalid=(list [label=@t src=@t])
     :~  ['unused mold hole declined' (text bad-mold)]
-        ['constructor declined' (text bad-constructor)]
+        ['invalid constructor declined' (text bad-constructor)]
         ['matching declined' (text bad-match)]
         ['nonuniform recursion declined' (text bad-parameter)]
         ['identical local shadow declined' (text local-shadow)]

@@ -8840,6 +8840,20 @@
   ?:  ?=(?(%cell %face %fn %union %collection) -.val.i.sub)  |
   $(sub t.sub)
 ::
+::  Check the syntactic root before scanning; scan substitutions once.
+++  grec-direct-context
+  |=  [expected=itype sub=isub]
+  ^-  ?
+  =/  left=@ud  4.096
+  |-
+  ?:  ?=(%face -.expected)
+    ?:  =(0 left)  |
+    $(expected body.expected, left (dec left))
+  ?.  ?=(%grec -.expected)  |
+  ?~  sub  &
+  ?:  =(0 left)  |
+  ?:  ?=(?(%cell %face %fn %union %collection %grec) -.val.i.sub)  |
+  $(sub t.sub, left (dec left))
 ++  contextual-direct-union
   |=  target=itype
   ^-  ?
@@ -8879,6 +8893,23 @@
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
   ?:  (explicit-proj-call e env state)
     (infer-proj-context e expected env state context)
+  ::  Experimental construction only for a source-proven direct target.
+  ::  Decline any walked structural binding to retain raw-variable provenance.
+  ?:  &(?=(%grec -.target) ?=(%tuple -.e) (grec-direct-context expected sub.state))
+    =/  unfolded=(unit [view=itype left=@ud])  (grec-unfold-view target jrec-fuel.state)
+    ?~  unfolded  [%| ["recursive mold unfolding needs unsupported inference" ~]]
+    ?~  items.e  [%| ["recursive mold constructor needs unsupported inference" ~]]
+    =/  first=item  i.items.e
+    ?.  &(?=(~ face.first) ?=(%lit -.val.first) =(%term form.lit.val.first))
+      [%| ["recursive mold constructor needs unsupported inference" ~]]
+    =/  chosen=(unit itype)  (contextual-tagged-case view.u.unfolded val.lit.val.first sub.state)
+    ?~  chosen  [%| ["recursive mold constructor has no matching case" ~]]
+    =/  value=iresult  (infer-call-context-items items.e u.chosen env state(jrec-fuel left.u.unfolded) context)
+    ?:  ?=(%| -.value)  value
+    =/  fit=ifit  (itype-fit typ.p.value u.chosen sub.state.p.value next.state.p.value)
+    ?:  ?=(%unknown -.fit)  [%| ["recursive mold case needs unsupported inference" ~]]
+    ?:  ?=(%bad -.fit)  [%| ["recursive mold case does not fit its source shape" ~]]
+    [%& target state.p.value(sub sub.fit, next next.fit)]
   ::  Only the source-proven one-layer cell is exposed. Each recursive
   ::  descent consumes one written tuple; named values use ordinary fit.
   ?:  &(?=(%jrec -.target) ?=(%lit -.e) =(%null form.lit.e))
@@ -12086,6 +12117,48 @@
   ?.  ?=(%tvar -.i.args.self)  |
   =(name.i.args.self param)
 +$  grec-collected  [molds=imolds proofs=(map term shape)]
+::  Experimental one-layer analysis view, never an exported mold identity.
+++  grec-unfold-view
+  |=  [typ=itype fuel=@ud]
+  ^-  (unit [view=itype left=@ud])
+  ?.  ?=(%grec -.typ)  ~
+  ?:  =(fuel 0)  ~
+  ?.  ?=([* ~] args.typ)  ~
+  =/  sh=shape  proof.typ
+  ?.  (grec-tree-proof name.typ sh)  ~
+  ?>  ?=(%generic -.sh)
+  ?>  ?=([@ ~] vars.sh)
+  ?>  ?=(%union -.body.sh)
+  ?>  ?=([* [* ~]] cases.body.sh)
+  =/  ca=shape  i.cases.body.sh
+  =/  cb=shape  i.t.cases.body.sh
+  ?>  ?=(%cell -.ca)
+  ?>  ?=(%cell -.cb)
+  ?>  ?=([* [* ~]] fields.ca)
+  ?>  ?=([* *] fields.cb)
+  =/  tag-a=field  i.fields.ca
+  =/  tag-b=field  i.fields.cb
+  ?>  ?=(%bare -.tag-a)
+  ?>  ?=(%bare -.tag-b)
+  ?>  ?=(%const -.shape.tag-a)
+  ?>  ?=(%const -.shape.tag-b)
+  =/  text-field=field  i.t.fields.ca
+  ?>  ?=(%face -.text-field)
+  =/  branch=(list field)  t.fields.cb
+  =/  kids=(unit field)  (grec-tree-children branch i.vars.sh)
+  ?~  kids  ~
+  ?>  ?=(%face -.u.kids)
+  =/  children=itype  [%face name.u.kids [%collection %list ~[typ]]]
+  ?>  ?=(^ branch)
+  =/  payload=itype
+    ?~  t.branch  children
+    =/  event=field  i.branch
+    ?>  ?=(%face -.event)
+    [%cell [%face name.event [%fn [%atom %t] i.args.typ]] children]
+  =/  leaf=itype  [%cell [%const lit.shape.tag-a] [%face name.text-field [%atom %t]]]
+  =/  node=itype  [%cell [%const lit.shape.tag-b] payload]
+  `[[%union ~[leaf node] ~ ~ ~] (dec fuel)]
+::
 ++  grec-collect-molds
   |=  ds=(list def)
   ^-  grec-collected

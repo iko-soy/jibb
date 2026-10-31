@@ -5,8 +5,8 @@ recursive identity: two distinct tagged cases, a text leaf and a node with a
 message-producing gate and a list of recursive children. The test-only tree is
 not a chosen element representation. A complete import-free owner module must
 check before its interface is published. Same-origin aliases retain identity,
-while different origins and unproved casts, construction and matching remain
-unsupported. An opaque recursive type prevents premature numeric defaulting;
+while different origins, unproved casts and matching remain unsupported.
+A wrong-aura constructor fails the complete owner check. An opaque recursive type prevents premature numeric defaulting;
 its gate-freedom remains unknown. Source/cache/prelude changes, cycles,
 nonuniform recursion, invalid unused molds and local shadows fail closed.
 

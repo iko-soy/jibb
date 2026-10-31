@@ -311,6 +311,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-positional-face-guards.hoon',
            'tests/lib/jibb-generic-alias.hoon',
            'tests/lib/jibb-generic-recursion.hoon',
+           'tests/lib/jibb-generic-construction.hoon',
            'tests/lib/jibb-api-evidence.hoon',
            'tests/lib/jibb-ask-guards.hoon',
            'tests/lib/jibb-request-guards.hoon',
@@ -330,6 +331,11 @@ def generator_checks(tmp):
               'tree', 'tree-changed', 'alias', 'client', 'bad-mold',
               'bad-constructor', 'bad-match', 'bad-parameter', 'local-shadow',
               'local-distinct', 'local-only', 'list-shadow', 'chain', 'expected')} <= set(normal.files))
+    check('generic construction sources and golden are assembled',
+          {f'tests/type-generic-construction/{name}.txt' for name in (
+              'tree', 'alias', 'client', 'alias-client', 'tree-no-event',
+              'no-event-client', 'owner-positive', 'owner-negative',
+              'sibling-values', 'expected')} <= set(normal.files))
     check('direct gate source and golden are assembled',
           {'tests/type-direct-gate/source.txt', 'tests/type-direct-gate/expected.txt'}
           <= set(normal.files))
