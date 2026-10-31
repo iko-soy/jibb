@@ -1,0 +1,30 @@
+(module
+  (value 1:1 choose
+    (group 1:11
+      (call 1:12
+        (wing 1:12 bond)
+        (gate-wide 1:17 (const 1:20 ~) (str 1:22 "default")))))
+  (value 2:1 missing
+    (group 2:12
+      (call 2:13 (wing 2:13 choose) (lit 2:20 ~))))
+  (value 3:1 present
+    (group 3:12
+      (call 3:13
+        (wing 3:13 choose)
+        (unit 3:20 (str 3:21 "found")))))
+  (value 4:1 wrap
+    (gate 4:9
+      (face 4:12 fallback
+        (fn 4:21 (const 4:24 ~) (tvar 4:26 A)))
+      (group 4:29
+        (call 4:30 (wing 4:30 bond) (wing 4:35 fallback)))))
+  (value 5:1 choose-ship
+    (group 5:16
+      (call 5:17
+        (wing 5:17 bond)
+        (gate-wide 5:22 (const 5:25 ~) (lit 5:27 ~zod)))))
+  (value 6:1 present-ship
+    (group 6:17
+      (call 6:18
+        (wing 6:18 choose-ship)
+        (unit 6:30 (lit 6:31 ~zod))))))

@@ -6,7 +6,7 @@ The source is the fake ship's `%base` `/sys/hoon.hoon` (Hoon version 135), read 
 
 The vendored prelude defines `poke` in its private internal module and re-exports it as a transparent type. The partial checker resolves its supported source shape and a narrow imported API constructor; complete checking of the private body, other API shapes, effect lowering and runtime execution remain unfinished. `ask` and `qath` are not yet defined there.
 
-The prelude also declares the generic `cmd` mold exactly as in Overview, Effects. The partial checker infers its five cases and independent message types in the supported examples; complete module checking and backend validation remain outstanding. The related `sub` declaration awaits the `ask` representation decision.
+The prelude also declares the generic `cmd` mold exactly as in Overview, Effects. The partial checker infers its five cases and independent message types in the supported examples; complete module checking and backend validation remain outstanding. The related `sub` declaration awaits the source representation and checking of `ask`.
 
 Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold generators, and need individual inspection. Jibb's loobean `not` and Hoon's bitwise `not.bit` are distinct. Parser helpers outside 3g are excluded from the intended prelude except the specifically listed `slav` and `slaw`; the raw candidates below still need to be classified.
 
@@ -26,13 +26,13 @@ The source-backed `gth` gate calls a compiler-supplied private comparison interf
 
 `biff`, `bind`, `bond`, `both`, `clap`, `clef`, `drop`, `fall`, `flit`, `hunt`, `lift`, `mate`, `need`, `some`.
 
-The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `both`, `clap`, `clef`, `drop` and `flit`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. Backend validation remains outstanding for all of them.
+The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `bond`, `both`, `clap`, `clef`, `drop` and `flit`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. Backend validation remains outstanding for all of them.
 
 | Name | Hoon behavior | Jibb status |
 | --- | --- | --- |
 | `biff` | Applies a gate returning a unit to a present value; absent stays absent. | Written |
 | `bind` | Applies a gate to a present value and wraps the result; absent stays absent. | Written |
-| `bond` | Calls a fallback trap for an absent unit, otherwise returns its value. | Missing |
+| `bond` | Calls a fallback trap for an absent unit, otherwise returns its value. | Written and inferred as a curried gate; backend validation remains outstanding |
 | `both` | Returns a unit of both values when both units are present. | Written |
 | `clap` | Returns the present unit if only one is present; combines both values with a gate if both are present. | Written with one shared type for both units and the combining gate, as @iko chose |
 | `clef` | Applies a gate returning a unit when both inputs are present; otherwise returns an absent unit. | Written |

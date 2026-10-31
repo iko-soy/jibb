@@ -1,0 +1,4 @@
+source: Overview, Prelude: "Hoon's standard library regrouped, written in Jibb and vendored as `/lib/jibb/prelude`".
+tests: The curried `bond` gate uses a fallback trap for an absent unit and returns the value of a present unit; both results keep the fallback type, including generic, cord and ship uses.
+expect: parses
+expect-types: a partial inference report

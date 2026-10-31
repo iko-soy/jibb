@@ -149,6 +149,12 @@
       ~ ~
       [~ value] [value ~]
 
+++ bond |= fallback=$-(~ A)
+  |= maybe=(unit A)
+    ?- maybe
+      ~ (fallback ~)
+      [~ value] value
+
 ++ bind |= args=[(unit A) $-(A B)]
   ?- args
     [maybe f] ^- (unit B)
