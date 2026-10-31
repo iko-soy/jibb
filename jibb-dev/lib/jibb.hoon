@@ -8458,6 +8458,7 @@
       ?:  ?=(%| -.result)  result
       [%& typ.p.result state.p.result(globals globals.state, molds molds.state)]
     %branch
+      ?^  defer.state  (dg-boolean-branch e env state)
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e
         =/  empty-list=(unit iresult)  (empty-list-null-branch e env state ~)
@@ -9239,6 +9240,7 @@
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
+  ?:  &(?=(^ defer.state) ?=(%branch -.e))  (infer-fragment e env state)
   ?:  ?=(%pair -.e)  $(e (pair-as-cell e))
   ?:  ?=(%group -.e)  $(e inner.e)
   ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
@@ -10694,6 +10696,92 @@
   ?~  active  |
   ?=(^ (union-state-tags-budget tags.state u.active))
 ::
+::  Positive overlap witnesses from parsed, one-hop local source only.
+::  Unknown or exhausted work returns no witness, never disjointness.
++$  uow-case  [at=span head=@ payload=upat]
+++  union-overlap-primitive
+  |=  s=shape
+  ^-  (unit upat)
+  ?-  -.s
+    %aura  `[%atom ~]
+    %noun  `[%all ~]
+    %void  `[%empty ~]
+    %flag  `[%flag ~]
+    %const
+      ?.  |(=(%term form.lit.s) =(%null form.lit.s) =(%loobean form.lit.s))  ~
+      ?:  &(=(%loobean form.lit.s) !|(=(0 val.lit.s) =(1 val.lit.s)))  ~
+      `[%atom `val.lit.s]
+    *  ~
+  ==
+++  union-overlap-case
+  |=  [s=shape molds=imolds fuel=@ud]
+  ^-  (unit [item=uow-case left=@ud])
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  :: Each body has exactly two fields; an application has exactly one
+  :: parameter and one concrete primitive argument. The full mold table
+  :: is scanned to establish unique ownership.
+  =/  expanded=(unit [body=shape param=(unit [name=@t pat=upat]) left=@ud])
+    ?:  ?=(%cell -.s)  `[s ~ fuel]
+    ?.  ?=(%apply -.s)  ~
+    ?.  ?=([@ ~] ref.s)  ~
+    ?.  ?=([* ~] args.s)  ~
+    ?:  =(0 fuel)  ~
+    =/  found=(unit [body=shape left=@ud])  (union-source-find i.ref.s molds (dec fuel))
+    ?~  found  ~
+    ?.  ?=(%generic -.body.u.found)  ~
+    ?.  ?=([@ ~] vars.body.u.found)  ~
+    ?:  =(0 left.u.found)  ~
+    =/  argument=(unit upat)  (union-overlap-primitive i.args.s)
+    ?~  argument  ~
+    `[body.body.u.found `[i.vars.body.u.found u.argument] (dec left.u.found)]
+  ?~  expanded  ~
+  =/  body=shape  body.u.expanded
+  ?.  ?=(%cell -.body)  ~
+  ?.  ?=([* * ~] fields.body)  ~
+  :: Charge the cell, two fields, and the head and payload nodes.
+  ?:  (lth left.u.expanded 5)  ~
+  =/  head=(unit @)  (union-source-cell-tag body)
+  ?~  head  ~
+  =/  field=field  i.t.fields.body
+  =/  payload=shape
+    ?-  -.field
+      %bare  shape.field
+      %face  shape.field
+      %pun   [%ref at.field ~[name.field]]
+    ==
+  =/  pattern=(unit upat)
+    ?:  ?=(%tvar -.payload)
+      ?~  param.u.expanded  ~
+      ?.  =(name.payload name.u.param.u.expanded)  ~
+      `pat.u.param.u.expanded
+    (union-overlap-primitive payload)
+  ?~  pattern  ~
+  `[[at.s u.head u.pattern] (sub left.u.expanded 5)]
+++  union-overlap-against
+  |=  [first=uow-case rest=(list shape) molds=imolds fuel=@ud]
+  ^-  (unit [witness=(unit upair) left=@ud])
+  ?~  rest  `[~ fuel]
+  ?:  =(0 fuel)  ~
+  =/  other=(unit [item=uow-case left=@ud])  (union-overlap-case i.rest molds (dec fuel))
+  ?~  other  ~
+  ?:  &(=(head.first head.item.u.other) =(%overlap (union-relate payload.first payload.item.u.other)))
+    `[`[at.first at.item.u.other %overlap] left.u.other]
+  $(rest t.rest, fuel left.u.other)
+++  union-source-overlap
+  |=  [cases=(list shape) molds=imolds fuel=@ud]
+  ^-  (unit upair)
+  ?~  cases  ~
+  ?~  t.cases  ~
+  ?:  =(0 fuel)  ~
+  =/  first=(unit [item=uow-case left=@ud])  (union-overlap-case i.cases molds (dec fuel))
+  ?~  first  ~
+  =/  found=(unit [witness=(unit upair) left=@ud])
+    (union-overlap-against item.u.first t.cases molds left.u.first)
+  ?~  found  ~
+  ?^  witness.u.found  witness.u.found
+  $(cases t.cases, fuel left.u.found)
+::
 ++  union-pairs
   |=  [cases=(list shape) molds=imolds]
   ^-  (list upair)
@@ -10847,6 +10935,11 @@
   ?.  ?=(%union -.sh)  (crip "+$ {(trip name.d)}: not checked")
   =/  pairs=(list upair)  (union-pairs cases.sh molds)
   =/  overlapping=(list upair)  (skim pairs |=(p=upair =(%overlap relation.p)))
+  =.  overlapping
+    ?^  overlapping  overlapping
+    ?.  (lien pairs |=(p=upair =(%unknown relation.p)))  ~
+    =/  witness=(unit upair)  (union-source-overlap cases.sh molds 256)
+    ?~(witness ~ ~[u.witness])
   ?^  overlapping
     =/  p=upair  i.overlapping
     =/  summary=@t  (crip "+$ {(trip name.d)}: overlapping cases; mold not checked")
@@ -12736,6 +12829,14 @@
   `[[normalized quantified]]
 ::
 +$  dgcommit  [env=ienv state=istate]
+:: A branch literal must not acquire a value face through replay.
+++  dg-literal-target-safe
+  |=  target=itype
+  ^-  ?
+  ?:  ?=(%union -.target)
+    (levy cases.target |=(c=itype ?=(?(%const %cell) -.c)))
+  ?=(?(%const %atom %any-atom %flag %noun) -.target)
+::
 ++  dg-replay-edges
   |=  [edges=(list dgo) state=istate fuel=@ud]
   ^-  (unit istate)
@@ -12743,7 +12844,16 @@
   ?:  =(0 fuel)  ~
   =/  trial=ifit  (itype-fit left.i.edges right.i.edges sub.state next.state)
   ?.  ?=(%ok -.trial)  ~
-  ?.  =((itype-walk left.i.edges sub.trial) (itype-walk right.i.edges sub.trial))  ~
+  =/  valid=?
+    ?:  ?=(%tag -.left.i.edges)
+      ?.  constructor.left.i.edges
+        =/  closed=(unit dgscan)  (dg-scan ~[right.i.edges] sub.trial 512 ~)
+        ?~  closed  |
+        ?^  ids.u.closed  |
+        (dg-literal-target-safe (itype-normalize right.i.edges sub.trial))
+      =((itype-walk left.i.edges sub.trial) (itype-walk right.i.edges sub.trial))
+    =((itype-walk left.i.edges sub.trial) (itype-walk right.i.edges sub.trial))
+  ?.  valid  ~
   $(edges t.edges, state state(sub sub.trial, next next.trial), fuel (dec fuel))
 ::
 ++  dg-close-env
@@ -12763,6 +12873,68 @@
   =/  rest=(unit ienv)  (dg-close-env t.env sub fuel.u.bounded)
   ?~  rest  ~
   `[[name.i.env [normalized vars.s]] u.rest]
+::
+:: A deferred boolean branch has exactly the two literal flag patterns.
+:: Arms are inferred in order. Equal types are retained; two direct pending
+:: literals may instead retain source-owned obligations for later context.
+++  dg-boolean-patterns
+  |=  e=expr
+  ^-  ?
+  ?.  ?=(%branch -.e)  |
+  ?~  arms.e  |
+  ?~  t.arms.e  |
+  ?^  t.t.arms.e  |
+  =/  x=arm  i.arms.e
+  =/  y=arm  i.t.arms.e
+  ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))  |
+  ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))  |
+  !=(val.lit.pat.x val.lit.pat.y)
+:: Only a direct source literal which created its own unbound pending tag
+:: may create a branch edge. The caller must retain the exact source and state.
+++  dg-owned-arm-literal
+  |=  [e=expr t=itype tags=(list ipending) sub=isub initial=@ud]
+  ^-  ?
+  ?.  ?=(%lit -.e)  |
+  ?.  ?=(%tag -.t)  |
+  ?:  constructor.t  |
+  ?.  =(lit.e literal.t)  |
+  ?:  (lth id.t initial)  |
+  ?^  (itype-lookup id.t sub)  |
+  (lien tags |=(x=ipending &(=(id.x id.t) =(literal.x literal.t))))
+++  dg-boolean-branch
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  ?.  (dg-boolean-patterns e)  [%| ["deferred branch patterns need unsupported inference" ~]]
+  ?>  ?=(%branch -.e)
+  ?>  ?=(^ arms.e)
+  ?>  ?=(^ t.arms.e)
+  =/  x=arm  i.arms.e
+  =/  y=arm  i.t.arms.e
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  subject
+  =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
+  ?~  su  [%| ["deferred branch subject does not unify with ?" ~]]
+  =/  left=iresult  (infer-fragment val.x env state.p.subject(sub u.su))
+  ?:  ?=(%| -.left)  left
+  =/  right=iresult  (infer-fragment val.y env state.p.left)
+  ?:  ?=(%| -.right)  right
+  ?.  (dg-stable-fit typ.p.left typ.p.right sub.state.p.right)
+    =/  st=istate  state.p.right
+    ?.  (dg-owned-arm-literal val.x typ.p.left tags.st sub.st next.state)
+      [%| ["deferred branch arm context needs unsupported inference" ~]]
+    ?.  (dg-owned-arm-literal val.y typ.p.right tags.st sub.st next.state)
+      [%| ["deferred branch arm context needs unsupported inference" ~]]
+    ?>  ?=(%tag -.typ.p.left)
+    ?>  ?=(%tag -.typ.p.right)
+    ?:  =(id.typ.p.left id.typ.p.right)
+      [%| ["deferred branch arm context needs unsupported inference" ~]]
+    ?:  (gth (lent obligations.st) 62)
+      [%| ["deferred branch arm context needs unsupported inference" ~]]
+    =/  result=itype  [%var next.st]
+    =/  ex=dgo  [typ.p.left result (span-of val.x) (span-of e)]
+    =/  ey=dgo  [typ.p.right result (span-of val.y) (span-of e)]
+    [%& result st(next +(next.st), obligations [ex ey obligations.st])]
+  [%& typ.p.left state.p.right]
 ::
 ::  Deferred inference uses only source forms whose successful fit sites are
 ::  guarded below; a shared source-node budget bounds this screen.
@@ -12790,6 +12962,13 @@
       $(e final.e, fuel fuel)
     %gate  $(e body.e, fuel fuel)
     %gate-wide  $(e body.e, fuel fuel)
+    %branch
+      ?.  (dg-boolean-patterns e)  ~
+      ?>  ?=(^ arms.e)
+      ?>  ?=(^ t.arms.e)
+      =/  subject=(unit @ud)  $(e subject.e, fuel fuel)
+      ?~  subject  ~
+      (dg-safe-expressions ~[val.i.arms.e val.i.t.arms.e] u.subject)
     %cast  $(e val.e, fuel fuel)
     %call
       =/  head=(unit @ud)  $(e head.e, fuel fuel)
@@ -12814,28 +12993,12 @@
   ?:  &(positional ?=(^ ids.u.checked))  |
   =((itype-normalize actual sub) (itype-normalize expected sub))
 ::
-++  dg-stage
-  |=  [ds=(list def) base=ienv env=ienv state=istate pending=(list dgo) fuel=@ud]
-  ^-  (unit dgcommit)
-  ?~  ds
-    =/  replayed=(unit istate)  (dg-replay-edges pending state 64)
-    ?~  replayed  ~
-    ?:  (pending-tags tags.u.replayed sub.u.replayed)  ~
-    =/  closed-edges=(unit dgscan)  (dg-obligations pending sub.u.replayed 32.768 ~)
-    ?~  closed-edges  ~
-    ?^  ids.u.closed-edges  ~
-    =/  rechecked=(unit istate)  (dg-replay-edges pending u.replayed 64)
-    ?~  rechecked  ~
-    ?.  =(sub.u.rechecked sub.u.replayed)  ~
-    ?.  =(next.u.rechecked next.u.replayed)  ~
-    =/  closed=(unit ienv)  (dg-close-env env sub.u.replayed 32.768)
-    ?~  closed  ~
-    `[[u.closed u.replayed(defer ~, obligations ~)]]
-  ?:  =(0 fuel)  ~
-  =/  d=def  i.ds
-  ?:  ?=(%mold -.d)  $(ds t.ds, fuel (dec fuel))
-  ?^  (ienv-lookup name.d base)  $(ds t.ds, fuel (dec fuel))
-  ?^  (ienv-lookup name.d env)  ~
+::  One definition attempt retains state only when inference succeeds.
++$  dg-step  [env=ienv state=istate pending=(list dgo)]
+++  dg-stage-one
+  |=  [d=def env=ienv state=istate]
+  ^-  (unit dg-step)
+  ?>  ?=(%value -.d)
   ?~  (dg-safe-expression val.d 512)  ~
   =/  local=istate  (reserve-def-caps val.d state)
   :: This first slice declines all written capitals and holes/projections.
@@ -12871,7 +13034,45 @@
   ?:  (itype-has-nvar (itype-normalize typ sub.after))  ~
   =/  scheme=(unit ischeme)  (dg-generalize typ env edges tags.after ~ after 32.768)
   ?~  scheme  ~
-  $(ds t.ds, env [[name.d u.scheme] env], state after, pending edges, fuel (dec fuel))
+  `[[[name.d u.scheme] env] after edges]
+::  Retry only definitions that did not infer. Successful definitions are
+::  committed into the local transaction, never published until all close.
+++  dg-stage
+  |=  [ds=(list def) base=ienv env=ienv state=istate pending=(list dgo) fuel=@ud]
+  ^-  (unit dgcommit)
+  ?:  (gth fuel 64)  ~
+  ?:  (gth (lent ds) fuel)  ~
+  =/  remaining=(list def)  ds
+  =/  waiting=(list def)  ~
+  =/  progress=?  |
+  =/  attempts=@ud  (mul fuel fuel)
+  |-
+  ?~  remaining
+    ?^  waiting
+      ?.  progress  ~
+      $(remaining (flop waiting), waiting ~, progress |)
+    =/  replayed=(unit istate)  (dg-replay-edges pending state 64)
+    ?~  replayed  ~
+    ?:  (pending-tags tags.u.replayed sub.u.replayed)  ~
+    =/  closed-edges=(unit dgscan)  (dg-obligations pending sub.u.replayed 32.768 ~)
+    ?~  closed-edges  ~
+    ?^  ids.u.closed-edges  ~
+    =/  rechecked=(unit istate)  (dg-replay-edges pending u.replayed 64)
+    ?~  rechecked  ~
+    ?.  =(sub.u.rechecked sub.u.replayed)  ~
+    ?.  =(next.u.rechecked next.u.replayed)  ~
+    =/  closed=(unit ienv)  (dg-close-env env sub.u.replayed 32.768)
+    ?~  closed  ~
+    `[[u.closed u.replayed(defer ~, obligations ~)]]
+  ?:  =(0 attempts)  ~
+  =.  attempts  (dec attempts)
+  =/  d=def  i.remaining
+  ?:  ?=(%mold -.d)  $(remaining t.remaining)
+  ?^  (ienv-lookup name.d base)  $(remaining t.remaining)
+  ?^  (ienv-lookup name.d env)  ~
+  =/  done=(unit dg-step)  (dg-stage-one d env state)
+  ?~  done  $(remaining t.remaining, waiting [d waiting])
+  $(remaining t.remaining, env env.u.done, state state.u.done, pending pending.u.done, progress &)
 ::
 ::  Cheap bounded eligibility check on the already parsed source. This
 ::  deliberately covers only direct constructor calls beneath transparent

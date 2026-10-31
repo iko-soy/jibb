@@ -1,0 +1,15 @@
+partial inference; module not checked
++$ message: cases proven disjoint; mold not checked
++$ maybe: cases proven disjoint; mold not checked
++$ other: cases proven disjoint; mold not checked
+++ final: $-(? maybe)
+++ final-ship: $-(? other)
+++ choose: $-(? maybe)
+++ choose-ship: $-(? other)
+++ send: $-($-(@t A) $-(@t A))
+++ first: $-(@t message)
+++ fixed: $-(@t message)
+++ make: $-(A $-(B B))
+++ built: $-(A A)
+++ reveal: @t
+++ reveal-ship: @p

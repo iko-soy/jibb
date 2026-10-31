@@ -1,0 +1,25 @@
+same head and inhabited payload overlap: ok
+zero spelling overlap: ok
+original same-case spans retained: ok
+partial report displays same overlap: ok
+partial report displays zero overlap: ok
+distinct heads do not overlap: ok
+distinct singleton payloads do not overlap: ok
+empty payload has no witness: ok
+outer variable has no witness: ok
+unresolved reference has no witness: ok
+equal nonzero singleton payload overlaps: ok
+nonzero overlap reported: ok
+late pair in three cases overlaps: ok
+opaque gate payload declines: ok
+wrong alias arity declines: ok
+full module remains rejected: ok
+first source excerpt retained: ok
+second source excerpt retained: ok
+flag and zero payload overlap: ok
+flag and nonzero payload decline: ok
+duplicate owner declines: ok
+qualified owner declines: ok
+20 proof fuel succeeds: ok
+19 proof fuel declines: ok
+zero proof fuel declines: ok

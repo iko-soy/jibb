@@ -1,0 +1,16 @@
++$ tagged |$ [A] [%wrapped A]
++$ distinct-head
+  (tagged @t)
+  [%other @p]
++$ distinct-constant
+  (tagged %a)
+  [%wrapped %b]
++$ empty-payload
+  (tagged !!)
+  [%wrapped @t]
++$ generic |$ [A]
+  (tagged A)
+  [%wrapped @t]
++$ unknown-name
+  (tagged missing)
+  [%wrapped @t]

@@ -1,0 +1,5 @@
++$ tagged |$ [A] [%wrapped A]
++$ bad
+  (tagged @t @p)
+  [%wrapped @p]
+++ id |= x=bad x

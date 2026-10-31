@@ -1,0 +1,14 @@
++$ message
+  [%got value=@t]
+  [%other value=@p]
++$ maybe
+  %none
+  [%some value=@t]
+++ final ^- $-(? maybe) choose
+++ choose |= flag=?
+  ?- flag
+    %.y %none
+    %.n %absent
+++ send |= f=$-(@t A) f
+++ first (send |=%got)
+++ fixed ^- $-(@t message) first

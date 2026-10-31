@@ -1,0 +1,4 @@
++$ tagged |$ [A] [%wrapped A]
++$ same
+  (tagged %hello)
+  [%wrapped %hello]

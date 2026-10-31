@@ -1,0 +1,10 @@
++$ message
+  [%got value=@t]
+  [%other value=@p]
+++ final ^- $-(@t message) (pick %.y)
+++ pick |= flag=?
+  ?- flag
+    %.y first
+    %.n first
+++ send |= f=$-(@t A) f
+++ first (send |=%got)

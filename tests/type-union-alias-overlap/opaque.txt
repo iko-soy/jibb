@@ -1,0 +1,4 @@
++$ tagged |$ [A] [%wrapped A]
++$ choice
+  (tagged $-(@t @t))
+  [%wrapped $-(@t @t)]

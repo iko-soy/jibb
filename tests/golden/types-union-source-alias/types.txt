@@ -4,8 +4,20 @@ partial inference; module not checked
 ++ id: $-(choice choice)
 +$ poly: cases proven disjoint; mold not checked
 ++ typed: $-((poly @t @p) (poly @t @p))
-+$ same: case disjointness unresolved; mold not checked
++$ same: overlapping cases; mold not checked
+/tests/golden/types-union-source-alias/source.jibb:11:3: first union case
+  (tagged @t)
+  ^
+/tests/golden/types-union-source-alias/source.jibb:12:3: overlapping case
+  [%wrapped @p]
+  ^
 ++ collide: sample mold is not supported by partial inference
 +$ zero: not checked
-+$ same-zero: case disjointness unresolved; mold not checked
++$ same-zero: overlapping cases; mold not checked
+/tests/golden/types-union-source-alias/source.jibb:16:3: first union case
+  (zero @t)
+  ^
+/tests/golden/types-union-source-alias/source.jibb:17:3: overlapping case
+  [%$ @p]
+  ^
 ++ collide-zero: sample mold is not supported by partial inference

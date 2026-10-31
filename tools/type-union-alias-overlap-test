@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""Check source-backed generic-union overlap witnesses under eval."""
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--update', action='store_true')
+args = parser.parse_args()
+fixture = root / 'tests/type-union-alias-overlap'
+source = (root / 'tests/lib/jibb-union-alias-overlap.hoon').read_text()
+source = source[source.index('\n|%\n') + 1:]
+names = ['positive', 'negative', 'nonzero', 'multi', 'opaque', 'wrong', 'duplicate', 'qualified', 'flag-source']
+cords = [item for name in names for item in ('--cord', f'{name}-text={fixture / (name + ".txt")}')]
+if not args.update:
+    cords += ['--cord', f'expected-text={fixture / "expected.txt"}']
+bindings = ''.join(f'=/  {name}=wain  (to-wain:format {name}-text)\n' for name in names)
+program = ('=/  jibb  .\n' + bindings +
+           ('=/  expected=wain  ~\n' if args.update else '=/  expected=wain  (to-wain:format expected-text)\n') +
+           '=/  suite\n' + source +
+           '\n=/  output=@t  (overlap-output:suite ' +
+           ' '.join(name + '-text' for name in names) + ')\n' +
+           ('output\n' if args.update else
+            "=/  actual-test=tang  test-union-alias-overlap:suite\n?~  actual-test  output\n'BAD ship test arm'\n"))
+with tempfile.TemporaryDirectory(prefix='jibb-union-overlap-') as tmp:
+    path = Path(tmp) / 'test.hoon'
+    path.write_text(program)
+    result = subprocess.run([str(root / 'tools/hoon'), '--lib', args.lib, '--raw',
+                             '-f', str(path), *cords], stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if any(line.startswith(b'BAD ') or line.endswith(b': BAD') for line in result.stdout.splitlines()):
+    sys.stderr.write('generic-union guard assertion failed:\n')
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+expected_path = fixture / 'expected.txt'
+if args.update:
+    expected_path.write_bytes(result.stdout)
+else:
+    expected = expected_path.read_bytes()
+    if result.stdout != expected:
+        sys.stderr.writelines(difflib.unified_diff(
+            expected.decode().splitlines(keepends=True),
+            result.stdout.decode().splitlines(keepends=True),
+            fromfile='expected.txt', tofile='actual'))
+        sys.exit(1)
+print('source-backed generic-union overlap guards passed')

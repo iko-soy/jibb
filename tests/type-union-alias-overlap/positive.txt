@@ -1,0 +1,8 @@
++$ tagged |$ [A] [%wrapped A]
++$ same
+  (tagged @t)
+  [%wrapped @p]
++$ zero |$ [A] [%.y A]
++$ same-zero
+  (zero @t)
+  [%$ @p]

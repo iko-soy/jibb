@@ -1,0 +1,5 @@
++$ tagged |$ [A] [%wrapped A]
++$ tagged |$ [A] [%other A]
++$ choice
+  (tagged @t)
+  [%wrapped @p]

@@ -14,7 +14,7 @@ From the plan's Setup and ground rules, and from @iko:
 - **Push straight to `master`.** @iko reviews work in the project's chat, not in pull requests, so there are none. Run the checks below first.
 - **Keep docs/ current**: [status.md](status.md) when a milestone moves, [open-questions.md](open-questions.md) when a question is settled or found.
 
-The source-backed generic-union guard can be run under eval with `tools/type-union-source-test`; its `test-union-source` arm is also assembled for the fake ship. It checks a bounded partial inference slice, not general union completeness.
+The source-backed generic-union guard can be run under eval with `tools/type-union-source-test`; its `test-union-source` arm is also assembled for the fake ship. It checks a bounded partial inference slice, not general union completeness. `tools/type-union-alias-overlap-test` exercises the separate positive overlap witness and its shared ship test arm.
 
 ## Setting up a machine
 
@@ -67,6 +67,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-import-overlap-test` | Checks source-aware Hoon union overlap, provenance and proof-budget controls under eval; the same fixture runs on the ship |
 | `tools/type-import-structural-test` | Checks multi-case and nested Hoon union overlap witnesses under eval and on the ship |
 | `tools/type-union-source-test` | Checks bounded local generic-alias disjointness and state guards under eval and on the ship |
+| `tools/type-union-alias-overlap-test` | Checks source-backed generic-alias overlap witnesses under eval and on the ship |
 | `tools/type-tlon-test` | Runs the real Tlon presence source through the importer and partial checker, comparing `tests/type-tlon/expected.txt` under eval |
 | `tools/type-import-diagnostic-test` | Compares the structured reader diagnostic bridge report under eval |
 | `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
@@ -80,6 +81,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-generic-pattern-test` | Checks source-backed recursive patterns, catch-all coverage, state and per-attempt fuel/arm limits under eval and on the ship |
 | `tools/type-deferred-test` | Checks the bounded source-owned deferred inference transaction under eval and on the ship |
 | `tools/type-deferred-resolver-test` | Checks deferred resolution, report consistency and atomic failure under eval and on the ship |
+| `tools/type-deferred-context-test` | Checks deferred source order and literal branch contexts under eval and on the ship |
 | `tools/type-cell-branch-test` | Checks closed-cell branch context, rollback and bounded retry screens under eval and on the ship |
 | `tools/type-generic-alias-test` | Runs public/private generic union alias and provenance guards under eval and on the ship |
 | `tools/type-positional-face-guards-test` | Runs positional-call and nested-face guards under eval and on the ship |
@@ -119,6 +121,7 @@ tools/type-import-test             # importer/checker bridge golden report match
 tools/type-import-overlap-test     # source-aware Hoon overlap and provenance controls
 tools/type-import-structural-test  # nested and multi-case Hoon overlap controls
 tools/type-union-source-test       # local generic-alias union guards
+tools/type-union-alias-overlap-test # local generic-alias overlap diagnostics
 tools/type-tlon-test               # real Tlon importer/checker report matches
 tools/type-import-diagnostic-test  # direct structured reader diagnostics match
 tools/type-mark-test               # mark/checker bridge golden report matches
@@ -138,6 +141,7 @@ tools/type-generic-construction-test # source-backed recursive construction and 
 tools/type-generic-pattern-test      # source-backed recursive patterns and bounds
 tools/type-deferred-test             # source-owned deferred inference guards
 tools/type-deferred-resolver-test    # resolver consistency and failure guards
+tools/type-deferred-context-test     # deferred source-order and branch guards
 tools/type-cell-branch-test          # contextual branch rollback and bounds
 tools/type-closed-gate-guards-test  # closed gate fit guards pass
 tools/type-constructor-fit-guards-test # constructor fit guards pass

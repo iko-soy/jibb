@@ -1,0 +1,7 @@
++$ tagged |$ [A] [%wrapped A]
++$ flag-zero
+  (tagged ?)
+  [%wrapped %$]
++$ flag-nonzero
+  (tagged ?)
+  [%wrapped %hello]

@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Evaluate source-driven deferred context and replay guards."""
+from pathlib import Path
+import argparse, subprocess, sys, tempfile
+root = Path(__file__).resolve().parent.parent
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('--lib', default=str(root/'jibb-dev/lib/jibb.hoon'))
+p.add_argument('--hoon', default=str(root/'tools/hoon'))
+a = p.parse_args()
+core = (root / 'tests/lib/jibb-deferred-context.hoon').read_text()
+core = core[core.index('\n|%\n') + 1:]
+names = ['rich', 'plain', 'simple', 'missing', 'wrong', 'duplicate', 'dangling', 'collision-early', 'collision-late', 'report']
+bindings = ''.join('=/  '+('expected' if n == 'report' else n)+'=wain  (to-wain:format '+n+'-text)\n' for n in names)
+program = ('=/  jibb  .\n' + bindings + '=/  suite\n' + core +
+           "\n^-  @t\n=/  checked=tang  test-context:suite\n?~  checked  'deferred context guards passed'\n(crip \"{<checked>}\")\n")
+with tempfile.TemporaryDirectory(prefix='jibb-deferred-context-') as d:
+    f = Path(d) / 'report.hoon'
+    f.write_text(program)
+    cmd = [a.hoon, '--lib', a.lib, '--raw', '-f', str(f)]
+    for n in names:
+        fixture = root/'tests/type-deferred-context'/(n+'.txt')
+        if not fixture.is_file() or fixture.stat().st_size == 0:
+            sys.exit('missing or empty fixture: '+str(fixture))
+        cmd.extend(['--cord', n+'-text='+str(fixture)])
+    got = subprocess.run(cmd, stdout=subprocess.PIPE)
+if got.returncode:
+    sys.exit(got.returncode)
+if got.stdout != b'deferred context guards passed\n':
+    sys.stderr.write(got.stdout.decode(errors='replace'))
+    sys.exit(1)
+print('deferred context guards passed')

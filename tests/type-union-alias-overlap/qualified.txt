@@ -1,0 +1,5 @@
+/=  lib /ui/lib
++$ tagged |$ [A] [%wrapped A]
++$ choice
+  (tagged.lib @t)
+  [%wrapped @p]
