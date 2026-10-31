@@ -4,7 +4,7 @@ partial inference; module not checked
 ++ independently: $-(@t @p)
 ++ collide: local definitions need unsupported inference
 ++ cycle: local definitions need unsupported inference
-++ mutual: local definitions need unsupported inference
+++ mutual: $-(@t A)
 ++ pending: local definitions need unsupported inference
 ++ alias-mono: local definitions need unsupported inference
 ++ occurs: local definitions need unsupported inference

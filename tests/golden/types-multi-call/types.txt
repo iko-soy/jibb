@@ -68,7 +68,7 @@ partial inference; module not checked
 ++ recurse: $-([@t @p] [@t @p])
 ++ pending: tag needs context in partial inference
 ++ pending-null: `~` needs context in partial inference
-++ unknown-context: expression is not supported by partial inference
+++ unknown-context: tag needs context in partial inference
 ++ named-mismatch: call's sample and argument types do not unify
 /tests/golden/types-multi-call/source.jibb:38:20: called gate has type $-([label=@t ship=@p] [@t @p])
 ++ named-mismatch (named [other="hi" ship=~zod])

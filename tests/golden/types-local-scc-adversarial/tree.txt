@@ -1,0 +1,204 @@
+(module
+  (value 1:1 siblings
+    (gate 1:13
+      (face 1:16 input (aura 1:22 @t))
+      (body 2:3
+        (value 2:3 first
+          (gate 2:12
+            (face 2:15 x (tvar 2:17 A))
+            (group 2:19
+              (call 2:20 (wing 2:20 second) (wing 2:27 x)))))
+        (value 3:3 second
+          (gate 3:13
+            (face 3:16 x (tvar 3:18 A))
+            (group 3:20
+              (call 3:21 (wing 3:21 first) (wing 3:27 x)))))
+        (group 4:3
+          (call 4:4 (wing 4:4 first) (wing 4:10 input))))))
+  (value 5:1 introduced
+    (gate 5:15
+      (face 5:18 input (aura 5:24 @t))
+      (body 6:3
+        (value 6:3 first
+          (gate 6:12
+            (face 6:15 x (tvar 6:17 A))
+            (group 6:19
+              (call 6:20 (wing 6:20 second) (wing 6:27 x)))))
+        (value 7:3 second
+          (gate 7:13
+            (face 7:16 x (tvar 7:18 B))
+            (group 7:20
+              (call 7:21 (wing 7:21 first) (wing 7:27 x)))))
+        (group 8:3
+          (call 8:4 (wing 8:4 first) (wing 8:10 input))))))
+  (value 9:1 outer-later
+    (gate 9:16
+      (bind 9:19 input)
+      (body 10:3
+        (value 10:3 first
+          (gate 10:12
+            (face 10:15 x (tvar 10:17 A))
+            (group 10:19
+              (call 10:20 (wing 10:20 second) (wing 10:27 x)))))
+        (value 11:3 second
+          (gate 11:13
+            (face 11:16 y (tvar 11:18 A))
+            (group 11:20
+              (call 11:21 (wing 11:21 first) (wing 11:27 y)))))
+        (trace 12:3
+          (cast 12:6 (tvar 12:9 A) (wing 12:11 input))
+          (body 13:5
+            (group 13:5
+              (call 13:6 (wing 13:6 first) (wing 13:12 input))))))))
+  (value 14:1 captured
+    (gate 14:13
+      (bind 14:16 input)
+      (body 15:3
+        (value 15:3 first
+          (gate 15:12
+            (bind 15:15 x)
+            (body 16:5
+              (trace 16:5
+                (cast 16:8 (aura 16:11 @t) (wing 16:14 input))
+                (body 17:7
+                  (group 17:7
+                    (call 17:8 (wing 17:8 second) (wing 17:15 x))))))))
+        (value 18:3 second
+          (gate 18:13
+            (bind 18:16 y)
+            (group 18:18
+              (call 18:19 (wing 18:19 first) (wing 18:25 y)))))
+        (wing 19:3 input))))
+  (value 20:1 alias-mono
+    (gate 20:15
+      (face 20:18 input (aura 20:24 @t))
+      (body 21:3
+        (value 21:3 first
+          (gate 21:12
+            (bind 21:15 x)
+            (body 22:5
+              (value 22:5 alias (wing 22:14 second))
+              (trace 23:5
+                (group 23:8
+                  (call 23:9 (wing 23:9 alias) (wing 23:15 x)))
+                (body 24:7
+                  (group 24:7
+                    (call 24:8 (wing 24:8 alias) (lit 24:14 ~zod))))))))
+        (value 25:3 second
+          (gate 25:13
+            (bind 25:16 y)
+            (group 25:18
+              (call 25:19 (wing 25:19 first) (wing 25:25 y)))))
+        (group 26:3
+          (call 26:4 (wing 26:4 first) (wing 26:10 input))))))
+  (value 27:1 chain
+    (gate 27:10
+      (face 27:13 input (aura 27:19 @t))
+      (body 28:3
+        (value 28:3 top
+          (gate 28:10
+            (bind 28:13 x)
+            (group 28:15
+              (call 28:16 (wing 28:16 one) (wing 28:20 x)))))
+        (value 29:3 one
+          (gate 29:10
+            (bind 29:13 x)
+            (group 29:15
+              (call 29:16 (wing 29:16 two) (wing 29:20 x)))))
+        (value 30:3 two
+          (gate 30:10
+            (bind 30:13 x)
+            (group 30:15
+              (call 30:16 (wing 30:16 one) (wing 30:20 x)))))
+        (group 31:3
+          (call 31:4 (wing 31:4 top) (wing 31:8 input))))))
+  (value 32:1 nested-capture
+    (gate 32:19
+      (face 32:22 input (aura 32:28 @t))
+      (body 33:3
+        (value 33:3 outer-one
+          (gate 33:16
+            (bind 33:19 x)
+            (body 34:5
+              (value 34:5 inner-one
+                (gate 34:18
+                  (bind 34:21 y)
+                  (group 34:23
+                    (call 34:24 (wing 34:24 inner-two) (wing 34:34 y)))))
+              (value 35:5 inner-two
+                (gate 35:18
+                  (bind 35:21 y)
+                  (body 36:7
+                    (trace 36:7
+                      (wing 36:10 input)
+                      (body 37:9
+                        (group 37:9
+                          (call 37:10 (wing 37:10 inner-one) (wing 37:20 y))))))))
+              (group 38:5
+                (call 38:6
+                  (wing 38:6 outer-two)
+                  (group 38:16
+                    (call 38:17 (wing 38:17 inner-one) (wing 38:27 x))))))))
+        (value 39:3 outer-two
+          (gate 39:16
+            (bind 39:19 z)
+            (group 39:21
+              (call 39:22 (wing 39:22 outer-one) (wing 39:32 z)))))
+        (group 40:3
+          (call 40:4 (wing 40:4 outer-one) (wing 40:14 input))))))
+  (value 41:1 unresolved
+    (gate 41:15
+      (face 41:18 input (aura 41:24 @t))
+      (body 42:3
+        (value 42:3 first
+          (gate 42:12
+            (bind 42:15 x)
+            (body 43:5
+              (trace 43:5
+                (lit 43:8 %pending)
+                (body 44:7
+                  (group 44:7
+                    (call 44:8 (wing 44:8 second) (wing 44:15 x))))))))
+        (value 45:3 second
+          (gate 45:13
+            (bind 45:16 x)
+            (group 45:18
+              (call 45:19 (wing 45:19 first) (wing 45:25 x)))))
+        (group 46:3
+          (call 46:4 (wing 46:4 first) (wing 46:10 input))))))
+  (value 47:1 forced-captures
+    (gate 47:20
+      (cell 47:23
+        (face 47:24 a (tvar 47:26 A))
+        (face 47:28 b (tvar 47:30 B)))
+      (body 48:3
+        (value 48:3 first
+          (gate 48:12
+            (face 48:15 x (tvar 48:17 A))
+            (group 48:19
+              (call 48:20 (wing 48:20 second) (wing 48:27 x)))))
+        (value 49:3 second
+          (gate 49:13
+            (face 49:16 y (tvar 49:18 B))
+            (group 49:20
+              (call 49:21 (wing 49:21 first) (wing 49:27 y)))))
+        (group 50:3
+          (call 50:4 (wing 50:4 first) (wing 50:10 a))))))
+  (value 51:1 same-capture
+    (gate 51:17
+      (cell 51:20
+        (face 51:21 a (tvar 51:23 A))
+        (face 51:25 b (tvar 51:27 A)))
+      (body 52:3
+        (value 52:3 first
+          (gate 52:12
+            (face 52:15 x (tvar 52:17 A))
+            (group 52:19
+              (call 52:20 (wing 52:20 second) (wing 52:27 x)))))
+        (value 53:3 second
+          (gate 53:13
+            (face 53:16 y (tvar 53:18 A))
+            (group 53:20
+              (call 53:21 (wing 53:21 first) (wing 53:27 y)))))
+        (group 54:3
+          (call 54:4 (wing 54:4 first) (wing 54:10 a)))))))

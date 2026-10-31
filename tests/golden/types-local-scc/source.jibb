@@ -1,0 +1,58 @@
+++ simple |= x=@t
+  ++ left |= y=@t (right y)
+  ++ right |= y=@t (left y)
+  (left x)
+++ polymorphic |= x=@t
+  ++ left |= y (right y)
+  ++ right |= y (left y)
+  ~& (left x)
+    (right ~zod)
+++ capture |= x=A
+  ++ left |= y (right y)
+  ++ right |= y
+    ~& x
+      (left y)
+  (left x)
+++ bad-shadow |= x=@t
+  ++ left |= right=@t right
+  ++ right |= y=@t (left y)
+  (left x)
+++ bad-value |= x=@t
+  ++ left |= y=@t (right y)
+  ++ right left
+  (left x)
+++ pending |= x=@t
+  ++ left |= y=@t
+    ~& %unresolved
+      (right y)
+  ++ right |= y=@t (left y)
+  (left x)
+++ atom-capture |= x
+  ++ first |= y
+    ~& ^- @ x
+      (second y)
+  ++ second |= z (first z)
+  ~& (first x)
+    ^- @t x
+++ linked |= x
+  ++ first |= y (second y)
+  ++ second |= z
+    ~& ^- @t x
+      (first z)
+  x
+++ distinct |= x=A
+  ++ first |= y=B (second y)
+  ++ second |= z=A (first z)
+  (first x)
+++ local-mold |= x=@t
+  +$ packet [a=@t b=@p]
+  ++ first |= y=packet (second y)
+  ++ second |= z=packet (first z)
+  (first [x ~zod])
+++ nested-groups |= x=@t
+  ++ first |= y=@t
+    ++ inner-a |= p=@t (inner-b p)
+    ++ inner-b |= p=@t (inner-a p)
+    (inner-a (second y))
+  ++ second |= z=@t (first z)
+  (first x)

@@ -1,0 +1,54 @@
+++ siblings |= input=@t
+  ++ first |= x=A (second x)
+  ++ second |= x=A (first x)
+  (first input)
+++ introduced |= input=@t
+  ++ first |= x=A (second x)
+  ++ second |= x=B (first x)
+  (first input)
+++ outer-later |= input
+  ++ first |= x=A (second x)
+  ++ second |= y=A (first y)
+  ~& ^- A input
+    (first input)
+++ captured |= input
+  ++ first |= x
+    ~& ^- @t input
+      (second x)
+  ++ second |= y (first y)
+  input
+++ alias-mono |= input=@t
+  ++ first |= x
+    ++ alias second
+    ~& (alias x)
+      (alias ~zod)
+  ++ second |= y (first y)
+  (first input)
+++ chain |= input=@t
+  ++ top |= x (one x)
+  ++ one |= x (two x)
+  ++ two |= x (one x)
+  (top input)
+++ nested-capture |= input=@t
+  ++ outer-one |= x
+    ++ inner-one |= y (inner-two y)
+    ++ inner-two |= y
+      ~& input
+        (inner-one y)
+    (outer-two (inner-one x))
+  ++ outer-two |= z (outer-one z)
+  (outer-one input)
+++ unresolved |= input=@t
+  ++ first |= x
+    ~& %pending
+      (second x)
+  ++ second |= x (first x)
+  (first input)
+++ forced-captures |= [a=A b=B]
+  ++ first |= x=A (second x)
+  ++ second |= y=B (first y)
+  (first a)
+++ same-capture |= [a=A b=A]
+  ++ first |= x=A (second x)
+  ++ second |= y=A (first y)
+  (first a)

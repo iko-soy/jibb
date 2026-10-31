@@ -1,0 +1,4 @@
+source: Grammar, Modules: gates may call themselves and siblings; type variables generalize per definition, with shared enclosing capitals and no shadowing.
+tests: Local mutual recursion handles independent local capitals, enclosing captures, dependency ordering and nested groups. Explicitly distinct captured capitals and unresolved tags fail closed; monomorphic recursive aliases do not admit conflicting calls.
+expect: parses
+expect-types: a partial inference report

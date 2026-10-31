@@ -1,0 +1,36 @@
+(module
+  (value 1:1 empty (list 1:10))
+  (value 2:1 cords
+    (list 2:10 (str 2:12 "hi") (str 2:17 "there")))
+  (value 3:1 ships
+    (list 3:10 (lit 3:12 ~zod) (lit 3:17 ~bus)))
+  (value 4:1 nested
+    (list 4:11
+      (list 4:13 (str 4:15 "a"))
+      (list 4:20 (str 4:22 "b"))))
+  (value 5:1 id
+    (gate 5:7
+      (bind 5:10 x)
+      (list 5:12 (wing 5:14 x))))
+  (value 6:1 independent
+    (tuple 6:16
+      (group 6:17
+        (call 6:18 (wing 6:18 id) (str 6:21 "hi")))
+      (group 6:27
+        (call 6:28 (wing 6:28 id) (lit 6:31 ~zod)))))
+  (value 7:1 mixed
+    (list 7:10 (str 7:12 "hi") (lit 7:17 ~zod)))
+  (value 8:1 loose
+    (list 8:10 (lit 8:12 %yes) (lit 8:17 %no)))
+  (value 9:1 loose-null
+    (list 9:15 (lit 9:17 ~)))
+  (value 10:1 result
+    (cast 10:11
+      (apply 10:14 list (aura 10:20 @t))
+      (list 10:24 (str 10:26 "x"))))
+  (value 11:1 pending
+    (body 12:3
+      (trace 12:3
+        (lit 12:6 %unrelated)
+        (body 13:5
+          (list 13:5 (str 13:7 "x")))))))

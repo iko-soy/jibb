@@ -1,0 +1,19 @@
+++ widen |= [a=@tD b=@t] ~[a b]
+++ reverse |= [a=@tD b=@t] ~[b a]
+++ abstract |= x=@ ~[x ~zod]
+++ generic |= [a=A b=B] ~[a b]
+++ explicit |= [a=A b=A] ~[a b]
+++ num ~[1 0x1f]
+++ all-num ~[1 2]
+++ ctor ~[|=%go]
+++ payload ~[`%go]
+++ empty ~[]
+++ texts ^- (list @t) empty
+++ ships ^- (list @p) empty
+++ discarded
+  ~& %unused
+    ~["hi"]
+++ repeated |= [a=A b=A] ~[a b]
+++ call-text (repeated "hi" "there")
+++ call-ship (repeated ~zod ~bus)
+++ call-wrong (repeated "hi" ~zod)

@@ -1,0 +1,18 @@
+partial inference; module not checked
+++ empty: (list A)
+++ cords: (list @t)
+++ ships: (list @p)
+++ nested: (list (list @t))
+++ id: $-(A (list A))
+++ independent: [(list @t) (list @p)]
+++ mixed: list items do not have compatible types
+/tests/golden/types-list-open/source.jibb:7:10: expected item has type @t
+++ mixed ~["hi" ~zod]
+         ^
+/tests/golden/types-list-open/source.jibb:7:17: list item has type @p
+++ mixed ~["hi" ~zod]
+                ^
+++ loose: list item needs context in partial inference
+++ loose-null: list item needs context in partial inference
+++ result: (list @t)
+++ pending: tag needs context in partial inference

@@ -6128,8 +6128,8 @@
   [%& [%cell ht typ.p.tail] env.p.tail state.p.tail]
 ::
 ::  Local definitions generalize only variables outside their enclosing
-::  environment and explicit-capital scope. Single self-recursive gates
-::  use a monomorphic placeholder; mutually recursive groups stay unsupported.
+::  environment and explicit-capital scope. Recursive gate groups use
+::  monomorphic placeholders while their bodies are checked.
 ::
 +$  ilocal-result  (each [env=ienv state=istate] idiag)
 ++  free-env-vars
@@ -6345,7 +6345,13 @@
   |-
   ?~  ds
     ?~  remaining  [%& env state]
-    ?.  progressed  [%| ["local definitions need unsupported inference" ~]]
+    ?.  progressed
+      =/  pending=(list def)  (flop remaining)
+      =/  groups=icomponents  (graph-components pending (global-value-names pending))
+      =/  grouped=(unit [rest=(list def) env=ienv state=istate])
+        (try-local-group pending groups env state)
+      ?~  grouped  [%| ["local definitions need unsupported inference" ~]]
+      $(ds rest.u.grouped, remaining ~, env env.u.grouped, state state.u.grouped, progressed |)
     $(ds (flop remaining), remaining ~, progressed |)
   =/  d=def  i.ds
   ?>  ?=(%value -.d)
@@ -6370,6 +6376,27 @@
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
   $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred(caps caps.state), progressed &)
+::
+::  Try complete cyclic local groups after individual definitions stall.
+::  Components with non-gates or unresolved constraints stay unavailable.
+::
+++  try-local-group
+  |=  [ds=(list def) groups=icomponents env=ienv state=istate]
+  ^-  (unit [rest=(list def) env=ienv state=istate])
+  ?~  groups  ~
+  =/  names=(list term)  i.groups
+  ?.  (gth (lent names) 1)  $(groups t.groups)
+  =/  members=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) (lien names |=(n=term =(n name.d))))))
+  ?.  =((lent members) (lent names))  $(groups t.groups)
+  =/  result=ilocal-result  (infer-gate-group members env state)
+  ?:  ?=(%| -.result)  $(groups t.groups)
+  =/  rest=(list def)
+    (skim ds |=(d=def !(lien names |=(n=term =(n name.d)))))
+  =/  more=(unit [rest=(list def) env=ienv state=istate])
+    $(ds rest, groups t.groups, env env.p.result, state state.p.result)
+  ?^  more  more
+  `[rest env.p.result state.p.result]
 ::
 ::  Read only fields of a known record. Unresolved field constraints and
 ::  ambiguous repeated faces are outside this fragment. Imported record
@@ -6528,6 +6555,23 @@
   ?:  ?=(%bad -.fit)
     [%| ["list tail does not fit its expected type" ~[[context (site-type-note "expected list" target sub.state.p.tail)] [(span-of val.i.t.items.e) (site-type-note "list tail" typ.p.tail sub.state.p.tail)]]]]
   [%& target state.p.tail(sub sub.fit, next next.fit)]
+::
+++  infer-open-list-items
+  |=  [items=(list expr) expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?~  items  [%& expected state]
+  =/  target=itype  (itype-walk expected sub.state)
+  =/  value=iresult  (infer-call-context-arg i.items target env state context)
+  ?:  ?=(%| -.value)  value
+  =/  fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
+  ?:  ?=(%unknown -.fit)  [%| ["list item constraint is not supported by partial inference" ~]]
+  ?:  ?=(%bad -.fit)
+    ?:  |((itype-family-related typ.p.value target sub.state.p.value) (itype-has-any-atom typ.p.value sub.state.p.value) (itype-has-any-atom target sub.state.p.value))
+      [%| ["list item widening is not supported by partial inference" ~]]
+    [%| ["list items do not have compatible types" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
+  ?:  (itype-has-tag (itype-normalize expected sub.fit))
+    [%| ["list item needs context in partial inference" ~]]
+  $(items t.items, state state.p.value(sub sub.fit, next next.fit))
 ::
 ++  infer-list-items
   |=  [items=(list expr) expected=itype env=ienv state=istate context=span]
@@ -7123,6 +7167,18 @@
       =/  result=(unit itype)  (template-apply u.standard ~[typ.p.value])
       ?~  result  [%| ["unit construction is not supported by partial inference" ~]]
       [%& u.result state.p.value]
+    %list
+      ?~  prelude.state  [%| ["list literal needs the standard prelude in partial inference" ~]]
+      ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
+        [%| ["list literal needs the standard prelude in partial inference" ~]]
+      =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
+      ?~  standard  [%| ["list literal needs the standard prelude in partial inference" ~]]
+      ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])
+        [%| ["list literal needs the standard prelude in partial inference" ~]]
+      =/  element=itype  [%var next.state]
+      =/  result=iresult  (infer-open-list-items items.e element env state(next +(next.state)) at.e)
+      ?:  ?=(%| -.result)  result
+      [%& [%collection %list ~[element]] state.p.result]
     %str  (infer-string-pieces pieces.e env state)
     %wing
       ?~  names.e  [%| ["empty wing" ~]]
@@ -7733,9 +7789,9 @@
 ::
 ::  Build the supported part of the value environment in dependency order.
 ::  Each pass adds successful definitions. Forward references become
-::  available on a later pass; mutually recursive groups and unsupported
-::  syntax do not enter the environment. Generalized definitions are closed, so a
-::  use instantiates its variables afresh.
+::  available on a later pass; unsupported syntax does not enter the
+::  environment. Generalized definitions are closed, so a use instantiates
+::  its variables afresh.
 ::
 ++  global-value-names
   |=  ds=(list def)
@@ -7965,9 +8021,9 @@
     *  ~
   ==
 ::
-::  Infer a cyclic top-level component with one monomorphic seed per gate.
-::  All members must succeed before any scheme is available; local cyclic
-::  groups, pending constraints and unresolved branch joins remain partial.
+::  Infer a cyclic component with one monomorphic seed per gate. All members
+::  must succeed before any scheme is available; pending constraints and
+::  unresolved branch joins remain partial.
 +$  igate-entry  [name=term typ=itype body=expr env=ienv caps=icaps]
 +$  igate-seeds  (each [entries=(list igate-entry) state=istate] idiag)
 ++  seed-gate-group

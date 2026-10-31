@@ -1,0 +1,12 @@
+partial inference; module not checked
+++ simple: $-(@t A)
+++ polymorphic: $-(@t A)
+++ capture: $-(A B)
+++ bad-shadow: local definitions need unsupported inference
+++ bad-value: local definitions need unsupported inference
+++ pending: local definitions need unsupported inference
+++ atom-capture: $-(@t @t)
+++ linked: $-(@t @t)
+++ distinct: local definitions need unsupported inference
+++ local-mold: $-(@t A)
+++ nested-groups: $-(@t @t)

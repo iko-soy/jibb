@@ -1,0 +1,68 @@
+(module
+  (value 1:1 widen
+    (gate 1:10
+      (cell 1:13
+        (face 1:14 a (aura 1:16 @tD))
+        (face 1:20 b (aura 1:22 @t)))
+      (list 1:26 (wing 1:28 a) (wing 1:30 b))))
+  (value 2:1 reverse
+    (gate 2:12
+      (cell 2:15
+        (face 2:16 a (aura 2:18 @tD))
+        (face 2:22 b (aura 2:24 @t)))
+      (list 2:28 (wing 2:30 b) (wing 2:32 a))))
+  (value 3:1 abstract
+    (gate 3:13
+      (face 3:16 x (aura 3:18 @))
+      (list 3:20 (wing 3:22 x) (lit 3:24 ~zod))))
+  (value 4:1 generic
+    (gate 4:12
+      (cell 4:15
+        (face 4:16 a (tvar 4:18 A))
+        (face 4:20 b (tvar 4:22 B)))
+      (list 4:25 (wing 4:27 a) (wing 4:29 b))))
+  (value 5:1 explicit
+    (gate 5:13
+      (cell 5:16
+        (face 5:17 a (tvar 5:19 A))
+        (face 5:21 b (tvar 5:23 A)))
+      (list 5:26 (wing 5:28 a) (wing 5:30 b))))
+  (value 6:1 num
+    (list 6:8 (lit 6:10 1) (lit 6:12 0x1f)))
+  (value 7:1 all-num
+    (list 7:12 (lit 7:14 1) (lit 7:16 2)))
+  (value 8:1 ctor
+    (list 8:9 (ctor 8:11 %go)))
+  (value 9:1 payload
+    (list 9:12
+      (unit 9:14 (lit 9:15 %go))))
+  (value 10:1 empty (list 10:10))
+  (value 11:1 texts
+    (cast 11:10
+      (apply 11:13 list (aura 11:19 @t))
+      (wing 11:23 empty)))
+  (value 12:1 ships
+    (cast 12:10
+      (apply 12:13 list (aura 12:19 @p))
+      (wing 12:23 empty)))
+  (value 13:1 discarded
+    (body 14:3
+      (trace 14:3
+        (lit 14:6 %unused)
+        (body 15:5
+          (list 15:5 (str 15:7 "hi"))))))
+  (value 16:1 repeated
+    (gate 16:13
+      (cell 16:16
+        (face 16:17 a (tvar 16:19 A))
+        (face 16:21 b (tvar 16:23 A)))
+      (list 16:26 (wing 16:28 a) (wing 16:30 b))))
+  (value 17:1 call-text
+    (group 17:14
+      (call 17:15 (wing 17:15 repeated) (str 17:24 "hi") (str 17:29 "there"))))
+  (value 18:1 call-ship
+    (group 18:14
+      (call 18:15 (wing 18:15 repeated) (lit 18:24 ~zod) (lit 18:29 ~bus))))
+  (value 19:1 call-wrong
+    (group 19:15
+      (call 19:16 (wing 19:16 repeated) (str 19:25 "hi") (lit 19:30 ~zod)))))

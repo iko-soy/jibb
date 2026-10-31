@@ -38,7 +38,7 @@
   =/  after-fixtures=(list [at=path source=@t])
     [[~[%ui %safe %jibb] library] duplicates]
   =/  after  (golden-types-with-prelude:jibb /ui/main/jibb after-source ~ ~ after-fixtures prelude)
-  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after real-parity list-guard self-prelude-guards unit-construction-guard])
+  (of-wain:format ~[okay empty bad bad-value bad-mold collision duplicate after real-parity list-guard self-prelude-guards unit-construction-guard open-list-guard])
 ::
 ++  real-parity
   ^-  @t
@@ -93,4 +93,15 @@
   =/  c  (golden-types-with-prelude:jibb /ui/main/jibb src ~ ~ ~ malformed)
   =/  d  (golden-types-with-prelude:jibb /ui/main/jibb local ~ ~ ~ omitted)
   (of-wain:format ~[a b c d])
+::
+++  open-list-guard
+  ^-  @t
+  =/  source=@t  (crip "++ x ~[\"hi\"]\0a++ empty ~[]\0a")
+  =/  omitted=@t  (crip "++ same |=(x x)\0a")
+  =/  changed=@t  (crip "+$ list |$ [A] [A A]\0a")
+  =/  malformed=@t  (crip "+$ list |$ [A]\0a")
+  =/  a  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ ~ omitted)
+  =/  b  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ ~ changed)
+  =/  c  (golden-types-with-prelude:jibb /ui/main/jibb source ~ ~ ~ malformed)
+  (of-wain:format ~[a b c])
 --

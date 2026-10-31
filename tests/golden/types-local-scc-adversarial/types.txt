@@ -1,0 +1,17 @@
+partial inference; module not checked
+++ siblings: $-(@t A)
+++ introduced: $-(@t A)
+++ outer-later: $-(A B)
+++ captured: $-(@t @t)
+++ alias-mono: call's sample and argument types do not unify
+/tests/golden/types-local-scc-adversarial/source.jibb:26:4: called gate has type $-(@p A)
+  (first input)
+   ^
+/tests/golden/types-local-scc-adversarial/source.jibb:26:10: argument has type @t
+  (first input)
+         ^
+++ chain: $-(@t A)
+++ nested-capture: $-(@t A)
+++ unresolved: local definitions need unsupported inference
+++ forced-captures: local definitions need unsupported inference
+++ same-capture: $-([a=A b=A] B)

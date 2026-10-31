@@ -1,0 +1,13 @@
+++ empty ~[]
+++ cords ~["hi" "there"]
+++ ships ~[~zod ~bus]
+++ nested ~[~["a"] ~["b"]]
+++ id |= x ~[x]
+++ independent [(id "hi") (id ~zod)]
+++ mixed ~["hi" ~zod]
+++ loose ~[%yes %no]
+++ loose-null ~[~]
+++ result ^- (list @t) ~["x"]
+++ pending
+  ~& %unrelated
+    ~["x"]

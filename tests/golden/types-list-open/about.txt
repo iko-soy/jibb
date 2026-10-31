@@ -1,0 +1,4 @@
+source: Grammar, Literals: a list literal has type `(list A)`; Tag resolution: tags and `~` take their type from context.
+tests: Uncontextualized lists use a fresh, independently generalizable element type and a validated prelude list. Nested and homogeneous lists infer; uncertain widening and unresolved tags fail closed, and unrelated pending literals stay pending.
+expect: parses
+expect-types: a partial inference report

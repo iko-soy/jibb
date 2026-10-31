@@ -1,0 +1,4 @@
+source: Grammar, Modules: gates may call their siblings; other values cannot depend on themselves, even through a gate. Type variables are generalized per definition, with enclosing captures shared.
+tests: Local mutually recursive gates share monomorphic seeds while checking and generalize after the complete group. Includes independent instantiations, captured variables, nested groups and a local mold. Shadowing, mixed gate/value cycles, unresolved tags and forcing distinct captured capitals remain unavailable to partial inference.
+expect: parses
+expect-types: a partial inference report
