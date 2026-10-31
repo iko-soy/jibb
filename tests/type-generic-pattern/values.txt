@@ -1,0 +1,10 @@
+++ simple ?- x
+  [%text value] value
+  [%node event kids] (event "click")
+++ nested ?- x
+  [%text value] value
+  [%node event kids] ?- kids
+    ~ "empty"
+    [item remainder] ?- item
+      [%text value] value
+      [%node action rest] (action "click")

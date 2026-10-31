@@ -157,7 +157,7 @@
   =/  invalid=(list [label=@t src=@t])
     :~  ['unused mold hole declined' (text bad-mold)]
         ['invalid constructor declined' (text bad-constructor)]
-        ['matching declined' (text bad-match)]
+        ['invalid matching declined' (text bad-match)]
         ['nonuniform recursion declined' (text bad-parameter)]
         ['identical local shadow declined' (text local-shadow)]
         ['different local shadow declined' (text local-distinct)]

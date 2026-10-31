@@ -1,0 +1,8 @@
+source: docs/spec/grammar.md:57,135 — “Molds may be recursive”; “recursive molds go by name and module”.
+
+This shared eval/ship fixture checks a narrow source-proven recursive tree
+pattern slice, including explicit tags, binder scopes, payload arguments,
+recursive children, aliases, coverage failures and shared fuel. The source client reports are explicitly partial. A separate owner check requires
+all ordinary definitions to succeed before interface export. Whole-case
+binders, nested patterns and unresolved recursive origins remain unsupported.
+No runtime lowering, watchability, island acceptance or backend claim is made.

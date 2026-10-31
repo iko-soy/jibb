@@ -1,0 +1,55 @@
+owner describe has nominal sample and text result: ok
+owner rebuild preserves nominal identity: ok
+owner children preserves quantified recursive identity: ok
+invalid owner parses and is rejected: ok
+zero fuel declined: ok
+one-step match: ok
+nested match requires two steps: ok
+same-state retry agrees: ok
+pending tag retained: ok
+pending hole retained: ok
+projection evidence retained: ok
+raw bound variable declined: ok
+polymorphic scheme gets fresh identities: ok
+polymorphic missing arm declined: ok
+partial inference; module not checked
+++ describe: $-((element.first @t) @t)
+++ reverse: $-((element.first @p) @p)
+++ generic-children: $-((element.first A) (list (element.first A)))
+++ alias-children: $-((alias.via @p) (list (element.first @p)))
+++ rebuild: $-((element.first @t) (element.first @t))
+++ wrong-return: union branch result matching needs unsupported inference
+++ duplicate: branch arm is covered by earlier arms
+/tests/tree/client.jibb:31:5: covered arm
+    [%text b] b
+    ^
+++ missing: missing union case [%node [event=$-(@t @t) children=(list (element.first @t))]]
+++ shadow: pattern binder shadows a name
+++ bad-tag: branch is not supported by partial inference
+++ whole-tail: branch is not supported by partial inference
+++ unknown: branch is not supported by partial inference
+++ pending: union branch result matching needs unsupported inference
+++ dead: branch is not supported by partial inference
+++ wild: $-((element.first @t) @t)
+++ whole-wild: branch is not supported by partial inference
+++ foreign-children: union branch result constraint is not supported by partial inference
+++ wrong-argument: union branch result constraint is not supported by partial inference
+++ nested-child: $-((element.first @t) @t)
+++ duplicate-binder: pattern binder shadows a name
+++ target-shadow: pattern binder shadows a name
+++ grouped: $-((element.first @t) @t)
+++ called: $-((element.first @t) @t)
+++ missing-context: missing union case [%node [event=$-(@t @t) children=(list (element.first @t))]]
+++ missing-node: missing union case [%text value=@t]
+++ single-wild: branch is not supported by partial inference
+++ single-bind: branch is not supported by partial inference
+++ polymorphic-source: (element.first A)
+++ polymorphic-match: missing union case [%node [event=$-(@t A) children=(list (element.first A))]]
+partial inference; module not checked
+++ words: $-((element.first @t) @t)
+++ children: $-((element.first A) (list (element.first A)))
+++ duplicate: branch arm is covered by earlier arms
+/tests/tree/no-event.jibb:13:5: covered arm
+    [%text b] b
+    ^
+++ nested-pattern: branch is not supported by partial inference

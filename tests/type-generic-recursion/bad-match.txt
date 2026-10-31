@@ -7,4 +7,4 @@
 ++ match |= x=(element @t)
   ?- x
     [%text value] value
-    [%node event children] "node"
+    [%node event event] "node"

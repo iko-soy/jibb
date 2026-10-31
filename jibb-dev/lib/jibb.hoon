@@ -7877,9 +7877,57 @@
   =/  cell=itype  [%cell [%face head.typ [%atom aura.typ]] [%face tail.typ typ]]
   [%& [%union ~[nil cell] ~ ~ ~] state.p.subject(jrec-fuel (dec jrec-fuel.state.p.subject))]
 ::
+::  Experimental bounded, source-proven tree match. Only two explicit
+::  flat tag/binder patterns may consume the view: a whole-case binder
+::  must not leak the temporary structural representation.
+++  grec-simple-pattern
+  |=  [pat=pattern view=itype]
+  ^-  ?
+  ?.  ?=(%cell -.pat)  |
+  ?~  items.pat  |
+  =/  first=pattern  i.items.pat
+  ?.  ?=(%lit -.first)  |
+  ?.  =(%term form.lit.first)  |
+  =/  chosen=(unit itype)  (contextual-tagged-case view val.lit.first ~)
+  ?~  chosen  |
+  ?>  ?=(%cell -.u.chosen)
+  =/  rest=(list pattern)  t.items.pat
+  ?.  (levy rest |=(p=pattern |(?=(%bind -.p) ?=(%any -.p))))  |
+  ?:  ?=(%cell -.tal.u.chosen)  ?=([* [* ~]] rest)
+  ?=([* ~] rest)
+++  grec-match-view
+  |=  [e=expr subject=iresult]
+  ^-  iresult
+  ?:  ?=(%| -.subject)  subject
+  ?.  ?=(%branch -.e)  subject
+  ?.  (grec-direct-context typ.p.subject sub.state.p.subject)  subject
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  ?.  ?=(%grec -.typ)  subject
+  ?~  arms.e  subject
+  ?.  |(?=(~ t.arms.e) ?=([* ~] t.arms.e))  subject
+  =/  view=(unit [view=itype left=@ud])  (grec-unfold-view typ jrec-fuel.state.p.subject)
+  ?~  view  [%| ["recursive mold unfolding needs unsupported inference" ~]]
+  ?.  (grec-simple-pattern pat.i.arms.e view.u.view)  subject
+  =/  rest-ok=?  ?~(t.arms.e & (grec-simple-pattern pat.i.t.arms.e view.u.view))
+  ?.  rest-ok  subject
+  [%& view.u.view state.p.subject(jrec-fuel left.u.view)]
+::
+::  A single-arm diagnostic only probes a direct, source-typed in-scope wing;
+::  other subjects retain the prior single-pattern inference path.
+++  grec-single-wing-subject
+  |=  [e=expr env=ienv state=istate]
+  ^-  (unit iresult)
+  ?.  ?=(%wing -.e)  ~
+  ?.  ?=([@ ~] names.e)  ~
+  =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
+  ?~  scheme  ~
+  ?.  (grec-direct-context typ.u.scheme sub.state)  ~
+  `(infer-fragment e env state)
+::
 ++  infer-known-union-branch-subject
   |=  [e=expr env=ienv subject=iresult]
   ^-  iresult
+  =.  subject  (grec-match-view e subject)
   =.  subject  (jrec-match-view e subject)
   =/  whole=(unit iresult)  (infer-known-union-whole e env subject)
   ?~  whole  (infer-known-union-finite e env subject ~)
@@ -7894,6 +7942,7 @@
 ++  infer-known-union-context-subject
   |=  [e=expr expected=itype env=ienv subject=iresult context=span]
   ^-  iresult
+  =.  subject  (grec-match-view e subject)
   =.  subject  (jrec-match-view e subject)
   =/  whole=(unit iresult)  (infer-known-union-context-whole e expected env subject context)
   ?~  whole  (infer-known-union-finite e env subject `[expected context])
@@ -7946,7 +7995,7 @@
   =/  subject=iresult  (infer-fragment e env state)
   ?:  ?=(%| -.subject)  ?:((union-subject-call e) `subject ~)
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  |(?=(%union -.typ) ?=(%jrec -.typ))  ~
+  ?.  |(?=(%union -.typ) ?=(%jrec -.typ) &(?=(%grec -.typ) (grec-direct-context typ.p.subject sub.state.p.subject)))  ~
   `subject
 ::
 ::
@@ -8218,6 +8267,8 @@
     %branch
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e
+        =/  single=(unit iresult)  (grec-single-wing-subject subject.e env state)
+        ?^  single  (infer-known-union-branch-subject e env u.single)
         ?:  (single-structured-pattern e)  (infer-single-case-branch e env state ~)
         (infer-cell-branch e env state ~)
       ?^  t.t.arms.e  (infer-known-union-branch e env state)
@@ -8928,6 +8979,9 @@
     [%& target state.p.value(sub sub.fit, next next.fit)]
   ?:  ?=(%call -.e)  (infer-contextual-call e target env state)
   ?:  (single-structured-pattern e)
+    ?>  ?=(%branch -.e)
+    =/  single=(unit iresult)  (grec-single-wing-subject subject.e env state)
+    ?^  single  (infer-known-union-context-subject e target env u.single context)
     (infer-single-case-branch e env state `[target context])
   ?:  (cell-binder-pattern e)
     (infer-cell-branch e env state `[target context])

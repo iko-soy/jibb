@@ -1,0 +1,114 @@
+/= first /ui/tree
+/= second /ui/tree-two
+/= via /ui/tree-alias
+++ describe |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node event children] (event "click")
+++ reverse |= x=(element.first @p)
+  ?- x
+    [%node event children] (event "click")
+    [%text value] ~zod
+++ generic-children |= x=(element.first A)
+  ^- (list (element.first A)) ?- x
+    [%text value] ~
+    [%node event kids] kids
+++ alias-children |= x=(alias.via @p)
+  ^- (list (element.first @p)) ?- x
+    [%text value] ~
+    [%node event kids] kids
+++ rebuild |= x=(element.first @t)
+  ^- (element.first @t) ?- x
+    [%text value] [%text value=value]
+    [%node event children] [%node event=event children=children]
+++ wrong-return |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node event kids] ~zod
+++ duplicate |= x=(element.first @t)
+  ?- x
+    [%text a] a
+    [%text b] b
+++ missing |= x=(element.first @t)
+  ?- x
+    [%text a] a
+++ shadow |= x=(element.first @t)
+  ?- x
+    [%text x] x
+    [%node event kids] "node"
+++ bad-tag |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%other event kids] "node"
+++ whole-tail |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node payload] payload
+++ unknown |= x
+  ?- x
+    [%text value] value
+    [%node event kids] "node"
+++ pending |= x=(element.first @t)
+  ?- x
+    [%text value] [%unrelated value]
+    [%node event kids] [%unrelated "node"]
+++ dead |= x=(element.first @t)
+  ?- x
+    [%text a] a
+    [%node event kids] (event "ok")
+    [%text b] b
+++ wild |= x=(element.first @t)
+  ?- x
+    [%text *] "text"
+    [%node * *] "node"
+++ whole-wild |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    * "other"
+++ foreign-children |= x=(element.first @t)
+  ^- (list (element.second @t)) ?- x
+    [%text value] ~
+    [%node event kids] kids
+++ wrong-argument |= x=(element.first @t)
+  ^- (list (element.first @p)) ?- x
+    [%text value] ~
+    [%node event kids] kids
+++ nested-child |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node event kids] ?- kids
+      ~ "empty"
+      [item remainder] ?- item
+        [%text value] value
+        [%node action rest] (action "click")
+++ duplicate-binder |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node event event] "node"
+++ target-shadow |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node event x] "node"
+++ grouped |= x=(element.first @t)
+  ?- (x)
+    [%text value] value
+    [%node event kids] (event "click")
+++ called |= x=(element.first @t)
+  ?- (generic-id.first x)
+    [%text value] value
+    [%node event kids] (event "click")
+++ missing-context |= x=(element.first @t)
+  ^- @t ?- x
+    [%text item] item
+++ missing-node |= x=(element.first @t)
+  ?- x
+    [%node action kids] (action "click")
+++ single-wild |= x=(element.first @t)
+  ?- x
+    * "all"
+++ single-bind |= x=(element.first @t)
+  ?- x
+    all all
+++ polymorphic-source ^- (element.first A) [%text value="source"]
+++ polymorphic-match ?- polymorphic-source
+  [%text text] text

@@ -1,0 +1,18 @@
++$ element |$ [M]
+  [%text value=@t]
+  [%node event=$-(@t M) children=(list (element M))]
+++ text-id |= x=(element @t) x
+++ ship-id |= x=(element @p) x
+++ generic-id |= x=(element A) x
+++ describe |= x=(element @t)
+  ?- x
+    [%text value] value
+    [%node event kids] (event "click")
+++ children |= x=(element A)
+  ^- (list (element A)) ?- x
+    [%text value] ~
+    [%node event kids] kids
+++ rebuild |= x=(element @t)
+  ^- (element @t) ?- x
+    [%text value] [%text value=value]
+    [%node event kids] [%node event=event children=kids]

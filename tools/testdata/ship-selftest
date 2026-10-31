@@ -312,6 +312,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-generic-alias.hoon',
            'tests/lib/jibb-generic-recursion.hoon',
            'tests/lib/jibb-generic-construction.hoon',
+           'tests/lib/jibb-generic-pattern.hoon',
            'tests/lib/jibb-api-evidence.hoon',
            'tests/lib/jibb-ask-guards.hoon',
            'tests/lib/jibb-request-guards.hoon',
@@ -336,6 +337,10 @@ def generator_checks(tmp):
               'tree', 'alias', 'client', 'alias-client', 'tree-no-event',
               'no-event-client', 'owner-positive', 'owner-negative',
               'sibling-values', 'expected')} <= set(normal.files))
+    check('generic pattern sources and golden are assembled',
+          {f'tests/type-generic-pattern/{name}.txt' for name in (
+              'client', 'no-event', 'values', 'poly-values', 'owner',
+              'owner-bad', 'expected')} <= set(normal.files))
     check('direct gate source and golden are assembled',
           {'tests/type-direct-gate/source.txt', 'tests/type-direct-gate/expected.txt'}
           <= set(normal.files))
