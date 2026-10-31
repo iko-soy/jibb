@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Molds, Atoms: "Arithmetic rejects loobean operands: `?` contains only 0 and 1, while an arithmetic result need not."
+tests: Independent aura instantiation, shared and distinct capitals, nested/local captures, pending literals and direct/mutual recursion preserve the constraint or fail closed.
+expect: parses
+expect-types: a partial inference report

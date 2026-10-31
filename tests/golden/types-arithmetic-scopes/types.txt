@@ -1,0 +1,21 @@
+partial inference; module not checked
+++ inc: $-(A A) where A is an atom other than ?
+++ inc-r: $-(A A) where A is an atom other than ?
+++ text-case: @t
+++ ship-case: @p
+++ shared-case: $-([a=A b=A] A) where A is an atom other than ?
+++ distinct: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-arithmetic-scopes/source.jibb:6:19: first type variable
+++ distinct |= [a=A b=B] (add a b)
+                  ^
+/tests/golden/types-arithmetic-scopes/source.jibb:6:23: second type variable
+++ distinct |= [a=A b=B] (add a b)
+                      ^
+++ nested: $-(A $-(A A)) where A is an atom other than ?
+++ local-fresh: $-(@t [@t @p])
+++ local-capture: explicit capital constraints are not supported by partial inference
+++ trace-tag: tag needs context in partial inference
+++ trace-number: @ud
+++ recurse: $-(A A) where A is an atom other than ?
+++ mutual-a: $-(A A) where A is an atom other than ?
+++ mutual-b: $-(A A) where A is an atom other than ?

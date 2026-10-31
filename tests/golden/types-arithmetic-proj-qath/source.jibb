@@ -1,0 +1,18 @@
+++ project-increment |= r=[a=A b=@t c=@ud]
+  ^- [a=A b=@t] (proj [a=(add a.r 1) b=b.r c=c.r])
+++ good ^- [a=@ux b=@t] (project-increment [a=0x7 b="x" c=0])
+++ flag (project-increment [a=%.y b="x" c=0])
+++ mixed (add ~zod "x")
+++ path-and-number [path=%/foo number=(add 1 2)]
+++ path-value |= p=qath [path=p number=(add 1 2)]
+++ with-path |= r=[a=A b=qath c=@ud]
+  ^- [a=A b=qath] (proj [a=(dec a.r) b=b.r c=c.r])
+++ wrong-width ^- [a=@ud b=@t] [a=(add 1 2) b="x" c=0]
+++ select-one |= r=[a=A b=@t]
+  ^- [a=A] (proj [a=(add a.r 1) b=b.r])
+++ select-one-ux ^- [a=@ux] (select-one [a=0x7 b="x"])
+++ select-one-bool (select-one [a=%.y b="x"])
+++ scalar |= x=@t x
+++ no-binder-field (scalar (proj [x="ok" y=~zod]))
+++ select-one-nested |= r=[a=A b=@t]
+  ^- [outer=[a=A] marker=@ud] [outer=(proj [a=(add a.r 1) b=b.r]) marker=0]

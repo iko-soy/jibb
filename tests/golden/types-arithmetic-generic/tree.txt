@@ -1,0 +1,93 @@
+(module
+  (value 1:1 sum
+    (gate 1:8
+      (cell 1:11
+        (face 1:12 a (tvar 1:14 A))
+        (face 1:16 b (tvar 1:18 A)))
+      (group 1:21
+        (call 1:22 (wing 1:22 add) (wing 1:26 a) (wing 1:28 b)))))
+  (value 2:1 decreasing
+    (gate 2:15
+      (face 2:18 x (tvar 2:20 A))
+      (group 2:22
+        (call 2:23 (wing 2:23 dec) (wing 2:27 x)))))
+  (value 3:1 forward (wing 3:12 sum))
+  (value 4:1 text-aura
+    (cast 4:14
+      (aura 4:17 @t)
+      (group 4:20
+        (call 4:21 (wing 4:21 sum) (str 4:25 "a") (str 4:29 "b")))))
+  (value 5:1 ship-aura
+    (cast 5:14
+      (aura 5:17 @p)
+      (group 5:20
+        (call 5:21 (wing 5:21 sum) (lit 5:25 ~zod) (lit 5:30 ~nec)))))
+  (value 6:1 decimal
+    (cast 6:12
+      (aura 6:15 @ud)
+      (group 6:19
+        (call 6:20 (wing 6:20 sum) (lit 6:24 1) (lit 6:26 2)))))
+  (value 7:1 hex
+    (cast 7:8
+      (aura 7:11 @ux)
+      (group 7:15
+        (call 7:16 (wing 7:16 sum) (lit 7:20 0x1) (lit 7:24 0x2)))))
+  (value 8:1 decrease-dec
+    (cast 8:17
+      (aura 8:20 @ud)
+      (group 8:24
+        (call 8:25 (wing 8:25 decreasing) (lit 8:36 2)))))
+  (value 9:1 decrease-hex
+    (cast 9:17
+      (aura 9:20 @ux)
+      (group 9:24
+        (call 9:25 (wing 9:25 decreasing) (lit 9:36 0x2)))))
+  (value 10:1 bad-sum
+    (group 10:12
+      (call 10:13 (wing 10:13 sum) (lit 10:17 %.y) (lit 10:21 %.n))))
+  (value 11:1 bad-dec
+    (group 11:12
+      (call 11:13 (wing 11:13 decreasing) (lit 11:24 %.y))))
+  (value 12:1 bad-alias
+    (group 12:14
+      (call 12:15 (wing 12:15 forward) (lit 12:23 %.y) (lit 12:27 %.n))))
+  (value 13:1 compare
+    (group 13:12
+      (call 13:13 (wing 13:13 gth) (lit 13:17 %.y) (lit 13:21 %.n))))
+  (value 14:1 identity
+    (gate 14:13
+      (face 14:16 x (tvar 14:18 A))
+      (wing 14:20 x)))
+  (value 15:1 accept-bool
+    (group 15:16
+      (call 15:17 (wing 15:17 identity) (lit 15:26 %.y))))
+  (value 16:1 capture
+    (gate 16:12
+      (face 16:15 x (tvar 16:17 A))
+      (body 17:3
+        (value 17:3 nested
+          (gate 17:13
+            (face 17:16 y (tvar 17:18 A))
+            (group 17:20
+              (call 17:21 (wing 17:21 add) (wing 17:25 x) (wing 17:27 y)))))
+        (group 18:3
+          (call 18:4 (wing 18:4 nested) (wing 18:11 x))))))
+  (value 19:1 mixed
+    (gate 19:10
+      (cell 19:13
+        (face 19:14 x (aura 19:16 @))
+        (face 19:18 b (flag 19:20)))
+      (group 19:23
+        (call 19:24 (wing 19:24 sum) (wing 19:28 x) (wing 19:30 b)))))
+  (value 20:1 opposite
+    (gate 20:13
+      (cell 20:16
+        (face 20:17 b (flag 20:19))
+        (face 20:21 x (aura 20:23 @)))
+      (group 20:26
+        (call 20:27 (wing 20:27 sum) (wing 20:31 b) (wing 20:33 x)))))
+  (value 21:1 any-dec
+    (gate 21:12
+      (face 21:15 x (aura 21:17 @))
+      (group 21:19
+        (call 21:20 (wing 21:20 decreasing) (wing 21:31 x))))))

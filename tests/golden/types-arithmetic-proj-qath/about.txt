@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Molds, Atoms: "Arithmetic rejects loobean operands: `?` contains only 0 and 1, while an arithmetic result need not."
+tests: Arithmetic retains non-loobean constraints through wider and single-field projected records and qath values; incompatible auras, loobean operands, and scalar binder faces do not silently infer.
+expect: parses
+expect-types: a partial inference report

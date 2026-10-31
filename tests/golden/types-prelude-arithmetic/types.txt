@@ -21,12 +21,30 @@ partial inference; module not checked
 ++ atom-id: $-(A A) where A is an atom
 ++ atom-id-bool: ?
 ++ atom-id-text: @t
-++ unavailable-add: name is not available to partial inference
-++ unavailable-add-decimal: name is not available to partial inference
-++ unavailable-add-hex: name is not available to partial inference
-++ unavailable-dec: name is not available to partial inference
-++ unavailable-dec-hex: name is not available to partial inference
+++ reject-bool-add: call's sample and argument types do not unify
+/tests/golden/types-prelude-arithmetic/source.jibb:13:21: called gate has type $-([A A] A) where A is an atom other than ?
+++ reject-bool-add (add %.n %.n)
+                    ^
+/tests/golden/types-prelude-arithmetic/source.jibb:13:25: argument has type ?
+++ reject-bool-add (add %.n %.n)
+                        ^
+++ add-decimal: @ud
+++ add-hex: @ux
+++ reject-bool-dec: call's sample and argument types do not unify
+/tests/golden/types-prelude-arithmetic/source.jibb:16:21: called gate has type $-(A A) where A is an atom other than ?
+++ reject-bool-dec (dec %.n)
+                    ^
+/tests/golden/types-prelude-arithmetic/source.jibb:16:25: argument has type ?
+++ reject-bool-dec (dec %.n)
+                        ^
+++ dec-hex: @ux
 ++ unavailable-length: name is not available to partial inference
-++ captured: name is not available to partial inference
+++ captured: call's sample and argument types do not unify
+/tests/golden/types-prelude-arithmetic/source.jibb:19:21: called gate has type $-([A A] A) where A is an atom other than ?
+++ captured |= x=? (add x x)
+                    ^
+/tests/golden/types-prelude-arithmetic/source.jibb:19:25: argument has type ?
+++ captured |= x=? (add x x)
+                        ^
 ++ captured-local: local definitions need unsupported inference
-++ inc: name is not available to partial inference
+++ inc: $-(A A) where A is an atom other than ?

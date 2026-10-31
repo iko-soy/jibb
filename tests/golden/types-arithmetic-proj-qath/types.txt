@@ -1,0 +1,33 @@
+partial inference; module not checked
+++ project-increment: $-([a=A [b=@t c=@ud]] [a=A b=@t]) where A is an atom other than ?
+++ good: [a=@ux b=@t]
+++ flag: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-proj-qath/source.jibb:4:10: called gate has type $-([a=A [b=@t c=@ud]] [a=A b=@t]) where A is an atom other than ?
+++ flag (project-increment [a=%.y b="x" c=0])
+         ^
+/tests/golden/types-arithmetic-proj-qath/source.jibb:4:28: argument
+++ flag (project-increment [a=%.y b="x" c=0])
+                           ^
+++ mixed: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-proj-qath/source.jibb:5:11: called gate has type $-([A A] A) where A is an atom other than ?
+++ mixed (add ~zod "x")
+          ^
+/tests/golden/types-arithmetic-proj-qath/source.jibb:5:15: argument has type [@p @t]
+++ mixed (add ~zod "x")
+              ^
+++ path-and-number: [path=qath number=@ud]
+++ path-value: unresolved aura-variable inference
+++ with-path: $-([a=A [b=qath c=@ud]] [a=A b=qath]) where A is an atom other than ?
+++ wrong-width: record width constraint needs unsupported inference
+++ select-one: $-([a=A b=@t] [a=A]) where A is an atom other than ?
+++ select-one-ux: [a=@ux]
+++ select-one-bool: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-proj-qath/source.jibb:14:21: called gate has type $-([a=A b=@t] [a=A]) where A is an atom other than ?
+++ select-one-bool (select-one [a=%.y b="x"])
+                    ^
+/tests/golden/types-arithmetic-proj-qath/source.jibb:14:32: argument has type [a=? b=@t]
+++ select-one-bool (select-one [a=%.y b="x"])
+                               ^
+++ scalar: $-(@t @t)
+++ no-binder-field: proj needs an expected record type
+++ select-one-nested: $-([a=A b=@t] [outer=[a=A] marker=@ud]) where A is an atom other than ?

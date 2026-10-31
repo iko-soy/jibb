@@ -1,0 +1,44 @@
+partial inference; module not checked
+++ decimal: @ud
+++ hex: @ux
+++ text: @t
+++ ship: @p
+++ reject-bool: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-module/source.jibb:6:17: called gate has type $-([a=A b=A] A) where A is an atom other than ?
+++ reject-bool (sum.math %.y %.n)
+                ^
+/tests/golden/types-arithmetic-module/source.jibb:6:26: argument has type ?
+++ reject-bool (sum.math %.y %.n)
+                         ^
+++ reject-down: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-module/source.jibb:7:17: called gate has type $-(A A) where A is an atom other than ?
+++ reject-down (down.math %.y)
+                ^
+/tests/golden/types-arithmetic-module/source.jibb:7:27: argument has type ?
+++ reject-down (down.math %.y)
+                          ^
+++ reject-alias: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-module/source.jibb:8:18: called gate has type $-([a=A b=A] A) where A is an atom other than ?
+++ reject-alias (alias.math %.n %.y)
+                 ^
+/tests/golden/types-arithmetic-module/source.jibb:8:29: argument has type ?
+++ reject-alias (alias.math %.n %.y)
+                            ^
+++ reject-any: call constraint is not supported by partial inference
+++ nested: local definitions need unsupported inference
+++ inc-decimal: @ud
+++ inc-hex: @ux
+++ inc-bool: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-module/source.jibb:15:14: called gate has type $-(A A) where A is an atom other than ?
+++ inc-bool (inc.math %.y)
+             ^
+/tests/golden/types-arithmetic-module/source.jibb:15:23: argument has type ?
+++ inc-bool (inc.math %.y)
+                      ^
+++ alias-bool: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-module/source.jibb:16:16: called gate has type $-(A A) where A is an atom other than ?
+++ alias-bool (alias-inc.math %.n)
+               ^
+/tests/golden/types-arithmetic-module/source.jibb:16:31: argument has type ?
+++ alias-bool (alias-inc.math %.n)
+                              ^

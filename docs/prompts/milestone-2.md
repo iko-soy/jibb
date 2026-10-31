@@ -109,7 +109,7 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 - "Island data and models can't hold gates; the checker names the field."
 
 **API files, stores and derived gates** (overview: Agent APIs, Effects; Grammar: Modules)
-- `/ui/api/<agent>.jibb` declares `+$ poke` and `+$ paths`; "`poke` and `paths` are declarations, not molds." "A path case is a request name, a path and a type", and "A case can name another scry path, as in `[%changes /updates (facts todos todo-update) scry=/todos]`, used only by pages." An island watching a request whose case has `scry=` has a type error.
+- `/ui/api/<agent>.jibb` declares `+$ poke` and `+$ paths`; "`poke` and `paths` are declarations, not molds." "A path case is a request name, a path and a type", and "A case can name another scry path, as in `[%changes /updates (facts todos todo-update) scry=/todos]`, used only by pages." An island may watch a request only when the checker proves it is watchable; a separate `scry=` path or unknown watchability is a type error.
 - Each poke type gives a constructor, as `todo-action.todo`, and each path case a request, as `(todos.todo |=%got)`. A path with typed segments takes them too: the overview's `(post.api slug same)` suggests they come first. A `(facts full diff …)` case's request also takes a fold, as `$-([[%todo-update todo-update] todos] todos)`.
 - A store's `+$ poke` is a declaration, not a mold. A store exports a constructor per poke type and a `state` request. Clashing derived names are errors, including clashes with an import face. The checker must account for the fact that the type of `main` determines whether a module is a store.
 

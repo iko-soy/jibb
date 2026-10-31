@@ -42,21 +42,21 @@
   (value 12:1 atom-id-text
     (group 12:17
       (call 12:18 (wing 12:18 atom-id) (str 12:26 "hi"))))
-  (value 13:1 unavailable-add
+  (value 13:1 reject-bool-add
     (group 13:20
       (call 13:21 (wing 13:21 add) (lit 13:25 %.n) (lit 13:29 %.n))))
-  (value 14:1 unavailable-add-decimal
-    (group 14:28
-      (call 14:29 (wing 14:29 add) (lit 14:33 1) (lit 14:35 2))))
-  (value 15:1 unavailable-add-hex
-    (group 15:24
-      (call 15:25 (wing 15:25 add) (lit 15:29 0x1) (lit 15:33 0x2))))
-  (value 16:1 unavailable-dec
+  (value 14:1 add-decimal
+    (group 14:16
+      (call 14:17 (wing 14:17 add) (lit 14:21 1) (lit 14:23 2))))
+  (value 15:1 add-hex
+    (group 15:12
+      (call 15:13 (wing 15:13 add) (lit 15:17 0x1) (lit 15:21 0x2))))
+  (value 16:1 reject-bool-dec
     (group 16:20
       (call 16:21 (wing 16:21 dec) (lit 16:25 %.n))))
-  (value 17:1 unavailable-dec-hex
-    (group 17:24
-      (call 17:25 (wing 17:25 dec) (lit 17:29 0x2))))
+  (value 17:1 dec-hex
+    (group 17:12
+      (call 17:13 (wing 17:13 dec) (lit 17:17 0x2))))
   (value 18:1 unavailable-length
     (group 18:23
       (call 18:24

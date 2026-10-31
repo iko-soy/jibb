@@ -1,0 +1,63 @@
+(module
+  (jibb 1:1 math /ui/math)
+  (value 2:1 decimal
+    (cast 2:12
+      (aura 2:15 @ud)
+      (group 2:19
+        (call 2:20 (wing 2:20 sum.math) (lit 2:29 1) (lit 2:31 2)))))
+  (value 3:1 hex
+    (cast 3:8
+      (aura 3:11 @ux)
+      (group 3:15
+        (call 3:16 (wing 3:16 sum.math) (lit 3:25 0x1) (lit 3:29 0x2)))))
+  (value 4:1 text
+    (cast 4:9
+      (aura 4:12 @t)
+      (group 4:15
+        (call 4:16 (wing 4:16 alias.math) (str 4:27 "a") (str 4:31 "b")))))
+  (value 5:1 ship
+    (cast 5:9
+      (aura 5:12 @p)
+      (group 5:15
+        (call 5:16 (wing 5:16 down.math) (lit 5:26 ~zod)))))
+  (value 6:1 reject-bool
+    (group 6:16
+      (call 6:17 (wing 6:17 sum.math) (lit 6:26 %.y) (lit 6:30 %.n))))
+  (value 7:1 reject-down
+    (group 7:16
+      (call 7:17 (wing 7:17 down.math) (lit 7:27 %.y))))
+  (value 8:1 reject-alias
+    (group 8:17
+      (call 8:18 (wing 8:18 alias.math) (lit 8:29 %.n) (lit 8:33 %.y))))
+  (value 9:1 reject-any
+    (gate 9:15
+      (face 9:18 x (aura 9:20 @))
+      (group 9:22
+        (call 9:23 (wing 9:23 down.math) (wing 9:33 x)))))
+  (value 10:1 nested
+    (gate 10:11
+      (face 10:14 x (tvar 10:16 A))
+      (body 11:3
+        (value 11:3 local
+          (gate 11:12
+            (face 11:15 y (tvar 11:17 A))
+            (group 11:19
+              (call 11:20 (wing 11:20 sum.math) (wing 11:29 x) (wing 11:31 y)))))
+        (group 12:3
+          (call 12:4 (wing 12:4 local) (wing 12:10 x))))))
+  (value 13:1 inc-decimal
+    (cast 13:16
+      (aura 13:19 @ud)
+      (group 13:23
+        (call 13:24 (wing 13:24 inc.math) (lit 13:33 2)))))
+  (value 14:1 inc-hex
+    (cast 14:12
+      (aura 14:15 @ux)
+      (group 14:19
+        (call 14:20 (wing 14:20 inc-reverse.math) (lit 14:37 0x2)))))
+  (value 15:1 inc-bool
+    (group 15:13
+      (call 15:14 (wing 15:14 inc.math) (lit 15:23 %.y))))
+  (value 16:1 alias-bool
+    (group 16:15
+      (call 16:16 (wing 16:16 alias-inc.math) (lit 16:31 %.n)))))

@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Molds, Atoms: "Arithmetic rejects loobean operands: `?` contains only 0 and 1, while an arithmetic result need not."
+tests: Both inc operand orders retain non-loobean restrictions through aliases, concrete and generic holes, numeric defaulting, pending tags and @/? boundary checks.
+expect: parses
+expect-types: a partial inference report

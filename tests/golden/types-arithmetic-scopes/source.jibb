@@ -1,0 +1,22 @@
+++ inc |= n=A (add n 1)
+++ inc-r |= n=A (add 1 n)
+++ text-case ^- @t (inc "x")
+++ ship-case ^- @p (inc ~zod)
+++ shared-case |= [a=A b=A] (add a b)
+++ distinct |= [a=A b=B] (add a b)
+++ nested |= n=A |= x=A (add n 1)
+++ local-fresh |= outer=@t
+  ++ inner |= n=A (add n 1)
+  [(inner "a") (inner ~zod)]
+++ local-capture |= outer=A
+  ++ inner |= n=A (add outer 1)
+  (inner outer)
+++ trace-tag
+  ~& %dangling
+    (add 1 2)
+++ trace-number
+  ~& 4
+    (add 1 2)
+++ recurse |= n=A (add n (recurse n))
+++ mutual-a |= n=A (add n (mutual-b n))
+++ mutual-b |= n=A (add n (mutual-a n))

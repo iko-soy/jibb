@@ -324,3 +324,5 @@
   [%who reply=$-(@p M)]
 
 ++ gth |= args=[A A] (gth-atom.internal args)
+++ add |= args=[A A] (add-atom.internal args)
+++ dec |= atom=A (dec-atom.internal atom)

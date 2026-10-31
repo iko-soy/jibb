@@ -1,0 +1,21 @@
+++ sum |= [a=A b=A] (add a b)
+++ decreasing |= x=A (dec x)
+++ forward sum
+++ text-aura ^- @t (sum "a" "b")
+++ ship-aura ^- @p (sum ~zod ~nec)
+++ decimal ^- @ud (sum 1 2)
+++ hex ^- @ux (sum 0x1 0x2)
+++ decrease-dec ^- @ud (decreasing 2)
+++ decrease-hex ^- @ux (decreasing 0x2)
+++ bad-sum (sum %.y %.n)
+++ bad-dec (decreasing %.y)
+++ bad-alias (forward %.y %.n)
+++ compare (gth %.y %.n)
+++ identity |= x=A x
+++ accept-bool (identity %.y)
+++ capture |= x=A
+  ++ nested |= y=A (add x y)
+  (nested x)
+++ mixed |= [x=@ b=?] (sum x b)
+++ opposite |= [b=? x=@] (sum b x)
+++ any-dec |= x=@ (decreasing x)

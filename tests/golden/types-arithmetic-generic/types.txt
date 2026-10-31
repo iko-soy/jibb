@@ -1,0 +1,44 @@
+partial inference; module not checked
+++ sum: $-([a=A b=A] A) where A is an atom other than ?
+++ decreasing: $-(A A) where A is an atom other than ?
+++ forward: $-([a=A b=A] A) where A is an atom other than ?
+++ text-aura: @t
+++ ship-aura: @p
+++ decimal: @ud
+++ hex: @ux
+++ decrease-dec: @ud
+++ decrease-hex: @ux
+++ bad-sum: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-generic/source.jibb:10:13: called gate has type $-([a=A b=A] A) where A is an atom other than ?
+++ bad-sum (sum %.y %.n)
+            ^
+/tests/golden/types-arithmetic-generic/source.jibb:10:17: argument has type ?
+++ bad-sum (sum %.y %.n)
+                ^
+++ bad-dec: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-generic/source.jibb:11:13: called gate has type $-(A A) where A is an atom other than ?
+++ bad-dec (decreasing %.y)
+            ^
+/tests/golden/types-arithmetic-generic/source.jibb:11:24: argument has type ?
+++ bad-dec (decreasing %.y)
+                       ^
+++ bad-alias: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-generic/source.jibb:12:15: called gate has type $-([a=A b=A] A) where A is an atom other than ?
+++ bad-alias (forward %.y %.n)
+              ^
+/tests/golden/types-arithmetic-generic/source.jibb:12:23: argument has type ?
+++ bad-alias (forward %.y %.n)
+                      ^
+++ compare: ?
+++ identity: $-(A A)
+++ accept-bool: ?
+++ capture: $-(A A) where A is an atom other than ?
+++ mixed: call constraint is not supported by partial inference
+++ opposite: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-generic/source.jibb:20:27: called gate has type $-([a=A b=A] A) where A is an atom other than ?
+++ opposite |= [b=? x=@] (sum b x)
+                          ^
+/tests/golden/types-arithmetic-generic/source.jibb:20:31: argument has type ?
+++ opposite |= [b=? x=@] (sum b x)
+                              ^
+++ any-dec: call constraint is not supported by partial inference

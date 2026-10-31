@@ -1,0 +1,26 @@
+/ui/math.jibb
+(module
+  (value 1:1 sum
+    (gate 1:8
+      (cell 1:11
+        (face 1:12 a (tvar 1:14 A))
+        (face 1:16 b (tvar 1:18 A)))
+      (group 1:21
+        (call 1:22 (wing 1:22 add) (wing 1:26 a) (wing 1:28 b)))))
+  (value 2:1 down
+    (gate 2:9
+      (face 2:12 x (tvar 2:14 A))
+      (group 2:16
+        (call 2:17 (wing 2:17 dec) (wing 2:21 x)))))
+  (value 3:1 alias (wing 3:10 sum))
+  (value 4:1 inc
+    (gate 4:8
+      (face 4:11 n (tvar 4:13 A))
+      (group 4:15
+        (call 4:16 (wing 4:16 add) (wing 4:20 n) (lit 4:22 1)))))
+  (value 5:1 inc-reverse
+    (gate 5:16
+      (face 5:19 n (tvar 5:21 A))
+      (group 5:23
+        (call 5:24 (wing 5:24 add) (lit 5:28 1) (wing 5:30 n)))))
+  (value 6:1 alias-inc (wing 6:14 inc)))

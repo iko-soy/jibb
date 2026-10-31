@@ -104,7 +104,7 @@
 12:30 tight glyph )
 13:1 NEWLINE
 13:1 glyph ++
-13:4 name unavailable-add
+13:4 name reject-bool-add
 13:20 glyph (
 13:21 tight name add
 13:25 lit %.n
@@ -112,34 +112,34 @@
 13:32 tight glyph )
 14:1 NEWLINE
 14:1 glyph ++
-14:4 name unavailable-add-decimal
-14:28 glyph (
-14:29 tight name add
-14:33 lit 1
-14:35 lit 2
-14:36 tight glyph )
+14:4 name add-decimal
+14:16 glyph (
+14:17 tight name add
+14:21 lit 1
+14:23 lit 2
+14:24 tight glyph )
 15:1 NEWLINE
 15:1 glyph ++
-15:4 name unavailable-add-hex
-15:24 glyph (
-15:25 tight name add
-15:29 lit 0x1
-15:33 lit 0x2
-15:36 tight glyph )
+15:4 name add-hex
+15:12 glyph (
+15:13 tight name add
+15:17 lit 0x1
+15:21 lit 0x2
+15:24 tight glyph )
 16:1 NEWLINE
 16:1 glyph ++
-16:4 name unavailable-dec
+16:4 name reject-bool-dec
 16:20 glyph (
 16:21 tight name dec
 16:25 lit %.n
 16:28 tight glyph )
 17:1 NEWLINE
 17:1 glyph ++
-17:4 name unavailable-dec-hex
-17:24 glyph (
-17:25 tight name dec
-17:29 lit 0x2
-17:32 tight glyph )
+17:4 name dec-hex
+17:12 glyph (
+17:13 tight name dec
+17:17 lit 0x2
+17:20 tight glyph )
 18:1 NEWLINE
 18:1 glyph ++
 18:4 name unavailable-length

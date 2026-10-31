@@ -10,11 +10,11 @@
     x
 ++ atom-id-bool (atom-id %.n)
 ++ atom-id-text (atom-id "hi")
-++ unavailable-add (add %.n %.n)
-++ unavailable-add-decimal (add 1 2)
-++ unavailable-add-hex (add 0x1 0x2)
-++ unavailable-dec (dec %.n)
-++ unavailable-dec-hex (dec 0x2)
+++ reject-bool-add (add %.n %.n)
+++ add-decimal (add 1 2)
+++ add-hex (add 0x1 0x2)
+++ reject-bool-dec (dec %.n)
+++ dec-hex (dec 0x2)
 ++ unavailable-length (lent ~["a"])
 ++ captured |= x=? (add x x)
 ++ captured-local |= x=?

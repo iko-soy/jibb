@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Molds, Atoms: "Arithmetic rejects loobean operands: `?` contains only 0 and 1, while an arithmetic result need not."
+tests: Generic add and dec, aliases and captured variables retain the restriction; ordinary identity and comparison still accept loobeans.
+expect: parses
+expect-types: a partial inference report

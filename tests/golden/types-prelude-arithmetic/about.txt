@@ -1,4 +1,4 @@
-source: Overview, Prelude: arithmetic gates are ordinary Jibb wrappers around private compiler-supplied primitives. A shared atom type must not promise that arithmetic on loobeans remains a loobean.
-tests: The source-backed `gth` infers for loobeans and ordinary atom auras and rejects mismatched auras and cells. An independent atom-constrained identity remains applicable to both flags and text. Addition, decrement and length are unavailable until arithmetic can preserve sound result constraints; primitive lowering, jet recognition and execution remain unfinished. The module report is partial.
+source: docs/spec/grammar.md, Molds, Atoms: "Arithmetic rejects loobean operands: `?` contains only 0 and 1, while an arithmetic result need not."
+tests: The source-backed add, dec and gth wrappers preserve numeric auras, constrained generic types, and independent comparison behavior. Loobean operands are rejected by add and dec; lent remains unavailable. Primitive lowering, jet recognition and execution remain unfinished. The module report is partial.
 expect: parses
 expect-types: a partial inference report

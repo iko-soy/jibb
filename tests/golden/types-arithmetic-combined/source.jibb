@@ -1,0 +1,56 @@
+++ inc |= n=A (add n 1)
+++ inc-reverse |= n=A (add 1 n)
+++ inc-decimal ^- @ud (inc 2)
+++ inc-hex ^- @ux (inc 0x2)
+++ reverse-decimal ^- @ud (inc-reverse 2)
+++ reverse-hex ^- @ux (inc-reverse 0x2)
+++ default (add 1 2)
+++ decrease-decimal ^- @ud (dec 2)
+++ decrease-hex ^- @ux (dec 0x2)
+++ bool-add (add %.n %.n)
+++ bool-dec (dec %.n)
+++ bool-reverse (add 1 %.y)
+++ bool-inc (inc %.y)
+++ bool-gate |= x=? (inc x)
+++ bool-result ^- ? (add 1 1)
+++ compare-bool (gth %.n %.y)
+++ mixed (add ~zod "hi")
+++ cells (add [1 2] [3 4])
+++ distinct |= [a=A b=B] (add a b)
+++ shared |= [a=A b=A] (add a b)
+++ capture |= n=A
+  ++ inner |= x=A (add n 1)
+  (inner n)
+++ nested |= n=A |= x=A (add n 1)
+++ unrelated
+  ~& %dangling
+    (add 1 2)
+++ identity |= x=A x
+++ identity-bool (identity %.y)
+++ alias-inc inc
+++ alias-decimal ^- @ud (alias-inc 2)
+++ alias-hex ^- @ux (alias-inc 0x2)
+++ alias-bool (alias-inc %.y)
+++ explicit-loobean-result |= n=A ^- ? (add n 1)
+++ any-then-bool |= [x=@ b=?] (add x b)
+++ bool-then-any |= [b=? x=@] (add b x)
+++ any-dec |= x=@ (dec x)
+++ any-plus-number |= x=@ (add x 1)
+++ number-plus-any |= x=@ (add 1 x)
+++ any-self |= x=@ (add x x)
+++ hole-concrete |= n=_ ^- @ud (add n 1)
+++ hole-written |= n=A ^- _ (add n 1)
+++ hole-unresolved |= n=_ (add n 1)
+++ standalone (add 1 2)
+++ discarded-number
+  ~& 2
+    (add 1 2)
+++ numeric-capture |= x
+  ++ inner (add x 1)
+  ^- @ux x
+++ numeric-capture-reversed |= x
+  ++ inner (add 1 x)
+  ^- @ux x
+++ bound-later |= x=A
+  ++ inner (add x 1)
+  x

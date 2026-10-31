@@ -14,3 +14,7 @@
 +$ qath
   ~
   [i=@ta t=qath]
+
+::  Private compiler primitive wrappers; execution is a later milestone.
+++ add-atom |= args=[A A] (raw-add.core args)
+++ dec-atom |= atom=A (raw-dec.core atom)

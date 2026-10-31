@@ -1,0 +1,16 @@
+/= math /ui/math
+++ decimal ^- @ud (sum.math 1 2)
+++ hex ^- @ux (sum.math 0x1 0x2)
+++ text ^- @t (alias.math "a" "b")
+++ ship ^- @p (down.math ~zod)
+++ reject-bool (sum.math %.y %.n)
+++ reject-down (down.math %.y)
+++ reject-alias (alias.math %.n %.y)
+++ reject-any |= x=@ (down.math x)
+++ nested |= x=A
+  ++ local |= y=A (sum.math x y)
+  (local x)
+++ inc-decimal ^- @ud (inc.math 2)
+++ inc-hex ^- @ux (inc-reverse.math 0x2)
+++ inc-bool (inc.math %.y)
+++ alias-bool (alias-inc.math %.n)

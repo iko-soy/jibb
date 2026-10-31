@@ -1,5 +1,6 @@
 /= internal /lib/jibb/internal
 +$ poke poke.internal
++$ qath qath.internal
 
 ::  Initial prelude functions. The rest of the inventory is still to come.
 
@@ -148,6 +149,12 @@
     ?- maybe
       ~ ~
       [~ value] [value ~]
+
+++ bond |= fallback=$-(~ A)
+  |= maybe=(unit A)
+    ?- maybe
+      ~ (fallback ~)
+      [~ value] value
 
 ++ bind |= args=[(unit A) $-(A B)]
   ?- args
@@ -317,3 +324,5 @@
   [%who reply=$-(@p M)]
 
 ++ gth |= args=[A A] (gth-atom.internal args)
+++ add |= args=[A A] (add-atom.internal args)
+++ dec |= atom=A (dec-atom.internal atom)

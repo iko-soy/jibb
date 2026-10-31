@@ -4623,7 +4623,7 @@
 ::  the private prelude dependency. A later lowerer must replace the call by
 ::  an inline gate applied to the operand once; no lowering is implemented yet.
 ::  Ordinary fits never insert a projection. Unknown or variable-origin record
-::  spines, implicit narrowing inside selected fields, and projections in
+::  spines, nested projected fields and projections in
 ::  recursive groups remain unsupported. Directional fits bound faced-spine
 ::  proofs to fewer than 1,024 cells; the projection planner has a separate
 ::  4,096-step bound. These are inference limits, not language limits.
@@ -4632,7 +4632,9 @@
   $~  [%var 0]
   $%  [%var id=@ud]
       [%avar id=@ud]
+      [%rvar id=@ud]
       [%nvar id=@ud]
+      [%rnvar id=@ud]
       [%atom aura=@ta]
       [%any-atom ~]
       [%flag ~]
@@ -4665,18 +4667,32 @@
     %var
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
+      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %avar
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
+      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      $(t u.found)
+    %rvar
+      =/  found=(unit itype)  (itype-lookup id.t sub)
+      ?~  found  t
+      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %nvar
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
+      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      $(t u.found)
+    %rnvar
+      =/  found=(unit itype)  (itype-lookup id.t sub)
+      ?~  found  t
+      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %tag
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
+      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
   ==
 ::
@@ -4687,7 +4703,9 @@
   ?-  -.t
     %var   =(n id.t)
     %avar  =(n id.t)
+    %rvar  =(n id.t)
     %nvar  =(n id.t)
+    %rnvar  =(n id.t)
     %atom  |
     %any-atom  |
     %flag  |
@@ -4732,6 +4750,32 @@
     `[[id.a b] sub]
   ?:  ?=(%var -.b)
     ?:  (itype-occurs id.b a sub)  ~
+    `[[id.b a] sub]
+  ::  Arithmetic's aura variable excludes loobeans; decimal literals
+  ::  remain defaultable until a later constraint makes them concrete.
+  ?:  &(?=(%nvar -.a) ?=(%rvar -.b))
+    `[[id.b [%rnvar id.a]] [id.a [%rnvar id.a]] sub]
+  ?:  &(?=(%rvar -.a) ?=(%nvar -.b))
+    `[[id.a [%rnvar id.b]] [id.b [%rnvar id.b]] sub]
+  ?:  &(?=(%rnvar -.a) ?=(%rvar -.b))  `[[id.b a] sub]
+  ?:  &(?=(%rvar -.a) ?=(%rnvar -.b))  `[[id.a b] sub]
+  ?:  &(?=(%rnvar -.a) ?=(%nvar -.b))  `[[id.b a] sub]
+  ?:  &(?=(%nvar -.a) ?=(%rnvar -.b))  `[[id.a b] sub]
+  ?:  &(?=(%rnvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
+  ?:  &(?=(%avar -.a) ?=(%rnvar -.b))  `[[id.a b] sub]
+  ?:  ?=(%rnvar -.a)
+    ?.  |(?=(%rnvar -.b) ?=(%atom -.b))  ~
+    `[[id.a b] sub]
+  ?:  ?=(%rnvar -.b)
+    ?.  ?=(%atom -.a)  ~
+    `[[id.b a] sub]
+  ?:  &(?=(%avar -.a) ?=(%rvar -.b))  `[[id.a b] sub]
+  ?:  &(?=(%rvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
+  ?:  ?=(%rvar -.a)
+    ?.  |(?=(%rvar -.b) ?=(%atom -.b))  ~
+    `[[id.a b] sub]
+  ?:  ?=(%rvar -.b)
+    ?.  ?=(%atom -.a)  ~
     `[[id.b a] sub]
   ::  The narrower decimal constraint survives a match with an atom
   ::  variable; decimal syntax alone does not make it a loobean.
@@ -4787,7 +4831,9 @@
   ?-  -.t
     %var       |
     %avar      |
+    %rvar      |
     %nvar      |
+    %rnvar      |
     %atom      |
     %any-atom  &
     %flag      |
@@ -4859,7 +4905,9 @@
   ?-  -.typ
     %var       |
     %avar      |
+    %rvar      |
     %nvar      |
+    %rnvar      |
     %atom      &
     %any-atom  &
     %flag      &
@@ -4921,8 +4969,8 @@
     ?.  =(name.a name.b)  |
     (itype-face-asym-collection-args args.a args.b sub)
   ?:  &(?=(%face -.a) ?=(%face -.b))  $(a body.a, b body.b)
-  ?:  ?=(%face -.a)  !|(?=(%var -.b) ?=(%avar -.b) ?=(%nvar -.b))
-  ?:  ?=(%face -.b)  !|(?=(%var -.a) ?=(%avar -.a) ?=(%nvar -.a))
+  ?:  ?=(%face -.a)  !|(?=(%var -.b) ?=(%avar -.b) ?=(%rvar -.b) |(?=(%nvar -.b) ?=(%rnvar -.b)))
+  ?:  ?=(%face -.b)  !|(?=(%var -.a) ?=(%avar -.a) ?=(%rvar -.a) |(?=(%nvar -.a) ?=(%rnvar -.a)))
   ?:  &(?=(%cell -.a) ?=(%cell -.b))  |($(a hed.a, b hed.b) $(a tal.a, b tal.b))
   ?:  &(?=(%fn -.a) ?=(%fn -.b))  |($(a sample.a, b sample.b) $(a product.a, b product.b))
   |
@@ -5105,9 +5153,9 @@
   ?:  too-wide  [%unknown ~]
   =/  spine-checked=?  |(spine-proof ?=(^ known))
   =/  uncertain=?
-    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%var -.expected) ?=(%avar -.expected) ?=(%nvar -.expected))
+    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)) ?=(%var -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))
   =/  actual-open=?
-    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%nvar -.actual))
+    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)))
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
@@ -5150,7 +5198,7 @@
   ?:  &(!uncertain ?=(%union -.actual) ?=(%face -.expected))
     $(expected body.expected)
   ?:  ?=(%union -.actual)  [%unknown ~]
-  ?:  &(?=(%union -.expected) |(?=(%avar -.actual) ?=(%nvar -.actual)))  [%unknown ~]
+  ?:  &(?=(%union -.expected) |(?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual))))  [%unknown ~]
   ?:  &(?=(%union -.expected) !?=(%var -.actual))
     (itype-fit-cases actual cases.expected sub next)
   ?:  ?=(%tag -.actual)
@@ -5158,7 +5206,7 @@
       =/  u=(unit isub)  (itype-unify actual expected sub)
       ?~  u  [%bad ~]
       [%ok u.u next]
-    ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
+    ?:  |(?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
     ?:  ?=(%face -.expected)  $(expected body.expected)
     ?:  constructor.actual
       ?.  ?=(%fn -.expected)  [%bad ~]
@@ -5186,7 +5234,7 @@
       =/  u=(unit isub)  (itype-unify actual expected sub)
       ?~  u  [%bad ~]
       [%ok u.u next]
-    ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
+    ?:  |(?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
     ?:  ?=(%face -.expected)  $(expected body.expected)
     ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
       [%unknown ~]
@@ -5200,8 +5248,14 @@
     ?:  ?=(%any-atom -.expected)  [%ok sub next]
     [%bad ~]
   ?:  &(uncertain (itype-face-asym actual expected sub))  [%unknown ~]
+  ::  A known face labels the same noun. Peel it before applying the
+  ::  directional unrestricted-atom rule, preserving raw-variable guards.
+  ?:  &(!uncertain ?=(%any-atom -.actual) ?=(%face -.expected))
+    $(expected body.expected, skip-width |, spine-proof |)
+  ?:  &(!uncertain ?=(%any-atom -.expected) ?=(%face -.actual))
+    $(actual body.actual, skip-width |, spine-proof |)
   ?:  ?=(%any-atom -.expected)
-    ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%flag -.actual))  [%ok sub next]
+    ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)) ?=(%flag -.actual))  [%ok sub next]
     ?:  ?=(%var -.actual)
       =/  unified=(unit isub)  (itype-unify actual [%avar next] sub)
       ?~  unified  [%bad ~]
@@ -5212,7 +5266,7 @@
       =/  unified=(unit isub)  (itype-unify actual expected sub)
       ?~  unified  [%bad ~]
       [%ok u.unified next]
-    ?:  |(?=(%avar -.expected) ?=(%nvar -.expected))  [%unknown ~]
+    ?:  |(?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
     [%bad ~]
   ?:  &(?=(%atom -.actual) ?=(%atom -.expected))
     ?:  (aura-prefix aura.expected aura.actual)  [%ok sub next]
@@ -5353,14 +5407,14 @@
   =/  index=(map term iwfield)  *(map term iwfield)
   |-
   ?:  =(0 fuel)  ~
-  ?:  |(?=(%var -.typ) ?=(%avar -.typ) ?=(%nvar -.typ))  ~
+  ?:  |(?=(%var -.typ) ?=(%avar -.typ) ?=(%rvar -.typ) ?=(%nvar -.typ) ?=(%rnvar -.typ))  ~
   ?:  ?=(%face -.typ)
     =/  entry=iwfield  [name.typ axis body.typ]
     ?:  ?=(^ (~(get by index) name.entry))  ~
     `[(flop [entry order]) (~(put by index) name.entry entry)]
   ?.  ?=(%cell -.typ)  ~
   =/  head=itype  hed.typ
-  ?:  |(?=(%var -.head) ?=(%avar -.head) ?=(%nvar -.head))  ~
+  ?:  |(?=(%var -.head) ?=(%avar -.head) ?=(%rvar -.head) ?=(%nvar -.head) ?=(%rnvar -.head))  ~
   ?.  ?=(%face -.head)  ~
   =/  entry=iwfield  [name.head (mul 2 axis) body.head]
   ?:  ?=(^ (~(get by index) name.entry))  ~
@@ -5480,7 +5534,9 @@
     %const     |
     %var       |
     %avar      |
+    %rvar      |
     %nvar      |
+    %rnvar      |
     %atom      |
     %any-atom  |
     %flag      |
@@ -5493,6 +5549,7 @@
   ?:  (itype-has-gate t)  t
   ?-  -.t
     %nvar      [%atom %ud]
+    %rnvar      [%atom %ud]
     %collection  [%collection name.t (turn args.t |=(c=itype (default-decimals c)))]
     %face      [%face name.t $(t body.t)]
     %cell      [%cell $(t hed.t) $(t tal.t)]
@@ -5509,7 +5566,9 @@
   ?-  -.t
     %var   `id.t
     %avar  `id.t
+    %rvar  `id.t
     %nvar  `id.t
+    %rnvar  `id.t
     %tag   `id.t
     *  ~
   ==
@@ -5526,7 +5585,7 @@
   ^-  ?
   =.  t  (itype-walk t sub.state)
   ?-  -.t
-    ?(%var %avar %nvar)
+    ?(%var %avar %rvar %nvar %rnvar)
       ?:  (lien caps.state |=(c=icap (hole-same-variable t (itype-walk [%var id.c] sub.state))))  &
       (lien params.state |=(p=[name=@t typ=itype] (hole-same-variable t (itype-walk typ.p sub.state))))
     %tag  |
@@ -5538,6 +5597,18 @@
     %cell  &($(t hed.t) $(t tal.t))
     *  &
   ==
+++  promote-restricted-numbers
+  |=  [state=istate env=ienv]
+  ^-  istate
+  =/  ids=(list @ud)  (turn caps.state |=(c=icap id.c))
+  =/  free=(list @ud)  (free-env-vars env sub.state)
+  |-
+  ?~  ids  state
+  =/  t=itype  (itype-walk [%var i.ids] sub.state)
+  ?:  &(?=(%rnvar -.t) !(lien free |=(n=@ud =(n +.t))))
+    $(ids t.ids, state state(sub [[+.t [%rvar +.t]] sub.state]))
+  $(ids t.ids)
+::
 ++  default-hole-numbers
   |=  [all=(list ihole) prior=(list ihole) state=istate env=ienv permit=?]
   ^-  istate
@@ -5547,7 +5618,7 @@
   ?~  all  state
   =/  t=itype  (itype-walk [%var id.i.all] sub.state)
   =/  free=(list @ud)  (free-env-vars env sub.state)
-  =?  state  &(?=(%nvar -.t) !(hole-known t state) !(lien free |=(id=@ud =(id id.t))))
+  =?  state  &(?=(?(%nvar %rnvar) -.t) !(hole-known t state) !(lien free |=(id=@ud =(id id.t))))
     state(sub [[id.t [%atom %ud]] sub.state])
   $(all t.all)
 ::
@@ -5563,7 +5634,7 @@
   ^-  ?
   =.  t  (itype-walk t sub.state)
   ?-  -.t
-    ?(%tag %nvar %avar)  !(hole-known t state)
+    ?(%tag %nvar %rnvar %avar %rvar)  !(hole-known t state)
     %union  |((lien cases.t |=(c=itype (hole-uncertain c state))) (lien args.t |=(c=itype (hole-uncertain c state))))
     %collection  (lien args.t |=(c=itype (hole-uncertain c state)))
     %face  $(t body.t)
@@ -5589,7 +5660,9 @@
   ?-  -.t
     %var   ~[id.t]
     %avar  ~[id.t]
+    %rvar  ~[id.t]
     %nvar  ~[id.t]
+    %rnvar  ~[id.t]
     %atom  ~
     %any-atom  ~
     %flag  ~
@@ -5626,7 +5699,15 @@
       =/  found=(unit itype)  (itype-lookup id.t ren)
       ?~  found  t
       u.found
+    %rvar
+      =/  found=(unit itype)  (itype-lookup id.t ren)
+      ?~  found  t
+      u.found
     %nvar
+      =/  found=(unit itype)  (itype-lookup id.t ren)
+      ?~  found  t
+      u.found
+    %rnvar
       =/  found=(unit itype)  (itype-lookup id.t ren)
       ?~  found  t
       u.found
@@ -5654,7 +5735,9 @@
   ?-  -.t
     %var       |
     %avar      =(n id.t)
+    %rvar      =(n id.t)
     %nvar      =(n id.t)
+    %rnvar      =(n id.t)
     %atom      |
     %any-atom  |
     %flag      |
@@ -5665,6 +5748,29 @@
     %recursive  |
     %jrec       |
     %collection  (lien args.t |=(c=itype (itype-var-is-atom n c)))
+    %face      $(t body.t)
+    %fn        |($(t sample.t) $(t product.t))
+    %cell      |($(t hed.t) $(t tal.t))
+  ==
+++  itype-var-is-restricted
+  |=  [n=@ud t=itype]
+  ^-  ?
+  ?-  -.t
+    %var       |
+    %avar      |
+    %rvar      =(n id.t)
+    %nvar      |
+    %rnvar      |
+    %atom      |
+    %any-atom  |
+    %flag      |
+    %noun  |
+    %tag       |
+    %const     |
+    %union     |((lien cases.t |=(c=itype (itype-var-is-restricted n c))) (lien args.t |=(c=itype (itype-var-is-restricted n c))))
+    %recursive  |
+    %jrec       |
+    %collection  (lien args.t |=(c=itype (itype-var-is-restricted n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
@@ -5680,7 +5786,7 @@
   =/  n=@ud  0
   |-
   ?~  vars  (itype-rename t ren)
-  =/  replacement=itype  ?:((itype-var-is-atom i.vars t) [%avar n] [%var n])
+  =/  replacement=itype  ?:((itype-var-is-restricted i.vars t) [%rvar n] ?:((itype-var-is-atom i.vars t) [%avar n] [%var n]))
   $(vars t.vars, ren [[i.vars replacement] ren], n +(n))
 ::
 ++  instantiate-scheme
@@ -5691,11 +5797,11 @@
   |-
   ?~  vars  [(itype-rename typ.scheme ren) state]
   =/  replacement=itype
-    ?:((itype-var-is-atom i.vars typ.scheme) [%avar next.state] [%var next.state])
+    ?:((itype-var-is-restricted i.vars typ.scheme) [%rvar next.state] ?:((itype-var-is-atom i.vars typ.scheme) [%avar next.state] [%var next.state]))
   ::  A generalized atom variable is a valid origin for re-generalizing
   ::  an alias, just as a sample binder is.
   =/  st=istate  state(next +(next.state))
-  =?  binders.st  ?=(%avar -.replacement)  [next.state binders.state]
+  =?  binders.st  |(?=(%avar -.replacement) ?=(%rvar -.replacement))  [next.state binders.state]
   $(vars t.vars, ren [[i.vars replacement] ren], state st)
 ::
 ++  icap-lookup
@@ -6752,6 +6858,7 @@
   =/  retried=?  ?=(%| -.inferred)
   =?  inferred  retried  (infer-recursive-gate d env local-state)
   ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
+  =.  state.p.inferred  (promote-restricted-numbers state.p.inferred env)
   =.  state.p.inferred  (default-hole-numbers holes.state.p.inferred holes.state state.p.inferred env !(itype-has-gate (itype-normalize typ.p.inferred sub.state.p.inferred)))
   =/  hole=(unit idiag)  (unresolved-hole holes.state.p.inferred holes.state state.p.inferred)
   ?^  hole  [%| u.hole]
@@ -7158,11 +7265,13 @@
   =/  t=itype  (itype-normalize typ.p.item sub.state.p.item)
   ?:  |(?=(%atom -.t) ?=(%any-atom -.t))
     $(ps t.ps, state state.p.item)
-  ?:  &(?=(%nvar -.t) ?=(%lit -.p.i.ps) =(%number form.lit.p.i.ps))
+  ?:  &(|(?=(%nvar -.t) ?=(%rnvar -.t)) ?=(%lit -.p.i.ps) =(%number form.lit.p.i.ps))
     $(ps t.ps, state state.p.item)
   ?:  &(?=(%collection -.t) =(%list name.t) =(~[[%atom 'tD']] args.t))
     $(ps t.ps, state state.p.item)
   ?:  &(?=(%avar -.t) (atom-var-from-cap id.t caps.state.p.item sub.state.p.item))
+    [%| ["a generic atom in interpolation needs an aura" ~[[(span-of p.i.ps) "atom with a generic aura"]]]]
+  ?:  &(?=(%rvar -.t) (atom-var-from-cap id.t caps.state.p.item sub.state.p.item))
     [%| ["a generic atom in interpolation needs an aura" ~[[(span-of p.i.ps) "atom with a generic aura"]]]]
   ?:  ?=(%cell -.t)
     [%| ["a cell in interpolation needs a printer" ~[[(span-of p.i.ps) "cell without a printer"]]]]
@@ -7660,7 +7769,7 @@
   |=  [e=expr actual=itype expected=itype sub=isub next=@ud context=span]
   ^-  (unit idiag)
   =/  original=[left=itype right=itype]  [actual expected]
-  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%nvar -.left.original) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%nvar -.right.original))  ~
+  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%rvar -.left.original) |(?=(%nvar -.left.original) ?=(%rnvar -.left.original)) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%rvar -.right.original) |(?=(%nvar -.right.original) ?=(%rnvar -.right.original)))  ~
   =/  fit=ifit  (itype-fit actual expected sub next)
   ?.  ?=(%bad -.fit)  ~
   =.  actual  (itype-walk actual sub)
@@ -7681,7 +7790,7 @@
   ?~  items  ~
   ?~  t.items  (nested-missing-tag val.i.items actual expected sub next context)
   =/  original=[left=itype right=itype]  [actual expected]
-  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%nvar -.left.original) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%nvar -.right.original))  ~
+  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%rvar -.left.original) |(?=(%nvar -.left.original) ?=(%rnvar -.left.original)) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%rvar -.right.original) |(?=(%nvar -.right.original) ?=(%rnvar -.right.original)))  ~
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
@@ -7994,7 +8103,7 @@
   ^-  (unit [at=span typ=itype])
   ?~  args  ~
   =/  original=[left=itype right=itype]  [actual expected]
-  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%nvar -.left.original) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%nvar -.right.original))  ~
+  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%rvar -.left.original) |(?=(%nvar -.left.original) ?=(%rnvar -.left.original)) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%rvar -.right.original) |(?=(%nvar -.right.original) ?=(%rnvar -.right.original)))  ~
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  &(?=(%face -.expected) !?=(%face -.actual))
@@ -8058,7 +8167,7 @@
   ?.  ?=(%fn -.ht)  (infer-call-with-head e env state head)
   =/  result=itype  (itype-walk product.ht sub.state.p.head)
   ?.  ?=(%var -.result)  (infer-call-with-head e env state head)
-  ?:  |(?=(%var -.expected) ?=(%avar -.expected) ?=(%nvar -.expected) (itype-has-tag (itype-normalize expected sub.state.p.head)))
+  ?:  |(?=(%var -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)) (itype-has-tag (itype-normalize expected sub.state.p.head)))
     (infer-call-with-head e env state head)
   =/  sub=(unit isub)  (itype-unify result expected sub.state.p.head)
   ?~  sub  (infer-call-with-head e env state head)
@@ -8110,7 +8219,7 @@
     `(infer-simple-items items.e env state)
   `(width-infer-items items.e index.u.target env state context)
 ::
-::  Recognize only the reserved unqualified, one-argument operation.
+::  Experimental intrinsic recognition; real bindings retain normal calls.
 ++  explicit-proj-call
   |=  [e=expr env=ienv state=istate]
   ^-  ?
@@ -8366,7 +8475,13 @@
     %avar
       ?:  (lth id.t 26)  [(add 65 id.t) ~]
       "T{<id.t>}"
+    %rvar
+      ?:  (lth id.t 26)  [(add 65 id.t) ~]
+      "T{<id.t>}"
     %nvar
+      ?:  (lth id.t 26)  [(add 65 id.t) ~]
+      "T{<id.t>}"
+    %rnvar
       ?:  (lth id.t 26)  [(add 65 id.t) ~]
       "T{<id.t>}"
     %atom  "@{(trip aura.t)}"
@@ -8416,8 +8531,10 @@
   ^-  ?
   ?-  -.typ
     %nvar      &
+    %rnvar      &
     %var       |
     %avar      |
+    %rvar      |
     %atom      |
     %any-atom  |
     %flag      |
@@ -8437,7 +8554,7 @@
   |=  [label=tape typ=itype sub=isub]
   ^-  tape
   =/  normalized=itype  (itype-normalize typ sub)
-  ?:  |(?=(%var -.normalized) ?=(%avar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
+  ?:  |(?=(%var -.normalized) ?=(%avar -.normalized) ?=(%rvar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
   ?:  (itype-has-hidden-recursive normalized)  label
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
   ?:  (gth (lent vars) 26)  label
@@ -8459,6 +8576,7 @@
     ?+  -.resolved  ~
       %var   `id.resolved
       %avar  `id.resolved
+      %rvar  `id.resolved
     ==
   ?~  ident  $(caps t.caps)
   ?:  =(n u.ident)  &
@@ -8473,6 +8591,7 @@
     ?+  -.resolved  ~
       %var   `id.resolved
       %avar  `id.resolved
+      %rvar  `id.resolved
     ==
   ?~  ident  $(caps t.caps)
   ?:  =(n u.ident)  `i.caps
@@ -8487,6 +8606,7 @@
     ?+  -.resolved  ~
       %var   `id.resolved
       %avar  `id.resolved
+      %rvar  `id.resolved
     ==
   ?~  ident  $(caps t.caps)
   =/  found=(unit icap)  (cap-with-id u.ident t.caps sub)
@@ -8502,6 +8622,7 @@
     ?+  -.resolved  ~
       %var   `id.resolved
       %avar  `id.resolved
+      %rvar  `id.resolved
     ==
   ?~  ident  &
   ?:  (cap-id-in u.ident t.caps sub)  &
@@ -8516,8 +8637,8 @@
   ^-  ?
   ?~  caps  |
   =/  resolved=itype  (itype-walk [%var id.i.caps] sub)
-  ?:  ?=(%avar -.resolved)
-    ?:  =(n id.resolved)  &
+  ?:  |(?=(%avar -.resolved) ?=(%rvar -.resolved))
+    ?:  =(n +.resolved)  &
     $(caps t.caps)
   $(caps t.caps)
 ::
@@ -8527,7 +8648,9 @@
   ?-  -.t
     %var       |
     %avar      =(n id.t)
+    %rvar      =(n id.t)
     %nvar      |
+    %rnvar      |
     %atom      |
     %any-atom  |
     %flag      |
@@ -8576,6 +8699,10 @@
   =/  out=tape  ""
   |-
   ?~  vars  out
+  ?:  (itype-var-is-restricted i.vars t)
+    =/  sep=tape  ?:(printed ", " " where ")
+    =/  clause=tape  "{sep}{(show-itype [%rvar i.vars] ~)} is an atom other than ?"
+    $(vars t.vars, printed &, out (weld out clause))
   ?:  (itype-var-is-atom i.vars t)
     =/  sep=tape  ?:(printed ", " " where ")
     =/  clause=tape  "{sep}{(show-itype [%avar i.vars] ~)} is an atom"
@@ -8885,6 +9012,7 @@
   ?:  (constrained-capitals caps.entry sub.state)
     [%| ["explicit capital constraints are not supported by partial inference" ~]]
   =/  typ=itype  (itype-normalize typ.entry sub.state)
+  ?:  (itype-has-nvar typ)  [%| ["recursive group needs unsupported inference" ~]]
   ?:  |((itype-has-tag typ) (itype-has-hidden-generic typ) (itype-has-hidden-recursive typ) (unsupported-atom-vars typ caps.entry binders.state sub.state))
     [%| ["recursive group needs unsupported inference" ~]]
   =/  free=(list @ud)  (weld (free-env-vars env sub.state) (free-cap-vars caps.outer sub.state))
@@ -8950,6 +9078,7 @@
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
   ?:  ?=(%| -.result)  $(ds t.ds)
+  =.  state.p.result  (promote-restricted-numbers state.p.result env)
   =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
   ?^  (unresolved-hole holes.state.p.result holes.initial state.p.result)  $(ds t.ds)
   ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
@@ -9914,8 +10043,11 @@
   ^-  ifile
   =/  a=itype  [%avar 0]
   =/  pair=itype  [%cell a a]
+  =/  b=itype  [%rvar 0]
+  =/  plus=ischeme  [[%fn [%cell b b] b] ~[0]]
+  =/  minus=ischeme  [[%fn b b] ~[0]]
   =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0]]
-  [~[[%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~]
+  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~]
 ::
 ++  infer-private-internal
   |=  src=@t
@@ -10514,6 +10646,7 @@
     (infer-fragment val.d env initial)
   ?:  ?=(%| -.result)
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
+  =.  state.p.result  (promote-restricted-numbers state.p.result env)
   =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
   =/  hole=(unit idiag)  (unresolved-hole holes.state.p.result holes.initial state.p.result)
   ?^  hole

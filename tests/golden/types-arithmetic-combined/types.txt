@@ -1,0 +1,120 @@
+partial inference; module not checked
+++ inc: $-(A A) where A is an atom other than ?
+++ inc-reverse: $-(A A) where A is an atom other than ?
+++ inc-decimal: @ud
+++ inc-hex: @ux
+++ reverse-decimal: @ud
+++ reverse-hex: @ux
+++ default: @ud
+++ decrease-decimal: @ud
+++ decrease-hex: @ux
+++ bool-add: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:10:14: called gate has type $-([A A] A) where A is an atom other than ?
+++ bool-add (add %.n %.n)
+             ^
+/tests/golden/types-arithmetic-combined/source.jibb:10:18: argument has type ?
+++ bool-add (add %.n %.n)
+                 ^
+++ bool-dec: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:11:14: called gate has type $-(A A) where A is an atom other than ?
+++ bool-dec (dec %.n)
+             ^
+/tests/golden/types-arithmetic-combined/source.jibb:11:18: argument has type ?
+++ bool-dec (dec %.n)
+                 ^
+++ bool-reverse: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:12:18: called gate has type $-([A A] A) where A is an atom other than ?
+++ bool-reverse (add 1 %.y)
+                 ^
+/tests/golden/types-arithmetic-combined/source.jibb:12:22: argument
+++ bool-reverse (add 1 %.y)
+                     ^
+++ bool-inc: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:13:14: called gate has type $-(A A) where A is an atom other than ?
+++ bool-inc (inc %.y)
+             ^
+/tests/golden/types-arithmetic-combined/source.jibb:13:18: argument has type ?
+++ bool-inc (inc %.y)
+                 ^
+++ bool-gate: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:14:22: called gate has type $-(A A) where A is an atom other than ?
+++ bool-gate |= x=? (inc x)
+                     ^
+/tests/golden/types-arithmetic-combined/source.jibb:14:26: argument has type ?
+++ bool-gate |= x=? (inc x)
+                         ^
+++ bool-result: cast mold and expression type do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:15:19: cast mold has type ?
+++ bool-result ^- ? (add 1 1)
+                  ^
+/tests/golden/types-arithmetic-combined/source.jibb:15:21: expression
+++ bool-result ^- ? (add 1 1)
+                    ^
+++ compare-bool: ?
+++ mixed: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:17:11: called gate has type $-([A A] A) where A is an atom other than ?
+++ mixed (add ~zod "hi")
+          ^
+/tests/golden/types-arithmetic-combined/source.jibb:17:15: argument has type [@p @t]
+++ mixed (add ~zod "hi")
+              ^
+++ cells: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:18:11: called gate has type $-([A A] A) where A is an atom other than ?
+++ cells (add [1 2] [3 4])
+          ^
+/tests/golden/types-arithmetic-combined/source.jibb:18:15: argument
+++ cells (add [1 2] [3 4])
+              ^
+++ distinct: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-arithmetic-combined/source.jibb:19:19: first type variable
+++ distinct |= [a=A b=B] (add a b)
+                  ^
+/tests/golden/types-arithmetic-combined/source.jibb:19:23: second type variable
+++ distinct |= [a=A b=B] (add a b)
+                      ^
+++ shared: $-([a=A b=A] A) where A is an atom other than ?
+++ capture: explicit capital constraints are not supported by partial inference
+++ nested: $-(A $-(A A)) where A is an atom other than ?
+++ unrelated: tag needs context in partial inference
+++ identity: $-(A A)
+++ identity-bool: ?
+++ alias-inc: $-(A A) where A is an atom other than ?
+++ alias-decimal: @ud
+++ alias-hex: @ux
+++ alias-bool: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:33:16: called gate has type $-(A A) where A is an atom other than ?
+++ alias-bool (alias-inc %.y)
+               ^
+/tests/golden/types-arithmetic-combined/source.jibb:33:26: argument has type ?
+++ alias-bool (alias-inc %.y)
+                         ^
+++ explicit-loobean-result: cast mold and expression type do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:34:38: cast mold has type ?
+++ explicit-loobean-result |= n=A ^- ? (add n 1)
+                                     ^
+/tests/golden/types-arithmetic-combined/source.jibb:34:40: expression
+++ explicit-loobean-result |= n=A ^- ? (add n 1)
+                                       ^
+++ any-then-bool: call constraint is not supported by partial inference
+++ bool-then-any: call's sample and argument types do not unify
+/tests/golden/types-arithmetic-combined/source.jibb:36:32: called gate has type $-([A A] A) where A is an atom other than ?
+++ bool-then-any |= [b=? x=@] (add b x)
+                               ^
+/tests/golden/types-arithmetic-combined/source.jibb:36:36: argument has type ?
+++ bool-then-any |= [b=? x=@] (add b x)
+                                   ^
+++ any-dec: call constraint is not supported by partial inference
+++ any-plus-number: call constraint is not supported by partial inference
+++ number-plus-any: call constraint is not supported by partial inference
+++ any-self: call constraint is not supported by partial inference
+++ hole-concrete: $-(@ud @ud)
+++ hole-written: $-(A A) where A is an atom other than ?
+++ hole-unresolved: type hole needs unsupported inference
+/tests/golden/types-arithmetic-combined/source.jibb:43:25: type hole
+++ hole-unresolved |= n=_ (add n 1)
+                        ^
+++ standalone: @ud
+++ discarded-number: @ud
+++ numeric-capture: local definitions need unsupported inference
+++ numeric-capture-reversed: local definitions need unsupported inference
+++ bound-later: explicit capital constraints are not supported by partial inference

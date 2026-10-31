@@ -18,7 +18,7 @@ On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treat
 
 ## Questions milestone 2 raises
 
-Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. The numbering is retained so existing references stay valid. Questions 3, 18 and 33 remain open; the field-order detail in question 32 is being clarified. The other questions are settled.
+Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. The numbering is retained so existing references stay valid. Questions 3 and 18 remain open; the field-order detail in question 32 is being clarified. The other questions are settled.
 
 1. **Settled: how the prelude identifies jetted functions.** On 2026-10-30, @iko said the prelude functions have working Jibb implementations, and the compiler recognizes their shapes and uses the Hoon versions so jets can fire.
 2. **Settled: how the prelude keeps helpers private.** On 2026-10-30, @iko chose a separate internal prelude module imported by the prelude, without exposing the imported helpers.
@@ -62,7 +62,7 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking i
 
 32. **Partly settled: type-directed record projection.** On 2026-10-31, @iko chose an explicit `(proj record)` whose expected result type selects the fields. There is no automatic projection, and `proj` is reserved against definitions and imports. The result contains exactly the fields of its expected type. Whether the result may reorder fields from the source remains open.
 
-33. **Watching a request with unknown provenance.** An island cannot watch an API case that needs a separate scry path, but `ask` is transparent and a request can be constructed, selected or passed through a gate. If the checker cannot prove whether a request is watchable, must it reject the watch, or can a runtime check decide? Asked @iko on 2026-10-31; proposed: require proof at compile time, so the stated island restriction holds before execution.
+33. **Settled: watching a request with unknown provenance.** On 2026-10-31, @iko said an island may watch a request only if the checker proves it watchable at compile time. An unknown request, including one built or passed through a gate without sufficient evidence, is rejected rather than deferred to a runtime check.
 
 ## Grammar questions never put to the doc's author
 

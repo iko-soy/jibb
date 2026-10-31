@@ -1,5 +1,6 @@
 partial inference; module not checked
 +$ poke: not checked
++$ qath: not checked
 ++ same: $-(A A)
 ++ head: $-([A B] A)
 ++ tail: $-([A B] B)
@@ -41,6 +42,7 @@ partial inference; module not checked
 ++ snoc: sample mold is not supported by partial inference
 ++ flop: sample mold is not supported by partial inference
 ++ drop: cast mold is not supported by partial inference
+++ bond: $-($-(~ A) $-((unit A) A))
 ++ bind: unit construction needs the standard prelude in partial inference
 ++ biff: $-([(unit A) $-(A (unit B))] (unit B))
 ++ both: unit construction needs the standard prelude in partial inference
@@ -63,3 +65,5 @@ partial inference; module not checked
 ++ curr: $-([$-([A B] C) B] $-(A C))
 +$ cmd: cases proven disjoint; mold not checked
 ++ gth: field access is not supported by partial inference
+++ add: field access is not supported by partial inference
+++ dec: field access is not supported by partial inference

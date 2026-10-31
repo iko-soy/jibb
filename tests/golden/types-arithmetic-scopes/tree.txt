@@ -1,0 +1,108 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (tvar 1:13 A))
+      (group 1:15
+        (call 1:16 (wing 1:16 add) (wing 1:20 n) (lit 1:22 1)))))
+  (value 2:1 inc-r
+    (gate 2:10
+      (face 2:13 n (tvar 2:15 A))
+      (group 2:17
+        (call 2:18 (wing 2:18 add) (lit 2:22 1) (wing 2:24 n)))))
+  (value 3:1 text-case
+    (cast 3:14
+      (aura 3:17 @t)
+      (group 3:20
+        (call 3:21 (wing 3:21 inc) (str 3:25 "x")))))
+  (value 4:1 ship-case
+    (cast 4:14
+      (aura 4:17 @p)
+      (group 4:20
+        (call 4:21 (wing 4:21 inc) (lit 4:25 ~zod)))))
+  (value 5:1 shared-case
+    (gate 5:16
+      (cell 5:19
+        (face 5:20 a (tvar 5:22 A))
+        (face 5:24 b (tvar 5:26 A)))
+      (group 5:29
+        (call 5:30 (wing 5:30 add) (wing 5:34 a) (wing 5:36 b)))))
+  (value 6:1 distinct
+    (gate 6:13
+      (cell 6:16
+        (face 6:17 a (tvar 6:19 A))
+        (face 6:21 b (tvar 6:23 B)))
+      (group 6:26
+        (call 6:27 (wing 6:27 add) (wing 6:31 a) (wing 6:33 b)))))
+  (value 7:1 nested
+    (gate 7:11
+      (face 7:14 n (tvar 7:16 A))
+      (gate 7:18
+        (face 7:21 x (tvar 7:23 A))
+        (group 7:25
+          (call 7:26 (wing 7:26 add) (wing 7:30 n) (lit 7:32 1))))))
+  (value 8:1 local-fresh
+    (gate 8:16
+      (face 8:19 outer (aura 8:25 @t))
+      (body 9:3
+        (value 9:3 inner
+          (gate 9:12
+            (face 9:15 n (tvar 9:17 A))
+            (group 9:19
+              (call 9:20 (wing 9:20 add) (wing 9:24 n) (lit 9:26 1)))))
+        (tuple 10:3
+          (group 10:4
+            (call 10:5 (wing 10:5 inner) (str 10:11 "a")))
+          (group 10:16
+            (call 10:17 (wing 10:17 inner) (lit 10:23 ~zod)))))))
+  (value 11:1 local-capture
+    (gate 11:18
+      (face 11:21 outer (tvar 11:27 A))
+      (body 12:3
+        (value 12:3 inner
+          (gate 12:12
+            (face 12:15 n (tvar 12:17 A))
+            (group 12:19
+              (call 12:20 (wing 12:20 add) (wing 12:24 outer) (lit 12:30 1)))))
+        (group 13:3
+          (call 13:4 (wing 13:4 inner) (wing 13:10 outer))))))
+  (value 14:1 trace-tag
+    (body 15:3
+      (trace 15:3
+        (lit 15:6 %dangling)
+        (body 16:5
+          (group 16:5
+            (call 16:6 (wing 16:6 add) (lit 16:10 1) (lit 16:12 2)))))))
+  (value 17:1 trace-number
+    (body 18:3
+      (trace 18:3
+        (lit 18:6 4)
+        (body 19:5
+          (group 19:5
+            (call 19:6 (wing 19:6 add) (lit 19:10 1) (lit 19:12 2)))))))
+  (value 20:1 recurse
+    (gate 20:12
+      (face 20:15 n (tvar 20:17 A))
+      (group 20:19
+        (call 20:20
+          (wing 20:20 add)
+          (wing 20:24 n)
+          (group 20:26
+            (call 20:27 (wing 20:27 recurse) (wing 20:35 n)))))))
+  (value 21:1 mutual-a
+    (gate 21:13
+      (face 21:16 n (tvar 21:18 A))
+      (group 21:20
+        (call 21:21
+          (wing 21:21 add)
+          (wing 21:25 n)
+          (group 21:27
+            (call 21:28 (wing 21:28 mutual-b) (wing 21:37 n)))))))
+  (value 22:1 mutual-b
+    (gate 22:13
+      (face 22:16 n (tvar 22:18 A))
+      (group 22:20
+        (call 22:21
+          (wing 22:21 add)
+          (wing 22:25 n)
+          (group 22:27
+            (call 22:28 (wing 22:28 mutual-a) (wing 22:37 n))))))))

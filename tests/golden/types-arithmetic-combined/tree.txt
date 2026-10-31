@@ -1,0 +1,232 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (tvar 1:13 A))
+      (group 1:15
+        (call 1:16 (wing 1:16 add) (wing 1:20 n) (lit 1:22 1)))))
+  (value 2:1 inc-reverse
+    (gate 2:16
+      (face 2:19 n (tvar 2:21 A))
+      (group 2:23
+        (call 2:24 (wing 2:24 add) (lit 2:28 1) (wing 2:30 n)))))
+  (value 3:1 inc-decimal
+    (cast 3:16
+      (aura 3:19 @ud)
+      (group 3:23
+        (call 3:24 (wing 3:24 inc) (lit 3:28 2)))))
+  (value 4:1 inc-hex
+    (cast 4:12
+      (aura 4:15 @ux)
+      (group 4:19
+        (call 4:20 (wing 4:20 inc) (lit 4:24 0x2)))))
+  (value 5:1 reverse-decimal
+    (cast 5:20
+      (aura 5:23 @ud)
+      (group 5:27
+        (call 5:28 (wing 5:28 inc-reverse) (lit 5:40 2)))))
+  (value 6:1 reverse-hex
+    (cast 6:16
+      (aura 6:19 @ux)
+      (group 6:23
+        (call 6:24 (wing 6:24 inc-reverse) (lit 6:36 0x2)))))
+  (value 7:1 default
+    (group 7:12
+      (call 7:13 (wing 7:13 add) (lit 7:17 1) (lit 7:19 2))))
+  (value 8:1 decrease-decimal
+    (cast 8:21
+      (aura 8:24 @ud)
+      (group 8:28
+        (call 8:29 (wing 8:29 dec) (lit 8:33 2)))))
+  (value 9:1 decrease-hex
+    (cast 9:17
+      (aura 9:20 @ux)
+      (group 9:24
+        (call 9:25 (wing 9:25 dec) (lit 9:29 0x2)))))
+  (value 10:1 bool-add
+    (group 10:13
+      (call 10:14 (wing 10:14 add) (lit 10:18 %.n) (lit 10:22 %.n))))
+  (value 11:1 bool-dec
+    (group 11:13
+      (call 11:14 (wing 11:14 dec) (lit 11:18 %.n))))
+  (value 12:1 bool-reverse
+    (group 12:17
+      (call 12:18 (wing 12:18 add) (lit 12:22 1) (lit 12:24 %.y))))
+  (value 13:1 bool-inc
+    (group 13:13
+      (call 13:14 (wing 13:14 inc) (lit 13:18 %.y))))
+  (value 14:1 bool-gate
+    (gate 14:14
+      (face 14:17 x (flag 14:19))
+      (group 14:21
+        (call 14:22 (wing 14:22 inc) (wing 14:26 x)))))
+  (value 15:1 bool-result
+    (cast 15:16
+      (flag 15:19)
+      (group 15:21
+        (call 15:22 (wing 15:22 add) (lit 15:26 1) (lit 15:28 1)))))
+  (value 16:1 compare-bool
+    (group 16:17
+      (call 16:18 (wing 16:18 gth) (lit 16:22 %.n) (lit 16:26 %.y))))
+  (value 17:1 mixed
+    (group 17:10
+      (call 17:11 (wing 17:11 add) (lit 17:15 ~zod) (str 17:20 "hi"))))
+  (value 18:1 cells
+    (group 18:10
+      (call 18:11
+        (wing 18:11 add)
+        (tuple 18:15 (lit 18:16 1) (lit 18:18 2))
+        (tuple 18:21 (lit 18:22 3) (lit 18:24 4)))))
+  (value 19:1 distinct
+    (gate 19:13
+      (cell 19:16
+        (face 19:17 a (tvar 19:19 A))
+        (face 19:21 b (tvar 19:23 B)))
+      (group 19:26
+        (call 19:27 (wing 19:27 add) (wing 19:31 a) (wing 19:33 b)))))
+  (value 20:1 shared
+    (gate 20:11
+      (cell 20:14
+        (face 20:15 a (tvar 20:17 A))
+        (face 20:19 b (tvar 20:21 A)))
+      (group 20:24
+        (call 20:25 (wing 20:25 add) (wing 20:29 a) (wing 20:31 b)))))
+  (value 21:1 capture
+    (gate 21:12
+      (face 21:15 n (tvar 21:17 A))
+      (body 22:3
+        (value 22:3 inner
+          (gate 22:12
+            (face 22:15 x (tvar 22:17 A))
+            (group 22:19
+              (call 22:20 (wing 22:20 add) (wing 22:24 n) (lit 22:26 1)))))
+        (group 23:3
+          (call 23:4 (wing 23:4 inner) (wing 23:10 n))))))
+  (value 24:1 nested
+    (gate 24:11
+      (face 24:14 n (tvar 24:16 A))
+      (gate 24:18
+        (face 24:21 x (tvar 24:23 A))
+        (group 24:25
+          (call 24:26 (wing 24:26 add) (wing 24:30 n) (lit 24:32 1))))))
+  (value 25:1 unrelated
+    (body 26:3
+      (trace 26:3
+        (lit 26:6 %dangling)
+        (body 27:5
+          (group 27:5
+            (call 27:6 (wing 27:6 add) (lit 27:10 1) (lit 27:12 2)))))))
+  (value 28:1 identity
+    (gate 28:13
+      (face 28:16 x (tvar 28:18 A))
+      (wing 28:20 x)))
+  (value 29:1 identity-bool
+    (group 29:18
+      (call 29:19 (wing 29:19 identity) (lit 29:28 %.y))))
+  (value 30:1 alias-inc (wing 30:14 inc))
+  (value 31:1 alias-decimal
+    (cast 31:18
+      (aura 31:21 @ud)
+      (group 31:25
+        (call 31:26 (wing 31:26 alias-inc) (lit 31:36 2)))))
+  (value 32:1 alias-hex
+    (cast 32:14
+      (aura 32:17 @ux)
+      (group 32:21
+        (call 32:22 (wing 32:22 alias-inc) (lit 32:32 0x2)))))
+  (value 33:1 alias-bool
+    (group 33:15
+      (call 33:16 (wing 33:16 alias-inc) (lit 33:26 %.y))))
+  (value 34:1 explicit-loobean-result
+    (gate 34:28
+      (face 34:31 n (tvar 34:33 A))
+      (cast 34:35
+        (flag 34:38)
+        (group 34:40
+          (call 34:41 (wing 34:41 add) (wing 34:45 n) (lit 34:47 1))))))
+  (value 35:1 any-then-bool
+    (gate 35:18
+      (cell 35:21
+        (face 35:22 x (aura 35:24 @))
+        (face 35:26 b (flag 35:28)))
+      (group 35:31
+        (call 35:32 (wing 35:32 add) (wing 35:36 x) (wing 35:38 b)))))
+  (value 36:1 bool-then-any
+    (gate 36:18
+      (cell 36:21
+        (face 36:22 b (flag 36:24))
+        (face 36:26 x (aura 36:28 @)))
+      (group 36:31
+        (call 36:32 (wing 36:32 add) (wing 36:36 b) (wing 36:38 x)))))
+  (value 37:1 any-dec
+    (gate 37:12
+      (face 37:15 x (aura 37:17 @))
+      (group 37:19
+        (call 37:20 (wing 37:20 dec) (wing 37:24 x)))))
+  (value 38:1 any-plus-number
+    (gate 38:20
+      (face 38:23 x (aura 38:25 @))
+      (group 38:27
+        (call 38:28 (wing 38:28 add) (wing 38:32 x) (lit 38:34 1)))))
+  (value 39:1 number-plus-any
+    (gate 39:20
+      (face 39:23 x (aura 39:25 @))
+      (group 39:27
+        (call 39:28 (wing 39:28 add) (lit 39:32 1) (wing 39:34 x)))))
+  (value 40:1 any-self
+    (gate 40:13
+      (face 40:16 x (aura 40:18 @))
+      (group 40:20
+        (call 40:21 (wing 40:21 add) (wing 40:25 x) (wing 40:27 x)))))
+  (value 41:1 hole-concrete
+    (gate 41:18
+      (face 41:21 n (hole 41:23))
+      (cast 41:25
+        (aura 41:28 @ud)
+        (group 41:32
+          (call 41:33 (wing 41:33 add) (wing 41:37 n) (lit 41:39 1))))))
+  (value 42:1 hole-written
+    (gate 42:17
+      (face 42:20 n (tvar 42:22 A))
+      (cast 42:24
+        (hole 42:27)
+        (group 42:29
+          (call 42:30 (wing 42:30 add) (wing 42:34 n) (lit 42:36 1))))))
+  (value 43:1 hole-unresolved
+    (gate 43:20
+      (face 43:23 n (hole 43:25))
+      (group 43:27
+        (call 43:28 (wing 43:28 add) (wing 43:32 n) (lit 43:34 1)))))
+  (value 44:1 standalone
+    (group 44:15
+      (call 44:16 (wing 44:16 add) (lit 44:20 1) (lit 44:22 2))))
+  (value 45:1 discarded-number
+    (body 46:3
+      (trace 46:3
+        (lit 46:6 2)
+        (body 47:5
+          (group 47:5
+            (call 47:6 (wing 47:6 add) (lit 47:10 1) (lit 47:12 2)))))))
+  (value 48:1 numeric-capture
+    (gate 48:20
+      (bind 48:23 x)
+      (body 49:3
+        (value 49:3 inner
+          (group 49:12
+            (call 49:13 (wing 49:13 add) (wing 49:17 x) (lit 49:19 1))))
+        (cast 50:3 (aura 50:6 @ux) (wing 50:10 x)))))
+  (value 51:1 numeric-capture-reversed
+    (gate 51:29
+      (bind 51:32 x)
+      (body 52:3
+        (value 52:3 inner
+          (group 52:12
+            (call 52:13 (wing 52:13 add) (lit 52:17 1) (wing 52:19 x))))
+        (cast 53:3 (aura 53:6 @ux) (wing 53:10 x)))))
+  (value 54:1 bound-later
+    (gate 54:16
+      (face 54:19 x (tvar 54:21 A))
+      (body 55:3
+        (value 55:3 inner
+          (group 55:12
+            (call 55:13 (wing 55:13 add) (wing 55:17 x) (lit 55:19 1))))
+        (wing 56:3 x)))))
