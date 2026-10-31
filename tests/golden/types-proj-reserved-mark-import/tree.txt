@@ -1,0 +1,3 @@
+(module
+  (mark 1:1 %proj)
+  (value 2:1 okay (str 2:9 "ok")))

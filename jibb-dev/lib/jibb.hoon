@@ -4614,6 +4614,19 @@
 ::  from their display name. Generic cases must be disjoint for all arguments.
 ::  Unnamed union printing is informational; it is not Jibb syntax.
 ::
+::  `proj` is a reserved, type-directed operation, not an ordinary gate.
+::  The supported fragment selects uniquely faced fields from a known record
+::  in source order (reordering is a doc question). It records the original
+::  call, source and target types, and source axes with its definition;
+::  checked module interfaces retain that evidence and their source, including
+::  the private prelude dependency. A later lowerer must replace the call by
+::  an inline gate applied to the operand once; no lowering is implemented yet.
+::  Ordinary fits never insert a projection. Unknown or variable-origin record
+::  spines, single-item targets, nested projected fields and projections in
+::  recursive groups remain unsupported. Directional fits bound faced-spine
+::  proofs to fewer than 1,024 cells; the projection planner has a separate
+::  4,096-step bound. These are inference limits, not language limits.
+::
 +$  itype
   $~  [%var 0]
   $%  [%var id=@ud]
@@ -5078,6 +5091,18 @@
 ++  itype-fit
   |=  [actual=itype expected=itype sub=isub next=@ud]
   ^-  ifit
+  (itype-fit-inner actual expected sub next | |)
+++  itype-fit-inner
+  |=  [actual=itype expected=itype sub=isub next=@ud skip-width=? spine-proof=?]
+  ^-  ifit
+  ?:  &(!skip-width ?=(%cell -.actual) ?=(%cell -.expected) |((width-spine-exhausted actual 1.024) (width-spine-exhausted expected 1.024)))
+    [%unknown ~]
+  =/  known=(unit [source=iwfields target=iwfields])
+    ?:  skip-width  ~
+    (width-known-shape actual expected sub)
+  =/  too-wide=?  ?~(known | (gth (lent order.source.u.known) (lent order.target.u.known)))
+  ?:  too-wide  [%unknown ~]
+  =/  spine-checked=?  |(spine-proof ?=(^ known))
   =/  uncertain=?
     |(?=(%var -.actual) ?=(%avar -.actual) ?=(%nvar -.actual) ?=(%var -.expected) ?=(%avar -.expected) ?=(%nvar -.expected))
   =/  actual-open=?
@@ -5193,9 +5218,9 @@
     ?:  &((aura-prefix aura.actual aura.expected) uncertain)  [%unknown ~]
     [%bad ~]
   ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
-    =/  first=ifit  $(actual hed.actual, expected hed.expected)
+    =/  first=ifit  $(actual hed.actual, expected hed.expected, skip-width |, spine-proof |)
     ?.  ?=(%ok -.first)  first
-    $(actual tal.actual, expected tal.expected, sub sub.first, next next.first)
+    $(actual tal.actual, expected tal.expected, sub sub.first, next next.first, skip-width spine-checked, spine-proof spine-checked)
   ::  A field may add a face to an occurrence of the very same type
   ::  variable. Binding that variable to a face around itself would fail
   ::  the occurs check, but its underlying type has already matched.
@@ -5217,9 +5242,9 @@
     [%ok u.unified next]
   ?:  &(?=(%face -.actual) ?=(%face -.expected))
     ?.  =(name.actual name.expected)  [%bad ~]
-    $(actual body.actual, expected body.expected)
-  ?:  ?=(%face -.actual)  $(actual body.actual)
-  ?:  ?=(%face -.expected)  $(expected body.expected)
+    $(actual body.actual, expected body.expected, skip-width |, spine-proof |)
+  ?:  ?=(%face -.actual)  $(actual body.actual, skip-width |, spine-proof |)
+  ?:  ?=(%face -.expected)  $(expected body.expected, skip-width |, spine-proof |)
   ?:  (itype-face-asym actual expected sub)  [%unknown ~]
   ?:  |((itype-has-any-atom actual sub) (itype-has-any-atom expected sub))
     [%unknown ~]
@@ -5296,7 +5321,9 @@
 +$  ienv  (list [name=term scheme=ischeme])
 +$  imold-types  (list [name=term template=ischeme])
 +$  iderived  [name=term agent=term mark=term]
-+$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived)]
++$  iwidth-definition  [name=term original=expr typ=itype sub=isub projections=(list iwprojection)]
++$  iwidth-dependency  [at=path source=(unit @t) definitions=(list iwidth-definition)]
++$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t)]
 +$  ijimports  (list [face=term interface=ifile])
 +$  icap  [name=@t id=@ud at=span]
 +$  icaps  (list icap)
@@ -5312,7 +5339,94 @@
 ::  Recursive-mold unfolding spends fuel in the threaded inference state.
 ::  Retries can restart from an earlier state, so this bounds an attempt,
 ::  not all parsing or module-checking work.
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud]
+::  Experimental: only closed, uniquely faced records have known axes.
++$  iwfield  [name=term axis=@ud typ=itype]
++$  iwfields  [order=(list iwfield) index=(map term iwfield)]
++$  iwstep  [name=term axis=@ud]
++$  iwidth-result  [steps=(list iwstep) sub=isub next=@ud]
++$  iwprojection  [at=span original=expr source=itype target=itype steps=(list iwstep)]
+++  width-scan
+  |=  [typ=itype sub=isub axis=@ud fuel=@ud]
+  ^-  (unit iwfields)
+  =/  order=(list iwfield)  ~
+  =/  index=(map term iwfield)  *(map term iwfield)
+  |-
+  ?:  =(0 fuel)  ~
+  ?:  |(?=(%var -.typ) ?=(%avar -.typ) ?=(%nvar -.typ))  ~
+  ?:  ?=(%face -.typ)
+    =/  entry=iwfield  [name.typ axis body.typ]
+    ?:  ?=(^ (~(get by index) name.entry))  ~
+    `[(flop [entry order]) (~(put by index) name.entry entry)]
+  ?.  ?=(%cell -.typ)  ~
+  =/  head=itype  hed.typ
+  ?:  |(?=(%var -.head) ?=(%avar -.head) ?=(%nvar -.head))  ~
+  ?.  ?=(%face -.head)  ~
+  =/  entry=iwfield  [name.head (mul 2 axis) body.head]
+  ?:  ?=(^ (~(get by index) name.entry))  ~
+  $(typ tal.typ, axis +((mul 2 axis)), fuel (dec fuel), order [entry order], index (~(put by index) name.entry entry))
+++  width-in-order
+  |=  [source=(list iwfield) target=(list iwfield)]
+  ^-  ?
+  ?~  target  &
+  ?~  source  |
+  ?:  =(name.i.source name.i.target)  $(source t.source, target t.target)
+  $(source t.source)
+++  width-fit-fields
+  |=  [source=(map term iwfield) target=(list iwfield) sub=isub next=@ud]
+  ^-  (unit iwidth-result)
+  ?~  target  `[~ sub next]
+  =/  found=(unit iwfield)  (~(get by source) name.i.target)
+  ?~  found  ~
+  =/  fit=ifit  (itype-fit typ.u.found typ.i.target sub next)
+  ?.  ?=(%ok -.fit)  ~
+  =/  rest=(unit iwidth-result)  $(target t.target, sub sub.fit, next next.fit)
+  ?~  rest  ~
+  `[[[name.i.target axis.u.found] steps.u.rest] sub.u.rest next.u.rest]
+++  width-spine-exhausted
+  |=  [t=itype fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  &
+  ?.  ?=(%cell -.t)  |
+  ?.  ?=(%face -.hed.t)  |
+  $(t tal.t, fuel (dec fuel))
+++  width-known-shape
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  (unit [source=iwfields target=iwfields])
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  source=(unit iwfields)  (width-scan actual sub 1 1.024)
+  =/  target=(unit iwfields)  (width-scan expected sub 1 1.024)
+  ?~  source  ~
+  ?~  target  ~
+  `[u.source u.target]
+::
+++  width-shape
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  (unit [source=iwfields target=iwfields])
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  source=(unit iwfields)  (width-scan actual sub 1 4.096)
+  =/  target=(unit iwfields)  (width-scan expected sub 1 4.096)
+  ?~  source  ~
+  ?~  target  ~
+  ?.  (gth (lent order.u.source) (lent order.u.target))  ~
+  `[u.source u.target]
+++  width-proj-shape
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  (unit [source=iwfields target=iwfields])
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  source=(unit iwfields)  (width-scan actual sub 1 4.096)
+  =/  target=(unit iwfields)  (width-scan expected sub 1 4.096)
+  ?~  source  ~
+  ?~  target  ~
+  ?:  (lth (lent order.u.source) (lent order.u.target))  ~
+  `[u.source u.target]
+::
+++  width-project
+  |=  [shape=[source=iwfields target=iwfields] sub=isub next=@ud]
+  ^-  (unit iwidth-result)
+  ?.  (width-in-order order.source.shape order.target.shape)  ~
+  (width-fit-fields index.source.shape order.target.shape sub next)
+::
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -6360,12 +6474,12 @@
   ^-  isample-result
   ?-  -.s
     %bind
-      ?:  |(?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
+      ?:  |(=(name.s %proj) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=itype  [%var next.state]
       [%& t [[name.s [t ~]] env] state(next +(next.state), binders [next.state binders.state])]
     %face
-      ?:  |(?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
+      ?:  |(=(name.s %proj) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
       ?~  t  [%| "sample mold is not supported by partial inference"]
@@ -6433,6 +6547,7 @@
   |-
   ?~  ds  &
   ?:  ?=(%mold -.i.ds)  $(ds t.ds)
+  ?:  =(name.i.ds %proj)  |
   ?.  (unique-value-name name.i.ds names)  |
   ?:  ?=(^ (ienv-lookup name.i.ds env))  |
   ?:  (lien globals.state |=(n=term =(n name.i.ds)))  |
@@ -6456,6 +6571,7 @@
   |-
   ?~  locals  &
   =/  n=term  name.i.locals
+  ?:  =(n %proj)  |
   ?.  (unique-value-name n names)  |
   ?:  (lien molds.state |=(m=[name=term body=shape] =(n name.m)))  |
   ?:  (lien marks.state |=(m=term =(n m)))  |
@@ -6972,7 +7088,7 @@
     [%| ["list branch pattern is not supported by partial inference" ~]]
   =/  binder=(unit [head=term tail=term])  ?:(first-empty second-name first-name)
   ?~  binder  [%| ["list branch pattern is not supported by partial inference" ~]]
-  ?:  |(=(head.u.binder tail.u.binder) ?=(^ (ienv-lookup head.u.binder env)) ?=(^ (ienv-lookup tail.u.binder env)) (lien globals.state |=(n=term |(=(n head.u.binder) =(n tail.u.binder)))))
+  ?:  |(=(head.u.binder %proj) =(tail.u.binder %proj) =(head.u.binder tail.u.binder) ?=(^ (ienv-lookup head.u.binder env)) ?=(^ (ienv-lookup tail.u.binder env)) (lien globals.state |=(n=term |(=(n head.u.binder) =(n tail.u.binder)))))
     [%| ["pattern binder shadows a name" ~]]
   =/  extended=ienv  [[head.u.binder [i.args.typ ~]] [tail.u.binder [typ ~]] env]
   =/  left=iresult
@@ -7009,7 +7125,7 @@
     [%| ["unit branch pattern is not supported by partial inference" ~]]
   =/  binder=(unit term)  ?:(first-empty second-name first-name)
   ?~  binder  [%| ["unit branch pattern is not supported by partial inference" ~]]
-  ?:  |(?=(^ (ienv-lookup u.binder env)) (lien globals.state |=(n=term =(n u.binder))))
+  ?:  |(=(u.binder %proj) ?=(^ (ienv-lookup u.binder env)) (lien globals.state |=(n=term =(n u.binder))))
     [%| ["pattern binder shadows a name" ~]]
   =/  payload=(unit itype)  (unit-union-payload typ)
   ?~  payload  [%| ["unit branch subject is not supported by partial inference" ~]]
@@ -7109,7 +7225,7 @@
   ^-  (unit ienv)
   =.  t  ?:(?=(%face -.t) body.t t)
   ?:  ?=(%bind -.p)
-    ?:  |(?=(^ (ienv-lookup name.p env)) (lien globals |=(n=term =(n name.p))))  ~
+    ?:  |(=(name.p %proj) ?=(^ (ienv-lookup name.p env)) (lien globals |=(n=term =(n name.p))))  ~
     `[[name.p [t ~]] env]
   ?:  ?=(%cell -.p)  (union-pattern-bind-items items.p t env globals)
   `env
@@ -7762,6 +7878,9 @@
       =/  value=iresult
         (infer-call-context-arg val.e typ.u.target env state.u.target at.shape.e)
       ?:  ?=(%| -.value)  value
+      =/  shape=(unit [source=iwfields target=iwfields])
+        (width-shape typ.p.value typ.u.target sub.state.p.value)
+      ?^  shape  [%| ["record width constraint needs unsupported inference" ~]]
       =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
       ?:  ?=(%unknown -.fit)  [%| ["cast constraint is not supported by partial inference" ~]]
       ?:  ?=(%bad -.fit)
@@ -7793,6 +7912,8 @@
       [%& [%fn typ.p.sam typ.p.body] state.p.body]
     %call
       ?~  args.e  [%| ["call has no argument" ~]]
+      ?:  (explicit-proj-call e env state)
+        [%| ["proj needs an expected record type" ~]]
       (infer-call-with-head e env state (infer-fragment head.e env state))
     *  [%| ["expression is not supported by partial inference" ~]]
   ==
@@ -7803,6 +7924,20 @@
 ::
 ::  Check a call using the head already inferred in this state.  Keeping
 ::  this shared avoids evaluating or instantiating a contextual head twice.
+++  width-has-projections
+  |=  ps=(list iwprojection)
+  ^-  ?
+  ?~  ps  |
+  &
+::
++$  iwidth-elaboration  [original=expr typ=itype sub=isub projections=(list iwprojection)]
+++  infer-width-elaboration
+  |=  [e=expr env=ienv state=istate]
+  ^-  (each iwidth-elaboration idiag)
+  =/  out=iresult  (infer-fragment e env state)
+  ?:  ?=(%| -.out)  [%| p.out]
+  [%& [e typ.p.out sub.state.p.out (flop projections.state.p.out)]]
+::
 ++  infer-call-with-head
   |=  [e=expr env=ienv state=istate head=iresult]
   ^-  iresult
@@ -7822,7 +7957,13 @@
   =/  st=istate  state.p.arg
   =/  ht=itype  (itype-walk typ.p.head sub.st)
   ?:  ?=(%fn -.ht)
-    =/  fit=ifit  (itype-fit typ.p.arg sample.ht sub.st next.st)
+    =/  shape=(unit [source=iwfields target=iwfields])
+      ?^  t.args.e  ~
+      (width-shape typ.p.arg sample.ht sub.st)
+    ?^  shape  [%| ["record width constraint needs unsupported inference" ~]]
+    =/  fit=ifit
+      ?^  t.args.e  (itype-fit-inner typ.p.arg sample.ht sub.st next.st & |)
+      (itype-fit typ.p.arg sample.ht sub.st next.st)
     ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
     ?:  ?=(%bad -.fit)
       ?~  t.args.e
@@ -7922,6 +8063,87 @@
   ?~  sub  (infer-call-with-head e env state head)
   (infer-call-with-head e env state [%& typ.p.head state.p.head(sub u.sub)])
 ::
+::  An eligible fully faced literal receives context by name, in source order.
+++  width-literal-fields
+  |=  [items=(list item) axis=@ud fuel=@ud]
+  ^-  (unit iwfields)
+  =/  order=(list iwfield)  ~
+  =/  index=(map term iwfield)  *(map term iwfield)
+  |-
+  ?~  items  ~
+  ?:  =(0 fuel)  ~
+  ?~  face.i.items  ~
+  =/  at-axis=@ud  ?~(t.items axis (mul 2 axis))
+  =/  entry=iwfield  [u.face.i.items at-axis [%noun ~]]
+  ?:  ?=(^ (~(get by index) name.entry))  ~
+  =.  index  (~(put by index) name.entry entry)
+  =.  order  [entry order]
+  ?~  t.items  `[(flop order) index]
+  $(items t.items, axis +((mul 2 axis)), fuel (dec fuel))
+++  width-infer-items
+  |=  [items=(list item) expected=(map term iwfield) env=ienv state=istate context=span]
+  ^-  iresult
+  ?~  items  [%| ["empty record is not supported" ~]]
+  ?~  face.i.items  [%| ["record face needs unsupported inference" ~]]
+  =/  field=(unit iwfield)  (~(get by expected) u.face.i.items)
+  =/  head=iresult
+    ?~  field  (infer-fragment val.i.items env state)
+    (infer-call-context-arg val.i.items typ.u.field env state context)
+  ?:  ?=(%| -.head)  head
+  =/  typ=itype  [%face u.face.i.items typ.p.head]
+  ?~  t.items  [%& typ state.p.head]
+  =/  tail=iresult  $(items t.items, state state.p.head)
+  ?:  ?=(%| -.tail)  tail
+  [%& [%cell typ typ.p.tail] state.p.tail]
+++  width-infer-literal
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  (unit iresult)
+  ?.  ?=(%tuple -.e)  ~
+  ?.  ?=(%cell -.expected)  ~
+  =/  source=(unit iwfields)  (width-literal-fields items.e 1 4.096)
+  =/  target=(unit iwfields)  (width-scan expected sub.state 1 4.096)
+  ?~  source  ~
+  ?~  target  ~
+  ?:  (lth (lent order.u.source) (lent order.u.target))  ~
+  ?.  (width-in-order order.u.source order.u.target)
+    `(infer-simple-items items.e env state)
+  `(width-infer-items items.e index.u.target env state context)
+::
+::  Recognize only the reserved unqualified, one-argument operation.
+++  explicit-proj-call
+  |=  [e=expr env=ienv state=istate]
+  ^-  ?
+  ?.  ?=(%call -.e)  |
+  ?.  ?=([* ~] args.e)  |
+  ?.  ?=(%wing -.head.e)  |
+  ?.  =(names.head.e ~[%proj])  |
+  ?:  ?=(^ (ienv-lookup %proj env))  |
+  ?:  (lien globals.state |=(n=term =(n %proj)))  |
+  ?~  prelude.state  &
+  ?:(?=(^ (ienv-lookup %proj values.u.prelude.state)) | &)
+++  infer-proj-source
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?:  ?=(%group -.e)  $(e inner.e)
+  =/  literal=(unit iresult)  (width-infer-literal e expected env state context)
+  ?^  literal  u.literal
+  (infer-fragment e env state)
+++  infer-proj-context
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?>  ?=(%call -.e)
+  ?~  args.e  [%| ["proj needs one record" ~]]
+  ?.  ?=(%cell -.expected)  [%| ["proj needs an expected record type" ~]]
+  =/  value=iresult  (infer-proj-source i.args.e expected env state context)
+  ?:  ?=(%| -.value)  value
+  =/  shape=(unit [source=iwfields target=iwfields])
+    (width-proj-shape typ.p.value expected sub.state.p.value)
+  ?~  shape  [%| ["proj needs a known record containing its expected fields" ~]]
+  =/  project=(unit iwidth-result)  (width-project u.shape sub.state.p.value next.state.p.value)
+  ?~  project  [%| ["proj constraint needs unsupported inference" ~]]
+  =/  st=istate  state.p.value(sub sub.u.project, next next.u.project)
+  [%& expected st(projections [[at.e e typ.p.value expected steps.u.project] projections.st])]
+::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
@@ -7935,6 +8157,8 @@
   =/  target=itype  (itype-walk expected sub.state)
   |-
   ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?:  (explicit-proj-call e env state)
+    (infer-proj-context e expected env state context)
   ::  Only the source-proven one-layer cell is exposed. Each recursive
   ::  descent consumes one written tuple; named values use ordinary fit.
   ?:  &(?=(%jrec -.target) ?=(%lit -.e) =(%null form.lit.e))
@@ -8050,7 +8274,7 @@
   ?~  pats  [%& ~]
   ?.  ?=(%bind -.i.pats)  [%| 'branch pattern is not supported by partial inference']
   =/  name=term  name.i.pats
-  ?:  |(?=(^ (ienv-lookup name env)) (lien globals |=(n=term =(n name))) (lien seen |=(n=term =(n name))))
+  ?:  |(=(name %proj) ?=(^ (ienv-lookup name env)) (lien globals |=(n=term =(n name))) (lien seen |=(n=term =(n name))))
     [%| 'pattern shadows a name']
   =/  rest=(each (list term) @t)  $(pats t.pats, seen [name seen])
   ?:  ?=(%| -.rest)  rest
@@ -8677,6 +8901,8 @@
   =/  body=igate-seeds  (infer-gate-group-bodies entries.p.seeded seeds state.p.seeded)
   ?:  ?=(%| -.body)  body
   ::  Per-member ownership through mutual recursion is not implemented.
+  ?:  !=(projections.state.p.body projections.state)
+    [%| ["record projection in recursive groups needs unsupported inference" ~]]
   ?:  !=(holes.state.p.body holes.state)
     [%| ["holes in recursive groups need unsupported inference" ~]]
   ?:  (pending-tags tags.state.p.body sub.state.p.body)
@@ -8685,16 +8911,32 @@
   ?:  ?=(%| -.schemes)  schemes
   [%& [(weld p.schemes env) state.p.body(globals globals.state)]]
 ::
+++  width-finalize
+  |=  [ps=(list iwprojection) sub=isub visible=(list @ud)]
+  ^-  (unit (list iwprojection))
+  ?~  ps  `~
+  ?:  (lien t.ps |=(p=iwprojection =(at.p at.i.ps)))  ~
+  =/  src=itype  (default-decimals (itype-normalize source.i.ps sub))
+  =/  dst=itype  (default-decimals (itype-normalize target.i.ps sub))
+  ?:  |((itype-has-nvar src) (itype-has-nvar dst) (itype-has-tag src) (itype-has-tag dst))  ~
+  =/  vars=(list @ud)  (weld (itype-vars src) (itype-vars dst))
+  ?.  (levy vars |=(n=@ud (lien visible |=(v=@ud =(n v)))))  ~
+  =/  rest=(unit (list iwprojection))  $(ps t.ps)
+  ?~  rest  ~
+  =/  entry=iwprojection  i.ps
+  =.  entry  entry(source src, target dst)
+  `[entry u.rest]
+::
 ++  add-supported-defs
-  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
-  ^-  ienv
-  ?~  ds  env
+  |=  [ds=(list def) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition)]
+  ^-  [env=ienv artifacts=(list iwidth-definition)]
+  ?~  ds  [env artifacts]
   =/  d=def  i.ds
   ?:  ?=(%mold -.d)  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~]
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
@@ -8707,9 +8949,14 @@
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  $(ds t.ds)
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)  $(ds t.ds)
+  =/  finalized=(unit (list iwprojection))
+    (width-finalize projections.state.p.result sub.state.p.result vars)
+  ?~  finalized  $(ds t.ds)
+  =?  artifacts  ?=(^ u.finalized)
+    [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
   $(ds t.ds, env [[name.d [typ vars]] env])
 ::
-+$  iresolved  [env=ienv grouped=(list term)]
++$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition)]
 +$  iadj  (map term (list term))
 +$  ivisited  (map term ?)
 +$  iwork  (list [name=term done=?])
@@ -8803,9 +9050,9 @@
   (lien (graph-edges i.component graph) |=(x=term =(x i.component)))
 ::
 ++  add-groups
-  |=  [ds=(list def) components=icomponents graph=iadj env=ienv grouped=(list term) state=istate]
+  |=  [ds=(list def) components=icomponents graph=iadj env=ienv grouped=(list term) artifacts=(list iwidth-definition) state=istate]
   ^-  iresolved
-  ?~  components  [env grouped]
+  ?~  components  [env grouped artifacts]
   =/  component=(list term)  i.components
   ?.  (graph-cycle component graph)  $(components t.components)
   ?:  (lien component |=(n=term ?=(^ (ienv-lookup n env))))  $(components t.components)
@@ -8824,17 +9071,19 @@
   ^-  iresolved
   =/  env=ienv  ~
   =/  grouped=(list term)  ~
+  =/  artifacts=(list iwidth-definition)  ~
   =/  names=(list term)  (global-value-names ds)
   =/  nameset=ivisited  (graph-nameset names ~)
   =/  graph=iadj  (graph-make-forward ds nameset ~)
   =/  components=icomponents  (graph-components ds names)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   |-
-  =/  next=ienv  (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256]
-  =/  out=iresolved  (add-groups ds components graph next grouped initial)
+  =/  next=[env=ienv artifacts=(list iwidth-definition)]
+    (add-supported-defs ds env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts)
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~]
+  =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
   ?:  =(env env.out)  out
-  $(env env.out, grouped grouped.out)
+  $(env env.out, grouped grouped.out, artifacts artifacts.out)
 ::
 ++  resolve-supported-defs
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
@@ -9485,6 +9734,60 @@
     ==
   [n $(imports t.imports)]
 ::
+++  reserved-proj-sample
+  |=  sam=sample
+  ^-  ?
+  ?-  -.sam
+    %bind  =(name.sam %proj)
+    %face  =(name.sam %proj)
+    %pun   =(name.sam %proj)
+    %cell  (lien items.sam reserved-proj-sample)
+    *  |
+  ==
+++  reserved-proj-pattern
+  |=  p=pattern
+  ^-  ?
+  ?-  -.p
+    %bind  =(name.p %proj)
+    %cell  (lien items.p reserved-proj-pattern)
+    *  |
+  ==
+++  reserved-proj-def
+  |=  d=def
+  ^-  ?
+  ?:  =(name.d %proj)  &
+  ?:  ?=(%value -.d)  (reserved-proj-expr val.d)
+  |
+++  reserved-proj-expr
+  |=  e=expr
+  ^-  ?
+  ?-  -.e
+    %str  (lien pieces.e |=(p=piece ?:(?=(%expr -.p) (reserved-proj-expr p.p) |)))
+    %qath  (lien segs.e |=(p=qseg ?:(?=(%expr -.p) (reserved-proj-expr p.p) |)))
+    %change  (lien edits.e |=(p=edit (reserved-proj-expr val.p)))
+    %pair  $(e val.e)
+    %unit  $(e val.e)
+    %group  $(e inner.e)
+    %list  (lien items.e reserved-proj-expr)
+    %tuple  (lien items.e |=(i=item (reserved-proj-expr val.i)))
+    ?(%gate %gate-wide)  |((reserved-proj-sample sample.e) $(e body.e))
+    %cast  $(e val.e)
+    %call  |($(e head.e) (lien args.e reserved-proj-expr))
+    %trace  |($(e val.e) $(e then.e))
+    %branch  |($(e subject.e) (lien arms.e |=(a=arm |((reserved-proj-pattern pat.a) (reserved-proj-expr val.a)))))
+    %body  |((lien defs.e reserved-proj-def) $(e final.e))
+    *  |
+  ==
+::
+++  module-has-reserved-proj
+  |=  mod=module
+  ^-  ?
+  =/  imported=(list term)  (import-binding-names imports.mod)
+  =/  vals=(list term)  (global-value-names defs.mod)
+  =/  molds=imolds  (collect-simple-molds defs.mod)
+  =/  mold-names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  |((lien (weld imported (weld vals mold-names)) |=(n=term =(n %proj))) (lien defs.mod reserved-proj-def))
+::
 ++  module-scope-valid
   |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
   ^-  ?
@@ -9492,6 +9795,7 @@
   =/  vals=(list term)  (global-value-names defs.mod)
   =/  molds=imolds  (collect-simple-molds defs.mod)
   =/  mold-names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  ?:  (module-has-reserved-proj mod)  |
   ?.  %+  levy  imported
       |=  n=term
       &((unique-value-name n imported) !(lien vals |=(v=term =(n v))) !(lien mold-names |=(m=term =(n m))) !(lien prelude-values |=(v=term =(n v))) !(lien prelude-molds |=(m=term =(n m))))
@@ -9602,7 +9906,7 @@
   =/  a=itype  [%avar 0]
   =/  pair=itype  [%cell a a]
   =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0]]
-  [~[[%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~]
+  [~[[%raw-gth greater]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~]
 ::
 ++  infer-private-internal
   |=  src=@t
@@ -9626,12 +9930,13 @@
   =/  js=ijimports  ~[[face.i.imports.mod private-primitive-interface]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256]
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  ~
-  =/  env=ienv  (resolve-supported-defs defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
+  =/  resolution=iresolved  (resolve-groups defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
+  =/  env=ienv  env.resolution
   ?.  (module-values-complete defs.mod env)  ~
-  `[env p.mts at ~]
+  `[env p.mts at ~ artifacts.resolution ~ `src]
 ::
 ++  partial-prelude-interface-with-internal
   |=  [src=@t internal-source=(unit @t)]
@@ -9664,16 +9969,16 @@
   =?  env-molds  declared
     (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
   =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256]
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~]
   ::  Other prelude molds may use list only after its source has passed
   ::  the standard-list check. The raw declaration remains removed.
   =/  declared-list=(unit shape)  (find-simple-mold %list molds)
   =/  mold-prelude=(unit ifile)
     ?~  declared-list  ~
     ?.  (standard-prelude-list u.declared-list)  ~
-    `[~ ~[[%list [[%collection %list ~[[%var 0]]] ~[0]]]] at ~]
+    `[~ ~[[%list [[%collection %list ~[[%var 0]]] ~[0]]]] at ~ ~ ~ ~]
   =/  mt=imold-types  (partial-prelude-molds molds state(prelude mold-prelude))
-  =/  partial=ifile  [~ mt at ~]
+  =/  partial=ifile  [~ mt at ~ ~ ~ ~]
   ::  An explicitly qualified re-export must resolve. Other unsupported
   ::  prelude declarations remain reserved but absent from the interface.
   =/  required=imolds
@@ -9684,9 +9989,13 @@
     ?~  names.sh  |
     ?=(^ t.names.sh)
   ?.  (levy required |=(m=[name=term body=shape] ?=(^ (find-jibb-mold name.m partial))))  ~
-  =/  env=ienv  (resolve-supported-defs ds env-molds globals ~ ~ ~ ~ u.private reserved at `partial)
+  =/  resolution=iresolved  (resolve-groups ds env-molds globals ~ ~ ~ ~ u.private reserved at `partial)
+  =/  env=ienv  env.resolution
   ?.  (hole-values-present ds env)  ~
-  `[env mt at ~]
+  =/  deps=(list iwidth-dependency)
+    ?~  u.private  ~
+    ~[[at.interface.i.u.private source.interface.i.u.private elaborations.interface.i.u.private]]
+  `[env mt at ~ artifacts.resolution deps `src]
 ::
 ++  partial-prelude-interface
   |=  src=@t
@@ -9891,6 +10200,7 @@
   ^-  ?
   =/  path-names=(list term)  (turn paths |=(p=iapi-path name.p))
   =/  derived=(list term)  (weld path-names poke-names)
+  ?:  (lien derived |=(n=term =(n %proj)))  |
   =/  outer=(list term)  (weld prelude-values (weld (global-value-names defs.mod) (api-import-faces imports.mod)))
   (levy derived |=(n=term &((unique-value-name n derived) !(lien outer |=(x=term =(n x))))))
 ::
@@ -10022,7 +10332,7 @@
   =/  mark=(unit itype)  (find-imported-mark n mark-externals marks)
   ?~  mark  ~
   =/  sc=ischeme  [[%fn u.mark typ.u.poke] ~]
-  `[~[[n sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]]]
+  `[~[[n sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]] ~ ~ ~]
 ::
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
@@ -10035,7 +10345,8 @@
   ?:  ?=([%ui %api *] at)
     =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
     ?~  iface  [%| (crip "API module needs unsupported inference: {(spud at)}")]
-    [%& [u.iface [[at u.iface] cache]]]
+    =/  checked=ifile  u.iface(source `src)
+    [%& [checked [[at checked] cache]]]
   ?.  (module-scope-valid mod prelude-values prelude-molds)
     ?:  (pending-declared-poke at mod prelude-values prelude-molds)
       [%| (crip "module kind or scope needs unsupported inference: {(spud at)}")]
@@ -10051,13 +10362,15 @@
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
-  =/  env=ienv  (resolve-supported-defs defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
+  =/  resolution=iresolved  (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
+  =/  env=ienv  env.resolution
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
-  [%& [[env p.mts at ~] [[at [env p.mts at ~]] cache.p.js]]]
+  =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src]
+  [%& [iface [[at iface] cache.p.js]]]
 ::
 ::  +golden-types-with-modules fails closed for imports without prelude
 ::  scope. +golden-types-with-prelude resolves supported library graphs;
@@ -10155,6 +10468,8 @@
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
   =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
   ?^  duplicate  (duplicate-fields-report file src u.duplicate)
+  ?:  (module-has-reserved-proj p.parsed)
+    'module has reserved proj name'
   =/  ds=(list def)  defs.p.parsed
   =/  molds=imolds  (collect-simple-molds ds)
   =/  globals=(list term)  (weld prelude-values (weld (turn jimports |=(j=[face=term interface=ifile] face.j)) (global-value-names ds)))
@@ -10182,7 +10497,7 @@
     =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
     $(ds t.ds, lines [line lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~]
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult
     ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
@@ -10216,6 +10531,8 @@
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?:  (gth (lent vars) 26)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: too many variables for partial printer") lines])
+  ?~  (width-finalize projections.state.p.result sub.state.p.result vars)
+    $(ds t.ds, lines [(crip "++ {(trip name.d)}: record projection elaboration needs unsupported inference") lines])
   =/  printable=itype  (canonical-itype typ vars)
   =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}{(show-atom-constraint printable)}")
   $(ds t.ds, lines [line lines])

@@ -1,0 +1,31 @@
+(module
+  (mold 1:1 action
+    (union 2:3 (const 2:3 %proj) (const 3:3 %other)))
+  (value 4:1 projection
+    (gate 4:15
+      (face 4:18 x (aura 4:20 @t))
+      (wing 4:23 x)))
+  (value 5:1 label
+    (gate 5:10
+      (face 5:13 x
+        (cell 5:15
+          (face 5:16 proj (aura 5:21 @t))
+          (face 5:24 other (aura 5:30 @p))))
+      (wing 5:34 proj.x)))
+  (value 6:1 tag
+    (cast 6:8 (ref 6:11 action) (lit 6:18 %proj)))
+  (value 7:1 use
+    (cast 7:8
+      (cell 7:11
+        (face 7:12 a (aura 7:14 @t))
+        (face 7:17 b (aura 7:19 @p)))
+      (group 7:23
+        (call 7:24
+          (wing 7:24 proj)
+          (tuple 7:29
+            (face 7:30 a (str 7:32 "hi"))
+            (face 7:37 b (lit 7:39 ~zod))
+            (face 7:44 c (lit 7:46 %.y)))))))
+  (value 8:1 similar
+    (group 8:12
+      (call 8:13 (wing 8:13 projection) (str 8:24 "okay")))))

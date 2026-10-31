@@ -1,0 +1,6 @@
+++ outer |= n=@t
+  ++ unused |= pair=[@t @p]
+    ?- pair
+      [proj other] (unknown %orphan)
+  n
+++ okay "ok"

@@ -1,0 +1,3 @@
+++ okay |= x=[@t @p]
+  ?- x
+    [proj other] proj

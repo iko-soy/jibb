@@ -1,0 +1,10 @@
+1:1 glyph ++
+1:4 name okay
+2:3 INDENT
+2:3 glyph +$
+2:6 name proj
+2:11 aura @t
+3:3 NEWLINE
+3:3 str "ok"
+3:7 DEDENT
+3:7 NEWLINE

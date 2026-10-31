@@ -1,0 +1,31 @@
+partial inference; module not checked
+++ choose: $-([a=@t b=@p] @t)
+++ source: $-(@t [a=@t [b=@p c=?]])
+++ trace-extra: $-(@t @t)
+++ direct: [a=@t b=@p]
+++ from-call: [a=@t b=@p]
+++ into-call: @t
+++ nested: proj needs an expected record type
+++ generic: $-(A [a=@t b=A])
+++ no-context: proj needs an expected record type
+++ unknown-target: proj needs an expected record type
+++ missing: proj constraint needs unsupported inference
+++ incompatible: proj constraint needs unsupported inference
+++ trace-extra-field: [a=@t b=@p]
+++ pending-tag: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference
+++ positional: name is not available to partial inference
+++ not-record: proj needs a known record containing its expected fields
+++ bare-cast: record width constraint needs unsupported inference
+++ bare-call: record width constraint needs unsupported inference
+++ bare-result: record width constraint needs unsupported inference
+++ bare: name is not available to partial inference
+++ alias: name is not available to partial inference
+++ alias-use: name is not available to partial inference
+++ two-arguments: name is not available to partial inference
+++ one-field: proj needs an expected record type
+++ exact-record: [a=@t b=@p]
+++ positional-generic: $-([a=@t b=A] @t)
+++ positional-generic-call: @t
+++ subsequence: [a=@t c=?]
+++ reversed: proj constraint needs unsupported inference

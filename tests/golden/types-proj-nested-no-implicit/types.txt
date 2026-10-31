@@ -1,0 +1,7 @@
+partial inference; module not checked
+++ sink-unit: $-((unit [a=@t b=A]) @t)
+++ unit-bad: unit payload constraint is not supported by partial inference
+++ sink-list: $-((list [a=@t b=A]) @t)
+++ list-bad: list item constraint is not supported by partial inference
+++ sink-nested: $-([one=[a=@t b=A] other=@ud] @t)
+++ nested-bad: call constraint is not supported by partial inference

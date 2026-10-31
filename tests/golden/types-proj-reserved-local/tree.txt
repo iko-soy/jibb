@@ -1,0 +1,8 @@
+(module
+  (value 1:1 okay
+    (body 2:3
+      (value 2:3 proj
+        (gate 2:11
+          (face 2:14 x (aura 2:16 @t))
+          (wing 2:19 x)))
+      (str 3:3 "ok"))))

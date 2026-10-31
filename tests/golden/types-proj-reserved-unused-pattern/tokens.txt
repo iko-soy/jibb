@@ -1,0 +1,38 @@
+1:1 glyph ++
+1:4 name outer
+1:10 glyph |=
+1:13 name n
+1:14 tight glyph =
+1:15 tight aura @t
+2:3 INDENT
+2:3 glyph ++
+2:6 name unused
+2:13 glyph |=
+2:16 name pair
+2:20 tight glyph =
+2:21 tight glyph [
+2:22 tight aura @t
+2:25 aura @p
+2:27 tight glyph ]
+3:5 INDENT
+3:5 glyph ?-
+3:8 name pair
+4:7 INDENT
+4:7 glyph [
+4:8 tight name proj
+4:13 name other
+4:18 tight glyph ]
+4:20 glyph (
+4:21 tight name unknown
+4:29 lit %orphan
+4:36 tight glyph )
+5:3 DEDENT
+5:3 DEDENT
+5:3 NEWLINE
+5:3 name n
+6:1 DEDENT
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name okay
+6:9 str "ok"
+6:13 NEWLINE

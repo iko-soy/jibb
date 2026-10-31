@@ -1,0 +1,6 @@
+++ outer |= n=@t
+  ++ unused
+    ++ proj |= x=@t x
+    (unknown %orphan)
+  n
+++ okay "ok"

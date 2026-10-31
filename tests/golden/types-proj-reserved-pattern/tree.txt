@@ -1,0 +1,11 @@
+(module
+  (value 1:1 okay
+    (gate 1:9
+      (face 1:12 x
+        (cell 1:14 (aura 1:15 @t) (aura 1:18 @p)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 x)
+          (arm 3:5
+            (cell 3:5 (bind 3:6 proj) (bind 3:11 other))
+            (wing 3:18 proj)))))))

@@ -1,0 +1,70 @@
+1:1 glyph +$
+1:4 name action
+2:3 INDENT
+2:3 lit %proj
+3:3 NEWLINE
+3:3 lit %other
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name projection
+4:15 glyph |=
+4:18 name x
+4:19 tight glyph =
+4:20 tight aura @t
+4:23 name x
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name label
+5:10 glyph |=
+5:13 name x
+5:14 tight glyph =
+5:15 tight glyph [
+5:16 tight name proj
+5:20 tight glyph =
+5:21 tight aura @t
+5:24 name other
+5:29 tight glyph =
+5:30 tight aura @p
+5:32 tight glyph ]
+5:34 wing proj.x
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name tag
+6:8 glyph ^-
+6:11 name action
+6:18 lit %proj
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name use
+7:8 glyph ^-
+7:11 glyph [
+7:12 tight name a
+7:13 tight glyph =
+7:14 tight aura @t
+7:17 name b
+7:18 tight glyph =
+7:19 tight aura @p
+7:21 tight glyph ]
+7:23 glyph (
+7:24 tight name proj
+7:29 glyph [
+7:30 tight name a
+7:31 tight glyph =
+7:32 tight str "hi"
+7:37 name b
+7:38 tight glyph =
+7:39 tight lit ~zod
+7:44 name c
+7:45 tight glyph =
+7:46 tight lit %.y
+7:49 tight glyph ]
+7:50 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name similar
+8:12 glyph (
+8:13 tight name projection
+8:24 str "okay"
+8:30 tight glyph )
+8:31 NEWLINE

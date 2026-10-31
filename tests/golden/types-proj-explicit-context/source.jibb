@@ -1,0 +1,35 @@
+:: Explicit proj selects fields from its expected result type.
+:: The operation is reserved; direct calls do not insert a projection.
+++ choose |= x=[a=@t b=@p] a.x
+++ source |= x=@t [a=x b=~zod c=%.y]
+++ trace-extra |= x=@t
+  ~& "extra"
+    x
+++ direct ^- [a=@t b=@p] (proj [a="hi" b=~zod c=%.y])
+++ from-call ^- [a=@t b=@p] (proj (source "hi"))
+++ into-call (choose (proj [a="hi" b=~zod c=%.y]))
+++ nested ^- [result=[a=@t b=@p] done=?] [result=(proj [a="hi" b=~zod c=%.y]) done=%.y]
+++ generic |= x=B ^- [a=@t b=B] (proj [a="hi" b=x c=%.y])
+++ no-context (proj [a="hi" b=~zod c=%.y])
+++ unknown-target |= x (proj x)
+++ missing ^- [a=@t b=@p] (proj [a="hi" c=%.y d=~zod])
+++ incompatible ^- [a=@t b=@p] (proj [a="hi" b="wrong" c=%.y])
+++ trace-extra-field ^- [a=@t b=@p] (proj [a="hi" b=~zod c=(trace-extra "once")])
+++ pending-tag ^- [a=@t b=@p] (proj [a="hi" b=~zod c=%orphan])
+++ pending-null ^- [a=@t b=@p] (proj [a="hi" b=~zod c=~])
+++ positional ^- [a=@t b=@p] (proj "hi" ~zod %.y)
+++ not-record ^- [a=@t b=@p] (proj "hi")
+:: The user chose explicit proj; implicit projection must be rejected.
+++ bare-cast ^- [a=@t b=@p] [a="hi" b=~zod c=%.y]
+++ bare-call (choose [a="hi" b=~zod c=%.y])
+++ bare-result |= x=@t ^- [a=@t b=@p] (source x)
+++ bare proj
+++ alias proj
+++ alias-use ^- [a=@t b=@p] (alias [a="hi" b=~zod c=%.y])
+++ two-arguments ^- [a=@t b=@p] (proj [a="hi" b=~zod c=%.y] [a="x" b=~zod c=%.y])
+++ one-field ^- [a=@t] (proj [a="hi" b=~zod c=%.y])
+++ exact-record ^- [a=@t b=@p] (proj [a="hi" b=~zod])
+++ positional-generic |= [a=@t b=B] a
+++ positional-generic-call (positional-generic "hi" ~zod %.y)
+++ subsequence ^- [a=@t c=?] (proj [a="hi" b=~zod c=%.y])
+++ reversed ^- [b=@p a=@t] (proj [a="hi" b=~zod c=%.y])

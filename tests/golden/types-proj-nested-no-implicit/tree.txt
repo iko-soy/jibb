@@ -1,0 +1,56 @@
+(module
+  (value 1:1 sink-unit
+    (gate 1:14
+      (face 1:17 v
+        (apply 1:19 unit
+          (cell 1:25
+            (face 1:26 a (aura 1:28 @t))
+            (face 1:31 b (tvar 1:33 B)))))
+      (str 1:37 "ok")))
+  (value 2:1 unit-bad
+    (group 2:13
+      (call 2:14
+        (wing 2:14 sink-unit)
+        (unit 2:24
+          (tuple 2:25
+            (face 2:26 a (str 2:28 "x"))
+            (face 2:32 b (lit 2:34 ~zod))
+            (face 2:39 c (lit 2:41 %.y)))))))
+  (value 3:1 sink-list
+    (gate 3:14
+      (face 3:17 v
+        (apply 3:19 list
+          (cell 3:25
+            (face 3:26 a (aura 3:28 @t))
+            (face 3:31 b (tvar 3:33 B)))))
+      (str 3:37 "ok")))
+  (value 4:1 list-bad
+    (group 4:13
+      (call 4:14
+        (wing 4:14 sink-list)
+        (list 4:24
+          (tuple 4:26
+            (face 4:27 a (str 4:29 "x"))
+            (face 4:33 b (lit 4:35 ~zod))
+            (face 4:40 c (lit 4:42 %.y)))))))
+  (value 5:1 sink-nested
+    (gate 5:16
+      (face 5:19 v
+        (cell 5:21
+          (face 5:22 one
+            (cell 5:26
+              (face 5:27 a (aura 5:29 @t))
+              (face 5:32 b (tvar 5:34 B))))
+          (face 5:37 other (aura 5:43 @ud))))
+      (str 5:48 "ok")))
+  (value 6:1 nested-bad
+    (group 6:15
+      (call 6:16
+        (wing 6:16 sink-nested)
+        (tuple 6:28
+          (face 6:29 one
+            (tuple 6:33
+              (face 6:34 a (str 6:36 "x"))
+              (face 6:40 b (lit 6:42 ~zod))
+              (face 6:47 c (lit 6:49 %.y))))
+          (face 6:54 other (lit 6:60 0)))))))

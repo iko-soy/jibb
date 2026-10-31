@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Records and tuples: "The explicit type-directed operation `(proj record)` selects fields from its argument according to the expected result type" and "`proj` is reserved: a module cannot define or import another name `proj`".
+tests: A reachable imported module cannot define proj, even if the definition is unused.
+expect: parses
+expect-types: a partial inference report

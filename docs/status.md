@@ -21,7 +21,7 @@ On 2026-10-30, @iko decided that Jibb drops `$?`, so a `+$` takes a union's case
 
 The parser accepts `_` in mold positions and typed path segments, retaining each hole’s span. The partial checker tracks ordinary annotation holes through inference and requires each value or local definition to resolve its own holes before generalization. A hole can resolve to a concrete type or an explicitly written in-scope type variable; later uses cannot fix an unresolved definition. Independent decimal holes can default, but captured variables are not defaulted prematurely. Structural named molds with an unresolved hole report its site. Complex mold forms, inferred path segments, mutual recursive groups and other unsupported constraints still fail closed, and the fragment does not claim the module is checked. A syntax-tree pass rejects duplicate field names within each written record and reports both sites. The repository spec now records that `ask` and `qath` are transparent; `ask` remains outstanding.
 
-On 2026-10-31, @iko chose explicit, result-directed `(proj record)` to construct a record with exactly the expected fields, and reserved `proj` against definitions and imports. The repository spec records this change; projection-aware type checking and lowering are not implemented yet.
+On 2026-10-31, @iko chose explicit, result-directed `(proj record)` to construct a record with exactly the expected fields, and reserved `proj` against definitions and imports. The partial checker handles selected explicit calls with known, closed record types, records field-selection evidence for later lowering, and reserves the name across source bindings. Reordered fields, one-field results, some nested contexts and several open or recursive cases remain unsupported; lowering and execution are not implemented yet. The field-order question remains open.
 
 The internal prelude also defines `qath` as a transparent recursive knot sequence, re-exported by the public prelude. The partial checker recognizes its source identity, supports selected null/cell construction and matching, and types static application-path literals. Other recursive shapes, broader patterns and dynamic application-path segments remain unsupported. A 256-step limit applies per inference attempt, not to parsing or retries; checking routes and static files remains milestone 4. `ask` is still unfinished.
 
@@ -45,8 +45,8 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 608 golden cases: 388 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 608-case corpus passed under `urbit eval` in 80.7 s while other checks were running. The fake ship passed all 621 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole and qath guards, with 49.9 s for sync and 65.2 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- 624 golden cases: 404 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 624-case corpus passed under `urbit eval` in 82.3 s while other checks were running. The fake ship passed all 638 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath and projection guards, with 53.5 s for sync and 38.0 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -127,14 +127,15 @@ Besides the plan's list:
 | e3e184f | 2026-10-31 | Parse type holes, reject duplicate written record fields, and extend partial union inference and imports |
 | 80e221a | 2026-10-31 | Infer supported annotation holes and prelude list aliases |
 | ba1fec4 | 2026-10-31 | Add the curried `bond` prelude gate |
-| This change | 2026-10-31 | Infer a source-defined recursive `qath` subset and record the explicit `proj` decision |
+| 0ea700d | 2026-10-31 | Infer a source-defined recursive `qath` subset and record the explicit `proj` decision |
+| This change | 2026-10-31 | Check a subset of explicit `proj` calls and retain their lowering evidence |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 608 cases under urbit eval
+tools/golden                      # 624 cases under urbit eval
 tools/importer-test               # the Hoon importer fixture projection
 tools/type-import-test            # the importer/checker bridge fixture
 tools/type-tlon-test              # the real Tlon reader/checker fixture
@@ -144,13 +145,14 @@ tools/type-api-paths-test         # partial API path metadata fixture
 tools/type-hole-guards-test       # hole defaulting and API interface guards
 tools/type-list-alias-test        # prelude list-alias guards
 tools/type-qath-guards-test       # qath source and unfolding guards
+tools/type-proj-guards-test       # projection evidence and scope guards
 tools/type-module-scope-test      # module and prelude scope fixture
 tools/hoon check-spans-test       # prints <<>> when the span checker works
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 608 cases as -test arms on the ship
+tools/ship test                   # the same 624 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
 tools/ship check-commit           # |commit stores .jibb files

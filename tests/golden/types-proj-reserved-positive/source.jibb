@@ -1,0 +1,8 @@
++$ action
+  %proj
+  %other
+++ projection |= x=@t x
+++ label |= x=[proj=@t other=@p] proj.x
+++ tag ^- action %proj
+++ use ^- [a=@t b=@p] (proj [a="hi" b=~zod c=%.y])
+++ similar (projection "okay")

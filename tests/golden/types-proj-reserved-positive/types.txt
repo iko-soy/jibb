@@ -1,0 +1,7 @@
+partial inference; module not checked
++$ action: cases proven disjoint; mold not checked
+++ projection: $-(@t @t)
+++ label: $-([proj=@t other=@p] @t)
+++ tag: action
+++ use: [a=@t b=@p]
+++ similar: @t

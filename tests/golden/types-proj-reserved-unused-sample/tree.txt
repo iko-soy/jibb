@@ -1,0 +1,12 @@
+(module
+  (value 1:1 outer
+    (gate 1:10
+      (face 1:13 n (aura 1:15 @t))
+      (body 2:3
+        (value 2:3 unused
+          (gate 2:13
+            (face 2:16 proj (aura 2:21 @p))
+            (group 2:24
+              (call 2:25 (wing 2:25 unknown) (lit 2:33 %orphan)))))
+        (wing 3:3 n))))
+  (value 4:1 okay (str 4:9 "ok")))

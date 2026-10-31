@@ -1,0 +1,6 @@
+++ sink-unit |= v=(unit [a=@t b=B]) "ok"
+++ unit-bad (sink-unit `[a="x" b=~zod c=%.y])
+++ sink-list |= v=(list [a=@t b=B]) "ok"
+++ list-bad (sink-list ~[[a="x" b=~zod c=%.y]])
+++ sink-nested |= v=[one=[a=@t b=B] other=@ud] "ok"
+++ nested-bad (sink-nested [one=[a="x" b=~zod c=%.y] other=0])

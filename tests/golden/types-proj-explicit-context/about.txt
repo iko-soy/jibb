@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Records and tuples: "The explicit type-directed operation `(proj record)` selects fields from its argument according to the expected result type" and "`proj` is reserved: a module cannot define or import another name `proj`".
+tests: Result casts, call context, generic fields, exact-width records, a discarded effect and pending tags/null. Bare or aliased proj, wrong arity, nested record context, single-field targets, incompatible or missing fields and absent target context currently fail closed. A multi-argument generic-tail call retains ordinary right-nested semantics without projection. The current implementation accepts a same-order subsequence and fails closed on reversed fields while field-order semantics are pending.
+expect: parses
+expect-types: a partial inference report

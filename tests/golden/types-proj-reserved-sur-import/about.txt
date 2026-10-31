@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Records and tuples: "The explicit type-directed operation `(proj record)` selects fields from its argument according to the expected result type" and "`proj` is reserved: a module cannot define or import another name `proj`".
+tests: A Hoon sur import face named proj is rejected.
+expect: parses
+expect-types: a partial inference report

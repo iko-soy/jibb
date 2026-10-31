@@ -1,4 +1,4 @@
 source: Grammar, Literals by context: tags and null take their type from context; Molds: faces are part of record types and distinct specific auras do not unify.
-tests: Context passes through nested faced records to union tags, lists and case constructors. Wrong tags, faces, counts, later list items, repeated generic parameters and constructors fail with sites. An unknown callee and unrelated pending tag or null remain unresolved.
+tests: Context passes through nested faced records to union tags, lists and case constructors. Wrong tags, faces, counts, later list items, repeated generic parameters and constructors fail with sites where a mismatch is proved. The extra-field case now reports unsupported: the partial checker cannot prove a cell-shaped tail cannot fit a list. An unknown callee and unrelated pending tag or null remain unresolved.
 expect: parses
 expect-types: a partial inference report

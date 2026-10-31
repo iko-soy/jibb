@@ -16,13 +16,7 @@ partial inference; module not checked
 /tests/golden/types-tuple-context-nested/source.jibb:7:19: argument
 ++ bad-face (take [wrong=%go xs=~])
                   ^
-++ extra: call's sample and argument types do not unify
-/tests/golden/types-tuple-context-nested/source.jibb:8:11: called gate
-++ extra (take [payload=%go xs=~ extra="x"])
-          ^
-/tests/golden/types-tuple-context-nested/source.jibb:8:16: argument
-++ extra (take [payload=%go xs=~ extra="x"])
-               ^
+++ extra: record width constraint needs unsupported inference
 ++ nest: $-([data=[payload=msg xs=(list @t)] z=@p] [data=[payload=msg xs=(list @t)] z=@p])
 ++ nested: [data=[payload=msg xs=(list @t)] z=@p]
 ++ unconstrained: `~` needs context in partial inference

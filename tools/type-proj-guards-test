@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+"""Run the shared proj lowering and API reservation guards under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+tests = (root / 'tests/lib/jibb-proj-guards.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  real-prelude=@t  prelude\n'
+              '=/  real-internal=@t  internal\n=/  suite\n' + tests +
+              '\n=/  failures=(list tape)  proj-guard-errors:suite\n^-  @t\n'
+              "?~  failures  'proj guards passed'\n"
+              '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-proj-guards-') as tmp:
+    program = Path(tmp) / 'guards.hoon'
+    program.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(program),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'proj guards passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('proj lowering and API reservation guards passed')

@@ -1,0 +1,7 @@
+1:1 glyph /%
+1:4 lit %proj
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name okay
+2:9 str "ok"
+2:13 NEWLINE

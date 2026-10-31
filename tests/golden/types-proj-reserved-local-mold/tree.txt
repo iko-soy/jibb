@@ -1,0 +1,5 @@
+(module
+  (value 1:1 okay
+    (body 2:3
+      (mold 2:3 proj (aura 2:11 @t))
+      (str 3:3 "ok"))))
