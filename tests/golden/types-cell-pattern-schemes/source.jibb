@@ -1,0 +1,23 @@
++$ union
+  [%go @t @p]
+  %stop
+++ maybe-union |= x=union
+  ?- x
+    [a b c] a
+++ maybe-list |= x=(list @t)
+  ?- x
+    [a b c] a
+++ identity |= x
+  ?- x
+    [a b c] [a b c]
+++ text (identity "hi" ~zod %.y)
+++ ship (identity ~zod "hi" %.n)
+++ shared |= x=[A A A]
+  ?- x
+    [a b c] [a b c]
+++ wrong (shared "hi" ~zod "ok")
+++ local-shadow |= outer=@t
+  ++ local |= x=[@t @p ?]
+    ?- x
+      [a outer c] c
+  (local ["x" ~zod %.n])

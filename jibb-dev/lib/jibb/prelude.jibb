@@ -170,7 +170,7 @@
 
 ++ clap |= args=[(unit A) (unit A) $-([A A] A)]
   ?- args
-    [first second combine]
+    [first second combine] ^- (unit A)
       ?- first
         ~ second
         [~ a]
@@ -180,7 +180,7 @@
 
 ++ clef |= args=[(unit A) (unit B) $-([A B] (unit C))]
   ?- args
-    [first second combine]
+    [first second combine] ^- (unit C)
       ?- first
         ~ ~
         [~ a]

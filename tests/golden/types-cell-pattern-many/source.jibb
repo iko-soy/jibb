@@ -1,0 +1,41 @@
+++ three |= args=[@t @p ?]
+  ?- args
+    [a b c] c
+++ four |= args=[@t @p ? @ux]
+  ?- args
+    [a b c d] d
+++ rest |= args=[@t @p [? @ux]]
+  ?- args
+    [a b c] c
+++ infer |= x
+  ?- x
+    [a b c] [c b a]
+++ duplicate |= args=[@t @p ?]
+  ?- args
+    [a b a] a
+++ shadow |= args=[@t @p ?]
+  ?- args
+    [args b c] b
+++ prelude-shadow |= args=[@t @p ?]
+  ?- args
+    [a not c] c
+++ atom |= args=@t
+  ?- args
+    [a b c] a
+++ too-many |= args=[@t @p]
+  ?- args
+    [a b c] a
+++ record |= args=[a=@t b=@p c=?]
+  ?- args
+    [a b c] a
+++ nested |= args=[@t [@p ?] @ux]
+  ?- args
+    [a [b c] d] d
+++ wildcard |= args=[@t @p ?]
+  ?- args
+    [a * c] c
+++ pending |= args=[@t @p ?]
+  ?- args
+    [a b c]
+      ~& %unused
+        c

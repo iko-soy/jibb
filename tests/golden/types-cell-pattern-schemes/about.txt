@@ -1,0 +1,4 @@
+source: Grammar, Patterns: a name binds anew and the last position of a cell pattern binds the rest; Modules: no name may shadow one already in scope.
+tests: A complete single-arm cell pattern of binders follows the right-nested cell spine, preserving polymorphism and the final tail. Duplicate or shadowed binders and definite non-cell subjects fail; uncertain union/collection spines and other patterns stay unsupported.
+expect: parses
+expect-types: a partial inference report

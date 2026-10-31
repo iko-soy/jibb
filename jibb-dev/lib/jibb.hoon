@@ -7336,8 +7336,43 @@
   ?:  ?=(%| -.tail)  tail
   [%& [%cell ht typ.p.tail] state.p.tail]
 ::
-::  A single two-binder cell pattern covers every value of a cell type.
-::  No other pattern matrix is implemented here.
+::  A single all-binder cell pattern covers a known cell spine; the final
+::  binder captures the remaining noun. Other pattern matrices stay partial.
+::
+::  Validate binders before reading the subject, preserving shadow-error
+::  precedence. The last binder receives the entire remaining tail.
+++  cell-pattern-names
+  |=  [pats=(list pattern) env=ienv globals=(list term) seen=(list term)]
+  ^-  (each (list term) @t)
+  ?~  pats  [%& ~]
+  ?.  ?=(%bind -.i.pats)  [%| 'branch pattern is not supported by partial inference']
+  =/  name=term  name.i.pats
+  ?:  |(?=(^ (ienv-lookup name env)) (lien globals |=(n=term =(n name))) (lien seen |=(n=term =(n name))))
+    [%| 'pattern shadows a name']
+  =/  rest=(each (list term) @t)  $(pats t.pats, seen [name seen])
+  ?:  ?=(%| -.rest)  rest
+  [%& [name p.rest]]
+::
+++  cell-pattern-types
+  |=  [names=(list term) env=ienv next=@ud]
+  ^-  [typ=itype env=ienv next=@ud]
+  ?~  names  !!
+  =/  head=itype  [%var next]
+  =/  scope=ienv  [[i.names [head ~]] env]
+  ?~  t.names  [head scope +(next)]
+  =/  tail=[typ=itype env=ienv next=@ud]  $(names t.names, env scope, next +(next))
+  [[%cell head typ.tail] env.tail next.tail]
+::
+::  At every position that must be a cell, opaque or sum types may still
+::  contain cells. Do not report a definite mismatch without unfolding them.
+++  cell-pattern-spine-unknown
+  |=  [typ=itype names=(list term) sub=isub]
+  ^-  ?
+  ?~  names  |
+  ?~  t.names  |
+  =.  typ  (itype-walk typ sub)
+  ?:  ?=(%cell -.typ)  $(typ tal.typ, names t.names)
+  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
 ::
 ++  infer-cell-branch
   |=  [e=expr env=ienv state=istate]
@@ -7349,25 +7384,22 @@
   =/  pats=(list pattern)  items.pat.arm
   ?~  pats  [%| ["branch pattern is not supported by partial inference" ~]]
   ?~  t.pats  [%| ["branch pattern is not supported by partial inference" ~]]
-  ?^  t.t.pats  [%| ["branch pattern is not supported by partial inference" ~]]
-  ?.  ?=(%bind -.i.pats)  [%| ["branch pattern is not supported by partial inference" ~]]
-  ?.  ?=(%bind -.i.t.pats)  [%| ["branch pattern is not supported by partial inference" ~]]
-  =/  one=term  name.i.pats
-  =/  two=term  name.i.t.pats
-  ?:  |(=(one two) ?=(^ (ienv-lookup one env)) ?=(^ (ienv-lookup two env)) (lien globals.state |=(x=term |(=(x one) =(x two)))))
-    [%| ["pattern shadows a name" ~]]
+  =/  names=(each (list term) @t)  (cell-pattern-names pats env globals.state ~)
+  ?:  ?=(%| -.names)  [%| [(trip p.names) ~]]
   =/  subject=iresult  (infer-fragment subject.e env state)
   ?:  ?=(%| -.subject)  subject
   =/  st=istate  state.p.subject
-  ?:  (itype-has-recursive (itype-normalize typ.p.subject sub.st))
+  =/  subject-type=itype  (itype-normalize typ.p.subject sub.st)
+  ?:  (itype-has-recursive subject-type)
     [%| ["recursive pattern is not supported by partial inference" ~]]
   ?:  (itype-has-face typ.p.subject sub.st)
     [%| ["record patterns are not supported by partial inference" ~]]
-  =/  head=itype  [%var next.st]
-  =/  tail=itype  [%var +(next.st)]
-  =/  sub=(unit isub)  (itype-unify typ.p.subject [%cell head tail] sub.st)
+  ?:  (cell-pattern-spine-unknown subject-type p.names sub.st)
+    [%| ["cell pattern subject is not supported by partial inference" ~]]
+  =/  binders=[typ=itype env=ienv next=@ud]  (cell-pattern-types p.names env next.st)
+  =/  sub=(unit isub)  (itype-unify typ.p.subject typ.binders sub.st)
   ?~  sub  [%| ["cell pattern does not match the subject type" ~]]
-  (infer-fragment val.arm [[one [head ~]] [two [tail ~]] env] st(next (add 2 next.st), sub u.sub))
+  (infer-fragment val.arm env.binders st(next next.binders, sub u.sub))
 ::
 ++  show-itype
   |=  [t=itype sub=isub]

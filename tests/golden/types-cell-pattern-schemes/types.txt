@@ -1,0 +1,16 @@
+partial inference; module not checked
++$ union: cases proven disjoint; mold not checked
+++ maybe-union: cell pattern subject is not supported by partial inference
+++ maybe-list: cell pattern subject is not supported by partial inference
+++ identity: $-([A [B C]] [A [B C]])
+++ text: [@t [@p ?]]
+++ ship: [@p [@t ?]]
+++ shared: $-([A [A A]] [A [A A]])
+++ wrong: call's sample and argument types do not unify
+/tests/golden/types-cell-pattern-schemes/source.jibb:18:11: called gate has type $-([A [A A]] [A [A A]])
+++ wrong (shared "hi" ~zod "ok")
+          ^
+/tests/golden/types-cell-pattern-schemes/source.jibb:18:23: argument has type @p
+++ wrong (shared "hi" ~zod "ok")
+                      ^
+++ local-shadow: local definitions need unsupported inference

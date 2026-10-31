@@ -1,0 +1,144 @@
+(module
+  (value 1:1 three
+    (gate 1:10
+      (face 1:13 args
+        (cell 1:18 (aura 1:19 @t) (aura 1:22 @p) (flag 1:25)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 args)
+          (arm 3:5
+            (cell 3:5 (bind 3:6 a) (bind 3:8 b) (bind 3:10 c))
+            (wing 3:13 c))))))
+  (value 4:1 four
+    (gate 4:9
+      (face 4:12 args
+        (cell 4:17 (aura 4:18 @t) (aura 4:21 @p) (flag 4:24) (aura 4:26 @ux)))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 args)
+          (arm 6:5
+            (cell 6:5 (bind 6:6 a) (bind 6:8 b) (bind 6:10 c) (bind 6:12 d))
+            (wing 6:15 d))))))
+  (value 7:1 rest
+    (gate 7:9
+      (face 7:12 args
+        (cell 7:17
+          (aura 7:18 @t)
+          (aura 7:21 @p)
+          (cell 7:24 (flag 7:25) (aura 7:27 @ux))))
+      (body 8:3
+        (branch 8:3
+          (wing 8:6 args)
+          (arm 9:5
+            (cell 9:5 (bind 9:6 a) (bind 9:8 b) (bind 9:10 c))
+            (wing 9:13 c))))))
+  (value 10:1 infer
+    (gate 10:10
+      (bind 10:13 x)
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 x)
+          (arm 12:5
+            (cell 12:5 (bind 12:6 a) (bind 12:8 b) (bind 12:10 c))
+            (tuple 12:13 (wing 12:14 c) (wing 12:16 b) (wing 12:18 a)))))))
+  (value 13:1 duplicate
+    (gate 13:14
+      (face 13:17 args
+        (cell 13:22 (aura 13:23 @t) (aura 13:26 @p) (flag 13:29)))
+      (body 14:3
+        (branch 14:3
+          (wing 14:6 args)
+          (arm 15:5
+            (cell 15:5 (bind 15:6 a) (bind 15:8 b) (bind 15:10 a))
+            (wing 15:13 a))))))
+  (value 16:1 shadow
+    (gate 16:11
+      (face 16:14 args
+        (cell 16:19 (aura 16:20 @t) (aura 16:23 @p) (flag 16:26)))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 args)
+          (arm 18:5
+            (cell 18:5 (bind 18:6 args) (bind 18:11 b) (bind 18:13 c))
+            (wing 18:16 b))))))
+  (value 19:1 prelude-shadow
+    (gate 19:19
+      (face 19:22 args
+        (cell 19:27 (aura 19:28 @t) (aura 19:31 @p) (flag 19:34)))
+      (body 20:3
+        (branch 20:3
+          (wing 20:6 args)
+          (arm 21:5
+            (cell 21:5 (bind 21:6 a) (bind 21:8 not) (bind 21:12 c))
+            (wing 21:15 c))))))
+  (value 22:1 atom
+    (gate 22:9
+      (face 22:12 args (aura 22:17 @t))
+      (body 23:3
+        (branch 23:3
+          (wing 23:6 args)
+          (arm 24:5
+            (cell 24:5 (bind 24:6 a) (bind 24:8 b) (bind 24:10 c))
+            (wing 24:13 a))))))
+  (value 25:1 too-many
+    (gate 25:13
+      (face 25:16 args
+        (cell 25:21 (aura 25:22 @t) (aura 25:25 @p)))
+      (body 26:3
+        (branch 26:3
+          (wing 26:6 args)
+          (arm 27:5
+            (cell 27:5 (bind 27:6 a) (bind 27:8 b) (bind 27:10 c))
+            (wing 27:13 a))))))
+  (value 28:1 record
+    (gate 28:11
+      (face 28:14 args
+        (cell 28:19
+          (face 28:20 a (aura 28:22 @t))
+          (face 28:25 b (aura 28:27 @p))
+          (face 28:30 c (flag 28:32))))
+      (body 29:3
+        (branch 29:3
+          (wing 29:6 args)
+          (arm 30:5
+            (cell 30:5 (bind 30:6 a) (bind 30:8 b) (bind 30:10 c))
+            (wing 30:13 a))))))
+  (value 31:1 nested
+    (gate 31:11
+      (face 31:14 args
+        (cell 31:19
+          (aura 31:20 @t)
+          (cell 31:23 (aura 31:24 @p) (flag 31:27))
+          (aura 31:30 @ux)))
+      (body 32:3
+        (branch 32:3
+          (wing 32:6 args)
+          (arm 33:5
+            (cell 33:5
+              (bind 33:6 a)
+              (cell 33:8 (bind 33:9 b) (bind 33:11 c))
+              (bind 33:14 d))
+            (wing 33:17 d))))))
+  (value 34:1 wildcard
+    (gate 34:13
+      (face 34:16 args
+        (cell 34:21 (aura 34:22 @t) (aura 34:25 @p) (flag 34:28)))
+      (body 35:3
+        (branch 35:3
+          (wing 35:6 args)
+          (arm 36:5
+            (cell 36:5 (bind 36:6 a) (any 36:8) (bind 36:10 c))
+            (wing 36:13 c))))))
+  (value 37:1 pending
+    (gate 37:12
+      (face 37:15 args
+        (cell 37:20 (aura 37:21 @t) (aura 37:24 @p) (flag 37:27)))
+      (body 38:3
+        (branch 38:3
+          (wing 38:6 args)
+          (arm 39:5
+            (cell 39:5 (bind 39:6 a) (bind 39:8 b) (bind 39:10 c))
+            (body 40:7
+              (trace 40:7
+                (lit 40:10 %unused)
+                (body 41:9 (wing 41:9 c))))))))))

@@ -3,8 +3,8 @@ partial inference; module not checked
 ++ bind-ship: (unit @p)
 ++ biff-text: (unit @t)
 ++ both-mixed: (unit [@t @p])
-++ clap-text: name is not available to partial inference
-++ clef-mixed: name is not available to partial inference
+++ clap-text: (unit @t)
+++ clef-mixed: (unit @t)
 ++ flit-text: (unit @t)
 ++ wrong: call's sample and argument types do not unify
 /tests/golden/types-prelude-unit-helpers/source.jibb:8:11: called gate
@@ -14,3 +14,13 @@ partial inference; module not checked
 ++ wrong (bind `~zod |=(x=@t x))
                      ^
 ++ pending: tag needs context in partial inference
+++ clap-ship: (unit @p)
+++ clef-ship: (unit @p)
+++ clap-bad: unit payload does not fit its expected type
+/tests/golden/types-prelude-unit-helpers/source.jibb:14:14: expected unit payload has type @t
+++ clap-bad (clap `"hi" `~zod |=(p=[@t @t] "yes"))
+             ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:14:26: payload has type @p
+++ clap-bad (clap `"hi" `~zod |=(p=[@t @t] "yes"))
+                         ^
+++ clef-bad: call constraint is not supported by partial inference

@@ -1074,6 +1074,11 @@
 173:12 name second
 173:19 name combine
 173:26 tight glyph ]
+173:28 glyph ^-
+173:31 glyph (
+173:32 tight name unit
+173:37 tvar A
+173:38 tight glyph )
 174:7 INDENT
 174:7 glyph ?-
 174:10 name first
@@ -1143,6 +1148,11 @@
 183:12 name second
 183:19 name combine
 183:26 tight glyph ]
+183:28 glyph ^-
+183:31 glyph (
+183:32 tight name unit
+183:37 tvar C
+183:38 tight glyph )
 184:7 INDENT
 184:7 glyph ?-
 184:10 name first

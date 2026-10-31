@@ -1,0 +1,18 @@
+++ pair |= x=[@t (list @p)]
+  ?- x
+    [first rest] rest
+++ split |= x=[@t (list @p)]
+  ?- x
+    [first second third] third
++$ either
+  [%go @p @t]
+  %stop
+++ pair-union |= x=[@t either]
+  ?- x
+    [first rest] rest
+++ split-union |= x=[@t either]
+  ?- x
+    [first second third] third
+++ malformed |= x=[@t @p]
+  ?- x
+    [first second third] third

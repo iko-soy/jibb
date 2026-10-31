@@ -442,21 +442,23 @@
           (wing 172:6 args)
           (arm 173:5
             (cell 173:5 (bind 173:6 first) (bind 173:12 second) (bind 173:19 combine))
-            (body 174:7
-              (branch 174:7
-                (wing 174:10 first)
-                (arm 175:9 (lit 175:9 ~) (wing 175:11 second))
-                (arm 176:9
-                  (cell 176:9 (lit 176:10 ~) (bind 176:12 a))
-                  (body 177:11
-                    (branch 177:11
-                      (wing 177:14 second)
-                      (arm 178:13 (lit 178:13 ~) (wing 178:15 first))
-                      (arm 179:13
-                        (cell 179:13 (lit 179:14 ~) (bind 179:16 b))
-                        (unit 179:19
-                          (group 179:20
-                            (call 179:21 (wing 179:21 combine) (wing 179:29 a) (wing 179:31 b)))))))))))))))
+            (cast 173:28
+              (apply 173:31 unit (tvar 173:37 A))
+              (body 174:7
+                (branch 174:7
+                  (wing 174:10 first)
+                  (arm 175:9 (lit 175:9 ~) (wing 175:11 second))
+                  (arm 176:9
+                    (cell 176:9 (lit 176:10 ~) (bind 176:12 a))
+                    (body 177:11
+                      (branch 177:11
+                        (wing 177:14 second)
+                        (arm 178:13 (lit 178:13 ~) (wing 178:15 first))
+                        (arm 179:13
+                          (cell 179:13 (lit 179:14 ~) (bind 179:16 b))
+                          (unit 179:19
+                            (group 179:20
+                              (call 179:21 (wing 179:21 combine) (wing 179:29 a) (wing 179:31 b))))))))))))))))
   (value 181:1 clef
     (gate 181:9
       (face 181:12 args
@@ -471,20 +473,22 @@
           (wing 182:6 args)
           (arm 183:5
             (cell 183:5 (bind 183:6 first) (bind 183:12 second) (bind 183:19 combine))
-            (body 184:7
-              (branch 184:7
-                (wing 184:10 first)
-                (arm 185:9 (lit 185:9 ~) (lit 185:11 ~))
-                (arm 186:9
-                  (cell 186:9 (lit 186:10 ~) (bind 186:12 a))
-                  (body 187:11
-                    (branch 187:11
-                      (wing 187:14 second)
-                      (arm 188:13 (lit 188:13 ~) (lit 188:15 ~))
-                      (arm 189:13
-                        (cell 189:13 (lit 189:14 ~) (bind 189:16 b))
-                        (group 189:19
-                          (call 189:20 (wing 189:20 combine) (wing 189:28 a) (wing 189:30 b))))))))))))))
+            (cast 183:28
+              (apply 183:31 unit (tvar 183:37 C))
+              (body 184:7
+                (branch 184:7
+                  (wing 184:10 first)
+                  (arm 185:9 (lit 185:9 ~) (lit 185:11 ~))
+                  (arm 186:9
+                    (cell 186:9 (lit 186:10 ~) (bind 186:12 a))
+                    (body 187:11
+                      (branch 187:11
+                        (wing 187:14 second)
+                        (arm 188:13 (lit 188:13 ~) (lit 188:15 ~))
+                        (arm 189:13
+                          (cell 189:13 (lit 189:14 ~) (bind 189:16 b))
+                          (group 189:19
+                            (call 189:20 (wing 189:20 combine) (wing 189:28 a) (wing 189:30 b)))))))))))))))
   (value 191:1 skim
     (gate 191:9
       (face 191:12 args

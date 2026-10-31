@@ -1,0 +1,59 @@
+(module
+  (value 1:1 pair
+    (gate 1:9
+      (face 1:12 x
+        (cell 1:14
+          (aura 1:15 @t)
+          (apply 1:18 list (aura 1:24 @p))))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 x)
+          (arm 3:5
+            (cell 3:5 (bind 3:6 first) (bind 3:12 rest))
+            (wing 3:18 rest))))))
+  (value 4:1 split
+    (gate 4:10
+      (face 4:13 x
+        (cell 4:15
+          (aura 4:16 @t)
+          (apply 4:19 list (aura 4:25 @p))))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 x)
+          (arm 6:5
+            (cell 6:5 (bind 6:6 first) (bind 6:12 second) (bind 6:19 third))
+            (wing 6:26 third))))))
+  (mold 7:1 either
+    (union 8:3
+      (cell 8:3 (const 8:4 %go) (aura 8:8 @p) (aura 8:11 @t))
+      (const 9:3 %stop)))
+  (value 10:1 pair-union
+    (gate 10:15
+      (face 10:18 x
+        (cell 10:20 (aura 10:21 @t) (ref 10:24 either)))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 x)
+          (arm 12:5
+            (cell 12:5 (bind 12:6 first) (bind 12:12 rest))
+            (wing 12:18 rest))))))
+  (value 13:1 split-union
+    (gate 13:16
+      (face 13:19 x
+        (cell 13:21 (aura 13:22 @t) (ref 13:25 either)))
+      (body 14:3
+        (branch 14:3
+          (wing 14:6 x)
+          (arm 15:5
+            (cell 15:5 (bind 15:6 first) (bind 15:12 second) (bind 15:19 third))
+            (wing 15:26 third))))))
+  (value 16:1 malformed
+    (gate 16:14
+      (face 16:17 x
+        (cell 16:19 (aura 16:20 @t) (aura 16:23 @p)))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 x)
+          (arm 18:5
+            (cell 18:5 (bind 18:6 first) (bind 18:12 second) (bind 18:19 third))
+            (wing 18:26 third)))))))

@@ -126,6 +126,84 @@
 11:17 glyph `
 11:18 tight lit ~zod
 11:22 tight glyph )
-11:23 DEDENT
-11:23 DEDENT
-11:23 NEWLINE
+12:1 DEDENT
+12:1 DEDENT
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name clap-ship
+12:14 glyph (
+12:15 tight name clap
+12:20 glyph `
+12:21 tight lit ~zod
+12:26 glyph `
+12:27 tight lit ~bus
+12:32 glyph |=(
+12:35 tight name p
+12:36 tight glyph =
+12:37 tight glyph [
+12:38 tight aura @p
+12:41 aura @p
+12:43 tight glyph ]
+12:45 lit ~zod
+12:49 tight glyph )
+12:50 tight glyph )
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name clef-ship
+13:14 glyph (
+13:15 tight name clef
+13:20 glyph `
+13:21 tight str "hi"
+13:26 glyph `
+13:27 tight lit ~zod
+13:32 glyph |=(
+13:35 tight name p
+13:36 tight glyph =
+13:37 tight glyph [
+13:38 tight aura @t
+13:41 aura @p
+13:43 tight glyph ]
+13:45 glyph `
+13:46 tight lit ~zod
+13:50 tight glyph )
+13:51 tight glyph )
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name clap-bad
+14:13 glyph (
+14:14 tight name clap
+14:19 glyph `
+14:20 tight str "hi"
+14:25 glyph `
+14:26 tight lit ~zod
+14:31 glyph |=(
+14:34 tight name p
+14:35 tight glyph =
+14:36 tight glyph [
+14:37 tight aura @t
+14:40 aura @t
+14:42 tight glyph ]
+14:44 str "yes"
+14:49 tight glyph )
+14:50 tight glyph )
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name clef-bad
+15:13 glyph (
+15:14 tight name clef
+15:19 glyph `
+15:20 tight str "hi"
+15:25 glyph `
+15:26 tight lit ~zod
+15:31 glyph |=(
+15:34 tight name p
+15:35 tight glyph =
+15:36 tight glyph [
+15:37 tight aura @p
+15:40 aura @t
+15:42 tight glyph ]
+15:44 glyph `
+15:45 tight str "ok"
+15:49 tight glyph )
+15:50 tight glyph )
+15:51 NEWLINE

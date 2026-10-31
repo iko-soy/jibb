@@ -1,0 +1,126 @@
+1:1 glyph ++
+1:4 name pair
+1:9 glyph |=
+1:12 name x
+1:13 tight glyph =
+1:14 tight glyph [
+1:15 tight aura @t
+1:18 glyph (
+1:19 tight name list
+1:24 aura @p
+1:26 tight glyph )
+1:27 tight glyph ]
+2:3 INDENT
+2:3 glyph ?-
+2:6 name x
+3:5 INDENT
+3:5 glyph [
+3:6 tight name first
+3:12 name rest
+3:16 tight glyph ]
+3:18 name rest
+4:1 DEDENT
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name split
+4:10 glyph |=
+4:13 name x
+4:14 tight glyph =
+4:15 tight glyph [
+4:16 tight aura @t
+4:19 glyph (
+4:20 tight name list
+4:25 aura @p
+4:27 tight glyph )
+4:28 tight glyph ]
+5:3 INDENT
+5:3 glyph ?-
+5:6 name x
+6:5 INDENT
+6:5 glyph [
+6:6 tight name first
+6:12 name second
+6:19 name third
+6:24 tight glyph ]
+6:26 name third
+7:1 DEDENT
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name either
+8:3 INDENT
+8:3 glyph [
+8:4 tight lit %go
+8:8 aura @p
+8:11 aura @t
+8:13 tight glyph ]
+9:3 NEWLINE
+9:3 lit %stop
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name pair-union
+10:15 glyph |=
+10:18 name x
+10:19 tight glyph =
+10:20 tight glyph [
+10:21 tight aura @t
+10:24 name either
+10:30 tight glyph ]
+11:3 INDENT
+11:3 glyph ?-
+11:6 name x
+12:5 INDENT
+12:5 glyph [
+12:6 tight name first
+12:12 name rest
+12:16 tight glyph ]
+12:18 name rest
+13:1 DEDENT
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name split-union
+13:16 glyph |=
+13:19 name x
+13:20 tight glyph =
+13:21 tight glyph [
+13:22 tight aura @t
+13:25 name either
+13:31 tight glyph ]
+14:3 INDENT
+14:3 glyph ?-
+14:6 name x
+15:5 INDENT
+15:5 glyph [
+15:6 tight name first
+15:12 name second
+15:19 name third
+15:24 tight glyph ]
+15:26 name third
+16:1 DEDENT
+16:1 DEDENT
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name malformed
+16:14 glyph |=
+16:17 name x
+16:18 tight glyph =
+16:19 tight glyph [
+16:20 tight aura @t
+16:23 aura @p
+16:25 tight glyph ]
+17:3 INDENT
+17:3 glyph ?-
+17:6 name x
+18:5 INDENT
+18:5 glyph [
+18:6 tight name first
+18:12 name second
+18:19 name third
+18:24 tight glyph ]
+18:26 name third
+18:31 DEDENT
+18:31 DEDENT
+18:31 NEWLINE

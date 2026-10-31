@@ -9,3 +9,7 @@
 ++ pending
   ~& %open
     (both `"hi" `~zod)
+++ clap-ship (clap `~zod `~bus |=(p=[@p @p] ~zod))
+++ clef-ship (clef `"hi" `~zod |=(p=[@t @p] `~zod))
+++ clap-bad (clap `"hi" `~zod |=(p=[@t @t] "yes"))
+++ clef-bad (clef `"hi" `~zod |=(p=[@p @t] `"ok"))

@@ -20,7 +20,7 @@ Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold 
 
 `biff`, `bind`, `bond`, `both`, `clap`, `clef`, `drop`, `fall`, `flit`, `hunt`, `lift`, `mate`, `need`, `some`.
 
-The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `both` and `flit`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. Backend validation remains outstanding for all of them.
+The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `both`, `clap`, `clef` and `flit`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. Backend validation remains outstanding for all of them.
 
 | Name | Hoon behavior | Jibb status |
 | --- | --- | --- |

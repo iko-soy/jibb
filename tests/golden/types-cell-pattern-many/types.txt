@@ -1,0 +1,14 @@
+partial inference; module not checked
+++ three: $-([@t [@p ?]] ?)
+++ four: $-([@t [@p [? @ux]]] @ux)
+++ rest: $-([@t [@p [? @ux]]] [? @ux])
+++ infer: $-([A [B C]] [C [B A]])
+++ duplicate: pattern shadows a name
+++ shadow: pattern shadows a name
+++ prelude-shadow: pattern shadows a name
+++ atom: cell pattern does not match the subject type
+++ too-many: cell pattern does not match the subject type
+++ record: record patterns are not supported by partial inference
+++ nested: branch pattern is not supported by partial inference
+++ wildcard: branch pattern is not supported by partial inference
+++ pending: tag needs context in partial inference

@@ -1,0 +1,7 @@
+partial inference; module not checked
+++ pair: $-([@t (list @p)] (list @p))
+++ split: cell pattern subject is not supported by partial inference
++$ either: cases proven disjoint; mold not checked
+++ pair-union: $-([@t either] either)
+++ split-union: cell pattern subject is not supported by partial inference
+++ malformed: cell pattern does not match the subject type
