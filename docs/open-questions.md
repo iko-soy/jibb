@@ -64,6 +64,8 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking i
 
 33. **Settled: watching a request with unknown provenance.** On 2026-10-31, @iko said an island may watch a request only if the checker proves it watchable at compile time. An unknown request, including one built or passed through a gate without sufficient evidence, is rejected rather than deferred to a runtime check.
 
+34. **Settled: constructors and equal noun literals.** On 2026-10-31, @iko said expressions with the same runtime representation count as equal, and cases that cannot be distinguished at runtime are rejected at compile time. Thus `|=%$` matches a case headed by `%$`, `%.y` or `~`: each is the noun 0. Cases with equal heads and overlapping payloads cannot coexist in a union.
+
 ## Grammar questions never put to the doc's author
 
 In milestone 1 the parser met about thirty places where the doc could be read more than one way. Twelve went to @iko on 2026-10-30 and are rows of the Decisions tab. These were not asked. For each, the parser follows the reading below, and some are marked "(doc question)" in the library's notes. None changes what a valid program means, except where a reading makes something an error.

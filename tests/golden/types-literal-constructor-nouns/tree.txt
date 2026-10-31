@@ -1,0 +1,78 @@
+(module
+  (mold 1:1 null-head
+    (cell 1:14
+      (const 1:15 ~)
+      (face 1:17 value (aura 1:23 @t))))
+  (mold 2:1 flag-head
+    (cell 2:14
+      (const 2:15 %.y)
+      (face 2:19 value (aura 2:25 @t))))
+  (mold 3:1 dollar-head
+    (cell 3:16
+      (const 3:17 %$)
+      (face 3:20 value (aura 3:26 @t))))
+  (mold 4:1 pair-null
+    (union 5:3
+      (const 5:3 ~)
+      (cell 6:3
+        (const 6:4 ~)
+        (face 6:6 value (aura 6:12 @t)))))
+  (mold 7:1 overlap-null
+    (union 8:3
+      (cell 8:3
+        (const 8:4 ~)
+        (face 8:6 value (aura 8:12 @t)))
+      (cell 9:3
+        (const 9:4 %$)
+        (face 9:7 value (aura 9:13 @t)))))
+  (mold 10:1 overlap-flag
+    (union 11:3
+      (cell 11:3
+        (const 11:4 %.y)
+        (face 11:8 value (aura 11:14 @t)))
+      (cell 12:3
+        (const 12:4 %$)
+        (face 12:7 value (aura 12:13 @t)))))
+  (mold 13:1 overlap-three
+    (union 14:3
+      (cell 14:3
+        (const 14:4 ~)
+        (face 14:6 value (aura 14:12 @t)))
+      (cell 15:3
+        (const 15:4 %.y)
+        (face 15:8 value (aura 15:14 @t)))
+      (cell 16:3
+        (const 16:4 %$)
+        (face 16:7 value (aura 16:13 @t)))))
+  (value 17:1 null-ctor
+    (cast 17:14
+      (fn 17:17 (aura 17:20 @t) (ref 17:23 null-head))
+      (ctor 17:34 %$)))
+  (value 18:1 flag-ctor
+    (cast 18:14
+      (fn 18:17 (aura 18:20 @t) (ref 18:23 flag-head))
+      (ctor 18:34 %$)))
+  (value 19:1 dollar-ctor
+    (cast 19:16
+      (fn 19:19 (aura 19:22 @t) (ref 19:25 dollar-head))
+      (ctor 19:38 %$)))
+  (value 20:1 unit-like-ctor
+    (cast 20:19
+      (fn 20:22 (aura 20:25 @t) (ref 20:28 pair-null))
+      (ctor 20:39 %$)))
+  (value 21:1 wrong-payload
+    (cast 21:18
+      (fn 21:21 (aura 21:24 @p) (ref 21:27 null-head))
+      (ctor 21:38 %$)))
+  (value 22:1 missing-tag
+    (cast 22:16
+      (fn 22:19 (aura 22:22 @t) (ref 22:25 null-head))
+      (ctor 22:36 %missing)))
+  (value 23:1 pending
+    (body 24:3
+      (trace 24:3
+        (lit 24:6 %unrelated)
+        (body 25:5
+          (cast 25:5
+            (fn 25:8 (aura 25:11 @t) (ref 25:14 null-head))
+            (ctor 25:25 %$)))))))

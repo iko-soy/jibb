@@ -1,0 +1,28 @@
++$ maybe
+  ~
+  [~ value=@t]
++$ term-zero
+  %$
+  [%some value=@t]
++$ flag-zero
+  %.y
+  [%some value=@t]
++$ repeated
+  ~
+  %.y
++$ number-one
+  %.n
+  [%some value=@t]
+++ as-null ^- maybe %.y
+++ bad-null ^- maybe %.n
+++ null-as-term ^- term-zero ~
+++ flag-as-term ^- term-zero %.y
+++ term-as-flag ^- flag-zero %$
+++ null-as-flag ^- flag-zero ~
+++ yes-as-flag ^- flag-zero %.y
+++ no-as-one ^- number-one %.n
+++ no-as-zero ^- flag-zero %.n
+++ pending
+  ~& %unrelated
+    ^- maybe %.y
+++ unknown |= x=A ^- A %.y

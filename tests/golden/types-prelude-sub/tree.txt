@@ -1,0 +1,164 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %got)
+        (face 2:9 value (aura 2:15 @t)))
+      (const 3:3 %done)))
+  (value 4:1 watch-value
+    (gate 4:16
+      (face 4:19 a
+        (apply 4:21 ask (ref 4:26 msg)))
+      (cast 4:31
+        (apply 4:34 sub (ref 4:39 msg))
+        (tuple 4:44 (lit 4:45 %watch) (wing 4:52 a)))))
+  (value 5:1 watch-cord
+    (gate 5:15
+      (face 5:18 a
+        (apply 5:20 ask (aura 5:25 @t)))
+      (cast 5:29
+        (apply 5:32 sub (aura 5:37 @t))
+        (tuple 5:41 (lit 5:42 %watch) (wing 5:49 a)))))
+  (value 6:1 wrong-watch
+    (gate 6:16
+      (face 6:19 a
+        (apply 6:21 ask (aura 6:26 @p)))
+      (cast 6:30
+        (apply 6:33 sub (aura 6:38 @t))
+        (tuple 6:42 (lit 6:43 %watch) (wing 6:50 a)))))
+  (value 7:1 periodic
+    (cast 7:13
+      (apply 7:16 sub (aura 7:21 @t))
+      (tuple 7:25
+        (lit 7:26 %every)
+        (face 7:33 gap (lit 7:37 ~s1))
+        (face 7:41 reply
+          (gate-wide 7:47
+            (face 7:50 date (aura 7:55 @da))
+            (str 7:59 "tick"))))))
+  (value 8:1 route
+    (cast 8:10
+      (apply 8:13 sub (aura 8:18 @t))
+      (tuple 8:22
+        (lit 8:23 %url)
+        (face 8:28 reply
+          (gate-wide 8:34
+            (face 8:37 p (ref 8:39 path))
+            (str 8:44 "path"))))))
+  (value 9:1 wrong-reply
+    (cast 9:16
+      (apply 9:19 sub (aura 9:24 @t))
+      (tuple 9:28
+        (lit 9:29 %every)
+        (face 9:36 gap (lit 9:40 ~s1))
+        (face 9:44 reply
+          (gate-wide 9:50
+            (face 9:53 date (aura 9:58 @p))
+            (str 9:61 "bad"))))))
+  (value 10:1 incomplete
+    (gate 10:15
+      (face 10:18 s
+        (apply 10:20 sub (ref 10:25 msg)))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 s)
+          (arm 12:5
+            (cell 12:5 (lit 12:6 %watch) (bind 12:13 ask))
+            (lit 12:18 %done))
+          (arm 13:5
+            (cell 13:5 (lit 13:6 %every) (bind 13:13 gap) (bind 13:17 reply))
+            (lit 13:24 %done))))))
+  (value 14:1 complete
+    (gate 14:13
+      (face 14:16 s
+        (apply 14:18 sub (ref 14:23 msg)))
+      (body 15:3
+        (branch 15:3
+          (wing 15:6 s)
+          (arm 16:5
+            (cell 16:5 (lit 16:6 %watch) (bind 16:13 ask))
+            (lit 16:18 %done))
+          (arm 17:5
+            (cell 17:5 (lit 17:6 %every) (bind 17:13 gap) (bind 17:17 reply))
+            (lit 17:24 %done))
+          (arm 18:5
+            (cell 18:5 (lit 18:6 %url) (bind 18:11 reply))
+            (lit 18:18 %done))))))
+  (mold 20:1 my-msg
+    (union 21:3
+      (cell 21:3
+        (const 21:4 %got)
+        (face 21:9 value (aura 21:15 @t)))
+      (const 22:3 %idle)))
+  (value 23:1 take-watch
+    (gate 23:15
+      (face 23:18 s
+        (apply 23:20 sub (ref 23:25 my-msg)))
+      (body 24:3
+        (cast 24:3
+          (apply 24:6 ask (ref 24:11 my-msg))
+          (body 25:5
+            (branch 25:5
+              (wing 25:8 s)
+              (arm 26:7
+                (cell 26:7 (lit 26:8 %watch) (bind 26:15 a))
+                (wing 26:18 a))
+              (arm 27:7
+                (cell 27:7 (lit 27:8 %every) (bind 27:15 gap) (bind 27:19 reply))
+                (crash 27:26))
+              (arm 28:7
+                (cell 28:7 (lit 28:8 %url) (bind 28:13 reply))
+                (crash 28:20))))))))
+  (value 29:1 watch-pure
+    (cast 29:15
+      (apply 29:18 sub (ref 29:23 my-msg))
+      (tuple 29:31
+        (lit 29:32 %watch)
+        (group 29:39
+          (call 29:40 (wing 29:40 pure) (lit 29:45 %idle))))))
+  (value 30:1 watch-generic
+    (gate 30:18
+      (face 30:21 a
+        (apply 30:23 ask (tvar 30:28 A)))
+      (cast 30:31
+        (apply 30:34 sub (tvar 30:39 A))
+        (tuple 30:42 (lit 30:43 %watch) (wing 30:50 a)))))
+  (value 31:1 independent-text
+    (gate 31:21
+      (face 31:24 a
+        (apply 31:26 ask (aura 31:31 @t)))
+      (cast 31:35
+        (apply 31:38 sub (aura 31:43 @t))
+        (tuple 31:47 (lit 31:48 %watch) (wing 31:55 a)))))
+  (value 32:1 independent-ship
+    (gate 32:21
+      (face 32:24 a
+        (apply 32:26 ask (aura 32:31 @p)))
+      (cast 32:35
+        (apply 32:38 sub (aura 32:43 @p))
+        (tuple 32:47 (lit 32:48 %watch) (wing 32:55 a)))))
+  (value 33:1 wrong-watch-generic
+    (gate 33:24
+      (face 33:27 a
+        (apply 33:29 ask (aura 33:34 @p)))
+      (cast 33:38
+        (apply 33:41 sub (aura 33:46 @t))
+        (tuple 33:50 (lit 33:51 %watch) (wing 33:58 a)))))
+  (value 35:1 pure-direct
+    (cast 35:16
+      (apply 35:19 ask (ref 35:24 my-msg))
+      (group 35:32
+        (call 35:33 (wing 35:33 pure) (lit 35:38 %idle)))))
+  (value 36:1 pure-typed
+    (cast 36:15
+      (apply 36:18 ask (ref 36:23 my-msg))
+      (group 36:31
+        (call 36:32
+          (wing 36:32 pure)
+          (group 36:37
+            (cast 36:38 (ref 36:41 my-msg) (lit 36:48 %idle)))))))
+  (value 37:1 pure-wrong
+    (cast 37:15
+      (apply 37:18 ask (ref 37:23 my-msg))
+      (group 37:31
+        (call 37:32 (wing 37:32 pure) (lit 37:37 %absent))))))

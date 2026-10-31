@@ -1,0 +1,2 @@
+source: literal singleton cases compare by runtime noun.
+tests: Null, term-zero and loobean singleton contexts across direct unions; unequal values, overlapping singleton cases, unknown targets and pending constraints.

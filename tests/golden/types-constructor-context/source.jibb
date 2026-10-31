@@ -1,0 +1,37 @@
++$ msg
+  [%got value=@t]
+  %other
++$ alias msg
++$ wrong-payload
+  [%got value=@p]
+  %other
++$ missing
+  [%different value=@t]
+  %other
++$ maybe |$ [A]
+  [%got value=A]
+  %other
+++ call |= callback=$-(@t M) (callback "payload")
+++ call-ship |= callback=$-(@p M) (callback ~zod)
+++ unknown (call |=%got)
+++ later-context ^- msg (call |=%got)
+++ named-alias ^- alias (call |=%got)
+++ wrong-context ^- wrong-payload (call |=%got)
+++ missing-case ^- missing (call |=%got)
+++ generic-context ^- (maybe @t) (call |=%got)
+++ generic-wrong ^- (maybe @p) (call |=%got)
+++ generic-right-ship ^- (maybe @p) (call-ship |=%got)
+++ named-capital |= value=A
+  ^- (maybe A)
+    (|=(callback=$-(A M) (callback value)) |=%got)
+++ discarded-pending
+  ~& %unrelated
+    ^- msg (call |=%got)
+++ discarded-constructor
+  ~& |=%missing
+    ^- msg (call |=%got)
+++ existing-no-context ^- $-(@t msg) |=%got
+++ wrong-existing ^- $-(@p msg) |=%got
+++ later-use ^- msg unknown
+++ noun-context ^- * (call |=%got)
+++ other-known-origin ^- (ask @t) (call |=%got)

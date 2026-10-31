@@ -1,0 +1,25 @@
++$ null-head [~ value=@t]
++$ flag-head [%.y value=@t]
++$ dollar-head [%$ value=@t]
++$ pair-null
+  ~
+  [~ value=@t]
++$ overlap-null
+  [~ value=@t]
+  [%$ value=@t]
++$ overlap-flag
+  [%.y value=@t]
+  [%$ value=@t]
++$ overlap-three
+  [~ value=@t]
+  [%.y value=@t]
+  [%$ value=@t]
+++ null-ctor ^- $-(@t null-head) |=%$
+++ flag-ctor ^- $-(@t flag-head) |=%$
+++ dollar-ctor ^- $-(@t dollar-head) |=%$
+++ unit-like-ctor ^- $-(@t pair-null) |=%$
+++ wrong-payload ^- $-(@p null-head) |=%$
+++ missing-tag ^- $-(@t null-head) |=%missing
+++ pending
+  ~& %unrelated
+    ^- $-(@t null-head) |=%$

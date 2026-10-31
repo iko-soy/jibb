@@ -47,4 +47,10 @@ partial inference; module not checked
 ++ wrong-case ^- (cmd @t) %oops
                           ^
 ++ use-text: $-((cmd @t) (cmd @t))
-++ cross: call constraint is not supported by partial inference
+++ cross: call's sample and argument types do not unify
+/tests/golden/types-prelude-cmd/source.jibb:21:21: called gate
+++ cross (use-text (wrap ~zod))
+                    ^
+/tests/golden/types-prelude-cmd/source.jibb:21:26: argument has type @p
+++ cross (use-text (wrap ~zod))
+                         ^

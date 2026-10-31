@@ -337,3 +337,9 @@
 
 +$ ask |$ [M] (ask.internal M)
 ++ pure |= x=M ^- (ask M) [%pure x]
+
+::  This mold describes the value; island watchability needs separate proof.
++$ sub |$ [M]
+  [%watch a=(ask M)]
+  [%every gap=@dr reply=$-(@da M)]
+  [%url reply=$-(path M)]

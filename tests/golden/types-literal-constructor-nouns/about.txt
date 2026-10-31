@@ -1,0 +1,2 @@
+source: equality of literal molds is based on their runtime nouns.
+tests: The `%$` constructor matches null-, loobean-zero- and term-zero-headed cells. Overlapping same-noun cases are rejected. Wrong payload, absent tags and unrelated pending constraints remain checked. This is a partial inference report.

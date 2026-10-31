@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Effects, the exact source-backed generic sub declaration.
+tests: Watch, timer and URL construction and matching; public ask identity on a watch binder; independent message types, incorrect callbacks and pending constraints. This partial inference report is not island watchability proof or a runtime claim.
+expect: parses
+expect-types: a partial inference report

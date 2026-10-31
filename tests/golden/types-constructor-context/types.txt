@@ -1,0 +1,54 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ alias: not checked
++$ wrong-payload: cases proven disjoint; mold not checked
++$ missing: cases proven disjoint; mold not checked
++$ maybe: cases proven disjoint; mold not checked
+++ call: $-($-(@t A) A)
+++ call-ship: $-($-(@p A) A)
+++ unknown: call constraint is not supported by partial inference
+++ later-context: msg
+++ named-alias: msg
+++ wrong-context: call's sample and argument types do not unify
+/tests/golden/types-constructor-context/source.jibb:19:36: called gate
+++ wrong-context ^- wrong-payload (call |=%got)
+                                   ^
+/tests/golden/types-constructor-context/source.jibb:19:41: argument
+++ wrong-context ^- wrong-payload (call |=%got)
+                                        ^
+++ missing-case: call's sample and argument types do not unify
+/tests/golden/types-constructor-context/source.jibb:20:29: called gate
+++ missing-case ^- missing (call |=%got)
+                            ^
+/tests/golden/types-constructor-context/source.jibb:20:34: argument
+++ missing-case ^- missing (call |=%got)
+                                 ^
+++ generic-context: (maybe @t)
+++ generic-wrong: call's sample and argument types do not unify
+/tests/golden/types-constructor-context/source.jibb:22:33: called gate
+++ generic-wrong ^- (maybe @p) (call |=%got)
+                                ^
+/tests/golden/types-constructor-context/source.jibb:22:38: argument
+++ generic-wrong ^- (maybe @p) (call |=%got)
+                                     ^
+++ generic-right-ship: (maybe @p)
+++ named-capital: explicit capital constraints are not supported by partial inference
+++ discarded-pending: tag needs context in partial inference
+++ discarded-constructor: tag needs context in partial inference
+++ existing-no-context: $-(@t msg)
+++ wrong-existing: cast mold and expression type do not unify
+/tests/golden/types-constructor-context/source.jibb:34:22: cast mold
+++ wrong-existing ^- $-(@p msg) |=%got
+                     ^
+/tests/golden/types-constructor-context/source.jibb:34:33: expression
+++ wrong-existing ^- $-(@p msg) |=%got
+                                ^
+++ later-use: name is not available to partial inference
+++ noun-context: call's sample and argument types do not unify
+/tests/golden/types-constructor-context/source.jibb:36:23: called gate has type $-($-(@t *) *)
+++ noun-context ^- * (call |=%got)
+                      ^
+/tests/golden/types-constructor-context/source.jibb:36:28: argument
+++ noun-context ^- * (call |=%got)
+                           ^
+++ other-known-origin: cast mold is not supported by partial inference

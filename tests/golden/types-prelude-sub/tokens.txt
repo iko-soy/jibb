@@ -1,0 +1,380 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %got
+2:9 name value
+2:14 tight glyph =
+2:15 tight aura @t
+2:17 tight glyph ]
+3:3 NEWLINE
+3:3 lit %done
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name watch-value
+4:16 glyph |=
+4:19 name a
+4:20 tight glyph =
+4:21 tight glyph (
+4:22 tight name ask
+4:26 name msg
+4:29 tight glyph )
+4:31 glyph ^-
+4:34 glyph (
+4:35 tight name sub
+4:39 name msg
+4:42 tight glyph )
+4:44 glyph [
+4:45 tight lit %watch
+4:52 name a
+4:53 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name watch-cord
+5:15 glyph |=
+5:18 name a
+5:19 tight glyph =
+5:20 tight glyph (
+5:21 tight name ask
+5:25 aura @t
+5:27 tight glyph )
+5:29 glyph ^-
+5:32 glyph (
+5:33 tight name sub
+5:37 aura @t
+5:39 tight glyph )
+5:41 glyph [
+5:42 tight lit %watch
+5:49 name a
+5:50 tight glyph ]
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name wrong-watch
+6:16 glyph |=
+6:19 name a
+6:20 tight glyph =
+6:21 tight glyph (
+6:22 tight name ask
+6:26 aura @p
+6:28 tight glyph )
+6:30 glyph ^-
+6:33 glyph (
+6:34 tight name sub
+6:38 aura @t
+6:40 tight glyph )
+6:42 glyph [
+6:43 tight lit %watch
+6:50 name a
+6:51 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name periodic
+7:13 glyph ^-
+7:16 glyph (
+7:17 tight name sub
+7:21 aura @t
+7:23 tight glyph )
+7:25 glyph [
+7:26 tight lit %every
+7:33 name gap
+7:36 tight glyph =
+7:37 tight lit ~s1
+7:41 name reply
+7:46 tight glyph =
+7:47 tight glyph |=(
+7:50 tight name date
+7:54 tight glyph =
+7:55 tight aura @da
+7:59 str "tick"
+7:65 tight glyph )
+7:66 tight glyph ]
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name route
+8:10 glyph ^-
+8:13 glyph (
+8:14 tight name sub
+8:18 aura @t
+8:20 tight glyph )
+8:22 glyph [
+8:23 tight lit %url
+8:28 name reply
+8:33 tight glyph =
+8:34 tight glyph |=(
+8:37 tight name p
+8:38 tight glyph =
+8:39 tight name path
+8:44 str "path"
+8:50 tight glyph )
+8:51 tight glyph ]
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name wrong-reply
+9:16 glyph ^-
+9:19 glyph (
+9:20 tight name sub
+9:24 aura @t
+9:26 tight glyph )
+9:28 glyph [
+9:29 tight lit %every
+9:36 name gap
+9:39 tight glyph =
+9:40 tight lit ~s1
+9:44 name reply
+9:49 tight glyph =
+9:50 tight glyph |=(
+9:53 tight name date
+9:57 tight glyph =
+9:58 tight aura @p
+9:61 str "bad"
+9:66 tight glyph )
+9:67 tight glyph ]
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name incomplete
+10:15 glyph |=
+10:18 name s
+10:19 tight glyph =
+10:20 tight glyph (
+10:21 tight name sub
+10:25 name msg
+10:28 tight glyph )
+11:3 INDENT
+11:3 glyph ?-
+11:6 name s
+12:5 INDENT
+12:5 glyph [
+12:6 tight lit %watch
+12:13 name ask
+12:16 tight glyph ]
+12:18 lit %done
+13:5 NEWLINE
+13:5 glyph [
+13:6 tight lit %every
+13:13 name gap
+13:17 name reply
+13:22 tight glyph ]
+13:24 lit %done
+14:1 DEDENT
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name complete
+14:13 glyph |=
+14:16 name s
+14:17 tight glyph =
+14:18 tight glyph (
+14:19 tight name sub
+14:23 name msg
+14:26 tight glyph )
+15:3 INDENT
+15:3 glyph ?-
+15:6 name s
+16:5 INDENT
+16:5 glyph [
+16:6 tight lit %watch
+16:13 name ask
+16:16 tight glyph ]
+16:18 lit %done
+17:5 NEWLINE
+17:5 glyph [
+17:6 tight lit %every
+17:13 name gap
+17:17 name reply
+17:22 tight glyph ]
+17:24 lit %done
+18:5 NEWLINE
+18:5 glyph [
+18:6 tight lit %url
+18:11 name reply
+18:16 tight glyph ]
+18:18 lit %done
+20:1 DEDENT
+20:1 DEDENT
+20:1 NEWLINE
+20:1 glyph +$
+20:4 name my-msg
+21:3 INDENT
+21:3 glyph [
+21:4 tight lit %got
+21:9 name value
+21:14 tight glyph =
+21:15 tight aura @t
+21:17 tight glyph ]
+22:3 NEWLINE
+22:3 lit %idle
+23:1 DEDENT
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name take-watch
+23:15 glyph |=
+23:18 name s
+23:19 tight glyph =
+23:20 tight glyph (
+23:21 tight name sub
+23:25 name my-msg
+23:31 tight glyph )
+24:3 INDENT
+24:3 glyph ^-
+24:6 glyph (
+24:7 tight name ask
+24:11 name my-msg
+24:17 tight glyph )
+25:5 INDENT
+25:5 glyph ?-
+25:8 name s
+26:7 INDENT
+26:7 glyph [
+26:8 tight lit %watch
+26:15 name a
+26:16 tight glyph ]
+26:18 name a
+27:7 NEWLINE
+27:7 glyph [
+27:8 tight lit %every
+27:15 name gap
+27:19 name reply
+27:24 tight glyph ]
+27:26 glyph !!
+28:7 NEWLINE
+28:7 glyph [
+28:8 tight lit %url
+28:13 name reply
+28:18 tight glyph ]
+28:20 glyph !!
+29:1 DEDENT
+29:1 DEDENT
+29:1 DEDENT
+29:1 NEWLINE
+29:1 glyph ++
+29:4 name watch-pure
+29:15 glyph ^-
+29:18 glyph (
+29:19 tight name sub
+29:23 name my-msg
+29:29 tight glyph )
+29:31 glyph [
+29:32 tight lit %watch
+29:39 glyph (
+29:40 tight name pure
+29:45 lit %idle
+29:50 tight glyph )
+29:51 tight glyph ]
+30:1 NEWLINE
+30:1 glyph ++
+30:4 name watch-generic
+30:18 glyph |=
+30:21 name a
+30:22 tight glyph =
+30:23 tight glyph (
+30:24 tight name ask
+30:28 tvar A
+30:29 tight glyph )
+30:31 glyph ^-
+30:34 glyph (
+30:35 tight name sub
+30:39 tvar A
+30:40 tight glyph )
+30:42 glyph [
+30:43 tight lit %watch
+30:50 name a
+30:51 tight glyph ]
+31:1 NEWLINE
+31:1 glyph ++
+31:4 name independent-text
+31:21 glyph |=
+31:24 name a
+31:25 tight glyph =
+31:26 tight glyph (
+31:27 tight name ask
+31:31 aura @t
+31:33 tight glyph )
+31:35 glyph ^-
+31:38 glyph (
+31:39 tight name sub
+31:43 aura @t
+31:45 tight glyph )
+31:47 glyph [
+31:48 tight lit %watch
+31:55 name a
+31:56 tight glyph ]
+32:1 NEWLINE
+32:1 glyph ++
+32:4 name independent-ship
+32:21 glyph |=
+32:24 name a
+32:25 tight glyph =
+32:26 tight glyph (
+32:27 tight name ask
+32:31 aura @p
+32:33 tight glyph )
+32:35 glyph ^-
+32:38 glyph (
+32:39 tight name sub
+32:43 aura @p
+32:45 tight glyph )
+32:47 glyph [
+32:48 tight lit %watch
+32:55 name a
+32:56 tight glyph ]
+33:1 NEWLINE
+33:1 glyph ++
+33:4 name wrong-watch-generic
+33:24 glyph |=
+33:27 name a
+33:28 tight glyph =
+33:29 tight glyph (
+33:30 tight name ask
+33:34 aura @p
+33:36 tight glyph )
+33:38 glyph ^-
+33:41 glyph (
+33:42 tight name sub
+33:46 aura @t
+33:48 tight glyph )
+33:50 glyph [
+33:51 tight lit %watch
+33:58 name a
+33:59 tight glyph ]
+35:1 NEWLINE
+35:1 glyph ++
+35:4 name pure-direct
+35:16 glyph ^-
+35:19 glyph (
+35:20 tight name ask
+35:24 name my-msg
+35:30 tight glyph )
+35:32 glyph (
+35:33 tight name pure
+35:38 lit %idle
+35:43 tight glyph )
+36:1 NEWLINE
+36:1 glyph ++
+36:4 name pure-typed
+36:15 glyph ^-
+36:18 glyph (
+36:19 tight name ask
+36:23 name my-msg
+36:29 tight glyph )
+36:31 glyph (
+36:32 tight name pure
+36:37 glyph (
+36:38 tight glyph ^-
+36:41 name my-msg
+36:48 lit %idle
+36:53 tight glyph )
+36:54 tight glyph )
+37:1 NEWLINE
+37:1 glyph ++
+37:4 name pure-wrong
+37:15 glyph ^-
+37:18 glyph (
+37:19 tight name ask
+37:23 name my-msg
+37:29 tight glyph )
+37:31 glyph (
+37:32 tight name pure
+37:37 lit %absent
+37:44 tight glyph )
+37:45 NEWLINE

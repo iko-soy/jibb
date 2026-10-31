@@ -1,0 +1,52 @@
+(module
+  (mold 1:1 yes (const 1:8 %.y))
+  (mold 2:1 no (const 2:7 %.n))
+  (mold 3:1 flag-headed
+    (cell 3:16
+      (const 3:17 %.y)
+      (face 3:21 value (aura 3:27 @t))))
+  (value 4:1 yes-flag
+    (cast 4:13 (ref 4:16 yes) (lit 4:20 %.y)))
+  (value 5:1 yes-term
+    (cast 5:13 (ref 5:16 yes) (lit 5:20 %$)))
+  (value 6:1 wrong-flag
+    (cast 6:15 (ref 6:18 yes) (lit 6:22 %.n)))
+  (value 7:1 normal-flag
+    (cast 7:16 (flag 7:19) (lit 7:21 %.y)))
+  (value 8:1 normal-any
+    (cast 8:15 (aura 8:18 @) (lit 8:20 %.y)))
+  (value 9:1 wrong-tas
+    (cast 9:14 (aura 9:17 @tas) (lit 9:22 %.y)))
+  (value 10:1 wrong-ta
+    (cast 10:13 (aura 10:16 @ta) (lit 10:20 %.y)))
+  (value 11:1 wrong-ud
+    (cast 11:13 (aura 11:16 @ud) (lit 11:20 %.y)))
+  (value 12:1 named-value
+    (cast 12:16 (ref 12:19 yes) (lit 12:23 %.y)))
+  (value 13:1 named-as-flag
+    (cast 13:18 (flag 13:21) (wing 13:23 named-value)))
+  (value 14:1 named-as-any
+    (cast 14:17 (aura 14:20 @) (wing 14:22 named-value)))
+  (value 15:1 named-as-tas
+    (cast 15:17 (aura 15:20 @tas) (wing 15:25 named-value)))
+  (value 16:1 named-as-ta
+    (cast 16:16 (aura 16:19 @ta) (wing 16:23 named-value)))
+  (value 17:1 named-as-ud
+    (cast 17:16 (aura 17:19 @ud) (wing 17:23 named-value)))
+  (value 18:1 loobean-constructor
+    (cast 18:24
+      (fn 18:27 (aura 18:30 @t) (ref 18:33 flag-headed))
+      (ctor 18:46 %$)))
+  (value 19:1 literal-f
+    (cast 19:14 (aura 19:17 @f) (lit 19:20 %.y)))
+  (value 20:1 flag-f
+    (gate 20:11
+      (face 20:14 b (flag 20:16))
+      (cast 20:18 (aura 20:21 @f) (wing 20:24 b))))
+  (value 21:1 named-f
+    (cast 21:12 (aura 21:15 @f) (wing 21:18 named-value)))
+  (value 22:1 explicit-tag
+    (cast 22:17
+      (aura 22:20 @tas)
+      (group 22:25
+        (cast 22:26 (const 22:29 %$) (lit 22:32 %.y))))))

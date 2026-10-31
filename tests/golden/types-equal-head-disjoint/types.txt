@@ -1,0 +1,34 @@
+partial inference; module not checked
++$ split: overlapping cases; mold not checked
+/tests/golden/types-equal-head-disjoint/source.jibb:2:3: first union case
+  [%one value=@t]
+  ^
+/tests/golden/types-equal-head-disjoint/source.jibb:3:3: overlapping case
+  [%one value=@p]
+  ^
++$ split-zero: overlapping cases; mold not checked
+/tests/golden/types-equal-head-disjoint/source.jibb:5:3: first union case
+  [~ value=@t]
+  ^
+/tests/golden/types-equal-head-disjoint/source.jibb:6:3: overlapping case
+  [%.y value=@p]
+  ^
++$ nullable: cases proven disjoint; mold not checked
+++ cord: cast mold is not supported by partial inference
+++ ship: cast mold is not supported by partial inference
+++ neither: cast mold is not supported by partial inference
+++ zero-cord: cast mold is not supported by partial inference
+++ zero-ship: cast mold is not supported by partial inference
+++ zero-neither: cast mold is not supported by partial inference
+++ contextual: $-(@t nullable)
+++ pending: cast mold is not supported by partial inference
++$ exact: cases proven disjoint; mold not checked
+++ first: $-(%alpha exact)
+++ second: $-(%beta exact)
+++ no-case: cast mold and expression type do not unify
+/tests/golden/types-equal-head-disjoint/source.jibb:25:15: cast mold
+++ no-case ^- $-(%other exact) |=%same
+              ^
+/tests/golden/types-equal-head-disjoint/source.jibb:25:32: expression
+++ no-case ^- $-(%other exact) |=%same
+                               ^

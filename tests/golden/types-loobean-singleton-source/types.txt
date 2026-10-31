@@ -1,0 +1,65 @@
+partial inference; module not checked
++$ yes: not checked
++$ no: not checked
++$ flag-headed: not checked
+++ yes-flag: %.y
+++ yes-term: %.y
+++ wrong-flag: cast mold and expression type do not unify
+/tests/golden/types-loobean-singleton-source/source.jibb:6:18: cast mold has type %.y
+++ wrong-flag ^- yes %.n
+                 ^
+/tests/golden/types-loobean-singleton-source/source.jibb:6:22: expression has type %.n
+++ wrong-flag ^- yes %.n
+                     ^
+++ normal-flag: ?
+++ normal-any: @
+++ wrong-tas: cast mold and expression type do not unify
+/tests/golden/types-loobean-singleton-source/source.jibb:9:17: cast mold has type @tas
+++ wrong-tas ^- @tas %.y
+                ^
+/tests/golden/types-loobean-singleton-source/source.jibb:9:22: expression has type ?
+++ wrong-tas ^- @tas %.y
+                     ^
+++ wrong-ta: cast mold and expression type do not unify
+/tests/golden/types-loobean-singleton-source/source.jibb:10:16: cast mold has type @ta
+++ wrong-ta ^- @ta %.y
+               ^
+/tests/golden/types-loobean-singleton-source/source.jibb:10:20: expression has type ?
+++ wrong-ta ^- @ta %.y
+                   ^
+++ wrong-ud: cast mold and expression type do not unify
+/tests/golden/types-loobean-singleton-source/source.jibb:11:16: cast mold has type @ud
+++ wrong-ud ^- @ud %.y
+               ^
+/tests/golden/types-loobean-singleton-source/source.jibb:11:20: expression has type ?
+++ wrong-ud ^- @ud %.y
+                   ^
+++ named-value: %.y
+++ named-as-flag: ?
+++ named-as-any: @
+++ named-as-tas: cast mold and expression type do not unify
+/tests/golden/types-loobean-singleton-source/source.jibb:15:20: cast mold has type @tas
+++ named-as-tas ^- @tas named-value
+                   ^
+/tests/golden/types-loobean-singleton-source/source.jibb:15:25: expression has type %.y
+++ named-as-tas ^- @tas named-value
+                        ^
+++ named-as-ta: cast mold and expression type do not unify
+/tests/golden/types-loobean-singleton-source/source.jibb:16:19: cast mold has type @ta
+++ named-as-ta ^- @ta named-value
+                  ^
+/tests/golden/types-loobean-singleton-source/source.jibb:16:23: expression has type %.y
+++ named-as-ta ^- @ta named-value
+                      ^
+++ named-as-ud: cast mold and expression type do not unify
+/tests/golden/types-loobean-singleton-source/source.jibb:17:19: cast mold has type @ud
+++ named-as-ud ^- @ud named-value
+                  ^
+/tests/golden/types-loobean-singleton-source/source.jibb:17:23: expression has type %.y
+++ named-as-ud ^- @ud named-value
+                      ^
+++ loobean-constructor: $-(@t [%.y value=@t])
+++ literal-f: cast constraint is not supported by partial inference
+++ flag-f: cast constraint is not supported by partial inference
+++ named-f: cast constraint is not supported by partial inference
+++ explicit-tag: @tas

@@ -1,0 +1,1 @@
+Constructor callback results require a known contextual union. This case checks unknown, matching, missing and wrong payload cases, aliases, written capitals and pending obligations.

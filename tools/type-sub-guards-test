@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Run the shared sub source/typing guards under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+tests = (root / 'tests/lib/jibb-sub-guards.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  suite\n' + tests +
+              '\n=/  failures=(list tape)  sub-guard-errors:suite\n^-  @t\n' +
+              "?~  failures  'sub guards passed'\n" +
+              '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-positional-guards-') as tmp:
+    program = Path(tmp) / 'guards.hoon'
+    program.write_text(expression)
+    result = subprocess.run([str(root / 'tools/hoon'), '--lib', args.lib,
+                             '--raw', '--cord', 'public=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+                             '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb'),
+                             '-f', str(program)], stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'sub guards passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('sub source/typing guards passed')

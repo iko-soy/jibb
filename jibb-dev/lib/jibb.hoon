@@ -5203,25 +5203,51 @@
       $(cases t.cases, good `trial)
   ==
 ::
-::  A constructor needs a case with its tag at the head and a payload
-::  compatible with the expected gate sample. Other case forms do not
-::  identify a constructor.
+::  A constructor needs a case whose head has the same literal noun as its
+::  tag. An unresolved or opaque case may reveal one later, so it cannot
+::  prove a mismatch or a unique match. A broad atom mold is not a case.
 ::
 ++  itype-fit-ctor-cases
   |=  [tag=lit sample=itype cases=(list itype) sub=isub next=@ud]
   ^-  ifit
   =/  found=(unit ifit)  ~
+  =/  pending=?  |
   |-
-  ?~  cases  ?~(found [%bad ~] u.found)
-  =/  c=itype  (itype-walk i.cases sub)
+  ?~  cases
+    ?:  pending  [%unknown ~]
+    ?~  found  [%bad ~]
+    u.found
+  =/  raw=itype  i.cases
+  ?:  ?=(%var -.raw)
+    $(cases t.cases, pending &)
+  =/  c=itype  (itype-walk raw sub)
+  ?:  ?=(?(%var %tag %recursive %jrec %union %face) -.c)
+    $(cases t.cases, pending &)
   ?.  ?=(%cell -.c)  $(cases t.cases)
-  =/  head=itype  (itype-walk hed.c sub)
+  =/  raw-head=itype  hed.c
+  ?:  ?=(%var -.raw-head)
+    $(cases t.cases, pending &)
+  =/  head=itype  (itype-walk raw-head sub)
+  ::  A single faced, explicitly atom-only head cannot be the tag case.
+  ::  Do not follow variables or peel nested faces for this negative proof.
+  ?:  ?=(%face -.head)
+    ?:  ?=(?(%atom %any-atom %flag %avar %rvar %nvar %rnvar) -.body.head)
+      $(cases t.cases)
+    $(cases t.cases, pending &)
+  ?:  ?=(?(%var %tag %recursive %jrec %union) -.head)
+    $(cases t.cases, pending &)
   ?.  ?=(%const -.head)  $(cases t.cases)
-  ?.  =(%term form.literal.head)  $(cases t.cases)
   ?.  =(val.literal.head val.tag)  $(cases t.cases)
-  ?^  found  [%unknown ~]
+  ::  Equal heads can have disjoint payloads. Test each from the original
+  ::  substitution; a unique success is usable only with no unknown rival.
   =/  trial=ifit  (itype-fit sample tal.c sub next)
-  $(cases t.cases, found `trial)
+  ?-  -.trial
+    %bad      $(cases t.cases)
+    %unknown  $(cases t.cases, pending &)
+    %ok
+      ?^  found  [%unknown ~]
+      $(cases t.cases, found `trial)
+  ==
 ::
 ++  itype-fit
   |=  [actual=itype expected=itype sub=isub next=@ud]
@@ -5245,6 +5271,9 @@
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
+  ::  The relation of the source loobean mold to explicit @f is not yet
+  ::  established. Keep it unsupported rather than asserting a mismatch.
+  ?:  &(?=(%flag -.actual) ?=(%atom -.expected) =(%f aura.expected))  [%unknown ~]
   ::  Any value can be used where a noun is expected. An unresolved
   ::  bare tag is fixed as a constant; a constructor still needs a gate.
   ?:  ?=(%noun -.expected)
@@ -5327,6 +5356,10 @@
     ?:  ?=(%const -.expected)
       ?:(=(val.literal.actual val.literal.expected) [%ok sub next] [%bad ~])
     ?:  ?=(%atom -.expected)
+      ::  A loobean singleton must not silently widen into another aura.
+      ?:  =(%loobean form.literal.actual)
+        ?:  =(%f aura.expected)  [%unknown ~]
+        [%bad ~]
       ?:  |(=(%tas aura.expected) =(%ta aura.expected))  [%ok sub next]
       [%bad ~]
     ?:  ?=(%flag -.expected)
@@ -6562,7 +6595,8 @@
     %flag  `[[%flag ~] state]
     %noun  `[[%noun ~] state]
     %const
-      ?.  |(=(%term form.lit.sh) =(%null form.lit.sh))  ~
+      ?.  |(=(%term form.lit.sh) =(%null form.lit.sh) =(%loobean form.lit.sh))  ~
+      ?:  &(=(%loobean form.lit.sh) !|(=(0 val.lit.sh) =(1 val.lit.sh)))  ~
       `[[%const lit.sh] state]
     %union
       =/  pairs=(list upair)  (union-pairs cases.sh molds.state)
@@ -8266,9 +8300,10 @@
     [%| ["unit payload does not fit its expected type" ~[[context (site-type-note "expected unit payload" payload sub.state.p.value)] [(span-of val.e) (site-type-note "payload" typ.p.value sub.state.p.value)]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
-::  A known gate whose result is still an inference variable can receive
-::  an enclosing target before its argument is inferred. Other products
-::  and unresolved calls use the existing directional path unchanged.
+::  A known gate may receive an enclosing target before its argument is
+::  inferred when its result is open or a direct, matching named generic
+::  union. Opaque, recursive, tag-constrained and variable-bound union
+::  results keep the existing directional path.
 ++  infer-contextual-call
   |=  [e=expr expected=itype env=ienv state=istate]
   ^-  iresult
@@ -8279,7 +8314,21 @@
   =/  ht=itype  (itype-walk typ.p.head sub.state.p.head)
   ?.  ?=(%fn -.ht)  (infer-call-with-head e env state head)
   =/  result=itype  (itype-walk product.ht sub.state.p.head)
-  ?.  ?=(%var -.result)  (infer-call-with-head e env state head)
+  =/  eligible=?
+    ?:  ?=(%var -.result)  &
+    ::  A direct known generic union may receive the same nominal result
+    ::  context before its arguments are checked. Variable-bound origins,
+    ::  pending tags, recursive identities and unknown atoms stay open.
+    ?.  &(?=(%union -.product.ht) ?=(%union -.result) ?=(%union -.expected))  |
+    ?~  origin.result  |
+    ?.  =(origin.result origin.expected)  |
+    ?~  args.result  |
+    ?.  =((lent args.result) (lent args.expected))  |
+    ?:  |((itype-has-tag (itype-normalize result sub.state.p.head)) (itype-has-tag (itype-normalize expected sub.state.p.head)))  |
+    ?:  |((itype-has-recursive (itype-normalize result sub.state.p.head)) (itype-has-recursive (itype-normalize expected sub.state.p.head)))  |
+    ?:  |((itype-has-any-atom result sub.state.p.head) (itype-has-any-atom expected sub.state.p.head))  |
+    &
+  ?.  eligible  (infer-call-with-head e env state head)
   ?:  |(?=(%var -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)) (itype-has-tag (itype-normalize expected sub.state.p.head)))
     (infer-call-with-head e env state head)
   =/  sub=(unit isub)  (itype-unify result expected sub.state.p.head)
@@ -8367,6 +8416,25 @@
   =/  st=istate  state.p.value(sub sub.u.project, next next.u.project)
   [%& expected st(projections [[at.e e typ.p.value expected steps.u.project] projections.st])]
 ::
+::  A known literal singleton in a direct union can contextualize a
+::  loobean literal of the same noun. Only explicit singleton and cell
+::  competitors are considered; opaque or variable cases stay unknown.
+++  explicit-singleton-in-union
+  |=  [t=itype noun=@]
+  ^-  ?
+  ?.  ?=(%union -.t)  |
+  =/  cases=(list itype)  cases.t
+  =/  found=?  |
+  |-
+  ?~  cases  found
+  =/  c=itype  i.cases
+  ?:  ?=(%cell -.c)  $(cases t.cases)
+  ?.  ?=(%const -.c)  |
+  ?:  =(noun val.literal.c)
+    ?:  found  |
+    $(cases t.cases, found &)
+  $(cases t.cases)
+::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
@@ -8403,13 +8471,12 @@
     (infer-single-case-branch e env state `[target context])
   ?:  (cell-binder-pattern e)
     (infer-cell-branch e env state `[target context])
-  ::  In a loobean-singleton context retain the written loobean noun;
-  ::  the usual final fit decides whether that value is permitted.
+  ::  In an explicit singleton context retain the written loobean noun;
+  ::  the ordinary singleton fit compares its noun, not its spelling.
   =/  singleton=(unit itype)
     ?.  ?=(%lit -.e)  ~
     ?.  =(%loobean form.lit.e)  ~
-    ?.  ?=(%const -.target)  ~
-    ?.  =(%loobean form.literal.target)  ~
+    ?.  |(?=(%const -.target) &(?=(%union -.expected) (explicit-singleton-in-union expected val.lit.e)))  ~
     `[%const lit.e]
   ?^  singleton  [%& u.singleton state]
   =/  known=(unit iresult)

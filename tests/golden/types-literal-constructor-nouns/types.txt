@@ -1,0 +1,45 @@
+partial inference; module not checked
++$ null-head: not checked
++$ flag-head: not checked
++$ dollar-head: not checked
++$ pair-null: cases proven disjoint; mold not checked
++$ overlap-null: overlapping cases; mold not checked
+/tests/golden/types-literal-constructor-nouns/source.jibb:8:3: first union case
+  [~ value=@t]
+  ^
+/tests/golden/types-literal-constructor-nouns/source.jibb:9:3: overlapping case
+  [%$ value=@t]
+  ^
++$ overlap-flag: overlapping cases; mold not checked
+/tests/golden/types-literal-constructor-nouns/source.jibb:11:3: first union case
+  [%.y value=@t]
+  ^
+/tests/golden/types-literal-constructor-nouns/source.jibb:12:3: overlapping case
+  [%$ value=@t]
+  ^
++$ overlap-three: overlapping cases; mold not checked
+/tests/golden/types-literal-constructor-nouns/source.jibb:14:3: first union case
+  [~ value=@t]
+  ^
+/tests/golden/types-literal-constructor-nouns/source.jibb:15:3: overlapping case
+  [%.y value=@t]
+  ^
+++ null-ctor: $-(@t [~ value=@t])
+++ flag-ctor: $-(@t [%.y value=@t])
+++ dollar-ctor: $-(@t [%$ value=@t])
+++ unit-like-ctor: $-(@t pair-null)
+++ wrong-payload: cast mold and expression type do not unify
+/tests/golden/types-literal-constructor-nouns/source.jibb:21:21: cast mold has type $-(@p [~ value=@t])
+++ wrong-payload ^- $-(@p null-head) |=%$
+                    ^
+/tests/golden/types-literal-constructor-nouns/source.jibb:21:38: expression
+++ wrong-payload ^- $-(@p null-head) |=%$
+                                     ^
+++ missing-tag: cast mold and expression type do not unify
+/tests/golden/types-literal-constructor-nouns/source.jibb:22:19: cast mold has type $-(@t [~ value=@t])
+++ missing-tag ^- $-(@t null-head) |=%missing
+                  ^
+/tests/golden/types-literal-constructor-nouns/source.jibb:22:36: expression
+++ missing-tag ^- $-(@t null-head) |=%missing
+                                   ^
+++ pending: tag needs context in partial inference

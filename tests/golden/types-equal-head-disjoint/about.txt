@@ -1,0 +1,2 @@
+source: equal literal heads may have disjoint payloads and are compared by noun.
+tests: Singleton payloads %alpha and %beta select distinct same-head cases; @t and @p cases overlap at zero. Incompatible samples and unrelated pending literals fail closed.

@@ -1,0 +1,1 @@
+Context can reach a directly known generic union result, including reordered and repeated aliases, distinct nominal arguments, independent uses, pending tags and a missing case. These are partial inference reports.

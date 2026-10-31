@@ -1,0 +1,130 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %got)
+        (face 2:9 value (aura 2:15 @t)))
+      (const 3:3 %other)))
+  (mold 4:1 alias (ref 4:10 msg))
+  (mold 5:1 wrong-payload
+    (union 6:3
+      (cell 6:3
+        (const 6:4 %got)
+        (face 6:9 value (aura 6:15 @p)))
+      (const 7:3 %other)))
+  (mold 8:1 missing
+    (union 9:3
+      (cell 9:3
+        (const 9:4 %different)
+        (face 9:15 value (aura 9:21 @t)))
+      (const 10:3 %other)))
+  (mold 11:1 maybe
+    (generic 11:10 A
+      (union 12:3
+        (cell 12:3
+          (const 12:4 %got)
+          (face 12:9 value (tvar 12:15 A)))
+        (const 13:3 %other))))
+  (value 14:1 call
+    (gate 14:9
+      (face 14:12 callback
+        (fn 14:21 (aura 14:24 @t) (tvar 14:27 M)))
+      (group 14:30
+        (call 14:31 (wing 14:31 callback) (str 14:40 "payload")))))
+  (value 15:1 call-ship
+    (gate 15:14
+      (face 15:17 callback
+        (fn 15:26 (aura 15:29 @p) (tvar 15:32 M)))
+      (group 15:35
+        (call 15:36 (wing 15:36 callback) (lit 15:45 ~zod)))))
+  (value 16:1 unknown
+    (group 16:12
+      (call 16:13 (wing 16:13 call) (ctor 16:18 %got))))
+  (value 17:1 later-context
+    (cast 17:18
+      (ref 17:21 msg)
+      (group 17:25
+        (call 17:26 (wing 17:26 call) (ctor 17:31 %got)))))
+  (value 18:1 named-alias
+    (cast 18:16
+      (ref 18:19 alias)
+      (group 18:25
+        (call 18:26 (wing 18:26 call) (ctor 18:31 %got)))))
+  (value 19:1 wrong-context
+    (cast 19:18
+      (ref 19:21 wrong-payload)
+      (group 19:35
+        (call 19:36 (wing 19:36 call) (ctor 19:41 %got)))))
+  (value 20:1 missing-case
+    (cast 20:17
+      (ref 20:20 missing)
+      (group 20:28
+        (call 20:29 (wing 20:29 call) (ctor 20:34 %got)))))
+  (value 21:1 generic-context
+    (cast 21:20
+      (apply 21:23 maybe (aura 21:30 @t))
+      (group 21:34
+        (call 21:35 (wing 21:35 call) (ctor 21:40 %got)))))
+  (value 22:1 generic-wrong
+    (cast 22:18
+      (apply 22:21 maybe (aura 22:28 @p))
+      (group 22:32
+        (call 22:33 (wing 22:33 call) (ctor 22:38 %got)))))
+  (value 23:1 generic-right-ship
+    (cast 23:23
+      (apply 23:26 maybe (aura 23:33 @p))
+      (group 23:37
+        (call 23:38 (wing 23:38 call-ship) (ctor 23:48 %got)))))
+  (value 24:1 named-capital
+    (gate 24:18
+      (face 24:21 value (tvar 24:27 A))
+      (body 25:3
+        (cast 25:3
+          (apply 25:6 maybe (tvar 25:13 A))
+          (body 26:5
+            (group 26:5
+              (call 26:6
+                (gate-wide 26:6
+                  (face 26:9 callback
+                    (fn 26:18 (tvar 26:21 A) (tvar 26:23 M)))
+                  (group 26:26
+                    (call 26:27 (wing 26:27 callback) (wing 26:36 value))))
+                (ctor 26:44 %got))))))))
+  (value 27:1 discarded-pending
+    (body 28:3
+      (trace 28:3
+        (lit 28:6 %unrelated)
+        (body 29:5
+          (cast 29:5
+            (ref 29:8 msg)
+            (group 29:12
+              (call 29:13 (wing 29:13 call) (ctor 29:18 %got))))))))
+  (value 30:1 discarded-constructor
+    (body 31:3
+      (trace 31:3
+        (ctor 31:6 %missing)
+        (body 32:5
+          (cast 32:5
+            (ref 32:8 msg)
+            (group 32:12
+              (call 32:13 (wing 32:13 call) (ctor 32:18 %got))))))))
+  (value 33:1 existing-no-context
+    (cast 33:24
+      (fn 33:27 (aura 33:30 @t) (ref 33:33 msg))
+      (ctor 33:38 %got)))
+  (value 34:1 wrong-existing
+    (cast 34:19
+      (fn 34:22 (aura 34:25 @p) (ref 34:28 msg))
+      (ctor 34:33 %got)))
+  (value 35:1 later-use
+    (cast 35:14 (ref 35:17 msg) (wing 35:21 unknown)))
+  (value 36:1 noun-context
+    (cast 36:17
+      (noun 36:20)
+      (group 36:22
+        (call 36:23 (wing 36:23 call) (ctor 36:28 %got)))))
+  (value 37:1 other-known-origin
+    (cast 37:23
+      (apply 37:26 ask (aura 37:31 @t))
+      (group 37:35
+        (call 37:36 (wing 37:36 call) (ctor 37:41 %got))))))

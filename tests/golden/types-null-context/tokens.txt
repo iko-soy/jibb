@@ -36,14 +36,14 @@
 6:28 tight glyph ]
 7:1 NEWLINE
 7:1 glyph ++
-7:4 name bad-constructor
-7:20 glyph ^-
-7:23 glyph $-(
-7:26 tight aura @t
-7:29 name maybe
-7:34 tight glyph )
-7:36 glyph |=
-7:38 tight lit %$
+7:4 name null-constructor
+7:21 glyph ^-
+7:24 glyph $-(
+7:27 tight aura @t
+7:30 name maybe
+7:35 tight glyph )
+7:37 glyph |=
+7:39 tight lit %$
 8:1 NEWLINE
 8:1 glyph ++
 8:4 name dollar-constructor

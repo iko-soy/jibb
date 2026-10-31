@@ -1,0 +1,2 @@
+source: literal equality uses runtime nouns while typed aura constraints remain directional.
+tests: Loobean singleton molds and equal-noun terms, wrong singleton, ordinary loobean widening to ? and @, invalid widening to typed auras, and constructor matching a loobean-headed case. This is a partial inference report.

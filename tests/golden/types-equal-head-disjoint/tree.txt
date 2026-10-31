@@ -1,0 +1,75 @@
+(module
+  (mold 1:1 split
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %one)
+        (face 2:9 value (aura 2:15 @t)))
+      (cell 3:3
+        (const 3:4 %one)
+        (face 3:9 value (aura 3:15 @p)))))
+  (mold 4:1 split-zero
+    (union 5:3
+      (cell 5:3
+        (const 5:4 ~)
+        (face 5:6 value (aura 5:12 @t)))
+      (cell 6:3
+        (const 6:4 %.y)
+        (face 6:8 value (aura 6:14 @p)))))
+  (mold 7:1 nullable
+    (union 8:3
+      (const 8:3 ~)
+      (cell 9:3
+        (const 9:4 ~)
+        (face 9:6 value (aura 9:12 @t)))))
+  (value 10:1 cord
+    (cast 10:9
+      (fn 10:12 (aura 10:15 @t) (ref 10:18 split))
+      (ctor 10:25 %one)))
+  (value 11:1 ship
+    (cast 11:9
+      (fn 11:12 (aura 11:15 @p) (ref 11:18 split))
+      (ctor 11:25 %one)))
+  (value 12:1 neither
+    (cast 12:12
+      (fn 12:15 (aura 12:18 @ud) (ref 12:22 split))
+      (ctor 12:29 %one)))
+  (value 13:1 zero-cord
+    (cast 13:14
+      (fn 13:17 (aura 13:20 @t) (ref 13:23 split-zero))
+      (ctor 13:35 %$)))
+  (value 14:1 zero-ship
+    (cast 14:14
+      (fn 14:17 (aura 14:20 @p) (ref 14:23 split-zero))
+      (ctor 14:35 %$)))
+  (value 15:1 zero-neither
+    (cast 15:17
+      (fn 15:20 (aura 15:23 @ud) (ref 15:27 split-zero))
+      (ctor 15:39 %$)))
+  (value 16:1 contextual
+    (cast 16:15
+      (fn 16:18 (aura 16:21 @t) (ref 16:24 nullable))
+      (ctor 16:34 %$)))
+  (value 17:1 pending
+    (body 18:3
+      (trace 18:3
+        (lit 18:6 %orphan)
+        (body 19:5
+          (cast 19:5
+            (fn 19:8 (aura 19:11 @t) (ref 19:14 split))
+            (ctor 19:21 %one))))))
+  (mold 20:1 exact
+    (union 21:3
+      (cell 21:3 (const 21:4 %same) (const 21:10 %alpha))
+      (cell 22:3 (const 22:4 %same) (const 22:10 %beta))))
+  (value 23:1 first
+    (cast 23:10
+      (fn 23:13 (const 23:16 %alpha) (ref 23:23 exact))
+      (ctor 23:30 %same)))
+  (value 24:1 second
+    (cast 24:11
+      (fn 24:14 (const 24:17 %beta) (ref 24:23 exact))
+      (ctor 24:30 %same)))
+  (value 25:1 no-case
+    (cast 25:12
+      (fn 25:15 (const 25:18 %other) (ref 25:25 exact))
+      (ctor 25:32 %same))))

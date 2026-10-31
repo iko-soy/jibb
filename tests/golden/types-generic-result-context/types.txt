@@ -1,0 +1,22 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
++$ other: cases proven disjoint; mold not checked
++$ choice: cases proven disjoint; mold not checked
++$ swap: not checked
++$ repeated: not checked
++$ phantom: not checked
+++ wrap: $-(A (choice A @p))
+++ wrap-repeat: $-(A (choice A A))
+++ use-msg: (choice msg @p)
+++ use-alias: (choice msg @p)
+++ use-repeated: (choice msg msg)
+++ use-distinct: (choice other @p)
+++ independent: $-([m=msg n=other] [(choice msg @p) (choice other @p)])
+++ pending: tag needs context in partial inference
+++ wrong-case: msg has no case `%absent`
+/tests/golden/types-generic-result-context/source.jibb:24:35: expected union
+++ wrong-case ^- (choice msg @p) (wrap %absent)
+                                  ^
+/tests/golden/types-generic-result-context/source.jibb:24:40: tag
+++ wrong-case ^- (choice msg @p) (wrap %absent)
+                                       ^

@@ -1,0 +1,136 @@
+1:1 glyph +$
+1:4 name maybe
+2:3 INDENT
+2:3 lit ~
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit ~
+3:6 name value
+3:11 tight glyph =
+3:12 tight aura @t
+3:14 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name term-zero
+5:3 INDENT
+5:3 lit %$
+6:3 NEWLINE
+6:3 glyph [
+6:4 tight lit %some
+6:10 name value
+6:15 tight glyph =
+6:16 tight aura @t
+6:18 tight glyph ]
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name flag-zero
+8:3 INDENT
+8:3 lit %.y
+9:3 NEWLINE
+9:3 glyph [
+9:4 tight lit %some
+9:10 name value
+9:15 tight glyph =
+9:16 tight aura @t
+9:18 tight glyph ]
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph +$
+10:4 name repeated
+11:3 INDENT
+11:3 lit ~
+12:3 NEWLINE
+12:3 lit %.y
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph +$
+13:4 name number-one
+14:3 INDENT
+14:3 lit %.n
+15:3 NEWLINE
+15:3 glyph [
+15:4 tight lit %some
+15:10 name value
+15:15 tight glyph =
+15:16 tight aura @t
+15:18 tight glyph ]
+16:1 DEDENT
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name as-null
+16:12 glyph ^-
+16:15 name maybe
+16:21 lit %.y
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name bad-null
+17:13 glyph ^-
+17:16 name maybe
+17:22 lit %.n
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name null-as-term
+18:17 glyph ^-
+18:20 name term-zero
+18:30 lit ~
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name flag-as-term
+19:17 glyph ^-
+19:20 name term-zero
+19:30 lit %.y
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name term-as-flag
+20:17 glyph ^-
+20:20 name flag-zero
+20:30 lit %$
+21:1 NEWLINE
+21:1 glyph ++
+21:4 name null-as-flag
+21:17 glyph ^-
+21:20 name flag-zero
+21:30 lit ~
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name yes-as-flag
+22:16 glyph ^-
+22:19 name flag-zero
+22:29 lit %.y
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name no-as-one
+23:14 glyph ^-
+23:17 name number-one
+23:28 lit %.n
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name no-as-zero
+24:15 glyph ^-
+24:18 name flag-zero
+24:28 lit %.n
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name pending
+26:3 INDENT
+26:3 glyph ~&
+26:6 lit %unrelated
+27:5 INDENT
+27:5 glyph ^-
+27:8 name maybe
+27:14 lit %.y
+28:1 DEDENT
+28:1 DEDENT
+28:1 NEWLINE
+28:1 glyph ++
+28:4 name unknown
+28:12 glyph |=
+28:15 name x
+28:16 tight glyph =
+28:17 tight tvar A
+28:19 glyph ^-
+28:22 tvar A
+28:24 lit %.y
+28:27 NEWLINE

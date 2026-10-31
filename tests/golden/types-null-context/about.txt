@@ -1,4 +1,4 @@
 source: Grammar, Tag resolution: "A tag literal or `~` gets a fresh type variable and a pending constraint"; `|=%typed` "works for cases tagged at their head".
-tests: Contextual null and a null-headed cell fit their respective cases. A null-headed case is not a `%$` constructor; a term-headed `%$` case is.
+tests: Contextual null and a null-headed cell fit their respective cases. Null- and term-headed zero cases both accept a `%$` constructor because their literal heads are equal nouns.
 expect: parses
 expect-types: a partial inference report

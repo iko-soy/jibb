@@ -1,0 +1,37 @@
++$ msg
+  [%got value=@t]
+  %done
+++ watch-value |= a=(ask msg) ^- (sub msg) [%watch a]
+++ watch-cord |= a=(ask @t) ^- (sub @t) [%watch a]
+++ wrong-watch |= a=(ask @p) ^- (sub @t) [%watch a]
+++ periodic ^- (sub @t) [%every gap=~s1 reply=|=(date=@da "tick")]
+++ route ^- (sub @t) [%url reply=|=(p=path "path")]
+++ wrong-reply ^- (sub @t) [%every gap=~s1 reply=|=(date=@p "bad")]
+++ incomplete |= s=(sub msg)
+  ?- s
+    [%watch ask] %done
+    [%every gap reply] %done
+++ complete |= s=(sub msg)
+  ?- s
+    [%watch ask] %done
+    [%every gap reply] %done
+    [%url reply] %done
+
++$ my-msg
+  [%got value=@t]
+  %idle
+++ take-watch |= s=(sub my-msg)
+  ^- (ask my-msg)
+    ?- s
+      [%watch a] a
+      [%every gap reply] !!
+      [%url reply] !!
+++ watch-pure ^- (sub my-msg) [%watch (pure %idle)]
+++ watch-generic |= a=(ask A) ^- (sub A) [%watch a]
+++ independent-text |= a=(ask @t) ^- (sub @t) [%watch a]
+++ independent-ship |= a=(ask @p) ^- (sub @p) [%watch a]
+++ wrong-watch-generic |= a=(ask @p) ^- (sub @t) [%watch a]
+
+++ pure-direct ^- (ask my-msg) (pure %idle)
+++ pure-typed ^- (ask my-msg) (pure (^- my-msg %idle))
+++ pure-wrong ^- (ask my-msg) (pure %absent)

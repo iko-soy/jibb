@@ -4,5 +4,5 @@
 +$ dollar [%$ value=@t]
 ++ empty ^- maybe ~
 ++ present ^- maybe [~ "hi"]
-++ bad-constructor ^- $-(@t maybe) |=%$
+++ null-constructor ^- $-(@t maybe) |=%$
 ++ dollar-constructor ^- $-(@t dollar) |=%$

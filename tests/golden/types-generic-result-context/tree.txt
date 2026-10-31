@@ -1,0 +1,86 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %idle) (const 3:3 %busy)))
+  (mold 4:1 other
+    (union 5:3 (const 5:3 %idle) (const 6:3 %busy)))
+  (mold 7:1 choice
+    (generic 7:11 A B
+      (union 8:3
+        (cell 8:3
+          (const 8:4 %one)
+          (face 8:9 value (tvar 8:15 A)))
+        (cell 9:3
+          (const 9:4 %two)
+          (face 9:9 value (tvar 9:15 B))))))
+  (mold 10:1 swap
+    (generic 10:9 A B
+      (apply 10:18 choice (tvar 10:26 B) (tvar 10:28 A))))
+  (mold 11:1 repeated
+    (generic 11:13 A
+      (apply 11:20 choice (tvar 11:28 A) (tvar 11:30 A))))
+  (mold 12:1 phantom
+    (generic 12:12 A B
+      (apply 12:21 choice (tvar 12:29 A) (aura 12:31 @p))))
+  (value 13:1 wrap
+    (gate 13:9
+      (face 13:12 x (tvar 13:14 A))
+      (cast 13:16
+        (apply 13:19 choice (tvar 13:27 A) (aura 13:29 @p))
+        (tuple 13:33 (lit 13:34 %one) (wing 13:39 x)))))
+  (value 14:1 wrap-repeat
+    (gate 14:16
+      (face 14:19 x (tvar 14:21 A))
+      (cast 14:23
+        (apply 14:26 repeated (tvar 14:36 A))
+        (tuple 14:39 (lit 14:40 %one) (wing 14:45 x)))))
+  (value 15:1 use-msg
+    (cast 15:12
+      (apply 15:15 choice (ref 15:23 msg) (aura 15:27 @p))
+      (group 15:31
+        (call 15:32 (wing 15:32 wrap) (lit 15:37 %idle)))))
+  (value 16:1 use-alias
+    (cast 16:14
+      (apply 16:17 swap (aura 16:23 @p) (ref 16:26 msg))
+      (group 16:31
+        (call 16:32 (wing 16:32 wrap) (lit 16:37 %idle)))))
+  (value 17:1 use-repeated
+    (cast 17:17
+      (apply 17:20 repeated (ref 17:30 msg))
+      (group 17:35
+        (call 17:36 (wing 17:36 wrap-repeat) (lit 17:48 %idle)))))
+  (value 18:1 use-distinct
+    (cast 18:17
+      (apply 18:20 choice (ref 18:28 other) (aura 18:34 @p))
+      (group 18:38
+        (call 18:39 (wing 18:39 wrap) (lit 18:44 %idle)))))
+  (value 19:1 independent
+    (gate 19:16
+      (cell 19:19
+        (face 19:20 m (ref 19:22 msg))
+        (face 19:26 n (ref 19:28 other)))
+      (body 20:3
+        (tuple 20:3
+          (group 20:4
+            (cast 20:5
+              (apply 20:8 choice (ref 20:16 msg) (aura 20:20 @p))
+              (group 20:24
+                (call 20:25 (wing 20:25 wrap) (wing 20:30 m)))))
+          (group 20:34
+            (cast 20:35
+              (apply 20:38 choice (ref 20:46 other) (aura 20:52 @p))
+              (group 20:56
+                (call 20:57 (wing 20:57 wrap) (wing 20:62 n)))))))))
+  (value 21:1 pending
+    (body 22:3
+      (trace 22:3
+        (lit 22:6 %orphan)
+        (body 23:5
+          (cast 23:5
+            (apply 23:8 choice (ref 23:16 msg) (aura 23:20 @p))
+            (group 23:24
+              (call 23:25 (wing 23:25 wrap) (lit 23:30 %idle))))))))
+  (value 24:1 wrong-case
+    (cast 24:15
+      (apply 24:18 choice (ref 24:26 msg) (aura 24:30 @p))
+      (group 24:34
+        (call 24:35 (wing 24:35 wrap) (lit 24:40 %absent))))))

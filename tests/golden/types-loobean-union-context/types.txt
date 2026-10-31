@@ -1,0 +1,35 @@
+partial inference; module not checked
++$ maybe: cases proven disjoint; mold not checked
++$ term-zero: cases proven disjoint; mold not checked
++$ flag-zero: cases proven disjoint; mold not checked
++$ repeated: overlapping cases; mold not checked
+/tests/golden/types-loobean-union-context/source.jibb:11:3: first union case
+  ~
+  ^
+/tests/golden/types-loobean-union-context/source.jibb:12:3: overlapping case
+  %.y
+  ^
++$ number-one: cases proven disjoint; mold not checked
+++ as-null: maybe
+++ bad-null: cast mold and expression type do not unify
+/tests/golden/types-loobean-union-context/source.jibb:17:16: cast mold
+++ bad-null ^- maybe %.n
+               ^
+/tests/golden/types-loobean-union-context/source.jibb:17:22: expression has type ?
+++ bad-null ^- maybe %.n
+                     ^
+++ null-as-term: term-zero
+++ flag-as-term: term-zero
+++ term-as-flag: flag-zero
+++ null-as-flag: flag-zero
+++ yes-as-flag: flag-zero
+++ no-as-one: number-one
+++ no-as-zero: cast mold and expression type do not unify
+/tests/golden/types-loobean-union-context/source.jibb:24:18: cast mold
+++ no-as-zero ^- flag-zero %.n
+                 ^
+/tests/golden/types-loobean-union-context/source.jibb:24:28: expression has type ?
+++ no-as-zero ^- flag-zero %.n
+                           ^
+++ pending: tag needs context in partial inference
+++ unknown: explicit capital constraints are not supported by partial inference

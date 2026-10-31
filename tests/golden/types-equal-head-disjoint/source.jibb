@@ -1,0 +1,25 @@
++$ split
+  [%one value=@t]
+  [%one value=@p]
++$ split-zero
+  [~ value=@t]
+  [%.y value=@p]
++$ nullable
+  ~
+  [~ value=@t]
+++ cord ^- $-(@t split) |=%one
+++ ship ^- $-(@p split) |=%one
+++ neither ^- $-(@ud split) |=%one
+++ zero-cord ^- $-(@t split-zero) |=%$
+++ zero-ship ^- $-(@p split-zero) |=%$
+++ zero-neither ^- $-(@ud split-zero) |=%$
+++ contextual ^- $-(@t nullable) |=%$
+++ pending
+  ~& %orphan
+    ^- $-(@t split) |=%one
++$ exact
+  [%same %alpha]
+  [%same %beta]
+++ first ^- $-(%alpha exact) |=%same
+++ second ^- $-(%beta exact) |=%same
+++ no-case ^- $-(%other exact) |=%same
