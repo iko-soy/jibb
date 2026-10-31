@@ -1,0 +1,15 @@
+partial inference; module not checked
+++ empty: @ud
+++ singleton: @ud
+++ cons: @ud
+++ numbers: @ud
+++ ships: @ud
+++ gate-list: @ud
+++ generic: $-((list A) @ud)
+++ bad: call's sample and argument types do not unify
+/tests/golden/types-prelude-lent/source.jibb:8:9: called gate has type $-((list A) @ud)
+++ bad (lent "not a list")
+        ^
+/tests/golden/types-prelude-lent/source.jibb:8:14: argument has type @t
+++ bad (lent "not a list")
+             ^

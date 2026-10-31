@@ -38,7 +38,7 @@ partial inference; module not checked
 ++ reject-bool-dec (dec %.n)
                         ^
 ++ dec-hex: @ux
-++ unavailable-length: name is not available to partial inference
+++ list-length: @ud
 ++ captured: call's sample and argument types do not unify
 /tests/golden/types-prelude-arithmetic/source.jibb:19:21: called gate has type $-([A A] A) where A is an atom other than ?
 ++ captured |= x=? (add x x)

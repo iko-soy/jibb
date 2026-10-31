@@ -1,0 +1,8 @@
+++ empty (lent ~)
+++ singleton (lent ~["a"])
+++ cons (lent ["a" ~])
+++ numbers (lent ~[1 2])
+++ ships (lent ~[~zod ~nec])
+++ gate-list (lent ~[same])
+++ generic |= xs=(list A) (lent xs)
+++ bad (lent "not a list")

@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, The prelude: "Lists | 2b | turn, weld, snag, lent, sort, skim"
+tests: Source-backed lent checks empty and cons lists, values of different element types including gates, and an independently generic list argument; a non-list fails with both sites. The source implements length by recursion and addition. This checks partial inference only; lowering, execution and jet recognition remain unfinished.
+expect: parses
+expect-types: a partial inference report

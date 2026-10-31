@@ -343,3 +343,10 @@
   [%watch a=(ask M)]
   [%every gap=@dr reply=$-(@da M)]
   [%url reply=$-(path M)]
+
+::  Count a finite list with the source-backed addition gate.
+++ lent |= xs=(list A)
+  ^- @ud
+    ?- xs
+      ~ 0
+      [item rest] (add 1 (lent rest))

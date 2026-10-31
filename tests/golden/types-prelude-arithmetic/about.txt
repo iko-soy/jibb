@@ -1,4 +1,4 @@
 source: docs/spec/grammar.md, Molds, Atoms: "Arithmetic rejects loobean operands: `?` contains only 0 and 1, while an arithmetic result need not."
-tests: The source-backed add, dec and gth wrappers preserve numeric auras, constrained generic types, and independent comparison behavior. Loobean operands are rejected by add and dec; lent remains unavailable. Primitive lowering, jet recognition and execution remain unfinished. The module report is partial.
+tests: The source-backed add, dec and gth wrappers preserve numeric auras, constrained generic types, and independent comparison behavior. Loobean operands are rejected by add and dec; the source-backed lent infers list lengths. Primitive lowering, jet recognition and execution remain unfinished. The module report is partial.
 expect: parses
 expect-types: a partial inference report

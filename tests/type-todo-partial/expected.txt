@@ -1,0 +1,17 @@
+unchanged todo: partial inference only
+partial inference; module not checked
+++ main: name is not available to partial inference
++$ model: not checked
++$ msg: cases proven disjoint; mold not checked
+++ init: `~` needs context in partial inference
+++ update: name is not available to partial inference
+++ subs: call constraint is not supported by partial inference
+++ view: name is not available to partial inference
+++ row-of: name is not available to partial inference
+negative API imports
+missing-mark: rejected
+duplicate-mark: rejected
+missing-selected-sur: rejected
+missing module: partial report
+partial inference; module not checked
+module source missing: /ui/api/todo/jibb

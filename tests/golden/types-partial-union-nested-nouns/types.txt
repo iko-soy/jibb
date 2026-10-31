@@ -1,0 +1,25 @@
+partial inference; module not checked
++$ nested-zero: overlapping cases; mold not checked
+/tests/golden/types-partial-union-nested-nouns/source.jibb:2:3: first union case
+  [%tag [%$ @t]]
+  ^
+/tests/golden/types-partial-union-nested-nouns/source.jibb:3:3: overlapping case
+  [%tag [~ @t]]
+  ^
++$ nested-flag-zero: overlapping cases; mold not checked
+/tests/golden/types-partial-union-nested-nouns/source.jibb:5:3: first union case
+  [%tag [%.y @t]]
+  ^
+/tests/golden/types-partial-union-nested-nouns/source.jibb:6:3: overlapping case
+  [%tag [%$ @t]]
+  ^
++$ nested-distinct: cases proven disjoint; mold not checked
++$ empty-beneath-unknown: cases proven disjoint; mold not checked
++$ unknown-inhabitation: case disjointness unresolved; mold not checked
++$ known-inhabitation: overlapping cases; mold not checked
+/tests/golden/types-partial-union-nested-nouns/source.jibb:17:3: first union case
+  *
+  ^
+/tests/golden/types-partial-union-nested-nouns/source.jibb:18:3: overlapping case
+  [%tag [@t @p]]
+  ^

@@ -1,0 +1,47 @@
+(module
+  (mold 1:1 nested-zero
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %tag)
+        (cell 2:9 (const 2:10 %$) (aura 2:13 @t)))
+      (cell 3:3
+        (const 3:4 %tag)
+        (cell 3:9 (const 3:10 ~) (aura 3:12 @t)))))
+  (mold 4:1 nested-flag-zero
+    (union 5:3
+      (cell 5:3
+        (const 5:4 %tag)
+        (cell 5:9 (const 5:10 %.y) (aura 5:14 @t)))
+      (cell 6:3
+        (const 6:4 %tag)
+        (cell 6:9 (const 6:10 %$) (aura 6:13 @t)))))
+  (mold 7:1 nested-distinct
+    (union 8:3
+      (cell 8:3
+        (const 8:4 %tag)
+        (cell 8:9 (const 8:10 %a) (aura 8:13 @t)))
+      (cell 9:3
+        (const 9:4 %tag)
+        (cell 9:9 (const 9:10 %b) (aura 9:13 @t)))))
+  (mold 10:1 empty-beneath-unknown
+    (union 11:3
+      (noun 11:3)
+      (cell 12:3
+        (const 12:4 %tag)
+        (cell 12:9
+          (fn 12:10 (aura 12:13 @t) (aura 12:16 @t))
+          (void 12:20)))))
+  (mold 13:1 unknown-inhabitation
+    (union 14:3
+      (noun 14:3)
+      (cell 15:3
+        (const 15:4 %tag)
+        (cell 15:9
+          (fn 15:10 (aura 15:13 @t) (aura 15:16 @t))
+          (aura 15:20 @t)))))
+  (mold 16:1 known-inhabitation
+    (union 17:3
+      (noun 17:3)
+      (cell 18:3
+        (const 18:4 %tag)
+        (cell 18:9 (aura 18:10 @t) (aura 18:13 @p))))))

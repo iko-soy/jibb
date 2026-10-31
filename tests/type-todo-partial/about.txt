@@ -1,0 +1,4 @@
+source: Overview, Worked examples: “`main.todo-list` is a record of exactly `init`, `update`, `view` and `subs`, whose types fix the data, model and messages.”
+tests: The unchanged todo island is resolved using the real prelude, todo API, source-aware Hoon `/sur`, and mark readers. The report records partial inference only; it does not claim the module, island kind, gate-free conditions, runtime, or watchability were checked. Missing and duplicate marks, an unavailable selected `/sur` mold, and an unavailable API module remain rejected or explicitly unavailable. The eval runner verifies the mounted todo and API fixtures match their app sources.
+expect: parses
+expect-types: a partial inference report

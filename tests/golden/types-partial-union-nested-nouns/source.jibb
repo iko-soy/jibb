@@ -1,0 +1,18 @@
++$ nested-zero
+  [%tag [%$ @t]]
+  [%tag [~ @t]]
++$ nested-flag-zero
+  [%tag [%.y @t]]
+  [%tag [%$ @t]]
++$ nested-distinct
+  [%tag [%a @t]]
+  [%tag [%b @t]]
++$ empty-beneath-unknown
+  *
+  [%tag [$-(@t @t) !!]]
++$ unknown-inhabitation
+  *
+  [%tag [$-(@t @t) @t]]
++$ known-inhabitation
+  *
+  [%tag [@t @p]]

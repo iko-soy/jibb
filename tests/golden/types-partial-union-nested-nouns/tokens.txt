@@ -1,0 +1,108 @@
+1:1 glyph +$
+1:4 name nested-zero
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %tag
+2:9 glyph [
+2:10 tight lit %$
+2:13 aura @t
+2:15 tight glyph ]
+2:16 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %tag
+3:9 glyph [
+3:10 tight lit ~
+3:12 aura @t
+3:14 tight glyph ]
+3:15 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name nested-flag-zero
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %tag
+5:9 glyph [
+5:10 tight lit %.y
+5:14 aura @t
+5:16 tight glyph ]
+5:17 tight glyph ]
+6:3 NEWLINE
+6:3 glyph [
+6:4 tight lit %tag
+6:9 glyph [
+6:10 tight lit %$
+6:13 aura @t
+6:15 tight glyph ]
+6:16 tight glyph ]
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name nested-distinct
+8:3 INDENT
+8:3 glyph [
+8:4 tight lit %tag
+8:9 glyph [
+8:10 tight lit %a
+8:13 aura @t
+8:15 tight glyph ]
+8:16 tight glyph ]
+9:3 NEWLINE
+9:3 glyph [
+9:4 tight lit %tag
+9:9 glyph [
+9:10 tight lit %b
+9:13 aura @t
+9:15 tight glyph ]
+9:16 tight glyph ]
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph +$
+10:4 name empty-beneath-unknown
+11:3 INDENT
+11:3 glyph *
+12:3 NEWLINE
+12:3 glyph [
+12:4 tight lit %tag
+12:9 glyph [
+12:10 tight glyph $-(
+12:13 tight aura @t
+12:16 aura @t
+12:18 tight glyph )
+12:20 glyph !!
+12:22 tight glyph ]
+12:23 tight glyph ]
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph +$
+13:4 name unknown-inhabitation
+14:3 INDENT
+14:3 glyph *
+15:3 NEWLINE
+15:3 glyph [
+15:4 tight lit %tag
+15:9 glyph [
+15:10 tight glyph $-(
+15:13 tight aura @t
+15:16 aura @t
+15:18 tight glyph )
+15:20 aura @t
+15:22 tight glyph ]
+15:23 tight glyph ]
+16:1 DEDENT
+16:1 NEWLINE
+16:1 glyph +$
+16:4 name known-inhabitation
+17:3 INDENT
+17:3 glyph *
+18:3 NEWLINE
+18:3 glyph [
+18:4 tight lit %tag
+18:9 glyph [
+18:10 tight aura @t
+18:13 aura @p
+18:15 tight glyph ]
+18:16 tight glyph ]
+18:17 DEDENT
+18:17 NEWLINE

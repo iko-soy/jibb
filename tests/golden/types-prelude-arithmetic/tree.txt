@@ -57,11 +57,11 @@
   (value 17:1 dec-hex
     (group 17:12
       (call 17:13 (wing 17:13 dec) (lit 17:17 0x2))))
-  (value 18:1 unavailable-length
-    (group 18:23
-      (call 18:24
-        (wing 18:24 lent)
-        (list 18:29 (str 18:31 "a")))))
+  (value 18:1 list-length
+    (group 18:16
+      (call 18:17
+        (wing 18:17 lent)
+        (list 18:22 (str 18:24 "a")))))
   (value 19:1 captured
     (gate 19:13
       (face 19:16 x (flag 19:18))

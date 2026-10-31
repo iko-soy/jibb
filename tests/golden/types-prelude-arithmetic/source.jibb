@@ -15,7 +15,7 @@
 ++ add-hex (add 0x1 0x2)
 ++ reject-bool-dec (dec %.n)
 ++ dec-hex (dec 0x2)
-++ unavailable-length (lent ~["a"])
+++ list-length (lent ~["a"])
 ++ captured |= x=? (add x x)
 ++ captured-local |= x=?
   ++ local |= y=? (add x y)

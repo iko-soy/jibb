@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Molds, Unions: "Cases must differ as nouns"; "a cell with an empty position at any depth is itself empty".
+tests: Nested zero literals compare by noun across spelling, while distinct nested constants are disjoint. An empty field below an unknown gate makes the whole cell empty; without that field, gate inhabitation is unknown. A fully inhabited cell overlaps the noun mold. This reports pairwise partial mold analysis, not checked molds.
+expect: parses
+expect-types: a partial inference report

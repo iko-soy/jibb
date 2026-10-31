@@ -73,6 +73,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-generic-alias-test` | Runs public/private generic union alias and provenance guards under eval and on the ship |
 | `tools/type-positional-face-guards-test` | Runs positional-call and nested-face guards under eval and on the ship |
 | `tools/type-qath-guards-test` | Runs source-provenance, recursive unfolding and face guards under eval and on the ship |
+| `tools/type-todo-partial-test` | Reports partial inference of the unchanged todo island through the real API and readers under eval and on the ship |
 | `tools/type-todo-api-test` | Exercises the actual todo API through the real Hoon readers and partial checker |
 | `tools/type-direct-gate-test` | Checks a synthetic source-backed program report and direct gate provenance under eval and on the ship |
 | `tools/type-closed-gate-guards-test` | Checks closed gate sample labels and face uncertainty under eval and on the ship |
@@ -114,6 +115,7 @@ tools/type-list-alias-test         # prelude list-alias guards pass
 tools/type-generic-alias-test      # generic union alias guards pass
 tools/type-positional-face-guards-test # positional sample face guards pass
 tools/type-qath-guards-test         # qath source and unfolding guards pass
+tools/type-todo-partial-test       # unchanged todo partial report and reader failure controls
 tools/type-todo-api-test            # real todo API partial inference and reader guards pass
 tools/type-direct-gate-test         # direct gate source and provenance guards pass
 tools/type-closed-gate-guards-test  # closed gate fit guards pass

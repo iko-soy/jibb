@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Report partial inference of the unchanged todo island through real readers."""
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+stage = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--repo', type=Path, default=stage, help=argparse.SUPPRESS)
+parser.add_argument('--lib')
+args = parser.parse_args()
+root = args.repo.resolve()
+if args.lib is None:
+    args.lib = str(root / 'jibb-dev/lib/jibb.hoon')
+for fixture, actual in (('tests/type-gate-free/todo.txt', 'my-app/ui/todo-list.jibb'),
+                        ('tests/type-api-paths/api.txt', 'my-app/ui/api/todo.jibb')):
+    if (root / fixture).read_bytes() != (root / actual).read_bytes():
+        sys.exit(f'{fixture} differs from {actual}')
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (stage / 'tests/lib/jibb-todo-partial.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+names = ('sur', 'action', 'todos', 'update', 'item', 'api', 'source')
+program = ('=/  jibb  .\n=/  jibb-import\n' + reader + '\n' +
+           ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                   for name in names) + '=/  expected=wain  ~\n=/  suite\n' + tests +
+           '\n^-  @t\n(todo-island-report:suite prelude internal sur-text action-text todos-text update-text item-text api-text source-text)\n')
+fixtures = {'sur': 'tests/type-api-paths/todo-sur.txt',
+            'action': 'tests/type-api-paths/todo-action.txt',
+            'todos': 'tests/type-api-paths/todos.txt',
+            'update': 'tests/type-api-paths/todo-update.txt',
+            'item': 'tests/type-api-paths/todo-item.txt',
+            'api': 'tests/type-api-paths/api.txt',
+            'source': 'tests/type-gate-free/todo.txt'}
+with tempfile.TemporaryDirectory(prefix='jibb-todo-partial-') as tmp:
+    path = Path(tmp) / 'todo.hoon'
+    path.write_text(program)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name, filename in fixtures.items():
+        command += ['--cord', name + '-text=' + str(root / filename)]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected = (stage / 'tests/type-todo-partial/expected.txt').read_bytes()
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual'))
+    sys.exit('todo partial report differs from expected')
+print('unchanged todo partial reader report passed')

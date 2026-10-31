@@ -1,0 +1,38 @@
+(module
+  (value 1:1 empty
+    (group 1:10
+      (call 1:11 (wing 1:11 lent) (lit 1:16 ~))))
+  (value 2:1 singleton
+    (group 2:14
+      (call 2:15
+        (wing 2:15 lent)
+        (list 2:20 (str 2:22 "a")))))
+  (value 3:1 cons
+    (group 3:9
+      (call 3:10
+        (wing 3:10 lent)
+        (tuple 3:15 (str 3:16 "a") (lit 3:20 ~)))))
+  (value 4:1 numbers
+    (group 4:12
+      (call 4:13
+        (wing 4:13 lent)
+        (list 4:18 (lit 4:20 1) (lit 4:22 2)))))
+  (value 5:1 ships
+    (group 5:10
+      (call 5:11
+        (wing 5:11 lent)
+        (list 5:16 (lit 5:18 ~zod) (lit 5:23 ~nec)))))
+  (value 6:1 gate-list
+    (group 6:14
+      (call 6:15
+        (wing 6:15 lent)
+        (list 6:20 (wing 6:22 same)))))
+  (value 7:1 generic
+    (gate 7:12
+      (face 7:15 xs
+        (apply 7:18 list (tvar 7:24 A)))
+      (group 7:27
+        (call 7:28 (wing 7:28 lent) (wing 7:33 xs)))))
+  (value 8:1 bad
+    (group 8:8
+      (call 8:9 (wing 8:9 lent) (str 8:14 "not a list")))))

@@ -142,13 +142,13 @@
 17:20 tight glyph )
 18:1 NEWLINE
 18:1 glyph ++
-18:4 name unavailable-length
-18:23 glyph (
-18:24 tight name lent
-18:29 glyph ~[
-18:31 tight str "a"
-18:34 tight glyph ]
-18:35 tight glyph )
+18:4 name list-length
+18:16 glyph (
+18:17 tight name lent
+18:22 glyph ~[
+18:24 tight str "a"
+18:27 tight glyph ]
+18:28 tight glyph )
 19:1 NEWLINE
 19:1 glyph ++
 19:4 name captured
