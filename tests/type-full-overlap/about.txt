@@ -1,0 +1,3 @@
+source: docs/spec/grammar.md, Molds: “Cases must differ as nouns”.
+tests: Full-module overlap evidence retains the defining source and both case spans through ordinary Jibb imports, and legacy errors render the excerpts. Distinct cases check; duplicate names, stale caches, cycles, private imports and other unsupported inputs retain their own earlier errors. Specialized API and prelude paths remain outside this diagnostic slice.
+expect: shared eval and ship guards

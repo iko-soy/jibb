@@ -1,0 +1,8 @@
+detached cache rebuild preserves child evidence: ok
+mismatched graph cache declines without evidence: ok
+verified cache source binding: ok
+private import declines before source proof: ok
+active cycle declines before source proof: ok
+duplicate child sources decline without evidence: ok
+missing child source declines without evidence: ok
+transitive import retains leaf source: ok

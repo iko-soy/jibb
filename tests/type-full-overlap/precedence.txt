@@ -1,0 +1,5 @@
++$ unresolved (missing @t)
++$ tagged |$ [A] [%wrapped A]
++$ bad
+  (tagged @t)
+  [%wrapped @p]

@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Check source-bound full-module overlap evidence under eval."""
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--update', action='store_true')
+args = parser.parse_args()
+fixture = root / 'tests/type-full-overlap'
+cases = {
+    'basic': ['same', 'zero', 'unsupported', 'precedence', 'duplicate', 'invalid', 'distinct', 'parent', 'child', 'generic', 'duplicate-generic'],
+    'graph': ['parent', 'child', 'distinct'],
+}
+for kind, names in cases.items():
+    source = (root / 'tests/lib' / f'jibb-full-overlap-{kind}.hoon').read_text()
+    source = source[source.index('\n|%\n') + 1:]
+    cords = [item for name in names for item in ('--cord', f'{name}-text={fixture / (name + ".txt")}')]
+    expected = fixture / f'expected-{kind}.txt'
+    if not args.update:
+        cords += ['--cord', f'expected-text={expected}']
+    bindings = ''.join(f'=/  {name}=wain  (to-wain:format {name}-text)\n' for name in names)
+    program = ('=/  jibb  .\n' + bindings +
+               ('=/  expected=wain  ~\n' if args.update else '=/  expected=wain  (to-wain:format expected-text)\n') +
+               '=/  suite\n' + source + '\n=/  output=@t  (output:suite ' +
+               ' '.join(name + '-text' for name in names) + ')\n' +
+               ('output\n' if args.update else
+                f"=/  actual-test=tang  test-full-overlap-{kind}:suite\n?~  actual-test  output\n'BAD ship test arm'\n"))
+    with tempfile.TemporaryDirectory(prefix='jibb-full-overlap-') as tmp:
+        path = Path(tmp) / 'driver.hoon'
+        path.write_text(program)
+        result = subprocess.run([str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path), *cords], stdout=subprocess.PIPE)
+    if result.returncode:
+        sys.exit(result.returncode)
+    if any(line.startswith(b'BAD ') or line.endswith(b': BAD') for line in result.stdout.splitlines()):
+        sys.stderr.write(f'{kind} overlap guard assertion failed:\n')
+        sys.stderr.buffer.write(result.stdout)
+        sys.exit(1)
+    if args.update:
+        expected.write_bytes(result.stdout)
+    elif result.stdout != expected.read_bytes():
+        sys.stderr.writelines(difflib.unified_diff(expected.read_text().splitlines(keepends=True), result.stdout.decode().splitlines(keepends=True), fromfile=str(expected), tofile='actual'))
+        sys.exit(1)
+print('source-bound full-module overlap guards passed')

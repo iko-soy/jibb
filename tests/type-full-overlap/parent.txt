@@ -1,0 +1,5 @@
+/=  lib /ui/child
++$ tagged |$ [A] [%wrapped A]
++$ parent-bad
+  (tagged @t)
+  [%wrapped @p]

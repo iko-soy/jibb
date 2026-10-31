@@ -316,6 +316,8 @@ def generator_checks(tmp):
            'tests/lib/jibb-empty.hoon',
            'tests/lib/jibb-union-source.hoon',
            'tests/lib/jibb-union-alias-overlap.hoon',
+           'tests/lib/jibb-full-overlap-basic.hoon',
+           'tests/lib/jibb-full-overlap-graph.hoon',
            'tests/lib/jibb-api-evidence.hoon',
            'tests/lib/jibb-ask-guards.hoon',
            'tests/lib/jibb-request-guards.hoon',
@@ -363,6 +365,11 @@ def generator_checks(tmp):
           {f'tests/type-union-alias-overlap/{name}.txt' for name in (
               'positive', 'negative', 'nonzero', 'multi', 'opaque', 'wrong',
               'duplicate', 'qualified', 'flag-source', 'expected')} <= set(normal.files))
+    check('full overlap source fixtures are assembled',
+          {f'tests/type-full-overlap/{name}.txt' for name in (
+              'same', 'zero', 'unsupported', 'precedence', 'duplicate',
+              'invalid', 'distinct', 'parent', 'child', 'generic',
+              'duplicate-generic', 'expected-basic', 'expected-graph')} <= set(normal.files))
     check('deferred transaction and resolver sources are assembled',
           {'tests/type-deferred/nested-src.txt', 'tests/type-deferred/principal-src.txt',
            'tests/type-deferred/expected.txt', 'tests/type-deferred-resolver/good.txt',

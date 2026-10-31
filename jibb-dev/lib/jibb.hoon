@@ -11006,7 +11006,14 @@
 +$  jbundle  (list jsource)
 +$  jcache  (list [at=path iface=ifile])
 +$  jfile-result  (each [iface=ifile cache=jcache] @t)
+::  Overlap evidence retains the exact source that supplied its spans.
+::  Ordinary Jibb imports preserve this evidence through the resolver.
++$  jfile-overlap  [file=path source=@t name=term cases=upair]
++$  jfile-failure  [message=@t overlap=(unit jfile-overlap)]
++$  jfile-detailed-result  (each [iface=ifile cache=jcache] jfile-failure)
 +$  jimports-result  (each [resolved=ijimports cache=jcache] @t)
+::  Preserve an imported overlap's original file and source across the graph.
++$  jimports-detailed-result  (each [resolved=ijimports cache=jcache] jfile-failure)
 ::
 ::  Written record fields each have their own lexical record scope.
 +$  written-fields  (map term span)
@@ -11279,6 +11286,43 @@
     (skim defs.mod |=(d=def !&(?=(%mold -.d) =(%poke name.d))))
   (module-scope-valid mod(defs remaining) prelude-values prelude-molds)
 ::
+::  A detailed failure is attached only to the first mold that actually
+::  failed in this check, using that module's checked source mold table.
++$  imold-failure  [message=@t overlap=(unit [name=term cases=upair])]
+::  Validate a generic wrapper without an unbounded duplicate-name pass.
+++  module-mold-params-valid
+  |=  [vars=(list @t) seen=(set @t) fuel=@ud]
+  ^-  ?
+  ?~  vars  &
+  ?:  =(0 fuel)  |
+  ?:  (~(has in:..zuse seen) i.vars)  |
+  $(vars t.vars, seen (~(put in:..zuse seen) i.vars), fuel (dec fuel))
+++  module-mold-overlap
+  |=  [m=[name=term body=shape] molds=imolds]
+  ^-  (unit upair)
+  =/  sh=shape  body.m
+  =/  valid=?
+    ?.  ?=(%generic -.sh)  &
+    ?~  vars.sh  |
+    (module-mold-params-valid vars.sh *(set @t) 256)
+  ?.  valid  ~
+  =?  sh  ?=(%generic -.sh)  body.sh
+  ?.  ?=(%union -.sh)  ~
+  (union-source-overlap cases.sh molds 256)
+++  module-mold-types-detail
+  |=  [molds=imolds state=istate]
+  ^-  (each imold-types imold-failure)
+  ?~  molds  [%& ~]
+  =/  m=[name=term body=shape]  i.molds
+  =/  t=(unit [template=ischeme state=istate])
+    (infer-mold-template body.m state(active [name.m active.state], in-mold &))
+  ?~  t
+    =/  overlap=(unit upair)  (module-mold-overlap m molds.state)
+    [%| ['module mold needs unsupported inference' ?~(overlap ~ `[name.m u.overlap])]]
+  =.  typ.template.u.t  (label-direct-union typ.template.u.t body.m name.m state)
+  =/  rest=(each imold-types imold-failure)  $(molds t.molds)
+  ?:  ?=(%| -.rest)  rest
+  [%& [[name.m template.u.t] p.rest]]
 ++  module-mold-types
   |=  [molds=imolds state=istate]
   ^-  (each imold-types @t)
@@ -11627,33 +11671,40 @@
 ++  resolve-jibb-imports
   |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jimports-result
+  =/  result=jimports-detailed-result
+    (resolve-jibb-imports-detailed imports externals mark-externals modules active prelude-values prelude-molds cache prelude)
+  ?:  ?=(%| -.result)  [%| message.p.result]
+  [%& p.result]
+++  resolve-jibb-imports-detailed
+  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
+  ^-  jimports-detailed-result
   ?~  imports  [%& [~ cache]]
   ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
   =/  at=path  (weld path.i.imports `path`~[%jibb])
   ?:  =(at /lib/jibb/internal/jibb)
-    [%| 'the prelude internal module is private']
+    [%| ['the prelude internal module is private' ~]]
   ?:  =(at /lib/jibb/primitives/jibb)
-    [%| 'the prelude primitive interface is private']
+    [%| ['the prelude primitive interface is private' ~]]
   ?:  (lien active |=(p=path =(p at)))
-    [%| (crip "import cycle at {(spud at)}")]
+    [%| [(crip "import cycle at {(spud at)}") ~]]
   =/  found=jbundle  (skim modules |=(m=jsource =(at at.m)))
-  ?~  found  [%| (crip "module source missing: {(spud at)}")]
-  ?^  t.found  [%| (crip "duplicate module sources: {(spud at)}")]
+  ?~  found  [%| [(crip "module source missing: {(spud at)}") ~]]
+  ?^  t.found  [%| [(crip "duplicate module sources: {(spud at)}") ~]]
   =/  cached=(unit ifile)  (find-jibb-cache at cache)
-  =/  iface=jfile-result
+  =/  iface=jfile-detailed-result
     ?^  cached
-      ?.  =(at.u.cached at)  [%| 'cached module identity needs unsupported inference']
+      ?.  =(at.u.cached at)  [%| ['cached module identity needs unsupported inference' ~]]
       ?~  graph.u.cached
         ::  A detached legacy interface has unknown evidence. Rebuild it
         ::  against the current graph, without retaining any stale entry.
         =/  clean=jcache  (skim cache |=(x=[at=path iface=ifile] !=(at.x at)))
-        (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds clean prelude)
+        (infer-jibb-file-detailed at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds clean prelude)
       ?.  (request-graph-reusable u.cached source.i.found externals mark-externals modules active prelude-values prelude-molds prelude)
-        [%| 'cached module evidence needs unsupported inference']
+        [%| ['cached module evidence needs unsupported inference' ~]]
       [%& [u.cached cache]]
-    (infer-jibb-file at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache prelude)
+    (infer-jibb-file-detailed at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.iface)  [%| p.iface]
-  =/  rest=jimports-result  $(imports t.imports, cache cache.p.iface)
+  =/  rest=jimports-detailed-result  $(imports t.imports, cache cache.p.iface)
   ?:  ?=(%| -.rest)  rest
   [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest]]
 ::
@@ -12390,17 +12441,25 @@
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-result
+  =/  out=jfile-detailed-result
+    (infer-jibb-file-detailed at src externals mark-externals modules active prelude-values prelude-molds cache prelude)
+  ?:  ?=(%| -.out)  [%| message.p.out]
+  [%& p.out]
+::  Returns structured root-source overlap evidence after the same full check.
+++  infer-jibb-file-detailed
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
+  ^-  jfile-detailed-result
   =/  parsed  (parse at src)
-  ?:  ?=(%| -.parsed)  [%| (crip "module source does not parse: {(spud at)}")]
+  ?:  ?=(%| -.parsed)  [%| [(crip "module source does not parse: {(spud at)}") ~]]
   =/  mod=module  p.parsed
   =/  duplicate=(unit idiag)  (duplicate-defs defs.mod)
-  ?^  duplicate  [%| (show-duplicate-fields at src u.duplicate)]
+  ?^  duplicate  [%| [(show-duplicate-fields at src u.duplicate) ~]]
   ?:  ?=([%ui %api *] at)
     =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
     ?^  iface
       =/  checked=ifile  u.iface(source `src, graph `[(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals])
       [%& [checked [[at checked] cache]]]
-    ?~  prelude  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+    ?~  prelude  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
     =/  prepared=iprelude  [u.prelude prelude-values prelude-molds]
     =/  narrow=?
       ?.  ?=([[%mark *] ~] imports.mod)  |
@@ -12410,21 +12469,21 @@
     ?:  narrow
       =/  request=(each ione-request-interface @t)
         (one-request-interface-graph at src externals mark-externals modules active cache `prepared)
-      ?:  ?=(%| -.request)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+      ?:  ?=(%| -.request)  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
       =/  checked=ifile  iface.p.request
       [%& [checked [[at checked] dependencies.paths.support.p.request]]]
     =/  multi=(each [iface=ifile cache=jcache] @t)
       (multi-request-interface-graph at src externals mark-externals modules active cache `prepared)
-    ?:  ?=(%| -.multi)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+    ?:  ?=(%| -.multi)  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
     [%& [iface.p.multi [[at iface.p.multi] cache.p.multi]]]
   ?.  (module-scope-valid mod prelude-values prelude-molds)
     ?:  (pending-declared-poke at mod prelude-values prelude-molds)
-      [%| (crip "module kind or scope needs unsupported inference: {(spud at)}")]
-    [%| (crip "module has conflicting names: {(spud at)}")]
+      [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
+    [%| [(crip "module has conflicting names: {(spud at)}") ~]]
   =/  vals=(list term)  (global-value-names defs.mod)
   ?:  (lien vals |=(n=term =(n %main)))
-    [%| (crip "module kind needs unsupported inference: {(spud at)}")]
-  =/  js=jimports-result  (resolve-jibb-imports imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
+    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
+  =/  js=jimports-detailed-result  (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.js)  [%| p.js]
   =/  collected=grec-collected
     ?^  imports.mod  [(collect-simple-molds defs.mod) *(map term shape)]
@@ -12449,8 +12508,14 @@
     ?:  (lien molds |=(m=[name=term body=shape] =(%list name.m)))  ~
     `[at src u.prelude index]
   =.  grec-index.state  index
-  =/  mts=(each imold-types @t)  (module-mold-types molds state)
-  ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
+  =/  mts=(each imold-types imold-failure)  (module-mold-types-detail molds state)
+  ?:  ?=(%| -.mts)
+    ?~  overlap.p.mts  [%| [(crip "{(trip message.p.mts)}: {(spud at)}") ~]]
+    =/  witness=[name=term cases=upair]  u.overlap.p.mts
+    =/  first=@t  (show-error src [at line.beg.first.cases.witness col.beg.first.cases.witness "first union case"])
+    =/  second=@t  (show-error src [at line.beg.second.cases.witness col.beg.second.cases.witness "overlapping case"])
+    =/  msg=@t  (of-wain:format ~[(crip "module mold {(trip name.witness)} has overlapping cases") first second])
+    [%| [msg `[at src name.witness cases.witness]]]
   =/  resolution=iresolved
     ?~  index
       (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
@@ -12467,10 +12532,10 @@
     ?:  (dg-interface-safe env.u.transaction)  env.u.transaction
     env
   ?.  (module-values-complete defs.mod env)
-    [%| (crip "module definitions need unsupported inference: {(spud at)}")]
+    [%| [(crip "module definitions need unsupported inference: {(spud at)}") ~]]
   =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
-  ?~  graph  [%| 'module request evidence needs unsupported inference']
+  ?~  graph  [%| ['module request evidence needs unsupported inference' ~]]
   =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph]
   [%& [iface [[at iface] cache.p.js]]]
 ::

@@ -1,0 +1,16 @@
+256 generic parameters accepted by scan: ok
+257 generic parameters exhaust scan: ok
+duplicate generic parameters fail scan: ok
+same head has source-bound overlap: ok
+zero spelling has source-bound overlap: ok
+generic wrapper has source-bound overlap: ok
+duplicate generic parameters remain unstructured: ok
+unsupported remains unstructured: ok
+later overlap exists in precedence source: ok
+earlier unsupported mold takes precedence: ok
+duplicate source parsed but rejects without overlap: ok
+invalid source rejects without overlap: ok
+distinct alias source parses and checks: ok
+parent itself has different positive overlap: ok
+legacy full-module error contains both excerpts: ok
+import overlap retains exact child source: ok

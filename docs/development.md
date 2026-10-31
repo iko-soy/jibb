@@ -14,7 +14,7 @@ From the plan's Setup and ground rules, and from @iko:
 - **Push straight to `master`.** @iko reviews work in the project's chat, not in pull requests, so there are none. Run the checks below first.
 - **Keep docs/ current**: [status.md](status.md) when a milestone moves, [open-questions.md](open-questions.md) when a question is settled or found.
 
-The source-backed generic-union guard can be run under eval with `tools/type-union-source-test`; its `test-union-source` arm is also assembled for the fake ship. It checks a bounded partial inference slice, not general union completeness. `tools/type-union-alias-overlap-test` exercises the separate positive overlap witness and its shared ship test arm.
+The source-backed generic-union guard can be run under eval with `tools/type-union-source-test`; its `test-union-source` arm is also assembled for the fake ship. It checks a bounded partial inference slice, not general union completeness. `tools/type-union-alias-overlap-test` exercises the separate positive overlap witness and its shared ship test arm. `tools/type-full-overlap-test` checks structured full-module overlap evidence and the legacy error text under eval; both of its test arms are assembled for the fake ship.
 
 ## Setting up a machine
 
@@ -68,6 +68,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-import-structural-test` | Checks multi-case and nested Hoon union overlap witnesses under eval and on the ship |
 | `tools/type-union-source-test` | Checks bounded local generic-alias disjointness and state guards under eval and on the ship |
 | `tools/type-union-alias-overlap-test` | Checks source-backed generic-alias overlap witnesses under eval and on the ship |
+| `tools/type-full-overlap-test` | Checks structured full-module overlap evidence and imported-source attribution |
 | `tools/type-tlon-test` | Runs the real Tlon presence source through the importer and partial checker, comparing `tests/type-tlon/expected.txt` under eval |
 | `tools/type-import-diagnostic-test` | Compares the structured reader diagnostic bridge report under eval |
 | `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
@@ -122,6 +123,7 @@ tools/type-import-overlap-test     # source-aware Hoon overlap and provenance co
 tools/type-import-structural-test  # nested and multi-case Hoon overlap controls
 tools/type-union-source-test       # local generic-alias union guards
 tools/type-union-alias-overlap-test # local generic-alias overlap diagnostics
+tools/type-full-overlap-test       # full-module overlap evidence
 tools/type-tlon-test               # real Tlon importer/checker report matches
 tools/type-import-diagnostic-test  # direct structured reader diagnostics match
 tools/type-mark-test               # mark/checker bridge golden report matches

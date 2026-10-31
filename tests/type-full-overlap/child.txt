@@ -1,0 +1,4 @@
++$ tagged |$ [A] [%wrapped A]
++$ child-bad
+  (tagged @t)
+  [%wrapped @p]

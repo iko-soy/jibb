@@ -1,0 +1,4 @@
++$ tagged |$ [A] [%wrapped A]
++$ bad |$ [A]
+  (tagged A)
+  [%wrapped @t]
