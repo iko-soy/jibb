@@ -1,0 +1,9 @@
++$ maybe
+  %none
+  [%some value=@t]
++$ model [draft=@t error=maybe]
+++ final ^- $-(@t [@t maybe]) initial
+++ initial |= draft=@t [draft %none]
+++ send |= f=$-(@t A) f
+++ first (send |=%some)
+++ fixed ^- $-(@t maybe) first

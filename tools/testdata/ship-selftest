@@ -334,6 +334,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-deferred.hoon',
            'tests/lib/jibb-deferred-resolver.hoon',
            'tests/lib/jibb-deferred-context.hoon',
+           'tests/lib/jibb-deferred-prepared.hoon',
            'tests/lib/jibb-cell-branch.hoon'}
           <= normal_tests, sorted(normal_tests))
     check('generic recursion source and golden are assembled',
@@ -383,6 +384,11 @@ def generator_checks(tmp):
           {f'tests/type-deferred-context/{name}.txt' for name in (
               'rich', 'plain', 'simple', 'missing', 'wrong', 'duplicate',
               'dangling', 'collision-early', 'collision-late', 'report')} <= set(normal.files))
+    check('prepared initializer sources and exact reports are assembled',
+          {f'tests/type-deferred-prepared/{name}.txt' for name in (
+              'good', 'tuple-only', 'wrong-unit', 'wrong-draft', 'unrelated-tag',
+              'mold-collision', 'no-final-cast', 'no-prelude', 'main',
+              'imported', 'expected', 'expected-control', 'expected-tuple-only')} <= set(normal.files))
     check('cell branch sources are assembled',
           {'tests/type-cell-branch/good.txt', 'tests/type-cell-branch/bad.txt'}
           <= set(normal.files))

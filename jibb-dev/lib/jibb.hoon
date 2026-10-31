@@ -8435,7 +8435,10 @@
       =/  traced=iresult  $(e val.e)
       ?:  ?=(%| -.traced)  traced
       $(e then.e, state state.p.traced)
-    %tuple  (infer-simple-items items.e env state)
+    %tuple
+      ?:  &(?=(^ defer.state) ?=(^ prelude.state))
+        (dg-infer-tuple-items items.e env state)
+      (infer-simple-items items.e env state)
     %body
       ?~  defs.e  $(e final.e)
       =/  local-names=(list term)  (global-value-names defs.e)
@@ -9241,6 +9244,8 @@
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
   ?:  &(?=(^ defer.state) ?=(%branch -.e))  (infer-fragment e env state)
+  ?:  &(?=(^ defer.state) ?=(^ prelude.state) ?=(%tuple -.e))
+    (infer-fragment e env state)
   ?:  ?=(%pair -.e)  $(e (pair-as-cell e))
   ?:  ?=(%group -.e)  $(e inner.e)
   ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
@@ -12658,7 +12663,7 @@
   ?:  ?=(%| -.js)  (of-wain:format ~['partial inference; module not checked' p.js])
   =/  scope-values=(list term)
     (weld prelude-values (weld (collect-sur-imports imports.p.parsed) (collect-mark-imports imports.p.parsed)))
-  (golden-types-in-context file src externals mark-externals resolved.p.js scope-values prelude-molds iface)
+  (golden-types-in-context-core file src externals mark-externals resolved.p.js scope-values prelude-molds iface prepared)
 ::
 ::  +golden-types-with-marks: supply declared mark types separately from /sur
 ::    entries, as [mark result] with the result from +read-mark:jibb-import.
@@ -12689,6 +12694,10 @@
 ++  golden-types-in-context
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals jimports=ijimports prelude-values=(list term) reserved-molds=(list term) prelude=(unit ifile)]
   ^-  @t
+  (golden-types-in-context-core file src externals mark-externals jimports prelude-values reserved-molds prelude ~)
+++  golden-types-in-context-core
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals jimports=ijimports prelude-values=(list term) reserved-molds=(list term) prelude=(unit ifile) prepared=(unit iprelude)]
+  ^-  @t
   =.  reserved-molds  (weld reserved-molds (turn jimports |=(j=[face=term interface=ifile] face.j)))
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
@@ -12708,19 +12717,27 @@
   =/  eligible=?
     ?&  ?=(~ imports.p.parsed)
        ?=(~ jimports)
-       ?=(~ prelude)
-       ?=(~ prelude-values)
-       ?=(~ reserved-molds)
        !?=([%ui %api *] file)
        !?=([%ui %stores *] file)
        !(lien (global-value-names ds) |=(n=term =(n %main)))
-       (module-scope-valid p.parsed ~ ~)
        !(module-values-complete ds env)
        (lte (met 3 src) 65.536)
        (lte (lent ds) 64)
-       (dg-source-candidate ds 64)
+       ?|  &(?=(~ prepared) ?=(~ prelude) ?=(~ prelude-values) ?=(~ reserved-molds) (module-scope-valid p.parsed ~ ~) (dg-source-candidate ds 64))
+           ?&  ?=(^ prepared)
+               ?=(^ prelude)
+               =(u.prelude iface.u.prepared)
+               =(prelude-values values.u.prepared)
+               =(reserved-molds molds.u.prepared)
+               (module-scope-valid p.parsed values.u.prepared molds.u.prepared)
+               (dg-prepared-candidate ds 64)
+           ==
+       ==
     ==
-  =/  transaction=(unit dgcommit)  ?:(eligible (dg-root-source file src) ~)
+  =/  transaction=(unit dgcommit)
+    ?.  eligible  ~
+    ?~  prepared  (dg-root-source file src)
+    (dg-root-prepared file src u.prepared)
   =.  recovered
     ?~  transaction  ~
     ?.  &((module-values-complete ds env.u.transaction) (dg-interface-safe env.u.transaction))  ~
@@ -13006,6 +13023,31 @@
     [%& result st(next +(next.st), obligations [ex ey obligations.st])]
   [%& typ.p.left state.p.right]
 ::
+::  A direct tuple literal may wait for a later exact result context.
+::  Each pending literal retains its source tag and its own fit obligation.
+++  dg-infer-tuple-items
+  |=  [items=(list item) env=ienv state=istate]
+  ^-  iresult
+  ?~  items  [%| ["empty cell is not supported by partial inference" ~]]
+  =/  head=iresult  (infer-fragment val.i.items env state)
+  ?:  ?=(%| -.head)  head
+  =/  typ=itype  typ.p.head
+  =/  st=istate  state.p.head
+  =/  adjusted=(unit [typ=itype state=istate])
+    ?.  (dg-owned-arm-literal val.i.items typ tags.st sub.st next.state)  `[typ st]
+    ?:  (gth (lent obligations.st) 63)  ~
+    =/  pending=itype  [%var next.st]
+    =/  edge=dgo  [typ pending (span-of val.i.items) at.i.items]
+    `[pending st(next +(next.st), obligations [edge obligations.st])]
+  ?~  adjusted  [%| ["deferred tuple context needs unsupported inference" ~]]
+  =.  typ  typ.u.adjusted
+  =.  st  state.u.adjusted
+  =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
+  ?~  t.items  [%& typ st]
+  =/  tail=iresult  $(items t.items, state st)
+  ?:  ?=(%| -.tail)  tail
+  [%& [%cell typ typ.p.tail] state.p.tail]
+::
 ::  Deferred inference uses only source forms whose successful fit sites are
 ::  guarded below; a shared source-node budget bounds this screen.
 ++  dg-safe-expressions
@@ -13015,6 +13057,13 @@
   =/  first=(unit @ud)  (dg-safe-expression i.todo fuel)
   ?~  first  ~
   $(todo t.todo, fuel u.first)
+++  dg-safe-items
+  |=  [items=(list item) fuel=@ud]
+  ^-  (unit @ud)
+  ?~  items  `fuel
+  =/  first=(unit @ud)  (dg-safe-expression val.i.items fuel)
+  ?~  first  ~
+  $(items t.items, fuel u.first)
 ++  dg-safe-expression
   |=  [e=expr fuel=@ud]
   ^-  (unit @ud)
@@ -13032,6 +13081,7 @@
       $(e final.e, fuel fuel)
     %gate  $(e body.e, fuel fuel)
     %gate-wide  $(e body.e, fuel fuel)
+    %tuple  (dg-safe-items items.e fuel)
     %branch
       ?.  (dg-boolean-patterns e)  ~
       ?>  ?=(^ arms.e)
@@ -13171,6 +13221,28 @@
   ?:  (dg-direct-source val.i.ds 64)  &
   $(ds t.ds, fuel (dec fuel))
 ::
+++  dg-prepared-source
+  |=  [e=expr fuel=@ud]
+  ^-  ?
+  ?:  (dg-direct-source e fuel)  &
+  ?:  =(0 fuel)  |
+  ?+  -.e  |
+    %group  $(e inner.e, fuel (dec fuel))
+    %gate  $(e body.e, fuel (dec fuel))
+    %gate-wide  $(e body.e, fuel (dec fuel))
+    %cast  $(e val.e, fuel (dec fuel))
+    %body  ?~(defs.e $(e final.e, fuel (dec fuel)) |)
+    %tuple  &
+  ==
+++  dg-prepared-candidate
+  |=  [ds=(list def) fuel=@ud]
+  ^-  ?
+  ?~  ds  |
+  ?:  =(0 fuel)  |
+  ?.  ?=(%value -.i.ds)  $(ds t.ds, fuel (dec fuel))
+  ?:  (dg-prepared-source val.i.ds 64)  &
+  $(ds t.ds, fuel (dec fuel))
+::
 ++  dg-interface-safe
   |=  [env=ienv]
   ^-  ?
@@ -13216,6 +13288,47 @@
       (dg-stage defs base base st ~ 64)
     ::
   [& (transact)]
+::  The caller supplies the trusted prepared prelude. This transaction is
+::  only report evidence; the ordinary module resolver does not publish it.
+++  dg-root-prepared
+  |=  [at=path src=@t prepared=iprelude]
+  ^-  (unit dgcommit)
+  ?:  ?=([%ui %api *] at)  ~
+  ?:  ?=([%ui %stores *] at)  ~
+  ?:  (gth (met 3 src) 65.536)  ~
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  ~
+  ?^  imports.p.parsed  ~
+  ?.  (module-scope-valid p.parsed values.prepared molds.prepared)  ~
+  ?^  (duplicate-defs defs.p.parsed)  ~
+  =/  defs=(list def)  defs.p.parsed
+  ?:  (gth (lent defs) 64)  ~
+  ?:  (lien (global-value-names defs) |=(n=term =(n %main)))  ~
+  ?.  (dg-prepared-candidate defs 64)  ~
+  =/  local-molds=imolds  (collect-simple-molds defs)
+  =/  globals=(list term)  (weld values.prepared (global-value-names defs))
+  =/  iface=ifile  iface.prepared
+  =/  prelude=(unit ifile)  `iface
+  =/  resolution=iresolved
+    (resolve-groups defs local-molds globals ~ ~ ~ ~ ~ molds.prepared at prelude)
+  ?^  grouped.resolution  ~
+  ?^  artifacts.resolution  ~
+  =/  base=ienv  env.resolution
+  =/  templates=ienv
+    (turn molds.iface |=(x=[name=term template=ischeme] [name.x template.x]))
+  =/  all-env=ienv  (weld base (weld values.iface templates))
+  =/  free=(unit dgscan)  (dg-env all-env ~ 32.768 ~)
+  ?~  free  ~
+  ?^  ids.u.free  ~
+  =/  all=(unit dgscan)  (dg-all-env-ids all-env 32.768 ~)
+  ?~  all  ~
+  =/  fresh=@ud  (dg-next-id ids.u.all 0)
+  =/  st=istate  *istate
+  =.  st  st(next fresh, defer `~, molds local-molds, globals globals, at at, reserved-molds molds.prepared, prelude prelude, top-molds (turn local-molds |=(m=[name=term body=shape] name.m)), in-mold |, jrec-fuel 256)
+  =/  checked-molds=(each imold-types @t)  (module-mold-types local-molds st)
+  ?:  ?=(%| -.checked-molds)  ~
+  (dg-stage defs base base st ~ 64)
+::
 ++  dg-all-env-ids
   |=  [env=ienv fuel=@ud ids=(list @ud)]
   ^-  (unit dgscan)

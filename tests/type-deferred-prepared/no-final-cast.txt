@@ -1,0 +1,8 @@
++$ model [xs=(list @t) draft=@t error=(unit @t)]
++$ message
+  [%got value=@t]
+  [%other value=@p]
+++ initial |= xs=(list @t) [xs "" ~]
+++ send |= f=$-(@t A) f
+++ first (send |=%got)
+++ fixed ^- $-(@t message) first

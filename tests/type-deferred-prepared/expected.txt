@@ -1,0 +1,8 @@
+partial inference; module not checked
++$ model: not checked
++$ message: cases proven disjoint; mold not checked
+++ final: $-((list @t) [(list @t) [@t (unit @t)]])
+++ initial: $-((list @t) [(list @t) [@t (unit @t)]])
+++ send: $-($-(@t A) $-(@t A))
+++ first: $-(@t message)
+++ fixed: $-(@t message)

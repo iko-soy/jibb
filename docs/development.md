@@ -83,6 +83,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-deferred-test` | Checks the bounded source-owned deferred inference transaction under eval and on the ship |
 | `tools/type-deferred-resolver-test` | Checks deferred resolution, report consistency and atomic failure under eval and on the ship |
 | `tools/type-deferred-context-test` | Checks deferred source order and literal branch contexts under eval and on the ship |
+| `tools/type-deferred-prepared-test` | Checks prepared-prelude tuple initializer recovery, exact partial reports and fail-closed guards under eval and on the ship |
 | `tools/type-cell-branch-test` | Checks closed-cell branch context, rollback and bounded retry screens under eval and on the ship |
 | `tools/type-generic-alias-test` | Runs public/private generic union alias and provenance guards under eval and on the ship |
 | `tools/type-positional-face-guards-test` | Runs positional-call and nested-face guards under eval and on the ship |
@@ -144,6 +145,7 @@ tools/type-generic-pattern-test      # source-backed recursive patterns and boun
 tools/type-deferred-test             # source-owned deferred inference guards
 tools/type-deferred-resolver-test    # resolver consistency and failure guards
 tools/type-deferred-context-test     # deferred source-order and branch guards
+tools/type-deferred-prepared-test    # prepared initializer reports and failure guards
 tools/type-cell-branch-test          # contextual branch rollback and bounds
 tools/type-closed-gate-guards-test  # closed gate fit guards pass
 tools/type-constructor-fit-guards-test # constructor fit guards pass
@@ -214,4 +216,4 @@ Write `source.jibb` and `about.txt` by hand, run `tools/golden --update --case <
 
 A short subject in the imperative, then a body that says what changed and why, wrapped at 72 columns, as in `git log`. Each commit leaves every check passing.
 
-`tools/type-deferred-test` exercises the bounded, source-owned constructor transaction and low-level freshness/replay guards. `tools/type-deferred-resolver-test` checks the experimental import-free library resolver, report consistency, atomic failure, and that both source orders of a late face constraint decline. These checks do not establish island-kind or watchability support.
+`tools/type-deferred-test` exercises the bounded, source-owned constructor transaction and low-level freshness/replay guards. `tools/type-deferred-resolver-test` checks the experimental import-free library resolver, report consistency, atomic failure, and that both source orders of a late face constraint decline. `tools/type-deferred-prepared-test` checks the separate partial-report-only prepared-prelude route, direct tuple-literal obligations, exact report types and its wrong-field, unrelated-tag, mold-collision and no-final-cast controls. These checks do not establish island-kind or watchability support.

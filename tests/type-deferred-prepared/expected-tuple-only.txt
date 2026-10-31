@@ -1,0 +1,4 @@
+partial inference; module not checked
++$ model: not checked
+++ final: $-((list @t) [(list @t) [@t (unit @t)]])
+++ initial: $-((list @t) [(list @t) [@t (unit @t)]])
