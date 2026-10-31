@@ -1,0 +1,76 @@
++$ input
+  [%p flag=? text=@t]
+  %other
++$ result
+  %go
+  %stay
+++ tags |= x=input ^- result
+  ?- x
+    [%p %.y t] %go
+    [%p %.n t] %stay
+    %other %stay
+++ wrong |= x=input ^- result
+  ?- x
+    [%p %.y t] %missing
+    [%p %.n t] %stay
+    %other %stay
+++ lists |= x=input ^- (list @t)
+  ?- x
+    [%p %.y t] ~[t]
+    [%p %.n t] ~[]
+    %other ~
+++ records |= x=input ^- [text=@t xs=(list @t)]
+  ?- x
+    [%p %.y t] [t ~[t]]
+    [%p %.n t] [t ~[]]
+    %other ["none" ~]
+++ missing |= x=input ^- result
+  ?- x
+    [%p %.y t] %go
+    %other %stay
+++ dead |= x=input ^- result
+  ?- x
+    [%p %.y t] %go
+    [%p %.y t] %stay
+    * %stay
+++ binder |= x=input ^- ?
+  ?- x
+    [%p flag text] flag
+    %other %.n
+++ unresolved |= x=input ^- (list @t)
+  ~& %pending
+    ?- x
+      [%p %.y t] ~[t]
+      [%p %.n t] ~[]
+      %other ~
+++ unknown-target |= [x=input y=A] ^- A
+  ?- x
+    [%p %.y t] %go
+    [%p %.n t] %stay
+    %other %stay
+++ partial |= x=input ^- (list @t)
+  ?- x
+    [%p %.y "a"] ~[]
+    * ~[]
++$ dual
+  [%p flag=?]
+  [%q flag=?]
+++ cross-origin |= x=dual ^- (list @t)
+  ?- x
+    [tag %.y] ~[]
+    [tag %.n] ~[]
+++ unknown-subject |= x ^- (list @t)
+  ?- x
+    [%p %.y t] ~[t]
+    [%p %.n t] ~[]
+    %other ~
+++ generic |= [x=input a=A] ^- (list A)
+  ?- x
+    [%p %.y t] ~[a]
+    [%p %.n t] ~[]
+    %other ~
+++ bad-generic |= [x=input a=A] ^- (list A)
+  ?- x
+    [%p %.y t] ~["bad"]
+    [%p %.n t] ~[]
+    %other ~

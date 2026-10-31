@@ -18,7 +18,7 @@ On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treat
 
 ## Questions milestone 2 raises
 
-Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. The numbering is retained so existing references stay valid. Questions 3, 18 and 24 remain open; the other questions are settled.
+Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. The numbering is retained so existing references stay valid. Questions 3 and 18 remain open; the other questions are settled.
 
 1. **Settled: how the prelude identifies jetted functions.** On 2026-10-30, @iko said the prelude functions have working Jibb implementations, and the compiler recognizes their shapes and uses the Hoon versions so jets can fire.
 2. **Settled: how the prelude keeps helpers private.** On 2026-10-30, @iko chose a separate internal prelude module imported by the prelude, without exposing the imported helpers.
@@ -44,7 +44,7 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking i
 22. **Settled: overlapping imported `$%` and `$?` cases.** On 2026-10-30, @iko confirmed that the general union disjointness rule rejects imported `$%` and `$?` cases that overlap as nouns where the type is used, as it does for `$^`. The importer rejects recognizable overlaps and fails closed when it cannot verify them.
 23. **Settled: converging explicit capitals.** On 2026-10-30, @iko chose that a body cannot force two separately written capitals to be equal. For `++ repeated |= x=(choice A A) x`, `++ f |= x=(choice A B) (repeated x)` is an error; use `A` in both positions when the type must be shared. This also applies across local captures and within generic mold applications.
 
-24. **How the internal prelude provides opaque types.** The public prelude needs an opaque `poke` type, but Jibb has no syntax to declare an opaque type in its private internal module. Should the internal module instead be a compiler-provided private interface that the prelude imports and re-exports, or should Jibb gain syntax for private opaque declarations? @iko has been asked; the answer is pending. The separate internal module and private primitives were already agreed in questions 2 and 14.
+24. **Settled: how the internal prelude provides `poke`.** On 2026-10-31, @iko chose to define `poke` in the source-backed private internal prelude module and expose only its opaque type through the public prelude. The checker hides its representation from ordinary modules; derived gates and `pure` remain its builders. This settles `poke`; it does not decide the representation of `ask` or `qath`.
 
 ## Grammar questions never put to the doc's author
 

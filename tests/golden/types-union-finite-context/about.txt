@@ -1,0 +1,4 @@
+source: Grammar, Patterns: branches are exhaustive and covered arms are errors; Literals by context: tags, cells and lists take their expected type from context.
+tests: A known union with finite loobean refinements propagates expected result types through its arms. Missing and covered cases, unsupported partial patterns and cross-case binders, unknown targets and pending tags remain distinct; generic variables retain their scope.
+expect: parses
+expect-types: a partial inference report

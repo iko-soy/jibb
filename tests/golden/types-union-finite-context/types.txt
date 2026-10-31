@@ -1,0 +1,27 @@
+partial inference; module not checked
++$ input: cases proven disjoint; mold not checked
++$ result: cases proven disjoint; mold not checked
+++ tags: $-(input result)
+++ wrong: result has no case `%missing`
+/tests/golden/types-union-finite-context/source.jibb:12:24: expected union
+++ wrong |= x=input ^- result
+                       ^
+/tests/golden/types-union-finite-context/source.jibb:14:16: tag
+    [%p %.y t] %missing
+               ^
+++ lists: $-(input (list @t))
+++ records: $-(input [text=@t xs=(list @t)])
+++ missing: missing union case [%p [flag=%.n text=@t]]
+++ dead: branch arm is covered by earlier arms
+/tests/golden/types-union-finite-context/source.jibb:34:5: covered arm
+    [%p %.y t] %stay
+    ^
+++ binder: $-(input ?)
+++ unresolved: tag needs context in partial inference
+++ unknown-target: union branch result needs context in partial inference
+++ partial: partial union pattern is not supported by partial inference
++$ dual: cases proven disjoint; mold not checked
+++ cross-origin: a union pattern binding several cases is not supported by partial inference
+++ unknown-subject: branch is not supported by partial inference
+++ generic: $-([x=input a=A] (list A))
+++ bad-generic: explicit capital constraints are not supported by partial inference

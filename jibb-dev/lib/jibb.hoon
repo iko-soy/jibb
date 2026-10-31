@@ -6901,14 +6901,14 @@
   ?:  mismatch  `[%| ["union branch result matching needs unsupported inference" ~]]
   $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, answer `result)
 ::
-++  infer-known-union-context
+++  infer-known-union-context-whole
   |=  [e=expr expected=itype env=ienv state=istate context=span]
-  ^-  iresult
+  ^-  (unit iresult)
   ?>  ?=(%branch -.e)
   =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  subject
+  ?:  ?=(%| -.subject)  `subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
+  ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
   =/  cases=(list itype)  cases.typ
   =/  remaining=(list itype)  cases
   =/  arms=(list arm)  arms.e
@@ -6917,37 +6917,37 @@
   |-
   ?~  arms
     ?^  remaining
-      [%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
-    ?~  answer  [%| ["empty union branch is not supported by partial inference" ~]]
-    [%& expected st]
+      `[%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
+    ?~  answer  `[%| ["empty union branch is not supported by partial inference" ~]]
+    `[%& expected st]
   =/  a=arm  i.arms
   ?:  (lien remaining |=(c=itype =(%unknown (union-pattern pat.a c))))
-    [%| ["partial union pattern is not supported by partial inference" ~]]
+    ~
   =/  matching=(list itype)  (skim remaining |=(c=itype =(%full (union-pattern pat.a c))))
   ?~  matching
     ?:  (lien cases |=(c=itype =(%full (union-pattern pat.a c))))
-      [%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
-    [%| ["union pattern is not supported by partial inference" ~]]
+      `[%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
+    `[%| ["union pattern is not supported by partial inference" ~]]
   ?:  &(?=(^ t.matching) (union-pattern-has-bind pat.a))
-    [%| ["a union pattern binding several cases is not supported by partial inference" ~]]
+    `[%| ["a union pattern binding several cases is not supported by partial inference" ~]]
   =/  bound=(unit ienv)  (union-pattern-bind pat.a i.matching env globals.st)
-  ?~  bound  [%| ["pattern binder shadows a name" ~]]
+  ?~  bound  `[%| ["pattern binder shadows a name" ~]]
   =/  body=iresult  (infer-call-context-arg val.a expected u.bound st context)
-  ?:  ?=(%| -.body)  body
+  ?:  ?=(%| -.body)  `body
   =/  fit=ifit  (itype-fit typ.p.body expected sub.state.p.body next.state.p.body)
-  ?:  ?=(%unknown -.fit)  [%| ["union branch result constraint is not supported by partial inference" ~]]
+  ?:  ?=(%unknown -.fit)  `[%| ["union branch result constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
     =/  missing=(unit idiag)  (missing-union-tag val.a expected sub.state.p.body context)
-    ?^  missing  [%| u.missing]
+    ?^  missing  `[%| u.missing]
     =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body expected sub.state.p.body next.state.p.body context)
-    ?^  nested  [%| u.nested]
-    [%| ["union branch arm does not fit its expected type" ~[[context "expected type"] [(span-of val.a) "branch arm"]]]]
+    ?^  nested  `[%| u.nested]
+    `[%| ["union branch arm does not fit its expected type" ~[[context "expected type"] [(span-of val.a) "branch arm"]]]]
   ?:  (itype-has-tag (itype-normalize expected sub.fit))
-    [%| ["union branch result needs context in partial inference" ~]]
+    `[%| ["union branch result needs context in partial inference" ~]]
   $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body(sub sub.fit, next next.fit), answer `expected)
 ::
 ++  infer-known-union-finite
-  |=  [e=expr env=ienv state=istate]
+  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
   ^-  iresult
   ?>  ?=(%branch -.e)
   =/  subject=iresult  (infer-fragment subject.e env state)
@@ -6966,7 +6966,8 @@
     ?^  remaining
       [%| ["missing union case {(show-itype part.i.remaining sub.st)}" ~]]
     ?~  answer  [%| ["empty union branch is not supported by partial inference" ~]]
-    [%& u.answer st]
+    ?~  expected  [%& u.answer st]
+    [%& typ.u.expected st]
   =/  a=arm  i.arms
   ?:  (lien remaining |=(c=ifinite =(%unknown (union-pattern pat.a part.c))))
     [%| ["partial union pattern is not supported by partial inference" ~]]
@@ -6979,8 +6980,22 @@
     [%| ["a union pattern binding several cases is not supported by partial inference" ~]]
   =/  bound=(unit ienv)  (union-pattern-bind pat.a base.i.matching env globals.st)
   ?~  bound  [%| ["pattern binder shadows a name" ~]]
-  =/  body=iresult  (infer-fragment val.a u.bound st)
+  =/  body=iresult
+    ?~  expected  (infer-fragment val.a u.bound st)
+    (infer-call-context-arg val.a typ.u.expected u.bound st context.u.expected)
   ?:  ?=(%| -.body)  body
+  ?^  expected
+    =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
+    ?:  ?=(%unknown -.fit)  [%| ["union branch result constraint is not supported by partial inference" ~]]
+    ?:  ?=(%bad -.fit)
+      =/  missing=(unit idiag)  (missing-union-tag val.a typ.u.expected sub.state.p.body context.u.expected)
+      ?^  missing  [%| u.missing]
+      =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body typ.u.expected sub.state.p.body next.state.p.body context.u.expected)
+      ?^  nested  [%| u.nested]
+      [%| ["union branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.a) "branch arm"]]]]
+    ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
+      [%| ["union branch result needs context in partial inference" ~]]
+    $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body(sub sub.fit, next next.fit), answer `typ.u.expected)
   =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
   =/  mismatch=?  ?~(answer | !=((itype-normalize u.answer sub.state.p.body) result))
   ?:  mismatch  [%| ["union branch result matching needs unsupported inference" ~]]
@@ -6990,7 +7005,14 @@
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
   =/  whole=(unit iresult)  (infer-known-union-whole e env state)
-  ?~  whole  (infer-known-union-finite e env state)
+  ?~  whole  (infer-known-union-finite e env state ~)
+  u.whole
+::
+++  infer-known-union-context
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  =/  whole=(unit iresult)  (infer-known-union-context-whole e expected env state context)
+  ?~  whole  (infer-known-union-finite e env state `[expected context])
   u.whole
 ::
 ++  known-union-subject
