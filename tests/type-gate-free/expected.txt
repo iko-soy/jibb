@@ -1,0 +1,9 @@
+todo model: gate-free
+callback model: gate at callback
+noun model: unknown
+zero fuel: unknown
+oversized fuel: capped
+invalid inputs: rejected
+source evidence: retained
+matching root and unused sur: accepted
+root import cycle: rejected

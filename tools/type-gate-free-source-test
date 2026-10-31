@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Run real-reader gate-free mold analysis without claiming island checking."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+fixture = root / 'tests/type-gate-free/todo.txt'
+if fixture.read_bytes() != (root / 'my-app/ui/todo-list.jibb').read_bytes():
+    sys.exit('todo source fixture differs from my-app/ui/todo-list.jibb')
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-gate-free-source.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+names = ('sur', 'action', 'todos', 'update', 'item', 'api', 'source',
+         'gate-source', 'noun-source', 'expected')
+program = ('=/  jibb  .\n=/  jibb-import\n' + reader + '\n' +
+           ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                   for name in names) +
+           '=/  suite\n' + tests +
+           '\n^-  @t\n(gate-free-source-report:suite prelude internal sur-text action-text todos-text update-text item-text api-text source-text gate-source-text noun-source-text)\n')
+fixtures = {'sur': 'tests/type-api-paths/todo-sur.txt',
+            'action': 'tests/type-api-paths/todo-action.txt',
+            'todos': 'tests/type-api-paths/todos.txt',
+            'update': 'tests/type-api-paths/todo-update.txt',
+            'item': 'tests/type-api-paths/todo-item.txt',
+            'api': 'tests/type-api-paths/api.txt',
+            'source': 'tests/type-gate-free/todo.txt',
+            'gate-source': 'tests/type-gate-free/todo-gate.txt',
+            'noun-source': 'tests/type-gate-free/todo-noun.txt',
+            'expected': 'tests/type-gate-free/expected.txt'}
+with tempfile.TemporaryDirectory(prefix='jibb-gate-free-source-') as tmp:
+    path = Path(tmp) / 'source.hoon'
+    path.write_text(program)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name, filename in fixtures.items():
+        command += ['--cord', name + '-text=' + str(root / filename)]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != (root / 'tests/type-gate-free/expected.txt').read_bytes():
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit('gate-free source report differs from expected')
+print('real todo gate-free mold analysis passed')

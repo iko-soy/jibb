@@ -5609,6 +5609,71 @@
   ?.  (width-in-order order.source.shape order.target.shape)  ~
   (width-fit-fields index.source.shape order.target.shape sub next)
 ::
+::  Provisional, globally budgeted gate-free proof.  %no includes a
+::  gate-bearing witness; an uninhabited sibling could invalidate it.
+::  Input types must be resolved and normalized under valid substitutions,
+::  from trusted source-backed interfaces and reader results. Collection
+::  list/unit names rely on their existing identity invariant; this arm
+::  does not validate fabricated internal types.
++$  igf-segment
+  $%  [%field name=term]
+      [%head ~]
+      [%tail ~]
+      [%item ~]
+      [%case index=@ud]
+  ==
++$  igate-free  [verdict=?(%yes %no %unknown) inhabited=? left=@ud path=(unit (list igf-segment))]
+++  gate-free-types
+  |=  [types=(list itype) fuel=@ud path=(list igf-segment) index=@ud]
+  ^-  igate-free
+  ?~  types  [%yes | fuel ~]
+  ?:  =(0 fuel)  [%unknown | 0 ~]
+  =/  first=igate-free  (gate-free-type i.types fuel [[%case index] path])
+  ?:  =(%no verdict.first)  first
+  =/  rest=igate-free  $(types t.types, fuel left.first, index +(index))
+  ?:  =(%no verdict.rest)  rest
+  =/  inhabited=?  |(inhabited.first inhabited.rest)
+  ?:  |(=(%unknown verdict.first) =(%unknown verdict.rest))  [%unknown inhabited left.rest ~]
+  [%yes inhabited left.rest ~]
+++  gate-free-type
+  |=  [typ=itype fuel=@ud path=(list igf-segment)]
+  ^-  igate-free
+  ?:  =(0 fuel)  [%unknown | 0 ~]
+  =.  fuel  (dec fuel)
+  ?-  -.typ
+    %fn         [%no & fuel `(flop path)]
+    %atom       [%yes & fuel ~]
+    %any-atom   [%yes & fuel ~]
+    %flag       [%yes & fuel ~]
+    %const      [%yes & fuel ~]
+    %face       $(typ body.typ, path [[%field name.typ] path])
+    %cell
+      =/  head=igate-free  $(typ hed.typ, path [[%head ~] path])
+      =/  tail=igate-free  $(typ tal.typ, fuel left.head, path [[%tail ~] path])
+      =/  inhabited=?  &(inhabited.head inhabited.tail)
+      ?:  &(=(%no verdict.head) inhabited.tail)  head(left left.tail)
+      ?:  &(=(%no verdict.tail) inhabited.head)  tail
+      ?:  |(!=(%yes verdict.head) !=(%yes verdict.tail))  [%unknown inhabited left.tail ~]
+      [%yes inhabited left.tail ~]
+    %collection
+      ?.  |(=(%list name.typ) =(%unit name.typ))  [%unknown | fuel ~]
+      ?.  ?=([* ~] args.typ)  [%unknown | fuel ~]
+      =/  item=igate-free  $(typ i.args.typ, path [[%item ~] path])
+      item(inhabited &)
+    %union
+      ?~  cases.typ  [%unknown | fuel ~]
+      (gate-free-types cases.typ fuel path 0)
+    %noun       [%unknown & fuel ~]
+    %var        [%unknown | fuel ~]
+    %avar       [%yes & fuel ~]
+    %rvar       [%yes & fuel ~]
+    %nvar       [%yes & fuel ~]
+    %rnvar      [%yes & fuel ~]
+    %tag        [%unknown | fuel ~]
+    %recursive  [%unknown | fuel ~]
+    %jrec       [%yes & fuel ~]
+  ==
+::
 +$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
@@ -11381,6 +11446,60 @@
   ?~  graph  [%| 'module request evidence needs unsupported inference']
   =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph]
   [%& [iface [[at iface] cache.p.js]]]
+::
+::  A source-bound analysis of one named mold, not a module, island,
+::  request, watchability or runtime check.  The host owns the trusted
+::  prepared prelude, canonical paths and reader/source version identities.
+::  The 256-node cap covers only classification, not source/graph work.
++$  igate-free-mold
+  [at=path source=@t name=term prepared=iprelude externals=iexternals marks=imark-externals modules=jbundle dependencies=jcache mold=ischeme requested=@ud budget=@ud result=igate-free]
+++  gate-free-mold-source
+  |=  [file=path src=@t name=term externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude) fuel=@ud]
+  ^-  (each igate-free-mold @t)
+  ?~  file  [%| 'mold analysis needs a path ending in jibb']
+  ?.  =(%jibb (rear file))  [%| 'mold analysis needs a path ending in jibb']
+  ?:  |(=(file /lib/jibb/internal/jibb) =(file /lib/jibb/primitives/jibb))
+    [%| 'the prelude internal modules are private']
+  ?:  ?=([%ui %api *] file)  [%| 'API declarations need unsupported mold analysis']
+  ?:  ?=([%ui %stores *] file)  [%| 'store declarations need unsupported mold analysis']
+  =/  entries=jbundle  (skim modules |=(m=jsource =(file at.m)))
+  ?:  (gth (lent entries) 1)  [%| 'duplicate root module sources']
+  =/  wrong-root=?  ?~(entries | !=(source.i.entries src))
+  ?:  wrong-root  [%| 'root module source does not match bundle']
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'mold source does not parse']
+  =/  mod=module  p.parsed
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.mod)
+  ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
+  ?~  prepared  [%| 'mold analysis needs the prepared prelude']
+  ?.  (module-scope-valid mod values.u.prepared molds.u.prepared)
+    [%| 'mold source has conflicting or unsupported scope']
+  =/  selected=(list def)
+    (skim defs.mod |=(d=def &(?=(%mold -.d) =(name.d name))))
+  ?~  selected  [%| 'selected mold is not declared']
+  ?^  t.selected  [%| 'selected mold is not unique']
+  ?>  ?=(%mold -.i.selected)
+  =/  public=ifile  iface.u.prepared
+  =/  js=jimports-result
+    (resolve-jibb-imports imports.mod externals marks modules ~[file] values.u.prepared molds.u.prepared ~ `public)
+  ?:  ?=(%| -.js)  [%| p.js]
+  =/  ms=imolds  (collect-simple-molds defs.mod)
+  =/  vals=(list term)  (global-value-names defs.mod)
+  =/  globals=(list term)  (weld values.u.prepared (weld (import-binding-names imports.mod) vals))
+  =/  surs=(list term)  (collect-sur-imports imports.mod)
+  =/  declared=(list term)  (collect-mark-imports imports.mod)
+  =/  reserved=(list term)  (weld molds.u.prepared (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
+  =/  top=(list term)  (turn ms |=(m=[name=term body=shape] name.m))
+  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~]
+  =/  inferred=(unit [template=ischeme state=istate])
+    (infer-mold-template shape.i.selected state(active ~[name], in-mold &))
+  ?~  inferred  [%| 'selected mold needs unsupported inference']
+  =/  template=ischeme  template.u.inferred
+  =.  typ.template  (label-direct-union typ.template shape.i.selected name state)
+  =.  typ.template  (itype-normalize typ.template sub.state.u.inferred)
+  =/  cap=@ud  (min fuel 256)
+  =/  analysis=igate-free  (gate-free-type typ.template cap ~)
+  [%& [file src name u.prepared externals marks modules cache.p.js template fuel cap analysis]]
 ::
 ::  +golden-types-with-modules fails closed for imports without prelude
 ::  scope. +golden-types-with-prelude resolves supported library graphs;
