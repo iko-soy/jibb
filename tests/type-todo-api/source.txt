@@ -1,0 +1,14 @@
+/= api /ui/api/todo
+++ fold |= [d=[%todo-update todo-update.api] s=todos.api] s
+++ todos-cord (todos.api |=(xs=todos.api "ok"))
+++ todos-ship (todos.api |=(xs=todos.api ~zod))
+++ by-id-cord (todo-by-id.api 1 |=(x=todo-item.api "ok"))
+++ by-id-ship (todo-by-id.api 2 |=(x=todo-item.api ~zod))
+++ changes-cord (changes.api |=(xs=todos.api "ok") fold)
+++ changes-ship (changes.api |=(xs=todos.api ~zod) fold)
+++ action (todo-action.api [%add text="hello"])
+++ item-id |= x=item.api id.x
+++ action-id |= x=todo-action.api x
+++ todos-id |= x=todos.api x
+++ update-id |= x=todo-update.api x
+++ item-mark-id |= x=todo-item.api x

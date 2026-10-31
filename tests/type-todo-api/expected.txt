@@ -1,0 +1,14 @@
+partial inference; module not checked
+++ fold: $-([d=[%todo-update ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud])] s=(list [id=@ud [done=? text=@t]])] (list [id=@ud [done=? text=@t]]))
+++ todos-cord: (ask @t)
+++ todos-ship: (ask @p)
+++ by-id-cord: (ask @t)
+++ by-id-ship: (ask @p)
+++ changes-cord: (ask @t)
+++ changes-ship: (ask @p)
+++ action: poke
+++ item-id: $-([id=@ud [done=? text=@t]] @ud)
+++ action-id: $-(([%add text=@t] [%toggle id=@ud]) ([%add text=@t] [%toggle id=@ud]))
+++ todos-id: $-((list [id=@ud [done=? text=@t]]) (list [id=@ud [done=? text=@t]]))
+++ update-id: $-(([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]) ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]))
+++ item-mark-id: $-([id=@ud [done=? text=@t]] [id=@ud [done=? text=@t]])

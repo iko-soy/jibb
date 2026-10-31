@@ -4628,14 +4628,25 @@
 ::  proofs to fewer than 1,024 cells; the projection planner has a separate
 ::  4,096-step bound. These are inference limits, not language limits.
 ::
-::  A single plain API path with one full mark can expose a polymorphic
-::  request-gate type through ordinary imports. Its source-derived schema,
-::  canonical API path and complete dependency evidence travel with checked
-::  interfaces. The closure is bound to the exact supplied bundle, prelude,
-::  scope and trusted reader results; unknown cached entries are rebuilt.
-::  Request-bearing closures are limited to 256 source paths and requests.
-::  This is type inference only: there is no request lowering, runtime schema
-::  validator or proof that an arbitrary ask value is watchable.
+::  Supported API imports derive request-gate types atomically for multiple
+::  paths, including one typed segment or one diff fold per case. Their checked
+::  ordinary definitions, mark molds and supported poke constructor are also
+::  exported. A selected /sur mold is checked through its trusted reader result;
+::  unused cores and other bindings are not independently validated. APIs
+::  with /= imports, separate scry paths, multiple parameters or diffs, or a
+::  parameter together with a fold remain unsupported. The unchanged todo API
+::  fits this fragment, including named closed fold gates.
+::
+::  Each case's source-derived schema and canonical API identity travel in a
+::  dependency closure bound to the exact supplied bundle, prelude, scope and
+::  trusted reader results. Unknown cached entries are rebuilt. Request-bearing
+::  closures are limited to 256 source paths and requests. This is type
+::  inference only: no request lowering, runtime schema validator or proof that
+::  an arbitrary ask value is watchable is supplied.
+::
+::  A closed gate sample may omit one outer face from a known input slot when
+::  its product is identical. Distinct written names, nested value faces,
+::  ambiguous cell tails and raw-variable-origin fits retain their prior rules.
 ::
 ::  In one synthetic eval of a 48-module deep and 48-module wide request-free
 ::  graph, baseline versus certificate inference took 21.53 s versus 23.10 s
@@ -4967,6 +4978,42 @@
     *          |
   ==
 ::
+::  Closed function samples may omit a slot face, but a known name must
+::  match another known name.  Keep nested value faces and require exact
+::  invariant compatibility; a faced tail against a cell is ambiguous.
+++  itype-closed-slot-match
+  |=  [a=itype b=itype]
+  ^-  ?
+  ?:  &(?=(%face -.a) ?=(%face -.b))
+    ?.  =(name.a name.b)  |
+    ?=(^ (itype-unify body.a body.b ~))
+  ?:  ?=(%face -.a)  ?=(^ (itype-unify body.a b ~))
+  ?:  ?=(%face -.b)  ?=(^ (itype-unify a body.b ~))
+  ?=(^ (itype-unify a b ~))
+++  itype-closed-sample-match
+  |=  [a=itype b=itype fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  ?.  &(?=(%cell -.a) ?=(%cell -.b))  |
+  ?.  (itype-closed-slot-match hed.a hed.b)  |
+  =/  x=itype  tal.a
+  =/  y=itype  tal.b
+  ?:  &(?=(%cell -.x) ?=(%cell -.y))
+    ?=(^ (itype-unify x y ~))
+  ?:  |(&(?=(%face -.x) ?=(%cell -.y)) &(?=(%cell -.x) ?=(%face -.y)))  |
+  (itype-closed-slot-match x y)
+++  itype-closed-gates-match
+  |=  [a=itype b=itype]
+  ^-  ?
+  ?.  &(?=(%fn -.a) ?=(%fn -.b))  |
+  ?.  &(?=(%cell -.sample.a) ?=(%cell -.sample.b))  |
+  ?.  =(product.a product.b)  |
+  ?^  (itype-vars a)  |
+  ?^  (itype-vars b)  |
+  ?:  |((itype-has-tag a) (itype-has-tag b))  |
+  ?.  (itype-closed-sample-match sample.a sample.b 1.024)  |
+  ?=(^ (itype-unify product.a product.b ~))
+::
 ++  itype-face-asym-collection-args
   |=  [as=(list itype) bs=(list itype) sub=isub]
   ^-  ?
@@ -5012,6 +5059,12 @@
 ::  labels.  Ignore one raw sample-slot face per written argument while
 ::  checking value faces as usual.  An unknown or variable-bound cell spine
 ::  cannot justify this distinction, so keep the existing conservative guard.
+++  itype-positional-slot-face-asym
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  ?
+  ?:  &(?=(%fn -.actual) ?=(%fn -.expected) (itype-closed-gates-match actual expected))  |
+  (itype-face-asym actual expected sub)
+::
 ++  itype-positional-face-asym
   |=  [args=(list expr) actual=itype expected=itype sub=isub]
   ^-  ?
@@ -5019,11 +5072,11 @@
   ?~  t.args
     =/  slot=itype  expected
     =?  slot  ?=(%face -.slot)  body.slot
-    (itype-face-asym actual slot sub)
+    (itype-positional-slot-face-asym actual slot sub)
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  &
   =/  slot=itype  hed.expected
   =?  slot  ?=(%face -.slot)  body.slot
-  ?:  (itype-face-asym hed.actual slot sub)  &
+  ?:  (itype-positional-slot-face-asym hed.actual slot sub)  &
   $(args t.args, actual tal.actual, expected tal.expected)
 ::
 ++  itype-output-may-be-cell
@@ -5333,6 +5386,7 @@
     $(actual body.actual, expected body.expected, skip-width |, spine-proof |)
   ?:  ?=(%face -.actual)  $(actual body.actual, skip-width |, spine-proof |)
   ?:  ?=(%face -.expected)  $(expected body.expected, skip-width |, spine-proof |)
+  ?:  &(!uncertain (itype-closed-gates-match actual expected))  [%ok sub next]
   ?:  (itype-face-asym actual expected sub)  [%unknown ~]
   ?:  |((itype-has-any-atom actual sub) (itype-has-any-atom expected sub))
     [%unknown ~]
@@ -10852,17 +10906,24 @@
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
   =/  mod=module  p.parsed
-  ?.  ?=([[%mark *] ~] imports.mod)  [%| 'request imports need unsupported inference']
+  ?.  ?=(?([[%mark *] ~] [[%mark *] [%mark *] ~]) imports.mod)  [%| 'request imports need unsupported inference']
   ?.  ?=([[%mold *] ~] defs.mod)  [%| 'request definitions need unsupported inference']
   ?.  =(%paths name.i.defs.mod)  [%| 'request declaration needs unsupported inference']
   ?.  ?=([* ~] paths.ev)  [%| 'request count needs unsupported inference']
   =/  p=iapi-path-typed  i.paths.ev
   =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
   ?~  parts  [%| 'request components need unsupported inference']
-  ?^  parameters.u.parts  [%| 'request parameters need unsupported inference']
-  ?^  fold.u.parts  [%| 'request fold needs unsupported inference']
+  ?.  ?=(?(~ [* ~]) parameters.u.parts)  [%| 'request parameters need unsupported inference']
+  ?:  &(?=(^ fold.u.parts) ?=(^ parameters.u.parts))  [%| 'request parameter and fold need unsupported inference']
   ?^  scry.path.p  [%| 'request scry needs unsupported inference']
-  ?.  ?=([* ~] marks.support)  [%| 'request marks need unsupported inference']
+  =/  valid-marks=?
+    ?~  fold.u.parts  ?=([* ~] marks.support)
+    ?=([* [* ~]] marks.support)
+  ?.  valid-marks  [%| 'request marks need unsupported inference']
+  =/  fold-open=?
+    ?~  fold.u.parts  |
+    |(?=(^ (itype-vars u.fold.u.parts)) (itype-has-tag u.fold.u.parts))
+  ?:  fold-open  [%| 'request fold needs unsupported inference']
   ?^  (itype-vars reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
   ?:  (itype-has-tag reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
   =/  ask=(unit ischeme)  (request-compatible-ask prepared.ev)
@@ -10870,8 +10931,13 @@
   =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
   ?~  result  [%| 'request ask needs unsupported inference']
   =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
-  =/  scheme=ischeme  [[%fn callback u.result] ~[0]]
-  =/  mark=iapi-mark-type  i.marks.support
+  =/  sample=itype
+    ?^  fold.u.parts  [%cell callback u.fold.u.parts]
+    ?~  parameters.u.parts  callback
+    [%cell typ.i.parameters.u.parts callback]
+  =/  scheme=ischeme  [[%fn sample u.result] ~[0]]
+  =/  exports=imold-types
+    (turn marks.support |=(m=iapi-mark-type [name.m [typ.m ~]]))
   =/  prelude=iprelude  prepared.ev
   =/  public=ifile  iface.prelude
   ?~  source.public  [%| 'request prelude source needs unsupported inference']
@@ -10881,7 +10947,7 @@
   ?~  source.i.private  [%| 'request internal source needs unsupported inference']
   =/  req=irequest-evidence
     [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
-  =/  interface=ifile  [~[[name.path.p scheme]] ~[[name.mark [typ.mark ~]]] file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
+  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
   [%& [support u.parts interface]]
 ::  Graph-aware request artifact; resolver use remains type-only.
 ++  one-request-interface-graph
@@ -10894,17 +10960,24 @@
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
   =/  mod=module  p.parsed
-  ?.  ?=([[%mark *] ~] imports.mod)  [%| 'request imports need unsupported inference']
+  ?.  ?=(?([[%mark *] ~] [[%mark *] [%mark *] ~]) imports.mod)  [%| 'request imports need unsupported inference']
   ?.  ?=([[%mold *] ~] defs.mod)  [%| 'request definitions need unsupported inference']
   ?.  =(%paths name.i.defs.mod)  [%| 'request declaration needs unsupported inference']
   ?.  ?=([* ~] paths.ev)  [%| 'request count needs unsupported inference']
   =/  p=iapi-path-typed  i.paths.ev
   =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
   ?~  parts  [%| 'request components need unsupported inference']
-  ?^  parameters.u.parts  [%| 'request parameters need unsupported inference']
-  ?^  fold.u.parts  [%| 'request fold needs unsupported inference']
+  ?.  ?=(?(~ [* ~]) parameters.u.parts)  [%| 'request parameters need unsupported inference']
+  ?:  &(?=(^ fold.u.parts) ?=(^ parameters.u.parts))  [%| 'request parameter and fold need unsupported inference']
   ?^  scry.path.p  [%| 'request scry needs unsupported inference']
-  ?.  ?=([* ~] marks.support)  [%| 'request marks need unsupported inference']
+  =/  valid-marks=?
+    ?~  fold.u.parts  ?=([* ~] marks.support)
+    ?=([* [* ~]] marks.support)
+  ?.  valid-marks  [%| 'request marks need unsupported inference']
+  =/  fold-open=?
+    ?~  fold.u.parts  |
+    |(?=(^ (itype-vars u.fold.u.parts)) (itype-has-tag u.fold.u.parts))
+  ?:  fold-open  [%| 'request fold needs unsupported inference']
   ?^  (itype-vars reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
   ?:  (itype-has-tag reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
   =/  ask=(unit ischeme)  (request-compatible-ask prepared.ev)
@@ -10912,8 +10985,13 @@
   =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
   ?~  result  [%| 'request ask needs unsupported inference']
   =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
-  =/  scheme=ischeme  [[%fn callback u.result] ~[0]]
-  =/  mark=iapi-mark-type  i.marks.support
+  =/  sample=itype
+    ?^  fold.u.parts  [%cell callback u.fold.u.parts]
+    ?~  parameters.u.parts  callback
+    [%cell typ.i.parameters.u.parts callback]
+  =/  scheme=ischeme  [[%fn sample u.result] ~[0]]
+  =/  exports=imold-types
+    (turn marks.support |=(m=iapi-mark-type [name.m [typ.m ~]]))
   =/  prelude=iprelude  prepared.ev
   =/  public=ifile  iface.prelude
   ?~  source.public  [%| 'request prelude source needs unsupported inference']
@@ -10923,7 +11001,7 @@
   ?~  source.i.private  [%| 'request internal source needs unsupported inference']
   =/  req=irequest-evidence
     [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
-  =/  interface=ifile  [~[[name.path.p scheme]] ~[[name.mark [typ.mark ~]]] file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
+  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
   [%& [support u.parts interface]]
 ::
 ++  api-mark-exports
@@ -10971,6 +11049,132 @@
   =/  sc=ischeme  [[%fn u.mark typ.u.poke] ~]
   `[~[[n sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]] ~ ~ ~ ~]
 ::
+::  Source-proven ordinary helpers validate each selected /sur dependency.
+::  Unused or less direct cores remain unsupported by this first interface.
+++  api-sur-covered
+  |=  [surs=(list term) defs=(list def) externals=iexternals all=(list term)]
+  ^-  ?
+  ?~  surs  &
+  =/  found=(list def)
+    %+  skim  defs
+    |=  d=def
+    ?.  ?=(%mold -.d)  |
+    ?.  ?=(%ref -.shape.d)  |
+    ?.  ?=([@ [@ ~]] names.shape.d)  |
+    =(i.t.names.shape.d i.surs)
+  ?~  found  |
+  =/  selected=def  i.found
+  ?.  ?=(%mold -.selected)  |
+  =/  sh=shape  shape.selected
+  ?.  ?=(%ref -.sh)  |
+  ?.  ?=([@ [@ ~]] names.sh)  |
+  =/  checked=(unit itype)  (find-imported-mold i.surs i.names.sh externals all)
+  ?~  checked  |
+  $(surs t.surs)
+::
++$  imulti-request-gates  [values=ienv requests=(list irequest-evidence)]
+++  api-request-gates
+  |=  [paths=(list iapi-path-typed) ev=iapi-path-evidence ask=ischeme file=path src=@t public=@t internal=@t externals=iexternals marks=imark-externals fuel=@ud]
+  ^-  (unit imulti-request-gates)
+  ?~  paths  `[~ ~]
+  ?:  =(0 fuel)  ~
+  =/  p=iapi-path-typed  i.paths
+  =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
+  ?~  parts  ~
+  ?.  ?=(?(~ [* ~]) parameters.u.parts)  ~
+  ?:  &(?=(^ fold.u.parts) ?=(^ parameters.u.parts))  ~
+  ?^  scry.path.p  ~
+  ?^  (itype-vars reply-sample.u.parts)  ~
+  ?:  (itype-has-tag reply-sample.u.parts)  ~
+  =/  open-fold=?
+    ?~  fold.u.parts  |
+    |(?=(^ (itype-vars u.fold.u.parts)) (itype-has-tag u.fold.u.parts))
+  ?:  open-fold  ~
+  =/  result=(unit itype)  (template-apply ask ~[[%var 0]])
+  ?~  result  ~
+  =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
+  =/  sample=itype
+    ?^  fold.u.parts  [%cell callback u.fold.u.parts]
+    ?~  parameters.u.parts  callback
+    [%cell typ.i.parameters.u.parts callback]
+  =/  scheme=ischeme  [[%fn sample u.result] ~[0]]
+  =/  prep=iprelude  prepared.ev
+  =/  req=irequest-evidence
+    [file name.path.p p src public internal values.prep molds.prep externals marks]
+  =/  rest=(unit imulti-request-gates)
+    $(paths t.paths, fuel (dec fuel))
+  ?~  rest  ~
+  `[[[name.path.p scheme] values.u.rest] [req requests.u.rest]]
+::
+++  api-poke-from-checked
+  |=  [file=path mod=module marks=imark-externals values=(list term) molds=(list term) prelude=(unit ifile)]
+  ^-  (unit [values=ienv derived=(list iderived)])
+  =/  pokes=(list def)
+    (skim defs.mod |=(d=def &(?=(%mold -.d) =(%poke name.d))))
+  ?~  pokes  `[~ ~]
+  ?.  ?=([* ~] pokes)  ~
+  =/  declared=(list term)  (collect-mark-imports imports.mod)
+  =/  ns=(unit (list term))  (api-poke-mark-names pokes declared)
+  ?~  ns  ~
+  ?.  ?=([@ ~] u.ns)  ~
+  =/  matching=(list import)
+    %+  skim  imports.mod
+    |=  i=import
+    ?.  ?=(%mark -.i)  |
+    =(mark.i i.u.ns)
+  ?.  ?=([* ~] matching)  ~
+  =/  checked=(unit ifile)
+    (api-poke-interface file mod(defs pokes, imports matching) marks values molds prelude)
+  ?~  checked  ~
+  `[values.u.checked derived.u.checked]
+::
+::  The partial interface is published atomically: all paths, ordinary
+::  source definitions, declared marks and the poke must check. Unselected
+::  /sur bindings, runtime validation and value watchability remain unproved.
+++  multi-request-interface-graph
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
+  ^-  (each [iface=ifile cache=jcache] @t)
+  =/  out  (api-support-analysis-graph file src externals marks modules active cache prepared)
+  ?:  ?=(%| -.out)  [%| p.out]
+  =/  support=iapi-support-evidence  p.out
+  =/  ev=iapi-path-evidence  paths.support
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
+  =/  mod=module  p.parsed
+  ?.  (levy imports.mod |=(i=import ?=(?(%mark %sur) -.i)))
+    [%| 'request imports need unsupported inference']
+  =/  surs=(list term)  (collect-sur-imports imports.mod)
+  ?.  (api-sur-covered surs defs.mod externals surs)
+    [%| 'API source dependency needs unsupported inference']
+  ?~  paths.ev  [%| 'request count needs unsupported inference']
+  =/  ask=(unit ischeme)  (request-compatible-ask prepared.ev)
+  ?~  ask  [%| 'request ask needs unsupported inference']
+  =/  prep=iprelude  prepared.ev
+  =/  public=ifile  iface.prep
+  ?~  source.public  [%| 'request prelude source needs unsupported inference']
+  =/  private=(list iwidth-dependency)
+    (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
+  ?.  ?=([* ~] private)  [%| 'request internal source needs unsupported inference']
+  ?~  source.i.private  [%| 'request internal source needs unsupported inference']
+  =/  gates=(unit imulti-request-gates)
+    (api-request-gates paths.ev ev u.ask file src u.source.public u.source.i.private externals marks 256)
+  ?~  gates  [%| 'request paths need unsupported inference']
+  =/  poke=(unit [values=ienv derived=(list iderived)])
+    (api-poke-from-checked file mod marks values.prep molds.prep `public)
+  ?~  poke  [%| 'API poke needs unsupported inference']
+  =/  mark-molds=imold-types
+    (turn marks.support |=(m=iapi-mark-type [name.m [typ.m ~]]))
+  =/  exports=imold-types  (weld mark-molds molds.support)
+  =/  names=(list term)  (turn exports |=(m=[name=term template=ischeme] name.m))
+  ?.  (levy names |=(n=term (unique-value-name n names)))
+    [%| 'API exported molds need unsupported inference']
+  =/  env=ienv  (weld values.u.gates (weld values.u.poke values.support))
+  =/  graph=irequest-graph
+    [(silt `(list path)`~[file]) requests.u.gates modules `public values.prep molds.prep externals marks]
+  =/  iface=ifile
+    [env exports file derived.u.poke elaborations.support ~ `src `graph]
+  [%& [iface dependencies.ev]]
+::
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-result
@@ -10986,11 +11190,21 @@
       [%& [checked [[at checked] cache]]]
     ?~  prelude  [%| (crip "API module needs unsupported inference: {(spud at)}")]
     =/  prepared=iprelude  [u.prelude prelude-values prelude-molds]
-    =/  request=(each ione-request-interface @t)
-      (one-request-interface-graph at src externals mark-externals modules active cache `prepared)
-    ?:  ?=(%| -.request)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
-    =/  checked=ifile  iface.p.request
-    [%& [checked [[at checked] dependencies.paths.support.p.request]]]
+    =/  narrow=?
+      ?.  ?=([[%mark *] ~] imports.mod)  |
+      ?.  ?=([[%mold *] ~] defs.mod)  |
+      ?.  =(%paths name.i.defs.mod)  |
+      !?=(%union -.shape.i.defs.mod)
+    ?:  narrow
+      =/  request=(each ione-request-interface @t)
+        (one-request-interface-graph at src externals mark-externals modules active cache `prepared)
+      ?:  ?=(%| -.request)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+      =/  checked=ifile  iface.p.request
+      [%& [checked [[at checked] dependencies.paths.support.p.request]]]
+    =/  multi=(each [iface=ifile cache=jcache] @t)
+      (multi-request-interface-graph at src externals mark-externals modules active cache `prepared)
+    ?:  ?=(%| -.multi)  [%| (crip "API module needs unsupported inference: {(spud at)}")]
+    [%& [iface.p.multi [[at iface.p.multi] cache.p.multi]]]
   ?.  (module-scope-valid mod prelude-values prelude-molds)
     ?:  (pending-declared-poke at mod prelude-values prelude-molds)
       [%| (crip "module kind or scope needs unsupported inference: {(spud at)}")]

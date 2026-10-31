@@ -1,0 +1,17 @@
+partial inference; module not checked
+++ no-sur-export: sample mold is not supported by partial inference
+++ bad-param: call's sample and argument types do not unify
+/tests/type-todo-api/negative.jibb:3:15: called gate
+++ bad-param (todo-by-id.api ~zod |=(x=todo-item.api "ok"))
+              ^
+/tests/type-todo-api/negative.jibb:3:30: argument has type @p
+++ bad-param (todo-by-id.api ~zod |=(x=todo-item.api "ok"))
+                             ^
+++ missing-fold: call constraint is not supported by partial inference
+++ bad-action: call's sample and argument types do not unify
+/tests/type-todo-api/negative.jibb:5:16: called gate
+++ bad-action (todo-action.api [%typo text="hello"])
+               ^
+/tests/type-todo-api/negative.jibb:5:32: argument
+++ bad-action (todo-action.api [%typo text="hello"])
+                               ^
