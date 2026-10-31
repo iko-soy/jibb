@@ -1,0 +1,5 @@
++$ helper @t
++$ tagged |$ [A] [%wrapped helper]
++$ choice
+  (tagged @t)
+  [%other @p]

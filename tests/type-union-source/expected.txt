@@ -1,0 +1,36 @@
+source generic distinct: ok
+actual inference preserves pending and scoped state: ok
+actual inference rejects structural state: ok
+later source failure returns no partial state: ok
+actual local owner shadow rejected: ok
+full generic-alias module checks: ok
+same-head module is not published: ok
+mixed-zero module is not published: ok
+wrong-arity module is not published: ok
+partial report uses source proof: ok
+partial report preserves shadow diagnostic: ok
+recognized recursive tree causes conservative decline: ok
+mixed partial report remains source-only: ok
+source exact fuel 18: ok
+source 17 fuel declines: ok
+same head declines: ok
+equal noun cross spelling declines: ok
+nested application declines: ok
+duplicate owner declines: ok
+wrong arity declines: ok
+duplicate parameters decline: ok
+hidden body reference declines: ok
+qualified import declines: ok
+direct cases use existing proof: ok
+wide alias body declines: ok
+undeclared body parameter declines: ok
+empty state accepted: ok
+simple outer generic accepted: ok
+structured outer argument declined: ok
+structured substitution declined: ok
+pending hole declined: ok
+recursive index declined: ok
+deferred transaction declined: ok
+pending obligation declined: ok
+256 state entries accepted: ok
+257 state entries declined: ok

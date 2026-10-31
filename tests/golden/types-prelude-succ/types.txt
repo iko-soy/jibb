@@ -1,0 +1,11 @@
+partial inference; module not checked
+++ n: @ud
+++ hx: @ux
+++ generic: $-(A A) where A is an atom other than ?
+++ bad: call's sample and argument types do not unify
+/tests/golden/types-prelude-succ/source.jibb:4:9: called gate has type $-(A A) where A is an atom other than ?
+++ bad (succ %.y)
+        ^
+/tests/golden/types-prelude-succ/source.jibb:4:14: argument has type ?
+++ bad (succ %.y)
+             ^

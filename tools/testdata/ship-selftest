@@ -314,6 +314,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-generic-construction.hoon',
            'tests/lib/jibb-generic-pattern.hoon',
            'tests/lib/jibb-empty.hoon',
+           'tests/lib/jibb-union-source.hoon',
            'tests/lib/jibb-api-evidence.hoon',
            'tests/lib/jibb-ask-guards.hoon',
            'tests/lib/jibb-request-guards.hoon',
@@ -350,6 +351,12 @@ def generator_checks(tmp):
               'good', 'overlap', 'dead', 'missing', 'standard-good',
               'list-dead', 'unit-dead', 'late-cap', 'list-live', 'list-open',
               'face-source', 'expected')} <= set(normal.files))
+    check('generic union source fixtures and golden are assembled',
+          {f'tests/type-union-source/{name}.txt' for name in (
+              'good', 'same', 'zero', 'nested', 'duplicate', 'wrong',
+              'duplicate-params', 'hidden-ref', 'qualified', 'direct-source',
+              'wide-source', 'free-source', 'late-source', 'shadow-source',
+              'mixed-source', 'expected')} <= set(normal.files))
     check('deferred transaction and resolver sources are assembled',
           {'tests/type-deferred/nested-src.txt', 'tests/type-deferred/principal-src.txt',
            'tests/type-deferred/expected.txt', 'tests/type-deferred-resolver/good.txt',

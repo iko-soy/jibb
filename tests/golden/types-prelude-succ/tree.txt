@@ -1,0 +1,15 @@
+(module
+  (value 1:1 n
+    (group 1:6
+      (call 1:7 (wing 1:7 succ) (lit 1:12 1))))
+  (value 2:1 hx
+    (group 2:7
+      (call 2:8 (wing 2:8 succ) (lit 2:13 0x1f))))
+  (value 3:1 generic
+    (gate 3:12
+      (face 3:15 x (tvar 3:17 A))
+      (group 3:19
+        (call 3:20 (wing 3:20 succ) (wing 3:25 x)))))
+  (value 4:1 bad
+    (group 4:8
+      (call 4:9 (wing 4:9 succ) (lit 4:14 %.y)))))

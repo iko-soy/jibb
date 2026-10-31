@@ -1,0 +1,9 @@
++$ tagged |$ [A] [%wrapped A]
++$ choice
+  (tagged @t)
+  [%other @p]
+++ id |= x=choice x
++$ poly |$ [A B]
+  (tagged A)
+  [%second B]
+++ typed |= x=(poly @t @p) x

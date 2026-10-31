@@ -1,0 +1,8 @@
++$ element |$ [M]
+  [%text value=@t]
+  [%node event=$-(@t M) children=(list (element M))]
++$ tagged |$ [A] [%wrapped A]
++$ choice
+  (tagged @t)
+  [%other @p]
+++ id |= x=choice x

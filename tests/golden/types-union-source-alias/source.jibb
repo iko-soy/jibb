@@ -1,0 +1,18 @@
++$ tagged |$ [A] [%wrapped A]
++$ choice
+  (tagged @t)
+  [%other @p]
+++ id |= x=choice x
++$ poly |$ [A B]
+  (tagged A)
+  [%second B]
+++ typed |= x=(poly @t @p) x
++$ same
+  (tagged @t)
+  [%wrapped @p]
+++ collide |= x=same x
++$ zero |$ [A] [%.y A]
++$ same-zero
+  (zero @t)
+  [%$ @p]
+++ collide-zero |= x=same-zero x

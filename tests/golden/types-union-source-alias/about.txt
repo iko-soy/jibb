@@ -1,0 +1,4 @@
+source: Grammar, Unions: "Cases must differ as nouns"; Grammar, Generic molds.
+tests: A one-hop local generic alias with a literal head is proven disjoint from a different head, including with outer generic parameters. Same-head and equal-noun zero spellings remain unsupported or rejected; this partial report does not claim the full module is checked.
+expect: parses
+expect-types: a partial inference report

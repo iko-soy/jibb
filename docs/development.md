@@ -14,6 +14,8 @@ From the plan's Setup and ground rules, and from @iko:
 - **Push straight to `master`.** @iko reviews work in the project's chat, not in pull requests, so there are none. Run the checks below first.
 - **Keep docs/ current**: [status.md](status.md) when a milestone moves, [open-questions.md](open-questions.md) when a question is settled or found.
 
+The source-backed generic-union guard can be run under eval with `tools/type-union-source-test`; its `test-union-source` arm is also assembled for the fake ship. It checks a bounded partial inference slice, not general union completeness.
+
 ## Setting up a machine
 
 The tools need Python 3 and `urbit` (vere) on `PATH`; the ship tools also need a fake `~zod` and click. Everything so far ran with vere 4.6 on Linux.
@@ -64,6 +66,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-import-test` | Composes the Hoon importer with the partial checker and compares `tests/type-import/expected.txt` under eval |
 | `tools/type-import-overlap-test` | Checks source-aware Hoon union overlap, provenance and proof-budget controls under eval; the same fixture runs on the ship |
 | `tools/type-import-structural-test` | Checks multi-case and nested Hoon union overlap witnesses under eval and on the ship |
+| `tools/type-union-source-test` | Checks bounded local generic-alias disjointness and state guards under eval and on the ship |
 | `tools/type-tlon-test` | Runs the real Tlon presence source through the importer and partial checker, comparing `tests/type-tlon/expected.txt` under eval |
 | `tools/type-import-diagnostic-test` | Compares the structured reader diagnostic bridge report under eval |
 | `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
@@ -115,6 +118,7 @@ tools/type-import-default-test     # default-wrapped source proofs match
 tools/type-import-test             # importer/checker bridge golden report matches
 tools/type-import-overlap-test     # source-aware Hoon overlap and provenance controls
 tools/type-import-structural-test  # nested and multi-case Hoon overlap controls
+tools/type-union-source-test       # local generic-alias union guards
 tools/type-tlon-test               # real Tlon importer/checker report matches
 tools/type-import-diagnostic-test  # direct structured reader diagnostics match
 tools/type-mark-test               # mark/checker bridge golden report matches
@@ -151,6 +155,7 @@ tools/hoon check-spans-test        # prints <<>>
 tools/hoon itype-unify-test        # type-unification controls pass
 tools/hoon -f tools/testdata/zing-hoon-reference.hoon # Hoon translation agrees on four inputs
 tools/hoon -f tools/testdata/lead-late-hoon-reference.hoon # Hoon translation agrees on selected inputs
+tools/hoon -f tools/testdata/succ-hoon-reference.hoon # Hoon translation agrees on selected inputs
 tools/testdata/selftest            # 22 checks, 0 failed
 tools/doc-blocks docs/spec         # every jibb block has its case
 tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date

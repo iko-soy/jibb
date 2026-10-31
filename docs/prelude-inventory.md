@@ -99,7 +99,7 @@ The current prelude writes `snoc`, `lure`, `flop`, `join`, `lent`, `zing`, `levy
 
 `aftr`, `cork`, `corl`, `cury`, `curr`, `fore`, `head`, `same`, `succ`, `tail`, `test`, `lead`, `late`.
 
-The source-backed `cork` and `corl` compose gates forward and backward, respectively; `cury` and `curr` bind the first and second item of an unfaced pair. `lead` and `late` are curried pair constructors: `((lead a) b)` returns `[a b]`, and `((late a) b)` returns `[b a]`. Their arguments may have independent types, including gate values, and neither constructor invokes a gate. The partial checker infers their polymorphic types. A Hoon translation agrees with Hoon’s helpers on selected inputs, but this is not Jibb execution; lowering and jet recognition remain to be validated by a backend.
+The source-backed `cork` and `corl` compose gates forward and backward, respectively; `cury` and `curr` bind the first and second item of an unfaced pair. `succ` increments an atom through `add`; the partial checker infers a shared atom type excluding loobeans. A Hoon translation agrees with Hoon on ten selected inputs; Jibb execution and jet recognition remain unverified. `lead` and `late` are curried pair constructors: `((lead a) b)` returns `[a b]`, and `((late a) b)` returns `[b a]`. Their arguments may have independent types, including gate values, and neither constructor invokes a gate. The partial checker infers their polymorphic types. A Hoon translation agrees with Hoon’s helpers on selected inputs, but this is not Jibb execution; lowering and jet recognition remain to be validated by a backend.
 
 ## 2o
 

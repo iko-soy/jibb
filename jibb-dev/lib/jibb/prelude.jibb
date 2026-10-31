@@ -371,3 +371,5 @@
 
 ++ lead |= first=A |= second=B [first second]
 ++ late |= second=B |= first=A [first second]
+
+++ succ |= x=A (add x 1)

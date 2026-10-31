@@ -1,0 +1,4 @@
++$ tagged |$ [A] [%wrapped [@t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t @t]]
++$ choice
+  (tagged @t)
+  [%other @p]

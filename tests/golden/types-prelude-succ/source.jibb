@@ -1,0 +1,4 @@
+++ n (succ 1)
+++ hx (succ 0x1f)
+++ generic |= x=A (succ x)
+++ bad (succ %.y)

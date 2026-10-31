@@ -1,0 +1,11 @@
+partial inference; module not checked
++$ tagged: not checked
++$ choice: cases proven disjoint; mold not checked
+++ id: $-(choice choice)
++$ poly: cases proven disjoint; mold not checked
+++ typed: $-((poly @t @p) (poly @t @p))
++$ same: case disjointness unresolved; mold not checked
+++ collide: sample mold is not supported by partial inference
++$ zero: not checked
++$ same-zero: case disjointness unresolved; mold not checked
+++ collide-zero: sample mold is not supported by partial inference

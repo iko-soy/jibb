@@ -6844,7 +6844,11 @@
       `[[%const lit.sh] state]
     %union
       =/  pairs=(list upair)  (union-pairs cases.sh molds.state)
-      ?.  (levy pairs |=(p=upair =(%disjoint relation.p)))  ~
+      ?:  (lien pairs |=(p=upair =(%overlap relation.p)))  ~
+      =/  source-proof=?
+        ?:  (levy pairs |=(p=upair =(%disjoint relation.p)))  &
+        &((union-source-state-safe state 256) (union-source-distinct-tags cases.sh molds.state 256))
+      ?.  source-proof  ~
       =/  cs=(unit [types=(list itype) state=istate])  (infer-shape-args cases.sh state)
       ?~  cs  ~
       `[[%union types.u.cs ~ ~ ~] state.u.cs]
@@ -10525,6 +10529,171 @@
     %overlap
   %unknown
 ::
+::  A source-only fallback for literal-tagged cells and one-hop local
+::  generic applications.  It screens all work before ordinary inference.
+++  union-simple-shape-budget
+  |=  [s=shape fuel=@ud vars=(unit (list @t))]
+  ^-  (unit @ud)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?-  -.s
+    ?(%aura %noun %void %flag)  `fuel
+    %tvar
+      ?~  vars  `fuel
+      ?:((lien u.vars |=(n=@t =(n name.s))) `fuel ~)
+    %const
+      ?.  |(=(%term form.lit.s) =(%null form.lit.s) =(%loobean form.lit.s))  ~
+      ?:  &(=(%loobean form.lit.s) !|(=(0 val.lit.s) =(1 val.lit.s)))  ~
+      `fuel
+    %cell  (union-simple-fields-budget fields.s fuel vars)
+    %fn
+      =/  left=(unit @ud)  $(s sample.s, fuel fuel)
+      ?~  left  ~
+      $(s product.s, fuel u.left)
+    *  ~
+  ==
+++  union-simple-fields-budget
+  |=  [fields=(list field) fuel=@ud vars=(unit (list @t))]
+  ^-  (unit @ud)
+  ?~  fields  `fuel
+  ?:  =(0 fuel)  ~
+  =/  field-shape=shape
+    ?-  -.i.fields
+      %bare  shape.i.fields
+      %face  shape.i.fields
+      %pun   [%ref at.i.fields ~[name.i.fields]]
+    ==
+  =/  head=(unit @ud)  (union-simple-shape-budget field-shape (dec fuel) vars)
+  ?~  head  ~
+  $(fields t.fields, fuel u.head)
+++  union-source-find
+  |=  [n=term molds=imolds fuel=@ud]
+  ^-  (unit [body=shape left=@ud])
+  =/  found=(unit shape)  ~
+  |-
+  ?~  molds
+    ?~  found  ~
+    `[u.found fuel]
+  ?:  =(0 fuel)  ~
+  ?:  =(n name.i.molds)
+    ?^  found  ~
+    $(molds t.molds, fuel (dec fuel), found `body.i.molds)
+  $(molds t.molds, fuel (dec fuel))
+++  union-source-args-budget
+  |=  [vars=(list @t) args=(list shape) fuel=@ud]
+  ^-  (unit @ud)
+  =/  seen=(set @t)  *(set @t)
+  |-
+  ?~  vars  ?~(args `fuel ~)
+  ?~  args  ~
+  ?:  =(0 fuel)  ~
+  ?:  (~(has in:..zuse seen) i.vars)  ~
+  =/  arg=(unit @ud)  (union-simple-shape-budget i.args (dec fuel) ~)
+  ?~  arg  ~
+  $(vars t.vars, args t.args, fuel u.arg, seen (~(put in:..zuse seen) i.vars))
+++  union-source-cell-tag
+  |=  s=shape
+  ^-  (unit @)
+  ?.  ?=(%cell -.s)  ~
+  ?~  fields.s  ~
+  ?~  t.fields.s  ~
+  ?.  ?=(%bare -.i.fields.s)  ~
+  =/  head=shape  shape.i.fields.s
+  ?.  ?=(%const -.head)  ~
+  ?.  |(=(%term form.lit.head) =(%null form.lit.head) =(%loobean form.lit.head))  ~
+  ?:  &(=(%loobean form.lit.head) !|(=(0 val.lit.head) =(1 val.lit.head)))  ~
+  `val.lit.head
+++  union-source-case-tag
+  |=  [s=shape molds=imolds fuel=@ud]
+  ^-  (unit [tag=@ left=@ud])
+  ?:  ?=(%cell -.s)
+    =/  tag=(unit @)  (union-source-cell-tag s)
+    ?~  tag  ~
+    =/  left=(unit @ud)  (union-simple-shape-budget s fuel ~)
+    ?~  left  ~
+    `[u.tag u.left]
+  ?.  ?=(%apply -.s)  ~
+  ?.  ?=([@ ~] ref.s)  ~
+  ?:  =(0 fuel)  ~
+  =/  found=(unit [body=shape left=@ud])  (union-source-find i.ref.s molds (dec fuel))
+  ?~  found  ~
+  ?.  ?=(%generic -.body.u.found)  ~
+  ?~  vars.body.u.found  ~
+  =/  tag=(unit @)  (union-source-cell-tag body.body.u.found)
+  ?~  tag  ~
+  =/  args=(unit @ud)  (union-source-args-budget vars.body.u.found args.s left.u.found)
+  ?~  args  ~
+  =/  left=(unit @ud)  (union-simple-shape-budget body.body.u.found u.args `vars.body.u.found)
+  ?~  left  ~
+  `[u.tag u.left]
+++  union-source-distinct-tags
+  |=  [cases=(list shape) molds=imolds fuel=@ud]
+  ^-  ?
+  =/  seen=(set @)  *(set @)
+  =/  has-application=?  |
+  |-
+  ?~  cases  has-application
+  ?:  =(0 fuel)  |
+  =/  item=(unit [tag=@ left=@ud])  (union-source-case-tag i.cases molds (dec fuel))
+  ?~  item  |
+  ?:  (~(has in:..zuse seen) tag.u.item)  |
+  $(cases t.cases, fuel left.u.item, seen (~(put in:..zuse seen) tag.u.item), has-application |(has-application ?=(%apply -.i.cases)))
+::
+::  This inference-only screen bounds inherited work that the small source
+::  slice may consult.  It does not authenticate a caller-created state.
+++  union-state-leaf
+  |=  t=itype
+  ^-  ?
+  ?=(?(%var %avar %rvar %nvar %rnvar %atom %any-atom %flag %noun %empty %const) -.t)
+++  union-state-params-budget
+  |=  [params=iparams fuel=@ud]
+  ^-  (unit @ud)
+  ?~  params  `fuel
+  ?:  =(0 fuel)  ~
+  ?.  (union-state-leaf typ.i.params)  ~
+  $(params t.params, fuel (dec fuel))
+++  union-state-sub-budget
+  |=  [sub=isub fuel=@ud]
+  ^-  (unit @ud)
+  ?~  sub  `fuel
+  ?:  =(0 fuel)  ~
+  ?.  (union-state-leaf val.i.sub)  ~
+  $(sub t.sub, fuel (dec fuel))
+++  union-state-caps-budget
+  |=  [caps=icaps fuel=@ud]
+  ^-  (unit @ud)
+  ?~  caps  `fuel
+  ?:  =(0 fuel)  ~
+  $(caps t.caps, fuel (dec fuel))
+++  union-state-active-budget
+  |=  [active=(list term) fuel=@ud]
+  ^-  (unit @ud)
+  ?~  active  `fuel
+  ?:  =(0 fuel)  ~
+  $(active t.active, fuel (dec fuel))
+++  union-state-tags-budget
+  |=  [tags=(list ipending) fuel=@ud]
+  ^-  (unit @ud)
+  ?~  tags  `fuel
+  ?:  =(0 fuel)  ~
+  $(tags t.tags, fuel (dec fuel))
+++  union-source-state-safe
+  |=  [state=istate fuel=@ud]
+  ^-  ?
+  ?^  grec-index.state  |
+  ?^  holes.state  |
+  ?^  defer.state  |
+  ?^  obligations.state  |
+  =/  params=(unit @ud)  (union-state-params-budget params.state fuel)
+  ?~  params  |
+  =/  sub=(unit @ud)  (union-state-sub-budget sub.state u.params)
+  ?~  sub  |
+  =/  caps=(unit @ud)  (union-state-caps-budget caps.state u.sub)
+  ?~  caps  |
+  =/  active=(unit @ud)  (union-state-active-budget active.state u.caps)
+  ?~  active  |
+  ?=(^ (union-state-tags-budget tags.state u.active))
+::
 ++  union-pairs
   |=  [cases=(list shape) molds=imolds]
   ^-  (list upair)
@@ -10685,7 +10854,9 @@
     =/  second=@t  (show-error src [file line.beg.second.p col.beg.second.p "overlapping case"])
     (of-wain:format ~[summary first second])
   ?:  (lien pairs |=(p=upair =(%unknown relation.p)))
-    (crip "+$ {(trip name.d)}: case disjointness unresolved; mold not checked")
+    ?.  (union-source-distinct-tags cases.sh molds 256)
+      (crip "+$ {(trip name.d)}: case disjointness unresolved; mold not checked")
+    (crip "+$ {(trip name.d)}: cases proven disjoint; mold not checked")
   (crip "+$ {(trip name.d)}: cases proven disjoint; mold not checked")
 ::
 ::  +show-inference-diagnostic: a partial report with both source sites

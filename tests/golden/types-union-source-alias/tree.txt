@@ -1,0 +1,41 @@
+(module
+  (mold 1:1 tagged
+    (generic 1:11 A
+      (cell 1:18 (const 1:19 %wrapped) (tvar 1:28 A))))
+  (mold 2:1 choice
+    (union 3:3
+      (apply 3:3 tagged (aura 3:11 @t))
+      (cell 4:3 (const 4:4 %other) (aura 4:11 @p))))
+  (value 5:1 id
+    (gate 5:7
+      (face 5:10 x (ref 5:12 choice))
+      (wing 5:19 x)))
+  (mold 6:1 poly
+    (generic 6:9 A B
+      (union 7:3
+        (apply 7:3 tagged (tvar 7:11 A))
+        (cell 8:3 (const 8:4 %second) (tvar 8:12 B)))))
+  (value 9:1 typed
+    (gate 9:10
+      (face 9:13 x
+        (apply 9:15 poly (aura 9:21 @t) (aura 9:24 @p)))
+      (wing 9:28 x)))
+  (mold 10:1 same
+    (union 11:3
+      (apply 11:3 tagged (aura 11:11 @t))
+      (cell 12:3 (const 12:4 %wrapped) (aura 12:13 @p))))
+  (value 13:1 collide
+    (gate 13:12
+      (face 13:15 x (ref 13:17 same))
+      (wing 13:22 x)))
+  (mold 14:1 zero
+    (generic 14:9 A
+      (cell 14:16 (const 14:17 %.y) (tvar 14:21 A))))
+  (mold 15:1 same-zero
+    (union 16:3
+      (apply 16:3 zero (aura 16:9 @t))
+      (cell 17:3 (const 17:4 %$) (aura 17:7 @p))))
+  (value 18:1 collide-zero
+    (gate 18:17
+      (face 18:20 x (ref 18:22 same-zero))
+      (wing 18:32 x))))

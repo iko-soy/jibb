@@ -1,0 +1,5 @@
++$ zero |$ [A] [%.y A]
++$ bad
+  (zero @t)
+  [%$ @p]
+++ id |= x=bad x

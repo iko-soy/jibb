@@ -1,0 +1,4 @@
+source: Overview, Prelude: “Hoon's standard library regrouped, written in Jibb”; Decisions, Loobean arithmetic: “Arithmetic rejects loobean operands”.
+tests: The source-backed successor preserves a shared atom aura, accepts decimal and hexadecimal atoms, infers a generic arithmetic constraint and rejects a loobean. This is a partial inference report; Jibb execution and jet recognition remain unverified.
+expect: parses
+expect-types: a partial inference report
