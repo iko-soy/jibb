@@ -1,0 +1,4 @@
+source: Overview, Prelude: the `like` value maps an existing `(like A)` result with a gate.
+tests: Present and absent results, position and nail types, independent cord and ship conversions, generic and named calls, and an incompatible converter; the same name is also a mold.
+expect: parses
+expect-types: a partial inference report

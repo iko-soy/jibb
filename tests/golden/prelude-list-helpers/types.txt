@@ -27,6 +27,7 @@ partial inference; module not checked
 +$ spot: not checked
 +$ toon: cases proven disjoint; mold not checked
 +$ like: not checked
+++ like: sample mold is not supported by partial inference
 ++ wonk: sample mold is not supported by partial inference
 +$ lone: not checked
 +$ lest: not checked

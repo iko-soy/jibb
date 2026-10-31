@@ -4993,6 +4993,24 @@
     [%cell $(actual hed.actual, expected hed.expected) $(actual tal.actual, expected tal.expected)]
   expected
 ::
+::  Positional call arguments do not write the sample's enclosing field
+::  labels.  Ignore one raw sample-slot face per written argument while
+::  checking value faces as usual.  An unknown or variable-bound cell spine
+::  cannot justify this distinction, so keep the existing conservative guard.
+++  itype-positional-face-asym
+  |=  [args=(list expr) actual=itype expected=itype sub=isub]
+  ^-  ?
+  ?~  args  &
+  ?~  t.args
+    =/  slot=itype  expected
+    =?  slot  ?=(%face -.slot)  body.slot
+    (itype-face-asym actual slot sub)
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  &
+  =/  slot=itype  hed.expected
+  =?  slot  ?=(%face -.slot)  body.slot
+  ?:  (itype-face-asym hed.actual slot sub)  &
+  $(args t.args, actual tal.actual, expected tal.expected)
+::
 ++  itype-output-may-be-cell
   |=  [t=itype sub=isub]
   ^-  ?
@@ -8104,7 +8122,10 @@
       =/  arg-at=span  ?~(bad whole-args at.u.bad)
       =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
       [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
-    ?:  &((itype-has-face typ.p.arg sub.fit) (itype-face-asym typ.p.arg sample.ht sub.fit) (itype-output-may-be-cell product.ht sub.fit))
+    =/  face-asym=?
+      ?^  t.args.e  (itype-positional-face-asym args.e typ.p.arg sample.ht sub.fit)
+      (itype-face-asym typ.p.arg sample.ht sub.fit)
+    ?:  &((itype-has-face typ.p.arg sub.fit) face-asym (itype-output-may-be-cell product.ht sub.fit))
       [%| ["call result face propagation is not supported by partial inference" ~]]
     [%& product.ht st(sub sub.fit, next next.fit)]
   =/  result=itype  [%var next.st]

@@ -1,0 +1,4 @@
+source: Grammar, Molds: faces are part of a type; Expressions: multi-argument calls form a right-nested sample.
+tests: Positional sample labels do not obscure record arguments; returned faces are preserved, nested value-face asymmetry stays unsupported, and mismatches, generic and unknown gates, and pending literals are retained.
+expect: parses
+expect-types: a partial inference report

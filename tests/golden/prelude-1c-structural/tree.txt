@@ -235,56 +235,88 @@
             (cell 97:32
               (face 97:33 p (tvar 97:35 A))
               (face 97:37 q (ref 97:39 nail))))))))
-  (value 99:1 wonk
+  (value 99:1 like
     (gate 99:9
-      (face 99:12 veq
-        (apply 99:16 like (tvar 99:22 A)))
+      (cell 99:12
+        (face 99:13 f
+          (fn 99:15 (tvar 99:18 A) (tvar 99:20 B)))
+        (face 99:23 result
+          (apply 99:30 like (tvar 99:36 A))))
       (body 100:3
-        (branch 100:3
-          (wing 100:6 q.veq)
-          (arm 101:5 (lit 101:5 ~) (crash 101:7))
-          (arm 102:5
-            (cell 102:5 (lit 102:6 ~) (bind 102:8 product))
-            (wing 102:17 p.product))))))
-  (mold 104:1 lone
-    (generic 104:9 A
-      (cell 104:16
-        (face 104:17 p (tvar 104:19 A)))))
-  (mold 106:1 lest
-    (generic 106:9 A
-      (cell 106:16
-        (face 106:17 i (tvar 106:19 A))
-        (face 106:21 t
-          (apply 106:23 list (tvar 106:29 A))))))
-  (mold 108:1 pole
-    (generic 108:9 A
-      (union 109:3
-        (const 109:3 ~)
-        (cell 110:3
-          (tvar 110:4 A)
-          (apply 110:6 pole (tvar 110:12 A))))))
-  (mold 112:1 quip
-    (generic 112:9 A B
-      (cell 112:18
-        (apply 112:19 list (tvar 112:25 A))
-        (tvar 112:28 B))))
-  (mold 114:1 tree
+        (value 100:3 mapped
+          (body 101:5
+            (cast 101:5
+              (apply 101:8 unit
+                (cell 101:14
+                  (face 101:15 p (tvar 101:17 B))
+                  (face 101:19 q (ref 101:21 nail))))
+              (body 102:7
+                (branch 102:7
+                  (wing 102:10 q.result)
+                  (arm 103:9 (lit 103:9 ~) (lit 103:11 ~))
+                  (arm 104:9
+                    (cell 104:9 (lit 104:10 ~) (bind 104:12 value))
+                    (unit 104:19
+                      (tuple 104:20
+                        (face 104:21 p
+                          (group 104:23
+                            (call 104:24 (wing 104:24 f) (wing 104:26 p.value))))
+                        (face 104:35 q (wing 104:37 q.value))))))))))
+        (cast 105:3
+          (apply 105:6 like (tvar 105:12 B))
+          (tuple 105:15
+            (face 105:16 p (wing 105:18 p.result))
+            (face 105:27 q (wing 105:29 mapped)))))))
+  (value 107:1 wonk
+    (gate 107:9
+      (face 107:12 veq
+        (apply 107:16 like (tvar 107:22 A)))
+      (body 108:3
+        (branch 108:3
+          (wing 108:6 q.veq)
+          (arm 109:5 (lit 109:5 ~) (crash 109:7))
+          (arm 110:5
+            (cell 110:5 (lit 110:6 ~) (bind 110:8 product))
+            (wing 110:17 p.product))))))
+  (mold 112:1 lone
+    (generic 112:9 A
+      (cell 112:16
+        (face 112:17 p (tvar 112:19 A)))))
+  (mold 114:1 lest
     (generic 114:9 A
-      (union 115:3
-        (const 115:3 ~)
-        (cell 116:3
-          (face 116:4 n (tvar 116:6 A))
-          (face 116:8 l
-            (apply 116:10 tree (tvar 116:16 A)))
-          (face 116:19 r
-            (apply 116:21 tree (tvar 116:27 A)))))))
-  (mold 118:1 each
-    (generic 118:9 A B
-      (union 119:3
-        (cell 119:3
-          (const 119:4 %|)
-          (face 119:7 p (tvar 119:9 B)))
-        (cell 120:3
-          (const 120:4 %&)
-          (face 120:7 p (tvar 120:9 A))))))
-  (mold 122:1 bloq (aura 122:9 @)))
+      (cell 114:16
+        (face 114:17 i (tvar 114:19 A))
+        (face 114:21 t
+          (apply 114:23 list (tvar 114:29 A))))))
+  (mold 116:1 pole
+    (generic 116:9 A
+      (union 117:3
+        (const 117:3 ~)
+        (cell 118:3
+          (tvar 118:4 A)
+          (apply 118:6 pole (tvar 118:12 A))))))
+  (mold 120:1 quip
+    (generic 120:9 A B
+      (cell 120:18
+        (apply 120:19 list (tvar 120:25 A))
+        (tvar 120:28 B))))
+  (mold 122:1 tree
+    (generic 122:9 A
+      (union 123:3
+        (const 123:3 ~)
+        (cell 124:3
+          (face 124:4 n (tvar 124:6 A))
+          (face 124:8 l
+            (apply 124:10 tree (tvar 124:16 A)))
+          (face 124:19 r
+            (apply 124:21 tree (tvar 124:27 A)))))))
+  (mold 126:1 each
+    (generic 126:9 A B
+      (union 127:3
+        (cell 127:3
+          (const 127:4 %|)
+          (face 127:7 p (tvar 127:9 B)))
+        (cell 128:3
+          (const 128:4 %&)
+          (face 128:7 p (tvar 128:9 A))))))
+  (mold 130:1 bloq (aura 130:9 @)))

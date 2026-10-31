@@ -1,0 +1,25 @@
+++ convert-record |= [f=$-(A B) input=[a=A b=@t]] [value=(f a.input) label=b.input]
+++ data [a=1 b="before"]
+++ positional (convert-record |=(x=@ud "done") data)
+++ named (convert-record [f=|=(x=@ud "done") input=data])
+++ record-identity |= [n=@ud item=[x=@t y=@p]] item
+++ typed-record (record-identity 1 [x="hi" y=~zod])
+++ unfaced-identity |= [n=@ud item=[@t @p]] item
+++ preserve-inner-faces (unfaced-identity 1 [x="hi" y=~zod])
+++ nested-identity |= [n=@ud item=[inner=[@t @p] label=@t]] item
+++ preserve-nested-faces (nested-identity 1 [inner=[x="hi" y=~zod] label="ok"])
+++ generic-identity |= [n=@ud item=A] item
+++ preserve-generic (generic-identity 1 [x="hi" y=~zod])
+++ wrong-order (record-identity [x="hi" y=~zod] 1)
+++ pending (record-identity 1 [x="hi" y=%unresolved])
+++ generic-apply |= [f=$-(A B) input=A] (f input)
+++ accepts-tuple |= x=[@t @p] x
+++ generic-faces (generic-apply accepts-tuple [x="hi" y=~zod])
+++ unknown-callee |= f (f [x="hi" y=~zod] 1)
+++ first-pending (record-identity %unresolved [x="hi" y=~zod])
+++ discarded-tag |= value=@t
+  ~& %pending
+    (record-identity 1 [x=value y=~zod])
+++ pick-first |= [first=A other=@t] first
+++ first-record (pick-first [foo="x" bar=~zod] "z")
+++ matching-face-collision (pick-first [first=[foo="x" bar=~zod]] "z")

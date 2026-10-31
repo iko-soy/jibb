@@ -1,0 +1,42 @@
+partial inference; module not checked
+++ convert-record: $-([f=$-(A B) input=[a=A b=@t]] [value=B label=@t])
+++ data: [a=@ud b=@t]
+++ positional: [value=@t label=@t]
+++ named: [value=@t label=@t]
+++ record-identity: $-([n=@ud item=[x=@t y=@p]] [x=@t y=@p])
+++ typed-record: [x=@t y=@p]
+++ unfaced-identity: $-([n=@ud item=[@t @p]] [@t @p])
+++ preserve-inner-faces: call result face propagation is not supported by partial inference
+++ nested-identity: $-([n=@ud item=[inner=[@t @p] label=@t]] [inner=[@t @p] label=@t])
+++ preserve-nested-faces: call result face propagation is not supported by partial inference
+++ generic-identity: $-([n=@ud item=A] A)
+++ preserve-generic: [x=@t y=@p]
+++ wrong-order: call's sample and argument types do not unify
+/tests/golden/types-positional-faces/source.jibb:13:17: called gate has type $-([n=@ud item=[x=@t y=@p]] [x=@t y=@p])
+++ wrong-order (record-identity [x="hi" y=~zod] 1)
+                ^
+/tests/golden/types-positional-faces/source.jibb:13:33: argument has type [x=@t y=@p]
+++ wrong-order (record-identity [x="hi" y=~zod] 1)
+                                ^
+++ pending: call's sample and argument types do not unify
+/tests/golden/types-positional-faces/source.jibb:14:13: called gate has type $-([n=@ud item=[x=@t y=@p]] [x=@t y=@p])
+++ pending (record-identity 1 [x="hi" y=%unresolved])
+            ^
+/tests/golden/types-positional-faces/source.jibb:14:31: argument
+++ pending (record-identity 1 [x="hi" y=%unresolved])
+                              ^
+++ generic-apply: $-([f=$-(A B) input=A] B)
+++ accepts-tuple: $-([@t @p] [@t @p])
+++ generic-faces: call constraint is not supported by partial inference
+++ unknown-callee: unresolved aura-variable inference
+++ first-pending: call's sample and argument types do not unify
+/tests/golden/types-positional-faces/source.jibb:19:19: called gate has type $-([n=@ud item=[x=@t y=@p]] [x=@t y=@p])
+++ first-pending (record-identity %unresolved [x="hi" y=~zod])
+                  ^
+/tests/golden/types-positional-faces/source.jibb:19:35: argument
+++ first-pending (record-identity %unresolved [x="hi" y=~zod])
+                                  ^
+++ discarded-tag: tag needs context in partial inference
+++ pick-first: $-([first=A other=@t] A)
+++ first-record: [foo=@t bar=@p]
+++ matching-face-collision: call result face propagation is not supported by partial inference

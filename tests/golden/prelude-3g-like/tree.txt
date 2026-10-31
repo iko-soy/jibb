@@ -235,14 +235,46 @@
             (cell 97:32
               (face 97:33 p (tvar 97:35 A))
               (face 97:37 q (ref 97:39 nail))))))))
-  (value 99:1 wonk
+  (value 99:1 like
     (gate 99:9
-      (face 99:12 veq
-        (apply 99:16 like (tvar 99:22 A)))
+      (cell 99:12
+        (face 99:13 f
+          (fn 99:15 (tvar 99:18 A) (tvar 99:20 B)))
+        (face 99:23 result
+          (apply 99:30 like (tvar 99:36 A))))
       (body 100:3
-        (branch 100:3
-          (wing 100:6 q.veq)
-          (arm 101:5 (lit 101:5 ~) (crash 101:7))
-          (arm 102:5
-            (cell 102:5 (lit 102:6 ~) (bind 102:8 product))
-            (wing 102:17 p.product)))))))
+        (value 100:3 mapped
+          (body 101:5
+            (cast 101:5
+              (apply 101:8 unit
+                (cell 101:14
+                  (face 101:15 p (tvar 101:17 B))
+                  (face 101:19 q (ref 101:21 nail))))
+              (body 102:7
+                (branch 102:7
+                  (wing 102:10 q.result)
+                  (arm 103:9 (lit 103:9 ~) (lit 103:11 ~))
+                  (arm 104:9
+                    (cell 104:9 (lit 104:10 ~) (bind 104:12 value))
+                    (unit 104:19
+                      (tuple 104:20
+                        (face 104:21 p
+                          (group 104:23
+                            (call 104:24 (wing 104:24 f) (wing 104:26 p.value))))
+                        (face 104:35 q (wing 104:37 q.value))))))))))
+        (cast 105:3
+          (apply 105:6 like (tvar 105:12 B))
+          (tuple 105:15
+            (face 105:16 p (wing 105:18 p.result))
+            (face 105:27 q (wing 105:29 mapped)))))))
+  (value 107:1 wonk
+    (gate 107:9
+      (face 107:12 veq
+        (apply 107:16 like (tvar 107:22 A)))
+      (body 108:3
+        (branch 108:3
+          (wing 108:6 q.veq)
+          (arm 109:5 (lit 109:5 ~) (crash 109:7))
+          (arm 110:5
+            (cell 110:5 (lit 110:6 ~) (bind 110:8 product))
+            (wing 110:17 p.product)))))))

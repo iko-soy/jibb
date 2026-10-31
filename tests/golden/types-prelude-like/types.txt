@@ -1,0 +1,18 @@
+partial inference; module not checked
+++ absent: [p=[p=@ud q=@ud] q=(unit [p=@ud q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ present: [p=[p=@ud q=@ud] q=(unit [p=@ud q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ render: [p=[p=@ud q=@ud] q=(unit [p=@t q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ absent-render: [p=[p=@ud q=@ud] q=(unit [p=@t q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ to-ship: [p=[p=@ud q=@ud] q=(unit [p=@p q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ polymorphic: $-([p=[p=@ud q=@ud] q=(unit [p=A q=[p=[p=@ud q=@ud] q=(list @tD)]])] [p=[p=@ud q=@ud] q=(unit [p=A q=[p=[p=@ud q=@ud] q=(list @tD)]])])
+++ wrong: call constraint is not supported by partial inference
+++ identity-type: $-([p=[p=@ud q=@ud] q=(unit [p=A q=[p=[p=@ud q=@ud] q=(list @tD)]])] [p=[p=@ud q=@ud] q=(unit [p=A q=[p=[p=@ud q=@ud] q=(list @tD)]])])
+++ return-pos: [p=@ud q=@ud]
+++ return-nail: unit branch results need unsupported inference
+++ named-render: [p=[p=@ud q=@ud] q=(unit [p=@t q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ named-absent: [p=[p=@ud q=@ud] q=(unit [p=@t q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ named-ship: [p=[p=@ud q=@ud] q=(unit [p=@p q=[p=[p=@ud q=@ud] q=(list @tD)]])]
+++ named-identity: $-([f=$-(A B) result=[p=[p=@ud q=@ud] q=(unit [p=A q=[p=[p=@ud q=@ud] q=(list @tD)]])]] [p=[p=@ud q=@ud] q=(unit [p=B q=[p=[p=@ud q=@ud] q=(list @tD)]])])
+++ named-wrong: call constraint is not supported by partial inference
+++ wrong-absent: call constraint is not supported by partial inference
+++ discarded-tag: tag needs context in partial inference

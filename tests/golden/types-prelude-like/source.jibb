@@ -1,0 +1,22 @@
+++ absent ^- (like @ud) [p=[p=1 q=2] q=~]
+++ present ^- (like @ud) [p=[p=1 q=2] q=`[p=8 q=[p=[p=3 q=4] q=~[97 98]]]]
+++ render (like |=(n=@ud "found") present)
+++ absent-render (like |=(n=@ud "found") absent)
+++ to-ship (like |=(n=@ud ~zod) present)
+++ polymorphic |= result=(like A) (like |=(x=A x) result)
+++ wrong (like |=(x=@p "no") present)
+++ identity-type |= result=(like A) result
+++ return-pos p.render
+++ return-nail |= x=(like A)
+  ?- q.x
+    ~ ~
+    [~ value] `q.value
+++ named-render (like [f=|=(n=@ud "found") result=present])
+++ named-absent (like [f=|=(n=@ud "found") result=absent])
+++ named-ship (like [f=|=(n=@ud ~zod) result=present])
+++ named-identity |= [f=$-(A B) result=(like A)] (like [f=f result=result])
+++ named-wrong (like [f=|=(n=@p "wrong") result=present])
+++ wrong-absent (like |=(n=@p "wrong") absent)
+++ discarded-tag
+  ~& %pending
+    (like |=(n=@ud "found") present)

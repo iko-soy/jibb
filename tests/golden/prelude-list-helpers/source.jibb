@@ -96,6 +96,14 @@
 
 +$ like |$ [A] [p=hair q=(unit [p=A q=nail])]
 
+++ like |= [f=$-(A B) result=(like A)]
+  ++ mapped
+    ^- (unit [p=B q=nail])
+      ?- q.result
+        ~ ~
+        [~ value] `[p=(f p.value) q=q.value]
+  ^- (like B) [p=p.result q=mapped]
+
 ++ wonk |= veq=(like A)
   ?- q.veq
     ~ !!

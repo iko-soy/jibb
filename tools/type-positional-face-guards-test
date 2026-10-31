@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""Run the shared positional sample-face guards under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+tests = (root / 'tests/lib/jibb-positional-face-guards.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  suite\n' + tests +
+              '\n=/  failures=(list tape)  positional-face-guard-errors:suite\n^-  @t\n' +
+              "?~  failures  'positional guards passed'\n" +
+              '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-positional-guards-') as tmp:
+    program = Path(tmp) / 'guards.hoon'
+    program.write_text(expression)
+    result = subprocess.run([str(root / 'tools/hoon'), '--lib', args.lib,
+                             '--raw', '-f', str(program)], stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'positional guards passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('positional sample-face guards passed')

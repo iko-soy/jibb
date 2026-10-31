@@ -1,0 +1,163 @@
+(module
+  (value 1:1 absent
+    (cast 1:11
+      (apply 1:14 like (aura 1:20 @ud))
+      (tuple 1:25
+        (face 1:26 p
+          (tuple 1:28
+            (face 1:29 p (lit 1:31 1))
+            (face 1:33 q (lit 1:35 2))))
+        (face 1:38 q (lit 1:40 ~)))))
+  (value 2:1 present
+    (cast 2:12
+      (apply 2:15 like (aura 2:21 @ud))
+      (tuple 2:26
+        (face 2:27 p
+          (tuple 2:29
+            (face 2:30 p (lit 2:32 1))
+            (face 2:34 q (lit 2:36 2))))
+        (face 2:39 q
+          (unit 2:41
+            (tuple 2:42
+              (face 2:43 p (lit 2:45 8))
+              (face 2:47 q
+                (tuple 2:49
+                  (face 2:50 p
+                    (tuple 2:52
+                      (face 2:53 p (lit 2:55 3))
+                      (face 2:57 q (lit 2:59 4))))
+                  (face 2:62 q
+                    (list 2:64 (lit 2:66 97) (lit 2:69 98)))))))))))
+  (value 3:1 render
+    (group 3:11
+      (call 3:12
+        (wing 3:12 like)
+        (gate-wide 3:17
+          (face 3:20 n (aura 3:22 @ud))
+          (str 3:26 "found"))
+        (wing 3:35 present))))
+  (value 4:1 absent-render
+    (group 4:18
+      (call 4:19
+        (wing 4:19 like)
+        (gate-wide 4:24
+          (face 4:27 n (aura 4:29 @ud))
+          (str 4:33 "found"))
+        (wing 4:42 absent))))
+  (value 5:1 to-ship
+    (group 5:12
+      (call 5:13
+        (wing 5:13 like)
+        (gate-wide 5:18
+          (face 5:21 n (aura 5:23 @ud))
+          (lit 5:27 ~zod))
+        (wing 5:33 present))))
+  (value 6:1 polymorphic
+    (gate 6:16
+      (face 6:19 result
+        (apply 6:26 like (tvar 6:32 A)))
+      (group 6:35
+        (call 6:36
+          (wing 6:36 like)
+          (gate-wide 6:41
+            (face 6:44 x (tvar 6:46 A))
+            (wing 6:48 x))
+          (wing 6:51 result)))))
+  (value 7:1 wrong
+    (group 7:10
+      (call 7:11
+        (wing 7:11 like)
+        (gate-wide 7:16
+          (face 7:19 x (aura 7:21 @p))
+          (str 7:24 "no"))
+        (wing 7:30 present))))
+  (value 8:1 identity-type
+    (gate 8:18
+      (face 8:21 result
+        (apply 8:28 like (tvar 8:34 A)))
+      (wing 8:37 result)))
+  (value 9:1 return-pos (wing 9:15 p.render))
+  (value 10:1 return-nail
+    (gate 10:16
+      (face 10:19 x
+        (apply 10:21 like (tvar 10:27 A)))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 q.x)
+          (arm 12:5 (lit 12:5 ~) (lit 12:7 ~))
+          (arm 13:5
+            (cell 13:5 (lit 13:6 ~) (bind 13:8 value))
+            (unit 13:15 (wing 13:16 q.value)))))))
+  (value 14:1 named-render
+    (group 14:17
+      (call 14:18
+        (wing 14:18 like)
+        (tuple 14:23
+          (face 14:24 f
+            (gate-wide 14:26
+              (face 14:29 n (aura 14:31 @ud))
+              (str 14:35 "found")))
+          (face 14:44 result (wing 14:51 present))))))
+  (value 15:1 named-absent
+    (group 15:17
+      (call 15:18
+        (wing 15:18 like)
+        (tuple 15:23
+          (face 15:24 f
+            (gate-wide 15:26
+              (face 15:29 n (aura 15:31 @ud))
+              (str 15:35 "found")))
+          (face 15:44 result (wing 15:51 absent))))))
+  (value 16:1 named-ship
+    (group 16:15
+      (call 16:16
+        (wing 16:16 like)
+        (tuple 16:21
+          (face 16:22 f
+            (gate-wide 16:24
+              (face 16:27 n (aura 16:29 @ud))
+              (lit 16:33 ~zod)))
+          (face 16:39 result (wing 16:46 present))))))
+  (value 17:1 named-identity
+    (gate 17:19
+      (cell 17:22
+        (face 17:23 f
+          (fn 17:25 (tvar 17:28 A) (tvar 17:30 B)))
+        (face 17:33 result
+          (apply 17:40 like (tvar 17:46 A))))
+      (group 17:50
+        (call 17:51
+          (wing 17:51 like)
+          (tuple 17:56
+            (face 17:57 f (wing 17:59 f))
+            (face 17:61 result (wing 17:68 result)))))))
+  (value 18:1 named-wrong
+    (group 18:16
+      (call 18:17
+        (wing 18:17 like)
+        (tuple 18:22
+          (face 18:23 f
+            (gate-wide 18:25
+              (face 18:28 n (aura 18:30 @p))
+              (str 18:33 "wrong")))
+          (face 18:42 result (wing 18:49 present))))))
+  (value 19:1 wrong-absent
+    (group 19:17
+      (call 19:18
+        (wing 19:18 like)
+        (gate-wide 19:23
+          (face 19:26 n (aura 19:28 @p))
+          (str 19:31 "wrong"))
+        (wing 19:40 absent))))
+  (value 20:1 discarded-tag
+    (body 21:3
+      (trace 21:3
+        (lit 21:6 %pending)
+        (body 22:5
+          (group 22:5
+            (call 22:6
+              (wing 22:6 like)
+              (gate-wide 22:11
+                (face 22:14 n (aura 22:16 @ud))
+                (str 22:20 "found"))
+              (wing 22:29 present))))))))

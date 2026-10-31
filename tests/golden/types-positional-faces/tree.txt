@@ -1,0 +1,197 @@
+(module
+  (value 1:1 convert-record
+    (gate 1:19
+      (cell 1:22
+        (face 1:23 f
+          (fn 1:25 (tvar 1:28 A) (tvar 1:30 B)))
+        (face 1:33 input
+          (cell 1:39
+            (face 1:40 a (tvar 1:42 A))
+            (face 1:44 b (aura 1:46 @t)))))
+      (tuple 1:51
+        (face 1:52 value
+          (group 1:58
+            (call 1:59 (wing 1:59 f) (wing 1:61 a.input))))
+        (face 1:70 label (wing 1:76 b.input)))))
+  (value 2:1 data
+    (tuple 2:9
+      (face 2:10 a (lit 2:12 1))
+      (face 2:14 b (str 2:16 "before"))))
+  (value 3:1 positional
+    (group 3:15
+      (call 3:16
+        (wing 3:16 convert-record)
+        (gate-wide 3:31
+          (face 3:34 x (aura 3:36 @ud))
+          (str 3:40 "done"))
+        (wing 3:48 data))))
+  (value 4:1 named
+    (group 4:10
+      (call 4:11
+        (wing 4:11 convert-record)
+        (tuple 4:26
+          (face 4:27 f
+            (gate-wide 4:29
+              (face 4:32 x (aura 4:34 @ud))
+              (str 4:38 "done")))
+          (face 4:46 input (wing 4:52 data))))))
+  (value 5:1 record-identity
+    (gate 5:20
+      (cell 5:23
+        (face 5:24 n (aura 5:26 @ud))
+        (face 5:30 item
+          (cell 5:35
+            (face 5:36 x (aura 5:38 @t))
+            (face 5:41 y (aura 5:43 @p)))))
+      (wing 5:48 item)))
+  (value 6:1 typed-record
+    (group 6:17
+      (call 6:18
+        (wing 6:18 record-identity)
+        (lit 6:34 1)
+        (tuple 6:36
+          (face 6:37 x (str 6:39 "hi"))
+          (face 6:44 y (lit 6:46 ~zod))))))
+  (value 7:1 unfaced-identity
+    (gate 7:21
+      (cell 7:24
+        (face 7:25 n (aura 7:27 @ud))
+        (face 7:31 item
+          (cell 7:36 (aura 7:37 @t) (aura 7:40 @p))))
+      (wing 7:45 item)))
+  (value 8:1 preserve-inner-faces
+    (group 8:25
+      (call 8:26
+        (wing 8:26 unfaced-identity)
+        (lit 8:43 1)
+        (tuple 8:45
+          (face 8:46 x (str 8:48 "hi"))
+          (face 8:53 y (lit 8:55 ~zod))))))
+  (value 9:1 nested-identity
+    (gate 9:20
+      (cell 9:23
+        (face 9:24 n (aura 9:26 @ud))
+        (face 9:30 item
+          (cell 9:35
+            (face 9:36 inner
+              (cell 9:42 (aura 9:43 @t) (aura 9:46 @p)))
+            (face 9:50 label (aura 9:56 @t)))))
+      (wing 9:61 item)))
+  (value 10:1 preserve-nested-faces
+    (group 10:26
+      (call 10:27
+        (wing 10:27 nested-identity)
+        (lit 10:43 1)
+        (tuple 10:45
+          (face 10:46 inner
+            (tuple 10:52
+              (face 10:53 x (str 10:55 "hi"))
+              (face 10:60 y (lit 10:62 ~zod))))
+          (face 10:68 label (str 10:74 "ok"))))))
+  (value 11:1 generic-identity
+    (gate 11:21
+      (cell 11:24
+        (face 11:25 n (aura 11:27 @ud))
+        (face 11:31 item (tvar 11:36 A)))
+      (wing 11:39 item)))
+  (value 12:1 preserve-generic
+    (group 12:21
+      (call 12:22
+        (wing 12:22 generic-identity)
+        (lit 12:39 1)
+        (tuple 12:41
+          (face 12:42 x (str 12:44 "hi"))
+          (face 12:49 y (lit 12:51 ~zod))))))
+  (value 13:1 wrong-order
+    (group 13:16
+      (call 13:17
+        (wing 13:17 record-identity)
+        (tuple 13:33
+          (face 13:34 x (str 13:36 "hi"))
+          (face 13:41 y (lit 13:43 ~zod)))
+        (lit 13:49 1))))
+  (value 14:1 pending
+    (group 14:12
+      (call 14:13
+        (wing 14:13 record-identity)
+        (lit 14:29 1)
+        (tuple 14:31
+          (face 14:32 x (str 14:34 "hi"))
+          (face 14:39 y (lit 14:41 %unresolved))))))
+  (value 15:1 generic-apply
+    (gate 15:18
+      (cell 15:21
+        (face 15:22 f
+          (fn 15:24 (tvar 15:27 A) (tvar 15:29 B)))
+        (face 15:32 input (tvar 15:38 A)))
+      (group 15:41
+        (call 15:42 (wing 15:42 f) (wing 15:44 input)))))
+  (value 16:1 accepts-tuple
+    (gate 16:18
+      (face 16:21 x
+        (cell 16:23 (aura 16:24 @t) (aura 16:27 @p)))
+      (wing 16:31 x)))
+  (value 17:1 generic-faces
+    (group 17:18
+      (call 17:19
+        (wing 17:19 generic-apply)
+        (wing 17:33 accepts-tuple)
+        (tuple 17:47
+          (face 17:48 x (str 17:50 "hi"))
+          (face 17:55 y (lit 17:57 ~zod))))))
+  (value 18:1 unknown-callee
+    (gate 18:19
+      (bind 18:22 f)
+      (group 18:24
+        (call 18:25
+          (wing 18:25 f)
+          (tuple 18:27
+            (face 18:28 x (str 18:30 "hi"))
+            (face 18:35 y (lit 18:37 ~zod)))
+          (lit 18:43 1)))))
+  (value 19:1 first-pending
+    (group 19:18
+      (call 19:19
+        (wing 19:19 record-identity)
+        (lit 19:35 %unresolved)
+        (tuple 19:47
+          (face 19:48 x (str 19:50 "hi"))
+          (face 19:55 y (lit 19:57 ~zod))))))
+  (value 20:1 discarded-tag
+    (gate 20:18
+      (face 20:21 value (aura 20:27 @t))
+      (body 21:3
+        (trace 21:3
+          (lit 21:6 %pending)
+          (body 22:5
+            (group 22:5
+              (call 22:6
+                (wing 22:6 record-identity)
+                (lit 22:22 1)
+                (tuple 22:24
+                  (face 22:25 x (wing 22:27 value))
+                  (face 22:33 y (lit 22:35 ~zod))))))))))
+  (value 23:1 pick-first
+    (gate 23:15
+      (cell 23:18
+        (face 23:19 first (tvar 23:25 A))
+        (face 23:27 other (aura 23:33 @t)))
+      (wing 23:37 first)))
+  (value 24:1 first-record
+    (group 24:17
+      (call 24:18
+        (wing 24:18 pick-first)
+        (tuple 24:29
+          (face 24:30 foo (str 24:34 "x"))
+          (face 24:38 bar (lit 24:42 ~zod)))
+        (str 24:48 "z"))))
+  (value 25:1 matching-face-collision
+    (group 25:28
+      (call 25:29
+        (wing 25:29 pick-first)
+        (tuple 25:40
+          (face 25:41 first
+            (tuple 25:47
+              (face 25:48 foo (str 25:52 "x"))
+              (face 25:56 bar (lit 25:60 ~zod)))))
+        (str 25:67 "z")))))
