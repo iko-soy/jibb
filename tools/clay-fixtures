@@ -169,6 +169,19 @@ if result.stdout != expected:
 print('Clay mark importer golden passed')
 
 try:
+    result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-update-import.txt')],
+                            stdout=subprocess.PIPE, check=True)
+except subprocess.CalledProcessError as error:
+    sys.exit(error.returncode)
+expected = (fixtures / 'mark-update-import-expected.txt').read_bytes()
+if result.stdout != expected:
+    print('Clay union mark import differs from tests/clay-fixtures/mark-update-import-expected.txt', file=sys.stderr)
+    print('expected:', expected.decode().rstrip(), file=sys.stderr)
+    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
+    sys.exit(1)
+print('Clay union mark importer golden passed')
+
+try:
     result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-bridge.txt')],
                             stdout=subprocess.PIPE, check=True)
 except subprocess.CalledProcessError as error:

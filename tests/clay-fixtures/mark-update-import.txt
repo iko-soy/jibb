@@ -1,0 +1,9 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  mark=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-update/hoon)
+=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
+=/  read-gate=vase  (slap reader (ream 'read-mark'))
+=/  got=vase  (slym read-gate [%todo-update -.mark])
+=/  show-gate=vase  (slap reader (ream 'show-result'))
+(pure:m (slym show-gate +.got))

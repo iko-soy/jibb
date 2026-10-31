@@ -8807,6 +8807,220 @@
   ?:  ?=(%| -.rest)  rest
   [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest]]
 ::
+::  Provisional declaration extraction only; this does not derive asks,
+::  validate imported types, or claim that an API module has checked.
++$  iapi-path  [at=span name=term segments=(list pseg) full=term diffs=(list term) scry=(unit (list pseg))]
+++  api-path-mark
+  |=  [sh=shape marks=(list term)]
+  ^-  (unit term)
+  ?.  ?=(%ref -.sh)  ~
+  ?.  ?=([@ ~] names.sh)  ~
+  ?.  (unique-value-name i.names.sh marks)  ~
+  `i.names.sh
+::
+++  api-path-diffs
+  |=  [shapes=(list shape) marks=(list term) used=(list term)]
+  ^-  (unit (list term))
+  ?~  shapes  `~
+  =/  n=(unit term)  (api-path-mark i.shapes marks)
+  ?~  n  ~
+  ?:  (lien used |=(x=term =(x u.n)))  ~
+  =/  rest=(unit (list term))  $(shapes t.shapes, used [u.n used])
+  ?~  rest  ~
+  `[u.n u.rest]
+::
+++  api-path-payload
+  |=  [sh=shape marks=(list term)]
+  ^-  (unit [full=term diffs=(list term)])
+  =/  direct=(unit term)  (api-path-mark sh marks)
+  ?^  direct  `[u.direct ~]
+  ?.  ?=(%apply -.sh)  ~
+  ?.  =(~[%facts] ref.sh)  ~
+  ?~  args.sh  ~
+  ?~  t.args.sh  ~
+  =/  full=(unit term)  (api-path-mark i.args.sh marks)
+  ?~  full  ~
+  =/  diffs=(unit (list term))  (api-path-diffs t.args.sh marks ~[u.full])
+  ?~  diffs  ~
+  `[u.full u.diffs]
+::
++$  iapi-parameter  [name=term aura=@ta at=span]
+++  api-path-parameters
+  |=  [segments=(list pseg) seen=(list term)]
+  ^-  (unit (list iapi-parameter))
+  ?~  segments  `~
+  ?:  ?=(%knot -.i.segments)  $(segments t.segments)
+  =/  seg=pseg  i.segments
+  ?>  ?=(%typed -.seg)
+  ?:  =(0 aura.seg)  ~
+  ?:  (lien seen |=(n=term =(n name.seg)))  ~
+  =/  rest=(unit (list iapi-parameter))  $(segments t.segments, seen [name.seg seen])
+  ?~  rest  ~
+  `[[name.seg aura.seg at.seg] u.rest]
+::
+++  api-scry-parameters-compatible
+  |=  [scry=(list iapi-parameter) watch=(list iapi-parameter)]
+  ^-  ?
+  ?~  scry  &
+  ?.  (lien watch |=(p=iapi-parameter &(=(name.p name.i.scry) =(aura.p aura.i.scry))))  |
+  $(scry t.scry)
+::
+++  api-path-one
+  |=  [sh=shape marks=(list term)]
+  ^-  (unit iapi-path)
+  ?.  ?=(%cell -.sh)  ~
+  =/  fs=(list field)  fields.sh
+  ?~  fs  ~
+  ?~  t.fs  ~
+  ?~  t.t.fs  ~
+  ?:  (gth (lent fs) 4)  ~
+  ?.  ?=(%bare -.i.fs)  ~
+  =/  tag=shape  shape.i.fs
+  ?.  ?=(%const -.tag)  ~
+  ?.  =(%term form.lit.tag)  ~
+  =/  name=term  val.lit.tag
+  ?.  (jibb-face-name name)  ~
+  ?.  ?=(%bare -.i.t.fs)  ~
+  =/  path-shape=shape  shape.i.t.fs
+  ?.  ?=(%path -.path-shape)  ~
+  ?.  ?=(%bare -.i.t.t.fs)  ~
+  =/  payload=(unit [full=term diffs=(list term)])  (api-path-payload shape.i.t.t.fs marks)
+  ?~  payload  ~
+  =/  scry=(unit (unit (list pseg)))
+    ?~  t.t.t.fs  `~
+    =/  entry=field  i.t.t.t.fs
+    ?.  ?=(%face -.entry)  ~
+    ?.  =(%scry name.entry)  ~
+    ?.  ?=(%path -.shape.entry)  ~
+    ``segs.shape.entry
+  ?~  scry  ~
+  =/  params=(unit (list iapi-parameter))  (api-path-parameters segs.path-shape ~)
+  ?~  params  ~
+  ?^  u.scry
+    =/  scry-params=(unit (list iapi-parameter))  (api-path-parameters u.u.scry ~)
+    ?~  scry-params  ~
+    ?.  (api-scry-parameters-compatible u.scry-params u.params)  ~
+    `[at.sh name segs.path-shape full.u.payload diffs.u.payload u.scry]
+  `[at.sh name segs.path-shape full.u.payload diffs.u.payload u.scry]
+::
+++  api-path-many
+  |=  [shapes=(list shape) marks=(list term) seen=(list term)]
+  ^-  (unit (list iapi-path))
+  ?~  shapes  `~
+  =/  one=(unit iapi-path)  (api-path-one i.shapes marks)
+  ?~  one  ~
+  ?:  (lien seen |=(n=term =(n name.u.one)))  ~
+  =/  rest=(unit (list iapi-path))  $(shapes t.shapes, seen [name.u.one seen])
+  ?~  rest  ~
+  `[u.one u.rest]
+::
+++  api-path-declaration
+  |=  [sh=shape marks=(list term)]
+  ^-  (unit (list iapi-path))
+  ?:  ?=(%union -.sh)  (api-path-many cases.sh marks ~)
+  (api-path-many ~[sh] marks ~)
+::
+::  Derived gates share the value namespace. /% marks name molds; /- and
+::  /= also introduce faces that cannot be shadowed by a derived value.
+++  api-import-faces
+  |=  imports=(list import)
+  ^-  (list term)
+  ?~  imports  ~
+  ?-  -.i.imports
+    %mark  $(imports t.imports)
+    %sur   [name.i.imports $(imports t.imports)]
+    %jibb  [face.i.imports $(imports t.imports)]
+  ==
+::
+++  api-derived-names-valid
+  |=  [paths=(list iapi-path) poke-names=(list term) mod=module prelude-values=(list term)]
+  ^-  ?
+  =/  path-names=(list term)  (turn paths |=(p=iapi-path name.p))
+  =/  derived=(list term)  (weld path-names poke-names)
+  =/  outer=(list term)  (weld prelude-values (weld (global-value-names defs.mod) (api-import-faces imports.mod)))
+  (levy derived |=(n=term &((unique-value-name n derived) !(lien outer |=(x=term =(n x))))))
+::
+::  Analysis only. Successful external entries must be unchanged results
+::  produced for the declared marks; no request interface is produced.
++$  iapi-mark-type  [name=term typ=itype]
++$  iapi-path-typed  [path=iapi-path full=itype diffs=(list iapi-mark-type)]
+++  api-diff-types
+  |=  [names=(list term) externals=imark-externals declared=(list term)]
+  ^-  (unit (list iapi-mark-type))
+  ?~  names  `~
+  =/  typ=(unit itype)  (find-imported-mark i.names externals declared)
+  ?~  typ  ~
+  =/  tail=(unit (list iapi-mark-type))  $(names t.names)
+  ?~  tail  ~
+  `[[i.names u.typ] u.tail]
+::
+++  api-path-types
+  |=  [paths=(list iapi-path) externals=imark-externals declared=(list term)]
+  ^-  (unit (list iapi-path-typed))
+  ?~  paths  `~
+  =/  full=(unit itype)  (find-imported-mark full.i.paths externals declared)
+  ?~  full  ~
+  =/  diffs=(unit (list iapi-mark-type))  (api-diff-types diffs.i.paths externals declared)
+  ?~  diffs  ~
+  =/  tail=(unit (list iapi-path-typed))  $(paths t.paths)
+  ?~  tail  ~
+  `[[i.paths u.full u.diffs] u.tail]
+::
+++  api-poke-mark-names
+  |=  [pokes=(list def) declared=(list term)]
+  ^-  (unit (list term))
+  ?~  pokes  `~
+  ?^  t.pokes  ~
+  =/  d=def  i.pokes
+  ?.  ?=(%mold -.d)  ~
+  =/  sh=shape  shape.d
+  ?:  ?=(%union -.sh)  (api-path-diffs cases.sh declared ~)
+  =/  name=(unit term)  (api-path-mark sh declared)
+  ?~  name  ~
+  `~[u.name]
+::
+++  api-path-analysis
+  |=  [mod=module externals=imark-externals prelude-values=(list term) prelude-molds=(list term)]
+  ^-  (unit (list iapi-path-typed))
+  =/  ds=(list def)  defs.mod
+  =/  declarations=(list def)
+    (skim ds |=(d=def &(?=(%mold -.d) =(%paths name.d))))
+  ?.  ?=([* ~] declarations)  ~
+  =/  pokes=(list def)
+    (skim ds |=(d=def &(?=(%mold -.d) =(%poke name.d))))
+  ?:  (gth (lent pokes) 1)  ~
+  =/  ordinary=(list def)
+    (skim ds |=(d=def !&(?=(%mold -.d) |(=(%paths name.d) =(%poke name.d)))))
+  ?.  (module-scope-valid mod(defs ordinary) prelude-values prelude-molds)  ~
+  =/  declared=(list term)  (collect-mark-imports imports.mod)
+  =/  poke-names=(unit (list term))  (api-poke-mark-names pokes declared)
+  ?~  poke-names  ~
+  =/  decl=def  i.declarations
+  ?>  ?=(%mold -.decl)
+  =/  paths=(unit (list iapi-path))  (api-path-declaration shape.decl declared)
+  ?~  paths  ~
+  ?.  (api-derived-names-valid u.paths u.poke-names mod prelude-values)  ~
+  (api-path-types u.paths externals declared)
+::
+::  Source/graph entry for path analysis only. The returned paths retain
+::  reader-derived mark types and import resolution has checked reachable
+::  Jibb dependencies. This is not an API interface or a module check.
+++  api-path-analysis-source
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
+  ^-  (each (list iapi-path-typed) @t)
+  ?.  ?=([%ui %api @ %jibb ~] file)  [%| 'API path analysis requires /ui/api/<agent>.jibb']
+  ?~  prepared  [%| 'API path analysis needs the prepared prelude']
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'API path source does not parse']
+  =/  prelude=(unit ifile)  `iface.u.prepared
+  =/  deps=jimports-result
+    (resolve-jibb-imports imports.p.parsed externals marks modules ~[file] values.u.prepared molds.u.prepared ~ prelude)
+  ?:  ?=(%| -.deps)  [%| p.deps]
+  =/  paths=(unit (list iapi-path-typed))
+    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared)
+  ?~  paths  [%| 'API path declaration needs unsupported analysis']
+  [%& u.paths]
+::
 ++  api-mark-exports
   |=  [marks=(list term) all=(list term) externals=imark-externals]
   ^-  imold-types

@@ -40,7 +40,7 @@ partial inference; module not checked
 ++ lure: cast mold is not supported by partial inference
 ++ snoc: sample mold is not supported by partial inference
 ++ flop: sample mold is not supported by partial inference
-++ drop: unit branch results need unsupported inference
+++ drop: cast mold is not supported by partial inference
 ++ bind: unit construction needs the standard prelude in partial inference
 ++ biff: $-([(unit A) $-(A (unit B))] (unit B))
 ++ both: unit construction needs the standard prelude in partial inference

@@ -17,6 +17,15 @@ mixed-mop: [a=(mop @ud @t) b=(list @ud)]
 nested-static-mop: [a=(mop @ud @t) b=(map @ud (jar @t @ud))]
 collection-siblings: [a=(mop @ud @t) [b=(set @ud) [c=(qeu @t) [d=(unit @ud) e=(jug @ud @t)]]]]
 dynamic-sibling-mop: error: a nested Hoon mop needs source-aware import
+mark-flag-source: (union [added item=[done=(union @f:0 @f:1) text=@t]] [removed id=@ud])
+mark-flag-union: (union [added item=[done=(union @f:0 @f:1) text=@t]] [removed id=@ud])
+mark-flag-overlap: error: a Hoon union needs a source-level disjointness check
+mark-flag-hidden: error: a Hoon union needs a source-level disjointness check
+mark-flag-signed: error: signed and float auras cannot be imported
+mark-flag-callable: error: cores and gates cannot be imported
+mark-flag-extra: error: a Hoon union needs a source-level disjointness check
+mark-flag-other-hold: unsupported
+mark-flag-recursive-fallback: unsupported
 mark-record: [id=@ud text=@t]
 mark-recursive: (union [value=@ud next=chain.small] @n:0)
 mark-gate: error: cores and gates cannot be imported
@@ -46,6 +55,7 @@ float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported
 vase: error: vases cannot be imported
 failed-branch: error: a Hoon $^ union needs a source-level disjointness check
+debug-spec: valid wrapper; duplicate and malformed rejected
 debug-union: (union [add text=@t] [remove id=@ud])
 debug-union-overlap: error: Hoon union disjointness could not be verified
 debug-nested-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]

@@ -101,4 +101,9 @@
 +$  tag-fuel-9  [tag-fuel-8 tag-fuel-8]
 +$  tag-fuel-10  [tag-fuel-9 tag-fuel-9]
 +$  tag-fuel-11  [tag-fuel-10 tag-fuel-10]
+::  Ford mark sample source-proof fixtures.
++$  mark-flag-item  [done=? text=@t]
++$  mark-flag-valid  $%([%added item=mark-flag-item] [%removed id=@ud])
++$  mark-flag-overlap  $%([%x item=mark-flag-item] [%x id=@ud])
++$  mark-flag-hidden  $%([%ok x=tag-invalid-chain] [%err item=mark-flag-item])
 --

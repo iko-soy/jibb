@@ -65,6 +65,8 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-import-diagnostic-test` | Compares the structured reader diagnostic bridge report under eval |
 | `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
 | `tools/type-poke-test` | Checks source-backed prelude and poke-only API reports against `tests/type-poke/expected.txt` under eval |
+| `tools/type-api-paths-test` | Checks partial API path analysis with real todo mark samples against `tests/type-api-paths/expected.txt` under eval |
+| `tools/type-api-paths-test` | Compares partial API path analysis, including real todo marks, with its golden report under eval |
 | `tools/type-module-scope-test` | Checks the partial module checker’s prelude boundary and duplicate-source rejection against `tests/type-module-scope/expected.txt` under eval |
 | `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, checks selected mold and mark projections and the partial checker, and records Ford and mark subject shapes on the fake ship |
 | `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
@@ -85,6 +87,8 @@ tools/type-tlon-test               # real Tlon importer/checker report matches
 tools/type-import-diagnostic-test  # direct structured reader diagnostics match
 tools/type-mark-test               # mark/checker bridge golden report matches
 tools/type-poke-test               # source-backed poke/API bridge report matches
+tools/type-api-paths-test          # partial API path analysis report matches
+tools/type-api-paths-test          # partial API path analysis report matches
 tools/type-module-scope-test       # module/prelude scope golden report matches
 tools/hoon check-spans-test        # prints <<>>
 tools/testdata/selftest            # 22 checks, 0 failed
@@ -96,7 +100,7 @@ tools/ship check-commit            # when the mark or the desks changed
 tools/clay-fixtures                # when the my-app Hoon fixtures or importer changed
 ```
 
-`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval. `tests/lib/jibb-tlon-bridge.hoon` and `tools/type-tlon-test` run the real Tlon presence reader/checker fixture on both. The structured reader diagnostics have their own `tests/lib/jibb-import-diagnostic.hoon` ship test and `tools/type-import-diagnostic-test` eval test. The mark bridge has its own `tests/lib/jibb-mark-bridge.hoon` ship test and `tools/type-mark-test` eval test; both compare the same fixture report. `tests/lib/jibb-poke-bridge.hoon` and `tools/type-poke-test` share the source-backed prelude and poke-only API fixture. `tests/lib/jibb-module-scope.hoon` and `tools/type-module-scope-test` compare the prelude scope report on the ship and under eval.
+`tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval. `tests/lib/jibb-tlon-bridge.hoon` and `tools/type-tlon-test` run the real Tlon presence reader/checker fixture on both. The structured reader diagnostics have their own `tests/lib/jibb-import-diagnostic.hoon` ship test and `tools/type-import-diagnostic-test` eval test. The mark bridge has its own `tests/lib/jibb-mark-bridge.hoon` ship test and `tools/type-mark-test` eval test; both compare the same fixture report. `tests/lib/jibb-poke-bridge.hoon` and `tools/type-poke-test` share the source-backed prelude and poke-only API fixture. `tests/lib/jibb-api-paths.hoon` and `tools/type-api-paths-test` share partial path analysis over the real todo marks; this does not generate request interfaces. `tests/lib/jibb-module-scope.hoon` and `tools/type-module-scope-test` compare the prelude scope report on the ship and under eval.
 
 ## Golden cases
 

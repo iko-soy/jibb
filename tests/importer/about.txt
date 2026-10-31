@@ -20,6 +20,12 @@ recursive holds, malformed
 subjects and recursive references through local, imported and transitive
 cores, including ambiguous and independently defined origins. Structured diagnostic cases distinguish proven invalid auras and cores from union disjointness, provenance and source checks the reader cannot verify; a locally shadowed vase and unstructured failure text that mimics an aura error must stay unsupported. The mark fixtures check door samples,
 collection provenance, unsupported gates and recursive sample provenance.
+A Ford mark can recover an exact, source-proved named union whose field is a
+loobean; overlapping cases, hidden overlaps, extra Ford faces, wrong holds and
+recursive fallback results stay unavailable. Signed and gate payload errors
+remain unchanged. A synthetic source-location wrapper checks its leaf while
+duplicate tags and malformed wrapped specs are rejected; the actual Clay mark
+also exercises source-location wrappers throughout the union and its fields.
 The synthetic hold in +bad-branch-fixture checks that a failed Hoon branch expansion returns
 an error. `tlon-epic.txt`, `tlon-presence.txt` and `tlon-docs.txt` are the
 unmodified `desk/sur/epic.hoon`, `desk/sur/presence.hoon` and

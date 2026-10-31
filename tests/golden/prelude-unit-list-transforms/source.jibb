@@ -2,6 +2,7 @@
 +$ poke poke.internal
 
 ::  Initial prelude functions. The rest of the inventory is still to come.
+
 ++ same |= x=A x
 
 ++ head |= p=[A B]
@@ -143,9 +144,10 @@
   (reverse-into xs ~)
 
 ++ drop |= maybe=(unit A)
-  ?- maybe
-    ~ ~
-    [~ value] [value ~]
+  ^- (list A)
+    ?- maybe
+      ~ ~
+      [~ value] [value ~]
 
 ++ bind |= args=[(unit A) $-(A B)]
   ?- args
@@ -193,23 +195,23 @@
 
 ++ skim |= args=[(list A) $-(A ?)]
   ?- args
-    [xs predicate]
-      ?- xs
-        ~ ~
-        [item rest]
-          ?- (predicate item)
-            %.y [item (skim rest predicate)]
-            %.n (skim rest predicate)
+    [xs predicate] ^- (list A)
+        ?- xs
+          ~ ~
+          [item rest]
+            ?- (predicate item)
+              %.y [item (skim rest predicate)]
+              %.n (skim rest predicate)
 
 ++ skip |= args=[(list A) $-(A ?)]
   ?- args
-    [xs predicate]
-      ?- xs
-        ~ ~
-        [item rest]
-          ?- (predicate item)
-            %.y (skip rest predicate)
-            %.n [item (skip rest predicate)]
+    [xs predicate] ^- (list A)
+        ?- xs
+          ~ ~
+          [item rest]
+            ?- (predicate item)
+              %.y (skip rest predicate)
+              %.n [item (skip rest predicate)]
 
 ++ levy |= args=[(list A) $-(A ?)]
   ?- args
@@ -254,31 +256,32 @@
 
 ++ murn |= args=[(list A) $-(A (unit B))]
   ?- args
-    [xs f]
-      ?- xs
-        ~ ~
-        [item rest]
-          ?- (f item)
-            ~ (murn rest f)
-            [~ value] [value (murn rest f)]
+    [xs f] ^- (list B)
+        ?- xs
+          ~ ~
+          [item rest]
+            ?- (f item)
+              ~ (murn rest f)
+              [~ value] [value (murn rest f)]
 
 ++ join |= args=[A (list A)]
   ?- args
-    [separator xs]
-      ?- xs
-        ~ ~
-        [item rest]
-          ?- rest
-            ~ [item ~]
-            [next more] [item [separator (join separator rest)]]
+    [separator xs] ^- (list A)
+        ?- xs
+          ~ ~
+          [item rest]
+            ?- rest
+              ~ [item ~]
+              [next more] [item [separator (join separator rest)]]
 
 ++ snip |= xs=(list A)
-  ?- xs
-    ~ ~
-    [item rest]
-      ?- rest
-        ~ ~
-        [next more] [item (snip rest)]
+  ^- (list A)
+    ?- xs
+      ~ ~
+      [item rest]
+        ?- rest
+          ~ ~
+          [next more] [item (snip rest)]
 
 ++ rear |= xs=(list A)
   ?- xs

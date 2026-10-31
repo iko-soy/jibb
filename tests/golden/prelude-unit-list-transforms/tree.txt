@@ -1,780 +1,794 @@
 (module
   (jibb 1:1 internal /lib/jibb/internal)
   (mold 2:1 poke (ref 2:9 poke.internal))
-  (value 5:1 same
-    (gate 5:9
-      (face 5:12 x (tvar 5:14 A))
-      (wing 5:16 x)))
-  (value 7:1 head
-    (gate 7:9
-      (face 7:12 p
-        (cell 7:14 (tvar 7:15 A) (tvar 7:17 B)))
-      (body 8:3
-        (branch 8:3
-          (wing 8:6 p)
-          (arm 9:5
-            (cell 9:5 (bind 9:6 a) (bind 9:8 b))
-            (wing 9:11 a))))))
-  (value 11:1 tail
-    (gate 11:9
-      (face 11:12 p
-        (cell 11:14 (tvar 11:15 A) (tvar 11:17 B)))
-      (body 12:3
-        (branch 12:3
-          (wing 12:6 p)
-          (arm 13:5
-            (cell 13:5 (bind 13:6 a) (bind 13:8 b))
-            (wing 13:11 b))))))
-  (value 15:1 not
-    (gate 15:8
-      (face 15:11 b (flag 15:13))
-      (body 16:3
-        (branch 16:3
-          (wing 16:6 b)
-          (arm 17:5 (lit 17:5 %.y) (lit 17:9 %.n))
-          (arm 18:5 (lit 18:5 %.n) (lit 18:9 %.y))))))
-  (mold 20:1 list
-    (generic 20:9 A
-      (union 21:3
-        (const 21:3 ~)
-        (cell 22:3
-          (face 22:4 i (tvar 22:6 A))
-          (face 22:8 t
-            (apply 22:10 list (tvar 22:16 A)))))))
-  (mold 24:1 unit
-    (generic 24:9 A
-      (union 25:3
-        (const 25:3 ~)
-        (cell 26:3
-          (const 26:4 ~)
-          (face 26:6 u (tvar 26:8 A))))))
-  (value 28:1 fall
-    (gate 28:9
-      (face 28:12 args
-        (cell 28:17
-          (apply 28:18 unit (tvar 28:24 A))
-          (tvar 28:27 A)))
-      (body 29:3
-        (branch 29:3
-          (wing 29:6 args)
-          (arm 30:5
-            (cell 30:5 (bind 30:6 maybe) (bind 30:12 fallback))
-            (body 31:7
-              (branch 31:7
-                (wing 31:10 maybe)
-                (arm 32:9 (lit 32:9 ~) (wing 32:11 fallback))
-                (arm 33:9
-                  (cell 33:9 (lit 33:10 ~) (bind 33:12 value))
-                  (wing 33:19 value)))))))))
-  (value 35:1 need
-    (gate 35:9
-      (face 35:12 maybe
-        (apply 35:18 unit (tvar 35:24 A)))
-      (body 36:3
-        (branch 36:3
-          (wing 36:6 maybe)
-          (arm 37:5 (lit 37:5 ~) (crash 37:7))
-          (arm 38:5
-            (cell 38:5 (lit 38:6 ~) (bind 38:8 value))
-            (wing 38:15 value))))))
-  (value 40:1 weld
-    (gate 40:9
-      (face 40:12 args
-        (cell 40:17
-          (apply 40:18 list (tvar 40:24 A))
-          (apply 40:27 list (tvar 40:33 A))))
-      (body 41:3
-        (branch 41:3
-          (wing 41:6 args)
-          (arm 42:5
-            (cell 42:5 (bind 42:6 xs) (bind 42:9 ys))
-            (body 43:7
-              (cast 43:7
-                (apply 43:10 list (tvar 43:16 A))
-                (body 44:9
-                  (branch 44:9
-                    (wing 44:12 xs)
-                    (arm 45:11 (lit 45:11 ~) (wing 45:13 ys))
-                    (arm 46:11
-                      (cell 46:11 (bind 46:12 item) (bind 46:17 rest))
-                      (tuple 46:23
-                        (wing 46:24 item)
-                        (group 46:29
-                          (call 46:30 (wing 46:30 weld) (wing 46:35 rest) (wing 46:40 ys))))))))))))))
-  (value 48:1 turn
-    (gate 48:9
-      (face 48:12 args
-        (cell 48:17
-          (apply 48:18 list (tvar 48:24 A))
-          (fn 48:27 (tvar 48:30 A) (tvar 48:32 B))))
-      (body 49:3
-        (branch 49:3
-          (wing 49:6 args)
-          (arm 50:5
-            (cell 50:5 (bind 50:6 xs) (bind 50:9 f))
-            (body 51:7
-              (cast 51:7
-                (apply 51:10 list (tvar 51:16 B))
-                (body 52:9
-                  (branch 52:9
-                    (wing 52:12 xs)
-                    (arm 53:11 (lit 53:11 ~) (lit 53:13 ~))
-                    (arm 54:11
-                      (cell 54:11 (bind 54:12 item) (bind 54:17 rest))
-                      (tuple 54:23
-                        (group 54:24
-                          (call 54:25 (wing 54:25 f) (wing 54:27 item)))
-                        (group 54:33
-                          (call 54:34 (wing 54:34 turn) (wing 54:39 rest) (wing 54:44 f))))))))))))))
-  (mold 56:1 dime
-    (cell 56:9
-      (face 56:10 p (aura 56:12 @ta))
-      (face 56:16 q (aura 56:18 @))))
-  (mold 58:1 hair
-    (cell 58:9
-      (face 58:10 p (aura 58:12 @ud))
-      (face 58:16 q (aura 58:18 @ud))))
-  (mold 60:1 pint
-    (cell 60:9
-      (face 60:10 p
-        (cell 60:12
-          (face 60:13 p (aura 60:15 @))
-          (face 60:17 q (aura 60:19 @))))
-      (face 60:22 q
-        (cell 60:24
-          (face 60:25 p (aura 60:27 @))
-          (face 60:29 q (aura 60:31 @))))))
-  (mold 62:1 coin
-    (union 63:3
-      (cell 63:3
-        (const 63:4 %$)
-        (face 63:7 p (ref 63:9 dime)))
+  (value 6:1 same
+    (gate 6:9
+      (face 6:12 x (tvar 6:14 A))
+      (wing 6:16 x)))
+  (value 8:1 head
+    (gate 8:9
+      (face 8:12 p
+        (cell 8:14 (tvar 8:15 A) (tvar 8:17 B)))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 p)
+          (arm 10:5
+            (cell 10:5 (bind 10:6 a) (bind 10:8 b))
+            (wing 10:11 a))))))
+  (value 12:1 tail
+    (gate 12:9
+      (face 12:12 p
+        (cell 12:14 (tvar 12:15 A) (tvar 12:17 B)))
+      (body 13:3
+        (branch 13:3
+          (wing 13:6 p)
+          (arm 14:5
+            (cell 14:5 (bind 14:6 a) (bind 14:8 b))
+            (wing 14:11 b))))))
+  (value 16:1 not
+    (gate 16:8
+      (face 16:11 b (flag 16:13))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 b)
+          (arm 18:5 (lit 18:5 %.y) (lit 18:9 %.n))
+          (arm 19:5 (lit 19:5 %.n) (lit 19:9 %.y))))))
+  (mold 21:1 list
+    (generic 21:9 A
+      (union 22:3
+        (const 22:3 ~)
+        (cell 23:3
+          (face 23:4 i (tvar 23:6 A))
+          (face 23:8 t
+            (apply 23:10 list (tvar 23:16 A)))))))
+  (mold 25:1 unit
+    (generic 25:9 A
+      (union 26:3
+        (const 26:3 ~)
+        (cell 27:3
+          (const 27:4 ~)
+          (face 27:6 u (tvar 27:8 A))))))
+  (value 29:1 fall
+    (gate 29:9
+      (face 29:12 args
+        (cell 29:17
+          (apply 29:18 unit (tvar 29:24 A))
+          (tvar 29:27 A)))
+      (body 30:3
+        (branch 30:3
+          (wing 30:6 args)
+          (arm 31:5
+            (cell 31:5 (bind 31:6 maybe) (bind 31:12 fallback))
+            (body 32:7
+              (branch 32:7
+                (wing 32:10 maybe)
+                (arm 33:9 (lit 33:9 ~) (wing 33:11 fallback))
+                (arm 34:9
+                  (cell 34:9 (lit 34:10 ~) (bind 34:12 value))
+                  (wing 34:19 value)))))))))
+  (value 36:1 need
+    (gate 36:9
+      (face 36:12 maybe
+        (apply 36:18 unit (tvar 36:24 A)))
+      (body 37:3
+        (branch 37:3
+          (wing 37:6 maybe)
+          (arm 38:5 (lit 38:5 ~) (crash 38:7))
+          (arm 39:5
+            (cell 39:5 (lit 39:6 ~) (bind 39:8 value))
+            (wing 39:15 value))))))
+  (value 41:1 weld
+    (gate 41:9
+      (face 41:12 args
+        (cell 41:17
+          (apply 41:18 list (tvar 41:24 A))
+          (apply 41:27 list (tvar 41:33 A))))
+      (body 42:3
+        (branch 42:3
+          (wing 42:6 args)
+          (arm 43:5
+            (cell 43:5 (bind 43:6 xs) (bind 43:9 ys))
+            (body 44:7
+              (cast 44:7
+                (apply 44:10 list (tvar 44:16 A))
+                (body 45:9
+                  (branch 45:9
+                    (wing 45:12 xs)
+                    (arm 46:11 (lit 46:11 ~) (wing 46:13 ys))
+                    (arm 47:11
+                      (cell 47:11 (bind 47:12 item) (bind 47:17 rest))
+                      (tuple 47:23
+                        (wing 47:24 item)
+                        (group 47:29
+                          (call 47:30 (wing 47:30 weld) (wing 47:35 rest) (wing 47:40 ys))))))))))))))
+  (value 49:1 turn
+    (gate 49:9
+      (face 49:12 args
+        (cell 49:17
+          (apply 49:18 list (tvar 49:24 A))
+          (fn 49:27 (tvar 49:30 A) (tvar 49:32 B))))
+      (body 50:3
+        (branch 50:3
+          (wing 50:6 args)
+          (arm 51:5
+            (cell 51:5 (bind 51:6 xs) (bind 51:9 f))
+            (body 52:7
+              (cast 52:7
+                (apply 52:10 list (tvar 52:16 B))
+                (body 53:9
+                  (branch 53:9
+                    (wing 53:12 xs)
+                    (arm 54:11 (lit 54:11 ~) (lit 54:13 ~))
+                    (arm 55:11
+                      (cell 55:11 (bind 55:12 item) (bind 55:17 rest))
+                      (tuple 55:23
+                        (group 55:24
+                          (call 55:25 (wing 55:25 f) (wing 55:27 item)))
+                        (group 55:33
+                          (call 55:34 (wing 55:34 turn) (wing 55:39 rest) (wing 55:44 f))))))))))))))
+  (mold 57:1 dime
+    (cell 57:9
+      (face 57:10 p (aura 57:12 @ta))
+      (face 57:16 q (aura 57:18 @))))
+  (mold 59:1 hair
+    (cell 59:9
+      (face 59:10 p (aura 59:12 @ud))
+      (face 59:16 q (aura 59:18 @ud))))
+  (mold 61:1 pint
+    (cell 61:9
+      (face 61:10 p
+        (cell 61:12
+          (face 61:13 p (aura 61:15 @))
+          (face 61:17 q (aura 61:19 @))))
+      (face 61:22 q
+        (cell 61:24
+          (face 61:25 p (aura 61:27 @))
+          (face 61:29 q (aura 61:31 @))))))
+  (mold 63:1 coin
+    (union 64:3
       (cell 64:3
-        (const 64:4 %blob)
-        (face 64:10 p (noun 64:12)))
+        (const 64:4 %$)
+        (face 64:7 p (ref 64:9 dime)))
       (cell 65:3
-        (const 65:4 %many)
-        (face 65:10 p
-          (apply 65:12 list (ref 65:18 coin))))))
-  (mold 67:1 pair
-    (generic 67:9 A B
-      (cell 67:18
-        (face 67:19 p (tvar 67:21 A))
-        (face 67:23 q (tvar 67:25 B)))))
-  (mold 69:1 trel
-    (generic 69:9 A B C
-      (cell 69:20
-        (face 69:21 p (tvar 69:23 A))
-        (face 69:25 q (tvar 69:27 B))
-        (face 69:29 r (tvar 69:31 C)))))
-  (mold 71:1 qual
-    (generic 71:9 A B C D
-      (cell 71:22
-        (face 71:23 p (tvar 71:25 A))
-        (face 71:27 q (tvar 71:29 B))
-        (face 71:31 r (tvar 71:33 C))
-        (face 71:35 s (tvar 71:37 D)))))
-  (mold 73:1 cord (aura 73:9 @t))
-  (mold 75:1 knot (aura 75:9 @ta))
-  (mold 77:1 tape
-    (apply 77:9 list (aura 77:15 @tD)))
-  (mold 79:1 path
-    (apply 79:9 list (ref 79:15 knot)))
-  (mold 81:1 tank
-    (union 82:3
-      (ref 82:3 cord)
-      (cell 83:3
-        (const 83:4 %leaf)
-        (face 83:10 p (ref 83:12 tape)))
+        (const 65:4 %blob)
+        (face 65:10 p (noun 65:12)))
+      (cell 66:3
+        (const 66:4 %many)
+        (face 66:10 p
+          (apply 66:12 list (ref 66:18 coin))))))
+  (mold 68:1 pair
+    (generic 68:9 A B
+      (cell 68:18
+        (face 68:19 p (tvar 68:21 A))
+        (face 68:23 q (tvar 68:25 B)))))
+  (mold 70:1 trel
+    (generic 70:9 A B C
+      (cell 70:20
+        (face 70:21 p (tvar 70:23 A))
+        (face 70:25 q (tvar 70:27 B))
+        (face 70:29 r (tvar 70:31 C)))))
+  (mold 72:1 qual
+    (generic 72:9 A B C D
+      (cell 72:22
+        (face 72:23 p (tvar 72:25 A))
+        (face 72:27 q (tvar 72:29 B))
+        (face 72:31 r (tvar 72:33 C))
+        (face 72:35 s (tvar 72:37 D)))))
+  (mold 74:1 cord (aura 74:9 @t))
+  (mold 76:1 knot (aura 76:9 @ta))
+  (mold 78:1 tape
+    (apply 78:9 list (aura 78:15 @tD)))
+  (mold 80:1 path
+    (apply 80:9 list (ref 80:15 knot)))
+  (mold 82:1 tank
+    (union 83:3
+      (ref 83:3 cord)
       (cell 84:3
-        (const 84:4 %palm)
-        (face 84:10 p
-          (apply 84:12 qual (ref 84:18 tape) (ref 84:23 tape) (ref 84:28 tape) (ref 84:33 tape)))
-        (face 84:39 q
-          (apply 84:41 list (ref 84:47 tank))))
+        (const 84:4 %leaf)
+        (face 84:10 p (ref 84:12 tape)))
       (cell 85:3
-        (const 85:4 %rose)
+        (const 85:4 %palm)
         (face 85:10 p
-          (apply 85:12 trel (ref 85:18 tape) (ref 85:23 tape) (ref 85:28 tape)))
-        (face 85:34 q
-          (apply 85:36 list (ref 85:42 tank))))))
-  (mold 87:1 nail
-    (cell 87:9
-      (face 87:10 p (ref 87:12 hair))
-      (face 87:17 q (ref 87:19 tape))))
-  (mold 89:1 edge
-    (cell 89:9
-      (face 89:10 p (ref 89:12 hair))
-      (face 89:17 q
-        (apply 89:19 unit
-          (cell 89:25
-            (face 89:26 p (noun 89:28))
-            (face 89:30 q (ref 89:32 nail)))))))
-  (mold 91:1 rule
-    (fn 91:9 (ref 91:12 nail) (ref 91:17 edge)))
-  (mold 93:1 spot
-    (cell 93:9
-      (face 93:10 p (ref 93:12 path))
-      (face 93:17 q (ref 93:19 pint))))
-  (mold 95:1 toon
-    (union 96:3
-      (cell 96:3
-        (const 96:4 %0)
-        (face 96:7 p (noun 96:9)))
+          (apply 85:12 qual (ref 85:18 tape) (ref 85:23 tape) (ref 85:28 tape) (ref 85:33 tape)))
+        (face 85:39 q
+          (apply 85:41 list (ref 85:47 tank))))
+      (cell 86:3
+        (const 86:4 %rose)
+        (face 86:10 p
+          (apply 86:12 trel (ref 86:18 tape) (ref 86:23 tape) (ref 86:28 tape)))
+        (face 86:34 q
+          (apply 86:36 list (ref 86:42 tank))))))
+  (mold 88:1 nail
+    (cell 88:9
+      (face 88:10 p (ref 88:12 hair))
+      (face 88:17 q (ref 88:19 tape))))
+  (mold 90:1 edge
+    (cell 90:9
+      (face 90:10 p (ref 90:12 hair))
+      (face 90:17 q
+        (apply 90:19 unit
+          (cell 90:25
+            (face 90:26 p (noun 90:28))
+            (face 90:30 q (ref 90:32 nail)))))))
+  (mold 92:1 rule
+    (fn 92:9 (ref 92:12 nail) (ref 92:17 edge)))
+  (mold 94:1 spot
+    (cell 94:9
+      (face 94:10 p (ref 94:12 path))
+      (face 94:17 q (ref 94:19 pint))))
+  (mold 96:1 toon
+    (union 97:3
       (cell 97:3
-        (const 97:4 %1)
+        (const 97:4 %0)
         (face 97:7 p (noun 97:9)))
       (cell 98:3
-        (const 98:4 %2)
-        (face 98:7 p
-          (apply 98:9 list (ref 98:15 tank))))))
-  (mold 100:1 like
-    (generic 100:9 A
-      (cell 100:16
-        (face 100:17 p (ref 100:19 hair))
-        (face 100:24 q
-          (apply 100:26 unit
-            (cell 100:32
-              (face 100:33 p (tvar 100:35 A))
-              (face 100:37 q (ref 100:39 nail))))))))
-  (value 102:1 wonk
-    (gate 102:9
-      (face 102:12 veq
-        (apply 102:16 like (tvar 102:22 A)))
-      (body 103:3
-        (branch 103:3
-          (wing 103:6 q.veq)
-          (arm 104:5 (lit 104:5 ~) (crash 104:7))
-          (arm 105:5
-            (cell 105:5 (lit 105:6 ~) (bind 105:8 product))
-            (wing 105:17 p.product))))))
-  (mold 107:1 lone
-    (generic 107:9 A
-      (cell 107:16
-        (face 107:17 p (tvar 107:19 A)))))
-  (mold 109:1 lest
-    (generic 109:9 A
-      (cell 109:16
-        (face 109:17 i (tvar 109:19 A))
-        (face 109:21 t
-          (apply 109:23 list (tvar 109:29 A))))))
-  (mold 111:1 pole
-    (generic 111:9 A
-      (union 112:3
-        (const 112:3 ~)
-        (cell 113:3
-          (tvar 113:4 A)
-          (apply 113:6 pole (tvar 113:12 A))))))
-  (mold 115:1 quip
-    (generic 115:9 A B
-      (cell 115:18
-        (apply 115:19 list (tvar 115:25 A))
-        (tvar 115:28 B))))
-  (mold 117:1 tree
-    (generic 117:9 A
-      (union 118:3
-        (const 118:3 ~)
-        (cell 119:3
-          (face 119:4 n (tvar 119:6 A))
-          (face 119:8 l
-            (apply 119:10 tree (tvar 119:16 A)))
-          (face 119:19 r
-            (apply 119:21 tree (tvar 119:27 A)))))))
-  (mold 121:1 each
-    (generic 121:9 A B
-      (union 122:3
-        (cell 122:3
-          (const 122:4 %|)
-          (face 122:7 p (tvar 122:9 B)))
+        (const 98:4 %1)
+        (face 98:7 p (noun 98:9)))
+      (cell 99:3
+        (const 99:4 %2)
+        (face 99:7 p
+          (apply 99:9 list (ref 99:15 tank))))))
+  (mold 101:1 like
+    (generic 101:9 A
+      (cell 101:16
+        (face 101:17 p (ref 101:19 hair))
+        (face 101:24 q
+          (apply 101:26 unit
+            (cell 101:32
+              (face 101:33 p (tvar 101:35 A))
+              (face 101:37 q (ref 101:39 nail))))))))
+  (value 103:1 wonk
+    (gate 103:9
+      (face 103:12 veq
+        (apply 103:16 like (tvar 103:22 A)))
+      (body 104:3
+        (branch 104:3
+          (wing 104:6 q.veq)
+          (arm 105:5 (lit 105:5 ~) (crash 105:7))
+          (arm 106:5
+            (cell 106:5 (lit 106:6 ~) (bind 106:8 product))
+            (wing 106:17 p.product))))))
+  (mold 108:1 lone
+    (generic 108:9 A
+      (cell 108:16
+        (face 108:17 p (tvar 108:19 A)))))
+  (mold 110:1 lest
+    (generic 110:9 A
+      (cell 110:16
+        (face 110:17 i (tvar 110:19 A))
+        (face 110:21 t
+          (apply 110:23 list (tvar 110:29 A))))))
+  (mold 112:1 pole
+    (generic 112:9 A
+      (union 113:3
+        (const 113:3 ~)
+        (cell 114:3
+          (tvar 114:4 A)
+          (apply 114:6 pole (tvar 114:12 A))))))
+  (mold 116:1 quip
+    (generic 116:9 A B
+      (cell 116:18
+        (apply 116:19 list (tvar 116:25 A))
+        (tvar 116:28 B))))
+  (mold 118:1 tree
+    (generic 118:9 A
+      (union 119:3
+        (const 119:3 ~)
+        (cell 120:3
+          (face 120:4 n (tvar 120:6 A))
+          (face 120:8 l
+            (apply 120:10 tree (tvar 120:16 A)))
+          (face 120:19 r
+            (apply 120:21 tree (tvar 120:27 A)))))))
+  (mold 122:1 each
+    (generic 122:9 A B
+      (union 123:3
         (cell 123:3
-          (const 123:4 %&)
-          (face 123:7 p (tvar 123:9 A))))))
-  (mold 125:1 bloq (aura 125:9 @))
-  (value 127:1 some
-    (gate 127:9
-      (face 127:12 item (tvar 127:17 A))
-      (unit 127:19 (wing 127:20 item))))
-  (value 129:1 lure
-    (gate 129:9
-      (face 129:12 item (tvar 129:17 A))
-      (body 130:3
-        (cast 130:3
-          (apply 130:6 list (tvar 130:12 A))
-          (tuple 130:15 (wing 130:16 item) (lit 130:21 ~))))))
-  (value 132:1 snoc
-    (gate 132:9
-      (face 132:12 args
-        (cell 132:17
-          (apply 132:18 list (tvar 132:24 A))
-          (tvar 132:27 A)))
-      (body 133:3
-        (branch 133:3
-          (wing 133:6 args)
-          (arm 134:5
-            (cell 134:5 (bind 134:6 xs) (bind 134:9 item))
-            (group 134:15
-              (call 134:16
-                (wing 134:16 weld)
-                (wing 134:21 xs)
-                (tuple 134:24 (wing 134:25 item) (lit 134:30 ~)))))))))
-  (value 136:1 flop
-    (gate 136:9
-      (face 136:12 xs
-        (apply 136:15 list (tvar 136:21 A)))
-      (body 137:3
-        (value 137:3 reverse-into
-          (gate 137:19
-            (face 137:22 args
-              (cell 137:27
-                (apply 137:28 list (tvar 137:34 A))
-                (apply 137:37 list (tvar 137:43 A))))
-            (body 138:5
-              (branch 138:5
-                (wing 138:8 args)
-                (arm 139:7
-                  (cell 139:7 (bind 139:8 rest) (bind 139:13 acc))
-                  (body 140:9
-                    (branch 140:9
-                      (wing 140:12 rest)
-                      (arm 141:11 (lit 141:11 ~) (wing 141:13 acc))
-                      (arm 142:11
-                        (cell 142:11 (bind 142:12 item) (bind 142:17 more))
-                        (group 142:23
-                          (call 142:24
-                            (wing 142:24 reverse-into)
-                            (wing 142:37 more)
-                            (tuple 142:42 (wing 142:43 item) (wing 142:48 acc))))))))))))
-        (group 143:3
-          (call 143:4 (wing 143:4 reverse-into) (wing 143:17 xs) (lit 143:20 ~))))))
-  (value 145:1 drop
-    (gate 145:9
-      (face 145:12 maybe
-        (apply 145:18 unit (tvar 145:24 A)))
-      (body 146:3
-        (branch 146:3
-          (wing 146:6 maybe)
-          (arm 147:5 (lit 147:5 ~) (lit 147:7 ~))
-          (arm 148:5
-            (cell 148:5 (lit 148:6 ~) (bind 148:8 value))
-            (tuple 148:15 (wing 148:16 value) (lit 148:22 ~)))))))
-  (value 150:1 bind
-    (gate 150:9
-      (face 150:12 args
-        (cell 150:17
-          (apply 150:18 unit (tvar 150:24 A))
-          (fn 150:27 (tvar 150:30 A) (tvar 150:32 B))))
-      (body 151:3
-        (branch 151:3
-          (wing 151:6 args)
-          (arm 152:5
-            (cell 152:5 (bind 152:6 maybe) (bind 152:12 f))
-            (cast 152:15
-              (apply 152:18 unit (tvar 152:24 B))
-              (body 153:7
-                (branch 153:7
-                  (wing 153:10 maybe)
-                  (arm 154:9 (lit 154:9 ~) (lit 154:11 ~))
-                  (arm 155:9
-                    (cell 155:9 (lit 155:10 ~) (bind 155:12 value))
-                    (unit 155:19
-                      (group 155:20
-                        (call 155:21 (wing 155:21 f) (wing 155:23 value)))))))))))))
-  (value 157:1 biff
-    (gate 157:9
-      (face 157:12 args
-        (cell 157:17
-          (apply 157:18 unit (tvar 157:24 A))
-          (fn 157:27
-            (tvar 157:30 A)
-            (apply 157:32 unit (tvar 157:38 B)))))
-      (body 158:3
-        (branch 158:3
-          (wing 158:6 args)
-          (arm 159:5
-            (cell 159:5 (bind 159:6 maybe) (bind 159:12 f))
-            (cast 159:15
-              (apply 159:18 unit (tvar 159:24 B))
-              (body 160:7
-                (branch 160:7
-                  (wing 160:10 maybe)
-                  (arm 161:9 (lit 161:9 ~) (lit 161:11 ~))
-                  (arm 162:9
-                    (cell 162:9 (lit 162:10 ~) (bind 162:12 value))
-                    (group 162:19
-                      (call 162:20 (wing 162:20 f) (wing 162:22 value))))))))))))
-  (value 164:1 both
-    (gate 164:9
-      (face 164:12 args
-        (cell 164:17
-          (apply 164:18 unit (tvar 164:24 A))
-          (apply 164:27 unit (tvar 164:33 B))))
-      (body 165:3
-        (branch 165:3
-          (wing 165:6 args)
-          (arm 166:5
-            (cell 166:5 (bind 166:6 first) (bind 166:12 second))
-            (cast 166:20
-              (apply 166:23 unit
-                (cell 166:29 (tvar 166:30 A) (tvar 166:32 B)))
-              (body 167:7
-                (branch 167:7
-                  (wing 167:10 first)
-                  (arm 168:9 (lit 168:9 ~) (lit 168:11 ~))
-                  (arm 169:9
-                    (cell 169:9 (lit 169:10 ~) (bind 169:12 a))
-                    (body 170:11
-                      (branch 170:11
-                        (wing 170:14 second)
-                        (arm 171:13 (lit 171:13 ~) (lit 171:15 ~))
-                        (arm 172:13
-                          (cell 172:13 (lit 172:14 ~) (bind 172:16 b))
-                          (unit 172:19
-                            (tuple 172:20 (wing 172:21 a) (wing 172:23 b)))))))))))))))
-  (value 174:1 clap
-    (gate 174:9
-      (face 174:12 args
-        (cell 174:17
-          (apply 174:18 unit (tvar 174:24 A))
-          (apply 174:27 unit (tvar 174:33 A))
-          (fn 174:36
-            (cell 174:39 (tvar 174:40 A) (tvar 174:42 A))
-            (tvar 174:45 A))))
-      (body 175:3
-        (branch 175:3
-          (wing 175:6 args)
-          (arm 176:5
-            (cell 176:5 (bind 176:6 first) (bind 176:12 second) (bind 176:19 combine))
-            (cast 176:28
-              (apply 176:31 unit (tvar 176:37 A))
-              (body 177:7
-                (branch 177:7
-                  (wing 177:10 first)
-                  (arm 178:9 (lit 178:9 ~) (wing 178:11 second))
-                  (arm 179:9
-                    (cell 179:9 (lit 179:10 ~) (bind 179:12 a))
-                    (body 180:11
-                      (branch 180:11
-                        (wing 180:14 second)
-                        (arm 181:13 (lit 181:13 ~) (wing 181:15 first))
-                        (arm 182:13
-                          (cell 182:13 (lit 182:14 ~) (bind 182:16 b))
-                          (unit 182:19
-                            (group 182:20
-                              (call 182:21 (wing 182:21 combine) (wing 182:29 a) (wing 182:31 b))))))))))))))))
-  (value 184:1 clef
-    (gate 184:9
-      (face 184:12 args
-        (cell 184:17
-          (apply 184:18 unit (tvar 184:24 A))
-          (apply 184:27 unit (tvar 184:33 B))
-          (fn 184:36
-            (cell 184:39 (tvar 184:40 A) (tvar 184:42 B))
-            (apply 184:45 unit (tvar 184:51 C)))))
-      (body 185:3
-        (branch 185:3
-          (wing 185:6 args)
-          (arm 186:5
-            (cell 186:5 (bind 186:6 first) (bind 186:12 second) (bind 186:19 combine))
-            (cast 186:28
-              (apply 186:31 unit (tvar 186:37 C))
-              (body 187:7
-                (branch 187:7
-                  (wing 187:10 first)
-                  (arm 188:9 (lit 188:9 ~) (lit 188:11 ~))
-                  (arm 189:9
-                    (cell 189:9 (lit 189:10 ~) (bind 189:12 a))
-                    (body 190:11
-                      (branch 190:11
-                        (wing 190:14 second)
-                        (arm 191:13 (lit 191:13 ~) (lit 191:15 ~))
-                        (arm 192:13
-                          (cell 192:13 (lit 192:14 ~) (bind 192:16 b))
-                          (group 192:19
-                            (call 192:20 (wing 192:20 combine) (wing 192:28 a) (wing 192:30 b)))))))))))))))
-  (value 194:1 skim
-    (gate 194:9
-      (face 194:12 args
-        (cell 194:17
-          (apply 194:18 list (tvar 194:24 A))
-          (fn 194:27 (tvar 194:30 A) (flag 194:32))))
-      (body 195:3
-        (branch 195:3
-          (wing 195:6 args)
-          (arm 196:5
-            (cell 196:5 (bind 196:6 xs) (bind 196:9 predicate))
-            (body 197:7
-              (branch 197:7
-                (wing 197:10 xs)
-                (arm 198:9 (lit 198:9 ~) (lit 198:11 ~))
-                (arm 199:9
-                  (cell 199:9 (bind 199:10 item) (bind 199:15 rest))
-                  (body 200:11
-                    (branch 200:11
-                      (group 200:14
-                        (call 200:15 (wing 200:15 predicate) (wing 200:25 item)))
-                      (arm 201:13
-                        (lit 201:13 %.y)
-                        (tuple 201:17
-                          (wing 201:18 item)
-                          (group 201:23
-                            (call 201:24 (wing 201:24 skim) (wing 201:29 rest) (wing 201:34 predicate)))))
-                      (arm 202:13
-                        (lit 202:13 %.n)
-                        (group 202:17
-                          (call 202:18 (wing 202:18 skim) (wing 202:23 rest) (wing 202:28 predicate))))))))))))))
-  (value 204:1 skip
-    (gate 204:9
-      (face 204:12 args
-        (cell 204:17
-          (apply 204:18 list (tvar 204:24 A))
-          (fn 204:27 (tvar 204:30 A) (flag 204:32))))
-      (body 205:3
-        (branch 205:3
-          (wing 205:6 args)
-          (arm 206:5
-            (cell 206:5 (bind 206:6 xs) (bind 206:9 predicate))
-            (body 207:7
-              (branch 207:7
-                (wing 207:10 xs)
-                (arm 208:9 (lit 208:9 ~) (lit 208:11 ~))
-                (arm 209:9
-                  (cell 209:9 (bind 209:10 item) (bind 209:15 rest))
-                  (body 210:11
-                    (branch 210:11
-                      (group 210:14
-                        (call 210:15 (wing 210:15 predicate) (wing 210:25 item)))
-                      (arm 211:13
-                        (lit 211:13 %.y)
-                        (group 211:17
-                          (call 211:18 (wing 211:18 skip) (wing 211:23 rest) (wing 211:28 predicate))))
-                      (arm 212:13
-                        (lit 212:13 %.n)
-                        (tuple 212:17
-                          (wing 212:18 item)
-                          (group 212:23
-                            (call 212:24 (wing 212:24 skip) (wing 212:29 rest) (wing 212:34 predicate)))))))))))))))
-  (value 214:1 levy
-    (gate 214:9
-      (face 214:12 args
-        (cell 214:17
-          (apply 214:18 list (tvar 214:24 A))
-          (fn 214:27 (tvar 214:30 A) (flag 214:32))))
-      (body 215:3
-        (branch 215:3
-          (wing 215:6 args)
-          (arm 216:5
-            (cell 216:5 (bind 216:6 xs) (bind 216:9 predicate))
-            (body 217:7
-              (branch 217:7
-                (wing 217:10 xs)
-                (arm 218:9 (lit 218:9 ~) (lit 218:11 %.y))
-                (arm 219:9
-                  (cell 219:9 (bind 219:10 item) (bind 219:15 rest))
-                  (body 220:11
-                    (branch 220:11
-                      (group 220:14
-                        (call 220:15 (wing 220:15 predicate) (wing 220:25 item)))
-                      (arm 221:13
-                        (lit 221:13 %.y)
-                        (group 221:17
-                          (call 221:18 (wing 221:18 levy) (wing 221:23 rest) (wing 221:28 predicate))))
-                      (arm 222:13 (lit 222:13 %.n) (lit 222:17 %.n))))))))))))
-  (value 224:1 lien
-    (gate 224:9
-      (face 224:12 args
-        (cell 224:17
-          (apply 224:18 list (tvar 224:24 A))
-          (fn 224:27 (tvar 224:30 A) (flag 224:32))))
-      (body 225:3
-        (branch 225:3
-          (wing 225:6 args)
-          (arm 226:5
-            (cell 226:5 (bind 226:6 xs) (bind 226:9 predicate))
-            (body 227:7
-              (branch 227:7
-                (wing 227:10 xs)
-                (arm 228:9 (lit 228:9 ~) (lit 228:11 %.n))
-                (arm 229:9
-                  (cell 229:9 (bind 229:10 item) (bind 229:15 rest))
-                  (body 230:11
-                    (branch 230:11
-                      (group 230:14
-                        (call 230:15 (wing 230:15 predicate) (wing 230:25 item)))
-                      (arm 231:13 (lit 231:13 %.y) (lit 231:17 %.y))
-                      (arm 232:13
-                        (lit 232:13 %.n)
-                        (group 232:17
-                          (call 232:18 (wing 232:18 lien) (wing 232:23 rest) (wing 232:28 predicate))))))))))))))
-  (value 234:1 roll
-    (gate 234:9
-      (face 234:12 args
-        (cell 234:17
-          (apply 234:18 list (tvar 234:24 A))
-          (tvar 234:27 B)
-          (fn 234:29
-            (cell 234:32 (tvar 234:33 A) (tvar 234:35 B))
-            (tvar 234:38 B))))
-      (body 235:3
-        (branch 235:3
-          (wing 235:6 args)
-          (arm 236:5
-            (cell 236:5 (bind 236:6 xs) (bind 236:9 start) (bind 236:15 combine))
-            (body 237:7
-              (branch 237:7
-                (wing 237:10 xs)
-                (arm 238:9 (lit 238:9 ~) (wing 238:11 start))
-                (arm 239:9
-                  (cell 239:9 (bind 239:10 item) (bind 239:15 rest))
-                  (group 239:21
-                    (call 239:22
-                      (wing 239:22 roll)
-                      (wing 239:27 rest)
-                      (group 239:32
-                        (call 239:33 (wing 239:33 combine) (wing 239:41 item) (wing 239:46 start)))
-                      (wing 239:53 combine)))))))))))
-  (value 241:1 reel
-    (gate 241:9
-      (face 241:12 args
-        (cell 241:17
-          (apply 241:18 list (tvar 241:24 A))
-          (tvar 241:27 B)
-          (fn 241:29
-            (cell 241:32 (tvar 241:33 A) (tvar 241:35 B))
-            (tvar 241:38 B))))
-      (body 242:3
-        (branch 242:3
-          (wing 242:6 args)
-          (arm 243:5
-            (cell 243:5 (bind 243:6 xs) (bind 243:9 start) (bind 243:15 combine))
-            (body 244:7
-              (branch 244:7
-                (wing 244:10 xs)
-                (arm 245:9 (lit 245:9 ~) (wing 245:11 start))
-                (arm 246:9
-                  (cell 246:9 (bind 246:10 item) (bind 246:15 rest))
-                  (group 246:21
-                    (call 246:22
-                      (wing 246:22 combine)
-                      (wing 246:30 item)
-                      (group 246:35
-                        (call 246:36 (wing 246:36 reel) (wing 246:41 rest) (wing 246:46 start) (wing 246:52 combine)))))))))))))
-  (value 248:1 flit
-    (gate 248:9
-      (face 248:12 predicate
-        (fn 248:22 (tvar 248:25 A) (flag 248:27)))
-      (body 249:3
-        (gate 249:3
-          (face 249:6 value (tvar 249:12 A))
-          (body 250:5
-            (cast 250:5
-              (apply 250:8 unit (tvar 250:14 A))
-              (body 251:7
-                (branch 251:7
-                  (group 251:10
-                    (call 251:11 (wing 251:11 predicate) (wing 251:21 value)))
-                  (arm 252:9
-                    (lit 252:9 %.y)
-                    (unit 252:13 (wing 252:14 value)))
-                  (arm 253:9 (lit 253:9 %.n) (lit 253:13 ~))))))))))
-  (value 255:1 murn
-    (gate 255:9
-      (face 255:12 args
-        (cell 255:17
-          (apply 255:18 list (tvar 255:24 A))
-          (fn 255:27
-            (tvar 255:30 A)
-            (apply 255:32 unit (tvar 255:38 B)))))
-      (body 256:3
-        (branch 256:3
-          (wing 256:6 args)
-          (arm 257:5
-            (cell 257:5 (bind 257:6 xs) (bind 257:9 f))
-            (body 258:7
-              (branch 258:7
-                (wing 258:10 xs)
-                (arm 259:9 (lit 259:9 ~) (lit 259:11 ~))
-                (arm 260:9
-                  (cell 260:9 (bind 260:10 item) (bind 260:15 rest))
-                  (body 261:11
-                    (branch 261:11
-                      (group 261:14
-                        (call 261:15 (wing 261:15 f) (wing 261:17 item)))
-                      (arm 262:13
-                        (lit 262:13 ~)
-                        (group 262:15
-                          (call 262:16 (wing 262:16 murn) (wing 262:21 rest) (wing 262:26 f))))
-                      (arm 263:13
-                        (cell 263:13 (lit 263:14 ~) (bind 263:16 value))
-                        (tuple 263:23
-                          (wing 263:24 value)
-                          (group 263:30
-                            (call 263:31 (wing 263:31 murn) (wing 263:36 rest) (wing 263:41 f)))))))))))))))
-  (value 265:1 join
-    (gate 265:9
-      (face 265:12 args
-        (cell 265:17
-          (tvar 265:18 A)
-          (apply 265:20 list (tvar 265:26 A))))
-      (body 266:3
-        (branch 266:3
-          (wing 266:6 args)
-          (arm 267:5
-            (cell 267:5 (bind 267:6 separator) (bind 267:16 xs))
-            (body 268:7
-              (branch 268:7
-                (wing 268:10 xs)
-                (arm 269:9 (lit 269:9 ~) (lit 269:11 ~))
-                (arm 270:9
-                  (cell 270:9 (bind 270:10 item) (bind 270:15 rest))
-                  (body 271:11
-                    (branch 271:11
-                      (wing 271:14 rest)
-                      (arm 272:13
-                        (lit 272:13 ~)
-                        (tuple 272:15 (wing 272:16 item) (lit 272:21 ~)))
-                      (arm 273:13
-                        (cell 273:13 (bind 273:14 next) (bind 273:19 more))
-                        (tuple 273:25
-                          (wing 273:26 item)
-                          (tuple 273:31
-                            (wing 273:32 separator)
-                            (group 273:42
-                              (call 273:43 (wing 273:43 join) (wing 273:48 separator) (wing 273:58 rest))))))))))))))))
-  (value 275:1 snip
-    (gate 275:9
-      (face 275:12 xs
-        (apply 275:15 list (tvar 275:21 A)))
-      (body 276:3
-        (branch 276:3
-          (wing 276:6 xs)
-          (arm 277:5 (lit 277:5 ~) (lit 277:7 ~))
-          (arm 278:5
-            (cell 278:5 (bind 278:6 item) (bind 278:11 rest))
-            (body 279:7
-              (branch 279:7
-                (wing 279:10 rest)
-                (arm 280:9 (lit 280:9 ~) (lit 280:11 ~))
-                (arm 281:9
-                  (cell 281:9 (bind 281:10 next) (bind 281:15 more))
-                  (tuple 281:21
-                    (wing 281:22 item)
-                    (group 281:27
-                      (call 281:28 (wing 281:28 snip) (wing 281:33 rest))))))))))))
-  (value 283:1 rear
-    (gate 283:9
-      (face 283:12 xs
-        (apply 283:15 list (tvar 283:21 A)))
-      (body 284:3
-        (branch 284:3
-          (wing 284:6 xs)
-          (arm 285:5 (lit 285:5 ~) (crash 285:7))
-          (arm 286:5
-            (cell 286:5 (bind 286:6 item) (bind 286:11 rest))
-            (body 287:7
-              (branch 287:7
-                (wing 287:10 rest)
-                (arm 288:9 (lit 288:9 ~) (wing 288:11 item))
-                (arm 289:9
-                  (cell 289:9 (bind 289:10 next) (bind 289:15 more))
-                  (group 289:21
-                    (call 289:22 (wing 289:22 rear) (wing 289:27 rest))))))))))))
+          (const 123:4 %|)
+          (face 123:7 p (tvar 123:9 B)))
+        (cell 124:3
+          (const 124:4 %&)
+          (face 124:7 p (tvar 124:9 A))))))
+  (mold 126:1 bloq (aura 126:9 @))
+  (value 128:1 some
+    (gate 128:9
+      (face 128:12 item (tvar 128:17 A))
+      (unit 128:19 (wing 128:20 item))))
+  (value 130:1 lure
+    (gate 130:9
+      (face 130:12 item (tvar 130:17 A))
+      (body 131:3
+        (cast 131:3
+          (apply 131:6 list (tvar 131:12 A))
+          (tuple 131:15 (wing 131:16 item) (lit 131:21 ~))))))
+  (value 133:1 snoc
+    (gate 133:9
+      (face 133:12 args
+        (cell 133:17
+          (apply 133:18 list (tvar 133:24 A))
+          (tvar 133:27 A)))
+      (body 134:3
+        (branch 134:3
+          (wing 134:6 args)
+          (arm 135:5
+            (cell 135:5 (bind 135:6 xs) (bind 135:9 item))
+            (group 135:15
+              (call 135:16
+                (wing 135:16 weld)
+                (wing 135:21 xs)
+                (tuple 135:24 (wing 135:25 item) (lit 135:30 ~)))))))))
+  (value 137:1 flop
+    (gate 137:9
+      (face 137:12 xs
+        (apply 137:15 list (tvar 137:21 A)))
+      (body 138:3
+        (value 138:3 reverse-into
+          (gate 138:19
+            (face 138:22 args
+              (cell 138:27
+                (apply 138:28 list (tvar 138:34 A))
+                (apply 138:37 list (tvar 138:43 A))))
+            (body 139:5
+              (branch 139:5
+                (wing 139:8 args)
+                (arm 140:7
+                  (cell 140:7 (bind 140:8 rest) (bind 140:13 acc))
+                  (body 141:9
+                    (branch 141:9
+                      (wing 141:12 rest)
+                      (arm 142:11 (lit 142:11 ~) (wing 142:13 acc))
+                      (arm 143:11
+                        (cell 143:11 (bind 143:12 item) (bind 143:17 more))
+                        (group 143:23
+                          (call 143:24
+                            (wing 143:24 reverse-into)
+                            (wing 143:37 more)
+                            (tuple 143:42 (wing 143:43 item) (wing 143:48 acc))))))))))))
+        (group 144:3
+          (call 144:4 (wing 144:4 reverse-into) (wing 144:17 xs) (lit 144:20 ~))))))
+  (value 146:1 drop
+    (gate 146:9
+      (face 146:12 maybe
+        (apply 146:18 unit (tvar 146:24 A)))
+      (body 147:3
+        (cast 147:3
+          (apply 147:6 list (tvar 147:12 A))
+          (body 148:5
+            (branch 148:5
+              (wing 148:8 maybe)
+              (arm 149:7 (lit 149:7 ~) (lit 149:9 ~))
+              (arm 150:7
+                (cell 150:7 (lit 150:8 ~) (bind 150:10 value))
+                (tuple 150:17 (wing 150:18 value) (lit 150:24 ~)))))))))
+  (value 152:1 bind
+    (gate 152:9
+      (face 152:12 args
+        (cell 152:17
+          (apply 152:18 unit (tvar 152:24 A))
+          (fn 152:27 (tvar 152:30 A) (tvar 152:32 B))))
+      (body 153:3
+        (branch 153:3
+          (wing 153:6 args)
+          (arm 154:5
+            (cell 154:5 (bind 154:6 maybe) (bind 154:12 f))
+            (cast 154:15
+              (apply 154:18 unit (tvar 154:24 B))
+              (body 155:7
+                (branch 155:7
+                  (wing 155:10 maybe)
+                  (arm 156:9 (lit 156:9 ~) (lit 156:11 ~))
+                  (arm 157:9
+                    (cell 157:9 (lit 157:10 ~) (bind 157:12 value))
+                    (unit 157:19
+                      (group 157:20
+                        (call 157:21 (wing 157:21 f) (wing 157:23 value)))))))))))))
+  (value 159:1 biff
+    (gate 159:9
+      (face 159:12 args
+        (cell 159:17
+          (apply 159:18 unit (tvar 159:24 A))
+          (fn 159:27
+            (tvar 159:30 A)
+            (apply 159:32 unit (tvar 159:38 B)))))
+      (body 160:3
+        (branch 160:3
+          (wing 160:6 args)
+          (arm 161:5
+            (cell 161:5 (bind 161:6 maybe) (bind 161:12 f))
+            (cast 161:15
+              (apply 161:18 unit (tvar 161:24 B))
+              (body 162:7
+                (branch 162:7
+                  (wing 162:10 maybe)
+                  (arm 163:9 (lit 163:9 ~) (lit 163:11 ~))
+                  (arm 164:9
+                    (cell 164:9 (lit 164:10 ~) (bind 164:12 value))
+                    (group 164:19
+                      (call 164:20 (wing 164:20 f) (wing 164:22 value))))))))))))
+  (value 166:1 both
+    (gate 166:9
+      (face 166:12 args
+        (cell 166:17
+          (apply 166:18 unit (tvar 166:24 A))
+          (apply 166:27 unit (tvar 166:33 B))))
+      (body 167:3
+        (branch 167:3
+          (wing 167:6 args)
+          (arm 168:5
+            (cell 168:5 (bind 168:6 first) (bind 168:12 second))
+            (cast 168:20
+              (apply 168:23 unit
+                (cell 168:29 (tvar 168:30 A) (tvar 168:32 B)))
+              (body 169:7
+                (branch 169:7
+                  (wing 169:10 first)
+                  (arm 170:9 (lit 170:9 ~) (lit 170:11 ~))
+                  (arm 171:9
+                    (cell 171:9 (lit 171:10 ~) (bind 171:12 a))
+                    (body 172:11
+                      (branch 172:11
+                        (wing 172:14 second)
+                        (arm 173:13 (lit 173:13 ~) (lit 173:15 ~))
+                        (arm 174:13
+                          (cell 174:13 (lit 174:14 ~) (bind 174:16 b))
+                          (unit 174:19
+                            (tuple 174:20 (wing 174:21 a) (wing 174:23 b)))))))))))))))
+  (value 176:1 clap
+    (gate 176:9
+      (face 176:12 args
+        (cell 176:17
+          (apply 176:18 unit (tvar 176:24 A))
+          (apply 176:27 unit (tvar 176:33 A))
+          (fn 176:36
+            (cell 176:39 (tvar 176:40 A) (tvar 176:42 A))
+            (tvar 176:45 A))))
+      (body 177:3
+        (branch 177:3
+          (wing 177:6 args)
+          (arm 178:5
+            (cell 178:5 (bind 178:6 first) (bind 178:12 second) (bind 178:19 combine))
+            (cast 178:28
+              (apply 178:31 unit (tvar 178:37 A))
+              (body 179:7
+                (branch 179:7
+                  (wing 179:10 first)
+                  (arm 180:9 (lit 180:9 ~) (wing 180:11 second))
+                  (arm 181:9
+                    (cell 181:9 (lit 181:10 ~) (bind 181:12 a))
+                    (body 182:11
+                      (branch 182:11
+                        (wing 182:14 second)
+                        (arm 183:13 (lit 183:13 ~) (wing 183:15 first))
+                        (arm 184:13
+                          (cell 184:13 (lit 184:14 ~) (bind 184:16 b))
+                          (unit 184:19
+                            (group 184:20
+                              (call 184:21 (wing 184:21 combine) (wing 184:29 a) (wing 184:31 b))))))))))))))))
+  (value 186:1 clef
+    (gate 186:9
+      (face 186:12 args
+        (cell 186:17
+          (apply 186:18 unit (tvar 186:24 A))
+          (apply 186:27 unit (tvar 186:33 B))
+          (fn 186:36
+            (cell 186:39 (tvar 186:40 A) (tvar 186:42 B))
+            (apply 186:45 unit (tvar 186:51 C)))))
+      (body 187:3
+        (branch 187:3
+          (wing 187:6 args)
+          (arm 188:5
+            (cell 188:5 (bind 188:6 first) (bind 188:12 second) (bind 188:19 combine))
+            (cast 188:28
+              (apply 188:31 unit (tvar 188:37 C))
+              (body 189:7
+                (branch 189:7
+                  (wing 189:10 first)
+                  (arm 190:9 (lit 190:9 ~) (lit 190:11 ~))
+                  (arm 191:9
+                    (cell 191:9 (lit 191:10 ~) (bind 191:12 a))
+                    (body 192:11
+                      (branch 192:11
+                        (wing 192:14 second)
+                        (arm 193:13 (lit 193:13 ~) (lit 193:15 ~))
+                        (arm 194:13
+                          (cell 194:13 (lit 194:14 ~) (bind 194:16 b))
+                          (group 194:19
+                            (call 194:20 (wing 194:20 combine) (wing 194:28 a) (wing 194:30 b)))))))))))))))
+  (value 196:1 skim
+    (gate 196:9
+      (face 196:12 args
+        (cell 196:17
+          (apply 196:18 list (tvar 196:24 A))
+          (fn 196:27 (tvar 196:30 A) (flag 196:32))))
+      (body 197:3
+        (branch 197:3
+          (wing 197:6 args)
+          (arm 198:5
+            (cell 198:5 (bind 198:6 xs) (bind 198:9 predicate))
+            (cast 198:20
+              (apply 198:23 list (tvar 198:29 A))
+              (body 199:9
+                (branch 199:9
+                  (wing 199:12 xs)
+                  (arm 200:11 (lit 200:11 ~) (lit 200:13 ~))
+                  (arm 201:11
+                    (cell 201:11 (bind 201:12 item) (bind 201:17 rest))
+                    (body 202:13
+                      (branch 202:13
+                        (group 202:16
+                          (call 202:17 (wing 202:17 predicate) (wing 202:27 item)))
+                        (arm 203:15
+                          (lit 203:15 %.y)
+                          (tuple 203:19
+                            (wing 203:20 item)
+                            (group 203:25
+                              (call 203:26 (wing 203:26 skim) (wing 203:31 rest) (wing 203:36 predicate)))))
+                        (arm 204:15
+                          (lit 204:15 %.n)
+                          (group 204:19
+                            (call 204:20 (wing 204:20 skim) (wing 204:25 rest) (wing 204:30 predicate)))))))))))))))
+  (value 206:1 skip
+    (gate 206:9
+      (face 206:12 args
+        (cell 206:17
+          (apply 206:18 list (tvar 206:24 A))
+          (fn 206:27 (tvar 206:30 A) (flag 206:32))))
+      (body 207:3
+        (branch 207:3
+          (wing 207:6 args)
+          (arm 208:5
+            (cell 208:5 (bind 208:6 xs) (bind 208:9 predicate))
+            (cast 208:20
+              (apply 208:23 list (tvar 208:29 A))
+              (body 209:9
+                (branch 209:9
+                  (wing 209:12 xs)
+                  (arm 210:11 (lit 210:11 ~) (lit 210:13 ~))
+                  (arm 211:11
+                    (cell 211:11 (bind 211:12 item) (bind 211:17 rest))
+                    (body 212:13
+                      (branch 212:13
+                        (group 212:16
+                          (call 212:17 (wing 212:17 predicate) (wing 212:27 item)))
+                        (arm 213:15
+                          (lit 213:15 %.y)
+                          (group 213:19
+                            (call 213:20 (wing 213:20 skip) (wing 213:25 rest) (wing 213:30 predicate))))
+                        (arm 214:15
+                          (lit 214:15 %.n)
+                          (tuple 214:19
+                            (wing 214:20 item)
+                            (group 214:25
+                              (call 214:26 (wing 214:26 skip) (wing 214:31 rest) (wing 214:36 predicate))))))))))))))))
+  (value 216:1 levy
+    (gate 216:9
+      (face 216:12 args
+        (cell 216:17
+          (apply 216:18 list (tvar 216:24 A))
+          (fn 216:27 (tvar 216:30 A) (flag 216:32))))
+      (body 217:3
+        (branch 217:3
+          (wing 217:6 args)
+          (arm 218:5
+            (cell 218:5 (bind 218:6 xs) (bind 218:9 predicate))
+            (body 219:7
+              (branch 219:7
+                (wing 219:10 xs)
+                (arm 220:9 (lit 220:9 ~) (lit 220:11 %.y))
+                (arm 221:9
+                  (cell 221:9 (bind 221:10 item) (bind 221:15 rest))
+                  (body 222:11
+                    (branch 222:11
+                      (group 222:14
+                        (call 222:15 (wing 222:15 predicate) (wing 222:25 item)))
+                      (arm 223:13
+                        (lit 223:13 %.y)
+                        (group 223:17
+                          (call 223:18 (wing 223:18 levy) (wing 223:23 rest) (wing 223:28 predicate))))
+                      (arm 224:13 (lit 224:13 %.n) (lit 224:17 %.n))))))))))))
+  (value 226:1 lien
+    (gate 226:9
+      (face 226:12 args
+        (cell 226:17
+          (apply 226:18 list (tvar 226:24 A))
+          (fn 226:27 (tvar 226:30 A) (flag 226:32))))
+      (body 227:3
+        (branch 227:3
+          (wing 227:6 args)
+          (arm 228:5
+            (cell 228:5 (bind 228:6 xs) (bind 228:9 predicate))
+            (body 229:7
+              (branch 229:7
+                (wing 229:10 xs)
+                (arm 230:9 (lit 230:9 ~) (lit 230:11 %.n))
+                (arm 231:9
+                  (cell 231:9 (bind 231:10 item) (bind 231:15 rest))
+                  (body 232:11
+                    (branch 232:11
+                      (group 232:14
+                        (call 232:15 (wing 232:15 predicate) (wing 232:25 item)))
+                      (arm 233:13 (lit 233:13 %.y) (lit 233:17 %.y))
+                      (arm 234:13
+                        (lit 234:13 %.n)
+                        (group 234:17
+                          (call 234:18 (wing 234:18 lien) (wing 234:23 rest) (wing 234:28 predicate))))))))))))))
+  (value 236:1 roll
+    (gate 236:9
+      (face 236:12 args
+        (cell 236:17
+          (apply 236:18 list (tvar 236:24 A))
+          (tvar 236:27 B)
+          (fn 236:29
+            (cell 236:32 (tvar 236:33 A) (tvar 236:35 B))
+            (tvar 236:38 B))))
+      (body 237:3
+        (branch 237:3
+          (wing 237:6 args)
+          (arm 238:5
+            (cell 238:5 (bind 238:6 xs) (bind 238:9 start) (bind 238:15 combine))
+            (body 239:7
+              (branch 239:7
+                (wing 239:10 xs)
+                (arm 240:9 (lit 240:9 ~) (wing 240:11 start))
+                (arm 241:9
+                  (cell 241:9 (bind 241:10 item) (bind 241:15 rest))
+                  (group 241:21
+                    (call 241:22
+                      (wing 241:22 roll)
+                      (wing 241:27 rest)
+                      (group 241:32
+                        (call 241:33 (wing 241:33 combine) (wing 241:41 item) (wing 241:46 start)))
+                      (wing 241:53 combine)))))))))))
+  (value 243:1 reel
+    (gate 243:9
+      (face 243:12 args
+        (cell 243:17
+          (apply 243:18 list (tvar 243:24 A))
+          (tvar 243:27 B)
+          (fn 243:29
+            (cell 243:32 (tvar 243:33 A) (tvar 243:35 B))
+            (tvar 243:38 B))))
+      (body 244:3
+        (branch 244:3
+          (wing 244:6 args)
+          (arm 245:5
+            (cell 245:5 (bind 245:6 xs) (bind 245:9 start) (bind 245:15 combine))
+            (body 246:7
+              (branch 246:7
+                (wing 246:10 xs)
+                (arm 247:9 (lit 247:9 ~) (wing 247:11 start))
+                (arm 248:9
+                  (cell 248:9 (bind 248:10 item) (bind 248:15 rest))
+                  (group 248:21
+                    (call 248:22
+                      (wing 248:22 combine)
+                      (wing 248:30 item)
+                      (group 248:35
+                        (call 248:36 (wing 248:36 reel) (wing 248:41 rest) (wing 248:46 start) (wing 248:52 combine)))))))))))))
+  (value 250:1 flit
+    (gate 250:9
+      (face 250:12 predicate
+        (fn 250:22 (tvar 250:25 A) (flag 250:27)))
+      (body 251:3
+        (gate 251:3
+          (face 251:6 value (tvar 251:12 A))
+          (body 252:5
+            (cast 252:5
+              (apply 252:8 unit (tvar 252:14 A))
+              (body 253:7
+                (branch 253:7
+                  (group 253:10
+                    (call 253:11 (wing 253:11 predicate) (wing 253:21 value)))
+                  (arm 254:9
+                    (lit 254:9 %.y)
+                    (unit 254:13 (wing 254:14 value)))
+                  (arm 255:9 (lit 255:9 %.n) (lit 255:13 ~))))))))))
+  (value 257:1 murn
+    (gate 257:9
+      (face 257:12 args
+        (cell 257:17
+          (apply 257:18 list (tvar 257:24 A))
+          (fn 257:27
+            (tvar 257:30 A)
+            (apply 257:32 unit (tvar 257:38 B)))))
+      (body 258:3
+        (branch 258:3
+          (wing 258:6 args)
+          (arm 259:5
+            (cell 259:5 (bind 259:6 xs) (bind 259:9 f))
+            (cast 259:12
+              (apply 259:15 list (tvar 259:21 B))
+              (body 260:9
+                (branch 260:9
+                  (wing 260:12 xs)
+                  (arm 261:11 (lit 261:11 ~) (lit 261:13 ~))
+                  (arm 262:11
+                    (cell 262:11 (bind 262:12 item) (bind 262:17 rest))
+                    (body 263:13
+                      (branch 263:13
+                        (group 263:16
+                          (call 263:17 (wing 263:17 f) (wing 263:19 item)))
+                        (arm 264:15
+                          (lit 264:15 ~)
+                          (group 264:17
+                            (call 264:18 (wing 264:18 murn) (wing 264:23 rest) (wing 264:28 f))))
+                        (arm 265:15
+                          (cell 265:15 (lit 265:16 ~) (bind 265:18 value))
+                          (tuple 265:25
+                            (wing 265:26 value)
+                            (group 265:32
+                              (call 265:33 (wing 265:33 murn) (wing 265:38 rest) (wing 265:43 f))))))))))))))))
+  (value 267:1 join
+    (gate 267:9
+      (face 267:12 args
+        (cell 267:17
+          (tvar 267:18 A)
+          (apply 267:20 list (tvar 267:26 A))))
+      (body 268:3
+        (branch 268:3
+          (wing 268:6 args)
+          (arm 269:5
+            (cell 269:5 (bind 269:6 separator) (bind 269:16 xs))
+            (cast 269:20
+              (apply 269:23 list (tvar 269:29 A))
+              (body 270:9
+                (branch 270:9
+                  (wing 270:12 xs)
+                  (arm 271:11 (lit 271:11 ~) (lit 271:13 ~))
+                  (arm 272:11
+                    (cell 272:11 (bind 272:12 item) (bind 272:17 rest))
+                    (body 273:13
+                      (branch 273:13
+                        (wing 273:16 rest)
+                        (arm 274:15
+                          (lit 274:15 ~)
+                          (tuple 274:17 (wing 274:18 item) (lit 274:23 ~)))
+                        (arm 275:15
+                          (cell 275:15 (bind 275:16 next) (bind 275:21 more))
+                          (tuple 275:27
+                            (wing 275:28 item)
+                            (tuple 275:33
+                              (wing 275:34 separator)
+                              (group 275:44
+                                (call 275:45 (wing 275:45 join) (wing 275:50 separator) (wing 275:60 rest)))))))))))))))))
+  (value 277:1 snip
+    (gate 277:9
+      (face 277:12 xs
+        (apply 277:15 list (tvar 277:21 A)))
+      (body 278:3
+        (cast 278:3
+          (apply 278:6 list (tvar 278:12 A))
+          (body 279:5
+            (branch 279:5
+              (wing 279:8 xs)
+              (arm 280:7 (lit 280:7 ~) (lit 280:9 ~))
+              (arm 281:7
+                (cell 281:7 (bind 281:8 item) (bind 281:13 rest))
+                (body 282:9
+                  (branch 282:9
+                    (wing 282:12 rest)
+                    (arm 283:11 (lit 283:11 ~) (lit 283:13 ~))
+                    (arm 284:11
+                      (cell 284:11 (bind 284:12 next) (bind 284:17 more))
+                      (tuple 284:23
+                        (wing 284:24 item)
+                        (group 284:29
+                          (call 284:30 (wing 284:30 snip) (wing 284:35 rest))))))))))))))
+  (value 286:1 rear
+    (gate 286:9
+      (face 286:12 xs
+        (apply 286:15 list (tvar 286:21 A)))
+      (body 287:3
+        (branch 287:3
+          (wing 287:6 xs)
+          (arm 288:5 (lit 288:5 ~) (crash 288:7))
+          (arm 289:5
+            (cell 289:5 (bind 289:6 item) (bind 289:11 rest))
+            (body 290:7
+              (branch 290:7
+                (wing 290:10 rest)
+                (arm 291:9 (lit 291:9 ~) (wing 291:11 item))
+                (arm 292:9
+                  (cell 292:9 (bind 292:10 next) (bind 292:15 more))
+                  (group 292:21
+                    (call 292:22 (wing 292:22 rear) (wing 292:27 rest))))))))))))

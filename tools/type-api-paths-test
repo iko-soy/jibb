@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""Compare partial API path analysis with real Ford-style todo marks under eval."""
+
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--update', action='store_true')
+args = parser.parse_args()
+fixture = root / 'tests/type-api-paths'
+names = {'sur': 'todo-sur', 'action': 'todo-action', 'todos': 'todos',
+         'update': 'todo-update', 'item': 'todo-item', 'api': 'api',
+         'missing-decl': 'missing-decl', 'value-clash': 'value-clash',
+         'poke-clash': 'poke-clash', 'scry': 'scry', 'scry-bad': 'scry-bad'}
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-api-paths.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  jibb-import\n' + reader + '\n' +
+              ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n' for name in names) +
+              '=/  expected=wain  ~\n=/  bridge\n' + tests +
+              '\n(of-wain:format (fixture-output:bridge prelude internal ' +
+              ' '.join(name + '-text' for name in names) + '))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-type-api-paths-') as tmp:
+    program = Path(tmp) / 'bridge.hoon'
+    program.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(program),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name, filename in names.items():
+        command += ['--cord', name + '-text=' + str(fixture / (filename + '.txt'))]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected_path = fixture / 'expected.txt'
+if args.update:
+    expected_path.write_bytes(result.stdout)
+    print('updated partial API path analysis golden')
+    sys.exit(0)
+expected = expected_path.read_bytes()
+if result.stdout != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        result.stdout.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual paths'))
+    sys.exit(1)
+print('partial API path analysis golden passed')

@@ -1,0 +1,3 @@
+source: Overview, Agent APIs: a path names a request, a route and a mark for full state; `facts` supplies diff marks and an optional scry path. Imports: Hoon marks are read at their declared names.
+tests: Partial path analysis uses the actual todo `/sur` and Ford-style mark samples, preserving the full and diff types and typed path parameter. Matching scry parameters are accepted; unknown scry parameters, missing, duplicate and undeclared marks, value and derived-name collisions, an invalid module path, a missing prelude, private imports and an import cycle fail closed. This does not check the module or derive request gates.
+expect: partial path metadata or an unsupported/error report

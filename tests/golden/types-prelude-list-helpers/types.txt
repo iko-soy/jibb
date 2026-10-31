@@ -1,0 +1,34 @@
+partial inference; module not checked
+++ drop-text: (list @t)
+++ drop-ship: (list @p)
+++ skim-text: (list @t)
+++ skim-ship: (list @p)
+++ skip-text: (list @t)
+++ skip-ship: (list @p)
+++ murn-text: (list @t)
+++ murn-ship: (list @p)
+++ join-text: (list @t)
+++ join-ship: (list @p)
+++ snip-text: (list @t)
+++ snip-ship: (list @p)
+++ bad-drop: call's sample and argument types do not unify
+/tests/golden/types-prelude-list-helpers/source.jibb:13:14: called gate
+++ bad-drop (drop "hi")
+             ^
+/tests/golden/types-prelude-list-helpers/source.jibb:13:19: argument has type @t
+++ bad-drop (drop "hi")
+                  ^
+++ bad-skim: call's sample and argument types do not unify
+/tests/golden/types-prelude-list-helpers/source.jibb:14:14: called gate has type $-([(list @t) $-(@t ?)] (list @t))
+++ bad-skim (skim ~["hi"] |=(x=@p %.y))
+             ^
+/tests/golden/types-prelude-list-helpers/source.jibb:14:27: argument has type $-(@p ?)
+++ bad-skim (skim ~["hi"] |=(x=@p %.y))
+                          ^
+++ bad-join: call's sample and argument types do not unify
+/tests/golden/types-prelude-list-helpers/source.jibb:15:14: called gate has type $-([@t (list @t)] (list @t))
+++ bad-join (join ~zod ~["hi"])
+             ^
+/tests/golden/types-prelude-list-helpers/source.jibb:15:19: argument has type @p
+++ bad-join (join ~zod ~["hi"])
+                  ^

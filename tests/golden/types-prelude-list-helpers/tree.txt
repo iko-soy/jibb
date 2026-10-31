@@ -1,0 +1,98 @@
+(module
+  (value 1:1 drop-text
+    (group 1:14
+      (call 1:15
+        (wing 1:15 drop)
+        (unit 1:20 (str 1:21 "hi")))))
+  (value 2:1 drop-ship
+    (group 2:14
+      (call 2:15
+        (wing 2:15 drop)
+        (unit 2:20 (lit 2:21 ~zod)))))
+  (value 3:1 skim-text
+    (group 3:14
+      (call 3:15
+        (wing 3:15 skim)
+        (list 3:20 (str 3:22 "hi"))
+        (gate-wide 3:28
+          (face 3:31 x (aura 3:33 @t))
+          (lit 3:36 %.y)))))
+  (value 4:1 skim-ship
+    (group 4:14
+      (call 4:15
+        (wing 4:15 skim)
+        (list 4:20 (lit 4:22 ~zod))
+        (gate-wide 4:28
+          (face 4:31 x (aura 4:33 @p))
+          (lit 4:36 %.n)))))
+  (value 5:1 skip-text
+    (group 5:14
+      (call 5:15
+        (wing 5:15 skip)
+        (list 5:20 (str 5:22 "hi"))
+        (gate-wide 5:28
+          (face 5:31 x (aura 5:33 @t))
+          (lit 5:36 %.n)))))
+  (value 6:1 skip-ship
+    (group 6:14
+      (call 6:15
+        (wing 6:15 skip)
+        (list 6:20 (lit 6:22 ~zod))
+        (gate-wide 6:28
+          (face 6:31 x (aura 6:33 @p))
+          (lit 6:36 %.y)))))
+  (value 7:1 murn-text
+    (group 7:14
+      (call 7:15
+        (wing 7:15 murn)
+        (list 7:20 (str 7:22 "hi"))
+        (gate-wide 7:28
+          (face 7:31 x (aura 7:33 @t))
+          (unit 7:36 (wing 7:37 x))))))
+  (value 8:1 murn-ship
+    (group 8:14
+      (call 8:15
+        (wing 8:15 murn)
+        (list 8:20 (lit 8:22 ~zod))
+        (gate-wide 8:28
+          (face 8:31 x (aura 8:33 @p))
+          (unit 8:36 (wing 8:37 x))))))
+  (value 9:1 join-text
+    (group 9:14
+      (call 9:15
+        (wing 9:15 join)
+        (str 9:20 ",")
+        (list 9:24 (str 9:26 "a") (str 9:30 "b")))))
+  (value 10:1 join-ship
+    (group 10:14
+      (call 10:15
+        (wing 10:15 join)
+        (lit 10:20 ~zod)
+        (list 10:25 (lit 10:27 ~nec) (lit 10:32 ~bud)))))
+  (value 11:1 snip-text
+    (group 11:14
+      (call 11:15
+        (wing 11:15 snip)
+        (list 11:20 (str 11:22 "a") (str 11:26 "b")))))
+  (value 12:1 snip-ship
+    (group 12:14
+      (call 12:15
+        (wing 12:15 snip)
+        (list 12:20 (lit 12:22 ~zod) (lit 12:27 ~nec)))))
+  (value 13:1 bad-drop
+    (group 13:13
+      (call 13:14 (wing 13:14 drop) (str 13:19 "hi"))))
+  (value 14:1 bad-skim
+    (group 14:13
+      (call 14:14
+        (wing 14:14 skim)
+        (list 14:19 (str 14:21 "hi"))
+        (gate-wide 14:27
+          (face 14:30 x (aura 14:32 @p))
+          (lit 14:35 %.y)))))
+  (value 15:1 bad-join
+    (group 15:13
+      (call 15:14
+        (wing 15:14 join)
+        (lit 15:19 ~zod)
+        (list 15:24 (str 15:26 "hi"))))))

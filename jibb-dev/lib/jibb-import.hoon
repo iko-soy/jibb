@@ -24,9 +24,10 @@
 ::  the other fields are fixed atoms or collections of static atoms;
 ::  other source shapes fail closed.
 ::
-::  The checker has a small bridge for successful unfaced atom and cell
-::  results; it rejects other importer shapes. Failures return %|; no
-::  partial tree is returned as success.
+::  The partial checker bridges supported nouns, atoms, cells, faces,
+::  proven forks and collections, and keeps proven recursive roots nominal.
+::  Unsupported shapes fail closed. Reader failures return %|; no partial
+::  tree is returned as success.
 ::
 |%
 +$  imported
@@ -80,13 +81,22 @@
 ::  selected local arm. Restrict this fallback to distinct literal head tags
 ::  and proven-safe dependencies, then verify each projected branch again.
 +$  tagged-case  [tag=@ branch=spec]
-::  Clay and eval expose different versions of the spec union. Inspect a
-::  help wrapper as a noun before checking its contained spec.
+::  Clay and eval expose different versions of the spec union. Inspect help
+::  and source-location wrappers as nouns before checking their contained spec.
 ++  source-gist-tail
   |=  raw=*
   ^-  (unit *)
-  ?.  ?=([%gist [%help *] *] raw)  ~
-  `+.+.raw
+  ?:  ?=([%gist [%help *] *] raw)  `+.+.raw
+  ?:  ?=([%dbug * *] raw)  `+.+.raw
+  ~
+::
+++  tagged-term
+  |=  leaf=spec
+  ^-  (unit @)
+  =/  gist=(unit *)  (source-gist-tail leaf)
+  ?^  gist  $(leaf ;;(spec u.gist))
+  ?.  ?=([%leaf %tas @] leaf)  ~
+  `q.leaf
 ::
 ++  tagged-head
   |=  branch=spec
@@ -96,8 +106,7 @@
   ?+  branch  ~
     [%bccl *]
       ?~  t.p.branch  ~
-      ?.  ?=([%leaf %tas @] i.p.branch)  ~
-      `q.i.p.branch
+      (tagged-term i.p.branch)
   ==
 ::
 ++  tagged-cases
@@ -125,17 +134,17 @@
 ++  tagged-source-code
   |=  [code=hoon name=term]
   ^-  (unit (list tagged-case))
-  =/  note=(unit *)  (source-note-tail code)
-  ?^  note  $(code ;;(hoon u.note))
-  ?+  code  ~
-    [%ktcl *]
-      ?.  ?=([%name * [%bccn *]] p.code)  ~
-      ?.  =(name p.p.code)  ~
-      =/  cases=(list spec)  p.q.p.code
-      ?~  cases  ~
-      ?~  t.cases  ~
-      (tagged-cases cases ~)
-  ==
+  =/  found=(unit spec)  (local-mold-spec code name)
+  ?~  found  ~
+  =/  body=spec  u.found
+  |-
+  =/  gist=(unit *)  (source-gist-tail body)
+  ?^  gist  $(body ;;(spec u.gist))
+  ?.  ?=([%bccn *] body)  ~
+  =/  cases=(list spec)  p.body
+  ?~  cases  ~
+  ?~  t.cases  ~
+  (tagged-cases cases ~)
 ::
 ::  Source proof for dependencies of an explicitly tagged union. Only
 ::  simple local molds, standard collections and distinct term enums are
@@ -204,7 +213,7 @@
   =/  gist=(unit *)  (source-gist-tail shape)
   ?^  gist  $(shape ;;(spec u.gist))
   ?+  shape  ~
-    [%base *]  ?:(?=([%atom *] p.shape) `fuel ~)
+    [%base *]  ?:(|(?=([%atom *] p.shape) =(%flag p.shape)) `fuel ~)
     [%leaf *]  `fuel
     [%bcts *]  ?@  p.shape  $(shape q.shape)
                ~
@@ -312,6 +321,40 @@
 ::  A mark door's payload is [sample build-subject]. Its outer sample
 ::  face names the door sample, not the imported mark type. Collection
 ::  lookup for the sample happened against the pre-door build subject.
+::  Fallback for a mark whose sample is exactly one arm of its only
+::  Ford-imported /sur core. Source validation remains in read-mold-in.
+::  Recursive results need a separate mark-origin/interface design.
+++  mark-has-ref
+  |=  node=imported
+  ^-  ?
+  ?-  node
+    [%ref *]  &
+    [%face *]  $(node body.node)
+    [%cell *]  |($(node head.node) $(node tail.node))
+    [%fork *]  (lien cases.node |=(child=imported (mark-has-ref child)))
+    [%apply *]  (lien args.node |=(child=imported (mark-has-ref child)))
+    *  |
+  ==
+::
+++  mark-union-fallback
+  |=  [raw=type context=type]
+  ^-  (unit (each imported @t))
+  ?.  ?=([%cell [%face @ [%core *]] *] context)  ~
+  ?.  =(q.context -:!>(..zuse))  ~
+  =/  alias=term  p.p.context
+  =/  core=type  q.p.context
+  ?.  ?=([%hold *] raw)  ~
+  =/  name=(unit term)  (hold-name q.raw)
+  ?~  name  ~
+  =/  selected=(each type tang)
+    (mule |.((~(play ut core) (ream (cat 3 '*' u.name)))))
+  ?.  ?=([%& *] selected)  ~
+  ?.  =(p.selected raw)  ~
+  =/  result=(each imported @t)  (read-mold-in alias u.name raw core)
+  ?.  ?=([%& [%fork *]] result)  ~
+  ?:  (mark-has-ref p.result)  ~
+  `result
+::
 ++  read-mark
   |=  [name=term cor=type]
   ^-  (each imported @t)
@@ -322,8 +365,12 @@
   =/  sample=type  p.p.cor
   =/  raw=type  ?:(?=([%face *] sample) q.sample sample)
   =/  result  (read-with name name raw [~ q.p.cor])
-  ?.  ?=([%& *] result)  result
-  result
+  ?:  ?=([%& *] result)  result
+  =/  fallback=(each (unit (each imported @t)) tang)
+    (mule |.((mark-union-fallback raw q.p.cor)))
+  ?:  ?=(%| -.fallback)  result
+  ?~  p.fallback  result
+  u.p.fallback
 ::
 ++  read-named-diagnostic
   |=  [module=term name=term cor=type]
@@ -1524,6 +1571,24 @@
   =/  source=hoon  original(q.p (decorate-union-source q.p.original))
   (read-mold %small name typ(q source))
 ::
+::  Test debug metadata at the spec boundary without assuming that the
+::  eval version of Hoon's spec mold itself includes Clay's %dbug tag.
+++  debug-spec-fixture
+  ^-  tape
+  =/  location=*  [/tests/importer/synthetic/hoon [[1 1] [1 2]]]
+  =/  wrapped=*  [%dbug location [%leaf %tas %x]]
+  =/  got=(unit *)  (source-gist-tail wrapped)
+  ?~  got  "debug wrapper missing"
+  =/  leaf=(each spec tang)  (mule |.(;;(spec u.got)))
+  ?.  ?=([%& [%leaf %tas %x]] leaf)  "debug leaf not recovered"
+  =/  branch=spec  [%bccl ~[p.leaf [%base [%atom %t]]]]
+  ?^  (tagged-cases ~[branch branch] ~)  "duplicate tags accepted"
+  =/  broken=(unit *)  (source-gist-tail [%dbug location 42])
+  ?~  broken  "debug wrapper missing"
+  =/  invalid=(each spec tang)  (mule |.(;;(spec u.broken)))
+  ?:  ?=(%& -.invalid)  "malformed spec accepted"
+  "valid wrapper; duplicate and malformed rejected"
+::
 ::  Synthetic nodes test each part of the direct collection-call proof.
 ++  collection-wrapper-fixture
   ^-  tape
@@ -1569,6 +1634,19 @@
   =/  mark-rec-core=type  -:(ride fp mark-rec)
   =/  mark-gate-core=type  -:(ride -:!>(..zuse) mark-gate)
   =/  mark-basic-core=type  -:(ride -:!>(..zuse) mark-basic)
+  =/  make-mark
+    |=  [field=@t scope=type]
+    ^-  type
+    -:(ride scope (crip "|_  a={(trip field)}\0a++  grab  |%  ++  noun  a  --\0a++  grow  |%  ++  noun  a  --\0a++  grad  %noun\0a--\0a"))
+  =/  mark-union-core=type  (make-mark 'mark-flag-valid:small' fp)
+  =/  mark-overlap-core=type  (make-mark 'mark-flag-overlap:small' fp)
+  =/  mark-hidden-core=type  (make-mark 'mark-flag-hidden:small' fp)
+  =/  mark-signed-core=type  (make-mark 'signed:small' fp)
+  =/  mark-callable-core=type  (make-mark 'gate-test:small' fp)
+  =/  extra-subject=type  [%cell [%face %other other] fp]
+  =/  mark-extra-core=type  (make-mark 'mark-flag-valid:small' extra-subject)
+  =/  other-hold=type  (~(play ut other) (ream '*chain'))
+  =/  recursive-hold=type  (~(play ut sc) (ream '*chain'))
   =/  fake-vase=type  -:(ride -:!>(..zuse) '|%\0a+$  vase  @ud\0a--\0a')
   =/  spoof=(unit import-diagnostic)
     (first-invalid [%bad 'signed and float auras cannot be imported'])
@@ -1627,6 +1705,15 @@
       (crip "nested-static-mop: {(show-result (sample %nested-static-mop))}")
       (crip "collection-siblings: {(show-result (sample %collection-siblings))}")
       (crip "dynamic-sibling-mop: {(show-result (sample %dynamic-sibling-mop))}")
+      (crip "mark-flag-source: {(show-result (read-named %small %mark-flag-valid sc))}")
+      (crip "mark-flag-union: {(show-result (read-mark %flag-union mark-union-core))}")
+      (crip "mark-flag-overlap: {(show-result (read-mark %flag-overlap mark-overlap-core))}")
+      (crip "mark-flag-hidden: {(show-result (read-mark %flag-hidden mark-hidden-core))}")
+      (crip "mark-flag-signed: {(show-result (read-mark %flag-signed mark-signed-core))}")
+      (crip "mark-flag-callable: {(show-result (read-mark %flag-callable mark-callable-core))}")
+      (crip "mark-flag-extra: {(show-result (read-mark %flag-extra mark-extra-core))}")
+      (crip "mark-flag-other-hold: {?~((mark-union-fallback other-hold fp) "unsupported" "BAD")}")
+      (crip "mark-flag-recursive-fallback: {?~((mark-union-fallback recursive-hold fp) "unsupported" "BAD")}")
       (crip "mark-record: {(show-result (read-mark %todo-item mark-core))}")
       (crip "mark-recursive: {(show-result (read-mark %recursive mark-rec-core))}")
       (crip "mark-gate: {(show-result (read-mark %bad mark-gate-core))}")
@@ -1656,6 +1743,7 @@
       (crip "gate: {(show-result (sample %gate-test))}")
       (crip "vase: {(show-result vase)}")
       (crip "failed-branch: {(show-result (read-mold %external %bad bad-branch-fixture))}")
+      (crip "debug-spec: {debug-spec-fixture}")
       (crip "debug-union: {(show-result (debug-union-fixture sc %action))}")
       (crip "debug-union-overlap: {(show-result (debug-union-fixture sc %explicit-wut-overlap))}")
       (crip "debug-nested-cell: {(show-result (debug-union-fixture sc %nested-valid-cell))}")

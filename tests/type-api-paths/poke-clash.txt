@@ -1,0 +1,12 @@
+::  /ui/api/todo.jibb
+/-  todo
+/%  %todo-action
+/%  %todos
+/%  %todo-update
+/%  %todo-item
+
++$ item item.todo
++$ poke todo-action
++$ paths
+  [%todo-action /todos todos]
+  [%todo-by-id /todo/[id=@ud] todo-item]

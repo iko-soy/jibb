@@ -1,0 +1,4 @@
+source: Overview, Prelude, Units and Lists: the public prelude is written in Jibb and its functions are generalized gates.
+tests: The actual source-backed `drop`, `skim`, `skip`, `murn`, `join` and `snip` infer independently for cords and ships; incorrect unit, predicate and separator arguments report mismatches. Return casts preserve their existing implementations. Runtime behavior awaits the backend.
+expect: parses
+expect-types: a partial inference report
