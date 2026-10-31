@@ -68,7 +68,62 @@
   ?.  ?=([%| *] (api-path-evidence-source:jibb /ui/api/demo/jibb api ~ marks indirect prepared))  'transitive private import accepted'
   =/  cyclic=jbundle:jibb  ~[[/ui/dep/jibb '/= back /ui/dep\0a++ value "x"\0a']]
   ?.  ?=([%| *] (api-path-evidence-source:jibb /ui/api/demo/jibb api ~ marks cyclic prepared))  'cycle accepted'
-  'normal watchable; scry not watchable; missing and duplicate unknown'
+  =/  normal=@t  '/% %full\0a/% %delta\0a/% %second\0a+$ paths\0a  [%plain /plain full]\0a  [%changes /changes (facts full delta second)]\0a  [%by-id /things/[id=@ud] full]\0a  [%by-pair /things/[id=@ud]/[slug=@ta] (facts full delta)]\0a  [%out-of-order /things/[zeta=@ud]/[alpha=@ta] (facts full delta)]\0a  [%separate /watch/[id=@ud] (facts full delta) scry=/peek/[id=@ud]]\0a  [%unknown /watch/[id=@xyz] full]\0a'
+  =/  prep=(unit iprelude:jibb)  prepared
+  ?~  prep  'minimal prelude unavailable'
+  =/  marks=imark-externals:jibb  ~[[%full [%& [%atom %t ~]]] [%delta [%& [%atom %ud ~]]] [%second [%& [%atom %p ~]]]]
+  =/  got  (api-path-evidence-source:jibb /ui/api/demo/jibb normal ~ marks ~ prep)
+  ?:  ?=(%| -.got)  p.got
+  =/  ev=iapi-path-evidence:jibb  p.got
+  =/  plain=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `ev %plain)
+  ?~  plain  'plain parts unavailable'
+  ?.  =(evidence.u.plain ev)  'source evidence not retained'
+  ?.  =(name.path.path.u.plain %plain)  'plain path identity changed'
+  ?.  ?=(~ parameters.u.plain)  'plain path has parameters'
+  ?.  =(reply-sample.u.plain [%atom %t])  'plain reply sample wrong'
+  ?.  ?=(~ fold.u.plain)  'plain path has unexpected fold'
+  ?.  =(%watchable watchability.u.plain)  'plain path is not watchable'
+  =/  id=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `ev %by-id)
+  ?~  id  'typed path unavailable'
+  ?.  ?=([* ~] parameters.u.id)  'typed parameter count wrong'
+  ?.  =(name.i.parameters.u.id %id)  'typed parameter name wrong'
+  ?.  =(typ.i.parameters.u.id [%atom %ud])  'typed parameter aura wrong'
+  =/  id-raw=(unit (list iapi-parameter:jibb))  (api-path-parameters:jibb segments.path.path.u.id ~)
+  ?~  id-raw  'typed raw parameter unavailable'
+  ?.  ?=([* ~] u.id-raw)  'typed raw parameter count wrong'
+  ?.  =(at.i.parameters.u.id at.i.u.id-raw)  'typed parameter span not retained'
+  =/  pair=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `ev %by-pair)
+  ?~  pair  'two-parameter facts path unavailable'
+  ?.  ?=([* * ~] parameters.u.pair)  'two-parameter count wrong'
+  ?.  =(name.i.parameters.u.pair %id)  'first parameter name wrong'
+  ?.  =(typ.i.parameters.u.pair [%atom %ud])  'first parameter aura wrong'
+  ?.  =(name.i.t.parameters.u.pair %slug)  'second parameter name wrong'
+  ?.  =(typ.i.t.parameters.u.pair [%atom %ta])  'second parameter aura wrong'
+  =/  expected-fold=itype:jibb
+    [%fn [%cell [%cell [%const [%term %tas %delta '%delta']] [%atom %ud]] [%atom %t]] [%atom %t]]
+  ?.  =(fold.u.pair `expected-fold)  'single-diff tagged fold type wrong'
+  ?.  !=(%delta 0)  'diff mark literal is zero'
+  =/  out=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `ev %out-of-order)
+  ?~  out  'nonalphabetical parameters unavailable'
+  ?.  ?=([* * ~] parameters.u.out)  'nonalphabetical parameter count wrong'
+  ?.  =(name.i.parameters.u.out %zeta)  'first source-ordered parameter changed'
+  ?.  =(typ.i.parameters.u.out [%atom %ud])  'first source-ordered aura changed'
+  ?.  =(name.i.t.parameters.u.out %alpha)  'second source-ordered parameter changed'
+  ?.  =(typ.i.t.parameters.u.out [%atom %ta])  'second source-ordered aura changed'
+  ?.  =(fold.u.out `expected-fold)  'nonzero diff mark tag noun or spelling changed'
+  ?.  =(reply-sample.u.pair [%atom %t])  'facts full sample wrong'
+  ?.  ?=(~ (api-request-parts:jibb `ev %changes))  'multi-diff fold should be unsupported'
+  ?.  ?=(~ (api-request-parts:jibb `ev %missing))  'missing case accepted'
+  ?.  ?=(~ (api-request-parts:jibb ~ %plain))  'missing evidence accepted'
+  =/  dup=iapi-path-evidence:jibb  ev(paths [path.u.plain paths.ev])
+  ?.  ?=(~ (api-request-parts:jibb `dup %plain))  'duplicate case accepted'
+  =/  scry=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `ev %separate)
+  ?~  scry  'scry path unavailable'
+  ?.  =(%not-watchable watchability.u.scry)  'scry path classified watchable'
+  ?.  ?=(^ scry.path.path.u.scry)  'scry path metadata dropped'
+  ?.  =(fold.u.scry `expected-fold)  'scry fold type changed'
+  ?.  ?=(~ (api-request-parts:jibb `ev %unknown))  'unknown parameter aura accepted'
+  'normal watchable; scry not watchable; missing and duplicate unknown; request parts checked'
 ++  real-evidence-status
   |=  [prelude=@t internal=@t sur=@t action=@t todos=@t update=@t item=@t api=@t]
   ^-  @t
@@ -114,11 +169,24 @@
   ?~  todo-diff  'real diff reader type unavailable'
   ?.  =(full.i.changes u.todo-full)  'real full reader type differs'
   ?.  =(typ.i.diffs.i.changes u.todo-diff)  'real diff reader type differs'
+  =/  request=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `evidence %changes)
+  ?~  request  'real todo facts request parts unavailable'
+  ?.  =(evidence.u.request evidence)  'real evidence not retained in parts'
+  ?.  =(reply-sample.u.request u.todo-full)  'real todo reply type wrong'
+  =/  expected=itype:jibb
+    [%fn [%cell [%cell [%const [%term %tas %todo-update '%todo-update']] u.todo-diff] u.todo-full] u.todo-full]
+  ?.  =(fold.u.request `expected)  'real todo tagged fold type wrong'
+  ?.  =(%watchable watchability.u.request)  'real todo watch classification wrong'
+  =/  by-id-parts=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `evidence %todo-by-id)
+  ?~  by-id-parts  'real todo id path parts unavailable'
+  ?.  =(%not-watchable watchability.u.by-id-parts)  'real scry declaration classified watchable'
+  ?.  ?=([* ~] parameters.u.by-id-parts)  'real id parameter missing'
+  ?.  &(=(name.i.parameters.u.by-id-parts %id) =(typ.i.parameters.u.by-id-parts [%atom %ud]))  'real id parameter wrong'
   'real todo path evidence passed'
 ++  test-api-evidence-synthetic
   ^-  tang
   =/  outcome=@t  synthetic-evidence-status
-  ?:  =(outcome 'normal watchable; scry not watchable; missing and duplicate unknown')  ~
+  ?:  =(outcome 'normal watchable; scry not watchable; missing and duplicate unknown; request parts checked')  ~
   ~[leaf+(trip outcome)]
 ++  test-api-evidence-real
   ^-  tang

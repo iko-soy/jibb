@@ -10507,6 +10507,52 @@
   ?~  scry.path.i.found  %watchable
   %not-watchable
 ::
+::  These are declaration-derived request components, not a callable gate,
+::  an ask value, or proof of a value's provenance.  Keep the exact trusted
+::  source/reader evidence until a later checked interface and lowerer can
+::  attach it to a generated request.  No argument ordering is claimed here.
++$  iapi-request-parameter  [name=term typ=itype at=span]
++$  iapi-request-parts
+  [evidence=iapi-path-evidence path=iapi-path-typed parameters=(list iapi-request-parameter) reply-sample=itype fold=(unit itype) watchability=?(%watchable %not-watchable)]
+++  api-request-parameter-types
+  |=  params=(list iapi-parameter)
+  ^-  (unit (list iapi-request-parameter))
+  ?~  params  `~
+  =/  aura=@ta  aura.i.params
+  ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
+  =/  rest=(unit (list iapi-request-parameter))  $(params t.params)
+  ?~  rest  ~
+  `[[name.i.params [%atom aura] at.i.params] u.rest]
+::
+::  A single diff's fold consumes the tagged diff and the previous full value.
+::  Multiple-diff unions need a checked union representation and remain open.
+++  api-request-fold-type
+  |=  p=iapi-path-typed
+  ^-  (unit (unit itype))
+  ?~  diffs.p  `~
+  ?^  t.diffs.p  ~
+  =/  d=iapi-mark-type  i.diffs.p
+  =/  literal=lit  [%term %tas name.d (crip ['%' (trip name.d)])]
+  =/  sample=itype  [%cell [%cell [%const literal] typ.d] full.p]
+  ``[%fn sample full.p]
+::
+++  api-request-parts
+  |=  [evidence=(unit iapi-path-evidence) case-name=term]
+  ^-  (unit iapi-request-parts)
+  ?~  evidence  ~
+  =/  found=(list iapi-path-typed)
+    (skim paths.u.evidence |=(p=iapi-path-typed =(name.path.p case-name)))
+  ?.  ?=([* ~] found)  ~
+  =/  p=iapi-path-typed  i.found
+  =/  raw=(unit (list iapi-parameter))  (api-path-parameters segments.path.p ~)
+  ?~  raw  ~
+  =/  params=(unit (list iapi-request-parameter))  (api-request-parameter-types u.raw)
+  ?~  params  ~
+  =/  fold=(unit (unit itype))  (api-request-fold-type p)
+  ?~  fold  ~
+  =/  watch=?(%watchable %not-watchable)  ?~(scry.path.p %watchable %not-watchable)
+  `[u.evidence p u.params full.p u.fold watch]
+::
 ++  api-mark-exports
   |=  [marks=(list term) all=(list term) externals=imark-externals]
   ^-  imold-types
