@@ -1,0 +1,9 @@
+partial inference; module not checked
+++ title: @t
+++ zip: @t
+++ first: @t
+++ second: @p
+++ absent: field is not available to partial inference
+++ absent-root: module member is not available to partial inference
+++ profile: @t
+++ use-again: @t

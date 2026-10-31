@@ -1,0 +1,6 @@
+/ui/lib.jibb
+(module
+  (value 1:1 ambiguous
+    (tuple 1:14
+      (face 1:15 x (str 1:17 "hi"))
+      (face 1:22 x (lit 1:24 ~zod)))))

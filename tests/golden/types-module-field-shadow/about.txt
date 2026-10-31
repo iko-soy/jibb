@@ -1,0 +1,4 @@
+source: Grammar, Expressions and Imports: a wing selects a named field, and a module import gives access through its face.
+tests: A gate sample cannot shadow an imported module face.
+expect: parses
+expect-types: a partial inference report

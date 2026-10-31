@@ -1,0 +1,14 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 title (wing 2:10 title.profile.lib))
+  (value 3:1 zip (wing 3:8 zip.address.profile.lib))
+  (value 4:1 first
+    (group 4:10
+      (call 4:11 (wing 4:11 f.template.lib) (str 4:26 "hi"))))
+  (value 5:1 second
+    (group 5:11
+      (call 5:12 (wing 5:12 f.template.lib) (lit 5:27 ~zod))))
+  (value 6:1 absent (wing 6:11 nope.profile.lib))
+  (value 7:1 absent-root (wing 7:16 title.nope.lib))
+  (value 8:1 profile (str 8:12 "local"))
+  (value 9:1 use-again (wing 9:14 title.profile.lib)))

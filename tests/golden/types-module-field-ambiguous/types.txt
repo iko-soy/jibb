@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ value: field name is ambiguous in partial inference

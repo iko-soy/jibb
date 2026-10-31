@@ -6485,17 +6485,29 @@
   ^-  iresult
   =/  reverse=(list term)  (flop names)
   ?~  reverse  [%| ["empty wing" ~]]
-  =/  scheme=(unit ischeme)  (ienv-lookup i.reverse env)
-  ?~  scheme  [%| ["field access is not supported by partial inference" ~]]
-  =/  inst=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
+  =/  iface=(unit ifile)  (find-jibb-interface i.reverse jimports.state)
   =/  fields=(list term)  t.reverse
+  ?~  fields  [%| ["field access is not supported by partial inference" ~]]
+  =/  scheme=(unit ischeme)
+    ?~  iface
+      (ienv-lookup i.reverse env)
+    (ienv-lookup i.fields values.u.iface)
+  ?~  scheme
+    ?^  iface  [%| ["module member is not available to partial inference" ~]]
+    [%| ["field access is not supported by partial inference" ~]]
+  =/  inst=[typ=itype state=istate]
+    ?~  iface  (instantiate-scheme u.scheme state)
+    =/  imported=ischeme  u.scheme
+    =.  typ.imported  (itype-in-import typ.imported u.iface i.reverse prelude.state)
+    (instantiate-scheme imported state)
+  =/  remaining=(list term)  ?~(iface fields t.fields)
   =/  typ=itype  typ.inst
   |-
-  ?~  fields  [%& typ state.inst]
-  =/  found=(list itype)  (record-fields-named i.fields typ sub.state.inst)
+  ?~  remaining  [%& typ state.inst]
+  =/  found=(list itype)  (record-fields-named i.remaining typ sub.state.inst)
   ?~  found  [%| ["field is not available to partial inference" ~]]
   ?^  t.found  [%| ["field name is ambiguous in partial inference" ~]]
-  $(fields t.fields, typ i.found)
+  $(remaining t.remaining, typ i.found)
 ::
 ::  Propagate a known union or list through supported loobean, unit and list
 ::  branches. Empty bodies and groups are transparent; bodies with definitions

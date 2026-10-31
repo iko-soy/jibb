@@ -1,0 +1,4 @@
+source: Grammar, Expressions and Imports: a wing selects a named field, and a module import gives access through its face.
+tests: Accessing a field through an imported cord stays unsupported instead of assuming that it is a record.
+expect: parses
+expect-types: a partial inference report

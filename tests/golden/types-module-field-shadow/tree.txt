@@ -1,0 +1,6 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 bad
+    (gate 2:8
+      (face 2:11 lib (aura 2:15 @t))
+      (wing 2:18 title.profile.lib))))

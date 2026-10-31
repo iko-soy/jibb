@@ -1,0 +1,12 @@
+/ui/lib.jibb
+(module
+  (value 1:1 profile
+    (tuple 1:12
+      (face 1:13 title (str 1:19 "Hello"))
+      (face 1:27 address
+        (tuple 1:35
+          (face 1:36 zip (str 1:40 "N1"))))))
+  (value 2:1 template
+    (tuple 2:13
+      (face 2:14 f
+        (gate-wide 2:16 (bind 2:19 x) (wing 2:21 x))))))

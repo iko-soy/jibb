@@ -1,0 +1,2 @@
+partial inference; module not checked
+++ bad: sample shadows a name

@@ -1,0 +1,4 @@
+source: Grammar, Expressions and Imports: a wing selects a named field, and a module import gives access through its face.
+tests: An imported value can be a faced record; nested wings and independent uses of a generic gate field retain their types. Missing members and fields remain unsupported, and a local name does not change the import face.
+expect: parses
+expect-types: a partial inference report
