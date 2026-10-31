@@ -4672,6 +4672,7 @@
       [%collection name=term args=(list itype)]
       [%recursive module=term name=term label=(unit @t)]
       [%jrec at=path name=term label=(unit @t) head=term aura=@ta tail=term]
+      [%grec at=path name=term label=(unit @t) proof=shape args=(list itype)]
       [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t) args=(list itype)]
       [%face name=term body=itype]
       [%fn sample=itype product=itype]
@@ -4743,6 +4744,7 @@
     %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
     %recursive  |
     %jrec       |
+    %grec       (lien args.t |=(c=itype (itype-occurs n c sub)))
     %collection  (lien args.t |=(c=itype (itype-occurs n c sub)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
@@ -4761,6 +4763,9 @@
   =.  a  (itype-walk a sub)
   =.  b  (itype-walk b sub)
   ?:  =(a b)  `sub
+  ?:  &(?=(%grec -.a) ?=(%grec -.b))
+    ?.  &(=(at.a at.b) =(name.a name.b))  ~
+    (itype-unify-args args.a args.b sub)
   ?:  &(?=(%jrec -.a) ?=(%jrec -.b))
     ?:(&(=(at.a at.b) =(name.a name.b) =(head.a head.b) =(aura.a aura.b) =(tail.a tail.b)) `sub ~)
   ?:  &(?=(%recursive -.a) ?=(%recursive -.b))
@@ -4871,6 +4876,7 @@
     %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
     %recursive  |
     %jrec       |
+    %grec       (lien args.t |=(c=itype (itype-has-any-atom c sub)))
     %collection  (lien args.t |=(c=itype (itype-has-any-atom c sub)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -4945,6 +4951,7 @@
     %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
     %recursive  |
     %jrec       |
+    %grec       (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
     %collection  (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
@@ -4973,6 +4980,7 @@
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %grec  (lien args.t |=(c=itype (itype-has-face c sub)))
     %collection  (lien args.t |=(c=itype (itype-has-face c sub)))
     %face      &
     %cell      |($(t hed.t) $(t tal.t))
@@ -5029,6 +5037,9 @@
   ^-  ?
   =.  a  (itype-walk a sub)
   =.  b  (itype-walk b sub)
+  ?:  &(?=(%grec -.a) ?=(%grec -.b))
+    ?.  &(=(at.a at.b) =(name.a name.b))  |
+    (itype-face-asym-collection-args args.a args.b sub)
   ?:  &(?=(%collection -.a) ?=(%collection -.b))
     ?.  =(name.a name.b)  |
     (itype-face-asym-collection-args args.a args.b sub)
@@ -5091,6 +5102,7 @@
     %union     &
     %recursive  &
     %jrec       &
+    %grec       &
     %noun       &
     %collection  &
     %face      $(t body.t)
@@ -5120,6 +5132,7 @@
   ^-  ?
   ?-  -.t
     %tag   &
+    %grec  (lien args.t |=(c=itype (itype-has-tag c)))
     %collection  (lien args.t |=(c=itype (itype-has-tag c)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
@@ -5133,6 +5146,7 @@
   ^-  ?
   ?-  -.t
     %union  &
+    %grec  (lien args.t |=(c=itype (itype-has-union c)))
     %collection  (lien args.t |=(c=itype (itype-has-union c)))
     %face   $(t body.t)
     %fn     |($(t sample.t) $(t product.t))
@@ -5151,6 +5165,7 @@
     %union
       ?:  &(?=(~ label.t) ?=(^ args.t))  &
       (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-generic c)))
+    %grec  |(?=(~ label.t) (lien args.t |=(c=itype (itype-has-hidden-generic c))))
     %collection  (lien args.t |=(c=itype (itype-has-hidden-generic c)))
     %face  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
@@ -5164,6 +5179,7 @@
   ?-  -.t
     %recursive  &
     %jrec       &
+    %grec       &
     %collection  (lien args.t |=(c=itype (itype-has-recursive c)))
     %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-recursive c)))
     %face  $(t body.t)
@@ -5178,6 +5194,7 @@
   ?-  -.t
     %recursive  ?=(~ label.t)
     %jrec       ?=(~ label.t)
+    %grec       |(?=(~ label.t) (lien args.t |=(c=itype (itype-has-hidden-recursive c))))
     %collection  (lien args.t |=(c=itype (itype-has-hidden-recursive c)))
     %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-recursive c)))
     %face  $(t body.t)
@@ -5223,7 +5240,7 @@
   ?:  ?=(%var -.raw)
     $(cases t.cases, pending &)
   =/  c=itype  (itype-walk raw sub)
-  ?:  ?=(?(%var %tag %recursive %jrec %union %face) -.c)
+  ?:  ?=(?(%var %tag %recursive %jrec %grec %union %face) -.c)
     $(cases t.cases, pending &)
   ?.  ?=(%cell -.c)  $(cases t.cases)
   =/  raw-head=itype  hed.c
@@ -5236,7 +5253,7 @@
     ?:  ?=(?(%atom %any-atom %flag %avar %rvar %nvar %rnvar) -.body.head)
       $(cases t.cases)
     $(cases t.cases, pending &)
-  ?:  ?=(?(%var %tag %recursive %jrec %union) -.head)
+  ?:  ?=(?(%var %tag %recursive %jrec %grec %union) -.head)
     $(cases t.cases, pending &)
   ?.  ?=(%const -.head)  $(cases t.cases)
   ?.  =(val.literal.head val.tag)  $(cases t.cases)
@@ -5285,6 +5302,14 @@
     [%ok sub next]
   ::  An arbitrary noun is not known to fit a narrower type.
   ?:  &(?=(%noun -.actual) !?=(%var -.expected))  [%unknown ~]
+  ?:  &(!uncertain ?=(%grec -.actual) ?=(%face -.expected))  $(expected body.expected)
+  ?:  &(!uncertain ?=(%face -.actual) ?=(%grec -.expected))  $(actual body.actual)
+  ?:  &(?=(%grec -.actual) ?=(%grec -.expected))
+    ?.  &(=(at.actual at.expected) =(name.actual name.expected))  [%unknown ~]
+    =/  matched=(unit isub)  (itype-unify-args args.actual args.expected sub)
+    ?~  matched  [%unknown ~]
+    [%ok u.matched next]
+  ?:  &(|(?=(%grec -.actual) ?=(%grec -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
   ?:  &(!uncertain ?=(%jrec -.actual) ?=(%face -.expected))  $(expected body.expected)
   ?:  &(!uncertain ?=(%face -.actual) ?=(%jrec -.expected))  $(actual body.actual)
   ?:  &(?=(%jrec -.actual) ?=(%jrec -.expected))
@@ -5674,10 +5699,11 @@
     %tag        [%unknown | fuel ~]
     %recursive  [%unknown | fuel ~]
     %jrec       [%yes & fuel ~]
+    %grec       [%unknown | fuel ~]
   ==
 ::
 +$  igate-prelude-evidence  [iface=ifile gates=(map term def)]
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) gate-defs=(map term def) head-evidence=(unit igate-prelude-evidence)]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) gate-defs=(map term def) head-evidence=(unit igate-prelude-evidence) grec-index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -5697,6 +5723,7 @@
   |=  [t=itype sub=isub]
   ^-  itype
   =.  t  (itype-walk t sub)
+  ?:  ?=(%grec -.t)  t(args (turn args.t |=(c=itype (itype-normalize c sub))))
   ?:  ?=(%collection -.t)  [%collection name.t (turn args.t |=(c=itype (itype-normalize c sub)))]
   ?:  ?=(%union -.t)
     [%union (turn cases.t |=(c=itype (itype-normalize c sub))) origin.t label.t (turn args.t |=(c=itype (itype-normalize c sub)))]
@@ -5723,6 +5750,7 @@
     %cell      |($(t hed.t) $(t tal.t))
     %recursive  |
     %jrec       |
+    %grec       &
     %collection  (lien args.t |=(c=itype (itype-has-gate c)))
     %face      $(t body.t)
     %union     (lien cases.t |=(c=itype (itype-has-gate c)))
@@ -5746,6 +5774,7 @@
   ?-  -.t
     %nvar      [%atom %ud]
     %rnvar      [%atom %ud]
+    %grec  t(args (turn args.t |=(c=itype (default-decimals c))))
     %collection  [%collection name.t (turn args.t |=(c=itype (default-decimals c)))]
     %face      [%face name.t $(t body.t)]
     %cell      [%cell $(t hed.t) $(t tal.t)]
@@ -5787,6 +5816,7 @@
     %tag  |
     %any-atom  &
     %union  &((levy cases.t |=(c=itype (hole-known c state))) (levy args.t |=(c=itype (hole-known c state))))
+    %grec  (levy args.t |=(c=itype (hole-known c state)))
     %collection  (levy args.t |=(c=itype (hole-known c state)))
     %face  $(t body.t)
     %fn  &($(t sample.t) $(t product.t))
@@ -5834,6 +5864,7 @@
   ?-  -.t
     ?(%tag %nvar %rnvar %avar %rvar)  !(hole-known t state)
     %union  |((lien cases.t |=(c=itype (hole-uncertain c state))) (lien args.t |=(c=itype (hole-uncertain c state))))
+    %grec  (lien args.t |=(c=itype (hole-uncertain c state)))
     %collection  (lien args.t |=(c=itype (hole-uncertain c state)))
     %face  $(t body.t)
     %fn  |($(t sample.t) $(t product.t))
@@ -5870,6 +5901,7 @@
     %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
     %recursive  ~
     %jrec       ~
+    %grec       (zing (turn args.t |=(c=itype (itype-vars c))))
     %collection  (zing (turn args.t |=(c=itype (itype-vars c))))
     %face  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
@@ -5918,6 +5950,7 @@
     %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %recursive  t
     %jrec       t
+    %grec       t(args (turn args.t |=(c=itype (itype-rename c ren))))
     %collection  [%collection name.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %face  [%face name.t $(t body.t)]
     %fn    [%fn $(t sample.t) $(t product.t)]
@@ -5945,6 +5978,7 @@
     %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
     %recursive  |
     %jrec       |
+    %grec       (lien args.t |=(c=itype (itype-var-is-atom n c)))
     %collection  (lien args.t |=(c=itype (itype-var-is-atom n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -5968,6 +6002,7 @@
     %union     |((lien cases.t |=(c=itype (itype-var-is-restricted n c))) (lien args.t |=(c=itype (itype-var-is-restricted n c))))
     %recursive  |
     %jrec       |
+    %grec       (lien args.t |=(c=itype (itype-var-is-restricted n c)))
     %collection  (lien args.t |=(c=itype (itype-var-is-restricted n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -6398,6 +6433,16 @@
   ?:  &(?=(~ vars.template) ?=(%jrec -.typ.template) =(at.typ.template origin) =(name.typ.template name))  `name.i.molds
   $(molds t.molds)
 ::
+++  grec-visible-alias
+  |=  [origin=path name=term proof=shape args=(list itype) molds=imold-types]
+  ^-  (unit term)
+  ?~  molds  ~
+  =/  template=ischeme  template.i.molds
+  ?.  ?=(%grec -.typ.template)  $(molds t.molds)
+  ?.  &(=(at.typ.template origin) =(name.typ.template name) =(proof.typ.template proof))  $(molds t.molds)
+  ?.  &((identity-union-parameters vars.template args.typ.template) =((lent vars.template) (lent args)))  $(molds t.molds)
+  `name.i.molds
+::
 ++  itype-in-import
   |=  [t=itype iface=ifile face=term prelude=(unit ifile)]
   ^-  itype
@@ -6417,6 +6462,11 @@
         `(crip "{(trip u.alias)}.{(trip face)}")
       [%union (turn cases.t |=(c=itype (itype-in-import c iface face prelude))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face prelude)))]
     %recursive  [%recursive module.t name.t ~]
+    %grec
+      =/  public=(unit term)  ?~(prelude ~ (grec-visible-alias at.t name.t proof.t args.t molds.u.prelude))
+      =/  alias=(unit term)  ?~(public (grec-visible-alias at.t name.t proof.t args.t molds.iface) public)
+      =/  label=(unit @t)  ?~(alias ~ ?~(public `(crip "{(trip u.alias)}.{(trip face)}") `u.alias))
+      t(label label, args (turn args.t |=(c=itype (itype-in-import c iface face prelude))))
     %jrec
       =/  public=(unit term)  ?~(prelude ~ (jrec-alias at.t name.t molds.u.prelude))
       ?^  public  t(label `u.public)
@@ -6529,9 +6579,29 @@
   ?.  =(names.tail ~[name])  ~
   `[%jrec at.state name `name name.i.fs aura.shape.i.fs name.i.t.fs]
 ::
+++  simple-source-generic-recursive
+  |=  [name=term sh=shape args=(list itype) state=istate]
+  ^-  (unit itype)
+  ?.  ?=(%generic -.sh)  ~
+  ?.  ?=([@ ~] vars.sh)  ~
+  ?.  ?=([* ~] args)  ~
+  ?~  grec-index.state  ~
+  ?.  =(at.u.grec-index.state at.state)  ~
+  ?~  prelude.state  ~
+  ?.  =(prelude.u.grec-index.state u.prelude.state)  ~
+  =/  proof=(unit shape)  (~(get by shapes.u.grec-index.state) name)
+  ?~  proof  ~
+  ?.  =(u.proof sh)  ~
+  `[%grec at.state name `name sh args]
+::
+
 ++  infer-mold-template
   |=  [sh=shape state=istate]
   ^-  (unit [template=ischeme state=istate])
+  =/  generic=(unit itype)
+    ?.  ?=([@ ~] active.state)  ~
+    (simple-source-generic-recursive i.active.state sh ~[[%var next.state]] state)
+  ?^  generic  `[[u.generic ~[next.state]] state(next +(next.state))]
   =/  direct=(unit itype)
     ?.  ?=([@ ~] active.state)  ~
     (simple-source-recursive i.active.state sh state)
@@ -6744,6 +6814,8 @@
         ?~  applied  ~
         `[u.applied state.u.args]
       ?.  ?=(%generic -.u.found)  ~
+      =/  grec=(unit itype)  (simple-source-generic-recursive n u.found types.u.args state.u.args)
+      ?^  grec  `[u.grec state.u.args]
       ?.  (distinct-params vars.u.found)  ~
       =/  params=(unit iparams)  (bind-params vars.u.found types.u.args)
       ?~  params  ~
@@ -8982,7 +9054,7 @@
   ?~  t.names  |
   =.  typ  (itype-walk typ sub)
   ?:  ?=(%cell -.typ)  $(typ tal.typ, names t.names)
-  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%jrec -.typ) ?=(%noun -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
+  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%jrec -.typ) ?=(%grec -.typ) ?=(%noun -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
 ::
 ++  cell-binder-pattern
   |=  e=expr
@@ -9061,6 +9133,7 @@
       "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
     %recursive  ?~(label.t "recursive mold" (trip u.label.t))
     %jrec       ?~(label.t "recursive mold" (trip u.label.t))
+    %grec       ?~(label.t "recursive mold" "({(trip u.label.t)} {(show-itype-cases args.t sub)})")
     %collection  "({(trip name.t)} {(show-itype-cases args.t sub)})"
     %face  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
@@ -9109,6 +9182,7 @@
     %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
     %recursive  |
     %jrec       |
+    %grec       (lien args.typ |=(c=itype (itype-has-nvar c)))
     %collection  (lien args.typ |=(c=itype (itype-has-nvar c)))
     %face      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
@@ -9225,6 +9299,7 @@
     %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
     %recursive  |
     %jrec       |
+    %grec       (lien args.t |=(c=itype (has-atom-var n c)))
     %collection  (lien args.t |=(c=itype (has-atom-var n c)))
     %face      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
@@ -9633,36 +9708,9 @@
 ++  add-supported-defs
   |=  [ds=(list def) all-defs=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition)]
   ^-  [env=ienv artifacts=(list iwidth-definition)]
-  ?~  ds  [env artifacts]
-  =/  d=def  i.ds
-  ?:  ?=(%mold -.d)  $(ds t.ds)
-  ?.  (unique-value-name name.d globals)  $(ds t.ds)
-  ?^  (ienv-lookup name.d env)  $(ds t.ds)
-  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~]
-  =.  gate-defs.initial  checked
-  =.  head-evidence.initial  heads
-  =.  initial  (reserve-def-caps val.d initial)
-  =/  result=iresult  (infer-fragment val.d env initial)
-  =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
-  ?:  ?=(%| -.result)  $(ds t.ds)
-  =.  state.p.result  (promote-restricted-numbers state.p.result env)
-  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
-  ?^  (unresolved-hole holes.state.p.result holes.initial state.p.result)  $(ds t.ds)
-  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
-  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
-  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  $(ds t.ds)
-  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  $(ds t.ds)
-  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  ?:  (gth (lent vars) 26)  $(ds t.ds)
-  =/  finalized=(unit (list iwprojection))
-    (width-finalize projections.state.p.result sub.state.p.result vars)
-  ?~  finalized  $(ds t.ds)
-  =?  artifacts  ?=(^ u.finalized)
-    [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
-  =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
-  $(ds t.ds, env [[name.d [typ vars]] env], checked checked)
+  (add-supported-defs-core ds all-defs checked heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts ~)
 ::
+
 +$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition)]
 +$  iadj  (map term (list term))
 +$  ivisited  (map term ?)
@@ -9776,6 +9824,46 @@
 ++  resolve-groups
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
   ^-  iresolved
+  (resolve-groups-core ds molds globals externals surs mark-externals marks jimports reserved-molds at prelude ~)
+::
+
+++  add-supported-defs-core
+  |=  [ds=(list def) all-defs=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
+  ^-  [env=ienv artifacts=(list iwidth-definition)]
+  ?~  ds  [env artifacts]
+  =/  d=def  i.ds
+  ?:  ?=(%mold -.d)  $(ds t.ds)
+  ?.  (unique-value-name name.d globals)  $(ds t.ds)
+  ?^  (ienv-lookup name.d env)  $(ds t.ds)
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~]
+  =.  grec-index.initial  index
+  =.  gate-defs.initial  checked
+  =.  head-evidence.initial  heads
+  =.  initial  (reserve-def-caps val.d initial)
+  =/  result=iresult  (infer-fragment val.d env initial)
+  =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
+  ?:  ?=(%| -.result)  $(ds t.ds)
+  =.  state.p.result  (promote-restricted-numbers state.p.result env)
+  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
+  ?^  (unresolved-hole holes.state.p.result holes.initial state.p.result)  $(ds t.ds)
+  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
+  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
+  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  $(ds t.ds)
+  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  $(ds t.ds)
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+  ?:  (gth (lent vars) 26)  $(ds t.ds)
+  =/  finalized=(unit (list iwprojection))
+    (width-finalize projections.state.p.result sub.state.p.result vars)
+  ?~  finalized  $(ds t.ds)
+  =?  artifacts  ?=(^ u.finalized)
+    [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
+  =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
+  $(ds t.ds, env [[name.d [typ vars]] env], checked checked)
+::
+++  resolve-groups-core
+  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
+  ^-  iresolved
   =/  env=ienv  ~
   =/  grouped=(list term)  ~
   =/  artifacts=(list iwidth-definition)  ~
@@ -9787,8 +9875,9 @@
   =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
   |-
   =/  next=[env=ienv artifacts=(list iwidth-definition)]
-    (add-supported-defs ds ds (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts)
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~]
+    (add-supported-defs-core ds ds (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~]
+  =.  grec-index.initial  index
   =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
   ?:  =(env env.out)  out
   $(env env.out, grouped grouped.out, artifacts artifacts.out)
@@ -10588,6 +10677,9 @@
   |=  [typ=itype name=term vars=(list @ud)]
   ^-  itype
   ?:  ?=(%jrec -.typ)  typ(label `name)
+  ?:  ?=(%grec -.typ)
+    ?.  (identity-union-parameters vars args.typ)  typ(label ~)
+    typ(label `name)
   ?.  ?=(%union -.typ)  typ
   ?.  (identity-union-parameters vars args.typ)
     ?~  origin.typ  typ
@@ -10661,7 +10753,7 @@
   =/  source-unit=(unit ischeme)
     ?~  unit-decl  ~
     =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
-    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~ ~ ~]
+    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~ ~ ~ ~]
     =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
     =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~]
     =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
@@ -10676,7 +10768,7 @@
   =/  js=ijimports  ~[[face.i.imports.mod primitive]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~ ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   =/  usable=(unit imold-types)
     ?:  ?=(%& -.mts)  `p.mts
@@ -10732,7 +10824,7 @@
   =?  env-molds  declared
     (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
   =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~ ~ ~ ~]
   ::  Other prelude molds may use list only after its source has passed
   ::  the standard-list check. The raw declaration remains removed.
   =/  declared-list=(unit shape)  (find-simple-mold %list molds)
@@ -11261,7 +11353,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
@@ -11295,7 +11387,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
@@ -11671,16 +11763,35 @@
     [%| (crip "module kind needs unsupported inference: {(spud at)}")]
   =/  js=jimports-result  (resolve-jibb-imports imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.js)  [%| p.js]
-  =/  molds=imolds  (collect-simple-molds defs.mod)
+  =/  collected=grec-collected
+    ?^  imports.mod  [(collect-simple-molds defs.mod) *(map term shape)]
+    (grec-collect-molds defs.mod)
+  =/  molds=imolds  molds.collected
   =/  globals=(list term)  (weld prelude-values (weld (import-binding-names imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~]
+  :: Source and scope were checked above; preserve that exact root and prelude.
+  :: This first integration only indexes import-free library sources.
+  =/  index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])
+    ?^  imports.mod  ~
+    ?~  prelude  ~
+    =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude)
+    ?~  standard  ~
+    ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])  ~
+    =/  index=(map term shape)  proofs.collected
+    ?.  !=(index *(map term shape))  ~
+    ?:  (lien molds |=(m=[name=term body=shape] =(%list name.m)))  ~
+    `[at src u.prelude index]
+  =.  grec-index.state  index
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| (crip "{(trip p.mts)}: {(spud at)}")]
-  =/  resolution=iresolved  (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
+  =/  resolution=iresolved
+    ?~  index
+      (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
+    (resolve-groups-core defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude index)
   =/  env=ienv  env.resolution
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
@@ -11733,7 +11844,7 @@
   =/  declared=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld molds.u.prepared (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn ms |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~ ~ ~ ~]
   =/  inferred=(unit [template=ischeme state=istate])
     (infer-mold-template shape.i.selected state(active ~[name], in-mold &))
   ?~  inferred  [%| 'selected mold needs unsupported inference']
@@ -11871,7 +11982,7 @@
     =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
     $(ds t.ds, lines [line lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~ ~ ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~]
   =.  gate-defs.initial  source-defs
   =.  head-evidence.initial  heads
   =.  initial  (reserve-def-caps val.d initial)
@@ -11913,4 +12024,79 @@
   =/  printable=itype  (canonical-itype typ vars)
   =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}{(show-atom-constraint printable)}")
   $(ds t.ds, lines [line lines])
+::  Experimental per-module, source-derived recursive tree index.
+::  The two tags and the exact children/list/self layout are fixed-shape
+::  checks, so ordinary definitions incur no type-tree or source scans.
+++  grec-tagged-fields
+  |=  sh=shape
+  ^-  (unit [tag=@ fields=(list field)])
+  ?.  ?=(%cell -.sh)  ~
+  ?~  fields.sh  ~
+  =/  head=field  i.fields.sh
+  ?.  ?=(%bare -.head)  ~
+  ?.  ?=(%const -.shape.head)  ~
+  ?.  &(?=(%term form.lit.shape.head) =(%tas aura.lit.shape.head))  ~
+  `[val.lit.shape.head t.fields.sh]
+++  grec-tree-children
+  |=  [fs=(list field) param=@t]
+  ^-  (unit field)
+  ?~  fs  ~
+  ?~  t.fs  `i.fs
+  ?^  t.t.fs  ~
+  =/  event=field  i.fs
+  =/  kids=field  i.t.fs
+  ?.  &(?=(%face -.event) ?=(%face -.kids))  ~
+  ?.  !=(name.event name.kids)  ~
+  ?.  ?=(%fn -.shape.event)  ~
+  ?.  ?=(%aura -.sample.shape.event)  ~
+  ?.  =(%t aura.sample.shape.event)  ~
+  ?.  ?=(%tvar -.product.shape.event)  ~
+  ?.  =(param name.product.shape.event)  ~
+  `kids
+::
+++  grec-tree-proof
+  |=  [name=term sh=shape]
+  ^-  ?
+  ?.  ?=(%generic -.sh)  |
+  ?.  ?=([@ ~] vars.sh)  |
+  =/  param=@t  i.vars.sh
+  ?.  ?=(%union -.body.sh)  |
+  ?.  ?=([* [* ~]] cases.body.sh)  |
+  =/  a=(unit [tag=@ fields=(list field)])  (grec-tagged-fields i.cases.body.sh)
+  =/  b=(unit [tag=@ fields=(list field)])  (grec-tagged-fields i.t.cases.body.sh)
+  ?~  a  |
+  ?~  b  |
+  ?.  !=(tag.u.a tag.u.b)  |
+  ?.  ?=([* ~] fields.u.a)  |
+  =/  value=field  i.fields.u.a
+  ?.  ?=(%face -.value)  |
+  ?.  ?=(%aura -.shape.value)  |
+  ?.  =(%t aura.shape.value)  |
+  =/  selected=(unit field)  (grec-tree-children fields.u.b param)
+  ?~  selected  |
+  =/  kids=field  u.selected
+  ?.  ?=(%face -.kids)  |
+  ?.  ?=(%apply -.shape.kids)  |
+  ?.  =(ref.shape.kids ~[%list])  |
+  ?.  ?=([* ~] args.shape.kids)  |
+  =/  self=shape  i.args.shape.kids
+  ?.  ?=(%apply -.self)  |
+  ?.  =(ref.self ~[name])  |
+  ?.  ?=([* ~] args.self)  |
+  ?.  ?=(%tvar -.i.args.self)  |
+  =(name.i.args.self param)
++$  grec-collected  [molds=imolds proofs=(map term shape)]
+++  grec-collect-molds
+  |=  ds=(list def)
+  ^-  grec-collected
+  ?~  ds  [~ *(map term shape)]
+  =/  rest=grec-collected  $(ds t.ds)
+  ?.  ?=(%mold -.i.ds)  rest
+  =/  name=term  name.i.ds
+  =/  body=shape  shape.i.ds
+  =/  proofs=(map term shape)  proofs.rest
+  =?  proofs  (grec-tree-proof name body)  (~(put by proofs) name body)
+  [[[name body] molds.rest] proofs]
+::
+
 --

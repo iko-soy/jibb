@@ -1,0 +1,3 @@
+/= source /ui/tree
++$ alias |$ [A] (element.source A)
+++ identity |= x=(alias A) x

@@ -1,0 +1,14 @@
+source: docs/spec/grammar.md:57,135,162 — “Molds may be recursive”; “recursive molds go by name and module”; a number defaults when its `++` is checked.
+
+This shared eval and ship fixture checks a deliberately narrow source-backed
+recursive identity: two distinct tagged cases, a text leaf and a node with a
+message-producing gate and a list of recursive children. The test-only tree is
+not a chosen element representation. A complete import-free owner module must
+check before its interface is published. Same-origin aliases retain identity,
+while different origins and unproved casts, construction and matching remain
+unsupported. An opaque recursive type prevents premature numeric defaulting;
+its gate-freedom remains unknown. Source/cache/prelude changes, cycles,
+nonuniform recursion, invalid unused molds and local shadows fail closed.
+
+The client report explicitly remains partial. No runtime layout, program kind,
+watchability or backend behavior is claimed.

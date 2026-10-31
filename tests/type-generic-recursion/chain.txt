@@ -1,0 +1,3 @@
++$ chain |$ [A]
+  ~
+  [i=A t=(chain A)]

@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Check indexed recursive source identity, aliases and cache under eval."""
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--update', action='store_true')
+args = parser.parse_args()
+fixture = root / 'tests/type-generic-recursion'
+source = (root / 'tests/lib/jibb-generic-recursion.hoon').read_text()
+source = source[source.index('\n|%\n') + 1:]
+names = ['tree', 'changed', 'alias', 'client', 'bad-mold', 'bad-constructor',
+         'bad-parameter', 'local-shadow', 'local-distinct', 'local-only',
+         'list-shadow', 'chain', 'bad-match']
+files = ['tree', 'tree-changed', 'alias', 'client', 'bad-mold', 'bad-constructor',
+         'bad-parameter', 'local-shadow', 'local-distinct', 'local-only',
+         'list-shadow', 'chain', 'bad-match']
+cords = [item for name, file in zip(names, files)
+         for item in ('--cord', f'{name}-text={fixture / (file + ".txt")}')]
+cords += ['--cord', f'prelude={root / "jibb-dev/lib/jibb/prelude.jibb"}',
+          '--cord', f'internal={root / "jibb-dev/lib/jibb/internal.jibb"}']
+bindings = ''.join(f'=/  {name}=wain  (to-wain:format {name}-text)\n'
+                   for name in names)
+program = ("=/  jibb  .\n=/  real-prelude=@t  prelude\n"
+    "=/  real-internal=@t  internal\n" + bindings +
+    "=/  expected=wain  ~\n=/  suite\n" + source +
+    "\n^-  @t\n=/  invalid=(list [label=@t src=@t])\n"
+    "  :~  ['unused mold hole declined' bad-mold-text]\n"
+    "      ['constructor declined' bad-constructor-text]\n"
+    "      ['matching declined' bad-match-text]\n"
+    "      ['nonuniform recursion declined' bad-parameter-text]\n"
+    "      ['identical local shadow declined' local-shadow-text]\n"
+    "      ['different local shadow declined' local-distinct-text]\n"
+    "      ['local recursion declined' local-only-text]\n"
+    "  ==\n"
+    "(generic-output:suite prelude internal tree-text changed-text alias-text client-text invalid list-shadow-text chain-text)\n")
+with tempfile.TemporaryDirectory(prefix='jibb-generic-recursion-') as tmp:
+    path = Path(tmp) / 'test.hoon'
+    path.write_text(program)
+    result = subprocess.run([str(root / 'tools/hoon'), '--lib', args.lib, '--raw',
+                             '-f', str(path), *cords], stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected_path = fixture / 'expected.txt'
+if args.update:
+    expected_path.write_bytes(result.stdout)
+else:
+    expected = expected_path.read_bytes()
+    if result.stdout != expected:
+        sys.stderr.writelines(difflib.unified_diff(
+            expected.decode().splitlines(keepends=True),
+            result.stdout.decode().splitlines(keepends=True),
+            fromfile='expected.txt', tofile='actual'))
+        sys.exit(1)
+print('source-backed generic recursion guards passed')

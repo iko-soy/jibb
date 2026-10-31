@@ -1,0 +1,11 @@
++$ element |$ [M]
+  [%text value=@t]
+  [%node event=$-(@t M) children=(list (element M))]
+++ text-id |= x=(element @t) x
+++ ship-id |= x=(element @p) x
+++ generic-id |= x=(element A) x
+++ local-only |= x=@t
+  +$ local-tree |$ [M]
+    [%text value=@t]
+    [%node event=$-(@t M) children=(list (local-tree M))]
+  x

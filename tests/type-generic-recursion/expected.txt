@@ -1,0 +1,35 @@
+source module complete: ok
+generic mold quantified: ok
+distinct arguments decline: ok
+distinct origins decline: ok
+occurs check: ok
+cell construction stays opaque: ok
+noun construction stays opaque: ok
+unindexed recursion declined: ok
+alteration rejects missing line: ok
+alteration rejects repeated line: ok
+gate freedom unknown: ok
+gate defaulting conservative: ok
+unused mold hole declined: ok
+constructor declined: ok
+matching declined: ok
+nonuniform recursion declined: ok
+identical local shadow declined: ok
+different local shadow declined: ok
+local recursion declined: ok
+unreserved local list shadow declined: ok
+altered prelude list declined: ok
+cached source reuse: ok
+changed source invalidates cache: ok
+changed source fresh proof: ok
+duplicate source declined: ok
+active import cycle declined: ok
+changed prelude invalidates cache: ok
+partial inference; module not checked
+++ from-first: $-((element.first @t) (element.first @t))
+++ from-again: $-((element.again @p) (element.again @p))
+++ same-origin: $-((element.first @t) (element.again @t))
+++ from-alias: $-((alias.via @t) (alias.via @t))
+++ through-alias: $-((element.first @t) (alias.via @t))
+++ different-origin: cast constraint is not supported by partial inference
+++ independent: $-([a=(element.first @t) b=(element.first @p)] [(element.first @t) (element.first @p)])
