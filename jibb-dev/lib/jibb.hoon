@@ -5703,7 +5703,8 @@
   ==
 ::
 +$  igate-prelude-evidence  [iface=ifile gates=(map term def)]
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) gate-defs=(map term def) head-evidence=(unit igate-prelude-evidence) grec-index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
++$  dgo  [left=itype right=itype at=span context=span]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) gate-defs=(map term def) head-evidence=(unit igate-prelude-evidence) grec-index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)]) defer=(unit ~) obligations=(list dgo)]
 +$  idiag  [msg=tape sites=(list [at=span note=tape])]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
@@ -7144,6 +7145,7 @@
   =/  retried=?  ?=(%| -.inferred)
   =?  inferred  retried  (infer-recursive-gate d env local-state)
   ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
+  ?:  !=(obligations.state.p.inferred obligations.state)  [%| ["deferred local definition needs unsupported inference" ~]]
   =.  state.p.inferred  (promote-restricted-numbers state.p.inferred env)
   =.  state.p.inferred  (default-hole-numbers holes.state.p.inferred holes.state state.p.inferred env !(itype-has-gate (itype-normalize typ.p.inferred sub.state.p.inferred)))
   =/  hole=(unit idiag)  (unresolved-hole holes.state.p.inferred holes.state state.p.inferred)
@@ -7877,9 +7879,9 @@
   =/  cell=itype  [%cell [%face head.typ [%atom aura.typ]] [%face tail.typ typ]]
   [%& [%union ~[nil cell] ~ ~ ~] state.p.subject(jrec-fuel (dec jrec-fuel.state.p.subject))]
 ::
-::  Experimental bounded, source-proven tree match. Only two explicit
-::  flat tag/binder patterns may consume the view: a whole-case binder
-::  must not leak the temporary structural representation.
+::  A bounded source-proven tree match permits flat tag patterns and
+::  nonbinding catch-alls. Whole-case binders cannot consume the temporary
+::  structural view. Pattern count and field arity are checked first.
 ++  grec-simple-pattern
   |=  [pat=pattern view=itype]
   ^-  ?
@@ -7892,9 +7894,20 @@
   ?~  chosen  |
   ?>  ?=(%cell -.u.chosen)
   =/  rest=(list pattern)  t.items.pat
-  ?.  (levy rest |=(p=pattern |(?=(%bind -.p) ?=(%any -.p))))  |
-  ?:  ?=(%cell -.tal.u.chosen)  ?=([* [* ~]] rest)
-  ?=([* ~] rest)
+  =/  arity=?  ?:(?=(%cell -.tal.u.chosen) ?=([* [* ~]] rest) ?=([* ~] rest))
+  ?.  arity  |
+  (levy rest |=(p=pattern |(?=(%bind -.p) ?=(%any -.p))))
+::
+::  A catch-all with no binder is safe even when it covers both cases.
+::  A bound whole case still declines to avoid exporting the analysis view.
+++  grec-patterns-eligible
+  |=  [arms=(list arm) view=itype left=@ud]
+  ^-  ?
+  ?~  arms  &
+  ?:  =(0 left)  |
+  =/  pat=pattern  pat.i.arms
+  ?.  |(?=(%any -.pat) (grec-simple-pattern pat view))  |
+  $(arms t.arms, left (dec left))
 ++  grec-match-view
   |=  [e=expr subject=iresult]
   ^-  iresult
@@ -7904,12 +7917,9 @@
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%grec -.typ)  subject
   ?~  arms.e  subject
-  ?.  |(?=(~ t.arms.e) ?=([* ~] t.arms.e))  subject
   =/  view=(unit [view=itype left=@ud])  (grec-unfold-view typ jrec-fuel.state.p.subject)
   ?~  view  [%| ["recursive mold unfolding needs unsupported inference" ~]]
-  ?.  (grec-simple-pattern pat.i.arms.e view.u.view)  subject
-  =/  rest-ok=?  ?~(t.arms.e & (grec-simple-pattern pat.i.t.arms.e view.u.view))
-  ?.  rest-ok  subject
+  ?.  (grec-patterns-eligible arms.e view.u.view 128)  subject
   [%& view.u.view state.p.subject(jrec-fuel left.u.view)]
 ::
 ::  A single-arm diagnostic only probes a direct, source-typed in-scope wing;
@@ -8643,7 +8653,13 @@
       ?:  ?=(%ok -.fit)  ~
       (direct-gate-call-fit e typ.p.arg sample.ht env st)
     =.  fit  ?~(direct fit u.direct)
-    ?:  ?=(%unknown -.fit)  [%| ["call constraint is not supported by partial inference" ~]]
+    ?:  ?=(%unknown -.fit)
+      ?~  defer.st  [%| ["call constraint is not supported by partial inference" ~]]
+      =/  edge=(unit dgo)  (dg-eligible-ctor e typ.p.head typ.p.arg sample.ht st)
+      ?~  edge  [%| ["call constraint is not supported by partial inference" ~]]
+      ?:  (gth (lent obligations.st) 63)  [%| ["call constraint is not supported by partial inference" ~]]
+      [%& product.ht st(obligations [u.edge obligations.st])]
+
     ?:  ?=(%bad -.fit)
       ?~  t.args.e
         =/  missing=(unit idiag)  (missing-union-tag i.args.e sample.ht sub.st (span-of head.e))
@@ -9528,6 +9544,7 @@
 ++  infer-recursive-gate
   |=  [d=def env=ienv state=istate]
   ^-  iresult
+  ?^  defer.state  [%| ["deferred recursive inference is unsupported" ~]]
   =.  gate-defs.state  ~
   ?.  ?=(%value -.d)  [%| ["recursive definition is not a gate" ~]]
   ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
@@ -9752,6 +9769,7 @@
 ++  infer-gate-group
   |=  [ds=(list def) env=ienv state=istate]
   ^-  ilocal-result
+  ?^  defer.state  [%| ["deferred recursive inference is unsupported" ~]]
   =/  names=(list term)  (global-value-names ds)
   ?.  (levy names |=(n=term (unique-value-name n names)))
     [%| ["recursive group contains duplicate names" ~]]
@@ -9921,7 +9939,7 @@
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =.  grec-index.initial  index
   =.  gate-defs.initial  checked
   =.  head-evidence.initial  heads
@@ -9961,7 +9979,7 @@
   |-
   =/  next=[env=ienv artifacts=(list iwidth-definition)]
     (add-supported-defs-core ds ds (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =.  grec-index.initial  index
   =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
   ?:  =(env env.out)  out
@@ -10838,7 +10856,7 @@
   =/  source-unit=(unit ischeme)
     ?~  unit-decl  ~
     =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
-    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~ ~ ~ ~]
+    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~ ~ ~ ~ ~ ~]
     =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
     =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~]
     =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
@@ -10853,7 +10871,7 @@
   =/  js=ijimports  ~[[face.i.imports.mod primitive]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~ ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~ ~ ~ ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   =/  usable=(unit imold-types)
     ?:  ?=(%& -.mts)  `p.mts
@@ -10909,7 +10927,7 @@
   =?  env-molds  declared
     (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
   =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~ ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~ ~ ~ ~ ~ ~]
   ::  Other prelude molds may use list only after its source has passed
   ::  the standard-list check. The raw declaration remains removed.
   =/  declared-list=(unit shape)  (find-simple-mold %list molds)
@@ -11438,7 +11456,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
@@ -11472,7 +11490,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
@@ -11857,7 +11875,7 @@
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   :: Source and scope were checked above; preserve that exact root and prelude.
   :: This first integration only indexes import-free library sources.
   =/  index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])
@@ -11878,6 +11896,16 @@
       (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
     (resolve-groups-core defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude index)
   =/  env=ienv  env.resolution
+  =.  env
+    ?:  (module-values-complete defs.mod env)  env
+    ?:  |(?=([%ui %stores *] at) ?=(^ imports.mod) ?=(^ prelude) ?=(^ prelude-values) ?=(^ prelude-molds))  env
+    ?:  (gth (met 3 src) 65.536)  env
+    ?:  (gth (lent defs.mod) 64)  env
+    ?.  (dg-source-candidate defs.mod 64)  env
+    =/  transaction=(unit dgcommit)  (dg-root-source at src)
+    ?~  transaction  env
+    ?:  (dg-interface-safe env.u.transaction)  env.u.transaction
+    env
   ?.  (module-values-complete defs.mod env)
     [%| (crip "module definitions need unsupported inference: {(spud at)}")]
   =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals]
@@ -11929,7 +11957,7 @@
   =/  declared=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld molds.u.prepared (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn ms |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~ ~ ~ ~]
+  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~ ~ ~ ~ ~ ~]
   =/  inferred=(unit [template=ischeme state=istate])
     (infer-mold-template shape.i.selected state(active ~[name], in-mold &))
   ?~  inferred  [%| 'selected mold needs unsupported inference']
@@ -12046,6 +12074,31 @@
   =/  resolution=iresolved  (resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds file prelude)
   =/  cycles=(list icycle)  (definite-value-cycles ds globals)
   =/  env=ienv  env.resolution
+  =/  recovered=(list term)  ~
+  =/  eligible=?
+    ?&  ?=(~ imports.p.parsed)
+       ?=(~ jimports)
+       ?=(~ prelude)
+       ?=(~ prelude-values)
+       ?=(~ reserved-molds)
+       !?=([%ui %api *] file)
+       !?=([%ui %stores *] file)
+       !(lien (global-value-names ds) |=(n=term =(n %main)))
+       (module-scope-valid p.parsed ~ ~)
+       !(module-values-complete ds env)
+       (lte (met 3 src) 65.536)
+       (lte (lent ds) 64)
+       (dg-source-candidate ds 64)
+    ==
+  =/  transaction=(unit dgcommit)  ?:(eligible (dg-root-source file src) ~)
+  =.  recovered
+    ?~  transaction  ~
+    ?.  &((module-values-complete ds env.u.transaction) (dg-interface-safe env.u.transaction))  ~
+    (turn (skim env.u.transaction |=(entry=[name=term scheme=ischeme] ?=(~ (ienv-lookup name.entry env)))) |=(entry=[name=term scheme=ischeme] name.entry))
+  =.  env
+    ?~  transaction  env
+    ?:  &((module-values-complete ds env.u.transaction) (dg-interface-safe env.u.transaction))  env.u.transaction
+    env
   =/  source-defs=(map term def)  (direct-checked-gates ds env)
   =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
   =/  lines=(list @t)  ~
@@ -12060,6 +12113,16 @@
   ?^  cycle
     =/  diag=idiag  ["non-gate value depends on itself through a cycle" ~[[first.i.cycle "value in cycle"] [next.i.cycle "dependency in cycle"]]]
     $(ds t.ds, lines [(show-inference-diagnostic file src name.d diag) lines])
+  ?:  (lien recovered |=(n=term =(n name.d)))
+    =/  found=(unit ischeme)  (ienv-lookup name.d env)
+    ?~  found  $(ds t.ds, lines [(crip "++ {(trip name.d)}: committed definition unavailable") lines])
+    ?:  (itype-has-hidden-recursive typ.u.found)
+      $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive mold name is not available in this scope") lines])
+    ?:  (itype-has-hidden-generic typ.u.found)
+      $(ds t.ds, lines [(crip "++ {(trip name.d)}: generic union name is not available in this scope") lines])
+    =/  typ=itype  (canonical-itype typ.u.found vars.u.found)
+    =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
+    $(ds t.ds, lines [line lines])
   ?:  (lien grouped.resolution |=(n=term =(n name.d)))
     =/  found=(unit ischeme)  (ienv-lookup name.d env)
     ?~  found  $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive group unavailable") lines])
@@ -12067,7 +12130,7 @@
     =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
     $(ds t.ds, lines [line lines])
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~]
+  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =.  gate-defs.initial  source-defs
   =.  head-evidence.initial  heads
   =.  initial  (reserve-def-caps val.d initial)
@@ -12109,6 +12172,296 @@
   =/  printable=itype  (canonical-itype typ vars)
   =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}{(show-atom-constraint printable)}")
   $(ds t.ds, lines [line lines])
+::  Experimental module-owned pending-constraint generalization only.
+::  Inputs, IDs and substitution come from one checker-owned transaction.
++$  dgscan  [ids=(list @ud) fuel=@ud]
+++  dg-scan
+  |=  [todo=(list itype) sub=isub fuel=@ud ids=(list @ud)]
+  ^-  (unit dgscan)
+  ?~  todo  `[ids fuel]
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =/  t=itype  i.todo
+  ?:  ?=(?(%var %avar %rvar %nvar %rnvar %tag) -.t)
+    =/  node-id=@ud  ?:(?=(%tag -.t) id.t +.t)
+    =/  found=(unit itype)  (itype-lookup node-id sub)
+    ?~  found  $(todo t.todo, ids [node-id ids])
+    ?:  &(?=(?(%rvar %rnvar) -.u.found) =(node-id +.u.found))
+      $(todo t.todo, ids [node-id ids])
+    $(todo [u.found t.todo])
+  ?:  ?=(%jrec -.t)  $(todo t.todo)
+  ?+  -.t  ~
+    %collection  $(todo (weld args.t t.todo))
+    %union  $(todo (weld args.t (weld cases.t t.todo)))
+    %face  $(todo [body.t t.todo])
+    %fn  $(todo [sample.t product.t t.todo])
+    %cell  $(todo [hed.t tal.t t.todo])
+    %atom  $(todo t.todo)
+    %any-atom  $(todo t.todo)
+    %flag  $(todo t.todo)
+    %noun  $(todo t.todo)
+    %const  $(todo t.todo)
+  ==
+::
+++  dg-scan-ids
+  |=  [ids=(list @ud) sub=isub fuel=@ud blocked=(list @ud)]
+  ^-  (unit dgscan)
+  ?~  ids  `[blocked fuel]
+  =/  one=(unit dgscan)  (dg-scan ~[[%var i.ids]] sub fuel blocked)
+  ?~  one  ~
+  $(ids t.ids, fuel fuel.u.one, blocked ids.u.one)
+::
+++  dg-env
+  |=  [env=ienv sub=isub fuel=@ud blocked=(list @ud)]
+  ^-  (unit dgscan)
+  ?~  env  `[blocked fuel]
+  =/  sc=ischeme  scheme.i.env
+  ::  Quantifiers are local to the scheme: first find raw free IDs, then
+  ::  follow those IDs in the module substitution without capturing them.
+  =/  raw=(unit dgscan)  (dg-scan ~[typ.sc] ~ fuel ~)
+  ?~  raw  ~
+  =/  free=(list @ud)  (skim ids.u.raw |=(n=@ud !(lien vars.sc |=(q=@ud =(q n)))))
+  =/  resolved=(unit dgscan)  (dg-scan-ids free sub fuel.u.raw blocked)
+  ?~  resolved  ~
+  $(env t.env, fuel fuel.u.resolved, blocked ids.u.resolved)
+::
+++  dg-obligations
+  |=  [pending=(list dgo) sub=isub fuel=@ud blocked=(list @ud)]
+  ^-  (unit dgscan)
+  ?~  pending  `[blocked fuel]
+  =/  found=(unit dgscan)  (dg-scan ~[left.i.pending right.i.pending] sub fuel blocked)
+  ?~  found  ~
+  $(pending t.pending, fuel fuel.u.found, blocked ids.u.found)
+::
+++  dg-tags
+  |=  [tags=(list ipending) sub=isub fuel=@ud blocked=(list @ud)]
+  ^-  (unit dgscan)
+  ?~  tags  `[blocked fuel]
+  ?:  =(0 fuel)  ~
+  =/  found=(unit itype)  (itype-lookup id.i.tags sub)
+  ?~  found  $(tags t.tags, fuel (dec fuel), blocked [id.i.tags blocked])
+  ::  Until this entry is explicitly discharged, retain variables reachable
+  ::  through its binding; mere existence of a substitution is not proof.
+  =/  reached=(unit dgscan)  (dg-scan ~[u.found] sub (dec fuel) blocked)
+  ?~  reached  ~
+  $(tags t.tags, fuel fuel.u.reached, blocked ids.u.reached)
+::
+++  dg-generalize
+  |=  [typ=itype env=ienv pending=(list dgo) tags=(list ipending) captured=(list @ud) state=istate fuel=@ud]
+  ^-  (unit ischeme)
+  ::  Bound the obligation list and all graph/substitution walks. The
+  ::  substitution is assumed checker-owned and occurs-checked.
+  ?:  (gth (lent pending) 64)  ~
+  =/  capt=(unit dgscan)  (dg-scan-ids captured sub.state fuel ~)
+  ?~  capt  ~
+  =/  env-free=(unit dgscan)  (dg-env env sub.state fuel.u.capt ids.u.capt)
+  ?~  env-free  ~
+  =/  obligations=(unit dgscan)  (dg-obligations pending sub.state fuel.u.env-free ids.u.env-free)
+  ?~  obligations  ~
+  =/  tagged=(unit dgscan)  (dg-tags tags sub.state fuel.u.obligations ids.u.obligations)
+  ?~  tagged  ~
+  =/  bounded=(unit dgscan)  (dg-scan ~[typ] sub.state fuel.u.tagged ~)
+  ?~  bounded  ~
+  =/  normalized=itype  (itype-normalize typ sub.state)
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
+  =/  quantified=(list @ud)  (skim vars |=(n=@ud !(lien ids.u.tagged |=(b=@ud =(b n)))))
+  `[[normalized quantified]]
+::
++$  dgcommit  [env=ienv state=istate]
+++  dg-replay-edges
+  |=  [edges=(list dgo) state=istate fuel=@ud]
+  ^-  (unit istate)
+  ?~  edges  `state
+  ?:  =(0 fuel)  ~
+  =/  trial=ifit  (itype-fit left.i.edges right.i.edges sub.state next.state)
+  ?.  ?=(%ok -.trial)  ~
+  ?.  =((itype-walk left.i.edges sub.trial) (itype-walk right.i.edges sub.trial))  ~
+  $(edges t.edges, state state(sub sub.trial, next next.trial), fuel (dec fuel))
+::
+++  dg-close-env
+  |=  [env=ienv sub=isub fuel=@ud]
+  ^-  (unit ienv)
+  ?~  env  `~
+  ?:  =(0 fuel)  ~
+  =/  s=ischeme  scheme.i.env
+  :: Quantified IDs are scheme-local and cannot be rewritten on publication.
+  ?.  (levy vars.s |=(n=@ud ?=(~ (itype-lookup n sub))))  ~
+  =/  bounded=(unit dgscan)  (dg-scan ~[typ.s] sub (dec fuel) ~)
+  ?~  bounded  ~
+  =/  normalized=itype  (itype-normalize typ.s sub)
+  ?:  (itype-has-tag normalized)  ~
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
+  ?.  (levy vars |=(n=@ud (lien vars.s |=(v=@ud =(v n)))))  ~
+  =/  rest=(unit ienv)  (dg-close-env t.env sub fuel.u.bounded)
+  ?~  rest  ~
+  `[[name.i.env [normalized vars.s]] u.rest]
+::
+++  dg-stage
+  |=  [ds=(list def) base=ienv env=ienv state=istate pending=(list dgo) fuel=@ud]
+  ^-  (unit dgcommit)
+  ?~  ds
+    =/  replayed=(unit istate)  (dg-replay-edges pending state 64)
+    ?~  replayed  ~
+    ?:  (pending-tags tags.u.replayed sub.u.replayed)  ~
+    =/  closed-edges=(unit dgscan)  (dg-obligations pending sub.u.replayed 32.768 ~)
+    ?~  closed-edges  ~
+    ?^  ids.u.closed-edges  ~
+    =/  rechecked=(unit istate)  (dg-replay-edges pending u.replayed 64)
+    ?~  rechecked  ~
+    ?.  =(sub.u.rechecked sub.u.replayed)  ~
+    ?.  =(next.u.rechecked next.u.replayed)  ~
+    =/  closed=(unit ienv)  (dg-close-env env sub.u.replayed 32.768)
+    ?~  closed  ~
+    `[[u.closed u.replayed(defer ~, obligations ~)]]
+  ?:  =(0 fuel)  ~
+  =/  d=def  i.ds
+  ?:  ?=(%mold -.d)  $(ds t.ds, fuel (dec fuel))
+  ?^  (ienv-lookup name.d base)  $(ds t.ds, fuel (dec fuel))
+  ?^  (ienv-lookup name.d env)  ~
+  =/  local=istate  (reserve-def-caps val.d state)
+  :: This first slice declines all written capitals and holes/projections.
+  ?^  caps.local  ~
+  =/  ordinary=iresult  (infer-fragment val.d env local)
+  ?:  ?=(%| -.ordinary)  ~
+  =/  typ=itype  typ.p.ordinary
+  =/  after=istate  state.p.ordinary
+  =/  edges=(list dgo)  obligations.after
+  ?.  =(binders.after binders.state)  ~
+  ?.  =(molds.after molds.state)  ~
+  ?.  =(globals.after globals.state)  ~
+  ?.  =(externals.after externals.state)  ~
+  ?.  =(surs.after surs.state)  ~
+  ?.  =(mark-externals.after mark-externals.state)  ~
+  ?.  =(marks.after marks.state)  ~
+  ?.  =(jimports.after jimports.state)  ~
+  ?.  =(reserved-molds.after reserved-molds.state)  ~
+  ?.  =(params.after params.state)  ~
+  ?.  =(active.after active.state)  ~
+  ?.  =(in-mold.after in-mold.state)  ~
+  ?.  =(at.after at.state)  ~
+  ?.  =(top-molds.after top-molds.state)  ~
+  ?.  =(prelude.after prelude.state)  ~
+  ?.  =(gate-defs.after gate-defs.state)  ~
+  ?.  =(head-evidence.after head-evidence.state)  ~
+  ?.  =(grec-index.after grec-index.state)  ~
+  ?.  =(defer.after defer.state)  ~
+  ?.  =(holes.after holes.state)  ~
+  ?.  =(caps.after caps.state)  ~
+  ?.  =(projections.after projections.state)  ~
+  ?:  (unsupported-atom-vars (itype-normalize typ sub.after) caps.after binders.after sub.after)  ~
+  ?:  (itype-has-nvar (itype-normalize typ sub.after))  ~
+  =/  scheme=(unit ischeme)  (dg-generalize typ env edges tags.after ~ after 32.768)
+  ?~  scheme  ~
+  $(ds t.ds, env [[name.d u.scheme] env], state after, pending edges, fuel (dec fuel))
+::
+::  Cheap bounded eligibility check on the already parsed source. This
+::  deliberately covers only direct constructor calls beneath transparent
+::  groups, gates, casts and definition-free bodies. Other shapes decline
+::  this fallback without a second parse or resolution pass.
+++  dg-direct-source
+  |=  [e=expr fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  ?+  -.e  |
+    %group  $(e inner.e, fuel (dec fuel))
+    %gate  $(e body.e, fuel (dec fuel))
+    %gate-wide  $(e body.e, fuel (dec fuel))
+    %cast  $(e val.e, fuel (dec fuel))
+    %body  ?~(defs.e $(e final.e, fuel (dec fuel)) |)
+    %call
+      ?.  ?=([* ~] args.e)  |
+      ?=(%ctor -.i.args.e)
+  ==
+++  dg-source-candidate
+  |=  [ds=(list def) fuel=@ud]
+  ^-  ?
+  ?~  ds  |
+  ?:  =(0 fuel)  |
+  ?.  ?=(%value -.i.ds)  $(ds t.ds, fuel (dec fuel))
+  ?:  (dg-direct-source val.i.ds 64)  &
+  $(ds t.ds, fuel (dec fuel))
+::
+++  dg-interface-safe
+  |=  [env=ienv]
+  ^-  ?
+  ?~  env  &
+  =/  sc=ischeme  scheme.i.env
+  ?:  |((itype-has-hidden-recursive typ.sc) (itype-has-hidden-generic typ.sc))  |
+  ?:  (gth (lent vars.sc) 26)  |
+  $(env t.env)
+::  Parse status and the transaction result come from the same source parse.
++$  dgparse  [parsed=? result=(unit dgcommit)]
+++  dg-root-source
+  |=  [at=path src=@t]
+  ^-  (unit dgcommit)
+  result:(dg-root-detail at src)
+++  dg-root-detail
+  |=  [at=path src=@t]
+  ^-  dgparse
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  [| ~]
+  =/  transact
+    |.
+      ?^  imports.p.parsed  ~
+      ?.  (module-scope-valid p.parsed ~ ~)  ~
+      ?^  (duplicate-defs defs.p.parsed)  ~
+      =/  defs=(list def)  defs.p.parsed
+      ?:  (gth (lent defs) 64)  ~
+      =/  molds=imolds  (collect-simple-molds defs)
+      =/  globals=(list term)  (global-value-names defs)
+      =/  resolution=iresolved  (resolve-groups defs molds globals ~ ~ ~ ~ ~ ~ at ~)
+      ?^  grouped.resolution  ~
+      ?^  artifacts.resolution  ~
+      =/  base=ienv  env.resolution
+      =/  free=(unit dgscan)  (dg-env base ~ 32.768 ~)
+      ?~  free  ~
+      ?^  ids.u.free  ~
+      =/  all=(unit dgscan)  (dg-all-env-ids base 32.768 ~)
+      ?~  all  ~
+      =/  fresh=@ud  (dg-next-id ids.u.all 0)
+      =/  st=istate  *istate
+      =.  st  st(next fresh, defer `~, molds molds, globals globals, at at, top-molds (turn molds |=(m=[name=term body=shape] name.m)), in-mold |, jrec-fuel 256)
+      =/  checked-molds=(each imold-types @t)  (module-mold-types molds st)
+      ?:  ?=(%| -.checked-molds)  ~
+      (dg-stage defs base base st ~ 64)
+    ::
+  [& (transact)]
+++  dg-all-env-ids
+  |=  [env=ienv fuel=@ud ids=(list @ud)]
+  ^-  (unit dgscan)
+  ?~  env  `[ids fuel]
+  ?:  =(0 fuel)  ~
+  =/  sc=ischeme  scheme.i.env
+  ?:  (itype-has-tag typ.sc)  ~
+  =/  raw=(unit dgscan)  (dg-scan ~[typ.sc] ~ (dec fuel) ids)
+  ?~  raw  ~
+  =/  quant=(unit dgscan)  (dg-scan-ids vars.sc ~ fuel.u.raw ids.u.raw)
+  ?~  quant  ~
+  $(env t.env, fuel fuel.u.quant, ids ids.u.quant)
+::
+++  dg-next-id
+  |=  [ids=(list @ud) largest=@ud]
+  ^-  @ud
+  ?~  ids  +(largest)
+  $(ids t.ids, largest (max largest i.ids))
+::
+++  dg-eligible-ctor
+  |=  [e=expr head=itype actual=itype expected=itype state=istate]
+  ^-  (unit dgo)
+  ?.  ?=(%call -.e)  ~
+  ?.  ?=([* ~] args.e)  ~
+  ?.  ?=(%ctor -.i.args.e)  ~
+  ?.  ?=(%fn -.head)  ~
+  ?.  ?=(%fn -.expected)  ~
+  ?.  ?=(%tag -.actual)  ~
+  ?.  constructor.actual  ~
+  ?.  ?=(%var -.product.expected)  ~
+  ?^  (itype-lookup id.product.expected sub.state)  ~
+  =/  bounded=(unit dgscan)  (dg-scan ~[sample.expected] sub.state 256 ~)
+  ?~  bounded  ~
+  ?^  ids.u.bounded  ~
+  `[[actual expected (span-of i.args.e) (span-of head.e)]]
+::
 ::  Experimental per-module, source-derived recursive tree index.
 ::  The two tags and the exact children/list/self layout are fixed-shape
 ::  checks, so ordinary definitions incur no type-tree or source scans.

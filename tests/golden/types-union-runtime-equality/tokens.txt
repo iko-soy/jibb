@@ -1,0 +1,96 @@
+1:1 glyph +$
+1:4 name mixed-zero
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %tag
+2:9 glyph [
+2:10 tight lit %.y
+2:14 aura @t
+2:16 tight glyph ]
+2:17 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %tag
+3:9 glyph [
+3:10 tight lit %$
+3:13 aura @p
+3:15 tight glyph ]
+3:16 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name flag-one
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %tag
+5:9 glyph ?
+5:10 tight glyph ]
+6:3 NEWLINE
+6:3 glyph [
+6:4 tight lit %tag
+6:9 lit %.n
+6:12 tight glyph ]
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name aura-family
+8:3 INDENT
+8:3 glyph [
+8:4 tight lit %tag
+8:9 aura @ta
+8:12 tight glyph ]
+9:3 NEWLINE
+9:3 glyph [
+9:4 tight lit %tag
+9:9 aura @t
+9:11 tight glyph ]
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph +$
+10:4 name empty-field
+11:3 INDENT
+11:3 glyph [
+11:4 tight lit %tag
+11:9 glyph [
+11:10 tight glyph !!
+11:13 aura @t
+11:15 tight glyph ]
+11:16 tight glyph ]
+12:3 NEWLINE
+12:3 glyph [
+12:4 tight lit %tag
+12:9 glyph [
+12:10 tight glyph *
+12:12 aura @p
+12:14 tight glyph ]
+12:15 tight glyph ]
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph +$
+13:4 name distinct-tags
+14:3 INDENT
+14:3 glyph [
+14:4 tight lit %left
+14:10 glyph [
+14:11 tight lit %.y
+14:15 aura @t
+14:17 tight glyph ]
+14:18 tight glyph ]
+15:3 NEWLINE
+15:3 glyph [
+15:4 tight lit %right
+15:11 glyph [
+15:12 tight lit %$
+15:15 aura @p
+15:17 tight glyph ]
+15:18 tight glyph ]
+16:1 DEDENT
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name keep
+16:9 glyph |=
+16:12 name x
+16:13 tight glyph =
+16:14 tight name distinct-tags
+16:28 name x
+16:29 NEWLINE

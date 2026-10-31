@@ -1,0 +1,17 @@
+partial inference; module not checked
+++ text-ship: [@t @p]
+++ ship-text: [@p @t]
+++ first-fn: $-(A [@t A])
+++ generic-lead: $-([x=A y=B] [A B])
+++ generic-late: $-([x=A y=B] [B A])
+++ generic-gate: $-([f=$-(A B) x=C] [$-(A B) C])
+++ reversed-gate: $-([f=$-(A B) x=C] [C $-(A B)])
+++ null-lead: [(unit @t) @t]
+++ unresolved: `~` needs context in partial inference
+++ bad: cast mold and expression type do not unify
+/tests/golden/types-prelude-lead-late/source.jibb:10:11: cast mold has type [@p @t]
+++ bad ^- [@p @t] ((lead "hi") ~zod)
+          ^
+/tests/golden/types-prelude-lead-late/source.jibb:10:19: expression has type [@t @p]
+++ bad ^- [@p @t] ((lead "hi") ~zod)
+                  ^

@@ -12,6 +12,16 @@ projection evidence retained: ok
 raw bound variable declined: ok
 polymorphic scheme gets fresh identities: ok
 polymorphic missing arm declined: ok
+catch-all eligible: ok
+whole binder stays unsupported: ok
+whole structural tail stays unsupported: ok
+128 arms eligible: ok
+129 arms declined: ok
+zero arm budget declined: ok
+128-arm view consumes one step: ok
+129-arm view rolls back: ok
+hidden view stays nominally unknown: ok
+catch-all keeps fuel and pending state: ok
 partial inference; module not checked
 ++ describe: $-((element.first @t) @t)
 ++ reverse: $-((element.first @p) @p)
@@ -29,9 +39,12 @@ partial inference; module not checked
 ++ whole-tail: branch is not supported by partial inference
 ++ unknown: branch is not supported by partial inference
 ++ pending: union branch result matching needs unsupported inference
-++ dead: branch is not supported by partial inference
+++ dead: branch arm is covered by earlier arms
+/tests/tree/client.jibb:59:5: covered arm
+    [%text b] b
+    ^
 ++ wild: $-((element.first @t) @t)
-++ whole-wild: branch is not supported by partial inference
+++ whole-wild: $-((element.first @t) @t)
 ++ foreign-children: union branch result constraint is not supported by partial inference
 ++ wrong-argument: union branch result constraint is not supported by partial inference
 ++ nested-child: $-((element.first @t) @t)
@@ -41,10 +54,33 @@ partial inference; module not checked
 ++ called: $-((element.first @t) @t)
 ++ missing-context: missing union case [%node [event=$-(@t @t) children=(list (element.first @t))]]
 ++ missing-node: missing union case [%text value=@t]
-++ single-wild: branch is not supported by partial inference
+++ single-wild: $-((element.first @t) @t)
 ++ single-bind: branch is not supported by partial inference
 ++ polymorphic-source: (element.first A)
 ++ polymorphic-match: missing union case [%node [event=$-(@t A) children=(list (element.first A))]]
+++ all: $-((element.first @t) @t)
+++ catch-tail: $-((element.first @t) @t)
+++ catch-first-dead: branch arm is covered by earlier arms
+/tests/tree/client.jibb:125:5: covered arm
+    [%text value] value
+    ^
+++ late-dead: branch arm is covered by earlier arms
+/tests/tree/client.jibb:130:5: covered arm
+    * "dead"
+    ^
+++ duplicate-third: branch arm is covered by earlier arms
+/tests/tree/client.jibb:135:5: covered arm
+    [%text other] other
+    ^
+++ nominal-result: $-((element.first A) (element.first A))
+++ nominal-context: $-((element.first A) (element.first A))
+++ forbidden-bind: branch is not supported by partial inference
+++ missing-again: missing union case [%node [event=$-(@t @t) children=(list (element.first @t))]]
+++ catch-pending: union branch result matching needs unsupported inference
+++ called-all: branch pattern is not supported by partial inference
+++ called-context: $-((element.first @t) @t)
+++ called-nominal: $-((element.first A) (element.first A))
+++ called-missing: single-case pattern needs unsupported inference
 partial inference; module not checked
 ++ words: $-((element.first @t) @t)
 ++ children: $-((element.first A) (list (element.first A)))

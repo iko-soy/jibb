@@ -1,0 +1,3 @@
+source: Grammar, Molds: union cases differ as nouns; `?` is the two loobean atoms, and `!!` is empty.
+tests: Nested equal zero nouns with different auras overlap; a loobean case contains `%.n`; ancestor and descendant atom auras overlap. An empty nested field makes a case disjoint. Different outer tags remain disjoint even when their nested zero nouns are equal.
+expect-types: partial mold analysis with both sites of definite overlaps; `keep` infers for the distinct-tag mold. The report does not establish that the other molds or the module are checked.

@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Prelude: "Hoon's standard library regrouped, written in Jibb"; Function helpers include section 2n.
+tests: Source-backed curried lead and late infer independent argument types, reverse output positions correctly, and preserve generic gates as ordinary values. Explicit context accepts a null unit; an uncontextualized null remains unsupported and an incompatible annotated result reports its sites. This is a partial inference report; Jibb lowering, execution and jet recognition remain unverified.
+expect: parses
+expect-types: a partial inference report

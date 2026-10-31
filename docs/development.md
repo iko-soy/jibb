@@ -74,7 +74,9 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-list-alias-test` | Runs the shared prelude list-alias and provenance guards under eval and on the ship |
 | `tools/type-generic-recursion-test` | Checks source-backed generic recursive identity and provenance under eval and on the ship |
 | `tools/type-generic-construction-test` | Checks source-backed one-layer recursive construction, provenance and fuel under eval and on the ship |
-| `tools/type-generic-pattern-test` | Checks source-backed recursive patterns, coverage and fuel under eval and on the ship |
+| `tools/type-generic-pattern-test` | Checks source-backed recursive patterns, catch-all coverage, state and per-attempt fuel/arm limits under eval and on the ship |
+| `tools/type-deferred-test` | Checks the bounded source-owned deferred inference transaction under eval and on the ship |
+| `tools/type-deferred-resolver-test` | Checks deferred resolution, report consistency and atomic failure under eval and on the ship |
 | `tools/type-generic-alias-test` | Runs public/private generic union alias and provenance guards under eval and on the ship |
 | `tools/type-positional-face-guards-test` | Runs positional-call and nested-face guards under eval and on the ship |
 | `tools/type-qath-guards-test` | Runs source-provenance, recursive unfolding and face guards under eval and on the ship |
@@ -128,6 +130,8 @@ tools/type-direct-gate-test         # direct gate source and provenance guards p
 tools/type-generic-recursion-test    # source-backed recursive identities and provenance
 tools/type-generic-construction-test # source-backed recursive construction and bounds
 tools/type-generic-pattern-test      # source-backed recursive patterns and bounds
+tools/type-deferred-test             # source-owned deferred inference guards
+tools/type-deferred-resolver-test    # resolver consistency and failure guards
 tools/type-closed-gate-guards-test  # closed gate fit guards pass
 tools/type-constructor-fit-guards-test # constructor fit guards pass
 tools/type-nested-union-guards-test # nested union selector guards pass
@@ -142,6 +146,7 @@ tools/type-module-scope-test       # module/prelude scope golden report matches
 tools/hoon check-spans-test        # prints <<>>
 tools/hoon itype-unify-test        # type-unification controls pass
 tools/hoon -f tools/testdata/zing-hoon-reference.hoon # Hoon translation agrees on four inputs
+tools/hoon -f tools/testdata/lead-late-hoon-reference.hoon # Hoon translation agrees on selected inputs
 tools/testdata/selftest            # 22 checks, 0 failed
 tools/doc-blocks docs/spec         # every jibb block has its case
 tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date
@@ -193,3 +198,5 @@ Write `source.jibb` and `about.txt` by hand, run `tools/golden --update --case <
 ## Commits
 
 A short subject in the imperative, then a body that says what changed and why, wrapped at 72 columns, as in `git log`. Each commit leaves every check passing.
+
+`tools/type-deferred-test` exercises the bounded, source-owned constructor transaction and low-level freshness/replay guards. `tools/type-deferred-resolver-test` checks the experimental import-free library resolver, report consistency, and atomic failure. These checks do not establish island-kind or watchability support.

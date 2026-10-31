@@ -57,10 +57,17 @@
   =/  parsed=(each module:jibb error:jibb)  (parse:jibb /tests/tree/values/jibb values)
   ?:  ?=(%| -.parsed)  'BAD values parse'
   =/  ds=(list def:jibb)  defs.p.parsed
-  ?.  ?=([* [* ~]] ds)  'BAD value count'
+  ?.  ?=([* [* [* [* [* ~]]]]] ds)  'BAD value count'
   =/  a=def:jibb  i.ds
   =/  b=def:jibb  i.t.ds
   ?.  &(?=(%value -.a) ?=(%value -.b))  'BAD value declarations'
+  =/  c=def:jibb  i.t.t.ds
+  =/  d=def:jibb  i.t.t.t.ds
+  =/  e=def:jibb  i.t.t.t.t.ds
+  ?.  &(?=(%value -.c) ?=(%value -.d) ?=(%value -.e))  'BAD extra value declarations'
+  ?.  &(?=(%branch -.val.c) ?=(%branch -.val.d) ?=(%branch -.val.e))  'BAD extra branches'
+  ?.  ?=([* *] arms.val.c)  'BAD fallback arms'
+  =/  sample-arm=arm:jibb  i.arms.val.c
   =/  parsed-poly=(each module:jibb error:jibb)  (parse:jibb /tests/tree/poly/jibb poly-values)
   ?:  ?=(%| -.parsed-poly)  'BAD polymorphic values parse'
   =/  ps=(list def:jibb)  defs.p.parsed-poly
@@ -91,6 +98,22 @@
   ?.  &(?=(%grec -.ft) ?=(%grec -.stype))  'BAD scheme nominal identity'
   ?.  &(?=([* ~] args.ft) ?=([* ~] args.stype))  'BAD scheme argument count'
   =/  pmissing=iresult:jibb  (infer-fragment:jibb val.p poly st(jrec-fuel 4))
+  =/  view=(unit [view=itype:jibb left=@ud])  (grec-unfold-view:jibb target 1)
+  ?~  view  'BAD recursive view'
+  =/  many=(list arm:jibb)
+    =/  n=@ud  128
+    =/  out=(list arm:jibb)  ~
+    |-
+    ?:  =(0 n)  out
+    $(n (dec n), out [sample-arm out])
+  =/  in-view=iresult:jibb  [%& target st(jrec-fuel 1)]
+  =/  exact=expr:jibb  val.c(arms many)
+  =/  over=expr:jibb  val.c(arms [sample-arm many])
+  =/  rexact=iresult:jibb  (grec-match-view:jibb exact in-view)
+  =/  rover=iresult:jibb  (grec-match-view:jibb over in-view)
+  =/  hidden-view=iresult:jibb  [%& [%var 200] st(sub ~[[200 target]], jrec-fuel 1)]
+  =/  rhidden-view=iresult:jibb  (grec-match-view:jibb exact hidden-view)
+  =/  fallback=iresult:jibb  (infer-fragment:jibb val.c env st(jrec-fuel 1))
   =/  checks=(list [label=@t ok=?])
     :~  ['owner describe has nominal sample and text result' &(=(target desc-sample) =([%atom %t] product.typ.u.desc))]
         ['owner rebuild preserves nominal identity' &(=(target rebuild-sample) =(target product.typ.u.rebuild))]
@@ -106,6 +129,16 @@
         ['raw bound variable declined' ?=(%| -.hidden-result)]
         ['polymorphic scheme gets fresh identities' &(=([%var 201] i.args.ft) =([%var 202] i.args.stype) =(at.ft at.stype) =(name.ft name.stype) =(proof.ft proof.stype))]
         ['polymorphic missing arm declined' ?=(%| -.pmissing)]
+        ['catch-all eligible' (grec-patterns-eligible:jibb arms.val.c view.u.view 128)]
+        ['whole binder stays unsupported' !(grec-patterns-eligible:jibb arms.val.d view.u.view 128)]
+        ['whole structural tail stays unsupported' !(grec-patterns-eligible:jibb arms.val.e view.u.view 128)]
+        ['128 arms eligible' (grec-patterns-eligible:jibb many view.u.view 128)]
+        ['129 arms declined' !(grec-patterns-eligible:jibb [sample-arm many] view.u.view 128)]
+        ['zero arm budget declined' !(grec-patterns-eligible:jibb ~[sample-arm] view.u.view 0)]
+        ['128-arm view consumes one step' ?:(?=(%& -.rexact) &(?=(%union -.typ.p.rexact) =(0 jrec-fuel.state.p.rexact)) |)]
+        ['129-arm view rolls back' =(in-view rover)]
+        ['hidden view stays nominally unknown' =(hidden-view rhidden-view)]
+        ['catch-all keeps fuel and pending state' ?:(?=(%& -.fallback) &(=(0 jrec-fuel.state.p.fallback) =(holes.st holes.state.p.fallback) =(projections.st projections.state.p.fallback) (lien tags.state.p.fallback |=(entry=ipending:jibb =(entry tag)))) |)]
     ==
   =/  modules=jbundle:jibb  ~[[/ui/tree/jibb tree] [/ui/tree-two/jibb tree] [/ui/tree-alias/jibb alias]]
   =/  small=jbundle:jibb  ~[[/ui/tree/jibb tree-no-event]]

@@ -1,0 +1,8 @@
++$ message
+  [%got value=@t]
+  %idle
+++ send |= f=$-(@t A) f
+++ outer |= input=@t
+  ++ tmp (send |=%got)
+  tmp
+++ main ^- $-(@t $-(@t message)) outer

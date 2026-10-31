@@ -1,0 +1,6 @@
++$ message
+  [%got payload=[who=@t n=@ud]]
+  %idle
+++ send |= f=$-([who=@t n=@ud] A) f
+++ nested (send |=%got)
+++ main ^- $-([who=@t n=@ud] message) nested

@@ -1,0 +1,16 @@
++$ mixed-zero
+  [%tag [%.y @t]]
+  [%tag [%$ @p]]
++$ flag-one
+  [%tag ?]
+  [%tag %.n]
++$ aura-family
+  [%tag @ta]
+  [%tag @t]
++$ empty-field
+  [%tag [!! @t]]
+  [%tag [* @p]]
++$ distinct-tags
+  [%left [%.y @t]]
+  [%right [%$ @p]]
+++ keep |= x=distinct-tags x

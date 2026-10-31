@@ -1,0 +1,42 @@
+interface retains independent polymorphism
+text use inferred
+ship use inferred
+stored built: $-(A A)
+partial inference; module not checked
++$ message: cases proven disjoint; mold not checked
+++ send: $-($-(@t A) $-(@t A))
+++ make: $-(A $-(B B))
+++ first: $-(@t message)
+++ second: $-(@t message)
+++ built: $-(A A)
+++ typed: $-(@t message)
+++ reveal: @t
+++ reveal-ship: @p
+conflict rejected without interface
+missing rejected without interface
+hole rejected without interface
+duplicate rejected without interface
+face rejected without interface
+store declined without interface
+conflict report:
+partial inference; module not checked
++$ message: cases proven disjoint; mold not checked
++$ alternate: cases proven disjoint; mold not checked
+++ send: $-($-(@t A) $-(@t A))
+++ first: call constraint is not supported by partial inference
+++ second: name is not available to partial inference
+++ typed: name is not available to partial inference
+++ clash: name is not available to partial inference
+store report:
+partial inference; module not checked
++$ poke: not checked
++$ message: cases proven disjoint; mold not checked
+++ send: $-($-(@t A) $-(@t A))
+++ make: $-(A $-(B B))
+++ first: call constraint is not supported by partial inference
+++ second: name is not available to partial inference
+++ built: name is not available to partial inference
+++ typed: name is not available to partial inference
+++ reveal: name is not available to partial inference
+++ reveal-ship: name is not available to partial inference
+prelude and import fallback declined

@@ -1,0 +1,7 @@
++$ message
+  [%got value=@t]
+  %idle
+++ send |= f=$-(@t A) f
+++ nested |= x=@t (send |=%got)
+++ alias nested
+++ main ^- $-(@t $-(@t message)) alias

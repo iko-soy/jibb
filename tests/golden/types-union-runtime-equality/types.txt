@@ -1,0 +1,25 @@
+partial inference; module not checked
++$ mixed-zero: overlapping cases; mold not checked
+/tests/golden/types-union-runtime-equality/source.jibb:2:3: first union case
+  [%tag [%.y @t]]
+  ^
+/tests/golden/types-union-runtime-equality/source.jibb:3:3: overlapping case
+  [%tag [%$ @p]]
+  ^
++$ flag-one: overlapping cases; mold not checked
+/tests/golden/types-union-runtime-equality/source.jibb:5:3: first union case
+  [%tag ?]
+  ^
+/tests/golden/types-union-runtime-equality/source.jibb:6:3: overlapping case
+  [%tag %.n]
+  ^
++$ aura-family: overlapping cases; mold not checked
+/tests/golden/types-union-runtime-equality/source.jibb:8:3: first union case
+  [%tag @ta]
+  ^
+/tests/golden/types-union-runtime-equality/source.jibb:9:3: overlapping case
+  [%tag @t]
+  ^
++$ empty-field: cases proven disjoint; mold not checked
++$ distinct-tags: cases proven disjoint; mold not checked
+++ keep: $-(distinct-tags distinct-tags)

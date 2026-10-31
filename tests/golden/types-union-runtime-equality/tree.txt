@@ -1,0 +1,37 @@
+(module
+  (mold 1:1 mixed-zero
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %tag)
+        (cell 2:9 (const 2:10 %.y) (aura 2:14 @t)))
+      (cell 3:3
+        (const 3:4 %tag)
+        (cell 3:9 (const 3:10 %$) (aura 3:13 @p)))))
+  (mold 4:1 flag-one
+    (union 5:3
+      (cell 5:3 (const 5:4 %tag) (flag 5:9))
+      (cell 6:3 (const 6:4 %tag) (const 6:9 %.n))))
+  (mold 7:1 aura-family
+    (union 8:3
+      (cell 8:3 (const 8:4 %tag) (aura 8:9 @ta))
+      (cell 9:3 (const 9:4 %tag) (aura 9:9 @t))))
+  (mold 10:1 empty-field
+    (union 11:3
+      (cell 11:3
+        (const 11:4 %tag)
+        (cell 11:9 (void 11:10) (aura 11:13 @t)))
+      (cell 12:3
+        (const 12:4 %tag)
+        (cell 12:9 (noun 12:10) (aura 12:12 @p)))))
+  (mold 13:1 distinct-tags
+    (union 14:3
+      (cell 14:3
+        (const 14:4 %left)
+        (cell 14:10 (const 14:11 %.y) (aura 14:15 @t)))
+      (cell 15:3
+        (const 15:4 %right)
+        (cell 15:11 (const 15:12 %$) (aura 15:15 @p)))))
+  (value 16:1 keep
+    (gate 16:9
+      (face 16:12 x (ref 16:14 distinct-tags))
+      (wing 16:28 x))))

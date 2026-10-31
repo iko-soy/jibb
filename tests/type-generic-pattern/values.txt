@@ -8,3 +8,11 @@
     [item remainder] ?- item
       [%text value] value
       [%node action rest] (action "click")
+++ fallback ?- x
+  [%text value] value
+  * "node"
+++ whole-bind ?- x
+  other other
+++ whole-tail ?- x
+  [%node payload] "node"
+  * "other"

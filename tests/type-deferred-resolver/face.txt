@@ -1,0 +1,6 @@
++$ message
+  [%got payload=[who=@t n=@ud]]
+  %idle
+++ send |= f=$-([wrong=@t n=@ud] A) f
+++ nested (send |=%got)
+++ typed ^- $-([wrong=@t n=@ud] message) nested

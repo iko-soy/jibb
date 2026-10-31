@@ -1,0 +1,11 @@
++$ message
+  [%got value=@t]
+  [%other value=@p]
+++ send |= f=$-(@t A) f
+++ make |= ignored=A |= x=B x
+++ first (send |=%got)
+++ second first
+++ built (make first)
+++ typed ^- $-(@t message) second
+++ reveal (built "hello")
+++ reveal-ship (built ~zod)

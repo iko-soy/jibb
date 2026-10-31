@@ -325,7 +325,9 @@ def generator_checks(tmp):
            'tests/lib/jibb-sub-guards.hoon',
            'tests/lib/jibb-nested-union-guards.hoon',
            'tests/lib/jibb-gate-free-guards.hoon',
-           'tests/lib/jibb-gate-free-source.hoon'}
+           'tests/lib/jibb-gate-free-source.hoon',
+           'tests/lib/jibb-deferred.hoon',
+           'tests/lib/jibb-deferred-resolver.hoon'}
           <= normal_tests, sorted(normal_tests))
     check('generic recursion source and golden are assembled',
           {f'tests/type-generic-recursion/{name}.txt' for name in (
@@ -341,6 +343,11 @@ def generator_checks(tmp):
           {f'tests/type-generic-pattern/{name}.txt' for name in (
               'client', 'no-event', 'values', 'poly-values', 'owner',
               'owner-bad', 'expected')} <= set(normal.files))
+    check('deferred transaction and resolver sources are assembled',
+          {'tests/type-deferred/nested-src.txt', 'tests/type-deferred/principal-src.txt',
+           'tests/type-deferred/expected.txt', 'tests/type-deferred-resolver/good.txt',
+           'tests/type-deferred-resolver/store.txt', 'tests/type-deferred-resolver/expected.txt'}
+          <= set(normal.files))
     check('direct gate source and golden are assembled',
           {'tests/type-direct-gate/source.txt', 'tests/type-direct-gate/expected.txt'}
           <= set(normal.files))

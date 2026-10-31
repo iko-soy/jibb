@@ -1,0 +1,10 @@
++$ message
+  [%got value=@t]
+  [%other value=@p]
++$ alternate
+  [%got value=@t]
+  [%other value=@p]
+++ send |= f=$-(@t A) f
+++ first (send |=%absent)
+++ second first
+++ main ^- $-(@t message) second

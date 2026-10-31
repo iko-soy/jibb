@@ -1,0 +1,38 @@
+nested lexical gate and alias agree
+later source context closes nested constructor
+nested obligation discharged
+independent built result stays polymorphic
+text use inferred
+ship use inferred independently
+missing constructor leaves no result
+conflicting context leaves no result
+duplicate source binding declined
+definition hole does not escape
+local deferred definition declined
+recursive deferred group declined
+unused mold hole declined
+fresh ID exceeds raw and quantified IDs
+fresh ID scan respects budget
+original structural binding rejects wrong face
+dropping binding would accept wrong face
+unresolved edge remains open after fit
+closed constructor edge has no free IDs
+final replay is unchanged
+open interface stays unpublished
+raw bound variable hides atom constraint
+normalized unsupported atom constraint rejected
+scheme-local quantifier cannot hide captured ID
+captured outer variable remains monomorphic
+pending tag binding keeps reachable variable monomorphic
+recursive obligation component stays monomorphic
+faced callback source accepted
+wrong nested callback face rejected
+constructor resolves to exact callback
+callback retains its face
+post-fit face asymmetry is absent
+record output stays cell-capable
+prebound incompatible callback is rejected
+grec constraint scan declines
+grec fresh-id scan declines
+default inference declines; explicit capability creates obligation
+candidate screen boundaries passed

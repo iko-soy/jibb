@@ -1,0 +1,3 @@
+source: docs/spec/grammar.md, Tag resolution: “A variable constrained by tag resolution, and any it mentions, doesn't generalize; it stays open until something in the module fixes it.”
+
+Source-owned deferred constructor transaction: partial type artifact only; no module kind, runtime or watchability proof. Every source case checks parse success in the same analysis. Captured IDs and replay safety are checked directly.

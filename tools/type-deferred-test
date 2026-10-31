@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+"""Evaluate the shared partial deferred-transaction report."""
+from pathlib import Path
+import argparse, subprocess, sys, tempfile
+root = Path(__file__).resolve().parent.parent
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+a = p.parse_args()
+core = (root / 'tests/lib/jibb-deferred.hoon').read_text()
+core = core[core.index('\n|%\n') + 1:]
+names = ['nested-src', 'principal-src', 'missing-src', 'conflict-src', 'duplicate-src', 'hole-src', 'local-src', 'mutual-src', 'mold-hole-src', 'face-good-src', 'face-bad-src']
+bindings = ''.join('=/  '+n+'=wain  (to-wain:format '+n+'-text)\n' for n in names)
+program = ('=/  jibb  .\n' + bindings + '=/  expected=wain  (to-wain:format expected-text)\n=/  suite\n' + core +
+           '\n^-  @t\n=/  checked=tang  test-deferred:suite\n?~  checked  \'deferred partial transaction guards passed\'\n(crip "{<checked>}")\n')
+with tempfile.TemporaryDirectory(prefix='jibb-deferred-') as d:
+    f = Path(d) / 'report.hoon'
+    f.write_text(program)
+    cmd = [str(root/'tools/hoon'), '--lib', a.lib, '--raw', '-f', str(f)]
+    for n in names:
+        fixture = root/'tests/type-deferred'/(n+'.txt')
+        if not fixture.is_file() or fixture.stat().st_size == 0:
+            sys.exit('missing or empty fixture: ' + str(fixture))
+        cmd.extend(['--cord', n+'-text='+str(fixture)])
+    cmd.extend(['--cord', 'expected-text='+str(root/'tests/type-deferred/expected.txt')])
+    got = subprocess.run(cmd, stdout=subprocess.PIPE)
+if got.returncode:
+    sys.exit(got.returncode)
+want = b'deferred partial transaction guards passed\n'
+if got.stdout != want:
+    sys.stderr.write(got.stdout.decode(errors='replace'))
+    sys.exit(1)
+print('deferred partial transaction guards passed')

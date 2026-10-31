@@ -368,3 +368,6 @@
     ?- xss
       ~ ~
       [xs rest] (weld xs (zing rest))
+
+++ lead |= first=A |= second=B [first second]
+++ late |= second=B |= first=A [first second]

@@ -112,3 +112,55 @@
 ++ polymorphic-source ^- (element.first A) [%text value="source"]
 ++ polymorphic-match ?- polymorphic-source
   [%text text] text
+++ all |= x=(element.first @t)
+  ?- x
+    * "all"
+++ catch-tail |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    * "node"
+++ catch-first-dead |= x=(element.first @t)
+  ?- x
+    * "all"
+    [%text value] value
+++ late-dead |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node event kids] (event "click")
+    * "dead"
+++ duplicate-third |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    [%node event kids] (event "click")
+    [%text other] other
+++ nominal-result |= x=(element.first A)
+  ?- x
+    [%text value] x
+    * x
+++ nominal-context |= x=(element.first A)
+  ^- (element.first A) ?- x
+    [%text value] x
+    * x
+++ forbidden-bind |= x=(element.first @t)
+  ?- x
+    [%text value] value
+    rest rest
+++ missing-again |= x=(element.first @t)
+  ?- x
+    [%text value] value
+++ catch-pending |= x=(element.first @t)
+  ?- x
+    [%text value] [%unrelated value]
+    * [%unrelated "node"]
+++ called-all |= x=(element.first @t)
+  ?- (generic-id.first x)
+    * "all"
+++ called-context |= x=(element.first @t)
+  ^- @t ?- (generic-id.first x)
+    * "all"
+++ called-nominal |= x=(element.first A)
+  ^- (element.first A) ?- (generic-id.first x)
+    * x
+++ called-missing |= x=(element.first @t)
+  ?- (generic-id.first x)
+    [%text value] value

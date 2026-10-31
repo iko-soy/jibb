@@ -1,0 +1,12 @@
++$ message
+  [%got value=@t]
+  [%other value=@p]
++$ alternate
+  [%got value=@t]
+  [%other value=@p]
+++ send |= f=$-(@t A) f
+++ first (send |=%got)
+++ second first
+++ typed ^- $-(@t message) second
+
+++ hole ^- _ %idle

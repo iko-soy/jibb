@@ -1,0 +1,83 @@
+(module
+  (value 1:1 text-ship
+    (group 1:14
+      (call 1:15
+        (group 1:15
+          (call 1:16 (wing 1:16 lead) (str 1:21 "hi")))
+        (lit 1:27 ~zod))))
+  (value 2:1 ship-text
+    (group 2:14
+      (call 2:15
+        (group 2:15
+          (call 2:16 (wing 2:16 late) (str 2:21 "hi")))
+        (lit 2:27 ~zod))))
+  (value 3:1 first-fn
+    (group 3:13
+      (call 3:14 (wing 3:14 lead) (str 3:19 "hi"))))
+  (value 4:1 generic-lead
+    (gate 4:17
+      (cell 4:20
+        (face 4:21 x (tvar 4:23 A))
+        (face 4:25 y (tvar 4:27 B)))
+      (group 4:30
+        (call 4:31
+          (group 4:31
+            (call 4:32 (wing 4:32 lead) (wing 4:37 x)))
+          (wing 4:40 y)))))
+  (value 5:1 generic-late
+    (gate 5:17
+      (cell 5:20
+        (face 5:21 x (tvar 5:23 A))
+        (face 5:25 y (tvar 5:27 B)))
+      (group 5:30
+        (call 5:31
+          (group 5:31
+            (call 5:32 (wing 5:32 late) (wing 5:37 x)))
+          (wing 5:40 y)))))
+  (value 6:1 generic-gate
+    (gate 6:17
+      (cell 6:20
+        (face 6:21 f
+          (fn 6:23 (tvar 6:26 A) (tvar 6:28 B)))
+        (face 6:31 x (tvar 6:33 C)))
+      (group 6:36
+        (call 6:37
+          (group 6:37
+            (call 6:38 (wing 6:38 lead) (wing 6:43 f)))
+          (wing 6:46 x)))))
+  (value 7:1 reversed-gate
+    (gate 7:18
+      (cell 7:21
+        (face 7:22 f
+          (fn 7:24 (tvar 7:27 A) (tvar 7:29 B)))
+        (face 7:32 x (tvar 7:34 C)))
+      (group 7:37
+        (call 7:38
+          (group 7:38
+            (call 7:39 (wing 7:39 late) (wing 7:44 f)))
+          (wing 7:47 x)))))
+  (value 8:1 null-lead
+    (group 8:14
+      (call 8:15
+        (group 8:15
+          (call 8:16
+            (wing 8:16 lead)
+            (group 8:21
+              (cast 8:22
+                (apply 8:25 unit (aura 8:31 @t))
+                (lit 8:35 ~)))))
+        (str 8:39 "tail"))))
+  (value 9:1 unresolved
+    (group 9:15
+      (call 9:16
+        (group 9:16
+          (call 9:17 (wing 9:17 lead) (lit 9:22 ~)))
+        (str 9:25 "tail"))))
+  (value 10:1 bad
+    (cast 10:8
+      (cell 10:11 (aura 10:12 @p) (aura 10:15 @t))
+      (group 10:19
+        (call 10:20
+          (group 10:20
+            (call 10:21 (wing 10:21 lead) (str 10:26 "hi")))
+          (lit 10:32 ~zod))))))
