@@ -51,6 +51,8 @@ An eval and ship fixture now reports partial inference for the unchanged todo is
 
 The prelude now writes `lth`, `gte` and `lte` in Jibb using `gth` and `not`. Supported generic and concrete calls infer, including loobeans; mismatched explicit auras fail. A source-aware Hoon import fixture records that nested mixed-zero overlaps are rejected conservatively and that some disjoint flag cases also remain unsupported. Execution, jet recognition and complete import checking remain unfinished.
 
+Restricted-number promotion now skips an environment scan when a definition has no written capitals. In a single startup-inclusive pair on 2,000 independent gates, output was identical and user CPU fell from 71.67 to 38.26 seconds; wall time was 72.80 versus 51.66 seconds with other checks running. This is a partial-inference measurement, not a complete checker or a bound on dependent modules.
+
 ## Milestone 1: parser and mark
 
 What the plan asks for, and where it is:
@@ -68,7 +70,7 @@ What the plan asks for, and where it is:
 Besides the plan's list:
 
 - 652 golden cases: 432 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 652-case corpus passed under `urbit eval` in 122.4 s while other checks were running. The fake ship passed all 684 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report, with 107.1 s for sync and 75.9 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- The 652-case corpus passed under `urbit eval` in 111.5 s while other checks were running. The fake ship passed all 684 tests, including the importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report, with 86.5 s for sync and 139.0 s for tests. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -167,14 +169,15 @@ Besides the plan's list:
 | 706035c | 2026-10-31 | Analyze gate-free source molds with field witnesses |
 | 651b8ec | 2026-10-31 | Match source-proven gate samples in direct calls |
 | cc8e389 | 2026-10-31 | Add source-backed list length and real todo regression |
-| This change | 2026-10-31 | Add source-backed comparisons and nested Hoon union controls |
+| 4da6891 | 2026-10-31 | Add source-backed comparisons and nested Hoon union controls |
+| This change | 2026-10-31 | Skip unnecessary inference environment scans |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 649 cases under urbit eval
+tools/golden                      # 652 cases under urbit eval
 tools/importer-test               # the Hoon importer fixture projection
 tools/type-import-default-test    # default-wrapped source proof golden
 tools/type-import-test            # the importer/checker bridge fixture
@@ -196,7 +199,7 @@ tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 649 cases as -test arms on the ship
+tools/ship test                   # the same 652 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
 tools/ship check-commit           # |commit stores .jibb files

@@ -4607,6 +4607,8 @@
 ::  Atom constraints tied to an explicit capital or an inferred sample
 ::  are generalized and printed. Other aura variables remain unsupported until
 ::  their defaulting and inferred generalization are implemented.
+::  Restricted-number promotion considers written capitals only; if there
+::  are none, it skips the otherwise unnecessary environment traversal.
 ::  Bare @ is a separate unrestricted atom type. A directional fit check
 ::  permits concrete atoms to widen to it, never the reverse. A fit that
 ::  needs a not-yet-implemented constraint remains unsupported. Named unions
@@ -5794,6 +5796,8 @@
 ++  promote-restricted-numbers
   |=  [state=istate env=ienv]
   ^-  istate
+  ::  With no written capitals, there is nothing to promote.
+  ?~  caps.state  state
   =/  ids=(list @ud)  (turn caps.state |=(c=icap id.c))
   =/  free=(list @ud)  (free-env-vars env sub.state)
   |-
