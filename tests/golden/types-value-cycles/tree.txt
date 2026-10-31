@@ -1,0 +1,39 @@
+(module
+  (value 1:1 title
+    (cast 1:10 (aura 1:13 @t) (wing 1:16 title)))
+  (value 2:1 first
+    (cast 2:10 (aura 2:13 @t) (wing 2:16 second)))
+  (value 3:1 second (wing 3:11 third))
+  (value 4:1 third (wing 4:10 first))
+  (value 5:1 maker
+    (gate 5:10 (bind 5:13 x) (wing 5:15 value)))
+  (value 6:1 value
+    (cast 6:10
+      (aura 6:13 @t)
+      (group 6:16
+        (call 6:17 (wing 6:17 maker) (str 6:23 "hi")))))
+  (value 7:1 flag-a
+    (cast 7:11 (flag 7:14) (wing 7:16 flag-b)))
+  (value 8:1 flag-b (wing 8:11 flag-a))
+  (value 9:1 outer
+    (cast 9:10
+      (aura 9:13 @t)
+      (group 9:16
+        (call 9:17 (wing 9:17 gate) (str 9:22 "hi")))))
+  (value 10:1 gate
+    (gate 10:9
+      (bind 10:12 x)
+      (group 10:14
+        (call 10:15 (wing 10:15 helper) (wing 10:22 x)))))
+  (value 11:1 helper
+    (gate 11:11 (bind 11:14 y) (wing 11:16 outer)))
+  (value 12:1 left
+    (gate 12:9
+      (bind 12:12 x)
+      (group 12:14
+        (call 12:15 (wing 12:15 right) (wing 12:21 x)))))
+  (value 13:1 right
+    (gate 13:10
+      (bind 13:13 y)
+      (group 13:15
+        (call 13:16 (wing 13:16 left) (wing 13:21 y))))))

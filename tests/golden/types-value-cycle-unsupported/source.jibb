@@ -1,0 +1,11 @@
+++ open-a open-b
+++ open-b open-a
+++ delayed-a (same delayed-a)
+++ branch-a ?- %.y
+  %.y branch-b
+  %.n "no"
+++ branch-b branch-a
+++ nested-a
+  ++ child nested-b
+  child
+++ nested-b nested-a

@@ -1,0 +1,8 @@
+partial inference; module not checked
+++ open-a: name is not available to partial inference
+++ open-b: name is not available to partial inference
+++ delayed-a: name is not available to partial inference
+++ branch-a: name is not available to partial inference
+++ branch-b: name is not available to partial inference
+++ nested-a: local definitions need unsupported inference
+++ nested-b: name is not available to partial inference

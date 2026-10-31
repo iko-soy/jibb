@@ -1,0 +1,4 @@
+source: Grammar, Modules: gates may be recursive, but other values cannot refer to themselves, including through a gate.
+tests: Bare aliases or calls can still be gates, while branch and nested-local dependency edges need a fuller proof. The partial checker declines to diagnose these as definite value cycles.
+expect: parses
+expect-types: a partial inference report

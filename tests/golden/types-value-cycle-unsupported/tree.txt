@@ -1,0 +1,17 @@
+(module
+  (value 1:1 open-a (wing 1:11 open-b))
+  (value 2:1 open-b (wing 2:11 open-a))
+  (value 3:1 delayed-a
+    (group 3:14
+      (call 3:15 (wing 3:15 same) (wing 3:20 delayed-a))))
+  (value 4:1 branch-a
+    (branch 4:13
+      (lit 4:16 %.y)
+      (arm 5:3 (lit 5:3 %.y) (wing 5:7 branch-b))
+      (arm 6:3 (lit 6:3 %.n) (str 6:7 "no"))))
+  (value 7:1 branch-b (wing 7:13 branch-a))
+  (value 8:1 nested-a
+    (body 9:3
+      (value 9:3 child (wing 9:12 nested-b))
+      (wing 10:3 child)))
+  (value 11:1 nested-b (wing 11:13 nested-a)))

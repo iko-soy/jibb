@@ -1,0 +1,44 @@
+partial inference; module not checked
+++ title: non-gate value depends on itself through a cycle
+/tests/golden/types-value-cycles/source.jibb:1:1: value in cycle
+++ title ^- @t title
+^
+/tests/golden/types-value-cycles/source.jibb:1:16: dependency in cycle
+++ title ^- @t title
+               ^
+++ first: non-gate value depends on itself through a cycle
+/tests/golden/types-value-cycles/source.jibb:2:1: value in cycle
+++ first ^- @t second
+^
+/tests/golden/types-value-cycles/source.jibb:2:16: dependency in cycle
+++ first ^- @t second
+               ^
+++ second: name is not available to partial inference
+++ third: name is not available to partial inference
+++ maker: name is not available to partial inference
+++ value: non-gate value depends on itself through a cycle
+/tests/golden/types-value-cycles/source.jibb:6:1: value in cycle
+++ value ^- @t (maker "hi")
+^
+/tests/golden/types-value-cycles/source.jibb:6:17: dependency in cycle
+++ value ^- @t (maker "hi")
+                ^
+++ flag-a: non-gate value depends on itself through a cycle
+/tests/golden/types-value-cycles/source.jibb:7:1: value in cycle
+++ flag-a ^- ? flag-b
+^
+/tests/golden/types-value-cycles/source.jibb:7:16: dependency in cycle
+++ flag-a ^- ? flag-b
+               ^
+++ flag-b: name is not available to partial inference
+++ outer: non-gate value depends on itself through a cycle
+/tests/golden/types-value-cycles/source.jibb:9:1: value in cycle
+++ outer ^- @t (gate "hi")
+^
+/tests/golden/types-value-cycles/source.jibb:9:17: dependency in cycle
+++ outer ^- @t (gate "hi")
+                ^
+++ gate: name is not available to partial inference
+++ helper: name is not available to partial inference
+++ left: $-(A B)
+++ right: $-(A B)

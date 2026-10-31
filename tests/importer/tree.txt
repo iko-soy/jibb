@@ -153,6 +153,9 @@ unverified-subject: error: Hoon module provenance is unavailable
 tag-ford-collision: error: a Hoon union needs a source-level disjointness check
 tag-ford-clean: (union [ok a=@t] [err a=@ud])
 tag-zuse-local: (union [ok who=@t] [err where=@ud])
+tag-null-good: (union [ok @n:0] [err message=@t])
+tag-null-duplicate: error: Hoon union disjointness could not be verified
+tag-null-hidden: error: a Hoon union needs a source-level disjointness check
 tag-valid: (union [ok a=@t] [err a=@ud])
 tag-duplicate: error: Hoon union disjointness could not be verified
 tag-collapsed: error: Hoon union disjointness could not be verified

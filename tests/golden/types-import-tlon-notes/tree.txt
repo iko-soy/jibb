@@ -1,0 +1,10 @@
+(module
+  (sur 1:1 notes)
+  (value 2:1 update
+    (gate 2:11
+      (face 2:14 x (ref 2:16 u-note.notes))
+      (wing 2:29 x)))
+  (value 3:1 action
+    (gate 3:11
+      (face 3:14 x (ref 3:16 a-note.notes))
+      (wing 3:29 x))))

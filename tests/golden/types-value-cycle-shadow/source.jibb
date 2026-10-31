@@ -1,0 +1,6 @@
+++ first |= second second
+++ second first
+++ alpha ^- @t (beta "x")
+++ beta |= [nest=[alpha=@t other=@t] val=@t] alpha
+++ gamma ^- @t (delta "x")
+++ delta |= [nest=[left=@t other=@t] val=@t] gamma

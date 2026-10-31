@@ -1,0 +1,32 @@
+(module
+  (value 1:1 first
+    (gate 1:10 (bind 1:13 second) (wing 1:20 second)))
+  (value 2:1 second (wing 2:11 first))
+  (value 3:1 alpha
+    (cast 3:10
+      (aura 3:13 @t)
+      (group 3:16
+        (call 3:17 (wing 3:17 beta) (str 3:22 "x")))))
+  (value 4:1 beta
+    (gate 4:9
+      (cell 4:12
+        (face 4:13 nest
+          (cell 4:18
+            (face 4:19 alpha (aura 4:25 @t))
+            (face 4:28 other (aura 4:34 @t))))
+        (face 4:38 val (aura 4:42 @t)))
+      (wing 4:46 alpha)))
+  (value 5:1 gamma
+    (cast 5:10
+      (aura 5:13 @t)
+      (group 5:16
+        (call 5:17 (wing 5:17 delta) (str 5:23 "x")))))
+  (value 6:1 delta
+    (gate 6:10
+      (cell 6:13
+        (face 6:14 nest
+          (cell 6:19
+            (face 6:20 left (aura 6:25 @t))
+            (face 6:28 other (aura 6:34 @t))))
+        (face 6:38 val (aura 6:42 @t)))
+      (wing 6:46 gamma))))

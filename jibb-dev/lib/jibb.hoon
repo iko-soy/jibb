@@ -8374,6 +8374,123 @@
   ^-  ienv
   env:(resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
 ::
+::  A diagnostic-only proof for a narrow syntactic value cycle. Every
+::  edge is an unqualified wing in a supported expression, and samples
+::  may not shadow global bindings. Unknown forms yield no conclusion.
++$  icyclesite  [name=term at=span]
++$  icycle  [name=term first=span next=span]
+++  cycle-sites-list
+  |=  [xs=(list expr) globals=(list term) locals=(list term)]
+  ^-  (unit (list icyclesite))
+  ?~  xs  `~
+  =/  first=(unit (list icyclesite))  (cycle-sites i.xs globals locals)
+  ?~  first  ~
+  =/  tail=(unit (list icyclesite))  $(xs t.xs)
+  ?~  tail  ~
+  `(weld u.first u.tail)
+::
+++  cycle-sample-name
+  |=  [sam=sample globals=(list term) locals=(list term)]
+  ^-  (unit (unit term))
+  ?-  -.sam
+    %bind
+      ?:  (lien (weld globals locals) |=(n=term =(n name.sam)))  ~
+      ``name.sam
+    %face
+      ?:  (lien (weld globals locals) |=(n=term =(n name.sam)))  ~
+      ``name.sam
+    %bare  `~
+    *      ~
+  ==
+::
+++  cycle-sites
+  |=  [e=expr globals=(list term) locals=(list term)]
+  ^-  (unit (list icyclesite))
+  ?-  -.e
+    %wing
+      ?.  ?=([@ ~] names.e)  ~
+      `~[[i.names.e at.e]]
+    %lit  `~
+    %str
+      ?:  (lien pieces.e |=(p=piece ?=(%expr -.p)))  ~
+      `~
+    %group  $(e inner.e)
+    %body   ?~(defs.e $(e final.e) ~)
+    %cast   $(e val.e)
+    %gate
+      =/  binder=(unit (unit term))  (cycle-sample-name sample.e globals locals)
+      ?~  binder  ~
+      =/  nested=(list term)  ?~(u.binder locals [u.u.binder locals])
+      $(e body.e, locals nested)
+    %gate-wide
+      =/  binder=(unit (unit term))  (cycle-sample-name sample.e globals locals)
+      ?~  binder  ~
+      =/  nested=(list term)  ?~(u.binder locals [u.u.binder locals])
+      $(e body.e, locals nested)
+    %call
+      =/  first=(unit (list icyclesite))  $(e head.e)
+      ?~  first  ~
+      =/  tail=(unit (list icyclesite))  (cycle-sites-list args.e globals locals)
+      ?~  tail  ~
+      `(weld u.first u.tail)
+    *  ~
+  ==
+::
+++  cycle-definitely-atom
+  |=  e=expr
+  ^-  ?
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?.  ?=(%cast -.e)  |
+  |(?=(%aura -.shape.e) ?=(%flag -.shape.e))
+::
+++  cycle-proof-group
+  |=  [members=(list def) globals=(list term)]
+  ^-  ?
+  ?~  members  &
+  ?.  ?=(%value -.i.members)  |
+  ?.  (unique-value-name name.i.members globals)  |
+  ?.  ?=(^ (cycle-sites val.i.members globals ~))  |
+  $(members t.members)
+::
+++  cycle-find-site
+  |=  [sites=(list icyclesite) component=(list term)]
+  ^-  (unit span)
+  ?~  sites  ~
+  ?:  (lien component |=(n=term =(n name.i.sites)))  `at.i.sites
+  $(sites t.sites)
+::
+++  cycle-group-errors
+  |=  [members=(list def) component=(list term) globals=(list term)]
+  ^-  (list icycle)
+  ?~  members  ~
+  =/  d=def  i.members
+  ?>  ?=(%value -.d)
+  =/  tail=(list icycle)  $(members t.members)
+  ?.  (cycle-definitely-atom val.d)  tail
+  =/  sites=(unit (list icyclesite))  (cycle-sites val.d globals ~)
+  ?~  sites  tail
+  =/  found=(unit span)  (cycle-find-site u.sites component)
+  ?~  found  tail
+  [[name.d at.d u.found] tail]
+::
+++  definite-value-cycles
+  |=  [ds=(list def) globals=(list term)]
+  ^-  (list icycle)
+  =/  names=(list term)  (global-value-names ds)
+  =/  graph=iadj  (graph-make-forward ds (graph-nameset names ~) ~)
+  =/  components=icomponents  (graph-components ds names)
+  =/  out=(list icycle)  ~
+  |-
+  ?~  components  out
+  =/  component=(list term)  i.components
+  ?.  (graph-cycle component graph)  $(components t.components)
+  =/  members=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) (lien component |=(n=term =(n name.d))))))
+  ?.  =((lent members) (lent component))  $(components t.components)
+  ?.  (cycle-proof-group members globals)  $(components t.components)
+  $(components t.components, out (weld (cycle-group-errors members component globals) out))
+::
 +|  %union-analysis
 ::
 ::  A conservative projection of written molds onto noun shapes. The
@@ -9191,6 +9308,7 @@
   =/  surs=(list term)  (collect-sur-imports imports.p.parsed)
   =/  marks=(list term)  (collect-mark-imports imports.p.parsed)
   =/  resolution=iresolved  (resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds file prelude)
+  =/  cycles=(list icycle)  (definite-value-cycles ds globals)
   =/  env=ienv  env.resolution
   =/  lines=(list @t)  ~
   |-
@@ -9200,6 +9318,10 @@
     $(ds t.ds, lines [(show-partial-mold file src d molds) lines])
   ?.  (unique-value-name name.d globals)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
+  =/  cycle=(list icycle)  (skim cycles |=(c=icycle =(name.c name.d)))
+  ?^  cycle
+    =/  diag=idiag  ["non-gate value depends on itself through a cycle" ~[[first.i.cycle "value in cycle"] [next.i.cycle "dependency in cycle"]]]
+    $(ds t.ds, lines [(show-inference-diagnostic file src name.d diag) lines])
   ?:  (lien grouped.resolution |=(n=term =(n name.d)))
     =/  found=(unit ischeme)  (ienv-lookup name.d env)
     ?~  found  $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive group unavailable") lines])

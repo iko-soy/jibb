@@ -1,0 +1,4 @@
+source: Grammar, Modules: gates may call themselves and their siblings; other values cannot refer to themselves, including through a gate.
+tests: Explicitly atom- and loobean-typed values in direct, multiple-value and mixed gate/value cycles report the value and a dependency site; a cycle of gates remains generic. This report remains partial.
+expect: parses
+expect-types: a partial inference report

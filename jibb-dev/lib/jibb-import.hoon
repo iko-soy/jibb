@@ -213,7 +213,7 @@
   =/  gist=(unit *)  (source-gist-tail shape)
   ?^  gist  $(shape ;;(spec u.gist))
   ?+  shape  ~
-    [%base *]  ?:(|(?=([%atom *] p.shape) =(%flag p.shape)) `fuel ~)
+    [%base *]  ?:(|(?=([%atom *] p.shape) =(%flag p.shape) =(%null p.shape)) `fuel ~)
     [%leaf *]  `fuel
     [%bcts *]  ?@  p.shape  $(shape q.shape)
                ~
@@ -1841,6 +1841,9 @@
       (crip "tag-ford-collision: {(show-result (read-named %child %choice tag-collision))}")
       (crip "tag-ford-clean: {(show-result (read-named %child %choice tag-clean))}")
       (crip "tag-zuse-local: {(show-result (read-named %child %choice tag-zuse-core))}")
+      (crip "tag-null-good: {(show-result (sample %tag-null-good))}")
+      (crip "tag-null-duplicate: {(show-result (sample %tag-null-duplicate))}")
+      (crip "tag-null-hidden: {(show-result (sample %tag-null-hidden))}")
       (crip "tag-valid: {(show-result (sample %tag-valid))}")
       (crip "tag-duplicate: {(show-result (sample %tag-duplicate))}")
       (crip "tag-collapsed: {(show-result (sample %tag-collapsed))}")

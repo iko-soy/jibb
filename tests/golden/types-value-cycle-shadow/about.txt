@@ -1,0 +1,4 @@
+source: Grammar, Modules: no binding may shadow a name already in scope, including the prelude.
+tests: A sample shadow is reported independently; nested cell samples, with and without a potentially shadowing binder, stay unsupported rather than yielding a false cycle error.
+expect: parses
+expect-types: a partial inference report

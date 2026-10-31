@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: Hoon `$%` imports as a union if its cases differ as nouns; unused molds are skipped. Grammar, Literals: `~` is null.
+tests: The unmodified Tlon `desk/sur/notes.hoon` at tloncorp/tlon-apps commit 38f9328f4580000a37a7fdc3ab820fcd65069487 (MIT license in `tests/importer/tlon-license.txt`) has tagged unions with null cases. Both real imported molds reach partial inference without assuming unsupported sibling molds are valid.
+expect: parses
+expect-types: a partial inference report

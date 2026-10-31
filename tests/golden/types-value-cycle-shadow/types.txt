@@ -1,0 +1,7 @@
+partial inference; module not checked
+++ first: sample shadows a name
+++ second: name is not available to partial inference
+++ alpha: name is not available to partial inference
+++ beta: name is not available to partial inference
+++ gamma: name is not available to partial inference
+++ delta: name is not available to partial inference

@@ -1,0 +1,13 @@
+++ title ^- @t title
+++ first ^- @t second
+++ second third
+++ third first
+++ maker |= x value
+++ value ^- @t (maker "hi")
+++ flag-a ^- ? flag-b
+++ flag-b flag-a
+++ outer ^- @t (gate "hi")
+++ gate |= x (helper x)
+++ helper |= y outer
+++ left |= x (right x)
+++ right |= y (left y)
