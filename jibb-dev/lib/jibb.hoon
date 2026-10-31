@@ -10469,6 +10469,44 @@
   ?~  paths  [%| 'API path declaration needs unsupported analysis']
   [%& u.paths]
 ::
+::  Analysis evidence retains the API source, the prepared interface, the
+::  caller's reader results and the resolved Jibb dependency cache alongside
+::  the typed path declarations.  Reader results and prepared interfaces are
+::  trusted inputs: this does not verify their underlying Hoon source/version,
+::  create requests or check the provenance of arbitrary values.
++$  iapi-path-evidence
+  [at=path source=@t prepared=iprelude externals=iexternals marks=imark-externals dependencies=jcache paths=(list iapi-path-typed)]
+++  api-path-evidence-source
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
+  ^-  (each iapi-path-evidence @t)
+  ?.  ?=([%ui %api @ %jibb ~] file)  [%| 'API path evidence requires /ui/api/<agent>.jibb']
+  =/  parsed  (parse file src)
+  ?:  ?=(%| -.parsed)  [%| 'API path evidence source does not parse']
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
+  ?~  prepared  [%| 'API path evidence needs the prepared prelude']
+  =/  public=ifile  iface.u.prepared
+  =/  deps=jimports-result
+    (resolve-jibb-imports imports.p.parsed externals marks modules ~[file] values.u.prepared molds.u.prepared ~ `public)
+  ?:  ?=(%| -.deps)  [%| p.deps]
+  =/  paths=(unit (list iapi-path-typed))
+    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared)
+  ?~  paths  [%| 'API path declaration needs unsupported analysis']
+  [%& [file src u.prepared externals marks cache.p.deps u.paths]]
+::
+::  This query classifies a unique path declaration only.  Missing evidence
+::  or a nonunique name is unknown; it proves nothing about an ask value.
+::  Like prepared interfaces, the supplied evidence is a trusted host input.
+++  api-path-watchability
+  |=  [evidence=(unit iapi-path-evidence) case-name=term]
+  ^-  ?(%watchable %not-watchable %unknown)
+  ?~  evidence  %unknown
+  =/  found=(list iapi-path-typed)
+    (skim paths.u.evidence |=(p=iapi-path-typed =(name.path.p case-name)))
+  ?.  ?=([* ~] found)  %unknown
+  ?~  scry.path.i.found  %watchable
+  %not-watchable
+::
 ++  api-mark-exports
   |=  [marks=(list term) all=(list term) externals=imark-externals]
   ^-  imold-types

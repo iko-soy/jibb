@@ -1,0 +1,3 @@
+source: Overview, Agent APIs: path declarations may have a normal watch path or a scry path.
+tests: The shared evidence guard checks normal, scry, missing and duplicate path-name classification, retained prelude scope and source/reader graphs, and the real todo full and diff types. Classification concerns declarations; it does not inspect request values or check an entire module.
+expect: declaration-level path metadata only

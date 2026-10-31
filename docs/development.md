@@ -66,6 +66,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-mark-test` | Checks the partial checker’s mark import boundary against `tests/type-mark/expected.txt` under eval |
 | `tools/type-poke-test` | Checks source-backed prelude and poke-only API reports against `tests/type-poke/expected.txt` under eval |
 | `tools/type-api-paths-test` | Checks partial API path analysis with real todo mark samples against `tests/type-api-paths/expected.txt` under eval |
+| `tools/type-api-evidence-test` | Runs source, scope, reader-result and declaration-watchability evidence guards under eval and on the ship |
 | `tools/type-hole-guards-test` | Runs the shared hole-defaulting and API interface guards under eval; the same checks run on the ship |
 | `tools/type-list-alias-test` | Runs the shared prelude list-alias and provenance guards under eval and on the ship |
 | `tools/type-generic-alias-test` | Runs public/private generic union alias and provenance guards under eval and on the ship |
@@ -95,6 +96,7 @@ tools/type-import-diagnostic-test  # direct structured reader diagnostics match
 tools/type-mark-test               # mark/checker bridge golden report matches
 tools/type-poke-test               # source-backed poke/API bridge report matches
 tools/type-api-paths-test          # partial API path analysis report matches
+tools/type-api-evidence-test       # API declaration evidence guards pass
 tools/type-hole-guards-test        # hole defaulting and API guards pass
 tools/type-list-alias-test         # prelude list-alias guards pass
 tools/type-generic-alias-test      # generic union alias guards pass

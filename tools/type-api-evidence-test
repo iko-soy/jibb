@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""Check partial path-declaration evidence against synthetic and real todo inputs."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-api-evidence.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+expression = ('=/  jibb  .\n=/  jibb-import\n' + reader + '\n' +
+              ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                      for name in ('sur', 'action', 'todos', 'update', 'item', 'api')) +
+              '=/  suite\n' + tests +
+              '\n=/  synthetic=@t  synthetic-evidence-status:suite\n' +
+              '=/  actual=@t  (real-evidence-status:suite prelude internal sur-text action-text todos-text update-text item-text api-text)\n' +
+              "^-  @t\n?:  !=(actual 'real todo path evidence passed')  actual\nsynthetic\n")
+fixtures = {'sur': 'todo-sur', 'action': 'todo-action', 'todos': 'todos',
+            'update': 'todo-update', 'item': 'todo-item', 'api': 'scry'}
+with tempfile.TemporaryDirectory(prefix='jibb-api-evidence-') as tmp:
+    program = Path(tmp) / 'evidence.hoon'
+    program.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(program),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name, filename in fixtures.items():
+        command += ['--cord', name + '-text=' + str(root / 'tests/type-api-paths' / (filename + '.txt'))]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+expected = (root / 'tests/type-api-evidence/expected.txt').read_bytes()
+if result.stdout != expected:
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('partial API path evidence guards passed')
