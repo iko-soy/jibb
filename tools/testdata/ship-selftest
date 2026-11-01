@@ -328,6 +328,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-program-init.hoon',
            'tests/lib/jibb-program-update.hoon',
            'tests/lib/jibb-program-watch.hoon',
+           'tests/lib/jibb-todo-full.hoon',
            'tests/lib/jibb-todo-api.hoon',
            'tests/lib/jibb-todo-partial.hoon',
            'tests/lib/jibb-constructor-fit-guards.hoon',
@@ -414,6 +415,13 @@ def generator_checks(tmp):
           <= set(normal.files))
     check('program watch shared fixture is assembled',
           {'tests/lib/jibb-program-watch.hoon', 'tests/type-program-watch/about.txt'}
+          <= set(normal.files))
+    check('full todo sources and exact main report are assembled',
+          {'tests/lib/jibb-todo-full.hoon', 'tests/type-gate-free/todo.txt',
+           'tests/type-api-paths/api.txt', 'tests/type-todo-full/expected.txt',
+           *(f'tests/type-todo-full/{name}.txt' for name in (
+               'wrong-model', 'wrong-message', 'wrong-result', 'ambiguous-mapper',
+               'open-key', 'alias', 'wrong-watch', 'non-gate-view'))}
           <= set(normal.files))
     check('todo partial golden and reused sources are assembled',
           {'tests/type-todo-partial/expected.txt', 'tests/type-gate-free/todo.txt',

@@ -1,0 +1,42 @@
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [ts "" ~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") `[%poke (todo-action.todo [%add draft.m]) |=%acked]]
+    [%toggled id]  [m `[%poke (todo-action.todo [%toggle id]) |=%acked]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-alias)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%toggled id.t])]
+
+++ row-alias row-of

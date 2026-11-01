@@ -35,257 +35,266 @@
       (apply 29:19 element (void 29:28))
       (group 29:32
         (call 29:33 (wing 29:33 text) (str 29:38 "hello")))))
-  (value 30:1 static-ui
-    (cast 30:14
-      (apply 30:17 element (void 30:26))
-      (body 31:3
-        (call 31:3
-          (wing 31:3 column)
-          (list 31:10
-            (pair 31:12 pad (lit 31:16 %s1))
-            (pair 31:20 gap (lit 31:24 %s2))
-            (pair 31:28 width
-              (tuple 31:34 (lit 31:35 %fill) (lit 31:41 1)))
-            (pair 31:44 align (lit 31:50 %center))
-            (pair 31:58 role (lit 31:63 %body))
-            (pair 31:69 tone (lit 31:74 %muted)))
-          (list 31:82
-            (call 32:5 (wing 32:5 text) (str 32:10 "one"))
-            (call 33:5
-              (wing 33:5 para)
-              (list 33:10
-                (group 33:12
-                  (call 33:13 (wing 33:13 text) (str 33:18 "two")))))
-            (call 34:5 (wing 34:5 heading) (lit 34:13 2) (str 34:15 "heading")))))))
-  (value 35:1 static-media
-    (cast 35:17
-      (apply 35:20 element (void 35:29))
-      (body 36:3
-        (call 36:3
-          (wing 36:3 stack)
-          (list 36:9
-            (pair 36:11 width
-              (tuple 36:17 (lit 36:18 %chars) (lit 36:25 20))))
-          (list 36:30
-            (call 37:5 (wing 37:5 image) (qath 37:11 images logo.png) (str 37:29 "Logo"))
-            (call 38:5 (wing 38:5 link) (qath 38:10 home) (str 38:17 "Home")))))))
-  (value 39:1 unsafe-media
-    (cast 39:17
-      (apply 39:20 element (void 39:29))
-      (body 40:3
-        (call 40:3
-          (wing 40:3 wrap)
-          (list 40:8
-            (pair 40:10 width (lit 40:16 %shrink))
-            (pair 40:24 role (lit 40:29 %caption))
-            (pair 40:38 tone (lit 40:43 %accent)))
-          (list 40:52
-            (call 41:5
-              (wing 41:5 image-unsafe)
-              (tuple 41:18
-                (face 41:19 url (str 41:23 "https://example.com/a.png"))
-                (face 41:51 width (lit 41:57 20))
-                (face 41:60 height (lit 41:67 10)))
-              (str 41:71 "Remote"))
-            (call 42:5 (wing 42:5 link-unsafe) (str 42:17 "/elsewhere") (str 42:30 "Elsewhere")))))))
-  (value 43:1 save-message
-    (cast 43:17 (ref 43:20 msg) (lit 43:24 %save)))
-  (value 44:1 toggle-message
-    (cast 44:19 (ref 44:22 msg) (lit 44:26 %toggle)))
-  (value 45:1 save-button
-    (cast 45:16
-      (apply 45:19 element (ref 45:28 msg))
-      (group 45:33
-        (call 45:34 (wing 45:34 button) (str 45:41 "Save") (wing 45:48 save-message)))))
-  (value 46:1 enabled-toggle
-    (cast 46:19
-      (apply 46:22 element (ref 46:31 msg))
-      (group 46:36
-        (call 46:37 (wing 46:37 toggle) (lit 46:44 %.y) (str 46:48 "Enabled") (wing 46:58 toggle-message)))))
-  (value 47:1 edit-message
-    (gate 47:17
-      (face 47:20 value (aura 47:26 @t))
-      (cast 47:29
-        (ref 47:32 msg)
-        (tuple 47:36 (lit 47:37 %edited) (wing 47:45 value)))))
-  (value 48:1 name-field
-    (cast 48:15
-      (apply 48:18 element (ref 48:27 msg))
-      (group 48:32
-        (call 48:33 (wing 48:33 field) (str 48:39 "Name") (str 48:46 "value") (wing 48:54 edit-message)))))
-  (value 49:1 controls
-    (cast 49:13
-      (apply 49:16 element (ref 49:25 msg))
-      (body 50:3
-        (group 50:3
-          (call 50:4
-            (wing 50:4 form)
-            (wing 50:9 save-message)
-            (list 50:22 (wing 50:24 save-button) (wing 50:36 enabled-toggle) (wing 50:51 name-field)))))))
-  (value 51:1 keyed
-    (gate 51:10
-      (face 51:13 items
-        (apply 51:19 list
-          (cell 51:25
-            (face 51:26 key (aura 51:30 @t))
-            (face 51:33 el
-              (apply 51:36 element (ref 51:45 msg))))))
-      (body 52:3
-        (cast 52:3
-          (apply 52:6 element (ref 52:15 msg))
-          (group 52:20
-            (call 52:21 (wing 52:21 each) (wing 52:26 items)))))))
-  (value 53:1 tabular
-    (gate 53:12
-      (face 53:15 rows
-        (apply 53:20 list
-          (cell 53:26
-            (face 53:27 key (aura 53:31 @ud))
-            (face 53:35 cells
-              (apply 53:41 list
-                (apply 53:47 element (ref 53:56 msg)))))))
-      (body 54:3
-        (cast 54:3
-          (apply 54:6 element (ref 54:15 msg))
-          (body 55:5
-            (group 55:5
-              (call 55:6
-                (wing 55:6 table)
-                (list 55:12
-                  (tuple 55:14
-                    (face 55:15 header (str 55:22 "Name"))
-                    (face 55:29 width
-                      (tuple 55:35 (lit 55:36 %fill) (lit 55:42 1)))
-                    (face 55:45 align (lit 55:51 %start))))
-                (wing 55:60 rows))))))))
-  (value 57:1 bad-pad
-    (cast 57:12
-      (apply 57:15 element (void 57:24))
-      (group 57:28
-        (call 57:29
-          (wing 57:29 row)
-          (list 57:33
-            (pair 57:35 pad (lit 57:39 %s4)))
-          (lit 57:44 ~)))))
-  (value 58:1 bad-width
-    (cast 58:14
-      (apply 58:17 element (void 58:26))
-      (group 58:30
-        (call 58:31
-          (wing 58:31 row)
-          (list 58:35
-            (pair 58:37 width
-              (tuple 58:43 (lit 58:44 %chars) (str 58:51 "wide"))))
-          (lit 58:60 ~)))))
-  (value 59:1 malformed-each
-    (cast 59:19
-      (apply 59:22 element (ref 59:31 msg))
-      (group 59:36
-        (call 59:37
-          (wing 59:37 each)
-          (list 59:42
-            (tuple 59:44
-              (face 59:45 key (str 59:49 "row"))
-              (face 59:55 kid
-                (group 59:59
-                  (call 59:60 (wing 59:60 text) (str 59:65 "child"))))))))))
-  (value 60:1 malformed-table
-    (cast 60:20
-      (apply 60:23 element (ref 60:32 msg))
-      (body 61:3
-        (group 61:3
-          (call 61:4
-            (wing 61:4 table)
-            (list 61:10
-              (tuple 61:12
-                (face 61:13 header (str 61:20 "Name"))
-                (face 61:27 width (lit 61:33 %shrink))))
-            (lit 61:43 ~))))))
-  (value 62:1 ship-control
-    (cast 62:17
-      (apply 62:20 element (aura 62:29 @p))
-      (group 62:33
-        (call 62:34 (wing 62:34 button) (str 62:41 "Ship") (lit 62:48 ~zod)))))
-  (value 63:1 text-row
-    (gate 63:13
-      (face 63:16 kids
-        (apply 63:21 list
-          (apply 63:27 element (aura 63:36 @t))))
-      (cast 63:41
-        (apply 63:44 element (aura 63:53 @t))
-        (group 63:57
-          (call 63:58 (wing 63:58 row) (lit 63:62 ~) (wing 63:64 kids))))))
-  (value 64:1 bad-child
-    (group 64:14
-      (call 64:15
-        (wing 64:15 text-row)
-        (list 64:24 (wing 64:26 ship-control)))))
-  (value 66:1 init
-    (gate 66:9
-      (face 66:12 input (aura 66:18 @t))
-      (cast 66:21
-        (ref 66:24 model)
-        (tuple 66:30
-          (face 66:31 count (lit 66:37 0))))))
-  (value 67:1 update
-    (gate 67:11
-      (cell 67:14
-        (face 67:15 message (ref 67:23 msg))
-        (face 67:27 state (ref 67:33 model)))
-      (body 68:3
-        (cast 68:3
-          (cell 68:6
-            (ref 68:7 model)
-            (apply 68:13 list
-              (apply 68:19 cmd (ref 68:24 msg))))
-          (tuple 68:31 (wing 68:32 state) (lit 68:38 ~))))))
-  (value 69:1 view
-    (gate 69:9
-      (face 69:12 state (ref 69:18 model))
-      (cast 69:24
-        (apply 69:27 element (ref 69:36 msg))
-        (group 69:41 (wing 69:42 controls)))))
-  (value 70:1 subs
+  (value 30:1 raw-text
+    (cast 30:13
+      (apply 30:16 element (void 30:25))
+      (group 30:29
+        (call 30:30
+          (wing 30:30 row)
+          (lit 30:34 ~)
+          (list 30:36
+            (tuple 30:38 (lit 30:39 %text) (str 30:45 "raw")))))))
+  (value 31:1 static-ui
+    (cast 31:14
+      (apply 31:17 element (void 31:26))
+      (body 32:3
+        (call 32:3
+          (wing 32:3 column)
+          (list 32:10
+            (pair 32:12 pad (lit 32:16 %s1))
+            (pair 32:20 gap (lit 32:24 %s2))
+            (pair 32:28 width
+              (tuple 32:34 (lit 32:35 %fill) (lit 32:41 1)))
+            (pair 32:44 align (lit 32:50 %center))
+            (pair 32:58 role (lit 32:63 %body))
+            (pair 32:69 tone (lit 32:74 %muted)))
+          (list 32:82
+            (call 33:5 (wing 33:5 text) (str 33:10 "one"))
+            (call 34:5
+              (wing 34:5 para)
+              (list 34:10
+                (group 34:12
+                  (call 34:13 (wing 34:13 text) (str 34:18 "two")))))
+            (call 35:5 (wing 35:5 heading) (lit 35:13 2) (str 35:15 "heading")))))))
+  (value 36:1 static-media
+    (cast 36:17
+      (apply 36:20 element (void 36:29))
+      (body 37:3
+        (call 37:3
+          (wing 37:3 stack)
+          (list 37:9
+            (pair 37:11 width
+              (tuple 37:17 (lit 37:18 %chars) (lit 37:25 20))))
+          (list 37:30
+            (call 38:5 (wing 38:5 image) (qath 38:11 images logo.png) (str 38:29 "Logo"))
+            (call 39:5 (wing 39:5 link) (qath 39:10 home) (str 39:17 "Home")))))))
+  (value 40:1 unsafe-media
+    (cast 40:17
+      (apply 40:20 element (void 40:29))
+      (body 41:3
+        (call 41:3
+          (wing 41:3 wrap)
+          (list 41:8
+            (pair 41:10 width (lit 41:16 %shrink))
+            (pair 41:24 role (lit 41:29 %caption))
+            (pair 41:38 tone (lit 41:43 %accent)))
+          (list 41:52
+            (call 42:5
+              (wing 42:5 image-unsafe)
+              (tuple 42:18
+                (face 42:19 url (str 42:23 "https://example.com/a.png"))
+                (face 42:51 width (lit 42:57 20))
+                (face 42:60 height (lit 42:67 10)))
+              (str 42:71 "Remote"))
+            (call 43:5 (wing 43:5 link-unsafe) (str 43:17 "/elsewhere") (str 43:30 "Elsewhere")))))))
+  (value 44:1 save-message
+    (cast 44:17 (ref 44:20 msg) (lit 44:24 %save)))
+  (value 45:1 toggle-message
+    (cast 45:19 (ref 45:22 msg) (lit 45:26 %toggle)))
+  (value 46:1 save-button
+    (cast 46:16
+      (apply 46:19 element (ref 46:28 msg))
+      (group 46:33
+        (call 46:34 (wing 46:34 button) (str 46:41 "Save") (wing 46:48 save-message)))))
+  (value 47:1 enabled-toggle
+    (cast 47:19
+      (apply 47:22 element (ref 47:31 msg))
+      (group 47:36
+        (call 47:37 (wing 47:37 toggle) (lit 47:44 %.y) (str 47:48 "Enabled") (wing 47:58 toggle-message)))))
+  (value 48:1 edit-message
+    (gate 48:17
+      (face 48:20 value (aura 48:26 @t))
+      (cast 48:29
+        (ref 48:32 msg)
+        (tuple 48:36 (lit 48:37 %edited) (wing 48:45 value)))))
+  (value 49:1 name-field
+    (cast 49:15
+      (apply 49:18 element (ref 49:27 msg))
+      (group 49:32
+        (call 49:33 (wing 49:33 field) (str 49:39 "Name") (str 49:46 "value") (wing 49:54 edit-message)))))
+  (value 50:1 controls
+    (cast 50:13
+      (apply 50:16 element (ref 50:25 msg))
+      (body 51:3
+        (group 51:3
+          (call 51:4
+            (wing 51:4 form)
+            (wing 51:9 save-message)
+            (list 51:22 (wing 51:24 save-button) (wing 51:36 enabled-toggle) (wing 51:51 name-field)))))))
+  (value 52:1 keyed
+    (gate 52:10
+      (face 52:13 items
+        (apply 52:19 list
+          (cell 52:25
+            (face 52:26 key (aura 52:30 @t))
+            (face 52:33 el
+              (apply 52:36 element (ref 52:45 msg))))))
+      (body 53:3
+        (cast 53:3
+          (apply 53:6 element (ref 53:15 msg))
+          (group 53:20
+            (call 53:21 (wing 53:21 each) (wing 53:26 items)))))))
+  (value 54:1 tabular
+    (gate 54:12
+      (face 54:15 rows
+        (apply 54:20 list
+          (cell 54:26
+            (face 54:27 key (aura 54:31 @ud))
+            (face 54:35 cells
+              (apply 54:41 list
+                (apply 54:47 element (ref 54:56 msg)))))))
+      (body 55:3
+        (cast 55:3
+          (apply 55:6 element (ref 55:15 msg))
+          (body 56:5
+            (group 56:5
+              (call 56:6
+                (wing 56:6 table)
+                (list 56:12
+                  (tuple 56:14
+                    (face 56:15 header (str 56:22 "Name"))
+                    (face 56:29 width
+                      (tuple 56:35 (lit 56:36 %fill) (lit 56:42 1)))
+                    (face 56:45 align (lit 56:51 %start))))
+                (wing 56:60 rows))))))))
+  (value 58:1 bad-pad
+    (cast 58:12
+      (apply 58:15 element (void 58:24))
+      (group 58:28
+        (call 58:29
+          (wing 58:29 row)
+          (list 58:33
+            (pair 58:35 pad (lit 58:39 %s4)))
+          (lit 58:44 ~)))))
+  (value 59:1 bad-width
+    (cast 59:14
+      (apply 59:17 element (void 59:26))
+      (group 59:30
+        (call 59:31
+          (wing 59:31 row)
+          (list 59:35
+            (pair 59:37 width
+              (tuple 59:43 (lit 59:44 %chars) (str 59:51 "wide"))))
+          (lit 59:60 ~)))))
+  (value 60:1 malformed-each
+    (cast 60:19
+      (apply 60:22 element (ref 60:31 msg))
+      (group 60:36
+        (call 60:37
+          (wing 60:37 each)
+          (list 60:42
+            (tuple 60:44
+              (face 60:45 key (str 60:49 "row"))
+              (face 60:55 kid
+                (group 60:59
+                  (call 60:60 (wing 60:60 text) (str 60:65 "child"))))))))))
+  (value 61:1 malformed-table
+    (cast 61:20
+      (apply 61:23 element (ref 61:32 msg))
+      (body 62:3
+        (group 62:3
+          (call 62:4
+            (wing 62:4 table)
+            (list 62:10
+              (tuple 62:12
+                (face 62:13 header (str 62:20 "Name"))
+                (face 62:27 width (lit 62:33 %shrink))))
+            (lit 62:43 ~))))))
+  (value 63:1 ship-control
+    (cast 63:17
+      (apply 63:20 element (aura 63:29 @p))
+      (group 63:33
+        (call 63:34 (wing 63:34 button) (str 63:41 "Ship") (lit 63:48 ~zod)))))
+  (value 64:1 text-row
+    (gate 64:13
+      (face 64:16 kids
+        (apply 64:21 list
+          (apply 64:27 element (aura 64:36 @t))))
+      (cast 64:41
+        (apply 64:44 element (aura 64:53 @t))
+        (group 64:57
+          (call 64:58 (wing 64:58 row) (lit 64:62 ~) (wing 64:64 kids))))))
+  (value 65:1 bad-child
+    (group 65:14
+      (call 65:15
+        (wing 65:15 text-row)
+        (list 65:24 (wing 65:26 ship-control)))))
+  (value 67:1 init
+    (gate 67:9
+      (face 67:12 input (aura 67:18 @t))
+      (cast 67:21
+        (ref 67:24 model)
+        (tuple 67:30
+          (face 67:31 count (lit 67:37 0))))))
+  (value 68:1 update
+    (gate 68:11
+      (cell 68:14
+        (face 68:15 message (ref 68:23 msg))
+        (face 68:27 state (ref 68:33 model)))
+      (body 69:3
+        (cast 69:3
+          (cell 69:6
+            (ref 69:7 model)
+            (apply 69:13 list
+              (apply 69:19 cmd (ref 69:24 msg))))
+          (tuple 69:31 (wing 69:32 state) (lit 69:38 ~))))))
+  (value 70:1 view
     (gate 70:9
       (face 70:12 state (ref 70:18 model))
       (cast 70:24
-        (apply 70:27 list
-          (apply 70:33 sub (ref 70:38 msg)))
-        (lit 70:44 ~))))
-  (value 71:1 concrete-program
-    (cast 71:21
-      (apply 71:24 program (aura 71:33 @t) (ref 71:36 model) (ref 71:42 msg))
-      (group 71:47
-        (call 71:48 (wing 71:48 program) (wing 71:56 init) (wing 71:61 update) (wing 71:68 view) (wing 71:73 subs)))))
-  (value 72:1 embedded
-    (cast 72:13
-      (apply 72:16 element (void 72:25))
-      (group 72:29
-        (call 72:30 (wing 72:30 island) (wing 72:37 concrete-program) (str 72:54 "seed")))))
-  (value 73:1 mismatched-island-data
-    (cast 73:27
-      (apply 73:30 element (void 73:39))
-      (group 73:43
-        (call 73:44 (wing 73:44 island) (wing 73:51 concrete-program) (lit 73:68 ~zod)))))
-  (value 75:1 load
-    (gate 75:9
-      (face 75:12 route (aura 75:18 @t))
-      (cast 75:21
-        (apply 75:24 ask (ref 75:29 model))
-        (group 75:36
-          (call 75:37
-            (wing 75:37 pure)
-            (tuple 75:42
-              (face 75:43 count (lit 75:49 0))))))))
-  (value 76:1 page-view
-    (gate 76:14
-      (face 76:17 data (ref 76:22 model))
-      (cast 76:28
-        (apply 76:31 element (void 76:40))
-        (group 76:44
-          (call 76:45 (wing 76:45 text) (str 76:50 "page"))))))
-  (value 77:1 static-page
-    (cast 77:16
-      (apply 77:19 page (aura 77:25 @t) (ref 77:28 model))
-      (group 77:35
-        (call 77:36 (wing 77:36 page) (wing 77:41 load) (wing 77:46 page-view))))))
+        (apply 70:27 element (ref 70:36 msg))
+        (group 70:41 (wing 70:42 controls)))))
+  (value 71:1 subs
+    (gate 71:9
+      (face 71:12 state (ref 71:18 model))
+      (cast 71:24
+        (apply 71:27 list
+          (apply 71:33 sub (ref 71:38 msg)))
+        (lit 71:44 ~))))
+  (value 72:1 concrete-program
+    (cast 72:21
+      (apply 72:24 program (aura 72:33 @t) (ref 72:36 model) (ref 72:42 msg))
+      (group 72:47
+        (call 72:48 (wing 72:48 program) (wing 72:56 init) (wing 72:61 update) (wing 72:68 view) (wing 72:73 subs)))))
+  (value 73:1 embedded
+    (cast 73:13
+      (apply 73:16 element (void 73:25))
+      (group 73:29
+        (call 73:30 (wing 73:30 island) (wing 73:37 concrete-program) (str 73:54 "seed")))))
+  (value 74:1 mismatched-island-data
+    (cast 74:27
+      (apply 74:30 element (void 74:39))
+      (group 74:43
+        (call 74:44 (wing 74:44 island) (wing 74:51 concrete-program) (lit 74:68 ~zod)))))
+  (value 76:1 load
+    (gate 76:9
+      (face 76:12 route (aura 76:18 @t))
+      (cast 76:21
+        (apply 76:24 ask (ref 76:29 model))
+        (group 76:36
+          (call 76:37
+            (wing 76:37 pure)
+            (tuple 76:42
+              (face 76:43 count (lit 76:49 0))))))))
+  (value 77:1 page-view
+    (gate 77:14
+      (face 77:17 data (ref 77:22 model))
+      (cast 77:28
+        (apply 77:31 element (void 77:40))
+        (group 77:44
+          (call 77:45 (wing 77:45 text) (str 77:50 "page"))))))
+  (value 78:1 static-page
+    (cast 78:16
+      (apply 78:19 page (aura 78:25 @t) (ref 78:28 model))
+      (group 78:35
+        (call 78:36 (wing 78:36 page) (wing 78:41 load) (wing 78:46 page-view))))))

@@ -1,0 +1,2 @@
+full todo accepted
+[init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]

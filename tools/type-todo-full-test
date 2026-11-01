@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""Check the byte-identical full todo island through real readers."""
+from pathlib import Path
+import argparse
+import difflib
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--timeout', type=float, default=300,
+                    help='seconds allowed for each urbit eval (default: 300)')
+args = parser.parse_args()
+for fixture, actual in (('tests/type-gate-free/todo.txt', 'my-app/ui/todo-list.jibb'),
+                        ('tests/type-api-paths/api.txt', 'my-app/ui/api/todo.jibb')):
+    if (root / fixture).read_bytes() != (root / actual).read_bytes():
+        sys.exit(f'{fixture} differs from {actual}')
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-todo-full.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+report_at = tests.index('\n++  todo-full-report')
+legacy_at = tests.index('\n++  todo-full-legacy-report')
+import_at = tests.index('\n++  todo-full-import-report')
+negative_at = tests.index('\n++  todo-full-negative-report')
+test_at = tests.index('\n++  test-todo-full')
+shared = tests[:report_at]
+suites = {'detailed': shared + tests[report_at:legacy_at] + '\n--\n',
+          'legacy': shared + tests[legacy_at:import_at] + '\n--\n',
+          'import': shared + tests[import_at:negative_at] + '\n--\n',
+          'negative': shared + tests[negative_at:test_at] + '\n--\n'}
+names = ('sur', 'action', 'todos', 'update', 'item', 'api', 'source',
+         'wrong-model', 'wrong-message', 'wrong-result', 'ambiguous-mapper',
+         'open-key', 'alias', 'wrong-watch', 'non-gate-view', 'expected')
+prefix = ('=/  jibb  .\n=/  jibb-import\n' + reader + '\n' +
+          ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                  for name in names) + '=/  suite\n')
+fixtures = {'sur': 'tests/type-api-paths/todo-sur.txt',
+            'action': 'tests/type-api-paths/todo-action.txt',
+            'todos': 'tests/type-api-paths/todos.txt',
+            'update': 'tests/type-api-paths/todo-update.txt',
+            'item': 'tests/type-api-paths/todo-item.txt',
+            'api': 'tests/type-api-paths/api.txt',
+            'source': 'tests/type-gate-free/todo.txt',
+            **{name: f'tests/type-todo-full/{name}.txt'
+               for name in ('wrong-model', 'wrong-message', 'wrong-result',
+                            'ambiguous-mapper', 'open-key', 'alias', 'wrong-watch', 'non-gate-view')},
+            'expected': 'tests/type-todo-full/expected.txt'}
+
+def evaluate(expression, kind):
+    print('running ' + expression.split(':', 1)[0].removeprefix('(todo-full-'), file=sys.stderr, flush=True)
+    with tempfile.TemporaryDirectory(prefix='jibb-todo-full-') as tmp:
+        path = Path(tmp) / 'todo.hoon'
+        path.write_text(prefix + suites[kind] + '\n^-  @t\n' + expression + '\n')
+        command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+                   '--timeout', str(args.timeout),
+                   '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+                   '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+        for name, filename in fixtures.items():
+            command += ['--cord', name + '-text=' + str(root / filename)]
+        result = subprocess.run(command, stdout=subprocess.PIPE)
+    if result.returncode:
+        sys.exit(result.returncode)
+    return result.stdout
+
+actual = evaluate('(todo-full-report:suite prelude internal sur-text action-text todos-text update-text item-text api-text source-text)', 'detailed')
+expected = (root / 'tests/type-todo-full/expected.txt').read_bytes()
+if actual != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        actual.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='actual'))
+    sys.exit('full todo report differs')
+legacy = evaluate('(todo-full-legacy-report:suite prelude internal sur-text action-text todos-text update-text item-text api-text source-text)', 'legacy')
+if legacy != expected:
+    sys.stderr.writelines(difflib.unified_diff(
+        expected.decode().splitlines(keepends=True),
+        legacy.decode().splitlines(keepends=True),
+        fromfile='expected.txt', tofile='legacy'))
+    sys.exit('legacy full todo report differs')
+imported = evaluate('(todo-full-import-report:suite prelude internal sur-text action-text todos-text update-text item-text api-text source-text)', 'import')
+if imported != b'downstream import accepted\n':
+    sys.stderr.buffer.write(imported)
+    sys.exit('downstream full todo import differs')
+for name, label in (('wrong-model', 'wrong model'),
+                    ('wrong-message', 'wrong message'),
+                    ('wrong-result', 'wrong result'),
+                    ('ambiguous-mapper', 'ambiguous mapper'),
+                    ('open-key', 'open key'),
+                    ('alias', 'mapper alias'),
+                    ('wrong-watch', 'wrong watch'),
+                    ('non-gate-view', 'non-gate view')):
+    actual = evaluate(f"(todo-full-negative-report:suite prelude internal sur-text action-text todos-text update-text item-text api-text '{label}' {name}-text)", 'negative')
+    if actual != f'{label}: rejected\n'.encode():
+        sys.stderr.buffer.write(actual)
+        sys.exit(f'{label} was not rejected')
+print('byte-identical full todo detailed/legacy, types, graph, import and negatives passed')

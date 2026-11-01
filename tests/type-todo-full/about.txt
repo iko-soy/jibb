@@ -1,0 +1,3 @@
+source: docs/spec/overview.md, worked example 3; my-app/ui/todo-list.jibb must remain byte-identical to tests/type-gate-free/todo.txt.
+tests: Full detailed and legacy checking of the unchanged todo island through the real Hoon readers and API. Assert the exact closed main type and structural downstream import, plus wrong model/message/result, ambiguous or open mapper, aliased mapper, non-gate view, and wrong watch rejection. The report does not execute Jibb or establish runtime watching.
+expect: shared eval and ship guards

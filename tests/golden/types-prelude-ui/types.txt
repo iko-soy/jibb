@@ -23,6 +23,7 @@ partial inference; module not checked
 ++ program-scheme: $-([init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B (element C)) subs=$-(B (list (sub C)))]]] [init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B (element C)) subs=$-(B (list (sub C)))]]])
 ++ page-scheme: $-([load=$-(A (ask B)) view=$-(B (element !!))] [load=$-(A (ask B)) view=$-(B (element !!))])
 ++ static-text: (element !!)
+++ raw-text: (element !!)
 ++ static-ui: (element !!)
 ++ static-media: (element !!)
 ++ unsafe-media: (element !!)
@@ -36,31 +37,31 @@ partial inference; module not checked
 ++ keyed: $-((list [key=@t el=(element msg)]) (element msg))
 ++ tabular: $-((list [key=@ud cells=(list (element msg))]) (element msg))
 ++ bad-pad: list item does not fit its expected type
-/tests/golden/types-prelude-ui/source.jibb:57:29: expected item
+/tests/golden/types-prelude-ui/source.jibb:58:29: expected item
 ++ bad-pad ^- (element !!) (row ~[pad+%s4] ~)
                             ^
-/tests/golden/types-prelude-ui/source.jibb:57:35: list item
+/tests/golden/types-prelude-ui/source.jibb:58:35: list item
 ++ bad-pad ^- (element !!) (row ~[pad+%s4] ~)
                                   ^
 ++ bad-width: list item does not fit its expected type
-/tests/golden/types-prelude-ui/source.jibb:58:31: expected item
+/tests/golden/types-prelude-ui/source.jibb:59:31: expected item
 ++ bad-width ^- (element !!) (row ~[width+[%chars "wide"]] ~)
                               ^
-/tests/golden/types-prelude-ui/source.jibb:58:37: list item
+/tests/golden/types-prelude-ui/source.jibb:59:37: list item
 ++ bad-width ^- (element !!) (row ~[width+[%chars "wide"]] ~)
                                     ^
 ++ malformed-each: list item does not fit its expected type
-/tests/golden/types-prelude-ui/source.jibb:59:37: expected item
+/tests/golden/types-prelude-ui/source.jibb:60:37: expected item
 ++ malformed-each ^- (element msg) (each ~[[key="row" kid=(text "child")]])
                                     ^
-/tests/golden/types-prelude-ui/source.jibb:59:44: list item
+/tests/golden/types-prelude-ui/source.jibb:60:44: list item
 ++ malformed-each ^- (element msg) (each ~[[key="row" kid=(text "child")]])
                                            ^
 ++ malformed-table: list item does not fit its expected type
-/tests/golden/types-prelude-ui/source.jibb:61:4: expected item
+/tests/golden/types-prelude-ui/source.jibb:62:4: expected item
   (table ~[[header="Name" width=%shrink]] ~)
    ^
-/tests/golden/types-prelude-ui/source.jibb:61:12: list item
+/tests/golden/types-prelude-ui/source.jibb:62:12: list item
   (table ~[[header="Name" width=%shrink]] ~)
            ^
 ++ ship-control: (element @p)
@@ -73,10 +74,10 @@ partial inference; module not checked
 ++ concrete-program: [init=$-(@t [count=@ud]) [update=$-([msg count=@ud] [count=@ud (list (cmd msg))]) [view=$-([count=@ud] (element msg)) subs=$-([count=@ud] (list (sub msg)))]]]
 ++ embedded: (element !!)
 ++ mismatched-island-data: call's sample and argument types do not unify
-/tests/golden/types-prelude-ui/source.jibb:73:44: called gate
+/tests/golden/types-prelude-ui/source.jibb:74:44: called gate
 ++ mismatched-island-data ^- (element !!) (island concrete-program ~zod)
                                            ^
-/tests/golden/types-prelude-ui/source.jibb:73:51: argument
+/tests/golden/types-prelude-ui/source.jibb:74:51: argument
 ++ mismatched-island-data ^- (element !!) (island concrete-program ~zod)
                                                   ^
 ++ load: $-(@t (ask [count=@ud]))

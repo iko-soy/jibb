@@ -27,6 +27,7 @@
 ++ page-scheme page
 
 ++ static-text ^- (element !!) (text "hello")
+++ raw-text ^- (element !!) (row ~ ~[[%text "raw"]])
 ++ static-ui ^- (element !!)
   column ~[pad+%s1 gap+%s2 width+[%fill 1] align+%center role+%body tone+%muted] ~[
     text "one"
