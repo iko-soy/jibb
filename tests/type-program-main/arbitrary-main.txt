@@ -1,0 +1,10 @@
++$ message
+  %start
+  %stop
++$ model [count=@ud]
+++ main init
+++ init |= input=@t ^- model [count=0]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) [%node %start]
+++ subs |= state=model ^- (list (sub message)) ~

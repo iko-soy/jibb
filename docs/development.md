@@ -91,6 +91,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-todo-partial-test` | Reports partial inference of the unchanged todo island through the real API and readers under eval and on the ship |
 | `tools/type-todo-api-test` | Exercises the actual todo API through the real Hoon readers and partial checker |
 | `tools/type-direct-gate-test` | Checks a synthetic source-backed program report and direct gate provenance under eval and on the ship |
+| `tools/type-program-main-test` | Checks the narrow closed subscription-free program-main interface, downstream import and rejection guards under eval and on the ship |
 | `tools/type-closed-gate-guards-test` | Checks closed gate sample labels and face uncertainty under eval and on the ship |
 | `tools/type-constructor-fit-guards-test` | Checks constructor-case uncertainty and known mismatches under eval and on the ship |
 | `tools/type-nested-union-guards-test` | Checks nested tagged-union case selection and uncertainty under eval and on the ship |
@@ -139,6 +140,7 @@ tools/type-qath-guards-test         # qath source and unfolding guards pass
 tools/type-todo-partial-test       # unchanged todo partial report and reader failure controls
 tools/type-todo-api-test            # real todo API partial inference and reader guards pass
 tools/type-direct-gate-test         # direct gate source and provenance guards pass
+tools/type-program-main-test        # closed program-main interface and rejection guards pass
 tools/type-generic-recursion-test    # source-backed recursive identities and provenance
 tools/type-generic-construction-test # source-backed recursive construction and bounds
 tools/type-generic-pattern-test      # source-backed recursive patterns and bounds

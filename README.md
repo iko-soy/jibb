@@ -44,6 +44,8 @@ tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb
 
 `tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file. `tools/type-import-test`, `tools/type-import-overlap-test`, `tools/type-import-structural-test`, `tools/type-union-source-test`, `tools/type-union-alias-overlap-test`, `tools/type-full-overlap-test`, `tools/type-generic-recursion-test`, `tools/type-generic-construction-test`, `tools/type-generic-pattern-test`, `tools/type-deferred-test`, `tools/type-deferred-prepared-test`, `tools/type-deferred-resolver-test`, `tools/type-deferred-context-test`, `tools/type-empty-test`, `tools/type-cell-branch-test`, `tools/type-tlon-test`, `tools/type-mark-test`, `tools/type-poke-test` and `tools/type-api-paths-test` check importer/checker, prelude and partial API path analysis boundaries under eval; the ship suite runs the same fixtures.
 
+The focused `tools/type-program-main-test` checks the narrow closed, subscription-free `main` slice and its shared fake-ship fixture; it does not run an island or claim runtime watchability.
+
 ### The doc's examples
 
 Every code block the design doc labels `jibb` is a golden case, `doc-<tab>-<n>-<what>`, where `<n>` counts the tab's code blocks, labelled or not. To check that none is missing or stale, export the doc's tabs as Markdown and pass the files, or a folder of them:

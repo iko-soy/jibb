@@ -1,0 +1,7 @@
++$ model [count=@ud]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [count=0]
+++ update |= [msg=M state=model]
+  ^- [model (list (cmd M))] [state ~]
+++ view |= state=model ^- (element M) [%node !!]
+++ subs |= state=model ^- (list (sub M)) ~

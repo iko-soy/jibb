@@ -12448,6 +12448,97 @@
     [env exports file derived.u.poke elaborations.support ~ `src `graph]
   [%& [iface dependencies.ev]]
 ::
+::  A checked program main is only the direct four-component source call.
+::  Grouping is transparent, but aliases, qualified wings and other module
+::  kinds remain outside this slice.
+++  program-main-def
+  |=  ds=(list def)
+  ^-  (unit def)
+  ?~  ds  ~
+  ?:  &(?=(%value -.i.ds) =(%main name.i.ds))  `i.ds
+  $(ds t.ds)
+::
+++  program-main-wing
+  |=  e=expr
+  ^-  (unit term)
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?.  ?=(%wing -.e)  ~
+  ?.  ?=([@ ~] names.e)  ~
+  `i.names.e
+::
+++  program-main-parts
+  |=  d=def
+  ^-  (unit [init=term update=term view=term subs=term])
+  ?.  ?=(%value -.d)  ~
+  |-
+  ?:  ?=(%group -.val.d)  $(val.d inner.val.d)
+  ?.  ?=(%call -.val.d)  ~
+  =/  head=(unit term)  (program-main-wing head.val.d)
+  ?~  head  ~
+  ?.  =(%program u.head)  ~
+  ?.  ?=([* * * * ~] args.val.d)  ~
+  =/  args=(list expr)  args.val.d
+  ?>  ?=([* * * * ~] args)
+  =/  init=(unit term)  (program-main-wing i.args)
+  =/  update=(unit term)  (program-main-wing i.t.args)
+  =/  view=(unit term)  (program-main-wing i.t.t.args)
+  =/  subs=(unit term)  (program-main-wing i.t.t.t.args)
+  ?~  init  ~
+  ?~  update  ~
+  ?~  view  ~
+  ?~  subs  ~
+  `[u.init u.update u.view u.subs]
+::
+++  program-empty-null
+  |=  e=expr
+  ^-  ?
+  ?-  -.e
+    %lit    =(%null form.lit.e)
+    %cast   $(e val.e)
+    %group  $(e inner.e)
+    %body   ?~(defs.e $(e final.e) |)
+    *       |
+  ==
+::
+++  program-subs-empty
+  |=  d=def
+  ^-  ?
+  ?.  ?=(%value -.d)  |
+  ?-  -.val.d
+    %gate       (program-empty-null body.val.d)
+    %gate-wide  (program-empty-null body.val.d)
+    *           |
+  ==
+::
+++  program-main-closed
+  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv prelude=(unit ifile)]
+  ^-  ?
+  ?~  prelude  |
+  ?~  (ienv-lookup %program values.u.prelude)  |
+  =/  program=(unit ischeme)  (find-jibb-mold %program u.prelude)
+  ?~  program  |
+  =/  main=(unit ischeme)  (ienv-lookup %main env)
+  ?~  main  |
+  ?.  ?=(~ vars.u.main)  |
+  ?.  ?=(~ (itype-vars typ.u.main))  |
+  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.program *istate)
+  =/  main-fit=ifit  (direct-invariant typ.u.main typ.instance ~ next.state.instance)
+  ?.  ?=(%ok -.main-fit)  |
+  =/  init=(unit ischeme)  (ienv-lookup init.parts env)
+  ?~  init  |
+  ?.  ?=(~ vars.u.init)  |
+  ?.  ?=(%fn -.typ.u.init)  |
+  ?.  ?=(~ (itype-vars sample.typ.u.init))  |
+  ?.  ?=(~ (itype-vars product.typ.u.init))  |
+  =/  data=igate-free  (gate-free-type sample.typ.u.init 256 ~)
+  ?.  =(%yes verdict.data)  |
+  =/  model=igate-free  (gate-free-type product.typ.u.init left.data ~)
+  ?.  =(%yes verdict.model)  |
+  =/  subs=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) =(subs.parts name.d))))
+  ?.  ?=([* ~] subs)  |
+  (program-subs-empty i.subs)
+::
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-result
@@ -12464,6 +12555,8 @@
   =/  mod=module  p.parsed
   =/  duplicate=(unit idiag)  (duplicate-defs defs.mod)
   ?^  duplicate  [%| [(show-duplicate-fields at src u.duplicate) ~]]
+  ?:  &(?=([%ui %api *] at) ?=(^ (program-main-def defs.mod)))
+    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   ?:  ?=([%ui %api *] at)
     =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
     ?^  iface
@@ -12491,7 +12584,10 @@
       [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
     [%| [(crip "module has conflicting names: {(spud at)}") ~]]
   =/  vals=(list term)  (global-value-names defs.mod)
-  ?:  (lien vals |=(n=term =(n %main)))
+  =/  main=(unit def)  (program-main-def defs.mod)
+  =/  main-parts=(unit [init=term update=term view=term subs=term])
+    ?~(main ~ (program-main-parts u.main))
+  ?.  ?~(main & &(!?=([%ui %stores *] at) ?=(^ main-parts)))
     [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   =/  js=jimports-detailed-result  (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.js)  [%| p.js]
@@ -12543,6 +12639,8 @@
     env
   ?.  (module-values-complete defs.mod env)
     [%| [(crip "module definitions need unsupported inference: {(spud at)}") ~]]
+  ?.  ?~(main & ?~(main-parts | (program-main-closed u.main-parts defs.mod env prelude)))
+    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
   ?~  graph  [%| ['module request evidence needs unsupported inference' ~]]

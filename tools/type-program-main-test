@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Run the shared closed program-main checks under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+
+def body(name):
+    text = (root / 'tests/lib' / name).read_text()
+    return text[text.index('\n|%\n') + 1:]
+
+names = ('source', 'consumer', 'gate-model', 'gate-data', 'nonempty-subs',
+         'mismatched-model', 'arbitrary-main', 'alias-main', 'open-message')
+expression = ('=/  jibb  .\n=/  prelude=@t  prelude-text\n'
+              '=/  internal=@t  internal-text\n' +
+              ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                      for name in names) +
+              '=/  expected=wain  ~\n=/  suite\n' + body('jibb-program-main.hoon') +
+              '\n=/  negatives=(list @t)\n  :~  (text:suite gate-model)\n'
+              '      (text:suite gate-data)\n      (text:suite nonempty-subs)\n'
+              '      (text:suite mismatched-model)\n      (text:suite arbitrary-main)\n'
+              '      (text:suite alias-main)\n      (text:suite open-message)\n  ==\n'
+              '=/  failures=(list tape)  (program-main-errors:suite prelude internal (text:suite source) (text:suite consumer) negatives)\n'
+              '^-  @t\n?~  failures  \'program main checks passed\'\n'
+              '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-program-main-') as tmp:
+    program = Path(tmp) / 'program-main.hoon'
+    program.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(program),
+               '--cord', 'prelude-text=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal-text=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name in names:
+        command += ['--cord', name + '-text=' + str(root / 'tests/type-program-main' / (name + '.txt'))]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'program main checks passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('closed program-main interface and rejection guards passed')

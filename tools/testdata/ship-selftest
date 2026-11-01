@@ -324,6 +324,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-closed-gate-guards.hoon',
            'tests/lib/jibb-direct-gate-guards.hoon',
            'tests/lib/jibb-direct-gate-source.hoon',
+           'tests/lib/jibb-program-main.hoon',
            'tests/lib/jibb-todo-api.hoon',
            'tests/lib/jibb-todo-partial.hoon',
            'tests/lib/jibb-constructor-fit-guards.hoon',
@@ -395,6 +396,10 @@ def generator_checks(tmp):
     check('direct gate source and golden are assembled',
           {'tests/type-direct-gate/source.txt', 'tests/type-direct-gate/expected.txt'}
           <= set(normal.files))
+    check('program main sources and shared fixture are assembled',
+          {f'tests/type-program-main/{name}.txt' for name in (
+              'source', 'consumer', 'gate-model', 'gate-data', 'nonempty-subs',
+              'mismatched-model', 'arbitrary-main', 'alias-main', 'open-message')} <= set(normal.files))
     check('todo partial golden and reused sources are assembled',
           {'tests/type-todo-partial/expected.txt', 'tests/type-gate-free/todo.txt',
            'tests/type-api-paths/api.txt'} <= set(normal.files))

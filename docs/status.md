@@ -43,6 +43,8 @@ A separate source-backed analysis can prove one named mold gate-free, report a d
 
 The partial checker can also match a directly named, checked root gate against a generic gate sample in a direct, unshadowed source-backed prelude call. It uses the written two-slot sample layouts to preserve nested record faces, then requires the complete call samples to be closed and tag-free and repeats the fit under the final substitution. The proof falls back to existing inference for unavailable or ambiguous source layouts, local or dynamic gates, aliases, recursive placeholders and open generic caller types. It preserves written-capital checks and projection evidence; it does not add `program`, check islands or prove request watchability. Prepared prelude source and interface remain a trusted pair.
 
+A narrow full-module path now checks direct four-wing `(program init update view subs)` definitions named `main`. It requires the canonical prepared `program` value and mold, reuses ordinary source-backed program fitting, and publishes only after all ordinary module and request-graph checks. The inferred `main` must be closed and invariantly match the instantiated `program` mold. Initializer data and model must be closed and gate-free with `%yes` verdicts inside a shared 256-node budget, and `subs` must syntactically return null through transparent forms. Aliases, arbitrary mains, API/store kinds, gate-bearing or unknown data/model, mismatched programs and nonempty subscriptions remain rejected. Checked interfaces retain source evidence and support ordinary downstream imports; no program execution or runtime watchability is claimed.
+
 The API path analyzer can retain its source, complete prepared prelude, reader results and resolved dependencies as evidence, and classify a unique declaration as watchable, not watchable or unknown. It does not yet prove the provenance of request values or check island subscriptions. Prepared artifacts and reader results remain trusted host inputs.
 
 For a unique supported path declaration, the request-parts analysis derives ordered typed path parameters, a full-state reply sample and a fold type for one diff mark. Multiple diffs and unsupported or ambiguous evidence fail closed. By itself it does not create request gates or establish watchability of values.
@@ -94,7 +96,7 @@ What the plan asks for, and where it is:
 Besides the plan's list:
 
 - 659 golden cases: 439 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 659-case corpus passed under `urbit eval` in 98.7 s while other checks were running. The fake ship passed all 706 tests, including the source-overlap, structural-overlap, generic-union source and alias-overlap, full-module overlap, deferred-context, generic-recursion, generic-construction, generic-pattern, deferred-inference, empty-mold and cell-branch fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 94.2 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- The 659-case corpus passed under `urbit eval` in 90.4 s while other checks were running. The fake ship passed all 707 tests, including the source-overlap, structural-overlap, generic-union source and alias-overlap, full-module overlap, deferred-context, generic-recursion, generic-construction, generic-pattern, deferred-inference, empty-mold and cell-branch fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 86.2 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -208,7 +210,8 @@ Besides the plan's list:
 | 2826c93 | 2026-10-31 | Report generic-alias overlaps and retain deferred branch contexts |
 | b5cdc80 | 2026-10-31 | Preserve full-module overlap source evidence |
 | ab6fdc1 | 2026-10-31 | Add source-backed text conversion wrappers |
-| This change | 2026-10-31 | Recover prepared tuple initializers in partial reports |
+| aa277c9 | 2026-10-31 | Recover prepared tuple initializers in partial reports |
+| This change | 2026-10-31 | Check narrow closed subscription-free program mains |
 
 ## Checking it
 
@@ -246,6 +249,7 @@ tools/type-qath-guards-test       # qath source and unfolding guards
 tools/type-ask-guards-test        # ask source and bootstrap guards
 tools/type-proj-guards-test       # projection evidence and scope guards
 tools/type-module-scope-test      # module and prelude scope fixture
+tools/type-program-main-test      # closed program-main interface and rejection guards
 tools/hoon check-spans-test       # prints <<>> when the span checker works
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
