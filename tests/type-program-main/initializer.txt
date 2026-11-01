@@ -1,0 +1,12 @@
++$ model [xs=(list @t) draft=@t error=(unit @t)]
++$ message
+  %start
+  %stop
+++ main (program init update view subs)
+++ init |= ts=(list @t) [ts "" ~]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) [%node %start]
+++ subs |= state=model
+  ^- (list (sub message))
+    (~)

@@ -10237,6 +10237,29 @@
   (resolve-groups-core ds molds globals externals surs mark-externals marks jimports reserved-molds at prelude ~)
 ::
 
++$  iadded-definition
+  [env=ienv checked=(map term def) artifacts=(list iwidth-definition)]
+++  add-supported-result
+  |=  [d=def result=iresult initial=istate env=ienv checked=(map term def) artifacts=(list iwidth-definition)]
+  ^-  (unit iadded-definition)
+  ?>  ?=(%value -.d)
+  ?:  ?=(%| -.result)  ~
+  =.  state.p.result  (promote-restricted-numbers state.p.result env)
+  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
+  ?^  (unresolved-hole holes.state.p.result holes.initial state.p.result)  ~
+  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  ~
+  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
+  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  ~
+  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  ~
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+  ?:  (gth (lent vars) 26)  ~
+  =/  finalized=(unit (list iwprojection))
+    (width-finalize projections.state.p.result sub.state.p.result vars)
+  ?~  finalized  ~
+  =?  artifacts  ?=(^ u.finalized)
+    [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
+  =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
+  `[[[name.d [typ vars]] env] checked artifacts]
 ++  add-supported-defs-core
   |=  [ds=(list def) all-defs=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
   ^-  [env=ienv artifacts=(list iwidth-definition)]
@@ -10253,23 +10276,10 @@
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
-  ?:  ?=(%| -.result)  $(ds t.ds)
-  =.  state.p.result  (promote-restricted-numbers state.p.result env)
-  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
-  ?^  (unresolved-hole holes.state.p.result holes.initial state.p.result)  $(ds t.ds)
-  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  $(ds t.ds)
-  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
-  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  $(ds t.ds)
-  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  $(ds t.ds)
-  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  ?:  (gth (lent vars) 26)  $(ds t.ds)
-  =/  finalized=(unit (list iwprojection))
-    (width-finalize projections.state.p.result sub.state.p.result vars)
-  ?~  finalized  $(ds t.ds)
-  =?  artifacts  ?=(^ u.finalized)
-    [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
-  =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
-  $(ds t.ds, env [[name.d [typ vars]] env], checked checked)
+  =/  added=(unit iadded-definition)
+    (add-supported-result d result initial env checked artifacts)
+  ?~  added  $(ds t.ds)
+  $(ds t.ds, env env.u.added, checked checked.u.added, artifacts artifacts.u.added)
 ::
 ++  resolve-groups-core
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
@@ -12466,6 +12476,19 @@
   ?.  ?=([@ ~] names.e)  ~
   `i.names.e
 ::
+++  program-main-args
+  |=  d=def
+  ^-  (unit (list expr))
+  ?.  ?=(%value -.d)  ~
+  |-
+  ?:  ?=(%group -.val.d)  $(val.d inner.val.d)
+  ?.  ?=(%call -.val.d)  ~
+  =/  head=(unit term)  (program-main-wing head.val.d)
+  ?~  head  ~
+  ?.  =(%program u.head)  ~
+  ?.  ?=([* * * * ~] args.val.d)  ~
+  `args.val.d
+::
 ++  program-main-parts
   |=  d=def
   ^-  (unit [init=term update=term view=term subs=term])
@@ -12509,6 +12532,141 @@
     %gate-wide  (program-empty-null body.val.d)
     *           |
   ==
+::
+++  program-transparent
+  |=  e=expr
+  ^-  expr
+  ?-  -.e
+    %group  $(e inner.e)
+    %cast   $(e val.e)
+    %body   ?~(defs.e $(e final.e) e)
+    *       e
+  ==
+++  program-init-tuple-null
+  |=  d=def
+  ^-  ?
+  ?.  ?=(%value -.d)  |
+  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  |
+  =/  body=expr
+    ?-  -.val.d
+      %gate       body.val.d
+      %gate-wide  body.val.d
+      *           !!
+    ==
+  =.  body  (program-transparent body)
+  ?.  ?=(%tuple -.body)  |
+  ?~  items.body  |
+  (program-empty-null val:(rear items.body))
+::
+::  Recover only the initializer of an already recognized direct program main.
+::  The derived call is evidence for an ordinary init/main retry, never an
+::  interface to publish on its own. Any failure returns the original resolution.
+++  program-init-context
+  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
+  ^-  (unit iresolved)
+  =/  env=ienv  env.resolution
+  ?^  (ienv-lookup %main env)  ~
+  ?^  (ienv-lookup init.parts env)  ~
+  =/  update=(unit ischeme)  (ienv-lookup update.parts env)
+  =/  view=(unit ischeme)  (ienv-lookup view.parts env)
+  =/  subs=(unit ischeme)  (ienv-lookup subs.parts env)
+  ?~  update  ~
+  ?~  view  ~
+  ?~  subs  ~
+  =/  inits=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) =(init.parts name.d))))
+  ?.  ?=([* ~] inits)  ~
+  =/  init-def=def  i.inits
+  ?>  ?=(%value -.init-def)
+  ?.  (program-init-tuple-null init-def)  ~
+  =/  args=(unit (list expr))  (program-main-args main)
+  ?~  args  ~
+  ?~  prelude.initial  ~
+  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
+  ?~  program  ~
+  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
+  ?~  heads  ~
+  =/  written=(unit def)  (~(get by gates.u.heads) %program)
+  ?~  written  ~
+  =/  written-sample=(unit sample)  (direct-gate-sample u.written)
+  ?~  written-sample  ~
+  ?.  ?=(%cell -.u.written-sample)  ~
+  ?~  items.u.written-sample  ~
+  =/  checked=(map term def)  (direct-checked-gates ds env)
+  =/  templates=ienv
+    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
+  =/  scanned=(unit dgscan)
+    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
+  ?~  scanned  ~
+  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.program initial)
+  ?.  ?=(%fn -.typ.instance)  ~
+  ?.  ?=(%cell -.sample.typ.instance)  ~
+  =/  expected-init=(unit itype)
+    (direct-slot-body hed.sample.typ.instance (direct-sample-name i.items.u.written-sample))
+  ?~  expected-init  ~
+  ?.  ?=(%fn -.u.expected-init)  ~
+  ?.  ?=(%var -.sample.u.expected-init)  ~
+  =/  data=@ud  id.sample.u.expected-init
+  =/  init-var=itype  [%var next.state.instance]
+  =/  st=istate  state.instance(next +(next.state.instance))
+  =/  up=[typ=itype state=istate]  (instantiate-scheme u.update st)
+  =/  vw=[typ=itype state=istate]  (instantiate-scheme u.view state.up)
+  =/  sb=[typ=itype state=istate]  (instantiate-scheme u.subs state.vw)
+  =.  st  state.sb(gate-defs checked, head-evidence heads)
+  =/  actual=itype  [%cell init-var [%cell typ.up [%cell typ.vw typ.sb]]]
+  =/  fit=ifit
+    (direct-positional-fit u.args items.u.written-sample actual sample.typ.instance env st sub.st next.st)
+  ?.  ?=(%ok -.fit)  ~
+  =/  actual-final=itype  (itype-normalize actual sub.fit)
+  =/  expected-final=itype  (itype-normalize sample.typ.instance sub.fit)
+  =/  open=(list @ud)
+    (unique-type-vars (weld (itype-vars actual-final) (itype-vars expected-final)))
+  ?.  (levy open |=(n=@ud =(data n)))  ~
+  ?:  |((itype-has-tag actual-final) (itype-has-tag expected-final))  ~
+  =/  replay=ifit
+    (direct-positional-fit u.args items.u.written-sample actual sample.typ.instance env st sub.fit next.fit)
+  ?.  ?=(%ok -.replay)  ~
+  ?.  &(=(sub.fit sub.replay) =(next.fit next.replay))  ~
+  =/  expected=itype  (itype-normalize u.expected-init sub.fit)
+  ?.  ?=(%fn -.expected)  ~
+  =.  st  st(sub sub.fit, next next.fit)
+  =/  init-state=istate  (reserve-def-caps val.init-def st)
+  =/  inferred=iresult  (infer-fragment val.init-def env init-state)
+  =?  inferred  ?=(%| -.inferred)  (infer-recursive-gate init-def env init-state)
+  ?:  ?=(%| -.inferred)  ~
+  ?.  ?=(%fn -.typ.p.inferred)  ~
+  =/  data-fit=ifit
+    (itype-fit sample.typ.p.inferred sample.expected sub.state.p.inferred next.state.p.inferred)
+  ?.  ?=(%ok -.data-fit)  ~
+  =/  closed=itype  (itype-normalize expected sub.data-fit)
+  ?.  ?=(%fn -.closed)  ~
+  ::  Resolve the ordinary tuple cast first, then check the complete gate.
+  ::  General function fit remains unchanged; only this recovered candidate
+  ::  receives the derived result context before its whole-type cast fit.
+  =/  product-fit=ifit
+    (itype-fit product.typ.p.inferred product.closed sub.data-fit next.data-fit)
+  ?.  ?=(%ok -.product-fit)  ~
+  =/  product=itype
+    (itype-merge-faces product.typ.p.inferred product.closed sub.product-fit)
+  =/  actual-cast=itype  [%fn sample.typ.p.inferred product]
+  =/  cast=ifit
+    (itype-fit actual-cast closed sub.product-fit next.product-fit)
+  ?.  ?=(%ok -.cast)  ~
+  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
+  =/  adjusted=iresult
+    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
+  =/  added=(unit iadded-definition)
+    (add-supported-result init-def adjusted init-state env checked artifacts.resolution)
+  ?~  added  ~
+  =/  recovered=(unit ischeme)  (ienv-lookup init.parts env.u.added)
+  ?~  recovered  ~
+  ?.  ?=(~ vars.u.recovered)  ~
+  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
+  =/  completed=[env=ienv artifacts=(list iwidth-definition)]
+    (add-supported-defs-core ~[main] ds checked.u.added heads env.u.added molds.initial globals.initial externals.initial surs.initial mark-externals.initial marks.initial jimports.initial reserved-molds.initial at.initial prelude.initial artifacts.u.added grec-index.initial)
+  ?~  (ienv-lookup %main env.completed)  ~
+  `[env.completed grouped.resolution artifacts.completed]
 ::
 ++  program-main-closed
   |=  [parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv prelude=(unit ifile)]
@@ -12627,6 +12785,13 @@
       (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
     (resolve-groups-core defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude index)
   =/  env=ienv  env.resolution
+  =/  recovered=(unit iresolved)
+    ?~  main  ~
+    ?~  main-parts  ~
+    (program-init-context u.main u.main-parts defs.mod resolution state)
+  =.  env  ?~(recovered env env.u.recovered)
+  =.  artifacts.resolution
+    ?~(recovered artifacts.resolution artifacts.u.recovered)
   =.  env
     ?:  (module-values-complete defs.mod env)  env
     ?:  |(?=([%ui %stores *] at) ?=(^ imports.mod) ?=(^ prelude) ?=(^ prelude-values) ?=(^ prelude-molds))  env

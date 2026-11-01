@@ -1,0 +1,2 @@
+/= island /tests/program-main/initializer
+++ imported init.main.island

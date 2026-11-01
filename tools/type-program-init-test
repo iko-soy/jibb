@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Run transactional direct-program initializer context checks under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+
+def body(name):
+    text = (root / 'tests/lib' / name).read_text()
+    return text[text.index('\n|%\n') + 1:]
+
+names = ('initializer', 'initializer-consumer', 'initializer-unfaced',
+         'initializer-error', 'initializer-earlier', 'initializer-model',
+         'initializer-message', 'initializer-generic', 'initializer-missing',
+         'initializer-tag', 'initializer-no-main', 'initializer-subs')
+expression = ('=/  jibb  .\n=/  prelude=@t  prelude-text\n'
+              '=/  internal=@t  internal-text\n' +
+              ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                      for name in names) +
+              '=/  suite\n' + body('jibb-program-init.hoon') +
+              '\n=/  negatives=(list @t)\n  :~  (text:suite initializer-error)\n'
+              '      (text:suite initializer-earlier)\n      (text:suite initializer-model)\n'
+              '      (text:suite initializer-message)\n      (text:suite initializer-generic)\n'
+              '      (text:suite initializer-missing)\n      (text:suite initializer-tag)\n'
+              '      (text:suite initializer-no-main)\n      (text:suite initializer-subs)\n  ==\n'
+              '=/  failures=(list tape)  (program-init-errors:suite prelude internal (text:suite initializer) (text:suite initializer-consumer) (text:suite initializer-unfaced) negatives)\n'
+              '^-  @t\n?~  failures  \'program initializer checks passed\'\n'
+              '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-program-init-') as tmp:
+    program = Path(tmp) / 'program-init.hoon'
+    program.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(program),
+               '--cord', 'prelude-text=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal-text=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name in names:
+        command += ['--cord', name + '-text=' + str(root / 'tests/type-program-main' / (name + '.txt'))]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'program initializer checks passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('transactional direct-program initializer context guards passed')
