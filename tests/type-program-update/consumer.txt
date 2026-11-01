@@ -1,0 +1,2 @@
+/= island-prog /tests/program-update/island
+++ imported update.main.island-prog

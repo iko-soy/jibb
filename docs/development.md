@@ -93,6 +93,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-direct-gate-test` | Checks a synthetic source-backed program report and direct gate provenance under eval and on the ship |
 | `tools/type-program-main-test` | Checks the narrow closed subscription-free program-main interface, downstream import and rejection guards under eval and on the ship |
 | `tools/type-program-init-test` | Checks transactional direct-program initializer recovery, exact exported/imported types and fail-closed boundaries under eval and on the ship |
+| `tools/type-program-update-test` | Checks transactional direct-program update result recovery, union/boolean context, exact exported/imported types and fail-closed boundaries under eval and on the ship |
 | `tools/type-program-watch-test` | Checks direct singleton request-value watchability against merged real-todo evidence, exact types/imports and rejection boundaries under eval and on the ship |
 | `tools/type-closed-gate-guards-test` | Checks closed gate sample labels and face uncertainty under eval and on the ship |
 | `tools/type-constructor-fit-guards-test` | Checks constructor-case uncertainty and known mismatches under eval and on the ship |
@@ -145,6 +146,7 @@ tools/type-todo-api-test            # real todo API partial inference and reader
 tools/type-direct-gate-test         # direct gate source and provenance guards pass
 tools/type-program-main-test        # closed program-main interface and rejection guards pass
 tools/type-program-init-test        # transactional direct-program initializer context guards pass
+tools/type-program-update-test      # transactional direct-program update context guards pass
 tools/type-generic-recursion-test    # source-backed recursive identities and provenance
 tools/type-generic-construction-test # source-backed recursive construction and bounds
 tools/type-generic-pattern-test      # source-backed recursive patterns and bounds

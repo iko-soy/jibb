@@ -12558,6 +12558,145 @@
   ?~  items.body  |
   (program-empty-null val:(rear items.body))
 ::
+::  Recover only the update of an already recognized direct program main.
+::  Its written sample determines the message/model relationship; the canonical
+::  cmd and list molds determine the result context. Every candidate is checked
+::  against the complete program call before an ordinary update/main retry.
+++  program-update-context
+  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
+  ^-  (unit iresolved)
+  =/  env=ienv  env.resolution
+  ?^  (ienv-lookup %main env)  ~
+  ?^  (ienv-lookup update.parts env)  ~
+  =/  init=(unit ischeme)  (ienv-lookup init.parts env)
+  =/  view=(unit ischeme)  (ienv-lookup view.parts env)
+  =/  subs=(unit ischeme)  (ienv-lookup subs.parts env)
+  ?~  init  ~
+  ?~  view  ~
+  ?~  subs  ~
+  =/  updates=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) =(update.parts name.d))))
+  ?.  ?=([* ~] updates)  ~
+  =/  update-def=def  i.updates
+  ?>  ?=(%value -.update-def)
+  =/  written-update=(unit sample)  (direct-gate-sample update-def)
+  ?~  written-update  ~
+  ?.  ?=(%cell -.u.written-update)  ~
+  ?.  ?=([* * ~] items.u.written-update)  ~
+  =/  args=(unit (list expr))  (program-main-args main)
+  ?~  args  ~
+  ?~  prelude.initial  ~
+  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
+  ?~  program  ~
+  =/  command=(unit ischeme)  (find-jibb-mold %cmd u.prelude.initial)
+  =/  list-template=(unit ischeme)  (find-jibb-mold %list u.prelude.initial)
+  ?~  command  ~
+  ?~  list-template  ~
+  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
+  ?~  heads  ~
+  =/  written=(unit def)  (~(get by gates.u.heads) %program)
+  ?~  written  ~
+  =/  written-sample=(unit sample)  (direct-gate-sample u.written)
+  ?~  written-sample  ~
+  ?.  ?=(%cell -.u.written-sample)  ~
+  ?.  ?=([* * * * ~] items.u.written-sample)  ~
+  =/  checked=(map term def)
+    (~(put by (direct-checked-gates ds env)) update.parts update-def)
+  =/  templates=ienv
+    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
+  =/  scanned=(unit dgscan)
+    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
+  ?~  scanned  ~
+  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  update-state=istate  (reserve-def-caps val.update-def initial)
+  =/  sam=isample-result  (infer-sample u.written-update env update-state)
+  ?:  ?=(%| -.sam)  ~
+  =/  actual-sample=itype  (itype-normalize typ.p.sam sub.state.p.sam)
+  ?.  ?=(%cell -.actual-sample)  ~
+  =/  message=(unit itype)
+    (direct-slot-body hed.actual-sample (direct-sample-name i.items.u.written-update))
+  =/  model=(unit itype)
+    (direct-slot-body tal.actual-sample (direct-sample-name i.t.items.u.written-update))
+  ?~  message  ~
+  ?~  model  ~
+  =/  cmd=(unit itype)  (template-apply u.command ~[u.message])
+  ?~  cmd  ~
+  =/  cmds=(unit itype)  (template-apply u.list-template ~[u.cmd])
+  ?~  cmds  ~
+  =/  product=itype  [%cell u.model u.cmds]
+  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.program state.p.sam)
+  ?.  ?=(%fn -.typ.instance)  ~
+  ?.  ?=(%cell -.sample.typ.instance)  ~
+  ?.  ?=(%cell -.tal.sample.typ.instance)  ~
+  =/  expected-update=(unit itype)
+    (direct-slot-body hed.tal.sample.typ.instance (direct-sample-name i.t.items.u.written-sample))
+  ?~  expected-update  ~
+  ?.  ?=(%fn -.u.expected-update)  ~
+  ::  Sample binders are not value faces. Strip only those two slot faces
+  ::  for the invariant canonical-gate proof; the source-faced gate is still
+  ::  used by the complete positional call and final ordinary result cast.
+  =/  canonical-candidate=itype  [%fn [%cell u.message u.model] product]
+  =/  gate-fit=ifit
+    (direct-invariant canonical-candidate u.expected-update sub.state.instance next.state.instance)
+  ?.  ?=(%ok -.gate-fit)  ~
+  =/  st=istate  state.instance(sub sub.gate-fit, next next.gate-fit)
+  =/  ini=[typ=itype state=istate]  (instantiate-scheme u.init st)
+  =/  vw=[typ=itype state=istate]  (instantiate-scheme u.view state.ini)
+  =/  sb=[typ=itype state=istate]  (instantiate-scheme u.subs state.vw)
+  =.  st  state.sb(gate-defs checked, head-evidence heads)
+  =/  expected=itype  [%fn typ.p.sam product]
+  =/  actual=itype  [%cell typ.ini [%cell expected [%cell typ.vw typ.sb]]]
+  =/  fit=ifit
+    (direct-positional-fit u.args items.u.written-sample actual sample.typ.instance env st sub.st next.st)
+  ?.  ?=(%ok -.fit)  ~
+  =/  actual-final=itype  (itype-normalize actual sub.fit)
+  =/  expected-final=itype  (itype-normalize sample.typ.instance sub.fit)
+  ?^  (itype-vars actual-final)  ~
+  ?^  (itype-vars expected-final)  ~
+  ?:  |((itype-has-tag actual-final) (itype-has-tag expected-final))  ~
+  =/  replay=ifit
+    (direct-positional-fit u.args items.u.written-sample actual sample.typ.instance env st sub.fit next.fit)
+  ?.  ?=(%ok -.replay)  ~
+  ?.  &(=(sub.fit sub.replay) =(next.fit next.replay))  ~
+  =/  closed=itype  (itype-normalize expected sub.fit)
+  ?.  ?=(%fn -.closed)  ~
+  ::  The closed product no longer needs the canonical call substitutions.
+  ::  Start the body at its ordinary sample state so existing branch retries
+  ::  keep their substitution guards, but retain the shared fresh-ID high water.
+  =.  st  state.p.sam(next next.fit)
+  =/  body=expr
+    ?-  -.val.update-def
+      %gate       body.val.update-def
+      %gate-wide  body.val.update-def
+      *           !!
+    ==
+  =/  inferred=iresult
+    (infer-call-context-arg body product.closed env.p.sam st (span-of body))
+  ?:  ?=(%| -.inferred)  ~
+  =/  product-fit=ifit
+    (itype-fit typ.p.inferred product.closed sub.state.p.inferred next.state.p.inferred)
+  ?.  ?=(%ok -.product-fit)  ~
+  =/  merged-product=itype
+    (itype-merge-faces typ.p.inferred product.closed sub.product-fit)
+  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
+  =/  cast=ifit
+    (itype-fit actual-cast closed sub.product-fit next.product-fit)
+  ?.  ?=(%ok -.cast)  ~
+  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
+  =/  adjusted=iresult
+    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
+  =/  added=(unit iadded-definition)
+    (add-supported-result update-def adjusted update-state env checked artifacts.resolution)
+  ?~  added  ~
+  =/  recovered=(unit ischeme)  (ienv-lookup update.parts env.u.added)
+  ?~  recovered  ~
+  ?.  ?=(~ vars.u.recovered)  ~
+  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
+  =/  completed=[env=ienv artifacts=(list iwidth-definition)]
+    (add-supported-defs-core ~[main] ds checked.u.added heads env.u.added molds.initial globals.initial externals.initial surs.initial mark-externals.initial marks.initial jimports.initial reserved-molds.initial at.initial prelude.initial artifacts.u.added grec-index.initial)
+  ?~  (ienv-lookup %main env.completed)  ~
+  `[env.completed grouped.resolution artifacts.completed]
+::
 ::  Recover only the initializer of an already recognized direct program main.
 ::  The derived call is evidence for an ordinary init/main retry, never an
 ::  interface to publish on its own. Any failure returns the original resolution.
@@ -12853,6 +12992,9 @@
   =/  recovered=(unit iresolved)
     ?~  main  ~
     ?~  main-parts  ~
+    =/  updated=(unit iresolved)
+      (program-update-context u.main u.main-parts defs.mod resolution state)
+    ?^  updated  updated
     (program-init-context u.main u.main-parts defs.mod resolution state)
   =.  env  ?~(recovered env env.u.recovered)
   =.  artifacts.resolution

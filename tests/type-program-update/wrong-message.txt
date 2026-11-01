@@ -1,0 +1,10 @@
++$ model [count=@ud]
++$ message %noop
++$ other-message %other
+++ main (program init update view subs)
+++ init |= input=@t ^- model [count=0]
+++ update |= [event=other-message current=model]
+  ?- event
+    %other [current ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~
