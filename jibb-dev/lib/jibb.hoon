@@ -12668,8 +12668,73 @@
   ?~  (ienv-lookup %main env.completed)  ~
   `[env.completed grouped.resolution artifacts.completed]
 ::
+++  program-subs-watch
+  |=  [d=def imports=ijimports graph=irequest-graph prelude=ifile]
+  ^-  ?
+  ?.  ?=(%value -.d)  |
+  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  |
+  =/  body=expr
+    ?-  -.val.d
+      %gate       body.val.d
+      %gate-wide  body.val.d
+      *           val.d
+    ==
+  =.  body  (program-transparent body)
+  ?.  ?=(%list -.body)  |
+  ?.  ?=([* ~] items.body)  |
+  =/  watch=expr  (program-transparent i.items.body)
+  ?.  ?=(%tuple -.watch)  |
+  ?.  ?=([* * ~] items.watch)  |
+  =/  tag=item  i.items.watch
+  =/  payload=item  i.t.items.watch
+  ?.  &(?=(~ face.tag) ?=(~ face.payload))  |
+  =/  tag-expr=expr  (program-transparent val.tag)
+  ?.  ?=(%lit -.tag-expr)  |
+  ?.  &(?=(%term form.lit.tag-expr) =(%watch val.lit.tag-expr))  |
+  =/  request=expr  (program-transparent val.payload)
+  ?.  ?=(%call -.request)  |
+  ?.  ?=([* ~] args.request)  |
+  =/  head=expr  (program-transparent head.request)
+  ?.  ?=(%wing -.head)  |
+  ?.  ?=([@ @ ~] names.head)  |
+  =/  case=term  i.names.head
+  =/  face=term  i.t.names.head
+  =/  callback=expr  (program-transparent i.args.request)
+  ?.  ?=(%ctor -.callback)  |
+  ?.  ?=(%term form.tag.callback)  |
+  =/  selected=(list [face=term interface=ifile])
+    (skim imports |=(j=[face=term interface=ifile] =(face face.j)))
+  ?.  ?=([* ~] selected)  |
+  =/  iface=ifile  interface.i.selected
+  =/  member=(unit ischeme)  (ienv-lookup case values.iface)
+  ?~  member  |
+  ?~  source.iface  |
+  =/  evidence=(list irequest-evidence)
+    (skim requests.graph |=(r=irequest-evidence &(=(api-at.r at.iface) =(name.r case))))
+  ?.  ?=([* ~] evidence)  |
+  =/  request-evidence=irequest-evidence  i.evidence
+  ?.  =(u.source.iface api-source.request-evidence)  |
+  ?.  =(name.path.path.request-evidence case)  |
+  ?~  graph.iface  |
+  ?.  (lien requests.u.graph.iface |=(r=irequest-evidence =(r request-evidence)))  |
+  ?.  ?=(~ scry.path.path.request-evidence)  |
+  ?.  &(?=(~ diffs.path.request-evidence) ?=(~ diffs.path.path.request-evidence))  |
+  ?:  (lien segments.path.path.request-evidence |=(p=pseg !?=(%knot -.p)))  |
+  ?.  ?=([@ ~] vars.u.member)  |
+  =/  message=@ud  i.vars.u.member
+  ?.  ?=(%fn -.typ.u.member)  |
+  ?.  ?=(%fn -.sample.typ.u.member)  |
+  ?.  =(sample.sample.typ.u.member full.path.request-evidence)  |
+  ?.  =(product.sample.typ.u.member [%var message])  |
+  =/  prep=iprelude  [prelude prelude-values.graph prelude-molds.graph]
+  =/  ask=(unit ischeme)  (request-compatible-ask prep)
+  ?~  ask  |
+  =/  result=(unit itype)  (template-apply u.ask ~[[%var message]])
+  ?~  result  |
+  =(product.typ.u.member u.result)
+::
 ++  program-main-closed
-  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv prelude=(unit ifile)]
+  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv prelude=(unit ifile) imports=ijimports graph=irequest-graph]
   ^-  ?
   ?~  prelude  |
   ?~  (ienv-lookup %program values.u.prelude)  |
@@ -12695,7 +12760,7 @@
   =/  subs=(list def)
     (skim ds |=(d=def &(?=(%value -.d) =(subs.parts name.d))))
   ?.  ?=([* ~] subs)  |
-  (program-subs-empty i.subs)
+  |((program-subs-empty i.subs) (program-subs-watch i.subs imports graph u.prelude))
 ::
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
@@ -12804,11 +12869,11 @@
     env
   ?.  (module-values-complete defs.mod env)
     [%| [(crip "module definitions need unsupported inference: {(spud at)}") ~]]
-  ?.  ?~(main & ?~(main-parts | (program-main-closed u.main-parts defs.mod env prelude)))
-    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
   ?~  graph  [%| ['module request evidence needs unsupported inference' ~]]
+  ?.  ?~(main & ?~(main-parts | (program-main-closed u.main-parts defs.mod env prelude resolved.p.js u.graph)))
+    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph]
   [%& [iface [[at iface] cache.p.js]]]
 ::

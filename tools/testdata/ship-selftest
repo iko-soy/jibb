@@ -326,6 +326,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-direct-gate-source.hoon',
            'tests/lib/jibb-program-main.hoon',
            'tests/lib/jibb-program-init.hoon',
+           'tests/lib/jibb-program-watch.hoon',
            'tests/lib/jibb-todo-api.hoon',
            'tests/lib/jibb-todo-partial.hoon',
            'tests/lib/jibb-constructor-fit-guards.hoon',
@@ -405,6 +406,9 @@ def generator_checks(tmp):
               'initializer-error', 'initializer-earlier', 'initializer-model',
               'initializer-message', 'initializer-generic', 'initializer-missing',
               'initializer-tag', 'initializer-no-main', 'initializer-subs')} <= set(normal.files))
+    check('program watch shared fixture is assembled',
+          {'tests/lib/jibb-program-watch.hoon', 'tests/type-program-watch/about.txt'}
+          <= set(normal.files))
     check('todo partial golden and reused sources are assembled',
           {'tests/type-todo-partial/expected.txt', 'tests/type-gate-free/todo.txt',
            'tests/type-api-paths/api.txt'} <= set(normal.files))

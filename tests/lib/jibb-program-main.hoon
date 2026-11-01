@@ -54,6 +54,7 @@
   =/  detailed=jfile-detailed-result:jibb  (program-main-detailed at island ~ u.prepared)
   ?:  ?=(%| -.detailed)  ~["direct closed program main was rejected"]
   =/  checked=ifile:jibb  iface.p.detailed
+  ?~  graph.checked  ~["program request graph evidence is missing"]
   =/  legacy=jfile-result:jibb  (program-main-legacy at island ~ u.prepared)
   ?:  ?=(%| -.legacy)  ~["legacy adapter rejected a closed program main"]
   ?.  =(values.checked values.iface.p.legacy)  ~["structured and legacy interface values differ"]
@@ -73,7 +74,7 @@
   ?~  main-def  ~["program main definition is missing"]
   =/  parts  (program-main-parts:jibb u.main-def)
   ?~  parts  ~["program main parts are missing"]
-  ?:  (program-main-closed:jibb u.parts defs.p.parsed values.checked ~)
+  ?:  (program-main-closed:jibb u.parts defs.p.parsed values.checked ~ ~ u.graph.checked)
     ~["program kind was accepted without its source-backed prelude"]
   =/  program-scheme=(unit ischeme:jibb)  (ienv-lookup:jibb %program values.iface.u.prepared)
   ?~  program-scheme  ~["synthetic program scheme is missing"]
@@ -93,7 +94,7 @@
   =/  other-values=ienv:jibb
     (skim values.checked |=(entry=[name=term scheme=ischeme:jibb] !=(%main name.entry)))
   =/  open-values=ienv:jibb  [[%main u.main(vars ~[0])] other-values]
-  ?:  (program-main-closed:jibb u.parts defs.p.parsed open-values `iface.u.prepared)
+  ?:  (program-main-closed:jibb u.parts defs.p.parsed open-values `iface.u.prepared ~ u.graph.checked)
     ~["generic main scheme passed the closure check"]
   =/  model=itype:jibb  [%face %count [%atom %ud]]
   ?.  =(u.init [[%fn [%atom %t] model] ~])  ~["init interface type differs"]
@@ -107,7 +108,6 @@
     ~["main component fields differ"]
   ?~  source.checked  ~["program source evidence is missing"]
   ?.  =(u.source.checked island)  ~["program source evidence differs"]
-  ?~  graph.checked  ~["program request graph evidence is missing"]
   =/  consumer-at=path  /tests/program-main/consumer/jibb
   =/  imported=jfile-detailed-result:jibb
     (program-main-detailed consumer-at downstream ~[[at island]] u.prepared)

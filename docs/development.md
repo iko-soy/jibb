@@ -93,6 +93,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-direct-gate-test` | Checks a synthetic source-backed program report and direct gate provenance under eval and on the ship |
 | `tools/type-program-main-test` | Checks the narrow closed subscription-free program-main interface, downstream import and rejection guards under eval and on the ship |
 | `tools/type-program-init-test` | Checks transactional direct-program initializer recovery, exact exported/imported types and fail-closed boundaries under eval and on the ship |
+| `tools/type-program-watch-test` | Checks direct singleton request-value watchability against merged real-todo evidence, exact types/imports and rejection boundaries under eval and on the ship |
 | `tools/type-closed-gate-guards-test` | Checks closed gate sample labels and face uncertainty under eval and on the ship |
 | `tools/type-constructor-fit-guards-test` | Checks constructor-case uncertainty and known mismatches under eval and on the ship |
 | `tools/type-nested-union-guards-test` | Checks nested tagged-union case selection and uncertainty under eval and on the ship |

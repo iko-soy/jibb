@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""Run direct request-value watchability checks under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+args = parser.parse_args()
+fixture = root / 'tests/type-api-paths/api.txt'
+actual = root / 'my-app/ui/api/todo.jibb'
+if fixture.read_bytes() != actual.read_bytes():
+    sys.exit('todo API fixture differs from my-app/ui/api/todo.jibb')
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-program-watch.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+names = ('sur', 'action', 'todos', 'update', 'item', 'api')
+program = ('=/  jibb  .\n=/  jibb-import\n' + reader + '\n' +
+           ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                   for name in names) +
+           '=/  suite\n' + tests +
+           '\n=/  failures=(list tape)  (program-watch-errors:suite prelude internal (text:suite sur) (text:suite action) (text:suite todos) (text:suite update) (text:suite item) (text:suite api))\n'
+           '^-  @t\n?~  failures  \'program request-value watchability passed\'\n'
+           '(of-wain:format (turn failures crip))\n')
+fixtures = {'sur': 'tests/type-api-paths/todo-sur.txt',
+            'action': 'tests/type-api-paths/todo-action.txt',
+            'todos': 'tests/type-api-paths/todos.txt',
+            'update': 'tests/type-api-paths/todo-update.txt',
+            'item': 'tests/type-api-paths/todo-item.txt',
+            'api': 'tests/type-api-paths/api.txt'}
+with tempfile.TemporaryDirectory(prefix='jibb-program-watch-') as tmp:
+    path = Path(tmp) / 'program-watch.hoon'
+    path.write_text(program)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name, filename in fixtures.items():
+        command += ['--cord', name + '-text=' + str(root / filename)]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'program request-value watchability passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('direct request-value watchability and rejection guards passed')
