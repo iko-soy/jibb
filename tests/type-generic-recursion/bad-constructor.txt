@@ -1,8 +1,8 @@
-+$ element |$ [M]
++$ node-tree |$ [M]
   [%text value=@t]
-  [%node event=$-(@t M) children=(list (element M))]
-++ text-id |= x=(element @t) x
-++ ship-id |= x=(element @p) x
-++ generic-id |= x=(element A) x
+  [%node event=$-(@t M) children=(list (node-tree M))]
+++ text-id |= x=(node-tree @t) x
+++ ship-id |= x=(node-tree @p) x
+++ generic-id |= x=(node-tree A) x
 
-++ construct ^- (element @t) [%text value=~zod]
+++ construct ^- (node-tree @t) [%text value=~zod]

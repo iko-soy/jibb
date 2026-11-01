@@ -24,18 +24,18 @@
 3:28 tight glyph )
 4:1 NEWLINE
 4:1 glyph ++
-4:4 name wrap
-4:9 glyph |=
-4:12 name fallback
-4:20 tight glyph =
-4:21 tight glyph $-(
-4:24 tight lit ~
-4:26 tvar A
-4:27 tight glyph )
-4:29 glyph (
-4:30 tight name bond
-4:35 name fallback
-4:43 tight glyph )
+4:4 name wrap-value
+4:15 glyph |=
+4:18 name fallback
+4:26 tight glyph =
+4:27 tight glyph $-(
+4:30 tight lit ~
+4:32 tvar A
+4:33 tight glyph )
+4:35 glyph (
+4:36 tight name bond
+4:41 name fallback
+4:49 tight glyph )
 5:1 NEWLINE
 5:1 glyph ++
 5:4 name choose-ship

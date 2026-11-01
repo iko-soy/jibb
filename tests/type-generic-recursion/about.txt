@@ -3,7 +3,7 @@ source: docs/spec/grammar.md:57,135,162 — “Molds may be recursive”; “rec
 This shared eval and ship fixture checks a deliberately narrow source-backed
 recursive identity: two distinct tagged cases, a text leaf and a node with a
 message-producing gate and a list of recursive children. The test-only tree is
-not a chosen element representation. A complete import-free owner module must
+not the UI `element` representation. A complete import-free owner module must
 check before its interface is published. Same-origin aliases retain identity,
 while different origins, unproved casts and broader matching remain unsupported.
 A wrong-aura constructor fails the complete owner check. An opaque recursive type prevents premature numeric defaulting;

@@ -1,13 +1,13 @@
 (module
-  (mold 1:1 length
+  (mold 1:1 extent
     (union 2:3
       (cell 2:3
         (const 2:4 %fill)
         (face 2:10 n (aura 2:12 @ud)))
       (const 3:3 %shrink)))
-  (mold 4:1 attr
+  (mold 4:1 attribute
     (union 5:3
-      (cell 5:3 (const 5:4 %width) (ref 5:11 length))
+      (cell 5:3 (const 5:4 %width) (ref 5:11 extent))
       (cell 6:3 (const 6:4 %gap) (aura 6:9 @tas))))
   (value 7:1 number-id
     (gate 7:14
@@ -15,25 +15,25 @@
       (wing 7:23 x)))
   (value 8:1 plain
     (cast 8:10
-      (ref 8:13 attr)
-      (pair 8:18 width
-        (tuple 8:24 (lit 8:25 %fill) (lit 8:31 1)))))
+      (ref 8:13 attribute)
+      (pair 8:23 width
+        (tuple 8:29 (lit 8:30 %fill) (lit 8:36 1)))))
   (value 9:1 direct
     (cast 9:11
-      (ref 9:14 attr)
-      (tuple 9:19
-        (lit 9:20 %width)
-        (tuple 9:27 (lit 9:28 %fill) (lit 9:34 1)))))
+      (ref 9:14 attribute)
+      (tuple 9:24
+        (lit 9:25 %width)
+        (tuple 9:32 (lit 9:33 %fill) (lit 9:39 1)))))
   (value 10:1 list
     (cast 10:9
-      (apply 10:12 list (ref 10:18 attr))
-      (list 10:24
-        (pair 10:26 width
-          (tuple 10:32 (lit 10:33 %fill) (lit 10:39 1))))))
+      (apply 10:12 list (ref 10:18 attribute))
+      (list 10:29
+        (pair 10:31 width
+          (tuple 10:37 (lit 10:38 %fill) (lit 10:44 1))))))
   (value 11:1 accept
     (gate 11:11
-      (face 11:14 value (ref 11:20 attr))
-      (wing 11:25 value)))
+      (face 11:14 value (ref 11:20 attribute))
+      (wing 11:30 value)))
   (value 12:1 call
     (group 12:9
       (call 12:10
@@ -42,69 +42,69 @@
           (tuple 12:23 (lit 12:24 %fill) (lit 12:30 1))))))
   (value 13:1 simple-call
     (cast 13:16
-      (ref 13:19 attr)
-      (pair 13:24 width
-        (tuple 13:30
-          (lit 13:31 %fill)
-          (group 13:37
-            (call 13:38 (wing 13:38 number-id) (lit 13:48 1)))))))
+      (ref 13:19 attribute)
+      (pair 13:29 width
+        (tuple 13:35
+          (lit 13:36 %fill)
+          (group 13:42
+            (call 13:43 (wing 13:43 number-id) (lit 13:53 1)))))))
   (value 14:1 grouped-call
     (cast 14:17
-      (ref 14:20 attr)
-      (pair 14:25 width
-        (tuple 14:31
-          (lit 14:32 %fill)
-          (group 14:38
-            (group 14:39
-              (call 14:40 (wing 14:40 number-id) (lit 14:50 1))))))))
+      (ref 14:20 attribute)
+      (pair 14:30 width
+        (tuple 14:36
+          (lit 14:37 %fill)
+          (group 14:43
+            (group 14:44
+              (call 14:45 (wing 14:45 number-id) (lit 14:55 1))))))))
   (value 15:1 cast-call
     (cast 15:14
-      (ref 15:17 attr)
-      (pair 15:22 width
-        (tuple 15:28
-          (lit 15:29 %fill)
-          (group 15:35
-            (cast 15:36
-              (aura 15:39 @ud)
-              (group 15:43
-                (call 15:44 (wing 15:44 number-id) (lit 15:54 1)))))))))
+      (ref 15:17 attribute)
+      (pair 15:27 width
+        (tuple 15:33
+          (lit 15:34 %fill)
+          (group 15:40
+            (cast 15:41
+              (aura 15:44 @ud)
+              (group 15:48
+                (call 15:49 (wing 15:49 number-id) (lit 15:59 1)))))))))
   (value 16:1 nested-call
     (cast 16:16
-      (ref 16:19 attr)
-      (pair 16:24 width
-        (tuple 16:30
-          (lit 16:31 %fill)
-          (group 16:37
-            (call 16:38
-              (wing 16:38 number-id)
-              (group 16:48
-                (call 16:49 (wing 16:49 number-id) (lit 16:59 1)))))))))
+      (ref 16:19 attribute)
+      (pair 16:29 width
+        (tuple 16:35
+          (lit 16:36 %fill)
+          (group 16:42
+            (call 16:43
+              (wing 16:43 number-id)
+              (group 16:53
+                (call 16:54 (wing 16:54 number-id) (lit 16:64 1)))))))))
   (value 17:1 bad-tag
     (cast 17:12
-      (ref 17:15 attr)
-      (pair 17:20 width
-        (tuple 17:26 (lit 17:27 %missing) (lit 17:36 1)))))
+      (ref 17:15 attribute)
+      (pair 17:25 width
+        (tuple 17:31 (lit 17:32 %missing) (lit 17:41 1)))))
   (value 18:1 bad-number
     (cast 18:15
-      (ref 18:18 attr)
-      (pair 18:23 width
-        (tuple 18:29 (lit 18:30 %fill) (str 18:36 "bad")))))
+      (ref 18:18 attribute)
+      (pair 18:28 width
+        (tuple 18:34 (lit 18:35 %fill) (str 18:41 "bad")))))
   (value 19:1 pending
     (body 20:3
       (trace 20:3
         (lit 20:6 %unrelated)
         (body 21:5
           (cast 21:5
-            (ref 21:8 attr)
-            (pair 21:13 width
-              (tuple 21:19
-                (lit 21:20 %fill)
-                (group 21:26
-                  (call 21:27 (wing 21:27 number-id) (lit 21:37 1))))))))))
+            (ref 21:8 attribute)
+            (pair 21:18 width
+              (tuple 21:24
+                (lit 21:25 %fill)
+                (group 21:31
+                  (call 21:32 (wing 21:32 number-id) (lit 21:42 1))))))))))
   (value 22:1 singleton
     (cast 22:14
-      (ref 22:17 attr)
-      (pair 22:22 width (lit 22:28 %shrink))))
+      (ref 22:17 attribute)
+      (pair 22:27 width (lit 22:33 %shrink))))
   (mold 23:1 event
     (union 24:3
       (cell 24:3

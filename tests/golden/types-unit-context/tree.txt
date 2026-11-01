@@ -70,20 +70,20 @@
       (call 18:14
         (wing 18:14 accept)
         (unit 18:21 (lit 18:22 %bad)))))
-  (value 19:1 field
-    (cast 19:10
-      (ref 19:13 record)
-      (tuple 19:20
-        (unit 19:21 (lit 19:22 %go))
-        (list 19:26
-          (unit 19:28 (str 19:29 "hi"))))))
-  (value 20:1 field-bad
-    (cast 20:14
-      (ref 20:17 record)
-      (tuple 20:24
-        (unit 20:25 (lit 20:26 %bad))
-        (list 20:31
-          (unit 20:33 (str 20:34 "hi"))))))
+  (value 19:1 field-value
+    (cast 19:16
+      (ref 19:19 record)
+      (tuple 19:26
+        (unit 19:27 (lit 19:28 %go))
+        (list 19:32
+          (unit 19:34 (str 19:35 "hi"))))))
+  (value 20:1 field-value-bad
+    (cast 20:20
+      (ref 20:23 record)
+      (tuple 20:30
+        (unit 20:31 (lit 20:32 %bad))
+        (list 20:37
+          (unit 20:39 (str 20:40 "hi"))))))
   (value 21:1 mimic-mismatch
     (cast 21:19
       (apply 21:22 mimic (aura 21:29 @t))
@@ -120,13 +120,13 @@
         (unit 30:29 (str 30:30 "hi")))))
   (mold 31:1 alt
     (union 32:3 (const 32:3 %go) (const 33:3 %stay)))
-  (value 34:1 field-wrong-payload
-    (cast 34:24
-      (ref 34:27 record)
-      (tuple 34:34
-        (unit 34:35 (lit 34:36 %go))
-        (list 34:40
-          (unit 34:42 (lit 34:43 ~zod))))))
+  (value 34:1 field-value-wrong-payload
+    (cast 34:30
+      (ref 34:33 record)
+      (tuple 34:40
+        (unit 34:41 (lit 34:42 %go))
+        (list 34:46
+          (unit 34:48 (lit 34:49 ~zod))))))
   (value 35:1 wrong-name
     (cast 35:15
       (ref 35:18 record)

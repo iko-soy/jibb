@@ -25,14 +25,14 @@
 3:26 name x
 4:1 NEWLINE
 4:1 glyph ++
-4:4 name text
-4:9 glyph |=
-4:12 name x
-4:13 tight glyph =
-4:14 tight aura @tD
-4:18 glyph ^-
-4:21 aura @t
-4:24 name x
+4:4 name text-value
+4:15 glyph |=
+4:18 name x
+4:19 tight glyph =
+4:20 tight aura @tD
+4:24 glyph ^-
+4:27 aura @t
+4:30 name x
 5:1 NEWLINE
 5:1 glyph ++
 5:4 name narrow

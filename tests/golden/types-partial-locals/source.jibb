@@ -32,9 +32,9 @@
 ++ local-mold |= x
   +$ item @t
   x
-++ wrap |= y |=(z y)
+++ wrap-value |= y |=(z y)
 ++ through-global |= x
-  ++ local (wrap x)
+  ++ local (wrap-value x)
   ~& ^- @t (local ~zod)
     ^- @p (local "hi")
 ++ nested-shadow |= x

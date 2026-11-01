@@ -2,6 +2,6 @@ partial inference; module not checked
 ++ choose: $-((unit @t) @t)
 ++ missing: @t
 ++ present: @t
-++ wrap: $-($-(~ A) $-((unit A) A))
+++ wrap-value: $-($-(~ A) $-((unit A) A))
 ++ choose-ship: $-((unit @p) @p)
 ++ present-ship: @p

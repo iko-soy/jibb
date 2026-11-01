@@ -1,4 +1,4 @@
-::  Source-backed recursive identities; this is not a runtime element model.
+::  Source-backed recursive identities; this is not the runtime UI element model.
 /+  jibb
 /*  real-prelude     %jibb  /lib/jibb/prelude/jibb
 /*  real-internal    %jibb  /lib/jibb/internal/jibb
@@ -42,7 +42,7 @@
   =/  module=jfile-result:jibb
     (infer-jibb-file:jibb /ui/tree/jibb tree ~ ~ ~ ~[/ui/tree/jibb] values.u.prep molds.u.prep ~ `iface.u.prep)
   ?:  ?=(%| -.module)  (cat 3 'BAD recursive module: ' p.module)
-  =/  scheme=(unit ischeme:jibb)  (find-jibb-mold:jibb %element iface.p.module)
+  =/  scheme=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree iface.p.module)
   ?~  scheme  'BAD missing recursive mold'
   ?.  ?=(%grec -.typ.u.scheme)  'BAD missing recursive identity'
   =/  typ=itype:jibb  typ.u.scheme
@@ -116,8 +116,8 @@
   =/  shape-changed=?
     ?~  old  |
     ?~  new  |
-    =/  a=(unit ischeme:jibb)  (find-jibb-mold:jibb %element u.old)
-    =/  b=(unit ischeme:jibb)  (find-jibb-mold:jibb %element u.new)
+    =/  a=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree u.old)
+    =/  b=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree u.new)
     ?~  a  |
     ?~  b  |
     ?.  &(?=(%grec -.typ.u.a) ?=(%grec -.typ.u.b))  |

@@ -20,8 +20,7 @@
 ++  program-prepared
   |=  [public=@t private=@t]
   ^-  (unit iprelude:jibb)
-  =/  extra=@t  '\0a+$ element |$ [M] [%node item=M]\0a+$ program |$ [D X M]\0a  [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]\0a++ program |= [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]\0a  ^- (program D X M) [init update view subs]\0a'
-  (prepare-prelude-with-internal:jibb (cat 3 public extra) private)
+  (prepare-prelude-with-internal:jibb public private)
 ::
 ++  program-main-detailed
   |=  [at=path src=@t modules=jbundle:jibb prepared=iprelude:jibb]
@@ -111,7 +110,7 @@
   =/  consumer-at=path  /tests/program-main/consumer/jibb
   =/  imported=jfile-detailed-result:jibb
     (program-main-detailed consumer-at downstream ~[[at island]] u.prepared)
-  ?:  ?=(%| -.imported)  ~["ordinary downstream program import was rejected"]
+  ?:  ?=(%| -.imported)  ~[(weld "ordinary downstream program import was rejected: " (trip message.p.imported))]
   =/  use=(unit ischeme:jibb)  (ienv-lookup:jibb %imported values.iface.p.imported)
   ?~  use  ~["downstream imported initializer is missing"]
   ?.  =(u.use u.init)  ~["downstream imported initializer type differs"]

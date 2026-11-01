@@ -73,13 +73,13 @@
 13:1 DEDENT
 13:1 NEWLINE
 13:1 glyph ++
-13:4 name text
-13:9 glyph (
-13:10 tight name identity
-13:19 str "hi"
-13:24 lit ~zod
-13:29 lit %.y
-13:32 tight glyph )
+13:4 name text-value
+13:15 glyph (
+13:16 tight name identity
+13:25 str "hi"
+13:30 lit ~zod
+13:35 lit %.y
+13:38 tight glyph )
 14:1 NEWLINE
 14:1 glyph ++
 14:4 name ship

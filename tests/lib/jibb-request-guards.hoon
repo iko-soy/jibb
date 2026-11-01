@@ -127,8 +127,8 @@
   =/  bad-cache=jcache:jibb  ~[[helper-at mismatched]]
   =/  wrong  (infer-jibb-file:jibb client transitive ~ marks bundle ~[client] values.u.prep molds.u.prep bad-cache pre)
   ?:  ?=(%& -.wrong)  'cache key and interface path mismatch accepted'
-  =/  old-client=@t  '++ text "safe"\0a'
-  =/  dep=@t  '/= c /lib/client\0a++ value text.c\0a'
+  =/  old-client=@t  '++ text-value "safe"\0a'
+  =/  dep=@t  '/= c /lib/client\0a++ value text-value.c\0a'
   =/  root=@t  '/= h /lib/helper\0a++ x value.h\0a'
   =/  cycle-bundle=jbundle:jibb  ~[[client old-client] [helper-at dep]]
   =/  cycle-legacy=ifile:jibb  legacy(source `dep)

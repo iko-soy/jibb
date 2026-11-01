@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Prelude, The Elm architecture on Urbit, and Layout and styling.
+tests: Exact source-backed UI/program/page constructor schemes; static and message-bearing composition; concrete islands and pages; invalid attributes, malformed keyed/table inputs, child-message mismatch, and mismatched island data. Nested element payloads are erased only in the nonrecursive runtime mold, not in public constructor signatures.
+expect: parses
+expect-types: supported declarations infer exact types and invalid compositions report errors; the child-message mismatch fails closed as an unsupported constraint. No raw-constructor encapsulation, duplicate-attribute check, rendering, navigation, storage, or execution is claimed.

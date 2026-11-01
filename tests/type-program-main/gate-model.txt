@@ -6,6 +6,6 @@
 ++ init |= input=@t ^- model [count=0 callback=echo]
 ++ update |= [msg=message state=model]
   ^- [model (list (cmd message))] [state ~]
-++ view |= state=model ^- (element message) [%node %start]
+++ view |= state=model ^- (element message) (text "view")
 ++ subs |= state=model ^- (list (sub message)) ~
 ++ echo |= input=@t input

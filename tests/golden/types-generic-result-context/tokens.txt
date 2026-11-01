@@ -76,37 +76,37 @@
 12:33 tight glyph )
 13:1 NEWLINE
 13:1 glyph ++
-13:4 name wrap
-13:9 glyph |=
-13:12 name x
-13:13 tight glyph =
-13:14 tight tvar A
-13:16 glyph ^-
-13:19 glyph (
-13:20 tight name choice
-13:27 tvar A
-13:29 aura @p
-13:31 tight glyph )
-13:33 glyph [
-13:34 tight lit %one
-13:39 name x
-13:40 tight glyph ]
+13:4 name wrap-value
+13:15 glyph |=
+13:18 name x
+13:19 tight glyph =
+13:20 tight tvar A
+13:22 glyph ^-
+13:25 glyph (
+13:26 tight name choice
+13:33 tvar A
+13:35 aura @p
+13:37 tight glyph )
+13:39 glyph [
+13:40 tight lit %one
+13:45 name x
+13:46 tight glyph ]
 14:1 NEWLINE
 14:1 glyph ++
-14:4 name wrap-repeat
-14:16 glyph |=
-14:19 name x
-14:20 tight glyph =
-14:21 tight tvar A
-14:23 glyph ^-
-14:26 glyph (
-14:27 tight name repeated
-14:36 tvar A
-14:37 tight glyph )
-14:39 glyph [
-14:40 tight lit %one
-14:45 name x
-14:46 tight glyph ]
+14:4 name wrap-value-repeat
+14:22 glyph |=
+14:25 name x
+14:26 tight glyph =
+14:27 tight tvar A
+14:29 glyph ^-
+14:32 glyph (
+14:33 tight name repeated
+14:42 tvar A
+14:43 tight glyph )
+14:45 glyph [
+14:46 tight lit %one
+14:51 name x
+14:52 tight glyph ]
 15:1 NEWLINE
 15:1 glyph ++
 15:4 name use-msg
@@ -117,9 +117,9 @@
 15:27 aura @p
 15:29 tight glyph )
 15:31 glyph (
-15:32 tight name wrap
-15:37 lit %idle
-15:42 tight glyph )
+15:32 tight name wrap-value
+15:43 lit %idle
+15:48 tight glyph )
 16:1 NEWLINE
 16:1 glyph ++
 16:4 name use-alias
@@ -130,9 +130,9 @@
 16:26 name msg
 16:29 tight glyph )
 16:31 glyph (
-16:32 tight name wrap
-16:37 lit %idle
-16:42 tight glyph )
+16:32 tight name wrap-value
+16:43 lit %idle
+16:48 tight glyph )
 17:1 NEWLINE
 17:1 glyph ++
 17:4 name use-repeated
@@ -142,9 +142,9 @@
 17:30 name msg
 17:33 tight glyph )
 17:35 glyph (
-17:36 tight name wrap-repeat
-17:48 lit %idle
-17:53 tight glyph )
+17:36 tight name wrap-value-repeat
+17:54 lit %idle
+17:59 tight glyph )
 18:1 NEWLINE
 18:1 glyph ++
 18:4 name use-distinct
@@ -155,9 +155,9 @@
 18:34 aura @p
 18:36 tight glyph )
 18:38 glyph (
-18:39 tight name wrap
-18:44 lit %idle
-18:49 tight glyph )
+18:39 tight name wrap-value
+18:50 lit %idle
+18:55 tight glyph )
 19:1 NEWLINE
 19:1 glyph ++
 19:4 name independent
@@ -180,23 +180,23 @@
 20:20 aura @p
 20:22 tight glyph )
 20:24 glyph (
-20:25 tight name wrap
-20:30 name m
-20:31 tight glyph )
-20:32 tight glyph )
-20:34 glyph (
-20:35 tight glyph ^-
-20:38 glyph (
-20:39 tight name choice
-20:46 name other
-20:52 aura @p
-20:54 tight glyph )
-20:56 glyph (
-20:57 tight name wrap
-20:62 name n
-20:63 tight glyph )
-20:64 tight glyph )
-20:65 tight glyph ]
+20:25 tight name wrap-value
+20:36 name m
+20:37 tight glyph )
+20:38 tight glyph )
+20:40 glyph (
+20:41 tight glyph ^-
+20:44 glyph (
+20:45 tight name choice
+20:52 name other
+20:58 aura @p
+20:60 tight glyph )
+20:62 glyph (
+20:63 tight name wrap-value
+20:74 name n
+20:75 tight glyph )
+20:76 tight glyph )
+20:77 tight glyph ]
 21:1 DEDENT
 21:1 NEWLINE
 21:1 glyph ++
@@ -212,9 +212,9 @@
 23:20 aura @p
 23:22 tight glyph )
 23:24 glyph (
-23:25 tight name wrap
-23:30 lit %idle
-23:35 tight glyph )
+23:25 tight name wrap-value
+23:36 lit %idle
+23:41 tight glyph )
 24:1 DEDENT
 24:1 DEDENT
 24:1 NEWLINE
@@ -227,7 +227,7 @@
 24:30 aura @p
 24:32 tight glyph )
 24:34 glyph (
-24:35 tight name wrap
-24:40 lit %absent
-24:47 tight glyph )
-24:48 NEWLINE
+24:35 tight name wrap-value
+24:46 lit %absent
+24:53 tight glyph )
+24:54 NEWLINE

@@ -4,7 +4,7 @@
 |%
 ++  list-alias-output
   ^-  @t
-  =/  src=@t  (crip "++ text |= x=(alias @t) x\0a++ ship |= x=(alias @p) x\0a++ wrong ^- (alias @t) ~[~zod]\0a++ shadow |= x=(list @t)\0a  +$ list @t\0a  x\0a")
+  =/  src=@t  (crip "++ text-value |= x=(alias @t) x\0a++ ship |= x=(alias @p) x\0a++ wrong ^- (alias @t) ~[~zod]\0a++ shadow |= x=(list @t)\0a  +$ list @t\0a  x\0a")
   =/  canonical=@t  (crip "+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ bag |$ [A] (list A)\0a+$ alias |$ [A] (bag A)\0a")
   =/  altered=@t  (crip "+$ list |$ [A] [A A]\0a+$ bag |$ [A] (list A)\0a+$ alias |$ [A] (bag A)\0a")
   =/  omitted=@t  (crip "+$ bag |$ [A] (list A)\0a+$ alias |$ [A] (bag A)\0a")

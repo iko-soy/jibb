@@ -1,46 +1,46 @@
 /= first /ui/tree
 /= second /ui/tree-two
 /= via /ui/tree-alias
-++ describe |= x=(element.first @t)
+++ describe |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node event children] (event "click")
-++ reverse |= x=(element.first @p)
+++ reverse |= x=(node-tree.first @p)
   ?- x
     [%node event children] (event "click")
     [%text value] ~zod
-++ generic-children |= x=(element.first A)
-  ^- (list (element.first A)) ?- x
+++ generic-children |= x=(node-tree.first A)
+  ^- (list (node-tree.first A)) ?- x
     [%text value] ~
     [%node event kids] kids
 ++ alias-children |= x=(alias.via @p)
-  ^- (list (element.first @p)) ?- x
+  ^- (list (node-tree.first @p)) ?- x
     [%text value] ~
     [%node event kids] kids
-++ rebuild |= x=(element.first @t)
-  ^- (element.first @t) ?- x
+++ rebuild |= x=(node-tree.first @t)
+  ^- (node-tree.first @t) ?- x
     [%text value] [%text value=value]
     [%node event children] [%node event=event children=children]
-++ wrong-return |= x=(element.first @t)
+++ wrong-return |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node event kids] ~zod
-++ duplicate |= x=(element.first @t)
+++ duplicate |= x=(node-tree.first @t)
   ?- x
     [%text a] a
     [%text b] b
-++ missing |= x=(element.first @t)
+++ missing |= x=(node-tree.first @t)
   ?- x
     [%text a] a
-++ shadow |= x=(element.first @t)
+++ shadow |= x=(node-tree.first @t)
   ?- x
     [%text x] x
     [%node event kids] "node"
-++ bad-tag |= x=(element.first @t)
+++ bad-tag |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%other event kids] "node"
-++ whole-tail |= x=(element.first @t)
+++ whole-tail |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node payload] payload
@@ -48,32 +48,32 @@
   ?- x
     [%text value] value
     [%node event kids] "node"
-++ pending |= x=(element.first @t)
+++ pending |= x=(node-tree.first @t)
   ?- x
     [%text value] [%unrelated value]
     [%node event kids] [%unrelated "node"]
-++ dead |= x=(element.first @t)
+++ dead |= x=(node-tree.first @t)
   ?- x
     [%text a] a
     [%node event kids] (event "ok")
     [%text b] b
-++ wild |= x=(element.first @t)
+++ wild |= x=(node-tree.first @t)
   ?- x
     [%text *] "text"
     [%node * *] "node"
-++ whole-wild |= x=(element.first @t)
+++ whole-wild |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     * "other"
-++ foreign-children |= x=(element.first @t)
-  ^- (list (element.second @t)) ?- x
+++ foreign-children |= x=(node-tree.first @t)
+  ^- (list (node-tree.second @t)) ?- x
     [%text value] ~
     [%node event kids] kids
-++ wrong-argument |= x=(element.first @t)
-  ^- (list (element.first @p)) ?- x
+++ wrong-argument |= x=(node-tree.first @t)
+  ^- (list (node-tree.first @p)) ?- x
     [%text value] ~
     [%node event kids] kids
-++ nested-child |= x=(element.first @t)
+++ nested-child |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node event kids] ?- kids
@@ -81,86 +81,86 @@
       [item remainder] ?- item
         [%text value] value
         [%node action rest] (action "click")
-++ duplicate-binder |= x=(element.first @t)
+++ duplicate-binder |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node event event] "node"
-++ target-shadow |= x=(element.first @t)
+++ target-shadow |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node event x] "node"
-++ grouped |= x=(element.first @t)
+++ grouped |= x=(node-tree.first @t)
   ?- (x)
     [%text value] value
     [%node event kids] (event "click")
-++ called |= x=(element.first @t)
+++ called |= x=(node-tree.first @t)
   ?- (generic-id.first x)
     [%text value] value
     [%node event kids] (event "click")
-++ missing-context |= x=(element.first @t)
+++ missing-context |= x=(node-tree.first @t)
   ^- @t ?- x
     [%text item] item
-++ missing-node |= x=(element.first @t)
+++ missing-node |= x=(node-tree.first @t)
   ?- x
     [%node action kids] (action "click")
-++ single-wild |= x=(element.first @t)
+++ single-wild |= x=(node-tree.first @t)
   ?- x
     * "all"
-++ single-bind |= x=(element.first @t)
+++ single-bind |= x=(node-tree.first @t)
   ?- x
     all all
-++ polymorphic-source ^- (element.first A) [%text value="source"]
+++ polymorphic-source ^- (node-tree.first A) [%text value="source"]
 ++ polymorphic-match ?- polymorphic-source
-  [%text text] text
-++ all |= x=(element.first @t)
+  [%text words] words
+++ all |= x=(node-tree.first @t)
   ?- x
     * "all"
-++ catch-tail |= x=(element.first @t)
+++ catch-tail |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     * "node"
-++ catch-first-dead |= x=(element.first @t)
+++ catch-first-dead |= x=(node-tree.first @t)
   ?- x
     * "all"
     [%text value] value
-++ late-dead |= x=(element.first @t)
+++ late-dead |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node event kids] (event "click")
     * "dead"
-++ duplicate-third |= x=(element.first @t)
+++ duplicate-third |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node event kids] (event "click")
     [%text other] other
-++ nominal-result |= x=(element.first A)
+++ nominal-result |= x=(node-tree.first A)
   ?- x
     [%text value] x
     * x
-++ nominal-context |= x=(element.first A)
-  ^- (element.first A) ?- x
+++ nominal-context |= x=(node-tree.first A)
+  ^- (node-tree.first A) ?- x
     [%text value] x
     * x
-++ forbidden-bind |= x=(element.first @t)
+++ forbidden-bind |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     rest rest
-++ missing-again |= x=(element.first @t)
+++ missing-again |= x=(node-tree.first @t)
   ?- x
     [%text value] value
-++ catch-pending |= x=(element.first @t)
+++ catch-pending |= x=(node-tree.first @t)
   ?- x
     [%text value] [%unrelated value]
     * [%unrelated "node"]
-++ called-all |= x=(element.first @t)
+++ called-all |= x=(node-tree.first @t)
   ?- (generic-id.first x)
     * "all"
-++ called-context |= x=(element.first @t)
+++ called-context |= x=(node-tree.first @t)
   ^- @t ?- (generic-id.first x)
     * "all"
-++ called-nominal |= x=(element.first A)
-  ^- (element.first A) ?- (generic-id.first x)
+++ called-nominal |= x=(node-tree.first A)
+  ^- (node-tree.first A) ?- (generic-id.first x)
     * x
-++ called-missing |= x=(element.first @t)
+++ called-missing |= x=(node-tree.first @t)
   ?- (generic-id.first x)
     [%text value] value

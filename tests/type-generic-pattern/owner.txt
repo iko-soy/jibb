@@ -1,18 +1,18 @@
-+$ element |$ [M]
++$ node-tree |$ [M]
   [%text value=@t]
-  [%node event=$-(@t M) children=(list (element M))]
-++ text-id |= x=(element @t) x
-++ ship-id |= x=(element @p) x
-++ generic-id |= x=(element A) x
-++ describe |= x=(element @t)
+  [%node event=$-(@t M) children=(list (node-tree M))]
+++ text-id |= x=(node-tree @t) x
+++ ship-id |= x=(node-tree @p) x
+++ generic-id |= x=(node-tree A) x
+++ describe |= x=(node-tree @t)
   ?- x
     [%text value] value
     [%node event kids] (event "click")
-++ children |= x=(element A)
-  ^- (list (element A)) ?- x
+++ children |= x=(node-tree A)
+  ^- (list (node-tree A)) ?- x
     [%text value] ~
     [%node event kids] kids
-++ rebuild |= x=(element @t)
-  ^- (element @t) ?- x
+++ rebuild |= x=(node-tree @t)
+  ^- (node-tree @t) ?- x
     [%text value] [%text value=value]
     [%node event kids] [%node event=event children=kids]

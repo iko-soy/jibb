@@ -1,2 +1,2 @@
 /=  good /ui/good
-++ text (identity.good "hi")
+++ text-value (identity.good "hi")

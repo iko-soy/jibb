@@ -3,7 +3,7 @@ partial inference; module not checked
 ++ path-id: $-((list @ta) (list @ta))
 ++ tape-id: $-((list @tD) (list @tD))
 ++ spot-id: $-([p=(list @ta) q=[p=[p=@ q=@] q=[p=@ q=@]]] [p=(list @ta) q=[p=[p=@ q=@] q=[p=@ q=@]]])
-++ text: $-((list @t) (list @t))
+++ text-value: $-((list @t) (list @t))
 ++ ship: $-((list @p) (list @p))
 ++ wrong: list item does not fit its expected type
 /tests/golden/types-prelude-list-alias/source.jibb:7:13: expected item has type @t

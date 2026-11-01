@@ -11,7 +11,7 @@
 6:1 DEDENT
 6:1 NEWLINE
 6:1 glyph +$
-6:4 name length
+6:4 name extent
 7:3 INDENT
 7:3 glyph [
 7:4 tight lit %fill
@@ -24,7 +24,7 @@
 9:1 DEDENT
 9:1 NEWLINE
 9:1 glyph +$
-9:4 name attr
+9:4 name attribute
 10:3 INDENT
 10:3 glyph [
 10:4 tight lit %gap
@@ -38,12 +38,12 @@
 12:3 NEWLINE
 12:3 glyph [
 12:4 tight lit %width
-12:11 name length
+12:11 name extent
 12:17 tight glyph ]
 13:1 DEDENT
 13:1 NEWLINE
 13:1 glyph +$
-13:4 name other-attr
+13:4 name other-attribute
 14:3 INDENT
 14:3 glyph [
 14:4 tight lit %gap
@@ -57,48 +57,48 @@
 16:3 NEWLINE
 16:3 glyph [
 16:4 tight lit %width
-16:11 name length
+16:11 name extent
 16:17 tight glyph ]
 17:1 DEDENT
 17:1 NEWLINE
 17:1 glyph ++
 17:4 name one
 17:8 glyph ^-
-17:11 name attr
-17:16 name gap
-17:19 tight glyph +
-17:20 tight lit %s2
+17:11 name attribute
+17:21 name gap
+17:24 tight glyph +
+17:25 tight lit %s2
 18:1 NEWLINE
 18:1 glyph ++
 18:4 name equiv
 18:10 glyph ^-
-18:13 name attr
-18:18 glyph [
-18:19 tight lit %gap
-18:24 lit %s2
-18:27 tight glyph ]
+18:13 name attribute
+18:23 glyph [
+18:24 tight lit %gap
+18:29 lit %s2
+18:32 tight glyph ]
 19:1 NEWLINE
 19:1 glyph ++
-19:4 name attrs
-19:10 glyph ^-
-19:13 glyph (
-19:14 tight name list
-19:19 name attr
-19:23 tight glyph )
-19:25 glyph ~[
-19:27 tight name gap
-19:30 tight glyph +
-19:31 tight lit %s2
-19:35 name pad
-19:38 tight glyph +
-19:39 tight lit %s3
-19:43 name width
+19:4 name attributes
+19:15 glyph ^-
+19:18 glyph (
+19:19 tight name list
+19:24 name attribute
+19:33 tight glyph )
+19:35 glyph ~[
+19:37 tight name gap
+19:40 tight glyph +
+19:41 tight lit %s2
+19:45 name pad
 19:48 tight glyph +
-19:49 tight glyph [
-19:50 tight lit %fill
-19:56 lit 1
-19:57 tight glyph ]
-19:58 tight glyph ]
+19:49 tight lit %s3
+19:53 name width
+19:58 tight glyph +
+19:59 tight glyph [
+19:60 tight lit %fill
+19:66 lit 1
+19:67 tight glyph ]
+19:68 tight glyph ]
 20:1 NEWLINE
 20:1 glyph ++
 20:4 name gap-structural
@@ -114,32 +114,32 @@
 21:1 glyph ++
 21:4 name nested
 21:11 glyph ^-
-21:14 name attr
-21:19 name width
-21:24 tight glyph +
-21:25 tight glyph [
-21:26 tight lit %fill
-21:32 lit 1
-21:33 tight glyph ]
+21:14 name attribute
+21:24 name width
+21:29 tight glyph +
+21:30 tight glyph [
+21:31 tight lit %fill
+21:37 lit 1
+21:38 tight glyph ]
 22:1 NEWLINE
 22:1 glyph ++
 22:4 name mismatch
 22:13 glyph ^-
-22:16 name attr
-22:21 name gap
-22:24 tight glyph +
-22:25 tight lit %shrink
+22:16 name attribute
+22:26 name gap
+22:29 tight glyph +
+22:30 tight lit %shrink
 23:1 NEWLINE
 23:1 glyph ++
 23:4 name missing
 23:12 glyph ^-
-23:15 name attr
-23:20 name width
-23:25 tight glyph +
-23:26 tight glyph [
-23:27 tight lit %oops
-23:33 lit 1
-23:34 tight glyph ]
+23:15 name attribute
+23:25 name width
+23:30 tight glyph +
+23:31 tight glyph [
+23:32 tight lit %oops
+23:38 lit 1
+23:39 tight glyph ]
 24:1 NEWLINE
 24:1 glyph ++
 24:4 name pending
@@ -150,12 +150,12 @@
 25:1 glyph ++
 25:4 name cross-origin
 25:17 glyph ^-
-25:20 name attr
-25:25 glyph ^-
-25:28 name other-attr
-25:39 name gap
-25:42 tight glyph +
-25:43 tight lit %s2
+25:20 name attribute
+25:30 glyph ^-
+25:33 name other-attribute
+25:49 name gap
+25:52 tight glyph +
+25:53 tight lit %s2
 26:1 NEWLINE
 26:1 glyph ++
 26:4 name noun-pair
@@ -193,13 +193,13 @@
 29:1 glyph ++
 29:4 name wrong-number
 29:17 glyph ^-
-29:20 name attr
-29:25 name width
-29:30 tight glyph +
-29:31 tight glyph [
-29:32 tight lit %fill
-29:38 str "hi"
-29:42 tight glyph ]
+29:20 name attribute
+29:30 name width
+29:35 tight glyph +
+29:36 tight glyph [
+29:37 tight lit %fill
+29:43 str "hi"
+29:47 tight glyph ]
 30:1 NEWLINE
 30:1 glyph ++
 30:4 name unrelated
@@ -208,10 +208,10 @@
 31:6 lit %dangling
 32:5 INDENT
 32:5 glyph ^-
-32:8 name attr
-32:13 name gap
-32:16 tight glyph +
-32:17 tight lit %s2
-32:20 DEDENT
-32:20 DEDENT
-32:20 NEWLINE
+32:8 name attribute
+32:18 name gap
+32:21 tight glyph +
+32:22 tight lit %s2
+32:25 DEDENT
+32:25 DEDENT
+32:25 NEWLINE

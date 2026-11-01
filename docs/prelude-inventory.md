@@ -8,6 +8,8 @@ The vendored prelude defines `poke` in its private internal module and re-export
 
 The prelude also declares the generic `cmd` mold exactly as in Overview, Effects. The partial checker infers its five cases and independent message types in the supported examples; complete module checking and backend validation remain outstanding. The public prelude also declares `sub`; the partial checker infers supported constructions, while request watchability and execution remain outstanding.
 
+The public prelude now defines the UI `length`, `align`, `role`, `tone` and `attr` molds, a nonrecursive generic `element` union with one case per UI node, and the exact `program` and `page` records with their builders. Nested child, keyed-item and table payloads in the runtime union are erased to `*`; the public constructors retain typed children and independent key types, and `island` stores `[program data]` in its erased payload. The focused `types-prelude-ui` golden infers the complete union and constructor schemes, including static and message-bearing composition. Raw-constructor encapsulation, duplicate-attribute rejection, rendering, storage, navigation and execution are not established by this slice.
+
 Hoon `+$` arms are marked **mold** below; `++` arms can be gates, doors or mold generators, and need individual inspection. Jibb's loobean `not` and Hoon's bitwise `not.bit` are distinct. Parser helpers outside 3g are excluded from the intended prelude except the specifically listed `slav` and `slaw`; the raw candidates below still need to be classified.
 
 ## 1a

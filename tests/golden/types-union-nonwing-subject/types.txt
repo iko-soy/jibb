@@ -11,9 +11,9 @@ partial inference; module not checked
 /tests/golden/types-union-nonwing-subject/source.jibb:26:24: expected union
 ++ wrong |= x=input ^- result
                        ^
-/tests/golden/types-union-nonwing-subject/source.jibb:28:23: tag
-    [%item flag text] %missing
-                      ^
+/tests/golden/types-union-nonwing-subject/source.jibb:28:24: tag
+    [%item flag words] %missing
+                       ^
 ++ missing: missing union case [%item [flag=? text=@t]]
 ++ dead: branch arm is covered by earlier arms
 /tests/golden/types-union-nonwing-subject/source.jibb:36:5: covered arm

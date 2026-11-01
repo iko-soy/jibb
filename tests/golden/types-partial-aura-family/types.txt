@@ -2,7 +2,7 @@ partial inference; module not checked
 ++ decimal: $-(@ud @u)
 ++ hex: @u
 ++ base32: $-(@uv @u)
-++ text: $-(@tD @t)
+++ text-value: $-(@tD @t)
 ++ narrow: cast mold and expression type do not unify
 /tests/golden/types-partial-aura-family/source.jibb:5:22: cast mold has type @tD
 ++ narrow |= x=@t ^- @tD x

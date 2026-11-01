@@ -6,9 +6,9 @@
 1:14 tight knot good
 2:1 NEWLINE
 2:1 glyph ++
-2:4 name text
-2:9 glyph (
-2:10 tight wing identity.good
-2:24 str "hi"
-2:28 tight glyph )
-2:29 NEWLINE
+2:4 name text-value
+2:15 glyph (
+2:16 tight wing identity.good
+2:30 str "hi"
+2:34 tight glyph )
+2:35 NEWLINE

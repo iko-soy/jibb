@@ -1,4 +1,4 @@
 +$ list |$ [M] [%fake value=M]
-+$ element |$ [M]
++$ node-tree |$ [M]
   [%text value=@t]
-  [%node children=(list (element M))]
+  [%node children=(list (node-tree M))]

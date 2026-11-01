@@ -1,6 +1,6 @@
-+$ element |$ [M]
++$ node-tree |$ [M]
   [%text value=@t]
-  [%branch event=$-(@t M) children=(list (element M))]
-++ text-id |= x=(element @t) x
-++ ship-id |= x=(element @p) x
-++ generic-id |= x=(element A) x
+  [%branch event=$-(@t M) children=(list (node-tree M))]
+++ text-id |= x=(node-tree @t) x
+++ ship-id |= x=(node-tree @p) x
+++ generic-id |= x=(node-tree A) x

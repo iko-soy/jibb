@@ -6,10 +6,10 @@
 /ui/mid.jibb
 (module
   (jibb 1:1 base /ui/base)
-  (value 2:1 text
-    (cast 2:9
-      (apply 2:12 phantom.base (aura 2:26 @t))
-      (lit 2:30 %yes)))
+  (value 2:1 text-value
+    (cast 2:15
+      (apply 2:18 phantom.base (aura 2:32 @t))
+      (lit 2:36 %yes)))
   (value 3:1 ship
     (cast 3:9
       (apply 3:12 phantom.base (aura 3:26 @p))

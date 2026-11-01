@@ -7,7 +7,7 @@ partial inference; module not checked
 ++ update: branch tag or union context is not supported by partial inference
 ++ subs: call constraint is not supported by partial inference
 ++ view: name is not available to partial inference
-++ row-of: name is not available to partial inference
+++ row-of: tag needs context in partial inference
 negative API imports
 missing-mark: rejected
 duplicate-mark: rejected

@@ -23,8 +23,8 @@
           (branch 10:3
             (group 10:6 (wing 10:7 x))
             (arm 11:5
-              (cell 11:5 (lit 11:6 %item) (bind 11:12 flag) (bind 11:17 text))
-              (list 11:23 (wing 11:25 text)))
+              (cell 11:5 (lit 11:6 %item) (bind 11:12 flag) (bind 11:17 words))
+              (list 11:24 (wing 11:26 words)))
             (arm 12:5 (lit 12:5 %none) (lit 12:11 ~)))))))
   (value 13:1 call
     (gate 13:9
@@ -36,8 +36,8 @@
             (group 14:6
               (call 14:7 (wing 14:7 local-id) (wing 14:16 x)))
             (arm 15:5
-              (cell 15:5 (lit 15:6 %item) (bind 15:12 flag) (bind 15:17 text))
-              (list 15:23 (wing 15:25 text)))
+              (cell 15:5 (lit 15:6 %item) (bind 15:12 flag) (bind 15:17 words))
+              (list 15:24 (wing 15:26 words)))
             (arm 16:5 (lit 16:5 %none) (lit 16:11 ~)))))))
   (value 17:1 nested
     (gate 17:11
@@ -52,8 +52,8 @@
                 (group 18:16
                   (call 18:17 (wing 18:17 passthrough) (wing 18:29 x)))))
             (arm 19:5
-              (cell 19:5 (lit 19:6 %item) (bind 19:12 flag) (bind 19:17 text))
-              (lit 19:23 %good))
+              (cell 19:5 (lit 19:6 %item) (bind 19:12 flag) (bind 19:17 words))
+              (lit 19:24 %good))
             (arm 20:5 (lit 20:5 %none) (lit 20:11 %empty)))))))
   (value 21:1 finite
     (gate 21:11
@@ -65,11 +65,11 @@
             (group 22:6
               (call 22:7 (wing 22:7 local-id) (wing 22:16 x)))
             (arm 23:5
-              (cell 23:5 (lit 23:6 %item) (lit 23:12 %.y) (bind 23:16 text))
-              (list 23:22 (wing 23:24 text)))
+              (cell 23:5 (lit 23:6 %item) (lit 23:12 %.y) (bind 23:16 words))
+              (list 23:23 (wing 23:25 words)))
             (arm 24:5
-              (cell 24:5 (lit 24:6 %item) (lit 24:12 %.n) (bind 24:16 text))
-              (list 24:22))
+              (cell 24:5 (lit 24:6 %item) (lit 24:12 %.n) (bind 24:16 words))
+              (list 24:23))
             (arm 25:5 (lit 25:5 %none) (lit 25:11 ~)))))))
   (value 26:1 wrong
     (gate 26:10
@@ -81,8 +81,8 @@
             (group 27:6
               (call 27:7 (wing 27:7 local-id) (wing 27:16 x)))
             (arm 28:5
-              (cell 28:5 (lit 28:6 %item) (bind 28:12 flag) (bind 28:17 text))
-              (lit 28:23 %missing))
+              (cell 28:5 (lit 28:6 %item) (bind 28:12 flag) (bind 28:17 words))
+              (lit 28:24 %missing))
             (arm 29:5 (lit 29:5 %none) (lit 29:11 %empty)))))))
   (value 30:1 missing
     (gate 30:12
@@ -106,8 +106,8 @@
             (arm 35:5 (lit 35:5 %none) (lit 35:11 ~))
             (arm 36:5 (lit 36:5 %none) (lit 36:11 ~))
             (arm 37:5
-              (cell 37:5 (lit 37:6 %item) (bind 37:12 flag) (bind 37:17 text))
-              (list 37:23 (wing 37:25 text))))))))
+              (cell 37:5 (lit 37:6 %item) (bind 37:12 flag) (bind 37:17 words))
+              (list 37:24 (wing 37:26 words))))))))
   (value 38:1 shadow
     (gate 38:11
       (face 38:14 x (ref 38:16 input))
@@ -134,8 +134,8 @@
                 (group 44:8
                   (call 44:9 (wing 44:9 local-id) (wing 44:18 x)))
                 (arm 45:7
-                  (cell 45:7 (lit 45:8 %item) (bind 45:14 flag) (bind 45:19 text))
-                  (lit 45:25 %good))
+                  (cell 45:7 (lit 45:8 %item) (bind 45:14 flag) (bind 45:19 words))
+                  (lit 45:26 %good))
                 (arm 46:7 (lit 46:7 %none) (lit 46:13 %empty)))))))))
   (value 47:1 unknown
     (gate 47:12
@@ -147,8 +147,8 @@
             (group 48:6
               (call 48:7 (wing 48:7 local-id) (wing 48:16 x)))
             (arm 49:5
-              (cell 49:5 (lit 49:6 %item) (bind 49:12 flag) (bind 49:17 text))
-              (list 49:23 (wing 49:25 text)))
+              (cell 49:5 (lit 49:6 %item) (bind 49:12 flag) (bind 49:17 words))
+              (list 49:24 (wing 49:26 words)))
             (arm 50:5 (lit 50:5 %none) (lit 50:11 ~)))))))
   (value 51:1 nonunion
     (gate 51:13
@@ -160,8 +160,8 @@
             (group 52:6
               (call 52:7 (wing 52:7 local-id) (wing 52:16 x)))
             (arm 53:5
-              (cell 53:5 (lit 53:6 %item) (bind 53:12 flag) (bind 53:17 text))
-              (list 53:23 (wing 53:25 text)))
+              (cell 53:5 (lit 53:6 %item) (bind 53:12 flag) (bind 53:17 words))
+              (list 53:24 (wing 53:26 words)))
             (arm 54:5 (lit 54:5 %none) (lit 54:11 ~)))))))
   (value 55:1 explicit
     (gate 55:13
@@ -175,8 +175,8 @@
             (group 56:6
               (call 56:7 (wing 56:7 local-id) (wing 56:16 x)))
             (arm 57:5
-              (cell 57:5 (lit 57:6 %item) (bind 57:12 flag) (bind 57:17 text))
-              (list 57:23 (str 57:25 "text")))
+              (cell 57:5 (lit 57:6 %item) (bind 57:12 flag) (bind 57:17 words))
+              (list 57:24 (str 57:26 "text")))
             (arm 58:5 (lit 58:5 %none) (lit 58:11 ~)))))))
   (mold 59:1 payload
     (generic 59:12 A
@@ -211,8 +211,8 @@
             (group 67:6
               (call 67:7 (wing 67:7 passthrough) (str 67:19 "wrong")))
             (arm 68:5
-              (cell 68:5 (lit 68:6 %item) (bind 68:12 flag) (bind 68:17 text))
-              (lit 68:23 %missing))
+              (cell 68:5 (lit 68:6 %item) (bind 68:12 flag) (bind 68:17 words))
+              (lit 68:24 %missing))
             (arm 69:5 (lit 69:5 %none) (lit 69:11 %empty)))))))
   (value 70:1 first-of
     (gate 70:13
@@ -228,8 +228,8 @@
             (group 72:6
               (call 72:7 (wing 72:7 first-of) (wing 72:16 x) (lit 72:18 %dangling)))
             (arm 73:5
-              (cell 73:5 (lit 73:6 %item) (bind 73:12 flag) (bind 73:17 text))
-              (lit 73:23 %good))
+              (cell 73:5 (lit 73:6 %item) (bind 73:12 flag) (bind 73:17 words))
+              (lit 73:24 %good))
             (arm 74:5 (lit 74:5 %none) (lit 74:11 %empty)))))))
   (value 75:1 duplicate-flag-subject
     (gate 75:27

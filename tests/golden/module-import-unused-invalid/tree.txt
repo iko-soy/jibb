@@ -1,5 +1,5 @@
 (module
   (jibb 1:1 good /ui/good)
-  (value 2:1 text
-    (group 2:9
-      (call 2:10 (wing 2:10 identity.good) (str 2:24 "hi")))))
+  (value 2:1 text-value
+    (group 2:15
+      (call 2:16 (wing 2:16 identity.good) (str 2:30 "hi")))))

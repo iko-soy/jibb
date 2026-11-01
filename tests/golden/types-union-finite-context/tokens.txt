@@ -244,9 +244,9 @@
 38:5 glyph [
 38:6 tight lit %p
 38:9 name flag
-38:14 name text
-38:18 tight glyph ]
-38:20 name flag
+38:14 name words
+38:19 tight glyph ]
+38:21 name flag
 39:5 NEWLINE
 39:5 lit %other
 39:12 lit %.n

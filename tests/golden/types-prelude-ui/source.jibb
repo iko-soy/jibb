@@ -1,0 +1,77 @@
++$ msg
+  %save
+  %toggle
+  [%edited value=@t]
++$ model [count=@ud]
+
+++ row-scheme row
+++ column-scheme column
+++ wrap-scheme wrap
+++ stack-scheme stack
+++ el-scheme el
+++ para-scheme para
+++ text-scheme text
+++ heading-scheme heading
+++ each-scheme each
+++ table-scheme table
+++ image-scheme image
+++ image-unsafe-scheme image-unsafe
+++ link-scheme link
+++ link-unsafe-scheme link-unsafe
+++ button-scheme button
+++ toggle-scheme toggle
+++ field-scheme field
+++ form-scheme form
+++ island-scheme island
+++ program-scheme program
+++ page-scheme page
+
+++ static-text ^- (element !!) (text "hello")
+++ static-ui ^- (element !!)
+  column ~[pad+%s1 gap+%s2 width+[%fill 1] align+%center role+%body tone+%muted] ~[
+    text "one"
+    para ~[(text "two")]
+    heading 2 "heading"
+++ static-media ^- (element !!)
+  stack ~[width+[%chars 20]] ~[
+    image %/images/logo.png "Logo"
+    link %/home "Home"
+++ unsafe-media ^- (element !!)
+  wrap ~[width+%shrink role+%caption tone+%accent] ~[
+    image-unsafe [url="https://example.com/a.png" width=20 height=10] "Remote"
+    link-unsafe "/elsewhere" "Elsewhere"
+++ save-message ^- msg %save
+++ toggle-message ^- msg %toggle
+++ save-button ^- (element msg) (button "Save" save-message)
+++ enabled-toggle ^- (element msg) (toggle %.y "Enabled" toggle-message)
+++ edit-message |= value=@t ^- msg [%edited value]
+++ name-field ^- (element msg) (field "Name" "value" edit-message)
+++ controls ^- (element msg)
+  (form save-message ~[save-button enabled-toggle name-field])
+++ keyed |= items=(list [key=@t el=(element msg)])
+  ^- (element msg) (each items)
+++ tabular |= rows=(list [key=@ud cells=(list (element msg))])
+  ^- (element msg)
+    (table ~[[header="Name" width=[%fill 1] align=%start]] rows)
+
+++ bad-pad ^- (element !!) (row ~[pad+%s4] ~)
+++ bad-width ^- (element !!) (row ~[width+[%chars "wide"]] ~)
+++ malformed-each ^- (element msg) (each ~[[key="row" kid=(text "child")]])
+++ malformed-table ^- (element msg)
+  (table ~[[header="Name" width=%shrink]] ~)
+++ ship-control ^- (element @p) (button "Ship" ~zod)
+++ text-row |= kids=(list (element @t)) ^- (element @t) (row ~ kids)
+++ bad-child (text-row ~[ship-control])
+
+++ init |= input=@t ^- model [count=0]
+++ update |= [message=msg state=model]
+  ^- [model (list (cmd msg))] [state ~]
+++ view |= state=model ^- (element msg) (controls)
+++ subs |= state=model ^- (list (sub msg)) ~
+++ concrete-program ^- (program @t model msg) (program init update view subs)
+++ embedded ^- (element !!) (island concrete-program "seed")
+++ mismatched-island-data ^- (element !!) (island concrete-program ~zod)
+
+++ load |= route=@t ^- (ask model) (pure [count=0])
+++ page-view |= data=model ^- (element !!) (text "page")
+++ static-page ^- (page @t model) (page load page-view)

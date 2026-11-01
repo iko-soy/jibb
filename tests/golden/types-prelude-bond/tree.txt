@@ -12,12 +12,12 @@
       (call 3:13
         (wing 3:13 choose)
         (unit 3:20 (str 3:21 "found")))))
-  (value 4:1 wrap
-    (gate 4:9
-      (face 4:12 fallback
-        (fn 4:21 (const 4:24 ~) (tvar 4:26 A)))
-      (group 4:29
-        (call 4:30 (wing 4:30 bond) (wing 4:35 fallback)))))
+  (value 4:1 wrap-value
+    (gate 4:15
+      (face 4:18 fallback
+        (fn 4:27 (const 4:30 ~) (tvar 4:32 A)))
+      (group 4:35
+        (call 4:36 (wing 4:36 bond) (wing 4:41 fallback)))))
   (value 5:1 choose-ship
     (group 5:16
       (call 5:17

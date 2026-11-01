@@ -10,15 +10,15 @@
 +$ swap |$ [A B] (choice B A)
 +$ repeated |$ [A] (choice A A)
 +$ phantom |$ [A B] (choice A @p)
-++ wrap |= x=A ^- (choice A @p) [%one x]
-++ wrap-repeat |= x=A ^- (repeated A) [%one x]
-++ use-msg ^- (choice msg @p) (wrap %idle)
-++ use-alias ^- (swap @p msg) (wrap %idle)
-++ use-repeated ^- (repeated msg) (wrap-repeat %idle)
-++ use-distinct ^- (choice other @p) (wrap %idle)
+++ wrap-value |= x=A ^- (choice A @p) [%one x]
+++ wrap-value-repeat |= x=A ^- (repeated A) [%one x]
+++ use-msg ^- (choice msg @p) (wrap-value %idle)
+++ use-alias ^- (swap @p msg) (wrap-value %idle)
+++ use-repeated ^- (repeated msg) (wrap-value-repeat %idle)
+++ use-distinct ^- (choice other @p) (wrap-value %idle)
 ++ independent |= [m=msg n=other]
-  [(^- (choice msg @p) (wrap m)) (^- (choice other @p) (wrap n))]
+  [(^- (choice msg @p) (wrap-value m)) (^- (choice other @p) (wrap-value n))]
 ++ pending
   ~& %orphan
-    ^- (choice msg @p) (wrap %idle)
-++ wrong-case ^- (choice msg @p) (wrap %absent)
+    ^- (choice msg @p) (wrap-value %idle)
+++ wrong-case ^- (choice msg @p) (wrap-value %absent)

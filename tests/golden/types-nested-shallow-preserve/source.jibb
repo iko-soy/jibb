@@ -1,25 +1,25 @@
-+$ length
++$ extent
   [%fill n=@ud]
   %shrink
-+$ attr
-  [%width length]
++$ attribute
+  [%width extent]
   [%gap @tas]
 ++ number-id |= x=@ud x
-++ plain ^- attr width+[%fill 1]
-++ direct ^- attr [%width [%fill 1]]
-++ list ^- (list attr) ~[width+[%fill 1]]
-++ accept |= value=attr value
+++ plain ^- attribute width+[%fill 1]
+++ direct ^- attribute [%width [%fill 1]]
+++ list ^- (list attribute) ~[width+[%fill 1]]
+++ accept |= value=attribute value
 ++ call (accept width+[%fill 1])
-++ simple-call ^- attr width+[%fill (number-id 1)]
-++ grouped-call ^- attr width+[%fill ((number-id 1))]
-++ cast-call ^- attr width+[%fill (^- @ud (number-id 1))]
-++ nested-call ^- attr width+[%fill (number-id (number-id 1))]
-++ bad-tag ^- attr width+[%missing 1]
-++ bad-number ^- attr width+[%fill "bad"]
+++ simple-call ^- attribute width+[%fill (number-id 1)]
+++ grouped-call ^- attribute width+[%fill ((number-id 1))]
+++ cast-call ^- attribute width+[%fill (^- @ud (number-id 1))]
+++ nested-call ^- attribute width+[%fill (number-id (number-id 1))]
+++ bad-tag ^- attribute width+[%missing 1]
+++ bad-number ^- attribute width+[%fill "bad"]
 ++ pending
   ~& %unrelated
-    ^- attr width+[%fill (number-id 1)]
-++ singleton ^- attr width+%shrink
+    ^- attribute width+[%fill (number-id 1)]
+++ singleton ^- attribute width+%shrink
 +$ event
   [%got value=@t]
   %idle

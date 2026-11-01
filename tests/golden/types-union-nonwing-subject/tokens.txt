@@ -56,11 +56,11 @@
 11:5 glyph [
 11:6 tight lit %item
 11:12 name flag
-11:17 name text
-11:21 tight glyph ]
-11:23 glyph ~[
-11:25 tight name text
-11:29 tight glyph ]
+11:17 name words
+11:22 tight glyph ]
+11:24 glyph ~[
+11:26 tight name words
+11:31 tight glyph ]
 12:5 NEWLINE
 12:5 lit %none
 12:11 lit ~
@@ -88,11 +88,11 @@
 15:5 glyph [
 15:6 tight lit %item
 15:12 name flag
-15:17 name text
-15:21 tight glyph ]
-15:23 glyph ~[
-15:25 tight name text
-15:29 tight glyph ]
+15:17 name words
+15:22 tight glyph ]
+15:24 glyph ~[
+15:26 tight name words
+15:31 tight glyph ]
 16:5 NEWLINE
 16:5 lit %none
 16:11 lit ~
@@ -120,9 +120,9 @@
 19:5 glyph [
 19:6 tight lit %item
 19:12 name flag
-19:17 name text
-19:21 tight glyph ]
-19:23 lit %good
+19:17 name words
+19:22 tight glyph ]
+19:24 lit %good
 20:5 NEWLINE
 20:5 lit %none
 20:11 lit %empty
@@ -150,19 +150,19 @@
 23:5 glyph [
 23:6 tight lit %item
 23:12 lit %.y
-23:16 name text
-23:20 tight glyph ]
-23:22 glyph ~[
-23:24 tight name text
-23:28 tight glyph ]
+23:16 name words
+23:21 tight glyph ]
+23:23 glyph ~[
+23:25 tight name words
+23:30 tight glyph ]
 24:5 NEWLINE
 24:5 glyph [
 24:6 tight lit %item
 24:12 lit %.n
-24:16 name text
-24:20 tight glyph ]
-24:22 glyph ~[
-24:24 tight glyph ]
+24:16 name words
+24:21 tight glyph ]
+24:23 glyph ~[
+24:25 tight glyph ]
 25:5 NEWLINE
 25:5 lit %none
 25:11 lit ~
@@ -187,9 +187,9 @@
 28:5 glyph [
 28:6 tight lit %item
 28:12 name flag
-28:17 name text
-28:21 tight glyph ]
-28:23 lit %missing
+28:17 name words
+28:22 tight glyph ]
+28:24 lit %missing
 29:5 NEWLINE
 29:5 lit %none
 29:11 lit %empty
@@ -246,11 +246,11 @@
 37:5 glyph [
 37:6 tight lit %item
 37:12 name flag
-37:17 name text
-37:21 tight glyph ]
-37:23 glyph ~[
-37:25 tight name text
-37:29 tight glyph ]
+37:17 name words
+37:22 tight glyph ]
+37:24 glyph ~[
+37:26 tight name words
+37:31 tight glyph ]
 38:1 DEDENT
 38:1 DEDENT
 38:1 NEWLINE
@@ -302,9 +302,9 @@
 45:7 glyph [
 45:8 tight lit %item
 45:14 name flag
-45:19 name text
-45:23 tight glyph ]
-45:25 lit %good
+45:19 name words
+45:24 tight glyph ]
+45:26 lit %good
 46:7 NEWLINE
 46:7 lit %none
 46:13 lit %empty
@@ -331,11 +331,11 @@
 49:5 glyph [
 49:6 tight lit %item
 49:12 name flag
-49:17 name text
-49:21 tight glyph ]
-49:23 glyph ~[
-49:25 tight name text
-49:29 tight glyph ]
+49:17 name words
+49:22 tight glyph ]
+49:24 glyph ~[
+49:26 tight name words
+49:31 tight glyph ]
 50:5 NEWLINE
 50:5 lit %none
 50:11 lit ~
@@ -363,11 +363,11 @@
 53:5 glyph [
 53:6 tight lit %item
 53:12 name flag
-53:17 name text
-53:21 tight glyph ]
-53:23 glyph ~[
-53:25 tight name text
-53:29 tight glyph ]
+53:17 name words
+53:22 tight glyph ]
+53:24 glyph ~[
+53:26 tight name words
+53:31 tight glyph ]
 54:5 NEWLINE
 54:5 lit %none
 54:11 lit ~
@@ -400,11 +400,11 @@
 57:5 glyph [
 57:6 tight lit %item
 57:12 name flag
-57:17 name text
-57:21 tight glyph ]
-57:23 glyph ~[
-57:25 tight str "text"
-57:31 tight glyph ]
+57:17 name words
+57:22 tight glyph ]
+57:24 glyph ~[
+57:26 tight str "text"
+57:32 tight glyph ]
 58:5 NEWLINE
 58:5 lit %none
 58:11 lit ~
@@ -486,9 +486,9 @@
 68:5 glyph [
 68:6 tight lit %item
 68:12 name flag
-68:17 name text
-68:21 tight glyph ]
-68:23 lit %missing
+68:17 name words
+68:22 tight glyph ]
+68:24 lit %missing
 69:5 NEWLINE
 69:5 lit %none
 69:11 lit %empty
@@ -523,9 +523,9 @@
 73:5 glyph [
 73:6 tight lit %item
 73:12 name flag
-73:17 name text
-73:21 tight glyph ]
-73:23 lit %good
+73:17 name words
+73:22 tight glyph ]
+73:24 lit %good
 74:5 NEWLINE
 74:5 lit %none
 74:11 lit %empty

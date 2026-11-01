@@ -16,8 +16,8 @@
 ++ accept |= x=(unit msg) x
 ++ call (accept `%stay)
 ++ bad-call (accept `%bad)
-++ field ^- record [`%go ~[`"hi"]]
-++ field-bad ^- record [`%bad ~[`"hi"]]
+++ field-value ^- record [`%go ~[`"hi"]]
+++ field-value-bad ^- record [`%bad ~[`"hi"]]
 ++ mimic-mismatch ^- (mimic @t) `"hi"
 ++ without-context `%go
 ++ pending
@@ -31,7 +31,7 @@
 +$ alt
   %go
   %stay
-++ field-wrong-payload ^- record [`%go ~[`~zod]]
+++ field-value-wrong-payload ^- record [`%go ~[`~zod]]
 ++ wrong-name ^- record [wrong=`%go xs=~[`"hi"]]
 ++ wrong-union |= x=alt ^- record [`x ~[`"hi"]]
 ++ no-field-context |= x=A ^- [a=A] [wrong=x]

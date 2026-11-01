@@ -6,7 +6,7 @@
 ++ ship-event |= x=@t ~zod
 ++ via-leaf ^- (alias.via @t) [%text value="x"]
 ++ via-node ^- (alias.via @p) [%node event=ship-event children=~]
-++ cross-alias |= x=(alias.via @t) ^- (element.first @t) [%node event=text-event children=~[x]]
-++ cross-owner |= x=(element.again @t) ^- (alias.via @t) [%node event=text-event children=~[x]]
-++ wrong-owner |= x=(element.second @t) ^- (alias.via @t) [%node event=text-event children=~[x]]
-++ wrong-arg |= x=(alias.via @p) ^- (element.first @t) [%node event=text-event children=~[x]]
+++ cross-alias |= x=(alias.via @t) ^- (node-tree.first @t) [%node event=text-event children=~[x]]
+++ cross-owner |= x=(node-tree.again @t) ^- (alias.via @t) [%node event=text-event children=~[x]]
+++ wrong-owner |= x=(node-tree.second @t) ^- (alias.via @t) [%node event=text-event children=~[x]]
+++ wrong-arg |= x=(alias.via @p) ^- (node-tree.first @t) [%node event=text-event children=~[x]]

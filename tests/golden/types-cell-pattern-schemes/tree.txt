@@ -31,9 +31,9 @@
           (arm 12:5
             (cell 12:5 (bind 12:6 a) (bind 12:8 b) (bind 12:10 c))
             (tuple 12:13 (wing 12:14 a) (wing 12:16 b) (wing 12:18 c)))))))
-  (value 13:1 text
-    (group 13:9
-      (call 13:10 (wing 13:10 identity) (str 13:19 "hi") (lit 13:24 ~zod) (lit 13:29 %.y))))
+  (value 13:1 text-value
+    (group 13:15
+      (call 13:16 (wing 13:16 identity) (str 13:25 "hi") (lit 13:30 ~zod) (lit 13:35 %.y))))
   (value 14:1 ship
     (group 14:9
       (call 14:10 (wing 14:10 identity) (lit 14:19 ~zod) (str 14:24 "hi") (lit 14:29 %.n))))

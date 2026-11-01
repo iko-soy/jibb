@@ -66,7 +66,7 @@
   =/  mixed-parsed=(each module:jibb error:jibb)  (parse:jibb /tests/empty/jibb mixed-source)
   ?:  ?=(%| -.mixed-parsed)  ~[['BAD mixed parse' |]]
   =/  mixed-collected=grec-collected:jibb  (grec-collect-molds:jibb defs.p.mixed-parsed)
-  =/  mixed-tree=(unit shape:jibb)  (~(get by proofs.mixed-collected) %element)
+  =/  mixed-tree=(unit shape:jibb)  (~(get by proofs.mixed-collected) %node-tree)
   =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb public internal)
   ?~  prep  ~[['BAD prepared prelude' |]]
   =/  mixed-result=jfile-result:jibb

@@ -88,17 +88,17 @@
       (body 33:3
         (mold 33:3 item (aura 33:11 @t))
         (wing 34:3 x))))
-  (value 35:1 wrap
-    (gate 35:9
-      (bind 35:12 y)
-      (gate-wide 35:14 (bind 35:17 z) (wing 35:19 y))))
+  (value 35:1 wrap-value
+    (gate 35:15
+      (bind 35:18 y)
+      (gate-wide 35:20 (bind 35:23 z) (wing 35:25 y))))
   (value 36:1 through-global
     (gate 36:19
       (bind 36:22 x)
       (body 37:3
         (value 37:3 local
           (group 37:12
-            (call 37:13 (wing 37:13 wrap) (wing 37:18 x))))
+            (call 37:13 (wing 37:13 wrap-value) (wing 37:24 x))))
         (trace 38:3
           (cast 38:6
             (aura 38:9 @t)

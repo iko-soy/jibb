@@ -3,5 +3,5 @@
 ++ init |= input=@t ^- model [count=0]
 ++ update |= [msg=M state=model]
   ^- [model (list (cmd M))] [state ~]
-++ view |= state=model ^- (element M) [%node !!]
+++ view |= state=model ^- (element M) (text "view")
 ++ subs |= state=model ^- (list (sub M)) ~

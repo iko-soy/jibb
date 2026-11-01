@@ -6,7 +6,7 @@
 ++ init |= ts=(list @t) [ts "" ~]
 ++ update |= [msg=message state=model]
   ^- [model (list (cmd message))] [state ~]
-++ view |= state=model ^- (element message) [%node %start]
+++ view |= state=model ^- (element message) (text "view")
 ++ subs |= state=model ^- (list (sub message)) ~
 ++ orphan
   ~& %unrelated

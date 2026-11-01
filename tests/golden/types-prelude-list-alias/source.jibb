@@ -2,6 +2,6 @@
 ++ path-id |= x=path x
 ++ tape-id |= x=tape x
 ++ spot-id |= x=spot x
-++ text |= x=(bag @t) x
+++ text-value |= x=(bag @t) x
 ++ ship |= x=(bag @p) x
 ++ wrong ^- (bag @t) ~[~zod]

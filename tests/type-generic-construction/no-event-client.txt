@@ -1,8 +1,8 @@
 /= first /ui/tree
 /= second /ui/tree-two
-++ leaf ^- (element.first @t) [%text value="x"]
-++ node ^- (element.first @p) [%node children=~]
-++ nested ^- (element.first @t) [%node children=~[[%text value="x"]]]
-++ generic |= x=A ^- (element.first A) [%node children=~]
-++ wrong-owner |= x=(element.second @t) ^- (element.first @t) [%node children=~[x]]
-++ wrong-field ^- (element.first @t) [%node children="x"]
+++ leaf ^- (node-tree.first @t) [%text value="x"]
+++ node ^- (node-tree.first @p) [%node children=~]
+++ nested ^- (node-tree.first @t) [%node children=~[[%text value="x"]]]
+++ generic |= x=A ^- (node-tree.first A) [%node children=~]
+++ wrong-owner |= x=(node-tree.second @t) ^- (node-tree.first @t) [%node children=~[x]]
+++ wrong-field ^- (node-tree.first @t) [%node children="x"]

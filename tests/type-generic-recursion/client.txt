@@ -2,10 +2,10 @@
 /= again /ui/tree
 /= second /ui/tree-two
 /= via /ui/tree-alias
-++ from-first |= x=(element.first @t) x
-++ from-again |= x=(element.again @p) x
-++ same-origin |= x=(element.first @t) ^- (element.again @t) x
+++ from-first |= x=(node-tree.first @t) x
+++ from-again |= x=(node-tree.again @p) x
+++ same-origin |= x=(node-tree.first @t) ^- (node-tree.again @t) x
 ++ from-alias |= x=(alias.via @t) x
-++ through-alias |= x=(element.first @t) ^- (alias.via @t) x
-++ different-origin |= x=(element.first @t) ^- (element.second @t) x
-++ independent |= [a=(element.first @t) b=(element.first @p)] [(generic-id.first a) (generic-id.first b)]
+++ through-alias |= x=(node-tree.first @t) ^- (alias.via @t) x
+++ different-origin |= x=(node-tree.first @t) ^- (node-tree.second @t) x
+++ independent |= [a=(node-tree.first @t) b=(node-tree.first @p)] [(generic-id.first a) (generic-id.first b)]

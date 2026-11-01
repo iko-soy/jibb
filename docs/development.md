@@ -120,6 +120,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 
 ```
 tools/golden                       # all cases pass
+tools/golden --case types-prelude-ui # exact UI/program/page schemes and composition
 tools/importer-test                # Hoon importer fixture projections match
 tools/type-import-default-test     # default-wrapped source proofs match
 tools/type-import-test             # importer/checker bridge golden report matches

@@ -1,2 +1,2 @@
 /=  a /ui/a
-++ text (identity.a "hi")
+++ text-value (identity.a "hi")

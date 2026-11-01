@@ -1,6 +1,6 @@
 # Status
 
-As of 2026-10-31. The plan is [spec/implementation-plan.md](spec/implementation-plan.md); each milestone ends with its checks passing on a fake ship.
+As of 2026-11-01. The plan is [spec/implementation-plan.md](spec/implementation-plan.md); each milestone ends with its checks passing on a fake ship.
 
 | # | Milestone | Status |
 | --- | --- | --- |
@@ -33,9 +33,11 @@ The checker can experimentally discharge a narrowly scoped direct-constructor co
 
 A prepared-prelude partial report can recover a narrow import-free, non-main ordinary library initializer by deferring source-owned literals in a direct tuple until a later exact result cast. The prepared interface and declared-name inventories must agree exactly. API/store paths, `main` and imports remain excluded, and the ordinary full-module resolver does not publish the recovered interface. Wrong field types, unrelated tags and mold collisions fail closed; a no-final-cast control remains unchecked. `tools/type-deferred-prepared-test` checks the exact recovered types and unchanged `partial inference; module not checked` disclaimer under eval and on the ship. List-literal deferral and import-aware recovery remain unsupported.
 
-Closed cell context can now flow through a bounded loobean branch while preserving the inferred value faces and original failed-inference behavior. Open or structurally uncertain substitutions and nested retry shapes remain unsupported. This does not by itself provide the missing text and UI prelude definitions, cross-definition context, island-kind checks, or watchability evidence needed by the unchanged todo island.
+Closed cell context can now flow through a bounded loobean branch while preserving the inferred value faces and original failed-inference behavior. Open or structurally uncertain substitutions and nested retry shapes remain unsupported. This does not by itself provide the remaining cross-definition context or complete island-kind and watchability checks needed by the unchanged todo island.
 
 The internal prelude defines a transparent generic `ask` with pure, agent and store cases, re-exported alongside the Jibb-written `pure` gate. The partial checker infers supported constructors and exhaustive matches. Agent and store receivers operate on raw nouns; their fields do not prove schema validity or watchability. The public prelude now defines the documented source-backed `sub` union; supported `%watch` payloads retain the public `(ask M)` type. Constructing a `sub` does not prove that its request is watchable. Request lowering, checked decoding, runtime validation and general island watch checking remain unimplemented; the separate direct-program proof below covers only one narrow static value shape.
+
+The public prelude now contains the source-backed UI length/attribute molds, all element constructors, and exact program/page records and builders. The full 19-case generic `element` union is nonrecursive: nested child, keyed-item and table payloads are `*`, while public constructor schemes preserve typed composition and independent key types. `island` returns `(element !!)` with `[program data]` as its erased payload. The focused UI golden checks exact schemes, static and message-bearing composition, concrete programs/pages/islands, malformed inputs and selected mismatches. A child-message mismatch fails closed as an unsupported constraint. Raw-constructor encapsulation, duplicate-attribute checks, rendering, storage, navigation and execution are not claimed.
 
 Known same-origin generic-union result context can now constrain a call before its arguments are inferred. An unresolved or opaque constructor target stays unsupported rather than producing a definite mismatch; proven missing tags still report errors. A todo request with explicit `(ask msg)` context can infer `|=%got`; its uncontextualized form remains unsupported. A two-item literal-headed tuple can receive payload context from a known union of uniquely headed literal cells when its payload is a shallow wing-headed call with literal, wing or constructor arguments. Existing inference takes precedence when it fits; otherwise the checker tries the contextual path once. It conservatively declines that path when any substitution has a structural root, as well as for duplicate or opaque competitors. The guard scans substitutions per eligible tuple and may add one shallow inference; no global linear-time bound is claimed. This allows an explicitly typed todo subscription body to infer, but does not check the island or prove request watchability.
 
@@ -95,8 +97,8 @@ What the plan asks for, and where it is:
 
 Besides the plan's list:
 
-- 659 golden cases: 439 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
-- The 659-case corpus passed under `urbit eval` in 92.8 s while other checks were running. The fake ship passed all 709 tests, including the source-overlap, structural-overlap, generic-union source and alias-overlap, full-module overlap, deferred-context, generic-recursion, generic-construction, generic-pattern, deferred-inference, empty-mold and cell-branch fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 91.9 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
+- 660 golden cases: 440 that parse and 220 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
+- The 660-case corpus passed under `urbit eval` in 103.0 s while other checks were running. The fake ship passed all 710 tests, including the source-overlap, structural-overlap, generic-union source and alias-overlap, full-module overlap, deferred-context, generic-recursion, generic-construction, generic-pattern, deferred-inference, empty-mold and cell-branch fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 101.4 s while other checks were running. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
 - `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 8 s. After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
@@ -213,14 +215,15 @@ Besides the plan's list:
 | aa277c9 | 2026-10-31 | Recover prepared tuple initializers in partial reports |
 | b4703e7 | 2026-11-01 | Check narrow closed subscription-free program mains |
 | 26bf7a7 | 2026-11-01 | Recover narrow direct-program initializer contexts |
-| This change | 2026-11-01 | Prove direct request-value watchability for program subscriptions |
+| 642d2c0 | 2026-11-01 | Prove direct request-value watchability for program subscriptions |
+| This change | 2026-11-01 | Add the source-backed UI, program and page prelude slice |
 
 ## Checking it
 
 On a machine set up as [development.md](development.md) says:
 
 ```
-tools/golden                      # 659 cases under urbit eval
+tools/golden                      # 660 cases under urbit eval
 tools/importer-test               # the Hoon importer fixture projection
 tools/type-import-default-test    # default-wrapped source proof golden
 tools/type-import-test            # the importer/checker bridge fixture
@@ -258,7 +261,7 @@ tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
-tools/ship test                   # the same 659 cases as -test arms on the ship
+tools/ship test                   # the same 660 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
 tools/ship check-commit           # |commit stores .jibb files

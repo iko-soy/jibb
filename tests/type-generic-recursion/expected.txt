@@ -26,10 +26,10 @@ duplicate source declined: ok
 active import cycle declined: ok
 changed prelude invalidates cache: ok
 partial inference; module not checked
-++ from-first: $-((element.first @t) (element.first @t))
-++ from-again: $-((element.again @p) (element.again @p))
-++ same-origin: $-((element.first @t) (element.again @t))
+++ from-first: $-((node-tree.first @t) (node-tree.first @t))
+++ from-again: $-((node-tree.again @p) (node-tree.again @p))
+++ same-origin: $-((node-tree.first @t) (node-tree.again @t))
 ++ from-alias: $-((alias.via @t) (alias.via @t))
-++ through-alias: $-((element.first @t) (alias.via @t))
+++ through-alias: $-((node-tree.first @t) (alias.via @t))
 ++ different-origin: cast constraint is not supported by partial inference
-++ independent: $-([a=(element.first @t) b=(element.first @p)] [(element.first @t) (element.first @p)])
+++ independent: $-([a=(node-tree.first @t) b=(node-tree.first @p)] [(node-tree.first @t) (node-tree.first @p)])

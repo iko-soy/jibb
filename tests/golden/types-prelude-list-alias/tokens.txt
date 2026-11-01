@@ -34,15 +34,15 @@
 4:22 name x
 5:1 NEWLINE
 5:1 glyph ++
-5:4 name text
-5:9 glyph |=
-5:12 name x
-5:13 tight glyph =
-5:14 tight glyph (
-5:15 tight name bag
-5:19 aura @t
-5:21 tight glyph )
-5:23 name x
+5:4 name text-value
+5:15 glyph |=
+5:18 name x
+5:19 tight glyph =
+5:20 tight glyph (
+5:21 tight name bag
+5:25 aura @t
+5:27 tight glyph )
+5:29 name x
 6:1 NEWLINE
 6:1 glyph ++
 6:4 name ship

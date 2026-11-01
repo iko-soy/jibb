@@ -138,35 +138,35 @@
 10:46 tight glyph ]
 11:1 NEWLINE
 11:1 glyph ++
-11:4 name wrap
-11:9 glyph |=
-11:12 name x
-11:13 tight glyph =
-11:14 tight tvar A
-11:16 glyph ^-
-11:19 glyph (
-11:20 tight name cmd
-11:24 tvar A
-11:25 tight glyph )
-11:27 glyph [
-11:28 tight lit %wait
-11:34 lit ~s30
-11:39 name x
-11:40 tight glyph ]
+11:4 name wrap-value
+11:15 glyph |=
+11:18 name x
+11:19 tight glyph =
+11:20 tight tvar A
+11:22 glyph ^-
+11:25 glyph (
+11:26 tight name cmd
+11:30 tvar A
+11:31 tight glyph )
+11:33 glyph [
+11:34 tight lit %wait
+11:40 lit ~s30
+11:45 name x
+11:46 tight glyph ]
 12:1 NEWLINE
 12:1 glyph ++
-12:4 name wrap-text
-12:14 glyph (
-12:15 tight name wrap
-12:20 str "hello"
-12:27 tight glyph )
+12:4 name wrap-value-text
+12:20 glyph (
+12:21 tight name wrap-value
+12:32 str "hello"
+12:39 tight glyph )
 13:1 NEWLINE
 13:1 glyph ++
-13:4 name wrap-ship
-13:14 glyph (
-13:15 tight name wrap
-13:20 lit ~zod
-13:24 tight glyph )
+13:4 name wrap-value-ship
+13:20 glyph (
+13:21 tight name wrap-value
+13:32 lit ~zod
+13:36 tight glyph )
 14:1 NEWLINE
 14:1 glyph ++
 14:4 name wrong-reply
@@ -278,8 +278,8 @@
 21:10 glyph (
 21:11 tight name use-text
 21:20 glyph (
-21:21 tight name wrap
-21:26 lit ~zod
-21:30 tight glyph )
-21:31 tight glyph )
-21:32 NEWLINE
+21:21 tight name wrap-value
+21:32 lit ~zod
+21:36 tight glyph )
+21:37 tight glyph )
+21:38 NEWLINE

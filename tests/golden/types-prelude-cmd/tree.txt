@@ -59,18 +59,18 @@
     (cast 10:18
       (apply 10:21 cmd (aura 10:26 @t))
       (tuple 10:30 (lit 10:31 %wait) (lit 10:37 ~s30) (lit 10:42 ~zod))))
-  (value 11:1 wrap
-    (gate 11:9
-      (face 11:12 x (tvar 11:14 A))
-      (cast 11:16
-        (apply 11:19 cmd (tvar 11:24 A))
-        (tuple 11:27 (lit 11:28 %wait) (lit 11:34 ~s30) (wing 11:39 x)))))
-  (value 12:1 wrap-text
-    (group 12:14
-      (call 12:15 (wing 12:15 wrap) (str 12:20 "hello"))))
-  (value 13:1 wrap-ship
-    (group 13:14
-      (call 13:15 (wing 13:15 wrap) (lit 13:20 ~zod))))
+  (value 11:1 wrap-value
+    (gate 11:15
+      (face 11:18 x (tvar 11:20 A))
+      (cast 11:22
+        (apply 11:25 cmd (tvar 11:30 A))
+        (tuple 11:33 (lit 11:34 %wait) (lit 11:40 ~s30) (wing 11:45 x)))))
+  (value 12:1 wrap-value-text
+    (group 12:20
+      (call 12:21 (wing 12:21 wrap-value) (str 12:32 "hello"))))
+  (value 13:1 wrap-value-ship
+    (group 13:20
+      (call 13:21 (wing 13:21 wrap-value) (lit 13:32 ~zod))))
   (value 14:1 wrong-reply
     (cast 14:16
       (apply 14:19 cmd (aura 14:24 @t))
@@ -119,4 +119,4 @@
       (call 21:11
         (wing 21:11 use-text)
         (group 21:20
-          (call 21:21 (wing 21:21 wrap) (lit 21:26 ~zod)))))))
+          (call 21:21 (wing 21:21 wrap-value) (lit 21:32 ~zod)))))))

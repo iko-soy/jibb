@@ -180,13 +180,13 @@
 35:1 DEDENT
 35:1 NEWLINE
 35:1 glyph ++
-35:4 name wrap
-35:9 glyph |=
-35:12 name y
-35:14 glyph |=(
-35:17 tight name z
-35:19 name y
-35:20 tight glyph )
+35:4 name wrap-value
+35:15 glyph |=
+35:18 name y
+35:20 glyph |=(
+35:23 tight name z
+35:25 name y
+35:26 tight glyph )
 36:1 NEWLINE
 36:1 glyph ++
 36:4 name through-global
@@ -196,9 +196,9 @@
 37:3 glyph ++
 37:6 name local
 37:12 glyph (
-37:13 tight name wrap
-37:18 name x
-37:19 tight glyph )
+37:13 tight name wrap-value
+37:24 name x
+37:25 tight glyph )
 38:3 NEWLINE
 38:3 glyph ~&
 38:6 glyph ^-

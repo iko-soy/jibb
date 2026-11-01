@@ -1,6 +1,6 @@
 canonical
 partial inference; module not checked
-++ text: $-((list @t) (list @t))
+++ text-value: $-((list @t) (list @t))
 ++ ship: $-((list @p) (list @p))
 ++ wrong: list item does not fit its expected type
 /ui/test.jibb:3:13: expected item has type @t
@@ -12,13 +12,13 @@ partial inference; module not checked
 ++ shadow: local molds shadow a name
 altered
 partial inference; module not checked
-++ text: sample mold is not supported by partial inference
+++ text-value: sample mold is not supported by partial inference
 ++ ship: sample mold is not supported by partial inference
 ++ wrong: cast mold is not supported by partial inference
 ++ shadow: sample mold is not supported by partial inference
 omitted
 partial inference; module not checked
-++ text: sample mold is not supported by partial inference
+++ text-value: sample mold is not supported by partial inference
 ++ ship: sample mold is not supported by partial inference
 ++ wrong: cast mold is not supported by partial inference
 ++ shadow: sample mold is not supported by partial inference
@@ -30,7 +30,7 @@ partial inference; module not checked
 prelude source does not parse; module import inference unsupported
 cyclic
 partial inference; module not checked
-++ text: sample mold is not supported by partial inference
+++ text-value: sample mold is not supported by partial inference
 ++ ship: sample mold is not supported by partial inference
 ++ wrong: cast mold is not supported by partial inference
 ++ shadow: local molds shadow a name

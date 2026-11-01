@@ -1,17 +1,17 @@
 /= first /ui/tree
-++ words |= x=(element.first @t)
+++ words |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node kids] "node"
-++ children |= x=(element.first A)
-  ^- (list (element.first A)) ?- x
+++ children |= x=(node-tree.first A)
+  ^- (list (node-tree.first A)) ?- x
     [%text value] ~
     [%node kids] kids
-++ duplicate |= x=(element.first @t)
+++ duplicate |= x=(node-tree.first @t)
   ?- x
     [%text a] a
     [%text b] b
-++ nested-pattern |= x=(element.first @t)
+++ nested-pattern |= x=(node-tree.first @t)
   ?- x
     [%text value] value
     [%node [first rest]] "node"

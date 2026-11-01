@@ -8,24 +8,24 @@
 ++ passthrough |= x=input x
 ++ grouped |= x=input ^- (list @t)
   ?- (x)
-    [%item flag text] ~[text]
+    [%item flag words] ~[words]
     %none ~
 ++ call |= x=input ^- (list @t)
   ?- (local-id x)
-    [%item flag text] ~[text]
+    [%item flag words] ~[words]
     %none ~
 ++ nested |= x=input ^- result
   ?- (local-id (passthrough x))
-    [%item flag text] %good
+    [%item flag words] %good
     %none %empty
 ++ finite |= x=input ^- (list @t)
   ?- (local-id x)
-    [%item %.y text] ~[text]
-    [%item %.n text] ~[]
+    [%item %.y words] ~[words]
+    [%item %.n words] ~[]
     %none ~
 ++ wrong |= x=input ^- result
   ?- (local-id x)
-    [%item flag text] %missing
+    [%item flag words] %missing
     %none %empty
 ++ missing |= x=input ^- (list @t)
   ?- (local-id x)
@@ -34,7 +34,7 @@
   ?- (local-id x)
     %none ~
     %none ~
-    [%item flag text] ~[text]
+    [%item flag words] ~[words]
 ++ shadow |= x=input ^- result
   ?- (local-id x)
     [%item flag same] %good
@@ -42,19 +42,19 @@
 ++ pending |= x=input ^- result
   ~& %dangling
     ?- (local-id x)
-      [%item flag text] %good
+      [%item flag words] %good
       %none %empty
 ++ unknown |= x ^- (list @t)
   ?- (local-id x)
-    [%item flag text] ~[text]
+    [%item flag words] ~[words]
     %none ~
 ++ nonunion |= x=@t ^- (list @t)
   ?- (local-id x)
-    [%item flag text] ~[text]
+    [%item flag words] ~[words]
     %none ~
 ++ explicit |= [x=input y=A] ^- (list A)
   ?- (local-id x)
-    [%item flag text] ~["text"]
+    [%item flag words] ~["text"]
     %none ~
 +$ payload |$ [A]
   [%present value=A]
@@ -65,12 +65,12 @@
     %none ~
 ++ bad-subject |= x=input ^- result
   ?- (passthrough "wrong")
-    [%item flag text] %missing
+    [%item flag words] %missing
     %none %empty
 ++ first-of |= [a b] a
 ++ pending-subject |= x=input ^- result
   ?- (first-of x %dangling)
-    [%item flag text] %good
+    [%item flag words] %good
     %none %empty
 ++ duplicate-flag-subject |= x=@t ^- (list @t)
   ?- (passthrough x)

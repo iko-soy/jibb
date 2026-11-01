@@ -27,17 +27,17 @@ structural substitution declined: ok
 partial inference; module not checked
 ++ text-event: $-(@t @t)
 ++ ship-event: $-(@t @p)
-++ leaf: (element.first @t)
-++ ship-leaf: (element.first @p)
-++ node: (element.first @t)
-++ ship-node: (element.first @p)
-++ nested: (element.first @t)
+++ leaf: (node-tree.first @t)
+++ ship-leaf: (node-tree.first @p)
+++ node: (node-tree.first @t)
+++ ship-node: (node-tree.first @p)
+++ nested: (node-tree.first @t)
 ++ wrong-event: recursive mold case does not fit its source shape
 ++ wrong-leaf: recursive mold case does not fit its source shape
 ++ wrong-label: recursive mold case does not fit its source shape
 ++ bad-tag: recursive mold constructor has no matching case
 ++ foreign: list item constraint is not supported by partial inference
-++ generic: $-($-(@t A) (element.first A))
+++ generic: $-($-(@t A) (node-tree.first A))
 ++ pending: tag needs context in partial inference
 ++ extra: recursive mold case does not fit its source shape
 ++ misplaced: recursive mold case does not fit its source shape
@@ -46,20 +46,20 @@ partial inference; module not checked
 ++ label-swap: recursive mold case does not fit its source shape
 ++ wrong-nominal: list item constraint is not supported by partial inference
 ++ wrong-argument: list item constraint is not supported by partial inference
-++ keep-generic: $-($-(@t A) (element.first A))
+++ keep-generic: $-($-(@t A) (node-tree.first A))
 partial inference; module not checked
 ++ text-event: $-(@t @t)
 ++ ship-event: $-(@t @p)
 ++ via-leaf: (alias.via @t)
 ++ via-node: (alias.via @p)
-++ cross-alias: $-((alias.via @t) (element.first @t))
-++ cross-owner: $-((element.again @t) (alias.via @t))
+++ cross-alias: $-((alias.via @t) (node-tree.first @t))
+++ cross-owner: $-((node-tree.again @t) (alias.via @t))
 ++ wrong-owner: list item constraint is not supported by partial inference
 ++ wrong-arg: list item constraint is not supported by partial inference
 partial inference; module not checked
-++ leaf: (element.first @t)
-++ node: (element.first @p)
-++ nested: (element.first @t)
-++ generic: $-(A (element.first A))
+++ leaf: (node-tree.first @t)
+++ node: (node-tree.first @p)
+++ nested: (node-tree.first @t)
+++ generic: $-(A (node-tree.first A))
 ++ wrong-owner: list item constraint is not supported by partial inference
 ++ wrong-field: recursive mold case needs unsupported inference

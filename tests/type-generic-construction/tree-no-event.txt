@@ -1,4 +1,4 @@
-+$ element |$ [M]
++$ node-tree |$ [M]
   [%text value=@t]
-  [%node children=(list (element M))]
-++ generic-id |= x=(element A) x
+  [%node children=(list (node-tree M))]
+++ generic-id |= x=(node-tree A) x

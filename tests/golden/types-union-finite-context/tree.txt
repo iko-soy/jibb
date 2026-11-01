@@ -111,8 +111,8 @@
           (branch 37:3
             (wing 37:6 x)
             (arm 38:5
-              (cell 38:5 (lit 38:6 %p) (bind 38:9 flag) (bind 38:14 text))
-              (wing 38:20 flag))
+              (cell 38:5 (lit 38:6 %p) (bind 38:9 flag) (bind 38:14 words))
+              (wing 38:21 flag))
             (arm 39:5 (lit 39:5 %other) (lit 39:12 %.n)))))))
   (value 40:1 unresolved
     (gate 40:15

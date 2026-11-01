@@ -17,8 +17,7 @@
 ++  program-watch-prepared
   |=  [public=@t private=@t]
   ^-  (unit iprelude:jibb)
-  =/  extra=@t  '\0a+$ element |$ [M] [%node item=M]\0a+$ program |$ [D X M]\0a  [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]\0a++ program |= [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]\0a  ^- (program D X M) [init update view subs]\0a'
-  (prepare-prelude-with-internal:jibb (cat 3 public extra) private)
+  (prepare-prelude-with-internal:jibb public private)
 ::
 ++  program-watch-detailed
   |=  [at=path src=@t externals=iexternals:jibb marks=imark-externals:jibb modules=jbundle:jibb prepared=iprelude:jibb]
@@ -36,7 +35,7 @@
       '++ main (program init update view subs)\0a'
       '++ init |= input=@t ^- model [count=0]\0a'
       '++ update |= [m=msg state=model]\0a  ^- [model (list (cmd msg))] [state ~]\0a'
-      '++ view |= state=model ^- (element msg) [%node %other]\0a'
+      '++ view |= state=model ^- (element msg) (text "view")\0a'
       subscriptions
   ==
 ::
@@ -51,7 +50,7 @@
       '++ main (program init update view subs)\0a'
       '++ init |= input=@t ^- model [count=0]\0a'
       '++ update |= [m=@t state=model]\0a  ^- [model (list (cmd @t))] [state ~]\0a'
-      '++ view |= state=model ^- (element @t) [%node "ok"]\0a'
+      '++ view |= state=model ^- (element @t) (text "ok")\0a'
       '++ subs |= state=model\0a  ^- (list (sub @t))\0a    ~[[%watch request]]\0a'
   ==
 ::
@@ -120,13 +119,13 @@
     ~["plain todos evidence acquired scry or diffs"]
   ?:  (lien segments.path.path.evidence |=(p=pseg:jibb !?=(%knot -.p)))  ~["plain todos evidence acquired parameters"]
   =/  consumer-at=path  /tests/program-watch/consumer/jibb
-  =/  consumer=@t  '/= island /tests/program-watch/island\0a++ imported subs.island\0a'
+  =/  consumer=@t  '/= island-prog /tests/program-watch/island\0a++ imported subs.island-prog\0a'
   =/  imported=jfile-detailed-result:jibb
     (program-watch-detailed consumer-at consumer externals marks [[at island] modules] u.prepared)
   ?:  ?=(%| -.imported)  ~["downstream program import was rejected"]
   =/  imported-subs=(unit ischeme:jibb)  (ienv-lookup:jibb %imported values.iface.p.imported)
   ?~  imported-subs  ~["downstream imported subs is missing"]
-  =/  expected-import=itype:jibb  (itype-in-import:jibb typ.u.subs checked %island `iface.u.prepared)
+  =/  expected-import=itype:jibb  (itype-in-import:jibb typ.u.subs checked %island-prog `iface.u.prepared)
   ?.  &(?=(~ vars.u.imported-subs) =(typ.u.imported-subs expected-import))  ~["downstream imported subs type differs"]
   =/  parsed  (parse:jibb at island)
   ?:  ?=(%| -.parsed)  ~["program source no longer parses"]

@@ -169,30 +169,30 @@
 18:26 tight glyph )
 19:1 NEWLINE
 19:1 glyph ++
-19:4 name field
-19:10 glyph ^-
-19:13 name record
-19:20 glyph [
-19:21 tight glyph `
-19:22 tight lit %go
-19:26 glyph ~[
-19:28 tight glyph `
-19:29 tight str "hi"
-19:33 tight glyph ]
-19:34 tight glyph ]
+19:4 name field-value
+19:16 glyph ^-
+19:19 name record
+19:26 glyph [
+19:27 tight glyph `
+19:28 tight lit %go
+19:32 glyph ~[
+19:34 tight glyph `
+19:35 tight str "hi"
+19:39 tight glyph ]
+19:40 tight glyph ]
 20:1 NEWLINE
 20:1 glyph ++
-20:4 name field-bad
-20:14 glyph ^-
-20:17 name record
-20:24 glyph [
-20:25 tight glyph `
-20:26 tight lit %bad
-20:31 glyph ~[
-20:33 tight glyph `
-20:34 tight str "hi"
-20:38 tight glyph ]
-20:39 tight glyph ]
+20:4 name field-value-bad
+20:20 glyph ^-
+20:23 name record
+20:30 glyph [
+20:31 tight glyph `
+20:32 tight lit %bad
+20:37 glyph ~[
+20:39 tight glyph `
+20:40 tight str "hi"
+20:44 tight glyph ]
+20:45 tight glyph ]
 21:1 NEWLINE
 21:1 glyph ++
 21:4 name mimic-mismatch
@@ -278,17 +278,17 @@
 34:1 DEDENT
 34:1 NEWLINE
 34:1 glyph ++
-34:4 name field-wrong-payload
-34:24 glyph ^-
-34:27 name record
-34:34 glyph [
-34:35 tight glyph `
-34:36 tight lit %go
-34:40 glyph ~[
-34:42 tight glyph `
-34:43 tight lit ~zod
-34:47 tight glyph ]
-34:48 tight glyph ]
+34:4 name field-value-wrong-payload
+34:30 glyph ^-
+34:33 name record
+34:40 glyph [
+34:41 tight glyph `
+34:42 tight lit %go
+34:46 glyph ~[
+34:48 tight glyph `
+34:49 tight lit ~zod
+34:53 tight glyph ]
+34:54 tight glyph ]
 35:1 NEWLINE
 35:1 glyph ++
 35:4 name wrong-name

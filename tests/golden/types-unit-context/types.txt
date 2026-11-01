@@ -43,14 +43,14 @@ partial inference; module not checked
 /tests/golden/types-unit-context/source.jibb:18:22: tag
 ++ bad-call (accept `%bad)
                      ^
-++ field: [u=(unit msg) xs=(list (unit @t))]
-++ field-bad: msg has no case `%bad`
-/tests/golden/types-unit-context/source.jibb:20:17: expected union
-++ field-bad ^- record [`%bad ~[`"hi"]]
-                ^
-/tests/golden/types-unit-context/source.jibb:20:26: tag
-++ field-bad ^- record [`%bad ~[`"hi"]]
-                         ^
+++ field-value: [u=(unit msg) xs=(list (unit @t))]
+++ field-value-bad: msg has no case `%bad`
+/tests/golden/types-unit-context/source.jibb:20:23: expected union
+++ field-value-bad ^- record [`%bad ~[`"hi"]]
+                      ^
+/tests/golden/types-unit-context/source.jibb:20:32: tag
+++ field-value-bad ^- record [`%bad ~[`"hi"]]
+                               ^
 ++ mimic-mismatch: cast constraint is not supported by partial inference
 ++ without-context: tag needs context in partial inference
 ++ pending: tag needs context in partial inference
@@ -58,13 +58,13 @@ partial inference; module not checked
 ++ preserve: $-(A (unit A))
 ++ force: explicit capital constraints are not supported by partial inference
 +$ alt: cases proven disjoint; mold not checked
-++ field-wrong-payload: unit payload does not fit its expected type
-/tests/golden/types-unit-context/source.jibb:34:27: expected unit payload has type @t
-++ field-wrong-payload ^- record [`%go ~[`~zod]]
-                          ^
-/tests/golden/types-unit-context/source.jibb:34:43: payload has type @p
-++ field-wrong-payload ^- record [`%go ~[`~zod]]
-                                          ^
+++ field-value-wrong-payload: unit payload does not fit its expected type
+/tests/golden/types-unit-context/source.jibb:34:33: expected unit payload has type @t
+++ field-value-wrong-payload ^- record [`%go ~[`~zod]]
+                                ^
+/tests/golden/types-unit-context/source.jibb:34:49: payload has type @p
+++ field-value-wrong-payload ^- record [`%go ~[`~zod]]
+                                                ^
 ++ wrong-name: cast mold and expression type do not unify
 /tests/golden/types-unit-context/source.jibb:35:18: cast mold
 ++ wrong-name ^- record [wrong=`%go xs=~[`"hi"]]

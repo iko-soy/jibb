@@ -14,11 +14,11 @@
     (gate 4:12
       (face 4:15 x (ref 4:17 spot))
       (wing 4:22 x)))
-  (value 5:1 text
-    (gate 5:9
-      (face 5:12 x
-        (apply 5:14 bag (aura 5:19 @t)))
-      (wing 5:23 x)))
+  (value 5:1 text-value
+    (gate 5:15
+      (face 5:18 x
+        (apply 5:20 bag (aura 5:25 @t)))
+      (wing 5:29 x)))
   (value 6:1 ship
     (gate 6:9
       (face 6:12 x

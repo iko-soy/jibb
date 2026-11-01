@@ -1,7 +1,7 @@
 /= math /ui/math
 ++ decimal ^- @ud (sum.math 1 2)
 ++ hex ^- @ux (sum.math 0x1 0x2)
-++ text ^- @t (alias.math "a" "b")
+++ text-value ^- @t (alias.math "a" "b")
 ++ ship ^- @p (down.math ~zod)
 ++ reject-bool (sum.math %.y %.n)
 ++ reject-down (down.math %.y)

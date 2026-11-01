@@ -20,9 +20,9 @@ partial inference; module not checked
 /tests/golden/types-prelude-cmd/source.jibb:10:30: expression
 ++ wrong-message ^- (cmd @t) [%wait ~s30 ~zod]
                              ^
-++ wrap: $-(A (cmd A))
-++ wrap-text: (cmd @t)
-++ wrap-ship: (cmd @p)
+++ wrap-value: $-(A (cmd A))
+++ wrap-value-text: (cmd @t)
+++ wrap-value-ship: (cmd @p)
 ++ wrong-reply: cast mold and expression type do not unify
 /tests/golden/types-prelude-cmd/source.jibb:14:19: cast mold
 ++ wrong-reply ^- (cmd @t) [%who |=(p=@p ~zod)]
@@ -49,8 +49,8 @@ partial inference; module not checked
 ++ use-text: $-((cmd @t) (cmd @t))
 ++ cross: call's sample and argument types do not unify
 /tests/golden/types-prelude-cmd/source.jibb:21:21: called gate
-++ cross (use-text (wrap ~zod))
+++ cross (use-text (wrap-value ~zod))
                     ^
-/tests/golden/types-prelude-cmd/source.jibb:21:26: argument has type @p
-++ cross (use-text (wrap ~zod))
-                         ^
+/tests/golden/types-prelude-cmd/source.jibb:21:32: argument has type @p
+++ cross (use-text (wrap-value ~zod))
+                               ^

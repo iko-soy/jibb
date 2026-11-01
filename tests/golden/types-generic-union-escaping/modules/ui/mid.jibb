@@ -1,3 +1,3 @@
 /=  base /ui/base
-++ text ^- (phantom.base @t) %yes
+++ text-value ^- (phantom.base @t) %yes
 ++ ship ^- (phantom.base @p) %yes

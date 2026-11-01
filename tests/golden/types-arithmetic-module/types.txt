@@ -1,7 +1,7 @@
 partial inference; module not checked
 ++ decimal: @ud
 ++ hex: @ux
-++ text: @t
+++ text-value: @t
 ++ ship: @p
 ++ reject-bool: call's sample and argument types do not unify
 /tests/golden/types-arithmetic-module/source.jibb:6:17: called gate has type $-([a=A b=A] A) where A is an atom other than ?

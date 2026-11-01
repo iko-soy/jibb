@@ -1,7 +1,7 @@
 ++ decimal |= x=@ud ^- @u x
 ++ hex ^- @u 0x1f
 ++ base32 |= x=@uv ^- @u x
-++ text |= x=@tD ^- @t x
+++ text-value |= x=@tD ^- @t x
 ++ narrow |= x=@t ^- @tD x
 ++ siblings |= x=@ux ^- @ud x
 ++ dup |= p=[A A] p

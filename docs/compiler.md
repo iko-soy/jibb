@@ -140,6 +140,8 @@ The supplied prelude is parsed into a **partial interface**: all names actually 
 
 `+prepare-prelude` derives the interface and declared-name inventory from the trusted vendored source. Hosts can reuse its result with `+golden-types-with-prepared-prelude`; they must pass the unchanged result of preparation, not an independently constructed value. Empty, malformed and duplicate-name prelude sources fail closed. The source-taking `+prepare-prelude` and `+golden-types-with-prelude` do not supply the internal module; their `-and-internal` or `-with-internal` variants accept its source for the supported private import. API files, modules with `main`, unsupported definitions and many other features remain outside this subset. The older `+golden-types-with-modules` entry point fails closed for imports because it has no prelude scope. None of these partial reports claims the module has been checked.
 
+The prepared interface includes the source-backed UI molds and constructors, the full nonrecursive `element` union, and the exact `program` and `page` records and builders. Its element union erases nested child, keyed-item and table payloads to `*`, while public constructor schemes retain typed composition and independent key parameters. `types-prelude-ui` checks those schemes and selected valid and invalid compositions. A child-message mismatch currently fails closed as an unsupported list-item constraint rather than a definite mismatch diagnostic. Raw-constructor encapsulation, duplicate-attribute checks, rendering, navigation, storage and execution remain outside this slice.
+
 And the design notes:
 
 | Note | Says |

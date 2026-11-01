@@ -1,32 +1,32 @@
 partial inference; module not checked
-+$ length: cases proven disjoint; mold not checked
-+$ attr: cases proven disjoint; mold not checked
++$ extent: cases proven disjoint; mold not checked
++$ attribute: cases proven disjoint; mold not checked
 ++ number-id: $-(@ud @ud)
-++ plain: attr
-++ direct: attr
-++ list: (list attr)
-++ accept: $-(attr attr)
-++ call: attr
-++ simple-call: attr
-++ grouped-call: attr
-++ cast-call: attr
-++ nested-call: attr
+++ plain: attribute
+++ direct: attribute
+++ list: (list attribute)
+++ accept: $-(attribute attribute)
+++ call: attribute
+++ simple-call: attribute
+++ grouped-call: attribute
+++ cast-call: attribute
+++ nested-call: attribute
 ++ bad-tag: cast mold and expression type do not unify
 /tests/golden/types-nested-shallow-preserve/source.jibb:17:15: cast mold
-++ bad-tag ^- attr width+[%missing 1]
+++ bad-tag ^- attribute width+[%missing 1]
               ^
-/tests/golden/types-nested-shallow-preserve/source.jibb:17:20: expression
-++ bad-tag ^- attr width+[%missing 1]
-                   ^
+/tests/golden/types-nested-shallow-preserve/source.jibb:17:25: expression
+++ bad-tag ^- attribute width+[%missing 1]
+                        ^
 ++ bad-number: cast mold and expression type do not unify
 /tests/golden/types-nested-shallow-preserve/source.jibb:18:18: cast mold
-++ bad-number ^- attr width+[%fill "bad"]
+++ bad-number ^- attribute width+[%fill "bad"]
                  ^
-/tests/golden/types-nested-shallow-preserve/source.jibb:18:23: expression
-++ bad-number ^- attr width+[%fill "bad"]
-                      ^
+/tests/golden/types-nested-shallow-preserve/source.jibb:18:28: expression
+++ bad-number ^- attribute width+[%fill "bad"]
+                           ^
 ++ pending: tag needs context in partial inference
-++ singleton: attr
+++ singleton: attribute
 +$ event: cases proven disjoint; mold not checked
 +$ envelope: cases proven disjoint; mold not checked
 ++ constructor: envelope

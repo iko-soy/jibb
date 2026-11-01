@@ -376,3 +376,132 @@
 
 ++ trip |= value=@t (trip-text.internal value)
 ++ tuba |= values=(list @tD) (tuba-text.internal values)
+
+::  UI values are source-level descriptions only.  Nested element payloads are
+::  erased in the nonrecursive union; the public constructors below retain the
+::  typed composition boundaries.  Raw-constructor encapsulation, rendering and
+::  execution are not established by this slice.
++$ length
+  [%chars n=@ud]
+  [%fill n=@ud]
+  %shrink
+
++$ align
+  %start
+  %center
+  %end
+
++$ role
+  %body
+  %caption
+  %label
+
++$ tone
+  %normal
+  %muted
+  %accent
+  %danger
+
++$ attr
+  [%pad %s0]
+  [%pad %s1]
+  [%pad %s2]
+  [%pad %s3]
+  [%gap %s0]
+  [%gap %s1]
+  [%gap %s2]
+  [%gap %s3]
+  [%width width=length]
+  [%align align=align]
+  [%role role=role]
+  [%tone tone=tone]
+
++$ element |$ [M]
+  [%row attrs=(list attr) kids=*]
+  [%column attrs=(list attr) kids=*]
+  [%wrap attrs=(list attr) kids=*]
+  [%stack attrs=(list attr) kids=*]
+  [%el attrs=(list attr) kid=*]
+  [%para kids=*]
+  [%text words=@t]
+  [%heading level=@ud words=@t]
+  [%each items=*]
+  [%table columns=* rows=*]
+  [%image source=qath description=@t]
+  [%image-unsafe source=[url=@t width=@ud height=@ud] description=@t]
+  [%link target=qath label=@t]
+  [%link-unsafe target=@t label=@t]
+  [%button label=@t message=M]
+  [%toggle on=? label=@t message=M]
+  [%field label=@t value=@t reply=$-(@t M)]
+  [%form message=M kids=*]
+  [%island payload=*]
+
+++ row |= [attrs=(list attr) kids=(list (element M))]
+  ^- (element M) [%row attrs kids]
+
+++ column |= [attrs=(list attr) kids=(list (element M))]
+  ^- (element M) [%column attrs kids]
+
+++ wrap |= [attrs=(list attr) kids=(list (element M))]
+  ^- (element M) [%wrap attrs kids]
+
+++ stack |= [attrs=(list attr) kids=(list (element M))]
+  ^- (element M) [%stack attrs kids]
+
+++ el |= [attrs=(list attr) kid=(element M)]
+  ^- (element M) [%el attrs kid]
+
+++ para |= kids=(list (element M))
+  ^- (element M) [%para kids]
+
+++ text |= words=@t
+  ^- (element M) [%text words]
+
+++ heading |= [level=@ud words=@t]
+  ^- (element M) [%heading level words]
+
+++ each |= items=(list [key=K el=(element M)])
+  ^- (element M) [%each items]
+
+++ table |= [columns=(list [header=@t width=length align=align]) rows=(list [key=K cells=(list (element M))])]
+  ^- (element M) [%table columns rows]
+
+++ image |= [source=qath description=@t]
+  ^- (element M) [%image source description]
+
+++ image-unsafe |= [source=[url=@t width=@ud height=@ud] description=@t]
+  ^- (element M) [%image-unsafe source description]
+
+++ link |= [target=qath label=@t]
+  ^- (element M) [%link target label]
+
+++ link-unsafe |= [target=@t label=@t]
+  ^- (element M) [%link-unsafe target label]
+
+++ button |= [label=@t message=M]
+  ^- (element M) [%button label message]
+
+++ toggle |= [on=? label=@t message=M]
+  ^- (element M) [%toggle on label message]
+
+++ field |= [label=@t value=@t reply=$-(@t M)]
+  ^- (element M) [%field label value reply]
+
+++ form |= [message=M kids=(list (element M))]
+  ^- (element M) [%form message kids]
+
++$ program |$ [D X M]
+  [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]
+
+++ program |= [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]
+  ^- (program D X M) [init update view subs]
+
+++ island |= [p=(program D X M) data=D]
+  ^- (element !!) [%island [p data]]
+
++$ page |$ [R D]
+  [load=$-(R (ask D)) view=$-(D (element !!))]
+
+++ page |= [load=$-(R (ask D)) view=$-(D (element !!))]
+  ^- (page R D) [load view]

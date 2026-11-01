@@ -1,6 +1,6 @@
 ++ choose (bond |=(~ "default"))
 ++ missing (choose ~)
 ++ present (choose `"found")
-++ wrap |= fallback=$-(~ A) (bond fallback)
+++ wrap-value |= fallback=$-(~ A) (bond fallback)
 ++ choose-ship (bond |=(~ ~zod))
 ++ present-ship (choose-ship `~zod)

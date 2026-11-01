@@ -1,2 +1,2 @@
 partial inference; module not checked
-++ text: @t
+++ text-value: @t

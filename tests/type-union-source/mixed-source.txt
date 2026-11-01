@@ -1,6 +1,6 @@
-+$ element |$ [M]
++$ node-tree |$ [M]
   [%text value=@t]
-  [%node event=$-(@t M) children=(list (element M))]
+  [%node event=$-(@t M) children=(list (node-tree M))]
 +$ tagged |$ [A] [%wrapped A]
 +$ choice
   (tagged @t)

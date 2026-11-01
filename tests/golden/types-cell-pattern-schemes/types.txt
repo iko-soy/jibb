@@ -3,7 +3,7 @@ partial inference; module not checked
 ++ maybe-union: cell pattern subject is not supported by partial inference
 ++ maybe-list: cell pattern subject is not supported by partial inference
 ++ identity: $-([A [B C]] [A [B C]])
-++ text: [@t [@p ?]]
+++ text-value: [@t [@p ?]]
 ++ ship: [@p [@t ?]]
 ++ shared: $-([A [A A]] [A [A A]])
 ++ wrong: call's sample and argument types do not unify

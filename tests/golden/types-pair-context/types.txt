@@ -1,27 +1,27 @@
 partial inference; module not checked
 +$ spacing: cases proven disjoint; mold not checked
-+$ length: cases proven disjoint; mold not checked
-+$ attr: cases proven disjoint; mold not checked
-+$ other-attr: cases proven disjoint; mold not checked
-++ one: attr
-++ equiv: attr
-++ attrs: (list attr)
++$ extent: cases proven disjoint; mold not checked
++$ attribute: cases proven disjoint; mold not checked
++$ other-attribute: cases proven disjoint; mold not checked
+++ one: attribute
+++ equiv: attribute
+++ attributes: (list attribute)
 ++ gap-structural: [@tas @tas]
-++ nested: attr
+++ nested: attribute
 ++ mismatch: cast mold and expression type do not unify
 /tests/golden/types-pair-context/source.jibb:22:16: cast mold
-++ mismatch ^- attr gap+%shrink
+++ mismatch ^- attribute gap+%shrink
                ^
-/tests/golden/types-pair-context/source.jibb:22:21: expression
-++ mismatch ^- attr gap+%shrink
-                    ^
+/tests/golden/types-pair-context/source.jibb:22:26: expression
+++ mismatch ^- attribute gap+%shrink
+                         ^
 ++ missing: cast mold and expression type do not unify
 /tests/golden/types-pair-context/source.jibb:23:15: cast mold
-++ missing ^- attr width+[%oops 1]
+++ missing ^- attribute width+[%oops 1]
               ^
-/tests/golden/types-pair-context/source.jibb:23:20: expression
-++ missing ^- attr width+[%oops 1]
-                   ^
+/tests/golden/types-pair-context/source.jibb:23:25: expression
+++ missing ^- attribute width+[%oops 1]
+                        ^
 ++ pending: tag needs context in partial inference
 ++ cross-origin: cast constraint is not supported by partial inference
 ++ noun-pair: [* *]
@@ -35,9 +35,9 @@ partial inference; module not checked
                             ^
 ++ wrong-number: cast mold and expression type do not unify
 /tests/golden/types-pair-context/source.jibb:29:20: cast mold
-++ wrong-number ^- attr width+[%fill "hi"]
+++ wrong-number ^- attribute width+[%fill "hi"]
                    ^
-/tests/golden/types-pair-context/source.jibb:29:25: expression
-++ wrong-number ^- attr width+[%fill "hi"]
-                        ^
+/tests/golden/types-pair-context/source.jibb:29:30: expression
+++ wrong-number ^- attribute width+[%fill "hi"]
+                             ^
 ++ unrelated: tag needs context in partial inference

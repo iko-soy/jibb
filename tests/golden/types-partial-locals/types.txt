@@ -21,7 +21,7 @@ partial inference; module not checked
           ^
 ++ unused-bad: local definitions need unsupported inference
 ++ local-mold: $-(A A)
-++ wrap: $-(A $-(B A))
+++ wrap-value: $-(A $-(B A))
 ++ through-global: cast mold and expression type do not unify
 /tests/golden/types-partial-locals/source.jibb:39:8: cast mold has type @p
     ^- @p (local "hi")

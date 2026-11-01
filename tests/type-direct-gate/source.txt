@@ -4,7 +4,7 @@
 ++ init |= input=@t ^- @ud 1
 ++ update |= [msg=message state=@ud]
   ^- [@ud (list (cmd message))] [state ~]
-++ view |= state=@ud ^- (element message) [%node %start]
+++ view |= state=@ud ^- (element message) (text "view")
 ++ subs |= state=@ud ^- (list (sub message)) ~
 ++ direct (program init update view subs)
 ++ wrong-init |= input=@p ^- @ud 1
@@ -12,7 +12,7 @@
 ++ wrong-update |= [msg=message state=@p]
   ^- [@p (list (cmd message))] [state ~]
 ++ mismatched-model (program init wrong-update view subs)
-++ wrong-view |= state=@p ^- (element message) [%node %start]
+++ wrong-view |= state=@p ^- (element message) (text "view")
 ++ mismatched-view (program init update wrong-view subs)
 ++ wrong-subs |= state=@p ^- (list (sub message)) ~
 ++ mismatched-subs (program init update view wrong-subs)
@@ -35,7 +35,7 @@
   ^- [record (list (cmd message))] [state ~]
 ++ update-record-unfaced |= args=[message record]
   ^- [record (list (cmd message))] [[count=0 label=""] ~]
-++ view-record |= state=record ^- (element message) [%node %start]
+++ view-record |= state=record ^- (element message) (text "view")
 ++ subs-record |= state=record ^- (list (sub message)) ~
 ++ program-record (program init-record update-record view-record subs-record)
 ++ program-record-unfaced (program init-record update-record-unfaced view-record subs-record)

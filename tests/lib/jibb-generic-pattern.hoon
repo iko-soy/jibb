@@ -32,7 +32,7 @@
   =/  bad-parse=(each module:jibb error:jibb)  (parse:jibb /ui/tree/jibb owner-bad)
   =/  bad=jfile-result:jibb
     (infer-jibb-file:jibb /ui/tree/jibb owner-bad ~ ~ ~ ~[/ui/tree/jibb] values.u.prep molds.u.prep ~ `iface.u.prep)
-  =/  mold=(unit ischeme:jibb)  (find-jibb-mold:jibb %element iface.p.checked)
+  =/  mold=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree iface.p.checked)
   ?~  mold  'BAD owner mold'
   ?.  ?=(%grec -.typ.u.mold)  'BAD nominal owner'
   =/  target=itype:jibb  typ.u.mold(args ~[[%atom %t]])
