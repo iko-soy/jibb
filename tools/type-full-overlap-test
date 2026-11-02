@@ -14,7 +14,7 @@ parser.add_argument('--update', action='store_true')
 args = parser.parse_args()
 fixture = root / 'tests/type-full-overlap'
 cases = {
-    'basic': ['same', 'zero', 'unsupported', 'precedence', 'duplicate', 'invalid', 'distinct', 'parent', 'child', 'generic', 'duplicate-generic', 'atoms', 'flag', 'nested'],
+    'basic': ['same', 'zero', 'unsupported', 'precedence', 'duplicate', 'invalid', 'distinct', 'parent', 'child', 'generic', 'duplicate-generic', 'atoms', 'flag', 'nested', 'order'],
     'graph': ['parent', 'child', 'distinct'],
 }
 for kind, names in cases.items():

@@ -7,6 +7,9 @@ generic wrapper has source-bound overlap: ok
 two auras have source-bound overlap: ok
 flag and yes have source-bound overlap: ok
 nested equal tags have source-bound overlap: ok
+source witness alone names the earlier pair: ok
+full check names the later projected pair: ok
+partial report names the same later pair: ok
 duplicate generic parameters remain unstructured: ok
 unsupported remains unstructured: ok
 later overlap exists in precedence source: ok

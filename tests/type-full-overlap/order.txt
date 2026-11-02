@@ -1,0 +1,7 @@
++$ tagged |$ [A] [%wrapped A]
++$ bad
+  (tagged @t)
+  [%wrapped @p]
+  @t
+  @ud
+++ identity |=(x x)
