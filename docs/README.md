@@ -16,6 +16,7 @@ The current full-module checker also has a narrow static/data-page slice, docume
 | [prompts/drop-union-rune.md](prompts/drop-union-rune.md) | The completed brief for dropping `$?`, as decided on 2026-10-30, before milestone 2 |
 | [reviews/2026-11-02-repo-review.md](reviews/2026-11-02-repo-review.md) | A review of the whole repository on 2026-11-02: bugs, gaps and simplifications, each checked by a second reviewer |
 | [reviews/2026-11-02-questions.md](reviews/2026-11-02-questions.md) | The 45 decisions that review raises, with options and recommendations |
+| [reviews/2026-11-02-syntax-review.md](reviews/2026-11-02-syntax-review.md) | A review of Jibb's syntax on 2026-11-02: 15 verified proposals with before and after examples, what to keep, and questions for @iko |
 
 ## The spec
 
