@@ -1,0 +1,192 @@
+{
+  description = "Jibb, a UI language for Urbit: its desks, and the repo's checks";
+
+  inputs = {
+    # A channel tarball rather than github:NixOS/nixpkgs, so the flake
+    # also fetches where GitHub's archive downloads are blocked, as in a
+    # Claude cloud container.  flake.lock pins the exact release.
+    # nixos-unstable has vere 4.6, which the tools were written against.
+    nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
+    # click, which tools/ship formats its requests to the ship with.
+    urbit-tools = {
+      url = "git+https://github.com/urbit/tools";
+      flake = false;
+    };
+  };
+
+  outputs = { self, nixpkgs, urbit-tools }:
+    let
+      # The platforms nixpkgs builds vere for.
+      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      forSystems = f: nixpkgs.lib.genAttrs systems
+        (system: f nixpkgs.legacyPackages.${system});
+      inherit (nixpkgs) lib;
+      fs = lib.fileset;
+
+      # What the desks are assembled from, and the tools that assemble
+      # them and compile their libraries.
+      deskFiles = fs.unions [
+        ./jibb
+        ./jibb-dev
+        ./my-app
+        ./vendor
+        ./tests
+        ./tools/ship
+        ./tools/golden_case.py
+        ./tools/hoon
+        ./tools/urbit_eval.py
+        ./tools/noun.py
+      ];
+      # What the checks read: the desks' files, the tools and the doc's
+      # tabs, but not the other docs, so editing those reruns nothing.
+      checkFiles = fs.unions [ deskFiles ./tools ./docs/spec ];
+      source = fileset: fs.toSource { root = ./.; inherit fileset; };
+
+      perSystem = pkgs:
+        let
+          inherit (pkgs) python3 urbit;
+          isLinux = pkgs.stdenv.hostPlatform.isLinux;
+
+          click = pkgs.stdenvNoCC.mkDerivation {
+            pname = "click";
+            version = "0-unstable-${builtins.substring 0 8 urbit-tools.lastModifiedDate}";
+            src = urbit-tools;
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            buildInputs = [ pkgs.bash ];
+            installPhase = ''
+              runHook preInstall
+              # click runs click-format from its own folder.
+              install -Dm755 -t $out/libexec/click \
+                pkg/click/click pkg/click/click-format
+              makeWrapper $out/libexec/click/click $out/bin/click \
+                --prefix PATH : ${lib.makeBinPath [ pkgs.coreutils pkgs.gnused ]} \
+                --prefix PATH : ${pkgs.netcat}/bin
+              runHook postInstall
+            '';
+            meta = {
+              description = "Thin client for a running Urbit ship's conn.sock";
+              homepage = "https://github.com/urbit/tools";
+              license = lib.licenses.mit;
+              mainProgram = "click";
+            };
+          };
+
+          # The brass pill from the urbit/urbit commit vendor/ is copied
+          # from (vendor/SOURCES.txt).  GitHub serves it from Git LFS.
+          pill = pkgs.fetchurl {
+            name = "brass.pill";
+            url = "https://media.githubusercontent.com/media/urbit/urbit/50c7f5239610fc72263df7aa99b4d171cfe9d408/bin/brass.pill";
+            hash = "sha256-tLq9FOnxrL20IbPDHCFe5jetZpG344K5nG/YmR5iNwg=";
+          };
+
+          # A freshly booted fake ~zod: the pier itself.  Booting takes
+          # about half a minute; the ship checks start a copy of it.
+          fakezod = pkgs.runCommand "fakezod" {
+            nativeBuildInputs = [ urbit ];
+          } ''
+            urbit -F zod -B ${pill} -t -x -c zod
+            test -d zod/.urb/log
+            mv zod $out
+          '';
+
+          # The desks, as tools/ship assembles them for the ship:
+          # $out/my-app, $out/jibb and $out/jibb-dev, the test desk.  The
+          # check phase compiles the two libraries under urbit eval.
+          desks = pkgs.stdenvNoCC.mkDerivation {
+            # No version in the name, so a commit that changes no desk
+            # file reuses the last build.
+            name = "jibb-desks";
+            src = source deskFiles;
+            nativeBuildInputs = [ python3 ];
+            nativeCheckInputs = [ urbit ];
+            dontConfigure = true;
+            buildPhase = ''
+              runHook preBuild
+              patchShebangs tools > /dev/null
+              tools/ship assemble --out desks
+              runHook postBuild
+            '';
+            doCheck = true;
+            checkPhase = ''
+              runHook preCheck
+              for lib in jibb jibb-import; do
+                echo "compiling $lib.hoon"
+                tools/hoon --lib desks/jibb-dev/lib/$lib.hoon '~'
+              done
+              runHook postCheck
+            '';
+            installPhase = ''
+              runHook preInstall
+              mv desks $out
+              runHook postInstall
+            '';
+            # The files are the desks' as they are: nothing to patch.
+            dontFixup = true;
+            meta = {
+              description = "The Jibb desks: my-app, jibb and jibb-dev";
+              platforms = systems;
+            };
+          };
+
+          # A check: tools/check run on the repo with the given arguments.
+          check = name: args: extra: pkgs.stdenvNoCC.mkDerivation ({
+            name = "jibb-check-${name}";
+            src = source checkFiles;
+            nativeBuildInputs = [ python3 urbit ];
+            dontConfigure = true;
+            dontInstall = true;
+            dontFixup = true;
+            buildPhase = ''
+              runHook preBuild
+              patchShebangs tools > /dev/null
+              mkdir $out
+              tools/check ${args} --logs $out
+              runHook postBuild
+            '';
+          } // extra);
+
+          # Every check that needs only urbit and Python, at once.
+          evalChecks = check "eval" "--group eval -j $NIX_BUILD_CORES" { };
+
+          # The checks that need a ship, on a writable copy of fakezod.
+          shipChecks = check "ship" "--group ship" {
+            preBuild = ''
+              cp -r ${fakezod} $TMPDIR/zod
+              chmod -R u+w $TMPDIR/zod
+              export JIBB_PIER=$TMPDIR/zod
+              export JIBB_CLICK=${lib.getExe click}
+            '';
+            # A failed run shows the end of the ship's log too.
+            failureHook = ''
+              echo "the end of the ship's log, $TMPDIR/zod.log:"
+              tail -n 100 $TMPDIR/zod.log || true
+            '';
+          };
+        in
+        {
+          packages = {
+            inherit desks click;
+            default = desks;
+          } // lib.optionalAttrs isLinux { inherit fakezod; };
+
+          checks = {
+            inherit desks;
+            eval = evalChecks;
+          } // lib.optionalAttrs isLinux { ship = shipChecks; };
+
+          devShells.default = pkgs.mkShell {
+            packages = [ python3 urbit click ];
+            # tools/ship looks for click here; the pier stays
+            # /root/urbit/zod unless $JIBB_PIER says otherwise.
+            JIBB_CLICK = lib.getExe click;
+          };
+        };
+
+      all = forSystems perSystem;
+    in
+    {
+      packages = lib.mapAttrs (_: s: s.packages) all;
+      checks = lib.mapAttrs (_: s: s.checks) all;
+      devShells = lib.mapAttrs (_: s: s.devShells) all;
+    };
+}

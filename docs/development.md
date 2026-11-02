@@ -20,7 +20,17 @@ The source-backed generic-union guard can be run under eval with `tools/type-uni
 
 The tools need Python 3 and `urbit` (vere) on `PATH`; the ship tools also need a fake `~zod` and click. Everything so far ran with vere 4.6 on Linux.
 
-On a usual machine:
+With Nix (and flakes), `nix develop` gives a shell with vere 4.6, Python 3 and click, as the flake pins them, and sets `$JIBB_CLICK`. `nix build .#fakezod` boots a fake `~zod` from the pinned brass pill in about half a minute; copy it to where `tools/ship` expects it:
+
+```
+mkdir -p /root/urbit
+cp -r "$(nix build .#fakezod --no-link --print-out-paths)" /root/urbit/zod
+chmod -R u+w /root/urbit/zod
+```
+
+`nix flake check` needs neither step, since it boots a ship of its own; see the [README](../README.md#building-and-checking-with-nix).
+
+Without Nix, on a usual machine:
 
 1. Install vere as [docs.urbit.org](https://docs.urbit.org) says, and get a brass pill.
 2. Boot a fake ship where `tools/ship` expects it, or point `--pier` or `$JIBB_PIER` elsewhere. Booting takes a few minutes:
@@ -31,7 +41,7 @@ On a usual machine:
 3. Get click, the command-line client for a ship's `conn.sock`, from [urbit/tools](https://github.com/urbit/tools), at `/root/src/tools/pkg/click/click` or wherever `--click` or `$JIBB_CLICK` says.
 4. Optionally, clone [urbit/urbit](https://github.com/urbit/urbit) to read Arvo's source. `vendor/SOURCES.txt` names the commit the vendored files come from.
 
-In a Claude cloud container, the network blocks urbit.org, bootstrap.urbit.org, nixos.org's installer and GitHub's release downloads. This worked on 2026-10-29, and has to be redone in each new container:
+In a Claude cloud container, the network blocks urbit.org, bootstrap.urbit.org, nixos.org's installer and GitHub's release downloads. When Nix is already installed, as it was on 2026-11-02, the flake does all of the below: it fetches nixpkgs from channels.nixos.org, click with git and the pill from media.githubusercontent.com, which the network allows. Otherwise, this worked on 2026-10-29, and has to be redone in each new container:
 
 ```
 # Nix, single-user
@@ -117,7 +127,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, checks selected mold and mark projections and the partial checker, and records Ford and mark subject shapes on the fake ship |
 | `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
-| `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
+| `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `assemble --out <dir>` (no ship needed), `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
 | `tools/testdata/selftest` | Tests `tools/golden` and `tools/hoon` against a stub library, and `tools/doc-blocks` against Markdown it writes |
 | `tools/testdata/ship-selftest` | Tests `tools/ship`'s test generator and runner against a stub library on the ship |
 | `tools/testdata/clay-fixtures-selftest` | Tests temporary Clay fixture cleanup and signal handling without a ship |
@@ -129,6 +139,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 ```
 tools/check                  # every check; it exits 0 only when all pass
 tools/check --group eval     # only the checks that need no ship, as CI runs them
+nix flake check              # the same checks in the Nix sandbox, on a fresh fake ~zod
 ```
 
 `tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. The eval group, the 62 checks that need only `urbit` and Python, runs several at a time (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit` and `clay-fixtures`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'type-todo-*'`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.

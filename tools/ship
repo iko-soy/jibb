@@ -5,6 +5,7 @@
     tools/ship stop                  stop it
     tools/ship status                running or not; desks, revisions, mounts
     tools/ship sync my-app           assemble a desk from its folders, |commit
+    tools/ship assemble --out DIR    write the desks' files to DIR, no ship
     tools/ship test                  sync the jibb-dev test desk, run -test
     tools/ship gen-tests             write tests/lib/jibb.hoon from tests/golden
     tools/ship check-commit          prove that |commit stores .jibb files
@@ -1761,6 +1762,21 @@ def cmd_sync(ship, args):
         sync(ship, desk, lib=lib, golden=args.golden, timeout=args.timeout)
 
 
+def cmd_assemble(ship, args):
+    """Write desks' files, as sync assembles them, into <out>/<desk>."""
+    for desk in args.desks or sorted(DESKS):
+        a = assemble(desk)
+        into = os.path.join(args.out, desk)
+        if os.path.exists(into):
+            raise Unable('%s already exists' % show(into))
+        for rel in sorted(a.files):
+            path = os.path.join(into, rel)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'wb') as f:
+                f.write(a.files[rel][0])
+        say('%s: %d files in %s' % (desk, len(a.files), show(into)))
+
+
 def cmd_gen_tests(ship, args):
     golden = args.golden or GOLDEN
     out = args.out or TESTS_LIB
@@ -2319,6 +2335,13 @@ def main(argv):
     p.add_argument('--timeout', type=int, default=120,
                    help='seconds to wait for the commit')
 
+    p = sub.add_parser('assemble', help='write desks, as sync assembles '
+                       'them, into a folder; needs no ship')
+    p.add_argument('desks', nargs='*', metavar='desk',
+                   help='the desks (default: all of them)')
+    p.add_argument('--out', required=True,
+                   help='the folder; each desk goes in <out>/<desk>')
+
     p = sub.add_parser('test', help='sync the jibb-dev desk and run -test '
                        'on its /tests')
     g = p.add_mutually_exclusive_group()
@@ -2383,6 +2406,7 @@ def main(argv):
         'status': lambda: cmd_status(ship, args),
         'log': lambda: cmd_log(ship, args),
         'sync': lambda: cmd_sync(ship, args),
+        'assemble': lambda: cmd_assemble(ship, args),
         'test': lambda: cmd_test(ship, args),
         'gen-tests': lambda: cmd_gen_tests(ship, args),
         'check-commit': lambda: cmd_check_commit(ship, args),

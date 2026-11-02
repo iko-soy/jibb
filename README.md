@@ -14,6 +14,23 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `tools/`: dev tooling: `golden`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, `ship`, and `check`, which runs every check.
 - `docs/`: the doc's tabs as Markdown in `spec/`, the status, the open questions, the development guide, the compiler's map, and briefs for milestones in `prompts/`.
 
+## Building and checking with Nix
+
+The flake (`flake.nix`, pinned by `flake.lock`) builds the desks and runs every check, with vere 4.6, Python 3, click and the brass pill pinned:
+
+```
+nix build              # result/my-app, result/jibb, result/jibb-dev: the desks
+nix flake check        # every check: the eval group and, on Linux, the ship group on a fresh fake ~zod
+nix develop            # a shell with urbit, python3 and click, for running the tools by hand
+nix build .#fakezod    # a freshly booted fake ~zod pier (Linux)
+```
+
+Jibb has no native binary: what it ships is desks, Hoon and Jibb source that a ship builds. So `nix build` writes the three desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build.
+
+`nix flake check` builds that too, then runs `tools/check --group eval` and, on Linux, `tools/check --group ship` against a copy of a fake ~zod it boots from the pill. Everything runs in the Nix sandbox without network, so a check can't pass because of something on your machine. Each group is one build; a failure prints the failing checks' output, and a passing build keeps every check's log in its output. On four CPUs it took about 20 minutes, the two groups building side by side: 18 minutes for the eval group, most of it `type-todo-full-test`, and 10 for the ship group. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
+
+Limits: the ship checks need Linux, since `tools/ship` finds the ship's processes in `/proc`, so on macOS `nix flake check` runs only the eval group. Only `x86_64-linux` has been tried; the flake also declares `aarch64-linux` and `aarch64-darwin`, the other platforms nixpkgs builds vere for.
+
 ## Golden tests
 
 Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, or select marks in `marks.txt` and provide their source in `mar/<name>.txt`. `modules.txt` selects Jibb source fixtures; their trees go in `module-trees.txt`, and the partial checker can resolve a subset of library imports. See [docs/development.md](docs/development.md).
@@ -78,7 +95,7 @@ tools/ship log                  # the end of its log
 tools/ship stop
 ```
 
-`tools/ship sync <desk>` assembles a desk from the repo's folders, creates it if it's missing (as `|new-desk` does), mounts it, deletes from the desk through Clay the files the repo doesn't have, makes the mount hold exactly the repo's files, runs `|commit` and waits until the desk matches the repo, checking every file. If Clay rejects the commit, it prints Clay's error, which the log doesn't show.
+`tools/ship assemble --out <dir> [<desk> ...]` writes the desks' files to `<dir>/<desk>` as sync assembles them, without a ship; `nix build` uses it. `tools/ship sync <desk>` assembles a desk from the repo's folders, creates it if it's missing (as `|new-desk` does), mounts it, deletes from the desk through Clay the files the repo doesn't have, makes the mount hold exactly the repo's files, runs `|commit` and waits until the desk matches the repo, checking every file. If Clay rejects the commit, it prints Clay's error, which the log doesn't show.
 
 | Desk | Assembled from |
 | --- | --- |
