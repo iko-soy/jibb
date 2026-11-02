@@ -415,7 +415,7 @@ def check_eval_death(c, tmp):
     add_case(cases, 'bails', b'bail\n')
     status, out = golden('--dir', cases, '--lib', STUB)
     c.expect(status == 1, 'exit status %d, not 1' % status)
-    c.expect('running each alone' in out, 'no word on rerunning:\n' + out)
+    c.expect('running each half' in out, 'no word on splitting the cases:\n' + out)
     c.expect('FAIL  bails: crashed' in out and 'bail: %' in out,
              'the case that ended the eval is not named:\n' + out)
     for name in os.listdir(CASES):
