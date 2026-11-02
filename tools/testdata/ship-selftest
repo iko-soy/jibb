@@ -330,6 +330,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-program-update.hoon',
            'tests/lib/jibb-program-watch.hoon',
            'tests/lib/jibb-todo-full.hoon',
+           'tests/lib/jibb-theme.hoon',
            'tests/lib/jibb-todo-api.hoon',
            'tests/lib/jibb-todo-partial.hoon',
            'tests/lib/jibb-constructor-fit-guards.hoon',
@@ -431,6 +432,12 @@ def generator_checks(tmp):
            *(f'tests/type-todo-full/{name}.txt' for name in (
                'wrong-model', 'wrong-message', 'wrong-result', 'ambiguous-mapper',
                'open-key', 'alias', 'wrong-watch', 'non-gate-view'))}
+          <= set(normal.files))
+    check('theme sources and shared fixture are assembled',
+          {'tests/lib/jibb-theme.hoon',
+           *(f'tests/type-theme/{name}.txt' for name in (
+               'source', 'dark-absent', 'wrong-nested-aura', 'missing-field',
+               'wrong-font', 'wrong-dark'))}
           <= set(normal.files))
     check('todo partial golden and reused sources are assembled',
           {'tests/type-todo-partial/expected.txt', 'tests/type-gate-free/todo.txt',

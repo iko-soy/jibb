@@ -5,4 +5,4 @@
     lang="en"
     zone="UTC"
     font=`%/static/fonts/inter.woff2
-    dark=[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+    dark=`[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]

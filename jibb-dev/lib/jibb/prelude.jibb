@@ -491,6 +491,15 @@
 ++ form |= [message=M kids=(list (element M))]
   ^- (element M) [%form message kids]
 
++$ theme
+  [ space=[s1=@t s2=@t s3=@t]
+    tones=[normal=@t background=@t accent=@t danger=@t muted=@t]
+    wide=@t
+    lang=@t
+    zone=@t
+    font=(unit qath)
+    dark=(unit [tones=[normal=@t background=@t accent=@t danger=@t muted=@t]])
+
 +$ program |$ [D X M]
   [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]
 

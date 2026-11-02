@@ -216,7 +216,7 @@ The theme, `++ theme` in `/ui/theme.jibb`, uses the prelude's `theme` mold, with
     lang="en"
     zone="UTC"
     font=`%/static/fonts/inter.woff2
-    dark=[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+    dark=`[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
 ```
 
 Style attributes compile to atomic classes in one stylesheet built from the theme, so islands can't compute a missing class. `[%chars n]` and `[%fill n]` become inline styles.

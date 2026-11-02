@@ -22,11 +22,12 @@
           (face 7:5 font
             (unit 7:10 (qath 7:11 static fonts inter.woff2)))
           (face 8:5 dark
-            (tuple 8:10
-              (face 8:11 tones
-                (tuple 8:17
-                  (face 8:18 normal (str 8:25 "#eee"))
-                  (face 8:32 background (str 8:43 "#111"))
-                  (face 8:50 accent (str 8:57 "#4c9"))
-                  (face 8:64 danger (str 8:71 "#f28b82"))
-                  (face 8:81 muted (str 8:87 "#aaa")))))))))))
+            (unit 8:10
+              (tuple 8:11
+                (face 8:12 tones
+                  (tuple 8:18
+                    (face 8:19 normal (str 8:26 "#eee"))
+                    (face 8:33 background (str 8:44 "#111"))
+                    (face 8:51 accent (str 8:58 "#4c9"))
+                    (face 8:65 danger (str 8:72 "#f28b82"))
+                    (face 8:82 muted (str 8:88 "#aaa"))))))))))))

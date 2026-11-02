@@ -77,7 +77,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Apps | One island under a catch-all route, given the path by `pure`; `%url` delivers the path on every change; in-section links act as `go`; focus moves to the first heading | Decided 2026-10-29 |
 | Layout vocabulary | Jibb's elements and theme tokens; the stylesheet comes from the theme alone; chars and fill are inline; `[%fill n]` below 1 counts as 1 | Decided 2026-10-29 |
 | Responsive layout | `stack` switches at the theme's `wide` | Decided 2026-10-29 |
-| Theme | A prelude mold with every token required: spaces, five tones with `normal` and `background`, language, zone, `wide`, and an optional static font; 4.5:1 contrast enforced | Decided 2026-10-29 |
+| Theme | A prelude mold with every token required: spaces, five tones with `normal` and `background`, language, zone, `wide`, and an optional static font; optional values such as dark tones use explicit backtick unit syntax; 4.5:1 contrast enforced | Decided 2026-11-01 |
 | Dark mode | Hand-written dark tones under `dark`, used when the reader prefers dark | Decided 2026-10-27 |
 | Links | All text escaped; in-app links are application paths, as `%/blog/(slug)`, with no query or fragment, checked at compile time against routes and static files; paths and unchecked `https`, `mailto` and `tel` URLs and root-relative cords such as `"/apps/groups"` have separate declarations; `link-unsafe`, `image-unsafe` and `go-unsafe` are the unchecked forms; both navigation declarations produce `[%go url=@t]`, with `go` converting the path to a cord including the app's base path; other cords render as text; a CSP on every page | Decided 2026-10-30 |
 | Data layer | Hoon's nouns: units, treaps, loobeans | Decided |

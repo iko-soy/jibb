@@ -2,7 +2,7 @@
 
 Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), and its repository copy in `spec/`. The repository copy records decisions made on 2026-10-30, including dropping `$?`, adding `%$` as a term literal and pattern, making `@` an unrestricted atom, treating `?` as two atoms for union disjointness, and the milestone 2 type and prelude decisions; the Claude document still needs to be synchronized. This folder also holds where the build stands, what is still open, and how to work on the code.
 
-The current full-module checker also has a narrow static/data-page slice, documented in [compiler.md](compiler.md) and [status.md](status.md). Its shared eval/ship fixture checks the real about, blog index and todo index sources without claiming rendering or request execution.
+The current full-module checker also has a narrow static/data-page slice, documented in [compiler.md](compiler.md) and [status.md](status.md). Its shared eval/ship fixture checks the real about, blog index and todo index sources without claiming rendering or request execution. The shared theme fixture likewise full-checks the byte-identical real theme and its exact type without implementing theme behavior.
 
 | File | What it holds |
 | --- | --- |

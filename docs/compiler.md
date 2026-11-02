@@ -148,6 +148,8 @@ The supplied prelude is parsed into a **partial interface**: all names actually 
 
 The prepared interface includes the source-backed UI molds and constructors, the full nonrecursive `element` union, and the exact `program` and `page` records and builders. Its element union erases nested child, keyed-item and table payloads to `*`, while public constructor schemes retain typed composition and independent key parameters. `types-prelude-ui` checks those schemes and selected valid and invalid compositions. A child-message mismatch currently fails closed as an unsupported list-item constraint rather than a definite mismatch diagnostic. Raw-constructor encapsulation, duplicate-attribute checks, rendering, navigation, storage and execution remain outside this slice.
 
+The prepared interface also includes the exact documented `theme` mold. Full checking covers the unchanged real `/ui/theme.jibb`, its exact exported record and a structural downstream import, with dark absent/present and field/type rejection controls. The documented present dark record uses explicit backtick unit syntax, as the Decisions tab records; there is no theme-specific inference exception. This is type checking only: contrast validation, theme rendering and routing remain unimplemented.
+
 And the design notes:
 
 | Note | Says |

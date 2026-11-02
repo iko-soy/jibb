@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""Fully check the byte-identical real theme and its mold under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--timeout', type=float, default=300,
+                    help='seconds allowed for urbit eval (default: 300)')
+args = parser.parse_args()
+if (root / 'tests/type-theme/source.txt').read_bytes() != (root / 'my-app/ui/theme.jibb').read_bytes():
+    sys.exit('tests/type-theme/source.txt differs from my-app/ui/theme.jibb')
+tests = (root / 'tests/lib/jibb-theme.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+names = ('source', 'dark-absent', 'wrong-nested-aura', 'missing-field',
+         'wrong-font', 'wrong-dark')
+prefix = ('=/  jibb  .\n' +
+          ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                  for name in names) + '=/  suite\n' + tests)
+arguments = ' '.join(f'(text:suite {name})' for name in names)
+expression = (prefix + '\n=/  failures=(list tape)  (theme-errors:suite prelude internal ' +
+              arguments + ')\n^-  @t\n' +
+              "?~  failures  'theme checks passed'\n" +
+              '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-theme-') as tmp:
+    path = Path(tmp) / 'theme.hoon'
+    path.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--timeout', str(args.timeout),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name in names:
+        command += ['--cord', name + '-text=' + str(root / f'tests/type-theme/{name}.txt')]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'theme checks passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('byte-identical theme, exact type, structural import and negatives passed')
