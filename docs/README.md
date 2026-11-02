@@ -15,6 +15,7 @@ The current full-module checker also has a narrow static/data-page slice, docume
 | [prompts/milestone-2.md](prompts/milestone-2.md) | A brief for the developer who builds milestone 2, types and prelude |
 | [prompts/drop-union-rune.md](prompts/drop-union-rune.md) | The completed brief for dropping `$?`, as decided on 2026-10-30, before milestone 2 |
 | [reviews/2026-11-02-repo-review.md](reviews/2026-11-02-repo-review.md) | A review of the whole repository on 2026-11-02: bugs, gaps and simplifications, each checked by a second reviewer |
+| [reviews/2026-11-02-questions.md](reviews/2026-11-02-questions.md) | The 45 decisions that review raises, with options and recommendations |
 
 ## The spec
 
