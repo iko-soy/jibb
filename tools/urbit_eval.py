@@ -18,7 +18,9 @@ How `urbit eval` (vere 4.6) behaves, as found by trying it:
 - A failure prints its trace to stdout and "eval: bail: %exit" (or
   %meme, ...) to stderr, and still exits with status 0.
 - Type errors carry no source positions unless the program turns on
-  debug spots, so every program here starts with `!:`.  Spots print as
+  debug spots, so programs here start with `!:` (tools/hoon --no-debug
+  leaves it out).  It makes the checker run 2.2 to 2.6 times slower
+  than on a ship.  Spots print as
   /::[l c].[l c]> at compile time and /:<[l c].[l c]> at run time, and
   a syntax error as {l c}.  Lines and columns count from 1, columns in
   bytes.
@@ -173,14 +175,16 @@ class Program:
         return None, line
 
 
-def library_program(lib_path):
+def library_program(lib_path, debug=True):
     """A program that starts `!:  =>  <library>`, for adding what follows.
 
     `!:` turns on debug spots, so errors and crash traces have positions;
     `=>` makes the library's core the subject of what's added next.
+    Without debug, the program starts `=>  <library>`: it runs at a ship's
+    speed, but its errors and traces have no positions.
     """
     prog = Program()
-    prog.add('!:\n=>', '(prefix)', 'prefix')
+    prog.add('!:\n=>' if debug else '=>', '(prefix)', 'prefix')
     prog.add(read_text(lib_path), display_path(lib_path), 'lib')
     return prog
 

@@ -125,14 +125,14 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-arithmetic-guards-test` | Runs restricted atom-variable, unification and projection guards under eval and on the ship |
 | `tools/type-module-scope-test` | Checks the partial module checker’s prelude boundary and duplicate-source rejection against `tests/type-module-scope/expected.txt` under eval |
 | `tools/clay-fixtures` | Syncs `my-app`, builds its example `/sur` files and marks through Clay, checks selected mold and mark projections and the partial checker, and records Ford and mark subject shapes on the fake ship |
-| `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file |
+| `tools/hoon` | Evaluates Hoon with the library in scope, as `tools/hoon '(golden /a/b/jibb (crip "++ main view"))'`; `--cord name=file` binds a file's text, `-f` reads the expression from a file; `--no-debug` leaves out `!:`, which gives errors their positions but makes the checker 2.2 to 2.6 times slower than on a ship, for timings |
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
 | `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `assemble --out <dir>` (no ship needed), `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
 | `tools/testdata/selftest` | Tests `tools/golden` and `tools/hoon` against a stub library, and `tools/doc-blocks` against Markdown it writes |
 | `tools/testdata/ship-selftest` | Tests `tools/ship`'s test generator and runner against a stub library on the ship |
 | `tools/testdata/clay-fixtures-selftest` | Tests temporary Clay fixture cleanup and signal handling without a ship |
 
-`tools/golden` starts `urbit eval` once and builds the library, which takes about 8 s, then runs every case under `mule`, so a crash fails only its own case.
+`tools/golden` starts `urbit eval` once and builds the library, which takes about 27 s, then runs every case under `mule`, so a crash fails only its own case.
 
 ## Before pushing
 

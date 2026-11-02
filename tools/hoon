@@ -6,7 +6,9 @@
     tools/hoon -f expr.hoon
 
 The program is `!:  =>  <library>  <expression>`, run by `urbit eval`,
-so every arm of the library, and the standard library, is in scope.  The
+so every arm of the library, and the standard library, is in scope.
+`!:` gives errors their positions but makes the checker run 2.2 to 2.6
+times slower than on a ship; --no-debug leaves it out, for timings.  The
 result is printed as Hoon prints it, without colours; --raw prints a
 cord's or tape's text instead.  Errors and crashes are printed with
 their positions mapped back to the library or the expression, and an
@@ -102,6 +104,10 @@ def main(argv):
                          "expression to use; repeatable")
     ap.add_argument('--timeout', type=float, default=600, metavar='SECONDS',
                     help='how long urbit eval may run (default: 600)')
+    ap.add_argument('--no-debug', dest='debug', action='store_false',
+                    help="leave out !:, so the checker runs at a ship's "
+                         "speed, for timings; errors then have no "
+                         "positions")
     ap.add_argument('--save-program', metavar='FILE',
                     help='also write the generated Hoon program to FILE')
     opts = ap.parse_args(argv)
@@ -119,7 +125,7 @@ def main(argv):
             expr, name = opts.expr, '(expression)'
         if not expr.strip():
             raise ue.ToolError('the expression is empty')
-        prog = ue.library_program(opts.lib)
+        prog = ue.library_program(opts.lib, debug=opts.debug)
         for spec in opts.cord:
             line, cname = cord_binding(spec)
             prog.add(line, '(--cord %s)' % cname, 'harness')

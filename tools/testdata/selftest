@@ -574,6 +574,12 @@ def check_hoon(c, tmp):
              'a crash from -f FILE: %r' % out)
     status, out = hoon('--lib', STUB, '-f', '-', stdin=b'(mul 6 7)')
     c.expect((status, out) == (0, '42\n'), 'stdin: %r' % out)
+    program = os.path.join(tmp, 'no-debug.hoon')
+    status, out = hoon('--lib', STUB, '--no-debug', '--save-program', program,
+                       '(add 2 2)')
+    c.expect((status, out) == (0, '4\n') and
+             read(program).startswith(b'=>\n'),
+             '--no-debug leaves out !: : %d %r' % (status, out))
 
 
 def check_doc_blocks(c, tmp):
