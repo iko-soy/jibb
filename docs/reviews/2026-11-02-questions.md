@@ -123,6 +123,8 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 
 ## Language and spec rulings
 
+Montelot's answers to 16 to 28 are proposals. They are listed in [open-questions.md](../open-questions.md) until @iko confirms them; the code changes wait until then.
+
 **16. Which auras may a term literal fit?** Today `^- @tas %1.000` and `^- @tas %&` are accepted and `^- @ud %1.000` is rejected, the opposite of Hoon. grammar.md:141 supports the code; grammar.md:29 and "Literals: exactly Hoon's" don't. (A20)
 
 - a) Follow Hoon: a term literal fits its own aura family, so `%1.000` is `@ud` and `%&` is `?`.
@@ -184,14 +186,14 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 - a) No, keep both.
 - b) Yes.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **25. When should `eq` and the gate-free type-variable constraint be built?** Both are decided, neither exists, and no doc tracks them. (A98)
 
 - a) In milestone 2.
 - b) Later, and list them as outstanding.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **26. Which Hoon unions should the importer learn?** Today `$%` with `%&`, `%|` or `%0` tags, `(each a b)` and `json` all fail, though the spec's import table lists them. (A50)
 
@@ -199,21 +201,21 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 - b) Only the tags.
 - c) Later.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **27. Should the `%jibb` mark keep dropping the final newline on a `%txt` round trip**, as `%hoon` does? (A61)
 
 - a) Keep it, like `%hoon`.
 - b) Preserve the newline, and change tools/ship's assertion.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **28. Should the printer flatten `[a [b c]]` to `[a b c]` and print named molds by name**, such as `theme` and `item.todo`? (A136)
 
 - a) Yes.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 ## Tests and tooling
 
@@ -222,7 +224,7 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 - a) Yes.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **30. Should there be one `tools/check` command, and CI?** (A92, A96)
 
@@ -230,77 +232,77 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 - b) `tools/check` now, CI at milestone 7 as planned.
 - c) Neither.
 
-**Answer:** b
+**Answer:** a *(chosen)*
 
 **31. How should the 28 copies of `my-app` files under `tests/` be handled?** (A108, A109)
 
 - a) Map `my-app` into the `jibb-dev` desk outside `/tests` and read it directly, removing the copies.
 - b) Keep the copies, and guard them all from one manifest.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **32. Should the generated `tests/lib/jibb.hoon` (3,949 lines) stop being committed?** Assembly drops it and regenerates it anyway. (A83)
 
 - a) Yes, and add it to .gitignore.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **33. Should the importer's test fixtures (about 550 lines) move out of `jibb-import.hoon`**, which app desks vendor, into `tests/lib/jibb-import.hoon`? (A52)
 
 - a) Yes.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **34. Should the import-only fixtures move off `my-app`** (`sur/import-fixture.hoon`, `mar/label.hoon`, the Tlon probe) to a fixtures desk? (A113)
 
 - a) Yes.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **35. Should the five `tools/hoon` checks that exit 0 whatever they print become test arms?** (A91)
 
 - a) Yes.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **36. Should type-checker golden cases keep their full token and tree outputs?** They are 73% of all parser golden lines. (A94)
 
 - a) Keep them: each stage's output is compared.
 - b) Let type cases opt out.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **37. Should the tests keep calling internal library arms (137 of them)?** (A126)
 
 - a) Keep them for now, and revisit after the checker core changes.
 - b) Move them behind a small public facade.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **38. Should `my-app` keep the failing buttons example and the doc theme's static font?** Milestone 4 will treat both as errors. (A112)
 
 - a) Keep them through milestone 2, and list it as a milestone-4 open question.
 - b) Move the error example out now.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **39. Should every vendored package keep going into every desk?** (A117)
 
 - a) Yes, as designed.
 - b) Make it per desk.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **40. Should `tools/hoon` get a `--no-debug` mode** for timings, with the docs' figures re-measured? Every eval runs with `!:`, which makes checker work 2.2 to 2.6 times slower. (A137)
 
 - a) Yes.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 ## Docs and repository
 
@@ -309,14 +311,14 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 - a) Yes.
 - b) Only fix the contradictions.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **42. Until the Claude design doc is synced, which spec wins?** (A104)
 
 - a) The repository copy, with a "synced" column in decisions.md.
 - b) The Claude doc, as development.md says now.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **43. Who syncs the Claude design doc with the repository's decisions?**
 
@@ -324,14 +326,14 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 - b) @iko.
 - c) Leave it for now.
 
-**Answer:** b
+**Answer:** c *(chosen)*
 
 **44. Should open-questions.md hold only open questions**, with settled ones moved to decisions.md? (A103)
 
 - a) Yes.
 - b) No.
 
-**Answer:** a
+**Answer:** a *(chosen)*
 
 **45. Which licence should the repository have?** It has none, and doesn't state the licences of `vendor/` or the Tlon fixtures. (A107)
 
@@ -339,4 +341,4 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 - b) Another licence.
 - c) None: keep it private.
 
-**Answer:** a
+**Answer:** a *(chosen)*

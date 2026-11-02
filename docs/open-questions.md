@@ -66,6 +66,26 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking i
 
 34. **Settled: constructors and equal noun literals.** On 2026-10-31, @iko said expressions with the same runtime representation count as equal, and cases that cannot be distinguished at runtime are rejected at compile time. Thus `|=%$` matches a case headed by `%$`, `%.y` or `~`: each is the noun 0. Cases with equal heads and overlapping payloads cannot coexist in a union.
 
+## Review rulings waiting for @iko
+
+The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language and spec questions. Montelot answered them on 2026-11-02 as proposals. Each waits for @iko to confirm before it goes in [Decisions](spec/decisions.md) and the code changes.
+
+| # | Question | Proposed answer | Refs |
+| --- | --- | --- | --- |
+| [16](reviews/2026-11-02-questions.md) | Which auras may a term literal fit? Today `^- @tas %1.000` is accepted and `^- @ud %1.000` is rejected | Follow Hoon: `%1.000` is `@ud` and `%&` is `?` | A20 |
+| [17](reviews/2026-11-02-questions.md) | May a name term fit `@t`, as `@tas` nests in `@t` in Hoon? | Yes | A20 |
+| [18](reviews/2026-11-02-questions.md) | May a gate fit `*`? The prelude's `element` erases gates into `*` | Yes, and say in the spec that `*` may hold gates | A23 |
+| [19](reviews/2026-11-02-questions.md) | Where are `[]` and `m()`, both decided errors, rejected? | In the parser, at the closer, with golden cases | A6, A100 |
+| [20](reviews/2026-11-02-questions.md) | Is `[a=@ud [a=@t b=?]]` one record or two scopes? | One record: the duplicate `a` is an error | A30 |
+| [21](reviews/2026-11-02-questions.md) | May `/%  %foo` and `++ foo 1` share a name? | Yes: molds and values have separate namespaces | A25 |
+| [22](reviews/2026-11-02-questions.md) | Is a `?-` arm that matches no remaining case a definite error? | Yes: "arm matches no case" | A15 |
+| [23](reviews/2026-11-02-questions.md) | Should `(mop K V)` carry its comparator? | No, match Hoon | A55 |
+| [24](reviews/2026-11-02-questions.md) | Should Hoon's `each` mold be renamed, since the prelude has the element gate `each`? | No, keep both | A64 |
+| [25](reviews/2026-11-02-questions.md) | When are `eq` and the gate-free type-variable constraint built? | In milestone 2 | A98 |
+| [26](reviews/2026-11-02-questions.md) | Which Hoon unions should the importer read? | `$%` with `%&`, `%\|` and `%0` tags now, then `each` and `json` as catalog entries | A50 |
+| [27](reviews/2026-11-02-questions.md) | Should the `%jibb` mark keep dropping the final newline on a `%txt` round trip? | Keep it, like `%hoon` | A61 |
+| [28](reviews/2026-11-02-questions.md) | Should the printer flatten `[a [b c]]` and print named molds by name, such as `theme`? | Yes | A136 |
+
 ## Grammar questions never put to the doc's author
 
 In milestone 1 the parser met about thirty places where the doc could be read more than one way. Twelve went to @iko on 2026-10-30 and are rows of the Decisions tab. These were not asked. For each, the parser follows the reading below, and some are marked "(doc question)" in the library's notes. None changes what a valid program means, except where a reading makes something an error.
