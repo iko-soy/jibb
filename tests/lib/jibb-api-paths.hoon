@@ -34,7 +34,8 @@
   ?~  scry-bad  ~[leaf+"API path fixture scry-bad is missing"]
   ?~  expected  ~[leaf+"API path expected output is missing"]
   =/  got  (fixture-output prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text missing-decl) (text value-clash) (text poke-clash) (text scry) (text scry-bad))
-  ?.  =(got expected)  ~[leaf+"API path analysis output differs from expected.txt"]
+  ::  A definite error's report spans several lines of expected.txt.
+  ?.  =((to-wain:format (of-wain:format got)) expected)  ~[leaf+"API path analysis output differs from expected.txt"]
   ~
 ++  show-result
   |=  [label=@t result=(each (list iapi-path-typed:jibb) @t)]

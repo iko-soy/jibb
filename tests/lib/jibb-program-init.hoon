@@ -105,7 +105,7 @@
       (program-init-positive at island `downstream u.prepared)
     (program-init-positive /tests/program-main/initializer-unfaced/jibb unfaced ~ u.prepared)
   ?.  =(9 (lent negatives))  ~["contextual negative fixture count differs"]
-  =/  definitions=@t  (crip "module definitions need unsupported inference: {(spud at)}")
+  =/  definitions=@t  (crip "module definitions need unsupported inference: {(spud at)}: ++ main")
   =/  cases=(list [label=@t at=path src=@t boundary=@t])
     :~  ['incompatible error field' at (snag 0 negatives) (program-init-pending at (snag 0 negatives) 6 32 "~")]
         ['earlier tuple mismatch' at (snag 1 negatives) (program-init-pending at (snag 1 negatives) 6 34 "~")]

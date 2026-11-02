@@ -1,0 +1,8 @@
+partial inference; module not checked
+API derived name `poke` clashes with a definition
+/ui/api/demo.jibb:2:1: `poke` is derived from this mold
++$ poke full
+^
+/ui/api/demo.jibb:3:1: clashing definition
+++ poke "bad"
+^

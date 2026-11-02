@@ -9,8 +9,20 @@ unit poke: canonical
 missing mark: API path declaration needs unsupported analysis
 duplicate mark: API path declaration needs unsupported analysis
 undeclared mark: API path declaration needs unsupported analysis
-value collision: API path declaration needs unsupported analysis
-poke collision: API path declaration needs unsupported analysis
+value collision: API derived name `todos` clashes with a definition
+/ui/api/todo.jibb:11:3: `todos` is derived from this path case
+  [%todos /todos todos]
+  ^
+/ui/api/todo.jibb:15:1: clashing definition
+++ todos "collision"
+^
+poke collision: API derived name `poke` clashes with a definition
+/ui/api/todo.jibb:9:1: `poke` is derived from this mold
++$ poke todo-action
+^
+/ui/api/todo.jibb:14:1: clashing definition
+++ poke "collision"
+^
 scry matching parameters: accepted 3 path cases
 scry metadata: id=@ud
 scry unknown parameter: API path declaration needs unsupported analysis

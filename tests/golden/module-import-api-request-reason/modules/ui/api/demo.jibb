@@ -1,0 +1,4 @@
+/% %full
++$ paths
+  [%plain /plain full]
+  [%pair /pair/[a=@ud]/[b=@ud] full]

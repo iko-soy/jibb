@@ -1,0 +1,5 @@
+/% %full
++$ paths
+  [%plain /plain full]
+  [%other /other full]
+++ plain 5

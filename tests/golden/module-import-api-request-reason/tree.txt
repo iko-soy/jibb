@@ -1,0 +1,9 @@
+(module
+  (jibb 1:1 api /ui/api/demo)
+  (value 2:1 cord
+    (group 2:9
+      (call 2:10
+        (wing 2:10 plain.api)
+        (gate-wide 2:20
+          (face 2:23 x (aura 2:25 @t))
+          (str 2:28 "ok"))))))

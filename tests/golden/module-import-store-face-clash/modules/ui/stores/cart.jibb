@@ -1,0 +1,12 @@
+/- poke
++$ state [items=(list @t) open=?]
++$ poke
+  [%add item=@t]
+  %toggle
+
+++ main (store init update)
+++ init ^- state [~ %.n]
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))

@@ -1,0 +1,13 @@
+1:1 glyph /=
+1:4 name cart
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot stores
+1:19 tight glyph /
+1:20 tight knot cart
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name cart-main
+2:14 wing main.cart
+2:23 NEWLINE

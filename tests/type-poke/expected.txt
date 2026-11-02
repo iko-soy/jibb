@@ -51,16 +51,22 @@ partial inference; module not checked
 partial inference; module not checked
 the prelude internal module is private
 partial inference; module not checked
-API module needs unsupported inference: /ui/api/todo/jibb
+API module needs unsupported inference: /ui/api/todo/jibb: API poke mark %todo-action has no reader result
 partial inference; module not checked
-API module needs unsupported inference: /ui/api/todo/jibb
+API module needs unsupported inference: /ui/api/todo/jibb: API poke mark %todo-action has duplicate reader results
 partial inference; module not checked
-API module needs unsupported inference: /ui/api/todo/jibb
+API module needs unsupported inference: /ui/api/todo/jibb: API path declaration needs unsupported analysis
 partial inference; module not checked
 the prelude internal module is private
 partial inference; module not checked
-API module needs unsupported inference: /ui/api/todo/jibb
+API module needs unsupported inference: /ui/api/todo/jibb: poke-only API mark imports need unsupported inference
 partial inference; module not checked
-API module needs unsupported inference: /ui/api/todo/jibb
+API derived name `poke` clashes with a definition
+/ui/api/todo.jibb:2:1: `poke` is derived from this mold
++$ poke todo-action
+^
+/ui/api/todo.jibb:3:1: clashing definition
+++ poke "bad"
+^
 partial inference; module not checked
 ++ test: module member is not available to partial inference

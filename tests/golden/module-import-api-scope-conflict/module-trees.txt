@@ -1,0 +1,11 @@
+/ui/api/demo.jibb
+(module
+  (mark 1:1 %full)
+  (jibb 2:1 same /ui/lib)
+  (mold 3:1 poke (ref 3:9 full)))
+/ui/lib.jibb
+(module
+  (value 1:1 safe
+    (gate 1:9
+      (face 1:12 x (aura 1:14 @t))
+      (wing 1:17 x))))

@@ -1,0 +1,4 @@
+source: Grammar, Modules: "An API module, `/ui/api/<agent>.jibb`, also exports derived gates: a generic `poke` command helper ... Clashing derived names are errors, including a derived name that clashes with an import face."
+tests: An imported API whose `++ poke` clashes with the helper derived from its `+$ poke` is rejected with a definite error at the mold and the definition. The API has no `+$ paths`, so no path declaration is blamed.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,4 @@
+source: docs/spec/overview.md, Agent APIs: "A path case is a request name, a path and a type."
+tests: A path case with two typed parameters is outside the request fragment, so the imported API fails with the reason its request constructor gave, `request paths need unsupported inference`, after the module's path.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,4 @@
+partial inference; module not checked
+/ui/lib.jibb:2:14: sample `user` shadows a name already in scope
+++ helper |= user=@t user
+             ^

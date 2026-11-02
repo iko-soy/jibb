@@ -1,0 +1,4 @@
+/ui/api/demo.jibb
+(module
+  (mark 1:1 %same)
+  (mold 2:1 poke (ref 2:9 same)))

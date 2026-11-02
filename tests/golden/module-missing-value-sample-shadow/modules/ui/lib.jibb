@@ -1,0 +1,3 @@
+++ user |= x=@t (helper x)
+++ helper |= user=@t user
+++ safe |= x=@t x

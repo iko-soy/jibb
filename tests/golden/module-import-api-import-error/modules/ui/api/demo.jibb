@@ -1,0 +1,5 @@
+/% %full
+/= cart /ui/stores/cart
++$ paths
+  [%plain /plain full]
+  [%other /other full]

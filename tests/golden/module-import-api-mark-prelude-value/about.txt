@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold, `poke.todo` its command helper, and `todos.todo` a mold and a request."
+tests: An imported poke-only API whose mark is named `same`, like the prelude value. A mark names a mold, so this is not a name conflict; the poke-only check reports its import scope as unsupported.
+expect: parses
+expect-types: a partial inference report

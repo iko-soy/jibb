@@ -1,0 +1,40 @@
+/ui/stores/cart.jibb
+(module
+  (mold 1:1 state
+    (cell 1:10
+      (face 1:11 items
+        (apply 1:17 list (aura 1:23 @t)))
+      (face 1:27 open (flag 1:32))))
+  (mold 2:1 poke
+    (union 3:3
+      (cell 3:3
+        (const 3:4 %add)
+        (face 3:9 item (aura 3:14 @t)))
+      (const 4:3 %toggle)))
+  (value 6:1 main
+    (group 6:9
+      (call 6:10 (wing 6:10 store) (wing 6:16 init) (wing 6:21 update))))
+  (value 7:1 init
+    (cast 7:9
+      (ref 7:12 state)
+      (tuple 7:18 (lit 7:19 ~) (lit 7:21 %.n))))
+  (value 8:1 update
+    (gate 8:11
+      (cell 8:14
+        (face 8:15 a (ref 8:17 poke))
+        (face 8:22 s (ref 8:24 state)))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 a)
+          (arm 10:5
+            (cell 10:5 (lit 10:6 %add) (bind 10:11 item))
+            (change 10:18 s
+              (edit 10:20 items
+                (tuple 10:26 (wing 10:27 item) (wing 10:32 items.s)))))
+          (arm 11:5
+            (lit 11:5 %toggle)
+            (change 11:18 s
+              (edit 11:20 open
+                (group 11:25
+                  (call 11:26 (wing 11:26 not) (wing 11:30 open.s))))))))))
+  (value 12:1 state (lit 12:10 5)))

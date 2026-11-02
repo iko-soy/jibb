@@ -1,0 +1,3 @@
+/ui/api/demo.jibb
+(module
+  (mold 1:1 poke (ref 1:9 full)))

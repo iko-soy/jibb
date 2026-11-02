@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold, `poke.todo` its command helper, and `todos.todo` a mold and a request."
+tests: An imported API with `+$ paths` whose mark `other` names a mold, beside a value `++ other`. This is not a name conflict; the path declaration with a value beside it is unsupported.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,21 @@
+/ui/lib.jibb
+(module
+  (value 1:1 user
+    (gate 1:9
+      (face 1:12 x (aura 1:14 @t))
+      (group 1:17
+        (call 1:18 (wing 1:18 left) (wing 1:23 x)))))
+  (value 2:1 left
+    (gate 2:9
+      (face 2:12 x (aura 2:14 @t))
+      (group 2:17
+        (call 2:18 (wing 2:18 right) (wing 2:24 x)))))
+  (value 3:1 right
+    (gate 3:10
+      (face 3:13 y (aura 3:15 @p))
+      (group 3:18
+        (call 3:19 (wing 3:19 left) (wing 3:24 y)))))
+  (value 4:1 safe
+    (gate 4:9
+      (face 4:12 x (aura 4:14 @t))
+      (wing 4:17 x))))

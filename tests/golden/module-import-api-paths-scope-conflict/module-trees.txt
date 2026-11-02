@@ -1,0 +1,6 @@
+/ui/api/demo.jibb
+(module
+  (mark 1:1 %full)
+  (mark 2:1 %full)
+  (mold 3:1 paths
+    (cell 3:10 (const 3:11 %plain) (path 3:18 /plain) (ref 3:25 full))))

@@ -1,0 +1,4 @@
+source: Grammar, Modules: "no name may shadow one already in scope, imports and the prelude included".
+tests: An imported API with only `+$ poke full` gives a Jibb import the face `same`, which shadows the prelude value `same`. The poke-only check stops there, and the conflict is reported as conflicting names, as in other modules, not as unsupported inference.
+expect: parses
+expect-types: a partial inference report

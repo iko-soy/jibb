@@ -1,0 +1,4 @@
+source: Grammar, Imports: "`/%` names a type after its mark, so it takes no face"; Modules: an API module exports "a generic `poke` command helper, adding the agent and mark".
+tests: An imported API with only `+$ poke full` and no `/%` import is outside the poke-only fragment, which needs one `/%` mark import. It fails with that check's reason after the module's path; the module has no `+$ paths`, so no path declaration is blamed.
+expect: parses
+expect-types: a partial inference report

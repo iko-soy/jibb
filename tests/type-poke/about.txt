@@ -3,5 +3,8 @@ ordinary transparent type. A real Hoon mark is compiled and read by the importer
 before the partial checker builds a raw-poke-only API interface. The reports cover
 the constructor and mark mismatch, aliases and re-exports, ordinary construction
 and inspection, private import boundaries, unsupported or invalid API declarations,
-and preparation failures. The report remains partial; effect lowering and runtime
-execution are not verified.
+and preparation failures. A rejected API shows the reason its check found: a missing
+or duplicated mark reader result or a missing `/%` import for a poke-only API, its
+path declaration when it declares `+$ paths`, and a definite error at both sites for
+a value named after its derived `poke`. The report remains partial; effect lowering
+and runtime execution are not verified.

@@ -96,7 +96,7 @@
   ?~  prepared  ~["synthetic program prelude did not prepare for contextual update"]
   ?.  =(8 (lent negatives))  ~["contextual update negative fixture count differs"]
   =/  at=path  /tests/program-update/island/jibb
-  =/  definitions=@t  (crip "module definitions need unsupported inference: {(spud at)}")
+  =/  definitions=@t  (crip "module definitions need unsupported inference: {(spud at)}: ++ update")
   =/  without-cmd=iprelude:jibb
     =/  kept=imold-types:jibb
       (skim molds.iface.u.prepared |=(m=[name=term template=ischeme:jibb] !=(%cmd name.m)))

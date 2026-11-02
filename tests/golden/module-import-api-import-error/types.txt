@@ -1,0 +1,8 @@
+partial inference; module not checked
+store derived name `state` clashes with a definition
+/ui/stores/cart.jibb:1:1: `state` is derived from this mold
++$ state [items=(list @t) open=?]
+^
+/ui/stores/cart.jibb:12:1: clashing definition
+++ state 5
+^

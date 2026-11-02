@@ -1,0 +1,4 @@
+source: Grammar, Modules: "a store exports a generic `poke` command helper and a `state` request. Clashing derived names are errors, including a derived name that clashes with an import face."
+tests: An imported store whose own `++ state` clashes with its derived `state` request is rejected with a definite error at both sites, not as unsupported inference.
+expect: parses
+expect-types: a partial inference report

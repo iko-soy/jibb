@@ -11376,6 +11376,7 @@
   (of-wain:format [summary excerpts])
 ::
 ::  Both written field sites are shown in the source that declares them.
+::  A store's derived-name clash shows its two sites the same way.
 ++  show-duplicate-fields
   |=  [file=path src=@t diagnostic=idiag]
   ^-  @t
@@ -12028,6 +12029,74 @@
   ?~  (ienv-lookup name.i.ds env)  |
   $(ds t.ds)
 ::
+::  Names the value a failed full check stops at, for its message only.  A
+::  value whose module dependencies all resolved failed on its own, so the
+::  first such missing value is named.  Otherwise every missing value waits
+::  on another, so following the first one each waits on, from the first
+::  missing value, reaches a value twice, which is named.  The walk is over
+::  the syntactic dependency graph: dependency-expr ignores binders, so a
+::  sample or other local binder with a top-level value's name reads as a
+::  dependency on it.  The named value is on a cycle of that graph, but may
+::  only call into the value that failed, as when a binder in that value
+::  shadows the named one.  It claims no error in the named value.
+++  module-missing-value
+  |=  [ds=(list def) env=ienv]
+  ^-  (unit term)
+  =/  missing=(list term)
+    %+  murn  ds
+    |=  d=def
+    ?.  ?=(%value -.d)  ~
+    ?^  (ienv-lookup name.d env)  ~
+    `name.d
+  ?~  missing  ~
+  =/  pending=ivisited  (graph-nameset missing ~)
+  =/  roots=(list term)
+    %+  murn  ds
+    |=  d=def
+    ?.  ?=(%value -.d)  ~
+    ?~  (~(get by pending) name.d)  ~
+    =/  deps=(list term)  (dependency-expr val.d)
+    ?.  (levy deps |=(n=term |(=(n name.d) ?=(~ (~(get by pending) n)))))  ~
+    `name.d
+  ?^  roots  `i.roots
+  =/  seen=ivisited  ~
+  =/  here=term  i.missing
+  |-
+  ?^  (~(get by seen) here)  `here
+  =/  next=(list term)
+    %-  zing
+    %+  turn  ds
+    |=  d=def
+    ?.  ?=(%value -.d)  ~
+    ?.  =(here name.d)  ~
+    (skim (dependency-expr val.d) |=(n=term &(!=(n here) ?=(^ (~(get by pending) n)))))
+  ?~  next  `here
+  $(seen (~(put by seen) here &), here i.next)
+::
+::  Finds the first missing value that is a gate whose own sample has the
+::  name of a value in scope.  Partial inference rejects that sample ("sample
+::  shadows a name"), and it is an error (grammar, Modules).  Mark names name
+::  molds and are left out, as are cell samples and binders deeper in the
+::  value.
+++  module-sample-shadow
+  |=  [ds=(list def) env=ienv values=(list term)]
+  ^-  (unit [name=term at=span])
+  ?~  ds  ~
+  ?.  ?=(%value -.i.ds)  $(ds t.ds)
+  ?^  (ienv-lookup name.i.ds env)  $(ds t.ds)
+  =/  e=expr  val.i.ds
+  ?.  ?=(?(%gate %gate-wide) -.e)  $(ds t.ds)
+  =/  s=sample  sample.e
+  =/  name=(unit term)
+    ?+  -.s  ~
+      %bind  `name.s
+      %face  `name.s
+      %pun   `name.s
+    ==
+  ?~  name  $(ds t.ds)
+  ?.  (lien values |=(n=term =(n u.name)))  $(ds t.ds)
+  `[u.name at.s]
+::
 ::  Cache only completed interfaces for this invocation. The source bundle,
 ::  imported Hoon types and prelude are fixed for the whole graph. Check the
 ::  active path and duplicate sources before consulting it, so a cache hit
@@ -12298,6 +12367,45 @@
   =/  outer=(list term)  (weld prelude-values (weld (global-value-names defs.mod) (api-import-faces imports.mod)))
   (levy derived |=(n=term &((unique-value-name n derived) !(lien outer |=(x=term =(n x))))))
 ::
+::  The definite error behind some failures of the check above.  An API
+::  exports `poke` when it declares `+$ poke`, and a request per case of a
+::  `+$ paths` that reads as path cases; these names surely exist, so a clash
+::  among them or with the module's scope is an error (grammar, Modules).  A
+::  reserved `proj` stays unsupported, as in the check above.
+++  api-derived-clash
+  |=  [mod=module prelude-values=(list term)]
+  ^-  (unit idiag)
+  =/  declared=(list term)  (collect-mark-imports imports.mod)
+  =/  declarations=(list def)
+    (skim defs.mod |=(d=def &(?=(%mold -.d) =(%paths name.d))))
+  =/  cases=(list [name=term at=span note=tape])
+    ?.  ?=([* ~] declarations)  ~
+    =/  decl=def  i.declarations
+    ?>  ?=(%mold -.decl)
+    =/  paths=(unit (list iapi-path))  (api-path-declaration shape.decl declared)
+    ?~  paths  ~
+    (turn u.paths |=(p=iapi-path [name.p at.p "`{(trip name.p)}` is derived from this path case"]))
+  =/  pokes=(list def)
+    (skim defs.mod |=(d=def &(?=(%mold -.d) =(%poke name.d))))
+  =/  derived=(list [name=term at=span note=tape])
+    ?.  ?=([* ~] pokes)  cases
+    (snoc cases [%poke at.i.pokes "`poke` is derived from this mold"])
+  =/  names=(list term)  (turn derived |=(x=[name=term at=span note=tape] name.x))
+  =/  outer=(list term)  (weld prelude-values (weld (global-value-names defs.mod) (api-import-faces imports.mod)))
+  =/  clashes=(list term)
+    %+  skip  names
+    |=  n=term
+    ?|  =(n %proj)
+        &((unique-value-name n names) !(lien outer |=(x=term =(n x))))
+    ==
+  ?~  clashes  ~
+  =/  sites=(list [at=span note=tape])
+    %+  murn  derived
+    |=  x=[name=term at=span note=tape]
+    ?.  =(i.clashes name.x)  ~
+    `[at.x note.x]
+  `(derived-name-clash "API" i.clashes sites mod)
+::
 ::  Analysis only. Successful external entries must be unchanged results
 ::  produced for the declared marks; no request interface is produced.
 +$  iapi-mark-type  [name=term typ=itype]
@@ -12376,6 +12484,9 @@
   ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
   ?~  prepared  [%| 'API path analysis needs the prepared prelude']
   =/  public=ifile  iface.u.prepared
+  ::  The analysis below would call a derived-name clash unsupported.
+  =/  clash=(unit idiag)  (api-derived-clash p.parsed values.u.prepared)
+  ?^  clash  [%| (show-duplicate-fields file src u.clash)]
   =/  prelude=(unit ifile)  `iface.u.prepared
   =/  deps=jimports-result
     (resolve-jibb-imports imports.p.parsed externals marks modules ~[file] values.u.prepared molds.u.prepared ~ prelude)
@@ -12401,6 +12512,9 @@
   =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
   ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
   ?~  prepared  [%| 'API path evidence needs the prepared prelude']
+  ::  The analysis below would call a derived-name clash unsupported.
+  =/  clash=(unit idiag)  (api-derived-clash p.parsed values.u.prepared)
+  ?^  clash  [%| (show-duplicate-fields file src u.clash)]
   =/  public=ifile  iface.u.prepared
   =/  deps=jimports-result
     (resolve-jibb-imports imports.p.parsed externals marks modules ~[file] values.u.prepared molds.u.prepared ~ `public)
@@ -12422,6 +12536,9 @@
   =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
   ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
   ?~  prepared  [%| 'API path evidence needs the prepared prelude']
+  ::  The analysis below would call a derived-name clash unsupported.
+  =/  clash=(unit idiag)  (api-derived-clash p.parsed values.u.prepared)
+  ?^  clash  [%| (show-duplicate-fields file src u.clash)]
   =/  public=ifile  iface.u.prepared
   =/  deps=jimports-result
     (resolve-jibb-imports imports.p.parsed externals marks modules active values.u.prepared molds.u.prepared cache `public)
@@ -12761,38 +12878,54 @@
 ++  api-poke-interface
   |=  [at=path mod=module mark-externals=imark-externals prelude-values=(list term) prelude-molds=(list term) prelude=(unit ifile)]
   ^-  (unit ifile)
-  ?:  (lien defs.mod def-has-hole)  ~
-  ?.  ?=([%ui %api @ %jibb ~] at)  ~
-  ?^  (duplicate-defs defs.mod)  ~
-  ?~  prelude  ~
-  ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  ~
+  =/  out=(each ifile @t)
+    (api-poke-interface-result at mod mark-externals prelude-values prelude-molds prelude)
+  ?:(?=(%& -.out) `p.out ~)
+::
+::  The same check, naming the part that stopped it.  Each reason says which
+::  part is outside this fragment and claims no error in the module, except
+::  duplicate definitions, an error the full check reports first, as for
+::  other modules.
+++  api-poke-interface-result
+  |=  [at=path mod=module mark-externals=imark-externals prelude-values=(list term) prelude-molds=(list term) prelude=(unit ifile)]
+  ^-  (each ifile @t)
+  ?:  (lien defs.mod def-has-hole)  [%| 'API holes need unsupported inference']
+  ?.  ?=([%ui %api @ %jibb ~] at)  [%| 'API path evidence requires /ui/api/<agent>.jibb']
+  ?^  (duplicate-defs defs.mod)  [%| 'API has duplicate definitions']
+  ?~  prelude  [%| 'API poke prelude needs unsupported inference']
+  ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  [%| 'API poke prelude needs unsupported inference']
   =/  poke=(unit ischeme)  (find-jibb-mold %raw-poke u.prelude)
-  ?~  poke  ~
-  ?.  ?=(%union -.typ.u.poke)  ~
-  ?^  vars.u.poke  ~
+  ?~  poke  [%| 'API poke prelude needs unsupported inference']
+  ?.  ?=(%union -.typ.u.poke)  [%| 'API poke prelude needs unsupported inference']
+  ?^  vars.u.poke  [%| 'API poke prelude needs unsupported inference']
   =/  compatible=?
     %+  lien  cases.typ.u.poke
     |=  c=itype
     ?=([%cell [%const [%term %tas %agent *]] [%cell [%face %agent [%atom %tas]] [%cell [%face %mark [%atom %tas]] [%face %payload [%noun ~]]]]] c)
-  ?.  compatible  ~
-  ?.  (module-scope-valid mod(defs ~) prelude-values prelude-molds)  ~
-  ?.  (levy imports.mod |=(i=import ?=(%mark -.i)))  ~
-  =/  marks=(list term)  (collect-mark-imports imports.mod)
-  ?.  ?=([@ ~] marks)  ~
+  ?.  compatible  [%| 'API poke prelude needs unsupported inference']
+  ::  Definitions come before imports so that a module with more than a
+  ::  `+$ poke` is not described by its imports.
   =/  ds=(list def)  defs.mod
-  ?.  ?=([[%mold *] ~] ds)  ~
-  ?.  =(%poke name.i.ds)  ~
+  ?.  ?=([[%mold *] ~] ds)  [%| 'poke-only API definitions need unsupported inference']
+  ?.  =(%poke name.i.ds)  [%| 'poke-only API definitions need unsupported inference']
+  ?.  (module-scope-valid mod(defs ~) prelude-values prelude-molds)  [%| 'API import scope needs unsupported inference']
+  ?.  (levy imports.mod |=(i=import ?=(%mark -.i)))  [%| 'poke-only API imports need unsupported inference']
+  =/  marks=(list term)  (collect-mark-imports imports.mod)
+  ?.  ?=([@ ~] marks)  [%| 'poke-only API mark imports need unsupported inference']
   =/  sh=shape  shape.i.ds
-  ?.  ?=([%ref *] sh)  ~
-  ?.  ?=([@ ~] names.sh)  ~
+  ?.  ?=([%ref *] sh)  [%| 'API poke mold needs unsupported inference']
+  ?.  ?=([@ ~] names.sh)  [%| 'API poke mold needs unsupported inference']
   =/  n=term  i.names.sh
-  ?.  (unique-value-name n marks)  ~
-  ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))  ~
+  ?.  (unique-value-name n marks)  [%| 'API poke mold needs unsupported inference']
+  ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))  [%| 'API poke mold needs unsupported inference']
+  =/  results=@ud  (lent (skim mark-externals |=(e=[mark=term result=*] =(n mark.e))))
+  ?:  =(0 results)  [%| (crip "API poke mark %{(trip n)} has no reader result")]
+  ?.  =(1 results)  [%| (crip "API poke mark %{(trip n)} has duplicate reader results")]
   =/  mark=(unit itype)  (find-imported-mark-prelude n mark-externals marks u.prelude)
-  ?~  mark  ~
+  ?~  mark  [%| 'API poke mark reader result needs unsupported inference']
   =/  sc=(unit ischeme)  (derived-poke-command-scheme u.prelude u.mark)
-  ?~  sc  ~
-  `[~[[%poke u.sc]] (api-mark-exports marks marks mark-externals u.prelude) at ~[[n i.t.t.at n]] ~ ~ ~ ~]
+  ?~  sc  [%| 'API poke command needs unsupported inference']
+  [%& [~[[%poke u.sc]] (api-mark-exports marks marks mark-externals u.prelude) at ~[[n i.t.t.at n]] ~ ~ ~ ~]]
 ::
 ::  Source-proven ordinary helpers validate each selected /sur dependency.
 ::  Unused or less direct cores remain unsupported by this first interface.
@@ -13017,30 +13150,73 @@
   `[u.init u.update]
 ::
 +$  istore-declaration  [action=term defs=(list def)]
+::  A failure carries a diagnostic only when it is a definite error of the
+::  source; every other failure is unsupported and carries none.
 ++  store-declaration
   |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
-  ^-  (unit istore-declaration)
+  ^-  (each istore-declaration (unit idiag))
   =/  ds=(list def)  defs.mod
   =/  pokes=(list def)
     (skim ds |=(d=def &(?=(%mold -.d) =(%poke name.d))))
-  ?.  ?=([* ~] pokes)  ~
+  ?.  ?=([* ~] pokes)  [%| ~]
   =/  states=(list def)
     (skim ds |=(d=def &(?=(%mold -.d) =(%state name.d))))
-  ?.  ?=([* ~] states)  ~
+  ?.  ?=([* ~] states)  [%| ~]
   =/  poke=def  i.pokes
   =/  state=def  i.states
   ?>  &(?=(%mold -.poke) ?=(%mold -.state))
-  ?:  ?=(%generic -.shape.state)  ~
-  ?:  ?=(%generic -.shape.poke)  ~
+  ?:  ?=(%generic -.shape.state)  [%| ~]
+  ?:  ?=(%generic -.shape.poke)  [%| ~]
   =/  action=term  %poke
   =/  ordinary=(list def)  ds
-  ?.  (module-scope-valid mod prelude-values prelude-molds)  ~
   =/  derived=(list term)  ~[%state action]
-  ?:  (lien derived |=(n=term =(n %proj)))  ~
+  ?:  (lien derived |=(n=term =(n %proj)))  [%| ~]
   =/  outer=(list term)
     (weld prelude-values (weld (global-value-names ordinary) (api-import-faces imports.mod)))
-  ?.  (levy derived |=(n=term &((unique-value-name n derived) !(lien outer |=(x=term =(n x))))))  ~
-  `[action ordinary]
+  =/  clashes=(list term)
+    (skip derived |=(n=term &((unique-value-name n derived) !(lien outer |=(x=term =(n x))))))
+  ::  main's `store` is the prelude's builder when the prelude declares it and
+  ::  nothing local takes the name.  Only then do the derived names surely
+  ::  exist, and then a clash is an error even where the scope also fails, as
+  ::  for an import face that clashes with both a derived name and its mold.
+  =/  builder=?
+    ?&  (lien prelude-values |=(x=term =(x %store)))
+        !(lien (global-value-names ds) |=(x=term =(x %store)))
+        !(lien (import-binding-names imports.mod) |=(x=term =(x %store)))
+    ==
+  ?:  &(?=(^ clashes) builder (lien outer |=(x=term =(x i.clashes))))
+    =/  from=span  ?:(=(%state i.clashes) at.state at.poke)
+    =/  derived=[at=span note=tape]  [from "`{(trip i.clashes)}` is derived from this mold"]
+    [%| `(derived-name-clash "store" i.clashes ~[derived] mod)]
+  ?.  (module-scope-valid mod prelude-values prelude-molds)  [%| ~]
+  ?^  clashes  [%| ~]
+  [%& [action ordinary]]
+::
+::  A store or API exports names derived from its declarations, and a
+::  clashing derived name is an error (grammar, Modules).  Show where the name
+::  is derived and the definition, import face or other derived name it
+::  clashes with; a prelude name has no site in the module.
+++  derived-name-clash
+  |=  [kind=tape n=term derived=(list [at=span note=tape]) mod=module]
+  ^-  idiag
+  =/  values=(list span)
+    (murn defs.mod |=(d=def ?.(&(?=(%value -.d) =(n name.d)) ~ `at.d)))
+  =/  faces=(list span)
+    %+  murn  imports.mod
+    |=  i=import
+    ?-  -.i
+      %mark  ~
+      %sur   ?.(=(n name.i) ~ `at.i)
+      %jibb  ?.(=(n face.i) ~ `at.i)
+    ==
+  =/  head=tape  "{kind} derived name `{(trip n)}` clashes with"
+  ?^  values
+    ["{head} a definition" (weld derived ~[[i.values "clashing definition"]])]
+  ?^  faces
+    ["{head} an import face" (weld derived ~[[i.faces "clashing import face"]])]
+  ?:  ?=([* * *] derived)
+    ["{head} another derived name" derived]
+  ["{head} a prelude name" derived]
 ::
 ++  program-empty-null
   |=  e=expr
@@ -14448,12 +14624,48 @@
   ?:  &(?=([%ui %api *] at) ?=(^ (program-main-def defs.mod)))
     [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   ?:  ?=([%ui %api *] at)
-    =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
-    ?^  iface
-      =/  checked=ifile  u.iface(source `src, graph `[(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals])
+    =/  poke=(each ifile @t)
+      (api-poke-interface-result at mod mark-externals prelude-values prelude-molds prelude)
+    ?:  ?=(%& -.poke)
+      =/  iface=ifile  p.poke
+      =/  checked=ifile  iface(source `src, graph `[(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals])
       [%& [checked [[at checked] cache]]]
+    ::  A clashing derived name is an error wherever the checks below stop.
+    =/  clash=(unit idiag)
+      ?.  ?=([%ui %api @ %jibb ~] at)  ~
+      (api-derived-clash mod prelude-values)
+    ?^  clash  [%| [(show-duplicate-fields at src u.clash) ~]]
+    ::  So is a name conflict in its scope, reported as for other modules.
+    ::  `+$ paths` and `+$ poke` are declarations, not molds (overview), and
+    ::  a `/%` mark names a mold, so it conflicts only with another mark or
+    ::  mold: `/% %todos` beside the request `todos` is the usual API.
+    =/  ordinary=(list def)
+      (skim defs.mod |=(d=def !&(?=(%mold -.d) |(=(%paths name.d) =(%poke name.d)))))
+    =/  marks=(list term)  (collect-mark-imports imports.mod)
+    =/  mold-names=(list term)
+      (turn (collect-simple-molds ordinary) |=(m=[name=term body=shape] name.m))
+    =/  faces=(list import)  (skip imports.mod |=(i=import ?=(%mark -.i)))
+    ?.  ?&  (module-scope-valid mod(defs ordinary, imports faces) prelude-values prelude-molds)
+          %+  levy  marks
+          |=  n=term
+          ?&  (unique-value-name n marks)
+              !(lien mold-names |=(m=term =(m n)))
+              !(lien prelude-molds |=(m=term =(m n)))
+          ==
+        ==
+      [%| [(crip "module has conflicting names: {(spud at)}") ~]]
     ?~  prelude  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
     =/  prepared=iprelude  [u.prelude prelude-values prelude-molds]
+    ::  A failing Jibb import gives its own error, which may be definite, as
+    ::  it does for other modules; the constructors below would only wrap it.
+    ::  They resolve the same imports again, from the interfaces cached here.
+    =/  js=jimports-detailed-result
+      (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
+    ?:  ?=(%| -.js)  [%| p.js]
+    ::  Without `+$ paths` only the poke-only interface applies; keep its reason.
+    ?.  (lien defs.mod |=(d=def &(?=(%mold -.d) =(%paths name.d))))
+      [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.poke)}") ~]]
+    ::  Each constructor names the part that stopped it; keep that reason.
     =/  narrow=?
       ?.  ?=([[%mark *] ~] imports.mod)  |
       ?.  ?=([[%mold *] ~] defs.mod)  |
@@ -14461,13 +14673,13 @@
       !?=(%union -.shape.i.defs.mod)
     ?:  narrow
       =/  request=(each ione-request-interface @t)
-        (one-request-interface-graph at src externals mark-externals modules active cache `prepared)
-      ?:  ?=(%| -.request)  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
+        (one-request-interface-graph at src externals mark-externals modules active cache.p.js `prepared)
+      ?:  ?=(%| -.request)  [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.request)}") ~]]
       =/  checked=ifile  iface.p.request
       [%& [checked [[at checked] dependencies.paths.support.p.request]]]
     =/  multi=(each [iface=ifile cache=jcache] @t)
-      (multi-request-interface-graph at src externals mark-externals modules active cache `prepared)
-    ?:  ?=(%| -.multi)  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
+      (multi-request-interface-graph at src externals mark-externals modules active cache.p.js `prepared)
+    ?:  ?=(%| -.multi)  [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.multi)}") ~]]
     [%& [iface.p.multi [[at iface.p.multi] cache.p.multi]]]
   =/  main=(unit def)  (program-main-def defs.mod)
   =/  main-parts=(unit [init=term update=term view=term subs=term])
@@ -14476,8 +14688,12 @@
     ?~(main ~ (page-main-parts u.main))
   =/  store-parts=(unit [init=term update=term])
     ?~(main ~ (store-main-parts u.main))
+  =/  declaration=(each istore-declaration (unit idiag))
+    ?~(store-parts [%| ~] (store-declaration mod prelude-values prelude-molds))
+  =/  clash=(unit idiag)  ?:(?=(%| -.declaration) p.declaration ~)
+  ?^  clash  [%| [(show-duplicate-fields at src u.clash) ~]]
   =/  declared=(unit istore-declaration)
-    ?~(store-parts ~ (store-declaration mod prelude-values prelude-molds))
+    ?:(?=(%| -.declaration) ~ `p.declaration)
   ?:  &(?=(^ store-parts) ?=(~ declared))
     [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
   ?:  &(?=([%ui %stores *] at) ?=(^ main) ?=(~ store-parts))
@@ -14566,7 +14782,15 @@
     =/  pending=(unit [at=span msg=tape])  (module-pending-tag required env state 64)
     ?^  pending
       [%| [(show-error src [at line.beg.at.u.pending col.beg.at.u.pending msg.u.pending]) ~]]
-    [%| [(crip "module definitions need unsupported inference: {(spud at)}") ~]]
+    ::  A shadowing sample is an error, so it comes before any named value.
+    =/  values=(list term)  (weld prelude-values (weld (api-import-faces imports.mod) vals))
+    =/  shadow=(unit [name=term at=span])  (module-sample-shadow required env values)
+    ?^  shadow
+      =/  msg=tape  "sample `{(trip name.u.shadow)}` shadows a name already in scope"
+      [%| [(show-error src [at line.beg.at.u.shadow col.beg.at.u.shadow msg]) ~]]
+    =/  missing=(unit term)  (module-missing-value required env)
+    =/  named=tape  ?~(missing "" ": ++ {(trip u.missing)}")
+    [%| [(crip "module definitions need unsupported inference: {(spud at)}{named}") ~]]
   =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
   ?~  graph  [%| ['module request evidence needs unsupported inference' ~]]

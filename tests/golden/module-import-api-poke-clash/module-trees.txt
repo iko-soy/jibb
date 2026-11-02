@@ -1,0 +1,5 @@
+/ui/api/demo.jibb
+(module
+  (mark 1:1 %full)
+  (mold 2:1 poke (ref 2:9 full))
+  (value 3:1 poke (str 3:9 "bad")))

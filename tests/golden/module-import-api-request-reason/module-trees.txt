@@ -1,0 +1,7 @@
+/ui/api/demo.jibb
+(module
+  (mark 1:1 %full)
+  (mold 2:1 paths
+    (union 3:3
+      (cell 3:3 (const 3:4 %plain) (path 3:11 /plain) (ref 3:18 full))
+      (cell 4:3 (const 4:4 %pair) (path 4:10 /pair/[a=@ud]/[b=@ud]) (ref 4:32 full)))))

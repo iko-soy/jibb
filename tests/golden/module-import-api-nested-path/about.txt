@@ -1,0 +1,4 @@
+source: Grammar, Modules: "An API module, `/ui/api/<agent>.jibb`, also exports derived gates".
+tests: An imported module at `/ui/api/foo/bar.jibb` with only `+$ poke full` is outside the poke-only fragment because of its path. It fails with the specific reason that API path evidence requires `/ui/api/<agent>.jibb`, the reason a module at that path that declares `+$ paths` gives too.
+expect: parses
+expect-types: a partial inference report

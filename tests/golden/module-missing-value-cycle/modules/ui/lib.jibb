@@ -1,0 +1,4 @@
+++ user |= x=@t (left x)
+++ left |= x=@t (right x)
+++ right |= y=@p (left y)
+++ safe |= x=@t x

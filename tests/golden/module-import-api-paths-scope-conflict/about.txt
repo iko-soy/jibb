@@ -1,0 +1,4 @@
+source: Grammar, Modules: "no name may shadow one already in scope, imports and the prelude included".
+tests: An imported API that declares `+$ paths` imports the mark `full` twice. As in other modules, the conflict is reported as conflicting names, not as a path declaration that needs unsupported analysis.
+expect: parses
+expect-types: a partial inference report
