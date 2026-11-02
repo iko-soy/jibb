@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Fully check the remaining doc fragments in their intended contexts."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--timeout', type=float, default=300,
+                    help='seconds allowed for urbit eval (default: 300)')
+args = parser.parse_args()
+tests = (root / 'tests/lib/jibb-doc-examples.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+tests = tests[:tests.index('\n++  test-doc-examples')] + '\n--\n'
+program = ('=/  jibb  .\n=/  jibb-import\n' +
+           (root / 'jibb-dev/lib/jibb-import.hoon').read_text() +
+           '=/  suite\n' + tests +
+           '\n=/  failures=(list tape)  (doc-examples-errors:suite prelude internal imports view-day step cmd-sub todo-sur todo-action blog-sur card)\n'
+           '^-  @t\n?~  failures  \'documented fragments passed\'\n'
+           '(of-wain:format (turn failures crip))\n')
+fixtures = {
+    'prelude': 'jibb-dev/lib/jibb/prelude.jibb',
+    'internal': 'jibb-dev/lib/jibb/internal.jibb',
+    'imports': 'tests/golden/doc-grammar-01-imports/source.jibb',
+    'view-day': 'tests/golden/doc-grammar-03-view-day/source.jibb',
+    'step': 'tests/golden/doc-grammar-04-step/source.jibb',
+    'cmd-sub': 'tests/golden/doc-overview-01-cmd-sub/source.jibb',
+    'todo-sur': 'tests/type-api-paths/todo-sur.txt',
+    'todo-action': 'tests/type-api-paths/todo-action.txt',
+    'blog-sur': 'tests/type-page-main/blog-sur.txt',
+    'card': 'tests/type-page-main/card.txt',
+}
+with tempfile.TemporaryDirectory(prefix='jibb-doc-examples-') as tmp:
+    path = Path(tmp) / 'doc-examples.hoon'
+    path.write_text(program)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--timeout', str(args.timeout)]
+    for name, filename in fixtures.items():
+        command += ['--cord', name + '=' + str(root / filename)]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'documented fragments passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('documented imports, view-day, step and cmd/sub detailed/legacy checks passed')
