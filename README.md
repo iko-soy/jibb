@@ -46,6 +46,8 @@ tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb
 
 The focused `tools/type-page-main-test` fully checks the byte-identical static about page and direct blog/todo data pages through the real readers, with exact main types, downstream imports and fail-closed syntax/evidence controls; the same fixture runs on the fake ship. It does not render pages or execute requests.
 
+The focused `tools/type-buttons-test` fully checks the documented `labelled` and `wide` definitions and the unchanged module's exact source-located unresolved-`%add` error through detailed and legacy inference. The eval test and fake-ship arm share the valid source, schemes and error fixtures. It does not render or execute UI.
+
 The focused `tools/type-theme-test` fully checks the byte-identical real theme against the exact prelude mold, including its exported type, structural downstream import, dark absent/present forms and malformed-field negatives under eval with a shared fake-ship arm. It does not check contrast, render themes or route fonts.
 
 The focused `tools/type-store-test` checks the byte-identical cart store and basket through detailed and legacy inference, exact main and derived schemes, structural imports, direct store watch evidence and rejection controls under eval with a shared fake-ship arm. It does not lower or execute stores, support multi-action declarations, or permit store requests in page loads.

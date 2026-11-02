@@ -331,6 +331,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-program-watch.hoon',
            'tests/lib/jibb-store.hoon',
            'tests/lib/jibb-todo-full.hoon',
+           'tests/lib/jibb-buttons.hoon',
            'tests/lib/jibb-theme.hoon',
            'tests/lib/jibb-todo-api.hoon',
            'tests/lib/jibb-todo-partial.hoon',
@@ -437,6 +438,11 @@ def generator_checks(tmp):
                'wrong-model', 'wrong-message', 'wrong-result', 'ambiguous-mapper',
                'open-key', 'alias', 'wrong-watch', 'non-gate-view'))}
           <= set(normal.files))
+    check('buttons sources, schemes and exact error are assembled',
+          {'tests/lib/jibb-buttons.hoon',
+           'tests/golden/doc-grammar-02-buttons/source.jibb',
+           'tests/type-buttons/valid.txt', 'tests/type-buttons/expected.txt',
+           'tests/type-buttons/error.txt'} <= set(normal.files))
     check('theme sources and shared fixture are assembled',
           {'tests/lib/jibb-theme.hoon',
            *(f'tests/type-theme/{name}.txt' for name in (

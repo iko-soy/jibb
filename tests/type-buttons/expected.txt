@@ -1,0 +1,2 @@
+labelled: $-([label=@t msg=A] (element A))
+wide: (list attr)

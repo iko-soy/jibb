@@ -1,0 +1,4 @@
+++ labelled |= [label=@t msg=M]
+  button label msg                 ::  fine: the caller's union
+++ wide  ^- (list attr)
+  ~[width+[%fill 1] pad+%s2]       ::  fine: the cast fixes the tags

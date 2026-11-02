@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""Check the documented buttons definitions and unresolved-tag error."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--timeout', type=float, default=300,
+                    help='seconds allowed for urbit eval (default: 300)')
+args = parser.parse_args()
+tests = (root / 'tests/lib/jibb-buttons.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+tests = tests[:tests.index('\n++  test-buttons')] + '\n--\n'
+program = ('=/  jibb  .\n=/  expected=wain  (to-wain:format expected-text)\n'
+           '=/  error=wain  (to-wain:format error-text)\n=/  suite\n' + tests +
+           '\n=/  failures=(list tape)  (buttons-errors:suite prelude internal source valid)\n'
+           '^-  @t\n?~  failures  \'documented buttons passed\'\n'
+           '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-buttons-') as tmp:
+    path = Path(tmp) / 'buttons.hoon'
+    path.write_text(program)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--timeout', str(args.timeout),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb'),
+               '--cord', 'source=' + str(root / 'tests/golden/doc-grammar-02-buttons/source.jibb'),
+               '--cord', 'valid=' + str(root / 'tests/type-buttons/valid.txt'),
+               '--cord', 'expected-text=' + str(root / 'tests/type-buttons/expected.txt'),
+               '--cord', 'error-text=' + str(root / 'tests/type-buttons/error.txt')]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'documented buttons passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('documented buttons detailed/legacy types and exact unresolved-tag diagnostic passed')

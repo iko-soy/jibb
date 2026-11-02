@@ -4681,7 +4681,7 @@
   ==
 +$  ibinding  [id=@ud val=itype]
 +$  isub  (list ibinding)
-+$  ipending  [id=@ud literal=lit]
++$  ipending  [id=@ud literal=lit at=span]
 ::
 ++  itype-lookup
   |=  [n=@ud sub=isub]
@@ -5203,6 +5203,13 @@
   ?~  (itype-lookup id.i.tags sub)  &
   $(tags t.tags)
 ::
+++  pending-tag-diagnostic
+  |=  [tags=(list ipending) sub=isub]
+  ^-  (unit [at=span msg=tape])
+  ?~  tags  ~
+  ?^  (itype-lookup id.i.tags sub)  $(tags t.tags)
+  `[at.i.tags (weld "nothing fixes the union of " (show-lit literal.i.tags))]
+::
 ++  pending-null
   |=  [tags=(list ipending) sub=isub]
   ^-  ?
@@ -5487,6 +5494,13 @@
       ?:(|(=(0 val.literal.actual) =(1 val.literal.actual)) [%ok sub next] [%bad ~])
     ?:  ?=(%any-atom -.expected)  [%ok sub next]
     [%bad ~]
+  ::  A field on an expected sample slot labels the value's type; it does
+  ::  not become a face on the actual argument. Unify with the slot body
+  ::  rather than binding either variable to the face around the other.
+  ?:  &(?=(%var -.actual) ?=(%face -.expected))
+    =/  unified=(unit isub)  (itype-unify actual body.expected sub)
+    ?~  unified  [%unknown ~]
+    [%ok u.unified next]
   ?:  &(uncertain (itype-face-asym actual expected sub))  [%unknown ~]
   ::  A known face labels the same noun. Peel it before applying the
   ::  directional unrestricted-atom rule, preserving raw-variable guards.
@@ -5516,14 +5530,6 @@
     =/  first=ifit  $(actual hed.actual, expected hed.expected, skip-width |, spine-proof |)
     ?.  ?=(%ok -.first)  first
     $(actual tal.actual, expected tal.expected, sub sub.first, next next.first, skip-width spine-checked, spine-proof spine-checked)
-  ::  A field may add a face to an occurrence of the very same type
-  ::  variable. Binding that variable to a face around itself would fail
-  ::  the occurs check, but its underlying type has already matched.
-  ?:  &(?=(%var -.actual) ?=(%face -.expected) =(actual (itype-walk body.expected sub)))
-    [%ok sub next]
-  ::  Differing variables and faces need propagation that is not yet
-  ::  represented. Binding one to the face can create a false mismatch.
-  ?:  &(?=(%var -.actual) ?=(%face -.expected))  [%unknown ~]
   ?:  &(?=(%face -.actual) ?=(%var -.expected))  [%unknown ~]
   ?:  &(?=(%var -.actual) (itype-has-any-atom expected sub))
     [%unknown ~]
@@ -8376,8 +8382,8 @@
         %duration  [%& [%atom %dr] state]
         %knot      [%& [%atom %ta] state]
         %loobean   [%& [%flag ~] state]
-        %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
-        %null      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e] tags.state])]
+        %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e at.e] tags.state])]
+        %null      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e at.e] tags.state])]
       ==
     %unit
       ?~  prelude.state  [%| ["unit construction needs the standard prelude in partial inference" ~]]
@@ -8444,7 +8450,7 @@
       =/  target=iresult  $(e [%wing at.e target.e])
       ?:  ?=(%| -.target)  target
       (infer-change-edits edits.e typ.p.target env state.p.target ~)
-    %ctor  [%& [%tag next.state tag.e &] state(next +(next.state), tags [[next.state tag.e] tags.state])]
+    %ctor  [%& [%tag next.state tag.e &] state(next +(next.state), tags [[next.state tag.e at.e] tags.state])]
     %trace
       =/  traced=iresult  $(e val.e)
       ?:  ?=(%| -.traced)  traced
@@ -10305,6 +10311,31 @@
     (add-supported-result d result initial env checked artifacts)
   ?~  added  $(ds t.ds)
   $(ds t.ds, env env.u.added, checked checked.u.added, artifacts artifacts.u.added)
+::
+::  Full checking discards unsupported definitions. On that failure path only,
+::  retry a bounded number of missing definitions to explain a pending tag
+::  from the same ordinary inference state instead of hiding it behind the
+::  generic completeness error. No successful definition takes this path.
+++  module-pending-tag
+  |=  [ds=(list def) env=ienv base=istate fuel=@ud]
+  ^-  (unit [at=span msg=tape])
+  =/  checked=(map term def)  (direct-checked-gates ds env)
+  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.base)
+  |-
+  ?~  ds  ~
+  ?:  =(0 fuel)  ~
+  =/  d=def  i.ds
+  ?:  ?=(%mold -.d)  $(ds t.ds, fuel (dec fuel))
+  ?^  (ienv-lookup name.d env)  $(ds t.ds, fuel (dec fuel))
+  =/  initial=istate  base(gate-defs checked, head-evidence heads)
+  =.  initial  (reserve-def-caps val.d initial)
+  =/  result=iresult  (infer-fragment val.d env initial)
+  =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
+  ?:  ?=(%| -.result)  $(ds t.ds, fuel (dec fuel))
+  =/  pending=(unit [at=span msg=tape])
+    (pending-tag-diagnostic tags.state.p.result sub.state.p.result)
+  ?^  pending  pending
+  $(ds t.ds, fuel (dec fuel))
 ::
 ++  resolve-groups-core
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
@@ -14187,6 +14218,9 @@
     ?~  store-parts  ds
     (skim ds |=(d=def !&(?=(%value -.d) =(%main name.d))))
   ?.  (module-values-complete required env)
+    =/  pending=(unit [at=span msg=tape])  (module-pending-tag required env state 64)
+    ?^  pending
+      [%| [(show-error src [at line.beg.at.u.pending col.beg.at.u.pending msg.u.pending]) ~]]
     [%| [(crip "module definitions need unsupported inference: {(spud at)}") ~]]
   =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
