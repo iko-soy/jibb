@@ -51,6 +51,32 @@
   =/  params=tape
     (zing (turn segments.info |=(s=pseg:jibb ?:(?=(%typed -.s) " {(trip name.s)}=@{(trip aura.s)}" ""))))
   (crip "{(trip name.info)}: full={(show-itype:jibb full.item ~)} diffs:{diff-text} parameters:{params}")
+++  standard-unit
+  |=  typ=itype:jibb
+  ^-  ?
+  ?.  ?=(%union -.typ)  |
+  ?.  =(origin.typ `[/lib/jibb/prelude/jibb %unit])  |
+  ?.  =(label.typ `%unit)  |
+  =(args.typ ~[[%atom %t]])
+++  unit-detail
+  |=  result=(each (list iapi-path-typed:jibb) @t)
+  ^-  @t
+  ?:  ?=(%| -.result)  'unit marks: rejected'
+  ?.  ?=([* ~] p.result)  'unit marks: wrong path count'
+  =/  item=iapi-path-typed:jibb  i.p.result
+  ?.  ?=([* ~] diffs.item)  'unit marks: wrong diff count'
+  ?:  &((standard-unit full.item) (standard-unit typ.i.diffs.item))
+    'unit marks: canonical'
+  'unit marks: opaque'
+++  unit-poke-detail
+  |=  interface=(unit ifile:jibb)
+  ^-  @t
+  ?~  interface  'unit poke: rejected'
+  =/  mark=(unit ischeme:jibb)  (find-jibb-mold:jibb %unit-full u.interface)
+  ?~  mark  'unit poke: missing export'
+  ?.  ?=(~ vars.u.mark)  'unit poke: generic export'
+  ?:  (standard-unit typ.u.mark)  'unit poke: canonical'
+  'unit poke: opaque'
 ++  scry-detail
   |=  result=(each (list iapi-path-typed:jibb) @t)
   ^-  @t
@@ -78,6 +104,15 @@
   =/  duplicate=(list [mark=term result=*])  [[%todos mt] marks]
   =/  file=path  /ui/api/todo/jibb
   =/  ok  (api-path-analysis-source:jibb file api ~ marks ~ prepared)
+  =/  unit-node=*  [%apply %unit ~[[%atom %t ~]]]
+  =/  unit-marks=imark-externals:jibb  ~[[%unit-full [%& unit-node]] [%unit-diff [%& unit-node]]]
+  =/  unit-api=@t  '/% %unit-full\0a/% %unit-diff\0a+$ paths [%items /items (facts unit-full unit-diff)]\0a'
+  =/  unit-ok  (api-path-analysis-source:jibb /ui/api/unit/jibb unit-api ~ unit-marks ~ prepared)
+  =/  unit-poke-source=@t  '/% %unit-full\0a+$ poke unit-full\0a'
+  =/  unit-poke-parsed=(each module:jibb error:jibb)  (parse:jibb /ui/api/unit/jibb unit-poke-source)
+  =/  unit-poke=(unit ifile:jibb)
+    ?:  ?=(%| -.unit-poke-parsed)  ~
+    (api-poke-interface:jibb /ui/api/unit/jibb p.unit-poke-parsed unit-marks values.u.prepared molds.u.prepared `iface.u.prepared)
   =/  miss  (api-path-analysis-source:jibb file api ~ missing ~ prepared)
   =/  dup  (api-path-analysis-source:jibb file api ~ duplicate ~ prepared)
   =/  undeclared  (api-path-analysis-source:jibb file missing-decl ~ marks ~ prepared)
@@ -100,5 +135,6 @@
         (show-result 'todo' ok)
     ==
   =.  lines  ?:(?=(%& -.ok) (weld lines (turn p.ok show-path)) lines)
-  (weld lines ~[(show-result 'missing mark' miss) (show-result 'duplicate mark' dup) (show-result 'undeclared mark' undeclared) (show-result 'value collision' clash) (show-result 'poke collision' poke) (show-result 'scry matching parameters' scry-ok) (scry-detail scry-ok) (show-result 'scry unknown parameter' scry-bad) (show-result 'wrong path' wrong) (show-result 'missing prelude' unprepared) (show-result 'private import' private) (show-result 'indirect private import' indirect) (show-result 'cycle' cycle)])
+  =.  lines  ?:(?=(%& -.unit-ok) (weld lines (turn p.unit-ok show-path)) lines)
+  (weld lines ~[(unit-detail unit-ok) (unit-poke-detail unit-poke) (show-result 'missing mark' miss) (show-result 'duplicate mark' dup) (show-result 'undeclared mark' undeclared) (show-result 'value collision' clash) (show-result 'poke collision' poke) (show-result 'scry matching parameters' scry-ok) (scry-detail scry-ok) (show-result 'scry unknown parameter' scry-bad) (show-result 'wrong path' wrong) (show-result 'missing prelude' unprepared) (show-result 'private import' private) (show-result 'indirect private import' indirect) (show-result 'cycle' cycle)])
 --

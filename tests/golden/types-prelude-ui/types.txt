@@ -82,4 +82,4 @@ partial inference; module not checked
                                                   ^
 ++ load: $-(@t (ask [count=@ud]))
 ++ page-view: $-([count=@ud] (element !!))
-++ static-page: [load=$-(@t (ask.internal [count=@ud])) view=$-([count=@ud] (element !!))]
+++ static-page: [load=$-(@t (ask [count=@ud])) view=$-([count=@ud] (element !!))]

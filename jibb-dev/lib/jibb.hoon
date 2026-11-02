@@ -6449,6 +6449,11 @@
 ++  import-to-itype
   |=  node=*
   ^-  (unit itype)
+  (import-to-itype-standard node ~)
+::
+++  import-to-itype-standard
+  |=  [node=* standard=(unit ischeme)]
+  ^-  (unit itype)
   ?@  node  ~
   ?+  -.node  ~
     %noun  ?:(=(node [%noun ~]) `[%noun ~] ~)
@@ -6490,18 +6495,24 @@
         ?:  |(=(%map name) =(%mop name) =(%jar name) =(%jug name))  2
         0
       ?:  =(arity 0)  ~
-      =/  args=(unit (list itype))  (import-to-itypes +>.node)
+      =/  args=(unit (list itype))  (import-to-itypes-standard +>.node standard)
       ?~  args  ~
       ?.  =(arity (lent u.args))  ~
       =/  keyed=(unit [types=(list itype) sub=isub])  (itype-collection-keys name u.args ~)
       ?~  keyed  ~
+      ?:  =(%unit name)
+        ?.  ?=([* ~] types.u.keyed)  ~
+        ?~  standard  `[%collection name types.u.keyed]
+        ?.  (standard-unit-template u.standard /lib/jibb/prelude/jibb)  ~
+        =/  nil=itype  [%const [%null %n 0 '~']]
+        `[%union ~[nil [%cell nil [%face %u i.types.u.keyed]]] `[/lib/jibb/prelude/jibb %unit] `%unit types.u.keyed]
       `[%collection name types.u.keyed]
     %fork
       ::  Hoon's ordinary ? mold is the fork of its two %f singletons.
       =/  raw=*  +.node
       ?:  |(=(raw ~[[%atom %f `0] [%atom %f `1]]) =(raw ~[[%atom %f `1] [%atom %f `0]]))
         `[%flag ~]
-      =/  cases=(unit (list itype))  (import-to-itypes raw)
+      =/  cases=(unit (list itype))  (import-to-itypes-standard raw standard)
       ?~  cases  ~
       ?~  u.cases  ~
       ?~  t.u.cases  ~
@@ -6541,10 +6552,15 @@
 ++  import-to-itypes
   |=  nodes=*
   ^-  (unit (list itype))
+  (import-to-itypes-standard nodes ~)
+::
+++  import-to-itypes-standard
+  |=  [nodes=* standard=(unit ischeme)]
+  ^-  (unit (list itype))
   ?@  nodes  ?:(=(nodes 0) `~ ~)
-  =/  first  (import-to-itype -.nodes)
+  =/  first  (import-to-itype-standard -.nodes standard)
   ?~  first  ~
-  =/  rest  $(nodes +.nodes)
+  =/  rest  $(nodes +.nodes, standard standard)
   ?~  rest  ~
   `[u.first u.rest]
 ::
@@ -6571,9 +6587,10 @@
   ?.  (levy t.cases |=(t=itype =(%disjoint (union-relate first (import-type-pattern t)))))  |
   $(cases t.cases)
 ::
-++  find-imported-mold
-  |=  [module=term name=term externals=iexternals surs=(list term)]
+++  find-imported-mold-prelude
+  |=  [module=term name=term externals=iexternals surs=(list term) prelude=ifile]
   ^-  (unit itype)
+  =/  standard=(unit ischeme)  (find-jibb-mold %unit prelude)
   ?.  (lien surs |=(n=term =(n module)))  ~
   =/  found=iexternals
     (skim externals |=(e=[module=term name=term result=*] &(=(module module.e) =(name name.e))))
@@ -6584,13 +6601,17 @@
   ?.  ?=(%& -.result)  ~
   =/  node=*  +.result
   ?.  (imported-faces-valid node)  ~
-  ?@  node  (import-to-itype node)
-  ?:  ?=(%ref -.node)  (import-to-itype node)
+  ?@  node  (import-to-itype-standard node standard)
+  ?:  ?=(%ref -.node)  (import-to-itype-standard node standard)
   =/  pattern=(unit irec-pattern)  (rec-pattern node module name)
-  ?~  pattern  (import-to-itype node)
-  ?.  has.u.pattern  (import-to-itype node)
+  ?~  pattern  (import-to-itype-standard node standard)
+  ?.  has.u.pattern  (import-to-itype-standard node standard)
   `[%recursive module name `(crip "{(trip name)}.{(trip module)}")]
-
+::
+++  find-imported-mold
+  |=  [module=term name=term externals=iexternals surs=(list term)]
+  ^-  (unit itype)
+  (find-imported-mold-prelude module name externals surs *ifile)
 ::
 ++  collect-sur-imports
   |=  imports=(list import)
@@ -6608,9 +6629,10 @@
     [mark.i.imports $(imports t.imports)]
   $(imports t.imports)
 ::
-++  find-imported-mark
-  |=  [name=term externals=imark-externals marks=(list term)]
+++  find-imported-mark-prelude
+  |=  [name=term externals=imark-externals marks=(list term) prelude=ifile]
   ^-  (unit itype)
+  =/  standard=(unit ischeme)  (find-jibb-mold %unit prelude)
   ?.  (unique-value-name name marks)  ~
   =/  found=imark-externals
     (skim externals |=(e=[mark=term result=*] =(name mark.e)))
@@ -6620,7 +6642,12 @@
   ?@  result  ~
   ?.  ?=(%& -.result)  ~
   ?.  (imported-faces-valid +.result)  ~
-  (import-to-itype +.result)
+  (import-to-itype-standard +.result standard)
+::
+++  find-imported-mark
+  |=  [name=term externals=imark-externals marks=(list term)]
+  ^-  (unit itype)
+  (find-imported-mark-prelude name externals marks *ifile)
 ::
 ++  find-jibb-interface
   |=  [face=term imports=ijimports]
@@ -7035,12 +7062,12 @@
           ?^  vars.u.found  ~
           `[(itype-in-import typ.u.found u.iface i.t.names.sh prelude.state) state]
         =/  found=(unit itype)
-          (find-imported-mold i.t.names.sh n externals.state surs.state)
+          (find-imported-mold-prelude i.t.names.sh n externals.state surs.state ?~(prelude.state *ifile u.prelude.state))
         ?~  found  ~
         `[u.found state]
       ?:  (lien marks.state |=(x=term =(x n)))
         ?^  (find-simple-mold n molds.state)  ~
-        =/  imported=(unit itype)  (find-imported-mark n mark-externals.state marks.state)
+        =/  imported=(unit itype)  (find-imported-mark-prelude n mark-externals.state marks.state ?~(prelude.state *ifile u.prelude.state))
         ?~  imported  ~
         `[u.imported state]
       ?:  (lien active.state |=(x=term =(x n)))  ~
@@ -10325,11 +10352,6 @@
   =.  entry  entry(source src, target dst)
   `[entry u.rest]
 ::
-++  add-supported-defs
-  |=  [ds=(list def) all-defs=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition)]
-  ^-  [env=ienv artifacts=(list iwidth-definition)]
-  (add-supported-defs-core ds all-defs checked heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts ~)
-::
 
 +$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition)]
 +$  iadj  (map term (list term))
@@ -10471,12 +10493,11 @@
   =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
   `[[[name.d [typ vars]] env] checked artifacts]
 ++  add-supported-defs-core
-  |=  [ds=(list def) all-defs=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
+  |=  [ds=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
   ^-  [env=ienv artifacts=(list iwidth-definition)]
   ?~  ds  [env artifacts]
   =/  d=def  i.ds
   ?:  ?=(%mold -.d)  $(ds t.ds)
-  ?:  (lien (program-recovery-names all-defs) |=(n=term =(n name.d)))  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
   ?^  (ienv-lookup name.d env)  $(ds t.ds)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
@@ -10531,7 +10552,7 @@
   =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
   |-
   =/  next=[env=ienv artifacts=(list iwidth-definition)]
-    (add-supported-defs-core ds ds (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
+    (add-supported-defs-core ds (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
   =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =.  grec-index.initial  index
   =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
@@ -11615,9 +11636,38 @@
   ?.  ?=(%tvar -.i.args.tail)  |
   =(var name.i.args.tail)
 ::
+++  prelude-public-label
+  |=  label=@t
+  ^-  (unit @t)
+  ?:  =(label 'ask.internal')  `'ask'
+  ?:  =(label 'qath.internal')  `'qath'
+  ?:  =(label 'raw-poke.internal')  `'raw-poke'
+  `label
+::
+++  prelude-label-nested
+  |=  typ=itype
+  ^-  itype
+  ?-  -.typ
+    %union
+      =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
+      [%union (turn cases.typ |=(c=itype (prelude-label-nested c))) origin.typ label (turn args.typ |=(c=itype (prelude-label-nested c)))]
+    %grec
+      =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
+      typ(label label, args (turn args.typ |=(c=itype (prelude-label-nested c))))
+    %jrec
+      =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
+      typ(label label)
+    %collection  [%collection name.typ (turn args.typ |=(c=itype (prelude-label-nested c)))]
+    %face      [%face name.typ $(typ body.typ)]
+    %fn        [%fn $(typ sample.typ) $(typ product.typ)]
+    %cell      [%cell $(typ hed.typ) $(typ tal.typ)]
+    *          typ
+  ==
+::
 ++  prelude-label
   |=  [typ=itype name=term vars=(list @ud)]
   ^-  itype
+  =.  typ  (prelude-label-nested typ)
   ?:  ?=(%jrec -.typ)  typ(label `name)
   ?:  ?=(%grec -.typ)
     ?.  (identity-union-parameters vars args.typ)  typ(label ~)
@@ -12113,22 +12163,22 @@
 +$  iapi-mark-type  [name=term typ=itype]
 +$  iapi-path-typed  [path=iapi-path full=itype diffs=(list iapi-mark-type)]
 ++  api-diff-types
-  |=  [names=(list term) externals=imark-externals declared=(list term)]
+  |=  [names=(list term) externals=imark-externals declared=(list term) prelude=ifile]
   ^-  (unit (list iapi-mark-type))
   ?~  names  `~
-  =/  typ=(unit itype)  (find-imported-mark i.names externals declared)
+  =/  typ=(unit itype)  (find-imported-mark-prelude i.names externals declared prelude)
   ?~  typ  ~
   =/  tail=(unit (list iapi-mark-type))  $(names t.names)
   ?~  tail  ~
   `[[i.names u.typ] u.tail]
 ::
 ++  api-path-types
-  |=  [paths=(list iapi-path) externals=imark-externals declared=(list term)]
+  |=  [paths=(list iapi-path) externals=imark-externals declared=(list term) prelude=ifile]
   ^-  (unit (list iapi-path-typed))
   ?~  paths  `~
-  =/  full=(unit itype)  (find-imported-mark full.i.paths externals declared)
+  =/  full=(unit itype)  (find-imported-mark-prelude full.i.paths externals declared prelude)
   ?~  full  ~
-  =/  diffs=(unit (list iapi-mark-type))  (api-diff-types diffs.i.paths externals declared)
+  =/  diffs=(unit (list iapi-mark-type))  (api-diff-types diffs.i.paths externals declared prelude)
   ?~  diffs  ~
   =/  tail=(unit (list iapi-path-typed))  $(paths t.paths)
   ?~  tail  ~
@@ -12148,7 +12198,7 @@
   `~[u.name]
 ::
 ++  api-path-analysis
-  |=  [mod=module externals=imark-externals prelude-values=(list term) prelude-molds=(list term)]
+  |=  [mod=module externals=imark-externals prelude-values=(list term) prelude-molds=(list term) prelude=ifile]
   ^-  (unit (list iapi-path-typed))
   ?:  (lien defs.mod def-has-hole)  ~
   ?^  (duplicate-defs defs.mod)  ~
@@ -12171,7 +12221,7 @@
   ?~  paths  ~
   =/  derived-pokes=(list term)  ?~(pokes ~ ~[%poke])
   ?.  (api-derived-names-valid u.paths derived-pokes mod prelude-values)  ~
-  (api-path-types u.paths externals declared)
+  (api-path-types u.paths externals declared prelude)
 ::
 ::  Source/graph entry for path analysis only. The returned paths retain
 ::  reader-derived mark types and import resolution has checked reachable
@@ -12185,12 +12235,13 @@
   =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
   ?^  duplicate  [%| (show-duplicate-fields file src u.duplicate)]
   ?~  prepared  [%| 'API path analysis needs the prepared prelude']
+  =/  public=ifile  iface.u.prepared
   =/  prelude=(unit ifile)  `iface.u.prepared
   =/  deps=jimports-result
     (resolve-jibb-imports imports.p.parsed externals marks modules ~[file] values.u.prepared molds.u.prepared ~ prelude)
   ?:  ?=(%| -.deps)  [%| p.deps]
   =/  paths=(unit (list iapi-path-typed))
-    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared)
+    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared public)
   ?~  paths  [%| 'API path declaration needs unsupported analysis']
   [%& u.paths]
 ::
@@ -12215,7 +12266,7 @@
     (resolve-jibb-imports imports.p.parsed externals marks modules ~[file] values.u.prepared molds.u.prepared ~ `public)
   ?:  ?=(%| -.deps)  [%| p.deps]
   =/  paths=(unit (list iapi-path-typed))
-    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared)
+    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared public)
   ?~  paths  [%| 'API path declaration needs unsupported analysis']
   [%& [file src u.prepared externals marks cache.p.deps u.paths]]
 ::  Graph-aware variant preserves the caller active stack and cache.
@@ -12236,7 +12287,7 @@
     (resolve-jibb-imports imports.p.parsed externals marks modules active values.u.prepared molds.u.prepared cache `public)
   ?:  ?=(%| -.deps)  [%| p.deps]
   =/  paths=(unit (list iapi-path-typed))
-    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared)
+    (api-path-analysis p.parsed marks values.u.prepared molds.u.prepared public)
   ?~  paths  [%| 'API path declaration needs unsupported analysis']
   [%& [file src u.prepared externals marks cache.p.deps u.paths]]
 ::
@@ -12323,7 +12374,7 @@
   =/  vals=(list term)  (global-value-names ordinary)
   ?:  (lien vals |=(n=term =(n %main)))  [%| 'API module kind needs unsupported inference']
   =/  declared=(list term)  (collect-mark-imports imports.mod)
-  =/  mark-types=(unit (list iapi-mark-type))  (api-diff-types declared marks declared)
+  =/  mark-types=(unit (list iapi-mark-type))  (api-diff-types declared marks declared iface.prep)
   ?~  mark-types  [%| 'API declared marks need unsupported inference']
   =/  prelude=(unit ifile)  `iface.prep
   =/  deps=jimports-result
@@ -12357,7 +12408,7 @@
   =/  vals=(list term)  (global-value-names ordinary)
   ?:  (lien vals |=(n=term =(n %main)))  [%| 'API module kind needs unsupported inference']
   =/  declared=(list term)  (collect-mark-imports imports.mod)
-  =/  mark-types=(unit (list iapi-mark-type))  (api-diff-types declared marks declared)
+  =/  mark-types=(unit (list iapi-mark-type))  (api-diff-types declared marks declared iface.prep)
   ?~  mark-types  [%| 'API declared marks need unsupported inference']
   =/  prelude=(unit ifile)  `iface.prep
   =/  deps=jimports-result
@@ -12558,10 +12609,10 @@
   [%& [support u.parts interface]]
 ::
 ++  api-mark-exports
-  |=  [marks=(list term) all=(list term) externals=imark-externals]
+  |=  [marks=(list term) all=(list term) externals=imark-externals prelude=ifile]
   ^-  imold-types
   ?~  marks  ~
-  =/  t=(unit itype)  (find-imported-mark i.marks externals all)
+  =/  t=(unit itype)  (find-imported-mark-prelude i.marks externals all prelude)
   ?~  t  $(marks t.marks)
   [[i.marks [u.t ~]] $(marks t.marks)]
 ::
@@ -12597,11 +12648,11 @@
   =/  n=term  i.names.sh
   ?.  (unique-value-name n marks)  ~
   ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))  ~
-  =/  mark=(unit itype)  (find-imported-mark n mark-externals marks)
+  =/  mark=(unit itype)  (find-imported-mark-prelude n mark-externals marks u.prelude)
   ?~  mark  ~
   =/  sc=(unit ischeme)  (derived-poke-command-scheme u.prelude u.mark)
   ?~  sc  ~
-  `[~[[%poke u.sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]] ~ ~ ~ ~]
+  `[~[[%poke u.sc]] (api-mark-exports marks marks mark-externals u.prelude) at ~[[n i.t.t.at n]] ~ ~ ~ ~]
 ::
 ::  Source-proven ordinary helpers validate each selected /sur dependency.
 ::  Unused or less direct cores remain unsupported by this first interface.
@@ -13185,48 +13236,6 @@
   =/  mapper=(unit term)  (program-main-wing i.t.args.turned)
   ?~  mapper  ~
   `[xs u.mapper]
-::
-++  program-recovery-names
-  |=  ds=(list def)
-  ^-  (list term)
-  =/  main=(unit def)  (program-main-def ds)
-  ?~  main  ~
-  =/  parts=(unit [init=term update=term view=term subs=term])
-    (program-main-parts u.main)
-  ?~  parts  ~
-  =/  views=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(view.u.parts name.d))))
-  ?.  ?=([* ~] views)  ~
-  =/  view-def=def  i.views
-  ?>  ?=(%value -.view-def)
-  =/  written=(unit sample)  (direct-gate-sample view-def)
-  ?~  written  ~
-  =/  body=expr
-    ?-  -.val.view-def
-      %gate       body.val.view-def
-      %gate-wide  body.val.view-def
-      *           !!
-    ==
-  =/  sites=(unit (list iview-site))  (program-view-sites body ~)
-  ?~  sites  ~
-  ?.  ?=([* ~] u.sites)  ~
-  =/  mapper=term  mapper.i.u.sites
-  =/  components=(list term)
-    :~  init.u.parts
-        update.u.parts
-        view.u.parts
-        subs.u.parts
-    ==
-  ?:  (lien components |=(n=term =(n mapper)))  ~
-  =/  mappers=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(mapper name.d))))
-  ?.  ?=([* ~] mappers)  ~
-  :~  init.u.parts
-      update.u.parts
-      view.u.parts
-      subs.u.parts
-      mapper
-  ==
 ::
 ++  program-sample-binders
   |=  sam=sample
@@ -13967,7 +13976,7 @@
   ?~  error  ~
   ?.  ?=(%union -.typ.u.raw)  ~
   =/  poke-case=itype
-    [%cell [%const [%term %tas %poke '%poke']] [%cell [%face %p typ.u.raw(label `'raw-poke.internal')] [%face %reply [%fn u.error [%var m]]]]]
+    [%cell [%const [%term %tas %poke '%poke']] [%cell [%face %p typ.u.raw(label `'raw-poke')] [%face %reply [%fn u.error [%var m]]]]]
   =/  go-case=itype
     [%cell [%const [%term %tas %go '%go']] [%face %url [%atom %t]]]
   =/  wait-case=itype
@@ -14111,7 +14120,7 @@
   ?~  heads  resolution
   =/  checked=(map term def)  (direct-checked-gates ds env.resolution)
   =/  completed=[env=ienv artifacts=(list iwidth-definition)]
-    (add-supported-defs-core ~[main] ds checked heads env.resolution molds.initial globals.initial externals.initial surs.initial mark-externals.initial marks.initial jimports.initial reserved-molds.initial at.initial prelude.initial artifacts.resolution grec-index.initial)
+    (add-supported-defs-core ~[main] checked heads env.resolution molds.initial globals.initial externals.initial surs.initial mark-externals.initial marks.initial jimports.initial reserved-molds.initial at.initial prelude.initial artifacts.resolution grec-index.initial)
   [env.completed grouped.resolution artifacts.completed]
 ::
 ::  A static main may retain a generic element message in its ordinary

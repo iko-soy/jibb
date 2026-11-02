@@ -3,6 +3,9 @@ todo: accepted 3 path cases
 todos: full=(list [id=@ud [done=? text=@t]]) diffs: parameters:
 changes: full=(list [id=@ud [done=? text=@t]]) diffs: todo-update=[%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud] parameters:
 todo-by-id: full=[id=@ud [done=? text=@t]] diffs: parameters: id=@ud
+items: full=(unit @t) diffs: unit-diff=(unit @t) parameters:
+unit marks: canonical
+unit poke: canonical
 missing mark: API path declaration needs unsupported analysis
 duplicate mark: API path declaration needs unsupported analysis
 undeclared mark: API path declaration needs unsupported analysis

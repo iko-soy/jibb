@@ -53,6 +53,7 @@ partial inference; module not checked
 /test.jibb:32:45: argument has type (unit @t)
 ++ wrong-kind |= x=maybe.fixture (text-list x)
                                             ^
+++ maybe-id: $-((unit @t) (unit @t))
 ++ bad-kind: sample mold is not supported by partial inference
 ++ bad-arity: sample mold is not supported by partial inference
 ++ bad-argument: sample mold is not supported by partial inference
@@ -63,10 +64,10 @@ partial inference; module not checked
 ++ chain-again: $-(chain.fixture chain.fixture)
 ++ other-id: $-(other.fixture other.fixture)
 ++ chain-mismatch: call's sample and argument types do not unify
-/test.jibb:42:39: called gate has type $-(chain.fixture chain.fixture)
+/test.jibb:43:39: called gate has type $-(chain.fixture chain.fixture)
 ++ chain-mismatch |= x=other.fixture (chain-id x)
                                       ^
-/test.jibb:42:48: argument has type other.fixture
+/test.jibb:43:48: argument has type other.fixture
 ++ chain-mismatch |= x=other.fixture (chain-id x)
                                                ^
 ++ recursive-field: field is not available to partial inference
@@ -77,10 +78,10 @@ partial inference; module not checked
 ++ raw-ref: sample mold is not supported by partial inference
 ++ raw-null: $-(~ ~)
 ++ cross-module: call's sample and argument types do not unify
-/test.jibb:50:36: called gate has type $-(chain.fixture chain.fixture)
+/test.jibb:51:36: called gate has type $-(chain.fixture chain.fixture)
 ++ cross-module |= x=chain.second (chain-id x)
                                    ^
-/test.jibb:50:45: argument has type chain.second
+/test.jibb:51:45: argument has type chain.second
 ++ cross-module |= x=chain.second (chain-id x)
                                             ^
 ++ chain-pattern: recursive pattern is not supported by partial inference
@@ -105,7 +106,7 @@ partial inference; module not checked
 ++ flag-faced: sample mold is not supported by partial inference
 ++ flag-malformed: sample mold is not supported by partial inference
 ++ mixed-zero: Hoon union cases overlap
-/test.jibb:81:20: invalid imported mold
+/test.jibb:82:20: invalid imported mold
 ++ mixed-zero |= x=mixed-zero.fixture x
                    ^
 ++ separate-tags: $-(([%left [%$ @t]] [%right [? @t]]) ([%left [%$ @t]] [%right [? @t]]))
@@ -118,6 +119,15 @@ partial inference; module not checked
 ++ use: recursive mold name is not available in this scope
 partial inference; module not checked
 ++ canonical: (unit @t)
+++ canonical-fall: $-((unit @t) @t)
+++ canonical-need: $-((unit @t) @t)
+++ canonical-cast: $-((unit @t) (unit @t))
+++ maybe-id: $-((unit @t) (unit @t))
+++ maybe-fall: $-((unit @t) @t)
+++ maybe-need: $-((unit @t) @t)
+++ maybe-cast: $-((unit @t) (unit @t))
+++ unit-choice-need: $-((~ [%some (unit @t)]) @t)
+++ unit-list-need: $-((list (unit @t)) @t)
 ++ lookalike: cast constraint is not supported by partial inference
 noun: *
 malformed: unsupported

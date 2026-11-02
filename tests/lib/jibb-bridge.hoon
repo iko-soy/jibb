@@ -129,6 +129,8 @@
         [%fixture %texts (read %texts)]
         [%fixture %numbers (read %numbers)]
         [%fixture %maybe (read %maybe)]
+        [%fixture %unit-choice [%& [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %some]] [%apply %unit ~[[%atom %t ~]]]]]]]]
+        [%fixture %unit-list [%& [%apply %list ~[[%apply %unit ~[[%atom %t ~]]]]]]]
         [%fixture %tagged-list (read %tagged-list)]
         [%fixture %buckets (read %buckets)]
         [%fixture %collection-rec (read %collection-rec)]
@@ -159,9 +161,10 @@
   =/  prelude=@t  (crip "++ prelude-id |= x x\0a")
   =/  modules=(list [at=path source=@t])  ~[[~[%ui %helper %jibb] dep]]
   =/  hidden=@t  (golden-types-with-prelude:jibb /ui/main/jibb root external ~ modules prelude)
-  =/  unit-prelude=@t  (crip "+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a")
+  =/  unit-prelude=@t
+    (crip "+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a++ fall |= args=[(unit A) A]\0a  ?- args\0a    [maybe fallback]\0a      ?- maybe\0a        ~ fallback\0a        [~ value] value\0a++ need |= maybe=(unit A)\0a  ?- maybe\0a    ~ !!\0a    [~ value] value\0a")
   =/  unit-client=@t
-    (crip "/- fixture\0a++ canonical ^- (unit @t) `\"hi\"\0a++ lookalike ^- zero-lookalike.fixture `\"hi\"\0a")
+    (crip "/- fixture\0a++ canonical ^- (unit @t) `\"hi\"\0a++ canonical-fall |= x=(unit @t) (fall x \"fallback\")\0a++ canonical-need |= x=(unit @t) (need x)\0a++ canonical-cast |= x=(unit @t) ^- (unit @t) x\0a++ maybe-id |= x=maybe.fixture x\0a++ maybe-fall |= x=maybe.fixture (fall x \"fallback\")\0a++ maybe-need |= x=maybe.fixture (need x)\0a++ maybe-cast |= x=maybe.fixture ^- (unit @t) x\0a++ unit-choice-need |= x=unit-choice.fixture\0a  ?- x\0a    ~ \"empty\"\0a    [%some maybe] (need maybe)\0a++ unit-list-need |= xs=unit-list.fixture\0a  ?- xs\0a    ~ \"empty\"\0a    [maybe rest] (need maybe)\0a++ lookalike ^- zero-lookalike.fixture `\"hi\"\0a")
   =/  unit-report=@t
     (golden-types-with-prelude:jibb /ui/unit-client/jibb unit-client external ~ ~ unit-prelude)
   (cat 3 report (cat 3 (crip "\0areader-collapsed: {(show-result:jibb-import (read %collapsed))}\0areader-mixed-zero: {(show-result:jibb-import (read %mixed-zero))}\0areader-separate-tags: {(show-result:jibb-import (read %separate-tags))}\0areader-separate-terms: {(show-result:jibb-import (read %separate-terms))}\0a") (cat 3 hidden (cat 3 '\0a' (cat 3 unit-report (cat 3 '\0a' (cat 3 noun-synthetic (cat 3 '\0a' (cat 3 recursive-list-synthetic (cat 3 '\0a' named-recursive-synthetic))))))))))

@@ -46,8 +46,8 @@
   ?:  |(?=(%| -.valid) ?=(%| -.clash) ?=(%| -.poke))  ~["API reservation controls did not parse"]
   =/  todo=imark-externals:jibb  ~[[%todo [%& [%atom %t ~]]]]
   =/  proj-mark=imark-externals:jibb  ~[[%proj [%& [%atom %t ~]]]]
-  =/  good=(unit (list iapi-path-typed:jibb))  (api-path-analysis:jibb p.valid todo ~ ~)
-  =/  bad=(unit (list iapi-path-typed:jibb))  (api-path-analysis:jibb p.clash todo ~ ~)
+  =/  good=(unit (list iapi-path-typed:jibb))  (api-path-analysis:jibb p.valid todo ~ ~ *ifile:jibb)
+  =/  bad=(unit (list iapi-path-typed:jibb))  (api-path-analysis:jibb p.clash todo ~ ~ *ifile:jibb)
   ?~  good  ~["a literal /proj path was rejected"]
   ?^  bad  ~["an API-derived proj path name was accepted"]
   =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb real-prelude real-internal)

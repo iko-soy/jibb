@@ -63,7 +63,7 @@
   =/  prepared=(unit iprelude:jibb)
     (prepare-prelude-with-internal:jibb public private)
   ?~  prepared  ~["theme prelude did not prepare"]
-  =/  expected=tape  "[space=[s1=@t [s2=@t s3=@t]] [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]] [wide=@t [lang=@t [zone=@t [font=(unit qath.internal) dark=(unit [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]]])]]]]]]"
+  =/  expected=tape  "[space=[s1=@t [s2=@t s3=@t]] [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]] [wide=@t [lang=@t [zone=@t [font=(unit qath) dark=(unit [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]]])]]]]]]"
   =/  negatives=(list [label=tape src=@t])
     :~  ["wrong nested aura" wrong-nested-aura]
         ["missing required field" missing-field]

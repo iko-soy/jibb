@@ -17,6 +17,7 @@
 /*  alias  %txt  /tests/type-todo-full/alias/txt
 /*  wrong-watch  %txt  /tests/type-todo-full/wrong-watch/txt
 /*  non-gate-view  %txt  /tests/type-todo-full/non-gate-view/txt
+/*  cast-init  %txt  /tests/type-todo-full/cast-init/txt
 /*  expected  %txt  /tests/type-todo-full/expected/txt
 |%
 ++  text
@@ -130,6 +131,14 @@
     (todo-full-legacy-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
   ?.  =((to-wain:format (cat 3 legacy '\0a')) expected)
     ~[leaf+"legacy full todo report differs"]
+  =/  cast-report=@t
+    (todo-full-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text cast-init))
+  ?.  =((to-wain:format (cat 3 cast-report '\0a')) expected)
+    ~[leaf+"ordinary annotated initializer was rejected"]
+  =/  cast-legacy=@t
+    (todo-full-legacy-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text cast-init))
+  ?.  =((to-wain:format (cat 3 cast-legacy '\0a')) expected)
+    ~[leaf+"legacy ordinary annotated initializer was rejected"]
   =/  imported=@t
     (todo-full-import-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
   ?.  =(imported 'downstream import accepted')

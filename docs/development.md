@@ -111,7 +111,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-program-update-test` | Checks transactional direct-program update result recovery, union/boolean context, exact exported/imported types and fail-closed boundaries under eval and on the ship |
 | `tools/type-program-watch-test` | Checks direct singleton request-value watchability against merged real-todo evidence, exact types/imports and rejection boundaries under eval and on the ship |
 | `tools/type-store-test` | Checks the unchanged cart/basket through detailed and legacy inference, exact store/derived schemes, malformed-prelude guards, structural imports, source-bound state watch evidence and rejection guards under eval and on the ship |
-| `tools/type-todo-full-test` | Fully checks the byte-identical todo island through real readers, exact main type, structural downstream import and rejection controls under eval and on the ship |
+| `tools/type-todo-full-test` | Fully checks the byte-identical todo island and an ordinary call-bodied annotated-initializer variant through real readers, exact main types, structural downstream import and rejection controls under eval and on the ship |
 | `tools/type-closed-gate-guards-test` | Checks closed gate sample labels and face uncertainty under eval and on the ship |
 | `tools/type-constructor-fit-guards-test` | Checks constructor-case uncertainty and known mismatches under eval and on the ship |
 | `tools/type-nested-union-guards-test` | Checks nested tagged-union case selection and uncertainty under eval and on the ship |

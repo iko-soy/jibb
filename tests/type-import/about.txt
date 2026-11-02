@@ -12,8 +12,10 @@ as `?`, including in either supplied order. Open `%f`, out-of-range values,
 duplicates, overlapping zero constants, extra or faced cases and malformed
 forks stay unsupported. A structurally unit-like import does not gain unit
 construction even when a canonical prelude unit is supplied; constructing
-that canonical unit succeeds. It covers matching and
-mismatched collections, nested union arguments, and malformed collection names
+that canonical unit succeeds. With the validated canonical template, the
+same imported unit fits identity, `fall`, `need` and `(unit @t)` casts, including
+when nested in an imported union. It covers matching and mismatched collections,
+nested union arguments, and malformed collection names
 and arities. An imported `*` can widen a value, while malformed nouns,
 overlapping direct or nested union cases, and unknown gate or empty cases
 stay unsupported. Distinct tagged cases with a noun payload remain disjoint.

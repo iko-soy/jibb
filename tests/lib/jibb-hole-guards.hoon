@@ -48,11 +48,11 @@
   ?.  &(?=(%& -.g) ?=(%& -.b) ?=(%& -.v))
     ["API path control sources did not parse" failures]
   =/  ext=imark-externals:jibb  ~[[%todo [%& [%atom %t ~]]]]
-  =?  failures  ?=(~ (api-path-analysis:jibb p.g ext ~ ~))
+  =?  failures  ?=(~ (api-path-analysis:jibb p.g ext ~ ~ *ifile:jibb))
     ["a valid API path was rejected" failures]
-  =?  failures  ?=(^ (api-path-analysis:jibb p.b ext ~ ~))
+  =?  failures  ?=(^ (api-path-analysis:jibb p.b ext ~ ~ *ifile:jibb))
     ["an API path ignored an unused mold hole" failures]
-  =?  failures  ?=(^ (api-path-analysis:jibb p.v ext ~ ~))
+  =?  failures  ?=(^ (api-path-analysis:jibb p.v ext ~ ~ *ifile:jibb))
     ["an API path ignored an unused value hole" failures]
   =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb real-prelude real-internal)
   ?~  prepared  ["actual prelude was not prepared" failures]
