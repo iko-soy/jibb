@@ -172,4 +172,60 @@
             (cell 21:29 (aura 21:30 @t) (aura 21:33 @p)))
           (lit 21:37 %.y))
         (unit 21:42 (str 21:43 "a"))
-        (unit 21:47 (str 21:48 "b"))))))
+        (unit 21:47 (str 21:48 "b")))))
+  (value 22:1 eq-cell
+    (group 22:12
+      (call 22:13
+        (wing 22:13 eq)
+        (tuple 22:16 (lit 22:17 1) (str 22:19 "a"))
+        (tuple 22:24 (lit 22:25 1) (str 22:27 "a")))))
+  (value 23:1 eq-gate
+    (group 23:12
+      (call 23:13 (wing 23:13 eq) (wing 23:16 same) (wing 23:21 same))))
+  (value 24:1 eq-nested-gate
+    (group 24:19
+      (call 24:20
+        (wing 24:20 eq)
+        (tuple 24:23 (lit 24:24 1) (wing 24:26 same))
+        (tuple 24:32 (lit 24:33 1) (wing 24:35 same)))))
+  (value 25:1 eq-open
+    (gate 25:12
+      (face 25:15 x (tvar 25:17 A))
+      (group 25:19
+        (call 25:20 (wing 25:20 eq) (wing 25:23 x) (wing 25:25 x)))))
+  (value 26:1 mate-same
+    (group 26:14
+      (call 26:15
+        (wing 26:15 mate)
+        (unit 26:20 (str 26:21 "hi"))
+        (unit 26:26 (str 26:27 "hi")))))
+  (value 27:1 mate-left
+    (group 27:14
+      (call 27:15
+        (wing 27:15 mate)
+        (lit 27:20 ~)
+        (unit 27:22 (str 27:23 "hi")))))
+  (value 28:1 mate-right
+    (group 28:15
+      (call 28:16
+        (wing 28:16 mate)
+        (unit 28:21 (str 28:22 "hi"))
+        (lit 28:27 ~))))
+  (value 29:1 mate-crash
+    (group 29:15
+      (call 29:16
+        (wing 29:16 mate)
+        (unit 29:21 (str 29:22 "hi"))
+        (unit 29:27 (str 29:28 "there")))))
+  (value 30:1 mate-gate
+    (group 30:14
+      (call 30:15
+        (wing 30:15 mate)
+        (unit 30:20 (wing 30:21 same))
+        (unit 30:26 (wing 30:27 same)))))
+  (value 31:1 mate-bad
+    (group 31:13
+      (call 31:14
+        (wing 31:14 mate)
+        (unit 31:19 (str 31:20 "hi"))
+        (unit 31:25 (lit 31:26 ~zod))))))

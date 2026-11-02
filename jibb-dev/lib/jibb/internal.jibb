@@ -9,6 +9,7 @@
 
 ::  The compiler supplies this private interface; execution is not yet implemented.
 ++ gth-atom |= args=[A A] (raw-gth.core args)
+++ eq-data |= args=[A A] (raw-eq.core args)
 
 ::  Application paths are knot sequences.
 +$ qath

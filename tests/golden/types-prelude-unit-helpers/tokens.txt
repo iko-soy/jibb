@@ -318,4 +318,110 @@
 21:47 glyph `
 21:48 tight str "b"
 21:51 tight glyph )
-21:52 NEWLINE
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name eq-cell
+22:12 glyph (
+22:13 tight name eq
+22:16 glyph [
+22:17 tight lit 1
+22:19 str "a"
+22:22 tight glyph ]
+22:24 glyph [
+22:25 tight lit 1
+22:27 str "a"
+22:30 tight glyph ]
+22:31 tight glyph )
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name eq-gate
+23:12 glyph (
+23:13 tight name eq
+23:16 name same
+23:21 name same
+23:25 tight glyph )
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name eq-nested-gate
+24:19 glyph (
+24:20 tight name eq
+24:23 glyph [
+24:24 tight lit 1
+24:26 name same
+24:30 tight glyph ]
+24:32 glyph [
+24:33 tight lit 1
+24:35 name same
+24:39 tight glyph ]
+24:40 tight glyph )
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name eq-open
+25:12 glyph |=
+25:15 name x
+25:16 tight glyph =
+25:17 tight tvar A
+25:19 glyph (
+25:20 tight name eq
+25:23 name x
+25:25 name x
+25:26 tight glyph )
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name mate-same
+26:14 glyph (
+26:15 tight name mate
+26:20 glyph `
+26:21 tight str "hi"
+26:26 glyph `
+26:27 tight str "hi"
+26:31 tight glyph )
+27:1 NEWLINE
+27:1 glyph ++
+27:4 name mate-left
+27:14 glyph (
+27:15 tight name mate
+27:20 lit ~
+27:22 glyph `
+27:23 tight str "hi"
+27:27 tight glyph )
+28:1 NEWLINE
+28:1 glyph ++
+28:4 name mate-right
+28:15 glyph (
+28:16 tight name mate
+28:21 glyph `
+28:22 tight str "hi"
+28:27 lit ~
+28:28 tight glyph )
+29:1 NEWLINE
+29:1 glyph ++
+29:4 name mate-crash
+29:15 glyph (
+29:16 tight name mate
+29:21 glyph `
+29:22 tight str "hi"
+29:27 glyph `
+29:28 tight str "there"
+29:35 tight glyph )
+30:1 NEWLINE
+30:1 glyph ++
+30:4 name mate-gate
+30:14 glyph (
+30:15 tight name mate
+30:20 glyph `
+30:21 tight name same
+30:26 glyph `
+30:27 tight name same
+30:31 tight glyph )
+31:1 NEWLINE
+31:1 glyph ++
+31:4 name mate-bad
+31:13 glyph (
+31:14 tight name mate
+31:19 glyph `
+31:20 tight str "hi"
+31:25 glyph `
+31:26 tight lit ~zod
+31:30 tight glyph )
+31:31 NEWLINE

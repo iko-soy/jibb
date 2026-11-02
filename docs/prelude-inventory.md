@@ -32,7 +32,7 @@ The source-backed `gth` gate calls a compiler-supplied private comparison interf
 
 `biff`, `bind`, `bond`, `both`, `clap`, `clef`, `drop`, `fall`, `flit`, `hunt`, `lift`, `mate`, `need`, `some`.
 
-The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `bond`, `both`, `clap`, `clef`, `drop`, `flit` and `hunt`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. Backend validation and jet recognition remain outstanding for all of them.
+The following is an audit of the Hoon 135 bodies, not a completed Jibb interface. The partial checker infers `fall`, `need`, `some`, `bind`, `biff`, `bond`, `both`, `clap`, `clef`, `drop`, `flit`, `hunt` and `mate`; the remaining written implementations have been parsed, but complete checker validation remains outstanding. Backend validation and jet recognition remain outstanding for all of them.
 
 | Name | Hoon behavior | Jibb status |
 | --- | --- | --- |
@@ -47,7 +47,7 @@ The following is an audit of the Hoon 135 bodies, not a completed Jibb interface
 | `flit` | Returns a gate that wraps a value only if it satisfies the predicate. | Written |
 | `hunt` | Returns the only present unit or chooses between two present values with an ordering gate. | Written with the ordering gate first, as `(hunt ord a b)`; both ordering outcomes and absent units are inferred |
 | `lift` | Takes a mold and a unit, then applies the mold to a present value as `bind` does. | Missing; Jibb molds are not callable values |
-| `mate` | Returns the present unit if only one is present; when both are present it returns one if their values are equal and crashes otherwise. | Missing |
+| `mate` | Returns the present unit if only one is present; when both are present it returns one if their values are equal and crashes otherwise. | Written over `eq`; its generic payload retains the gate-free constraint |
 | `need` | Extracts a present value and crashes on an absent unit. | Written; inferred by the partial checker |
 | `some` | Wraps a value in a present unit. | Written |
 

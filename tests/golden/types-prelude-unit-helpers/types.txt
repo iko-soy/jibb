@@ -42,3 +42,37 @@ partial inference; module not checked
 /tests/golden/types-prelude-unit-helpers/source.jibb:21:24: argument has type $-([@t @p] ?)
 ++ hunt-gate-bad (hunt |=(p=[@t @p] %.y) `"a" `"b")
                        ^
+++ eq-cell: ?
+++ eq-gate: call's sample and argument types do not unify
+/tests/golden/types-prelude-unit-helpers/source.jibb:23:13: called gate has type $-([A A] ?) where A contains no gates
+++ eq-gate (eq same same)
+            ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:23:16: argument has type $-(A A)
+++ eq-gate (eq same same)
+               ^
+++ eq-nested-gate: call's sample and argument types do not unify
+/tests/golden/types-prelude-unit-helpers/source.jibb:24:20: called gate has type $-([A A] ?) where A contains no gates
+++ eq-nested-gate (eq [1 same] [1 same])
+                   ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:24:23: argument
+++ eq-nested-gate (eq [1 same] [1 same])
+                      ^
+++ eq-open: $-(A ?) where A contains no gates
+++ mate-same: (unit @t)
+++ mate-left: (unit @t)
+++ mate-right: (unit @t)
+++ mate-crash: (unit @t)
+++ mate-gate: unit payload does not fit its expected type
+/tests/golden/types-prelude-unit-helpers/source.jibb:30:15: expected unit payload
+++ mate-gate (mate `same `same)
+              ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:30:21: payload has type $-(A A)
+++ mate-gate (mate `same `same)
+                    ^
+++ mate-bad: unit payload does not fit its expected type
+/tests/golden/types-prelude-unit-helpers/source.jibb:31:14: expected unit payload has type @t
+++ mate-bad (mate `"hi" `~zod)
+             ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:31:26: payload has type @p
+++ mate-bad (mate `"hi" `~zod)
+                         ^

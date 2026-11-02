@@ -5,6 +5,7 @@ partial inference; module not checked
 ++ head: $-([A B] A)
 ++ tail: $-([A B] B)
 ++ not: $-(? ?)
+++ eq: field access is not supported by partial inference
 +$ list: cases proven disjoint; mold not checked
 +$ unit: cases proven disjoint; mold not checked
 ++ fall: $-([(unit A) A] A)
@@ -49,6 +50,7 @@ partial inference; module not checked
 ++ both: unit construction needs the standard prelude in partial inference
 ++ clap: unit construction needs the standard prelude in partial inference
 ++ hunt: $-([$-([A A] ?) [(unit A) (unit A)]] (unit A))
+++ mate: name is not available to partial inference
 ++ clef: $-([(unit A) [(unit B) $-([A B] (unit C))]] (unit C))
 ++ skim: sample mold is not supported by partial inference
 ++ skip: sample mold is not supported by partial inference

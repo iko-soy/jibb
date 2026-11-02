@@ -18,4 +18,21 @@
       (apply 4:12 duo (aura 4:17 @t) (aura 4:20 @p))
       (tuple 4:24
         (face 4:25 left (str 4:30 "hi"))
-        (face 4:35 right (lit 4:41 ~zod))))))
+        (face 4:35 right (lit 4:41 ~zod)))))
+  (mold 5:1 map
+    (generic 5:8 A B
+      (cell 5:17
+        (face 5:18 first (tvar 5:24 A))
+        (face 5:26 second (tvar 5:33 B)))))
+  (value 6:1 named-map
+    (cast 6:14
+      (apply 6:17 map
+        (fn 6:22 (aura 6:25 @t) (aura 6:28 @t))
+        (aura 6:32 @t))
+      (tuple 6:36
+        (face 6:37 first
+          (group 6:43
+            (gate 6:44
+              (face 6:47 x (aura 6:49 @t))
+              (wing 6:52 x))))
+        (face 6:55 second (str 6:62 "ok"))))))

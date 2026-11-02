@@ -105,7 +105,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-constructor-fit-guards-test` | Checks constructor-case uncertainty and known mismatches under eval and on the ship |
 | `tools/type-nested-union-guards-test` | Checks nested tagged-union case selection and uncertainty under eval and on the ship |
 | `tools/type-empty-test` | Checks source-backed empty molds, inhabitedness, coverage and proof budgets under eval and on the ship |
-| `tools/type-gate-free-guards-test` | Checks bounded gate-free verdicts, inhabitation and witness paths under eval and on the ship |
+| `tools/type-gate-free-guards-test` | Checks bounded gate-free verdicts, persistent constraints, substitution safeguards, collection keys and witness paths under eval and on the ship |
 | `tools/type-gate-free-source-test` | Checks source-backed todo mold analysis through the real readers under eval and on the ship |
 | `tools/type-sub-guards-test` | Checks source-backed subscription mold dependencies under eval and on the ship |
 | `tools/type-ask-guards-test` | Runs ask origin and canonical list/unit bootstrap guards under eval and on the ship |

@@ -18,6 +18,7 @@
         ['flag' flag 8 %yes]
         ['atom variable' [%avar 0] 8 %yes]
         ['open variable' var 8 %unknown]
+        ['gate-free variable' [%fvar 0] 8 %yes]
         ['noun' noun 8 %unknown]
         ['raw gate' gate 8 %no]
         ['data item' item 30 %yes]
@@ -59,6 +60,54 @@
   =?  errors  !=(path.b `~[[%item ~]])  ['list path incorrect' errors]
   =/  c=igate-free:jibb  (gate-free-type:jibb model 100 ~)
   =?  errors  ?=(^ path.c)  ['gate-free result carries witness path' errors]
+  =/  scheme=ischeme:jibb  [[%fn [%fvar 40] [%fvar 40]] ~[40]]
+  =/  initial=istate:jibb  *istate:jibb
+  =/  instantiated=[typ=itype:jibb state=istate:jibb]
+    (instantiate-scheme:jibb scheme initial(next 50))
+  =?  errors  !=(typ.instantiated [%fn [%fvar 50] [%fvar 50]])
+    ['instantiation lost the gate-free constraint' errors]
+  =?  errors  !=(next.state.instantiated 51)
+    ['gate-free instantiation did not advance the fresh counter' errors]
+  =?  errors  !(lien binders.state.instantiated |=(n=@ud =(n 50)))
+    ['gate-free instantiation lost binder provenance' errors]
+  =/  keyed=(unit [types=(list itype:jibb) sub=isub:jibb])
+    (itype-collection-keys:jibb %map ~[[%var 60] gate] ~)
+  =/  expected-keys=(list itype:jibb)  ~[[%fvar 60] gate]
+  =/  expected-key-sub=isub:jibb  ~[[60 [%fvar 60]]]
+  =?  errors  !=(keyed [~ [expected-keys expected-key-sub]])
+    ['map key constraint or independent value changed' errors]
+  =/  set-key=(unit [types=(list itype:jibb) sub=isub:jibb])
+    (itype-collection-keys:jibb %set ~[[%cell [%var 61] [%var 62]]] ~)
+  =/  expected-set=(list itype:jibb)  ~[[%cell [%fvar 61] [%fvar 62]]]
+  =/  expected-set-sub=isub:jibb  ~[[62 [%fvar 62]] [61 [%fvar 61]]]
+  =?  errors  !=(set-key [~ [expected-set expected-set-sub]])
+    ['nested set key variables were not constrained' errors]
+  =?  errors  ?=(^ (itype-collection-keys:jibb %map ~[gate atom] ~))
+    ['a gate-bearing map key was accepted' errors]
+  =?  errors  ?=(^ (itype-collection-keys:jibb %set ~[[%cell atom gate]] ~))
+    ['a nested gate-bearing set key was accepted' errors]
+  =?  errors  ?=(^ (itype-collection-keys:jibb %map ~[[%var 63] atom] ~[[63 gate]]))
+    ['an existing gate substitution bypassed a map key' errors]
+  =?  errors  ?=(^ (itype-unify:jibb [%var 60] gate expected-key-sub))
+    ['a later gate substitution bypassed a map key' errors]
+  =/  map-template=ischeme:jibb
+    [[%collection %map ~[[%fvar 70] [%var 71]]] ~[70 71]]
+  =?  errors  ?=(^ (template-apply:jibb map-template ~[gate atom]))
+    ['template application accepted a gate map key' errors]
+  =/  applied=(unit itype:jibb)
+    (template-apply:jibb map-template ~[[%var 72] gate])
+  =/  expected-applied=itype:jibb
+    [%collection %map ~[[%fvar 72] gate]]
+  =?  errors  !=(applied [~ expected-applied])
+    ['template application lost key constraint or changed value' errors]
+  =/  existing-sub=isub:jibb  ~[[72 gate]]
+  =?  errors  ?=(^ (template-apply-sub:jibb map-template ~[[%var 72] atom] existing-sub))
+    ['an existing gate substitution bypassed template validation' errors]
+  =/  applied-sub=(unit [typ=itype:jibb sub=isub:jibb])
+    (template-apply-sub:jibb map-template ~[[%var 72] gate] ~)
+  =/  expected-applied-sub=isub:jibb  ~[[72 [%fvar 72]]]
+  =?  errors  !=(applied-sub [~ [expected-applied expected-applied-sub]])
+    ['template application did not retain the key substitution' errors]
   ::  The explicit budget is shared across the entire normalized type.
   =/  deep
     |=  depth=@ud
@@ -71,6 +120,21 @@
   =/  exceeds=igate-free:jibb  (gate-free-type:jibb (deep 256) 256 ~)
   =?  errors  !=(%yes verdict.fits)  ['256 node budget rejected exact fit' errors]
   =?  errors  !=(%unknown verdict.exceeds)  ['257 node budget did not fail closed' errors]
+  =/  formed-fit=(unit igf-form:jibb)  (itype-gate-free-form:jibb (deep 255) ~ 256)
+  =/  formed-exceeds=(unit igf-form:jibb)  (itype-gate-free-form:jibb (deep 256) ~ 256)
+  =?  errors  ?=(~ formed-fit)  ['256 node constraint rejected exact fit' errors]
+  =?  errors  ?=(^ formed-exceeds)  ['257 node constraint did not fail closed' errors]
+  =/  deep-free
+    |=  depth=@ud
+    ^-  itype:jibb
+    =/  out=itype:jibb  [%fvar 0]
+    |-
+    ?:  =(0 depth)  out
+    $(depth (dec depth), out [%face %nested out])
+  =?  errors  !(itype-var-is-gate-free:jibb 0 (deep-free 255))
+    ['256 node variable scan rejected exact fit' errors]
+  =?  errors  !(itype-var-is-gate-free:jibb 0 (deep-free 256))
+    ['257 node variable scan dropped the constraint' errors]
   =/  errors  (skim errors |=(x=@t !=(x '')))
   (turn errors trip)
 ++  test-gate-free-guards

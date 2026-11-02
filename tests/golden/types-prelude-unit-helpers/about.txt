@@ -1,4 +1,4 @@
 source: Overview, Prelude: Hoon standard-library gates are regrouped into the prelude, with Jibb implementations.
-tests: The actual prelude exposes bind, biff, both, clap, clef, flit and hunt with independently instantiated unit payloads. Hunt covers both ordering outcomes and absent units, with its ordering gate first as in Hoon. A mismatched gate argument reports both sites, an incompatible clef gate stays unsupported, and an unrelated tag stays pending.
+tests: The actual prelude exposes bind, biff, both, clap, clef, flit, hunt, eq and mate with independently instantiated unit payloads. Hunt covers both ordering outcomes and absent units, with its ordering gate first as in Hoon. Equality and mate preserve the gate-free constraint through generic schemes and reject direct or nested gate payloads. A mismatched gate argument reports both sites, an incompatible clef gate stays unsupported, and an unrelated tag stays pending.
 expect: parses
 expect-types: a partial inference report

@@ -1,4 +1,4 @@
 source: Grammar, Molds: "Generic molds" are defined with `|$` after a `+$` name; type variables are capitals.
-tests: Nonrecursive generic gate and two-parameter record molds retain independent parameter types.
+tests: Nonrecursive generic gate and two-parameter record molds retain independent parameter types; a user mold named `map` does not acquire the collection key constraint.
 expect: parses
 expect-types: a partial inference report

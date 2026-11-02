@@ -2,3 +2,5 @@
 +$ duo |$ [A B] [left=A right=B]
 ++ gate ^- (mapper @t @t) |= x=@t x
 ++ pair ^- (duo @t @p) [left="hi" right=~zod]
++$ map |$ [A B] [first=A second=B]
+++ named-map ^- (map $-(@t @t) @t) [first=(|= x=@t x) second="ok"]

@@ -4657,7 +4657,8 @@
 ::
 +$  itype
   $~  [%var 0]
-  $%  [%var id=@ud]
+  $%        [%var id=@ud]
+      [%fvar id=@ud]
       [%avar id=@ud]
       [%rvar id=@ud]
       [%nvar id=@ud]
@@ -4693,35 +4694,35 @@
   |=  [t=itype sub=isub]
   ^-  itype
   ?+  -.t  t
-    %var
+    ?(%var %fvar)
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
-      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %avar
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
-      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %rvar
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
-      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %nvar
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
-      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %rnvar
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
-      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
     %tag
       =/  found=(unit itype)  (itype-lookup id.t sub)
       ?~  found  t
-      ?:  &(|(?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
+      ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
   ==
 ::
@@ -4774,6 +4775,7 @@
   ?-  -.typ
     %empty  `[%no fuel]
     ?(%atom %any-atom %flag %const %noun %avar %rvar %nvar %rnvar %fn %jrec)  `[%yes fuel]
+    %fvar  `[%unknown fuel]
     %var
       ?:  (lien caps |=(c=icap (hole-same-variable typ (itype-walk [%var id.c] sub))))  `[%yes fuel]
       `[%unknown fuel]
@@ -4813,6 +4815,7 @@
   =.  t  (itype-walk t sub)
   ?-  -.t
     %var   =(n id.t)
+    %fvar  =(n id.t)
     %avar  =(n id.t)
     %rvar  =(n id.t)
     %nvar  =(n id.t)
@@ -4867,6 +4870,12 @@
   ?:  ?=(%var -.b)
     ?:  (itype-occurs id.b a sub)  ~
     `[[id.b a] sub]
+  ?:  ?=(%fvar -.a)
+    ?:  (itype-occurs id.a b sub)  ~
+    (itype-bind-gate-free id.a b sub)
+  ?:  ?=(%fvar -.b)
+    ?:  (itype-occurs id.b a sub)  ~
+    (itype-bind-gate-free id.b a sub)
   ::  Arithmetic's aura variable excludes loobeans; decimal literals
   ::  remain defaultable until a later constraint makes them concrete.
   ?:  &(?=(%nvar -.a) ?=(%rvar -.b))
@@ -4925,6 +4934,69 @@
     $(a tal.a, b tal.b, sub u.first)
   ~
 ::
++$  igf-form  [typ=itype sub=isub left=@ud]
++$  igf-forms  [types=(list itype) sub=isub left=@ud]
+++  itype-gate-free-forms
+  |=  [xs=(list itype) sub=isub fuel=@ud]
+  ^-  (unit igf-forms)
+  ?~  xs  `[~ sub fuel]
+  =/  head=(unit igf-form)  (itype-gate-free-form i.xs sub fuel)
+  ?~  head  ~
+  =/  tail=(unit igf-forms)  $(xs t.xs, sub sub.u.head, fuel left.u.head)
+  ?~  tail  ~
+  `[[typ.u.head types.u.tail] sub.u.tail left.u.tail]
+::
+++  itype-gate-free-form
+  |=  [t=itype sub=isub fuel=@ud]
+  ^-  (unit igf-form)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  t  (itype-walk t sub)
+  ?-  -.t
+    %var
+      =/  free=itype  [%fvar id.t]
+      `[free [[id.t free] sub] fuel]
+    %fvar       `[t sub fuel]
+    ?(%atom %any-atom %flag %const %empty %avar %rvar %nvar %rnvar %jrec)  `[t sub fuel]
+    %face
+      =/  body=(unit igf-form)  $(t body.t, sub sub, fuel fuel)
+      ?~  body  ~
+      `[[%face name.t typ.u.body] sub.u.body left.u.body]
+    %cell
+      =/  head=(unit igf-form)  $(t hed.t, sub sub, fuel fuel)
+      ?~  head  ~
+      =/  tail=(unit igf-form)  $(t tal.t, sub sub.u.head, fuel left.u.head)
+      ?~  tail  ~
+      `[[%cell typ.u.head typ.u.tail] sub.u.tail left.u.tail]
+    %collection
+      =/  args=(unit igf-forms)  (itype-gate-free-forms args.t sub fuel)
+      ?~  args  ~
+      `[[%collection name.t types.u.args] sub.u.args left.u.args]
+    %union
+      =/  cases=(unit igf-forms)  (itype-gate-free-forms cases.t sub fuel)
+      ?~  cases  ~
+      =/  args=(unit igf-forms)  (itype-gate-free-forms args.t sub.u.cases left.u.cases)
+      ?~  args  ~
+      `[[%union types.u.cases origin.t label.t types.u.args] sub.u.args left.u.args]
+    *  ~
+  ==
+::
+++  itype-collection-keys
+  |=  [name=term args=(list itype) sub=isub]
+  ^-  (unit [types=(list itype) sub=isub])
+  ?~  args  `[~ sub]
+  ?.  |(?=(?(%set %map %mop %jar %jug) name))  `[args sub]
+  =/  key=(unit igf-form)  (itype-gate-free-form i.args sub 256)
+  ?~  key  ~
+  `[[typ.u.key t.args] sub.u.key]
+::
+++  itype-bind-gate-free
+  |=  [n=@ud t=itype sub=isub]
+  ^-  (unit isub)
+  =/  constrained=(unit igf-form)  (itype-gate-free-form t sub 256)
+  ?~  constrained  ~
+  `[[n typ.u.constrained] sub.u.constrained]
+::
 ++  itype-unify-args
   |=  [as=(list itype) bs=(list itype) sub=isub]
   ^-  (unit isub)
@@ -4946,10 +5018,11 @@
   =.  t  (itype-walk t sub)
   ?-  -.t
     %var       |
+    %fvar      |
     %avar      |
     %rvar      |
     %nvar      |
-    %rnvar      |
+    %rnvar     |
     %atom      |
     %any-atom  &
     %flag      |
@@ -5022,6 +5095,7 @@
   ^-  ?
   ?-  -.typ
     %var       |
+    %fvar      |
     %avar      |
     %rvar      |
     %nvar      |
@@ -5129,8 +5203,8 @@
     ?.  =(name.a name.b)  |
     (itype-face-asym-collection-args args.a args.b sub)
   ?:  &(?=(%face -.a) ?=(%face -.b))  $(a body.a, b body.b)
-  ?:  ?=(%face -.a)  !|(?=(%var -.b) ?=(%avar -.b) ?=(%rvar -.b) |(?=(%nvar -.b) ?=(%rnvar -.b)))
-  ?:  ?=(%face -.b)  !|(?=(%var -.a) ?=(%avar -.a) ?=(%rvar -.a) |(?=(%nvar -.a) ?=(%rnvar -.a)))
+  ?:  ?=(%face -.a)  !|(?=(%var -.b) ?=(%fvar -.b) ?=(%avar -.b) ?=(%rvar -.b) |(?=(%nvar -.b) ?=(%rnvar -.b)))
+  ?:  ?=(%face -.b)  !|(?=(%var -.a) ?=(%fvar -.a) ?=(%avar -.a) ?=(%rvar -.a) |(?=(%nvar -.a) ?=(%rnvar -.a)))
   ?:  &(?=(%cell -.a) ?=(%cell -.b))  |($(a hed.a, b hed.b) $(a tal.a, b tal.b))
   ?:  &(?=(%fn -.a) ?=(%fn -.b))  |($(a sample.a, b sample.b) $(a product.a, b product.b))
   |
@@ -5383,9 +5457,9 @@
   ?:  too-wide  [%unknown ~]
   =/  spine-checked=?  |(spine-proof ?=(^ known))
   =/  uncertain=?
-    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)) ?=(%var -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))
+    |(?=(%var -.actual) ?=(%fvar -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)) ?=(%var -.expected) ?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))
   =/  actual-open=?
-    |(?=(%var -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)))
+    |(?=(%var -.actual) ?=(%fvar -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)))
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?:  =(actual expected)  [%ok sub next]
@@ -5440,7 +5514,7 @@
   ?:  &(!uncertain ?=(%union -.actual) ?=(%face -.expected))
     $(expected body.expected)
   ?:  ?=(%union -.actual)  [%unknown ~]
-  ?:  &(?=(%union -.expected) |(?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual))))  [%unknown ~]
+  ?:  &(?=(%union -.expected) |(?=(%fvar -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual))))  [%unknown ~]
   ?:  &(?=(%union -.expected) !?=(%var -.actual))
     (itype-fit-cases actual cases.expected sub next)
   ?:  ?=(%tag -.actual)
@@ -5448,7 +5522,7 @@
       =/  u=(unit isub)  (itype-unify actual expected sub)
       ?~  u  [%bad ~]
       [%ok u.u next]
-    ?:  |(?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
+    ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
     ?:  ?=(%face -.expected)  $(expected body.expected)
     ?:  constructor.actual
       ?.  ?=(%fn -.expected)  [%bad ~]
@@ -5476,7 +5550,7 @@
       =/  u=(unit isub)  (itype-unify actual expected sub)
       ?~  u  [%bad ~]
       [%ok u.u next]
-    ?:  |(?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
+    ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
     ?:  ?=(%face -.expected)  $(expected body.expected)
     ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
       [%unknown ~]
@@ -5519,7 +5593,7 @@
       =/  unified=(unit isub)  (itype-unify actual expected sub)
       ?~  unified  [%bad ~]
       [%ok u.unified next]
-    ?:  |(?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
+    ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
     [%bad ~]
   ?:  &(?=(%atom -.actual) ?=(%atom -.expected))
     ?:  (aura-prefix aura.expected aura.actual)  [%ok sub next]
@@ -5532,7 +5606,7 @@
   ?:  &(?=(%face -.actual) ?=(%var -.expected))  [%unknown ~]
   ?:  &(?=(%var -.actual) (itype-has-any-atom expected sub))
     [%unknown ~]
-  ?:  |(?=(%var -.actual) ?=(%var -.expected))
+  ?:  |(?=(%var -.actual) ?=(%var -.expected) ?=(%fvar -.expected))
     =/  unified=(unit isub)  (itype-unify actual expected sub)
     ?~  unified
       ?:  |(?=(%face -.actual) ?=(%face -.expected))  [%unknown ~]
@@ -5612,6 +5686,36 @@
     (itype-fit [%collection %list ~[a]] list-t ~[[0 recursive]] 1)
   =?  problems  !?=(%unknown -.nested-fit)
     ["recursive types behind substitutions should remain uncertain" problems]
+  =/  free=itype  [%fvar 40]
+  =/  open-cell=itype  [%cell [%var 41] [%face %x [%var 42]]]
+  =/  constrained=(unit isub)  (itype-unify free open-cell ~)
+  =/  expected-cell=itype  [%cell [%fvar 41] [%face %x [%fvar 42]]]
+  =?  problems  !=(constrained [~ [[40 expected-cell] [[42 [%fvar 42]] [[41 [%fvar 41]] ~]]]])
+    ["gate-free constraints should propagate through cells and faces" problems]
+  =?  problems  ?=(^ (itype-unify free open-cell ~[[41 [%fn txt txt]]]))
+    ["an existing nested gate substitution should be rejected" problems]
+  =/  shared-sub=isub  [[42 [%fvar 42]] [[41 [%fvar 41]] ~]]
+  =?  problems  ?=(^ (itype-unify [%var 41] [%fn txt txt] shared-sub))
+    ["a later nested gate substitution should be rejected" problems]
+  =?  problems  ?=(^ (itype-unify free [%fn txt txt] ~))
+    ["a gate-free variable should reject a gate" problems]
+  =?  problems  ?=(^ (itype-unify free [%noun ~] ~))
+    ["a gate-free variable should reject an opaque noun" problems]
+  =/  atom-strong=(unit isub)  (itype-unify [%avar 43] free ~)
+  =?  problems  !=(atom-strong [~ [[40 [%avar 43]] ~]])
+    ["the atom constraint should be stronger than gate-free" problems]
+  =/  free-fit=ifit  (itype-fit txt free ~ 44)
+  =?  problems  !?=(%ok -.free-fit)
+    ["a concrete atom should fit a gate-free variable" problems]
+  =/  gate-fit=ifit  (itype-fit [%fn txt txt] free ~ 44)
+  =?  problems  !?=(%bad -.gate-fit)
+    ["a gate should not fit a gate-free variable" problems]
+  =/  free-scheme=ischeme  [[%fn free free] ~[40]]
+  =/  canonical-free=itype  (canonical-itype typ.free-scheme vars.free-scheme)
+  =?  problems  !=(canonical-free [%fn [%fvar 0] [%fvar 0]])
+    ["canonicalization should retain gate-free variables" problems]
+  =?  problems  !=((show-atom-constraint canonical-free) " where A contains no gates")
+    ["the printer should show gate-free constraints" problems]
   problems
 ::
 ::  The expression inference below is deliberately a fragment: bindings,
@@ -5797,6 +5901,7 @@
     %noun       [%unknown & fuel ~]
     %empty      [%yes | fuel ~]
     %var        [%unknown | fuel ~]
+    %fvar       [%yes & fuel ~]
     %avar       [%yes & fuel ~]
     %rvar       [%yes & fuel ~]
     %nvar       [%yes & fuel ~]
@@ -5863,10 +5968,11 @@
     %tag       |
     %const     |
     %var       |
+    %fvar      |
     %avar      |
     %rvar      |
     %nvar      |
-    %rnvar      |
+    %rnvar     |
     %atom      |
     %any-atom  |
     %flag      |
@@ -5897,6 +6003,7 @@
   ^-  (unit @ud)
   ?-  -.t
     %var   `id.t
+    %fvar  `id.t
     %avar  `id.t
     %rvar  `id.t
     %nvar  `id.t
@@ -5917,7 +6024,7 @@
   ^-  ?
   =.  t  (itype-walk t sub.state)
   ?-  -.t
-    ?(%var %avar %rvar %nvar %rnvar)
+    ?(%var %fvar %avar %rvar %nvar %rnvar)
       ?:  (lien caps.state |=(c=icap (hole-same-variable t (itype-walk [%var id.c] sub.state))))  &
       (lien params.state |=(p=[name=@t typ=itype] (hole-same-variable t (itype-walk typ.p sub.state))))
     %tag  |
@@ -5969,7 +6076,7 @@
   ^-  ?
   =.  t  (itype-walk t sub.state)
   ?-  -.t
-    ?(%tag %nvar %rnvar %avar %rvar)  !(hole-known t state)
+    ?(%tag %nvar %rnvar %fvar %avar %rvar)  !(hole-known t state)
     %union  |((lien cases.t |=(c=itype (hole-uncertain c state))) (lien args.t |=(c=itype (hole-uncertain c state))))
     %grec  (lien args.t |=(c=itype (hole-uncertain c state)))
     %collection  (lien args.t |=(c=itype (hole-uncertain c state)))
@@ -5995,6 +6102,7 @@
   ^-  (list @ud)
   ?-  -.t
     %var   ~[id.t]
+    %fvar  ~[id.t]
     %avar  ~[id.t]
     %rvar  ~[id.t]
     %nvar  ~[id.t]
@@ -6030,6 +6138,10 @@
   ^-  itype
   ?-  -.t
     %var
+      =/  found=(unit itype)  (itype-lookup id.t ren)
+      ?~  found  t
+      u.found
+    %fvar
       =/  found=(unit itype)  (itype-lookup id.t ren)
       ?~  found  t
       u.found
@@ -6074,6 +6186,7 @@
   ^-  ?
   ?-  -.t
     %var       |
+    %fvar      |
     %avar      =(n id.t)
     %rvar      =(n id.t)
     %nvar      =(n id.t)
@@ -6099,6 +6212,7 @@
   ^-  ?
   ?-  -.t
     %var       |
+    %fvar      |
     %avar      |
     %rvar      =(n id.t)
     %nvar      |
@@ -6123,6 +6237,28 @@
 ::  Canonical numbering makes printed variables independent of the order
 ::  the unifier happened to allocate intermediates.
 ::
+++  itype-var-is-gate-free-fuel
+  |=  [n=@ud t=itype fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  &
+  =.  fuel  (dec fuel)
+  ?-  -.t
+    %var       |
+    %fvar      =(n id.t)
+    %union     |((lien cases.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel))) (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel))))
+    %grec      (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel)))
+    %collection  (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel)))
+    %face      $(t body.t, fuel fuel)
+    %fn        |($(t sample.t, fuel fuel) $(t product.t, fuel fuel))
+    %cell      |($(t hed.t, fuel fuel) $(t tal.t, fuel fuel))
+    *          |
+  ==
+::
+++  itype-var-is-gate-free
+  |=  [n=@ud t=itype]
+  ^-  ?
+  (itype-var-is-gate-free-fuel n t 256)
+::
 ++  canonical-itype
   |=  [t=itype vars=(list @ud)]
   ^-  itype
@@ -6130,7 +6266,7 @@
   =/  n=@ud  0
   |-
   ?~  vars  (itype-rename t ren)
-  =/  replacement=itype  ?:((itype-var-is-restricted i.vars t) [%rvar n] ?:((itype-var-is-atom i.vars t) [%avar n] [%var n]))
+  =/  replacement=itype  ?:((itype-var-is-restricted i.vars t) [%rvar n] ?:((itype-var-is-atom i.vars t) [%avar n] ?:((itype-var-is-gate-free i.vars t) [%fvar n] [%var n])))
   $(vars t.vars, ren [[i.vars replacement] ren], n +(n))
 ::
 ++  instantiate-scheme
@@ -6141,11 +6277,11 @@
   |-
   ?~  vars  [(itype-rename typ.scheme ren) state]
   =/  replacement=itype
-    ?:((itype-var-is-restricted i.vars typ.scheme) [%rvar next.state] ?:((itype-var-is-atom i.vars typ.scheme) [%avar next.state] [%var next.state]))
+    ?:((itype-var-is-restricted i.vars typ.scheme) [%rvar next.state] ?:((itype-var-is-atom i.vars typ.scheme) [%avar next.state] ?:((itype-var-is-gate-free i.vars typ.scheme) [%fvar next.state] [%var next.state])))
   ::  A generalized atom variable is a valid origin for re-generalizing
   ::  an alias, just as a sample binder is.
   =/  st=istate  state(next +(next.state))
-  =?  binders.st  |(?=(%avar -.replacement) ?=(%rvar -.replacement))  [next.state binders.state]
+  =?  binders.st  |(?=(%fvar -.replacement) ?=(%avar -.replacement) ?=(%rvar -.replacement))  [next.state binders.state]
   $(vars t.vars, ren [[i.vars replacement] ren], state st)
 ::
 ++  icap-lookup
@@ -6352,7 +6488,9 @@
       =/  args=(unit (list itype))  (import-to-itypes +>.node)
       ?~  args  ~
       ?.  =(arity (lent u.args))  ~
-      `[%collection name u.args]
+      =/  keyed=(unit [types=(list itype) sub=isub])  (itype-collection-keys name u.args ~)
+      ?~  keyed  ~
+      `[%collection name types.u.keyed]
     %fork
       ::  Hoon's ordinary ? mold is the fork of its two %f singletons.
       =/  raw=*  +.node
@@ -6631,15 +6769,27 @@
   ?~  rest  ~
   `[[i.names i.args] u.rest]
 ::
-++  template-apply
-  |=  [template=ischeme args=(list itype)]
-  ^-  (unit itype)
+++  template-apply-sub
+  |=  [template=ischeme args=(list itype) sub=isub]
+  ^-  (unit [typ=itype sub=isub])
   =/  vars=(list @ud)  vars.template
   =/  ren=isub  ~
   |-
-  ?~  vars  ?~(args `(itype-rename typ.template ren) ~)
+  ?~  vars  ?~(args `[(itype-rename typ.template ren) sub] ~)
   ?~  args  ~
-  $(vars t.vars, args t.args, ren [[i.vars i.args] ren])
+  =/  replacement=(unit igf-form)
+    ?:  (itype-var-is-gate-free i.vars typ.template)
+      (itype-gate-free-form i.args sub 256)
+    `[i.args sub 256]
+  ?~  replacement  ~
+  $(vars t.vars, args t.args, ren [[i.vars typ.u.replacement] ren], sub sub.u.replacement)
+::
+++  template-apply
+  |=  [template=ischeme args=(list itype)]
+  ^-  (unit itype)
+  =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub template args ~)
+  ?~  applied  ~
+  `typ.u.applied
 ::
 ++  infer-shape-args
   |=  [args=(list shape) state=istate]
@@ -6909,6 +7059,17 @@
       =/  args=(unit [types=(list itype) state=istate])  (infer-shape-args args.sh state)
       ?~  args  ~
       =/  n=term  i.ref.sh
+      =/  keyed=(unit [types=(list itype) sub=isub])
+        ?:  ?=(^ (find-simple-mold n molds.state.u.args))
+          `[types.u.args sub.state.u.args]
+        ?~  prelude.state.u.args
+          (itype-collection-keys n types.u.args sub.state.u.args)
+        ?:  ?=(^ (find-jibb-mold n u.prelude.state.u.args))
+          `[types.u.args sub.state.u.args]
+        (itype-collection-keys n types.u.args sub.state.u.args)
+      ?~  keyed  ~
+      =.  types.u.args  types.u.keyed
+      =.  sub.state.u.args  sub.u.keyed
       ?^  t.ref.sh
         ?^  t.t.ref.sh  ~
         =/  iface=(unit ifile)  (find-jibb-interface i.t.ref.sh jimports.state.u.args)
@@ -6916,9 +7077,10 @@
         =/  template=(unit ischeme)  (find-jibb-mold n u.iface)
         ?~  template  ~
         ?~  vars.u.template  ~
-        =/  applied=(unit itype)  (template-apply u.template types.u.args)
+        =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub u.template types.u.args sub.state.u.args)
         ?~  applied  ~
-        `[(itype-in-import u.applied u.iface i.t.ref.sh prelude.state.u.args) state.u.args]
+        =.  sub.state.u.args  sub.u.applied
+        `[(itype-in-import typ.u.applied u.iface i.t.ref.sh prelude.state.u.args) state.u.args]
       ?:  (lien active.state.u.args |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state.u.args)
       ?~  found
@@ -6927,9 +7089,10 @@
         =/  prelude-entry=(unit ischeme)  (find-jibb-mold n u.prelude.state.u.args)
         ?~  prelude-entry  ~
         ?~  vars.u.prelude-entry  ~
-        =/  applied=(unit itype)  (template-apply u.prelude-entry types.u.args)
+        =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub u.prelude-entry types.u.args sub.state.u.args)
         ?~  applied  ~
-        `[u.applied state.u.args]
+        =.  sub.state.u.args  sub.u.applied
+        `[typ.u.applied state.u.args]
       ?.  ?=(%generic -.u.found)  ~
       =/  grec=(unit itype)  (simple-source-generic-recursive n u.found types.u.args state.u.args)
       ?^  grec  `[u.grec state.u.args]
@@ -9543,6 +9706,9 @@
     %var
       ?:  (lth id.t 26)  [(add 65 id.t) ~]
       "T{<id.t>}"
+    %fvar
+      ?:  (lth id.t 26)  [(add 65 id.t) ~]
+      "T{<id.t>}"
     %avar
       ?:  (lth id.t 26)  [(add 65 id.t) ~]
       "T{<id.t>}"
@@ -9606,6 +9772,7 @@
     %nvar      &
     %rnvar      &
     %var       |
+    %fvar      |
     %avar      |
     %rvar      |
     %atom      |
@@ -9629,7 +9796,7 @@
   |=  [label=tape typ=itype sub=isub]
   ^-  tape
   =/  normalized=itype  (itype-normalize typ sub)
-  ?:  |(?=(%var -.normalized) ?=(%avar -.normalized) ?=(%rvar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
+  ?:  |(?=(%var -.normalized) ?=(%fvar -.normalized) ?=(%avar -.normalized) ?=(%rvar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
   ?:  (itype-has-hidden-recursive normalized)  label
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
   ?:  (gth (lent vars) 26)  label
@@ -9650,6 +9817,7 @@
   =/  ident=(unit @ud)
     ?+  -.resolved  ~
       %var   `id.resolved
+      %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
     ==
@@ -9665,6 +9833,7 @@
   =/  ident=(unit @ud)
     ?+  -.resolved  ~
       %var   `id.resolved
+      %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
     ==
@@ -9680,6 +9849,7 @@
   =/  ident=(unit @ud)
     ?+  -.resolved  ~
       %var   `id.resolved
+      %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
     ==
@@ -9696,6 +9866,7 @@
   =/  ident=(unit @ud)
     ?+  -.resolved  ~
       %var   `id.resolved
+      %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
     ==
@@ -9722,6 +9893,7 @@
   ^-  ?
   ?-  -.t
     %var       |
+    %fvar      |
     %avar      =(n id.t)
     %rvar      =(n id.t)
     %nvar      |
@@ -9783,6 +9955,10 @@
   ?:  (itype-var-is-atom i.vars t)
     =/  sep=tape  ?:(printed ", " " where ")
     =/  clause=tape  "{sep}{(show-itype [%avar i.vars] ~)} is an atom"
+    $(vars t.vars, printed &, out (weld out clause))
+  ?:  (itype-var-is-gate-free i.vars t)
+    =/  sep=tape  ?:(printed ", " " where ")
+    =/  clause=tape  "{sep}{(show-itype [%fvar i.vars] ~)} contains no gates"
     $(vars t.vars, printed &, out (weld out clause))
   $(vars t.vars)
 ::
@@ -10716,7 +10892,7 @@
 ++  union-state-leaf
   |=  t=itype
   ^-  ?
-  ?=(?(%var %avar %rvar %nvar %rnvar %atom %any-atom %flag %noun %empty %const) -.t)
+  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %atom %any-atom %flag %noun %empty %const) -.t)
 ++  union-state-params-budget
   |=  [params=iparams fuel=@ud]
   ^-  (unit @ud)
@@ -11473,12 +11649,14 @@
   =/  plus=ischeme  [[%fn [%cell b b] b] ~[0]]
   =/  minus=ischeme  [[%fn b b] ~[0]]
   =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0]]
+  =/  free=itype  [%fvar 0]
+  =/  equal=ischeme  [[%fn [%cell free free] [%flag ~]] ~[0]]
   =/  utf8=itype  [%atom 'tD']
   =/  tape=itype  [%collection %list ~[utf8]]
   =/  codepoints=itype  [%collection %list ~[[%atom %c]]]
   =/  text-trip=ischeme  [[%fn [%atom %t] tape] ~]
   =/  text-tuba=ischeme  [[%fn tape codepoints] ~]
-  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater] [%raw-trip text-trip] [%raw-tuba text-tuba]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~ ~]
+  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater] [%raw-eq equal] [%raw-trip text-trip] [%raw-tuba text-tuba]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~ ~]
 ::
 ++  infer-private-internal
   |=  [src=@t public-source=@t]
@@ -14561,7 +14739,7 @@
   ?:  =(0 fuel)  ~
   =.  fuel  (dec fuel)
   =/  t=itype  i.todo
-  ?:  ?=(?(%var %avar %rvar %nvar %rnvar %tag) -.t)
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.t)
     =/  node-id=@ud  ?:(?=(%tag -.t) id.t +.t)
     =/  found=(unit itype)  (itype-lookup node-id sub)
     ?~  found  $(todo t.todo, ids [node-id ids])
