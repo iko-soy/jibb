@@ -1,0 +1,4 @@
++$ bad
+  [%a [%b @ud]]
+  [%a [%b @t]]
+++ identity |=(x x)

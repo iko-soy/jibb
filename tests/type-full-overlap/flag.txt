@@ -1,0 +1,4 @@
++$ bad
+  ?
+  %.y
+++ identity |=(x x)

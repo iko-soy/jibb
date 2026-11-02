@@ -11067,6 +11067,20 @@
     [at.first at.second (union-relate a (project-union-mold second molds ~))]
   (weld pairs $(cases t.cases))
 ::
+::  The partial report and the full module check share one overlap proof,
+::  so both name the same pair. The projection proves atoms, flags and
+::  nested literal cells; the source slice is tried only when some pair
+::  is unknown, for its one-hop generic applications. A missing witness
+::  does not mean the cases are disjoint.
+++  mold-overlap-witness
+  |=  [cases=(list shape) molds=imolds]
+  ^-  (unit upair)
+  =/  pairs=(list upair)  (union-pairs cases molds)
+  =/  overlapping=(list upair)  (skim pairs |=(p=upair =(%overlap relation.p)))
+  ?^  overlapping  `i.overlapping
+  ?.  (lien pairs |=(p=upair =(%unknown relation.p)))  ~
+  (union-source-overlap cases molds 256)
+::
 ::  A closed structural mold supplies no equation to determine a hole.
 ::  Applications, references, unbound capitals and unions are unproved.
 ++  simple-mold-hole
@@ -11205,19 +11219,14 @@
     (of-wain:format ~[(crip "+$ {(trip name.d)}: type hole needs a determined type") text])
   =?  sh  ?=(%generic -.sh)  body.sh
   ?.  ?=(%union -.sh)  (crip "+$ {(trip name.d)}: not checked")
-  =/  pairs=(list upair)  (union-pairs cases.sh molds)
-  =/  overlapping=(list upair)  (skim pairs |=(p=upair =(%overlap relation.p)))
-  =.  overlapping
-    ?^  overlapping  overlapping
-    ?.  (lien pairs |=(p=upair =(%unknown relation.p)))  ~
-    =/  witness=(unit upair)  (union-source-overlap cases.sh molds 256)
-    ?~(witness ~ ~[u.witness])
-  ?^  overlapping
-    =/  p=upair  i.overlapping
+  =/  witness=(unit upair)  (mold-overlap-witness cases.sh molds)
+  ?^  witness
+    =/  p=upair  u.witness
     =/  summary=@t  (crip "+$ {(trip name.d)}: overlapping cases; mold not checked")
     =/  first=@t  (show-error src [file line.beg.first.p col.beg.first.p "first union case"])
     =/  second=@t  (show-error src [file line.beg.second.p col.beg.second.p "overlapping case"])
     (of-wain:format ~[summary first second])
+  =/  pairs=(list upair)  (union-pairs cases.sh molds)
   ?:  (lien pairs |=(p=upair =(%unknown relation.p)))
     ?.  (union-source-distinct-tags cases.sh molds 256)
       (crip "+$ {(trip name.d)}: case disjointness unresolved; mold not checked")
@@ -11564,7 +11573,7 @@
   ?.  valid  ~
   =?  sh  ?=(%generic -.sh)  body.sh
   ?.  ?=(%union -.sh)  ~
-  (union-source-overlap cases.sh molds 256)
+  (mold-overlap-witness cases.sh molds)
 ++  module-mold-types-detail
   |=  [molds=imolds state=istate]
   ^-  (each imold-types imold-failure)

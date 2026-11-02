@@ -1,0 +1,4 @@
++$ bad
+  @t
+  @ud
+++ identity |=(x x)

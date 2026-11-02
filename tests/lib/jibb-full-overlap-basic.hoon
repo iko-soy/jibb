@@ -11,6 +11,9 @@
 /*  child  %txt  /tests/type-full-overlap/child/txt
 /*  generic  %txt  /tests/type-full-overlap/generic/txt
 /*  duplicate-generic  %txt  /tests/type-full-overlap/duplicate-generic/txt
+/*  atoms  %txt  /tests/type-full-overlap/atoms/txt
+/*  flag  %txt  /tests/type-full-overlap/flag/txt
+/*  nested  %txt  /tests/type-full-overlap/nested/txt
 /*  expected  %txt  /tests/type-full-overlap/expected-basic/txt
 |%
 +$  overlap-evidence  [file=path source=@t name=term cases=upair:jibb]
@@ -46,8 +49,9 @@
   |=  [file=path source=@t modules=jbundle:jibb]
   ^-  detailed-result
   (infer-jibb-file-detailed:jibb file source ~ ~ modules ~[file] ~ ~ ~ ~)
+::  The first two cases overlap, written on consecutive lines from .line.
 ++  expected-overlap
-  |=  [file=path source=@t name=term]
+  |=  [file=path source=@t name=term line=@ud]
   ^-  ?
   =/  expected=(unit upair:jibb)  (source-pair file source name)
   ?~  expected  |
@@ -61,9 +65,9 @@
      =(name.ev name)
      =(cases.ev u.expected)
      =(%overlap relation.cases.ev)
-     =(3 line.beg.first.cases.ev)
+     =(line line.beg.first.cases.ev)
      =(3 col.beg.first.cases.ev)
-     =(4 line.beg.second.cases.ev)
+     =(+(line) line.beg.second.cases.ev)
      =(3 col.beg.second.cases.ev)
   ==
 ++  plain-failure
@@ -75,7 +79,7 @@
   ?:  ?=(%& -.result)  |
   &(!=(0 message.p.result) ?=(~ overlap.p.result))
 ++  run
-  |=  [same=@t zero=@t unsupported=@t precedence=@t duplicate=@t invalid=@t distinct=@t parent=@t child=@t generic=@t duplicate-generic=@t]
+  |=  [same=@t zero=@t unsupported=@t precedence=@t duplicate=@t invalid=@t distinct=@t parent=@t child=@t generic=@t duplicate-generic=@t atoms=@t flag=@t nested=@t]
   ^-  (list [@t ?])
   =/  root=path  /ui/root/jibb
   =/  names256=(list @t)  (turn (gulf 0 255) |=(n=@ud (scot %ud n)))
@@ -94,6 +98,11 @@
     ?:  ?=(%& -.legacy)  |
     =/  lines=wain  (to-wain:format p.legacy)
     &((lien lines |=(line=@t =(line '/ui/root.jibb:3:3: first union case'))) (lien lines |=(line=@t =(line '/ui/root.jibb:4:3: overlapping case'))))
+  ::  A projected overlap renders the same error as a source witness.
+  =/  legacy-atoms=jfile-result:jibb  (infer-jibb-file:jibb root atoms ~ ~ ~ ~[root] ~ ~ ~ ~)
+  =/  legacy-projected=?
+    ?:  ?=(%& -.legacy-atoms)  |
+    =((to-wain:format p.legacy-atoms) ~['module mold bad has overlapping cases' '/ui/root.jibb:2:3: first union case' '  @t' '  ^' '/ui/root.jibb:3:3: overlapping case' '  @ud' '  ^'])
   =/  imported=detailed-result  (detailed root parent ~[[child-file child]])
   =/  child-pair=(unit upair:jibb)  (source-pair child-file child %child-bad)
   =/  import-valid=?
@@ -110,9 +119,12 @@
   :~  ['256 generic parameters accepted by scan' (module-mold-params-valid:jibb names256 *(set @t) 256)]
       ['257 generic parameters exhaust scan' !(module-mold-params-valid:jibb names257 *(set @t) 256)]
       ['duplicate generic parameters fail scan' !(module-mold-params-valid:jibb ~['A' 'A'] *(set @t) 256)]
-      ['same head has source-bound overlap' (expected-overlap root same %bad)]
-      ['zero spelling has source-bound overlap' (expected-overlap root zero %bad)]
-      ['generic wrapper has source-bound overlap' (expected-overlap root generic %bad)]
+      ['same head has source-bound overlap' (expected-overlap root same %bad 3)]
+      ['zero spelling has source-bound overlap' (expected-overlap root zero %bad 3)]
+      ['generic wrapper has source-bound overlap' (expected-overlap root generic %bad 3)]
+      ['two auras have source-bound overlap' (expected-overlap root atoms %bad 2)]
+      ['flag and yes have source-bound overlap' (expected-overlap root flag %bad 2)]
+      ['nested equal tags have source-bound overlap' (expected-overlap root nested %bad 2)]
       ['duplicate generic parameters remain unstructured' (plain-failure root duplicate-generic)]
       ['unsupported remains unstructured' (plain-failure root unsupported)]
       ['later overlap exists in precedence source' (source-witness root precedence %bad)]
@@ -122,6 +134,7 @@
       ['distinct alias source parses and checks' &(?=(%& -.good-parsed) ?=(%& -.good-result))]
       ['parent itself has different positive overlap' (source-witness root parent %parent-bad)]
       ['legacy full-module error contains both excerpts' legacy-excerpts]
+      ['legacy projected overlap error is exact' legacy-projected]
       ['import overlap retains exact child source' import-valid]
   ==
 ++  text
@@ -129,14 +142,14 @@
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
 ++  output
-  |=  [same=@t zero=@t unsupported=@t precedence=@t duplicate=@t invalid=@t distinct=@t parent=@t child=@t generic=@t duplicate-generic=@t]
+  |=  [same=@t zero=@t unsupported=@t precedence=@t duplicate=@t invalid=@t distinct=@t parent=@t child=@t generic=@t duplicate-generic=@t atoms=@t flag=@t nested=@t]
   ^-  @t
-  =/  result=(list [@t ?])  (run same zero unsupported precedence duplicate invalid distinct parent child generic duplicate-generic)
+  =/  result=(list [@t ?])  (run same zero unsupported precedence duplicate invalid distinct parent child generic duplicate-generic atoms flag nested)
   (of-wain:format (turn result |=(entry=[@t ?] (crip "{(trip -.entry)}: {?:(+.entry "ok" "BAD")}"))))
 ++  test-full-overlap-basic
   ^-  tang
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t  (output (text same) (text zero) (text unsupported) (text precedence) (text duplicate) (text invalid) (text distinct) (text parent) (text child) (text generic) (text duplicate-generic))
+  =/  actual=@t  (output (text same) (text zero) (text unsupported) (text precedence) (text duplicate) (text invalid) (text distinct) (text parent) (text child) (text generic) (text duplicate-generic) (text atoms) (text flag) (text nested))
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"full-module overlap output differs"]
   ~
