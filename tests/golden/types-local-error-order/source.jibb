@@ -1,0 +1,80 @@
+++ rec-order |= z=@t
+  ++ f |= x
+    ++ p [(^- @ux x) (f x)]
+    ++ b [(^- @ux x) (^- @t x)]
+    ++ g [(^- !! x) (f x)]
+    b
+  z
+++ rec-order-g-first |= z=@t
+  ++ f |= x
+    ++ g [(^- !! x) (f x)]
+    ++ p [(^- @ux x) (f x)]
+    ++ b [(^- @ux x) (^- @t x)]
+    b
+  z
+++ rec-order-top |= x
+  ++ p [(^- @ux x) (rec-order-top x)]
+  ++ b [(^- @ux x) (^- @t x)]
+  ++ g [(^- !! x) (rec-order-top x)]
+  b
+++ flat-mask |= x
+  ++ g [(^- !! x) c]
+  ++ b [(^- @ux x) (^- @t x)]
+  ++ c ?- %.y
+    %.y 1
+    %.n 0x2
+  b
+++ flat-mask-ok |= x
+  ++ g [(^- !! x) c]
+  ++ b [(^- @ux x) (^- @t x)]
+  ++ c ^- @ 1
+  b
+++ outer-mask |= x
+  ++ a
+    ++ g [(^- !! x) c]
+    ++ b [(^- @ux x) (^- @t x)]
+    b
+  ++ c ?- %.y
+    %.y 1
+    %.n 0x2
+  a
+++ nest-order |= x
+  ++ g [(^- !! x) c]
+  ++ b [(^- @ux x) (^- @t x)]
+  ++ c |= w
+    ++ a2 ^- @ux w
+    ++ b2 ^- @t w
+    ++ g2 ^- !! w
+    a2
+  b
+++ nest-order-ok |= x
+  ++ g [(^- !! x) c]
+  ++ b [(^- @ux x) (^- @t x)]
+  ++ c |= w
+    ++ g2 ^- !! w
+    ++ a2 ^- @ux w
+    ++ b2 ^- @t w
+    a2
+  b
+++ rec-mask |= z=@t
+  ++ f |= x
+    ++ g [(^- !! x) (f x)]
+    ++ b [(^- @ux x) (^- @t x)]
+    ++ h foo
+    b
+  z
+++ rec-ok |= z=@t
+  ++ f |= x
+    ++ g [(^- !! x) (f x)]
+    ++ b [(^- @ux x) (^- @t x)]
+    b
+  z
+++ rec-widen |= z=@t
+  ++ f |= x
+    ++ g [(^- !! x) (f x)]
+    ++ b [(^- @ux x) (^- @t x)]
+    ++ h ?- %.y
+      %.y 1
+      %.n 0x2
+    b
+  z

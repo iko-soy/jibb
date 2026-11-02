@@ -1,0 +1,69 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (aura 1:13 @ud))
+      (wing 1:17 n)))
+  (value 2:1 forward
+    (gate 2:12
+      (face 2:15 x (aura 2:17 @ud))
+      (body 3:3
+        (value 3:3 first
+          (group 3:12
+            (call 3:13 (wing 3:13 second) (wing 3:20 x))))
+        (value 4:3 second
+          (gate 4:13
+            (face 4:16 y (aura 4:18 @ud))
+            (group 4:22
+              (call 4:23 (wing 4:23 inc) (wing 4:27 y)))))
+        (wing 5:3 first))))
+  (value 6:1 forward-value
+    (gate 6:18
+      (face 6:21 x (aura 6:23 @t))
+      (body 7:3
+        (value 7:3 first
+          (cast 7:12 (aura 7:15 @t) (wing 7:18 second)))
+        (value 8:3 second (wing 8:13 x))
+        (wing 9:3 first))))
+  (value 10:1 forward-chain
+    (gate 10:18
+      (face 10:21 x (aura 10:23 @ud))
+      (body 11:3
+        (value 11:3 first
+          (group 11:12
+            (call 11:13 (wing 11:13 second) (wing 11:20 x))))
+        (value 12:3 second
+          (gate 12:13
+            (face 12:16 y (aura 12:18 @ud))
+            (group 12:22
+              (call 12:23 (wing 12:23 third) (wing 12:29 y)))))
+        (value 13:3 third
+          (gate 13:12
+            (face 13:15 z (aura 13:17 @ud))
+            (group 13:21
+              (call 13:22 (wing 13:22 inc) (wing 13:26 z)))))
+        (wing 14:3 first))))
+  (value 15:1 waits-on-unknown
+    (gate 15:21
+      (face 15:24 x (aura 15:26 @t))
+      (body 16:3
+        (value 16:3 first
+          (cast 16:12 (aura 16:15 @t) (wing 16:18 second)))
+        (value 17:3 second (wing 17:13 nope))
+        (wing 18:3 first))))
+  (value 19:1 waits-on-pending
+    (gate 19:21
+      (face 19:24 x (aura 19:26 @t))
+      (body 20:3
+        (value 20:3 first
+          (cast 20:12 (aura 20:15 @t) (wing 20:18 second)))
+        (value 21:3 second (lit 21:13 %orphan))
+        (wing 22:3 first))))
+  (value 23:1 waits-then-capital
+    (gate 23:23
+      (face 23:26 x (tvar 23:28 A))
+      (body 24:3
+        (value 24:3 first
+          (cast 24:12 (aura 24:15 @t) (wing 24:18 second)))
+        (value 25:3 second
+          (cast 25:13 (aura 25:16 @t) (wing 25:19 x)))
+        (wing 26:3 first)))))

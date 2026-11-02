@@ -46,5 +46,11 @@ partial inference; module not checked
 /tests/golden/types-prelude-arithmetic/source.jibb:19:25: argument has type ?
 ++ captured |= x=? (add x x)
                         ^
-++ captured-local: local definitions need unsupported inference
+++ captured-local: call's sample and argument types do not unify
+/tests/golden/types-prelude-arithmetic/source.jibb:21:20: called gate has type $-([A A] A) where A is an atom other than ?
+  ++ local |= y=? (add x y)
+                   ^
+/tests/golden/types-prelude-arithmetic/source.jibb:21:24: argument has type ?
+  ++ local |= y=? (add x y)
+                       ^
 ++ inc: $-(A A) where A is an atom other than ?

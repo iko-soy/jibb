@@ -1,0 +1,27 @@
+++ inc |= n=@ud n
+++ top (inc %.y)
+++ local |= x=@t
+  ++ bad (inc %.y)
+  x
+++ local-gate |= x=@t
+  ++ twice |= y=@ud (inc y)
+  ++ bad (twice x)
+  bad
+++ in-gate |= x=@t
+  ++ bump |= y=@t (inc y)
+  (bump x)
+++ blame-order |= x
+  ++ a (c x)
+  ++ b ^- @ud x
+  ++ c |= y=@t y
+  a
+++ blame-empty |= x
+  ++ a (c x)
+  ++ b ^- @ud x
+  ++ c |= y=!! y
+  a
+++ blame-empty-c-first |= x
+  ++ c |= y=!! y
+  ++ a (c x)
+  ++ b ^- @ud x
+  a

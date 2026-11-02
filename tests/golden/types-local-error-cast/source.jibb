@@ -1,0 +1,56 @@
+++ top ^- @t %.y
+++ local |= x=@t
+  ++ flag ^- @t %.y
+  x
+++ waiting |= x=@t
+  ++ first (second x)
+  ++ second |= y=@t ^- @ud y
+  first
+++ after-self |= x=@t
+  ++ recur |= y=@t
+    ?- %.y
+      %.y (recur y)
+      %.n ^- @ud y
+  (recur x)
+++ nested |= x=@t
+  ++ outer |= y=@t
+    ++ inner ^- @p y
+    inner
+  (outer x)
+++ mask-capital |= x=A
+  ++ a ^- @ud "s"
+  ++ b ^- @t x
+  x
+++ mask-after-progress |= x=A
+  ++ a ^- @ud "s"
+  ++ ok x
+  ++ b ^- @t x
+  x
+++ same |= [a=A b=A] a
+++ mask-hole |= x
+  ++ a ^- @ud "s"
+  ++ b ^- _ (same x 1)
+  ^- @ux x
+++ captured |= x
+  ++ a ^- @ud "s"
+  ++ b x
+  a
+++ empty-mask |= x
+  ++ a [(^- @ux x) (^- @t x)]
+  ++ g ^- !! x
+  ++ d |= y=B ^- @t y
+  a
+++ empty-ok |= x
+  ++ a [(^- @ux x) (^- @t x)]
+  ++ g ^- !! x
+  a
+++ empty-stall |= x
+  ++ a ^- @ux x
+  ++ b ^- @t x
+  ++ g ^- !! x
+  a
+++ empty-stall-g-first |= x
+  ++ g ^- !! x
+  ++ a ^- @ux x
+  ++ b ^- @t x
+  a

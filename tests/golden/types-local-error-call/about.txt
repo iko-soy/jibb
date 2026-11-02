@@ -1,0 +1,4 @@
+source: Implementation plan, Risks: "Each error names both conflicting sites, with excerpts"; Grammar, Runes: "local names at the start of any body (a gate's, an arm's, a `^-`'s, a `~&`'s or a `++`'s), visible to each other and the final expression".
+tests: a definite call mismatch inside a local `++` reports the gate and argument sites, as the same call does at top level: calling a top-level gate, a local gate defined earlier, and a top-level gate from inside a local gate's body. When a later sibling's cast fixes the untyped sample's type before a waiting call is retried, the generic message remains, since sibling order can then change the outcome: the site blamed, or, with a gate whose sample is `!!`, whether the body is accepted at all, as it is when that gate comes first.
+expect: parses
+expect-types: a partial inference report, not a checked module

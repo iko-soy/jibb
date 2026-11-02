@@ -1,0 +1,82 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (aura 1:13 @ud))
+      (wing 1:17 n)))
+  (value 2:1 top
+    (group 2:8
+      (call 2:9 (wing 2:9 inc) (lit 2:13 %.y))))
+  (value 3:1 local
+    (gate 3:10
+      (face 3:13 x (aura 3:15 @t))
+      (body 4:3
+        (value 4:3 bad
+          (group 4:10
+            (call 4:11 (wing 4:11 inc) (lit 4:15 %.y))))
+        (wing 5:3 x))))
+  (value 6:1 local-gate
+    (gate 6:15
+      (face 6:18 x (aura 6:20 @t))
+      (body 7:3
+        (value 7:3 twice
+          (gate 7:12
+            (face 7:15 y (aura 7:17 @ud))
+            (group 7:21
+              (call 7:22 (wing 7:22 inc) (wing 7:26 y)))))
+        (value 8:3 bad
+          (group 8:10
+            (call 8:11 (wing 8:11 twice) (wing 8:17 x))))
+        (wing 9:3 bad))))
+  (value 10:1 in-gate
+    (gate 10:12
+      (face 10:15 x (aura 10:17 @t))
+      (body 11:3
+        (value 11:3 bump
+          (gate 11:11
+            (face 11:14 y (aura 11:16 @t))
+            (group 11:19
+              (call 11:20 (wing 11:20 inc) (wing 11:24 y)))))
+        (group 12:3
+          (call 12:4 (wing 12:4 bump) (wing 12:9 x))))))
+  (value 13:1 blame-order
+    (gate 13:16
+      (bind 13:19 x)
+      (body 14:3
+        (value 14:3 a
+          (group 14:8
+            (call 14:9 (wing 14:9 c) (wing 14:11 x))))
+        (value 15:3 b
+          (cast 15:8 (aura 15:11 @ud) (wing 15:15 x)))
+        (value 16:3 c
+          (gate 16:8
+            (face 16:11 y (aura 16:13 @t))
+            (wing 16:16 y)))
+        (wing 17:3 a))))
+  (value 18:1 blame-empty
+    (gate 18:16
+      (bind 18:19 x)
+      (body 19:3
+        (value 19:3 a
+          (group 19:8
+            (call 19:9 (wing 19:9 c) (wing 19:11 x))))
+        (value 20:3 b
+          (cast 20:8 (aura 20:11 @ud) (wing 20:15 x)))
+        (value 21:3 c
+          (gate 21:8
+            (face 21:11 y (void 21:13))
+            (wing 21:16 y)))
+        (wing 22:3 a))))
+  (value 23:1 blame-empty-c-first
+    (gate 23:24
+      (bind 23:27 x)
+      (body 24:3
+        (value 24:3 c
+          (gate 24:8
+            (face 24:11 y (void 24:13))
+            (wing 24:16 y)))
+        (value 25:3 a
+          (group 25:8
+            (call 25:9 (wing 25:9 c) (wing 25:11 x))))
+        (value 26:3 b
+          (cast 26:8 (aura 26:11 @ud) (wing 26:15 x)))
+        (wing 27:3 a)))))

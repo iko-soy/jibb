@@ -1,0 +1,151 @@
+(module
+  (value 1:1 top
+    (cast 1:8 (aura 1:11 @t) (lit 1:14 %.y)))
+  (value 2:1 local
+    (gate 2:10
+      (face 2:13 x (aura 2:15 @t))
+      (body 3:3
+        (value 3:3 flag
+          (cast 3:11 (aura 3:14 @t) (lit 3:17 %.y)))
+        (wing 4:3 x))))
+  (value 5:1 waiting
+    (gate 5:12
+      (face 5:15 x (aura 5:17 @t))
+      (body 6:3
+        (value 6:3 first
+          (group 6:12
+            (call 6:13 (wing 6:13 second) (wing 6:20 x))))
+        (value 7:3 second
+          (gate 7:13
+            (face 7:16 y (aura 7:18 @t))
+            (cast 7:21 (aura 7:24 @ud) (wing 7:28 y))))
+        (wing 8:3 first))))
+  (value 9:1 after-self
+    (gate 9:15
+      (face 9:18 x (aura 9:20 @t))
+      (body 10:3
+        (value 10:3 recur
+          (gate 10:12
+            (face 10:15 y (aura 10:17 @t))
+            (body 11:5
+              (branch 11:5
+                (lit 11:8 %.y)
+                (arm 12:7
+                  (lit 12:7 %.y)
+                  (group 12:11
+                    (call 12:12 (wing 12:12 recur) (wing 12:18 y))))
+                (arm 13:7
+                  (lit 13:7 %.n)
+                  (cast 13:11 (aura 13:14 @ud) (wing 13:18 y)))))))
+        (group 14:3
+          (call 14:4 (wing 14:4 recur) (wing 14:10 x))))))
+  (value 15:1 nested
+    (gate 15:11
+      (face 15:14 x (aura 15:16 @t))
+      (body 16:3
+        (value 16:3 outer
+          (gate 16:12
+            (face 16:15 y (aura 16:17 @t))
+            (body 17:5
+              (value 17:5 inner
+                (cast 17:14 (aura 17:17 @p) (wing 17:20 y)))
+              (wing 18:5 inner))))
+        (group 19:3
+          (call 19:4 (wing 19:4 outer) (wing 19:10 x))))))
+  (value 20:1 mask-capital
+    (gate 20:17
+      (face 20:20 x (tvar 20:22 A))
+      (body 21:3
+        (value 21:3 a
+          (cast 21:8 (aura 21:11 @ud) (str 21:15 "s")))
+        (value 22:3 b
+          (cast 22:8 (aura 22:11 @t) (wing 22:14 x)))
+        (wing 23:3 x))))
+  (value 24:1 mask-after-progress
+    (gate 24:24
+      (face 24:27 x (tvar 24:29 A))
+      (body 25:3
+        (value 25:3 a
+          (cast 25:8 (aura 25:11 @ud) (str 25:15 "s")))
+        (value 26:3 ok (wing 26:9 x))
+        (value 27:3 b
+          (cast 27:8 (aura 27:11 @t) (wing 27:14 x)))
+        (wing 28:3 x))))
+  (value 29:1 same
+    (gate 29:9
+      (cell 29:12
+        (face 29:13 a (tvar 29:15 A))
+        (face 29:17 b (tvar 29:19 A)))
+      (wing 29:22 a)))
+  (value 30:1 mask-hole
+    (gate 30:14
+      (bind 30:17 x)
+      (body 31:3
+        (value 31:3 a
+          (cast 31:8 (aura 31:11 @ud) (str 31:15 "s")))
+        (value 32:3 b
+          (cast 32:8
+            (hole 32:11)
+            (group 32:13
+              (call 32:14 (wing 32:14 same) (wing 32:19 x) (lit 32:21 1)))))
+        (cast 33:3 (aura 33:6 @ux) (wing 33:10 x)))))
+  (value 34:1 captured
+    (gate 34:13
+      (bind 34:16 x)
+      (body 35:3
+        (value 35:3 a
+          (cast 35:8 (aura 35:11 @ud) (str 35:15 "s")))
+        (value 36:3 b (wing 36:8 x))
+        (wing 37:3 a))))
+  (value 38:1 empty-mask
+    (gate 38:15
+      (bind 38:18 x)
+      (body 39:3
+        (value 39:3 a
+          (tuple 39:8
+            (group 39:9
+              (cast 39:10 (aura 39:13 @ux) (wing 39:17 x)))
+            (group 39:20
+              (cast 39:21 (aura 39:24 @t) (wing 39:27 x)))))
+        (value 40:3 g
+          (cast 40:8 (void 40:11) (wing 40:14 x)))
+        (value 41:3 d
+          (gate 41:8
+            (face 41:11 y (tvar 41:13 B))
+            (cast 41:15 (aura 41:18 @t) (wing 41:21 y))))
+        (wing 42:3 a))))
+  (value 43:1 empty-ok
+    (gate 43:13
+      (bind 43:16 x)
+      (body 44:3
+        (value 44:3 a
+          (tuple 44:8
+            (group 44:9
+              (cast 44:10 (aura 44:13 @ux) (wing 44:17 x)))
+            (group 44:20
+              (cast 44:21 (aura 44:24 @t) (wing 44:27 x)))))
+        (value 45:3 g
+          (cast 45:8 (void 45:11) (wing 45:14 x)))
+        (wing 46:3 a))))
+  (value 47:1 empty-stall
+    (gate 47:16
+      (bind 47:19 x)
+      (body 48:3
+        (value 48:3 a
+          (cast 48:8 (aura 48:11 @ux) (wing 48:15 x)))
+        (value 49:3 b
+          (cast 49:8 (aura 49:11 @t) (wing 49:14 x)))
+        (value 50:3 g
+          (cast 50:8 (void 50:11) (wing 50:14 x)))
+        (wing 51:3 a))))
+  (value 52:1 empty-stall-g-first
+    (gate 52:24
+      (bind 52:27 x)
+      (body 53:3
+        (value 53:3 g
+          (cast 53:8 (void 53:11) (wing 53:14 x)))
+        (value 54:3 a
+          (cast 54:8 (aura 54:11 @ux) (wing 54:15 x)))
+        (value 55:3 b
+          (cast 55:8 (aura 55:11 @t) (wing 55:14 x)))
+        (wing 56:3 a)))))

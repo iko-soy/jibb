@@ -1,0 +1,157 @@
+1:1 glyph ++
+1:4 name inc
+1:8 glyph |=
+1:11 name n
+1:12 tight glyph =
+1:13 tight aura @ud
+1:17 name n
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name forward
+2:12 glyph |=
+2:15 name x
+2:16 tight glyph =
+2:17 tight aura @ud
+3:3 INDENT
+3:3 glyph ++
+3:6 name first
+3:12 glyph (
+3:13 tight name second
+3:20 name x
+3:21 tight glyph )
+4:3 NEWLINE
+4:3 glyph ++
+4:6 name second
+4:13 glyph |=
+4:16 name y
+4:17 tight glyph =
+4:18 tight aura @ud
+4:22 glyph (
+4:23 tight name inc
+4:27 name y
+4:28 tight glyph )
+5:3 NEWLINE
+5:3 name first
+6:1 DEDENT
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name forward-value
+6:18 glyph |=
+6:21 name x
+6:22 tight glyph =
+6:23 tight aura @t
+7:3 INDENT
+7:3 glyph ++
+7:6 name first
+7:12 glyph ^-
+7:15 aura @t
+7:18 name second
+8:3 NEWLINE
+8:3 glyph ++
+8:6 name second
+8:13 name x
+9:3 NEWLINE
+9:3 name first
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name forward-chain
+10:18 glyph |=
+10:21 name x
+10:22 tight glyph =
+10:23 tight aura @ud
+11:3 INDENT
+11:3 glyph ++
+11:6 name first
+11:12 glyph (
+11:13 tight name second
+11:20 name x
+11:21 tight glyph )
+12:3 NEWLINE
+12:3 glyph ++
+12:6 name second
+12:13 glyph |=
+12:16 name y
+12:17 tight glyph =
+12:18 tight aura @ud
+12:22 glyph (
+12:23 tight name third
+12:29 name y
+12:30 tight glyph )
+13:3 NEWLINE
+13:3 glyph ++
+13:6 name third
+13:12 glyph |=
+13:15 name z
+13:16 tight glyph =
+13:17 tight aura @ud
+13:21 glyph (
+13:22 tight name inc
+13:26 name z
+13:27 tight glyph )
+14:3 NEWLINE
+14:3 name first
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name waits-on-unknown
+15:21 glyph |=
+15:24 name x
+15:25 tight glyph =
+15:26 tight aura @t
+16:3 INDENT
+16:3 glyph ++
+16:6 name first
+16:12 glyph ^-
+16:15 aura @t
+16:18 name second
+17:3 NEWLINE
+17:3 glyph ++
+17:6 name second
+17:13 name nope
+18:3 NEWLINE
+18:3 name first
+19:1 DEDENT
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name waits-on-pending
+19:21 glyph |=
+19:24 name x
+19:25 tight glyph =
+19:26 tight aura @t
+20:3 INDENT
+20:3 glyph ++
+20:6 name first
+20:12 glyph ^-
+20:15 aura @t
+20:18 name second
+21:3 NEWLINE
+21:3 glyph ++
+21:6 name second
+21:13 lit %orphan
+22:3 NEWLINE
+22:3 name first
+23:1 DEDENT
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name waits-then-capital
+23:23 glyph |=
+23:26 name x
+23:27 tight glyph =
+23:28 tight tvar A
+24:3 INDENT
+24:3 glyph ++
+24:6 name first
+24:12 glyph ^-
+24:15 aura @t
+24:18 name second
+25:3 NEWLINE
+25:3 glyph ++
+25:6 name second
+25:13 glyph ^-
+25:16 aura @t
+25:19 name x
+26:3 NEWLINE
+26:3 name first
+26:8 DEDENT
+26:8 NEWLINE

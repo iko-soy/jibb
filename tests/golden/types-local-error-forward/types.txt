@@ -1,0 +1,8 @@
+partial inference; module not checked
+++ inc: $-(@ud @ud)
+++ forward: $-(@ud @ud)
+++ forward-value: $-(@t @t)
+++ forward-chain: $-(@ud @ud)
+++ waits-on-unknown: local definitions need unsupported inference
+++ waits-on-pending: local definitions need unsupported inference
+++ waits-then-capital: explicit capital constraints are not supported by partial inference

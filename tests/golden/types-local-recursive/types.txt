@@ -6,7 +6,19 @@ partial inference; module not checked
 ++ cycle: local definitions need unsupported inference
 ++ mutual: $-(@t A)
 ++ pending: local definitions need unsupported inference
-++ alias-mono: local definitions need unsupported inference
-++ occurs: local definitions need unsupported inference
+++ alias-mono: call's sample and argument types do not unify
+/tests/golden/types-local-recursive/source.jibb:40:8: called gate has type $-(@t A)
+      (alias ~zod)
+       ^
+/tests/golden/types-local-recursive/source.jibb:40:14: argument has type @p
+      (alias ~zod)
+             ^
+++ occurs: call's sample and argument types do not unify
+/tests/golden/types-local-recursive/source.jibb:43:18: called gate has type $-(A B)
+  ++ recur |= y (recur recur)
+                 ^
+/tests/golden/types-local-recursive/source.jibb:43:24: argument has type $-(A B)
+  ++ recur |= y (recur recur)
+                       ^
 ++ captures: local definitions need unsupported inference
 ++ via-gate: local definitions need unsupported inference

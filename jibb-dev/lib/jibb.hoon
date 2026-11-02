@@ -6099,8 +6099,12 @@
   ?~  work  ~
   ?:  (hole-known [%var id.i.work] state)  $(work t.work)
   ?:  (hole-uncertain [%var id.i.work] state)
-    `["type hole needs unsupported inference" ~[[at.i.work "type hole"]]]
+    `[uncertain-hole-msg ~[[at.i.work "type hole"]]]
   `["type hole needs a determined type" ~[[at.i.work "unresolved type hole"]]]
+::
+::  +uncertain-hole-msg: unsupported, though it names the hole's site
+::
+++  uncertain-hole-msg  "type hole needs unsupported inference"
 ::
 ++  itype-vars
   |=  t=itype
@@ -7433,10 +7437,115 @@
   ^-  istate
   (reserve-cap-sites (scope-expr e) state)
 ::
+::  +definite-diag: whether a failure is an error in the program itself
+::
+::    A definite error names the sites that conflict. A form partial
+::    inference does not support names none, and neither does a name
+::    that is not inferred yet, such as a sibling that waits for a later
+::    pass. An uncertain hole is the one unsupported result with a site.
+::
+++  definite-diag
+  |=  diag=idiag
+  ^-  ?
+  ?~  sites.diag  |
+  !=(msg.diag uncertain-hole-msg)
+::
+::  +shared-types: what a body's shared variables resolve to
+::
+::    The variables free in env or in the enclosing capitals, such as an
+::    enclosing gate's untyped sample, are shared by all of the body's
+::    locals. A local keeps monomorphic only the variables that these
+::    resolve to; it generalizes the rest, which each use renames.
+::
+++  shared-types
+  |=  [env=ienv caps=icaps sub=isub]
+  ^-  (list [id=@ud typ=itype])
+  %+  turn
+    (unique-type-vars (weld (free-env-vars env sub) (free-cap-vars caps sub)))
+  |=(id=@ud [id (itype-normalize [%var id] sub)])
+::
+::  +shared-moved: whether a sibling bound or refined a shared variable
+::
+::    A sibling that infers can constrain a shared variable and so turn
+::    another local's failure into a success: +itype-fit accepts any type
+::    it can prove empty, so after `^- !! x` every cast of x fits. Such a
+::    failure can depend on the order siblings are tried in. A variable
+::    that a sibling keeps monomorphic occurs in what a shared variable
+::    resolves to, so constraining it moves a shared variable too. A
+::    substitution only grows, so when none moved, every sibling inferred
+::    so far, and the local, ran against the entry state and generalized
+::    schemes alone.
+::
+++  shared-moved
+  |=  [shared=(list [id=@ud typ=itype]) sub=isub]
+  ^-  ?
+  (lien shared |=([id=@ud typ=itype] !=(typ (itype-normalize [%var id] sub))))
+::
+::  +closed-local: whether a local cannot see any shared variable
+::
+::    A local that names no sibling, itself included, no name whose type
+::    had a free variable when the body was entered, and no enclosing
+::    capital that did, is inferred from generalized schemes and known
+::    types alone. What its siblings do cannot change its result, so its
+::    error is its own in any order. +sub is the substitution on entry,
+::    since a sibling may since have bound such a variable. The names are
+::    syntactic and ignore binders, so this errs closed.
+::
+++  closed-local
+  |=  [d=def siblings=(list term) env=ienv caps=icaps sub=isub]
+  ^-  ?
+  ?.  ?=(%value -.d)  |
+  =/  deps=(list term)  (dependency-expr val.d)
+  ?:  (lien deps |=(n=term |(=(n name.d) (lien siblings |=(s=term =(s n))))))  |
+  ?:  %+  lien  deps
+      |=  n=term
+      =/  sc=(unit ischeme)  (ienv-lookup n env)
+      ?~  sc  |
+      ?=(^ (free-env-vars ~[[n u.sc]] sub))
+    |
+  %+  levy  (scope-expr val.d)
+  |=  site=icap-site
+  =/  id=(unit @ud)  (icap-lookup name.site caps)
+  ?~  id  &
+  ?=(~ (itype-vars (itype-normalize [%var u.id] sub)))
+::
+::  +infer-local-defs: infer a body's local values in dependency order
+::
+::    A definition that fails, or whose type is still pending, waits for
+::    the next pass, since it may refer to a sibling inferred later. When
+::    a pass makes no progress and no cyclic group applies, report the
+::    definite error of the earliest waiting definition, if no order of
+::    the siblings could change it; otherwise the message stays generic.
+::
+::    A failure counts only if it names its sites. The failure of a
+::    local that sees no shared variable (+closed-local) is its own. Any
+::    other failure counts only if no shared variable had moved when it
+::    was tried, and, when the body has shared variables, every other
+::    waiting definition also failed with sites: one that waits without
+::    them, on a checker limit, a pending tag or its own nested stall,
+::    might in another order, or once supported, constrain a shared
+::    variable and so let the failing local pass. When all of them failed
+::    with sites and none moved a shared variable, the state is the same
+::    in every order. With no shared variables, each local is inferred
+::    from generalized schemes alone.
+::
+::    A cyclic group's own errors are not kept. A definition that infers
+::    but is then unsupported reports that at once: a failure recorded
+::    earlier in the pass may still pass on a retry, once a sibling has
+::    constrained a shared variable.
+::
 ++  infer-local-defs
   |=  [ds=(list def) env=ienv state=istate]
   ^-  ilocal-result
+  =/  shared=(list [id=@ud typ=itype])  (shared-types env caps.state sub.state)
   =/  remaining=(list def)  ~
+  =/  siblings=(list term)  (global-value-names ds)
+  =/  entry=isub  sub.state
+  ::  this pass's failures with sites that are closed or were tried before
+  ::  any shared variable moved, newest first; and whether a definition
+  ::  waits without sites
+  =/  failures=(list [diag=idiag closed=?])  ~
+  =/  blocked=?  |
   =/  progressed=?  |
   |-
   ?~  ds
@@ -7446,16 +7555,35 @@
       =/  groups=icomponents  (graph-components pending (global-value-names pending))
       =/  grouped=(unit [rest=(list def) env=ienv state=istate])
         (try-local-group pending groups env state)
-      ?~  grouped  [%| ["local definitions need unsupported inference" ~]]
-      $(ds rest.u.grouped, remaining ~, env env.u.grouped, state state.u.grouped, progressed |)
-    $(ds (flop remaining), remaining ~, progressed |)
+      ?~  grouped
+        =/  sure=(list [diag=idiag closed=?])
+          ?:  |(?=(~ shared) !blocked)  failures
+          (skim failures |=([diag=idiag closed=?] closed))
+        ?^  sure  [%| diag:(rear sure)]
+        [%| ["local definitions need unsupported inference" ~]]
+      $(ds rest.u.grouped, remaining ~, failures ~, blocked |, env env.u.grouped, state state.u.grouped, progressed |)
+    $(ds (flop remaining), remaining ~, failures ~, blocked |, progressed |)
   =/  d=def  i.ds
   ?>  ?=(%value -.d)
   =/  local-state=istate  (reserve-def-caps val.d state)
-  =/  inferred=iresult  (infer-fragment val.d env local-state)
-  =/  retried=?  ?=(%| -.inferred)
-  =?  inferred  retried  (infer-recursive-gate d env local-state)
-  ?:  ?=(%| -.inferred)  $(ds t.ds, remaining [d remaining])
+  =/  plain=iresult  (infer-fragment val.d env local-state)
+  =/  inferred=iresult
+    ?:  ?=(%& -.plain)  plain
+    (infer-recursive-gate d env local-state)
+  ?:  ?=(%| -.inferred)
+    ::  For a value that is not a gate the retry only says so; keep the
+    ::  first failure unless the retry found a definite error.
+    =/  failure=idiag
+      ?:  ?=(%& -.plain)  p.inferred
+      ?:  (definite-diag p.inferred)  p.inferred
+      p.plain
+    ?.  (definite-diag failure)  $(ds t.ds, remaining [d remaining], blocked &)
+    =/  closed=?  (closed-local d siblings env caps.state entry)
+    =?  failures  |(closed !(shared-moved shared sub.state))
+      [[failure closed] failures]
+    $(ds t.ds, remaining [d remaining])
+  ::  Only the deferred transaction adds obligations, and it keeps no
+  ::  failure reason. Obligations from a local are a checker limit.
   ?:  !=(obligations.state.p.inferred obligations.state)  [%| ["deferred local definition needs unsupported inference" ~]]
   =.  state.p.inferred  (promote-restricted-numbers state.p.inferred env)
   =.  state.p.inferred  (default-hole-numbers holes.state.p.inferred holes.state state.p.inferred env !(itype-has-gate (itype-normalize typ.p.inferred sub.state.p.inferred)))
@@ -7469,9 +7597,9 @@
     [%| ["explicit capital constraints are not supported by partial inference" ~]]
   =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
   ?:  |((pending-tags tags.state.p.inferred sub.state.p.inferred) (itype-has-tag typ))
-    $(ds t.ds, remaining [d remaining])
+    $(ds t.ds, remaining [d remaining], blocked &)
   ?:  (unsupported-atom-vars typ caps.state.p.inferred binders.state.p.inferred sub.state.p.inferred)
-    $(ds t.ds, remaining [d remaining])
+    $(ds t.ds, remaining [d remaining], blocked &)
   =/  free=(list @ud)
     (weld (free-env-vars env sub.state.p.inferred) (free-cap-vars caps.state sub.state.p.inferred))
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))

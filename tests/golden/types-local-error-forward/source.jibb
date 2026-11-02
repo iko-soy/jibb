@@ -1,0 +1,26 @@
+++ inc |= n=@ud n
+++ forward |= x=@ud
+  ++ first (second x)
+  ++ second |= y=@ud (inc y)
+  first
+++ forward-value |= x=@t
+  ++ first ^- @t second
+  ++ second x
+  first
+++ forward-chain |= x=@ud
+  ++ first (second x)
+  ++ second |= y=@ud (third y)
+  ++ third |= z=@ud (inc z)
+  first
+++ waits-on-unknown |= x=@t
+  ++ first ^- @t second
+  ++ second nope
+  first
+++ waits-on-pending |= x=@t
+  ++ first ^- @t second
+  ++ second %orphan
+  first
+++ waits-then-capital |= x=A
+  ++ first ^- @t second
+  ++ second ^- @t x
+  first

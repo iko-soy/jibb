@@ -1,0 +1,4 @@
+source: Grammar, Modules: "Names may refer to each other in any order"; Runes: "local names at the start of any body (a gate's, an arm's, a `^-`'s, a `~&`'s or a `++`'s), visible to each other and the final expression".
+tests: a local value or gate that refers forward to a later sibling still infers once that sibling does, through a chain; a reference to a sibling not yet inferred is not reported as an error. When a sibling never infers, because it names something unavailable or its tag stays pending, the waiting definition keeps the generic unsupported message; when the sibling infers but forces an explicit capital to a concrete type, its unsupported message stays.
+expect: parses
+expect-types: a partial inference report, not a checked module
