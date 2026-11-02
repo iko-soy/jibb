@@ -61,7 +61,9 @@ def exercise(scenario):
         shutil.copy2(ROOT / 'tools/clay-fixtures', root / 'tools/clay-fixtures')
         shutil.copy2(ROOT / 'tools/golden_case.py', root / 'tools/golden_case.py')
         fake = root / 'tools/ship'
-        fake.write_text(FAKE_SHIP)
+        # This Python, not /usr/bin/env's: a Nix build has no /usr/bin/env.
+        fake.write_text(FAKE_SHIP.replace('/usr/bin/env python3',
+                                          sys.executable, 1))
         fake.chmod(0o755)
         for name in ('vendor', 'jibb-dev', 'tests'):
             (root / name).symlink_to(ROOT / name, target_is_directory=True)
