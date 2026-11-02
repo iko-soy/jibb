@@ -5,6 +5,11 @@
 /*  initializer  %txt  /tests/type-program-main/initializer/txt
 /*  initializer-consumer  %txt  /tests/type-program-main/initializer-consumer/txt
 /*  initializer-unfaced  %txt  /tests/type-program-main/initializer-unfaced/txt
+/*  initializer-pun  %txt  /tests/type-program-main/initializer-pun/txt
+/*  initializer-alias  %txt  /tests/type-program-main/initializer-alias/txt
+/*  initializer-open-update  %txt  /tests/type-program-main/initializer-open-update/txt
+/*  initializer-open-view  %txt  /tests/type-program-main/initializer-open-view/txt
+/*  initializer-nested-branch  %txt  /tests/type-program-main/initializer-nested-branch/txt
 /*  initializer-error  %txt  /tests/type-program-main/initializer-error/txt
 /*  initializer-earlier  %txt  /tests/type-program-main/initializer-earlier/txt
 /*  initializer-model  %txt  /tests/type-program-main/initializer-model/txt
@@ -94,8 +99,22 @@
   ^-  @t
   (show-error:jibb src [at line col (weld "nothing fixes the union of " literal)])
 ::
+::  Each alternate writes update, view or subs another way (one faced mold,
+::  a pun, an alias, generic in the model, generic view and subs samples), or
+::  gives init a body only ordinary inference takes (a branch over a nested
+::  call's union), and its initializer must check like the island's.
+++  program-init-alternates
+  |=  [alternates=(list [name=@ta src=@t]) prepared=iprelude:jibb]
+  ^-  (list tape)
+  ?~  alternates  ~
+  %+  weld
+    %+  turn
+      (program-init-positive /tests/program-main/[name.i.alternates]/jibb src.i.alternates ~ prepared)
+    |=(reason=tape (weld (weld (trip name.i.alternates) ": ") reason))
+  $(alternates t.alternates)
+::
 ++  program-init-errors
-  |=  [public=@t private=@t island=@t downstream=@t unfaced=@t negatives=(list @t)]
+  |=  [public=@t private=@t island=@t downstream=@t alternates=(list [name=@ta src=@t]) negatives=(list @t)]
   ^-  (list tape)
   =/  prepared=(unit iprelude:jibb)  (program-init-prepared public private)
   ?~  prepared  ~["synthetic program prelude did not prepare for contextual init"]
@@ -103,14 +122,15 @@
   =/  positives=(list tape)
     %+  weld
       (program-init-positive at island `downstream u.prepared)
-    (program-init-positive /tests/program-main/initializer-unfaced/jibb unfaced ~ u.prepared)
+    (program-init-alternates alternates u.prepared)
   ?.  =(9 (lent negatives))  ~["contextual negative fixture count differs"]
   =/  definitions=@t  (crip "module definitions need unsupported inference: {(spud at)}: ++ main")
   =/  cases=(list [label=@t at=path src=@t boundary=@t])
     :~  ['incompatible error field' at (snag 0 negatives) (program-init-pending at (snag 0 negatives) 6 32 "~")]
         ['earlier tuple mismatch' at (snag 1 negatives) (program-init-pending at (snag 1 negatives) 6 34 "~")]
         ['inconsistent model' at (snag 2 negatives) (program-init-pending at (snag 2 negatives) 7 32 "~")]
-        ['inconsistent message' at (snag 3 negatives) (program-init-pending at (snag 3 negatives) 9 32 "~")]
+        ::  init checks against update's model; main rejects the other message
+        ['inconsistent message' at (snag 3 negatives) definitions]
         ['missing/generic data sample' at (snag 4 negatives) (program-init-pending at (snag 4 negatives) 6 22 "~")]
         ['missing initializer' at (snag 5 negatives) definitions]
         ['unrelated pending tag' at (snag 6 negatives) (program-init-pending at (snag 6 negatives) 12 6 "%unrelated")]
@@ -136,5 +156,13 @@
         (text initializer-no-main)
         (text initializer-subs)
     ==
-  (turn (program-init-errors prelude internal (text initializer) (text initializer-consumer) (text initializer-unfaced) negatives) |=(reason=tape leaf+reason))
+  =/  alternates=(list [name=@ta src=@t])
+    :~  [%initializer-unfaced (text initializer-unfaced)]
+        [%initializer-pun (text initializer-pun)]
+        [%initializer-alias (text initializer-alias)]
+        [%initializer-open-update (text initializer-open-update)]
+        [%initializer-open-view (text initializer-open-view)]
+        [%initializer-nested-branch (text initializer-nested-branch)]
+    ==
+  (turn (program-init-errors prelude internal (text initializer) (text initializer-consumer) alternates negatives) |=(reason=tape leaf+reason))
 --

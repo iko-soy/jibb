@@ -418,6 +418,8 @@ def generator_checks(tmp):
               'source', 'consumer', 'gate-model', 'gate-data', 'nonempty-subs',
               'mismatched-model', 'arbitrary-main', 'alias-main', 'open-message',
               'initializer', 'initializer-consumer', 'initializer-unfaced',
+              'initializer-pun', 'initializer-alias', 'initializer-open-update',
+              'initializer-open-view', 'initializer-nested-branch',
               'initializer-error', 'initializer-earlier', 'initializer-model',
               'initializer-message', 'initializer-generic', 'initializer-missing',
               'initializer-tag', 'initializer-no-main', 'initializer-subs')} <= set(normal.files))

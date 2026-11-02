@@ -13338,21 +13338,6 @@
     %body   ?~(defs.e $(e final.e) e)
     *       e
   ==
-++  program-init-tuple-null
-  |=  d=def
-  ^-  ?
-  ?.  ?=(%value -.d)  |
-  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  |
-  =/  body=expr
-    ?-  -.val.d
-      %gate       body.val.d
-      %gate-wide  body.val.d
-      *           !!
-    ==
-  =.  body  (program-transparent body)
-  ?.  ?=(%tuple -.body)  |
-  ?~  items.body  |
-  (program-empty-null val:(rear items.body))
 ::
 ::  Recover only the update of an already recognized direct program main.
 ::  Its written sample determines the message/model relationship; the canonical
@@ -14169,21 +14154,89 @@
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
   `[env.u.added grouped.resolution artifacts.u.added]
 ::
-++  program-init-null-sample
-  |=  d=def
-  ^-  ?
-  =/  written=(unit sample)  (direct-gate-sample d)
-  ?~  written  |
-  ?.  ?=(%bare -.u.written)  |
-  =/  sh=shape  shape.u.written
-  ?.  ?=(%const -.sh)  |
-  =(%null form.lit.sh)
+::  The model a direct program's initializer must produce. Update's written
+::  two-item sample gives it when it can be read. Otherwise main's own program
+::  fit does: update, view and subs are fitted together against the prelude
+::  program's sample, as main's call will fit them, with the initializer an
+::  open variable. Only the initializer's data may stay open, a replay of the
+::  fit must not move, and the model must come out closed and tag-free.
+++  program-init-model
+  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv program=ischeme program-def=def initial=istate]
+  ^-  (unit itype)
+  =/  relation=(unit [message=itype model=itype])
+    (program-update-relation update.parts ds env)
+  ?^  relation  `model.u.relation
+  =/  args=(unit (list expr))  (program-main-args main)
+  ?~  args  ~
+  =/  written=(unit sample)  (direct-gate-sample program-def)
+  ?~  written  ~
+  ?.  ?=(%cell -.u.written)  ~
+  ?~  items.u.written  ~
+  =/  update=(unit ischeme)  (ienv-lookup update.parts env)
+  =/  view=(unit ischeme)  (ienv-lookup view.parts env)
+  =/  subs=(unit ischeme)  (ienv-lookup subs.parts env)
+  ?~  update  ~
+  ?~  view  ~
+  ?~  subs  ~
+  =/  instance=[typ=itype state=istate]  (instantiate-scheme program initial)
+  ?.  ?=(%fn -.typ.instance)  ~
+  ?.  ?=(%cell -.sample.typ.instance)  ~
+  =/  expected-init=(unit itype)
+    (direct-slot-body hed.sample.typ.instance (direct-sample-name i.items.u.written))
+  ?~  expected-init  ~
+  ?.  ?=(%fn -.u.expected-init)  ~
+  ?.  ?=(%var -.sample.u.expected-init)  ~
+  =/  data=@ud  id.sample.u.expected-init
+  =/  init-var=itype  [%var next.state.instance]
+  =/  up=[typ=itype state=istate]
+    (instantiate-scheme u.update state.instance(next +(next.state.instance)))
+  =/  vw=[typ=itype state=istate]  (instantiate-scheme u.view state.up)
+  =/  sb=[typ=itype state=istate]  (instantiate-scheme u.subs state.vw)
+  =/  st=istate  state.sb
+  =/  actual=itype  [%cell init-var [%cell typ.up [%cell typ.vw typ.sb]]]
+  =/  fit=ifit
+    (direct-positional-fit u.args items.u.written actual sample.typ.instance env st sub.st next.st)
+  ?.  ?=(%ok -.fit)  ~
+  =/  actual-final=itype  (itype-normalize actual sub.fit)
+  =/  expected-final=itype  (itype-normalize sample.typ.instance sub.fit)
+  =/  open=(list @ud)
+    (unique-type-vars (weld (itype-vars actual-final) (itype-vars expected-final)))
+  ?.  (levy open |=(n=@ud =(data n)))  ~
+  ?:  |((itype-has-tag actual-final) (itype-has-tag expected-final))  ~
+  =/  replay=ifit
+    (direct-positional-fit u.args items.u.written actual sample.typ.instance env st sub.fit next.fit)
+  ?.  ?=(%ok -.replay)  ~
+  ?.  &(=(sub.fit sub.replay) =(next.fit next.replay))  ~
+  =/  expected=itype  (itype-normalize u.expected-init sub.fit)
+  ?.  ?=(%fn -.expected)  ~
+  ?^  (itype-vars product.expected)  ~
+  `product.expected
 ::
-::  The tuple-ending-null initializer retry above intentionally keeps its own
-::  boundary.  A direct null-sample initializer can instead receive the closed
-::  model already established by update, view and subscriptions.
+::  The product of an initializer inferred ordinarily, as a whole gate with no
+::  expected type, for a body that context inference cannot take, such as a
+::  branch over a nested call's union. Its sample must fit the written one.
+++  program-init-ordinary
+  |=  [init-def=def env=ienv sample=itype state=istate]
+  ^-  iresult
+  ?>  ?=(%value -.init-def)
+  =/  gate=iresult  (infer-fragment val.init-def env state)
+  =?  gate  ?=(%| -.gate)  (infer-recursive-gate init-def env state)
+  ?:  ?=(%| -.gate)  gate
+  ?.  ?=(%fn -.typ.p.gate)  [%| ["initializer is not a gate" ~]]
+  =/  fit=ifit
+    (itype-fit sample.typ.p.gate sample sub.state.p.gate next.state.p.gate)
+  ?.  ?=(%ok -.fit)  [%| ["initializer sample differs" ~]]
+  [%& product.typ.p.gate state.p.gate(sub sub.fit, next next.fit)]
+::
+::  Recover a direct program's initializer once update, view and
+::  subscriptions are resolved: its body is inferred against their closed
+::  model (+program-init-model), under its own closed written sample. This one
+::  path replaced a separate retry for bodies ending in null and a gate that
+::  took only a null sample, so any body and any closed sample check the same
+::  way (review question 8). The fresh ordinary main inference afterwards
+::  checks that all four components agree.
 ++  program-plain-init-context
-  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
+  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
   ^-  (unit iresolved)
   =/  env=ienv  env.resolution
   ?^  (ienv-lookup %main env)  ~
@@ -14191,15 +14244,11 @@
   ?~  (ienv-lookup update.parts env)  ~
   ?~  (ienv-lookup view.parts env)  ~
   ?~  (ienv-lookup subs.parts env)  ~
-  =/  relation=(unit [message=itype model=itype])
-    (program-update-relation update.parts ds env)
-  ?~  relation  ~
   =/  inits=(list def)
     (skim ds |=(d=def &(?=(%value -.d) =(init.parts name.d))))
   ?.  ?=([* ~] inits)  ~
   =/  init-def=def  i.inits
   ?>  ?=(%value -.init-def)
-  ?.  (program-init-null-sample init-def)  ~
   =/  written=(unit sample)  (direct-gate-sample init-def)
   ?~  written  ~
   =/  body=expr
@@ -14209,10 +14258,12 @@
       *           !!
     ==
   ?~  prelude.initial  ~
-  ?~  (ienv-lookup %program values.u.prelude.initial)  ~
+  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
+  ?~  program  ~
   =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
   ?~  heads  ~
-  ?~  (~(get by gates.u.heads) %program)  ~
+  =/  program-def=(unit def)  (~(get by gates.u.heads) %program)
+  ?~  program-def  ~
   =/  checked=(map term def)  (direct-checked-gates ds env)
   =/  templates=ienv
     (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
@@ -14220,130 +14271,31 @@
     (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
   ?~  fresh  ~
   =.  next.initial  u.fresh
+  =/  model=(unit itype)
+    %:  program-init-model
+      main  parts  ds  env  u.program  u.program-def
+      initial(gate-defs checked, head-evidence heads)
+    ==
+  ?~  model  ~
   =/  init-state=istate  (reserve-def-caps val.init-def initial)
   =/  sam=isample-result  (infer-sample u.written env init-state)
   ?:  ?=(%| -.sam)  ~
   ?.  ?=(~ (itype-vars typ.p.sam))  ~
   ?:  (itype-has-tag typ.p.sam)  ~
   =/  st=istate  state.p.sam(gate-defs checked, head-evidence heads)
+  =/  contextual=iresult
+    (infer-call-context-arg body u.model env.p.sam st (span-of body))
   =/  inferred=iresult
-    (infer-call-context-arg body model.u.relation env.p.sam st (span-of body))
+    ?:  ?=(%& -.contextual)  contextual
+    (program-init-ordinary init-def env typ.p.sam init-state(gate-defs checked, head-evidence heads))
   ?:  ?=(%| -.inferred)  ~
   =/  product-fit=ifit
-    (itype-fit typ.p.inferred model.u.relation sub.state.p.inferred next.state.p.inferred)
+    (itype-fit typ.p.inferred u.model sub.state.p.inferred next.state.p.inferred)
   ?.  ?=(%ok -.product-fit)  ~
   =/  merged-product=itype
-    (itype-merge-faces typ.p.inferred model.u.relation sub.product-fit)
+    (itype-merge-faces typ.p.inferred u.model sub.product-fit)
   =/  actual-cast=itype  [%fn typ.p.sam merged-product]
-  =/  closed=itype  [%fn typ.p.sam model.u.relation]
-  =/  cast=ifit
-    (itype-fit actual-cast closed sub.product-fit next.product-fit)
-  ?.  ?=(%ok -.cast)  ~
-  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
-  =/  adjusted=iresult
-    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
-  =/  added=(unit iadded-definition)
-    (add-supported-result init-def adjusted init-state env checked artifacts.resolution)
-  ?~  added  ~
-  =/  recovered=(unit ischeme)  (ienv-lookup init.parts env.u.added)
-  ?~  recovered  ~
-  ?.  ?=(~ vars.u.recovered)  ~
-  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added]
-::
-::  Recover only the initializer of an already recognized direct program main.
-::  The derived call is evidence for an ordinary init/main retry, never an
-::  interface to publish on its own. Any failure returns the original resolution.
-++  program-init-context
-  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
-  ^-  (unit iresolved)
-  =/  env=ienv  env.resolution
-  ?^  (ienv-lookup %main env)  ~
-  ?^  (ienv-lookup init.parts env)  ~
-  =/  update=(unit ischeme)  (ienv-lookup update.parts env)
-  =/  view=(unit ischeme)  (ienv-lookup view.parts env)
-  =/  subs=(unit ischeme)  (ienv-lookup subs.parts env)
-  ?~  update  ~
-  ?~  view  ~
-  ?~  subs  ~
-  =/  inits=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(init.parts name.d))))
-  ?.  ?=([* ~] inits)  ~
-  =/  init-def=def  i.inits
-  ?>  ?=(%value -.init-def)
-  ?.  (program-init-tuple-null init-def)  ~
-  =/  args=(unit (list expr))  (program-main-args main)
-  ?~  args  ~
-  ?~  prelude.initial  ~
-  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
-  ?~  program  ~
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
-  ?~  heads  ~
-  =/  written=(unit def)  (~(get by gates.u.heads) %program)
-  ?~  written  ~
-  =/  written-sample=(unit sample)  (direct-gate-sample u.written)
-  ?~  written-sample  ~
-  ?.  ?=(%cell -.u.written-sample)  ~
-  ?~  items.u.written-sample  ~
-  =/  checked=(map term def)  (direct-checked-gates ds env)
-  =/  templates=ienv
-    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  fresh=(unit @ud)
-    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
-  ?~  fresh  ~
-  =.  next.initial  u.fresh
-  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.program initial)
-  ?.  ?=(%fn -.typ.instance)  ~
-  ?.  ?=(%cell -.sample.typ.instance)  ~
-  =/  expected-init=(unit itype)
-    (direct-slot-body hed.sample.typ.instance (direct-sample-name i.items.u.written-sample))
-  ?~  expected-init  ~
-  ?.  ?=(%fn -.u.expected-init)  ~
-  ?.  ?=(%var -.sample.u.expected-init)  ~
-  =/  data=@ud  id.sample.u.expected-init
-  =/  init-var=itype  [%var next.state.instance]
-  =/  st=istate  state.instance(next +(next.state.instance))
-  =/  up=[typ=itype state=istate]  (instantiate-scheme u.update st)
-  =/  vw=[typ=itype state=istate]  (instantiate-scheme u.view state.up)
-  =/  sb=[typ=itype state=istate]  (instantiate-scheme u.subs state.vw)
-  =.  st  state.sb(gate-defs checked, head-evidence heads)
-  =/  actual=itype  [%cell init-var [%cell typ.up [%cell typ.vw typ.sb]]]
-  =/  fit=ifit
-    (direct-positional-fit u.args items.u.written-sample actual sample.typ.instance env st sub.st next.st)
-  ?.  ?=(%ok -.fit)  ~
-  =/  actual-final=itype  (itype-normalize actual sub.fit)
-  =/  expected-final=itype  (itype-normalize sample.typ.instance sub.fit)
-  =/  open=(list @ud)
-    (unique-type-vars (weld (itype-vars actual-final) (itype-vars expected-final)))
-  ?.  (levy open |=(n=@ud =(data n)))  ~
-  ?:  |((itype-has-tag actual-final) (itype-has-tag expected-final))  ~
-  =/  replay=ifit
-    (direct-positional-fit u.args items.u.written-sample actual sample.typ.instance env st sub.fit next.fit)
-  ?.  ?=(%ok -.replay)  ~
-  ?.  &(=(sub.fit sub.replay) =(next.fit next.replay))  ~
-  =/  expected=itype  (itype-normalize u.expected-init sub.fit)
-  ?.  ?=(%fn -.expected)  ~
-  =.  st  st(sub sub.fit, next next.fit)
-  =/  init-state=istate  (reserve-def-caps val.init-def st)
-  =/  inferred=iresult  (infer-fragment val.init-def env init-state)
-  =?  inferred  ?=(%| -.inferred)  (infer-recursive-gate init-def env init-state)
-  ?:  ?=(%| -.inferred)  ~
-  ?.  ?=(%fn -.typ.p.inferred)  ~
-  ?^  (itype-vars sample.typ.p.inferred)  ~
-  =/  data-fit=ifit
-    (itype-fit sample.typ.p.inferred sample.expected sub.state.p.inferred next.state.p.inferred)
-  ?.  ?=(%ok -.data-fit)  ~
-  =/  closed=itype  (itype-normalize expected sub.data-fit)
-  ?.  ?=(%fn -.closed)  ~
-  ::  Resolve the ordinary tuple cast first, then check the complete gate.
-  ::  General function fit remains unchanged; only this recovered candidate
-  ::  receives the derived result context before its whole-type cast fit.
-  =/  product-fit=ifit
-    (itype-fit product.typ.p.inferred product.closed sub.data-fit next.data-fit)
-  ?.  ?=(%ok -.product-fit)  ~
-  =/  product=itype
-    (itype-merge-faces product.typ.p.inferred product.closed sub.product-fit)
-  =/  actual-cast=itype  [%fn sample.typ.p.inferred product]
+  =/  closed=itype  [%fn typ.p.sam u.model]
   =/  cast=ifit
     (itype-fit actual-cast closed sub.product-fit next.product-fit)
   ?.  ?=(%ok -.cast)  ~
@@ -14847,11 +14799,8 @@
       ?^(viewed ~ (program-plain-view-context u.main-parts ds with-keyed-view state))
     =/  with-view=iresolved  ?~(plain-view with-keyed-view u.plain-view)
     =/  initialized=(unit iresolved)
-      (program-init-context u.main u.main-parts ds with-view state)
-    =/  with-initialized=iresolved  ?~(initialized with-view u.initialized)
-    =/  plain-init=(unit iresolved)
-      ?^(initialized ~ (program-plain-init-context u.main-parts ds with-initialized state))
-    =/  components=iresolved  ?~(plain-init with-initialized u.plain-init)
+      (program-plain-init-context u.main u.main-parts ds with-view state)
+    =/  components=iresolved  ?~(initialized with-view u.initialized)
     (program-main-context u.main ds components state)
   =.  env  env.recovered
   =.  artifacts.resolution  artifacts.recovered

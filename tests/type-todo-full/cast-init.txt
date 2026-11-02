@@ -13,8 +13,8 @@
 ++ make-model |= ts=(list item.todo)
   ^- model [ts "" ~]
 
-++ init |= ts=(list item.todo)
-  ^- model (make-model ts)
+++ init ^- $-((list item.todo) model)
+  |= ts=(list item.todo) (make-model ts)
 
 ++ update |= [=msg m=model]
   ?- msg

@@ -1,0 +1,24 @@
++$ model [xs=(list @t) draft=@t error=(unit @t)]
++$ message
+  %start
+  %stop
++$ fill
+  %none
+  %some
+++ main (program init update view subs)
+++ classify |= n=@ud
+  ^- fill
+    ?- (eq n 0)
+      %.y %none
+      %.n %some
+++ init |= ts=(list @t)
+  [
+    (?- (classify (lent ts))
+      %none ~["(empty)"]
+      %some ts
+    ""
+    ~
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~

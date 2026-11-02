@@ -15,7 +15,10 @@ def body(name):
     text = (root / 'tests/lib' / name).read_text()
     return text[text.index('\n|%\n') + 1:]
 
-names = ('initializer', 'initializer-consumer', 'initializer-unfaced',
+alternates = ('initializer-unfaced', 'initializer-pun', 'initializer-alias',
+              'initializer-open-update', 'initializer-open-view',
+              'initializer-nested-branch')
+names = ('initializer', 'initializer-consumer') + alternates + (
          'initializer-error', 'initializer-earlier', 'initializer-model',
          'initializer-message', 'initializer-generic', 'initializer-missing',
          'initializer-tag', 'initializer-no-main', 'initializer-subs')
@@ -29,7 +32,10 @@ expression = ('=/  jibb  .\n=/  prelude=@t  prelude-text\n'
               '      (text:suite initializer-message)\n      (text:suite initializer-generic)\n'
               '      (text:suite initializer-missing)\n      (text:suite initializer-tag)\n'
               '      (text:suite initializer-no-main)\n      (text:suite initializer-subs)\n  ==\n'
-              '=/  failures=(list tape)  (program-init-errors:suite prelude internal (text:suite initializer) (text:suite initializer-consumer) (text:suite initializer-unfaced) negatives)\n'
+              '=/  alternates=(list [name=@ta src=@t])\n  :~  ' +
+              '\n      '.join("[%" + name + " (text:suite " + name + ")]" for name in alternates) +
+              '\n  ==\n'
+              '=/  failures=(list tape)  (program-init-errors:suite prelude internal (text:suite initializer) (text:suite initializer-consumer) alternates negatives)\n'
               '^-  @t\n?~  failures  \'program initializer checks passed\'\n'
               '(of-wain:format (turn failures crip))\n')
 with tempfile.TemporaryDirectory(prefix='jibb-program-init-') as tmp:
