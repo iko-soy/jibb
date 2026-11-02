@@ -4,7 +4,7 @@ A review of the whole repository at [`4bf477e`](https://github.com/iko-soy/jibb/
 
 How it was done: ten reviewers each took one area (the lexer and parser, three slices of the checker, the importer with the mark and prelude, the Python tooling, the test harness, the docs, the example desks, and the architecture as a whole). A second reviewer then tried to refute every finding, by reading the code and by reproducing it with `tools/hoon` where that was cheap. A final pass looked for what the ten had missed. Every eval-based check in [development.md](https://github.com/iko-soy/jibb/blob/4bf477e2c4a093f7d2d6aa2bff1ce5858bd98e36/docs/development.md#L124-L194) was also run, with vere 4.6 built from nixpkgs.
 
-Line numbers below are links into `4bf477e`. Findings are numbered A1 to A137 in the [appendix](#appendix-every-finding).
+Four commits reached `master` while the review ran (`2d74861` to `5ccd150`). The fix-first items 1 to 3 were rechecked at `5ccd150` and still hold there. Line numbers below are links into `4bf477e`. Findings are numbered A1 to A137 in the [appendix](#appendix-every-finding).
 
 ## Summary
 
