@@ -84,6 +84,10 @@ tools/doc-blocks Grammar.md Overview.md Core-language.md  # fresh exports
 
 It matches each labelled block to the case whose `source.jibb` is the block's text plus a newline, and lists the blocks no case holds, each with a diff against the closest unmatched case, and the `doc-*` cases no block holds. Pass every tab with Jibb blocks, or the other tabs' cases count as stale. The exit status is 0 when every block has a case and every case a block, 1 when one doesn't, and 2 when the check can't run, for example because no block is labelled `jibb`.
 
+## Licence
+
+Jibb is under the MIT licence, in [LICENSE](LICENSE). Two kinds of files in it are other people's, under their own MIT licences: the files in `vendor/` are copies from urbit/urbit, whose licence is in [vendor/LICENSE-urbit.txt](vendor/LICENSE-urbit.txt), and the Tlon `/sur` files that `tests/` uses as importer fixtures come from tloncorp/tlon-apps, whose licence is in [tests/importer/tlon-license.txt](tests/importer/tlon-license.txt).
+
 ## Fake ship
 
 `tools/ship` runs the desks on a fake `~zod` at `/root/urbit/zod` (`--pier` or `$JIBB_PIER`). It needs Python 3 and click (`/root/src/tools/pkg/click/click`, or `--click`). The ship runs in the background, logging to `/root/urbit/zod.log`.

@@ -1,4 +1,6 @@
-Pinned copies of files from the urbit/urbit repository (https://github.com/urbit/urbit).
+Pinned copies of files from the urbit/urbit repository (https://github.com/urbit/urbit),
+under its MIT licence, copied at that commit to LICENSE-urbit.txt here. Neither
+file is copied into the desks.
 
 Upstream commit: 50c7f5239610fc72263df7aa99b4d171cfe9d408
 Copied from:     /root/src/urbit (git -C /root/src/urbit rev-parse HEAD)
