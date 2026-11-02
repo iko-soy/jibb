@@ -198,6 +198,19 @@
             ~ first
             [~ b] `(combine a b)
 
+++ hunt |= args=[$-([A A] ?) (unit A) (unit A)]
+  ?- args
+    [choose first second] ^- (unit A)
+      ?- first
+        ~ second
+        [~ a]
+          ?- second
+            ~ first
+            [~ b]
+              ?- (choose a b)
+                %.y first
+                %.n second
+
 ++ clef |= args=[(unit A) (unit B) $-([A B] (unit C))]
   ?- args
     [first second combine] ^- (unit C)

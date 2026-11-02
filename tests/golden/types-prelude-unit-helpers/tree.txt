@@ -112,4 +112,64 @@
         (gate-wide 15:31
           (face 15:34 p
             (cell 15:36 (aura 15:37 @p) (aura 15:40 @t)))
-          (unit 15:44 (str 15:45 "ok")))))))
+          (unit 15:44 (str 15:45 "ok"))))))
+  (value 16:1 hunt-first
+    (group 16:15
+      (call 16:16
+        (wing 16:16 hunt)
+        (gate-wide 16:21
+          (face 16:24 p
+            (cell 16:26 (aura 16:27 @t) (aura 16:30 @t)))
+          (lit 16:34 %.y))
+        (unit 16:39 (str 16:40 "a"))
+        (unit 16:44 (str 16:45 "b")))))
+  (value 17:1 hunt-second
+    (group 17:16
+      (call 17:17
+        (wing 17:17 hunt)
+        (gate-wide 17:22
+          (face 17:25 p
+            (cell 17:27 (aura 17:28 @t) (aura 17:31 @t)))
+          (lit 17:35 %.n))
+        (unit 17:40 (str 17:41 "a"))
+        (unit 17:45 (str 17:46 "b")))))
+  (value 18:1 hunt-left
+    (group 18:14
+      (call 18:15
+        (wing 18:15 hunt)
+        (gate-wide 18:20
+          (face 18:23 p
+            (cell 18:25 (aura 18:26 @t) (aura 18:29 @t)))
+          (lit 18:33 %.y))
+        (lit 18:38 ~)
+        (unit 18:40 (str 18:41 "b")))))
+  (value 19:1 hunt-right
+    (group 19:15
+      (call 19:16
+        (wing 19:16 hunt)
+        (gate-wide 19:21
+          (face 19:24 p
+            (cell 19:26 (aura 19:27 @t) (aura 19:30 @t)))
+          (lit 19:34 %.n))
+        (unit 19:39 (str 19:40 "a"))
+        (lit 19:44 ~))))
+  (value 20:1 hunt-bad
+    (group 20:13
+      (call 20:14
+        (wing 20:14 hunt)
+        (gate-wide 20:19
+          (face 20:22 p
+            (cell 20:24 (aura 20:25 @t) (aura 20:28 @t)))
+          (lit 20:32 %.y))
+        (unit 20:37 (str 20:38 "a"))
+        (unit 20:42 (lit 20:43 ~zod)))))
+  (value 21:1 hunt-gate-bad
+    (group 21:18
+      (call 21:19
+        (wing 21:19 hunt)
+        (gate-wide 21:24
+          (face 21:27 p
+            (cell 21:29 (aura 21:30 @t) (aura 21:33 @p)))
+          (lit 21:37 %.y))
+        (unit 21:42 (str 21:43 "a"))
+        (unit 21:47 (str 21:48 "b"))))))

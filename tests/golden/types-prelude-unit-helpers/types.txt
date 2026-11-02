@@ -24,3 +24,21 @@ partial inference; module not checked
 ++ clap-bad (clap `"hi" `~zod |=(p=[@t @t] "yes"))
                          ^
 ++ clef-bad: call constraint is not supported by partial inference
+++ hunt-first: (unit @t)
+++ hunt-second: (unit @t)
+++ hunt-left: (unit @t)
+++ hunt-right: (unit @t)
+++ hunt-bad: unit payload does not fit its expected type
+/tests/golden/types-prelude-unit-helpers/source.jibb:20:14: expected unit payload has type @t
+++ hunt-bad (hunt |=(p=[@t @t] %.y) `"a" `~zod)
+             ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:20:43: payload has type @p
+++ hunt-bad (hunt |=(p=[@t @t] %.y) `"a" `~zod)
+                                          ^
+++ hunt-gate-bad: call's sample and argument types do not unify
+/tests/golden/types-prelude-unit-helpers/source.jibb:21:19: called gate
+++ hunt-gate-bad (hunt |=(p=[@t @p] %.y) `"a" `"b")
+                  ^
+/tests/golden/types-prelude-unit-helpers/source.jibb:21:24: argument has type $-([@t @p] ?)
+++ hunt-gate-bad (hunt |=(p=[@t @p] %.y) `"a" `"b")
+                       ^

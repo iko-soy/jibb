@@ -48,6 +48,7 @@ partial inference; module not checked
 ++ biff: $-([(unit A) $-(A (unit B))] (unit B))
 ++ both: unit construction needs the standard prelude in partial inference
 ++ clap: unit construction needs the standard prelude in partial inference
+++ hunt: $-([$-([A A] ?) [(unit A) (unit A)]] (unit A))
 ++ clef: $-([(unit A) [(unit B) $-([A B] (unit C))]] (unit C))
 ++ skim: sample mold is not supported by partial inference
 ++ skip: sample mold is not supported by partial inference
