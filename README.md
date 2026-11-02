@@ -11,7 +11,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
 - `tests/`: golden cases in `golden/<case>/`, and on-ship tests for the `-test` thread in `lib/jibb.hoon`.
-- `tools/`: dev tooling: `golden`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, and `ship`.
+- `tools/`: dev tooling: `golden`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, `ship`, and `check`, which runs every check.
 - `docs/`: the doc's tabs as Markdown in `spec/`, the status, the open questions, the development guide, the compiler's map, and briefs for milestones in `prompts/`.
 
 ## Golden tests

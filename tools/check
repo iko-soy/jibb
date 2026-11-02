@@ -1,0 +1,385 @@
+#!/usr/bin/env python3
+"""Run the repo's checks: all of them, a group, or some by name.
+
+    tools/check                    every check: the eval group, then ship
+    tools/check --group eval       the checks that need only urbit and Python
+    tools/check --group ship       the checks that need the fake ~zod
+    tools/check golden 'type-*'    only the checks these names or globs match
+    tools/check --list             the checks, their groups and commands
+    tools/check -j 3               at most 3 eval checks at once
+
+CHECKS below is the one list of the repo's checks: docs/development.md
+sends you here before pushing, and `nix flake check` runs this tool too
+(see flake.nix), so a new check goes in the list and nowhere else.
+
+The eval checks run under `urbit eval` without a ship, several at once
+(-j, default: as many as there are CPUs), in the order of the list, so
+the slowest come first.  The ship checks then run one at a time, in
+order, on the ship tools/ship talks to: $JIBB_PIER, or /root/urbit/zod
+(tools/ship also reads $JIBB_CLICK and $JIBB_SHIP_LOG).  When that ship
+isn't running, tools/check starts it first and stops it again at the end.
+
+Each check is one command, run from the repo root.  It passes when it
+exits 0 and, for the few that print their verdict rather than exit with
+it, when its output matches what the list expects.  Output is kept and
+printed only for a check that fails (all of it with -v); --logs DIR
+keeps every check's output in DIR/<name>.log.
+
+Exit status: 0 when every check ran and passed, 1 when a check failed,
+2 when the checks couldn't run (an unknown name, a ship that won't start).
+"""
+
+import argparse
+import concurrent.futures
+import fnmatch
+import os
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+SHIP = os.path.join('tools', 'ship')
+
+
+class Check:
+    def __init__(self, name, group, command, expect=None):
+        self.name = name
+        self.group = group          # 'eval' or 'ship'
+        self.command = command      # argv, run from ROOT
+        self.expect = expect        # a regex stdout must match in full
+
+    def shown(self):
+        return ' '.join(c if re.match(r'^[\w./=-]+$', c) else "'%s'" % c
+                        for c in self.command)
+
+
+def tool(name, group='eval', *args):
+    """A check that runs tools/<name> and passes when it exits 0."""
+    base = os.path.basename(name)
+    return Check(base, group, [os.path.join('tools', name)] + list(args))
+
+
+def hoon(name, *args, expect):
+    """A check that runs tools/hoon and compares what it prints."""
+    return Check(name, 'eval', ['tools/hoon'] + list(args), expect=expect)
+
+
+#  Every check, in the order they start: the eval group, slowest first,
+#  then the ship group, in the order they must run.  Times are from one
+#  run of every check, three at a time on four CPUs (2026-11-02).
+CHECKS = [
+    tool('type-todo-full-test'),                # about 580 s
+    tool('type-deferred-prepared-test'),        # about 410 s
+    tool('golden'),
+    tool('importer-test'),
+    tool('type-import-default-test'),
+    tool('type-import-test'),
+    tool('type-import-overlap-test'),
+    tool('type-import-structural-test'),
+    tool('type-union-source-test'),
+    tool('type-union-alias-overlap-test'),
+    tool('type-full-overlap-test'),
+    tool('type-tlon-test'),
+    tool('type-import-diagnostic-test'),
+    tool('type-mark-test'),
+    tool('type-poke-test'),
+    tool('type-api-paths-test'),
+    tool('type-api-evidence-test'),
+    tool('type-hole-guards-test'),
+    tool('type-list-alias-test'),
+    tool('type-generic-alias-test'),
+    tool('type-positional-face-guards-test'),
+    tool('type-qath-guards-test'),
+    tool('type-todo-partial-test'),
+    tool('type-todo-api-test'),
+    tool('type-direct-gate-test'),
+    tool('type-page-main-test'),
+    tool('type-buttons-test'),
+    tool('type-doc-examples-test'),
+    tool('type-theme-test'),
+    tool('type-program-main-test'),
+    tool('type-program-init-test'),
+    tool('type-program-update-test'),
+    tool('type-program-watch-test'),
+    tool('type-store-test'),
+    tool('type-generic-recursion-test'),
+    tool('type-generic-construction-test'),
+    tool('type-generic-pattern-test'),
+    tool('type-deferred-test'),
+    tool('type-deferred-resolver-test'),
+    tool('type-deferred-context-test'),
+    tool('type-cell-branch-test'),
+    tool('type-closed-gate-guards-test'),
+    tool('type-constructor-fit-guards-test'),
+    tool('type-nested-union-guards-test'),
+    tool('type-empty-test'),
+    tool('type-gate-free-guards-test'),
+    tool('type-gate-free-source-test'),
+    tool('type-sub-guards-test'),
+    tool('type-ask-guards-test'),
+    tool('type-request-guards-test'),
+    tool('type-proj-guards-test'),
+    tool('type-arithmetic-guards-test'),
+    tool('type-module-scope-test'),
+    #  These print their verdict and exit 0 either way.
+    hoon('check-spans-test', 'check-spans-test', expect=r'<<>>\n'),
+    hoon('itype-unify-test', 'itype-unify-test', expect=r'<<>>\n'),
+    hoon('zing-hoon-reference', '-f',
+         'tools/testdata/zing-hoon-reference.hoon',
+         expect=r"'Hoon flattening reference: \d+ cases passed'\n"),
+    hoon('lead-late-hoon-reference', '-f',
+         'tools/testdata/lead-late-hoon-reference.hoon',
+         expect=r"'Hoon lead/late reference: \d+ comparisons passed'\n"),
+    hoon('succ-hoon-reference', '-f',
+         'tools/testdata/succ-hoon-reference.hoon',
+         expect=r"'Hoon successor reference: \d+ comparisons passed'\n"),
+    tool('testdata/selftest'),
+    Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),
+    Check('gen-tests', 'eval', [SHIP, 'gen-tests', '--check']),
+    tool('testdata/clay-fixtures-selftest'),
+    #  The ship group.  ship-selftest leaves its fixture files on the
+    #  jibb-dev desk, and ship-test, which syncs the desk to the repo
+    #  first, puts the real ones back, so it must come after.
+    tool('testdata/ship-selftest', 'ship'),
+    Check('ship-test', 'ship', [SHIP, 'test']),
+    Check('check-commit', 'ship', [SHIP, 'check-commit']),
+    tool('clay-fixtures', 'ship'),
+]
+
+GROUPS = ('eval', 'ship')
+
+
+# ---------------------------------------------------------------- running
+
+
+class Result:
+    def __init__(self, check):
+        self.check = check
+        self.ok = False
+        self.status = None
+        self.why = ''
+        self.output = ''
+        self.seconds = 0.0
+
+
+_lock = threading.Lock()
+_running = set()     # process groups to kill if we're interrupted
+
+
+def say(msg=''):
+    with _lock:
+        print(msg, flush=True)
+
+
+def run(check, timeout, env):
+    """Run one check; a Result."""
+    res = Result(check)
+    start = time.time()
+    with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
+        try:
+            proc = subprocess.Popen(
+                check.command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL,
+                stdout=out,
+                stderr=err if check.expect is not None else subprocess.STDOUT,
+                start_new_session=True)
+        except OSError as e:
+            res.why = 'could not run %s: %s' % (check.command[0], e)
+            return res
+        with _lock:
+            _running.add(proc.pid)
+        try:
+            res.status = proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            kill(proc.pid)
+            proc.wait()
+            res.why = 'timed out after %d s' % timeout
+        finally:
+            with _lock:
+                _running.discard(proc.pid)
+            kill(proc.pid)  # anything it left running, such as urbit eval
+        out.seek(0)
+        err.seek(0)
+        stdout = out.read().decode('utf-8', 'replace')
+        stderr = err.read().decode('utf-8', 'replace')
+    res.seconds = time.time() - start
+    res.output = stdout + stderr
+    if res.why:
+        return res
+    if res.status != 0:
+        res.why = 'exit status %d' % res.status
+    elif check.expect is not None and \
+            not re.fullmatch(check.expect, stdout):
+        res.why = "it didn't print the verdict that means a pass"
+    else:
+        res.ok = True
+    return res
+
+
+def kill(pgid):
+    try:
+        os.killpg(pgid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
+def kill_all(*_):
+    with _lock:
+        pids = list(_running)
+    for pid in pids:
+        kill(pid)
+
+
+def report(res, verbose, logs, limit=300):
+    mark = 'PASS' if res.ok else 'FAIL'
+    line = '%s  %-34s %5d s' % (mark, res.check.name, round(res.seconds))
+    if not res.ok:
+        line += '  (%s)' % res.why
+    lines = res.output.rstrip('\n').split('\n') if res.output.strip() else []
+    if logs:
+        with open(os.path.join(logs, res.check.name + '.log'), 'w') as f:
+            f.write('$ %s\n%s' % (res.check.shown(), res.output))
+    if res.ok and not verbose:
+        say(line)
+        return
+    shown = lines
+    if not verbose and len(lines) > limit:
+        shown = ['(%d lines cut; --logs DIR keeps them all)'
+                 % (len(lines) - limit)] + lines[-limit:]
+    body = ['    $ ' + res.check.shown()] + ['    ' + l for l in shown]
+    say('\n'.join([line] + body))
+
+
+# ---------------------------------------------------------------- the ship
+
+
+def ship(env, *args, **kw):
+    return subprocess.run([SHIP] + list(args), cwd=ROOT, env=env, **kw)
+
+
+def ship_running(env):
+    """Whether tools/ship's ship runs: status exits 3 when it doesn't."""
+    res = ship(env, 'status', stdout=subprocess.DEVNULL,
+               stderr=subprocess.DEVNULL)
+    return res.returncode != 3
+
+
+# ---------------------------------------------------------------- main
+
+
+def select(names, group):
+    """The checks to run, in list order; exits 2 on a name nothing matches."""
+    chosen = [c for c in CHECKS if group in (None, c.group)]
+    if not names:
+        return chosen
+    picked = set()
+    for name in names:
+        hits = [c.name for c in chosen if fnmatch.fnmatchcase(c.name, name)]
+        if not hits:
+            where = ' in the %s group' % group if group else ''
+            print('check: no check %s%s; tools/check --list lists them'
+                  % (name, where), file=sys.stderr)
+            sys.exit(2)
+        picked.update(hits)
+    return [c for c in chosen if c.name in picked]
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(
+        prog='tools/check', description=__doc__.split('\n\n')[0],
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='\n\n'.join(__doc__.split('\n\n')[1:]))
+    ap.add_argument('names', nargs='*', metavar='NAME',
+                    help='checks to run, by name or glob (default: all)')
+    ap.add_argument('--group', choices=GROUPS,
+                    help='only the checks in this group')
+    ap.add_argument('--list', action='store_true',
+                    help='list the checks and exit')
+    ap.add_argument('-j', '--jobs', type=int, default=os.cpu_count() or 1,
+                    metavar='N', help='eval checks to run at once '
+                    '(default: the number of CPUs, %(default)s)')
+    ap.add_argument('--timeout', type=int, default=2400, metavar='SECONDS',
+                    help='seconds each check may take (default %(default)s)')
+    ap.add_argument('--logs', metavar='DIR',
+                    help="keep every check's output in DIR/<name>.log")
+    ap.add_argument('-v', '--verbose', action='store_true',
+                    help="print every check's output, not only a failure's")
+    args = ap.parse_args(argv)
+
+    checks = select(args.names, args.group)
+    if args.list:
+        for c in checks:
+            print('%-34s %-5s %s' % (c.name, c.group, c.shown()))
+        return 0
+    if args.jobs < 1:
+        ap.error('-j must be at least 1')
+    if args.logs:
+        os.makedirs(args.logs, exist_ok=True)
+
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
+    signal.signal(signal.SIGTERM, lambda *_: (kill_all(), sys.exit(143)))
+    started = time.time()
+    results = []
+    unable = False
+    try:
+        evals = [c for c in checks if c.group == 'eval']
+        if evals:
+            say('running %d eval check%s, %d at a time'
+                % (len(evals), '' if len(evals) == 1 else 's', args.jobs))
+            with concurrent.futures.ThreadPoolExecutor(args.jobs) as pool:
+                futures = [pool.submit(run, c, args.timeout, env)
+                           for c in evals]
+                for f in concurrent.futures.as_completed(futures):
+                    res = f.result()
+                    results.append(res)
+                    report(res, args.verbose, args.logs)
+        ships = [c for c in checks if c.group == 'ship']
+        if ships:
+            started_ship = False
+            if not ship_running(env):
+                say('starting the ship for %d ship check%s'
+                    % (len(ships), '' if len(ships) == 1 else 's'))
+                start = ship(env, 'start')
+                if start.returncode != 0:
+                    say('check: the ship would not start, so the ship '
+                        'checks did not run')
+                    unable = True
+                    ships = []
+                started_ship = not unable
+            else:
+                say('running %d ship check%s on the running ship'
+                    % (len(ships), '' if len(ships) == 1 else 's'))
+            try:
+                for c in ships:
+                    res = run(c, args.timeout, env)
+                    results.append(res)
+                    report(res, args.verbose, args.logs)
+            finally:
+                if started_ship:
+                    say('stopping the ship tools/check started')
+                    ship(env, 'stop', '--force')
+    except KeyboardInterrupt:
+        kill_all()
+        print('check: interrupted', file=sys.stderr)
+        return 130
+
+    failed = [r for r in results if not r.ok]
+    order = {c.name: i for i, c in enumerate(CHECKS)}
+    say('')
+    say('%d passed, %d failed%s in %d s' % (
+        len(results) - len(failed), len(failed),
+        ', ship checks not run' if unable else '',
+        round(time.time() - started)))
+    for r in sorted(failed, key=lambda r: order[r.check.name]):
+        say('  failed: %s (%s)' % (r.check.name, r.why))
+    if failed:
+        return 1
+    return 2 if unable else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

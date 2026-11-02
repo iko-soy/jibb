@@ -60,6 +60,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 
 | Tool | What it does |
 | --- | --- |
+| `tools/check` | Runs every check in this table, or a group (`--group eval` or `ship`), or some by name: see [Before pushing](#before-pushing) |
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
 | `tools/importer-test` | Compares the partial Hoon importer's diagnostic trees and errors with `tests/importer/tree.txt` under `urbit eval` |
 | `tools/type-import-default-test` | Compares default-wrapped union source proofs and adversarial cases under eval; the same golden runs on the ship |
@@ -126,74 +127,13 @@ git clone https://github.com/urbit/tools /root/src/tools
 ## Before pushing
 
 ```
-tools/golden                       # all cases pass
-tools/golden --case types-prelude-ui # exact UI/program/page schemes and composition
-tools/importer-test                # Hoon importer fixture projections match
-tools/type-import-default-test     # default-wrapped source proofs match
-tools/type-import-test             # importer/checker bridge golden report matches
-tools/type-import-overlap-test     # source-aware Hoon overlap and provenance controls
-tools/type-import-structural-test  # nested and multi-case Hoon overlap controls
-tools/type-union-source-test       # local generic-alias union guards
-tools/type-union-alias-overlap-test # local generic-alias overlap diagnostics
-tools/type-full-overlap-test       # full-module overlap evidence
-tools/type-tlon-test               # real Tlon importer/checker report matches
-tools/type-import-diagnostic-test  # direct structured reader diagnostics match
-tools/type-mark-test               # mark/checker bridge golden report matches
-tools/type-poke-test               # source-backed poke/API bridge report matches
-tools/type-api-paths-test          # partial API path analysis report matches
-tools/type-api-evidence-test       # API declaration evidence guards pass
-tools/type-hole-guards-test        # hole defaulting and API guards pass
-tools/type-list-alias-test         # prelude list-alias guards pass
-tools/type-generic-alias-test      # generic union alias guards pass
-tools/type-positional-face-guards-test # positional sample face guards pass
-tools/type-qath-guards-test         # qath source and unfolding guards pass
-tools/type-todo-partial-test       # unchanged todo partial report and reader failure controls
-tools/type-todo-api-test            # real todo API partial inference and reader guards pass
-tools/type-direct-gate-test         # direct gate source and provenance guards pass
-tools/type-page-main-test          # static/data pages, exact types, imports and rejection guards pass
-tools/type-buttons-test           # documented buttons schemes and exact pending-tag error
-tools/type-doc-examples-test      # remaining doc fragments fully check in context
-tools/type-theme-test              # real theme, exact type, structural import and rejection guards pass
-tools/type-program-main-test        # closed program-main interface and rejection guards pass
-tools/type-program-init-test        # transactional direct-program initializer context guards pass
-tools/type-program-update-test      # transactional direct-program update context guards pass
-tools/type-program-watch-test      # direct request-value watchability guards pass
-tools/type-store-test              # unchanged cart/basket, store evidence and rejection guards pass
-tools/type-todo-full-test         # byte-identical full todo, downstream import and rejection guards pass
-tools/type-generic-recursion-test    # source-backed recursive identities and provenance
-tools/type-generic-construction-test # source-backed recursive construction and bounds
-tools/type-generic-pattern-test      # source-backed recursive patterns and bounds
-tools/type-deferred-test             # source-owned deferred inference guards
-tools/type-deferred-resolver-test    # resolver consistency and failure guards
-tools/type-deferred-context-test     # deferred source-order and branch guards
-tools/type-deferred-prepared-test    # prepared initializer reports and failure guards
-tools/type-cell-branch-test          # contextual branch rollback and bounds
-tools/type-closed-gate-guards-test  # closed gate fit guards pass
-tools/type-constructor-fit-guards-test # constructor fit guards pass
-tools/type-nested-union-guards-test # nested union selector guards pass
-tools/type-empty-test              # empty mold and uninhabited-case guards pass
-tools/type-gate-free-guards-test   # bounded gate-free classifier guards pass
-tools/type-gate-free-source-test   # real todo mold analysis and source guards pass
-tools/type-sub-guards-test          # subscription source guards pass
-tools/type-ask-guards-test          # ask source and bootstrap guards pass
-tools/type-request-guards-test      # request evidence and cache guards pass
-tools/type-proj-guards-test         # projection evidence and scope guards pass
-tools/type-arithmetic-guards-test   # arithmetic constraint guards pass
-tools/type-module-scope-test       # module/prelude scope golden report matches
-tools/hoon check-spans-test        # prints <<>>
-tools/hoon itype-unify-test        # type-unification controls pass
-tools/hoon -f tools/testdata/zing-hoon-reference.hoon # Hoon translation agrees on four inputs
-tools/hoon -f tools/testdata/lead-late-hoon-reference.hoon # Hoon translation agrees on selected inputs
-tools/hoon -f tools/testdata/succ-hoon-reference.hoon # Hoon translation agrees on selected inputs
-tools/testdata/selftest            # 22 checks, 0 failed
-tools/doc-blocks docs/spec         # every jibb block has its case
-tools/ship gen-tests --check       # tests/lib/jibb.hoon is up to date
-tools/ship test                    # the cases pass as -test arms on the ship
-tools/testdata/ship-selftest       # when tools/ship changed
-tools/testdata/clay-fixtures-selftest  # scratch fixture cleanup without a ship
-tools/ship check-commit            # when the mark or the desks changed
-tools/clay-fixtures                # builds example fixtures and real Tlon notes through Clay
+tools/check                  # every check; it exits 0 only when all pass
+tools/check --group eval     # only the checks that need no ship, as CI runs them
 ```
+
+`tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. The eval group, the 62 checks that need only `urbit` and Python, runs several at a time (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit` and `clay-fixtures`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'type-todo-*'`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
+
+`ship-selftest` matters most when `tools/ship` changed, and `check-commit` when the mark or the desks changed, but `tools/check` runs both every time. The self-test leaves fixture files on the `jibb-dev` desk, and `ship-test`, which runs after it, puts the real ones back.
 
 `tools/ship test` regenerates `tests/lib/jibb.hoon` and syncs the `jibb-dev` desk before it runs, so commit the regenerated file. Sync preflights and splits large deletion lists into bounded click requests, waiting for each Clay revision; a failure stops later batches. The ship self-test exercises this when switching from the full desk to a smaller fixture desk. A run with `--stub`, `--lib`, or a custom `--golden` isolates its generated golden tests from the repository's other test programs; run the default command afterward to restore and test those programs. It also runs the independent `tests/lib/jibb-import.hoon` test against the same importer fixtures and expected diagnostic projection as `tools/importer-test`. The projection is an internal tree, not the Jibb type printer. `tests/lib/jibb-bridge.hoon` also runs the importer/checker bridge fixture on the ship; `tools/type-import-test` runs the same report under eval. `tests/lib/jibb-tlon-bridge.hoon` and `tools/type-tlon-test` run the real Tlon presence reader/checker fixture on both. The structured reader diagnostics have their own `tests/lib/jibb-import-diagnostic.hoon` ship test and `tools/type-import-diagnostic-test` eval test. The mark bridge has its own `tests/lib/jibb-mark-bridge.hoon` ship test and `tools/type-mark-test` eval test; both compare the same fixture report. `tests/lib/jibb-poke-bridge.hoon` and `tools/type-poke-test` share the source-backed prelude and poke-only API fixture. `tests/lib/jibb-api-paths.hoon` and `tools/type-api-paths-test` share partial path analysis over the real todo marks; this does not generate request interfaces. `tests/lib/jibb-module-scope.hoon` and `tools/type-module-scope-test` compare the prelude scope report on the ship and under eval.
 
