@@ -35,7 +35,7 @@ partial inference; module not checked
 ++ ordinary-path: (list @ta)
 ++ ask-from-ordinary: call constraint is not supported by partial inference
 ++ ask-from-qath: call constraint is not supported by partial inference
-++ store: $-($-([state=(unit *) fact=*] [state=* message=@t]) (ask @t))
+++ store-ask: $-($-([state=(unit *) fact=*] [state=* message=@t]) (ask @t))
 ++ wrong-store: cast constraint is not supported by partial inference
 ++ incomplete: missing union case [%store [module=@t [name=@tas receive=$-([state=(unit *) fact=*] [state=* message=@t])]]]
 ++ complete: $-((ask @t) @t)

@@ -65,7 +65,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Page loading | `load` maps route parameters, `~` for none, to one `ask` or `pure`; pages render per request from a fresh scry of the path, or of its case's scry path; nothing is watched or kept | Decided 2026-10-29 |
 | Compile targets | Nock on the ship, JavaScript in the browser | Decided |
 | Optimizer | Basic lowering; holes later | Decided 2026-10-29 |
-| Island `update` | In the browser | Decided |
+| Island `update` | In the browser; returns the model and a list of commands, which the runtime processes one at a time in list order | Decided 2026-11-02 |
 | Island `init` | Takes the page's data, returns the model | Decided 2026-10-29 |
 | Island rendering | `view` re-runs on model changes; a keyed diff patches the DOM; holes later | Decided 2026-10-29 |
 | Data crossing to the browser | No gates in island data or models | Decided 2026-10-29 |
@@ -73,6 +73,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 | Transactions | None; one poke per command | Decided |
 | Reloads | Restart from the model the page is served with | Decided 2026-10-29 |
 | Shared state | Stores: browser agents written like API files, with `state`, `+$ poke` and `(store init update)`; the store's `+$ poke` is a declaration, not a mold; derived gates provide poke constructors and state requests; one per page | Decided 2026-10-31 |
+| Store builder | `+$ store |$ [S] [init=S update=*]`, with `++ store |= [init=S update=$-([A S] S)] ^- (store S) [init update]`: the builder checks action `A`, while `main` exposes only state `S`; the store kind check verifies `A` against the poke declaration | Decided 2026-11-01 |
 | Subscriptions | By agent and path, shared per page; the first fact is full state, so no paths that need a scry path | Decided 2026-10-29 |
 | Apps | One island under a catch-all route, given the path by `pure`; `%url` delivers the path on every change; in-section links act as `go`; focus moves to the first heading | Decided 2026-10-29 |
 | Layout vocabulary | Jibb's elements and theme tokens; the stylesheet comes from the theme alone; chars and fill are inline; `[%fill n]` below 1 counts as 1 | Decided 2026-10-29 |

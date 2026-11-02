@@ -329,6 +329,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-program-init.hoon',
            'tests/lib/jibb-program-update.hoon',
            'tests/lib/jibb-program-watch.hoon',
+           'tests/lib/jibb-store.hoon',
            'tests/lib/jibb-todo-full.hoon',
            'tests/lib/jibb-theme.hoon',
            'tests/lib/jibb-todo-api.hoon',
@@ -426,6 +427,9 @@ def generator_checks(tmp):
     check('program watch shared fixture is assembled',
           {'tests/lib/jibb-program-watch.hoon', 'tests/type-program-watch/about.txt'}
           <= set(normal.files))
+    check('unchanged cart store and basket fixtures are assembled',
+          {'tests/lib/jibb-store.hoon', 'tests/type-store/cart.txt',
+           'tests/type-store/basket.txt'} <= set(normal.files))
     check('full todo sources and exact main report are assembled',
           {'tests/lib/jibb-todo-full.hoon', 'tests/type-gate-free/todo.txt',
            'tests/type-api-paths/api.txt', 'tests/type-todo-full/expected.txt',

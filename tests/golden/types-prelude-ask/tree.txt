@@ -266,17 +266,17 @@
           (tuple 42:72
             (face 42:73 state (lit 42:79 0))
             (face 42:81 message (str 42:89 "ok")))))))
-  (value 43:1 store
-    (gate 43:10
-      (face 43:13 rec
-        (fn 43:17
-          (cell 43:20
-            (face 43:21 state
-              (apply 43:27 unit (noun 43:33)))
-            (face 43:36 fact (noun 43:41)))
-          (cell 43:44
-            (face 43:45 state (noun 43:51))
-            (face 43:53 message (aura 43:61 @t)))))
+  (value 43:1 store-ask
+    (gate 43:14
+      (face 43:17 rec
+        (fn 43:21
+          (cell 43:24
+            (face 43:25 state
+              (apply 43:31 unit (noun 43:37)))
+            (face 43:40 fact (noun 43:45)))
+          (cell 43:48
+            (face 43:49 state (noun 43:55))
+            (face 43:57 message (aura 43:65 @t)))))
       (body 44:3
         (cast 44:3
           (apply 44:6 ask (aura 44:11 @t))

@@ -5623,10 +5623,14 @@
 ::  of an arbitrary ask value. Reader graphs and source inputs are trusted.
 +$  irequest-evidence
   [api-at=path name=term path=iapi-path-typed api-source=@t public-source=@t internal-source=@t prelude-values=(list term) prelude-molds=(list term) externals=iexternals marks=imark-externals]
+::  Store requests have their own source-bound evidence.  In particular, an
+::  API path certificate cannot make a store state member watchable, or vice versa.
++$  istore-request-evidence
+  [store-at=path source=@t state=itype action-name=term action=itype]
 ::  A unit distinguishes a verified empty closure from a detached legacy file.
 ::  The opaque prelude is an exact trusted input, not a recursive interface mold.
 +$  irequest-graph
-  [paths=(set path) requests=(list irequest-evidence) bundle-input=* prelude-input=* prelude-values=(list term) prelude-molds=(list term) externals=iexternals marks=imark-externals]
+  [paths=(set path) requests=(list irequest-evidence) stores=(list istore-request-evidence) bundle-input=* prelude-input=* prelude-values=(list term) prelude-molds=(list term) externals=iexternals marks=imark-externals]
 +$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t) graph=(unit irequest-graph)]
 +$  ijimports  (list [face=term interface=ifile])
 +$  icap  [name=@t id=@ud at=span]
@@ -11676,6 +11680,25 @@
       =(externals.g externals)
       =(marks.g marks)
   ==
+++  request-graph-bounded
+  |=  g=irequest-graph
+  ^-  ?
+  =/  total=@ud  (add (lent requests.g) (lent stores.g))
+  &((lte (lent ~(tap in:..zuse paths.g)) 256) (lte total 256))
+::
+++  store-graph-requests-add
+  |=  [pending=(list istore-request-evidence) acc=(list istore-request-evidence) fuel=@ud]
+  ^-  (unit (list istore-request-evidence))
+  ?~  pending  `acc
+  ?:  =(0 fuel)  ~
+  =/  hit=(list istore-request-evidence)
+    (skim acc |=(x=istore-request-evidence =(store-at.x store-at.i.pending)))
+  ?^  hit
+    ?.  ?=([* ~] hit)  ~
+    ?.  =(i.hit i.pending)  ~
+    $(pending t.pending, fuel (dec fuel))
+  $(pending t.pending, acc [i.pending acc], fuel (dec fuel))
+::
 ++  request-graph-merge
   |=  [imports=ijimports g=irequest-graph fuel=@ud]
   ^-  (unit irequest-graph)
@@ -11696,8 +11719,13 @@
   =/  rs=(unit (list irequest-evidence))
     (request-graph-requests-add requests.cg requests.g (add 1 (lent requests.cg)))
   ?~  rs  ~
-  ?:  &(?=(^ u.rs) |((gth (lent ~(tap in:..zuse merged)) 256) (gth (lent u.rs) 256)))  ~
-  $(imports t.imports, g g(paths merged, requests u.rs), fuel (dec fuel))
+  =/  ss=(unit (list istore-request-evidence))
+    (store-graph-requests-add stores.cg stores.g (add 1 (lent stores.cg)))
+  ?~  ss  ~
+  =/  total=@ud  (add (lent u.rs) (lent u.ss))
+  ?:  &(?=(^ u.rs) |((gth (lent ~(tap in:..zuse merged)) 256) (gth total 256)))  ~
+  ?:  &(?=(^ u.ss) |((gth (lent ~(tap in:..zuse merged)) 256) (gth total 256)))  ~
+  $(imports t.imports, g g(paths merged, requests u.rs, stores u.ss), fuel (dec fuel))
 ++  request-graph-reusable
   |=  [f=ifile src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) values=(list term) molds=(list term) prelude=(unit ifile)]
   ^-  ?
@@ -12155,6 +12183,28 @@
 ::  Value watchability remains unproved even for a watchable declaration.
 +$  ione-request-interface
   [support=iapi-support-evidence parts=iapi-request-parts iface=ifile]
+++  store-compatible-poke
+  |=  prelude=iprelude
+  ^-  (unit ischeme)
+  =/  public=ifile  iface.prelude
+  ?.  =(at.public /lib/jibb/prelude/jibb)  ~
+  =/  poke=(unit ischeme)  (find-jibb-mold %poke public)
+  ?~  poke  ~
+  ?.  ?=(%union -.typ.u.poke)  ~
+  ?^  vars.u.poke  ~
+  ?.  =(origin.typ.u.poke `[/lib/jibb/internal/jibb %poke])  ~
+  ?:  (itype-has-tag typ.u.poke)  ~
+  =/  private=(list iwidth-dependency)
+    (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
+  ?.  ?=([* ~] private)  ~
+  ?~  source.i.private  ~
+  =/  agent-case=itype
+    [%cell [%const [%term %tas %agent '%agent']] [%cell [%face %agent [%atom %tas]] [%cell [%face %mark [%atom %tas]] [%face %payload [%noun ~]]]]]
+  =/  store-case=itype
+    [%cell [%const [%term %tas %store '%store']] [%cell [%face %module [%atom %t]] [%cell [%face %action [%atom %tas]] [%face %payload [%noun ~]]]]]
+  ?.  =(cases.typ.u.poke ~[agent-case store-case])  ~
+  poke
+::
 ++  request-compatible-ask
   |=  prelude=iprelude
   ^-  (unit ischeme)
@@ -12251,7 +12301,7 @@
   ?~  source.i.private  [%| 'request internal source needs unsupported inference']
   =/  req=irequest-evidence
     [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
-  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
+  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] ~ modules `public values.prelude molds.prelude externals marks]]
   [%& [support u.parts interface]]
 ::  Graph-aware request artifact; resolver use remains type-only.
 ++  one-request-interface-graph
@@ -12305,7 +12355,7 @@
   ?~  source.i.private  [%| 'request internal source needs unsupported inference']
   =/  req=irequest-evidence
     [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
-  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] modules `public values.prelude molds.prelude externals marks]]
+  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] ~ modules `public values.prelude molds.prelude externals marks]]
   [%& [support u.parts interface]]
 ::
 ++  api-mark-exports
@@ -12474,7 +12524,7 @@
     [%| 'API exported molds need unsupported inference']
   =/  env=ienv  (weld values.u.gates (weld values.u.poke values.support))
   =/  graph=irequest-graph
-    [(silt `(list path)`~[file]) requests.u.gates modules `public values.prep molds.prep externals marks]
+    [(silt `(list path)`~[file]) requests.u.gates ~ modules `public values.prep molds.prep externals marks]
   =/  iface=ifile
     [env exports file derived.u.poke elaborations.support ~ `src `graph]
   [%& [iface dependencies.ev]]
@@ -12553,6 +12603,61 @@
   ?~  load  ~
   ?~  view  ~
   `[u.load u.view]
+::
+::  A store main is only the direct two-wing source call.  The poke declaration
+::  is checked here, then removed before every ordinary mold/value inference pass.
+++  store-main-parts
+  |=  d=def
+  ^-  (unit [init=term update=term])
+  ?.  ?=(%value -.d)  ~
+  |-
+  ?:  ?=(%group -.val.d)  $(val.d inner.val.d)
+  ?.  ?=(%call -.val.d)  ~
+  =/  head=(unit term)  (program-main-wing head.val.d)
+  ?~  head  ~
+  ?.  =(%store u.head)  ~
+  ?.  ?=([* * ~] args.val.d)  ~
+  =/  args=(list expr)  args.val.d
+  ?>  ?=([* * ~] args)
+  =/  init=(unit term)  (program-main-wing i.args)
+  =/  update=(unit term)  (program-main-wing i.t.args)
+  ?~  init  ~
+  ?~  update  ~
+  `[u.init u.update]
+::
++$  istore-declaration  [action=term defs=(list def)]
+++  store-declaration
+  |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
+  ^-  (unit istore-declaration)
+  =/  ds=(list def)  defs.mod
+  =/  pokes=(list def)
+    (skim ds |=(d=def &(?=(%mold -.d) =(%poke name.d))))
+  ?.  ?=([* ~] pokes)  ~
+  =/  states=(list def)
+    (skim ds |=(d=def &(?=(%mold -.d) =(%state name.d))))
+  ?.  ?=([* ~] states)  ~
+  =/  poke=def  i.pokes
+  =/  state=def  i.states
+  ?>  &(?=(%mold -.poke) ?=(%mold -.state))
+  ?:  ?=(%generic -.shape.state)  ~
+  ?.  ?=(%ref -.shape.poke)  ~
+  ?.  ?=([@ ~] names.shape.poke)  ~
+  =/  action=term  i.names.shape.poke
+  =/  actions=(list def)
+    (skim ds |=(d=def &(?=(%mold -.d) =(action name.d))))
+  ?.  ?=([* ~] actions)  ~
+  =/  action-def=def  i.actions
+  ?>  ?=(%mold -.action-def)
+  ?:  ?=(%generic -.shape.action-def)  ~
+  =/  ordinary=(list def)
+    (skim ds |=(d=def !&(?=(%mold -.d) =(%poke name.d))))
+  ?.  (module-scope-valid mod(defs ordinary) prelude-values prelude-molds)  ~
+  =/  derived=(list term)  ~[%state action]
+  ?:  (lien derived |=(n=term =(n %proj)))  ~
+  =/  outer=(list term)
+    (weld prelude-values (weld (global-value-names ordinary) (api-import-faces imports.mod)))
+  ?.  (levy derived |=(n=term &((unique-value-name n derived) !(lien outer |=(x=term =(n x))))))  ~
+  `[action ordinary]
 ::
 ++  program-empty-null
   |=  e=expr
@@ -13155,6 +13260,86 @@
     (program-single-case-fit i.args.actual-el i.args.expected-el sub.expected-check next.expected-check)
   case-fit
 ::
+::  A direct view without a keyed each/turn site still needs the message type
+::  from the checked update.  Recover only that closed component; final main
+::  checking remains the canonical program-kind boundary.
+++  program-plain-view-context
+  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
+  ^-  (unit iresolved)
+  =/  env=ienv  env.resolution
+  ?^  (ienv-lookup %main env)  ~
+  ?^  (ienv-lookup view.parts env)  ~
+  =/  relation=(unit [message=itype model=itype])
+    (program-update-relation update.parts ds env)
+  ?~  relation  ~
+  =/  views=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) =(view.parts name.d))))
+  ?.  ?=([* ~] views)  ~
+  =/  view-def=def  i.views
+  ?>  ?=(%value -.view-def)
+  =/  written-view=(unit sample)  (direct-gate-sample view-def)
+  ?~  written-view  ~
+  =/  body=expr
+    ?-  -.val.view-def
+      %gate       body.val.view-def
+      %gate-wide  body.val.view-def
+      *           !!
+    ==
+  =/  sites=(unit (list iview-site))  (program-view-sites body ~)
+  ?~  sites  ~
+  ?^  u.sites  ~
+  ?~  prelude.initial  ~
+  ?~  (ienv-lookup %program values.u.prelude.initial)  ~
+  =/  element=(unit ischeme)  (find-jibb-mold %element u.prelude.initial)
+  ?~  element  ~
+  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
+  ?~  heads  ~
+  ?~  (~(get by gates.u.heads) %program)  ~
+  =/  checked=(map term def)  (direct-checked-gates ds env)
+  =/  templates=ienv
+    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
+  =/  scanned=(unit dgscan)
+    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
+  ?~  scanned  ~
+  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  view-state=istate  (reserve-def-caps val.view-def initial)
+  =/  sam=isample-result  (infer-sample u.written-view env view-state)
+  ?:  ?=(%| -.sam)  ~
+  =/  actual-model=itype  (program-inferred-sample typ.p.sam u.written-view)
+  ?.  ?=(~ (itype-vars actual-model))  ~
+  ?:  (itype-has-tag actual-model)  ~
+  =/  model-fit=ifit
+    (direct-invariant actual-model model.u.relation sub.state.p.sam next.state.p.sam)
+  ?.  ?=(%ok -.model-fit)  ~
+  =/  product=(unit itype)  (template-apply u.element ~[message.u.relation])
+  ?~  product  ~
+  =/  st=istate
+    state.p.sam(sub sub.model-fit, next next.model-fit, gate-defs checked, head-evidence heads)
+  =/  inferred=iresult
+    (infer-call-context-arg body u.product env.p.sam st (span-of body))
+  ?:  ?=(%| -.inferred)  ~
+  =/  product-fit=ifit
+    (itype-fit typ.p.inferred u.product sub.state.p.inferred next.state.p.inferred)
+  ?.  ?=(%ok -.product-fit)  ~
+  =/  merged-product=itype
+    (itype-merge-faces typ.p.inferred u.product sub.product-fit)
+  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
+  =/  closed=itype  [%fn typ.p.sam u.product]
+  =/  cast=ifit
+    (itype-fit actual-cast closed sub.product-fit next.product-fit)
+  ?.  ?=(%ok -.cast)  ~
+  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
+  =/  adjusted=iresult
+    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
+  =/  added=(unit iadded-definition)
+    (add-supported-result view-def adjusted view-state env checked artifacts.resolution)
+  ?~  added  ~
+  =/  recovered=(unit ischeme)  (ienv-lookup view.parts env.u.added)
+  ?~  recovered  ~
+  ?.  ?=(~ vars.u.recovered)  ~
+  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
+  `[env.u.added grouped.resolution artifacts.u.added]
+::
 ::  Recover exactly one direct keyed each/turn row mapper, then its view.
 ::  The prelude's own each and turn schemes determine the mapper gate: the
 ::  key is inferred from the mapper body, never selected by this recovery.
@@ -13377,6 +13562,88 @@
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
   `[env.u.added grouped.resolution artifacts.u.added]
 ::
+++  program-init-null-sample
+  |=  d=def
+  ^-  ?
+  =/  written=(unit sample)  (direct-gate-sample d)
+  ?~  written  |
+  ?.  ?=(%bare -.u.written)  |
+  =/  sh=shape  shape.u.written
+  ?.  ?=(%const -.sh)  |
+  =(%null form.lit.sh)
+::
+::  The tuple-ending-null initializer retry above intentionally keeps its own
+::  boundary.  A direct null-sample initializer can instead receive the closed
+::  model already established by update, view and subscriptions.
+++  program-plain-init-context
+  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
+  ^-  (unit iresolved)
+  =/  env=ienv  env.resolution
+  ?^  (ienv-lookup %main env)  ~
+  ?^  (ienv-lookup init.parts env)  ~
+  ?~  (ienv-lookup update.parts env)  ~
+  ?~  (ienv-lookup view.parts env)  ~
+  ?~  (ienv-lookup subs.parts env)  ~
+  =/  relation=(unit [message=itype model=itype])
+    (program-update-relation update.parts ds env)
+  ?~  relation  ~
+  =/  inits=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) =(init.parts name.d))))
+  ?.  ?=([* ~] inits)  ~
+  =/  init-def=def  i.inits
+  ?>  ?=(%value -.init-def)
+  ?.  (program-init-null-sample init-def)  ~
+  =/  written=(unit sample)  (direct-gate-sample init-def)
+  ?~  written  ~
+  =/  body=expr
+    ?-  -.val.init-def
+      %gate       body.val.init-def
+      %gate-wide  body.val.init-def
+      *           !!
+    ==
+  ?~  prelude.initial  ~
+  ?~  (ienv-lookup %program values.u.prelude.initial)  ~
+  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
+  ?~  heads  ~
+  ?~  (~(get by gates.u.heads) %program)  ~
+  =/  checked=(map term def)  (direct-checked-gates ds env)
+  =/  templates=ienv
+    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
+  =/  scanned=(unit dgscan)
+    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
+  ?~  scanned  ~
+  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  init-state=istate  (reserve-def-caps val.init-def initial)
+  =/  sam=isample-result  (infer-sample u.written env init-state)
+  ?:  ?=(%| -.sam)  ~
+  ?.  ?=(~ (itype-vars typ.p.sam))  ~
+  ?:  (itype-has-tag typ.p.sam)  ~
+  =/  st=istate  state.p.sam(gate-defs checked, head-evidence heads)
+  =/  inferred=iresult
+    (infer-call-context-arg body model.u.relation env.p.sam st (span-of body))
+  ?:  ?=(%| -.inferred)  ~
+  =/  product-fit=ifit
+    (itype-fit typ.p.inferred model.u.relation sub.state.p.inferred next.state.p.inferred)
+  ?.  ?=(%ok -.product-fit)  ~
+  =/  merged-product=itype
+    (itype-merge-faces typ.p.inferred model.u.relation sub.product-fit)
+  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
+  =/  closed=itype  [%fn typ.p.sam model.u.relation]
+  =/  cast=ifit
+    (itype-fit actual-cast closed sub.product-fit next.product-fit)
+  ?.  ?=(%ok -.cast)  ~
+  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
+  =/  adjusted=iresult
+    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
+  =/  added=(unit iadded-definition)
+    (add-supported-result init-def adjusted init-state env checked artifacts.resolution)
+  ?~  added  ~
+  =/  recovered=(unit ischeme)  (ienv-lookup init.parts env.u.added)
+  ?~  recovered  ~
+  ?.  ?=(~ vars.u.recovered)  ~
+  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
+  `[env.u.added grouped.resolution artifacts.u.added]
+::
 ::  Recover only the initializer of an already recognized direct program main.
 ::  The derived call is evidence for an ordinary init/main retry, never an
 ::  interface to publish on its own. Any failure returns the original resolution.
@@ -13484,6 +13751,23 @@
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
   `[env.u.added grouped.resolution artifacts.u.added]
 ::
+++  store-derived-schemes
+  |=  [prelude=ifile values=(list term) molds=(list term) state=itype action=itype]
+  ^-  (unit [state=ischeme action=ischeme])
+  =/  prep=iprelude  [prelude values molds]
+  =/  ask=(unit ischeme)  (request-compatible-ask prep)
+  ?~  ask  ~
+  =/  poke=(unit ischeme)  (store-compatible-poke prep)
+  ?~  poke  ~
+  ?^  (itype-vars state)  ~
+  ?^  (itype-vars action)  ~
+  ?:  |((itype-has-tag state) (itype-has-tag action))  ~
+  =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
+  ?~  result  ~
+  =/  request=ischeme  [[%fn [%fn state [%var 0]] u.result] ~[0]]
+  =/  constructor=ischeme  [[%fn action typ.u.poke] ~]
+  `[request constructor]
+::
 ++  program-subs-watch
   |=  [d=def imports=ijimports graph=irequest-graph prelude=ifile]
   ^-  ?
@@ -13518,7 +13802,9 @@
   =/  callback=expr  (program-transparent i.args.request)
   ?.  ?=(%ctor -.callback)  |
   ?.  ?=(%term form.tag.callback)  |
-  ?=(^ (derived-request-member case face imports graph prelude))
+  ?|  ?=(^ (derived-request-member case face imports graph prelude))
+      ?=(^ (derived-store-request-member case face imports graph prelude))
+  ==
 ::
 ::  Exact derived-member and request-evidence identity, shared by direct
 ::  program watches and direct data-page loads. Only a plain request in the
@@ -13556,6 +13842,35 @@
   =/  result=(unit itype)  (template-apply u.ask ~[[%var message]])
   ?~  result  ~
   ?.  =(product.typ.u.member u.result)  ~
+  member
+::
+::  Store state is watchable by definition, but only the actual derived member
+::  of the uniquely selected source-bound store interface proves that fact.
+++  derived-store-request-member
+  |=  [case=term face=term imports=ijimports graph=irequest-graph prelude=ifile]
+  ^-  (unit ischeme)
+  ?.  =(%state case)  ~
+  =/  selected=(list [face=term interface=ifile])
+    (skim imports |=(j=[face=term interface=ifile] =(face face.j)))
+  ?.  ?=([* ~] selected)  ~
+  =/  iface=ifile  interface.i.selected
+  =/  member=(unit ischeme)  (ienv-lookup %state values.iface)
+  ?~  member  ~
+  ?~  source.iface  ~
+  =/  evidence=(list istore-request-evidence)
+    (skim stores.graph |=(r=istore-request-evidence =(store-at.r at.iface)))
+  ?.  ?=([* ~] evidence)  ~
+  =/  request=istore-request-evidence  i.evidence
+  ?.  =(u.source.iface source.request)  ~
+  ?~  graph.iface  ~
+  ?.  (lien stores.u.graph.iface |=(r=istore-request-evidence =(r request)))  ~
+  =/  derived=(unit [state=ischeme action=ischeme])
+    (store-derived-schemes prelude prelude-values.graph prelude-molds.graph state.request action.request)
+  ?~  derived  ~
+  ?.  =(u.member state.u.derived)  ~
+  =/  constructor=(unit ischeme)  (ienv-lookup action-name.request values.iface)
+  ?~  constructor  ~
+  ?.  =(u.constructor action.u.derived)  ~
   member
 ::
 ++  program-main-context
@@ -13670,6 +13985,72 @@
   ?.  ?=([* ~] subs)  |
   |((program-subs-empty i.subs) (program-subs-watch i.subs imports graph u.prelude))
 ::
+::  The two outer sample faces are binder names, not part of the action/state
+::  relation.  Leave every face inside either component untouched.
+++  store-update-unfaced
+  |=  typ=itype
+  ^-  itype
+  ?.  ?=(%fn -.typ)  typ
+  ?.  ?=(%cell -.sample.typ)  typ
+  =/  head=itype  hed.sample.typ
+  =/  tail=itype  tal.sample.typ
+  =?  head  ?=(%face -.head)  body.head
+  =?  tail  ?=(%face -.tail)  body.tail
+  typ(sample [%cell head tail])
+::
+::  The builder erases the action from main.  Recover it only from the direct
+::  local poke declaration and check both ordinary components invariantly.
+++  store-main-closed
+  |=  [parts=[init=term update=term] action=term env=ienv molds=imold-types prelude=(unit ifile)]
+  ^-  (unit ischeme)
+  ?~  prelude  ~
+  =/  builder=(unit ischeme)  (ienv-lookup %store values.u.prelude)
+  ?~  builder  ~
+  ?.  ?=([@ @ ~] vars.u.builder)  ~
+  =/  state-var=@ud  i.vars.u.builder
+  =/  action-var=@ud  i.t.vars.u.builder
+  ?:  =(state-var action-var)  ~
+  =/  builder-sample=itype
+    [%cell [%face %init [%var state-var]] [%face %update [%fn [%cell [%var action-var] [%var state-var]] [%var state-var]]]]
+  =/  builder-product=itype  [%cell [%face %init [%var state-var]] [%face %update [%noun ~]]]
+  ?.  =(typ.u.builder [%fn builder-sample builder-product])  ~
+  =/  store=(unit ischeme)  (find-jibb-mold %store u.prelude)
+  ?~  store  ~
+  ?.  ?=([@ ~] vars.u.store)  ~
+  ?.  =(typ.u.store [%cell [%face %init [%var i.vars.u.store]] [%face %update [%noun ~]]])  ~
+  =/  state=(unit ischeme)  (find-jibb-mold %state [~ molds /tmp ~ ~ ~ ~ ~])
+  ?~  state  ~
+  =/  action-mold=(unit ischeme)  (find-jibb-mold action [~ molds /tmp ~ ~ ~ ~ ~])
+  ?~  action-mold  ~
+  ?.  &(?=(~ vars.u.state) ?=(~ (itype-vars typ.u.state)))  ~
+  ?.  &(?=(~ vars.u.action-mold) ?=(~ (itype-vars typ.u.action-mold)))  ~
+  =/  canonical=(unit itype)  (template-apply u.store ~[typ.u.state])
+  ?~  canonical  ~
+  =/  main=(unit ischeme)  (ienv-lookup %main env)
+  =/  main-fit=(unit ifit)
+    ?~(main ~ `(direct-invariant typ.u.main u.canonical ~ 0))
+  =/  main-ok=?
+    ?~  main  &
+    ?.  ?=(~ vars.u.main)  |
+    ?.  ?=(~ (itype-vars typ.u.main))  |
+    ?~  main-fit  |
+    ?=(%ok -.u.main-fit)
+  ?.  main-ok  ~
+  =/  init=(unit ischeme)  (ienv-lookup init.parts env)
+  ?~  init  ~
+  ?.  ?=(~ vars.u.init)  ~
+  ?.  ?=(~ (itype-vars typ.u.init))  ~
+  =/  init-fit=ifit  (direct-invariant typ.u.init typ.u.state ~ 0)
+  ?.  ?=(%ok -.init-fit)  ~
+  =/  update=(unit ischeme)  (ienv-lookup update.parts env)
+  ?~  update  ~
+  ?.  ?=(~ vars.u.update)  ~
+  ?.  ?=(~ (itype-vars typ.u.update))  ~
+  =/  expected=itype  [%fn [%cell typ.u.action-mold typ.u.state] typ.u.state]
+  =/  update-fit=ifit  (direct-invariant (store-update-unfaced typ.u.update) expected ~ 0)
+  ?.  ?=(%ok -.update-fit)  ~
+  `[u.canonical ~]
+::
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-result
@@ -13691,7 +14072,7 @@
   ?:  ?=([%ui %api *] at)
     =/  iface=(unit ifile)  (api-poke-interface at mod mark-externals prelude-values prelude-molds prelude)
     ?^  iface
-      =/  checked=ifile  u.iface(source `src, graph `[(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals])
+      =/  checked=ifile  u.iface(source `src, graph `[(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals])
       [%& [checked [[at checked] cache]]]
     ?~  prelude  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
     =/  prepared=iprelude  [u.prelude prelude-values prelude-molds]
@@ -13710,23 +14091,31 @@
       (multi-request-interface-graph at src externals mark-externals modules active cache `prepared)
     ?:  ?=(%| -.multi)  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
     [%& [iface.p.multi [[at iface.p.multi] cache.p.multi]]]
-  ?.  (module-scope-valid mod prelude-values prelude-molds)
-    ?:  (pending-declared-poke at mod prelude-values prelude-molds)
-      [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
-    [%| [(crip "module has conflicting names: {(spud at)}") ~]]
-  =/  vals=(list term)  (global-value-names defs.mod)
   =/  main=(unit def)  (program-main-def defs.mod)
   =/  main-parts=(unit [init=term update=term view=term subs=term])
     ?~(main ~ (program-main-parts u.main))
   =/  page-parts=(unit [load=term view=term])
     ?~(main ~ (page-main-parts u.main))
-  ?:  &(?=([%ui %stores *] at) ?=(^ main))
+  =/  store-parts=(unit [init=term update=term])
+    ?~(main ~ (store-main-parts u.main))
+  =/  declared=(unit istore-declaration)
+    ?~(store-parts ~ (store-declaration mod prelude-values prelude-molds))
+  ?:  &(?=(^ store-parts) ?=(~ declared))
+    [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
+  ?:  &(?=([%ui %stores *] at) ?=(^ main) ?=(~ store-parts))
     [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
+  =/  ds=(list def)  ?~(declared defs.mod defs.u.declared)
+  =/  checking=module  mod(defs ds)
+  ?.  (module-scope-valid checking prelude-values prelude-molds)
+    ?:  (pending-declared-poke at mod prelude-values prelude-molds)
+      [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
+    [%| [(crip "module has conflicting names: {(spud at)}") ~]]
+  =/  vals=(list term)  (global-value-names ds)
   =/  js=jimports-detailed-result  (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.js)  [%| p.js]
   =/  collected=grec-collected
-    ?^  imports.mod  [(collect-simple-molds defs.mod) *(map term shape)]
-    (grec-collect-molds defs.mod)
+    ?^  imports.mod  [(collect-simple-molds ds) *(map term shape)]
+    (grec-collect-molds ds)
   =/  molds=imolds  molds.collected
   =/  globals=(list term)  (weld prelude-values (weld (import-binding-names imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
@@ -13757,56 +14146,93 @@
     [%| [msg `[at src name.witness cases.witness]]]
   =/  resolution=iresolved
     ?~  index
-      (resolve-groups defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
-    (resolve-groups-core defs.mod molds globals externals surs mark-externals marks resolved.p.js reserved at prelude index)
+      (resolve-groups ds molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
+    (resolve-groups-core ds molds globals externals surs mark-externals marks resolved.p.js reserved at prelude index)
   =/  env=ienv  env.resolution
   =/  recovered=iresolved
     ?~  main  resolution
     ?~  main-parts  resolution
     =/  updated=(unit iresolved)
-      (program-update-context u.main u.main-parts defs.mod resolution state)
+      (program-update-context u.main u.main-parts ds resolution state)
     =/  with-update=iresolved  ?~(updated resolution u.updated)
     =/  subscribed=(unit iresolved)
-      (program-subs-context u.main-parts defs.mod with-update state)
+      (program-subs-context u.main-parts ds with-update state)
     =/  with-subs=iresolved  ?~(subscribed with-update u.subscribed)
     =/  viewed=(unit iresolved)
-      (program-view-context u.main-parts defs.mod with-subs state)
-    =/  with-view=iresolved  ?~(viewed with-subs u.viewed)
+      (program-view-context u.main-parts ds with-subs state)
+    =/  with-keyed-view=iresolved  ?~(viewed with-subs u.viewed)
+    =/  plain-view=(unit iresolved)
+      ?^(viewed ~ (program-plain-view-context u.main-parts ds with-keyed-view state))
+    =/  with-view=iresolved  ?~(plain-view with-keyed-view u.plain-view)
     =/  initialized=(unit iresolved)
-      (program-init-context u.main u.main-parts defs.mod with-view state)
-    =/  components=iresolved  ?~(initialized with-view u.initialized)
-    (program-main-context u.main defs.mod components state)
+      (program-init-context u.main u.main-parts ds with-view state)
+    =/  with-initialized=iresolved  ?~(initialized with-view u.initialized)
+    =/  plain-init=(unit iresolved)
+      ?^(initialized ~ (program-plain-init-context u.main-parts ds with-initialized state))
+    =/  components=iresolved  ?~(plain-init with-initialized u.plain-init)
+    (program-main-context u.main ds components state)
   =.  env  env.recovered
   =.  artifacts.resolution  artifacts.recovered
   =.  env
-    ?:  (module-values-complete defs.mod env)  env
+    ?:  (module-values-complete ds env)  env
     ?:  |(?=([%ui %stores *] at) ?=(^ imports.mod) ?=(^ prelude) ?=(^ prelude-values) ?=(^ prelude-molds))  env
     ?:  (gth (met 3 src) 65.536)  env
-    ?:  (gth (lent defs.mod) 64)  env
-    ?.  (dg-source-candidate defs.mod 64)  env
+    ?:  (gth (lent ds) 64)  env
+    ?.  (dg-source-candidate ds 64)  env
     =/  transaction=(unit dgcommit)  (dg-root-source at src)
     ?~  transaction  env
     ?:  (dg-interface-safe env.u.transaction)  env.u.transaction
     env
-  ?.  (module-values-complete defs.mod env)
+  =/  required=(list def)
+    ?~  store-parts  ds
+    (skim ds |=(d=def !&(?=(%value -.d) =(%main name.d))))
+  ?.  (module-values-complete required env)
     [%| [(crip "module definitions need unsupported inference: {(spud at)}") ~]]
-  =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals]
+  =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
   ?~  graph  [%| ['module request evidence needs unsupported inference' ~]]
   =/  static-main=(unit ischeme)
     ?~  main  ~
     ?^  main-parts  ~
     ?^  page-parts  ~
+    ?^  store-parts  ~
     (static-main-specialized env prelude)
   =?  env  ?=(^ static-main)
     [[%main u.static-main] (skim env |=(entry=[name=term scheme=ischeme] !=(%main name.entry)))]
+  =/  store-main=(unit ischeme)
+    ?~  store-parts  ~
+    ?~  declared  ~
+    (store-main-closed u.store-parts action.u.declared env p.mts prelude)
+  =?  env  ?=(^ store-main)
+    [[%main u.store-main] (skim env |=(entry=[name=term scheme=ischeme] !=(%main name.entry)))]
   =/  kind-ok=?
     ?~  main  &
-    ?^  main-parts  (program-main-closed u.main-parts defs.mod env prelude resolved.p.js u.graph)
-    ?^  page-parts  (page-main-closed u.page-parts defs.mod env prelude resolved.p.js u.graph)
+    ?^  main-parts  (program-main-closed u.main-parts ds env prelude resolved.p.js u.graph)
+    ?^  page-parts  (page-main-closed u.page-parts ds env prelude resolved.p.js u.graph)
+    ?^  store-parts  ?=(^ store-main)
     ?=(^ static-main)
   ?.  kind-ok
     [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
+  =/  store-derived=(unit [values=ienv evidence=istore-request-evidence])
+    ?~  declared  ~
+    ?~  prelude  ~
+    =/  state=(unit ischeme)  (find-jibb-mold %state [~ p.mts at ~ ~ ~ ~ ~])
+    ?~  state  ~
+    =/  action-mold=(unit ischeme)  (find-jibb-mold action.u.declared [~ p.mts at ~ ~ ~ ~ ~])
+    ?~  action-mold  ~
+    =/  schemes=(unit [state=ischeme action=ischeme])
+      (store-derived-schemes u.prelude prelude-values prelude-molds typ.u.state typ.u.action-mold)
+    ?~  schemes  ~
+    =/  evidence=istore-request-evidence
+      [at src typ.u.state action.u.declared typ.u.action-mold]
+    `[~[[%state state.u.schemes] [action.u.declared action.u.schemes]] evidence]
+  ?:  &(?=(^ declared) ?=(~ store-derived))
+    [%| [(crip "store derived gates need unsupported inference: {(spud at)}") ~]]
+  =?  env  ?=(^ store-derived)  (weld values.u.store-derived env)
+  =?  graph  ?=(^ store-derived)
+    `u.graph(stores [evidence.u.store-derived stores.u.graph])
+  ?.  (request-graph-bounded u.graph)
+    [%| ['module request evidence needs unsupported inference' ~]]
   =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph]
   [%& [iface [[at iface] cache.p.js]]]
 ::

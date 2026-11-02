@@ -514,3 +514,8 @@
 
 ++ page |= [load=$-(R (ask D)) view=$-(D (element !!))]
   ^- (page R D) [load view]
+
++$ store |$ [S] [init=S update=*]
+
+++ store |= [init=S update=$-([A S] S)]
+  ^- (store S) [init update]

@@ -40,7 +40,7 @@
 ++ ordinary-path ^- path ~[~.items]
 ++ ask-from-ordinary (agent ordinary-path |=(v=[mark=@tas state=(unit *) fact=*] [state=0 message="ok"]))
 ++ ask-from-qath (agent %/items |=(v=[mark=@tas state=(unit *) fact=*] [state=0 message="ok"]))
-++ store |= rec=$-([state=(unit *) fact=*] [state=* message=@t])
+++ store-ask |= rec=$-([state=(unit *) fact=*] [state=* message=@t])
   ^- (ask @t) [%store module="/ui/store/cart" name=%state receive=rec]
 ++ wrong-store |= rec=$-([state=(unit *) fact=*] [state=* message=@p])
   ^- (ask @t) [%store module="/ui/store/cart" name=%state receive=rec]

@@ -73,7 +73,7 @@ For milestone 6. An island is one loop over one model: events become messages, `
 - **Messages** come from controls, command replies, facts, timers and `%url`. *Proposed*: an island handles them one at a time, in arrival order.
 - **Rendering**: a message changes the model when `update` returns a different noun; `view` then re-runs and a keyed diff patches the DOM. An unchanged model renders nothing. *Proposed*: the patch lands before the next message, so a crash in `view` belongs to one message.
 - **Controls**: after every event, the control that fired is reset to the latest view, even when the model didn't change. A field's text is rewritten only when it differs from the screen, which keeps the caret and any IME composition.
-- **Commands**: each reply arrives later as a new message, never inside the `update` that sent it. *Proposed*: commands run in list order, after the patch.
+- **Commands**: an update may return several commands. The runtime processes them one at a time, in list order, after the patch. Each reply arrives later as a new message, never inside the `update` that sent it.
 
 | Control | Sends | When |
 | --- | --- | --- |

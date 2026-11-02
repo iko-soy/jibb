@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Check the unchanged cart store and basket under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--timeout', type=float, default=300,
+                    help='seconds allowed for urbit eval (default: 300)')
+args = parser.parse_args()
+for fixture, actual in (('tests/type-store/cart.txt', 'my-app/ui/stores/cart.jibb'),
+                        ('tests/type-store/basket.txt', 'my-app/ui/basket.jibb')):
+    if (root / fixture).read_bytes() != (root / actual).read_bytes():
+        sys.exit(f'{fixture} differs from {actual}')
+tests = (root / 'tests/lib/jibb-store.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+tests = tests[:tests.index('\n++  test-store')] + '\n--\n'
+program = ('=/  jibb  .\n=/  suite\n' + tests +
+           '\n=/  failures=(list tape)  (store-errors:suite prelude internal cart basket)\n'
+           '^-  @t\n?~  failures  \'unchanged cart store and basket passed\'\n'
+           '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-store-') as tmp:
+    path = Path(tmp) / 'store.hoon'
+    path.write_text(program)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--timeout', str(args.timeout),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb'),
+               '--cord', 'cart=' + str(root / 'tests/type-store/cart.txt'),
+               '--cord', 'basket=' + str(root / 'tests/type-store/basket.txt')]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'unchanged cart store and basket passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('unchanged cart/basket detailed/legacy, schemes, imports, watch evidence and negatives passed')
