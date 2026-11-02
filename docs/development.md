@@ -6,13 +6,13 @@ How to work on Jibb: the rules the plan sets, how to set up a machine, and what 
 
 From the plan's Setup and ground rules, and from @iko:
 
-- **The doc wins.** Where code and doc disagree, the doc stands until it changes. [spec/](spec/) is a snapshot; the doc itself is the authority.
+- **The spec wins.** Where code and spec disagree, the spec stands until it changes. Until the Claude doc is synced with the repository's decisions, the spec is the copy in [spec/](spec/); the Synced column in [spec/decisions.md](spec/decisions.md) shows which rows the doc has.
 - **Language changes are agreed first** and recorded in the Decisions tab, before the code changes.
 - **Questions go to @iko**, as comments on the doc, on the words they're about. While one is open, follow the most likely reading, mark it "(doc question)" in the library's notes, and list it in [open-questions.md](open-questions.md). Where an error points is not a doc question: the library's section 2.0 settles it.
 - **Every Jibb code block in the doc is a golden test**, and each stage's output is printed and compared. The doc labels its Jibb blocks `jibb`; `tools/doc-blocks` checks that each has its case.
 - **Each milestone ends with its checks passing on a fake ship**, not only under `urbit eval`.
 - **Push straight to `master`.** @iko reviews work in the project's chat, not in pull requests, so there are none. Run the checks below first.
-- **Keep docs/ current**: [status.md](status.md) when a milestone moves, [open-questions.md](open-questions.md) when a question is settled or found.
+- **Keep docs/ current**: [status.md](status.md) when a milestone moves, [open-questions.md](open-questions.md) when a question is found, and [spec/decisions.md](spec/decisions.md) when one is settled: it moves there.
 
 The source-backed generic-union guard can be run under eval with `tools/type-union-source-test`; its `test-union-source` arm is also assembled for the fake ship. It checks a bounded partial inference slice, not general union completeness. `tools/type-union-alias-overlap-test` exercises the separate positive overlap witness and its shared ship test arm. `tools/type-full-overlap-test` checks structured full-module overlap evidence and the legacy error text under eval; both of its test arms are assembled for the fake ship.
 

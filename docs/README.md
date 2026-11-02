@@ -6,7 +6,7 @@ The current full-module checker also has a narrow static/data-page slice, docume
 
 | File | What it holds |
 | --- | --- |
-| [spec/](spec/) | The doc's tabs, as Markdown |
+| [spec/](spec/) | The doc's tabs, as Markdown, with decisions the doc doesn't have yet; until the doc is synced, this copy is the spec |
 | [status.md](status.md) | The eight milestones, what milestone 1 built, and how to check it |
 | [open-questions.md](open-questions.md) | Questions still open: the plan's, the grammar's, and those milestone 2 raises |
 | [development.md](development.md) | Setting up a machine, the ground rules, the checks to run before pushing |
@@ -27,14 +27,14 @@ The current full-module checker also has a narrow static/data-page slice, docume
 | [spec/overview.md](spec/overview.md) | Jibb — an Elm-architecture UI language for Urbit: the language, the stages, the mark, the host, worked examples |
 | [spec/grammar.md](spec/grammar.md) | Grammar: lexical rules, literals, runes, imports, modules, molds, tag resolution, patterns, the EBNF |
 | [spec/core-language.md](spec/core-language.md) | Core language: the untyped language between the checker and both backends |
-| [spec/decisions.md](spec/decisions.md) | Decisions: every choice, with the date it was made |
+| [spec/decisions.md](spec/decisions.md) | Decisions: every choice, with the date it was made and whether the doc has it yet, and the settled milestone 2 questions |
 | [spec/implementation-plan.md](spec/implementation-plan.md) | Implementation plan: the eight milestones, ground rules, architecture, risks, open questions |
 
 The doc has a sixth tab, "Loom on Urbit", which is empty, so it has no file.
 
 The overview's pipeline diagram, "Jibb pipeline · source to browser in three stages", is embedded content, so the export holds only a placeholder line for it under Architecture. The doc shows it.
 
-The two copies can diverge. Sync the repository decisions to the Claude document before refreshing this copy, then export each tab as Markdown again (in a Claude session, the Claude Docs connector's `export` gives each tab's Markdown), replace the files, and run:
+The two copies can diverge, and until they are synced, this copy wins (review question 42). Sync the repository decisions to the Claude document before refreshing this copy: the rows that decisions.md's Synced column marks No or Check, and its settled milestone 2 questions. Then export each tab as Markdown again (in a Claude session, the Claude Docs connector's `export` gives each tab's Markdown), replace the files, and run:
 
 ```
 git diff docs/spec          # what changed in the doc

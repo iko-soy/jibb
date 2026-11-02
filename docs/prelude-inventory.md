@@ -158,7 +158,7 @@ The following shapes can be written as Jibb declarations once their referenced p
   [%2 p=(list tank)]
 ```
 
-The compiler-result `tone.hoon` has the three cases listed above; the qualified name is a prelude group member, not a `+$` identifier containing a dot. Question 15 in [open-questions.md](open-questions.md) records @iko's decision that `@` is an unrestricted atom, resolving the `dime` and `pint` mismatch. The source-backed value form of `like` maps an existing result's product. Supported calls infer in the partial checker; complete checking and backend validation for `like` and `wonk` remain outstanding.
+The compiler-result `tone.hoon` has the three cases listed above; the qualified name is a prelude group member, not a `+$` identifier containing a dot. Question 15 in [Decisions](spec/decisions.md#settled-milestone-2-questions) records @iko's decision that `@` is an unrestricted atom, resolving the `dime` and `pint` mismatch. The source-backed value form of `like` maps an existing result's product. Supported calls infer in the partial checker; complete checking and backend validation for `like` and `wonk` remain outstanding.
 
 ## 4a
 

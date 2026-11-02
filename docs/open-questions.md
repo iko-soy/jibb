@@ -1,6 +1,6 @@
 # Open questions
 
-Questions the doc doesn't settle yet, as of 2026-10-30. Language questions belong to the doc's author, @iko: the plan says they go "as comments on the doc, on the words they're about", and a change to the language is "agreed first and recorded in Decisions". When one is settled, record it there, change the code if needed, and remove it here.
+Questions the doc doesn't settle yet, as of 2026-11-02. Language questions belong to the doc's author, @iko: the plan says they go "as comments on the doc, on the words they're about", and a change to the language is "agreed first and recorded in Decisions". When one is settled, record it there, change the code if needed, and move it from here to [Decisions](spec/decisions.md), which holds the settled ones.
 
 ## The plan's open questions
 
@@ -14,57 +14,13 @@ From [spec/implementation-plan.md](spec/implementation-plan.md), Open questions:
 | Are the proposed loop rules adopted, along with no overlays in v1? | Milestone 6 |
 | What do controls look like by default: buttons, toggles and fields, with their focus and disabled states? | Milestone 6 |
 
-On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treating gates as opaque when distinguishing union cases, and rejecting a non-gate value that depends on itself even through a gate. The checker infers and generalizes the gate-free constraint. @iko also said jetted prelude functions may take gates.
-
 ## Questions milestone 2 raises
 
-Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. The numbering is retained so existing references stay valid. Question 3 remains open; the field-order detail in question 32 is being clarified. The other questions are settled.
+Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. Question 3 remains open, and the field-order detail in question 32. The others are settled and are in [Decisions](spec/decisions.md#settled-milestone-2-questions), which keeps their numbers, so existing references stay valid.
 
-1. **Settled: how the prelude identifies jetted functions.** On 2026-10-30, @iko said the prelude functions have working Jibb implementations, and the compiler recognizes their shapes and uses the Hoon versions so jets can fire.
-2. **Settled: how the prelude keeps helpers private.** On 2026-10-30, @iko chose a separate internal prelude module imported by the prelude, without exposing the imported helpers.
-3. **The prelude's inventory.** On 2026-10-30, @iko chose to include all names from the listed Hoon library sections, excluding groups the spec explicitly leaves out. All of 3g is included; its Hoon `tone` is exposed as `tone.hoon`, distinct from the styling type. Hoon 1c `step` is exposed as `step.hoon`, leaving the Grammar example's `step` name available. On 2026-10-30, @iko also approved `%$` as a term literal and pattern, so Jibb can write the `%$` case of Hoon `coin`. For parsing sections 4j and 4l, only the explicitly listed `slav` and `slaw` are included; other parser helpers are left out. Jibb's `not` negates a loobean, and Hoon's bitwise `not` is exposed as `not.bit`. @iko also agreed to specifying the complete exported inventory in the doc, building its types and gates needed by the examples in milestone 2, and doing native implementations in milestone 3. Prelude unions such as spaces, roles and tones need names that other modules cannot shadow. The actual inventory and signatures still need to be specified.
-4. **Settled: a capital in a local `++`.** On 2026-10-30, @iko said it shares the enclosing `++`'s variable of that name if the enclosing `++` also uses it; otherwise the local `++` introduces and generalizes its own variable. For example, `++ inner |= y=A y` shares `A` with an enclosing gate whose sample is `x=A`, but generalizes its own `A` if the enclosing `++` does not use `A`. A different type uses a different capital. The Grammar and Decisions record this alongside the earlier aura rules.
-5. **Settled: cells of no items or one.** On 2026-10-30, @iko said a single-item cell is the value and `[]` is an error. The theme's `dark=[tones=[…]]`, a record of one field, must still check.
-6. **Settled: a change with no items.** On 2026-10-30, @iko said `m()` is an error. The parser still accepts it; the checker needs to reject it and add a golden case.
-7. **Settled: the doc's blocks that aren't whole modules.** On 2026-10-30, @iko agreed to check each in its intended context: the `cmd` and `sub` definitions as prelude source, the Core language tab's `update` inside the todo island, and the Grammar's imports example against fixture files.
-8. **Settled: tuples and records.** On 2026-10-30, @iko agreed that an unnamed position can unify with a faced position and take its face; two different explicit faces still conflict. The Grammar and Decisions record this rule.
-9. **Settled: values where `*` is expected.** On 2026-10-30, @iko said `*` is the noun type, not a type variable; generic positions use proper type variables. A value already known to be `@ud` can be passed where `*` is expected. The `each` and `table` signatures use `key=K`.
-10. **Settled: navigation commands.** On 2026-10-30, @iko chose separate declarations for application paths and unchecked cords, with `link-unsafe`, `image-unsafe` and `go-unsafe` for the unchecked forms. `image-unsafe` takes a sized URL record. Both navigation declarations produce `[%go url=@t]`; `go` converts the application path to a cord including the app's base path.
-11. **Settled: stores and derived gates.** On 2026-11-01, @iko said a store's local `+$ poke` is an ordinary action mold and the runtime envelope is `raw-poke`; a derived name clashes with an import face; and an island watching a request whose case has a separate `scry=` path has a type error. The todo API's request is renamed `todo-by-id` so it does not clash with `/- todo`. The checker must account for the fact that a store's kind is determined by the type of `main`.
-12. **Settled: how to print a union without a name.** On 2026-10-30, @iko said to print its cases separated by spaces, as `%approve %deny`. This is print-only, not Jibb syntax.
-13. **Settled: how to print type constraints.** On 2026-10-30, @iko chose `$-([A A] A) where A is an atom` for an atom constraint and `$-([A A] ?) where A contains no gates` for a gate-free constraint. Multiple clauses are comma-separated, as `where A is an atom, B contains no gates`.
-14. **Settled: how the prelude implements foundational operations.** On 2026-10-30, @iko chose private low-level primitives in the internal prelude module, with the public foundational gates implemented in Jibb on top of them.
-15. **Settled: unrestricted atoms and shared auras.** On 2026-10-30, @iko said `@` means any atom, independently at each occurrence, so Hoon `dime` and `pint` keep their bare-`@` fields. A specific atom such as `@ud` fits where `@` is expected; an `@` value needs a check to fit `@ud`. Shared atom types use one capital, with the atom constraint inferred from its body, as for `add` taking `[A A]` and returning `A`.
-16. **Settled: loobeans in union disjointness.** On 2026-10-30, @iko said `?` counts as its two atoms, `%.y` and `%.n`: it is disjoint from any cell and overlaps the constants 0 and 1.
-17. **Settled: empty cases in union disjointness.** On 2026-10-30, @iko said `!!` is disjoint from every case. A cell containing an empty position at any depth is itself empty and is also disjoint from every case.
-18. **Settled: the value gate `like`.** On 2026-10-31, @iko chose a gate `(like convert result)` that maps the product of an existing `(like A)` result with `convert=$-(A B)`, yielding `(like B)` while preserving its position and remaining input. An absent result stays absent. The `(like A)` mold remains available in the separate mold namespace. Hoon's wet `+like` instead builds a gate that constructs a result from an input noun; the chosen Jibb value gate is an adaptation of that behavior.
-19. **Settled: Hoon aura families and `step.hoon`.** On 2026-10-30, @iko chose `step.hoon` for Hoon 1c `step`, avoiding a clash with the Grammar example's `step`, and chose one-way widening across Hoon aura families: for example, `@ud` and `@ux` fit `@u`, and `@tD` fits `@t`. The reverse needs a check. The `step.hoon` group representation is not implemented yet.
-20. **Settled: the type of `clap`.** On 2026-10-30, @iko chose one shared value type for both units and the combining gate. If either unit is absent, `clap` returns the other; if both are present, it applies the gate to their values and wraps the result.
-21. **Settled: duplicate faces in imported Hoon records.** On 2026-10-30, @iko chose to reject an imported Hoon record with duplicate field names where its type is used. Hoon permits `[a=@ud a=@t]` and picks the first `a`; Jibb rejects it.
-22. **Settled: overlapping imported `$%` and `$?` cases.** On 2026-10-30, @iko confirmed that the general union disjointness rule rejects imported `$%` and `$?` cases that overlap as nouns where the type is used, as it does for `$^`. The importer rejects recognizable overlaps and fails closed when it cannot verify them.
-23. **Settled: converging explicit capitals.** On 2026-10-30, @iko chose that a body cannot force two separately written capitals to be equal. For `++ repeated |= x=(choice A A) x`, `++ f |= x=(choice A B) (repeated x)` is an error; use `A` in both positions when the type must be shared. This also applies across local captures and within generic mold applications.
+**3. The prelude's inventory.** On 2026-10-30, @iko chose to include all names from the listed Hoon library sections, excluding groups the spec explicitly leaves out. All of 3g is included; its Hoon `tone` is exposed as `tone.hoon`, distinct from the styling type. Hoon 1c `step` is exposed as `step.hoon`, leaving the Grammar example's `step` name available. On 2026-10-30, @iko also approved `%$` as a term literal and pattern, so Jibb can write the `%$` case of Hoon `coin`. For parsing sections 4j and 4l, only the explicitly listed `slav` and `slaw` are included; other parser helpers are left out. Jibb's `not` negates a loobean, and Hoon's bitwise `not` is exposed as `not.bit`. @iko also agreed to specifying the complete exported inventory in the doc, building its types and gates needed by the examples in milestone 2, and doing native implementations in milestone 3. Prelude unions such as spaces, roles and tones need names that other modules cannot shadow. The actual inventory and signatures still need to be specified.
 
-24. **Settled: how the internal prelude provides `raw-poke`.** On 2026-11-01, @iko chose to define `raw-poke` in the source-backed private internal prelude module and re-export it through the public prelude as an ordinary transparent type. Ordinary modules can construct and inspect its values, while derived API/store `poke` helpers return commands. This settles `raw-poke`; it does not decide the representation of `ask` or `qath`.
-
-25. **Settled: how the prelude provides `ask` and `qath`.** On 2026-10-31, @iko chose ordinary transparent types defined in the internal prelude and re-exported normally, as for `raw-poke`. Callers may construct and inspect their values.
-
-26. **Settled: the `step` example's `at` binder.** On 2026-10-31, @iko chose to rename the `describe` pattern binder to `sent-at`, keeping Hoon's `at` in the prelude and the no-shadowing rule.
-
-27. **Settled: duplicate fields in a Jibb-written record.** On 2026-10-31, @iko chose to reject duplicate field names, as for imported Hoon records.
-
-28. **Settled: arithmetic on loobeans.** On 2026-10-31, @iko chose to reject loobean operands for arithmetic. Comparison may still accept loobeans and returns `?`. The checker needs to retain this constraint through inference, generalization and instantiation before it exports `add` or `dec`.
-
-29. **Settled: printing the arithmetic atom constraint.** On 2026-10-31, @iko chose `where A is an atom other than ?` for a generic arithmetic type whose atom variable excludes loobeans.
-
-30. **Settled: a hole inferred as a generic variable.** On 2026-10-31, @iko said a hole resolved to an explicitly written type variable counts as inferred: in `++ id |= x=A ^- _ x`, the result hole is `A`. Named molds must determine their own holes without constraints from later uses; an unconstrained hole is an error.
-
-31. **Settled: uses of a value with a hole.** On 2026-10-31, @iko said a value definition must determine its own holes; another definition's use cannot fix an otherwise unresolved hole. For example, `++ id |= x=_ x` remains an error even if a later definition calls `id` with a cord.
-
-32. **Partly settled: type-directed record projection.** On 2026-10-31, @iko chose an explicit `(proj record)` whose expected result type selects the fields. There is no automatic projection, and `proj` is reserved against definitions and imports. The result contains exactly the fields of its expected type. Whether the result may reorder fields from the source remains open.
-
-33. **Settled: watching a request with unknown provenance.** On 2026-10-31, @iko said an island may watch a request only if the checker proves it watchable at compile time. An unknown request, including one built or passed through a gate without sufficient evidence, is rejected rather than deferred to a runtime check.
-
-34. **Settled: constructors and equal noun literals.** On 2026-10-31, @iko said expressions with the same runtime representation count as equal, and cases that cannot be distinguished at runtime are rejected at compile time. Thus `|=%$` matches a case headed by `%$`, `%.y` or `~`: each is the noun 0. Cases with equal heads and overlapping payloads cannot coexist in a union.
+**32. Partly settled: type-directed record projection.** On 2026-10-31, @iko chose an explicit `(proj record)` whose expected result type selects the fields. There is no automatic projection, and `proj` is reserved against definitions and imports. The result contains exactly the fields of its expected type. Whether the result may reorder fields from the source remains open.
 
 ## Review rulings waiting for @iko
 
@@ -84,8 +40,6 @@ The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language
 | [26](reviews/2026-11-02-questions.md) | Which Hoon unions should the importer read? | `$%` with `%&`, `%\|` and `%0` tags now, then `each` and `json` as catalog entries | A50 |
 | [27](reviews/2026-11-02-questions.md) | Should the `%jibb` mark keep dropping the final newline on a `%txt` round trip? | Keep it, like `%hoon` | A61 |
 | [28](reviews/2026-11-02-questions.md) | Should the printer flatten `[a [b c]]` and print named molds by name, such as `theme`? | Yes | A136 |
-
-Question 25, when to build `eq` and the gate-free constraint, is settled: @iko's commit 0858191 adds `eq` and infers the constraint.
 
 ## Grammar questions never put to the doc's author
 
