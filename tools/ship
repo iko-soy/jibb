@@ -283,16 +283,24 @@ class Ship:
     # -- processes
 
     def processes(self):
-        """(king pid, serf pid) of the urbit running this pier, or None."""
+        """(king pid, serf pid) of the urbit running this pier, or None.
+
+        Only urbit binaries count: other commands whose arguments name
+        the pier, such as tools/ship --pier /abs/pier itself, click or
+        tail, are not the ship.
+        """
         king = serf = None
         for pid in os.listdir('/proc'):
             if not pid.isdigit():
                 continue
             try:
+                exe = os.path.basename(os.readlink('/proc/%s/exe' % pid))
                 with open('/proc/%s/cmdline' % pid, 'rb') as f:
                     args = [a.decode('utf-8', 'replace')
                             for a in f.read().split(b'\0') if a]
             except OSError:
+                continue
+            if not (exe == '.run' or exe.startswith('urbit')):
                 continue
             if len(args) < 2 or self.pier not in [
                     os.path.realpath(a) if a.startswith('/') else a
@@ -668,8 +676,9 @@ MERGE = r"""
 #  how many files the desk has; for each file sent with its content,
 #  whether the desk's mark, converting that content from %mime, gives
 #  the stored value; and for the files @@FROM@@ to @@FROM@@ + @@COUNT@@,
-#  the path with [%cord hash] for a cord, [%wain hash] for a %txt file's
-#  lines, each with a newline after it, or [%other 0].  A hash is the
+#  the path with [%wain hash] for a %txt file's lines, each with a
+#  newline after it (an empty file's wain is ~, an atom, so this comes
+#  first), [%cord hash] for another cord, or [%other 0].  A hash is the
 #  first 8 bytes of the sha-256.  now is fixed across pages.
 MANIFEST = r"""
 =/  m  (strand ,vase)
@@ -690,10 +699,11 @@ MANIFEST = r"""
   |=  pax=path
   =/  have  .^(* %cx (weld pre pax))
   :-  pax
+  ?:  =(%txt (rear pax))
+    :-  %wain
+    (end [3 8] (shax (rap 3 (turn ;;(wain have) |=(l=@t (cat 3 l '\0a'))))))
   ?@  have  [%cord (end [3 8] (shax have))]
-  ?.  =(%txt (rear pax))  [%other 0]
-  :-  %wain
-  (end [3 8] (shax (rap 3 (turn ;;(wain have) |=(l=@t (cat 3 l '\0a'))))))
+  [%other 0]
 =/  jet=?  =(1 (lent (to-wain:format 'a\0a')))
 (pure:m !>([ud:.^(cass:clay %cw pre) now jet (lent all) conv page]))
 """
