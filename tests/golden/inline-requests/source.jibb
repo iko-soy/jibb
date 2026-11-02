@@ -1,3 +1,3 @@
-++ a (todo-action.todo [%add draft.m])
+++ a (poke.todo [%add draft.m] same)
 ++ b (todos.todo |=%got)
 ++ c (changes.todo |=%got apply)

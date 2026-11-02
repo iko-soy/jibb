@@ -1,10 +1,16 @@
 partial inference; module not checked
 ++ same: $-([a=A b=A] A)
 ++ independent: @ud
-++ first: call constraint is not supported by partial inference
-++ second: call constraint is not supported by partial inference
-++ capture: local definitions need unsupported inference
+++ first: explicit capital constraints are not supported by partial inference
+++ second: explicit capital constraints are not supported by partial inference
+++ capture: type hole needs unsupported inference
+/tests/golden/types-hole-numeric-capture/source.jibb:6:15: type hole
+  ++ local ^- _ (same x 1)
+              ^
 ++ local-independent: $-(@t @t)
 ++ unresolved-tag: tag needs context in partial inference
 ++ discarded-number: @t
-++ captured-second: local definitions need unsupported inference
+++ captured-second: type hole needs unsupported inference
+/tests/golden/types-hole-numeric-capture/source.jibb:18:15: type hole
+  ++ local ^- _ (same 1 x)
+              ^

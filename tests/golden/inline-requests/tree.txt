@@ -2,8 +2,9 @@
   (value 1:1 a
     (group 1:6
       (call 1:7
-        (wing 1:7 todo-action.todo)
-        (tuple 1:24 (lit 1:25 %add) (wing 1:30 draft.m)))))
+        (wing 1:7 poke.todo)
+        (tuple 1:17 (lit 1:18 %add) (wing 1:23 draft.m))
+        (wing 1:32 same))))
   (value 2:1 b
     (group 2:6
       (call 2:7 (wing 2:7 todos.todo) (ctor 2:18 %got))))

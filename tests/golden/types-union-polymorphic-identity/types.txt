@@ -15,7 +15,7 @@ partial inference; module not checked
 ++ repeated: $-([a=(choice A) b=(choice A)] (choice A))
 ++ mismatch: call constraint is not supported by partial inference
 ++ face-result: $-(local-msg [field=local-msg flag=?])
-++ explicit: call constraint is not supported by partial inference
+++ explicit: explicit capital constraints are not supported by partial inference
 ++ pending: tag needs context in partial inference
 ++ unresolved: tag needs context in partial inference
 ++ same-choice: $-([a=(choice A) b=(choice A)] (choice A))

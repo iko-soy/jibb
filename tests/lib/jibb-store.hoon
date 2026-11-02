@@ -25,7 +25,6 @@
   ^-  @t
   %+  rap  3
   :~  '+$ state [items=(list @t) open=?]\0a'
-      '+$ cart-action\0a  [%add item=@t]\0a  %toggle\0a'
       poke  main  init  update  extra
   ==
 ::
@@ -48,10 +47,10 @@
   %+  rap  3
   :~  '/= cart /ui/stores/cart\0a'
       '+$ local-state state.cart\0a'
-      '+$ local-action cart-action.cart\0a'
+      '+$ local-action poke.cart\0a'
       '++ imported-main main.cart\0a'
       '++ imported-request |= reply=$-(local-state M) (state.cart reply)\0a'
-      '++ imported-poke |= action=local-action (cart-action.cart action)\0a'
+      '++ imported-poke |= action=local-action (poke.cart action same)\0a'
   ==
 ::
 ++  store-rejections
@@ -96,9 +95,9 @@
   =/  forged=ifile:jibb
     cart(values [[%state [[%fn [%atom %t] [%atom %t]] ~]] ordinary])
   =/  without-action=ienv:jibb
-    (skim values.cart |=(entry=[name=term scheme=ischeme:jibb] !=(%cart-action name.entry)))
+    (skim values.cart |=(entry=[name=term scheme=ischeme:jibb] !=(%poke name.entry)))
   =/  forged-action=ifile:jibb
-    cart(values [[%cart-action [[%fn [%atom %t] [%atom %t]] ~]] without-action])
+    cart(values [[%poke [[%fn [%atom %t] [%atom %t]] ~]] without-action])
   =/  graphs=(list [label=tape graph=irequest-graph:jibb])
     :~  ["missing store evidence" missing]
         ["store source mismatch" mismatch]
@@ -149,31 +148,56 @@
   ?.  =(actual-main '[init=[items=(list @t) open=?] update=*]')  ~["cart main type differs"]
   ?.  &(?=(~ vars.u.cart-main) ?=(~ (itype-vars:jibb typ.u.cart-main)))  ~["cart main is open"]
   =/  state=(unit ischeme:jibb)  (find-jibb-mold:jibb %state cart)
-  =/  action=(unit ischeme:jibb)  (find-jibb-mold:jibb %cart-action cart)
+  =/  action=(unit ischeme:jibb)  (find-jibb-mold:jibb %poke cart)
   ?~  state  ~["state mold is missing"]
-  ?~  action  ~["cart-action mold is missing"]
-  ?^  (find-jibb-mold:jibb %poke cart)  ~["poke declaration leaked as an exported mold"]
+  ?~  action  ~["local poke action mold is missing"]
   =/  ask=(unit ischeme:jibb)  (request-compatible-ask:jibb u.prepared)
-  =/  poke=(unit ischeme:jibb)  (store-compatible-poke:jibb u.prepared)
+  =/  poke=(unit ischeme:jibb)  (compatible-raw-poke:jibb u.prepared)
   ?~  ask  ~["canonical ask is unavailable"]
   ?~  poke  ~["canonical poke is unavailable"]
   =/  ask-result=(unit itype:jibb)  (template-apply:jibb u.ask ~[[%var 0]])
   ?~  ask-result  ~["canonical ask did not instantiate"]
   =/  expected-state=ischeme:jibb  [[%fn [%fn typ.u.state [%var 0]] u.ask-result] ~[0]]
-  =/  expected-action=ischeme:jibb  [[%fn typ.u.action typ.u.poke] ~]
+  =/  expected-action=(unit ischeme:jibb)  (derived-poke-command-scheme:jibb iface.u.prepared typ.u.action)
+  ?~  expected-action  ~["derived action scheme did not instantiate"]
+  =/  command=(unit ischeme:jibb)  (find-jibb-mold:jibb %cmd iface.u.prepared)
+  =/  unit-template=(unit ischeme:jibb)  (find-jibb-mold:jibb %unit iface.u.prepared)
+  ?~  command  ~["canonical cmd mold is missing"]
+  ?~  unit-template  ~["canonical unit mold is missing"]
+  ?.  ?=(%union -.typ.u.command)  ~["canonical cmd is not a union"]
+  =/  wrong-command=ischeme:jibb  u.command(typ typ.u.command(cases ~))
+  =/  wrong-command-prelude=ifile:jibb
+    iface.u.prepared(molds (turn molds.iface.u.prepared |=(m=[name=term template=ischeme:jibb] ?:(=(%cmd name.m) [%cmd wrong-command] m))))
+  ?.  ?=(~ (derived-poke-command-scheme:jibb wrong-command-prelude typ.u.action))
+    ~["derived poke accepted a noncanonical cmd"]
+  =/  wrong-unit-prelude=ifile:jibb
+    iface.u.prepared(molds (turn molds.iface.u.prepared |=(m=[name=term template=ischeme:jibb] ?:(=(%unit name.m) [%unit u.command] m))))
+  ?.  ?=(~ (derived-poke-command-scheme:jibb wrong-unit-prelude typ.u.action))
+    ~["derived poke accepted a noncanonical unit"]
+  =/  wrong-raw=ischeme:jibb  u.poke(vars ~[0])
+  =/  wrong-raw-prelude=ifile:jibb
+    iface.u.prepared(molds (turn molds.iface.u.prepared |=(m=[name=term template=ischeme:jibb] ?:(=(%raw-poke name.m) [%raw-poke wrong-raw] m))))
+  ?.  ?=(~ (derived-poke-command-scheme:jibb wrong-raw-prelude typ.u.action))
+    ~["derived poke accepted a generic raw-poke"]
+  ?.  ?=(%union -.typ.u.poke)  ~["canonical raw-poke is not a union"]
+  =/  wrong-raw-args=ischeme:jibb  u.poke(typ typ.u.poke(args ~[[%atom %t]]))
+  =/  wrong-raw-args-prelude=ifile:jibb
+    iface.u.prepared(molds (turn molds.iface.u.prepared |=(m=[name=term template=ischeme:jibb] ?:(=(%raw-poke name.m) [%raw-poke wrong-raw-args] m))))
+  ?.  ?=(~ (derived-poke-command-scheme:jibb wrong-raw-args-prelude typ.u.action))
+    ~["derived poke accepted raw-poke union arguments"]
   =/  state-values=(list [name=term scheme=ischeme:jibb])
     (skim values.cart |=(entry=[name=term scheme=ischeme:jibb] =(%state name.entry)))
   =/  action-values=(list [name=term scheme=ischeme:jibb])
-    (skim values.cart |=(entry=[name=term scheme=ischeme:jibb] =(%cart-action name.entry)))
+    (skim values.cart |=(entry=[name=term scheme=ischeme:jibb] =(%poke name.entry)))
   ?.  ?=([* ~] state-values)  ~["derived state member is not unique"]
   ?.  =(scheme.i.state-values expected-state)  ~["derived state scheme differs"]
-  ?.  ?=([* ~] action-values)  ~["derived cart-action member is not unique"]
-  ?.  =(scheme.i.action-values expected-action)  ~["derived cart-action scheme differs"]
+  ?.  ?=([* ~] action-values)  ~["derived poke member is not unique"]
+  ?.  =(scheme.i.action-values u.expected-action)  ~["derived poke command scheme differs"]
   ?~  graph.cart  ~["cart request graph is missing"]
   ?.  ?=([* ~] stores.u.graph.cart)  ~["cart store evidence is not unique"]
   =/  evidence=istore-request-evidence:jibb  i.stores.u.graph.cart
   ?.  &(=(store-at.evidence cart-at) =(source.evidence cart-source))  ~["store evidence does not retain exact path/source"]
-  ?.  &(=(state.evidence typ.u.state) =(action.evidence typ.u.action) =(%cart-action action-name.evidence))  ~["store evidence types differ"]
+  ?.  &(=(state.evidence typ.u.state) =(action.evidence typ.u.action) =(%poke action-name.evidence))  ~["store evidence types differ"]
   =/  basket-result=jfile-detailed-result:jibb
     (store-detailed /ui/basket/jibb basket-source modules u.prepared)
   ?:  ?=(%| -.basket-result)  ~[(weld "basket was rejected: " (trip message.p.basket-result))]
@@ -209,37 +233,37 @@
   =/  direct=jfile-detailed-result:jibb
     (store-detailed /tests/direct/cart/jibb cart-source ~ u.prepared)
   ?:  ?=(%| -.direct)  ~["direct store outside /ui/stores was rejected"]
-  =/  grouped=@t  (store-cart-source '+$ poke cart-action\0a' '++ main (store (init) (update))\0a' '++ init ^- state [~ %.n]\0a' '++ update |= [a=cart-action s=state]\0a  ?- a\0a    [%add item]  s(items=[item items.s])\0a    %toggle      s(open=(not open.s))\0a' '')
+  =/  grouped=@t  (store-cart-source '+$ poke\0a  [%add item=@t]\0a  %toggle\0a' '++ main (store (init) (update))\0a' '++ init ^- state [~ %.n]\0a' '++ update |= [a=poke s=state]\0a  ?- a\0a    [%add item]  s(items=[item items.s])\0a    %toggle      s(open=(not open.s))\0a' '')
   =/  grouped-result=jfile-detailed-result:jibb
     (store-detailed /tests/direct/grouped/jibb grouped ~ u.prepared)
   ?:  ?=(%| -.grouped-result)  ~[(weld "grouped direct store main was rejected: " (trip message.p.grouped-result))]
-  =/  gate-state=@t  '+$ state [callback=$-(@t @t)]\0a+$ action %set\0a+$ poke action\0a++ main (store init update)\0a++ init ^- state [callback=same]\0a++ update |= [a=action s=state] s\0a'
+  =/  gate-state=@t  '+$ state [callback=$-(@t @t)]\0a+$ poke %set\0a++ main (store init update)\0a++ init ^- state [callback=same]\0a++ update |= [a=poke s=state] s\0a'
   =/  gate-result=jfile-detailed-result:jibb
     (store-detailed /tests/direct/gate-state/jibb gate-state ~ u.prepared)
   ?:  ?=(%| -.gate-result)  ~["gate-bearing store state was rejected"]
   =/  evidence-failures=(list tape)  (store-evidence-failures cart basket basket-source iface.u.prepared)
   ?^  evidence-failures  evidence-failures
-  =/  normal-poke=@t  '+$ poke cart-action\0a'
+  =/  normal-poke=@t  '+$ poke\0a  [%add item=@t]\0a  %toggle\0a'
   =/  normal-main=@t  '++ main (store init update)\0a'
   =/  normal-init=@t  '++ init ^- state [~ %.n]\0a'
-  =/  normal-update=@t  '++ update |= [a=cart-action s=state]\0a  ?- a\0a    [%add item]  s(items=[item items.s])\0a    %toggle      s(open=(not open.s))\0a'
+  =/  normal-update=@t  '++ update |= [a=poke s=state]\0a  ?- a\0a    [%add item]  s(items=[item items.s])\0a    %toggle      s(open=(not open.s))\0a'
   =/  cart-cases=(list [label=tape at=path src=@t modules=jbundle:jibb])
     :~  ["wrong init" /tests/store/wrong-init/jibb (store-cart-source normal-poke normal-main '++ init ^- state [~ "bad"]\0a' normal-update '') ~]
         ["wrong action" /tests/store/wrong-action/jibb (store-cart-source normal-poke normal-main normal-init '++ update |= [a=@t s=state] s\0a' '') ~]
-        ["wrong result" /tests/store/wrong-result/jibb (store-cart-source normal-poke normal-main normal-init '++ update |= [a=cart-action s=state] "bad"\0a' '') ~]
+        ["wrong result" /tests/store/wrong-result/jibb (store-cart-source normal-poke normal-main normal-init '++ update |= [a=poke s=state] "bad"\0a' '') ~]
         ["unknown poke" /tests/store/unknown-poke/jibb (store-cart-source '+$ poke missing\0a' normal-main normal-init normal-update '') ~]
-        ["qualified poke" /tests/store/qualified-poke/jibb (store-cart-source '+$ poke cart-action.cart\0a' normal-main normal-init normal-update '') ~]
-        ["duplicate poke" /tests/store/duplicate-poke/jibb (store-cart-source '+$ poke cart-action\0a+$ poke cart-action\0a' normal-main normal-init normal-update '') ~]
+        ["qualified poke" /tests/store/qualified-poke/jibb (store-cart-source '+$ poke poke.cart\0a' normal-main normal-init normal-update '') ~]
+        ["duplicate poke" /tests/store/duplicate-poke/jibb (store-cart-source '+$ poke %one\0a+$ poke %two\0a' normal-main normal-init normal-update '') ~]
         ["duplicate state" /tests/store/duplicate-state/jibb (store-cart-source normal-poke normal-main normal-init normal-update '+$ state @t\0a') ~]
         ["state derived collision" /tests/store/state-collision/jibb (store-cart-source normal-poke normal-main normal-init normal-update '++ state 0\0a') ~]
-        ["action derived collision" /tests/store/action-collision/jibb (store-cart-source normal-poke normal-main normal-init normal-update '++ cart-action 0\0a') ~]
+        ["action derived collision" /tests/store/action-collision/jibb (store-cart-source normal-poke normal-main normal-init normal-update '++ poke 0\0a') ~]
         ["import derived collision" /tests/store/import-collision/jibb (cat 3 '/= state /ui/stores/other\0a' (store-cart-source normal-poke normal-main normal-init normal-update '')) ~]
         ["alias main" /tests/store/alias-main/jibb (store-cart-source normal-poke '++ main (build init update)\0a' normal-init normal-update '++ build store\0a') ~]
         ["hand-built main" /tests/store/hand-main/jibb (store-cart-source normal-poke '++ main [init update]\0a' normal-init normal-update '') ~]
     ==
-  =/  normal-basket-update=@t  '++ update |= [=msg m=model]\0a  ?- msg\0a    [%noted t]     [m(note=t) ~]\0a    %add           [m(note="") ~[[%poke (cart-action.cart [%add note.m]) |=%acked]]]\0a    %toggle        [m ~[[%poke (cart-action.cart %toggle) |=%acked]]]\0a    [%got c]       [m(cart=c) ~]\0a    [%acked err]   [m ~]\0a'
+  =/  normal-basket-update=@t  '++ update |= [=msg m=model]\0a  ?- msg\0a    [%noted t]     [m(note=t) ~]\0a    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]\0a    %toggle        [m ~[(poke.cart %toggle |=%acked)]]\0a    [%got c]       [m(cart=c) ~]\0a    [%acked err]   [m ~]\0a'
   =/  normal-subs=@t  '++ subs |= m=model\0a  ~[[%watch (state.cart |=%got)]]\0a'
-  =/  wrong-payload=@t  '++ update |= [=msg m=model]\0a  ?- msg\0a    [%noted t]     [m(note=t) ~]\0a    %add           [m(note="") ~[[%poke (cart-action.cart [%add ~zod]) |=%acked]]]\0a    %toggle        [m ~[[%poke (cart-action.cart %toggle) |=%acked]]]\0a    [%got c]       [m(cart=c) ~]\0a    [%acked err]   [m ~]\0a'
+  =/  wrong-payload=@t  '++ update |= [=msg m=model]\0a  ?- msg\0a    [%noted t]     [m(note=t) ~]\0a    %add           [m(note="") ~[(poke.cart [%add ~zod] |=%acked)]]\0a    %toggle        [m ~[(poke.cart %toggle |=%acked)]]\0a    [%got c]       [m(cart=c) ~]\0a    [%acked err]   [m ~]\0a'
   =/  basket-cases=(list [label=tape at=path src=@t modules=jbundle:jibb])
     :~  ["wrong poke payload" /ui/basket/jibb (store-basket-source wrong-payload normal-subs '') modules]
         ["wrong state reply" /ui/basket/jibb (store-basket-source normal-basket-update '++ subs |= m=model\0a  ~[[%watch (state.cart |=%acked)]]\0a' '') modules]

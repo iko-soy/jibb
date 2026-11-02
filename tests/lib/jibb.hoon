@@ -31,6 +31,7 @@
 /*  src-3  %jibb  /tests/golden/doc-grammar-02-buttons/source/jibb
 /*  tok-3  %txt   /tests/golden/doc-grammar-02-buttons/tokens/txt
 /*  tre-3  %txt   /tests/golden/doc-grammar-02-buttons/tree/txt
+/*  typ-3  %txt   /tests/golden/doc-grammar-02-buttons/types/txt
 /*  src-4  %jibb  /tests/golden/doc-grammar-03-view-day/source/jibb
 /*  tok-4  %txt   /tests/golden/doc-grammar-03-view-day/tokens/txt
 /*  tre-4  %txt   /tests/golden/doc-grammar-03-view-day/tree/txt
@@ -2467,7 +2468,7 @@
 ++  test-doc-grammar-01-imports
   (check ~.doc-grammar-01-imports src-2 `tok-2 `tre-2)
 ++  test-doc-grammar-02-buttons
-  (check ~.doc-grammar-02-buttons src-3 `tok-3 `tre-3)
+  (weld (check ~.doc-grammar-02-buttons src-3 `tok-3 `tre-3) (check-module-types ~.doc-grammar-02-buttons ~[%tests %golden ~.doc-grammar-02-buttons %source %jibb] src-3 `typ-3 ~ ~ ~))
 ++  test-doc-grammar-03-view-day
   (check ~.doc-grammar-03-view-day src-4 `tok-4 `tre-4)
 ++  test-doc-grammar-04-step

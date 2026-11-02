@@ -41,7 +41,7 @@
     =/  iface=ifile:jibb  iface.p.out
     ?.  =(source.iface `api)  'actual API source changed'
     =/  names=(list term)  (turn values.iface |=(x=[name=term scheme=ischeme:jibb] name.x))
-    =/  required-values=(list term)  ~[%todo-action %todos %changes %todo-by-id]
+    =/  required-values=(list term)  ~[%poke %todos %changes %todo-by-id]
     ?.  (levy required-values |=(x=term (lien names |=(y=term =(x y)))))  'derived value missing'
     =/  mnames=(list term)  (turn molds.iface |=(x=[name=term template=ischeme:jibb] name.x))
     =/  required-molds=(list term)  ~[%item %todo-action %todos %todo-update %todo-item]

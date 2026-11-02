@@ -77,7 +77,7 @@
   ?.  ?=(%branch -.val.p)  'BAD polymorphic branch'
   =/  env=ienv:jibb  ~[[%x [target ~]]]
   =/  poly=ienv:jibb  ~[[%x [generic ~[42]]]]
-  =/  tag=ipending:jibb  [100 [%term %tas %unrelated '%unrelated']]
+  =/  tag=ipending:jibb  [100 [%term %tas %unrelated '%unrelated'] *span:jibb]
   =/  projection=iwprojection:jibb  *iwprojection:jibb
   =/  st=istate:jibb  *istate:jibb
   =.  st  st(next 201, prelude `iface.u.prep, tags ~[tag], holes ~[[99 (span-of:jibb val.a)]], projections ~[projection])

@@ -10,3 +10,5 @@
 +$ paths
   [%todo-action /todos todos]
   [%todo-by-id /todo/[id=@ud] todo-item]
+
+++ poke "collision"

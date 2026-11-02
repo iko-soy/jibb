@@ -64,7 +64,7 @@
   =/  d=def:jibb  i.t.t.t.ds
   ?.  &(?=(%value -.a) ?=(%value -.b) ?=(%value -.c) ?=(%value -.d))  'BAD value declarations'
   =/  env=ienv:jibb  ~[[%text-event [[%fn [%atom %t] [%atom %t]] ~]]]
-  =/  tag=ipending:jibb  [100 [%term %tas %unrelated '%unrelated']]
+  =/  tag=ipending:jibb  [100 [%term %tas %unrelated '%unrelated'] *span:jibb]
   =/  projection=iwprojection:jibb  *iwprojection:jibb
   =/  st=istate:jibb  *istate:jibb
   =.  st  st(next 201, prelude `iface.u.prep, tags ~[tag], holes ~[[99 (span-of:jibb val.a)]], projections ~[projection])

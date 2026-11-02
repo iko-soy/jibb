@@ -1,6 +1,6 @@
 1:1 glyph +$
 1:4 name a
-1:6 name poke
+1:6 name raw-poke
 2:1 NEWLINE
 2:1 glyph +$
 2:4 name b

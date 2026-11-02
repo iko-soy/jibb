@@ -1,6 +1,6 @@
 (module
   (jibb 1:1 internal /lib/jibb/internal)
-  (mold 2:1 poke (ref 2:9 poke.internal))
+  (mold 2:1 raw-poke (ref 2:13 raw-poke.internal))
   (mold 3:1 qath (ref 3:9 qath.internal))
   (value 7:1 same
     (gate 7:9
@@ -924,11 +924,11 @@
       (union 328:3
         (cell 328:3
           (const 328:4 %poke)
-          (face 328:10 p (ref 328:12 poke))
-          (face 328:17 reply
-            (fn 328:23
-              (apply 328:26 unit (aura 328:32 @t))
-              (tvar 328:36 M))))
+          (face 328:10 p (ref 328:12 raw-poke))
+          (face 328:21 reply
+            (fn 328:27
+              (apply 328:30 unit (aura 328:36 @t))
+              (tvar 328:40 M))))
         (cell 329:3
           (const 329:4 %go)
           (face 329:8 url (aura 329:12 @t)))

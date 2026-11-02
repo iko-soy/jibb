@@ -1,2 +1,2 @@
 /= hidden /lib/jibb/internal
-+$ exported poke.hidden
++$ exported raw-poke.hidden

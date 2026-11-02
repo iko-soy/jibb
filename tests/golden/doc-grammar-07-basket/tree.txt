@@ -48,23 +48,18 @@
               (change 20:21 m
                 (edit 20:23 note (str 20:28 "")))
               (list 20:32
-                (tuple 20:34
-                  (lit 20:35 %poke)
-                  (group 20:41
-                    (call 20:42
-                      (wing 20:42 cart-action.cart)
-                      (tuple 20:59 (lit 20:60 %add) (wing 20:65 note.m))))
-                  (ctor 20:74 %acked)))))
+                (group 20:34
+                  (call 20:35
+                    (wing 20:35 poke.cart)
+                    (tuple 20:45 (lit 20:46 %add) (wing 20:51 note.m))
+                    (ctor 20:59 %acked))))))
           (arm 21:5
             (lit 21:5 %toggle)
             (tuple 21:20
               (wing 21:21 m)
               (list 21:23
-                (tuple 21:25
-                  (lit 21:26 %poke)
-                  (group 21:32
-                    (call 21:33 (wing 21:33 cart-action.cart) (lit 21:50 %toggle)))
-                  (ctor 21:59 %acked)))))
+                (group 21:25
+                  (call 21:26 (wing 21:26 poke.cart) (lit 21:36 %toggle) (ctor 21:44 %acked))))))
           (arm 22:5
             (cell 22:5 (lit 22:6 %got) (bind 22:11 c))
             (tuple 22:20

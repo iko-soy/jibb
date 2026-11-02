@@ -1,3 +1,3 @@
-source: Grammar tab, Molds: "`poke`, `ask` and `qath` are transparent types, defined in the internal prelude and re-exported normally; callers can construct and inspect their values."
+source: Grammar tab, Molds: "`raw-poke`, `ask` and `qath` are transparent types, defined in the internal prelude and re-exported normally; callers can construct and inspect their values."
 tests: the effect and application-path types by name
 expect: parses

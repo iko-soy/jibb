@@ -169,20 +169,17 @@
 22:29 tight str ""
 22:31 tight glyph )
 22:33 glyph ~[
-22:35 tight glyph [
-22:36 tight lit %poke
-22:42 glyph (
-22:43 tight wing todo-action.todo
-22:60 glyph [
-22:61 tight lit %add
-22:66 wing draft.m
-22:73 tight glyph ]
-22:74 tight glyph )
-22:76 glyph |=
-22:78 tight lit %acked
-22:84 tight glyph ]
-22:85 tight glyph ]
-22:86 tight glyph ]
+22:35 tight glyph (
+22:36 tight wing poke.todo
+22:46 glyph [
+22:47 tight lit %add
+22:52 wing draft.m
+22:59 tight glyph ]
+22:61 glyph |=
+22:63 tight lit %acked
+22:69 tight glyph )
+22:70 tight glyph ]
+22:71 tight glyph ]
 23:5 NEWLINE
 23:5 glyph [
 23:6 tight lit %toggled
@@ -191,20 +188,17 @@
 23:20 glyph [
 23:21 tight name m
 23:23 glyph ~[
-23:25 tight glyph [
-23:26 tight lit %poke
-23:32 glyph (
-23:33 tight wing todo-action.todo
-23:50 glyph [
-23:51 tight lit %toggle
-23:59 name id
-23:61 tight glyph ]
-23:62 tight glyph )
-23:64 glyph |=
-23:66 tight lit %acked
-23:72 tight glyph ]
-23:73 tight glyph ]
-23:74 tight glyph ]
+23:25 tight glyph (
+23:26 tight wing poke.todo
+23:36 glyph [
+23:37 tight lit %toggle
+23:45 name id
+23:47 tight glyph ]
+23:49 glyph |=
+23:51 tight lit %acked
+23:57 tight glyph )
+23:58 tight glyph ]
+23:59 tight glyph ]
 24:5 NEWLINE
 24:5 glyph [
 24:6 tight lit %got

@@ -90,7 +90,7 @@
   =/  cap256=icaps:jibb  (turn (gulf 0 255) |=(n=@ud ['A' n *span:jibb]))
   =/  cap257=icaps:jibb  (turn (gulf 0 256) |=(n=@ud ['A' n *span:jibb]))
   =/  initial=istate:jibb
-    state(molds molds.u.g, at /tests/empty/jibb, active ~[%outer], caps ~[['Q' 17 *span:jibb]], tags ~[[42 [%term %tas %pending '%pending']]], sub ~[[71 [%atom %t]]], next 100)
+    state(molds molds.u.g, at /tests/empty/jibb, active ~[%outer], caps ~[['Q' 17 *span:jibb]], tags ~[[42 [%term %tas %pending '%pending'] *span:jibb]], sub ~[[71 [%atom %t]]], next 100)
   =/  preserved=(unit [typ=itype:jibb state=istate:jibb])  (infer-simple-shape:jibb u.chosen initial)
   =/  structured=istate:jibb  initial(params ~[['A' [%cell [%atom %t] [%atom %t]]]])
   =/  rejected=(unit [typ=itype:jibb state=istate:jibb])  (infer-simple-shape:jibb u.chosen structured)

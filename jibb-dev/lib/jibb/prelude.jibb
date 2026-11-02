@@ -1,5 +1,5 @@
 /= internal /lib/jibb/internal
-+$ poke poke.internal
++$ raw-poke raw-poke.internal
 +$ qath qath.internal
 
 ::  Initial prelude functions. The rest of the inventory is still to come.
@@ -325,7 +325,7 @@
     [f b] |= a=A (f a b)
 
 +$ cmd |$ [M]
-  [%poke p=poke reply=$-((unit @t) M)]
+  [%poke p=raw-poke reply=$-((unit @t) M)]
   [%go url=@t]
   [%wait gap=@dr msg=M]
   [%now reply=$-(@da M)]

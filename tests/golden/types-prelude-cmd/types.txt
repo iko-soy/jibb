@@ -10,7 +10,7 @@ partial inference; module not checked
 /tests/golden/types-prelude-cmd/source.jibb:5:20: expression
 ++ bad ^- (cmd @t) [%go url=~zod]
                    ^
-++ send: $-(poke (cmd @t))
+++ send: $-(raw-poke (cmd @t))
 ++ wait: (cmd @t)
 ++ who: (cmd @t)
 ++ wrong-message: cast mold and expression type do not unify

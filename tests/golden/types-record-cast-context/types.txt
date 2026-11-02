@@ -46,4 +46,4 @@ partial inference; module not checked
 ++ forced: explicit capital constraints are not supported by partial inference
 ++ pending-tag: tag needs context in partial inference
 ++ pending-null: `~` needs context in partial inference
-++ unknown: cast constraint is not supported by partial inference
+++ unknown: $-(A [left=A right=A])

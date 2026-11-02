@@ -25,7 +25,7 @@ partial inference; module not checked
 ++ reject-alias (alias.math %.n %.y)
                             ^
 ++ reject-any: call constraint is not supported by partial inference
-++ nested: local definitions need unsupported inference
+++ nested: $-(A A) where A is an atom other than ?
 ++ inc-decimal: @ud
 ++ inc-hex: @ux
 ++ inc-bool: call's sample and argument types do not unify

@@ -141,7 +141,7 @@ Loads and renders run in Nock.
 
 ```jibb
 +$ cmd |$ [M]
-  [%poke p=poke reply=$-((unit @t) M)]
+  [%poke p=raw-poke reply=$-((unit @t) M)]
   [%go url=@t]
   [%wait gap=@dr msg=M]
   [%now reply=$-(@da M)]
@@ -154,7 +154,7 @@ Loads and renders run in Nock.
 
 An island's `update` returns `[model (list (cmd M))]`, so one message may produce several commands. The runtime processes the returned commands one at a time, in list order. A store's `update` consumes exactly one poke with the current state and returns the next state.
 
-- `poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally. Derived gates and `pure` also construct requests. A derived poke constructor such as `(todo-action.todo [%add draft.m])` checks its value and supplies the agent and mark, so one island can poke several agents. The agent's mark rechecks on the ship; a nack's `tang` reaches the reply as text. Store constructors poke the store in the browser.
+- `raw-poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally. Derived gates and `pure` also construct requests. A derived poke helper such as `(poke.todo [%add draft.m] |=%acked)` checks its value and supplies the agent and mark, returning a command whose reply becomes an island message, so one island can poke several agents. The agent's mark rechecks on the ship; a nack's `tang` reaches the reply as text. Store helpers poke the store in the browser.
 - A request such as `(todos.todo |=%got)` comes from a declared path or a store's `state`; its reply always gets full state. A path with diffs also takes a fold, `(changes.todo |=%got apply)`, which the runtime applies first. Facts are checked; a bad one crashes the reply, which counts as a crashed `update`.
 - Islands read agents only by watching. A watch's first fact must be full state, so watching a request whose path case has a separate `scry=` path is a type error in an island. The checker must prove a request is watchable; unknown watchability is also a type error. The runtime acks facts, rewatches after a kick or a dropped connection and reseeds from the first fact; a refused watch shows the crash notice.
 - Watches match by agent and path, timers by gap, and the newest reply is always used. After each `update`, `subs` is diffed to start and stop watches and timers. `%now` and `%every` give the time, `%who` the owner's `@p` from `/~/name`; `%wait` is a one-shot delay.
@@ -165,7 +165,7 @@ Inputs send a message per `input` event, and one per IME composition, so validat
 
 - `init` runs on the ship with the page's data and returns only the model, jammed into the page; the browser resumes from it at start. A reload starts from the model the page is served with.
 - A crash in `update` drops the message, keeps the model and shows the standard notice.
-- Stores share state between a page's islands. A store module, written like an API file, has `state`, `+$ poke` and `++ main (store init update)`, where `update` applies a poke. The store's `+$ poke` is a declaration, not a mold. The builder is `+$ store |$ [S] [init=S update=*]` with `++ store |= [init=S update=$-([A S] S)] ^- (store S) [init update]`: it checks action `A`, while `main` exposes only state `S`; the store kind check verifies `A` against the declaration. Islands import it with `/=` and use its derived gates: a constructor per poke type, and `(state.cart |=%got)`, whose first fact is the current state and each later fact the next.
+- Stores share state between a page's islands. A store module, written like an API file, has `state`, `+$ poke` and `++ main (store init update)`, where `update` applies a poke. The store's local `+$ poke` is an ordinary action mold; the runtime envelope is `raw-poke`. The builder is `+$ store |$ [S] [init=S update=*]` with `++ store |= [init=S update=$-([A S] S)] ^- (store S) [init update]`: it checks action `A`, while `main` exposes only state `S`; the store kind check verifies `A` against the declaration. Islands import it with `/=` and use its derived gates: the generic `poke` command helper, and `(state.cart |=%got)`, whose first fact is the current state and each later fact the next.
 - A store runs in the browser from its `init` when its first island starts, and lasts as long as the page. Islands keep what they watch in their own models.
 - An app is a page whose view is one island under a catch-all route; its `load` passes the path with `pure`. The island's `%url` subscription delivers the path at start and after every change, back and forward included. `go` pushes history, and `go` or `link` within the section changes the island without a reload. Focus then moves to the new view's first heading, which screen readers announce.
 
@@ -282,7 +282,7 @@ The host is one Gall agent on the `%jibb` desk, serving every Jibb desk, so app 
 
 ### Agent APIs
 
-Each agent Jibb talks to has `/ui/api/<agent>.jibb`, declaring its pokes in `+$ poke` and its paths in `+$ paths`, over types from the agent's own marks through `/%`. Importing it gives derived gates: a constructor per poke type, which pokes with that type's mark, and a request per path, which checks what comes back. Clashing derived names are errors.
+Each agent Jibb talks to has `/ui/api/<agent>.jibb`, declaring its pokes in `+$ poke` and its paths in `+$ paths`, over types from the agent's own marks through `/%`. Importing it gives derived gates: a generic `poke` command helper, which checks the action and reply and pokes with the action's mark, and a request per path, which checks what comes back. Clashing derived names are errors.
 
 ```jibb
 ::  /ui/api/todo.jibb
@@ -473,8 +473,8 @@ A `page`: each request scries `%blog` and renders in Nock.
       ?- (gth (lent (tuba (trip t))) 80)
         %.y  [m(draft=t error=`"Too long") ~]
         %.n  [m(draft=t error=~) ~]
-    %submit        [m(draft="") ~[[%poke (todo-action.todo [%add draft.m]) |=%acked]]]
-    [%toggled id]  [m ~[[%poke (todo-action.todo [%toggle id]) |=%acked]]]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
     [%got ts]      [m(todos=ts) ~]
     [%acked err]   [m(error=err) ~]
 

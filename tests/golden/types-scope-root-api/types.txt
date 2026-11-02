@@ -1,2 +1,2 @@
 partial inference; module not checked
-module kind or scope needs unsupported inference
++$ poke: not checked

@@ -74,7 +74,8 @@
   =/  detailed=jfile-detailed-result:jibb  (program-init-detailed at src ~ prepared)
   ?:  ?=(%& -.detailed)  ~[(weld (trip label) ": structured check accepted")]
   ?.  ?=(~ overlap.p.detailed)  ~[(weld (trip label) ": unexpected overlap evidence")]
-  ?.  =(message.p.detailed boundary)  ~[(weld (trip label) ": rejected at the wrong boundary")]
+  ?.  =(message.p.detailed boundary)
+    ~[(weld (weld (trip label) ": rejected at the wrong boundary: ") (trip message.p.detailed))]
   =/  legacy=jfile-result:jibb  (program-init-legacy at src ~ prepared)
   ?:  ?=(%& -.legacy)  ~[(weld (trip label) ": legacy check accepted")]
   ?.  =(p.legacy boundary)  ~[(weld (trip label) ": legacy boundary differs")]
@@ -87,6 +88,11 @@
   %+  weld
     (program-init-negative label.i.cases at.i.cases src.i.cases boundary.i.cases prepared)
   $(cases t.cases)
+::
+++  program-init-pending
+  |=  [at=path src=@t line=@ud col=@ud literal=tape]
+  ^-  @t
+  (show-error:jibb src [at line col (weld "nothing fixes the union of " literal)])
 ::
 ++  program-init-errors
   |=  [public=@t private=@t island=@t downstream=@t unfaced=@t negatives=(list @t)]
@@ -101,15 +107,15 @@
   ?.  =(9 (lent negatives))  ~["contextual negative fixture count differs"]
   =/  definitions=@t  (crip "module definitions need unsupported inference: {(spud at)}")
   =/  cases=(list [label=@t at=path src=@t boundary=@t])
-    :~  ['incompatible error field' at (snag 0 negatives) definitions]
-        ['earlier tuple mismatch' at (snag 1 negatives) definitions]
-        ['inconsistent model' at (snag 2 negatives) definitions]
-        ['inconsistent message' at (snag 3 negatives) definitions]
-        ['missing/generic data sample' at (snag 4 negatives) definitions]
+    :~  ['incompatible error field' at (snag 0 negatives) (program-init-pending at (snag 0 negatives) 6 32 "~")]
+        ['earlier tuple mismatch' at (snag 1 negatives) (program-init-pending at (snag 1 negatives) 6 34 "~")]
+        ['inconsistent model' at (snag 2 negatives) (program-init-pending at (snag 2 negatives) 7 32 "~")]
+        ['inconsistent message' at (snag 3 negatives) (program-init-pending at (snag 3 negatives) 9 32 "~")]
+        ['missing/generic data sample' at (snag 4 negatives) (program-init-pending at (snag 4 negatives) 6 22 "~")]
         ['missing initializer' at (snag 5 negatives) definitions]
-        ['unrelated pending tag' at (snag 6 negatives) definitions]
-        ['non-main same source' at (snag 7 negatives) definitions]
-        ['init and subs unresolved' at (snag 8 negatives) definitions]
+        ['unrelated pending tag' at (snag 6 negatives) (program-init-pending at (snag 6 negatives) 12 6 "%unrelated")]
+        ['non-main same source' at (snag 7 negatives) (program-init-pending at (snag 7 negatives) 6 32 "~")]
+        ['init and subs unresolved' at (snag 8 negatives) (program-init-pending at (snag 8 negatives) 6 32 "~")]
         :-  'API path'
         [/ui/api/program-main/jibb island 'module kind needs unsupported inference: /ui/api/program-main/jibb']
         :-  'store path'

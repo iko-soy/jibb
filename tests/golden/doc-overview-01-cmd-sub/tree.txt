@@ -4,11 +4,11 @@
       (union 2:3
         (cell 2:3
           (const 2:4 %poke)
-          (face 2:10 p (ref 2:12 poke))
-          (face 2:17 reply
-            (fn 2:23
-              (apply 2:26 unit (aura 2:32 @t))
-              (tvar 2:36 M))))
+          (face 2:10 p (ref 2:12 raw-poke))
+          (face 2:21 reply
+            (fn 2:27
+              (apply 2:30 unit (aura 2:36 @t))
+              (tvar 2:40 M))))
         (cell 3:3
           (const 3:4 %go)
           (face 3:8 url (aura 3:12 @t)))

@@ -6,45 +6,45 @@ partial inference; module not checked
 partial inference; module not checked
 +$ copy: not checked
 +$ double: not checked
-++ good: poke
-++ pass: $-(poke poke)
-++ pass-alias: $-(poke poke)
-++ direct: poke
-++ alias: poke
+++ good: (cmd (unit @t))
+++ pass: $-(raw-poke raw-poke)
+++ pass-alias: $-(raw-poke raw-poke)
+++ direct: raw-poke
+++ alias: raw-poke
 ++ getter: field is not available to partial inference
-++ inspect: $-(poke @t)
+++ inspect: $-(raw-poke @t)
 ++ change: change target needs a known record in partial inference
 ++ cast-atom: cast constraint is not supported by partial inference
 ++ leaked: cast constraint is not supported by partial inference
 ++ split: cell pattern subject is not supported by partial inference
-++ number: [poke @ud]
+++ number: [(cmd (unit @t)) @ud]
 ++ bad-constructor: call's sample and argument types do not unify
 /ui/test.jibb:21:21: called gate
-++ bad-constructor (todo-action.todo ~zod)
+++ bad-constructor (poke.todo ~zod same)
                     ^
-/ui/test.jibb:21:38: argument has type @p
-++ bad-constructor (todo-action.todo ~zod)
-                                     ^
+/ui/test.jibb:21:31: argument has type @p
+++ bad-constructor (poke.todo ~zod same)
+                              ^
 ++ bad-mark: cast mold and expression type do not unify
 /ui/test.jibb:22:16: cast mold
-++ bad-mark ^- poke [%agent %todo 0x1f "x"]
+++ bad-mark ^- raw-poke [%agent %todo 0x1f "x"]
                ^
-/ui/test.jibb:22:21: expression
-++ bad-mark ^- poke [%agent %todo 0x1f "x"]
-                    ^
+/ui/test.jibb:22:25: expression
+++ bad-mark ^- raw-poke [%agent %todo 0x1f "x"]
+                        ^
 ++ bad-case: cast mold and expression type do not unify
 /ui/test.jibb:23:16: cast mold
-++ bad-case ^- poke [%alien %todo %todo-action "x"]
+++ bad-case ^- raw-poke [%alien %todo %todo-action "x"]
                ^
-/ui/test.jibb:23:21: expression
-++ bad-case ^- poke [%alien %todo %todo-action "x"]
-                    ^
+/ui/test.jibb:23:25: expression
+++ bad-case ^- raw-poke [%alien %todo %todo-action "x"]
+                        ^
 partial inference; module not checked
 the prelude internal module is private
 partial inference; module not checked
 ++ nope: sample mold is not supported by partial inference
 partial inference; module not checked
-++ pass: $-(poke poke)
+++ pass: $-(raw-poke raw-poke)
 ++ fake-to-real: cast constraint is not supported by partial inference
 ++ real-to-fake: cast constraint is not supported by partial inference
 ++ match-tag: union pattern is not supported by partial inference
@@ -63,4 +63,4 @@ API module needs unsupported inference: /ui/api/todo/jibb
 partial inference; module not checked
 API module needs unsupported inference: /ui/api/todo/jibb
 partial inference; module not checked
-module has conflicting names: /ui/wrong/todo/jibb
+++ test: module member is not available to partial inference

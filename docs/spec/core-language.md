@@ -108,8 +108,8 @@ The todo island's `update`, from worked example 3:
       ?- (gth (lent (tuba (trip t))) 80)
         %.y  [m(draft=t error=`"Too long") ~]
         %.n  [m(draft=t error=~) ~]
-    %submit        [m(draft="") ~[[%poke (todo-action.todo [%add draft.m]) |=%acked]]]
-    [%toggled id]  [m ~[[%poke (todo-action.todo [%toggle id]) |=%acked]]]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
     [%got ts]      [m(todos=ts) ~]
     [%acked err]   [m(error=err) ~]
 ```

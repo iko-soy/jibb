@@ -32,7 +32,7 @@
         (face 5:25 url (lit 5:29 ~zod)))))
   (value 6:1 send
     (gate 6:9
-      (face 6:12 p (ref 6:14 poke))
+      (face 6:12 p (ref 6:14 raw-poke))
       (body 7:3
         (cast 7:3
           (apply 7:6 cmd (aura 7:11 @t))
@@ -95,7 +95,7 @@
         (tuple 16:52 (lit 16:53 %wait) (lit 16:59 ~s30) (lit 16:64 ~zod)))))
   (value 17:1 wrong-poke
     (gate 17:15
-      (face 17:18 p (ref 17:20 poke))
+      (face 17:18 p (ref 17:20 raw-poke))
       (body 18:3
         (cast 18:3
           (apply 18:6 cmd (aura 18:11 @t))

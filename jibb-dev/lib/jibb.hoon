@@ -774,39 +774,38 @@
 ::          (face 2:11 items
 ::            (apply 2:17 list (aura 2:23 @t)))
 ::          (face 2:27 open (flag 2:32))))
-::      (mold 3:1 cart-action
+::      (mold 3:1 poke
 ::        (union 4:3
 ::          (cell 4:3
 ::            (const 4:4 %add)
 ::            (face 4:9 item (aura 4:14 @t)))
 ::          (const 5:3 %toggle)))
-::      (mold 6:1 poke (ref 6:9 cart-action))
-::      (value 8:1 main
-::        (group 8:9
-::          (call 8:10 (wing 8:10 store) (wing 8:16 init) (wing 8:21 update))))
-::      (value 9:1 init
-::        (cast 9:9
-::          (ref 9:12 state)
-::          (tuple 9:18 (lit 9:19 ~) (lit 9:21 %.n))))
-::      (value 10:1 update
-::        (gate 10:11
-::          (cell 10:14
-::            (face 10:15 a (ref 10:17 cart-action))
-::            (face 10:29 s (ref 10:31 state)))
-::          (body 11:3
-::            (branch 11:3
-::              (wing 11:6 a)
+::      (value 7:1 main
+::        (group 7:9
+::          (call 7:10 (wing 7:10 store) (wing 7:16 init) (wing 7:21 update))))
+::      (value 8:1 init
+::        (cast 8:9
+::          (ref 8:12 state)
+::          (tuple 8:18 (lit 8:19 ~) (lit 8:21 %.n))))
+::      (value 9:1 update
+::        (gate 9:11
+::          (cell 9:14
+::            (face 9:15 a (ref 9:17 poke))
+::            (face 9:22 s (ref 9:24 state)))
+::          (body 10:3
+::            (branch 10:3
+::              (wing 10:6 a)
+::              (arm 11:5
+::                (cell 11:5 (lit 11:6 %add) (bind 11:11 item))
+::                (change 11:18 s
+::                  (edit 11:20 items
+::                    (tuple 11:26 (wing 11:27 item) (wing 11:32 items.s)))))
 ::              (arm 12:5
-::                (cell 12:5 (lit 12:6 %add) (bind 12:11 item))
+::                (lit 12:5 %toggle)
 ::                (change 12:18 s
-::                  (edit 12:20 items
-::                    (tuple 12:26 (wing 12:27 item) (wing 12:32 items.s)))))
-::              (arm 13:5
-::                (lit 13:5 %toggle)
-::                (change 13:18 s
-::                  (edit 13:20 open
-::                    (group 13:25
-::                      (call 13:26 (wing 13:26 not) (wing 13:30 open.s)))))))))))
+::                  (edit 12:20 open
+::                    (group 12:25
+::                      (call 12:26 (wing 12:26 not) (wing 12:30 open.s)))))))))))
 ::
 ::  4.3 Errors (+show-error): "<file>:<line>:<col>: <message>", then the
 ::  source line, then a caret under the column (col - 1 spaces, then ^).
@@ -11341,22 +11340,6 @@
   ?.  (levy vals |=(n=term &((unique-value-name n vals) !(lien prelude-values |=(v=term =(n v))))))  |
   (levy mold-names |=(n=term &((unique-value-name n mold-names) !(lien prelude-molds |=(m=term =(n m))))))
 ::
-::  In an API file or before main's kind is known, a lone `+$ poke`
-::  may be a declaration rather than a mold that shadows the prelude. Do not call
-::  that one collision definite, and do not hide unrelated scope errors.
-++  pending-declared-poke
-  |=  [at=path mod=module prelude-values=(list term) prelude-molds=(list term)]
-  ^-  ?
-  ?.  (lien prelude-molds |=(n=term =(%poke n)))  |
-  ?.  |(?=([%ui %api @ %jibb ~] at) (lien defs.mod |=(d=def &(?=(%value -.d) =(%main name.d)))))  |
-  =/  pokes=(list def)
-    (skim defs.mod |=(d=def &(?=(%mold -.d) =(%poke name.d))))
-  ?~  pokes  |
-  ?^  t.pokes  |
-  =/  remaining=(list def)
-    (skim defs.mod |=(d=def !&(?=(%mold -.d) =(%poke name.d))))
-  (module-scope-valid mod(defs remaining) prelude-values prelude-molds)
-::
 ::  A detailed failure is attached only to the first mold that actually
 ::  failed in this check, using that module's checked source mold table.
 +$  imold-failure  [message=@t overlap=(unit [name=term cases=upair])]
@@ -12003,7 +11986,8 @@
   ?>  ?=(%mold -.decl)
   =/  paths=(unit (list iapi-path))  (api-path-declaration shape.decl declared)
   ?~  paths  ~
-  ?.  (api-derived-names-valid u.paths u.poke-names mod prelude-values)  ~
+  =/  derived-pokes=(list term)  ?~(pokes ~ ~[%poke])
+  ?.  (api-derived-names-valid u.paths derived-pokes mod prelude-values)  ~
   (api-path-types u.paths externals declared)
 ::
 ::  Source/graph entry for path analysis only. The returned paths retain
@@ -12214,16 +12198,17 @@
 ::  Value watchability remains unproved even for a watchable declaration.
 +$  ione-request-interface
   [support=iapi-support-evidence parts=iapi-request-parts iface=ifile]
-++  store-compatible-poke
+++  compatible-raw-poke
   |=  prelude=iprelude
   ^-  (unit ischeme)
   =/  public=ifile  iface.prelude
   ?.  =(at.public /lib/jibb/prelude/jibb)  ~
-  =/  poke=(unit ischeme)  (find-jibb-mold %poke public)
+  =/  poke=(unit ischeme)  (find-jibb-mold %raw-poke public)
   ?~  poke  ~
-  ?.  ?=(%union -.typ.u.poke)  ~
   ?^  vars.u.poke  ~
-  ?.  =(origin.typ.u.poke `[/lib/jibb/internal/jibb %poke])  ~
+  ?.  ?=(%union -.typ.u.poke)  ~
+  ?^  args.typ.u.poke  ~
+  ?.  =(origin.typ.u.poke `[/lib/jibb/internal/jibb %raw-poke])  ~
   ?:  (itype-has-tag typ.u.poke)  ~
   =/  private=(list iwidth-dependency)
     (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
@@ -12407,7 +12392,7 @@
   ?^  (duplicate-defs defs.mod)  ~
   ?~  prelude  ~
   ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  ~
-  =/  poke=(unit ischeme)  (find-jibb-mold %poke u.prelude)
+  =/  poke=(unit ischeme)  (find-jibb-mold %raw-poke u.prelude)
   ?~  poke  ~
   ?.  ?=(%union -.typ.u.poke)  ~
   ?^  vars.u.poke  ~
@@ -12431,8 +12416,9 @@
   ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))  ~
   =/  mark=(unit itype)  (find-imported-mark n mark-externals marks)
   ?~  mark  ~
-  =/  sc=ischeme  [[%fn u.mark typ.u.poke] ~]
-  `[~[[n sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]] ~ ~ ~ ~]
+  =/  sc=(unit ischeme)  (derived-poke-command-scheme u.prelude u.mark)
+  ?~  sc  ~
+  `[~[[%poke u.sc]] (api-mark-exports marks marks mark-externals) at ~[[n i.t.t.at n]] ~ ~ ~ ~]
 ::
 ::  Source-proven ordinary helpers validate each selected /sur dependency.
 ::  Unused or less direct cores remain unsupported by this first interface.
@@ -12635,8 +12621,8 @@
   ?~  view  ~
   `[u.load u.view]
 ::
-::  A store main is only the direct two-wing source call.  The poke declaration
-::  is checked here, then removed before every ordinary mold/value inference pass.
+::  A store main is only the direct two-wing source call.  Its local poke mold
+::  is checked here and remains in ordinary mold/value inference.
 ++  store-main-parts
   |=  d=def
   ^-  (unit [init=term update=term])
@@ -12671,18 +12657,10 @@
   =/  state=def  i.states
   ?>  &(?=(%mold -.poke) ?=(%mold -.state))
   ?:  ?=(%generic -.shape.state)  ~
-  ?.  ?=(%ref -.shape.poke)  ~
-  ?.  ?=([@ ~] names.shape.poke)  ~
-  =/  action=term  i.names.shape.poke
-  =/  actions=(list def)
-    (skim ds |=(d=def &(?=(%mold -.d) =(action name.d))))
-  ?.  ?=([* ~] actions)  ~
-  =/  action-def=def  i.actions
-  ?>  ?=(%mold -.action-def)
-  ?:  ?=(%generic -.shape.action-def)  ~
-  =/  ordinary=(list def)
-    (skim ds |=(d=def !&(?=(%mold -.d) =(%poke name.d))))
-  ?.  (module-scope-valid mod(defs ordinary) prelude-values prelude-molds)  ~
+  ?:  ?=(%generic -.shape.poke)  ~
+  =/  action=term  %poke
+  =/  ordinary=(list def)  ds
+  ?.  (module-scope-valid mod prelude-values prelude-molds)  ~
   =/  derived=(list term)  ~[%state action]
   ?:  (lien derived |=(n=term =(n %proj)))  ~
   =/  outer=(list term)
@@ -13753,6 +13731,7 @@
   =?  inferred  ?=(%| -.inferred)  (infer-recursive-gate init-def env init-state)
   ?:  ?=(%| -.inferred)  ~
   ?.  ?=(%fn -.typ.p.inferred)  ~
+  ?^  (itype-vars sample.typ.p.inferred)  ~
   =/  data-fit=ifit
     (itype-fit sample.typ.p.inferred sample.expected sub.state.p.inferred next.state.p.inferred)
   ?.  ?=(%ok -.data-fit)  ~
@@ -13782,22 +13761,58 @@
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
   `[env.u.added grouped.resolution artifacts.u.added]
 ::
+++  derived-poke-command-scheme
+  |=  [prelude=ifile action=itype]
+  ^-  (unit ischeme)
+  =/  prep=iprelude  [prelude ~ ~]
+  =/  raw=(unit ischeme)  (compatible-raw-poke prep)
+  ?~  raw  ~
+  =/  command=(unit ischeme)  (find-jibb-mold %cmd prelude)
+  =/  unit-template=(unit ischeme)  (find-jibb-mold %unit prelude)
+  ?~  command  ~
+  ?~  unit-template  ~
+  ?.  (standard-unit-template u.unit-template /lib/jibb/prelude/jibb)  ~
+  ?.  ?=([@ ~] vars.u.command)  ~
+  ?.  ?=(%union -.typ.u.command)  ~
+  ?.  =(origin.typ.u.command `[/lib/jibb/prelude/jibb %cmd])  ~
+  ?.  (identity-union-parameters vars.u.command args.typ.u.command)  ~
+  =/  m=@ud  i.vars.u.command
+  ?:  (itype-var-is-atom m typ.u.command)  ~
+  ?.  (levy (itype-vars typ.u.command) |=(n=@ud =(n m)))  ~
+  ?:  (itype-has-tag typ.u.command)  ~
+  =/  error=(unit itype)  (template-apply u.unit-template ~[[%atom %t]])
+  ?~  error  ~
+  ?.  ?=(%union -.typ.u.raw)  ~
+  =/  poke-case=itype
+    [%cell [%const [%term %tas %poke '%poke']] [%cell [%face %p typ.u.raw(label `'raw-poke.internal')] [%face %reply [%fn u.error [%var m]]]]]
+  =/  go-case=itype
+    [%cell [%const [%term %tas %go '%go']] [%face %url [%atom %t]]]
+  =/  wait-case=itype
+    [%cell [%const [%term %tas %wait '%wait']] [%cell [%face %gap [%atom %dr]] [%face %msg [%var m]]]]
+  =/  now-case=itype
+    [%cell [%const [%term %tas %now '%now']] [%face %reply [%fn [%atom %da] [%var m]]]]
+  =/  who-case=itype
+    [%cell [%const [%term %tas %who '%who']] [%face %reply [%fn [%atom %p] [%var m]]]]
+  ?.  =(cases.typ.u.command ~[poke-case go-case wait-case now-case who-case])  ~
+  =/  command-result=(unit itype)  (template-apply u.command ~[[%var 0]])
+  ?~  command-result  ~
+  `[[%fn [%cell action [%fn u.error [%var 0]]] u.command-result] ~[0]]
+::
 ++  store-derived-schemes
   |=  [prelude=ifile values=(list term) molds=(list term) state=itype action=itype]
   ^-  (unit [state=ischeme action=ischeme])
   =/  prep=iprelude  [prelude values molds]
   =/  ask=(unit ischeme)  (request-compatible-ask prep)
   ?~  ask  ~
-  =/  poke=(unit ischeme)  (store-compatible-poke prep)
-  ?~  poke  ~
   ?^  (itype-vars state)  ~
   ?^  (itype-vars action)  ~
   ?:  |((itype-has-tag state) (itype-has-tag action))  ~
   =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
   ?~  result  ~
   =/  request=ischeme  [[%fn [%fn state [%var 0]] u.result] ~[0]]
-  =/  constructor=ischeme  [[%fn action typ.u.poke] ~]
-  `[request constructor]
+  =/  constructor=(unit ischeme)  (derived-poke-command-scheme prelude action)
+  ?~  constructor  ~
+  `[request u.constructor]
 ::
 ++  program-subs-watch
   |=  [d=def imports=ijimports graph=irequest-graph prelude=ifile]
@@ -14029,8 +14044,8 @@
   =?  tail  ?=(%face -.tail)  body.tail
   typ(sample [%cell head tail])
 ::
-::  The builder erases the action from main.  Recover it only from the direct
-::  local poke declaration and check both ordinary components invariantly.
+::  The builder erases the action from main.  Recover it only from the local
+::  poke mold and check both ordinary components invariantly.
 ++  store-main-closed
   |=  [parts=[init=term update=term] action=term env=ienv molds=imold-types prelude=(unit ifile)]
   ^-  (unit ischeme)
@@ -14138,8 +14153,6 @@
   =/  ds=(list def)  ?~(declared defs.mod defs.u.declared)
   =/  checking=module  mod(defs ds)
   ?.  (module-scope-valid checking prelude-values prelude-molds)
-    ?:  (pending-declared-poke at mod prelude-values prelude-molds)
-      [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
     [%| [(crip "module has conflicting names: {(spud at)}") ~]]
   =/  vals=(list term)  (global-value-names ds)
   =/  js=jimports-detailed-result  (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
@@ -14376,8 +14389,6 @@
   =/  prelude-molds=(list term)  molds.u.prepared
   =/  iface=(unit ifile)  `iface.u.prepared
   ?.  (module-scope-valid p.parsed prelude-values prelude-molds)
-    ?:  (pending-declared-poke file p.parsed prelude-values prelude-molds)
-      'partial inference; module not checked\0amodule kind or scope needs unsupported inference'
     'partial inference; module not checked\0amodule has conflicting names'
   =/  js=jimports-result
     (resolve-jibb-imports imports.p.parsed externals mark-externals modules ~[file] prelude-values prelude-molds ~ iface)

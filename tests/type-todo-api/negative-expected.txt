@@ -10,11 +10,11 @@ partial inference; module not checked
 ++ missing-fold: call constraint is not supported by partial inference
 ++ bad-action: call's sample and argument types do not unify
 /tests/type-todo-api/negative.jibb:5:16: called gate
-++ bad-action (todo-action.api [%typo text="hello"])
+++ bad-action (poke.api [%typo text="hello"] same)
                ^
-/tests/type-todo-api/negative.jibb:5:32: argument
-++ bad-action (todo-action.api [%typo text="hello"])
-                               ^
+/tests/type-todo-api/negative.jibb:5:25: argument
+++ bad-action (poke.api [%typo text="hello"] same)
+                        ^
 +$ msg: cases proven disjoint; mold not checked
 ++ missing: call's sample and argument types do not unify
 /tests/type-todo-api/negative.jibb:9:26: called gate

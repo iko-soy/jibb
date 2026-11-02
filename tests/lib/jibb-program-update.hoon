@@ -74,7 +74,8 @@
   =/  detailed=jfile-detailed-result:jibb  (program-update-detailed at src ~ prepared)
   ?:  ?=(%& -.detailed)  ~[(weld (trip label) ": structured check accepted")]
   ?.  ?=(~ overlap.p.detailed)  ~[(weld (trip label) ": unexpected overlap evidence")]
-  ?.  =(message.p.detailed boundary)  ~[(weld (trip label) ": rejected at the wrong boundary")]
+  ?.  =(message.p.detailed boundary)
+    ~[(weld (weld (trip label) ": rejected at the wrong boundary: ") (trip message.p.detailed))]
   =/  legacy=jfile-result:jibb  (program-update-legacy at src ~ prepared)
   ?:  ?=(%& -.legacy)  ~[(weld (trip label) ": legacy check accepted")]
   ?.  =(p.legacy boundary)  ~[(weld (trip label) ": legacy boundary differs")]
@@ -111,7 +112,7 @@
         ['malformed sample' at (snag 3 negatives) definitions u.prepared]
         ['non-two-slot sample' at (snag 4 negatives) definitions u.prepared]
         ['non-main same source' at (snag 5 negatives) definitions u.prepared]
-        ['unrelated pending tag' at (snag 6 negatives) definitions u.prepared]
+        ['unrelated pending tag' at (snag 6 negatives) (show-error:jibb (snag 6 negatives) [at 16 13 "nothing fixes the union of %unrelated"]) u.prepared]
         ['missing canonical cmd' at island definitions without-cmd]
         ['missing canonical list' at (snag 7 negatives) definitions without-list]
         :-  'API path'

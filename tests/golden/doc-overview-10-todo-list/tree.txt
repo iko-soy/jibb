@@ -78,25 +78,21 @@
               (change 22:21 m
                 (edit 22:23 draft (str 22:29 "")))
               (list 22:33
-                (tuple 22:35
-                  (lit 22:36 %poke)
-                  (group 22:42
-                    (call 22:43
-                      (wing 22:43 todo-action.todo)
-                      (tuple 22:60 (lit 22:61 %add) (wing 22:66 draft.m))))
-                  (ctor 22:76 %acked)))))
+                (group 22:35
+                  (call 22:36
+                    (wing 22:36 poke.todo)
+                    (tuple 22:46 (lit 22:47 %add) (wing 22:52 draft.m))
+                    (ctor 22:61 %acked))))))
           (arm 23:5
             (cell 23:5 (lit 23:6 %toggled) (bind 23:15 id))
             (tuple 23:20
               (wing 23:21 m)
               (list 23:23
-                (tuple 23:25
-                  (lit 23:26 %poke)
-                  (group 23:32
-                    (call 23:33
-                      (wing 23:33 todo-action.todo)
-                      (tuple 23:50 (lit 23:51 %toggle) (wing 23:59 id))))
-                  (ctor 23:64 %acked)))))
+                (group 23:25
+                  (call 23:26
+                    (wing 23:26 poke.todo)
+                    (tuple 23:36 (lit 23:37 %toggle) (wing 23:45 id))
+                    (ctor 23:49 %acked))))))
           (arm 24:5
             (cell 24:5 (lit 24:6 %got) (bind 24:11 ts))
             (tuple 24:20

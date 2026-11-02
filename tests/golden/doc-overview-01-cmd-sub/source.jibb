@@ -1,5 +1,5 @@
 +$ cmd |$ [M]
-  [%poke p=poke reply=$-((unit @t) M)]
+  [%poke p=raw-poke reply=$-((unit @t) M)]
   [%go url=@t]
   [%wait gap=@dr msg=M]
   [%now reply=$-(@da M)]

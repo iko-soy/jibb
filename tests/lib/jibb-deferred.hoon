@@ -111,7 +111,7 @@
   ?~  explicit-capture  ~['BAD-explicit-capture-scan']
   =/  tag-lit=lit:jibb  [%term %tas %watch '%watch']
   =/  bound-tag-state=istate:jibb  st(sub ~[[720 [%var 721]]])
-  =/  tag-check=(unit ischeme:jibb)  (dg-generalize:jibb [%fn [%var 721] [%var 722]] ~ ~ ~[[720 tag-lit]] ~ bound-tag-state 300)
+  =/  tag-check=(unit ischeme:jibb)  (dg-generalize:jibb [%fn [%var 721] [%var 722]] ~ ~ ~[[720 tag-lit *span:jibb]] ~ bound-tag-state 300)
   ?~  tag-check  ~['BAD-tag-scan']
   =/  cycle=(list dgo:jibb)  ~[[[%var 710] [%var 711] *span:jibb *span:jibb] [[%var 711] [%var 712] *span:jibb *span:jibb] [[%var 712] [%var 710] *span:jibb *span:jibb]]
   =/  cyc=(unit ischeme:jibb)  (dg-generalize:jibb [%fn [%var 710] [%fn [%var 712] [%var 713]]] ~ cycle ~ ~ st 300)

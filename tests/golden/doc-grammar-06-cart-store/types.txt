@@ -1,2 +1,6 @@
 partial inference; module not checked
-module kind or scope needs unsupported inference
++$ state: not checked
++$ poke: cases proven disjoint; mold not checked
+++ main: [init=[items=(list @t) open=?] update=*]
+++ init: [items=(list @t) open=?]
+++ update: $-([a=poke s=[items=(list @t) open=?]] [items=(list @t) open=?])

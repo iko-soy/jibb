@@ -6,7 +6,7 @@ partial inference; module not checked
 ++ by-id-ship: (ask @p)
 ++ changes-cord: (ask @t)
 ++ changes-ship: (ask @p)
-++ action: poke
+++ action: (cmd (unit @t))
 ++ item-id: $-([id=@ud [done=? text=@t]] @ud)
 ++ action-id: $-(([%add text=@t] [%toggle id=@ud]) ([%add text=@t] [%toggle id=@ud]))
 ++ todos-id: $-((list [id=@ud [done=? text=@t]]) (list [id=@ud [done=? text=@t]]))

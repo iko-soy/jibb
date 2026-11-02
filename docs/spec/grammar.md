@@ -91,7 +91,7 @@ Imports come first:
 /=  card    /ui/components/card  ::  a Jibb module
 ```
 
-An imported Hoon record with duplicate field names is an error where used; imported union cases must differ as nouns. `/%` names a type after its mark, so it takes no face, and any mark name works; Hoon's `/%` binds the mark's core instead. Derived constructors such as `todo-action.todo` supply the agent and mark, so callers need not write those details. API modules re-export their `/%` types, not `/-` faces or `/=` modules. Import cycles are errors.
+An imported Hoon record with duplicate field names is an error where used; imported union cases must differ as nouns. `/%` names a type after its mark, so it takes no face, and any mark name works; Hoon's `/%` binds the mark's core instead. Derived helpers such as `poke.todo` supply the agent and mark, so callers need not write those details. API modules re-export their `/%` types, not `/-` faces or `/=` modules. Import cycles are errors.
 
 ## Modules
 
@@ -99,10 +99,10 @@ A file is a module: imports, then definitions.
 
 - `+$ name mold` defines a mold; `++ name expr` a value.
 - Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included.
-- Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold and its constructor, `todos.todo` a mold and a request.
+- Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold, `poke.todo` its command helper, and `todos.todo` a mold and a request.
 - `main`'s type decides the kind: `(element !!)` a page; `(page R D)` a page with data, from parameters `R` to data `D`; `(program D X M)` an island, with data, model and messages; `(store S)` a store with state `S`. They're built by `(page load view)`, `(program init update view subs)` and `(store init update)`. A module without `main` is a library.
 - Everything is exported and read through the import's face, as `card.card`. The prelude keeps private helpers in a separate internal module; it imports them without exposing them.
-- An API module, `/ui/api/<agent>.jibb`, also exports derived gates: a constructor per `poke` type, adding the agent and mark, and a request per `paths` case, taking a reply over full state, plus a fold for `(facts full diff …)`. An island may watch a request only when the checker proves it is watchable. A request whose case has a separate `scry=` path, or whose watchability cannot be proved, is a type error. A store's `+$ poke` is a declaration, not a mold; a store exports a constructor per `poke` type and a `state` request. Clashing derived names are errors, including a derived name that clashes with an import face.
+- An API module, `/ui/api/<agent>.jibb`, also exports derived gates: a generic `poke` command helper, adding the agent and mark and taking a reply, and a request per `paths` case, taking a reply over full state, plus a fold for `(facts full diff …)`. An island may watch a request only when the checker proves it is watchable. A request whose case has a separate `scry=` path, or whose watchability cannot be proved, is a type error. A store's local `+$ poke` is its ordinary action mold; a store exports a generic `poke` command helper and a `state` request. Clashing derived names are errors, including a derived name that clashes with an import face.
 
 Names the host reads, by file:
 
@@ -130,8 +130,8 @@ A mold is only a type: never called on a noun, and with no default. Types are in
 - **Paths**: `/todos` is constant, `/` empty, and `/todo/[id=@ud]` typed by aura. A typed segment may use `_` for an inferred aura; it still must resolve to an aura that the path rules can print and parse. `%/blog/(slug)` is an `qath`, checked against routes and static files.
 - **Generic molds**: `+$ result |$ [V E]` with cases below; `|$` goes only right after a `+$`'s name.
 - **Noun**: `*`, not a type variable; use a capital for a generic type. A value already known to have a more specific noun type, such as `@ud`, can be used where `*` is expected. **Empty**: `!!`.
-- **Pokes**: `poke` is defined in the source-backed private internal prelude module and re-exported by the public prelude as an ordinary transparent type. Ordinary modules can construct and inspect its values.
-- **Effect and application-path types**: `poke`, `ask` and `qath` are transparent types, defined in the internal prelude and re-exported normally; callers can construct and inspect their values. Derived gates and `pure` also construct requests, and application-path literals have type `qath`. `(facts full diff …)` appears only in an API file's `paths`.
+- **Pokes**: `raw-poke` is defined in the source-backed private internal prelude module and re-exported by the public prelude as an ordinary transparent type. Ordinary modules can construct and inspect its values; derived `poke` helpers return commands.
+- **Effect and application-path types**: `raw-poke`, `ask` and `qath` are transparent types, defined in the internal prelude and re-exported normally; callers can construct and inspect their values. Derived gates and `pure` also construct requests, and application-path literals have type `qath`. `(facts full diff …)` appears only in an API file's `paths`.
 - **Identity**: recursive molds go by name and module.
 
 `eq`'s arguments and map and set keys must contain no gates, even nested inside another value. The checker infers this gate-free constraint on type variables and retains it when generalizing a `++`, so a generic helper that calls `eq` stays generic over gate-free types. Printed types show the constraint as `$-([A A] ?) where A contains no gates`. An inferred atom constraint prints as `$-([A A] A) where A is an atom`; an arithmetic atom constraint that excludes loobeans prints as `where A is an atom other than ?`. Multiple clauses are comma-separated, as `where A is an atom, B contains no gates`. Union-case matching treats gates as opaque and never inspects a gate to distinguish cases.
@@ -293,14 +293,13 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
 ```jibb
 ::  /ui/stores/cart.jibb
 +$ state [items=(list @t) open=?]
-+$ cart-action
++$ poke
   [%add item=@t]
   %toggle
-+$ poke cart-action
 
 ++ main (store init update)
 ++ init ^- state [~ %.n]
-++ update |= [a=cart-action s=state]
+++ update |= [a=poke s=state]
   ?- a
     [%add item]  s(items=[item items.s])
     %toggle      s(open=(not open.s))
@@ -326,8 +325,8 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
 ++ update |= [=msg m=model]
   ?- msg
     [%noted t]     [m(note=t) ~]
-    %add           [m(note="") ~[[%poke (cart-action.cart [%add note.m]) |=%acked]]]
-    %toggle        [m ~[[%poke (cart-action.cart %toggle) |=%acked]]]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
     [%got c]       [m(cart=c) ~]
     [%acked err]   [m ~]
 

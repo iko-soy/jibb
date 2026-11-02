@@ -72,7 +72,7 @@
 6:9 glyph |=
 6:12 name p
 6:13 tight glyph =
-6:14 tight name poke
+6:14 tight name raw-poke
 7:3 INDENT
 7:3 glyph ^-
 7:6 glyph (
@@ -234,7 +234,7 @@
 17:15 glyph |=
 17:18 name p
 17:19 tight glyph =
-17:20 tight name poke
+17:20 tight name raw-poke
 18:3 INDENT
 18:3 glyph ^-
 18:6 glyph (

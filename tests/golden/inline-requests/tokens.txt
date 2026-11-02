@@ -1,12 +1,13 @@
 1:1 glyph ++
 1:4 name a
 1:6 glyph (
-1:7 tight wing todo-action.todo
-1:24 glyph [
-1:25 tight lit %add
-1:30 wing draft.m
-1:37 tight glyph ]
-1:38 tight glyph )
+1:7 tight wing poke.todo
+1:17 glyph [
+1:18 tight lit %add
+1:23 wing draft.m
+1:30 tight glyph ]
+1:32 name same
+1:36 tight glyph )
 2:1 NEWLINE
 2:1 glyph ++
 2:4 name b

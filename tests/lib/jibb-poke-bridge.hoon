@@ -78,10 +78,10 @@
   =/  no-declaration=@t  (crip "+$ poke todo-action\0a")
   =/  no-declaration-modules=(list [at=path source=@t])  ~[[/ui/api/todo/jibb no-declaration]]
   =/  j  (golden-types-with-prepared-prelude:jibb /ui/test/jibb client ~ marks no-declaration-modules prepared)
-  =/  collision=@t  (crip "/% %todo-action\0a+$ poke todo-action\0a++ todo-action \"bad\"\0a")
+  =/  collision=@t  (crip "/% %todo-action\0a+$ poke todo-action\0a++ poke \"bad\"\0a")
   =/  collision-modules=(list [at=path source=@t])  ~[[/ui/api/todo/jibb collision]]
   =/  k  (golden-types-with-prepared-prelude:jibb /ui/test/jibb client ~ marks collision-modules prepared)
-  =/  wrong-path-source=@t  (crip "/= todo /ui/wrong/todo\0a++ test (todo-action.todo \"ok\")\0a")
+  =/  wrong-path-source=@t  (crip "/= todo /ui/wrong/todo\0a++ test (poke.todo \"ok\" same)\0a")
   =/  wrong-path-modules=(list [at=path source=@t])  ~[[/ui/wrong/todo/jibb api]]
   =/  l  (golden-types-with-prepared-prelude:jibb /ui/test/jibb wrong-path-source ~ marks wrong-path-modules prepared)
   (of-wain:format ~[(preparation-controls prelude internal) a b c d e f g h i j k l])

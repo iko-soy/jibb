@@ -1,2 +1,2 @@
-+$ exposed poke
++$ exposed raw-poke
 ++ carry |= x=exposed x

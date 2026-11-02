@@ -1,23 +1,23 @@
 /= todo /ui/api/todo
-+$ copy poke
++$ copy raw-poke
 +$ double copy
-++ good (todo-action.todo "ok")
-++ pass |= x=poke x
+++ good (poke.todo "ok" same)
+++ pass |= x=raw-poke x
 ++ pass-alias |= x=copy x
-++ direct ^- poke [%agent %todo %todo-action "x"]
+++ direct ^- raw-poke [%agent %todo %todo-action "x"]
 ++ alias ^- double [%agent %todo %todo-action "x"]
-++ getter |= x=poke payload.x
-++ inspect |= x=poke
+++ getter |= x=raw-poke payload.x
+++ inspect |= x=raw-poke
   ?- x
     [%agent a b c] "agent"
     [%store a b c] "store"
-++ change |= x=poke x(payload="new")
-++ cast-atom ^- poke 0
+++ change |= x=raw-poke x(payload="new")
+++ cast-atom ^- raw-poke 0
 ++ leaked |= x=copy ^- @t x
-++ split |= x=poke
+++ split |= x=raw-poke
   ?- x
     [a b] a
-++ number [(todo-action.todo "write") 1]
-++ bad-constructor (todo-action.todo ~zod)
-++ bad-mark ^- poke [%agent %todo 0x1f "x"]
-++ bad-case ^- poke [%alien %todo %todo-action "x"]
+++ number ^- [(cmd (unit @t)) @ud] [(poke.todo "write" same) 1]
+++ bad-constructor (poke.todo ~zod same)
+++ bad-mark ^- raw-poke [%agent %todo 0x1f "x"]
+++ bad-case ^- raw-poke [%alien %todo %todo-action "x"]

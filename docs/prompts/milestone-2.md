@@ -49,7 +49,7 @@ And from the plan's Risks:
 
 ## First steps
 
-1. **Specify the prelude inventory.** The checker needs the prelude's complete exported inventory and signatures; include all names from the listed Hoon library sections except explicitly excluded groups, as `docs/open-questions.md` question 3 records. The prelude imports private helpers and low-level primitives from a separate internal module without exposing them; its public foundational gates are implemented in Jibb on those primitives. The source-backed internal module defines `poke`, `ask` and `qath`; the public prelude re-exports them as ordinary transparent types that modules can construct and inspect, as questions 24 and 25 record. Their current representations and partial checker support are described in `docs/compiler.md`.
+1. **Specify the prelude inventory.** The checker needs the prelude's complete exported inventory and signatures; include all names from the listed Hoon library sections except explicitly excluded groups, as `docs/open-questions.md` question 3 records. The prelude imports private helpers and low-level primitives from a separate internal module without exposing them; its public foundational gates are implemented in Jibb on those primitives. The source-backed internal module defines `raw-poke`, `ask` and `qath`; the public prelude re-exports them as ordinary transparent types that modules can construct and inspect, as questions 24 and 25 record. Their current representations and partial checker support are described in `docs/compiler.md`.
 
    The plan's three core-language rules were adopted: gate-free `eq` arguments and map and set keys, with gates opaque for union matching; jetted prelude functions taking gates; and rejection of a non-gate value that depends on itself even through a gate.
 2. **Start the importer early**, as the plan's Risks ask: first on a small `/sur` file, then on Tlon's. "Suggested design" below has a way in.
@@ -70,7 +70,7 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 - Generic molds: `+$ result |$ [V E]` with cases below, applied as `(result V E)`; `|$` goes right after a `+$`'s name, and the prelude's `cmd` and `sub` use `|$ [M]`.
 - `!!` is the empty mold, and as an expression it has any type. `*` is the noun type, not a type variable; generic positions such as the keys in `each` and `table` use a capital. A value of a more specific noun type can be used where `*` is expected.
 - `_` is an inferable hole wherever a mold can appear, including an inferred path-segment aura. A hole resolved to an explicitly named generic variable is resolved; an unconstrained hole is an error. A named mold or value definition must determine its own holes without constraints from later uses.
-- `poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally. Derived gates and `pure` also construct requests; application-path literals have type `qath`.
+- `raw-poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally. Derived gates and `pure` also construct requests; application-path literals have type `qath`. A store's local `poke` is an ordinary action mold.
 - The Literals table gives every other literal its type: `0x1f` a `@ux`, ships `@p`, dates `@da`, durations `@dr`, `~.knot` a `@ta`, strings `@t`, `` `x `` a `(unit A)`, `~[…]` a `(list A)`, `gap+%s2` the pair `[%gap %s2]`, `/posts/~zod` a `path`, `%/blog` a `qath`.
 
 **Tags, `~`, numbers and cells wait for their context** (Grammar: Tag resolution, Literals by context)
@@ -93,7 +93,7 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 
 **Names and modules** (Grammar: Modules, Imports, Runes, Expressions; Core language: Programs and linking)
 - "No name may shadow one already in scope, imports and the prelude included": samples, local `++`s and pattern binders too. The backends rely on it (Core language, "No shadowing").
-- Molds and values have separate namespaces, "told apart by position": `todo-action.todo` is a mold and its constructor.
+- Molds and values have separate namespaces, "told apart by position": `todo-action.todo` is a mold and `poke.todo` is its derived command helper.
 - Local definitions may start any body, "visible to each other and the final expression".
 - `/-  todo` gives the molds of `/sur/todo.hoon` the module uses; `/%  %todo-action` gives a mark's type, named after the mark, with no face; `/=  card  /ui/components/card` gives a Jibb module. API modules re-export their `/%` types, "not `/-` faces or `/=` modules". Import cycles are errors.
 - Imports and prelude groups are records, read with `.`: `card.card`, `space.theme.theme`, `get.by`. "A module used as a whole value is a cell of its definitions, in name order."
@@ -110,8 +110,8 @@ The rules are scattered across the tabs. This is a map of them, not a replacemen
 
 **API files, stores and derived gates** (overview: Agent APIs, Effects; Grammar: Modules)
 - `/ui/api/<agent>.jibb` declares `+$ poke` and `+$ paths`; "`poke` and `paths` are declarations, not molds." "A path case is a request name, a path and a type", and "A case can name another scry path, as in `[%changes /updates (facts todos todo-update) scry=/todos]`, used only by pages." An island may watch a request only when the checker proves it is watchable; a separate `scry=` path or unknown watchability is a type error.
-- Each poke type gives a constructor, as `todo-action.todo`, and each path case a request, as `(todos.todo |=%got)`. A path with typed segments takes them too: the overview's `(post.api slug same)` suggests they come first. A `(facts full diff …)` case's request also takes a fold, as `$-([[%todo-update todo-update] todos] todos)`.
-- A store's `+$ poke` is a declaration, not a mold. A store exports a constructor per poke type and a `state` request. Clashing derived names are errors, including clashes with an import face. The checker must account for the fact that the type of `main` determines whether a module is a store.
+- Each API gives a generic `poke` command helper taking an action and reply, and each path case a request, as `(todos.todo |=%got)`. A path with typed segments takes them too: the overview's `(post.api slug same)` suggests they come first. A `(facts full diff …)` case's request also takes a fold, as `$-([[%todo-update todo-update] todos] todos)`.
+- A store's local `+$ poke` is an ordinary action mold. A store exports a generic `poke` command helper and a `state` request. Clashing derived names are errors, including clashes with an import face. The checker must account for the fact that the type of `main` determines whether a module is a store.
 
 **The prelude** (overview: Prelude, Layout and styling, Links and URLs, Effects)
 - Hoon's standard library regrouped, "written in Jibb and vendored as `/lib/jibb/prelude`", plus `eq`, `not`, `page`, `program`, `store`, `pure`, `island`, the layout elements and molds, `attr`, `theme`, and `cmd` and `sub` as the overview's Effects block writes them.

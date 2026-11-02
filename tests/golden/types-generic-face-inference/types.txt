@@ -10,4 +10,10 @@ partial inference; module not checked
 /tests/golden/types-generic-face-inference/source.jibb:7:60: expression has type [left=@t rest=@ud]
 ++ mismatch |= x=[left=@t rest=@ud] ^- [right=@t rest=@ud] x
                                                            ^
-++ uncertain: cast constraint is not supported by partial inference
+++ uncertain: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-generic-face-inference/source.jibb:8:19: first type variable
+++ uncertain |= x=A ^- [first=B rest=@t] [x "hi"]
+                  ^
+/tests/golden/types-generic-face-inference/source.jibb:8:31: second type variable
+++ uncertain |= x=A ^- [first=B rest=@t] [x "hi"]
+                              ^
