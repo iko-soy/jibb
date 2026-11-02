@@ -1,0 +1,22 @@
+# The eval checks on every push to master and every pull request:
+# the flake builds the desks and runs `tools/check --group eval` in the
+# Nix sandbox (see flake.nix).  The ship checks need a fake ~zod and run
+# before pushing, as docs/development.md says.
+name: check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  eval:
+    name: desks and eval checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Build the desks and run the eval checks
+        run: nix build --print-build-logs .#checks.x86_64-linux.desks .#checks.x86_64-linux.eval
