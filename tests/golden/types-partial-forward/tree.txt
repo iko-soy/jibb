@@ -1,3 +1,5 @@
 (module
   (value 1:1 first (wing 1:10 second))
-  (value 2:1 second (str 2:11 "later")))
+  (value 2:1 second (wing 2:11 third))
+  (value 3:1 third (wing 3:10 fourth))
+  (value 4:1 fourth (str 4:11 "later")))

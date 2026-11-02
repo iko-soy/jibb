@@ -58,7 +58,7 @@
   proj-graph-errors
 ++  proj-graph-errors
   ^-  (list tape)
-  =/  child=@t  '++ owned ^- [a=@t b=@p] (proj [a="hi" b=~zod c=%.y])\0a++ exported owned\0a'
+  =/  child=@t  '++ exported owned\0a++ owned ^- [a=@t b=@p] (proj [a="hi" b=~zod c=%.y])\0a'
   =/  parent=@t  '/= dep /ui/dep\0a++ answer exported.dep\0a'
   =/  bundle=jbundle:jibb  ~[[/ui/dep/jibb child]]
   =/  built=jfile-result:jibb  (infer-jibb-file:jibb /ui/root/jibb parent ~ ~ bundle ~[/ui/root/jibb] ~ ~ ~ ~)
