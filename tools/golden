@@ -282,8 +282,15 @@ def golden_program(lib_path, cases):
             ' '.join(ue.cord_literal(p) for p in parts))
         internal_expr = '(rap 3 `(list @t)`~[%s])' % (
             ' '.join(ue.cord_literal(p) for p in internal_parts))
-        harness = harness.replace('|^  %+  rap  3',
-                                  '=/  prepared-prelude  (prepare-prelude-with-internal:lib %s %s)\n|^  %%+  rap  3' % (prelude_expr, internal_expr))
+        #  Under mule: when preparing the prelude crashes, the cases that
+        #  need it prepare it again under their own mule and fail with the
+        #  trace, and the other cases still run.
+        harness = harness.replace(
+            '|^  %+  rap  3',
+            '=/  prepared-prelude\n'
+            '  =/  prep  (mule |.((prepare-prelude-with-internal:lib %s %s)))\n'
+            '  ?:(?=(%%& -.prep) p.prep ~)\n'
+            '|^  %%+  rap  3' % (prelude_expr, internal_expr))
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")
@@ -360,9 +367,28 @@ def eval_crash(prog, res, case):
         case.outputs['types'] = out
 
 
-def run_batch(lib_path, cases, opts, top=True):
-    """Run cases in one eval.  If the eval itself dies, which mule can't
-    stop (out of memory, a timeout), run each case alone to find which."""
+def run_cases(lib_path, cases, opts):
+    """Run the cases in one eval.  If the eval itself dies, which mule
+    can't stop (out of memory, a timeout), split them in two and run each
+    half, at most opts.jobs evals at once, until the cases that kill it
+    run alone."""
+    pool = concurrent.futures.ThreadPoolExecutor(opts.jobs)
+    try:
+        pending = {pool.submit(run_batch, lib_path, cases, opts, True)}
+        while pending:
+            done, pending = concurrent.futures.wait(
+                pending, return_when=concurrent.futures.FIRST_COMPLETED)
+            for f in done:
+                for part in f.result():
+                    pending.add(pool.submit(run_batch, lib_path, part, opts,
+                                            False))
+    finally:
+        #  On an error or ^C, drop the evals that haven't started.
+        pool.shutdown(wait=False, cancel_futures=True)
+
+
+def run_batch(lib_path, cases, opts, top):
+    """Run cases in one eval; the halves to run again if the eval died."""
     prog = golden_program(lib_path, cases)
     if opts.save_program and top:
         with open(opts.save_program, 'wb') as f:
@@ -370,7 +396,7 @@ def run_batch(lib_path, cases, opts, top=True):
     res = ue.run_eval(prog, jam=True, timeout=opts.timeout)
     if res.ok:
         decode(prog, res.noun, cases)
-        return
+        return []
     if res.is_compile_error():
         lib = ue.display_path(lib_path)
         signature = ("error: the golden harness doesn't compile "
@@ -387,13 +413,11 @@ def run_batch(lib_path, cases, opts, top=True):
         raise ue.ToolError(report + ('\n\n' + hint if hint else ''))
     if len(cases) == 1:
         eval_crash(prog, res, cases[0])
-        return
-    warn('%s while running %d cases at once; running each alone to find '
+        return []
+    half = len(cases) // 2
+    warn('%s while running %d cases at once; running each half to find '
          'which' % (res.describe(), len(cases)))
-    with concurrent.futures.ThreadPoolExecutor(opts.jobs) as pool:
-        for f in [pool.submit(run_batch, lib_path, [c], opts, False)
-                  for c in cases]:
-            f.result()
+    return [cases[:half], cases[half:]]
 
 
 # Output
@@ -522,8 +546,8 @@ def main(argv):
     ap.add_argument('--timeout', type=float, default=600, metavar='SECONDS',
                     help='how long one urbit eval may run (default: 600)')
     ap.add_argument('--jobs', type=int, default=2, metavar='N',
-                    help='evals at once when cases are rerun one by one '
-                    'after the eval dies (default: 2)')
+                    help='evals at once when the cases are split up to find '
+                    'which one kills the eval (default: 2)')
     ap.add_argument('--save-program', metavar='FILE',
                     help='also write the generated Hoon program to FILE')
     opts = ap.parse_args(argv)
@@ -548,7 +572,7 @@ def main(argv):
                 len(cases), '' if len(cases) == 1 else 's'),
                 file=sys.stderr, flush=True)
         start = time.time()
-        run_batch(os.path.abspath(opts.lib), cases, opts)
+        run_cases(os.path.abspath(opts.lib), cases, opts)
         took = time.time() - start
     except ue.ToolError as e:
         print(str(e), file=sys.stderr)
