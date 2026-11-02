@@ -1633,9 +1633,14 @@
 ::
 ::  +bad-char: the error for a character that no text may hold (2.2)
 ::
+::    The line feed ends a line and is no such character, so an escape
+::    cut off by the end of its line gets the same error as one cut off
+::    by the end of the text.
+::
 ++  bad-char
   |=  c=@
   ^-  (unit tape)
+  ?:  =(10 c)  ~
   ?:  =(9 c)  `"a tab: Jibb uses spaces only"
   ?:  =(13 c)  `"a carriage return: Jibb lines end with a line feed alone"
   ?:  |((lth c 32) =(127 c))  `"a control character"

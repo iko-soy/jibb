@@ -1,0 +1,3 @@
+/tests/golden/lex-string-bad-6/source.jibb:1:9: a `\` escape takes two lowercase hex digits, as `\0a`
+++ x "\0g"
+        ^

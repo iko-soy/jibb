@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Spaces only"; the library's design notes, 2.2 Characters, which decide the rest (characters are not a doc question); section 1, Positions: columns count characters, not bytes
+tests: a two-byte UTF-8 character in a string, before more tokens on its line
+expect: parses — `1` is at 1:11 and `]` at 1:12, counting `é` as one column

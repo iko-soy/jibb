@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Spaces only"; the library's design notes, 2.2 Characters, which decide the rest (characters are not a doc question); section 1, Positions: columns count characters, not bytes
+tests: a tab inside a string, after a two-byte UTF-8 character
+expect: error at 1:8 — a tab: Jibb uses spaces only; `é` counts as one column

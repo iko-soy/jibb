@@ -1,0 +1,3 @@
+/tests/golden/lex-char-bad-1/source.jibb:1:7: a carriage return: Jibb lines end with a line feed alone
+++ x 1 
+      ^

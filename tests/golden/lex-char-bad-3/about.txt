@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Spaces only"; the library's design notes, 2.2 Characters, which decide the rest (characters are not a doc question)
+tests: non-ASCII text outside a string or comment
+expect: error at 1:6 — non-ASCII text outside a string or comment

@@ -1,0 +1,3 @@
+/tests/golden/lex-string-bad-5/source.jibb:1:9: a `\` begins `\\`, `\"`, `\{` or two hex digits
+++ x "a\q"
+        ^

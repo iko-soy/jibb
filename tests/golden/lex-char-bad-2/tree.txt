@@ -1,0 +1,3 @@
+/tests/golden/lex-char-bad-2/source.jibb:1:8: a control character
+++ x "a b"
+       ^
