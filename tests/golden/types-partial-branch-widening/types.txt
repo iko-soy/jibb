@@ -2,11 +2,24 @@ partial inference; module not checked
 ++ join: $-(? @u)
 ++ reverse: $-(? @u)
 ++ atom: $-(? @)
-++ unknown: branch widening is not supported by partial inference
+++ atom-decimal: $-(? @)
+++ unknown: $-(@ux @ux)
 ++ siblings: branch arms have incompatible types
-/tests/golden/types-partial-branch-widening/source.jibb:19:9: first arm has type @ud
+/tests/golden/types-partial-branch-widening/source.jibb:23:9: first arm has type @ud
     %.y ^- @ud 1
         ^
-/tests/golden/types-partial-branch-widening/source.jibb:20:9: second arm has type @ux
+/tests/golden/types-partial-branch-widening/source.jibb:24:9: second arm has type @ux
     %.n 0x1f
         ^
+++ decimal: $-([b=? n=@ud] @ud)
+++ decimal-context: $-([b=? n=@ud] @ud)
++$ maybe: cases proven disjoint; mold not checked
+++ unit-parent: $-((maybe @ud) @u)
++$ number-choice: cases proven disjoint; mold not checked
+++ union-parent: $-(number-choice @u)
+++ union-parent-late: $-(number-choice @u)
+++ union-variable: $-([x=number-choice value=@u] @u)
+++ union-variable-late: $-([x=number-choice value=@u] @u)
+++ union-any-late: $-(number-choice @)
++$ singleton-choice: cases proven disjoint; mold not checked
+++ union-singleton: $-(singleton-choice @)

@@ -17,8 +17,8 @@ partial inference; module not checked
 /tests/golden/types-recursive-gate/source.jibb:12:19: argument
 ++ occurs |= x (x x)
                   ^
-++ forcing: branch widening is not supported by partial inference
-++ pending: branch widening is not supported by partial inference
+++ forcing: explicit capital constraints are not supported by partial inference
+++ pending: tag needs context in partial inference
 ++ direct-value: name is not available to partial inference
 ++ gate-value: name is not available to partial inference
 ++ value-cycle: name is not available to partial inference

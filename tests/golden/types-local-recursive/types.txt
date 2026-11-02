@@ -20,5 +20,5 @@ partial inference; module not checked
 /tests/golden/types-local-recursive/source.jibb:43:24: argument has type $-(A B)
   ++ recur |= y (recur recur)
                        ^
-++ captures: local definitions need unsupported inference
+++ captures: explicit capital constraints are not supported by partial inference
 ++ via-gate: local definitions need unsupported inference

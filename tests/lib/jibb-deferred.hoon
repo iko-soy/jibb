@@ -47,6 +47,15 @@
       ?:(?=([%atom %t] typ.u.text) 'text use inferred' 'BAD-text-type')
       ?:(?=([%atom %p] typ.u.ship) 'ship use inferred independently' 'BAD-ship-type')
   ==
+++  case-branch
+  ^-  (list @t)
+  =/  source=@t  '++ choose |= b=?\0a  ?- b\0a    %.y 0x1f\0a    %.n ^- @u 0x1f\0a'
+  =/  result=(unit dgcommit:jibb)  (checked-source /ui/branch/jibb source)
+  ?~  result  ~['BAD-deferred-branch']
+  =/  choose=(unit ischeme:jibb)  (ienv-lookup:jibb %choose env.u.result)
+  ?~  choose  ~['BAD-deferred-branch-export']
+  :~  ?:(=(typ.u.choose [%fn [%flag ~] [%atom %u]]) 'deferred branch joins present parent' 'BAD-deferred-branch-type')
+  ==
 ++  case-negative
   |=  [missing=@t conflict=@t duplicate=@t hole=@t]
   ^-  (list @t)
@@ -226,6 +235,7 @@
   ^-  @t
   =/  lines=(list @t)  (case-nested nested-src)
   =.  lines  (weld lines (case-principal principal-src))
+  =.  lines  (weld lines case-branch)
   =.  lines  (weld lines (case-negative missing-src conflict-src duplicate-src hole-src))
   =.  lines  (weld lines (case-groups local-src mutual-src))
   =.  lines  (weld lines (case-mold-hole mold-hole-src))

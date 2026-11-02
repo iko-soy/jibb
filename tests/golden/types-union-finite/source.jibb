@@ -8,6 +8,13 @@
     [%p %.n %.y] "c"
     [%p %.n %.n] "d"
     %other "e"
+++ parent |= m=msg
+  ?- m
+    [%p %.y %.y] 0x1f
+    [%p %.y %.n] ^- @u 0x1f
+    [%p %.n %.y] 0
+    [%p %.n %.n] 0x2f
+    %other ^- @u 0x1f
 ++ wildcard |= m=msg
   ?- m
     [%p %.y *] "a"

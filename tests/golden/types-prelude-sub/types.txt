@@ -12,7 +12,7 @@ partial inference; module not checked
 /tests/golden/types-prelude-sub/source.jibb:9:28: expression
 ++ wrong-reply ^- (sub @t) [%every gap=~s1 reply=|=(date=@p "bad")]
                            ^
-++ incomplete: union branch result matching needs unsupported inference
+++ incomplete: missing union case [%url reply=$-((list @ta) msg)]
 ++ complete: union branch result matching needs unsupported inference
 +$ my-msg: cases proven disjoint; mold not checked
 ++ take-watch: $-((sub my-msg) (ask my-msg))

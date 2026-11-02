@@ -1,4 +1,4 @@
 partial inference; module not checked
-++ outer: local definitions need unsupported inference
+++ outer: $-(@t @t)
 ++ global-a: $-(@t A)
 ++ global-b: $-(@t A)

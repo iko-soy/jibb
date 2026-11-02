@@ -7,7 +7,13 @@ partial inference; module not checked
     [%ok again] again
     ^
 ++ nested: partial union pattern is not supported by partial inference
-++ different: union branch result matching needs unsupported inference
+++ different: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-union-patterns-generic/source.jibb:21:27: first type variable
+++ different |= r=(result A B)
+                          ^
+/tests/golden/types-union-patterns-generic/source.jibb:21:29: second type variable
+++ different |= r=(result A B)
+                            ^
 ++ forced: explicit capital constraints are not supported by partial inference
 ++ reused: $-((result A A) A)
 ++ pending: union branch result matching needs unsupported inference

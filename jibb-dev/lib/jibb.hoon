@@ -5131,9 +5131,83 @@
     ?:  (aura-prefix aura.a aura.b)  `a
     ?:  (aura-prefix aura.b aura.a)  `b
     ~
-  ?:  &(?=(%any-atom -.a) |(?=(%atom -.b) ?=(%flag -.b)))  `a
-  ?:  &(?=(%any-atom -.b) |(?=(%atom -.a) ?=(%flag -.a)))  `b
+  ?:  &(?=(%any-atom -.a) |(?=(%atom -.b) ?=(%flag -.b) ?=(%const -.b) ?=(%avar -.b) ?=(%rvar -.b) ?=(%nvar -.b) ?=(%rnvar -.b)))  `a
+  ?:  &(?=(%any-atom -.b) |(?=(%atom -.a) ?=(%flag -.a) ?=(%const -.a) ?=(%avar -.a) ?=(%rvar -.a) ?=(%nvar -.a) ?=(%rnvar -.a)))  `b
   ~
+::
+++  itype-branch-join
+  |=  [a=itype b=itype sub=isub]
+  ^-  (unit [typ=itype sub=isub])
+  =/  unified=(unit isub)  (itype-unify a b sub)
+  ?^  unified  `[(itype-normalize a u.unified) u.unified]
+  =/  common=(unit itype)  (itype-concrete-join a b sub)
+  ?~  common  ~
+  `[u.common sub]
+::
+++  itype-branch-join-with
+  |=  [candidate=itype types=(list itype) sub=isub]
+  ^-  (unit [typ=itype sub=isub])
+  ?~  types  `[(itype-normalize candidate sub) sub]
+  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join candidate i.types sub)
+  ?~  joined  ~
+  $(candidate typ.u.joined, types t.types, sub sub.u.joined)
+::
+++  itype-branch-unify-list
+  |=  [types=(list itype) sub=isub]
+  ^-  (unit [typ=itype sub=isub])
+  ?~  types  ~
+  =/  candidate=itype  i.types
+  =/  rest=(list itype)  t.types
+  |-
+  ?~  rest  `[(itype-normalize candidate sub) sub]
+  =/  unified=(unit isub)  (itype-unify candidate i.rest sub)
+  ?~  unified  ~
+  $(candidate (itype-normalize candidate u.unified), rest t.rest, sub u.unified)
+::
+++  itype-branch-any-atom
+  |=  [types=(list itype) sub=isub]
+  ^-  (unit itype)
+  ?~  types  ~
+  =/  typ=itype  (itype-walk i.types sub)
+  ?:  ?=(%any-atom -.typ)  `typ
+  $(types t.types)
+::
+++  itype-branch-atom-parent
+  |=  [candidate=itype types=(list itype) sub=isub]
+  ^-  (unit itype)
+  ?~  types  `candidate
+  =/  typ=itype  (itype-walk i.types sub)
+  ?.  ?=(%atom -.typ)  $(types t.types)
+  =/  joined=(unit itype)  (itype-concrete-join candidate typ sub)
+  ?~  joined  ~
+  $(candidate u.joined, types t.types)
+::
+++  itype-branch-atom-candidates
+  |=  [candidates=(list itype) types=(list itype) sub=isub]
+  ^-  (unit itype)
+  ?~  candidates  ~
+  =/  candidate=itype  (itype-walk i.candidates sub)
+  ?.  ?=(%atom -.candidate)  $(candidates t.candidates)
+  =/  parent=(unit itype)  (itype-branch-atom-parent candidate types sub)
+  ?^  parent  parent
+  $(candidates t.candidates)
+::
+++  itype-branch-parent
+  |=  [types=(list itype) sub=isub]
+  ^-  (unit itype)
+  =/  unrestricted=(unit itype)  (itype-branch-any-atom types sub)
+  ?^  unrestricted  unrestricted
+  (itype-branch-atom-candidates types types sub)
+::
+++  itype-branch-join-list
+  |=  [types=(list itype) sub=isub]
+  ^-  (unit [typ=itype sub=isub])
+  ?~  types  ~
+  =/  unified=(unit [typ=itype sub=isub])  (itype-branch-unify-list types sub)
+  ?^  unified  unified
+  =/  parent=(unit itype)  (itype-branch-parent types sub)
+  ?~  parent  ~
+  (itype-branch-join-with u.parent types sub)
 ::
 ::  Unifying an already-bound tuple with a faced position would need to
 ::  update the bound type. Until substitutions can retain that information,
@@ -7952,9 +8026,9 @@
     (infer-union-context val.y typ.u.expected ?:(first-empty extended env) state.p.left context.u.expected)
   ?:  ?=(%| -.right)  right
   ?^  expected  [%& typ.u.expected state.p.right]
-  =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
+  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
   ?~  joined  [%| ["list branch results need unsupported inference" ~]]
-  [%& typ.p.left state.p.right(sub u.joined)]
+  [%& typ.u.joined state.p.right(sub sub.u.joined)]
 ::
 ++  infer-unit-branch
   |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
@@ -7996,9 +8070,9 @@
     (infer-union-context val.y typ.u.expected ?:(first-empty extended env) state.p.left context.u.expected)
   ?:  ?=(%| -.right)  right
   ?^  expected  [%& typ.u.expected state.p.right]
-  =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
+  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
   ?~  joined  [%| ["unit branch results need unsupported inference" ~]]
-  [%& typ.p.left state.p.right(sub u.joined)]
+  [%& typ.u.joined state.p.right(sub sub.u.joined)]
 ::
 ::  Infer pieces in order, retaining their substitutions and pending tags.
 ::  A bare decimal literal has no outside type constraint, so it takes its
@@ -8144,13 +8218,14 @@
   =/  remaining=(list itype)  cases
   =/  arms=(list arm)  arms.e
   =/  st=istate  state.p.subject
-  =/  answer=(unit itype)  ~
+  =/  results=(list itype)  ~
   |-
   ?~  arms
     ?^  remaining
       `[%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
-    ?~  answer  `[%| ["empty union branch is not supported by partial inference" ~]]
-    `[%& u.answer st]
+    =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join-list (flop results) sub.st)
+    ?~  joined  `[%| ["union branch result matching needs unsupported inference" ~]]
+    `[%& typ.u.joined st(sub sub.u.joined)]
   =/  a=arm  i.arms
   ?:  (lien remaining |=(c=itype =(%unknown (union-pattern pat.a c))))
     ~
@@ -8166,9 +8241,7 @@
   =/  body=iresult  (infer-fragment val.a u.bound st)
   ?:  ?=(%| -.body)  `body
   =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
-  =/  mismatch=?  ?~(answer | !=((itype-normalize u.answer sub.state.p.body) result))
-  ?:  mismatch  `[%| ["union branch result matching needs unsupported inference" ~]]
-  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, answer `result)
+  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, results [result results])
 ::
 ++  infer-known-union-context-whole
   |=  [e=expr expected=itype env=ienv subject=iresult context=span]
@@ -8231,14 +8304,16 @@
   =/  remaining=(list ifinite)  cases
   =/  arms=(list arm)  arms.e
   =/  st=istate  state.p.subject
-  =/  answer=(unit itype)  ~
+  =/  results=(list itype)  ~
   |-
   ?~  arms
     ?^  remaining
       [%| ["missing union case {(show-itype part.i.remaining sub.st)}" ~]]
-    ?~  answer  [%| ["empty union branch is not supported by partial inference" ~]]
-    ?~  expected  [%& u.answer st]
-    [%& typ.u.expected st]
+    ?~  results  [%| ["empty union branch is not supported by partial inference" ~]]
+    ?^  expected  [%& typ.u.expected st]
+    =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join-list (flop results) sub.st)
+    ?~  joined  [%| ["union branch result matching needs unsupported inference" ~]]
+    [%& typ.u.joined st(sub sub.u.joined)]
   =/  a=arm  i.arms
   ?:  (lien remaining |=(c=ifinite =(%unknown (union-pattern pat.a part.c))))
     [%| ["partial union pattern is not supported by partial inference" ~]]
@@ -8266,11 +8341,9 @@
       [%| ["union branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.a) "branch arm"]]]]
     ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
       [%| ["union branch result needs context in partial inference" ~]]
-    $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body(sub sub.fit, next next.fit), answer `typ.u.expected)
+    $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body(sub sub.fit, next next.fit), results [typ.p.body results])
   =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
-  =/  mismatch=?  ?~(answer | !=((itype-normalize u.answer sub.state.p.body) result))
-  ?:  mismatch  [%| ["union branch result matching needs unsupported inference" ~]]
-  $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body, answer `result)
+  $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body, results [result results])
 ::
 ::  Prove a one-arm record pattern covers a known, non-union subject.
 ::  Variable or partial matches stay unsupported; binding uses the same
@@ -8843,22 +8916,18 @@
       ?:  ?=(%| -.right)  right
       =/  ltype=itype  (itype-normalize typ.p.left sub.state.p.right)
       =/  rtype=itype  (itype-normalize typ.p.right sub.state.p.right)
-      ?:  &(!=(ltype rtype) |(?=(^ (itype-vars ltype)) ?=(^ (itype-vars rtype))) |((itype-has-fixed-atom ltype) (itype-has-fixed-atom rtype)))
-        [%| ["branch widening is not supported by partial inference" ~]]
-      =/  joined=(unit isub)  (itype-unify typ.p.left typ.p.right sub.state.p.right)
+      =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
       ?~  joined
         ?:  |((itype-has-recursive ltype) (itype-has-recursive rtype))
           [%| ["recursive branch matching is not supported by partial inference" ~]]
         ?:  |((itype-has-tag ltype) (itype-has-tag rtype) (itype-has-union ltype) (itype-has-union rtype))
           [%| ["branch tag or union context is not supported by partial inference" ~]]
-        =/  common=(unit itype)  (itype-concrete-join typ.p.left typ.p.right sub.state.p.right)
-        ?^  common  [%& u.common state.p.right]
         ?:  |((itype-has-face typ.p.left sub.state.p.right) (itype-has-face typ.p.right sub.state.p.right))
           [%| ["record branch matching is not supported by partial inference" ~]]
         ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right) (itype-family-related typ.p.left typ.p.right sub.state.p.right))
           [%| ["branch widening is not supported by partial inference" ~]]
         [%| ["branch arms have incompatible types" ~[[(span-of val.x) (site-type-note "first arm" typ.p.left sub.state.p.right)] [(span-of val.y) (site-type-note "second arm" typ.p.right sub.state.p.right)]]]]
-      [%& typ.p.left state.p.right(sub u.joined)]
+      [%& typ.u.joined state.p.right(sub sub.u.joined)]
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
       ?~  target
@@ -15293,6 +15362,8 @@
   ?:  ?=(%| -.left)  left
   =/  right=iresult  (infer-fragment val.y env state.p.left)
   ?:  ?=(%| -.right)  right
+  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
+  ?^  joined  [%& typ.u.joined state.p.right(sub sub.u.joined)]
   ?.  (dg-stable-fit typ.p.left typ.p.right sub.state.p.right)
     =/  st=istate  state.p.right
     ?.  (dg-owned-arm-literal val.x typ.p.left tags.st sub.st next.state)

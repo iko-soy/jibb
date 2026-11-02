@@ -58,11 +58,11 @@
 11:1 DEDENT
 11:1 NEWLINE
 11:1 glyph ++
-11:4 name wildcard
-11:13 glyph |=
-11:16 name m
-11:17 tight glyph =
-11:18 tight name msg
+11:4 name parent
+11:11 glyph |=
+11:14 name m
+11:15 tight glyph =
+11:16 tight name msg
 12:3 INDENT
 12:3 glyph ?-
 12:6 name m
@@ -70,169 +70,216 @@
 13:5 glyph [
 13:6 tight lit %p
 13:9 lit %.y
-13:13 glyph *
-13:14 tight glyph ]
-13:16 str "a"
+13:13 lit %.y
+13:16 tight glyph ]
+13:18 lit 0x1f
 14:5 NEWLINE
 14:5 glyph [
 14:6 tight lit %p
-14:9 lit %.n
-14:13 glyph *
-14:14 tight glyph ]
-14:16 str "b"
+14:9 lit %.y
+14:13 lit %.n
+14:16 tight glyph ]
+14:18 glyph ^-
+14:21 aura @u
+14:24 lit 0x1f
 15:5 NEWLINE
-15:5 lit %other
-15:12 str "e"
-16:1 DEDENT
-16:1 DEDENT
-16:1 NEWLINE
-16:1 glyph ++
-16:4 name covered
-16:12 glyph |=
-16:15 name m
-16:16 tight glyph =
-16:17 tight name msg
-17:3 INDENT
-17:3 glyph ?-
-17:6 name m
-18:5 INDENT
-18:5 glyph [
-18:6 tight lit %p
-18:9 lit %.y
-18:13 glyph *
-18:14 tight glyph ]
-18:16 str "a"
-19:5 NEWLINE
-19:5 glyph [
-19:6 tight lit %p
-19:9 lit %.y
-19:13 lit %.n
-19:16 tight glyph ]
-19:18 str "b"
-20:5 NEWLINE
-20:5 glyph *
-20:7 str "e"
-22:1 DEDENT
-22:1 DEDENT
-22:1 NEWLINE
-22:1 glyph +$
-22:4 name choice
-23:3 INDENT
-23:3 glyph [
-23:4 tight lit %a
-23:7 name on
-23:9 tight glyph =
-23:10 tight glyph ?
-23:11 tight glyph ]
-24:3 NEWLINE
-24:3 lit %other
-25:1 DEDENT
-25:1 NEWLINE
-25:1 glyph ++
-25:4 name missing
-25:12 glyph |=
-25:15 name x
-25:16 tight glyph =
-25:17 tight name choice
-26:3 INDENT
-26:3 glyph ?-
-26:6 name x
-27:5 INDENT
-27:5 glyph [
-27:6 tight lit %a
-27:9 lit %.y
-27:12 tight glyph ]
-27:14 str "yes"
-28:5 NEWLINE
-28:5 lit %other
-28:12 str "other"
+15:5 glyph [
+15:6 tight lit %p
+15:9 lit %.n
+15:13 lit %.y
+15:16 tight glyph ]
+15:18 lit 0
+16:5 NEWLINE
+16:5 glyph [
+16:6 tight lit %p
+16:9 lit %.n
+16:13 lit %.n
+16:16 tight glyph ]
+16:18 lit 0x2f
+17:5 NEWLINE
+17:5 lit %other
+17:12 glyph ^-
+17:15 aura @u
+17:18 lit 0x1f
+18:1 DEDENT
+18:1 DEDENT
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name wildcard
+18:13 glyph |=
+18:16 name m
+18:17 tight glyph =
+18:18 tight name msg
+19:3 INDENT
+19:3 glyph ?-
+19:6 name m
+20:5 INDENT
+20:5 glyph [
+20:6 tight lit %p
+20:9 lit %.y
+20:13 glyph *
+20:14 tight glyph ]
+20:16 str "a"
+21:5 NEWLINE
+21:5 glyph [
+21:6 tight lit %p
+21:9 lit %.n
+21:13 glyph *
+21:14 tight glyph ]
+21:16 str "b"
+22:5 NEWLINE
+22:5 lit %other
+22:12 str "e"
+23:1 DEDENT
+23:1 DEDENT
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name covered
+23:12 glyph |=
+23:15 name m
+23:16 tight glyph =
+23:17 tight name msg
+24:3 INDENT
+24:3 glyph ?-
+24:6 name m
+25:5 INDENT
+25:5 glyph [
+25:6 tight lit %p
+25:9 lit %.y
+25:13 glyph *
+25:14 tight glyph ]
+25:16 str "a"
+26:5 NEWLINE
+26:5 glyph [
+26:6 tight lit %p
+26:9 lit %.y
+26:13 lit %.n
+26:16 tight glyph ]
+26:18 str "b"
+27:5 NEWLINE
+27:5 glyph *
+27:7 str "e"
 29:1 DEDENT
 29:1 DEDENT
 29:1 NEWLINE
-29:1 glyph ++
-29:4 name typed
-29:10 glyph |=
-29:13 name x
-29:14 tight glyph =
-29:15 tight name choice
+29:1 glyph +$
+29:4 name choice
 30:3 INDENT
-30:3 glyph ?-
-30:6 name x
-31:5 INDENT
-31:5 glyph [
-31:6 tight lit %a
-31:9 name value
-31:14 tight glyph ]
-31:16 name value
-32:5 NEWLINE
-32:5 lit %other
-32:12 lit %.n
-33:1 DEDENT
-33:1 DEDENT
-33:1 NEWLINE
-33:1 glyph ++
-33:4 name duplicate
-33:14 glyph |=
-33:17 name x
-33:18 tight glyph =
-33:19 tight name choice
-34:3 INDENT
-34:3 glyph ?-
-34:6 name x
-35:5 INDENT
-35:5 glyph [
-35:6 tight lit %a
-35:9 lit %.y
-35:12 tight glyph ]
-35:14 str "yes"
-36:5 NEWLINE
-36:5 glyph [
-36:6 tight lit %a
-36:9 lit %$
-36:11 tight glyph ]
-36:13 str "duplicate"
-37:5 NEWLINE
-37:5 glyph *
-37:7 str "other"
-38:1 DEDENT
-38:1 DEDENT
-38:1 NEWLINE
-38:1 glyph ++
-38:4 name shadow
-38:11 glyph |=
-38:14 name x
-38:15 tight glyph =
-38:16 tight name choice
-39:3 INDENT
-39:3 glyph ?-
-39:6 name x
-40:5 INDENT
-40:5 glyph [
-40:6 tight lit %a
-40:9 name missing
-40:16 tight glyph ]
-40:18 str "yes"
-41:5 NEWLINE
-41:5 lit %other
-41:12 str "other"
-42:1 DEDENT
-42:1 DEDENT
-42:1 NEWLINE
-42:1 glyph ++
-42:4 name many-bind
-42:14 glyph |=
-42:17 name x
-42:18 tight glyph =
-42:19 tight name choice
-43:3 INDENT
-43:3 glyph ?-
-43:6 name x
-44:5 INDENT
-44:5 name value
-44:11 str "anything"
-45:5 NEWLINE
-45:5 lit %other
-45:12 str "dead"
-45:18 DEDENT
-45:18 DEDENT
-45:18 NEWLINE
+30:3 glyph [
+30:4 tight lit %a
+30:7 name on
+30:9 tight glyph =
+30:10 tight glyph ?
+30:11 tight glyph ]
+31:3 NEWLINE
+31:3 lit %other
+32:1 DEDENT
+32:1 NEWLINE
+32:1 glyph ++
+32:4 name missing
+32:12 glyph |=
+32:15 name x
+32:16 tight glyph =
+32:17 tight name choice
+33:3 INDENT
+33:3 glyph ?-
+33:6 name x
+34:5 INDENT
+34:5 glyph [
+34:6 tight lit %a
+34:9 lit %.y
+34:12 tight glyph ]
+34:14 str "yes"
+35:5 NEWLINE
+35:5 lit %other
+35:12 str "other"
+36:1 DEDENT
+36:1 DEDENT
+36:1 NEWLINE
+36:1 glyph ++
+36:4 name typed
+36:10 glyph |=
+36:13 name x
+36:14 tight glyph =
+36:15 tight name choice
+37:3 INDENT
+37:3 glyph ?-
+37:6 name x
+38:5 INDENT
+38:5 glyph [
+38:6 tight lit %a
+38:9 name value
+38:14 tight glyph ]
+38:16 name value
+39:5 NEWLINE
+39:5 lit %other
+39:12 lit %.n
+40:1 DEDENT
+40:1 DEDENT
+40:1 NEWLINE
+40:1 glyph ++
+40:4 name duplicate
+40:14 glyph |=
+40:17 name x
+40:18 tight glyph =
+40:19 tight name choice
+41:3 INDENT
+41:3 glyph ?-
+41:6 name x
+42:5 INDENT
+42:5 glyph [
+42:6 tight lit %a
+42:9 lit %.y
+42:12 tight glyph ]
+42:14 str "yes"
+43:5 NEWLINE
+43:5 glyph [
+43:6 tight lit %a
+43:9 lit %$
+43:11 tight glyph ]
+43:13 str "duplicate"
+44:5 NEWLINE
+44:5 glyph *
+44:7 str "other"
+45:1 DEDENT
+45:1 DEDENT
+45:1 NEWLINE
+45:1 glyph ++
+45:4 name shadow
+45:11 glyph |=
+45:14 name x
+45:15 tight glyph =
+45:16 tight name choice
+46:3 INDENT
+46:3 glyph ?-
+46:6 name x
+47:5 INDENT
+47:5 glyph [
+47:6 tight lit %a
+47:9 name missing
+47:16 tight glyph ]
+47:18 str "yes"
+48:5 NEWLINE
+48:5 lit %other
+48:12 str "other"
+49:1 DEDENT
+49:1 DEDENT
+49:1 NEWLINE
+49:1 glyph ++
+49:4 name many-bind
+49:14 glyph |=
+49:17 name x
+49:18 tight glyph =
+49:19 tight name choice
+50:3 INDENT
+50:3 glyph ?-
+50:6 name x
+51:5 INDENT
+51:5 name value
+51:11 str "anything"
+52:5 NEWLINE
+52:5 lit %other
+52:12 str "dead"
+52:18 DEDENT
+52:18 DEDENT
+52:18 NEWLINE

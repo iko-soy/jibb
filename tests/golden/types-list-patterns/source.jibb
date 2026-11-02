@@ -9,6 +9,10 @@
   ?- xs
     [item rest] rest
     ~ !!
+++ parent |= xs=(list @t)
+  ?- xs
+    ~ 0x1f
+    [item rest] ^- @u 0x1f
 ++ with-context |= xs=(list @t)
   ^- msg
     ?- xs

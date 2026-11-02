@@ -1,7 +1,13 @@
 partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ shared: $-((msg A A) A)
-++ different: union branch result matching needs unsupported inference
+++ different: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/types-union-finite-generic/source.jibb:10:24: first type variable
+++ different |= m=(msg A B)
+                       ^
+/tests/golden/types-union-finite-generic/source.jibb:10:26: second type variable
+++ different |= m=(msg A B)
+                         ^
 ++ forced: explicit capital constraints are not supported by partial inference
 ++ earlier: name is not available to partial inference
 +$ choice: cases proven disjoint; mold not checked

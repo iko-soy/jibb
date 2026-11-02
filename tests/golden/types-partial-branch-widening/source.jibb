@@ -10,6 +10,10 @@
   ?- b
     %.y ^- @ ~zod
     %.n "hi"
+++ atom-decimal |= b=?
+  ?- b
+    %.y ^- @ ~zod
+    %.n 0
 ++ unknown |= x
   ?- %.y
     %.y x
@@ -18,3 +22,54 @@
   ?- b
     %.y ^- @ud 1
     %.n 0x1f
+++ decimal |= [b=? n=@ud]
+  ?- b
+    %.y n
+    %.n 0
+++ decimal-context |= [b=? n=@ud]
+  ^- @ud  ?- b
+    %.y n
+    %.n 0
++$ maybe |$ [A]
+  ~
+  [~ value=A]
+++ unit-parent |= x=(maybe @ud)
+  ?- x
+    ~ 0x1f
+    [~ value] ^- @u 0x1f
++$ number-choice
+  [%hex @ux]
+  [%parent @u]
+  [%decimal @ud]
+++ union-parent |= x=number-choice
+  ?- x
+    [%hex n] 0x1f
+    [%parent n] ^- @u 0x1f
+    [%decimal n] 0
+++ union-parent-late |= x=number-choice
+  ?- x
+    [%hex n] 0x1f
+    [%decimal n] ^- @ud 0
+    [%parent n] ^- @u 0x1f
+++ union-variable |= [x=number-choice value]
+  ?- x
+    [%hex n] value
+    [%decimal n] 0x1f
+    [%parent n] ^- @u 0x1f
+++ union-variable-late |= [x=number-choice value]
+  ?- x
+    [%parent n] ^- @u 0x1f
+    [%hex n] 0x1f
+    [%decimal n] value
+++ union-any-late |= x=number-choice
+  ?- x
+    [%hex n] 0x1f
+    [%decimal n] ^- @ud 0
+    [%parent n] ^- @ ~zod
++$ singleton-choice
+  [%nothing ~]
+  [%anything @ud]
+++ union-singleton |= x=singleton-choice
+  ?- x
+    [%nothing n] n
+    [%anything n] ^- @ ~zod

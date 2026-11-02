@@ -7,5 +7,5 @@ partial inference; module not checked
 ++ named: $-(? [name=@t place=(unit @t)])
 ++ wrong: branch tag or union context is not supported by partial inference
 ++ different: branch tag or union context is not supported by partial inference
-++ open: branch widening is not supported by partial inference
+++ open: branch tag or union context is not supported by partial inference
 ++ waiting: branch tag or union context is not supported by partial inference

@@ -2,6 +2,7 @@ partial inference; module not checked
 +$ msg: cases proven disjoint; mold not checked
 ++ first-item: $-((list @t) @t)
 ++ rest-items: $-((list @t) (list @t))
+++ parent: $-((list @t) @u)
 ++ with-context: $-((list @t) msg)
 ++ shadow: pattern binder shadows a name
 ++ duplicate: pattern binder shadows a name

@@ -2,11 +2,11 @@ partial inference; module not checked
 ++ rec-order: local definitions need unsupported inference
 ++ rec-order-g-first: $-(@t @t)
 ++ rec-order-top: local definitions need unsupported inference
-++ flat-mask: local definitions need unsupported inference
+++ flat-mask: $-(!! [@ux @t])
 ++ flat-mask-ok: $-(!! [@ux @t])
-++ outer-mask: local definitions need unsupported inference
+++ outer-mask: $-(!! [@ux @t])
 ++ nest-order: local definitions need unsupported inference
 ++ nest-order-ok: $-(!! [@ux @t])
 ++ rec-mask: local definitions need unsupported inference
 ++ rec-ok: $-(@t @t)
-++ rec-widen: local definitions need unsupported inference
+++ rec-widen: $-(@t @t)

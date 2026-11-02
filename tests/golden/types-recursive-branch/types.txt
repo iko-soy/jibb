@@ -8,9 +8,9 @@ partial inference; module not checked
 ++ input-base: $-(A A)
 ++ inferred-base: $-(A A)
 ++ captured: $-(A A)
-++ forced: branch widening is not supported by partial inference
-++ pending: branch widening is not supported by partial inference
-++ pending-null: branch widening is not supported by partial inference
+++ forced: explicit capital constraints are not supported by partial inference
+++ pending: tag needs context in partial inference
+++ pending-null: `~` needs context in partial inference
 ++ dependent: $-(? @t)
 ++ nonself: $-(? @t)
 ++ polymorphic: call's sample and argument types do not unify
@@ -46,5 +46,5 @@ partial inference; module not checked
 /tests/golden/types-recursive-branch/source.jibb:93:11: second arm has type @t
       %.n (aura-conflict b)
           ^
-++ traced: branch widening is not supported by partial inference
+++ traced: $-(? @t)
 ++ unresolved-number: unresolved aura-variable inference

@@ -4,6 +4,7 @@ nested obligation discharged
 independent built result stays polymorphic
 text use inferred
 ship use inferred independently
+deferred branch joins present parent
 missing constructor leaves no result
 conflicting context leaves no result
 duplicate source binding declined

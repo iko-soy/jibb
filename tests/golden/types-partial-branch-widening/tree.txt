@@ -29,21 +29,171 @@
             (lit 11:5 %.y)
             (cast 11:9 (aura 11:12 @) (lit 11:14 ~zod)))
           (arm 12:5 (lit 12:5 %.n) (str 12:9 "hi"))))))
-  (value 13:1 unknown
-    (gate 13:12
-      (bind 13:15 x)
+  (value 13:1 atom-decimal
+    (gate 13:17
+      (face 13:20 b (flag 13:22))
       (body 14:3
         (branch 14:3
-          (lit 14:6 %.y)
-          (arm 15:5 (lit 15:5 %.y) (wing 15:9 x))
-          (arm 16:5 (lit 16:5 %.n) (lit 16:9 0x1f))))))
-  (value 17:1 siblings
-    (gate 17:13
-      (face 17:16 b (flag 17:18))
+          (wing 14:6 b)
+          (arm 15:5
+            (lit 15:5 %.y)
+            (cast 15:9 (aura 15:12 @) (lit 15:14 ~zod)))
+          (arm 16:5 (lit 16:5 %.n) (lit 16:9 0))))))
+  (value 17:1 unknown
+    (gate 17:12
+      (bind 17:15 x)
       (body 18:3
         (branch 18:3
-          (wing 18:6 b)
-          (arm 19:5
-            (lit 19:5 %.y)
-            (cast 19:9 (aura 19:12 @ud) (lit 19:16 1)))
-          (arm 20:5 (lit 20:5 %.n) (lit 20:9 0x1f)))))))
+          (lit 18:6 %.y)
+          (arm 19:5 (lit 19:5 %.y) (wing 19:9 x))
+          (arm 20:5 (lit 20:5 %.n) (lit 20:9 0x1f))))))
+  (value 21:1 siblings
+    (gate 21:13
+      (face 21:16 b (flag 21:18))
+      (body 22:3
+        (branch 22:3
+          (wing 22:6 b)
+          (arm 23:5
+            (lit 23:5 %.y)
+            (cast 23:9 (aura 23:12 @ud) (lit 23:16 1)))
+          (arm 24:5 (lit 24:5 %.n) (lit 24:9 0x1f))))))
+  (value 25:1 decimal
+    (gate 25:12
+      (cell 25:15
+        (face 25:16 b (flag 25:18))
+        (face 25:20 n (aura 25:22 @ud)))
+      (body 26:3
+        (branch 26:3
+          (wing 26:6 b)
+          (arm 27:5 (lit 27:5 %.y) (wing 27:9 n))
+          (arm 28:5 (lit 28:5 %.n) (lit 28:9 0))))))
+  (value 29:1 decimal-context
+    (gate 29:20
+      (cell 29:23
+        (face 29:24 b (flag 29:26))
+        (face 29:28 n (aura 29:30 @ud)))
+      (body 30:3
+        (cast 30:3
+          (aura 30:6 @ud)
+          (branch 30:11
+            (wing 30:14 b)
+            (arm 31:5 (lit 31:5 %.y) (wing 31:9 n))
+            (arm 32:5 (lit 32:5 %.n) (lit 32:9 0)))))))
+  (mold 33:1 maybe
+    (generic 33:10 A
+      (union 34:3
+        (const 34:3 ~)
+        (cell 35:3
+          (const 35:4 ~)
+          (face 35:6 value (tvar 35:12 A))))))
+  (value 36:1 unit-parent
+    (gate 36:16
+      (face 36:19 x
+        (apply 36:21 maybe (aura 36:28 @ud)))
+      (body 37:3
+        (branch 37:3
+          (wing 37:6 x)
+          (arm 38:5 (lit 38:5 ~) (lit 38:7 0x1f))
+          (arm 39:5
+            (cell 39:5 (lit 39:6 ~) (bind 39:8 value))
+            (cast 39:15 (aura 39:18 @u) (lit 39:21 0x1f)))))))
+  (mold 40:1 number-choice
+    (union 41:3
+      (cell 41:3 (const 41:4 %hex) (aura 41:9 @ux))
+      (cell 42:3 (const 42:4 %parent) (aura 42:12 @u))
+      (cell 43:3 (const 43:4 %decimal) (aura 43:13 @ud))))
+  (value 44:1 union-parent
+    (gate 44:17
+      (face 44:20 x (ref 44:22 number-choice))
+      (body 45:3
+        (branch 45:3
+          (wing 45:6 x)
+          (arm 46:5
+            (cell 46:5 (lit 46:6 %hex) (bind 46:11 n))
+            (lit 46:14 0x1f))
+          (arm 47:5
+            (cell 47:5 (lit 47:6 %parent) (bind 47:14 n))
+            (cast 47:17 (aura 47:20 @u) (lit 47:23 0x1f)))
+          (arm 48:5
+            (cell 48:5 (lit 48:6 %decimal) (bind 48:15 n))
+            (lit 48:18 0))))))
+  (value 49:1 union-parent-late
+    (gate 49:22
+      (face 49:25 x (ref 49:27 number-choice))
+      (body 50:3
+        (branch 50:3
+          (wing 50:6 x)
+          (arm 51:5
+            (cell 51:5 (lit 51:6 %hex) (bind 51:11 n))
+            (lit 51:14 0x1f))
+          (arm 52:5
+            (cell 52:5 (lit 52:6 %decimal) (bind 52:15 n))
+            (cast 52:18 (aura 52:21 @ud) (lit 52:25 0)))
+          (arm 53:5
+            (cell 53:5 (lit 53:6 %parent) (bind 53:14 n))
+            (cast 53:17 (aura 53:20 @u) (lit 53:23 0x1f)))))))
+  (value 54:1 union-variable
+    (gate 54:19
+      (cell 54:22
+        (face 54:23 x (ref 54:25 number-choice))
+        (bind 54:39 value))
+      (body 55:3
+        (branch 55:3
+          (wing 55:6 x)
+          (arm 56:5
+            (cell 56:5 (lit 56:6 %hex) (bind 56:11 n))
+            (wing 56:14 value))
+          (arm 57:5
+            (cell 57:5 (lit 57:6 %decimal) (bind 57:15 n))
+            (lit 57:18 0x1f))
+          (arm 58:5
+            (cell 58:5 (lit 58:6 %parent) (bind 58:14 n))
+            (cast 58:17 (aura 58:20 @u) (lit 58:23 0x1f)))))))
+  (value 59:1 union-variable-late
+    (gate 59:24
+      (cell 59:27
+        (face 59:28 x (ref 59:30 number-choice))
+        (bind 59:44 value))
+      (body 60:3
+        (branch 60:3
+          (wing 60:6 x)
+          (arm 61:5
+            (cell 61:5 (lit 61:6 %parent) (bind 61:14 n))
+            (cast 61:17 (aura 61:20 @u) (lit 61:23 0x1f)))
+          (arm 62:5
+            (cell 62:5 (lit 62:6 %hex) (bind 62:11 n))
+            (lit 62:14 0x1f))
+          (arm 63:5
+            (cell 63:5 (lit 63:6 %decimal) (bind 63:15 n))
+            (wing 63:18 value))))))
+  (value 64:1 union-any-late
+    (gate 64:19
+      (face 64:22 x (ref 64:24 number-choice))
+      (body 65:3
+        (branch 65:3
+          (wing 65:6 x)
+          (arm 66:5
+            (cell 66:5 (lit 66:6 %hex) (bind 66:11 n))
+            (lit 66:14 0x1f))
+          (arm 67:5
+            (cell 67:5 (lit 67:6 %decimal) (bind 67:15 n))
+            (cast 67:18 (aura 67:21 @ud) (lit 67:25 0)))
+          (arm 68:5
+            (cell 68:5 (lit 68:6 %parent) (bind 68:14 n))
+            (cast 68:17 (aura 68:20 @) (lit 68:22 ~zod)))))))
+  (mold 69:1 singleton-choice
+    (union 70:3
+      (cell 70:3 (const 70:4 %nothing) (const 70:13 ~))
+      (cell 71:3 (const 71:4 %anything) (aura 71:14 @ud))))
+  (value 72:1 union-singleton
+    (gate 72:20
+      (face 72:23 x (ref 72:25 singleton-choice))
+      (body 73:3
+        (branch 73:3
+          (wing 73:6 x)
+          (arm 74:5
+            (cell 74:5 (lit 74:6 %nothing) (bind 74:15 n))
+            (wing 74:18 n))
+          (arm 75:5
+            (cell 75:5 (lit 75:6 %anything) (bind 75:16 n))
+            (cast 75:19 (aura 75:22 @) (lit 75:24 ~zod))))))))
