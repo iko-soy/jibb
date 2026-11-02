@@ -10191,9 +10191,10 @@
   $(vars t.vars)
 ::
 ::  Build the supported part of the value environment in dependency order.
-::  Each pass adds successful definitions. Forward references become
-::  available on a later pass; unsupported syntax does not enter the
-::  environment. Generalized definitions are closed, so a use instantiates
+::  Each pass adds successful definitions, visiting them dependencies first
+::  (+dependency-order), so a forward reference usually resolves in the
+::  first pass; any that do not are retried on a later pass. Unsupported
+::  syntax does not enter the environment. Generalized definitions are closed, so a use instantiates
 ::  its variables afresh.
 ::
 ++  global-value-names
@@ -10744,14 +10745,37 @@
   =/  components=icomponents  (graph-components ds names)
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
+  =/  ordered=(list def)  (dependency-order ds components)
   |-
   =/  next=[env=ienv artifacts=(list iwidth-definition)]
-    (add-supported-defs-core ds (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
+    (add-supported-defs-core ordered (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
   =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =.  grec-index.initial  index
   =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
   ?:  =(env env.out)  out
   $(env env.out, grouped grouped.out, artifacts artifacts.out)
+::
+::  +dependency-order: the value definitions, dependencies first
+::
+::    +graph-components lists the components dependencies first, so one
+::    pass of +add-supported-defs-core in this order resolves a forward
+::    chain that would otherwise take a pass per link; the fixpoint above
+::    stays as the fallback (review question 12). Members of a component
+::    keep their source order. Definitions in no component (molds, and
+::    every value when duplicate names leave no components) follow in
+::    source order.
+::
+++  dependency-order
+  |=  [ds=(list def) components=icomponents]
+  ^-  (list def)
+  =/  ranked=(list def)
+    %-  zing
+    %+  turn  components
+    |=  component=(list term)
+    (skim ds |=(d=def &(?=(%value -.d) (lien component |=(n=term =(n name.d))))))
+  =/  members=(list term)  (zing components)
+  =/  named=ivisited  (graph-nameset members ~)
+  (weld ranked (skip ds |=(d=def &(?=(%value -.d) (~(has by named) name.d)))))
 ::
 ++  resolve-supported-defs
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
