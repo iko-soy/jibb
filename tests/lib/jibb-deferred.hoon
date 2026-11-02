@@ -78,11 +78,8 @@
 ++  case-fresh
   ^-  (list @t)
   =/  env=ienv:jibb  ~[[%x [[%fn [%var 1.000.007] [%var 1.000.007]] ~[1.000.007 2.000.001]]]]
-  =/  scanned=(unit dgscan:jibb)  (dg-all-env-ids:jibb env 200 ~)
-  =/  small=(unit dgscan:jibb)  (dg-all-env-ids:jibb env 1 ~)
-  ?~  scanned  ~['BAD-scan']
-  :~  ?:(=(2.000.002 (dg-next-id:jibb ids.u.scanned 0)) 'fresh ID exceeds raw and quantified IDs' 'BAD-fresh')
-      ?:(?=(~ small) 'fresh ID scan respects budget' 'BAD-fuel')
+  :~  ?:(=(`2.000.002 (ienv-fresh-id:jibb env)) 'fresh ID exceeds raw and quantified IDs' 'BAD-fresh')
+      ?:(=(`1 (ienv-fresh-id:jibb ~)) 'fresh ID of an empty environment is 1' 'BAD-empty')
   ==
 ++  case-safety
   ^-  (list @t)
@@ -178,10 +175,9 @@
   ^-  (list @t)
   =/  tree=itype:jibb  [%grec /ui/test/jibb %tree ~ *shape:jibb ~[[%var 7]]]
   =/  bounded=(unit dgscan:jibb)  (dg-scan:jibb ~[tree] ~ 256 ~)
-  =/  env=ienv:jibb  ~[[%t [tree ~[7]]]]
-  =/  all=(unit dgscan:jibb)  (dg-all-env-ids:jibb env 256 ~)
+  =/  env=ienv:jibb  ~[[%t [tree ~[7]]] [%r [[%cell [%recursive %notes %node ~] [%var 9]] ~]]]
   :~  ?:(?=(~ bounded) 'grec constraint scan declines' 'BAD-grec-scan')
-      ?:(?=(~ all) 'grec fresh-id scan declines' 'BAD-grec-freshness')
+      ?:(=(`10 (ienv-fresh-id:jibb env)) 'fresh ID passes over grec arguments and recursive leaves' 'BAD-grec-freshness')
   ==
 ++  case-default-behavior
   ^-  @t

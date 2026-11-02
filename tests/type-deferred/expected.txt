@@ -13,7 +13,7 @@ local deferred definition declined
 recursive deferred group declined
 unused mold hole declined
 fresh ID exceeds raw and quantified IDs
-fresh ID scan respects budget
+fresh ID of an empty environment is 1
 original structural binding rejects wrong face
 dropping binding would accept wrong face
 unresolved edge remains open after fit
@@ -34,6 +34,6 @@ post-fit face asymmetry is absent
 record output stays cell-capable
 prebound incompatible callback is rejected
 grec constraint scan declines
-grec fresh-id scan declines
+fresh ID passes over grec arguments and recursive leaves
 default inference declines; explicit capability creates obligation
 candidate screen boundaries passed

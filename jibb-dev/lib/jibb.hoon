@@ -13371,10 +13371,10 @@
     (~(put by (direct-checked-gates ds env)) update.parts update-def)
   =/  templates=ienv
     (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  scanned=(unit dgscan)
-    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
-  ?~  scanned  ~
-  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  fresh=(unit @ud)
+    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
+  ?~  fresh  ~
+  =.  next.initial  u.fresh
   =/  update-state=istate  (reserve-def-caps val.update-def initial)
   =/  sam=isample-result  (infer-sample u.written-update env update-state)
   ?:  ?=(%| -.sam)  ~
@@ -13533,10 +13533,10 @@
   =/  checked=(map term def)  (direct-checked-gates ds env)
   =/  templates=ienv
     (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  scanned=(unit dgscan)
-    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
-  ?~  scanned  ~
-  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  fresh=(unit @ud)
+    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
+  ?~  fresh  ~
+  =.  next.initial  u.fresh
   =/  subs-state=istate  (reserve-def-caps val.subs-def initial)
   =/  sam=isample-result  (infer-sample u.written-subs env subs-state)
   ?:  ?=(%| -.sam)  ~
@@ -13884,10 +13884,10 @@
   =/  checked=(map term def)  (direct-checked-gates ds env)
   =/  templates=ienv
     (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  scanned=(unit dgscan)
-    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
-  ?~  scanned  ~
-  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  fresh=(unit @ud)
+    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
+  ?~  fresh  ~
+  =.  next.initial  u.fresh
   =/  view-state=istate  (reserve-def-caps val.view-def initial)
   =/  sam=isample-result  (infer-sample u.written-view env view-state)
   ?:  ?=(%| -.sam)  ~
@@ -13998,10 +13998,10 @@
   =/  checked=(map term def)  (direct-checked-gates ds env)
   =/  templates=ienv
     (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  scanned=(unit dgscan)
-    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
-  ?~  scanned  ~
-  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  fresh=(unit @ud)
+    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
+  ?~  fresh  ~
+  =.  next.initial  u.fresh
   =/  view-state=istate  (reserve-def-caps val.view-def initial)
   =/  sam=isample-result  (infer-sample u.written-view env view-state)
   ?:  ?=(%| -.sam)  ~
@@ -14195,10 +14195,10 @@
   =/  checked=(map term def)  (direct-checked-gates ds env)
   =/  templates=ienv
     (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  scanned=(unit dgscan)
-    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
-  ?~  scanned  ~
-  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  fresh=(unit @ud)
+    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
+  ?~  fresh  ~
+  =.  next.initial  u.fresh
   =/  init-state=istate  (reserve-def-caps val.init-def initial)
   =/  sam=isample-result  (infer-sample u.written env init-state)
   ?:  ?=(%| -.sam)  ~
@@ -14267,10 +14267,10 @@
   =/  checked=(map term def)  (direct-checked-gates ds env)
   =/  templates=ienv
     (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  scanned=(unit dgscan)
-    (dg-all-env-ids (weld env (weld values.u.prelude.initial templates)) 32.768 ~)
-  ?~  scanned  ~
-  =.  next.initial  (dg-next-id ids.u.scanned 0)
+  =/  fresh=(unit @ud)
+    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
+  ?~  fresh  ~
+  =.  next.initial  u.fresh
   =/  instance=[typ=itype state=istate]  (instantiate-scheme u.program initial)
   ?.  ?=(%fn -.typ.instance)  ~
   ?.  ?=(%cell -.sample.typ.instance)  ~
@@ -15637,9 +15637,9 @@
       =/  free=(unit dgscan)  (dg-env base ~ 32.768 ~)
       ?~  free  ~
       ?^  ids.u.free  ~
-      =/  all=(unit dgscan)  (dg-all-env-ids base 32.768 ~)
+      =/  all=(unit @ud)  (ienv-fresh-id base)
       ?~  all  ~
-      =/  fresh=@ud  (dg-next-id ids.u.all 0)
+      =/  fresh=@ud  u.all
       =/  st=istate  *istate
       =.  st  st(next fresh, defer `~, molds molds, globals globals, at at, top-molds (turn molds |=(m=[name=term body=shape] name.m)), in-mold |, jrec-fuel 256)
       =/  checked-molds=(each imold-types @t)  (module-mold-types molds st)
@@ -15679,33 +15679,60 @@
   =/  free=(unit dgscan)  (dg-env all-env ~ 32.768 ~)
   ?~  free  ~
   ?^  ids.u.free  ~
-  =/  all=(unit dgscan)  (dg-all-env-ids all-env 32.768 ~)
+  =/  all=(unit @ud)  (ienv-fresh-id all-env)
   ?~  all  ~
-  =/  fresh=@ud  (dg-next-id ids.u.all 0)
+  =/  fresh=@ud  u.all
   =/  st=istate  *istate
   =.  st  st(next fresh, defer `~, molds local-molds, globals globals, at at, reserved-molds molds.prepared, prelude prelude, top-molds (turn local-molds |=(m=[name=term body=shape] name.m)), in-mold |, jrec-fuel 256)
   =/  checked-molds=(each imold-types @t)  (module-mold-types local-molds st)
   ?:  ?=(%| -.checked-molds)  ~
   (dg-stage defs base base st ~ 64)
 ::
-++  dg-all-env-ids
-  |=  [env=ienv fuel=@ud ids=(list @ud)]
-  ^-  (unit dgscan)
-  ?~  env  `[ids fuel]
-  ?:  =(0 fuel)  ~
+::  +ienv-fresh-id: one above the largest type variable or tag ID in env
+::
+::    One pass over every ID in env's schemes, quantified or free, so a
+::    variable numbered from it captures none of them. A %recursive or
+::    %jrec type names its mold and holds no variable, so it is a leaf,
+::    and the pass is linear in the size of the types, with no budget.
+::    A scheme that still holds an unresolved tag declines.
+::
+++  ienv-fresh-id
+  |=  env=ienv
+  ^-  (unit @ud)
+  =/  top=@ud  0
+  |-
+  ?~  env  `+(top)
   =/  sc=ischeme  scheme.i.env
   ?:  (itype-has-tag typ.sc)  ~
-  =/  raw=(unit dgscan)  (dg-scan ~[typ.sc] ~ (dec fuel) ids)
-  ?~  raw  ~
-  =/  quant=(unit dgscan)  (dg-scan-ids vars.sc ~ fuel.u.raw ids.u.raw)
-  ?~  quant  ~
-  $(env t.env, fuel fuel.u.quant, ids ids.u.quant)
+  $(env t.env, top (itype-max-id typ.sc (max top (roll vars.sc max))))
 ::
-++  dg-next-id
-  |=  [ids=(list @ud) largest=@ud]
+::  +itype-max-id: the largest variable or tag ID in t, or top
+::
+++  itype-max-id
+  |=  [t=itype top=@ud]
   ^-  @ud
-  ?~  ids  +(largest)
-  $(ids t.ids, largest (max largest i.ids))
+  ?-  -.t
+    %var          (max top id.t)
+    %fvar         (max top id.t)
+    %avar         (max top id.t)
+    %rvar         (max top id.t)
+    %nvar         (max top id.t)
+    %rnvar        (max top id.t)
+    %tag          (max top id.t)
+    ?(%atom %any-atom %flag %noun %empty %const %recursive %jrec)  top
+    %collection  (itype-max-ids args.t top)
+    %grec        (itype-max-ids args.t top)
+    %union       (itype-max-ids args.t (itype-max-ids cases.t top))
+    %face        $(t body.t)
+    %fn          $(t sample.t, top $(t product.t))
+    %cell        $(t hed.t, top $(t tal.t))
+  ==
+::
+++  itype-max-ids
+  |=  [ts=(list itype) top=@ud]
+  ^-  @ud
+  ?~  ts  top
+  $(ts t.ts, top (itype-max-id i.ts top))
 ::
 ++  dg-eligible-ctor
   |=  [e=expr head=itype actual=itype expected=itype state=istate]
