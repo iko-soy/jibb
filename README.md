@@ -107,7 +107,7 @@ tools/ship stop
 | `jibb` | `vendor/*`, then `jibb` |
 | `jibb-dev` | `vendor/*`, then `jibb-dev`, then `tests/`, with `tests/lib/jibb.hoon` generated, and `jibb/sys.kelvin` |
 
-The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the partial inference output. Don't edit that file; `--check` says whether it's up to date. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
+The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the partial inference output. The file is generated, not committed (review question 32): desk assembly writes it afresh, and `.gitignore` lists it. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
 
 ```
 tools/ship test                                   # the library and tests/golden

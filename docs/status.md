@@ -292,7 +292,6 @@ tools/hoon check-spans-test       # prints <<>> when the span checker works
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
-tools/ship gen-tests --check      # tests/lib/jibb.hoon is up to date
 tools/ship test                   # the same 660 cases as -test arms on the ship
 tools/testdata/ship-selftest
 tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
