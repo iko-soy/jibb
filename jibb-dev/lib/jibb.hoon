@@ -10028,7 +10028,6 @@
   ?:  |(?=(%var -.normalized) ?=(%fvar -.normalized) ?=(%avar -.normalized) ?=(%rvar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
   ?:  (itype-has-hidden-recursive normalized)  label
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
-  ?:  (gth (lent vars) 26)  label
   =/  printable=itype  (canonical-itype normalized vars)
   "{label} has type {(show-itype printable ~)}{(show-atom-constraint printable)}"
 ::
@@ -10502,7 +10501,6 @@
   =/  free=(list @ud)  (weld (free-env-vars env sub.state) (free-cap-vars caps.outer sub.state))
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
-  ?:  (gth (lent vars) 26)  [%| ["recursive group needs too many type variables" ~]]
   =/  rest=(each ienv idiag)  $(entries t.entries)
   ?:  ?=(%| -.rest)  rest
   [%& [[name.entry [typ vars]] p.rest]]
@@ -10681,7 +10679,6 @@
   ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  ~
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  ~
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  ?:  (gth (lent vars) 26)  ~
   =/  finalized=(unit (list iwprojection))
     (width-finalize projections.state.p.result sub.state.p.result vars)
   ?~  finalized  ~
@@ -15169,8 +15166,6 @@
   ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  ?:  (gth (lent vars) 26)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: too many variables for partial printer") lines])
   ?~  (width-finalize projections.state.p.result sub.state.p.result vars)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: record projection elaboration needs unsupported inference") lines])
   =/  printable=itype  (canonical-itype typ vars)
@@ -15608,7 +15603,6 @@
   ?~  env  &
   =/  sc=ischeme  scheme.i.env
   ?:  |((itype-has-hidden-recursive typ.sc) (itype-has-hidden-generic typ.sc))  |
-  ?:  (gth (lent vars.sc) 26)  |
   $(env t.env)
 ::  Parse status and the transaction result come from the same source parse.
 +$  dgparse  [parsed=? result=(unit dgcommit)]

@@ -1,0 +1,13 @@
+partial inference; module not checked
+++ wide: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] [A T26])
+++ ends: [@t @p]
+++ spin: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] T27)
+++ ping: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] T27)
+++ pong: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] T27)
+++ short: call's sample and argument types do not unify
+/tests/golden/types-many-variables/source.jibb:6:11: called gate has type $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] [A T26])
+++ short (wide "x")
+          ^
+/tests/golden/types-many-variables/source.jibb:6:16: argument has type @t
+++ short (wide "x")
+               ^
