@@ -91,6 +91,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/type-todo-partial-test` | Reports partial inference of the unchanged todo island through the real API and readers under eval and on the ship |
 | `tools/type-todo-api-test` | Exercises the actual todo API through the real Hoon readers and partial checker |
 | `tools/type-direct-gate-test` | Checks a synthetic source-backed program report and direct gate provenance under eval and on the ship |
+| `tools/type-page-main-test` | Fully checks byte-identical static and direct data pages through real readers, exact main types, downstream imports and rejection guards under eval and on the ship |
 | `tools/type-program-main-test` | Checks the narrow closed subscription-free program-main interface, downstream import and rejection guards under eval and on the ship |
 | `tools/type-program-init-test` | Checks transactional direct-program initializer recovery, exact exported/imported types and fail-closed boundaries under eval and on the ship |
 | `tools/type-program-update-test` | Checks transactional direct-program update result recovery, union/boolean context, exact exported/imported types and fail-closed boundaries under eval and on the ship |
@@ -145,6 +146,7 @@ tools/type-qath-guards-test         # qath source and unfolding guards pass
 tools/type-todo-partial-test       # unchanged todo partial report and reader failure controls
 tools/type-todo-api-test            # real todo API partial inference and reader guards pass
 tools/type-direct-gate-test         # direct gate source and provenance guards pass
+tools/type-page-main-test          # static/data pages, exact types, imports and rejection guards pass
 tools/type-program-main-test        # closed program-main interface and rejection guards pass
 tools/type-program-init-test        # transactional direct-program initializer context guards pass
 tools/type-program-update-test      # transactional direct-program update context guards pass

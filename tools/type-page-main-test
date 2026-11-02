@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""Check static and direct data pages through real readers under eval."""
+from pathlib import Path
+import argparse
+import subprocess
+import sys
+import tempfile
+
+root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--lib', default=str(root / 'jibb-dev/lib/jibb.hoon'))
+parser.add_argument('--timeout', type=float, default=600,
+                    help='seconds allowed for urbit eval (default: 600)')
+args = parser.parse_args()
+for fixture, actual in (
+        ('tests/type-page-main/static.txt', 'my-app/ui/about.jibb'),
+        ('tests/type-page-main/blog-index.txt', 'my-app/ui/blog/index.jibb'),
+        ('tests/type-page-main/index.txt', 'my-app/ui/index.jibb'),
+        ('tests/type-page-main/blog-api.txt', 'my-app/ui/api/blog.jibb'),
+        ('tests/type-page-main/card.txt', 'my-app/ui/components/card.jibb'),
+        ('tests/type-page-main/blog-sur.txt', 'my-app/sur/blog.hoon'),
+        ('tests/type-page-main/todo-api.txt', 'my-app/ui/api/todo.jibb'),
+        ('tests/type-page-main/todo-island.txt', 'my-app/ui/todo-list.jibb')):
+    if (root / fixture).read_bytes() != (root / actual).read_bytes():
+        sys.exit(f'{fixture} differs from {actual}')
+# As with the todo readers, eval supplies the imported core in the subject;
+# only the Ford import line is removed from the real mark source.
+posts = (root / 'my-app/mar/posts.hoon').read_bytes().replace(b'/-  blog\n', b'', 1)
+if (root / 'tests/type-page-main/posts-mark.txt').read_bytes() != posts:
+    sys.exit('posts reader fixture differs from my-app/mar/posts.hoon without /- blog')
+reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+tests = (root / 'tests/lib/jibb-page-main.hoon').read_text()
+tests = tests[tests.index('\n|%\n') + 1:]
+fixtures = {
+    'sur': 'tests/type-api-paths/todo-sur.txt',
+    'action': 'tests/type-api-paths/todo-action.txt',
+    'todos': 'tests/type-api-paths/todos.txt',
+    'update': 'tests/type-api-paths/todo-update.txt',
+    'item': 'tests/type-api-paths/todo-item.txt',
+    **{name: f'tests/type-page-main/{name}.txt' for name in (
+        'todo-api', 'todo-island', 'blog-sur', 'posts', 'blog-api',
+        'card', 'static', 'blog-index', 'index', 'ctor-page', 'wrong-static',
+        'arbitrary-main', 'page-alias', 'indirect-load', 'pure-load',
+        'hand-built-load', 'typed-load', 'diff-load')},
+}
+fixtures['posts'] = 'tests/type-page-main/posts-mark.txt'
+# The Hoon face for the static source is about; its metadata remains about.txt.
+cords = dict(fixtures)
+cords['about'] = cords.pop('static')
+prefix = ('=/  jibb  .\n=/  jibb-import\n' + reader + '\n' +
+          ''.join('=/  ' + name + '=wain  (to-wain:format ' + name + '-text)\n'
+                  for name in cords) + '=/  suite\n' + tests)
+negative_names = ('wrong-static', 'arbitrary-main', 'page-alias',
+                  'indirect-load', 'pure-load', 'hand-built-load',
+                  'typed-load', 'diff-load')
+negative_labels = ('wrong static message', 'arbitrary main', 'page alias',
+                   'indirect load', 'pure load', 'hand-built load',
+                   'typed load', 'diff load')
+negatives = ''.join(f"        ['{label}' (text:suite {name})]\n"
+                    for label, name in zip(negative_labels, negative_names))
+ordered = ('sur', 'action', 'todos', 'update', 'item', 'todo-api',
+           'todo-island', 'blog-sur', 'posts', 'blog-api', 'card',
+           'about', 'blog-index', 'index', 'ctor-page')
+arguments = ' '.join(f'(text:suite {name})' for name in ordered)
+expression = (prefix + '\n=/  negatives=(list [label=@t src=@t])\n  :~\n' +
+              negatives + '  ==\n' +
+              '=/  failures=(list tape)  (page-main-errors:suite prelude internal ' +
+              arguments + ' negatives)\n^-  @t\n'
+              "?~  failures  'static and direct data-page checks passed'\n"
+              '(of-wain:format (turn failures crip))\n')
+with tempfile.TemporaryDirectory(prefix='jibb-page-main-') as tmp:
+    path = Path(tmp) / 'page-main.hoon'
+    path.write_text(expression)
+    command = [str(root / 'tools/hoon'), '--lib', args.lib, '--raw', '-f', str(path),
+               '--timeout', str(args.timeout),
+               '--cord', 'prelude=' + str(root / 'jibb-dev/lib/jibb/prelude.jibb'),
+               '--cord', 'internal=' + str(root / 'jibb-dev/lib/jibb/internal.jibb')]
+    for name, filename in cords.items():
+        command += ['--cord', name + '-text=' + str(root / filename)]
+    result = subprocess.run(command, stdout=subprocess.PIPE)
+if result.returncode:
+    sys.exit(result.returncode)
+if result.stdout != b'static and direct data-page checks passed\n':
+    sys.stderr.buffer.write(result.stdout)
+    sys.exit(1)
+print('byte-identical static/data pages, exact types, imports and negatives passed')

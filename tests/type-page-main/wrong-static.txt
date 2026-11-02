@@ -1,0 +1,1 @@
+++ main (button "Go" %go)

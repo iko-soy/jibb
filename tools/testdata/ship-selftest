@@ -324,6 +324,7 @@ def generator_checks(tmp):
            'tests/lib/jibb-closed-gate-guards.hoon',
            'tests/lib/jibb-direct-gate-guards.hoon',
            'tests/lib/jibb-direct-gate-source.hoon',
+           'tests/lib/jibb-page-main.hoon',
            'tests/lib/jibb-program-main.hoon',
            'tests/lib/jibb-program-init.hoon',
            'tests/lib/jibb-program-update.hoon',
@@ -399,6 +400,14 @@ def generator_checks(tmp):
           <= set(normal.files))
     check('direct gate source and golden are assembled',
           {'tests/type-direct-gate/source.txt', 'tests/type-direct-gate/expected.txt'}
+          <= set(normal.files))
+    check('static and data page sources and shared fixture are assembled',
+          {'tests/lib/jibb-page-main.hoon', 'tests/type-page-main/about.txt',
+           *(f'tests/type-page-main/{name}.txt' for name in (
+               'static', 'blog-index', 'index', 'ctor-page', 'blog-api', 'card', 'blog-sur',
+               'posts-mark', 'todo-api', 'todo-island', 'wrong-static',
+               'arbitrary-main', 'page-alias', 'indirect-load', 'pure-load',
+               'hand-built-load', 'typed-load', 'diff-load'))}
           <= set(normal.files))
     check('program main sources and shared fixture are assembled',
           {f'tests/type-program-main/{name}.txt' for name in (

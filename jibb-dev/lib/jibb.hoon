@@ -12533,6 +12533,27 @@
   ?~  subs  ~
   `[u.init u.update u.view u.subs]
 ::
+::  A data page is only the direct two-component source call. Grouping is
+::  transparent, but page aliases, qualified wings and other kinds are not.
+++  page-main-parts
+  |=  d=def
+  ^-  (unit [load=term view=term])
+  ?.  ?=(%value -.d)  ~
+  |-
+  ?:  ?=(%group -.val.d)  $(val.d inner.val.d)
+  ?.  ?=(%call -.val.d)  ~
+  =/  head=(unit term)  (program-main-wing head.val.d)
+  ?~  head  ~
+  ?.  =(%page u.head)  ~
+  ?.  ?=([* * ~] args.val.d)  ~
+  =/  args=(list expr)  args.val.d
+  ?>  ?=([* * ~] args)
+  =/  load=(unit term)  (program-main-wing i.args)
+  =/  view=(unit term)  (program-main-wing i.t.args)
+  ?~  load  ~
+  ?~  view  ~
+  `[u.load u.view]
+::
 ++  program-empty-null
   |=  e=expr
   ^-  ?
@@ -13497,36 +13518,45 @@
   =/  callback=expr  (program-transparent i.args.request)
   ?.  ?=(%ctor -.callback)  |
   ?.  ?=(%term form.tag.callback)  |
+  ?=(^ (derived-request-member case face imports graph prelude))
+::
+::  Exact derived-member and request-evidence identity, shared by direct
+::  program watches and direct data-page loads. Only a plain request in the
+::  selected interface's own source-backed graph can establish this shape.
+++  derived-request-member
+  |=  [case=term face=term imports=ijimports graph=irequest-graph prelude=ifile]
+  ^-  (unit ischeme)
   =/  selected=(list [face=term interface=ifile])
     (skim imports |=(j=[face=term interface=ifile] =(face face.j)))
-  ?.  ?=([* ~] selected)  |
+  ?.  ?=([* ~] selected)  ~
   =/  iface=ifile  interface.i.selected
   =/  member=(unit ischeme)  (ienv-lookup case values.iface)
-  ?~  member  |
-  ?~  source.iface  |
+  ?~  member  ~
+  ?~  source.iface  ~
   =/  evidence=(list irequest-evidence)
     (skim requests.graph |=(r=irequest-evidence &(=(api-at.r at.iface) =(name.r case))))
-  ?.  ?=([* ~] evidence)  |
+  ?.  ?=([* ~] evidence)  ~
   =/  request-evidence=irequest-evidence  i.evidence
-  ?.  =(u.source.iface api-source.request-evidence)  |
-  ?.  =(name.path.path.request-evidence case)  |
-  ?~  graph.iface  |
-  ?.  (lien requests.u.graph.iface |=(r=irequest-evidence =(r request-evidence)))  |
-  ?.  ?=(~ scry.path.path.request-evidence)  |
-  ?.  &(?=(~ diffs.path.request-evidence) ?=(~ diffs.path.path.request-evidence))  |
-  ?:  (lien segments.path.path.request-evidence |=(p=pseg !?=(%knot -.p)))  |
-  ?.  ?=([@ ~] vars.u.member)  |
+  ?.  =(u.source.iface api-source.request-evidence)  ~
+  ?.  =(name.path.path.request-evidence case)  ~
+  ?~  graph.iface  ~
+  ?.  (lien requests.u.graph.iface |=(r=irequest-evidence =(r request-evidence)))  ~
+  ?.  ?=(~ scry.path.path.request-evidence)  ~
+  ?.  &(?=(~ diffs.path.request-evidence) ?=(~ diffs.path.path.request-evidence))  ~
+  ?:  (lien segments.path.path.request-evidence |=(p=pseg !?=(%knot -.p)))  ~
+  ?.  ?=([@ ~] vars.u.member)  ~
   =/  message=@ud  i.vars.u.member
-  ?.  ?=(%fn -.typ.u.member)  |
-  ?.  ?=(%fn -.sample.typ.u.member)  |
-  ?.  =(sample.sample.typ.u.member full.path.request-evidence)  |
-  ?.  =(product.sample.typ.u.member [%var message])  |
+  ?.  ?=(%fn -.typ.u.member)  ~
+  ?.  ?=(%fn -.sample.typ.u.member)  ~
+  ?.  =(sample.sample.typ.u.member full.path.request-evidence)  ~
+  ?.  =(product.sample.typ.u.member [%var message])  ~
   =/  prep=iprelude  [prelude prelude-values.graph prelude-molds.graph]
   =/  ask=(unit ischeme)  (request-compatible-ask prep)
-  ?~  ask  |
+  ?~  ask  ~
   =/  result=(unit itype)  (template-apply u.ask ~[[%var message]])
-  ?~  result  |
-  =(product.typ.u.member u.result)
+  ?~  result  ~
+  ?.  =(product.typ.u.member u.result)  ~
+  member
 ::
 ++  program-main-context
   |=  [main=def ds=(list def) resolution=iresolved initial=istate]
@@ -13539,6 +13569,77 @@
   =/  completed=[env=ienv artifacts=(list iwidth-definition)]
     (add-supported-defs-core ~[main] ds checked heads env.resolution molds.initial globals.initial externals.initial surs.initial mark-externals.initial marks.initial jimports.initial reserved-molds.initial at.initial prelude.initial artifacts.resolution grec-index.initial)
   [env.completed grouped.resolution artifacts.completed]
+::
+::  A static main may retain a generic element message in its ordinary
+::  scheme. Instantiate that scheme, specialize it to canonical element !!,
+::  and publish only the resulting closed scheme.
+++  static-main-specialized
+  |=  [env=ienv prelude=(unit ifile)]
+  ^-  (unit ischeme)
+  ?~  prelude  ~
+  =/  element=(unit ischeme)  (find-jibb-mold %element u.prelude)
+  ?~  element  ~
+  =/  main=(unit ischeme)  (ienv-lookup %main env)
+  ?~  main  ~
+  =/  canonical=(unit itype)  (template-apply u.element ~[[%empty ~]])
+  ?~  canonical  ~
+  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.main *istate)
+  =/  fit=ifit  (itype-fit typ.instance u.canonical ~ next.state.instance)
+  ?.  ?=(%ok -.fit)  ~
+  =/  closed=itype  (itype-normalize typ.instance sub.fit)
+  ?^  (itype-vars closed)  ~
+  ?:  (itype-has-tag closed)  ~
+  ?.  ?=(%union -.closed)  ~
+  ?.  ?=(%union -.u.canonical)  ~
+  ?.  &(=(origin.closed origin.u.canonical) =(args.closed args.u.canonical))  ~
+  =/  exact=ifit  (direct-invariant closed u.canonical ~ next.fit)
+  ?.  ?=(%ok -.exact)  ~
+  `[u.canonical ~]
+::
+::  The load of a direct data page must itself be a direct gate whose
+::  transparent body is one plain derived request with a wing or ctor reply.
+++  page-load-derived
+  |=  [name=term ds=(list def) imports=ijimports graph=irequest-graph prelude=ifile]
+  ^-  ?
+  =/  loads=(list def)
+    (skim ds |=(d=def &(?=(%value -.d) =(name name.d))))
+  ?.  ?=([* ~] loads)  |
+  =/  load=def  i.loads
+  ?>  ?=(%value -.load)
+  ?.  |(?=(%gate -.val.load) ?=(%gate-wide -.val.load))  |
+  =/  body=expr
+    ?-  -.val.load
+      %gate       body.val.load
+      %gate-wide  body.val.load
+      *           !!
+    ==
+  =.  body  (program-transparent body)
+  ?.  ?=(%call -.body)  |
+  ?.  ?=([* ~] args.body)  |
+  =/  head=expr  (program-transparent head.body)
+  ?.  ?=(%wing -.head)  |
+  ?.  ?=([@ @ ~] names.head)  |
+  =/  reply=expr  (program-transparent i.args.body)
+  ?.  ?|  &(?=(%wing -.reply) ?=([@ ~] names.reply))
+          &(?=(%ctor -.reply) ?=(%term form.tag.reply))
+      ==
+    |
+  ?=(^ (derived-request-member i.names.head i.t.names.head imports graph prelude))
+::
+++  page-main-closed
+  |=  [parts=[load=term view=term] ds=(list def) env=ienv prelude=(unit ifile) imports=ijimports graph=irequest-graph]
+  ^-  ?
+  ?~  prelude  |
+  =/  page=(unit ischeme)  (find-jibb-mold %page u.prelude)
+  ?~  page  |
+  =/  main=(unit ischeme)  (ienv-lookup %main env)
+  ?~  main  |
+  ?.  ?=(~ vars.u.main)  |
+  ?.  ?=(~ (itype-vars typ.u.main))  |
+  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.page *istate)
+  =/  main-fit=ifit  (direct-invariant typ.u.main typ.instance ~ next.state.instance)
+  ?.  ?=(%ok -.main-fit)  |
+  (page-load-derived load.parts ds imports graph u.prelude)
 ::
 ++  program-main-closed
   |=  [parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv prelude=(unit ifile) imports=ijimports graph=irequest-graph]
@@ -13617,7 +13718,9 @@
   =/  main=(unit def)  (program-main-def defs.mod)
   =/  main-parts=(unit [init=term update=term view=term subs=term])
     ?~(main ~ (program-main-parts u.main))
-  ?.  ?~(main & &(!?=([%ui %stores *] at) ?=(^ main-parts)))
+  =/  page-parts=(unit [load=term view=term])
+    ?~(main ~ (page-main-parts u.main))
+  ?:  &(?=([%ui %stores *] at) ?=(^ main))
     [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   =/  js=jimports-detailed-result  (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.js)  [%| p.js]
@@ -13690,7 +13793,19 @@
   =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ modules prelude prelude-values prelude-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
   ?~  graph  [%| ['module request evidence needs unsupported inference' ~]]
-  ?.  ?~(main & ?~(main-parts | (program-main-closed u.main-parts defs.mod env prelude resolved.p.js u.graph)))
+  =/  static-main=(unit ischeme)
+    ?~  main  ~
+    ?^  main-parts  ~
+    ?^  page-parts  ~
+    (static-main-specialized env prelude)
+  =?  env  ?=(^ static-main)
+    [[%main u.static-main] (skim env |=(entry=[name=term scheme=ischeme] !=(%main name.entry)))]
+  =/  kind-ok=?
+    ?~  main  &
+    ?^  main-parts  (program-main-closed u.main-parts defs.mod env prelude resolved.p.js u.graph)
+    ?^  page-parts  (page-main-closed u.page-parts defs.mod env prelude resolved.p.js u.graph)
+    ?=(^ static-main)
+  ?.  kind-ok
     [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
   =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph]
   [%& [iface [[at iface] cache.p.js]]]

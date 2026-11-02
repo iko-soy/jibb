@@ -1,0 +1,14 @@
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |=(~
+  ^- (ask (list item.todo))
+  [%agent api="/ui/api/todo" case=%todos agent=%todo path=~[%todos] scry=~ receive=receive])
+++ receive |= input=[mark=@tas state=(unit *) fact=*]
+  ^- [state=* message=(list item.todo)] [state=0 message=~]
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list ts

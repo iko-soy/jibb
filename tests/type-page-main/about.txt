@@ -1,0 +1,3 @@
+source: my-app/ui/about.jibb, my-app/ui/blog/index.jibb and my-app/ui/index.jibb; their fixtures and real API/UI/reader sources must remain byte-identical.
+tests: Shared eval and ship full checks for static and direct data pages, exact closed main types, a direct-constructor reply, structural downstream imports, and rejection of wrong/arbitrary mains, page aliases, indirect, pure, hand-built, typed and diff loads, missing evidence and store paths. No rendering or runtime request execution is claimed.
+expect: shared eval and ship guards

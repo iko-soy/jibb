@@ -1,0 +1,10 @@
+/=  todo  /ui/api/todo
+
++$ msg
+  [%got todos=(list item.todo)]
+++ main (page load view)
+++ load |= ~
+  ^- (ask msg) (todos.todo |=%got)
+
+++ view |= m=msg
+  text "Todos loaded"
