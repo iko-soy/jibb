@@ -293,7 +293,8 @@ tools/test-arms jibb-program-init # transactional direct-program initializer con
 tools/test-arms jibb-program-update # transactional direct-program update context guards
 tools/test-arms jibb-program-watch # direct request-value watchability guards
 tools/test-arms jibb-todo-full    # byte-identical full todo and rejection guards
-tools/hoon check-spans-test       # prints <<>> when the span checker works
+tools/test-arms jibb-check-spans  # the span checker catches planted wrong spans
+tools/test-arms jibb-hoon-reference # Hoon translations of zing, lead, late and succ agree with Hoon's
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start

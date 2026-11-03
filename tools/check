@@ -19,11 +19,9 @@ order, on the ship tools/ship talks to: $JIBB_PIER, or /root/urbit/zod
 (tools/ship also reads $JIBB_CLICK and $JIBB_SHIP_LOG).  When that ship
 isn't running, tools/check starts it first and stops it again at the end.
 
-Each check is one command, run from the repo root.  It passes when it
-exits 0 and, for the few that print their verdict rather than exit with
-it, when its output matches what the list expects.  Output is kept and
-printed only for a check that fails (all of it with -v); --logs DIR
-keeps every check's output in DIR/<name>.log.
+Each check is one command, run from the repo root, and passes when it
+exits 0.  Output is kept and printed only for a check that fails (all of
+it with -v); --logs DIR keeps every check's output in DIR/<name>.log.
 
 Exit status: 0 when every check ran and passed, 1 when a check failed,
 2 when the checks couldn't run (an unknown name, a ship that won't start).
@@ -47,11 +45,10 @@ SHIP = os.path.join('tools', 'ship')
 
 
 class Check:
-    def __init__(self, name, group, command, expect=None):
+    def __init__(self, name, group, command):
         self.name = name
         self.group = group          # 'eval' or 'ship'
         self.command = command      # argv, run from ROOT
-        self.expect = expect        # a regex stdout must match in full
 
     def shown(self):
         return ' '.join(c if re.match(r'^[\w./=-]+$', c) else "'%s'" % c
@@ -62,11 +59,6 @@ def tool(name, group='eval', *args):
     """A check that runs tools/<name> and passes when it exits 0."""
     base = os.path.basename(name)
     return Check(base, group, [os.path.join('tools', name)] + list(args))
-
-
-def hoon(name, *args, expect):
-    """A check that runs tools/hoon and compares what it prints."""
-    return Check(name, 'eval', ['tools/hoon'] + list(args), expect=expect)
 
 
 #  Every check, in the order they start: the eval group, slowest first,
@@ -88,17 +80,6 @@ CHECKS = [
     for i in range(1, ARM_SHARDS + 1)
 ] + [
     Check('my-app-copies', 'eval', ['tools/test-arms', '--copies']),
-    #  These print their verdict and exit 0 either way.
-    hoon('check-spans-test', 'check-spans-test', expect=r'<<>>\n'),
-    hoon('zing-hoon-reference', '-f',
-         'tools/testdata/zing-hoon-reference.hoon',
-         expect=r"'Hoon flattening reference: \d+ cases passed'\n"),
-    hoon('lead-late-hoon-reference', '-f',
-         'tools/testdata/lead-late-hoon-reference.hoon',
-         expect=r"'Hoon lead/late reference: \d+ comparisons passed'\n"),
-    hoon('succ-hoon-reference', '-f',
-         'tools/testdata/succ-hoon-reference.hoon',
-         expect=r"'Hoon successor reference: \d+ comparisons passed'\n"),
     Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),
     tool('testdata/clay-fixtures-selftest'),
     #  The ship group.  ship-selftest leaves its fixture files on the
@@ -139,12 +120,11 @@ def run(check, timeout, env):
     """Run one check; a Result."""
     res = Result(check)
     start = time.time()
-    with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
+    with tempfile.TemporaryFile() as out:
         try:
             proc = subprocess.Popen(
                 check.command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL,
-                stdout=out,
-                stderr=err if check.expect is not None else subprocess.STDOUT,
+                stdout=out, stderr=subprocess.STDOUT,
                 start_new_session=True)
         except OSError as e:
             res.why = 'could not run %s: %s' % (check.command[0], e)
@@ -162,18 +142,12 @@ def run(check, timeout, env):
                 _running.discard(proc.pid)
             kill(proc.pid)  # anything it left running, such as urbit eval
         out.seek(0)
-        err.seek(0)
-        stdout = out.read().decode('utf-8', 'replace')
-        stderr = err.read().decode('utf-8', 'replace')
+        res.output = out.read().decode('utf-8', 'replace')
     res.seconds = time.time() - start
-    res.output = stdout + stderr
     if res.why:
         return res
     if res.status != 0:
         res.why = 'exit status %d' % res.status
-    elif check.expect is not None and \
-            not re.fullmatch(check.expect, stdout):
-        res.why = "it didn't print the verdict that means a pass"
     else:
         res.ok = True
     return res

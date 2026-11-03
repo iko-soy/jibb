@@ -63,8 +63,8 @@
 ::  finds each node's end from the tokens alone, matching each opener
 ::  with its closer on the line, so a node that stops at a child where
 ::  its closer follows fails it, and +check-spans-test plants such
-::  wrong ends to show that it does (tools/hoon check-spans-test prints
-::  the empty list, <<>>, when it passes).
+::  wrong ends to show that it does (the jibb-check-spans test suite
+::  runs it).
 ::
 ::  ===================================================================
 ::  2. The layout pass (+layout)
@@ -4510,9 +4510,9 @@
 ::
 ::    Each case parses a source, checks that its spans pass, then moves
 ::    the span of every node of a kind that starts at a place, as a
-::    parser bug would, and checks that +check-spans says so. Run it as
-::    tools/hoon check-spans-test, which prints <<>> when every case
-::    passes.
+::    parser bug would, and checks that +check-spans says so.
+::    tests/lib/jibb-check-spans.hoon runs it, under eval with
+::    tools/test-arms and on the ship.
 ::
 ++  check-spans-test
   ^-  (list tape)

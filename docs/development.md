@@ -100,6 +100,7 @@ The `jibb-dev` desk has no `my-app`, so the suites that check `my-app` files rea
 | `jibb-bridge` | The importer/checker bridge: the Hoon importer composed with the partial checker | `tests/type-import/expected.txt` |
 | `jibb-buttons` | The documented valid button helpers and the unchanged unresolved-`%add` module, through detailed and legacy inference | `tests/type-buttons/expected.txt` |
 | `jibb-cell-branch` | Closed-cell branch context, rollback and bounded retry screens | |
+| `jibb-check-spans` | `+check-spans`, which `+golden` runs on every tree: its own test, `+check-spans-test`, moves the spans of parsed nodes as a parser bug would and checks that it says so | |
 | `jibb-closed-gate-guards` | Closed gate sample labels and face uncertainty | |
 | `jibb-constructor-fit-guards` | Constructor-case uncertainty and known mismatches | |
 | `jibb-deferred` | The bounded source-owned deferred inference transaction | `tests/type-deferred/expected.txt` |
@@ -119,6 +120,7 @@ The `jibb-dev` desk has no `my-app`, so the suites that check `my-app` files rea
 | `jibb-generic-pattern` | Source-backed recursive patterns, catch-all coverage, state and per-attempt fuel/arm limits | `tests/type-generic-pattern/expected.txt` |
 | `jibb-generic-recursion` | Source-backed generic recursive identity and provenance | `tests/type-generic-recursion/expected.txt` |
 | `jibb-hole-guards` | Hole-defaulting and API interface guards | |
+| `jibb-hoon-reference` | Hoon translations of the Jibb-written `zing`, `lead`, `late` and `succ` against Hoon's own arms, on selected inputs; this does not execute Jibb, test lowering or prove jet recognition | |
 | `jibb-import` | The partial Hoon importer's diagnostic trees and errors over the importer fixtures; the projection is an internal tree, not the Jibb type printer | `tests/importer/tree.txt` |
 | `jibb-import-default` | Default-wrapped union source proofs over a real Tlon mold, and adversarial cases | `tests/type-import-default/expected.txt` |
 | `jibb-import-diagnostic` | The structured reader diagnostic bridge report: definite and unsupported reader diagnostics through the checker | `tests/type-import-diagnostic/expected.txt` |
@@ -160,7 +162,7 @@ tools/check --group eval     # only the checks that need no ship, as CI runs the
 nix flake check              # the same checks in the Nix sandbox, on a fresh fake ~zod
 ```
 
-`tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. A new suite in `tests/lib` needs no new check: `arms-1` to `arms-4` run every suite's arms, in shards of about equal time, and a slow suite's cost belongs in `COSTS` in `tools/test-arms`, which balances them. The eval group, the 13 checks that need only `urbit` and Python, runs several at a time (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit` and `clay-fixtures`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'arms-*'`. To run one suite under eval, use `tools/test-arms <suite>`, as `tools/test-arms jibb-todo-full`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
+`tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. A new suite in `tests/lib` needs no new check: `arms-1` to `arms-4` run every suite's arms, in shards of about equal time, and a slow suite's cost belongs in `COSTS` in `tools/test-arms`, which balances them. The eval group, the 9 checks that need only `urbit` and Python, runs several at a time (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit` and `clay-fixtures`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'arms-*'`. To run one suite under eval, use `tools/test-arms <suite>`, as `tools/test-arms jibb-todo-full`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
 
 CI, [.github/workflows/check.yml](../.github/workflows/check.yml), builds the desks and runs the eval group through the flake on every push to `master` and every pull request. It doesn't run the ship group, so run that before pushing.
 
