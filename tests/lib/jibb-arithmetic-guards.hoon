@@ -11,7 +11,7 @@
   =/  right=itype:jibb  (itype-walk:jibb [%nvar 1] u.one)
   =/  rleft=itype:jibb  (itype-walk:jibb [%rvar 0] u.two)
   =/  rright=itype:jibb  (itype-walk:jibb [%nvar 1] u.two)
-  =/  bound=(unit isub:jibb)  (itype-unify:jibb left [%atom %ux] u.one)
+  =/  bound=(unit isub:jibb)  (itype-unify:jibb left [%atom %u] u.one)
   =/  extra=(unit isub:jibb)  (itype-unify:jibb right [%nvar 2] u.one)
   ?~  bound  ~["combined variable did not bind to a concrete aura"]
   ?~  extra  ~["second numeric variable did not merge"]
@@ -23,8 +23,9 @@
         =(left (itype-walk:jibb left u.one))
         ?=(~ (itype-unify:jibb left [%flag ~] u.one))
         ?=(~ (itype-unify:jibb left [%any-atom ~] u.one))
-        =([%atom %ux] (itype-walk:jibb [%rvar 0] u.bound))
-        =([%atom %ux] (itype-walk:jibb [%nvar 1] u.bound))
+        ?=(~ (itype-unify:jibb left [%atom %ux] u.one))
+        =([%atom %u] (itype-walk:jibb [%rvar 0] u.bound))
+        =([%atom %u] (itype-walk:jibb [%nvar 1] u.bound))
         =(left (itype-walk:jibb [%nvar 2] u.extra))
     ==
   ?:  (levy checks |=(ok=? ok))  arithmetic-face-guard-errors

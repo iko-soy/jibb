@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: "A number takes `@ud` only if nothing fixes its aura and its `++` isn't generic over it, so `++ inc |= n=A (add n 1)` stays generic, and `(inc ~s1)` is a `@dr`".
+tests: A decimal inside a `++` that is generic over its aura stays generic: `bump` takes any atom but `?`, so a duration, a hexadecimal and a ship each keep their aura, and a decimal argument is a `@ud`.
+expect: parses
+expect-types: a partial inference report

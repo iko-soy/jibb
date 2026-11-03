@@ -1,0 +1,4 @@
+source: Grammar, Patterns: "A number pattern is a `@ud` too, so `0` can't match a `@p` or a `@dr`: write `~zod`, or compare a duration with `eq`".
+tests: A number pattern where the subject, a union case's field or a cell's item is a `@dr`, `@p`, `@t` or `@da` is an error at the first such pattern, with a hint only where patterns take that aura's literal. Number patterns on a `@ud` keep the checker's existing unsupported messages.
+expect: parses
+expect-types: a partial inference report

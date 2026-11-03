@@ -1,2 +1,2 @@
 ++ id |=(x x)
-++ hex ^- @ux (id 1)
+++ unsigned ^- @u (id 1)

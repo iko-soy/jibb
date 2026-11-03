@@ -1,0 +1,258 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %tick
+2:10 name at
+2:12 tight glyph =
+2:13 tight aura @da
+2:16 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %done
+3:10 name n
+3:11 tight glyph =
+3:12 tight aura @ud
+3:15 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name pause
+4:10 glyph |=
+4:13 name d
+4:14 tight glyph =
+4:15 tight aura @dr
+4:19 name d
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name arg
+5:8 glyph (
+5:9 tight name pause
+5:15 lit 30
+5:17 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name later
+6:10 glyph |=
+6:13 name d
+6:14 tight glyph =
+6:15 tight aura @dr
+6:19 glyph (
+6:20 tight name add
+6:24 name d
+6:26 lit 1
+6:27 tight glyph )
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name sooner
+7:11 glyph |=
+7:14 name d
+7:15 tight glyph =
+7:16 tight aura @dr
+7:20 glyph (
+7:21 tight name add
+7:25 lit 1
+7:27 name d
+7:28 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name zero
+8:9 glyph |=
+8:12 name d
+8:13 tight glyph =
+8:14 tight aura @dr
+8:18 glyph (
+8:19 tight name eq
+8:22 name d
+8:24 lit 0
+8:25 tight glyph )
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name record
+9:11 glyph ^-
+9:14 glyph [
+9:15 tight name gap
+9:18 tight glyph =
+9:19 tight aura @dr
+9:23 name n
+9:24 tight glyph =
+9:25 tight aura @ud
+9:28 tight glyph ]
+9:30 glyph [
+9:31 tight name gap
+9:34 tight glyph =
+9:35 tight lit 30
+9:38 name n
+9:39 tight glyph =
+9:40 tight lit 1
+9:41 tight glyph ]
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name change
+10:11 glyph |=
+10:14 name m
+10:15 tight glyph =
+10:16 tight glyph [
+10:17 tight name gap
+10:20 tight glyph =
+10:21 tight aura @dr
+10:25 name n
+10:26 tight glyph =
+10:27 tight aura @ud
+10:30 tight glyph ]
+10:32 name m
+10:33 tight glyph (
+10:34 tight name gap
+10:37 tight glyph =
+10:38 tight lit 30
+10:40 tight glyph )
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name items
+11:10 glyph ^-
+11:13 glyph (
+11:14 tight name list
+11:19 aura @dr
+11:22 tight glyph )
+11:24 glyph ~[
+11:26 tight lit ~s1
+11:30 lit 2
+11:31 tight glyph ]
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name open
+12:9 glyph ~[
+12:11 tight lit ~s1
+12:15 lit 2
+12:16 tight glyph ]
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name open-first
+13:15 glyph ~[
+13:17 tight lit 2
+13:19 lit ~s1
+13:22 tight glyph ]
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name payload
+14:12 glyph ^-
+14:15 glyph (
+14:16 tight name unit
+14:21 aura @dr
+14:24 tight glyph )
+14:26 glyph `
+14:27 tight lit 30
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name either
+15:11 glyph |=
+15:14 name b
+15:15 tight glyph =
+15:16 tight glyph ?
+15:18 glyph ?-
+15:21 name b
+16:3 INDENT
+16:3 lit %.y
+16:7 lit ~s1
+17:3 NEWLINE
+17:3 lit %.n
+17:7 lit 2
+18:1 DEDENT
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name every
+18:10 glyph ^-
+18:13 glyph (
+18:14 tight name list
+18:19 glyph (
+18:20 tight name sub
+18:24 name msg
+18:27 tight glyph )
+18:28 tight glyph )
+18:30 glyph ~[
+18:32 tight glyph [
+18:33 tight lit %every
+18:40 lit 1
+18:42 glyph |=
+18:44 tight lit %tick
+18:49 tight glyph ]
+18:50 tight glyph ]
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name every-ok
+19:13 glyph ^-
+19:16 glyph (
+19:17 tight name list
+19:22 glyph (
+19:23 tight name sub
+19:27 name msg
+19:30 tight glyph )
+19:31 tight glyph )
+19:33 glyph ~[
+19:35 tight glyph [
+19:36 tight lit %every
+19:43 lit ~s1
+19:47 glyph |=
+19:49 tight lit %tick
+19:54 tight glyph ]
+19:55 tight glyph ]
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name timer
+20:10 glyph ^-
+20:13 glyph (
+20:14 tight name cmd
+20:18 name msg
+20:21 tight glyph )
+20:23 glyph [
+20:24 tight lit %wait
+20:30 lit 30
+20:33 glyph [
+20:34 tight lit %done
+20:40 lit 1
+20:41 tight glyph ]
+20:42 tight glyph ]
+21:1 NEWLINE
+21:1 glyph ++
+21:4 name timer-pair
+21:15 glyph ^-
+21:18 glyph (
+21:19 tight name cmd
+21:23 name msg
+21:26 tight glyph )
+21:28 name wait
+21:32 tight glyph +
+21:33 tight glyph [
+21:34 tight lit 30
+21:37 glyph [
+21:38 tight lit %done
+21:44 lit 1
+21:45 tight glyph ]
+21:46 tight glyph ]
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name note
+22:9 glyph (
+22:10 tight name text
+22:15 lit 5
+22:16 tight glyph )
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name note-ok
+23:12 glyph (
+23:13 tight name text
+23:18 str "5"
+23:21 tight glyph )
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name shown
+24:10 glyph ^-
+24:13 glyph (
+24:14 tight name element
+24:22 glyph !!
+24:24 tight glyph )
+24:26 glyph (
+24:27 tight name text
+24:32 lit 5
+24:33 tight glyph )
+24:34 NEWLINE

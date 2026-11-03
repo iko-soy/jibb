@@ -1,0 +1,4 @@
+source: Grammar, Literals: a decimal is "`@ud`, which also fits `@u`, `@` and `*`"; Literals by context: "A number is a `@ud`, as in Hoon: a context can make it a `@u`, and it fits `@` and `*`".
+tests: A decimal fits `@ud`, `@u`, bare `@` and the noun `*`, in casts, as an argument beside a `@u` and as list items; with nothing to fix it, it takes `@ud`. A hexadecimal fits `@ux`.
+expect: parses
+expect-types: a partial inference report

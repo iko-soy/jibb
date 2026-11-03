@@ -1,0 +1,21 @@
+(module
+  (value 1:1 duration
+    (cast 1:13 (aura 1:16 @dr) (lit 1:20 30)))
+  (value 2:1 date
+    (cast 2:9 (aura 2:12 @da) (lit 2:16 30)))
+  (value 3:1 ship
+    (cast 3:9 (aura 3:12 @p) (lit 3:15 0)))
+  (value 4:1 cord
+    (cast 4:9 (aura 4:12 @t) (lit 4:15 5)))
+  (value 5:1 grouped
+    (cast 5:12 (aura 5:15 @t) (lit 5:18 1.000)))
+  (value 6:1 knot
+    (cast 6:9 (aura 6:12 @ta) (lit 6:16 30)))
+  (value 7:1 hex
+    (cast 7:8 (aura 7:11 @ux) (lit 7:15 1)))
+  (value 8:1 base32
+    (cast 8:11 (aura 8:14 @uv) (lit 8:18 30)))
+  (value 9:1 term
+    (cast 9:9 (aura 9:12 @tas) (lit 9:17 30)))
+  (value 10:1 char
+    (cast 10:9 (aura 10:12 @tD) (lit 10:16 97))))

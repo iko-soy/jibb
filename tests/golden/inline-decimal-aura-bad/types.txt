@@ -1,0 +1,41 @@
+partial inference; module not checked
+++ duration: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/inline-decimal-aura-bad/source.jibb:1:20: decimal
+++ duration ^- @dr 30
+                   ^
+++ date: `30` is a @ud, not a @da; write a date, as ~2026.1.1
+/tests/golden/inline-decimal-aura-bad/source.jibb:2:16: decimal
+++ date ^- @da 30
+               ^
+++ ship: `0` is a @ud, not a @p; write ~zod
+/tests/golden/inline-decimal-aura-bad/source.jibb:3:15: decimal
+++ ship ^- @p 0
+              ^
+++ cord: `5` is a @ud, not a @t; write "5"
+/tests/golden/inline-decimal-aura-bad/source.jibb:4:15: decimal
+++ cord ^- @t 5
+              ^
+++ grouped: `1.000` is a @ud, not a @t; write "1.000"
+/tests/golden/inline-decimal-aura-bad/source.jibb:5:18: decimal
+++ grouped ^- @t 1.000
+                 ^
+++ knot: `30` is a @ud, not a @ta; write ~.30
+/tests/golden/inline-decimal-aura-bad/source.jibb:6:16: decimal
+++ knot ^- @ta 30
+               ^
+++ hex: `1` is a @ud, not a @ux; write 0x1
+/tests/golden/inline-decimal-aura-bad/source.jibb:7:15: decimal
+++ hex ^- @ux 1
+              ^
+++ base32: `30` is a @ud, not a @uv; write 0vu
+/tests/golden/inline-decimal-aura-bad/source.jibb:8:18: decimal
+++ base32 ^- @uv 30
+                 ^
+++ term: `30` is a @ud, not a @tas
+/tests/golden/inline-decimal-aura-bad/source.jibb:9:17: decimal
+++ term ^- @tas 30
+                ^
+++ char: `97` is a @ud, not a @tD
+/tests/golden/inline-decimal-aura-bad/source.jibb:10:16: decimal
+++ char ^- @tD 97
+               ^

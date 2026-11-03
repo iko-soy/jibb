@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: "So `^- @dr 30`, `^- @p 0`, `(add ~s1 1)` and `(text 5)` are errors, each naming the number and the aura it met"; syntax review S4: `[%every 1 |=%tick]` and `(text 5)`.
+tests: Every place a decimal meets another aura gives the same error at the decimal: a call's argument, an argument of a generic gate whose other argument fixes the aura (either order), a record field, a change, a list item under a cast, an open list's later or earlier item, a unit payload, a branch arm, a union case picked by its tag inside a list or a cast, a term-headed pair, and `text`'s argument. The duration, text and element controls check.
+expect: parses
+expect-types: a partial inference report

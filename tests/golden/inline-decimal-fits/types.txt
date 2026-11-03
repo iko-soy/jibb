@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ plain: @ud
+++ unsigned: @u
+++ atom: @
+++ noun: *
+++ grouped: @ud
+++ sum: $-(@u @u)
+++ counts: (list @u)
+++ count: @ud
+++ hex: @ux

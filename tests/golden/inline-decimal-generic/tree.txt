@@ -1,0 +1,18 @@
+(module
+  (value 1:1 bump
+    (gate 1:9
+      (face 1:12 x (tvar 1:14 A))
+      (group 1:16
+        (call 1:17 (wing 1:17 add) (wing 1:21 x) (lit 1:23 1)))))
+  (value 2:1 later
+    (group 2:10
+      (call 2:11 (wing 2:11 bump) (lit 2:16 ~s1))))
+  (value 3:1 hex
+    (group 3:8
+      (call 3:9 (wing 3:9 bump) (lit 3:14 0x1))))
+  (value 4:1 ship
+    (group 4:9
+      (call 4:10 (wing 4:10 bump) (lit 4:15 ~zod))))
+  (value 5:1 count
+    (group 5:10
+      (call 5:11 (wing 5:11 bump) (lit 5:16 2)))))

@@ -27,7 +27,8 @@
                       (face 2:53 p (lit 2:55 3))
                       (face 2:57 q (lit 2:59 4))))
                   (face 2:62 q
-                    (list 2:64 (lit 2:66 97) (lit 2:69 98)))))))))))
+                    (group 2:64
+                      (call 2:65 (wing 2:65 trip) (str 2:70 "ab"))))))))))))
   (value 3:1 render
     (group 3:11
       (call 3:12

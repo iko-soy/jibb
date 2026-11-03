@@ -61,13 +61,13 @@
 2:60 tight glyph ]
 2:62 name q
 2:63 tight glyph =
-2:64 tight glyph ~[
-2:66 tight lit 97
-2:69 lit 98
-2:71 tight glyph ]
-2:72 tight glyph ]
-2:73 tight glyph ]
-2:74 tight glyph ]
+2:64 tight glyph (
+2:65 tight name trip
+2:70 str "ab"
+2:74 tight glyph )
+2:75 tight glyph ]
+2:76 tight glyph ]
+2:77 tight glyph ]
 3:1 NEWLINE
 3:1 glyph ++
 3:4 name render

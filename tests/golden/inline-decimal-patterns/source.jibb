@@ -1,0 +1,30 @@
++$ event
+  [%gap d=@dr]
+  [%count n=@ud]
+++ on-gap |= d=@dr ?- d
+  0 %zero
+  * %other
+++ on-ship |= s=@p ?- s
+  0 %zod
+  * %other
+++ on-text |= t=@t ?- t
+  5 %five
+  * %other
+++ on-date |= d=@da ?- d
+  0 %epoch
+  1 %next
+  * %other
+++ on-event |= e=event ?- e
+  [%gap 0] 1
+  [%gap *] 2
+  [%count 0] 3
+  [%count *] 4
+++ on-pair |= [d=@dr n=@ud] ?- [d n]
+  [0 0] 1
+  * 2
+++ on-count |= n=@ud ?- n
+  0 %zero
+  * %other
+++ on-counts |= e=event ?- e
+  [%count 0] 3
+  * 4

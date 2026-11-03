@@ -1,0 +1,6 @@
+partial inference; module not checked
+++ bump: $-(A A) where A is an atom other than ?
+++ later: @dr
+++ hex: @ux
+++ ship: @p
+++ count: @ud

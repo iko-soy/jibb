@@ -1,0 +1,5 @@
+++ bump |= x=A (add x 1)
+++ later (bump ~s1)
+++ hex (bump 0x1)
+++ ship (bump ~zod)
+++ count (bump 2)

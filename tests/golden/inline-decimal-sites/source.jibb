@@ -1,0 +1,24 @@
++$ msg
+  [%tick at=@da]
+  [%done n=@ud]
+++ pause |= d=@dr d
+++ arg (pause 30)
+++ later |= d=@dr (add d 1)
+++ sooner |= d=@dr (add 1 d)
+++ zero |= d=@dr (eq d 0)
+++ record ^- [gap=@dr n=@ud] [gap=30 n=1]
+++ change |= m=[gap=@dr n=@ud] m(gap=30)
+++ items ^- (list @dr) ~[~s1 2]
+++ open ~[~s1 2]
+++ open-first ~[2 ~s1]
+++ payload ^- (unit @dr) `30
+++ either |= b=? ?- b
+  %.y ~s1
+  %.n 2
+++ every ^- (list (sub msg)) ~[[%every 1 |=%tick]]
+++ every-ok ^- (list (sub msg)) ~[[%every ~s1 |=%tick]]
+++ timer ^- (cmd msg) [%wait 30 [%done 1]]
+++ timer-pair ^- (cmd msg) wait+[30 [%done 1]]
+++ note (text 5)
+++ note-ok (text "5")
+++ shown ^- (element !!) (text 5)

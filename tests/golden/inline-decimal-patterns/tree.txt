@@ -1,0 +1,82 @@
+(module
+  (mold 1:1 event
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %gap)
+        (face 2:9 d (aura 2:11 @dr)))
+      (cell 3:3
+        (const 3:4 %count)
+        (face 3:11 n (aura 3:13 @ud)))))
+  (value 4:1 on-gap
+    (gate 4:11
+      (face 4:14 d (aura 4:16 @dr))
+      (branch 4:20
+        (wing 4:23 d)
+        (arm 5:3 (lit 5:3 0) (lit 5:5 %zero))
+        (arm 6:3 (any 6:3) (lit 6:5 %other)))))
+  (value 7:1 on-ship
+    (gate 7:12
+      (face 7:15 s (aura 7:17 @p))
+      (branch 7:20
+        (wing 7:23 s)
+        (arm 8:3 (lit 8:3 0) (lit 8:5 %zod))
+        (arm 9:3 (any 9:3) (lit 9:5 %other)))))
+  (value 10:1 on-text
+    (gate 10:12
+      (face 10:15 t (aura 10:17 @t))
+      (branch 10:20
+        (wing 10:23 t)
+        (arm 11:3 (lit 11:3 5) (lit 11:5 %five))
+        (arm 12:3 (any 12:3) (lit 12:5 %other)))))
+  (value 13:1 on-date
+    (gate 13:12
+      (face 13:15 d (aura 13:17 @da))
+      (branch 13:21
+        (wing 13:24 d)
+        (arm 14:3 (lit 14:3 0) (lit 14:5 %epoch))
+        (arm 15:3 (lit 15:3 1) (lit 15:5 %next))
+        (arm 16:3 (any 16:3) (lit 16:5 %other)))))
+  (value 17:1 on-event
+    (gate 17:13
+      (face 17:16 e (ref 17:18 event))
+      (branch 17:24
+        (wing 17:27 e)
+        (arm 18:3
+          (cell 18:3 (lit 18:4 %gap) (lit 18:9 0))
+          (lit 18:12 1))
+        (arm 19:3
+          (cell 19:3 (lit 19:4 %gap) (any 19:9))
+          (lit 19:12 2))
+        (arm 20:3
+          (cell 20:3 (lit 20:4 %count) (lit 20:11 0))
+          (lit 20:14 3))
+        (arm 21:3
+          (cell 21:3 (lit 21:4 %count) (any 21:11))
+          (lit 21:14 4)))))
+  (value 22:1 on-pair
+    (gate 22:12
+      (cell 22:15
+        (face 22:16 d (aura 22:18 @dr))
+        (face 22:22 n (aura 22:24 @ud)))
+      (branch 22:29
+        (tuple 22:32 (wing 22:33 d) (wing 22:35 n))
+        (arm 23:3
+          (cell 23:3 (lit 23:4 0) (lit 23:6 0))
+          (lit 23:9 1))
+        (arm 24:3 (any 24:3) (lit 24:5 2)))))
+  (value 25:1 on-count
+    (gate 25:13
+      (face 25:16 n (aura 25:18 @ud))
+      (branch 25:22
+        (wing 25:25 n)
+        (arm 26:3 (lit 26:3 0) (lit 26:5 %zero))
+        (arm 27:3 (any 27:3) (lit 27:5 %other)))))
+  (value 28:1 on-counts
+    (gate 28:14
+      (face 28:17 e (ref 28:19 event))
+      (branch 28:25
+        (wing 28:28 e)
+        (arm 29:3
+          (cell 29:3 (lit 29:4 %count) (lit 29:11 0))
+          (lit 29:14 3))
+        (arm 30:3 (any 30:3) (lit 30:5 4))))))

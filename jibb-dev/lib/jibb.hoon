@@ -4614,7 +4614,10 @@
 ::  Restricted-number promotion considers written capitals only; if there
 ::  are none, it skips the otherwise unnecessary environment traversal.
 ::  Bare @ is a separate unrestricted atom type. A directional fit check
-::  permits concrete atoms to widen to it, never the reverse. A fit that
+::  permits concrete atoms to widen to it, never the reverse. A bare
+::  decimal is a @ud: its variable binds only @ud or @u, it fits @ and *,
+::  and +decimal-misfit names it where it meets another aura (S4); a
+::  ++ generic over its aura generalizes it to any aura. A fit that
 ::  needs a not-yet-implemented constraint remains unsupported. Named unions
 ::  retain origin and ordered arguments, including phantom arguments, apart
 ::  from their display name. Generic cases must be disjoint for all arguments.
@@ -4845,7 +4848,8 @@
 ::  +itype-unify: consistent substitutions, or ~ for a mismatch
 ::
 ::    Different concrete auras conflict. A variable may become an atom or
-::    a function, but cannot contain itself. Aura-only variables and faces
+::    a function, but cannot contain itself. A decimal's variable binds
+::    only @ud or @u (+decimal-aura). Aura-only variables and faces
 ::    require further distinctions before this supports general Jibb.
 ::
 ++  itype-unify
@@ -4894,10 +4898,10 @@
   ?:  &(?=(%rnvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
   ?:  &(?=(%avar -.a) ?=(%rnvar -.b))  `[[id.a b] sub]
   ?:  ?=(%rnvar -.a)
-    ?.  |(?=(%rnvar -.b) ?=(%atom -.b))  ~
+    ?.  |(?=(%rnvar -.b) &(?=(%atom -.b) (decimal-aura aura.b)))  ~
     `[[id.a b] sub]
   ?:  ?=(%rnvar -.b)
-    ?.  ?=(%atom -.a)  ~
+    ?.  &(?=(%atom -.a) (decimal-aura aura.a))  ~
     `[[id.b a] sub]
   ?:  &(?=(%avar -.a) ?=(%rvar -.b))  `[[id.a b] sub]
   ?:  &(?=(%rvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
@@ -4908,14 +4912,15 @@
     ?.  ?=(%atom -.a)  ~
     `[[id.b a] sub]
   ::  The narrower decimal constraint survives a match with an atom
-  ::  variable; decimal syntax alone does not make it a loobean.
+  ::  variable; decimal syntax alone does not make it a loobean. A
+  ::  concrete aura takes a decimal only if it is @ud or @u.
   ?:  &(?=(%nvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
   ?:  &(?=(%avar -.a) ?=(%nvar -.b))  `[[id.a b] sub]
   ?:  ?=(%nvar -.a)
-    ?.  |(?=(%nvar -.b) ?=(%atom -.b))  ~
+    ?.  |(?=(%nvar -.b) &(?=(%atom -.b) (decimal-aura aura.b)))  ~
     `[[id.a b] sub]
   ?:  ?=(%nvar -.b)
-    ?.  ?=(%atom -.a)  ~
+    ?.  &(?=(%atom -.a) (decimal-aura aura.a))  ~
     `[[id.b a] sub]
   ?:  ?=(%avar -.a)
     ?.  |(?=(%avar -.b) ?=(%atom -.b) ?=(%any-atom -.b) ?=(%flag -.b))  ~
@@ -5059,6 +5064,16 @@
   ?~  b  |
   ?.  =(i.a i.b)  |
   $(a t.a, b t.b)
+::
+::  +decimal-aura: whether a bare decimal fits an atom of this aura
+::
+::    A decimal is a @ud, so as in Hoon it fits @ud and its ancestors
+::    @u and @; every other aura takes its own literal (S4).
+::
+++  decimal-aura
+  |=  aura=@ta
+  ^-  ?
+  (aura-prefix aura %ud)
 ::
 ::  Related auras in a structural unification need a common-type rule;
 ::  until that rule is implemented, report an unknown rather than error.
@@ -5795,6 +5810,24 @@
     ["canonicalization should retain gate-free variables" problems]
   =?  problems  !=((show-atom-constraint canonical-free) " where A contains no gates")
     ["the printer should show gate-free constraints" problems]
+  =/  decimal=itype  [%nvar 50]
+  =?  problems  ?=(~ (itype-unify decimal num ~))
+    ["a decimal should unify with @ud" problems]
+  =?  problems  ?=(~ (itype-unify [%atom %u] decimal ~))
+    ["a decimal should unify with @u" problems]
+  =?  problems  ?=(^ (itype-unify decimal [%atom %dr] ~))
+    ["a decimal should not unify with @dr" problems]
+  =?  problems  ?=(^ (itype-unify [%atom %ux] decimal ~))
+    ["a decimal should not unify with @ux" problems]
+  =/  restricted=(unit isub)  (itype-unify decimal [%rvar 51] ~)
+  =?  problems  |(?=(~ restricted) ?=(^ (itype-unify [%rvar 51] [%atom %p] u.restricted)))
+    ["arithmetic should keep a decimal's aura rule" problems]
+  =/  decimal-any=ifit  (itype-fit decimal [%any-atom ~] ~ 52)
+  =?  problems  !?=(%ok -.decimal-any)
+    ["a decimal should fit @" problems]
+  =/  decimal-noun=ifit  (itype-fit decimal [%noun ~] ~ 52)
+  =?  problems  !?=(%ok -.decimal-noun)
+    ["a decimal should fit a noun" problems]
   problems
 ::
 ::  The expression inference below is deliberately a fragment: bindings,
@@ -7810,6 +7843,8 @@
     ?^  missing  [%| u.missing]
     =/  nested=(unit idiag)  (nested-missing-tag e typ.p.value expected sub.state.p.value next.state.p.value context)
     ?^  nested  [%| u.nested]
+    =/  decimal=(unit idiag)  (decimal-misfit e typ.p.value expected sub.state.p.value next.state.p.value)
+    ?^  decimal  [%| u.decimal]
     ?:  &(?=(%collection -.expected) =(%list name.expected))
       [%| ["branch arm does not fit its expected list" ~[[context "expected list"] [(span-of e) "branch arm"]]]]
     ?:  ?=(%flag -.expected)
@@ -7875,11 +7910,15 @@
   =/  fit=ifit  (itype-fit typ.p.tail target sub.state.p.tail next.state.p.tail)
   ?:  ?=(%unknown -.fit)  [%| ["list tail constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
+    =/  decimal=(unit idiag)  (decimal-misfit val.i.t.items.e typ.p.tail target sub.state.p.tail next.state.p.tail)
+    ?^  decimal  [%| u.decimal]
     [%| ["list tail does not fit its expected type" ~[[context (site-type-note "expected list" target sub.state.p.tail)] [(span-of val.i.t.items.e) (site-type-note "list tail" typ.p.tail sub.state.p.tail)]]]]
   [%& target state.p.tail(sub sub.fit, next next.fit)]
 ::
+::  done holds the items already checked, the last first, so that a
+::  decimal among them can be blamed when a later item fixes its aura.
 ++  infer-open-list-items
-  |=  [items=(list expr) expected=itype env=ienv state=istate context=span]
+  |=  [items=(list expr) expected=itype env=ienv state=istate context=span done=(list expr)]
   ^-  iresult
   ?~  items  [%& expected state]
   =/  target=itype  (itype-walk expected sub.state)
@@ -7895,10 +7934,18 @@
   ?:  ?=(%bad -.fit)
     ?:  |((itype-family-related typ.p.value target sub.state.p.value) (itype-has-any-atom typ.p.value sub.state.p.value) (itype-has-any-atom target sub.state.p.value))
       [%| ["list item widening is not supported by partial inference" ~]]
+    =/  decimal=(unit idiag)  (decimal-misfit i.items typ.p.value target sub.state.p.value next.state.p.value)
+    ?^  decimal  [%| u.decimal]
+    =/  earlier=(list expr)  (flop done)
+    |-  ^-  iresult
+    ?^  earlier
+      =/  found=(unit idiag)  (decimal-misfit-at i.earlier typ.p.value sub.state.p.value)
+      ?^  found  [%| u.found]
+      $(earlier t.earlier)
     [%| ["list items do not have compatible types" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
   ?:  (itype-has-tag (itype-normalize expected sub.fit))
     [%| ["list item needs context in partial inference" ~]]
-  $(items t.items, state state.p.value(sub sub.fit, next next.fit))
+  $(items t.items, state state.p.value(sub sub.fit, next next.fit), done [i.items done])
 ::
 ++  infer-list-items
   |=  [items=(list expr) expected=itype env=ienv state=istate context=span]
@@ -7919,6 +7966,8 @@
     ?^  missing  [%| u.missing]
     =/  nested=(unit idiag)  (nested-missing-tag i.items typ.p.value target sub.state.p.value next.state.p.value context)
     ?^  nested  [%| u.nested]
+    =/  decimal=(unit idiag)  (decimal-misfit i.items typ.p.value target sub.state.p.value next.state.p.value)
+    ?^  decimal  [%| u.decimal]
     [%| ["list item does not fit its expected type" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
   $(items t.items, state state.p.value(sub sub.fit, next next.fit))
 ::
@@ -8284,6 +8333,8 @@
   ^-  (unit iresult)
   ?>  ?=(%branch -.e)
   ?:  ?=(%| -.subject)  `subject
+  =/  decimal=(unit idiag)  (decimal-arms-misfit arms.e typ.p.subject sub.state.p.subject)
+  ?^  decimal  `[%| u.decimal]
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
   =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
@@ -8322,6 +8373,8 @@
   ^-  (unit iresult)
   ?>  ?=(%branch -.e)
   ?:  ?=(%| -.subject)  `subject
+  =/  decimal=(unit idiag)  (decimal-arms-misfit arms.e typ.p.subject sub.state.p.subject)
+  ?^  decimal  `[%| u.decimal]
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
   ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
   =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
@@ -8712,6 +8765,8 @@
   =/  fit=ifit  (itype-fit typ.p.value expected sub.state.p.value next.state.p.value)
   ?:  ?=(%unknown -.fit)  [%| ["change field constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
+    =/  decimal=(unit idiag)  (decimal-misfit val.entry typ.p.value expected sub.state.p.value next.state.p.value)
+    ?^  decimal  [%| u.decimal]
     [%| ["change field and replacement do not unify" ~[[at.entry (site-type-note "expected replacement" expected sub.state.p.value)] [(span-of val.entry) (site-type-note "replacement" typ.p.value sub.state.p.value)]]]]
   $(edits t.edits, state state.p.value(sub sub.fit, next next.fit), seen [name.entry seen])
 ::
@@ -8817,6 +8872,183 @@
   ?.  ?=(%ok -.first)  ~
   $(items t.items, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
 ::
+::  +decimal-misfit: a decimal's error where another aura is expected
+::
+::    A bare decimal is a @ud and fits only @ud, @u, @ and * (S4). After
+::    a value fails to fit, refit it with each decimal's variable widened
+::    to any aura (+decimal-relax), so that a gate's shared capital learns
+::    its aura from the other arguments, then walk the value's syntax
+::    beside the type it should fit. The first decimal whose place is an
+::    atom of another aura gets the error; otherwise ~, and the caller's
+::    own error stands.
+::
+++  decimal-misfit
+  |=  [e=expr actual=itype expected=itype sub=isub next=@ud]
+  ^-  (unit idiag)
+  =/  loose=isub  (turn sub |=(b=ibinding b(val (decimal-relax val.b))))
+  =/  fit=ifit  (itype-fit (decimal-relax actual) (decimal-relax expected) loose next)
+  (decimal-misfit-at e (decimal-relax expected) ?:(?=(%ok -.fit) sub.fit loose))
+::
+::  +decimal-relax: a type with each decimal's variable taking any aura
+::
+++  decimal-relax
+  |=  t=itype
+  ^-  itype
+  ?+  -.t  t
+    %nvar        [%avar id.t]
+    %rnvar       [%rvar id.t]
+    %collection  t(args (turn args.t |=(c=itype (decimal-relax c))))
+    %grec        t(args (turn args.t |=(c=itype (decimal-relax c))))
+    %union       t(cases (turn cases.t |=(c=itype (decimal-relax c))), args (turn args.t |=(c=itype (decimal-relax c))))
+    %face        t(body $(t body.t))
+    %fn          [%fn $(t sample.t) $(t product.t)]
+    %cell        [%cell $(t hed.t) $(t tal.t)]
+  ==
+::
+::  +decimal-misfit-at: walk a value beside the type it should fit
+::
+::    Through groups, faces, tuples and term-headed pairs, the union case
+::    a tuple's head tag picks, units and list literals.
+::
+++  decimal-misfit-at
+  |=  [e=expr expected=itype sub=isub]
+  ^-  (unit idiag)
+  =.  expected  (itype-walk expected sub)
+  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?+  -.e  ~
+    %lit    (decimal-lit-misfit at.e lit.e expected |)
+    %group  $(e inner.e)
+    %pair   $(e (pair-as-cell e))
+    %tuple  (decimal-misfit-items items.e expected sub)
+    %unit
+      ?.  ?=(%collection -.expected)  ~
+      ?.  &(=(%unit name.expected) ?=([* ~] args.expected))  ~
+      $(e val.e, expected i.args.expected)
+    %list
+      ?.  ?=(%collection -.expected)  ~
+      ?.  &(=(%list name.expected) ?=([* ~] args.expected))  ~
+      =/  items=(list expr)  items.e
+      |-
+      ?~  items  ~
+      =/  found=(unit idiag)  ^$(e i.items, expected i.args.expected)
+      ?^  found  found
+      $(items t.items)
+  ==
+::
+::  +decimal-misfit-items: a tuple's items beside a cell, the last its tail
+::
+++  decimal-misfit-items
+  |=  [items=(list item) expected=itype sub=isub]
+  ^-  (unit idiag)
+  ?~  items  ~
+  ?~  t.items  (decimal-misfit-at val.i.items expected sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(%union -.expected)
+    =/  head=expr  val.i.items
+    ?.  ?=(%lit -.head)  ~
+    =/  case=(unit itype)  (decimal-case val.lit.head cases.expected sub)
+    ?~  case  ~
+    $(expected u.case)
+  ?.  ?=(%cell -.expected)  ~
+  =/  found=(unit idiag)  (decimal-misfit-at val.i.items hed.expected sub)
+  ?^  found  found
+  $(items t.items, expected tal.expected)
+::
+::  +decimal-pattern-misfit: a decimal pattern where another aura is matched
+::
+::    The subject's type is known, so no refit is needed. A cell pattern
+::    picks its union case by its head, as a tuple does.
+::
+++  decimal-pattern-misfit
+  |=  [p=pattern expected=itype sub=isub]
+  ^-  (unit idiag)
+  =.  expected  (itype-walk expected sub)
+  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(%lit -.p)  (decimal-lit-misfit at.p lit.p expected &)
+  ?.  ?=(%cell -.p)  ~
+  (decimal-pattern-items items.p expected sub)
+::
+::  +decimal-pattern-items: a cell pattern's items, as +decimal-misfit-items
+::
+++  decimal-pattern-items
+  |=  [items=(list pattern) expected=itype sub=isub]
+  ^-  (unit idiag)
+  ?~  items  ~
+  ?~  t.items  (decimal-pattern-misfit i.items expected sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(%union -.expected)
+    ?.  ?=(%lit -.i.items)  ~
+    =/  case=(unit itype)  (decimal-case val.lit.i.items cases.expected sub)
+    ?~  case  ~
+    $(expected u.case)
+  ?.  ?=(%cell -.expected)  ~
+  =/  found=(unit idiag)  (decimal-pattern-misfit i.items hed.expected sub)
+  ?^  found  found
+  $(items t.items, expected tal.expected)
+::
+::  +decimal-arms-misfit: the first arm whose pattern has a misplaced decimal
+::
+++  decimal-arms-misfit
+  |=  [arms=(list arm) subject=itype sub=isub]
+  ^-  (unit idiag)
+  ?~  arms  ~
+  =/  found=(unit idiag)  (decimal-pattern-misfit pat.i.arms subject sub)
+  ?^  found  found
+  $(arms t.arms)
+::
+::  +decimal-case: the one union case whose head is the constant value
+::
+++  decimal-case
+  |=  [value=@ cases=(list itype) sub=isub]
+  ^-  (unit itype)
+  =/  hits=(list itype)
+    %+  skim  cases
+    |=  c=itype
+    =.  c  (itype-walk c sub)
+    ?.  ?=(%cell -.c)  |
+    =/  head=itype  (itype-walk hed.c sub)
+    =?  head  ?=(%face -.head)  (itype-walk body.head sub)
+    &(?=(%const -.head) =(value val.literal.head))
+  ?.  ?=([* ~] hits)  ~
+  `i.hits
+::
+::  +decimal-lit-misfit: the error for a decimal at a place of known type
+::
+++  decimal-lit-misfit
+  |=  [at=span l=lit expected=itype pattern=?]
+  ^-  (unit idiag)
+  ?.  &(=(%number form.l) =(%ud aura.l))  ~
+  ?.  ?=(%atom -.expected)  ~
+  ?:  (decimal-aura aura.expected)  ~
+  `[(decimal-misfit-msg l aura.expected pattern) ~[[at "decimal"]]]
+::
+::  +decimal-misfit-msg: "`30` is a @ud, not a @dr; write ~s30"
+::
+::    The hint writes the value in the expected aura's own literal where
+::    that reads naturally: 30 seconds, the text "30", the ship ~syd; a
+::    date gets an example. Patterns take no dates, durations or knots,
+::    so in a pattern those auras get no hint.
+::
+++  decimal-misfit-msg
+  |=  [l=lit aura=@ta pattern=?]
+  ^-  tape
+  =/  what=tape  "`{(trip txt.l)}` is a @ud, not a @{(trip aura)}"
+  =/  hint=tape
+    ?:  &(pattern ?=(?(%da %dr %ta) aura))  ""
+    ?+  aura  ""
+      %da  "a date, as ~2026.1.1"
+      %dr  (trip (scot %dr (mul val.l ~s1)))
+      %p   (trip (scot %p val.l))
+      %t   (show-quoted txt.l)
+      %ta  "~.{(trip txt.l)}"
+      %ux  (trip (scot %ux val.l))
+      %uv  (trip (scot %uv val.l))
+    ==
+  ?~  hint  what
+  "{what}; write {hint}"
+::
 ::  A term-headed pair is the same noun as a two-item cell. Preserve the
 ::  whole pair span for the synthetic head and the value's own span for
 ::  the payload; unresolved term constraints follow ordinary cell inference.
@@ -8874,7 +9106,7 @@
       ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])
         [%| ["list literal needs the standard prelude in partial inference" ~]]
       =/  element=itype  [%var next.state]
-      =/  result=iresult  (infer-open-list-items items.e element env state(next +(next.state)) at.e)
+      =/  result=iresult  (infer-open-list-items items.e element env state(next +(next.state)) at.e ~)
       ?:  ?=(%| -.result)  result
       [%& [%collection %list ~[element]] state.p.result]
     %str  (infer-string-pieces pieces.e env state)
@@ -9002,6 +9234,10 @@
           [%| ["record branch matching is not supported by partial inference" ~]]
         ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right) (itype-family-related typ.p.left typ.p.right sub.state.p.right))
           [%| ["branch widening is not supported by partial inference" ~]]
+        =/  decimal-x=(unit idiag)  (decimal-misfit val.x typ.p.left typ.p.right sub.state.p.right next.state.p.right)
+        ?^  decimal-x  [%| u.decimal-x]
+        =/  decimal-y=(unit idiag)  (decimal-misfit val.y typ.p.right typ.p.left sub.state.p.right next.state.p.right)
+        ?^  decimal-y  [%| u.decimal-y]
         [%| ["branch arms have incompatible types" ~[[(span-of val.x) (site-type-note "first arm" typ.p.left sub.state.p.right)] [(span-of val.y) (site-type-note "second arm" typ.p.right sub.state.p.right)]]]]
       [%& typ.u.joined state.p.right(sub sub.u.joined)]
     %cast
@@ -9023,6 +9259,8 @@
         ?^  missing  [%| u.missing]
         =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value typ.u.target sub.state.p.value next.state.p.value at.shape.e)
         ?^  nested  [%| u.nested]
+        =/  decimal=(unit idiag)  (decimal-misfit val.e typ.p.value typ.u.target sub.state.p.value next.state.p.value)
+        ?^  decimal  [%| u.decimal]
         [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-type-note "expression" typ.p.value sub.state.p.value)]]]]
       ?:  &(?=(^ defer.state.p.value) !(dg-stable-fit typ.p.value typ.u.target sub.fit))
         [%| ["deferred cast fit needs stable inference" ~]]
@@ -9346,11 +9584,17 @@
         ?^  missing  [%| u.missing]
         =/  nested=(unit idiag)  (nested-missing-tag i.args.e typ.p.arg sample.ht sub.st next.st (span-of head.e))
         ?^  nested  [%| u.nested]
+        =/  decimal=(unit idiag)  (decimal-misfit i.args.e typ.p.arg sample.ht sub.st next.st)
+        ?^  decimal  [%| u.decimal]
         [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
       =/  bad=(unit [at=span typ=itype])
         (call-error-site args.e typ.p.arg sample.ht sub.st next.st)
       =/  whole-args=span
         [beg:(span-of i.args.e) end:(span-of (rear args.e))]
+      =/  decimal=(unit idiag)
+        =/  items=(list item)  (turn args.e |=(a=expr [(span-of a) ~ a]))
+        (decimal-misfit [%tuple whole-args items] typ.p.arg sample.ht sub.st next.st)
+      ?^  decimal  [%| u.decimal]
       =/  arg-at=span  ?~(bad whole-args at.u.bad)
       =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
       [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
@@ -9421,6 +9665,8 @@
     ?^  missing  [%| u.missing]
     =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value payload sub.state.p.value next.state.p.value context)
     ?^  nested  [%| u.nested]
+    =/  decimal=(unit idiag)  (decimal-misfit val.e typ.p.value payload sub.state.p.value next.state.p.value)
+    ?^  decimal  [%| u.decimal]
     [%| ["unit payload does not fit its expected type" ~[[context (site-type-note "expected unit payload" payload sub.state.p.value)] [(span-of val.e) (site-type-note "payload" typ.p.value sub.state.p.value)]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::

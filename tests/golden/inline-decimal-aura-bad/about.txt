@@ -1,0 +1,4 @@
+source: Grammar, Literals by context: "every other aura takes its own literal, as `~s30` for a `@dr`, `~2026.1.1` for a `@da`, `~zod` for a `@p`, `"5"` for a `@t` and `0x1` for a `@ux`. So `^- @dr 30`, `^- @p 0` … are errors, each naming the number and the aura it met".
+tests: A decimal cast to an aura outside `@ud`'s family is an error at the decimal, naming it and the aura; the hint writes the same value in that aura's literal (~s30, ~zod, "5", ~.30, 0x1, 0vu), a date gets an example, and `@tas` and `@tD`, which have no literal of their own, get no hint.
+expect: parses
+expect-types: a partial inference report

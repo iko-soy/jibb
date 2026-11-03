@@ -1,0 +1,103 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %tick)
+        (face 2:10 at (aura 2:13 @da)))
+      (cell 3:3
+        (const 3:4 %done)
+        (face 3:10 n (aura 3:12 @ud)))))
+  (value 4:1 pause
+    (gate 4:10
+      (face 4:13 d (aura 4:15 @dr))
+      (wing 4:19 d)))
+  (value 5:1 arg
+    (group 5:8
+      (call 5:9 (wing 5:9 pause) (lit 5:15 30))))
+  (value 6:1 later
+    (gate 6:10
+      (face 6:13 d (aura 6:15 @dr))
+      (group 6:19
+        (call 6:20 (wing 6:20 add) (wing 6:24 d) (lit 6:26 1)))))
+  (value 7:1 sooner
+    (gate 7:11
+      (face 7:14 d (aura 7:16 @dr))
+      (group 7:20
+        (call 7:21 (wing 7:21 add) (lit 7:25 1) (wing 7:27 d)))))
+  (value 8:1 zero
+    (gate 8:9
+      (face 8:12 d (aura 8:14 @dr))
+      (group 8:18
+        (call 8:19 (wing 8:19 eq) (wing 8:22 d) (lit 8:24 0)))))
+  (value 9:1 record
+    (cast 9:11
+      (cell 9:14
+        (face 9:15 gap (aura 9:19 @dr))
+        (face 9:23 n (aura 9:25 @ud)))
+      (tuple 9:30
+        (face 9:31 gap (lit 9:35 30))
+        (face 9:38 n (lit 9:40 1)))))
+  (value 10:1 change
+    (gate 10:11
+      (face 10:14 m
+        (cell 10:16
+          (face 10:17 gap (aura 10:21 @dr))
+          (face 10:25 n (aura 10:27 @ud))))
+      (change 10:32 m
+        (edit 10:34 gap (lit 10:38 30)))))
+  (value 11:1 items
+    (cast 11:10
+      (apply 11:13 list (aura 11:19 @dr))
+      (list 11:24 (lit 11:26 ~s1) (lit 11:30 2))))
+  (value 12:1 open
+    (list 12:9 (lit 12:11 ~s1) (lit 12:15 2)))
+  (value 13:1 open-first
+    (list 13:15 (lit 13:17 2) (lit 13:19 ~s1)))
+  (value 14:1 payload
+    (cast 14:12
+      (apply 14:15 unit (aura 14:21 @dr))
+      (unit 14:26 (lit 14:27 30))))
+  (value 15:1 either
+    (gate 15:11
+      (face 15:14 b (flag 15:16))
+      (branch 15:18
+        (wing 15:21 b)
+        (arm 16:3 (lit 16:3 %.y) (lit 16:7 ~s1))
+        (arm 17:3 (lit 17:3 %.n) (lit 17:7 2)))))
+  (value 18:1 every
+    (cast 18:10
+      (apply 18:13 list
+        (apply 18:19 sub (ref 18:24 msg)))
+      (list 18:30
+        (tuple 18:32 (lit 18:33 %every) (lit 18:40 1) (ctor 18:42 %tick)))))
+  (value 19:1 every-ok
+    (cast 19:13
+      (apply 19:16 list
+        (apply 19:22 sub (ref 19:27 msg)))
+      (list 19:33
+        (tuple 19:35 (lit 19:36 %every) (lit 19:43 ~s1) (ctor 19:47 %tick)))))
+  (value 20:1 timer
+    (cast 20:10
+      (apply 20:13 cmd (ref 20:18 msg))
+      (tuple 20:23
+        (lit 20:24 %wait)
+        (lit 20:30 30)
+        (tuple 20:33 (lit 20:34 %done) (lit 20:40 1)))))
+  (value 21:1 timer-pair
+    (cast 21:15
+      (apply 21:18 cmd (ref 21:23 msg))
+      (pair 21:28 wait
+        (tuple 21:33
+          (lit 21:34 30)
+          (tuple 21:37 (lit 21:38 %done) (lit 21:44 1))))))
+  (value 22:1 note
+    (group 22:9
+      (call 22:10 (wing 22:10 text) (lit 22:15 5))))
+  (value 23:1 note-ok
+    (group 23:12
+      (call 23:13 (wing 23:13 text) (str 23:18 "5"))))
+  (value 24:1 shown
+    (cast 24:10
+      (apply 24:13 element (void 24:22))
+      (group 24:26
+        (call 24:27 (wing 24:27 text) (lit 24:32 5))))))

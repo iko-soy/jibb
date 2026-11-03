@@ -1,0 +1,23 @@
+(module
+  (value 1:1 plain
+    (cast 1:10 (aura 1:13 @ud) (lit 1:17 30)))
+  (value 2:1 unsigned
+    (cast 2:13 (aura 2:16 @u) (lit 2:19 30)))
+  (value 3:1 atom
+    (cast 3:9 (aura 3:12 @) (lit 3:14 30)))
+  (value 4:1 noun
+    (cast 4:9 (noun 4:12) (lit 4:14 30)))
+  (value 5:1 grouped
+    (cast 5:12 (aura 5:15 @ud) (lit 5:19 1.000)))
+  (value 6:1 sum
+    (gate 6:8
+      (face 6:11 x (aura 6:13 @u))
+      (group 6:16
+        (call 6:17 (wing 6:17 add) (wing 6:21 x) (lit 6:23 1)))))
+  (value 7:1 counts
+    (cast 7:11
+      (apply 7:14 list (aura 7:20 @u))
+      (list 7:24 (lit 7:26 1) (lit 7:28 2))))
+  (value 8:1 count (lit 8:10 7))
+  (value 9:1 hex
+    (cast 9:8 (aura 9:11 @ux) (lit 9:15 0x1e))))

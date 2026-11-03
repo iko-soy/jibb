@@ -1,0 +1,9 @@
+++ plain ^- @ud 30
+++ unsigned ^- @u 30
+++ atom ^- @ 30
+++ noun ^- * 30
+++ grouped ^- @ud 1.000
+++ sum |= x=@u (add x 1)
+++ counts ^- (list @u) ~[1 2]
+++ count 7
+++ hex ^- @ux 0x1e

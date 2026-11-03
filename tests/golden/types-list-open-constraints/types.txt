@@ -10,7 +10,10 @@ partial inference; module not checked
 ++ generic |= [a=A b=B] ~[a b]
                      ^
 ++ explicit: $-([a=A b=A] (list A))
-++ num: (list @ux)
+++ num: `1` is a @ud, not a @ux; write 0x1
+/tests/golden/types-list-open-constraints/source.jibb:6:10: decimal
+++ num ~[1 0x1f]
+         ^
 ++ all-num: (list @ud)
 ++ ctor: list item needs context in partial inference
 ++ payload: list item constraint is not supported by partial inference

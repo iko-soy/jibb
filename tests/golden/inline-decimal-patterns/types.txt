@@ -1,0 +1,28 @@
+partial inference; module not checked
++$ event: cases proven disjoint; mold not checked
+++ on-gap: `0` is a @ud, not a @dr
+/tests/golden/inline-decimal-patterns/source.jibb:5:3: decimal
+  0 %zero
+  ^
+++ on-ship: `0` is a @ud, not a @p; write ~zod
+/tests/golden/inline-decimal-patterns/source.jibb:8:3: decimal
+  0 %zod
+  ^
+++ on-text: `5` is a @ud, not a @t; write "5"
+/tests/golden/inline-decimal-patterns/source.jibb:11:3: decimal
+  5 %five
+  ^
+++ on-date: `0` is a @ud, not a @da
+/tests/golden/inline-decimal-patterns/source.jibb:14:3: decimal
+  0 %epoch
+  ^
+++ on-event: `0` is a @ud, not a @dr
+/tests/golden/inline-decimal-patterns/source.jibb:18:9: decimal
+  [%gap 0] 1
+        ^
+++ on-pair: `0` is a @ud, not a @dr
+/tests/golden/inline-decimal-patterns/source.jibb:23:4: decimal
+  [0 0] 1
+   ^
+++ on-count: branch is not supported by partial inference
+++ on-counts: partial union pattern is not supported by partial inference

@@ -96,7 +96,7 @@
         (value 23:3 c
           (branch 23:8
             (lit 23:11 %.y)
-            (arm 24:5 (lit 24:5 %.y) (lit 24:9 1))
+            (arm 24:5 (lit 24:5 %.y) (lit 24:9 0x1))
             (arm 25:5 (lit 25:5 %.n) (lit 25:9 0x2))))
         (wing 26:3 b))))
   (value 27:1 flat-mask-ok
@@ -138,7 +138,7 @@
         (value 37:3 c
           (branch 37:8
             (lit 37:11 %.y)
-            (arm 38:5 (lit 38:5 %.y) (lit 38:9 1))
+            (arm 38:5 (lit 38:5 %.y) (lit 38:9 0x1))
             (arm 39:5 (lit 39:5 %.n) (lit 39:9 0x2))))
         (wing 40:3 a))))
   (value 41:1 nest-order
@@ -263,7 +263,7 @@
               (value 76:5 h
                 (branch 76:10
                   (lit 76:13 %.y)
-                  (arm 77:7 (lit 77:7 %.y) (lit 77:11 1))
+                  (arm 77:7 (lit 77:7 %.y) (lit 77:11 0x1))
                   (arm 78:7 (lit 78:7 %.n) (lit 78:11 0x2))))
               (wing 79:5 b))))
         (wing 80:3 z)))))

@@ -1,0 +1,69 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ pause: $-(@dr @dr)
+++ arg: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/inline-decimal-sites/source.jibb:5:15: decimal
+++ arg (pause 30)
+              ^
+++ later: `1` is a @ud, not a @dr; write ~s1
+/tests/golden/inline-decimal-sites/source.jibb:6:26: decimal
+++ later |= d=@dr (add d 1)
+                         ^
+++ sooner: `1` is a @ud, not a @dr; write ~s1
+/tests/golden/inline-decimal-sites/source.jibb:7:25: decimal
+++ sooner |= d=@dr (add 1 d)
+                        ^
+++ zero: `0` is a @ud, not a @dr; write ~s0
+/tests/golden/inline-decimal-sites/source.jibb:8:24: decimal
+++ zero |= d=@dr (eq d 0)
+                       ^
+++ record: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/inline-decimal-sites/source.jibb:9:35: decimal
+++ record ^- [gap=@dr n=@ud] [gap=30 n=1]
+                                  ^
+++ change: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/inline-decimal-sites/source.jibb:10:38: decimal
+++ change |= m=[gap=@dr n=@ud] m(gap=30)
+                                     ^
+++ items: `2` is a @ud, not a @dr; write ~s2
+/tests/golden/inline-decimal-sites/source.jibb:11:30: decimal
+++ items ^- (list @dr) ~[~s1 2]
+                             ^
+++ open: `2` is a @ud, not a @dr; write ~s2
+/tests/golden/inline-decimal-sites/source.jibb:12:15: decimal
+++ open ~[~s1 2]
+              ^
+++ open-first: `2` is a @ud, not a @dr; write ~s2
+/tests/golden/inline-decimal-sites/source.jibb:13:17: decimal
+++ open-first ~[2 ~s1]
+                ^
+++ payload: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/inline-decimal-sites/source.jibb:14:27: decimal
+++ payload ^- (unit @dr) `30
+                          ^
+++ either: `2` is a @ud, not a @dr; write ~s2
+/tests/golden/inline-decimal-sites/source.jibb:17:7: decimal
+  %.n 2
+      ^
+++ every: `1` is a @ud, not a @dr; write ~s1
+/tests/golden/inline-decimal-sites/source.jibb:18:40: decimal
+++ every ^- (list (sub msg)) ~[[%every 1 |=%tick]]
+                                       ^
+++ every-ok: (list (sub msg))
+++ timer: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/inline-decimal-sites/source.jibb:20:30: decimal
+++ timer ^- (cmd msg) [%wait 30 [%done 1]]
+                             ^
+++ timer-pair: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/inline-decimal-sites/source.jibb:21:34: decimal
+++ timer-pair ^- (cmd msg) wait+[30 [%done 1]]
+                                 ^
+++ note: `5` is a @ud, not a @t; write "5"
+/tests/golden/inline-decimal-sites/source.jibb:22:15: decimal
+++ note (text 5)
+              ^
+++ note-ok: (element A)
+++ shown: `5` is a @ud, not a @t; write "5"
+/tests/golden/inline-decimal-sites/source.jibb:24:32: decimal
+++ shown ^- (element !!) (text 5)
+                               ^
