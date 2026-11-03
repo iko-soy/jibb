@@ -2,13 +2,15 @@
 /+  jibb
 /*  expected  %txt  /tests/checker/unification/txt
 |%
+++  report
+  ^-  @t
+  =/  failures=(list tape)  itype-unify-test:jibb
+  ?~  failures  'unification passed'
+  (of-wain:format (turn failures crip))
 ++  test-unification
   ^-  tang
   ?~  expected  ~[leaf+"unification golden is missing"]
-  =/  failures=(list tape)  itype-unify-test:jibb
-  =/  actual=wain
-    ?~  failures  ~['unification passed']
-    (turn failures crip)
-  ?:  =(actual expected)  ~
+  =/  got=@t  report
+  ?:  =((to-wain:format (cat 3 got '\0a')) expected)  ~
   ~[leaf+"unification output differs from tests/checker/unification.txt"]
 --

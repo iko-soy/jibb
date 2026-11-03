@@ -180,10 +180,13 @@
   ^-  @t
   =/  result=(list [@t ?])  (run same zero unsupported precedence duplicate invalid distinct parent child generic duplicate-generic atoms flag nested order)
   (of-wain:format (turn result |=(entry=[@t ?] (crip "{(trip -.entry)}: {?:(+.entry "ok" "BAD")}"))))
+++  report
+  ^-  @t
+  (output (text same) (text zero) (text unsupported) (text precedence) (text duplicate) (text invalid) (text distinct) (text parent) (text child) (text generic) (text duplicate-generic) (text atoms) (text flag) (text nested) (text order))
 ++  test-full-overlap-basic
   ^-  tang
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t  (output (text same) (text zero) (text unsupported) (text precedence) (text duplicate) (text invalid) (text distinct) (text parent) (text child) (text generic) (text duplicate-generic) (text atoms) (text flag) (text nested) (text order))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"full-module overlap output differs"]
   ~

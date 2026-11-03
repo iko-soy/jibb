@@ -1,0 +1,56 @@
+#  Files under tests/ that copy a my-app source, for the checks that
+#  cannot read my-app, which is not on the jibb-dev desk.  tools/test-arms
+#  checks every pair before it runs anything (--copies runs only that).
+#
+#  COPY  SOURCE  [without LINE]: the copy equals the source, or the source
+#  with the first occurrence of LINE and its newline removed.
+
+tests/golden/doc-grammar-02-buttons/source.jibb                     my-app/ui/components/buttons.jibb
+tests/golden/doc-grammar-06-cart-store/source.jibb                  my-app/ui/stores/cart.jibb
+tests/golden/doc-grammar-07-basket/source.jibb                      my-app/ui/basket.jibb
+tests/golden/doc-overview-02-theme/source.jibb                      my-app/ui/theme.jibb
+tests/golden/doc-overview-04-todo-api/source.jibb                   my-app/ui/api/todo.jibb
+tests/golden/doc-overview-08-about/source.jibb                      my-app/ui/about.jibb
+tests/golden/doc-overview-09-blog-index/source.jibb                 my-app/ui/blog/index.jibb
+tests/golden/doc-overview-10-todo-list/source.jibb                  my-app/ui/todo-list.jibb
+tests/golden/doc-overview-11-index/source.jibb                      my-app/ui/index.jibb
+tests/golden/fixture-blog-api/source.jibb                           my-app/ui/api/blog.jibb
+tests/golden/fixture-blog-card/source.jibb                          my-app/ui/components/card.jibb
+tests/golden/module-import-api-derived-clash/mar/full.txt           my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-import-error/mar/full.txt            my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-mark-prelude-value/mar/same.txt      my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-mark-value/mar/full.txt              my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-nested-path/mar/full.txt             my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-paths-mark-value/mar/full.txt        my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-paths-mark-value/mar/other.txt       my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-paths-scope-conflict/mar/full.txt    my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-poke-clash/mar/full.txt              my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-request-reason/mar/full.txt          my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-api-scope-conflict/mar/full.txt          my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/module-import-root-import-shadow/mar/label.txt         my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/types-import-mark/mar/label.txt                        my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/types-module-fixtures/modules/ui/api/blog.jibb         my-app/ui/api/blog.jibb
+tests/golden/types-module-fixtures/modules/ui/components/card.jibb  my-app/ui/components/card.jibb
+tests/golden/types-module-fixtures/source.jibb                      my-app/ui/blog/index.jibb
+tests/golden/types-module-mixed/mar/label.txt                       my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/golden/types-request-normal/mar/full.txt                      my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/type-api-paths/api.txt                                        my-app/ui/api/todo.jibb
+tests/type-api-paths/todo-action.txt                                my-app/mar/todo-action.hoon  without /-  todo
+tests/type-api-paths/todo-item.txt                                  my-app/mar/todo-item.hoon  without /-  todo
+tests/type-api-paths/todo-sur.txt                                   my-app/sur/todo.hoon
+tests/type-api-paths/todo-update.txt                                my-app/mar/todo-update.hoon  without /-  todo
+tests/type-api-paths/todos.txt                                      my-app/mar/todos.hoon  without /-  todo
+tests/type-gate-free/todo.txt                                       my-app/ui/todo-list.jibb
+tests/type-page-main/blog-api.txt                                   my-app/ui/api/blog.jibb
+tests/type-page-main/blog-index.txt                                 my-app/ui/blog/index.jibb
+tests/type-page-main/blog-sur.txt                                   my-app/sur/blog.hoon
+tests/type-page-main/card.txt                                       my-app/ui/components/card.jibb
+tests/type-page-main/index.txt                                      my-app/ui/index.jibb
+tests/type-page-main/posts-mark.txt                                 my-app/mar/posts.hoon  without /-  blog
+tests/type-page-main/static.txt                                     my-app/ui/about.jibb
+tests/type-page-main/todo-api.txt                                   my-app/ui/api/todo.jibb
+tests/type-page-main/todo-island.txt                                my-app/ui/todo-list.jibb
+tests/type-poke/mark.txt                                            my-app/mar/label.hoon  without ::  Fixture for the Hoon mark importer; not supplied by the design doc.
+tests/type-store/basket.txt                                         my-app/ui/basket.jibb
+tests/type-store/cart.txt                                           my-app/ui/stores/cart.jibb
+tests/type-theme/source.txt                                         my-app/ui/theme.jibb

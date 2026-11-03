@@ -152,6 +152,9 @@
   =/  unit-report=@t  (golden-types-with-prepared-prelude:jibb f unit-dead ~ ~ ~ prep)
   =/  late-report=@t  (golden-types-with-prepared-prelude:jibb f late-cap ~ ~ ~ prep)
   (rap 3 ~[(of-wain:format (turn checks line)) '\0a' report '\0a' overlap-report '\0a' dead-report '\0a' missing-report '\0a' list-report '\0a' unit-report '\0a' late-report])
+++  report
+  ^-  @t
+  (empty-output real-prelude real-internal (text good) (text overlap) (text dead) (text missing) (text standard-good) (text list-dead) (text unit-dead) (text late-cap) (text list-live) (text list-open) (text face-source))
 ++  test-empty
   ^-  tang
   ?~  good  ~[leaf+"empty source missing"]
@@ -166,8 +169,7 @@
   ?~  list-open  ~[leaf+"generic list source missing"]
   ?~  face-source  ~[leaf+"face source missing"]
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t
-    (empty-output real-prelude real-internal (text good) (text overlap) (text dead) (text missing) (text standard-good) (text list-dead) (text unit-dead) (text late-cap) (text list-live) (text list-open) (text face-source))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"empty mold output differs from expected"]
   ~

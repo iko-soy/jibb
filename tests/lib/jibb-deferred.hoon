@@ -242,9 +242,12 @@
   =.  lines  (weld lines case-grec-scan)
   =.  lines  (weld lines ~[case-default-behavior case-screen-bounds])
   (of-wain:format lines)
+++  report
+  ^-  @t
+  (deferred-report (text nested-src) (text principal-src) (text missing-src) (text conflict-src) (text duplicate-src) (text hole-src) (text local-src) (text mutual-src) (text mold-hole-src) (text face-good-src) (text face-bad-src))
 ++  test-deferred
   ^-  tang
-  =/  result=@t  (deferred-report (text nested-src) (text principal-src) (text missing-src) (text conflict-src) (text duplicate-src) (text hole-src) (text local-src) (text mutual-src) (text mold-hole-src) (text face-good-src) (text face-bad-src))
+  =/  result=@t  report
   ?.  =((to-wain:format (cat 3 result '\0a')) expected)  ~[leaf+"deferred partial transaction report differs"]
   ~
 --

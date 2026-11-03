@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Test tools/golden and tools/hoon against tools/testdata/stub.hoon,
-and tools/doc-blocks against Markdown it writes.
+"""Test tools/golden, tools/hoon and tools/test-arms against
+tools/testdata/stub.hoon, and tools/doc-blocks against Markdown it
+writes.
 
-    tools/testdata/selftest            all checks, about half a minute
+    tools/testdata/selftest            all checks, about two minutes
     tools/testdata/selftest -k crash   only checks whose name has "crash"
 
 The cases in tools/testdata/golden pass with the stub.  Each check that
@@ -25,6 +26,7 @@ ROOT = os.path.dirname(TOOLS)
 GOLDEN = os.path.join(TOOLS, 'golden')
 HOON = os.path.join(TOOLS, 'hoon')
 DOC_BLOCKS = os.path.join(TOOLS, 'doc-blocks')
+TEST_ARMS = os.path.join(TOOLS, 'test-arms')
 STUB =os.path.join(HERE, 'stub.hoon')
 CASES = os.path.join(HERE, 'golden')
 
@@ -619,6 +621,107 @@ def check_doc_blocks(c, tmp):
     status, out = doc_blocks('```\n++ one  1\n```')
     c.expect(status == 2 and 'no code block is labelled jibb' in out,
              'no labelled block: %d\n%s' % (status, out))
+
+
+ARM_SUITES = {
+    'pass': """::  one arm that passes
+/+  jibb
+|%
+++  test-tree
+  ^-  tang
+  ?:  =('hello' tree:(golden:jibb /a/jibb 'hello'))  ~
+  ~[leaf+"wrong tree"]
+--
+""",
+    'fail': """/+  jibb
+|%
+++  test-wrong
+  ^-  tang
+  ~[leaf+"first problem" leaf+"second problem"]
+++  test-right
+  ^-  tang
+  ~
+--
+""",
+    'crash': """/+  jibb
+|%
+++  test-crash
+  ^-  tang
+  ?:  =('' tree:(golden:jibb /a/jibb 'crash'))  ~
+  ~
+--
+""",
+    'nobuild': """/+  jibb
+|%
+++  test-nothing
+  ^-  tang
+  no-such-face
+--
+""",
+}
+
+
+def test_arms(*args):
+    return run(TEST_ARMS, '--lib', STUB, *args)
+
+
+def check_test_arms(c, tmp):
+    lib = os.path.join(tmp, 'lib')
+    os.makedirs(lib)
+    for name, text in ARM_SUITES.items():
+        with open(os.path.join(lib, name + '.hoon'), 'w') as f:
+            f.write(text)
+    status, out = test_arms('--dir', lib)
+    c.expect(status == 1, 'exit status %d, not 1:\n%s' % (status, out))
+    for line in ('OK pass test-tree', 'FAILED fail test-wrong',
+                 '  first problem', '  second problem', 'OK fail test-right',
+                 'CRASHED crash test-crash', 'FAILED nobuild (build)'):
+        c.expect(re.search('^%s$' % re.escape(line), out, re.M),
+                 'no line %r:\n%s' % (line, out))
+    c.expect('[%stub-crash /a/jibb]' in out,
+             "the crash's ~| trace is missing:\n" + out)
+    c.expect('(test-arms)' not in out,
+             "the runner's own frames should be dropped:\n" + out)
+    line = stub_line('?>  =(1 2)')
+    c.expect('tools/testdata/stub.hoon:%d:3' % line in out and
+             re.search(r'crash\.hoon:5:', out) and '/:<[' not in out and
+             'at tools/testdata/stub.hoon:%d:3' % line in out,
+             "the crash's trace should be placed in the stub and the suite:\n"
+             + out)
+    c.expect(re.search(r'nobuild\.hoon:5:', out),
+             'the build error should point at nobuild.hoon line 5:\n' + out)
+    c.expect('4 suites, 5 arms: 3 failed' in out, 'no summary line:\n' + out)
+    status, out = test_arms('--dir', lib, 'pass', 'f*')
+    c.expect(status == 1 and 'OK pass test-tree' in out and
+             'crash' not in out and '2 suites, 3 arms: 1 failed' in out,
+             'suites by name and glob: %d\n%s' % (status, out))
+    status, out = test_arms('--dir', lib, 'pass')
+    c.expect(status == 0 and '1 suites, 1 arms: all passed' in out,
+             'a passing suite: %d\n%s' % (status, out))
+    shards = []
+    for i in (1, 2):
+        status, out = test_arms('--dir', lib, '--list', '--shard', '%d/2' % i)
+        c.expect(status == 0, 'list shard %d: %d\n%s' % (i, status, out))
+        shards.append(set(re.findall(r'^(\w+) \(', out, re.M)))
+    c.expect(shards[0] | shards[1] == set(ARM_SUITES) and
+             not shards[0] & shards[1] and all(shards),
+             'the shards should split the suites: %r' % shards)
+    status, out = test_arms('--dir', lib, '--report', 'pass')
+    c.expect(status == 2 and 'no report arm' in out,
+             'a suite without a report: %d\n%s' % (status, out))
+    status, out = test_arms('--dir', lib, 'nothing*')
+    c.expect(status == 2 and 'matches nothing*' in out,
+             'a glob that matches nothing: %d\n%s' % (status, out))
+    with open(os.path.join(lib, 'loop.hoon'), 'w') as f:
+        f.write(ARM_SUITES['crash'].replace("'crash'", "'loop'"))
+    status, out = test_arms('--dir', lib, '--timeout', '6', 'loop')
+    c.expect(status == 1 and 'FAILED loop (timeout)' in out,
+             'a suite that never ends: %d\n%s' % (status, out))
+    with open(os.path.join(lib, 'header.hoon'), 'w') as f:
+        f.write('/-  todo\n' + ARM_SUITES['pass'])
+    status, out = test_arms('--dir', lib, 'header')
+    c.expect(status == 2 and 'only /+ and /* lines' in out,
+             'a /- line: %d\n%s' % (status, out))
 
 
 CHECKS =[(name[len('check_'):], fn) for name, fn in globals().items()

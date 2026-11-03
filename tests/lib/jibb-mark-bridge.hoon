@@ -10,6 +10,9 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (bridge-output (text declared) (text missing) (text sur) (text collision))
 ++  test-mark-bridge
   ^-  tang
   ?~  declared   ~[leaf+"mark bridge declared fixture is missing"]
@@ -17,7 +20,7 @@
   ?~  sur        ~[leaf+"mark bridge /sur fixture is missing"]
   ?~  collision  ~[leaf+"mark bridge collision fixture is missing"]
   ?~  expected   ~[leaf+"mark bridge expected output is missing"]
-  =/  got  (bridge-output (text declared) (text missing) (text sur) (text collision))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"mark bridge output differs from tests/type-mark/expected.txt"]
   ~

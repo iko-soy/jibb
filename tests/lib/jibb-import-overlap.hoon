@@ -7,12 +7,15 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (overlap-output (text sur) (text source))
 ++  test-import-overlap
   ^-  tang
   ?~  sur  ~[leaf+"overlap fixture source is missing"]
   ?~  source  ~[leaf+"overlap fixture client is missing"]
   ?~  expected  ~[leaf+"overlap fixture expected output is missing"]
-  =/  got  (overlap-output (text sur) (text source))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"overlap output differs from expected"]
   ~

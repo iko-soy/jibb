@@ -87,9 +87,12 @@
   =/  errors  (skim errors |=(x=@t !=(x '')))
   ?^  errors  (of-wain:format errors)
   'todo model: gate-free\0acallback model: gate at callback\0anoun model: unknown\0azero fuel: unknown\0aoversized fuel: capped\0ainvalid inputs: rejected\0asource evidence: retained\0amatching root and unused sur: accepted\0aroot import cycle: rejected'
+++  report
+  ^-  @t
+  (gate-free-source-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source) (text gate-source) (text noun-source))
 ++  test-gate-free-source
   ^-  tang
-  =/  actual  (gate-free-source-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source) (text gate-source) (text noun-source))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)  ~[leaf+"gate-free mold report differs from expected"]
   ~
 --

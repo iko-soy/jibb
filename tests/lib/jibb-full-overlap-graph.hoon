@@ -116,10 +116,13 @@
   ^-  @t
   =/  result=(list [@t ?])  (run parent child distinct)
   (of-wain:format (turn result |=(entry=[@t ?] (crip "{(trip -.entry)}: {?:(+.entry "ok" "BAD")}"))))
+++  report
+  ^-  @t
+  (output (text parent) (text child) (text distinct))
 ++  test-full-overlap-graph
   ^-  tang
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t  (output (text parent) (text child) (text distinct))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"full-module overlap output differs"]
   ~

@@ -14,6 +14,10 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  =/  at=path  /ui/context/jibb
+  (golden-types-with-marks:jibb at (text rich) ~ ~)
 ++  test-context
   ^-  tang
   =/  at=path  /ui/context/jibb
@@ -41,8 +45,8 @@
   ?~  reveal-ship  ~[leaf+"ship result missing"]
   ?.  ?=([%atom %t] typ.u.reveal)  ~[leaf+"text result changed"]
   ?.  ?=([%atom %p] typ.u.reveal-ship)  ~[leaf+"ship result changed"]
-  =/  report=@t  (golden-types-with-marks:jibb at source ~ ~)
-  ?.  =((to-wain:format (cat 3 report '\0a')) expected)  ~[leaf+"report differs from committed types"]
+  =/  got=@t  report
+  ?.  =((to-wain:format (cat 3 got '\0a')) expected)  ~[leaf+"report differs from committed types"]
   =/  rest-good=(list wain)  ~[plain simple]
   =/  checked=?
     %+  levy  rest-good

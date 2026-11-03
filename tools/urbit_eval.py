@@ -442,12 +442,14 @@ def focus(spots):
     return spots[-1] if spots else None
 
 
-def failure_report(prog, res, headline, harness_headline=None):
+def failure_report(prog, res, headline, harness_headline=None,
+                   keep=('lib', 'expr', 'harness')):
     """eval's error output, mapped, with an excerpt of where it points.
 
     harness_headline replaces headline when the error is in the harness:
-    the library compiled, but doesn't fit what the harness expects."""
-    lines, spots = map_trace(prog, res.trace)
+    the library compiled, but doesn't fit what the harness expects.
+    keep names the kinds of segment whose frames the trace shows."""
+    lines, spots = map_trace(prog, res.trace, keep)
     lines = fold_repeats(lines)
     at = focus(spots)
     in_harness = at is not None and at.kind == 'harness'

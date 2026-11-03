@@ -10,6 +10,9 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (diagnostic-output (text sur) (text mark) (text source) (text nested))
 ++  test-import-diagnostic
   ^-  tang
   ?~  sur  ~[leaf+"diagnostic /sur fixture is missing"]
@@ -17,7 +20,7 @@
   ?~  source  ~[leaf+"diagnostic source fixture is missing"]
   ?~  nested  ~[leaf+"diagnostic nested source is missing"]
   ?~  expected  ~[leaf+"diagnostic expected output is missing"]
-  =/  got  (diagnostic-output (text sur) (text mark) (text source) (text nested))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"import diagnostic output differs from tests/type-import-diagnostic/expected.txt"]
   ~

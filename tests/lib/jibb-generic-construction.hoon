@@ -121,6 +121,9 @@
   =/  aliases=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/alias-client/jibb alias-client ~ ~ modules prep)
   =/  no-event=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/no-event-client/jibb no-event-client ~ ~ small prep)
   (cat 3 (of-wain:format (turn checks line)) (cat 3 '\0a' (cat 3 report (cat 3 '\0a' (cat 3 aliases (cat 3 '\0a' no-event))))))
+++  report
+  ^-  @t
+  (construction-output real-prelude real-internal (text tree) (text alias) (text client) (text alias-client) (text tree-no-event) (text no-event-client) (text owner-positive) (text owner-negative) (text sibling-values))
 ++  test-generic-construction
   ^-  tang
   ?~  tree  ~[leaf+"tree source missing"]
@@ -133,8 +136,7 @@
   ?~  owner-negative  ~[leaf+"invalid owner source missing"]
   ?~  sibling-values  ~[leaf+"sibling source missing"]
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t
-    (construction-output real-prelude real-internal (text tree) (text alias) (text client) (text alias-client) (text tree-no-event) (text no-event-client) (text owner-positive) (text owner-negative) (text sibling-values))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"generic construction output differs from expected"]
   ~

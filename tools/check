@@ -71,64 +71,25 @@ def hoon(name, *args, expect):
 
 #  Every check, in the order they start: the eval group, slowest first,
 #  then the ship group, in the order they must run.  Times are from one
-#  run of every check, three at a time on four CPUs (2026-11-02).
+#  run on four CPUs (2026-11-03).
+#
+#  arms-1 to arms-4 run the test- arms of every tests/lib suite under
+#  eval, in shards of about equal time (tools/test-arms --list --shard
+#  2/4 shows the second).  A new suite in tests/lib joins a shard by
+#  itself; a slow one belongs in COSTS in tools/test-arms.
+ARM_SHARDS = 4
+
 CHECKS = [
-    tool('type-todo-full-test'),                # about 580 s
-    tool('type-deferred-prepared-test'),        # about 410 s
-    tool('golden'),
-    tool('importer-test'),
-    tool('type-import-default-test'),
-    tool('type-import-test'),
-    tool('type-import-overlap-test'),
-    tool('type-import-structural-test'),
-    tool('type-union-source-test'),
-    tool('type-union-alias-overlap-test'),
-    tool('type-full-overlap-test'),
-    tool('type-tlon-test'),
-    tool('type-import-diagnostic-test'),
-    tool('type-mark-test'),
-    tool('type-poke-test'),
-    tool('type-api-paths-test'),
-    tool('type-api-evidence-test'),
-    tool('type-hole-guards-test'),
-    tool('type-list-alias-test'),
-    tool('type-generic-alias-test'),
-    tool('type-positional-face-guards-test'),
-    tool('type-qath-guards-test'),
-    tool('type-todo-partial-test'),
-    tool('type-todo-api-test'),
-    tool('type-direct-gate-test'),
-    tool('type-page-main-test'),
-    tool('type-buttons-test'),
-    tool('type-doc-examples-test'),
-    tool('type-theme-test'),
-    tool('type-program-main-test'),
-    tool('type-program-init-test'),
-    tool('type-program-update-test'),
-    tool('type-program-watch-test'),
-    tool('type-store-test'),
-    tool('type-generic-recursion-test'),
-    tool('type-generic-construction-test'),
-    tool('type-generic-pattern-test'),
-    tool('type-deferred-test'),
-    tool('type-deferred-resolver-test'),
-    tool('type-deferred-context-test'),
-    tool('type-cell-branch-test'),
-    tool('type-closed-gate-guards-test'),
-    tool('type-constructor-fit-guards-test'),
-    tool('type-nested-union-guards-test'),
-    tool('type-empty-test'),
-    tool('type-gate-free-guards-test'),
-    tool('type-gate-free-source-test'),
-    tool('type-sub-guards-test'),
-    tool('type-ask-guards-test'),
-    tool('type-request-guards-test'),
-    tool('type-proj-guards-test'),
-    tool('type-arithmetic-guards-test'),
-    tool('type-module-scope-test'),
+    tool('testdata/selftest'),                  # about 115 s
+    tool('golden'),                             # about 60 to 100 s
+] + [
+    Check('arms-%d' % i, 'eval',                # 55 to 80 s each
+          ['tools/test-arms', '--shard', '%d/%d' % (i, ARM_SHARDS)])
+    for i in range(1, ARM_SHARDS + 1)
+] + [
+    Check('my-app-copies', 'eval', ['tools/test-arms', '--copies']),
     #  These print their verdict and exit 0 either way.
     hoon('check-spans-test', 'check-spans-test', expect=r'<<>>\n'),
-    hoon('itype-unify-test', 'itype-unify-test', expect=r'<<>>\n'),
     hoon('zing-hoon-reference', '-f',
          'tools/testdata/zing-hoon-reference.hoon',
          expect=r"'Hoon flattening reference: \d+ cases passed'\n"),
@@ -138,7 +99,6 @@ CHECKS = [
     hoon('succ-hoon-reference', '-f',
          'tools/testdata/succ-hoon-reference.hoon',
          expect=r"'Hoon successor reference: \d+ comparisons passed'\n"),
-    tool('testdata/selftest'),
     Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),
     tool('testdata/clay-fixtures-selftest'),
     #  The ship group.  ship-selftest leaves its fixture files on the

@@ -63,6 +63,10 @@
   ?~  main  'full todo main missing'
   (cat 3 'full todo accepted\0a' (crip (show-itype:jibb typ.u.main ~)))
 ::
+++  report
+  ^-  @t
+  (todo-full-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
+::
 ++  todo-full-legacy-report
   |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t api=@t src=@t]
   ^-  @t
@@ -123,9 +127,8 @@
 ::
 ++  test-todo-full
   ^-  tang
-  =/  report=@t
-    (todo-full-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
-  ?.  =((to-wain:format (cat 3 report '\0a')) expected)
+  =/  got=@t  report
+  ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"full todo report differs"]
   =/  legacy=@t
     (todo-full-legacy-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))

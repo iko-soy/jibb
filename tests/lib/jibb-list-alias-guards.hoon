@@ -18,10 +18,14 @@
   =/  broken  (golden-types-with-prelude:jibb /ui/test/jibb src ~ ~ ~ malformed)
   =/  cycle  (golden-types-with-prelude:jibb /ui/test/jibb src ~ ~ ~ cyclic)
   (of-wain:format ~['canonical' good 'altered' bad 'omitted' missing 'duplicate' repeated 'malformed' broken 'cyclic' cycle])
+++  report
+  ^-  @t
+  list-alias-output
 ++  test-list-alias-guards
   ^-  tang
   ?~  expected  ~[leaf+"list alias expected output is missing"]
-  ?.  =((to-wain:format (cat 3 list-alias-output '\0a')) expected)
+  =/  got=@t  report
+  ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"list alias preparation differs from its golden"]
   ~
 --

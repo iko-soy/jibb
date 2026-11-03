@@ -47,12 +47,15 @@
     (cat 3 label.c ': BAD accepted')
   =/  missing-module=@t  (golden-types-with-prepared-prelude:jibb at source-text inputs marks ~ prepared)
   (of-wain:format (weld ~['unchanged todo: partial inference only' normal 'negative API imports'] (weld failures ~['missing module: partial report' missing-module])))
+++  report
+  ^-  @t
+  (todo-island-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
 ++  test-todo-partial
   ^-  tang
   ?~  source  ~[leaf+"todo source fixture is missing"]
   ?~  expected  ~[leaf+"todo partial report is missing"]
-  =/  report=@t  (todo-island-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
-  ?.  =((to-wain:format (cat 3 report '\0a')) expected)
+  =/  actual=@t  report
+  ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"unchanged todo partial report differs from its golden"]
   ~
 --

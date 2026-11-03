@@ -20,6 +20,9 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (bridge-output prelude internal (text mark) (text api) (text client) (text direct) (text alias) (text public) (text fake) (text exported) (text transitive) (text inner) (text impostor-client) (text impostor))
 ++  test-poke-bridge
   ^-  tang
   ?~  mark  ~[leaf+"poke bridge mark fixture is missing"]
@@ -35,7 +38,7 @@
   ?~  impostor-client  ~[leaf+"poke bridge impostor client is missing"]
   ?~  impostor  ~[leaf+"poke bridge impostor fixture is missing"]
   ?~  expected  ~[leaf+"poke bridge expected output is missing"]
-  =/  got  (bridge-output prelude internal (text mark) (text api) (text client) (text direct) (text alias) (text public) (text fake) (text exported) (text transitive) (text inner) (text impostor-client) (text impostor))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"poke bridge output differs from tests/type-poke/expected.txt"]
   ~

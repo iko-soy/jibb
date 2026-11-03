@@ -98,10 +98,13 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (overlap-output (text positive) (text negative) (text nonzero) (text multi) (text opaque) (text wrong) (text duplicate) (text qualified) (text flag-source))
 ++  test-union-alias-overlap
   ^-  tang
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t  (overlap-output (text positive) (text negative) (text nonzero) (text multi) (text opaque) (text wrong) (text duplicate) (text qualified) (text flag-source))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)  ~[leaf+"generic union overlap output differs"]
   ~
 --

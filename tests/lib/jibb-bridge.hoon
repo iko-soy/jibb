@@ -8,12 +8,15 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (bridge-output (text sur) (text source))
 ++  test-import-bridge
   ^-  tang
   ?~  sur  ~[leaf+"import bridge /sur fixture is missing"]
   ?~  source  ~[leaf+"import bridge source is missing"]
   ?~  expected  ~[leaf+"import bridge expected output is missing"]
-  =/  got  (bridge-output (text sur) (text source))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"import bridge output differs from tests/type-import/expected.txt"]
   ~

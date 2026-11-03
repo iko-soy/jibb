@@ -7,12 +7,15 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (structural-output (text sur) (text source))
 ++  test-import-structural
   ^-  tang
   ?~  sur  ~[leaf+"structural overlap /sur is missing"]
   ?~  source  ~[leaf+"structural overlap client is missing"]
   ?~  expected  ~[leaf+"structural overlap expected is missing"]
-  =/  got  (structural-output (text sur) (text source))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"structural overlap output differs from expected"]
   ~

@@ -87,9 +87,12 @@
     ==
   =.  lines  (snoc lines (case-no-fallback good public internal))
   (of-wain:format lines)
+++  report
+  ^-  @t
+  (resolver-report (text good) (text conflict) (text missing) (text hole) (text duplicate) (text face) (text store) public internal)
 ++  test-deferred-resolver
   ^-  tang
-  =/  result=@t  (resolver-report (text good) (text conflict) (text missing) (text hole) (text duplicate) (text face) (text store) public internal)
+  =/  result=@t  report
   ?.  =((to-wain:format (cat 3 result '\0a')) expected)  ~[leaf+"deferred resolver report differs"]
   =/  closed=itype:jibb  [%cell [%face %foo [%atom %t]] [%atom %t]]
   =/  open=itype:jibb  [%cell [%face %foo [%var 500]] [%atom %t]]

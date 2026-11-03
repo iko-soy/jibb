@@ -10,8 +10,8 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
-- `tests/`: golden cases in `golden/<case>/`, and on-ship tests for the `-test` thread in `lib/jibb.hoon`.
-- `tools/`: dev tooling: `golden`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, `ship`, and `check`, which runs every check.
+- `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and `my-app-copies.txt`, the list of fixtures copied from `my-app/`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
+- `tools/`: dev tooling: `golden`, `test-arms`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, `ship`, and `check`, which runs every check.
 - `docs/`: the doc's tabs as Markdown in `spec/`, the status, the open questions, the development guide, the compiler's map, and briefs for milestones in `prompts/`.
 
 ## Building and checking with Nix
@@ -27,7 +27,7 @@ nix build .#fakezod    # a freshly booted fake ~zod pier (Linux)
 
 Jibb has no native binary: what it ships is desks, Hoon and Jibb source that a ship builds. So `nix build` writes the three desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build.
 
-`nix flake check` builds that too, then runs `tools/check --group eval` and, on Linux, `tools/check --group ship` against a copy of a fake ~zod it boots from the pill. Everything runs in the Nix sandbox without network, so a check can't pass because of something on your machine. Each group is one build; a failure prints the failing checks' output, and a passing build keeps every check's log in its output. On four CPUs it took about 20 minutes, the two groups building side by side: 18 minutes for the eval group, most of it `type-todo-full-test`, and 10 for the ship group. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
+`nix flake check` builds that too, then runs `tools/check --group eval` and, on Linux, `tools/check --group ship` against a copy of a fake ~zod it boots from the pill. Everything runs in the Nix sandbox without network, so a check can't pass because of something on your machine. Each group is one build; a failure prints the failing checks' output, and a passing build keeps every check's log in its output. On four CPUs it takes about 10 minutes, the two groups building side by side: under 3 minutes for the eval group (it took 18 before `tools/test-arms` replaced a script per suite) and 10 for the ship group. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
 
 Limits: the ship checks need Linux, since `tools/ship` finds the ship's processes in `/proc`, so on macOS `nix flake check` runs only the eval group. Only `x86_64-linux` has been tried; the flake also declares `aarch64-linux` and `aarch64-darwin`, the other platforms nixpkgs builds vere for.
 
@@ -59,19 +59,7 @@ tools/hoon '(golden /a/b/jibb (crip "++ main view"))'
 tools/hoon --raw --cord src=tests/golden/foo/source.jibb 'tree:(golden /a/b/jibb src)'
 ```
 
-`tools/testdata/selftest` tests both tools against a stub library, and `tools/doc-blocks` against Markdown it writes. `tools/importer-test` compares the partial Hoon importer's fixture projections against their golden file. `tools/type-import-test`, `tools/type-import-overlap-test`, `tools/type-import-structural-test`, `tools/type-union-source-test`, `tools/type-union-alias-overlap-test`, `tools/type-full-overlap-test`, `tools/type-generic-recursion-test`, `tools/type-generic-construction-test`, `tools/type-generic-pattern-test`, `tools/type-deferred-test`, `tools/type-deferred-prepared-test`, `tools/type-deferred-resolver-test`, `tools/type-deferred-context-test`, `tools/type-empty-test`, `tools/type-cell-branch-test`, `tools/type-tlon-test`, `tools/type-mark-test`, `tools/type-poke-test` and `tools/type-api-paths-test` check importer/checker, prelude and partial API path analysis boundaries under eval; the ship suite runs the same fixtures.
-
-The focused `tools/type-page-main-test` fully checks the byte-identical static about page and direct blog/todo data pages through the real readers, with exact main types, downstream imports and fail-closed syntax/evidence controls; the same fixture runs on the fake ship. It does not render pages or execute requests.
-
-The focused `tools/type-buttons-test` fully checks the documented `labelled` and `wide` definitions and the unchanged module's exact source-located unresolved-`%add` error through detailed and legacy inference. The eval test and fake-ship arm share the valid source, schemes and error fixtures. It does not render or execute UI.
-
-The focused `tools/type-doc-examples-test` fully checks the import-only example with real Hoon readers and the card module, the `view-day` and `step` modules, and the `cmd`/`sub` molds at their prelude path through detailed and legacy inference. The same fixture runs on the fake ship.
-
-The focused `tools/type-theme-test` fully checks the byte-identical real theme against the exact prelude mold, including its exported type, structural downstream import, dark absent/present forms and malformed-field negatives under eval with a shared fake-ship arm. It does not check contrast, render themes or route fonts.
-
-The focused `tools/type-store-test` checks the byte-identical cart store and basket through detailed and legacy inference, exact main and derived schemes, structural imports, direct store watch evidence and rejection controls under eval with a shared fake-ship arm. It does not lower or execute stores, support multi-action declarations, or permit store requests in page loads.
-
-The focused `tools/type-program-main-test` checks the narrow closed, subscription-free `main` slice and its shared fake-ship fixture. `tools/type-program-init-test` checks transactional initializer recovery for a synthetic direct program, including exact exported and imported types and rejection boundaries. `tools/type-program-update-test` checks derived result context for an unannotated two-slot update, including a union/boolean branch, downstream types and fail-closed controls under eval with a shared fake-ship arm. `tools/type-program-watch-test` uses the real todo readers with synthetic program components to check one direct request value against merged API-source evidence and reject hand-built, indirect, parameterized, diff and ambiguous subscriptions. These are static checks only: they do not run an island or establish runtime watching. `tools/type-todo-full-test` additionally checks the byte-identical todo island through both full-module APIs, verifies its exact closed `main` type and structural downstream import, and runs rejection controls.
+`tools/testdata/selftest` tests `tools/golden` and `tools/hoon` against a stub library, `tools/test-arms` against the same library with suites it writes, and `tools/doc-blocks` against Markdown it writes.
 
 ### The doc's examples
 
@@ -83,6 +71,40 @@ tools/doc-blocks Grammar.md Overview.md Core-language.md  # fresh exports
 ```
 
 It matches each labelled block to the case whose `source.jibb` is the block's text plus a newline, and lists the blocks no case holds, each with a diff against the closest unmatched case, and the `doc-*` cases no block holds. Pass every tab with Jibb blocks, or the other tabs' cases count as stale. The exit status is 0 when every block has a case and every case a block, 1 when one doesn't, and 2 when the check can't run, for example because no block is labelled `jibb`.
+
+## Test suites
+
+Each `tests/lib/<suite>.hoon` file is a test suite: a core whose `test-` arms return a `tang`, empty when the arm passes. `tools/ship test` runs every suite on the fake ship with the `-test` thread. `tools/test-arms` runs the same arms under `urbit eval`, without a ship, for every suite but the generated `jibb.hoon`, whose golden cases `tools/golden` runs. It gives each suite the subject Ford would give it on the `jibb-dev` desk: its `/+` libraries and its `/*` files, which must be `%txt` or `%jibb` files, from where `tools/ship assemble` puts them. Like `tools/golden`, it needs `urbit` on PATH and Python 3.
+
+```
+tools/test-arms                              # the my-app copies, then every suite
+tools/test-arms jibb-store 'jibb-program-*'  # suites by name or glob
+tools/test-arms --shard 2/4                  # the second of four shards, balanced by measured cost
+tools/test-arms --list                       # the suites and their arms; ", report" marks a golden report
+tools/test-arms --report jibb-import         # print a golden-report suite's report
+tools/test-arms --update jibb-import         # write it to the suite's expected file
+tools/test-arms --copies                     # only the my-app copies
+```
+
+Many suites share one eval, so the library is built once per eval, not once per suite. Each arm runs under `mule` and prints OK, FAILED or CRASHED, as `-test` does, with what it returned or, for a crash, its trace mapped to lines of the suite and the library. When an eval fails, it is run again one suite at a time, and each suite that doesn't build is reported as `FAILED <suite> (build)`, with its error placed in the suite file. An eval that runs past `--timeout`, 1800 s by default, fails each of its suites as `(timeout)`. The exit status is 0 when every arm passes, 1 when an arm, a golden file or a `my-app` copy fails, and 2 when the suites can't run, for example on a usage error or a suite header it can't read. `tools/check` runs the suites in four shards, `arms-1` to `arms-4`.
+
+A golden-report suite has a `report` arm and a `/*` file bound to the face `expected`; when one of its arms fails, the runner prints a diff between that file and the report. Before any eval, the runner checks the golden files of the suites it runs, the `%txt` files bound to a face containing `expected`: each must end in exactly one newline, which an arm can't see in the file's wain, and hold no line that starts `BAD ` or ends `: BAD`. `--update` won't write a report that breaks either rule.
+
+Some fixtures in `tests/` are byte copies of `my-app` files, because the `jibb-dev` desk has no `my-app`. `tests/my-app-copies.txt` lists each copy with its source; a copy may leave out one line of its source, such as a mark's `/-` import. `tools/test-arms` checks every pair when it runs with no suite or shard named, and with `--copies`, which `tools/check` runs as `my-app-copies`. The suites below that check byte-identical `my-app` files read these copies.
+
+`tools/test-arms --list` lists every suite, and [The test suites](docs/development.md#the-test-suites) in the development guide says what each one checks. Each suite it lists runs under eval and on the fake ship, with the same fixtures. The `jibb-import` suite compares the partial Hoon importer's fixture projections against their golden file. The suites `jibb-bridge`, `jibb-import-overlap`, `jibb-import-structural`, `jibb-union-source`, `jibb-union-alias-overlap`, `jibb-full-overlap-basic`, `jibb-full-overlap-graph`, `jibb-generic-recursion`, `jibb-generic-construction`, `jibb-generic-pattern`, `jibb-deferred`, `jibb-deferred-prepared`, `jibb-deferred-resolver`, `jibb-deferred-context`, `jibb-empty`, `jibb-cell-branch`, `jibb-tlon-bridge`, `jibb-mark-bridge`, `jibb-poke-bridge` and `jibb-api-paths` check importer/checker, prelude and partial API path analysis boundaries.
+
+`tests/lib/jibb-page-main.hoon` fully checks the byte-identical static about page and direct blog/todo data pages through the real readers, with exact main types, downstream imports and fail-closed syntax/evidence controls. It does not render pages or execute requests.
+
+`tests/lib/jibb-buttons.hoon` fully checks the documented `labelled` and `wide` definitions and the unchanged module's exact source-located unresolved-`%add` error through detailed and legacy inference, with the valid source, schemes and error fixtures in `tests/type-buttons/`. It does not render or execute UI.
+
+`tests/lib/jibb-doc-examples.hoon` fully checks the import-only example with real Hoon readers and the card module, the `view-day` and `step` modules, and the `cmd`/`sub` molds at their prelude path through detailed and legacy inference.
+
+`tests/lib/jibb-theme.hoon` fully checks the byte-identical real theme against the exact prelude mold, including its exported type, structural downstream import, dark absent/present forms and malformed-field negatives. It does not check contrast, render themes or route fonts.
+
+`tests/lib/jibb-store.hoon` checks the byte-identical cart store and basket through detailed and legacy inference, exact main and derived schemes, structural imports, direct store watch evidence and rejection controls. It does not lower or execute stores, support multi-action declarations, or permit store requests in page loads.
+
+`tests/lib/jibb-program-main.hoon` checks the narrow closed, subscription-free `main` slice. `tests/lib/jibb-program-init.hoon` checks transactional initializer recovery for a synthetic direct program, including exact exported and imported types and rejection boundaries. `tests/lib/jibb-program-update.hoon` checks derived result context for an unannotated two-slot update, including a union/boolean branch, downstream types and fail-closed controls. `tests/lib/jibb-program-watch.hoon` uses the real todo readers with synthetic program components to check one direct request value against merged API-source evidence and reject hand-built, indirect, parameterized, diff and ambiguous subscriptions. These are static checks only: they do not run an island or establish runtime watching. `tests/lib/jibb-todo-full.hoon` additionally checks the byte-identical todo island through both full-module APIs, verifies its exact closed `main` type and structural downstream import, and runs rejection controls.
 
 ## Licence
 

@@ -22,6 +22,10 @@
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
 ::
+++  report
+  ^-  @t
+  (of-wain:format (fixture-output:jibb-import (lines-to-cord small) (lines-to-cord epic) (lines-to-cord presence) (lines-to-cord docs) (lines-to-cord shadow) (lines-to-cord shadow-static) (lines-to-cord ford) (lines-to-cord mark) (lines-to-cord mark-rec) (lines-to-cord mark-gate) (lines-to-cord mark-basic) (lines-to-cord origin-trans) (lines-to-cord origin-first) (lines-to-cord origin-other)))
+::
 ++  test-importer-golden
   ^-  tang
   ?~  small  ~[leaf+"small importer fixture is missing"]
@@ -39,8 +43,8 @@
   ?~  origin-first  ~[leaf+"origin alias fixture is missing"]
   ?~  origin-other  ~[leaf+"distinct origin fixture is missing"]
   ?~  expected  ~[leaf+"importer golden output is missing"]
-  =/  actual  (fixture-output:jibb-import (lines-to-cord small) (lines-to-cord epic) (lines-to-cord presence) (lines-to-cord docs) (lines-to-cord shadow) (lines-to-cord shadow-static) (lines-to-cord ford) (lines-to-cord mark) (lines-to-cord mark-rec) (lines-to-cord mark-gate) (lines-to-cord mark-basic) (lines-to-cord origin-trans) (lines-to-cord origin-first) (lines-to-cord origin-other))
-  ?.  =(actual expected)
+  =/  got=@t  report
+  ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"importer projection differs from tests/importer/tree.txt"]
   ~
 --

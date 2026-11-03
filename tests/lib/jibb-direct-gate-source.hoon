@@ -32,6 +32,10 @@
   ?:  !=(1 (lent projections.i.defs))  ~["unexpected projection action count"]
   ?.  =(steps.i.projections.i.defs ~[[%count 2] [%label 6]])  ~["projection axes changed"]
   ~
+++  report
+  ^-  @t
+  =/  prepared=(unit iprelude:jibb)  (direct-gate-prepared real-prelude real-internal)
+  (direct-gate-source-output (text source) prepared)
 ++  test-direct-gate-source
   ^-  tang
   ?~  source  ~[leaf+"direct gate source is missing"]
@@ -39,7 +43,7 @@
   =/  prepared=(unit iprelude:jibb)  (direct-gate-prepared real-prelude real-internal)
   =/  errors=(list tape)  (direct-gate-projection-errors prepared)
   ?^  errors  (turn errors |=(reason=tape leaf+reason))
-  =/  got=@t  (direct-gate-source-output (text source) prepared)
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"direct gate source output differs from its golden"]
   ~

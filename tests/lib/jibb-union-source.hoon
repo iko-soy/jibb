@@ -143,10 +143,13 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (source-output prelude internal (text good) (text same) (text zero) (text nested) (text duplicate) (text wrong) (text duplicate-params) (text hidden-ref) (text qualified) (text direct-source) (text wide-source) (text free-source) (text late-source) (text shadow-source) (text mixed-source))
 ++  test-union-source
   ^-  tang
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t  (source-output prelude internal (text good) (text same) (text zero) (text nested) (text duplicate) (text wrong) (text duplicate-params) (text hidden-ref) (text qualified) (text direct-source) (text wide-source) (text free-source) (text late-source) (text shadow-source) (text mixed-source))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)  ~[leaf+"generic union source output differs"]
   ~
 --

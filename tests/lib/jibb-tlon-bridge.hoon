@@ -9,12 +9,15 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+++  report
+  ^-  @t
+  (bridge-output (text presence) (text source))
 ++  test-tlon-bridge
   ^-  tang
   ?~  presence  ~[leaf+"Tlon presence fixture is missing"]
   ?~  source  ~[leaf+"Tlon bridge source is missing"]
   ?~  expected  ~[leaf+"Tlon bridge expected output is missing"]
-  =/  got  (bridge-output (text presence) (text source))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"Tlon bridge output differs from tests/type-tlon/expected.txt"]
   ~

@@ -8,10 +8,13 @@
 /*  real-right  %jibb  /tests/golden/types-prelude-interface/modules/ui/right/jibb
 /*  real-expected  %txt  /tests/golden/types-prelude-interface/types/txt
 |%
+++  report
+  ^-  @t
+  scope-output
 ++  test-module-scope
   ^-  tang
   ?~  expected  ~[leaf+"module scope expected output is missing"]
-  =/  got  scope-output
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"module scope output differs from tests/type-module-scope/expected.txt"]
   ~

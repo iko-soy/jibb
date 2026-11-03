@@ -27,11 +27,11 @@ The internal prelude also defines `qath` as a transparent recursive knot sequenc
 
 The checker also recognizes a limited source-proven generic recursive tree in an import-free defining module. Its nominal identity retains the defining path, mold name and type arguments, including across supported imports and aliases. With a known expected type it can construct supported tagged cases by checking one source-proven layer at a time. Flat matches with explicit tags or nonbinding catch-alls also work for these source-proven trees, as does a missing-case diagnostic for a supported single-arm match. At most 128 arms are screened per attempt; whole-case binders and nested patterns remain unsupported. Broader pattern matching, general structural fits and gate-free proof remain unsupported; this is not yet the prelude's `element` implementation or island checking. The source index uses fixed-shape checks during mold collection. Each construction or supported pattern attempt has 256 unfolding steps and at most 4,096 face and substitution visits per scan; pattern subject recognition and view validation can each scan separately. Parsing, other inference and retries remain outside those limits. A single startup-inclusive comparison of 1,000 ordinary gates produced identical reports and used 29.12 seconds of user CPU before the shared-resolver refactor and 28.55 seconds after it, with other work running; it is not a general performance bound.
 
-A bounded local source proof recognizes a narrow class of generic-alias union cases with different literal heads, then applies the ordinary mold checks. Nested or qualified aliases and several open states remain unsupported, including a valid alias used during the deferred transaction; the partial report states that the mold itself has not been checked. `tools/type-union-source-test` exercises the source and state bounds and failure paths under eval and on the ship. A separate bounded witness now reports proven collisions between supported literal-headed aliases, with both original case sites; unknown payload intersections still decline. The detailed full-module result now carries the first failed mold’s source-bound overlap evidence, including through ordinary Jibb imports; the legacy text result renders both case excerpts. Specialized API and prelude paths remain limited. The shared guards pass under eval and on the ship.
+A bounded local source proof recognizes a narrow class of generic-alias union cases with different literal heads, then applies the ordinary mold checks. Nested or qualified aliases and several open states remain unsupported, including a valid alias used during the deferred transaction; the partial report states that the mold itself has not been checked. The `jibb-union-source` suite, `tests/lib/jibb-union-source.hoon`, exercises the source and state bounds and failure paths under eval (`tools/test-arms jibb-union-source`) and on the ship (`tools/ship test`). A separate bounded witness now reports proven collisions between supported literal-headed aliases, with both original case sites; unknown payload intersections still decline. The detailed full-module result now carries the first failed mold’s source-bound overlap evidence, including through ordinary Jibb imports; the legacy text result renders both case excerpts. Specialized API and prelude paths remain limited. The shared guards pass under eval and on the ship.
 
 The checker can experimentally discharge a narrowly scoped direct-constructor constraint while resolving an import-free library without a prepared prelude. It preserves independent generalized schemes and publishes only after all source molds, values, and recorded constraints close. API/store paths, `main`, imports, prepared preludes, recursive groups, open constraints, projection actions, and `%grec` in the constraint graph remain unsupported by this route. The fallback also declines source shapes outside its bounded direct-call screen. It does not yet typecheck the unchanged todo island or establish watchability.
 
-A prepared-prelude partial report can recover a narrow import-free, non-main ordinary library initializer by deferring source-owned literals in a direct tuple until a later exact result cast. The prepared interface and declared-name inventories must agree exactly. API/store paths, `main` and imports remain excluded, and the ordinary full-module resolver does not publish the recovered interface. Wrong field types, unrelated tags and mold collisions fail closed; a no-final-cast control remains unchecked. `tools/type-deferred-prepared-test` checks the exact recovered types and unchanged `partial inference; module not checked` disclaimer under eval and on the ship. List-literal deferral and import-aware recovery remain unsupported.
+A prepared-prelude partial report can recover a narrow import-free, non-main ordinary library initializer by deferring source-owned literals in a direct tuple until a later exact result cast. The prepared interface and declared-name inventories must agree exactly. API/store paths, `main` and imports remain excluded, and the ordinary full-module resolver does not publish the recovered interface. Wrong field types, unrelated tags and mold collisions fail closed; a no-final-cast control remains unchecked. The `jibb-deferred-prepared` suite, `tests/lib/jibb-deferred-prepared.hoon`, checks the exact recovered types and unchanged `partial inference; module not checked` disclaimer under eval and on the ship. List-literal deferral and import-aware recovery remain unsupported.
 
 Closed cell context can now flow through a bounded loobean branch while preserving the inferred value faces and original failed-inference behavior. Open or structurally uncertain substitutions and nested retry shapes remain unsupported. This does not by itself provide the remaining cross-definition context or complete island-kind and watchability checks needed by the unchanged todo island.
 
@@ -121,7 +121,7 @@ Besides the plan's list:
 
 - 689 golden cases: 460 that parse and 229 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
 - The 689-case corpus passed under `urbit eval` in 107.0 s while other checks were running. The fake ship passed all 746 tests, including the source-overlap, structural-overlap, generic-union source and alias-overlap, full-module overlap, deferred-context, generic-recursion, generic-construction, generic-pattern, deferred-inference, empty-mold and cell-branch fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 111.2 s and the ship's `-test` run took 316.7 s. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
-- `tools/testdata/selftest` (22 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
+- `tools/testdata/selftest` (23 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 27 s with the dev tools' `!:`, and 24 s without it (`tools/hoon --no-debug`). After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
 
@@ -251,53 +251,60 @@ On a machine set up as [development.md](development.md) says:
 
 ```
 tools/golden                      # 660 cases under urbit eval
-tools/importer-test               # the Hoon importer fixture projection
-tools/type-import-default-test    # default-wrapped source proof golden
-tools/type-import-test            # the importer/checker bridge fixture
-tools/type-import-overlap-test    # source-aware Hoon overlap and provenance fixture
-tools/type-import-structural-test # structural overlap and multi-case source fixture
-tools/type-union-source-test      # local generic-alias union guards
-tools/type-union-alias-overlap-test # local generic-alias overlap diagnostics
-tools/type-full-overlap-test       # full-module overlap evidence
-tools/type-tlon-test              # the real Tlon reader/checker fixture
-tools/type-mark-test              # the mark/checker bridge fixture
-tools/type-poke-test              # the source-backed poke/API fixture
-tools/type-api-evidence-test      # API declaration evidence guards
-tools/type-api-paths-test         # partial API path metadata fixture
-tools/type-hole-guards-test       # hole defaulting and API interface guards
-tools/type-list-alias-test        # prelude list-alias guards
-tools/type-generic-alias-test     # generic union alias guards
-tools/type-generic-recursion-test # source-proven generic recursion guards
-tools/type-generic-construction-test # source-proven recursive construction guards
-tools/type-generic-pattern-test    # source-proven recursive pattern guards
-tools/type-deferred-test           # source-owned deferred inference guards
-tools/type-deferred-resolver-test  # resolver consistency and failure guards
-tools/type-deferred-context-test   # deferred source-order and branch guards
-tools/type-deferred-prepared-test  # prepared initializer reports and failure guards
-tools/type-empty-test              # empty molds and coverage guards
-tools/type-cell-branch-test        # branch context and rollback guards
-tools/type-positional-face-guards-test # positional sample face guards
-tools/type-qath-guards-test       # qath source and unfolding guards
-tools/type-ask-guards-test        # ask source and bootstrap guards
-tools/type-proj-guards-test       # projection evidence and scope guards
-tools/type-buttons-test           # documented buttons schemes and exact pending-tag error
-tools/type-theme-test             # byte-identical real theme, exact type and rejection guards
-tools/type-module-scope-test      # module and prelude scope fixture
-tools/type-program-main-test      # closed program-main interface and rejection guards
-tools/type-program-init-test      # transactional direct-program initializer context guards
-tools/type-program-update-test    # transactional direct-program update context guards
-tools/type-program-watch-test    # direct request-value watchability guards
-tools/type-todo-full-test        # byte-identical full todo and rejection guards
+tools/test-arms                   # the my-app copies, then every tests/lib suite under urbit eval
+tools/test-arms --list            # the suites and their arms; ", report" marks a golden report
+tools/test-arms --copies          # the tests/ copies of my-app files in tests/my-app-copies.txt match my-app
+tools/test-arms --report jibb-import # print a golden-report suite's report
+tools/test-arms --update jibb-import # write it to the suite's expected file
+tools/test-arms jibb-import       # the Hoon importer fixture projection
+tools/test-arms jibb-import-default # default-wrapped source proof golden
+tools/test-arms jibb-bridge       # the importer/checker bridge fixture
+tools/test-arms jibb-import-overlap # source-aware Hoon overlap and provenance fixture
+tools/test-arms jibb-import-structural # structural overlap and multi-case source fixture
+tools/test-arms jibb-union-source # local generic-alias union guards
+tools/test-arms jibb-union-alias-overlap # local generic-alias overlap diagnostics
+tools/test-arms 'jibb-full-overlap-*' # full-module overlap evidence, in two suites
+tools/test-arms jibb-tlon-bridge  # the real Tlon reader/checker fixture
+tools/test-arms jibb-mark-bridge  # the mark/checker bridge fixture
+tools/test-arms jibb-poke-bridge  # the source-backed poke/API fixture
+tools/test-arms jibb-api-evidence # API declaration evidence guards
+tools/test-arms jibb-api-paths    # partial API path metadata fixture
+tools/test-arms jibb-hole-guards  # hole defaulting and API interface guards
+tools/test-arms jibb-list-alias-guards # prelude list-alias guards
+tools/test-arms jibb-generic-alias # generic union alias guards
+tools/test-arms jibb-generic-recursion # source-proven generic recursion guards
+tools/test-arms jibb-generic-construction # source-proven recursive construction guards
+tools/test-arms jibb-generic-pattern # source-proven recursive pattern guards
+tools/test-arms jibb-deferred     # source-owned deferred inference guards
+tools/test-arms jibb-deferred-resolver # resolver consistency and failure guards
+tools/test-arms jibb-deferred-context # deferred source-order and branch guards
+tools/test-arms jibb-deferred-prepared # prepared initializer reports and failure guards
+tools/test-arms jibb-empty        # empty molds and coverage guards
+tools/test-arms jibb-cell-branch  # branch context and rollback guards
+tools/test-arms jibb-positional-face-guards # positional sample face guards
+tools/test-arms 'jibb-qath-*'     # qath source and unfolding guards, in two suites
+tools/test-arms jibb-ask-guards   # ask source and bootstrap guards
+tools/test-arms jibb-proj-guards  # projection evidence and scope guards
+tools/test-arms jibb-buttons      # documented buttons schemes and exact pending-tag error
+tools/test-arms jibb-theme        # byte-identical real theme, exact type and rejection guards
+tools/test-arms jibb-module-scope # module and prelude scope fixture
+tools/test-arms jibb-program-main # closed program-main interface and rejection guards
+tools/test-arms jibb-program-init # transactional direct-program initializer context guards
+tools/test-arms jibb-program-update # transactional direct-program update context guards
+tools/test-arms jibb-program-watch # direct request-value watchability guards
+tools/test-arms jibb-todo-full    # byte-identical full todo and rejection guards
 tools/hoon check-spans-test       # prints <<>> when the span checker works
 tools/testdata/selftest           # the tools themselves
 tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
-tools/ship test                   # the same 660 cases as -test arms on the ship
+tools/ship test                   # the same 660 cases, and every tests/lib suite, as -test arms on the ship
 tools/testdata/ship-selftest
 tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
 tools/ship check-commit           # |commit stores .jibb files
 tools/clay-fixtures               # example /sur files and marks build through Clay
 ```
+
+`tools/test-arms` runs the `test-` arms of the `tests/lib` suites under eval, and `tools/ship test` runs the same arms on the ship. [The test suites](development.md#the-test-suites) in development.md says what each suite checks. `tools/check` runs them in four shards balanced by measured cost, `arms-1` to `arms-4`; `tools/check --list` prints its checks, and `tools/test-arms --shard 2/4 --list` the suites in one shard. Where a comment above says byte-identical, the suite reads a copy of the `my-app` file kept under `tests/`. `tools/test-arms --copies`, and `tools/test-arms` with no suite or shard named, check that every copy listed in `tests/my-app-copies.txt` still matches its source; naming a suite skips that check.
 
 ## What milestone 1 leaves to later milestones
 

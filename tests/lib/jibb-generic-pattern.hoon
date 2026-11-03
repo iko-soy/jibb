@@ -145,6 +145,9 @@
   =/  report=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/client/jibb client ~ ~ modules prep)
   =/  noreport=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/no-event/jibb no-event ~ ~ small prep)
   (cat 3 (of-wain:format (turn checks line)) (cat 3 '\0a' (cat 3 report (cat 3 '\0a' noreport))))
+++  report
+  ^-  @t
+  (pattern-output real-prelude real-internal (text tree) (text alias) (text tree-no-event) (text client) (text no-event) (text values) (text poly-values) (text owner) (text owner-bad))
 ++  test-generic-pattern
   ^-  tang
   ?~  tree  ~[leaf+"tree source missing"]
@@ -157,8 +160,7 @@
   ?~  owner  ~[leaf+"owner source missing"]
   ?~  owner-bad  ~[leaf+"invalid owner source missing"]
   ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t
-    (pattern-output real-prelude real-internal (text tree) (text alias) (text tree-no-event) (text client) (text no-event) (text values) (text poly-values) (text owner) (text owner-bad))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"generic pattern output differs from expected"]
   ~

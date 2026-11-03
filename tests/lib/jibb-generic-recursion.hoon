@@ -138,6 +138,18 @@
   =/  lines=(list @t)  (weld (turn checks result-line) (weld invalid-lines (turn more result-line)))
   =/  report=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/client/jibb client ~ ~ modules prep)
   (cat 3 (of-wain:format lines) (cat 3 '\0a' report))
+++  report
+  ^-  @t
+  =/  invalid=(list [label=@t src=@t])
+    :~  ['unused mold hole declined' (text bad-mold)]
+        ['invalid constructor declined' (text bad-constructor)]
+        ['invalid matching declined' (text bad-match)]
+        ['nonuniform recursion declined' (text bad-parameter)]
+        ['identical local shadow declined' (text local-shadow)]
+        ['different local shadow declined' (text local-distinct)]
+        ['local recursion declined' (text local-only)]
+    ==
+  (generic-output real-prelude real-internal (text tree) (text changed) (text alias) (text client) invalid (text list-shadow) (text chain))
 ++  test-generic-recursion
   ^-  tang
   ?~  tree  ~[leaf+"recursive source is missing"]
@@ -154,16 +166,7 @@
   ?~  list-shadow  ~[leaf+"list shadow fixture is missing"]
   ?~  chain  ~[leaf+"unindexed chain fixture is missing"]
   ?~  expected  ~[leaf+"recursive expected output is missing"]
-  =/  invalid=(list [label=@t src=@t])
-    :~  ['unused mold hole declined' (text bad-mold)]
-        ['invalid constructor declined' (text bad-constructor)]
-        ['invalid matching declined' (text bad-match)]
-        ['nonuniform recursion declined' (text bad-parameter)]
-        ['identical local shadow declined' (text local-shadow)]
-        ['different local shadow declined' (text local-distinct)]
-        ['local recursion declined' (text local-only)]
-    ==
-  =/  actual=@t  (generic-output real-prelude real-internal (text tree) (text changed) (text alias) (text client) invalid (text list-shadow) (text chain))
+  =/  actual=@t  report
   ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
     ~[leaf+"generic recursion output differs from expected"]
   ~

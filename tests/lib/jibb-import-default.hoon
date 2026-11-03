@@ -37,13 +37,16 @@
     ?~  p.malformed  'rejected'
     'accepted'
   (of-wain:format ~[(projection 'saga' tc %saga) (projection 'saga-envelope' tc %saga-envelope) (projection 'outer-good' cc %outer-good) (projection 'outer-overlap' cc %outer-bad) (projection 'recursive-overlap' cc %outer-bad-rec) (projection 'mutual-recursion' cc %outer-mutual) (projection 'shadow' sc %outer-good) (crip "default-wrapper-bound: {(trip bound)}") (crip "malformed-wrapper: {(trip malformed-status)}")])
+++  report
+  ^-  @t
+  (fixture-output (text tlon) (text controls) (text parent))
 ++  test-import-default
   ^-  tang
   ?~  tlon  ~[leaf+"Tlon default fixture missing"]
   ?~  controls  ~[leaf+"default controls missing"]
   ?~  parent  ~[leaf+"default shadow source missing"]
   ?~  expected  ~[leaf+"default expected output missing"]
-  =/  got=@t  (fixture-output (text tlon) (text controls) (text parent))
+  =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"default-wrapper golden differs"]
   ~

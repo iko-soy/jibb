@@ -72,9 +72,15 @@
     ?~  bad  'real todo interface and atomic guards passed'
     (of-wain:format bad)
   [report bad-report guards]
+++  todo-out
+  ^-  [report=@t bad-report=@t guards=@t]
+  (todo-run prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source) (text negative) (text unsupported))
+++  report
+  ^-  @t
+  report:todo-out
 ++  test-todo-api
   ^-  tang
-  =/  out  (todo-run prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source) (text negative) (text unsupported))
+  =/  out  todo-out
   ?.  =((to-wain:format (cat 3 report.out '\0a')) expected)
     ~[leaf+"todo API report differs from expected"]
   ?.  =((to-wain:format (cat 3 bad-report.out '\0a')) negative-expected)

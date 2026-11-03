@@ -1,0 +1,568 @@
+#!/usr/bin/env python3
+"""Run the test- arms of tests/lib/*.hoon under urbit eval.
+
+    tools/test-arms                      every suite, in one eval
+    tools/test-arms jibb-store 'jibb-program-*'
+    tools/test-arms --shard 2/4          the second of four balanced shards
+    tools/test-arms --list               the suites, their arms and reports
+    tools/test-arms --report jibb-poke-bridge
+    tools/test-arms --update jibb-poke-bridge
+    tools/test-arms --copies             only the my-app copy check
+
+The ship runs the same arms with -test /=jibb-dev=/tests (tools/ship
+test). Here each suite gets the subject Ford would give it on the
+jibb-dev desk: every /+ library and every /* file, found where tools/ship
+assembles them, on top of zuse. Many suites share one eval, so the
+library is built once per eval. Each arm runs under mule and prints OK,
+FAILED or CRASHED, as -test does, with what it returned or the trace it
+crashed with, placed in the suite and the library. A suite that doesn't
+build is reported as FAILED (build) after the eval is retried one suite
+at a time.
+
+A suite whose core has a `report` arm and an `expected` /* file is a
+golden report: --report prints report's text, --update writes it to the
+expected file, and a failing arm shows the difference.
+
+tests/lib/jibb.hoon, which tools/ship generates from tests/golden, is
+left out: tools/golden runs those cases under eval.
+
+Golden files, the /* %txt files bound to a face with "expected" in its
+name, must end in exactly one newline (a wain can't show it) and hold no
+line that starts "BAD " or ends ": BAD" (a check's own failure marker).
+That is checked before any eval, as are, when no suite or shard is named,
+the files tests/my-app-copies.txt lists, which must match their my-app
+sources (the jibb-dev desk has no my-app; --copies checks only them).
+
+Exit status: 0 when every arm passes, 1 when one fails, 2 on a usage
+error.
+"""
+
+import argparse
+import difflib
+import fnmatch
+import importlib.machinery
+import importlib.util
+import os
+import re
+import sys
+import time
+
+sys.dont_write_bytecode = True
+TOOLS = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, TOOLS)
+
+import urbit_eval as ue  # noqa: E402
+from noun import atom_to_bytes, to_list  # noqa: E402
+
+ROOT = os.path.dirname(TOOLS)
+LIB_DIR = os.path.join(ROOT, 'tests', 'lib')
+COPIES = os.path.join(ROOT, 'tests', 'my-app-copies.txt')
+GENERATED = 'jibb'          # tests/lib/jibb.hoon, from tools/ship gen-tests
+LIBRARY = 'jibb'            # /+  jibb: the library under test, --lib
+
+#  For balancing shards: about how many seconds each suite's arms take
+#  under eval, debug on, beyond building the libraries (measured
+#  2026-11-03, one suite at a time, four at once on four CPUs).  Each
+#  eval builds jibb.hoon first, about 17 s, and each /+ library the
+#  shard's suites use once, as LIB_COSTS says.  A suite not listed counts
+#  as DEFAULT_COST.
+COSTS = {
+    'jibb-deferred-prepared': 32, 'jibb-todo-full': 23, 'jibb-bridge': 20,
+    'jibb-api-evidence': 19, 'jibb-api-paths': 18, 'jibb-doc-examples': 17,
+    'jibb-program-init': 12, 'jibb-cell-branch': 11,
+    'jibb-direct-gate-source': 11, 'jibb-ask-guards': 10,
+    'jibb-buttons': 10, 'jibb-deferred-resolver': 10, 'jibb-empty': 10,
+    'jibb-import': 10, 'jibb-page-main': 10,
+    'jibb-constructor-fit-guards': 9, 'jibb-deferred': 9,
+    'jibb-deferred-context': 9, 'jibb-full-overlap-graph': 9,
+    'jibb-gate-free-guards': 9, 'jibb-arithmetic-guards': 8,
+    'jibb-closed-gate-guards': 8, 'jibb-direct-gate-guards': 8,
+    'jibb-full-overlap-basic': 8, 'jibb-program-update': 8,
+    'jibb-gate-free-source': 7, 'jibb-store': 6,
+}
+DEFAULT_COST = 3
+LIB_COSTS = {'jibb-import': 20}
+
+HEADER = re.compile(r'^(/\+|/\*)\s+(.*)$')
+STAR = re.compile(r'^(\S+)\s+%(\S+)\s+(/\S+)$')
+ARM = re.compile(r'^\+\+  (test-[a-z0-9-]+)\s*$', re.M)
+REPORT = re.compile(r'^\+\+  report\s*$', re.M)
+
+
+class Unusable(Exception):
+    pass
+
+
+def load_ship():
+    """tools/ship as a module, for its desk assembly."""
+    path = os.path.join(TOOLS, 'ship')
+    loader = importlib.machinery.SourceFileLoader('jibb_ship_tool', path)
+    spec = importlib.util.spec_from_loader('jibb_ship_tool', loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+class Suite:
+    """One tests/lib file: its libraries, files, arms and core."""
+
+    def __init__(self, path, desk):
+        self.path = path
+        self.name = os.path.splitext(os.path.basename(path))[0]
+        self.rel = ue.display_path(path)
+        with open(path, encoding='utf-8') as f:
+            text = f.read()
+        at = text.find('\n|%\n')
+        if at < 0:
+            raise Unusable('%s: no |%% core after its runes' % self.rel)
+        head = text[:at + 1].split('\n')[:-1]
+        self.libs, self.files = [], []
+        for n, line in enumerate(head, 1):
+            if not line.strip() or line.startswith('::'):
+                continue
+            m = HEADER.match(line)
+            if not m:
+                raise Unusable('%s:%d: only /+ and /* lines may come before '
+                               'the core, not %s' % (self.rel, n, line))
+            if m.group(1) == '/+':
+                for lib in (l.strip() for l in m.group(2).split(',')):
+                    self.libs.append(lib)
+                continue
+            s = STAR.match(m.group(2).strip())
+            if not s:
+                raise Unusable('%s:%d: a /* line is FACE %%MARK /PATH, not %s'
+                               % (self.rel, n, m.group(2)))
+            face, mark, clay = s.groups()
+            if mark not in ('txt', 'jibb'):
+                raise Unusable('%s:%d: only %%txt and %%jibb files can be '
+                               'bound here, not %%%s' % (self.rel, n, mark))
+            self.files.append((face, mark, desk_file(desk, clay, self.rel, n)))
+        # The header lines become comments, so the core keeps its line
+        # numbers in error reports.
+        self.core = '\n'.join('::' + l[2:] if l.startswith(('/+', '/*'))
+                              else l for l in head) + text[at:]
+        self.arms = ARM.findall(text[at:])
+        self.reports = bool(REPORT.search(text[at:]))
+        self.expected = next((p for f, _, p in self.files if f == 'expected'),
+                             None)
+
+    def cost(self):
+        return COSTS.get(self.name, DEFAULT_COST)
+
+
+def desk_file(desk, clay, rel, n):
+    """The repo file a /* path names on the assembled jibb-dev desk."""
+    parts = clay.strip('/').split('/')
+    if len(parts) < 2:
+        raise Unusable('%s:%d: %s has no file extension' % (rel, n, clay))
+    desk_rel = os.path.join(*parts[:-1]) + '.' + parts[-1]
+    entry = desk.files.get(desk_rel)
+    if entry is None:
+        raise Unusable('%s:%d: %s is not on the jibb-dev desk'
+                       % (rel, n, clay))
+    path = os.path.join(ROOT, entry[1])
+    if not os.path.isfile(path):
+        raise Unusable('%s:%d: %s is generated, not a repo file'
+                       % (rel, n, clay))
+    return path
+
+
+def lib_source(desk, name):
+    """A /+ library's file, as Ford finds it: /lib/a-b.hoon, /lib/a/b.hoon."""
+    for rel in (os.path.join('lib', name + '.hoon'),
+                os.path.join('lib', *name.split('-')) + '.hoon'):
+        entry = desk.files.get(rel)
+        if entry is not None:
+            return os.path.join(ROOT, entry[1])
+    raise Unusable('no /lib/%s.hoon on the jibb-dev desk' % name)
+
+
+# ---------------------------------------------------------------- copies
+
+
+def check_copies():
+    """The tests/ files that copy my-app sources must match them."""
+    problems, pairs = [], 0
+    with open(COPIES, encoding='utf-8') as f:
+        lines = f.read().split('\n')
+    for n, line in enumerate(lines, 1):
+        if not line.strip() or line.startswith('#'):
+            continue
+        words = line.split(None, 2)
+        without = None
+        if len(words) == 3:
+            if not words[2].startswith('without '):
+                words = []
+            else:
+                without = words[2][len('without '):].encode() + b'\n'
+        if len(words) < 2:
+            problems.append('tests/my-app-copies.txt:%d: COPY SOURCE '
+                            '[without LINE], not %s' % (n, line))
+            continue
+        copy, source = words[0], words[1]
+        try:
+            with open(os.path.join(ROOT, copy), 'rb') as f:
+                got = f.read()
+            with open(os.path.join(ROOT, source), 'rb') as f:
+                want = f.read()
+        except OSError as e:
+            problems.append('tests/my-app-copies.txt:%d: %s' % (n, e))
+            continue
+        if without is not None:
+            if without not in want:
+                problems.append('tests/my-app-copies.txt:%d: %s has no line %s'
+                                % (n, source, without.decode().rstrip()))
+                continue
+            want = want.replace(without, b'', 1)
+        pairs += 1
+        if got != want:
+            problems.append('%s differs from %s%s' % (
+                copy, source, '' if without is None else
+                ' without %s' % without.decode().rstrip()))
+    return pairs, problems
+
+
+def golden_problems(text):
+    """What is wrong with a golden file's or report's bytes, or None."""
+    if not text.endswith(b'\n') or text.endswith(b'\n\n'):
+        return 'does not end in exactly one newline'
+    for line in text.split(b'\n'):
+        if line.startswith(b'BAD ') or line.endswith(b': BAD'):
+            return 'holds a BAD line: %s' % line.decode('utf-8', 'replace')
+    return None
+
+
+def check_goldens(suites):
+    problems = []
+    for suite in suites:
+        for face, mark, path in suite.files:
+            if mark != 'txt' or 'expected' not in face:
+                continue
+            with open(path, 'rb') as f:
+                problem = golden_problems(f.read())
+            if problem:
+                problems.append('%s (%s in %s) %s' % (
+                    ue.display_path(path), face, suite.name, problem))
+    return problems
+
+
+# ---------------------------------------------------------------- program
+
+
+def suite_expression(i, suite, binds):
+    """A wain of OK/FAILED/CRASHED lines for one suite's arms, or, with
+    binds=report, the text of its report arm."""
+    pins = []
+    for lib in suite.libs:
+        pins.append('%s=%s' % (lib, 'jibb-lib' if lib == LIBRARY
+                               else 'lib-' + lib))
+    for face, mark, _ in suite.files:
+        cord = 's%d-%s' % (i, face)
+        pins.append('%s=`@t`%s' % (face, cord) if mark == 'jibb'
+                    else '%s=(to-wain:format %s)' % (face, cord))
+    subject = (':*  ' + '\n    '.join(pins + ['arms-show=arms-show', '..zuse'])
+               + '\n==\n')
+    show = '(arms-show p.r)'
+    if binds == 'report':
+        tail = '^-  wain\n~[`@t`report:suite]\n'
+    else:
+        checks = []
+        for arm in suite.arms:
+            label = '%s %s' % (suite.name, arm)
+            checks.append(
+                '  =/  r  (mule |.(`tang`%s:suite))\n'
+                '  ^-  wain\n'
+                '  ?:  ?=(%%| -.r)  [\'CRASHED %s\' %s]\n'
+                '  ?~  p.r  ~[\'OK %s\']\n'
+                '  [\'FAILED %s\' %s]\n' % (arm, label, show, label,
+                                           label, show))
+        tail = ('^-  wain\n%-  zing\n^-  (list wain)\n:~\n'
+                + '  ::\n'.join(checks) + '==\n')
+    return ('=>  ' + subject + '=/  suite\n', tail)
+
+
+def program_for(suites, lib, debug, mode='arms'):
+    """One eval program for several suites, and the files it binds."""
+    prog = ue.library_program(lib, debug=debug)
+    prog.add('=/  jibb-lib  .\n'
+             '=/  arms-show\n'
+             '  |=  t=tang\n'
+             '  ^-  wain\n'
+             '  =|  out=wain\n'
+             '  |-  ^-  wain\n'
+             '  ?~  t  (flop out)\n'
+             '  =/  w=wall  (wash [2 100] i.t)\n'
+             '  |-  ^-  wain\n'
+             '  ?~  w  ^$(t t.t)\n'
+             '  $(w t.w, out [(crip i.w) out])',
+             '(test-arms)', 'harness')
+    libs = sorted({l for s in suites for l in s.libs if l != LIBRARY})
+    for name, path in ((l, lib_source(DESK, l)) for l in libs):
+        # Compiled on zuse, as Ford compiles a /+ library.
+        prog.add('=/  lib-%s\n=>  ..zuse' % name, '(test-arms)', 'harness')
+        prog.add(ue.read_text(path), ue.display_path(path), 'expr')
+    for i, suite in enumerate(suites):
+        for face, mark, path in suite.files:
+            with open(path, 'rb') as f:
+                data = f.read()
+            pieces = [p for p in ue.cord_pieces(data) if p]
+            value = ("''" if not pieces else '(rap 3 `(list @t)`~[%s])'
+                     % ' '.join(ue.cord_literal(p) for p in pieces))
+            prog.add('=/  s%d-%s=@t  %s' % (i, face, value),
+                     '(%s %s)' % (suite.rel, face), 'harness')
+    if mode == 'report':
+        suite = suites[0]
+        head, tail = suite_expression(0, suite, 'report')
+        prog.add(head, '(test-arms)', 'harness')
+        prog.add(suite.core, suite.rel, 'expr')
+        prog.add(tail, '(test-arms)', 'harness')
+        return prog
+    prog.add('^-  wain\n%-  zing\n^-  (list wain)\n:~', '(test-arms)',
+             'harness')
+    for i, suite in enumerate(suites):
+        head, tail = suite_expression(i, suite, 'arms')
+        prog.add('  ::  ' + suite.rel + '\n' + head, '(test-arms)', 'harness')
+        prog.add(suite.core, suite.rel, 'expr')
+        prog.add(tail, '(test-arms)', 'harness')
+    prog.add('==', '(test-arms)', 'harness')
+    return prog
+
+
+def wain_of(res):
+    return [atom_to_bytes(l).decode('utf-8', 'replace')
+            for l in to_list(res.noun)]
+
+
+def placed(prog, lines):
+    """The lines, with each CRASHED arm's trace placed in the suites and
+    the library, as eval places its own, and an excerpt of the innermost
+    spot in them."""
+    out, i = [], 0
+    while i < len(lines):
+        out.append(lines[i])
+        crashed = lines[i].startswith('CRASHED ')
+        i += 1
+        block = []
+        while i < len(lines) and lines[i].startswith(' '):
+            block.append(lines[i])
+            i += 1
+        if not crashed:
+            out += block
+            continue
+        mapped, spots = ue.map_trace(prog, block, keep=('lib', 'expr'))
+        out += ue.fold_repeats(mapped)
+        #  mule's trace, unlike eval's, starts at the innermost spot.
+        at = next((sp for sp in spots if sp.kind in ('lib', 'expr')), None)
+        if at is not None:
+            out.append('  at %s' % at.label())
+            ex = at.excerpt(indent='    ')
+            if ex:
+                out += ex.split('\n')
+    return out
+
+
+def run(suites, lib, debug, timeout):
+    """Run suites in one eval; on a build failure, one suite at a time."""
+    prog = program_for(suites, lib, debug)
+    res = ue.run_eval(prog, jam=True, timeout=timeout)
+    if res.ok:
+        return placed(prog, wain_of(res))
+    if res.timed_out:
+        return (['FAILED %s (timeout)' % s.name for s in suites]
+                + ['  the eval ran past %gs; run the suites one at a time '
+                   'to find the slow one' % timeout])
+    if len(suites) > 1:
+        out = []
+        for suite in suites:
+            out += run([suite], lib, debug, timeout)
+        return out
+    suite = suites[0]
+    what = ("doesn't build" if res.is_compile_error() else
+            'crashed: %s' % res.describe())
+    #  The harness's own frames only wrap the suite's.
+    report = ue.failure_report(prog, res, '%s %s' % (suite.rel, what),
+                               keep=('lib', 'expr'))
+    return (['FAILED %s (build)' % suite.name]
+            + ['  ' + l for l in report.split('\n')])
+
+
+def report_text(suite, lib, debug, timeout):
+    prog = program_for([suite], lib, debug, mode='report')
+    res = ue.run_eval(prog, jam=True, timeout=timeout)
+    if not res.ok:
+        raise Unusable(ue.failure_report(
+            prog, res, '%s: its report arm failed' % suite.rel))
+    return '\n'.join(wain_of(res)) + '\n'
+
+
+# ---------------------------------------------------------------- shards
+
+
+def shard(suites, index, count):
+    """The index-th of count shards, balanced by COSTS and LIB_COSTS
+    (largest first, each to the shard it makes least loaded), so the same
+    suites always go together."""
+    loads = [[0, [], set()] for _ in range(count)]
+
+    def added(load, suite):
+        return suite.cost() + sum(LIB_COSTS.get(l, 0) for l in suite.libs
+                                  if l not in load[2])
+
+    for suite in sorted(suites, key=lambda s: (-s.cost(), s.name)):
+        best = min(loads, key=lambda l: l[0] + added(l, suite))
+        best[0] += added(best, suite)
+        best[1].append(suite)
+        best[2].update(suite.libs)
+    return sorted(loads[index - 1][1], key=lambda s: s.name)
+
+
+def select(folder, names):
+    every = sorted(os.path.splitext(f)[0] for f in os.listdir(folder)
+                   if f.endswith('.hoon')
+                   and os.path.splitext(f)[0] != GENERATED)
+    if not names:
+        return every
+    picked = []
+    for pattern in names:
+        pattern = os.path.splitext(os.path.basename(pattern))[0]
+        hits = fnmatch.filter(every, pattern)
+        if not hits:
+            raise Unusable('no suite in %s matches %s'
+                           % (ue.display_path(folder), pattern))
+        picked += [h for h in hits if h not in picked]
+    return picked
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(
+        prog='tools/test-arms',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=__doc__.split('\n\n')[0])
+    ap.add_argument('suites', nargs='*', metavar='SUITE',
+                    help='tests/lib suites by name or glob (default: all)')
+    ap.add_argument('--shard', metavar='I/N',
+                    help='run only the I-th of N balanced shards')
+    ap.add_argument('--dir', default=LIB_DIR, metavar='DIR',
+                    help='the folder of suites (default: tests/lib)')
+    ap.add_argument('--lib', default=ue.DEFAULT_LIB, metavar='PATH',
+                    help='the library (default: jibb-dev/lib/jibb.hoon)')
+    ap.add_argument('--timeout', type=float, default=1800, metavar='SECONDS',
+                    help='how long one eval may run (default: 1800)')
+    ap.add_argument('--no-debug', dest='debug', action='store_false',
+                    help="leave out !:, for timings; errors lose positions")
+    ap.add_argument('--list', action='store_true',
+                    help='print the suites that would run, and their arms')
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument('--report', action='store_true',
+                      help="print one suite's report arm")
+    mode.add_argument('--update', action='store_true',
+                      help="write suites' report arms to their expected "
+                           "files")
+    mode.add_argument('--copies', action='store_true',
+                      help='only check tests/my-app-copies.txt')
+    opts = ap.parse_args(argv)
+
+    if opts.copies or not (opts.suites or opts.shard or opts.list
+                           or opts.report or opts.update
+                           or os.path.realpath(opts.dir) != LIB_DIR):
+        pairs, problems = check_copies()
+        for p in problems:
+            print('FAILED my-app copy: %s' % p)
+        if opts.copies:
+            if not problems:
+                print('%d my-app copies match their sources' % pairs)
+            return 1 if problems else 0
+        if problems:
+            return 1
+
+    global DESK
+    try:
+        if not os.path.isfile(opts.lib):
+            raise Unusable('no library at %s' % ue.display_path(opts.lib))
+        ship = load_ship()
+        try:
+            DESK = ship.assemble('jibb-dev')
+        except ship.Unable as e:
+            raise Unusable(str(e))
+        if not os.path.isdir(opts.dir):
+            raise Unusable('no folder %s' % ue.display_path(opts.dir))
+        suites = [Suite(os.path.join(opts.dir, n + '.hoon'), DESK)
+                  for n in select(opts.dir, opts.suites)]
+        if opts.shard:
+            m = re.fullmatch(r'(\d+)/(\d+)', opts.shard)
+            if not m or not 1 <= int(m.group(1)) <= int(m.group(2)):
+                raise Unusable('--shard takes I/N with 1 <= I <= N')
+            suites = shard(suites, int(m.group(1)), int(m.group(2)))
+        if opts.list:
+            for s in suites:
+                print('%s (%ds)%s: %s' % (s.name, s.cost(),
+                                          ', report' if s.reports else '',
+                                          ' '.join(s.arms) or 'no arms'))
+            return 0
+        if opts.report or opts.update:
+            golden = [s for s in suites if s.reports and s.expected]
+            if opts.report and len(suites) != 1:
+                raise Unusable('--report takes one suite')
+            if not golden:
+                raise Unusable('no report arm with an expected file in %s'
+                               % ', '.join(s.name for s in suites))
+            for s in golden:
+                text = report_text(s, opts.lib, opts.debug, opts.timeout)
+                if opts.report:
+                    sys.stdout.write(text)
+                    continue
+                problem = golden_problems(text.encode('utf-8'))
+                if problem:
+                    raise Unusable('%s: not updated, its report %s'
+                                   % (ue.display_path(s.expected), problem))
+                with open(s.expected, 'w', encoding='utf-8') as f:
+                    f.write(text)
+                print('updated %s' % ue.display_path(s.expected))
+            return 0
+        if not suites:
+            print('no suites in this shard')
+            return 0
+        problems = check_goldens(suites)
+        if problems:
+            for p in problems:
+                print('FAILED golden file: %s' % p)
+            return 1
+        start = time.time()
+        lines = run(suites, opts.lib, opts.debug, opts.timeout)
+    except (Unusable, ue.ToolError) as e:
+        print('test-arms: %s' % e, file=sys.stderr)
+        return 2
+
+    failed = []
+    for line in lines:
+        print(line)
+        if line.startswith(('FAILED ', 'CRASHED ')):
+            failed.append(line.split()[1])
+    for s in suites:
+        if s.name in failed and s.reports and s.expected:
+            show_difference(s, opts)
+    arms = sum(1 for l in lines if l.startswith(('OK ', 'FAILED ',
+                                                 'CRASHED ')))
+    print('%d suites, %d arms: %s in %.0f s' % (
+        len(suites), arms,
+        'all passed' if not failed else '%d failed' % len(failed),
+        time.time() - start))
+    return 1 if failed else 0
+
+
+def show_difference(suite, opts):
+    try:
+        text = report_text(suite, opts.lib, opts.debug, opts.timeout)
+    except Unusable:
+        return
+    with open(suite.expected, encoding='utf-8') as f:
+        want = f.read()
+    sys.stdout.writelines(difflib.unified_diff(
+        want.splitlines(keepends=True), text.splitlines(keepends=True),
+        fromfile=ue.display_path(suite.expected), tofile='report'))
+
+
+DESK = None
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
