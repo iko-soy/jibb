@@ -1,0 +1,59 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (cell 3:3 (const 3:4 %submit) (const 3:12 ~))
+      (const 4:3 %clear)))
+  (mold 5:1 dir
+    (union 6:3 (const 6:3 %left) (const 7:3 %right)))
+  (mold 8:1 step
+    (union 9:3
+      (cell 9:3
+        (const 9:4 %move)
+        (face 9:10 d (ref 9:12 dir))
+        (face 9:16 n (aura 9:18 @ud)))
+      (cell 10:3
+        (face 10:4 text (aura 10:9 @t))
+        (const 10:12 %draft))
+      (const 11:3 %stop)))
+  (value 13:1 typed
+    (gate 13:10
+      (face 13:13 m (ref 13:15 msg))
+      (body 14:3
+        (branch 14:3
+          (wing 14:6 m)
+          (arm 15:5
+            (cell 15:5 (bind 15:6 typed) (bind 15:12 t))
+            (wing 15:17 t))
+          (arm 16:5
+            (cell 16:5 (lit 16:6 %submit) (lit 16:14 ~))
+            (str 16:17 "s"))
+          (arm 17:5 (lit 17:5 %clear) (str 17:17 "c"))))))
+  (value 18:1 move
+    (gate 18:9
+      (face 18:12 s (ref 18:14 step))
+      (body 19:3
+        (branch 19:3
+          (wing 19:6 s)
+          (arm 20:5
+            (cell 20:5 (lit 20:6 %move) (bind 20:12 left) (bind 20:17 n))
+            (str 20:20 "x"))
+          (arm 21:5
+            (cell 21:5 (bind 21:6 t) (lit 21:8 %draft))
+            (wing 21:20 t))
+          (arm 22:5 (lit 22:5 %stop) (str 22:20 "s"))))))
+  (value 23:1 draft
+    (gate 23:10
+      (face 23:13 s (ref 23:15 step))
+      (body 24:3
+        (branch 24:3
+          (wing 24:6 s)
+          (arm 25:5
+            (cell 25:5 (lit 25:6 %move) (bind 25:12 d) (bind 25:14 n))
+            (str 25:20 "x"))
+          (arm 26:5
+            (cell 26:5 (bind 26:6 t) (bind 26:8 draft))
+            (wing 26:20 t))
+          (arm 27:5 (lit 27:5 %stop) (str 27:20 "s")))))))

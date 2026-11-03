@@ -1,0 +1,31 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (mold 2:1 halt (const 2:9 %halt))
+  (value 3:1 extract
+    (gate 3:12
+      (face 3:15 p (ref 3:17 packet))
+      (body 4:3
+        (branch 4:3
+          (wing 4:6 p)
+          (arm 5:5
+            (cell 5:5 (bind 5:6 go) (bind 5:9 u))
+            (wing 5:12 u))))))
+  (value 6:1 stopped
+    (gate 6:12
+      (face 6:15 h (ref 6:17 halt))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 h)
+          (arm 8:5 (bind 8:5 halt) (str 8:10 "halted"))))))
+  (value 9:1 extract-ok
+    (gate 9:15
+      (face 9:18 p (ref 9:20 packet))
+      (body 10:3
+        (branch 10:3
+          (wing 10:6 p)
+          (arm 11:5
+            (cell 11:5 (lit 11:6 %go) (bind 11:10 u))
+            (wing 11:13 u)))))))

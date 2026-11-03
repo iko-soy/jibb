@@ -1,0 +1,132 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %typed
+2:11 name text
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %submit
+3:12 lit ~
+3:13 tight glyph ]
+4:3 NEWLINE
+4:3 lit %clear
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph +$
+5:4 name dir
+6:3 INDENT
+6:3 lit %left
+7:3 NEWLINE
+7:3 lit %right
+8:1 DEDENT
+8:1 NEWLINE
+8:1 glyph +$
+8:4 name step
+9:3 INDENT
+9:3 glyph [
+9:4 tight lit %move
+9:10 name d
+9:11 tight glyph =
+9:12 tight name dir
+9:16 name n
+9:17 tight glyph =
+9:18 tight aura @ud
+9:21 tight glyph ]
+10:3 NEWLINE
+10:3 glyph [
+10:4 tight name text
+10:8 tight glyph =
+10:9 tight aura @t
+10:12 lit %draft
+10:18 tight glyph ]
+11:3 NEWLINE
+11:3 lit %stop
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name typed
+13:10 glyph |=
+13:13 name m
+13:14 tight glyph =
+13:15 tight name msg
+14:3 INDENT
+14:3 glyph ?-
+14:6 name m
+15:5 INDENT
+15:5 glyph [
+15:6 tight name typed
+15:12 name t
+15:13 tight glyph ]
+15:17 name t
+16:5 NEWLINE
+16:5 glyph [
+16:6 tight lit %submit
+16:14 lit ~
+16:15 tight glyph ]
+16:17 str "s"
+17:5 NEWLINE
+17:5 lit %clear
+17:17 str "c"
+18:1 DEDENT
+18:1 DEDENT
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name move
+18:9 glyph |=
+18:12 name s
+18:13 tight glyph =
+18:14 tight name step
+19:3 INDENT
+19:3 glyph ?-
+19:6 name s
+20:5 INDENT
+20:5 glyph [
+20:6 tight lit %move
+20:12 name left
+20:17 name n
+20:18 tight glyph ]
+20:20 str "x"
+21:5 NEWLINE
+21:5 glyph [
+21:6 tight name t
+21:8 lit %draft
+21:14 tight glyph ]
+21:20 name t
+22:5 NEWLINE
+22:5 lit %stop
+22:20 str "s"
+23:1 DEDENT
+23:1 DEDENT
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name draft
+23:10 glyph |=
+23:13 name s
+23:14 tight glyph =
+23:15 tight name step
+24:3 INDENT
+24:3 glyph ?-
+24:6 name s
+25:5 INDENT
+25:5 glyph [
+25:6 tight lit %move
+25:12 name d
+25:14 name n
+25:15 tight glyph ]
+25:20 str "x"
+26:5 NEWLINE
+26:5 glyph [
+26:6 tight name t
+26:8 name draft
+26:13 tight glyph ]
+26:20 name t
+27:5 NEWLINE
+27:5 lit %stop
+27:20 str "s"
+27:23 DEDENT
+27:23 DEDENT
+27:23 NEWLINE

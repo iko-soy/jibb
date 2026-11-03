@@ -7768,6 +7768,8 @@
   ?:  &(?=(%collection -.expected) =(%list name.expected) (context-list-expression e))
     (infer-list-context e expected env state context)
   ?:  ?=(%branch -.e)
+    =/  named=(unit idiag)  (branch-tag-name e env state)
+    ?^  named  [%| u.named]
     =/  empty-list=(unit iresult)  (empty-list-null-branch e env state `[expected context])
     ?^  empty-list  u.empty-list
     ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
@@ -8162,6 +8164,78 @@
     `[[name.p [t ~]] env]
   ?:  ?=(%cell -.p)  (union-pattern-bind-items items.p t env globals)
   `env
+::
+::  +branch-tag-name: a ?- pattern name that spells one of the subject's tags
+::
+::    A name in a pattern binds, so `stop` written for `%stop` would
+::    catch every case left. Where the subject's type at a name's
+::    position is a union, or a one-case mold, with a case whose constant
+::    there is the term the name spells, the name is an error (Grammar,
+::    Patterns). Every path that checks a ?- asks this first, so they
+::    agree; it infers the subject apart and drops the state it leaves.
+::    A subject that fails, or whose type isn't known yet, is left to the
+::    path. Samples aren't patterns: every sample name binds.
+++  branch-tag-name
+  |=  [e=expr env=ienv state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%branch -.e)  ~
+  ?.  (lien arms.e |=(a=arm (union-pattern-has-bind pat.a)))  ~
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  ~
+  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
+  =/  arms=(list arm)  arms.e
+  |-
+  ?~  arms  ~
+  =/  found=(unit [at=span name=term])  (tag-name-pattern pat.i.arms typ ~)
+  ?~  found  $(arms t.arms)
+  =/  name=tape  (trip name.u.found)
+  :-  ~
+  :-  "`{name}` binds a name, but the subject's type has `%{name}` here; write %{name}, or * for a catch-all"
+  ~[[(span-of subject.e) "subject"] [at.u.found "pattern name"]]
+::
+::  +tag-name-pattern: the first name in p that t types by a tag
+::
+::    The walk enters faces, cells and unions, and of a union only the
+::    cases a cell pattern can match, so `[t %draft]` reads t at @t. It
+::    stops at atoms, `*`, variables, collections and recursive molds,
+::    and at a generic union's argument positions, which a type variable
+::    types in its mold, as u in `[~ u=A]`.
+++  tag-name-pattern
+  |=  [p=pattern t=itype args=(list itype)]
+  ^-  (unit [at=span name=term])
+  ?.  ?=(?(%bind %cell) -.p)  ~
+  ?:  ?=(%face -.t)  $(t body.t)
+  ?:  (lien args |=(a=itype =(a t)))  ~
+  ?:  ?=(%union -.t)
+    =/  inner=(list itype)  (weld args.t args)
+    =/  cases=(list itype)  cases.t
+    |-
+    ?~  cases  ~
+    ?:  &(?=(%cell -.p) =(%none (union-pattern p i.cases)))  $(cases t.cases)
+    =/  found=(unit [at=span name=term])  (tag-name-pattern p i.cases inner)
+    ?^  found  found
+    $(cases t.cases)
+  ?:  ?=(%cell -.p)  (tag-name-items items.p t args)
+  ?.  ?=(%const -.t)  ~
+  ?.  &(=(%term form.literal.t) =(%tas aura.literal.t) =(name.p val.literal.t))  ~
+  `[at.p name.p]
+::
+::  +tag-name-items: +tag-name-pattern along a cell pattern's items
+::
+::    As in +union-pattern-items, the last item takes the rest of the
+::    spine. A union mid-spine is read as the rest of the pattern.
+++  tag-name-items
+  |=  [ps=(list pattern) t=itype args=(list itype)]
+  ^-  (unit [at=span name=term])
+  ?~  ps  ~
+  ?~  t.ps  (tag-name-pattern i.ps t args)
+  ?:  ?=(%face -.t)  $(t body.t)
+  ?:  (lien args |=(a=itype =(a t)))  ~
+  ?:  ?=(%union -.t)  (tag-name-pattern [%cell at.i.ps ps] t args)
+  ?.  ?=(%cell -.t)  ~
+  =/  head=(unit [at=span name=term])  (tag-name-pattern i.ps hed.t args)
+  ?^  head  head
+  $(ps t.ps, t tal.t)
 ::
 ::  Split loobean fields into finite refinements for partial patterns.
 ::  Keep original cases for binder types and preserve whole-case matching
@@ -8876,6 +8950,8 @@
       ?:  ?=(%| -.result)  result
       [%& typ.p.result state.p.result(globals globals.state, molds molds.state)]
     %branch
+      =/  named=(unit idiag)  (branch-tag-name e env state)
+      ?^  named  [%| u.named]
       ?^  defer.state  (dg-boolean-branch e env state)
       ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
       ?~  t.arms.e
@@ -9713,6 +9789,8 @@
     ?:  ?=(%bad -.fit)  [%| ["recursive mold cell does not fit its source shape" ~]]
     [%& target state.p.value(sub sub.fit, next next.fit)]
   ?:  ?=(%call -.e)  (infer-contextual-call e target env state)
+  =/  named=(unit idiag)  (branch-tag-name e env state)
+  ?^  named  [%| u.named]
   =/  empty-list=(unit iresult)  (empty-list-null-branch e env state `[target context])
   ?^  empty-list  u.empty-list
   ?:  (single-structured-pattern e)

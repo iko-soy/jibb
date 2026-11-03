@@ -1,0 +1,9 @@
+partial inference; module not checked
++$ step: cases proven disjoint; mold not checked
+++ describe: `stop` binds a name, but the subject's type has `%stop` here; write %stop, or * for a catch-all
+/tests/golden/inline-pattern-tag-name-last/source.jibb:9:6: subject
+  ?- s
+     ^
+/tests/golden/inline-pattern-tag-name-last/source.jibb:14:5: pattern name
+    stop              "stop"
+    ^

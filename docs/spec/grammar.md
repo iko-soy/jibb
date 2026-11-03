@@ -181,7 +181,7 @@ Number and cell literals resolve like tags: each waits for its context and takes
 
 ## Patterns
 
-Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare name. An arm that earlier arms cover, such as a second `%add` or anything after `[%move * *]`, is an error, and a case that should fail says `!!`. A name in a pattern always binds anew, so compare values with `?- (eq a b)`. Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, and cells of patterns, which nest; not `~[…]` lists or `a+b` pairs.
+Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare name. An arm that earlier arms cover, such as a second `%add` or anything after `[%move * *]`, is an error, and a case that should fail says `!!`. A name in a pattern always binds anew, so compare values with `?- (eq a b)`. A name is an error where the subject's type at its position is a union, or a one-case mold, and a case that the rest of the pattern can match has there the constant the name spells, so `stop` written for `%stop` below is an error, not a catch-all. Positions typed by an aura, `*`, a type variable, a container's element or a recursive mold are unaffected, so `[t %draft] t` still binds `t`, and `x` is still a catch-all on a `@tas` subject. Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, and cells of patterns, which nest; not `~[…]` lists or `a+b` pairs.
 
 | Pattern | Matches | Binds |
 | --- | --- | --- |
@@ -278,7 +278,7 @@ pathmold   = "/" [ segment { "/" segment } ] ;
 segment    = knot | "[" name "=" ( aura | "_" ) "]" ;
 
 pattern    = term | number | string | ship | loobean | "~" | "*" | name
-           | "[" pattern { pattern } "]" ;
+           | "[" pattern { pattern } "]" ;   (* a name can't spell a tag the subject has there; see Patterns *)
 
 literal    = number | string | ship | date | duration | knotlit
            | term | loobean | "~" ;

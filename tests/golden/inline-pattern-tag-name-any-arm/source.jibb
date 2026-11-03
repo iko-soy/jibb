@@ -1,0 +1,30 @@
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
++$ reason
+  %fail
+  %late
+
+++ first |= s=step
+  ?- s
+    stop              "stop"
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+++ covered |= r=reason
+  ?- r
+    %fail  "f"
+    fail   "l"
+++ grouped |= r=reason
+  ?- (r)
+    %fail  "f"
+    late   "l"
+++ pick |= r=reason r
+++ called |= r=reason
+  ?- (pick r)
+    %fail  "f"
+    late   "l"

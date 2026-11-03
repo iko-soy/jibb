@@ -1,0 +1,133 @@
+(module
+  (mold 1:1 step
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %move)
+        (const 2:10 %left)
+        (face 2:16 n (aura 2:18 @ud)))
+      (cell 3:3
+        (const 3:4 %move)
+        (const 3:10 %right)
+        (face 3:17 n (aura 3:19 @ud)))
+      (cell 4:3
+        (face 4:4 text (aura 4:9 @t))
+        (const 4:12 %draft))
+      (cell 5:3
+        (face 5:4 text (aura 5:9 @t))
+        (const 5:12 %sent)
+        (face 5:18 at (aura 5:21 @da)))
+      (const 6:3 %stop)))
+  (mold 7:1 colour
+    (union 8:3 (const 8:3 %red) (const 9:3 %green)))
+  (mold 10:1 shape
+    (union 11:3
+      (cell 11:3
+        (const 11:4 %circle)
+        (face 11:12 red (aura 11:16 @ud)))
+      (cell 12:3
+        (const 12:4 %label)
+        (face 12:11 text (aura 12:16 @t)))
+      (const 13:3 %blank)))
+  (value 15:1 describe
+    (gate 15:13
+      (face 15:16 s (ref 15:18 step))
+      (body 16:3
+        (branch 16:3
+          (wing 16:6 s)
+          (arm 17:5
+            (cell 17:5 (lit 17:6 %move) (lit 17:12 %left) (bind 17:18 n))
+            (str 17:23 "left " (wing 17:30 n)))
+          (arm 18:5
+            (cell 18:5 (lit 18:6 %move) (lit 18:12 %right) (bind 18:19 n))
+            (str 18:23 "right " (wing 18:31 n)))
+          (arm 19:5
+            (cell 19:5 (bind 19:6 t) (lit 19:8 %draft))
+            (wing 19:23 t))
+          (arm 20:5
+            (cell 20:5 (bind 20:6 t) (lit 20:8 %sent) (bind 20:14 sent-at))
+            (wing 20:23 t))
+          (arm 21:5 (lit 21:5 %stop) (str 21:23 "stop"))))))
+  (value 22:1 elsewhere
+    (gate 22:14
+      (face 22:17 s (ref 22:19 step))
+      (body 23:3
+        (branch 23:3
+          (wing 23:6 s)
+          (arm 24:5
+            (cell 24:5 (lit 24:6 %move) (lit 24:12 %left) (bind 24:18 n))
+            (str 24:23 "left " (wing 24:30 n)))
+          (arm 25:5
+            (cell 25:5 (lit 25:6 %move) (lit 25:12 %right) (bind 25:19 n))
+            (str 25:23 "right " (wing 25:31 n)))
+          (arm 26:5
+            (cell 26:5 (bind 26:6 move) (lit 26:11 %draft))
+            (wing 26:23 move))
+          (arm 27:5
+            (cell 27:5 (bind 27:6 t) (lit 27:8 %sent) (bind 27:14 sent-at))
+            (wing 27:23 t))
+          (arm 28:5 (lit 28:5 %stop) (str 28:23 "stop"))))))
+  (value 29:1 rest
+    (gate 29:9
+      (face 29:12 s (ref 29:14 step))
+      (body 30:3
+        (branch 30:3
+          (wing 30:6 s)
+          (arm 31:5
+            (cell 31:5 (lit 31:6 %move) (bind 31:12 left))
+            (str 31:23 "move"))
+          (arm 32:5
+            (cell 32:5 (bind 32:6 t) (lit 32:8 %draft))
+            (wing 32:23 t))
+          (arm 33:5
+            (cell 33:5 (bind 33:6 t) (lit 33:8 %sent) (bind 33:14 sent-at))
+            (wing 33:23 t))
+          (arm 34:5 (lit 34:5 %stop) (str 34:23 "stop"))))))
+  (value 35:1 aura
+    (gate 35:9
+      (face 35:12 s (ref 35:14 shape))
+      (body 36:3
+        (branch 36:3
+          (wing 36:6 s)
+          (arm 37:5
+            (cell 37:5 (lit 37:6 %circle) (bind 37:14 red))
+            (str 37:20 (wing 37:22 red)))
+          (arm 38:5
+            (cell 38:5 (lit 38:6 %label) (bind 38:13 green))
+            (wing 38:20 green))
+          (arm 39:5 (lit 39:5 %blank) (str 39:20 "blank"))))))
+  (value 40:1 other-union
+    (gate 40:16
+      (face 40:19 s (ref 40:21 shape))
+      (body 41:3
+        (branch 41:3
+          (wing 41:6 s)
+          (arm 42:5
+            (cell 42:5 (lit 42:6 %circle) (bind 42:14 r))
+            (str 42:18 (wing 42:20 r)))
+          (arm 43:5
+            (cell 43:5 (lit 43:6 %label) (bind 43:13 t))
+            (wing 43:18 t))
+          (arm 44:5 (bind 44:5 red) (str 44:18 "other"))))))
+  (value 45:1 sample
+    (gate 45:11
+      (face 45:14 stop (ref 45:19 step))
+      (str 45:24 "sample")))
+  (value 46:1 sample-bare
+    (cast 46:16
+      (fn 46:19 (ref 46:22 step) (aura 46:27 @t))
+      (gate 46:31 (bind 46:34 stop) (str 46:39 "sample"))))
+  (value 47:1 atom
+    (gate 47:9
+      (face 47:12 s (aura 47:14 @tas))
+      (body 48:3
+        (branch 48:3
+          (wing 48:6 s)
+          (arm 49:5 (lit 49:5 %stop) (str 49:12 "stop"))
+          (arm 50:5 (bind 50:5 stop) (str 50:12 "other"))))))
+  (value 51:1 noun
+    (gate 51:9
+      (face 51:12 s (noun 51:14))
+      (body 52:3
+        (branch 52:3
+          (wing 52:6 s)
+          (arm 53:5 (bind 53:5 stop) (str 53:11 "any")))))))

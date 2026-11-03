@@ -1,0 +1,11 @@
++$ packet [%go url=@t]
++$ halt %halt
+++ extract |= p=packet
+  ?- p
+    [go u] u
+++ stopped |= h=halt
+  ?- h
+    halt "halted"
+++ extract-ok |= p=packet
+  ?- p
+    [%go u] u

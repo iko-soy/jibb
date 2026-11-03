@@ -1,0 +1,27 @@
++$ msg
+  [%typed text=@t]
+  [%submit ~]
+  %clear
++$ dir
+  %left
+  %right
++$ step
+  [%move d=dir n=@ud]
+  [text=@t %draft]
+  %stop
+
+++ typed |= m=msg
+  ?- m
+    [typed t]   t
+    [%submit ~] "s"
+    %clear      "c"
+++ move |= s=step
+  ?- s
+    [%move left n] "x"
+    [t %draft]     t
+    %stop          "s"
+++ draft |= s=step
+  ?- s
+    [%move d n]    "x"
+    [t draft]      t
+    %stop          "s"
