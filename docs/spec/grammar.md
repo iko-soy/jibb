@@ -18,7 +18,7 @@ The syntax the compiler accepts.
 
 | Form | Example | Type |
 | --- | --- | --- |
-| Decimal | `1.000` | `@ud`, or any aura by context; groups of three, as in Hoon |
+| Decimal | `1.000` | `@ud`, which also fits `@u`, `@` and `*`; groups of three, as in Hoon |
 | Hexadecimal | `0x1f` | `@ux` |
 | Base 32 | `0v5.fdf99` | `@uv` |
 | Ship | `~zod`, `~sampel-palnet` | `@p` |
@@ -159,12 +159,12 @@ A tag literal or `~` gets a fresh type variable and a pending constraint: the va
 
 ## Literals by context
 
-Number and cell literals resolve like tags: each waits for its context and takes a default when its `++` is checked. A number takes `@ud` only if nothing fixes its aura and its `++` isn't generic over it, so `++ inc |= n=A (add n 1)` stays generic, while the sum in `"{(add 1 2)}"` is a `@ud`.
+Number and cell literals resolve like tags: each waits for its context and takes a default when its `++` is checked. A number is a `@ud`, as in Hoon: a context can make it a `@u`, and it fits `@` and `*`, but every other aura takes its own literal, as `~s30` for a `@dr`, `~2026.1.1` for a `@da`, `~zod` for a `@p`, `"5"` for a `@t` and `0x1` for a `@ux`. So `^- @dr 30`, `^- @p 0`, `(add ~s1 1)` and `(text 5)` are errors, each naming the number and the aura it met. A number takes `@ud` only if nothing fixes its aura and its `++` isn't generic over it, so `++ inc |= n=A (add n 1)` stays generic, and `(inc ~s1)` is a `@dr`, while the sum in `"{(add 1 2)}"` is a `@ud`.
 
 | Literal | Can become | Default |
 | --- | --- | --- |
 | Tag `%a`, or `~` | A union's case or a constant atom | None: an error asking for a `^-` |
-| Number `5` | Any aura | `@ud` |
+| Number `5` | `@ud` or `@u`, or any aura its `++` is generic over | `@ud` |
 | Cell `[x xs]` | A tuple, a record, a cons | A tuple |
 
 - In `{…}`, an atom prints by its aura: `@ud` as `1.000`, `@da` as a UTC date with sub-seconds, `@p` as a ship, and a bare `@` as `@ud`. `@t`, `@ta`, `@tas` and tapes splice as text; any other cell is an error asking for a printer. Printers are picked when compiling, so an atom whose aura its `++` is generic over, as `n` in `|= n=A` when `A` is constrained to atoms, is an error asking for an aura, here and in a `(…)` segment of an application path. For readers, `print-date` prints in the theme's zone, Urbit-style, to the minute, as `~2026.10.29..14.30`; numbers keep Hoon's form.
@@ -181,7 +181,7 @@ Number and cell literals resolve like tags: each waits for its context and takes
 
 ## Patterns
 
-Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare name. An arm that earlier arms cover, such as a second `%add` or anything after `[%move * *]`, is an error, and a case that should fail says `!!`. A name in a pattern always binds anew, so compare values with `?- (eq a b)`. A name is an error where the subject's type at its position is a union, or a one-case mold, and a case that the rest of the pattern can match has there the constant the name spells, so `stop` written for `%stop` below is an error, not a catch-all. Positions typed by an aura, `*`, a type variable, a container's element or a recursive mold are unaffected, so `[t %draft] t` still binds `t`, and `x` is still a catch-all on a `@tas` subject. Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, and cells of patterns, which nest; not `~[…]` lists or `a+b` pairs.
+Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare name. An arm that earlier arms cover, such as a second `%add` or anything after `[%move * *]`, is an error, and a case that should fail says `!!`. A name in a pattern always binds anew, so compare values with `?- (eq a b)`. A name is an error where the subject's type at its position is a union, or a one-case mold, and a case that the rest of the pattern can match has there the constant the name spells, so `stop` written for `%stop` below is an error, not a catch-all. Positions typed by an aura, `*`, a type variable, a container's element or a recursive mold are unaffected, so `[t %draft] t` still binds `t`, and `x` is still a catch-all on a `@tas` subject. Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, and cells of patterns, which nest; not `~[…]` lists or `a+b` pairs. A number pattern is a `@ud` too, so `0` can't match a `@p` or a `@dr`: write `~zod`, or compare a duration with `eq`.
 
 | Pattern | Matches | Binds |
 | --- | --- | --- |
