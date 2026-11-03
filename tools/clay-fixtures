@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Build and inspect example /sur and mark fixtures through Clay."""
+"""Build and inspect example /sur and mark fixtures through Clay.
+
+Each fixture is a thread in tests/clay-fixtures, NAME.txt, which
+tools/ship runs on the ship; what it prints must equal NAME-expected.txt.
+The threads build my-app's own /sur and marks on the my-app desk. The
+files only they need, a /sur with a Ford import, a mark and the real
+Tlon notes /sur (a link to a golden case's fixture), are in
+tests/clay-fixtures/desk, which the jibb-fixtures desk adds to my-app.
+Both desks are synced first.
+"""
 
 from pathlib import Path
-import shutil
-import signal
 import subprocess
 import sys
 import tempfile
@@ -11,228 +18,75 @@ import tempfile
 root = Path(__file__).resolve().parent.parent
 ship = root / 'tools' / 'ship'
 fixtures = root / 'tests' / 'clay-fixtures'
-try:
-    subprocess.run([str(ship), 'sync', 'my-app'], check=True)
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'build.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay fixture builds differ from tests/clay-fixtures/expected.txt',
-          file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay fixture builds: 7 passed')
 
-# Inject the reader rather than copying it into the fixture: Clay supplies
-# each compiled /sur type graph, and the current reader examines its molds.
-reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
-template = (fixtures / 'import.txt').read_text()
-if template.count('@@READER@@') != 1:
-    sys.exit('Clay import fixture needs exactly one reader placeholder')
-binding = '=/  reader\n' + ''.join('  ' + line for line in reader.splitlines(keepends=True))
-with tempfile.TemporaryDirectory(prefix='jibb-clay-import-') as tmp:
-    program = Path(tmp) / 'import.hoon'
-    program.write_text(template.replace('@@READER@@', binding))
-    try:
-        result = subprocess.run([str(ship), 'run', str(program)],
-                                stdout=subprocess.PIPE, check=True)
-    except subprocess.CalledProcessError as error:
-        sys.exit(error.returncode)
-expected = (fixtures / 'import-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay imports differ from tests/clay-fixtures/import-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay importer golden: 4 projections passed')
+#  (thread, what a mismatch says, what a pass says), in the order they run
+FIXTURES = [
+    ('build', 'Clay fixture builds differ', 'Clay fixture builds: 7 passed'),
+    ('import', 'Clay imports differ',
+     'Clay importer golden: 4 projections passed'),
+    # Clay-built library cores as well as a Clay-built /sur; the selected
+    # reader result goes to the partial checker.
+    ('bridge', 'Clay bridge differs',
+     'Clay importer/checker bridge golden passed'),
+    ('record-bridge', 'Clay record bridge differs',
+     'Clay record importer/checker bridge golden passed'),
+    # A /sur with a Ford import has a different parent subject. This
+    # records the actual shape for provenance work without claiming
+    # support.
+    ('ford', 'Clay Ford subject differs', 'Clay Ford subject golden passed'),
+    ('ford-import', 'Clay Ford import differs',
+     'Clay Ford importer golden passed'),
+    ('ford-recursive', 'Clay recursive Ford import differs',
+     'Clay recursive Ford importer golden passed'),
+    ('ford-nested-union', 'Clay nested union import differs',
+     'Clay nested Ford union importer golden passed'),
+    ('ford-nested-union-bridge', 'Clay nested union bridge differs',
+     'Clay nested Ford union importer/checker bridge golden passed'),
+    ('tlon-mop', 'Clay Tlon mop import differs',
+     'Clay Tlon named-mold mop importer golden passed'),
+    ('mark-shape', 'Clay mark subject differs',
+     'Clay mark subject golden passed'),
+    ('mark-import', 'Clay mark import differs',
+     'Clay mark importer golden passed'),
+    ('mark-update-import', 'Clay union mark import differs',
+     'Clay union mark importer golden passed'),
+    ('mark-bridge', 'Clay mark bridge differs',
+     'Clay mark importer/checker bridge golden passed'),
+]
 
-# This second report uses Clay-built library cores as well as a Clay-built
-# /sur, then passes the selected reader result into the partial checker.
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'bridge.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'bridge-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay bridge differs from tests/clay-fixtures/bridge-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay importer/checker bridge golden passed')
 
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'record-bridge.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'record-bridge-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay record bridge differs from tests/clay-fixtures/record-bridge-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay record importer/checker bridge golden passed')
+def output(name, tmp):
+    """What the fixture's thread prints."""
+    thread = fixtures / (name + '.txt')
+    if name == 'import':
+        # Inject the reader rather than copying it into the fixture: Clay
+        # supplies each compiled /sur type graph, and the current reader
+        # examines its molds.
+        reader = (root / 'jibb-dev/lib/jibb-import.hoon').read_text()
+        template = thread.read_text()
+        if template.count('@@READER@@') != 1:
+            sys.exit('Clay import fixture needs exactly one reader placeholder')
+        binding = '=/  reader\n' + ''.join(
+            '  ' + line for line in reader.splitlines(keepends=True))
+        thread = Path(tmp) / 'import.hoon'
+        thread.write_text(template.replace('@@READER@@', binding))
+    return subprocess.run([str(ship), 'run', str(thread)],
+                          stdout=subprocess.PIPE, check=True).stdout
 
-# A /sur with a Ford import has a different parent subject. This golden
-# records the actual shape for provenance work without claiming support.
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'ford-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay Ford subject differs from tests/clay-fixtures/ford-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay Ford subject golden passed')
 
 try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford-import.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'ford-import-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay Ford import differs from tests/clay-fixtures/ford-import-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay Ford importer golden passed')
-
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford-recursive.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'ford-recursive-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay recursive Ford import differs from tests/clay-fixtures/ford-recursive-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay recursive Ford importer golden passed')
-
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford-nested-union.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'ford-nested-union-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay nested union import differs from tests/clay-fixtures/ford-nested-union-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay nested Ford union importer golden passed')
-
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'ford-nested-union-bridge.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'ford-nested-union-bridge-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay nested union bridge differs from tests/clay-fixtures/ford-nested-union-bridge-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay nested Ford union importer/checker bridge golden passed')
-
-# Build the real Tlon source in a temporary desk assembly.  It lives in the
-# golden corpus rather than an app desk; the normal desk is restored even if
-# the temporary sync, thread, or comparison fails.
-def stop_for_signal(signum, frame):
-    raise InterruptedError('interrupted during temporary Clay fixture')
-
-previous = signal.signal(signal.SIGTERM, stop_for_signal)
-previous_int = signal.getsignal(signal.SIGINT)
-try:
-    with tempfile.TemporaryDirectory(prefix='jibb-clay-tlon-') as tmp:
-        scratch = Path(tmp)
-        (scratch / 'tools').mkdir()
-        shutil.copy2(ship, scratch / 'tools/ship')
-        shutil.copy2(root / 'tools/golden_case.py', scratch / 'tools/golden_case.py')
-        for folder in ('vendor', 'jibb-dev', 'tests'):
-            (scratch / folder).symlink_to(root / folder, target_is_directory=True)
-        shutil.copytree(root / 'my-app', scratch / 'my-app')
-        shutil.copy2(root / 'tests/golden/types-import-tlon-notes/sur/notes.txt',
-                     scratch / 'my-app/sur/mop-tlon-probe.hoon')
-        try:
-            subprocess.run([sys.executable, str(scratch / 'tools/ship'),
-                            'sync', 'my-app'], check=True)
-            result = subprocess.run([str(ship), 'run', str(fixtures / 'tlon-mop.txt')],
-                                    stdout=subprocess.PIPE, check=True)
-            expected = (fixtures / 'tlon-mop-expected.txt').read_bytes()
-            if result.stdout != expected:
-                print('Clay Tlon mop import differs from tests/clay-fixtures/tlon-mop-expected.txt',
-                      file=sys.stderr)
+    for desk in ('my-app', 'jibb-fixtures'):
+        subprocess.run([str(ship), 'sync', desk], check=True)
+    with tempfile.TemporaryDirectory(prefix='jibb-clay-') as tmp:
+        for name, differs, passed in FIXTURES:
+            got = output(name, tmp)
+            want = 'tests/clay-fixtures/%s-expected.txt' % name
+            expected = (root / want).read_bytes()
+            if got != expected:
+                print('%s from %s' % (differs, want), file=sys.stderr)
                 print('expected:', expected.decode().rstrip(), file=sys.stderr)
-                print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-                raise SystemExit(1)
-        finally:
-            # A second termination request must not interrupt desk restoration.
-            signal.signal(signal.SIGTERM, signal.SIG_IGN)
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
-            subprocess.run([str(ship), 'sync', 'my-app'], check=True)
-finally:
-    signal.signal(signal.SIGTERM, previous)
-    signal.signal(signal.SIGINT, previous_int)
-print('Clay Tlon named-mold mop importer golden passed')
-
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-shape.txt')],
-                            stdout=subprocess.PIPE, check=True)
+                print('actual:  ', got.decode().rstrip(), file=sys.stderr)
+                sys.exit(1)
+            print(passed)
 except subprocess.CalledProcessError as error:
     sys.exit(error.returncode)
-expected = (fixtures / 'mark-shape-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay mark subject differs from tests/clay-fixtures/mark-shape-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay mark subject golden passed')
-
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-import.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'mark-import-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay mark import differs from tests/clay-fixtures/mark-import-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay mark importer golden passed')
-
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-update-import.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'mark-update-import-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay union mark import differs from tests/clay-fixtures/mark-update-import-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay union mark importer golden passed')
-
-try:
-    result = subprocess.run([str(ship), 'run', str(fixtures / 'mark-bridge.txt')],
-                            stdout=subprocess.PIPE, check=True)
-except subprocess.CalledProcessError as error:
-    sys.exit(error.returncode)
-expected = (fixtures / 'mark-bridge-expected.txt').read_bytes()
-if result.stdout != expected:
-    print('Clay mark bridge differs from tests/clay-fixtures/mark-bridge-expected.txt', file=sys.stderr)
-    print('expected:', expected.decode().rstrip(), file=sys.stderr)
-    print('actual:  ', result.stdout.decode().rstrip(), file=sys.stderr)
-    sys.exit(1)
-print('Clay mark importer/checker bridge golden passed')

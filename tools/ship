@@ -61,13 +61,19 @@ TESTS_LIB = os.path.join(ROOT, 'tests', 'lib', 'jibb.hoon')
 #  order.  Every desk gets every package under vendor/.  A folder is
 #  (repo folder, desk folder, folders and files left out).  The test
 #  desk holds my-app's sources under /my-app, so tests read them there
-#  instead of keeping copies.
+#  instead of keeping copies.  jibb-fixtures is my-app plus the Hoon
+#  /sur and mark files only the importer's Clay fixtures build, kept in
+#  tests/clay-fixtures/desk so the example app doesn't carry them.
 DESKS = {
     'my-app': [('jibb-dev', '', ['tests']), ('my-app', '', [])],
     'jibb': [('jibb', '', [])],
-    'jibb-dev': [('jibb-dev', '', []), ('tests', 'tests', []),
+    'jibb-dev': [('jibb-dev', '', []),
+                 ('tests', 'tests', [os.path.join('clay-fixtures', 'desk')]),
                  ('my-app', 'my-app',
                   ['desk.bill', 'desk.docket-0', 'sys.kelvin'])],
+    'jibb-fixtures': [('jibb-dev', '', ['tests']),
+                      ('my-app', '', ['desk.docket-0']),
+                      (os.path.join('tests', 'clay-fixtures', 'desk'), '', [])],
 }
 #  The test desk has no sys.kelvin of its own; Clay refuses a commit
 #  without one, so it gets the %jibb desk's.
@@ -902,7 +908,7 @@ def assemble(desk, lib=None, golden=None):
             golden = golden or GOLDEN
             if os.path.isdir(os.path.join(ROOT, 'tests')):
                 a.add_tree(os.path.join(ROOT, 'tests'), 'tests',
-                           skip=['golden'], drop=lambda rel:
+                           skip=['golden'] + skip, drop=lambda rel:
                            rel == os.path.join('lib', 'jibb.hoon') or
                            (isolated and rel.startswith('lib' + os.sep) and
                             rel.endswith('.hoon')))
@@ -2321,6 +2327,9 @@ EPILOG = """\
 desks:
   my-app    vendor/* + jibb-dev (without any tests/) + my-app
   jibb      vendor/* + jibb
+  jibb-fixtures
+            vendor/* + jibb-dev (without any tests/) + my-app (without
+            desk.docket-0) + tests/clay-fixtures/desk, for tools/clay-fixtures
   jibb-dev  vendor/* + jibb-dev + tests + my-app (under /my-app, without
             its desk files), the test desk: tests/golden from --golden,
             less the case files that link to my-app, tests/lib/jibb.hoon

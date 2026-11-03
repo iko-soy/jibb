@@ -90,7 +90,8 @@
           '';
 
           # The desks, as tools/ship assembles them for the ship:
-          # $out/my-app, $out/jibb and $out/jibb-dev, the test desk.  The
+          # $out/my-app, $out/jibb, $out/jibb-dev, the test desk, and
+          # $out/jibb-fixtures, for the Clay fixtures.  The
           # check phase compiles the two libraries under urbit eval.
           desks = pkgs.stdenvNoCC.mkDerivation {
             # No version in the name, so a commit that changes no desk
@@ -123,7 +124,7 @@
             # The files are the desks' as they are: nothing to patch.
             dontFixup = true;
             meta = {
-              description = "The Jibb desks: my-app, jibb and jibb-dev";
+              description = "The Jibb desks: my-app, jibb, jibb-dev and jibb-fixtures";
               platforms = systems;
             };
           };

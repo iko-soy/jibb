@@ -1,7 +1,7 @@
 =/  m  (strand ,vase)
 ;<  =bowl:spider  bind:m  get-bowl
 =/  now=@da  now.bowl
-=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/import-fixture/hoon)
+=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-fixtures/[(scot %da now)]/sur/import-fixture/hoon)
 =/  cor=type  -.src
 ?.  ?=([%core *] cor)  (pure:m !>('not a core'))
 =/  subject=type  q.q.cor

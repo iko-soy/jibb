@@ -1,8 +1,8 @@
 =/  m  (strand ,vase)
 ;<  =bowl:spider  bind:m  get-bowl
 =/  now=@da  now.bowl
-=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/import-fixture/hoon)
-=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
+=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-fixtures/[(scot %da now)]/sur/import-fixture/hoon)
+=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-fixtures/[(scot %da now)]/lib/jibb-import/hoon)
 =/  cor=type  -.src
 =/  typ=type  (~(play ut cor) (ream '*sample'))
 =/  read-gate=vase  (slap reader (ream 'read-mold-in'))

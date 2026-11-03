@@ -1,10 +1,10 @@
 =/  m  (strand ,vase)
 ;<  =bowl:spider  bind:m  get-bowl
 =/  now=@da  now.bowl
-=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/import-fixture/hoon)
-=/  blog=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/blog/hoon)
-=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
-=/  jibb=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb/hoon)
+=/  src=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-fixtures/[(scot %da now)]/sur/import-fixture/hoon)
+=/  blog=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-fixtures/[(scot %da now)]/sur/blog/hoon)
+=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-fixtures/[(scot %da now)]/lib/jibb-import/hoon)
+=/  jibb=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-fixtures/[(scot %da now)]/lib/jibb/hoon)
 =/  read-gate=vase  (slap reader (ream 'read-named'))
 =/  result=vase  (slym read-gate [%import-fixture %nested -.src])
 =/  sample-result=vase  (slym read-gate [%import-fixture %sample -.src])

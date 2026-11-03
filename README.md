@@ -10,7 +10,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
-- `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and `my-app-copies.txt`, the list of fixtures that copy `my-app/mar/label.hoon`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
+- `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and in `clay-fixtures/`, the threads `tools/clay-fixtures` runs and, in `clay-fixtures/desk/`, the Hoon files the `jibb-fixtures` desk adds to `my-app`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
 - `tools/`: dev tooling: `golden`, `test-arms`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, `ship`, and `check`, which runs every check.
 - `docs/`: the doc's tabs as Markdown in `spec/`, the status, the open questions, the development guide, the compiler's map, and briefs for milestones in `prompts/`.
 
@@ -19,13 +19,13 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 The flake (`flake.nix`, pinned by `flake.lock`) builds the desks and runs every check, with vere 4.6, Python 3, click and the brass pill pinned:
 
 ```
-nix build              # result/my-app, result/jibb, result/jibb-dev: the desks
+nix build              # result/my-app, result/jibb, result/jibb-dev, result/jibb-fixtures: the desks
 nix flake check        # every check: the eval group and, on Linux, the ship group on a fresh fake ~zod
 nix develop            # a shell with urbit, python3 and click, for running the tools by hand
 nix build .#fakezod    # a freshly booted fake ~zod pier (Linux)
 ```
 
-Jibb has no native binary: what it ships is desks, Hoon and Jibb source that a ship builds. So `nix build` writes the three desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build.
+Jibb has no native binary: what it ships is desks, Hoon and Jibb source that a ship builds. So `nix build` writes the four desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build.
 
 `nix flake check` builds that too, then runs `tools/check --group eval` and, on Linux, `tools/check --group ship` against a copy of a fake ~zod it boots from the pill. Everything runs in the Nix sandbox without network, so a check can't pass because of something on your machine. Each group is one build; a failure prints the failing checks' output, and a passing build keeps every check's log in its output. On four CPUs it takes about 10 minutes, the two groups building side by side: under 3 minutes for the eval group (it took 18 before `tools/test-arms` replaced a script per suite) and 10 for the ship group. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
 
@@ -90,7 +90,7 @@ Many suites share one eval, so the library is built once per eval, not once per 
 
 A golden-report suite has a `report` arm and a `/*` file bound to the face `expected`; when one of its arms fails, the runner prints a diff between that file and the report. Before any eval, the runner checks the golden files of the suites it runs, the `%txt` files bound to a face containing `expected`: each must end in exactly one newline, which an arm can't see in the file's wain, and hold no line that starts `BAD ` or ends `: BAD`. `--update` won't write a report that breaks either rule.
 
-The `jibb-dev` desk holds `my-app`'s sources under `/my-app`, without its desk files, so the suites below that check `my-app` files read them there, and a golden case that uses one links to it: `tests/golden/doc-overview-02-theme/source.jibb` is a symlink to `my-app/ui/theme.jibb`. The fixtures that copy `my-app/mar/label.hoon` leave out its first line, a comment; `tests/my-app-copies.txt` lists them, and `tools/test-arms` checks every pair when it runs with no suite or shard named, and with `--copies`, which `tools/check` runs as `my-app-copies`.
+The `jibb-dev` desk holds `my-app`'s sources under `/my-app`, without its desk files, so the suites below that check `my-app` files read them there, and a golden case that uses one links to it: `tests/golden/doc-overview-02-theme/source.jibb` is a symlink to `my-app/ui/theme.jibb`.
 
 `tools/test-arms --list` lists every suite, and [The test suites](docs/development.md#the-test-suites) in the development guide says what each one checks. Each suite it lists runs under eval and on the fake ship, with the same fixtures. The `jibb-import` suite compares the partial Hoon importer's fixture projections against their golden file. The suites `jibb-bridge`, `jibb-import-overlap`, `jibb-import-structural`, `jibb-union-source`, `jibb-union-alias-overlap`, `jibb-full-overlap-basic`, `jibb-full-overlap-graph`, `jibb-generic-recursion`, `jibb-generic-construction`, `jibb-generic-pattern`, `jibb-deferred`, `jibb-deferred-prepared`, `jibb-deferred-resolver`, `jibb-deferred-context`, `jibb-empty`, `jibb-cell-branch`, `jibb-tlon-bridge`, `jibb-mark-bridge`, `jibb-poke-bridge` and `jibb-api-paths` check importer/checker, prelude and partial API path analysis boundaries.
 
@@ -141,7 +141,7 @@ A sync with nothing to commit takes about 2 s. A commit adds 3 to 10 s, and 300 
 
 `tools/ship check-commit` proves that `|commit` stores `.jibb` files. It syncs `my-app`, reads every `/ui` file back with `%cx`, byte for byte, and converts `%jibb` to `%mime` and `%txt` and back. It commits half-written files, then deletes them. It merges a file that two desks changed on different lines, and checks that changes to the same line conflict. It can be rerun, and it leaves the two scratch desks it merges with (`%jibb-check-ours` and `%jibb-check-theirs`) holding only what `|new-desk` gives, unmounted.
 
-`tools/clay-fixtures` syncs `my-app`, builds its example `/sur` files and marks through Clay, and checks selected types read from the compiled graphs and passed to the partial checker. It compares the results with golden files under `tests/clay-fixtures/`.
+`tools/clay-fixtures` syncs `my-app` and `jibb-fixtures`, builds their example `/sur` files and marks through Clay, and checks selected types read from the compiled graphs and passed to the partial checker. It compares the results with golden files under `tests/clay-fixtures/`.
 
 For anything else:
 

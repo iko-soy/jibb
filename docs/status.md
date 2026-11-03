@@ -121,7 +121,7 @@ Besides the plan's list:
 
 - 689 golden cases: 460 that parse and 229 that fail, each failure at a stated line and column. One failing case has an unclear expectation (corpus question 3). The newer type-output cases exercise only the partial inference fragment. Each case's `about.txt` quotes the doc's words it tests.
 - The 689-case corpus passed under `urbit eval` in 107.0 s while other checks were running. The fake ship passed all 746 tests, including the source-overlap, structural-overlap, generic-union source and alias-overlap, full-module overlap, deferred-context, generic-recursion, generic-construction, generic-pattern, deferred-inference, empty-mold and cell-branch fixtures, importer, importer/checker and mark/checker bridges, module scope, unification, hole, qath, ask, default-wrapper importer, projection, arithmetic, generic-alias, positional-face, API-evidence, request, closed-gate, todo API, constructor, sub, nested-union, gate-free and direct-gate guards and the unchanged todo report. Desk sync took 111.2 s and the ship's `-test` run took 316.7 s. The importer golden compares 221 projections; `tools/clay-fixtures` builds the example Hoon fixtures through Clay, checks a recursive Ford import's origin, and passes Clay-built types through the Clay-built importer and partial checker.
-- `tools/testdata/selftest` (23 checks), `tools/testdata/ship-selftest` and `tools/testdata/clay-fixtures-selftest` test the tools themselves; the last checks temporary Clay fixture cleanup and signal handling without a ship.
+- `tools/testdata/selftest` (23 checks) and `tools/testdata/ship-selftest` test the tools themselves.
 - Two independent audits before 7c739b7, one of which compared the library with a reference parser written in Python from the doc over about 19,000 generated programs. Before ab797a9, a second Python parser, written from the decisions, agreed with the library on 8,000 generated programs and 900 hand-written probes.
 - Speed: starting `urbit eval` and building the library takes about 27 s with the dev tools' `!:`, and 24 s without it (`tools/hoon --no-debug`). After that, a 2,000-line module of 400 definitions parses in about a second. Loops over definitions, arms, lines and items grow no stack; nesting costs a few stack frames a level, and 100,000 nested brackets still parse (library section 3).
 
@@ -253,7 +253,6 @@ On a machine set up as [development.md](development.md) says:
 tools/golden                      # 660 cases under urbit eval
 tools/test-arms                   # the my-app copies, then every tests/lib suite under urbit eval
 tools/test-arms --list            # the suites and their arms; ", report" marks a golden report
-tools/test-arms --copies          # the copies of my-app/mar/label.hoon in tests/my-app-copies.txt match it
 tools/test-arms --report jibb-import # print a golden-report suite's report
 tools/test-arms --update jibb-import # write it to the suite's expected file
 tools/test-arms jibb-import       # the Hoon importer fixture projection
@@ -300,7 +299,6 @@ tools/doc-blocks docs/spec        # the doc's examples are golden cases
 tools/ship start
 tools/ship test                   # the same 660 cases, and every tests/lib suite, as -test arms on the ship
 tools/testdata/ship-selftest
-tools/testdata/clay-fixtures-selftest # scratch fixture cleanup without a ship
 tools/ship check-commit           # |commit stores .jibb files
 tools/clay-fixtures               # example /sur files and marks build through Clay
 ```

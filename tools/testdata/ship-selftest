@@ -469,6 +469,16 @@ def generator_checks(tmp):
           linked not in normal.files and
           '/my-app/ui/theme/jibb' in
           normal.files['tests/lib/jibb.hoon'][0].decode())
+    fixtures = ship.assemble('jibb-fixtures')
+    check('jibb-fixtures is my-app plus tests/clay-fixtures/desk, '
+          'which only it holds',
+          {'sur/import-fixture.hoon', 'sur/mop-tlon-probe.hoon',
+           'mar/label.hoon', 'sur/blog.hoon', 'lib/jibb-import.hoon'}
+          <= set(fixtures.files) and
+          'desk.docket-0' not in fixtures.files and
+          'mar/label.hoon' not in ship.assemble('my-app').files and
+          not any(p.startswith('tests/clay-fixtures/desk/')
+                  for p in normal.files))
     for label, kwargs in (('custom library', {'lib': STUB}),
                           ('custom goldens', {'golden': CASES}),
                           ('both overrides', {'lib': STUB, 'golden': CASES})):

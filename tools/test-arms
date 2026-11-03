@@ -7,7 +7,6 @@
     tools/test-arms --list               the suites, their arms and reports
     tools/test-arms --report jibb-poke-bridge
     tools/test-arms --update jibb-poke-bridge
-    tools/test-arms --copies             only the my-app copy check
 
 The ship runs the same arms with -test /=jibb-dev=/tests (tools/ship
 test). Here each suite gets the subject Ford would give it on the
@@ -29,9 +28,7 @@ left out: tools/golden runs those cases under eval.
 Golden files, the /* %txt files bound to a face with "expected" in its
 name, must end in exactly one newline (a wain can't show it) and hold no
 line that starts "BAD " or ends ": BAD" (a check's own failure marker).
-That is checked before any eval, as are, when no suite or shard is named,
-the copies of my-app/mar/label.hoon that tests/my-app-copies.txt lists,
-which must match it (--copies checks only them).
+That is checked before any eval.
 
 Exit status: 0 when every arm passes, 1 when one fails, 2 on a usage
 error.
@@ -56,7 +53,6 @@ from noun import atom_to_bytes, to_list  # noqa: E402
 
 ROOT = os.path.dirname(TOOLS)
 LIB_DIR = os.path.join(ROOT, 'tests', 'lib')
-COPIES = os.path.join(ROOT, 'tests', 'my-app-copies.txt')
 GENERATED = 'jibb'          # tests/lib/jibb.hoon, from tools/ship gen-tests
 LIBRARY = 'jibb'            # /+  jibb: the library under test, --lib
 
@@ -175,51 +171,6 @@ def lib_source(desk, name):
         if entry is not None:
             return os.path.join(ROOT, entry[1])
     raise Unusable('no /lib/%s.hoon on the jibb-dev desk' % name)
-
-
-# ---------------------------------------------------------------- copies
-
-
-def check_copies():
-    """The tests/ files that copy my-app sources must match them."""
-    problems, pairs = [], 0
-    with open(COPIES, encoding='utf-8') as f:
-        lines = f.read().split('\n')
-    for n, line in enumerate(lines, 1):
-        if not line.strip() or line.startswith('#'):
-            continue
-        words = line.split(None, 2)
-        without = None
-        if len(words) == 3:
-            if not words[2].startswith('without '):
-                words = []
-            else:
-                without = words[2][len('without '):].encode() + b'\n'
-        if len(words) < 2:
-            problems.append('tests/my-app-copies.txt:%d: COPY SOURCE '
-                            '[without LINE], not %s' % (n, line))
-            continue
-        copy, source = words[0], words[1]
-        try:
-            with open(os.path.join(ROOT, copy), 'rb') as f:
-                got = f.read()
-            with open(os.path.join(ROOT, source), 'rb') as f:
-                want = f.read()
-        except OSError as e:
-            problems.append('tests/my-app-copies.txt:%d: %s' % (n, e))
-            continue
-        if without is not None:
-            if without not in want:
-                problems.append('tests/my-app-copies.txt:%d: %s has no line %s'
-                                % (n, source, without.decode().rstrip()))
-                continue
-            want = want.replace(without, b'', 1)
-        pairs += 1
-        if got != want:
-            problems.append('%s differs from %s%s' % (
-                copy, source, '' if without is None else
-                ' without %s' % without.decode().rstrip()))
-    return pairs, problems
 
 
 def golden_problems(text):
@@ -458,22 +409,7 @@ def main(argv):
     mode.add_argument('--update', action='store_true',
                       help="write suites' report arms to their expected "
                            "files")
-    mode.add_argument('--copies', action='store_true',
-                      help='only check tests/my-app-copies.txt')
     opts = ap.parse_args(argv)
-
-    if opts.copies or not (opts.suites or opts.shard or opts.list
-                           or opts.report or opts.update
-                           or os.path.realpath(opts.dir) != LIB_DIR):
-        pairs, problems = check_copies()
-        for p in problems:
-            print('FAILED my-app copy: %s' % p)
-        if opts.copies:
-            if not problems:
-                print('%d my-app copies match their sources' % pairs)
-            return 1 if problems else 0
-        if problems:
-            return 1
 
     global DESK
     try:

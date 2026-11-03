@@ -1,5 +1,1 @@
-|_  a=@t
-++  grab  |%  ++  noun  @t  --
-++  grow  |%  ++  noun  a  --
-++  grad  %noun
---
+../../../clay-fixtures/desk/mar/label.hoon

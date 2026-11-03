@@ -79,9 +79,7 @@ CHECKS = [
           ['tools/test-arms', '--shard', '%d/%d' % (i, ARM_SHARDS)])
     for i in range(1, ARM_SHARDS + 1)
 ] + [
-    Check('my-app-copies', 'eval', ['tools/test-arms', '--copies']),
     Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),
-    tool('testdata/clay-fixtures-selftest'),
     #  The ship group.  ship-selftest leaves its fixture files on the
     #  jibb-dev desk, and ship-test, which syncs the desk to the repo
     #  first, puts the real ones back, so it must come after.
