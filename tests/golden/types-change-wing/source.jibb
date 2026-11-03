@@ -1,0 +1,24 @@
++$ cart [items=(list @t) open=? deep=[level=@ud] pair=[@t @ud]]
++$ model [cart=cart note=@t data=(unit @t)]
++$ box |$ [A] [value=A]
+++ flip-open |= m=model m(open.cart=(not open.cart.m))
+++ siblings |= m=model m(open.cart=%.y items.cart=~ note="x" level.deep.cart=5)
+++ original |= m=model m(level.deep.cart=(add 1 level.deep.cart.m) open.cart=open.cart.m)
+++ lines |= m=model
+  m(
+    open.cart=%.n
+    level.deep.cart=(add 1 level.deep.cart.m)
+++ wing-target |= m=model cart.m(level.deep=1)
+++ through-list |= m=model m(x.items.cart="a")
+++ through-atom |= m=model m(x.note="a")
+++ through-unit |= m=model m(u.data="a")
+++ unknown-outer |= m=model m(open.carts=%.y)
+++ unknown-inner |= m=model m(opened.cart=%.y)
+++ wrong-value |= m=model m(open.cart="yes")
+++ wrong-line |= m=model
+  m(
+    note="ok"
+    level.deep.cart=~zod
+++ through-tuple |= m=model m(x.pair.cart=1)
+++ through-capital |= b=(box A) b(x.value=1)
+++ unknown-target |= x x(a.b=1)

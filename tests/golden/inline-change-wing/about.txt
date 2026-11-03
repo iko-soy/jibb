@@ -1,0 +1,3 @@
+source: docs/reviews/2026-11-02-syntax-review.md, S6, the proposed `toggle-open`; Grammar, Expressions: "`m(open.cart=(not open.cart.m))` sets field `open` of field `cart`, as Hoon's `m(open.cart x)`."
+tests: the review's nested change, written with a wing item
+expect: parses: one change of m with the edit open.cart

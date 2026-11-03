@@ -1,0 +1,9 @@
+1:1 glyph ++
+1:4 name x
+1:6 name m
+1:7 tight glyph (
+2:3 INDENT
+2:3 wing open.cart
+2:13 lit %.n
+2:16 DEDENT
+2:16 NEWLINE

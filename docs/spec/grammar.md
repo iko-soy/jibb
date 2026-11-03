@@ -42,7 +42,7 @@ Every literal reads exactly as Hoon reads it: `1000` is an error (write `1.000`)
 
 - **Call**: `f a b`; parentheses only group. A call open in parentheses puts its head and first arguments on the first line, then one argument per indented line; a `(` alone at the end of a line puts the head on the first indented line.
 - **Lists**: `~[a b c]`, or `~[` at line end with one item per line. On one line, whitespace separates items, so calls need parentheses: `~[(text "hi")]`, which the checker suggests for `~[text "hi"]`. On indented lines, each line is an item.
-- **Faced cells**: `[text="milk" done=%.n]`, or one `name=value` per line of an open bracket. A change takes one or more of the same items, as `m(done=%.y)`; `m()` is an error.
+- **Faced cells**: `[text="milk" done=%.n]`, or one `name=value` per line of an open bracket. A change takes one or more of the same items, as `m(done=%.y)`; `m()` is an error. A change's item, inline or on a line, may name a wing instead, read through record fields only: `m(open.cart=(not open.cart.m))` sets field `open` of field `cart`, as Hoon's `m(open.cart x)`. Every value is computed from the original record. Two items that set the same field, or one a field inside the other's, as `m(cart=c open.cart=%.y)`, are an error. A cell's items take plain names.
 - **Pairs and units**: `gap+%s2` and `` `x `` bind tighter than calls, so `pad+%s3 gap+%s2` is two items.
 - **Wing** `title.p`, also for imports and prelude groups, which are records: `card.card`, `space.theme.theme`, `get.by`. **Change** `m(draft="x" error=~)`.
 - **Inline gate**: `|=(p=post.blog title.p)`, or `|=(p title.p)` when the call fixes the type. A bare name in a sample always binds. `|=%got` is case `%got`'s constructor, typed by the gate expected. A bare name binds at any depth of a sample, so `|= [a=@ b]` binds `a` and `b`.
@@ -246,7 +246,9 @@ operand    = literal | qath | ref | change | pair | unit | group | list | tuple
            | gate | ctor | pathlit | "!!" ;
 ref        = wing ;
 wing       = name { "." name } ;
-change     = wing "(" item { item } ")" | wing "(" { item } open ;   (* no space before "("; items named *)
+change     = wing "(" edit { edit } ")" | wing "(" { edit } elines ;   (* no space before "(" *)
+edit       = wing "=" operand ;                           (* a name, or a wing through record fields *)
+elines     = INDENT wing "=" expr { NEWLINE wing "=" expr } DEDENT ;
 pair       = name "+" operand ;                           (* [%name operand] *)
 unit       = "`" operand ;                                (* [~ operand] *)
 group      = "(" expr ")" | "(" { operand } open ;

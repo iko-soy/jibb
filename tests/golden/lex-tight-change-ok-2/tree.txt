@@ -1,0 +1,20 @@
+(module
+  (value 1:1 a
+    (change 1:6 m
+      (edit 1:8 a.b (lit 1:12 1))))
+  (value 2:1 b
+    (change 2:6 m
+      (edit 2:8 open.cart
+        (group 2:18
+          (call 2:19 (wing 2:19 not) (wing 2:23 open.cart.m))))
+      (edit 2:36 note (str 2:41 ""))))
+  (value 3:1 c
+    (change 3:6 cart.m
+      (edit 3:13 level.deep (lit 3:24 5))))
+  (value 4:1 d
+    (change 4:6 m
+      (edit 5:3 open.cart (lit 5:13 %.n))
+      (edit 6:3 level.deep.cart
+        (group 6:19
+          (call 6:20 (wing 6:20 add) (lit 6:24 1) (wing 6:26 level.deep.cart.m))))
+      (edit 7:3 note (str 7:8 "")))))

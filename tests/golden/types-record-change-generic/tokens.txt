@@ -72,7 +72,7 @@
 4:40 tight glyph )
 5:1 NEWLINE
 5:1 glyph ++
-5:4 name duplicate
+5:4 name unrelated
 5:14 glyph |=
 5:17 glyph [
 5:18 tight name s
@@ -85,61 +85,37 @@
 5:30 tight glyph =
 5:31 tight aura @t
 5:33 tight glyph ]
-5:35 name s
-5:36 tight glyph (
-5:37 tight name value
-5:42 tight glyph =
-5:43 tight name v
-5:45 name value
-5:50 tight glyph =
-5:51 tight name v
-5:52 tight glyph )
-6:1 NEWLINE
-6:1 glyph ++
-6:4 name unrelated
-6:14 glyph |=
-6:17 glyph [
-6:18 tight name s
-6:19 tight glyph =
-6:20 tight glyph (
-6:21 tight name box
-6:25 aura @t
-6:27 tight glyph )
-6:29 name v
-6:30 tight glyph =
-6:31 tight aura @t
-6:33 tight glyph ]
-7:3 INDENT
-7:3 glyph ~&
-7:6 lit %orphan
-8:5 INDENT
-8:5 name s
-8:6 tight glyph (
-8:7 tight name value
-8:12 tight glyph =
-8:13 tight name v
-8:14 tight glyph )
-9:1 DEDENT
-9:1 DEDENT
-9:1 NEWLINE
-9:1 glyph ++
-9:4 name invalid-value
-9:18 glyph |=
-9:21 glyph [
-9:22 tight name s
-9:23 tight glyph =
-9:24 tight glyph (
-9:25 tight name box
-9:29 aura @t
-9:31 tight glyph )
-9:33 name v
-9:34 tight glyph =
-9:35 tight aura @t
-9:37 tight glyph ]
-9:39 name s
-9:40 tight glyph (
-9:41 tight name value
-9:46 tight glyph =
-9:47 tight name missing
-9:54 tight glyph )
-9:55 NEWLINE
+6:3 INDENT
+6:3 glyph ~&
+6:6 lit %orphan
+7:5 INDENT
+7:5 name s
+7:6 tight glyph (
+7:7 tight name value
+7:12 tight glyph =
+7:13 tight name v
+7:14 tight glyph )
+8:1 DEDENT
+8:1 DEDENT
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name invalid-value
+8:18 glyph |=
+8:21 glyph [
+8:22 tight name s
+8:23 tight glyph =
+8:24 tight glyph (
+8:25 tight name box
+8:29 aura @t
+8:31 tight glyph )
+8:33 name v
+8:34 tight glyph =
+8:35 tight aura @t
+8:37 tight glyph ]
+8:39 name s
+8:40 tight glyph (
+8:41 tight name value
+8:46 tight glyph =
+8:47 tight name missing
+8:54 tight glyph )
+8:55 NEWLINE

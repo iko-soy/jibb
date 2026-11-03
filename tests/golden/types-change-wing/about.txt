@@ -1,0 +1,4 @@
+source: Grammar, Expressions: "A change's item, inline or on a line, may name a wing instead, read through record fields only: `m(open.cart=(not open.cart.m))` sets field `open` of field `cart`, as Hoon's `m(open.cart x)`. Every value is computed from the original record."
+tests: Wing items change nested record fields, beside named items and sibling fields, on the lines of an open change and under a wing target, and the result has the original record's type; values read the original record. A wing through a list, an atom or a unit, an unknown field at either end of a wing and a value of the wrong type, inline or on a line, are errors at the name or the item. A wing through a tuple or a capital, and a change of an unknown target, fail closed.
+expect: parses
+expect-types: a partial inference report

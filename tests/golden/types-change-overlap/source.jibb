@@ -1,0 +1,4 @@
++$ cart [items=(list @t) open=?]
++$ model [cart=cart note=@t]
+++ fine |= m=model m(open.cart=%.y items.cart=~)
+++ overlap |= m=model m(cart=cart.m open.cart=%.y)

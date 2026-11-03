@@ -1,0 +1,8 @@
+partial inference; module not checked
+change field `value` is repeated
+/tests/golden/types-change-repeated/source.jibb:2:37: first field
+++ duplicate |= [s=(box @t) v=@t] s(value=v value=v)
+                                    ^
+/tests/golden/types-change-repeated/source.jibb:2:45: repeated field
+++ duplicate |= [s=(box @t) v=@t] s(value=v value=v)
+                                            ^

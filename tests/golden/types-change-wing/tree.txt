@@ -1,0 +1,111 @@
+(module
+  (mold 1:1 cart
+    (cell 1:9
+      (face 1:10 items
+        (apply 1:16 list (aura 1:22 @t)))
+      (face 1:26 open (flag 1:31))
+      (face 1:33 deep
+        (cell 1:38
+          (face 1:39 level (aura 1:45 @ud))))
+      (face 1:50 pair
+        (cell 1:55 (aura 1:56 @t) (aura 1:59 @ud)))))
+  (mold 2:1 model
+    (cell 2:10
+      (face 2:11 cart (ref 2:16 cart))
+      (face 2:21 note (aura 2:26 @t))
+      (face 2:29 data
+        (apply 2:34 unit (aura 2:40 @t)))))
+  (mold 3:1 box
+    (generic 3:8 A
+      (cell 3:15
+        (face 3:16 value (tvar 3:22 A)))))
+  (value 4:1 flip-open
+    (gate 4:14
+      (face 4:17 m (ref 4:19 model))
+      (change 4:25 m
+        (edit 4:27 open.cart
+          (group 4:37
+            (call 4:38 (wing 4:38 not) (wing 4:42 open.cart.m)))))))
+  (value 5:1 siblings
+    (gate 5:13
+      (face 5:16 m (ref 5:18 model))
+      (change 5:24 m
+        (edit 5:26 open.cart (lit 5:36 %.y))
+        (edit 5:40 items.cart (lit 5:51 ~))
+        (edit 5:53 note (str 5:58 "x"))
+        (edit 5:62 level.deep.cart (lit 5:78 5)))))
+  (value 6:1 original
+    (gate 6:13
+      (face 6:16 m (ref 6:18 model))
+      (change 6:24 m
+        (edit 6:26 level.deep.cart
+          (group 6:42
+            (call 6:43 (wing 6:43 add) (lit 6:47 1) (wing 6:49 level.deep.cart.m))))
+        (edit 6:68 open.cart (wing 6:78 open.cart.m)))))
+  (value 7:1 lines
+    (gate 7:10
+      (face 7:13 m (ref 7:15 model))
+      (body 8:3
+        (change 8:3 m
+          (edit 9:5 open.cart (lit 9:15 %.n))
+          (edit 10:5 level.deep.cart
+            (group 10:21
+              (call 10:22 (wing 10:22 add) (lit 10:26 1) (wing 10:28 level.deep.cart.m))))))))
+  (value 11:1 wing-target
+    (gate 11:16
+      (face 11:19 m (ref 11:21 model))
+      (change 11:27 cart.m
+        (edit 11:34 level.deep (lit 11:45 1)))))
+  (value 12:1 through-list
+    (gate 12:17
+      (face 12:20 m (ref 12:22 model))
+      (change 12:28 m
+        (edit 12:30 x.items.cart (str 12:43 "a")))))
+  (value 13:1 through-atom
+    (gate 13:17
+      (face 13:20 m (ref 13:22 model))
+      (change 13:28 m
+        (edit 13:30 x.note (str 13:37 "a")))))
+  (value 14:1 through-unit
+    (gate 14:17
+      (face 14:20 m (ref 14:22 model))
+      (change 14:28 m
+        (edit 14:30 u.data (str 14:37 "a")))))
+  (value 15:1 unknown-outer
+    (gate 15:18
+      (face 15:21 m (ref 15:23 model))
+      (change 15:29 m
+        (edit 15:31 open.carts (lit 15:42 %.y)))))
+  (value 16:1 unknown-inner
+    (gate 16:18
+      (face 16:21 m (ref 16:23 model))
+      (change 16:29 m
+        (edit 16:31 opened.cart (lit 16:43 %.y)))))
+  (value 17:1 wrong-value
+    (gate 17:16
+      (face 17:19 m (ref 17:21 model))
+      (change 17:27 m
+        (edit 17:29 open.cart (str 17:39 "yes")))))
+  (value 18:1 wrong-line
+    (gate 18:15
+      (face 18:18 m (ref 18:20 model))
+      (body 19:3
+        (change 19:3 m
+          (edit 20:5 note (str 20:10 "ok"))
+          (edit 21:5 level.deep.cart (lit 21:21 ~zod))))))
+  (value 22:1 through-tuple
+    (gate 22:18
+      (face 22:21 m (ref 22:23 model))
+      (change 22:29 m
+        (edit 22:31 x.pair.cart (lit 22:43 1)))))
+  (value 23:1 through-capital
+    (gate 23:20
+      (face 23:23 b
+        (apply 23:25 box (tvar 23:30 A)))
+      (change 23:33 b
+        (edit 23:35 x.value (lit 23:43 1)))))
+  (value 24:1 unknown-target
+    (gate 24:19
+      (bind 24:22 x)
+      (change 24:24 x
+        (edit 24:26 a.b (lit 24:30 1))))))

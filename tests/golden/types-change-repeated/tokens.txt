@@ -1,0 +1,39 @@
+1:1 glyph +$
+1:4 name box
+1:8 glyph |$
+1:11 glyph [
+1:12 tight tvar A
+1:13 tight glyph ]
+1:15 glyph [
+1:16 tight name value
+1:21 tight glyph =
+1:22 tight tvar A
+1:24 name keep
+1:28 tight glyph =
+1:29 tight tvar A
+1:30 tight glyph ]
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name duplicate
+2:14 glyph |=
+2:17 glyph [
+2:18 tight name s
+2:19 tight glyph =
+2:20 tight glyph (
+2:21 tight name box
+2:25 aura @t
+2:27 tight glyph )
+2:29 name v
+2:30 tight glyph =
+2:31 tight aura @t
+2:33 tight glyph ]
+2:35 name s
+2:36 tight glyph (
+2:37 tight name value
+2:42 tight glyph =
+2:43 tight name v
+2:45 name value
+2:50 tight glyph =
+2:51 tight name v
+2:52 tight glyph )
+2:53 NEWLINE

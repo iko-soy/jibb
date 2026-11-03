@@ -84,7 +84,7 @@ Types, faces and casts leave nothing behind. Everything else lowers by these rul
 | `title.p`, `space.theme.theme` | `slot` at the field's axis, nested for longer wings |
 | `(proj record)` | Apply a `lam` to the source once; its body constructs the expected record from the required fields using `slot` and `cons`, discarding extra fields |
 | `card.card`, an import | The qualified name `components/card:card` |
-| `m(draft=t error=~)` | One `edit` per item, in order: `(edit 7 (edit 6 m t) ~)` |
+| `m(draft=t error=~)` | One `edit` per item, in order: `(edit 7 (edit 6 m t) ~)`. A wing's item edits at the wing's axis, so with `cart` at 2 and `open` at 3 inside it, `m(open.cart=x)` is `(edit 5 m x)`. Each value is computed from `m` as it was |
 | `f a b c` | `(app f (cons a (cons b c)))`: the arguments are the sample |
 | `\|= [a=@ b=@] body` | `(lam _1 (let a (slot 2 _1) (let b (slot 3 _1) body)))`; a single face, as in `\|= m=model`, names the `lam` itself |
 | `\|=%got` | `(lam _1 (cons %got _1))` |

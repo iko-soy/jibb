@@ -1,0 +1,8 @@
+partial inference; module not checked
+change field `open.cart` is repeated
+/tests/golden/types-change-repeated-wing/source.jibb:3:26: first field
+++ repeated |= m=model m(open.cart=%.y open.cart=%.n)
+                         ^
+/tests/golden/types-change-repeated-wing/source.jibb:3:40: repeated field
+++ repeated |= m=model m(open.cart=%.y open.cart=%.n)
+                                       ^

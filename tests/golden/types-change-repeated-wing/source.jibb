@@ -1,0 +1,3 @@
++$ cart [items=(list @t) open=?]
++$ model [cart=cart note=@t]
+++ repeated |= m=model m(open.cart=%.y open.cart=%.n)

@@ -1,0 +1,4 @@
+source: Grammar, Expressions: "Two items that set the same field, or one a field inside the other's, as `m(cart=c open.cart=%.y)`, are an error."
+tests: a change that sets one named field twice, which was types-record-change-generic's `duplicate` and failed closed before wing items
+expect: parses
+expect-types: a partial inference report: the module error names both items

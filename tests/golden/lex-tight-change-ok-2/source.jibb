@@ -1,0 +1,7 @@
+++ a m(a.b=1)
+++ b m(open.cart=(not open.cart.m) note="")
+++ c cart.m(level.deep=5)
+++ d m(
+  open.cart=%.n
+  level.deep.cart=(add 1 level.deep.cart.m)
+  note=""

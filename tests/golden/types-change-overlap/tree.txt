@@ -1,0 +1,22 @@
+(module
+  (mold 1:1 cart
+    (cell 1:9
+      (face 1:10 items
+        (apply 1:16 list (aura 1:22 @t)))
+      (face 1:26 open (flag 1:31))))
+  (mold 2:1 model
+    (cell 2:10
+      (face 2:11 cart (ref 2:16 cart))
+      (face 2:21 note (aura 2:26 @t))))
+  (value 3:1 fine
+    (gate 3:9
+      (face 3:12 m (ref 3:14 model))
+      (change 3:20 m
+        (edit 3:22 open.cart (lit 3:32 %.y))
+        (edit 3:36 items.cart (lit 3:47 ~)))))
+  (value 4:1 overlap
+    (gate 4:12
+      (face 4:15 m (ref 4:17 model))
+      (change 4:23 m
+        (edit 4:25 cart (wing 4:30 cart.m))
+        (edit 4:37 open.cart (lit 4:47 %.y))))))

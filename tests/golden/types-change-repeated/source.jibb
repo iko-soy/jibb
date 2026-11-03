@@ -1,0 +1,2 @@
++$ box |$ [A] [value=A keep=A]
+++ duplicate |= [s=(box @t) v=@t] s(value=v value=v)

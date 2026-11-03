@@ -1,0 +1,8 @@
+partial inference; module not checked
+change fields `cart` and `open.cart` overlap
+/tests/golden/types-change-overlap/source.jibb:4:25: first field
+++ overlap |= m=model m(cart=cart.m open.cart=%.y)
+                        ^
+/tests/golden/types-change-overlap/source.jibb:4:37: overlapping field
+++ overlap |= m=model m(cart=cart.m open.cart=%.y)
+                                    ^

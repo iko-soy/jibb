@@ -26,32 +26,23 @@
         (face 4:25 v (aura 4:27 @p)))
       (change 4:31 s
         (edit 4:33 value (wing 4:39 v)))))
-  (value 5:1 duplicate
+  (value 5:1 unrelated
     (gate 5:14
       (cell 5:17
         (face 5:18 s
           (apply 5:20 box (aura 5:25 @t)))
         (face 5:29 v (aura 5:31 @t)))
-      (change 5:35 s
-        (edit 5:37 value (wing 5:43 v))
-        (edit 5:45 value (wing 5:51 v)))))
-  (value 6:1 unrelated
-    (gate 6:14
-      (cell 6:17
-        (face 6:18 s
-          (apply 6:20 box (aura 6:25 @t)))
-        (face 6:29 v (aura 6:31 @t)))
-      (body 7:3
-        (trace 7:3
-          (lit 7:6 %orphan)
-          (body 8:5
-            (change 8:5 s
-              (edit 8:7 value (wing 8:13 v))))))))
-  (value 9:1 invalid-value
-    (gate 9:18
-      (cell 9:21
-        (face 9:22 s
-          (apply 9:24 box (aura 9:29 @t)))
-        (face 9:33 v (aura 9:35 @t)))
-      (change 9:39 s
-        (edit 9:41 value (wing 9:47 missing))))))
+      (body 6:3
+        (trace 6:3
+          (lit 6:6 %orphan)
+          (body 7:5
+            (change 7:5 s
+              (edit 7:7 value (wing 7:13 v))))))))
+  (value 8:1 invalid-value
+    (gate 8:18
+      (cell 8:21
+        (face 8:22 s
+          (apply 8:24 box (aura 8:29 @t)))
+        (face 8:33 v (aura 8:35 @t)))
+      (change 8:39 s
+        (edit 8:41 value (wing 8:47 missing))))))

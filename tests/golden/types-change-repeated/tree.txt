@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 box
+    (generic 1:8 A
+      (cell 1:15
+        (face 1:16 value (tvar 1:22 A))
+        (face 1:24 keep (tvar 1:29 A)))))
+  (value 2:1 duplicate
+    (gate 2:14
+      (cell 2:17
+        (face 2:18 s
+          (apply 2:20 box (aura 2:25 @t)))
+        (face 2:29 v (aura 2:31 @t)))
+      (change 2:35 s
+        (edit 2:37 value (wing 2:43 v))
+        (edit 2:45 value (wing 2:51 v))))))

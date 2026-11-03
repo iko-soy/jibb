@@ -405,6 +405,7 @@
 ::  Why: after the layout pass the grammar is LL(2). Each choice is made by
 ::  the next token, at most with the one after it and whether it is tight:
 ::    name, then = tight            a face (items, lines, fields, samples)
+::    wing, then = tight            a change's item or line, wing=value
 ::    name, then + tight            a pair
 ::    name or wing, then ( tight    a change
 ::    |=, then a term tight         a constructor; else, where an
@@ -472,7 +473,9 @@
 ::                that line, as () is no group. A ( followed by a rune is
 ::                the closed form. Lines of an open group or list take no
 ::                name= (doc question)
-::    change      every item and line has name= (the EBNF's "items named")
+::    change      every item and line has name= or wing=, as open.cart=
+::                (the EBNF's edit) -> %change of edits, each with its
+::                names as written; a tuple's item takes no wing=
 ::    rune        |= -> %gate; ^- -> %cast; ~& -> %trace; ?- -> %branch.
 ::                !! is an operand, not a rune (Decisions): alone where an
 ::                expression goes it is a call of one operand, and !! a
@@ -604,11 +607,12 @@
 ::      found the end of the line" (+fail-space). No later line can give
 ::      a tight form its next token. A wing and a ( after a space are no
 ::      error: that is a call; nor is / or %/ alone, a whole path. A
-::      change's item is name=, so a name there with no = right after it
-::      fails just past the name, whatever follows: `m(b c)` at the
-::      space, `m(b)` at the ), `m(a"x)` at the " with the layout pass's
-::      message after the parser's (+unnamed, +moved). `m(a==1)` has its
-::      =, and fails at the second, where the layout pass does.
+::      change's item is name= or wing=, so a name or a wing there with
+::      no = right after it fails just past it, whatever follows: `m(b c)`
+::      and `m(a.b 1)` at the space, `m(b)` at the ), `m(a"x)` at the "
+::      with the layout pass's message after the parser's (+unnamed,
+::      +moved). `m(a==1)` has its =, and fails at the second, where the
+::      layout pass does.
 ::    - Where the place needs text on its own line and the line ends,
 ::      whatever line comes next: at the end of that line, just past its
 ::      last token, "found the end of the line" (+fail-line), as no later
@@ -964,9 +968,10 @@
 ::
 +$  item  $~([*span ~ *expr] [at=span face=(unit term) val=expr])
 ::
-::  +edit: a change's item or line, name=value
+::  +edit: a change's item or line, name=value or wing=value; names
+::  as written, as a %wing's: open.cart is ~[%open %cart]
 ::
-+$  edit  $~([*span %$ *expr] [at=span name=term val=expr])
++$  edit  $~([*span ~ *expr] [at=span names=(list term) val=expr])
 ::
 ::  +arm: a ?- arm, a pattern and an expression or body
 ::
@@ -2280,7 +2285,7 @@
 ++  sexp-edit
   |=  e=edit
   ^-  sexp
-  (nod "edit" at.e (trip name.e) ~[(sexp-expr val.e)])
+  (nod "edit" at.e (show-names names.e) ~[(sexp-expr val.e)])
 ::
 ++  sexp-arm
   |=  a=arm
@@ -2689,24 +2694,32 @@
   ?~  t.els  i.els
   [%call [beg:(span-of i.els) end:(span-of (rear t.els))] i.els t.els]
 ::
+::  +slot: a bracket's item or line as read, before +bracket-node
+::  makes it an item or an edit: its name=, or a change's wing=, else ~
+::
++$  slot  [at=span face=(list term) val=expr]
+::
 ::  +bracket-node: a tuple, list or change from its items, ending at fin
 ::
 ++  bracket-node
   |=  $:  kind=?(%tuple %list %change)
           op=token
           target=(unit [t=token names=(list term)])
-          its=(list item)
+          its=(list slot)
           fin=loc
       ==
   ^-  expr
   ?-    kind
-    %tuple  [%tuple [beg.at.op fin] its]
-    %list   [%list [beg.at.op fin] (turn its |=(i=item val.i))]
+      %tuple
+    :+  %tuple  [beg.at.op fin]
+    (turn its |=(i=slot ^-(item [at.i ?~(face.i ~ `i.face.i) val.i])))
+  ::
+    %list   [%list [beg.at.op fin] (turn its |=(i=slot val.i))]
   ::
       %change
     =/  beg=loc  ?~(target beg.at.op beg.at.t.u.target)
     :^  %change  [beg fin]  ?~(target ~ names.u.target)
-    (turn its |=(i=item ^-(edit [at.i ?~(face.i %$ u.face.i) val.i])))
+    (turn its |=(i=slot ^-(edit [at.i face.i val.i])))
   ==
 ::
 +|  %parser
@@ -2927,23 +2940,22 @@
   ::
   ::  +unnamed: a change's item or line without its name=
   ::
-  ::    A name could still begin one, so the error is just past it, as
-  ::    a tight form's is (+fail-space): `m(b c)` at the space, `m(b)`
-  ::    at the ). So is an error token's text there, unless it begins
-  ::    with the =: `m(a"x)` at the ", with the layout pass's message
-  ::    after the parser's (+moved), but `m(a==1)` at the lexer's error,
-  ::    the second =. So is a wing's first name: `m(a.b=1)` fails at the
-  ::    dot (+fail-in). At an error token whose text can't begin a name,
-  ::    at that text, as `m( @sd` at the @ (+fail-in).
+  ::    A name or a wing could still begin one, so the error is just
+  ::    past it, as a tight form's is (+fail-space): `m(b c)` and
+  ::    `m(a.b 1)` at the space, `m(b)` at the ). So is an error token's
+  ::    text there, unless it begins with the =: `m(a"x)` at the ", with
+  ::    the layout pass's message after the parser's (+moved), but
+  ::    `m(a==1)` at the lexer's error, the second =. At an error token
+  ::    whose text can't begin a name, at that text, as `m( @sd` at the
+  ::    @ (+fail-in).
   ::
   ++  unnamed
     |=  ts=(list token)
     ^-  [%| p=error]
     =/  why=tape  "a change's items are named, as in m(done=%.y)"
     ?:  ?=([[* * [%error *]] *] ts)  (bad-in ts "a named item" lower-mask)
-    ?:  ?=([[* * [%wing *]] *] ts)
-      (bad-in-why ts "a named item" lower-mask why)
-    ?.  ?=([[* * [%name *]] *] ts)  (bad-why ts "a named item" why)
+    ?.  ?=([[* * ?([%name *] [%wing *])] *] ts)
+      (bad-why ts "a named item" why)
     =/  want=tape  "`=` right after {(show-found i.ts)}"
     ?:  ?&  ?=([* [* * [%error *]] *] ts)
             =(end.at.i.ts from.lex.i.t.ts)
@@ -3462,9 +3474,9 @@
       (unclosed par ")" after)
     ;<  [els=(list expr) after=(list token)]  then  (read-operands ts)
     ?:  ?=([[* * %indent] *] after)
-      ;<  [ls=(list item) more=(list token)]  then
+      ;<  [ls=(list slot) more=(list token)]  then
         (read-lines %group t.after)
-      =/  inner=expr  (call-of (weld els (turn ls |=(i=item val.i))))
+      =/  inner=expr  (call-of (weld els (turn ls |=(i=slot val.i))))
       [%& [%group [beg.at.par end:(span-of inner)] inner] more]
     ?~  els
       ?:  ?=([[* * ?(%newline %dedent)] *] after)
@@ -3489,7 +3501,7 @@
         ==
     ^-  (pare expr)
     =/  close=?(%')' %']')  ?:(?=(%change kind) %')' %']')
-    =|  its=(list item)
+    =|  its=(list slot)
     |-  ^-  (pare expr)
     ?~  ts  (bad ts "an item")
     =*  t  i.ts
@@ -3497,8 +3509,8 @@
       [%& (bracket-node kind op target (flop its) end.at.t) t.ts]
     ?:  (is-closer t)  (unclosed op (trip close) ts)
     ?:  ?=(%indent lex.t)
-      ;<  [ls=(list item) more=(list token)]  then  (read-lines kind t.ts)
-      =/  every=(list item)  (weld (flop its) ls)
+      ;<  [ls=(list slot) more=(list token)]  then  (read-lines kind t.ts)
+      =/  every=(list slot)  (weld (flop its) ls)
       =/  fin=loc  ?~(every end.at.op end.at:(rear every))
       [%& (bracket-node kind op target every fin) more]
     ?:  &(?=(^ its) (shut op `at.i.its ts))
@@ -3506,21 +3518,21 @@
     ?:  ?=(?(%newline %dedent) lex.t)
       (unclosed-open op (trip close) "an item" ts)
     ?:  &(tight.t ?=(^ its))  (no-space ts)
-    ;<  [i=item more=(list token)]  then  (read-item kind ts)
+    ;<  [i=slot more=(list token)]  then  (read-item kind ts)
     $(its [i its], ts more)
   ::
   ::  +read-item: [ name= ] operand; a tuple's item may be named, a
-  ::  change's must be, a list's is not
+  ::  change's must be, by a name or a wing, a list's is not
   ::
   ++  read-item
     |=  [kind=?(%tuple %list %change) ts=(list token)]
-    ^-  (pare item)
-    ?:  &(!?=(%list kind) ?=([[* * [%name *]] [* %& %'='] *] ts))
+    ^-  (pare slot)
+    ?:  &(?=([* * *] ts) (named-item kind ts))
       =*  nam  i.ts
       =/  rest=(list token)  t.t.ts
       ?:  |(?=(~ rest) !tight.i.rest)  (bad-space i.t.ts rest "a value")
       ;<  [v=expr after=(list token)]  then  (read-operand rest)
-      [%& [[beg.at.nam end:(span-of v)] `p.lex.nam v] after]
+      [%& [[beg.at.nam end:(span-of v)] (names-of lex.nam) v] after]
     ?:  ?=(%change kind)  (unnamed ts)
     ?:  &(?=(^ ts) (is-rune i.ts))
       %:  bad-in-why  ts  "an expression"  operand-mask
@@ -3529,15 +3541,25 @@
     ;<  [v=expr after=(list token)]  then  (read-operand ts)
     [%& [(span-of v) ~ v] after]
   ::
+  ::  +named-item: whether ts begins an item's or a line's name=: a
+  ::  tuple's or a change's name, or a change's wing, then = tight
+  ::
+  ++  named-item
+    |=  [kind=?(%tuple %list %change %group) ts=(list token)]
+    ^-  ?
+    ?.  ?=([* [* %& %'='] *] ts)  |
+    ?:  ?=([[* * [%name *]] *] ts)  ?=(?(%tuple %change) kind)
+    &(?=(%change kind) ?=([[* * [%wing *]] *] ts))
+  ::
   ::  +read-lines: after an open bracket's INDENT, its lines, an item
   ::  each, to its DEDENT
   ::
   ++  read-lines
     |=  [kind=?(%tuple %list %change %group) ts=(list token)]
-    ^-  (pare (list item))
-    =|  ls=(list item)
-    |-  ^-  (pare (list item))
-    ;<  [l=item after=(list token)]  then  (read-line kind ts)
+    ^-  (pare (list slot))
+    =|  ls=(list slot)
+    |-  ^-  (pare (list slot))
+    ;<  [l=slot after=(list token)]  then  (read-line kind ts)
     ?:  ?=([[* * %newline] *] after)  $(ls [l ls], ts t.after)
     ?:  ?=([[* * %dedent] *] after)  [%& (flop [l ls]) t.after]
     ?.  ?=([[* * ?(%')' %']')] *] after)  (bad-end-in after (tail-can val.l))
@@ -3564,22 +3586,20 @@
     "its items end at the first line that isn't deeper"
   ::
   ::  +read-line: an open bracket's line, [ name= ] expr; a tuple's may
-  ::  be named, a change's must be, a list's and a group's are not
-  ::  (doc question)
+  ::  be named, a change's must be, by a name or a wing, a list's and a
+  ::  group's are not (doc question)
   ::
   ++  read-line
     |=  [kind=?(%tuple %list %change %group) ts=(list token)]
-    ^-  (pare item)
+    ^-  (pare slot)
     =/  cf  (closer-first ts "an item")
     ?^  cf  u.cf
-    ?:  ?&  ?=(?(%tuple %change) kind)
-            ?=([[* * [%name *]] [* %& %'='] *] ts)
-        ==
+    ?:  &(?=([* * *] ts) (named-item kind ts))
       =*  nam  i.ts
       =/  rest=(list token)  t.t.ts
       ?:  |(?=(~ rest) !tight.i.rest)  (bad-space i.t.ts rest "a value")
       ;<  [v=expr after=(list token)]  then  (read-expr rest)
-      [%& [[beg.at.nam end:(span-of v)] `p.lex.nam v] after]
+      [%& [[beg.at.nam end:(span-of v)] (names-of lex.nam) v] after]
     ?:  ?=(%change kind)  (unnamed ts)
     ;<  [v=expr after=(list token)]  then  (read-expr ts)
     [%& [(span-of v) ~ v] after]
@@ -4437,7 +4457,7 @@
 ++  outline-edit
   |=  e=edit
   ^-  outline
-  [%edit at.e ~[%name] %kid ~[(outline-expr val.e)]]
+  [%edit at.e ~[%name %wing] %kid ~[(outline-expr val.e)]]
 ::
 ++  outline-arm
   |=  a=arm
@@ -8735,7 +8755,9 @@
   `subject
 ::
 ::  Infer changes only against a fully known record spine. Retain the
-::  target type; unknown spines and repeated edits remain unsupported.
+::  target type; unknown spines and overlapping edits remain unsupported.
+::  An edit's wing, as open.cart, reads through record fields only,
+::  outermost first, and its value fits the field it names.
 ++  change-spine-known
   |=  [t=itype sub=isub]
   ^-  ?
@@ -8747,19 +8769,18 @@
   $(t tal.t)
 ::
 ++  infer-change-edits
-  |=  [edits=(list edit) target=itype env=ienv state=istate seen=(list term)]
+  |=  [edits=(list edit) target=itype env=ienv state=istate seen=(list (list term))]
   ^-  iresult
   ?~  edits  [%& target state]
   =/  entry=edit  i.edits
-  ?:  (lien seen |=(name=term =(name name.entry)))
+  =/  outer=(list term)  (flop names.entry)
+  ?:  (lien seen |=(prior=(list term) (wing-overlap prior outer)))
     [%| ["repeated change fields are not supported by partial inference" ~]]
   ?.  (change-spine-known target sub.state)
     [%| ["change target needs a known record in partial inference" ~]]
-  =/  found=(list itype)  (record-fields-named name.entry target sub.state)
-  ?~  found
-    [%| ["record has no field `{(trip name.entry)}`" ~[[at.entry "unknown field"]]]]
-  ?^  t.found  [%| ["change field is ambiguous in partial inference" ~]]
-  =/  expected=itype  i.found
+  =/  field=(each itype idiag)  (change-wing-field entry target sub.state)
+  ?:  ?=(%| -.field)  [%| p.field]
+  =/  expected=itype  p.field
   =/  value=iresult  (infer-call-context-arg val.entry expected env state at.entry)
   ?:  ?=(%| -.value)  value
   =/  fit=ifit  (itype-fit typ.p.value expected sub.state.p.value next.state.p.value)
@@ -8768,7 +8789,67 @@
     =/  decimal=(unit idiag)  (decimal-misfit val.entry typ.p.value expected sub.state.p.value next.state.p.value)
     ?^  decimal  [%| u.decimal]
     [%| ["change field and replacement do not unify" ~[[at.entry (site-type-note "expected replacement" expected sub.state.p.value)] [(span-of val.entry) (site-type-note "replacement" typ.p.value sub.state.p.value)]]]]
-  $(edits t.edits, state state.p.value(sub sub.fit, next next.fit), seen [name.entry seen])
+  $(edits t.edits, state state.p.value(sub sub.fit, next next.fit), seen [outer seen])
+::
+::  +change-wing-field: the type of the field an edit's wing names in
+::  a known record target, read through record fields, outermost first
+::
+++  change-wing-field
+  |=  [entry=edit target=itype sub=isub]
+  ^-  (each itype idiag)
+  =/  outer=(list term)  (flop names.entry)
+  =/  k=@ud  (lent names.entry)
+  =/  typ=itype  target
+  =|  through=(unit [name=term at=span])
+  |-  ^-  (each itype idiag)
+  ?~  outer  [%& typ]
+  =/  here=span  (edit-name-at entry (dec k))
+  ?:  &(?=(^ through) !(change-spine-known typ sub))
+    ?.  (itype-not-record typ sub)
+      [%| ["change wing needs a known record in partial inference" ~]]
+    =/  label=tape  "field `{(trip name.u.through)}`"
+    :-  %|
+    :-  "change wing `{(show-names names.entry)}` goes through `{(trip name.u.through)}`, which is not a record"
+    ~[[at.u.through (site-type-note label typ sub)]]
+  =/  found=(list itype)  (record-fields-named i.outer typ sub)
+  ?~  found
+    [%| ["record has no field `{(trip i.outer)}`" ~[[here "unknown field"]]]]
+  ?^  t.found  [%| ["change field is ambiguous in partial inference" ~]]
+  $(outer t.outer, k (dec k), typ i.found, through `[i.outer here])
+::
+::  +edit-name-at: where the kth name of an edit's wing is written,
+::  counting from 0: its names are joined by dots from the edit's start
+::
+++  edit-name-at
+  |=  [e=edit k=@ud]
+  ^-  span
+  =/  col=@ud  col.beg.at.e
+  =/  ns=(list term)  names.e
+  |-  ^-  span
+  ?~  ns  at.e
+  =/  len=@ud  (met 3 i.ns)
+  ?:  =(0 k)  [[line.beg.at.e col] [line.beg.at.e (add col len)]]
+  $(ns t.ns, k (dec k), col +((add col len)))
+::
+::  +itype-not-record: whether a type is surely no record: an atom, a
+::  loobean, a list or other collection, a gate, a union or a noun
+::
+++  itype-not-record
+  |=  [t=itype sub=isub]
+  ^-  ?
+  =.  t  (itype-walk t sub)
+  ?=(?(%atom %any-atom %flag %const %tag %collection %fn %union %noun %empty) -.t)
+::
+::  +wing-overlap: whether two edits' wings, outermost first, name the
+::  same field or one a field inside the other's
+::
+++  wing-overlap
+  |=  [a=(list term) b=(list term)]
+  ^-  ?
+  ?~  a  &
+  ?~  b  &
+  ?.  =(i.a i.b)  |
+  $(a t.a, b t.b)
 ::
 ::  Backtick constructs the canonical prelude unit, after checking its
 ::  prepared template has the standard null and [~ u=A] cases.
@@ -11948,13 +12029,29 @@
   =/  first=(unit idiag)  ?:(?=(%expr -.i.segs) (duplicate-expr p.i.segs) ~)
   ?^  first  first
   $(segs t.segs)
+::  A change's items each set a field once: two that name the same field,
+::  or one a field inside the other's, as cart and open.cart, overlap.
 ++  duplicate-edits
   |=  edits=(list edit)
   ^-  (unit idiag)
+  =|  seen=(list edit)
+  |-  ^-  (unit idiag)
   ?~  edits  ~
-  =/  first  (duplicate-expr val.i.edits)
+  =/  e=edit  i.edits
+  =/  prior=(list edit)
+    (skim seen |=(p=edit (wing-overlap (flop names.p) (flop names.e))))
+  ?^  prior
+    =/  same=?  =(names.i.prior names.e)
+    =/  sites=(list [at=span note=tape])
+      :~  [at.i.prior "first field"]
+          [at.e ?:(same "repeated field" "overlapping field")]
+      ==
+    ?:  same  `["change field `{(show-names names.e)}` is repeated" sites]
+    =/  a=tape  (show-names names.i.prior)
+    `["change fields `{a}` and `{(show-names names.e)}` overlap" sites]
+  =/  first  (duplicate-expr val.e)
   ?^  first  first
-  $(edits t.edits)
+  $(edits t.edits, seen [e seen])
 ++  duplicate-arms
   |=  arms=(list arm)
   ^-  (unit idiag)

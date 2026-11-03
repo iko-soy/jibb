@@ -1,0 +1,4 @@
+source: Grammar, Expressions: "Two items that set the same field, or one a field inside the other's, as `m(cart=c open.cart=%.y)`, are an error."
+tests: an open change whose third line sets a field holding its second line's field
+expect: parses
+expect-types: a partial inference report: the module error names both lines
