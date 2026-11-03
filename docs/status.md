@@ -7,7 +7,7 @@ As of 2026-11-03. This file lists what Jibb does now, whether each part is done,
 | # | Milestone | Status |
 | --- | --- | --- |
 | 1 | Parser and mark | Done (7c739b7; the doc's grammar decisions of 2026-10-30 in ab797a9) |
-| 2 | Types and prelude | In progress: the checker and the Hoon importer are partial. [prompts/milestone-2.md](prompts/milestone-2.md) briefs it |
+| 2 | Types and prelude | In progress: the checker and the Hoon importer are partial. [prompts/milestone-2.md](prompts/milestone-2.md) briefs it. The [milestone 2 review](reviews/2026-11-03-milestone-2-review.md) of 2026-11-03 lists what the done-criteria still need, briefed in [prompts/milestone-2-finish.md](prompts/milestone-2-finish.md) |
 | 3 | Core language | Not started |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |

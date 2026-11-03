@@ -1,0 +1,342 @@
+#### /ui/todo-list/jibb todo-full-wrong-model
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [ts "" ~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=[count=@ud]
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%toggled id.t])]
+#### /ui/todo-list/jibb todo-full-wrong-message
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [ts "" ~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%other])]
+#### /ui/todo-list/jibb todo-full-wrong-result
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [ts "" ~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  text.t
+#### /ui/todo-list/jibb todo-full-open-key
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [ts "" ~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  [!! (toggle done.t text.t [%toggled id.t])]
+#### /ui/todo-list/jibb todo-full-wrong-watch
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [ts "" ~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (pure %submit)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%toggled id.t])]
+#### /ui/todo-list/jibb todo-full-non-gate-view
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [ts "" ~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view init
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%toggled id.t])]
+#### /ui/todo-list/jibb todo-full-cast-init
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ make-model |= ts=(list item.todo)
+  ^- model [ts "" ~]
+
+++ init ^- $-((list item.todo) model)
+  |= ts=(list item.todo) (make-model ts)
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%toggled id.t])]
+#### /ui/theme/jibb theme-dark-absent
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    zone="UTC"
+    font=`%/static/fonts/inter.woff2
+    dark=~
+#### /ui/theme/jibb theme-wrong-nested-aura
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal=~zod background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    zone="UTC"
+    font=`%/static/fonts/inter.woff2
+    dark=[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+#### /ui/theme/jibb theme-missing-field
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    font=`%/static/fonts/inter.woff2
+    dark=[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+#### /ui/theme/jibb theme-wrong-font
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    zone="UTC"
+    font=`"/static/fonts/inter.woff2"
+    dark=[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+#### /ui/theme/jibb theme-wrong-dark
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    zone="UTC"
+    font=`%/static/fonts/inter.woff2
+    dark="dark"
+#### /ui/index/jibb page-main-wrong-static
+++ main (button "Go" %go)
+#### /ui/index/jibb page-main-arbitrary-main
+++ main 42
+#### /tests/page-main/ctor/jibb page-main-ctor-page
+/=  todo  /ui/api/todo
+
++$ msg
+  [%got todos=(list item.todo)]
+++ main (page load view)
+++ load |= ~
+  ^- (ask msg) (todos.todo |=%got)
+
+++ view |= m=msg
+  text "Todos loaded"

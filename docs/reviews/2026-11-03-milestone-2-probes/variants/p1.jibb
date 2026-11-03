@@ -1,0 +1,194 @@
+#### /ui/api/todo/jibb api-todo
+::  /ui/api/todo.jibb
+/-  todo
+/%  %todo-action
+/%  %todos
+/%  %todo-update
+/%  %todo-item
+
++$ item item.todo
++$ poke todo-action
++$ paths
+  [%todos /todos todos]
+  [%changes /changes (facts todos todo-update)]
+  [%todo-by-id /todo/[id=@ud] todo-item]
+#### /ui/api/blog/jibb api-blog
+::  Fixture for the documented examples; not supplied by the design doc.
+/%  %posts
+
++$ paths
+  [%posts /posts posts]
+#### /ui/components/card/jibb card
+::  Fixture for the documented examples; not supplied by the design doc.
+/-  blog
+
+++ card |= p=post.blog
+  text title.p
+#### /ui/components/buttons/jibb buttons
+::  /ui/components/buttons.jibb, a library with no main
+++ add-button |= label=@t
+  button label %add                ::  error: nothing fixes the union of %add
+++ labelled |= [label=@t msg=M]
+  button label msg                 ::  fine: the caller's union
+++ wide  ^- (list attr)
+  ~[width+[%fill 1] pad+%s2]       ::  fine: the cast fixes the tags
+#### /ui/theme/jibb theme
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    zone="UTC"
+    font=`%/static/fonts/inter.woff2
+    dark=`[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+#### /ui/stores/cart/jibb cart
+::  /ui/stores/cart.jibb
++$ state [items=(list @t) open=?]
++$ poke
+  [%add item=@t]
+  %toggle
+
+++ main (store init update)
+++ init ^- state [items=~ open=%.n]
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))
+#### /ui/basket/jibb basket
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+
+++ init |= ~
+  [cart=[items=~ open=%.n] note=""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.m)} items")
+    field "Item" note.m |=%noted
+    button "Add" %add
+#### /ui/todo-list/jibb todo-list
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [todos=ts draft="" error=~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ subs |= m=model
+  ~[[%watch (todos.todo |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+      button "Add" %submit
+    el ~[tone+%danger] (text (fall error.m ""))
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%toggled id.t])]
+#### /ui/index/jibb index
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |=(~ (todos.todo same))
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list ts
+#### /ui/about/jibb about
+++ main view
+
+++ view
+  column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
+    heading 1 "About this ship"
+    para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
+    el ~[tone+%accent] (link %/blog "Read the blog")
+#### /ui/blog/index/jibb blog-index
+/-  blog
+/=  api   /ui/api/blog
+/=  card  /ui/components/card
+
+++ main (page load view)
+++ load |=(~ (posts.api same))
+
+++ view |= ps=(list post.blog)
+  column ~[gap+%s2] (turn ps card.card)
+#### /ui/imports/jibb imports
+/-  todo                         ::  the molds from /sur/todo.hoon this module uses
+/%  %todo-action                 ::  a mark's type, named todo-action
+/=  card    /ui/components/card  ::  a Jibb module
+#### /ui/view-day/jibb view-day
+++ view |= [day=@da n=@ud]
+  column ~[gap+%s1] ~[
+    (text "Updated {day}")     ::  day printed as a date
+    (text "{n} items")         ::  n printed as @ud
+#### /ui/step/jibb step
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+
+++ describe |= s=step
+  ?- s
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+    %stop             "stop"
+#### /ui/update/jibb core-update-alone
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]
+      ?- (gth (lent (tuba (trip t))) 80)
+        %.y  [m(draft=t error=`"Too long") ~]
+        %.n  [m(draft=t error=~) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]

@@ -1,0 +1,46 @@
+#!/bin/sh
+# Rerun the milestone 2 review's probes through the full module checker,
+# infer-jibb-file-detailed, from the repo root:
+#
+#   docs/reviews/2026-11-03-milestone-2-probes/run plain   FILE   one module per section
+#   docs/reviews/2026-11-03-milestone-2-probes/run app     FILE   sections at my-app paths, with its imports
+#   docs/reviews/2026-11-03-milestone-2-probes/run imports        the Hoon import errors
+#
+# FILE holds sections, each starting with a line "#### <label>"; see README.md.
+set -e
+HERE=$(cd "$(dirname "$0")" && pwd)
+ROOT=$(cd "$HERE/../../.." && pwd)
+cd "$ROOT"
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+PRELUDE="--cord prelude=jibb-dev/lib/jibb/prelude.jibb --cord internal=jibb-dev/lib/jibb/internal.jibb"
+case "$1" in
+  plain)
+    tools/hoon --raw $PRELUDE --cord src="$2" -f "$HERE/check.hoon"
+    ;;
+  app)
+    # Marks without their /- lines, which ride can't parse; the check binds
+    # the /sur face by hand, as the tests/lib suites do.
+    for m in todo-action todos todo-update todo-item posts; do
+      grep -v '^/-' "my-app/mar/$m.hoon" > "$TMP/$m.hoon"
+    done
+    { printf '=/  imp\n  =>  ..zuse\n'; cat jibb-dev/lib/jibb-import.hoon; cat "$HERE/app-check.hoon"; } > "$TMP/check.hoon"
+    tools/hoon --raw $PRELUDE \
+      --cord sur=my-app/sur/todo.hoon --cord blogsur=my-app/sur/blog.hoon \
+      --cord action="$TMP/todo-action.hoon" --cord todos="$TMP/todos.hoon" \
+      --cord update="$TMP/todo-update.hoon" --cord item="$TMP/todo-item.hoon" \
+      --cord posts="$TMP/posts.hoon" \
+      --cord todoapi=my-app/ui/api/todo.jibb --cord todolist=my-app/ui/todo-list.jibb \
+      --cord blogapi=my-app/ui/api/blog.jibb --cord card=my-app/ui/components/card.jibb \
+      --cord cart=my-app/ui/stores/cart.jibb \
+      --cord src="$2" -f "$TMP/check.hoon"
+    ;;
+  imports)
+    { printf '=/  jibb-lib  .\n=/  reader\n'; cat jibb-dev/lib/jibb-import.hoon; printf '\n'; cat "$HERE/errors/import-check.hoon"; } > "$TMP/check.hoon"
+    tools/hoon --raw $PRELUDE -f "$TMP/check.hoon"
+    ;;
+  *)
+    sed -n '2,10p' "$0"
+    exit 2
+    ;;
+esac

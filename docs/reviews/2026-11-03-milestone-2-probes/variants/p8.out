@@ -1,0 +1,57 @@
+#### /ui/todo-list/jibb todo-full-wrong-model
+REJECTED: /ui/todo-list.jibb:14:10: nothing fixes the union of ~
+  [ts "" ~]
+         ^
+#### /ui/todo-list/jibb todo-full-wrong-message
+REJECTED: /ui/todo-list.jibb:14:10: nothing fixes the union of ~
+  [ts "" ~]
+         ^
+#### /ui/todo-list/jibb todo-full-wrong-result
+REJECTED: /ui/todo-list.jibb:14:10: nothing fixes the union of ~
+  [ts "" ~]
+         ^
+#### /ui/todo-list/jibb todo-full-open-key
+REJECTED: /ui/todo-list.jibb:14:10: nothing fixes the union of ~
+  [ts "" ~]
+         ^
+#### /ui/todo-list/jibb todo-full-wrong-watch
+REJECTED: module kind needs unsupported inference: /ui/todo-list/jibb
+#### /ui/todo-list/jibb todo-full-non-gate-view
+REJECTED: /ui/todo-list.jibb:14:10: nothing fixes the union of ~
+  [ts "" ~]
+         ^
+#### /ui/todo-list/jibb todo-full-cast-init
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ make-model: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+#### /ui/theme/jibb theme-dark-absent
+CHECKED
+++ theme: [space=[s1=@t [s2=@t s3=@t]] [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]] [wide=@t [lang=@t [zone=@t [font=(unit qath) dark=(unit [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]]])]]]]]]
+#### /ui/theme/jibb theme-wrong-nested-aura
+REJECTED: module definitions need unsupported inference: /ui/theme/jibb: ++ theme
+#### /ui/theme/jibb theme-missing-field
+REJECTED: module definitions need unsupported inference: /ui/theme/jibb: ++ theme
+#### /ui/theme/jibb theme-wrong-font
+REJECTED: module definitions need unsupported inference: /ui/theme/jibb: ++ theme
+#### /ui/theme/jibb theme-wrong-dark
+REJECTED: module definitions need unsupported inference: /ui/theme/jibb: ++ theme
+#### /ui/index/jibb page-main-wrong-static
+REJECTED: /ui/index.jibb:1:22: nothing fixes the union of %go
+++ main (button "Go" %go)
+                     ^
+#### /ui/index/jibb page-main-arbitrary-main
+REJECTED: module kind needs unsupported inference: /ui/index/jibb
+#### /tests/page-main/ctor/jibb page-main-ctor-page
+CHECKED
++$ msg: [%got todos=(list [id=@ud [done=? text=@t]])]
+++ main: [load=$-(~ (ask [%got todos=(list [id=@ud [done=? text=@t]])])) view=$-([%got todos=(list [id=@ud [done=? text=@t]])] (element !!))]
+++ view: $-([%got todos=(list [id=@ud [done=? text=@t]])] (element A))
+++ load: $-(~ (ask [%got todos=(list [id=@ud [done=? text=@t]])]))
+

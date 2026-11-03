@@ -1,0 +1,196 @@
+#### /ui/probe/jibb inc-generic
+++ inc |= n=A (add n 1)
+#### /ui/probe/jibb inc-ud
+++ inc |= n=@ud (add n 1)
+++ two (inc 1)
+#### /ui/probe/jibb clamp-max
+++ clamp |= [lo=A hi=A n=A]
+  ?- (gth n hi)
+    %.y  hi
+    %.n  (max lo n)
+#### /ui/probe/jibb clamp-no-max
+++ clamp |= [lo=A hi=A n=A]
+  ?- (gth n hi)
+    %.y  hi
+    %.n
+      ?- (gth lo n)
+        %.y  lo
+        %.n  n
+++ use (clamp 1 10 5)
+#### /ui/probe/jibb sum-print
+++ shown "{(add 1 2)}"
+#### /ui/probe/jibb literals-atoms
+++ a 0x1f
+++ b 0v5.fdf99
+++ c ~zod
+++ c2 ~sampel-palnet
+++ d ~2026.10.23
+++ d2 ~2026.10.23..14.30.00
+++ e ~s30
+++ e2 ~h1.m30
+++ f ~.my-post
+++ g "milk"
+++ h %.y
+++ i 1.000
+++ j /posts/~zod
+++ k %/blog
+#### /ui/probe/jibb literals-containers
+++ u `5
+++ l ~[1 2 3]
+++ t [1 "a"]
+++ r [text="milk" done=%.n]
+++ n ^- (unit @ud) ~
+++ term ^- @tas %add
+++ pair ^- attr gap+%s2
+#### /ui/probe/jibb hole-id
+++ id |= x=A ^- _ x
+#### /ui/probe/jibb one-case-union
++$ go [%go url=@t]
+++ g ^- go [%go "x"]
+#### /ui/probe/jibb ctor-one-case
++$ typed [%typed text=@t]
+++ mk ^- $-(@t typed) |=%typed
+#### /ui/probe/jibb proj
+++ wider ^- [x=@ud y=@ud z=@ud] [1 2 3]
+++ narrow ^- [x=@ud y=@ud] (proj wider)
+#### /ui/probe/jibb unnamed-takes-face
+++ pt ^- [x=@ud y=@ud] [0 0]
+#### /ui/probe/jibb widen-to-bare-atom
+++ f |= a=@ a
+++ g (f 5)
+#### /ui/probe/jibb widen-aura-family
+++ f |= a=@u a
+++ five ^- @ud 5
+++ g (f five)
+#### /ui/probe/jibb pattern-unit
+++ show |= u=(unit @ud)
+  ?- u
+    ~      0
+    [~ x]  x
+#### /ui/probe/jibb pattern-pair-units
+++ both |= p=[(unit @ud) (unit @ud)]
+  ?- p
+    [[~ a] [~ b]]  (add a b)
+    *              0
+#### /ui/probe/jibb pattern-list-one
+++ one |= xs=(list @ud)
+  ?- xs
+    [x ~]  x
+    *      0
+#### /ui/probe/jibb pattern-literals
+++ lit |= n=@ud
+  ?- n
+    1.000  %.y
+    *      %.n
+++ who |= s=@p
+  ?- s
+    ~zod  "zod"
+    *     "other"
+++ milk |= t=@t
+  ?- t
+    "milk"  %.y
+    *       %.n
+#### /ui/probe/jibb pattern-eq
+++ same-ud |= [a=@ud b=@ud]
+  ?- (eq a b)
+    %.y  "same"
+    %.n  "different"
+#### /ui/probe/jibb gate-free-generic
+++ same-as |= [a=A b=A] (eq a b)
+#### /ui/probe/jibb cons-where-list
+++ cons |= xs=(list @ud)
+  ^- (list @ud) [1 xs]
+#### /ui/probe/jibb shared-capital
+++ outer |= x=A
+  ++ inner |= y=A y
+  (inner x)
+#### /ui/probe/jibb bind-any-depth
+++ f |= [a=@ b]
+  a
+++ g (f 1 "x")
+#### /ui/probe/jibb roll
+++ total |= xs=(list @ud) (roll xs 0 add)
+#### /ui/probe/jibb clap
+++ both (clap `1 `2 add)
+#### /ui/probe/jibb bare-sample-inline
+++ titles |= ps=(list [title=@t n=@ud])
+  (turn ps |=(p title.p))
+#### /ui/probe/jibb typed-sample-inline
+++ titles |= ps=(list [title=@t n=@ud])
+  (turn ps |=(p=[title=@t n=@ud] title.p))
+#### /ui/probe/jibb image-element
+++ logo ^- (element !!) (image %/static/img/logo.png "The logo")
+#### /ui/probe/jibb get-by
+++ look |= [m=(map @t @ud) k=@t] (get.by m k)
+#### /ui/probe/jibb items-count
+++ show |= n=@ud
+  text "{n} items"
+#### /ui/probe/jibb add-cmd-helper-lib
++$ msg
+  [%acked err=(unit @t)]
+  %go
+++ wait-cmd |= gap=@dr
+  ^- (cmd msg) [%wait gap %go]
+#### /ui/probe/jibb eq-list-null
+++ empty |= xs=(list @t) (eq xs ~)
+#### /ui/probe/jibb fall-literal
+++ f |= e=(unit @t) (fall e "")
+#### /ui/probe/jibb lent-tuba-trip
+++ long |= t=@t (gth (lent (tuba (trip t))) 80)
+#### /ui/api/journal/jibb module journal-api
+/%  %posts
+
++$ paths
+  [%posts /posts posts]
+  [%post /post/[slug=@ta] posts]
+#### /ui/blog/_slug/jibb slug-page
+/=  api  /ui/api/journal
+
+++ main (page load view)
+++ load |=([slug=@ta] (post.api slug same))
+
+++ view |= ps=posts.api
+  text "post"
+#### /ui/settings/__rest/jibb catch-all-page
+++ main (page load view)
+++ load |=(p=path (pure p))
+
+++ view |= p=path
+  text "settings"
+#### /ui/todo-list/jibb island-changes-fold
+/=  todo  /ui/api/todo
+
+++ main (program init update view subs)
+
++$ model [todos=(list item.todo) draft=@t error=(unit @t)]
++$ msg
+  [%typed text=@t]
+  %submit
+  [%toggled id=@ud]
+  [%got todos=(list item.todo)]
+  [%acked err=(unit @t)]
+
+++ init |= ts=(list item.todo)
+  [todos=ts draft="" error=~]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%typed t]     [m(draft=t) ~]
+    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+    [%got ts]      [m(todos=ts) ~]
+    [%acked err]   [m(error=err) ~]
+
+++ apply |= [d=[%todo-update todo-update.todo] s=todos.todo]
+  s
+
+++ subs |= m=model
+  ~[[%watch (changes.todo |=%got apply)]]
+
+++ view |= m=model
+  column ~[gap+%s2] ~[
+    heading 2 "Todos"
+    each (turn todos.m row-of)
+
+++ row-of |= t=item.todo
+  [id.t (toggle done.t text.t [%toggled id.t])]

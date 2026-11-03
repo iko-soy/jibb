@@ -1,0 +1,38 @@
+#### G1-gate-model
+REJECTED: module kind needs unsupported inference: /ui/probe/jibb
+#### G2-gate-data
+REJECTED: module kind needs unsupported inference: /ui/probe/jibb
+#### G3-gate-model-nested
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ init
+#### S1-step-missing-stop
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ describe
+#### S2-move-any-covered
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ describe
+#### S3-loobean-repeated
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### S4-list-missing
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### S5-pattern-no-case
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### T1-local-aura
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### T2-change-bad-tag
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ bad-tag
+#### T3-hole-path
+REJECTED: module source does not parse: /ui/probe/jibb
+#### T4-unit-inner
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ v
+#### T5-list-item
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ v
+#### T6-repeat-attr-column
+CHECKED
+++ v: (element A)
+#### T7-msg-mismatch-element
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ v
+#### T8-generic-aura-path-sample
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ link-to
+#### T9-wing-unknown-field
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### T10-unknown-name
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+

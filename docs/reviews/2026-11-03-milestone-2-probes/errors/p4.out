@@ -1,0 +1,22 @@
+#### X1-multiarg-site
+CHECKED
+++ v: @t
+#### X2-pt-valid
+CHECKED
++$ pt: pt
+++ a: pt
+#### X3-pt-faced-cases
+REJECTED: module source does not parse: /ui/probe/jibb
+#### X4-pt-tuple-meant
+REJECTED: module mold pt has overlapping cases
+/ui/probe.jibb:2:3: first union case
+  @ud
+  ^
+/ui/probe.jibb:3:3: overlapping case
+  @ud
+  ^
+#### X5-step-doc-missing-stop
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ describe
+#### X6-title-trim-annotated
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ title
+

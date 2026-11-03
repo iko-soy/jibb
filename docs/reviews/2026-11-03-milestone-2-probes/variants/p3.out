@@ -1,0 +1,262 @@
+#### /ui/stores/cart/jibb cart-reorder
+CHECKED
++$ poke: poke
++$ state: [items=(list @t) open=?]
+++ state: $-($-([items=(list @t) open=?] A) (ask A))
+++ poke: $-([poke $-((unit @t) A)] (cmd A))
+++ main: [init=[items=(list @t) open=?] update=*]
+++ init: [items=(list @t) open=?]
+++ update: $-([a=poke s=[items=(list @t) open=?]] [items=(list @t) open=?])
+#### /ui/stores/cart/jibb cart-init-uncast
+REJECTED: /ui/stores/cart.jibb:8:16: nothing fixes the union of ~
+++ init [items=~ open=%.n]
+               ^
+#### /ui/stores/cart/jibb cart-rename
+CHECKED
++$ state: [items=(list @t) open=?]
++$ poke: poke
+++ state: $-($-([items=(list @t) open=?] A) (ask A))
+++ poke: $-([poke $-((unit @t) A)] (cmd A))
+++ main: [init=[items=(list @t) open=?] update=*]
+++ update: $-([p=poke st=[items=(list @t) open=?]] [items=(list @t) open=?])
+++ init: [items=(list @t) open=?]
+#### /ui/stores/cart/jibb cart-third-case
+CHECKED
++$ state: [items=(list @t) open=?]
++$ poke: poke
+++ state: $-($-([items=(list @t) open=?] A) (ask A))
+++ poke: $-([poke $-((unit @t) A)] (cmd A))
+++ main: [init=[items=(list @t) open=?] update=*]
+++ update: $-([a=poke s=[items=(list @t) open=?]] [items=(list @t) open=?])
+++ init: [items=(list @t) open=?]
+#### /ui/stores/cart/jibb cart-unused-helper
+CHECKED
++$ state: [items=(list @t) open=?]
++$ poke: poke
+++ state: $-($-([items=(list @t) open=?] A) (ask A))
+++ poke: $-([poke $-((unit @t) A)] (cmd A))
+++ main: [init=[items=(list @t) open=?] update=*]
+++ size: $-([items=(list @t) open=?] @ud)
+++ update: $-([a=poke s=[items=(list @t) open=?]] [items=(list @t) open=?])
+++ init: [items=(list @t) open=?]
+#### /ui/stores/cart/jibb cart-swap-fields
+CHECKED
++$ state: [open=? items=(list @t)]
++$ poke: poke
+++ state: $-($-([open=? items=(list @t)] A) (ask A))
+++ poke: $-([poke $-((unit @t) A)] (cmd A))
+++ main: [init=[open=? items=(list @t)] update=*]
+++ update: $-([a=poke s=[open=? items=(list @t)]] [open=? items=(list @t)])
+++ init: [open=? items=(list @t)]
+#### /ui/stores/cart/jibb cart-update-helper
+CHECKED
++$ state: [items=(list @t) open=?]
++$ poke: poke
+++ state: $-($-([items=(list @t) open=?] A) (ask A))
+++ poke: $-([poke $-((unit @t) A)] (cmd A))
+++ main: [init=[items=(list @t) open=?] update=*]
+++ update: $-([a=poke s=[items=(list @t) open=?]] [items=(list @t) open=?])
+++ flip: $-([items=(list @t) open=?] [items=(list @t) open=?])
+++ init: [items=(list @t) open=?]
+#### /ui/basket/jibb basket-control
+CHECKED
++$ model: [cart=[items=(list @t) open=?] note=@t]
++$ msg: msg
+++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
+++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
+++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
+++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
+#### /ui/basket/jibb basket-init-cast
+CHECKED
++$ model: [cart=[items=(list @t) open=?] note=@t]
++$ msg: msg
+++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
+++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
+++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
+++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
+#### /ui/basket/jibb basket-rename-view
+CHECKED
++$ model: [cart=[items=(list @t) open=?] note=@t]
++$ msg: msg
+++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
+++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
+++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
+++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
+#### /ui/basket/jibb basket-sixth-msg
+CHECKED
++$ model: [cart=[items=(list @t) open=?] note=@t]
++$ msg: msg
+++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
+++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
+++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
+++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
+#### /ui/basket/jibb basket-second-sub
+REJECTED: module kind needs unsupported inference: /ui/basket/jibb
+#### /ui/basket/jibb basket-view-helper
+CHECKED
++$ model: [cart=[items=(list @t) open=?] note=@t]
++$ msg: msg
+++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
+++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
+++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
+++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
+++ count-line: $-([cart=[items=(list @t) open=?] note=@t] (element A))
+#### /ui/basket/jibb basket-swap-fields
+CHECKED
++$ model: [note=@t cart=[items=(list @t) open=?]]
++$ msg: msg
+++ main: [init=$-(~ [note=@t cart=[items=(list @t) open=?]]) [update=$-([msg [note=@t cart=[items=(list @t) open=?]]] [[note=@t cart=[items=(list @t) open=?]] (list (cmd msg))]) [view=$-([note=@t cart=[items=(list @t) open=?]] (element msg)) subs=$-([note=@t cart=[items=(list @t) open=?]] (list (sub msg)))]]]
+++ init: $-(~ [note=@t cart=[items=(list @t) open=?]])
+++ view: $-([note=@t cart=[items=(list @t) open=?]] (element msg))
+++ subs: $-([note=@t cart=[items=(list @t) open=?]] (list (sub msg)))
+++ update: $-([msg=msg m=[note=@t cart=[items=(list @t) open=?]]] [[note=@t cart=[items=(list @t) open=?]] (list (cmd msg))])
+#### /ui/basket/jibb basket-unused-helper
+REJECTED: module definitions need unsupported inference: /ui/basket/jibb: ++ empty
+#### /ui/index/jibb index-reorder
+CHECKED
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+#### /ui/index/jibb index-rename
+CHECKED
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+#### /ui/index/jibb index-tall-load
+CHECKED
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+#### /ui/index/jibb index-cast-load
+CHECKED
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+#### /ui/index/jibb index-view-helper
+CHECKED
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+++ title: $-(@t (element A))
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+#### /ui/index/jibb index-unused-helper
+CHECKED
+++ count: $-((list [id=@ud [done=? text=@t]]) @ud)
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+#### /ui/index/jibb index-pure-load
+REJECTED: /ui/index.jibb:5:20: nothing fixes the union of ~
+++ load |=(~ (pure ~))
+                   ^
+#### /ui/index/jibb index-mapped-reply
+CHECKED
+++ main: [load=$-(~ (ask @ud)) view=$-(@ud (element !!))]
+++ view: $-(@ud (element A))
+++ load: $-(~ (ask @ud))
+#### /ui/index/jibb index-typed-load
+REJECTED: module kind needs unsupported inference: /ui/index/jibb
+#### /ui/about/jibb about-reorder
+CHECKED
+++ main: (element !!)
+++ view: (element A)
+#### /ui/about/jibb about-inline
+CHECKED
+++ main: (element !!)
+#### /ui/about/jibb about-helper
+CHECKED
+++ main: (element !!)
+++ view: (element A)
+++ intro: (element A)
+#### /ui/about/jibb about-rename
+CHECKED
+++ main: (element !!)
+++ body: (element A)
+#### /ui/blog/index/jibb blog-reorder
+CHECKED
+++ main: [load=$-(~ (ask (list [title=@t slug=@ta]))) view=$-((list [title=@t slug=@ta]) (element !!))]
+++ load: $-(~ (ask (list [title=@t slug=@ta])))
+++ view: $-((list [title=@t slug=@ta]) (element A))
+#### /ui/blog/index/jibb blog-rename
+CHECKED
+++ main: [load=$-(~ (ask (list [title=@t slug=@ta]))) view=$-((list [title=@t slug=@ta]) (element !!))]
+++ view: $-((list [title=@t slug=@ta]) (element A))
+++ load: $-(~ (ask (list [title=@t slug=@ta])))
+#### /ui/blog/index/jibb blog-inline-card
+CHECKED
+++ main: [load=$-(~ (ask (list [title=@t slug=@ta]))) view=$-((list [title=@t slug=@ta]) (element !!))]
+++ view: $-((list [title=@t slug=@ta]) (element A))
+++ load: $-(~ (ask (list [title=@t slug=@ta])))
+#### /ui/blog/index/jibb blog-inline-card-bare
+REJECTED: module definitions need unsupported inference: /ui/blog/index/jibb: ++ view
+#### /ui/blog/index/jibb blog-local-helper
+CHECKED
+++ main: [load=$-(~ (ask (list [title=@t slug=@ta]))) view=$-((list [title=@t slug=@ta]) (element !!))]
+++ view: $-((list [title=@t slug=@ta]) (element A))
+++ show: $-([title=@t slug=@ta] (element A))
+++ load: $-(~ (ask (list [title=@t slug=@ta])))
+#### /ui/theme/jibb theme-no-font
+CHECKED
+++ theme: [space=[s1=@t [s2=@t s3=@t]] [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]] [wide=@t [lang=@t [zone=@t [font=(unit qath) dark=(unit [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]]])]]]]]]
+#### /ui/theme/jibb theme-helper-value
+CHECKED
+++ theme: [space=[s1=@t [s2=@t s3=@t]] [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]] [wide=@t [lang=@t [zone=@t [font=(unit qath) dark=(unit [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]]])]]]]]]
+++ accent: @t
+#### /ui/components/buttons/jibb buttons-reorder
+REJECTED: /ui/components/buttons.jibb:6:16: nothing fixes the union of %add
+  button label %add
+               ^
+#### /ui/components/buttons/jibb buttons-fixed
+CHECKED
++$ add-msg: %add
+++ wide: (list attr)
+++ labelled: $-([label=@t msg=A] (element A))
+++ add-button: $-(@t (element %add))
+#### /ui/components/buttons/jibb buttons-labelled-use
+CHECKED
++$ go-msg: %go
+++ go-button: (element %go)
+++ wide: (list attr)
+++ labelled: $-([label=@t msg=A] (element A))
+#### /ui/step/jibb step-reorder
+CHECKED
++$ step: step
+++ describe: $-(step @t)
+#### /ui/step/jibb step-arm-order
+CHECKED
++$ step: step
+++ describe: $-(step @t)
+#### /ui/step/jibb step-catch-all
+CHECKED
++$ step: step
+++ describe: $-(step @t)
+#### /ui/step/jibb step-rename
+CHECKED
++$ step: step
+++ describe: $-(step @t)
+#### /ui/step/jibb step-sent-star
+CHECKED
++$ step: step
+++ describe: $-(step @t)
+#### /ui/step/jibb step-stop-crash
+CHECKED
++$ step: step
+++ describe: $-(step @t)
+#### /ui/view-day/jibb viewday-swap
+CHECKED
+++ view: $-([n=@ud day=@da] (element A))
+#### /ui/view-day/jibb viewday-add
+CHECKED
+++ view: $-([day=@da n=@ud] (element A))
+#### /ui/view-day/jibb viewday-generic-sum
+REJECTED: module definitions need unsupported inference: /ui/view-day/jibb: ++ total
+#### /ui/imports/jibb imports-use
+CHECKED
+++ act: $-(([%add text=@t] [%toggle id=@ud]) ([%add text=@t] [%toggle id=@ud]))
+++ show: $-([title=@t slug=@ta] (element A))
+++ first: $-([id=@ud [done=? text=@t]] @t)
+

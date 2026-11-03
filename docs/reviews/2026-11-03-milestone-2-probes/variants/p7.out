@@ -1,0 +1,85 @@
+#### /ui/todo-list/jibb castinit-two-each
+REJECTED: /ui/todo-list.jibb:41:32: nothing fixes the union of %toggled
+  [id.t (toggle done.t text.t [%toggled id.t])]
+                               ^
+#### /ui/todo-list/jibb two-each-orig-init
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb update-catch-all
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb update-arms-reordered
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb model-extra-field
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t [error=(unit @t) count=@ud]]] (list (cmd msg))])
+#### /ui/todo-list/jibb main-open-paren
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/index/jibb index-two-islands
+CHECKED
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+#### /ui/index/jibb index-island-flop
+CHECKED
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+#### /ui/index/jibb index-hand-built-tall
+REJECTED: module source does not parse: /ui/index/jibb
+#### /ui/basket/jibb basket-unused-size
+CHECKED
++$ model: [cart=[items=(list @t) open=?] note=@t]
++$ msg: msg
+++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
+++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
+++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
+++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
+++ size: $-([cart=[items=(list @t) open=?] note=@t] @ud)
+#### /ui/basket/jibb basket-update-helper
+CHECKED
++$ model: [cart=[items=(list @t) open=?] note=@t]
++$ msg: msg
+++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
+++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
+++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
+++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
+++ flip: (cmd msg)
+#### /ui/basket/jibb basket-subs-none
+REJECTED: /ui/basket.jibb:15:16: nothing fixes the union of ~
+  [cart=[items=~ open=%.n] note=""]
+               ^
+

@@ -1,0 +1,33 @@
+#### /ui/todo-list/jibb typo-submitt-view
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb typo-typd-ctor
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb typo-in-update-pattern
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb missing-case-in-update
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb aura-mismatch-update
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb dead-arm-update
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/basket/jibb basket-typo-addd
+REJECTED: /ui/basket.jibb:15:16: nothing fixes the union of ~
+  [cart=[items=~ open=%.n] note=""]
+               ^
+#### /ui/basket/jibb basket-missing-case
+REJECTED: /ui/basket.jibb:15:16: nothing fixes the union of ~
+  [cart=[items=~ open=%.n] note=""]
+               ^
+

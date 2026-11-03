@@ -1,0 +1,68 @@
+#### C0-island-ok
++$ msg
+  [%typed text=@t]
+  %submit
++$ model [draft=@t]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [draft=input]
+++ update |= [=msg m=model]
+  ^- [model (list (cmd msg))]
+    ?- msg
+      [%typed t]  [m(draft=t) ~]
+      %submit     [m(draft="") ~]
+++ view |= m=model ^- (element msg)
+  row ~[gap+%s1] ~[
+    (field "New todo" draft.m |=%typed)
+    button "Add" %submit
+++ subs |= m=model ^- (list (sub msg)) ~
+#### C1-island-submitt-view
++$ msg
+  [%typed text=@t]
+  %submit
++$ model [draft=@t]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [draft=input]
+++ update |= [=msg m=model]
+  ^- [model (list (cmd msg))]
+    ?- msg
+      [%typed t]  [m(draft=t) ~]
+      %submit     [m(draft="") ~]
+++ view |= m=model ^- (element msg)
+  row ~[gap+%s1] ~[
+    (field "New todo" draft.m |=%typed)
+    button "Add" %submitt
+++ subs |= m=model ^- (list (sub msg)) ~
+#### C2-island-submitt-noview-cast
++$ msg
+  [%typed text=@t]
+  %submit
++$ model [draft=@t]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [draft=input]
+++ update |= [=msg m=model]
+  ^- [model (list (cmd msg))]
+    ?- msg
+      [%typed t]  [m(draft=t) ~]
+      %submit     [m(draft="") ~]
+++ view |= m=model
+  row ~[gap+%s1] ~[
+    (field "New todo" draft.m |=%typed)
+    button "Add" %submitt
+++ subs |= m=model ^- (list (sub msg)) ~
+#### C3-island-ctor-typo
++$ msg
+  [%typed text=@t]
+  %submit
++$ model [draft=@t]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [draft=input]
+++ update |= [=msg m=model]
+  ^- [model (list (cmd msg))]
+    ?- msg
+      [%typed t]  [m(draft=t) ~]
+      %submit     [m(draft="") ~]
+++ view |= m=model ^- (element msg)
+  row ~[gap+%s1] ~[
+    (field "New todo" draft.m |=%typd)
+    button "Add" %submit
+++ subs |= m=model ^- (list (sub msg)) ~

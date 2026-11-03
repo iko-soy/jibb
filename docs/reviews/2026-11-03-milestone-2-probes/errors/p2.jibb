@@ -1,0 +1,106 @@
+#### G1-gate-model
++$ message
+  %start
+  %stop
++$ model [count=@ud callback=$-(@t @t)]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [count=0 callback=echo]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~
+++ echo |= input=@t input
+#### G2-gate-data
++$ message
+  %start
+  %stop
++$ model [count=@ud]
+++ main (program init update view subs)
+++ init |= input=$-(@t @t) ^- model [count=0]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~
+#### G3-gate-model-nested
++$ message
+  %start
+  %stop
++$ model [count=@ud inner=[cb=(list $-(@t @t))]]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [count=0 inner=[cb=~]]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~
+#### S1-step-missing-stop
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+++ describe |= s=step
+  ?- s
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+#### S2-move-any-covered
++$ step
+  [%move dir=@tas n=@ud]
+  %stop
+++ describe |= s=step
+  ?- s
+    [%move * *]  "move"
+    [%move %left n]  "left"
+    %stop  "stop"
+#### S3-loobean-repeated
+++ f |= flag=? ^- ?
+  ?- flag
+    %.y %.y
+    %.y %.n
+#### S4-list-missing
+++ f |= xs=(list @t) ^- ?
+  ?- xs
+    ~ %.y
+#### S5-pattern-no-case
++$ choice
+  %a
+  %b
+++ f |= v=choice
+  ?- v
+    %a "a"
+    %b "b"
+    %c "c"
+#### T1-local-aura
+++ inc |= n=@ud n
+++ f |= x=@t
+  ++ bad (inc %.y)
+  x
+#### T2-change-bad-tag
++$ actions
+  %start
+  %stop
++$ model [mode=actions data=(unit @t)]
+++ bad-tag |= m=model m(mode=%missing)
+#### T3-hole-path
+++ p /todo/[id=_]
+#### T4-unit-inner
+++ v ^- (unit @ud) `"x"
+#### T5-list-item
+++ v ^- (list @ud) ~[1 "x"]
+#### T6-repeat-attr-column
+++ v (column ~[gap+%s1 gap+%s2] ~[(text "x")])
+#### T7-msg-mismatch-element
++$ msg
+  %a
+  %b
+++ v ^- (element msg) (button "x" %c)
+#### T8-generic-aura-path-sample
+++ link-to |= n=A
+  ++ m (add n 1)
+  %/blog/(m)
+#### T9-wing-unknown-field
+++ f |= p=[a=@ud b=@ud] c.p
+#### T10-unknown-name
+++ f missing

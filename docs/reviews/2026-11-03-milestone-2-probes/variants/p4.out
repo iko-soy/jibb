@@ -1,0 +1,113 @@
+#### /ui/probe/jibb inc-generic
+CHECKED
+++ inc: $-(A A)
+#### /ui/probe/jibb inc-ud
+CHECKED
+++ two: @ud
+++ inc: $-(@ud @ud)
+#### /ui/probe/jibb clamp-max
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ clamp
+#### /ui/probe/jibb clamp-no-max
+CHECKED
+++ use: @ud
+++ clamp: $-([lo=A [hi=A n=A]] A)
+#### /ui/probe/jibb sum-print
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ shown
+#### /ui/probe/jibb literals-atoms
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ j
+#### /ui/probe/jibb literals-containers
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ u
+#### /ui/probe/jibb hole-id
+CHECKED
+++ id: $-(A A)
+#### /ui/probe/jibb one-case-union
+CHECKED
++$ go: [%go url=@t]
+++ g: [%go url=@t]
+#### /ui/probe/jibb ctor-one-case
+CHECKED
++$ typed: [%typed text=@t]
+++ mk: $-(@t [%typed text=@t])
+#### /ui/probe/jibb proj
+CHECKED
+++ narrow: [x=@ud y=@ud]
+++ wider: [x=@ud [y=@ud z=@ud]]
+#### /ui/probe/jibb unnamed-takes-face
+CHECKED
+++ pt: [x=@ud y=@ud]
+#### /ui/probe/jibb widen-to-bare-atom
+CHECKED
+++ g: @
+++ f: $-(@ @)
+#### /ui/probe/jibb widen-aura-family
+CHECKED
+++ g: @u
+++ five: @ud
+++ f: $-(@u @u)
+#### /ui/probe/jibb pattern-unit
+CHECKED
+++ show: $-((unit @ud) @ud)
+#### /ui/probe/jibb pattern-pair-units
+REJECTED: module has conflicting names: /ui/probe/jibb
+#### /ui/probe/jibb pattern-list-one
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ one
+#### /ui/probe/jibb pattern-literals
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ lit
+#### /ui/probe/jibb pattern-eq
+CHECKED
+++ same-ud: $-([a=@ud b=@ud] @t)
+#### /ui/probe/jibb gate-free-generic
+CHECKED
+++ same-as: $-([a=A b=A] ?)
+#### /ui/probe/jibb cons-where-list
+CHECKED
+++ cons: $-((list @ud) (list @ud))
+#### /ui/probe/jibb shared-capital
+CHECKED
+++ outer: $-(A A)
+#### /ui/probe/jibb bind-any-depth
+CHECKED
+++ g: @
+++ f: $-([a=@ b=A] @)
+#### /ui/probe/jibb roll
+CHECKED
+++ total: $-((list @ud) @ud)
+#### /ui/probe/jibb clap
+REJECTED: module has conflicting names: /ui/probe/jibb
+#### /ui/probe/jibb bare-sample-inline
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ titles
+#### /ui/probe/jibb typed-sample-inline
+CHECKED
+++ titles: $-((list [title=@t n=@ud]) (list @t))
+#### /ui/probe/jibb image-element
+CHECKED
+++ logo: (element !!)
+#### /ui/probe/jibb get-by
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ look
+#### /ui/probe/jibb items-count
+CHECKED
+++ show: $-(@ud (element A))
+#### /ui/probe/jibb add-cmd-helper-lib
+CHECKED
++$ msg: msg
+++ wait-cmd: $-(@dr (cmd msg))
+#### /ui/probe/jibb eq-list-null
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ empty
+#### /ui/probe/jibb fall-literal
+CHECKED
+++ f: $-((unit @t) @t)
+#### /ui/probe/jibb lent-tuba-trip
+CHECKED
+++ long: $-(@t ?)
+#### /ui/api/journal/jibb module journal-api
+CHECKED
++$ posts: (list [title=@t slug=@ta])
+++ posts: $-($-((list [title=@t slug=@ta]) A) (ask A))
+++ post: $-([@ta $-((list [title=@t slug=@ta]) A)] (ask A))
+#### /ui/blog/_slug/jibb slug-page
+REJECTED: module kind needs unsupported inference: /ui/blog/_slug/jibb
+#### /ui/settings/__rest/jibb catch-all-page
+REJECTED: module kind needs unsupported inference: /ui/settings/__rest/jibb
+#### /ui/todo-list/jibb island-changes-fold
+REJECTED: module kind needs unsupported inference: /ui/todo-list/jibb
+

@@ -1,0 +1,66 @@
+#### /ui/todo-list/jibb todo-full-alias
+REJECTED: /ui/todo-list.jibb:14:10: nothing fixes the union of ~
+  [ts "" ~]
+         ^
+#### /ui/todo-list/jibb todo-full-ambiguous-mapper
+REJECTED: /ui/todo-list.jibb:14:10: nothing fixes the union of ~
+  [ts "" ~]
+         ^
+#### /ui/index/jibb page-main-page-alias
+REJECTED: module kind needs unsupported inference: /ui/index/jibb
+#### /ui/index/jibb page-main-indirect-load
+REJECTED: module kind needs unsupported inference: /ui/index/jibb
+#### /ui/index/jibb page-main-pure-load
+REJECTED: /ui/index.jibb:5:20: nothing fixes the union of ~
+++ load |=(~ (pure ~))
+                   ^
+#### /ui/index/jibb page-main-hand-built-load
+REJECTED: module source does not parse: /ui/index/jibb
+#### /ui/index/jibb page-main-typed-load
+REJECTED: module definitions need unsupported inference: /ui/index/jibb: ++ load
+#### /ui/index/jibb page-main-diff-load
+REJECTED: module kind needs unsupported inference: /ui/index/jibb
+#### /ui/stores/cart/jibb store-alias-main
+REJECTED: module kind needs unsupported inference: /ui/stores/cart/jibb
+#### /ui/stores/cart/jibb store-hand-main
+REJECTED: module kind needs unsupported inference: /ui/stores/cart/jibb
+#### /ui/todo-list/jibb castinit-second-watch
+REJECTED: module definitions need unsupported inference: /ui/todo-list/jibb: ++ subs
+#### /ui/todo-list/jibb castinit-subs-none
+REJECTED: /ui/todo-list.jibb:27:14: nothing fixes the union of ~
+++ subs |=(m ~)
+             ^
+#### /ui/todo-list/jibb castinit-subs-none-typed
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+#### /ui/todo-list/jibb castinit-inline-row
+REJECTED: module definitions need unsupported inference: /ui/todo-list/jibb: ++ view
+#### /ui/todo-list/jibb castinit-update-helper
+REJECTED: /ui/todo-list.jibb:40:32: nothing fixes the union of %toggled
+  [id.t (toggle done.t text.t [%toggled id.t])]
+                               ^
+#### /ui/todo-list/jibb castinit-second-sub-every
+REJECTED: module kind needs unsupported inference: /ui/todo-list/jibb
+#### /ui/todo-list/jibb castinit-every-only
+REJECTED: module kind needs unsupported inference: /ui/todo-list/jibb
+#### /ui/stores/cart/jibb cart-init-uncast-tuple
+REJECTED: /ui/stores/cart.jibb:8:10: nothing fixes the union of ~
+++ init [~ %.n]
+         ^
+#### /ui/stores/cart/jibb cart-init-uncast-nonull
+CHECKED
++$ state: [count=@ud open=?]
++$ poke: poke
+++ state: $-($-([count=@ud open=?] A) (ask A))
+++ poke: $-([poke $-((unit @t) A)] (cmd A))
+++ main: [init=[count=@ud open=?] update=*]
+++ update: $-([a=poke s=[count=@ud open=?]] [count=@ud open=?])
+++ init: [count=@ud open=?]
+

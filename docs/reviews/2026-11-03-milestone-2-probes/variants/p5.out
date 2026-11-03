@@ -1,0 +1,127 @@
+#### /ui/probe/jibb lit-hex
+CHECKED
+++ x: @ux
+#### /ui/probe/jibb lit-b32
+CHECKED
+++ x: @uv
+#### /ui/probe/jibb lit-ship
+CHECKED
+++ x: @p
+#### /ui/probe/jibb lit-ship2
+CHECKED
+++ x: @p
+#### /ui/probe/jibb lit-date
+CHECKED
+++ x: @da
+#### /ui/probe/jibb lit-date2
+CHECKED
+++ x: @da
+#### /ui/probe/jibb lit-dur
+CHECKED
+++ x: @dr
+#### /ui/probe/jibb lit-dur2
+CHECKED
+++ x: @dr
+#### /ui/probe/jibb lit-knot
+CHECKED
+++ x: @ta
+#### /ui/probe/jibb lit-str
+CHECKED
+++ x: @t
+#### /ui/probe/jibb lit-loob
+CHECKED
+++ x: ?
+#### /ui/probe/jibb lit-dec
+CHECKED
+++ x: @ud
+#### /ui/probe/jibb lit-path
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ x
+#### /ui/probe/jibb lit-qath
+CHECKED
+++ x: qath
+#### /ui/probe/jibb lit-unit
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ x
+#### /ui/probe/jibb lit-list
+CHECKED
+++ x: (list @ud)
+#### /ui/probe/jibb lit-tuple
+CHECKED
+++ x: [@ud @t]
+#### /ui/probe/jibb lit-record
+CHECKED
+++ x: [text=@t done=?]
+#### /ui/probe/jibb lit-null-cast
+CHECKED
+++ x: (unit @ud)
+#### /ui/probe/jibb lit-term-cast
+CHECKED
+++ x: @tas
+#### /ui/probe/jibb lit-pair-cast
+CHECKED
+++ x: attr
+#### /ui/probe/jibb lit-num-term-cast
+CHECKED
+++ x: @
+#### /ui/probe/jibb lit-empty-path
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ x
+#### /ui/probe/jibb lit-unit-cast
+CHECKED
+++ x: (unit @ud)
+#### /ui/probe/jibb lit-list-cast
+CHECKED
+++ x: (list @ud)
+#### /ui/probe/jibb lit-path-cast
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ x
+#### /ui/probe/jibb lit-interp-day
+CHECKED
+++ x: @t
+#### /ui/probe/jibb inc-cell-unsound?
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ bad
+#### /ui/probe/jibb inc-loobean
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ bad
+#### /ui/probe/jibb inc-generic-print
+CHECKED
+++ inc: $-(A A) where A is an atom other than ?
+#### /ui/probe/jibb eq-gates-unsound?
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ bad
+#### /ui/probe/jibb eq-generic-print
+CHECKED
+++ same-as: $-([a=A b=A] ?) where A contains no gates
+#### /ui/probe/jibb clamp-print
+CHECKED
+++ clamp: $-([lo=A [hi=A n=A]] A) where A is an atom
+#### /ui/probe/jibb unknown-name
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ x
+#### /ui/probe/jibb pattern-pair-units
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ pair-sum
+#### /ui/probe/jibb clap-units
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ summed
+#### /ui/probe/jibb pattern-lit-ud
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ lit
+#### /ui/probe/jibb pattern-lit-ship
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ who
+#### /ui/probe/jibb pattern-lit-cord
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ milk
+#### /ui/probe/jibb pattern-list-cons
+CHECKED
+++ first: $-((list @ud) @ud)
+#### /ui/probe/jibb pattern-list-one-catch
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ one
+#### /ui/probe/jibb pattern-trailing-rest
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ second
+#### /ui/probe/jibb print-sum-annotated
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ shown
+#### /ui/probe/jibb print-ud-var
+CHECKED
+++ shown: $-(@ud @t)
+#### /ui/probe/jibb print-generic-error
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ shown
+#### /ui/probe/jibb eq-list-null
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ empty
+#### /ui/probe/jibb eq-list-null-cast
+REJECTED: module source does not parse: /ui/probe/jibb
+#### /ui/probe/jibb self-ref-error
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ title
+#### /ui/probe/jibb capital-made-ud
+REJECTED: module source does not parse: /ui/probe/jibb
+

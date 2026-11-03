@@ -1,0 +1,133 @@
+#### ok-control
+CHECKED
+++ inc: $-(@ud @ud)
+#### E01-aura-call
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ x
+#### E01b-aura-cast
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ x
+#### E01c-aura-sample-only
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### E01d-at-to-ud
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### E02-faces-call
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ g
+#### E02b-faces-cast
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ w
+#### E03-submitt-cast
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ bad
+#### E03b-submitt-call
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ call
+#### E04-unresolved-tag
+REJECTED: /ui/probe.jibb:1:11: nothing fixes the union of %submitt
+++ absent %submitt
+          ^
+#### E04b-add-button
+REJECTED: /ui/probe.jibb:2:16: nothing fixes the union of %add
+  button label %add
+               ^
+#### E05-open-null
+REJECTED: /ui/probe.jibb:1:10: nothing fixes the union of ~
+++ loose ~
+         ^
+#### E06-ctor-no-case
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### E07-overlap
+REJECTED: module mold overlap has overlapping cases
+/ui/probe.jibb:2:3: first union case
+  @t
+  ^
+/ui/probe.jibb:3:3: overlapping case
+  @ud
+  ^
+#### E07b-overlap-records
+REJECTED: module mold pt has overlapping cases
+/ui/probe.jibb:2:3: first union case
+  [a=@ud b=@ud]
+  ^
+/ui/probe.jibb:3:3: overlapping case
+  [x=@ud y=@ud]
+  ^
+#### E08-missing-case
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ missing
+#### E08b-missing-loobean
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### E09-covered-arm
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ duplicate
+#### E09b-covered-after-wild
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ covered
+#### E10-self-ref-doc
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ title
+#### E10b-self-ref-cast
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ title
+#### E10c-through-gate
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ maker
+#### E11-shadow-prelude-sample
+REJECTED: /ui/probe.jibb:1:9: sample `add` shadows a name already in scope
+++ f |= add=@ud add
+        ^
+#### E11b-shadow-global-sample
+REJECTED: /ui/probe.jibb:2:9: sample `x` shadows a name already in scope
+++ f |= x=@ud x
+        ^
+#### E11c-shadow-local
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### E11d-shadow-pattern
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ shadow
+#### E11e-shadow-prelude-top
+REJECTED: module has conflicting names: /ui/probe/jibb
+#### E11f-shadow-prelude-mold
+REJECTED: module has conflicting names: /ui/probe/jibb
+#### E12-cell-printer
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ record
+#### E13-generic-aura-interp
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ show
+#### E13b-generic-aura-path
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ link-to
+#### E14-capital-ud
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ concrete
+#### E14b-capital-ud-arith
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ c
+#### E14c-capital-list
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ l
+#### E15-text-hi
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ v
+#### E16-empty-change
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### E17-dup-fields-mold
+REJECTED: record field `a` is repeated
+/ui/probe.jibb:1:7: first field
++$ r [a=@ud a=@t]
+      ^
+/ui/probe.jibb:1:13: repeated field
++$ r [a=@ud a=@t]
+            ^
+#### E17b-dup-fields-expr
+REJECTED: record field `a` is repeated
+/ui/probe.jibb:1:7: first field
+++ v [a=1 a=2]
+      ^
+/ui/probe.jibb:1:11: repeated field
+++ v [a=1 a=2]
+          ^
+#### E18-proj-defined
+REJECTED: module has conflicting names: /ui/probe/jibb
+#### E19-loobean-arith
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ v
+#### E20-capitals-forced
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ bad
+#### E21-hole-unconstrained
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ id
+#### E21b-hole-mold
+REJECTED: module mold needs unsupported inference: /ui/probe/jibb
+#### E22-eq-gate
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ f
+#### E22b-map-key-gate
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ m
+#### E23-facts-outside
+REJECTED: module mold needs unsupported inference: /ui/probe/jibb
+#### E24-repeat-attr
+CHECKED
+++ v: (element A)
+#### E25-empty-cell
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ v
+

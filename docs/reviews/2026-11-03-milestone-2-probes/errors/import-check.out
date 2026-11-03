@@ -1,0 +1,82 @@
+#### I1-signed
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I2-float
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I3-gate
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I3b-core
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I4-vase
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I5-dupfields
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I6-overlap-cen
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I7-overlap-wut
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I8-overlap-ket
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ a
+#### I9-good-unused-bad
+CHECKED
+++ a: $-(@t @t)
+#### M1-cycle
+REJECTED: import cycle at /ui/a/jibb
+#### M1b-root-cycle
+REJECTED: import cycle at /ui/probe/jibb
+#### M2-derived-clash
+REJECTED: API derived name `plain` clashes with a definition
+/ui/api/demo.jibb:3:3: `plain` is derived from this path case
+  [%plain /plain full]
+  ^
+/ui/api/demo.jibb:5:1: clashing definition
+++ plain 5
+^
+#### M2b-derived-clash-root
+REJECTED: API derived name `plain` clashes with a definition
+/ui/api/demo.jibb:3:3: `plain` is derived from this path case
+  [%plain /plain full]
+  ^
+/ui/api/demo.jibb:5:1: clashing definition
+++ plain 5
+^
+#### M2c-derived-face-clash
+REJECTED: API derived name `plain` clashes with an import face
+/ui/api/demo.jibb:4:3: `plain` is derived from this path case
+  [%plain /plain full]
+  ^
+/ui/api/demo.jibb:2:1: clashing import face
+/- plain
+^
+#### M2d-poke-clash
+REJECTED: API derived name `poke` clashes with a definition
+/ui/api/demo.jibb:2:1: `poke` is derived from this mold
++$ poke full
+^
+/ui/api/demo.jibb:3:1: clashing definition
+++ poke "bad"
+^
+#### M3-facts-in-library
+REJECTED: module mold needs unsupported inference: /ui/probe/jibb
+#### M3b-facts-in-api-other-mold
+REJECTED: API module needs unsupported inference: /ui/api/demo/jibb: module mold needs unsupported inference
+#### M4-shadow-import-face
+REJECTED: /ui/probe.jibb:2:9: sample `lib` shadows a name already in scope
+++ f |= lib=@t lib
+        ^
+#### M4b-shadow-import-value
+REJECTED: module has conflicting names: /ui/probe/jibb
+#### M5-api-ok
+CHECKED
+++ plain: $-($-(@t A) (ask A))
+#### RAW
+signed: invalid aura: signed and float auras cannot be imported
+flt: invalid aura: signed and float auras cannot be imported
+gat: invalid core: cores and gates cannot be imported
+vas: unsupported: vases cannot be imported
+dup: ok
+ovl: unsupported: Hoon union disjointness could not be verified
+ovl2: unsupported: Hoon union disjointness could not be verified
+cel: unsupported: Hoon $^ union disjointness could not be verified
+good: ok
+cor: invalid core: cores and gates cannot be imported
+

@@ -1,0 +1,155 @@
+#### ok-control
+++ inc |= n=@ud (add n 1)
+#### E01-aura-call
+++ inc |= n=@ud (add n 1)
+++ x (inc "hi")
+#### E01b-aura-cast
+++ x ^- @ud "hi"
+#### E01c-aura-sample-only
+++ f |= x=@t ^- @ud x
+#### E01d-at-to-ud
+++ f |= x=@ ^- @ud x
+#### E02-faces-call
+++ f |= p=[a=@ud b=@ud] a.p
+++ g |= q=[x=@ud y=@ud] (f q)
+#### E02b-faces-cast
++$ ab [a=@ud b=@ud]
++$ xy [x=@ud y=@ud]
+++ v ^- ab [1 2]
+++ w ^- xy v
+#### E03-submitt-cast
++$ msg
+  [%typed text=@t]
+  %submit
+++ bad ^- msg %submitt
+#### E03b-submitt-call
++$ msg
+  [%typed text=@t]
+  %submit
+++ take |= m=msg "ok"
+++ call (take %submitt)
+#### E04-unresolved-tag
+++ absent %submitt
+#### E04b-add-button
+++ add-button |= label=@t
+  button label %add
+#### E05-open-null
+++ loose ~
+#### E06-ctor-no-case
++$ msg
+  [%typed text=@t]
+  %submit
+++ f ^- $-(@t msg) |=%other
+#### E07-overlap
++$ overlap
+  @t
+  @ud
+++ identity |=(x x)
+#### E07b-overlap-records
++$ pt
+  [a=@ud b=@ud]
+  [x=@ud y=@ud]
+#### E08-missing-case
++$ choice
+  [%a value=@t]
+  %b
+  %c
+++ missing |= v=choice
+  ?- v
+    [%a payload] payload
+    %b "b"
+#### E08b-missing-loobean
+++ f |= b=?
+  ?- b
+    %.y "yes"
+#### E09-covered-arm
++$ choice
+  [%a value=@t]
+  %b
+  %c
+++ duplicate |= v=choice
+  ?- v
+    [%a payload] payload
+    %b "b"
+    %b "again"
+    %c "c"
+#### E09b-covered-after-wild
++$ choice
+  %b
+  %c
+++ covered |= v=choice
+  ?- v
+    * "all"
+    %c "never"
+#### E10-self-ref-doc
+++ title (trim title)
+#### E10b-self-ref-cast
+++ title ^- @t title
+#### E10c-through-gate
+++ maker |= x=@t value
+++ value ^- @t (maker "hi")
+#### E11-shadow-prelude-sample
+++ f |= add=@ud add
+#### E11b-shadow-global-sample
+++ x 1
+++ f |= x=@ud x
+#### E11c-shadow-local
+++ y 1
+++ f |= z=@ud
+  ++ y 2
+  z
+#### E11d-shadow-pattern
++$ choice
+  [%a value=@t]
+  %b
+++ complete "c"
+++ shadow |= v=choice
+  ?- v
+    [%a complete] complete
+    %b "b"
+#### E11e-shadow-prelude-top
+++ add 1
+#### E11f-shadow-prelude-mold
++$ list @ud
+#### E12-cell-printer
+++ record |= x=[@t @ud] "{x}"
+#### E13-generic-aura-interp
+++ show |= n=A "{(add n 1)}"
+#### E13b-generic-aura-path
+++ link-to |= n=A %/blog/(add n 1)
+#### E14-capital-ud
+++ concrete |= x=A ^- @t x
+#### E14b-capital-ud-arith
+++ c |= x=A ^- @ud (add x 1)
+#### E14c-capital-list
+++ l |= x=A (lent x)
+#### E15-text-hi
+++ v ^- (list (element !!)) ~[text "hi"]
+#### E16-empty-change
+++ f |= m=[a=@ud b=@ud] m()
+#### E17-dup-fields-mold
++$ r [a=@ud a=@t]
+++ v ^- r [1 "x"]
+#### E17b-dup-fields-expr
+++ v [a=1 a=2]
+#### E18-proj-defined
+++ proj 1
+#### E19-loobean-arith
+++ v (add %.y %.n)
+#### E20-capitals-forced
+++ repeat |= p=[A A] p
+++ bad |= p=[A B] (repeat p)
+#### E21-hole-unconstrained
+++ id |= x=_ x
+#### E21b-hole-mold
++$ box [item=_]
+#### E22-eq-gate
+++ f |= g=$-(@ud @ud) (eq g g)
+#### E22b-map-key-gate
+++ m |= [g=$-(@ud @ud) mp=(map $-(@ud @ud) @ud)] (put.by mp g 1)
+#### E23-facts-outside
++$ x (facts @t @t)
+#### E24-repeat-attr
+++ v (el ~[pad+%s1 pad+%s2] (text "x"))
+#### E25-empty-cell
+++ v []

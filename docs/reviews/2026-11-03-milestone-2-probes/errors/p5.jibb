@@ -1,0 +1,45 @@
+#### W1-initializer-error
++$ model [xs=(list @t) draft=@t error=@t]
++$ message
+  %start
+  %stop
+++ main (program init update view subs)
+++ init |= ts=(list @t) [ts "" ~]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~
+#### W2-initializer-earlier
++$ model [xs=(list @t) draft=@t error=(unit @t)]
++$ message
+  %start
+  %stop
+++ main (program init update view subs)
+++ init |= ts=(list @t) [ts ~zod ~]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~
+#### W3-initializer-model
++$ model [xs=(list @t) draft=@t error=(unit @t)]
++$ other [xs=(list @t) draft=@t error=(unit @t) extra=@ud]
++$ message
+  %start
+  %stop
+++ main (program init update view subs)
+++ init |= ts=(list @t) [ts "" ~]
+++ update |= [msg=message state=other]
+  ^- [other (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~
+#### W4-earlier-annotated
++$ model [xs=(list @t) draft=@t error=(unit @t)]
++$ message
+  %start
+  %stop
+++ main (program init update view subs)
+++ init |= ts=(list @t) ^- model [ts ~zod ~]
+++ update |= [msg=message state=model]
+  ^- [model (list (cmd message))] [state ~]
+++ view |= state=model ^- (element message) (text "view")
+++ subs |= state=model ^- (list (sub message)) ~

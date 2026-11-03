@@ -1,0 +1,185 @@
+#### /ui/todo-list/jibb control
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb reorder
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb rename-view-sample
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb rename-row-sample
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb rename-init-sample
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb rename-subs-sample
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb unused-helper
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+++ count: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] @ud)
+#### /ui/todo-list/jibb unused-helper-mold
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
++$ flag: ?
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb swap-model-fields
+CHECKED
++$ model: [draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]]) [update=$-([msg [draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]]] [[draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]] (list (cmd msg))]) [view=$-([draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]] (element msg)) subs=$-([draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]])
+++ view: $-([draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]]] [[draft=@t [todos=(list [id=@ud [done=? text=@t]]) error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb init-cast-body
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+#### /ui/todo-list/jibb init-positional
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb second-sub-every
+REJECTED: module kind needs unsupported inference: /ui/todo-list/jibb
+#### /ui/todo-list/jibb second-sub-watch
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb subs-none
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb sixth-msg
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb sixth-msg-button
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+#### /ui/todo-list/jibb view-helper-title
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+++ title: $-(@t (element A))
+#### /ui/todo-list/jibb view-helper-error
+CHECKED
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+++ error-line: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element A))
+#### /ui/todo-list/jibb inline-row-of
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb view-local-rows
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb drop-each
+REJECTED: /ui/todo-list.jibb:39:32: nothing fixes the union of %toggled
+  [id.t (toggle done.t text.t [%toggled id.t])]
+                               ^
+#### /ui/todo-list/jibb update-helper-cmd
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+
+
+real	1m14.273s
+user	1m13.404s
+sys	0m0.129s

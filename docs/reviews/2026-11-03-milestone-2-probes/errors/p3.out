@@ -1,0 +1,16 @@
+#### C0-island-ok
+CHECKED
++$ msg: msg
++$ model: [draft=@t]
+++ main: [init=$-(@t [draft=@t]) [update=$-([msg draft=@t] [draft=@t (list (cmd msg))]) [view=$-([draft=@t] (element msg)) subs=$-([draft=@t] (list (sub msg)))]]]
+++ subs: $-([draft=@t] (list (sub msg)))
+++ view: $-([draft=@t] (element msg))
+++ update: $-([msg=msg m=[draft=@t]] [draft=@t (list (cmd msg))])
+++ init: $-(@t [draft=@t])
+#### C1-island-submitt-view
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ view
+#### C2-island-submitt-noview-cast
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ view
+#### C3-island-ctor-typo
+REJECTED: module definitions need unsupported inference: /ui/probe/jibb: ++ view
+

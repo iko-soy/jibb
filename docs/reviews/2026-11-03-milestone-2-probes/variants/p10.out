@@ -1,0 +1,33 @@
+#### /ui/index/jibb BAD-island-data-atom
+REJECTED: module definitions need unsupported inference: /ui/index/jibb: ++ view
+#### /ui/index/jibb BAD-view-sample
+REJECTED: module definitions need unsupported inference: /ui/index/jibb: ++ main
+#### /ui/todo-list/jibb BAD-cmd-bare-tag
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/basket/jibb BAD-cart-poke-case
+REJECTED: /ui/basket.jibb:15:16: nothing fixes the union of ~
+  [cart=[items=~ open=%.n] note=""]
+               ^
+#### /ui/todo-list/jibb BAD-watch-reply
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/stores/cart/jibb BAD-cart-open-num
+REJECTED: module definitions need unsupported inference: /ui/stores/cart/jibb: ++ update
+#### /ui/todo-list/jibb BAD-init-error-cord
+REJECTED: module definitions need unsupported inference: /ui/todo-list/jibb: ++ main
+#### /ui/todo-list/jibb BAD-model-gate
+REJECTED: module kind needs unsupported inference: /ui/todo-list/jibb
+#### /ui/blog/index/jibb BAD-card-wrong
+REJECTED: module definitions need unsupported inference: /ui/blog/index/jibb: ++ view
+#### /ui/todo-list/jibb BAD-poke-payload
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+#### /ui/todo-list/jibb BAD-row-key-gate
+REJECTED: /ui/todo-list.jibb:14:28: nothing fixes the union of ~
+  [todos=ts draft="" error=~]
+                           ^
+

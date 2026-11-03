@@ -17,6 +17,8 @@ The current full-module checker also has a narrow static/data-page slice, docume
 | [reviews/2026-11-02-repo-review.md](reviews/2026-11-02-repo-review.md) | A review of the whole repository on 2026-11-02: bugs, gaps and simplifications, each checked by a second reviewer |
 | [reviews/2026-11-02-questions.md](reviews/2026-11-02-questions.md) | The 45 decisions that review raises, with options and recommendations |
 | [reviews/2026-11-02-syntax-review.md](reviews/2026-11-02-syntax-review.md) | A review of Jibb's syntax on 2026-11-02: 15 verified proposals with before and after examples, what to keep, and questions for @iko |
+| [reviews/2026-11-03-milestone-2-review.md](reviews/2026-11-03-milestone-2-review.md) | A review of milestone 2 against the plan on 2026-11-03: the done-criteria, the errors the spec describes, findings M1 to M17, with its [probes](reviews/2026-11-03-milestone-2-probes/) |
+| [prompts/milestone-2-finish.md](prompts/milestone-2-finish.md) | A brief for finishing milestone 2: the general checker core, diagnostics, patterns, kinds, imports, tests and docs that the milestone 2 review found missing |
 
 ## The spec
 

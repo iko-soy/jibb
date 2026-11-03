@@ -1,0 +1,130 @@
+#### /ui/probe/jibb lit-hex
+++ x 0x1f
+#### /ui/probe/jibb lit-b32
+++ x 0v5.fdf99
+#### /ui/probe/jibb lit-ship
+++ x ~zod
+#### /ui/probe/jibb lit-ship2
+++ x ~sampel-palnet
+#### /ui/probe/jibb lit-date
+++ x ~2026.10.23
+#### /ui/probe/jibb lit-date2
+++ x ~2026.10.23..14.30.00
+#### /ui/probe/jibb lit-dur
+++ x ~s30
+#### /ui/probe/jibb lit-dur2
+++ x ~h1.m30
+#### /ui/probe/jibb lit-knot
+++ x ~.my-post
+#### /ui/probe/jibb lit-str
+++ x "milk"
+#### /ui/probe/jibb lit-loob
+++ x %.y
+#### /ui/probe/jibb lit-dec
+++ x 1.000
+#### /ui/probe/jibb lit-path
+++ x /posts/~zod
+#### /ui/probe/jibb lit-qath
+++ x %/blog
+#### /ui/probe/jibb lit-unit
+++ x `5
+#### /ui/probe/jibb lit-list
+++ x ~[1 2 3]
+#### /ui/probe/jibb lit-tuple
+++ x [1 "a"]
+#### /ui/probe/jibb lit-record
+++ x [text="milk" done=%.n]
+#### /ui/probe/jibb lit-null-cast
+++ x ^- (unit @ud) ~
+#### /ui/probe/jibb lit-term-cast
+++ x ^- @tas %add
+#### /ui/probe/jibb lit-pair-cast
+++ x ^- attr gap+%s2
+#### /ui/probe/jibb lit-num-term-cast
+++ x ^- @ %1.000
+#### /ui/probe/jibb lit-empty-path
+++ x /
+#### /ui/probe/jibb lit-unit-cast
+++ x ^- (unit @ud) `5
+#### /ui/probe/jibb lit-list-cast
+++ x ^- (list @ud) ~[1 2 3]
+#### /ui/probe/jibb lit-path-cast
+++ x ^- path /posts/~zod
+#### /ui/probe/jibb lit-interp-day
+++ x "Since {~2026.10.23}"
+#### /ui/probe/jibb inc-cell-unsound?
+++ inc |= n=A (add n 1)
+++ bad (inc [1 2])
+#### /ui/probe/jibb inc-loobean
+++ inc |= n=A (add n 1)
+++ bad (inc %.y)
+#### /ui/probe/jibb inc-generic-print
+++ inc |= n=A (add n 1)
+#### /ui/probe/jibb eq-gates-unsound?
+++ same-as |= [a=A b=A] (eq a b)
+++ bad (same-as same same)
+#### /ui/probe/jibb eq-generic-print
+++ same-as |= [a=A b=A] (eq a b)
+#### /ui/probe/jibb clamp-print
+++ clamp |= [lo=A hi=A n=A]
+  ?- (gth n hi)
+    %.y  hi
+    %.n
+      ?- (gth lo n)
+        %.y  lo
+        %.n  n
+#### /ui/probe/jibb unknown-name
+++ x (nosuch 1)
+#### /ui/probe/jibb pattern-pair-units
+++ pair-sum |= p=[(unit @ud) (unit @ud)]
+  ?- p
+    [[~ a] [~ b]]  (add a b)
+    *              0
+#### /ui/probe/jibb clap-units
+++ summed (clap `1 `2 add)
+#### /ui/probe/jibb pattern-lit-ud
+++ lit |= n=@ud
+  ?- n
+    1.000  %.y
+    *      %.n
+#### /ui/probe/jibb pattern-lit-ship
+++ who |= s=@p
+  ?- s
+    ~zod  "zod"
+    *     "other"
+#### /ui/probe/jibb pattern-lit-cord
+++ milk |= t=@t
+  ?- t
+    "milk"  %.y
+    *       %.n
+#### /ui/probe/jibb pattern-list-cons
+++ first |= xs=(list @ud)
+  ?- xs
+    ~       0
+    [x xs2] x
+#### /ui/probe/jibb pattern-list-one-catch
+++ one |= xs=(list @ud)
+  ?- xs
+    [x ~]  x
+    *      0
+#### /ui/probe/jibb pattern-trailing-rest
+++ second |= p=[(unit @ud) (unit @ud)]
+  ?- p
+    [~ b]  b
+    *      ~
+#### /ui/probe/jibb print-sum-annotated
+++ shown ^- @t "{(add 1 2)}"
+#### /ui/probe/jibb print-ud-var
+++ shown |= n=@ud "{n} items"
+#### /ui/probe/jibb print-generic-error
+++ shown |= n=A
+  "{(add n 1)}"
+#### /ui/probe/jibb eq-list-null
+++ empty |= xs=(list @t) (eq xs ~)
+#### /ui/probe/jibb eq-list-null-cast
+++ empty |= xs=(list @t) (eq xs ^-((list @t) ~))
+#### /ui/probe/jibb self-ref-error
+++ title (lent title)
+#### /ui/probe/jibb capital-made-ud
+++ f |= x=A (add x ^- @ud 1)
+

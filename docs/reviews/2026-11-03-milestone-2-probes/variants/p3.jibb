@@ -1,0 +1,712 @@
+#### /ui/stores/cart/jibb cart-reorder
++$ poke
+  [%add item=@t]
+  %toggle
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))
+++ init ^- state [items=~ open=%.n]
+++ main (store init update)
++$ state [items=(list @t) open=?]
+#### /ui/stores/cart/jibb cart-init-uncast
+::  /ui/stores/cart.jibb
++$ state [items=(list @t) open=?]
++$ poke
+  [%add item=@t]
+  %toggle
+
+++ main (store init update)
+++ init [items=~ open=%.n]
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))
+#### /ui/stores/cart/jibb cart-rename
+::  /ui/stores/cart.jibb
++$ state [items=(list @t) open=?]
++$ poke
+  [%add item=@t]
+  %toggle
+
+++ main (store init update)
+++ init ^- state [items=~ open=%.n]
+++ update |= [p=poke st=state]
+  ?- p
+    [%add item]  st(items=[item items.st])
+    %toggle      st(open=(not open.st))
+#### /ui/stores/cart/jibb cart-third-case
+::  /ui/stores/cart.jibb
++$ state [items=(list @t) open=?]
++$ poke
+  [%add item=@t]
+  %toggle
+  %clear
+
+++ main (store init update)
+++ init ^- state [items=~ open=%.n]
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))
+    %clear       s(items=~)
+#### /ui/stores/cart/jibb cart-unused-helper
+::  /ui/stores/cart.jibb
++$ state [items=(list @t) open=?]
++$ poke
+  [%add item=@t]
+  %toggle
+
+++ main (store init update)
+++ init ^- state [items=~ open=%.n]
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))
+++ size |= s=state
+  (lent items.s)
+#### /ui/stores/cart/jibb cart-swap-fields
+::  /ui/stores/cart.jibb
++$ state [open=? items=(list @t)]
++$ poke
+  [%add item=@t]
+  %toggle
+
+++ main (store init update)
+++ init ^- state [open=%.n items=~]
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      s(open=(not open.s))
+#### /ui/stores/cart/jibb cart-update-helper
+::  /ui/stores/cart.jibb
++$ state [items=(list @t) open=?]
++$ poke
+  [%add item=@t]
+  %toggle
+
+++ main (store init update)
+++ init ^- state [items=~ open=%.n]
+++ update |= [a=poke s=state]
+  ?- a
+    [%add item]  s(items=[item items.s])
+    %toggle      (flip s)
+++ flip |= s=state
+  s(open=(not open.s))
+#### /ui/basket/jibb basket-control
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+
+++ init |= ~
+  [cart=[items=~ open=%.n] note=""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.m)} items")
+    field "Item" note.m |=%noted
+    button "Add" %add
+#### /ui/basket/jibb basket-init-cast
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+
+++ init |= ~
+  ^- model [[~ %.n] ""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.m)} items")
+    field "Item" note.m |=%noted
+    button "Add" %add
+#### /ui/basket/jibb basket-rename-view
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+
+++ init |= ~
+  [cart=[items=~ open=%.n] note=""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= mdl=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.mdl)} items")
+    field "Item" note.mdl |=%noted
+    button "Add" %add
+#### /ui/basket/jibb basket-sixth-msg
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+  %clear
+
+++ init |= ~
+  [cart=[items=~ open=%.n] note=""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+    %clear         [m(note="") ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.m)} items")
+    field "Item" note.m |=%noted
+    button "Add" %add
+    button "Clear" %clear
+#### /ui/basket/jibb basket-second-sub
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+  [%tick at=@da]
+
+++ init |= ~
+  [cart=[items=~ open=%.n] note=""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+    [%tick at]     [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)] [%every ~s30 |=%tick]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.m)} items")
+    field "Item" note.m |=%noted
+    button "Add" %add
+#### /ui/basket/jibb basket-view-helper
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+
+++ init |= ~
+  [cart=[items=~ open=%.n] note=""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (count-line m)
+    field "Item" note.m |=%noted
+    button "Add" %add
+
+++ count-line |= m=model
+  text "{(lent items.cart.m)} items"
+#### /ui/basket/jibb basket-swap-fields
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [note=@t cart=state.cart]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+
+++ init |= ~
+  [note="" cart=[items=~ open=%.n]]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.m)} items")
+    field "Item" note.m |=%noted
+    button "Add" %add
+#### /ui/basket/jibb basket-unused-helper
+::  /ui/basket.jibb
+/=  cart  /ui/stores/cart
+
+++ main (program init update view subs)
+
++$ model [cart=state.cart note=@t]
++$ msg
+  [%noted text=@t]
+  %add
+  %toggle
+  [%got cart=state.cart]
+  [%acked err=(unit @t)]
+
+++ init |= ~
+  [cart=[items=~ open=%.n] note=""]
+
+++ update |= [=msg m=model]
+  ?- msg
+    [%noted t]     [m(note=t) ~]
+    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+    [%got c]       [m(cart=c) ~]
+    [%acked err]   [m ~]
+
+++ subs |= m=model
+  ~[[%watch (state.cart |=%got)]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "{(lent items.cart.m)} items")
+    field "Item" note.m |=%noted
+    button "Add" %add
+
+++ empty |= m=model
+  (eq items.cart.m ~)
+#### /ui/index/jibb index-reorder
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list ts
+
+++ load |=(~ (todos.todo same))
+++ main (page load view)
+#### /ui/index/jibb index-rename
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |=(~ (todos.todo same))
+
+++ view |= items=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list items
+#### /ui/index/jibb index-tall-load
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |= ~
+  (todos.todo same)
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list ts
+#### /ui/index/jibb index-cast-load
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |= ~
+  ^- (ask (list item.todo)) (todos.todo same)
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list ts
+#### /ui/index/jibb index-view-helper
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |=(~ (todos.todo same))
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    (title "My ship")
+    island main.todo-list ts
+
+++ title |= words=@t
+  heading 1 words
+#### /ui/index/jibb index-unused-helper
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |=(~ (todos.todo same))
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list ts
+
+++ count |= ts=(list item.todo)
+  (lent ts)
+#### /ui/index/jibb index-pure-load
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |=(~ (pure ~))
+
+++ view |= ts=(list item.todo)
+  column ~[pad+%s3] ~[
+    heading 1 "My ship"
+    island main.todo-list ts
+#### /ui/index/jibb index-mapped-reply
+/=  todo  /ui/api/todo
+
+++ main (page load view)
+++ load |=(~ (todos.todo lent))
+
+++ view |= n=@ud
+  text "{n} todos"
+#### /ui/index/jibb index-typed-load
+/=  todo  /ui/api/todo
+
+++ main (page load view)
+++ load |=(~ (todo-by-id.todo 1 same))
+
+++ view |= t=item.todo
+  text text.t
+#### /ui/about/jibb about-reorder
+++ view
+  column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
+    heading 1 "About this ship"
+    para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
+    el ~[tone+%accent] (link %/blog "Read the blog")
+
+++ main view
+#### /ui/about/jibb about-inline
+++ main
+  column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
+    heading 1 "About this ship"
+    para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
+    el ~[tone+%accent] (link %/blog "Read the blog")
+#### /ui/about/jibb about-helper
+++ main view
+
+++ view
+  column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
+    heading 1 "About this ship"
+    intro
+    el ~[tone+%accent] (link %/blog "Read the blog")
+
+++ intro
+  para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
+#### /ui/about/jibb about-rename
+++ main body
+
+++ body
+  column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
+    heading 1 "About this ship"
+    para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
+    el ~[tone+%accent] (link %/blog "Read the blog")
+#### /ui/blog/index/jibb blog-reorder
+/-  blog
+/=  api   /ui/api/blog
+/=  card  /ui/components/card
+
+++ view |= ps=(list post.blog)
+  column ~[gap+%s2] (turn ps card.card)
+
+++ load |=(~ (posts.api same))
+++ main (page load view)
+#### /ui/blog/index/jibb blog-rename
+/-  blog
+/=  api   /ui/api/blog
+/=  card  /ui/components/card
+
+++ main (page load view)
+++ load |=(~ (posts.api same))
+
+++ view |= items=(list post.blog)
+  column ~[gap+%s2] (turn items card.card)
+#### /ui/blog/index/jibb blog-inline-card
+/-  blog
+/=  api   /ui/api/blog
+/=  card  /ui/components/card
+
+++ main (page load view)
+++ load |=(~ (posts.api same))
+
+++ view |= ps=(list post.blog)
+  column ~[gap+%s2] (turn ps |=(p=post.blog (text title.p)))
+#### /ui/blog/index/jibb blog-inline-card-bare
+/-  blog
+/=  api   /ui/api/blog
+/=  card  /ui/components/card
+
+++ main (page load view)
+++ load |=(~ (posts.api same))
+
+++ view |= ps=(list post.blog)
+  column ~[gap+%s2] (turn ps |=(p (text title.p)))
+#### /ui/blog/index/jibb blog-local-helper
+/-  blog
+/=  api   /ui/api/blog
+/=  card  /ui/components/card
+
+++ main (page load view)
+++ load |=(~ (posts.api same))
+
+++ view |= ps=(list post.blog)
+  column ~[gap+%s2] (turn ps show)
+
+++ show |= p=post.blog
+  (card.card p)
+#### /ui/theme/jibb theme-no-font
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    zone="UTC"
+    font=~
+    dark=`[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+#### /ui/theme/jibb theme-helper-value
+++ theme  ^- theme
+  [ space=[s1="4px" s2="8px" s3="16px"]
+    tones=[normal="#222" background="#fff" accent=accent danger="#b3261e" muted="#5f5f5f"]
+    wide="60rem"
+    lang="en"
+    zone="UTC"
+    font=`%/static/fonts/inter.woff2
+    dark=`[tones=[normal="#eee" background="#111" accent="#4c9" danger="#f28b82" muted="#aaa"]]
+
+++ accent "#17734f"
+#### /ui/components/buttons/jibb buttons-reorder
+++ wide  ^- (list attr)
+  ~[width+[%fill 1] pad+%s2]
+++ labelled |= [label=@t msg=M]
+  button label msg
+++ add-button |= label=@t
+  button label %add
+#### /ui/components/buttons/jibb buttons-fixed
++$ add-msg %add
+++ add-button |= label=@t
+  ^- (element add-msg) (button label %add)
+++ labelled |= [label=@t msg=M]
+  button label msg
+++ wide  ^- (list attr)
+  ~[width+[%fill 1] pad+%s2]
+#### /ui/components/buttons/jibb buttons-labelled-use
+++ labelled |= [label=@t msg=M]
+  button label msg
+++ wide  ^- (list attr)
+  ~[width+[%fill 1] pad+%s2]
++$ go-msg %go
+++ go-button ^- (element go-msg) (labelled "Go" %go)
+#### /ui/step/jibb step-reorder
+++ describe |= s=step
+  ?- s
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+    %stop             "stop"
+
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+#### /ui/step/jibb step-arm-order
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+
+++ describe |= s=step
+  ?- s
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+    %stop             "stop"
+    [%move %left n]   "left {n}"
+#### /ui/step/jibb step-catch-all
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+
+++ describe |= s=step
+  ?- s
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+    *                 "other"
+#### /ui/step/jibb step-rename
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+
+++ describe |= x=step
+  ?- x
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+    %stop             "stop"
+#### /ui/step/jibb step-sent-star
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+
+++ describe |= s=step
+  ?- s
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent *]       t
+    %stop             "stop"
+#### /ui/step/jibb step-stop-crash
++$ step
+  [%move %left n=@ud]
+  [%move %right n=@ud]
+  [text=@t %draft]
+  [text=@t %sent at=@da]
+  %stop
+
+++ describe |= s=step
+  ?- s
+    [%move %left n]   "left {n}"
+    [%move %right n]  "right {n}"
+    [t %draft]        t
+    [t %sent sent-at] t
+    %stop             !!
+#### /ui/view-day/jibb viewday-swap
+++ view |= [n=@ud day=@da]
+  column ~[gap+%s1] ~[
+    (text "Updated {day}")     ::  day printed as a date
+    (text "{n} items")         ::  n printed as @ud
+#### /ui/view-day/jibb viewday-add
+++ view |= [day=@da n=@ud]
+  column ~[gap+%s1] ~[
+    (text "Updated {day}")     ::  day printed as a date
+    (text "{n} items")
+    (text "{(add n 1)} next")         ::  n printed as @ud
+#### /ui/view-day/jibb viewday-generic-sum
+++ total
+  text "{(add 1 2)}"
+#### /ui/imports/jibb imports-use
+/-  todo                         ::  the molds from /sur/todo.hoon this module uses
+/%  %todo-action                 ::  a mark's type, named todo-action
+/=  card    /ui/components/card  ::  a Jibb module
+
+++ first |= i=item.todo
+  text.i
+++ show card.card
+++ act |= a=todo-action a
