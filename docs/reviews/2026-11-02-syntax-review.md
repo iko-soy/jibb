@@ -6,6 +6,20 @@ How it was done: five reviewers each read the spec, the prelude, the example des
 
 This review does not restate the language rulings that [the repository review](2026-11-02-questions.md) raised (questions 16 to 28, now listed in [open-questions.md](../open-questions.md) under "Review rulings waiting for @iko"). Where a proposal extends one of them, it says so. Proposals here are numbered S1 to S15 so they don't collide with those numbers. "Review question N" means a question in that file, and "open question N" means item N of [open-questions.md](../open-questions.md).
 
+## Outcome, 2026-11-03
+
+Montelot decided ten of the proposals on 2026-11-03, and they were built the same day. [decisions.md](../spec/decisions.md) has a row for each, dated 2026-11-03, and [prompts/syntax-review-follow-up.md](../prompts/syntax-review-follow-up.md) lists what is left.
+
+| # | Decision | Built |
+| --- | --- | --- |
+| S1 | Not as proposed: an explicit `unface` that strips every face from a type, reserved like `proj`, instead of ignoring sample names when gates unify. Step 1 too: a capital binds only the type under a face | `unface` yes; step 1 waits for the checker core of review question 5 |
+| S2 | Yes, and a `?-` that begins a body's final line may also take its arms at its own depth, without indenting them | Yes |
+| S4, S5, S6, S7 | Yes | Yes, with gaps listed in the follow-up prompt |
+| S11, S12, S13, S15 | Yes; S12's prelude rewrite waits for a checker that types nested patterns | Yes |
+| S3, S8, S9, S10, S14 | Not decided | No |
+
+The sections below are the review as written on 2026-11-02, before these decisions.
+
 ## Summary
 
 - **The syntax is in good shape.** Open brackets without closers, tightness as the one disambiguator, one exhaustive `?-`, named unions, `|=%tag` constructors and named changes all read well, and nearly every slip the reviewers tried gets an error at the right character. The [keep list](#what-to-keep) says what not to change.
