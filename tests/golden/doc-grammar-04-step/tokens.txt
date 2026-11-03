@@ -46,40 +46,39 @@
 9:3 INDENT
 9:3 glyph ?-
 9:6 name s
-10:5 INDENT
-10:5 glyph [
-10:6 tight lit %move
-10:12 lit %left
-10:18 name n
-10:19 tight glyph ]
-10:23 str-head "left "
-10:30 tight name n
-10:31 tight str-tail ""
-11:5 NEWLINE
-11:5 glyph [
-11:6 tight lit %move
-11:12 lit %right
-11:19 name n
-11:20 tight glyph ]
-11:23 str-head "right "
-11:31 tight name n
-11:32 tight str-tail ""
-12:5 NEWLINE
-12:5 glyph [
-12:6 tight name t
-12:8 lit %draft
-12:14 tight glyph ]
-12:23 name t
-13:5 NEWLINE
-13:5 glyph [
-13:6 tight name t
-13:8 lit %sent
-13:14 name sent-at
-13:21 tight glyph ]
-13:23 name t
-14:5 NEWLINE
-14:5 lit %stop
-14:23 str "stop"
-14:29 DEDENT
-14:29 DEDENT
-14:29 NEWLINE
+10:3 NEWLINE
+10:3 glyph [
+10:4 tight lit %move
+10:10 lit %left
+10:16 name n
+10:17 tight glyph ]
+10:21 str-head "left "
+10:28 tight name n
+10:29 tight str-tail ""
+11:3 NEWLINE
+11:3 glyph [
+11:4 tight lit %move
+11:10 lit %right
+11:17 name n
+11:18 tight glyph ]
+11:21 str-head "right "
+11:29 tight name n
+11:30 tight str-tail ""
+12:3 NEWLINE
+12:3 glyph [
+12:4 tight name t
+12:6 lit %draft
+12:12 tight glyph ]
+12:21 name t
+13:3 NEWLINE
+13:3 glyph [
+13:4 tight name t
+13:6 lit %sent
+13:12 name sent-at
+13:19 tight glyph ]
+13:21 name t
+14:3 NEWLINE
+14:3 lit %stop
+14:21 str "stop"
+14:27 DEDENT
+14:27 NEWLINE

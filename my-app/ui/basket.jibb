@@ -16,11 +16,11 @@
 
 ++ update |= [=msg m=model]
   ?- msg
-    [%noted t]     [m(note=t) ~]
-    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
-    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
-    [%got c]       [m(cart=c) ~]
-    [%acked err]   [m ~]
+  [%noted t]     [m(note=t) ~]
+  %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+  %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+  [%got c]       [m(cart=c) ~]
+  [%acked err]   [m ~]
 
 ++ subs |= m=model
   ~[[%watch (state.cart |=%got)]]

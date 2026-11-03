@@ -469,14 +469,14 @@ A `page`: each request scries `%blog` and renders in Nock.
 
 ++ update |= [=msg m=model]
   ?- msg
-    [%typed t]
-      ?- (gth (lent (tuba (trip t))) 80)
-        %.y  [m(draft=t error=`"Too long") ~]
-        %.n  [m(draft=t error=~) ~]
-    %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
-    [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
-    [%got ts]      [m(todos=ts) ~]
-    [%acked err]   [m(error=err) ~]
+  [%typed t]
+    ?- (gth (lent (tuba (trip t))) 80)
+    %.y  [m(draft=t error=`"Too long") ~]
+    %.n  [m(draft=t error=~) ~]
+  %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+  [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
+  [%got ts]      [m(todos=ts) ~]
+  [%acked err]   [m(error=err) ~]
 
 ++ subs |= m=model
   ~[[%watch (todos.todo |=%got)]]

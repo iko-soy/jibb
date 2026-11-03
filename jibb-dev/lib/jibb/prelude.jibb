@@ -8,16 +8,16 @@
 
 ++ head |= p=[A B]
   ?- p
-    [a b] a
+  [a b] a
 
 ++ tail |= p=[A B]
   ?- p
-    [a b] b
+  [a b] b
 
 ++ not |= b=?
   ?- b
-    %.y %.n
-    %.n %.y
+  %.y %.n
+  %.n %.y
 
 ++ eq |= args=[A A] (eq-data.internal args)
 
@@ -31,31 +31,29 @@
 
 ++ fall |= args=[(unit A) A]
   ?- args
-    [maybe fallback]
-      ?- maybe
-        ~ fallback
-        [~ value] value
+  [maybe fallback]
+    ?- maybe
+    ~ fallback
+    [~ value] value
 
 ++ need |= maybe=(unit A)
   ?- maybe
-    ~ !!
-    [~ value] value
+  ~ !!
+  [~ value] value
 
 ++ weld |= args=[(list A) (list A)]
   ?- args
-    [xs ys]
-      ^- (list A)
-        ?- xs
-          ~ ys
-          [item rest] [item (weld rest ys)]
+  [xs ys] ^- (list A)
+    ?- xs
+    ~ ys
+    [item rest] [item (weld rest ys)]
 
 ++ turn |= args=[(list A) $-(A B)]
   ?- args
-    [xs f]
-      ^- (list B)
-        ?- xs
-          ~ ~
-          [item rest] [(f item) (turn rest f)]
+  [xs f] ^- (list B)
+    ?- xs
+    ~ ~
+    [item rest] [(f item) (turn rest f)]
 
 +$ dime [p=@ta q=@]
 
@@ -104,17 +102,16 @@
 +$ like |$ [A] [p=hair q=(unit [p=A q=nail])]
 
 ++ like |= [f=$-(A B) result=(like A)]
-  ++ mapped
-    ^- (unit [p=B q=nail])
-      ?- q.result
-        ~ ~
-        [~ value] `[p=(f p.value) q=q.value]
+  ++ mapped ^- (unit [p=B q=nail])
+    ?- q.result
+    ~ ~
+    [~ value] `[p=(f p.value) q=q.value]
   ^- (like B) [p=p.result q=mapped]
 
 ++ wonk |= veq=(like A)
   ?- q.veq
-    ~ !!
-    [~ product] p.product
+  ~ !!
+  [~ product] p.product
 
 +$ lone |$ [A] [p=A]
 
@@ -143,214 +140,209 @@
 
 ++ snoc |= args=[(list A) A]
   ?- args
-    [xs item] (weld xs [item ~])
+  [xs item] (weld xs [item ~])
 
 ++ flop |= xs=(list A)
   ++ reverse-into |= args=[(list A) (list A)]
     ?- args
-      [rest acc]
-        ?- rest
-          ~ acc
-          [item more] (reverse-into more [item acc])
+    [rest acc]
+      ?- rest
+      ~ acc
+      [item more] (reverse-into more [item acc])
   (reverse-into xs ~)
 
-++ drop |= maybe=(unit A)
-  ^- (list A)
-    ?- maybe
-      ~ ~
-      [~ value] [value ~]
+++ drop |= maybe=(unit A) ^- (list A)
+  ?- maybe
+  ~ ~
+  [~ value] [value ~]
 
 ++ bond |= fallback=$-(~ A)
   |= maybe=(unit A)
     ?- maybe
-      ~ (fallback ~)
-      [~ value] value
+    ~ (fallback ~)
+    [~ value] value
 
 ++ bind |= args=[(unit A) $-(A B)]
   ?- args
-    [maybe f] ^- (unit B)
-      ?- maybe
-        ~ ~
-        [~ value] `(f value)
+  [maybe f] ^- (unit B)
+    ?- maybe
+    ~ ~
+    [~ value] `(f value)
 
 ++ biff |= args=[(unit A) $-(A (unit B))]
   ?- args
-    [maybe f] ^- (unit B)
-      ?- maybe
-        ~ ~
-        [~ value] (f value)
+  [maybe f] ^- (unit B)
+    ?- maybe
+    ~ ~
+    [~ value] (f value)
 
 ++ both |= args=[(unit A) (unit B)]
   ?- args
-    [first second] ^- (unit [A B])
-      ?- first
-        ~ ~
-        [~ a]
-          ?- second
-            ~ ~
-            [~ b] `[a b]
+  [first second] ^- (unit [A B])
+    ?- first
+    ~ ~
+    [~ a]
+      ?- second
+      ~ ~
+      [~ b] `[a b]
 
 ++ clap |= args=[(unit A) (unit A) $-([A A] A)]
   ?- args
-    [first second combine] ^- (unit A)
-      ?- first
-        ~ second
-        [~ a]
-          ?- second
-            ~ first
-            [~ b] `(combine a b)
+  [first second combine] ^- (unit A)
+    ?- first
+    ~ second
+    [~ a]
+      ?- second
+      ~ first
+      [~ b] `(combine a b)
 
 ++ hunt |= args=[$-([A A] ?) (unit A) (unit A)]
   ?- args
-    [choose first second] ^- (unit A)
-      ?- first
-        ~ second
-        [~ a]
-          ?- second
-            ~ first
-            [~ b]
-              ?- (choose a b)
-                %.y first
-                %.n second
+  [choose first second] ^- (unit A)
+    ?- first
+    ~ second
+    [~ a]
+      ?- second
+      ~ first
+      [~ b]
+        ?- (choose a b)
+        %.y first
+        %.n second
 
 ++ mate |= args=[(unit A) (unit A)]
   ?- args
-    [first second] ^- (unit A)
-      ?- second
-        ~ first
-        [~ b]
-          ?- first
-            ~ second
-            [~ a]
-              ?- (eq a b)
-                %.y first
-                %.n !!
+  [first second] ^- (unit A)
+    ?- second
+    ~ first
+    [~ b]
+      ?- first
+      ~ second
+      [~ a]
+        ?- (eq a b)
+        %.y first
+        %.n !!
 
 ++ clef |= args=[(unit A) (unit B) $-([A B] (unit C))]
   ?- args
-    [first second combine] ^- (unit C)
-      ?- first
-        ~ ~
-        [~ a]
-          ?- second
-            ~ ~
-            [~ b] (combine a b)
+  [first second combine] ^- (unit C)
+    ?- first
+    ~ ~
+    [~ a]
+      ?- second
+      ~ ~
+      [~ b] (combine a b)
 
 ++ skim |= args=[(list A) $-(A ?)]
   ?- args
-    [xs predicate] ^- (list A)
-        ?- xs
-          ~ ~
-          [item rest]
-            ?- (predicate item)
-              %.y [item (skim rest predicate)]
-              %.n (skim rest predicate)
+  [xs predicate] ^- (list A)
+    ?- xs
+    ~ ~
+    [item rest]
+      ?- (predicate item)
+      %.y [item (skim rest predicate)]
+      %.n (skim rest predicate)
 
 ++ skip |= args=[(list A) $-(A ?)]
   ?- args
-    [xs predicate] ^- (list A)
-        ?- xs
-          ~ ~
-          [item rest]
-            ?- (predicate item)
-              %.y (skip rest predicate)
-              %.n [item (skip rest predicate)]
+  [xs predicate] ^- (list A)
+    ?- xs
+    ~ ~
+    [item rest]
+      ?- (predicate item)
+      %.y (skip rest predicate)
+      %.n [item (skip rest predicate)]
 
-++ levy |= args=[(list A) $-(A ?)]
-  ^- ?
-    ?- args
-      [xs predicate]
-        ?- xs
-          ~ %.y
-          [item rest]
-            ?- (predicate item)
-              %.y (levy rest predicate)
-              %.n %.n
+++ levy |= args=[(list A) $-(A ?)] ^- ?
+  ?- args
+  [xs predicate]
+    ?- xs
+    ~ %.y
+    [item rest]
+      ?- (predicate item)
+      %.y (levy rest predicate)
+      %.n %.n
 
-++ lien |= args=[(list A) $-(A ?)]
-  ^- ?
-    ?- args
-      [xs predicate]
-        ?- xs
-          ~ %.n
-          [item rest]
-            ?- (predicate item)
-              %.y %.y
-              %.n (lien rest predicate)
+++ lien |= args=[(list A) $-(A ?)] ^- ?
+  ?- args
+  [xs predicate]
+    ?- xs
+    ~ %.n
+    [item rest]
+      ?- (predicate item)
+      %.y %.y
+      %.n (lien rest predicate)
 
 ++ roll |= args=[(list A) B $-([A B] B)]
   ?- args
-    [xs start combine]
-      ?- xs
-        ~ start
-        [item rest] (roll rest (combine item start) combine)
+  [xs start combine]
+    ?- xs
+    ~ start
+    [item rest] (roll rest (combine item start) combine)
 
 ++ reel |= args=[(list A) B $-([A B] B)]
   ?- args
-    [xs start combine]
-      ?- xs
-        ~ start
-        [item rest] (combine item (reel rest start combine))
+  [xs start combine]
+    ?- xs
+    ~ start
+    [item rest] (combine item (reel rest start combine))
 
 ++ flit |= predicate=$-(A ?)
-  |= value=A
-    ^- (unit A)
-      ?- (predicate value)
-        %.y `value
-        %.n ~
+  |= value=A ^- (unit A)
+    ?- (predicate value)
+    %.y `value
+    %.n ~
 
 ++ murn |= args=[(list A) $-(A (unit B))]
   ?- args
-    [xs f] ^- (list B)
-        ?- xs
-          ~ ~
-          [item rest]
-            ?- (f item)
-              ~ (murn rest f)
-              [~ value] [value (murn rest f)]
+  [xs f] ^- (list B)
+    ?- xs
+    ~ ~
+    [item rest]
+      ?- (f item)
+      ~ (murn rest f)
+      [~ value] [value (murn rest f)]
 
 ++ join |= args=[A (list A)]
   ?- args
-    [separator xs] ^- (list A)
-        ?- xs
-          ~ ~
-          [item rest]
-            ?- rest
-              ~ [item ~]
-              [next more] [item [separator (join separator rest)]]
-
-++ snip |= xs=(list A)
-  ^- (list A)
+  [separator xs] ^- (list A)
     ?- xs
-      ~ ~
-      [item rest]
-        ?- rest
-          ~ ~
-          [next more] [item (snip rest)]
+    ~ ~
+    [item rest]
+      ?- rest
+      ~ [item ~]
+      [next more] [item [separator (join separator rest)]]
+
+++ snip |= xs=(list A) ^- (list A)
+  ?- xs
+  ~ ~
+  [item rest]
+    ?- rest
+    ~ ~
+    [next more] [item (snip rest)]
 
 ++ rear |= xs=(list A)
   ?- xs
-    ~ !!
-    [item rest]
-      ?- rest
-        ~ item
-        [next more] (rear rest)
+  ~ !!
+  [item rest]
+    ?- rest
+    ~ item
+    [next more] (rear rest)
 
 ++ cork |= gates=[$-(A B) $-(B C)]
   ?- gates
-    [f g] |= x=A (g (f x))
+  [f g] |= x=A (g (f x))
 
 ++ corl |= gates=[$-(B C) $-(A B)]
   ?- gates
-    [f g] |= x=A (f (g x))
+  [f g] |= x=A (f (g x))
 
 ++ cury |= args=[$-([A B] C) A]
   ?- args
-    [f a] |= b=B (f a b)
+  [f a] |= b=B (f a b)
 
 ++ curr |= args=[$-([A B] C) B]
   ?- args
-    [f b] |= a=A (f a b)
+  [f b] |= a=A (f a b)
 
 +$ cmd |$ [M]
   [%poke p=raw-poke reply=$-((unit @t) M)]
@@ -373,29 +365,27 @@
   [%url reply=$-(path M)]
 
 ::  Count a finite list with the source-backed addition gate.
-++ lent |= xs=(list A)
-  ^- @ud
-    ?- xs
-      ~ 0
-      [item rest] (add 1 (lent rest))
+++ lent |= xs=(list A) ^- @ud
+  ?- xs
+  ~ 0
+  [item rest] (add 1 (lent rest))
 
 ++ lth |= args=[A A]
   ?- args
-    [x y] (gth y x)
+  [x y] (gth y x)
 
 ++ gte |= args=[A A]
   ?- args
-    [x y] (not (gth y x))
+  [x y] (not (gth y x))
 
 ++ lte |= args=[A A]
   ?- args
-    [x y] (not (gth x y))
+  [x y] (not (gth x y))
 
-++ zing |= xss=(list (list A))
-  ^- (list A)
-    ?- xss
-      ~ ~
-      [xs rest] (weld xs (zing rest))
+++ zing |= xss=(list (list A)) ^- (list A)
+  ?- xss
+  ~ ~
+  [xs rest] (weld xs (zing rest))
 
 ++ lead |= first=A |= second=B [first second]
 ++ late |= second=B |= first=A [first second]

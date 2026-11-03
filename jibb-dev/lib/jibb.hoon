@@ -810,7 +810,9 @@
 ::      (value 8:1 init
 ::        (cast 8:9
 ::          (ref 8:12 state)
-::          (tuple 8:18 (lit 8:19 ~) (lit 8:21 %.n))))
+::          (tuple 8:18
+::            (face 8:19 items (lit 8:25 ~))
+::            (face 8:27 open (lit 8:32 %.n)))))
 ::      (value 9:1 update
 ::        (gate 9:11
 ::          (cell 9:14
@@ -819,17 +821,17 @@
 ::          (body 10:3
 ::            (branch 10:3
 ::              (wing 10:6 a)
-::              (arm 11:5
-::                (cell 11:5 (lit 11:6 %add) (bind 11:11 item))
-::                (change 11:18 s
-::                  (edit 11:20 items
-::                    (tuple 11:26 (wing 11:27 item) (wing 11:32 items.s)))))
-::              (arm 12:5
-::                (lit 12:5 %toggle)
-::                (change 12:18 s
-::                  (edit 12:20 open
-::                    (group 12:25
-::                      (call 12:26 (wing 12:26 not) (wing 12:30 open.s)))))))))))
+::              (arm 11:3
+::                (cell 11:3 (lit 11:4 %add) (bind 11:9 item))
+::                (change 11:16 s
+::                  (edit 11:18 items
+::                    (tuple 11:24 (wing 11:25 item) (wing 11:30 items.s)))))
+::              (arm 12:3
+::                (lit 12:3 %toggle)
+::                (change 12:16 s
+::                  (edit 12:18 open
+::                    (group 12:23
+::                      (call 12:24 (wing 12:24 not) (wing 12:28 open.s)))))))))))
 ::
 ::  4.3 Errors (+show-error): "<file>:<line>:<col>: <message>", then the
 ::  source line, then a caret under the column (col - 1 spaces, then ^).
@@ -840,9 +842,9 @@
 ::  prints as a space, so the caret stays under its column and golden
 ::  files hold no raw control bytes.
 ::
-::    /ui/basket.jibb:22:5: msg has no case %submitt
-::        %submitt       [m(note="") ~]
-::        ^
+::    /ui/basket.jibb:22:3: msg has no case %submitt
+::      %submitt       [m(note="") ~]
+::      ^
 ::
 |%
 +|  %positions

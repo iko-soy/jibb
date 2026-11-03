@@ -10,7 +10,7 @@ The syntax the compiler accepts.
 - **Layout tokens**: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE.
 - **Open brackets**: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual. A mold's `[` and `(` open the same way, with one field or mold per deeper line. A line may leave several brackets open: the deeper lines go to the last one, or to the body of the last rune, and the others close with it, so `(column ~ ~[` above its items needs no `)`. On the opener's line, spaces separate items, so `~[text "a"` holds two items. In an expression's open bracket each deeper line is one whole item: `text "a"` there is `(text "a")`, `label=trim " x "` is `label=(trim " x ")`, and under a `(` alone the first deeper line is the head. A mold's open bracket takes exactly one field or mold per deeper line.
 - **Tight forms**: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`.
-- **Spacing**: one space between items; more for alignment. That is style, which the formatter keeps: the parser takes one or more spaces between items, and allows spaces after an opener, before a closer and at the end of a line. Faces `name=value`, puns `=name` and typed path segments `[id=@ud]` take no spaces, and a rune is followed by one.
+- **Spacing**: one space between items; more for alignment. That is style, which the formatter keeps: the parser takes one or more spaces between items, and allows spaces after an opener, before a closer and at the end of a line. Faces `name=value`, puns `=name` and typed path segments `[id=@ud]` take no spaces, and a rune is followed by one. The formatter puts a cast whose expression takes the deeper lines at the end of the line it belongs to, the `|=`, `++` or arm line, and a cast whose expression fits on its own line on the line below with it. It starts every `?-` on its own line, below the line it belongs to, with its arms at its depth where the rest of a body allows that, and one level deeper on an open bracket's line.
 - **Comments**: `::` to the end of the line, outside strings; inside a string, `::` is text.
 - **Names**: Hoon terms; lowercase letters, digits and hyphens, starting with a letter.
 - **Type variables**: a capital, then lowercase letters and digits: `A`, `Msg`, `T2`. `AB`, `MSG`, `Msg_x` and `Msg-x` are errors. In a mold, a capitalized name is a type variable and a lowercase name is a mold: the reverse of Elm, where `Msg` is a concrete type and `msg` a type variable.
@@ -223,11 +223,11 @@ Tags can sit anywhere in a case, and a case can carry several:
 
 ++ describe |= s=step
   ?- s
-    [%move %left n]   "left {n}"
-    [%move %right n]  "right {n}"
-    [t %draft]        t
-    [t %sent sent-at] t
-    %stop             "stop"
+  [%move %left n]   "left {n}"
+  [%move %right n]  "right {n}"
+  [t %draft]        t
+  [t %sent sent-at] t
+  %stop             "stop"
 ```
 
 Leaving out `%stop` is an error naming it; to crash instead, write `%stop !!`.
@@ -322,8 +322,8 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
 ++ init ^- state [items=~ open=%.n]
 ++ update |= [a=poke s=state]
   ?- a
-    [%add item]  s(items=[item items.s])
-    %toggle      s(open=(not open.s))
+  [%add item]  s(items=[item items.s])
+  %toggle      s(open=(not open.s))
 ```
 
 ```jibb
@@ -345,11 +345,11 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
 
 ++ update |= [=msg m=model]
   ?- msg
-    [%noted t]     [m(note=t) ~]
-    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
-    %toggle        [m ~[(poke.cart %toggle |=%acked)]]
-    [%got c]       [m(cart=c) ~]
-    [%acked err]   [m ~]
+  [%noted t]     [m(note=t) ~]
+  %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+  %toggle        [m ~[(poke.cart %toggle |=%acked)]]
+  [%got c]       [m(cart=c) ~]
+  [%acked err]   [m ~]
 
 ++ subs |= m=model
   ~[[%watch (state.cart |=%got)]]
