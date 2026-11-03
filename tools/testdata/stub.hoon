@@ -12,7 +12,9 @@
 ::    crash  crashes in +explode, under a ~| trace; mule catches it
 ::    bail   asks for a 3 GB atom, which ends the whole eval, as running
 ::           out of memory does; mule can't catch it
-::    loop   never returns, for testing timeouts
+::    loop   never returns, for testing timeouts; +spin is built without
+::           debug hints, which would keep each call's frame, so it
+::           runs in constant memory and the eval can't run out first
 ::
 ::  tools/testdata/selftest also copies this file with errors put in, to
 ::  test that errors are reported at the right lines.
@@ -69,6 +71,7 @@
   $(lines t.lines, n +(n))
 ::
 ++  spin
+  !.
   |=  n=@ud
   ^-  @t
   $(n +(n))
