@@ -77,16 +77,15 @@ It matches each labelled block to the case whose `source.jibb` is the block's te
 Each `tests/lib/<suite>.hoon` file is a test suite: a core whose `test-` arms return a `tang`, empty when the arm passes. `tools/ship test` runs every suite on the fake ship with the `-test` thread. `tools/test-arms` runs the same arms under `urbit eval`, without a ship, for every suite but the generated `jibb.hoon`, whose golden cases `tools/golden` runs. It gives each suite the subject Ford would give it on the `jibb-dev` desk: its `/+` libraries and its `/*` files, which must be `%txt` or `%jibb` files, from where `tools/ship assemble` puts them. Like `tools/golden`, it needs `urbit` on PATH and Python 3.
 
 ```
-tools/test-arms                              # the my-app copies, then every suite
+tools/test-arms                              # every suite
 tools/test-arms jibb-store 'jibb-program-*'  # suites by name or glob
 tools/test-arms --shard 2/4                  # the second of four shards, balanced by measured cost
 tools/test-arms --list                       # the suites and their arms; ", report" marks a golden report
 tools/test-arms --report jibb-import         # print a golden-report suite's report
 tools/test-arms --update jibb-import         # write it to the suite's expected file
-tools/test-arms --copies                     # only the my-app copies
 ```
 
-Many suites share one eval, so the library is built once per eval, not once per suite. Each arm runs under `mule` and prints OK, FAILED or CRASHED, as `-test` does, with what it returned or, for a crash, its trace mapped to lines of the suite and the library. When an eval fails, it is run again one suite at a time, and each suite that doesn't build is reported as `FAILED <suite> (build)`, with its error placed in the suite file. An eval that runs past `--timeout`, 1800 s by default, fails each of its suites as `(timeout)`. The exit status is 0 when every arm passes, 1 when an arm, a golden file or a `my-app` copy fails, and 2 when the suites can't run, for example on a usage error or a suite header it can't read. `tools/check` runs the suites in four shards, `arms-1` to `arms-4`.
+Many suites share one eval, so the library is built once per eval, not once per suite. Each arm runs under `mule` and prints OK, FAILED or CRASHED, as `-test` does, with what it returned or, for a crash, its trace mapped to lines of the suite and the library. When an eval fails, it is run again one suite at a time, and each suite that doesn't build is reported as `FAILED <suite> (build)`, with its error placed in the suite file. An eval that runs past `--timeout`, 1800 s by default, fails each of its suites as `(timeout)`. The exit status is 0 when every arm passes, 1 when an arm or a golden file fails, and 2 when the suites can't run, for example on a usage error or a suite header it can't read. `tools/check` runs the suites in four shards, `arms-1` to `arms-4`.
 
 A golden-report suite has a `report` arm and a `/*` file bound to the face `expected`; when one of its arms fails, the runner prints a diff between that file and the report. Before any eval, the runner checks the golden files of the suites it runs, the `%txt` files bound to a face containing `expected`: each must end in exactly one newline, which an arm can't see in the file's wain, and hold no line that starts `BAD ` or ends `: BAD`. `--update` won't write a report that breaks either rule.
 

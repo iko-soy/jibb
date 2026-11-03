@@ -7,7 +7,7 @@ The current full-module checker also has a narrow static/data-page slice, docume
 | File | What it holds |
 | --- | --- |
 | [spec/](spec/) | The doc's tabs, as Markdown, with decisions the doc doesn't have yet; until the doc is synced, this copy is the spec |
-| [status.md](status.md) | The eight milestones, what milestone 1 built, and how to check it |
+| [status.md](status.md) | The eight milestones, what Jibb does now with the test that proves each part, and the known gaps |
 | [open-questions.md](open-questions.md) | Questions still open: the plan's, the grammar's, and those milestone 2 raises |
 | [development.md](development.md) | Setting up a machine, the ground rules, the checks to run before pushing |
 | [compiler.md](compiler.md) | A map of `jibb-dev/lib/jibb.hoon`: its API, data, errors and printed formats |
