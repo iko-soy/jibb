@@ -1,0 +1,6 @@
+++ lt-a |= [a=@ud b=@ud] (gth b a)
+++ gates ~[lt-a]
+++ alias unface
+++ mapped (turn gates unface)
+++ wrapped (turn gates |=(g (unface g)))
+++ typed (turn gates |=(g=$-([a=@ud b=@ud] ?) (unface g)))

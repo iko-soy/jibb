@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Modules: "`proj` and `unface` are reserved: no module can define, import or bind either, as a value or a mold"
+tests: A branch pattern cannot bind unface.
+expect: parses
+expect-types: a partial inference report: the module has conflicting names

@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "Like `proj`, it is an operation the checker handles by type, not a gate"
+tests: unface on a type not yet known, a sample with no mold, would wait as wing access does; the partial checker reports it as unsupported, as it does field access, and a sample with a mold infers.
+expect: parses
+expect-types: a partial inference report: the untyped sample is unsupported

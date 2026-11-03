@@ -1,0 +1,3 @@
+++ lt-a |= [a=@ud b=@ud] (gth b a)
+++ two (unface lt-a lt-a)
+++ none (unface)

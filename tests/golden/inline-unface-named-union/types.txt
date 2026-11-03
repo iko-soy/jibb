@@ -1,0 +1,8 @@
+partial inference; module not checked
++$ msg: cases proven disjoint; mold not checked
+++ update: $-([msg=msg n=@ud] @ud)
+++ update-u: $-([msg @ud] @ud)
+++ direct: @ud
+++ run: $-($-([msg @ud] @ud) @ud)
+++ ran: @ud
+++ tagged: msg

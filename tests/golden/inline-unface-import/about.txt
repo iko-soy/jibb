@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type" and "A `++` whose body is `(unface |= …)` is still a gate, so it can call itself"
+tests: An imported module, checked in full, exports unfaced gates and records, a recursive one included, and the importer uses them with their unfaced types.
+expect: parses
+expect-types: a partial inference report

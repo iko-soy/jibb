@@ -1,0 +1,98 @@
+(module
+  (value 1:1 weld2
+    (group 1:10
+      (call 1:11
+        (wing 1:11 unface)
+        (gate 2:3
+          (cell 2:6
+            (face 2:7 xs
+              (apply 2:10 list (tvar 2:16 A)))
+            (face 2:19 ys
+              (apply 2:22 list (tvar 2:28 A))))
+          (cast 2:32
+            (apply 2:35 list (tvar 2:41 A))
+            (body 3:5
+              (branch 3:5
+                (wing 3:8 xs)
+                (arm 4:7 (lit 4:7 ~) (wing 4:9 ys))
+                (arm 5:7
+                  (cell 5:7 (bind 5:8 item) (bind 5:13 rest))
+                  (tuple 5:19
+                    (wing 5:20 item)
+                    (group 5:25
+                      (call 5:26 (wing 5:26 weld2) (wing 5:32 rest) (wing 5:37 ys))))))))))))
+  (value 6:1 joined
+    (group 6:11
+      (call 6:12
+        (wing 6:12 weld2)
+        (list 6:18 (lit 6:20 1))
+        (list 6:23 (lit 6:25 2)))))
+  (value 7:1 even
+    (group 7:9
+      (call 7:10
+        (wing 7:10 unface)
+        (gate 8:3
+          (face 8:6 n (aura 8:8 @ud))
+          (cast 8:12
+            (flag 8:15)
+            (body 9:5
+              (branch 9:5
+                (group 9:8
+                  (call 9:9 (wing 9:9 eq) (wing 9:12 n) (lit 9:14 0)))
+                (arm 10:7 (lit 10:7 %.y) (lit 10:11 %.y))
+                (arm 11:7
+                  (lit 11:7 %.n)
+                  (group 11:11
+                    (call 11:12
+                      (wing 11:12 odd)
+                      (group 11:16
+                        (call 11:17 (wing 11:17 dec) (wing 11:21 n)))))))))))))
+  (value 12:1 odd
+    (group 12:8
+      (call 12:9
+        (wing 12:9 unface)
+        (gate 13:3
+          (face 13:6 n (aura 13:8 @ud))
+          (cast 13:12
+            (flag 13:15)
+            (body 14:5
+              (branch 14:5
+                (group 14:8
+                  (call 14:9 (wing 14:9 eq) (wing 14:12 n) (lit 14:14 0)))
+                (arm 15:7 (lit 15:7 %.y) (lit 15:11 %.n))
+                (arm 16:7
+                  (lit 16:7 %.n)
+                  (group 16:11
+                    (call 16:12
+                      (wing 16:12 even)
+                      (group 16:17
+                        (call 16:18 (wing 16:18 dec) (wing 16:22 n)))))))))))))
+  (value 17:1 outer
+    (gate 17:10
+      (face 17:13 n (aura 17:15 @ud))
+      (body 18:3
+        (value 18:3 count
+          (group 18:12
+            (call 18:13
+              (wing 18:13 unface)
+              (gate 19:5
+                (cell 19:8
+                  (face 19:9 a (aura 19:11 @ud))
+                  (face 19:15 b (aura 19:17 @ud)))
+                (cast 19:22
+                  (aura 19:25 @ud)
+                  (body 20:7
+                    (branch 20:7
+                      (group 20:10
+                        (call 20:11 (wing 20:11 eq) (wing 20:14 a) (lit 20:16 0)))
+                      (arm 21:9 (lit 21:9 %.y) (wing 21:13 b))
+                      (arm 22:9
+                        (lit 22:9 %.n)
+                        (group 22:13
+                          (call 22:14
+                            (wing 22:14 count)
+                            (group 22:20
+                              (call 22:21 (wing 22:21 dec) (wing 22:25 a)))
+                            (wing 22:28 b)))))))))))
+        (group 23:3
+          (call 23:4 (wing 23:4 count) (wing 23:10 n) (lit 23:12 1)))))))

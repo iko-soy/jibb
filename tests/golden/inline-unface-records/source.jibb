@@ -1,0 +1,8 @@
+++ pair-pq ^- [p=@t q=@ud] ["a" 1]
+++ take-kv |= [k=@t v=@ud] v
+++ labelled (take-kv pair-pq)
+++ unfaced (take-kv (unface pair-pq))
+++ hi-lo ^- [hi=@ud lo=@ud] [10 0]
+++ want-lo-hi |= r=[lo=@ud hi=@ud] lo.r
+++ swapped (want-lo-hi hi-lo)
+++ by-position (want-lo-hi (unface hi-lo))

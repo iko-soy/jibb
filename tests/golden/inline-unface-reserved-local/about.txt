@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Modules: "`proj` and `unface` are reserved: no module can define, import or bind either, as a value or a mold"
+tests: A local value named unface is rejected.
+expect: parses
+expect-types: a partial inference report: the module has conflicting names

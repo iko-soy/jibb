@@ -1,0 +1,18 @@
+(module
+  (value 1:1 later
+    (gate 1:10
+      (bind 1:13 f)
+      (group 1:15
+        (call 1:16 (wing 1:16 unface) (wing 1:23 f)))))
+  (value 2:1 get-label
+    (gate 2:14 (bind 2:17 r) (wing 2:19 label.r)))
+  (value 3:1 known
+    (gate 3:10
+      (face 3:13 f
+        (fn 3:15
+          (cell 3:18
+            (face 3:19 a (aura 3:21 @ud))
+            (face 3:25 b (aura 3:27 @ud)))
+          (flag 3:32)))
+      (group 3:35
+        (call 3:36 (wing 3:36 unface) (wing 3:43 f))))))

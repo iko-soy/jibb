@@ -1,0 +1,6 @@
++$ action
+  %unface
+  %other
+++ unfaced |= x=[unface=@t other=@p] unface.x
+++ tag ^- action %unface
+++ plain (unface unfaced)

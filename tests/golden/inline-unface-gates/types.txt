@@ -1,0 +1,30 @@
+partial inference; module not checked
+++ lth2: $-([x=A y=A] ?) where A is an atom
+++ lte2: $-([a=A b=A] ?) where A is an atom
+++ lt-a: $-([a=@ud b=@ud] ?)
+++ add-f: $-([a=@ud b=@ud] @ud)
+++ labelled: list items do not have compatible types
+/tests/golden/inline-unface-gates/source.jibb:5:13: expected item has type $-([x=A y=A] ?) where A is an atom
+++ labelled ~[lth2 lte2]
+            ^
+/tests/golden/inline-unface-gates/source.jibb:5:20: list item has type $-([a=A b=A] ?) where A is an atom
+++ labelled ~[lth2 lte2]
+                   ^
+++ pickers: (list $-([A A] ?)) where A is an atom
+++ hunt-labelled: call's sample and argument types do not unify
+/tests/golden/inline-unface-gates/source.jibb:7:19: called gate
+++ hunt-labelled (hunt lt-a `1 `2)
+                  ^
+/tests/golden/inline-unface-gates/source.jibb:7:24: argument has type $-([a=@ud b=@ud] ?)
+++ hunt-labelled (hunt lt-a `1 `2)
+                       ^
+++ hunt-unfaced: (unit @ud)
+++ roll-labelled: call's sample and argument types do not unify
+/tests/golden/inline-unface-gates/source.jibb:9:19: called gate
+++ roll-labelled (roll ~[1 2] 0 add-f)
+                  ^
+/tests/golden/inline-unface-gates/source.jibb:9:33: argument has type $-([a=@ud b=@ud] @ud)
+++ roll-labelled (roll ~[1 2] 0 add-f)
+                                ^
+++ roll-unfaced: @ud
+++ one-off: @ud

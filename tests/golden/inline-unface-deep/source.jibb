@@ -1,0 +1,10 @@
+++ make |= n=@ud ^- [label=@t n=@ud] ["x" n]
+++ make-u (unface make)
+++ made (make-u 1)
+++ apply |= f=$-([x=@ud y=@ud] ?) [r=(f 1 2)]
+++ apply-u (unface apply)
+++ pairs ^- (list [p=@t q=@ud]) ~[["a" 1]]
+++ pairs-u (unface pairs)
+++ maybe ^- (unit [p=@t q=@ud]) `["a" 1]
+++ maybe-u (unface maybe)
+++ same-u (unface same)

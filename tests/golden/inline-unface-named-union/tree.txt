@@ -1,0 +1,46 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (cell 3:3 (const 3:4 %sent) (const 3:10 ~))))
+  (value 4:1 update
+    (gate 4:11
+      (cell 4:14
+        (pun 4:15 msg)
+        (face 4:20 n (aura 4:22 @ud)))
+      (wing 4:27 n)))
+  (value 5:1 update-u
+    (group 5:13
+      (call 5:14 (wing 5:14 unface) (wing 5:21 update))))
+  (value 6:1 direct
+    (group 6:11
+      (call 6:12
+        (wing 6:12 update-u)
+        (tuple 6:21 (lit 6:22 %typed) (str 6:29 "x"))
+        (lit 6:34 1))))
+  (value 7:1 run
+    (gate 7:8
+      (face 7:11 f
+        (fn 7:13
+          (cell 7:16 (ref 7:17 msg) (aura 7:21 @ud))
+          (aura 7:26 @ud)))
+      (group 7:31
+        (call 7:32
+          (wing 7:32 f)
+          (tuple 7:34 (lit 7:35 %sent) (lit 7:41 ~))
+          (lit 7:44 2)))))
+  (value 8:1 ran
+    (group 8:8
+      (call 8:9
+        (wing 8:9 run)
+        (group 8:13
+          (call 8:14 (wing 8:14 unface) (wing 8:21 update))))))
+  (value 9:1 tagged
+    (cast 9:11
+      (ref 9:14 msg)
+      (group 9:18
+        (call 9:19
+          (wing 9:19 unface)
+          (tuple 9:26 (lit 9:27 %typed) (str 9:34 "x")))))))

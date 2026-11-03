@@ -4660,6 +4660,14 @@
 ::  proofs to fewer than 1,024 cells; the projection planner has a separate
 ::  4,096-step bound. These are inference limits, not language limits.
 ::
+::  `unface` is reserved with proj (+reserved-name) and is also handled by
+::  type: (unface e) has e's type with every face removed, through cells,
+::  gates and collection arguments, keeping unions and recursive molds
+::  whole (+itype-unface). It is not a value, it takes one argument, and
+::  a bare type variable is unsupported, as field access on one is. A ++
+::  whose body is (unface |= …) is a gate for recursion (+unfaced-gate).
+::  It lowers to its argument; no lowering is implemented yet.
+::
 ::  Supported API imports derive request-gate types atomically for multiple
 ::  paths, including one typed segment or one diff fold per case. Their checked
 ::  ordinary definitions, mark molds and supported poke constructor are also
@@ -4966,6 +4974,35 @@
     ?~  first  ~
     $(a tal.a, b tal.b, sub u.first)
   ~
+::
+::  +itype-unface: t with every face removed, for (unface e)
+::
+::    It strips through cells, through a gate's sample and product and
+::    through a built-in collection's arguments, the prelude's unit
+::    included, walking bound variables. Other unions and recursive
+::    molds are compared by name or by their exact cases, so stripping
+::    inside them would stop them from fitting their own name: they are
+::    kept whole. An unbound variable stays, so faces it is bound to
+::    later are kept. The unit keeps its own u=, as a list keeps i= and
+::    t= in its mold.
+::
+++  itype-unface
+  |=  [t=itype sub=isub]
+  ^-  itype
+  =.  t  (itype-walk t sub)
+  ?+  -.t  t
+    %face        $(t body.t)
+    %cell        [%cell $(t hed.t) $(t tal.t)]
+    %fn          [%fn $(t sample.t) $(t product.t)]
+    %collection  [%collection name.t (turn args.t |=(a=itype ^$(t a)))]
+    %union
+      ?.  =(origin.t `[/lib/jibb/prelude/jibb %unit])  t
+      ?.  ?=([* ~] args.t)  t
+      =/  nil=itype  [%const [%null %n 0 '~']]
+      ?.  =(cases.t ~[nil [%cell nil [%face %u i.args.t]]])  t
+      =/  arg=itype  $(t i.args.t)
+      t(cases ~[nil [%cell nil [%face %u arg]]], args ~[arg])
+  ==
 ::
 +$  igf-form  [typ=itype sub=isub left=@ud]
 +$  igf-forms  [types=(list itype) sub=isub left=@ud]
@@ -7367,12 +7404,12 @@
   ^-  isample-result
   ?-  -.s
     %bind
-      ?:  |(=(name.s %proj) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
+      ?:  |((reserved-name name.s) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=itype  [%var next.state]
       [%& t [[name.s [t ~]] env] state(next +(next.state), binders [next.state binders.state])]
     %face
-      ?:  |(=(name.s %proj) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
+      ?:  |((reserved-name name.s) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
       ?~  t  [%| "sample mold is not supported by partial inference"]
@@ -7440,7 +7477,7 @@
   |-
   ?~  ds  &
   ?:  ?=(%mold -.i.ds)  $(ds t.ds)
-  ?:  =(name.i.ds %proj)  |
+  ?:  (reserved-name name.i.ds)  |
   ?.  (unique-value-name name.i.ds names)  |
   ?:  ?=(^ (ienv-lookup name.i.ds env))  |
   ?:  (lien globals.state |=(n=term =(n name.i.ds)))  |
@@ -7464,7 +7501,7 @@
   |-
   ?~  locals  &
   =/  n=term  name.i.locals
-  ?:  =(n %proj)  |
+  ?:  (reserved-name n)  |
   ?.  (unique-value-name n names)  |
   ?:  (lien molds.state |=(m=[name=term body=shape] =(n name.m)))  |
   ?:  (lien marks.state |=(m=term =(n m)))  |
@@ -8144,7 +8181,7 @@
     [%| ["list branch pattern is not supported by partial inference" ~]]
   =/  binder=(unit [head=term tail=term])  ?:(first-empty second-name first-name)
   ?~  binder  [%| ["list branch pattern is not supported by partial inference" ~]]
-  ?:  |(=(head.u.binder %proj) =(tail.u.binder %proj) =(head.u.binder tail.u.binder) ?=(^ (ienv-lookup head.u.binder env)) ?=(^ (ienv-lookup tail.u.binder env)) (lien globals.state |=(n=term |(=(n head.u.binder) =(n tail.u.binder)))))
+  ?:  |((reserved-name head.u.binder) (reserved-name tail.u.binder) =(head.u.binder tail.u.binder) ?=(^ (ienv-lookup head.u.binder env)) ?=(^ (ienv-lookup tail.u.binder env)) (lien globals.state |=(n=term |(=(n head.u.binder) =(n tail.u.binder)))))
     [%| ["pattern binder shadows a name" ~]]
   =/  extended=ienv  [[head.u.binder [i.args.typ ~]] [tail.u.binder [typ ~]] env]
   =/  left=iresult
@@ -8181,7 +8218,7 @@
     [%| ["unit branch pattern is not supported by partial inference" ~]]
   =/  binder=(unit term)  ?:(first-empty second-name first-name)
   ?~  binder  [%| ["unit branch pattern is not supported by partial inference" ~]]
-  ?:  |(=(u.binder %proj) ?=(^ (ienv-lookup u.binder env)) (lien globals.state |=(n=term =(n u.binder))))
+  ?:  |((reserved-name u.binder) ?=(^ (ienv-lookup u.binder env)) (lien globals.state |=(n=term =(n u.binder))))
     [%| ["pattern binder shadows a name" ~]]
   =/  payload=(unit itype)  (unit-union-payload typ)
   ?~  payload  [%| ["unit branch subject is not supported by partial inference" ~]]
@@ -8288,7 +8325,7 @@
   ^-  (unit ienv)
   =.  t  ?:(?=(%face -.t) body.t t)
   ?:  ?=(%bind -.p)
-    ?:  |(=(name.p %proj) ?=(^ (ienv-lookup name.p env)) (lien globals |=(n=term =(n name.p))))  ~
+    ?:  |((reserved-name name.p) ?=(^ (ienv-lookup name.p env)) (lien globals |=(n=term =(n name.p))))  ~
     `[[name.p [t ~]] env]
   ?:  ?=(%cell -.p)  (union-pattern-bind-items items.p t env globals)
   `env
@@ -9278,6 +9315,7 @@
         [%& typ.instance state.instance]
       =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
       ?~  scheme
+        ?:  =(i.names.e %unface)  [%| (unface-value at.e)]
         ?~  prelude.state  [%| ["name is not available to partial inference" ~]]
         =/  prelude-entry=(unit ischeme)  (ienv-lookup i.names.e values.u.prelude.state)
         ?~  prelude-entry  [%| ["name is not available to partial inference" ~]]
@@ -9285,7 +9323,10 @@
         [%& typ.inst state.inst]
       =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
       [%& typ.instance state.instance]
-    %group  $(e inner.e)
+    %group
+      ?:  &(?=(%wing -.inner.e) =(names.inner.e ~[%unface]) ?=(~ (ienv-lookup %unface env)))
+        [%| ["unface takes one argument, as (unface e)" ~[[at.e "unface call"]]]]
+      $(e inner.e)
     %change
       ?~  edits.e  [%| ["a change takes at least one field" ~[[at.e "empty change"]]]]
       =/  target=iresult  $(e [%wing at.e target.e])
@@ -9429,6 +9470,7 @@
       ?~  args.e  [%| ["call has no argument" ~]]
       ?:  (explicit-proj-call e env state)
         [%| ["proj needs an expected record type" ~]]
+      ?:  (reserved-call %unface e env state)  (infer-unface e env state)
       (infer-call-with-head e env state (infer-fragment head.e env state))
     *  [%| ["expression is not supported by partial inference" ~]]
   ==
@@ -9819,6 +9861,7 @@
   ^-  iresult
   ?>  ?=(%call -.e)
   ?~  args.e  [%| ["call has no argument" ~]]
+  ?:  (reserved-call %unface e env state)  (infer-unface e env state)
   =/  head=iresult  (infer-fragment head.e env state)
   ?:  ?=(%| -.head)  head
   =/  ht=itype  (itype-walk typ.p.head sub.state.p.head)
@@ -9901,18 +9944,70 @@
     `(infer-simple-items items.e env state)
   `(width-infer-items items.e index.u.target env state context)
 ::
-::  Experimental intrinsic recognition; real bindings retain normal calls.
+::  +reserved-call: whether e calls the reserved operation n
+::
+::    Experimental intrinsic recognition; real bindings retain normal calls.
+++  reserved-call
+  |=  [n=term e=expr env=ienv state=istate]
+  ^-  ?
+  ?.  ?=(%call -.e)  |
+  ?.  ?=(%wing -.head.e)  |
+  ?.  =(names.head.e ~[n])  |
+  ?:  ?=(^ (ienv-lookup n env))  |
+  ?:  (lien globals.state |=(x=term =(x n)))  |
+  ?~  prelude.state  &
+  ?:(?=(^ (ienv-lookup n values.u.prelude.state)) | &)
 ++  explicit-proj-call
   |=  [e=expr env=ienv state=istate]
   ^-  ?
   ?.  ?=(%call -.e)  |
   ?.  ?=([* ~] args.e)  |
-  ?.  ?=(%wing -.head.e)  |
-  ?.  =(names.head.e ~[%proj])  |
-  ?:  ?=(^ (ienv-lookup %proj env))  |
-  ?:  (lien globals.state |=(n=term =(n %proj)))  |
-  ?~  prelude.state  &
-  ?:(?=(^ (ienv-lookup %proj values.u.prelude.state)) | &)
+  (reserved-call %proj e env state)
+::
+::  +infer-unface: (unface e), e's type with every face removed
+::
+::    A reserved operation handled by type, like proj. Any number of
+::    arguments is taken here so that a wrong count is an error. A type
+::    not yet known would wait, as wing access does; the partial checker
+::    has no such wait and reports it as unsupported, as it does field
+::    access on such a type.
+++  infer-unface
+  |=  [e=expr env=ienv state=istate]
+  ^-  iresult
+  ?>  ?=(%call -.e)
+  ?.  ?=([* ~] args.e)
+    [%| ["unface takes one argument, as (unface e)" ~[[at.e "unface call"]]]]
+  ?^  defer.state  [%| ["deferred unface needs unsupported inference" ~]]
+  =/  value=iresult  (infer-fragment i.args.e env state)
+  ?:  ?=(%| -.value)  value
+  =/  typ=itype  (itype-walk typ.p.value sub.state.p.value)
+  ?:  ?=(?(%var %fvar) -.typ)
+    [%| ["unface on a type not yet known is not supported by partial inference" ~]]
+  [%& (itype-unface typ sub.state.p.value) state.p.value]
+::
+::  +unface-value: the error for unface written where a value goes
+::
+++  unface-value
+  |=  at=span
+  ^-  idiag
+  ["unface is not a value; write |=(g (unface g))" ~[[at "unface used as a value"]]]
+::
+::  +unfaced-gate: the gate under a ++'s (unface |= …), or ~
+::
+::    Such a ++ is a gate for recursion: its own name has the unfaced
+::    type, and its body may call it.
+++  unfaced-gate
+  |=  [e=expr env=ienv state=istate]
+  ^-  (unit expr)
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?.  (reserved-call %unface e env state)  ~
+  ?>  ?=(%call -.e)
+  ?.  ?=([* ~] args.e)  ~
+  =/  gate=expr  i.args.e
+  |-
+  ?:  ?=(%group -.gate)  $(gate inner.gate)
+  ?.  ?=(?(%gate %gate-wide) -.gate)  ~
+  `gate
 ++  infer-proj-source
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
@@ -10319,7 +10414,7 @@
   ?~  pats  [%& ~]
   ?.  ?=(%bind -.i.pats)  [%| 'branch pattern is not supported by partial inference']
   =/  name=term  name.i.pats
-  ?:  |(=(name %proj) ?=(^ (ienv-lookup name env)) (lien globals |=(n=term =(n name))) (lien seen |=(n=term =(n name))))
+  ?:  |((reserved-name name) ?=(^ (ienv-lookup name env)) (lien globals |=(n=term =(n name))) (lien seen |=(n=term =(n name))))
     [%| 'pattern shadows a name']
   =/  rest=(each (list term) @t)  $(pats t.pats, seen [name seen])
   ?:  ?=(%| -.rest)  rest
@@ -10861,6 +10956,9 @@
   ?^  defer.state  [%| ["deferred recursive inference is unsupported" ~]]
   =.  gate-defs.state  ~
   ?.  ?=(%value -.d)  [%| ["recursive definition is not a gate" ~]]
+  ::  A ++ whose body is (unface |= …) is a gate too, unfaced
+  =/  peeled=(unit expr)  (unfaced-gate val.d env state)
+  =?  val.d  ?=(^ peeled)  u.peeled
   ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
     [%| ["recursive definition is not a gate" ~]]
   =/  result=(unit itype)  (recursive-branch-seed d env state)
@@ -10884,6 +10982,7 @@
   =/  product=itype  ?~(result [%var id] u.result)
   =/  st=istate  state.p.sam(next +(id))
   =/  seed=itype  [%fn typ.p.sam product]
+  =?  seed  ?=(^ peeled)  (itype-unface seed sub.st)
   =/  seeded=ienv  [[name.d [seed ~]] env.p.sam]
   =/  body=expr
     ?-  -.gate
@@ -10895,7 +10994,9 @@
   ?:  ?=(%| -.out)  out
   =/  uni=(unit isub)  (itype-unify product typ.p.out sub.state.p.out)
   ?~  uni  [%| ["recursive gate constraint is not supported by partial inference" ~]]
-  [%& [%fn typ.p.sam typ.p.out] state.p.out(sub u.uni)]
+  =/  typ=itype  [%fn typ.p.sam typ.p.out]
+  =?  typ  ?=(^ peeled)  (itype-unface typ u.uni)
+  [%& typ state.p.out(sub u.uni)]
 ::
 ++  dependency-root
   |=  names=(list term)
@@ -11003,7 +11104,7 @@
 ::  Infer a cyclic component with one monomorphic seed per gate. All members
 ::  must succeed before any scheme is available; pending constraints and
 ::  unresolved branch joins remain partial.
-+$  igate-entry  [name=term typ=itype body=expr env=ienv caps=icaps]
++$  igate-entry  [name=term typ=itype body=expr env=ienv caps=icaps unfaced=?]
 +$  igate-seeds  (each [entries=(list igate-entry) state=istate] idiag)
 ++  seed-gate-group
   |=  [ds=(list def) env=ienv state=istate]
@@ -11011,7 +11112,9 @@
   ?~  ds  [%& [~ state]]
   =/  d=def  i.ds
   ?.  ?=(%value -.d)  [%| ["recursive group contains a non-gate" ~]]
-  =/  gate=expr  val.d
+  ::  A ++ whose body is (unface |= …) is a gate too, unfaced
+  =/  peeled=(unit expr)  (unfaced-gate val.d env state)
+  =/  gate=expr  ?~(peeled val.d u.peeled)
   ?.  |(?=(%gate -.gate) ?=(%gate-wide -.gate))
     [%| ["recursive group contains a non-gate" ~]]
   =/  initial=istate  (reserve-def-caps gate state)
@@ -11029,7 +11132,8 @@
       *           !!
     ==
   =/  seed=itype  [%fn typ.p.sam [%var next.state.p.sam]]
-  =/  entry=igate-entry  [name.d seed body env.p.sam caps.state.p.sam]
+  =?  seed  ?=(^ peeled)  (itype-unface seed sub.state.p.sam)
+  =/  entry=igate-entry  [name.d seed body env.p.sam caps.state.p.sam ?=(^ peeled)]
   =/  after=istate  state.p.sam(next +(next.state.p.sam), caps caps.state)
   =/  rest=igate-seeds  $(ds t.ds, state after)
   ?:  ?=(%| -.rest)  rest
@@ -11069,6 +11173,7 @@
   ?:  (constrained-capitals caps.entry sub.state)
     [%| ["explicit capital constraints are not supported by partial inference" ~]]
   =/  typ=itype  (itype-normalize typ.entry sub.state)
+  =?  typ  unfaced.entry  (itype-unface typ ~)
   ?:  (itype-has-nvar typ)  [%| ["recursive group needs unsupported inference" ~]]
   ?:  |((itype-has-tag typ) (itype-has-hidden-generic typ) (itype-has-hidden-recursive typ) (unsupported-atom-vars typ caps.entry binders.state sub.state))
     [%| ["recursive group needs unsupported inference" ~]]
@@ -12292,59 +12397,68 @@
     ==
   [n $(imports t.imports)]
 ::
-++  reserved-proj-sample
+::  +reserved-name: whether n names a reserved operation
+::
+::    proj and unface are handled by the checker by type, not bound, so
+::    no module may define, import or bind either name, as a value or
+::    as a mold. A field, tag or path segment may still be spelled so.
+++  reserved-name
+  |=  n=term
+  ^-  ?
+  |(=(n %proj) =(n %unface))
+++  reserved-sample
   |=  sam=sample
   ^-  ?
   ?-  -.sam
-    %bind  =(name.sam %proj)
-    %face  =(name.sam %proj)
-    %pun   =(name.sam %proj)
-    %cell  (lien items.sam reserved-proj-sample)
+    %bind  (reserved-name name.sam)
+    %face  (reserved-name name.sam)
+    %pun   (reserved-name name.sam)
+    %cell  (lien items.sam reserved-sample)
     *  |
   ==
-++  reserved-proj-pattern
+++  reserved-pattern
   |=  p=pattern
   ^-  ?
   ?-  -.p
-    %bind  =(name.p %proj)
-    %cell  (lien items.p reserved-proj-pattern)
+    %bind  (reserved-name name.p)
+    %cell  (lien items.p reserved-pattern)
     *  |
   ==
-++  reserved-proj-def
+++  reserved-def
   |=  d=def
   ^-  ?
-  ?:  =(name.d %proj)  &
-  ?:  ?=(%value -.d)  (reserved-proj-expr val.d)
+  ?:  (reserved-name name.d)  &
+  ?:  ?=(%value -.d)  (reserved-expr val.d)
   |
-++  reserved-proj-expr
+++  reserved-expr
   |=  e=expr
   ^-  ?
   ?-  -.e
-    %str  (lien pieces.e |=(p=piece ?:(?=(%expr -.p) (reserved-proj-expr p.p) |)))
-    %qath  (lien segs.e |=(p=qseg ?:(?=(%expr -.p) (reserved-proj-expr p.p) |)))
-    %change  (lien edits.e |=(p=edit (reserved-proj-expr val.p)))
+    %str  (lien pieces.e |=(p=piece ?:(?=(%expr -.p) (reserved-expr p.p) |)))
+    %qath  (lien segs.e |=(p=qseg ?:(?=(%expr -.p) (reserved-expr p.p) |)))
+    %change  (lien edits.e |=(p=edit (reserved-expr val.p)))
     %pair  $(e val.e)
     %unit  $(e val.e)
     %group  $(e inner.e)
-    %list  (lien items.e reserved-proj-expr)
-    %tuple  (lien items.e |=(i=item (reserved-proj-expr val.i)))
-    ?(%gate %gate-wide)  |((reserved-proj-sample sample.e) $(e body.e))
+    %list  (lien items.e reserved-expr)
+    %tuple  (lien items.e |=(i=item (reserved-expr val.i)))
+    ?(%gate %gate-wide)  |((reserved-sample sample.e) $(e body.e))
     %cast  $(e val.e)
-    %call  |($(e head.e) (lien args.e reserved-proj-expr))
+    %call  |($(e head.e) (lien args.e reserved-expr))
     %trace  |($(e val.e) $(e then.e))
-    %branch  |($(e subject.e) (lien arms.e |=(a=arm |((reserved-proj-pattern pat.a) (reserved-proj-expr val.a)))))
-    %body  |((lien defs.e reserved-proj-def) $(e final.e))
+    %branch  |($(e subject.e) (lien arms.e |=(a=arm |((reserved-pattern pat.a) (reserved-expr val.a)))))
+    %body  |((lien defs.e reserved-def) $(e final.e))
     *  |
   ==
 ::
-++  module-has-reserved-proj
+++  module-has-reserved
   |=  mod=module
   ^-  ?
   =/  imported=(list term)  (import-binding-names imports.mod)
   =/  vals=(list term)  (global-value-names defs.mod)
   =/  molds=imolds  (collect-simple-molds defs.mod)
   =/  mold-names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  |((lien (weld imported (weld vals mold-names)) |=(n=term =(n %proj))) (lien defs.mod reserved-proj-def))
+  |((lien (weld imported (weld vals mold-names)) reserved-name) (lien defs.mod reserved-def))
 ::
 ++  module-scope-valid
   |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
@@ -12353,7 +12467,7 @@
   =/  vals=(list term)  (global-value-names defs.mod)
   =/  molds=imolds  (collect-simple-molds defs.mod)
   =/  mold-names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  ?:  (module-has-reserved-proj mod)  |
+  ?:  (module-has-reserved mod)  |
   ?.  %+  levy  imported
       |=  n=term
       &((unique-value-name n imported) !(lien vals |=(v=term =(n v))) !(lien mold-names |=(m=term =(n m))) !(lien prelude-values |=(v=term =(n v))) !(lien prelude-molds |=(m=term =(n m))))
@@ -13042,7 +13156,7 @@
   ^-  ?
   =/  path-names=(list term)  (turn paths |=(p=iapi-path name.p))
   =/  derived=(list term)  (weld path-names poke-names)
-  ?:  (lien derived |=(n=term =(n %proj)))  |
+  ?:  (lien derived reserved-name)  |
   =/  outer=(list term)  (weld prelude-values (weld (global-value-names defs.mod) (api-import-faces imports.mod)))
   (levy derived |=(n=term &((unique-value-name n derived) !(lien outer |=(x=term =(n x))))))
 ::
@@ -13074,7 +13188,7 @@
   =/  clashes=(list term)
     %+  skip  names
     |=  n=term
-    ?|  =(n %proj)
+    ?|  (reserved-name n)
         &((unique-value-name n names) !(lien outer |=(x=term =(n x))))
     ==
   ?~  clashes  ~
@@ -13849,7 +13963,7 @@
   =/  action=term  %poke
   =/  ordinary=(list def)  ds
   =/  derived=(list term)  ~[%state action]
-  ?:  (lien derived |=(n=term =(n %proj)))  [%| ~]
+  ?:  (lien derived reserved-name)  [%| ~]
   =/  outer=(list term)
     (weld prelude-values (weld (global-value-names ordinary) (api-import-faces imports.mod)))
   =/  clashes=(list term)
@@ -15619,8 +15733,8 @@
   ?:  ?=(%| -.parsed)  (show-error src p.parsed)
   =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
   ?^  duplicate  (duplicate-fields-report file src u.duplicate)
-  ?:  (module-has-reserved-proj p.parsed)
-    'module has reserved proj name'
+  ?:  (module-has-reserved p.parsed)
+    'module has a reserved proj or unface name'
   =/  ds=(list def)  defs.p.parsed
   =/  molds=imolds  (collect-simple-molds ds)
   =/  globals=(list term)  (weld prelude-values (weld (turn jimports |=(j=[face=term interface=ifile] face.j)) (global-value-names ds)))
@@ -15698,7 +15812,7 @@
   =.  head-evidence.initial  heads
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult
-    ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))
+    ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d) ?=(^ (unfaced-gate val.d env initial)))
       (infer-recursive-gate d env initial)
     (infer-fragment val.d env initial)
   ?:  ?=(%| -.result)

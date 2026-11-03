@@ -1,0 +1,13 @@
+1:1 glyph ++
+1:4 name okay
+1:9 glyph |=
+1:12 glyph [
+1:13 tight name unface
+1:19 tight glyph =
+1:20 tight aura @t
+1:23 name other
+1:28 tight glyph =
+1:29 tight aura @p
+1:31 tight glyph ]
+1:33 name other
+1:38 NEWLINE

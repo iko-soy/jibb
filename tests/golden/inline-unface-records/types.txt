@@ -1,0 +1,21 @@
+partial inference; module not checked
+++ pair-pq: [p=@t q=@ud]
+++ take-kv: $-([k=@t v=@ud] @ud)
+++ labelled: call's sample and argument types do not unify
+/tests/golden/inline-unface-records/source.jibb:3:14: called gate has type $-([k=@t v=@ud] @ud)
+++ labelled (take-kv pair-pq)
+             ^
+/tests/golden/inline-unface-records/source.jibb:3:22: argument has type [p=@t q=@ud]
+++ labelled (take-kv pair-pq)
+                     ^
+++ unfaced: @ud
+++ hi-lo: [hi=@ud lo=@ud]
+++ want-lo-hi: $-([lo=@ud hi=@ud] @ud)
+++ swapped: call's sample and argument types do not unify
+/tests/golden/inline-unface-records/source.jibb:7:13: called gate has type $-([lo=@ud hi=@ud] @ud)
+++ swapped (want-lo-hi hi-lo)
+            ^
+/tests/golden/inline-unface-records/source.jibb:7:24: argument has type [hi=@ud lo=@ud]
+++ swapped (want-lo-hi hi-lo)
+                       ^
+++ by-position: @ud

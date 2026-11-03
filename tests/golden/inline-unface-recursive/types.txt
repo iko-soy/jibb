@@ -1,0 +1,6 @@
+partial inference; module not checked
+++ weld2: $-([(list A) (list A)] (list A))
+++ joined: (list @ud)
+++ even: $-(@ud ?)
+++ odd: $-(@ud ?)
+++ outer: $-(@ud @ud)

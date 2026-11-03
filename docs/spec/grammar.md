@@ -46,6 +46,7 @@ Every literal reads exactly as Hoon reads it: `1000` is an error (write `1.000`)
 - **Faced cells**: `[text="milk" done=%.n]`, or one `name=value` per line of an open bracket. A change takes one or more of the same items, as `m(done=%.y)`; `m()` is an error. A change's item, inline or on a line, may name a wing instead, read through record fields only: `m(open.cart=(not open.cart.m))` sets field `open` of field `cart`, as Hoon's `m(open.cart x)`. Every value is computed from the original record. Two items that set the same field, or one a field inside the other's, as `m(cart=c open.cart=%.y)`, are an error. A cell's items take plain names.
 - **Pairs and units**: `gap+%s2` and `` `x `` bind tighter than calls, so `pad+%s3 gap+%s2` is two items.
 - **Wing** `title.p`, also for imports and prelude groups, which are records: `card.card`, `space.theme.theme`, `get.by`. **Change** `m(draft="x" error=~)`.
+- **Unface**: `(unface e)` is `e` with every face removed from its type, so a gate or record fits where other names are expected. `~[(unface lth2) (unface lte2)]` is a list though `lth2` names its sample `[x=A y=A]` and `lte2` names it `[a=A b=A]`, and `(take-kv (unface pair))` passes a `[p=@t q=@ud]` where `[k=@t v=@ud]` is expected; the fields then match by position alone. Faces go from cells, from a gate's sample and product, and from a container's arguments, as in `(list [p=@t q=@ud])`. A union or recursive mold goes by name, so it is kept whole: a gate over `msg` still takes a `msg`. Like `proj`, it is an operation the checker handles by type, not a gate: it takes one argument, and `(turn gs unface)` is an error; write `|=(g (unface g))`. A `++` whose body is `(unface |= …)` is still a gate, so it can call itself.
 - **Inline gate**: `|=(p=post.blog title.p)`, or `|=(p title.p)` when the call fixes the type. A bare name in a sample always binds. `|=%got` is case `%got`'s constructor, typed by the gate expected. A bare name binds at any depth of a sample, so `|= [a=@ b]` binds `a` and `b`.
 - **Interpolation**: `{…}` holds any expression; `\{` writes a brace and `\"` a quote; no `<…>`. Strings take Hoon's escapes: `\\` writes a backslash, and `\` with two lowercase hex digits writes that byte, as `\0a` a line feed; any other `\` is an error. A string and each `{…}` close on the line they open, and `::` inside a string is text.
 - **No operators**: `eq a b`, `not x`, `gth a b` are gates.
@@ -99,7 +100,7 @@ An imported Hoon record with duplicate field names is an error where used; impor
 A file is a module: imports, then definitions.
 
 - `+$ name mold` defines a mold; `++ name expr` a value.
-- Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included.
+- Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included. `proj` and `unface` are reserved: no module can define, import or bind either, as a value or a mold.
 - Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold, `poke.todo` its command helper, and `todos.todo` a mold and a request.
 - `main`'s type decides the kind: `(element !!)` a page; `(page Params Data)` a page with data, from parameters to data; `(program Data Model Msg)` an island, with data, model and messages; `(store S)` a store with state `S`. They're built by `(page load view)`, `(program init update view subs)` and `(store init update)`. A module without `main` is a library.
 - Everything is exported and read through the import's face, as `card.card`. The prelude keeps private helpers in a separate internal module; it imports them without exposing them.
@@ -146,7 +147,7 @@ A tag literal or `~` gets a fresh type variable and a pending constraint: the va
 - `|=%typed` is a case's constructor: against `$-(@t M)` it is `|=(t [%typed t])`, requiring `M` to have a case `[%typed @t]`. It works for cases whose head is a literal with the same noun as the tag, regardless of how that literal is written: `|=%$` also constructs a case headed by `%.y` or `~`, since each is the noun 0. A bare tag is always a value.
 - A variable constrained by tag resolution, and any it mentions, doesn't generalize; it stays open until something in the module fixes it. An island's `main` fixes its messages, so islands resolve their own tags. The inferred gate-free constraint is retained when a type variable is generalized.
 - A constraint still open when its module is checked is an error asking for a `^-`; the checker never guesses. Library helpers can cast, as in `^- (list attr)`.
-- Wing access, changes and `?-` on a type not yet known wait the same way.
+- Wing access, changes, `unface` and `?-` on a type not yet known wait the same way.
 - Patterns need none of this; they're checked against the subject's type.
 
 ```jibb

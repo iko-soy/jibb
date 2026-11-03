@@ -1,0 +1,11 @@
+partial inference; module not checked
+++ make: $-(@ud [label=@t n=@ud])
+++ make-u: $-(@ud [@t @ud])
+++ made: [@t @ud]
+++ apply: $-($-([x=@ud y=@ud] ?) [r=?])
+++ apply-u: $-($-([@ud @ud] ?) ?)
+++ pairs: (list [p=@t q=@ud])
+++ pairs-u: (list [@t @ud])
+++ maybe: (unit [p=@t q=@ud])
+++ maybe-u: (unit [@t @ud])
+++ same-u: $-(A A)

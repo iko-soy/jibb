@@ -1,0 +1,11 @@
+++ lth2 |= [x=A y=A] (gth y x)
+++ lte2 |= [a=A b=A] (not (gth a b))
+++ lt-a |= [a=@ud b=@ud] (gth b a)
+++ add-f |= [a=@ud b=@ud] (add a b)
+++ labelled ~[lth2 lte2]
+++ pickers ~[(unface lth2) (unface lte2)]
+++ hunt-labelled (hunt lt-a `1 `2)
+++ hunt-unfaced (hunt (unface lt-a) `1 `2)
+++ roll-labelled (roll ~[1 2] 0 add-f)
+++ roll-unfaced (roll ~[1 2] 0 (unface add-f))
+++ one-off ((unface add-f) [b=1 a=2])

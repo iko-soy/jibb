@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type"
+tests: A ++ whose body is (unface |= …) is still a gate: it calls itself, two such gates call each other, and a local one recurses; each name has the unfaced type.
+expect: parses
+expect-types: a partial inference report

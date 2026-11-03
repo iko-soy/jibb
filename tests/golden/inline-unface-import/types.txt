@@ -1,0 +1,5 @@
+partial inference; module not checked
+++ a: $-([@ud @ud] ?)
+++ b: (list @ud)
+++ c: [@t @ud]
+++ d: (unit @ud)

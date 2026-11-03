@@ -1,0 +1,13 @@
+partial inference; module not checked
+++ lt-a: $-([a=@ud b=@ud] ?)
+++ gates: (list $-([a=@ud b=@ud] ?))
+++ alias: unface is not a value; write |=(g (unface g))
+/tests/golden/inline-unface-value-bad/source.jibb:3:10: unface used as a value
+++ alias unface
+         ^
+++ mapped: unface is not a value; write |=(g (unface g))
+/tests/golden/inline-unface-value-bad/source.jibb:4:23: unface used as a value
+++ mapped (turn gates unface)
+                      ^
+++ wrapped: unface on a type not yet known is not supported by partial inference
+++ typed: (list $-([@ud @ud] ?))

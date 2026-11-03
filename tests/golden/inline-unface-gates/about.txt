@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type"
+tests: Gates whose samples are labelled differently share a list and fit slots written with capitals once unfaced; the same gates without unface fail, and a direct call of an unfaced gate takes any labels.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type"
+tests: A record passed where other labels are expected, which fails without unface; data fields then match by position, so swapped labels pass too.
+expect: parses
+expect-types: a partial inference report

@@ -1,0 +1,89 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %typed
+2:11 name text
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %sent
+3:10 lit ~
+3:11 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name update
+4:11 glyph |=
+4:14 glyph [
+4:15 tight glyph =
+4:16 tight name msg
+4:20 name n
+4:21 tight glyph =
+4:22 tight aura @ud
+4:25 tight glyph ]
+4:27 name n
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name update-u
+5:13 glyph (
+5:14 tight name unface
+5:21 name update
+5:27 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name direct
+6:11 glyph (
+6:12 tight name update-u
+6:21 glyph [
+6:22 tight lit %typed
+6:29 str "x"
+6:32 tight glyph ]
+6:34 lit 1
+6:35 tight glyph )
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name run
+7:8 glyph |=
+7:11 name f
+7:12 tight glyph =
+7:13 tight glyph $-(
+7:16 tight glyph [
+7:17 tight name msg
+7:21 aura @ud
+7:24 tight glyph ]
+7:26 aura @ud
+7:29 tight glyph )
+7:31 glyph (
+7:32 tight name f
+7:34 glyph [
+7:35 tight lit %sent
+7:41 lit ~
+7:42 tight glyph ]
+7:44 lit 2
+7:45 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name ran
+8:8 glyph (
+8:9 tight name run
+8:13 glyph (
+8:14 tight name unface
+8:21 name update
+8:27 tight glyph )
+8:28 tight glyph )
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name tagged
+9:11 glyph ^-
+9:14 name msg
+9:18 glyph (
+9:19 tight name unface
+9:26 glyph [
+9:27 tight lit %typed
+9:34 str "x"
+9:37 tight glyph ]
+9:38 tight glyph )
+9:39 NEWLINE

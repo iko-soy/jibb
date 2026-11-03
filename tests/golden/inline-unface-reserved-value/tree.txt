@@ -1,0 +1,6 @@
+(module
+  (value 1:1 unface
+    (gate 1:11
+      (face 1:14 x (aura 1:16 @t))
+      (wing 1:19 x)))
+  (value 2:1 okay (str 2:9 "ok")))

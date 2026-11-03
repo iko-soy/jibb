@@ -1,0 +1,43 @@
+/ui/lib.jibb
+(module
+  (value 1:1 lt-a
+    (gate 1:9
+      (cell 1:12
+        (face 1:13 a (aura 1:15 @ud))
+        (face 1:19 b (aura 1:21 @ud)))
+      (group 1:26
+        (call 1:27 (wing 1:27 gth) (wing 1:31 b) (wing 1:33 a)))))
+  (value 2:1 lt-u
+    (group 2:9
+      (call 2:10 (wing 2:10 unface) (wing 2:17 lt-a))))
+  (value 3:1 weld2
+    (group 3:10
+      (call 3:11
+        (wing 3:11 unface)
+        (gate 4:3
+          (cell 4:6
+            (face 4:7 xs
+              (apply 4:10 list (tvar 4:16 A)))
+            (face 4:19 ys
+              (apply 4:22 list (tvar 4:28 A))))
+          (cast 4:32
+            (apply 4:35 list (tvar 4:41 A))
+            (body 5:5
+              (branch 5:5
+                (wing 5:8 xs)
+                (arm 6:7 (lit 6:7 ~) (wing 6:9 ys))
+                (arm 7:7
+                  (cell 7:7 (bind 7:8 item) (bind 7:13 rest))
+                  (tuple 7:19
+                    (wing 7:20 item)
+                    (group 7:25
+                      (call 7:26 (wing 7:26 weld2) (wing 7:32 rest) (wing 7:37 ys))))))))))))
+  (value 8:1 pair
+    (cast 8:9
+      (cell 8:12
+        (face 8:13 p (aura 8:15 @t))
+        (face 8:18 q (aura 8:20 @ud)))
+      (tuple 8:25 (str 8:26 "a") (lit 8:30 1))))
+  (value 9:1 pair-u
+    (group 9:11
+      (call 9:12 (wing 9:12 unface) (wing 9:19 pair)))))

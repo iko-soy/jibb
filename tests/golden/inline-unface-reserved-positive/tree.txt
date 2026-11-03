@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 action
+    (union 2:3 (const 2:3 %unface) (const 3:3 %other)))
+  (value 4:1 unfaced
+    (gate 4:12
+      (face 4:15 x
+        (cell 4:17
+          (face 4:18 unface (aura 4:25 @t))
+          (face 4:28 other (aura 4:34 @p))))
+      (wing 4:38 unface.x)))
+  (value 5:1 tag
+    (cast 5:8 (ref 5:11 action) (lit 5:18 %unface)))
+  (value 6:1 plain
+    (group 6:10
+      (call 6:11 (wing 6:11 unface) (wing 6:18 unfaced)))))

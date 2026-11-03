@@ -1,0 +1,9 @@
++$ msg
+  [%typed text=@t]
+  [%sent ~]
+++ update |= [=msg n=@ud] n
+++ update-u (unface update)
+++ direct (update-u [%typed "x"] 1)
+++ run |= f=$-([msg @ud] @ud) (f [%sent ~] 2)
+++ ran (run (unface update))
+++ tagged ^- msg (unface [%typed "x"])

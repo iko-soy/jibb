@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type"
+tests: A gate over a named union keeps the union by name, so the unfaced gate still takes a msg and fits a slot written with msg; tags inside unface still take their union from a cast.
+expect: parses
+expect-types: a partial inference report

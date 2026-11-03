@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type"
+tests: Faces are removed all the way down: from a gate's product, from a gate in its sample, and from the arguments of a list and a unit, whose own u= stays; a gate with no faces is unchanged.
+expect: parses
+expect-types: a partial inference report

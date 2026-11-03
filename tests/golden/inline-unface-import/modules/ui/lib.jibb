@@ -1,0 +1,9 @@
+++ lt-a |= [a=@ud b=@ud] (gth b a)
+++ lt-u (unface lt-a)
+++ weld2 (unface
+  |= [xs=(list A) ys=(list A)] ^- (list A)
+    ?- xs
+      ~ ys
+      [item rest] [item (weld2 rest ys)]
+++ pair ^- [p=@t q=@ud] ["a" 1]
+++ pair-u (unface pair)

@@ -1,0 +1,55 @@
+(module
+  (value 1:1 make
+    (gate 1:9
+      (face 1:12 n (aura 1:14 @ud))
+      (cast 1:18
+        (cell 1:21
+          (face 1:22 label (aura 1:28 @t))
+          (face 1:31 n (aura 1:33 @ud)))
+        (tuple 1:38 (str 1:39 "x") (wing 1:43 n)))))
+  (value 2:1 make-u
+    (group 2:11
+      (call 2:12 (wing 2:12 unface) (wing 2:19 make))))
+  (value 3:1 made
+    (group 3:9
+      (call 3:10 (wing 3:10 make-u) (lit 3:17 1))))
+  (value 4:1 apply
+    (gate 4:10
+      (face 4:13 f
+        (fn 4:15
+          (cell 4:18
+            (face 4:19 x (aura 4:21 @ud))
+            (face 4:25 y (aura 4:27 @ud)))
+          (flag 4:32)))
+      (tuple 4:35
+        (face 4:36 r
+          (group 4:38
+            (call 4:39 (wing 4:39 f) (lit 4:41 1) (lit 4:43 2)))))))
+  (value 5:1 apply-u
+    (group 5:12
+      (call 5:13 (wing 5:13 unface) (wing 5:20 apply))))
+  (value 6:1 pairs
+    (cast 6:10
+      (apply 6:13 list
+        (cell 6:19
+          (face 6:20 p (aura 6:22 @t))
+          (face 6:25 q (aura 6:27 @ud))))
+      (list 6:33
+        (tuple 6:35 (str 6:36 "a") (lit 6:40 1)))))
+  (value 7:1 pairs-u
+    (group 7:12
+      (call 7:13 (wing 7:13 unface) (wing 7:20 pairs))))
+  (value 8:1 maybe
+    (cast 8:10
+      (apply 8:13 unit
+        (cell 8:19
+          (face 8:20 p (aura 8:22 @t))
+          (face 8:25 q (aura 8:27 @ud))))
+      (unit 8:33
+        (tuple 8:34 (str 8:35 "a") (lit 8:39 1)))))
+  (value 9:1 maybe-u
+    (group 9:12
+      (call 9:13 (wing 9:13 unface) (wing 9:20 maybe))))
+  (value 10:1 same-u
+    (group 10:11
+      (call 10:12 (wing 10:12 unface) (wing 10:19 same)))))
