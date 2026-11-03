@@ -1,0 +1,26 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (mold 3:1 msg
+    (union 4:3
+      (cell 4:3
+        (const 4:4 %typed)
+        (face 4:11 text (aura 4:16 @t)))
+      (const 5:3 %submit)))
+  (value 6:1 update
+    (gate 6:11
+      (cell 6:14
+        (pun 6:15 msg)
+        (face 6:20 n (aura 6:22 @ud)))
+      (body 7:3
+        (trace 7:3
+          (wing 7:6 msg)
+          (body 8:3
+            (branch 8:3
+              (wing 8:6 msg)
+              (arm 9:3
+                (cell 9:3 (lit 9:4 %typed) (bind 9:11 t))
+                (wing 9:15 n))
+              (arm 10:3
+                (lit 10:3 %submit)
+                (group 10:15
+                  (call 10:16 (wing 10:16 add) (wing 10:20 n) (lit 10:22 1)))))))))))

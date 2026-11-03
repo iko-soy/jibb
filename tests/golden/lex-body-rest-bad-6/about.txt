@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, The rest of a body: "This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression."
+tests: a cast alone on a line of an open bracket, with its expression on the next line at the same depth
+expect: error at 4:5 — on an open bracket's line no rune takes the lines after it, so the cast needs its expression on its line or deeper

@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, The rest of a body: "This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression."
+tests: a `?-` that ends a chain on one line, after `^- @ud`, with its arms at the line's depth
+expect: error at 3:3 — only a ?- that begins a body's final line takes its arms at its depth; after a rune on the line its arms go deeper

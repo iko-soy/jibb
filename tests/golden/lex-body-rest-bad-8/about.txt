@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, The rest of a body: "This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression."
+tests: a trace whose value leaves a bracket open, taking the deeper lines, with its body at the trace's depth after them
+expect: error at 2:8, the end of line 2 — the ~[ took the deeper lines, so the trace can't take the rest of the body

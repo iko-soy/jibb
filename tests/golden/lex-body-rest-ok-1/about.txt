@@ -1,0 +1,4 @@
+source: Grammar tab, Runes: "**The rest of a body.** A body's final line may hand the rest of the body, the lines after it at the same depth, to the rune that ends the line: a tall `|=`, `^-` or `~&`, or a chain of them such as `^- @ud ~& x`, when the line ends where the innermost rune's last child goes. That child is the rest, a body of its own: first its local `++` and `+$`, then its expression, whose own final line may do the same"; the EBNF: `last = expr | head NEWLINE rest | …`
+tests: a body's final `^-`, `~&` and `|=`, each alone on its line, taking the rest of the body at the same depth as its last child, with the prelude's add
+expect: parses: a's cast, b's trace and c's inner gate each hold the line below as a body, the tree the deeper layout gives
+expect-types: a partial inference report: a and b are $-(@ud @ud), and c $-($-(@ud @ud) $-(@ud @ud)), as their deeper layouts are

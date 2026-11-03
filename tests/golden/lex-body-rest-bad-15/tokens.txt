@@ -1,0 +1,3 @@
+/tests/golden/lex-body-rest-bad-15/source.jibb:5:4: the closer `==` is left out: indentation covers it
+  ==
+   ^

@@ -1,0 +1,12 @@
+/=  lib /ui/lib
+
+++ a |= n=@ud
+  ^- @ud ~& n
+  (add n 1)
+++ b |= n=@ud
+  ^- @ud
+  ~& n
+  (add n 1)
+++ c |= n=@ud
+  |= m=@ud ^- @ud
+  (add n m)

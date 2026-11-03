@@ -1,0 +1,4 @@
+partial inference; module not checked
+++ a: $-(@ud @ud)
+++ b: $-(@ud @ud)
+++ c: $-($-(@ud @ud) $-(@ud @ud))

@@ -1,0 +1,6 @@
+(module
+  (value 1:1 x
+    (body 2:3
+      (trace 2:3
+        (str 2:6 "hi")
+        (body 3:3 (lit 3:3 5))))))

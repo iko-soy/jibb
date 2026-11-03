@@ -1,0 +1,14 @@
+/=  lib /ui/lib
+
+++ or-else |= fallback=@ud
+  |= maybe=(unit @ud)
+  ^- @ud
+  ?- maybe
+  ~          fallback
+  [~ value]  value
+++ g |= b=?
+  ++ h ^- @ud
+    ?- b
+    %.y 1
+    %.n 2
+  h

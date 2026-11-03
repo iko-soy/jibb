@@ -1,0 +1,3 @@
+/tests/golden/lex-body-rest-bad-13/source.jibb:3:4: expected a pattern, found `~&`; a trace or cast goes in the arm's body
+  ~& x
+   ^

@@ -1,0 +1,4 @@
+/ui/lib.jibb
+(module
+  (value 1:1 identity
+    (gate-wide 1:13 (bind 1:16 x) (wing 1:18 x))))

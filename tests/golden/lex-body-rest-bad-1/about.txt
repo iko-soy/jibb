@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, The rest of a body: "This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression."
+tests: a local definition's own expression, a gate whose body would be the line below at the same depth
+expect: error at 3:3 — a definition's own expression never takes the rest of a body, so the gate needs its body on its line or deeper; line 3 is at the same depth

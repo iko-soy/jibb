@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "**The rest of a body.** A body's final line may hand the rest of the body, the lines after it at the same depth, to the rune that ends the line: a tall `|=`, `^-` or `~&`, or a chain of them such as `^- @ud ~& x`, when the line ends where the innermost rune's last child goes. That child is the rest, a body of its own: first its local `++` and `+$`, then its expression, whose own final line may do the same"; the EBNF: `last = expr | head NEWLINE rest | …`
+tests: local `++` and `+$` at the start of a rest: the cast's rest is a body with definitions three and count, after the gate body's own definition two
+expect: parses: the gate's body defines two, then the cast, whose body defines count and three and ends with the call

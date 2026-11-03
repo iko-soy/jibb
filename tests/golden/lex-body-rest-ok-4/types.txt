@@ -1,0 +1,4 @@
+partial inference; module not checked
++$ sign: cases proven disjoint; mold not checked
+++ f: $-(? @ud)
+++ g: $-(sign @ud)

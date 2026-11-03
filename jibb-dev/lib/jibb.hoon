@@ -415,6 +415,9 @@
 ::    ++ or +$                      a definition; else a body's final expr
 ::    INDENT                        a body, an open bracket's lines, arms
 ::                                  or cases; else the expression goes on
+::    NEWLINE, after a rune's head  the rest of the body, on a body's
+::    or ?-'s subject               final line (The rest of a body);
+::                                  else an error
 ::  So the parser never backtracks, its first failure is its furthest, and
 ::  "expected X, found Y" falls out of each arm without tracking failures
 ::  across alternatives. Hoon's combinators read tapes of characters and
@@ -458,7 +461,9 @@
 ::                cases below -> %mold; one case is that mold, several
 ::                are %union. The optional generic wraps either in %generic.
 ::                ++ name expr or body -> %value (a body becomes a %body expr)
-::    body        INDENT { definition NEWLINE } expr DEDENT -> %body
+::    body        INDENT rest DEDENT; rest is { definition NEWLINE } last
+::                -> %body, and last is expr, or the rest of a body that
+::                a rune on its final line took (The rest of a body)
 ::    call        one operand is that operand; more -> %call head args
 ::    operand     literal -> %lit or %str; pathlit -> %path, as a path
 ::                literal is an expression (Decisions); !! -> %crash, as
@@ -558,7 +563,20 @@
 ::    - Local definitions: at the start of any body, a gate's, an arm's,
 ::      a ^-'s, a ~&'s or a ++'s, as the EBNF's body takes them
 ::      (Decisions); +$ as well as ++, as the Runes prose's "likewise"
-::      says.
+::      says. The rest of a body is a body too, so it takes them.
+::    - The rest of a body (decided 2026-11-03, syntax review S2): a
+::      body's final line is read with a flag, fin (+read-last), that
+::      passes down the chain of runes on the line, as ^- @ud ~& x, while
+::      nothing on the line is left open. A rune whose last child would
+::      go next, and finds NEWLINE there, takes the lines after it at its
+::      depth as that child, a body of its own (+read-rest); a ?- that
+::      begins the line takes them as its arms (+read-branch). The flag
+::      is off everywhere else: in a bracket, on an arm's line, for a
+::      definition's own expression, and for a ?- after a rune on the
+::      line, so ^- @ud ?- x keeps its arms deeper. A line nothing takes
+::      is an error as before. A rest ends at its body's DEDENT, which
+::      +read-rest leaves for whatever opened the body, so one DEDENT
+::      ends every rest nested on that body's lines.
 ::    - Where errors point: the doc says only "line, column and an
 ::      excerpt"; 2.0 and Errors below say where.
 ::
@@ -2976,9 +2994,10 @@
   ::  closes on its line (2.9). A bracket that needs none of these
   ::  closes with the deeper lines instead (+shut). No later line can
   ::  give it that, so the error is at the end of the line that took
-  ::  them (section 3, Errors). want is what it needs. Only an error path
-  ::  calls this, and it looks only when after begins with NEWLINE or
-  ::  DEDENT, so it costs nothing on the way to a tree.
+  ::  them (section 3, Errors). want is what it needs. It looks only when
+  ::  after begins with NEWLINE or DEDENT, so it costs nothing on the way
+  ::  to a tree, except where a rune takes the rest of a body (+read-last):
+  ::  a look at that rune's line.
   ::
   ++  doomed
     |=  [ts=(list token) after=(list token) want=tape]
@@ -3135,7 +3154,7 @@
     ?:  =(%'++' lex.rune)
       ;<  [nam=term after=(list token)]  then  (read-def-name rune t.ts)
       ;<  [e=expr more=(list token)]  then
-        (read-expr-or-body "the name" after)
+        (read-expr-or-body | "the name" after)
       [%& [%value [beg.at.rune end:(span-of e)] nam e] more]
     ?:  (is-closer rune)
       %^  bad-why  ts  "a definition"
@@ -3215,20 +3234,36 @@
     [%& p.lex.i.ts t.ts]
   ::
   ::  +read-expr-or-body: a space and an expression on the line, or a
-  ::  body on deeper lines; what names what comes before, for errors
+  ::  body on deeper lines; what names what comes before, for errors.
+  ::  On a body's final line (fin, +read-last), a line at the same depth
+  ::  is the rest of the body instead, and the expression on the line
+  ::  goes on with fin, except a ?-, which keeps its arms deeper
   ::
   ++  read-expr-or-body
-    |=  [what=tape ts=(list token)]
+    |=  [fin=? what=tape ts=(list token)]
     ^-  (pare expr)
     ?:  ?=([[* * %indent] *] ts)  (read-body t.ts)
+    ?:  &(fin ?=([[* * %newline] *] ts))  (read-rest t.ts)
     ?:  ?=([[* * ?(%newline %dedent)] *] ts)
       (bad ts "an expression, or a body on deeper lines")
     ?:  &(?=(^ ts) tight.i.ts)  (no-gap ts "a space after {what}")
-    (read-expr ts)
+    (read-last &(fin !?=([[* * %'?-'] *] ts)) ts)
   ::
-  ::  +read-body: after its INDENT, { definition NEWLINE } expr DEDENT
+  ::  +read-body: after its INDENT, the rest of a body, then its DEDENT
   ::
   ++  read-body
+    |=  ts=(list token)
+    ^-  (pare expr)
+    ;<  [e=expr after=(list token)]  then  (read-rest ts)
+    ?>  ?=([[* * %dedent] *] after)
+    [%& e t.after]
+  ::
+  ::  +read-rest: { definition NEWLINE } expr, up to the DEDENT that ends
+  ::  a body, which it leaves for whatever opened the body: its INDENT's
+  ::  reader, or the rune on the final line that took the rest of it
+  ::  (+read-last)
+  ::
+  ++  read-rest
     |=  ts=(list token)
     ^-  (pare expr)
     =|  defs=(list def)
@@ -3242,12 +3277,15 @@
       %:  bad-in-why  ts  "a definition or an expression"  plus-mask
         "`+` begins `++` or `+$`"
       ==
-    ;<  [e=expr after=(list token)]  then  (read-expr ts)
+    ;<  [e=expr after=(list token)]  then  (read-last & ts)
     ?:  ?=([[* * %dedent] *] after)
       =/  ds=(list def)  (flop defs)
       =/  beg=loc  ?~(ds beg:(span-of e) beg:(span-of i.ds))
-      [%& [%body [beg end:(span-of e)] ds e] t.after]
+      [%& [%body [beg end:(span-of e)] ds e] after]
     ?.  ?=([[* * %newline] *] after)  (bad-end-in after (tail-can e))
+    ?:  &(?=(%branch -.e) !?=([* [* * ?(%'++' %'+$')] *] after))
+      %^  bad-why  after  "the end of the body"
+      "this `?-`'s arms are on deeper lines, so this one goes there too"
     %^  bad-why  after  "the end of the body"
     "a body's final expression is its last line"
   ::
@@ -3256,13 +3294,24 @@
   ++  read-expr
     |=  ts=(list token)
     ^-  (pare expr)
+    (read-last | ts)
+  ::
+  ::  +read-last: +read-expr, where fin says the expression is a body's
+  ::  final line or goes on one, with no bracket open before it: then
+  ::  the rune that ends the line may take the rest of the body at the
+  ::  same depth as its last child, and a ?- that begins the line its
+  ::  arms (section 3, The rest of a body)
+  ::
+  ++  read-last
+    |=  [fin=? ts=(list token)]
+    ^-  (pare expr)
     ?~  ts  (bad ts "an expression")
     =*  t  i.ts
     ?+  lex.t  (read-call ts)
-      %'|='  ?:((is-ctor ts) (read-call ts) (read-gate t t.ts))
-      %'^-'  (read-cast t t.ts)
-      %'~&'  (read-trace t t.ts)
-      %'?-'  (read-branch t t.ts)
+      %'|='  ?:((is-ctor ts) (read-call ts) (read-gate fin t t.ts))
+      %'^-'  (read-cast fin t t.ts)
+      %'~&'  (read-trace fin t t.ts)
+      %'?-'  (read-branch fin t t.ts)
     ==
   ::
   ::  +read-call: operand { operand }; one operand alone is itself
@@ -3639,10 +3688,11 @@
     %^  bad-why  more  (closing op ")")
     "the wide gate's body is one operand, so a call goes in parentheses"
   ::
-  ::  +read-gate: |= sample, then an expression or a body
+  ::  +read-gate: |= sample, then an expression or a body; fin as for
+  ::  +read-last
   ::
   ++  read-gate
-    |=  [bar=token ts=(list token)]
+    |=  [fin=? bar=token ts=(list token)]
     ^-  (pare expr)
     ?:  &(?=(^ ts) tight.i.ts)
       ::  a % could begin a constructor's term, as |=%got
@@ -3654,13 +3704,14 @@
     =/  dm  (doomed ts after "an expression, or a body on deeper lines")
     ?^  dm  u.dm
     ;<  [e=expr more=(list token)]  then
-      (read-expr-or-body "the sample" after)
+      (read-expr-or-body fin "the sample" after)
     [%& [%gate [beg.at.bar end:(span-of e)] s e] more]
   ::
-  ::  +read-cast: ^- mold, then an expression or a body
+  ::  +read-cast: ^- mold, then an expression or a body; fin as for
+  ::  +read-last
   ::
   ++  read-cast
-    |=  [ket=token ts=(list token)]
+    |=  [fin=? ket=token ts=(list token)]
     ^-  (pare expr)
     ?:  &(?=(^ ts) tight.i.ts)  (wide-rune "^-" ts)
     ;<  [s=shape after=(list token)]  then  (read-mold ts)
@@ -3669,41 +3720,65 @@
     =/  dm  (doomed ts after "an expression, or a body on deeper lines")
     ?^  dm  u.dm
     ;<  [e=expr more=(list token)]  then
-      (read-expr-or-body "the mold" after)
+      (read-expr-or-body fin "the mold" after)
     [%& [%cast [beg.at.ket end:(span-of e)] s e] more]
   ::
-  ::  +read-trace: ~& expr, then its body below
+  ::  +read-trace: ~& expr, then its body below, or, on a body's final
+  ::  line (fin, +read-last), the rest of the body
   ::
   ++  read-trace
-    |=  [sig=token ts=(list token)]
+    |=  [fin=? sig=token ts=(list token)]
     ^-  (pare expr)
     ?:  &(?=(^ ts) tight.i.ts)  (wide-rune "~&" ts)
     ;<  [v=expr after=(list token)]  then  (read-expr ts)
-    ?.  ?=([[* * %indent] *] after)
-      =/  dm  (doomed ts after "`~&`'s body on deeper lines")
-      ?^  dm  u.dm
+    =/  dm  (doomed ts after "`~&`'s body on deeper lines")
+    ?^  dm  u.dm
+    ;<  [b=expr more=(list token)]  then
+      ?:  ?=([[* * %indent] *] after)  (read-body t.after)
+      ?:  &(fin ?=([[* * %newline] *] after))  (read-rest t.after)
       (bad after "`~&`'s body on deeper lines")
-    ;<  [b=expr more=(list token)]  then  (read-body t.after)
     [%& [%trace [beg.at.sig end:(span-of b)] v b] more]
   ::
-  ::  +read-branch: ?- expr, then its arms below, one per line
+  ::  +read-branch: ?- expr, then its arms below, one per line; or, when
+  ::  it begins a body's final line (fin, +read-last), at its own depth
+  ::  to the end of the body, whose DEDENT it leaves (+read-rest)
   ::
   ++  read-branch
-    |=  [wut=token ts=(list token)]
+    |=  [fin=? wut=token ts=(list token)]
     ^-  (pare expr)
     ?:  &(?=(^ ts) tight.i.ts)  (wide-rune "?-" ts)
     ;<  [s=expr after=(list token)]  then  (read-expr ts)
-    ?.  ?=([[* * %indent] *] after)
-      =/  dm  (doomed ts after "`?-`'s arms on deeper lines")
-      ?^  dm  u.dm
+    =/  dm  (doomed ts after "`?-`'s arms on deeper lines")
+    ?^  dm  u.dm
+    ?.  ?=([[* * ?(%indent %newline)] *] after)
       (bad after "`?-`'s arms on deeper lines")
+    =/  flat=?  ?=(%newline lex.i.after)
+    ?:  &(flat !fin)  (bad after "`?-`'s arms on deeper lines")
     =|  arms=(list arm)
     =/  rest=(list token)  t.after
     |-  ^-  (pare expr)
-    ;<  [a=arm more=(list token)]  then  (read-arm rest)
+    ;<  [a=arm more=(list token)]  then
+      ?:(flat (read-flat-arm rest) (read-arm rest))
     ?:  ?=([[* * %newline] *] more)  $(arms [a arms], rest t.more)
     ?.  ?=([[* * %dedent] *] more)  (bad-end-in more (tail-can val.a))
-    [%& [%branch [beg.at.wut end.at.a] s (flop [a arms])] t.more]
+    =/  at=span  [beg.at.wut end.at.a]
+    [%& [%branch at s (flop [a arms])] ?:(flat more t.more)]
+  ::
+  ::  +read-flat-arm: +read-arm at its ?-'s depth, where a line that
+  ::  could begin the body's other lines gets a hint
+  ::
+  ++  read-flat-arm
+    |=  ts=(list token)
+    ^-  (pare arm)
+    ?:  ?=([[* * ?(%'++' %'+$')] *] ts)
+      %:  bad-in-why  ts  "a pattern"  pattern-mask
+        "a body's local definitions come before its final expression"
+      ==
+    ?:  ?=([[* * ?(%'~&' %'^-')] *] ts)
+      %:  bad-in-why  ts  "a pattern"  pattern-mask
+        "a trace or cast goes in the arm's body"
+      ==
+    (read-arm ts)
   ::
   ::  +read-arm: a pattern, then an expression or a body
   ::
@@ -3718,7 +3793,7 @@
       %^  bad-why  after  "a space after the pattern"
       "patterns take no `name=`: a bare name binds, as [a b]"
     ;<  [e=expr more=(list token)]  then
-      (read-expr-or-body "the pattern" after)
+      (read-expr-or-body | "the pattern" after)
     [%& [[beg:(span-of p) end:(span-of e)] p e] more]
   ::
   ::  +read-pattern: a term, number, string, ship, loobean, ~, * or name,

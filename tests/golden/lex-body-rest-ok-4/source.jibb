@@ -1,0 +1,13 @@
++$ sign
+  %zero
+  %more
+++ f |= b=? ^- @ud
+  ?- b
+  %.y  1
+  :: comment lines and blank lines between arms emit nothing
+
+  %.n  2
+++ g |= s=sign ^- @ud
+  ?- s
+  %zero  0
+  %more  1

@@ -1,0 +1,3 @@
+/tests/golden/lex-body-rest-bad-4/source.jibb:3:3: expected `?-`'s arms on deeper lines, found a line at the same depth
+  %.y 1
+  ^

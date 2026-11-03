@@ -1,0 +1,15 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 b (flag 1:11))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 b)
+          (arm 3:3
+            (lit 3:3 %.y)
+            (body 4:5 (lit 4:5 1)))
+          (arm 5:3
+            (lit 5:3 %.n)
+            (body 6:5
+              (value 6:5 two (lit 6:12 2))
+              (wing 7:5 two))))))))

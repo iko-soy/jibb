@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, The rest of a body: "This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression."
+tests: a top-level definition's trace, with its body on the next line at column 1
+expect: error at 2:1 — at the top level no rune takes the lines after it, so `~&`'s body goes on deeper lines

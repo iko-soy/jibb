@@ -1,0 +1,4 @@
+source: Grammar tab, Runes: "**The rest of a body.** A body's final line may hand the rest of the body, the lines after it at the same depth, to the rune that ends the line: … a `?-` that begins the line and ends it with its subject. Its arms are the rest, one per line"
+tests: a gate and a cast taking the rest of a body, then a `?-` on the rest's final line with its arms at its depth; and a `?-` with its arms at its depth on the final line of a local `++`'s deeper body
+expect: parses: or-else's inner gate holds the cast, which holds the ?- and its two arms; h's body is the ?-
+expect-types: a partial inference report: or-else is $-(@ud $-((unit @ud) @ud)) and g $-(? @ud)

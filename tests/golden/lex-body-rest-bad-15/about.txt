@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`?-` **wuthep**: … A `?-` that begins a body's final line may instead take its arms at its own depth, to the end of the body. A `?-` takes all its arms deeper or all at its own depth."; the EBNF: `last = … | "?-" expr NEWLINE arm { NEWLINE arm } ;`
+tests: Hoon's closer `==` at the column of a `?-` whose arms are at its depth
+expect: error at 5:3 — the line is read as an arm, and the lexer's message about `==` says more than "expected a pattern"

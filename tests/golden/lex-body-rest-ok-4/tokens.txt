@@ -1,0 +1,46 @@
+1:1 glyph +$
+1:4 name sign
+2:3 INDENT
+2:3 lit %zero
+3:3 NEWLINE
+3:3 lit %more
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name f
+4:6 glyph |=
+4:9 name b
+4:10 tight glyph =
+4:11 tight glyph ?
+4:13 glyph ^-
+4:16 aura @ud
+5:3 INDENT
+5:3 glyph ?-
+5:6 name b
+6:3 NEWLINE
+6:3 lit %.y
+6:8 lit 1
+9:3 NEWLINE
+9:3 lit %.n
+9:8 lit 2
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name g
+10:6 glyph |=
+10:9 name s
+10:10 tight glyph =
+10:11 tight name sign
+10:16 glyph ^-
+10:19 aura @ud
+11:3 INDENT
+11:3 glyph ?-
+11:6 name s
+12:3 NEWLINE
+12:3 lit %zero
+12:10 lit 0
+13:3 NEWLINE
+13:3 lit %more
+13:10 lit 1
+13:11 DEDENT
+13:11 NEWLINE

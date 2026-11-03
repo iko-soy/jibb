@@ -1,0 +1,4 @@
+source: Grammar tab, Runes: "`?-` **wuthep**: … A `?-` that begins a body's final line may instead take its arms at its own depth, to the end of the body. A `?-` takes all its arms deeper or all at its own depth."; the EBNF: `last = … | "?-" expr NEWLINE arm { NEWLINE arm } ;`
+tests: a `?-` that begins a body's final line, with its arms at its own depth, one per line, to the end of the body, over a loobean and over a union, with a comment line and a blank line between two arms
+expect: parses: each ?- holds the arms below it, the tree the deeper layout gives
+expect-types: a partial inference report: f is $-(? @ud) and g $-(sign @ud)

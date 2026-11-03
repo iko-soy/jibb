@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`?-` **wuthep**: … A `?-` that begins a body's final line may instead take its arms at its own depth, to the end of the body. A `?-` takes all its arms deeper or all at its own depth."; the EBNF: `last = … | "?-" expr NEWLINE arm { NEWLINE arm } ;`
+tests: a local definition after a `?-`'s arms at its depth
+expect: error at 5:3 — a line at the arms' depth is the next arm, and a definition is no pattern; the hint says a body's local definitions come first

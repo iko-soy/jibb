@@ -1,0 +1,3 @@
+source: Grammar tab, Runes, The rest of a body: "This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression."
+tests: a `?-` that is a local definition's own expression, with its arms at the definition's depth
+expect: error at 3:3 — a definition's own expression never takes the lines after it at its depth; they would swallow the body's later lines

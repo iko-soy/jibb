@@ -1,0 +1,6 @@
+++ f |= n=@ud
+  ++ two 2
+  ^- @ud
+  +$ count @ud
+  ++ three ^- count 3
+  (add n (add two three))

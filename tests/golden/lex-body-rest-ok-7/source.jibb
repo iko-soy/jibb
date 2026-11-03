@@ -1,0 +1,10 @@
+/=  lib /ui/lib
+
++$ msg
+  [%typed text=@t]
+  %submit
+++ update |= [=msg n=@ud]
+  ~& msg
+  ?- msg
+  [%typed t]  n
+  %submit     (add n 1)

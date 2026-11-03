@@ -1,0 +1,30 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 3:1 a
+    (gate 3:6
+      (face 3:9 n (aura 3:11 @ud))
+      (body 4:3
+        (cast 4:3
+          (aura 4:6 @ud)
+          (body 5:3
+            (group 5:3
+              (call 5:4 (wing 5:4 add) (wing 5:8 n) (lit 5:10 1))))))))
+  (value 6:1 b
+    (gate 6:6
+      (face 6:9 n (aura 6:11 @ud))
+      (body 7:3
+        (trace 7:3
+          (wing 7:6 n)
+          (body 8:3
+            (group 8:3
+              (call 8:4 (wing 8:4 add) (wing 8:8 n) (lit 8:10 1))))))))
+  (value 9:1 c
+    (gate 9:6
+      (face 9:9 f
+        (fn 9:11 (aura 9:14 @ud) (aura 9:18 @ud)))
+      (body 10:3
+        (gate 10:3
+          (face 10:6 n (aura 10:8 @ud))
+          (body 11:3
+            (group 11:3
+              (call 11:4 (wing 11:4 f) (wing 11:6 n)))))))))

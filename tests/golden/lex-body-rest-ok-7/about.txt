@@ -1,0 +1,4 @@
+source: Grammar tab, Runes: "**The rest of a body.** A body's final line may hand the rest of the body, the lines after it at the same depth, to the rune that ends the line: … a `?-` that begins the line and ends it with its subject. Its arms are the rest, one per line"
+tests: a trace taking the rest of the body, whose final line is a `?-` with its arms at its depth: removing the `~&` line moves no other line
+expect: parses: the trace's body is the ?-, which holds both arms
+expect-types: a partial inference report: update is $-([msg=msg n=@ud] @ud)

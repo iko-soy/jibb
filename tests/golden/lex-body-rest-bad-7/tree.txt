@@ -1,0 +1,3 @@
+/tests/golden/lex-body-rest-bad-7/source.jibb:2:11: expected `?-`'s arms on deeper lines, found the end of the line; the deeper lines go to the last bracket or rune left open on this line
+  ?- (eq x
+          ^

@@ -6,7 +6,7 @@ The syntax the compiler accepts.
 
 ## Lexical rules
 
-- **Indentation is structure**: a block of deeper lines belongs to the line above it: to the last bracket that line leaves open at its end, to the body of the last rune or `++` on it, to `?-`'s arms, to an arm's body, or to a `+$`'s cases. A deeper line that nothing on the line above takes is an error, so a call never continues onto a deeper line. Returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count.
+- **Indentation is structure**: a block of deeper lines belongs to the line above it: to the last bracket that line leaves open at its end, to the body of the last rune or `++` on it, to `?-`'s arms, to an arm's body, or to a `+$`'s cases; or, for a rune or `?-` that ends a body's final line, so do the lines after it at the same depth, as The rest of a body says. A deeper line that nothing on the line above takes is an error, so a call never continues onto a deeper line. Returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count.
 - **Layout tokens**: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE.
 - **Open brackets**: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual. A mold's `[` and `(` open the same way, with one field or mold per deeper line. A line may leave several brackets open: the deeper lines go to the last one, or to the body of the last rune, and the others close with it, so `(column ~ ~[` above its items needs no `)`. On the opener's line, spaces separate items, so `~[text "a"` holds two items. In an expression's open bracket each deeper line is one whole item: `text "a"` there is `(text "a")`, `label=trim " x "` is `label=(trim " x ")`, and under a `(` alone the first deeper line is the head. A mold's open bracket takes exactly one field or mold per deeper line.
 - **Tight forms**: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`.
@@ -53,17 +53,24 @@ Every literal reads exactly as Hoon reads it: `1000` is an error (write `1.000`)
 
 ## Runes
 
-A rune's first children sit on its line, the last taking the rest of it; the others follow, indented.
+A rune's first children sit on its line, the last taking the rest of it; the others follow, indented. On a body's final line, the last child may instead take the rest of the body at the same depth, as The rest of a body says.
 
 - `++` **luslus**: defines a value, at top level or as local names at the start of any body (a gate's, an arm's, a `^-`'s, a `~&`'s or a `++`'s), visible to each other and the final expression. Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate, so `++ title (trim title)` is an error.
 - `+$` **lusbuc**: defines a mold, likewise: on its line, or as cases on the lines below, one per line, where several cases make a union and one is just that mold. Molds may be recursive.
 - `|=` **bartis**: a gate with a faced sample, `m=model`, `=msg` (`msg=msg`) or `[a=@ b=@]`; the body on the same line or below.
-- `?-` **wuthep**: the only branch, exhaustive; the subject on its line, then arms of a pattern and an expression or body. Conditions switch on `%.y` and `%.n`.
+- `?-` **wuthep**: the only branch, exhaustive; the subject on its line, then arms of a pattern and an expression or body, one per line, deeper. A `?-` that begins a body's final line may instead take its arms at its own depth, to the end of the body. A `?-` takes all its arms deeper or all at its own depth. Conditions switch on `%.y` and `%.n`.
 - `^-` **kethep**: a cast; the mold on its line, the expression after it or below.
 - `~&` **sigpam**: prints the value on its line, then runs the body below; output goes to the ship's log or the browser's console.
 - `!!` **zapzap**: a crash, an expression of any type; as a mold, the empty mold. It is an operand, so `f !!` and `~[!!]` need no parentheses.
 - `$-` **buchep**: a gate's mold, `$-(sample product)`.
 - `|$` **barbuc**: a generic mold, right after a `+$`'s name: `+$ result |$ [V E]`, then the mold on its line or the cases below.
+
+**The rest of a body.** A body's final line may hand the rest of the body, the lines after it at the same depth, to the rune that ends the line:
+
+- a tall `|=`, `^-` or `~&`, or a chain of them such as `^- @ud ~& x`, when the line ends where the innermost rune's last child goes. That child is the rest, a body of its own: first its local `++` and `+$`, then its expression, whose own final line may do the same;
+- a `?-` that begins the line and ends it with its subject. Its arms are the rest, one per line, so nothing follows them.
+
+So a gate's body can be `~& msg`, then `?- msg`, then its arms, all at one depth, and adding or removing the `~&` line moves no other line. This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression. So `++ inner |= y=@ud` above `(inner x)`, `[a b] ?- a` above `%.y 1`, `^- @ud ?- x` above `%.y 1` and `++ g ?- x` above `%.y 1` stay errors.
 
 Only `|=` and `$-` have wide forms: `|=(sample expr)` and `$-(mold mold)`. Their children are operands, so calls inside need parentheses.
 
@@ -242,7 +249,12 @@ definition = "+$" name [ generic ] ( mold | cases )
 generic    = "|$" "[" typevar { typevar } "]" ;
 cases      = INDENT mold { NEWLINE mold } DEDENT ;  (* one case is that mold; more make a union *)
 
-body       = INDENT { definition NEWLINE } expr DEDENT ;
+body       = INDENT rest DEDENT ;
+rest       = { definition NEWLINE } last ;           (* a body's lines, to its DEDENT *)
+last       = expr
+           | head NEWLINE rest                       (* the rest is the innermost rune's last child *)
+           | "?-" expr NEWLINE arm { NEWLINE arm } ;  (* arms at the ?-'s depth *)
+head       = { "|=" field | "^-" mold } ( "|=" field | "^-" mold | "~&" expr ) ;  (* on one line *)
 expr       = rune | call ;
 call       = operand { operand } ;
 operand    = literal | qath | ref | change | pair | unit | group | list | tuple

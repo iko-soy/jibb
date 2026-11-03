@@ -1,0 +1,23 @@
+(module
+  (mold 1:1 sign
+    (union 2:3 (const 2:3 %zero) (const 3:3 %more)))
+  (value 4:1 f
+    (gate 4:6
+      (face 4:9 b (flag 4:11))
+      (cast 4:13
+        (aura 4:16 @ud)
+        (body 5:3
+          (branch 5:3
+            (wing 5:6 b)
+            (arm 6:3 (lit 6:3 %.y) (lit 6:8 1))
+            (arm 9:3 (lit 9:3 %.n) (lit 9:8 2)))))))
+  (value 10:1 g
+    (gate 10:6
+      (face 10:9 s (ref 10:11 sign))
+      (cast 10:16
+        (aura 10:19 @ud)
+        (body 11:3
+          (branch 11:3
+            (wing 11:6 s)
+            (arm 12:3 (lit 12:3 %zero) (lit 12:10 0))
+            (arm 13:3 (lit 13:3 %more) (lit 13:10 1))))))))

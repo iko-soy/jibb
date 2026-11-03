@@ -1,0 +1,3 @@
+source: Grammar tab, Runes: "`?-` **wuthep**: … A `?-` that begins a body's final line may instead take its arms at its own depth, to the end of the body. A `?-` takes all its arms deeper or all at its own depth."; the EBNF: `last = … | "?-" expr NEWLINE arm { NEWLINE arm } ;`
+tests: a trace where an arm of a `?-` with its arms at its depth goes
+expect: error at 3:4 — a line at the arms' depth is an arm, and `~&` is no pattern; the error points just past the ~, which alone is the null pattern, and the hint says a trace goes in the arm's body
