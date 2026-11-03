@@ -157,13 +157,13 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 
 ```
 tools/check                  # every check; it exits 0 only when all pass
-tools/check --group eval     # only the checks that need no ship, as CI runs them
+tools/check --group eval     # only the checks that need no ship
 nix flake check              # the same checks in the Nix sandbox, on a fresh fake ~zod
 ```
 
 `tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. A new suite in `tests/lib` needs no new check: `arms-1` to `arms-4` run every suite's arms, in shards of about equal time, and a slow suite's cost belongs in `COSTS` in `tools/test-arms`, which balances them. The eval group, the 7 checks that need only `urbit` and Python, runs several at a time (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit` and `clay-fixtures`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'arms-*'`. To run one suite under eval, use `tools/test-arms <suite>`, as `tools/test-arms jibb-todo-full`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
 
-CI, [.github/workflows/check.yml](../.github/workflows/check.yml), builds the desks and runs the eval group through the flake on every push to `master` and every pull request. It doesn't run the ship group, so run that before pushing.
+There is no CI, so nothing runs these checks for you: run `tools/check` or `nix flake check` before every push. `nix flake check` needs nothing but Nix, since it builds the desks and runs both groups in the Nix sandbox, the ship group (Linux only) on a fake ~zod it boots itself; see the [README](../README.md#building-and-checking-with-nix).
 
 `ship-selftest` matters most when `tools/ship` changed, and `check-commit` when the mark or the desks changed, but `tools/check` runs both every time. The self-test leaves fixture files on the `jibb-dev` desk, and `ship-test`, which runs after it, puts the real ones back.
 

@@ -234,6 +234,8 @@ Montelot's answers to 16 to 28 are proposals. They are listed in [open-questions
 
 **Answer:** a *(chosen)*
 
+On 2026-11-03 Montelot had the GitHub Actions job removed. The checks run before each push instead, with `tools/check` or `nix flake check`.
+
 **31. How should the 28 copies of `my-app` files under `tests/` be handled?** (A108, A109)
 
 - a) Map `my-app` into the `jibb-dev` desk outside `/tests` and read it directly, removing the copies.
