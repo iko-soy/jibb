@@ -4,7 +4,7 @@ partial inference; module not checked
 +$ repeat: not checked
 +$ extra: not checked
 ++ reverse-value: (choice @p @t)
-++ reverse-gate: $-((choice A B) (choice A B))
+++ reverse-gate: $-((choice B A) (choice B A))
 ++ repeat-gate: $-((choice A A) (choice A A))
 ++ repeated-call: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
 /tests/golden/types-generic-union-alias/source.jibb:10:31: first type variable

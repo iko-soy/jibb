@@ -1,7 +1,7 @@
 partial inference; module not checked
 ++ text-ship: [@t @p]
 ++ ship-text: [@p @t]
-++ first-fn: $-(A [@t A])
+++ first-fn: $-(B [@t B])
 ++ generic-lead: $-([x=A y=B] [A B])
 ++ generic-late: $-([x=A y=B] [B A])
 ++ generic-gate: $-([f=$-(A B) x=C] [$-(A B) C])

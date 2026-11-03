@@ -1,0 +1,3 @@
+/tests/golden/lex-typevar-bad-2/source.jibb:1:15: a type variable is a capital, then lowercase letters and digits
+++ pass |= m=MSG m
+              ^

@@ -1,0 +1,14 @@
+++ id |= x=Msg x
+++ swap |= [a=Key b=Value] [b a]
+++ make program
+++ embed island
+++ load-page page
+++ narrow |= [lo=Num hi=Num] (add lo hi)
+++ keyed |= [a=Key b=Key] (eq a b)
+++ button-of |= m=Msg (button "go" m)
+++ mapped |= xs=(list Item) (turn xs same)
+++ composed (cork same same)
+++ applied (turn ~ same)
+++ before |= [x=Num y=Num] (gth y x)
+++ use-hunt (hunt before `1 `2)
+++ forced |= [a=Key b=Value] ^- (list Key) ~[a b]

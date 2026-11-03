@@ -17,7 +17,7 @@ partial inference; module not checked
 ++ wrong-msg-update: $-([msg=other state=@ud] [@ud (list (cmd other))])
 ++ mismatched-message: call constraint is not supported by partial inference
 ++ pending: tag needs context in partial inference
-++ program-value: $-([init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B (element C)) subs=$-(B (list (sub C)))]]] [init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B (element C)) subs=$-(B (list (sub C)))]]])
+++ program-value: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
 ++ update-unfaced: $-([message @ud] [@ud (list (cmd message))])
 ++ direct-unfaced: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
 +$ record: not checked
@@ -58,7 +58,7 @@ partial inference; module not checked
 ++ unknown-call: $-($-([A B] C) $-([A B] C))
 ++ update-proj-good: $-([msg=message state=[count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
 ++ program-projection: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] (element message)) subs=$-([count=@ud label=@t] (list (sub message)))]]]
-++ program-alias: $-([init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B (element C)) subs=$-(B (list (sub C)))]]] [init=$-(A B) [update=$-([C B] [B (list (cmd C))]) [view=$-(B (element C)) subs=$-(B (list (sub C)))]]])
+++ program-alias: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
 ++ through-head-alias: call constraint is not supported by partial inference
 ++ update-alias: $-([msg=message state=@ud] [@ud (list (cmd message))])
 ++ through-arg-alias: call constraint is not supported by partial inference

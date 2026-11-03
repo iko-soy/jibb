@@ -64,7 +64,7 @@ partial inference; module not checked
 ++ snip: sample mold is not supported by partial inference
 ++ rear: sample mold is not supported by partial inference
 ++ cork: $-([$-(A B) $-(B C)] $-(A C))
-++ corl: $-([$-(A B) $-(C A)] $-(C B))
+++ corl: $-([$-(B C) $-(A B)] $-(A C))
 ++ cury: $-([$-([A B] C) A] $-(B C))
 ++ curr: $-([$-([A B] C) B] $-(A C))
 +$ cmd: cases proven disjoint; mold not checked

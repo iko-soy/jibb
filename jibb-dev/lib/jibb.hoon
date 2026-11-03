@@ -206,9 +206,11 @@
 ::                   token holds the text after @. An aura starting @s or
 ::                   @r is an error at 2nd: "signed and floating-point
 ::                   auras are left out of Jibb"
-::    A-Z            type variable: one capital. A letter or digit right
-::                   after it is an error there, "a type variable is one
-::                   capital letter", after the type variable's token
+::    A-Z            type variable [A-Z][a-z0-9]*: a capital, then
+::                   lowercase letters and digits, as M, Msg or T2. Right
+::                   after it, which is emitted first, a capital, _ or -
+::                   is an error there, "a type variable is a capital,
+::                   then lowercase letters and digits"
 ::    a-z            name [a-z][a-z0-9-]*, or a wing: two or more names
 ::                   joined by dots. Right after the name or wing, which
 ::                   is emitted first, a capital or _ is an error there,
@@ -1360,10 +1362,10 @@
       =?  n  &(?=(^ rest) (is-upper i.rest))  +(n)
       (emit +(n) [%aura (@ta (crip (scag n t.cs)))])
     ?:  (is-upper a)
-      =>  (emit 1 [%tvar a])
-      ?.  &(?=(^ cs) |((is-lower i.cs) (is-upper i.cs) (is-digit i.cs)))
-        cor
-      (err col "a type variable is one capital letter")
+      =/  n=@ud  (run-len t.cs tvar-mask)
+      =>  (emit +(n) [%tvar (crip [a (scag n t.cs)])])
+      ?.  &(?=(^ cs) |((is-upper i.cs) =('_' i.cs) =('-' i.cs)))  cor
+      (err col "a type variable is a capital, then lowercase letters and digits")
     ?:  =(':' a)
       ?.  =(0 dep)  (err col "a comment can't start inside `\{…}`")
       ?:  =(':' b)  comment
@@ -1667,6 +1669,7 @@
 ++  digit-mask   0x3ff.0000.0000.0000                      ::  0-9
 ++  hex-mask     0x7e.0000.0000.03ff.0000.0000.0000        ::  0-9 a-f
 ++  name-mask    0x7ff.fffe.0000.0000.03ff.2000.0000.0000  ::  a-z 0-9 -
+++  tvar-mask    0x7ff.fffe.0000.0000.03ff.0000.0000.0000  ::  a-z 0-9
 ++  knot-mask    0x47ff.fffe.8000.0000.03ff.6000.0000.0000 ::  and . ~ _
 ++  number-mask  0x7ff.fffe.07ff.fffe.03ff.4000.0000.0000  ::  a-z A-Z 0-9 .
 ++  bad-mask     0x8000.0000.0000.0000.0000.0000.ffff.fbff ::  2.2
@@ -6395,15 +6398,67 @@
   ^-  ?
   (itype-var-is-gate-free-fuel n t 256)
 ::
+::  +named-var: the ID of the nth type variable, written as name
+::
+::    An ID counts in its low 64 bits. The name a variable was written
+::    with, as Msg, sits above them, or 0 for none, so the name travels
+::    with the variable through substitution, generalization and
+::    instantiation, and the printer can show it (+show-var). No two
+::    IDs share a count, so a name never makes two variables one.
+::
+++  named-var
+  |=  [name=@t n=@ud]
+  ^-  @ud
+  (add (lsh 6 name) (end 6 n))
+::
+::  +var-name: the name in a type variable's ID, or 0 for none
+::
+++  var-name
+  |=  id=@ud
+  ^-  @t
+  (rsh 6 id)
+::
+::  +var-count: a type variable's ID without its name
+::
+++  var-count
+  |=  id=@ud
+  ^-  @ud
+  (end 6 id)
+::
+::  +canonical-itype: t with the variables in vars renumbered to print
+::
+::    A variable keeps its name unless one before it in vars has the same
+::    name. The others take numbers from 0, skipping any whose letter
+::    (+show-var) is a name in vars, so a printed type never shows one
+::    name for two variables.
+::
 ++  canonical-itype
   |=  [t=itype vars=(list @ud)]
   ^-  itype
+  =/  names=(list @t)  (turn vars var-name)
+  =/  used=(list @t)  ~
   =/  ren=isub  ~
   =/  n=@ud  0
   |-
   ?~  vars  (itype-rename t ren)
-  =/  replacement=itype  ?:((itype-var-is-restricted i.vars t) [%rvar n] ?:((itype-var-is-atom i.vars t) [%avar n] ?:((itype-var-is-gate-free i.vars t) [%fvar n] [%var n])))
-  $(vars t.vars, ren [[i.vars replacement] ren], n +(n))
+  =/  name=@t  (var-name i.vars)
+  =/  own=?  &(!=(0 name) !(lien used |=(u=@t =(u name))))
+  =?  n  !own  (letter-free n names)
+  =/  id=@ud  ?:(own (named-var name 0) n)
+  =/  replacement=itype  ?:((itype-var-is-restricted i.vars t) [%rvar id] ?:((itype-var-is-atom i.vars t) [%avar id] ?:((itype-var-is-gate-free i.vars t) [%fvar id] [%var id])))
+  $(vars t.vars, ren [[i.vars replacement] ren], n ?:(own n +(n)), used ?:(own [name used] used))
+::
+::  +letter-free: the first number from n whose letter is none of names
+::
+++  letter-free
+  |=  [n=@ud names=(list @t)]
+  ^-  @ud
+  ?.  (lien names |=(m=@t =(m (crip (show-var n)))))  n
+  $(n +(n))
+::
+::  +instantiate-scheme: a scheme's type with fresh quantified variables
+::
+::    Each fresh variable keeps the name of the one it replaces.
 ::
 ++  instantiate-scheme
   |=  [scheme=ischeme state=istate]
@@ -6412,12 +6467,13 @@
   =/  vars=(list @ud)  vars.scheme
   |-
   ?~  vars  [(itype-rename typ.scheme ren) state]
+  =/  fresh=@ud  (named-var (var-name i.vars) next.state)
   =/  replacement=itype
-    ?:((itype-var-is-restricted i.vars typ.scheme) [%rvar next.state] ?:((itype-var-is-atom i.vars typ.scheme) [%avar next.state] ?:((itype-var-is-gate-free i.vars typ.scheme) [%fvar next.state] [%var next.state])))
+    ?:((itype-var-is-restricted i.vars typ.scheme) [%rvar fresh] ?:((itype-var-is-atom i.vars typ.scheme) [%avar fresh] ?:((itype-var-is-gate-free i.vars typ.scheme) [%fvar fresh] [%var fresh])))
   ::  A generalized atom variable is a valid origin for re-generalizing
   ::  an alias, just as a sample binder is.
   =/  st=istate  state(next +(next.state))
-  =?  binders.st  |(?=(%fvar -.replacement) ?=(%avar -.replacement) ?=(%rvar -.replacement))  [next.state binders.state]
+  =?  binders.st  |(?=(%fvar -.replacement) ?=(%avar -.replacement) ?=(%rvar -.replacement))  [fresh binders.state]
   $(vars t.vars, ren [[i.vars replacement] ren], state st)
 ::
 ++  icap-lookup
@@ -7277,7 +7333,8 @@
       ?:  in-mold.state  ~
       =/  n=(unit @ud)  (icap-lookup name.sh caps.state)
       ?^  n  `[[%var u.n] state]
-      `[[%var next.state] state(next +(next.state), caps [[name.sh next.state at.sh] caps.state])]
+      =/  id=@ud  (named-var name.sh next.state)
+      `[[%var id] state(next +(next.state), caps [[name.sh id at.sh] caps.state])]
     *      ~
   ==
 ::
@@ -7557,7 +7614,8 @@
   ^-  istate
   ?~  sites  state
   ?:  ?=(^ (icap-lookup name.i.sites caps.state))  $(sites t.sites)
-  $(sites t.sites, state state(next +(next.state), caps [[name.i.sites next.state at.i.sites] caps.state]))
+  =/  id=@ud  (named-var name.i.sites next.state)
+  $(sites t.sites, state state(next +(next.state), caps [[name.i.sites id at.i.sites] caps.state]))
 ::
 ++  reserve-def-caps
   |=  [e=expr state=istate]
@@ -7731,7 +7789,8 @@
     (weld (free-env-vars env sub.state.p.inferred) (free-cap-vars caps.state sub.state.p.inferred))
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
-  $(ds t.ds, env [[name.d [typ vars]] env], state state.p.inferred(caps caps.state, holes holes.state), progressed &)
+  =/  named=[typ=itype vars=(list @ud)]  (cap-names typ vars caps.state.p.inferred sub.state.p.inferred)
+  $(ds t.ds, env [[name.d named] env], state state.p.inferred(caps caps.state, holes holes.state), progressed &)
 ::
 ::  Try complete cyclic local groups after individual definitions stall.
 ::  Components with non-gates or unresolved constraints stay unavailable.
@@ -10337,24 +10396,12 @@
   ^-  tape
   =.  t  (itype-walk t sub)
   ?-  -.t
-    %var
-      ?:  (lth id.t 26)  [(add 65 id.t) ~]
-      "T{<id.t>}"
-    %fvar
-      ?:  (lth id.t 26)  [(add 65 id.t) ~]
-      "T{<id.t>}"
-    %avar
-      ?:  (lth id.t 26)  [(add 65 id.t) ~]
-      "T{<id.t>}"
-    %rvar
-      ?:  (lth id.t 26)  [(add 65 id.t) ~]
-      "T{<id.t>}"
-    %nvar
-      ?:  (lth id.t 26)  [(add 65 id.t) ~]
-      "T{<id.t>}"
-    %rnvar
-      ?:  (lth id.t 26)  [(add 65 id.t) ~]
-      "T{<id.t>}"
+    %var    (show-var id.t)
+    %fvar   (show-var id.t)
+    %avar   (show-var id.t)
+    %rvar   (show-var id.t)
+    %nvar   (show-var id.t)
+    %rnvar  (show-var id.t)
     %atom  "@{(trip aura.t)}"
     %any-atom  "@"
     %flag  "?"
@@ -10374,6 +10421,17 @@
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
     %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
   ==
+::
+::  +show-var: a type variable as printed: its name if it has one, else
+::  a letter for its number, A to Z, then T26, T27 and on
+::
+++  show-var
+  |=  id=@ud
+  ^-  tape
+  =/  name=@t  (var-name id)
+  ?.  =(0 name)  (trip name)
+  ?:  (lth id 26)  [(add 65 id) ~]
+  "T{<id>}"
 ::
 ++  show-itype-item
   |=  [t=itype sub=isub]
@@ -10433,7 +10491,7 @@
   ?:  |(?=(%var -.normalized) ?=(%fvar -.normalized) ?=(%avar -.normalized) ?=(%rvar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
   ?:  (itype-has-hidden-recursive normalized)  label
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
-  =/  printable=itype  (canonical-itype normalized vars)
+  =/  printable=itype  (canonical-itype (cap-names normalized vars ~ sub))
   "{label} has type {(show-itype printable ~)}{(show-atom-constraint printable)}"
 ::
 ::  A capital in a written mold is generalized with its enclosing ++.
@@ -10473,6 +10531,116 @@
   ?~  ident  $(caps t.caps)
   ?:  =(n u.ident)  `i.caps
   $(caps t.caps)
+::
+::  +cap-names: give each variable in vars the name it was written with
+::
+::    Unification joins variables, and the one an ID resolves to may not
+::    carry the name its definition wrote, as when a capital meets a
+::    called gate's variable or an atom variable. Each variable in vars
+::    takes the name of the first capital in caps that resolves to it;
+::    failing that, of the earliest made of the named variables that
+::    resolve to it, itself included (+joined-names). Only the name part
+::    of an ID changes, not its count, so IDs stay distinct.
+::
+++  cap-names
+  |=  [typ=itype vars=(list @ud) caps=icaps sub=isub]
+  ^-  [typ=itype vars=(list @ud)]
+  =/  written=icaps  (flop caps)
+  =/  joined=(map @ud @ud)  (joined-names sub)
+  =/  ren=(map @ud @ud)  ~
+  =/  out=(list @ud)  ~
+  |-
+  ?~  vars  [?~(ren typ (itype-reid typ ren)) (flop out)]
+  =/  cap=(unit icap)  (cap-with-id i.vars written sub)
+  =/  first=(unit @ud)  (~(get by joined) i.vars)
+  =/  name=@t
+    ?^  cap  name.u.cap
+    ?~  first  (var-name i.vars)
+    ?:  =(0 (var-name i.vars))  (var-name u.first)
+    ?:  (lth (var-count u.first) (var-count i.vars))  (var-name u.first)
+    (var-name i.vars)
+  =/  to=@ud  (named-var name i.vars)
+  ?:  =(to i.vars)  $(vars t.vars, out [i.vars out])
+  $(vars t.vars, out [to out], ren (~(put by ren) i.vars to))
+::
+::  +joined-names: for each variable that named ones resolve to, the
+::  earliest made of those, by count
+::
+::    One pass over sub keeps each ID's newest binding, as +itype-lookup
+::    would find it: the variable it is bound to, or ~ for another type.
+::    Each named ID then follows those bindings to the variable it
+::    resolves to, if any.
+::
+++  joined-names
+  |=  sub=isub
+  ^-  (map @ud @ud)
+  =/  edges=(map @ud (unit @ud))
+    %+  roll  (flop sub)
+    |=  [b=ibinding m=(map @ud (unit @ud))]
+    (~(put by m) id.b (var-of val.b))
+  =/  named=(list @ud)
+    (murn ~(tap by edges) |=([k=@ud *] ?:(=(0 (var-name k)) ~ `k)))
+  =/  fuel=@ud  ~(wyt by edges)
+  =/  out=(map @ud @ud)  ~
+  |-
+  ?~  named  out
+  =/  root=(unit @ud)  (follow-var i.named edges fuel)
+  ?~  root  $(named t.named)
+  ?:  =(u.root i.named)  $(named t.named)
+  =/  best=(unit @ud)  (~(get by out) u.root)
+  ?:  &(?=(^ best) (lth (var-count u.best) (var-count i.named)))
+    $(named t.named)
+  $(named t.named, out (~(put by out) u.root i.named))
+::
+::  +follow-var: the variable that id resolves to through edges, or ~ if
+::  it resolves to another type; fuel bounds the steps
+::
+++  follow-var
+  |=  [id=@ud edges=(map @ud (unit @ud)) fuel=@ud]
+  ^-  (unit @ud)
+  |-
+  ?:  =(0 fuel)  ~
+  =/  edge=(unit (unit @ud))  (~(get by edges) id)
+  ?~  edge  `id
+  ?~  u.edge  ~
+  ?:  =(u.u.edge id)  `id
+  $(id u.u.edge, fuel (dec fuel))
+::
+::  +var-of: the ID of a type variable node, or ~ for another type
+::
+++  var-of
+  |=  t=itype
+  ^-  (unit @ud)
+  ?+  -.t  ~
+    %var    `id.t
+    %fvar   `id.t
+    %avar   `id.t
+    %rvar   `id.t
+    %nvar   `id.t
+    %rnvar  `id.t
+  ==
+::
+::  +itype-reid: t with the variable IDs in ids replaced, each node
+::  keeping its kind
+::
+++  itype-reid
+  |=  [t=itype ids=(map @ud @ud)]
+  ^-  itype
+  ?-  -.t
+    %var    t(id (fall (~(get by ids) id.t) id.t))
+    %fvar   t(id (fall (~(get by ids) id.t) id.t))
+    %avar   t(id (fall (~(get by ids) id.t) id.t))
+    %rvar   t(id (fall (~(get by ids) id.t) id.t))
+    %nvar   t(id (fall (~(get by ids) id.t) id.t))
+    %rnvar  t(id (fall (~(get by ids) id.t) id.t))
+    ?(%atom %any-atom %flag %noun %empty %tag %const %recursive %jrec)  t
+    %union  t(cases (turn cases.t |=(c=itype ^$(t c))), args (turn args.t |=(c=itype ^$(t c))))
+    %grec   t(args (turn args.t |=(c=itype ^$(t c))))
+    %collection  t(args (turn args.t |=(c=itype ^$(t c))))
+    %face   t(body $(t body.t))
+    %fn     t(sample $(t sample.t), product $(t product.t))
+    %cell   t(hed $(t hed.t), tal $(t tal.t))
+  ==
 ::
 ++  merged-capitals
   |=  [caps=icaps sub=isub]
@@ -10909,7 +11077,7 @@
   =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
   =/  rest=(each ienv idiag)  $(entries t.entries)
   ?:  ?=(%| -.rest)  rest
-  [%& [[name.entry [typ vars]] p.rest]]
+  [%& [[name.entry (cap-names typ vars caps.entry sub.state)] p.rest]]
 ::
 ++  infer-gate-group
   |=  [ds=(list def) env=ienv state=istate]
@@ -11091,7 +11259,7 @@
   =?  artifacts  ?=(^ u.finalized)
     [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
   =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
-  `[[[name.d [typ vars]] env] checked artifacts]
+  `[[[name.d (cap-names typ vars caps.state.p.result sub.state.p.result)] env] checked artifacts]
 ++  add-supported-defs-core
   |=  [ds=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
   ^-  [env=ienv artifacts=(list iwidth-definition)]
@@ -15562,7 +15730,8 @@
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
   ?~  (width-finalize projections.state.p.result sub.state.p.result vars)
     $(ds t.ds, lines [(crip "++ {(trip name.d)}: record projection elaboration needs unsupported inference") lines])
-  =/  printable=itype  (canonical-itype typ vars)
+  =/  named=[typ=itype vars=(list @ud)]  (cap-names typ vars caps.state.p.result sub.state.p.result)
+  =/  printable=itype  (canonical-itype named)
   =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}{(show-atom-constraint printable)}")
   $(ds t.ds, lines [line lines])
 ::  Experimental module-owned pending-constraint generalization only.
@@ -15659,7 +15828,7 @@
   =/  normalized=itype  (itype-normalize typ sub.state)
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
   =/  quantified=(list @ud)  (skim vars |=(n=@ud !(lien ids.u.tagged |=(b=@ud =(b n)))))
-  `[[normalized quantified]]
+  `(cap-names normalized quantified caps.state sub.state)
 ::
 +$  dgcommit  [env=ienv state=istate]
 :: A branch literal must not acquire a value face through replay.
@@ -16092,20 +16261,21 @@
   ?~  env  `+(top)
   =/  sc=ischeme  scheme.i.env
   ?:  (itype-has-tag typ.sc)  ~
-  $(env t.env, top (itype-max-id typ.sc (max top (roll vars.sc max))))
+  $(env t.env, top (itype-max-id typ.sc (max top (roll (turn vars.sc var-count) max))))
 ::
-::  +itype-max-id: the largest variable or tag ID in t, or top
+::  +itype-max-id: the largest variable or tag ID in t, or top, without
+::  the variables' names (+named-var)
 ::
 ++  itype-max-id
   |=  [t=itype top=@ud]
   ^-  @ud
   ?-  -.t
-    %var          (max top id.t)
-    %fvar         (max top id.t)
-    %avar         (max top id.t)
-    %rvar         (max top id.t)
-    %nvar         (max top id.t)
-    %rnvar        (max top id.t)
+    %var          (max top (var-count id.t))
+    %fvar         (max top (var-count id.t))
+    %avar         (max top (var-count id.t))
+    %rvar         (max top (var-count id.t))
+    %nvar         (max top (var-count id.t))
+    %rnvar        (max top (var-count id.t))
     %tag          (max top id.t)
     ?(%atom %any-atom %flag %noun %empty %const %recursive %jrec)  top
     %collection  (itype-max-ids args.t top)

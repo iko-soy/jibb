@@ -4,8 +4,8 @@ partial inference; module not checked
 +$ wrong-payload: cases proven disjoint; mold not checked
 +$ missing: cases proven disjoint; mold not checked
 +$ maybe: cases proven disjoint; mold not checked
-++ call: $-($-(@t A) A)
-++ call-ship: $-($-(@p A) A)
+++ call: $-($-(@t M) M)
+++ call-ship: $-($-(@p M) M)
 ++ unknown: call constraint is not supported by partial inference
 ++ later-context: msg
 ++ named-alias: msg

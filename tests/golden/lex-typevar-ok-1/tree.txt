@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 entry
+    (generic 1:10 Key Value2
+      (cell 1:26
+        (face 1:27 key (tvar 1:31 Key))
+        (face 1:35 value (tvar 1:41 Value2)))))
+  (value 2:1 swap
+    (gate 2:9
+      (face 2:12 p
+        (apply 2:14 entry (tvar 2:21 Msg) (tvar 2:25 T2)))
+      (tuple 2:29 (wing 2:30 value.p) (wing 2:38 key.p))))
+  (value 3:1 same-one
+    (gate 3:13
+      (face 3:16 x (tvar 3:18 A))
+      (wing 3:20 x))))

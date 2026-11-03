@@ -6,7 +6,7 @@ partial inference; module not checked
 ++ from-call: [a=@t b=@p]
 ++ into-call: @t
 ++ nested: [result=[a=@t b=@p] done=?]
-++ generic: $-(A [a=@t b=A])
+++ generic: $-(B [a=@t b=B])
 ++ no-context: proj needs an expected record type
 ++ unknown-target: proj needs an expected record type
 ++ missing: proj constraint needs unsupported inference
@@ -25,7 +25,7 @@ partial inference; module not checked
 ++ two-arguments: name is not available to partial inference
 ++ one-field: [a=@t]
 ++ exact-record: [a=@t b=@p]
-++ positional-generic: $-([a=@t b=A] @t)
+++ positional-generic: $-([a=@t b=B] @t)
 ++ positional-generic-call: @t
 ++ subsequence: [a=@t c=?]
 ++ reversed: proj constraint needs unsupported inference

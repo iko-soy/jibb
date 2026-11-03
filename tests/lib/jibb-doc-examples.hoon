@@ -158,7 +158,7 @@
     (prepare-prelude-with-internal:jibb public private)
   ?~  prepared  ~["doc-example prelude did not prepare"]
   ;:  weld
-    (doc-positive "view-day" /ui/view-day/jibb view-source %view '$-([day=@da n=@ud] (element A))' u.prepared)
+    (doc-positive "view-day" /ui/view-day/jibb view-source %view '$-([day=@da n=@ud] (element M))' u.prepared)
     (doc-positive "step" /ui/step/jibb step-source %describe '$-(step @t)' u.prepared)
     (doc-cmd-errors cmd-source u.prepared)
     (doc-import-errors import-source sur action blog card-source u.prepared)

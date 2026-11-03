@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ same2: $-(A A)
+++ with-a: $-(A [A $-(B B)])
+++ with-b: $-(B [$-(A A) B])
+++ twice: $-(* [$-(A A) $-(B B)])
+++ pass: $-(Msg Msg)
+++ two: $-(* [$-(Msg Msg) $-(A A)])
+++ letters: $-(Msg [Msg [$-(A A) $-(B B)]])
+++ digits: $-([x=T2 y=A1] [A1 T2])
+++ outer: $-(Item Item)

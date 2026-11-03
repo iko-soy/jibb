@@ -1,0 +1,4 @@
+source: Grammar tab, Lexical rules: "Type variables: a capital, then lowercase letters and digits: `A`, `Msg`, `T2`."
+tests: type variables of several letters and with digits, as generic parameters and in molds, beside a one-letter one; the printed type keeps each written name
+expect: parses
+expect-types: swap prints $-([key=Msg value=T2] [T2 Msg]) and same-one $-(A A)

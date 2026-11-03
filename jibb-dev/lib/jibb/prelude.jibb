@@ -528,20 +528,23 @@
     font=(unit qath)
     dark=(unit [tones=[normal=@t background=@t accent=@t danger=@t muted=@t]])
 
-+$ program |$ [D X M]
-  [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]
++$ program |$ [Data Model Msg]
+  [ init=$-(Data Model)
+    update=$-([Msg Model] [Model (list (cmd Msg))])
+    view=$-(Model (element Msg))
+    subs=$-(Model (list (sub Msg)))
 
-++ program |= [init=$-(D X) update=$-([M X] [X (list (cmd M))]) view=$-(X (element M)) subs=$-(X (list (sub M)))]
-  ^- (program D X M) [init update view subs]
+++ program |= [init=$-(Data Model) update=$-([Msg Model] [Model (list (cmd Msg))]) view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]
+  ^- (program Data Model Msg) [init update view subs]
 
-++ island |= [p=(program D X M) data=D]
+++ island |= [p=(program Data Model Msg) data=Data]
   ^- (element !!) [%island [p data]]
 
-+$ page |$ [R D]
-  [load=$-(R (ask D)) view=$-(D (element !!))]
++$ page |$ [Params Data]
+  [load=$-(Params (ask Data)) view=$-(Data (element !!))]
 
-++ page |= [load=$-(R (ask D)) view=$-(D (element !!))]
-  ^- (page R D) [load view]
+++ page |= [load=$-(Params (ask Data)) view=$-(Data (element !!))]
+  ^- (page Params Data) [load view]
 
 +$ store |$ [S] [init=S update=*]
 

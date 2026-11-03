@@ -1,0 +1,3 @@
+/tests/golden/lex-typevar-bad-1/source.jibb:1:15: a type variable is a capital, then lowercase letters and digits
+++ pair |= x=AB x
+              ^

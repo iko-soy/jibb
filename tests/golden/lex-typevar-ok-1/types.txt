@@ -1,0 +1,4 @@
+partial inference; module not checked
++$ entry: not checked
+++ swap: $-([key=Msg value=T2] [T2 Msg])
+++ same-one: $-(A A)

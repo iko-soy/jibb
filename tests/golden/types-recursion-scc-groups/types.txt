@@ -5,6 +5,6 @@ partial inference; module not checked
 ++ fourth: $-(@p A)
 ++ fifth: $-(@p A)
 ++ poly-a: $-(A B)
-++ poly-b: $-(A B)
+++ poly-b: $-(B A)
 ++ call-text: A
 ++ call-ship: A

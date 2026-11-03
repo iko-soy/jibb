@@ -1,3 +1,4 @@
-/tests/golden/lex-name-bad-5/source.jibb:1:5: a type variable is one capital letter
-++ Foo 1
-    ^
+1:1 glyph ++
+1:4 tvar Foo
+1:8 lit 1
+1:9 NEWLINE

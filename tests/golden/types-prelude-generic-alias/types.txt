@@ -5,7 +5,7 @@ partial inference; module not checked
 +$ fixed: not checked
 ++ direct: $-((each A B) (each A B))
 ++ alias-id: $-((each A B) (each A B))
-++ reversed: $-((each A B) (each A B))
+++ reversed: $-((each B A) (each B A))
 ++ reversed-concrete: $-((each @p @t) (each @p @t))
 ++ repeated-id: $-((each A A) (each A A))
 ++ fixed-id: $-((each A @p) (each A @p))

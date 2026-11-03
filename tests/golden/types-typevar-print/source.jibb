@@ -1,0 +1,11 @@
+++ same2 |=(x x)
+++ with-a |= x=A [x same2]
+++ with-b |= x=B [same2 x]
+++ twice |= x=* [same2 same2]
+++ pass |= x=Msg x
+++ two |= x=* [pass pass]
+++ letters |= x=Msg [x same2 pass]
+++ digits |= [x=T2 y=A1] [y x]
+++ outer |= x=Item
+  ++ inner |= y=Item y
+  (inner x)

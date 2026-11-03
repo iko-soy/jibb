@@ -1,0 +1,67 @@
+(module
+  (value 1:1 id
+    (gate 1:7
+      (face 1:10 x (tvar 1:12 Msg))
+      (wing 1:16 x)))
+  (value 2:1 swap
+    (gate 2:9
+      (cell 2:12
+        (face 2:13 a (tvar 2:15 Key))
+        (face 2:19 b (tvar 2:21 Value)))
+      (tuple 2:28 (wing 2:29 b) (wing 2:31 a))))
+  (value 3:1 make (wing 3:9 program))
+  (value 4:1 embed (wing 4:10 island))
+  (value 5:1 load-page (wing 5:14 page))
+  (value 6:1 narrow
+    (gate 6:11
+      (cell 6:14
+        (face 6:15 lo (tvar 6:18 Num))
+        (face 6:22 hi (tvar 6:25 Num)))
+      (group 6:30
+        (call 6:31 (wing 6:31 add) (wing 6:35 lo) (wing 6:38 hi)))))
+  (value 7:1 keyed
+    (gate 7:10
+      (cell 7:13
+        (face 7:14 a (tvar 7:16 Key))
+        (face 7:20 b (tvar 7:22 Key)))
+      (group 7:27
+        (call 7:28 (wing 7:28 eq) (wing 7:31 a) (wing 7:33 b)))))
+  (value 8:1 button-of
+    (gate 8:14
+      (face 8:17 m (tvar 8:19 Msg))
+      (group 8:23
+        (call 8:24 (wing 8:24 button) (str 8:31 "go") (wing 8:36 m)))))
+  (value 9:1 mapped
+    (gate 9:11
+      (face 9:14 xs
+        (apply 9:17 list (tvar 9:23 Item)))
+      (group 9:29
+        (call 9:30 (wing 9:30 turn) (wing 9:35 xs) (wing 9:38 same)))))
+  (value 10:1 composed
+    (group 10:13
+      (call 10:14 (wing 10:14 cork) (wing 10:19 same) (wing 10:24 same))))
+  (value 11:1 applied
+    (group 11:12
+      (call 11:13 (wing 11:13 turn) (lit 11:18 ~) (wing 11:20 same))))
+  (value 12:1 before
+    (gate 12:11
+      (cell 12:14
+        (face 12:15 x (tvar 12:17 Num))
+        (face 12:21 y (tvar 12:23 Num)))
+      (group 12:28
+        (call 12:29 (wing 12:29 gth) (wing 12:33 y) (wing 12:35 x)))))
+  (value 13:1 use-hunt
+    (group 13:13
+      (call 13:14
+        (wing 13:14 hunt)
+        (wing 13:19 before)
+        (unit 13:26 (lit 13:27 1))
+        (unit 13:29 (lit 13:30 2)))))
+  (value 14:1 forced
+    (gate 14:11
+      (cell 14:14
+        (face 14:15 a (tvar 14:17 Key))
+        (face 14:21 b (tvar 14:23 Value)))
+      (cast 14:30
+        (apply 14:33 list (tvar 14:39 Key))
+        (list 14:44 (wing 14:46 a) (wing 14:48 b))))))

@@ -11,7 +11,7 @@ partial inference; module not checked
 ++ phantom-gate: (phantom $-(@t @p))
 ++ identity: $-((choice A B) (choice A B))
 ++ repeated: $-((choice A A) (choice A A))
-++ reverse: $-((choice A B) (choice A B))
+++ reverse: $-((choice B A) (choice B A))
 ++ first: (choice @t @p)
 ++ second: (choice @t @p)
 ++ third: (choice @p @t)

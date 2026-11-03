@@ -1,0 +1,3 @@
+source: Grammar tab, Lexical rules: "Type variables: a capital, then lowercase letters and digits"; "`AB`, `MSG`, `Msg_x` and `Msg-x` are errors."
+tests: a hyphen inside a type variable, which a name may hold but a type variable may not
+expect: error at 1:17 — a type variable is a capital, then lowercase letters and digits

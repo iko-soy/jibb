@@ -1,14 +1,14 @@
 interface retains independent polymorphism
 text use inferred
 ship use inferred
-stored built: $-(A A)
+stored built: $-(B B)
 partial inference; module not checked
 +$ message: cases proven disjoint; mold not checked
 ++ send: $-($-(@t A) $-(@t A))
 ++ make: $-(A $-(B B))
 ++ first: $-(@t message)
 ++ second: $-(@t message)
-++ built: $-(A A)
+++ built: $-(B B)
 ++ typed: $-(@t message)
 ++ reveal: @t
 ++ reveal-ship: @p

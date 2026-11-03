@@ -1,4 +1,4 @@
 partial inference; module not checked
 ++ add-button: tag needs context in partial inference
-++ labelled: $-([label=@t msg=A] (element A))
+++ labelled: $-([label=@t msg=M] (element M))
 ++ wide: (list attr)

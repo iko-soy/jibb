@@ -1,0 +1,4 @@
+source: Grammar tab, Types: "A variable with no name prints as a letter that no other variable in the same type uses".
+tests: an unnamed variable prints as the first letter no written name in the same type spells; two variables with one name print the second as a letter; names with digits; a local ++ shares the enclosing ++'s written name
+expect: parses
+expect-types: same2 $-(A A); with-a $-(A [A $-(B B)]); with-b $-(B [$-(A A) B]); two $-(* [$-(Msg Msg) $-(A A)]); letters $-(Msg [Msg [$-(A A) $-(B B)]]); outer $-(Item Item)

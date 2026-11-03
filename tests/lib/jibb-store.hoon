@@ -127,8 +127,11 @@
   =/  store-mold=(unit ischeme:jibb)  (find-jibb-mold:jibb %store iface.u.prepared)
   ?~  store-value  ~["store builder is missing"]
   ?~  store-mold  ~["store mold is missing"]
+  ::  The builder's variables keep the names the prelude writes, S and A.
+  =/  s=@ud  (named-var:jibb 'S' 0)
+  =/  a=@ud  (named-var:jibb 'A' 1)
   =/  expected-builder=itype:jibb
-    [%fn [%cell [%face %init [%var 0]] [%face %update [%fn [%cell [%var 1] [%var 0]] [%var 0]]]] [%cell [%face %init [%var 0]] [%face %update [%noun ~]]]]
+    [%fn [%cell [%face %init [%var s]] [%face %update [%fn [%cell [%var a] [%var s]] [%var s]]]] [%cell [%face %init [%var s]] [%face %update [%noun ~]]]]
   ?.  &(?=([@ @ ~] vars.u.store-value) =(typ.u.store-value expected-builder))  ~["store builder scheme differs"]
   =/  expected-mold=itype:jibb  [%cell [%face %init [%var 0]] [%face %update [%noun ~]]]
   ?.  &(?=([@ ~] vars.u.store-mold) =(typ.u.store-mold expected-mold))  ~["store mold scheme differs"]

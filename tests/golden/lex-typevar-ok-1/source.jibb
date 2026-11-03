@@ -1,0 +1,3 @@
++$ entry |$ [Key Value2] [key=Key value=Value2]
+++ swap |= p=(entry Msg T2) [value.p key.p]
+++ same-one |= x=A x

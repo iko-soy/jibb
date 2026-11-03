@@ -1,0 +1,43 @@
+(module
+  (value 1:1 same2
+    (gate-wide 1:10 (bind 1:13 x) (wing 1:15 x)))
+  (value 2:1 with-a
+    (gate 2:11
+      (face 2:14 x (tvar 2:16 A))
+      (tuple 2:18 (wing 2:19 x) (wing 2:21 same2))))
+  (value 3:1 with-b
+    (gate 3:11
+      (face 3:14 x (tvar 3:16 B))
+      (tuple 3:18 (wing 3:19 same2) (wing 3:25 x))))
+  (value 4:1 twice
+    (gate 4:10
+      (face 4:13 x (noun 4:15))
+      (tuple 4:17 (wing 4:18 same2) (wing 4:24 same2))))
+  (value 5:1 pass
+    (gate 5:9
+      (face 5:12 x (tvar 5:14 Msg))
+      (wing 5:18 x)))
+  (value 6:1 two
+    (gate 6:8
+      (face 6:11 x (noun 6:13))
+      (tuple 6:15 (wing 6:16 pass) (wing 6:21 pass))))
+  (value 7:1 letters
+    (gate 7:12
+      (face 7:15 x (tvar 7:17 Msg))
+      (tuple 7:21 (wing 7:22 x) (wing 7:24 same2) (wing 7:30 pass))))
+  (value 8:1 digits
+    (gate 8:11
+      (cell 8:14
+        (face 8:15 x (tvar 8:17 T2))
+        (face 8:20 y (tvar 8:22 A1)))
+      (tuple 8:26 (wing 8:27 y) (wing 8:29 x))))
+  (value 9:1 outer
+    (gate 9:10
+      (face 9:13 x (tvar 9:15 Item))
+      (body 10:3
+        (value 10:3 inner
+          (gate 10:12
+            (face 10:15 y (tvar 10:17 Item))
+            (wing 10:22 y)))
+        (group 11:3
+          (call 11:4 (wing 11:4 inner) (wing 11:10 x)))))))
