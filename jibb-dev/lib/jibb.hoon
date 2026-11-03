@@ -576,7 +576,10 @@
 ::      line, so ^- @ud ?- x keeps its arms deeper. A line nothing takes
 ::      is an error as before. A rest ends at its body's DEDENT, which
 ::      +read-rest leaves for whatever opened the body, so one DEDENT
-::      ends every rest nested on that body's lines.
+::      ends every rest nested on that body's lines. Each rest is a level
+::      of nesting, so the stack grows with them, as with brackets: a
+::      body of 20.000 ~& x lines at one depth parses, and one of 40.000
+::      runs out of memory, where 40.000 nested parentheses don't.
 ::    - Where errors point: the doc says only "line, column and an
 ::      excerpt"; 2.0 and Errors below say where.
 ::
@@ -3260,7 +3263,7 @@
     ?>  ?=([[* * %dedent] *] after)
     [%& e t.after]
   ::
-  ::  +read-rest: { definition NEWLINE } expr, up to the DEDENT that ends
+  ::  +read-rest: { definition NEWLINE } last, up to the DEDENT that ends
   ::  a body, which it leaves for whatever opened the body: its INDENT's
   ::  reader, or the rune on the final line that took the rest of it
   ::  (+read-last)
