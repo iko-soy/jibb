@@ -70,7 +70,7 @@ A rune's first children sit on its line, the last taking the rest of it; the oth
 - a tall `|=`, `^-` or `~&`, or a chain of them such as `^- @ud ~& x`, when the line ends where the innermost rune's last child goes. That child is the rest, a body of its own: first its local `++` and `+$`, then its expression, whose own final line may do the same;
 - a `?-` that begins the line and ends it with its subject. Its arms are the rest, one per line, so nothing follows them.
 
-So a gate's body can be `~& msg`, then `?- msg`, then its arms, all at one depth, and adding or removing the `~&` line moves no other line. This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression. So `++ inner |= y=@ud` above `(inner x)`, `[a b] ?- a` above `%.y 1`, `^- @ud ?- x` above `%.y 1` and `++ g ?- x` above `%.y 1` stay errors.
+A gate's body can then be `~& msg`, then `?- msg`, then its arms, all at one depth, and adding or removing the `~&` line moves no other line. This doesn't apply on a `?-` arm's line, on a line of an open bracket, after a bracket opened earlier on the line (the subject's included), at the top level, or to a definition's own expression. So `++ inner |= y=@ud` above `(inner x)`, `[a b] ?- a` above `%.y 1`, `^- @ud ?- x` above `%.y 1` and `++ g ?- x` above `%.y 1` stay errors.
 
 Only `|=` and `$-` have wide forms: `|=(sample expr)` and `$-(mold mold)`. Their children are operands, so calls inside need parentheses.
 

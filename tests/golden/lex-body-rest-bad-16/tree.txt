@@ -1,0 +1,3 @@
+/tests/golden/lex-body-rest-bad-16/source.jibb:3:3: expected an expression, or a body on deeper lines, found a line at the same depth
+  x)
+  ^
