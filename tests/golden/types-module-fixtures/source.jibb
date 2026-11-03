@@ -1,9 +1,1 @@
-/-  blog
-/=  api   /ui/api/blog
-/=  card  /ui/components/card
-
-++ main (page load view)
-++ load |=(~ (posts.api same))
-
-++ view |= ps=(list post.blog)
-  column ~[gap+%s2] (turn ps card.card)
+../../../my-app/ui/blog/index.jibb

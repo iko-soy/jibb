@@ -2,13 +2,13 @@
 /+  jibb, jibb-import
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
-/*  sur  %txt  /tests/type-api-paths/todo-sur/txt
-/*  action  %txt  /tests/type-api-paths/todo-action/txt
-/*  todos  %txt  /tests/type-api-paths/todos/txt
-/*  update  %txt  /tests/type-api-paths/todo-update/txt
-/*  item  %txt  /tests/type-api-paths/todo-item/txt
-/*  api  %txt  /tests/type-api-paths/api/txt
-/*  source  %txt  /tests/type-gate-free/todo/txt
+/*  sur  %txt  /my-app/sur/todo/hoon
+/*  action  %txt  /my-app/mar/todo-action/hoon
+/*  todos  %txt  /my-app/mar/todos/hoon
+/*  update  %txt  /my-app/mar/todo-update/hoon
+/*  item  %txt  /my-app/mar/todo-item/hoon
+/*  api  %txt  /my-app/ui/api/todo/jibb
+/*  source  %txt  /my-app/ui/todo-list/jibb
 /*  gate-source  %txt  /tests/type-gate-free/todo-gate/txt
 /*  noun-source  %txt  /tests/type-gate-free/todo-noun/txt
 /*  expected  %txt  /tests/type-gate-free/expected/txt
@@ -17,6 +17,12 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+::  A mark's text without its /- lines, which Ford resolves and ride
+::  can't parse.
+++  mark-text
+  |=  lines=wain
+  ^-  @t
+  (text (skip lines |=(line=@t =('/-' (end [3 2] line)))))
 ++  gate-free-source-report
   |=  [public=@t private=@t sur-text=@t action-text=@t todos-text=@t update-text=@t item-text=@t api-text=@t source-text=@t gate-text=@t noun-text=@t]
   ^-  @t
@@ -89,7 +95,7 @@
   'todo model: gate-free\0acallback model: gate at callback\0anoun model: unknown\0azero fuel: unknown\0aoversized fuel: capped\0ainvalid inputs: rejected\0asource evidence: retained\0amatching root and unused sur: accepted\0aroot import cycle: rejected'
 ++  report
   ^-  @t
-  (gate-free-source-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source) (text gate-source) (text noun-source))
+  (gate-free-source-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text source) (text gate-source) (text noun-source))
 ++  test-gate-free-source
   ^-  tang
   =/  actual=@t  report

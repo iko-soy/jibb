@@ -6,15 +6,21 @@
 /*  view-day  %jibb  /tests/golden/doc-grammar-03-view-day/source/jibb
 /*  step  %jibb  /tests/golden/doc-grammar-04-step/source/jibb
 /*  cmd-sub  %jibb  /tests/golden/doc-overview-01-cmd-sub/source/jibb
-/*  todo-sur  %txt  /tests/type-api-paths/todo-sur/txt
-/*  todo-action  %txt  /tests/type-api-paths/todo-action/txt
-/*  blog-sur  %txt  /tests/type-page-main/blog-sur/txt
-/*  card  %txt  /tests/type-page-main/card/txt
+/*  todo-sur  %txt  /my-app/sur/todo/hoon
+/*  todo-action  %txt  /my-app/mar/todo-action/hoon
+/*  blog-sur  %txt  /my-app/sur/blog/hoon
+/*  card  %txt  /my-app/ui/components/card/jibb
 |%
 ++  text
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+::  A mark's text without its /- lines, which Ford resolves and ride
+::  can't parse.
+++  mark-text
+  |=  lines=wain
+  ^-  @t
+  (text (skip lines |=(line=@t =('/-' (end [3 2] line)))))
 ::
 ++  doc-detailed
   |=  [at=path src=@t externals=iexternals:jibb marks=imark-externals:jibb modules=jbundle:jibb prepared=iprelude:jibb]
@@ -161,6 +167,6 @@
 ++  test-doc-examples
   ^-  tang
   =/  failures=(list tape)
-    (doc-examples-errors prelude internal imports view-day step cmd-sub (text todo-sur) (text todo-action) (text blog-sur) (text card))
+    (doc-examples-errors prelude internal imports view-day step cmd-sub (text todo-sur) (mark-text todo-action) (text blog-sur) (text card))
   (turn failures |=(reason=tape leaf+reason))
 --

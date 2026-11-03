@@ -30,8 +30,8 @@ Golden files, the /* %txt files bound to a face with "expected" in its
 name, must end in exactly one newline (a wain can't show it) and hold no
 line that starts "BAD " or ends ": BAD" (a check's own failure marker).
 That is checked before any eval, as are, when no suite or shard is named,
-the files tests/my-app-copies.txt lists, which must match their my-app
-sources (the jibb-dev desk has no my-app; --copies checks only them).
+the copies of my-app/mar/label.hoon that tests/my-app-copies.txt lists,
+which must match it (--copies checks only them).
 
 Exit status: 0 when every arm passes, 1 when one fails, 2 on a usage
 error.

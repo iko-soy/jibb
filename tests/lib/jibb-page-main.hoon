@@ -2,20 +2,20 @@
 /+  jibb, jibb-import
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
-/*  sur  %txt  /tests/type-api-paths/todo-sur/txt
-/*  action  %txt  /tests/type-api-paths/todo-action/txt
-/*  todos  %txt  /tests/type-api-paths/todos/txt
-/*  update  %txt  /tests/type-api-paths/todo-update/txt
-/*  item  %txt  /tests/type-api-paths/todo-item/txt
-/*  todo-api  %txt  /tests/type-page-main/todo-api/txt
-/*  todo-island  %txt  /tests/type-page-main/todo-island/txt
-/*  blog-sur  %txt  /tests/type-page-main/blog-sur/txt
-/*  posts  %txt  /tests/type-page-main/posts-mark/txt
-/*  blog-api  %txt  /tests/type-page-main/blog-api/txt
-/*  card  %txt  /tests/type-page-main/card/txt
-/*  about  %txt  /tests/type-page-main/static/txt
-/*  blog-index  %txt  /tests/type-page-main/blog-index/txt
-/*  index  %txt  /tests/type-page-main/index/txt
+/*  sur  %txt  /my-app/sur/todo/hoon
+/*  action  %txt  /my-app/mar/todo-action/hoon
+/*  todos  %txt  /my-app/mar/todos/hoon
+/*  update  %txt  /my-app/mar/todo-update/hoon
+/*  item  %txt  /my-app/mar/todo-item/hoon
+/*  todo-api  %txt  /my-app/ui/api/todo/jibb
+/*  todo-island  %txt  /my-app/ui/todo-list/jibb
+/*  blog-sur  %txt  /my-app/sur/blog/hoon
+/*  posts  %txt  /my-app/mar/posts/hoon
+/*  blog-api  %txt  /my-app/ui/api/blog/jibb
+/*  card  %txt  /my-app/ui/components/card/jibb
+/*  about  %txt  /my-app/ui/about/jibb
+/*  blog-index  %txt  /my-app/ui/blog/index/jibb
+/*  index  %txt  /my-app/ui/index/jibb
 /*  ctor-page  %txt  /tests/type-page-main/ctor-page/txt
 /*  wrong-static  %txt  /tests/type-page-main/wrong-static/txt
 /*  arbitrary-main  %txt  /tests/type-page-main/arbitrary-main/txt
@@ -30,6 +30,12 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+::  A mark's text without its /- lines, which Ford resolves and ride
+::  can't parse.
+++  mark-text
+  |=  lines=wain
+  ^-  @t
+  (text (skip lines |=(line=@t =('/-' (end [3 2] line)))))
 ::
 ++  page-main-detailed
   |=  [at=path src=@t externals=iexternals:jibb marks=imark-externals:jibb modules=jbundle:jibb prepared=iprelude:jibb]
@@ -163,6 +169,6 @@
         ['diff load' (text diff-load)]
     ==
   =/  failures=(list tape)
-    (page-main-errors prelude internal (text sur) (text action) (text todos) (text update) (text item) (text todo-api) (text todo-island) (text blog-sur) (text posts) (text blog-api) (text card) (text about) (text blog-index) (text index) (text ctor-page) negatives)
+    (page-main-errors prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text todo-api) (text todo-island) (text blog-sur) (mark-text posts) (text blog-api) (text card) (text about) (text blog-index) (text index) (text ctor-page) negatives)
   (turn failures |=(reason=tape leaf+reason))
 --

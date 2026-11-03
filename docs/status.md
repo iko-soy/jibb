@@ -253,7 +253,7 @@ On a machine set up as [development.md](development.md) says:
 tools/golden                      # 660 cases under urbit eval
 tools/test-arms                   # the my-app copies, then every tests/lib suite under urbit eval
 tools/test-arms --list            # the suites and their arms; ", report" marks a golden report
-tools/test-arms --copies          # the tests/ copies of my-app files in tests/my-app-copies.txt match my-app
+tools/test-arms --copies          # the copies of my-app/mar/label.hoon in tests/my-app-copies.txt match it
 tools/test-arms --report jibb-import # print a golden-report suite's report
 tools/test-arms --update jibb-import # write it to the suite's expected file
 tools/test-arms jibb-import       # the Hoon importer fixture projection

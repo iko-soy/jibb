@@ -2,7 +2,7 @@
 /+  jibb
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
-/*  source  %jibb  /tests/golden/doc-grammar-02-buttons/source/jibb
+/*  source  %jibb  /my-app/ui/components/buttons/jibb
 /*  valid  %txt  /tests/type-buttons/valid/txt
 /*  expected  %txt  /tests/type-buttons/expected/txt
 /*  error  %txt  /tests/type-buttons/error/txt

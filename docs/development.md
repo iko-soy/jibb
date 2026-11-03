@@ -89,7 +89,7 @@ Each file in `tests/lib` is a suite: a core of `test-` arms, with the libraries 
 
 A golden-report suite has a `report` arm and a golden file bound to the face `expected`; its test arm compares the report with that file, and `tools/test-arms --list` marks it `, report`. `tools/test-arms --report <suite>` prints the report, and `tools/test-arms --update <suite>` writes it to the file; with no suite named, `--update` writes every golden-report suite's. When such a suite's arm fails, `tools/test-arms` prints a unified diff between the file and the report. `jibb-buttons` and `jibb-deferred-prepared` have golden files too, but compare them inside helpers over several cases and have no `report` arm. Every golden file, a `/*` `%txt` file bound to a face containing `expected`, must end in exactly one newline (a suite compares `wain`s, which can't show a missing one) and hold no line that starts `BAD ` or ends `: BAD`; `tools/test-arms` checks that before any eval, and `--update` won't write a report that breaks it.
 
-The `jibb-dev` desk has no `my-app`, so the suites that check `my-app` files read byte copies of them kept under `tests/`, as do some golden cases. `tests/my-app-copies.txt` lists every such copy, one per line, as `COPY  SOURCE`, or `COPY  SOURCE  without LINE` for a copy that leaves out one line of its source, such as `/-  blog`. `tools/test-arms` checks every pair when run with no suite or shard named, and `tools/test-arms --copies`, the `my-app-copies` check, checks only them. Where the table below calls a `my-app` file byte-identical or unchanged, it is one of these copies.
+The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (review question 31), so the suites that check `my-app` files bind them there, as `/*  sur  %txt  /my-app/sur/todo/hoon`, and keep no copies. A mark's `/-` line is Ford's, which `ride` can't parse, so the suites that ride a mark drop it with their `+mark-text` arm. Where the table below calls a `my-app` file byte-identical or unchanged, the suite reads that file itself. The fixtures that copy `my-app/mar/label.hoon` leave out its first line, a comment; `tests/my-app-copies.txt` lists them, one per line, as `COPY  SOURCE  without LINE`. `tools/test-arms` checks every pair when run with no suite or shard named, and `tools/test-arms --copies`, the `my-app-copies` check, checks only them.
 
 | Suite | What it checks | Golden files |
 | --- | --- | --- |
@@ -174,7 +174,7 @@ CI, [.github/workflows/check.yml](../.github/workflows/check.yml), builds the de
 
 A case is a folder `tests/golden/<name>/` holding:
 
-- `source.jibb`, the input, ending in one newline;
+- `source.jibb`, the input, ending in one newline. A case whose input is a `my-app` file, such as a doc block that `my-app` holds, makes it a symlink to that file; desk assembly leaves the link out, and `tools/ship gen-tests` reads the file from `/my-app`. A file under `modules/` may link to `my-app` the same way;
 - `about.txt`: a `source:` line with the doc's words or block it comes from, a `tests:` line saying what it exercises, and an `expect:` line, either `parses` or `error at <line>:<col>` and why (one case, `inline-leftout-signed-float-auras`, says `unclear`: see grammar question 13 in [open-questions.md](open-questions.md));
 - the expected outputs, `tokens.txt` and `tree.txt`, each the output plus one newline.
 - optionally, `path.txt`, the logical `/ui/.../*.jibb` path to pass to the compiler; the source remains `source.jibb`.

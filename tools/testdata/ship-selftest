@@ -408,10 +408,13 @@ def generator_checks(tmp):
     check('static and data page sources and shared fixture are assembled',
           {'tests/lib/jibb-page-main.hoon', 'tests/type-page-main/about.txt',
            *(f'tests/type-page-main/{name}.txt' for name in (
-               'static', 'blog-index', 'index', 'ctor-page', 'blog-api', 'card', 'blog-sur',
-               'posts-mark', 'todo-api', 'todo-island', 'wrong-static',
-               'arbitrary-main', 'page-alias', 'indirect-load', 'pure-load',
-               'hand-built-load', 'typed-load', 'diff-load'))}
+               'ctor-page', 'wrong-static', 'arbitrary-main', 'page-alias',
+               'indirect-load', 'pure-load', 'hand-built-load', 'typed-load',
+               'diff-load')),
+           *(f'my-app/{name}' for name in (
+               'ui/about.jibb', 'ui/blog/index.jibb', 'ui/index.jibb',
+               'ui/api/blog.jibb', 'ui/components/card.jibb', 'sur/blog.hoon',
+               'mar/posts.hoon', 'ui/api/todo.jibb', 'ui/todo-list.jibb'))}
           <= set(normal.files))
     check('program main sources and shared fixture are assembled',
           {f'tests/type-program-main/{name}.txt' for name in (
@@ -432,29 +435,40 @@ def generator_checks(tmp):
           {'tests/lib/jibb-program-watch.hoon', 'tests/type-program-watch/about.txt'}
           <= set(normal.files))
     check('unchanged cart store and basket fixtures are assembled',
-          {'tests/lib/jibb-store.hoon', 'tests/type-store/cart.txt',
-           'tests/type-store/basket.txt'} <= set(normal.files))
+          {'tests/lib/jibb-store.hoon', 'my-app/ui/stores/cart.jibb',
+           'my-app/ui/basket.jibb'} <= set(normal.files))
     check('full todo sources and exact main report are assembled',
-          {'tests/lib/jibb-todo-full.hoon', 'tests/type-gate-free/todo.txt',
-           'tests/type-api-paths/api.txt', 'tests/type-todo-full/expected.txt',
+          {'tests/lib/jibb-todo-full.hoon', 'my-app/ui/todo-list.jibb',
+           'my-app/ui/api/todo.jibb', 'tests/type-todo-full/expected.txt',
            *(f'tests/type-todo-full/{name}.txt' for name in (
                'wrong-model', 'wrong-message', 'wrong-result', 'ambiguous-mapper',
                'open-key', 'alias', 'wrong-watch', 'non-gate-view'))}
           <= set(normal.files))
     check('buttons sources, schemes and exact error are assembled',
           {'tests/lib/jibb-buttons.hoon',
-           'tests/golden/doc-grammar-02-buttons/source.jibb',
+           'my-app/ui/components/buttons.jibb',
            'tests/type-buttons/valid.txt', 'tests/type-buttons/expected.txt',
            'tests/type-buttons/error.txt'} <= set(normal.files))
     check('theme sources and shared fixture are assembled',
-          {'tests/lib/jibb-theme.hoon',
+          {'tests/lib/jibb-theme.hoon', 'my-app/ui/theme.jibb',
            *(f'tests/type-theme/{name}.txt' for name in (
-               'source', 'dark-absent', 'wrong-nested-aura', 'missing-field',
+               'dark-absent', 'wrong-nested-aura', 'missing-field',
                'wrong-font', 'wrong-dark'))}
           <= set(normal.files))
     check('todo partial golden and reused sources are assembled',
-          {'tests/type-todo-partial/expected.txt', 'tests/type-gate-free/todo.txt',
-           'tests/type-api-paths/api.txt'} <= set(normal.files))
+          {'tests/type-todo-partial/expected.txt', 'my-app/ui/todo-list.jibb',
+           'my-app/ui/api/todo.jibb'} <= set(normal.files))
+    linked = 'tests/golden/doc-overview-02-theme/source.jibb'
+    check('my-app is on the test desk, without its desk files',
+          {'my-app/ui/theme.jibb', 'my-app/sur/todo.hoon',
+           'my-app/mar/todos.hoon'} <= set(normal.files) and
+          not {'my-app/desk.bill', 'my-app/desk.docket-0',
+               'my-app/sys.kelvin'} & set(normal.files))
+    check('a golden case file that links to my-app is read from /my-app',
+          os.path.islink(os.path.join(ship.ROOT, linked)) and
+          linked not in normal.files and
+          '/my-app/ui/theme/jibb' in
+          normal.files['tests/lib/jibb.hoon'][0].decode())
     for label, kwargs in (('custom library', {'lib': STUB}),
                           ('custom goldens', {'golden': CASES}),
                           ('both overrides', {'lib': STUB, 'golden': CASES})):

@@ -10,7 +10,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
-- `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and `my-app-copies.txt`, the list of fixtures copied from `my-app/`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
+- `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and `my-app-copies.txt`, the list of fixtures that copy `my-app/mar/label.hoon`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
 - `tools/`: dev tooling: `golden`, `test-arms`, `hoon` and `doc-blocks`, with their self-test in `testdata/`, `ship`, and `check`, which runs every check.
 - `docs/`: the doc's tabs as Markdown in `spec/`, the status, the open questions, the development guide, the compiler's map, and briefs for milestones in `prompts/`.
 
@@ -90,7 +90,7 @@ Many suites share one eval, so the library is built once per eval, not once per 
 
 A golden-report suite has a `report` arm and a `/*` file bound to the face `expected`; when one of its arms fails, the runner prints a diff between that file and the report. Before any eval, the runner checks the golden files of the suites it runs, the `%txt` files bound to a face containing `expected`: each must end in exactly one newline, which an arm can't see in the file's wain, and hold no line that starts `BAD ` or ends `: BAD`. `--update` won't write a report that breaks either rule.
 
-Some fixtures in `tests/` are byte copies of `my-app` files, because the `jibb-dev` desk has no `my-app`. `tests/my-app-copies.txt` lists each copy with its source; a copy may leave out one line of its source, such as a mark's `/-` import. `tools/test-arms` checks every pair when it runs with no suite or shard named, and with `--copies`, which `tools/check` runs as `my-app-copies`. The suites below that check byte-identical `my-app` files read these copies.
+The `jibb-dev` desk holds `my-app`'s sources under `/my-app`, without its desk files, so the suites below that check `my-app` files read them there, and a golden case that uses one links to it: `tests/golden/doc-overview-02-theme/source.jibb` is a symlink to `my-app/ui/theme.jibb`. The fixtures that copy `my-app/mar/label.hoon` leave out its first line, a comment; `tests/my-app-copies.txt` lists them, and `tools/test-arms` checks every pair when it runs with no suite or shard named, and with `--copies`, which `tools/check` runs as `my-app-copies`.
 
 `tools/test-arms --list` lists every suite, and [The test suites](docs/development.md#the-test-suites) in the development guide says what each one checks. Each suite it lists runs under eval and on the fake ship, with the same fixtures. The `jibb-import` suite compares the partial Hoon importer's fixture projections against their golden file. The suites `jibb-bridge`, `jibb-import-overlap`, `jibb-import-structural`, `jibb-union-source`, `jibb-union-alias-overlap`, `jibb-full-overlap-basic`, `jibb-full-overlap-graph`, `jibb-generic-recursion`, `jibb-generic-construction`, `jibb-generic-pattern`, `jibb-deferred`, `jibb-deferred-prepared`, `jibb-deferred-resolver`, `jibb-deferred-context`, `jibb-empty`, `jibb-cell-branch`, `jibb-tlon-bridge`, `jibb-mark-bridge`, `jibb-poke-bridge` and `jibb-api-paths` check importer/checker, prelude and partial API path analysis boundaries.
 
@@ -129,7 +129,7 @@ tools/ship stop
 | `jibb` | `vendor/*`, then `jibb` |
 | `jibb-dev` | `vendor/*`, then `jibb-dev`, then `tests/`, with `tests/lib/jibb.hoon` generated, and `jibb/sys.kelvin` |
 
-The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the partial inference output. The file is generated, not committed (review question 32): desk assembly writes it afresh, and `.gitignore` lists it. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
+The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, reading a `source.jibb` that links to a `my-app` file from `/my-app`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the partial inference output. The file is generated, not committed (review question 32): desk assembly writes it afresh, and `.gitignore` lists it. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
 
 ```
 tools/ship test                                   # the library and tests/golden

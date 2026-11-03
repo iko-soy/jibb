@@ -2,7 +2,7 @@
 /+  jibb
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
-/*  source  %txt  /tests/type-theme/source/txt
+/*  source  %txt  /my-app/ui/theme/jibb
 /*  dark-absent  %txt  /tests/type-theme/dark-absent/txt
 /*  wrong-nested-aura  %txt  /tests/type-theme/wrong-nested-aura/txt
 /*  missing-field  %txt  /tests/type-theme/missing-field/txt

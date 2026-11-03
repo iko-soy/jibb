@@ -2,13 +2,13 @@
 /+  jibb, jibb-import
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
-/*  sur  %txt  /tests/type-api-paths/todo-sur/txt
-/*  action  %txt  /tests/type-api-paths/todo-action/txt
-/*  todos  %txt  /tests/type-api-paths/todos/txt
-/*  update  %txt  /tests/type-api-paths/todo-update/txt
-/*  item  %txt  /tests/type-api-paths/todo-item/txt
-/*  api  %txt  /tests/type-api-paths/api/txt
-/*  source  %txt  /tests/type-gate-free/todo/txt
+/*  sur  %txt  /my-app/sur/todo/hoon
+/*  action  %txt  /my-app/mar/todo-action/hoon
+/*  todos  %txt  /my-app/mar/todos/hoon
+/*  update  %txt  /my-app/mar/todo-update/hoon
+/*  item  %txt  /my-app/mar/todo-item/hoon
+/*  api  %txt  /my-app/ui/api/todo/jibb
+/*  source  %txt  /my-app/ui/todo-list/jibb
 /*  wrong-model  %txt  /tests/type-todo-full/wrong-model/txt
 /*  wrong-message  %txt  /tests/type-todo-full/wrong-message/txt
 /*  wrong-result  %txt  /tests/type-todo-full/wrong-result/txt
@@ -24,6 +24,12 @@
   |=  lines=wain
   ^-  @t
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+::  A mark's text without its /- lines, which Ford resolves and ride
+::  can't parse.
+++  mark-text
+  |=  lines=wain
+  ^-  @t
+  (text (skip lines |=(line=@t =('/-' (end [3 2] line)))))
 ::
 ++  todo-full-detailed
   |=  [at=path src=@t externals=iexternals:jibb marks=imark-externals:jibb modules=jbundle:jibb prepared=iprelude:jibb]
@@ -65,7 +71,7 @@
 ::
 ++  report
   ^-  @t
-  (todo-full-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
+  (todo-full-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text source))
 ::
 ++  todo-full-legacy-report
   |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t api=@t src=@t]
@@ -131,19 +137,19 @@
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"full todo report differs"]
   =/  legacy=@t
-    (todo-full-legacy-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
+    (todo-full-legacy-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text source))
   ?.  =((to-wain:format (cat 3 legacy '\0a')) expected)
     ~[leaf+"legacy full todo report differs"]
   =/  cast-report=@t
-    (todo-full-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text cast-init))
+    (todo-full-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text cast-init))
   ?.  =((to-wain:format (cat 3 cast-report '\0a')) expected)
     ~[leaf+"ordinary annotated initializer was rejected"]
   =/  cast-legacy=@t
-    (todo-full-legacy-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text cast-init))
+    (todo-full-legacy-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text cast-init))
   ?.  =((to-wain:format (cat 3 cast-legacy '\0a')) expected)
     ~[leaf+"legacy ordinary annotated initializer was rejected"]
   =/  imported=@t
-    (todo-full-import-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) (text source))
+    (todo-full-import-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text source))
   ?.  =(imported 'downstream import accepted')
     ~[leaf+"downstream full todo import differs"]
   =/  negatives=(list [label=@t src=@t])
@@ -161,7 +167,7 @@
     |=  c=[label=@t src=@t]
     =/  expected=@t  (cat 3 label.c ': rejected')
     =/  actual=@t
-      (todo-full-negative-report prelude internal (text sur) (text action) (text todos) (text update) (text item) (text api) label.c src.c)
+      (todo-full-negative-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) label.c src.c)
     ?.  =(expected actual)  `actual
     ~
   ?^  bad  (turn bad |=(reason=@t leaf+(trip reason)))

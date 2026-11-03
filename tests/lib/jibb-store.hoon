@@ -2,8 +2,8 @@
 /+  jibb
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
-/*  cart      %txt   /tests/type-store/cart/txt
-/*  basket    %txt   /tests/type-store/basket/txt
+/*  cart      %txt   /my-app/ui/stores/cart/jibb
+/*  basket    %txt   /my-app/ui/basket/jibb
 |%
 ++  text
   |=  lines=wain

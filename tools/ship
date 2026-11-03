@@ -59,11 +59,15 @@ TESTS_LIB = os.path.join(ROOT, 'tests', 'lib', 'jibb.hoon')
 
 #  Desks the repo builds, and the folders each is assembled from, in
 #  order.  Every desk gets every package under vendor/.  A folder is
-#  (repo folder, desk folder, folders left out).
+#  (repo folder, desk folder, folders and files left out).  The test
+#  desk holds my-app's sources under /my-app, so tests read them there
+#  instead of keeping copies.
 DESKS = {
     'my-app': [('jibb-dev', '', ['tests']), ('my-app', '', [])],
     'jibb': [('jibb', '', [])],
-    'jibb-dev': [('jibb-dev', '', []), ('tests', 'tests', [])],
+    'jibb-dev': [('jibb-dev', '', []), ('tests', 'tests', []),
+                 ('my-app', 'my-app',
+                  ['desk.bill', 'desk.docket-0', 'sys.kelvin'])],
 }
 #  The test desk has no sys.kelvin of its own; Clay refuses a commit
 #  without one, so it gets the %jibb desk's.
@@ -861,7 +865,7 @@ class Assembly:
                 if fn.startswith('.'):
                     continue
                 rel = os.path.join(rel_dir, fn)
-                if drop and drop(rel):
+                if rel in skip or (drop and drop(rel)):
                     continue
                 desk_rel = os.path.join(into, rel) if into else rel
                 with open(os.path.join(dirpath, fn), 'rb') as f:
@@ -903,7 +907,11 @@ def assemble(desk, lib=None, golden=None):
                            (isolated and rel.startswith('lib' + os.sep) and
                             rel.endswith('.hoon')))
             if os.path.isdir(golden):
-                a.add_tree(golden, os.path.join('tests', 'golden'))
+                #  A case file that links to a file the desk already
+                #  holds, such as one of my-app's, is read from there.
+                a.add_tree(golden, os.path.join('tests', 'golden'),
+                           drop=lambda rel: linked_desk_path(
+                               desk, os.path.join(golden, rel)) is not None)
             a.add(os.path.join('tests', 'lib', 'jibb.hoon'),
                   generate_tests(golden).encode(),
                   'tools/ship gen-tests --golden %s' % show(golden))
@@ -919,6 +927,30 @@ def assemble(desk, lib=None, golden=None):
             a.replace('lib/jibb.hoon', f.read(), show(lib))
     check_assembly(a)
     return a
+
+
+def linked_desk_path(desk, path):
+    """The desk path of the file a symlink names, when the desk holds
+    that file through another of its folders, or None."""
+    if not os.path.islink(path):
+        return None
+    real = os.path.realpath(path)
+    for folder, into, skip in DESKS[desk]:
+        if folder == 'tests':
+            continue
+        rel = os.path.relpath(real, os.path.realpath(os.path.join(ROOT, folder)))
+        if rel.startswith('..') or any(rel == s or rel.startswith(s + os.sep)
+                                       for s in skip):
+            continue
+        return os.path.join(into, rel) if into else rel
+    return None
+
+
+def clay_file(desk, path, default):
+    """How a generated /* names a golden case file: by the desk path
+    of the file it links to, as linked_desk_path finds it, or default."""
+    rel = linked_desk_path(desk, path)
+    return '/' + '/'.join(clay_path(rel)) if rel is not None else default
 
 
 def check_assembly(a):
@@ -956,6 +988,7 @@ TESTS_HEADER = """\
 ::  Each file holds the output plus one newline. An expect-types: line
 ::  or types.txt opts a case into golden-types and its types.txt output.
 ::  Files come in through /*; a missing expected output fails its case.
+::  A case file that links to one of my-app's is read from /my-app.
 ::  tools/ship test syncs the desk and runs -test /=jibb-dev=/tests.
 ::
 ::  The .txt files reach Clay through the %txt mark, as lines, so the
@@ -1093,7 +1126,9 @@ def generate_tests(golden):
     for i, ((name, folder), arm) in enumerate(
             zip(cases, arm_names([c[0] for c in cases])), 1):
         base = '/tests/golden/%s' % name
-        lines.append('/*  src-%d  %%jibb  %s/source/jibb' % (i, base))
+        lines.append('/*  src-%d  %%jibb  %s' % (i, clay_file(
+            'jibb-dev', os.path.join(folder, 'source.jibb'),
+            '%s/source/jibb' % base)))
         #  a knot literal: a case's name may hold . and _, which a
         #  path literal in Hoon can't, though /* takes them
         try:
@@ -1117,10 +1152,10 @@ def generate_tests(golden):
                 args.append('~')
         call = '(%s %s)' % ('check-at' if logical else 'check', ' '.join(args))
         module_fixtures = []
-        for j, (module, at, _) in enumerate(modules, 1):
+        for j, (module, at, fixture) in enumerate(modules, 1):
             face = 'mod-%d-%d' % (i, j)
-            lines.append('/*  %s  %%jibb  %s/modules%s/jibb' %
-                         (face, base, module[:-5]))
+            lines.append('/*  %s  %%jibb  %s' % (face, clay_file(
+                'jibb-dev', fixture, '%s/modules%s/jibb' % (base, module[:-5]))))
             module_fixtures.append('[%s %s %s]' % (hoon_cord(module.encode()), at, face))
         if golden_case.wants_types(folder):
             if os.path.isfile(os.path.join(folder, 'types.txt')):
@@ -2286,9 +2321,10 @@ EPILOG = """\
 desks:
   my-app    vendor/* + jibb-dev (without any tests/) + my-app
   jibb      vendor/* + jibb
-  jibb-dev  vendor/* + jibb-dev + tests, the test desk: tests/golden from
-            --golden, tests/lib/jibb.hoon generated from it, and sys.kelvin
-            from jibb/
+  jibb-dev  vendor/* + jibb-dev + tests + my-app (under /my-app, without
+            its desk files), the test desk: tests/golden from --golden,
+            less the case files that link to my-app, tests/lib/jibb.hoon
+            generated from it, and sys.kelvin from jibb/
 A sync creates the desk if it's missing (as |new-desk does), mounts it at
 <pier>/<desk>, makes the mount hold exactly the desk's files, runs
 |commit, and waits until the desk matches the repo, checking every file.
