@@ -1,0 +1,4 @@
+source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type, so a gate or record fits where other names are expected"
+tests: A lambda that names its sample k and v fails turn's slot over [p=@t q=@ud] and fits it once unfaced. turn's capital A then binds the faced p=@t, so the result keeps p=: that is S1 step 1 (a capital binds only the type under a face), which this rule leaves to the review's unification work.
+expect: parses
+expect-types: a partial inference report

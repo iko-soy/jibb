@@ -1,0 +1,12 @@
+partial inference; module not checked
+++ lt-a: $-([a=@ud b=@ud] ?)
+++ lth2: $-([x=A y=A] ?) where A is an atom
+++ take-xy: $-($-([x=@ud y=@ud] ?) ?)
+++ closed: ?
+++ generic: call's sample and argument types do not unify
+/tests/golden/inline-unface-labelled-slot/source.jibb:5:13: called gate has type $-($-([x=@ud y=@ud] ?) ?)
+++ generic (take-xy (unface lth2))
+            ^
+/tests/golden/inline-unface-labelled-slot/source.jibb:5:21: argument has type $-([A A] ?) where A is an atom
+++ generic (take-xy (unface lth2))
+                    ^

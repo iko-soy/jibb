@@ -1,0 +1,28 @@
+(module
+  (value 1:1 pairs
+    (cast 1:10
+      (apply 1:13 list
+        (cell 1:19
+          (face 1:20 p (aura 1:22 @t))
+          (face 1:25 q (aura 1:27 @ud))))
+      (list 1:33
+        (tuple 1:35 (str 1:36 "a") (lit 1:40 1)))))
+  (value 2:1 keys-labelled
+    (group 2:18
+      (call 2:19
+        (wing 2:19 turn)
+        (wing 2:24 pairs)
+        (gate-wide 2:30
+          (cell 2:33 (bind 2:34 k) (bind 2:36 v))
+          (wing 2:39 k)))))
+  (value 3:1 keys
+    (group 3:9
+      (call 3:10
+        (wing 3:10 turn)
+        (wing 3:15 pairs)
+        (group 3:21
+          (call 3:22
+            (wing 3:22 unface)
+            (gate-wide 3:29
+              (cell 3:32 (bind 3:33 k) (bind 3:35 v))
+              (wing 3:38 k))))))))

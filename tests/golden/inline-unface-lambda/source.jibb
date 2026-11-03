@@ -1,0 +1,3 @@
+++ pairs ^- (list [p=@t q=@ud]) ~[["a" 1]]
+++ keys-labelled (turn pairs |=([k v] k))
+++ keys (turn pairs (unface |=([k v] k)))

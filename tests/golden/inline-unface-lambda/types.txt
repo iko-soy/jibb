@@ -1,0 +1,10 @@
+partial inference; module not checked
+++ pairs: (list [p=@t q=@ud])
+++ keys-labelled: call's sample and argument types do not unify
+/tests/golden/inline-unface-lambda/source.jibb:2:19: called gate has type $-([(list A) $-(A B)] (list B))
+++ keys-labelled (turn pairs |=([k v] k))
+                  ^
+/tests/golden/inline-unface-lambda/source.jibb:2:30: argument has type $-([k=A v=B] A)
+++ keys-labelled (turn pairs |=([k v] k))
+                             ^
+++ keys: (list [p=@t])

@@ -1,0 +1,5 @@
+++ lt-a |= [a=@ud b=@ud] (gth b a)
+++ lth2 |= [x=A y=A] (gth y x)
+++ take-xy |= f=$-([x=@ud y=@ud] ?) (f 1 2)
+++ closed (take-xy (unface lt-a))
+++ generic (take-xy (unface lth2))
