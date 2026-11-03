@@ -32,7 +32,10 @@
       (face 13:12 ts
         (apply 13:15 list (ref 13:21 item.todo)))
       (body 14:3
-        (tuple 14:3 (wing 14:4 ts) (str 14:7 "") (lit 14:10 ~)))))
+        (tuple 14:3
+          (face 14:4 todos (wing 14:10 ts))
+          (face 14:13 draft (str 14:19 ""))
+          (face 14:22 error (lit 14:28 ~))))))
   (value 16:1 update
     (gate 16:11
       (cell 16:14

@@ -1,0 +1,3 @@
+source: Grammar tab, Patterns: "Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, and cells of patterns, which nest; not `~[…]` lists or `a+b` pairs." and the rows `[[~ a] [~ b]]`, a pair of units that both hold a value, and `[x ~]`, a list of one item
+tests: cell patterns nested inside cell patterns, and a positional cell whose last pattern takes the rest, as `[* ~ b]`
+expect: parses: `[[~ a] [~ b]]` is a cell of two cell patterns, `[* ~ b]` is `[* [~ b]]`, and `[x ~]` is a cell of a name and null

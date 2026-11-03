@@ -26,8 +26,11 @@
       (const 14:12 ~)
       (body 15:3
         (tuple 15:3
-          (tuple 15:4 (lit 15:5 ~) (lit 15:7 %.n))
-          (str 15:12 "")))))
+          (face 15:4 cart
+            (tuple 15:9
+              (face 15:10 items (lit 15:16 ~))
+              (face 15:18 open (lit 15:23 %.n))))
+          (face 15:28 note (str 15:33 ""))))))
   (value 17:1 update
     (gate 17:11
       (cell 17:14

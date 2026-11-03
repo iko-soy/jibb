@@ -6,9 +6,9 @@ The syntax the compiler accepts.
 
 ## Lexical rules
 
-- **Indentation is structure**: a deeper line continues the line above; returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count.
+- **Indentation is structure**: a block of deeper lines belongs to the line above it: to the last bracket that line leaves open at its end, to the body of the last rune or `++` on it, to `?-`'s arms, to an arm's body, or to a `+$`'s cases. A deeper line that nothing on the line above takes is an error, so a call never continues onto a deeper line. Returning to an earlier indentation closes every block since. Spaces only; blank and comment-only lines don't count.
 - **Layout tokens**: a deeper line emits INDENT, the same depth NEWLINE, a shallower one a DEDENT per closed level, then NEWLINE.
-- **Open brackets**: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual. A mold's `[` and `(` open the same way, with one field or mold per deeper line. A line may leave several brackets open: the deeper lines go to the last one, or to the body of the last rune, and the others close with it, so `(column ~ ~[` above its items needs no `)`.
+- **Open brackets**: a bracket open at line end takes one item per deeper line and closes at the first line that isn't deeper, with no closer. Brackets opened and closed on one line work as usual. A mold's `[` and `(` open the same way, with one field or mold per deeper line. A line may leave several brackets open: the deeper lines go to the last one, or to the body of the last rune, and the others close with it, so `(column ~ ~[` above its items needs no `)`. On the opener's line, spaces separate items, so `~[text "a"` holds two items. In an expression's open bracket each deeper line is one whole item: `text "a"` there is `(text "a")`, `label=trim " x "` is `label=(trim " x ")`, and under a `(` alone the first deeper line is the head. A mold's open bracket takes exactly one field or mold per deeper line.
 - **Tight forms**: `a+b`, `a.b`, `` `x ``, `|=%got` and the openers `~[`, `|=(`, `$-(` take no spaces. A `(` right after a wing is a change: `m(note=text)` changes, `m (note text)` calls. `%/` starts an application path, `%/blog/(slug)`.
 - **Spacing**: one space between items; more for alignment. That is style, which the formatter keeps: the parser takes one or more spaces between items, and allows spaces after an opener, before a closer and at the end of a line. Faces `name=value`, puns `=name` and typed path segments `[id=@ud]` take no spaces, and a rune is followed by one.
 - **Comments**: `::` to the end of the line, outside strings; inside a string, `::` is text.
@@ -181,7 +181,7 @@ Number and cell literals resolve like tags: each waits for its context and takes
 
 ## Patterns
 
-Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare name. An arm that earlier arms cover, such as a second `%add` or anything after `[%move * *]`, is an error, and a case that should fail says `!!`. A name in a pattern always binds anew, so compare values with `?- (eq a b)`. Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, not lists or pairs.
+Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare name. An arm that earlier arms cover, such as a second `%add` or anything after `[%move * *]`, is an error, and a case that should fail says `!!`. A name in a pattern always binds anew, so compare values with `?- (eq a b)`. Patterns take terms, numbers, strings without `{…}`, ships, loobeans and `~`, and cells of patterns, which nest; not `~[…]` lists or `a+b` pairs.
 
 | Pattern | Matches | Binds |
 | --- | --- | --- |
@@ -192,10 +192,14 @@ Arms are tried in order. Every case needs an arm or a catch-all, `*` or a bare n
 | `[%move %left n]` | Tagged `%move`, then `%left` | `n` |
 | `~` | Null | Nothing |
 | `[~ x]` | A unit holding a value | `x` |
+| `[[~ a] [~ b]]` | A pair of units that both hold a value | `a`, `b` |
+| `[x ~]` | A list of one item | `x` |
 | `1.000`, `"milk"`, `~zod` | That literal | Nothing |
 | `[a b]` | Any cell; `b` is the rest | `a`, `b` |
 | `*` | Anything | Nothing |
 | `x` | Anything | `x` |
+
+Cells nest, so one arm can look into several values, or a list's first cells. A cell pattern matches from the left, and its last pattern takes the rest: over `[(unit A) (unit A)]`, `[~ b]` means "the first is null", with `b` the second unit, not "a unit holding `b`". Keep every position visible, as `[* ~ b]`.
 
 Tags can sit anywhere in a case, and a case can carry several:
 
@@ -298,7 +302,7 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
   %toggle
 
 ++ main (store init update)
-++ init ^- state [~ %.n]
+++ init ^- state [items=~ open=%.n]
 ++ update |= [a=poke s=state]
   ?- a
     [%add item]  s(items=[item items.s])
@@ -320,7 +324,7 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
   [%acked err=(unit @t)]
 
 ++ init |= ~
-  [[~ %.n] ""]
+  [cart=[items=~ open=%.n] note=""]
 
 ++ update |= [=msg m=model]
   ?- msg

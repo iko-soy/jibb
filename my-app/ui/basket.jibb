@@ -12,7 +12,7 @@
   [%acked err=(unit @t)]
 
 ++ init |= ~
-  [[~ %.n] ""]
+  [cart=[items=~ open=%.n] note=""]
 
 ++ update |= [=msg m=model]
   ?- msg

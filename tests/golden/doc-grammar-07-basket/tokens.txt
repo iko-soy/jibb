@@ -66,12 +66,20 @@
 14:12 lit ~
 15:3 INDENT
 15:3 glyph [
-15:4 tight glyph [
-15:5 tight lit ~
-15:7 lit %.n
-15:10 tight glyph ]
-15:12 str ""
-15:14 tight glyph ]
+15:4 tight name cart
+15:8 tight glyph =
+15:9 tight glyph [
+15:10 tight name items
+15:15 tight glyph =
+15:16 tight lit ~
+15:18 name open
+15:22 tight glyph =
+15:23 tight lit %.n
+15:26 tight glyph ]
+15:28 name note
+15:32 tight glyph =
+15:33 tight str ""
+15:35 tight glyph ]
 17:1 DEDENT
 17:1 NEWLINE
 17:1 glyph ++

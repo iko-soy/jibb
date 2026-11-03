@@ -1,0 +1,9 @@
+++ both |= args=[(unit @ud) (unit @ud)]
+  ?- args
+    [[~ a] [~ b]] (add a b)
+    [* ~ b] b
+    * 0
+++ only |= xs=(list @ud)
+  ?- xs
+    [x ~] x
+    * 0

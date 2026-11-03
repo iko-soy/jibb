@@ -5,7 +5,7 @@
   %toggle
 
 ++ main (store init update)
-++ init ^- state [~ %.n]
+++ init ^- state [items=~ open=%.n]
 ++ update |= [a=poke s=state]
   ?- a
     [%add item]  s(items=[item items.s])

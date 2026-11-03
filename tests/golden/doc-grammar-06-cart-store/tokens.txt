@@ -38,9 +38,13 @@
 8:9 glyph ^-
 8:12 name state
 8:18 glyph [
-8:19 tight lit ~
-8:21 lit %.n
-8:24 tight glyph ]
+8:19 tight name items
+8:24 tight glyph =
+8:25 tight lit ~
+8:27 name open
+8:31 tight glyph =
+8:32 tight lit %.n
+8:35 tight glyph ]
 9:1 NEWLINE
 9:1 glyph ++
 9:4 name update

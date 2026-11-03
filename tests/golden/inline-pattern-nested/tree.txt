@@ -1,0 +1,31 @@
+(module
+  (value 1:1 both
+    (gate 1:9
+      (face 1:12 args
+        (cell 1:17
+          (apply 1:18 unit (aura 1:24 @ud))
+          (apply 1:29 unit (aura 1:35 @ud))))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 args)
+          (arm 3:5
+            (cell 3:5
+              (cell 3:6 (lit 3:7 ~) (bind 3:9 a))
+              (cell 3:12 (lit 3:13 ~) (bind 3:15 b)))
+            (group 3:19
+              (call 3:20 (wing 3:20 add) (wing 3:24 a) (wing 3:26 b))))
+          (arm 4:5
+            (cell 4:5 (any 4:6) (lit 4:8 ~) (bind 4:10 b))
+            (wing 4:13 b))
+          (arm 5:5 (any 5:5) (lit 5:7 0))))))
+  (value 6:1 only
+    (gate 6:9
+      (face 6:12 xs
+        (apply 6:15 list (aura 6:21 @ud)))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 xs)
+          (arm 8:5
+            (cell 8:5 (bind 8:6 x) (lit 8:8 ~))
+            (wing 8:11 x))
+          (arm 9:5 (any 9:5) (lit 9:7 0)))))))

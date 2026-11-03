@@ -465,7 +465,7 @@ A `page`: each request scries `%blog` and renders in Nock.
   [%acked err=(unit @t)]
 
 ++ init |= ts=(list item.todo)
-  [ts "" ~]
+  [todos=ts draft="" error=~]
 
 ++ update |= [=msg m=model]
   ?- msg

@@ -16,7 +16,9 @@
   (value 8:1 init
     (cast 8:9
       (ref 8:12 state)
-      (tuple 8:18 (lit 8:19 ~) (lit 8:21 %.n))))
+      (tuple 8:18
+        (face 8:19 items (lit 8:25 ~))
+        (face 8:27 open (lit 8:32 %.n)))))
   (value 9:1 update
     (gate 9:11
       (cell 9:14
