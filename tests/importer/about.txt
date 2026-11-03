@@ -55,7 +55,11 @@ unmodified `desk/sur/epic.hoon`, `desk/sur/presence.hoon` and
 `tlon-license.txt`. The files use .txt so -test does not build them as
 Hoon tests. The separately stored `tree.txt` is a diagnostic projection of the
 internal type graph, not the Jibb type printer. It runs under eval and on the fake
-ship; +fixture-test also checks the underlying structured values.
+ship, and the suite's test-structured-values arm also checks the underlying
+structured values. The probes that build these results, +fixture-output and
++fixture-test, and the synthetic types such as +bad-branch-fixture live in
+`tests/lib/jibb-import.hoon`, not in the importer library, which app desks
+vendor.
 
 The nested recursive cases retain a source-proven named owner for one nested
 tagged union, including repeated uses. Duplicate tags, hidden overlaps,
