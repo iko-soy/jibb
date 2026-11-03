@@ -1,2 +1,8 @@
 partial inference; module not checked
-module has conflicting names: /ui/api/demo/jibb
+import `same` shadows a prelude name
+/ui/api/demo.jibb:2:1: conflicting import
+/= same /ui/lib
+^
+/lib/jibb/prelude.jibb:7:1: prelude declaration
+++ same |= x=A x
+^

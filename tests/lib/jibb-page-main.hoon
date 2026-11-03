@@ -158,6 +158,8 @@
 ::
 ++  test-page-main
   ^-  tang
+  =/  hand-parsed  (parse:jibb /ui/index/jibb (text hand-built-load))
+  ?:  ?=(%| -.hand-parsed)  ~[leaf+"hand-built load fixture does not parse"]
   =/  negatives=(list [label=@t src=@t])
     :~  ['wrong static message' (text wrong-static)]
         ['arbitrary main' (text arbitrary-main)]

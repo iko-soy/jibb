@@ -849,6 +849,90 @@
 ::      %submitt       [m(note="") ~]
 ::      ^
 ::
+::  ===================================================================
+::  5. General checker core (design; not implemented yet)
+::  ===================================================================
+::
+::  The existing inference and recovery paths are described in
+::  docs/compiler.md. This section is a plan for replacing them, not a
+::  claim that the current checker implements these rules. The Grammar and
+::  Decisions are authoritative if this design needs adjustment.
+::
+::  5.1 State and unification. Give each inference variable an identity and
+::  a union-find entry: parent or binding, rank, level, source, rigidity,
+::  and the atom, arithmetic-atom and gate-free obligations it carries.
+::  Hoon's immutable maps hold the entries; operations return the updated
+::  state. Find compresses paths in that returned state. Bind only after an
+::  occurs check, merge obligations at roots, and lower levels throughout
+::  the bound type to the root's level. A rigid written capital may acquire
+::  allowed constraints but cannot be forced to a concrete type or a
+::  different written capital. Keep origins for both sides of each fit so
+::  a failure can show both excerpts. Recursive named molds retain their
+::  identity; the occurs check is for inference variables, not a ban on
+::  declared recursion.
+::
+::  A scheme quantifies eligible variables above the enclosing level;
+::  instantiate with fresh variables and copy their obligations. Written
+::  capitals respect their lexical scope, including sharing with a local
+::  definition when the enclosing definition uses the same name. Retain
+::  aura variables and directional aura fits, rather than turning every
+::  fit into symmetric equality. At a faced position a capital binds the
+::  type under the face; joining an unnamed position with a faced one keeps
+::  the face, independently of the order of the inputs. Different explicit
+::  faces conflict. No gate may hide inside a gate-free type, including in
+::  a container; propagate the obligation through its arguments.
+::
+::  5.2 Work queue. A constraint owns its source span, the types and
+::  expression shape it depends on, and the information needed to report
+::  failure. Tags and constructors, null, decimal and cell literals,
+::  wings, changes, unface and unknown match subjects enter the same queue.
+::  Index waiting constraints by the roots they read. Binding or merging a
+::  root wakes its dependants; a retry either solves, fails with its sites,
+::  or registers the roots still needed. Run to a fixed point, without
+::  losing constraints when a root is redirected. Check patterns once the
+::  subject is known. Contextual tags inspect case shapes and noun-equal
+::  heads, retaining the named union and its site in diagnostics.
+::
+::  Variables reachable from an open tag constraint remain monomorphic
+::  across definitions, so a later use, including main, can fix them.
+::  Other eligible variables can generalize, with their atom and gate-free
+::  obligations intact. At each definition boundary resolve its holes and
+::  apply the specified decimal and cell defaults, without defaulting a
+::  decimal whose definition is generic over its aura. A decimal fits @ud,
+::  @u, @ and *; other concrete auras need their own literal. At module
+::  completion retry the queue and report each still-open constraint at its
+::  source; an unresolved tag asks for a ^-, never a guessed union.
+::
+::  5.3 Definition order and kinds. Use the existing dependency graph's
+::  strongly connected components in dependency order. Give a recursive
+::  group of gates monomorphic placeholders, infer all members in one state,
+::  solve what can be solved, then generalize together. Reject a cycle
+::  involving a non-gate value, including one through a gate, and show the
+::  cycle. Check a named definition's holes before later uses can fix them.
+::  Infer main as an ordinary expression against ordinary prelude schemes;
+::  only its resulting type determines library, page, island or store.
+::  Afterwards check kind-specific invariants: recursively find the field
+::  containing a gate in island data or a model, and inspect subscriptions
+::  for watchability only at %watch. A page load may be any gate to ask,
+::  including pure and typed paths. Preserve request provenance needed for
+::  a watchability proof through ordinary calls and aliases.
+::
+::  5.4 Matches and migration. A reusable usefulness matrix over noun
+::  constructors, constants, cells and wildcards checks nested patterns;
+::  loobeans, lists and units expand to their cases. Test an arm against
+::  previous rows for usefulness, then test a wildcard for exhaustiveness;
+::  keep a witness for a missing case and the covering arm's site for a
+::  dead one. Recursive types require memoized specialization and a
+::  terminating treatment of recursive states. The same matrix can later
+::  drive lowering. The bare-name/tag spelling rule is checked against the
+::  subject and the cases the rest of the pattern can match.
+::
+::  Migrate in small stages with eval and ship goldens for every change.
+::  Keep diagnostics and source sites in the single full result; types.txt
+::  is a rendering of that result. As general inference covers an existing
+::  recovery or source-proven slice, remove that slice and retain its tests.
+::  An unsupported construct fails closed at its own site until then.
+::
 |%
 +|  %positions
 ::
@@ -11307,7 +11391,7 @@
   `[entry u.rest]
 ::
 
-+$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition)]
++$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
 +$  iadj  (map term (list term))
 +$  ivisited  (map term ?)
 +$  iwork  (list [name=term done=?])
@@ -11403,7 +11487,7 @@
 ++  add-groups
   |=  [ds=(list def) components=icomponents graph=iadj env=ienv grouped=(list term) artifacts=(list iwidth-definition) state=istate]
   ^-  iresolved
-  ?~  components  [env grouped artifacts]
+  ?~  components  [env grouped artifacts ~]
   =/  component=(list term)  i.components
   ?.  (graph-cycle component graph)  $(components t.components)
   ?:  (lien component |=(n=term ?=(^ (ienv-lookup n env))))  $(components t.components)
@@ -11447,8 +11531,10 @@
   `[[[name.d (cap-names typ vars caps.state.p.result sub.state.p.result)] env] checked artifacts]
 ++  add-supported-defs-core
   |=  [ds=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
-  ^-  [env=ienv artifacts=(list iwidth-definition)]
-  ?~  ds  [env artifacts]
+  ^-  [env=ienv artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
+  =/  failures=(list [name=term diag=idiag])  ~
+  |-
+  ?~  ds  [env artifacts (flop failures)]
   =/  d=def  i.ds
   ?:  ?=(%mold -.d)  $(ds t.ds)
   ?.  (unique-value-name name.d globals)  $(ds t.ds)
@@ -11459,37 +11545,34 @@
   =.  gate-defs.initial  checked
   =.  head-evidence.initial  heads
   =.  initial  (reserve-def-caps val.d initial)
-  =/  result=iresult  (infer-fragment val.d env initial)
+  =/  plain=iresult  (infer-fragment val.d env initial)
+  =/  result=iresult  plain
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
+  ?:  ?=(%| -.result)
+    =/  failure=idiag
+      ?:  (definite-diag p.result)  p.result
+      ?:  ?=(%| -.plain)  p.plain
+      p.result
+    =?  failures  (definite-diag failure)  [[name.d failure] failures]
+    $(ds t.ds)
   =/  added=(unit iadded-definition)
     (add-supported-result d result initial env checked artifacts)
   ?~  added  $(ds t.ds)
   $(ds t.ds, env env.u.added, checked checked.u.added, artifacts artifacts.u.added)
 ::
-::  Full checking discards unsupported definitions. On that failure path only,
-::  retry a bounded number of missing definitions to explain a pending tag
-::  from the same ordinary inference state instead of hiding it behind the
-::  generic completeness error. No successful definition takes this path.
-++  module-pending-tag
-  |=  [ds=(list def) env=ienv base=istate fuel=@ud]
+::  Retry one unresolved definition to explain a pending tag. The gate
+::  evidence is built from the whole module, not only this definition.
+++  module-pending-tag-one
+  |=  [d=def env=ienv base=istate checked=(map term def) heads=(unit igate-prelude-evidence)]
   ^-  (unit [at=span msg=tape])
-  =/  checked=(map term def)  (direct-checked-gates ds env)
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.base)
-  |-
-  ?~  ds  ~
-  ?:  =(0 fuel)  ~
-  =/  d=def  i.ds
-  ?:  ?=(%mold -.d)  $(ds t.ds, fuel (dec fuel))
-  ?^  (ienv-lookup name.d env)  $(ds t.ds, fuel (dec fuel))
+  ?.  ?=(%value -.d)  ~
+  ?^  (ienv-lookup name.d env)  ~
   =/  initial=istate  base(gate-defs checked, head-evidence heads)
   =.  initial  (reserve-def-caps val.d initial)
   =/  result=iresult  (infer-fragment val.d env initial)
   =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
-  ?:  ?=(%| -.result)  $(ds t.ds, fuel (dec fuel))
-  =/  pending=(unit [at=span msg=tape])
-    (pending-tag-diagnostic tags.state.p.result sub.state.p.result)
-  ?^  pending  pending
-  $(ds t.ds, fuel (dec fuel))
+  ?:  ?=(%| -.result)  ~
+  (pending-tag-diagnostic tags.state.p.result sub.state.p.result)
 ::
 ++  resolve-groups-core
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
@@ -11505,12 +11588,12 @@
   =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
   =/  ordered=(list def)  (dependency-order ds components)
   |-
-  =/  next=[env=ienv artifacts=(list iwidth-definition)]
+  =/  next=[env=ienv artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
     (add-supported-defs-core ordered (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
   =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
   =.  grec-index.initial  index
   =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
-  ?:  =(env env.out)  out
+  ?:  =(env env.out)  out(failures failures.next)
   $(env env.out, grouped grouped.out, artifacts artifacts.out)
 ::
 ::  +dependency-order: the value definitions, dependencies first
@@ -12540,6 +12623,80 @@
   =/  mold-names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   |((lien (weld imported (weld vals mold-names)) reserved-name) (lien defs.mod reserved-def))
 ::
+::  A scope collision retains source sites. Prelude declarations may be in
+::  another source, so their name and namespace are retained separately.
++$  iscope-diagnostic
+  [issue=idiag prelude=(unit [name=term kind=?(%value %mold %any)])]
+++  scope-import-diagnostic
+  |=  [imports=(list import) prelude-values=(list term) prelude-molds=(list term) seen=written-fields]
+  ^-  (each written-fields iscope-diagnostic)
+  ?~  imports  [%& seen]
+  =/  imp=import  i.imports
+  =/  n=term
+    ?-  -.imp
+      %jibb  face.imp
+      %sur   name.imp
+      %mark  mark.imp
+    ==
+  ?:  (reserved-name n)
+    [%| [["`{(trip n)}` is reserved and cannot be bound" ~[[at.imp "reserved name"]]] ~]]
+  =/  earlier=(unit span)  (~(get by seen) n)
+  ?^  earlier
+    [%| [["import `{(trip n)}` shadows an earlier import" ~[[u.earlier "earlier import"] [at.imp "conflicting import"]]] ~]]
+  ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))
+    [%| [["import `{(trip n)}` shadows a prelude name" ~[[at.imp "conflicting import"]]] `[n %any]]]
+  $(imports t.imports, seen (~(put by seen) n at.imp))
+++  scope-def-diagnostic
+  |=  [defs=(list def) imports=written-fields prelude-values=(list term) prelude-molds=(list term) values=written-fields molds=written-fields]
+  ^-  (unit iscope-diagnostic)
+  ?~  defs  ~
+  =/  d=def  i.defs
+  =/  n=term  name.d
+  ?:  (reserved-name n)
+    `[["`{(trip n)}` is reserved and cannot be bound" ~[[at.d "reserved name"]]] ~]
+  =/  imported=(unit span)  (~(get by imports) n)
+  ?^  imported
+    `[["definition `{(trip n)}` shadows an import" ~[[u.imported "import"] [at.d "conflicting definition"]]] ~]
+  =/  seen=written-fields  ?:(?=(%value -.d) values molds)
+  =/  earlier=(unit span)  (~(get by seen) n)
+  ?^  earlier
+    `[["definition `{(trip n)}` shadows an earlier definition" ~[[u.earlier "earlier definition"] [at.d "conflicting definition"]]] ~]
+  =/  prelude-names=(list term)  ?:(?=(%value -.d) prelude-values prelude-molds)
+  ?:  (lien prelude-names |=(x=term =(n x)))
+    `[["definition `{(trip n)}` shadows a prelude name" ~[[at.d "conflicting definition"]]] `[n ?:(?=(%value -.d) %value %mold)]]
+  ?:  ?=(%value -.d)
+    $(defs t.defs, values (~(put by values) n at.d))
+  $(defs t.defs, molds (~(put by molds) n at.d))
+++  module-scope-diagnostic
+  |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
+  ^-  (unit iscope-diagnostic)
+  =/  imports=(each written-fields iscope-diagnostic)
+    (scope-import-diagnostic imports.mod prelude-values prelude-molds ~)
+  ?:  ?=(%| -.imports)  `p.imports
+  (scope-def-diagnostic defs.mod p.imports prelude-values prelude-molds ~ ~)
+++  show-scope-diagnostic
+  |=  [file=path src=@t diagnostic=iscope-diagnostic prelude=(unit ifile)]
+  ^-  @t
+  =/  excerpts=(list @t)
+    %+  turn  sites.issue.diagnostic
+    |=  site=[at=span note=tape]
+    (show-error src [file line.beg.at.site col.beg.at.site note.site])
+  =/  previous=(list @t)
+    ?~  prelude.diagnostic  ~
+    ?~  prelude  ~
+    ?~  source.u.prelude  ~
+    =/  parsed  (parse at.u.prelude u.source.u.prelude)
+    ?:  ?=(%| -.parsed)  ~
+    =/  matching=(list def)
+      %+  skim  defs.p.parsed
+      |=  d=def
+      ?&  =(name.d name.u.prelude.diagnostic)
+          |(=(%any kind.u.prelude.diagnostic) =(-.d kind.u.prelude.diagnostic))
+      ==
+    ?~  matching  ~
+    ~[(show-error u.source.u.prelude [at.u.prelude line.beg.at.i.matching col.beg.at.i.matching "prelude declaration"])]
+  (of-wain:format [(crip msg.issue.diagnostic) (weld excerpts previous)])
+::
 ++  module-scope-valid
   |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
   ^-  ?
@@ -12969,6 +13126,31 @@
   ?~  name  $(ds t.ds)
   ?.  (lien values |=(n=term =(n u.name)))  $(ds t.ds)
   `[u.name at.s]
+::
+::  Select the first available reason in dependency order, rather than
+::  preferring one class of diagnostic across the whole module. Only the
+::  first 64 definitions are retried for pending tags, as before.
+++  module-unresolved-diagnostic
+  |=  [ds=(list def) env=ienv base=istate checked=(map term def) heads=(unit igate-prelude-evidence) failures=(list [name=term diag=idiag]) values=(list term) file=path src=@t fuel=@ud]
+  ^-  (unit @t)
+  ?~  ds  ~
+  =/  d=def  i.ds
+  =/  remaining=@ud  ?:(=(0 fuel) 0 (dec fuel))
+  ?:  ?=(%mold -.d)  $(ds t.ds, fuel remaining)
+  ?^  (ienv-lookup name.d env)  $(ds t.ds, fuel remaining)
+  =/  found=(list [name=term diag=idiag])
+    (skim failures |=(failure=[name=term diag=idiag] =(name.failure name.d)))
+  ?^  found  `(show-inference-diagnostic file src name.d diag.i.found)
+  =/  pending=(unit [at=span msg=tape])
+    ?:  =(0 fuel)  ~
+    (module-pending-tag-one d env base checked heads)
+  ?^  pending
+    `(show-error src [file line.beg.at.u.pending col.beg.at.u.pending msg.u.pending])
+  =/  shadow=(unit [name=term at=span])  (module-sample-shadow ~[d] env values)
+  ?^  shadow
+    =/  msg=tape  "sample `{(trip name.u.shadow)}` shadows a name already in scope"
+    `(show-error src [file line.beg.at.u.shadow col.beg.at.u.shadow msg])
+  $(ds t.ds, fuel remaining)
 ::
 ::  Cache only completed interfaces for this invocation. The source bundle,
 ::  imported Hoon types and prelude are fixed for the whole graph. Check the
@@ -14230,7 +14412,7 @@
   ?~  recovered  ~
   ?.  ?=(~ vars.u.recovered)  ~
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added]
+  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
 ::
 ++  program-inferred-slot
   |=  [typ=itype name=(unit term)]
@@ -14386,7 +14568,7 @@
   ?~  recovered  ~
   ?.  ?=(~ vars.u.recovered)  ~
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added]
+  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
 ::
 +$  iview-site  [xs=expr mapper=term]
 ++  program-view-site
@@ -14713,7 +14895,7 @@
   ?~  recovered  ~
   ?.  ?=(~ vars.u.recovered)  ~
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added]
+  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
 ::
 ::  Recover exactly one direct keyed each/turn row mapper, then its view.
 ::  The prelude's own each and turn schemes determine the mapper gate: the
@@ -14935,7 +15117,7 @@
   ?~  recovered  ~
   ?.  ?=(~ vars.u.recovered)  ~
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added]
+  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
 ::
 ::  The model a direct program's initializer must produce. Update's written
 ::  two-item sample gives it when it can be read. Otherwise main's own program
@@ -15092,7 +15274,7 @@
   ?~  recovered  ~
   ?.  ?=(~ vars.u.recovered)  ~
   ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added]
+  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
 ::
 ++  derived-poke-command-scheme
   |=  [prelude=ifile action=itype]
@@ -15260,9 +15442,9 @@
     (direct-prelude-evidence ds prelude.initial)
   ?~  heads  resolution
   =/  checked=(map term def)  (direct-checked-gates ds env.resolution)
-  =/  completed=[env=ienv artifacts=(list iwidth-definition)]
+  =/  completed=[env=ienv artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
     (add-supported-defs-core ~[main] checked heads env.resolution molds.initial globals.initial externals.initial surs.initial mark-externals.initial marks.initial jimports.initial reserved-molds.initial at.initial prelude.initial artifacts.resolution grec-index.initial)
-  [env.completed grouped.resolution artifacts.completed]
+  [env.completed grouped.resolution artifacts.completed failures.resolution]
 ::
 ::  A static main may retain a generic element message in its ordinary
 ::  scheme. Instantiate that scheme, specialize it to canonical element !!,
@@ -15478,6 +15660,9 @@
               !(lien prelude-molds |=(m=term =(m n)))
           ==
         ==
+      =/  scope=(unit iscope-diagnostic)
+        (module-scope-diagnostic mod(defs ordinary, imports faces) prelude-values prelude-molds)
+      ?^  scope  [%| [(show-scope-diagnostic at src u.scope prelude) ~]]
       [%| [(crip "module has conflicting names: {(spud at)}") ~]]
     ?~  prelude  [%| [(crip "API module needs unsupported inference: {(spud at)}") ~]]
     =/  prepared=iprelude  [u.prelude prelude-values prelude-molds]
@@ -15526,6 +15711,9 @@
   =/  ds=(list def)  ?~(declared defs.mod defs.u.declared)
   =/  checking=module  mod(defs ds)
   ?.  (module-scope-valid checking prelude-values prelude-molds)
+    =/  scope=(unit iscope-diagnostic)
+      (module-scope-diagnostic checking prelude-values prelude-molds)
+    ?^  scope  [%| [(show-scope-diagnostic at src u.scope prelude) ~]]
     [%| [(crip "module has conflicting names: {(spud at)}") ~]]
   =/  vals=(list term)  (global-value-names ds)
   =/  js=jimports-detailed-result  (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
@@ -15601,15 +15789,14 @@
     ?~  store-parts  ds
     (skim ds |=(d=def !&(?=(%value -.d) =(%main name.d))))
   ?.  (module-values-complete required env)
-    =/  pending=(unit [at=span msg=tape])  (module-pending-tag required env state 64)
-    ?^  pending
-      [%| [(show-error src [at line.beg.at.u.pending col.beg.at.u.pending msg.u.pending]) ~]]
-    ::  A shadowing sample is an error, so it comes before any named value.
+    =/  components=icomponents  (graph-components required (global-value-names required))
+    =/  ordered=(list def)  (dependency-order required components)
     =/  values=(list term)  (weld prelude-values (weld (api-import-faces imports.mod) vals))
-    =/  shadow=(unit [name=term at=span])  (module-sample-shadow required env values)
-    ?^  shadow
-      =/  msg=tape  "sample `{(trip name.u.shadow)}` shadows a name already in scope"
-      [%| [(show-error src [at line.beg.at.u.shadow col.beg.at.u.shadow msg]) ~]]
+    =/  checked=(map term def)  (direct-checked-gates required env)
+    =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence required prelude.state)
+    =/  diagnostic=(unit @t)
+      (module-unresolved-diagnostic ordered env state checked heads failures.resolution values at src 64)
+    ?^  diagnostic  [%| [u.diagnostic ~]]
     =/  missing=(unit term)  (module-missing-value required env)
     =/  named=tape  ?~(missing "" ": ++ {(trip u.missing)}")
     [%| [(crip "module definitions need unsupported inference: {(spud at)}{named}") ~]]

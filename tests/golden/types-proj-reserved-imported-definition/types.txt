@@ -1,2 +1,5 @@
 partial inference; module not checked
-module has conflicting names: /ui/lib/jibb
+`proj` is reserved and cannot be bound
+/ui/lib.jibb:1:1: reserved name
+++ proj |= x=@t x
+^
