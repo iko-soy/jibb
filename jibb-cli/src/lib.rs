@@ -1,8 +1,12 @@
+pub mod ast;
 mod formatter;
+mod lower;
 
 pub use formatter::format_source;
 
-use tree_sitter::{Language, Parser};
+use ast::{SourceId, Span};
+use std::fmt;
+use tree_sitter::{Language, Node, Parser};
 
 unsafe extern "C" {
     fn tree_sitter_jibb() -> Language;
@@ -11,6 +15,44 @@ unsafe extern "C" {
 pub fn language() -> Language {
     unsafe { tree_sitter_jibb() }
 }
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Diagnostic {
+    pub message: String,
+    pub span: Option<Span>,
+}
+
+impl Diagnostic {
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            span: None,
+        }
+    }
+
+    pub fn at(message: impl Into<String>, span: Span) -> Self {
+        Self {
+            message: message.into(),
+            span: Some(span),
+        }
+    }
+}
+
+impl fmt::Display for Diagnostic {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(span) = self.span {
+            write!(
+                formatter,
+                "{} at bytes {}..{} (source {})",
+                self.message, span.start, span.end, span.source.0
+            )
+        } else {
+            formatter.write_str(&self.message)
+        }
+    }
+}
+
+impl std::error::Error for Diagnostic {}
 
 pub fn parse(source: &str) -> Result<tree_sitter::Tree, String> {
     let mut parser = Parser::new();
@@ -27,4 +69,21 @@ pub fn parse(source: &str) -> Result<tree_sitter::Tree, String> {
         ));
     }
     Ok(tree)
+}
+
+pub fn parse_ast(source: &str) -> Result<ast::Module, Diagnostic> {
+    let mut parser = Parser::new();
+    parser
+        .set_language(&language())
+        .map_err(|error| Diagnostic::new(error.to_string()))?;
+    let tree = parser
+        .parse(source, None)
+        .ok_or_else(|| Diagnostic::new("parser cancelled"))?;
+    let root = tree.root_node();
+    lower::validate(root)?;
+    lower::lower_module(source, root)
+}
+
+pub(crate) fn node_span(node: Node<'_>) -> Span {
+    Span::new(SourceId::default(), node.start_byte(), node.end_byte())
 }

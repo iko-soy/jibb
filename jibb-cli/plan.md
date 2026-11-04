@@ -6,6 +6,12 @@ Add a small, native interpreter for the pure fragment of Jibb. It will parse a m
 
 The first version is an interpreter for ordinary values and computation. It does not render UI, execute effects, perform static type checking, or implement the Nock backend.
 
+## Status
+
+Implemented on 2026-11-04: the public semantic AST, diagnostics, complete CST lowering, and structural tests are complete. The implementation includes arbitrary-precision numbers, terms and constructors, decoded strings, source spans, and recursive span-erased normalization.
+
+All 62 tests pass, including 512 valid golden lowerings with normalized AST equality before and after formatting, 250 invalid-case rejections, Clippy, the native repository check, and the Nix package build. Ships, dates, and durations retain source spelling until their runtime representations are implemented.
+
 ## Architecture
 
 Keep parsing, semantic syntax, formatting, and evaluation separate:
@@ -251,13 +257,13 @@ Keep runtime tests independent of the formatter. Run debug and release Cargo tes
 
 ## 9. Delivery sequence
 
-1. Public AST, diagnostics, and complete CST lowering.
-2. Structural AST and formatter-equivalence tests.
-3. Runtime nouns, scopes, literals, and references.
-4. Gates, lazy definitions, calls, and recursion.
-5. Branches, patterns, data construction, changes, traces, and crashes.
-6. Initial natives and `jibb run`.
-7. End-to-end goldens, documentation, Nix wiring, and full checks.
-8. Imports and additional literal/prelude coverage as separate follow-ups.
+1. [x] Public AST, diagnostics, and complete CST lowering.
+2. [x] Structural AST and formatter-equivalence tests.
+3. [ ] Runtime nouns, scopes, literals, and references.
+4. [ ] Gates, lazy definitions, calls, and recursion.
+5. [ ] Branches, patterns, data construction, changes, traces, and crashes.
+6. [ ] Initial natives and `jibb run`.
+7. [ ] End-to-end goldens, documentation, Nix wiring, and full checks.
+8. [ ] Imports and additional literal/prelude coverage as separate follow-ups.
 
 Each step remains compilable and tested. Unsupported syntax or evaluation fails explicitly rather than silently changing semantics.
