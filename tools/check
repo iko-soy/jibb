@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Run the repo's checks: all of them, a group, or some by name.
 
-    tools/check                    every check: the eval group, then ship
+    tools/check                    every check: eval and native, then ship
     tools/check --group eval       the checks that need only urbit and Python
+    tools/check --group native     the Rust CLI's checks
     tools/check --group ship       the checks that need the fake ~zod
     tools/check golden 'type-*'    only the checks these names or globs match
     tools/check --list             the checks, their groups and commands
@@ -12,7 +13,7 @@ CHECKS below is the one list of the repo's checks: docs/development.md
 sends you here before pushing, and `nix flake check` runs this tool too
 (see flake.nix), so a new check goes in the list and nowhere else.
 
-The eval checks run under `urbit eval` without a ship, several at once
+The eval and native checks run without a ship, several at once
 (-j, default: as many as there are CPUs), in the order of the list, so
 the slowest come first.  The ship checks then run one at a time, in
 order, on the ship tools/ship talks to: $JIBB_PIER, or /root/urbit/zod
@@ -74,6 +75,8 @@ ARM_SHARDS = 4
 CHECKS = [
     tool('testdata/selftest'),                  # about 115 s
     tool('golden'),                             # about 60 to 100 s
+    Check('jibb-cli', 'native',
+          ['cargo', 'test', '--manifest-path', 'jibb-cli/Cargo.toml']),
 ] + [
     Check('arms-%d' % i, 'eval',                # 55 to 80 s each
           ['tools/test-arms', '--shard', '%d/%d' % (i, ARM_SHARDS)])
@@ -90,7 +93,7 @@ CHECKS = [
     tool('clay-fixtures', 'ship'),
 ]
 
-GROUPS = ('eval', 'ship')
+GROUPS = ('eval', 'native', 'ship')
 
 
 # ---------------------------------------------------------------- running
@@ -258,7 +261,7 @@ def main(argv):
     results = []
     unable = False
     try:
-        evals = [c for c in checks if c.group == 'eval']
+        evals = [c for c in checks if c.group in ('eval', 'native')]
         if evals:
             say('running %d eval check%s, %d at a time'
                 % (len(evals), '' if len(evals) == 1 else 's', args.jobs))

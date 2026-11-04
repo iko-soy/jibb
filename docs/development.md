@@ -18,9 +18,9 @@ The source-backed generic-union guard is the suite `tests/lib/jibb-union-source.
 
 ## Setting up a machine
 
-The tools need Python 3 and `urbit` (vere) on `PATH`; the ship tools also need a fake `~zod` and click. Everything so far ran with vere 4.6 on Linux.
+The ship tools need Python 3 and `urbit` (vere) on `PATH`, plus a fake `~zod` and click. The native CLI needs a Rust toolchain and Cargo; regenerating its parser also needs Node and the tree-sitter CLI. Everything so far ran with vere 4.6 on Linux.
 
-With Nix (and flakes), `nix develop` gives a shell with vere 4.6, Python 3 and click, as the flake pins them, and sets `$JIBB_CLICK`. `nix build .#fakezod` boots a fake `~zod` from the pinned brass pill in about half a minute; copy it to where `tools/ship` expects it:
+With Nix (and flakes), `nix develop` gives a shell with vere 4.6, Python 3, click, Rust and tree-sitter, as the flake pins them, and sets `$JIBB_CLICK`. `nix build .#fakezod` boots a fake `~zod` from the pinned brass pill in about half a minute; copy it to where `tools/ship` expects it:
 
 ```
 mkdir -p /root/urbit
@@ -70,7 +70,8 @@ git clone https://github.com/urbit/tools /root/src/tools
 
 | Tool | What it does |
 | --- | --- |
-| `tools/check` | Runs every check in this table, or a group (`--group eval` or `ship`), or some by name: see [Before pushing](#before-pushing) |
+| `tools/check` | Runs every check in this table, or a group (`--group eval`, `native` or `ship`), or some by name: see [Before pushing](#before-pushing) |
+| `jibb-cli` | `cargo test --manifest-path jibb-cli/Cargo.toml` tests the native executable, parser, formatter and golden corpus; `cargo run --manifest-path jibb-cli/Cargo.toml -- fmt` runs the formatter |
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
 | `tools/test-arms` | Runs the `test-` arms of the `tests/lib` suites under `urbit eval`, each with the subject Ford would give it on the `jibb-dev` desk: every suite, or those named or matched by a glob, as `tools/test-arms jibb-store 'jibb-program-*'`; `--shard I/N` runs the I-th of N balanced shards; `--list` prints the suites and their arms; `--report` and `--update` print or rewrite a golden-report suite's report. See [The test suites](#the-test-suites) |
 | `tools/clay-fixtures` | Syncs `my-app` and `jibb-fixtures`, builds their example `/sur` files and marks through Clay, checks selected mold and mark projections and the partial checker, and records Ford and mark subject shapes on the fake ship |
@@ -159,13 +160,14 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 
 ```
 tools/check                  # every check; it exits 0 only when all pass
-tools/check --group eval     # only the checks that need no ship
+tools/check --group eval     # only the checks that need just urbit and Python
+tools/check --group native   # only the Rust CLI's checks
 nix flake check              # the same checks in the Nix sandbox, on a fresh fake ~zod
 ```
 
-`tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. A new suite in `tests/lib` needs no new check: `arms-1` to `arms-4` run every suite's arms, in shards of about equal time, and a slow suite's cost belongs in `COSTS` in `tools/test-arms`, which balances them. The eval group, the 7 checks that need only `urbit` and Python, runs several at a time (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit` and `clay-fixtures`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'arms-*'`. To run one suite under eval, use `tools/test-arms <suite>`, as `tools/test-arms jibb-todo-full`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
+`tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. A new suite in `tests/lib` needs no new check: `arms-1` to `arms-4` run every suite's arms, in shards of about equal time, and a slow suite's cost belongs in `COSTS` in `tools/test-arms`, which balances them. The eval group, the 7 checks that need only `urbit` and Python, runs several at a time; the native group runs the CLI's Cargo tests alongside them (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit` and `clay-fixtures`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'arms-*'`. To run one suite under eval, use `tools/test-arms <suite>`, as `tools/test-arms jibb-todo-full`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
 
-There is no CI, so nothing runs these checks for you: run `tools/check` or `nix flake check` before every push. `nix flake check` needs nothing but Nix, since it builds the desks and runs both groups in the Nix sandbox, the ship group (Linux only) on a fake ~zod it boots itself; see the [README](../README.md#building-and-checking-with-nix).
+There is no CI, so nothing runs these checks for you: run `tools/check` or `nix flake check` before every push. `nix flake check` needs nothing but Nix, since it builds the desks and CLI and runs all three groups in the Nix sandbox, the ship group (Linux only) on a fake ~zod it boots itself; see the [README](../README.md#building-and-checking-with-nix).
 
 `ship-selftest` matters most when `tools/ship` changed, and `check-commit` when the mark or the desks changed, but `tools/check` runs both every time. The self-test leaves fixture files on the `jibb-dev` desk, and `ship-test`, which runs after it, puts the real ones back.
 

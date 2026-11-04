@@ -1,0 +1,3632 @@
+[
+  {
+    "type": "application_expression_segment",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "cast",
+          "named": true
+        },
+        {
+          "type": "gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "application_path",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "application_expression_segment",
+          "named": true
+        },
+        {
+          "type": "knot",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "arm",
+    "named": true,
+    "fields": {
+      "pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "pattern",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "definition",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "rest_branch",
+            "named": true
+          },
+          {
+            "type": "rest_head",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "branch",
+    "named": true,
+    "fields": {
+      "subject": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "arm",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "call",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "application_path",
+          "named": true
+        },
+        {
+          "type": "change",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "crash",
+          "named": true
+        },
+        {
+          "type": "group",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "open_change",
+          "named": true
+        },
+        {
+          "type": "open_group",
+          "named": true
+        },
+        {
+          "type": "open_list",
+          "named": true
+        },
+        {
+          "type": "open_rune_group",
+          "named": true
+        },
+        {
+          "type": "open_tuple",
+          "named": true
+        },
+        {
+          "type": "pair",
+          "named": true
+        },
+        {
+          "type": "path_literal",
+          "named": true
+        },
+        {
+          "type": "reference",
+          "named": true
+        },
+        {
+          "type": "tuple",
+          "named": true
+        },
+        {
+          "type": "unit",
+          "named": true
+        },
+        {
+          "type": "wide_gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "cast",
+    "named": true,
+    "fields": {
+      "mold": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "definition",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "rest_branch",
+            "named": true
+          },
+          {
+            "type": "rest_head",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "change",
+    "named": true,
+    "fields": {
+      "target": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "wing",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "edit",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "constructor",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "term",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "crash",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "definition",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "mold_definition",
+          "named": true
+        },
+        {
+          "type": "value_definition",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "duration",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "edit",
+    "named": true,
+    "fields": {
+      "field": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "wing",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "application_path",
+            "named": true
+          },
+          {
+            "type": "change",
+            "named": true
+          },
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "crash",
+            "named": true
+          },
+          {
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "pair",
+            "named": true
+          },
+          {
+            "type": "path_literal",
+            "named": true
+          },
+          {
+            "type": "reference",
+            "named": true
+          },
+          {
+            "type": "tuple",
+            "named": true
+          },
+          {
+            "type": "unit",
+            "named": true
+          },
+          {
+            "type": "wide_gate",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "field",
+    "named": true,
+    "fields": {
+      "face": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "mold": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "aura",
+          "named": true
+        },
+        {
+          "type": "flag",
+          "named": true
+        },
+        {
+          "type": "hole",
+          "named": true
+        },
+        {
+          "type": "loobean",
+          "named": true
+        },
+        {
+          "type": "mold_apply",
+          "named": true
+        },
+        {
+          "type": "mold_cell",
+          "named": true
+        },
+        {
+          "type": "mold_function",
+          "named": true
+        },
+        {
+          "type": "mold_reference",
+          "named": true
+        },
+        {
+          "type": "noun",
+          "named": true
+        },
+        {
+          "type": "null",
+          "named": true
+        },
+        {
+          "type": "open_mold_apply",
+          "named": true
+        },
+        {
+          "type": "open_mold_cell",
+          "named": true
+        },
+        {
+          "type": "path_mold",
+          "named": true
+        },
+        {
+          "type": "pun",
+          "named": true
+        },
+        {
+          "type": "term",
+          "named": true
+        },
+        {
+          "type": "type_variable",
+          "named": true
+        },
+        {
+          "type": "void",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "gate",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "definition",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "rest_branch",
+            "named": true
+          },
+          {
+            "type": "rest_head",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      },
+      "sample": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "sample",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "generic",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "type_variable",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "group",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "cast",
+          "named": true
+        },
+        {
+          "type": "gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "import",
+    "named": true,
+    "fields": {
+      "mark": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "term",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "module_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "application_path",
+          "named": true
+        },
+        {
+          "type": "change",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "crash",
+          "named": true
+        },
+        {
+          "type": "group",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "pair",
+          "named": true
+        },
+        {
+          "type": "path_literal",
+          "named": true
+        },
+        {
+          "type": "reference",
+          "named": true
+        },
+        {
+          "type": "tuple",
+          "named": true
+        },
+        {
+          "type": "unit",
+          "named": true
+        },
+        {
+          "type": "wide_gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "date",
+          "named": true
+        },
+        {
+          "type": "duration",
+          "named": true
+        },
+        {
+          "type": "knot_literal",
+          "named": true
+        },
+        {
+          "type": "loobean",
+          "named": true
+        },
+        {
+          "type": "null",
+          "named": true
+        },
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "ship",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        },
+        {
+          "type": "term",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "module_path",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "knot",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mold_apply",
+    "named": true,
+    "fields": {
+      "argument": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "constructor": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "wing",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "mold_cell",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "field",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mold_definition",
+    "named": true,
+    "fields": {
+      "cases": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "generic": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "generic",
+            "named": true
+          }
+        ]
+      },
+      "mold": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "mold_function",
+    "named": true,
+    "fields": {
+      "product": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "sample": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "mold_reference",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "wing",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "noun",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "number",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "base32",
+          "named": true
+        },
+        {
+          "type": "decimal",
+          "named": true
+        },
+        {
+          "type": "hexadecimal",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "open_change",
+    "named": true,
+    "fields": {
+      "field": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "wing",
+            "named": true
+          }
+        ]
+      },
+      "target": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "wing",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "open_change",
+            "named": true
+          },
+          {
+            "type": "open_group",
+            "named": true
+          },
+          {
+            "type": "open_list",
+            "named": true
+          },
+          {
+            "type": "open_tuple",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "edit",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "open_group",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "application_path",
+          "named": true
+        },
+        {
+          "type": "branch",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "cast",
+          "named": true
+        },
+        {
+          "type": "change",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "crash",
+          "named": true
+        },
+        {
+          "type": "gate",
+          "named": true
+        },
+        {
+          "type": "group",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "open_change",
+          "named": true
+        },
+        {
+          "type": "open_group",
+          "named": true
+        },
+        {
+          "type": "open_list",
+          "named": true
+        },
+        {
+          "type": "open_rune_group",
+          "named": true
+        },
+        {
+          "type": "open_tuple",
+          "named": true
+        },
+        {
+          "type": "pair",
+          "named": true
+        },
+        {
+          "type": "path_literal",
+          "named": true
+        },
+        {
+          "type": "reference",
+          "named": true
+        },
+        {
+          "type": "trace",
+          "named": true
+        },
+        {
+          "type": "tuple",
+          "named": true
+        },
+        {
+          "type": "unit",
+          "named": true
+        },
+        {
+          "type": "wide_gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "open_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "application_path",
+          "named": true
+        },
+        {
+          "type": "branch",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "cast",
+          "named": true
+        },
+        {
+          "type": "change",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "crash",
+          "named": true
+        },
+        {
+          "type": "gate",
+          "named": true
+        },
+        {
+          "type": "group",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "open_change",
+          "named": true
+        },
+        {
+          "type": "open_group",
+          "named": true
+        },
+        {
+          "type": "open_list",
+          "named": true
+        },
+        {
+          "type": "open_rune_group",
+          "named": true
+        },
+        {
+          "type": "open_tuple",
+          "named": true
+        },
+        {
+          "type": "pair",
+          "named": true
+        },
+        {
+          "type": "path_literal",
+          "named": true
+        },
+        {
+          "type": "reference",
+          "named": true
+        },
+        {
+          "type": "trace",
+          "named": true
+        },
+        {
+          "type": "tuple",
+          "named": true
+        },
+        {
+          "type": "unit",
+          "named": true
+        },
+        {
+          "type": "wide_gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "open_mold_apply",
+    "named": true,
+    "fields": {
+      "argument": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "constructor": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "wing",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "open_mold_cell",
+    "named": true,
+    "fields": {
+      "face": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "mold": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "aura",
+          "named": true
+        },
+        {
+          "type": "field",
+          "named": true
+        },
+        {
+          "type": "flag",
+          "named": true
+        },
+        {
+          "type": "hole",
+          "named": true
+        },
+        {
+          "type": "loobean",
+          "named": true
+        },
+        {
+          "type": "mold_apply",
+          "named": true
+        },
+        {
+          "type": "mold_cell",
+          "named": true
+        },
+        {
+          "type": "mold_function",
+          "named": true
+        },
+        {
+          "type": "mold_reference",
+          "named": true
+        },
+        {
+          "type": "noun",
+          "named": true
+        },
+        {
+          "type": "null",
+          "named": true
+        },
+        {
+          "type": "open_mold_apply",
+          "named": true
+        },
+        {
+          "type": "open_mold_cell",
+          "named": true
+        },
+        {
+          "type": "path_mold",
+          "named": true
+        },
+        {
+          "type": "pun",
+          "named": true
+        },
+        {
+          "type": "term",
+          "named": true
+        },
+        {
+          "type": "type_variable",
+          "named": true
+        },
+        {
+          "type": "void",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "open_rune_cast",
+    "named": true,
+    "fields": {
+      "mold": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "definition",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "rest_branch",
+            "named": true
+          },
+          {
+            "type": "rest_head",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "open_rune_gate",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "definition",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "rest_branch",
+            "named": true
+          },
+          {
+            "type": "rest_head",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      },
+      "sample": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "sample",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "open_rune_group",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "branch",
+          "named": true
+        },
+        {
+          "type": "open_rune_cast",
+          "named": true
+        },
+        {
+          "type": "open_rune_gate",
+          "named": true
+        },
+        {
+          "type": "trace",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "open_tuple",
+    "named": true,
+    "fields": {
+      "face": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "application_path",
+            "named": true
+          },
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "change",
+            "named": true
+          },
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "crash",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "open_change",
+            "named": true
+          },
+          {
+            "type": "open_group",
+            "named": true
+          },
+          {
+            "type": "open_list",
+            "named": true
+          },
+          {
+            "type": "open_rune_group",
+            "named": true
+          },
+          {
+            "type": "open_tuple",
+            "named": true
+          },
+          {
+            "type": "pair",
+            "named": true
+          },
+          {
+            "type": "path_literal",
+            "named": true
+          },
+          {
+            "type": "reference",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          },
+          {
+            "type": "tuple",
+            "named": true
+          },
+          {
+            "type": "unit",
+            "named": true
+          },
+          {
+            "type": "wide_gate",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "application_path",
+          "named": true
+        },
+        {
+          "type": "branch",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "cast",
+          "named": true
+        },
+        {
+          "type": "change",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "crash",
+          "named": true
+        },
+        {
+          "type": "gate",
+          "named": true
+        },
+        {
+          "type": "group",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "open_change",
+          "named": true
+        },
+        {
+          "type": "open_group",
+          "named": true
+        },
+        {
+          "type": "open_list",
+          "named": true
+        },
+        {
+          "type": "open_rune_group",
+          "named": true
+        },
+        {
+          "type": "open_tuple",
+          "named": true
+        },
+        {
+          "type": "pair",
+          "named": true
+        },
+        {
+          "type": "path_literal",
+          "named": true
+        },
+        {
+          "type": "reference",
+          "named": true
+        },
+        {
+          "type": "trace",
+          "named": true
+        },
+        {
+          "type": "tuple",
+          "named": true
+        },
+        {
+          "type": "unit",
+          "named": true
+        },
+        {
+          "type": "wide_gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pair",
+    "named": true,
+    "fields": {
+      "tag": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "application_path",
+            "named": true
+          },
+          {
+            "type": "change",
+            "named": true
+          },
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "crash",
+            "named": true
+          },
+          {
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "pair",
+            "named": true
+          },
+          {
+            "type": "path_literal",
+            "named": true
+          },
+          {
+            "type": "reference",
+            "named": true
+          },
+          {
+            "type": "tuple",
+            "named": true
+          },
+          {
+            "type": "unit",
+            "named": true
+          },
+          {
+            "type": "wide_gate",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "path_literal",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "knot",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "path_mold",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "knot",
+          "named": true
+        },
+        {
+          "type": "typed_segment",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "loobean",
+          "named": true
+        },
+        {
+          "type": "null",
+          "named": true
+        },
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "pattern_binding",
+          "named": true
+        },
+        {
+          "type": "pattern_cell",
+          "named": true
+        },
+        {
+          "type": "ship",
+          "named": true
+        },
+        {
+          "type": "string_literal",
+          "named": true
+        },
+        {
+          "type": "term",
+          "named": true
+        },
+        {
+          "type": "wildcard",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern_binding",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pattern_cell",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pun",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "reference",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "wing",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "rest_branch",
+    "named": true,
+    "fields": {
+      "subject": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "arm",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "rest_head",
+    "named": true,
+    "fields": {
+      "mold": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      },
+      "sample": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "sample",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "branch",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "cast",
+          "named": true
+        },
+        {
+          "type": "definition",
+          "named": true
+        },
+        {
+          "type": "gate",
+          "named": true
+        },
+        {
+          "type": "rest_branch",
+          "named": true
+        },
+        {
+          "type": "rest_head",
+          "named": true
+        },
+        {
+          "type": "trace",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "sample",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "aura",
+          "named": true
+        },
+        {
+          "type": "flag",
+          "named": true
+        },
+        {
+          "type": "hole",
+          "named": true
+        },
+        {
+          "type": "loobean",
+          "named": true
+        },
+        {
+          "type": "mold_apply",
+          "named": true
+        },
+        {
+          "type": "mold_function",
+          "named": true
+        },
+        {
+          "type": "noun",
+          "named": true
+        },
+        {
+          "type": "null",
+          "named": true
+        },
+        {
+          "type": "open_mold_apply",
+          "named": true
+        },
+        {
+          "type": "path_mold",
+          "named": true
+        },
+        {
+          "type": "sample_binding",
+          "named": true
+        },
+        {
+          "type": "sample_cell",
+          "named": true
+        },
+        {
+          "type": "sample_face",
+          "named": true
+        },
+        {
+          "type": "sample_mold_reference",
+          "named": true
+        },
+        {
+          "type": "sample_pun",
+          "named": true
+        },
+        {
+          "type": "term",
+          "named": true
+        },
+        {
+          "type": "type_variable",
+          "named": true
+        },
+        {
+          "type": "void",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "sample_binding",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "sample_cell",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "sample",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "sample_face",
+    "named": true,
+    "fields": {
+      "face": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "mold": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "aura",
+            "named": true
+          },
+          {
+            "type": "flag",
+            "named": true
+          },
+          {
+            "type": "hole",
+            "named": true
+          },
+          {
+            "type": "loobean",
+            "named": true
+          },
+          {
+            "type": "mold_apply",
+            "named": true
+          },
+          {
+            "type": "mold_cell",
+            "named": true
+          },
+          {
+            "type": "mold_function",
+            "named": true
+          },
+          {
+            "type": "mold_reference",
+            "named": true
+          },
+          {
+            "type": "noun",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "open_mold_apply",
+            "named": true
+          },
+          {
+            "type": "open_mold_cell",
+            "named": true
+          },
+          {
+            "type": "path_mold",
+            "named": true
+          },
+          {
+            "type": "term",
+            "named": true
+          },
+          {
+            "type": "type_variable",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "sample_mold_reference",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "sample_pun",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "ship",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "source_file",
+    "named": true,
+    "root": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "definition",
+          "named": true
+        },
+        {
+          "type": "import",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "string",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "branch",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "cast",
+          "named": true
+        },
+        {
+          "type": "gate",
+          "named": true
+        },
+        {
+          "type": "string_end",
+          "named": true
+        },
+        {
+          "type": "string_literal",
+          "named": true
+        },
+        {
+          "type": "string_middle",
+          "named": true
+        },
+        {
+          "type": "string_start",
+          "named": true
+        },
+        {
+          "type": "trace",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "term",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "trace",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "definition",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "rest_branch",
+            "named": true
+          },
+          {
+            "type": "rest_head",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "tuple",
+    "named": true,
+    "fields": {
+      "face": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "application_path",
+            "named": true
+          },
+          {
+            "type": "change",
+            "named": true
+          },
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "crash",
+            "named": true
+          },
+          {
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "pair",
+            "named": true
+          },
+          {
+            "type": "path_literal",
+            "named": true
+          },
+          {
+            "type": "reference",
+            "named": true
+          },
+          {
+            "type": "tuple",
+            "named": true
+          },
+          {
+            "type": "unit",
+            "named": true
+          },
+          {
+            "type": "wide_gate",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "application_path",
+          "named": true
+        },
+        {
+          "type": "change",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "crash",
+          "named": true
+        },
+        {
+          "type": "group",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "pair",
+          "named": true
+        },
+        {
+          "type": "path_literal",
+          "named": true
+        },
+        {
+          "type": "reference",
+          "named": true
+        },
+        {
+          "type": "tuple",
+          "named": true
+        },
+        {
+          "type": "unit",
+          "named": true
+        },
+        {
+          "type": "wide_gate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "typed_segment",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "aura",
+          "named": true
+        },
+        {
+          "type": "hole",
+          "named": true
+        },
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "unit",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "application_path",
+            "named": true
+          },
+          {
+            "type": "change",
+            "named": true
+          },
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "crash",
+            "named": true
+          },
+          {
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "pair",
+            "named": true
+          },
+          {
+            "type": "path_literal",
+            "named": true
+          },
+          {
+            "type": "reference",
+            "named": true
+          },
+          {
+            "type": "tuple",
+            "named": true
+          },
+          {
+            "type": "unit",
+            "named": true
+          },
+          {
+            "type": "wide_gate",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "value_definition",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "branch",
+            "named": true
+          },
+          {
+            "type": "call",
+            "named": true
+          },
+          {
+            "type": "cast",
+            "named": true
+          },
+          {
+            "type": "definition",
+            "named": true
+          },
+          {
+            "type": "gate",
+            "named": true
+          },
+          {
+            "type": "rest_branch",
+            "named": true
+          },
+          {
+            "type": "rest_head",
+            "named": true
+          },
+          {
+            "type": "trace",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "void",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "wide_gate",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "application_path",
+            "named": true
+          },
+          {
+            "type": "change",
+            "named": true
+          },
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "crash",
+            "named": true
+          },
+          {
+            "type": "group",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "open_change",
+            "named": true
+          },
+          {
+            "type": "open_group",
+            "named": true
+          },
+          {
+            "type": "open_list",
+            "named": true
+          },
+          {
+            "type": "open_rune_group",
+            "named": true
+          },
+          {
+            "type": "open_tuple",
+            "named": true
+          },
+          {
+            "type": "pair",
+            "named": true
+          },
+          {
+            "type": "path_literal",
+            "named": true
+          },
+          {
+            "type": "reference",
+            "named": true
+          },
+          {
+            "type": "tuple",
+            "named": true
+          },
+          {
+            "type": "unit",
+            "named": true
+          },
+          {
+            "type": "wide_gate",
+            "named": true
+          }
+        ]
+      },
+      "sample": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "sample",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "wildcard",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "wing",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "!!",
+    "named": false
+  },
+  {
+    "type": "$-(",
+    "named": false
+  },
+  {
+    "type": "%$",
+    "named": false
+  },
+  {
+    "type": "%&",
+    "named": false
+  },
+  {
+    "type": "%/",
+    "named": false
+  },
+  {
+    "type": "%|",
+    "named": false
+  },
+  {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
+    "type": "*",
+    "named": false
+  },
+  {
+    "type": "+",
+    "named": false
+  },
+  {
+    "type": "+$",
+    "named": false
+  },
+  {
+    "type": "++",
+    "named": false
+  },
+  {
+    "type": ".",
+    "named": false
+  },
+  {
+    "type": "/",
+    "named": false
+  },
+  {
+    "type": "/%",
+    "named": false
+  },
+  {
+    "type": "/-",
+    "named": false
+  },
+  {
+    "type": "/=",
+    "named": false
+  },
+  {
+    "type": "=",
+    "named": false
+  },
+  {
+    "type": "?-",
+    "named": false
+  },
+  {
+    "type": "[",
+    "named": false
+  },
+  {
+    "type": "]",
+    "named": false
+  },
+  {
+    "type": "^-",
+    "named": false
+  },
+  {
+    "type": "`",
+    "named": false
+  },
+  {
+    "type": "aura",
+    "named": true
+  },
+  {
+    "type": "base32",
+    "named": true
+  },
+  {
+    "type": "comment",
+    "named": true,
+    "extra": true
+  },
+  {
+    "type": "date",
+    "named": true
+  },
+  {
+    "type": "decimal",
+    "named": true
+  },
+  {
+    "type": "flag",
+    "named": true
+  },
+  {
+    "type": "hexadecimal",
+    "named": true
+  },
+  {
+    "type": "hole",
+    "named": true
+  },
+  {
+    "type": "knot",
+    "named": true
+  },
+  {
+    "type": "knot_literal",
+    "named": true
+  },
+  {
+    "type": "loobean",
+    "named": true
+  },
+  {
+    "type": "name",
+    "named": true
+  },
+  {
+    "type": "null",
+    "named": true
+  },
+  {
+    "type": "string_end",
+    "named": true
+  },
+  {
+    "type": "string_literal",
+    "named": true
+  },
+  {
+    "type": "string_middle",
+    "named": true
+  },
+  {
+    "type": "string_start",
+    "named": true
+  },
+  {
+    "type": "trailing_comment",
+    "named": true,
+    "extra": true
+  },
+  {
+    "type": "type_variable",
+    "named": true
+  },
+  {
+    "type": "|$",
+    "named": false
+  },
+  {
+    "type": "|=",
+    "named": false
+  },
+  {
+    "type": "|=(",
+    "named": false
+  },
+  {
+    "type": "~&",
+    "named": false
+  },
+  {
+    "type": "~[",
+    "named": false
+  }
+]
