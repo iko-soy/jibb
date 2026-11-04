@@ -132,13 +132,108 @@ fn rejects_duplicate_names_and_fields_with_related_spans() {
 }
 
 #[test]
+fn infers_and_instantiates_principal_gate_types() {
+    let checked = check_source(
+        "++ id |=(x x)\n++ named |= x=Msg x\n++ swap |= [a=Key b=Value] [b a]\n++ apply |= [f=$-(A B) x=A] (f x)\n++ text (id \"x\")\n++ number (id 1)\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["id"].to_string(), "$-(A A)");
+    assert_eq!(checked.values["named"].to_string(), "$-(Msg Msg)");
+    assert_eq!(
+        checked.values["swap"].to_string(),
+        "$-([a=Key b=Value] [Value Key])"
+    );
+    assert_eq!(checked.values["apply"].to_string(), "$-([f=$-(A B) x=A] B)");
+    assert_eq!(checked.values["text"].to_string(), "@t");
+    assert_eq!(checked.values["number"].to_string(), "@ud");
+}
+
+#[test]
+fn checks_forward_references_and_recursive_gate_groups() {
+    let checked = check_source(
+        "++ second first\n++ first 1\n++ even |= n=@ud (odd n)\n++ odd |= n=@ud (even n)\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["first"].to_string(), "@ud");
+    assert_eq!(checked.values["second"].to_string(), "@ud");
+    assert_eq!(checked.values["even"].to_string(), "$-(@ud A)");
+    assert_eq!(checked.values["odd"].to_string(), "$-(@ud A)");
+}
+
+#[test]
+fn rejects_value_cycles_and_non_gate_recursion() {
+    for source in [
+        "++ value value\n",
+        "++ value [|=(x=@ud value)]\n",
+        "++ left right\n++ right left\n",
+    ] {
+        let error = check_source(source).unwrap_err();
+        assert!(error.message.contains("non-gate value"), "{error}");
+    }
+}
+
+#[test]
+fn enforces_distinct_capitals_and_call_samples() {
+    let error = check_source("++ bad |= [a=A b=B] ^- [A B] [b a]\n").unwrap_err();
+    assert!(error.message.contains("distinct type variables"));
+    assert_eq!(error.notes.len(), 2);
+
+    let error = check_source("++ id |= x=@ud x\n++ bad (id \"x\")\n").unwrap_err();
+    assert!(error.message.contains("type mismatch"), "{error}");
+
+    let error = check_source("++ bad |=(x (x x))\n").unwrap_err();
+    assert!(error.span.is_some());
+
+    let error = check_source("++ unknown missing\n").unwrap_err();
+    assert!(error.message.contains("unknown value"));
+}
+
+#[test]
+fn resolves_definition_holes_without_later_use_constraints() {
+    let checked = check_source("++ id |= x=A ^- _ x\n++ number ^- _ 1\n").unwrap();
+    assert_eq!(checked.values["id"].to_string(), "$-(A A)");
+    assert_eq!(checked.values["number"].to_string(), "@ud");
+
+    let error = check_source("++ id |= x=_ x\n++ use (id \"x\")\n").unwrap_err();
+    assert!(error.message.contains("unconstrained type hole"));
+}
+
+#[test]
+fn checks_record_samples_and_calls() {
+    let checked =
+        check_source("++ first |= [x=@t y=@ud] x\n++ result (first [\"origin\" 0])\n").unwrap();
+    assert_eq!(checked.values["first"].to_string(), "$-([x=@t y=@ud] @t)");
+    assert_eq!(checked.values["result"].to_string(), "@t");
+}
+
+#[test]
+fn checks_local_polymorphism_recursion_and_capital_scopes() {
+    let checked = check_source(
+        "++ use\n  ++ id |=(x x)\n  [(id 1) (id \"x\")]\n++ outer |= x=A\n  ++ inner |= y=A y\n  (inner x)\n++ independent |= x=@ud\n  ++ inner |= y=A y\n  inner\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["use"].to_string(), "[@ud @t]");
+    assert_eq!(checked.values["outer"].to_string(), "$-(A A)");
+    assert_eq!(checked.values["independent"].to_string(), "$-(@ud $-(A A))");
+
+    let checked = check_source("++ use\n  ++ recurse |= n=@ud (recurse n)\n  recurse\n").unwrap();
+    assert_eq!(checked.values["use"].to_string(), "$-(@ud A)");
+
+    let error = check_source("++ bad\n  ++ value value\n  value\n").unwrap_err();
+    assert!(error.message.contains("non-gate value"));
+
+    let error = check_source("++ bad\n  ++ f |= g=@ud g\n  ++ g 1\n  f\n").unwrap_err();
+    assert!(error.message.contains("shadows a name"));
+}
+
+#[test]
 fn unresolved_and_unsupported_features_fail_closed() {
     let error = check_source("+$ box [item=_]\n").unwrap_err();
     assert!(error.message.contains("unconstrained type hole"));
 
-    let error = check_source("++ identity |=(x x)\n").unwrap_err();
+    let error = check_source("++ identity ~[1]\n").unwrap_err();
     assert!(error.message.contains("not available"));
 
-    let error = check_source("++ first 1\n++ second first\n").unwrap_err();
-    assert!(error.message.contains("not implemented"));
+    let error = check_source("++ branch ?- %.y\n  %.y 1\n  %.n 0\n").unwrap_err();
+    assert!(error.message.contains("not available"));
 }

@@ -1,6 +1,7 @@
 pub mod ast;
 pub mod check;
 mod formatter;
+mod infer;
 mod lower;
 pub mod types;
 

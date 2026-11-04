@@ -14,7 +14,9 @@ All 62 tests pass, including 512 valid golden lowerings with normalized AST equa
 
 Direction corrected on 2026-11-04: static type checking is a required milestone before runtime evaluation. `docs/spec/grammar.md` and `docs/spec/decisions.md` are the normative semantic references. The Hoon implementation and its `types.txt` output explicitly describe partial inference; their implementation limitations must not become Rust language semantics.
 
-Static-checker foundation implemented: the AST retains numeric and term forms needed for aura checking; static types and deterministic type printing, related-span diagnostics, scope validation, named/generic mold resolution, runtime-noun union overlap checks, directional literal fitting, and basic cast/record checking are available through `check`. More complex expressions still fail closed with explicit unimplemented-feature diagnostics. All 72 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes.
+Static-checker foundation implemented: the AST retains numeric and term forms needed for aura checking; static types and deterministic type printing, related-span diagnostics, scope validation, named/generic mold resolution, runtime-noun union overlap checks, directional literal fitting, and basic cast/record checking are available through `check`.
+
+Inference implemented: union-find unification with occurs checks and rigid capitals, directional fitting, principal-type generalization and instantiation, higher-order gates and calls, forward references, recursive gate groups, local polymorphic definitions, and local capital sharing. Generalized constraints and the remaining contextual expressions still fail closed. All 79 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes.
 
 ## Architecture
 
@@ -39,6 +41,7 @@ src/
   ast.rs          owned semantic syntax types
   lower.rs        CST to AST normalization and validation
   types.rs        static types, schemes, constraints, and type printing
+  infer.rs        union-find unification, generalization, and instantiation
   check.rs        mold resolution, inference, and exhaustive pattern checking
   formatter.rs    existing CST/trivia formatter, unchanged
   value.rs        runtime nouns, gates, natives, and environments
@@ -382,13 +385,14 @@ Keep runtime tests independent of the formatter. Run debug and release Cargo tes
 1. [x] Public AST, diagnostics, and complete CST lowering.
 2. [x] Structural AST and formatter-equivalence tests.
 3. [x] Static type representation, mold resolution, scopes, and related-span diagnostics.
-4. [ ] Unification, directional fitting, constraints, recursive definitions, and generalization.
-5. [ ] Complete pure-expression checking, contextual resolution, and principal type schemes.
-6. [ ] Pattern coverage, union validation, type goldens, and static-checker regression tests.
-7. [ ] Runtime nouns, scopes, literals, and references over checked modules only.
-8. [ ] Gates, lazy definitions, calls, recursion, patterns, changes, traces, and crashes.
-9. [ ] Initial natives and `jibb run`, which always checks before evaluating.
-10. [ ] End-to-end goldens, documentation, Nix wiring, and full checks.
-11. [ ] Imports and additional literal/prelude coverage as separate spec-checked follow-ups.
+4. [x] Unification, directional fitting, recursive definitions, and generalization.
+5. [ ] Generalized atom, arithmetic-atom, and gate-free constraints.
+6. [ ] Complete pure-expression checking, contextual resolution, and principal type schemes.
+7. [ ] Pattern coverage, union validation, type goldens, and static-checker regression tests.
+8. [ ] Runtime nouns, scopes, literals, and references over checked modules only.
+9. [ ] Gates, lazy definitions, calls, recursion, patterns, changes, traces, and crashes.
+10. [ ] Initial natives and `jibb run`, which always checks before evaluating.
+11. [ ] End-to-end goldens, documentation, Nix wiring, and full checks.
+12. [ ] Imports and additional literal/prelude coverage as separate spec-checked follow-ups.
 
 Each step remains compilable and tested. Unsupported syntax or evaluation fails explicitly rather than silently changing semantics.
