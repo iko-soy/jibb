@@ -16,7 +16,7 @@ Direction corrected on 2026-11-04: static type checking is a required milestone 
 
 Static-checker foundation implemented: the AST retains numeric and term forms needed for aura checking; static types and deterministic type printing, related-span diagnostics, scope validation, named/generic mold resolution, runtime-noun union overlap checks, directional literal fitting, and basic cast/record checking are available through `check`.
 
-Inference implemented: union-find unification with occurs checks and rigid capitals, directional fitting, principal-type generalization and instantiation, higher-order gates and calls, forward references, recursive gate groups, local polymorphic definitions, and local capital sharing. Generalized constraints and the remaining contextual expressions still fail closed. All 79 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes.
+Inference implemented: union-find unification with occurs checks and rigid capitals, directional fitting, principal-type generalization and instantiation, higher-order gates and calls, forward references, recursive gate groups, local polymorphic definitions, and local capital sharing. Generalized atom, arithmetic-atom, and gate-free constraints propagate through bindings and nested types, survive schemes, and preserve generic aura fitting. Remaining contextual expressions still fail closed. All 84 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes.
 
 ## Architecture
 
@@ -386,7 +386,7 @@ Keep runtime tests independent of the formatter. Run debug and release Cargo tes
 2. [x] Structural AST and formatter-equivalence tests.
 3. [x] Static type representation, mold resolution, scopes, and related-span diagnostics.
 4. [x] Unification, directional fitting, recursive definitions, and generalization.
-5. [ ] Generalized atom, arithmetic-atom, and gate-free constraints.
+5. [x] Generalized atom, arithmetic-atom, and gate-free constraints.
 6. [ ] Complete pure-expression checking, contextual resolution, and principal type schemes.
 7. [ ] Pattern coverage, union validation, type goldens, and static-checker regression tests.
 8. [ ] Runtime nouns, scopes, literals, and references over checked modules only.

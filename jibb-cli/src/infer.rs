@@ -1,7 +1,7 @@
 use crate::{
     Diagnostic,
     ast::Span,
-    types::{QuantifiedVariable, Type, TypeField, TypeScheme, TypeVar},
+    types::{Constraint, ConstraintKind, QuantifiedVariable, Type, TypeField, TypeScheme, TypeVar},
 };
 use num_bigint::BigUint;
 use std::collections::{BTreeMap, BTreeSet};
@@ -17,6 +17,7 @@ pub(crate) struct Unifier {
     next: TypeVar,
     bindings: BTreeMap<TypeVar, Type>,
     rigid: BTreeMap<TypeVar, RigidVariable>,
+    constraints: BTreeMap<TypeVar, BTreeMap<ConstraintKind, Span>>,
 }
 
 impl Unifier {
@@ -227,29 +228,109 @@ impl Unifier {
         let typ = self.normalize(typ);
         let mut free = BTreeSet::new();
         self.free_variables(&typ, &mut free);
-        let variables = free
-            .difference(occupied)
+        let quantified = free.difference(occupied).copied().collect::<BTreeSet<_>>();
+        let variables = quantified
+            .iter()
             .copied()
             .map(|id| QuantifiedVariable {
                 id,
                 name: self.rigid.get(&id).map(|rigid| rigid.name.clone()),
             })
             .collect::<Vec<_>>();
+        let sites = self.constraint_sites();
+        let mut constraints = BTreeMap::new();
+        for (variable, kind, _) in sites {
+            self.map_generalized_constraint(&Type::Var(variable), kind, &mut constraints);
+        }
+        let constraints = constraints
+            .into_iter()
+            .filter(|(variable, _)| quantified.contains(variable))
+            .flat_map(|(variable, kinds)| {
+                kinds
+                    .into_iter()
+                    .map(move |kind| Constraint { variable, kind })
+            })
+            .collect();
         TypeScheme {
             variables,
-            constraints: Vec::new(),
+            constraints,
             typ,
         }
     }
 
-    pub(crate) fn instantiate(&mut self, scheme: &TypeScheme) -> Type {
+    pub(crate) fn instantiate(&mut self, scheme: &TypeScheme, span: Span) -> Type {
         let substitutions = scheme
             .variables
             .iter()
             .map(|variable| (variable.id, Type::Var(self.fresh())))
             .collect::<BTreeMap<_, _>>();
+        for constraint in &scheme.constraints {
+            if let Some(Type::Var(variable)) = substitutions.get(&constraint.variable) {
+                self.constrain_variable(*variable, constraint.kind, span);
+            }
+        }
         let typ = substitute(&scheme.typ, &substitutions);
         self.normalize(&typ)
+    }
+
+    pub(crate) fn constrain_variable(
+        &mut self,
+        variable: TypeVar,
+        kind: ConstraintKind,
+        span: Span,
+    ) {
+        self.constraints
+            .entry(variable)
+            .or_default()
+            .entry(kind)
+            .or_insert(span);
+    }
+
+    pub(crate) fn constraint_sites(&self) -> Vec<(TypeVar, ConstraintKind, Span)> {
+        self.constraints
+            .iter()
+            .flat_map(|(variable, constraints)| {
+                constraints
+                    .iter()
+                    .map(|(kind, span)| (*variable, *kind, *span))
+                    .collect::<Vec<_>>()
+            })
+            .collect()
+    }
+
+    pub(crate) fn has_constraint(&self, variable: TypeVar, kind: ConstraintKind) -> bool {
+        self.constraints
+            .get(&variable)
+            .is_some_and(|constraints| constraints.contains_key(&kind))
+    }
+
+    pub(crate) fn has_atom_constraint(&self, variable: TypeVar) -> bool {
+        self.has_constraint(variable, ConstraintKind::Atom)
+            || self.has_constraint(variable, ConstraintKind::ArithmeticAtom)
+    }
+
+    fn map_generalized_constraint(
+        &mut self,
+        typ: &Type,
+        kind: ConstraintKind,
+        constraints: &mut BTreeMap<TypeVar, BTreeSet<ConstraintKind>>,
+    ) {
+        match self.resolve(typ) {
+            Type::Var(variable) => {
+                constraints.entry(variable).or_default().insert(kind);
+            }
+            Type::Cell(fields) if kind == ConstraintKind::GateFree => {
+                for field in fields {
+                    self.map_generalized_constraint(&field.typ, kind, constraints);
+                }
+            }
+            Type::Named { arguments, .. } if kind == ConstraintKind::GateFree => {
+                for argument in arguments {
+                    self.map_generalized_constraint(&argument, kind, constraints);
+                }
+            }
+            _ => {}
+        }
     }
 
     pub(crate) fn free_variables_of(&mut self, typ: &Type) -> BTreeSet<TypeVar> {
@@ -265,7 +346,19 @@ impl Unifier {
         if self.occurs(variable, &typ) {
             return Err(Diagnostic::at("infinite type", span));
         }
-        self.bindings.insert(variable, typ);
+        match typ {
+            Type::Var(target) => {
+                if let Some(constraints) = self.constraints.get(&variable).cloned() {
+                    for (kind, span) in constraints {
+                        self.constrain_variable(target, kind, span);
+                    }
+                }
+                self.bindings.insert(variable, Type::Var(target));
+            }
+            typ => {
+                self.bindings.insert(variable, typ);
+            }
+        }
         Ok(())
     }
 
@@ -373,5 +466,72 @@ fn substitute(typ: &Type, substitutions: &BTreeMap<TypeVar, Type>) -> Type {
                 .collect(),
         },
         _ => typ.clone(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::Aura;
+
+    #[test]
+    fn constraints_survive_generalization_and_instantiation() {
+        let mut unifier = Unifier::default();
+        let variable = unifier.fresh_rigid("A", Span::default());
+        unifier.constrain_variable(variable, ConstraintKind::ArithmeticAtom, Span::default());
+        let typ = Type::Gate {
+            sample: Box::new(Type::Var(variable)),
+            product: Box::new(Type::Var(variable)),
+        };
+        let scheme = unifier.generalize(&typ, &BTreeSet::new());
+        assert_eq!(
+            scheme.to_string(),
+            "$-(A A) where A is an atom other than ?"
+        );
+
+        let instance = unifier.instantiate(&scheme, Span::default());
+        let Type::Gate { sample, .. } = &instance else {
+            panic!("expected gate")
+        };
+        let Type::Var(instance_variable) = unifier.resolve(sample) else {
+            panic!("expected fresh variable")
+        };
+        assert!(
+            unifier
+                .constraint_sites()
+                .iter()
+                .any(|(variable, kind, _)| {
+                    *variable == instance_variable && *kind == ConstraintKind::ArithmeticAtom
+                })
+        );
+        unifier
+            .unify(sample, &Type::Atom(Aura::new("ud")), Span::default())
+            .unwrap();
+    }
+
+    #[test]
+    fn gate_free_constraints_propagate_through_bound_cells() {
+        let mut unifier = Unifier::default();
+        let outer = unifier.fresh();
+        let element = unifier.fresh_rigid("Key", Span::default());
+        unifier.constrain_variable(outer, ConstraintKind::GateFree, Span::default());
+        unifier
+            .unify(
+                &Type::Var(outer),
+                &Type::Cell(vec![
+                    TypeField {
+                        face: None,
+                        typ: Type::Var(element),
+                    },
+                    TypeField {
+                        face: None,
+                        typ: Type::Var(element),
+                    },
+                ]),
+                Span::default(),
+            )
+            .unwrap();
+        let scheme = unifier.generalize(&Type::Var(outer), &BTreeSet::new());
+        assert_eq!(scheme.to_string(), "[Key Key] where Key contains no gates");
     }
 }

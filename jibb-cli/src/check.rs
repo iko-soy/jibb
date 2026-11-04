@@ -6,7 +6,10 @@ use crate::{
         TypedSegmentMold,
     },
     infer::Unifier,
-    types::{Aura, PathSegmentType, QuantifiedVariable, Type, TypeField, TypeScheme, TypeVar},
+    types::{
+        Aura, ConstraintKind, PathSegmentType, QuantifiedVariable, Type, TypeField, TypeScheme,
+        TypeVar,
+    },
 };
 use num_bigint::BigUint;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
@@ -524,6 +527,7 @@ impl<'a> Checker<'a> {
             let typ = self.infer_expression(expression, None, &mut variables, &mut environment)?;
             let typ = self.unifier.normalize(&typ);
             self.ensure_holes_resolved(&typ)?;
+            self.validate_constraints()?;
             let scheme = self.unifier.generalize(&typ, &BTreeSet::new());
             self.values.insert(name.clone(), scheme);
             return Ok(());
@@ -577,6 +581,7 @@ impl<'a> Checker<'a> {
             };
             let typ = self.unifier.normalize(&typ);
             self.ensure_holes_resolved(&typ)?;
+            self.validate_constraints()?;
             let scheme = self.unifier.generalize(&typ, &BTreeSet::new());
             self.values.insert(name, scheme);
         }
@@ -652,6 +657,7 @@ impl<'a> Checker<'a> {
             let typ = self.infer_expression(expression, None, &mut variables, environment)?;
             let typ = self.unifier.normalize(&typ);
             self.ensure_holes_resolved(&typ)?;
+            self.validate_constraints()?;
             let scheme = self.unifier.generalize(&typ, &occupied);
             environment.insert(name.clone(), Binding::Polymorphic(scheme));
             return Ok(());
@@ -705,6 +711,7 @@ impl<'a> Checker<'a> {
             };
             let typ = self.unifier.normalize(&typ);
             self.ensure_holes_resolved(&typ)?;
+            self.validate_constraints()?;
             let scheme = self.unifier.generalize(&typ, &occupied);
             environment.insert(name, Binding::Polymorphic(scheme));
         }
@@ -723,6 +730,89 @@ impl<'a> Checker<'a> {
             }
         }
         occupied
+    }
+
+    fn validate_constraints(&mut self) -> Result<(), Diagnostic> {
+        for (variable, kind, span) in self.unifier.constraint_sites() {
+            let typ = self.unifier.resolve(&Type::Var(variable));
+            if typ == Type::Var(variable) {
+                continue;
+            }
+            self.require_constraint(&typ, kind, span)?;
+        }
+        Ok(())
+    }
+
+    fn require_constraint(
+        &mut self,
+        typ: &Type,
+        kind: ConstraintKind,
+        span: Span,
+    ) -> Result<(), Diagnostic> {
+        let mut visiting = HashSet::new();
+        self.require_constraint_inner(typ, kind, span, &mut visiting)
+    }
+
+    fn require_constraint_inner(
+        &mut self,
+        typ: &Type,
+        kind: ConstraintKind,
+        span: Span,
+        visiting: &mut HashSet<Type>,
+    ) -> Result<(), Diagnostic> {
+        let typ = self.unifier.normalize(typ);
+        match &typ {
+            Type::Var(variable) => {
+                self.unifier.constrain_variable(*variable, kind, span);
+                Ok(())
+            }
+            Type::Named { .. } => {
+                if !visiting.insert(typ.clone()) {
+                    return Ok(());
+                }
+                let cases = self.expanded_cases(&typ).ok_or_else(|| {
+                    Diagnostic::at("constraint requires a known named mold", span)
+                })?;
+                for case in cases {
+                    self.require_constraint_inner(&case, kind, span, visiting)?;
+                }
+                visiting.remove(&typ);
+                Ok(())
+            }
+            Type::Cell(fields) if kind == ConstraintKind::GateFree => {
+                for field in fields {
+                    self.require_constraint_inner(&field.typ, kind, span, visiting)?;
+                }
+                Ok(())
+            }
+            Type::Void => Ok(()),
+            Type::Path(_) if kind == ConstraintKind::GateFree => Ok(()),
+            Type::Atom(aura) => {
+                if kind == ConstraintKind::ArithmeticAtom && aura.0 == "f" {
+                    Err(constraint_mismatch(kind, &typ, span))
+                } else {
+                    Ok(())
+                }
+            }
+            Type::AnyAtom => {
+                if kind == ConstraintKind::ArithmeticAtom {
+                    Err(constraint_mismatch(kind, &typ, span))
+                } else {
+                    Ok(())
+                }
+            }
+            Type::Flag | Type::LoobeanConstant(_) => {
+                if kind == ConstraintKind::ArithmeticAtom {
+                    Err(constraint_mismatch(kind, &typ, span))
+                } else {
+                    Ok(())
+                }
+            }
+            Type::Constant(_) | Type::NumericTerm(_) => Ok(()),
+            Type::Noun | Type::Gate { .. } | Type::Cell(_) | Type::Path(_) => {
+                Err(constraint_mismatch(kind, &typ, span))
+            }
+        }
     }
 
     fn ensure_holes_resolved(&mut self, typ: &Type) -> Result<(), Diagnostic> {
@@ -1001,11 +1091,11 @@ impl<'a> Checker<'a> {
         if let Some(binding) = environment.get(name).cloned() {
             return Ok(match binding {
                 Binding::Monomorphic(typ) => self.unifier.normalize(&typ),
-                Binding::Polymorphic(scheme) => self.unifier.instantiate(&scheme),
+                Binding::Polymorphic(scheme) => self.unifier.instantiate(&scheme, span),
             });
         }
         if let Some(scheme) = self.values.get(name).cloned() {
-            return Ok(self.unifier.instantiate(&scheme));
+            return Ok(self.unifier.instantiate(&scheme, span));
         }
         Err(Diagnostic::at(format!("unknown value `{name}`"), span))
     }
@@ -1153,6 +1243,23 @@ impl<'a> Checker<'a> {
             return actual == expected;
         }
         match (actual, expected) {
+            (Type::Var(variable), Type::AnyAtom) if self.unifier.has_atom_constraint(*variable) => {
+                true
+            }
+            (Type::Atom(aura), Type::Var(variable))
+                if self.unifier.has_atom_constraint(*variable)
+                    && (aura.0 != "f"
+                        || !self
+                            .unifier
+                            .has_constraint(*variable, ConstraintKind::ArithmeticAtom)) =>
+            {
+                true
+            }
+            (Type::Flag, Type::Var(variable))
+                if self.unifier.has_constraint(*variable, ConstraintKind::Atom) =>
+            {
+                true
+            }
             (_, Type::AnyAtom) => matches!(
                 actual,
                 Type::Atom(_)
@@ -1219,6 +1326,21 @@ fn type_mismatch(actual: Type, expected: Type, span: Span) -> Diagnostic {
             "type mismatch: expected {}, found {}",
             TypeScheme::mono(expected),
             TypeScheme::mono(actual)
+        ),
+        span,
+    )
+}
+
+fn constraint_mismatch(kind: ConstraintKind, typ: &Type, span: Span) -> Diagnostic {
+    let requirement = match kind {
+        ConstraintKind::Atom => "an atom",
+        ConstraintKind::ArithmeticAtom => "an atom other than ?",
+        ConstraintKind::GateFree => "a type containing no gates",
+    };
+    Diagnostic::at(
+        format!(
+            "type constraint requires {requirement}, found {}",
+            TypeScheme::mono(typ.clone())
         ),
         span,
     )
@@ -1452,5 +1574,144 @@ impl Tarjan<'_> {
             group.sort();
             self.groups.push(group);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn prepare_molds<'a>(checker: &mut Checker<'a>) {
+        checker.collect_scope().unwrap();
+        let names = checker
+            .mold_definitions
+            .keys()
+            .map(|name| (*name).to_string())
+            .collect::<Vec<_>>();
+        for name in names {
+            let definition = checker.mold_definitions[name.as_str()].0.clone();
+            let span = checker.mold_definitions[name.as_str()].1;
+            let resolved = checker
+                .resolve_mold_definition(&name, &definition, span)
+                .unwrap();
+            checker.resolved_molds.insert(name, resolved);
+        }
+    }
+
+    #[test]
+    fn checks_gate_free_constraints_through_named_generics() {
+        let module = crate::parse_ast("+$ box |$ [A] [value=A]\n+$ gated $-(@ud @ud)\n").unwrap();
+        let mut checker = Checker::new(&module);
+        prepare_molds(&mut checker);
+        let element = checker.unifier.fresh_rigid("A", Span::default());
+        checker
+            .require_constraint(
+                &Type::Named {
+                    module: SourceId::default(),
+                    name: "box".to_string(),
+                    arguments: vec![Type::Var(element)],
+                },
+                ConstraintKind::GateFree,
+                Span::default(),
+            )
+            .unwrap();
+        assert!(
+            checker
+                .unifier
+                .constraint_sites()
+                .iter()
+                .any(|(variable, kind, _)| {
+                    *variable == element && *kind == ConstraintKind::GateFree
+                })
+        );
+
+        let error = checker
+            .require_constraint(
+                &Type::Named {
+                    module: SourceId::default(),
+                    name: "gated".to_string(),
+                    arguments: Vec::new(),
+                },
+                ConstraintKind::GateFree,
+                Span::default(),
+            )
+            .unwrap_err();
+        assert!(error.message.contains("containing no gates"));
+    }
+
+    #[test]
+    fn arithmetic_constraints_reject_loobeans_and_unrestricted_atoms() {
+        let module = Module {
+            imports: Vec::new(),
+            definitions: Vec::new(),
+            span: Span::default(),
+        };
+        let mut checker = Checker::new(&module);
+        for typ in [Type::Flag, Type::AnyAtom, Type::Atom(Aura::new("f"))] {
+            assert!(
+                checker
+                    .require_constraint(&typ, ConstraintKind::ArithmeticAtom, Span::default())
+                    .is_err(),
+                "{typ:?}"
+            );
+        }
+        checker
+            .require_constraint(
+                &Type::Atom(Aura::new("ud")),
+                ConstraintKind::ArithmeticAtom,
+                Span::default(),
+            )
+            .unwrap();
+        checker
+            .require_constraint(&Type::Flag, ConstraintKind::Atom, Span::default())
+            .unwrap();
+    }
+
+    #[test]
+    fn constrained_variables_fit_without_monomorphizing() {
+        let module = Module {
+            imports: Vec::new(),
+            definitions: Vec::new(),
+            span: Span::default(),
+        };
+        let mut checker = Checker::new(&module);
+        let arithmetic = checker.unifier.fresh_rigid("A", Span::default());
+        checker.unifier.constrain_variable(
+            arithmetic,
+            ConstraintKind::ArithmeticAtom,
+            Span::default(),
+        );
+        assert_eq!(
+            checker
+                .fit_or_error(
+                    Type::Atom(Aura::new("ud")),
+                    Some(&Type::Var(arithmetic)),
+                    Span::default(),
+                )
+                .unwrap(),
+            Type::Var(arithmetic)
+        );
+        assert_eq!(
+            checker
+                .fit_or_error(Type::Var(arithmetic), Some(&Type::AnyAtom), Span::default(),)
+                .unwrap(),
+            Type::AnyAtom
+        );
+        assert!(
+            checker
+                .fit_or_error(Type::Flag, Some(&Type::Var(arithmetic)), Span::default(),)
+                .is_err()
+        );
+
+        let comparable = checker.unifier.fresh_rigid("B", Span::default());
+        checker
+            .unifier
+            .constrain_variable(comparable, ConstraintKind::Atom, Span::default());
+        assert_eq!(
+            checker
+                .fit_or_error(Type::Flag, Some(&Type::Var(comparable)), Span::default(),)
+                .unwrap(),
+            Type::Var(comparable)
+        );
     }
 }
