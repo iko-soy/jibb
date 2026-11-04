@@ -16,7 +16,9 @@ Direction corrected on 2026-11-04: static type checking is a required milestone 
 
 Static-checker foundation implemented: the AST retains numeric and term forms needed for aura checking; static types and deterministic type printing, related-span diagnostics, scope validation, named/generic mold resolution, runtime-noun union overlap checks, directional literal fitting, and basic cast/record checking are available through `check`.
 
-Inference implemented: union-find unification with occurs checks and rigid capitals, directional fitting, principal-type generalization and instantiation, higher-order gates and calls, forward references, recursive gate groups, local polymorphic definitions, and local capital sharing. Generalized atom, arithmetic-atom, and gate-free constraints propagate through bindings and nested types, survive schemes, and preserve generic aura fitting. Remaining contextual expressions still fail closed. All 84 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes.
+Inference implemented: union-find unification with occurs checks and rigid capitals, directional fitting, principal-type generalization and instantiation, higher-order gates and calls, forward references, recursive gate groups, local polymorphic definitions, and local capital sharing. Generalized atom, arithmetic-atom, and gate-free constraints propagate through bindings and nested types, survive schemes, and preserve generic aura fitting. All 84 Rust tests passed at that milestone.
+
+Contextual checking implemented: ordered pattern binding and finite-product exhaustiveness, missing/covered arm diagnostics, record wings and changes, lists, units, pairs, constructors, `proj`, `unface`, and interpolation printer checks. Local molds, imports, application-path validation, and other host-dependent forms still fail closed. All 91 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes.
 
 ## Architecture
 

@@ -2,8 +2,8 @@ use crate::{
     Diagnostic,
     ast::{
         Definition, DefinitionKind, Expr, ExprKind, Literal, Module, Mold, MoldDefinition,
-        MoldKind, MoldPathSegment, NumberAura, Sample, SampleKind, SourceId, Span, TermKind,
-        TypedSegmentMold,
+        MoldKind, MoldPathSegment, NumberAura, Pattern, PatternKind, Sample, SampleKind, SourceId,
+        Span, TermKind, TypedSegmentMold,
     },
     infer::Unifier,
     types::{
@@ -47,6 +47,13 @@ enum Binding {
 }
 
 type Environment = BTreeMap<String, Binding>;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PatternMatch {
+    Full,
+    Partial,
+    None,
+}
 
 struct Checker<'a> {
     module: &'a Module,
@@ -843,14 +850,10 @@ impl<'a> Checker<'a> {
                 self.ensure_holes_resolved(&target)?;
                 Ok(target)
             }
-            ExprKind::Reference(names) if names.len() == 1 => {
-                let typ = self.lookup_reference(&names[0], expression.span, environment)?;
+            ExprKind::Reference(names) => {
+                let typ = self.lookup_wing(names, expression.span, environment)?;
                 self.fit_or_error(typ, expected, expression.span)
             }
-            ExprKind::Reference(_) => Err(Diagnostic::at(
-                "record and module wings are not available to the static checker yet",
-                expression.span,
-            )),
             ExprKind::Gate { sample, body } => {
                 let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
                 let (expected_sample, expected_product) = match &resolved_expected {
@@ -870,8 +873,81 @@ impl<'a> Checker<'a> {
                     expression.span,
                 )
             }
+            ExprKind::Constructor(tag) => {
+                let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
+                let Some(Type::Gate { sample, product }) = resolved_expected else {
+                    return Err(Diagnostic::at(
+                        "constructor needs an expected gate type",
+                        expression.span,
+                    ));
+                };
+                let payload = self.pair_payload_type(tag, &product).ok_or_else(|| {
+                    Diagnostic::at(
+                        "constructor tag has no matching union case",
+                        expression.span,
+                    )
+                })?;
+                self.fit_or_error(*sample, Some(&payload), expression.span)?;
+                self.fit_or_error(
+                    Type::Gate {
+                        sample: Box::new(payload),
+                        product,
+                    },
+                    expected,
+                    expression.span,
+                )
+            }
             ExprKind::Call { head, arguments } => {
-                let head_type = self.infer_expression(head, None, variables, environment)?;
+                if let ExprKind::Reference(names) = &head.kind
+                    && names.len() == 1
+                    && matches!(names[0].as_str(), "proj" | "unface")
+                {
+                    if arguments.len() != 1 {
+                        return Err(Diagnostic::at(
+                            format!("`{}` takes one argument", names[0]),
+                            expression.span,
+                        ));
+                    }
+                    if names[0] == "unface" {
+                        let typ =
+                            self.infer_expression(&arguments[0], None, variables, environment)?;
+                        let typ = unface_type(&typ);
+                        return self.fit_or_error(typ, expected, expression.span);
+                    }
+                    let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
+                    let Some(expected_type) = resolved_expected else {
+                        return Err(Diagnostic::at(
+                            "`proj` needs an expected record type",
+                            expression.span,
+                        ));
+                    };
+                    let fields = self.projection_fields(&expected_type).ok_or_else(|| {
+                        Diagnostic::at("`proj` needs an expected record type", expression.span)
+                    })?;
+                    let source =
+                        self.infer_expression(&arguments[0], None, variables, environment)?;
+                    for field in fields {
+                        let Some(face) = &field.face else {
+                            return Err(Diagnostic::at(
+                                "`proj` result fields must be named",
+                                expression.span,
+                            ));
+                        };
+                        let source_type = self.record_field(&source, face, expression.span)?;
+                        self.fit_or_error(source_type, Some(&field.typ), expression.span)?;
+                    }
+                    return Ok(expected_type);
+                }
+                let head_expected = if matches!(head.kind, ExprKind::Constructor(_)) {
+                    expected.map(|product| Type::Gate {
+                        sample: Box::new(Type::Var(self.fresh_variable())),
+                        product: Box::new(product.clone()),
+                    })
+                } else {
+                    None
+                };
+                let head_type =
+                    self.infer_expression(head, head_expected.as_ref(), variables, environment)?;
                 let (sample, product) = self.gate_parts(&head_type, head.span)?;
                 let resolved_sample = self.unifier.normalize(&sample);
                 let expected_arguments = match &resolved_sample {
@@ -903,6 +979,118 @@ impl<'a> Checker<'a> {
                 self.fit_or_error(argument, Some(&sample), expression.span)?;
                 let product = self.unifier.normalize(&product);
                 self.fit_or_error(product, expected, expression.span)
+            }
+            ExprKind::List(items) => {
+                let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
+                let element = resolved_expected
+                    .as_ref()
+                    .and_then(|typ| self.container_element(typ, "list"));
+                if resolved_expected.is_some() && element.is_none() {
+                    return Err(Diagnostic::at(
+                        "list literal needs an expected list type",
+                        expression.span,
+                    ));
+                }
+                let element = element.unwrap_or_else(|| Type::Var(self.fresh_variable()));
+                let target = match resolved_expected {
+                    Some(typ) => typ,
+                    None => self
+                        .local_generic_type("list", element.clone())
+                        .ok_or_else(|| {
+                            Diagnostic::at(
+                                "list literal needs the standard list mold or an expected type",
+                                expression.span,
+                            )
+                        })?,
+                };
+                for item in items {
+                    self.infer_expression(item, Some(&element), variables, environment)?;
+                }
+                self.fit_or_error(target, expected, expression.span)
+            }
+            ExprKind::Unit(value) => {
+                let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
+                let payload = resolved_expected
+                    .as_ref()
+                    .and_then(|typ| self.container_element(typ, "unit"));
+                let value =
+                    self.infer_expression(value, payload.as_ref(), variables, environment)?;
+                let actual = Type::Cell(vec![
+                    TypeField {
+                        face: None,
+                        typ: Type::Constant(BigUint::default()),
+                    },
+                    TypeField {
+                        face: None,
+                        typ: value.clone(),
+                    },
+                ]);
+                if expected.is_some() {
+                    return self.fit_or_error(actual, expected, expression.span);
+                }
+                let target = self.local_generic_type("unit", value).ok_or_else(|| {
+                    Diagnostic::at(
+                        "unit literal needs the standard unit mold or an expected type",
+                        expression.span,
+                    )
+                })?;
+                Ok(target)
+            }
+            ExprKind::Pair { tag, value } => {
+                let tag = BigUint::from_bytes_le(tag.as_bytes());
+                let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
+                let Some(expected_type) = resolved_expected else {
+                    return Err(Diagnostic::at(
+                        "tagged pair needs an expected union type",
+                        expression.span,
+                    ));
+                };
+                let payload = self
+                    .pair_payload_type(&tag, &expected_type)
+                    .ok_or_else(|| {
+                        Diagnostic::at("pair tag has no matching union case", expression.span)
+                    })?;
+                let value = self.infer_expression(value, Some(&payload), variables, environment)?;
+                self.fit_or_error(
+                    Type::Cell(vec![
+                        TypeField {
+                            face: None,
+                            typ: Type::Constant(tag),
+                        },
+                        TypeField {
+                            face: None,
+                            typ: value,
+                        },
+                    ]),
+                    expected,
+                    expression.span,
+                )
+            }
+            ExprKind::Change { target, edits } => {
+                let target_type = self.lookup_wing(target, expression.span, environment)?;
+                if edits.is_empty() {
+                    return Err(Diagnostic::at(
+                        "a record change needs an edit",
+                        expression.span,
+                    ));
+                }
+                let mut previous = Vec::<Vec<String>>::new();
+                for edit in edits {
+                    if previous.iter().any(|field| {
+                        field == &edit.field
+                            || field.starts_with(&edit.field)
+                            || edit.field.starts_with(field)
+                    }) {
+                        return Err(Diagnostic::at(
+                            "record change has duplicate or overlapping edits",
+                            edit.span,
+                        ));
+                    }
+                    let field_type = self.record_wing(&target_type, &edit.field, edit.span)?;
+                    self.infer_expression(&edit.value, Some(&field_type), variables, environment)?;
+                    previous.push(edit.field.clone());
+                }
+                self.fit_or_error(target_type, expected, expression.span)
             }
             ExprKind::Tuple(items) => {
                 let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
@@ -940,14 +1128,11 @@ impl<'a> Checker<'a> {
                 self.fit_or_error(actual, expected, expression.span)
             }
             ExprKind::String(parts) => {
-                if parts
-                    .iter()
-                    .any(|part| matches!(part, crate::ast::StringPart::Expr(_)))
-                {
-                    return Err(Diagnostic::at(
-                        "string interpolation is not available to the static checker yet",
-                        expression.span,
-                    ));
+                for part in parts {
+                    if let crate::ast::StringPart::Expr(value) = part {
+                        let typ = self.infer_expression(value, None, variables, environment)?;
+                        self.require_printable(&typ, value.span)?;
+                    }
                 }
                 self.fit_or_error(Type::Atom(Aura::new("t")), expected, expression.span)
             }
@@ -959,6 +1144,14 @@ impl<'a> Checker<'a> {
                         .collect(),
                 ),
                 expected,
+                expression.span,
+            ),
+            ExprKind::Branch { subject, arms } => self.infer_branch(
+                subject,
+                arms,
+                expected,
+                variables,
+                environment,
                 expression.span,
             ),
             ExprKind::Trace { value, body } => {
@@ -977,6 +1170,370 @@ impl<'a> Checker<'a> {
                 expression.span,
             )),
         }
+    }
+
+    fn infer_branch(
+        &mut self,
+        subject: &Expr,
+        arms: &[crate::ast::Arm],
+        expected: Option<&Type>,
+        variables: &mut BTreeMap<String, TypeVar>,
+        environment: &mut Environment,
+        span: Span,
+    ) -> Result<Type, Diagnostic> {
+        let subject_type = self.infer_expression(subject, None, variables, environment)?;
+        let subject_type = self.unifier.normalize(&subject_type);
+        if matches!(subject_type, Type::Var(_)) {
+            return Err(Diagnostic::at(
+                "branch subject needs a known type",
+                subject.span,
+            ));
+        }
+        if arms.is_empty() {
+            return Err(Diagnostic::at("branch has no arms", span));
+        }
+        let original_cases = self
+            .pattern_cases(&subject_type)
+            .ok_or_else(|| Diagnostic::at("branch subject needs a known type", subject.span))?;
+        let mut remaining = original_cases.clone();
+        let mut previous_patterns: Vec<&Pattern> = Vec::new();
+        let result = expected
+            .cloned()
+            .unwrap_or_else(|| Type::Var(self.fresh_variable()));
+
+        for arm in arms {
+            let matching = original_cases
+                .iter()
+                .filter(|case| self.pattern_match(&arm.pattern, case) != PatternMatch::None)
+                .cloned()
+                .collect::<Vec<_>>();
+            if matching.is_empty() {
+                return Err(Diagnostic::at(
+                    "pattern does not match the branch subject",
+                    arm.pattern.span,
+                ));
+            }
+            if previous_patterns
+                .iter()
+                .any(|previous| self.pattern_covers(previous, &arm.pattern))
+            {
+                return Err(Diagnostic::at(
+                    "branch arm is covered by earlier arms",
+                    arm.pattern.span,
+                ));
+            }
+            if !remaining
+                .iter()
+                .any(|case| self.pattern_match(&arm.pattern, case) != PatternMatch::None)
+            {
+                return Err(Diagnostic::at(
+                    "branch arm is covered by earlier arms",
+                    arm.pattern.span,
+                ));
+            }
+            let mut arm_environment = environment.clone();
+            self.bind_pattern(
+                &arm.pattern,
+                &matching,
+                &subject_type,
+                true,
+                &mut arm_environment,
+            )?;
+            self.infer_expression(&arm.body, Some(&result), variables, &mut arm_environment)?;
+            remaining.retain(|case| self.pattern_match(&arm.pattern, case) != PatternMatch::Full);
+            previous_patterns.push(&arm.pattern);
+        }
+
+        if let Some(missing) = remaining.first() {
+            return Err(Diagnostic::at(
+                format!(
+                    "nonexhaustive branch: missing case {}",
+                    TypeScheme::mono(missing.clone())
+                ),
+                span,
+            )
+            .with_note("branch subject", subject.span));
+        }
+        let result = self.unifier.normalize(&result);
+        self.fit_or_error(result, expected, span)
+    }
+
+    fn pattern_cases(&self, typ: &Type) -> Option<Vec<Type>> {
+        self.finite_product_cases(typ, 0)
+    }
+
+    fn finite_product_cases(&self, typ: &Type, depth: usize) -> Option<Vec<Type>> {
+        let cases = match typ {
+            Type::Named { .. } if depth < 8 => {
+                let mut cases = Vec::new();
+                for case in self.expanded_cases(typ)? {
+                    cases.extend(self.finite_product_cases(&case, depth + 1)?);
+                }
+                cases
+            }
+            Type::Named { .. } => vec![typ.clone()],
+            Type::Flag => vec![
+                Type::LoobeanConstant(BigUint::default()),
+                Type::LoobeanConstant(BigUint::from(1u8)),
+            ],
+            Type::Void => Vec::new(),
+            Type::Var(_) => return None,
+            Type::Cell(fields) if fields.len() == 1 => {
+                return self.finite_product_cases(&fields[0].typ, depth);
+            }
+            Type::Cell(fields) => {
+                let mut rows = vec![Vec::new()];
+                for field in fields {
+                    let variants = self.finite_product_cases(&field.typ, depth)?;
+                    let mut next = Vec::new();
+                    for row in &rows {
+                        for typ in &variants {
+                            let mut row = row.clone();
+                            row.push(TypeField {
+                                face: field.face.clone(),
+                                typ: typ.clone(),
+                            });
+                            next.push(row);
+                            if next.len() > 256 {
+                                return None;
+                            }
+                        }
+                    }
+                    rows = next;
+                }
+                rows.into_iter().map(Type::Cell).collect()
+            }
+            _ => vec![typ.clone()],
+        };
+        if cases.len() > 256 { None } else { Some(cases) }
+    }
+
+    fn pattern_covers(&self, earlier: &Pattern, later: &Pattern) -> bool {
+        match (&earlier.kind, &later.kind) {
+            (PatternKind::Binding(_) | PatternKind::Wildcard, _) => true,
+            (_, PatternKind::Binding(_) | PatternKind::Wildcard) => false,
+            (PatternKind::Literal(earlier), PatternKind::Literal(later)) => {
+                let earlier = literal_pattern_type(earlier);
+                let later = literal_pattern_type(later);
+                if let (Some(earlier), Some(later)) =
+                    (constant_value(&earlier), constant_value(&later))
+                {
+                    earlier == later
+                } else {
+                    earlier == later
+                }
+            }
+            (PatternKind::Cell(earlier), PatternKind::Cell(later)) => {
+                earlier.len() == later.len()
+                    && earlier
+                        .iter()
+                        .zip(later)
+                        .all(|(earlier, later)| self.pattern_covers(earlier, later))
+            }
+            _ => false,
+        }
+    }
+
+    fn pattern_match(&self, pattern: &Pattern, case: &Type) -> PatternMatch {
+        match &pattern.kind {
+            PatternKind::Binding(_) | PatternKind::Wildcard => PatternMatch::Full,
+            PatternKind::Literal(literal) => {
+                let actual = literal_pattern_type(literal);
+                self.literal_pattern_match(&actual, case)
+            }
+            PatternKind::Cell(patterns) => {
+                if let Some(projections) = self.project_cell_pattern(case, patterns.len()) {
+                    let mut partial = false;
+                    for (pattern, case) in patterns.iter().zip(projections) {
+                        match self.pattern_match(pattern, &case) {
+                            PatternMatch::Full => {}
+                            PatternMatch::Partial => partial = true,
+                            PatternMatch::None => return PatternMatch::None,
+                        }
+                    }
+                    if partial {
+                        PatternMatch::Partial
+                    } else {
+                        PatternMatch::Full
+                    }
+                } else {
+                    match case {
+                        Type::Noun | Type::Var(_) => PatternMatch::Partial,
+                        Type::Named { .. } => {
+                            let Some(cases) = self.expanded_cases(case) else {
+                                return PatternMatch::None;
+                            };
+                            self.combine_pattern_matches(
+                                &cases
+                                    .iter()
+                                    .map(|case| self.pattern_match(pattern, case))
+                                    .collect::<Vec<_>>(),
+                            )
+                        }
+                        _ => PatternMatch::None,
+                    }
+                }
+            }
+        }
+    }
+
+    fn literal_pattern_match(&self, actual: &Type, case: &Type) -> PatternMatch {
+        if let (Some(actual), Some(case)) = (constant_value(actual), constant_value(case)) {
+            return if actual == case {
+                PatternMatch::Full
+            } else {
+                PatternMatch::None
+            };
+        }
+        if let Type::Named { .. } = case {
+            let Some(cases) = self.expanded_cases(case) else {
+                return PatternMatch::None;
+            };
+            return self.combine_pattern_matches(
+                &cases
+                    .iter()
+                    .map(|case| self.literal_pattern_match(actual, case))
+                    .collect::<Vec<_>>(),
+            );
+        }
+        if self.types_fit(actual, case) {
+            PatternMatch::Partial
+        } else {
+            PatternMatch::None
+        }
+    }
+
+    fn combine_pattern_matches(&self, matches: &[PatternMatch]) -> PatternMatch {
+        if !matches.is_empty() && matches.iter().all(|result| *result == PatternMatch::Full) {
+            PatternMatch::Full
+        } else if matches.iter().any(|result| *result != PatternMatch::None) {
+            PatternMatch::Partial
+        } else {
+            PatternMatch::None
+        }
+    }
+
+    fn project_cell_pattern(&self, case: &Type, count: usize) -> Option<Vec<Type>> {
+        match case {
+            Type::Cell(fields) if fields.len() == 1 => {
+                self.project_cell_pattern(&fields[0].typ, count)
+            }
+            Type::Cell(fields) if fields.len() >= count => {
+                let mut projections = fields
+                    .iter()
+                    .take(count - 1)
+                    .map(|field| field.typ.clone())
+                    .collect::<Vec<_>>();
+                if fields.len() == count {
+                    projections.push(fields[count - 1].typ.clone());
+                } else {
+                    projections.push(Type::Cell(fields[count - 1..].to_vec()));
+                }
+                Some(projections)
+            }
+            Type::Noun => Some((0..count).map(|_| Type::Noun).collect()),
+            Type::Named { .. } => {
+                let cases = self.expanded_cases(case)?;
+                if cases.len() == 1 {
+                    self.project_cell_pattern(&cases[0], count)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    fn bind_pattern(
+        &mut self,
+        pattern: &Pattern,
+        cases: &[Type],
+        subject_type: &Type,
+        top: bool,
+        environment: &mut Environment,
+    ) -> Result<(), Diagnostic> {
+        match &pattern.kind {
+            PatternKind::Wildcard | PatternKind::Literal(_) => Ok(()),
+            PatternKind::Binding(name) => {
+                self.reject_tag_binder(name, cases, pattern.span)?;
+                let typ = if top {
+                    subject_type.clone()
+                } else {
+                    let typ = Type::Var(self.fresh_variable());
+                    for case in cases {
+                        self.fit_or_error(case.clone(), Some(&typ), pattern.span)?;
+                    }
+                    typ
+                };
+                self.bind_pattern_name(name, &typ, pattern.span, environment)
+            }
+            PatternKind::Cell(patterns) => {
+                let mut projections = Vec::new();
+                for case in cases {
+                    let projected =
+                        self.project_cell_pattern(case, patterns.len())
+                            .ok_or_else(|| {
+                                Diagnostic::at(
+                                    "cell pattern subject is not known to be a cell",
+                                    pattern.span,
+                                )
+                            })?;
+                    projections.push(projected);
+                }
+                for (index, pattern) in patterns.iter().enumerate() {
+                    let cases = projections
+                        .iter()
+                        .map(|projection| projection[index].clone())
+                        .collect::<Vec<_>>();
+                    self.bind_pattern(pattern, &cases, subject_type, false, environment)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn reject_tag_binder(&self, name: &str, cases: &[Type], span: Span) -> Result<(), Diagnostic> {
+        let value = BigUint::from_bytes_le(name.as_bytes());
+        if cases.iter().any(|case| self.case_has_tag(case, &value)) {
+            return Err(Diagnostic::at(
+                format!("pattern binder `{name}` spells a tag at this position"),
+                span,
+            ));
+        }
+        Ok(())
+    }
+
+    fn case_has_tag(&self, case: &Type, value: &BigUint) -> bool {
+        match case {
+            Type::Constant(constant) => constant == value,
+            Type::Named { .. } => self
+                .expanded_cases(case)
+                .is_some_and(|cases| cases.iter().any(|case| self.case_has_tag(case, value))),
+            _ => false,
+        }
+    }
+
+    fn bind_pattern_name(
+        &self,
+        name: &str,
+        typ: &Type,
+        span: Span,
+        environment: &mut Environment,
+    ) -> Result<(), Diagnostic> {
+        if matches!(name, "proj" | "unface") {
+            return Err(Diagnostic::at(format!("`{name}` is reserved"), span));
+        }
+        if self.value_definitions.contains_key(name)
+            || environment.contains_key(name)
+            || self.local_scopes.iter().any(|scope| scope.contains(name))
+        {
+            return Err(Diagnostic::at(
+                format!("pattern binder `{name}` shadows a name"),
+                span,
+            ));
+        }
+        environment.insert(name.to_string(), Binding::Monomorphic(typ.clone()));
+        Ok(())
     }
 
     fn infer_sample(
@@ -1082,12 +1639,142 @@ impl<'a> Checker<'a> {
         Ok(())
     }
 
+    fn container_element(&self, typ: &Type, container: &str) -> Option<Type> {
+        match typ {
+            Type::Named {
+                name, arguments, ..
+            } if name == container && arguments.len() == 1 => arguments.first().cloned(),
+            Type::Named { .. } => {
+                let cases = self.expanded_cases(typ)?;
+                if cases.len() == 1 {
+                    self.container_element(&cases[0], container)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    fn local_generic_type(&self, name: &str, element: Type) -> Option<Type> {
+        let (definition, _) = self.mold_definitions.get(name)?;
+        if definition
+            .generic
+            .as_ref()
+            .is_none_or(|generic| generic.variables.len() != 1)
+        {
+            return None;
+        }
+        Some(Type::Named {
+            module: self.module.span.source,
+            name: name.to_string(),
+            arguments: vec![element],
+        })
+    }
+
+    fn pair_payload_type(&self, tag: &BigUint, typ: &Type) -> Option<Type> {
+        match typ {
+            Type::Cell(fields) if fields.len() == 2 => {
+                if constant_value(&fields[0].typ) == Some(tag) {
+                    Some(fields[1].typ.clone())
+                } else {
+                    None
+                }
+            }
+            Type::Named { .. } => self
+                .expanded_cases(typ)?
+                .iter()
+                .find_map(|case| self.pair_payload_type(tag, case)),
+            _ => None,
+        }
+    }
+
+    fn lookup_wing(
+        &mut self,
+        names: &[String],
+        span: Span,
+        environment: &Environment,
+    ) -> Result<Type, Diagnostic> {
+        let Some(name) = names.first() else {
+            return Err(Diagnostic::at("empty wing", span));
+        };
+        let mut typ = self.lookup_reference(name, span, environment)?;
+        for name in &names[1..] {
+            typ = self.record_field(&typ, name, span)?;
+        }
+        Ok(typ)
+    }
+
+    fn record_wing(
+        &mut self,
+        typ: &Type,
+        names: &[String],
+        span: Span,
+    ) -> Result<Type, Diagnostic> {
+        let mut typ = typ.clone();
+        for name in names {
+            typ = self.record_field(&typ, name, span)?;
+        }
+        Ok(typ)
+    }
+
+    fn projection_fields(&self, typ: &Type) -> Option<Vec<TypeField>> {
+        match typ {
+            Type::Cell(fields) => Some(fields.clone()),
+            Type::Named { .. } => {
+                let cases = self.expanded_cases(typ)?;
+                if cases.len() == 1 {
+                    self.projection_fields(&cases[0])
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    fn record_field(&mut self, typ: &Type, name: &str, span: Span) -> Result<Type, Diagnostic> {
+        let typ = self.unifier.normalize(typ);
+        match &typ {
+            Type::Cell(fields) => fields
+                .iter()
+                .find(|field| field.face.as_deref() == Some(name))
+                .map(|field| field.typ.clone())
+                .ok_or_else(|| Diagnostic::at(format!("record has no field `{name}`"), span)),
+            Type::Named { .. } => {
+                let cases = self
+                    .expanded_cases(&typ)
+                    .ok_or_else(|| Diagnostic::at("field access needs a known record", span))?;
+                if cases.len() != 1 {
+                    return Err(Diagnostic::at(
+                        "field access needs a single record type",
+                        span,
+                    ));
+                }
+                self.record_field(&cases[0], name, span)
+            }
+            _ => Err(Diagnostic::at(
+                format!(
+                    "field access needs a record, found {}",
+                    TypeScheme::mono(typ)
+                ),
+                span,
+            )),
+        }
+    }
+
     fn lookup_reference(
         &mut self,
         name: &str,
         span: Span,
         environment: &Environment,
     ) -> Result<Type, Diagnostic> {
+        if matches!(name, "proj" | "unface") {
+            return Err(Diagnostic::at(
+                format!("`{name}` is reserved and must be called with one argument"),
+                span,
+            ));
+        }
         if let Some(binding) = environment.get(name).cloned() {
             return Ok(match binding {
                 Binding::Monomorphic(typ) => self.unifier.normalize(&typ),
@@ -1126,6 +1813,34 @@ impl<'a> Checker<'a> {
             _ => Err(Diagnostic::at(
                 format!(
                     "called value has type {}, not a gate",
+                    TypeScheme::mono(typ)
+                ),
+                span,
+            )),
+        }
+    }
+
+    fn require_printable(&mut self, typ: &Type, span: Span) -> Result<(), Diagnostic> {
+        let typ = self.unifier.normalize(typ);
+        match &typ {
+            Type::Atom(_) | Type::AnyAtom | Type::Flag | Type::Void => Ok(()),
+            Type::Named { .. } => {
+                let cases = self
+                    .expanded_cases(&typ)
+                    .ok_or_else(|| Diagnostic::at("interpolation needs a known printer", span))?;
+                if cases.len() == 1 {
+                    self.require_printable(&cases[0], span)
+                } else {
+                    Err(Diagnostic::at(
+                        "interpolation needs a single atom printer",
+                        span,
+                    ))
+                }
+            }
+            _ if constant_value(&typ).is_some() => Ok(()),
+            _ => Err(Diagnostic::at(
+                format!(
+                    "interpolation needs a printable atom, found {}",
                     TypeScheme::mono(typ)
                 ),
                 span,
@@ -1378,6 +2093,55 @@ fn substitute(typ: &Type, substitutions: &BTreeMap<TypeVar, Type>) -> Type {
                 .collect(),
         },
         _ => typ.clone(),
+    }
+}
+
+fn unface_type(typ: &Type) -> Type {
+    match typ {
+        Type::Cell(fields) => Type::Cell(
+            fields
+                .iter()
+                .map(|field| TypeField {
+                    face: None,
+                    typ: unface_type(&field.typ),
+                })
+                .collect(),
+        ),
+        Type::Gate { sample, product } => Type::Gate {
+            sample: Box::new(unface_type(sample)),
+            product: Box::new(unface_type(product)),
+        },
+        Type::Named {
+            module,
+            name,
+            arguments,
+        } => Type::Named {
+            module: *module,
+            name: name.clone(),
+            arguments: arguments.iter().map(unface_type).collect(),
+        },
+        _ => typ.clone(),
+    }
+}
+
+fn literal_pattern_type(literal: &Literal) -> Type {
+    match literal {
+        Literal::Number(number) => Type::Atom(Aura::new(match number.aura {
+            NumberAura::Decimal => "ud",
+            NumberAura::Hexadecimal => "ux",
+            NumberAura::Base32 => "uv",
+        })),
+        Literal::String(_) => Type::Atom(Aura::new("t")),
+        Literal::Ship(_) => Type::Atom(Aura::new("p")),
+        Literal::Date(_) => Type::Atom(Aura::new("da")),
+        Literal::Duration(_) => Type::Atom(Aura::new("dr")),
+        Literal::Knot(_) => Type::Atom(Aura::new("ta")),
+        Literal::Term(term) => match term.kind {
+            TermKind::Named => Type::Constant(term.value.clone()),
+            TermKind::Numeric => Type::NumericTerm(term.value.clone()),
+        },
+        Literal::Loobean(yes) => Type::LoobeanConstant(BigUint::from(u8::from(!yes))),
+        Literal::Null => Type::Constant(BigUint::default()),
     }
 }
 

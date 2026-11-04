@@ -227,13 +227,123 @@ fn checks_local_polymorphism_recursion_and_capital_scopes() {
 }
 
 #[test]
+fn checks_loobean_and_union_branches() {
+    let checked = check_source(
+        "++ choose |= b=? ?- b\n  %.y 1\n  %.n 0\n+$ msg\n  [%add n=@ud]\n  %stop\n++ describe |= m=msg ?- m\n  [%add n] n\n  %stop 0\n++ answer (choose %.y)\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["choose"].to_string(), "$-(? @ud)");
+    assert_eq!(checked.values["describe"].to_string(), "$-(msg @ud)");
+    assert_eq!(checked.values["answer"].to_string(), "@ud");
+
+    let error = check_source("++ bad |= b=? ?- b\n  %.y 1\n").unwrap_err();
+    assert!(error.message.contains("nonexhaustive"));
+
+    let error = check_source("+$ msg %stop\n++ bad |= m=msg ?- m\n  stop 0\n").unwrap_err();
+    assert!(error.message.contains("spells a tag"));
+}
+
+#[test]
+fn checks_nested_pattern_coverage_and_covered_arms() {
+    let checked =
+        check_source("++ both |= [a=? b=?] ?- [a b]\n  [%.y *] 1\n  [%.n *] 0\n").unwrap();
+    assert_eq!(checked.values["both"].to_string(), "$-([a=? b=?] @ud)");
+
+    for source in [
+        "++ bad |= b=? ?- b\n  * 1\n  %.y 0\n",
+        "++ bad |= n=@ud ?- n\n  0 1\n  0 2\n  * 3\n",
+        "++ bad |= b=? ?- b\n  %.y 1\n  %.y 0\n  %.n 1\n",
+    ] {
+        let error = check_source(source).unwrap_err();
+        assert!(error.message.contains("covered by earlier"), "{error}");
+    }
+
+    let error = check_source("++ bad |= n=@ud ?- n\n  0 1\n").unwrap_err();
+    assert!(error.message.contains("nonexhaustive"));
+}
+
+#[test]
+fn rejects_incompatible_patterns_and_branch_results() {
+    let error = check_source("++ bad |= b=? ?- b\n  \"yes\" 1\n  * 0\n").unwrap_err();
+    assert!(error.message.contains("does not match"));
+
+    let error = check_source("++ bad |= b=? ?- b\n  %.y 1\n  %.n \"no\"\n").unwrap_err();
+    assert!(error.message.contains("type mismatch"));
+}
+
+#[test]
+fn checks_record_wings_and_changes() {
+    let checked = check_source(
+        "++ city |= p=[name=@t address=[city=@t zip=@ud]] p.address.city\n++ relocate |= p=[name=@t address=[city=@t zip=@ud]] p(address.city=\"new\")\n++ renamed |= p=[name=@t age=@ud] p(name=\"new\" age=2)\n++ result (city [name=\"n\" address=[city=\"x\" zip=1]])\n",
+    )
+    .unwrap();
+    assert_eq!(
+        checked.values["city"].to_string(),
+        "$-([name=@t address=[city=@t zip=@ud]] @t)"
+    );
+    assert_eq!(
+        checked.values["relocate"].to_string(),
+        "$-([name=@t address=[city=@t zip=@ud]] [name=@t address=[city=@t zip=@ud]])"
+    );
+    assert_eq!(checked.values["result"].to_string(), "@t");
+
+    for source in [
+        "++ bad |= p=[x=@ud y=@ud] p(x=1 x=2)\n",
+        "++ bad |= p=[name=@t age=@ud] p(name=1)\n",
+        "++ bad |= p=[name=@t age=@ud] p.missing\n",
+        "++ bad |= p=[address=[city=@t zip=@ud]] p(address=[city=\"x\" zip=1] address.city=\"y\")\n",
+    ] {
+        assert!(check_source(source).is_err(), "{source}");
+    }
+}
+
+#[test]
+fn checks_lists_units_pairs_and_constructors_from_molds() {
+    let checked = check_source(
+        "+$ list |$ [A]\n  ~\n  [head=A tail=(list A)]\n+$ unit |$ [A]\n  ~\n  [~ value=A]\n+$ attr\n  [%fill n=@ud]\n  [%gap size=@ud]\n+$ msg\n  [%add n=@ud]\n  %stop\n++ attrs ^- (list attr) ~[fill+1 gap+2]\n++ maybe ^- (unit @t) `\"x\"\n++ empty ~[]\n++ add ^- $-(@ud msg) |=%add\n++ made ^- msg (|=%add 1)\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["attrs"].to_string(), "(list attr)");
+    assert_eq!(checked.values["maybe"].to_string(), "(unit @t)");
+    assert_eq!(checked.values["empty"].to_string(), "(list A)");
+    assert_eq!(checked.values["add"].to_string(), "$-(@ud msg)");
+    assert_eq!(checked.values["made"].to_string(), "msg");
+
+    let error = check_source("++ bad ~[1]\n").unwrap_err();
+    assert!(error.message.contains("standard list mold"));
+}
+
+#[test]
+fn checks_projection_unface_and_interpolation() {
+    let checked = check_source(
+        "++ project |= p=[x=@ud y=@t] ^- [x=@ud] (proj p)\n++ erase |= p=[x=@ud y=@t] (unface p)\n++ render |= [day=@da n=@ud] \"Updated {day}: {n}\"\n",
+    )
+    .unwrap();
+    assert_eq!(
+        checked.values["project"].to_string(),
+        "$-([x=@ud y=@t] [x=@ud])"
+    );
+    assert_eq!(
+        checked.values["erase"].to_string(),
+        "$-([x=@ud y=@t] [@ud @t])"
+    );
+    assert_eq!(
+        checked.values["render"].to_string(),
+        "$-([day=@da n=@ud] @t)"
+    );
+
+    assert!(check_source("++ bad |= n=A \"{n}\"\n").is_err());
+    assert!(check_source("++ bad |= p=[x=@ud] (proj p)\n").is_err());
+}
+
+#[test]
 fn unresolved_and_unsupported_features_fail_closed() {
     let error = check_source("+$ box [item=_]\n").unwrap_err();
     assert!(error.message.contains("unconstrained type hole"));
 
     let error = check_source("++ identity ~[1]\n").unwrap_err();
-    assert!(error.message.contains("not available"));
+    assert!(error.message.contains("standard list mold"));
 
-    let error = check_source("++ branch ?- %.y\n  %.y 1\n  %.n 0\n").unwrap_err();
-    assert!(error.message.contains("not available"));
+    let error = check_source("++ bad\n  +$ local @ud\n  1\n").unwrap_err();
+    assert!(error.message.contains("local mold"));
 }
