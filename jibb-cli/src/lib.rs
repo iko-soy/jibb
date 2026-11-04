@@ -1,7 +1,10 @@
 pub mod ast;
+pub mod check;
 mod formatter;
 mod lower;
+pub mod types;
 
+pub use check::check;
 pub use formatter::format_source;
 
 use ast::{SourceId, Span};
@@ -17,9 +20,16 @@ pub fn language() -> Language {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DiagnosticNote {
+    pub message: String,
+    pub span: Span,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Diagnostic {
     pub message: String,
     pub span: Option<Span>,
+    pub notes: Vec<DiagnosticNote>,
 }
 
 impl Diagnostic {
@@ -27,6 +37,7 @@ impl Diagnostic {
         Self {
             message: message.into(),
             span: None,
+            notes: Vec::new(),
         }
     }
 
@@ -34,7 +45,16 @@ impl Diagnostic {
         Self {
             message: message.into(),
             span: Some(span),
+            notes: Vec::new(),
         }
+    }
+
+    pub fn with_note(mut self, message: impl Into<String>, span: Span) -> Self {
+        self.notes.push(DiagnosticNote {
+            message: message.into(),
+            span,
+        });
+        self
     }
 }
 
@@ -45,10 +65,18 @@ impl fmt::Display for Diagnostic {
                 formatter,
                 "{} at bytes {}..{} (source {})",
                 self.message, span.start, span.end, span.source.0
-            )
+            )?;
         } else {
-            formatter.write_str(&self.message)
+            formatter.write_str(&self.message)?;
         }
+        for note in &self.notes {
+            write!(
+                formatter,
+                "\n{} at bytes {}..{} (source {})",
+                note.message, note.span.start, note.span.end, note.span.source.0
+            )?;
+        }
+        Ok(())
     }
 }
 

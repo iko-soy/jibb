@@ -1,8 +1,8 @@
 use jibb::{
     Diagnostic,
     ast::{
-        DefinitionKind, Expr, ExprKind, ImportKind, Literal, MoldKind, PatternKind, SampleKind,
-        StringPart,
+        DefinitionKind, Expr, ExprKind, ImportKind, Literal, MoldKind, NumberAura, NumberLiteral,
+        PatternKind, SampleKind, StringPart, TermKind, TermLiteral,
     },
     format_source, parse_ast,
 };
@@ -35,21 +35,24 @@ fn numeric_literals_are_arbitrary_precision_and_strings_are_decoded() {
     };
     assert_eq!(
         items[0].value.kind,
-        ExprKind::Literal(Literal::Number(
-            BigUint::parse_bytes(b"123456789012345678901234567890", 10).unwrap()
-        ))
+        ExprKind::Literal(Literal::Number(NumberLiteral {
+            value: BigUint::parse_bytes(b"123456789012345678901234567890", 10).unwrap(),
+            aura: NumberAura::Decimal,
+        }))
     );
     assert_eq!(
         items[1].value.kind,
-        ExprKind::Literal(Literal::Number(
-            BigUint::parse_bytes(b"ffffffffffffffffffff", 16).unwrap()
-        ))
+        ExprKind::Literal(Literal::Number(NumberLiteral {
+            value: BigUint::parse_bytes(b"ffffffffffffffffffff", 16).unwrap(),
+            aura: NumberAura::Hexadecimal,
+        }))
     );
     assert_eq!(
         items[2].value.kind,
-        ExprKind::Literal(Literal::Number(
-            BigUint::parse_bytes(b"vvvvvvv", 32).unwrap()
-        ))
+        ExprKind::Literal(Literal::Number(NumberLiteral {
+            value: BigUint::parse_bytes(b"vvvvvvv", 32).unwrap(),
+            aura: NumberAura::Base32,
+        }))
     );
     assert_eq!(
         items[3].value.kind,
@@ -73,14 +76,17 @@ fn terms_constructors_and_knots_decode_to_runtime_values() {
         panic!("expected tuple: {expression:?}");
     };
     let terms = [
-        BigUint::from_bytes_le(b"add"),
-        BigUint::from(1_000u16),
-        BigUint::default(),
-        BigUint::default(),
-        BigUint::from(1u8),
+        (BigUint::from_bytes_le(b"add"), TermKind::Named),
+        (BigUint::from(1_000u16), TermKind::Numeric),
+        (BigUint::default(), TermKind::Named),
+        (BigUint::default(), TermKind::Named),
+        (BigUint::from(1u8), TermKind::Named),
     ];
-    for (item, expected) in items.iter().zip(terms) {
-        assert_eq!(item.value.kind, ExprKind::Literal(Literal::Term(expected)));
+    for (item, (value, kind)) in items.iter().zip(terms) {
+        assert_eq!(
+            item.value.kind,
+            ExprKind::Literal(Literal::Term(TermLiteral { value, kind }))
+        );
     }
     assert_eq!(
         items[5].value.kind,

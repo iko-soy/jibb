@@ -121,15 +121,40 @@ pub enum ExprKind {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Literal {
-    Number(BigUint),
+    Number(NumberLiteral),
     String(Vec<u8>),
     Ship(String),
     Date(String),
     Duration(String),
     Knot(String),
-    Term(BigUint),
+    Term(TermLiteral),
     Loobean(bool),
     Null,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NumberLiteral {
+    pub value: BigUint,
+    pub aura: NumberAura,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NumberAura {
+    Decimal,
+    Hexadecimal,
+    Base32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TermLiteral {
+    pub value: BigUint,
+    pub kind: TermKind,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TermKind {
+    Named,
+    Numeric,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -194,7 +219,7 @@ pub enum MoldKind {
     Void,
     Flag,
     Null,
-    Term(BigUint),
+    Term(TermLiteral),
     Loobean(bool),
     Reference(Vec<String>),
     TypeVariable(String),

@@ -3,8 +3,8 @@ use crate::{
     ast::{
         ApplicationSegment, Arm, Definition, DefinitionKind, Edit, Expr, ExprKind, Generic, Import,
         ImportKind, Item, Literal, Module, Mold, MoldDefinition, MoldField, MoldKind,
-        MoldPathSegment, Pattern, PatternKind, Sample, SampleKind, Span, StringPart,
-        TypedSegmentMold,
+        MoldPathSegment, NumberAura, NumberLiteral, Pattern, PatternKind, Sample, SampleKind, Span,
+        StringPart, TermKind, TermLiteral, TypedSegmentMold,
     },
     node_span,
 };
@@ -524,11 +524,27 @@ impl<'a> Lower<'a> {
                     .ok_or_else(|| Diagnostic::at("malformed knot literal", node_span(node)))?
                     .to_string(),
             )),
-            "term" => Ok(Literal::Term(self.term(node)?)),
+            "term" => Ok(Literal::Term(self.term_literal(node)?)),
             "loobean" => Ok(Literal::Loobean(self.loobean(node)?)),
             "null" => Ok(Literal::Null),
             _ => self.unsupported("literal", node),
         }
+    }
+
+    fn term_literal(&self, node: Node<'a>) -> LResult<TermLiteral> {
+        let text = self.text(node)?;
+        let kind = if text
+            .get(1..)
+            .is_some_and(|body| body.starts_with(|c: char| c.is_ascii_digit()))
+        {
+            TermKind::Numeric
+        } else {
+            TermKind::Named
+        };
+        Ok(TermLiteral {
+            value: self.term(node)?,
+            kind,
+        })
     }
 
     fn term(&self, node: Node<'a>) -> LResult<BigUint> {
@@ -547,31 +563,34 @@ impl<'a> Lower<'a> {
         }
     }
 
-    fn number(&self, node: Node<'a>) -> LResult<BigUint> {
+    fn number(&self, node: Node<'a>) -> LResult<NumberLiteral> {
         let scope = if node.kind() == "number" {
             only_syntax_child(node)?
         } else {
             node
         };
         let text = self.text(scope)?;
-        let (digits, radix) = match scope.kind() {
-            "decimal" => (text.replace('.', ""), 10),
+        let (digits, radix, aura) = match scope.kind() {
+            "decimal" => (text.replace('.', ""), 10, NumberAura::Decimal),
             "hexadecimal" => (
                 text.get(2..)
                     .ok_or_else(|| Diagnostic::at("malformed hexadecimal atom", node_span(scope)))?
                     .replace('.', ""),
                 16,
+                NumberAura::Hexadecimal,
             ),
             "base32" => (
                 text.get(2..)
                     .ok_or_else(|| Diagnostic::at("malformed base32 atom", node_span(scope)))?
                     .replace('.', ""),
                 32,
+                NumberAura::Base32,
             ),
             _ => return self.unsupported("number", scope),
         };
-        BigUint::parse_bytes(digits.as_bytes(), radix)
-            .ok_or_else(|| Diagnostic::at("invalid numeric atom", node_span(scope)))
+        let value = BigUint::parse_bytes(digits.as_bytes(), radix)
+            .ok_or_else(|| Diagnostic::at("invalid numeric atom", node_span(scope)))?;
+        Ok(NumberLiteral { value, aura })
     }
 
     fn loobean(&self, node: Node<'_>) -> LResult<bool> {
@@ -703,7 +722,7 @@ impl<'a> Lower<'a> {
             "void" => MoldKind::Void,
             "flag" => MoldKind::Flag,
             "null" => MoldKind::Null,
-            "term" => MoldKind::Term(self.term(node)?),
+            "term" => MoldKind::Term(self.term_literal(node)?),
             "loobean" => MoldKind::Loobean(self.loobean(node)?),
             "mold_reference" | "sample_mold_reference" => MoldKind::Reference(self.wing(node)?),
             "type_variable" => MoldKind::TypeVariable(self.text(node)?),
