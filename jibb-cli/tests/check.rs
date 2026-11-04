@@ -274,7 +274,7 @@ fn rejects_incompatible_patterns_and_branch_results() {
 #[test]
 fn checks_record_wings_and_changes() {
     let checked = check_source(
-        "++ city |= p=[name=@t address=[city=@t zip=@ud]] p.address.city\n++ relocate |= p=[name=@t address=[city=@t zip=@ud]] p(address.city=\"new\")\n++ renamed |= p=[name=@t age=@ud] p(name=\"new\" age=2)\n++ result (city [name=\"n\" address=[city=\"x\" zip=1]])\n",
+        "++ city |= p=[name=@t address=[city=@t zip=@ud]] address.city.p\n++ relocate |= p=[name=@t address=[city=@t zip=@ud]] p(address.city=\"new\")\n++ renamed |= p=[name=@t age=@ud] p(name=\"new\" age=2)\n++ result (city [name=\"n\" address=[city=\"x\" zip=1]])\n",
     )
     .unwrap();
     assert_eq!(
@@ -290,7 +290,7 @@ fn checks_record_wings_and_changes() {
     for source in [
         "++ bad |= p=[x=@ud y=@ud] p(x=1 x=2)\n",
         "++ bad |= p=[name=@t age=@ud] p(name=1)\n",
-        "++ bad |= p=[name=@t age=@ud] p.missing\n",
+        "++ bad |= p=[name=@t age=@ud] missing.p\n",
         "++ bad |= p=[address=[city=@t zip=@ud]] p(address=[city=\"x\" zip=1] address.city=\"y\")\n",
     ] {
         assert!(check_source(source).is_err(), "{source}");
@@ -337,6 +337,24 @@ fn checks_projection_unface_and_interpolation() {
 }
 
 #[test]
+fn checks_local_molds_and_restores_lexical_scopes() {
+    let checked = check_source(
+        "++ use\n  +$ point [x=@ud y=@ud]\n  ++ make |= p=point x.p\n  (make [1 2])\n++ recursive\n  +$ list |$ [A]\n    ~\n    [head=A tail=(list A)]\n  ++ xs ^- (list @ud) ~[1]\n  ^- * xs\n++ first\n  +$ local @ud\n  ++ x ^- local 1\n  ^- @ud x\n++ second\n  +$ local @t\n  ++ x ^- local \"x\"\n  ^- @t x\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["use"].to_string(), "@ud");
+    assert_eq!(checked.values["recursive"].to_string(), "*");
+    assert_eq!(checked.values["first"].to_string(), "@ud");
+    assert_eq!(checked.values["second"].to_string(), "@t");
+
+    let error = check_source("++ bad\n  +$ local @ud\n  ++ x ^- local 1\n  x\n").unwrap_err();
+    assert!(error.message.contains("cannot escape"));
+
+    let error = check_source("++ bad\n  +$ overlap\n    @t\n    @ud\n  1\n").unwrap_err();
+    assert!(error.message.contains("overlapping cases"));
+}
+
+#[test]
 fn unresolved_and_unsupported_features_fail_closed() {
     let error = check_source("+$ box [item=_]\n").unwrap_err();
     assert!(error.message.contains("unconstrained type hole"));
@@ -344,6 +362,6 @@ fn unresolved_and_unsupported_features_fail_closed() {
     let error = check_source("++ identity ~[1]\n").unwrap_err();
     assert!(error.message.contains("standard list mold"));
 
-    let error = check_source("++ bad\n  +$ local @ud\n  1\n").unwrap_err();
-    assert!(error.message.contains("local mold"));
+    let error = check_source("++ path %/blog\n").unwrap_err();
+    assert!(error.message.contains("not available"));
 }

@@ -64,6 +64,8 @@ struct Checker<'a> {
     unifier: Unifier,
     holes: BTreeMap<TypeVar, Span>,
     local_scopes: Vec<BTreeSet<String>>,
+    local_mold_definitions: Vec<BTreeMap<String, (MoldDefinition, Span)>>,
+    local_resolved_molds: Vec<BTreeMap<String, ResolvedMold>>,
 }
 
 impl<'a> Checker<'a> {
@@ -77,6 +79,8 @@ impl<'a> Checker<'a> {
             unifier: Unifier::default(),
             holes: BTreeMap::new(),
             local_scopes: Vec::new(),
+            local_mold_definitions: Vec::new(),
+            local_resolved_molds: Vec::new(),
         }
     }
 
@@ -227,7 +231,7 @@ impl<'a> Checker<'a> {
             }
             MoldKind::Reference(names) => {
                 let name = self.local_mold_name(names, mold.span)?;
-                let Some((definition, _)) = self.mold_definitions.get(name) else {
+                let Some((definition, _)) = self.mold_definition(name) else {
                     return Err(Diagnostic::at(format!("unknown mold `{name}`"), mold.span));
                 };
                 let arity = definition
@@ -251,7 +255,7 @@ impl<'a> Checker<'a> {
                 arguments,
             } => {
                 let name = self.local_mold_name(constructor, mold.span)?;
-                let Some((definition, _)) = self.mold_definitions.get(name) else {
+                let Some((definition, _)) = self.mold_definition(name) else {
                     return Err(Diagnostic::at(format!("unknown mold `{name}`"), mold.span));
                 };
                 let expected = definition
@@ -354,6 +358,26 @@ impl<'a> Checker<'a> {
         }
     }
 
+    fn mold_definition(&self, name: &str) -> Option<(MoldDefinition, Span)> {
+        for scope in self.local_mold_definitions.iter().rev() {
+            if let Some((definition, span)) = scope.get(name) {
+                return Some((definition.clone(), *span));
+            }
+        }
+        self.mold_definitions
+            .get(name)
+            .map(|(definition, span)| ((*definition).clone(), *span))
+    }
+
+    fn resolved_mold(&self, name: &str) -> Option<&ResolvedMold> {
+        for scope in self.local_resolved_molds.iter().rev() {
+            if let Some(mold) = scope.get(name) {
+                return Some(mold);
+            }
+        }
+        self.resolved_molds.get(name)
+    }
+
     fn local_mold_name<'b>(&self, names: &'b [String], span: Span) -> Result<&'b str, Diagnostic> {
         if names.len() != 1 {
             return Err(Diagnostic::at(
@@ -366,18 +390,23 @@ impl<'a> Checker<'a> {
 
     fn validate_unions(&self) -> Result<(), Diagnostic> {
         for mold in self.resolved_molds.values() {
-            for left in 0..mold.cases.len() {
-                for right in left + 1..mold.cases.len() {
-                    let a = &mold.cases[left];
-                    let b = &mold.cases[right];
-                    let mut visiting = HashSet::new();
-                    if self.may_overlap(&a.typ, &b.typ, &mut visiting) {
-                        return Err(Diagnostic::at(
-                            format!("union `{}` has overlapping cases", mold.name),
-                            b.span,
-                        )
-                        .with_note("earlier overlapping case", a.span));
-                    }
+            self.validate_union(mold)?;
+        }
+        Ok(())
+    }
+
+    fn validate_union(&self, mold: &ResolvedMold) -> Result<(), Diagnostic> {
+        for left in 0..mold.cases.len() {
+            for right in left + 1..mold.cases.len() {
+                let a = &mold.cases[left];
+                let b = &mold.cases[right];
+                let mut visiting = HashSet::new();
+                if self.may_overlap(&a.typ, &b.typ, &mut visiting) {
+                    return Err(Diagnostic::at(
+                        format!("union `{}` has overlapping cases", mold.name),
+                        b.span,
+                    )
+                    .with_note("earlier overlapping case", a.span));
                 }
             }
         }
@@ -481,7 +510,7 @@ impl<'a> Checker<'a> {
         if *module != self.module.span.source {
             return None;
         }
-        let mold = self.resolved_molds.get(name)?;
+        let mold = self.resolved_mold(name)?;
         let substitutions = mold
             .parameters
             .iter()
@@ -601,7 +630,8 @@ impl<'a> Checker<'a> {
         variables: &BTreeMap<String, TypeVar>,
         environment: &mut Environment,
     ) -> Result<(), Diagnostic> {
-        let mut names = BTreeSet::new();
+        let mut value_names = BTreeSet::new();
+        let mut mold_definitions = BTreeMap::new();
         for definition in definitions {
             if matches!(definition.name.as_str(), "proj" | "unface") {
                 return Err(Diagnostic::at(
@@ -609,34 +639,103 @@ impl<'a> Checker<'a> {
                     definition.span,
                 ));
             }
-            if matches!(definition.kind, DefinitionKind::Mold(_)) {
-                return Err(Diagnostic::at(
-                    "local mold definitions are not available to the static checker yet",
-                    definition.span,
-                ));
-            }
-            if self
-                .value_definitions
-                .contains_key(definition.name.as_str())
-                || environment.contains_key(&definition.name)
-                || !names.insert(definition.name.clone())
-            {
-                return Err(Diagnostic::at(
-                    format!("local definition `{}` shadows a name", definition.name),
-                    definition.span,
-                ));
+            match &definition.kind {
+                DefinitionKind::Value(_) => {
+                    if self
+                        .value_definitions
+                        .contains_key(definition.name.as_str())
+                        || environment.contains_key(&definition.name)
+                        || !value_names.insert(definition.name.clone())
+                    {
+                        return Err(Diagnostic::at(
+                            format!("local definition `{}` shadows a name", definition.name),
+                            definition.span,
+                        ));
+                    }
+                }
+                DefinitionKind::Mold(mold) => {
+                    if self.mold_definition(&definition.name).is_some()
+                        || mold_definitions
+                            .insert(definition.name.clone(), ((*mold).clone(), definition.span))
+                            .is_some()
+                    {
+                        return Err(Diagnostic::at(
+                            format!("local mold `{}` shadows a name", definition.name),
+                            definition.span,
+                        ));
+                    }
+                }
             }
         }
-        let dependencies = value_dependencies(definitions);
-        self.local_scopes.push(names);
+
+        self.local_scopes.push(value_names);
+        self.local_mold_definitions.push(mold_definitions);
+        self.local_resolved_molds.push(BTreeMap::new());
+        let value_definitions = definitions
+            .iter()
+            .filter(|definition| matches!(definition.kind, DefinitionKind::Value(_)))
+            .cloned()
+            .collect::<Vec<_>>();
         let result = (|| {
+            let mold_names = self
+                .local_mold_definitions
+                .last()
+                .into_iter()
+                .flat_map(|scope| scope.keys())
+                .cloned()
+                .collect::<Vec<_>>();
+            for name in mold_names {
+                let (definition, span) = self.mold_definition(&name).expect("local mold exists");
+                let resolved = self.resolve_mold_definition(&name, &definition, span)?;
+                self.local_resolved_molds
+                    .last_mut()
+                    .expect("local mold scope exists")
+                    .insert(name, resolved);
+            }
+            for mold in self
+                .local_resolved_molds
+                .last()
+                .into_iter()
+                .flat_map(|scope| scope.values())
+            {
+                self.validate_union(mold)?;
+            }
+            let dependencies = value_dependencies(&value_definitions);
             for group in strongly_connected(&dependencies) {
-                self.check_local_group(&group, definitions, &dependencies, variables, environment)?;
+                self.check_local_group(
+                    &group,
+                    &value_definitions,
+                    &dependencies,
+                    variables,
+                    environment,
+                )?;
             }
             Ok(())
         })();
-        self.local_scopes.pop();
+        if result.is_err() {
+            self.finish_local_definitions();
+        }
         result
+    }
+
+    fn finish_local_definitions(&mut self) {
+        self.local_scopes.pop();
+        self.local_mold_definitions.pop();
+        self.local_resolved_molds.pop();
+    }
+
+    fn reject_escaping_local_molds(&mut self, typ: &Type, span: Span) -> Result<(), Diagnostic> {
+        let typ = self.unifier.normalize(typ);
+        let Some(scope) = self.local_resolved_molds.last() else {
+            return Ok(());
+        };
+        if type_mentions_molds(&typ, &scope.keys().cloned().collect::<BTreeSet<_>>()) {
+            return Err(Diagnostic::at(
+                "a local mold cannot escape its lexical scope in an inferred type",
+                span,
+            ));
+        }
+        Ok(())
     }
 
     fn check_local_group(
@@ -1162,8 +1261,19 @@ impl<'a> Checker<'a> {
                 definitions,
                 result,
             } => {
-                self.infer_local_definitions(definitions, variables, environment)?;
-                self.infer_expression(result, expected, variables, environment)
+                let outer_environment = environment.clone();
+                let scope_depth = self.local_resolved_molds.len();
+                let checked = (|| {
+                    self.infer_local_definitions(definitions, variables, environment)?;
+                    let typ = self.infer_expression(result, expected, variables, environment)?;
+                    self.reject_escaping_local_molds(&typ, result.span)?;
+                    Ok(typ)
+                })();
+                if self.local_resolved_molds.len() > scope_depth {
+                    self.finish_local_definitions();
+                }
+                *environment = outer_environment;
+                checked
             }
             _ => Err(Diagnostic::at(
                 "this expression is not available to the static checker yet",
@@ -1657,7 +1767,7 @@ impl<'a> Checker<'a> {
     }
 
     fn local_generic_type(&self, name: &str, element: Type) -> Option<Type> {
-        let (definition, _) = self.mold_definitions.get(name)?;
+        let (definition, _) = self.mold_definition(name)?;
         if definition
             .generic
             .as_ref()
@@ -1695,11 +1805,11 @@ impl<'a> Checker<'a> {
         span: Span,
         environment: &Environment,
     ) -> Result<Type, Diagnostic> {
-        let Some(name) = names.first() else {
+        let Some(name) = names.last() else {
             return Err(Diagnostic::at("empty wing", span));
         };
         let mut typ = self.lookup_reference(name, span, environment)?;
-        for name in &names[1..] {
+        for name in &names[..names.len() - 1] {
             typ = self.record_field(&typ, name, span)?;
         }
         Ok(typ)
@@ -2154,6 +2264,26 @@ fn constant_value(typ: &Type) -> Option<&BigUint> {
     }
 }
 
+fn type_mentions_molds(typ: &Type, names: &BTreeSet<String>) -> bool {
+    match typ {
+        Type::Named {
+            name, arguments, ..
+        } => {
+            names.contains(name)
+                || arguments
+                    .iter()
+                    .any(|argument| type_mentions_molds(argument, names))
+        }
+        Type::Cell(fields) => fields
+            .iter()
+            .any(|field| type_mentions_molds(&field.typ, names)),
+        Type::Gate { sample, product } => {
+            type_mentions_molds(sample, names) || type_mentions_molds(product, names)
+        }
+        _ => false,
+    }
+}
+
 fn find_hole(typ: &Type, holes: &BTreeMap<TypeVar, Span>) -> Option<TypeVar> {
     match typ {
         Type::Var(variable) if holes.contains_key(variable) => Some(*variable),
@@ -2201,7 +2331,7 @@ fn collect_dependencies(
 ) {
     match &expression.kind {
         ExprKind::Reference(path) => {
-            if let Some(name) = path.first()
+            if let Some(name) = path.last()
                 && names.contains(name)
             {
                 dependencies.insert(name.clone());
