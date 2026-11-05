@@ -6,7 +6,7 @@ How to work on Jibb: the rules the plan sets, how to set up a machine, and what 
 
 From the plan's Setup and ground rules, and from @iko:
 
-- **The spec wins.** Where code and spec disagree, the spec stands until it changes. Until the Claude doc is synced with the repository's decisions, the spec is the copy in [spec/](spec/); the Synced column in [spec/decisions.md](spec/decisions.md) shows which rows the doc has.
+- **The spec wins.** Where code and spec disagree, the spec stands until it changes. The spec is the copy in [spec/](spec/); the Synced column in [spec/decisions.md](spec/decisions.md) shows which rows the doc has.
 - **Language changes are agreed first** and recorded in the Decisions tab, before the code changes.
 - **Questions go to @iko**, as comments on the doc, on the words they're about. While one is open, follow the most likely reading, mark it "(doc question)" in the library's notes, and list it in [open-questions.md](open-questions.md). Where an error points is not a doc question: the library's section 2.0 settles it.
 - **Every Jibb code block in the doc is a golden test**, and each stage's output is printed and compared. The doc labels its Jibb blocks `jibb`; `tools/doc-blocks` checks that each has its case.
@@ -41,7 +41,7 @@ Without Nix, on a usual machine:
 3. Get click, the command-line client for a ship's `conn.sock`, from [urbit/tools](https://github.com/urbit/tools), at `/root/src/tools/pkg/click/click` or wherever `--click` or `$JIBB_CLICK` says.
 4. Optionally, clone [urbit/urbit](https://github.com/urbit/urbit) to read Arvo's source. `vendor/SOURCES.txt` names the commit the vendored files come from.
 
-In a Claude cloud container, the network blocks urbit.org, bootstrap.urbit.org, nixos.org's installer and GitHub's release downloads. When Nix is already installed, as it was on 2026-11-02, the flake does all of the below: it fetches nixpkgs from channels.nixos.org, click with git and the pill from media.githubusercontent.com, which the network allows. Otherwise, this worked on 2026-10-29, and has to be redone in each new container:
+In a restricted cloud container, the network blocks urbit.org, bootstrap.urbit.org, nixos.org's installer and GitHub's release downloads. When Nix is already installed, as it was on 2026-11-02, the flake does all of the below: it fetches nixpkgs from channels.nixos.org, click with git and the pill from media.githubusercontent.com, which the network allows. Otherwise, this worked on 2026-10-29, and has to be redone in each new container:
 
 ```
 # Nix, single-user

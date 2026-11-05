@@ -4,7 +4,7 @@
   inputs = {
     # A channel tarball rather than github:NixOS/nixpkgs, so the flake
     # also fetches where GitHub's archive downloads are blocked, as in a
-    # Claude cloud container.  flake.lock pins the exact release.
+    # restricted cloud container.  flake.lock pins the exact release.
     # nixos-unstable has vere 4.6, which the tools were written against.
     nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
     # click, which tools/ship formats its requests to the ship with.

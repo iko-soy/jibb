@@ -6,7 +6,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 
 ## Decisions
 
-Until the Claude doc is synced with this copy, this copy is the spec (review question 42). Synced says whether the doc's Decisions tab has the row as written here. A row decided by 2026-10-29 or undated was in the doc when `spec/` was copied from it on 2026-10-30, and is unchanged. A row decided on or after 2026-10-31 is only here. A row of 2026-10-30 says Check: the copy had that day's answers to the 12 grammar questions, but other rows of that day were added or edited here afterwards ([docs/README.md](../README.md#the-spec)), and nobody has compared them with the doc yet.
+This copy is the spec (review question 42). Synced says whether the doc's Decisions tab has the row as written here. A row decided by 2026-10-29 or undated was in the doc when `spec/` was copied from it on 2026-10-30, and is unchanged. A row decided on or after 2026-10-31 is only here. A row of 2026-10-30 says Check: the copy had that day's answers to the 12 grammar questions, but other rows of that day were added or edited here afterwards ([docs/README.md](../README.md#the-spec)), and nobody has compared them with the doc yet.
 
 Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews/2026-11-02-syntax-review.md): S1 with its step 1, S2, S4 to S7, S11 to S13 and S15. S1 step 1 is decided but not built yet; the checker core that review question 5 asks for will build it.
 

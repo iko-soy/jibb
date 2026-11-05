@@ -1,6 +1,6 @@
 # Jibb
 
-Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its design doc, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), is the spec. Its copy in [docs/spec/](docs/spec/) records decisions the doc doesn't have yet, so until the doc is synced, that copy wins where it and the doc differ, and where this code and the spec disagree, the spec wins.
+Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its specification is [Jibb — an Elm-architecture UI language for Urbit](docs/spec/overview.md), with the remaining specification documents in [docs/spec/](docs/spec/). Where this code and the spec disagree, the spec wins.
 
 Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milestone 2, types and prelude, is in progress. The type checker and Hoon importer are partial. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and the brief for milestone 2.
 

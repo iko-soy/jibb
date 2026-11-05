@@ -1,6 +1,6 @@
 # Docs
 
-Jibb's spec is a design doc by @iko, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), and its repository copy in `spec/`. The repository copy records decisions made on 2026-10-30, including dropping `$?`, adding `%$` as a term literal and pattern, making `@` an unrestricted atom, treating `?` as two atoms for union disjointness, and the milestone 2 type and prelude decisions; the Claude document still needs to be synchronized. This folder also holds where the build stands, what is still open, and how to work on the code.
+Jibb's spec is @iko's [Jibb — an Elm-architecture UI language for Urbit](spec/overview.md), with the remaining specification documents in `spec/`. The repository spec records decisions made on 2026-10-30, including dropping `$?`, adding `%$` as a term literal and pattern, making `@` an unrestricted atom, treating `?` as two atoms for union disjointness, and the milestone 2 type and prelude decisions. This folder also holds where the build stands, what is still open, and how to work on the code.
 
 The current full-module checker also has a narrow static/data-page slice, documented in [compiler.md](compiler.md) and [status.md](status.md). Its shared eval/ship fixture checks the real about, blog index and todo index sources without claiming rendering or request execution. The shared theme fixture likewise full-checks the byte-identical real theme and its exact type without implementing theme behavior.
 
@@ -25,7 +25,7 @@ The current full-module checker also has a narrow static/data-page slice, docume
 
 ## The spec
 
-`spec/` began as a snapshot of the doc taken on 2026-10-30, after @iko's answers to the 12 grammar questions that day. It has since been edited to record decisions including dropping `$?`, local type-variable scope, cells and changes, record faces, and the noun type `*`; the Claude document still needs those edits. It also has the doc's rules of the same day for gates generic over auras. Each file corresponds to one tab:
+`spec/` began as a snapshot of the doc taken on 2026-10-30, after @iko's answers to the 12 grammar questions that day. It has since been edited to record decisions including dropping `$?`, local type-variable scope, cells and changes, record faces, and the noun type `*`. It also has the doc's rules of the same day for gates generic over auras. Each file corresponds to one tab:
 
 | File | Tab |
 | --- | --- |
@@ -39,7 +39,7 @@ The doc has a sixth tab, "Loom on Urbit", which is empty, so it has no file.
 
 The overview's pipeline diagram, "Jibb pipeline · source to browser in three stages", is embedded content, so the export holds only a placeholder line for it under Architecture. The doc shows it.
 
-The two copies can diverge, and until they are synced, this copy wins (review question 42). Sync the repository decisions to the Claude document before refreshing this copy: the rows that decisions.md's Synced column marks No or Check, and its settled milestone 2 questions. Then export each tab as Markdown again (in a Claude session, the Claude Docs connector's `export` gives each tab's Markdown), replace the files, and run:
+The repository copy is the spec (review question 42). After changing the specification, run:
 
 ```
 git diff docs/spec          # what changed in the doc

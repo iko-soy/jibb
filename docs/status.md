@@ -17,7 +17,7 @@ As of 2026-11-03. This file lists what Jibb does now, whether each part is done,
 
 The plan sets no dates ("agree them after milestone 1, once it shows how fast the Hoon work goes"), and none have been agreed yet. Milestone 1's commits ran from 2026-10-29 18:13 to 2026-10-30 11:50 UTC.
 
-Decisions the Claude doc does not have yet, such as dropping `$?` ([prompts/drop-union-rune.md](prompts/drop-union-rune.md)), explicit `proj`, the `like` gate and backtick units, are rows of [spec/decisions.md](spec/decisions.md) whose Synced column says No (rows of 2026-10-30 say Check: nobody has compared them yet). The parser already follows the `$?` decision. Until the doc is synced, the repository copy wins.
+Decisions the source document does not have yet, such as dropping `$?` ([prompts/drop-union-rune.md](prompts/drop-union-rune.md)), explicit `proj`, the `like` gate and backtick units, are rows of [spec/decisions.md](spec/decisions.md) whose Synced column says No (rows of 2026-10-30 say Check: nobody has compared them yet). The parser already follows the `$?` decision. Until the doc is synced, the repository copy wins.
 
 ## Reading the tables
 

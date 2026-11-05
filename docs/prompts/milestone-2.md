@@ -4,7 +4,7 @@ A brief for the developer who builds milestone 2 of Jibb. Paste it as the first 
 
 ---
 
-You are building milestone 2 of Jibb, a UI language for Urbit: a Hoon dialect with an indentation layout. Its spec is @iko's design doc, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), with its repository copy in `docs/spec/`; the repository records the decision to drop `$?` pending synchronization to the Claude document. Milestone 1 built the layout pass and the parser in Hoon, in `jibb-dev/lib/jibb.hoon`. Milestone 2 adds the type checker, the imports, and the prelude.
+You are building milestone 2 of Jibb, a UI language for Urbit: a Hoon dialect with an indentation layout. Its spec is @iko's [Jibb — an Elm-architecture UI language for Urbit](../spec/overview.md), with the remaining specification documents in `docs/spec/`; the repository records the decision to drop `$?`. Milestone 1 built the layout pass and the parser in Hoon, in `jibb-dev/lib/jibb.hoon`. Milestone 2 adds the type checker, the imports, and the prelude.
 
 Before milestone 2, @iko decided on 2026-10-30 to drop `$?`. The change is described in [drop-union-rune.md](drop-union-rune.md); check `docs/status.md` for its completion.
 
@@ -23,7 +23,7 @@ Then set up the machine as `docs/development.md` says and run its checks. All go
 
 ## Ground rules
 
-- **The spec wins.** Where code and spec disagree, the spec stands until it changes. `docs/spec/` records the decision to drop `$?`, which still needs synchronization to the Claude document; consult the document for other details as described in `docs/README.md`.
+- **The spec wins.** Where code and spec disagree, the spec stands until it changes. `docs/spec/` records the decision to drop `$?`; consult it for other details as described in `docs/README.md`.
 - **Don't decide the language.** A question about what Jibb means goes to @iko: as a comment on the doc, on the words it's about, if you can comment there, or else in the project's chat, where @iko reviews work. List it in `docs/open-questions.md` too. Meanwhile follow the most likely reading, mark it "(doc question)" in the library's notes, and keep going. A language change is agreed first and recorded in the Decisions tab.
 - **No built-ins.** The Decisions tab's Special rules row: "No built-ins; type-directed rules are welcome, each listed in the Grammar tab". A typing rule the Grammar doesn't list, such as a special case for one gate, is a language change.
 - **Implementation choices are yours**: data structures, algorithms, error wording within the doc's rules, test layout. Record the reasoning in the library's design notes, as milestone 1 did.

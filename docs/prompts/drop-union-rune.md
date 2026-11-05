@@ -4,7 +4,7 @@ A brief for the developer who removes the union rune `$?` from Jibb, as @iko dec
 
 ---
 
-You are making one language change to Jibb, a UI language for Urbit: a Hoon dialect with an indentation layout. Its spec is @iko's design doc, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), copied into `docs/spec/`. Milestone 1 built the layout pass and the parser in Hoon, in `jibb-dev/lib/jibb.hoon`; milestone 2, the type checker, hasn't started. The change: Jibb drops `$?` in both its forms, and a `+$` takes a union's cases on the lines below its name.
+You are making one language change to Jibb, a UI language for Urbit: a Hoon dialect with an indentation layout. Its spec is @iko's [Jibb — an Elm-architecture UI language for Urbit](../spec/overview.md), with the remaining specification documents in `docs/spec/`. Milestone 1 built the layout pass and the parser in Hoon, in `jibb-dev/lib/jibb.hoon`; milestone 2, the type checker, hasn't started. The change: Jibb drops `$?` in both its forms, and a `+$` takes a union's cases on the lines below its name.
 
 ## The decision
 
