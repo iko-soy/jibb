@@ -117,6 +117,17 @@ fn run_evaluates_selected_entries_and_reports_errors() {
     assert!(output.status.success());
     assert_eq!(output.stdout, b"7\n");
 
+    fs::write(directory.path().join("util.jibb"), "++ answer 42\n").unwrap();
+    fs::write(&path, "/= util /util\n++ main answer.util\n").unwrap();
+    let output = jibb()
+        .args(["run", "--source-root"])
+        .arg(directory.path())
+        .arg(&path)
+        .output()
+        .expect("run imported module");
+    assert!(output.status.success());
+    assert_eq!(output.stdout, b"42\n");
+
     fs::write(&path, "++ main !!\n").expect("write crash");
     let output = jibb().args(["run"]).arg(&path).output().expect("run crash");
     assert_eq!(output.status.code(), Some(1));

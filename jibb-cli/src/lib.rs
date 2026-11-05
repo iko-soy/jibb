@@ -4,6 +4,7 @@ mod eval;
 mod formatter;
 mod infer;
 mod literal;
+pub mod loader;
 mod lower;
 mod native;
 pub mod types;

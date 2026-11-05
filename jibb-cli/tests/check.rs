@@ -356,6 +356,25 @@ fn checks_local_molds_and_restores_lexical_scopes() {
 }
 
 #[test]
+fn fits_tagged_cells_against_named_unions() {
+    let checked = check_source(
+        "+$ element |$ [M]\n  [%row payload=@t]\n  [%button label=@t message=M]\n++ button |= [label=@t message=M] ^- (element M) [%button label message]\n",
+    )
+    .unwrap();
+    assert_eq!(
+        checked.values["button"].to_string(),
+        "$-([label=@t message=M] (element M))"
+    );
+}
+
+#[test]
+fn selects_generic_union_cases_by_leading_tag() {
+    let checked = check_source("+$ list |$ [A]\n  ~\n  [i=A t=(list A)]\n+$ unit |$ [A]\n  ~\n  [~ u=A]\n+$ agent-path (list @ta)\n+$ ask |$ [M]\n  [%pure value=M]\n  [%agent api=@t case=@tas agent=@tas path=agent-path scry=(unit agent-path) receive=$-([mark=@tas state=(unit *) fact=*] [state=* message=M])]\n  [%store module=@t name=@tas receive=$-([state=(unit *) fact=*] [state=* message=M])]\n++ pure |= x=M ^- (ask M) [%pure x]\n")
+        .unwrap();
+    assert_eq!(checked.values["pure"].to_string(), "$-(M (ask M))");
+}
+
+#[test]
 fn native_primitives_carry_static_constraints() {
     let checked = check_source(
         "++ inc |= n=A (raw-add.core n 1)\n++ compare |= [a=A b=A] (raw-gth.core a b)\n++ same-atom |= [a=A b=A] (raw-eq.core a b)\n",

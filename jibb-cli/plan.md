@@ -22,7 +22,7 @@ Contextual checking implemented: ordered pattern binding and finite-product exha
 
 Runtime implemented: shared arbitrary-precision nouns and computational cells, gates and constructors, closures, memoized lazy definitions with cycle detection, forward and mutually recursive gates, higher-order calls, pattern execution, record wings and changes, projection, local scopes, traces, and crashes. `jibb run FILE [--entry NAME]` always statically checks before evaluating and uses exit statuses 0, 1, and 2 as planned. All 100 Rust tests passed at that milestone.
 
-Private `raw-*.core` natives now implement constrained comparison, equality, arithmetic, and text operations, with source-level scheme tests. Ships use the `urbit-ob` library; dates and durations support Hoon's epoch, 64-bit seconds and fractional groups, normalization, and interpolation printing. All 105 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Module loading and source prelude support remain follow-ups.
+Private `raw-*.core` natives now implement constrained comparison, equality, arithmetic, and text operations, with source-level scheme tests. Ships use the `urbit-ob` library; dates and durations support Hoon's epoch, 64-bit seconds and fractional groups, normalization, and interpolation printing. All 105 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Module loading implemented: `/=` imports link with unique internal names, preserve recursive mold references during pattern coverage, resolve primitive molds, and support the actual source prelude with `--prelude`. Structural fitting now unifies nested variables, and tagged tuple inference selects cases by their leading literal and recursively through aliases. All 111 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. `/-` and `/%` imports remain follow-ups.
 
 ## Architecture
 
@@ -52,8 +52,10 @@ src/
   formatter.rs    existing CST/trivia formatter, unchanged
   value.rs        runtime nouns, gates, natives, and environments
   eval.rs         evaluation, pattern matching, and diagnostics
-  native.rs       initial pure native functions
-  main.rs         the new `jibb run` command
+  native.rs       private pure native functions and their schemes
+  literal.rs      ship, date, and duration encodings
+  loader.rs       `/=` module linking and optional source prelude
+  main.rs         the `jibb run` command
 ```
 
 The formatter continues to consume the CST because it needs comments and concrete layout. The checker and interpreter consume the semantic AST and do not depend on formatter documents or trivia. The evaluator accepts only a successfully checked module.
@@ -399,6 +401,7 @@ Keep runtime tests independent of the formatter. Run debug and release Cargo tes
 9. [x] Gates, lazy definitions, calls, recursion, patterns, changes, traces, and crashes.
 10. [x] Initial natives and `jibb run`, which always checks before evaluating.
 11. [ ] End-to-end goldens, documentation, Nix wiring, and full checks.
-12. [ ] Imports and additional literal/prelude coverage as separate spec-checked follow-ups.
+12. [x] `/=` module loading and source prelude support.
+13. [ ] `/-` and `/%` imports and remaining host inputs.
 
 Each step remains compilable and tested. Unsupported syntax or evaluation fails explicitly rather than silently changing semantics.

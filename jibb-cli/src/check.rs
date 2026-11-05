@@ -1200,7 +1200,7 @@ impl<'a> Checker<'a> {
                 let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
                 let expected_fields = resolved_expected
                     .as_ref()
-                    .and_then(|typ| self.expected_cell_fields(typ, items.len()));
+                    .and_then(|typ| self.expected_cell_fields(typ, items));
                 let mut faces = BTreeMap::new();
                 let mut fields = Vec::new();
                 for (index, item) in items.iter().enumerate() {
@@ -1304,9 +1304,15 @@ impl<'a> Checker<'a> {
         if arms.is_empty() {
             return Err(Diagnostic::at("branch has no arms", span));
         }
-        let original_cases = self
-            .pattern_cases(&subject_type)
-            .ok_or_else(|| Diagnostic::at("branch subject needs a known type", subject.span))?;
+        let original_cases = self.pattern_cases(&subject_type).ok_or_else(|| {
+            Diagnostic::at(
+                format!(
+                    "branch subject needs a known type, found {}",
+                    crate::types::TypeScheme::mono(subject_type.clone())
+                ),
+                subject.span,
+            )
+        })?;
         let binding_cases = match &subject_type {
             Type::Named { .. } => self
                 .expanded_cases(&subject_type)
@@ -1382,16 +1388,26 @@ impl<'a> Checker<'a> {
     }
 
     fn pattern_cases(&self, typ: &Type) -> Option<Vec<Type>> {
-        self.finite_product_cases(typ, 0)
+        self.finite_product_cases(typ, 0, &mut BTreeSet::new())
     }
 
-    fn finite_product_cases(&self, typ: &Type, depth: usize) -> Option<Vec<Type>> {
+    fn finite_product_cases(
+        &self,
+        typ: &Type,
+        depth: usize,
+        seen: &mut BTreeSet<(SourceId, String)>,
+    ) -> Option<Vec<Type>> {
         let cases = match typ {
-            Type::Named { .. } if depth < 8 => {
+            Type::Named { module, name, .. } if depth < 8 => {
+                let key = (*module, name.clone());
+                if !seen.insert(key.clone()) {
+                    return Some(vec![typ.clone()]);
+                }
                 let mut cases = Vec::new();
                 for case in self.expanded_cases(typ)? {
-                    cases.extend(self.finite_product_cases(&case, depth + 1)?);
+                    cases.extend(self.finite_product_cases(&case, depth + 1, seen)?);
                 }
+                seen.remove(&key);
                 cases
             }
             Type::Named { .. } => vec![typ.clone()],
@@ -1400,14 +1416,14 @@ impl<'a> Checker<'a> {
                 Type::LoobeanConstant(BigUint::from(1u8)),
             ],
             Type::Void => Vec::new(),
-            Type::Var(_) => return None,
+            Type::Var(_) => vec![typ.clone()],
             Type::Cell(fields) if fields.len() == 1 => {
-                return self.finite_product_cases(&fields[0].typ, depth);
+                return self.finite_product_cases(&fields[0].typ, depth, seen);
             }
             Type::Cell(fields) => {
                 let mut rows = vec![Vec::new()];
                 for field in fields {
-                    let variants = self.finite_product_cases(&field.typ, depth)?;
+                    let variants = self.finite_product_cases(&field.typ, depth, seen)?;
                     let mut next = Vec::new();
                     for row in &rows {
                         for typ in &variants {
@@ -1795,16 +1811,37 @@ impl<'a> Checker<'a> {
         })
     }
 
-    fn expected_cell_fields(&self, typ: &Type, count: usize) -> Option<Vec<TypeField>> {
+    fn expected_cell_fields(
+        &self,
+        typ: &Type,
+        items: &[crate::ast::Item],
+    ) -> Option<Vec<TypeField>> {
+        let count = items.len();
+        let tag = items.first().and_then(|item| match &item.value.kind {
+            ExprKind::Literal(Literal::Term(term)) => Some(term.value.clone()),
+            ExprKind::Literal(Literal::Null) => Some(BigUint::default()),
+            ExprKind::Literal(Literal::Loobean(yes)) => Some(BigUint::from(u8::from(!yes))),
+            _ => None,
+        });
         match typ {
-            Type::Cell(fields) if fields.len() == count => Some(fields.clone()),
+            Type::Cell(fields)
+                if fields.len() == count
+                    && tag
+                        .as_ref()
+                        .is_none_or(|tag| constant_value(&fields[0].typ) == Some(tag)) =>
+            {
+                Some(fields.clone())
+            }
             Type::Named { .. } => self.expanded_cases(typ)?.iter().find_map(|case| {
                 if let Type::Cell(fields) = case
                     && fields.len() == count
+                    && tag
+                        .as_ref()
+                        .is_none_or(|tag| constant_value(&fields[0].typ) == Some(tag))
                 {
                     Some(fields.clone())
                 } else {
-                    None
+                    self.expected_cell_fields(case, items)
                 }
             }),
             _ => None,
@@ -2089,11 +2126,8 @@ impl<'a> Checker<'a> {
         if self.types_fit(&actual, &expected) {
             return Ok(expected);
         }
-        if matches!(actual, Type::Var(_)) || matches!(expected, Type::Var(_)) {
-            let typ = self.unifier.unify(&actual, &expected, span)?;
-            return Ok(self.unifier.normalize(&typ));
-        }
-        Err(type_mismatch(actual, expected, span))
+        let typ = self.unifier.unify(&actual, &expected, span)?;
+        Ok(self.unifier.normalize(&typ))
     }
 
     fn types_fit(&self, actual: &Type, expected: &Type) -> bool {
@@ -2179,17 +2213,6 @@ impl<'a> Checker<'a> {
 fn duplicate_name(name: &str, span: Span, previous: Span) -> Diagnostic {
     Diagnostic::at(format!("duplicate definition `{name}`"), span)
         .with_note("first definition", previous)
-}
-
-fn type_mismatch(actual: Type, expected: Type, span: Span) -> Diagnostic {
-    Diagnostic::at(
-        format!(
-            "type mismatch: expected {}, found {}",
-            TypeScheme::mono(expected),
-            TypeScheme::mono(actual)
-        ),
-        span,
-    )
 }
 
 fn constraint_mismatch(kind: ConstraintKind, typ: &Type, span: Span) -> Diagnostic {

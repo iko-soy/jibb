@@ -37,6 +37,10 @@ enum Command {
         file: PathBuf,
         #[arg(long, default_value = "main", help = "Entry definition to evaluate")]
         entry: String,
+        #[arg(long = "source-root", help = "Root for `/=` module imports")]
+        source_roots: Vec<PathBuf>,
+        #[arg(long, help = "Source prelude module to include")]
+        prelude: Option<PathBuf>,
     },
 }
 
@@ -63,27 +67,30 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     match cli.command {
         Command::Fmt { check, diff, files } => run_fmt(&files, check, diff),
-        Command::Run { file, entry } => run_program(&file, &entry),
+        Command::Run {
+            file,
+            entry,
+            source_roots,
+            prelude,
+        } => run_program(&file, &entry, &source_roots, prelude.as_deref()),
     }
 }
 
-fn run_program(file: &Path, entry: &str) -> ExitCode {
+fn run_program(
+    file: &Path,
+    entry: &str,
+    source_roots: &[PathBuf],
+    prelude: Option<&Path>,
+) -> ExitCode {
     let label = file.to_string_lossy();
-    let source = match fs::read_to_string(file) {
+    let _source = match fs::read_to_string(file) {
         Ok(source) => source,
         Err(error) => {
             eprintln!("jibb run: {label}: failed to read: {error}");
             return ExitCode::from(EXIT_TOOL);
         }
     };
-    let module = match jibb::parse_ast(&source) {
-        Ok(module) => module,
-        Err(error) => {
-            eprintln!("jibb run: {label}: {error}");
-            return ExitCode::from(EXIT_FORMATTING);
-        }
-    };
-    match jibb::evaluate(&module, entry) {
+    match jibb::loader::evaluate_path(file, entry, source_roots, prelude) {
         Ok(value) => {
             if let Err(error) = write_stdout(format!("{value}\n").as_bytes()) {
                 eprintln!("jibb run: failed to write standard output: {error}");
