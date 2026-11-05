@@ -40,6 +40,7 @@ pub enum Type {
         arguments: Vec<Type>,
     },
     Path(Vec<PathSegmentType>),
+    Union(Vec<Type>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -186,6 +187,11 @@ impl TypePrinter {
                     format!("({name} {arguments})")
                 }
             }
+            Type::Union(cases) => cases
+                .iter()
+                .map(|case| self.typ(case))
+                .collect::<Vec<_>>()
+                .join(" "),
             Type::Path(segments) => {
                 let segments = segments
                     .iter()

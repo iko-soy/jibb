@@ -228,6 +228,7 @@ pub enum MoldKind {
         constructor: Vec<String>,
         arguments: Vec<Mold>,
     },
+    Union(Vec<Mold>),
     Cell(Vec<MoldField>),
     Function {
         sample: Box<Mold>,
@@ -471,12 +472,15 @@ impl EraseSpans for Mold {
             MoldKind::Apply {
                 constructor: _,
                 arguments,
-            } => arguments.erase_spans(),
+            } => {
+                arguments.erase_spans();
+            }
             MoldKind::Cell(fields) => fields.erase_spans(),
             MoldKind::Function { sample, product } => {
                 sample.erase_spans();
                 product.erase_spans();
             }
+            MoldKind::Union(cases) => cases.erase_spans(),
         }
     }
 }

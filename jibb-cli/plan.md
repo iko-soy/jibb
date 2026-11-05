@@ -22,7 +22,7 @@ Contextual checking implemented: ordered pattern binding and finite-product exha
 
 Runtime implemented: shared arbitrary-precision nouns and computational cells, gates and constructors, closures, memoized lazy definitions with cycle detection, forward and mutually recursive gates, higher-order calls, pattern execution, record wings and changes, projection, local scopes, traces, and crashes. `jibb run FILE [--entry NAME]` always statically checks before evaluating and uses exit statuses 0, 1, and 2 as planned. All 100 Rust tests passed at that milestone.
 
-Private `raw-*.core` natives now implement constrained comparison, equality, arithmetic, and text operations, with source-level scheme tests. Ships use the `urbit-ob` library; dates and durations support Hoon's epoch, 64-bit seconds and fractional groups, normalization, and interpolation printing. All 105 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Module loading implemented: `/=` imports link with unique internal names, preserve recursive mold references during pattern coverage, resolve primitive molds, and support the actual source prelude with `--prelude`. Structural fitting now unifies nested variables, and tagged tuple inference selects cases by their leading literal and recursively through aliases. All 111 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. `/-` and `/%` imports remain follow-ups.
+Private `raw-*.core` natives now implement constrained comparison, equality, arithmetic, and text operations, with source-level scheme tests. Ships use the `urbit-ob` library; dates and durations support Hoon's epoch, 64-bit seconds and fractional groups, normalization, and interpolation printing. All 105 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Module loading implemented: `/=` imports link with unique internal names, preserve recursive mold references during pattern coverage, resolve primitive molds, and support the actual source prelude with `--prelude`. Structural fitting now unifies nested variables, and tagged tuple inference selects cases by their leading literal and recursively through aliases. All 111 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Hoon import support implemented: native `/-` and `/%` readers handle auras, records, `$%`/`$?`/`$^` unions, `$@`, references, recursive molds, and standard container shapes, with unsupported constructs rejected explicitly. All 114 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Remaining host inputs and full Hoon type-graph features are outside the supported subset.
 
 ## Architecture
 
@@ -55,6 +55,7 @@ src/
   native.rs       private pure native functions and their schemes
   literal.rs      ship, date, and duration encodings
   loader.rs       `/=` module linking and optional source prelude
+  hoon.rs         `/-` and `/%` Hoon mold and mark readers
   main.rs         the `jibb run` command
 ```
 
@@ -402,6 +403,6 @@ Keep runtime tests independent of the formatter. Run debug and release Cargo tes
 10. [x] Initial natives and `jibb run`, which always checks before evaluating.
 11. [ ] End-to-end goldens, documentation, Nix wiring, and full checks.
 12. [x] `/=` module loading and source prelude support.
-13. [ ] `/-` and `/%` imports and remaining host inputs.
+13. [x] `/-` and `/%` imports and remaining host inputs.
 
 Each step remains compilable and tested. Unsupported syntax or evaluation fails explicitly rather than silently changing semantics.

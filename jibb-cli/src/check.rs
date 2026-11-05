@@ -327,6 +327,14 @@ impl<'a> Checker<'a> {
                     allow_new_variables,
                 )?),
             }),
+            MoldKind::Union(cases) => Ok(Type::Union(
+                cases
+                    .iter()
+                    .map(|case| {
+                        self.resolve_mold(case, variables, allow_holes, allow_new_variables)
+                    })
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
             MoldKind::Path(segments) => Ok(Type::Path(
                 segments
                     .iter()
@@ -435,6 +443,12 @@ impl<'a> Checker<'a> {
             return true;
         }
         let result = match (left, right) {
+            (Type::Union(cases), _) => cases
+                .iter()
+                .any(|case| self.may_overlap(case, right, visiting)),
+            (_, Type::Union(cases)) => cases
+                .iter()
+                .any(|case| self.may_overlap(left, case, visiting)),
             (Type::Named { .. }, _) => self.expanded_cases(left).is_none_or(|cases| {
                 cases
                     .iter()
@@ -500,6 +514,9 @@ impl<'a> Checker<'a> {
     }
 
     fn expanded_cases(&self, typ: &Type) -> Option<Vec<Type>> {
+        if let Type::Union(cases) = typ {
+            return Some(cases.clone());
+        }
         let Type::Named {
             module,
             name,
@@ -884,6 +901,12 @@ impl<'a> Checker<'a> {
                     self.require_constraint_inner(&case, kind, span, visiting)?;
                 }
                 visiting.remove(&typ);
+                Ok(())
+            }
+            Type::Union(cases) => {
+                for case in cases {
+                    self.require_constraint_inner(case, kind, span, visiting)?;
+                }
                 Ok(())
             }
             Type::Cell(fields) if kind == ConstraintKind::GateFree => {
@@ -1398,6 +1421,13 @@ impl<'a> Checker<'a> {
         seen: &mut BTreeSet<(SourceId, String)>,
     ) -> Option<Vec<Type>> {
         let cases = match typ {
+            Type::Union(cases) => {
+                let mut result = Vec::new();
+                for case in cases {
+                    result.extend(self.finite_product_cases(case, depth, seen)?);
+                }
+                result
+            }
             Type::Named { module, name, .. } if depth < 8 => {
                 let key = (*module, name.clone());
                 if !seen.insert(key.clone()) {
@@ -2195,6 +2225,8 @@ impl<'a> Checker<'a> {
                 self.types_fit(actual_sample, expected_sample)
                     && self.types_fit(actual_product, expected_product)
             }
+            (Type::Union(cases), _) => cases.iter().all(|case| self.types_fit(case, expected)),
+            (_, Type::Union(cases)) => cases.iter().any(|case| self.types_fit(actual, case)),
             (Type::Named { .. }, _) => self
                 .expanded_cases(actual)
                 .is_some_and(|cases| cases.iter().all(|case| self.types_fit(case, expected))),

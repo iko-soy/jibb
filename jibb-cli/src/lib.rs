@@ -2,6 +2,7 @@ pub mod ast;
 pub mod check;
 mod eval;
 mod formatter;
+mod hoon;
 mod infer;
 mod literal;
 pub mod loader;

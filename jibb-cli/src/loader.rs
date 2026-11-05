@@ -2,7 +2,7 @@ use crate::{
     Diagnostic,
     ast::{
         Definition, DefinitionKind, Expr, ExprKind, ImportKind, Module, Mold, MoldKind, Sample,
-        SampleKind,
+        SampleKind, Span,
     },
     evaluate, parse_ast,
     value::Value,
@@ -24,6 +24,7 @@ pub fn evaluate_path(
         prelude,
         loading: Vec::new(),
         cache: BTreeMap::new(),
+        hoon_cache: BTreeMap::new(),
     };
     let module = loader.load_with_prelude(file)?;
     evaluate(&module, entry)
@@ -34,6 +35,7 @@ struct Loader<'a> {
     prelude: Option<&'a Path>,
     loading: Vec<PathBuf>,
     cache: BTreeMap<PathBuf, Module>,
+    hoon_cache: BTreeMap<PathBuf, Vec<Definition>>,
 }
 
 impl Loader<'_> {
@@ -71,36 +73,56 @@ impl Loader<'_> {
                 .map(|definition| definition.name.clone())
                 .collect::<BTreeSet<_>>();
             for import in &module.imports {
-                let ImportKind::Module { name, path } = &import.kind else {
-                    return Err(Diagnostic::at(
-                        "only `/=` module imports are supported",
-                        import.span,
-                    ));
-                };
-                if own_names.contains(name) || !faces.insert(name.clone()) {
-                    return Err(Diagnostic::at(
-                        format!("import face `{name}` shadows a name"),
-                        import.span,
-                    ));
-                }
-                if path
-                    == &[
-                        "lib".to_string(),
-                        "jibb".to_string(),
-                        "primitives".to_string(),
-                    ]
-                {
-                    linked.extend(native_molds());
-                    for definition in &mut module.definitions {
-                        rewrite_definition(definition, name, &BTreeMap::new());
+                match &import.kind {
+                    ImportKind::Library { name } => {
+                        if own_names.contains(name) || !faces.insert(name.clone()) {
+                            return Err(Diagnostic::at(
+                                format!("import face `{name}` shadows a name"),
+                                import.span,
+                            ));
+                        }
+                        let definitions = self.load_hoon_library(name, &key)?;
+                        linked.extend(definitions);
+                        for definition in &mut module.definitions {
+                            rewrite_definition(definition, name, &BTreeMap::new());
+                        }
                     }
-                    continue;
-                }
-                let imported_path = self.resolve(path, &key)?;
-                let imported = self.load(&imported_path)?;
-                linked.extend(prefix_definitions(&imported.definitions, name));
-                for definition in &mut module.definitions {
-                    rewrite_definition(definition, name, &BTreeMap::new());
+                    ImportKind::Mark { mark } => {
+                        if own_names.contains(mark) {
+                            return Err(Diagnostic::at(
+                                format!("mark type `{mark}` shadows a name"),
+                                import.span,
+                            ));
+                        }
+                        linked.extend(self.load_hoon_mark(mark, &key)?);
+                    }
+                    ImportKind::Module { name, path } => {
+                        if own_names.contains(name) || !faces.insert(name.clone()) {
+                            return Err(Diagnostic::at(
+                                format!("import face `{name}` shadows a name"),
+                                import.span,
+                            ));
+                        }
+                        if path
+                            == &[
+                                "lib".to_string(),
+                                "jibb".to_string(),
+                                "primitives".to_string(),
+                            ]
+                        {
+                            linked.extend(native_molds());
+                            for definition in &mut module.definitions {
+                                rewrite_definition(definition, name, &BTreeMap::new());
+                            }
+                            continue;
+                        }
+                        let imported_path = self.resolve(path, &key)?;
+                        let imported = self.load(&imported_path)?;
+                        linked.extend(prefix_definitions(&imported.definitions, name));
+                        for definition in &mut module.definitions {
+                            rewrite_definition(definition, name, &BTreeMap::new());
+                        }
+                    }
                 }
             }
             for definition in &mut module.definitions {
@@ -137,10 +159,98 @@ impl Loader<'_> {
             return Ok(candidate);
         }
         Err(Diagnostic::new(format!(
-            "cannot resolve module import /{} from {}",
+            "cannot resolve module import /{} from {} (roots: {:?})",
+            segments.join("/"),
+            importing.display(),
+            self.source_roots
+        )))
+    }
+    fn resolve_hoon(&self, segments: &[String], importing: &Path) -> Result<PathBuf, Diagnostic> {
+        if segments.is_empty() {
+            return Err(Diagnostic::new("empty Hoon import path"));
+        }
+        let relative = format!("{}.hoon", segments.join("/"));
+        for root in self.source_roots {
+            let candidate = root.join(&relative);
+            if candidate.is_file() {
+                return Ok(candidate);
+            }
+        }
+        let parent = importing.parent().unwrap_or_else(|| Path::new("."));
+        let candidate = parent.join(relative);
+        if candidate.is_file() {
+            return Ok(candidate);
+        }
+        Err(Diagnostic::new(format!(
+            "cannot resolve Hoon import /{} from {}",
             segments.join("/"),
             importing.display()
         )))
+    }
+
+    fn load_hoon_library(
+        &mut self,
+        name: &str,
+        importing: &Path,
+    ) -> Result<Vec<Definition>, Diagnostic> {
+        let path = self.resolve_hoon(&["sur".to_string(), name.to_string()], importing)?;
+        if let Some(definitions) = self.hoon_cache.get(&path) {
+            return Ok(definitions.clone());
+        }
+        if self.loading.contains(&path) {
+            return Err(Diagnostic::new(format!(
+                "Hoon import cycle at {}",
+                path.display()
+            )));
+        }
+        let source = fs::read_to_string(&path).map_err(|error| {
+            Diagnostic::new(format!("{}: failed to read: {error}", path.display()))
+        })?;
+        self.loading.push(path.clone());
+        let result = (|| {
+            let module = crate::hoon::read_sur(&source, name, Span::default())?;
+            let mut definitions = Vec::new();
+            for import in &module.imports {
+                definitions.extend(self.load_hoon_library(import, &path)?);
+            }
+            definitions.extend(module.definitions);
+            Ok(definitions)
+        })();
+        self.loading.pop();
+        if let Ok(ref definitions) = result {
+            self.hoon_cache.insert(path, definitions.clone());
+        }
+        result
+    }
+
+    fn load_hoon_mark(
+        &mut self,
+        mark: &str,
+        importing: &Path,
+    ) -> Result<Vec<Definition>, Diagnostic> {
+        let mark_name = mark.strip_prefix('%').unwrap_or(mark);
+        let path = self.resolve_hoon(&["mar".to_string(), mark_name.to_string()], importing)?;
+        if self.loading.contains(&path) {
+            return Err(Diagnostic::new(format!(
+                "Hoon mark import cycle at {}",
+                path.display()
+            )));
+        }
+        let source = fs::read_to_string(&path).map_err(|error| {
+            Diagnostic::new(format!("{}: failed to read: {error}", path.display()))
+        })?;
+        self.loading.push(path.clone());
+        let result = (|| {
+            let module = crate::hoon::read_mark(&source, mark_name, Span::default())?;
+            let mut definitions = Vec::new();
+            for import in &module.imports {
+                definitions.extend(self.load_hoon_library(import, &path)?);
+            }
+            definitions.extend(module.definitions);
+            Ok(definitions)
+        })();
+        self.loading.pop();
+        result
     }
 }
 
@@ -171,6 +281,13 @@ fn prefix_definitions(definitions: &[Definition], face: &str) -> Vec<Definition>
             definition
         })
         .collect()
+}
+
+pub(crate) fn rewrite_definition_for_hoon(
+    definition: &mut Definition,
+    renames: &BTreeMap<String, String>,
+) {
+    rewrite_definition(definition, "", renames);
 }
 
 fn rewrite_definition(definition: &mut Definition, face: &str, renames: &BTreeMap<String, String>) {
@@ -286,6 +403,11 @@ fn rewrite_mold(mold: &mut Mold, face: &str, renames: &BTreeMap<String, String>)
         MoldKind::Cell(fields) => {
             for field in fields {
                 rewrite_mold(&mut field.mold, face, renames);
+            }
+        }
+        MoldKind::Union(cases) => {
+            for case in cases {
+                rewrite_mold(case, face, renames);
             }
         }
         MoldKind::Function { sample, product } => {
