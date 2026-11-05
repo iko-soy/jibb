@@ -23,7 +23,7 @@ pub fn evaluate(module: &Module, entry: &str) -> Result<Value, Diagnostic> {
     let value = evaluator.force(&scope, entry, span)?;
     match value.value {
         Value::Noun(_) | Value::Cell(_) => Ok(value.value),
-        Value::Gate(_) | Value::Constructor(_) => Err(Diagnostic::at(
+        Value::Gate(_) | Value::Constructor(_) | Value::Native(_) => Err(Diagnostic::at(
             format!("entry point `{entry}` requires arguments"),
             span,
         )),
@@ -121,6 +121,15 @@ impl Evaluator<'_> {
         match &expression.kind {
             ExprKind::Literal(literal) => self.eval_literal(literal, expression.span),
             ExprKind::Reference(names) => {
+                if names.len() == 2
+                    && names.last().is_some_and(|name| name == "core")
+                    && let Some(native) = crate::native::NativeFunction::from_field(&names[0])
+                {
+                    return Ok(TypedValue {
+                        value: Value::Native(native),
+                        typ: crate::native::scheme(native, self.module.span.source).typ,
+                    });
+                }
                 let Some(base) = names.last() else {
                     return Err(Diagnostic::at("empty wing", expression.span));
                 };
@@ -333,18 +342,16 @@ impl Evaluator<'_> {
                 self.eval(body, scope, expected)
             }
             ExprKind::String(parts) => {
-                if parts.iter().any(|part| matches!(part, StringPart::Expr(_))) {
-                    return Err(Diagnostic::at(
-                        "runtime string interpolation is not implemented yet",
-                        expression.span,
-                    ));
-                }
                 let mut bytes = Vec::new();
                 for part in parts {
-                    let StringPart::Text(text) = part else {
-                        unreachable!()
-                    };
-                    bytes.extend(text);
+                    match part {
+                        StringPart::Text(text) => bytes.extend(text),
+                        StringPart::Expr(value) => {
+                            let span = value.span;
+                            let value = self.eval(value, scope, None)?;
+                            bytes.extend(self.print_atom(&value, scope, span)?);
+                        }
+                    }
                 }
                 Ok(TypedValue {
                     value: Value::Noun(Noun::bytes(&bytes)),
@@ -373,6 +380,69 @@ impl Evaluator<'_> {
         }
     }
 
+    fn print_atom(
+        &self,
+        value: &TypedValue,
+        scope: &Rc<Scope>,
+        span: Span,
+    ) -> Result<Vec<u8>, Diagnostic> {
+        let Value::Noun(noun) = &value.value else {
+            return Err(Diagnostic::at("interpolation expects an atom", span));
+        };
+        let Noun::Atom(atom) = noun.as_ref() else {
+            return Err(Diagnostic::at("interpolation expects an atom", span));
+        };
+        match &value.typ {
+            Type::Atom(aura) => format_aura_atom(atom, aura, span),
+            Type::AnyAtom => Ok(format_radix(atom, 10, 3, "").into_bytes()),
+            Type::Flag | Type::LoobeanConstant(_) => {
+                if *atom == BigUint::default() {
+                    Ok(b"%.y".to_vec())
+                } else if *atom == BigUint::from(1u8) {
+                    Ok(b"%.n".to_vec())
+                } else {
+                    Err(Diagnostic::at("invalid loobean atom", span))
+                }
+            }
+            Type::Constant(_) => {
+                if *atom == BigUint::default() {
+                    Ok(b"%$".to_vec())
+                } else if *atom == BigUint::from(1u8) {
+                    Ok(b"%|".to_vec())
+                } else {
+                    let bytes = atom.to_bytes_le();
+                    if bytes.first().is_some_and(u8::is_ascii_lowercase)
+                        && bytes.iter().all(|byte| {
+                            byte.is_ascii_lowercase() || byte.is_ascii_digit() || *byte == b'-'
+                        })
+                    {
+                        Ok(format!("%{}", String::from_utf8_lossy(&bytes)).into_bytes())
+                    } else {
+                        Ok(format!("%{}", format_radix(atom, 10, 3, "")).into_bytes())
+                    }
+                }
+            }
+            Type::NumericTerm(_) => Ok(format!("%{}", format_radix(atom, 10, 3, "")).into_bytes()),
+            Type::Named { .. } => {
+                let cases = self.expand_named(&value.typ, scope)?;
+                if cases.len() == 1 {
+                    let mut value = value.clone();
+                    value.typ = cases[0].clone();
+                    self.print_atom(&value, scope, span)
+                } else {
+                    Err(Diagnostic::at("interpolation needs one atom type", span))
+                }
+            }
+            _ => Err(Diagnostic::at(
+                format!(
+                    "interpolation has no printer for {}",
+                    crate::types::TypeScheme::mono(value.typ.clone())
+                ),
+                span,
+            )),
+        }
+    }
+
     fn eval_literal(&self, literal: &Literal, span: Span) -> Result<TypedValue, Diagnostic> {
         let (noun, typ) = match literal {
             Literal::Number(number) => (
@@ -397,11 +467,20 @@ impl Evaluator<'_> {
                 Type::LoobeanConstant(BigUint::from(u8::from(!yes))),
             ),
             Literal::Null => (Noun::null(), Type::Constant(BigUint::default())),
-            Literal::Ship(_) | Literal::Date(_) | Literal::Duration(_) => {
-                return Err(Diagnostic::at(
-                    "this literal family is not available to the evaluator yet",
-                    span,
-                ));
+            Literal::Ship(text) => {
+                let value = crate::literal::ship(text)
+                    .ok_or_else(|| Diagnostic::at("invalid ship literal", span))?;
+                (Noun::atom(value), Type::Atom(Aura::new("p")))
+            }
+            Literal::Date(text) => {
+                let value = crate::literal::date(text)
+                    .ok_or_else(|| Diagnostic::at("invalid date literal", span))?;
+                (Noun::atom(value), Type::Atom(Aura::new("da")))
+            }
+            Literal::Duration(text) => {
+                let value = crate::literal::duration(text)
+                    .ok_or_else(|| Diagnostic::at("invalid duration literal", span))?;
+                (Noun::atom(value), Type::Atom(Aura::new("dr")))
             }
         };
         Ok(TypedValue {
@@ -436,6 +515,7 @@ impl Evaluator<'_> {
                     typ: product,
                 })
             }
+            Value::Native(native) => crate::native::apply(native, &sample, span),
             Value::Noun(_) | Value::Cell(_) => {
                 Err(Diagnostic::at("attempted to call a noun", span))
             }
@@ -881,7 +961,7 @@ fn apply_value_steps(value: &Value, steps: &[Step]) -> Result<Value, Diagnostic>
                 Step::Tail if items.len() == 2 => items[1].clone(),
                 Step::Tail => Value::Cell(items[1..].to_vec()),
             },
-            Value::Gate(_) | Value::Constructor(_) => {
+            Value::Gate(_) | Value::Constructor(_) | Value::Native(_) => {
                 return Err(Diagnostic::new("record field path is not a cell"));
             }
         };
@@ -990,6 +1070,49 @@ fn unface_type(typ: &Type) -> Type {
         },
         _ => typ.clone(),
     }
+}
+
+fn format_aura_atom(atom: &BigUint, aura: &Aura, span: Span) -> Result<Vec<u8>, Diagnostic> {
+    match aura.0.as_str() {
+        "t" | "ta" | "tas" | "tD" => Ok(atom.to_bytes_le()),
+        "ud" => Ok(format_radix(atom, 10, 3, "").into_bytes()),
+        "ux" => Ok(format_radix(atom, 16, 4, "0x").into_bytes()),
+        "uv" => Ok(format_radix(atom, 32, 5, "0v").into_bytes()),
+        "p" => crate::literal::format_ship(atom)
+            .map(String::into_bytes)
+            .ok_or_else(|| Diagnostic::at("invalid ship atom", span)),
+        "da" => crate::literal::format_date(atom)
+            .map(String::into_bytes)
+            .ok_or_else(|| Diagnostic::at("invalid date atom", span)),
+        "dr" => crate::literal::format_duration(atom)
+            .map(String::into_bytes)
+            .ok_or_else(|| Diagnostic::at("invalid duration atom", span)),
+        "f" => {
+            if *atom == BigUint::default() {
+                Ok(b"%.y".to_vec())
+            } else if *atom == BigUint::from(1u8) {
+                Ok(b"%.n".to_vec())
+            } else {
+                Err(Diagnostic::at("invalid loobean atom", span))
+            }
+        }
+        _ => Err(Diagnostic::at(
+            format!("interpolation has no printer for @{}", aura.0),
+            span,
+        )),
+    }
+}
+
+fn format_radix(value: &BigUint, radix: u32, group: usize, prefix: &str) -> String {
+    let digits = value.to_str_radix(radix);
+    let mut result = String::from(prefix);
+    for (index, character) in digits.chars().enumerate() {
+        if index != 0 && (digits.len() - index).is_multiple_of(group) {
+            result.push('.');
+        }
+        result.push(character);
+    }
+    result
 }
 
 fn constant_value(typ: &Type) -> Option<&BigUint> {

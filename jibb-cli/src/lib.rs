@@ -3,7 +3,9 @@ pub mod check;
 mod eval;
 mod formatter;
 mod infer;
+mod literal;
 mod lower;
+mod native;
 pub mod types;
 pub mod value;
 

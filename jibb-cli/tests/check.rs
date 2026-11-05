@@ -356,6 +356,31 @@ fn checks_local_molds_and_restores_lexical_scopes() {
 }
 
 #[test]
+fn native_primitives_carry_static_constraints() {
+    let checked = check_source(
+        "++ inc |= n=A (raw-add.core n 1)\n++ compare |= [a=A b=A] (raw-gth.core a b)\n++ same-atom |= [a=A b=A] (raw-eq.core a b)\n",
+    )
+    .unwrap();
+    assert_eq!(
+        checked.values["inc"].to_string(),
+        "$-(A A) where A is an atom other than ?"
+    );
+    assert_eq!(
+        checked.values["compare"].to_string(),
+        "$-([a=A b=A] ?) where A is an atom"
+    );
+    assert_eq!(
+        checked.values["same-atom"].to_string(),
+        "$-([a=A b=A] ?) where A contains no gates"
+    );
+
+    let error = check_source("++ bad |= x=? (raw-add.core x 1)\n").unwrap_err();
+    assert!(error.message.contains("type mismatch"), "{error}");
+    let error = check_source("++ bad (raw-eq.core |=(x x) |=(y y))\n").unwrap_err();
+    assert!(error.message.contains("containing no gates"), "{error}");
+}
+
+#[test]
 fn unresolved_and_unsupported_features_fail_closed() {
     let error = check_source("+$ box [item=_]\n").unwrap_err();
     assert!(error.message.contains("unconstrained type hole"));

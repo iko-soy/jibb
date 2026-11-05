@@ -79,12 +79,52 @@ fn evaluates_constructors_units_and_lists() {
     assert_eq!(noun(source), cell(unit, list));
 }
 
+fn text_noun(text: &str) -> Rc<Noun> {
+    Rc::new(Noun::Atom(BigUint::from_bytes_le(text.as_bytes())))
+}
+
+#[test]
+fn evaluates_ship_date_and_duration_literals() {
+    assert_eq!(noun("++ main ~sampel-palnet\n"), atom(1_624_961_343));
+    assert_eq!(
+        noun("++ main ~s30\n"),
+        Rc::new(Noun::Atom(BigUint::from(30u32) << 64))
+    );
+    assert_eq!(noun("++ main ~2026.2.31\n"), noun("++ main ~2026.3.3\n"));
+    assert_eq!(
+        noun("++ main \"who={~sampel-palnet}\"\n"),
+        text_noun("who=~sampel-palnet")
+    );
+}
+
+#[test]
+fn evaluates_basic_string_interpolation() {
+    assert_eq!(noun("++ main \"n={42}\"\n"), text_noun("n=42"));
+    assert_eq!(noun("++ main \"x={0x1f}\"\n"), text_noun("x=0x1f"));
+    assert_eq!(noun("++ main \"b={%.y}\"\n"), text_noun("b=%.y"));
+}
+
 #[test]
 fn evaluates_higher_order_gates() {
     assert_eq!(
         noun("++ apply |= [f=$-(@ud @ud) x=@ud] (f x)\n++ id |= x=@ud x\n++ main (apply id 42)\n",),
         atom(42)
     );
+}
+
+#[test]
+fn evaluates_private_native_primitives() {
+    assert_eq!(noun("++ main (raw-add.core 40 2)\n"), atom(42));
+    assert_eq!(noun("++ main (raw-dec.core 42)\n"), atom(41));
+    assert_eq!(noun("++ main (raw-gth.core 2 1)\n"), atom(0));
+    assert_eq!(noun("++ main (raw-eq.core [1 2] [1 2])\n"), atom(0));
+
+    let source =
+        "+$ list |$ [A]\n  ~\n  [i=A t=(list A)]\n++ main (raw-tuba.core (raw-trip.core \"hi\"))\n";
+    assert_eq!(noun(source), atom(2));
+
+    let module = parse_ast("++ main (raw-dec.core 0)\n").unwrap();
+    assert!(evaluate(&module, "main").is_err());
 }
 
 #[test]

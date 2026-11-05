@@ -6,6 +6,7 @@ use crate::{
         Span, TermKind, TypedSegmentMold,
     },
     infer::Unifier,
+    native::NativeFunction,
     types::{
         Aura, ConstraintKind, PathSegmentType, QuantifiedVariable, Type, TypeField, TypeScheme,
         TypeVar,
@@ -1833,6 +1834,13 @@ impl<'a> Checker<'a> {
         span: Span,
         environment: &Environment,
     ) -> Result<Type, Diagnostic> {
+        if names.len() == 2
+            && names.last().is_some_and(|name| name == "core")
+            && let Some(native) = NativeFunction::from_field(&names[0])
+        {
+            let scheme = crate::native::scheme(native, self.module.span.source);
+            return Ok(self.unifier.instantiate(&scheme, span));
+        }
         let Some(name) = names.last() else {
             return Err(Diagnostic::at("empty wing", span));
         };

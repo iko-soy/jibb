@@ -20,7 +20,9 @@ Inference implemented: union-find unification with occurs checks and rigid capit
 
 Contextual checking implemented: ordered pattern binding and finite-product exhaustiveness, missing/covered arm diagnostics, record wings and changes, lists, units, pairs, constructors, `proj`, `unface`, and interpolation printer checks. Local molds resolve recursively with lexical scope cleanup; escaping local type names and host-dependent forms still fail closed. Representative type goldens now run in `tests/golden_check.rs`, and their record cases fixed wing resolution to read `x.p` as field `x` of `p`. All 92 Rust tests passed at that milestone.
 
-Runtime implemented: shared arbitrary-precision nouns and computational cells, gates and constructors, closures, memoized lazy definitions with cycle detection, forward and mutually recursive gates, higher-order calls, pattern execution, record wings and changes, projection, local scopes, traces, and crashes. `jibb run FILE [--entry NAME]` always statically checks before evaluating and uses exit statuses 0, 1, and 2 as planned. All 100 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Initial native functions, imports, application paths, runtime interpolation, and ship/date/duration evaluation remain follow-ups.
+Runtime implemented: shared arbitrary-precision nouns and computational cells, gates and constructors, closures, memoized lazy definitions with cycle detection, forward and mutually recursive gates, higher-order calls, pattern execution, record wings and changes, projection, local scopes, traces, and crashes. `jibb run FILE [--entry NAME]` always statically checks before evaluating and uses exit statuses 0, 1, and 2 as planned. All 100 Rust tests passed at that milestone.
+
+Private `raw-*.core` natives now implement constrained comparison, equality, arithmetic, and text operations, with source-level scheme tests. Ships use the `urbit-ob` library; dates and durations support Hoon's epoch, 64-bit seconds and fractional groups, normalization, and interpolation printing. All 105 Rust tests pass in debug and release modes, Clippy passes with warnings denied, and the native repository check passes. Module loading and source prelude support remain follow-ups.
 
 ## Architecture
 
@@ -395,7 +397,7 @@ Keep runtime tests independent of the formatter. Run debug and release Cargo tes
 7. [ ] Pattern coverage, union validation, type goldens, and static-checker regression tests.
 8. [x] Runtime nouns, scopes, literals, and references over checked modules only.
 9. [x] Gates, lazy definitions, calls, recursion, patterns, changes, traces, and crashes.
-10. [ ] Initial natives and `jibb run`, which always checks before evaluating.
+10. [x] Initial natives and `jibb run`, which always checks before evaluating.
 11. [ ] End-to-end goldens, documentation, Nix wiring, and full checks.
 12. [ ] Imports and additional literal/prelude coverage as separate spec-checked follow-ups.
 

@@ -1,5 +1,6 @@
 use crate::{
     ast::{Expr, MoldDefinition, Sample},
+    native::NativeFunction,
     types::Type,
 };
 use num_bigint::BigUint;
@@ -17,6 +18,7 @@ pub enum Value {
     Cell(Vec<Value>),
     Gate(Rc<GateValue>),
     Constructor(BigUint),
+    Native(NativeFunction),
 }
 
 #[derive(Clone, Debug)]
@@ -136,6 +138,7 @@ impl fmt::Display for Value {
             }
             Self::Gate(_) => formatter.write_str("<gate>"),
             Self::Constructor(tag) => write!(formatter, "<constructor %{tag}>"),
+            Self::Native(native) => write!(formatter, "<native {}>", native.field()),
         }
     }
 }
