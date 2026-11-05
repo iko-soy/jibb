@@ -42,9 +42,11 @@ jibb fmt FILE...          # format files in place
 jibb fmt                  # read standard input and write standard output
 jibb fmt --check FILE...  # report files that would change; exit 1
 jibb fmt --diff FILE...   # print unified diffs without writing
+jibb run FILE             # statically check and evaluate main
+jibb run FILE --entry NAME  # evaluate another entry definition
 ```
 
-Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser and formatter tests, including the repository's golden corpus when run from a checkout.
+Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
 
 ## Golden tests
 

@@ -334,6 +334,7 @@ fn checks_projection_unface_and_interpolation() {
 
     assert!(check_source("++ bad |= n=A \"{n}\"\n").is_err());
     assert!(check_source("++ bad |= p=[x=@ud] (proj p)\n").is_err());
+    check_source("++ main ^- [x=@ud] (proj p)\n++ p [x=42 y=2]\n").unwrap();
 }
 
 #[test]

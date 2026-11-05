@@ -1,11 +1,14 @@
 pub mod ast;
 pub mod check;
+mod eval;
 mod formatter;
 mod infer;
 mod lower;
 pub mod types;
+pub mod value;
 
 pub use check::check;
+pub use eval::evaluate;
 pub use formatter::format_source;
 
 use ast::{SourceId, Span};

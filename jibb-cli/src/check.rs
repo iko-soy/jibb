@@ -1057,7 +1057,11 @@ impl<'a> Checker<'a> {
                 };
                 let mut argument_types = Vec::new();
                 for (index, argument) in arguments.iter().enumerate() {
-                    let expected = expected_arguments.map(|fields| &fields[index].typ);
+                    let expected = if arguments.len() == 1 {
+                        Some(&resolved_sample)
+                    } else {
+                        expected_arguments.map(|fields| &fields[index].typ)
+                    };
                     argument_types.push(self.infer_expression(
                         argument,
                         expected,
@@ -1193,12 +1197,9 @@ impl<'a> Checker<'a> {
             }
             ExprKind::Tuple(items) => {
                 let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
-                let expected_fields = match &resolved_expected {
-                    Some(Type::Cell(fields)) if fields.len() == items.len() => {
-                        Some(fields.as_slice())
-                    }
-                    _ => None,
-                };
+                let expected_fields = resolved_expected
+                    .as_ref()
+                    .and_then(|typ| self.expected_cell_fields(typ, items.len()));
                 let mut faces = BTreeMap::new();
                 let mut fields = Vec::new();
                 for (index, item) in items.iter().enumerate() {
@@ -1211,7 +1212,7 @@ impl<'a> Checker<'a> {
                         )
                         .with_note("first field", previous));
                     }
-                    let expected_item = expected_fields.map(|fields| &fields[index].typ);
+                    let expected_item = expected_fields.as_ref().map(|fields| &fields[index].typ);
                     let typ =
                         self.infer_expression(&item.value, expected_item, variables, environment)?;
                     fields.push(TypeField {
@@ -1305,6 +1306,12 @@ impl<'a> Checker<'a> {
         let original_cases = self
             .pattern_cases(&subject_type)
             .ok_or_else(|| Diagnostic::at("branch subject needs a known type", subject.span))?;
+        let binding_cases = match &subject_type {
+            Type::Named { .. } => self
+                .expanded_cases(&subject_type)
+                .unwrap_or_else(|| original_cases.clone()),
+            _ => vec![subject_type.clone()],
+        };
         let mut remaining = original_cases.clone();
         let mut previous_patterns: Vec<&Pattern> = Vec::new();
         let result = expected
@@ -1342,9 +1349,14 @@ impl<'a> Checker<'a> {
                 ));
             }
             let mut arm_environment = environment.clone();
+            let binding_matching = binding_cases
+                .iter()
+                .filter(|case| self.pattern_match(&arm.pattern, case) != PatternMatch::None)
+                .cloned()
+                .collect::<Vec<_>>();
             self.bind_pattern(
                 &arm.pattern,
-                &matching,
+                &binding_matching,
                 &subject_type,
                 true,
                 &mut arm_environment,
@@ -1780,6 +1792,22 @@ impl<'a> Checker<'a> {
             name: name.to_string(),
             arguments: vec![element],
         })
+    }
+
+    fn expected_cell_fields(&self, typ: &Type, count: usize) -> Option<Vec<TypeField>> {
+        match typ {
+            Type::Cell(fields) if fields.len() == count => Some(fields.clone()),
+            Type::Named { .. } => self.expanded_cases(typ)?.iter().find_map(|case| {
+                if let Type::Cell(fields) = case
+                    && fields.len() == count
+                {
+                    Some(fields.clone())
+                } else {
+                    None
+                }
+            }),
+            _ => None,
+        }
     }
 
     fn pair_payload_type(&self, tag: &BigUint, typ: &Type) -> Option<Type> {
@@ -2391,7 +2419,12 @@ fn collect_dependencies(
                 collect_dependencies(&item.value, names, dependencies);
             }
         }
-        ExprKind::Change { edits, .. } => {
+        ExprKind::Change { target, edits } => {
+            if let Some(name) = target.last()
+                && names.contains(name)
+            {
+                dependencies.insert(name.clone());
+            }
             for edit in edits {
                 collect_dependencies(&edit.value, names, dependencies);
             }
@@ -2469,6 +2502,64 @@ impl Tarjan<'_> {
             self.groups.push(group);
         }
     }
+}
+
+pub(crate) fn resolve_mold_for_evaluation(
+    module: &Module,
+    mold: &Mold,
+    local_scopes: &[BTreeMap<String, MoldDefinition>],
+) -> Result<Type, Diagnostic> {
+    let mut checker = evaluation_checker(module, local_scopes)?;
+    let mut variables = BTreeMap::new();
+    checker.resolve_mold(mold, &mut variables, true, true)
+}
+
+pub(crate) fn resolved_mold_for_evaluation(
+    module: &Module,
+    name: &str,
+    local_scopes: &[BTreeMap<String, MoldDefinition>],
+) -> Result<ResolvedMold, Diagnostic> {
+    let checker = evaluation_checker(module, local_scopes)?;
+    checker
+        .resolved_mold(name)
+        .cloned()
+        .ok_or_else(|| Diagnostic::new(format!("unknown mold `{name}` during evaluation")))
+}
+
+fn evaluation_checker<'a>(
+    module: &'a Module,
+    local_scopes: &[BTreeMap<String, MoldDefinition>],
+) -> Result<Checker<'a>, Diagnostic> {
+    let mut checker = Checker::new(module);
+    checker.collect_scope()?;
+    let mold_names = checker
+        .mold_definitions
+        .keys()
+        .map(|name| (*name).to_string())
+        .collect::<Vec<_>>();
+    for name in mold_names {
+        let definition = checker.mold_definitions[name.as_str()].0.clone();
+        let span = checker.mold_definitions[name.as_str()].1;
+        let resolved = checker.resolve_mold_definition(&name, &definition, span)?;
+        checker.resolved_molds.insert(name, resolved);
+    }
+    checker.local_mold_definitions = local_scopes
+        .iter()
+        .map(|scope| {
+            scope
+                .iter()
+                .map(|(name, definition)| (name.clone(), (definition.clone(), module.span)))
+                .collect()
+        })
+        .collect();
+    checker.local_resolved_molds = local_scopes.iter().map(|_| BTreeMap::new()).collect();
+    for (index, scope) in local_scopes.iter().enumerate() {
+        for (name, definition) in scope {
+            let resolved = checker.resolve_mold_definition(name, definition, module.span)?;
+            checker.local_resolved_molds[index].insert(name.clone(), resolved);
+        }
+    }
+    Ok(checker)
 }
 
 #[cfg(test)]

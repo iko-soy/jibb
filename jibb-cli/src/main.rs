@@ -31,6 +31,13 @@ enum Command {
         #[arg(value_name = "FILE", help = "Files to format, or standard input")]
         files: Vec<PathBuf>,
     },
+    #[command(about = "Statically check and evaluate a Jibb entry point")]
+    Run {
+        #[arg(value_name = "FILE", help = "Jibb source file")]
+        file: PathBuf,
+        #[arg(long, default_value = "main", help = "Entry definition to evaluate")]
+        entry: String,
+    },
 }
 
 #[derive(Default)]
@@ -56,6 +63,39 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     match cli.command {
         Command::Fmt { check, diff, files } => run_fmt(&files, check, diff),
+        Command::Run { file, entry } => run_program(&file, &entry),
+    }
+}
+
+fn run_program(file: &Path, entry: &str) -> ExitCode {
+    let label = file.to_string_lossy();
+    let source = match fs::read_to_string(file) {
+        Ok(source) => source,
+        Err(error) => {
+            eprintln!("jibb run: {label}: failed to read: {error}");
+            return ExitCode::from(EXIT_TOOL);
+        }
+    };
+    let module = match jibb::parse_ast(&source) {
+        Ok(module) => module,
+        Err(error) => {
+            eprintln!("jibb run: {label}: {error}");
+            return ExitCode::from(EXIT_FORMATTING);
+        }
+    };
+    match jibb::evaluate(&module, entry) {
+        Ok(value) => {
+            if let Err(error) = write_stdout(format!("{value}\n").as_bytes()) {
+                eprintln!("jibb run: failed to write standard output: {error}");
+                ExitCode::from(EXIT_TOOL)
+            } else {
+                ExitCode::from(EXIT_SUCCESS)
+            }
+        }
+        Err(error) => {
+            eprintln!("jibb run: {label}: {error}");
+            ExitCode::from(EXIT_FORMATTING)
+        }
     }
 }
 
