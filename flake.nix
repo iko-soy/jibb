@@ -170,8 +170,8 @@
             '';
           } // extra);
 
-          # Every check that needs only urbit and Python, at once.
-          evalChecks = check "eval" "--group eval -j $NIX_BUILD_CORES" { };
+          # Every check that needs only urbit and Python, with bounded eval concurrency.
+          evalChecks = check "eval" "--group eval -j 2" { };
 
           # The checks that need a ship, on a writable copy of fakezod.
           shipChecks = check "ship" "--group ship" {
