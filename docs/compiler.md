@@ -20,7 +20,7 @@ The common checker retains `proj` actions alongside each checked definition. Eac
 
 - **One core, no Ford runes.** `urbit eval` runs the library as `=>  <this file>  <expression>`, and a ship builds it as `/lib/jibb.hoon`. So it can't import with `/-` or `/+`, and under `urbit eval` it can't scry. Anything from Clay, such as an imported module's text or a `/sur` file's type, is best passed in by the caller, which keeps every stage testable under eval.
 - **The standard library is the subject.** Under `urbit eval`, as on a ship, the library is built against `..zuse`: `hoon.hoon`, lull and zuse. It reads literals with Hoon's own parser, `nuck:so`. Hoon's type engine, `ut`, is there for milestone 2, and under eval `ride` compiles Hoon source, such as a `/sur` file without Ford runes, into a type, which tests can use in place of Clay's builds.
-- **The spec wins.** Where the file and the spec disagree, the spec is right, and the file's notes quote its words for each rule they implement. The repository spec records the decision to drop `$?`, pending synchronization to the Claude document.
+- **The spec wins.** Where the file and the spec disagree, the spec is right, and the file's notes quote its words for each rule they implement. The repository spec records the decision to drop `$?`.
 
 ## API
 

@@ -1,12 +1,13 @@
 # Jibb
 
-Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its design doc, [Jibb — an Elm-architecture UI language for Urbit](https://claude.ai/artifact/DMBr48qzi5z8hcwn2ccPBv), is the spec. Its copy in [docs/spec/](docs/spec/) records decisions the doc doesn't have yet, so until the doc is synced, that copy wins where it and the doc differ, and where this code and the spec disagree, the spec wins.
+Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its specification is [Jibb — an Elm-architecture UI language for Urbit](docs/spec/overview.md), with the remaining specification documents in [docs/spec/](docs/spec/). Where this code and the spec disagree, the spec wins.
 
 Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milestone 2, types and prelude, is in progress. The type checker and Hoon importer are partial. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and the brief for milestone 2.
 
 ## Layout
 
 - `jibb-dev/`: what app desks vendor: the `%jibb` mark, the compiler, the partial Hoon type reader and the beginning of the prelude; later the browser library.
+- `jibb-cli/`: the native Rust `jibb` executable and its tree-sitter grammar, for earth-side utilities.
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
@@ -20,16 +21,38 @@ The flake (`flake.nix`, pinned by `flake.lock`) builds the desks and runs every 
 
 ```
 nix build              # result/my-app, result/jibb, result/jibb-dev, result/jibb-fixtures: the desks
-nix flake check        # every check: the eval group and, on Linux, the ship group on a fresh fake ~zod
-nix develop            # a shell with urbit, python3 and click, for running the tools by hand
+nix build .#jibb       # result/bin/jibb: the native earth-side executable
+nix flake check        # every check: the CLI, eval group and, on Linux, the ship group on a fresh fake ~zod
+nix develop            # a shell with urbit, Python, click, Rust and tree-sitter
 nix build .#fakezod    # a freshly booted fake ~zod pier (Linux)
 ```
 
-Jibb has no native binary: what it ships is desks, Hoon and Jibb source that a ship builds. So `nix build` writes the four desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build.
+The default `nix build` writes the four desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build. The separate `jibb` package builds the native CLI without Urbit.
 
-`nix flake check` builds that too, then runs `tools/check --group eval` and, on Linux, `tools/check --group ship` against a copy of a fake ~zod it boots from the pill. Everything runs in the Nix sandbox without network, so a check can't pass because of something on your machine. Each group is one build; a failure prints the failing checks' output, and a passing build keeps every check's log in its output. On four CPUs it takes about 10 minutes, the two groups building side by side: under 3 minutes for the eval group (it took 18 before `tools/test-arms` replaced a script per suite) and 10 for the ship group. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
+`nix flake check` builds those and the CLI, runs the CLI's Rust tests, then runs `tools/check --group eval` and, on Linux, `tools/check --group ship` against a copy of a fake ~zod it boots from the pill. Everything runs in the Nix sandbox without network, so a check can't pass because of something on your machine. Each group is one build; a failure prints the failing checks' output, and a passing build keeps every check's log in its output. On four CPUs it takes about 10 minutes, the two groups building side by side: under 3 minutes for the eval group (it took 18 before `tools/test-arms` replaced a script per suite) and 10 for the ship group. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
 
-Limits: the ship checks need Linux, since `tools/ship` finds the ship's processes in `/proc`, so on macOS `nix flake check` runs only the eval group. Only `x86_64-linux` has been tried; the flake also declares `aarch64-linux` and `aarch64-darwin`, the other platforms nixpkgs builds vere for.
+Limits: the ship checks need Linux, since `tools/ship` finds the ship's processes in `/proc`, so on macOS `nix flake check` runs only the CLI and eval group. Only `x86_64-linux` has been tried; the flake also declares `aarch64-linux` and `aarch64-darwin`, the other platforms nixpkgs builds vere for.
+
+## Earth-side CLI
+
+The Rust executable needs neither a ship nor `urbit`. Build it with `nix build .#jibb`, or run it from a Rust toolchain with `cargo run --manifest-path jibb-cli/Cargo.toml -- <arguments>`.
+
+```
+jibb fmt FILE...          # format files in place
+jibb fmt                  # read standard input and write standard output
+jibb fmt --check FILE...  # report files that would change; exit 1
+jibb fmt --diff FILE...   # print unified diffs without writing
+jibb check FILE...        # statically check files without evaluating them
+jibb check -              # read standard input and check it
+jibb check FILE --source-root DIR
+jibb check FILE --prelude FILE
+jibb run FILE             # statically check and evaluate main
+jibb run FILE --entry NAME  # evaluate another entry definition
+jibb run FILE --source-root DIR  # resolve `/=` module imports under DIR
+jibb run FILE --prelude FILE   # include a source prelude module
+```
+
+Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `check` parses, links and statically checks source without evaluating it, reporting all requested files' errors and producing no output on success. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. Both commands resolve `/=` imports from `--source-root` directories, and `--prelude` links an optional source prelude. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
 
 ## Golden tests
 

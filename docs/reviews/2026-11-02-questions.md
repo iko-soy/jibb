@@ -6,7 +6,7 @@ Questions 16 to 28 are language or spec rulings. Under the ground rules they are
 
 ## Scope and process
 
-**1. Where should the review land?** It is on `claude/project-thread-7prdcx` now.
+**1. Where should the review land?** It is on a review branch now.
 
 - a) Push it to `master`, as development.md's "push straight to master" rule says.
 - b) Open a pull request.
@@ -315,14 +315,14 @@ On 2026-11-03 Montelot had the GitHub Actions job removed. The checks run before
 
 **Answer:** a *(chosen)*
 
-**42. Until the Claude design doc is synced, which spec wins?** (A104)
+**42. Until the source design doc is synced, which spec wins?** (A104)
 
 - a) The repository copy, with a "synced" column in decisions.md.
-- b) The Claude doc, as development.md says now.
+- b) The source design doc, as development.md says now.
 
 **Answer:** a *(chosen)*
 
-**43. Who syncs the Claude design doc with the repository's decisions?**
+**43. Who syncs the source design doc with the repository's decisions?**
 
 - a) Me, if you give me edit access to it.
 - b) @iko.

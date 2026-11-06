@@ -6,7 +6,7 @@ How to work on Jibb: the rules the plan sets, how to set up a machine, and what 
 
 From the plan's Setup and ground rules, and from @iko:
 
-- **The spec wins.** Where code and spec disagree, the spec stands until it changes. Until the Claude doc is synced with the repository's decisions, the spec is the copy in [spec/](spec/); the Synced column in [spec/decisions.md](spec/decisions.md) shows which rows the doc has.
+- **The spec wins.** Where code and spec disagree, the spec stands until it changes. The spec is the copy in [spec/](spec/); the Synced column in [spec/decisions.md](spec/decisions.md) shows which rows the doc has.
 - **Language changes are agreed first** and recorded in the Decisions tab, before the code changes.
 - **Questions go to @iko**, as comments on the doc, on the words they're about. While one is open, follow the most likely reading, mark it "(doc question)" in the library's notes, and list it in [open-questions.md](open-questions.md). Where an error points is not a doc question: the library's section 2.0 settles it.
 - **Every Jibb code block in the doc is a golden test**, and each stage's output is printed and compared. The doc labels its Jibb blocks `jibb`; `tools/doc-blocks` checks that each has its case.
@@ -18,9 +18,9 @@ The source-backed generic-union guard is the suite `tests/lib/jibb-union-source.
 
 ## Setting up a machine
 
-The tools need Python 3 and `urbit` (vere) on `PATH`; the ship tools also need a fake `~zod` and click. Everything so far ran with vere 4.6 on Linux.
+The ship tools need Python 3 and `urbit` (vere) on `PATH`, plus a fake `~zod` and click. The native CLI needs a Rust toolchain and Cargo; regenerating its parser also needs Node and the tree-sitter CLI. Everything so far ran with vere 4.6 on Linux.
 
-With Nix (and flakes), `nix develop` gives a shell with vere 4.6, Python 3 and click, as the flake pins them, and sets `$JIBB_CLICK`. `nix build .#fakezod` boots a fake `~zod` from the pinned brass pill in about half a minute; copy it to where `tools/ship` expects it:
+With Nix (and flakes), `nix develop` gives a shell with vere 4.6, Python 3, click, Rust and tree-sitter, as the flake pins them, and sets `$JIBB_CLICK`. `nix build .#fakezod` boots a fake `~zod` from the pinned brass pill in about half a minute; copy it to where `tools/ship` expects it:
 
 ```
 mkdir -p /root/urbit
@@ -41,7 +41,7 @@ Without Nix, on a usual machine:
 3. Get click, the command-line client for a ship's `conn.sock`, from [urbit/tools](https://github.com/urbit/tools), at `/root/src/tools/pkg/click/click` or wherever `--click` or `$JIBB_CLICK` says.
 4. Optionally, clone [urbit/urbit](https://github.com/urbit/urbit) to read Arvo's source. `vendor/SOURCES.txt` names the commit the vendored files come from.
 
-In a Claude cloud container, the network blocks urbit.org, bootstrap.urbit.org, nixos.org's installer and GitHub's release downloads. When Nix is already installed, as it was on 2026-11-02, the flake does all of the below: it fetches nixpkgs from channels.nixos.org, click with git and the pill from media.githubusercontent.com, which the network allows. Otherwise, this worked on 2026-10-29, and has to be redone in each new container:
+In a restricted cloud container, the network blocks urbit.org, bootstrap.urbit.org, nixos.org's installer and GitHub's release downloads. When Nix is already installed, as it was on 2026-11-02, the flake does all of the below: it fetches nixpkgs from channels.nixos.org, click with git and the pill from media.githubusercontent.com, which the network allows. Otherwise, this worked on 2026-10-29, and has to be redone in each new container:
 
 ```
 # Nix, single-user
@@ -70,7 +70,8 @@ git clone https://github.com/urbit/tools /root/src/tools
 
 | Tool | What it does |
 | --- | --- |
-| `tools/check` | Runs every check in this table, or a group (`--group eval` or `ship`), or some by name: see [Before pushing](#before-pushing) |
+| `tools/check` | Runs every check in this table, or a group (`--group eval`, `native` or `ship`), or some by name: see [Before pushing](#before-pushing) |
+| `jibb-cli` | `cargo test --manifest-path jibb-cli/Cargo.toml` tests the native executable, parser, formatter and golden corpus; `cargo run --manifest-path jibb-cli/Cargo.toml -- fmt` runs the formatter |
 | `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
 | `tools/test-arms` | Runs the `test-` arms of the `tests/lib` suites under `urbit eval`, each with the subject Ford would give it on the `jibb-dev` desk: every suite, or those named or matched by a glob, as `tools/test-arms jibb-store 'jibb-program-*'`; `--shard I/N` runs the I-th of N balanced shards; `--list` prints the suites and their arms; `--report` and `--update` print or rewrite a golden-report suite's report. See [The test suites](#the-test-suites) |
 | `tools/clay-fixtures` | Syncs `my-app` and `jibb-fixtures`, builds their example `/sur` files and marks through Clay, checks selected mold and mark projections and the full checker, and records Ford and mark subject shapes on the fake ship |
@@ -191,13 +192,14 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 
 ```
 tools/check                  # every check; it exits 0 only when all pass
-tools/check --group eval     # only the checks that need no ship
+tools/check --group eval     # only the checks that need just urbit and Python
+tools/check --group native   # only the Rust CLI's checks
 nix flake check              # the same checks in the Nix sandbox, on a fresh fake ~zod
 ```
 
-`tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. A new suite in `tests/lib` needs no new check: `arms-1` to `arms-8` run every suite's arms, in shards of about equal time, and a slow suite's cost belongs in `COSTS` in `tools/test-arms`, which balances them. The eval group runs several checks at a time (`-j`, by default one per CPU), the slowest first. The ship group, `ship-selftest`, `ship-test`, `check-commit`, `clay-fixtures` and `check-my-app`, then runs one check at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'arms-*'`. To run one suite under eval, use `tools/test-arms <suite>`, as `tools/test-arms jibb-todo-full`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
+`tools/check` runs every check the repo has. Their one list is `CHECKS` in the script, so a new check goes there, as well as in the table above; `tools/check --list` prints it with each check's command. A new suite in `tests/lib` needs no new check: `arms-1` to `arms-8` run every suite's arms, in shards of about equal time, and a slow suite's cost belongs in `COSTS` in `tools/test-arms`, which balances them. The eval and native groups run several checks at a time (`-j`, by default one per CPU), the slowest first. The ship group runs `ship-selftest`, `ship-test`, `check-commit`, `clay-fixtures`, `check-my-app` and `probes-ship` one at a time on the ship `tools/ship` talks to; `tools/check` starts it if it isn't running and stops it again afterwards. Name checks, or globs, to run only those: `tools/check golden 'arms-*'`. To run one suite under eval, use `tools/test-arms <suite>`, as `tools/test-arms jibb-todo-full`. A failing check's output follows its FAIL line; `-v` prints every check's output, and `--logs DIR` keeps it all.
 
-There is no CI, so nothing runs these checks for you: run `tools/check` or `nix flake check` before every push. `nix flake check` needs nothing but Nix, since it builds the desks and runs both groups in the Nix sandbox, the ship group (Linux only) on a fake ~zod it boots itself; see the [README](../README.md#building-and-checking-with-nix).
+There is no CI, so nothing runs these checks for you: run `tools/check` or `nix flake check` before every push. `nix flake check` needs nothing but Nix, since it builds the desks and CLI and runs all three groups in the Nix sandbox, the ship group (Linux only) on a fake ~zod it boots itself; see the [README](../README.md#building-and-checking-with-nix).
 
 `ship-selftest` matters most when `tools/ship` changed, and `check-commit` when the mark or the desks changed, but `tools/check` runs both every time. The self-test leaves fixture files on the `jibb-dev` desk, and `ship-test`, which runs after it, puts the real ones back.
 

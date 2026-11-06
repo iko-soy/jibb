@@ -1,0 +1,27 @@
+[package]
+name = "jibb-cli"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+license = "MIT"
+
+[lib]
+name = "jibb"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jibb"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+num-bigint = "0.4"
+tree-sitter = "0.27.1"
+ibig = "0.3.6"
+urbit-ob = "0.2"
+
+[build-dependencies]
+cc = "1.2"
+
+[dev-dependencies]
+tempfile = "3.23"

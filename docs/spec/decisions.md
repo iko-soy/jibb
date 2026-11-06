@@ -6,7 +6,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 
 ## Decisions
 
-Until the Claude doc is synced with this copy, this copy is the spec (review question 42). Synced says whether the doc's Decisions tab has the row as written here. A row decided by 2026-10-29 or undated was in the doc when `spec/` was copied from it on 2026-10-30, and is unchanged. A row decided on or after 2026-10-31 is only here. A row of 2026-10-30 says Check: the copy had that day's answers to the 12 grammar questions, but other rows of that day were added or edited here afterwards ([docs/README.md](../README.md#the-spec)), and nobody has compared them with the doc yet.
+This copy is the spec (review question 42). Synced says whether the doc's Decisions tab has the row as written here. A row decided by 2026-10-29 or undated was in the doc when `spec/` was copied from it on 2026-10-30, and is unchanged. A row decided on or after 2026-10-31 is only here. A row of 2026-10-30 says Check: the copy had that day's answers to the 12 grammar questions, but other rows of that day were added or edited here afterwards ([docs/README.md](../README.md#the-spec)), and nobody has compared them with the doc yet.
 
 Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews/2026-11-02-syntax-review.md): S1 with its step 1, S2, S4 to S7, S11 to S13 and S15. The general checker implements S1 step 1 through ordinary face-aware inference.
 
@@ -17,7 +17,7 @@ Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews
 | Cells | A single-item cell `[a]` is `a`; an empty `[]` is an error, in expressions and molds | Decided 2026-10-30 | Check |
 | Numeric terms | `%` and a decimal as Hoon writes it: `%1.000`; `%1000` and `%007` are errors | Decided 2026-10-30 | Check |
 | Strings | Hoon's escapes: `\\`, `\"`, `\{`, and `\` with two lowercase hex digits; a string and each `{…}` close on the line they open; `::` in a string is text | Decided 2026-10-30 | Check |
-| Spacing | Style, kept by the formatter: one or more spaces between items, and spaces allowed after an opener, before a closer and at the end of a line; faces, puns and typed path segments take no spaces; a rune is followed by one | Decided 2026-10-30 | Check |
+| Spacing | The parser still accepts one or more spaces between items and spaces after an opener, before a closer and at line end; faces, puns and typed path segments take no spaces. Canonical output indents by two spaces, uses two spaces after `++`/`+$` and their names, after `|=`, `^-`, `?-`, `~&` and `|$`, and between a rune's inline children, one space between ordinary items, and no inner bracket padding or automatic alignment | Decided 2026-11-04 | No |
 | Path literals | `/posts/~zod` is an expression: `pathlit` is an operand | Decided 2026-10-30 | Check |
 | Crash | `!!` is an operand, so `f !!` and `~[!!]` need no parentheses | Decided 2026-10-30 | Check |
 | Sample names | Every bare name in a sample binds, at any depth: `\|= [a=@ b]` binds `a` and `b` | Decided 2026-10-30 | Check |
@@ -100,7 +100,7 @@ Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews
 | Access | Every page is private to the owner; public pages come in a later version | Decided 2026-10-29 | Yes |
 | Tests | `test-…` arms under `/ui/tests`, run by `-jibb!test`; the JavaScript side and differential tests under Node from jibb-dev | Decided 2026-10-29 | Yes |
 | Editor support | Tree-sitter grammar | Decided | Yes |
-| Formatter | One canonical layout: a cast whose expression takes the deeper lines ends the line it belongs to; every `?-` begins its own line, with its arms at its depth where the rest of a body allows that | Decided 2026-11-03 | No |
+| Formatter | Canonical 80-column code, counting indentation; comments and unbreakable forms may overflow. Inline what fits, otherwise break outer constructs recursively. Format short gates inline, tall `\|=` wherever valid and wide `\|=(...)` only in operand positions; remove redundant inline grouping, otherwise preserve surface forms, literal spellings and import order. Multiline bodies begin below definition/gate/arm headers, except a short cast goes below its owner and a multiline cast ends the owner's line with its expression below. Multiline calls use `(head` with one argument per deeper line; other openers stand alone and open forms have no closers. `?-` starts its own line; inline arm bodies follow exactly two spaces. Single-mold `+$` definitions stay inline and union cases go below. Output has no empty blank lines or forced separators: each internal blank run becomes one bare `::` at the surrounding indent, edge runs disappear, existing bare `::` lines remain, and comment-text lines count as declarations rather than whitespace and do not suppress conversion. Comments use canonical indentation, exactly two spaces precede a trailing `::`, the gap after `::` and the text are preserved, and comments are never wrapped or relocated; comments prevent joining their containing construct. Leave no trailing spaces; a nonempty file has exactly one final newline. This supersedes the earlier rule that documentation examples change only when necessary | Decided 2026-11-04 | No |
 | Name | Jibb | Decided | Yes |
 
 ## Settled milestone 2 questions

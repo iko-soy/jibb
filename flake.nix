@@ -4,7 +4,7 @@
   inputs = {
     # A channel tarball rather than github:NixOS/nixpkgs, so the flake
     # also fetches where GitHub's archive downloads are blocked, as in a
-    # Claude cloud container.  flake.lock pins the exact release.
+    # restricted cloud container.  flake.lock pins the exact release.
     # nixos-unstable has vere 4.6, which the tools were written against.
     nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
     # click, which tools/ship formats its requests to the ship with.
@@ -38,17 +38,26 @@
         ./tools/urbit_eval.py
         ./tools/noun.py
       ];
-      # What the checks read: the desks, tools, spec tabs and review
+      cliFiles = fs.unions [
+        ./jibb-cli/Cargo.toml
+        ./jibb-cli/Cargo.lock
+        ./jibb-cli/build.rs
+        ./jibb-cli/grammar.js
+        ./jibb-cli/src
+        ./jibb-cli/tests
+      ];
+      # What the checks read: the desks, CLI, tools, spec tabs and review
       # regression corpus. Other documentation does not rerun checks.
       checkFiles = fs.unions [
-        deskFiles ./tools ./docs/spec
+        deskFiles cliFiles ./tools ./docs/spec
         ./docs/reviews/2026-11-03-milestone-2-probes
       ];
       source = fileset: fs.toSource { root = ./.; inherit fileset; };
+      cliSource = fs.toSource { root = ./jibb-cli; fileset = cliFiles; };
 
       perSystem = pkgs:
         let
-          inherit (pkgs) python3 urbit;
+          inherit (pkgs) python3 urbit cargo rustc rustfmt clippy tree-sitter nodejs;
           isLinux = pkgs.stdenv.hostPlatform.isLinux;
 
           click = pkgs.stdenvNoCC.mkDerivation {
@@ -133,6 +142,17 @@
             };
           };
 
+          jibb = pkgs.rustPlatform.buildRustPackage {
+            pname = "jibb-cli";
+            version = "0.1.0";
+            src = cliSource;
+            cargoLock.lockFile = ./jibb-cli/Cargo.lock;
+            meta = {
+              description = "The Jibb command-line interface";
+              mainProgram = "jibb";
+            };
+          };
+
           # A check: tools/check run on the repo with the given arguments.
           check = name: args: extra: pkgs.stdenvNoCC.mkDerivation ({
             name = "jibb-check-${name}";
@@ -170,17 +190,18 @@
         in
         {
           packages = {
-            inherit desks click;
+            inherit desks click jibb;
             default = desks;
           } // lib.optionalAttrs isLinux { inherit fakezod; };
 
           checks = {
             inherit desks;
+            jibb-cli = jibb;
             eval = evalChecks;
           } // lib.optionalAttrs isLinux { ship = shipChecks; };
 
           devShells.default = pkgs.mkShell {
-            packages = [ python3 urbit click ];
+            packages = [ python3 urbit click cargo rustc rustfmt clippy tree-sitter nodejs ];
             # tools/ship looks for click here; the pier stays
             # /root/urbit/zod unless $JIBB_PIER says otherwise.
             JIBB_CLICK = lib.getExe click;
