@@ -1,0 +1,7 @@
+++ wrong-face: call's sample and argument types do not unify
+/tests/golden/split-types-recursive-sample-wrong-face/source.jibb:6:40: called gate has type $-([first=@t second=@p] A)
+++ wrong-face |= [first=@t second=@p] (wrong-face [other=first second=second])
+                                       ^
+/tests/golden/split-types-recursive-sample-wrong-face/source.jibb:6:51: argument has type [other=@t second=@p]
+++ wrong-face |= [first=@t second=@p] (wrong-face [other=first second=second])
+                                                  ^

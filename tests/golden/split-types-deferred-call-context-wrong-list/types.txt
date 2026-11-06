@@ -1,0 +1,7 @@
+++ wrong-list: list item does not fit its expected type
+/tests/golden/split-types-deferred-call-context-wrong-list/source.jibb:7:29: expected item has type @t
+++ wrong-list ^- (list @t) (local-id ~[~zod])
+                            ^
+/tests/golden/split-types-deferred-call-context-wrong-list/source.jibb:7:40: list item has type @p
+++ wrong-list ^- (list @t) (local-id ~[~zod])
+                                       ^

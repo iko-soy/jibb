@@ -1,0 +1,4 @@
+origin types-arithmetic-proj-qath
+target value flag
+keep value flag
+keep value project-increment

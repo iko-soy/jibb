@@ -1,0 +1,4 @@
+source: split from inline-pattern-tag-name-any-arm, preserving the original source lines
+tests: the independent first diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

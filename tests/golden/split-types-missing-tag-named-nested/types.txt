@@ -1,0 +1,13 @@
+++ nested: msg has no case `%submitt`
+/tests/golden/split-types-missing-tag-named-nested/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-missing-tag-named-nested/source.jibb:2:3: expected union has type msg
+  [%typed text=@t]
+  ^
+/tests/golden/split-types-missing-tag-named-nested/source.jibb:14:14: expected union has type msg
+++ nested ^- wrapped [%wrapper %submitt]
+             ^
+/tests/golden/split-types-missing-tag-named-nested/source.jibb:14:32: tag literal has type %submitt
+++ nested ^- wrapped [%wrapper %submitt]
+                               ^

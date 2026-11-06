@@ -1,0 +1,12 @@
+(module
+  (value 22:1 on-pair
+    (gate 22:12
+      (cell 22:15
+        (face 22:16 d (aura 22:18 @dr))
+        (face 22:22 n (aura 22:24 @ud)))
+      (branch 22:29
+        (tuple 22:32 (wing 22:33 d) (wing 22:35 n))
+        (arm 23:3
+          (cell 23:3 (lit 23:4 0) (lit 23:6 0))
+          (lit 23:9 1))
+        (arm 24:3 (any 24:3) (lit 24:5 2))))))

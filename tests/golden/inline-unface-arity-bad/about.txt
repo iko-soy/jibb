@@ -1,4 +1,4 @@
 source: docs/spec/grammar.md, Expressions, Unface: "Like `proj`, it is an operation the checker handles by type, not a gate"
 tests: unface takes exactly one argument: two are an error at the call, and none, (unface), is an error at its parenthesis.
 expect: parses
-expect-types: a partial inference report: both are errors at the call
+expect-types: full checker reports the first error; independent split cases retain the other checks

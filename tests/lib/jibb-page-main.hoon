@@ -1,7 +1,8 @@
 ::  Static and direct data-page kind checks, without rendering or execution.
-/+  jibb, jibb-import
+/+  jibb, jibb-import, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  sur  %txt  /my-app/sur/todo/hoon
 /*  action  %txt  /my-app/mar/todo-action/hoon
 /*  todos  %txt  /my-app/mar/todos/hoon
@@ -24,6 +25,7 @@
 /*  pure-load  %txt  /tests/type-page-main/pure-load/txt
 /*  hand-built-load  %txt  /tests/type-page-main/hand-built-load/txt
 /*  typed-load  %txt  /tests/type-page-main/typed-load/txt
+/*  typed-mismatch  %txt  /tests/type-page-main/typed-mismatch/txt
 /*  diff-load  %txt  /tests/type-page-main/diff-load/txt
 |%
 ++  text
@@ -95,11 +97,24 @@
   ?:  ?=(%& -.bad)  ~[(weld (trip label) ": accepted")]
   ~
 ::
+::  Valid page variants have a closed main matching the prelude page type,
+::  regardless of how their load gate or constructor is written.
+++  page-main-accept
+  |=  [label=@t at=path src=@t externals=iexternals:jibb marks=imark-externals:jibb modules=jbundle:jibb prepared=iprelude:jibb]
+  ^-  (list tape)
+  =/  checked=jfile-detailed-result:jibb
+    (page-main-detailed at src externals marks modules prepared)
+  ?:  ?=(%| -.checked)
+    ~[(weld (trip label) (weld ": rejected: " (trip message.p.checked)))]
+  ?.  (page-type-closed:jibb values.iface.p.checked `iface.prepared)
+    ~[(weld (trip label) ": main was not recognized as a page")]
+  ~
+::
 ++  page-main-errors
-  |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t todo-api=@t todo-island=@t blog-sur=@t posts=@t blog-api=@t card=@t about=@t blog-index=@t index=@t ctor-page=@t negatives=(list [label=@t src=@t])]
+  |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t todo-api=@t todo-island=@t blog-sur=@t posts=@t blog-api=@t card=@t about=@t blog-index=@t index=@t ctor-page=@t valid-variants=(list [label=@t src=@t]) negatives=(list [label=@t src=@t])]
   ^-  (list tape)
   =/  prepared=(unit iprelude:jibb)
-    (prepare-prelude-with-internal:jibb public private)
+    (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~["page prelude did not prepare"]
   =/  inputs=[marks=imark-externals:jibb externals=iexternals:jibb]
     (page-main-reader-inputs sur action todos update item blog-sur posts)
@@ -125,52 +140,33 @@
     ==
   =/  failures=(list tape)  (zing positives)
   ?^  failures  failures
-  =/  at=path  /ui/index/jibb
-  =/  checked-result=jfile-detailed-result:jibb
-    (page-main-detailed at index externals.inputs marks.inputs modules u.prepared)
-  ?:  ?=(%| -.checked-result)  ~["index disappeared before evidence controls"]
-  =/  checked=ifile:jibb  iface.p.checked-result
-  ?~  graph.checked  ~["index graph disappeared before evidence controls"]
-  =/  parsed  (parse:jibb at index)
-  ?:  ?=(%| -.parsed)  ~["index source no longer parses"]
-  =/  main=(unit def:jibb)  (program-main-def:jibb defs.p.parsed)
-  ?~  main  ~["index main definition is missing"]
-  =/  parts=(unit [load=term view=term])  (page-main-parts:jibb u.main)
-  ?~  parts  ~["index page parts are missing"]
-  =/  others=(list irequest-evidence:jibb)
-    (skim requests.u.graph.checked |=(r=irequest-evidence:jibb !&(=(api-at.r /ui/api/todo/jibb) =(%todos name.r))))
-  =/  missing=irequest-graph:jibb  u.graph.checked(requests others)
-  =/  resolved=ijimports:jibb
-    =/  found=(unit ifile:jibb)
-      =/  api=jfile-detailed-result:jibb
-        (page-main-detailed /ui/api/todo/jibb todo-api externals.inputs marks.inputs modules u.prepared)
-      ?:  ?=(%| -.api)  ~
-      `iface.p.api
-    ?~  found  ~
-    ~[[%todo u.found]]
-  ?.  ?=([* ~] resolved)  ~["todo API evidence control did not check"]
-  ?:  (page-main-closed:jibb u.parts defs.p.parsed values.checked `iface.u.prepared resolved missing)
-    ~["unknown request evidence passed data-page checking"]
-  =/  store=(list tape)
-    (page-main-negative 'store path' /ui/stores/about/jibb about externals.inputs marks.inputs modules u.prepared)
-  ?^  store  store
+  =/  variants=(list tape)
+    (zing (turn valid-variants |=(c=[label=@t src=@t] (page-main-accept label.c /ui/index/jibb src.c externals.inputs marks.inputs modules u.prepared))))
+  ?^  variants  variants
+  =/  relocated=jfile-detailed-result:jibb
+    (page-main-detailed /ui/stores/about/jibb about externals.inputs marks.inputs modules u.prepared)
+  ?:  ?=(%| -.relocated)  ~[(weld "static page under stores rejected: " (trip message.p.relocated))]
+  ?.  =(%static-page kind.p.relocated)  ~["stores directory changed the static page kind"]
   (zing (turn negatives |=(c=[label=@t src=@t] (page-main-negative label.c /ui/index/jibb src.c externals.inputs marks.inputs modules u.prepared))))
 ::
 ++  test-page-main
   ^-  tang
   =/  hand-parsed  (parse:jibb /ui/index/jibb (text hand-built-load))
   ?:  ?=(%| -.hand-parsed)  ~[leaf+"hand-built load fixture does not parse"]
-  =/  negatives=(list [label=@t src=@t])
-    :~  ['wrong static message' (text wrong-static)]
-        ['arbitrary main' (text arbitrary-main)]
-        ['page alias' (text page-alias)]
+  =/  valid-variants=(list [label=@t src=@t])
+    :~  ['page alias' (text page-alias)]
         ['indirect load' (text indirect-load)]
         ['pure load' (text pure-load)]
         ['hand-built load' (text hand-built-load)]
         ['typed load' (text typed-load)]
         ['diff load' (text diff-load)]
     ==
+  =/  negatives=(list [label=@t src=@t])
+    :~  ['wrong static message' (text wrong-static)]
+        ['arbitrary main' (text arbitrary-main)]
+        ['typed reply does not fit view' (text typed-mismatch)]
+    ==
   =/  failures=(list tape)
-    (page-main-errors prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text todo-api) (text todo-island) (text blog-sur) (mark-text posts) (text blog-api) (text card) (text about) (text blog-index) (text index) (text ctor-page) negatives)
+    (page-main-errors prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text todo-api) (text todo-island) (text blog-sur) (mark-text posts) (text blog-api) (text card) (text about) (text blog-index) (text index) (text ctor-page) valid-variants negatives)
   (turn failures |=(reason=tape leaf+reason))
 --

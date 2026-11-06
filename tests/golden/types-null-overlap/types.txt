@@ -1,5 +1,4 @@
-partial inference; module not checked
-+$ collide: overlapping cases; mold not checked
+module mold collide has overlapping cases
 /tests/golden/types-null-overlap/source.jibb:2:3: first union case
   ~
   ^

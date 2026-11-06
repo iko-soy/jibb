@@ -1,0 +1,2 @@
+site /tests/golden/split-types-change-wing-unknown-outer/source.jibb:15:36
+min-sites 2

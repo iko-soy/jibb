@@ -1,0 +1,4 @@
+origin types-recursive-gate
+target value value-b
+keep value value-a
+keep value value-b

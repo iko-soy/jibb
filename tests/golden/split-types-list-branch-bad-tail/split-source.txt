@@ -1,0 +1,3 @@
+origin types-list-branch
+target value bad-tail
+keep value bad-tail

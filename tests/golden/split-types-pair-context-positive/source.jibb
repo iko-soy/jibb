@@ -1,0 +1,32 @@
++$ spacing
+  %s0
+  %s1
+  %s2
+  %s3
++$ extent
+  [%fill n=@ud]
+  %shrink
++$ attribute
+  [%gap spacing]
+  [%pad spacing]
+  [%width extent]
+
+
+
+
+++ one ^- attribute gap+%s2
+++ equiv ^- attribute [%gap %s2]
+++ attributes ^- (list attribute) ~[gap+%s2 pad+%s3 width+[%fill 1]]
+++ gap-structural ^- [@tas @tas] gap+%s2
+++ nested ^- attribute width+[%fill 1]
+
+
+
+
+++ noun-pair ^- [* *] gap+%s2
+++ atom-pair ^- [@ta @tas] gap+%s2
+
+
+
+
+

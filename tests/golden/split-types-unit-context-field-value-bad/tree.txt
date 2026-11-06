@@ -1,0 +1,17 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (mold 7:1 record
+    (cell 7:11
+      (face 7:12 u
+        (apply 7:14 unit (ref 7:20 msg)))
+      (face 7:25 xs
+        (apply 7:28 list
+          (apply 7:34 unit (aura 7:40 @t))))))
+  (value 20:1 field-value-bad
+    (cast 20:20
+      (ref 20:23 record)
+      (tuple 20:30
+        (unit 20:31 (lit 20:32 %bad))
+        (list 20:37
+          (unit 20:39 (str 20:40 "hi")))))))

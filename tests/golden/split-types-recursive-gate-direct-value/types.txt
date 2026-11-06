@@ -1,0 +1,7 @@
+++ direct-value: non-gate value `direct-value` depends on itself through the cycle direct-value -> direct-value
+/tests/golden/split-types-recursive-gate-direct-value/source.jibb:21:4: definition in cycle
+++ direct-value direct-value
+   ^
+/tests/golden/split-types-recursive-gate-direct-value/source.jibb:21:17: `direct-value` depends on `direct-value` here
+++ direct-value direct-value
+                ^

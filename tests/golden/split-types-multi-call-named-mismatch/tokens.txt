@@ -1,0 +1,30 @@
+10:1 glyph ++
+10:4 name named
+10:10 glyph |=
+10:13 glyph [
+10:14 tight name label
+10:19 tight glyph =
+10:20 tight aura @t
+10:23 name ship
+10:27 tight glyph =
+10:28 tight aura @p
+10:30 tight glyph ]
+10:32 glyph [
+10:33 tight name label
+10:39 name ship
+10:43 tight glyph ]
+38:1 NEWLINE
+38:1 glyph ++
+38:4 name named-mismatch
+38:19 glyph (
+38:20 tight name named
+38:26 glyph [
+38:27 tight name other
+38:32 tight glyph =
+38:33 tight str "hi"
+38:38 name ship
+38:42 tight glyph =
+38:43 tight lit ~zod
+38:47 tight glyph ]
+38:48 tight glyph )
+38:49 NEWLINE

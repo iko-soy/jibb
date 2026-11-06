@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Verify that isolated type-error cases preserve their original source and fixtures."""
+
+import argparse
+from pathlib import Path
+import re
+import sys
+
+ROOT = Path(__file__).resolve().parent.parent
+HEAD = re.compile(r'^  \((mold|value) (\d+):(\d+) ([^\s()]+)', re.M)
+NAME = re.compile(r'^[a-z0-9][a-z0-9.-]*$')
+IGNORED = {'about.txt', 'source.jibb', 'tokens.txt', 'tree.txt', 'types.txt',
+           'split-source.txt', 'type-contract.txt'}
+
+
+def inputs(folder):
+    return {p.relative_to(folder): p.read_bytes() for p in folder.rglob('*')
+            if p.is_file() and p.name not in IGNORED}
+
+
+def check(manifest, golden):
+    entries = [line.split() for line in manifest.read_text(encoding='utf-8').splitlines()]
+    if len(entries) < 3 or len(entries[0]) != 2 or entries[0][0] != 'origin':
+        raise ValueError('expected origin, target, and keep entries')
+    origin = entries[0][1]
+    if not NAME.fullmatch(origin):
+        raise ValueError('invalid origin case')
+    if len(entries[1]) != 3 or entries[1][0] != 'target':
+        raise ValueError('invalid target')
+    target = tuple(entries[1][1:])
+    keep = set()
+    for entry in entries[2:]:
+        if len(entry) != 3 or entry[0] != 'keep' or entry[1] not in ('mold', 'value'):
+            raise ValueError('invalid keep entry')
+        key = tuple(entry[1:])
+        if key in keep:
+            raise ValueError('duplicate keep entry')
+        keep.add(key)
+    if target not in keep:
+        raise ValueError('target must be retained')
+    original = golden / origin
+    lines = (original / 'source.jibb').read_text(encoding='utf-8').splitlines(keepends=True)
+    tree = (original / 'tree.txt').read_text(encoding='utf-8')
+    defs = [(m.group(1), m.group(4), int(m.group(2))) for m in HEAD.finditer(tree)]
+    keys = [(kind, name) for kind, name, _ in defs]
+    if not defs or len(keys) != len(set(keys)) or not keep <= set(keys):
+        raise ValueError('origin definitions do not match the manifest')
+    retained = set(range(1, defs[0][2]))
+    for i, (kind, name, start) in enumerate(defs):
+        if (kind, name) in keep:
+            end = defs[i+1][2] if i+1 < len(defs) else len(lines)+1
+            retained.update(range(start, end))
+    wanted = ''.join(line if i in retained else ('\n' if line.endswith('\n') else '')
+                     for i, line in enumerate(lines, 1))
+    if (manifest.parent / 'source.jibb').read_text(encoding='utf-8') != wanted:
+        raise ValueError('masked source differs from its original')
+    if inputs(original) != inputs(manifest.parent):
+        raise ValueError('import or fixture differs from its original')
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('--dir', default=str(ROOT / 'tests/golden'), help='golden case directory')
+    args = ap.parse_args()
+    golden = Path(args.dir)
+    failures = 0
+    manifests = sorted(golden.glob('*/split-source.txt'))
+    for manifest in manifests:
+        try:
+            check(manifest, golden)
+        except (OSError, UnicodeError, ValueError) as exc:
+            print(f'FAIL  {manifest.parent.name}: {exc}', file=sys.stderr)
+            failures += 1
+    print(f'{len(manifests)} split type cases: {failures} invalid')
+    return 1 if failures else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -1,0 +1,11 @@
+module kind: library
++$ msg: msg
++$ alias: msg
++$ maybe: (maybe A)
+++ call: $-($-(@t M) M)
+++ call-ship: $-($-(@p M) M)
+++ later-context: msg
+++ named-alias: msg
+++ generic-context: (maybe @t)
+++ generic-right-ship: (maybe @p)
+++ existing-no-context: $-(@t msg)

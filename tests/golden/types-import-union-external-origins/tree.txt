@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 left /ui/left)
+  (jibb 2:1 right /ui/right)
+  (value 3:1 bad
+    (cast 3:8 (ref 3:11 msg.right) (lit 3:21 %wrong))))

@@ -1,0 +1,13 @@
+++ invalid: reply has no case `%missing`
+/tests/golden/split-types-union-pattern-result-controls-invalid/source.jibb:4:4: expected union has type reply
++$ reply
+   ^
+/tests/golden/split-types-union-pattern-result-controls-invalid/source.jibb:5:3: expected union has type reply
+  %yes
+  ^
+/tests/golden/split-types-union-pattern-result-controls-invalid/source.jibb:11:24: expected union has type reply
+++ invalid |= a=msg ^- reply
+                       ^
+/tests/golden/split-types-union-pattern-result-controls-invalid/source.jibb:13:15: tag literal has type %missing
+    [%text v] %missing
+              ^

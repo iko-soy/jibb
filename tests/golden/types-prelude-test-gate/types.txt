@@ -1,0 +1,7 @@
+++ bad: types do not unify
+/tests/golden/types-prelude-test-gate/source.jibb:2:9: expected type has type A where A contains no gates
+++ bad (test same-item same-item)
+        ^
+/tests/golden/types-prelude-test-gate/source.jibb:2:14: actual type has type $-(@ud @ud)
+++ bad (test same-item same-item)
+             ^

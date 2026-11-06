@@ -1,0 +1,4 @@
+source: split from types-missing-tag-context, preserving the original source lines
+tests: the independent items diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

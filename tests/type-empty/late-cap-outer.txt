@@ -1,0 +1,6 @@
+++ probe-outer |= xs=(list A)
+  ++ inspect |= ys=(list A)
+    ?- ys
+      ~ !!
+      [item rest] ^- !! item
+  (inspect xs)

@@ -1,0 +1,7 @@
+++ wrong-message: union payload has type [@dr @p], but `%wait` requires [gap=@dr msg=@t]
+/tests/golden/split-types-prelude-cmd-wrong-message/source.jibb:10:21: expected [gap=@dr msg=@t]
+++ wrong-message ^- (cmd @t) [%wait ~s30 ~zod]
+                    ^
+/tests/golden/split-types-prelude-cmd-wrong-message/source.jibb:10:37: payload has type [@dr @p]
+++ wrong-message ^- (cmd @t) [%wait ~s30 ~zod]
+                                    ^

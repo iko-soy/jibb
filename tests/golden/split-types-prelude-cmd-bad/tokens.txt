@@ -1,0 +1,14 @@
+5:1 glyph ++
+5:4 name bad
+5:8 glyph ^-
+5:11 glyph (
+5:12 tight name cmd
+5:16 aura @t
+5:18 tight glyph )
+5:20 glyph [
+5:21 tight lit %go
+5:25 name url
+5:28 tight glyph =
+5:29 tight lit ~zod
+5:33 tight glyph ]
+5:34 NEWLINE

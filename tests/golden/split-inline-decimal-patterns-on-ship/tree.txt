@@ -1,0 +1,8 @@
+(module
+  (value 7:1 on-ship
+    (gate 7:12
+      (face 7:15 s (aura 7:17 @p))
+      (branch 7:20
+        (wing 7:23 s)
+        (arm 8:3 (lit 8:3 0) (lit 8:5 %zod))
+        (arm 9:3 (any 9:3) (lit 9:5 %other))))))

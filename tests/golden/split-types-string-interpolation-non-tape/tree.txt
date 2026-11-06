@@ -1,0 +1,6 @@
+(module
+  (value 14:1 non-tape
+    (gate 14:13
+      (face 14:16 x
+        (apply 14:18 list (aura 14:24 @t)))
+      (str 14:28 (wing 14:30 x)))))

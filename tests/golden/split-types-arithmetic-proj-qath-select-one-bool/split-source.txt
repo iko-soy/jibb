@@ -1,0 +1,4 @@
+origin types-arithmetic-proj-qath
+target value select-one-bool
+keep value select-one
+keep value select-one-bool

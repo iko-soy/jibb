@@ -1,0 +1,4 @@
+++ ignored: type hole needs a determined type
+/tests/golden/split-types-hole-local-boundary-ignored/source.jibb:5:14: unresolved type hole
+  ++ id |= y=_ y
+             ^

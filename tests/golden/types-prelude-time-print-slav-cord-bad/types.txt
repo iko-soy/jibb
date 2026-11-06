@@ -1,0 +1,7 @@
+++ wrong: inline gate result does not unify with @ta: @t versus @ta
+/tests/golden/types-prelude-time-print-slav-cord-bad/source.jibb:1:20: actual type has type @t
+++ wrong (slav %ud "100")
+                   ^
+/tests/golden/types-prelude-time-print-slav-cord-bad/source.jibb:1:11: call context has type [@tas @ta]
+++ wrong (slav %ud "100")
+          ^

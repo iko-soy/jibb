@@ -1,0 +1,4 @@
+source: Milestone 2 review, import-check.hoon I8-overlap-ket: imported $^ molds with overlapping cases are rejected.
+tests: A used imported $^ mold with overlapping headless cell cases is rejected by the full checker at its use site.
+expect: parses
+expect-types: full checker result

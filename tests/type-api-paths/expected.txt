@@ -30,4 +30,13 @@ wrong path: API path analysis requires /ui/api/<agent>.jibb
 missing prelude: API path analysis needs the prepared prelude
 private import: the prelude internal module is private
 indirect private import: the prelude internal module is private
+/ui/local.jibb:1:1: imports /lib/jibb/internal.jibb here
+/= secret /lib/jibb/internal
+^
 cycle: import cycle at /ui/aa/jibb
+/ui/bb.jibb:1:1: imports /ui/aa.jibb here
+/= aa /ui/aa
+^
+/ui/aa.jibb:1:1: imports /ui/bb.jibb here
+/= bb /ui/bb
+^

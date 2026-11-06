@@ -1,7 +1,8 @@
 ::  Path-declaration evidence retains sources, scope and reader-derived graphs.
-/+  jibb, jibb-import
+/+  jibb, jibb-import, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  sur  %txt  /my-app/sur/todo/hoon
 /*  action  %txt  /my-app/mar/todo-action/hoon
 /*  todos  %txt  /my-app/mar/todos/hoon
@@ -21,14 +22,16 @@
   (text (skip lines |=(line=@t =('/-' (end [3 2] line)))))
 ++  synthetic-evidence-status
   ^-  @t
-  ::  A deliberately partial prelude preserves names even when inference fails.
-  =/  public=@t  '++ forbidden (missing "x")\0a+$ hidden (missing @t)\0a'
-  =/  prepared=(unit iprelude:jibb)  (prepare-prelude:jibb public)
-  ?~  prepared  'partial prelude did not prepare'
-  ?.  (lien values.u.prepared |=(x=term =(%forbidden x)))  'unavailable value not reserved'
-  ?.  ?=(~ (ienv-lookup:jibb %forbidden values.iface.u.prepared))  'forbidden value unexpectedly inferred'
-  ?.  (lien molds.u.prepared |=(x=term =(%hidden x)))  'unavailable mold not reserved'
-  ?.  ?=(~ (find-jibb-mold:jibb %hidden iface.u.prepared))  'hidden mold unexpectedly inferred'
+  :: Use a checked prelude while retaining the scope collision controls.
+  =/  invalid=@t  '++ forbidden (missing "x")\0a+$ hidden (missing @t)\0a'
+  ?^  (prepare-prelude:jibb invalid)  'invalid prelude unexpectedly prepared'
+  =/  public=@t  (cat 3 prelude '\0a++ forbidden |= x=@t x\0a+$ hidden @t\0a')
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  ?~  prepared  'checked prelude did not prepare'
+  ?.  (lien values.u.prepared |=(x=term =(%forbidden x)))  'checked value not reserved'
+  ?.  ?=(^ (ienv-lookup:jibb %forbidden values.iface.u.prepared))  'checked value missing'
+  ?.  (lien molds.u.prepared |=(x=term =(%hidden x)))  'checked mold not reserved'
+  ?.  ?=(^ (find-jibb-mold:jibb %hidden iface.u.prepared))  'checked mold missing'
   =/  api=@t  '/= dep /ui/dep\0a/% %todo\0a+$ paths [%items /items todo]\0a'
   =/  dep=@t  '/= leaf /ui/leaf\0a++ value thing.leaf\0a'
   =/  leaf=@t  '++ thing "x"\0a'
@@ -158,7 +161,11 @@
   ?.  =(typ.i.t.parameters.u.out [%atom %ta])  'second source-ordered aura changed'
   ?.  =(fold.u.out `expected-fold)  'nonzero diff mark tag noun or spelling changed'
   ?.  =(reply-sample.u.pair [%atom %t])  'facts full sample wrong'
-  ?.  ?=(~ (api-request-parts:jibb `ev %changes))  'multi-diff fold should be unsupported'
+  =/  changes=(unit iapi-request-parts:jibb)  (api-request-parts:jibb `ev %changes)
+  ?~  changes  'multi-diff request parts unavailable'
+  =/  expected-multi=itype:jibb
+    [%fn [%cell [%union ~[[%cell [%const [%term %tas %delta '%delta']] [%atom %ud]] [%cell [%const [%term %tas %second '%second']] [%atom %p]]] ~ ~ ~] [%atom %t]] [%atom %t]]
+  ?.  =(fold.u.changes `expected-multi)  'multi-diff tagged fold type wrong'
   ?.  ?=(~ (api-request-parts:jibb `ev %missing))  'missing case accepted'
   ?.  ?=(~ (api-request-parts:jibb ~ %plain))  'missing evidence accepted'
   =/  dup=iapi-path-evidence:jibb  ev(paths [path.u.plain paths.ev])
@@ -173,7 +180,7 @@
 ++  real-evidence-status
   |=  [prelude=@t internal=@t sur=@t action=@t todos=@t update=@t item=@t api=@t]
   ^-  @t
-  =/  prepared  (prepare-prelude-with-internal:jibb prelude internal)
+  =/  prepared  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  'prelude did not prepare'
   =/  todo=type  -:(ride -:!>(..zuse) sur)
   =/  subject=type  [%cell [%face %todo todo] -:!>(..zuse)]

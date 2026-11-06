@@ -1,0 +1,18 @@
+origin types-nested-shallow-preserve
+target value accept
+keep mold attribute
+keep mold envelope
+keep mold event
+keep mold extent
+keep value accept
+keep value call
+keep value cast-call
+keep value constructor
+keep value direct
+keep value grouped-call
+keep value list
+keep value nested-call
+keep value number-id
+keep value plain
+keep value simple-call
+keep value singleton

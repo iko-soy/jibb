@@ -1,0 +1,16 @@
+++ outer |= bound
+  ++ search |= n
+    ?- (lth n bound)
+    %.y (search (add n 1))
+    %.n n
+  (search 0)
+++ number-ok (outer 3)
+++ hex-ok (outer 0x3)
+++ written |= bound=A
+  ++ search |= n
+    ?- (lth n bound)
+    %.y (search (add n 1))
+    %.n n
+  (search 0)
+++ written-number (written 3)
+++ written-hex (written 0x3)

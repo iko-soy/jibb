@@ -1,4 +1,4 @@
 source: Grammar, Modules: "Molds and values have separate namespaces, told apart by position: `todo-action.todo` is a mold, `poke.todo` its command helper, and `todos.todo` a mold and a request."
 tests: An imported poke-only API whose mark `full` names a mold, beside a value `++ full`. The two names are in separate namespaces, so this is not a name conflict; the poke-only check stops at the extra value, which it does not support.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker reports the first error; independent split cases retain the other checks

@@ -1,0 +1,7 @@
+++ wrong: inline gate result does not unify with (list @tD): @t versus (list @tD)
+/tests/golden/types-prelude-text-cass-cord-bad/source.jibb:1:16: actual type has type @t
+++ wrong (cass "hi")
+               ^
+/tests/golden/types-prelude-text-cass-cord-bad/source.jibb:1:11: call context has type (list @tD)
+++ wrong (cass "hi")
+          ^

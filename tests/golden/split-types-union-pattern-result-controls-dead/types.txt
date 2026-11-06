@@ -1,0 +1,7 @@
+++ dead: branch arm is covered by earlier arms
+/tests/golden/split-types-union-pattern-result-controls-dead/source.jibb:17:5: covering arm
+    %clear ~
+    ^
+/tests/golden/split-types-union-pattern-result-controls-dead/source.jibb:18:5: covered arm
+    %clear ~
+    ^

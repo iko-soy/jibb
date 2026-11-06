@@ -1,0 +1,7 @@
+++ empty-mask: capital `B` cannot be fixed to @t
+/tests/golden/split-types-local-error-cast-empty-mask/source.jibb:41:13: capital
+  ++ d |= y=B ^- @t y
+            ^
+/tests/golden/split-types-local-error-cast-empty-mask/source.jibb:41:21: forcing expression
+  ++ d |= y=B ^- @t y
+                    ^

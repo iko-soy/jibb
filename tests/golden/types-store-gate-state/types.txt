@@ -1,0 +1,8 @@
+module kind: store
++$ state: [callback=$-(@t @t)]
++$ poke: %set
+++ main: [init=[callback=$-(@t @t)] update=*]
+++ init: [callback=$-(@t @t)]
+++ update: $-([a=%set s=[callback=$-(@t @t)]] [callback=$-(@t @t)])
+++ state: $-($-([callback=$-(@t @t)] A) (ask A)) (generated)
+++ poke: $-([%set $-((unit @t) A)] (cmd A)) (generated)

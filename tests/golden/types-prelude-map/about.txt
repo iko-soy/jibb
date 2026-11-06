@@ -1,0 +1,4 @@
+source: Overview, Prelude; Hoon 135 map mold.
+tests: The checked source-backed prelude retains map identity and its gate-free key constraint.
+expect: parses
+expect-types: checks

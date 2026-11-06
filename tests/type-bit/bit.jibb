@@ -1,0 +1,2 @@
+/= internal /lib/jibb/internal
+++ not |= args=[@ @ @] (bit-not.internal args)

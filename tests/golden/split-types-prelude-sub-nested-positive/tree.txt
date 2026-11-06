@@ -1,0 +1,48 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %idle) (const 3:3 %busy)))
+  (value 7:1 direct
+    (cast 7:11
+      (apply 7:14 ask (ref 7:19 msg))
+      (group 7:24
+        (call 7:25 (wing 7:25 pure) (lit 7:30 %idle)))))
+  (value 8:1 watch
+    (cast 8:10
+      (apply 8:13 sub (ref 8:18 msg))
+      (tuple 8:23
+        (lit 8:24 %watch)
+        (group 8:31
+          (call 8:32 (wing 8:32 pure) (lit 8:37 %idle))))))
+  (value 9:1 watch-typed
+    (cast 9:16
+      (apply 9:19 sub (ref 9:24 msg))
+      (tuple 9:29
+        (lit 9:30 %watch)
+        (group 9:37
+          (call 9:38
+            (wing 9:38 pure)
+            (group 9:43
+              (cast 9:44 (ref 9:47 msg) (lit 9:51 %idle))))))))
+  (value 10:1 watch-cord
+    (cast 10:15
+      (apply 10:18 sub (aura 10:23 @t))
+      (tuple 10:27
+        (lit 10:28 %watch)
+        (group 10:35
+          (call 10:36 (wing 10:36 pure) (str 10:41 "hi"))))))
+  (value 11:1 watch-ship
+    (cast 11:15
+      (apply 11:18 sub (aura 11:23 @p))
+      (tuple 11:27
+        (lit 11:28 %watch)
+        (group 11:35
+          (call 11:36 (wing 11:36 pure) (lit 11:41 ~zod))))))
+  (value 15:1 generic
+    (gate 15:12
+      (face 15:15 x (tvar 15:17 A))
+      (cast 15:19
+        (apply 15:22 sub (tvar 15:27 A))
+        (tuple 15:30
+          (lit 15:31 %watch)
+          (group 15:38
+            (call 15:39 (wing 15:39 pure) (wing 15:44 x))))))))

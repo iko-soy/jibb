@@ -1,0 +1,4 @@
+message `30` is a @ud, not a @dr; write ~s30
+site /tests/golden/inline-decimal-aura-bad/source.jibb:1:20
+typed-site /tests/golden/inline-decimal-aura-bad/source.jibb:1:16
+min-sites 2

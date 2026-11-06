@@ -1,0 +1,49 @@
+(module
+  (mold 1:1 step
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %go)
+        (face 2:8 n (aura 2:10 @ud)))
+      (const 3:3 %stop)))
+  (mold 4:1 outcome
+    (generic 4:12 A
+      (union 5:3
+        (cell 5:3
+          (const 5:4 %ok)
+          (face 5:8 value (tvar 5:14 A)))
+        (const 6:3 %fail))))
+  (mold 7:1 reason
+    (union 8:3 (const 8:3 %fail) (const 9:3 %late)))
+  (value 19:1 argument
+    (gate 19:13
+      (face 19:16 o
+        (apply 19:18 outcome (ref 19:27 reason)))
+      (body 20:3
+        (branch 20:3
+          (wing 20:6 o)
+          (arm 21:5
+            (cell 21:5 (lit 21:6 %ok) (bind 21:10 fail))
+            (str 21:17 "x"))
+          (arm 22:5 (lit 22:5 %fail) (str 22:17 "failed"))))))
+  (value 23:1 maybe
+    (gate 23:10
+      (face 23:13 u
+        (apply 23:15 unit (ref 23:21 step)))
+      (body 24:3
+        (branch 24:3
+          (wing 24:6 u)
+          (arm 25:5 (lit 25:5 ~) (str 25:15 "none"))
+          (arm 26:5
+            (cell 26:5 (lit 26:6 ~) (bind 26:8 stop))
+            (str 26:15 "s"))))))
+  (value 27:1 items
+    (gate 27:10
+      (face 27:13 xs
+        (apply 27:16 list (ref 27:22 step)))
+      (body 28:3
+        (branch 28:3
+          (wing 28:6 xs)
+          (arm 29:5 (lit 29:5 ~) (str 29:18 "none"))
+          (arm 30:5
+            (cell 30:5 (bind 30:6 stop) (bind 30:11 rest))
+            (str 30:18 "s")))))))

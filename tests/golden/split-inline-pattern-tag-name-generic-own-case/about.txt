@@ -1,0 +1,4 @@
+source: split from inline-pattern-tag-name-generic, preserving the original source lines
+tests: the independent own-case diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

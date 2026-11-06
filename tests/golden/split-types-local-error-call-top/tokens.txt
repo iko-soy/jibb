@@ -1,0 +1,15 @@
+1:1 glyph ++
+1:4 name inc
+1:8 glyph |=
+1:11 name n
+1:12 tight glyph =
+1:13 tight aura @ud
+1:17 name n
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name top
+2:8 glyph (
+2:9 tight name inc
+2:13 lit %.y
+2:16 tight glyph )
+2:17 NEWLINE

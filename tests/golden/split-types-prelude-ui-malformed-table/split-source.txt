@@ -1,0 +1,4 @@
+origin types-prelude-ui
+target value malformed-table
+keep mold msg
+keep value malformed-table

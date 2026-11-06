@@ -1,6 +1,6 @@
-partial inference; module not checked
-+$ maybe: cases proven disjoint; mold not checked
-+$ dollar: not checked
+module kind: library
++$ maybe: maybe
++$ dollar: [%$ value=@t]
 ++ empty: maybe
 ++ present: maybe
 ++ null-constructor: $-(@t maybe)

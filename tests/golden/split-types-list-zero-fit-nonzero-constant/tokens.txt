@@ -1,0 +1,28 @@
+6:1 glyph ++
+6:4 name nonzero-constant
+6:21 glyph |=
+6:24 glyph [
+6:25 tight name f
+6:26 tight glyph =
+6:27 tight glyph $-(
+6:30 tight glyph [
+6:31 tight glyph (
+6:32 tight name list
+6:37 aura @t
+6:39 tight glyph )
+6:41 aura @t
+6:43 tight glyph ]
+6:45 aura @t
+6:47 tight glyph )
+6:49 name z
+6:50 tight glyph =
+6:51 tight lit %1
+6:53 tight glyph ]
+6:55 glyph (
+6:56 tight name f
+6:58 glyph [
+6:59 tight name z
+6:61 str "ok"
+6:65 tight glyph ]
+6:66 tight glyph )
+6:67 NEWLINE

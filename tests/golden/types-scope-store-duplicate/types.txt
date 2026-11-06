@@ -1,2 +1,7 @@
-partial inference; module not checked
-module has conflicting names
+definition `poke` shadows an earlier definition
+/ui/stores/cart.jibb:1:1: earlier definition
++$ poke @t
+^
+/ui/stores/cart.jibb:2:1: conflicting definition
++$ poke @p
+^

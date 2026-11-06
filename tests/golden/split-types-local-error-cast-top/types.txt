@@ -1,0 +1,7 @@
+++ top: cast mold and expression type do not unify
+/tests/golden/split-types-local-error-cast-top/source.jibb:1:11: cast mold has type @t
+++ top ^- @t %.y
+          ^
+/tests/golden/split-types-local-error-cast-top/source.jibb:1:14: expression has type ?
+++ top ^- @t %.y
+             ^

@@ -1,0 +1,9 @@
+module kind: library
+++ index-number: @ud
+++ index-text: @t
+++ prefix: (list @t)
+++ suffix: (list @t)
+++ repeated: (list @t)
+++ ascending: (list @ud)
+++ descending: (list @ud)
+++ empty: (list @ud)

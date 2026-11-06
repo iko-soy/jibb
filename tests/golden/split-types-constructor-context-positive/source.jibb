@@ -1,0 +1,37 @@
++$ msg
+  [%got value=@t]
+  %other
++$ alias msg
+
+
+
+
+
+
++$ maybe |$ [A]
+  [%got value=A]
+  %other
+++ call |= callback=$-(@t M) (callback "payload")
+++ call-ship |= callback=$-(@p M) (callback ~zod)
+
+++ later-context ^- msg (call |=%got)
+++ named-alias ^- alias (call |=%got)
+
+
+++ generic-context ^- (maybe @t) (call |=%got)
+
+++ generic-right-ship ^- (maybe @p) (call-ship |=%got)
+
+
+
+
+
+
+
+
+
+++ existing-no-context ^- $-(@t msg) |=%got
+
+
+
+

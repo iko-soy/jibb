@@ -1,0 +1,4 @@
+message cast field `dark` does not fit
+min-sites 2
+site /lib/jibb/prelude.jibb:625:5
+site /ui/theme.jibb:8:10

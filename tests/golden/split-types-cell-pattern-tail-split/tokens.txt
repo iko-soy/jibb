@@ -1,0 +1,25 @@
+4:1 glyph ++
+4:4 name split
+4:10 glyph |=
+4:13 name x
+4:14 tight glyph =
+4:15 tight glyph [
+4:16 tight aura @t
+4:19 glyph (
+4:20 tight name list
+4:25 aura @p
+4:27 tight glyph )
+4:28 tight glyph ]
+5:3 INDENT
+5:3 glyph ?-
+5:6 name x
+6:5 INDENT
+6:5 glyph [
+6:6 tight name first
+6:12 name second
+6:19 name third
+6:24 tight glyph ]
+6:26 name third
+6:31 DEDENT
+6:31 DEDENT
+6:31 NEWLINE

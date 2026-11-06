@@ -1,0 +1,7 @@
+++ bad-generic: capital `A` cannot be fixed to @t
+/tests/golden/split-types-union-finite-context-bad-generic/source.jibb:72:30: capital
+++ bad-generic |= [x=input a=A] ^- (list A)
+                             ^
+/tests/golden/split-types-union-finite-context-bad-generic/source.jibb:74:16: forcing expression
+    [%p %.y t] ~["bad"]
+               ^

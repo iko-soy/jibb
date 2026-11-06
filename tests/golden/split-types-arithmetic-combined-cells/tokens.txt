@@ -1,0 +1,14 @@
+18:1 glyph ++
+18:4 name cells
+18:10 glyph (
+18:11 tight name add
+18:15 glyph [
+18:16 tight lit 1
+18:18 lit 2
+18:19 tight glyph ]
+18:21 glyph [
+18:22 tight lit 3
+18:24 lit 4
+18:25 tight glyph ]
+18:26 tight glyph )
+18:27 NEWLINE

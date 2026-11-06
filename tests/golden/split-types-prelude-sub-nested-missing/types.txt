@@ -1,0 +1,13 @@
+++ missing: msg has no case `%missing`
+/tests/golden/split-types-prelude-sub-nested-missing/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-prelude-sub-nested-missing/source.jibb:2:3: expected union has type msg
+  %idle
+  ^
+/tests/golden/split-types-prelude-sub-nested-missing/source.jibb:13:34: expected union has type msg
+++ missing ^- (sub msg) [%watch (pure %missing)]
+                                 ^
+/tests/golden/split-types-prelude-sub-nested-missing/source.jibb:13:39: tag literal has type %missing
+++ missing ^- (sub msg) [%watch (pure %missing)]
+                                      ^

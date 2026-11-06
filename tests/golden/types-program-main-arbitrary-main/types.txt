@@ -1,0 +1,4 @@
+++ main: main has gate type $-(@t [count=@ud]); expected an element, page, program, or store
+/ui/program-check.jibb:5:4: main has a gate type
+++ main init
+   ^

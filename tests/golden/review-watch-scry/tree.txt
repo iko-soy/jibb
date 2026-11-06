@@ -1,0 +1,59 @@
+(module
+  (mold 1:1 model (aura 1:10 @ud))
+  (mold 2:1 msg (aura 2:8 @t))
+  (value 3:1 init
+    (gate 3:9
+      (face 3:12 data (aura 3:17 @t))
+      (cast 3:20 (ref 3:23 model) (lit 3:29 0))))
+  (value 4:1 update
+    (gate 4:11
+      (cell 4:14
+        (face 4:15 m (ref 4:17 msg))
+        (face 4:21 s (ref 4:23 model)))
+      (cast 4:30
+        (cell 4:33
+          (ref 4:34 model)
+          (apply 4:40 list
+            (apply 4:46 cmd (ref 4:51 msg))))
+        (tuple 4:58 (wing 4:59 s) (lit 4:61 ~)))))
+  (value 5:1 view
+    (gate 5:9
+      (face 5:12 s (ref 5:14 model))
+      (cast 5:20
+        (apply 5:23 element (ref 5:32 msg))
+        (group 5:37
+          (call 5:38 (wing 5:38 text) (str 5:43 "ok"))))))
+  (value 6:1 request
+    (cast 6:12
+      (apply 6:15 ask (ref 6:20 msg))
+      (body 7:3
+        (tuple 7:3
+          (lit 7:4 %agent)
+          (face 7:11 api (str 7:15 "/ui/api/demo"))
+          (face 7:30 case (lit 7:35 %plain))
+          (face 7:42 agent (lit 7:48 %demo))
+          (face 7:54 path (lit 7:59 ~))
+          (face 7:61 scry
+            (unit 7:66 (lit 7:67 ~)))
+          (face 7:69 receive
+            (gate-wide 7:77
+              (face 7:80 input
+                (cell 7:86
+                  (face 7:87 mark (aura 7:92 @tas))
+                  (face 7:97 state
+                    (apply 7:103 unit (aura 7:109 @ud)))
+                  (face 7:114 fact (noun 7:119))))
+              (tuple 7:122
+                (face 7:123 state (lit 7:129 0))
+                (face 7:131 message (str 7:139 "ok")))))))))
+  (value 8:1 subs
+    (gate 8:9
+      (face 8:12 s (ref 8:14 model))
+      (cast 8:20
+        (apply 8:23 list
+          (apply 8:29 sub (ref 8:34 msg)))
+        (list 8:40
+          (tuple 8:42 (lit 8:43 %watch) (wing 8:50 request))))))
+  (value 9:1 main
+    (group 9:9
+      (call 9:10 (wing 9:10 program) (wing 9:18 init) (wing 9:23 update) (wing 9:30 view) (wing 9:35 subs)))))

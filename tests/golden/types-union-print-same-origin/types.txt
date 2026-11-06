@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ selected: msg.first
 ++ consume: $-(msg.second msg.second)
 ++ passed: msg.second

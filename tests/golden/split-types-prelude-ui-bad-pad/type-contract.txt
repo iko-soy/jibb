@@ -1,0 +1,4 @@
+message attr case `%pad` has no payload `%s4`; expected %s0 %s1 %s2 %s3
+typed-site /tests/golden/split-types-prelude-ui-bad-pad/source.jibb:58:29
+typed-site /tests/golden/split-types-prelude-ui-bad-pad/source.jibb:58:39
+min-sites 2

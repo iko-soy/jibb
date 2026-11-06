@@ -1,0 +1,56 @@
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  pre=path  (en-beam [our.bowl %my-app da+now] /)
+=/  jibb=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb/hoon)
+=/  reader=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/lib/jibb-import/hoon)
+=/  todo=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/todo/hoon)
+=/  blog=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/sur/blog/hoon)
+=/  read-name=vase  (slap reader (ream 'read-named'))
+=/  read-mark-source=vase  (slap reader (ream 'read-mark-source'))
+=/  todo-source=@t  .^(@t %cx (weld pre /sur/todo/hoon))
+=/  blog-source=@t  .^(@t %cx (weld pre /sur/blog/hoon))
+=/  mark-sources=(list [module=term at=path source=@t])
+  ~[[%todo /sur/todo/hoon todo-source] [%blog /sur/blog/hoon blog-source]]
+=/  todo-item=vase  (slym read-name [%todo %item -.todo])
+=/  blog-post=vase  (slym read-name [%blog %post -.blog])
+=/  ext=(list [term term *])  ~[[%todo %item +.todo-item] [%blog %post +.blog-post]]
+=/  ma=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-action/hoon)
+=/  mt=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todos/hoon)
+=/  mu=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-update/hoon)
+=/  mi=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-item/hoon)
+=/  mp=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/posts/hoon)
+=/  rma=vase  (slym read-mark-source [%todo-action mark-sources -.ma])
+=/  rmt=vase  (slym read-mark-source [%todos mark-sources -.mt])
+=/  rmu=vase  (slym read-mark-source [%todo-update mark-sources -.mu])
+=/  rmi=vase  (slym read-mark-source [%todo-item mark-sources -.mi])
+=/  rmp=vase  (slym read-mark-source [%posts mark-sources -.mp])
+=/  marks=(list [term *])  ~[[%todo-action +.rma] [%todos +.rmt] [%todo-update +.rmu] [%todo-item +.rmi] [%posts +.rmp]]
+=/  prepare=vase  (slap jibb (ream 'prepare-prelude-with-group-evidence-detailed'))
+=/  read-generic=vase  (slap reader (ream 'read-generic-source'))
+=/  reader-sources=(list [module=term name=term at=path source=@t])  @@PRELUDE-READERS@@
+=/  reader-evidence=(list [module=term name=term result=*])
+  %+  turn  reader-sources
+  |=  item=[module=term name=term at=path source=@t]
+  =/  built=(each type tang)  (mule |.(-:(ride -:!>(..zuse) source.item)))
+  =/  result=*
+    ?:  ?=(%| -.built)  [%| 'Hoon source could not be built']
+    +:(slym read-generic [module.item name.item at.item source.item p.built])
+  [module.item name.item result]
+=/  public=@t  .^(@t %cx (weld pre /lib/jibb/prelude/jibb))
+=/  private=@t  .^(@t %cx (weld pre /lib/jibb/internal/jibb))
+=/  detailed=(each [iface=* values=(list term) molds=(list term)] @t)
+  !<((each [iface=* values=(list term) molds=(list term)] @t) (slym prepare [public private @@PRELUDE-GROUPS@@ @@PRELUDE-MODULES@@ reader-evidence]))
+?:  ?=(%| -.detailed)  (pure:m !>(p.detailed))
+?>  ?=(%& -.detailed)
+=/  paths=(list path)  @@PATHS@@
+=/  modules=(list [at=path source=@t])
+  (turn paths |=(p=path [p .^(@t %cx (weld pre p))]))
+=/  check=vase  (slap jibb (ream 'infer-jibb-file-detailed'))
+%-  pure:m
+!>  %+  turn  modules
+|=  entry=[at=path source=@t]
+=/  result=(each * [message=@t overlap=*])
+  !<((each * [message=@t overlap=*]) (slym check [at.entry source.entry ext marks modules ~[at.entry] values.p.detailed molds.p.detailed ~ `iface.p.detailed]))
+?:  ?=(%& -.result)  [at.entry %& '']
+[at.entry %| message.p.result]

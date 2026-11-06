@@ -1,0 +1,3 @@
+message `unface` is reserved and cannot be bound
+site /tests/golden/inline-unface-reserved-import/source.jibb:1:1
+min-sites 1

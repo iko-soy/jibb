@@ -1,0 +1,4 @@
+source: split from types-list-cons, preserving the original source lines
+tests: the independent bad-tail diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

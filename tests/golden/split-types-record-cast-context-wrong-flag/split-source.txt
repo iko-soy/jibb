@@ -1,0 +1,4 @@
+origin types-record-cast-context
+target value wrong-flag
+keep mold state
+keep value wrong-flag

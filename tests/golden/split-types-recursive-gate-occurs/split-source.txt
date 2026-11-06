@@ -1,0 +1,3 @@
+origin types-recursive-gate
+target value occurs
+keep value occurs

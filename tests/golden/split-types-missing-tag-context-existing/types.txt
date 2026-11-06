@@ -1,0 +1,7 @@
+++ existing: msg case `%typed` needs a payload of type @t
+/tests/golden/split-types-missing-tag-context-existing/source.jibb:3:4: case requires a payload
+  [%typed text=@t]
+   ^
+/tests/golden/split-types-missing-tag-context-existing/source.jibb:5:29: tag has no payload
+++ existing ^- (list msg) ~[%typed]
+                            ^

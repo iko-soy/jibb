@@ -1,0 +1,4 @@
+source: split from types-request-normal, preserving the original source lines
+tests: the independent wrong-callback diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

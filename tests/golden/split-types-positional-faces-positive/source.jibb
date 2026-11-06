@@ -1,0 +1,25 @@
+++ convert-record |= [f=$-(A B) input=[a=A b=@t]] [value=(f a.input) label=b.input]
+++ data [a=1 b="before"]
+++ positional (convert-record |=(x=@ud "done") data)
+++ named (convert-record [f=|=(x=@ud "done") input=data])
+++ record-identity |= [n=@ud item=[x=@t y=@p]] item
+++ typed-record (record-identity 1 [x="hi" y=~zod])
+++ unfaced-identity |= [n=@ud item=[@t @p]] item
+
+++ nested-identity |= [n=@ud item=[inner=[@t @p] label=@t]] item
+
+++ generic-identity |= [n=@ud item=A] item
+++ preserve-generic (generic-identity 1 [x="hi" y=~zod])
+
+
+++ generic-apply |= [f=$-(A B) input=A] (f input)
+++ accepts-tuple |= x=[@t @p] x
+
+
+
+
+
+
+++ pick-first |= [first=A other=@t] first
+++ first-record (pick-first [foo="x" bar=~zod] "z")
+++ matching-face-collision (pick-first [first=[foo="x" bar=~zod]] "z")

@@ -1,0 +1,4 @@
+source: Grammar, Imports and Expressions: a wing selects members from an imported module.
+tests: A missing imported value is named in a chained wing, at the missing member.
+expect: parses
+expect-types: full checker diagnostic at the import and missing member

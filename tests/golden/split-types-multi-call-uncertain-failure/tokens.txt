@@ -1,0 +1,19 @@
+40:1 glyph ++
+40:4 name uncertain-target
+40:21 glyph |=
+40:24 name p
+40:25 tight glyph =
+40:26 tight glyph [
+40:27 tight tvar A
+40:29 aura @p
+40:31 tight glyph ]
+40:33 name p
+41:1 NEWLINE
+41:1 glyph ++
+41:4 name uncertain-failure
+41:22 glyph (
+41:23 tight name uncertain-target
+41:40 str "hi"
+41:45 str "bad"
+41:50 tight glyph )
+41:51 NEWLINE

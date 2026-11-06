@@ -1,0 +1,44 @@
+++ global |= g g
+++ good |= x
+  ++ first (id ~zod)
+  ++ id |= y y
+  ++ capture |= y x
+  [(capture first) (capture (id "hi"))]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ local-mold |= x
+  +$ item @t
+  x
+++ wrap-value |= y |=(z y)
+
+
+
+
+
+
+
+
+

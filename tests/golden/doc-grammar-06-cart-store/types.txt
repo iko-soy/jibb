@@ -1,6 +1,8 @@
-partial inference; module not checked
-+$ state: not checked
-+$ poke: cases proven disjoint; mold not checked
+module kind: store
++$ state: [items=(list @t) open=?]
++$ poke: poke
 ++ main: [init=[items=(list @t) open=?] update=*]
 ++ init: [items=(list @t) open=?]
 ++ update: $-([a=poke s=[items=(list @t) open=?]] [items=(list @t) open=?])
+++ state: $-($-([items=(list @t) open=?] A) (ask A)) (generated)
+++ poke: $-([poke $-((unit @t) A)] (cmd A)) (generated)

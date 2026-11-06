@@ -1,0 +1,14 @@
+(module
+  (value 15:1 shared
+    (gate 15:11
+      (face 15:14 x
+        (cell 15:16 (tvar 15:17 A) (tvar 15:19 A) (tvar 15:21 A)))
+      (body 16:3
+        (branch 16:3
+          (wing 16:6 x)
+          (arm 17:5
+            (cell 17:5 (bind 17:6 a) (bind 17:8 b) (bind 17:10 c))
+            (tuple 17:13 (wing 17:14 a) (wing 17:16 b) (wing 17:18 c)))))))
+  (value 18:1 wrong
+    (group 18:10
+      (call 18:11 (wing 18:11 shared) (str 18:18 "hi") (lit 18:23 ~zod) (str 18:28 "ok")))))

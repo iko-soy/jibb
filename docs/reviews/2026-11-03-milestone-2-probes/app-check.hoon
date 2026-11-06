@@ -1,13 +1,15 @@
-=/  prepared=iprelude  (need (prepare-prelude-with-internal prelude internal))
+=/  prepared=iprelude  (need (prepare-prelude-with-group-evidence prelude internal groups group-sources reader-evidence))
 =/  todo=type  -:(ride -:!>(..zuse) sur)
 =/  subject=type  [%cell [%face %todo todo] -:!>(..zuse)]
-=/  ma=*  (read-mark:imp %todo-action -:(ride subject action))
-=/  mt=*  (read-mark:imp %todos -:(ride subject todos))
-=/  mu=*  (read-mark:imp %todo-update -:(ride subject update))
-=/  mi=*  (read-mark:imp %todo-item -:(ride subject item))
+=/  todo-sources=(list [module=term at=path source=@t])  ~[[%todo /sur/todo/hoon sur]]
+=/  ma=*  (read-mark-source:imp %todo-action todo-sources -:(ride subject action))
+=/  mt=*  (read-mark-source:imp %todos todo-sources -:(ride subject todos))
+=/  mu=*  (read-mark-source:imp %todo-update todo-sources -:(ride subject update))
+=/  mi=*  (read-mark-source:imp %todo-item todo-sources -:(ride subject item))
 =/  blog=type  -:(ride -:!>(..zuse) blogsur)
 =/  blog-subject=type  [%cell [%face %blog blog] -:!>(..zuse)]
-=/  mp=*  (read-mark:imp %posts -:(ride blog-subject posts))
+=/  blog-sources=(list [module=term at=path source=@t])  ~[[%blog /sur/blog/hoon blogsur]]
+=/  mp=*  (read-mark-source:imp %posts blog-sources -:(ride blog-subject posts))
 =/  item-input=*  (read-named:imp %todo %item todo)
 =/  post-input=*  (read-named:imp %blog %post blog)
 =/  marks=imark-externals  ~[[%todo-action ma] [%todos mt] [%todo-update mu] [%todo-item mi] [%posts mp]]
@@ -47,21 +49,37 @@
 %+  turn  sections
 |=  [label=@t body=wain]
 ^-  tape
-=/  words=(list tape)  (rash label (more ace (star ;~(less ace next))))
-=/  at=path  (stab (crip (snag 0 words)))
-=/  text=@t  (of-wain:format body)
-=/  modules=jbundle  (skip base |=(j=jsource =(at.j at)))
-=/  r=jfile-detailed-result
-  (infer-jibb-file-detailed at text externals marks modules ~[at] values.prepared molds.prepared ~ `iface.prepared)
-=/  head=tape  "#### {(trip label)}\0a"
-?:  ?=(%| -.r)  `tape`(zing `(list tape)`~[head "REJECTED: " (trip message.p.r) "\0a"])
-=/  ms=(list tape)
-  %+  turn  molds.iface.p.r
-  |=  [name=term s=ischeme]
-  "+$ {(trip name)}: {(show-itype (canonical-itype typ.s vars.s) ~)}\0a"
-=/  vals=(list tape)
-  %+  turn  values.iface.p.r
-  |=  [name=term s=ischeme]
-  =/  c=itype  (canonical-itype typ.s vars.s)
-  "++ {(trip name)}: {(show-itype c ~)}{(show-atom-constraint c)}\0a"
-`tape`(zing `(list tape)`~[head "CHECKED\0a" `tape`(zing ms) `tape`(zing vals)])
+::  Keep only the rendered result when this case leaves its eval road.
+=/  attempt
+  %-  mule
+  |.
+  =/  words=(list tape)  (rash label (more ace (star ;~(less ace next))))
+  =/  at=path  (stab (crip (snag 0 words)))
+  =/  text=@t  (of-wain:format body)
+  =/  modules=jbundle  (skip base |=(j=jsource =(at.j at)))
+  =/  r=jfile-detailed-result
+    (infer-jibb-file-detailed at text externals marks modules ~[at] values.prepared molds.prepared ~ `iface.prepared)
+  =/  head=tape  "#### {(trip label)}\0a"
+  ?:  ?=(%| -.r)  `tape`(zing `(list tape)`~[head "REJECTED: " (trip message.p.r) "\0a"])
+  =/  ms=(list tape)
+    %+  turn  molds.iface.p.r
+    |=  [name=term s=ischeme]
+    "+$ {(trip name)}: {(show-itype (canonical-itype typ.s vars.s) ~)}\0a"
+  =/  vals=(list tape)
+    %+  turn  values.iface.p.r
+    |=  [name=term s=ischeme]
+    =/  c=itype  (canonical-itype typ.s vars.s)
+    "++ {(trip name)}: {(show-itype c ~)}{(show-atom-constraint c)}\0a"
+  `tape`(zing `(list tape)`~[head "CHECKED\0a" `tape`(zing ms) `tape`(zing vals)])
+?:  ?=(%| -.attempt)
+  =/  trace=tape
+    =/  tanks=tang  p.attempt
+    =|  lines=wall
+    |-  ^-  tape
+    ?~  tanks  (zing (flop lines))
+    =/  shown=wall  (wash [0 120] i.tanks)
+    |-  ^-  tape
+    ?~  shown  ^$(tanks t.tanks)
+    $(shown t.shown, lines [(weld i.shown "\0a") lines])
+  (weld "#### {(trip label)}\0aCRASH\0a" trace)
+p.attempt

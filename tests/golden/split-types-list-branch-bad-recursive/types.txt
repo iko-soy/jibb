@@ -1,0 +1,7 @@
+++ bad-recursive: inline gate result does not unify with (list @t): @p versus (list @t)
+/tests/golden/split-types-list-branch-bad-recursive/source.jibb:81:40: actual type has type @p
+      [item rest] [item (bad-recursive ~zod)]
+                                       ^
+/tests/golden/split-types-list-branch-bad-recursive/source.jibb:81:26: call context has type (list @t)
+      [item rest] [item (bad-recursive ~zod)]
+                         ^

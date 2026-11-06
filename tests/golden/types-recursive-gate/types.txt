@@ -1,42 +1,7 @@
-partial inference; module not checked
-++ bounce: $-(? ?)
-++ recur: $-(A A)
-++ cord-result: @t
-++ ship-result: @p
-++ poly: call's sample and argument types do not unify
-/tests/golden/types-recursive-gate/source.jibb:11:17: called gate has type $-(A B)
-++ poly |= x=A (poly [x x])
-                ^
-/tests/golden/types-recursive-gate/source.jibb:11:22: argument has type [A A]
-++ poly |= x=A (poly [x x])
-                     ^
-++ occurs: call's sample and argument types do not unify
-/tests/golden/types-recursive-gate/source.jibb:12:17: called gate
+++ occurs: call requires an infinite type: its gate occurs inside its own sample
+/tests/golden/types-recursive-gate/source.jibb:12:17: called gate has type A
 ++ occurs |= x (x x)
                 ^
-/tests/golden/types-recursive-gate/source.jibb:12:19: argument
+/tests/golden/types-recursive-gate/source.jibb:12:19: sample containing the same gate has type A
 ++ occurs |= x (x x)
                   ^
-++ forcing: explicit capital constraints are not supported by partial inference
-++ pending: tag needs context in partial inference
-++ direct-value: name is not available to partial inference
-++ gate-value: name is not available to partial inference
-++ value-cycle: name is not available to partial inference
-++ mutual-a: $-(A B)
-++ mutual-b: $-(A B)
-++ captured: $-(A A)
-++ local-rec: $-(A B)
-++ forced-trace: explicit capital constraints are not supported by partial inference
-++ pending-trace: tag needs context in partial inference
-++ higher: $-($-(A A) $-(A A))
-++ local-self: $-(A B)
-++ mixed: call's sample and argument types do not unify
-/tests/golden/types-recursive-gate/source.jibb:52:6: called gate has type $-(@t A)
-    (alias ~zod)
-     ^
-/tests/golden/types-recursive-gate/source.jibb:52:12: argument has type @p
-    (alias ~zod)
-           ^
-++ return-self: recursive gate constraint is not supported by partial inference
-++ value-a: name is not available to partial inference
-++ value-b: name is not available to partial inference

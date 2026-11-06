@@ -1,0 +1,7 @@
+(module
+  (value 7:1 bad-cell
+    (group 7:13
+      (call 7:14
+        (wing 7:14 gth)
+        (tuple 7:18 (lit 7:19 1) (lit 7:21 2))
+        (tuple 7:24 (lit 7:25 3) (lit 7:27 4))))))

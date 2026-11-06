@@ -1,0 +1,4 @@
+typed-site /tests/golden/deferred-context-error-priority/source.jibb:5:12
+typed-site /tests/golden/deferred-context-error-priority/source.jibb:5:33
+min-sites 2
+message cast mold and expression type do not unify

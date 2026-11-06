@@ -1,0 +1,7 @@
+++ outer |= bound
+  ++ search |= n
+    ?- (lth n bound)
+    %.y (search (add n 1))
+    %.n n
+  ~& ^- @ud (search 0)
+    ^- @t (search 0)

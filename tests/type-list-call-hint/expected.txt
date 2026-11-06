@@ -1,0 +1,60 @@
+contextual UI call
+++ value: list items do not have compatible types; calls in a list need parentheses; did you mean `~[(text "hi")]`
+/ui/lists.jibb:1:13: sealed type
+++ value ^- (list (element !!)) ~[text "hi"]
+            ^
+/ui/lists.jibb:1:40: unsealed literal
+++ value ^- (list (element !!)) ~[text "hi"]
+                                       ^
+/ui/lists.jibb:1:33: calls in a list need parentheses; did you mean `~[(text "hi")]`
+++ value ^- (list (element !!)) ~[text "hi"]
+                                ^
+ordinary call
+++ value: list items do not have compatible types; calls in a list need parentheses; did you mean `~[(identity "hi")]`
+/ui/lists.jibb:2:10: expected item has type $-(@t @t)
+++ value ~[identity "hi"]
+         ^
+/ui/lists.jibb:2:21: list item has type @t
+++ value ~[identity "hi"]
+                    ^
+/ui/lists.jibb:2:10: calls in a list need parentheses; did you mean `~[(identity "hi")]`
+++ value ~[identity "hi"]
+         ^
+unicode columns
+++ value: list items do not have compatible types; calls in a list need parentheses; did you mean `~[(identity "hé")]`
+/ui/lists.jibb:2:15: expected item has type $-(@t @t)
+++ value ["é" ~[identity "hé"]]
+              ^
+/ui/lists.jibb:2:26: list item has type @t
+++ value ["é" ~[identity "hé"]]
+                         ^
+/ui/lists.jibb:2:15: calls in a list need parentheses; did you mean `~[(identity "hé")]`
+++ value ["é" ~[identity "hé"]]
+              ^
+several arguments
+++ value: list items do not have compatible types; calls in a list need parentheses; did you mean `~[(choose "hi" ~zod)]`
+/ui/lists.jibb:2:10: expected item has type $-([left=@t right=@p] @t)
+++ value ~[choose "hi" ~zod]
+         ^
+/ui/lists.jibb:2:19: list item has type @t
+++ value ~[choose "hi" ~zod]
+                  ^
+/ui/lists.jibb:2:10: calls in a list need parentheses; did you mean `~[(choose "hi" ~zod)]`
+++ value ~[choose "hi" ~zod]
+         ^
+incompatible argument
+++ value: list items do not have compatible types
+/ui/lists.jibb:2:10: expected item has type $-(@t @t)
+++ value ~[identity ~zod]
+         ^
+/ui/lists.jibb:2:21: list item has type @p
+++ value ~[identity ~zod]
+                    ^
+parenthesized call
+module kind: library
+++ value: (list (element !!))
+list of gates
+module kind: library
+++ first: $-(@t @t)
+++ second: $-(@t @t)
+++ value: (list $-(@t @t))

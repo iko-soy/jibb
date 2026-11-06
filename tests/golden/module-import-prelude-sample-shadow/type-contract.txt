@@ -1,0 +1,4 @@
+message sample `same` shadows a name already in scope
+site /lib/jibb/prelude.jibb:7:4
+site /tests/golden/module-import-prelude-sample-shadow/source.jibb:2:9
+min-sites 2

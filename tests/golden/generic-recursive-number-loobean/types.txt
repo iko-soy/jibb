@@ -1,0 +1,7 @@
+++ bad: types do not unify
+/tests/golden/generic-recursive-number-loobean/source.jibb:10:9: expected type has type A where A is an atom other than ?
+++ bad (range-up %.y %.n)
+        ^
+/tests/golden/generic-recursive-number-loobean/source.jibb:10:18: actual type has type ?
+++ bad (range-up %.y %.n)
+                 ^

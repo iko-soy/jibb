@@ -1,0 +1,7 @@
+++ main: record molds `model` and `other` do not unify
+/ui/w-path.jibb:1:4: expected record mold
++$ model [xs=(list @t) draft=@t error=(unit @t)]
+   ^
+/ui/w-path.jibb:2:4: actual record mold
++$ other [xs=(list @t) draft=@t error=(unit @t) extra=@ud]
+   ^

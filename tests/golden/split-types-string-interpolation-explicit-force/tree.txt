@@ -1,0 +1,6 @@
+(module
+  (value 26:1 explicit-force
+    (gate 26:19
+      (face 26:22 x (tvar 26:24 A))
+      (str 26:26
+        (cast 26:28 (aura 26:31 @ud) (wing 26:35 x))))))

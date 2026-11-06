@@ -1,0 +1,7 @@
+++ uncertain-tag: call's sample and argument types do not unify
+/tests/golden/split-types-multi-call-uncertain-tag/source.jibb:42:19: called gate has type $-([A @p] [A @p])
+++ uncertain-tag (uncertain-target %mystery "bad")
+                  ^
+/tests/golden/split-types-multi-call-uncertain-tag/source.jibb:42:45: argument has type @t
+++ uncertain-tag (uncertain-target %mystery "bad")
+                                            ^

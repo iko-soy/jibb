@@ -1,0 +1,49 @@
+4:1 glyph +$
+4:4 name outcome
+4:12 glyph |$
+4:15 glyph [
+4:16 tight tvar A
+4:17 tight glyph ]
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %ok
+5:8 name value
+5:13 tight glyph =
+5:14 tight tvar A
+5:15 tight glyph ]
+6:3 NEWLINE
+6:3 lit %fail
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name reason
+8:3 INDENT
+8:3 lit %fail
+9:3 NEWLINE
+9:3 lit %late
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name own-head
+15:13 glyph |=
+15:16 name o
+15:17 tight glyph =
+15:18 tight glyph (
+15:19 tight name outcome
+15:27 name reason
+15:33 tight glyph )
+16:3 INDENT
+16:3 glyph ?-
+16:6 name o
+17:5 INDENT
+17:5 glyph [
+17:6 tight name ok
+17:9 name r
+17:10 tight glyph ]
+17:13 str "x"
+18:5 NEWLINE
+18:5 lit %fail
+18:13 str "failed"
+18:21 DEDENT
+18:21 DEDENT
+18:21 NEWLINE

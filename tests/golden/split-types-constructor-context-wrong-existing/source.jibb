@@ -1,0 +1,37 @@
++$ msg
+  [%got value=@t]
+  %other
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ wrong-existing ^- $-(@p msg) |=%got
+
+
+

@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-partial-atom-constraint-decimal/source.jibb:13:15
+typed-site /tests/golden/split-types-partial-atom-constraint-decimal/source.jibb:13:17
+min-sites 2

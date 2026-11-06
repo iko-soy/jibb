@@ -1,0 +1,6 @@
+10:1 glyph ++
+10:4 name wrong-ta
+10:13 glyph ^-
+10:16 aura @ta
+10:20 lit %.y
+10:23 NEWLINE

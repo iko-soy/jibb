@@ -1,0 +1,6 @@
+++ lt-a |= [a=@ud b=@ud] (gth b a)
+++ gates ~[lt-a]
+
+
+++ wrapped (turn gates |=(g (unface g)))
+

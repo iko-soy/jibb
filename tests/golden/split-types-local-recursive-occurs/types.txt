@@ -1,0 +1,7 @@
+++ recur: types do not unify
+/tests/golden/split-types-local-recursive-occurs/source.jibb:43:18: expected type has type @t
+  ++ recur |= y (recur recur)
+                 ^
+/tests/golden/split-types-local-recursive-occurs/source.jibb:43:24: actual type has type $-(@t A)
+  ++ recur |= y (recur recur)
+                       ^

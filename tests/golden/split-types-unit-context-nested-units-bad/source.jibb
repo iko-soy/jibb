@@ -1,0 +1,46 @@
++$ msg
+  %go
+  %stay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ nested-units-bad ^- (list (unit msg)) ~[`%go `%oops]
+
+
+

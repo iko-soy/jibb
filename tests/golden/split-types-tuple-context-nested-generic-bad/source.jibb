@@ -1,0 +1,24 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ generic |= p=[left=A right=A] p
+++ generic-bad (generic [left=~zod right="hi"])
+
+
+
+

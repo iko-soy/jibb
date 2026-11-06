@@ -1,0 +1,21 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (mold 7:1 record
+    (cell 7:11
+      (face 7:12 u
+        (apply 7:14 unit (ref 7:20 msg)))
+      (face 7:25 xs
+        (apply 7:28 list
+          (apply 7:34 unit (aura 7:40 @t))))))
+  (mold 31:1 alt
+    (union 32:3 (const 32:3 %go) (const 33:3 %stay)))
+  (value 36:1 wrong-union
+    (gate 36:16
+      (face 36:19 x (ref 36:21 alt))
+      (cast 36:25
+        (ref 36:28 record)
+        (tuple 36:35
+          (unit 36:36 (wing 36:37 x))
+          (list 36:39
+            (unit 36:41 (str 36:42 "hi"))))))))

@@ -1,0 +1,8 @@
+6:1 glyph ++
+6:4 name bad-mixed
+6:14 glyph (
+6:15 tight name gth
+6:19 lit ~zod
+6:24 str "hi"
+6:28 tight glyph )
+6:29 NEWLINE

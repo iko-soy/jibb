@@ -1,23 +1,3 @@
-partial inference; module not checked
-++ id: $-(Msg Msg)
-++ swap: $-([a=Key b=Value] [Value Key])
-++ make: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
-++ embed: $-([p=[init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] data=Data] (element !!))
-++ load-page: $-([load=$-(Params (ask Data)) view=$-(Data (element !!))] [load=$-(Params (ask Data)) view=$-(Data (element !!))])
-++ narrow: $-([lo=Num hi=Num] Num) where Num is an atom other than ?
-++ keyed: $-([a=Key b=Key] ?) where Key contains no gates
-++ button-of: $-(Msg (element Msg))
-++ mapped: $-((list Item) (list Item))
-++ composed: $-(A A)
-++ applied: (list A)
-++ before: $-([x=Num y=Num] ?) where Num is an atom
-++ use-hunt: call's sample and argument types do not unify
-/tests/golden/types-typevar-names/source.jibb:13:14: called gate
-++ use-hunt (hunt before `1 `2)
-             ^
-/tests/golden/types-typevar-names/source.jibb:13:19: argument has type $-([x=Num y=Num] ?) where Num is an atom
-++ use-hunt (hunt before `1 `2)
-                  ^
 ++ forced: distinct type variables `Key` and `Value` must not be forced equal; use the same capital for a shared type
 /tests/golden/types-typevar-names/source.jibb:14:17: first type variable
 ++ forced |= [a=Key b=Value] ^- (list Key) ~[a b]

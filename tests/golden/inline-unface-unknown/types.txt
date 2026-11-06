@@ -1,4 +1,4 @@
-partial inference; module not checked
-++ later: unface on a type not yet known is not supported by partial inference
-++ get-label: field is not available to partial inference
-++ known: $-($-([a=@ud b=@ud] ?) $-([@ud @ud] ?))
+++ later: unface needs a determined input type; add a `^-`
+/tests/golden/inline-unface-unknown/source.jibb:1:16: unface needs a determined input type; add a `^-`
+++ later |= f (unface f)
+               ^

@@ -1,0 +1,16 @@
+(module
+  (value 1:1 pair-pq
+    (cast 1:12
+      (cell 1:15
+        (face 1:16 p (aura 1:18 @t))
+        (face 1:21 q (aura 1:23 @ud)))
+      (tuple 1:28 (str 1:29 "a") (lit 1:33 1))))
+  (value 2:1 take-kv
+    (gate 2:12
+      (cell 2:15
+        (face 2:16 k (aura 2:18 @t))
+        (face 2:21 v (aura 2:23 @ud)))
+      (wing 2:28 v)))
+  (value 3:1 labelled
+    (group 3:13
+      (call 3:14 (wing 3:14 take-kv) (wing 3:22 pair-pq)))))

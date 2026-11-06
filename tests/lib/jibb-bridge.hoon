@@ -49,7 +49,7 @@
         ['wrong-name' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes %other]]]]]] |]
         ['two-arguments' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes %node] [%atom %t ~]]]]]] |]
         ['no-argument' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~]]]] |]
-        ['other-collection' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %set ~[[%ref %notes %node]]]]]] |]
+        ['recursive-set' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %set ~[[%ref %notes %node]]]]]] &]
         ['malformed-reference' [%fork ~[[%atom %n [~ 0]] [%cell [%atom %tas [~ %branch]] [%apply %list ~[[%ref %notes]]]]]] |]
         ['null-overlap' [%fork ~[[%atom %n [~ 0]] [%apply %list ~[[%ref %notes %node]]]]] |]
         ['duplicate-faces' [%fork ~[[%atom %n [~ 0]] [%cell [%face %dup [%atom %tas [~ %branch]]] [%face %dup [%apply %list ~[[%ref %notes %node]]]]]]] |]

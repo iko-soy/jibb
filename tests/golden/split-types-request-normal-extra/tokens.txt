@@ -1,0 +1,22 @@
+1:1 glyph /=
+1:4 name api
+1:8 glyph /
+1:9 tight knot ui
+1:11 tight glyph /
+1:12 tight knot api
+1:15 tight glyph /
+1:16 tight knot demo
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name extra
+7:10 glyph (
+7:11 tight wing plain.api
+7:21 glyph |=(
+7:24 tight name x
+7:25 tight glyph =
+7:26 tight aura @t
+7:29 str "ok"
+7:33 tight glyph )
+7:35 str "extra"
+7:42 tight glyph )
+7:43 NEWLINE

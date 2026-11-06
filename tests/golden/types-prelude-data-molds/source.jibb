@@ -1,0 +1,17 @@
+++ keep-axis |= value=axis value
+++ keep-bean |= value=bean value
+++ keep-flag |= value=flag value
+++ keep-char |= value=char value
+++ keep-byts |= value=byts value
+++ keep-noun |= value=noun value
+++ keep-tour |= value=tour value
+++ keep-tarp |= value=tarp value
+++ keep-date |= value=date value
+++ keep-term |= value=term value
+++ keep-wain |= value=wain value
+++ keep-wall |= value=wall value
+++ keep-stud |= value=stud value
+++ bytes ^- byts [wid=2 dat=0x1234]
+++ bytes-width wid.bytes
+++ text-lines ^- wain ~["a" "b"]
+++ wall-lines ^- wall ~[(trip "a") (trip "b")]

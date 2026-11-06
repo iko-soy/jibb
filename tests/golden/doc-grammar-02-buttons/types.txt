@@ -1,4 +1,4 @@
-partial inference; module not checked
-++ add-button: tag needs context in partial inference
-++ labelled: $-([label=@t msg=M] (element M))
-++ wide: (list attr)
+++ add-button: nothing fixes the union of %add; add a `^-`
+/tests/golden/doc-grammar-02-buttons/source.jibb:3:16: nothing fixes the union of %add; add a `^-`
+  button label %add                ::  error: nothing fixes the union of %add
+               ^

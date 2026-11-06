@@ -1,0 +1,6 @@
+(module
+  (value 19:1 captured
+    (gate 19:13
+      (face 19:16 x (flag 19:18))
+      (group 19:20
+        (call 19:21 (wing 19:21 add) (wing 19:25 x) (wing 19:27 x))))))

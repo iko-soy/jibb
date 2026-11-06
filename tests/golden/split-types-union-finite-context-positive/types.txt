@@ -1,0 +1,11 @@
+module kind: library
++$ input: input
++$ result: result
+++ tags: $-(input result)
+++ lists: $-(input (list @t))
+++ records: $-(input [text=@t xs=(list @t)])
+++ binder: $-(input ?)
+++ partial: $-(input (list @t))
++$ dual: dual
+++ cross-origin: $-(dual (list @t))
+++ generic: $-([x=input a=A] (list A))

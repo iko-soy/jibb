@@ -1,0 +1,12 @@
+26:1 glyph ++
+26:4 name explicit-force
+26:19 glyph |=
+26:22 name x
+26:23 tight glyph =
+26:24 tight tvar A
+26:26 str-head ""
+26:28 tight glyph ^-
+26:31 aura @ud
+26:35 name x
+26:36 tight str-tail ""
+26:38 NEWLINE

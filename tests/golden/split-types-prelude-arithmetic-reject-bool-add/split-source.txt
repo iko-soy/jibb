@@ -1,0 +1,3 @@
+origin types-prelude-arithmetic
+target value reject-bool-add
+keep value reject-bool-add

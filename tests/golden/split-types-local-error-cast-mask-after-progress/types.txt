@@ -1,0 +1,7 @@
+++ mask-after-progress: cast mold and expression type do not unify
+/tests/golden/split-types-local-error-cast-mask-after-progress/source.jibb:25:11: cast mold has type @ud
+  ++ a ^- @ud "s"
+          ^
+/tests/golden/split-types-local-error-cast-mask-after-progress/source.jibb:25:15: expression has type @t
+  ++ a ^- @ud "s"
+              ^

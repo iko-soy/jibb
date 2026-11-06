@@ -1,0 +1,11 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %got)
+        (face 2:9 value (aura 2:15 @t)))
+      (const 3:3 %other)))
+  (value 34:1 wrong-existing
+    (cast 34:19
+      (fn 34:22 (aura 34:25 @p) (ref 34:28 msg))
+      (ctor 34:33 %got))))

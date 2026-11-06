@@ -1,0 +1,8 @@
+module kind: library
+++ decimal: $-(@ud @u)
+++ hex: @u
+++ base32: $-(@uv @u)
+++ text-value: $-(@tD @t)
+++ dup: $-([A A] [A A])
+++ accept: $-(@u @u)
+++ via-call: $-(@ud @u)

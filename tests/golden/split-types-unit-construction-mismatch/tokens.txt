@@ -1,0 +1,10 @@
+25:1 glyph ++
+25:4 name mismatch
+25:13 glyph ^-
+25:16 glyph (
+25:17 tight name unit
+25:22 aura @p
+25:24 tight glyph )
+25:26 glyph `
+25:27 tight str "hi"
+25:31 NEWLINE

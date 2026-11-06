@@ -1,0 +1,8 @@
+(module
+  (value 36:1 bool-then-any
+    (gate 36:18
+      (cell 36:21
+        (face 36:22 b (flag 36:24))
+        (face 36:26 x (aura 36:28 @)))
+      (group 36:31
+        (call 36:32 (wing 36:32 add) (wing 36:36 b) (wing 36:38 x))))))

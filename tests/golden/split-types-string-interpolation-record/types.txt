@@ -1,0 +1,7 @@
+++ record: a cell in interpolation needs a printer
+/tests/golden/split-types-string-interpolation-record/source.jibb:5:27: value without a printer has type [@t @ud]
+++ record |= x=[@t @ud] "{x}"
+                          ^
+/tests/golden/split-types-string-interpolation-record/source.jibb:5:25: interpolation requires a printable atom or tape
+++ record |= x=[@t @ud] "{x}"
+                        ^

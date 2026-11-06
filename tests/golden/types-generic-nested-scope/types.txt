@@ -1,4 +1,4 @@
-partial inference; module not checked
-+$ inner: not checked
-+$ outer: not checked
+module kind: library
++$ inner: [payload=A count=@ud]
++$ outer: [fixed=[payload=@t count=@ud] bound=A]
 ++ ship: [fixed=[payload=@t count=@ud] bound=@p]

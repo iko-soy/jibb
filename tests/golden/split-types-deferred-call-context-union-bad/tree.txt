@@ -1,0 +1,10 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %good) (const 3:3 %other)))
+  (value 4:1 local-id
+    (gate 4:13 (bind 4:16 x) (wing 4:18 x)))
+  (value 10:1 union-bad
+    (cast 10:14
+      (ref 10:17 msg)
+      (group 10:21
+        (call 10:22 (wing 10:22 local-id) (lit 10:31 %wrong))))))

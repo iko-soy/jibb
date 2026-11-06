@@ -1,0 +1,13 @@
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (face 1:12 x (tvar 1:14 A))
+      (body 2:3
+        (trace 2:3
+          (cast 2:6 (aura 2:9 @) (wing 2:11 x))
+          (body 3:5 (wing 3:5 x))))))
+  (value 14:1 relay
+    (cast 14:10
+      (flag 14:13)
+      (group 14:15
+        (call 14:16 (wing 14:16 keep) (lit 14:21 7))))))

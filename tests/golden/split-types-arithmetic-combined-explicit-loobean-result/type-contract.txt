@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-arithmetic-combined-explicit-loobean-result/source.jibb:34:38
+typed-site /tests/golden/split-types-arithmetic-combined-explicit-loobean-result/source.jibb:34:40
+min-sites 2

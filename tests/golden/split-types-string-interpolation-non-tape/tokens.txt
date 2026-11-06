@@ -1,0 +1,13 @@
+14:1 glyph ++
+14:4 name non-tape
+14:13 glyph |=
+14:16 name x
+14:17 tight glyph =
+14:18 tight glyph (
+14:19 tight name list
+14:24 aura @t
+14:26 tight glyph )
+14:28 str-head ""
+14:30 tight name x
+14:31 tight str-tail ""
+14:33 NEWLINE

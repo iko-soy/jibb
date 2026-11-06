@@ -1,0 +1,13 @@
+++ bad: msg.right has no case `%wrong`
+/ui/right.jibb:1:4: expected union has type msg.right
++$ msg
+   ^
+/ui/right.jibb:2:3: expected union has type msg.right
+  %ok
+  ^
+/tests/golden/types-import-union-external-origins/source.jibb:3:11: expected union has type msg.right
+++ bad ^- msg.right %wrong
+          ^
+/tests/golden/types-import-union-external-origins/source.jibb:3:21: tag literal has type %wrong
+++ bad ^- msg.right %wrong
+                    ^

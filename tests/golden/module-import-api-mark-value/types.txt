@@ -1,2 +1,1 @@
-partial inference; module not checked
 API module needs unsupported inference: /ui/api/demo/jibb: poke-only API definitions need unsupported inference

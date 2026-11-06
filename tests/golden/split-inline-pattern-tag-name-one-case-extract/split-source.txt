@@ -1,0 +1,4 @@
+origin inline-pattern-tag-name-one-case
+target value extract
+keep mold packet
+keep value extract

@@ -1,0 +1,12 @@
+(module
+  (value 20:1 captured-local
+    (gate 20:19
+      (face 20:22 x (flag 20:24))
+      (body 21:3
+        (value 21:3 local
+          (gate 21:12
+            (face 21:15 y (flag 21:17))
+            (group 21:19
+              (call 21:20 (wing 21:20 add) (wing 21:24 x) (wing 21:26 y)))))
+        (group 22:3
+          (call 22:4 (wing 22:4 local) (wing 22:10 x)))))))

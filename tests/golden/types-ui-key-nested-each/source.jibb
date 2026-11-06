@@ -1,0 +1,2 @@
+++ callback |= x=@ud x
+++ bad (each ~[[key=[v=callback label="x"] el=(text "x")]])

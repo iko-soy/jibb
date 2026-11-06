@@ -1,0 +1,7 @@
+++ open: `2` is a @ud, not a @dr; write ~s2
+/tests/golden/split-inline-decimal-sites-open/source.jibb:12:15: decimal
+++ open ~[~s1 2]
+              ^
+/tests/golden/split-inline-decimal-sites-open/source.jibb:12:9: expected type has type @dr
+++ open ~[~s1 2]
+        ^

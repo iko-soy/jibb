@@ -1,7 +1,8 @@
 ::  Full checking for doc fragments in their intended module/prelude contexts.
-/+  jibb, jibb-import
+/+  jibb, jibb-import, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  imports  %jibb  /tests/golden/doc-grammar-01-imports/source/jibb
 /*  view-day  %jibb  /tests/golden/doc-grammar-03-view-day/source/jibb
 /*  step  %jibb  /tests/golden/doc-grammar-04-step/source/jibb
@@ -155,7 +156,7 @@
   |=  [public=@t private=@t import-source=@t view-source=@t step-source=@t cmd-source=@t sur=@t action=@t blog=@t card-source=@t]
   ^-  (list tape)
   =/  prepared=(unit iprelude:jibb)
-    (prepare-prelude-with-internal:jibb public private)
+    (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~["doc-example prelude did not prepare"]
   ;:  weld
     (doc-positive "view-day" /ui/view-day/jibb view-source %view '$-([day=@da n=@ud] (element M))' u.prepared)

@@ -1,0 +1,15 @@
+(module
+  (mold 7:1 either
+    (union 8:3
+      (cell 8:3 (const 8:4 %go) (aura 8:8 @p) (aura 8:11 @t))
+      (const 9:3 %stop)))
+  (value 13:1 split-union
+    (gate 13:16
+      (face 13:19 x
+        (cell 13:21 (aura 13:22 @t) (ref 13:25 either)))
+      (body 14:3
+        (branch 14:3
+          (wing 14:6 x)
+          (arm 15:5
+            (cell 15:5 (bind 15:6 first) (bind 15:12 second) (bind 15:19 third))
+            (wing 15:26 third)))))))

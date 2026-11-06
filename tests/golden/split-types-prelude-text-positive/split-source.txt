@@ -1,0 +1,6 @@
+origin types-prelude-text
+target value count-codepoints
+keep value count-codepoints
+keep value empty-codepoints
+keep value to-codepoints
+keep value to-tape

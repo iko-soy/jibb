@@ -1,0 +1,3 @@
+origin types-prelude-text
+target value bad-trip
+keep value bad-trip

@@ -160,7 +160,7 @@
     [%fork ~[[%cell [%face %x [%atom %ud ~]] [%face %y [%atom %ud ~]]] [%atom %ud ~]]]
   =/  errors  ?:  =((sample %valid-cell) [%& expect-valid])  errors
     ['disjoint cell union' errors]
-  =/  errors  ?:  =((sample %invalid-cell) [%| 'Hoon $^ union disjointness could not be verified'])  errors
+  =/  errors  ?:  =((sample %invalid-cell) [%| 'Hoon union cases overlap'])  errors
     ['overlapping cell union is rejected' errors]
   =/  errors  ?:  =((shad %mn) [%| 'Hoon collection provenance is unavailable or shadowed'])  errors
     ['local mop shadow in a field is rejected' errors]
@@ -222,12 +222,12 @@
   =/  leaf=(each spec tang)  (mule |.(;;(spec u.got)))
   ?.  ?=([%& [%leaf %tas %x]] leaf)  "debug leaf not recovered"
   =/  branch=spec  [%bccl ~[p.leaf [%base [%atom %t]]]]
-  ?^  (tagged-cases ~[branch branch] ~)  "duplicate tags accepted"
+  ?~  (tagged-cases ~[branch branch] ~)  "duplicate tags not projected"
   =/  broken=(unit *)  (source-gist-tail [%dbug location 42])
   ?~  broken  "debug wrapper missing"
   =/  invalid=(each spec tang)  (mule |.(;;(spec u.broken)))
   ?:  ?=(%& -.invalid)  "malformed spec accepted"
-  "valid wrapper; duplicate and malformed rejected"
+  "valid wrapper; duplicate tags projected; malformed rejected"
 ::
 ::  The same named-operand call with Clay-style source-location wrappers.
 ++  debug-mop-fixture

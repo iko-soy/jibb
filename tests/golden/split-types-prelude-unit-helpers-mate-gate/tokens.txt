@@ -1,0 +1,10 @@
+30:1 glyph ++
+30:4 name mate-gate
+30:14 glyph (
+30:15 tight name mate
+30:20 glyph `
+30:21 tight name same
+30:26 glyph `
+30:27 tight name same
+30:31 tight glyph )
+30:32 NEWLINE

@@ -1,0 +1,4 @@
+origin types-union-finite-generic
+target value forced
+keep mold msg
+keep value forced

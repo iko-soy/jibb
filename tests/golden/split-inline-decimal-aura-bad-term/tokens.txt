@@ -1,0 +1,6 @@
+9:1 glyph ++
+9:4 name term
+9:9 glyph ^-
+9:12 aura @tas
+9:17 lit 30
+9:19 NEWLINE

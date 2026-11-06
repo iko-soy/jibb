@@ -1,0 +1,14 @@
+origin types-prelude-list-helpers
+target value drop-ship
+keep value drop-ship
+keep value drop-text
+keep value join-ship
+keep value join-text
+keep value murn-ship
+keep value murn-text
+keep value skim-ship
+keep value skim-text
+keep value skip-ship
+keep value skip-text
+keep value snip-ship
+keep value snip-text

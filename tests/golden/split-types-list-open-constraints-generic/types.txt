@@ -1,0 +1,7 @@
+++ generic: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/split-types-list-open-constraints-generic/source.jibb:4:18: first type variable
+++ generic |= [a=A b=B] ~[a b]
+                 ^
+/tests/golden/split-types-list-open-constraints-generic/source.jibb:4:22: second type variable
+++ generic |= [a=A b=B] ~[a b]
+                     ^

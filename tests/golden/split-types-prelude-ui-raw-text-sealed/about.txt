@@ -1,0 +1,4 @@
+source: split from types-prelude-ui, preserving the original source lines
+tests: raw element nouns cannot be sealed by casting; use a constructor
+expect: parses
+expect-types: full checker result

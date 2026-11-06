@@ -1,0 +1,14 @@
+24:1 glyph ++
+24:4 name eq-nested-gate
+24:19 glyph (
+24:20 tight name eq
+24:23 glyph [
+24:24 tight lit 1
+24:26 name same
+24:30 tight glyph ]
+24:32 glyph [
+24:33 tight lit 1
+24:35 name same
+24:39 tight glyph ]
+24:40 tight glyph )
+24:41 NEWLINE

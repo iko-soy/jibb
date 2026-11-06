@@ -1,0 +1,7 @@
+++ on-text: `5` is a @ud, not a @t; write "5"
+/tests/golden/split-inline-decimal-patterns-on-text/source.jibb:11:3: decimal
+  5 %five
+  ^
+/tests/golden/split-inline-decimal-patterns-on-text/source.jibb:10:23: expected type has type @t
+++ on-text |= t=@t ?- t
+                      ^

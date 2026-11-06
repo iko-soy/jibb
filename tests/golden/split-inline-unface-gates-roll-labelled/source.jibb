@@ -1,0 +1,11 @@
+
+
+
+++ add-f |= [a=@ud b=@ud] (add a b)
+
+
+
+
+++ roll-labelled (roll ~[1 2] 0 add-f)
+
+

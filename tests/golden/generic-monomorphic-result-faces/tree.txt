@@ -1,0 +1,18 @@
+(module
+  (value 1:1 pair
+    (gate 1:9
+      (face 1:12 n (aura 1:14 @ud))
+      (tuple 1:18 (wing 1:19 n) (wing 1:21 n))))
+  (value 2:1 labelled
+    (gate 2:13
+      (face 2:16 p
+        (cell 2:18
+          (face 2:19 left (aura 2:24 @ud))
+          (face 2:28 right (aura 2:34 @ud))))
+      (wing 2:39 p)))
+  (value 3:1 output
+    (group 3:11
+      (call 3:12
+        (wing 3:12 labelled)
+        (group 3:21
+          (call 3:22 (wing 3:22 pair) (lit 3:27 1)))))))

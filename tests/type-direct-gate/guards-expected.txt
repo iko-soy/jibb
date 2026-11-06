@@ -1,0 +1,54 @@
+direct
+module kind: library
+++ apply: $-([f=$-([A B] B) n=@t] $-([A B] B))
+++ target: $-([a=@t b=@p] @p)
+++ result: $-([a=@t b=@p] @p)
+head alias
+module kind: library
+++ apply: $-([f=$-([A B] B) n=@t] $-([A B] B))
+++ target: $-([a=@t b=@p] @p)
+++ helper: $-([f=$-([A B] B) n=@t] $-([A B] B))
+++ result: $-([a=@t b=@p] @p)
+callback alias
+module kind: library
+++ apply: $-([f=$-([A B] B) n=@t] $-([A B] B))
+++ target: $-([a=@t b=@p] @p)
+++ callback: $-([a=@t b=@p] @p)
+++ result: $-([a=@t b=@p] @p)
+later binding
+module kind: library
+++ apply: $-([first=[foo=A] [second=A f=$-([C D] D)]] $-([C D] D))
+++ target: $-([a=@t b=@p] @p)
+++ result: $-([a=@t b=@p] @p)
+inferred face
+module kind: library
+++ apply: $-([first=[foo=A] [second=A f=$-([C D] D)]] $-([C D] D))
+++ target: $-([a=@t b=@p] @p)
+++ result: $-(@t $-([a=@t b=@p] @p))
+conflicting face
+++ result: call's sample and argument types do not unify
+/ui/callback.jibb:3:12: called gate has type $-([first=[foo=@t] [second=@t f=$-([a=@t b=@p] @p)]] $-([a=@t b=@p] @p))
+++ result (apply [other="x"] "y" target)
+           ^
+/ui/callback.jibb:3:18: argument has type [other=@t]
+++ result (apply [other="x"] "y" target)
+                 ^
+conflicting aura
+++ result: inline gate result does not unify with @t: @p versus @t
+/ui/callback.jibb:3:18: actual type has type @t
+++ result (apply [foo="x"] ~zod target)
+                 ^
+/ui/callback.jibb:3:28: actual type has type @p
+++ result (apply [foo="x"] ~zod target)
+                           ^
+/ui/callback.jibb:3:12: call context has type [foo=A [A $-([C D] D)]]
+++ result (apply [foo="x"] ~zod target)
+           ^
+distinct capitals
+++ bad: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/ui/callback.jibb:2:17: first type variable
+++ bad |= f=$-([A B] @t) (first f)
+                ^
+/ui/callback.jibb:2:19: second type variable
+++ bad |= f=$-([A B] @t) (first f)
+                  ^

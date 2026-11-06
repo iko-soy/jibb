@@ -1,0 +1,40 @@
+(module
+  (mold 1:1 model
+    (cell 1:10
+      (face 1:11 count (aura 1:17 @ud))))
+  (value 2:1 main
+    (group 2:9
+      (call 2:10 (wing 2:10 program) (wing 2:18 init) (wing 2:23 update) (wing 2:30 view) (wing 2:35 subs))))
+  (value 3:1 init
+    (gate 3:9
+      (face 3:12 input (aura 3:18 @t))
+      (cast 3:21
+        (ref 3:24 model)
+        (tuple 3:30
+          (face 3:31 count (lit 3:37 0))))))
+  (value 4:1 update
+    (gate 4:11
+      (cell 4:14
+        (face 4:15 msg (tvar 4:19 M))
+        (face 4:21 state (ref 4:27 model)))
+      (body 5:3
+        (cast 5:3
+          (cell 5:6
+            (ref 5:7 model)
+            (apply 5:13 list
+              (apply 5:19 cmd (tvar 5:24 M))))
+          (tuple 5:29 (wing 5:30 state) (lit 5:36 ~))))))
+  (value 6:1 view
+    (gate 6:9
+      (face 6:12 state (ref 6:18 model))
+      (cast 6:24
+        (apply 6:27 element (tvar 6:36 M))
+        (group 6:39
+          (call 6:40 (wing 6:40 text) (str 6:45 "view"))))))
+  (value 7:1 subs
+    (gate 7:9
+      (face 7:12 state (ref 7:18 model))
+      (cast 7:24
+        (apply 7:27 list
+          (apply 7:33 sub (tvar 7:38 M)))
+        (lit 7:42 ~)))))

@@ -1,5 +1,4 @@
-partial inference; module not checked
-+$ message: cases proven disjoint; mold not checked
++$ message: message
 ++ init: $-(@t @ud)
 ++ update: $-([msg=message state=@ud] [@ud (list (cmd message))])
 ++ view: $-(@ud (element message))
@@ -8,19 +7,46 @@ partial inference; module not checked
 ++ wrong-init: $-(@p @ud)
 ++ different-data: [init=$-(@p @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
 ++ wrong-update: $-([msg=message state=@p] [@p (list (cmd message))])
-++ mismatched-model: call constraint is not supported by partial inference
+++ mismatched-model: call's sample and argument types do not unify
+/tests/sub/client.jibb:14:22: called gate has type $-([init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]] [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]])
+++ mismatched-model (program init wrong-update view subs)
+                     ^
+/tests/sub/client.jibb:14:35: argument has type @p
+++ mismatched-model (program init wrong-update view subs)
+                                  ^
 ++ wrong-view: $-(@p (element message))
-++ mismatched-view: call constraint is not supported by partial inference
+++ mismatched-view: local sample `wrong-view` does not unify with @ud: @p versus @ud
+/tests/sub/client.jibb:15:18: written gate sample
+++ wrong-view |= state=@p ^- (element message) (text "view")
+                 ^
+/tests/sub/client.jibb:16:21: call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]
+++ mismatched-view (program init update wrong-view subs)
+                    ^
 ++ wrong-subs: $-(@p (list (sub message)))
-++ mismatched-subs: call constraint is not supported by partial inference
-+$ other: cases proven disjoint; mold not checked
+++ mismatched-subs: local sample `wrong-subs` does not unify with @ud: @p versus @ud
+/tests/sub/client.jibb:17:18: written gate sample
+++ wrong-subs |= state=@p ^- (list (sub message)) ~
+                 ^
+/tests/sub/client.jibb:18:21: call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]
+++ mismatched-subs (program init update view wrong-subs)
+                    ^
++$ other: other
 ++ wrong-msg-update: $-([msg=other state=@ud] [@ud (list (cmd other))])
-++ mismatched-message: call constraint is not supported by partial inference
-++ pending: tag needs context in partial inference
+++ mismatched-message: call's sample and argument types do not unify
+/tests/sub/client.jibb:24:24: called gate has type $-([init=$-(@t @ud) [update=$-([other @ud] [@ud (list (cmd other))]) [view=$-(@ud (element other)) subs=$-(@ud (list (sub other)))]]] [init=$-(@t @ud) [update=$-([other @ud] [@ud (list (cmd other))]) [view=$-(@ud (element other)) subs=$-(@ud (list (sub other)))]]])
+++ mismatched-message (program init wrong-msg-update view subs)
+                       ^
+/tests/sub/client.jibb:24:54: argument has type message
+++ mismatched-message (program init wrong-msg-update view subs)
+                                                     ^
+++ pending: nothing fixes the union of %unrelated; add a `^-`
+/tests/sub/client.jibb:26:6: nothing fixes the union of %unrelated; add a `^-`
+  ~& %unrelated
+     ^
 ++ program-value: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
 ++ update-unfaced: $-([message @ud] [@ud (list (cmd message))])
 ++ direct-unfaced: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
-+$ record: not checked
++$ record: [count=@ud label=@t]
 ++ init-record: $-(@t [count=@ud label=@t])
 ++ update-record: $-([msg=message state=[count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
 ++ update-record-unfaced: $-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
@@ -29,9 +55,24 @@ partial inference; module not checked
 ++ program-record: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] (element message)) subs=$-([count=@ud label=@t] (list (sub message)))]]]
 ++ program-record-unfaced: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] (element message)) subs=$-([count=@ud label=@t] (list (sub message)))]]]
 ++ bad-update-record: $-([msg=message state=[other=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
-++ program-wrong-nested-face: call constraint is not supported by partial inference
-++ update-pending: tag needs context in partial inference
-++ program-pending: name is not available to partial inference
+++ program-wrong-nested-face: call argument does not unify with [count=@ud]: [other=@ud] versus [count=@ud]
+/tests/sub/client.jibb:33:28: local gate result has type [count=@ud]
+++ init-record |= input=@t ^- record [count=0 label=input]
+                           ^
+/tests/sub/client.jibb:44:51: argument has type [other=@ud]
+++ program-wrong-nested-face (program init-record bad-update-record view-record subs-record)
+                                                  ^
+/tests/sub/client.jibb:44:31: call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]
+++ program-wrong-nested-face (program init-record bad-update-record view-record subs-record)
+                              ^
+++ update-pending: nothing fixes the union of %orphan; add a `^-`
+/tests/sub/client.jibb:46:6: nothing fixes the union of %orphan; add a `^-`
+  ~& %orphan
+     ^
+++ update-pending: nothing fixes the union of %orphan; add a `^-`
+/tests/sub/client.jibb:46:6: nothing fixes the union of %orphan; add a `^-`
+  ~& %orphan
+     ^
 ++ update-proj: $-([msg=message state=[count=@ud [label=@t extra=?]]] [[count=@ud label=@t] (list (cmd message))])
 ++ pass-fn: $-($-([A B] C) $-([A B] C))
 ++ pass-named: $-([msg=message state=@ud] [@ud (list (cmd message))])
@@ -59,28 +100,46 @@ partial inference; module not checked
 ++ update-proj-good: $-([msg=message state=[count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
 ++ program-projection: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] (element message)) subs=$-([count=@ud label=@t] (list (sub message)))]]]
 ++ program-alias: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
-++ through-head-alias: call constraint is not supported by partial inference
+++ through-head-alias: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
 ++ update-alias: $-([msg=message state=@ud] [@ud (list (cmd message))])
-++ through-arg-alias: call constraint is not supported by partial inference
-++ select-update: branch tag or union context is not supported by partial inference
-++ through-branch: name is not available to partial inference
-++ local-shadow: sample shadows a name
+++ through-arg-alias: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
+++ select-update: $-(? $-([msg=message state=@ud] [@ud (list (cmd message))]))
+++ through-branch: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
+++ local-shadow: sample `update` shadows a name already in scope
+/tests/sub/client.jibb:5:4: earlier binding
+++ update |= [msg=message state=@ud]
+   ^
+/tests/sub/client.jibb:75:20: conflicting sample binding
+++ local-shadow |= update (program init update view subs)
+                   ^
 ++ nested-layout: $-([a=@t [x=@t y=@p]] @t)
 ++ flat-layout: $-([a=@t [x=@t y=@p]] @t)
-++ nested-accept: call constraint is not supported by partial inference
-++ flat-accept: call constraint is not supported by partial inference
+++ nested-accept: @t
+++ flat-accept: @t
 ++ higher-nested: $-([@t [x=@t y=@p]] @t)
 ++ higher-flat: $-([@t [x=@t y=@p]] @t)
 ++ nested-ret: $-([a=@t [x=@t y=@p]] [x=@t y=@p])
 ++ flat-ret: $-([a=@t [x=@t y=@p]] [x=@t y=@p])
 ++ higher-generic-nested: [x=@t y=@p]
-++ higher-generic-flat: call constraint is not supported by partial inference
+++ higher-generic-flat: [x=@t y=@p]
 ++ global-id: $-(A A)
 ++ capture-good: $-([a=@t state=A] A)
 ++ capture-text: @t
 ++ capture-ship: @p
 ++ capture-bad: $-([a=A state=B] A)
-++ capture-distinct: call constraint is not supported by partial inference
-++ capture-caller: call constraint is not supported by partial inference
-++ capture-local: call constraint is not supported by partial inference
-++ capture-distinct-caller: call constraint is not supported by partial inference
+++ capture-distinct: call's sample and argument types do not unify
+/tests/sub/client.jibb:91:22: called gate has type $-([f=$-([a=@t state=@t] @t) state=@t] @t)
+++ capture-distinct (higher-generic capture-bad ~zod)
+                     ^
+/tests/sub/client.jibb:91:49: argument has type @p
+++ capture-distinct (higher-generic capture-bad ~zod)
+                                                ^
+++ capture-caller: $-(A A)
+++ capture-local: $-(A A)
+++ capture-distinct-caller: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/sub/client.jibb:96:37: first type variable
+++ capture-distinct-caller |= [left=A right=B] ^- B (higher-generic capture-good left)
+                                    ^
+/tests/sub/client.jibb:96:45: second type variable
+++ capture-distinct-caller |= [left=A right=B] ^- B (higher-generic capture-good left)
+                                            ^

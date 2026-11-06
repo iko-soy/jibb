@@ -1,0 +1,4 @@
+message distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+typed-site /tests/golden/split-types-generic-face-inference-uncertain/source.jibb:8:19
+typed-site /tests/golden/split-types-generic-face-inference-uncertain/source.jibb:8:31
+min-sites 2

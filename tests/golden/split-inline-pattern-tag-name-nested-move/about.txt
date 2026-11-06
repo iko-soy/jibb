@@ -1,0 +1,4 @@
+source: split from inline-pattern-tag-name-nested, preserving the original source lines
+tests: the independent move diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

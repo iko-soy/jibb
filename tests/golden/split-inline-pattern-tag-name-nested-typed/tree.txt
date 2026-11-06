@@ -1,0 +1,21 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (cell 3:3 (const 3:4 %submit) (const 3:12 ~))
+      (const 4:3 %clear)))
+  (value 13:1 typed
+    (gate 13:10
+      (face 13:13 m (ref 13:15 msg))
+      (body 14:3
+        (branch 14:3
+          (wing 14:6 m)
+          (arm 15:5
+            (cell 15:5 (bind 15:6 typed) (bind 15:12 t))
+            (wing 15:17 t))
+          (arm 16:5
+            (cell 16:5 (lit 16:6 %submit) (lit 16:14 ~))
+            (str 16:17 "s"))
+          (arm 17:5 (lit 17:5 %clear) (str 17:17 "c")))))))

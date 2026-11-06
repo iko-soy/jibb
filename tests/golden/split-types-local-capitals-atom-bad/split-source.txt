@@ -1,0 +1,3 @@
+origin types-local-capitals
+target value atom-bad
+keep value atom-bad

@@ -1,0 +1,7 @@
+++ unknown-outer: record has no field `carts`
+/tests/golden/split-types-change-wing-unknown-outer/source.jibb:15:36: unknown field
+++ unknown-outer |= m=model m(open.carts=%.y)
+                                   ^
+/tests/golden/split-types-change-wing-unknown-outer/source.jibb:15:29: record being changed has type [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]]
+++ unknown-outer |= m=model m(open.carts=%.y)
+                            ^

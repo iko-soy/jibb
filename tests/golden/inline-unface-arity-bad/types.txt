@@ -1,10 +1,4 @@
-partial inference; module not checked
-++ lt-a: $-([a=@ud b=@ud] ?)
 ++ two: unface takes one argument, as (unface e)
 /tests/golden/inline-unface-arity-bad/source.jibb:2:9: unface call
 ++ two (unface lt-a lt-a)
-        ^
-++ none: unface takes one argument, as (unface e)
-/tests/golden/inline-unface-arity-bad/source.jibb:3:9: unface call
-++ none (unface)
         ^

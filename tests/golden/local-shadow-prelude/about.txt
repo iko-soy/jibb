@@ -1,0 +1,4 @@
+source: Grammar, Modules and Patterns: names may not shadow earlier bindings.
+tests: Lexical diagnostics identify the source of an existing name.
+expect: parses
+expect-types: full checker report

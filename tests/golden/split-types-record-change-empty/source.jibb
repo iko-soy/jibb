@@ -1,0 +1,19 @@
++$ state [items=(list @t) open=? name=@t nested=[word=@t]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ empty |= s=state s()
+
+
+
+

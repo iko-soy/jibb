@@ -1,0 +1,8 @@
+18:1 glyph ++
+18:4 name bad-kind
+18:13 glyph (
+18:14 tight name gte
+18:18 lit ~zod
+18:23 str "text"
+18:29 tight glyph )
+18:30 NEWLINE

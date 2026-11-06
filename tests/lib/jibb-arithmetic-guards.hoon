@@ -37,7 +37,7 @@
   =/  different=itype:jibb  [%face %outer [%face %wrong [%atom %t]]]
   =/  raw=itype:jibb  [%var 0]
   =/  any=itype:jibb  [%any-atom ~]
-  =/  sub=isub:jibb  ~[[0 text]]
+  =/  sub=isub:jibb  (isub-from-bindings:jibb ~[[0 text]])
   =/  flag=itype:jibb  [%face %f [%flag ~]]
   =/  restricted=itype:jibb  [%face %f [%rvar 1]]
   =/  cell=itype:jibb  [%face %f [%cell [%atom %t] [%atom %p]]]

@@ -1,0 +1,4 @@
+source: split from types-deferred-call-context, preserving the original source lines
+tests: the independent result-repeated-bad diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

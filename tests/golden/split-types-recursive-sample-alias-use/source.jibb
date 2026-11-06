@@ -1,0 +1,40 @@
+
+
+
+
+
+
+
+
+
+
+
+
+++ alias-use |= [first=A second=A]
+  ++ alias alias-use
+  ~& (alias "hi" "hi")
+    (alias ~zod ~zod)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

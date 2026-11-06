@@ -1,0 +1,9 @@
+origin types-union-pattern-result-controls
+target value argument
+keep mold msg
+keep mold reply
+keep value argument
+keep value choose
+keep value from-call
+keep value generic
+keep value non-wing

@@ -1,0 +1,4 @@
+typed-site /tests/golden/types-prelude-fand-gate/source.jibb:2:9
+typed-site /tests/golden/types-prelude-fand-gate/source.jibb:2:16
+min-sites 2
+message list item does not fit its expected type

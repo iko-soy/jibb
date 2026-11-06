@@ -1,0 +1,3 @@
+origin inline-decimal-patterns
+target value on-gap
+keep value on-gap

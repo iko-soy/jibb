@@ -1,0 +1,18 @@
+(module
+  (value 5:1 record-identity
+    (gate 5:20
+      (cell 5:23
+        (face 5:24 n (aura 5:26 @ud))
+        (face 5:30 item
+          (cell 5:35
+            (face 5:36 x (aura 5:38 @t))
+            (face 5:41 y (aura 5:43 @p)))))
+      (wing 5:48 item)))
+  (value 14:1 pending
+    (group 14:12
+      (call 14:13
+        (wing 14:13 record-identity)
+        (lit 14:29 1)
+        (tuple 14:31
+          (face 14:32 x (str 14:34 "hi"))
+          (face 14:39 y (lit 14:41 %unresolved)))))))

@@ -1,0 +1,7 @@
+++ change: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/split-inline-decimal-sites-change/source.jibb:10:38: decimal
+++ change |= m=[gap=@dr n=@ud] m(gap=30)
+                                     ^
+/tests/golden/split-inline-decimal-sites-change/source.jibb:10:34: expected type has type @dr
+++ change |= m=[gap=@dr n=@ud] m(gap=30)
+                                 ^

@@ -1,0 +1,76 @@
++$ input
+  [%p flag=? text=@t]
+  %other
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ bad-generic |= [x=input a=A] ^- (list A)
+  ?- x
+    [%p %.y t] ~["bad"]
+    [%p %.n t] ~[]
+    %other ~

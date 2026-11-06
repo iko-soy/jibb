@@ -1,0 +1,7 @@
+++ wrong-ud: cast mold and expression type do not unify
+/tests/golden/split-types-loobean-singleton-source-wrong-ud/source.jibb:11:16: cast mold has type @ud
+++ wrong-ud ^- @ud %.y
+               ^
+/tests/golden/split-types-loobean-singleton-source-wrong-ud/source.jibb:11:20: expression has type ?
+++ wrong-ud ^- @ud %.y
+                   ^

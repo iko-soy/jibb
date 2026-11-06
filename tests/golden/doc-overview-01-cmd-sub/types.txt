@@ -1,0 +1,3 @@
+module kind: library
++$ cmd: (cmd A)
++$ sub: (sub A)

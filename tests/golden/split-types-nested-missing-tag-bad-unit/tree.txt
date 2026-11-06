@@ -1,0 +1,12 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (mold 4:1 state
+    (cell 4:10
+      (face 4:11 title (aura 4:17 @t))
+      (face 4:20 choice (ref 4:27 msg))))
+  (value 14:1 bad-unit
+    (cast 14:13
+      (apply 14:16 unit (ref 14:22 state))
+      (unit 14:29
+        (tuple 14:30 (str 14:31 "hi") (lit 14:36 %missing))))))

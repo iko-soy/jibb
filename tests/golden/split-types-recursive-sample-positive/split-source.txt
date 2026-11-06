@@ -1,0 +1,9 @@
+origin types-recursive-sample
+target value capture
+keep value capture
+keep value early-base
+keep value generic
+keep value generic-one
+keep value generic-two
+keep value late-base
+keep value recurse

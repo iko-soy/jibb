@@ -31,9 +31,9 @@
         ['wrong sample aura' [%fn named t] [%fn samples-mismatch t] ~ |]
         ['wrong result aura' [%fn named p] [%fn bare t] ~ |]
         ['open sample' [%fn [%var 0] t] [%fn bare t] ~ &]
-        ['variable-bound sample' [%fn [%var 0] t] [%fn bare t] ~[[0 named]] |]
-        ['variable-bound actual function' [%var 0] [%fn bare t] ~[[0 [%fn named t]]] |]
-        ['variable-bound expected function' [%fn bare t] [%var 0] ~[[0 [%fn named t]]] |]
+        ['variable-bound sample' [%fn [%var 0] t] [%fn bare t] (isub-from-bindings:jibb ~[[0 named]]) |]
+        ['variable-bound actual function' [%var 0] [%fn bare t] (isub-from-bindings:jibb ~[[0 [%fn named t]]]) |]
+        ['variable-bound expected function' [%fn bare t] [%var 0] (isub-from-bindings:jibb ~[[0 [%fn named t]]]) |]
     ==
   =/  outcomes=(list @t)
     %+  turn  cases

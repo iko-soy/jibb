@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ same2: $-(A A)
 ++ with-a: $-(A [A $-(B B)])
 ++ with-b: $-(B [$-(A A) B])

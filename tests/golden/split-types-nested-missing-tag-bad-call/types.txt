@@ -1,0 +1,13 @@
+++ bad-call: msg has no case `%missing`
+/tests/golden/split-types-nested-missing-tag-bad-call/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-nested-missing-tag-bad-call/source.jibb:2:3: expected union has type msg
+  %add
+  ^
+/tests/golden/split-types-nested-missing-tag-bad-call/source.jibb:13:14: expected union has type msg
+++ bad-call (take ["hi" %missing])
+             ^
+/tests/golden/split-types-nested-missing-tag-bad-call/source.jibb:13:25: tag literal has type %missing
+++ bad-call (take ["hi" %missing])
+                        ^

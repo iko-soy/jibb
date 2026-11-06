@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/types-prelude-test-gate/source.jibb:2:9
+site /tests/golden/types-prelude-test-gate/source.jibb:2:14
+min-sites 2

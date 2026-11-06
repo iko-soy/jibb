@@ -1,0 +1,4 @@
+source: Milestone 2 review, import-check.hoon I1-signed: imported signed auras are rejected.
+tests: A used imported @sd mold is rejected by the full checker at its use site.
+expect: parses
+expect-types: full checker result

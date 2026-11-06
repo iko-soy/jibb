@@ -1,0 +1,46 @@
++$ msg
+  %go
+  %stay
+
+
+
++$ record [u=(unit msg) xs=(list (unit @t))]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ wrong-name ^- record [wrong=`%go xs=~[`"hi"]]
+
+
+
+
+
+
+
+
+
+
+

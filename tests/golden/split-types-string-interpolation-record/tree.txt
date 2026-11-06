@@ -1,0 +1,6 @@
+(module
+  (value 5:1 record
+    (gate 5:11
+      (face 5:14 x
+        (cell 5:16 (aura 5:17 @t) (aura 5:20 @ud)))
+      (str 5:25 (wing 5:27 x)))))

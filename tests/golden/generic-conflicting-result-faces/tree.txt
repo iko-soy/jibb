@@ -1,0 +1,31 @@
+(module
+  (value 1:1 pair
+    (gate 1:9
+      (face 1:12 n (aura 1:14 @ud))
+      (tuple 1:18 (wing 1:19 n) (wing 1:21 n))))
+  (value 2:1 one
+    (gate 2:8
+      (face 2:11 p
+        (cell 2:13
+          (face 2:14 left (aura 2:19 @ud))
+          (face 2:23 right (aura 2:29 @ud))))
+      (wing 2:34 p)))
+  (value 3:1 two
+    (gate 3:8
+      (face 3:11 p
+        (cell 3:13
+          (face 3:14 first (aura 3:20 @ud))
+          (face 3:24 second (aura 3:31 @ud))))
+      (wing 3:36 p)))
+  (value 4:1 a
+    (group 4:6
+      (call 4:7
+        (wing 4:7 one)
+        (group 4:11
+          (call 4:12 (wing 4:12 pair) (lit 4:17 1))))))
+  (value 5:1 b
+    (group 5:6
+      (call 5:7
+        (wing 5:7 two)
+        (group 5:11
+          (call 5:12 (wing 5:12 pair) (lit 5:17 2)))))))

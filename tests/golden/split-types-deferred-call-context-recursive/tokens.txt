@@ -1,0 +1,41 @@
+4:1 glyph ++
+4:4 name local-id
+4:13 glyph |=
+4:16 name x
+4:18 name x
+35:1 NEWLINE
+35:1 glyph ++
+35:4 name recursive
+35:14 glyph |=
+35:17 glyph [
+35:18 tight name flag
+35:22 tight glyph =
+35:23 tight glyph ?
+35:25 name value
+35:30 tight glyph ]
+36:3 INDENT
+36:3 glyph ^-
+36:6 glyph (
+36:7 tight name list
+36:12 aura @t
+36:14 tight glyph )
+37:5 INDENT
+37:5 glyph ?-
+37:8 name flag
+38:7 INDENT
+38:7 lit %.y
+38:11 glyph (
+38:12 tight name local-id
+38:21 name value
+38:26 tight glyph )
+39:7 NEWLINE
+39:7 lit %.n
+39:11 glyph (
+39:12 tight name recursive
+39:22 name flag
+39:27 name value
+39:32 tight glyph )
+39:33 DEDENT
+39:33 DEDENT
+39:33 DEDENT
+39:33 NEWLINE

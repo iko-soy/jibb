@@ -1,0 +1,13 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 16:1 accept
+    (gate 16:11
+      (face 16:14 x
+        (apply 16:16 unit (ref 16:22 msg)))
+      (wing 16:27 x)))
+  (value 18:1 bad-call
+    (group 18:13
+      (call 18:14
+        (wing 18:14 accept)
+        (unit 18:21 (lit 18:22 %bad))))))

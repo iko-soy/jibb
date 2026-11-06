@@ -1,0 +1,7 @@
+++ wrong-arg: call's sample and argument types do not unify
+/tests/golden/split-types-recursive-sample-wrong-arg/source.jibb:5:39: called gate has type $-([first=@t second=@p] A)
+++ wrong-arg |= [first=@t second=@p] (wrong-arg first first)
+                                      ^
+/tests/golden/split-types-recursive-sample-wrong-arg/source.jibb:5:55: argument has type @t
+++ wrong-arg |= [first=@t second=@p] (wrong-arg first first)
+                                                      ^

@@ -1,0 +1,7 @@
+++ no-field: record has no field `missing`
+/tests/golden/split-types-record-change-no-field/source.jibb:11:26: unknown field
+++ no-field |= s=state s(missing="bad")
+                         ^
+/tests/golden/split-types-record-change-no-field/source.jibb:11:24: record being changed has type [items=(list @t) [open=? [name=@t nested=[word=@t]]]]
+++ no-field |= s=state s(missing="bad")
+                       ^

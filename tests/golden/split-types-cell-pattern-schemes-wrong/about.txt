@@ -1,0 +1,4 @@
+source: split from types-cell-pattern-schemes, preserving the original source lines
+tests: the independent wrong diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

@@ -1,0 +1,16 @@
+7:1 glyph ++
+7:4 name on-ship
+7:12 glyph |=
+7:15 name s
+7:16 tight glyph =
+7:17 tight aura @p
+7:20 glyph ?-
+7:23 name s
+8:3 INDENT
+8:3 lit 0
+8:5 lit %zod
+9:3 NEWLINE
+9:3 glyph *
+9:5 lit %other
+9:11 DEDENT
+9:11 NEWLINE

@@ -1,0 +1,5 @@
+(module
+  (value 10:1 wrong-message
+    (cast 10:18
+      (apply 10:21 cmd (aura 10:26 @t))
+      (tuple 10:30 (lit 10:31 %wait) (lit 10:37 ~s30) (lit 10:42 ~zod)))))

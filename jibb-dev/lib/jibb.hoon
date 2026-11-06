@@ -1,7 +1,7 @@
-::  /lib/jibb.hoon: the Jibb compiler, milestone 1
+::  /lib/jibb.hoon: the Jibb compiler
 ::
-::  The layout pass, the parser, the printers and errors for Jibb, the UI
-::  language of the design doc. The doc's Grammar tab is the spec; where
+::  The layout pass, parser, type checker, printers and diagnostics for
+::  Jibb, the UI language of the design doc. The Grammar tab is the spec; where
 ::  this file and the doc disagree, the doc wins. One core with no Ford
 ::  runes, so `urbit eval` runs it as `=>  <this file>  <expression>` and a
 ::  ship builds it as /lib/jibb.hoon.
@@ -11,7 +11,7 @@
 ::    +parse         [file=path src=@t]           (each module error)
 ::    +parse-tokens  [file=path toks=(list token)] (each module error)
 ::    +golden        [file=path src=@t]           [tokens=@t tree=@t]
-::    +golden-types  [file=path src=@t]           @t (partial inference)
+::    +golden-types  [file=path src=@t]           @t (full checker result)
 ::    +show-tokens   (list token)                 @t
 ::    +show-module   module                       @t
 ::    +show-error    [src=@t error]               @t
@@ -28,9 +28,11 @@
 ::  author to settle. Those the author has settled, in the Decisions
 ::  tab's rows of 2026-10-30, are marked "(Decisions)" beside the rule
 ::  decided. The golden corpus's "expect:" lines give each error's
-::  position. A partial inference fragment is in %type-inference; its
-::  output explicitly says the module has not been checked. The layout
-::  pass's errors sit there, except where the
+::  position. The type checker is in %type-inference; its shared inference
+::  core checks dependency components with one constraint queue and a noun
+::  pattern matrix. Public type reports render the full checker result.
+::  docs/status.md records the validated capabilities and remaining limits.
+::  The layout pass's errors sit there, except where the
 ::  parser finds an earlier error first, as in `++ 2nd 5`, or moves one
 ::  back to the start of its text, as in `++ x @sd` (2.0, 2.8, and
 ::  section 3, Errors).
@@ -850,13 +852,25 @@
 ::      ^
 ::
 ::  ===================================================================
-::  5. General checker core (design; not implemented yet)
+::  5. General checker core (implementation and remaining design)
 ::  ===================================================================
 ::
-::  The existing inference and recovery paths are described in
-::  docs/compiler.md. This section is a plan for replacing them, not a
-::  claim that the current checker implements these rules. The Grammar and
-::  Decisions are authoritative if this design needs adjustment.
+::  The full checker uses one shared module state. Its substitution has a
+::  persistent map and rollback log; find compresses paths, binding checks
+::  for cycles, and a level index supports generalization. A work queue
+::  carries fits, tags, wings, matches, unface, face joins and duplicate
+::  attribute checks. It indexes waiting edges by the variables they can
+::  read and uses a full retry when needed. Definitions are visited in
+::  dependency components, with recursive gates inferred in one group.
+::  One usefulness matrix checks pattern coverage and binder refinement.
+::
+::  The public type report renders the full checker result. Failed
+::  constraints retain their definition owner and original source sites;
+::  no alternate module resolver accepts a special source shape after this
+::  checker declines it. Kind checks follow ordinary inference of main.
+::  Checked API/store source evidence establishes request origins. The
+::  Grammar and Decisions are authoritative; docs/status.md records the
+::  validated implementation boundary and remaining work.
 ::
 ::  5.1 State and unification. Give each inference variable an identity and
 ::  a union-find entry: parent or binding, rank, level, source, rigidity,
@@ -932,6 +946,30 @@
 ::  is a rendering of that result. As general inference covers an existing
 ::  recovery or source-proven slice, remove that slice and retain its tests.
 ::  An unsupported construct fails closed at its own site until then.
+::
+::  5.5 Watch origins are properties of values, not ask types. After main
+::  has its ordinary checked type, an abstract source evaluation follows
+::  that main's initializer, subscriptions and rendered views. The value
+::  domain retains constants, cells, faces, alternatives, closures and
+::  checked request capabilities. Ordinary aliases, locals, applications,
+::  changes and projections use the same operations. A type annotation
+::  provides field axes but never a capability. API and store capabilities
+::  require the selected checked interface's exact member, source and
+::  declaration evidence; cached dependency text supplies closure bodies
+::  only. Explicitly selected interfaces take precedence over group cache
+::  entries, so stale or unrelated evidence cannot repair a changed value.
+::
+::  Subscription analysis visits every possible list item. A watch needs
+::  an authenticated request on every possible path; timers and URL
+::  subscriptions do not. The private element seal records an obligation
+::  for an embedded program. Ordinary value evaluation retains these
+::  obligations through discarded arguments and changed or discarded
+::  fields. It evaluates a rendered view with an unknown model, preserving
+::  alternatives rather than guessing a runtime branch. Closure-cycle keys
+::  include their captures and arguments; equal ask types cannot transfer
+::  one occurrence's capability to another. Unknown origins and exhausted
+::  analysis budgets fail at the watch and request source sites. This is a
+::  static kind check, not a Jibb execution engine or a lowering pass.
 ::
 |%
 +|  %positions
@@ -4142,7 +4180,7 @@
     =|  fs=(list field)
     |-  ^-  (pare shape)
     ?:  ?=([[* * %']'] *] ts)
-      ?~  fs  (bad ts "a mold")
+      ?~  fs  (bad-at beg.at.op "an empty `[]` is not a valid cell mold")
       [%& [%cell [beg.at.op end.at.i.ts] (flop fs)] t.ts]
     ?:  ?=([[* * %indent] *] ts)
       ;<  [ls=(list field) more=(list token)]  then  (read-flines t.ts)
@@ -4858,6 +4896,27 @@
 ::  jam grew from 2,402 to 4,209 bytes (+1,807 bytes). These single-run figures
 ::  are not production memory or performance benchmarks.
 ::
++$  gkey  [at=path site=span name=term]
++$  gname  [face=(unit term) name=term]
++$  gnode
+  $~  [%noun ~]
+  $%  [%noun ~]
+      [%void ~]
+      [%flag ~]
+      [%atom aura=@ta]
+      [%const literal=lit]
+      [%param name=@t]
+      [%builtin-list ~]
+      [%ref key=gkey args=(list gnode)]
+      [%face name=term body=gnode]
+      [%value body=gnode]
+      [%cell head=gnode tail=gnode]
+      [%union cases=(list gnode)]
+      [%named-union cases=(list gnode) origin=(unit [at=path name=term]) args=(list gnode)]
+      [%sealed origin=[at=path name=term] label=(unit @t) args=(list gnode) body=gnode]
+      [%fn sample=gnode product=gnode]
+  ==
++$  gdef  [site=span visible=? params=(list @t) captures=(list @t) body=gnode]
 +$  itype
   $~  [%var 0]
   $%        [%var id=@ud]
@@ -4870,28 +4929,367 @@
       [%any-atom ~]
       [%flag ~]
       [%noun ~]
+      [%refined proof=itype]
+      [%opaque origin=[at=path name=term] label=(unit @t) args=(list itype) body=itype]
       [%empty ~]
       [%tag id=@ud literal=lit constructor=?]
       [%const literal=lit]
       [%collection name=term args=(list itype)]
       [%recursive module=term name=term label=(unit @t)]
-      [%jrec at=path name=term label=(unit @t) head=term aura=@ta tail=term]
-      [%grec at=path name=term label=(unit @t) proof=shape args=(list itype)]
+      [%mrec at=path site=span name=term label=(unit @t) graph=(map gkey gdef) args=(list itype)]
       [%union cases=(list itype) origin=(unit [at=path name=term]) label=(unit @t) args=(list itype)]
       [%face name=term body=itype]
+      [%slot name=term body=itype]
       [%fn sample=itype product=itype]
       [%cell hed=itype tal=itype]
   ==
 +$  ibinding  [id=@ud val=itype]
-+$  isub  (list ibinding)
++$  iface-witness  $%([%named name=term] [%conflict ~])
++$  iwitness-change  [id=@ud witness=iface-witness]
++$  isub  (unit [index=(map @ud itype) history=(list ibinding) witnesses=(map @ud iface-witness) witness-history=(list iwitness-change) result-roots=(list @ud) protected-roots=(list @ud)])
+++  isub-history
+  |=  sub=isub
+  ^-  (list ibinding)
+  ?~(sub ~ history.u.sub)
+++  isub-witness-history
+  |=  sub=isub
+  ^-  (list iwitness-change)
+  ?~(sub ~ witness-history.u.sub)
+++  iface-witness-join
+  |=  [a=(unit iface-witness) b=(unit iface-witness)]
+  ^-  (unit iface-witness)
+  ?~  a  b
+  ?~  b  a
+  ?:  |(?=(%conflict -.u.a) ?=(%conflict -.u.b))  `[%conflict ~]
+  ?:(=(name.u.a name.u.b) a `[%conflict ~])
+++  itype-witness-root
+  |=  [id=@ud sub=isub fuel=@ud]
+  ^-  (unit @ud)
+  ?:  =(0 fuel)  ~
+  ?~  sub  `id
+  =/  found=(unit itype)  (~(get by index.u.sub) id)
+  ?~  found  `id
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.u.found)  `id
+  ?:  =(id +.u.found)  `id
+  $(id +.u.found, fuel (dec fuel))
+++  itype-witness-get
+  |=  [id=@ud sub=isub]
+  ^-  (unit iface-witness)
+  =/  root=(unit @ud)  (itype-witness-root id sub 65.536)
+  ?~  root  `[%conflict ~]
+  ?~  sub  ~
+  (~(get by witnesses.u.sub) u.root)
+++  itype-witness-write
+  |=  [id=@ud witness=iface-witness sub=isub]
+  ^-  isub
+  =/  index=(map @ud itype)  ?~(sub ~ index.u.sub)
+  =/  history=(list ibinding)  (isub-history sub)
+  =/  witnesses=(map @ud iface-witness)  ?~(sub ~ witnesses.u.sub)
+  =/  old=(unit iface-witness)  (~(get by witnesses) id)
+  ?:  =(old `witness)  sub
+  =/  changes=(list iwitness-change)  (isub-witness-history sub)
+  =/  results=(list @ud)  ?~(sub ~ result-roots.u.sub)
+  =/  protected=(list @ud)  ?~(sub ~ protected-roots.u.sub)
+  `[index history (~(put by witnesses) id witness) [[id witness] changes] results protected]
+++  itype-witness-add
+  |=  [id=@ud name=term sub=isub]
+  ^-  isub
+  =/  root=(unit @ud)  (itype-witness-root id sub 65.536)
+  ?~  root  sub
+  =/  old=(unit iface-witness)  (itype-witness-get u.root sub)
+  =/  joined=(unit iface-witness)  (iface-witness-join old `[%named name])
+  ?>  ?=(^ joined)
+  (itype-witness-write u.root u.joined sub)
+++  itype-bind
+  |=  [id=@ud val=itype sub=isub]
+  ^-  isub
+  ::  A parent edge merges witness evidence but leaves ordinary type
+  ::  bindings untouched. A conflict stays explicit for future consumers.
+  =/  source=(unit iface-witness)
+    ?~  (isub-witness-history sub)  ~
+    (itype-witness-get id sub)
+  =/  target=(unit @ud)
+    ?~  source  ~
+    ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.val)  ~
+    ?:  =(id +.val)  ~
+    (itype-witness-root +.val sub 65.536)
+  =/  joined=(unit iface-witness)
+    ?~  target  ~
+    (iface-witness-join source (itype-witness-get u.target sub))
+  =/  index=(map @ud itype)  ?~(sub ~ index.u.sub)
+  =/  history=(list ibinding)  (isub-history sub)
+  =/  witnesses=(map @ud iface-witness)  ?~(sub ~ witnesses.u.sub)
+  =/  changes=(list iwitness-change)  (isub-witness-history sub)
+  =/  results=(list @ud)  ?~(sub ~ result-roots.u.sub)
+  =/  protected=(list @ud)  ?~(sub ~ protected-roots.u.sub)
+  =.  sub  `[(~(put by index) id val) [[id val] history] witnesses changes results protected]
+  ?~  target  sub
+  ?~  joined  sub
+  (itype-witness-write u.target u.joined sub)
+++  isub-from-bindings
+  |=  bindings=(list ibinding)
+  ^-  isub
+  =/  sub=isub  ~
+  =.  bindings  (flop bindings)
+  |-
+  ?~  bindings  sub
+  $(bindings t.bindings, sub (itype-bind id.i.bindings val.i.bindings sub))
 +$  ipending  [id=@ud literal=lit at=span]
+::
+++  coverage
+  |%
+  +$  pattern
+    $~  [%wild ~]
+    $%  [%wild ~]
+        [%literal value=@]
+        [%cell head=pattern tail=pattern]
+    ==
+  +$  domain
+    $~  [%any ~]
+    $%  [%empty ~]
+        [%any ~]
+        [%atom ~]
+        [%literal value=@]
+        [%cell head=domain tail=domain]
+        [%union cases=(list domain)]
+        [%ref id=@ud]
+    ==
+  +$  domains  (list domain)
+  +$  bindings  (list [id=@ud value=domain])
+  +$  row  (list pattern)
+  +$  matrix  (list row)
+  +$  answer
+    $%  [%yes witness=(list *)]
+        [%no ~]
+        [%unknown ~]
+    ==
+  +$  inhabitation
+    $%  [%yes witness=*]
+        [%no ~]
+        [%unknown ~]
+    ==
+  ::
+  ++  binding
+    |=  [id=@ud graph=bindings]
+    ^-  (unit domain)
+    ?~  graph  ~
+    ?:  =(id id.i.graph)  `value.i.graph
+    $(graph t.graph)
+  ::
+  ++  inhabit-alternatives
+    |=  [cases=domains graph=bindings fuel=@ud uncertain=?]
+    ^-  inhabitation
+    ?~  cases  ?:(uncertain [%unknown ~] [%no ~])
+    =/  got=inhabitation  (inhabit i.cases graph fuel)
+    ?-  -.got
+      %yes      got
+      %unknown  $(cases t.cases, uncertain &)
+      %no       $(cases t.cases)
+    ==
+  ::
+  ++  inhabit
+    |=  [d=domain graph=bindings fuel=@ud]
+    ^-  inhabitation
+    ?:  =(0 fuel)  [%unknown ~]
+    =.  fuel  (dec fuel)
+    ?-  -.d
+      %empty    [%no ~]
+      %any      [%yes 0]
+      %atom     [%yes 0]
+      %literal  [%yes value.d]
+      %ref
+        =/  found=(unit domain)  (binding id.d graph)
+        ?~  found  [%unknown ~]
+        $(d u.found)
+      %union  (inhabit-alternatives cases.d graph fuel |)
+      %cell
+        =/  h=inhabitation  $(d head.d)
+        =/  t=inhabitation  $(d tail.d)
+        ?:  |(?=(%no -.h) ?=(%no -.t))  [%no ~]
+        ?.  &(?=(%yes -.h) ?=(%yes -.t))  [%unknown ~]
+        [%yes [witness.h witness.t]]
+    ==
+  ::
+  ++  all-wild
+    |=  r=row
+    ^-  ?
+    ?~  r  &
+    &(?=(%wild -.i.r) $(r t.r))
+  ::
+  ++  firsts-wild
+    |=  m=matrix
+    ^-  ?
+    ?~  m  &
+    ?~  i.m  |
+    &(?=(%wild -.i.i.m) $(m t.m))
+  ::
+  ++  drop-firsts
+    |=  m=matrix
+    ^-  matrix
+    ?~  m  ~
+    ?~  i.m  $(m t.m)
+    [t.i.m $(m t.m)]
+  ::
+  ++  atom-column
+    |=  [m=matrix value=@]
+    ^-  matrix
+    ?~  m  ~
+    =/  r=row  i.m
+    ?~  r  $(m t.m)
+    =/  keep=?
+      ?-  -.i.r
+        %wild     &
+        %literal  =(value value.i.r)
+        %cell     |
+      ==
+    ?:  keep  [t.r $(m t.m)]
+    $(m t.m)
+  ::
+  ++  cell-column
+    |=  m=matrix
+    ^-  matrix
+    ?~  m  ~
+    =/  r=row  i.m
+    ?~  r  $(m t.m)
+    ?-  -.i.r
+      %wild  [[[%wild ~] [%wild ~] t.r] $(m t.m)]
+      %literal  $(m t.m)
+      %cell  [[head.i.r tail.i.r t.r] $(m t.m)]
+    ==
+  ::
+  ++  literal-heads
+    |=  [m=matrix values=(list @)]
+    ^-  (list @)
+    ?~  m  values
+    ?~  i.m  $(m t.m)
+    ?.  ?=(%literal -.i.i.m)  $(m t.m)
+    =/  n=@  value.i.i.m
+    ?:  (lien values |=(x=@ =(x n)))  $(m t.m)
+    $(m t.m, values [n values])
+  ::
+  ++  fresh-atom
+    |=  [values=(list @) n=@ud]
+    ^-  @ud
+    ?:  (lien values |=(x=@ =(x n)))  $(n +(n))
+    n
+  ::
+  ++  prepend-atom
+    |=  [n=@ out=answer]
+    ^-  answer
+    ?-  -.out
+      %yes  [%yes [n witness.out]]
+      %no  out
+      %unknown  out
+    ==
+  ::
+  ++  atom-search
+    |=  [values=(list @) m=matrix tail=row rest=domains graph=bindings fuel=@ud uncertain=?]
+    ^-  answer
+    ?~  values  ?:(uncertain [%unknown ~] [%no ~])
+    =/  found=answer  (useful-step (atom-column m i.values) tail rest graph fuel)
+    ?-  -.found
+      %yes  (prepend-atom i.values found)
+      %unknown  $(values t.values, uncertain &)
+      %no  $(values t.values)
+    ==
+  ::
+  ++  union-search
+    |=  [cases=domains m=matrix q=row rest=domains graph=bindings fuel=@ud uncertain=?]
+    ^-  answer
+    ?~  cases  ?:(uncertain [%unknown ~] [%no ~])
+    =/  found=answer  (useful-step m q [i.cases rest] graph fuel)
+    ?-  -.found
+      %yes  found
+      %unknown  $(cases t.cases, uncertain &)
+      %no  $(cases t.cases)
+    ==
+  ::
+  ++  useful-step
+    |=  [m=matrix q=row ds=domains graph=bindings fuel=@ud]
+    ^-  answer
+    ?:  =(0 fuel)  [%unknown ~]
+    =.  fuel  (dec fuel)
+    ?~  q  ?:(?=(~ m) [%yes ~] [%no ~])
+    ?~  ds  [%unknown ~]
+    ::  A row of wildcards covers every candidate in these columns.
+    ?:  (lien m |=(r=row (all-wild r)))  [%no ~]
+    =/  d=domain  i.ds
+    =/  p=pattern  i.q
+    ::  A completely unconstrained column can be removed without expanding a
+    ::  recursive domain; restore one inhabitant to any resulting witness.
+    ?:  &(?=(%wild -.p) (firsts-wild m))
+      =/  rest=answer  $(m (drop-firsts m), q t.q, ds t.ds)
+      ?:  ?=(%no -.rest)  rest
+      =/  one=inhabitation  (inhabit d graph fuel)
+      ?:  ?=(%no -.one)  [%no ~]
+      ?:  ?=(%unknown -.one)  [%unknown ~]
+      ?+  -.rest  [%unknown ~]
+        %yes  [%yes [witness.one witness.rest]]
+      ==
+    ?-  -.d
+      %empty  [%no ~]
+      %ref
+        =/  found=(unit domain)  (binding id.d graph)
+        ?~  found  [%unknown ~]
+        $(ds [u.found t.ds])
+      %union  (union-search cases.d m q t.ds graph fuel |)
+      %any
+        =/  alternatives=domains  ~[[%atom ~] [%cell [%any ~] [%any ~]]]
+        (union-search alternatives m q t.ds graph fuel |)
+      %literal
+        ?:  ?=(%cell -.p)  [%no ~]
+        ?:  &(?=(%literal -.p) !=(value.p value.d))  [%no ~]
+        (prepend-atom value.d $(m (atom-column m value.d), q t.q, ds t.ds))
+      %atom
+        ?:  ?=(%cell -.p)  [%no ~]
+        ?:  ?=(%literal -.p)
+          (prepend-atom value.p $(m (atom-column m value.p), q t.q, ds t.ds))
+        =/  values=(list @)  (literal-heads m ~)
+        =/  other=@ud  (fresh-atom values 0)
+        (atom-search [other values] m t.q t.ds graph fuel |)
+      %cell
+        ?:  ?=(%literal -.p)  [%no ~]
+        =/  next=row
+          ?:  ?=(%cell -.p)  [head.p tail.p t.q]
+          [[%wild ~] [%wild ~] t.q]
+        =/  out=answer  $(m (cell-column m), q next, ds [head.d tail.d t.ds])
+        ?-  -.out
+          %no  out
+          %unknown  out
+          %yes
+            ?~  witness.out  [%unknown ~]
+            ?~  t.witness.out  [%unknown ~]
+            [%yes [[i.witness.out i.t.witness.out] t.t.witness.out]]
+        ==
+    ==
+  ::
+  ++  valid-matrix
+    |=  [m=matrix width=@ud]
+    ^-  ?
+    ?~  m  &
+    &(=(width (lent i.m)) $(m t.m))
+  ::
+  ++  valid-graph
+    |=  graph=bindings
+    ^-  ?
+    ?~  graph  &
+    ?.  !(lien t.graph |=(entry=[id=@ud value=domain] =(id.entry id.i.graph)))  |
+    $(graph t.graph)
+  ::
+  ::  +useful: find a subject vector matching q and no earlier row in m.
+  ::  No is a proof of coverage; unknown must remain a checker limit.
+  ++  useful
+    |=  [m=matrix q=row ds=domains graph=bindings fuel=@ud]
+    ^-  answer
+    ?.  &(=((lent q) (lent ds)) (valid-matrix m (lent q)) (valid-graph graph))  [%unknown ~]
+    (useful-step m q ds graph fuel)
+  --
 ::
 ++  itype-lookup
   |=  [n=@ud sub=isub]
   ^-  (unit itype)
   ?~  sub  ~
-  ?:  =(n id.i.sub)  `val.i.sub
-  $(sub t.sub)
+  (~(get by index.u.sub) n)
 ::
 ++  itype-walk
   |=  [t=itype sub=isub]
@@ -4929,6 +5327,37 @@
       $(t u.found)
   ==
 ::
+::  Find a substitution root and compress the path in the returned state.
+::  Substitutions are immutable, so a caller that abandons a failed fit also
+::  abandons its compression.  Preserve the association-list interface while
+::  consumers of the old inference state are migrated to the new core.
+++  itype-compress-path
+  |=  [ids=(list @ud) root=itype sub=isub]
+  ^-  isub
+  ?~  ids  sub
+  =/  found=(unit itype)  (itype-lookup i.ids sub)
+  =?  sub  ?~(found | !=(u.found root))  (itype-bind i.ids root sub)
+  $(ids t.ids)
+::
+++  itype-find
+  |=  [t=itype sub=isub]
+  ^-  [typ=itype sub=isub]
+  =/  path=(list @ud)  ~
+  |-
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.t)
+    [t (itype-compress-path path t sub)]
+  =/  id=@ud  ?:(?=(%tag -.t) id.t +.t)
+  =/  found=(unit itype)  (itype-lookup id sub)
+  ?~  found  [t (itype-compress-path path t sub)]
+  ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id +.u.found))
+    [u.found (itype-compress-path path u.found sub)]
+  ::  A structural binding belongs to this root. Compress aliases to the
+  ::  root variable, not to a copy of its current value: later face or
+  ::  constraint refinement must remain visible through every alias.
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.u.found)
+    [u.found (itype-compress-path path t sub)]
+  $(t u.found, path [id path])
+::
 ::  Prove only emptiness; unknown types are never treated as empty.
 ::  A shared node budget bounds each proof attempt.
 ++  itype-empty-cases
@@ -4947,7 +5376,7 @@
   =.  typ  (itype-walk typ sub)
   ?-  -.typ
     %empty  `[& fuel]
-    %face   $(typ body.typ)
+    ?(%face %slot)   $(typ body.typ)
     %cell
       =/  left=(unit [empty=? left=@ud])  $(typ hed.typ)
       ?~  left  ~
@@ -4963,26 +5392,34 @@
 ++  itype-inhabited-cases
   |=  [xs=(list itype) sub=isub caps=icaps fuel=@ud pending=?]
   ^-  (unit [result=?(%yes %no %unknown) left=@ud])
+  (itype-inhabited-cases-seen xs sub caps fuel pending ~)
+++  itype-inhabited-cases-seen
+  |=  [xs=(list itype) sub=isub caps=icaps fuel=@ud pending=? seen=(list itype)]
+  ^-  (unit [result=?(%yes %no %unknown) left=@ud])
   ?~  xs  `[?:(pending %unknown %no) fuel]
   =/  first=(unit [result=?(%yes %no %unknown) left=@ud])
-    (itype-inhabited-proof i.xs sub caps fuel)
+    (itype-inhabited-proof-seen i.xs sub caps fuel seen)
   ?~  first  ~
   ?:  =(%yes result.u.first)  first
   $(xs t.xs, fuel left.u.first, pending |(pending =(%unknown result.u.first)))
 ++  itype-inhabited-proof
   |=  [typ=itype sub=isub caps=icaps fuel=@ud]
   ^-  (unit [result=?(%yes %no %unknown) left=@ud])
+  (itype-inhabited-proof-seen typ sub caps fuel ~)
+++  itype-inhabited-proof-seen
+  |=  [typ=itype sub=isub caps=icaps fuel=@ud seen=(list itype)]
+  ^-  (unit [result=?(%yes %no %unknown) left=@ud])
   ?:  =(0 fuel)  ~
   =.  fuel  (dec fuel)
   =.  typ  (itype-walk typ sub)
   ?-  -.typ
     %empty  `[%no fuel]
-    ?(%atom %any-atom %flag %const %noun %avar %rvar %nvar %rnvar %fn %jrec)  `[%yes fuel]
+    ?(%atom %any-atom %flag %const %noun %avar %rvar %nvar %rnvar %fn)  `[%yes fuel]
     %fvar  `[%unknown fuel]
     %var
       ?:  (lien caps |=(c=icap (hole-same-variable typ (itype-walk [%var id.c] sub))))  `[%yes fuel]
       `[%unknown fuel]
-    %face  $(typ body.typ)
+    ?(%face %slot)  $(typ body.typ)
     %cell
       =/  head=(unit [result=?(%yes %no %unknown) left=@ud])  $(typ hed.typ)
       ?~  head  ~
@@ -4992,11 +5429,17 @@
       ?:  =(%no result.u.tail)  tail
       ?:  |(=(%unknown result.u.head) =(%unknown result.u.tail))  `[%unknown left.u.tail]
       `[%yes left.u.tail]
-    %union  (itype-inhabited-cases cases.typ sub caps fuel |)
+    %union  (itype-inhabited-cases-seen cases.typ sub caps fuel | seen)
     %collection
       ?.  &(|(=(%list name.typ) =(%unit name.typ)) ?=([* ~] args.typ))  `[%unknown fuel]
       `[%yes fuel]
-    %grec  ?:((grec-tree-proof name.typ proof.typ) `[%yes fuel] `[%unknown fuel])
+    %mrec
+      :: A recursive case may be inconclusive while a later base case is
+      :: inhabited. Break only the repeated path; keep testing its siblings.
+      ?:  (lien seen |=(earlier=itype =(earlier typ)))  `[%unknown fuel]
+      =/  view=(unit [view=itype left=@ud])  (rg-unfold-view typ fuel)
+      ?~  view  `[%unknown fuel]
+      $(typ view.u.view, fuel left.u.view, seen [typ seen])
     *  `[%unknown fuel]
   ==
 ++  itype-live-cases
@@ -5017,6 +5460,8 @@
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-occurs n c sub))))
+    %refined  $(t proof.t)
     %var   =(n id.t)
     %fvar  =(n id.t)
     %avar  =(n id.t)
@@ -5032,10 +5477,9 @@
     %const  |
     %union  |((lien cases.t |=(c=itype (itype-occurs n c sub))) (lien args.t |=(c=itype (itype-occurs n c sub))))
     %recursive  |
-    %jrec       |
-    %grec       (lien args.t |=(c=itype (itype-occurs n c sub)))
+    %mrec       (lien args.t |=(c=itype (itype-occurs n c sub)))
     %collection  (lien args.t |=(c=itype (itype-occurs n c sub)))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
   ==
@@ -5047,17 +5491,112 @@
 ::    only @ud or @u (+decimal-aura). Aura-only variables and faces
 ::    require further distinctions before this supports general Jibb.
 ::
+::  A structural root can carry occurrence-specific evidence in any of
+::  its descendants. A bounded scan declines rather than guessing.
+++  itype-private-evidence
+  |=  [typ=itype sub=isub fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  &
+  =.  fuel  (dec fuel)
+  =.  typ  (itype-walk typ sub)
+  ?+  -.typ  |
+    %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (itype-private-evidence c sub fuel))))
+    %refined  &
+    ?(%face %slot)  $(typ body.typ)
+    %cell  |($(typ hed.typ) $(typ tal.typ))
+    %fn  |($(typ sample.typ) $(typ product.typ))
+    %union  (lien (weld cases.typ args.typ) |=(t=itype (itype-private-evidence t sub fuel)))
+    %collection  (lien args.typ |=(t=itype (itype-private-evidence t sub fuel)))
+    %mrec  (lien args.typ |=(t=itype (itype-private-evidence t sub fuel)))
+  ==
+::  Pair up the written positions of two gate samples. An unmatched
+::  positional slot may be peeled; a pair of named positions is left
+::  intact, so nested record labels remain available to the unifier.
+++  itype-gate-sample-pair
+  |=  [a=itype b=itype fuel=@ud]
+  ^-  [a=itype b=itype]
+  ?:  =(0 fuel)  [a b]
+  ?:  &(?=(%slot -.a) !?=(%slot -.b))  [body.a b]
+  ?:  &(?=(%slot -.b) !?=(%slot -.a))  [a body.b]
+  ?.  &(?=(%cell -.a) ?=(%cell -.b))  [a b]
+  =/  head=[a=itype b=itype]  $(a hed.a, b hed.b, fuel (dec fuel))
+  =/  tail=[a=itype b=itype]  $(a tal.a, b tal.b, fuel (dec fuel))
+  [[%cell a.head a.tail] [%cell b.head b.tail]]
 ++  itype-unify
   |=  [a=itype b=itype sub=isub]
   ^-  (unit isub)
-  =.  a  (itype-walk a sub)
-  =.  b  (itype-walk b sub)
+  ::  Unifying a previously bound root with a different value must not
+  ::  leave a nested proof on that shared root. The directional fitter
+  ::  can instead join checked evidence or defer the obligation.
+  =/  aw=itype  (itype-walk a sub)
+  =/  bw=itype  (itype-walk b sub)
+  =/  shared-proof=?
+    |(&(?=(%var -.a) !=(a aw) (itype-private-evidence aw sub 1.024)) &(?=(%var -.b) !=(b bw) (itype-private-evidence bw sub 1.024)))
+  ?:  &(shared-proof !=(aw bw))  ~
+  ::  Keep a variable-to-variable parent edge when one side already has a
+  ::  structural binding. Copying the walked structure would sever later
+  ::  face refinements from the variable that owns that structure.
+  =/  link=(unit (unit isub))
+    ?.  &(?=(%var -.a) ?=(%var -.b) !=(id.a id.b))  ~
+    =/  left=(unit itype)  (itype-lookup id.a sub)
+    =/  right=(unit itype)  (itype-lookup id.b sub)
+    =/  bound=itype
+      ?~  left  ?~(right [%var id.b] (itype-walk u.right sub))
+      (itype-walk u.left sub)
+    ::  Only structural roots need identity preserved for later face
+    ::  refinement. Constrained variable roots must still go through the
+    ::  ordinary unifier, which combines their respective restrictions.
+    ?.  ?=(?(%cell %fn) -.bound)  ~
+    ?:  &(?=(~ left) ?=(^ right))
+      ?:  =(a (itype-walk b sub))  ``sub
+      ?:  (itype-occurs id.a b sub)  `~
+      ``(itype-bind id.a b sub)
+    ?:  &(?=(^ left) ?=(~ right))
+      ?:  =(b (itype-walk a sub))  ``sub
+      ?:  (itype-occurs id.b a sub)  `~
+      ``(itype-bind id.b a sub)
+    ~
+  ?^  link  u.link
+  =/  open-a=?
+    ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.a)
+  =/  open-b=?
+    ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.b)
+  =/  raw-a=(unit @ud)
+    ?+  -.a  ~
+      ?(%var %fvar %avar %rvar %nvar %rnvar)  `id.a
+    ==
+  =/  raw-b=(unit @ud)
+    ?+  -.b  ~
+      ?(%var %fvar %avar %rvar %nvar %rnvar)  `id.b
+    ==
+  =/  root-a=[typ=itype sub=isub]  (itype-find a sub)
+  =.  a  typ.root-a
+  =/  root-b=[typ=itype sub=isub]  (itype-find b sub.root-a)
+  =.  b  typ.root-b
+  =.  sub  sub.root-b
+  ?:  &(|(open-a open-b) ?=(%face -.a) ?=(%face -.b))
+    ?.  =(name.a name.b)  ~
+    $(a body.a, b body.b)
+  ::  The face labels a position, not the type variable that occurs there.
+  ::  Remember that it was a variable even if walking found a binding.
+  ?:  &(open-a ?=(?(%face %slot) -.b))
+    =?  sub  &(?=(%face -.b) ?=(~ (itype-vars body.b)) !(itype-has-recursive body.b))
+      ?~  raw-a  sub
+      (itype-witness-add u.raw-a name.b sub)
+    $(b body.b)
+  ?:  &(open-b ?=(?(%face %slot) -.a))
+    =?  sub  &(?=(%face -.a) ?=(~ (itype-vars body.a)) !(itype-has-recursive body.a))
+      ?~  raw-b  sub
+      (itype-witness-add u.raw-b name.a sub)
+    $(a body.a)
   ?:  =(a b)  `sub
-  ?:  &(?=(%grec -.a) ?=(%grec -.b))
-    ?.  &(=(at.a at.b) =(name.a name.b))  ~
+  ::  A seal is identified by its checked private origin and payload.
+  ?:  &(?=(%opaque -.a) ?=(%opaque -.b))
+    ?.  =(origin.a origin.b)  ~
+    $(a body.a, b body.b)
+  ?:  &(?=(%mrec -.a) ?=(%mrec -.b))
+    ?.  &(=(at.a at.b) =(site.a site.b) =(name.a name.b) (rg-graphs-agree [at.a site.a name.a] graph.a graph.b))  ~
     (itype-unify-args args.a args.b sub)
-  ?:  &(?=(%jrec -.a) ?=(%jrec -.b))
-    ?:(&(=(at.a at.b) =(name.a name.b) =(head.a head.b) =(aura.a aura.b) =(tail.a tail.b)) `sub ~)
   ?:  &(?=(%recursive -.a) ?=(%recursive -.b))
     ?:(&(=(module.a module.b) =(name.a name.b)) `sub ~)
   ?:  &(?=(%union -.a) ?=(%union -.b))
@@ -5070,10 +5609,15 @@
     (itype-unify-args args.a args.b sub)
   ?:  ?=(%var -.a)
     ?:  (itype-occurs id.a b sub)  ~
-    `[[id.a b] sub]
+    `(itype-bind id.a b sub)
   ?:  ?=(%var -.b)
     ?:  (itype-occurs id.b a sub)  ~
-    `[[id.b a] sub]
+    `(itype-bind id.b a sub)
+  ::  A retained proof has the same public type as the noun it refines.
+  ::  Variable bindings above retain evidence; this only compares two
+  ::  already-concrete public positions and never transfers that evidence.
+  ?:  &(?=(~ raw-a) ?=(~ raw-b) ?=(%refined -.a) ?=(%noun -.b))  `sub
+  ?:  &(?=(~ raw-a) ?=(~ raw-b) ?=(%noun -.a) ?=(%refined -.b))  `sub
   ?:  ?=(%fvar -.a)
     ?:  (itype-occurs id.a b sub)  ~
     (itype-bind-gate-free id.a b sub)
@@ -5083,54 +5627,56 @@
   ::  Arithmetic's aura variable excludes loobeans; decimal literals
   ::  remain defaultable until a later constraint makes them concrete.
   ?:  &(?=(%nvar -.a) ?=(%rvar -.b))
-    `[[id.b [%rnvar id.a]] [id.a [%rnvar id.a]] sub]
+    `(itype-bind id.b [%rnvar id.a] (itype-bind id.a [%rnvar id.a] sub))
   ?:  &(?=(%rvar -.a) ?=(%nvar -.b))
-    `[[id.a [%rnvar id.b]] [id.b [%rnvar id.b]] sub]
-  ?:  &(?=(%rnvar -.a) ?=(%rvar -.b))  `[[id.b a] sub]
-  ?:  &(?=(%rvar -.a) ?=(%rnvar -.b))  `[[id.a b] sub]
-  ?:  &(?=(%rnvar -.a) ?=(%nvar -.b))  `[[id.b a] sub]
-  ?:  &(?=(%nvar -.a) ?=(%rnvar -.b))  `[[id.a b] sub]
-  ?:  &(?=(%rnvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
-  ?:  &(?=(%avar -.a) ?=(%rnvar -.b))  `[[id.a b] sub]
+    `(itype-bind id.a [%rnvar id.b] (itype-bind id.b [%rnvar id.b] sub))
+  ?:  &(?=(%rnvar -.a) ?=(%rvar -.b))  `(itype-bind id.b a sub)
+  ?:  &(?=(%rvar -.a) ?=(%rnvar -.b))  `(itype-bind id.a b sub)
+  ?:  &(?=(%rnvar -.a) ?=(%nvar -.b))  `(itype-bind id.b a sub)
+  ?:  &(?=(%nvar -.a) ?=(%rnvar -.b))  `(itype-bind id.a b sub)
+  ?:  &(?=(%rnvar -.a) ?=(%avar -.b))  `(itype-bind id.b a sub)
+  ?:  &(?=(%avar -.a) ?=(%rnvar -.b))  `(itype-bind id.a b sub)
   ?:  ?=(%rnvar -.a)
     ?.  |(?=(%rnvar -.b) &(?=(%atom -.b) (decimal-aura aura.b)))  ~
-    `[[id.a b] sub]
+    `(itype-bind id.a b sub)
   ?:  ?=(%rnvar -.b)
     ?.  &(?=(%atom -.a) (decimal-aura aura.a))  ~
-    `[[id.b a] sub]
-  ?:  &(?=(%avar -.a) ?=(%rvar -.b))  `[[id.a b] sub]
-  ?:  &(?=(%rvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
+    `(itype-bind id.b a sub)
+  ?:  &(?=(%avar -.a) ?=(%rvar -.b))  `(itype-bind id.a b sub)
+  ?:  &(?=(%rvar -.a) ?=(%avar -.b))  `(itype-bind id.b a sub)
   ?:  ?=(%rvar -.a)
     ?.  |(?=(%rvar -.b) ?=(%atom -.b))  ~
-    `[[id.a b] sub]
+    `(itype-bind id.a b sub)
   ?:  ?=(%rvar -.b)
     ?.  ?=(%atom -.a)  ~
-    `[[id.b a] sub]
+    `(itype-bind id.b a sub)
   ::  The narrower decimal constraint survives a match with an atom
   ::  variable; decimal syntax alone does not make it a loobean. A
   ::  concrete aura takes a decimal only if it is @ud or @u.
-  ?:  &(?=(%nvar -.a) ?=(%avar -.b))  `[[id.b a] sub]
-  ?:  &(?=(%avar -.a) ?=(%nvar -.b))  `[[id.a b] sub]
+  ?:  &(?=(%nvar -.a) ?=(%avar -.b))  `(itype-bind id.b a sub)
+  ?:  &(?=(%avar -.a) ?=(%nvar -.b))  `(itype-bind id.a b sub)
   ?:  ?=(%nvar -.a)
     ?.  |(?=(%nvar -.b) &(?=(%atom -.b) (decimal-aura aura.b)))  ~
-    `[[id.a b] sub]
+    `(itype-bind id.a b sub)
   ?:  ?=(%nvar -.b)
     ?.  &(?=(%atom -.a) (decimal-aura aura.a))  ~
-    `[[id.b a] sub]
+    `(itype-bind id.b a sub)
   ?:  ?=(%avar -.a)
     ?.  |(?=(%avar -.b) ?=(%atom -.b) ?=(%any-atom -.b) ?=(%flag -.b))  ~
-    `[[id.a b] sub]
+    `(itype-bind id.a b sub)
   ?:  ?=(%avar -.b)
     ?.  |(?=(%atom -.a) ?=(%any-atom -.a) ?=(%flag -.a))  ~
-    `[[id.b a] sub]
+    `(itype-bind id.b a sub)
   ?:  &(?=(%const -.a) ?=(%const -.b))
     ?:(=(val.literal.a val.literal.b) `sub ~)
   ?:  &(?=(%atom -.a) ?=(%atom -.b))  ~
-  ?:  &(?=(%face -.a) ?=(%face -.b))
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))
+    ?.  =(-.a -.b)  ~
     ?.  =(name.a name.b)  ~
     $(a body.a, b body.b)
   ?:  &(?=(%fn -.a) ?=(%fn -.b))
-    =/  first=(unit isub)  $(a sample.a, b sample.b)
+    =/  samples=[a=itype b=itype]  (itype-gate-sample-pair sample.a sample.b 1.024)
+    =/  first=(unit isub)  $(a a.samples, b b.samples)
     ?~  first  ~
     $(a product.a, b product.b, sub u.first)
   ?:  &(?=(%cell -.a) ?=(%cell -.b))
@@ -5155,7 +5701,7 @@
   ^-  itype
   =.  t  (itype-walk t sub)
   ?+  -.t  t
-    %face        $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %cell        [%cell $(t hed.t) $(t tal.t)]
     %fn          [%fn $(t sample.t) $(t product.t)]
     %collection  [%collection name.t (turn args.t |=(a=itype ^$(t a)))]
@@ -5163,9 +5709,9 @@
       ?.  =(origin.t `[/lib/jibb/prelude/jibb %unit])  t
       ?.  ?=([* ~] args.t)  t
       =/  nil=itype  [%const [%null %n 0 '~']]
-      ?.  =(cases.t ~[nil [%cell nil [%face %u i.args.t]]])  t
+      ?.  =(cases.t ~[nil [%cell nil [%slot %u i.args.t]]])  t
       =/  arg=itype  $(t i.args.t)
-      t(cases ~[nil [%cell nil [%face %u arg]]], args ~[arg])
+      t(cases ~[nil [%cell nil [%slot %u arg]]], args ~[arg])
   ==
 ::
 +$  igf-form  [typ=itype sub=isub left=@ud]
@@ -5180,6 +5726,65 @@
   ?~  tail  ~
   `[[typ.u.head types.u.tail] sub.u.tail left.u.tail]
 ::
+::  Prove gate-freedom over a finite recursive graph. A repeated fully
+::  normalized nominal occurrence is a back-edge; other unresolved cycles
+::  exhaust fuel and remain unknown.
+++  rg-gate-free-list
+  |=  [xs=(list itype) sub=isub seen=(list itype) fuel=@ud]
+  ^-  (unit igf-forms)
+  ?~  xs  `[~ sub fuel]
+  =/  head=(unit igf-form)  (rg-gate-free-form i.xs sub seen fuel)
+  ?~  head  ~
+  =/  tail=(unit igf-forms)  $(xs t.xs, sub sub.u.head, seen seen, fuel left.u.head)
+  ?~  tail  ~
+  `[[typ.u.head types.u.tail] sub.u.tail left.u.tail]
+++  rg-gate-free-form
+  |=  [t=itype sub=isub seen=(list itype) fuel=@ud]
+  ^-  (unit igf-form)
+  ?:  =(fuel 0)  ~
+  =.  fuel  (dec fuel)
+  =.  t  (itype-normalize t sub)
+  ?-  -.t
+    %opaque  ~
+    %refined  ~
+    %var
+      =/  free=itype  [%fvar id.t]
+      `[free (itype-bind id.t free sub) fuel]
+    %fvar  `[t sub fuel]
+    ?(%atom %any-atom %flag %const %empty %avar %rvar %nvar %rnvar)  `[t sub fuel]
+    %face
+      =/  body=(unit igf-form)  $(t body.t, sub sub, seen seen, fuel fuel)
+      ?~  body  ~
+      `[[%face name.t typ.u.body] sub.u.body left.u.body]
+    %slot
+      =/  body=(unit igf-form)  $(t body.t, sub sub, seen seen, fuel fuel)
+      ?~  body  ~
+      `[[%slot name.t typ.u.body] sub.u.body left.u.body]
+    %cell
+      =/  head=(unit igf-form)  $(t hed.t, sub sub, seen seen, fuel fuel)
+      ?~  head  ~
+      =/  tail=(unit igf-form)  $(t tal.t, sub sub.u.head, seen seen, fuel left.u.head)
+      ?~  tail  ~
+      `[[%cell typ.u.head typ.u.tail] sub.u.tail left.u.tail]
+    %collection
+      =/  args=(unit igf-forms)  (rg-gate-free-list args.t sub seen fuel)
+      ?~  args  ~
+      `[[%collection name.t types.u.args] sub.u.args left.u.args]
+    %union
+      =/  cases=(unit igf-forms)  (rg-gate-free-list cases.t sub seen fuel)
+      ?~  cases  ~
+      =/  args=(unit igf-forms)  (rg-gate-free-list args.t sub.u.cases seen left.u.cases)
+      ?~  args  ~
+      `[[%union types.u.cases origin.t label.t types.u.args] sub.u.args left.u.args]
+    %mrec
+      ?:  (lien seen |=(prior=itype =(prior t)))  `[t sub fuel]
+      =/  view=(unit [view=itype left=@ud])  (rg-unfold-view t fuel)
+      ?~  view  ~
+      =/  checked=(unit igf-form)  $(t view.u.view, sub sub, seen [t seen], fuel left.u.view)
+      ?~  checked  ~
+      `[(itype-normalize t sub.u.checked) sub.u.checked left.u.checked]
+    *  ~
+  ==
 ++  itype-gate-free-form
   |=  [t=itype sub=isub fuel=@ud]
   ^-  (unit igf-form)
@@ -5187,15 +5792,17 @@
   =.  fuel  (dec fuel)
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %opaque  ~
+    %refined  ~
     %var
       =/  free=itype  [%fvar id.t]
-      `[free [[id.t free] sub] fuel]
+      `[free (itype-bind id.t free sub) fuel]
     %fvar       `[t sub fuel]
-    ?(%atom %any-atom %flag %const %empty %avar %rvar %nvar %rnvar %jrec)  `[t sub fuel]
-    %face
+    ?(%atom %any-atom %flag %const %empty %avar %rvar %nvar %rnvar)  `[t sub fuel]
+    ?(%face %slot)
       =/  body=(unit igf-form)  $(t body.t, sub sub, fuel fuel)
       ?~  body  ~
-      `[[%face name.t typ.u.body] sub.u.body left.u.body]
+      `[?:(?=(%slot -.t) [%slot name.t typ.u.body] [%face name.t typ.u.body]) sub.u.body left.u.body]
     %cell
       =/  head=(unit igf-form)  $(t hed.t, sub sub, fuel fuel)
       ?~  head  ~
@@ -5206,6 +5813,7 @@
       =/  args=(unit igf-forms)  (itype-gate-free-forms args.t sub fuel)
       ?~  args  ~
       `[[%collection name.t types.u.args] sub.u.args left.u.args]
+    %mrec  (rg-gate-free-form t sub ~ fuel)
     %union
       =/  cases=(unit igf-forms)  (itype-gate-free-forms cases.t sub fuel)
       ?~  cases  ~
@@ -5229,7 +5837,7 @@
   ^-  (unit isub)
   =/  constrained=(unit igf-form)  (itype-gate-free-form t sub 256)
   ?~  constrained  ~
-  `[[n typ.u.constrained] sub.u.constrained]
+  `(itype-bind n typ.u.constrained sub.u.constrained)
 ::
 ++  itype-unify-args
   |=  [as=(list itype) bs=(list itype) sub=isub]
@@ -5251,6 +5859,8 @@
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
+    %refined  $(t proof.t)
     %var       |
     %fvar      |
     %avar      |
@@ -5266,10 +5876,9 @@
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-has-any-atom c sub))) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
     %recursive  |
-    %jrec       |
-    %grec       (lien args.t |=(c=itype (itype-has-any-atom c sub)))
+    %mrec       (lien args.t |=(c=itype (itype-has-any-atom c sub)))
     %collection  (lien args.t |=(c=itype (itype-has-any-atom c sub)))
-    %face      $(t body.t)
+    ?(%face %slot)      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
   ==
@@ -5321,7 +5930,7 @@
   ?:  &(?=(%collection -.a) ?=(%collection -.b))
     ?.  =(name.a name.b)  |
     (itype-family-related-collection-args args.a args.b sub)
-  ?:  &(?=(%face -.a) ?=(%face -.b))
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))
     ?.  =(name.a name.b)  |
     $(a body.a, b body.b)
   ?:  &(?=(%cell -.a) ?=(%cell -.b))
@@ -5338,6 +5947,8 @@
   |=  typ=itype
   ^-  ?
   ?-  -.typ
+    %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
+    %refined  $(typ proof.typ)
     %var       |
     %fvar      |
     %avar      |
@@ -5353,10 +5964,9 @@
     %const     &
     %union     |((lien cases.typ |=(c=itype (itype-has-fixed-atom c))) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
     %recursive  |
-    %jrec       |
-    %grec       (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
+    %mrec       (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
     %collection  (lien args.typ |=(c=itype (itype-has-fixed-atom c)))
-    %face      $(typ body.typ)
+    ?(%face %slot)      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
   ==
@@ -5374,9 +5984,88 @@
   ?:  &(?=(%any-atom -.b) |(?=(%atom -.a) ?=(%flag -.a) ?=(%const -.a) ?=(%avar -.a) ?=(%rvar -.a) ?=(%nvar -.a) ?=(%rnvar -.a)))  `b
   ~
 ::
+::  Only outer cell-sample slots may be absent on one gate. Faces inside
+::  their value types must remain exactly equal.
+++  branch-gate-slot-match
+  |=  [a=itype b=itype]
+  ^-  ?
+  ?:  &(?=(%slot -.a) ?=(%slot -.b))
+    &(=(name.a name.b) =(body.a body.b))
+  ?:  ?=(%slot -.a)  =(body.a b)
+  ?:  ?=(%slot -.b)  =(a body.b)
+  =(a b)
+++  branch-gate-sample-match
+  |=  [a=itype b=itype fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  ?.  &(?=(%cell -.a) ?=(%cell -.b))  |
+  ?.  (branch-gate-slot-match hed.a hed.b)  |
+  ?:  &(?=(%cell -.tal.a) ?=(%cell -.tal.b))
+    $(a tal.a, b tal.b, fuel (dec fuel))
+  (branch-gate-slot-match tal.a tal.b)
+::
+::  Only a recursive result occurrence may retain an arm's value face.
+::  A root aliased to any sample, capital, or enclosing value is protected.
+++  branch-result-marked
+  |=  [typ=itype sub=isub]
+  ^-  (unit @ud)
+  ?~  sub  ~
+  =.  typ  (itype-walk typ sub)
+  ?.  ?=(%var -.typ)  ~
+  ?.  (lien result-roots.u.sub |=(id=@ud =((itype-walk [%var id] sub) typ)))  ~
+  `id.typ
+++  branch-result-root
+  |=  [typ=itype sub=isub]
+  ^-  (unit @ud)
+  =/  marked=(unit @ud)  (branch-result-marked typ sub)
+  ?~  marked  ~
+  ?~  sub  ~
+  ?:  (lien protected-roots.u.sub |=(id=@ud =((itype-walk [%var id] sub) [%var u.marked])))  ~
+  marked
+::
 ++  itype-branch-join
   |=  [a=itype b=itype sub=isub]
   ^-  (unit [typ=itype sub=isub])
+  =/  ma=(unit @ud)  (branch-result-marked a sub)
+  =/  mb=(unit @ud)  (branch-result-marked b sub)
+  =/  ra=(unit @ud)  (branch-result-root a sub)
+  =/  rb=(unit @ud)  (branch-result-root b sub)
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  &(?=(%face -.a) ?=(^ mb) ?=(~ rb))  ~
+  ?:  &(?=(%face -.b) ?=(^ ma) ?=(~ ra))  ~
+  ?:  &(?=(%face -.a) ?=(^ rb))
+    ?:  (itype-occurs u.rb a sub)  ~
+    `[a (itype-bind u.rb a sub)]
+  ?:  &(?=(%face -.b) ?=(^ ra))
+    ?:  (itype-occurs u.ra b sub)  ~
+    `[b (itype-bind u.ra b sub)]
+  ::  Closed gate branches retain positional sample names only after the
+  ::  invariant shape and value-face proofs both succeed.
+  ?:  &(?=(%fn -.a) ?=(%fn -.b) (itype-closed-gates-match a b) (branch-gate-sample-match sample.a sample.b 1.024))
+    `[(itype-merge-faces a b sub) sub]
+  ::  A face belongs to the position in the joined type, not to a
+  ::  type variable occupying that position. Preserve it in either order.
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))
+    ?.  =(name.a name.b)  ~
+    ?.  =(-.a -.b)  ~
+    =/  inner=(unit [typ=itype sub=isub])  $(a body.a, b body.b)
+    ?~  inner  ~
+    ?:(?=(%slot -.a) `[[%slot name.a typ.u.inner] sub.u.inner] `[[%face name.a typ.u.inner] sub.u.inner])
+  ?:  ?=(?(%face %slot) -.a)
+    =/  inner=(unit [typ=itype sub=isub])  $(a body.a)
+    ?~  inner  ~
+    ?:(?=(%slot -.a) `[[%slot name.a typ.u.inner] sub.u.inner] `[[%face name.a typ.u.inner] sub.u.inner])
+  ?:  ?=(?(%face %slot) -.b)
+    =/  inner=(unit [typ=itype sub=isub])  $(b body.b)
+    ?~  inner  ~
+    ?:(?=(%slot -.b) `[[%slot name.b typ.u.inner] sub.u.inner] `[[%face name.b typ.u.inner] sub.u.inner])
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))
+    =/  head=(unit [typ=itype sub=isub])  $(a hed.a, b hed.b)
+    ?~  head  ~
+    =/  tail=(unit [typ=itype sub=isub])  $(a tal.a, b tal.b, sub sub.u.head)
+    ?~  tail  ~
+    `[[%cell (itype-normalize typ.u.head sub.u.tail) typ.u.tail] sub.u.tail]
   =/  unified=(unit isub)  (itype-unify a b sub)
   ?^  unified  `[(itype-normalize a u.unified) u.unified]
   =/  common=(unit itype)  (itype-concrete-join a b sub)
@@ -5399,9 +6088,21 @@
   =/  rest=(list itype)  t.types
   |-
   ?~  rest  `[(itype-normalize candidate sub) sub]
+  =/  left=itype  (itype-walk candidate sub)
+  =/  right=itype  (itype-walk i.rest sub)
+  ::  A bound branch-result occurrence may already carry a value face.
+  ::  Compare it before variable-under-face unification can discard it.
+  ?:  &(?=(%face -.left) ?=(%face -.right) !=(name.left name.right))  ~
+  =/  occurrence=?
+    |(&(?=(%face -.left) ?=(^ (branch-result-marked i.rest sub))) &(?=(%face -.right) ?=(^ (branch-result-marked candidate sub))))
+  ?:  occurrence
+    =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join candidate i.rest sub)
+    ?~  joined  ~
+    $(candidate typ.u.joined, rest t.rest, sub sub.u.joined)
   =/  unified=(unit isub)  (itype-unify candidate i.rest sub)
   ?~  unified  ~
-  $(candidate (itype-normalize candidate u.unified), rest t.rest, sub u.unified)
+  =/  merged=itype  (itype-merge-faces candidate i.rest u.unified)
+  $(candidate (itype-normalize merged u.unified), rest t.rest, sub u.unified)
 ::
 ++  itype-branch-any-atom
   |=  [types=(list itype) sub=isub]
@@ -5445,8 +6146,8 @@
   =/  unified=(unit [typ=itype sub=isub])  (itype-branch-unify-list types sub)
   ?^  unified  unified
   =/  parent=(unit itype)  (itype-branch-parent types sub)
-  ?~  parent  ~
-  (itype-branch-join-with u.parent types sub)
+  ?^  parent  (itype-branch-join-with u.parent types sub)
+  (itype-branch-join-with i.types t.types sub)
 ::
 ::  Unifying an already-bound tuple with a faced position would need to
 ::  update the bound type. Until substitutions can retain that information,
@@ -5457,9 +6158,9 @@
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
-    %grec  (lien args.t |=(c=itype (itype-has-face c sub)))
+    %mrec  (lien args.t |=(c=itype (itype-has-face c sub)))
     %collection  (lien args.t |=(c=itype (itype-has-face c sub)))
-    %face      &
+    ?(%face %slot)      &
     %cell      |($(t hed.t) $(t tal.t))
     %fn        |($(t sample.t) $(t product.t))
     *          |
@@ -5471,11 +6172,11 @@
 ++  itype-closed-slot-match
   |=  [a=itype b=itype]
   ^-  ?
-  ?:  &(?=(%face -.a) ?=(%face -.b))
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))
     ?.  =(name.a name.b)  |
     ?=(^ (itype-unify body.a body.b ~))
-  ?:  ?=(%face -.a)  ?=(^ (itype-unify body.a b ~))
-  ?:  ?=(%face -.b)  ?=(^ (itype-unify a body.b ~))
+  ?:  ?=(?(%face %slot) -.a)  ?=(^ (itype-unify body.a b ~))
+  ?:  ?=(?(%face %slot) -.b)  ?=(^ (itype-unify a body.b ~))
   ?=(^ (itype-unify a b ~))
 ++  itype-closed-sample-match
   |=  [a=itype b=itype fuel=@ud]
@@ -5487,7 +6188,7 @@
   =/  y=itype  tal.b
   ?:  &(?=(%cell -.x) ?=(%cell -.y))
     ?=(^ (itype-unify x y ~))
-  ?:  |(&(?=(%face -.x) ?=(%cell -.y)) &(?=(%cell -.x) ?=(%face -.y)))  |
+  ?:  |(&(?=(?(%face %slot) -.x) ?=(%cell -.y)) &(?=(%cell -.x) ?=(?(%face %slot) -.y)))  |
   (itype-closed-slot-match x y)
 ++  itype-closed-gates-match
   |=  [a=itype b=itype]
@@ -5512,37 +6213,77 @@
 ++  itype-face-asym
   |=  [a=itype b=itype sub=isub]
   ^-  ?
+  =/  open-a=?  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.a)
+  =/  open-b=?  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.b)
   =.  a  (itype-walk a sub)
   =.  b  (itype-walk b sub)
-  ?:  &(?=(%grec -.a) ?=(%grec -.b))
-    ?.  &(=(at.a at.b) =(name.a name.b))  |
+  ::  A variable in a faced position denotes its body, even once the
+  ::  variable has been bound by an earlier occurrence.
+  ?:  &(open-b ?=(?(%face %slot) -.a))  |
+  ?:  &(open-a ?=(%slot -.b))  |
+  ?:  &(?=(%mrec -.a) ?=(%mrec -.b))
+    ?.  &(=(at.a at.b) =(site.a site.b) =(name.a name.b) (rg-graphs-agree [at.a site.a name.a] graph.a graph.b))  |
     (itype-face-asym-collection-args args.a args.b sub)
   ?:  &(?=(%collection -.a) ?=(%collection -.b))
     ?.  =(name.a name.b)  |
     (itype-face-asym-collection-args args.a args.b sub)
-  ?:  &(?=(%face -.a) ?=(%face -.b))  $(a body.a, b body.b)
-  ?:  ?=(%face -.a)  !|(?=(%var -.b) ?=(%fvar -.b) ?=(%avar -.b) ?=(%rvar -.b) |(?=(%nvar -.b) ?=(%rnvar -.b)))
-  ?:  ?=(%face -.b)  !|(?=(%var -.a) ?=(%fvar -.a) ?=(%avar -.a) ?=(%rvar -.a) |(?=(%nvar -.a) ?=(%rnvar -.a)))
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))  $(a body.a, b body.b)
+  ?:  ?=(?(%face %slot) -.a)  !|(?=(%var -.b) ?=(%fvar -.b) ?=(%avar -.b) ?=(%rvar -.b) |(?=(%nvar -.b) ?=(%rnvar -.b)))
+  ?:  ?=(?(%face %slot) -.b)  !|(?=(%var -.a) ?=(%fvar -.a) ?=(%avar -.a) ?=(%rvar -.a) |(?=(%nvar -.a) ?=(%rnvar -.a)))
   ?:  &(?=(%cell -.a) ?=(%cell -.b))  |($(a hed.a, b hed.b) $(a tal.a, b tal.b))
-  ?:  &(?=(%fn -.a) ?=(%fn -.b))  |($(a sample.a, b sample.b) $(a product.a, b product.b))
+  ?:  &(?=(%fn -.a) ?=(%fn -.b))
+    =/  left=itype  (itype-normalize sample.a sub)
+    =/  right=itype  (itype-normalize sample.b sub)
+    =/  closed=?  &(?=(~ (itype-vars left)) ?=(~ (itype-vars right)) !(itype-has-tag left) !(itype-has-tag right))
+    ?.  closed  |($(a sample.a, b sample.b) $(a product.a, b product.b))
+    =/  samples=[a=itype b=itype]  (itype-gate-sample-pair left right 1.024)
+    |($(a a.samples, b b.samples) $(a product.a, b product.b))
   |
 ::
 ::  A successful cast keeps any explicit faces from either side while
 ::  retaining the target's aura choices. Both faces have already matched.
 ::
+::  Merge a gate sample one written position at a time. A positional
+::  slot is an outer binder; a value face beneath it must remain nested.
+++  itype-merge-gate-sample
+  |=  [actual=itype expected=itype sub=isub fuel=@ud]
+  ^-  itype
+  ?:  =(0 fuel)  (itype-merge-faces-inner actual expected sub |)
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(%slot -.actual) ?=(%slot -.expected))
+    [%slot name.expected (itype-merge-faces-inner body.actual body.expected sub |)]
+  ?:  ?=(%slot -.actual)
+    [%slot name.actual (itype-merge-faces-inner body.actual expected sub |)]
+  ?:  ?=(%slot -.expected)
+    [%slot name.expected (itype-merge-faces-inner actual body.expected sub |)]
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    [%cell $(actual hed.actual, expected hed.expected, fuel (dec fuel)) $(actual tal.actual, expected tal.expected, fuel (dec fuel))]
+  (itype-merge-faces-inner actual expected sub |)
+::
 ++  itype-merge-faces
   |=  [actual=itype expected=itype sub=isub]
   ^-  itype
+  (itype-merge-faces-inner actual expected sub &)
+++  itype-merge-faces-inner
+  |=  [actual=itype expected=itype sub=isub retain=?]
+  ^-  itype
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
-  ?:  &(?=(%face -.actual) ?=(%face -.expected))
-    [%face name.expected $(actual body.actual, expected body.expected)]
-  ?:  ?=(%face -.actual)
-    [%face name.actual $(actual body.actual)]
-  ?:  ?=(%face -.expected)
-    [%face name.expected $(expected body.expected)]
+  ?:  &(!retain ?=(%refined -.expected))  expected
+  =?  expected  ?=(%refined -.expected)  [%noun ~]
+  ?:  &(retain ?=(%noun -.expected) !?=(?(%noun %refined) -.actual))  [%refined actual]
+  ?:  &(retain ?=(%noun -.expected) ?=(%refined -.actual))  actual
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
+    ?:(?=(%slot -.expected) [%slot name.expected $(actual body.actual, expected body.expected)] [%face name.expected $(actual body.actual, expected body.expected)])
+  ?:  ?=(?(%face %slot) -.actual)
+    ?:(?=(%slot -.actual) [%slot name.actual $(actual body.actual)] [%face name.actual $(actual body.actual)])
+  ?:  ?=(?(%face %slot) -.expected)
+    ?:(?=(%slot -.expected) [%slot name.expected $(expected body.expected)] [%face name.expected $(expected body.expected)])
   ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
     [%cell $(actual hed.actual, expected hed.expected) $(actual tal.actual, expected tal.expected)]
+  ?:  &(?=(%fn -.actual) ?=(%fn -.expected))
+    [%fn (itype-merge-gate-sample sample.actual sample.expected sub 1.024) $(actual product.actual, expected product.expected)]
   expected
 ::
 ::  Positional call arguments do not write the sample's enclosing field
@@ -5561,28 +6302,49 @@
   ?~  args  &
   ?~  t.args
     =/  slot=itype  expected
-    =?  slot  ?=(%face -.slot)  body.slot
+    =?  slot  ?=(?(%face %slot) -.slot)  body.slot
     (itype-positional-slot-face-asym actual slot sub)
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  &
   =/  slot=itype  hed.expected
-  =?  slot  ?=(%face -.slot)  body.slot
+  =?  slot  ?=(?(%face %slot) -.slot)  body.slot
   ?:  (itype-positional-slot-face-asym hed.actual slot sub)  &
   $(args t.args, actual tal.actual, expected tal.expected)
+::
+::  A result may add faces, but this proof requires it to preserve every
+::  face and every other component of the complete argument type. Unknown
+::  structural cases must be identical, so this never guesses at a value's
+::  occurrence provenance.
+++  itype-preserves-faces
+  |=  [actual=itype result=itype sub=isub]
+  ^-  ?
+  =.  actual  (itype-walk actual sub)
+  =.  result  (itype-walk result sub)
+  ?:  ?=(?(%face %slot) -.actual)
+    ?.  ?=(?(%face %slot) -.result)  |
+    ?.  =(name.actual name.result)  |
+    $(actual body.actual, result body.result)
+  ?:  ?=(?(%face %slot) -.result)  $(result body.result)
+  ?:  &(?=(%cell -.actual) ?=(%cell -.result))
+    &($(actual hed.actual, result hed.result) $(actual tal.actual, result tal.result))
+  ?:  &(?=(%fn -.actual) ?=(%fn -.result))
+    &($(actual sample.actual, result sample.result) $(actual product.actual, result product.result))
+  =(actual result)
 ::
 ++  itype-output-may-be-cell
   |=  [t=itype sub=isub]
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %opaque  &
+    %refined  &
     %var       &
     %cell      &
     %union     &
     %recursive  &
-    %jrec       &
-    %grec       &
+    %mrec       &
     %noun       &
     %collection  &
-    %face      $(t body.t)
+    ?(%face %slot)      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     *          |
   ==
@@ -5599,7 +6361,7 @@
   ^-  (unit [at=span msg=tape])
   ?~  tags  ~
   ?^  (itype-lookup id.i.tags sub)  $(tags t.tags)
-  `[at.i.tags (weld "nothing fixes the union of " (show-lit literal.i.tags))]
+  `[at.i.tags (weld "nothing fixes the union of " (weld (show-lit literal.i.tags) "; add a `^-`"))]
 ::
 ++  pending-null
   |=  [tags=(list ipending) sub=isub]
@@ -5615,10 +6377,12 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-tag c))))
+    %refined  $(t proof.t)
     %tag   &
-    %grec  (lien args.t |=(c=itype (itype-has-tag c)))
+    %mrec  (lien args.t |=(c=itype (itype-has-tag c)))
     %collection  (lien args.t |=(c=itype (itype-has-tag c)))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
     %union  |((lien cases.t |=(c=itype (itype-has-tag c))) (lien args.t |=(c=itype (itype-has-tag c))))
@@ -5629,10 +6393,12 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %opaque  (lien args.t |=(c=itype (itype-has-union c)))
+    %refined  $(t proof.t)
     %union  &
-    %grec  (lien args.t |=(c=itype (itype-has-union c)))
+    %mrec  (lien args.t |=(c=itype (itype-has-union c)))
     %collection  (lien args.t |=(c=itype (itype-has-union c)))
-    %face   $(t body.t)
+    ?(%face %slot)   $(t body.t)
     %fn     |($(t sample.t) $(t product.t))
     %cell   |($(t hed.t) $(t tal.t))
     *       |
@@ -5646,12 +6412,14 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %opaque  (lien args.t |=(c=itype (itype-has-hidden-generic c)))
+    %refined  |
     %union
       ?:  &(?=(~ label.t) ?=(^ args.t))  &
       (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-generic c)))
-    %grec  |(?=(~ label.t) (lien args.t |=(c=itype (itype-has-hidden-generic c))))
+    %mrec  |(?=(~ label.t) (lien args.t |=(c=itype (itype-has-hidden-generic c))))
     %collection  (lien args.t |=(c=itype (itype-has-hidden-generic c)))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %fn    |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
     *      |
@@ -5661,12 +6429,13 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-recursive c))))
+    %refined  $(t proof.t)
     %recursive  &
-    %jrec       &
-    %grec       &
+    %mrec       &
     %collection  (lien args.t |=(c=itype (itype-has-recursive c)))
     %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-recursive c)))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %cell  |($(t hed.t) $(t tal.t))
     %fn    |($(t sample.t) $(t product.t))
     *      |
@@ -5676,12 +6445,13 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %opaque  (lien args.t |=(c=itype (itype-has-hidden-recursive c)))
+    %refined  |
     %recursive  ?=(~ label.t)
-    %jrec       ?=(~ label.t)
-    %grec       |(?=(~ label.t) (lien args.t |=(c=itype (itype-has-hidden-recursive c))))
+    %mrec       |(?=(~ label.t) (lien args.t |=(c=itype (itype-has-hidden-recursive c))))
     %collection  (lien args.t |=(c=itype (itype-has-hidden-recursive c)))
     %union  (lien (weld args.t cases.t) |=(c=itype (itype-has-hidden-recursive c)))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %cell  |($(t hed.t) $(t tal.t))
     %fn    |($(t sample.t) $(t product.t))
     *      |
@@ -5724,7 +6494,7 @@
   ?:  ?=(%var -.raw)
     $(cases t.cases, pending &)
   =/  c=itype  (itype-walk raw sub)
-  ?:  ?=(?(%var %tag %recursive %jrec %grec %union %face) -.c)
+  ?:  ?=(?(%var %tag %recursive %union %face) -.c)
     $(cases t.cases, pending &)
   ?.  ?=(%cell -.c)  $(cases t.cases)
   =/  raw-head=itype  hed.c
@@ -5733,11 +6503,11 @@
   =/  head=itype  (itype-walk raw-head sub)
   ::  A single faced, explicitly atom-only head cannot be the tag case.
   ::  Do not follow variables or peel nested faces for this negative proof.
-  ?:  ?=(%face -.head)
+  ?:  ?=(?(%face %slot) -.head)
     ?:  ?=(?(%atom %any-atom %flag %avar %rvar %nvar %rnvar) -.body.head)
       $(cases t.cases)
     $(cases t.cases, pending &)
-  ?:  ?=(?(%var %tag %recursive %jrec %grec %union) -.head)
+  ?:  ?=(?(%var %tag %recursive %union) -.head)
     $(cases t.cases, pending &)
   ?.  ?=(%const -.head)  $(cases t.cases)
   ?.  =(val.literal.head val.tag)  $(cases t.cases)
@@ -5757,31 +6527,237 @@
   ^-  ifit
   =/  result=ifit  (itype-fit-inner actual expected sub next | |)
   ?:  ?=(%ok -.result)  result
+  ::  An inhabited cell cannot fit an atom, even when its payload includes
+  ::  a recursive mold or unrestricted atom. This also rules out unrelated
+  ::  union cases without guessing an unresolved recursive payload.
+  ?:  (itype-shape-mismatch actual expected sub)  [%bad ~]
   =/  source=itype  (itype-walk actual sub)
   ?.  ?=(?(%empty %face %cell %union) -.source)  result
   =/  empty=(unit [empty=? left=@ud])  (itype-empty-proof actual sub 256)
   ?~  empty  [%unknown ~]
   ?:  empty.u.empty  [%ok sub next]
   result
+:: A failed nominal argument unification is definite only when a closed
+:: argument has a definite directional mismatch in one direction.
+++  mrec-arguments-mismatch
+  |=  [left=(list itype) right=(list itype) sub=isub next=@ud]
+  ^-  ?
+  ?~  left  ?=(^ right)
+  ?~  right  &
+  =/  forward=ifit  (itype-fit i.left i.right sub next)
+  ?:  ?=(%bad -.forward)  &
+  =/  reverse=ifit  (itype-fit i.right i.left sub next)
+  ?:  ?=(%bad -.reverse)  &
+  $(left t.left, right t.right)
+::
+::  Meet private value evidence position by position before fitting a
+::  structural root shared by multiple occurrences. The public type is
+::  unchanged; an unknown occurrence discards only the evidence at its
+::  corresponding position. Ambiguous shapes remain deferred.
+++  itype-evidence-includes
+  |=  [members=itype value=itype sub=isub fuel=@ud]
+  ^-  ?
+  ?:  =(fuel 0)  |
+  =.  members  (itype-normalize members sub)
+  =.  value  (itype-normalize value sub)
+  ?:  =(members value)  &
+  ?.  &(?=(%union -.members) ?=(~ origin.members) ?=(~ args.members) ?=(~ label.members))  |
+  (lien cases.members |=(member=itype (itype-evidence-includes member value sub (dec fuel))))
+::
+++  itype-evidence-meet-list
+  |=  [actual=(list itype) expected=(list itype) sub=isub fuel=@ud]
+  ^-  (unit (list itype))
+  ?~  actual  ?~(expected `~ ~)
+  ?~  expected  ~
+  ?:  =(fuel 0)  ~
+  =/  head=(unit itype)  (itype-evidence-meet i.actual i.expected sub (dec fuel))
+  ?~  head  ~
+  =/  tail=(unit (list itype))  $(actual t.actual, expected t.expected, fuel (dec fuel))
+  ?~  tail  ~
+  `[u.head u.tail]
+++  itype-evidence-meet
+  |=  [actual=itype expected=itype sub=isub fuel=@ud]
+  ^-  (unit itype)
+  ?:  =(fuel 0)  ~
+  =.  fuel  (dec fuel)
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  =(actual expected)  `expected
+  ?:  ?=(%refined -.expected)
+    ?:  ?=(%noun -.actual)  `[%noun ~]
+    ?.  ?=(%refined -.actual)  ~
+    =/  left=itype  (itype-normalize proof.actual sub)
+    =/  right=itype  (itype-normalize proof.expected sub)
+    ?:  (itype-evidence-includes right left sub fuel)  `expected
+    ?:  (itype-evidence-includes left right sub fuel)  `actual
+    `[%refined [%union ~[proof.expected proof.actual] ~ ~ ~]]
+  ?:  ?=(%noun -.expected)  `expected
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
+    ?.  =(name.actual name.expected)  ~
+    =/  body=(unit itype)  $(actual body.actual, expected body.expected)
+    ?~  body  ~
+    `expected(body u.body)
+  ?:  ?=(%slot -.actual)  $(actual body.actual)
+  ?:  ?=(%slot -.expected)
+    =/  body=(unit itype)  $(expected body.expected)
+    ?~  body  ~
+    `expected(body u.body)
+  ?:  |(?=(%face -.actual) ?=(%face -.expected))  ~
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    =/  head=(unit itype)  $(actual hed.actual, expected hed.expected)
+    ?~  head  ~
+    =/  tail=(unit itype)  $(actual tal.actual, expected tal.expected)
+    ?~  tail  ~
+    `[%cell u.head u.tail]
+  ?:  &(?=(%collection -.actual) ?=(%collection -.expected))
+    ?.  =(name.actual name.expected)  ~
+    =/  args=(unit (list itype))  (itype-evidence-meet-list args.actual args.expected sub fuel)
+    ?~  args  ~
+    `expected(args u.args)
+  ?:  &(?=(%union -.actual) ?=(%union -.expected))
+    ?.  &(=(origin.actual origin.expected) ?=(^ origin.expected))  ~
+    =/  args=(unit (list itype))  (itype-evidence-meet-list args.actual args.expected sub fuel)
+    ?~  args  ~
+    =/  cases=(unit (list itype))  (itype-evidence-meet-list cases.actual cases.expected sub fuel)
+    ?~  cases  ~
+    `expected(args u.args, cases u.cases)
+  ?:  &(?=(%mrec -.actual) ?=(%mrec -.expected))
+    ?.  &(=(at.actual at.expected) =(site.actual site.expected) =(name.actual name.expected) (rg-graphs-agree [at.actual site.actual name.actual] graph.actual graph.expected))  ~
+    =/  args=(unit (list itype))  (itype-evidence-meet-list args.actual args.expected sub fuel)
+    ?~  args  ~
+    `expected(args u.args)
+  ::  Leave all ordinary type compatibility to the existing fitter.
+  `expected
+::
+::  A seal preserves its payload type invariantly. Resolve each nominal
+::  payload argument in both directions, allowing a pending tag to receive
+::  its eventual union context without opening the sealed representation.
+++  itype-opaque-fit-args
+  |=  [left=(list itype) right=(list itype) sub=isub next=@ud]
+  ^-  ifit
+  ?~  left  ?~(right [%ok sub next] [%bad ~])
+  ?~  right  [%bad ~]
+  =/  forward=ifit  (itype-fit i.left i.right sub next)
+  ?:  &(?=(%bad -.forward) |((itype-has-tag (itype-normalize i.left sub)) (itype-has-tag (itype-normalize i.right sub))))  [%unknown ~]
+  ?.  ?=(%ok -.forward)  forward
+  =/  backward=ifit  (itype-fit i.right i.left sub.forward next.forward)
+  ?:  &(?=(%bad -.backward) |((itype-has-tag (itype-normalize i.left sub.forward)) (itype-has-tag (itype-normalize i.right sub.forward))))  [%unknown ~]
+  ?.  ?=(%ok -.backward)  backward
+  $(left t.left, right t.right, sub sub.backward, next next.backward)
+::
+:: This shallow proof prevents an atom-vs-recursive negative check from
+:: unfolding another recursive mold while trying the ordinary union fit.
+++  itype-atom-negative-view-list
+  |=  [items=(list itype) sub=isub fuel=@ud]
+  ^-  ?
+  ?~  items  &
+  ?.  (itype-atom-negative-view i.items sub fuel)  |
+  $(items t.items)
+++  itype-atom-negative-view
+  |=  [typ=itype sub=isub fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  =.  fuel  (dec fuel)
+  =.  typ  (itype-walk typ sub)
+  ?-  -.typ
+    ?(%face %slot)  $(typ body.typ, fuel fuel)
+    %union  (itype-atom-negative-view-list cases.typ sub fuel)
+    ?(%atom %any-atom %flag %const %empty %cell %fn)  &
+    *  |
+  ==
+::
 ++  itype-fit-inner
   |=  [actual=itype expected=itype sub=isub next=@ud skip-width=? spine-proof=?]
   ^-  ifit
+  =/  root=(unit @ud)
+    ?.  ?=(%var -.expected)  ~
+    (icore-bound-root expected sub)
+  =/  proof-meet=(unit itype)
+    ?~  root  ~
+    =/  prior=itype  (itype-walk expected sub)
+    ?.  &(?=(%cell -.prior) (itype-private-evidence prior sub 1.024))  ~
+    (itype-evidence-meet actual prior sub 1.024)
+  =?  sub  &(?=(^ root) ?=(^ proof-meet) !=((itype-walk expected sub) u.proof-meet))
+    (itype-bind u.root u.proof-meet sub)
+  =/  shortcut=(unit ifit)
+    ?.  &(?=(%var -.actual) ?=(%var -.expected) !=(id.actual id.expected))  ~
+    =/  left=(unit itype)  (itype-lookup id.actual sub)
+    =/  right=(unit itype)  (itype-lookup id.expected sub)
+    =/  bound=itype
+      ?~  left  ?~(right [%var id.expected] (itype-walk u.right sub))
+      (itype-walk u.left sub)
+    ?.  &(?=(?(%cell %fn) -.bound) |(&(?=(~ left) ?=(^ right)) &(?=(^ left) ?=(~ right))))  ~
+    =/  unified=(unit isub)  (itype-unify actual expected sub)
+    ?~  unified  `[%bad ~]
+    `[%ok u.unified next]
+  ?^  shortcut  u.shortcut
   ?:  &(!skip-width ?=(%cell -.actual) ?=(%cell -.expected) |((width-spine-exhausted actual 1.024) (width-spine-exhausted expected 1.024)))
     [%unknown ~]
   =/  known=(unit [source=iwfields target=iwfields])
     ?:  skip-width  ~
     (width-known-shape actual expected sub)
   =/  too-wide=?  ?~(known | (gth (lent order.source.u.known) (lent order.target.u.known)))
-  ?:  too-wide  [%unknown ~]
+  ?:  too-wide  [%bad ~]
   =/  spine-checked=?  |(spine-proof ?=(^ known))
   =/  uncertain=?
     |(?=(%var -.actual) ?=(%fvar -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)) ?=(%var -.expected) ?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))
   =/  actual-open=?
     |(?=(%var -.actual) ?=(%fvar -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)))
+  =/  expected-open=?
+    |(?=(%var -.expected) ?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))
+  ::  Closed value faces are retained separately from the bare binding.
+  ::  Positional labels are %slot and are deliberately not recorded.
+  =?  sub  &(?=(%var -.actual) ?=(%face -.expected) ?=(~ (itype-vars body.expected)) !(itype-has-tag body.expected) !(itype-has-recursive body.expected))
+    (itype-witness-add id.actual name.expected sub)
+  =/  actual-witness=(unit iface-witness)
+    ?.  ?=(%var -.actual)  ~
+    (itype-witness-get id.actual sub)
+  =/  evidence-root=(unit @ud)
+    ?.  ?=(%var -.expected)  ~
+    (icore-bound-root expected sub)
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
+  :: A known atom type cannot fit a cell, regardless of unresolved
+  :: fields inside that cell. Keep variable-bound occurrences deferred.
+  ?:  &(!actual-open !expected-open ?=(?(%atom %any-atom %flag) -.actual) ?=(%cell -.expected))
+    [%bad ~]
+  ::  A written sample slot labels the position; preserve the actual value
+  ::  proof while fitting the slot's underlying generic type.
+  ?:  &(?=(%refined -.actual) ?=(%slot -.expected))
+    $(expected body.expected)
+  ::  Private proof is occurrence evidence, not merely the public noun
+  ::  type. Never transfer an earlier value's proof to a different value.
+  =/  proof-conflict=?
+    ?.  ?=(%refined -.expected)  |
+    ?.  ?=(%refined -.actual)  &
+    !=((itype-normalize proof.actual sub) (itype-normalize proof.expected sub))
+  ?:  proof-conflict
+    ?>  ?=(%refined -.expected)
+    ?:  &(?=(%refined -.actual) (itype-evidence-includes proof.expected proof.actual sub 1.024))  [%ok sub next]
+    ?~  evidence-root  [%unknown ~]
+    ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag %slot) -.actual)  [%unknown ~]
+    ?:  ?=(%noun -.actual)
+      [%ok (itype-bind u.evidence-root [%noun ~] sub) next]
+    =/  other=itype  ?:(?=(%refined -.actual) proof.actual actual)
+    ?:  (itype-occurs u.evidence-root other sub)  [%unknown ~]
+    =/  choice=itype  [%union ~[proof.expected other] ~ ~ ~]
+    [%ok (itype-bind u.evidence-root [%refined choice] sub) next]
+  =?  expected  ?=(%refined -.expected)  [%noun ~]
+  =?  actual  &(?=(%refined -.actual) !?=(%var -.expected))  [%noun ~]
   ?:  =(actual expected)  [%ok sub next]
-  ?:  &(?=(%empty -.expected) |(?=(%cell -.actual) ?=(%face -.actual) ?=(%union -.actual) ?=(%grec -.actual) ?=(%recursive -.actual)))  [%unknown ~]
+  ::  A positional slot labels the expected value even when a source
+  ::  variable already reaches a nominal type. Peel it before dispatch.
+  ?:  &(actual-open ?=(%slot -.expected))
+    $(expected body.expected)
+  =/  witnessed-face=?
+    ?~  actual-witness  |
+    ?.  ?=(%named -.u.actual-witness)  |
+    ?.  ?=(%face -.expected)  |
+    =(name.u.actual-witness name.expected)
+  ?:  witnessed-face
+    ?>  ?=(%face -.expected)
+    $(expected body.expected)
+  ?:  &(?=(%empty -.expected) |(?=(%cell -.actual) ?=(?(%face %slot) -.actual) ?=(%union -.actual) ?=(%recursive -.actual)))  [%unknown ~]
   ::  The relation of the source loobean mold to explicit @f is not yet
   ::  established. Keep it unsupported rather than asserting a mismatch.
   ?:  &(?=(%flag -.actual) ?=(%atom -.expected) =(%f aura.expected))  [%unknown ~]
@@ -5790,28 +6766,68 @@
   ?:  ?=(%noun -.expected)
     ?:  ?=(%tag -.actual)
       ?:  constructor.actual  [%unknown ~]
-      [%ok [[id.actual expected] sub] next]
+      [%ok (itype-bind id.actual [%const literal.actual] sub) next]
     [%ok sub next]
+  ::  A positional face does not narrow the noun beneath it.
+  ?:  &(?=(%noun -.actual) ?=(?(%face %slot) -.expected))  $(expected body.expected)
   ::  An arbitrary noun is not known to fit a narrower type.
   ?:  &(?=(%noun -.actual) !?=(%var -.expected))  [%unknown ~]
-  ?:  &(!uncertain ?=(%grec -.actual) ?=(%face -.expected))  $(expected body.expected)
-  ?:  &(!uncertain ?=(%face -.actual) ?=(%grec -.expected))  $(actual body.actual)
-  ?:  &(?=(%grec -.actual) ?=(%grec -.expected))
-    ?.  &(=(at.actual at.expected) =(name.actual name.expected))  [%unknown ~]
-    =/  matched=(unit isub)  (itype-unify-args args.actual args.expected sub)
+  ::  Only a value carrying the same private seal can fit a sealed type.
+  ?:  &(?=(%opaque -.actual) ?=(%opaque -.expected))
+    ?.  =(origin.actual origin.expected)  [%bad ~]
+    =/  left=itype  (itype-walk body.actual sub)
+    =/  right=itype  (itype-walk body.expected sub)
+    ?:  &(?=(%union -.left) ?=(%union -.right) ?=(^ origin.left) =(origin.left origin.right))
+      (itype-opaque-fit-args args.left args.right sub next)
+    =/  matched=(unit isub)  (itype-unify left right sub)
     ?~  matched  [%unknown ~]
     [%ok u.matched next]
-  ?:  &(|(?=(%grec -.actual) ?=(%grec -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
-  ?:  &(!uncertain ?=(%jrec -.actual) ?=(%face -.expected))  $(expected body.expected)
-  ?:  &(!uncertain ?=(%face -.actual) ?=(%jrec -.expected))  $(actual body.actual)
-  ?:  &(?=(%jrec -.actual) ?=(%jrec -.expected))
-    ?:(&(=(at.actual at.expected) =(name.actual name.expected) =(head.actual head.expected) =(aura.actual aura.expected) =(tail.actual tail.expected)) [%ok sub next] [%bad ~])
-  ?:  &(|(?=(%jrec -.actual) ?=(%jrec -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
+  ?:  &(?=(%opaque -.expected) ?=(?(%atom %any-atom %flag %const %cell) -.actual))  [%bad ~]
+  ?:  &(?=(%opaque -.actual) ?=(?(%atom %any-atom %flag %const %cell) -.expected))  [%bad ~]
+  :: A literal can acquire a recursive mold from its expected context.
+  :: Typed recursive values still require the same canonical origin below.
+  ?:  &(?=(%mrec -.expected) ?=(%tag -.actual) !constructor.actual)
+    =/  view=(unit [view=itype left=@ud])  (rg-unfold-view expected 4.096)
+    ?~  view  [%unknown ~]
+    =/  fitted=ifit  $(expected view.u.view)
+    ?.  ?=(%ok -.fitted)  fitted
+    [%ok (itype-bind id.actual expected sub.fitted) next.fitted]
+  ::  A recursive value keeps its canonical origin under a positional
+  ::  label, just like an ordinary named mold.
+  ?:  &(!uncertain ?=(%mrec -.actual) ?=(?(%face %slot) -.expected))  $(expected body.expected)
+  ?:  &(!uncertain ?=(?(%face %slot) -.actual) ?=(%mrec -.expected))  $(actual body.actual)
+  ?:  &(?=(%mrec -.actual) ?=(%mrec -.expected))
+    =/  same-origin=?  &(=(at.actual at.expected) =(site.actual site.expected) =(name.actual name.expected))
+    =/  same-graph=?
+      ?.  same-origin  |
+      (rg-graphs-agree [at.actual site.actual name.actual] graph.actual graph.expected)
+    =/  matched=(unit isub)
+      ?.  same-graph  ~
+      (itype-unify-args args.actual args.expected sub)
+    ?^  matched  [%ok u.matched next]
+    =/  closed=?  &(?=(~ (itype-vars actual)) ?=(~ (itype-vars expected)) !(itype-has-tag actual) !(itype-has-tag expected))
+    ?.  closed  [%unknown ~]
+    =/  live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof actual sub ~ 4.096)
+    ?~  live  [%unknown ~]
+    ?.  =(%yes result.u.live)  [%unknown ~]
+    ?.  same-origin  [%bad ~]
+    ?.  same-graph  [%unknown ~]
+    ?:((mrec-arguments-mismatch args.actual args.expected sub next) [%bad ~] [%unknown ~])
+  :: An exact one-step view may disprove an atom fitting a recursive mold.
+  :: A successful or uncertain structural fit never grants nominal identity.
+  ?:  &(!actual-open !expected-open ?=(?(%atom %any-atom) -.actual) ?=(%mrec -.expected))
+    =/  view=(unit [view=itype left=@ud])  (rg-unfold-view expected 256)
+    ?~  view  [%unknown ~]
+    ?.  (itype-atom-negative-view view.u.view sub 256)  [%unknown ~]
+    =/  trial=ifit  (itype-fit actual view.u.view sub next)
+    ?:(?=(%bad -.trial) [%bad ~] [%unknown ~])
+  ?:  &(|(?=(%mrec -.actual) ?=(%mrec -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
   ?:  &(?=(%recursive -.actual) ?=(%recursive -.expected))
     ?:(&(=(module.actual module.expected) =(name.actual name.expected)) [%ok sub next] [%bad ~])
   ?:  &(|(?=(%recursive -.actual) ?=(%recursive -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
   ?:  &(?=(%union -.actual) ?=(%union -.expected))
-    ?.  =(origin.actual origin.expected)  [%unknown ~]
+    ?.  =(origin.actual origin.expected)
+      ?:(&(?=(^ origin.actual) ?=(^ origin.expected)) [%bad ~] [%unknown ~])
     ?:  &(?=(~ args.actual) ?=(~ args.expected))
       ?:(=(cases.actual cases.expected) [%ok sub next] [%unknown ~])
     ?~  origin.actual  [%unknown ~]
@@ -5820,48 +6836,71 @@
     [%unknown ~]
   ::  A known union can instantiate an unconstrained sample directly;
   ::  preserve unknown results for variable-bound union origins.
-  ?:  &(!actual-open ?=(%union -.actual) ?=(%var -.expected))
+  ?:  &(?=(%union -.actual) ?=(%var -.expected))
     ?~  origin.actual  [%unknown ~]
-    =/  normalized=itype  (itype-normalize actual sub)
-    ?:  |((itype-has-tag normalized) (itype-has-recursive normalized) (itype-has-any-atom actual sub))  [%unknown ~]
     =/  unified=(unit isub)  (itype-unify actual expected sub)
     ?~  unified  [%unknown ~]
     [%ok u.unified next]
   ::  A concrete union value in a tuple may acquire the expected field's
   ::  face. A variable-bound union still needs face propagation support.
-  ?:  &(!uncertain ?=(%union -.actual) ?=(%face -.expected))
+  ?:  &(!uncertain ?=(%union -.actual) ?=(?(%face %slot) -.expected))
     $(expected body.expected)
+  ::  An unresolved syntactic null can receive a closed list or unit
+  ::  context from the other direction of an invariant constraint.
+  =/  null-context=(unit itype)
+    ?.  &(?=(%tag -.expected) =(%null form.literal.expected) !constructor.expected)  ~
+    =/  candidate=itype  (itype-normalize actual sub)
+    =/  list=?  &(?=(%collection -.candidate) =(%list name.candidate) ?=([* ~] args.candidate))
+    =/  unit=?  ?=(^ (unit-union-payload candidate))
+    ?.  |(list unit)  ~
+    `candidate
+  ?^  null-context
+    ?:  (itype-has-tag u.null-context)  [%unknown ~]
+    (itype-fit expected u.null-context sub next)
   ?:  ?=(%union -.actual)  [%unknown ~]
+  :: A restricted atom variable already fits any union containing the
+  :: unrestricted atom mold; no particular aura needs to be chosen.
+  ?:  &(?=(%union -.expected) ?=(?(%avar %rvar %nvar %rnvar) -.actual) (lien cases.expected |=(c=itype ?=(%any-atom -.c))))
+    [%ok sub next]
   ?:  &(?=(%union -.expected) |(?=(%fvar -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual))))  [%unknown ~]
   ?:  &(?=(%union -.expected) !?=(%var -.actual))
-    (itype-fit-cases actual cases.expected sub next)
+    =/  fit=ifit  (itype-fit-cases actual cases.expected sub next)
+    ?.  ?=(%ok -.fit)  fit
+    ::  Selecting one case proves the tag fits the union, but the union is
+    ::  the context that fixes its type; retain that context for every use
+    ::  of a tag-constrained variable in the module.
+    ?:  ?=(%tag -.actual)  [%ok (itype-bind id.actual expected sub.fit) next.fit]
+    fit
   ?:  ?=(%tag -.actual)
     ?:  ?=(%var -.expected)
       =/  u=(unit isub)  (itype-unify actual expected sub)
       ?~  u  [%bad ~]
       [%ok u.u next]
     ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
-    ?:  ?=(%face -.expected)  $(expected body.expected)
+    ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
     ?:  constructor.actual
       ?.  ?=(%fn -.expected)  [%bad ~]
       =/  product=itype  (itype-walk product.expected sub)
       =/  cases=(list itype)  ?:(?=(%union -.product) cases.product ~[product])
       =/  trial=ifit  (itype-fit-ctor-cases literal.actual sample.expected cases sub next)
       ?.  ?=(%ok -.trial)  trial
-      [%ok [[id.actual expected] sub.trial] next.trial]
-    ::  Zero may be the empty list. A nested cell fit lacks the context
-    ::  needed to resolve it here, so do not report a definite mismatch.
+      [%ok (itype-bind id.actual expected sub.trial) next.trial]
+    ::  Only the syntactic null may acquire a known list context. Keep
+    ::  an open element type pending until another constraint determines it.
     ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
-      [%unknown ~]
+      ?.  &(!constructor.actual =(%null form.literal.actual) ?=([* ~] args.expected))  [%bad ~]
+      =/  candidate=itype  (itype-normalize expected sub)
+      ?:  (itype-has-tag candidate)  [%unknown ~]
+      [%ok (itype-bind id.actual candidate sub) next]
     ?:  ?=(%const -.expected)
-      ?:(=(val.literal.actual val.literal.expected) [%ok [[id.actual expected] sub] next] [%bad ~])
+      ?:(=(val.literal.actual val.literal.expected) [%ok (itype-bind id.actual expected sub) next] [%bad ~])
     ?:  ?=(%atom -.expected)
       ?:  |(=(%tas aura.expected) =(%ta aura.expected))
-        [%ok [[id.actual expected] sub] next]
+        [%ok (itype-bind id.actual [%const literal.actual] sub) next]
       [%bad ~]
     ?:  ?=(%flag -.expected)
-      ?:(|(=(0 val.literal.actual) =(1 val.literal.actual)) [%ok [[id.actual expected] sub] next] [%bad ~])
-    ?:  ?=(%any-atom -.expected)  [%ok [[id.actual expected] sub] next]
+      ?:(|(=(0 val.literal.actual) =(1 val.literal.actual)) [%ok (itype-bind id.actual [%const literal.actual] sub) next] [%bad ~])
+    ?:  ?=(%any-atom -.expected)  [%ok (itype-bind id.actual [%const literal.actual] sub) next]
     [%bad ~]
   ?:  ?=(%const -.actual)
     ?:  ?=(%var -.expected)
@@ -5869,7 +6908,7 @@
       ?~  u  [%bad ~]
       [%ok u.u next]
     ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
-    ?:  ?=(%face -.expected)  $(expected body.expected)
+    ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
     ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
       [%unknown ~]
     ?:  ?=(%const -.expected)
@@ -5888,16 +6927,20 @@
   ::  A field on an expected sample slot labels the value's type; it does
   ::  not become a face on the actual argument. Unify with the slot body
   ::  rather than binding either variable to the face around the other.
-  ?:  &(?=(%var -.actual) ?=(%face -.expected))
+  ?:  &(?=(%var -.actual) ?=(?(%face %slot) -.expected))
     =/  unified=(unit isub)  (itype-unify actual body.expected sub)
     ?~  unified  [%unknown ~]
     [%ok u.unified next]
+  ?:  &(expected-open ?=(?(%face %slot) -.actual))
+    ::  This position was a type variable before walking its binding.
+    ::  Its face belongs to the value, even on a repeated occurrence.
+    $(actual body.actual)
   ?:  &(uncertain (itype-face-asym actual expected sub))  [%unknown ~]
   ::  A known face labels the same noun. Peel it before applying the
   ::  directional unrestricted-atom rule, preserving raw-variable guards.
-  ?:  &(!uncertain ?=(%any-atom -.actual) ?=(%face -.expected))
+  ?:  &(!uncertain ?=(%any-atom -.actual) ?=(?(%face %slot) -.expected))
     $(expected body.expected, skip-width |, spine-proof |)
-  ?:  &(!uncertain ?=(%any-atom -.expected) ?=(%face -.actual))
+  ?:  &(!uncertain ?=(%any-atom -.expected) ?=(?(%face %slot) -.actual))
     $(actual body.actual, skip-width |, spine-proof |)
   ?:  ?=(%any-atom -.expected)
     ?:  |(?=(%atom -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual)) ?=(%flag -.actual))  [%ok sub next]
@@ -5917,26 +6960,51 @@
     ?:  (aura-prefix aura.expected aura.actual)  [%ok sub next]
     ?:  &((aura-prefix aura.actual aura.expected) uncertain)  [%unknown ~]
     [%bad ~]
+  :: A known list context also accepts its nonempty cell constructor.
+  :: Check the element and tail directionally; neither a mismatched tail
+  :: nor an unknown list origin is evidence of a list.
+  ?:  &(?=(%cell -.actual) ?=(%collection -.expected) =(%list name.expected) ?=([* ~] args.expected))
+    :: Keep value faces until a list-element join can preserve them.
+    =/  head=itype  (itype-normalize hed.actual sub)
+    =/  item=itype  (itype-normalize i.args.expected sub)
+    ?:  &((itype-has-face head sub) ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.item))  [%unknown ~]
+    ?:  (itype-face-asym head item sub)  [%unknown ~]
+    ?:  (itype-face-asym (itype-normalize tal.actual sub) expected sub)  [%unknown ~]
+    =/  first=ifit  $(actual hed.actual, expected i.args.expected, skip-width |, spine-proof |)
+    ?.  ?=(%ok -.first)  first
+    $(actual tal.actual, sub sub.first, next next.first, skip-width |, spine-proof |)
   ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
     =/  first=ifit  $(actual hed.actual, expected hed.expected, skip-width |, spine-proof |)
     ?.  ?=(%ok -.first)  first
     $(actual tal.actual, expected tal.expected, sub sub.first, next next.first, skip-width spine-checked, spine-proof spine-checked)
-  ?:  &(?=(%face -.actual) ?=(%var -.expected))  [%unknown ~]
   ?:  &(?=(%var -.actual) (itype-has-any-atom expected sub))
     [%unknown ~]
   ?:  |(?=(%var -.actual) ?=(%var -.expected) ?=(%fvar -.expected))
     =/  unified=(unit isub)  (itype-unify actual expected sub)
     ?~  unified
-      ?:  |(?=(%face -.actual) ?=(%face -.expected))  [%unknown ~]
+      ?:  |(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))  [%unknown ~]
       ?:  |((itype-has-recursive (itype-normalize actual sub)) (itype-has-recursive (itype-normalize expected sub)))  [%unknown ~]
       ?:  (itype-family-related actual expected sub)  [%unknown ~]
       [%bad ~]
     [%ok u.unified next]
-  ?:  &(?=(%face -.actual) ?=(%face -.expected))
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
+    ?.  =(-.actual -.expected)  [%unknown ~]
     ?.  =(name.actual name.expected)  [%bad ~]
     $(actual body.actual, expected body.expected, skip-width |, spine-proof |)
-  ?:  ?=(%face -.actual)  $(actual body.actual, skip-width |, spine-proof |)
-  ?:  ?=(%face -.expected)  $(expected body.expected, skip-width |, spine-proof |)
+  ?:  ?=(?(%face %slot) -.actual)  $(actual body.actual, skip-width |, spine-proof |)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected, skip-width |, spine-proof |)
+  :: A nonempty list witnesses an element mismatch only when the actual
+  :: element is known inhabited and its directional fit is definitely bad.
+  =/  list-mismatch=?
+    ?.  &(?=(%collection -.actual) ?=(%collection -.expected) =(%list name.actual) =(%list name.expected) ?=([* ~] args.actual) ?=([* ~] args.expected))  |
+    =/  item=itype  (itype-normalize i.args.actual sub)
+    =/  wanted=itype  (itype-normalize i.args.expected sub)
+    =/  fit=ifit  (itype-fit item wanted sub next)
+    ?.  ?=(%bad -.fit)  |
+    =/  live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof item sub ~ 4.096)
+    ?~  live  |
+    =(%yes result.u.live)
+  ?:  list-mismatch  [%bad ~]
   ?:  &(!uncertain (itype-closed-gates-match actual expected))  [%ok sub next]
   ?:  (itype-face-asym actual expected sub)  [%unknown ~]
   ?:  |((itype-has-any-atom actual sub) (itype-has-any-atom expected sub))
@@ -5980,7 +7048,7 @@
     ["occurs check should look through collection arguments" problems]
   =?  problems  !=((itype-vars list-a) ~[0])
     ["generalization should see collection argument variables" problems]
-  =?  problems  !=((itype-rename list-a ~[[0 num]]) list-n)
+  =?  problems  !=((itype-rename list-a (isub-from-bindings ~[[0 num]])) list-n)
     ["instantiation should rename collection argument variables" problems]
   =?  problems  ?=(^ (itype-unify list-t list-n ~))
     ["collection arguments with different auras should conflict" problems]
@@ -6001,18 +7069,18 @@
   =?  problems  !?=(%unknown -.recursive-fit)
     ["opaque recursive types should not be unfolded by a fit" problems]
   =/  nested-fit=ifit
-    (itype-fit [%collection %list ~[a]] list-t ~[[0 recursive]] 1)
+    (itype-fit [%collection %list ~[a]] list-t (isub-from-bindings ~[[0 recursive]]) 1)
   =?  problems  !?=(%unknown -.nested-fit)
     ["recursive types behind substitutions should remain uncertain" problems]
   =/  free=itype  [%fvar 40]
   =/  open-cell=itype  [%cell [%var 41] [%face %x [%var 42]]]
   =/  constrained=(unit isub)  (itype-unify free open-cell ~)
   =/  expected-cell=itype  [%cell [%fvar 41] [%face %x [%fvar 42]]]
-  =?  problems  !=(constrained [~ [[40 expected-cell] [[42 [%fvar 42]] [[41 [%fvar 41]] ~]]]])
+  =?  problems  !=(constrained `(itype-bind 40 expected-cell (isub-from-bindings ~[[42 [%fvar 42]] [41 [%fvar 41]]])))
     ["gate-free constraints should propagate through cells and faces" problems]
-  =?  problems  ?=(^ (itype-unify free open-cell ~[[41 [%fn txt txt]]]))
+  =?  problems  ?=(^ (itype-unify free open-cell (isub-from-bindings ~[[41 [%fn txt txt]]])))
     ["an existing nested gate substitution should be rejected" problems]
-  =/  shared-sub=isub  [[42 [%fvar 42]] [[41 [%fvar 41]] ~]]
+  =/  shared-sub=isub  (isub-from-bindings ~[[42 [%fvar 42]] [41 [%fvar 41]]])
   =?  problems  ?=(^ (itype-unify [%var 41] [%fn txt txt] shared-sub))
     ["a later nested gate substitution should be rejected" problems]
   =?  problems  ?=(^ (itype-unify free [%fn txt txt] ~))
@@ -6020,7 +7088,7 @@
   =?  problems  ?=(^ (itype-unify free [%noun ~] ~))
     ["a gate-free variable should reject an opaque noun" problems]
   =/  atom-strong=(unit isub)  (itype-unify [%avar 43] free ~)
-  =?  problems  !=(atom-strong [~ [[40 [%avar 43]] ~]])
+  =?  problems  !=(atom-strong `(itype-bind 40 [%avar 43] ~))
     ["the atom constraint should be stronger than gate-free" problems]
   =/  free-fit=ifit  (itype-fit txt free ~ 44)
   =?  problems  !?=(%ok -.free-fit)
@@ -6028,7 +7096,7 @@
   =/  gate-fit=ifit  (itype-fit [%fn txt txt] free ~ 44)
   =?  problems  !?=(%bad -.gate-fit)
     ["a gate should not fit a gate-free variable" problems]
-  =/  free-scheme=ischeme  [[%fn free free] ~[40]]
+  =/  free-scheme=ischeme  [[%fn free free] ~[40] ~]
   =/  canonical-free=itype  (canonical-itype typ.free-scheme vars.free-scheme)
   =?  problems  !=(canonical-free [%fn [%fvar 0] [%fvar 0]])
     ["canonicalization should retain gate-free variables" problems]
@@ -6058,7 +7126,8 @@
 ::  simple gates, calls, fixed-aura literals, and some interpolated strings. The
 ::  result for unsupported syntax is a diagnostic, never a checked module.
 ::
-+$  ischeme  [typ=itype vars=(list @ud)]
++$  igraph-root  [id=@ud body=itype]
++$  ischeme  [typ=itype vars=(list @ud) graph=(unit [roots=(list igraph-root) witnesses=(list iwitness-change)])]
 +$  ienv  (list [name=term scheme=ischeme])
 +$  imold-types  (list [name=term template=ischeme])
 +$  iderived  [name=term agent=term mark=term]
@@ -6076,12 +7145,17 @@
 ::  The opaque prelude is an exact trusted input, not a recursive interface mold.
 +$  irequest-graph
   [paths=(set path) requests=(list irequest-evidence) stores=(list istore-request-evidence) bundle-input=* prelude-input=* prelude-values=(list term) prelude-molds=(list term) externals=iexternals marks=imark-externals]
-+$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t) graph=(unit irequest-graph)]
+:: Checked prelude namespaces retain the ordinary interface evidence without
+:: recursively embedding another ifile.
++$  iprelude-dependency  [at=path values=ienv molds=imold-types derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t) graph=(unit irequest-graph)]
++$  iprelude-group  [face=term at=path values=ienv molds=imold-types derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t) graph=(unit irequest-graph) closure=(list iprelude-dependency)]
++$  ifile  [values=ienv molds=imold-types at=path derived=(list iderived) elaborations=(list iwidth-definition) dependencies=(list iwidth-dependency) source=(unit @t) graph=(unit irequest-graph) groups=(list iprelude-group)]
 +$  ijimports  (list [face=term interface=ifile])
 +$  icap  [name=@t id=@ud at=span]
 +$  icaps  (list icap)
 +$  iparams  (list [name=@t typ=itype])
 +$  imolds  (list [name=term body=shape])
++$  imold-captures  (list [name=term params=iparams])
 ::  A caller supplies the exact noun returned by +read-mold:jibb-import.
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
@@ -6097,7 +7171,7 @@
 +$  iwfields  [order=(list iwfield) index=(map term iwfield)]
 +$  iwstep  [name=term axis=@ud]
 +$  iwidth-result  [steps=(list iwstep) sub=isub next=@ud]
-+$  iwprojection  [at=span original=expr source=itype target=itype steps=(list iwstep)]
++$  iwprojection  [at=span original=expr source=itype target=itype steps=(list iwstep) quantified=(list @ud)]
 ++  width-scan
   |=  [typ=itype sub=isub axis=@ud fuel=@ud]
   ^-  (unit iwfields)
@@ -6106,14 +7180,14 @@
   |-
   ?:  =(0 fuel)  ~
   ?:  |(?=(%var -.typ) ?=(%avar -.typ) ?=(%rvar -.typ) ?=(%nvar -.typ) ?=(%rnvar -.typ))  ~
-  ?:  ?=(%face -.typ)
+  ?:  ?=(?(%face %slot) -.typ)
     =/  entry=iwfield  [name.typ axis body.typ]
     ?:  ?=(^ (~(get by index) name.entry))  ~
     `[(flop [entry order]) (~(put by index) name.entry entry)]
   ?.  ?=(%cell -.typ)  ~
   =/  head=itype  hed.typ
   ?:  |(?=(%var -.head) ?=(%avar -.head) ?=(%rvar -.head) ?=(%nvar -.head) ?=(%rnvar -.head))  ~
-  ?.  ?=(%face -.head)  ~
+  ?.  ?=(?(%face %slot) -.head)  ~
   =/  entry=iwfield  [name.head (mul 2 axis) body.head]
   ?:  ?=(^ (~(get by index) name.entry))  ~
   $(typ tal.typ, axis +((mul 2 axis)), fuel (dec fuel), order [entry order], index (~(put by index) name.entry entry))
@@ -6140,7 +7214,7 @@
   ^-  ?
   ?:  =(0 fuel)  &
   ?.  ?=(%cell -.t)  |
-  ?.  ?=(%face -.hed.t)  |
+  ?.  ?=(?(%face %slot) -.hed.t)  |
   $(t tal.t, fuel (dec fuel))
 ++  width-known-shape
   |=  [actual=itype expected=itype sub=isub]
@@ -6151,6 +7225,14 @@
   ?~  source  ~
   ?~  target  ~
   `[u.source u.target]
+::
+++  width-definite-mismatch
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  ?
+  =/  known=(unit [source=iwfields target=iwfields])
+    (width-known-shape actual expected sub)
+  ?~  known  |
+  (gth (lent order.source.u.known) (lent order.target.u.known))
 ::
 ++  width-shape
   |=  [actual=itype expected=itype sub=isub]
@@ -6165,7 +7247,9 @@
 ++  width-proj-shape
   |=  [actual=itype expected=itype sub=isub]
   ^-  (unit [source=iwfields target=iwfields])
-  ?.  &(|(?=(%cell -.actual) ?=(%face -.actual)) |(?=(%cell -.expected) ?=(%face -.expected)))  ~
+  =.  actual  (itype-normalize actual sub)
+  =.  expected  (itype-normalize expected sub)
+  ?.  &(|(?=(%cell -.actual) ?=(?(%face %slot) -.actual)) |(?=(%cell -.expected) ?=(?(%face %slot) -.expected)))  ~
   =/  source=(unit iwfields)  (width-scan actual sub 1 4.096)
   =/  target=(unit iwfields)  (width-scan expected sub 1 4.096)
   ?~  source  ~
@@ -6196,9 +7280,13 @@
 ++  gate-free-types
   |=  [types=(list itype) fuel=@ud path=(list igf-segment) index=@ud]
   ^-  igate-free
+  (gate-free-types-seen types fuel path index ~)
+++  gate-free-types-seen
+  |=  [types=(list itype) fuel=@ud path=(list igf-segment) index=@ud seen=(list itype)]
+  ^-  igate-free
   ?~  types  [%yes | fuel ~]
   ?:  =(0 fuel)  [%unknown | 0 ~]
-  =/  first=igate-free  (gate-free-type i.types fuel [[%case index] path])
+  =/  first=igate-free  (gate-free-type-seen i.types fuel [[%case index] path] seen)
   ?:  =(%no verdict.first)  first
   =/  rest=igate-free  $(types t.types, fuel left.first, index +(index))
   ?:  =(%no verdict.rest)  rest
@@ -6208,15 +7296,21 @@
 ++  gate-free-type
   |=  [typ=itype fuel=@ud path=(list igf-segment)]
   ^-  igate-free
+  (gate-free-type-seen typ fuel path ~)
+++  gate-free-type-seen
+  |=  [typ=itype fuel=@ud path=(list igf-segment) seen=(list itype)]
+  ^-  igate-free
   ?:  =(0 fuel)  [%unknown | 0 ~]
   =.  fuel  (dec fuel)
   ?-  -.typ
+    %opaque  [%unknown & fuel ~]
+    %refined  [%unknown & fuel ~]
     %fn         [%no & fuel `(flop path)]
     %atom       [%yes & fuel ~]
     %any-atom   [%yes & fuel ~]
     %flag       [%yes & fuel ~]
     %const      [%yes & fuel ~]
-    %face       $(typ body.typ, path [[%field name.typ] path])
+    ?(%face %slot)  $(typ body.typ, path [[%field name.typ] path])
     %cell
       =/  head=igate-free  $(typ hed.typ, path [[%head ~] path])
       =/  tail=igate-free  $(typ tal.typ, fuel left.head, path [[%tail ~] path])
@@ -6233,7 +7327,16 @@
       item(inhabited &)
     %union
       ?~  cases.typ  [%unknown | fuel ~]
-      (gate-free-types cases.typ fuel path 0)
+      (gate-free-types-seen cases.typ fuel path 0 seen)
+    %mrec
+      =/  live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof typ ~ ~ fuel)
+      ?~  live  [%unknown | fuel ~]
+      =/  inhabited=?  =(%yes result.u.live)
+      =.  fuel  left.u.live
+      ?:  (lien seen |=(prior=itype =(prior typ)))  [%yes inhabited fuel ~]
+      =/  view=(unit [view=itype left=@ud])  (rg-unfold-view typ fuel)
+      ?~  view  [%unknown inhabited fuel ~]
+      $(typ view.u.view, fuel left.u.view, seen [typ seen])
     %noun       [%unknown & fuel ~]
     %empty      [%yes | fuel ~]
     %var        [%unknown | fuel ~]
@@ -6244,14 +7347,36 @@
     %rnvar      [%yes & fuel ~]
     %tag        [%unknown | fuel ~]
     %recursive  [%unknown | fuel ~]
-    %jrec       [%yes & fuel ~]
-    %grec       [%unknown | fuel ~]
   ==
 ::
-+$  igate-prelude-evidence  [iface=ifile gates=(map term def)]
 +$  dgo  [left=itype right=itype at=span context=span]
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) gate-defs=(map term def) head-evidence=(unit igate-prelude-evidence) grec-index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)]) defer=(unit ~) obligations=(list dgo)]
-+$  idiag  [msg=tape sites=(list [at=span note=tape])]
++$  ifit-ancestor  [left=itype right=itype sub=isub list-item=(unit [source=expr actual-sub=isub context=span])]
++$  ilist-item-root  [source=expr left=itype actual-sub=isub right=itype context=span]
++$  icore-edge
+  $%  [%fit left=itype right=itype at=span context=span owner=term sites=(list span)]
+      [%wing subject=itype fields=(list term) result=itype at=span]
+      [%tag id=@ud literal=lit constructor=? at=span]
+      [%match subject=itype branch=expr env=ienv caps=icaps molds=imolds captures=imold-captures globals=(list term) binders=(list @ud) level=@ud result=itype at=span owner=term]
+      [%coverage subject=itype branch=expr at=span owner=term]
+      [%unface subject=itype result=itype at=span]
+      [%join target=itype source=itype at=span context=span]
+      [%attributes element=itype items=(list expr) at=span owner=term]
+      [%printable typ=itype at=span owner=term caps=icaps context=span interpolation=?]
+      [%number-default typ=itype at=span caps=icaps owner=term]
+      [%tagged-cell actual=itype result=itype source=expr at=span owner=term env=ienv caps=icaps molds=imolds captures=imold-captures globals=(list term) binders=(list @ud) level=@ud list-item=(unit [source=expr actual=itype actual-sub=isub expected=itype context=span])]
+      [%branch-join arms=(list [typ=itype at=span]) result=itype at=span owner=term]
+      [%branch-fit left=itype right=itype at=span context=span owner=term]
+      [%cast-fit actual=itype target=itype result=itype at=span context=span owner=term caps=icaps forcing=expr expanded=?]
+      [%guarded-fit left=itype right=itype at=span context=span owner=term sites=(list span) caps=icaps forcing=expr numeric=? called=(unit itype) ancestors=(list ifit-ancestor)]
+      [%guarded-join target=itype source=itype at=span context=span owner=term caps=icaps forcing=expr numeric=? called=(unit itype) ancestors=(list ifit-ancestor)]
+  ==
++$  iwake  [queue=(list icore-edge) sub=isub index=(map @ud (list icore-edge))]
+::  A fresh inference state starts in the conservative legacy mode. Hoon's
+::  ordinary ? mold bunts to &, so give opt-in modes an explicit | bunt.
++$  iflag  $~(| ?)
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) level=@ud levels=(map @ud @ud) registered=@ud globals-imports=iflag general-defer=iflag queue=(list icore-edge) owner=term core-error=(unit [owner=term diag=idiag]) indexed-sub=isub sub-index=(map @ud itype) sub-counts=(map @ud (list @ud)) wake=(unit iwake) diagnostic-sources=(list [at=path source=@t]) local-source=(unit @t) error-tag-site=(unit span) error-display-owner=(unit term) mold-captures=imold-captures tagged-actuals=(map @ud [actual=itype sub=isub]) tagged-sources=(map span [actual=itype sub=isub])]
++$  idsite  $%([at=span note=tape] [%external file=path source=@t at=span note=tape])
++$  idiag  [msg=tape sites=(list idsite)]
 +$  iresult  (each [typ=itype state=istate] idiag)
 +$  isample-result  (each [typ=itype env=ienv state=istate] tape)
 ::
@@ -6266,16 +7391,89 @@
 ::  substitutes only once, so an old variable and its fresh number may
 ::  coincide without forming a substitution cycle.
 ::
+::  Realize retained value-face evidence only at publication. A conflict
+::  or an unresolved witnessed root cannot be published.
+++  itype-realize-list
+  |=  [xs=(list itype) sub=isub]
+  ^-  (unit (list itype))
+  ?~  xs  `~
+  =/  first=(unit itype)  (itype-realize i.xs sub)
+  ?~  first  ~
+  =/  rest=(unit (list itype))  $(xs t.xs)
+  ?~  rest  ~
+  `[u.first u.rest]
+::
+++  itype-realize
+  |=  [t=itype sub=isub]
+  ^-  (unit itype)
+  =/  witness=(unit iface-witness)
+    ?.  ?=(%var -.t)  ~
+    (itype-witness-get id.t sub)
+  ?:  ?=([~ [%conflict ~]] witness)  ~
+  =.  t  (itype-walk t sub)
+  =/  out=(unit itype)
+    ?+  -.t  `t
+      %opaque
+        =/  body=(unit itype)  (itype-realize body.t sub)
+        ?~  body  ~
+        =/  args=(unit (list itype))  (itype-realize-list args.t sub)
+        ?~  args  ~
+        `t(body u.body, args u.args)
+      %refined
+        =/  proof=(unit itype)  (itype-realize proof.t sub)
+        ?~  proof  ~
+        `t(proof u.proof)
+      ?(%face %slot)
+        =/  body=(unit itype)  (itype-realize body.t sub)
+        ?~  body  ~
+        `t(body u.body)
+      %cell
+        =/  head=(unit itype)  (itype-realize hed.t sub)
+        ?~  head  ~
+        =/  tail=(unit itype)  (itype-realize tal.t sub)
+        ?~  tail  ~
+        `[%cell u.head u.tail]
+      %fn
+        =/  sample=(unit itype)  (itype-realize sample.t sub)
+        ?~  sample  ~
+        =/  product=(unit itype)  (itype-realize product.t sub)
+        ?~  product  ~
+        `[%fn u.sample u.product]
+      %collection
+        =/  args=(unit (list itype))  (itype-realize-list args.t sub)
+        ?~  args  ~
+        `t(args u.args)
+      %mrec
+        =/  args=(unit (list itype))  (itype-realize-list args.t sub)
+        ?~  args  ~
+        `t(args u.args)
+      %union
+        =/  cases=(unit (list itype))  (itype-realize-list cases.t sub)
+        ?~  cases  ~
+        =/  args=(unit (list itype))  (itype-realize-list args.t sub)
+        ?~  args  ~
+        `t(cases u.cases, args u.args)
+    ==
+  ?~  out  ~
+  ?~  witness  out
+  ?>  ?=(%named -.u.witness)
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.u.out)  ~
+  ?:  ?=(%face -.u.out)
+    ?:(=(name.u.out name.u.witness) out ~)
+  `[%face name.u.witness u.out]
+::
 ++  itype-normalize
   |=  [t=itype sub=isub]
   ^-  itype
   =.  t  (itype-walk t sub)
-  ?:  ?=(%grec -.t)  t(args (turn args.t |=(c=itype (itype-normalize c sub))))
+  ?:  ?=(%opaque -.t)  t(body $(t body.t), args (turn args.t |=(c=itype (itype-normalize c sub))))
+  ?:  ?=(%refined -.t)  t(proof $(t proof.t))
+  ?:  ?=(%mrec -.t)  t(args (turn args.t |=(c=itype (itype-normalize c sub))))
   ?:  ?=(%collection -.t)  [%collection name.t (turn args.t |=(c=itype (itype-normalize c sub)))]
   ?:  ?=(%union -.t)
     [%union (turn cases.t |=(c=itype (itype-normalize c sub))) origin.t label.t (turn args.t |=(c=itype (itype-normalize c sub)))]
-  ?:  ?=(%face -.t)
-    [%face name.t $(t body.t)]
+  ?:  ?=(?(%face %slot) -.t)
+    ?:(?=(%slot -.t) [%slot name.t $(t body.t)] [%face name.t $(t body.t)])
   ?:  ?=(%fn -.t)
     [%fn $(t sample.t) $(t product.t)]
   ?:  ?=(%cell -.t)
@@ -6293,13 +7491,14 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-gate c))))
+    %refined  $(t proof.t)
     %fn        &
     %cell      |($(t hed.t) $(t tal.t))
     %recursive  |
-    %jrec       |
-    %grec       &
+    %mrec       &
     %collection  (lien args.t |=(c=itype (itype-has-gate c)))
-    %face      $(t body.t)
+    ?(%face %slot)      $(t body.t)
     %union     (lien cases.t |=(c=itype (itype-has-gate c)))
     %tag       |
     %const     |
@@ -6321,11 +7520,13 @@
   ^-  itype
   ?:  (itype-has-gate t)  t
   ?-  -.t
+    %opaque  t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
+    %refined  t(proof $(t proof.t))
     %nvar      [%atom %ud]
     %rnvar      [%atom %ud]
-    %grec  t(args (turn args.t |=(c=itype (default-decimals c))))
+    %mrec  t(args (turn args.t |=(c=itype (default-decimals c))))
     %collection  [%collection name.t (turn args.t |=(c=itype (default-decimals c)))]
-    %face      [%face name.t $(t body.t)]
+    ?(%face %slot)      ?:(?=(%slot -.t) [%slot name.t $(t body.t)] [%face name.t $(t body.t)])
     %cell      [%cell $(t hed.t) $(t tal.t)]
     *          t
   ==
@@ -6360,15 +7561,17 @@
   ^-  ?
   =.  t  (itype-walk t sub.state)
   ?-  -.t
+    %opaque  &($(t body.t) (levy args.t |=(c=itype (hole-known c state))))
+    %refined  $(t proof.t)
     ?(%var %fvar %avar %rvar %nvar %rnvar)
       ?:  (lien caps.state |=(c=icap (hole-same-variable t (itype-walk [%var id.c] sub.state))))  &
       (lien params.state |=(p=[name=@t typ=itype] (hole-same-variable t (itype-walk typ.p sub.state))))
     %tag  |
     %any-atom  &
     %union  &((levy cases.t |=(c=itype (hole-known c state))) (levy args.t |=(c=itype (hole-known c state))))
-    %grec  (levy args.t |=(c=itype (hole-known c state)))
+    %mrec  (levy args.t |=(c=itype (hole-known c state)))
     %collection  (levy args.t |=(c=itype (hole-known c state)))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %fn  &($(t sample.t) $(t product.t))
     %cell  &($(t hed.t) $(t tal.t))
     *  &
@@ -6384,7 +7587,7 @@
   ?~  ids  state
   =/  t=itype  (itype-walk [%var i.ids] sub.state)
   ?:  &(?=(%rnvar -.t) !(lien free |=(n=@ud =(n +.t))))
-    $(ids t.ids, state state(sub [[+.t [%rvar +.t]] sub.state]))
+    $(ids t.ids, state state(sub (itype-bind +.t [%rvar +.t] sub.state)))
   $(ids t.ids)
 ::
 ++  default-hole-numbers
@@ -6397,7 +7600,7 @@
   =/  t=itype  (itype-walk [%var id.i.all] sub.state)
   =/  free=(list @ud)  (free-env-vars env sub.state)
   =?  state  &(?=(?(%nvar %rnvar) -.t) !(hole-known t state) !(lien free |=(id=@ud =(id id.t))))
-    state(sub [[id.t [%atom %ud]] sub.state])
+    state(sub (itype-bind id.t [%atom %ud] sub.state))
   $(all t.all)
 ::
 ::  Only obligations created inside this definition belong to it.
@@ -6412,11 +7615,13 @@
   ^-  ?
   =.  t  (itype-walk t sub.state)
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (hole-uncertain c state))))
+    %refined  $(t proof.t)
     ?(%tag %nvar %rnvar %fvar %avar %rvar)  !(hole-known t state)
     %union  |((lien cases.t |=(c=itype (hole-uncertain c state))) (lien args.t |=(c=itype (hole-uncertain c state))))
-    %grec  (lien args.t |=(c=itype (hole-uncertain c state)))
+    %mrec  (lien args.t |=(c=itype (hole-uncertain c state)))
     %collection  (lien args.t |=(c=itype (hole-uncertain c state)))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %fn  |($(t sample.t) $(t product.t))
     %cell  |($(t hed.t) $(t tal.t))
     *  |
@@ -6435,12 +7640,14 @@
 ::
 ::  +uncertain-hole-msg: unsupported, though it names the hole's site
 ::
-++  uncertain-hole-msg  "type hole needs unsupported inference"
+++  uncertain-hole-msg  "type hole must be determined by its definition"
 ::
 ++  itype-vars
   |=  t=itype
   ^-  (list @ud)
   ?-  -.t
+    %opaque  (zing (turn [body.t args.t] |=(c=itype (itype-vars c))))
+    %refined  $(t proof.t)
     %var   ~[id.t]
     %fvar  ~[id.t]
     %avar  ~[id.t]
@@ -6456,10 +7663,9 @@
     %const  ~
     %union  (zing (turn (weld args.t cases.t) |=(c=itype (itype-vars c))))
     %recursive  ~
-    %jrec       ~
-    %grec       (zing (turn args.t |=(c=itype (itype-vars c))))
+    %mrec       (zing (turn args.t |=(c=itype (itype-vars c))))
     %collection  (zing (turn args.t |=(c=itype (itype-vars c))))
-    %face  $(t body.t)
+    ?(%face %slot)  $(t body.t)
     %fn    (weld $(t sample.t) $(t product.t))
     %cell  (weld $(t hed.t) $(t tal.t))
   ==
@@ -6477,6 +7683,8 @@
   |=  [t=itype ren=isub]
   ^-  itype
   ?-  -.t
+    %opaque  t(body $(t body.t), args (turn args.t |=(c=itype (itype-rename c ren))))
+    %refined  t(proof $(t proof.t))
     %var
       =/  found=(unit itype)  (itype-lookup id.t ren)
       ?~  found  t
@@ -6510,10 +7718,9 @@
     %const  t
     %union  [%union (turn cases.t |=(c=itype (itype-rename c ren))) origin.t label.t (turn args.t |=(c=itype (itype-rename c ren)))]
     %recursive  t
-    %jrec       t
-    %grec       t(args (turn args.t |=(c=itype (itype-rename c ren))))
+    %mrec       t(args (turn args.t |=(c=itype (itype-rename c ren))))
     %collection  [%collection name.t (turn args.t |=(c=itype (itype-rename c ren)))]
-    %face  [%face name.t $(t body.t)]
+    ?(%face %slot)  ?:(?=(%slot -.t) [%slot name.t $(t body.t)] [%face name.t $(t body.t)])
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
   ==
@@ -6525,6 +7732,8 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-var-is-atom n c))))
+    %refined  $(t proof.t)
     %var       |
     %fvar      |
     %avar      =(n id.t)
@@ -6540,10 +7749,9 @@
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-atom n c))) (lien args.t |=(c=itype (itype-var-is-atom n c))))
     %recursive  |
-    %jrec       |
-    %grec       (lien args.t |=(c=itype (itype-var-is-atom n c)))
+    %mrec       (lien args.t |=(c=itype (itype-var-is-atom n c)))
     %collection  (lien args.t |=(c=itype (itype-var-is-atom n c)))
-    %face      $(t body.t)
+    ?(%face %slot)      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
   ==
@@ -6551,6 +7759,8 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-var-is-restricted n c))))
+    %refined  $(t proof.t)
     %var       |
     %fvar      |
     %avar      |
@@ -6566,10 +7776,9 @@
     %const     |
     %union     |((lien cases.t |=(c=itype (itype-var-is-restricted n c))) (lien args.t |=(c=itype (itype-var-is-restricted n c))))
     %recursive  |
-    %jrec       |
-    %grec       (lien args.t |=(c=itype (itype-var-is-restricted n c)))
+    %mrec       (lien args.t |=(c=itype (itype-var-is-restricted n c)))
     %collection  (lien args.t |=(c=itype (itype-var-is-restricted n c)))
-    %face      $(t body.t)
+    ?(%face %slot)      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
   ==
@@ -6583,12 +7792,14 @@
   ?:  =(0 fuel)  &
   =.  fuel  (dec fuel)
   ?-  -.t
+    %opaque  |($(t body.t, fuel fuel) (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel))))
+    %refined  $(t proof.t, fuel fuel)
     %var       |
     %fvar      =(n id.t)
     %union     |((lien cases.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel))) (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel))))
-    %grec      (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel)))
+    %mrec      (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel)))
     %collection  (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel)))
-    %face      $(t body.t, fuel fuel)
+    ?(%face %slot)      $(t body.t, fuel fuel)
     %fn        |($(t sample.t, fuel fuel) $(t product.t, fuel fuel))
     %cell      |($(t hed.t, fuel fuel) $(t tal.t, fuel fuel))
     *          |
@@ -6646,8 +7857,9 @@
   =/  own=?  &(!=(0 name) !(lien used |=(u=@t =(u name))))
   =?  n  !own  (letter-free n names)
   =/  id=@ud  ?:(own (named-var name 0) n)
-  =/  replacement=itype  ?:((itype-var-is-restricted i.vars t) [%rvar id] ?:((itype-var-is-atom i.vars t) [%avar id] ?:((itype-var-is-gate-free i.vars t) [%fvar id] [%var id])))
-  $(vars t.vars, ren [[i.vars replacement] ren], n ?:(own n +(n)), used ?:(own [name used] used))
+  =/  replacement=itype
+    ?:(|((has-restricted-number-var i.vars t) &((has-number-var i.vars t) (itype-var-is-restricted i.vars t))) [%rnvar id] ?:((has-number-var i.vars t) [%nvar id] ?:((itype-var-is-restricted i.vars t) [%rvar id] ?:((itype-var-is-atom i.vars t) [%avar id] ?:((itype-var-is-gate-free i.vars t) [%fvar id] [%var id])))))
+  $(vars t.vars, ren (itype-bind i.vars replacement ren), n ?:(own n +(n)), used ?:(own [name used] used))
 ::
 ::  +letter-free: the first number from n whose letter is none of names
 ::
@@ -6661,21 +7873,197 @@
 ::
 ::    Each fresh variable keeps the name of the one it replaces.
 ::
++$  igraph-scheme  [typ=itype vars=(list @ud) roots=(list igraph-root)]
+++  graph-restricted
+  |=  [id=@ud scheme=igraph-scheme]
+  ^-  ?
+  |((itype-var-is-restricted id typ.scheme) (lien roots.scheme |=(r=igraph-root (itype-var-is-restricted id body.r))))
+++  graph-atom
+  |=  [id=@ud scheme=igraph-scheme]
+  ^-  ?
+  |((itype-var-is-atom id typ.scheme) (lien roots.scheme |=(r=igraph-root (itype-var-is-atom id body.r))))
+++  numeric-in-type
+  |=  [id=@ud typ=itype]
+  ^-  ?
+  ?-  -.typ
+    %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (numeric-in-type id c))))
+    %refined  $(typ proof.typ)
+    %nvar  =(id id.typ)
+    %rnvar  =(id id.typ)
+    %union  |((lien cases.typ |=(t=itype (numeric-in-type id t))) (lien args.typ |=(t=itype (numeric-in-type id t))))
+    %mrec  (lien args.typ |=(t=itype (numeric-in-type id t)))
+    %collection  (lien args.typ |=(t=itype (numeric-in-type id t)))
+    ?(%face %slot)  $(typ body.typ)
+    %fn  |($(typ sample.typ) $(typ product.typ))
+    %cell  |($(typ hed.typ) $(typ tal.typ))
+    *  |
+  ==
+++  graph-numeric
+  |=  [id=@ud scheme=igraph-scheme]
+  ^-  ?
+  |((numeric-in-type id typ.scheme) (lien roots.scheme |=(r=igraph-root (numeric-in-type id body.r))))
+++  arithmetic-in-type
+  |=  [id=@ud typ=itype]
+  ^-  ?
+  ?-  -.typ
+    %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (arithmetic-in-type id c))))
+    %refined  $(typ proof.typ)
+    %rvar  =(id id.typ)
+    %rnvar  =(id id.typ)
+    %union  |((lien cases.typ |=(t=itype (arithmetic-in-type id t))) (lien args.typ |=(t=itype (arithmetic-in-type id t))))
+    %mrec  (lien args.typ |=(t=itype (arithmetic-in-type id t)))
+    %collection  (lien args.typ |=(t=itype (arithmetic-in-type id t)))
+    ?(%face %slot)  $(typ body.typ)
+    %fn  |($(typ sample.typ) $(typ product.typ))
+    %cell  |($(typ hed.typ) $(typ tal.typ))
+    *  |
+  ==
+++  graph-arithmetic
+  |=  [id=@ud scheme=igraph-scheme]
+  ^-  ?
+  |((arithmetic-in-type id typ.scheme) (lien roots.scheme |=(r=igraph-root (arithmetic-in-type id body.r))))
+++  graph-free
+  |=  [id=@ud scheme=igraph-scheme]
+  ^-  ?
+  |((itype-var-is-gate-free id typ.scheme) (lien roots.scheme |=(r=igraph-root (itype-var-is-gate-free id body.r))))
+++  graph-renaming
+  |=  [ids=(list @ud) scheme=igraph-scheme state=istate ren=isub quantified=?]
+  ^-  [state=istate ren=isub]
+  ?~  ids  [state ren]
+  =/  fresh=@ud  (named-var (var-name i.ids) next.state)
+  =/  replacement=itype
+    ?:  !quantified  [%var fresh]
+    ?:  &((graph-numeric i.ids scheme) (graph-arithmetic i.ids scheme))  [%rnvar fresh]
+    ?:  (graph-numeric i.ids scheme)  [%nvar fresh]
+    ?:  (graph-arithmetic i.ids scheme)  [%rvar fresh]
+    ?:  (graph-atom i.ids scheme)  [%avar fresh]
+    ?:  (graph-free i.ids scheme)  [%fvar fresh]
+    [%var fresh]
+  =.  state  state(next +(next.state))
+  =?  binders.state  ?=(?(%rvar %avar %fvar %nvar %rnvar) -.replacement)  [fresh binders.state]
+  $(ids t.ids, state state, ren (itype-bind i.ids replacement ren))
+++  graph-replay
+  |=  [roots=(list igraph-root) ren=isub sub=isub]
+  ^-  (unit isub)
+  ?~  roots  `sub
+  =/  named=(unit itype)  (itype-lookup id.i.roots ren)
+  ?~  named  ~
+  ?.  ?=(%var -.u.named)  ~
+  =/  body=itype  (itype-rename body.i.roots ren)
+  ?:  (itype-occurs id.u.named body sub)  ~
+  $(roots t.roots, sub (itype-bind id.u.named body sub))
+::  Capture every bound root whose expansion contains a quantified
+::  variable. Unquantified roots remain shared with the enclosing scope.
+++  graph-capture
+  |=  [todo=(list itype) sub=isub quantified=(list @ud) seen=(set @ud) roots=(list igraph-root)]
+  ^-  (list igraph-root)
+  ?~  todo  (flop roots)
+  =/  typ=itype  i.todo
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.typ)
+    =/  id=@ud  +.typ
+    ?:  |((lien quantified |=(n=@ud =(n id))) (~(has in:..zuse seen) id))  $(todo t.todo)
+    =/  binding=(unit itype)  (itype-lookup id sub)
+    ?~  binding  $(todo t.todo)
+    =/  normalized=itype  (itype-normalize u.binding sub)
+    ?.  (lien (itype-vars normalized) |=(n=@ud (lien quantified |=(q=@ud =(q n)))))
+      $(todo t.todo)
+    $(todo [u.binding t.todo], seen (~(put in:..zuse seen) id), roots [[id u.binding] roots])
+  =/  children=(list itype)
+    ?-  -.typ
+      %opaque  [body.typ args.typ]
+      %refined  ~[proof.typ]
+      ?(%face %slot)  ~[body.typ]
+      %cell  ~[hed.typ tal.typ]
+      %fn  ~[sample.typ product.typ]
+      %collection  args.typ
+      %mrec  args.typ
+      %union  (weld cases.typ args.typ)
+      *  ~
+    ==
+  $(todo (weld children t.todo))
+::
+:: Exported schemes have no references to the inference state of their
+:: defining module. Local schemes may deliberately share enclosing roots.
+++  graph-export-closed
+  |=  scheme=igraph-scheme
+  ^-  ?
+  =/  ids=(list @ud)  (turn roots.scheme |=(r=igraph-root id.r))
+  ?.  =((lent vars.scheme) (lent (unique-type-vars vars.scheme)))  |
+  ?.  =((lent ids) (lent (unique-type-vars ids)))  |
+  ?:  (lien ids |=(n=@ud (lien vars.scheme |=(v=@ud =(n v)))))  |
+  =/  allowed=(list @ud)  (weld vars.scheme ids)
+  =/  types=(list itype)  [typ.scheme (turn roots.scheme |=(r=igraph-root body.r))]
+  =/  bad=?  (lien types |=(t=itype |((itype-has-tag t) (lien (itype-vars t) |=(n=@ud !(lien allowed |=(v=@ud =(n v))))))))
+  !bad
+++  graph-instantiate
+  |=  [scheme=igraph-scheme state=istate]
+  ^-  (unit [typ=itype state=istate])
+  =/  a  (graph-renaming vars.scheme scheme state ~ &)
+  =/  ids=(list @ud)  (turn roots.scheme |=(r=igraph-root id.r))
+  ?.  =((lent vars.scheme) (lent (unique-type-vars vars.scheme)))  ~
+  ?.  =((lent ids) (lent (unique-type-vars ids)))  ~
+  ?:  (lien ids |=(n=@ud (lien vars.scheme |=(v=@ud =(n v)))))  ~
+  =/  b  (graph-renaming ids scheme state.a ren.a |)
+  =/  replayed=(unit isub)  (graph-replay roots.scheme ren.b sub.state.b)
+  ?~  replayed  ~
+  `[(itype-rename typ.scheme ren.b) state.b(sub u.replayed)]
+:: Witnesses are scheme-local evidence; clone them into each new instance
+:: rather than reusing the defining module's mutable inference IDs.
+++  graph-capture-witnesses
+  |=  [scheme=igraph-scheme sub=isub]
+  ^-  (list iwitness-change)
+  =/  ids=(list @ud)  (weld vars.scheme (turn roots.scheme |=(r=igraph-root id.r)))
+  =/  out=(list iwitness-change)  ~
+  |-
+  ?~  ids  (flop out)
+  =/  witness=(unit iface-witness)  (itype-witness-get i.ids sub)
+  ?~  witness  $(ids t.ids)
+  $(ids t.ids, out [[i.ids u.witness] out])
+++  graph-replay-witnesses
+  |=  [entries=(list iwitness-change) ren=isub sub=isub]
+  ^-  (unit isub)
+  ?~  entries  `sub
+  ?:  ?=(%conflict -.witness.i.entries)  ~
+  =/  named=(unit itype)  (itype-lookup id.i.entries ren)
+  ?~  named  ~
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.u.named)  ~
+  =/  sub  (itype-witness-add +.u.named name.witness.i.entries sub)
+  =/  joined=(unit iface-witness)  (itype-witness-get +.u.named sub)
+  ?:  ?=([~ %conflict ~] joined)  ~
+  $(entries t.entries, sub sub)
+++  graph-instantiate-witness
+  |=  [scheme=igraph-scheme witnesses=(list iwitness-change) state=istate]
+  ^-  (unit [typ=itype state=istate])
+  =/  a  (graph-renaming vars.scheme scheme state ~ &)
+  =/  ids=(list @ud)  (turn roots.scheme |=(r=igraph-root id.r))
+  ?.  =((lent vars.scheme) (lent (unique-type-vars vars.scheme)))  ~
+  ?.  =((lent ids) (lent (unique-type-vars ids)))  ~
+  ?:  (lien ids |=(n=@ud (lien vars.scheme |=(v=@ud =(n v)))))  ~
+  =/  b  (graph-renaming ids scheme state.a ren.a |)
+  =/  replayed=(unit isub)  (graph-replay roots.scheme ren.b sub.state.b)
+  ?~  replayed  ~
+  =/  evidence=(unit isub)  (graph-replay-witnesses witnesses ren.b u.replayed)
+  ?~  evidence  ~
+  `[(itype-rename typ.scheme ren.b) state.b(sub u.evidence)]
+::
 ++  instantiate-scheme
   |=  [scheme=ischeme state=istate]
-  ^-  [typ=itype state=istate]
+  ^-  (unit [typ=itype state=istate])
+  ?^  graph.scheme
+    =/  graph=igraph-scheme  [typ.scheme vars.scheme roots.u.graph.scheme]
+    (graph-instantiate-witness graph witnesses.u.graph.scheme state)
   =/  ren=isub  ~
   =/  vars=(list @ud)  vars.scheme
   |-
-  ?~  vars  [(itype-rename typ.scheme ren) state]
+  ?~  vars  `[(itype-rename typ.scheme ren) state]
   =/  fresh=@ud  (named-var (var-name i.vars) next.state)
   =/  replacement=itype
-    ?:((itype-var-is-restricted i.vars typ.scheme) [%rvar fresh] ?:((itype-var-is-atom i.vars typ.scheme) [%avar fresh] ?:((itype-var-is-gate-free i.vars typ.scheme) [%fvar fresh] [%var fresh])))
+    ?:(|((has-restricted-number-var i.vars typ.scheme) &((has-number-var i.vars typ.scheme) (itype-var-is-restricted i.vars typ.scheme))) [%rnvar fresh] ?:((has-number-var i.vars typ.scheme) [%nvar fresh] ?:((itype-var-is-restricted i.vars typ.scheme) [%rvar fresh] ?:((itype-var-is-atom i.vars typ.scheme) [%avar fresh] ?:((itype-var-is-gate-free i.vars typ.scheme) [%fvar fresh] [%var fresh])))))
   ::  A generalized atom variable is a valid origin for re-generalizing
   ::  an alias, just as a sample binder is.
   =/  st=istate  state(next +(next.state))
   =?  binders.st  |(?=(%fvar -.replacement) ?=(%avar -.replacement) ?=(%rvar -.replacement))  [fresh binders.state]
-  $(vars t.vars, ren [[i.vars replacement] ren], state st)
+  $(vars t.vars, ren (itype-bind i.vars replacement ren), state st)
 ::
 ++  icap-lookup
   |=  [n=@t caps=icaps]
@@ -6688,6 +8076,753 @@
 ::  Only an unambiguous local name can be expanded. Import faces and
 ::  recursive mold identity need the full module interface.
 ::
+++  rg-lookup-reference
+  |=  [names=(list term) scope=(map gname gentry)]
+  ^-  (unit gentry)
+  ?~  names  ~
+  ?~  t.names  (~(get by scope) [~ i.names])
+  ?^  t.t.names  ~
+  (~(get by scope) [`i.t.names i.names])
+++  rg-compile-list
+  |=  [shapes=(list shape) params=(list @t) scope=(map gname gentry)]
+  ^-  (unit (list gnode))
+  ?~  shapes  `~
+  =/  head=(unit gnode)  (rg-compile-node i.shapes params scope)
+  ?~  head  ~
+  =/  tail=(unit (list gnode))  $(shapes t.shapes, params params, scope scope)
+  ?~  tail  ~
+  `[u.head u.tail]
+++  rg-compile-fields
+  |=  [fields=(list field) params=(list @t) scope=(map gname gentry)]
+  ^-  (unit gnode)
+  ?~  fields  ~
+  =/  first=field  i.fields
+  =/  head=(unit gnode)
+    ?-  -.first
+      %bare
+        =/  value=(unit gnode)  (rg-compile-node shape.first params scope)
+        ?~  value  ~
+        `[%value u.value]
+      %pun
+        =/  entry=(unit gentry)  (~(get by scope) [~ name.first])
+        ?~  entry  ~
+        =/  val=(unit gnode)  (rg-apply-entry u.entry ~)
+        ?~  val  ~
+        `[%face name.first [%value u.val]]
+      %face
+        =/  value=(unit gnode)  (rg-compile-node shape.first params scope)
+        ?~  value  ~
+        `[%face name.first [%value u.value]]
+    ==
+  ?~  head  ~
+  ?~  t.fields  head
+  =/  tail=(unit gnode)  $(fields t.fields, params params, scope scope)
+  ?~  tail  ~
+  `[%cell u.head u.tail]
+++  rg-compile-node
+  |=  [sh=shape params=(list @t) scope=(map gname gentry)]
+  ^-  (unit gnode)
+  ?-  -.sh
+    %noun  `[%noun ~]
+    %void  `[%void ~]
+    %flag  `[%flag ~]
+    %aura  `[%atom aura.sh]
+    %const
+      ?.  |(=(%term form.lit.sh) =(%null form.lit.sh) =(%loobean form.lit.sh))  ~
+      ?:  &(=(%loobean form.lit.sh) !|(=(0 val.lit.sh) =(1 val.lit.sh)))  ~
+      `[%const lit.sh]
+    %tvar  ?:  (~(has in:..zuse (silt params)) name.sh)  `[%param name.sh]  ~
+    %ref
+      =/  entry=(unit gentry)  (rg-lookup-reference names.sh scope)
+      ?~  entry  ~
+      (rg-apply-entry u.entry ~)
+    %apply
+      =/  entry=(unit gentry)  (rg-lookup-reference ref.sh scope)
+      ?~  entry  ~
+      =/  args=(unit (list gnode))  (rg-compile-list args.sh params scope)
+      ?~  args  ~
+      (rg-apply-entry u.entry u.args)
+    %cell  (rg-compile-fields fields.sh params scope)
+    %union
+      =/  cases=(unit (list gnode))  (rg-compile-list cases.sh params scope)
+      ?~  cases  ~
+      `[%union u.cases]
+    %fn
+      =/  sample=(unit gnode)  $(sh sample.sh, params params, scope scope)
+      ?~  sample  ~
+      =/  product=(unit gnode)  $(sh product.sh, params params, scope scope)
+      ?~  product  ~
+      `[%fn u.sample u.product]
+    *  ~
+  ==
+++  rg-compile-def
+  |=  [sh=shape scope=(map gname gentry) captures=(list @t)]
+  ^-  (unit gdef)
+  =/  params=(list @t)  ?:(?=(%generic -.sh) vars.sh ~)
+  =/  body=shape  ?:(?=(%generic -.sh) body.sh sh)
+  ?^  (duplicate-shape sh)  ~
+  ?.  (distinct-params (weld params captures))  ~
+  =/  compiled=(unit gnode)  (rg-compile-node body (weld params captures) scope)
+  ?~  compiled  ~
+  `[at.sh & params captures u.compiled]
+++  rg-bind-params
+  |=  [params=(list @t) args=(list gnode)]
+  ^-  (unit (list [name=@t val=gnode]))
+  ?~  params  ?:(?=(~ args) `~ ~)
+  ?~  args  ~
+  =/  rest=(unit (list [name=@t val=gnode]))  $(params t.params, args t.args)
+  ?~  rest  ~
+  `[[i.params i.args] u.rest]
+++  rg-substitute-list
+  |=  [nodes=(list gnode) env=(list [name=@t val=gnode])]
+  ^-  (unit (list gnode))
+  ?~  nodes  `~
+  =/  first=(unit gnode)  (rg-substitute i.nodes env)
+  ?~  first  ~
+  =/  rest=(unit (list gnode))  $(nodes t.nodes, env env)
+  ?~  rest  ~
+  `[u.first u.rest]
+++  rg-substitute
+  |=  [node=gnode env=(list [name=@t val=gnode])]
+  ^-  (unit gnode)
+  ?-  -.node
+    %param
+      =/  found=(list [name=@t val=gnode])  (skim env |=(entry=[name=@t val=gnode] =(name.entry name.node)))
+      ?~  found  ~
+      ?^  t.found  ~
+      `val.i.found
+    %ref
+      =/  args=(unit (list gnode))  (rg-substitute-list args.node env)
+      ?~  args  ~
+      `[%ref key.node u.args]
+    %face
+      =/  body=(unit gnode)  $(node body.node, env env)
+      ?~  body  ~
+      `[%face name.node u.body]
+    %value
+      =/  body=(unit gnode)  $(node body.node, env env)
+      ?~  body  ~
+      `[%value u.body]
+    %cell
+      =/  head=(unit gnode)  $(node head.node, env env)
+      ?~  head  ~
+      =/  tail=(unit gnode)  $(node tail.node, env env)
+      ?~  tail  ~
+      `[%cell u.head u.tail]
+    %union
+      =/  cases=(unit (list gnode))  (rg-substitute-list cases.node env)
+      ?~  cases  ~
+      `[%union u.cases]
+    %named-union
+      =/  cases=(unit (list gnode))  (rg-substitute-list cases.node env)
+      ?~  cases  ~
+      =/  args=(unit (list gnode))  (rg-substitute-list args.node env)
+      ?~  args  ~
+      `[%named-union u.cases origin.node u.args]
+    %sealed
+      =/  body=(unit gnode)  $(node body.node, env env)
+      ?~  body  ~
+      =/  args=(unit (list gnode))  (rg-substitute-list args.node env)
+      ?~  args  ~
+      `[%sealed origin.node label.node u.args u.body]
+    %fn
+      =/  sample=(unit gnode)  $(node sample.node, env env)
+      ?~  sample  ~
+      =/  product=(unit gnode)  $(node product.node, env env)
+      ?~  product  ~
+      `[%fn u.sample u.product]
+    *  `node
+  ==
+++  rg-apply-entry
+  |=  [entry=gentry args=(list gnode)]
+  ^-  (unit gnode)
+  ?-  -.entry
+    %direct  `[%ref key.entry (weld args (turn captures.entry |=(n=@t `gnode`[%param n])))]
+    %template
+      =/  env=(unit (list [name=@t val=gnode]))  (rg-bind-params params.entry args)
+      ?~  env  ~
+      (rg-substitute body.entry u.env)
+  ==
+++  rg-def-params
+  |=  def=gdef
+  ^-  (list @t)
+  (weld params.def captures.def)
+++  rg-unfold
+  |=  [def=gdef args=(list gnode)]
+  ^-  (unit gnode)
+  =/  env=(unit (list [name=@t val=gnode]))  (rg-bind-params (rg-def-params def) args)
+  ?~  env  ~
+  (rg-substitute body.def u.env)
+++  rg-graph-refs-list
+  |=  nodes=(list gnode)
+  ^-  (list gkey)
+  ?~  nodes  ~
+  (weld (rg-graph-refs i.nodes) $(nodes t.nodes))
+++  rg-graph-refs
+  |=  node=gnode
+  ^-  (list gkey)
+  ?-  -.node
+    %ref  [key.node (zing (turn args.node |=(arg=gnode (rg-graph-refs arg))))]
+    %sealed  (weld $(node body.node) (rg-graph-refs-list args.node))
+    %face  $(node body.node)
+    %value  $(node body.node)
+    %cell  (weld $(node head.node) $(node tail.node))
+    %fn  (weld $(node sample.node) $(node product.node))
+    %union  (zing (turn cases.node |=(arg=gnode (rg-graph-refs arg))))
+    %named-union  (zing (turn (weld cases.node args.node) |=(arg=gnode (rg-graph-refs arg))))
+    *  ~
+  ==
++$  gentry  $%([%direct key=gkey captures=(list @t)] [%template params=(list @t) body=gnode])
++$  gscope  [names=(map gname gentry) graph=(map gkey gdef)]
+++  rg-standard-list
+  |=  prelude=(unit ifile)
+  ^-  ?
+  ?~  prelude  |
+  ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  |
+  =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude)
+  ?~  standard  |
+  =(u.standard [[%collection %list ~[[%var 0]]] ~[0] ~])
+++  rg-merge-entries
+  |=  [entries=(list [key=gkey def=gdef]) graph=(map gkey gdef)]
+  ^-  (unit (map gkey gdef))
+  ?~  entries  `graph
+  =/  prior=(unit gdef)  (~(get by graph) key.i.entries)
+  ?^  prior
+    ?.  &(=(site.u.prior site.def.i.entries) =(params.u.prior params.def.i.entries) =(captures.u.prior captures.def.i.entries) =(body.u.prior body.def.i.entries))  ~
+    =/  same=gdef  u.prior(visible &(visible.u.prior visible.def.i.entries))
+    $(entries t.entries, graph (~(put by graph) key.i.entries same))
+  $(entries t.entries, graph (~(put by graph) key.i.entries def.i.entries))
+++  rg-scope-name
+  |=  [scope=gscope name=gname entry=gentry]
+  ^-  (unit gscope)
+  =/  prior=(unit gentry)  (~(get by names.scope) name)
+  ?^  prior  ?:(=(u.prior entry) `scope ~)
+  `scope(names (~(put by names.scope) name entry))
+++  rg-scope-locals
+  |=  [molds=imolds at=path captures=imold-captures scope=gscope]
+  ^-  (unit gscope)
+  ?~  molds  `scope
+  =/  m=[name=term body=shape]  i.molds
+  =/  key=gkey  [at at.body.m name.m]
+  =/  hidden=(list @t)  (turn (local-mold-params name.m captures) |=(p=[name=@t typ=itype] name.p))
+  =/  added=(unit gscope)  (rg-scope-name scope [~ name.m] [%direct key hidden])
+  ?~  added  ~
+  $(molds t.molds, scope u.added)
+++  rg-type-node-list
+  |=  [types=(list itype) vars=(list @ud)]
+  ^-  (unit (list gnode))
+  ?~  types  `~
+  =/  first=(unit gnode)  (rg-type-node i.types vars)
+  ?~  first  ~
+  =/  rest=(unit (list gnode))  $(types t.types, vars vars)
+  ?~  rest  ~
+  `[u.first u.rest]
+++  rg-type-node
+  |=  [typ=itype vars=(list @ud)]
+  ^-  (unit gnode)
+  ?-  -.typ
+    ?(%var %fvar %avar %rvar %nvar %rnvar)
+      ?.  (~(has in:..zuse (silt vars)) id.typ)  ~
+      `[%param (scot %ud id.typ)]
+    %opaque
+      =/  body=(unit gnode)  $(typ body.typ, vars vars)
+      ?~  body  ~
+      =/  args=(unit (list gnode))  (rg-type-node-list args.typ vars)
+      ?~  args  ~
+      `[%sealed origin.typ label.typ u.args u.body]
+    %atom  `[%atom aura.typ]
+    %any-atom  `[%atom %$]
+    %noun  `[%noun ~]
+    %empty  `[%void ~]
+    %flag  `[%flag ~]
+    %const  `[%const literal.typ]
+    %face
+      =/  child=(unit gnode)  $(typ body.typ, vars vars)
+      ?~  child  ~
+      `[%value [%face name.typ u.child]]
+    %slot
+      =/  child=(unit gnode)  $(typ body.typ, vars vars)
+      ?~  child  ~
+      `[%face name.typ u.child]
+    %cell
+      =/  head=(unit gnode)  $(typ hed.typ, vars vars)
+      ?~  head  ~
+      =/  tail=(unit gnode)  $(typ tal.typ, vars vars)
+      ?~  tail  ~
+      `[%cell u.head u.tail]
+    %fn
+      =/  sample=(unit gnode)  $(typ sample.typ, vars vars)
+      ?~  sample  ~
+      =/  product=(unit gnode)  $(typ product.typ, vars vars)
+      ?~  product  ~
+      `[%fn u.sample u.product]
+    %union
+      =/  cases=(unit (list gnode))  (rg-type-node-list cases.typ vars)
+      ?~  cases  ~
+      =/  args=(unit (list gnode))  (rg-type-node-list args.typ vars)
+      ?~  args  ~
+      `[%named-union u.cases origin.typ u.args]
+    %mrec
+      =/  args=(unit (list gnode))  (rg-type-node-list args.typ vars)
+      ?~  args  ~
+      `[%ref [at.typ site.typ name.typ] u.args]
+    %collection
+      ?.  =(%list name.typ)  ~
+      =/  args=(unit (list gnode))  (rg-type-node-list args.typ vars)
+      ?~  args  ~
+      `[%ref [/lib/jibb/prelude/jibb *span %list] u.args]
+    *  ~
+  ==
+++  rg-merge-type-graphs
+  |=  [todo=(list itype) graph=(map gkey gdef)]
+  ^-  (unit (map gkey gdef))
+  ?~  todo  `graph
+  =/  typ=itype  i.todo
+  ?-  -.typ
+    %mrec
+      =/  merged=(unit (map gkey gdef))  (rg-merge-entries ~(tap by graph.typ) graph)
+      ?~  merged  ~
+      $(todo (weld args.typ t.todo), graph u.merged)
+    %opaque  $(todo [body.typ (weld args.typ t.todo)])
+    %union  $(todo (weld args.typ (weld cases.typ t.todo)))
+    %collection  $(todo (weld args.typ t.todo))
+    ?(%face %slot)  $(todo [body.typ t.todo])
+    %cell  $(todo [hed.typ tal.typ t.todo])
+    %fn  $(todo [sample.typ product.typ t.todo])
+    *  $(todo t.todo)
+  ==
+++  rg-scope-import-molds
+  |=  [molds=imold-types face=(unit term) scope=gscope]
+  ^-  (unit gscope)
+  ?~  molds  `scope
+  =/  template=ischeme  template.i.molds
+  :: The canonical list is installed as a direct graph entry only after
+  :: its prepared interface has been checked. Keep that identical entry.
+  =/  prior=(unit gentry)  (~(get by names.scope) [face name.i.molds])
+  ?:  &(=(~ face) =(%list name.i.molds) ?=(^ prior))
+    ?>  ?=(^ prior)
+    ?.  =(u.prior [%direct [/lib/jibb/prelude/jibb *span %list] ~])  ~
+    ?.  =(template [[%collection %list ~[[%var 0]]] ~[0] ~])  ~
+    $(molds t.molds)
+  =/  typ=itype  typ.template
+  =/  body=(unit gnode)  (rg-type-node typ vars.template)
+  ?~  body  $(molds t.molds)
+  =/  merged=(unit (map gkey gdef))  (rg-merge-type-graphs ~[typ] graph.scope)
+  ?~  merged  ~
+  =/  params=(list @t)  (turn vars.template |=(id=@ud (scot %ud id)))
+  =/  added=(unit gscope)  (rg-scope-name scope(graph u.merged) [face name.i.molds] [%template params u.body])
+  ?~  added  ~
+  $(molds t.molds, scope u.added)
+++  rg-scope-imports
+  |=  [imports=ijimports scope=gscope]
+  ^-  (unit gscope)
+  ?~  imports  `scope
+  =/  added=(unit gscope)  (rg-scope-import-molds molds.interface.i.imports `face.i.imports scope)
+  ?~  added  ~
+  $(imports t.imports, scope u.added)
+++  rg-make-scope
+  |=  [molds=imolds state=istate]
+  ^-  (unit gscope)
+  =/  local=(unit gscope)  (rg-scope-locals molds at.state mold-captures.state [*(map gname gentry) *(map gkey gdef)])
+  ?~  local  ~
+  =/  scope=gscope  u.local
+  =/  with-list=(unit gscope)
+    ?.  (rg-standard-list prelude.state)  `scope
+    =/  key=gkey  [/lib/jibb/prelude/jibb *span %list]
+    =/  added=(unit gscope)  (rg-scope-name scope [~ %list] [%direct key ~])
+    ?~  added  ~
+    =/  standard=gdef  [*span & ~['A'] ~ [%builtin-list ~]]
+    `u.added(graph (~(put by graph.u.added) key standard))
+  ?~  with-list  ~
+  =/  with-prelude=(unit gscope)
+    ?~  prelude.state  with-list
+    (rg-scope-import-molds molds.u.prelude.state ~ u.with-list)
+  ?~  with-prelude  ~
+  =/  grouped=(unit gscope)
+    ?~  prelude.state  with-prelude
+    =/  todo=(list iprelude-group)  groups.u.prelude.state
+    =/  acc=gscope  u.with-prelude
+    |-
+    ?~  todo  `acc
+    =/  add=(unit gscope)  (rg-scope-import-molds molds.i.todo `face.i.todo acc)
+    ?~  add  ~
+    $(todo t.todo, acc u.add)
+  ?~  grouped  ~
+  (rg-scope-imports jimports.state u.grouped)
+++  rg-build-graph-checked
+  |=  [todo=(list gkey) molds=imolds at=path scope=gscope fuel=@ud]
+  ^-  (unit (map gkey gdef))
+  (rg-build-graph-reachable todo molds at scope *(map gkey gdef) fuel)
+++  rg-build-graph-reachable
+  |=  [todo=(list gkey) molds=imolds at=path scope=gscope built=(map gkey gdef) fuel=@ud]
+  ^-  (unit (map gkey gdef))
+  ?~  todo  `built
+  ?:  =(fuel 0)  ~
+  ?:  ?=(^ (~(get by built) i.todo))  $(todo t.todo, fuel (dec fuel))
+  =/  def=(unit gdef)
+    =/  known=(unit gdef)  (~(get by graph.scope) i.todo)
+    ?^  known  known
+    ?.  =(at.i.todo at)  ~
+    =/  source=(unit shape)  (find-simple-mold name.i.todo molds)
+    ?~  source  ~
+    ?.  =(at.u.source site.i.todo)  ~
+    =/  entry=(unit gentry)  (~(get by names.scope) [~ name.i.todo])
+    ?~  entry  ~
+    ?.  ?=(%direct -.u.entry)  ~
+    ?.  =(key.u.entry i.todo)  ~
+    (rg-compile-def u.source names.scope captures.u.entry)
+  ?~  def  ~
+  =/  done=(map gkey gdef)  (~(put by built) i.todo u.def)
+  $(todo (weld (rg-graph-refs body.u.def) t.todo), built done, fuel (dec fuel))
+++  rg-validate-list
+  |=  [nodes=(list gnode) graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  ?
+  ?~  nodes  &
+  ?.  (rg-validate-node i.nodes graph seen fuel)  |
+  $(nodes t.nodes, graph graph, seen seen, fuel fuel)
+++  rg-validate-node
+  |=  [node=gnode graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  ?
+  ?:  =(fuel 0)  |
+  ?-  -.node
+    %ref
+      ?.  (rg-validate-list args.node graph seen (dec fuel))  |
+      =/  def=(unit gdef)  (~(get by graph) key.node)
+      ?~  def  |
+      ?.  =(site.u.def site.key.node)  |
+      ?~  (rg-bind-params (rg-def-params u.def) args.node)  |
+      ?:  (~(has in:..zuse seen) key.node)  &
+      $(node body.u.def, graph graph, seen (~(put in:..zuse seen) key.node), fuel (dec fuel))
+    %sealed  &($(node body.node, graph graph, seen seen, fuel (dec fuel)) (rg-validate-list args.node graph seen (dec fuel)))
+    %face  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %value  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %cell  &($(node head.node, graph graph, seen seen, fuel (dec fuel)) $(node tail.node, graph graph, seen seen, fuel (dec fuel)))
+    %fn  &($(node sample.node, graph graph, seen seen, fuel (dec fuel)) $(node product.node, graph graph, seen seen, fuel (dec fuel)))
+    %union  (rg-validate-list cases.node graph seen (dec fuel))
+    %named-union  &((rg-validate-list cases.node graph seen (dec fuel)) (rg-validate-list args.node graph seen (dec fuel)))
+    *  &
+  ==
++$  rg-truth  ?(%yes %no %unknown)
+++  rg-productive-list
+  |=  [nodes=(list gnode) graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  rg-truth
+  ?~  nodes  %no
+  =/  first=rg-truth  (rg-productive i.nodes graph seen fuel)
+  ?:  =(%yes first)  %yes
+  =/  rest=rg-truth  $(nodes t.nodes, graph graph, seen seen, fuel fuel)
+  ?:  =(%yes rest)  %yes
+  ?:  &(=(%no first) =(%no rest))  %no
+  %unknown
+++  rg-productive
+  |=  [node=gnode graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  rg-truth
+  ?:  =(fuel 0)  %unknown
+  ?-  -.node
+    ?(%noun %flag %atom %const %builtin-list)  %yes
+    %void  %no
+    ?(%param %fn %sealed)  %unknown
+    %face  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %value  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %cell
+      =/  head=rg-truth  $(node head.node, graph graph, seen seen, fuel (dec fuel))
+      =/  tail=rg-truth  $(node tail.node, graph graph, seen seen, fuel (dec fuel))
+      ?:  |(=(%no head) =(%no tail))  %no
+      ?:  &(=(%yes head) =(%yes tail))  %yes
+      %unknown
+    %union  (rg-productive-list cases.node graph seen (dec fuel))
+    %named-union  (rg-productive-list cases.node graph seen (dec fuel))
+    %ref
+      =/  def=(unit gdef)  (~(get by graph) key.node)
+      ?~  def  %unknown
+      =/  body=(unit gnode)  (rg-unfold u.def args.node)
+      ?~  body  %unknown
+      ?:  (~(has in:..zuse seen) key.node)  %unknown
+      $(node u.body, graph graph, seen (~(put in:..zuse seen) key.node), fuel (dec fuel))
+  ==
+++  rg-project-list
+  |=  [nodes=(list gnode) graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  (unit (list upat))
+  ?~  nodes  `~
+  =/  head=(unit upat)  (rg-project i.nodes graph seen fuel)
+  ?~  head  ~
+  =/  tail=(unit (list upat))  $(nodes t.nodes, graph graph, seen seen, fuel fuel)
+  ?~  tail  ~
+  `[u.head u.tail]
+++  rg-project
+  |=  [node=gnode graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  (unit upat)
+  ?:  =(fuel 0)  ~
+  ?-  -.node
+    %noun  `[%all ~]
+    %void  `[%empty ~]
+    %flag  `[%or ~[[%atom `0] [%atom `1]]]
+    %atom  `[%atom ~]
+    %const  `[%atom `val.literal.node]
+    ?(%param %sealed)  `[%unknown ~]
+    %builtin-list  `[%or ~[[%atom `0] [%cell [%unknown ~] [%unknown ~]]]]
+    %face  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %value  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %cell
+      =/  head=(unit upat)  $(node head.node, graph graph, seen seen, fuel (dec fuel))
+      ?~  head  ~
+      =/  tail=(unit upat)  $(node tail.node, graph graph, seen seen, fuel (dec fuel))
+      ?~  tail  ~
+      `[%cell u.head u.tail]
+    %fn  `[%cell [%unknown ~] [%unknown ~]]
+    %union
+      =/  cases=(unit (list upat))  (rg-project-list cases.node graph seen (dec fuel))
+      ?~  cases  ~
+      `[%or u.cases]
+    %named-union
+      =/  cases=(unit (list upat))  (rg-project-list cases.node graph seen (dec fuel))
+      ?~  cases  ~
+      `[%or u.cases]
+    %ref
+      =/  def=(unit gdef)  (~(get by graph) key.node)
+      ?~  def  ~
+      =/  body=(unit gnode)  (rg-unfold u.def args.node)
+      ?~  body  ~
+      ?:  (~(has in:..zuse seen) key.node)  `[%unknown ~]
+      $(node u.body, graph graph, seen (~(put in:..zuse seen) key.node), fuel (dec fuel))
+  ==
+++  rg-patterns-disjoint
+  |=  cases=(list upat)
+  ^-  ?
+  ?~  cases  &
+  ?.  (levy t.cases |=(other=upat =(%disjoint (union-relate i.cases other))))  |
+  $(cases t.cases)
+++  rg-safe-list
+  |=  [nodes=(list gnode) graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  ?
+  ?~  nodes  &
+  ?.  (rg-safe-node i.nodes graph seen fuel)  |
+  $(nodes t.nodes, graph graph, seen seen, fuel fuel)
+++  rg-safe-node
+  |=  [node=gnode graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  ?
+  ?:  =(fuel 0)  |
+  ?-  -.node
+    %ref
+      ?.  (rg-safe-list args.node graph seen (dec fuel))  |
+      =/  def=(unit gdef)  (~(get by graph) key.node)
+      ?~  def  |
+      =/  body=(unit gnode)  (rg-unfold u.def args.node)
+      ?~  body  |
+      ?:  (~(has in:..zuse seen) key.node)  &
+      ::  Prove the definition for arbitrary formal arguments. Recursive
+      ::  applications may change arguments, so one concrete instance
+      ::  cannot establish disjointness for every reachable instance.
+      $(node body.u.def, graph graph, seen (~(put in:..zuse seen) key.node), fuel (dec fuel))
+    %sealed  &($(node body.node, graph graph, seen seen, fuel (dec fuel)) (rg-safe-list args.node graph seen (dec fuel)))
+    %face  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %value  $(node body.node, graph graph, seen seen, fuel (dec fuel))
+    %cell  &($(node head.node, graph graph, seen seen, fuel (dec fuel)) $(node tail.node, graph graph, seen seen, fuel (dec fuel)))
+    %fn  &($(node sample.node, graph graph, seen seen, fuel (dec fuel)) $(node product.node, graph graph, seen seen, fuel (dec fuel)))
+    %union
+      =/  patterns=(unit (list upat))  (rg-project-list cases.node graph seen (dec fuel))
+      ?~  patterns  |
+      ?.  (rg-patterns-disjoint u.patterns)  |
+      (rg-safe-list cases.node graph seen (dec fuel))
+    %named-union
+      =/  patterns=(unit (list upat))  (rg-project-list cases.node graph seen (dec fuel))
+      ?~  patterns  |
+      ?.  (rg-patterns-disjoint u.patterns)  |
+      &((rg-safe-list cases.node graph seen (dec fuel)) (rg-safe-list args.node graph seen (dec fuel)))
+    *  &
+  ==
+:: A recursive mold can denote an empty domain. Prove that every
+:: recursive path crosses a cell or gate type constructor without claiming
+:: that any particular value inhabits it.
+:: Guard counts are scoped to the current graph path, not shared siblings.
+++  rg-contractive-list
+  |=  [nodes=(list gnode) graph=(map gkey gdef) seen=(map gkey @ud) guards=@ud fuel=@ud]
+  ^-  ?
+  ?~  nodes  &
+  ?.  (rg-contractive i.nodes graph seen guards fuel)  |
+  $(nodes t.nodes)
+++  rg-contractive
+  |=  [node=gnode graph=(map gkey gdef) seen=(map gkey @ud) guards=@ud fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  =.  fuel  (dec fuel)
+  ?-  -.node
+    %ref
+      ?.  (rg-contractive-list args.node graph seen guards fuel)  |
+      =/  earlier=(unit @ud)  (~(get by seen) key.node)
+      ?^  earlier  (gth guards u.earlier)
+      =/  def=(unit gdef)  (~(get by graph) key.node)
+      ?~  def  |
+      =/  body=(unit gnode)  (rg-unfold u.def args.node)
+      ?~  body  |
+      $(node u.body, seen (~(put by seen) key.node guards), fuel fuel)
+    %sealed  &($(node body.node, fuel fuel) (rg-contractive-list args.node graph seen guards fuel))
+    %face  $(node body.node, fuel fuel)
+    %value  $(node body.node, fuel fuel)
+    %cell  &($(node head.node, guards +(guards), fuel fuel) $(node tail.node, guards +(guards), fuel fuel))
+    %fn  &($(node sample.node, guards +(guards), fuel fuel) $(node product.node, guards +(guards), fuel fuel))
+    %union  (rg-contractive-list cases.node graph seen guards fuel)
+    %named-union  &((rg-contractive-list cases.node graph seen guards fuel) (rg-contractive-list args.node graph seen guards fuel))
+    *  &
+  ==
+::
+++  rg-certify
+  |=  [node=gnode graph=(map gkey gdef)]
+  ^-  ?
+  ?.  (rg-validate-node node graph *(set gkey) 4.096)  |
+  ?.  (rg-safe-node node graph *(set gkey) 4.096)  |
+  ?:  =(%yes (rg-productive node graph *(set gkey) 4.096))  &
+  (rg-contractive node graph *(map gkey @ud) 0 4.096)
+++  rg-reaches
+  |=  [target=gkey todo=(list gkey) graph=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  (unit ?)
+  ?~  todo  `|
+  ?:  =(fuel 0)  ~
+  ?:  =(i.todo target)  `&
+  ?:  (~(has in:..zuse seen) i.todo)  $(todo t.todo, fuel (dec fuel))
+  =/  def=(unit gdef)  (~(get by graph) i.todo)
+  ?~  def  ~
+  $(todo (weld (rg-graph-refs body.u.def) t.todo), seen (~(put in:..zuse seen) i.todo), fuel (dec fuel))
+++  rg-recursive
+  |=  [key=gkey graph=(map gkey gdef)]
+  ^-  (unit ?)
+  =/  def=(unit gdef)  (~(get by graph) key)
+  ?~  def  ~
+  (rg-reaches key (rg-graph-refs body.u.def) graph *(set gkey) 4.096)
+++  rg-graph-agree-loop
+  |=  [todo=(list gkey) left=(map gkey gdef) right=(map gkey gdef) seen=(set gkey) fuel=@ud]
+  ^-  ?
+  ?~  todo  &
+  ?:  =(fuel 0)  |
+  ?:  (~(has in:..zuse seen) i.todo)  $(todo t.todo, fuel (dec fuel))
+  =/  a=(unit gdef)  (~(get by left) i.todo)
+  =/  b=(unit gdef)  (~(get by right) i.todo)
+  ?~  a  |
+  ?~  b  |
+  ?.  &(=(site.u.a site.i.todo) =(site.u.b site.i.todo))  |
+  ?.  &(=(params.u.a params.u.b) =(captures.u.a captures.u.b) =(body.u.a body.u.b))  |
+  $(todo (weld (rg-graph-refs body.u.a) t.todo), seen (~(put in:..zuse seen) i.todo), fuel (dec fuel))
+++  rg-graphs-agree
+  |=  [key=gkey left=(map gkey gdef) right=(map gkey gdef)]
+  ^-  ?
+  (rg-graph-agree-loop ~[key] left right *(set gkey) 4.096)
+++  rg-bind-type-params
+  |=  [params=(list @t) args=(list itype)]
+  ^-  (unit (list [name=@t val=itype]))
+  ?~  params  ?:(?=(~ args) `~ ~)
+  ?~  args  ~
+  =/  rest=(unit (list [name=@t val=itype]))  $(params t.params, args t.args)
+  ?~  rest  ~
+  `[[i.params i.args] u.rest]
+++  rg-lower-list
+  |=  [nodes=(list gnode) graph=(map gkey gdef) at=path env=(list [name=@t val=itype])]
+  ^-  (unit (list itype))
+  ?~  nodes  `~
+  =/  first=(unit itype)  (rg-lower i.nodes graph at env)
+  ?~  first  ~
+  =/  rest=(unit (list itype))  $(nodes t.nodes, graph graph, at at, env env)
+  ?~  rest  ~
+  `[(itype-value-root u.first) u.rest]
+++  rg-lower
+  |=  [node=gnode graph=(map gkey gdef) at=path env=(list [name=@t val=itype])]
+  ^-  (unit itype)
+  ?-  -.node
+    %sealed
+      =/  body=(unit itype)  $(node body.node, graph graph, at at, env env)
+      ?~  body  ~
+      =/  args=(unit (list itype))  (rg-lower-list args.node graph at env)
+      ?~  args  ~
+      `[%opaque origin.node label.node u.args u.body]
+    %noun  `[%noun ~]
+    %void  `[%empty ~]
+    %flag  `[%flag ~]
+    %atom  ?:(=(0 aura.node) `[%any-atom ~] `[%atom aura.node])
+    %const  `[%const literal.node]
+    %param
+      =/  found=(list [name=@t val=itype])  (skim env |=(item=[name=@t val=itype] =(name.item name.node)))
+      ?~  found  ~
+      ?^  t.found  ~
+      `val.i.found
+    %builtin-list
+      =/  found=(list [name=@t val=itype])  (skim env |=(item=[name=@t val=itype] =(name.item 'A')))
+      ?~  found  ~
+      ?^  t.found  ~
+      `[%collection %list ~[val.i.found]]
+    %ref
+      =/  def=(unit gdef)  (~(get by graph) key.node)
+      ?~  def  ~
+      ?.  =((lent (rg-def-params u.def)) (lent args.node))  ~
+      =/  args=(unit (list itype))  (rg-lower-list args.node graph at env)
+      ?~  args  ~
+      =/  recursive=(unit ?)  (rg-recursive key.node graph)
+      ?~  recursive  ~
+      ?:  !u.recursive
+        =/  bound=(unit (list [name=@t val=itype]))  (rg-bind-type-params (rg-def-params u.def) u.args)
+        ?~  bound  ~
+        $(node body.u.def, graph graph, at at, env u.bound)
+      `[%mrec at.key.node site.key.node name.key.node ?:(visible.u.def `name.key.node ~) graph u.args]
+    %face
+      =/  body=(unit itype)  $(node body.node, graph graph, at at, env env)
+      ?~  body  ~
+      `[%slot name.node u.body]
+    %value
+      =/  body=(unit itype)  $(node body.node, graph graph, at at, env env)
+      ?~  body  ~
+      `(itype-value-root u.body)
+    %cell
+      =/  head=(unit itype)  $(node head.node, graph graph, at at, env env)
+      ?~  head  ~
+      =/  tail=(unit itype)  $(node tail.node, graph graph, at at, env env)
+      ?~  tail  ~
+      `[%cell u.head u.tail]
+    %union
+      =/  cases=(unit (list itype))  (rg-lower-list cases.node graph at env)
+      ?~  cases  ~
+      `[%union u.cases ~ ~ ~]
+    %named-union
+      =/  cases=(unit (list itype))  (rg-lower-list cases.node graph at env)
+      ?~  cases  ~
+      =/  args=(unit (list itype))  (rg-lower-list args.node graph at env)
+      ?~  args  ~
+      `[%union u.cases origin.node ~ u.args]
+    %fn
+      =/  sample=(unit itype)  $(node sample.node, graph graph, at at, env env)
+      ?~  sample  ~
+      =/  product=(unit itype)  $(node product.node, graph graph, at at, env env)
+      ?~  product  ~
+      `[%fn (itype-value-root u.sample) (itype-value-root u.product)]
+  ==
+:: Recursive references to the unfolded root retain its checked display
+:: alias. The key and graph remain unchanged, so this never changes identity.
+++  rg-view-self-label
+  |=  [t=itype owner=itype]
+  ^-  itype
+  ?.  ?=(%mrec -.owner)  t
+  ?-  -.t
+    %mrec
+      =/  same=?  &(=(at.t at.owner) =(site.t site.owner) =(name.t name.owner) (rg-graphs-agree [at.t site.t name.t] graph.t graph.owner))
+      =?  t  same  t(label label.owner)
+      t(args (turn args.t |=(arg=itype (rg-view-self-label arg owner))))
+    %collection  t(args (turn args.t |=(arg=itype (rg-view-self-label arg owner))))
+    %union  t(cases (turn cases.t |=(c=itype (rg-view-self-label c owner))), args (turn args.t |=(arg=itype (rg-view-self-label arg owner))))
+    ?(%face %slot)  t(body (rg-view-self-label body.t owner))
+    %cell  t(hed (rg-view-self-label hed.t owner), tal (rg-view-self-label tal.t owner))
+    %fn  t(sample (rg-view-self-label sample.t owner), product (rg-view-self-label product.t owner))
+    *  t
+  ==
+::
+++  rg-unfold-view
+  |=  [typ=itype fuel=@ud]
+  ^-  (unit [view=itype left=@ud])
+  ?.  ?=(%mrec -.typ)  ~
+  ?:  =(fuel 0)  ~
+  =/  def=(unit gdef)  (~(get by graph.typ) [at.typ site.typ name.typ])
+  ?~  def  ~
+  ?.  =(site.typ site.u.def)  ~
+  =/  env=(unit (list [name=@t val=itype]))  (rg-bind-type-params (rg-def-params u.def) args.typ)
+  ?~  env  ~
+  =/  body=(unit itype)  (rg-lower body.u.def graph.typ at.typ u.env)
+  ?~  body  ~
+  `[(rg-view-self-label (itype-value-root u.body) typ) (dec fuel)]
 ++  find-simple-mold
   |=  [n=term molds=imolds]
   ^-  (unit shape)
@@ -6733,19 +8868,36 @@
       ?:  ?=([%atom %n [~ @]] node)
         ?.  =(0 +>+.node)  ~
         `[[%atom `0] |]
+      ?:  ?=([%atom %ud [~ @]] node)
+        `[[%atom `+>+.node] |]
+      ?:  ?=([%atom %f [~ @]] node)
+        ?.  |(=(0 +>+.node) =(1 +>+.node))  ~
+        `[[%atom `+>+.node] |]
       ?:  ?=([%atom %tas [~ @]] node)
         =/  value=@  +>+.node
         ?.  |(=(value 0) (jibb-face-name value))  ~
         `[[%atom `value] |]
       ?.  ?=([%atom @ ~] node)  ~
       =/  aura=@ta  (@ta +<.node)
-      ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
+      ?.  |(?=(?(%$ %u %ud %ux %uv %uw %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
       `[[%atom ~] |]
     %ref
       ?.  ?=([%ref @ @] node)  ~
       ?.  &(=(module +<.node) =(name +>.node))  ~
       `[[%unknown ~] &]
     %apply
+      ::  A collection can be empty or a cell. Keep its shape unknown
+      ::  while validating its arguments and recursive references.
+      ?:  ?=([%apply ?(%map %mop %jar %jug) [* [* ~]]] node)
+        =/  key  $(node -.+>.node)
+        ?~  key  ~
+        =/  value  $(node -.+.+>.node)
+        ?~  value  ~
+        `[[%unknown ~] |(has.u.key has.u.value)]
+      ?:  ?=([%apply ?(%unit %set %qeu) [* ~]] node)
+        =/  item  $(node -.+>.node)
+        ?~  item  ~
+        `[[%unknown ~] has.u.item]
       ?.  ?=([%apply %list [* ~]] node)  ~
       =/  item  $(node -.+>.node)
       ?~  item  ~
@@ -6857,6 +9009,10 @@
       ?:  ?=([%atom %n [~ @]] node)
         ?.  =(0 +>+.node)  ~
         `[%const [%null %n 0 '~']]
+      ::  Numeric singleton heads in Hoon unions retain their exact noun.
+      ?:  ?=([%atom %ud [~ @]] node)
+        =/  value=@ud  +>+.node
+        `[%const [%number %ud value (scot %ud value)]]
       ?:  ?=([%atom %tas [~ @]] node)
         =/  value=@  +>+.node
         ?.  |(=(value 0) (jibb-face-name value))  ~
@@ -6864,17 +9020,21 @@
         `[%const [%term %tas value printed]]
       ?.  ?=([%atom @ ~] node)  ~
       =/  aura=@ta  (@ta +<.node)
-      ?.  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
+      ?:  =(%$ aura)  `[%any-atom ~]
+      ?.  |(?=(?(%u %ud %ux %uv %uw %t %ta %tas %p %da %dr) aura) =('tD' aura))  ~
       `[%atom aura]
     %named
       ?.  ?=([%named @ @ *] node)  ~
       =/  n=[%named module=@ name=@ body=*]  ;;([%named module=@ name=@ body=*] node)
-      ?.  &((jibb-face-name module.n) (jibb-face-name name.n))  ~
+      ::  The standard-library owner uses the reserved, non-name %$
+      ::  origin, which cannot collide with a source module name.
+      ?.  &(|(=(%$ module.n) (jibb-face-name module.n)) (jibb-face-name name.n))  ~
       ?.  ?=([%fork *] body.n)  ~
       =/  proof=(unit irec-pattern)  (rec-pattern body.n (@tas module.n) (@tas name.n))
       ?~  proof  ~
       ?.  has.u.proof  ~
-      `[%recursive (@tas module.n) (@tas name.n) `(crip "{(trip name.n)}.{(trip module.n)}")]
+      =/  label=@t  ?:(=(%$ module.n) (@t name.n) (crip "{(trip name.n)}.{(trip module.n)}"))
+      `[%recursive (@tas module.n) (@tas name.n) `label]
     %apply
       ?.  ?=([%apply @ *] node)  ~
       =/  name=term  (@tas +<.node)
@@ -6893,7 +9053,7 @@
         ?~  standard  `[%collection name types.u.keyed]
         ?.  (standard-unit-template u.standard /lib/jibb/prelude/jibb)  ~
         =/  nil=itype  [%const [%null %n 0 '~']]
-        `[%union ~[nil [%cell nil [%face %u i.types.u.keyed]]] `[/lib/jibb/prelude/jibb %unit] `%unit types.u.keyed]
+        `[%union ~[nil [%cell nil [%slot %u i.types.u.keyed]]] `[/lib/jibb/prelude/jibb %unit] `%unit types.u.keyed]
       `[%collection name types.u.keyed]
     %fork
       ::  Hoon's ordinary ? mold is the fork of its two %f singletons.
@@ -6920,13 +9080,17 @@
       ?~  left  ~
       =/  right=(unit itype)  $(node +>.node)
       ?~  right  ~
-      `[%cell u.left u.right]
+      =/  head=itype  u.left
+      =/  tail=itype  u.right
+      =?  head  ?=(%face -.head)  [%slot name.head body.head]
+      =?  tail  ?=(%face -.tail)  [%slot name.tail body.tail]
+      `[%cell head tail]
   ==
 ::
 ++  import-direct-loobean
   |=  t=itype
   ^-  ?
-  ?:  ?=(%face -.t)  $(t body.t)
+  ?:  ?=(?(%face %slot) -.t)  $(t body.t)
   ?:  ?=(%union -.t)  (import-has-loobean-singleton cases.t)
   ?=([%const [%loobean *]] t)
 ::
@@ -6936,11 +9100,6 @@
   ?~  cases  |
   ?:  (import-direct-loobean i.cases)  &
   $(cases t.cases)
-::
-++  import-to-itypes
-  |=  nodes=*
-  ^-  (unit (list itype))
-  (import-to-itypes-standard nodes ~)
 ::
 ++  import-to-itypes-standard
   |=  [nodes=* standard=(unit ischeme)]
@@ -6959,9 +9118,10 @@
     %noun   [%all ~]
     %empty  [%empty ~]
     %atom   [%atom ~]
+    %any-atom  [%atom ~]
     %flag   [%or ~[[%atom `0] [%atom `1]]]
     %const  [%atom `val.literal.typ]
-    %face   $(typ body.typ)
+    ?(%face %slot)   $(typ body.typ)
     %cell   [%cell $(typ hed.typ) $(typ tal.typ)]
     %union  [%or (turn cases.typ |=(t=itype (import-type-pattern t)))]
     *       [%unknown ~]
@@ -6974,6 +9134,96 @@
   =/  first=upat  (import-type-pattern i.cases)
   ?.  (levy t.cases |=(t=itype =(%disjoint (union-relate first (import-type-pattern t)))))  |
   $(cases t.cases)
+::
+::  A generic Hoon collection descriptor comes only from the source reader.
+::  Revalidate the entire descriptor before applying it to Jibb types.
+++  import-generic-vars
+  |=  [index=@ud count=@ud]
+  ^-  (list @ud)
+  ?:  =(index count)  ~
+  [index $(index +(index))]
+++  import-generic-nodes
+  |=  [nodes=* arity=@ud sub=isub fuel=@ud standard=(unit ischeme)]
+  ^-  (unit [types=(list itype) sub=isub left=@ud])
+  ?@  nodes  ?:(=(nodes 0) `[~ sub fuel] ~)
+  =/  first=(unit [typ=itype sub=isub left=@ud])
+    (import-generic-node -.nodes arity sub fuel standard)
+  ?~  first  ~
+  =/  rest=(unit [types=(list itype) sub=isub left=@ud])
+    $(nodes +.nodes, sub sub.u.first, fuel left.u.first)
+  ?~  rest  ~
+  `[[typ.u.first types.u.rest] sub.u.rest left.u.rest]
+++  import-generic-node
+  |=  [node=* arity=@ud sub=isub fuel=@ud standard=(unit ischeme)]
+  ^-  (unit [typ=itype sub=isub left=@ud])
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?@  node  ~
+  ?+  -.node  ~
+    %param
+      ?.  ?=([%param @] node)  ~
+      =/  index=@ud  +.node
+      ?.  (lth index arity)  ~
+      `[[%var index] sub fuel]
+    %apply
+      ?.  ?=([%apply @ *] node)  ~
+      =/  name=term  (@tas +<.node)
+      =/  count=@ud
+        ?:  ?=(?(%list %unit %set %qeu) name)  1
+        ?:  ?=(?(%map %jar %jug) name)  2
+        0
+      ?:  =(count 0)  ~
+      =/  raw=*  +>.node
+      ?.  ?:(=(count 1) ?=([* ~] raw) ?=([* * ~] raw))  ~
+      =/  args=(unit [types=(list itype) sub=isub left=@ud])
+        (import-generic-nodes raw arity sub fuel standard)
+      ?~  args  ~
+      =/  keyed=(unit [types=(list itype) sub=isub])
+        (itype-collection-keys name types.u.args sub.u.args)
+      ?~  keyed  ~
+      ?:  =(%unit name)
+        ?~  standard  `[[%collection name types.u.keyed] sub.u.keyed left.u.args]
+        ?.  (standard-unit-template u.standard /lib/jibb/prelude/jibb)  ~
+        =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub u.standard types.u.keyed sub.u.keyed)
+        ?~  applied  ~
+        `[typ.u.applied sub.u.applied left.u.args]
+      `[[%collection name types.u.keyed] sub.u.keyed left.u.args]
+  ==
+++  import-generic-template-raw
+  |=  [raw=* standard=(unit ischeme)]
+  ^-  (unit ischeme)
+  ?.  ?=([%generic-source @ * * @ * @] raw)  ~
+  =/  proof=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
+    ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] raw)
+  ?:  |(=(0 arity.proof) (gth arity.proof 16))  ~
+  ?~  at.proof  ~
+  ?.  =(%hoon (rear at.proof))  ~
+  ?:  |(=(0 source.proof) =(0 scope.proof))  ~
+  ?.  ?=([%apply *] body.proof)  ~
+  =/  out=(unit [typ=itype sub=isub left=@ud])
+    (import-generic-node body.proof arity.proof ~ 512 standard)
+  ?~  out  ~
+  `[(itype-normalize typ.u.out sub.u.out) (import-generic-vars 0 arity.proof) ~]
+++  import-generic-template
+  |=  [raw=* standard=(unit ischeme)]
+  ^-  (unit ischeme)
+  =/  safe=(each (unit ischeme) tang)  (mule |.((import-generic-template-raw raw standard)))
+  ?:  ?=(%| -.safe)  ~
+  p.safe
+::
+++  find-imported-generic
+  |=  [module=term name=term externals=iexternals surs=(list term) prelude=ifile]
+  ^-  (unit ischeme)
+  ?.  (lien surs |=(n=term =(n module)))  ~
+  =/  found=iexternals
+    (skim externals |=(e=[module=term name=term result=*] &(=(module module.e) =(name name.e))))
+  ?.  ?=([* ~] found)  ~
+  =/  result=*  result.i.found
+  ?.  ?=([%& [%generic-source @ * * @ * @]] result)  ~
+  =/  proof=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
+    ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] +.result)
+  ?.  =(at.proof ~[%sur module %hoon])  ~
+  (import-generic-template +.result (find-jibb-mold %unit prelude))
 ::
 ++  find-imported-mold-prelude
   |=  [module=term name=term externals=iexternals surs=(list term) prelude=ifile]
@@ -7017,6 +9267,41 @@
     [mark.i.imports $(imports t.imports)]
   $(imports t.imports)
 ::
+++  imported-mark-body
+  |=  result=*
+  ^-  (unit *)
+  ?@  result  ~
+  ?.  ?=(%& -.result)  ~
+  =/  payload=*  +.result
+  ?@  payload  ~
+  ?:  ?=(%mark-source -.payload)  `-.+.payload
+  `payload
+::
+++  imported-mark-result-origin
+  |=  result=*
+  ^-  (unit [module=term name=term at=path source=@t site=span])
+  ?@  result  ~
+  ?.  ?=(%& -.result)  ~
+  =/  payload=*  +.result
+  ?@  payload  ~
+  ?.  ?=(%mark-source -.payload)  ~
+  =/  origin=*  +.+.payload
+  ?@  origin  ~
+  ?.  ?=(~ -.origin)  ~
+  =/  metadata=*  +.origin
+  ?.  ?=([@ @ * @ *] metadata)  ~
+  =/  typed=[module=term name=term at=path source=@t site=span]
+    ;;([module=term name=term at=path source=@t site=span] metadata)
+  `typed
+::
+++  imported-mark-origin
+  |=  [name=term externals=imark-externals marks=(list term)]
+  ^-  (unit [module=term name=term at=path source=@t site=span])
+  =/  direct=imark-externals
+    (skim externals |=(e=[mark=term result=*] =(name mark.e)))
+  ?.  ?=([* ~] direct)  ~
+  (imported-mark-result-origin result.i.direct)
+::
 ++  find-imported-mark-prelude
   |=  [name=term externals=imark-externals marks=(list term) prelude=ifile]
   ^-  (unit itype)
@@ -7027,10 +9312,10 @@
   ?~  found  ~
   ?^  t.found  ~
   =/  result=*  result.i.found
-  ?@  result  ~
-  ?.  ?=(%& -.result)  ~
-  ?.  (imported-faces-valid +.result)  ~
-  (import-to-itype-standard +.result standard)
+  =/  body=(unit *)  (imported-mark-body result)
+  ?~  body  ~
+  ?.  (imported-faces-valid u.body)  ~
+  (import-to-itype-standard u.body standard)
 ::
 ++  find-imported-mark
   |=  [name=term externals=imark-externals marks=(list term)]
@@ -7044,6 +9329,32 @@
   ?:  =(face face.i.imports)  `interface.i.imports
   $(imports t.imports)
 ::
+:: A checked prelude group is flattened to avoid recursively embedding
+:: interfaces. Reconstruct it only when its qualified face is used.
+++  group-interface
+  |=  group=iprelude-group
+  ^-  ifile
+  [values.group molds.group at.group derived.group elaborations.group dependencies.group source.group graph.group ~]
+++  find-scope-interface
+  |=  [face=term imports=ijimports prelude=(unit ifile)]
+  ^-  (unit ifile)
+  =/  explicit=(unit ifile)  (find-jibb-interface face imports)
+  ?^  explicit  explicit
+  ?~  prelude  ~
+  =/  matches=(list iprelude-group)  (skim groups.u.prelude |=(g=iprelude-group =(face.g face)))
+  ?.  ?=([* ~] matches)  ~
+  `(group-interface i.matches)
+++  prelude-group-sources
+  |=  groups=(list iprelude-group)
+  ^-  (list [at=path source=@t])
+  ?~  groups  ~
+  =/  own=(list [at=path source=@t])  ?~(source.i.groups ~ ~[[at.i.groups u.source.i.groups]])
+  =/  dependencies=(list [at=path source=@t])
+    %+  turn  (skim closure.i.groups |=(d=iprelude-dependency ?=(^ source.d)))
+    |=  d=iprelude-dependency
+    ?>  ?=(^ source.d)
+    [at.d u.source.d]
+  (weld own (weld dependencies $(groups t.groups)))
 ++  find-jibb-mold
   |=  [name=term iface=ifile]
   ^-  (unit ischeme)
@@ -7095,28 +9406,21 @@
 ::  Names exported by the directly imported module are visible through its
 ::  face; a matching prelude alias is also visible without a qualifier.
 ::
-++  jrec-alias
-  |=  [origin=path name=term molds=imold-types]
+++  mrec-visible-alias
+  |=  [origin=path site=span name=term graph=(map gkey gdef) args=(list itype) molds=imold-types]
   ^-  (unit term)
   ?~  molds  ~
   =/  template=ischeme  template.i.molds
-  ?:  &(?=(~ vars.template) ?=(%jrec -.typ.template) =(at.typ.template origin) =(name.typ.template name))  `name.i.molds
-  $(molds t.molds)
-::
-++  grec-visible-alias
-  |=  [origin=path name=term proof=shape args=(list itype) molds=imold-types]
-  ^-  (unit term)
-  ?~  molds  ~
-  =/  template=ischeme  template.i.molds
-  ?.  ?=(%grec -.typ.template)  $(molds t.molds)
-  ?.  &(=(at.typ.template origin) =(name.typ.template name) =(proof.typ.template proof))  $(molds t.molds)
+  ?.  ?=(%mrec -.typ.template)  $(molds t.molds)
+  ?.  &(=(at.typ.template origin) =(site.typ.template site) =(name.typ.template name) (rg-graphs-agree [at.typ.template site.typ.template name.typ.template] graph.typ.template graph))  $(molds t.molds)
   ?.  &((identity-union-parameters vars.template args.typ.template) =((lent vars.template) (lent args)))  $(molds t.molds)
   `name.i.molds
-::
 ++  itype-in-import
   |=  [t=itype iface=ifile face=term prelude=(unit ifile)]
   ^-  itype
   ?-  -.t
+    %opaque  t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
+    %refined  t(proof $(t proof.t))
     %union
       =/  label=(unit @t)
         ?~  origin.t  ~
@@ -7132,19 +9436,13 @@
         `(crip "{(trip u.alias)}.{(trip face)}")
       [%union (turn cases.t |=(c=itype (itype-in-import c iface face prelude))) origin.t label (turn args.t |=(c=itype (itype-in-import c iface face prelude)))]
     %recursive  [%recursive module.t name.t ~]
-    %grec
-      =/  public=(unit term)  ?~(prelude ~ (grec-visible-alias at.t name.t proof.t args.t molds.u.prelude))
-      =/  alias=(unit term)  ?~(public (grec-visible-alias at.t name.t proof.t args.t molds.iface) public)
+    %mrec
+      =/  public=(unit term)  ?~(prelude ~ (mrec-visible-alias at.t site.t name.t graph.t args.t molds.u.prelude))
+      =/  alias=(unit term)  ?~(public (mrec-visible-alias at.t site.t name.t graph.t args.t molds.iface) public)
       =/  label=(unit @t)  ?~(alias ~ ?~(public `(crip "{(trip u.alias)}.{(trip face)}") `u.alias))
       t(label label, args (turn args.t |=(c=itype (itype-in-import c iface face prelude))))
-    %jrec
-      =/  public=(unit term)  ?~(prelude ~ (jrec-alias at.t name.t molds.u.prelude))
-      ?^  public  t(label `u.public)
-      =/  alias=(unit term)  (jrec-alias at.t name.t molds.iface)
-      ?~  alias  t(label ~)
-      t(label `(crip "{(trip u.alias)}.{(trip face)}"))
     %collection  [%collection name.t (turn args.t |=(c=itype (itype-in-import c iface face prelude)))]
-    %face  [%face name.t $(t body.t)]
+    ?(%face %slot)  ?:(?=(%slot -.t) [%slot name.t $(t body.t)] [%face name.t $(t body.t)])
     %fn    [%fn $(t sample.t) $(t product.t)]
     %cell  [%cell $(t hed.t) $(t tal.t)]
     *      t
@@ -7192,6 +9490,7 @@
 ++  template-apply-sub
   |=  [template=ischeme args=(list itype) sub=isub]
   ^-  (unit [typ=itype sub=isub])
+  ?^  graph.template  ~
   =/  vars=(list @ud)  vars.template
   =/  ren=isub  ~
   |-
@@ -7202,7 +9501,7 @@
       (itype-gate-free-form i.args sub 256)
     `[i.args sub 256]
   ?~  replacement  ~
-  $(vars t.vars, args t.args, ren [[i.vars typ.u.replacement] ren], sub sub.u.replacement)
+  $(vars t.vars, args t.args, ren (itype-bind i.vars typ.u.replacement ren), sub sub.u.replacement)
 ::
 ++  template-apply
   |=  [template=ischeme args=(list itype)]
@@ -7219,7 +9518,8 @@
   ?~  head  ~
   =/  tail=(unit [types=(list itype) state=istate])  $(args t.args, state state.u.head)
   ?~  tail  ~
-  `[[typ.u.head types.u.tail] state.u.tail]
+  :: Each mold application argument or union case is a complete type.
+  `[[(itype-value-root typ.u.head) types.u.tail] state.u.tail]
 ::
 ++  fresh-mold-params
   |=  [names=(list @t) next=@ud]
@@ -7232,82 +9532,81 @@
 ::  faced atom-headed cell whose faced tail names that same mold. Its Jibb
 ::  path and name provide nominal identity. Other recursive shapes fail closed;
 ::  construction and matching expose the proven shape one layer at a time.
-++  simple-source-recursive
-  |=  [name=term sh=shape state=istate]
-  ^-  (unit itype)
-  ?.  (lien top-molds.state |=(n=term =(n name)))  ~
-  =/  original=(unit shape)  (find-simple-mold name molds.state)
-  ?~  original  ~
-  ?.  =(u.original sh)  ~
-  ?.  ?=(%union -.sh)  ~
-  =/  cs=(list shape)  cases.sh
-  ?~  cs  ~
-  ?~  t.cs  ~
-  ?^  t.t.cs  ~
-  ?.  ?=(%const -.i.cs)  ~
-  ?.  =(%null form.lit.i.cs)  ~
-  ?.  ?=(%cell -.i.t.cs)  ~
-  =/  fs=(list field)  fields.i.t.cs
-  ?~  fs  ~
-  ?~  t.fs  ~
-  ?^  t.t.fs  ~
-  ?.  ?=(%face -.i.fs)  ~
-  ?.  ?=(%aura -.shape.i.fs)  ~
-  ?.  !=(0 aura.shape.i.fs)  ~
-  ?.  ?=(%face -.i.t.fs)  ~
-  ?.  !=(name.i.fs name.i.t.fs)  ~
-  =/  tail=shape  shape.i.t.fs
-  ?.  ?=(%ref -.tail)  ~
-  ?.  =(names.tail ~[name])  ~
-  `[%jrec at.state name `name name.i.fs aura.shape.i.fs name.i.t.fs]
-::
-++  simple-source-generic-recursive
-  |=  [name=term sh=shape args=(list itype) state=istate]
-  ^-  (unit itype)
-  ?.  ?=(%generic -.sh)  ~
-  ?.  ?=([@ ~] vars.sh)  ~
-  ?.  ?=([* ~] args)  ~
-  ?~  grec-index.state  ~
-  ?.  =(at.u.grec-index.state at.state)  ~
-  ?~  prelude.state  ~
-  ?.  =(prelude.u.grec-index.state u.prelude.state)  ~
-  =/  proof=(unit shape)  (~(get by shapes.u.grec-index.state) name)
-  ?~  proof  ~
-  ?.  =(u.proof sh)  ~
-  `[%grec at.state name `name sh args]
-::
-
+++  rg-hide-entries
+  |=  [entries=(list [key=gkey def=gdef]) owner=path out=(map gkey gdef)]
+  ^-  (map gkey gdef)
+  ?~  entries  out
+  =/  item=gdef  def.i.entries
+  =?  item  =(at.key.i.entries owner)  item(visible |)
+  $(entries t.entries, out (~(put by out) key.i.entries item))
+++  rg-hide-graph
+  |=  [graph=(map gkey gdef) owner=path]
+  ^-  (map gkey gdef)
+  (rg-hide-entries ~(tap by graph) owner *(map gkey gdef))
+++  rg-mold-template
+  |=  [name=term state=istate]
+  ^-  (unit [template=ischeme state=istate])
+  ::  A caller cannot hide the prelude list reservation and have a local
+  ::  declaration stand in for the already-checked standard template.
+  =/  shadow=?
+    ?~  prelude.state  |
+    &(!=(at.state /lib/jibb/prelude/jibb) ?=(^ (find-simple-mold %list molds.state)) ?=(^ (find-jibb-mold %list u.prelude.state)))
+  ?:  shadow  ~
+  =/  source=(unit shape)  (find-simple-mold name molds.state)
+  ?~  source  ~
+  =/  scope=(unit gscope)  (rg-make-scope molds.state state)
+  ?~  scope  ~
+  =/  entry=(unit gentry)  (~(get by names.u.scope) [~ name])
+  ?~  entry  ~
+  ?.  ?=(%direct -.u.entry)  ~
+  =/  key=gkey  key.u.entry
+  =/  graph=(unit (map gkey gdef))  (rg-build-graph-checked ~[key] molds.state at.state u.scope 4.096)
+  ?~  graph  ~
+  =/  public=?  (lien top-molds.state |=(n=term =(n name)))
+  =?  u.graph  !public  (rg-hide-graph u.graph at.state)
+  =/  recursive=(unit ?)  (rg-recursive key u.graph)
+  ?~  recursive  ~
+  ?.  u.recursive  ~
+  =/  def=(unit gdef)  (~(get by u.graph) key)
+  ?~  def  ~
+  =/  formals=(list gnode)  (turn (rg-def-params u.def) |=(n=@t `gnode`[%param n]))
+  ?.  (rg-certify [%ref key formals] u.graph)  ~
+  =/  captured=iparams  (local-mold-params name mold-captures.state)
+  ?.  =(captures.u.def (turn captured |=(p=[name=@t typ=itype] name.p)))  ~
+  =/  fresh=[params=iparams vars=(list @ud) next=@ud]  (fresh-mold-params params.u.def next.state)
+  =/  declared=(list itype)  (turn vars.fresh |=(n=@ud `itype`[%var n]))
+  =/  args=(list itype)  (weld declared (turn captured |=(p=[name=@t typ=itype] typ.p)))
+  =/  typ=itype  [%mrec at.state site.u.def name ?:(public `name ~) u.graph args]
+  `[[typ vars.fresh ~] state(next next.fresh)]
 ++  infer-mold-template
   |=  [sh=shape state=istate]
   ^-  (unit [template=ischeme state=istate])
-  =/  generic=(unit itype)
+  =/  graph-template=(unit [template=ischeme state=istate])
     ?.  ?=([@ ~] active.state)  ~
-    (simple-source-generic-recursive i.active.state sh ~[[%var next.state]] state)
-  ?^  generic  `[[u.generic ~[next.state]] state(next +(next.state))]
-  =/  direct=(unit itype)
-    ?.  ?=([@ ~] active.state)  ~
-    (simple-source-recursive i.active.state sh state)
-  ?^  direct  `[[u.direct ~] state]
+    (rg-mold-template i.active.state state)
+  ?^  graph-template  graph-template
   ?:  ?=(%generic -.sh)
     ?~  vars.sh  ~
     ?.  (distinct-params vars.sh)  ~
     =/  fresh=[params=iparams vars=(list @ud) next=@ud]  (fresh-mold-params vars.sh next.state)
     =/  out=(unit [typ=itype state=istate])
-      (infer-simple-shape body.sh state(next next.fresh, params params.fresh, in-mold &))
+      (infer-simple-shape body.sh state(next next.fresh, params (weld params.fresh params.state), in-mold &))
     ?~  out  ~
     ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
     ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.sh) ?=(~ origin.typ.u.out))  ~
     =?  typ.u.out  &(?=(%union -.typ.u.out) ?=(%union -.body.sh))
       typ.u.out(args (turn vars.fresh |=(n=@ud `itype`[%var n])))
     =/  used=(list @ud)  (itype-vars typ.u.out)
-    ?.  (levy used |=(n=@ud (lien vars.fresh |=(p=@ud =(p n)))))  ~
-    `[[typ.u.out vars.fresh] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
+    =/  captured=(list @ud)  (unique-type-vars (zing (turn params.state |=(p=[name=@t typ=itype] (itype-vars typ.p)))))
+    ?.  (levy used |=(n=@ud (lien (weld vars.fresh captured) |=(p=@ud =(p n)))))  ~
+    `[[(itype-value-root typ.u.out) vars.fresh ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
   =/  out=(unit [typ=itype state=istate])
-    (infer-simple-shape sh state(params ~, in-mold &))
+    (infer-simple-shape sh state(in-mold &))
   ?~  out  ~
   ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
-  ?:  ?=(^ (itype-vars typ.u.out))  ~
-  `[[typ.u.out ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
+  =/  captured=(list @ud)  (unique-type-vars (zing (turn params.state |=(p=[name=@t typ=itype] (itype-vars typ.p)))))
+  ?.  (levy (itype-vars typ.u.out) |=(n=@ud (lien captured |=(p=@ud =(p n)))))  ~
+  `[[(itype-value-root typ.u.out) ~ ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
 ::
 ::  A direct imported reference may carry definite reader evidence. Only
 ::  uniquely supplied, declared inputs are used; unsupported data stay generic.
@@ -7321,8 +9620,8 @@
     ?~  t.names.sh
       ?.  (unique-value-name n marks.state)  ~
       ?:  (lien surs.state |=(x=term =(x n)))  ~
-      ?:  ?=(^ (find-jibb-interface n jimports.state))  ~
-      ?:  (lien globals.state |=(x=term =(x n)))  ~
+      ?:  ?=(^ (find-scope-interface n jimports.state prelude.state))  ~
+      ?:  (gth (lent (skim globals.state |=(x=term =(x n)))) ?:(globals-imports.state 1 0))  ~
       ?:  (lien reserved-molds.state |=(x=term =(x n)))  ~
       ?:  (lien molds.state |=(m=[name=term body=shape] =(n name.m)))  ~
       =/  found=imark-externals  (skim mark-externals.state |=(e=[mark=term result=*] =(mark.e n)))
@@ -7331,21 +9630,266 @@
       result.i.found
     ?^  t.t.names.sh  ~
     =/  mod=term  i.t.names.sh
-    ?:  ?=(^ (find-jibb-interface mod jimports.state))  ~
+    ?:  ?=(^ (find-scope-interface mod jimports.state prelude.state))  ~
     ?.  (unique-value-name mod surs.state)  ~
     ?:  (lien marks.state |=(x=term =(x mod)))  ~
-    ?:  (lien globals.state |=(x=term =(x mod)))  ~
+    ?:  (gth (lent (skim globals.state |=(x=term =(x mod)))) ?:(globals-imports.state 1 0))  ~
     ?:  (lien reserved-molds.state |=(x=term =(x mod)))  ~
     ?:  (lien molds.state |=(m=[name=term body=shape] =(mod name.m)))  ~
     =/  found=iexternals  (skim externals.state |=(e=[module=term name=term result=*] &(=(module.e mod) =(name.e n))))
     ?~  found  ~
     ?^  t.found  ~
     result.i.found
-  ?.  ?=([%invalid ?(%aura %core %overlap) @] raw)  ~
+  ?:  ?=([%unsupported @] raw)
+    `["imported Hoon mold is unsupported" ~[[at.sh "unsupported imported mold"]]]
+  ?.  ?=([%invalid ?(%aura %core %overlap %vase %face %missing) @] raw)  ~
   `["{(trip +>.raw)}" ~[[at.sh "invalid imported mold"]]]
+::
+:: A bare name is unknown only after checking every mold namespace.
+++  unbound-mold-name
+  |=  [sh=shape state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%ref -.sh)  ~
+  ?.  ?=([* ~] names.sh)  ~
+  =/  name=term  i.names.sh
+  ?:  (lien molds.state |=(m=[name=term body=shape] =(name.m name)))  ~
+  ?:  (lien marks.state |=(n=term =(n name)))  ~
+  ?:  (lien reserved-molds.state |=(n=term =(n name)))  ~
+  =/  standard=(unit ischeme)  ?~(prelude.state ~ (find-jibb-mold name u.prelude.state))
+  ?^  standard  ~
+  `["mold `{(trip name)}` is not defined" ~[[at.sh "unknown mold"]]]
+:: A qualified mold needs a declared Hoon or Jibb module face.
+++  unimported-mold-module
+  |=  [sh=shape state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%ref -.sh)  ~
+  ?.  ?=([* * ~] names.sh)  ~
+  =/  module=term  i.t.names.sh
+  ?:  (lien surs.state |=(n=term =(n module)))  ~
+  ?:  ?=(^ (find-jibb-interface module jimports.state))  ~
+  `["module `{(trip module)}` is not imported" ~[[at.sh "unimported module"]]]
+::
+++  missing-qualified-mold
+  |=  [sh=shape state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%ref -.sh)  ~
+  ?.  ?=([@ @ ~] names.sh)  ~
+  =/  name=term  i.names.sh
+  =/  face=term  i.t.names.sh
+  =/  selected=ijimports  (skim jimports.state |=(entry=[face=term interface=ifile] =(face.entry face)))
+  ?:  (gth (lent selected) 1)  ~
+  =/  iface=(unit ifile)  (find-scope-interface face jimports.state prelude.state)
+  ?~  iface  ~
+  ?^  (find-jibb-mold name u.iface)  ~
+  =/  first=loc  beg.at.sh
+  =/  last=loc  [line.first (add col.first (lent (trip name)))]
+  =/  site=span  [first last]
+  =/  earlier=(unit idsite)  (source-import-binding-site face state)
+  =/  message=tape  "module `{(trip face)}` has no mold `{(trip name)}`"
+  ?^  earlier  `[message ~[u.earlier [site "unknown module mold"]]]
+  `[message ~[[site "unknown module mold"]]]
 ::
 ::  Replay only the shape branches whose evaluation order we can prove.
 ::  Successful prefixes must be checked before descending to a failure.
+::  If an unavailable prelude mold is a chain of aliases, its source can
+::  prove an unbound target or an unproductive alias cycle.  Structural
+::  recursion and ambiguous/imported references remain with normal inference.
+++  prelude-alias-diagnostic
+  |=  [sh=shape state=istate]
+  ^-  (unit idiag)
+  ?~  prelude.state  ~
+  ?~  source.u.prelude.state  ~
+  =/  file=path  at.u.prelude.state
+  =/  src=@t  u.source.u.prelude.state
+  =/  parsed=(each module error)  (parse file src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  defs=(list def)  defs.p.parsed
+  =/  current=shape  sh
+  =/  seen=(map term span)  ~
+  =/  external=?  |
+  |-
+  =/  names=(list term)
+    ?-  -.current
+      %ref  names.current
+      %apply  ref.current
+      *  ~
+    ==
+  ?~  names  ~
+  ?^  t.names  ~
+  =/  name=term  i.names
+  ?:  &(!external ?=(^ (find-simple-mold name molds.state)))  ~
+  ?^  (find-jibb-mold name u.prelude.state)  ~
+  =/  previous=(unit span)  (~(get by seen) name)
+  =/  matches=(list def)
+    %+  skim  defs
+    |=  d=def
+    &(?=(%mold -.d) =(name.d name))
+  ?~  matches
+    ?.  external  ~
+    `["prelude mold `{(trip name)}` is not defined" ~[[%external file src at.current "unknown mold"] [at.sh "while checking this mold"]]]
+  ?^  t.matches  ~
+  ?.  ?=(%mold -.i.matches)  ~
+  =/  declaration=shape  shape.i.matches
+  =/  next=(unit shape)
+    ?:  ?=(%generic -.declaration)
+      ?.  ?=(%apply -.current)  ~
+      ?.  =((lent args.current) (lent vars.declaration))  ~
+      `body.declaration
+    ?.  ?=(%ref -.current)  ~
+    `declaration
+  ?~  next  ~
+  ?^  previous
+    ?.  external  ~
+    `["prelude mold aliases form a cycle at `{(trip name)}`" ~[[%external file src u.previous "earlier alias"] [%external file src at.current "cycle closes here"] [at.sh "while checking this mold"]]]
+  =.  seen  (~(put by seen) name (definition-name-site file src at.i.matches))
+  $(current u.next, external &, seen seen)
+::
+++  diagnostic-sample-bindings
+  |=  sam=sample
+  ^-  (list [name=term body=shape])
+  ?-  -.sam
+    %face  ~[[name.sam shape.sam]]
+    %cell  (zing (turn items.sam diagnostic-sample-bindings))
+    *  ~
+  ==
+::
+++  diagnostic-inferred-shape
+  |=  [sh=shape state=istate]
+  ^-  (unit itype)
+  =/  inferred=(unit [typ=itype state=istate])  (infer-simple-shape sh state)
+  ?~  inferred  ~
+  `(itype-normalize typ.u.inferred sub.state.u.inferred)
+::
+++  diagnostic-call-uses-pair
+  |=  [map-name=term key-name=term e=expr]
+  ^-  ?
+  =/  todo=(list expr)  ~[e]
+  |-
+  ?~  todo  |
+  =/  current=expr  i.todo
+  =/  rest=?
+    $(todo (weld (dependency-children current) t.todo))
+  ?.  ?=(%call -.current)  rest
+  =/  wings=(list term)
+    %+  murn  args.current
+    |=  arg=expr
+    ?.  ?=(%wing -.arg)  ~
+    ?.  ?=([@ ~] names.arg)  ~
+    `i.names.arg
+  ?.  &(?=(^ (lien wings |=(n=term =(n map-name)))) ?=(^ (lien wings |=(n=term =(n key-name)))))  rest
+  &
+::
+++  diagnostic-sample-key-sites
+  |=  [sh=shape value=itype state=istate]
+  ^-  (list idsite)
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  %+  murn  defs.p.parsed
+  |=  d=def
+  ?.  ?=(%value -.d)  ~
+  =/  parts=(unit [sample=sample body=expr])  (diagnostic-gate-parts val.d)
+  ?~  parts  ~
+  =/  bindings=(list [name=term body=shape])  (diagnostic-sample-bindings sample.u.parts)
+  =/  maps=(list [name=term body=shape])
+    (skim bindings |=(b=[name=term body=shape] =(at.body.b at.sh)))
+  ?.  ?=([* ~] maps)  ~
+  =/  candidates=(list [name=term body=shape])
+    %+  skim  bindings
+    |=  b=[name=term body=shape]
+    ?:  =(name.b name.i.maps)  |
+    =/  typ=(unit itype)  (diagnostic-inferred-shape body.b state)
+    ?~  typ  |
+    =(u.typ value)
+  =/  used=(list [name=term body=shape])  candidates
+  ?.  ?=([* ~] used)  ~
+  `[[at.body.i.used "key argument"]]
+::
+++  application-head-site
+  |=  [at=span name=term]
+  ^-  span
+  =/  start=loc  beg.at(col +(col.beg.at))
+  [start [line.start (add col.start (lent (trip name)))]]
+::
+::  Report only a proven gate in an argument constrained by a checked
+::  standard collection template. Open or opaque types remain unresolved.
+++  collection-key-argument-error
+  |=  [sh=shape types=(list itype) state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%apply -.sh)  ~
+  ?~  ref.sh  ~
+  =/  n=term  i.ref.sh
+  =/  template=(unit ischeme)
+    ?^  t.ref.sh
+      ?^  t.t.ref.sh  ~
+      =/  iface=(unit ifile)  (find-scope-interface i.t.ref.sh jimports.state prelude.state)
+      ?^  iface  (find-jibb-mold n u.iface)
+      (find-imported-generic i.t.ref.sh n externals.state surs.state ?~(prelude.state *ifile u.prelude.state))
+    ?:  ?=(^ (find-simple-mold n molds.state))  ~
+    ?~  prelude.state  ~
+    (find-jibb-mold n u.prelude.state)
+  ?~  template  ~
+  =/  display=(unit itype)  (scheme-display-type u.template)
+  ?~  display  ~
+  ?.  ?=(%collection -.u.display)  ~
+  ?.  ?=(?(%map %set %jar %jug %mop) name.u.display)  ~
+  =/  vars=(list @ud)  vars.u.template
+  =/  shapes=(list shape)  args.sh
+  =/  actual=(list itype)  types
+  |-
+  ?~  vars  ~
+  ?~  shapes  ~
+  ?~  actual  ~
+  ?.  (itype-var-is-gate-free i.vars u.display)
+    $(vars t.vars, shapes t.shapes, actual t.actual)
+  =/  value=itype  (itype-normalize i.actual sub.state)
+  =/  proof=igate-free  (gate-free-type value 256 ~)
+  ?.  =(%no verdict.proof)
+    $(vars t.vars, shapes t.shapes, actual t.actual)
+  =/  message=tape  "{(trip name.u.display)} keys cannot contain gates"
+  =/  direct=(list idsite)  (diagnostic-sample-key-sites sh value state)
+  =/  evidence=(list idsite)
+    ?.  ?=([* ~] direct)  ~
+    direct
+  =/  sites=(list idsite)
+    %+  weld  evidence
+    `(list idsite)`~[[(application-head-site at.sh n) (site-type-note "collection" u.display ~)] [at.i.shapes (site-type-note "key" value sub.state)]]
+  =/  declared=(unit idsite)  ?~(t.ref.sh (source-prelude-mold-site n state) ~)
+  ?^  declared  `[message [u.declared sites]]
+  `[message sites]
+::
+++  generic-arity-diagnostic
+  |=  [sh=shape state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%apply -.sh)  ~
+  ?~  ref.sh  ~
+  =/  n=term  i.ref.sh
+  =/  arity=(unit @ud)
+    ?^  t.ref.sh
+      ?^  t.t.ref.sh  ~
+      =/  iface=(unit ifile)  (find-scope-interface i.t.ref.sh jimports.state prelude.state)
+      ?~  iface
+        =/  template=(unit ischeme)
+          (find-imported-generic i.t.ref.sh n externals.state surs.state ?~(prelude.state *ifile u.prelude.state))
+        ?~  template  ~
+        `(lent vars.u.template)
+      =/  template=(unit ischeme)  (find-jibb-mold n u.iface)
+      ?~  template  ~
+      `(lent vars.u.template)
+    =/  found=(unit shape)  (find-simple-mold n molds.state)
+    ?^  found
+      ?.  ?=(%generic -.u.found)  ~
+      `(lent vars.u.found)
+    ?~  prelude.state  ~
+    =/  entry=(unit ischeme)  (find-jibb-mold n u.prelude.state)
+    ?~  entry  ~
+    `(lent vars.u.entry)
+  ?~  arity  ~
+  =/  actual=@ud  (lent args.sh)
+  ?:  =(u.arity actual)  ~
+  =/  label=tape  ?:(=(1 u.arity) "type argument" "type arguments")
+  `["generic mold `{(trip n)}` expects {(a-co:co u.arity)} {label}, received {(a-co:co actual)}" ~[[at.sh "generic mold application"]]]
+::
 ++  nested-import-invalid
   |=  [sh=shape state=istate]
   ^-  (unit idiag)
@@ -7354,6 +9898,14 @@
     %ref
       =/  direct=(unit idiag)  (direct-import-invalid sh state)
       ?^  direct  direct
+      =/  member=(unit idiag)  (missing-qualified-mold sh state)
+      ?^  member  member
+      =/  missing=(unit idiag)  (unimported-mold-module sh state)
+      ?^  missing  missing
+      =/  unbound=(unit idiag)  (unbound-mold-name sh state)
+      ?^  unbound  unbound
+      =/  alias-error=(unit idiag)  (prelude-alias-diagnostic sh state)
+      ?^  alias-error  alias-error
       ?~  names.sh  ~
       ?^  t.names.sh  ~
       =/  n=term  i.names.sh
@@ -7361,14 +9913,48 @@
       ?:  (lien active.state |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state)
       ?~  found  ~
-      $(sh u.found, state state(active [n active.state], in-mold &, params ~))
+      $(sh u.found, state state(active [n active.state], in-mold &, params (local-mold-params n mold-captures.state)))
     %fn
       =/  first=(unit [typ=itype state=istate])  (infer-simple-shape sample.sh state)
       ?~  first  $(sh sample.sh)
       $(sh product.sh, state state.u.first)
     %cell  (nested-field-invalid fields.sh state)
+    %union
+      =/  pairs=(list upair)  (union-pairs cases.sh molds.state)
+      ?:  (lien pairs |=(p=upair =(%overlap relation.p)))  ~
+      (nested-shapes-invalid cases.sh state)
+    %apply
+      =/  args=(unit [types=(list itype) state=istate])  (infer-shape-args args.sh state)
+      ?~  args  (nested-shapes-invalid args.sh state)
+      =/  key-error=(unit idiag)  (collection-key-argument-error sh types.u.args state.u.args)
+      ?^  key-error  key-error
+      =/  ref=shape  [%ref at.sh ref.sh]
+      =/  invalid=(unit idiag)  (direct-import-invalid ref state.u.args)
+      ?^  invalid  invalid
+      =/  member=(unit idiag)  (missing-qualified-mold ref state.u.args)
+      ?^  member  member
+      =/  missing=(unit idiag)  (unimported-mold-module ref state.u.args)
+      ?^  missing  missing
+      =/  unbound=(unit idiag)  (unbound-mold-name ref state.u.args)
+      ?^  unbound  unbound
+      =/  arity=(unit idiag)  (generic-arity-diagnostic sh state.u.args)
+      ?^  arity  arity
+      (prelude-alias-diagnostic sh state.u.args)
+    %generic
+      ?~  vars.sh  ~
+      ?.  (distinct-params vars.sh)  ~
+      =/  fresh=[params=iparams vars=(list @ud) next=@ud]  (fresh-mold-params vars.sh next.state)
+      $(sh body.sh, state state(params params.fresh, next next.fresh, in-mold &))
     *  ~
   ==
+::
+++  nested-shapes-invalid
+  |=  [shapes=(list shape) state=istate]
+  ^-  (unit idiag)
+  ?~  shapes  ~
+  =/  out=(unit [typ=itype state=istate])  (infer-simple-shape i.shapes state)
+  ?~  out  (nested-import-invalid i.shapes state)
+  $(shapes t.shapes, state state.u.out)
 ::
 ++  nested-field-invalid
   |=  [fields=(list field) state=istate]
@@ -7424,12 +10010,13 @@
     %union
       =/  pairs=(list upair)  (union-pairs cases.sh molds.state)
       ?:  (lien pairs |=(p=upair =(%overlap relation.p)))  ~
-      =/  source-proof=?
-        ?:  (levy pairs |=(p=upair =(%disjoint relation.p)))  &
-        &((union-source-state-safe state 256) (union-source-distinct-tags cases.sh molds.state 256))
-      ?.  source-proof  ~
       =/  cs=(unit [types=(list itype) state=istate])  (infer-shape-args cases.sh state)
       ?~  cs  ~
+      :: Resolve cases first, then prove disjointness on their actual types.
+      :: Unknown projections remain unknown: the noun-pattern relation only
+      :: accepts a union after every pair is proven disjoint.
+      =/  type-proof=?  (import-cases-disjoint types.u.cs)
+      ?.  type-proof  ~
       `[[%union types.u.cs ~ ~ ~] state.u.cs]
     %cell  (infer-simple-fields fields.sh state)
     %fn
@@ -7437,13 +10024,13 @@
       ?~  arg  ~
       =/  out=(unit [typ=itype state=istate])  $(sh product.sh, state state.u.arg)
       ?~  out  ~
-      `[[%fn typ.u.arg typ.u.out] state.u.out]
+      `[[%fn typ.u.arg (itype-value-root typ.u.out)] state.u.out]
     %ref
       ?~  names.sh  ~
       =/  n=term  i.names.sh
       ?^  t.names.sh
         ?^  t.t.names.sh  ~
-        =/  iface=(unit ifile)  (find-jibb-interface i.t.names.sh jimports.state)
+        =/  iface=(unit ifile)  (find-scope-interface i.t.names.sh jimports.state prelude.state)
         ?^  iface
           =/  found=(unit ischeme)  (find-jibb-mold n u.iface)
           ?~  found  ~
@@ -7467,10 +10054,12 @@
         ?~  prelude-entry  ~
         ?^  vars.u.prelude-entry  ~
         `[typ.u.prelude-entry state]
-      =/  direct=(unit itype)  (simple-source-recursive n u.found state)
-      ?^  direct  `[u.direct state]
+      =/  graph-template=(unit [template=ischeme state=istate])  (rg-mold-template n state)
+      ?^  graph-template
+        ?^  vars.template.u.graph-template  ~
+        `[typ.template.u.graph-template state.u.graph-template]
       =/  out=(unit [typ=itype state=istate])
-        $(sh u.found, state state(active [n active.state], in-mold &, params ~))
+        $(sh u.found, state state(active [n active.state], in-mold &, params (local-mold-params n mold-captures.state)))
       ?~  out  ~
       ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
       `[(label-direct-union typ.u.out u.found n state) state.u.out(active active.state, in-mold in-mold.state, params params.state, holes holes.state)]
@@ -7480,6 +10069,9 @@
       ?~  args  ~
       =/  n=term  i.ref.sh
       =/  keyed=(unit [types=(list itype) sub=isub])
+        ::  Qualified templates carry their own constraints; a local name
+        ::  cannot supply evidence for an imported collection.
+        ?:  ?=(^ t.ref.sh)  `[types.u.args sub.state.u.args]
         ?:  ?=(^ (find-simple-mold n molds.state.u.args))
           `[types.u.args sub.state.u.args]
         ?~  prelude.state.u.args
@@ -7492,8 +10084,14 @@
       =.  sub.state.u.args  sub.u.keyed
       ?^  t.ref.sh
         ?^  t.t.ref.sh  ~
-        =/  iface=(unit ifile)  (find-jibb-interface i.t.ref.sh jimports.state.u.args)
-        ?~  iface  ~
+        =/  iface=(unit ifile)  (find-scope-interface i.t.ref.sh jimports.state.u.args prelude.state.u.args)
+        ?~  iface
+          =/  template=(unit ischeme)
+            (find-imported-generic i.t.ref.sh n externals.state.u.args surs.state.u.args ?~(prelude.state.u.args *ifile u.prelude.state.u.args))
+          ?~  template  ~
+          =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub u.template types.u.args sub.state.u.args)
+          ?~  applied  ~
+          `[typ.u.applied state.u.args(sub sub.u.applied)]
         =/  template=(unit ischeme)  (find-jibb-mold n u.iface)
         ?~  template  ~
         ?~  vars.u.template  ~
@@ -7514,19 +10112,26 @@
         =.  sub.state.u.args  sub.u.applied
         `[typ.u.applied state.u.args]
       ?.  ?=(%generic -.u.found)  ~
-      =/  grec=(unit itype)  (simple-source-generic-recursive n u.found types.u.args state.u.args)
-      ?^  grec  `[u.grec state.u.args]
+      =/  graph-template=(unit [template=ischeme state=istate])  (rg-mold-template n state.u.args)
+      ?^  graph-template
+        =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub template.u.graph-template types.u.args sub.state.u.graph-template)
+        ?~  applied  ~
+        `[typ.u.applied state.u.graph-template(sub sub.u.applied)]
       ?.  (distinct-params vars.u.found)  ~
       =/  params=(unit iparams)  (bind-params vars.u.found types.u.args)
       ?~  params  ~
       =/  out=(unit [typ=itype state=istate])
-        $(sh body.u.found, state state.u.args(active [n active.state.u.args], in-mold &, params u.params))
+        $(sh body.u.found, state state.u.args(active [n active.state.u.args], in-mold &, params (weld u.params (local-mold-params n mold-captures.state.u.args))))
       ?~  out  ~
       ?^  (unresolved-hole holes.state.u.out holes.state.u.args state.u.out)  ~
       ?:  &(?=(%union -.typ.u.out) !?=(%union -.body.u.found) ?=(~ origin.typ.u.out))  ~
       ?:  &(?=(%union -.typ.u.out) ?=(%union -.body.u.found) !(lien top-molds.state.u.args |=(x=term =(x n))))  ~
       =?  typ.u.out  &(?=(%union -.typ.u.out) ?=(%union -.body.u.found))
         (label-direct-union typ.u.out(args types.u.args) u.found n state.u.args)
+      ::  The label is only a presentation view of an opaque alias;
+      ::  the source-qualified seal and payload remain authoritative.
+      =?  typ.u.out  ?=(%opaque -.typ.u.out)
+        typ.u.out(label `n, args types.u.args)
       `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args, holes holes.state.u.args)]
     %tvar
       =/  param=(unit itype)  (iparam-lookup name.sh params.state)
@@ -7551,17 +10156,167 @@
     ==
   =/  head=(unit [typ=itype state=istate])  (infer-simple-shape field-shape state)
   ?~  head  ~
-  =/  t=itype  typ.u.head
+  :: Each nested field shape describes a complete value; preserve a
+  :: single-field record face before adding this field's outer slot.
+  =/  t=itype  (itype-value-root typ.u.head)
   =.  t
     ?-  -.i.fields
       %bare  t
-      %face  [%face name.i.fields t]
-      %pun   [%face name.i.fields t]
+      %face  [%slot name.i.fields t]
+      %pun   [%slot name.i.fields t]
     ==
   ?~  t.fields  `[t state.u.head]
   =/  tail=(unit [typ=itype state=istate])  $(fields t.fields, state state.u.head)
   ?~  tail  ~
   `[[%cell t typ.u.tail] state.u.tail]
+::
+::  A written field becomes a value when selected or bound as a whole.
+++  itype-value-root
+  |=  typ=itype
+  ^-  itype
+  ?:  ?=(%slot -.typ)  [%face name.typ body.typ]
+  typ
+::
+::  Reconstruct the lexical source of a sample collision only when sample
+::  inference has already rejected that particular gate.  Scope includes
+::  globals, imports, outer samples, local values and branch binders.
++$  ishadow-origin  [site=idsite definition=?]
++$  ishadow-scope  (map term ishadow-origin)
++$  ishadow-binding  [name=term at=span]
++$  ishadow-node  [e=expr scope=ishadow-scope]
+++  shadow-sample-bindings
+  |=  s=sample
+  ^-  (list ishadow-binding)
+  ?-  -.s
+    %bind  ~[[name.s at.s]]
+    %face  ~[[name.s at.s]]
+    %pun   ~[[name.s at.s]]
+    %cell  (zing (turn items.s |=(item=sample (shadow-sample-bindings item))))
+    %bare  ~
+  ==
+++  shadow-pattern-bindings
+  |=  p=pattern
+  ^-  (list ishadow-binding)
+  ?-  -.p
+    %bind  ~[[name.p at.p]]
+    %cell  (zing (turn items.p |=(item=pattern (shadow-pattern-bindings item))))
+    *  ~
+  ==
+++  shadow-add-bindings
+  |=  [bindings=(list ishadow-binding) scope=ishadow-scope]
+  ^-  ishadow-scope
+  ?~  bindings  scope
+  $(bindings t.bindings, scope (~(put by scope) name.i.bindings [[at.i.bindings "earlier binding"] |]))
+++  shadow-sample-diagnostic
+  |=  [bindings=(list ishadow-binding) scope=ishadow-scope file=path src=@t]
+  ^-  (unit idiag)
+  ?~  bindings  ~
+  =/  earlier=(unit ishadow-origin)  (~(get by scope) name.i.bindings)
+  ?^  earlier
+    =/  first=idsite  site.u.earlier
+    =?  first  definition.u.earlier
+      ?:  ?=(%external -.first)
+        first(at (definition-name-site file.first source.first at.first))
+      [(definition-name-site file src at.first) note.first]
+    `["sample `{(trip name.i.bindings)}` shadows a name already in scope" ~[first [at.i.bindings "conflicting sample binding"]]]
+  $(bindings t.bindings, scope (~(put by scope) name.i.bindings [[at.i.bindings "earlier binding"] |]))
+:: If the containing source is unavailable, report the real binding site
+:: without inventing a declaration site in another file.
+++  shadow-sample-fallback
+  |=  [bindings=(list ishadow-binding) env=ienv globals=(list term) seen=(list term)]
+  ^-  (unit idiag)
+  ?~  bindings  ~
+  =/  n=term  name.i.bindings
+  ?:  (reserved-name n)
+    `["`{(trip n)}` is reserved and cannot be bound" ~[[at.i.bindings "reserved binding"]]]
+  ?:  |(?=(^ (ienv-lookup n env)) (lien globals |=(x=term =(n x))) (lien seen |=(x=term =(n x))))
+    `["sample `{(trip n)}` shadows a name already in scope" ~[[at.i.bindings "conflicting sample binding"]]]
+  $(bindings t.bindings, seen [n seen])
+::
+++  shadow-definitions-scope
+  |=  [defs=(list def) scope=ishadow-scope file=path src=@t external=?]
+  ^-  ishadow-scope
+  ?~  defs  scope
+  ?.  ?=(%value -.i.defs)  $(defs t.defs)
+  =/  site=span  at.i.defs
+  =/  origin=idsite  ?:(external [%external file src site "earlier binding"] [site "earlier binding"])
+  $(defs t.defs, scope (~(put by scope) name.i.defs [origin &]))
+++  shadow-import-name-site
+  |=  [file=path src=@t imp=import]
+  ^-  span
+  =/  tokens=(list token)  (layout file src)
+  |-
+  ?~  tokens  at.imp
+  ?.  =(beg.at.i.tokens beg.at.imp)  $(tokens t.tokens)
+  ?~  t.tokens  at.imp
+  =/  next=token  i.t.tokens
+  ?-  -.imp
+    %jibb  ?:(?=(%name -.lex.next) at.next at.imp)
+    %sur   ?:(?=(%name -.lex.next) at.next at.imp)
+    %mark  ?:(?=(%lit -.lex.next) at.next at.imp)
+  ==
+++  shadow-imports-scope
+  |=  [imports=(list import) scope=ishadow-scope file=path src=@t]
+  ^-  ishadow-scope
+  ?~  imports  scope
+  =/  n=term
+    ?-  -.i.imports
+      %jibb  face.i.imports
+      %sur  name.i.imports
+      %mark  mark.i.imports
+    ==
+  $(imports t.imports, scope (~(put by scope) n [[(shadow-import-name-site file src i.imports) "earlier binding"] |]))
+++  shadow-prelude-scope
+  |=  prelude=(unit ifile)
+  ^-  ishadow-scope
+  ?~  prelude  ~
+  ?~  source.u.prelude  ~
+  =/  parsed=(each module error)  (parse at.u.prelude u.source.u.prelude)
+  ?:  ?=(%| -.parsed)  ~
+  =/  visible=(list def)
+    %+  skim  defs.p.parsed
+    |=  d=def
+    &(?=(%value -.d) ?=(^ (ienv-lookup name.d values.u.prelude)))
+  (shadow-definitions-scope visible ~ at.u.prelude u.source.u.prelude &)
+++  shadow-find-gate
+  |=  [todo=(list ishadow-node) target=span file=path src=@t]
+  ^-  (unit idiag)
+  ?~  todo  ~
+  =/  node=ishadow-node  i.todo
+  =/  e=expr  e.node
+  ?:  ?=(?(%gate %gate-wide) -.e)
+    =/  binds=(list ishadow-binding)  (shadow-sample-bindings sample.e)
+    ?:  =(at.sample.e target)  (shadow-sample-diagnostic binds scope.node file src)
+    =/  scope=ishadow-scope  (shadow-add-bindings binds scope.node)
+    $(todo [[body.e scope] t.todo])
+  ?:  ?=(%branch -.e)
+    =/  arms=(list ishadow-node)
+      %+  turn  arms.e
+      |=  a=arm
+      [val.a (shadow-add-bindings (shadow-pattern-bindings pat.a) scope.node)]
+    $(todo (weld [[subject.e scope.node] arms] t.todo))
+  ?:  ?=(%body -.e)
+    =/  scope=ishadow-scope  (shadow-definitions-scope defs.e scope.node file src |)
+    =/  children=(list ishadow-node)  (turn (dependency-children e) |=(child=expr [child scope]))
+    $(todo (weld children t.todo))
+  =/  children=(list ishadow-node)  (turn (dependency-children e) |=(child=expr [child scope.node]))
+  $(todo (weld children t.todo))
+++  sample-shadow-context
+  |=  [s=sample state=istate]
+  ^-  (unit idiag)
+  =/  source=(unit @t)  local-source.state
+  ?~  source  ~
+  =/  parsed=(each module error)  (parse at.state u.source)
+  ?:  ?=(%| -.parsed)  ~
+  =/  scope=ishadow-scope  (shadow-prelude-scope prelude.state)
+  =.  scope  (shadow-imports-scope imports.p.parsed scope at.state u.source)
+  =.  scope  (shadow-definitions-scope defs.p.parsed scope at.state u.source |)
+  =/  todo=(list ishadow-node)
+    %+  murn  defs.p.parsed
+    |=  d=def
+    ?.  ?=(%value -.d)  ~
+    `[val.d scope]
+  (shadow-find-gate todo at.s at.state u.source)
 ::
 ++  infer-sample
   |=  [s=sample env=ienv state=istate]
@@ -7571,17 +10326,26 @@
       ?:  |((reserved-name name.s) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=itype  [%var next.state]
-      [%& t [[name.s [t ~]] env] state(next +(next.state), binders [next.state binders.state])]
+      [%& t [[name.s [t ~ ~]] env] state(next +(next.state), binders [next.state binders.state])]
     %face
       ?:  |((reserved-name name.s) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
       =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
       ?~  t  [%| "sample mold is not supported by partial inference"]
-      [%& typ.u.t [[name.s [typ.u.t ~]] env] state.u.t]
+      =/  value=itype  (itype-value-root typ.u.t)
+      ::  A structured sample value is one occurrence even when its
+      ::  expansion contains quantified variables. Keep a root so a
+      ::  returned binder retains identity independently of equal shapes.
+      ?:  &(?=(?(%fn %cell %union %collection) -.value) ?=(^ (itype-vars value)) general-defer.state.u.t)
+        =/  id=@ud  next.state.u.t
+        =/  anchored=itype  [%var id]
+        =/  st=istate  state.u.t(next +(id), sub (itype-bind id value sub.state.u.t))
+        [%& anchored [[name.s [anchored ~ ~]] env] st]
+      [%& value [[name.s [value ~ ~]] env] state.u.t]
     %bare
       =/  t=(unit [typ=itype state=istate])  (infer-simple-shape shape.s state)
       ?~  t  [%| "sample mold is not supported by partial inference"]
-      [%& typ.u.t env state.u.t]
+      [%& (itype-value-root typ.u.t) env state.u.t]
     %pun
       $(s [%face at.s name.s [%ref at.s ~[name.s]]])
     %cell
@@ -7600,9 +10364,9 @@
   =/  ht=itype  typ.p.head
   =.  ht
     ?-  -.i.items
-      %bind  [%face name.i.items ht]
-      %face  [%face name.i.items ht]
-      %pun   [%face name.i.items ht]
+      %bind  [%slot name.i.items ht]
+      %face  [%slot name.i.items ht]
+      %pun   [%slot name.i.items ht]
       *      ht
     ==
   ?~  t.items  [%& ht env.p.head state.p.head]
@@ -7615,12 +10379,26 @@
 ::  monomorphic placeholders while their bodies are checked.
 ::
 +$  ilocal-result  (each [env=ienv state=istate] idiag)
+::  Graph roots and quantified IDs are scheme-local namespaces; only
+::  variables not defined by either may refer to the enclosing scope.
+++  scheme-free-vars
+  |=  scheme=ischeme
+  ^-  (list @ud)
+  =/  local=(list @ud)  vars.scheme
+  =/  types=(list itype)  ~[typ.scheme]
+  =?  local  ?=(^ graph.scheme)
+    (weld (turn roots.u.graph.scheme |=(r=igraph-root id.r)) local)
+  =?  types  ?=(^ graph.scheme)
+    (weld (turn roots.u.graph.scheme |=(r=igraph-root body.r)) types)
+  =/  ids=(list @ud)  (unique-type-vars (zing (turn types |=(t=itype (itype-vars t)))))
+  (skim ids |=(n=@ud !(lien local |=(x=@ud =(n x)))))
+::
 ++  free-env-vars
   |=  [env=ienv sub=isub]
   ^-  (list @ud)
   ?~  env  ~
   =/  sc=ischeme  scheme.i.env
-  =/  ids=(list @ud)  (unique-type-vars (itype-vars typ.sc))
+  =/  ids=(list @ud)  (scheme-free-vars sc)
   =/  free=(list @ud)  ~
   |-
   ?~  ids  (weld free (free-env-vars t.env sub))
@@ -7633,6 +10411,220 @@
   ^-  (list @ud)
   ?~  caps  ~
   (weld (itype-vars (itype-normalize [%var id.i.caps] sub)) $(caps t.caps))
+::
+::  Record the lexical level at which each allocation was made. Nested
+::  definitions may already have registered part of the interval; never
+::  replace their more specific levels when returning to an outer scope.
+::  Variable names occupy the upper bits of an id, while allocation counts
+::  occupy the lower bits (+var-count).
+++  ilevel-register
+  |=  [start=@ud end=@ud level=@ud levels=(map @ud @ud)]
+  ^-  (map @ud @ud)
+  ?:  (gte start end)  levels
+  =?  levels  ?=(~ (~(get by levels) start))
+    (~(put by levels) start level)
+  $(start +(start))
+::
+::  Lower every variable reached by a binding to at most the level of its
+::  owner. The seen map records the best level visited, so a second path at
+::  a lower level is still traversed. Each walk uses the current binding
+::  selected by +itype-lookup, not a shadowed association-list entry.
+++  ilevel-lower-children
+  |=  [ids=(list @ud) level=@ud index=(map @ud itype) levels=(map @ud @ud) seen=(map @ud @ud)]
+  ^-  [levels=(map @ud @ud) seen=(map @ud @ud)]
+  ?~  ids  [levels seen]
+  =/  child=[levels=(map @ud @ud) seen=(map @ud @ud)]
+    (ilevel-lower-tree i.ids level index levels seen)
+  $(ids t.ids, levels levels.child, seen seen.child)
+::
+++  ilevel-lower-tree
+  |=  [id=@ud level=@ud index=(map @ud itype) levels=(map @ud @ud) seen=(map @ud @ud)]
+  ^-  [levels=(map @ud @ud) seen=(map @ud @ud)]
+  =/  prior=(unit @ud)  (~(get by seen) id)
+  ?:  ?~(prior | (lte u.prior level))  [levels seen]
+  =.  seen  (~(put by seen) id level)
+  =/  key=@ud  (var-count id)
+  =/  old=(unit @ud)  (~(get by levels) key)
+  =/  actual=@ud  ?~(old 0 (min level u.old))
+  =.  levels  (~(put by levels) key actual)
+  =/  found=(unit itype)  (~(get by index) id)
+  ?~  found  [levels seen]
+  (ilevel-lower-children (itype-vars u.found) actual index levels seen)
+::
+::  Substitutions grow at the front. Extract new bindings oldest first;
+::  if a transactional branch is not descended from the cached state,
+::  return ~ so the caller can rebuild the index from its own snapshot.
+++  isub-new-bindings
+  |=  [current=(list ibinding) before=(list ibinding) out=(list ibinding)]
+  ^-  (unit (list ibinding))
+  ?:  =(current before)  `out
+  ?~  current  ~
+  $(current t.current, out [i.current out])
+::
+++  isub-new-witnesses
+  |=  [current=(list iwitness-change) before=(list iwitness-change) out=(list ibinding)]
+  ^-  (unit (list ibinding))
+  ?:  =(current before)  `out
+  ?~  current  ~
+  $(current t.current, out [[id.i.current [%var id.i.current]] out])
+::
+++  ilevel-index-add
+  |=  [bindings=(list ibinding) index=(map @ud itype) counts=(map @ud (list @ud))]
+  ^-  [index=(map @ud itype) counts=(map @ud (list @ud))]
+  ?~  bindings  [index counts]
+  =/  binding=ibinding  i.bindings
+  =/  previous=(unit itype)  (~(get by index) id.binding)
+  =/  key=@ud  (var-count id.binding)
+  =/  existing=(unit (list @ud))  (~(get by counts) key)
+  =?  counts  ?=(~ previous)
+    (~(put by counts) key [id.binding ?~(existing ~ u.existing)])
+  $(bindings t.bindings, index (~(put by index) id.binding val.binding))
+::
+::  Several named IDs can share an allocation count and therefore one
+::  lexical level. Visit each corresponding binding when that level is
+::  lowered, as well as the variables inside the binding itself.
+++  ilevel-lower-indexed-children
+  |=  [ids=(list @ud) level=@ud index=(map @ud itype) counts=(map @ud (list @ud)) levels=(map @ud @ud) seen=(map @ud @ud)]
+  ^-  [levels=(map @ud @ud) seen=(map @ud @ud)]
+  ?~  ids  [levels seen]
+  =/  child=[levels=(map @ud @ud) seen=(map @ud @ud)]
+    (ilevel-lower-indexed i.ids level index counts levels seen)
+  $(ids t.ids, levels levels.child, seen seen.child)
+::
+++  ilevel-lower-indexed
+  |=  [id=@ud level=@ud index=(map @ud itype) counts=(map @ud (list @ud)) levels=(map @ud @ud) seen=(map @ud @ud)]
+  ^-  [levels=(map @ud @ud) seen=(map @ud @ud)]
+  =/  prior=(unit @ud)  (~(get by seen) id)
+  ?:  ?~(prior | (lte u.prior level))  [levels seen]
+  =.  seen  (~(put by seen) id level)
+  =/  key=@ud  (var-count id)
+  =/  old=(unit @ud)  (~(get by levels) key)
+  =/  actual=@ud  ?~(old 0 (min level u.old))
+  =.  levels  (~(put by levels) key actual)
+  =/  same=(unit (list @ud))  (~(get by counts) key)
+  =/  found=(unit itype)  (~(get by index) id)
+  =/  children=(list @ud)  ?~(found ~ (itype-vars u.found))
+  (ilevel-lower-indexed-children (weld ?~(same ~ u.same) children) actual index counts levels seen)
+::
+++  ilevel-refresh
+  |=  state=istate
+  ^-  istate
+  =/  fresh=(unit (list ibinding))  (isub-new-bindings (isub-history sub.state) (isub-history indexed-sub.state) ~)
+  =/  additions=(list ibinding)  ?~(fresh (flop (isub-history sub.state)) u.fresh)
+  =/  index=(map @ud itype)  ?~(fresh ~ sub-index.state)
+  =/  counts=(map @ud (list @ud))  ?~(fresh ~ sub-counts.state)
+  =/  indexed=[index=(map @ud itype) counts=(map @ud (list @ud))]
+    (ilevel-index-add additions index counts)
+  =/  levels=(map @ud @ud)  levels.state
+  =/  seen=(map @ud @ud)  ~
+  =/  todo=(list ibinding)  additions
+  |-
+  ?~  todo
+    state(indexed-sub sub.state, sub-index index.indexed, sub-counts counts.indexed, levels levels)
+  =/  old=(unit @ud)  (~(get by levels) (var-count id.i.todo))
+  =/  walked=[levels=(map @ud @ud) seen=(map @ud @ud)]
+    (ilevel-lower-indexed id.i.todo ?~(old 0 u.old) index.indexed counts.indexed levels seen)
+  $(todo t.todo, levels levels.walked, seen seen.walked)
+::
+++  ilevel-propagate
+  |=  [todo=isub sub=isub levels=(map @ud @ud)]
+  ^-  (map @ud @ud)
+  =/  index=(map @ud itype)
+    %+  roll  (flop (isub-history sub))
+    |=  [binding=ibinding map=(map @ud itype)]
+    (~(put by map) id.binding val.binding)
+  =/  seen=(map @ud @ud)  ~
+  =/  bindings=(list ibinding)  (isub-history todo)
+  |-
+  ?~  bindings  levels
+  =/  old=(unit @ud)  (~(get by levels) (var-count id.i.bindings))
+  =/  walked=[levels=(map @ud @ud) seen=(map @ud @ud)]
+    (ilevel-lower-tree id.i.bindings ?~(old 0 u.old) index levels seen)
+  $(bindings t.bindings, levels levels.walked, seen seen.walked)
+::
+::  Recover an earlier lexical binding only for a collision already found
+::  by inference.  A missing source leaves the original diagnostic intact.
+++  shadow-origin-site
+  |=  [origin=ishadow-origin file=path src=@t]
+  ^-  idsite
+  =/  first=idsite  site.origin
+  ?.  definition.origin  first
+  ?:  ?=(%external -.first)
+    first(at (definition-name-site file.first source.first at.first))
+  [(definition-name-site file src at.first) note.first]
+::
+++  shadow-local-definitions
+  |=  [defs=(list def) scope=ishadow-scope file=path src=@t]
+  ^-  (unit idiag)
+  ?~  defs  ~
+  ?.  ?=(%value -.i.defs)  $(defs t.defs)
+  =/  name=term  name.i.defs
+  =/  site=span  (definition-name-site file src at.i.defs)
+  ?:  (reserved-name name)
+    `["`{(trip name)}` is reserved and cannot be bound" ~[[site "reserved local name"]]]
+  =/  previous=(unit ishadow-origin)  (~(get by scope) name)
+  ?^  previous
+    =/  first=idsite  (shadow-origin-site u.previous file src)
+    `["local definition `{(trip name)}` shadows a name already in scope" ~[first [site "conflicting local definition"]]]
+  $(defs t.defs, scope (~(put by scope) name [[at.i.defs "earlier binding"] &]))
+::
+++  shadow-pattern-at
+  |=  [arms=(list arm) target=span scope=ishadow-scope file=path src=@t]
+  ^-  (unit idiag)
+  ?~  arms  ~
+  =/  a=arm  i.arms
+  ?.  =(at.pat.a target)  $(arms t.arms)
+  =/  binds=(list ishadow-binding)  (shadow-pattern-bindings pat.a)
+  |-
+  ?~  binds  ~
+  =/  earlier=(unit ishadow-origin)  (~(get by scope) name.i.binds)
+  ?^  earlier
+    =/  first=idsite  (shadow-origin-site u.earlier file src)
+    `["pattern binder `{(trip name.i.binds)}` shadows a name already in scope" ~[first [at.i.binds "shadowing binder"]]]
+  $(binds t.binds)
+::
+++  shadow-find-binding
+  |=  [todo=(list ishadow-node) target=span kind=?(%local %pattern) file=path src=@t]
+  ^-  (unit idiag)
+  ?~  todo  ~
+  =/  node=ishadow-node  i.todo
+  =/  e=expr  e.node
+  ?:  ?=(?(%gate %gate-wide) -.e)
+    =/  scope=ishadow-scope  (shadow-add-bindings (shadow-sample-bindings sample.e) scope.node)
+    $(todo [[body.e scope] t.todo])
+  ?:  ?=(%branch -.e)
+    =/  collision=(unit idiag)
+      ?:(=(kind %pattern) (shadow-pattern-at arms.e target scope.node file src) ~)
+    ?^  collision  collision
+    =/  arms=(list ishadow-node)
+      %+  turn  arms.e
+      |=  a=arm
+      [val.a (shadow-add-bindings (shadow-pattern-bindings pat.a) scope.node)]
+    $(todo (weld [[subject.e scope.node] arms] t.todo))
+  ?:  ?=(%body -.e)
+    ?:  &(=(kind %local) =(at.e target))
+      (shadow-local-definitions defs.e scope.node file src)
+    =/  scope=ishadow-scope  (shadow-definitions-scope defs.e scope.node file src |)
+    =/  children=(list ishadow-node)  (turn (dependency-children e) |=(child=expr [child scope]))
+    $(todo (weld children t.todo))
+  =/  children=(list ishadow-node)  (turn (dependency-children e) |=(child=expr [child scope.node]))
+  $(todo (weld children t.todo))
+::
+++  shadow-binding-context
+  |=  [target=span kind=?(%local %pattern) state=istate]
+  ^-  (unit idiag)
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  scope=ishadow-scope  (shadow-prelude-scope prelude.state)
+  =.  scope  (shadow-imports-scope imports.p.parsed scope at.state u.local-source.state)
+  =.  scope  (shadow-definitions-scope defs.p.parsed scope at.state u.local-source.state |)
+  =/  todo=(list ishadow-node)
+    %+  murn  defs.p.parsed
+    |=  d=def
+    ?.  ?=(%value -.d)  ~
+    `[val.d scope]
+  (shadow-find-binding todo target kind at.state u.local-source.state)
 ::
 ++  local-names-valid
   |=  [ds=(list def) env=ienv state=istate]
@@ -7658,20 +10650,140 @@
   ?:  ?=(%mold -.i.ds)  $(ds t.ds)
   [i.ds $(ds t.ds)]
 ::
-++  local-mold-names-valid
-  |=  [locals=imolds state=istate]
-  ^-  ?
-  =/  names=(list term)  (turn locals |=(m=[name=term body=shape] name.m))
+::  Find the real imported binding only when the containing source is known.
+++  source-import-binding-site
+  |=  [name=term state=istate]
+  ^-  (unit idsite)
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  scope=ishadow-scope
+    (shadow-imports-scope imports.p.parsed ~ at.state u.local-source.state)
+  =/  earlier=(unit ishadow-origin)  (~(get by scope) name)
+  ?~  earlier  ~
+  `site.u.earlier
+::
+::  The prelude interface carries its original source.  Only report a
+::  declaration that is both exported and present in that checked source.
+++  source-prelude-mold-site
+  |=  [name=term state=istate]
+  ^-  (unit idsite)
+  ?~  prelude.state  ~
+  ?~  source.u.prelude.state  ~
+  ?~  (find-jibb-mold name u.prelude.state)  ~
+  =/  file=path  at.u.prelude.state
+  =/  src=@t  u.source.u.prelude.state
+  =/  parsed=(each module error)  (parse file src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  defs=(list def)  defs.p.parsed
   |-
-  ?~  locals  &
-  =/  n=term  name.i.locals
-  ?:  (reserved-name n)  |
-  ?.  (unique-value-name n names)  |
-  ?:  (lien molds.state |=(m=[name=term body=shape] =(n name.m)))  |
-  ?:  (lien marks.state |=(m=term =(n m)))  |
-  ?:  (lien reserved-molds.state |=(m=term =(n m)))  |
-  ?:  (lien surs.state |=(m=term =(n m)))  |
-  $(locals t.locals)
+  ?~  defs  ~
+  ?.  ?=(%mold -.i.defs)  $(defs t.defs)
+  ?.  =(name.i.defs name)  $(defs t.defs)
+  =/  site=span  (definition-name-site file src at.i.defs)
+  `[%external file src site "earlier binding"]
+::
+++  local-mold-diagnostic
+  |=  [defs=(list def) state=istate]
+  ^-  (unit idiag)
+  =/  seen=(map term span)  ~
+  |-
+  ?~  defs  ~
+  ?:  ?=(%value -.i.defs)  $(defs t.defs)
+  =/  name=term  name.i.defs
+  =/  at=span  at.i.defs
+  ?:  (reserved-name name)
+    `["`{(trip name)}` is reserved and cannot be bound" ~[[at "reserved local mold name"]]]
+  =/  earlier=(unit span)  (~(get by seen) name)
+  ?^  earlier
+    `["local mold `{(trip name)}` shadows another local mold" ~[[u.earlier "earlier local mold"] [at "conflicting local mold"]]]
+  =/  outer=(unit shape)  (find-simple-mold name molds.state)
+  ?^  outer
+    `["local mold `{(trip name)}` shadows an enclosing mold" ~[[at.u.outer "enclosing mold"] [at "conflicting local mold"]]]
+  ?:  |((lien marks.state |=(m=term =(name m))) (lien reserved-molds.state |=(m=term =(name m))) (lien surs.state |=(m=term =(name m))))
+    =/  imported=(unit idsite)  (source-import-binding-site name state)
+    ?^  imported
+      `["local mold `{(trip name)}` shadows an imported or prelude name" ~[u.imported [at "conflicting local mold"]]]
+    =/  prelude-site=(unit idsite)  (source-prelude-mold-site name state)
+    ?^  prelude-site
+      `["local mold `{(trip name)}` shadows an imported or prelude name" ~[u.prelude-site [at "conflicting local mold"]]]
+    `["local mold `{(trip name)}` shadows an imported or prelude name" ~[[at "conflicting local mold"]]]
+  $(defs t.defs, seen (~(put by seen) name at))
+::
+:: A local mold closes over the capital roots in scope at its declaration.
+:: Keep that environment by declaration, not by the later caller's scope.
+++  local-mold-params
+  |=  [name=term captures=imold-captures]
+  ^-  iparams
+  ?~  captures  ~
+  ?:  =(name name.i.captures)  params.i.captures
+  $(captures t.captures)
+++  local-mold-reference-list
+  |=  shapes=(list shape)
+  ^-  (list term)
+  ?~  shapes  ~
+  (weld (local-mold-references i.shapes) $(shapes t.shapes))
+++  local-mold-references
+  |=  sh=shape
+  ^-  (list term)
+  ?-  -.sh
+    %ref      ?:(?=([@ ~] names.sh) ~[i.names.sh] ~)
+    %apply    (weld ?:(?=([@ ~] ref.sh) ~[i.ref.sh] ~) (local-mold-reference-list args.sh))
+    %cell     (local-mold-field-references fields.sh)
+    %union    (local-mold-reference-list cases.sh)
+    %fn       (weld $(sh sample.sh) $(sh product.sh))
+    %generic  $(sh body.sh)
+    *         ~
+  ==
+++  local-mold-field-references
+  |=  fields=(list field)
+  ^-  (list term)
+  ?~  fields  ~
+  =/  here=(list term)
+    ?-  -.i.fields
+      %pun   ~[name.i.fields]
+      %bare  (local-mold-references shape.i.fields)
+      %face  (local-mold-references shape.i.fields)
+    ==
+  (weld here $(fields t.fields))
+++  local-mold-param-union
+  |=  [left=iparams right=iparams]
+  ^-  iparams
+  ?~  right  left
+  =/  present=?  (lien left |=(p=[name=@t typ=itype] =(name.p name.i.right)))
+  $(right t.right, left ?:(present left (snoc left i.right)))
+++  local-mold-capture-visit
+  |=  [name=term molds=imolds direct=imold-captures seen=(list term)]
+  ^-  [params=iparams seen=(list term)]
+  ?:  (lien seen |=(n=term =(n name)))  [~ seen]
+  =/  found=(unit shape)  (find-simple-mold name molds)
+  ?~  found  [~ seen]
+  =.  seen  [name seen]
+  =/  refs=(list term)  (local-mold-references u.found)
+  =/  params=iparams  (local-mold-params name direct)
+  |-
+  ?~  refs  [params seen]
+  =/  next=[params=iparams seen=(list term)]
+    (local-mold-capture-visit i.refs molds direct seen)
+  $(refs t.refs, params (local-mold-param-union params params.next), seen seen.next)
+++  local-mold-capture-close
+  |=  [molds=imolds all=imolds direct=imold-captures]
+  ^-  imold-captures
+  ?~  molds  ~
+  =/  closed=[params=iparams seen=(list term)]
+    (local-mold-capture-visit name.i.molds all direct ~)
+  [[name.i.molds params.closed] $(molds t.molds)]
+++  local-mold-capture-list
+  |=  [molds=imolds caps=icaps params=iparams]
+  ^-  imold-captures
+  =/  closed=iparams  (weld (turn caps |=(c=icap [name.c [%var id.c]])) params)
+  =/  direct=imold-captures
+    |-  ^-  imold-captures
+    ?~  molds  ~
+    =/  referenced=(list icap-site)  (scope-shape body.i.molds)
+    =/  own=iparams  (skim closed |=(p=[name=@t typ=itype] (lien referenced |=(r=icap-site =(name.p name.r)))))
+    [[name.i.molds own] $(molds t.molds)]
+  (local-mold-capture-close molds molds direct)
 ::
 ++  local-molds-supported
   |=  [locals=imolds state=istate]
@@ -7679,7 +10791,7 @@
   ?~  locals  &
   =/  m=[name=term body=shape]  i.locals
   =/  inferred=(unit [template=ischeme state=istate])
-    (infer-mold-template body.m state(active [name.m active.state], in-mold &))
+    (infer-mold-template body.m state(active [name.m active.state], in-mold &, params (local-mold-params name.m mold-captures.state)))
   ?~  inferred  |
   $(locals t.locals)
 ::
@@ -7915,8 +11027,9 @@
 ::    in every order. With no shared variables, each local is inferred
 ::    from generalized schemes alone.
 ::
-::    A cyclic group's own errors are not kept. A definition that infers
-::    but is then unsupported reports that at once: a failure recorded
+::    A cyclic group's definite error is retained if no component can
+::    make progress. A definition that infers but cannot generalize reports
+::    that at once: a failure recorded
 ::    earlier in the pass may still pass on a retry, once a sibling has
 ::    constrained a shared variable.
 ::
@@ -7939,8 +11052,10 @@
     ?.  progressed
       =/  pending=(list def)  (flop remaining)
       =/  groups=icomponents  (graph-components pending (global-value-names pending))
-      =/  grouped=(unit [rest=(list def) env=ienv state=istate])
+      =/  attempted=ilocal-group-result
         (try-local-group pending groups env state)
+      ?:  ?=(%| -.attempted)  [%| p.attempted]
+      =/  grouped=(unit [rest=(list def) env=ienv state=istate])  p.attempted
       ?~  grouped
         =/  sure=(list [diag=idiag closed=?])
           ?:  |(?=(~ shared) !blocked)  failures
@@ -7951,7 +11066,11 @@
     $(ds (flop remaining), remaining ~, failures ~, blocked |, progressed |)
   =/  d=def  i.ds
   ?>  ?=(%value -.d)
-  =/  local-state=istate  (reserve-def-caps val.d state)
+  ::  Allocations made by the enclosing expression belong to its level;
+  ::  record them before entering this definition's deeper scope.
+  =.  levels.state  (ilevel-register registered.state next.state level.state levels.state)
+  =.  registered.state  next.state
+  =/  local-state=istate  (reserve-def-caps val.d state(level +(level.state), owner name.d))
   =/  plain=iresult  (infer-fragment val.d env local-state)
   =/  inferred=iresult
     ?:  ?=(%& -.plain)  plain
@@ -7968,9 +11087,9 @@
     =?  failures  |(closed !(shared-moved shared sub.state))
       [[failure closed] failures]
     $(ds t.ds, remaining [d remaining])
-  ::  Only the deferred transaction adds obligations, and it keeps no
-  ::  failure reason. Obligations from a local are a checker limit.
-  ?:  !=(obligations.state.p.inferred obligations.state)  [%| ["deferred local definition needs unsupported inference" ~]]
+  =.  levels.state.p.inferred
+    (ilevel-register registered.state.p.inferred next.state.p.inferred +(level.state) levels.state.p.inferred)
+  =.  registered.state.p.inferred  next.state.p.inferred
   =.  state.p.inferred  (promote-restricted-numbers state.p.inferred env)
   =.  state.p.inferred  (default-hole-numbers holes.state.p.inferred holes.state state.p.inferred env !(itype-has-gate (itype-normalize typ.p.inferred sub.state.p.inferred)))
   =/  hole=(unit idiag)  (unresolved-hole holes.state.p.inferred holes.state state.p.inferred)
@@ -7982,37 +11101,66 @@
   ?:  (constrained-capitals caps.state.p.inferred sub.state.p.inferred)
     [%| ["explicit capital constraints are not supported by partial inference" ~]]
   =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
-  ?:  |((pending-tags tags.state.p.inferred sub.state.p.inferred) (itype-has-tag typ))
+  ?:  &(!general-defer.state |((pending-tags tags.state.p.inferred sub.state.p.inferred) (itype-has-tag typ)))
     $(ds t.ds, remaining [d remaining], blocked &)
-  ?:  (unsupported-atom-vars typ caps.state.p.inferred binders.state.p.inferred sub.state.p.inferred)
+  =/  nums=(list @ud)  ?:(general-defer.state (icore-number-candidates typ env state.p.inferred) ~)
+  =/  sample-nums=(list @ud)  ?:(general-defer.state (icore-sample-number-candidates typ env state.p.inferred) ~)
+  ::  Captured numeric roots stay monomorphic and are finalized by their
+  ::  enclosing definition. This temporary substitution only validates
+  ::  the local scheme; it never defaults or generalizes the shared root.
+  =/  captured-nums=(list @ud)
+    ?.  general-defer.state  ~
+    (skim (icore-env-vars env sub.state.p.inferred) |=(n=@ud (has-number-var n typ)))
+  =/  test-sub=isub  (icore-number-test-sub (weld nums (weld sample-nums captured-nums)) sub.state.p.inferred)
+  ?:  (unsupported-atom-vars (itype-normalize typ test-sub) caps.state.p.inferred binders.state.p.inferred test-sub)
     $(ds t.ds, remaining [d remaining], blocked &)
-  =/  free=(list @ud)
-    (weld (free-env-vars env sub.state.p.inferred) (free-cap-vars caps.state sub.state.p.inferred))
+  =/  excluded=(list @ud)  (icore-number-exclusions typ env state.p.inferred)
+  =?  queue.state.p.inferred  general-defer.state
+    (icore-discharge-number-edges queue.state.p.inferred name.d excluded sub.state.p.inferred)
+  =.  state.p.inferred  (ilevel-refresh state.p.inferred)
   =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
-  =/  named=[typ=itype vars=(list @ud)]  (cap-names typ vars caps.state.p.inferred sub.state.p.inferred)
-  $(ds t.ds, env [[name.d named] env], state state.p.inferred(caps caps.state, holes holes.state), progressed &)
+  =.  vars
+    %+  skim  vars
+    |=  n=@ud
+    =/  birth=(unit @ud)  (~(get by levels.state.p.inferred) (var-count n))
+    ?~(birth | (gth u.birth level.state))
+  =/  candidate=(unit ischeme)
+    ?.  general-defer.state
+      `(cap-names typ vars caps.state.p.inferred sub.state.p.inferred)
+    (icore-generalize-preserved typ.p.inferred typ level.state state.p.inferred)
+  ?~  candidate  [%| ["local constraints need unsupported inference" ~]]
+  =/  named=ischeme  u.candidate
+  =?  named  general-defer.state  (icore-generic-number-aura named)
+  =?  projections.state.p.inferred  general-defer.state
+    (icore-projection-scopes ~[d] ~[[name.d named]] projections.state.p.inferred sub.state.p.inferred)
+  $(ds t.ds, env [[name.d named] env], state state.p.inferred(caps caps.state, holes holes.state, level level.state, owner owner.state), progressed &)
 ::
 ::  Try complete cyclic local groups after individual definitions stall.
-::  Components with non-gates or unresolved constraints stay unavailable.
-::
+::  A successful component may fix another component's pending constraints,
+::  so retain an error only when none can progress in this state.
++$  ilocal-group-result
+  (each (unit [rest=(list def) env=ienv state=istate]) idiag)
 ++  try-local-group
   |=  [ds=(list def) groups=icomponents env=ienv state=istate]
-  ^-  (unit [rest=(list def) env=ienv state=istate])
-  ?~  groups  ~
+  ^-  ilocal-group-result
+  =|  failure=(unit idiag)
+  |-  ^-  ilocal-group-result
+  ?~  groups  ?~(failure [%& ~] [%| u.failure])
   =/  names=(list term)  i.groups
   ?.  (gth (lent names) 1)  $(groups t.groups)
   =/  members=(list def)
     (skim ds |=(d=def &(?=(%value -.d) (lien names |=(n=term =(n name.d))))))
   ?.  =((lent members) (lent names))  $(groups t.groups)
   =/  result=ilocal-result  (infer-gate-group members env state)
-  ?:  ?=(%| -.result)  $(groups t.groups)
+  ?:  ?=(%| -.result)
+    =?  failure  &(?=(~ failure) (definite-diag p.result))  `p.result
+    $(groups t.groups)
   =/  rest=(list def)
     (skim ds |=(d=def !(lien names |=(n=term =(n name.d)))))
-  =/  more=(unit [rest=(list def) env=ienv state=istate])
-    $(ds rest, groups t.groups, env env.p.result, state state.p.result)
-  ?^  more  more
-  `[rest env.p.result state.p.result]
+  =/  more=ilocal-group-result
+    (try-local-group rest t.groups env.p.result state.p.result)
+  ?:  &(?=(%& -.more) ?=(^ p.more))  more
+  [%& `[rest env.p.result state.p.result]]
 ::
 ::  Read only fields of a known record. Unresolved field constraints and
 ::  ambiguous repeated faces are outside this fragment. Imported record
@@ -8022,119 +11170,85 @@
   |=  [name=term t=itype sub=isub]
   ^-  (list itype)
   =.  t  (itype-walk t sub)
-  ?:  ?=(%face -.t)
+  ?:  ?=(?(%face %slot) -.t)
     ?:(=(name name.t) ~[body.t] ~)
   ?.  ?=(%cell -.t)  ~
   =/  first=(list itype)  ~
   =/  head=itype  (itype-walk hed.t sub)
-  =?  first  ?=(%face -.head)  ?:(=(name name.head) ~[body.head] ~)
+  =?  first  ?=(?(%face %slot) -.head)  ?:(=(name name.head) ~[body.head] ~)
   (weld first $(t tal.t))
 ::
+++  scheme-in-import
+  |=  [scheme=ischeme iface=ifile face=term prelude=(unit ifile)]
+  ^-  ischeme
+  =.  typ.scheme  (itype-in-import typ.scheme iface face prelude)
+  ?~  graph.scheme  scheme
+  =.  roots.u.graph.scheme
+    (turn roots.u.graph.scheme |=(r=igraph-root r(body (itype-in-import body.r iface face prelude))))
+  scheme
+::
+::  The first field after an imported module is an exported value.  Its
+::  name is second from the right in the source wing.
+++  missing-module-member
+  |=  [names=(list term) face=term member=term site=span state=istate]
+  ^-  idiag
+  =/  prefix=(list term)  (scag (sub (lent names) 2) names)
+  =/  offset=@ud  ?~(prefix 0 (add 1 (lent (show-names prefix))))
+  =/  from=loc  [line.beg.site (add col.beg.site offset)]
+  =/  member-site=span  [from [line.from (add col.from (lent (trip member)))]]
+  =/  earlier=(unit idsite)  (source-import-binding-site face state)
+  =/  msg=tape  "module `{(trip face)}` has no value `{(trip member)}`"
+  ?^  earlier  [msg ~[u.earlier [member-site "unknown module member"]]]
+  [msg ~[[member-site "unknown module member"]]]
+::
+::  A declared definition may still be awaiting inference.  Only a name
+::  absent from the environment, prelude and declaration set is unbound.
+++  unknown-value-result
+  |=  [name=term site=span state=istate]
+  ^-  iresult
+  ?:  (lien globals.state |=(n=term =(name n)))
+    [%| ["name is not available to partial inference" ~]]
+  [%| ["unknown name `{(trip name)}`" ~[[site "unknown name"]]]]
+::
 ++  infer-field-wing
-  |=  [names=(list term) env=ienv state=istate]
+  |=  [names=(list term) env=ienv state=istate site=span]
   ^-  iresult
   =/  reverse=(list term)  (flop names)
   ?~  reverse  [%| ["empty wing" ~]]
-  =/  iface=(unit ifile)  (find-jibb-interface i.reverse jimports.state)
+  =/  iface=(unit ifile)  (find-scope-interface i.reverse jimports.state prelude.state)
   =/  fields=(list term)  t.reverse
   ?~  fields  [%| ["field access is not supported by partial inference" ~]]
   =/  scheme=(unit ischeme)
-    ?~  iface
-      (ienv-lookup i.reverse env)
-    (ienv-lookup i.fields values.u.iface)
+    ?^  iface  (ienv-lookup i.fields values.u.iface)
+    =/  local=(unit ischeme)  (ienv-lookup i.reverse env)
+    ?^  local  local
+    ?~  prelude.state  ~
+    (ienv-lookup i.reverse values.u.prelude.state)
   ?~  scheme
-    ?^  iface  [%| ["module member is not available to partial inference" ~]]
+    ?^  iface  [%| (missing-module-member names i.reverse i.fields site state)]
     [%| ["field access is not supported by partial inference" ~]]
-  =/  inst=[typ=itype state=istate]
+  =/  inst=(unit [typ=itype state=istate])
     ?~  iface  (instantiate-scheme u.scheme state)
-    =/  imported=ischeme  u.scheme
-    =.  typ.imported  (itype-in-import typ.imported u.iface i.reverse prelude.state)
+    =/  imported=ischeme  (scheme-in-import u.scheme u.iface i.reverse prelude.state)
     (instantiate-scheme imported state)
+  ?~  inst  [%| ["scheme graph needs unsupported inference" ~[[site "invalid scheme"]]]]
   =/  remaining=(list term)  ?~(iface fields t.fields)
-  =/  typ=itype  typ.inst
+  =/  all-fields=(list term)  remaining
+  =/  typ=itype  typ.u.inst
   |-
-  ?~  remaining  [%& typ state.inst]
-  =/  found=(list itype)  (record-fields-named i.remaining typ sub.state.inst)
-  ?~  found  [%| ["field is not available to partial inference" ~]]
+  ?~  remaining  [%& typ state.u.inst]
+  =/  found=(list itype)  (record-fields-named i.remaining typ sub.state.u.inst)
+  ?~  found
+    ?.  general-defer.state.u.inst  [%| ["field is not available to partial inference" ~]]
+    =/  result=itype  [%var next.state.u.inst]
+    =/  edge=icore-edge  [%wing typ.u.inst all-fields result site]
+    [%& result state.u.inst(next +(next.state.u.inst), queue [edge queue.state.u.inst])]
   ?^  t.found  [%| ["field name is ambiguous in partial inference" ~]]
   $(remaining t.remaining, typ i.found)
 ::
 ::  Propagate a known union or list through supported loobean, unit and list
 ::  branches. Empty bodies and groups are transparent; bodies with definitions
 ::  keep their normal scoping and wait for general bidirectional inference.
-::
-++  context-union-branch
-  |=  e=expr
-  ^-  ?
-  ?-  -.e
-    %branch  &
-    %group   $(e inner.e)
-    %body    ?~(defs.e $(e final.e) |)
-    *        |
-  ==
-::
-++  infer-union-context
-  |=  [e=expr expected=itype env=ienv state=istate context=span]
-  ^-  iresult
-  ?:  ?=(%group -.e)  $(e inner.e)
-  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
-  ?:  &(?=(%collection -.expected) =(%list name.expected) (context-list-expression e))
-    (infer-list-context e expected env state context)
-  ?:  ?=(%branch -.e)
-    =/  named=(unit idiag)  (branch-tag-name e env state)
-    ?^  named  [%| u.named]
-    =/  empty-list=(unit iresult)  (empty-list-null-branch e env state `[expected context])
-    ?^  empty-list  u.empty-list
-    ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
-    ?~  t.arms.e  [%| ["branch pattern is not supported by partial inference" ~]]
-    ?^  t.t.arms.e  [%| ["branch is not supported by partial inference" ~]]
-    =/  x=arm  i.arms.e
-    =/  y=arm  i.t.arms.e
-    ?:  |((unit-empty-pattern pat.x) (unit-empty-pattern pat.y))
-      (infer-unit-branch e env state `[expected context])
-    ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))
-      [%| ["branch pattern is not supported by partial inference" ~]]
-    ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
-      [%| ["branch pattern is not supported by partial inference" ~]]
-    ?:  =(val.lit.pat.x val.lit.pat.y)
-      [%| ["branch does not cover both loobeans" ~]]
-    =/  subject=iresult  (infer-fragment subject.e env state)
-    ?:  ?=(%| -.subject)  subject
-    =/  subject-type=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-    ?:  ?=(%union -.subject-type)
-      [%| ["contextual union-pattern branch is not supported by partial inference" ~]]
-    =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
-    ?~  su  [%| ["loobean branch subject does not unify with ?" ~]]
-    =/  left=iresult  $(e val.x, state state.p.subject(sub u.su))
-    ?:  ?=(%| -.left)  left
-    =/  right=iresult  $(e val.y, state state.p.left)
-    ?:  ?=(%| -.right)  right
-    [%& expected state.p.right]
-  =/  value=iresult  (infer-fragment e env state)
-  ?:  ?=(%| -.value)  value
-  =/  fit=ifit  (itype-fit typ.p.value expected sub.state.p.value next.state.p.value)
-  ?:  ?=(%unknown -.fit)
-    ?:  &(?=(%collection -.expected) =(%list name.expected))
-      [%| ["branch list constraint is not supported by partial inference" ~]]
-    ?:  ?=(%flag -.expected)  [%| ["branch loobean constraint is not supported by partial inference" ~]]
-    [%| ["branch union constraint is not supported by partial inference" ~]]
-  ?:  ?=(%bad -.fit)
-    =/  missing=(unit idiag)  (missing-union-tag e expected sub.state.p.value context)
-    ?^  missing  [%| u.missing]
-    =/  nested=(unit idiag)  (nested-missing-tag e typ.p.value expected sub.state.p.value next.state.p.value context)
-    ?^  nested  [%| u.nested]
-    =/  decimal=(unit idiag)  (decimal-misfit e typ.p.value expected sub.state.p.value next.state.p.value)
-    ?^  decimal  [%| u.decimal]
-    ?:  &(?=(%collection -.expected) =(%list name.expected))
-      [%| ["branch arm does not fit its expected list" ~[[context "expected list"] [(span-of e) "branch arm"]]]]
-    ?:  ?=(%flag -.expected)
-      [%| ["branch arm does not fit its expected loobean" ~[[context "expected loobean"] [(span-of e) "branch arm"]]]]
-    [%| ["branch arm does not fit its expected union" ~[[context "expected union"] [(span-of e) "branch arm"]]]]
-  [%& expected state.p.value(sub sub.fit, next next.fit)]
-::
-::  A list expression needs a known list target and the validated prelude list.
-::  Literal items and unfaced two-item cons cells receive that target one by
-::  one; pending constraints elsewhere stay in the threaded state.
 ::
 ++  context-list-expression
   |=  e=expr
@@ -8148,18 +11262,133 @@
     *       |
   ==
 ::
++$  attribute-head  [name=term at=span]
+++  attribute-static-noun
+  |=  e=expr
+  ^-  (unit [noun=@ at=span])
+  ?-  -.e
+    %lit  `[val.lit.e at.e]
+    %str
+      ?.  ?=([[%text *] ~] pieces.e)  ~
+      `[p.i.pieces.e at.e]
+    %group  $(e inner.e)
+    *  ~
+  ==
+++  known-attribute-head
+  |=  e=expr
+  ^-  (unit attribute-head)
+  ?-  -.e
+    %pair  `[tag.e at.e]
+    %group  $(e inner.e)
+    %tuple
+      ?~  items.e  ~
+      ?~  t.items.e  ~
+      ?^  face.i.items.e  ~
+      =/  head=(unit [noun=@ at=span])  (attribute-static-noun val.i.items.e)
+      ?~  head  ~
+      `[`term`noun.u.head at.u.head]
+    *  ~
+  ==
+::  The resolved list element must be the named prelude attr union. An
+::  unrelated structural union with the same tags is not an attribute list.
+++  attribute-target-open
+  |=  [element=itype sub=isub]
+  ^-  ?
+  =.  element  (itype-walk element sub)
+  ?:  ?=(?(%face %slot) -.element)  $(element body.element)
+  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.element)
+::
+++  duplicate-attributes
+  |=  [element=itype sub=isub items=(list expr) prelude=(unit ifile)]
+  ^-  (unit idiag)
+  ?~  prelude  ~
+  =/  target=itype  (itype-walk element sub)
+  |-
+  ?:  ?=(?(%face %slot) -.target)  $(target body.target)
+  ?.  ?=(%union -.target)  ~
+  ?.  =(origin.target `[at.u.prelude %attr])  ~
+  (repeated-attribute-heads items)
+::
+++  repeated-attribute-heads
+  |=  items=(list expr)
+  ^-  (unit idiag)
+  =/  seen=(map term span)  *(map term span)
+  |-
+  ?~  items  ~
+  =/  head=(unit attribute-head)  (known-attribute-head i.items)
+  ?~  head  $(items t.items)
+  =/  first=(unit span)  (~(get by seen) name.u.head)
+  ?^  first
+    `["attribute `{(trip name.u.head)}` is repeated" ~[[u.first "first attribute"] [at.u.head "repeated attribute"]]]
+  $(items t.items, seen (~(put by seen) name.u.head at.u.head))
+::
+::  Source columns count UTF-8 characters; suggestions must slice bytes at
+::  the same character boundaries as the lexer.
+++  source-column-offset
+  |=  [bytes=tape column=@ud]
+  ^-  (unit @ud)
+  =/  current=@ud  1
+  =/  offset=@ud  0
+  |-
+  ?~  bytes  ?:(=(current column) `offset ~)
+  ?:  &(=(current column) !(in i.bytes cont-mask))  `offset
+  $(bytes t.bytes, current (next-col current i.bytes), offset +(offset))
+::
+::  A failed same-line list may contain a gate followed by its arguments.
+::  Suggest parentheses only after that ordinary call itself checks. This
+::  changes the diagnostic, never the inferred program or its substitutions.
+++  list-call-diagnostic
+  |=  [e=expr env=ienv state=istate diagnostic=idiag]
+  ^-  idiag
+  ?.  ?=(%list -.e)  diagnostic
+  ?~  items.e  diagnostic
+  ?~  t.items.e  diagnostic
+  =/  head=iresult  (infer-fragment i.items.e env state)
+  (list-call-diagnostic-known e env state diagnostic head)
+::
+++  list-call-diagnostic-known
+  |=  [e=expr env=ienv state=istate diagnostic=idiag head=iresult]
+  ^-  idiag
+  ?.  ?=(%list -.e)  diagnostic
+  ?~  items.e  diagnostic
+  ?~  t.items.e  diagnostic
+  ?~  local-source.state  diagnostic
+  =/  first=span  (span-of i.items.e)
+  =/  last=span  (span-of (rear items.e))
+  ?.  =(line.beg.first line.end.last)  diagnostic
+  ?:  ?=(%| -.head)  diagnostic
+  =/  typ=itype  (itype-walk typ.p.head sub.state.p.head)
+  ?.  ?=(%fn -.typ)  diagnostic
+  =/  site=span  [beg.first end.last]
+  =/  call=expr  [%call site i.items.e t.items.e]
+  =/  checked=iresult  (infer-call-with-head call env state head)
+  ?:  ?=(%| -.checked)  diagnostic
+  ?^  core-error.state.p.checked  diagnostic
+  =/  lines=wain  (to-wain:format u.local-source.state)
+  ?:  |(=(0 line.beg.site) (gth line.beg.site (lent lines)))  diagnostic
+  =/  line=@t  (snag (dec line.beg.site) lines)
+  =/  start=(unit @ud)  (source-column-offset (trip line) col.beg.site)
+  =/  end=(unit @ud)  (source-column-offset (trip line) col.end.site)
+  ?~  start  diagnostic
+  ?~  end  diagnostic
+  ?:  (lth u.end u.start)  diagnostic
+  =/  snippet=@t  (cut 3 [u.start (sub u.end u.start)] line)
+  =/  suggestion=tape  "calls in a list need parentheses; did you mean `~[({(trip snippet)})]`"
+  =/  extra=(list idsite)  ~[[at.e suggestion]]
+  diagnostic(msg "list items do not have compatible types; {suggestion}", sites (weld sites.diagnostic extra))
+::
 ++  infer-list-context
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
   ?:  ?=(%group -.e)  $(e inner.e)
   ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
-  ?~  prelude.state  [%| ["list literal needs the standard prelude in partial inference" ~]]
+  ?~  prelude.state  [%| (required-standard-list "list literal" at.e state)]
   ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
-    [%| ["list literal needs the standard prelude in partial inference" ~]]
+    [%| (required-standard-list "list literal" at.e state)]
   =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
-  ?~  standard  [%| ["list literal needs the standard prelude in partial inference" ~]]
-  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])
-    [%| ["list literal needs the standard prelude in partial inference" ~]]
+  ?~  standard  [%| (required-standard-list "list literal" at.e state)]
+  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0] ~])
+    [%| (required-standard-list "list literal" at.e state)]
   =/  target=itype  (itype-walk expected sub.state)
   ?.  ?=(%collection -.target)  [%| ["list context is not supported by partial inference" ~]]
   ?.  =(%list name.target)  [%| ["list context is not supported by partial inference" ~]]
@@ -8171,7 +11400,14 @@
     [%& target state]
   ?:  ?=(%list -.e)
     =/  result=iresult  (infer-list-items items.e i.args.target env state context)
-    ?:  ?=(%| -.result)  result
+    ?:  ?=(%| -.result)  [%| (list-call-diagnostic e env state p.result)]
+    =/  duplicate=(unit idiag)
+      (duplicate-attributes i.args.target sub.state.p.result items.e prelude.state.p.result)
+    ?^  duplicate
+      ?.  general-defer.state.p.result  [%| u.duplicate]
+      =/  st=istate  state.p.result
+      =/  edge=icore-edge  [%attributes i.args.target items.e at.e owner.st]
+      [%& target st(queue [edge queue.st])]
     [%& target state.p.result]
   ?.  ?=(%tuple -.e)  [%| ["list expression is not supported by partial inference" ~]]
   ?~  items.e  [%| ["cons shape is not supported by partial inference" ~]]
@@ -8191,41 +11427,192 @@
   ?:  ?=(%unknown -.fit)  [%| ["list tail constraint is not supported by partial inference" ~]]
   ?:  ?=(%bad -.fit)
     =/  decimal=(unit idiag)  (decimal-misfit val.i.t.items.e typ.p.tail target sub.state.p.tail next.state.p.tail)
-    ?^  decimal  [%| u.decimal]
+    ?^  decimal  [%| (diagnostic-expected-context u.decimal context target sub.state.p.tail)]
     [%| ["list tail does not fit its expected type" ~[[context (site-type-note "expected list" target sub.state.p.tail)] [(span-of val.i.t.items.e) (site-type-note "list tail" typ.p.tail sub.state.p.tail)]]]]
   [%& target state.p.tail(sub sub.fit, next next.fit)]
 ::
-::  done holds the items already checked, the last first, so that a
-::  decimal among them can be blamed when a later item fixes its aura.
+::  A concrete list join may widen an inferred element root only while
+::  none of the enclosing environment or written capitals share that root.
+++  list-alias-reaches
+  |=  [id=@ud target=@ud sub=isub fuel=@ud]
+  ^-  ?
+  ?:  =(id target)  &
+  ?:  =(0 fuel)  &
+  =/  next=(unit itype)  (itype-lookup id sub)
+  ?~  next  |
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.u.next)  |
+  ?:  =(id +.u.next)  |
+  $(id +.u.next, fuel (dec fuel))
+++  list-any-alias
+  |=  [ids=(list @ud) root=@ud sub=isub]
+  ^-  ?
+  ?~  ids  |
+  ?:  (list-alias-reaches i.ids root sub 1.024)  &
+  $(ids t.ids)
+++  list-env-shares
+  |=  [env=ienv root=@ud sub=isub]
+  ^-  ?
+  ?~  env  |
+  ?:  (list-any-alias (scheme-free-vars scheme.i.env) root sub)  &
+  $(env t.env)
+++  list-caps-share
+  |=  [caps=icaps root=@ud sub=isub]
+  ^-  ?
+  ?~  caps  |
+  ?:  (list-alias-reaches id.i.caps root sub 1.024)  &
+  $(caps t.caps)
+++  list-root-shared
+  |=  [root=@ud env=ienv state=istate]
+  ^-  ?
+  |((list-any-alias binders.state root sub.state) (list-caps-share caps.state root sub.state) (list-env-shares env root sub.state))
+++  list-concrete-item
+  |=  [typ=itype sub=isub fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  ?.  ?=(~ (itype-vars typ))  |
+  =.  typ  (itype-walk typ sub)
+  ?-  -.typ
+    ?(%atom %any-atom %flag %const)  &
+    ?(%face %slot)  $(typ body.typ, fuel (dec fuel))
+    %cell  &($(typ hed.typ, fuel (dec fuel)) $(typ tal.typ, fuel (dec fuel)))
+    *  |
+  ==
+++  list-items-concrete
+  |=  [items=(list itype) sub=isub]
+  ^-  ?
+  ?~  items  &
+  ?.  (list-concrete-item i.items sub 1.024)  |
+  $(items t.items)
+++  list-any-related
+  |=  [items=(list itype) value=itype sub=isub]
+  ^-  ?
+  ?~  items  |
+  ?:  (itype-family-related i.items value sub)  &
+  $(items t.items)
+++  list-closed-widening
+  |=  [expected=itype items=(list itype) env=ienv state=istate]
+  ^-  (unit isub)
+  ?.  ?=(%var -.expected)  ~
+  =/  bound=(unit itype)  (itype-lookup id.expected sub.state)
+  ?~  bound  ~
+  ?.  (list-concrete-item u.bound sub.state 1.024)  ~
+  ?:  (list-root-shared id.expected env state)  ~
+  ?.  (list-items-concrete items sub.state)  ~
+  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join-list items sub.state)
+  ?~  joined  ~
+  ?:  =((itype-normalize u.bound sub.u.joined) (itype-normalize typ.u.joined sub.u.joined))  ~
+  `(itype-bind id.expected typ.u.joined sub.u.joined)
+::
+::  done holds expressions for decimal diagnostics; types holds the raw
+::  item types so a proven common supertype never fixes an open generic.
 ++  infer-open-list-items
-  |=  [items=(list expr) expected=itype env=ienv state=istate context=span done=(list expr)]
+  |=  [items=(list expr) expected=itype env=ienv state=istate context=span done=(list expr) types=(list itype)]
   ^-  iresult
-  ?~  items  [%& expected state]
+  ?~  items
+    =/  final=(unit isub)  (list-closed-widening expected (flop types) env state)
+    ?~  final  [%& expected state]
+    [%& expected state(sub u.final)]
   =/  target=itype  (itype-walk expected sub.state)
   =/  value=iresult  (infer-call-context-arg i.items target env state context)
   ?:  ?=(%| -.value)  value
-  =/  ordinary-fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
-  =/  fit=ifit
-    ?:  ?=(%ok -.ordinary-fit)  ordinary-fit
-    ?:  ?&(?=(%union -.target) ?=(^ prelude.state) =(origin.target `[at.u.prelude.state %element]))
-      (program-single-generic-fit typ.p.value target sub.state.p.value next.state.p.value)
-    ordinary-fit
-  ?:  ?=(%unknown -.fit)  [%| ["list item constraint is not supported by partial inference" ~]]
+  =/  list-payload=(unit idiag)  (icore-list-item-payload state.p.value i.items typ.p.value expected context)
+  ?^  list-payload  [%| u.list-payload]
+  =.  queue.state.p.value
+    (icore-list-item-queue queue.state.p.value tagged-actuals.state.p.value tagged-sources.state.p.value i.items typ.p.value expected context sub.state.p.value)
+  ::  A tag-bearing item must wait for the list element's context; binding
+  ::  the element to the first written case would exclude other cases.
+  ?:  &(general-defer.state.p.value (itype-has-tag (itype-normalize typ.p.value sub.state.p.value)))
+    =/  edge=icore-edge  [%fit typ.p.value expected (span-of i.items) context owner.state.p.value ~]
+    $(items t.items, state state.p.value(queue [edge queue.state.p.value]), done [i.items done], types [typ.p.value types])
+  =/  fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
+  =/  related=?  (list-any-related types typ.p.value sub.state.p.value)
+  =/  widened=(unit isub)
+    ?.  &(!?=(%ok -.fit) related)  ~
+    (list-closed-widening expected (flop [typ.p.value types]) env state.p.value)
+  ?^  widened
+    $(items t.items, state state.p.value(sub u.widened), done [i.items done], types [typ.p.value types])
+  ?:  ?=(%unknown -.fit)
+    ?.  general-defer.state.p.value  [%| ["list item constraint is not supported by partial inference" ~]]
+    =/  edge=icore-edge  [%fit typ.p.value expected (span-of i.items) context owner.state.p.value ~]
+    $(items t.items, state state.p.value(queue [edge queue.state.p.value]), done [i.items done], types [typ.p.value types])
   ?:  ?=(%bad -.fit)
     ?:  |((itype-family-related typ.p.value target sub.state.p.value) (itype-has-any-atom typ.p.value sub.state.p.value) (itype-has-any-atom target sub.state.p.value))
       [%| ["list item widening is not supported by partial inference" ~]]
     =/  decimal=(unit idiag)  (decimal-misfit i.items typ.p.value target sub.state.p.value next.state.p.value)
-    ?^  decimal  [%| u.decimal]
+    ?^  decimal  [%| (diagnostic-expected-context u.decimal context target sub.state.p.value)]
     =/  earlier=(list expr)  (flop done)
     |-  ^-  iresult
     ?^  earlier
       =/  found=(unit idiag)  (decimal-misfit-at i.earlier typ.p.value sub.state.p.value)
-      ?^  found  [%| u.found]
+      ?^  found  [%| (diagnostic-expected-context u.found (span-of i.items) typ.p.value sub.state.p.value)]
       $(earlier t.earlier)
-    [%| ["list items do not have compatible types" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
-  ?:  (itype-has-tag (itype-normalize expected sub.fit))
+    [%| ["list items do not have compatible types" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-actual-note "list item" typ.p.value target sub.state.p.value next.state.p.value)]]]]
+  ?:  &(!general-defer.state.p.value (itype-has-tag (itype-normalize expected sub.fit)))
     [%| ["list item needs context in partial inference" ~]]
-  $(items t.items, state state.p.value(sub sub.fit, next next.fit), done [i.items done])
+  $(items t.items, state state.p.value(sub sub.fit, next next.fit), done [i.items done], types [typ.p.value types])
+::
+::  List syntax needs the checked recursive collection mold, not merely
+::  a source mold with the same name and a different representation.
+++  required-standard-list
+  |=  [kind=tape site=span state=istate]
+  ^-  idiag
+  =/  message=tape  "{kind} requires the standard recursive `list` mold"
+  =/  declared=(unit idsite)  (source-prelude-mold-site %list state)
+  ?^  declared  [message ~[u.declared [site kind]]]
+  [message ~[[site kind]]]
+::
+::  Unit construction needs the checked standard unit template.
+++  required-standard-unit
+  |=  [site=span state=istate]
+  ^-  idiag
+  =/  message=tape  "unit construction requires the standard `unit` mold"
+  =/  declared=(unit idsite)  (source-prelude-mold-site %unit state)
+  ?^  declared  [message ~[u.declared [site "unit construction"]]]
+  [message ~[[site "unit construction"]]]
+::
+++  icore-list-tagged-actual
+  |=  [actuals=(map @ud [actual=itype sub=isub]) result=itype sub=isub]
+  ^-  (unit [actual=itype sub=isub])
+  =/  root=itype  (itype-walk result sub)
+  ?.  ?=(%var -.root)  ~
+  (~(get by actuals) id.root)
+::
+++  icore-list-item-payload
+  |=  [state=istate source=expr result=itype expected=itype context=span]
+  ^-  (unit idiag)
+  =/  actual=(unit [actual=itype sub=isub])
+    =/  by-result=(unit [actual=itype sub=isub])
+      (icore-list-tagged-actual tagged-actuals.state result sub.state)
+    ?^  by-result  by-result
+    (~(get by tagged-sources.state) (span-of source))
+  ?~  actual  ~
+  =/  given=itype  (itype-normalize actual.u.actual sub.u.actual)
+  (union-payload-diagnostic source given expected state context ~)
+::
+++  icore-list-span-inside
+  |=  [outer=span inner=span]
+  ^-  ?
+  &(!(loc-lth beg.inner beg.outer) !(loc-lth end.outer end.inner))
+::
+++  icore-list-item-queue
+  |=  [edges=(list icore-edge) actuals=(map @ud [actual=itype sub=isub]) sources=(map span [actual=itype sub=isub]) source=expr result=itype expected=itype context=span sub=isub]
+  ^-  (list icore-edge)
+  =/  actual=(unit [actual=itype sub=isub])
+    =/  by-result=(unit [actual=itype sub=isub])  (icore-list-tagged-actual actuals result sub)
+    ?^  by-result  by-result
+    (~(get by sources) (span-of source))
+  ?~  actual  edges
+  ?~  edges  edges
+  =/  edge=icore-edge
+    ?-  -.i.edges
+      %tagged-cell
+      ?^  list-item.i.edges  i.edges
+      ?.  (icore-list-span-inside (span-of source) at.i.edges)  i.edges
+      i.edges(list-item `[source actual.u.actual sub.u.actual expected context])
+    ::
+      *  i.edges
+    ==
+  [edge $(edges t.edges)]
 ::
 ++  infer-list-items
   |=  [items=(list expr) expected=itype env=ienv state=istate context=span]
@@ -8234,43 +11621,30 @@
   =/  target=itype  (itype-walk expected sub.state)
   =/  value=iresult  (infer-call-context-arg i.items target env state context)
   ?:  ?=(%| -.value)  value
-  =/  ordinary-fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
-  =/  fit=ifit
-    ?:  ?=(%ok -.ordinary-fit)  ordinary-fit
-    ?:  ?&(?=(%union -.target) ?=(^ prelude.state) =(origin.target `[at.u.prelude.state %element]))
-      (program-single-generic-fit typ.p.value target sub.state.p.value next.state.p.value)
-    ordinary-fit
-  ?:  ?=(%unknown -.fit)  [%| ["list item constraint is not supported by partial inference" ~]]
+  =/  list-payload=(unit idiag)  (icore-list-item-payload state.p.value i.items typ.p.value expected context)
+  ?^  list-payload  [%| u.list-payload]
+  =.  queue.state.p.value
+    (icore-list-item-queue queue.state.p.value tagged-actuals.state.p.value tagged-sources.state.p.value i.items typ.p.value expected context sub.state.p.value)
+  =/  fit=ifit  (itype-fit typ.p.value target sub.state.p.value next.state.p.value)
+  ?:  ?=(%unknown -.fit)
+    ?.  general-defer.state.p.value  [%| ["list item constraint is not supported by partial inference" ~]]
+    =/  edge=icore-edge  [%guarded-fit typ.p.value expected (span-of i.items) context owner.state.p.value ~ ~ i.items | ~ ~[[typ.p.value expected sub.state.p.value `[i.items sub.state.p.value context]]]]
+    $(items t.items, state state.p.value(queue [edge queue.state.p.value]))
   ?:  ?=(%bad -.fit)
-    =/  missing=(unit idiag)  (missing-union-tag i.items target sub.state.p.value context)
+    =/  missing=(unit idiag)  (missing-tag-diagnostic i.items target state.p.value context)
     ?^  missing  [%| u.missing]
-    =/  nested=(unit idiag)  (nested-missing-tag i.items typ.p.value target sub.state.p.value next.state.p.value context)
+    =/  nested=(unit idiag)  (nested-missing-tag i.items typ.p.value target sub.state.p.value next.state.p.value context state.p.value)
     ?^  nested  [%| u.nested]
     =/  decimal=(unit idiag)  (decimal-misfit i.items typ.p.value target sub.state.p.value next.state.p.value)
-    ?^  decimal  [%| u.decimal]
-    [%| ["list item does not fit its expected type" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-type-note "list item" typ.p.value sub.state.p.value)]]]]
+    ?^  decimal  [%| (diagnostic-expected-context u.decimal context target sub.state.p.value)]
+    =/  payload=(unit idiag)  (union-payload-diagnostic i.items typ.p.value target state.p.value context ~)
+    ?^  payload  [%| u.payload]
+    [%| ["list item does not fit its expected type" ~[[context (site-type-note "expected item" target sub.state.p.value)] [(span-of i.items) (site-actual-note "list item" typ.p.value target sub.state.p.value next.state.p.value)]]]]
   $(items t.items, state state.p.value(sub sub.fit, next next.fit))
 ::
 ::  The supported unit pattern covers exactly an atom zero and a cell
 ::  headed by zero, with a single binder for its payload. Unresolved
 ::  subjects and all other pattern matrices stay outside this fragment.
-::
-++  unit-empty-pattern
-  |=  p=pattern
-  ^-  ?
-  ?.  ?=(%lit -.p)  |
-  =(%null form.lit.p)
-::
-++  unit-payload-pattern
-  |=  p=pattern
-  ^-  (unit term)
-  ?.  ?=(%cell -.p)  ~
-  ?~  items.p  ~
-  ?~  t.items.p  ~
-  ?^  t.t.items.p  ~
-  ?.  (unit-empty-pattern i.items.p)  ~
-  ?.  ?=(%bind -.i.t.items.p)  ~
-  `name.i.t.items.p
 ::
 ++  unit-empty-case
   |=  t=itype
@@ -8284,7 +11658,7 @@
   ?.  ?=(%cell -.t)  ~
   ?.  (unit-empty-case hed.t)  ~
   =/  payload=itype  tal.t
-  =?  payload  ?=(%face -.payload)  body.payload
+  =?  payload  ?=(?(%face %slot) -.payload)  body.payload
   `payload
 ::
 ++  unit-union-payload
@@ -8302,145 +11676,87 @@
 ::  The head has the element type and the tail has the whole list type.
 ::  Other patterns and lists whose element mold is empty remain unsupported.
 ::
-++  list-payload-pattern
-  |=  p=pattern
-  ^-  (unit [head=term tail=term])
-  ?.  ?=(%cell -.p)  ~
-  ?~  items.p  ~
-  ?~  t.items.p  ~
-  ?^  t.t.items.p  ~
-  ?.  ?=(%bind -.i.items.p)  ~
-  ?.  ?=(%bind -.i.t.items.p)  ~
-  `[name.i.items.p name.i.t.items.p]
+++  generic-printable-diagnostic
+  |=  [typ=itype caps=icaps sub=isub at=span context=span interpolation=?]
+  ^-  (unit idiag)
+  =/  cap=(unit icap)
+    ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.typ)
+      (cap-with-id +.typ caps sub)
+    ?.  &(?=(%collection -.typ) =(%list name.typ))  ~
+    =/  ids=(list @ud)  (unique-type-vars (itype-vars typ))
+    |-
+    ?~  ids  ~
+    =/  found=(unit icap)  (cap-with-id i.ids caps sub)
+    ?^  found  found
+    $(ids t.ids)
+  ?~  cap  ~
+  =/  atom=?  ?=(?(%avar %rvar %nvar %rnvar) -.typ)
+  =/  reason=tape
+    ?:  atom
+      ?:  interpolation  "a generic atom in interpolation needs an aura"
+      "a generic atom in an application path needs an aura"
+    ?:  interpolation  "a generic value in interpolation needs a printer"
+    "a generic value in an application path needs an atom with a known aura"
+  `[reason ~[[at ?:(atom "atom with a generic aura" "value with a generic type")] [at.u.cap "capital `{(trip name.u.cap)}` keeps its type generic"]]]
 ::
-++  infer-list-branch
-  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span]) typ=itype]
-  ^-  iresult
-  ?>  ?=(%branch -.e)
-  ?>  ?=(%collection -.typ)
-  ?.  =(%list name.typ)  [%| ["list pattern is not supported by partial inference" ~]]
-  ?~  prelude.state  [%| ["list pattern needs the standard prelude in partial inference" ~]]
-  ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
-    [%| ["list pattern needs the standard prelude in partial inference" ~]]
-  =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
-  ?~  standard  [%| ["list pattern needs the standard prelude in partial inference" ~]]
-  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])
-    [%| ["list pattern needs the standard prelude in partial inference" ~]]
-  ?~  args.typ  [%| ["list pattern is not supported by partial inference" ~]]
-  ?^  t.args.typ  [%| ["list pattern is not supported by partial inference" ~]]
-  =/  item-live=(unit [result=?(%yes %no %unknown) left=@ud])
-    (itype-inhabited-proof i.args.typ sub.state caps.state 256)
-  ?~  item-live  [%| ["list element reachability needs unsupported inference" ~]]
-  ?:  =(%unknown result.u.item-live)  [%| ["list element reachability needs unsupported inference" ~]]
-  ?:  =(%no result.u.item-live)  [%| ["list nonempty pattern is unreachable" ~]]
-  ?~  arms.e  [%| ["list branch is not supported by partial inference" ~]]
-  ?~  t.arms.e  [%| ["list branch is not supported by partial inference" ~]]
-  ?^  t.t.arms.e  [%| ["list branch is not supported by partial inference" ~]]
-  =/  x=arm  i.arms.e
-  =/  y=arm  i.t.arms.e
-  =/  first-empty=?  (unit-empty-pattern pat.x)
-  =/  first-name=(unit [head=term tail=term])  (list-payload-pattern pat.x)
-  =/  second-name=(unit [head=term tail=term])  (list-payload-pattern pat.y)
-  ?.  |(&(first-empty ?=(^ second-name)) &((unit-empty-pattern pat.y) ?=(^ first-name)))
-    [%| ["list branch pattern is not supported by partial inference" ~]]
-  =/  binder=(unit [head=term tail=term])  ?:(first-empty second-name first-name)
-  ?~  binder  [%| ["list branch pattern is not supported by partial inference" ~]]
-  ?:  |((reserved-name head.u.binder) (reserved-name tail.u.binder) =(head.u.binder tail.u.binder) ?=(^ (ienv-lookup head.u.binder env)) ?=(^ (ienv-lookup tail.u.binder env)) (lien globals.state |=(n=term |(=(n head.u.binder) =(n tail.u.binder)))))
-    [%| ["pattern binder shadows a name" ~]]
-  =/  extended=ienv  [[head.u.binder [i.args.typ ~]] [tail.u.binder [typ ~]] env]
-  =/  left=iresult
-    ?~  expected  (infer-fragment val.x ?:(first-empty env extended) state)
-    (infer-union-context val.x typ.u.expected ?:(first-empty env extended) state context.u.expected)
-  ?:  ?=(%| -.left)  left
-  =/  right=iresult
-    ?~  expected  (infer-fragment val.y ?:(first-empty extended env) state.p.left)
-    (infer-union-context val.y typ.u.expected ?:(first-empty extended env) state.p.left context.u.expected)
-  ?:  ?=(%| -.right)  right
-  ?^  expected  [%& typ.u.expected state.p.right]
-  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
-  ?~  joined  [%| ["list branch results need unsupported inference" ~]]
-  [%& typ.u.joined state.p.right(sub sub.u.joined)]
-::
-++  infer-unit-branch
-  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
-  ^-  iresult
-  ?>  ?=(%branch -.e)
-  ?~  arms.e  [%| ["unit branch is not supported by partial inference" ~]]
-  ?~  t.arms.e  [%| ["unit branch is not supported by partial inference" ~]]
-  ?^  t.t.arms.e  [%| ["unit branch is not supported by partial inference" ~]]
-  =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  subject
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?:  &(?=(%collection -.typ) =(%list name.typ))
-    (infer-list-branch e env state.p.subject expected typ)
-  =/  x=arm  i.arms.e
-  =/  y=arm  i.t.arms.e
-  =/  first-empty=?  (unit-empty-pattern pat.x)
-  =/  first-name=(unit term)  (unit-payload-pattern pat.x)
-  =/  second-name=(unit term)  (unit-payload-pattern pat.y)
-  ?.  |(&(first-empty ?=(^ second-name)) &((unit-empty-pattern pat.y) ?=(^ first-name)))
-    [%| ["unit branch pattern is not supported by partial inference" ~]]
-  =/  binder=(unit term)  ?:(first-empty second-name first-name)
-  ?~  binder  [%| ["unit branch pattern is not supported by partial inference" ~]]
-  ?:  |((reserved-name u.binder) ?=(^ (ienv-lookup u.binder env)) (lien globals.state |=(n=term =(n u.binder))))
-    [%| ["pattern binder shadows a name" ~]]
-  =/  payload=(unit itype)  (unit-union-payload typ)
-  ?~  payload  [%| ["unit branch subject is not supported by partial inference" ~]]
-  =/  payload-live=(unit [result=?(%yes %no %unknown) left=@ud])
-    (itype-inhabited-proof u.payload sub.state.p.subject caps.state.p.subject 256)
-  ?~  payload-live  [%| ["unit payload reachability needs unsupported inference" ~]]
-  ?:  =(%unknown result.u.payload-live)  [%| ["unit payload reachability needs unsupported inference" ~]]
-  ?:  =(%no result.u.payload-live)  [%| ["unit present pattern is unreachable" ~]]
-  =/  extended=ienv  [[u.binder [u.payload ~]] env]
-  =/  left=iresult
-    ?~  expected  (infer-fragment val.x ?:(first-empty env extended) state.p.subject)
-    (infer-union-context val.x typ.u.expected ?:(first-empty env extended) state.p.subject context.u.expected)
-  ?:  ?=(%| -.left)  left
-  =/  right=iresult
-    ?~  expected  (infer-fragment val.y ?:(first-empty extended env) state.p.left)
-    (infer-union-context val.y typ.u.expected ?:(first-empty extended env) state.p.left context.u.expected)
-  ?:  ?=(%| -.right)  right
-  ?^  expected  [%& typ.u.expected state.p.right]
-  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
-  ?~  joined  [%| ["unit branch results need unsupported inference" ~]]
-  [%& typ.u.joined state.p.right(sub sub.u.joined)]
-::
-::  Infer pieces in order, retaining their substitutions and pending tags.
-::  A bare decimal literal has no outside type constraint, so it takes its
-::  normal @ud default here. Other open numeric and aura variables wait for
-::  deferred constraints, which this fragment does not implement yet.
+++  printable-accepted
+  |=  [typ=itype interpolation=?]
+  ^-  ?
+  ?:  ?=(?(%atom %any-atom %flag %const) -.typ)  &
+  &(?=(%collection -.typ) interpolation =(%list name.typ) =(args.typ ~[[%atom 'tD']]))
+++  printable-rejected
+  |=  [typ=itype interpolation=?]
+  ^-  ?
+  ?:  ?=(?(%cell %fn) -.typ)  &
+  ?.  ?=(%collection -.typ)  |
+  ?:  &(interpolation =(%list name.typ))
+    ?.  ?=([* ~] args.typ)  &
+    ?~  (itype-vars typ)  !(itype-has-tag typ)
+    |
+  &
+++  printable-error
+  |=  [typ=itype at=span context=span interpolation=?]
+  ^-  idiag
+  =/  reason=tape
+    ?.  interpolation  "an application path segment must be an atom"
+    ?:  ?=(%fn -.typ)  "a gate in interpolation needs a printer"
+    "a cell in interpolation needs a printer"
+  =/  note=tape  (site-type-note ?:(interpolation "value without a printer" "non-atom segment") typ ~)
+  =/  sites=(list [at=span note=tape])  ~[[at note]]
+  =?  sites  !=(at context)
+    (weld sites ~[[context ?:(interpolation "interpolation requires a printable atom or tape" "path requires a printable atom")]])
+  [reason sites]
 ++  infer-string-pieces
-  |=  [ps=(list piece) env=ienv state=istate]
+  |=  [ps=(list piece) env=ienv state=istate context=span]
   ^-  iresult
   ?~  ps  [%& [%atom %t] state]
   ?:  ?=(%text -.i.ps)  $(ps t.ps)
   =/  item=iresult  (infer-fragment p.i.ps env state)
   ?:  ?=(%| -.item)  item
-  =/  t=itype  (itype-normalize typ.p.item sub.state.p.item)
-  ?:  |(?=(%atom -.t) ?=(%any-atom -.t))
-    $(ps t.ps, state state.p.item)
-  ?:  &(|(?=(%nvar -.t) ?=(%rnvar -.t)) ?=(%lit -.p.i.ps) =(%number form.lit.p.i.ps))
-    $(ps t.ps, state state.p.item)
-  ?:  &(?=(%collection -.t) =(%list name.t) =(~[[%atom 'tD']] args.t))
-    $(ps t.ps, state state.p.item)
-  ?:  &(?=(%avar -.t) (atom-var-from-cap id.t caps.state.p.item sub.state.p.item))
-    [%| ["a generic atom in interpolation needs an aura" ~[[(span-of p.i.ps) "atom with a generic aura"]]]]
-  ?:  &(?=(%rvar -.t) (atom-var-from-cap id.t caps.state.p.item sub.state.p.item))
-    [%| ["a generic atom in interpolation needs an aura" ~[[(span-of p.i.ps) "atom with a generic aura"]]]]
-  ?:  ?=(%cell -.t)
-    [%| ["a cell in interpolation needs a printer" ~[[(span-of p.i.ps) "cell without a printer"]]]]
-  [%| ["interpolation type needs unsupported inference" ~]]
+  =/  st=istate  state.p.item
+  =/  typ=itype  (itype-unface (itype-normalize typ.p.item sub.st) sub.st)
+  ?:  (printable-accepted typ &)  $(ps t.ps, state st)
+  ?:  (printable-rejected typ &)
+    [%| (printable-error typ (span-of p.i.ps) context &)]
+  =/  generic=(unit idiag)  (generic-printable-diagnostic typ caps.st sub.st (span-of p.i.ps) context &)
+  ?^  generic  [%| u.generic]
+  ?:  general-defer.st
+    =/  edge=icore-edge  [%printable typ.p.item (span-of p.i.ps) owner.st caps.st context &]
+    $(ps t.ps, state st(queue [edge queue.st]))
+  ?:  &(?=(?(%nvar %rnvar) -.typ) ?=(%lit -.p.i.ps) =(%number form.lit.p.i.ps))
+    $(ps t.ps, state st)
+  ?:  &(?=(?(%avar %rvar) -.typ) (atom-var-from-cap id.typ caps.st sub.st))
+    [%| ["a generic atom in interpolation needs an aura" ~[[(span-of p.i.ps) "atom with a generic aura"] [context "interpolation requires a fixed aura"]]]]
+  [%| ["interpolation needs a printable atom or tape with a known aura" ~[[(span-of p.i.ps) (site-type-note "interpolated value" typ sub.st)] [context "interpolation requires a fixed aura"]]]]
 ::
-::  Whole-case coverage for a known union. When a pattern may cover only
-::  part of a case, finite loobean refinements are tried below; other
-::  partial coverage stays unsupported until the general pattern matrix.
+
 +$  imatch  ?(%full %none %unknown)
 ++  union-pattern-items
   |=  [ps=(list pattern) t=itype]
   ^-  imatch
   ?~  ps  %unknown
   ?~  t.ps  (union-pattern i.ps t)
-  =.  t  ?:(?=(%face -.t) body.t t)
+  =.  t  ?:(?=(?(%face %slot) -.t) body.t t)
   ?.  ?=(%cell -.t)
     ?:  |(?=(%atom -.t) ?=(%any-atom -.t) ?=(%flag -.t) ?=(%const -.t))  %none
     %unknown
@@ -8452,7 +11768,7 @@
 ++  union-pattern
   |=  [p=pattern t=itype]
   ^-  imatch
-  =.  t  ?:(?=(%face -.t) body.t t)
+  =.  t  ?:(?=(?(%face %slot) -.t) body.t t)
   ?-  -.p
     %any   %full
     %bind  %full
@@ -8478,7 +11794,7 @@
   ^-  (unit ienv)
   ?~  ps  ~
   ?~  t.ps  (union-pattern-bind i.ps t env globals)
-  =.  t  ?:(?=(%face -.t) body.t t)
+  =.  t  ?:(?=(?(%face %slot) -.t) body.t t)
   ?.  ?=(%cell -.t)  ~
   =/  first=(unit ienv)  (union-pattern-bind i.ps hed.t env globals)
   ?~  first  ~
@@ -8487,10 +11803,10 @@
 ++  union-pattern-bind
   |=  [p=pattern t=itype env=ienv globals=(list term)]
   ^-  (unit ienv)
-  =.  t  ?:(?=(%face -.t) body.t t)
+  =.  t  ?:(?=(?(%face %slot) -.t) body.t t)
   ?:  ?=(%bind -.p)
     ?:  |((reserved-name name.p) ?=(^ (ienv-lookup name.p env)) (lien globals |=(n=term =(n name.p))))  ~
-    `[[name.p [t ~]] env]
+    `[[name.p [t ~ ~]] env]
   ?:  ?=(%cell -.p)  (union-pattern-bind-items items.p t env globals)
   `env
 ::
@@ -8533,7 +11849,7 @@
   |=  [p=pattern t=itype args=(list itype)]
   ^-  (unit [at=span name=term])
   ?.  ?=(?(%bind %cell) -.p)  ~
-  ?:  ?=(%face -.t)  $(t body.t)
+  ?:  ?=(?(%face %slot) -.t)  $(t body.t)
   ?:  (lien args |=(a=itype =(a t)))  ~
   ?:  ?=(%union -.t)
     =/  inner=(list itype)  (weld args.t args)
@@ -8558,7 +11874,7 @@
   ^-  (unit [at=span name=term])
   ?~  ps  ~
   ?~  t.ps  (tag-name-pattern i.ps t args)
-  ?:  ?=(%face -.t)  $(t body.t)
+  ?:  ?=(?(%face %slot) -.t)  $(t body.t)
   ?:  (lien args |=(a=itype =(a t)))  ~
   ?:  ?=(%union -.t)  (tag-name-pattern [%cell at.i.ps ps] t args)
   ?.  ?=(%cell -.t)  ~
@@ -8566,470 +11882,695 @@
   ?^  head  head
   $(ps t.ps, t tal.t)
 ::
-::  Split loobean fields into finite refinements for partial patterns.
-::  Keep original cases for binder types and preserve whole-case matching
-::  before trying refinements. Cap products at 64; unknown, empty or opaque
-::  shapes stay unsupported rather than implying complete pattern checking.
-+$  ifinite  [origin=@ud base=itype part=itype]
-++  finite-product
-  |=  [hs=(list itype) ts=(list itype) out=(list itype)]
-  ^-  (list itype)
-  ?~  hs  out
-  =/  rows=(list itype)  (turn ts |=(t=itype [%cell i.hs t]))
-  $(hs t.hs, out (weld rows out))
+::  Translate checked types into the shared noun-pattern matrix domain.
+::  Graph references retain recursive identity during specialization.
++$  coverage-state
+  [next=@ud graph=bindings:coverage seen=(list [typ=itype id=@ud])]
++$  coverage-type-result  [domain=domain:coverage state=coverage-state]
+++  coverage-seen
+  |=  [t=itype entries=(list [typ=itype id=@ud])]
+  ^-  (unit @ud)
+  ?~  entries  ~
+  ?:  =(t typ.i.entries)  `id.i.entries
+  $(entries t.entries)
 ::
-++  finite-type
-  |=  t=itype
-  ^-  (unit (list itype))
-  ?-  -.t
-    %flag
-      `~[[%const [%loobean %f 0 '%.y']] [%const [%loobean %f 1 '%.n']]]
-    %face
-      =/  body=(unit (list itype))  $(t body.t)
-      ?~  body  ~
-      `(turn u.body |=(x=itype [%face name.t x]))
+++  coverage-type-list
+  |=  [types=(list itype) sub=isub state=coverage-state fuel=@ud]
+  ^-  (unit [cases=(list domain:coverage) state=coverage-state])
+  ?~  types  `[~ state]
+  ?:  =(0 fuel)  ~
+  =/  first=(unit coverage-type-result)  (coverage-type i.types sub state (dec fuel))
+  ?~  first  ~
+  =/  rest=(unit [cases=(list domain:coverage) state=coverage-state])
+    $(types t.types, state state.u.first, fuel (dec fuel))
+  ?~  rest  ~
+  `[[domain.u.first cases.u.rest] state.u.rest]
+::
+++  coverage-recursive-type
+  |=  [t=itype view=itype sub=isub state=coverage-state fuel=@ud]
+  ^-  (unit coverage-type-result)
+  =/  prior=(unit @ud)  (coverage-seen t seen.state)
+  ?^  prior  `[[%ref u.prior] state]
+  ?:  =(0 fuel)  ~
+  =/  id=@ud  next.state
+  =/  entered=coverage-state  state(next +(id), seen [[t id] seen.state])
+  =/  body=(unit coverage-type-result)  (coverage-type view sub entered (dec fuel))
+  ?~  body  ~
+  =/  finished=coverage-state  state.u.body(graph [[id domain.u.body] graph.state.u.body])
+  `[[%ref id] finished]
+::
+++  coverage-type
+  |=  [t=itype sub=isub state=coverage-state fuel=@ud]
+  ^-  (unit coverage-type-result)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  t  (itype-walk t sub)
+  ?+  -.t  ~
+    ?(%face %slot)  $(t body.t)
+    %empty  `[[%empty ~] state]
+    ?(%noun %refined)  `[[%any ~] state]
+    %atom  `[[%atom ~] state]
+    %any-atom  `[[%atom ~] state]
+    %const  `[[%literal val.literal.t] state]
+    %flag  `[[%union ~[[%literal 0] [%literal 1]]] state]
+    ::  A gate is represented by a cell.  Its internals stay opaque;
+    ::  this over-approximation is used only by the coverage matrix.
+    %fn  `[[%cell [%any ~] [%any ~]] state]
     %cell
-      =/  hed=(unit (list itype))  $(t hed.t)
-      ?~  hed  ~
-      =/  tal=(unit (list itype))  $(t tal.t)
-      ?~  tal  ~
-      ?:  (gth (mul (lent u.hed) (lent u.tal)) 64)  ~
-      `(finite-product u.hed u.tal ~)
-    *  `~[t]
+      =/  head=(unit coverage-type-result)  $(t hed.t)
+      ?~  head  ~
+      =/  tail=(unit coverage-type-result)  $(t tal.t, state state.u.head)
+      ?~  tail  ~
+      `[[%cell domain.u.head domain.u.tail] state.u.tail]
+    %union
+      =/  found=(unit [cases=(list domain:coverage) state=coverage-state])
+        (coverage-type-list cases.t sub state fuel)
+      ?~  found  ~
+      `[[%union cases.u.found] state.u.found]
+    %collection
+      ?.  ?=([* ~] args.t)  ~
+      =/  item=itype  i.args.t
+      =/  nil=itype  [%const [%null %n 0 '~']]
+      ?:  =(%list name.t)
+        =/  view=itype  [%union ~[nil [%cell item t]] ~ ~ ~]
+        (coverage-recursive-type t view sub state fuel)
+      ?.  =(%unit name.t)  ~
+      $(t [%union ~[nil [%cell nil item]] ~ ~ ~])
+    %mrec
+      =/  prior=(unit @ud)  (coverage-seen t seen.state)
+      ?^  prior  `[[%ref u.prior] state]
+      =/  view=(unit [view=itype left=@ud])  (rg-unfold-view t fuel)
+      ?~  view  ~
+      (coverage-recursive-type t view.u.view sub state left.u.view)
   ==
 ::
-++  finite-cases
-  |=  [xs=(list itype) out=(list ifinite) origin=@ud]
-  ^-  (unit (list ifinite))
-  ?~  xs  `out
-  =/  parts=(unit (list itype))  (finite-type i.xs)
+++  coverage-pattern-items
+  |=  items=(list pattern)
+  ^-  (unit pattern:coverage)
+  ?~  items  ~
+  ?~  t.items  (coverage-pattern i.items)
+  =/  head=(unit pattern:coverage)  (coverage-pattern i.items)
+  ?~  head  ~
+  =/  tail=(unit pattern:coverage)  $(items t.items)
+  ?~  tail  ~
+  `[%cell u.head u.tail]
+::
+++  coverage-pattern
+  |=  p=pattern
+  ^-  (unit pattern:coverage)
+  ?-  -.p
+    %any  `[%wild ~]
+    %bind  `[%wild ~]
+    %lit  `[%literal val.lit.p]
+    %str  `[%literal text.p]
+    %cell  (coverage-pattern-items items.p)
+  ==
+::
+::
+::  Coverage reports are separate from body inference: an unknown domain or
+::  exhausted matrix is not evidence of either exhaustiveness or a dead arm.
++$  coverage-prior  [at=span pat=pattern:coverage]
++$  coverage-check
+  $%  [%ok ~]
+      [%unknown ~]
+      [%error diag=idiag witness=(unit *)]
+  ==
+++  coverage-covering-arm
+  |=  [prior=(list coverage-prior) candidate=pattern:coverage domain=domain:coverage graph=bindings:coverage fuel=@ud]
+  ^-  (unit span)
+  ?~  prior  ~
+  =/  found=answer:coverage
+    (useful:coverage ~[~[pat.i.prior]] ~[candidate] ~[domain] graph fuel)
+  ?:  ?=(%no -.found)  `at.i.prior
+  $(prior t.prior)
+::
+++  coverage-show-noun
+  |=  [noun=* fuel=@ud]
+  ^-  tape
+  ?:  =(0 fuel)  "*"
+  ?@  noun  ?:(=(0 noun) "~" (trip (scot %ud noun)))
+  "[{(coverage-show-noun -.noun (dec fuel))} {(coverage-show-noun +.noun (dec fuel))}]"
+::
+::
+++  coverage-noun-pattern
+  |=  [noun=* fuel=@ud]
+  ^-  pattern:coverage
+  ?:  =(0 fuel)  [%wild ~]
+  ?@  noun  [%literal noun]
+  [%cell (coverage-noun-pattern -.noun (dec fuel)) (coverage-noun-pattern +.noun (dec fuel))]
+::
+++  coverage-witness-case
+  |=  [noun=* cases=(list itype) sub=isub fuel=@ud]
+  ^-  (unit itype)
+  ?~  cases  ~
+  ?:  =(0 fuel)  ~
+  =/  built=(unit coverage-type-result)  (coverage-type i.cases sub [0 ~ ~] fuel)
+  ?~  built  $(cases t.cases, fuel (dec fuel))
+  =/  pat=pattern:coverage  (coverage-noun-pattern noun fuel)
+  =/  found=answer:coverage
+    (useful:coverage ~ ~[pat] ~[domain.u.built] graph.state.u.built fuel)
+  ?:  ?=(%yes -.found)  `i.cases
+  $(cases t.cases, fuel (dec fuel))
+::
+++  coverage-show-typed
+  |=  [noun=* typ=itype sub=isub fuel=@ud]
+  ^-  tape
+  ?:  =(0 fuel)  (coverage-show-noun noun 128)
+  =.  fuel  (dec fuel)
+  =.  typ  (itype-walk typ sub)
+  ?+  -.typ  (coverage-show-noun noun 128)
+    ?(%face %slot)  $(typ body.typ)
+    %const
+      ?@  noun  ?:(=(noun val.literal.typ) (show-lit literal.typ) (coverage-show-noun noun 128))
+      (coverage-show-noun noun 128)
+    %flag
+      ?@  noun  ?:(=(noun 0) "%.y" ?:(=(noun 1) "%.n" (coverage-show-noun noun 128)))
+      (coverage-show-noun noun 128)
+    %atom
+      ?^  noun  (coverage-show-noun noun 128)
+      ?:  =(%t aura.typ)  (show-quoted noun)
+      ?:  =(%tas aura.typ)  "%{(trip (scot %ud noun))}"
+      (trip (scot aura.typ noun))
+    %any-atom  (coverage-show-noun noun 128)
+    %cell
+      ?@  noun  (coverage-show-noun noun 128)
+      "[{(coverage-show-typed -.noun hed.typ sub fuel)} {(coverage-show-typed +.noun tal.typ sub fuel)}]"
+    %union
+      =/  chosen=(unit itype)  (coverage-witness-case noun cases.typ sub fuel)
+      ?~  chosen  (coverage-show-noun noun 128)
+      $(typ u.chosen)
+    %collection
+      ?.  ?=([* ~] args.typ)  (coverage-show-noun noun 128)
+      ?:  =(0 noun)  "~"
+      ?@  noun  (coverage-show-noun noun 128)
+      ?:  =(%list name.typ)
+        "[{(coverage-show-typed -.noun i.args.typ sub fuel)} {(coverage-show-typed +.noun typ sub fuel)}]"
+      ?.  =(%unit name.typ)  (coverage-show-noun noun 128)
+      "[{(coverage-show-noun -.noun fuel)} {(coverage-show-typed +.noun i.args.typ sub fuel)}]"
+    %mrec
+      =/  view=(unit [view=itype left=@ud])  (rg-unfold-view typ fuel)
+      ?~  view  (coverage-show-noun noun 128)
+      $(typ view.u.view, fuel left.u.view)
+  ==
+::
+++  coverage-check-arms
+  |=  [arms=(list arm) previous=(list coverage-prior) matrix=matrix:coverage domain=domain:coverage graph=bindings:coverage e=expr subject=itype sub=isub fuel=@ud]
+  ^-  coverage-check
+  ?>  ?=(%branch -.e)
+  ?:  =(0 fuel)  [%unknown ~]
+  ?~  arms
+    =/  missing=answer:coverage
+      (useful:coverage matrix ~[[%wild ~]] ~[domain] graph 4.096)
+    ?-  -.missing
+      %unknown  [%unknown ~]
+      %no  [%ok ~]
+      %yes
+        ?~  witness.missing  [%unknown ~]
+        =/  shown=tape  (coverage-show-typed i.witness.missing subject sub 128)
+        [%error ["missing match case {shown}" ~[[at.e "non-exhaustive match"] [(span-of subject.e) (site-type-note "subject" subject sub)]]] `i.witness.missing]
+    ==
+  =/  arm=arm  i.arms
+  =/  candidate=(unit pattern:coverage)  (coverage-pattern pat.arm)
+  ?~  candidate  [%unknown ~]
+  =/  possible=answer:coverage
+    (useful:coverage ~ ~[u.candidate] ~[domain] graph 4.096)
+  ?:  ?=(%unknown -.possible)  [%unknown ~]
+  ?:  ?=(%no -.possible)
+    [%error ["pattern cannot match the subject" ~[[at.pat.arm "unreachable pattern"] [(span-of subject.e) (site-type-note "subject" subject sub)]]] ~]
+  =/  valid=(unit ?)  (coverage-pattern-valid pat.arm subject sub 1.024)
+  ?~  valid  [%unknown ~]
+  ?.  u.valid
+    [%error ["pattern literal does not fit the subject type" ~[[at.pat.arm "pattern"] [(span-of subject.e) (site-type-note "subject" subject sub)]]] ~]
+  =/  useful=answer:coverage
+    (useful:coverage matrix ~[u.candidate] ~[domain] graph 4.096)
+  ?:  ?=(%unknown -.useful)  [%unknown ~]
+  ?:  ?=(%no -.useful)
+    =/  covering=(unit span)  (coverage-covering-arm previous u.candidate domain graph 4.096)
+    =/  sites=(list [at=span note=tape])
+      ?~  covering
+        (weld (turn previous |=(p=coverage-prior [at.p "earlier arm"])) ~[[at.pat.arm "covered arm"]])
+      ~[[u.covering "covering arm"] [at.pat.arm "covered arm"]]
+    [%error ["branch arm is covered by earlier arms" sites] ~]
+  $(arms t.arms, previous [[at.pat.arm u.candidate] previous], matrix [[u.candidate ~] matrix], fuel (dec fuel))
+::
+:: Replace unresolved domains by sound supersets for provisional coverage.
+:: The original type remains in the coverage obligation for exact retry.
+++  coverage-overapprox-list
+  |=  [ts=(list itype) fuel=@ud]
+  ^-  (unit (list itype))
+  ?~  ts  `~
+  ?:  =(0 fuel)  ~
+  =/  first=(unit itype)  (coverage-overapprox i.ts (dec fuel))
+  ?~  first  ~
+  =/  rest=(unit (list itype))  $(ts t.ts, fuel (dec fuel))
+  ?~  rest  ~
+  `[u.first u.rest]
+++  coverage-overapprox
+  |=  [t=itype fuel=@ud]
+  ^-  (unit itype)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?-  -.t
+    %opaque  `[%noun ~]
+    %refined  `[%noun ~]
+    ?(%var %fvar)  `[%noun ~]
+    ?(%avar %rvar %nvar %rnvar)  `[%any-atom ~]
+    ?(%face %slot)
+      =/  body=(unit itype)  $(t body.t)
+      ?~  body  ~
+      ?:(?=(%face -.t) `[%face name.t u.body] `[%slot name.t u.body])
+    %cell
+      =/  head=(unit itype)  $(t hed.t)
+      ?~  head  ~
+      =/  tail=(unit itype)  $(t tal.t)
+      ?~  tail  ~
+      `[%cell u.head u.tail]
+    %fn
+      =/  sam=(unit itype)  $(t sample.t)
+      ?~  sam  ~
+      =/  pro=(unit itype)  $(t product.t)
+      ?~  pro  ~
+      `[%fn u.sam u.pro]
+    %union
+      =/  cases=(unit (list itype))  (coverage-overapprox-list cases.t fuel)
+      ?~  cases  ~
+      =/  args=(unit (list itype))  (coverage-overapprox-list args.t fuel)
+      ?~  args  ~
+      `[t(cases u.cases, args u.args)]
+    %collection
+      =/  args=(unit (list itype))  (coverage-overapprox-list args.t fuel)
+      ?~  args  ~
+      `[t(args u.args)]
+    %mrec
+      =/  args=(unit (list itype))  (coverage-overapprox-list args.t fuel)
+      ?~  args  ~
+      `[t(args u.args)]
+    *  `t
+  ==
+::
+:: An optimistic domain must not make a literal, constructor, or nested
+:: cell pattern legal at an unknown position. Such positions wait for
+:: their own type; wildcard and name binders are the only safe cases.
+++  coverage-open-safe-items
+  |=  [items=(list pattern) typ=itype sub=isub fuel=@ud]
+  ^-  ?
+  ?~  items  |
+  ?:  =(0 fuel)  |
+  ?~  t.items  (coverage-open-safe i.items typ sub (dec fuel))
+  =/  pat=pattern  [%cell at.i.items items]
+  =/  parts=(unit coverage-parts)  (coverage-project pat typ sub (dec fuel))
+  ?~  parts  |
+  ?.  (coverage-open-safe i.items head.u.parts sub.u.parts (dec fuel))  |
+  $(items t.items, typ tail.u.parts, sub sub.u.parts, fuel (dec fuel))
+++  coverage-open-safe
+  |=  [pat=pattern typ=itype sub=isub fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  ?:  ?=(?(%any %bind) -.pat)  &
+  =/  typ=itype  (itype-normalize typ sub)
+  ?:  ?=(?(%lit %str) -.pat)
+    =/  valid=(unit ?)  (coverage-pattern-valid pat typ sub (dec fuel))
+    ?~(valid | u.valid)
+  (coverage-open-safe-items items.pat typ sub (dec fuel))
+::
+++  coverage-branch-check
+  |=  [e=expr subject=itype sub=isub]
+  ^-  coverage-check
+  ?.  ?=(%branch -.e)  [%unknown ~]
+  =/  bad-decimal=(unit idiag)  (decimal-arms-misfit arms.e subject sub)
+  ?^  bad-decimal  [%error (diagnostic-expected-context u.bad-decimal (span-of subject.e) subject sub) ~]
+  =/  initial=coverage-state  [0 ~ ~]
+  =/  built=(unit coverage-type-result)  (coverage-type subject sub initial 4.096)
+  ?~  built  [%unknown ~]
+  (coverage-check-arms arms.e ~ ~ domain.u.built graph.state.u.built e subject sub 1.024)
+::
+::
+::  Project the types visible at a cell pattern. Alternatives are selected
+::  with the same matrix used for coverage; joining their projections is a
+::  conservative over-approximation and never drops a matching case.
++$  coverage-parts  [head=itype tail=itype sub=isub]
++$  coverage-bind-result  [env=ienv state=istate]
+++  coverage-possible
+  |=  [p=pattern t=itype sub=isub fuel=@ud]
+  ^-  (unit ?)
+  =/  pat=(unit pattern:coverage)  (coverage-pattern p)
+  ?~  pat  ~
+  =/  exact=(unit coverage-type-result)  (coverage-type t sub [0 ~ ~] fuel)
+  =/  built=(unit coverage-type-result)
+    ?^  exact  exact
+    =/  broad=(unit itype)  (coverage-overapprox (itype-normalize t sub) fuel)
+    ?~  broad  ~
+    (coverage-type u.broad ~ [0 ~ ~] fuel)
+  ?~  built  ~
+  =/  result=answer:coverage
+    (useful:coverage ~ ~[u.pat] ~[domain.u.built] graph.state.u.built fuel)
+  ?-  -.result
+    %yes  ?~(exact ~ `&)
+    %no  `|
+    %unknown  ~
+  ==
+::
+++  coverage-unique-types
+  |=  [types=(list itype) out=(list itype) sub=isub]
+  ^-  (list itype)
+  ?~  types  (flop out)
+  =/  t=itype  (itype-normalize i.types sub)
+  ?:  (lien out |=(x=itype =(x t)))  $(types t.types)
+  $(types t.types, out [t out])
+::
+++  coverage-disjoint-types
+  |=  types=(list itype)
+  ^-  ?
+  ?~  types  &
+  ?.  (levy t.types |=(t=itype =(%disjoint (union-relate (import-type-pattern i.types) (import-type-pattern t)))))  |
+  $(types t.types)
+::
+++  coverage-join-types
+  |=  [types=(list itype) sub=isub]
+  ^-  (unit [typ=itype sub=isub])
+  =.  types  (coverage-unique-types types ~ sub)
+  ?~  types  ~
+  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join-list types sub)
+  ?^  joined  joined
+  ?.  (coverage-disjoint-types types)  ~
+  `[[%union types ~ ~ ~] sub]
+::
+++  coverage-project-cases
+  |=  [p=pattern cases=(list itype) sub=isub fuel=@ud]
+  ^-  (unit [heads=(list itype) tails=(list itype) sub=isub])
+  ?~  cases  `[~ ~ sub]
+  ?:  =(0 fuel)  ~
+  =/  possible=(unit ?)  (coverage-possible p i.cases sub fuel)
+  ::  Projection keeps every case that may match. An unresolved payload
+  ::  does not erase its known cell spine or prove that case impossible.
+  =/  excluded=?  ?~(possible | !u.possible)
+  ?:  excluded  $(cases t.cases, fuel (dec fuel))
+  =/  first=(unit coverage-parts)  (coverage-project p i.cases sub (dec fuel))
+  ?~  first  ~
+  =/  rest=(unit [heads=(list itype) tails=(list itype) sub=isub])
+    $(cases t.cases, sub sub.u.first, fuel (dec fuel))
+  ?~  rest  ~
+  `[[head.u.first heads.u.rest] [tail.u.first tails.u.rest] sub.u.rest]
+::
+::  A projected head may come from overlapping noun cases with distinct
+::  atom auras. `@` is their common atom type; positional labels are not
+::  value faces and do not affect that proof.
+++  coverage-atom-head
+  |=  typ=itype
+  ^-  ?
+  ?:  ?=(%slot -.typ)  $(typ body.typ)
+  ?=(?(%atom %any-atom %const %flag) -.typ)
+::
+++  coverage-project
+  |=  [p=pattern t=itype sub=isub fuel=@ud]
+  ^-  (unit coverage-parts)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  t  (itype-walk t sub)
+  ?+  -.t  ~
+    ?(%face %slot)  $(t body.t)
+    %noun  `[[%noun ~] [%noun ~] sub]
+    %cell  `[hed.t tal.t sub]
+    %collection
+      ?.  &(|(=(%list name.t) =(%unit name.t)) ?=([* ~] args.t))  ~
+      ?:  =(%list name.t)  `[i.args.t t sub]
+      `[[%const [%null %n 0 '~']] i.args.t sub]
+    %mrec
+      =/  view=(unit [view=itype left=@ud])  (rg-unfold-view t fuel)
+      ?~  view  ~
+      $(t view.u.view, fuel left.u.view)
+    %union
+      =/  parts=(unit [heads=(list itype) tails=(list itype) sub=isub])
+        (coverage-project-cases p cases.t sub fuel)
+      ?~  parts  ~
+      =/  head=(unit [typ=itype sub=isub])  (coverage-join-types heads.u.parts sub.u.parts)
+      =?  head  &(?=(~ head) (levy heads.u.parts |=(typ=itype (coverage-atom-head typ))))
+        `[[%any-atom ~] sub.u.parts]
+      ?~  head  ~
+      =/  tail=(unit [typ=itype sub=isub])  (coverage-join-types tails.u.parts sub.u.head)
+      ?~  tail  ~
+      `[(itype-normalize typ.u.head sub.u.tail) typ.u.tail sub.u.tail]
+  ==
+::
+++  coverage-bind-items
+  |=  [items=(list pattern) t=itype env=ienv state=istate fuel=@ud]
+  ^-  (unit coverage-bind-result)
+  ?~  items  ~
+  ?:  =(0 fuel)  ~
+  ?~  t.items  (coverage-bind-pattern i.items t env state (dec fuel))
+  =/  p=pattern  [%cell at.i.items items]
+  =/  parts=(unit coverage-parts)  (coverage-project p t sub.state (dec fuel))
   ?~  parts  ~
-  ?:  (gth (add (lent out) (lent u.parts)) 64)  ~
-  =/  rows=(list ifinite)  (turn u.parts |=(t=itype [origin i.xs t]))
-  $(xs t.xs, out (weld out rows), origin +(origin))
+  =/  first=(unit coverage-bind-result)
+    (coverage-bind-pattern i.items head.u.parts env state(sub sub.u.parts) (dec fuel))
+  ?~  first  ~
+  $(items t.items, t tail.u.parts, env env.u.first, state state.u.first, fuel (dec fuel))
 ::
-++  infer-known-union-whole
-  |=  [e=expr env=ienv subject=iresult]
-  ^-  (unit iresult)
-  ?>  ?=(%branch -.e)
-  ?:  ?=(%| -.subject)  `subject
-  =/  decimal=(unit idiag)  (decimal-arms-misfit arms.e typ.p.subject sub.state.p.subject)
-  ?^  decimal  `[%| u.decimal]
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
-  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
-  ?~  live  ~
-  =/  cases=(list itype)  u.live
-  =/  remaining=(list itype)  cases
-  =/  arms=(list arm)  arms.e
-  =/  st=istate  state.p.subject
-  =/  results=(list itype)  ~
-  |-
-  ?~  arms
-    ?^  remaining
-      `[%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
-    =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join-list (flop results) sub.st)
-    ?~  joined  `[%| ["union branch result matching needs unsupported inference" ~]]
-    `[%& typ.u.joined st(sub sub.u.joined)]
-  =/  a=arm  i.arms
-  ?:  (lien remaining |=(c=itype =(%unknown (union-pattern pat.a c))))
-    ~
-  =/  matching=(list itype)  (skim remaining |=(c=itype =(%full (union-pattern pat.a c))))
-  ?~  matching
-    ?:  (lien cases |=(c=itype =(%full (union-pattern pat.a c))))
-      `[%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
-    `[%| ["union pattern is not supported by partial inference" ~]]
-  ?:  &(?=(^ t.matching) (union-pattern-has-bind pat.a))
-    `[%| ["a union pattern binding several cases is not supported by partial inference" ~]]
-  =/  bound=(unit ienv)  (union-pattern-bind pat.a i.matching env globals.st)
-  ?~  bound  `[%| ["pattern binder shadows a name" ~]]
-  =/  body=iresult  (infer-fragment val.a u.bound st)
-  ?:  ?=(%| -.body)  `body
-  =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
-  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body, results [result results])
-::
-++  infer-known-union-context-whole
-  |=  [e=expr expected=itype env=ienv subject=iresult context=span]
-  ^-  (unit iresult)
-  ?>  ?=(%branch -.e)
-  ?:  ?=(%| -.subject)  `subject
-  =/  decimal=(unit idiag)  (decimal-arms-misfit arms.e typ.p.subject sub.state.p.subject)
-  ?^  decimal  `[%| u.decimal]
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%union -.typ)  `[%| ["branch is not supported by partial inference" ~]]
-  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
-  ?~  live  ~
-  =/  cases=(list itype)  u.live
-  =/  remaining=(list itype)  cases
-  =/  arms=(list arm)  arms.e
-  =/  st=istate  state.p.subject
-  =/  answer=(unit itype)  ~
-  |-
-  ?~  arms
-    ?^  remaining
-      `[%| ["missing union case {(show-itype i.remaining sub.st)}" ~]]
-    ?~  answer  `[%| ["empty union branch is not supported by partial inference" ~]]
-    `[%& expected st]
-  =/  a=arm  i.arms
-  ?:  (lien remaining |=(c=itype =(%unknown (union-pattern pat.a c))))
-    ~
-  =/  matching=(list itype)  (skim remaining |=(c=itype =(%full (union-pattern pat.a c))))
-  ?~  matching
-    ?:  (lien cases |=(c=itype =(%full (union-pattern pat.a c))))
-      `[%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
-    `[%| ["union pattern is not supported by partial inference" ~]]
-  ?:  &(?=(^ t.matching) (union-pattern-has-bind pat.a))
-    `[%| ["a union pattern binding several cases is not supported by partial inference" ~]]
-  =/  bound=(unit ienv)  (union-pattern-bind pat.a i.matching env globals.st)
-  ?~  bound  `[%| ["pattern binder shadows a name" ~]]
-  =/  body=iresult  (infer-call-context-arg val.a expected u.bound st context)
-  ?:  ?=(%| -.body)  `body
-  =/  fit=ifit  (itype-fit typ.p.body expected sub.state.p.body next.state.p.body)
-  ?:  ?=(%unknown -.fit)  `[%| ["union branch result constraint is not supported by partial inference" ~]]
-  ?:  ?=(%bad -.fit)
-    =/  missing=(unit idiag)  (missing-union-tag val.a expected sub.state.p.body context)
-    ?^  missing  `[%| u.missing]
-    =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body expected sub.state.p.body next.state.p.body context)
-    ?^  nested  `[%| u.nested]
-    `[%| ["union branch arm does not fit its expected type" ~[[context "expected type"] [(span-of val.a) "branch arm"]]]]
-  ?:  (itype-has-tag (itype-normalize expected sub.fit))
-    `[%| ["union branch result needs context in partial inference" ~]]
-  $(arms t.arms, remaining (skim remaining |=(c=itype !=(%full (union-pattern pat.a c)))), st state.p.body(sub sub.fit, next next.fit), answer `expected)
-::
-++  infer-known-union-finite
-  |=  [e=expr env=ienv subject=iresult expected=(unit [typ=itype context=span])]
-  ^-  iresult
-  ?>  ?=(%branch -.e)
-  ?:  ?=(%| -.subject)  subject
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%union -.typ)  [%| ["branch is not supported by partial inference" ~]]
-  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
-  ?~  live  [%| ["union emptiness needs unsupported inference" ~]]
-  =/  expanded=(unit (list ifinite))  (finite-cases u.live ~ 0)
-  ?~  expanded  [%| ["union pattern expansion needs unsupported inference" ~]]
-  =/  cases=(list ifinite)  u.expanded
-  =/  remaining=(list ifinite)  cases
-  =/  arms=(list arm)  arms.e
-  =/  st=istate  state.p.subject
-  =/  results=(list itype)  ~
-  |-
-  ?~  arms
-    ?^  remaining
-      [%| ["missing union case {(show-itype part.i.remaining sub.st)}" ~]]
-    ?~  results  [%| ["empty union branch is not supported by partial inference" ~]]
-    ?^  expected  [%& typ.u.expected st]
-    =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join-list (flop results) sub.st)
-    ?~  joined  [%| ["union branch result matching needs unsupported inference" ~]]
-    [%& typ.u.joined st(sub sub.u.joined)]
-  =/  a=arm  i.arms
-  ?:  (lien remaining |=(c=ifinite =(%unknown (union-pattern pat.a part.c))))
-    [%| ["partial union pattern is not supported by partial inference" ~]]
-  =/  matching=(list ifinite)  (skim remaining |=(c=ifinite =(%full (union-pattern pat.a part.c))))
-  ?~  matching
-    ?:  (lien cases |=(c=ifinite =(%full (union-pattern pat.a part.c))))
-      [%| ["branch arm is covered by earlier arms" ~[[at.pat.a "covered arm"]]]]
-    [%| ["union pattern is not supported by partial inference" ~]]
-  ?:  &((union-pattern-has-bind pat.a) (lien t.matching |=(c=ifinite !=(origin.c origin.i.matching))))
-    [%| ["a union pattern binding several cases is not supported by partial inference" ~]]
-  =/  bound=(unit ienv)  (union-pattern-bind pat.a base.i.matching env globals.st)
-  ?~  bound  [%| ["pattern binder shadows a name" ~]]
-  =/  body=iresult
-    ?~  expected  (infer-fragment val.a u.bound st)
-    (infer-call-context-arg val.a typ.u.expected u.bound st context.u.expected)
-  ?:  ?=(%| -.body)  body
-  ?^  expected
-    =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
-    ?:  ?=(%unknown -.fit)  [%| ["union branch result constraint is not supported by partial inference" ~]]
-    ?:  ?=(%bad -.fit)
-      =/  missing=(unit idiag)  (missing-union-tag val.a typ.u.expected sub.state.p.body context.u.expected)
-      ?^  missing  [%| u.missing]
-      =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body typ.u.expected sub.state.p.body next.state.p.body context.u.expected)
-      ?^  nested  [%| u.nested]
-      [%| ["union branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.a) "branch arm"]]]]
-    ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
-      [%| ["union branch result needs context in partial inference" ~]]
-    $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body(sub sub.fit, next next.fit), results [typ.p.body results])
-  =/  result=itype  (itype-normalize typ.p.body sub.state.p.body)
-  $(arms t.arms, remaining (skim remaining |=(c=ifinite !=(%full (union-pattern pat.a part.c)))), st state.p.body, results [result results])
-::
-::  Prove a one-arm record pattern covers a known, non-union subject.
-::  Variable or partial matches stay unsupported; binding uses the same
-::  scope and original payload types as the existing union matcher.
-++  single-structured-pattern
-  |=  e=expr
-  ^-  ?
-  ?.  ?=(%branch -.e)  |
-  ?~  arms.e  |
-  ?^  t.arms.e  |
-  =/  p=pattern  pat.i.arms.e
-  ?.  ?=(%cell -.p)  |
-  !(levy items.p |=(x=pattern ?=(%bind -.x)))
-::
-++  infer-single-case-branch
-  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
-  ^-  iresult
-  ?>  (single-structured-pattern e)
-  ?>  ?=(%branch -.e)
-  ?>  ?=(^ arms.e)
-  =/  a=arm  i.arms.e
-  =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  subject
-  =/  st=istate  state.p.subject
-  =/  typ=itype  (itype-normalize typ.p.subject sub.st)
-  ?:  ?=(%union -.typ)  [%| ["single-case pattern needs unsupported inference" ~]]
-  ?.  =(%full (union-pattern pat.a typ))
-    [%| ["single-case pattern needs unsupported inference" ~]]
-  =/  bound=(unit ienv)  (union-pattern-bind pat.a typ env globals.st)
-  ?~  bound  [%| ["pattern binder shadows a name" ~]]
-  ?~  expected  (infer-fragment val.a u.bound st)
-  =/  body=iresult  (infer-call-context-arg val.a typ.u.expected u.bound st context.u.expected)
-  ?:  ?=(%| -.body)  body
-  =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
-  ?:  ?=(%unknown -.fit)  [%| ["single-case branch result constraint is not supported by partial inference" ~]]
-  ?:  ?=(%bad -.fit)
-    =/  missing=(unit idiag)  (missing-union-tag val.a typ.u.expected sub.state.p.body context.u.expected)
-    ?^  missing  [%| u.missing]
-    =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body typ.u.expected sub.state.p.body next.state.p.body context.u.expected)
-    ?^  nested  [%| u.nested]
-    [%| ["single-case branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.a) "branch arm"]]]]
-  ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
-    [%| ["single-case branch result needs context in partial inference" ~]]
-  [%& typ.u.expected state.p.body(sub sub.fit, next next.fit)]
-::
-::  This view is used only by pattern analysis, never exported or bound as
-::  the subject. Only null plus a two-binder/wildcard cell is supported; its
-::  tail keeps the original recursive type. Other patterns fail closed.
-++  jrec-match-view
-  |=  [e=expr subject=iresult]
-  ^-  iresult
-  ?:  ?=(%| -.subject)  subject
-  ?.  ?=(%branch -.e)  subject
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%jrec -.typ)  subject
-  ?~  arms.e  subject
-  ?~  t.arms.e  subject
-  ?^  t.t.arms.e  subject
-  =/  x=pattern  pat.i.arms.e
-  =/  y=pattern  pat.i.t.arms.e
-  =/  empty=?  &(?=(%lit -.x) =(%null form.lit.x))
-  =/  full=pattern  ?:(empty y x)
-  ?.  |(empty &(?=(%lit -.y) =(%null form.lit.y)))  subject
-  ?.  ?=(%cell -.full)  subject
-  ?~  items.full  subject
-  ?~  t.items.full  subject
-  ?^  t.t.items.full  subject
-  ?.  |(?=(%bind -.i.items.full) ?=(%any -.i.items.full))  subject
-  ?.  |(?=(%bind -.i.t.items.full) ?=(%any -.i.t.items.full))  subject
-  ?:  =(0 jrec-fuel.state.p.subject)
-    [%| ["recursive mold unfolding needs unsupported inference" ~]]
-  =/  nil=itype  [%const [%null %n 0 '~']]
-  =/  cell=itype  [%cell [%face head.typ [%atom aura.typ]] [%face tail.typ typ]]
-  [%& [%union ~[nil cell] ~ ~ ~] state.p.subject(jrec-fuel (dec jrec-fuel.state.p.subject))]
-::
-::  A bounded source-proven tree match permits flat tag patterns and
-::  nonbinding catch-alls. Whole-case binders cannot consume the temporary
-::  structural view. Pattern count and field arity are checked first.
-++  grec-simple-pattern
-  |=  [pat=pattern view=itype]
-  ^-  ?
-  ?.  ?=(%cell -.pat)  |
-  ?~  items.pat  |
-  =/  first=pattern  i.items.pat
-  ?.  ?=(%lit -.first)  |
-  ?.  =(%term form.lit.first)  |
-  =/  chosen=(unit itype)  (contextual-tagged-case view val.lit.first ~)
-  ?~  chosen  |
-  ?>  ?=(%cell -.u.chosen)
-  =/  rest=(list pattern)  t.items.pat
-  =/  arity=?  ?:(?=(%cell -.tal.u.chosen) ?=([* [* ~]] rest) ?=([* ~] rest))
-  ?.  arity  |
-  (levy rest |=(p=pattern |(?=(%bind -.p) ?=(%any -.p))))
-::
-::  A catch-all with no binder is safe even when it covers both cases.
-::  A bound whole case still declines to avoid exporting the analysis view.
-++  grec-patterns-eligible
-  |=  [arms=(list arm) view=itype left=@ud]
-  ^-  ?
-  ?~  arms  &
-  ?:  =(0 left)  |
-  =/  pat=pattern  pat.i.arms
-  ?.  |(?=(%any -.pat) (grec-simple-pattern pat view))  |
-  $(arms t.arms, left (dec left))
-++  grec-match-view
-  |=  [e=expr subject=iresult]
-  ^-  iresult
-  ?:  ?=(%| -.subject)  subject
-  ?.  ?=(%branch -.e)  subject
-  ?.  (grec-direct-context typ.p.subject sub.state.p.subject)  subject
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%grec -.typ)  subject
-  ?~  arms.e  subject
-  =/  view=(unit [view=itype left=@ud])  (grec-unfold-view typ jrec-fuel.state.p.subject)
-  ?~  view  [%| ["recursive mold unfolding needs unsupported inference" ~]]
-  ?.  (grec-patterns-eligible arms.e view.u.view 128)  subject
-  [%& view.u.view state.p.subject(jrec-fuel left.u.view)]
-::
-::  A single-arm diagnostic only probes a direct, source-typed in-scope wing;
-::  other subjects retain the prior single-pattern inference path.
-++  grec-single-wing-subject
-  |=  [e=expr env=ienv state=istate]
-  ^-  (unit iresult)
-  ?.  ?=(%wing -.e)  ~
-  ?.  ?=([@ ~] names.e)  ~
-  =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
-  ?~  scheme  ~
-  ?.  (grec-direct-context typ.u.scheme sub.state)  ~
-  `(infer-fragment e env state)
-::
-++  infer-known-union-branch-subject
-  |=  [e=expr env=ienv subject=iresult]
-  ^-  iresult
-  =.  subject  (grec-match-view e subject)
-  =.  subject  (jrec-match-view e subject)
-  =/  whole=(unit iresult)  (infer-known-union-whole e env subject)
-  ?~  whole  (infer-known-union-finite e env subject ~)
-  u.whole
-::
-++  infer-known-union-branch
-  |=  [e=expr env=ienv state=istate]
-  ^-  iresult
-  ?>  ?=(%branch -.e)
-  (infer-known-union-branch-subject e env (infer-fragment subject.e env state))
-::
-++  infer-known-union-context-subject
-  |=  [e=expr expected=itype env=ienv subject=iresult context=span]
-  ^-  iresult
-  =.  subject  (grec-match-view e subject)
-  =.  subject  (jrec-match-view e subject)
-  =/  whole=(unit iresult)  (infer-known-union-context-whole e expected env subject context)
-  ?~  whole  (infer-known-union-finite e env subject `[expected context])
-  u.whole
-::
-::  Limit speculative subject inference to wings and shallow calls;
-::  grouping is peeled linearly and cannot introduce a nested branch.
-++  simple-union-subject-arg
-  |=  e=expr
-  ^-  ?
-  ?-  -.e
-    %wing  &
-    %lit   &
-    %str   !(lien pieces.e |=(p=piece ?=(%expr -.p)))
-    *      |
+++  coverage-bind-pattern
+  |=  [p=pattern t=itype env=ienv state=istate fuel=@ud]
+  ^-  (unit coverage-bind-result)
+  ?:  =(0 fuel)  ~
+  ::  A pattern name binds the value at the position, not the position's
+  ::  record face. Preserve faces nested inside that value.
+  =.  t  (itype-walk t sub.state)
+  =.  t  ?:(?=(%slot -.t) body.t t)
+  ?-  -.p
+    %any  `[env state]
+    %lit  `[env state]
+    %str  `[env state]
+    %bind
+      ?:  |((reserved-name name.p) ?=(^ (ienv-lookup name.p env)) (lien globals.state |=(n=term =(n name.p))))  ~
+      `[[[name.p [t ~ ~]] env] state]
+    %cell  (coverage-bind-items items.p t env state (dec fuel))
   ==
 ::
-++  safe-union-subject
-  |=  e=expr
-  ^-  ?
-  ?:  ?=(%group -.e)  $(e inner.e)
-  ?:  ?=(%wing -.e)  &
-  ?.  ?=(%call -.e)  |
-  ?.  ?=(%wing -.head.e)  |
-  (levy args.e simple-union-subject-arg)
 ::
-++  duplicate-loobean-arms
-  |=  e=expr
+::  Keep every branch result open until the enclosing context fixes it.
+::  Distinct value faces in aligned branch results are a definite
+::  conflict, even when their payload types are still open.
+++  branch-value-face-conflict
+  |=  [a=itype b=itype sub=isub fuel=@ud]
   ^-  ?
-  ?.  ?=(%branch -.e)  |
-  ?~  arms.e  |
-  ?~  t.arms.e  |
-  ?^  t.t.arms.e  |
-  =/  x=pattern  pat.i.arms.e
-  =/  y=pattern  pat.i.t.arms.e
-  ?.  &(?=(%lit -.x) ?=(%lit -.y))  |
-  ?.  &(=(%loobean form.lit.x) =(%loobean form.lit.y))  |
-  =(val.lit.x val.lit.y)
-::
-++  union-subject-call
-  |=  e=expr
-  ^-  ?
-  ?:  ?=(%group -.e)  $(e inner.e)
-  ?=(%call -.e)
-::
-++  known-union-subject
-  |=  [e=expr env=ienv state=istate]
+  ?:  =(0 fuel)  |
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  &(?=(%face -.a) ?=(%face -.b))
+    ?:  !=(name.a name.b)  &
+    $(a body.a, b body.b, fuel (dec fuel))
+  ?:  &(?=(%slot -.a) ?=(%slot -.b))
+    $(a body.a, b body.b, fuel (dec fuel))
+  ?:  |(?=(%slot -.a) ?=(%slot -.b))  |
+  ?:  ?=(%face -.a)  $(a body.a, fuel (dec fuel))
+  ?:  ?=(%face -.b)  $(b body.b, fuel (dec fuel))
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))
+    |($(a hed.a, b hed.b, fuel (dec fuel)) $(a tal.a, b tal.b, fuel (dec fuel)))
+  |
+++  branch-face-later
+  |=  [first=[typ=itype at=span] others=(list [typ=itype at=span]) sub=isub]
+  ^-  (unit idiag)
+  ?~  others  ~
+  ?:  (branch-value-face-conflict typ.first typ.i.others sub 1.024)
+    `["branch results have conflicting value faces" ~[[at.first (site-type-note "first branch result" typ.first sub)] [at.i.others (site-type-note "conflicting branch result" typ.i.others sub)]]]
+  $(others t.others)
+++  branch-face-problem
+  |=  [arms=(list [typ=itype at=span]) sub=isub]
+  ^-  (unit idiag)
+  ?~  arms  ~
+  =/  found=(unit idiag)  (branch-face-later i.arms t.arms sub)
+  ?^  found  found
+  $(arms t.arms)
+++  icore-defer-results
+  |=  [arms=(list [typ=itype at=span]) state=istate at=span]
   ^-  (unit iresult)
-  ?.  (safe-union-subject e)  ~
-  =/  subject=iresult  (infer-fragment e env state)
-  ?:  ?=(%| -.subject)  ?:((union-subject-call e) `subject ~)
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  |(?=(%union -.typ) ?=(%jrec -.typ) &(?=(%grec -.typ) (grec-direct-context typ.p.subject sub.state.p.subject)))  ~
-  `subject
+  =/  conflict=(unit idiag)  (branch-face-problem arms sub.state)
+  ?^  conflict  `[%| u.conflict]
+  ?.  general-defer.state  ~
+  ?~  arms  ~
+  =/  result=itype  [%var next.state]
+  =/  edge=icore-edge  [%branch-join arms result at owner.state]
+  `[%& result state(next +(next.state), queue [edge queue.state])]
 ::
-::  A direct wing with an already-known union may skip genuinely empty cases
-::  when checking a one-arm match. Other subjects keep their existing path.
-::  A directly known canonical list of an empty element contains only null.
-::  This helper never refines an opaque or variable-bound subject.
-++  empty-list-null-branch
-  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
+:: Binder collisions are lexical facts independent of type projection.
+:: Check them after coverage has accepted the arms, so unreachable-arm
+:: diagnostics keep their normal precedence.
+++  coverage-binder-diagnostic
+  |=  [todo=(list pattern) env=ienv globals=(list term) seen=(map term span)]
+  ^-  (unit idiag)
+  ?~  todo  ~
+  =/  p=pattern  i.todo
+  ?-  -.p
+    %bind
+      =/  previous=(unit span)  (~(get by seen) name.p)
+      ?^  previous
+        `["pattern binder shadows a name" ~[[u.previous "first binder"] [at.p "repeated binder"]]]
+      ?:  |((reserved-name name.p) ?=(^ (ienv-lookup name.p env)) (lien globals |=(n=term =(n name.p))))
+        `["pattern binder shadows a name" ~[[at.p "shadowing binder"]]]
+      $(todo t.todo, seen (~(put by seen) name.p at.p))
+    %cell  $(todo (weld items.p t.todo))
+    *  $(todo t.todo)
+  ==
+::
+++  coverage-infer-arms
+  |=  [arms=(list arm) typ=itype env=ienv state=istate expected=(unit [typ=itype context=span]) results=(list [typ=itype at=span]) site=span fuel=@ud]
+  ^-  (unit iresult)
+  ?:  =(0 fuel)  ~
+  ?~  arms
+    ?~  results  ~
+    =/  ordered=(list [typ=itype at=span])  (flop results)
+    =/  types=(list itype)  (turn ordered |=(result=[typ=itype at=span] typ.result))
+    =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join-list types sub.state)
+    ?~  joined  (icore-defer-results ordered state site)
+    `[%& typ.u.joined state(sub sub.u.joined)]
+  =/  a=arm  i.arms
+  =/  collision=(unit idiag)  (coverage-binder-diagnostic ~[pat.a] env globals.state *(map term span))
+  ?^  collision
+    ?~  sites.u.collision  `[%| u.collision]
+    ?^  t.sites.u.collision  `[%| u.collision]
+    =/  first=idsite  i.sites.u.collision
+    ?:  ?=(%external -.first)  `[%| u.collision]
+    ?.  =(note.first "shadowing binder")  `[%| u.collision]
+    =/  enriched=(unit idiag)  (shadow-binding-context at.pat.a %pattern state)
+    ?^  enriched  `[%| u.enriched]
+    `[%| u.collision]
+  =/  bound=(unit coverage-bind-result)  (coverage-bind-pattern pat.a typ env state 1.024)
+  ?~  bound  ~
+  =/  body=iresult
+    ?~  expected  (infer-fragment val.a env.u.bound state.u.bound)
+    (infer-call-context-arg val.a typ.u.expected env.u.bound state.u.bound context.u.expected)
+  ?:  ?=(%| -.body)  `body
+  =/  st=istate  state.p.body
+  =/  narrowed=(unit idiag)  (newly-constrained-capital caps.state sub.state sub.st val.a &)
+  ?^  narrowed  `[%| u.narrowed]
+  ?~  expected
+    $(arms t.arms, state st, results [[typ.p.body (span-of val.a)] results], fuel (dec fuel))
+  =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.st next.st)
+  ?:  ?=(%unknown -.fit)
+    ?.  general-defer.st  ~
+    =/  edge=icore-edge  [%fit typ.p.body typ.u.expected (span-of val.a) context.u.expected owner.st ~]
+    =/  contextual=itype  (itype-merge-faces typ.p.body typ.u.expected sub.st)
+    $(arms t.arms, state st(queue [edge queue.st]), results [[contextual (span-of val.a)] results], fuel (dec fuel))
+  ?:  ?=(%bad -.fit)
+    =/  missing=(unit idiag)  (missing-tag-diagnostic val.a typ.u.expected st context.u.expected)
+    ?^  missing  `[%| u.missing]
+    =/  nested=(unit idiag)  (nested-missing-tag val.a typ.p.body typ.u.expected sub.st next.st context.u.expected st)
+    ?^  nested  `[%| u.nested]
+    =/  payload=(unit idiag)  (union-payload-diagnostic val.a typ.p.body typ.u.expected st context.u.expected ~)
+    ?^  payload  `[%| u.payload]
+    =/  target=itype  (itype-walk typ.u.expected sub.st)
+    ?:  ?=(%union -.target)
+      `[%| ["branch arm does not fit its expected union" ~[[context.u.expected (site-type-note "expected union" typ.u.expected sub.st)] [(span-of val.a) (site-type-note "branch arm" typ.p.body sub.st)]]]]
+    `[%| ["branch arm does not fit its expected type" ~[[context.u.expected (site-type-note "expected type" typ.u.expected sub.st)] [(span-of val.a) (site-type-note "branch arm" typ.p.body sub.st)]]]]
+  =/  narrowed=(unit idiag)  (newly-constrained-capital caps.st sub.st sub.fit val.a &)
+  ?^  narrowed  `[%| u.narrowed]
+  =.  st  st(sub sub.fit, next next.fit)
+  =/  contextual=itype  (itype-merge-faces typ.p.body typ.u.expected sub.st)
+  $(arms t.arms, state st, results [[contextual (span-of val.a)] results], fuel (dec fuel))
+::
+++  infer-coverage-branch
+  |=  [e=expr env=ienv subject=iresult expected=(unit [typ=itype context=span])]
   ^-  (unit iresult)
   ?.  ?=(%branch -.e)  ~
-  ?~  arms.e  ~
-  ?^  t.arms.e  ~
-  ?.  (unit-empty-pattern pat.i.arms.e)  ~
-  ?.  ?=(%wing -.subject.e)  ~
-  ?.  ?=([@ ~] names.subject.e)  ~
-  =/  scheme=(unit ischeme)  (ienv-lookup i.names.subject.e env)
-  ?~  scheme  ~
-  ?.  ?=(%collection -.typ.u.scheme)  ~
-  ?.  =(%list name.typ.u.scheme)  ~
-  ?~  prelude.state  ~
-  ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)  ~
-  =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
-  ?~  standard  ~
-  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])  ~
-  =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  ~
+  ::  Preserve a subject diagnostic before checking its patterns.
+  ?:  ?=(%| -.subject)  `subject
   =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%collection -.typ)  ~
-  ?.  =(%list name.typ)  ~
-  ?~  args.typ  ~
-  ?^  t.args.typ  ~
-  =/  proof=(unit [empty=? left=@ud])  (itype-empty-proof i.args.typ sub.state.p.subject 256)
-  ?~  proof  ~
-  ?.  empty.u.proof  ~
-  ?~  expected  `(infer-fragment val.i.arms.e env state.p.subject)
-  =/  body=iresult  (infer-call-context-arg val.i.arms.e typ.u.expected env state.p.subject context.u.expected)
-  ?:  ?=(%| -.body)  `body
-  =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
-  ?:  ?=(%unknown -.fit)  `[%| ["single-case branch result constraint is not supported by partial inference" ~]]
-  ?:  ?=(%bad -.fit)  `[%| ["single-case branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.i.arms.e) "branch arm"]]]]
-  ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
-    `[%| ["single-case branch result needs context in partial inference" ~]]
-  `[%& typ.p.body state.p.body(sub sub.fit, next next.fit)]
+  =/  checked=coverage-check  (coverage-branch-check e typ sub.state.p.subject)
+  ?:  ?=(%unknown -.checked)
+    ?.  general-defer.state.p.subject  ~
+    ?:  (itype-has-tag typ)  ~
+    ?.  ?=(^ (itype-vars typ))  ~
+    ?.  (levy arms.e |=(a=arm (coverage-open-safe pat.a typ sub.state.p.subject 1.024)))  ~
+    =/  open=(unit itype)  (coverage-overapprox typ 4.096)
+    ?~  open  ~
+    =/  proof=coverage-check  (coverage-branch-check e u.open ~)
+    ?.  ?=(%ok -.proof)  ~
+    =/  inferred=(unit iresult)
+      (coverage-infer-arms arms.e typ env state.p.subject expected ~ at.e 1.024)
+    ?~  inferred  ~
+    ?:  ?=(%| -.u.inferred)  inferred
+    =/  st=istate  state.p.u.inferred
+    =/  edge=icore-edge  [%coverage typ e at.e owner.st]
+    `[%& typ.p.u.inferred st(queue [edge queue.st])]
+  ?:  ?=(%error -.checked)
+    =/  diag=idiag  (coverage-missing-tag-diagnostic diag.checked e typ state.p.subject)
+    `[%| (coverage-missing-case-diagnostic diag witness.checked typ state.p.subject)]
+  (coverage-infer-arms arms.e typ env state.p.subject expected ~ at.e 1.024)
 ::
-++  known-empty-union-wing
-  |=  [e=expr env=ienv state=istate]
-  ^-  (unit iresult)
-  ?.  ?=(%wing -.e)  ~
-  ?.  ?=([@ ~] names.e)  ~
-  =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
-  ?~  scheme  ~
-  ?.  (contextual-direct-union typ.u.scheme)  ~
-  =/  subject=iresult  (infer-fragment e env state)
-  ?:  ?=(%| -.subject)  ~
-  =/  typ=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-  ?.  ?=(%union -.typ)  ~
-  =/  live=(unit (list itype))  (itype-live-cases cases.typ sub.state.p.subject caps.state.p.subject 4.096)
-  ?~  live  ~
-  ?:  =(u.live cases.typ)  ~
-  `subject
 ::
-::  Infer changes only against a fully known record spine. Retain the
-::  target type; unknown spines and overlapping edits remain unsupported.
-::  An edit's wing, as open.cart, reads through record fields only,
-::  outermost first, and its value fits the field it names.
+::  Coverage is over nouns, but a written literal must also fit the aura at
+::  its position. Unknown type projections decline instead of accepting.
+++  coverage-valid-cases
+  |=  [p=pattern cases=(list itype) sub=isub fuel=@ud uncertain=?]
+  ^-  (unit ?)
+  ?~  cases  ?:(uncertain ~ `|)
+  ?:  =(0 fuel)  ~
+  =/  valid=(unit ?)  (coverage-pattern-valid p i.cases sub (dec fuel))
+  ?~  valid  $(cases t.cases, uncertain &, fuel (dec fuel))
+  ?:  u.valid  `&
+  $(cases t.cases, fuel (dec fuel))
+::
+++  coverage-valid-items
+  |=  [items=(list pattern) t=itype sub=isub fuel=@ud]
+  ^-  (unit ?)
+  ?~  items  ~
+  ?:  =(0 fuel)  ~
+  ?~  t.items  (coverage-pattern-valid i.items t sub (dec fuel))
+  =/  p=pattern  [%cell at.i.items items]
+  =/  parts=(unit coverage-parts)  (coverage-project p t sub (dec fuel))
+  ?~  parts  ~
+  =/  first=(unit ?)  (coverage-pattern-valid i.items head.u.parts sub.u.parts (dec fuel))
+  ?~  first  ~
+  ?.  u.first  `|
+  $(items t.items, t tail.u.parts, sub sub.u.parts, fuel (dec fuel))
+::
+++  coverage-pattern-valid
+  |=  [p=pattern t=itype sub=isub fuel=@ud]
+  ^-  (unit ?)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  t  (itype-walk t sub)
+  ?:  ?=(?(%face %slot) -.t)  $(t body.t)
+  ?:  |(?=(%any -.p) ?=(%bind -.p))  `&
+  ?:  ?=(%union -.t)  (coverage-valid-cases p cases.t sub fuel |)
+  ?:  ?=(%cell -.p)  (coverage-valid-items items.p t sub fuel)
+  ?:  ?=(%noun -.t)  `&
+  ?:  ?=(%any-atom -.t)  `&
+  ?:  ?=(%str -.p)
+    ?:  ?=(%atom -.t)  `(aura-prefix aura.t %t)
+    ?:  ?=(%const -.t)  `=(text.p val.literal.t)
+    ?:  |(?=(%cell -.t) ?=(%flag -.t) ?=(%empty -.t) ?=(%collection -.t))  `|
+    ~
+  =/  l=lit  lit.p
+  ?:  ?=(%const -.t)  `=(val.l val.literal.t)
+  ?:  ?=(%flag -.t)
+    `&(|(=(%term form.l) =(%null form.l) =(%loobean form.l)) |(=(0 val.l) =(1 val.l)))
+  ?:  ?=(%atom -.t)
+    ?:  =(%number form.l)
+      ?:  =(%ud aura.l)  `(decimal-aura aura.t)
+      `(aura-prefix aura.t aura.l)
+    ?:  |(=(%term form.l) =(%null form.l))  `|(=(%tas aura.t) =(%ta aura.t))
+    ?:  =(%loobean form.l)  `=(%f aura.t)
+    `(aura-prefix aura.t aura.l)
+  ?:  ?=(%collection -.t)
+    `&(|(=(%list name.t) =(%unit name.t)) =(%null form.l))
+  ?:  ?=(%mrec -.t)
+    =/  view=(unit [view=itype left=@ud])  (rg-unfold-view t fuel)
+    ?~  view  ~
+    $(t view.u.view, fuel left.u.view)
+  ?:  |(?=(%cell -.t) ?=(%empty -.t))  `|
+  ~
+::
 ++  change-spine-known
   |=  [t=itype sub=isub]
   ^-  ?
   =.  t  (itype-walk t sub)
-  ?:  ?=(%face -.t)  &
+  ?:  ?=(?(%face %slot) -.t)  &
   ?.  ?=(%cell -.t)  |
   =/  first=itype  (itype-walk hed.t sub)
-  ?.  ?=(%face -.first)  |
+  ?.  ?=(?(%face %slot) -.first)  |
   $(t tal.t)
 ::
 ++  infer-change-edits
-  |=  [edits=(list edit) target=itype env=ienv state=istate seen=(list (list term))]
+  |=  [edits=(list edit) target=itype env=ienv state=istate seen=(list (list term)) context=span]
   ^-  iresult
   ?~  edits  [%& target state]
   =/  entry=edit  i.edits
@@ -9037,19 +12578,56 @@
   ?:  (lien seen |=(prior=(list term) (wing-overlap prior outer)))
     [%| ["repeated change fields are not supported by partial inference" ~]]
   ?.  (change-spine-known target sub.state)
-    [%| ["change target needs a known record in partial inference" ~]]
+    ?.  general-defer.state
+      [%| ["change target needs a known record in partial inference" ~]]
+    ::  The target's eventual record type selects the field. Infer the
+    ::  replacement now, retain both relationships in the common queue,
+    ::  and keep the target as the type of the change.
+    =/  value=iresult  (infer-fragment val.entry env state)
+    ?:  ?=(%| -.value)  value
+    =/  st=istate  state.p.value
+    =/  field=itype  [%var next.st]
+    =/  wing=icore-edge  [%wing target outer field at.entry]
+    =/  fit=icore-edge  [%fit typ.p.value field (span-of val.entry) at.entry owner.st ~]
+    $(edits t.edits, state st(next +(next.st), queue [fit wing queue.st]), seen [outer seen])
   =/  field=(each itype idiag)  (change-wing-field entry target sub.state)
-  ?:  ?=(%| -.field)  [%| p.field]
+  ?:  ?=(%| -.field)
+    =/  diag=idiag  p.field
+    [%| diag(sites (weld sites.diag `(list idsite)`~[[context (site-type-note "record being changed" target sub.state)]]))]
   =/  expected=itype  p.field
   =/  value=iresult  (infer-call-context-arg val.entry expected env state at.entry)
   ?:  ?=(%| -.value)  value
   =/  fit=ifit  (itype-fit typ.p.value expected sub.state.p.value next.state.p.value)
-  ?:  ?=(%unknown -.fit)  [%| ["change field constraint is not supported by partial inference" ~]]
+  ?:  ?=(%unknown -.fit)
+    ?.  general-defer.state.p.value  [%| ["change field constraint is not supported by partial inference" ~]]
+    =/  edge=icore-edge  [%fit typ.p.value expected (span-of val.entry) at.entry owner.state.p.value ~]
+    $(edits t.edits, state state.p.value(queue [edge queue.state.p.value]), seen [outer seen])
   ?:  ?=(%bad -.fit)
     =/  decimal=(unit idiag)  (decimal-misfit val.entry typ.p.value expected sub.state.p.value next.state.p.value)
-    ?^  decimal  [%| u.decimal]
-    [%| ["change field and replacement do not unify" ~[[at.entry (site-type-note "expected replacement" expected sub.state.p.value)] [(span-of val.entry) (site-type-note "replacement" typ.p.value sub.state.p.value)]]]]
+    ?^  decimal  [%| (diagnostic-expected-context u.decimal at.entry expected sub.state.p.value)]
+    =/  missing=(unit idiag)  (missing-tag-diagnostic val.entry expected state.p.value at.entry)
+    ?^  missing  [%| u.missing]
+    =/  diag=idiag  ["change field and replacement do not unify" ~[[at.entry (site-type-note "expected replacement" expected sub.state.p.value)] [(span-of val.entry) (site-actual-note "replacement" typ.p.value expected sub.state.p.value next.state.p.value)]]]
+    =/  enriched=(unit idiag)  (diagnostic-change-field-site target entry expected diag state.p.value)
+    ?^  enriched  [%| u.enriched]
+    [%| diag]
   $(edits t.edits, state state.p.value(sub sub.fit, next next.fit), seen [outer seen])
+::
+++  diagnostic-change-field-site
+  |=  [target=itype entry=edit expected=itype diag=idiag state=istate]
+  ^-  (unit idiag)
+  ?.  ?=([* * ~] sites.diag)  ~
+  =/  defs=(list def)
+    (turn molds.state |=(m=[name=term body=shape] [%mold at.body.m name.m body.m]))
+  =/  origins=(list irecord-origin)  (diagnostic-record-origins defs target state)
+  ?.  ?=([* ~] origins)  ~
+  =/  sh=(unit shape)  (find-simple-mold name.i.origins molds.state)
+  ?~  sh  ~
+  =/  note=tape  (site-type-note "expected field" expected sub.state)
+  =/  site=(unit idsite)
+    (diagnostic-field-site [u.sh at.state local-source.state] (flop names.entry) note at.state)
+  ?~  site  ~
+  [~ [msg.diag ~[u.site i.t.sites.diag]]]
 ::
 ::  +change-wing-field: the type of the field an edit's wing names in
 ::  a known record target, read through record fields, outermost first
@@ -9113,6 +12691,47 @@
 ::
 ::  Backtick constructs the canonical prelude unit, after checking its
 ::  prepared template has the standard null and [~ u=A] cases.
+::  Forget slot provenance only for comparing trusted template structure.
+++  itype-slots-as-faces
+  |=  t=itype
+  ^-  itype
+  ?+  -.t  t
+    %slot        [%face name.t $(t body.t)]
+    %face        [%face name.t $(t body.t)]
+    %cell        [%cell $(t hed.t) $(t tal.t)]
+    %fn          [%fn $(t sample.t) $(t product.t)]
+    %collection  [%collection name.t (turn args.t |=(a=itype ^$(t a)))]
+    %mrec        t(args (turn args.t |=(a=itype ^$(t a))))
+    %opaque      t(body $(t body.t), args (turn args.t |=(a=itype ^$(t a))))
+    %union       t(cases (turn cases.t |=(a=itype ^$(t a))), args (turn args.t |=(a=itype ^$(t a))))
+  ==
+::
+::  Prove a recursive list representation by unfolding its checked graph
+::  once and checking that the tail returns to the same canonical node.
+::  This recognizes the representation without changing its named type.
+++  recursive-list-form
+  |=  [typ=itype element=itype]
+  ^-  ?
+  ?.  ?=(%mrec -.typ)  |
+  =/  expanded=(unit [view=itype left=@ud])  (rg-unfold-view typ 4.096)
+  ?~  expanded  |
+  =/  view=itype  view.u.expanded
+  ?.  ?=(%union -.view)  |
+  ?.  ?=([* * ~] cases.view)  |
+  =/  nil=itype  [%const [%null %n 0 '~']]
+  =/  cons=itype
+    ?:  =(nil i.cases.view)  i.t.cases.view
+    ?:  =(nil i.t.cases.view)  i.cases.view
+    [%empty ~]
+  =.  cons  (itype-slots-as-faces cons)
+  ?.  ?=(%cell -.cons)  |
+  ?.  =(hed.cons [%face %i element])  |
+  =/  tail=itype  tal.cons
+  ?.  &(?=(%face -.tail) =(%t name.tail))  |
+  =/  ref=itype  body.tail
+  ?.  ?=(%mrec -.ref)  |
+  ?.  &(=(at.typ at.ref) =(site.typ site.ref) =(name.typ name.ref) =(args.typ args.ref))  |
+  (rg-graphs-agree [at.typ site.typ name.typ] graph.typ graph.ref)
 ++  standard-unit-template
   |=  [template=ischeme at=path]
   ^-  ?
@@ -9122,8 +12741,8 @@
   =/  v=@ud  i.vars.template
   =/  nil=itype  [%const [%null %n 0 '~']]
   =/  expected=itype
-    [%union ~[nil [%cell nil [%face %u [%var v]]]] `[at %unit] `%unit ~[[%var v]]]
-  =(typ.template expected)
+    [%union ~[nil [%cell nil [%slot %u [%var v]]]] `[at %unit] `%unit ~[[%var v]]]
+  =((itype-slots-as-faces typ.template) (itype-slots-as-faces expected))
 ::
 ::  A named missing-case diagnostic needs more than a failed fit: a case
 ::  with that tag but the wrong payload is not a missing case. Unknown
@@ -9148,68 +12767,563 @@
     %const  ?:(=(value val.literal.t) %yes %no)
     %flag  ?:(|(=(value 0) =(value 1)) %yes %no)
     %atom  ?:(|(=(%tas aura.t) =(%ta aura.t)) %maybe %no)
-    %face  $(t body.t)
-    %cell
-      =/  first=itag-presence  $(t hed.t)
-      ?:  =(%yes first)  %yes
-      =/  rest=itag-presence  $(t tal.t)
-      ?:  =(%yes rest)  %yes
-      ?:  |(=(%maybe first) =(%maybe rest))  %maybe
-      %no
+    ?(%face %slot)  $(t body.t)
+    %cell  $(t hed.t)
     %union  (tag-presence-cases cases.t value sub)
     *  %maybe
   ==
 ::
+::  Inspect a written tagged value at its noun position, never another
+::  payload position that happens to contain the same constant.
+++  union-written-tag
+  |=  e=expr
+  ^-  (unit [literal=lit at=span payload=(unit expr)])
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  ?=(%pair -.e)  $(e (pair-as-cell e))
+  ?:  ?=(%lit -.e)
+    ?.  ?=(?(%term %loobean %null) form.lit.e)  ~
+    `[lit.e at.e ~]
+  ?.  ?=(%tuple -.e)  ~
+  ?~  items.e  ~
+  ?^  face.i.items.e  ~
+  =/  head=expr  val.i.items.e
+  ?.  ?=(%lit -.head)  ~
+  ?.  ?=(?(%term %loobean %null) form.lit.head)  ~
+  ?~  t.items.e  `[lit.head at.head ~]
+  =/  rest=(list item)  t.items.e
+  ?>  ?=(^ rest)
+  =/  tail=expr
+    ?~  t.rest  val.i.rest
+    [%tuple [beg:(span-of val.i.rest) end:(span-of val:(rear rest))] rest]
+  `[lit.head at.head `tail]
+::  Only a unique cell case supplies a payload type. Equal heads in
+::  otherwise disjoint cases require a deeper constraint, not a guess.
+++  union-payload-case
+  |=  [cases=(list itype) value=@ sub=isub found=(unit itype)]
+  ^-  (unit itype)
+  ?~  cases  found
+  =/  case=itype  (itype-walk i.cases sub)
+  ?:  ?=(?(%face %slot) -.case)
+    $(cases [body.case t.cases])
+  ?.  ?=(%cell -.case)  $(cases t.cases)
+  =/  head=itype  (itype-walk hed.case sub)
+  ?.  ?=(%const -.head)  ~
+  ?.  =(value val.literal.head)  $(cases t.cases)
+  ?^  found  ~
+  $(cases t.cases, found `case)
+::  Disjoint cases may share a head. Their combined payload domain is
+::  useful in diagnostics, while inference still checks each actual case.
+++  union-payload-target
+  |=  [cases=(list itype) value=@ sub=isub payloads=(list itype)]
+  ^-  (unit itype)
+  ?~  cases
+    ?~  payloads  ~
+    ?~  t.payloads  `i.payloads
+    `[%union (flop payloads) ~ ~ ~]
+  =/  case=itype  (itype-walk i.cases sub)
+  ?:  ?=(?(%face %slot) -.case)  $(cases [body.case t.cases])
+  ?:  ?=(%union -.case)  $(cases (weld cases.case t.cases))
+  ?:  ?=(?(%const %atom %any-atom %flag %empty) -.case)  $(cases t.cases)
+  ?.  ?=(%cell -.case)  ~
+  =/  head=itype  (itype-walk hed.case sub)
+  ?.  ?=(%const -.head)  ~
+  ?.  =(value val.literal.head)  $(cases t.cases)
+  $(cases t.cases, payloads [(sample-slot-target tal.case) payloads])
+::
+++  source-field-shape
+  |=  field=field
+  ^-  shape
+  ?-  -.field
+    %face  shape.field
+    %bare  shape.field
+    %pun   [%ref at.field ~[name.field]]
+  ==
+++  union-payload-source
+  |=  [sh=shape value=@]
+  ^-  (unit [tag=span payload=shape])
+  ?:  ?=(%generic -.sh)  $(sh body.sh)
+  ?.  ?=(%union -.sh)  ~
+  =/  cases=(list shape)  cases.sh
+  |-
+  ?~  cases  ~
+  =/  case=shape  i.cases
+  ?.  ?=(%cell -.case)  $(cases t.cases)
+  ?~  fields.case  $(cases t.cases)
+  ?~  t.fields.case  $(cases t.cases)
+  =/  head=shape  (source-field-shape i.fields.case)
+  ?.  ?=(%const -.head)  $(cases t.cases)
+  ?.  =(value val.lit.head)  $(cases t.cases)
+  =/  fields=(list field)  t.fields.case
+  ?>  ?=(^ fields)
+  =/  payload=shape
+    ?~  t.fields  (source-field-shape i.fields)
+    [%cell [beg.at.i.fields end.at:(rear fields)] fields]
+  `[at.head payload]
+++  union-parameter-site
+  |=  [name=@t params=(list @t) args=(list shape)]
+  ^-  (unit span)
+  ?~  params  ~
+  ?~  args  ~
+  ?:  =(name i.params)  `at.i.args
+  $(params t.params, args t.args)
+++  union-payload-sites
+  |=  [expected=itype value=@ state=istate context=span annotation=(unit shape)]
+  ^-  [tag=span payload=span]
+  ?.  ?=(%union -.expected)  [context context]
+  ?~  origin.expected  [context context]
+  ?.  =(at.u.origin.expected at.state)  [context context]
+  =/  mold=(unit shape)  (find-simple-mold name.u.origin.expected molds.state)
+  ?~  mold  [context context]
+  =/  source=(unit [tag=span payload=shape])  (union-payload-source u.mold value)
+  ?~  source  [context context]
+  =/  payload=shape  payload.u.source
+  ?.  ?=(%tvar -.payload)  [tag.u.source at.payload]
+  ?~  annotation  [tag.u.source at.payload]
+  ?.  &(?=(%generic -.u.mold) ?=(%apply -.u.annotation))  [tag.u.source at.payload]
+  =/  site=(unit span)  (union-parameter-site name.payload vars.u.mold args.u.annotation)
+  [tag.u.source ?~(site at.payload u.site)]
+::  Explain the first definitely incompatible field of a unique local
+::  union payload. Earlier unknown fits stop the walk; later open tags do
+::  not hide a mismatch already proved at an earlier field.
+++  union-payload-field-error
+  |=  [e=expr actual=itype expected=itype sh=shape state=istate]
+  ^-  (unit idiag)
+  =/  fit=ifit  (itype-fit actual expected sub.state next.state)
+  ?.  ?=(%bad -.fit)  ~
+  =/  left=itype  (itype-normalize actual sub.state)
+  =/  right=itype  (itype-normalize expected sub.state)
+  =/  left-open=?  |((itype-has-tag left) ?=(^ (itype-vars left)))
+  =/  right-open=?  |((itype-has-tag right) ?=(^ (itype-vars right)))
+  ?:  &(left-open right-open)  ~
+  =/  nested=(unit idiag)
+    ?.  &(?=(%tuple -.e) ?=(%cell -.sh))  ~
+    =/  left=itype  (itype-walk actual sub.state)
+    =/  right=itype  (itype-walk expected sub.state)
+    =?  left  ?=(?(%face %slot) -.left)  body.left
+    =?  right  ?=(?(%face %slot) -.right)  body.right
+    ?.  &(?=(%cell -.left) ?=(%cell -.right))  ~
+    (union-payload-field-items items.e fields.sh left right state)
+  ?^  nested  nested
+  =/  wanted=itype  (sample-slot-target expected)
+  =/  given=itype  (sample-slot-target actual)
+  `["payload field has type {(show-itype given sub.state)}, but requires {(show-itype wanted sub.state)}" ~[[at.sh (site-type-note "expected field" wanted sub.state)] [(span-of e) (site-type-note "actual field" given sub.state)]]]
+++  union-payload-field-items
+  |=  [items=(list item) fields=(list field) actual=itype expected=itype state=istate]
+  ^-  (unit idiag)
+  ?~  items  ~
+  ?~  fields  ~
+  ?:  !=(?=(~ t.items) ?=(~ t.fields))  ~
+  ?~  t.items
+    (union-payload-field-error val.i.items actual expected (source-field-shape i.fields) state)
+  =.  actual  (itype-walk actual sub.state)
+  =.  expected  (itype-walk expected sub.state)
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  first=ifit  (itype-fit hed.actual hed.expected sub.state next.state)
+  ?:  ?=(%bad -.first)
+    (union-payload-field-error val.i.items hed.actual hed.expected (source-field-shape i.fields) state)
+  ?.  ?=(%ok -.first)  ~
+  $(items t.items, fields t.fields, actual tal.actual, expected tal.expected, state state(sub sub.first, next next.first))
+::
+++  union-payload-diagnostic
+  |=  [e=expr actual=itype expected=itype state=istate context=span annotation=(unit shape)]
+  ^-  (unit idiag)
+  =.  expected  (itype-walk expected sub.state)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+  ?.  ?=(%union -.expected)  ~
+  =/  written=(unit [literal=lit at=span payload=(unit expr)])  (union-written-tag e)
+  ?~  written  ~
+  =/  payload=(unit itype)  (union-payload-target cases.expected val.literal.u.written sub.state ~)
+  ?~  payload  ~
+  =/  wanted=itype  (itype-normalize u.payload sub.state)
+  ?:  |(?=(^ (itype-vars wanted)) (itype-has-tag wanted))  ~
+  =/  sites=[tag=span payload=span]
+    (union-payload-sites expected val.literal.u.written state context annotation)
+  ?~  payload.u.written
+    ::  A standalone singleton of this noun is valid even when the union
+    ::  also has a cell with that head. Only report a failed scalar fit.
+    =/  fit=ifit  (itype-fit actual expected sub.state next.state)
+    ?.  ?=(%bad -.fit)  ~
+    `["{(show-itype expected sub.state)} case `{(trip txt.literal.u.written)}` needs a payload of type {(show-itype wanted sub.state)}" ~[[tag.sites "case requires a payload"] [at.u.written "tag has no payload"]]]
+  =.  actual  (itype-walk actual sub.state)
+  ?.  ?=(%cell -.actual)  ~
+  =/  given=itype  (itype-normalize (sample-slot-target tal.actual) sub.state)
+  =/  first-field=(unit idiag)
+    ?~  origin.expected  ~
+    ?.  =(at.u.origin.expected at.state)  ~
+    ?~  (union-payload-case cases.expected val.literal.u.written sub.state ~)  ~
+    =/  mold=(unit shape)  (find-simple-mold name.u.origin.expected molds.state)
+    ?~  mold  ~
+    =/  source=(unit [tag=span payload=shape])  (union-payload-source u.mold val.literal.u.written)
+    ?~  source  ~
+    =/  missing=(unit idiag)  (missing-tag-diagnostic u.payload.u.written wanted state payload.sites)
+    ?^  missing  missing
+    (union-payload-field-error u.payload.u.written given wanted payload.u.source state)
+  ?^  first-field  first-field
+  =/  fit=ifit  (itype-fit given wanted sub.state next.state)
+  ?.  ?=(%bad -.fit)  ~
+  ?:  &(?=(%tag -.given) !constructor.given ?=(%union -.wanted) =(%no (tag-presence wanted val.literal.given sub.state)))
+    `["{(show-itype expected sub.state)} case `{(trip txt.literal.u.written)}` has no payload `{(trip txt.literal.given)}`; expected {(show-itype wanted sub.state)}" ~[[payload.sites (site-type-note "expected payload" wanted sub.state)] [(span-of u.payload.u.written) "tag literal has type {(trip txt.literal.given)}"]]]
+  ?:  |(?=(^ (itype-vars given)) (itype-has-tag given))  ~
+  `["union payload has type {(show-itype given sub.state)}, but `{(trip txt.literal.u.written)}` requires {(show-itype wanted sub.state)}" ~[[payload.sites "expected {(show-itype wanted sub.state)}"] [(span-of u.payload.u.written) (site-type-note "payload" given sub.state)]]]
+::
+:: Recover a constructor only from its own unique queued value edge.
+:: This does not solve or bind the edge; it supplies source-backed detail
+:: to an otherwise definite payload diagnostic.
+++  contextual-tagged-value
+  |=  [e=expr value=itype state=istate]
+  ^-  (unit itype)
+  =/  source=expr  e
+  =.  source
+    |-  ^-  expr
+    ?:  ?=(%group -.source)  $(source inner.source)
+    ?:  ?=(%pair -.source)  (pair-as-cell source)
+    source
+  =/  root=itype  (itype-walk value sub.state)
+  ?.  ?=(%var -.root)  ~
+  =/  matching=(list icore-edge)
+    %+  skim  queue.state
+    |=  edge=icore-edge
+    ?.  ?=(%tagged-cell -.edge)  |
+    ?.  =(owner.edge owner.state)  |
+    ?.  =(at.edge (span-of source))  |
+    ?.  =(source.edge source)  |
+    =((itype-walk result.edge sub.state) root)
+  ?.  ?=([* ~] matching)  ~
+  ?>  ?=(%tagged-cell -.i.matching)
+  `actual.i.matching
+::
+++  icore-tag-history-at
+  |=  [id=@ud tags=(list ipending)]
+  ^-  (unit span)
+  ?~  tags  ~
+  ?:  =(id id.i.tags)  `at.i.tags
+  $(tags t.tags)
+::
+++  icore-tag-at
+  |=  [id=@ud edges=(list icore-edge)]
+  ^-  (unit span)
+  ?~  edges  ~
+  ?:  &(?=(%tag -.i.edges) =(id id.i.edges))  `at.i.edges
+  $(edges t.edges)
+::
+::  Source provenance must come from a checked import graph.  A graph's
+::  path set proves the origin was checked and its source bundle preserves
+::  the exact input used by that check. Ambiguous or unavailable source is
+::  deliberately omitted from the diagnostic.
+++  diagnostic-import-source
+  |=  [file=path imports=ijimports sources=(list [at=path source=@t])]
+  ^-  (unit @t)
+  ?~  imports  ~
+  =/  iface=ifile  interface.i.imports
+  ?~  graph.iface  $(imports t.imports)
+  =/  g=irequest-graph  u.graph.iface
+  ?.  (~(has in:..zuse paths.g) file)  $(imports t.imports)
+  ?.  =(bundle-input.g sources)  $(imports t.imports)
+  =/  found=(list [at=path source=@t])
+    (skim sources |=(x=[at=path source=@t] =(file at.x)))
+  ?~  found  $(imports t.imports)
+  ?^  t.found  $(imports t.imports)
+  ?:  =(file at.iface)
+    ?~  source.iface  $(imports t.imports)
+    ?.  =(u.source.iface source.i.found)  $(imports t.imports)
+    `u.source.iface
+  `source.i.found
+::
+::  Group interfaces carry their own checked request graph and source
+::  closure. A path is usable only when that graph proves it was checked
+::  and the retained closure agrees with the graph's original source.
+++  diagnostic-group-bundle-source
+  |=  [bundle=* file=path source=@t found=? fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  ?:  =(~ bundle)  found
+  ?.  ?=([* *] bundle)  |
+  =/  entry=*  -.bundle
+  ?.  ?=([* *] entry)  |
+  ?:  =(file -.entry)
+    ?.  =(source +.entry)  |
+    $(bundle +.bundle, found &, fuel (dec fuel))
+  $(bundle +.bundle, fuel (dec fuel))
+++  diagnostic-group-sources
+  |=  [file=path groups=(list iprelude-group)]
+  ^-  (list @t)
+  ?~  groups  ~
+  =/  rest=(list @t)  $(groups t.groups)
+  ?~  graph.i.groups  rest
+  =/  graph=irequest-graph  u.graph.i.groups
+  ?.  (~(has in:..zuse paths.graph) file)  rest
+  =/  own=(list @t)
+    ?.  =(file at.i.groups)  ~
+    ?~  source.i.groups  ~
+    ?.  (diagnostic-group-bundle-source bundle-input.graph file u.source.i.groups | 65.536)  ~
+    ~[u.source.i.groups]
+  =/  dependencies=(list @t)
+    %+  murn  closure.i.groups
+    |=  entry=iprelude-dependency
+    ?.  =(file at.entry)  ~
+    ?~  source.entry  ~
+    ?~  graph.entry  ~
+    ?.  (~(has in:..zuse paths.u.graph.entry) file)  ~
+    ?.  =(bundle-input.u.graph.entry bundle-input.graph)  ~
+    ?.  (diagnostic-group-bundle-source bundle-input.graph file u.source.entry | 65.536)  ~
+    `u.source.entry
+  (weld own (weld dependencies rest))
+++  diagnostic-group-source
+  |=  [file=path groups=(list iprelude-group)]
+  ^-  (unit @t)
+  =/  sources=(list @t)  (diagnostic-group-sources file groups)
+  ?~  sources  ~
+  ?.  (levy t.sources |=(source=@t =(source i.sources)))  ~
+  `i.sources
+::
+++  diagnostic-origin-source
+  |=  [file=path state=istate]
+  ^-  (unit @t)
+  =/  special=(unit @t)
+    ?~  prelude.state  ~
+    ?.  =(file at.u.prelude.state)  ~
+    source.u.prelude.state
+  ?^  special  special
+  =/  imported=(unit @t)  (diagnostic-import-source file jimports.state diagnostic-sources.state)
+  ?^  imported  imported
+  ?~  prelude.state  ~
+  (diagnostic-group-source file groups.u.prelude.state)
+::
+++  diagnostic-union-shape-site
+  |=  sh=shape
+  ^-  span
+  ?:  ?=(%generic -.sh)  $(sh body.sh)
+  ?:  &(?=(%union -.sh) ?=(^ cases.sh))  at.i.cases.sh
+  at.sh
+::
+++  diagnostic-external-union-site
+  |=  [target=itype state=istate]
+  ^-  (unit idsite)
+  =.  target  (itype-walk target sub.state)
+  ?:  ?=(?(%face %slot) -.target)  $(target body.target)
+  ?:  ?=(%fn -.target)  $(target product.target)
+  ?.  ?=(%union -.target)  ~
+  ?~  origin.target  ~
+  =/  origin=[at=path name=term]  u.origin.target
+  ?:  =(at.origin at.state)  ~
+  =/  src=(unit @t)  (diagnostic-origin-source at.origin state)
+  ?~  src  ~
+  =/  parsed=(each module error)  (parse at.origin u.src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  sh=(unit shape)  (find-simple-mold name.origin (collect-simple-molds defs.p.parsed))
+  ?~  sh  ~
+  `[%external at.origin u.src (diagnostic-union-shape-site u.sh) (site-type-note "expected union" target sub.state)]
+::
+++  diagnostic-site-span
+  |=  site=idsite
+  ^-  span
+  ?-  -.site
+    %external  at.site
+    *  at.site
+  ==
+::
+++  diagnostic-site-index
+  |=  sites=(list idsite)
+  ^-  (map span idsite)
+  =/  index=(map span idsite)  ~
+  |-  ^-  (map span idsite)
+  ?~  sites  index
+  =/  current=idsite  i.sites
+  =/  at=span  (diagnostic-site-span current)
+  $(sites t.sites, index (~(put by index) at current))
+::
+++  diagnostic-add-external-union
+  |=  [diag=idiag target=itype state=istate]
+  ^-  idiag
+  =/  named=(unit idsite)  (diagnostic-union-declaration-site target state |)
+  =?  named  ?=(~ named)  (diagnostic-external-union-site target state)
+  =/  variant=(unit idsite)  (diagnostic-union-declaration-site target state &)
+  =/  note=tape  (site-type-note "expected union" target sub.state)
+  =/  first=(list idsite)
+    ?~  named  ~
+    ?:  ?=(%external -.u.named)
+      ~[[%external file.u.named source.u.named at.u.named note]]
+    ~[[at.u.named note]]
+  =/  second=(list idsite)
+    ?~  variant  ~
+    ?:  ?=(%external -.u.variant)
+      ~[[%external file.u.variant source.u.variant at.u.variant note]]
+    ~[[at.u.variant note]]
+  ?~  sites.diag  diag
+  =/  seen=(map span idsite)  (diagnostic-site-index sites.diag)
+  =/  extra=(list idsite)
+    %+  skim  (weld first second)
+    |=  site=idsite
+    !(~(has by seen) (diagnostic-site-span site))
+  diag(sites (weld extra sites.diag))
+::
+++  missing-tag-diagnostic
+  |=  [e=expr expected=itype state=istate context=span]
+  ^-  (unit idiag)
+  ?:  ?=(%group -.e)  $(e inner.e)
+  =/  target=itype  (itype-walk expected sub.state)
+  ?:  ?=(?(%face %slot) -.target)  $(expected body.target)
+  ?:  &(?=(%ctor -.e) ?=(%fn -.target))
+    =/  product=itype  (itype-walk product.target sub.state)
+    ?:  ?=(%noun -.product)
+      `["nothing fixes the union of {(trip txt.tag.e)}; add a `^-`" ~[[at.e "constructor `|={(trip txt.tag.e)}` has no union context"] [context (site-type-note "expected constructor gate" target sub.state)]]]
+    =/  missing=(unit idiag)  (missing-union-tag e expected sub.state context)
+    ?~  missing  ~
+    `(diagnostic-add-external-union u.missing product state)
+  =/  missing=(unit idiag)  (missing-union-tag e expected sub.state context)
+  ?~  missing  ~
+  `(diagnostic-add-external-union u.missing target state)
+::
+::  A named pattern subject points to its exact mold declaration. The
+::  origin identifies the source and name; equal-shaped molds are not used.
+++  diagnostic-union-declaration-site
+  |=  [target=itype state=istate variant=?]
+  ^-  (unit idsite)
+  =.  target  (itype-walk target sub.state)
+  ?:  ?=(?(%face %slot) -.target)  $(target body.target)
+  ?:  ?=(%fn -.target)  $(target product.target)
+  ?.  ?=(%union -.target)  ~
+  ?~  origin.target  ~
+  =/  origin=[at=path name=term]  u.origin.target
+  =/  src=(unit @t)
+    ?:  =(at.origin at.state)  local-source.state
+    (diagnostic-origin-source at.origin state)
+  ?~  src  ~
+  =/  parsed=(each module error)  (parse at.origin u.src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  declarations=(list def)
+    (skim defs.p.parsed |=(d=def &(?=(%mold -.d) =(name.d name.origin))))
+  ?.  ?=([* ~] declarations)  ~
+  ?>  ?=(%mold -.i.declarations)
+  =/  site=span
+    ?:  variant  (diagnostic-union-shape-site shape.i.declarations)
+    (definition-name-site at.origin u.src at.i.declarations)
+  =/  note=tape  (site-type-note "matched union" target sub.state)
+  ?:  =(at.origin at.state)  `[site note]
+  `[%external at.origin u.src site note]
+::
+++  coverage-source-case-sites
+  |=  [sh=shape value=@]
+  ^-  (list span)
+  ?:  ?=(%generic -.sh)  $(sh body.sh)
+  ?.  ?=(%union -.sh)  ~
+  =/  cases=(list shape)  cases.sh
+  |-  ^-  (list span)
+  ?~  cases  ~
+  =/  case=shape  i.cases
+  =/  here=(list span)
+    ?:  ?=(%const -.case)
+      ?:(=(value val.lit.case) ~[at.case] ~)
+    ?.  ?=(%cell -.case)  ~
+    ?~  fields.case  ~
+    =/  head=shape  (source-field-shape i.fields.case)
+    ?.  ?=(%const -.head)  ~
+    ?:(=(value val.lit.head) ~[at.head] ~)
+  (weld here $(cases t.cases))
+::
+++  coverage-missing-case-diagnostic
+  |=  [diag=idiag witness=(unit *) subject=itype state=istate]
+  ^-  idiag
+  ?~  witness  diag
+  =/  target=itype  (itype-normalize subject sub.state)
+  ?.  ?=(%union -.target)  diag
+  ?~  origin.target  diag
+  ?.  =(at.u.origin.target at.state)  diag
+  =/  chosen=(unit itype)  (coverage-witness-case u.witness cases.target sub.state 128)
+  ?~  chosen  diag
+  =/  sh=(unit shape)  (find-simple-mold name.u.origin.target molds.state)
+  ?~  sh  diag
+  =/  head=(unit @)
+    ?@  u.witness  `u.witness
+    ?@  -.u.witness  `-.u.witness
+    ~
+  ?~  head  diag
+  =/  matches=(list span)  (coverage-source-case-sites u.sh u.head)
+  ?.  ?=([* ~] matches)  diag
+  diag(sites [[i.matches "missing case is declared here"] sites.diag])
+::
+::  Only replace the matrix's proven impossible literal arm. Reuse the
+::  checked union-origin source for the expected declaration site.
+++  coverage-missing-tag-diagnostic
+  |=  [diag=idiag branch=expr subject=itype state=istate]
+  ^-  idiag
+  ?.  =(msg.diag "pattern cannot match the subject")  diag
+  ?.  ?=(%branch -.branch)  diag
+  ?~  sites.diag  diag
+  ?:  ?=(%external -.i.sites.diag)  diag
+  =/  site=span  at.i.sites.diag
+  =/  matches=(list arm)
+    (skim arms.branch |=(a=arm &(?=(%lit -.pat.a) =(site at.pat.a))))
+  ?~  matches  diag
+  =/  pat=pattern  pat.i.matches
+  ?.  ?=(%lit -.pat)  diag
+  =/  found=(unit idiag)
+    (missing-tag-diagnostic [%lit at.pat lit.pat] subject state (span-of subject.branch))
+  ?~  found  diag
+  =/  declaration=(unit idsite)  (diagnostic-union-declaration-site subject state |)
+  ?~  declaration  u.found
+  ?~  sites.u.found  u.found
+  u.found(sites [u.declaration t.sites.u.found])
+::
 ++  missing-union-tag
   |=  [e=expr expected=itype sub=isub context=span]
   ^-  (unit idiag)
-  ?.  ?=(%lit -.e)  ~
-  ?.  =(%term form.lit.e)  ~
+  ?:  ?=(%group -.e)  $(e inner.e)
+  =/  written=(unit [literal=lit at=span payload=(unit expr)])  (union-written-tag e)
+  ?~  written
+    ?.  ?=(%ctor -.e)  ~
+    =/  target=itype  (itype-walk expected sub)
+    ?.  ?=(%fn -.target)  ~
+    $(e [%lit at.e tag.e], expected product.target)
+  =/  literal=lit  literal.u.written
   =.  expected  (itype-walk expected sub)
   |-
-  ?:  ?=(%face -.expected)  $(expected (itype-walk body.expected sub))
-  ?.  ?=(%union -.expected)  ~
-  ?.  =(%no (tag-presence-cases cases.expected val.lit.e sub))  ~
+  ?:  ?=(?(%face %slot) -.expected)  $(expected (itype-walk body.expected sub))
+  ?:  &(?=(%collection -.expected) =(%list name.expected) ?=(~ payload.u.written) !=(0 val.literal))
+    `["{(show-itype expected sub)} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected list" expected sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
+  ?.  ?=(?(%union %cell) -.expected)  ~
+  ?:  ?=(%cell -.expected)
+    =/  head=itype  (itype-walk hed.expected sub)
+    ?.  ?=(%const -.head)  ~
+    ?.  !=(val.literal val.literal.head)  ~
+    `["type {(show-itype expected sub)} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected case" expected sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
+  ?.  =(%no (tag-presence expected val.literal sub))  ~
   =/  label=tape
     ?~  label.expected  "union {(show-itype expected sub)}"
     (show-itype expected sub)
-  `["{label} has no case `{(trip txt.lit.e)}`" ~[[context "expected union"] [(span-of e) "tag"]]]
+  `["{label} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected union" expected sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
 ::
 ::  Locate a missing tag inside a syntactic tuple only by replaying the
 ::  directional fit in source order. Uncertain or earlier failures stop
 ::  the walk, preserving the generic diagnostic rather than guessing.
 ++  nested-missing-tag
-  |=  [e=expr actual=itype expected=itype sub=isub next=@ud context=span]
+  |=  [e=expr actual=itype expected=itype sub=isub next=@ud context=span state=istate]
   ^-  (unit idiag)
-  =/  original=[left=itype right=itype]  [actual expected]
-  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%rvar -.left.original) |(?=(%nvar -.left.original) ?=(%rnvar -.left.original)) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%rvar -.right.original) |(?=(%nvar -.right.original) ?=(%rnvar -.right.original)))  ~
   =/  fit=ifit  (itype-fit actual expected sub next)
   ?.  ?=(%bad -.fit)  ~
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
-  ?:  &(?=(%face -.actual) ?=(%face -.expected))
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
     ?.  =(name.actual name.expected)  ~
     $(actual body.actual, expected body.expected)
-  ?:  ?=(%face -.actual)  $(actual body.actual)
-  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(?(%face %slot) -.actual)  $(actual body.actual)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
   =/  direct=(unit idiag)  (missing-union-tag e expected sub context)
-  ?^  direct  direct
+  ?^  direct  `(diagnostic-add-external-union u.direct expected state(sub sub))
   ?.  ?=(%tuple -.e)  ~
-  (nested-missing-items items.e actual expected sub next context)
+  (nested-missing-items items.e actual expected sub next context state)
 ::
 ++  nested-missing-items
-  |=  [items=(list item) actual=itype expected=itype sub=isub next=@ud context=span]
+  |=  [items=(list item) actual=itype expected=itype sub=isub next=@ud context=span state=istate]
   ^-  (unit idiag)
   ?~  items  ~
-  ?~  t.items  (nested-missing-tag val.i.items actual expected sub next context)
-  =/  original=[left=itype right=itype]  [actual expected]
-  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%rvar -.left.original) |(?=(%nvar -.left.original) ?=(%rnvar -.left.original)) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%rvar -.right.original) |(?=(%nvar -.right.original) ?=(%rnvar -.right.original)))  ~
+  ?~  t.items  (nested-missing-tag val.i.items actual expected sub next context state)
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
   =/  first=ifit  (itype-fit hed.actual hed.expected sub next)
   ?:  ?=(%bad -.first)
-    (nested-missing-tag val.i.items hed.actual hed.expected sub next context)
+    (nested-missing-tag val.i.items hed.actual hed.expected sub next context state)
   ?.  ?=(%ok -.first)  ~
   $(items t.items, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
 ::
@@ -9226,7 +13340,7 @@
 ++  decimal-misfit
   |=  [e=expr actual=itype expected=itype sub=isub next=@ud]
   ^-  (unit idiag)
-  =/  loose=isub  (turn sub |=(b=ibinding b(val (decimal-relax val.b))))
+  =/  loose=isub  (isub-from-bindings (turn (isub-history sub) |=(b=ibinding b(val (decimal-relax val.b)))))
   =/  fit=ifit  (itype-fit (decimal-relax actual) (decimal-relax expected) loose next)
   (decimal-misfit-at e (decimal-relax expected) ?:(?=(%ok -.fit) sub.fit loose))
 ::
@@ -9239,9 +13353,9 @@
     %nvar        [%avar id.t]
     %rnvar       [%rvar id.t]
     %collection  t(args (turn args.t |=(c=itype (decimal-relax c))))
-    %grec        t(args (turn args.t |=(c=itype (decimal-relax c))))
+    %mrec        t(args (turn args.t |=(c=itype (decimal-relax c))))
     %union       t(cases (turn cases.t |=(c=itype (decimal-relax c))), args (turn args.t |=(c=itype (decimal-relax c))))
-    %face        t(body $(t body.t))
+    ?(%face %slot)        t(body $(t body.t))
     %fn          [%fn $(t sample.t) $(t product.t)]
     %cell        [%cell $(t hed.t) $(t tal.t)]
   ==
@@ -9255,11 +13369,18 @@
   |=  [e=expr expected=itype sub=isub]
   ^-  (unit idiag)
   =.  expected  (itype-walk expected sub)
-  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
   ?+  -.e  ~
     %lit    (decimal-lit-misfit at.e lit.e expected |)
     %group  $(e inner.e)
     %pair   $(e (pair-as-cell e))
+    %call
+      ?~  args.e  ~
+      ?~  t.args.e  ~
+      =/  whole-args=span
+        [beg:(span-of i.args.e) end:(span-of (rear args.e))]
+      =/  items=(list item)  (turn args.e |=(a=expr [(span-of a) ~ a]))
+      $(e [%tuple whole-args items])
     %tuple  (decimal-misfit-items items.e expected sub)
     %unit
       ?.  ?=(%collection -.expected)  ~
@@ -9276,6 +13397,39 @@
       $(items t.items)
   ==
 ::
+++  nondecimal-literal-misfit
+  |=  [e=expr expected=itype sub=isub next=@ud]
+  ^-  ?
+  =/  actual=(unit itype)
+    ?:  ?=(%str -.e)  `[%atom %t]
+    ?.  ?=(%lit -.e)  ~
+    ?:  ?=(%number form.lit.e)  ~
+    ?:  ?=(?(%null %term) form.lit.e)  `[%const lit.e]
+    ?:  ?=(%loobean form.lit.e)  `[%flag ~]
+    `[%atom aura.lit.e]
+  ?~  actual  |
+  =/  fit=ifit  (itype-fit u.actual expected sub next)
+  ?=(%bad -.fit)
+::
+++  nondecimal-misfit-at
+  |=  [e=expr expected=itype sub=isub next=@ud]
+  ^-  ?
+  ?+  -.e  |
+    %lit    (nondecimal-literal-misfit e expected sub next)
+    %str    (nondecimal-literal-misfit e expected sub next)
+    %group  $(e inner.e)
+    %pair   $(e (pair-as-cell e))
+    %call
+      ?~  args.e  |
+      =/  items=(list item)  (turn args.e |=(a=expr [(span-of a) ~ a]))
+      $(e [%tuple at.e items])
+    %tuple
+      (lien items.e |=(item=item ^$(e val.item)))
+    %unit   $(e val.e)
+    %list
+      (lien items.e |=(item=expr ^$(e item)))
+  ==
+::
 ::  +decimal-misfit-items: a tuple's items beside a cell, the last its tail
 ::
 ++  decimal-misfit-items
@@ -9284,7 +13438,7 @@
   ?~  items  ~
   ?~  t.items  (decimal-misfit-at val.i.items expected sub)
   =.  expected  (itype-walk expected sub)
-  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
   ?:  ?=(%union -.expected)
     =/  head=expr  val.i.items
     ?.  ?=(%lit -.head)  ~
@@ -9305,7 +13459,7 @@
   |=  [p=pattern expected=itype sub=isub]
   ^-  (unit idiag)
   =.  expected  (itype-walk expected sub)
-  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
   ?:  ?=(%lit -.p)  (decimal-lit-misfit at.p lit.p expected &)
   ?.  ?=(%cell -.p)  ~
   (decimal-pattern-items items.p expected sub)
@@ -9318,7 +13472,7 @@
   ?~  items  ~
   ?~  t.items  (decimal-pattern-misfit i.items expected sub)
   =.  expected  (itype-walk expected sub)
-  ?:  ?=(%face -.expected)  $(expected body.expected)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
   ?:  ?=(%union -.expected)
     ?.  ?=(%lit -.i.items)  ~
     =/  case=(unit itype)  (decimal-case val.lit.i.items cases.expected sub)
@@ -9350,7 +13504,7 @@
     =.  c  (itype-walk c sub)
     ?.  ?=(%cell -.c)  |
     =/  head=itype  (itype-walk hed.c sub)
-    =?  head  ?=(%face -.head)  (itype-walk body.head sub)
+    =?  head  ?=(?(%face %slot) -.head)  (itype-walk body.head sub)
     &(?=(%const -.head) =(value val.literal.head))
   ?.  ?=([* ~] hits)  ~
   `i.hits
@@ -9400,14 +13554,138 @@
   =/  head=expr  [%lit at.e [%term %tas tag.e (crip ['%' (trip tag.e)])]]
   [%tuple at.e ~[[at.e ~ head] [(span-of val.e) ~ val.e]]]
 ::
-::  A segment costs one shared step; dynamic segments are not handled yet.
-++  qath-static-fuel
-  |=  [segs=(list qseg) fuel=@ud]
-  ^-  (unit @ud)
-  ?~  segs  `fuel
-  ?:  =(0 fuel)  ~
-  ?.  ?=(%knot -.i.segs)  ~
-  $(segs t.segs, fuel (dec fuel))
+::  Every application-path expression is checked as an atom with a known
+::  printable aura. Preserve its constraints for the enclosing definition.
+++  infer-qath-segments
+  |=  [segs=(list qseg) env=ienv state=istate]
+  ^-  (each istate idiag)
+  (infer-qath-segments-context segs env state *span)
+++  infer-qath-segments-context
+  |=  [segs=(list qseg) env=ienv state=istate context=span]
+  ^-  (each istate idiag)
+  ?~  segs  [%& state]
+  ?:  =(0 jrec-fuel.state)
+    [%| ["application path exceeds recursive mold inference fuel" ~]]
+  =.  state  state(jrec-fuel (dec jrec-fuel.state))
+  ?:  ?=(%knot -.i.segs)  $(segs t.segs)
+  =/  expression=expr  p.i.segs
+  =/  item=iresult  (infer-fragment expression env state)
+  ?:  ?=(%| -.item)  [%| p.item]
+  =/  st=istate  state.p.item
+  =/  typ=itype  (itype-unface (itype-normalize typ.p.item sub.st) sub.st)
+  ?:  |(?=(%atom -.typ) ?=(%any-atom -.typ) ?=(%flag -.typ))
+    $(segs t.segs, state st)
+  ?:  &(?=(?(%nvar %rnvar) -.typ) ?=(%lit -.expression) =(%number form.lit.expression))
+    $(segs t.segs, state st)
+  ?:  (printable-rejected typ |)
+    [%| (printable-error typ (span-of expression) context |)]
+  =/  generic=(unit idiag)  (generic-printable-diagnostic typ caps.st sub.st (span-of expression) context |)
+  ?^  generic  [%| u.generic]
+  ?:  general-defer.st
+    =/  edge=icore-edge  [%printable typ.p.item (span-of expression) owner.st caps.st context |]
+    $(segs t.segs, state st(queue [edge queue.st]))
+  ?:  &(?=(?(%avar %rvar) -.typ) (atom-var-from-cap id.typ caps.st sub.st))
+    [%| ["a generic atom in an application path needs an aura" ~[[(span-of expression) "atom with a generic aura"]]]]
+  [%| ["application path segment needs an atom with a known aura" ~[[(span-of expression) "segment with an unknown aura"]]]]
+::
+++  infer-pending-tag
+  |=  [literal=lit at=span constructor=? state=istate]
+  ^-  iresult
+  =/  id=@ud  next.state
+  =/  st=istate  state(next +(id), tags [[id literal at] tags.state])
+  =?  queue.st  general-defer.state
+    [[%tag id literal constructor at] queue.state]
+  [%& [%tag id literal constructor] st]
+::
+++  coverage-cell-seed
+  |=  [items=(list pattern) state=istate]
+  ^-  (unit [typ=itype state=istate])
+  ?~  items  ~
+  =/  first=(unit [typ=itype state=istate])
+    =/  pat=pattern  i.items
+    ?-  -.pat
+      %any
+        =/  typ=itype  [%var next.state]
+        `[typ state(next +(next.state))]
+      %bind
+        =/  typ=itype  [%var next.state]
+        `[typ state(next +(next.state))]
+      %cell  $(items items.pat)
+      *  ~
+    ==
+  ?~  first  ~
+  ?~  t.items  first
+  =/  rest=(unit [typ=itype state=istate])  $(items t.items, state state.u.first)
+  ?~  rest  ~
+  `[[%cell typ.u.first typ.u.rest] state.u.rest]
+::
+++  icore-defer-branch
+  |=  [e=expr env=ienv state=istate]
+  ^-  (unit iresult)
+  ?.  &(?=(%branch -.e) general-defer.state)  ~
+  ::  A named definition must settle its own holes before later uses.
+  ?:  (expr-has-hole e)  ~
+  =/  subject=iresult  (infer-fragment subject.e env state)
+  ?:  ?=(%| -.subject)  ~
+  =/  st=istate  state.p.subject
+  =/  typ=itype  (itype-walk typ.p.subject sub.st)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.typ)  ~
+  =/  seeded=(unit [typ=itype state=istate])
+    ?.  ?=([* ~] arms.e)  ~
+    =/  pat=pattern  pat.i.arms.e
+    ?.  ?=(%cell -.pat)  ~
+    (coverage-cell-seed items.pat st)
+  =/  unified=(unit isub)
+    ?~  seeded  ~
+    (itype-unify typ typ.u.seeded sub.state.u.seeded)
+  ?^  unified
+    ?>  ?=(^ seeded)
+    =/  subject-state=istate  state.u.seeded(sub u.unified)
+    (infer-coverage-branch e env [%& typ subject-state] ~)
+  =/  result=itype  [%var next.st]
+  =/  edge=icore-edge
+    [%match typ.p.subject e env caps.st molds.st mold-captures.st globals.st binders.st level.st result at.e owner.st]
+  `[%& result st(next +(next.st), queue [edge queue.st])]
+::
+++  infer-body
+  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
+  ^-  iresult
+  ?>  ?=(%body -.e)
+  ?~  defs.e
+    ?~  expected  (infer-fragment final.e env state)
+    (infer-call-context-arg final.e typ.u.expected env state context.u.expected)
+  =/  local-names=(list term)  (global-value-names defs.e)
+  ?.  (local-names-valid defs.e env state)
+    =/  collision=(unit idiag)  (shadow-binding-context at.e %local state)
+    ?^  collision  [%| u.collision]
+    [%| ["local definitions shadow a name" ~]]
+  =/  local-molds=imolds  (collect-simple-molds defs.e)
+  =/  mold-shadow=(unit idiag)  (local-mold-diagnostic defs.e state)
+  ?^  mold-shadow  [%| u.mold-shadow]
+  =/  local-state=istate
+    state(globals (weld local-names globals.state), molds (weld local-molds molds.state), mold-captures (weld (local-mold-capture-list local-molds caps.state params.state) mold-captures.state))
+  =/  mold-hole=(unit span)  (simple-local-mold-hole defs.e)
+  ?^  mold-hole
+    [%| ["type hole needs a determined type" ~[[u.mold-hole "unresolved type hole"]]]]
+  ?.  (local-molds-supported local-molds local-state)
+    [%| ["local molds need unsupported inference" ~]]
+  =/  values=(list def)  (local-value-defs defs.e)
+  =/  locals=ilocal-result  (infer-local-defs values env local-state)
+  ?:  ?=(%| -.locals)  locals
+  =/  result=iresult
+    ?~  expected  (infer-fragment final.e env.p.locals state.p.locals)
+    (infer-call-context-arg final.e typ.u.expected env.p.locals state.p.locals context.u.expected)
+  ?:  ?=(%| -.result)  result
+  [%& typ.p.result state.p.result(globals globals.state, molds molds.state, mold-captures mold-captures.state)]
+::
+::  A literal creates an ordinary noun, never a private seal. Groups do
+::  not change that fact; calls and variables may carry a checked seal.
+++  unsealed-literal-site
+  |=  e=expr
+  ^-  (unit span)
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?.  ?=(?(%lit %ctor %str %path %qath %list %tuple %unit %pair) -.e)  ~
+  `(span-of e)
 ::
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
@@ -9417,40 +13695,58 @@
     %lit
       ?-  form.lit.e
         %number    ?:  =(%ud aura.lit.e)
-                     [%& [%nvar next.state] state(next +(next.state))]
+                     =/  typ=itype  [%nvar next.state]
+                     =/  st=istate  state(next +(next.state))
+                     =?  queue.st  general-defer.state
+                       [[%number-default typ at.e caps.state owner.state] queue.state]
+                     [%& typ st]
                    [%& [%atom aura.lit.e] state]
         %ship      [%& [%atom %p] state]
         %date      [%& [%atom %da] state]
         %duration  [%& [%atom %dr] state]
         %knot      [%& [%atom %ta] state]
         %loobean   [%& [%flag ~] state]
-        %term      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e at.e] tags.state])]
-        %null      [%& [%tag next.state lit.e |] state(next +(next.state), tags [[next.state lit.e at.e] tags.state])]
+        %term      (infer-pending-tag lit.e at.e | state)
+        %null      (infer-pending-tag lit.e at.e | state)
       ==
     %unit
-      ?~  prelude.state  [%| ["unit construction needs the standard prelude in partial inference" ~]]
+      ?~  prelude.state  [%| (required-standard-unit at.e state)]
       =/  standard=(unit ischeme)  (find-jibb-mold %unit u.prelude.state)
-      ?~  standard  [%| ["unit construction needs the standard prelude in partial inference" ~]]
+      ?~  standard  [%| (required-standard-unit at.e state)]
       ?.  (standard-unit-template u.standard at.u.prelude.state)
-        [%| ["unit construction needs the standard prelude in partial inference" ~]]
+        [%| (required-standard-unit at.e state)]
       =/  value=iresult  $(e val.e)
       ?:  ?=(%| -.value)  value
       =/  result=(unit itype)  (template-apply u.standard ~[typ.p.value])
       ?~  result  [%| ["unit construction is not supported by partial inference" ~]]
       [%& u.result state.p.value]
     %list
-      ?~  prelude.state  [%| ["list literal needs the standard prelude in partial inference" ~]]
+      ?~  prelude.state  [%| (required-standard-list "list literal" at.e state)]
       ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
-        [%| ["list literal needs the standard prelude in partial inference" ~]]
+        [%| (required-standard-list "list literal" at.e state)]
       =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
-      ?~  standard  [%| ["list literal needs the standard prelude in partial inference" ~]]
-      ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])
-        [%| ["list literal needs the standard prelude in partial inference" ~]]
+      ?~  standard  [%| (required-standard-list "list literal" at.e state)]
+      ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0] ~])
+        [%| (required-standard-list "list literal" at.e state)]
       =/  element=itype  [%var next.state]
-      =/  result=iresult  (infer-open-list-items items.e element env state(next +(next.state)) at.e ~)
-      ?:  ?=(%| -.result)  result
-      [%& [%collection %list ~[element]] state.p.result]
-    %str  (infer-string-pieces pieces.e env state)
+      =/  result=iresult  (infer-open-list-items items.e element env state(next +(next.state)) at.e ~ ~)
+      ?:  ?=(%| -.result)  [%| (list-call-diagnostic e env state p.result)]
+      =/  st=istate  state.p.result
+      =/  repeated=(unit idiag)  (repeated-attribute-heads items.e)
+      =?  queue.st  &(general-defer.st ?=(^ repeated))
+        [[%attributes element items.e at.e owner.st] queue.st]
+      [%& [%collection %list ~[element]] st]
+    %str  (infer-string-pieces pieces.e env state at.e)
+    %path
+      =/  missing=idiag
+        ["path literal needs the checked prelude path mold" ~[[at.e "path literal"]]]
+      ?~  prelude.state  [%| missing]
+      ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)  [%| missing]
+      =/  standard=(unit ischeme)  (find-jibb-mold %path u.prelude.state)
+      ?~  standard  [%| missing]
+      ?.  =(u.standard [[%collection %list ~[[%atom %ta]]] ~ ~])
+        [%| missing]
+      [%& typ.u.standard state]
     %qath
       ?~  prelude.state  [%| ["application path needs the standard prelude in partial inference" ~]]
       ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)
@@ -9459,34 +13755,38 @@
       ?~  standard  [%| ["application path needs the standard prelude in partial inference" ~]]
       ?.  ?=(~ vars.u.standard)  [%| ["application path mold needs unsupported inference" ~]]
       =/  typ=itype  typ.u.standard
-      ?.  ?=(%jrec -.typ)  [%| ["application path mold needs unsupported inference" ~]]
-      ?.  &(=(at.typ /lib/jibb/internal/jibb) =(%qath name.typ) =(%i head.typ) =(%ta aura.typ) =(%t tail.typ))
+      ?.  ?=(%mrec -.typ)  [%| ["application path mold needs unsupported inference" ~]]
+      ?.  &(=(at.typ /lib/jibb/internal/jibb) =(%qath name.typ) (recursive-list-form typ [%atom %ta]))
         [%| ["application path mold needs unsupported inference" ~]]
       ?:  =(0 jrec-fuel.state)  [%| ["recursive mold unfolding needs unsupported inference" ~]]
-      =/  remain=(unit @ud)  (qath-static-fuel segs.e (dec jrec-fuel.state))
-      ?~  remain  [%| ["application path segments need unsupported inference" ~]]
-      [%& typ state(jrec-fuel u.remain)]
+      =/  segments=(each istate idiag)
+        (infer-qath-segments-context segs.e env state(jrec-fuel (dec jrec-fuel.state)) at.e)
+      ?:  ?=(%| -.segments)  [%| p.segments]
+      [%& typ p.segments]
     %wing
       ?~  names.e  [%| ["empty wing" ~]]
       ?^  t.names.e
-        ?^  t.t.names.e  (infer-field-wing names.e env state)
-        =/  iface=(unit ifile)  (find-jibb-interface i.t.names.e jimports.state)
-        ?~  iface  (infer-field-wing names.e env state)
+        ?^  t.t.names.e  (infer-field-wing names.e env state at.e)
+        =/  iface=(unit ifile)  (find-scope-interface i.t.names.e jimports.state prelude.state)
+        ?~  iface  (infer-field-wing names.e env state at.e)
         =/  member=(unit ischeme)  (ienv-lookup i.names.e values.u.iface)
-        ?~  member  [%| ["module member is not available to partial inference" ~]]
-        =.  typ.u.member  (itype-in-import typ.u.member u.iface i.t.names.e prelude.state)
-        =/  instance=[typ=itype state=istate]  (instantiate-scheme u.member state)
-        [%& typ.instance state.instance]
+        ?~  member  [%| (missing-module-member names.e i.t.names.e i.names.e at.e state)]
+        =.  u.member  (scheme-in-import u.member u.iface i.t.names.e prelude.state)
+        =/  instance=(unit [typ=itype state=istate])  (instantiate-scheme u.member state)
+        ?~  instance  [%| ["scheme graph needs unsupported inference" ~[[at.e "invalid scheme"]]]]
+        [%& typ.u.instance state.u.instance]
       =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
       ?~  scheme
         ?:  =(i.names.e %unface)  [%| (unface-value at.e)]
-        ?~  prelude.state  [%| ["name is not available to partial inference" ~]]
+        ?~  prelude.state  (unknown-value-result i.names.e at.e state)
         =/  prelude-entry=(unit ischeme)  (ienv-lookup i.names.e values.u.prelude.state)
-        ?~  prelude-entry  [%| ["name is not available to partial inference" ~]]
-        =/  inst=[typ=itype state=istate]  (instantiate-scheme u.prelude-entry state)
-        [%& typ.inst state.inst]
-      =/  instance=[typ=itype state=istate]  (instantiate-scheme u.scheme state)
-      [%& typ.instance state.instance]
+        ?~  prelude-entry  (unknown-value-result i.names.e at.e state)
+        =/  inst=(unit [typ=itype state=istate])  (instantiate-scheme u.prelude-entry state)
+        ?~  inst  [%| ["scheme graph needs unsupported inference" ~[[at.e "invalid scheme"]]]]
+        [%& typ.u.inst state.u.inst]
+      =/  instance=(unit [typ=itype state=istate])  (instantiate-scheme u.scheme state)
+      ?~  instance  [%| ["scheme graph needs unsupported inference" ~[[at.e "invalid scheme"]]]]
+      [%& typ.u.instance state.u.instance]
     %group
       ?:  &(?=(%wing -.inner.e) =(names.inner.e ~[%unface]) ?=(~ (ienv-lookup %unface env)))
         [%| ["unface takes one argument, as (unface e)" ~[[at.e "unface call"]]]]
@@ -9495,126 +13795,101 @@
       ?~  edits.e  [%| ["a change takes at least one field" ~[[at.e "empty change"]]]]
       =/  target=iresult  $(e [%wing at.e target.e])
       ?:  ?=(%| -.target)  target
-      (infer-change-edits edits.e typ.p.target env state.p.target ~)
-    %ctor  [%& [%tag next.state tag.e &] state(next +(next.state), tags [[next.state tag.e at.e] tags.state])]
+      (infer-change-edits edits.e typ.p.target env state.p.target ~ at.e)
+    %ctor  (infer-pending-tag tag.e at.e & state)
     %trace
       =/  traced=iresult  $(e val.e)
       ?:  ?=(%| -.traced)  traced
       $(e then.e, state state.p.traced)
     %tuple
-      ?:  &(?=(^ defer.state) ?=(^ prelude.state))
-        (dg-infer-tuple-items items.e env state)
-      (infer-simple-items items.e env state)
-    %body
-      ?~  defs.e  $(e final.e)
-      =/  local-names=(list term)  (global-value-names defs.e)
-      ?.  (local-names-valid defs.e env state)
-        [%| ["local definitions shadow a name" ~]]
-      =/  local-molds=imolds  (collect-simple-molds defs.e)
-      ?.  (local-mold-names-valid local-molds state)
-        [%| ["local molds shadow a name" ~]]
-      =/  local-state=istate
-        state(globals (weld local-names globals.state), molds (weld local-molds molds.state))
-      =/  mold-hole=(unit span)  (simple-local-mold-hole defs.e)
-      ?^  mold-hole
-        [%| ["type hole needs a determined type" ~[[u.mold-hole "unresolved type hole"]]]]
-      ?.  (local-molds-supported local-molds local-state)
-        [%| ["local molds need unsupported inference" ~]]
-      =/  values=(list def)  (local-value-defs defs.e)
-      =/  locals=ilocal-result  (infer-local-defs values env local-state)
-      ?:  ?=(%| -.locals)  locals
-      =/  result=iresult  $(e final.e, env env.p.locals, state state.p.locals)
+      ?~  items.e  [%| ["an empty `[]` is not a valid tuple" ~[[at.e "empty tuple"]]]]
+      =/  result=iresult  (infer-simple-items items.e env state)
       ?:  ?=(%| -.result)  result
-      [%& typ.p.result state.p.result(globals globals.state, molds molds.state)]
+      =.  typ.p.result  (itype-value-root typ.p.result)
+      ?.  general-defer.state.p.result  result
+      ?~  t.items.e  result
+      ?^  face.i.items.e  result
+      ?.  ?=(%lit -.val.i.items.e)  result
+      ?.  ?=(?(%term %loobean %null) form.lit.val.i.items.e)  result
+      =/  st=istate  state.p.result
+      =.  tagged-actuals.st  (~(put by tagged-actuals.st) next.st [typ.p.result sub.st])
+      =.  tagged-sources.st  (~(put by tagged-sources.st) at.e [typ.p.result sub.st])
+      =/  target=itype  [%var next.st]
+      =/  edge=icore-edge  [%tagged-cell typ.p.result target e at.e owner.st env caps.state molds.state mold-captures.state globals.state binders.state level.state ~]
+      [%& target st(next +(next.st), queue [edge queue.st])]
+    %body  (infer-body e env state ~)
     %branch
+      =/  deferred=(unit iresult)  (icore-defer-branch e env state)
+      ?^  deferred  u.deferred
       =/  named=(unit idiag)  (branch-tag-name e env state)
       ?^  named  [%| u.named]
-      ?^  defer.state  (dg-boolean-branch e env state)
-      ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
-      ?~  t.arms.e
-        =/  empty-list=(unit iresult)  (empty-list-null-branch e env state ~)
-        ?^  empty-list  u.empty-list
-        =/  empty-union=(unit iresult)  (known-empty-union-wing subject.e env state)
-        ?^  empty-union  (infer-known-union-branch-subject e env u.empty-union)
-        =/  single=(unit iresult)  (grec-single-wing-subject subject.e env state)
-        ?^  single  (infer-known-union-branch-subject e env u.single)
-        ?:  (single-structured-pattern e)  (infer-single-case-branch e env state ~)
-        (infer-cell-branch e env state ~)
-      ?^  t.t.arms.e  (infer-known-union-branch e env state)
-      =/  known=(unit iresult)  (known-union-subject subject.e env state)
-      ?:  &(?=(^ known) ?=(%| -.u.known) !(duplicate-loobean-arms e))  u.known
-      ?:  &(?=(^ known) ?=(%& -.u.known) ?=(~ (unit-union-payload (itype-normalize typ.p.u.known sub.state.p.u.known))))
-        (infer-known-union-branch-subject e env u.known)
-      =/  x=arm  i.arms.e
-      =/  y=arm  i.t.arms.e
-      ?:  |((unit-empty-pattern pat.x) (unit-empty-pattern pat.y))
-        (infer-unit-branch e env state ~)
-      ?.  ?=(%lit -.pat.x)  (infer-known-union-branch e env state)
-      ?.  ?=(%lit -.pat.y)  (infer-known-union-branch e env state)
-      ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))
-        (infer-known-union-branch e env state)
-      ?:  &(?=(^ known) ?=(%& -.u.known))  (infer-known-union-branch-subject e env u.known)
-      ?:  =(val.lit.pat.x val.lit.pat.y)
-        [%| ["branch does not cover both loobeans" ~]]
-      =/  subject=iresult  $(e subject.e)
-      ?:  ?=(%| -.subject)  subject
-      =/  subject-type=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-      ?:  ?=(%union -.subject-type)
-        [%| ["union-pattern branch subject is not supported by partial inference" ~]]
-      =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
-      ?~  su  [%| ["loobean branch subject does not unify with ?" ~]]
-      =/  left=iresult  $(e val.x, state state.p.subject(sub u.su))
-      ?:  ?=(%| -.left)  left
-      =/  right=iresult  $(e val.y, state state.p.left)
-      ?:  ?=(%| -.right)  right
-      =/  ltype=itype  (itype-normalize typ.p.left sub.state.p.right)
-      =/  rtype=itype  (itype-normalize typ.p.right sub.state.p.right)
-      =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
-      ?~  joined
-        ?:  |((itype-has-recursive ltype) (itype-has-recursive rtype))
-          [%| ["recursive branch matching is not supported by partial inference" ~]]
-        ?:  |((itype-has-tag ltype) (itype-has-tag rtype) (itype-has-union ltype) (itype-has-union rtype))
-          [%| ["branch tag or union context is not supported by partial inference" ~]]
-        ?:  |((itype-has-face typ.p.left sub.state.p.right) (itype-has-face typ.p.right sub.state.p.right))
-          [%| ["record branch matching is not supported by partial inference" ~]]
-        ?:  |((itype-has-any-atom typ.p.left sub.state.p.right) (itype-has-any-atom typ.p.right sub.state.p.right) (itype-family-related typ.p.left typ.p.right sub.state.p.right))
-          [%| ["branch widening is not supported by partial inference" ~]]
-        =/  decimal-x=(unit idiag)  (decimal-misfit val.x typ.p.left typ.p.right sub.state.p.right next.state.p.right)
-        ?^  decimal-x  [%| u.decimal-x]
-        =/  decimal-y=(unit idiag)  (decimal-misfit val.y typ.p.right typ.p.left sub.state.p.right next.state.p.right)
-        ?^  decimal-y  [%| u.decimal-y]
-        [%| ["branch arms have incompatible types" ~[[(span-of val.x) (site-type-note "first arm" typ.p.left sub.state.p.right)] [(span-of val.y) (site-type-note "second arm" typ.p.right sub.state.p.right)]]]]
-      [%& typ.u.joined state.p.right(sub sub.u.joined)]
+      =/  matrix-subject=iresult  (infer-fragment subject.e env state)
+      =/  matrix-result=(unit iresult)  (infer-coverage-branch e env matrix-subject ~)
+      ?^  matrix-result  u.matrix-result
+      ?:  ?=(%| -.matrix-subject)  matrix-subject
+      [%| ["cannot infer `?-` coverage for this subject" ~[[at.e "match"] [(span-of subject.e) (site-type-note "subject" typ.p.matrix-subject sub.state.p.matrix-subject)]]]]
     %cast
       =/  target=(unit [typ=itype state=istate])  (infer-simple-shape shape.e state)
       ?~  target
         =/  diag=(unit idiag)  (nested-import-invalid shape.e state)
         ?^  diag  [%| u.diag]
         [%| ["cast mold is not supported by partial inference" ~]]
+      :: The cast describes a complete value, so its outer single-field
+      :: position is a value face rather than a surrounding sample slot.
+      =.  typ.u.target  (itype-value-root typ.u.target)
+      =/  unsealed=(unit span)
+        ?.  ?=(%opaque -.typ.u.target)  ~
+        (unsealed-literal-site val.e)
+      ?^  unsealed
+        =/  wanted=tape  (show-itype typ.u.target sub.state.u.target)
+        [%| ["{wanted} is sealed; use a constructor" ~[[at.shape.e "sealed type"] [u.unsealed "unsealed literal"]]]]
       =/  value=iresult
         (infer-call-context-arg val.e typ.u.target env state.u.target at.shape.e)
-      ?:  ?=(%| -.value)  value
+      ?:  ?=(%| -.value)  [%| (diagnostic-cast-source-error p.value e state.u.target)]
+      =/  narrowed=(unit idiag)
+        (newly-constrained-capital caps.state sub.state sub.state.p.value val.e |)
+      ?^  narrowed  [%| u.narrowed]
+      =/  source=(unit itype)  (contextual-tagged-value val.e typ.p.value state.p.value)
+      =/  payload=(unit idiag)
+        ?~  source  ~
+        (union-payload-diagnostic val.e u.source typ.u.target state.p.value at.shape.e `shape.e)
+      ?^  payload  [%| u.payload]
       =/  shape=(unit [source=iwfields target=iwfields])
         (width-shape typ.p.value typ.u.target sub.state.p.value)
       ?^  shape  [%| ["record width constraint needs unsupported inference" ~]]
       =/  fit=ifit  (itype-fit typ.p.value typ.u.target sub.state.p.value next.state.p.value)
-      ?:  ?=(%unknown -.fit)  [%| ["cast constraint is not supported by partial inference" ~]]
+      ?:  ?=(%unknown -.fit)
+        ?.  general-defer.state.p.value  [%| ["cast constraint is not supported by partial inference" ~]]
+        =/  st=istate  state.p.value
+        =/  result=itype  [%var next.st]
+        =/  edge=icore-edge  [%cast-fit typ.p.value typ.u.target result (span-of val.e) at.shape.e owner.st caps.state val.e |]
+        [%& result st(next +(next.st), queue [edge queue.st])]
       ?:  ?=(%bad -.fit)
-        =/  missing=(unit idiag)  (missing-union-tag val.e typ.u.target sub.state.p.value at.shape.e)
+        =/  missing=(unit idiag)  (missing-tag-diagnostic val.e typ.u.target state.p.value at.shape.e)
         ?^  missing  [%| u.missing]
-        =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value typ.u.target sub.state.p.value next.state.p.value at.shape.e)
+        =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value typ.u.target sub.state.p.value next.state.p.value at.shape.e state.p.value)
         ?^  nested  [%| u.nested]
         =/  decimal=(unit idiag)  (decimal-misfit val.e typ.p.value typ.u.target sub.state.p.value next.state.p.value)
-        ?^  decimal  [%| u.decimal]
-        [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-type-note "expression" typ.p.value sub.state.p.value)]]]]
-      ?:  &(?=(^ defer.state.p.value) !(dg-stable-fit typ.p.value typ.u.target sub.fit))
-        [%| ["deferred cast fit needs stable inference" ~]]
+        ?^  decimal  [%| (diagnostic-expected-context u.decimal at.shape.e typ.u.target sub.state.p.value)]
+        =/  payload=(unit idiag)  (union-payload-diagnostic val.e typ.p.value typ.u.target state.p.value at.shape.e `shape.e)
+        ?^  payload  [%| u.payload]
+        =/  field=(unit idiag)  (tuple-cast-field-diagnostic e typ.p.value typ.u.target state.p.value)
+        ?^  field  [%| u.field]
+        [%| ["cast mold and expression type do not unify" ~[[at.shape.e (site-type-note "cast mold" typ.u.target sub.state.p.value)] [(span-of val.e) (site-actual-note "expression" typ.p.value typ.u.target sub.state.p.value next.state.p.value)]]]]
+      =/  narrowed=(unit idiag)
+        (newly-constrained-capital caps.state sub.state.p.value sub.fit val.e |)
+      ?^  narrowed  [%| u.narrowed]
       =/  merged=itype  (itype-merge-faces typ.p.value typ.u.target sub.fit)
-      [%& merged state.p.value(sub sub.fit, next next.fit)]
+      [%& (itype-value-root merged) state.p.value(sub sub.fit, next next.fit)]
     %crash  [%& [%var next.state] state(next +(next.state))]
     %gate
       =/  sam=isample-result  (infer-sample sample.e env state)
       ?:  ?=(%| -.sam)
+        =/  shadow=(unit idiag)  ?:(=(p.sam "sample shadows a name") (sample-shadow-context sample.e state) ~)
+        ?^  shadow  [%| u.shadow]
+        =/  fallback=(unit idiag)
+          ?:(=(p.sam "sample shadows a name") (shadow-sample-fallback (shadow-sample-bindings sample.e) env globals.state ~) ~)
+        ?^  fallback  [%| u.fallback]
         =/  diag=(unit idiag)  (sample-import-invalid sample.e env state)
         ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]
         [%| [p.sam ~]]
@@ -9624,6 +13899,11 @@
     %gate-wide
       =/  sam=isample-result  (infer-sample sample.e env state)
       ?:  ?=(%| -.sam)
+        =/  shadow=(unit idiag)  ?:(=(p.sam "sample shadows a name") (sample-shadow-context sample.e state) ~)
+        ?^  shadow  [%| u.shadow]
+        =/  fallback=(unit idiag)
+          ?:(=(p.sam "sample shadows a name") (shadow-sample-fallback (shadow-sample-bindings sample.e) env globals.state ~) ~)
+        ?^  fallback  [%| u.fallback]
         =/  diag=(unit idiag)  (sample-import-invalid sample.e env state)
         ?:  &(=(p.sam "sample mold is not supported by partial inference") ?=(^ diag))  [%| u.diag]
         [%| [p.sam ~]]
@@ -9636,85 +13916,8 @@
         [%| ["proj needs an expected record type" ~]]
       ?:  (reserved-call %unface e env state)  (infer-unface e env state)
       (infer-call-with-head e env state (infer-fragment head.e env state))
-    *  [%| ["expression is not supported by partial inference" ~]]
   ==
-::
-::  Locate a definite failing argument after the complete sample fit has
-::  failed. If an intermediate fit is uncertain, retain the whole argument
-::  span rather than assigning blame to a particular argument.
-::
-::  Check a call using the head already inferred in this state.  Keeping
-::  this shared avoids evaluating or instantiating a contextual head twice.
-++  width-has-projections
-  |=  ps=(list iwprojection)
-  ^-  ?
-  ?~  ps  |
-  &
-::
-+$  iwidth-elaboration  [original=expr typ=itype sub=isub projections=(list iwprojection)]
-++  infer-width-elaboration
-  |=  [e=expr env=ienv state=istate]
-  ^-  (each iwidth-elaboration idiag)
-  =/  out=iresult  (infer-fragment e env state)
-  ?:  ?=(%| -.out)  [%| p.out]
-  [%& [e typ.p.out sub.state.p.out (flop projections.state.p.out)]]
-::
-::  Source-bound gate-layout evidence, confined to checked root gate
-::  definitions and direct unshadowed prelude calls. The prepared prelude
-::  interface and its retained source are trusted as a matching artifact.
-::  Layouts identify sample binder faces; they do not change call arity or
-::  authorize stripping nested value faces. Unknown origins use ordinary fit.
-++  direct-written-gates
-  |=  [ds=(list def) out=ivisited]
-  ^-  ivisited
-  ?~  ds  out
-  ?:  ?=(%mold -.i.ds)  $(ds t.ds)
-  ?.  |(?=(%gate -.val.i.ds) ?=(%gate-wide -.val.i.ds))  $(ds t.ds)
-  $(ds t.ds, out (~(put by out) name.i.ds &))
-++  direct-may-use-prelude
-  |=  [ds=(list def) root=ivisited heads=ivisited]
-  ^-  ?
-  ?~  ds  |
-  ?:  ?=(%mold -.i.ds)  $(ds t.ds)
-  =/  refs=(list term)  (dependency-expr val.i.ds)
-  =/  has-root=?  (lien refs |=(n=term ?=(^ (~(get by root) n))))
-  =/  has-head=?  (lien refs |=(n=term ?=(^ (~(get by heads) n))))
-  ?:  &(has-root has-head)  &
-  $(ds t.ds)
-++  direct-unique-names
-  |=  [names=(list term) seen=ivisited]
-  ^-  ?
-  ?~  names  &
-  ?:  ?=(^ (~(get by seen) i.names))  |
-  $(names t.names, seen (~(put by seen) i.names &))
-++  direct-prelude-evidence
-  |=  [ds=(list def) prelude=(unit ifile)]
-  ^-  (unit igate-prelude-evidence)
-  ?~  prelude  ~
-  ?~  source.u.prelude  ~
-  =/  root=ivisited  (direct-written-gates ds ~)
-  =/  names=(list term)  (turn values.u.prelude |=(e=[name=term scheme=ischeme] name.e))
-  =/  heads=ivisited  (graph-nameset names ~)
-  ?.  (direct-may-use-prelude ds root heads)  ~
-  =/  parsed  (parse at.u.prelude u.source.u.prelude)
-  ?:  ?=(%| -.parsed)  ~
-  ?^  (duplicate-defs defs.p.parsed)  ~
-  ?.  (direct-unique-names (global-value-names defs.p.parsed) ~)  ~
-  =/  gates=(map term def)  (direct-checked-gates defs.p.parsed values.u.prelude)
-  `[u.prelude gates]
-++  direct-checked-gates
-  |=  [ds=(list def) env=ienv]
-  ^-  (map term def)
-  =/  names=(list term)  (turn env |=(e=[name=term scheme=ischeme] name.e))
-  =/  known=ivisited  (graph-nameset names ~)
-  =/  out=(map term def)  ~
-  |-
-  ?~  ds  out
-  =/  d=def  i.ds
-  ?:  ?=(%mold -.d)  $(ds t.ds)
-  ?.  ?=(^ (~(get by known) name.d))  $(ds t.ds)
-  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  $(ds t.ds)
-  $(ds t.ds, out (~(put by out) name.d d))
+::  Source lookup for post-inference kind checks.
 ++  direct-find-gate
   |=  [n=term ds=(list def)]
   ^-  (unit def)
@@ -9730,30 +13933,6 @@
     %gate-wide  `sample.val.d
     *           ~
   ==
-++  direct-sample-name
-  |=  sam=sample
-  ^-  (unit term)
-  ?-  -.sam
-    %bind  `name.sam
-    %face  `name.sam
-    %pun   `name.sam
-    *      ~
-  ==
-++  direct-field-name
-  |=  f=field
-  ^-  (unit term)
-  ?-  -.f
-    %face  `name.f
-    %pun   `name.f
-    *      ~
-  ==
-++  direct-slot-body
-  |=  [typ=itype name=(unit term)]
-  ^-  (unit itype)
-  ?~  name  `typ
-  ?.  ?=(%face -.typ)  ~
-  ?.  =(name.typ u.name)  ~
-  `body.typ
 ++  direct-invariant
   |=  [a=itype b=itype sub=isub next=@ud]
   ^-  ifit
@@ -9764,128 +13943,108 @@
   =/  reverse=ifit  (itype-fit b a sub.forward next.forward)
   ?.  ?=(%ok -.reverse)  [%unknown ~]
   reverse
-++  direct-function-fit
-  |=  [a=itype b=itype sam=sample sh=shape sub=isub next=@ud]
-  ^-  ifit
-  ?.  &(?=(%fn -.a) ?=(%fn -.b) ?=(%cell -.sam) ?=(%fn -.sh))  [%unknown ~]
-  ?.  ?=(%cell -.sample.sh)  [%unknown ~]
-  =/  as=(list sample)  items.sam
-  =/  bs=(list field)  fields.sample.sh
-  ?~  as  [%unknown ~]
-  ?~  t.as  [%unknown ~]
-  ?^  t.t.as  [%unknown ~]
-  ?~  bs  [%unknown ~]
-  ?~  t.bs  [%unknown ~]
-  ?^  t.t.bs  [%unknown ~]
-  ?.  &(?=(%cell -.sample.a) ?=(%cell -.sample.b))  [%unknown ~]
-  =/  an=(unit term)  (direct-sample-name i.as)
-  =/  bn=(unit term)  (direct-field-name i.bs)
-  ?:  &(?=(^ an) ?=(^ bn) !=(u.an u.bn))  [%unknown ~]
-  =/  x=(unit itype)  (direct-slot-body hed.sample.a an)
-  =/  y=(unit itype)  (direct-slot-body hed.sample.b bn)
-  ?~  x  [%unknown ~]
-  ?~  y  [%unknown ~]
-  =/  first=ifit  (direct-invariant u.x u.y sub next)
-  ?.  ?=(%ok -.first)  [%unknown ~]
-  =.  an  (direct-sample-name i.t.as)
-  =.  bn  (direct-field-name i.t.bs)
-  ?:  &(?=(^ an) ?=(^ bn) !=(u.an u.bn))  [%unknown ~]
-  =/  x2=(unit itype)  (direct-slot-body tal.sample.a an)
-  =/  y2=(unit itype)  (direct-slot-body tal.sample.b bn)
-  ?~  x2  [%unknown ~]
-  ?~  y2  [%unknown ~]
-  =/  second=ifit  (direct-invariant u.x2 u.y2 sub.first next.first)
-  ?.  ?=(%ok -.second)  [%unknown ~]
-  (direct-invariant product.a product.b sub.second next.second)
-::  This is a tentative proof: its caller must require closed call samples
-::  and repeat every positional check under the stable final substitution.
-++  direct-positional-fit
-  |=  [args=(list expr) slots=(list sample) actual=itype expected=itype env=ienv state=istate sub=isub next=@ud]
-  ^-  ifit
-  ?~  args  [%unknown ~]
-  ?~  slots  [%unknown ~]
-  =/  last=?  ?=(~ t.args)
-  ?:  !=(last ?=(~ t.slots))  [%unknown ~]
-  =/  split=(unit [left=itype right=itype])
-    ?:  last  `[actual expected]
-    ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
-    `[hed.actual hed.expected]
-  ?~  split  [%unknown ~]
-  =/  x=itype  left.u.split
-  =/  y=itype  right.u.split
-  =/  expected-name=(unit term)  (direct-sample-name i.slots)
-  =/  expected-body=(unit itype)  (direct-slot-body y expected-name)
-  ?~  expected-body  [%unknown ~]
-  =.  y  u.expected-body
-  =/  fit=ifit  (itype-fit x y sub next)
-  =/  accepted=?  &(?=(%ok -.fit) !(itype-positional-slot-face-asym x y sub.fit))
-  =/  result=(unit ifit)
-    ?:  accepted  `fit
-    ?.  &(?=(%face -.i.slots) ?=(%fn -.shape.i.slots))  ~
-    ?.  ?=(%wing -.i.args)  ~
-    ?.  ?=([@ ~] names.i.args)  ~
-    ?.  (unique-value-name i.names.i.args globals.state)  ~
-    =/  source=(unit def)  (~(get by gate-defs.state) i.names.i.args)
-    ?~  source  ~
-    =/  sample=(unit sample)  (direct-gate-sample u.source)
-    ?~  sample  ~
-    =/  trial=ifit  (direct-function-fit x y u.sample shape.i.slots sub next)
-    ?.  ?=(%ok -.trial)  ~
-    `trial
-  ?~  result  [%unknown ~]
-  =.  fit  u.result
-  ?:  last  fit
-  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  [%unknown ~]
-  ?.  ?=(%ok -.fit)  [%unknown ~]
-  $(args t.args, slots t.slots, actual tal.actual, expected tal.expected, sub sub.fit, next next.fit)
-++  direct-any-gate-arg
-  |=  [args=(list expr) defs=(map term def)]
+++  icore-positional-sample
+  |=  [args=(list expr) sample=itype]
+  ^-  itype
+  ?~  args  sample
+  ?~  t.args  ?:(?=(?(%face %slot) -.sample) body.sample sample)
+  ?.  ?=(%cell -.sample)  sample
+  =/  head=itype  hed.sample
+  =?  head  ?=(?(%face %slot) -.head)  body.head
+  [%cell head $(args t.args, sample tal.sample)]
+::
+++  icore-fit-open
+  |=  [left=itype right=itype sub=isub]
   ^-  ?
-  ?~  args  |
-  =/  found=?
-    ?.  ?=(%wing -.i.args)  |
-    ?.  ?=([@ ~] names.i.args)  |
-    ?=(^ (~(get by defs) i.names.i.args))
-  ?:  found  &
-  $(args t.args)
-++  direct-gate-call-fit
-  |=  [e=expr actual=itype expected=itype env=ienv state=istate]
-  ^-  (unit ifit)
-  ?.  ?=(%call -.e)  ~
-  ?~  args.e  ~
-  ?~  t.args.e  ~
-  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
-  ?.  ?=(%wing -.head.e)  ~
-  ?.  ?=([@ ~] names.head.e)  ~
-  ?.  ?=(~ (ienv-lookup i.names.head.e env))  ~
-  ?.  (unique-value-name i.names.head.e globals.state)  ~
-  ?.  (direct-any-gate-arg args.e gate-defs.state)  ~
-  ?~  prelude.state  ~
-  ?~  source.u.prelude.state  ~
-  ?~  head-evidence.state  ~
-  ?.  =(u.prelude.state iface.u.head-evidence.state)  ~
-  ?.  ?=(^ (ienv-lookup i.names.head.e values.u.prelude.state))  ~
-  =/  head=(unit def)  (~(get by gates.u.head-evidence.state) i.names.head.e)
-  ?~  head  ~
-  =/  sam=(unit sample)  (direct-gate-sample u.head)
-  ?~  sam  ~
-  ?.  ?=(%cell -.u.sam)  ~
-  =/  fit=ifit  (direct-positional-fit args.e items.u.sam actual expected env state sub.state next.state)
-  ?.  ?=(%ok -.fit)  ~
-  ::  Enclosing inference may add constraints after this call. Only a
-  ::  closed call-sample proof can remain stable under those later bindings.
-  =/  actual-final=itype  (itype-normalize actual sub.fit)
-  =/  expected-final=itype  (itype-normalize expected sub.fit)
-  ?^  (itype-vars actual-final)  ~
-  ?^  (itype-vars expected-final)  ~
-  ?:  |((itype-has-tag actual-final) (itype-has-tag expected-final))  ~
-  ::  A later argument may resolve a variable used by an earlier slot.
-  ::  Recheck every fit and face against the completed substitution; no
-  ::  additional binding or fresh variable is permitted in the second pass.
-  =/  verified=ifit  (direct-positional-fit args.e items.u.sam actual expected env state sub.fit next.fit)
-  ?.  ?=(%ok -.verified)  ~
-  ?.  &(=(sub.fit sub.verified) =(next.fit next.verified))  ~
-  `fit
+  =.  left  (itype-normalize left sub)
+  =.  right  (itype-normalize right sub)
+  |((itype-has-tag left) (itype-has-tag right) ?=(^ (itype-vars left)) ?=(^ (itype-vars right)))
+::
+++  diagnostic-derived-call-site
+  |=  [head=expr diag=idiag state=istate]
+  ^-  (unit idiag)
+  ?:  ?=(%group -.head)  $(head inner.head)
+  ?.  ?=(%wing -.head)  ~
+  ?.  ?=([@ @ ~] names.head)  ~
+  =/  value=term  i.names.head
+  =/  agent=term  i.t.names.head
+  ?.  =(%poke value)  ~
+  =/  iface=(unit ifile)  (find-scope-interface agent jimports.state prelude.state)
+  ?~  iface  ~
+  =/  selected=(list iderived)
+    (skim derived.u.iface |=(d=iderived =(agent agent.d)))
+  ?.  ?=([* ~] selected)  ~
+  =/  origin=(unit [module=term name=term at=path source=@t site=span])
+    (imported-mark-origin mark.i.selected mark-externals.state marks.state)
+  ?~  origin  ~
+  =/  external=idsite
+    [%external at.u.origin source.u.origin site.u.origin "imported Hoon mold declaration"]
+  [~ [msg.diag [external sites.diag]]]
+::
+++  diagnostic-unique-diagnostics
+  |=  todo=(list idiag)
+  ^-  (list idiag)
+  ?~  todo  ~
+  =/  rest=(list idiag)  $(todo t.todo)
+  ?:  (lien rest |=(d=idiag =(d i.todo)))  rest
+  [i.todo rest]
+::
+++  diagnostic-derived-call-candidates
+  |=  [todo=(list expr) diag=idiag state=istate]
+  ^-  (list idiag)
+  ?~  todo  ~
+  =/  current=expr  i.todo
+  =/  rest=(list idiag)  $(todo (weld (dependency-children current) t.todo))
+  =/  own=(list idiag)
+    %+  murn  ~[current]
+    |=  e=expr
+    ?-  -.e
+      %call  (diagnostic-derived-call-site head.e diag state)
+      *      ~
+    ==
+  (diagnostic-unique-diagnostics (weld own rest))
+::
+::  Select only the derived call whose context argument contains the
+::  definite failure. A whole-owner scan is ambiguous when an island pokes twice.
+++  diagnostic-derived-call-candidates-at
+  |=  [todo=(list expr) at=span context=span diag=idiag state=istate]
+  ^-  (list idiag)
+  ?~  todo  ~
+  =/  current=expr  i.todo
+  =/  rest=(list idiag)
+    $(todo (weld (dependency-children current) t.todo))
+  =/  own=(unit idiag)
+    ?.  ?=(%call -.current)  ~
+    =/  arguments=(list expr)
+      (skim args.current |=(arg=expr =(context (span-of arg))))
+    ?.  ?=([* ~] arguments)  ~
+    ?~  (diagnostic-expression-at ~[i.arguments] at)  ~
+    (diagnostic-derived-call-site head.current diag state)
+  =/  enriched=(list idiag)  ?~(own rest [u.own rest])
+  (diagnostic-unique-diagnostics enriched)
+::
+++  diagnostic-pending-derived-site
+  |=  [edge=icore-edge diag=idiag state=istate]
+  ^-  (unit idiag)
+  ?:  ?=(%guarded-fit -.edge)
+    ?.  ?=(%call -.forcing.edge)  ~
+    (diagnostic-derived-call-site forcing.edge diag state)
+  ?.  ?=(%fit -.edge)  ~
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  owners=(list def)
+    (skim defs.p.parsed |=(d=def &(?=(%value -.d) =(name.d owner.edge))))
+  ?.  ?=([* ~] owners)  ~
+  ?>  ?=(%value -.i.owners)
+  =/  owner-value=expr  val.i.owners
+  =.  owner-value
+    |-  ^-  expr
+    ?:  ?=(%group -.owner-value)  $(owner-value inner.owner-value)
+    owner-value
+  =/  enriched=(list idiag)  (diagnostic-derived-call-candidates ~[owner-value] diag state)
+  ?.  ?=([* ~] enriched)  ~
+  `i.enriched
 ::
 ++  infer-call-with-head
   |=  [e=expr env=ienv state=istate head=iresult]
@@ -9904,6 +14063,10 @@
     (infer-fragment i.args.e env state.p.head)
   ?:  ?=(%| -.arg)  arg
   =/  st=istate  state.p.arg
+  =/  arg-forcing=expr  ?~(t.args.e i.args.e e)
+  =/  narrowed-arg=(unit idiag)
+    (newly-constrained-capital caps.state.p.head sub.state.p.head sub.st arg-forcing &)
+  ?^  narrowed-arg  [%| u.narrowed-arg]
   =/  ht=itype  (itype-walk typ.p.head sub.st)
   ?:  ?=(%fn -.ht)
     =/  shape=(unit [source=iwfields target=iwfields])
@@ -9913,69 +14076,274 @@
     =/  fit=ifit
       ?^  t.args.e  (itype-fit-inner typ.p.arg sample.ht sub.st next.st & |)
       (itype-fit typ.p.arg sample.ht sub.st next.st)
-    =/  direct=(unit ifit)
-      ?:  ?=(%ok -.fit)  ~
-      (direct-gate-call-fit e typ.p.arg sample.ht env st)
-    =.  fit  ?~(direct fit u.direct)
+    =.  fit
+      ?:  &(?=(%unknown -.fit) (width-definite-mismatch typ.p.arg sample.ht sub.state.p.head))  [%bad ~]
+      fit
+    ?:  &(?=(%bad -.fit) general-defer.st (icore-fit-open typ.p.arg sample.ht sub.st) !(width-definite-mismatch typ.p.arg sample.ht sub.state.p.head))
+      =/  decimal=(unit idiag)
+        ?^  t.args.e  ~
+        (decimal-misfit i.args.e typ.p.arg sample.ht sub.st next.st)
+      ?^  decimal  [%| (diagnostic-expected-context u.decimal (span-of head.e) sample.ht sub.st)]
+      =/  target=itype  ?~(t.args.e sample.ht (icore-positional-sample args.e sample.ht))
+      =/  edge=icore-edge  [%guarded-fit typ.p.arg target ?~(t.args.e (span-of i.args.e) (span-of e)) (span-of head.e) owner.st ?~(t.args.e (icore-call-item-sites e (span-of i.args.e)) (turn args.e |=(arg=expr (span-of arg)))) caps.st e & `ht ~]
+      [%& product.ht st(queue [edge queue.st])]
     ?:  ?=(%unknown -.fit)
-      ?~  defer.st  [%| ["call constraint is not supported by partial inference" ~]]
-      =/  edge=(unit dgo)  (dg-eligible-ctor e typ.p.head typ.p.arg sample.ht st)
-      ?~  edge  [%| ["call constraint is not supported by partial inference" ~]]
-      ?:  (gth (lent obligations.st) 63)  [%| ["call constraint is not supported by partial inference" ~]]
-      [%& product.ht st(obligations [u.edge obligations.st])]
+      ::  The module checker retains this fit with its source sites. A
+      ::  later definition may bind either side; the queue must be fully
+      ::  discharged before the module's interface can be published.
+      ?:  general-defer.st
+        =/  target=itype  ?~(t.args.e sample.ht (icore-positional-sample args.e sample.ht))
+        =/  edge=icore-edge  [%guarded-fit typ.p.arg target ?~(t.args.e (span-of i.args.e) (span-of e)) (span-of head.e) owner.st ?~(t.args.e (icore-call-item-sites e (span-of i.args.e)) (turn args.e |=(arg=expr (span-of arg)))) caps.st e & `ht ~]
+        [%& product.ht st(queue [edge queue.st])]
+      [%| ["call constraint needs inference context" ~[[(span-of e) "call"]]]]
 
     ?:  ?=(%bad -.fit)
       ?~  t.args.e
-        =/  missing=(unit idiag)  (missing-union-tag i.args.e sample.ht sub.st (span-of head.e))
+        =/  missing=(unit idiag)  (missing-tag-diagnostic i.args.e sample.ht st (span-of head.e))
         ?^  missing  [%| u.missing]
-        =/  nested=(unit idiag)  (nested-missing-tag i.args.e typ.p.arg sample.ht sub.st next.st (span-of head.e))
+        =/  nested=(unit idiag)  (nested-missing-tag i.args.e typ.p.arg sample.ht sub.st next.st (span-of head.e) st)
         ?^  nested  [%| u.nested]
         =/  decimal=(unit idiag)  (decimal-misfit i.args.e typ.p.arg sample.ht sub.st next.st)
-        ?^  decimal  [%| u.decimal]
-        [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
-      =/  bad=(unit [at=span typ=itype])
+        ?^  decimal  [%| (diagnostic-expected-context u.decimal (span-of head.e) sample.ht sub.st)]
+        =/  payload=(unit idiag)  (union-payload-diagnostic i.args.e typ.p.arg sample.ht st (span-of head.e) ~)
+        ?^  payload  [%| u.payload]
+        =/  diag=idiag
+          ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-actual-note "argument" typ.p.arg sample.ht sub.st next.st)]]]
+        =/  sourced=(unit idiag)
+          (diagnostic-call-source-origin e typ.p.arg sample.ht typ.p.arg sample.ht (span-of i.args.e) (span-of head.e) ~[[typ.p.arg sample.ht sub.st ~]] ~ sub.st sub.st next.st st)
+        =/  chosen=idiag  ?~(sourced diag u.sourced)
+        =/  enriched=(unit idiag)  (diagnostic-derived-call-site head.e chosen st)
+        [%| ?~(enriched chosen u.enriched)]
+      =/  bad=(unit [at=span typ=itype expected=itype source=expr sub=isub next=@ud])
         (call-error-site args.e typ.p.arg sample.ht sub.st next.st)
       =/  whole-args=span
         [beg:(span-of i.args.e) end:(span-of (rear args.e))]
       =/  decimal=(unit idiag)
         =/  items=(list item)  (turn args.e |=(a=expr [(span-of a) ~ a]))
         (decimal-misfit [%tuple whole-args items] typ.p.arg sample.ht sub.st next.st)
-      ?^  decimal  [%| u.decimal]
+      ?^  decimal  [%| (diagnostic-expected-context u.decimal (span-of head.e) sample.ht sub.st)]
       =/  arg-at=span  ?~(bad whole-args at.u.bad)
       =/  arg-type=itype  ?~(bad typ.p.arg typ.u.bad)
-      [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [arg-at (site-type-note "argument" arg-type sub.st)]]]]
-    ?:  &(?=(^ defer.st) !(dg-stable-call-fit typ.p.arg sample.ht product.ht sub.fit ?=(^ t.args.e)))
-      [%| ["deferred call fit needs stable inference" ~]]
+      =/  arg-expected=itype  ?~(bad sample.ht expected.u.bad)
+      =/  evidence=isub  ?~(bad sub.st sub.u.bad)
+      =/  next=@ud  ?~(bad next.st next.u.bad)
+      =/  diag=idiag
+        ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht evidence)] [arg-at (site-actual-note "argument" arg-type arg-expected evidence next)]]]
+      =/  sourced=(unit idiag)
+        (diagnostic-call-source-origin e typ.p.arg sample.ht arg-type arg-expected arg-at (span-of head.e) ~[[typ.p.arg sample.ht sub.st ~]] ~ sub.st evidence next st)
+      =/  chosen=idiag  ?~(sourced diag u.sourced)
+      =/  enriched=(unit idiag)  (diagnostic-derived-call-site head.e chosen st)
+      [%| ?~(enriched chosen u.enriched)]
+    =/  narrowed=(unit idiag)  (newly-constrained-capital caps.st sub.st sub.fit e &)
+    ?^  narrowed
+      =/  precise=(unit idiag)
+        (call-newly-constrained-capital args.e typ.p.arg sample.ht sub.st next.st caps.st)
+      ?~  precise  [%| u.narrowed]
+      [%| u.precise]
     =/  face-asym=?
-      ?^  direct  |
       ?^  t.args.e  (itype-positional-face-asym args.e typ.p.arg sample.ht sub.fit)
       (itype-face-asym typ.p.arg sample.ht sub.fit)
-    ?:  &((itype-has-face typ.p.arg sub.fit) face-asym (itype-output-may-be-cell product.ht sub.fit))
+    ::  The common core carries structural identity and face joins in its
+    ::  queue. The legacy driver has no such evidence and keeps this guard.
+    ?:  &(!general-defer.st (itype-has-face typ.p.arg sub.fit) face-asym (itype-output-may-be-cell product.ht sub.fit) !(itype-preserves-faces typ.p.arg product.ht sub.fit))
       [%| ["call result face propagation is not supported by partial inference" ~]]
-    [%& product.ht st(sub sub.fit, next next.fit)]
+    =/  joins=(list icore-edge)
+      ?.  general-defer.st  ~
+      (icore-fit-joins typ.p.arg sample.ht sub.fit (span-of i.args.e) (span-of head.e))
+    [%& product.ht st(sub sub.fit, next next.fit, queue (weld joins queue.st))]
   =/  result=itype  [%var next.st]
   =/  uni=(unit isub)  (itype-unify ht [%fn typ.p.arg result] sub.st)
   ?~  uni
+    ?:  &(?=(%var -.ht) (itype-occurs id.ht typ.p.arg sub.st))
+      [%| ["call requires an infinite type: its gate occurs inside its own sample" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "sample containing the same gate" typ.p.arg sub.st)]]]]
     [%| ["call's sample and argument types do not unify" ~[[(span-of head.e) (site-type-note "called gate" ht sub.st)] [(span-of i.args.e) (site-type-note "argument" typ.p.arg sub.st)]]]]
+  =/  narrowed=(unit idiag)  (newly-constrained-capital caps.st sub.st u.uni head.e &)
+  ?^  narrowed  [%| u.narrowed]
   [%& result st(next +(next.st), sub u.uni)]
+::
+:: Find the argument that first fixes a written capital.  If positional
+:: decomposition cannot decide, the caller retains the whole-call site.
+++  call-newly-constrained-capital
+  |=  [args=(list expr) actual=itype expected=itype sub=isub next=@ud caps=icaps]
+  ^-  (unit idiag)
+  ?~  args  ~
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(?(%face %slot) -.expected) !?=(?(%face %slot) -.actual))
+    $(expected body.expected)
+  ?~  t.args
+    =/  fit=ifit  (itype-fit actual expected sub next)
+    ?.  ?=(%ok -.fit)  ~
+    (newly-constrained-capital caps sub sub.fit i.args &)
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  first=ifit  (itype-fit hed.actual hed.expected sub next)
+  ?.  ?=(%ok -.first)  ~
+  =/  narrowed=(unit idiag)  (newly-constrained-capital caps sub sub.first i.args &)
+  ?^  narrowed  narrowed
+  $(args t.args, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
+::
+:: A failed tuple cast can point to the first definitely incompatible
+:: field. Resolve a directly named local mold to its written field site;
+:: unknown fits and ambiguous origins retain the ordinary cast diagnostic.
+::  Resolve a written mold reference against its checked lexical scope.
+::  A prelude source is used only when that interface exports the name.
+++  diagnostic-cast-shape
+  |=  [sh=shape state=istate]
+  ^-  (unit [body=shape file=path source=(unit @t)])
+  ?.  ?=(%ref -.sh)  ~
+  ?.  ?=([@ ~] names.sh)  ~
+  =/  wanted-name=term  i.names.sh
+  =/  matches=(list [name=term body=shape])
+    (skim molds.state |=(m=[name=term body=shape] =(name.m wanted-name)))
+  ?:  ?=([* ~] matches)  `[body.i.matches at.state local-source.state]
+  ?^  matches  ~
+  ?~  prelude.state  ~
+  ?~  source.u.prelude.state  ~
+  ?~  (find-jibb-mold wanted-name u.prelude.state)  ~
+  =/  parsed=(each module error)  (parse at.u.prelude.state u.source.u.prelude.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  found=(unit shape)  (find-simple-mold wanted-name (collect-simple-molds defs.p.parsed))
+  ?~  found  ~
+  `[u.found at.u.prelude.state source.u.prelude.state]
+::
+::  Map a precise inner expression site back through written record fields.
+++  diagnostic-expression-field
+  |=  [e=expr at=span names=(list term) fuel=@ud]
+  ^-  (unit (list term))
+  ?:  =(0 fuel)  ~
+  ?:  =(at (span-of e))  `names
+  ?-  -.e
+    %group  $(e inner.e, fuel (dec fuel))
+    %body  $(e final.e, fuel (dec fuel))
+    %unit  $(e val.e, fuel (dec fuel))
+    %cast  $(e val.e, fuel (dec fuel))
+    %tuple
+      =/  found=(list (list term))
+        %+  murn  items.e
+        |=  item=item
+        (diagnostic-expression-field val.item at ?~(face.item names (weld names ~[u.face.item])) (dec fuel))
+      ?.  ?=([* ~] found)  ~
+      `i.found
+    *  ~
+  ==
+++  diagnostic-cast-source-error
+  |=  [diag=idiag e=expr state=istate]
+  ^-  idiag
+  ?.  ?=(%cast -.e)  diag
+  =/  written=(unit [body=shape file=path source=(unit @t)])
+    (diagnostic-cast-shape shape.e state)
+  ?~  written  diag
+  =/  local=(list [at=span note=tape])
+    %+  murn  sites.diag
+    |=  site=idsite
+    ?@  -.site  ~
+    `[-.site +.site]
+  ?.  ?=([* * ~] local)  diag
+  =/  actual=[at=span note=tape]  i.t.local
+  =/  names=(unit (list term))  (diagnostic-expression-field val.e at.actual ~ 1.024)
+  ?~  names  diag
+  ?~  u.names  diag
+  =/  first=[at=span note=tape]  i.local
+  =/  site=(unit idsite)  (diagnostic-field-site u.written u.names note.first at.state)
+  ?~  site  diag
+  ["cast field `{(gate-free-field-path u.names)}`: {msg.diag}" ~[u.site actual]]
+::
+++  diagnostic-field-site
+  |=  [written=[body=shape file=path source=(unit @t)] names=(list term) note=tape current=path]
+  ^-  (unit idsite)
+  =/  at=(unit span)  (gate-free-shape-field body.written names)
+  ?~  at  ~
+  ?:  =(file.written current)  `[u.at note]
+  ?~  source.written  ~
+  `[%external file.written u.source.written u.at note]
+::
+::  Follow only the first fit known to be wrong. A successful earlier fit
+::  threads its substitutions; an unknown earlier fit stops this walk.
+++  cast-field-mismatch
+  |=  [e=expr actual=itype expected=itype names=(list term) sub=isub next=@ud fuel=@ud]
+  ^-  (unit [at=span typ=itype expected=itype names=(list term) sub=isub next=@ud])
+  ?:  =(0 fuel)  ~
+  ?:  ?=(%group -.e)  $(e inner.e, fuel (dec fuel))
+  ?:  ?=(%body -.e)  $(e final.e, fuel (dec fuel))
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected) =(name.actual name.expected))
+    $(actual body.actual, expected body.expected, fuel (dec fuel))
+  =/  fit=ifit  (itype-fit actual expected sub next)
+  ?.  ?=(%bad -.fit)  ~
+  =/  deeper=(unit [at=span typ=itype expected=itype names=(list term) sub=isub next=@ud])
+    ?.  ?=(%tuple -.e)  ~
+    (cast-field-items items.e actual expected names sub next (dec fuel))
+  ?^  deeper  deeper
+  `[(span-of e) actual expected names sub next]
+++  cast-field-items
+  |=  [items=(list item) actual=itype expected=itype names=(list term) sub=isub next=@ud fuel=@ud]
+  ^-  (unit [at=span typ=itype expected=itype names=(list term) sub=isub next=@ud])
+  ?:  =(0 fuel)  ~
+  ?~  items  ~
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  =/  wanted=itype
+    ?:  ?=(%cell -.expected)  (itype-walk hed.expected sub)
+    expected
+  =/  path=(list term)
+    ?:  ?=(?(%face %slot) -.wanted)  (weld names ~[name.wanted])
+    ?~(face.i.items names (weld names ~[u.face.i.items]))
+  ?~  t.items  (cast-field-mismatch val.i.items actual expected path sub next (dec fuel))
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  =/  fit=ifit  (itype-fit hed.actual hed.expected sub next)
+  ?:  ?=(%bad -.fit)  (cast-field-mismatch val.i.items hed.actual hed.expected path sub next (dec fuel))
+  ?.  ?=(%ok -.fit)  ~
+  $(items t.items, actual tal.actual, expected tal.expected, sub sub.fit, next next.fit, fuel (dec fuel))
+::
+++  tuple-cast-field-diagnostic
+  |=  [e=expr actual=itype expected=itype state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%cast -.e)  ~
+  =/  value=expr  val.e
+  |-
+  ?:  ?=(%group -.value)  $(value inner.value)
+  ?:  ?=(%body -.value)  $(value final.value)
+  ?.  ?=(%tuple -.value)  ~
+  =/  written=(unit [body=shape file=path source=(unit @t)])
+    (diagnostic-cast-shape shape.e state)
+  ?~  written  ~
+  =/  fields=(unit iwfields)  (width-scan (itype-normalize expected sub.state) sub.state 1 1.024)
+  =/  literal=(unit iwfields)  (width-literal-fields items.value 1 1.024)
+  =/  missing=(list iwfield)
+    ?~  fields  ~
+    ?~  literal  ~
+    (skim order.u.fields |=(f=iwfield !(~(has by index.u.literal) name.f)))
+  ?^  missing
+    =/  field=iwfield  i.missing
+    =/  site=(unit idsite)
+      (diagnostic-field-site u.written ~[name.field] (site-type-note "required field" typ.field sub.state) at.state)
+    ?~  site  ~
+    `["cast is missing field `{(trip name.field)}`" ~[u.site [(span-of value) "record has no field `{(trip name.field)}`"]]]
+  =/  bad=(unit [at=span typ=itype expected=itype names=(list term) sub=isub next=@ud])
+    (cast-field-mismatch value actual expected ~ sub.state next.state 1.024)
+  ?~  bad  ~
+  ?~  names.u.bad  ~
+  =/  site=(unit idsite)
+    (diagnostic-field-site u.written names.u.bad (site-type-note "expected field" expected.u.bad sub.u.bad) at.state)
+  ?~  site  ~
+  `["cast field `{(gate-free-field-path names.u.bad)}` does not fit" ~[u.site [at.u.bad (site-actual-note "expression" typ.u.bad expected.u.bad sub.u.bad next.u.bad)]]]
 ::
 ++  call-error-site
   |=  [args=(list expr) actual=itype expected=itype sub=isub next=@ud]
-  ^-  (unit [at=span typ=itype])
+  ^-  (unit [at=span typ=itype expected=itype source=expr sub=isub next=@ud])
   ?~  args  ~
-  =/  original=[left=itype right=itype]  [actual expected]
-  ?:  |(?=(%var -.left.original) ?=(%avar -.left.original) ?=(%rvar -.left.original) |(?=(%nvar -.left.original) ?=(%rnvar -.left.original)) ?=(%var -.right.original) ?=(%avar -.right.original) ?=(%rvar -.right.original) |(?=(%nvar -.right.original) ?=(%rnvar -.right.original)))  ~
   =.  actual  (itype-walk actual sub)
   =.  expected  (itype-walk expected sub)
-  ?:  &(?=(%face -.expected) !?=(%face -.actual))
+  ?:  &(?=(?(%face %slot) -.expected) !?=(?(%face %slot) -.actual))
     $(expected body.expected)
   ?~  t.args
     =/  fit=ifit  (itype-fit actual expected sub next)
     ?.  ?=(%bad -.fit)  ~
-    `[(span-of i.args) (itype-normalize actual sub)]
+    `[(span-of i.args) (itype-normalize actual sub) (itype-normalize expected sub) i.args sub next]
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
   =/  first=ifit  (itype-fit hed.actual hed.expected sub next)
-  ?:  ?=(%bad -.first)  `[(span-of i.args) (itype-normalize hed.actual sub)]
+  ?:  ?=(%bad -.first)  `[(span-of i.args) (itype-normalize hed.actual sub) (itype-normalize hed.expected sub) i.args sub next]
   ?:  ?=(%unknown -.first)  ~
   $(args t.args, actual tal.actual, expected tal.expected, sub sub.first, next next.first)
 ::
@@ -10005,14 +14373,21 @@
   =/  value=iresult  (infer-call-context-arg val.e payload env state context)
   ?:  ?=(%| -.value)  value
   =/  fit=ifit  (itype-fit typ.p.value payload sub.state.p.value next.state.p.value)
-  ?:  ?=(%unknown -.fit)  [%| ["unit payload constraint is not supported by partial inference" ~]]
+  ?:  ?=(%unknown -.fit)
+    ?.  general-defer.state.p.value
+      [%| ["unit payload constraint is not supported by partial inference" ~]]
+    =/  edge=icore-edge
+      [%fit typ.p.value payload (span-of val.e) context owner.state.p.value ~]
+    [%& expected state.p.value(queue [edge queue.state.p.value])]
   ?:  ?=(%bad -.fit)
-    =/  missing=(unit idiag)  (missing-union-tag val.e payload sub.state.p.value context)
+    =/  missing=(unit idiag)  (missing-tag-diagnostic val.e payload state.p.value context)
     ?^  missing  [%| u.missing]
-    =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value payload sub.state.p.value next.state.p.value context)
+    =/  nested=(unit idiag)  (nested-missing-tag val.e typ.p.value payload sub.state.p.value next.state.p.value context state.p.value)
     ?^  nested  [%| u.nested]
     =/  decimal=(unit idiag)  (decimal-misfit val.e typ.p.value payload sub.state.p.value next.state.p.value)
-    ?^  decimal  [%| u.decimal]
+    ?^  decimal  [%| (diagnostic-expected-context u.decimal context payload sub.state.p.value)]
+    =/  mismatch=(unit idiag)  (union-payload-diagnostic val.e typ.p.value payload state.p.value context ~)
+    ?^  mismatch  [%| u.mismatch]
     [%| ["unit payload does not fit its expected type" ~[[context (site-type-note "expected unit payload" payload sub.state.p.value)] [(span-of val.e) (site-type-note "payload" typ.p.value sub.state.p.value)]]]]
   [%& expected state.p.value(sub sub.fit, next next.fit)]
 ::
@@ -10025,7 +14400,7 @@
   ^-  iresult
   ?>  ?=(%call -.e)
   ?~  args.e  [%| ["call has no argument" ~]]
-  ?:  (reserved-call %unface e env state)  (infer-unface e env state)
+  ?:  (reserved-call %unface e env state)  (infer-unface-context e expected env state)
   =/  head=iresult  (infer-fragment head.e env state)
   ?:  ?=(%| -.head)  head
   =/  ht=itype  (itype-walk typ.p.head sub.state.p.head)
@@ -10089,7 +14464,7 @@
     ?~  field  (infer-fragment val.i.items env state)
     (infer-call-context-arg val.i.items typ.u.field env state context)
   ?:  ?=(%| -.head)  head
-  =/  typ=itype  [%face u.face.i.items typ.p.head]
+  =/  typ=itype  [%slot u.face.i.items typ.p.head]
   ?~  t.items  [%& typ state.p.head]
   =/  tail=iresult  $(items t.items, state state.p.head)
   ?:  ?=(%| -.tail)  tail
@@ -10098,15 +14473,19 @@
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  (unit iresult)
   ?.  ?=(%tuple -.e)  ~
-  ?.  |(?=(%cell -.expected) ?=(%face -.expected))  ~
+  ?.  |(?=(%cell -.expected) ?=(?(%face %slot) -.expected))  ~
   =/  source=(unit iwfields)  (width-literal-fields items.e 1 4.096)
   =/  target=(unit iwfields)  (width-scan expected sub.state 1 4.096)
   ?~  source  ~
   ?~  target  ~
   ?:  (lth (lent order.u.source) (lent order.u.target))  ~
-  ?.  (width-in-order order.u.source order.u.target)
-    `(infer-simple-items items.e env state)
-  `(width-infer-items items.e index.u.target env state context)
+  =/  inferred=iresult
+    ?.  (width-in-order order.u.source order.u.target)
+      (infer-simple-items items.e env state)
+    (width-infer-items items.e index.u.target env state context)
+  ?:  ?=(%| -.inferred)  `inferred
+  =.  typ.p.inferred  (itype-value-root typ.p.inferred)
+  `inferred
 ::
 ::  +reserved-call: whether e calls the reserved operation n
 ::
@@ -10141,13 +14520,29 @@
   ?>  ?=(%call -.e)
   ?.  ?=([* ~] args.e)
     [%| ["unface takes one argument, as (unface e)" ~[[at.e "unface call"]]]]
-  ?^  defer.state  [%| ["deferred unface needs unsupported inference" ~]]
   =/  value=iresult  (infer-fragment i.args.e env state)
   ?:  ?=(%| -.value)  value
   =/  typ=itype  (itype-walk typ.p.value sub.state.p.value)
   ?:  ?=(?(%var %fvar) -.typ)
-    [%| ["unface on a type not yet known is not supported by partial inference" ~]]
+    ?.  general-defer.state.p.value
+      [%| ["unface on a type not yet known is not supported by partial inference" ~]]
+    =/  st=istate  state.p.value
+    =/  result=itype  [%var next.st]
+    =/  edge=icore-edge  [%unface typ.p.value result at.e]
+    [%& result st(next +(next.st), queue [edge queue.st])]
   [%& (itype-unface typ sub.state.p.value) state.p.value]
+::
+++  infer-unface-context
+  |=  [e=expr expected=itype env=ienv state=istate]
+  ^-  iresult
+  ?>  ?=(%call -.e)
+  ?.  ?=([* ~] args.e)  (infer-unface e env state)
+  =/  target=itype  (itype-walk expected sub.state)
+  ?:  ?=(?(%var %fvar) -.target)  (infer-unface e env state)
+  =/  value=iresult
+    (infer-call-context-arg i.args.e (itype-unface target sub.state) env state at.e)
+  ?:  ?=(%| -.value)  value
+  [%& (itype-unface typ.p.value sub.state.p.value) state.p.value]
 ::
 ::  +unface-value: the error for unface written where a value goes
 ::
@@ -10184,7 +14579,7 @@
   ^-  iresult
   ?>  ?=(%call -.e)
   ?~  args.e  [%| ["proj needs one record" ~]]
-  ?.  |(?=(%cell -.expected) ?=(%face -.expected))  [%| ["proj needs an expected record type" ~]]
+  ?.  |(?=(%cell -.expected) ?=(?(%face %slot) -.expected))  [%| ["proj needs an expected record type" ~]]
   =/  value=iresult  (infer-proj-source i.args.e expected env state context)
   ?:  ?=(%| -.value)  value
   =/  shape=(unit [source=iwfields target=iwfields])
@@ -10193,7 +14588,7 @@
   =/  project=(unit iwidth-result)  (width-project u.shape sub.state.p.value next.state.p.value)
   ?~  project  [%| ["proj constraint needs unsupported inference" ~]]
   =/  st=istate  state.p.value(sub sub.u.project, next next.u.project)
-  [%& expected st(projections [[at.e e typ.p.value expected steps.u.project] projections.st])]
+  [%& expected st(projections [[at.e e typ.p.value expected steps.u.project ~] projections.st])]
 ::
 ::  A known literal singleton in a direct union can contextualize a
 ::  loobean literal of the same noun. Only explicit singleton and cell
@@ -10214,55 +14609,30 @@
     $(cases t.cases, found &)
   $(cases t.cases)
 ::
-::  Select a written literal-headed case only when every competing case is
-::  also an explicit singleton-headed cell and exactly one matches. Opaque,
-::  variable-bound and differently shaped cases keep inference unchanged.
-::  This first slice supplies context to a directly called payload. Plain
-::  literal data and other expressions retain their existing inference path.
-++  contextual-atomic-arguments
-  |=  args=(list expr)
-  ^-  ?
-  ?~  args  &
-  ?.  ?=(?(%lit %wing %ctor) -.i.args)  |
-  $(args t.args)
-++  contextual-direct-payload-call
-  |=  e=expr
-  ^-  ?
-  ?:  ?=(%group -.e)  $(e inner.e)
-  ?.  ?=(%call -.e)  |
-  ?.  ?=(%wing -.head.e)  |
-  ?~  args.e  |
-  (contextual-atomic-arguments args.e)
-::
-::  A walked variable may have concealed a union inside a substituted
-::  structure before this arm was called. Decline in that case rather than
-::  deriving provenance from the already-walked type.
-++  contextual-simple-sub
-  |=  sub=isub
-  ^-  ?
-  ?~  sub  &
-  ?:  ?=(?(%cell %face %fn %union %collection) -.val.i.sub)  |
-  $(sub t.sub)
-::
 ::  Check the syntactic root before scanning; scan substitutions once.
-++  grec-direct-context
-  |=  [expected=itype sub=isub]
-  ^-  ?
-  =/  left=@ud  4.096
-  |-
-  ?:  ?=(%face -.expected)
-    ?:  =(0 left)  |
-    $(expected body.expected, left (dec left))
-  ?.  ?=(%grec -.expected)  |
-  ?~  sub  &
-  ?:  =(0 left)  |
-  ?:  ?=(?(%cell %face %fn %union %collection %grec) -.val.i.sub)  |
-  $(sub t.sub, left (dec left))
 ++  contextual-direct-union
   |=  target=itype
   ^-  ?
-  ?:  ?=(%face -.target)  $(target body.target)
+  ?:  ?=(?(%face %slot) -.target)  $(target body.target)
   ?=(%union -.target)
+::  Select a unique literal-headed cell when every competing case is
+::  another distinct literal-headed cell or is provably atom-only.
+::  A tuple determines the cell branch when every other alternative is
+::  atom-only. Payloads still receive and satisfy the complete case type.
+++  contextual-cell-case
+  |=  target=itype
+  ^-  (unit itype)
+  ?.  ?=(%union -.target)  ~
+  =/  remaining=(list itype)  cases.target
+  =/  found=(unit itype)  ~
+  |-
+  ?~  remaining  found
+  =/  c=itype  i.remaining
+  ?:  ?=(?(%atom %any-atom %flag %const %empty) -.c)  $(remaining t.remaining)
+  ?.  ?=(%cell -.c)  ~
+  ?^  found  ~
+  $(remaining t.remaining, found `c)
+::
 ++  contextual-tagged-case
   |=  [target=itype tag=@ sub=isub]
   ^-  (unit itype)
@@ -10273,6 +14643,8 @@
   |-
   ?~  remaining  found
   =/  c=itype  i.remaining
+  :: A literal tuple is a cell, so atom-only alternatives cannot match it.
+  ?:  ?=(?(%atom %any-atom %flag %const %empty) -.c)  $(remaining t.remaining)
   ?.  ?=(%cell -.c)  ~
   =/  head=itype  hed.c
   ?.  ?=(%const -.head)  ~
@@ -10284,169 +14656,95 @@
 ::
 ::  A bounded syntactic screen: no nested branch, cast, gate or local body
 ::  can re-enter cell-branch retry during either inference attempt.
-++  closed-cell-retry-safe
-  |=  [todo=(list expr) fuel=@ud]
-  ^-  ?
-  ?~  todo  &
-  ?:  =(0 fuel)  |
-  =/  e=expr  i.todo
-  =.  fuel  (dec fuel)
-  ?+  -.e  |
-    %lit    $(todo t.todo)
-    %wing   $(todo t.todo)
-    %ctor   $(todo t.todo)
-    %path   $(todo t.todo)
-    %crash  $(todo t.todo)
-    %str
-      ?.  (levy pieces.e |=(p=piece ?=(%text -.p)))  |
-      $(todo t.todo)
-    %group  $(todo [inner.e t.todo])
-    %pair   $(todo [val.e t.todo])
-    %unit   $(todo [val.e t.todo])
-    %list   $(todo (weld items.e t.todo))
-    %tuple  $(todo (weld (turn items.e |=(i=item val.i)) t.todo))
-    %change  $(todo (weld (turn edits.e |=(ed=edit val.ed)) t.todo))
-    %call   $(todo [head.e (weld args.e t.todo)])
-    %trace  $(todo [val.e then.e t.todo])
-  ==
-::
-++  closed-cell-sub-safe
-  |=  [sub=isub fuel=@ud]
-  ^-  ?
-  ?~  sub  &
-  ?:  =(0 fuel)  |
-  ?:  ?=(?(%cell %face %fn %union %collection %grec %jrec %recursive) -.val.i.sub)  |
-  $(sub t.sub, fuel (dec fuel))
-::
-++  closed-cell-branch-eligible
-  |=  [e=expr expected=itype sub=isub]
-  ^-  ?
-  ?.  &(?=(%branch -.e) ?=(%cell -.expected) (closed-cell-sub-safe sub 512))  |
-  ?~  arms.e  |
-  ?~  t.arms.e  |
-  ?^  t.t.arms.e  |
-  =/  x=arm  i.arms.e
-  =/  y=arm  i.t.arms.e
-  ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))  |
-  ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))  |
-  ?:  =(val.lit.pat.x val.lit.pat.y)  |
-  (closed-cell-retry-safe ~[subject.e val.x val.y] 512)
-::
-::  Attempt ordinary inference first; retry from the same state only for
-::  the bounded non-reentrant syntax above. Preserve original value faces.
-++  infer-closed-cell-branch
-  |=  [e=expr expected=itype env=ienv state=istate context=span]
-  ^-  iresult
-  ?>  (closed-cell-branch-eligible e expected sub.state)
-  ?>  ?=(%branch -.e)
-  ?>  ?=(^ arms.e)
-  ?>  ?=(^ t.arms.e)
-  =/  ordinary=iresult  (infer-fragment e env state)
-  =/  ordinary-good=?
-    ?:  ?=(%| -.ordinary)  |
-    =/  fit=ifit  (itype-fit typ.p.ordinary expected sub.state.p.ordinary next.state.p.ordinary)
-    ?=(%ok -.fit)
-  ?:  ordinary-good  ordinary
-  =/  attempt=(unit iresult)
-    =/  x=arm  i.arms.e
-    =/  y=arm  i.t.arms.e
-    =/  subject=iresult  (infer-fragment subject.e env state)
-    ?:  ?=(%| -.subject)  ~
-    =/  subject-type=itype  (itype-normalize typ.p.subject sub.state.p.subject)
-    ?:  ?=(%union -.subject-type)  ~
-    =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
-    ?~  su  ~
-    =/  left=iresult  (infer-call-context-arg val.x expected env state.p.subject(sub u.su) context)
-    ?:  ?=(%| -.left)  ~
-    =/  lf=ifit  (itype-fit typ.p.left expected sub.state.p.left next.state.p.left)
-    ?.  ?=(%ok -.lf)  ~
-    =/  right=iresult  (infer-call-context-arg val.y expected env state.p.left(sub sub.lf, next next.lf) context)
-    ?:  ?=(%| -.right)  ~
-    =/  rf=ifit  (itype-fit typ.p.right expected sub.state.p.right next.state.p.right)
-    ?.  ?=(%ok -.rf)  ~
-    =/  sub=isub  sub.rf
-    =/  next=@ud  next.rf
-    =/  lt=itype  (itype-normalize typ.p.left sub)
-    =/  rt=itype  (itype-normalize typ.p.right sub)
-    =/  et=itype  (itype-normalize expected sub)
-    ?.  =(lt rt)  ~
-    ?:  |(?=(^ (itype-vars lt)) ?=(^ (itype-vars rt)) ?=(^ (itype-vars et)))  ~
-    ?:  |((itype-has-tag lt) (itype-has-tag rt) (itype-has-tag et))  ~
-    =/  lcheck=ifit  (itype-fit typ.p.left expected sub next)
-    ?.  ?=(%ok -.lcheck)  ~
-    ?.  &(=(sub.lcheck sub) =(next.lcheck next))  ~
-    =/  rcheck=ifit  (itype-fit typ.p.right expected sub next)
-    ?.  ?=(%ok -.rcheck)  ~
-    ?.  &(=(sub.rcheck sub) =(next.rcheck next))  ~
-    `[%& typ.p.left state.p.right(sub sub, next next)]
-  ?~  attempt  ordinary
-  u.attempt
-::
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
-  ?:  &(?=(^ defer.state) ?=(%branch -.e))  (infer-fragment e env state)
-  ?:  &(?=(^ defer.state) ?=(^ prelude.state) ?=(%tuple -.e))
-    (infer-fragment e env state)
+  ?:  &(?=(%tuple -.e) ?=(~ items.e))
+    [%| ["an empty `[]` is not a valid tuple" ~[[at.e "empty tuple"]]]]
   ?:  ?=(%pair -.e)  $(e (pair-as-cell e))
   ?:  ?=(%group -.e)  $(e inner.e)
-  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?:  ?=(%body -.e)  (infer-body e env state `[expected context])
   ?:  ?=(%trace -.e)
     =/  traced=iresult  (infer-fragment val.e env state)
     ?:  ?=(%| -.traced)  traced
     $(e then.e, state state.p.traced)
+  =/  matrix-result=(unit iresult)
+    ?.  ?=(%branch -.e)  ~
+    =/  matrix-subject=iresult  (infer-fragment subject.e env state)
+    (infer-coverage-branch e env matrix-subject `[expected context])
+  ?^  matrix-result  u.matrix-result
+  =/  singleton=(unit [name=term value=expr])
+    ?.  ?=(%tuple -.e)  ~
+    ?.  ?=([* ~] items.e)  ~
+    ?~  face.i.items.e  ~
+    `[u.face.i.items.e val.i.items.e]
   =/  target=itype  (itype-walk expected sub.state)
   |-
-  ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  :: A singleton faced tuple is a complete record value. Supply context
+  :: beneath its matching value face before considering the payload shape.
+  ?:  &(?=(%face -.target) ?=(^ singleton))
+    ?.  =(name.target name.u.singleton)  (infer-fragment e env state)
+    =/  value=iresult  (infer-call-context-arg value.u.singleton body.target env state context)
+    ?:  ?=(%| -.value)  value
+    [%& [%face name.target typ.p.value] state.p.value]
+  ?:  ?=(?(%face %slot) -.target)  $(target (itype-walk body.target sub.state))
+  =/  sealed=(unit idiag)
+    ?.  ?=(%opaque -.target)  ~
+    =/  unsealed=(unit span)  (unsealed-literal-site e)
+    ?~  unsealed  ~
+    =/  wanted=tape  (show-itype target sub.state)
+    `["{wanted} is sealed; use a constructor" ~[[context "sealed type"] [u.unsealed "unsealed literal"]]]
+  ?^  sealed  [%| u.sealed]
+  ::  Interpret a written constructor against the checked one-step view,
+  ::  then retain the graph's nominal identity as the expression type.
+  ?:  &(?=(%mrec -.target) ?=(?(%lit %tuple %list) -.e))
+    =/  unfolded=(unit [view=itype left=@ud])  (rg-unfold-view target jrec-fuel.state)
+    ?~  unfolded  [%| ["recursive mold unfolding needs unsupported inference" ~]]
+    =/  value=iresult  (infer-call-context-arg e view.u.unfolded env state(jrec-fuel left.u.unfolded) context)
+    ?:  ?=(%| -.value)  value
+    =/  fit=ifit  (itype-fit typ.p.value view.u.unfolded sub.state.p.value next.state.p.value)
+    ?:  ?=(%unknown -.fit)
+      ?.  general-defer.state.p.value
+        [%| ["recursive constructor needs its remaining constraints solved" ~[[(span-of e) "recursive constructor"]]]]
+      :: Construction may have queued a tagged cell or a nested record
+      :: before its one-step view can fit. Keep that obligation in the same
+      :: solver; the nominal result is publishable only after it settles.
+      =/  edge=icore-edge
+        [%guarded-fit typ.p.value view.u.unfolded (span-of e) context owner.state.p.value ~ caps.state.p.value e | ~ ~]
+      [%& target state.p.value(queue [edge queue.state.p.value])]
+    ?:  ?=(%bad -.fit)
+      [%| ["recursive constructor does not fit its mold" ~[[context (site-type-note "recursive mold" target sub.state.p.value)] [(span-of e) (site-type-note "constructor" typ.p.value sub.state.p.value)]]]]
+    [%& target state.p.value(sub sub.fit, next next.fit)]
+  ::  A known gate type supplies both the sample and the body context.
+  ::  Inference recurses into the syntactic body, so this is structural.
+  ?:  &(?=(%fn -.target) ?=(?(%gate %gate-wide) -.e))
+    =/  sam=isample-result  (infer-sample sample.e env state)
+    ?:  ?=(%| -.sam)
+      =/  shadow=(unit idiag)  ?:(=(p.sam "sample shadows a name") (sample-shadow-context sample.e state) ~)
+      ?^  shadow  [%| u.shadow]
+      =/  fallback=(unit idiag)
+        ?:(=(p.sam "sample shadows a name") (shadow-sample-fallback (shadow-sample-bindings sample.e) env globals.state ~) ~)
+      ?^  fallback  [%| u.fallback]
+      [%| [p.sam ~]]
+    =/  sample-fit=ifit
+      (direct-invariant typ.p.sam sample.target sub.state.p.sam next.state.p.sam)
+    ?:  ?=(%unknown -.sample-fit)  (infer-fragment e env state)
+    ?.  ?=(%ok -.sample-fit)
+      [%| ["gate sample does not fit its expected type" ~[[context (site-type-note "expected sample" sample.target sub.state.p.sam)] [at.e (site-type-note "gate sample" typ.p.sam sub.state.p.sam)]]]]
+    =/  body=iresult
+      (infer-call-context-arg body.e product.target env.p.sam state.p.sam(sub sub.sample-fit, next next.sample-fit) context)
+    ?:  ?=(%| -.body)  body
+    =/  product-fit=ifit
+      (itype-fit typ.p.body product.target sub.state.p.body next.state.p.body)
+    ?:  ?=(%unknown -.product-fit)  (infer-fragment e env state)
+    ?.  ?=(%ok -.product-fit)
+      [%| ["gate result does not fit its expected type" ~[[context (site-type-note "expected result" product.target sub.state.p.body)] [(span-of body.e) (site-type-note "gate result" typ.p.body sub.state.p.body)]]]]
+    [%& [%fn typ.p.sam typ.p.body] state.p.body(sub sub.product-fit, next next.product-fit)]
   ?:  (explicit-proj-call e env state)
     (infer-proj-context e expected env state context)
-  ::  Experimental construction only for a source-proven direct target.
-  ::  Decline any walked structural binding to retain raw-variable provenance.
-  ?:  &(?=(%grec -.target) ?=(%tuple -.e) (grec-direct-context expected sub.state))
-    =/  unfolded=(unit [view=itype left=@ud])  (grec-unfold-view target jrec-fuel.state)
-    ?~  unfolded  [%| ["recursive mold unfolding needs unsupported inference" ~]]
-    ?~  items.e  [%| ["recursive mold constructor needs unsupported inference" ~]]
-    =/  first=item  i.items.e
-    ?.  &(?=(~ face.first) ?=(%lit -.val.first) =(%term form.lit.val.first))
-      [%| ["recursive mold constructor needs unsupported inference" ~]]
-    =/  chosen=(unit itype)  (contextual-tagged-case view.u.unfolded val.lit.val.first sub.state)
-    ?~  chosen  [%| ["recursive mold constructor has no matching case" ~]]
-    =/  value=iresult  (infer-call-context-items items.e u.chosen env state(jrec-fuel left.u.unfolded) context)
-    ?:  ?=(%| -.value)  value
-    =/  fit=ifit  (itype-fit typ.p.value u.chosen sub.state.p.value next.state.p.value)
-    ?:  ?=(%unknown -.fit)  [%| ["recursive mold case needs unsupported inference" ~]]
-    ?:  ?=(%bad -.fit)  [%| ["recursive mold case does not fit its source shape" ~]]
-    [%& target state.p.value(sub sub.fit, next next.fit)]
-  ::  Only the source-proven one-layer cell is exposed. Each recursive
-  ::  descent consumes one written tuple; named values use ordinary fit.
-  ?:  &(?=(%jrec -.target) ?=(%lit -.e) =(%null form.lit.e))
-    ?:  =(0 jrec-fuel.state)  [%| ["recursive mold unfolding needs unsupported inference" ~]]
-    [%& target state(jrec-fuel (dec jrec-fuel.state))]
-  ?:  &(?=(%jrec -.target) ?=(%tuple -.e))
-    ?:  =(0 jrec-fuel.state)  [%| ["recursive mold unfolding needs unsupported inference" ~]]
-    =.  state  state(jrec-fuel (dec jrec-fuel.state))
-    =/  shape=itype
-      [%cell [%face head.target [%atom aura.target]] [%face tail.target target]]
-    =/  value=iresult  (infer-call-context-items items.e shape env state context)
-    ?:  ?=(%| -.value)  value
-    =/  fit=ifit  (itype-fit typ.p.value shape sub.state.p.value next.state.p.value)
-    ?:  ?=(%unknown -.fit)  [%| ["recursive mold cell constraint needs unsupported inference" ~]]
-    ?:  ?=(%bad -.fit)  [%| ["recursive mold cell does not fit its source shape" ~]]
-    [%& target state.p.value(sub sub.fit, next next.fit)]
   ?:  ?=(%call -.e)  (infer-contextual-call e target env state)
   =/  named=(unit idiag)  (branch-tag-name e env state)
   ?^  named  [%| u.named]
-  =/  empty-list=(unit iresult)  (empty-list-null-branch e env state `[target context])
-  ?^  empty-list  u.empty-list
-  ?:  (single-structured-pattern e)
-    ?>  ?=(%branch -.e)
-    =/  empty-union=(unit iresult)  (known-empty-union-wing subject.e env state)
-    ?^  empty-union  (infer-known-union-context-subject e target env u.empty-union context)
-    =/  single=(unit iresult)  (grec-single-wing-subject subject.e env state)
-    ?^  single  (infer-known-union-context-subject e target env u.single context)
-    (infer-single-case-branch e env state `[target context])
-  ?:  (cell-binder-pattern e)
-    (infer-cell-branch e env state `[target context])
   ::  In an explicit singleton context retain the written loobean noun;
   ::  the ordinary singleton fit compares its noun, not its spelling.
   =/  singleton=(unit itype)
@@ -10455,42 +14753,31 @@
     ?.  |(?=(%const -.target) &(?=(%union -.expected) (explicit-singleton-in-union expected val.lit.e)))  ~
     `[%const lit.e]
   ?^  singleton  [%& u.singleton state]
-  =/  known=(unit iresult)
-    ?:  ?=(%branch -.e)  (known-union-subject subject.e env state)
-    ~
-  ?:  &(?=(^ known) ?=(%| -.u.known) !(duplicate-loobean-arms e))  u.known
-  ?:  &(?=(^ known) ?=(%& -.u.known) ?=(~ (unit-union-payload (itype-normalize typ.p.u.known sub.state.p.u.known))))
-    (infer-known-union-context-subject e target env u.known context)
   ?:  &(?=(%union -.target) ?=(%unit -.e))
     (infer-unit-context e target env state context)
-  ?:  (closed-cell-branch-eligible e expected sub.state)
-    (infer-closed-cell-branch e expected env state context)
-  ?:  &(?=(%flag -.target) (context-union-branch e))
-    (infer-union-context e target env state context)
-  ?:  &(?=(%union -.target) (context-union-branch e))
-    (infer-union-context e target env state context)
-  ?:  &(?=(%collection -.target) =(%list name.target) (context-union-branch e))
-    (infer-union-context e target env state context)
   ?:  &(?=(%collection -.target) =(%list name.target) (context-list-expression e))
     (infer-list-context e target env state context)
   ::  A literal-headed tuple can receive the unique case's payload
   ::  context. The ordinary final fit still checks the complete union.
   =/  selected=(unit itype)
-    ?.  &((contextual-simple-sub sub.state) (contextual-direct-union expected) ?=(%union -.target) ?=(%tuple -.e) ?=(^ items.e))  ~
+    ?.  &((contextual-direct-union expected) ?=(%union -.target) ?=(%tuple -.e) ?=(^ items.e))  ~
     ?~  t.items.e  ~
-    ?^  t.t.items.e  ~
-    ?.  (contextual-direct-payload-call val.i.t.items.e)  ~
     =/  first=item  i.items.e
+    =/  only-cell=(unit itype)  (contextual-cell-case target)
+    ?^  only-cell
+      ?.  &(?=(~ face.first) ?=(%lit -.val.first))  only-cell
+      ?:  =(%no (tag-presence u.only-cell val.lit.val.first sub.state))  ~
+      only-cell
     ?.  &(?=(~ face.first) ?=(%lit -.val.first) |(=(%term form.lit.val.first) =(%null form.lit.val.first) =(%loobean form.lit.val.first)))  ~
     (contextual-tagged-case target val.lit.val.first sub.state)
   ?^  selected
     ?>  ?=(%tuple -.e)
-    ::  On this bounded shallow-call shape, preserve any inference that
-    ::  already fits before trying the new contextual path. Neither pass
-    ::  can recursively select a nested tuple from the atomic arguments.
+    ::  Preserve inference that already fits before using the selected
+    ::  case to propagate context recursively into its tuple fields.
     =/  ordinary=(unit iresult)
       =/  initial=iresult  (infer-fragment e env state)
       ?:  ?=(%| -.initial)  ~
+      ?^  (contextual-tagged-value e typ.p.initial state.p.initial)  ~
       =/  fit=ifit  (itype-fit typ.p.initial target sub.state.p.initial next.state.p.initial)
       ?.  ?=(%ok -.fit)  ~
       `initial
@@ -10498,11 +14785,22 @@
     =/  value=iresult  (infer-call-context-items items.e u.selected env state context)
     ?:  ?=(%| -.value)  value
     =/  fit=ifit  (itype-fit typ.p.value u.selected sub.state.p.value next.state.p.value)
-    ?:  ?=(%unknown -.fit)  [%| ["tagged case needs unsupported inference" ~]]
-    ?:  ?=(%bad -.fit)  [%| ["tagged case does not fit its expected type" ~[[context "expected union case"] [(span-of e) "value"]]]]
+    ?:  ?=(%unknown -.fit)
+      =/  decimal=(unit idiag)  (decimal-misfit e typ.p.value u.selected sub.state.p.value next.state.p.value)
+      ?^  decimal  [%| (diagnostic-expected-context u.decimal context u.selected sub.state.p.value)]
+      (infer-fragment e env state)
+    ?:  ?=(%bad -.fit)
+      =/  nested=(unit idiag)  (nested-missing-tag e typ.p.value u.selected sub.state.p.value next.state.p.value context state.p.value)
+      ?^  nested  [%| u.nested]
+      =/  decimal=(unit idiag)  (decimal-misfit e typ.p.value u.selected sub.state.p.value next.state.p.value)
+      ?^  decimal  [%| (diagnostic-expected-context u.decimal context u.selected sub.state.p.value)]
+      (infer-fragment e env state)
     [%& typ.p.value state.p.value(sub sub.fit, next next.fit)]
   ?:  &(?=(%cell -.target) ?=(%tuple -.e))
-    (infer-call-context-items items.e target env state context)
+    =/  inferred=iresult  (infer-call-context-items items.e target env state context)
+    ?:  ?=(%| -.inferred)  inferred
+    =.  typ.p.inferred  (itype-value-root typ.p.inferred)
+    inferred
   (infer-fragment e env state)
 ::
 ::  Preserve each written face; the final complete sample fit checks faces.
@@ -10512,26 +14810,33 @@
 ++  projection-field-target
   |=  expected=itype
   ^-  itype
-  ?:(?=(%face -.expected) body.expected expected)
+  ?:(?=(?(%face %slot) -.expected) body.expected expected)
+::
+::  Only the outer positional slot is omitted when a field expression
+::  receives a value context; an inner value face remains part of it.
+++  sample-slot-target
+  |=  expected=itype
+  ^-  itype
+  ?:(?=(%slot -.expected) body.expected expected)
 ::
 ++  infer-call-context-items
   |=  [items=(list item) expected=itype env=ienv state=istate context=span]
   ^-  iresult
   ?~  items  [%| ["empty cell is not supported by partial inference" ~]]
   ?~  t.items
-    =/  last=iresult  (infer-call-context-arg val.i.items (projection-field-target expected) env state context)
+    =/  last=iresult  (infer-call-context-arg val.i.items (sample-slot-target expected) env state context)
     ?:  ?=(%| -.last)  last
     =/  typ=itype  typ.p.last
-    =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
+    =.  typ  ?~(face.i.items typ [%slot u.face.i.items typ])
     [%& typ state.p.last]
   =/  target=itype  (itype-walk expected sub.state)
   |-
-  ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?:  ?=(?(%face %slot) -.target)  $(target (itype-walk body.target sub.state))
   ?.  ?=(%cell -.target)  (infer-simple-items items env state)
-  =/  head=iresult  (infer-call-context-arg val.i.items (projection-field-target hed.target) env state context)
+  =/  head=iresult  (infer-call-context-arg val.i.items (sample-slot-target hed.target) env state context)
   ?:  ?=(%| -.head)  head
   =/  typ=itype  typ.p.head
-  =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
+  =.  typ  ?~(face.i.items typ [%slot u.face.i.items typ])
   =/  tail=iresult  (infer-call-context-items t.items tal.target env state.p.head context)
   ?:  ?=(%| -.tail)  tail
   [%& [%cell typ typ.p.tail] state.p.tail]
@@ -10540,14 +14845,21 @@
   |=  [args=(list expr) expected=itype env=ienv state=istate context=span]
   ^-  iresult
   ?~  args  [%| ["call has no argument" ~]]
-  ?~  t.args  (infer-call-context-arg i.args (projection-field-target expected) env state context)
+  ?~  t.args
+    =/  value=iresult  (infer-call-context-arg i.args (sample-slot-target expected) env state context)
+    ?:  ?=(%| -.value)  value
+    =/  narrowed=(unit idiag)  (newly-constrained-capital caps.state sub.state sub.state.p.value i.args &)
+    ?^  narrowed  [%| u.narrowed]
+    value
   =/  target=itype  (itype-walk expected sub.state)
   |-
-  ?:  ?=(%face -.target)  $(target (itype-walk body.target sub.state))
+  ?:  ?=(?(%face %slot) -.target)  $(target (itype-walk body.target sub.state))
   ?.  ?=(%cell -.target)
     (infer-simple-items (turn args |=(a=expr [(span-of a) ~ a])) env state)
-  =/  head=iresult  (infer-call-context-arg i.args (projection-field-target hed.target) env state context)
+  =/  head=iresult  (infer-call-context-arg i.args (sample-slot-target hed.target) env state context)
   ?:  ?=(%| -.head)  head
+  =/  narrowed=(unit idiag)  (newly-constrained-capital caps.state sub.state sub.state.p.head i.args &)
+  ?^  narrowed  [%| u.narrowed]
   =/  tail=iresult  (infer-call-context-args t.args tal.target env state.p.head context)
   ?:  ?=(%| -.tail)  tail
   [%& [%cell typ.p.head typ.p.tail] state.p.tail]
@@ -10561,100 +14873,19 @@
   =/  head=iresult  (infer-fragment val.i.items env state)
   ?:  ?=(%| -.head)  head
   =/  ht=itype  typ.p.head
-  =.  ht  ?~(face.i.items ht [%face u.face.i.items ht])
+  =.  ht  ?~(face.i.items ht [%slot u.face.i.items ht])
   ?~  t.items  [%& ht state.p.head]
   =/  tail=iresult  $(items t.items, state state.p.head)
   ?:  ?=(%| -.tail)  tail
   [%& [%cell ht typ.p.tail] state.p.tail]
-::
-::  A single all-binder cell pattern covers a known cell spine; the final
-::  binder captures the remaining noun. Other pattern matrices stay partial.
-::
-::  Validate binders before reading the subject, preserving shadow-error
-::  precedence. The last binder receives the entire remaining tail.
-++  cell-pattern-names
-  |=  [pats=(list pattern) env=ienv globals=(list term) seen=(list term)]
-  ^-  (each (list term) @t)
-  ?~  pats  [%& ~]
-  ?.  ?=(%bind -.i.pats)  [%| 'branch pattern is not supported by partial inference']
-  =/  name=term  name.i.pats
-  ?:  |((reserved-name name) ?=(^ (ienv-lookup name env)) (lien globals |=(n=term =(n name))) (lien seen |=(n=term =(n name))))
-    [%| 'pattern shadows a name']
-  =/  rest=(each (list term) @t)  $(pats t.pats, seen [name seen])
-  ?:  ?=(%| -.rest)  rest
-  [%& [name p.rest]]
-::
-++  cell-pattern-types
-  |=  [names=(list term) env=ienv next=@ud]
-  ^-  [typ=itype env=ienv next=@ud]
-  ?~  names  !!
-  =/  head=itype  [%var next]
-  =/  scope=ienv  [[i.names [head ~]] env]
-  ?~  t.names  [head scope +(next)]
-  =/  tail=[typ=itype env=ienv next=@ud]  $(names t.names, env scope, next +(next))
-  [[%cell head typ.tail] env.tail next.tail]
-::
-::  At every position that must be a cell, opaque or sum types may still
-::  contain cells. Do not report a definite mismatch without unfolding them.
-++  cell-pattern-spine-unknown
-  |=  [typ=itype names=(list term) sub=isub]
-  ^-  ?
-  ?~  names  |
-  ?~  t.names  |
-  =.  typ  (itype-walk typ sub)
-  ?:  ?=(%cell -.typ)  $(typ tal.typ, names t.names)
-  |(?=(%union -.typ) ?=(%collection -.typ) ?=(%recursive -.typ) ?=(%jrec -.typ) ?=(%grec -.typ) ?=(%noun -.typ) ?=(%fn -.typ) ?=(%tag -.typ))
-::
-++  cell-binder-pattern
-  |=  e=expr
-  ^-  ?
-  ?.  ?=(%branch -.e)  |
-  ?~  arms.e  |
-  ?^  t.arms.e  |
-  ?.  ?=(%cell -.pat.i.arms.e)  |
-  !(single-structured-pattern e)
-::
-++  infer-cell-branch
-  |=  [e=expr env=ienv state=istate expected=(unit [typ=itype context=span])]
-  ^-  iresult
-  ?>  ?=(%branch -.e)
-  ?~  arms.e  [%| ["branch is not supported by partial inference" ~]]
-  =/  arm=arm  i.arms.e
-  ?.  ?=(%cell -.pat.arm)  [%| ["branch pattern is not supported by partial inference" ~]]
-  =/  pats=(list pattern)  items.pat.arm
-  ?~  pats  [%| ["branch pattern is not supported by partial inference" ~]]
-  ?~  t.pats  [%| ["branch pattern is not supported by partial inference" ~]]
-  =/  names=(each (list term) @t)  (cell-pattern-names pats env globals.state ~)
-  ?:  ?=(%| -.names)  [%| [(trip p.names) ~]]
-  =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  subject
-  =/  st=istate  state.p.subject
-  =/  subject-type=itype  (itype-normalize typ.p.subject sub.st)
-  ?:  (itype-has-recursive subject-type)
-    [%| ["recursive pattern is not supported by partial inference" ~]]
-  ?:  (itype-has-face typ.p.subject sub.st)
-    [%| ["record patterns are not supported by partial inference" ~]]
-  ?:  (cell-pattern-spine-unknown subject-type p.names sub.st)
-    [%| ["cell pattern subject is not supported by partial inference" ~]]
-  =/  binders=[typ=itype env=ienv next=@ud]  (cell-pattern-types p.names env next.st)
-  =/  sub=(unit isub)  (itype-unify typ.p.subject typ.binders sub.st)
-  ?~  sub  [%| ["cell pattern does not match the subject type" ~]]
-  =.  st  st(next next.binders, sub u.sub)
-  ?~  expected  (infer-fragment val.arm env.binders st)
-  =/  body=iresult  (infer-call-context-arg val.arm typ.u.expected env.binders st context.u.expected)
-  ?:  ?=(%| -.body)  body
-  =/  fit=ifit  (itype-fit typ.p.body typ.u.expected sub.state.p.body next.state.p.body)
-  ?:  ?=(%unknown -.fit)  [%| ["cell branch result constraint is not supported by partial inference" ~]]
-  ?:  ?=(%bad -.fit)  [%| ["cell branch arm does not fit its expected type" ~[[context.u.expected "expected type"] [(span-of val.arm) "branch arm"]]]]
-  ?:  (itype-has-tag (itype-normalize typ.u.expected sub.fit))
-    [%| ["cell branch result needs context in partial inference" ~]]
-  [%& typ.u.expected state.p.body(sub sub.fit, next next.fit)]
 ::
 ++  show-itype
   |=  [t=itype sub=isub]
   ^-  tape
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %opaque  ?~(label.t "opaque type" ?~(args.t (trip u.label.t) "({(trip u.label.t)} {(show-itype-cases args.t sub)})"))
+    %refined  "*"
     %var    (show-var id.t)
     %fvar   (show-var id.t)
     %avar   (show-var id.t)
@@ -10673,10 +14904,12 @@
       ?~  args.t  (trip u.label.t)
       "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
     %recursive  ?~(label.t "recursive mold" (trip u.label.t))
-    %jrec       ?~(label.t "recursive mold" (trip u.label.t))
-    %grec       ?~(label.t "recursive mold" "({(trip u.label.t)} {(show-itype-cases args.t sub)})")
+    %mrec
+      ?~  label.t  "recursive mold"
+      ?~  args.t  (trip u.label.t)
+      "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
     %collection  "({(trip name.t)} {(show-itype-cases args.t sub)})"
-    %face  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
+    ?(%face %slot)  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
     %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
   ==
@@ -10696,7 +14929,7 @@
   |=  [t=itype sub=isub]
   ^-  tape
   =.  t  (itype-walk t sub)
-  ?:  ?=(%face -.t)  "{(trip name.t)}={(show-itype-context body.t sub)}"
+  ?:  ?=(?(%face %slot) -.t)  "{(trip name.t)}={(show-itype-context body.t sub)}"
   (show-itype-context t sub)
 ::
 ++  show-itype-context
@@ -10720,6 +14953,8 @@
   |=  typ=itype
   ^-  ?
   ?-  -.typ
+    %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (itype-has-nvar c))))
+    %refined  $(typ proof.typ)
     %nvar      &
     %rnvar      &
     %var       |
@@ -10735,22 +14970,167 @@
     %const     |
     %union     |((lien cases.typ |=(c=itype (itype-has-nvar c))) (lien args.typ |=(c=itype (itype-has-nvar c))))
     %recursive  |
-    %jrec       |
-    %grec       (lien args.typ |=(c=itype (itype-has-nvar c)))
+    %mrec       (lien args.typ |=(c=itype (itype-has-nvar c)))
     %collection  (lien args.typ |=(c=itype (itype-has-nvar c)))
-    %face      $(typ body.typ)
+    ?(%face %slot)      $(typ body.typ)
     %fn        |($(typ sample.typ) $(typ product.typ))
     %cell      |($(typ hed.typ) $(typ tal.typ))
   ==
 ::
+::  A diagnostic may describe a pending tag without claiming it already
+::  has a resolved union type. The search does not bind inference variables.
+::  A failed fit may still provide the union of a tag or constructor.
+::  Reconstruct that known part for the diagnostic without changing the
+::  inference graph or binding ordinary variables to make a fit succeed.
+++  diagnostic-context-type
+  |=  [actual=itype expected=itype sub=isub next=@ud]
+  ^-  itype
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  ?=(?(%face %slot) -.actual)
+    =/  target=itype  ?:(?=(?(%face %slot) -.expected) body.expected expected)
+    actual(body $(actual body.actual, expected target))
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+  ?:  ?=(%tag -.actual)
+    ?:  constructor.actual
+      ?.  ?=(%fn -.expected)  actual
+      =/  product=itype  (itype-walk product.expected sub)
+      =/  cases=(list itype)  ?:(?=(%union -.product) cases.product ~[product])
+      =/  case=(unit itype)  (union-payload-case cases val.literal.actual sub ~)
+      ?~  case  actual
+      ?>  ?=(%cell -.u.case)
+      [%fn (itype-normalize (sample-slot-target tal.u.case) sub) product]
+    =/  fit=ifit  (itype-fit actual expected sub next)
+    ?.  ?=(%ok -.fit)  actual
+    (itype-normalize actual sub.fit)
+  ?:  &(?=(%cell -.actual) ?=(%union -.expected))
+    =/  head=itype  (itype-walk hed.actual sub)
+    =/  value=(unit @)
+      ?+  -.head  ~
+        %const  `val.literal.head
+        %tag    `val.literal.head
+      ==
+    ?~  value  actual
+    =/  payload=(unit itype)  (union-payload-target cases.expected u.value sub ~)
+    ?~  payload  actual
+    =/  literal=lit
+      ?-  -.head
+        %const  literal.head
+        %tag    literal.head
+        *       !!
+      ==
+    $(expected [%cell [%const literal] u.payload])
+  ?:  &(?=(%cell -.actual) ?=(%collection -.expected))
+    ?.  &(=(%list name.expected) ?=([* ~] args.expected))  actual
+    $(expected [%cell i.args.expected expected])
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    [%cell $(actual hed.actual, expected hed.expected) $(actual tal.actual, expected tal.expected)]
+  ?:  &(?=(%fn -.actual) ?=(%fn -.expected))
+    [%fn $(actual sample.actual, expected sample.expected) $(actual product.actual, expected product.expected)]
+  ?:  &(?=(%collection -.actual) ?=(%collection -.expected))
+    ?.  &(=(name.actual name.expected) =((lent args.actual) (lent args.expected)))  actual
+    actual(args (diagnostic-context-types args.actual args.expected sub next))
+  ?:  &(?=(%mrec -.actual) ?=(%mrec -.expected))
+    ?.  &(=(at.actual at.expected) =(site.actual site.expected) =(name.actual name.expected) (rg-graphs-agree [at.actual site.actual name.actual] graph.actual graph.expected) =((lent args.actual) (lent args.expected)))  actual
+    actual(args (diagnostic-context-types args.actual args.expected sub next))
+  (itype-normalize actual sub)
+++  diagnostic-context-types
+  |=  [actual=(list itype) expected=(list itype) sub=isub next=@ud]
+  ^-  (list itype)
+  ?~  actual  ~
+  ?~  expected  actual
+  [(diagnostic-context-type i.actual i.expected sub next) $(actual t.actual, expected t.expected)]
+++  site-actual-note
+  |=  [label=tape actual=itype expected=itype sub=isub next=@ud]
+  ^-  tape
+  (site-type-note label (diagnostic-context-type actual expected sub next) sub)
+::
+++  diagnostic-pending-tag
+  |=  todo=(list itype)
+  ^-  (unit tape)
+  ?~  todo  ~
+  =/  t=itype  i.todo
+  ?+  -.t  $(todo t.todo)
+    %tag
+      ?:  constructor.t  `"contains the unresolved constructor `|={(trip txt.literal.t)}`"
+      `"contains the unresolved tag `{(trip txt.literal.t)}`"
+    ?(%face %slot)  $(todo [body.t t.todo])
+    %cell  $(todo [hed.t tal.t t.todo])
+    %fn  $(todo [sample.t product.t t.todo])
+    %union  $(todo (weld args.t ?~(label.t (weld cases.t t.todo) t.todo)))
+    %mrec  $(todo (weld args.t t.todo))
+    %collection  $(todo (weld args.t t.todo))
+  ==
+::  Keep the original primary error site, then show what required the
+::  conflicting type. This is reporting only; decimal relaxation never
+::  changes the solver state or accepts a mismatched aura.
+++  diagnostic-expected-context
+  |=  [diag=idiag at=span typ=itype sub=isub]
+  ^-  idiag
+  =/  note=tape  (site-type-note "expected type" typ sub)
+  ?:  (lien sites.diag |=(site=idsite ?:(?=(%external -.site) | =(at.site at))))  diag
+  diag(sites (weld sites.diag `(list idsite)`~[[at note]]))
+::
+::  Show the known structure of an incomplete type alongside its literal
+::  constraints. Each open tag remains a variable, never a guessed union.
++$  diagnostic-tag  [id=@ud literal=lit constructor=?]
+++  diagnostic-tags
+  |=  [todo=(list itype) seen=(list @ud)]
+  ^-  (list diagnostic-tag)
+  ?~  todo  ~
+  =/  t=itype  i.todo
+  ?+  -.t  $(todo t.todo)
+    %tag
+      ?:  (lien seen |=(n=@ud =(n id.t)))  $(todo t.todo)
+      [[id.t literal.t constructor.t] $(todo t.todo, seen [id.t seen])]
+    ?(%face %slot)  $(todo [body.t t.todo])
+    %cell  $(todo [hed.t tal.t t.todo])
+    %fn  $(todo [sample.t product.t t.todo])
+    %union  $(todo (weld args.t ?~(label.t (weld cases.t t.todo) t.todo)))
+    %mrec  $(todo (weld args.t t.todo))
+    %collection  $(todo (weld args.t t.todo))
+  ==
+++  diagnostic-tag-variables
+  |=  t=itype
+  ^-  itype
+  ?+  -.t  t
+    %tag  [%var id.t]
+    ?(%face %slot)  t(body $(t body.t))
+    %cell  t(hed $(t hed.t), tal $(t tal.t))
+    %fn  t(sample $(t sample.t), product $(t product.t))
+    %union  t(args (turn args.t diagnostic-tag-variables), cases (turn cases.t diagnostic-tag-variables))
+    %mrec  t(args (turn args.t diagnostic-tag-variables))
+    %collection  t(args (turn args.t diagnostic-tag-variables))
+  ==
+++  diagnostic-tag-notes
+  |=  [tags=(list diagnostic-tag) vars=(list @ud)]
+  ^-  tape
+  ?~  tags  ""
+  =/  name=tape  (show-itype (canonical-itype [%var id.i.tags] vars) ~)
+  =/  literal=tape
+    ?:  constructor.i.tags  "constructor `|={(trip txt.literal.i.tags)}`"
+    "tag `{(trip txt.literal.i.tags)}`"
+  "; {name} remains unresolved for {literal}{(diagnostic-tag-notes t.tags vars)}"
+++  diagnostic-open-note
+  |=  [label=tape typ=itype]
+  ^-  tape
+  =/  tags=(list diagnostic-tag)  (diagnostic-tags ~[typ] ~)
+  =/  skeleton=itype  (diagnostic-tag-variables typ)
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars skeleton))
+  =/  shown=itype  (canonical-itype skeleton vars)
+  "{label} has type {(show-itype shown ~)}{(show-atom-constraint shown)}{(diagnostic-tag-notes tags vars)}"
+::
 ++  site-type-note
   |=  [label=tape typ=itype sub=isub]
   ^-  tape
-  =/  normalized=itype  (itype-normalize typ sub)
-  ?:  |(?=(%var -.normalized) ?=(%fvar -.normalized) ?=(%avar -.normalized) ?=(%rvar -.normalized) (itype-has-nvar normalized) (itype-has-tag normalized) (itype-has-union normalized))  label
+  =/  normalized=itype  (default-decimals (itype-normalize typ sub))
+  =/  pending=(unit tape)  (diagnostic-pending-tag ~[normalized])
+  ?^  pending  (diagnostic-open-note label normalized)
   ?:  (itype-has-hidden-recursive normalized)  label
+  ?:  (itype-has-hidden-generic normalized)  label
   =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
-  =/  printable=itype  (canonical-itype (cap-names normalized vars ~ sub))
+  =/  named=ischeme  (cap-names normalized vars ~ sub)
+  =/  printable=itype  (canonical-itype typ.named vars.named)
   "{label} has type {(show-itype printable ~)}{(show-atom-constraint printable)}"
 ::
 ::  A capital in a written mold is generalized with its enclosing ++.
@@ -10770,6 +15150,8 @@
       %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
+      %nvar  `id.resolved
+      %rnvar  `id.resolved
     ==
   ?~  ident  $(caps t.caps)
   ?:  =(n u.ident)  &
@@ -10786,6 +15168,8 @@
       %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
+      %nvar  `id.resolved
+      %rnvar  `id.resolved
     ==
   ?~  ident  $(caps t.caps)
   ?:  =(n u.ident)  `i.caps
@@ -10803,13 +15187,13 @@
 ::
 ++  cap-names
   |=  [typ=itype vars=(list @ud) caps=icaps sub=isub]
-  ^-  [typ=itype vars=(list @ud)]
+  ^-  ischeme
   =/  written=icaps  (flop caps)
   =/  joined=(map @ud @ud)  (joined-names sub)
   =/  ren=(map @ud @ud)  ~
   =/  out=(list @ud)  ~
   |-
-  ?~  vars  [?~(ren typ (itype-reid typ ren)) (flop out)]
+  ?~  vars  [?~(ren typ (itype-reid typ ren)) (flop out) ~]
   =/  cap=(unit icap)  (cap-with-id i.vars written sub)
   =/  first=(unit @ud)  (~(get by joined) i.vars)
   =/  name=@t
@@ -10834,7 +15218,7 @@
   |=  sub=isub
   ^-  (map @ud @ud)
   =/  edges=(map @ud (unit @ud))
-    %+  roll  (flop sub)
+    %+  roll  (flop (isub-history sub))
     |=  [b=ibinding m=(map @ud (unit @ud))]
     (~(put by m) id.b (var-of val.b))
   =/  named=(list @ud)
@@ -10886,17 +15270,19 @@
   |=  [t=itype ids=(map @ud @ud)]
   ^-  itype
   ?-  -.t
+    %opaque  t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
+    %refined  t(proof $(t proof.t))
     %var    t(id (fall (~(get by ids) id.t) id.t))
     %fvar   t(id (fall (~(get by ids) id.t) id.t))
     %avar   t(id (fall (~(get by ids) id.t) id.t))
     %rvar   t(id (fall (~(get by ids) id.t) id.t))
     %nvar   t(id (fall (~(get by ids) id.t) id.t))
     %rnvar  t(id (fall (~(get by ids) id.t) id.t))
-    ?(%atom %any-atom %flag %noun %empty %tag %const %recursive %jrec)  t
+    ?(%atom %any-atom %flag %noun %empty %tag %const %recursive)  t
     %union  t(cases (turn cases.t |=(c=itype ^$(t c))), args (turn args.t |=(c=itype ^$(t c))))
-    %grec   t(args (turn args.t |=(c=itype ^$(t c))))
+    %mrec   t(args (turn args.t |=(c=itype ^$(t c))))
     %collection  t(args (turn args.t |=(c=itype ^$(t c))))
-    %face   t(body $(t body.t))
+    ?(%face %slot)   t(body $(t body.t))
     %fn     t(sample $(t sample.t), product $(t product.t))
     %cell   t(hed $(t hed.t), tal $(t tal.t))
   ==
@@ -10912,10 +15298,37 @@
       %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
+      %nvar  `id.resolved
+      %rnvar  `id.resolved
     ==
   ?~  ident  $(caps t.caps)
   =/  found=(unit icap)  (cap-with-id u.ident t.caps sub)
   ?^  found  `[u.found i.caps]
+  $(caps t.caps)
+::
+::  A written capital may gain its permitted constraints, but it may not
+::  become a concrete type. Attribute the first narrowing to the expression
+::  that forced it, retaining the capital's original declaration site.
+++  newly-constrained-capital
+  |=  [caps=icaps before=isub after=isub forcing=expr branch=?]
+  ^-  (unit idiag)
+  ?~  caps  ~
+  ?:  &(?=(%group -.forcing) ?=(%cast -.inner.forcing))  $(forcing inner.forcing)
+  =/  prior=itype  (itype-walk [%var id.i.caps] before)
+  =/  next=itype  (itype-walk [%var id.i.caps] after)
+  =/  prior-open=?  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.prior)
+  =/  decimal=?
+    &(?=(%lit -.forcing) =(%number form.lit.forcing) =(%ud aura.lit.forcing))
+  =/  next-open=?
+    |(?=(?(%var %fvar %avar %rvar) -.next) &(?=(?(%nvar %rnvar) -.next) |(!decimal branch)))
+  ?:  &(prior-open !next-open)
+    =/  forced=itype  (itype-normalize next after)
+    =.  forced  (default-decimals ?:(?=(?(%nvar %rnvar) -.forced) [%atom %ud] forced))
+    =/  forcing-at=span
+      ?:  &(?=(%cast -.forcing) ?=(%aura -.shape.forcing))
+        at.shape.forcing
+      (span-of forcing)
+    `["capital `{(trip name.i.caps)}` cannot be fixed to {(show-itype forced after)}" ~[[at.i.caps "capital"] [forcing-at "forcing expression"]]]
   $(caps t.caps)
 ::
 ++  constrained-capitals
@@ -10929,6 +15342,8 @@
       %fvar  `id.resolved
       %avar  `id.resolved
       %rvar  `id.resolved
+      %nvar  `id.resolved
+      %rnvar  `id.resolved
     ==
   ?~  ident  &
   ?:  (cap-id-in u.ident t.caps sub)  &
@@ -10952,6 +15367,8 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (has-atom-var n c))))
+    %refined  $(t proof.t)
     %var       |
     %fvar      |
     %avar      =(n id.t)
@@ -10967,10 +15384,65 @@
     %const     |
     %union     |((lien cases.t |=(c=itype (has-atom-var n c))) (lien args.t |=(c=itype (has-atom-var n c))))
     %recursive  |
-    %jrec       |
-    %grec       (lien args.t |=(c=itype (has-atom-var n c)))
+    %mrec       (lien args.t |=(c=itype (has-atom-var n c)))
     %collection  (lien args.t |=(c=itype (has-atom-var n c)))
-    %face      $(t body.t)
+    ?(%face %slot)      $(t body.t)
+    %fn        |($(t sample.t) $(t product.t))
+    %cell      |($(t hed.t) $(t tal.t))
+  ==
+::
+++  has-number-var
+  |=  [n=@ud t=itype]
+  ^-  ?
+  ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (has-number-var n c))))
+    %refined  $(t proof.t)
+    %var       |
+    %fvar      |
+    %avar      |
+    %rvar      |
+    %nvar      =(n id.t)
+    %rnvar      =(n id.t)
+    %atom      |
+    %any-atom  |
+    %flag      |
+    %noun  |
+    %empty  |
+    %tag       |
+    %const     |
+    %union     |((lien cases.t |=(c=itype (has-number-var n c))) (lien args.t |=(c=itype (has-number-var n c))))
+    %recursive  |
+    %mrec       (lien args.t |=(c=itype (has-number-var n c)))
+    %collection  (lien args.t |=(c=itype (has-number-var n c)))
+    ?(%face %slot)      $(t body.t)
+    %fn        |($(t sample.t) $(t product.t))
+    %cell      |($(t hed.t) $(t tal.t))
+  ==
+::
+++  has-restricted-number-var
+  |=  [n=@ud t=itype]
+  ^-  ?
+  ?-  -.t
+    %opaque  |($(t body.t) (lien args.t |=(c=itype (has-restricted-number-var n c))))
+    %refined  $(t proof.t)
+    %var       |
+    %fvar      |
+    %avar      |
+    %rvar      |
+    %nvar      |
+    %rnvar      =(n id.t)
+    %atom      |
+    %any-atom  |
+    %flag      |
+    %noun  |
+    %empty  |
+    %tag       |
+    %const     |
+    %union     |((lien cases.t |=(c=itype (has-restricted-number-var n c))) (lien args.t |=(c=itype (has-restricted-number-var n c))))
+    %recursive  |
+    %mrec       (lien args.t |=(c=itype (has-restricted-number-var n c)))
+    %collection  (lien args.t |=(c=itype (has-restricted-number-var n c)))
+    ?(%face %slot)      $(t body.t)
     %fn        |($(t sample.t) $(t product.t))
     %cell      |($(t hed.t) $(t tal.t))
   ==
@@ -11008,7 +15480,7 @@
   =/  out=tape  ""
   |-
   ?~  vars  out
-  ?:  (itype-var-is-restricted i.vars t)
+  ?:  (arithmetic-in-type i.vars t)
     =/  sep=tape  ?:(printed ", " " where ")
     =/  clause=tape  "{sep}{(show-itype [%rvar i.vars] ~)} is an atom other than ?"
     $(vars t.vars, printed &, out (weld out clause))
@@ -11117,8 +15589,6 @@
 ++  infer-recursive-gate
   |=  [d=def env=ienv state=istate]
   ^-  iresult
-  ?^  defer.state  [%| ["deferred recursive inference is unsupported" ~]]
-  =.  gate-defs.state  ~
   ?.  ?=(%value -.d)  [%| ["recursive definition is not a gate" ~]]
   ::  A ++ whose body is (unface |= …) is a gate too, unfaced
   =/  peeled=(unit expr)  (unfaced-gate val.d env state)
@@ -11147,7 +15617,7 @@
   =/  st=istate  state.p.sam(next +(id))
   =/  seed=itype  [%fn typ.p.sam product]
   =?  seed  ?=(^ peeled)  (itype-unface seed sub.st)
-  =/  seeded=ienv  [[name.d [seed ~]] env.p.sam]
+  =/  seeded=ienv  [[name.d [seed ~ ~]] env.p.sam]
   =/  body=expr
     ?-  -.gate
       %gate       body.gate
@@ -11162,108 +15632,232 @@
   =?  typ  ?=(^ peeled)  (itype-unface typ u.uni)
   [%& typ state.p.out(sub u.uni)]
 ::
-++  dependency-root
-  |=  names=(list term)
-  ^-  (list term)
-  ?~  names  ~
-  ~[(rear names)]
+::  Expression children in source order, for dependency-site diagnostics.
+++  dependency-children
+  |=  e=expr
+  ^-  (list expr)
+  ?-  -.e
+    %str  (murn pieces.e |=(p=piece ?:(?=(%expr -.p) `p.p ~)))
+    %qath  (murn segs.e |=(p=qseg ?:(?=(%expr -.p) `p.p ~)))
+    %change  (turn edits.e |=(p=edit val.p))
+    %pair  ~[val.e]
+    %unit  ~[val.e]
+    %cast  ~[val.e]
+    %group  ~[inner.e]
+    %list  items.e
+    %tuple  (turn items.e |=(p=item val.p))
+    ?(%gate %gate-wide)  ~[body.e]
+    %call  [head.e args.e]
+    %trace  ~[val.e then.e]
+    %branch  [subject.e (turn arms.e |=(p=arm val.p))]
+    %body
+      (weld (murn defs.e |=(d=def ?:(?=(%value -.d) `val.d ~))) ~[final.e])
+    *  ~
+  ==
 ::
-++  dependency-exprs
-  |=  xs=(list expr)
+++  dependency-sample-names
+  |=  sam=sample
   ^-  (list term)
-  ?~  xs  ~
-  =/  first=(list term)  (dependency-expr i.xs)
-  (weld first $(xs t.xs))
+  ?-  -.sam
+    %bind  ~[name.sam]
+    %face  ~[name.sam]
+    %pun  ~[name.sam]
+    %cell  (zing (turn items.sam |=(s=sample (dependency-sample-names s))))
+    %bare  ~
+  ==
 ::
-++  dependency-pieces
-  |=  xs=(list piece)
+++  dependency-pattern-names
+  |=  pat=pattern
   ^-  (list term)
-  ?~  xs  ~
-  =/  first=(list term)
-    ?-  -.i.xs
-      %expr  (dependency-expr p.i.xs)
-      %text  ~
+  ?-  -.pat
+    %bind  ~[name.pat]
+    %cell  (zing (turn items.pat |=(p=pattern (dependency-pattern-names p))))
+    *  ~
+  ==
+::
++$  idependency-node  [e=expr bound=(list term)]
+++  dependency-node-children
+  |=  node=idependency-node
+  ^-  (list idependency-node)
+  =/  e=expr  e.node
+  ?-  -.e
+    ?(%gate %gate-wide)
+      ~[[body.e (weld (dependency-sample-names sample.e) bound.node)]]
+    %branch
+      [[subject.e bound.node] (turn arms.e |=(a=arm [val.a (weld (dependency-pattern-names pat.a) bound.node)]))]
+    %body
+      =/  bound=(list term)  (weld (global-value-names defs.e) bound.node)
+      (turn (dependency-children e) |=(child=expr [child bound]))
+    *  (turn (dependency-children e) |=(child=expr [child bound.node]))
+  ==
+::
+++  dependency-site
+  |=  [target=term expressions=(list expr)]
+  ^-  (unit span)
+  =/  pending=(list idependency-node)  (turn expressions |=(e=expr [e ~]))
+  |-
+  ?~  pending  ~
+  =/  node=idependency-node  i.pending
+  =/  e=expr  e.node
+  =/  names=(list term)
+    ?-  -.e
+      %wing  names.e
+      %change  target.e
+      *  ~
     ==
-  (weld first $(xs t.xs))
+  ?:  &(?=(^ names) =(target (rear names)) !(lien bound.node |=(n=term =(n target))))
+    `(span-of e)
+  =/  children=(list idependency-node)  (dependency-node-children node)
+  $(pending (weld children t.pending))
 ::
-++  dependency-qsegs
-  |=  xs=(list qseg)
-  ^-  (list term)
-  ?~  xs  ~
-  =/  first=(list term)
-    ?-  -.i.xs
-      %expr  (dependency-expr p.i.xs)
-      %knot  ~
+::  Find one actual path back to start within its strongly connected group.
+++  dependency-cycle-path
+  |=  [start=term names=(list term) graph=iadj]
+  ^-  (unit (list term))
+  =/  todo=(list [name=term route=(list term)])  ~[[start ~]]
+  =/  seen=(set term)  ~
+  |-  ^-  (unit (list term))
+  ?~  todo  ~
+  =/  event=[name=term route=(list term)]  i.todo
+  ?:  &(?=(^ route.event) =(name.event start))  `(flop [start route.event])
+  ?:  (~(has in:..zuse seen) name.event)  $(todo t.todo)
+  =.  seen  (~(put in:..zuse seen) name.event)
+  =/  edges=(list term)
+    (skim (graph-edges name.event graph) |=(n=term (lien names |=(m=term =(n m)))))
+  =/  children=(list [name=term route=(list term)])
+    (turn edges |=(n=term [n [name.event route.event]]))
+  $(todo (weld children t.todo))
+::
+++  dependency-cycle-sites
+  |=  [route=(list term) members=(list def)]
+  ^-  (unit (list [at=span note=tape]))
+  ?~  route  `~
+  ?~  t.route  `~
+  =/  found=(list def)
+    (skim members |=(d=def &(?=(%value -.d) =(name.d i.route))))
+  ?.  ?=([* ~] found)  ~
+  =/  d=def  i.found
+  ?>  ?=(%value -.d)
+  =/  site=(unit span)  (dependency-site i.t.route ~[val.d])
+  ?~  site  ~
+  =/  tail=(unit (list [at=span note=tape]))  $(route t.route)
+  ?~  tail  ~
+  `[[at.d "definition in cycle"] [u.site "`{(trip i.route)}` depends on `{(trip i.t.route)}` here"] u.tail]
+::
+::  Infer each expression against fresh monomorphic recursive references.
+::  A concrete non-gate result proves the cycle independently of its value;
+::  unknown calls and unresolved result variables do not establish an error.
+++  cycle-probe-env
+  |=  [names=(list term) env=ienv state=istate]
+  ^-  [env=ienv state=istate]
+  ?~  names  [env state]
+  =/  entry=ischeme  [[%var next.state] ~ ~]
+  $(names t.names, env [[i.names entry] env], state state(next +(next.state)))
+::
+++  cycle-definitely-value
+  |=  [e=expr env=ienv state=istate]
+  ^-  ?
+  =.  state  (reserve-def-caps e state)
+  =/  result=iresult  (infer-fragment e env state)
+  ?:  ?=(%| -.result)  |
+  =/  typ=itype  (itype-walk typ.p.result sub.state.p.result)
+  |-  ^-  ?
+  ?:  ?=(?(%face %slot) -.typ)  $(typ (itype-walk body.typ sub.state.p.result))
+  ?-  -.typ
+    ?(%fn %var %noun %empty %union)  |
+    %tag  !constructor.typ
+    *  &
+  ==
+::
+++  cycle-bare-alias
+  |=  [e=expr names=(list term)]
+  ^-  ?
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  &(?=(%body -.e) ?=(~ defs.e))  $(e final.e)
+  ?.  ?=(%wing -.e)  |
+  ?.  ?=([@ ~] names.e)  |
+  (lien names |=(n=term =(n i.names.e)))
+::
+++  value-cycle-diagnostic
+  |=  [members=(list def) names=(list term) graph=iadj env=ienv state=istate]
+  ^-  (unit [owner=term diag=idiag])
+  =/  probe=[env=ienv state=istate]  (cycle-probe-env names env state)
+  =/  values=(list def)
+    (skim members |=(d=def &(?=(%value -.d) (cycle-definitely-value val.d env.probe state.probe))))
+  =?  values
+    ?&  ?=(~ values)
+        (levy members |=(d=def &(?=(%value -.d) (cycle-bare-alias val.d names))))
     ==
-  (weld first $(xs t.xs))
+    members
+  ?~  values  ~
+  =/  d=def  i.values
+  =/  route=(unit (list term))  (dependency-cycle-path name.d names graph)
+  ?~  route  ~
+  =/  sites=(unit (list [at=span note=tape]))  (dependency-cycle-sites u.route members)
+  ?~  sites  ~
+  =/  path-text=tape  (zing (join " -> " (turn u.route |=(n=term (trip n)))))
+  `[name.d ["non-gate value `{(trip name.d)}` depends on itself through the cycle {path-text}" u.sites]]
 ::
-++  dependency-items
-  |=  xs=(list item)
-  ^-  (list term)
-  ?~  xs  ~
-  =/  first=(list term)  (dependency-expr val.i.xs)
-  (weld first $(xs t.xs))
+::  The gate-group checker already rejects a cyclic definition whose value
+::  cannot be resolved as a recursive gate. Preserve its dependency route
+::  without guessing the result type of an unresolved call.
+++  gate-cycle-diagnostic
+  |=  [members=(list def) names=(list term) graph=iadj env=ienv state=istate]
+  ^-  (unit [owner=term diag=idiag])
+  =/  rejected=(list def)
+    %+  skim  members
+    |=  d=def
+    ?.  ?=(%value -.d)  &
+    =/  peeled=(unit expr)  (unfaced-gate val.d env state)
+    =/  gate=expr  ?~(peeled val.d u.peeled)
+    !|(?=(%gate -.gate) ?=(%gate-wide -.gate))
+  ?~  rejected  ~
+  =/  d=def  i.rejected
+  =/  route=(unit (list term))  (dependency-cycle-path name.d names graph)
+  ?~  route  ~
+  =/  sites=(unit (list [at=span note=tape]))  (dependency-cycle-sites u.route members)
+  ?~  sites  ~
+  =/  path-text=tape  (zing (join " -> " (turn u.route |=(n=term (trip n)))))
+  `[name.d ["cyclic definition `{(trip name.d)}` is not a recursive gate; cycle {path-text}" u.sites]]
 ::
-++  dependency-edits
-  |=  xs=(list edit)
-  ^-  (list term)
-  ?~  xs  ~
-  =/  first=(list term)  (dependency-expr val.i.xs)
-  (weld first $(xs t.xs))
+++  recursive-diagnostic-owner
+  |=  [members=(list def) diag=idiag]
+  ^-  term
+  ?~  members  %$
+  =/  fallback=term  name.i.members
+  =/  sites=(list idsite)  (flop sites.diag)
+  |-
+  ?~  sites  fallback
+  ?:  ?=(%external -.i.sites)  $(sites t.sites)
+  =/  found=(list def)
+    %+  skim  `(list def)`members
+    |=  d=def
+    &(!(loc-lth beg.at.i.sites beg.at.d) (loc-lth beg.at.i.sites end.at.d))
+  ?^  found  name.i.found
+  $(sites t.sites)
 ::
-++  dependency-arms
-  |=  xs=(list arm)
-  ^-  (list term)
-  ?~  xs  ~
-  =/  first=(list term)  (dependency-expr val.i.xs)
-  (weld first $(xs t.xs))
-::
-++  dependency-defs
-  |=  xs=(list def)
-  ^-  (list term)
-  ?~  xs  ~
-  =/  first=(list term)
-    ?:  ?=(%value -.i.xs)  (dependency-expr val.i.xs)
-    ~
-  (weld first $(xs t.xs))
-::
+::  Free value references, with the same lexical scope used for cycle
+::  sites. Walk each expression once; binders never create graph edges.
 ++  dependency-expr
   |=  e=expr
   ^-  (list term)
-  ?-  -.e
-    %str     (dependency-pieces pieces.e)
-    %qath    (dependency-qsegs segs.e)
-    %wing    (dependency-root names.e)
-    %change
-      =/  first=(list term)  (dependency-root target.e)
-      =/  last=(list term)  (dependency-edits edits.e)
-      (weld first last)
-    %pair    (dependency-expr val.e)
-    %unit    (dependency-expr val.e)
-    %group   (dependency-expr inner.e)
-    %list    (dependency-exprs items.e)
-    %tuple   (dependency-items items.e)
-    %gate       (dependency-expr body.e)
-    %gate-wide  (dependency-expr body.e)
-    %call
-      =/  first=(list term)  (dependency-expr head.e)
-      =/  last=(list term)  (dependency-exprs args.e)
-      (weld first last)
-    %cast       (dependency-expr val.e)
-    %trace
-      =/  first=(list term)  (dependency-expr val.e)
-      =/  last=(list term)  (dependency-expr then.e)
-      (weld first last)
-    %branch
-      =/  first=(list term)  (dependency-expr subject.e)
-      =/  last=(list term)  (dependency-arms arms.e)
-      (weld first last)
-    %body
-      =/  first=(list term)  (dependency-defs defs.e)
-      =/  last=(list term)  (dependency-expr final.e)
-      (weld first last)
-    *  ~
-  ==
+  =/  pending=(list idependency-node)  ~[[e ~]]
+  =/  found=(list term)  ~
+  |-
+  ?~  pending  (flop found)
+  =/  node=idependency-node  i.pending
+  =/  e=expr  e.node
+  =/  names=(list term)
+    ?-  -.e
+      %wing  names.e
+      %change  target.e
+      *  ~
+    ==
+  =?  found  ?=(^ names)
+    =/  name=term  (rear names)
+    ?:  (lien bound.node |=(n=term =(name n)))  found
+    [name found]
+  $(pending (weld (dependency-node-children node) t.pending))
 ::
 ::  Infer a cyclic component with one monomorphic seed per gate. All members
 ::  must succeed before any scheme is available; pending constraints and
@@ -11288,7 +15882,22 @@
       %gate-wide  (infer-sample sample.gate env initial)
       *           !!
     ==
-  ?:  ?=(%| -.sam)  [%| [p.sam ~]]
+  ?:  ?=(%| -.sam)
+    =/  shadow=(unit idiag)
+      ?.  =(p.sam "sample shadows a name")  ~
+      ?+  -.gate  ~
+        %gate  (sample-shadow-context sample.gate state)
+        %gate-wide  (sample-shadow-context sample.gate state)
+      ==
+    ?^  shadow  [%| u.shadow]
+    =/  fallback=(unit idiag)
+      ?.  =(p.sam "sample shadows a name")  ~
+      ?+  -.gate  ~
+        %gate  (shadow-sample-fallback (shadow-sample-bindings sample.gate) env globals.state ~)
+        %gate-wide  (shadow-sample-fallback (shadow-sample-bindings sample.gate) env globals.state ~)
+      ==
+    ?^  fallback  [%| u.fallback]
+    [%| [p.sam ~]]
   =/  body=expr
     ?-  -.gate
       %gate       body.gate
@@ -11307,7 +15916,7 @@
   |=  [entries=(list igate-entry) env=ienv]
   ^-  ienv
   ?~  entries  env
-  [[name.i.entries [typ.i.entries ~]] $(entries t.entries)]
+  [[name.i.entries [typ.i.entries ~ ~]] $(entries t.entries)]
 ::
 ++  infer-gate-group-bodies
   |=  [entries=(list igate-entry) seeds=ienv state=istate]
@@ -11316,12 +15925,27 @@
   =/  entry=igate-entry  i.entries
   ?>  ?=(%fn -.typ.entry)
   =/  scope=ienv  (weld seeds env.entry)
-  =/  out=iresult  (infer-fragment body.entry scope state(caps caps.entry))
+  =/  out=iresult  (infer-fragment body.entry scope state(caps caps.entry, owner name.entry))
   ?:  ?=(%| -.out)  out
-  =/  uni=(unit isub)  (itype-unify product.typ.entry typ.p.out sub.state.p.out)
+  =/  marked=(unit @ud)  (branch-result-marked product.typ.entry sub.state.p.out)
+  =/  root=(unit @ud)  (branch-result-root product.typ.entry sub.state.p.out)
+  =/  resolved=itype  (itype-walk product.typ.entry sub.state.p.out)
+  =/  uni=(unit isub)
+    ?:  &(?=(%face -.resolved) ?=(%face -.typ.p.out))
+      (itype-unify resolved typ.p.out sub.state.p.out)
+    ?:  &(?=(^ marked) ?=(~ root) ?=(%face -.typ.p.out))  ~
+    ?.  &(?=(^ root) ?=(%face -.typ.p.out))
+      (itype-unify product.typ.entry typ.p.out sub.state.p.out)
+    ?:  (itype-occurs u.root typ.p.out sub.state.p.out)
+      (itype-unify product.typ.entry typ.p.out sub.state.p.out)
+    `(itype-bind u.root typ.p.out sub.state.p.out)
   ?~  uni  [%| ["recursive group constraint is not supported by partial inference" ~]]
   =.  caps.entry  caps.state.p.out
-  =/  after=istate  state.p.out(sub u.uni, caps caps.state)
+  =/  after=istate  state.p.out(sub u.uni, caps caps.state, owner owner.state)
+  ::  A recursive seed may have acquired an unfaced structural binding
+  ::  before its body supplied the result's explicit field names.
+  =?  queue.after  general-defer.after
+    (weld (icore-fit-joins product.typ.entry typ.p.out u.uni (span-of body.entry) (span-of body.entry)) queue.after)
   =/  rest=igate-seeds  $(entries t.entries, state after)
   ?:  ?=(%| -.rest)  rest
   [%& [[entry entries.p.rest] state.p.rest]]
@@ -11338,41 +15962,137 @@
     [%| ["explicit capital constraints are not supported by partial inference" ~]]
   =/  typ=itype  (itype-normalize typ.entry sub.state)
   =?  typ  unfaced.entry  (itype-unface typ ~)
-  ?:  (itype-has-nvar typ)  [%| ["recursive group needs unsupported inference" ~]]
-  ?:  |((itype-has-tag typ) (itype-has-hidden-generic typ) (itype-has-hidden-recursive typ) (unsupported-atom-vars typ caps.entry binders.state sub.state))
+  ?:  &(!general-defer.state (itype-has-nvar typ))  [%| ["recursive group needs unsupported inference" ~]]
+  =/  scope=istate  state(caps caps.entry)
+  =/  nums=(list @ud)  ?:(general-defer.state (icore-number-candidates typ env scope) ~)
+  =/  sample-nums=(list @ud)  ?:(general-defer.state (icore-sample-number-candidates typ env scope) ~)
+  ::  Captured numeric roots stay monomorphic and are finalized by their
+  ::  enclosing definition. This temporary substitution only validates
+  ::  the local scheme; it never defaults or generalizes the shared root.
+  =/  captured-nums=(list @ud)
+    ?.  general-defer.state  ~
+    (skim (icore-env-vars env sub.state) |=(n=@ud (has-number-var n typ)))
+  =/  test-sub=isub  (icore-number-test-sub (weld nums (weld sample-nums captured-nums)) sub.state)
+  ?:  |(&(!general-defer.state (itype-has-tag typ)) (itype-has-hidden-generic typ) (itype-has-hidden-recursive typ) (unsupported-atom-vars (itype-normalize typ test-sub) caps.entry binders.state test-sub))
     [%| ["recursive group needs unsupported inference" ~]]
-  =/  free=(list @ud)  (weld (free-env-vars env sub.state) (free-cap-vars caps.outer sub.state))
-  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
+  =/  named=(unit ischeme)
+    ?:  general-defer.state
+      ?:  unfaced.entry  (icore-generalize typ level.outer state(caps caps.entry))
+      (icore-generalize-preserved typ.entry typ level.outer state(caps caps.entry))
+    =/  free=(list @ud)  (weld (free-env-vars env sub.state) (free-cap-vars caps.outer sub.state))
+    =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+    =.  vars  (skim vars |=(n=@ud !(lien free |=(f=@ud =(f n)))))
+    `(cap-names typ vars caps.entry sub.state)
+  ?~  named  [%| ["recursive group constraints need unsupported inference" ~]]
+  =?  u.named  general-defer.state  (icore-generic-number-aura u.named)
   =/  rest=(each ienv idiag)  $(entries t.entries)
   ?:  ?=(%| -.rest)  rest
-  [%& [[name.entry (cap-names typ vars caps.entry sub.state)] p.rest]]
+  [%& [[name.entry u.named] p.rest]]
+::
+::  A numeric root shared with any member's sample is generic throughout
+::  a recursive component. Decide exclusions as a group before schemes are
+::  formed, while retaining literal origins for all product-only roots.
+++  icore-group-number-exclusions
+  |=  [entries=(list igate-entry) env=ienv state=istate]
+  ^-  (list @ud)
+  ?~  entries  ~
+  =/  typ=itype  (itype-normalize typ.i.entries sub.state)
+  (weld (icore-number-exclusions typ env state(caps caps.i.entries)) $(entries t.entries))
+++  icore-group-number-discharge
+  |=  [entries=(list igate-entry) excluded=(list @ud) state=istate]
+  ^-  istate
+  ?~  entries  state
+  =.  queue.state  (icore-discharge-number-edges queue.state name.i.entries excluded sub.state)
+  $(entries t.entries)
+::
+++  recursive-result-provenance
+  |=  [entries=(list igate-entry) env=ienv caps=icaps sub=isub]
+  ^-  isub
+  =/  results=(list @ud)  ?~(sub ~ result-roots.u.sub)
+  =/  protected=(list @ud)  ?~(sub ~ protected-roots.u.sub)
+  =.  protected  (weld (free-cap-vars caps sub) (weld (free-env-vars env sub) protected))
+  =/  todo=(list igate-entry)  entries
+  |-
+  ?^  todo
+    ?>  ?=(%fn -.typ.i.todo)
+    ?>  ?=(%var -.product.typ.i.todo)
+    =.  results  [id.product.typ.i.todo results]
+    =.  protected  (weld (itype-vars (itype-normalize sample.typ.i.todo sub)) protected)
+    =.  protected  (weld (free-cap-vars caps.i.todo sub) protected)
+    $(todo t.todo)
+  ?~  sub  `[~ ~ ~ ~ results protected]
+  =.  result-roots.u.sub  results
+  =.  protected-roots.u.sub  protected
+  sub
+::
+++  recursive-result-unmark
+  |=  [sub=isub prior=isub]
+  ^-  isub
+  ?~  sub  ~
+  =/  results=(list @ud)  ?~(prior ~ result-roots.u.prior)
+  =/  protected=(list @ud)  ?~(prior ~ protected-roots.u.prior)
+  =.  result-roots.u.sub  results
+  =.  protected-roots.u.sub  protected
+  ?:  =(u.sub [~ ~ ~ ~ ~ ~])  ~
+  sub
+::
+++  recursive-result-finish
+  |=  [state=istate prior=isub]
+  ^-  istate
+  ?^  queue.state  state
+  state(sub (recursive-result-unmark sub.state prior))
 ::
 ++  infer-gate-group
   |=  [ds=(list def) env=ienv state=istate]
   ^-  ilocal-result
-  ?^  defer.state  [%| ["deferred recursive inference is unsupported" ~]]
   =/  names=(list term)  (global-value-names ds)
   ?.  (levy names |=(n=term (unique-value-name n names)))
     [%| ["recursive group contains duplicate names" ~]]
   ?:  (lien names |=(n=term ?=(^ (ienv-lookup n env))))
     [%| ["recursive group shadows a name" ~]]
-  =/  scoped=istate  state(globals (weld names globals.state), gate-defs ~)
+  =?  levels.state  general-defer.state  (ilevel-register registered.state next.state level.state levels.state)
+  =?  registered.state  general-defer.state  next.state
+  =/  scoped=istate  state(globals (weld names globals.state))
+  =?  scoped  general-defer.state  scoped(level +(level.state))
   =/  seeded=igate-seeds  (seed-gate-group ds env scoped)
   ?:  ?=(%| -.seeded)  seeded
   =/  seeds=ienv  (group-seed-env entries.p.seeded ~)
+  =.  sub.state.p.seeded  (recursive-result-provenance entries.p.seeded env caps.state sub.state.p.seeded)
   =/  body=igate-seeds  (infer-gate-group-bodies entries.p.seeded seeds state.p.seeded)
   ?:  ?=(%| -.body)  body
-  ::  Per-member ownership through mutual recursion is not implemented.
-  ?:  !=(projections.state.p.body projections.state)
-    [%| ["record projection in recursive groups needs unsupported inference" ~]]
   ?:  !=(holes.state.p.body holes.state)
     [%| ["holes in recursive groups need unsupported inference" ~]]
-  ?:  (pending-tags tags.state.p.body sub.state.p.body)
+  ?:  &(!general-defer.state (pending-tags tags.state.p.body sub.state.p.body))
     [%| ["recursive group has unresolved literal constraints" ~]]
+  =?  levels.state.p.body  general-defer.state
+    (ilevel-register registered.state.p.body next.state.p.body +(level.state) levels.state.p.body)
+  =?  registered.state.p.body  general-defer.state  next.state.p.body
+  =?  state.p.body  general-defer.state  (ilevel-refresh state.p.body)
+  :: The group bodies can bind roots that wake earlier wing, match and
+  :: constructor constraints. Settle those constraints before deciding
+  :: which variables of the group are eligible for generalization.
+  =/  solved=(unit istate)
+    ?:(general-defer.state (icore-solve state.p.body) `state.p.body)
+  ?~  solved  [%| ["recursive group constraints need unsupported inference" ~]]
+  ?^  core-error.u.solved  [%| diag.u.core-error.u.solved]
+  =.  state.p.body  u.solved
+  ::  Written numeric capitals in a recursive component obey the same
+  ::  generalization rule as a single definition. Preserve captured roots
+  ::  from the outer environment and promote only the group's own roots.
+  =?  state.p.body  general-defer.state
+    =/  all-caps=icaps  (zing (turn entries.p.body |=(entry=igate-entry caps.entry)))
+    =/  promoted=istate  (promote-restricted-numbers state.p.body(caps all-caps) env)
+    promoted(caps caps.state.p.body)
+  =?  state.p.body  general-defer.state
+    (icore-group-number-discharge entries.p.body (icore-group-number-exclusions entries.p.body env state.p.body) state.p.body)
   =/  schemes=(each ienv idiag)  (group-schemes entries.p.body env state state.p.body)
   ?:  ?=(%| -.schemes)  schemes
-  [%& [(weld p.schemes env) state.p.body(globals globals.state)]]
+  =?  projections.state.p.body  general-defer.state
+    (icore-projection-scopes ds p.schemes projections.state.p.body sub.state.p.body)
+  ::  Pending constraints may still refer to these result occurrences.
+  ::  Keep their provenance until the queue has settled.
+  =.  state.p.body  (recursive-result-finish state.p.body sub.state)
+  [%& [(weld p.schemes env) state.p.body(globals globals.state, level level.state, owner owner.state)]]
 ::
 ++  width-finalize
   |=  [ps=(list iwprojection) sub=isub visible=(list @ud)]
@@ -11463,6 +16183,13 @@
 ::
 ::  Two depth-first passes find components before group inference. Maps
 ::  preserve the graph identity; duplicate global names fail closed.
+++  graph-components-for
+  |=  [names=(list term) graph=iadj]
+  ^-  icomponents
+  =/  reverse=iadj  (graph-reverse names graph ~)
+  =/  order=iwresult  (graph-order (turn names |=(n=term [n |])) ~ ~ graph)
+  (graph-collect-all order.order ~ reverse ~)
+::
 ++  graph-components
   |=  [ds=(list def) names=(list term)]
   ^-  icomponents
@@ -11473,9 +16200,7 @@
     ?:  ?=(^ (~(get by nameset) i.pending))  ~
     $(pending t.pending, nameset (~(put by nameset) i.pending &))
   =/  graph=iadj  (graph-make-forward ds nameset ~)
-  =/  reverse=iadj  (graph-reverse names graph ~)
-  =/  order=iwresult  (graph-order (turn names |=(n=term [n |])) ~ ~ graph)
-  (graph-collect-all order.order ~ reverse ~)
+  (graph-components-for names graph)
 ::
 ++  graph-cycle
   |=  [component=(list term) graph=iadj]
@@ -11484,127 +16209,3913 @@
   ?^  t.component  &
   (lien (graph-edges i.component graph) |=(x=term =(x i.component)))
 ::
-++  add-groups
-  |=  [ds=(list def) components=icomponents graph=iadj env=ienv grouped=(list term) artifacts=(list iwidth-definition) state=istate]
-  ^-  iresolved
-  ?~  components  [env grouped artifacts ~]
-  =/  component=(list term)  i.components
-  ?.  (graph-cycle component graph)  $(components t.components)
-  ?:  (lien component |=(n=term ?=(^ (ienv-lookup n env))))  $(components t.components)
-  =/  members=(list def)
-    %+  skim  ds
-    |=  d=def
-    &(?=(%value -.d) (lien component |=(n=term =(n name.d))))
-  ?.  =((lent members) (lent component))  $(components t.components)
-  ?.  (levy component |=(n=term (unique-value-name n globals.state)))  $(components t.components)
-  =/  result=ilocal-result  (infer-gate-group members env state)
-  ?:  ?=(%| -.result)  $(components t.components)
-  $(components t.components, env env.p.result, grouped (weld component grouped))
-::
 ++  resolve-groups
   |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
   ^-  iresolved
-  (resolve-groups-core ds molds globals externals surs mark-externals marks jimports reserved-molds at prelude ~)
+  (resolve-groups-with-env ds ~ molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
+++  resolve-groups-with-env
+  |=  [ds=(list def) outer=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
+  ^-  iresolved
+  =/  state=istate  *istate
+  =.  state
+    state(molds molds, globals globals, externals externals, surs surs, mark-externals mark-externals, marks marks, jimports jimports, reserved-molds reserved-molds, at at, top-molds (turn molds |=(m=[name=term body=shape] name.m)), prelude prelude, jrec-fuel 256, globals-imports &)
+  =/  checked=icore-output  (icore-check-with-env ds outer state)
+  ?^  result.checked  u.result.checked
+  [~ ~ ~ ?~(error.checked ~ ~[[owner.u.error.checked diag.u.error.checked]])]
+::
++$  icore-pass  [state=istate pending=(list icore-edge) solved=?]
+++  icore-wing
+  |=  [subject=itype fields=(list term) sub=isub]
+  ^-  (unit itype)
+  ?~  fields  `subject
+  =/  found=(list itype)  (record-fields-named i.fields subject sub)
+  ?.  ?=([* ~] found)  ~
+  $(subject i.found, fields t.fields)
+::
+++  icore-env-fits
+  |=  [env=ienv at=span]
+  ^-  (list dgo)
+  ?~  env  ~
+  =/  ids=(list @ud)  (scheme-free-vars scheme.i.env)
+  =/  own=(list dgo)  (turn ids |=(n=@ud [[%var n] [%var n] at at]))
+  (weld own $(env t.env))
+::
+++  icore-cap-fits
+  |=  [caps=icaps at=span]
+  ^-  (list dgo)
+  ?~  caps  ~
+  =/  typ=itype  [%var id.i.caps]
+  [[typ typ at at] $(caps t.caps)]
+::
+++  mold-capture-types
+  |=  captures=imold-captures
+  ^-  (list itype)
+  ?~  captures  ~
+  (weld (turn params.i.captures |=(p=[name=@t typ=itype] typ.p)) $(captures t.captures))
+::
+++  icore-cell-arity
+  |=  [typ=itype sub=isub count=@ud]
+  ^-  (unit @ud)
+  =/  boundary=?  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.typ)
+  =.  typ  (itype-walk typ sub)
+  ?:  &(boundary ?=(%cell -.typ) !=(0 count))  `+(count)
+  ::  A position face marks the final field even when its value is a cell.
+  ?:  ?=(?(%face %slot) -.typ)  `+(count)
+  ?:  ?=(%cell -.typ)  $(typ tal.typ, count +(count))
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.typ)  ~
+  `+(count)
+++  icore-cell-flat-arity
+  |=  [typ=itype sub=isub count=@ud]
+  ^-  (unit @ud)
+  =.  typ  (itype-walk typ sub)
+  ?:  ?=(?(%face %slot) -.typ)  `+(count)
+  ?:  ?=(%cell -.typ)  $(typ tal.typ, count +(count))
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.typ)  ~
+  `+(count)
+::
+++  icore-nominal-faces-agree
+  |=  [a=itype b=itype sub=isub]
+  ^-  ?
+  =/  aw=itype  (itype-walk a sub)
+  =/  bw=itype  (itype-walk b sub)
+  =/  rooted-a=?  &(?=(^ (icore-bound-root a sub)) ?=(%cell -.aw) ?=(%cell -.bw) !(itype-has-face aw sub) (itype-has-face bw sub))
+  =/  rooted-b=?  &(?=(^ (icore-bound-root b sub)) ?=(%cell -.bw) ?=(%cell -.aw) !(itype-has-face bw sub) (itype-has-face aw sub))
+  ?:  &(|(rooted-a rooted-b) (icore-faces-compatible a b sub))  &
+  =.  a  aw
+  =.  b  bw
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))
+    &(=(-.a -.b) =(name.a name.b) $(a body.a, b body.b))
+  ?:  |(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))  |
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))
+    &($(a hed.a, b hed.b) $(a tal.a, b tal.b))
+  ?:  &(?=(%fn -.a) ?=(%fn -.b))
+    &($(a sample.a, b sample.b) $(a product.a, b product.b))
+  ?:  &(?=(%collection -.a) ?=(%collection -.b) =(name.a name.b))
+    (icore-nominal-args-faces-agree args.a args.b sub)
+  ?:  &(?=(%mrec -.a) ?=(%mrec -.b) =(at.a at.b) =(site.a site.b) =(name.a name.b) (rg-graphs-agree [at.a site.a name.a] graph.a graph.b))
+    (icore-nominal-args-faces-agree args.a args.b sub)
+  ?:  &(?=(%union -.a) ?=(%union -.b) =(origin.a origin.b))
+    (icore-nominal-args-faces-agree args.a args.b sub)
+  &(!(itype-has-face a sub) !(itype-has-face b sub))
+++  icore-nominal-args-faces-agree
+  |=  [a=(list itype) b=(list itype) sub=isub]
+  ^-  ?
+  ?~  a  ?=(~ b)
+  ?~  b  |
+  ?.  (icore-nominal-faces-agree i.a i.b sub)  |
+  $(a t.a, b t.b)
+::
+::  Nominal type parameters are invariant. Put a pending tag on the
+::  actual side first so its enclosing union can establish its context.
+++  icore-fit-arg-parts
+  |=  [left=(list itype) right=(list itype) sub=isub at=span context=span owner=term]
+  ^-  (unit (list icore-edge))
+  ?~  left  ?~(right `~ ~)
+  ?~  right  ~
+  =/  a=itype  i.left
+  =/  b=itype  i.right
+  ?.  (icore-nominal-faces-agree a b sub)  ~
+  =/  a-walk=itype  (itype-walk a sub)
+  =/  b-walk=itype  (itype-walk b sub)
+  =/  reverse-first=?  &(?=(%tag -.b-walk) !?=(%tag -.a-walk))
+  =/  rest=(unit (list icore-edge))  $(left t.left, right t.right)
+  ?~  rest  ~
+  =/  one=icore-edge  ?:(reverse-first [%fit b a context at owner ~] [%fit a b at context owner ~])
+  =/  two=icore-edge  ?:(reverse-first [%fit a b at context owner ~] [%fit b a context at owner ~])
+  `[one two u.rest]
+::
+++  icore-fit-parts
+  |=  [left=itype right=itype sub=isub at=span context=span owner=term sites=(list span)]
+  ^-  (unit (list icore-edge))
+  =.  left  (itype-walk left sub)
+  =.  right  (itype-walk right sub)
+  :: Seals stay opaque. Their canonical named payload arguments are
+  :: invariant and may be decomposed only after both private origins agree.
+  ?:  &(?=(%opaque -.left) ?=(%opaque -.right))
+    ?.  =(origin.left origin.right)  ~
+    =/  a=itype  (itype-walk body.left sub)
+    =/  b=itype  (itype-walk body.right sub)
+    ?.  &(?=(%union -.a) ?=(%union -.b) ?=(^ origin.a) =(origin.a origin.b))  ~
+    ?~  args.a  ~
+    (icore-fit-arg-parts args.a args.b sub at context owner)
+  ?:  &(?=(%collection -.left) ?=(%collection -.right))
+    ?.  =(name.left name.right)  ~
+    ?~  args.left  ~
+    (icore-fit-arg-parts args.left args.right sub at context owner)
+  ?:  &(?=(%mrec -.left) ?=(%mrec -.right))
+    ?.  &(=(at.left at.right) =(site.left site.right) =(name.left name.right) (rg-graphs-agree [at.left site.left name.left] graph.left graph.right))  ~
+    ?~  args.left  ~
+    (icore-fit-arg-parts args.left args.right sub at context owner)
+  ?:  &(?=(%union -.left) ?=(%union -.right))
+    ?.  &(=(origin.left origin.right) ?=(^ origin.left))  ~
+    ?~  args.left  ~
+    (icore-fit-arg-parts args.left args.right sub at context owner)
+  ?:  &(?=(?(%face %slot) -.left) ?=(?(%face %slot) -.right))
+    ?.  =(name.left name.right)  ~
+    `~[[%fit body.left body.right at context owner sites]]
+  ?:  ?=(?(%face %slot) -.left)  `~[[%fit body.left right at context owner sites]]
+  ?:  ?=(?(%face %slot) -.right)  `~[[%fit left body.right at context owner sites]]
+  ?:  &(?=(%cell -.left) ?=(%cell -.right))
+    =/  source=(unit @ud)  (icore-cell-arity left sub 0)
+    =/  target=(unit @ud)  (icore-cell-arity right sub 0)
+    ?~  source  ~
+    ?~  target  ~
+    =/  arity-ok=?
+      ?:  =(u.source u.target)  &
+      =/  flat-source=(unit @ud)  (icore-cell-flat-arity left sub 0)
+      =/  flat-target=(unit @ud)  (icore-cell-flat-arity right sub 0)
+      ?~  flat-source  |
+      ?~  flat-target  |
+      =(u.flat-source u.flat-target)
+    ?.  arity-ok  ~
+    =/  first=span  ?~(sites at i.sites)
+    =/  remaining=(list span)  ?~(sites ~ t.sites)
+    =/  tail-at=span  ?~(remaining at i.remaining)
+    `~[[%fit hed.left hed.right first context owner ~] [%fit tal.left tal.right tail-at context owner remaining]]
+  ?:  &(?=(%fn -.left) ?=(%fn -.right))
+    ::  Gate compatibility is invariant: check each direction after
+    ::  decomposing so an aura widening cannot masquerade as equality.
+    =/  samples=[a=itype b=itype]  (itype-gate-sample-pair sample.left sample.right 1.024)
+    `~[[%fit a.samples b.samples at context owner ~] [%fit b.samples a.samples at context owner ~] [%fit product.left product.right at context owner ~] [%fit product.right product.left at context owner ~]]
+  ~
+::
+++  icore-bound-root
+  |=  [typ=itype sub=isub]
+  ^-  (unit @ud)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.typ)  ~
+  =/  id=@ud  +.typ
+  =/  found=(unit itype)  (itype-lookup id sub)
+  ?~  found  ~
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.u.found)
+    ?:  =(id +.u.found)  ~
+    $(typ u.found)
+  `id
+::
+++  icore-faces-compatible
+  |=  [a=itype b=itype sub=isub]
+  ^-  ?
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))
+    &(=(-.a -.b) =(name.a name.b) $(a body.a, b body.b))
+  ?:  ?=(?(%face %slot) -.a)  $(a body.a)
+  ?:  ?=(?(%face %slot) -.b)  $(b body.b)
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))  &($(a hed.a, b hed.b) $(a tal.a, b tal.b))
+  ?:  &(?=(%fn -.a) ?=(%fn -.b))  &($(a sample.a, b sample.b) $(a product.a, b product.b))
+  &
+::
+++  icore-fit-joins
+  |=  [left=itype right=itype sub=isub at=span context=span]
+  ^-  (list icore-edge)
+  (icore-fit-joins-walk left right sub at context 1.024)
+++  icore-fit-join-args
+  |=  [left=(list itype) right=(list itype) sub=isub at=span context=span fuel=@ud]
+  ^-  (list icore-edge)
+  ?~  left  ~
+  ?~  right  ~
+  (weld (icore-fit-joins-walk i.left i.right sub at context fuel) $(left t.left, right t.right))
+++  icore-fit-joins-walk
+  |=  [left=itype right=itype sub=isub at=span context=span fuel=@ud]
+  ^-  (list icore-edge)
+  ?:  =(0 fuel)  ~[[%join left right at context]]
+  =.  fuel  (dec fuel)
+  =/  out=(list icore-edge)  ~
+  =/  l=itype  (itype-walk left sub)
+  =/  r=itype  (itype-walk right sub)
+  =?  out  &(?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.left) ?=(?(%cell %face %fn) -.r) (itype-has-face r sub) ?=(^ (icore-bound-root left sub)))
+    [[%join left right at context] out]
+  =?  out  &(?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.right) ?=(?(%cell %face %fn) -.l) (itype-has-face l sub) ?=(^ (icore-bound-root right sub)))
+    [[%join right left at context] out]
+  ::  A bound collection still contains the original argument roots.
+  ::  Follow those before the structural-root guard, so context from a
+  ::  consumer can retain faces on a mapper's result through the list.
+  ?:  &(?=(%collection -.l) ?=(%collection -.r) =(name.l name.r) =((lent args.l) (lent args.r)))
+    (weld out (icore-fit-join-args args.l args.r sub at context fuel))
+  ?:  &(?=(%union -.l) ?=(%union -.r) ?=(^ origin.l) =(origin.l origin.r) =((lent args.l) (lent args.r)))
+    (weld out (icore-fit-join-args args.l args.r sub at context fuel))
+  ?:  &(?=(%mrec -.l) ?=(%mrec -.r) =(at.l at.r) =(site.l site.r) =(name.l name.r) (rg-graphs-agree [at.l site.l name.l] graph.l graph.r) =((lent args.l) (lent args.r)))
+    (weld out (icore-fit-join-args args.l args.r sub at context fuel))
+  :: A root's join retains its entire structural value; recurse only when
+  :: neither original side is such a root, to keep equal-looking roots apart.
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.left)  out
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.right)  out
+  ?:  ?=(?(%face %slot) -.l)
+    ?:  ?=(?(%face %slot) -.r)  (weld out $(left body.l, right body.r))
+    (weld out $(left body.l))
+  ?:  ?=(?(%face %slot) -.r)  (weld out $(right body.r))
+  ?:  &(?=(%cell -.l) ?=(%cell -.r))
+    (weld out (weld $(left hed.l, right hed.r) $(left tal.l, right tal.r)))
+  ?:  &(?=(%fn -.l) ?=(%fn -.r))
+    (weld out (weld $(left sample.l, right sample.r) $(left product.l, right product.r)))
+  out
+::
+++  icore-pending-fits
+  |=  queue=(list icore-edge)
+  ^-  (list dgo)
+  ?~  queue  ~
+  ?-  -.i.queue
+    %fit   [[left.i.queue right.i.queue at.i.queue context.i.queue] $(queue t.queue)]
+    %wing  [[subject.i.queue result.i.queue at.i.queue at.i.queue] $(queue t.queue)]
+    %tag   $(queue t.queue)
+    :: Provisional coverage is independent of generalization; wake it on
+    :: subject bindings, but do not make polymorphic components monomorphic.
+    %coverage  $(queue t.queue)
+    %unface  [[subject.i.queue result.i.queue at.i.queue at.i.queue] $(queue t.queue)]
+    %join  [[target.i.queue source.i.queue at.i.queue context.i.queue] $(queue t.queue)]
+    %attributes  [[element.i.queue element.i.queue at.i.queue at.i.queue] $(queue t.queue)]
+    %printable  [[typ.i.queue typ.i.queue at.i.queue context.i.queue] $(queue t.queue)]
+    %number-default  [[typ.i.queue typ.i.queue at.i.queue at.i.queue] $(queue t.queue)]
+    %tagged-cell  [[actual.i.queue result.i.queue at.i.queue at.i.queue] $(queue t.queue)]
+    %branch-fit  [[left.i.queue right.i.queue at.i.queue context.i.queue] $(queue t.queue)]
+    %cast-fit  [[actual.i.queue target.i.queue at.i.queue context.i.queue] [result.i.queue target.i.queue at.i.queue context.i.queue] $(queue t.queue)]
+    %guarded-fit  [[left.i.queue right.i.queue at.i.queue context.i.queue] $(queue t.queue)]
+    %guarded-join  [[target.i.queue source.i.queue at.i.queue context.i.queue] $(queue t.queue)]
+    %branch-join
+      =/  fits=(list dgo)
+        (turn arms.i.queue |=(arm=[typ=itype at=span] [typ.arm result.i.queue at.arm at.i.queue]))
+      (weld fits $(queue t.queue))
+    %match
+      =/  direct=dgo  [subject.i.queue result.i.queue at.i.queue at.i.queue]
+      [direct (weld (turn (mold-capture-types captures.i.queue) |=(t=itype [t t at.i.queue at.i.queue])) (weld (icore-env-fits env.i.queue at.i.queue) (weld (icore-cap-fits caps.i.queue at.i.queue) $(queue t.queue))))]
+  ==
+::
+::  Resolved literals remain in the source history for diagnostics, but
+::  their already-known union does not constrain its generic arguments.
+::  Only genuinely open literal bindings can block generalization.
+++  icore-open-tags
+  |=  [tags=(list ipending) sub=isub]
+  ^-  (list ipending)
+  ?~  tags  ~
+  =/  root=itype  (itype-walk [%var id.i.tags] sub)
+  =/  pending=?
+    |(?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.root) (itype-has-tag (itype-normalize root sub)))
+  ?:  pending  [i.tags $(tags t.tags)]
+  $(tags t.tags)
+++  icore-generalize
+  |=  [typ=itype enclosing=@ud state=istate]
+  ^-  (unit ischeme)
+  =/  pending=(list dgo)  (icore-pending-fits queue.state)
+  =/  blocked=(unit dgscan)  (dg-obligations pending sub.state 32.768 ~)
+  ?~  blocked  ~
+  =/  tags=(unit dgscan)  (dg-tags (icore-open-tags tags.state sub.state) sub.state fuel.u.blocked ids.u.blocked)
+  ?~  tags  ~
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
+  =.  vars
+    %+  skim  vars
+    |=  n=@ud
+    ?:  (lien ids.u.tags |=(blocked=@ud =(blocked n)))  |
+    =/  birth=(unit @ud)  (~(get by levels.state) (var-count n))
+    ?~(birth | (gth u.birth enclosing))
+  `(cap-names typ vars caps.state sub.state)
+::
+::  Find two closed branch results that cannot share a joined type.
+:: Distinguish only domains whose top-level noun shape is proven. Unknown
+:: recursive projections and empty/uninhabited values do not prove conflict.
+++  diagnostic-noun-shape
+  |=  [t=itype sub=isub fuel=@ud]
+  ^-  ?(%atom %cell %unknown)
+  =/  todo=(list itype)  ~[t]
+  =/  seen=(list itype)  ~
+  =/  shape=(unit ?(%atom %cell))  ~
+  |-
+  ?~  todo  ?~(shape %unknown u.shape)
+  ?:  =(fuel 0)  %unknown
+  =.  fuel  (dec fuel)
+  =/  item=itype  (itype-normalize i.todo sub)
+  ?-  -.item
+    ?(%atom %any-atom %flag %const)
+      ?:  &(?=(^ shape) !=(%atom u.shape))  %unknown
+      $(todo t.todo, shape `%atom)
+    %cell
+      ?:  &(?=(^ shape) !=(%cell u.shape))  %unknown
+      $(todo t.todo, shape `%cell)
+    ?(%face %slot)  $(todo [body.item t.todo])
+    %mrec
+      ?:  (lien seen |=(prior=itype =(prior item)))  %unknown
+      =/  view=(unit [view=itype left=@ud])  (rg-unfold-view item fuel)
+      ?~  view  %unknown
+      $(todo [view.u.view t.todo], seen [item seen], fuel left.u.view)
+    %union
+      ?~  cases.item  %unknown
+      $(todo (weld cases.item t.todo))
+    *  %unknown
+  ==
+++  itype-shape-mismatch
+  |=  [a=itype b=itype sub=isub]
+  ^-  ?
+  =/  left=?(%atom %cell %unknown)  (diagnostic-noun-shape a sub 256)
+  =/  right=?(%atom %cell %unknown)  (diagnostic-noun-shape b sub 256)
+  ?.  |(&(=(%atom left) =(%cell right)) &(=(%cell left) =(%atom right)))  |
+  =/  a-live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof a sub ~ 4.096)
+  ?~  a-live  |
+  ?.  =(%yes result.u.a-live)  |
+  =/  b-live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof b sub ~ 4.096)
+  ?~  b-live  |
+  =(%yes result.u.b-live)
+::
+++  icore-incompatible-other
+  |=  [first=[typ=itype at=span] rest=(list [typ=itype at=span]) sub=isub]
+  ^-  (unit [first=[typ=itype at=span] second=[typ=itype at=span]])
+  ?~  rest  ~
+  =/  left=itype  (itype-normalize typ.first sub)
+  =/  right=itype  (itype-normalize typ.i.rest sub)
+  ?:  (itype-shape-mismatch left right sub)  `[first i.rest]
+  ?:  &(?=(%atom -.left) ?=(%atom -.right))
+    ?~  (itype-concrete-join left right sub)  `[first i.rest]
+    $(rest t.rest)
+  $(rest t.rest)
+++  icore-incompatible-arms
+  |=  [arms=(list [typ=itype at=span]) sub=isub]
+  ^-  (unit [first=[typ=itype at=span] second=[typ=itype at=span]])
+  ?~  arms  ~
+  =/  pair=(unit [first=[typ=itype at=span] second=[typ=itype at=span]])
+    (icore-incompatible-other i.arms t.arms sub)
+  ?^  pair  pair
+  $(arms t.arms)
+::
+:: Preserve a cast's written-capital check across decomposed fits.
+:: A multi-argument call already records its positional boundaries.  Keep
+:: each last argument whole even when its type is an open structural root.
+++  icore-positional-fit-parts
+  |=  [left=itype right=itype sites=(list span) sub=isub context=span owner=term caps=icaps]
+  ^-  (unit (list icore-edge))
+  ?~  sites  ~
+  ?~  t.sites  `~[[%fit left right i.sites context owner ~]]
+  =.  left  (itype-walk left sub)
+  =.  right  (itype-walk right sub)
+  ?.  &(?=(%cell -.left) ?=(%cell -.right))  ~
+  :: Splitting an empty cell would impose constraints on an impossible
+  :: argument.  Only split when the actual cell is provably inhabited.
+  =/  live=(unit [result=?(%yes %no %unknown) left=@ud])
+    (itype-inhabited-proof left sub caps 4.096)
+  ?~  live  ~
+  ?.  =(%yes result.u.live)  ~
+  =/  rest=(unit (list icore-edge))
+    $(left tal.left, right tal.right, sites t.sites)
+  ?~  rest  ~
+  `[[%fit hed.left hed.right i.sites context owner ~] u.rest]
+::
+:: Written tuple fields carry exact source boundaries just like call
+:: arguments; use them only when the queued value is that tuple itself.
+++  icore-written-item-sites
+  |=  e=expr
+  ^-  (list span)
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?.  ?=(%tuple -.e)  ~
+  ?~  items.e  ~
+  ?~  t.items.e  ~
+  (turn items.e |=(item=item (span-of val.item)))
+++  icore-call-item-sites
+  |=  [forcing=expr at=span]
+  ^-  (list span)
+  =/  written=(unit expr)  (diagnostic-expression-at ~[forcing] at)
+  ?~  written  ~
+  (icore-written-item-sites u.written)
+::
+++  icore-guarded-wrap
+  |=  [edges=(list icore-edge) owner=term caps=icaps forcing=expr numeric=? called=(unit itype) ancestors=(list ifit-ancestor)]
+  ^-  (unit (list icore-edge))
+  ?~  edges  `~
+  =/  edge=icore-edge  i.edges
+  =/  one=(unit icore-edge)
+    ?-  -.edge
+      %fit
+        =/  sites=(list span)  sites.edge
+        `[%guarded-fit left.edge right.edge at.edge context.edge owner sites caps forcing numeric called ancestors]
+      %join  `[%guarded-join target.edge source.edge at.edge context.edge owner caps forcing numeric called ancestors]
+      *  ~
+    ==
+  ?~  one  ~
+  =/  rest=(unit (list icore-edge))  $(edges t.edges)
+  ?~  rest  ~
+  `[u.one u.rest]
+::
+::  Known branch results determine a common result context for deferred
+::  literals in other arms. Every arm must still pass its ordinary fit.
+++  icore-known-branch-context
+  |=  [types=(list itype) sub=isub]
+  ^-  (unit [typ=itype sub=isub])
+  =/  known=(list itype)
+    %+  skim  types
+    |=  typ=itype
+    ?.  !(itype-has-tag typ)  |
+    =.  typ  (itype-walk typ sub)
+    |-
+    ?:  ?=(?(%face %slot) -.typ)  $(typ (itype-walk body.typ sub))
+    !?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.typ)
+  (itype-branch-join-list known sub)
+::
+++  icore-list-item-root
+  |=  edge=icore-edge
+  ^-  (unit ilist-item-root)
+  ?-  -.edge
+    %guarded-fit
+    ?~  ancestors.edge  ~
+    =/  top=ifit-ancestor  (rear ancestors.edge)
+    ?~  list-item.top  ~
+    =/  marker=[source=expr actual-sub=isub context=span]  u.list-item.top
+    `[source.marker left.top actual-sub.marker right.top context.marker]
+  ::
+    %guarded-join
+    ?~  ancestors.edge  ~
+    =/  top=ifit-ancestor  (rear ancestors.edge)
+    ?~  list-item.top  ~
+    =/  marker=[source=expr actual-sub=isub context=span]  u.list-item.top
+    `[source.marker left.top actual-sub.marker right.top context.marker]
+  ::
+    %tagged-cell
+    ?~  list-item.edge  ~
+    `[source.u.list-item.edge actual.u.list-item.edge actual-sub.u.list-item.edge expected.u.list-item.edge context.u.list-item.edge]
+  ::
+    *  ~
+  ==
+::
+++  icore-list-payload-error
+  |=  [edge=icore-edge state=istate]
+  ^-  (unit idiag)
+  =/  root=(unit ilist-item-root)  (icore-list-item-root edge)
+  ?~  root  ~
+  =/  actual=itype  (itype-normalize left.u.root actual-sub.u.root)
+  (union-payload-diagnostic source.u.root actual right.u.root state context.u.root ~)
+
+::
+++  diagnostic-literal-types
+  |=  [types=(list itype) actuals=(map @ud [actual=itype sub=isub]) sub=isub]
+  ^-  (list itype)
+  ?~  types  ~
+  [(diagnostic-literal-type i.types actuals sub) $(types t.types)]
+::
+++  diagnostic-literal-type
+  |=  [typ=itype actuals=(map @ud [actual=itype sub=isub]) sub=isub]
+  ^-  itype
+  =.  typ  (itype-walk typ sub)
+  =/  stored=(unit [actual=itype sub=isub])
+    ?.  ?=(%var -.typ)  ~
+    (~(get by actuals) id.typ)
+  ?^  stored  $(typ actual.u.stored, sub sub.u.stored)
+  ?-  -.typ
+    %tag  ?:(constructor.typ typ [%const literal.typ])
+    %opaque  typ(body $(typ body.typ), args (diagnostic-literal-types args.typ actuals sub))
+    %refined  typ(proof $(typ proof.typ))
+    ?(%face %slot)  typ(body $(typ body.typ))
+    %cell  typ(hed $(typ hed.typ), tal $(typ tal.typ))
+    %fn  typ(sample $(typ sample.typ), product $(typ product.typ))
+    %collection  typ(args (diagnostic-literal-types args.typ actuals sub))
+    %mrec  typ(args (diagnostic-literal-types args.typ actuals sub))
+    %union  typ(cases (diagnostic-literal-types cases.typ actuals sub), args (diagnostic-literal-types args.typ actuals sub))
+    *  typ
+  ==
+::
+++  icore-list-item-error
+  |=  [edge=icore-edge state=istate]
+  ^-  (unit idiag)
+  =/  root=(unit ilist-item-root)  (icore-list-item-root edge)
+  ?~  root  ~
+  =/  missing=(unit idiag)
+    (missing-tag-diagnostic source.u.root right.u.root state context.u.root)
+  ?^  missing  `u.missing
+  =/  actual=itype  (itype-normalize left.u.root actual-sub.u.root)
+  =/  nested=(unit idiag)
+    (nested-missing-tag source.u.root actual right.u.root sub.state next.state context.u.root state)
+  ?^  nested  `u.nested
+  =/  decimal=(unit idiag)
+    (decimal-misfit source.u.root actual right.u.root sub.state next.state)
+  ?^  decimal
+    `(diagnostic-expected-context u.decimal context.u.root right.u.root sub.state)
+  =/  payload=(unit idiag)  (icore-list-payload-error edge state)
+  ?^  payload  `u.payload
+  `["list item does not fit its expected type" ~[[context.u.root (site-type-note "expected item" right.u.root sub.state)] [(span-of source.u.root) (site-type-note "list item" (diagnostic-literal-type actual tagged-actuals.state actual-sub.u.root) actual-sub.u.root)]]]
+::
+++  icore-tagged-cell-wrap
+  |=  [edges=(list icore-edge) tagged=icore-edge state=istate]
+  ^-  (unit (list icore-edge))
+  ?.  ?=(%tagged-cell -.tagged)  `edges
+  ?~  list-item.tagged  `edges
+  =/  root=ifit-ancestor
+    [actual.u.list-item.tagged expected.u.list-item.tagged sub.state `[source.u.list-item.tagged actual-sub.u.list-item.tagged context.u.list-item.tagged]]
+  (icore-guarded-wrap edges owner.tagged caps.tagged source.tagged | ~ ~[root])
+::
+++  icore-island-data-error
+  |=  [edge=icore-edge state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%guarded-fit -.edge)  ~
+  =/  root=[left=itype right=itype]
+    ?~  ancestors.edge  [left.edge right.edge]
+    =/  top=ifit-ancestor  (rear ancestors.edge)
+    [left.top right.top]
+  =/  root-sub=isub
+    ?~  ancestors.edge  sub.state
+    =/  top=ifit-ancestor  (rear ancestors.edge)
+    sub.top
+  (diagnostic-island-data-origin forcing.edge left.root right.root at.edge root-sub next.state state)
+::
+++  icore-deferred-decimal-error
+  |=  [edge=icore-edge state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%guarded-fit -.edge)  ~
+  =/  root=[left=itype right=itype]
+    ?~  ancestors.edge  [left.edge right.edge]
+    =/  top=ifit-ancestor  (rear ancestors.edge)
+    [left.top right.top]
+  =/  root-sub=isub
+    ?~  ancestors.edge  sub.state
+    =/  top=ifit-ancestor  (rear ancestors.edge)
+    sub.top
+  =/  found=(unit idiag)
+    (decimal-misfit forcing.edge left.root right.root root-sub next.state)
+  ?~  found  ~
+  ?:  (nondecimal-misfit-at forcing.edge right.root root-sub next.state)  ~
+  `(diagnostic-expected-context u.found context.edge right.root root-sub)
+::
+++  icore-queue-pass
+  |=  [todo=(list icore-edge) state=istate pending=(list icore-edge) solved=?]
+  ^-  (unit icore-pass)
+  ?~  todo  `[state (flop pending) solved]
+  =/  edge=icore-edge  i.todo
+  ?-  -.edge
+    %cast-fit
+      =/  fit=ifit  (itype-fit actual.edge target.edge sub.state next.state)
+      ?:  ?=(%bad -.fit)
+        =/  actual=itype  (itype-normalize actual.edge sub.state)
+        =/  target=itype  (itype-normalize target.edge sub.state)
+        =/  missing=(unit idiag)  (missing-tag-diagnostic forcing.edge target state context.edge)
+        ?^  missing  `[state(core-error `[owner.edge u.missing]) (flop pending) &]
+        =/  nested=(unit idiag)  (nested-missing-tag forcing.edge actual target sub.state next.state context.edge state)
+        ?^  nested  `[state(core-error `[owner.edge u.nested]) (flop pending) &]
+        =/  decimal=(unit idiag)  (decimal-misfit forcing.edge actual target sub.state next.state)
+        ?^  decimal
+          =/  diag=idiag  (diagnostic-expected-context u.decimal context.edge target sub.state)
+          `[state(core-error `[owner.edge diag]) (flop pending) &]
+        ?:  |((itype-has-tag actual) (itype-has-tag target) ?=(^ (itype-vars actual)) ?=(^ (itype-vars target)))
+          $(todo t.todo, pending [edge pending])
+        =/  diag=idiag  ["cast mold and expression type do not unify" ~[[context.edge (site-type-note "cast mold" target sub.state)] [at.edge (site-actual-note "expression" actual target sub.state next.state)]]]
+        `[state(core-error `[owner.edge diag]) (flop pending) &]
+      ?:  ?=(%unknown -.fit)
+        ?:  expanded.edge  $(todo t.todo, pending [edge pending])
+        =/  parts=(unit (list icore-edge))  (icore-fit-parts actual.edge target.edge sub.state at.edge context.edge owner.edge ~)
+        ?~  parts  $(todo t.todo, pending [edge pending])
+        =/  joins=(list icore-edge)  (icore-fit-joins actual.edge target.edge sub.state at.edge context.edge)
+        =/  wrapped=(unit (list icore-edge))  (icore-guarded-wrap (weld u.parts joins) owner.edge caps.edge forcing.edge | ~ ~)
+        ?~  wrapped  ~
+        $(todo (weld u.wrapped t.todo), pending [edge(expanded &) pending], solved &)
+      =/  narrowed=(unit idiag)  (newly-constrained-capital caps.edge sub.state sub.fit forcing.edge |)
+      ?^  narrowed  `[state(core-error `[owner.edge u.narrowed]) (flop pending) &]
+      =/  merged=itype  (itype-value-root (itype-merge-faces actual.edge target.edge sub.fit))
+      =/  unified=(unit isub)  (itype-unify result.edge merged sub.fit)
+      ?~  unified  ~
+      =/  narrowed=(unit idiag)  (newly-constrained-capital caps.edge sub.fit u.unified forcing.edge |)
+      ?^  narrowed  `[state(core-error `[owner.edge u.narrowed]) (flop pending) &]
+      $(todo t.todo, state state(sub u.unified, next next.fit), solved &)
+    %guarded-fit
+      =/  parts=(unit (list icore-edge))
+        ?~  sites.edge  ~
+        (icore-positional-fit-parts left.edge right.edge sites.edge sub.state context.edge owner.edge caps.edge)
+      ?^  parts
+        =/  joins=(list icore-edge)  (icore-fit-joins left.edge right.edge sub.state at.edge context.edge)
+        =/  wrapped=(unit (list icore-edge))
+          (icore-guarded-wrap (weld u.parts joins) owner.edge caps.edge forcing.edge numeric.edge called.edge [[left.edge right.edge sub.state ~] ancestors.edge])
+        ?~  wrapped  ~
+        $(todo (weld u.wrapped t.todo), solved &)
+      :: Decompose in this guard so each child retains the call's type,
+      :: argument source and written-capital obligations.
+      =/  fit=ifit  (itype-fit left.edge right.edge sub.state next.state)
+      =/  parts=(unit (list icore-edge))
+        ?:  ?=(%ok -.fit)  ~
+        (icore-fit-parts left.edge right.edge sub.state at.edge context.edge owner.edge sites.edge)
+      ?^  parts
+        =/  joins=(list icore-edge)  (icore-fit-joins left.edge right.edge sub.state at.edge context.edge)
+        =/  wrapped=(unit (list icore-edge))
+          (icore-guarded-wrap (weld u.parts joins) owner.edge caps.edge forcing.edge numeric.edge called.edge [[left.edge right.edge sub.state ~] ancestors.edge])
+        ?~  wrapped  ~
+        $(todo (weld u.wrapped t.todo), solved &)
+      =/  plain=icore-edge  [%fit left.edge right.edge at.edge context.edge owner.edge sites.edge]
+      =/  run=(unit icore-pass)  (icore-queue-pass ~[plain] state ~ |)
+      ?~  run  ~
+      ?^  core-error.state.u.run
+        =/  list-item=(unit idiag)  (icore-list-item-error edge state.u.run)
+        ?^  list-item
+          `[state.u.run(core-error `[owner.edge u.list-item]) (flop pending) &]
+        =/  origin=(unit [owner=term diag=idiag])  (diagnostic-deferred-origin edge state)
+        ?^  origin  `[state.u.run(core-error `[owner.edge diag.u.origin], error-display-owner `owner.u.origin) (flop pending) &]
+        =/  sourced=(unit idiag)  (diagnostic-guarded-source-origin edge state)
+        ?^  sourced  `[state.u.run(core-error `[owner.edge u.sourced]) (flop pending) &]
+        ?~  called.edge  `[state.u.run (flop pending) &]
+        =/  actual=itype  (itype-normalize left.edge sub.state)
+        =/  expected=itype  (itype-normalize right.edge sub.state)
+        ?.  ?=(%bad -.fit)  `[state.u.run (flop pending) &]
+        ?:  |((itype-has-tag actual) (itype-has-tag expected) ?=(^ (itype-vars actual)) ?=(^ (itype-vars expected)))
+          `[state.u.run (flop pending) &]
+        =/  decimal=(unit idiag)
+          (icore-deferred-decimal-error edge state)
+        ?^  decimal  `[state.u.run(core-error `[owner.edge u.decimal]) (flop pending) &]
+        =/  island=(unit idiag)  (icore-island-data-error edge state)
+        ?^  island  `[state.u.run(core-error `[owner.edge u.island]) (flop pending) &]
+        =/  diag=idiag
+          ["call's sample and argument types do not unify" ~[[context.edge (site-type-note "called gate" u.called.edge sub.state)] [at.edge (site-actual-note "argument" actual expected sub.state next.state)]]]
+        =/  enriched=(unit idiag)
+          ?.  ?=(%call -.forcing.edge)  ~
+          (diagnostic-derived-call-site head.forcing.edge diag state)
+        =/  chosen=idiag  ?~(enriched diag u.enriched)
+        `[state.u.run(core-error `[owner.edge chosen]) (flop pending) &]
+      =/  written=(unit expr)  (diagnostic-expression-at ~[forcing.edge] at.edge)
+      =/  forcing=expr  ?~(written forcing.edge u.written)
+      =/  narrowed=(unit idiag)  (newly-constrained-capital caps.edge sub.state sub.state.u.run forcing numeric.edge)
+      ?^  narrowed  `[state.u.run(core-error `[owner.edge u.narrowed]) (flop pending) &]
+      =/  wrapped=(unit (list icore-edge))  (icore-guarded-wrap pending.u.run owner.edge caps.edge forcing.edge numeric.edge called.edge [[left.edge right.edge sub.state ~] ancestors.edge])
+      ?~  wrapped  ~
+      $(todo t.todo, state state.u.run, pending (weld (flop u.wrapped) pending), solved |(solved solved.u.run))
+    %guarded-join
+      =/  plain=icore-edge  [%join target.edge source.edge at.edge context.edge]
+      =/  run=(unit icore-pass)  (icore-queue-pass ~[plain] state ~ |)
+      ?~  run  ~
+      ?^  core-error.state.u.run
+        =/  list-item=(unit idiag)  (icore-list-item-error edge state.u.run)
+        ?~  list-item  `[state.u.run (flop pending) &]
+        `[state.u.run(core-error `[owner.edge u.list-item]) (flop pending) &]
+      =/  written=(unit expr)  (diagnostic-expression-at ~[forcing.edge] at.edge)
+      =/  forcing=expr  ?~(written forcing.edge u.written)
+      =/  narrowed=(unit idiag)  (newly-constrained-capital caps.edge sub.state sub.state.u.run forcing numeric.edge)
+      ?^  narrowed  `[state.u.run(core-error `[owner.edge u.narrowed]) (flop pending) &]
+      =/  wrapped=(unit (list icore-edge))  (icore-guarded-wrap pending.u.run owner.edge caps.edge forcing.edge numeric.edge called.edge ancestors.edge)
+      ?~  wrapped  ~
+      $(todo t.todo, state state.u.run, pending (weld (flop u.wrapped) pending), solved |(solved solved.u.run))
+    %fit
+      =/  actual=itype  (itype-normalize left.edge sub.state)
+      =/  expected=itype  (itype-walk right.edge sub.state)
+      =/  tag-wait=?
+        ?|  &((itype-has-tag actual) ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.expected))
+            &((itype-has-tag (itype-normalize right.edge sub.state)) ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.actual))
+        ==
+      ?:  tag-wait
+        $(todo t.todo, pending [edge pending])
+      ::  A closed union can supply the context for a bare tag even when
+      ::  it appears on the expected side of a deferred fit.
+      =/  reverse-tag=?
+        &(?=(%union -.actual) ?=(%tag -.expected) !constructor.expected ?=(~ (itype-vars actual)) !(itype-has-tag actual))
+      =/  fit-left=itype  ?:(reverse-tag right.edge left.edge)
+      =/  fit-right=itype  ?:(reverse-tag left.edge right.edge)
+      =/  fit=ifit  (itype-fit fit-left fit-right sub.state next.state)
+      =.  fit
+        ?:  &(?=(%unknown -.fit) (width-definite-mismatch left.edge right.edge sub.state))  [%bad ~]
+        fit
+      =/  parts=(unit (list icore-edge))
+        ?:  ?=(%ok -.fit)  ~
+        (icore-fit-parts left.edge right.edge sub.state at.edge context.edge owner.edge sites.edge)
+      ?^  parts
+        =/  joins=(list icore-edge)  (icore-fit-joins left.edge right.edge sub.state at.edge context.edge)
+        $(todo (weld u.parts (weld joins t.todo)), solved &)
+      ?:  ?=(%bad -.fit)
+        =/  closed-actual=itype  (itype-normalize fit-left sub.state)
+        =/  closed-expected=itype  (itype-normalize fit-right sub.state)
+        =/  source=(unit span)
+          ?.  ?=(%tag -.closed-actual)  ~
+          =/  found=(unit span)  (icore-tag-at id.closed-actual (weld todo pending))
+          ?~  found  (icore-tag-history-at id.closed-actual tags.state)
+          found
+        =/  miss=(unit idiag)
+          ?.  ?=(%tag -.closed-actual)  ~
+          =/  at=span  ?~(source at.edge u.source)
+          =/  expr=expr
+            ?:  constructor.closed-actual  [%ctor at literal.closed-actual]
+            [%lit at literal.closed-actual]
+          (missing-tag-diagnostic expr closed-expected state context.edge)
+        ?^  miss  `[state(core-error `[owner.edge u.miss], error-tag-site source) (flop pending) &]
+        =/  width-bad=?  (width-definite-mismatch left.edge right.edge sub.state)
+        =/  open-actual=?  &(!width-bad |((itype-has-tag closed-actual) ?=(^ (itype-vars closed-actual))))
+        =/  open-expected=?  &(!width-bad |((itype-has-tag closed-expected) ?=(^ (itype-vars closed-expected))))
+        ?:  &(open-actual open-expected)  $(todo t.todo, pending [edge pending])
+        ::  Preserve the caller's precise mismatch when only one side
+        ::  is still open; it can identify the argument and constructor.
+        ?:  |(open-actual open-expected)  $(todo t.todo, pending [edge pending])
+        =/  diag=idiag
+          ["types do not unify" ~[[context.edge (site-type-note "expected type" closed-expected sub.state)] [at.edge (site-type-note "actual type" closed-actual sub.state)]]]
+        =.  diag  (pending-list-call-diagnostic edge state(queue (weld todo pending)) diag)
+        =/  enriched=(unit idiag)
+          ?~  local-source.state  ~
+          =/  parsed=(each module error)  (parse at.state u.local-source.state)
+          ?:  ?=(%| -.parsed)  ~
+          =/  owners=(list def)
+            (skim defs.p.parsed |=(d=def &(?=(%value -.d) =(name.d owner.edge))))
+          ?.  ?=([* ~] owners)  ~
+          ?>  ?=(%value -.i.owners)
+          =/  found=(list idiag)
+            (diagnostic-derived-call-candidates-at ~[val.i.owners] at.edge context.edge diag state)
+          ?.  ?=([* ~] found)  ~
+          `i.found
+        =/  chosen=idiag  ?~(enriched diag u.enriched)
+        `[state(core-error `[owner.edge chosen]) (flop pending) &]
+      ?:  ?=(%unknown -.fit)  $(todo t.todo, pending [edge pending])
+      $(todo t.todo, state state(sub sub.fit, next next.fit), solved &)
+    %tag
+      =/  found=(unit itype)  (itype-lookup id.edge sub.state)
+      ?~  found  $(todo t.todo, pending [edge pending])
+      =/  root=itype  (itype-walk u.found sub.state)
+      ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.root)
+        $(todo t.todo, pending [edge pending])
+      $(todo t.todo, solved &)
+    %branch-join
+      =/  target=itype  (itype-walk result.edge sub.state)
+      ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.target)
+        =/  types=(list itype)
+          (turn arms.edge |=(arm=[typ=itype at=span] (itype-normalize typ.arm sub.state)))
+        =/  contextual=?  (lien types |=(typ=itype (itype-has-tag typ)))
+        =/  joined=(unit [typ=itype sub=isub])
+          ?:  contextual  (icore-known-branch-context types sub.state)
+          (itype-branch-join-list types sub.state)
+        ?~  joined
+          ::  Later definitions can still supply a common union or other
+          ::  expected type, even when all arms are already closed.
+          $(todo t.todo, pending [edge pending])
+        ::  The fresh result represents the whole joined value; retain a
+        ::  top-level face when binding it, in either arm order.
+        =/  unified=(unit isub)
+          ?.  ?=(%var -.target)  (itype-unify result.edge typ.u.joined sub.u.joined)
+          ?:  =((itype-walk typ.u.joined sub.u.joined) target)  `sub.u.joined
+          ?:  (itype-occurs id.target typ.u.joined sub.u.joined)  ~
+          `(itype-bind id.target typ.u.joined sub.u.joined)
+        ?~  unified  ~
+        $(todo ?:(contextual todo t.todo), state state(sub u.unified), solved &)
+      =/  fits=(list icore-edge)
+        (turn arms.edge |=(arm=[typ=itype at=span] [%branch-fit typ.arm result.edge at.arm at.edge owner.edge]))
+      $(todo (weld fits t.todo), solved &)
+    %branch-fit
+      =/  actual=itype  (itype-normalize left.edge sub.state)
+      =/  expected=itype  (itype-walk right.edge sub.state)
+      =/  tag-wait=?
+        ?|  &((itype-has-tag actual) ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.expected))
+            &((itype-has-tag (itype-normalize right.edge sub.state)) ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.actual))
+        ==
+      ?:  tag-wait
+        $(todo t.todo, pending [edge pending])
+      ::  A closed union can supply the context for a bare tag even when
+      ::  it appears on the expected side of a deferred fit.
+      =/  reverse-tag=?
+        &(?=(%union -.actual) ?=(%tag -.expected) !constructor.expected ?=(~ (itype-vars actual)) !(itype-has-tag actual))
+      =/  fit-left=itype  ?:(reverse-tag right.edge left.edge)
+      =/  fit-right=itype  ?:(reverse-tag left.edge right.edge)
+      =/  fit=ifit  (itype-fit fit-left fit-right sub.state next.state)
+      =/  parts=(unit (list icore-edge))
+        ?:  ?=(%ok -.fit)  ~
+        (icore-fit-parts left.edge right.edge sub.state at.edge context.edge owner.edge ~)
+      ?^  parts
+        =/  joins=(list icore-edge)  (icore-fit-joins left.edge right.edge sub.state at.edge context.edge)
+        =/  labeled=(list icore-edge)
+          %+  turn  u.parts
+          |=  part=icore-edge
+          ?>  ?=(%fit -.part)
+          [%branch-fit left.part right.part at.part context.part owner.edge]
+        $(todo (weld labeled (weld joins t.todo)), solved &)
+      ?:  ?=(%unknown -.fit)  $(todo t.todo, pending [edge pending])
+      ::  A failed fit is definite only when neither side retains a type
+      ::  variable and the expected side contains no unresolved tag.
+      =.  actual  (itype-normalize fit-left sub.state)
+      =/  closed-target=itype  (itype-normalize fit-right sub.state)
+      ?:  &(?=(%bad -.fit) |(?=(^ (itype-vars actual)) ?=(^ (itype-vars closed-target)) (itype-has-tag closed-target)))
+        $(todo t.todo, pending [edge pending])
+      ?:  ?=(%bad -.fit)
+        =/  missing=(unit idiag)
+          ?.  ?=(%tag -.actual)  ~
+          =/  value=expr
+            ?:  constructor.actual  [%ctor at.edge literal.actual]
+            [%lit at.edge literal.actual]
+          (missing-tag-diagnostic value closed-target state context.edge)
+        ?^  missing
+          `[state(core-error `[owner.edge u.missing]) (flop pending) &]
+        =/  diag=idiag
+          ["branch arm does not fit its expected type" ~[[context.edge (site-type-note "expected branch result" closed-target sub.state)] [at.edge (site-type-note "branch arm" actual sub.state)]]]
+        `[state(core-error `[owner.edge diag]) (flop pending) &]
+      $(todo t.todo, state state(sub sub.fit, next next.fit), solved &)
+    %tagged-cell
+      =/  target=itype  (itype-walk result.edge sub.state)
+      =/  actual=itype  (itype-normalize actual.edge sub.state)
+      =/  flag=(unit lit)
+        ?.  ?=(%tuple -.source.edge)  ~
+        ?~  items.source.edge  ~
+        ?.  ?=(%lit -.val.i.items.source.edge)  ~
+        ?.  =(%loobean form.lit.val.i.items.source.edge)  ~
+        `lit.val.i.items.source.edge
+      ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.target)
+        ?:  |((itype-has-tag actual) ?=(^ flag))  $(todo t.todo, pending [edge pending])
+        =/  unified=(unit isub)  (itype-unify result.edge actual sub.state)
+        ?~  unified  ~
+        $(todo t.todo, state state(sub u.unified), solved &)
+      =/  candidate=itype
+        ?.  &(?=(^ flag) ?=(%union -.target) ?=(%cell -.actual))  actual.edge
+        [%cell [%const u.flag] tal.actual]
+      =/  selected=(unit itype)
+        ?.  &(?=(%tuple -.source.edge) ?=(^ items.source.edge))  ~
+        =/  view=itype
+          ?.  ?=(%mrec -.target)  target
+          =/  unfolded=(unit [view=itype left=@ud])  (rg-unfold-view target 4.096)
+          ?~(unfolded target view.u.unfolded)
+        ?.  ?=(%union -.view)  ~
+        =/  only-cell=(unit itype)  (contextual-cell-case view)
+        ?^  only-cell  only-cell
+        =/  first=item  i.items.source.edge
+        ?.  &(?=(~ face.first) ?=(%lit -.val.first) |(=(%term form.lit.val.first) =(%null form.lit.val.first) =(%loobean form.lit.val.first)))  ~
+        (contextual-tagged-case view val.lit.val.first sub.state)
+      =/  fit=ifit  (itype-fit candidate ?~(selected result.edge u.selected) sub.state next.state)
+      ::  Diagnose a proven absent case before structural child fits can
+      ::  replace the union with one of its unrelated cases. The target and
+      ::  written first item are the original checked edge's own evidence.
+      =/  early-missing=(unit idiag)
+        ?.  ?=(%bad -.fit)  ~
+        ?:  |((itype-has-tag target) ?=(^ (itype-vars target)))  ~
+        ?.  ?=(%tuple -.source.edge)  ~
+        ?~  items.source.edge  ~
+        =/  miss=(unit idiag)
+          (missing-union-tag val.i.items.source.edge target sub.state at.edge)
+        ?~  miss  ~
+        `(diagnostic-add-external-union u.miss target state)
+      ?^  early-missing
+        `[state(core-error `[owner.edge u.early-missing]) (flop pending) &]
+      ?:  |(?=(%unknown -.fit) &(?=(%bad -.fit) ?=(^ selected) |((itype-has-tag actual) ?=(^ (itype-vars actual)))))
+        ::  The uniquely selected case retains the original tag in the
+        ::  generated fits; its %tag edge must be discharged normally.
+        ::  Recheck the written payload in its uniquely selected context.
+        ::  This is a diagnostic-only probe: it neither commits inference
+        ::  state nor diagnoses a case whose context is still unresolved.
+        =/  recheck=(unit idiag)
+          ?~  selected  ~
+          =/  closed=itype  (itype-normalize u.selected sub.state)
+          ?:  |(?=(^ (itype-vars closed)) (itype-has-tag closed))  ~
+          ?:  |(?=(^ (free-env-vars env.edge sub.state)) ?=(^ (free-cap-vars caps.edge sub.state)) (lien (mold-capture-types captures.edge) |=(t=itype ?=(^ (itype-vars (itype-normalize t sub.state))))))  ~
+          ?.  ?=(%tuple -.source.edge)  ~
+          =/  probe=istate  state(queue ~, caps caps.edge, molds molds.edge, mold-captures captures.edge, globals globals.edge, binders binders.edge, level level.edge, owner owner.edge)
+          =/  inferred=iresult  (infer-call-context-items items.source.edge u.selected env.edge probe at.edge)
+          ?:  ?=(%& -.inferred)  ~
+          ?.  (definite-diag p.inferred)  ~
+          `p.inferred
+        ?^  recheck  `[state(core-error `[owner.edge u.recheck]) (flop pending) &]
+        =/  selected-parts=(unit (list icore-edge))
+          ?~  selected  ~
+          =/  sites=(list span)
+            ?.  ?=(%tuple -.source.edge)  ~
+            (turn items.source.edge |=(i=item (span-of val.i)))
+          =/  parts=(unit (list icore-edge))
+            (icore-fit-parts candidate u.selected sub.state at.edge at.edge owner.edge sites)
+          ?~  parts  ~
+          =/  joins=(list icore-edge)
+            (icore-fit-joins candidate u.selected sub.state at.edge at.edge)
+          `(weld u.parts joins)
+        ?^  selected-parts
+          =/  wrapped=(unit (list icore-edge))  (icore-tagged-cell-wrap u.selected-parts edge state)
+          ?~  wrapped  ~
+          $(todo (weld u.wrapped t.todo), solved &)
+        =/  parts=(unit (list icore-edge))
+          (icore-fit-parts actual.edge result.edge sub.state at.edge at.edge owner.edge ~)
+        ?~  parts  $(todo t.todo, pending [edge pending])
+        =/  joins=(list icore-edge)
+          (icore-fit-joins actual.edge result.edge sub.state at.edge at.edge)
+        =/  wrapped=(unit (list icore-edge))  (icore-tagged-cell-wrap (weld u.parts joins) edge state)
+        ?~  wrapped  ~
+        $(todo (weld u.wrapped t.todo), solved &)
+      ?:  ?=(%bad -.fit)
+        ?:  |((itype-has-tag target) ?=(^ (itype-vars target)))
+          $(todo t.todo, pending [edge pending])
+        ::  A closed union can give a definite missing-tag diagnostic.
+        =/  context=(unit span)
+          =/  un=itype  (itype-walk target sub.state)
+          ?.  &(?=(%union -.un) ?=(^ origin.un) =(at.u.origin.un at.state))  ~
+          =/  declared=(unit shape)  (find-simple-mold name.u.origin.un molds.state)
+          ?~(declared ~ `(span-of u.declared))
+        =/  miss=(unit idiag)
+          ?.  ?=(%tuple -.source.edge)  ~
+          ?~  items.source.edge  ~
+          (missing-union-tag val.i.items.source.edge target sub.state ?~(context at.edge u.context))
+        ?^  miss
+          ::  Keep the checked external declaration when available; never
+          ::  label the local tag as its own declaration.
+          =/  diag=idiag  u.miss
+          =/  external=(unit idsite)  (diagnostic-external-union-site target state)
+          =/  added=(list idsite)
+            ?~  external
+              ?~  context  ~
+              ~[[u.context (site-type-note "expected union" target sub.state)]]
+            ~[u.external]
+          =/  seen=(map span idsite)  (diagnostic-site-index sites.diag)
+          =.  sites.diag
+            %+  weld  sites.diag
+            (skim added |=(site=idsite !(~(has by seen) (diagnostic-site-span site))))
+          `[state(core-error `[owner.edge diag]) (flop pending) &]
+        ~
+      $(todo t.todo, state state(sub sub.fit, next next.fit), solved &)
+    %number-default
+      =/  typ=itype  (itype-walk typ.edge sub.state)
+      ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.typ)
+        $(todo t.todo, pending [edge pending])
+      $(todo t.todo, solved &)
+    %printable
+      =/  typ=itype  (itype-unface (itype-normalize typ.edge sub.state) sub.state)
+      ?:  (printable-accepted typ interpolation.edge)
+        $(todo t.todo, solved &)
+      ?:  (printable-rejected typ interpolation.edge)
+        =/  diag=idiag  (printable-error typ at.edge context.edge interpolation.edge)
+        `[state(core-error `[owner.edge diag]) (flop pending) &]
+      $(todo t.todo, pending [edge pending])
+    %attributes
+      ?:  (attribute-target-open element.edge sub.state)
+        $(todo t.todo, pending [edge pending])
+      =/  duplicate=(unit idiag)
+        (duplicate-attributes element.edge sub.state items.edge prelude.state)
+      ?^  duplicate
+        `[state(core-error `[owner.edge u.duplicate]) (flop pending) &]
+      $(todo t.todo, solved &)
+    %wing
+      =/  result=(unit itype)  (icore-wing subject.edge fields.edge sub.state)
+      ?~  result  $(todo t.todo, pending [edge pending])
+      =/  unified=(unit isub)  (itype-unify result.edge u.result sub.state)
+      ?~  unified  ~
+      $(todo t.todo, state state(sub u.unified), solved &)
+    %unface
+      =/  typ=itype  (itype-walk subject.edge sub.state)
+      ?:  ?=(?(%var %fvar) -.typ)  $(todo t.todo, pending [edge pending])
+      =/  unfaced=itype  (itype-unface typ sub.state)
+      =/  unified=(unit isub)  (itype-unify result.edge unfaced sub.state)
+      ?~  unified  ~
+      $(todo t.todo, state state(sub u.unified), solved &)
+    %join
+      =/  target=itype  (itype-normalize target.edge sub.state)
+      =/  source=itype  (itype-normalize source.edge sub.state)
+      ?:  |((itype-has-tag target) (itype-has-tag source))
+        $(todo t.todo, pending [edge pending])
+      =/  open=?  |(?=(^ (itype-vars target)) ?=(^ (itype-vars source)))
+      ?:  &(open !=((itype-unface target sub.state) (itype-unface source sub.state)))
+        $(todo t.todo, pending [edge pending])
+      ?.  (icore-faces-compatible target source sub.state)  ~
+      =/  root=(unit @ud)  (icore-bound-root target.edge sub.state)
+      ?~  root  $(todo t.todo, pending [edge pending])
+      =/  merged=itype  (itype-merge-faces-inner source target sub.state |)
+      =/  sub=isub  sub.state
+      =?  sub  !=(merged target)  (itype-bind u.root merged sub)
+      $(todo t.todo, state state(sub sub), solved &)
+    %coverage
+      =/  subject=itype  (itype-normalize subject.edge sub.state)
+      ?:  |((itype-has-tag subject) ?=(^ (itype-vars subject)))
+        $(todo t.todo, pending [edge pending])
+      =/  checked=coverage-check  (coverage-branch-check branch.edge subject sub.state)
+      ?:  ?=(%unknown -.checked)  $(todo t.todo, pending [edge pending])
+      ?:  ?=(%error -.checked)
+        =/  diag=idiag  (coverage-missing-tag-diagnostic diag.checked branch.edge subject state)
+        =/  enriched=idiag  (coverage-missing-case-diagnostic diag witness.checked subject state)
+        `[state(core-error `[owner.edge enriched]) (flop pending) &]
+      $(todo t.todo, solved &)
+    %match
+      =/  subject=itype  (itype-walk subject.edge sub.state)
+      ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.subject)
+        $(todo t.todo, pending [edge pending])
+      =/  branch=expr  branch.edge
+      ?.  ?=(%branch -.branch)  ~
+      ::  Reuse the established branch checker with the already-inferred
+      ::  subject, without evaluating or allocating it a second time.
+      =/  site=span  (span-of subject.branch)
+      =.  branch  branch(subject [%wing site ~[%$]])
+      =/  context=istate
+        state(queue ~, caps caps.edge, molds molds.edge, mold-captures captures.edge, globals globals.edge, binders binders.edge, level level.edge, owner owner.edge)
+      =/  inferred=iresult
+        (infer-fragment branch [[%$ [subject.edge ~ ~]] env.edge] context)
+      ?:  ?=(%| -.inferred)  $(todo t.todo, pending [edge pending])
+      =/  unified=(unit isub)  (itype-unify result.edge typ.p.inferred sub.state.p.inferred)
+      ?~  unified  ~
+      =/  st=istate  state.p.inferred
+      =/  added=(list icore-edge)  (flop queue.st)
+      =.  levels.st  (ilevel-register registered.st next.st level.edge levels.st)
+      =.  st  st(sub u.unified, queue ~, registered next.st, caps caps.state, molds molds.state, mold-captures mold-captures.state, globals globals.state, binders binders.state, level level.state, owner owner.state)
+      $(todo (weld t.todo added), state st, solved &)
+  ==
+::
+++  icore-solve-full
+  |=  state=istate
+  ^-  (unit istate)
+  |-
+  ?^  core-error.state  `state
+  =/  pass=(unit icore-pass)  (icore-queue-pass (flop queue.state) state(queue ~) ~ |)
+  ?~  pass  ~
+  =/  next=istate  state.u.pass(queue (flop pending.u.pass))
+  ?:  |(?=(~ queue.next) !solved.u.pass)  `next
+  $(state next)
+::
+::  Index every variable an obligation can inspect, including bound roots.
+::  A later refinement of a structural root must wake its dependents too.
++$  iwake-scan-result  [index=(map @ud (list icore-edge)) fuel=@ud]
+++  iwake-scan
+  |=  [todo=(list itype) sub=isub seen=(map @ud ?) index=(map @ud (list icore-edge)) edge=icore-edge fuel=@ud]
+  ^-  (unit iwake-scan-result)
+  ?~  todo  `[index fuel]
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =/  typ=itype  i.todo
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.typ)
+    =/  id=@ud  ?:(?=(%tag -.typ) id.typ +.typ)
+    ?:  ?=(^ (~(get by seen) id))  $(todo t.todo)
+    =.  seen  (~(put by seen) id &)
+    =/  prior=(unit (list icore-edge))  (~(get by index) id)
+    =.  index  (~(put by index) id [edge ?~(prior ~ u.prior)])
+    =/  bound=(unit itype)  (itype-lookup id sub)
+    ?~  bound  $(todo t.todo)
+    $(todo [u.bound t.todo])
+  ?+  -.typ  $(todo t.todo)
+    %opaque  $(todo [body.typ (weld args.typ t.todo)])
+    %refined  $(todo [proof.typ t.todo])
+    ?(%face %slot)  $(todo [body.typ t.todo])
+    %fn  $(todo [sample.typ product.typ t.todo])
+    %cell  $(todo [hed.typ tal.typ t.todo])
+    %union  $(todo (weld args.typ (weld cases.typ t.todo)))
+    %collection  $(todo (weld args.typ t.todo))
+    %mrec  $(todo (weld args.typ t.todo))
+  ==
+::
+++  iwake-fill
+  |=  [queue=(list icore-edge) sub=isub index=(map @ud (list icore-edge)) fuel=@ud]
+  ^-  (unit (map @ud (list icore-edge)))
+  ?~  queue  `index
+  =/  edge=icore-edge  i.queue
+  =/  fits=(list dgo)  (icore-pending-fits ~[edge])
+  =/  types=(list itype)
+    (weld (turn fits |=(fit=dgo left.fit)) (turn fits |=(fit=dgo right.fit)))
+  =?  types  ?=(%tag -.edge)  [[%var id.edge] types]
+  =?  types  ?=(%coverage -.edge)  [subject.edge types]
+  =?  types  ?=(%match -.edge)  (weld (mold-capture-types captures.edge) types)
+  =?  types  ?=(%tagged-cell -.edge)  (weld (mold-capture-types captures.edge) types)
+  =/  scan=(unit iwake-scan-result)  (iwake-scan types sub ~ index edge fuel)
+  ?~  scan  ~
+  $(queue t.queue, index index.u.scan, fuel fuel.u.scan)
+::
+++  iwake-build
+  |=  [queue=(list icore-edge) sub=isub]
+  ^-  (unit iwake)
+  =/  index=(unit (map @ud (list icore-edge)))  (iwake-fill queue sub ~ 262.144)
+  ?~  index  ~
+  `[queue sub u.index]
+::
+++  iwake-affected
+  |=  [changes=(list ibinding) index=(map @ud (list icore-edge)) out=(list icore-edge)]
+  ^-  (list icore-edge)
+  ?~  changes  out
+  =/  found=(unit (list icore-edge))  (~(get by index) id.i.changes)
+  $(changes t.changes, out ?~(found out (weld u.found out)))
+::
+++  iwake-contains
+  |=  [edges=(list icore-edge) wanted=icore-edge]
+  ^-  ?
+  ?~  edges  |
+  ?:  =(i.edges wanted)  &
+  $(edges t.edges)
+::
+++  iwake-attempt
+  |=  state=istate
+  ^-  (unit (unit istate))
+  =/  cached=(unit iwake)  wake.state
+  ?~  cached  ~
+  ?.  =(queue.state queue.u.cached)  ~
+  =/  changes=(unit (list ibinding))
+    (isub-new-bindings (isub-history sub.state) (isub-history sub.u.cached) ~)
+  ?~  changes  ~
+  =/  witnesses=(unit (list ibinding))
+    (isub-new-witnesses (isub-witness-history sub.state) (isub-witness-history sub.u.cached) ~)
+  ?~  witnesses  ~
+  =/  affected=(list icore-edge)  (iwake-affected (weld u.changes u.witnesses) index.u.cached ~)
+  ?~  affected  ``state(wake `[queue.state sub.state index.u.cached])
+  =/  selected=(list icore-edge)
+    (skim (flop queue.state) |=(edge=icore-edge (iwake-contains affected edge)))
+  =/  trial=(unit icore-pass)  (icore-queue-pass selected state(queue ~) ~ |)
+  ?~  trial  `~
+  ?:  solved.u.trial  ~
+  =/  fresh=(unit iwake)  (iwake-build queue.state sub.state)
+  ``state(wake fresh)
+::
+++  icore-solve
+  |=  state=istate
+  ^-  (unit istate)
+  ?^  core-error.state  `state
+  =/  fast=(unit (unit istate))  (iwake-attempt state)
+  ?^  fast  u.fast
+  =/  solved=(unit istate)  (icore-solve-full state)
+  ?~  solved  ~
+  =/  fresh=(unit iwake)  (iwake-build queue.u.solved sub.u.solved)
+  `u.solved(wake fresh)
+::
+::  A tag tied only to another still-open variable has not been discharged.
+++  icore-tags-closed
+  |=  [tags=(list ipending) sub=isub]
+  ^-  ?
+  ?~  tags  &
+  =/  found=(unit itype)  (itype-lookup id.i.tags sub)
+  ?~  found  |
+  =/  root=itype  (itype-walk u.found sub)
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.root)  |
+  $(tags t.tags)
+::
+::  Keep a shared monomorphic structural root visible in a scheme until
+::  module closure. A root containing a quantified variable must instead
+::  be expanded so each scheme instantiation gets a fresh variable.
+++  itype-preserve-roots
+  |=  [t=itype sub=isub quantified=(list @ud)]
+  ^-  itype
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.t)
+    =/  walked=itype  (itype-walk t sub)
+    ?:  =(walked t)  t
+    =/  generalized=?  (lien (itype-vars (itype-normalize walked sub)) |=(id=@ud (lien quantified |=(v=@ud =(v id)))))
+    ?.  generalized  t
+    (itype-preserve-roots walked sub quantified)
+  ?-  -.t
+    %opaque  t(body (itype-preserve-roots body.t sub quantified), args (turn args.t |=(c=itype (itype-preserve-roots c sub quantified))))
+    %refined  t(proof (itype-preserve-roots proof.t sub quantified))
+    ?(%face %slot)  t(body (itype-preserve-roots body.t sub quantified))
+    %cell  t(hed (itype-preserve-roots hed.t sub quantified), tal (itype-preserve-roots tal.t sub quantified))
+    %fn  t(sample (itype-preserve-roots sample.t sub quantified), product (itype-preserve-roots product.t sub quantified))
+    %collection  t(args (turn args.t |=(arg=itype (itype-preserve-roots arg sub quantified))))
+    %mrec  t(args (turn args.t |=(arg=itype (itype-preserve-roots arg sub quantified))))
+    %union  t(cases (turn cases.t |=(c=itype (itype-preserve-roots c sub quantified))), args (turn args.t |=(arg=itype (itype-preserve-roots arg sub quantified))))
+    *  t
+  ==
+::
+::  Map generalized IDs to the names selected by cap-names.
+++  icore-preserved-renaming
+  |=  [from=(list @ud) to=(list @ud) out=(map @ud @ud)]
+  ^-  (unit (map @ud @ud))
+  ?~  from  ?~(to `out ~)
+  ?~  to  ~
+  =?  out  !=(i.from i.to)  (~(put by out) i.from i.to)
+  $(from t.from, to t.to)
+::
+::  A saved structural graph must carry the constraints on its quantified
+::  leaves. Those leaves are hidden from the module substitution when the
+::  graph closes; retaining their old plain %var spelling would erase the
+::  restriction inferred in the definition body.
+++  quantified-constraints
+  |=  [vars=(list @ud) typ=itype ren=isub]
+  ^-  isub
+  ?~  vars  ren
+  =/  id=@ud  i.vars
+  =/  replacement=itype
+    ?:  |((has-restricted-number-var id typ) &((has-number-var id typ) (itype-var-is-restricted id typ)))  [%rnvar id]
+    ?:  (has-number-var id typ)  [%nvar id]
+    ?:  (itype-var-is-restricted id typ)  [%rvar id]
+    ?:  (itype-var-is-atom id typ)  [%avar id]
+    ?:  (itype-var-is-gate-free id typ)  [%fvar id]
+    [%var id]
+  $(vars t.vars, ren (itype-bind id replacement ren))
+++  icore-generalize-preserved
+  |=  [raw=itype normalized=itype enclosing=@ud state=istate]
+  ^-  (unit ischeme)
+  =/  pending=(list dgo)  (icore-pending-fits queue.state)
+  =/  blocked=(unit dgscan)  (dg-obligations pending sub.state 32.768 ~)
+  ?~  blocked  ~
+  =/  tags=(unit dgscan)  (dg-tags (icore-open-tags tags.state sub.state) sub.state fuel.u.blocked ids.u.blocked)
+  ?~  tags  ~
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
+  =.  vars
+    %+  skim  vars
+    |=  n=@ud
+    ?:  (lien ids.u.tags |=(blocked=@ud =(blocked n)))  |
+    =/  birth=(unit @ud)  (~(get by levels.state) (var-count n))
+    ?~(birth | (gth u.birth enclosing))
+  =/  ordinary=ischeme  (cap-names normalized vars caps.state sub.state)
+  =/  ren=(unit (map @ud @ud))  (icore-preserved-renaming vars vars.ordinary ~)
+  ?~  ren  `ordinary
+  =/  roots=(list igraph-root)  (graph-capture ~[raw] sub.state vars *(set @ud) ~)
+  ?:  ?=(~ roots)
+    =/  preserved=itype  (itype-preserve-roots raw sub.state vars)
+    =.  preserved  (default-decimals (itype-reid preserved u.ren))
+    ?.  =((itype-normalize preserved sub.state) typ.ordinary)  `ordinary
+    `[preserved vars.ordinary ~]
+  :: Preserve the graph's source identity before generalization.  Renaming
+  :: applies to type variables everywhere, including each saved binding.
+  =/  source=igraph-scheme  [raw vars roots]
+  =/  witnesses=(list iwitness-change)  (graph-capture-witnesses source sub.state)
+  =/  renamed-roots=(list igraph-root)
+    %+  turn  roots
+    |=  r=igraph-root
+    [(fall (~(get by u.ren) id.r) id.r) (itype-reid body.r u.ren)]
+  =.  witnesses
+    %+  turn  witnesses
+    |=  w=iwitness-change
+    [(fall (~(get by u.ren) id.w) id.w) witness.w]
+  =/  preserved=itype  (default-decimals (itype-reid raw u.ren))
+  ?.  =((itype-reid (itype-normalize raw sub.state) u.ren) typ.ordinary)  `ordinary
+  =/  exported=ischeme  [preserved vars.ordinary `[renamed-roots witnesses]]
+  `(scheme-reid-types exported (quantified-constraints vars.ordinary typ.ordinary ~))
+::
+::  Keep graph-local roots and quantified IDs out of the defining module's
+::  substitution while publishing; all other referenced IDs must close.
+++  graph-hide-sub
+  |=  [sub=isub ids=(list @ud)]
+  ^-  isub
+  ?~  ids  sub
+  ?~  sub  ~
+  =.  index.u.sub  (~(del by index.u.sub) i.ids)
+  =.  witnesses.u.sub  (~(del by witnesses.u.sub) i.ids)
+  $(ids t.ids)
+++  graph-realize-roots
+  |=  [roots=(list igraph-root) sub=isub]
+  ^-  (unit (list igraph-root))
+  ?~  roots  `~
+  =/  body=(unit itype)  (itype-realize body.i.roots sub)
+  ?~  body  ~
+  =/  rest=(unit (list igraph-root))  $(roots t.roots)
+  ?~  rest  ~
+  `[[id.i.roots u.body] u.rest]
+++  graph-merge-witnesses
+  |=  [todo=(list iwitness-change) out=(list iwitness-change)]
+  ^-  (unit (list iwitness-change))
+  ?~  todo  `out
+  =/  same=(list iwitness-change)  (skim out |=(w=iwitness-change =(id.w id.i.todo)))
+  ?~  same  $(todo t.todo, out [i.todo out])
+  ?.  &(?=([* ~] same) =(witness.i.same witness.i.todo))  ~
+  $(todo t.todo)
+++  graph-close-scheme
+  |=  [scheme=ischeme sub=isub]
+  ^-  (unit ischeme)
+  ?~  graph.scheme  ~
+  =/  ids=(list @ud)  (turn roots.u.graph.scheme |=(r=igraph-root id.r))
+  =/  masked=isub  (graph-hide-sub sub (weld ids vars.scheme))
+  =/  realized=(unit itype)  (itype-realize typ.scheme masked)
+  ?~  realized  ~
+  =/  roots=(unit (list igraph-root))  (graph-realize-roots roots.u.graph.scheme masked)
+  ?~  roots  ~
+  =/  source=igraph-scheme  [typ.scheme vars.scheme roots.u.graph.scheme]
+  =/  latest=(list iwitness-change)  (graph-capture-witnesses source sub)
+  =/  evidence=(unit (list iwitness-change))  (graph-merge-witnesses latest witnesses.u.graph.scheme)
+  ?~  evidence  ~
+  =/  exported=igraph-scheme  [u.realized vars.scheme u.roots]
+  ?.  (graph-export-closed exported)  ~
+  ?~  (graph-instantiate-witness exported u.evidence *istate)  ~
+  `[u.realized vars.scheme `[u.roots u.evidence]]
+::
+::  Expand a closed graph only for presentation. The exported scheme keeps
+::  its roots so each call still receives fresh structural identity.
+++  graph-identity-ren
+  |=  [ids=(list @ud) ren=isub]
+  ^-  isub
+  ?~  ids  ren
+  $(ids t.ids, ren (itype-bind i.ids [%var i.ids] ren))
+++  scheme-display-type
+  |=  scheme=ischeme
+  ^-  (unit itype)
+  ?~  graph.scheme  `typ.scheme
+  =/  ids=(list @ud)  (turn roots.u.graph.scheme |=(r=igraph-root id.r))
+  =/  root-ren=isub  (graph-identity-ren ids ~)
+  =/  sub=(unit isub)  (graph-replay roots.u.graph.scheme root-ren ~)
+  ?~  sub  ~
+  =/  ren=isub  (graph-identity-ren vars.scheme root-ren)
+  =/  evidence=(unit isub)  (graph-replay-witnesses witnesses.u.graph.scheme ren u.sub)
+  ?~  evidence  ~
+  (itype-realize typ.scheme u.evidence)
+::
+++  icore-close-env
+  |=  [env=ienv sub=isub]
+  ^-  (unit ienv)
+  ?~  env  `~
+  =/  scheme=ischeme  scheme.i.env
+  ?^  graph.scheme
+    =/  closed=(unit ischeme)  (graph-close-scheme scheme sub)
+    ?~  closed  ~
+    =/  rest=(unit ienv)  $(env t.env)
+    ?~  rest  ~
+    `[[name.i.env u.closed] u.rest]
+  ?.  (levy vars.scheme |=(n=@ud ?=(~ (itype-lookup n sub))))  ~
+  =/  realized=(unit itype)  (itype-realize typ.scheme sub)
+  ?~  realized  ~
+  =.  typ.scheme  u.realized
+  ?:  (itype-has-tag typ.scheme)  ~
+  ::  Never publish a module-owned variable whose constraint has not
+  ::  closed. Quantified variables are scheme-local; every other variable
+  ::  must have been fixed by the final module substitution.
+  =/  remaining=(list @ud)  (unique-type-vars (itype-vars typ.scheme))
+  ?.  (levy remaining |=(n=@ud (lien vars.scheme |=(v=@ud =(v n)))))  ~
+  =/  rest=(unit ienv)  $(env t.env)
+  ?~  rest  ~
+  `[[name.i.env scheme] u.rest]
+::
+++  icore-anchor-result
+  |=  [scheme=ischeme state=istate]
+  ^-  [scheme=ischeme state=istate]
+  ?.  ?=(%fn -.typ.scheme)  [scheme state]
+  =/  product=itype  product.typ.scheme
+  ?.  (itype-has-tag product)  [scheme state]
+  ?:  (lien (itype-vars product) |=(n=@ud (lien vars.scheme |=(v=@ud =(n v)))))
+    [scheme state]
+  =/  id=@ud  next.state
+  [scheme(typ typ.scheme(product [%var id])) state(next +(id), sub (itype-bind id product sub.state))]
+::
+++  icore-sample-vars
+  |=  typ=itype
+  ^-  (list @ud)
+  ?-  -.typ
+    %opaque  (zing (turn [body.typ args.typ] |=(c=itype (icore-sample-vars c))))
+    %refined  $(typ proof.typ)
+    %fn  (weld (itype-vars sample.typ) (weld $(typ sample.typ) $(typ product.typ)))
+    %cell  (weld $(typ hed.typ) $(typ tal.typ))
+    ?(%face %slot)  $(typ body.typ)
+    %union  (zing (turn (weld cases.typ args.typ) |=(t=itype (icore-sample-vars t))))
+    %mrec  (zing (turn args.typ |=(t=itype (icore-sample-vars t))))
+    %collection  (zing (turn args.typ |=(t=itype (icore-sample-vars t))))
+    *  ~
+  ==
+++  icore-env-vars
+  |=  [env=ienv sub=isub]
+  ^-  (list @ud)
+  ?~  env  ~
+  =/  ids=(list @ud)  (scheme-free-vars scheme.i.env)
+  =/  resolved=(list @ud)  (zing (turn ids |=(n=@ud (itype-vars (itype-normalize [%var n] sub)))))
+  (weld resolved $(env t.env))
+++  icore-number-candidates
+  |=  [typ=itype env=ienv state=istate]
+  ^-  (list @ud)
+  =/  excluded=(list @ud)  (weld (icore-sample-vars typ) (icore-env-vars env sub.state))
+  %+  skim  (unique-type-vars (itype-vars typ))
+  |=  n=@ud
+  ?:  (lien excluded |=(x=@ud =(x n)))  |
+  ?:  (icap-root-matches n caps.state sub.state)  |
+  ?:  (atom-var-from-binder n binders.state sub.state)  |
+  ?:  (has-atom-var n typ)  |
+  (has-number-var n typ)
+++  icore-sample-number-candidates
+  |=  [typ=itype env=ienv state=istate]
+  ^-  (list @ud)
+  =/  samples=(list @ud)  (icore-sample-vars typ)
+  =/  enclosing=(list @ud)  (icore-env-vars env sub.state)
+  %+  skim  (unique-type-vars (itype-vars typ))
+  |=  n=@ud
+  ?.  (lien samples |=(x=@ud =(x n)))  |
+  ?:  (lien enclosing |=(x=@ud =(x n)))  |
+  ?:  (icap-root-matches n caps.state sub.state)  |
+  ?:  (atom-var-from-binder n binders.state sub.state)  |
+  (has-number-var n typ)
+::
+++  icore-number-test-sub
+  |=  [ids=(list @ud) sub=isub]
+  ^-  isub
+  ?~  ids  sub
+  $(ids t.ids, sub (itype-bind i.ids [%atom %ud] sub))
+++  icore-discharge-number-edges
+  |=  [queue=(list icore-edge) owner=term excluded=(list @ud) sub=isub]
+  ^-  (list icore-edge)
+  ?~  queue  ~
+  =/  edge=icore-edge  i.queue
+  ?.  &(?=(%number-default -.edge) =(owner.edge owner))
+    [edge $(queue t.queue)]
+  =/  root=itype  (itype-walk typ.edge sub)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.root)
+    [edge $(queue t.queue)]
+  ?:  (lien excluded |=(n=@ud =(n +.root)))  $(queue t.queue)
+  [edge $(queue t.queue)]
+++  icore-number-exclusions
+  |=  [typ=itype env=ienv state=istate]
+  ^-  (list @ud)
+  =/  all=(list @ud)  (unique-type-vars (itype-vars typ))
+  =/  excluded=(list @ud)  (weld (icore-sample-vars typ) (icore-env-vars env sub.state))
+  =/  constrained=(list @ud)
+    %+  skim  all
+    |=  n=@ud
+    |((icap-root-matches n caps.state sub.state) (atom-var-from-binder n binders.state sub.state) (has-atom-var n typ))
+  (weld excluded constrained)
+::
+::  A decimal linked to a generalized sample belongs to the gate's aura,
+::  rather than being an unconstrained product literal. Retain the arithmetic
+::  atom constraint on that scheme variable; other decimal roots stay local.
+++  graph-reachable-vars
+  |=  [todo=(list @ud) roots=(list igraph-root) seen=(list @ud)]
+  ^-  (list @ud)
+  ?~  todo  seen
+  ?:  (lien seen |=(n=@ud =(n i.todo)))  $(todo t.todo)
+  =/  root=(list igraph-root)  (skim roots |=(r=igraph-root =(id.r i.todo)))
+  =/  extra=(list @ud)  ?~(root ~ (itype-vars body.i.root))
+  $(todo (weld extra t.todo), seen [i.todo seen])
+++  scheme-reid-types
+  |=  [scheme=ischeme ren=isub]
+  ^-  ischeme
+  =.  typ.scheme  (itype-rename typ.scheme ren)
+  ?~  graph.scheme  scheme
+  =.  roots.u.graph.scheme
+    (turn roots.u.graph.scheme |=(r=igraph-root r(body (itype-rename body.r ren))))
+  scheme
+++  icore-generic-number-aura
+  |=  scheme=ischeme
+  ^-  ischeme
+  =/  roots=(list igraph-root)  ?~(graph.scheme ~ roots.u.graph.scheme)
+  =/  sample=(list @ud)  (graph-reachable-vars (icore-sample-vars typ.scheme) roots ~)
+  =/  internal=igraph-scheme  [typ.scheme vars.scheme roots]
+  =/  vars=(list @ud)  vars.scheme
+  =/  ren=isub  ~
+  |-
+  ?~  vars  (scheme-reid-types scheme ren)
+  =?  ren  &((lien sample |=(n=@ud =(n i.vars))) (graph-numeric i.vars internal))
+    (itype-bind i.vars [%rvar i.vars] ren)
+  $(vars t.vars)
+::
+++  icore-pending-number
+  |=  [id=@ud state=istate]
+  ^-  ?
+  ?~  wake.state  |
+  ?.  =(queue.state queue.u.wake.state)  |
+  =/  changes=(unit (list ibinding))
+    (isub-new-bindings (isub-history sub.state) (isub-history sub.u.wake.state) ~)
+  ?~  changes  |
+  =/  witnesses=(unit (list ibinding))
+    (isub-new-witnesses (isub-witness-history sub.state) (isub-witness-history sub.u.wake.state) ~)
+  ?~  witnesses  |
+  =/  root=itype  (itype-walk [%nvar id] sub.state)
+  ?.  ?=(?(%nvar %rnvar) -.root)  |
+  =/  ids=(list @ud)  [+.root (turn u.changes |=(b=ibinding id.b))]
+  |-
+  ?~  ids  |
+  =/  edges=(unit (list icore-edge))  (~(get by index.u.wake.state) i.ids)
+  ?~  edges  $(ids t.ids)
+  =/  found=?
+    %+  lien  u.edges
+    |=  edge=icore-edge
+    ?.  ?=(%number-default -.edge)  |
+    =/  candidate=itype  (itype-walk typ.edge sub.state)
+    &(?=(?(%nvar %rnvar) -.candidate) =(+.candidate +.root))
+  ?:  found  &
+  $(ids t.ids)
+++  icore-pending-numbers
+  |=  [typ=itype state=istate]
+  ^-  (list @ud)
+  ?~  wake.state  ~
+  ?.  (itype-has-nvar typ)  ~
+  %+  skim  (unique-type-vars (itype-vars typ))
+  |=  n=@ud
+  ?.  (has-number-var n typ)  |
+  ?:  (has-atom-var n typ)  |
+  ?:  (icap-root-matches n caps.state sub.state)  |
+  (icore-pending-number n state)
+::
+++  icore-has-error
+  |=  st=istate
+  ^-  ?
+  ?=(^ core-error.st)
+::
+++  icore-definition-diagnostic
+  |=  [d=def diagnostic=idiag]
+  ^-  idiag
+  ?^  sites.diagnostic  diagnostic
+  ?.  ?=(%value -.d)  diagnostic(sites ~[[at.d "definition"]])
+  =/  site=[at=span description=tape]  (module-limit-expression val.d)
+  diagnostic(sites ~[[at.site description.site]])
+::
+++  icore-generalizable-ids
+  |=  [normalized=itype enclosing=@ud state=istate]
+  ^-  (unit (list @ud))
+  =/  pending=(list dgo)  (icore-pending-fits queue.state)
+  =/  blocked=(unit dgscan)  (dg-obligations pending sub.state 32.768 ~)
+  ?~  blocked  ~
+  =/  tags=(unit dgscan)  (dg-tags (icore-open-tags tags.state sub.state) sub.state fuel.u.blocked ids.u.blocked)
+  ?~  tags  ~
+  =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
+  =.  vars
+    %+  skim  vars
+    |=  n=@ud
+    ?:  (lien ids.u.tags |=(blocked=@ud =(blocked n)))  |
+    =/  birth=(unit @ud)  (~(get by levels.state) (var-count n))
+    ?~(birth | (gth u.birth enclosing))
+  `vars
+::
+++  icore-one
+  |=  [d=def env=ienv state=istate]
+  ^-  (unit (each [env=ienv state=istate] idiag))
+  ?.  ?=(%value -.d)  ~
+  =.  levels.state  (ilevel-register registered.state next.state level.state levels.state)
+  =.  registered.state  next.state
+  =/  initial=istate  (reserve-def-caps val.d state(level +(level.state), owner name.d))
+  =/  inferred=iresult  (infer-fragment val.d env initial)
+  ?:  ?=(%| -.inferred)
+    `[%| (icore-definition-diagnostic d p.inferred)]
+  =/  st=istate  state.p.inferred
+  =.  levels.st  (ilevel-register registered.st next.st +(level.state) levels.st)
+  =.  registered.st  next.st
+  ::  Constraints already fixed by this body must settle before deciding
+  ::  which variables remain module-owned and which can be generalized.
+  =/  settled=(unit istate)  (icore-solve st)
+  ?~  settled  `[%| (icore-definition-diagnostic d ["expression constraints could not be solved" ~])]
+  =.  st  u.settled
+  :: A definite queued failure carries its original owner and sites.  Do
+  :: not let later generalization erase it as a constrained-capital limit.
+  ?:  (icore-has-error st)  `[%& [env st]]
+  =.  st  (promote-restricted-numbers st env)
+  =.  st  (default-hole-numbers holes.st holes.state st env !(itype-has-gate (itype-normalize typ.p.inferred sub.st)))
+  =/  hole=(unit idiag)  (unresolved-hole holes.st holes.state st)
+  ?^  hole  `[%| u.hole]
+  =/  merged=(unit [first=icap second=icap])  (merged-capitals caps.st sub.st)
+  ?^  merged
+    `[%| ["distinct type variables `{(trip name.first.u.merged)}` and `{(trip name.second.u.merged)}` must not be forced equal; use the same capital for a shared type" ~[[at.first.u.merged "first type variable"] [at.second.u.merged "second type variable"]]]]
+  =/  narrowed=(unit idiag)
+    (newly-constrained-capital caps.st sub.initial sub.st val.d &)
+  ?^  narrowed  `[%| u.narrowed]
+  ?:  (constrained-capitals caps.st sub.st)
+    `[%| (icore-definition-diagnostic d ["written capitals have incompatible constraints" ~])]
+  =/  typ=itype  (default-decimals (itype-normalize typ.p.inferred sub.st))
+  =/  nums=(list @ud)  (icore-number-candidates typ env st)
+  =/  sample-nums=(list @ud)  (icore-sample-number-candidates typ env st)
+  =/  pending-nums=(list @ud)  (icore-pending-numbers typ st)
+  =/  test-sub=isub  (icore-number-test-sub (weld pending-nums (weld nums sample-nums)) sub.st)
+  ?:  (unsupported-atom-vars (itype-normalize typ test-sub) caps.st binders.st test-sub)
+    `[%| (icore-definition-diagnostic d ["expression leaves an atom constraint without an aura" ~])]
+  =/  excluded=(list @ud)  (icore-number-exclusions typ env st)
+  =.  queue.st  (icore-discharge-number-edges queue.st name.d excluded sub.st)
+  =.  st  (ilevel-refresh st)
+  :: Anchor a monomorphic product before scheme-local renaming. Open tags
+  :: remain module-owned; generalized leaves and private occurrence evidence
+  :: cannot safely be hidden behind the shared root.
+  =/  raw=itype  typ.p.inferred
+  =/  gate=itype  (itype-walk raw sub.st)
+  =/  anchored-raw=[raw=itype state=istate]
+    ?.  ?=(%fn -.gate)  [raw st]
+    =/  product=itype  product.gate
+    =/  visible=itype  (itype-normalize product sub.st)
+    =/  visible-vars=(list @ud)  (unique-type-vars (itype-vars visible))
+    =/  quantified=(unit (list @ud))
+      ?~  visible-vars  `~
+      (icore-generalizable-ids typ level.state st)
+    ?~  quantified  [raw st]
+    ?:  (lien visible-vars |=(n=@ud (lien u.quantified |=(q=@ud =(n q)))))
+      [raw st]
+    ?:  (itype-private-evidence product sub.st 1.024)  [raw st]
+    =/  id=@ud  next.st
+    [gate(product [%var id]) st(next +(id), sub (itype-bind id product sub.st))]
+  =.  raw  raw.anchored-raw
+  =.  st  state.anchored-raw
+  =/  scheme=(unit ischeme)  (icore-generalize-preserved raw typ level.state st)
+  ?~  scheme  `[%| (icore-definition-diagnostic d ["definition constraints could not be generalized" ~])]
+  ::  Keep a monomorphic structural result with an open tag behind a
+  ::  substitution root. A later context may add record faces to that
+  ::  same position; the queue can then retain them in this definition's
+  ::  exported type. Never put quantified variables behind this shared root.
+  =/  anchored=[scheme=ischeme state=istate]  (icore-anchor-result (icore-generic-number-aura u.scheme) st)
+  =.  st  state.anchored
+  =.  st  st(caps caps.state, holes holes.state, binders binders.state, level level.state)
+  ::  The incoming queue already reached a fixed point. An unrelated
+  ::  definition cannot wake it unless inference adds a binding or an
+  ::  obligation, so avoid rescanning it when both are unchanged.
+  =/  solved=(unit istate)
+    ?:  &(=(sub.st sub.state) =(queue.st queue.state))  `st
+    (icore-solve st)
+  ?~  solved  `[%| (icore-definition-diagnostic d ["definition constraints could not be solved" ~])]
+  `[%& [[[name.d scheme.anchored] env] u.solved]]
+::
++$  icore-definition  [order=@ud entry=def]
+++  icore-definition-index
+  |=  [ds=(list def) index=(map term icore-definition) order=@ud]
+  ^-  (map term icore-definition)
+  ?~  ds  index
+  ?.  ?=(%value -.i.ds)  $(ds t.ds, order +(order))
+  $(ds t.ds, index (~(put by index) name.i.ds [order i.ds]), order +(order))
+::
+++  icore-members
+  |=  [names=(list term) index=(map term icore-definition)]
+  ^-  (list def)
+  =/  entries=(list icore-definition)
+    (murn names |=(name=term (~(get by index) name)))
+  =.  entries
+    (sort entries |=(pair=[icore-definition icore-definition] (lth order.-.pair order.+.pair)))
+  (turn entries |=(item=icore-definition entry.item))
+::
+:: Diagnostic continuation may use a checked, fully closed gate sample after
+:: its body fails. The result remains unconstrained and the recorded error
+:: still prevents this environment from ever being published.
+++  icore-failed-gate-sample
+  |=  [d=def env=ienv state=istate]
+  ^-  (unit [env=ienv state=istate])
+  ?.  ?=(%value -.d)  ~
+  =/  e=expr  val.d
+  |-
+  ?:  ?=(%group -.e)  $(e inner.e)
+  ?.  ?=(?(%gate %gate-wide) -.e)  ~
+  =/  initial=istate  (reserve-def-caps e state(level +(level.state), owner name.d))
+  =/  sam=isample-result  (infer-sample sample.e env initial)
+  ?:  ?=(%| -.sam)  ~
+  ?.  &(=(sub.state.p.sam sub.initial) =(queue.state.p.sam queue.initial) =(tags.state.p.sam tags.initial) =(holes.state.p.sam holes.initial))  ~
+  =/  sample=itype  (itype-normalize typ.p.sam sub.state.p.sam)
+  ?:  |(?=(^ (itype-vars sample)) (itype-has-tag sample))  ~
+  =/  id=@ud  next.state
+  =/  scheme=ischeme  [[%fn sample [%var id]] ~ ~]
+  =/  st=istate  state(next +(id))
+  =.  levels.st  (ilevel-register registered.st next.st level.st levels.st)
+  =.  registered.st  next.st
+  `[[[name.d scheme] env] st]
+::
+++  icore-components
+  |=  [components=icomponents index=(map term icore-definition) graph=iadj env=ienv state=istate grouped=(list term) failure=(unit [owner=term diag=idiag prior=(list ipending)])]
+  ^-  (unit [env=ienv state=istate grouped=(list term) failure=(unit [owner=term diag=idiag prior=(list ipending)])])
+  ?^  core-error.state  `[env state grouped failure]
+  ?~  components  `[env state grouped failure]
+  =/  names=(list term)  i.components
+  =/  members=(list def)  (icore-members names index)
+  ?.  =((lent members) (lent names))  ~
+  ?~  members  ~
+  ?:  (graph-cycle names graph)
+    =/  cycle=(unit [owner=term diag=idiag])
+      (value-cycle-diagnostic members names graph env state)
+    ?^  cycle
+      =?  failure  ?=(~ failure)  `[owner.u.cycle diag.u.cycle tags.state]
+      $(components t.components)
+    =/  group=ilocal-result  (infer-gate-group members env state)
+    ?:  ?=(%| -.group)
+      =/  named=(unit [owner=term diag=idiag])
+        ?.  =(msg.p.group "recursive group contains a non-gate")  ~
+        (gate-cycle-diagnostic members names graph env state)
+      ?^  named
+        =?  failure  ?=(~ failure)  `[owner.u.named diag.u.named tags.state]
+        $(components t.components)
+      =?  failure  ?=(~ failure)
+        `[(recursive-diagnostic-owner members p.group) (icore-definition-diagnostic i.members p.group) tags.state]
+      $(components t.components)
+    =/  solved=(unit istate)  (icore-solve state.p.group)
+    ?~  solved  ~
+    $(components t.components, env env.p.group, state u.solved, grouped (weld names grouped))
+  ?.  ?=([* ~] members)  ~
+  =/  result=(unit (each [env=ienv state=istate] idiag))  (icore-one i.members env state)
+  ?~  result
+    ?~  failure  ~
+    $(components t.components)
+  ?:  ?=(%| -.u.result)
+    =/  seed=(unit [env=ienv state=istate])
+      ?:  |(?=(^ failure) !(definite-diag p.u.result))  ~
+      (icore-failed-gate-sample i.members env state)
+    =?  failure  ?=(~ failure)  `[name.i.members p.u.result tags.state]
+    ?~  seed  $(components t.components)
+    $(components t.components, env env.u.seed, state state.u.seed)
+  $(components t.components, env env.p.u.result, state state.p.u.result)
+::
++$  icore-output  [result=(unit iresolved) error=(unit [owner=term diag=idiag])]
+::  Explain a deferred match only after the whole module has had a chance
+::  to constrain its subject. A still-open subject may change the answer,
+::  so it remains an unsupported obligation rather than a definite error.
+++  icore-match-error
+  |=  [queue=(list icore-edge) state=istate]
+  ^-  (unit [owner=term diag=idiag])
+  ?~  queue  ~
+  =/  edge=icore-edge  i.queue
+  ?.  ?=(%match -.edge)  $(queue t.queue)
+  =/  subject=itype  (itype-normalize subject.edge sub.state)
+  ?:  |(?=(^ (itype-vars subject)) (itype-has-tag subject))  $(queue t.queue)
+  =/  branch=expr  branch.edge
+  ?.  ?=(%branch -.branch)  $(queue t.queue)
+  =/  site=span  (span-of subject.branch)
+  =.  branch  branch(subject [%wing site ~[%$]])
+  =/  context=istate
+    state(queue ~, caps caps.edge, molds molds.edge, mold-captures captures.edge, globals globals.edge, binders binders.edge, level level.edge, owner owner.edge)
+  =/  inferred=iresult
+    (infer-fragment branch [[%$ [subject.edge ~ ~]] env.edge] context)
+  ?:  ?=(%& -.inferred)  $(queue t.queue)
+  ?.  (definite-diag p.inferred)  $(queue t.queue)
+  `[owner.edge p.inferred]
+::
+::  Only after all components have supplied context may a still-open
+::  branch result be reported as a definite closed-arm mismatch.
+++  diagnostic-expression-at
+  |=  [todo=(list expr) site=span]
+  ^-  (unit expr)
+  ?~  todo  ~
+  =/  e=expr  i.todo
+  ?:  =((span-of e) site)  `e
+  $(todo (weld (dependency-children e) t.todo))
+::  Recover only an unambiguous structural route from a deferred child to
+::  a bound expected root. The immutable ancestor substitutions preserve the
+::  exact bindings that were in force when each child was produced.
++$  idiagnostic-fit-step  ?(%same %head %tail %sample %product %item)
++$  idiagnostic-fit-child  [left=itype right=itype step=idiagnostic-fit-step]
+++  diagnostic-fit-children
+  |=  ancestor=ifit-ancestor
+  ^-  (list idiagnostic-fit-child)
+  =/  l=itype  (itype-walk left.ancestor sub.ancestor)
+  =/  r=itype  (itype-walk right.ancestor sub.ancestor)
+  ?:  &(?=(?(%face %slot) -.l) ?=(?(%face %slot) -.r))
+    ?.  =(name.l name.r)  ~
+    ~[[body.l body.r %same]]
+  ?:  ?=(?(%face %slot) -.l)  ~[[body.l r %same]]
+  ?:  ?=(?(%face %slot) -.r)  ~[[l body.r %same]]
+  ?:  &(?=(%cell -.l) ?=(%cell -.r))
+    ~[[hed.l hed.r %head] [tal.l tal.r %tail]]
+  ?:  &(?=(%collection -.l) ?=(%collection -.r) =(name.l name.r) ?=([* ~] args.l) ?=([* ~] args.r))
+    ~[[i.args.l i.args.r %item]]
+  ?:  &(?=(%fn -.l) ?=(%fn -.r))
+    ~[[sample.l sample.r %sample] [product.l product.r %product]]
+  ~
+++  diagnostic-fit-root
+  |=  [child-left=itype child-right=itype ancestors=(list ifit-ancestor) path=(list idiagnostic-fit-step)]
+  ^-  (unit [id=@ud path=(list idiagnostic-fit-step) sub=isub])
+  ?~  ancestors  ~
+  =/  parent=ifit-ancestor  i.ancestors
+  :: A pending child may be rewrapped unchanged after a retry. It carries
+  :: no structural step, so skip it rather than inventing one.
+  ?:  &(=(left.parent child-left) =(right.parent child-right))
+    $(ancestors t.ancestors)
+  =/  matches=(list idiagnostic-fit-child)
+    %+  skim  (diagnostic-fit-children parent)
+    |=  c=idiagnostic-fit-child
+    &(=(left.c child-left) =(right.c child-right))
+  ?.  ?=([* ~] matches)  ~
+  =/  step=idiagnostic-fit-step  step.i.matches
+  =/  next-path=(list idiagnostic-fit-step)  ?:(=(%same step) path [step path])
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.right.parent)
+    =/  id=@ud  +.right.parent
+    ?~  (itype-lookup id sub.parent)  ~
+    `[id next-path sub.parent]
+  $(child-left left.parent, child-right right.parent, ancestors t.ancestors, path next-path)
+::
+:: Compare corresponding raw occurrences while replaying a successful fit.
+:: Only a unique expected-root occurrence identifies an actual source path.
++$  idiagnostic-origin  [typ=itype path=(list idiagnostic-fit-step)]
+++  diagnostic-fit-correspondences
+  |=  [actual=itype expected=itype root=@ud sub=isub path=(list idiagnostic-fit-step) fuel=@ud]
+  ^-  (list idiagnostic-origin)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?:  &(?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.expected) =(+.expected root))
+    ~[[actual (flop path)]]
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
+    ?.  =(name.actual name.expected)  ~
+    $(actual body.actual, expected body.expected, fuel fuel)
+  ?:  ?=(?(%face %slot) -.actual)  $(actual body.actual, fuel fuel)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected, fuel fuel)
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    (weld $(actual hed.actual, expected hed.expected, path [%head path], fuel fuel) $(actual tal.actual, expected tal.expected, path [%tail path], fuel fuel))
+  ?:  &(?=(%collection -.actual) ?=(%collection -.expected) =(name.actual name.expected) ?=([* ~] args.actual) ?=([* ~] args.expected))
+    $(actual i.args.actual, expected i.args.expected, path [%item path], fuel fuel)
+  ?:  &(?=(%union -.actual) ?=(%union -.expected) =(origin.actual origin.expected) ?=([* ~] args.actual) ?=([* ~] args.expected))
+    =/  next-path=(list idiagnostic-fit-step)
+      ?~(path ~[%item] ?:(=(%item i.path) path [%item path]))
+    $(actual i.args.actual, expected i.args.expected, path next-path, fuel fuel)
+  ?:  &(?=(%opaque -.actual) ?=(%opaque -.expected) =(origin.actual origin.expected) ?=([* ~] args.actual) ?=([* ~] args.expected))
+    =/  next-path=(list idiagnostic-fit-step)
+      ?~(path ~[%item] ?:(=(%item i.path) path [%item path]))
+    $(actual i.args.actual, expected i.args.expected, path next-path, fuel fuel)
+  ?:  &(?=(%fn -.actual) ?=(%fn -.expected))
+    (weld $(actual sample.actual, expected sample.expected, path [%sample path], fuel fuel) $(actual product.actual, expected product.expected, path [%product path], fuel fuel))
+  ~
+++  diagnostic-call-origin
+  |=  [args=(list expr) actual=itype expected=itype root=@ud sub=isub next=@ud]
+  ^-  (unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  ?~  args  ~
+  ?.  ?=(~ (itype-lookup root sub))  ~
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(?(%face %slot) -.expected) !?=(?(%face %slot) -.actual))
+    $(expected body.expected)
+  ?:  &(?=(^ t.args) !&(?=(%cell -.actual) ?=(%cell -.expected)))  ~
+  =/  pair=[actual=itype expected=itype]
+    ?~  t.args  [actual expected]
+    ?>  &(?=(%cell -.actual) ?=(%cell -.expected))
+    [hed.actual hed.expected]
+  =/  fitted=ifit  (itype-fit actual.pair expected.pair sub next)
+  ?.  ?=(%ok -.fitted)  ~
+  ?:  ?=(^ (itype-lookup root sub.fitted))
+    =/  candidates=(list idiagnostic-origin)
+      (diagnostic-fit-correspondences actual.pair expected.pair root sub ~ 1.024)
+    ?.  ?=([* ~] candidates)  ~
+    `[i.args typ.i.candidates path.i.candidates sub.fitted]
+  ?~  t.args  ~
+  ?>  &(?=(%cell -.actual) ?=(%cell -.expected))
+  $(args t.args, actual tal.actual, expected tal.expected, sub sub.fitted, next next.fitted)
+::
+:: Find other call arguments that contain this exact expected variable.
+:: Each candidate carries a diagnostic-only binding; the caller must replay
+:: the original mismatch and require one unique proof before using it.
+++  diagnostic-call-open-origins
+  |=  [args=(list expr) actual=itype expected=itype root=@ud site=span sub=isub next=@ud]
+  ^-  (list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  =/  todo=(list expr)  args
+  |-
+  ^-  (list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  ?~  todo  ~
+  =/  pair=(unit [actual=itype expected=itype])
+    (diagnostic-call-argument-pair args actual expected (span-of i.todo) sub)
+  =/  found=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    ?:  =((span-of i.todo) site)  ~
+    ?~  pair  ~
+    =/  origins=(list idiagnostic-origin)
+      (diagnostic-fit-correspondences actual.u.pair expected.u.pair root sub ~ 1.024)
+    %+  murn  origins
+    |=  origin=idiagnostic-origin
+    ?.  (diagnostic-closed-type typ.origin sub)  ~
+    =/  fit=ifit  (itype-fit [%var root] typ.origin sub next)
+    ?.  ?=(%ok -.fit)  ~
+    `[i.todo typ.origin path.origin sub.fit]
+  (weld found $(todo t.todo))
+::
+:: Follow a proven structural type route through a direct source value.
+:: Tuple tails account for the language's right-nested cell representation.
+:: Unsupported source forms and a path into a sample fail closed.
+++  diagnostic-source-type-path
+  |=  [source=expr path=(list idiagnostic-fit-step)]
+  ^-  (unit expr)
+  ?~  path  `source
+  ?:  ?=(%group -.source)  $(source inner.source)
+  ?:  ?=(%body -.source)  $(source final.source)
+  ?:  =(%product i.path)
+    ?.  ?=(?(%gate %gate-wide) -.source)  ~
+    $(source body.source, path t.path)
+  ?.  ?=(%tuple -.source)  ~
+  (diagnostic-tuple-type-path items.source path)
+++  diagnostic-tuple-type-path
+  |=  [items=(list item) path=(list idiagnostic-fit-step)]
+  ^-  (unit expr)
+  ?~  items  ~
+  ?~  t.items  (diagnostic-source-type-path val.i.items path)
+  ?~  path  ~
+  ?-  i.path
+    %head  (diagnostic-source-type-path val.i.items t.path)
+    %tail  $(items t.items, path t.path)
+    *  ~
+  ==
+::
+:: A later positional fit can expose an earlier argument's bad field.
+:: Replay only the saved positional occurrence and require a unique paired
+:: root route, a top-level call, and one direct local source definition.
+++  diagnostic-deferred-field
+  |=  [edge=icore-edge root=@ud wanted=itype state=istate defs=(list def)]
+  ^-  (unit span)
+  ?.  ?=(%guarded-fit -.edge)  ~
+  =/  name=(unit term)
+    =/  ancestors=(list ifit-ancestor)  ancestors.edge
+    |-
+    ?~  ancestors  ~
+    =/  parent=ifit-ancestor  i.ancestors
+    ?:  ?=(?(%face %slot) -.left.parent)  `name.left.parent
+    $(ancestors t.ancestors)
+  ?~  name  ~
+  =/  record=(unit itype)
+    =/  ancestors=(list ifit-ancestor)  ancestors.edge
+    |-
+    ?~  ancestors  ~
+    =/  parent=ifit-ancestor  i.ancestors
+    ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.right.parent)  $(ancestors t.ancestors)
+    ?.  =(+.right.parent root)  $(ancestors t.ancestors)
+    =/  typ=itype  (itype-walk left.parent sub.parent)
+    =?  typ  ?=(?(%face %slot) -.typ)  body.typ
+    `typ
+  ?~  record  ~
+  =/  origins=(list irecord-origin)  (diagnostic-record-origins defs u.record state)
+  ?.  ?=([* ~] origins)  ~
+  =/  written=(unit expr)  (diagnostic-expression-at ~[forcing.edge] at.edge)
+  ?~  written  ~
+  ?.  ?=([* ~] (diagnostic-annotated-args ~[u.written] defs name.i.origins))  ~
+  =/  molds=(list def)
+    (skim defs |=(d=def &(?=(%mold -.d) =(name.d name.i.origins))))
+  ?.  ?=([* ~] molds)  ~
+  ?>  ?=(%mold -.i.molds)
+  ?.  ?=(%cell -.shape.i.molds)  ~
+  =/  fields=(list field)
+    (skim fields.shape.i.molds |=(f=field &(?=(%face -.f) =(name.f u.name))))
+  ?.  ?=([* ~] fields)  ~
+  ?>  ?=(%face -.i.fields)
+  =/  inferred=(unit [typ=itype state=istate])
+    (infer-simple-shape shape.i.fields state)
+  ?~  inferred  ~
+  ?.  =((itype-normalize typ.u.inferred sub.state.u.inferred) (itype-normalize wanted sub.state))  ~
+  `at.i.fields
+::
+:: Follow only unambiguous local value aliases; imported values, cycles and
+:: nonlocal expressions retain the ordinary deferred diagnostic.
+++  diagnostic-local-value-source
+  |=  [name=term defs=(list def) seen=(list term) fuel=@ud]
+  ^-  (unit [name=term value=expr])
+  ?:  =(0 fuel)  ~
+  ?:  (lien seen |=(n=term =(n name)))  ~
+  =/  sources=(list def)
+    (skim defs |=(d=def &(?=(%value -.d) =(name.d name))))
+  ?.  ?=([* ~] sources)  ~
+  ?>  ?=(%value -.i.sources)
+  =/  value=expr  val.i.sources
+  =.  value
+    |-  ^-  expr
+    ?:  ?=(%group -.value)  $(value inner.value)
+    value
+  ?:  ?=(%wing -.value)
+    ?.  ?=([@ ~] names.value)  ~
+    $(name i.names.value, seen [name seen], fuel (dec fuel))
+  `[name value]
+::
+::  Source-origin enrichment for a call fit that has already definitely
+::  failed.  The fit ancestry selects an occurrence; independently checking
+::  its direct gate and written route verifies the site.  No candidate is
+::  selected merely because an unrelated expression has an equal shape.
++$  iorigin-kind  ?(%sample %result %definition)
++$  iorigin-site  [sites=(list idsite) name=(unit term) kind=iorigin-kind]
++$  iwritten-gate  [name=(unit term) final=term definition=(unit idsite) aliases=(list idsite) value=expr]
+++  diagnostic-written-gate
+  |=  [source=expr defs=(list def) state=istate]
+  ^-  (unit iwritten-gate)
+  =.  source
+    |-  ^-  expr
+    ?:  ?=(%group -.source)  $(source inner.source)
+    source
+  ?:  ?=(?(%gate %gate-wide) -.source)
+    `[~ %$ ~ ~ source]
+  ?.  ?=(%wing -.source)  ~
+  ?.  ?=([@ ~] names.source)  ~
+  =/  found=(unit [name=term value=expr])
+    (diagnostic-local-value-source i.names.source defs ~ 1.024)
+  ?~  found  ~
+  ?.  ?=(?(%gate %gate-wide) -.value.u.found)  ~
+  =/  selected=(list def)
+    (skim defs |=(d=def &(?=(%value -.d) =(name.d name.u.found) ?=(?(%gate %gate-wide) -.val.d))))
+  ?.  ?=([* ~] selected)  ~
+  =/  definition=(unit idsite)
+    ?~  local-source.state  ~
+    `[(definition-name-site at.state u.local-source.state at.i.selected) "direct local gate definition"]
+  `[`i.names.source name.u.found definition ~[[(span-of source) "local value alias"]] value.u.found]
+++  diagnostic-source-env
+  |=  state=istate
+  ^-  ienv
+  ?~(prelude.state ~ values.u.prelude.state)
+++  diagnostic-gate-parts
+  |=  e=expr
+  ^-  (unit [sample=sample body=expr])
+  ?-  -.e
+    %gate       `[sample.e body.e]
+    %gate-wide  `[sample.e body.e]
+    *           ~
+  ==
+++  diagnostic-written-gate-type
+  |=  [written=iwritten-gate state=istate]
+  ^-  (unit [typ=itype state=istate])
+  =/  e=expr  value.written
+  =.  e
+    |-  ^-  expr
+    ?:  ?=(%group -.e)  $(e inner.e)
+    e
+  =/  parts=(unit [sample=sample body=expr])  (diagnostic-gate-parts e)
+  ?~  parts  ~
+  =/  initial=istate
+    state(caps ~, binders ~, params ~, active ~, queue ~, tags ~, holes ~, level +(level.state))
+  =/  sam=isample-result
+    (infer-sample sample.u.parts (diagnostic-source-env initial) initial)
+  ?:  ?=(%| -.sam)  ~
+  =/  body=iresult
+    (infer-fragment body.u.parts env.p.sam state.p.sam)
+  ?:  ?=(%| -.body)  ~
+  `[[%fn typ.p.sam typ.p.body] state.p.body]
+++  diagnostic-closed-type
+  |=  [typ=itype sub=isub]
+  ^-  ?
+  =/  normalized=itype  (itype-normalize typ sub)
+  &(!?=(^ (itype-vars normalized)) !(itype-has-tag normalized))
+++  diagnostic-source-type-equal
+  |=  [left=itype right=itype left-sub=isub right-sub=isub next=@ud]
+  ^-  ?
+  =/  l=itype  (itype-normalize left left-sub)
+  =/  r=itype  (itype-normalize right right-sub)
+  ?:  &((diagnostic-closed-type l ~) (diagnostic-closed-type r ~))  =(l r)
+  ::  A gate's constructor is enough to prove a gate-free constraint error.
+  ::  All other open occurrences remain unenriched.
+  ?.  &(?=(%fn -.l) ?=(%fn -.r))  |
+  =/  fit=ifit  (direct-invariant l r ~ next)
+  ?=(%ok -.fit)
+++  diagnostic-sample-name-site
+  |=  [sam=sample name=term]
+  ^-  (unit span)
+  ?-  -.sam
+    %bind  ?:(=(name.sam name) `at.sam ~)
+    %face  ?:(=(name.sam name) `at.sam ~)
+    %pun   ?:(=(name.sam name) `at.sam ~)
+    %cell
+      =/  items=(list sample)  items.sam
+      |-
+      ?~  items  ~
+      =/  found=(unit span)  (diagnostic-sample-name-site i.items name)
+      ?^  found  found
+      $(items t.items)
+    *  ~
+  ==
+::  A source head is the checked prelude constructor only when no local
+::  binding shadows that name. The caller separately checks its value types.
+++  diagnostic-checked-prelude-head
+  |=  [name=term source=expr defs=(list def) state=istate]
+  ^-  ?
+  |-  ^-  ?
+  ?:  ?=(%group -.source)  $(source inner.source)
+  ?.  ?=(%wing -.source)  |
+  ?.  ?=([@ ~] names.source)  |
+  ?.  =(name i.names.source)  |
+  ?~  prelude.state  |
+  ?~  (ienv-lookup name values.u.prelude.state)  |
+  =/  local=(list def)
+    (skim defs |=(d=def &(?=(%value -.d) =(name.d name))))
+  ?=(~ local)
+::  Follow the same unique local value aliases as the other source
+::  diagnostics. Casts and groups are transparent; all other forms stay put.
+++  diagnostic-local-source-value
+  |=  [source=expr defs=(list def)]
+  ^-  (unit expr)
+  |-  ^-  (unit expr)
+  ?:  ?=(%group -.source)  $(source inner.source)
+  ?:  ?=(%cast -.source)  $(source val.source)
+  ?.  ?=(%wing -.source)  `source
+  ?.  ?=([@ ~] names.source)  ~
+  =/  found=(unit [name=term value=expr])
+    (diagnostic-local-value-source i.names.source defs ~ 1.024)
+  ?~  found  ~
+  $(source value.u.found)
+::  The initializer source must be the first argument of the checked program
+::  constructor that produced the actual program argument. A source-looking
+::  record or a same-named local gate is not enough evidence.
+++  diagnostic-island-init-source
+  |=  [source=expr state=istate defs=(list def)]
+  ^-  (unit expr)
+  =/  value=(unit expr)  (diagnostic-local-source-value source defs)
+  ?~  value  ~
+  ?.  ?=(%call -.u.value)  ~
+  ?.  (diagnostic-checked-prelude-head %program head.u.value defs state)  ~
+  ?.  ?=([* * * * ~] args.u.value)  ~
+  `i.args.u.value
+::  Specialize an already definite island call mismatch only after replaying
+::  its program fit and certifying both the data/init relationship and the
+::  written initializer sample. Every incomplete case returns ~, preserving
+::  the ordinary call diagnostic and its original source sites.
+++  diagnostic-island-data-origin
+  |=  [forcing=expr actual=itype expected=itype at=span pair-sub=isub next=@ud state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%call -.forcing)  ~
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  defs=(list def)  defs.p.parsed
+  ?.  (diagnostic-checked-prelude-head %island head.forcing defs state)  ~
+  ?.  ?=([* * ~] args.forcing)  ~
+  ?.  =(at (span-of i.t.args.forcing))  ~
+  =/  program=(unit [actual=itype expected=itype])
+    (diagnostic-call-argument-pair args.forcing actual expected (span-of i.args.forcing) pair-sub)
+  ?~  program  ~
+  =/  program-fit=ifit
+    (itype-fit actual.u.program expected.u.program pair-sub next)
+  ?.  !?=(%bad -.program-fit)  ~
+  =/  evidence=isub  ?:(?=(%ok -.program-fit) sub.program-fit pair-sub)
+  =/  evidence-next=@ud  ?:(?=(%ok -.program-fit) next.program-fit next)
+  =/  data=(unit [actual=itype expected=itype])
+    (diagnostic-call-argument-pair args.forcing actual expected at evidence)
+  ?~  data  ~
+  =/  init-fields=(list itype)
+    (record-fields-named %init actual.u.program evidence)
+  ?.  ?=([* ~] init-fields)  ~
+  =/  init=itype  i.init-fields
+  ?.  ?=(%fn -.init)  ~
+  =/  wanted=itype  (itype-normalize sample.init evidence)
+  =/  expected-data=itype  (itype-normalize expected.u.data sub.state)
+  =/  given=itype  (itype-normalize actual.u.data sub.state)
+  ?.  =(wanted expected-data)  ~
+  ?.  (diagnostic-closed-type wanted ~)  ~
+  ?.  (diagnostic-closed-type given ~)  ~
+  =/  init-source=(unit expr)
+    (diagnostic-island-init-source i.args.forcing state defs)
+  ?~  init-source  ~
+  =/  written=(unit iwritten-gate)
+    (diagnostic-written-gate u.init-source defs state)
+  ?~  written  ~
+  =/  parts=(unit [sample=sample body=expr])
+    (diagnostic-gate-parts value.u.written)
+  ?~  parts  ~
+  =/  initial=istate
+    state(caps ~, binders ~, params ~, active ~, queue ~, tags ~, holes ~, level +(level.state))
+  =/  sam=isample-result
+    (infer-sample sample.u.parts (diagnostic-source-env initial) initial)
+  ?:  ?=(%| -.sam)  ~
+  =/  annotated=itype  (itype-normalize typ.p.sam sub.state.p.sam)
+  ?.  (diagnostic-closed-type annotated ~)  ~
+  ?.  =(annotated wanted)  ~
+  =/  init-note=tape  "init expects {(show-itype wanted ~)}"
+  =/  data-note=tape  (site-type-note "island data" given ~)
+  `["island data has type {(show-itype given ~)}, but {init-note}" ~[[(module-limit-sample-site sample.u.parts) init-note] [at data-note]]]
+++  diagnostic-written-product-site
+  |=  [written=iwritten-gate path=(list idiagnostic-fit-step) target=itype state=istate]
+  ^-  (unit iorigin-site)
+  =/  e=expr  value.written
+  =.  e
+    |-  ^-  expr
+    ?:  ?=(%group -.e)  $(e inner.e)
+    e
+  =/  parts=(unit [sample=sample body=expr])  (diagnostic-gate-parts e)
+  ?~  parts  ~
+  ?~  path
+    =/  identity=(unit span)
+      =/  body=expr  body.u.parts
+      =.  body
+        |-  ^-  expr
+        ?:  ?=(%group -.body)  $(body inner.body)
+        body
+      ?.  ?=(%wing -.body)  ~
+      ?.  ?=([@ ~] names.body)  ~
+      (diagnostic-sample-name-site sample.u.parts i.names.body)
+    ?^  identity
+      `[~[[at.sample.u.parts "written gate sample determines this result"]] name.written %sample]
+    =/  site=idsite  [(span-of body.u.parts) (site-type-note "local gate result" target sub.state)]
+    `[~[site] name.written %result]
+  (diagnostic-expression-source-site body.u.parts path target state)
+++  diagnostic-written-source-site
+  |=  [written=iwritten-gate path=(list idiagnostic-fit-step) target=itype state=istate]
+  ^-  (unit iorigin-site)
+  ?~  path
+    ?~  definition.written  ~
+    =/  sites=(list idsite)  [u.definition.written aliases.written]
+    `[sites name.written %definition]
+  ?:  =(%sample i.path)
+    ?^  t.path  ~
+    =/  e=expr  value.written
+    =.  e
+      |-  ^-  expr
+      ?:  ?=(%group -.e)  $(e inner.e)
+      e
+    =/  parts=(unit [sample=sample body=expr])  (diagnostic-gate-parts e)
+    ?~  parts  ~
+    `[~[[at.sample.u.parts "written gate sample"]] name.written %sample]
+  ?:  =(%product i.path)
+    (diagnostic-written-product-site written t.path target state)
+  ~
+++  diagnostic-argument-expected
+  |=  [args=(list expr) expected=itype source=expr sub=isub]
+  ^-  (unit itype)
+  ?~  args  ~
+  =.  expected  (itype-walk expected sub)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+  ?:  =((span-of i.args) (span-of source))
+    ?:  ?=(~ t.args)  `expected
+    ?.  ?=(%cell -.expected)  ~
+    `hed.expected
+  ?~  t.args  ~
+  ?.  ?=(%cell -.expected)  ~
+  $(args t.args, expected tal.expected)
+::
+++  diagnostic-mapper-candidates
+  |=  [args=(list expr) head=itype path=(list idiagnostic-fit-step) target=itype state=istate defs=(list def)]
+  ^-  (list iorigin-site)
+  ?~  args  ~
+  ?.  ?=(%fn -.head)  ~
+  =/  sample-type=itype  sample.head
+  =.  sample-type
+    |-  ^-  itype
+    =.  sample-type  (itype-walk sample-type sub.state)
+    ?:  ?=(?(%face %slot) -.sample-type)  $(sample-type body.sample-type)
+    sample-type
+  =/  next-sample=(unit itype)
+    ?.  ?=(%cell -.sample-type)  ~
+    `tal.sample-type
+  =/  expected=(unit itype)
+    (diagnostic-argument-expected args sample.head i.args sub.state)
+  =/  candidates=(list iorigin-site)
+    ?~  expected  ~
+    =/  written=(unit iwritten-gate)  (diagnostic-written-gate i.args defs state)
+    ?~  written  ~
+    =/  checked=(unit [typ=itype state=istate])
+      (diagnostic-written-gate-type u.written state)
+    ?~  checked  ~
+    ?.  ?=(%fn -.typ.u.checked)  ~
+    =/  fit=ifit  (itype-fit typ.u.checked u.expected sub.state.u.checked next.state.u.checked)
+    ?.  ?=(%ok -.fit)  ~
+    =/  produced=(unit itype)  (diagnostic-type-route product.head (weld ~[%item] path) sub.fit 1.024)
+    ?~  produced  ~
+    ?.  (diagnostic-source-type-equal u.produced target sub.fit sub.state next.state)  ~
+    =/  direct=?
+      (diagnostic-source-type-equal product.typ.u.checked target sub.state.u.checked sub.state next.state)
+    =/  route=(list idiagnostic-fit-step)
+      ?:  direct  ~
+      =/  nested=(unit itype)
+        (diagnostic-type-route product.typ.u.checked path sub.state.u.checked 1.024)
+      ?~  nested  ~
+      ?.  (diagnostic-source-type-equal u.nested target sub.state.u.checked sub.state next.state)  ~
+      path
+    =/  site=(unit iorigin-site)
+      (diagnostic-written-product-site u.written route target state)
+    ?~(site ~ ~[u.site])
+  ?~  next-sample  candidates
+  (weld candidates $(args t.args, head head(sample u.next-sample)))
+++  diagnostic-call-item-site
+  |=  [source=expr path=(list idiagnostic-fit-step) target=itype state=istate defs=(list def)]
+  ^-  (unit iorigin-site)
+  ?.  ?=(%call -.source)  ~
+  =/  env=ienv  (diagnostic-source-env state)
+  =/  head=iresult  (infer-fragment head.source env state(queue ~, tags ~, holes ~))
+  ?:  ?=(%| -.head)  ~
+  =/  ht=itype  (itype-walk typ.p.head sub.state.p.head)
+  ?.  ?=(%fn -.ht)  ~
+  =/  written=(list iorigin-site)
+    (diagnostic-mapper-candidates args.source ht path target state.p.head defs)
+  ?:  ?=([* ~] written)
+    =/  site=iorigin-site  i.written
+    =/  extra=(list idsite)  ~[[(span-of head.source) "mapper call"]]
+    `site(sites (weld sites.site extra))
+  ?^  written  ~
+  ::  With no direct mapper argument, the checked call head itself is the
+  ::  unique source of the collection item (for example, a request result).
+  =/  has-gate=?
+    (lien args.source |=(arg=expr ?=(^ (diagnostic-written-gate arg defs state))))
+  ?:  has-gate  ~
+  =/  produced=(unit itype)  (diagnostic-type-route product.ht ~[%item] sub.state.p.head 1.024)
+  =/  direct-match=?
+    ?~(produced | (diagnostic-source-type-equal u.produced target sub.state.p.head sub.state next.state))
+  =/  whole=(unit [typ=itype sub=isub])
+    ?:  direct-match  ~
+    =/  checked=iresult  (infer-fragment source env state(queue ~, tags ~, holes ~))
+    ?:  ?=(%| -.checked)  ~
+    =/  found=(unit itype)  (diagnostic-type-route typ.p.checked ~[%item] sub.state.p.checked 1.024)
+    ?~  found  ~
+    `[u.found sub.state.p.checked]
+  =/  chosen=(unit [typ=itype sub=isub])
+    ?:  direct-match
+      ?~  produced  ~
+      `[u.produced sub.state.p.head]
+    whole
+  ?~  chosen  ~
+  =/  wanted=itype  (itype-normalize target sub.state)
+  ?.  (diagnostic-source-type-equal typ.u.chosen wanted sub.u.chosen ~ next.state)  ~
+  `[~[[(span-of head.source) (site-type-note "call result element" target sub.state)]] ~ %result]
+++  diagnostic-expression-source-site
+  |=  [source=expr path=(list idiagnostic-fit-step) target=itype state=istate]
+  ^-  (unit iorigin-site)
+  =.  source
+    |-  ^-  expr
+    ?:  ?=(%group -.source)  $(source inner.source)
+    ?:  ?=(%body -.source)  $(source final.source)
+    source
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  ?~  path
+    `[~[[(span-of source) (site-type-note "actual type" target sub.state)]] ~ %result]
+  ?:  =(%item i.path)
+    (diagnostic-call-item-site source t.path target state defs.p.parsed)
+  =/  selected=(unit expr)  (diagnostic-source-type-path source path)
+  ?~  selected  ~
+  `[~[[(span-of u.selected) (site-type-note "actual type" target sub.state)]] ~ %result]
+++  diagnostic-alias-product-site
+  |=  [source=expr target=itype state=istate defs=(list def)]
+  ^-  (unit iorigin-site)
+  =/  written=(unit iwritten-gate)  (diagnostic-written-gate source defs state)
+  ?~  written  ~
+  ?~  definition.u.written  ~
+  =/  selected=(list def)
+    (skim defs |=(d=def &(?=(%value -.d) =(name.d final.u.written) ?=(?(%gate %gate-wide) -.val.d))))
+  ?.  ?=([* ~] selected)  ~
+  =/  whole=idsite  [at.i.selected "direct local gate definition"]
+  =/  aliases=(list idsite)
+    ?~  name.u.written  aliases.u.written
+    =/  aliased=(list def)
+      (skim defs |=(d=def &(?=(%value -.d) =(name.d u.name.u.written) ?=(%wing -.val.d) =(names.val.d ~[final.u.written]))))
+    ?.  ?=([* ~] aliased)  aliases.u.written
+    ?>  ?=(%value -.i.aliased)
+    ~[[(span-of val.i.aliased) "local value alias"]]
+  =/  sites=(list idsite)  [whole aliases]
+  `[sites `final.u.written %definition]
+++  diagnostic-source-occurrence
+  |=  [source=expr path=(list idiagnostic-fit-step) target=itype whole=itype whole-sub=isub state=istate defs=(list def)]
+  ^-  (unit iorigin-site)
+  =/  written=(unit iwritten-gate)  (diagnostic-written-gate source defs state)
+  ?^  written
+    (diagnostic-written-source-site u.written path target state)
+  =/  occurrence=(unit itype)  (diagnostic-type-route whole path whole-sub 1.024)
+  ?~  occurrence  ~
+  ?.  (diagnostic-source-type-equal u.occurrence target whole-sub sub.state next.state)  ~
+  =.  source
+    |-  ^-  expr
+    ?:  ?=(%group -.source)  $(source inner.source)
+    source
+  ?:  ?=(%wing -.source)  ~
+  (diagnostic-expression-source-site source path target state)
+++  diagnostic-pair-paths
+  |=  [actual=itype expected=itype left=itype right=itype sub=isub path=(list idiagnostic-fit-step) fuel=@ud]
+  ^-  (list (list idiagnostic-fit-step))
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(=(actual left) =(expected right))  ~[(flop path)]
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
+    ?.  =(name.actual name.expected)  ~
+    $(actual body.actual, expected body.expected)
+  ?:  ?=(?(%face %slot) -.actual)  $(actual body.actual)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    (weld $(actual hed.actual, expected hed.expected, path [%head path]) $(actual tal.actual, expected tal.expected, path [%tail path]))
+  ?:  &(?=(%fn -.actual) ?=(%fn -.expected))
+    (weld $(actual sample.actual, expected sample.expected, path [%sample path]) $(actual product.actual, expected product.expected, path [%product path]))
+  ?:  &(?=(%collection -.actual) ?=(%collection -.expected) =(name.actual name.expected) ?=([* ~] args.actual) ?=([* ~] args.expected))
+    $(actual i.args.actual, expected i.args.expected, path [%item path])
+  ~
+++  diagnostic-pair-path
+  |=  [actual=itype expected=itype left=itype right=itype sub=isub]
+  ^-  (unit (list idiagnostic-fit-step))
+  =/  paths=(list (list idiagnostic-fit-step))
+    (diagnostic-pair-paths actual expected left right sub ~ 1.024)
+  ?.(?=([* ~] paths) ~ `i.paths)
+++  diagnostic-call-argument-pair
+  |=  [args=(list expr) actual=itype expected=itype at=span sub=isub]
+  ^-  (unit [actual=itype expected=itype])
+  ?~  args  ~
+  =.  actual  (itype-walk actual sub)
+  ::  Keep the expected spine raw: walking it can replace one shared generic
+  ::  root with the distinct per-argument bindings whose provenance we need.
+  ?:  &(?=(?(%face %slot) -.expected) !?=(?(%face %slot) -.actual))
+    $(expected body.expected)
+  ?:  =((span-of i.args) at)
+    ?:  ?=(~ t.args)  `[actual expected]
+    ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+    `[hed.actual hed.expected]
+  ?~  t.args  ~
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  $(args t.args, actual tal.actual, expected tal.expected)
+++  diagnostic-origin-message
+  |=  [actual=(unit iorigin-site) wanted=tape actual-type=itype expected-type=itype sub=isub]
+  ^-  tape
+  =/  source=tape
+    ?~  actual  "call argument"
+    ?~  name.u.actual
+      ?:  =(%sample kind.u.actual)  "inline gate sample"
+      "inline gate result"
+    =/  kind=tape
+      ?-  kind.u.actual
+        %sample      "sample"
+        %result      "result"
+        %definition  "definition"
+      ==
+    "local {kind} `{(trip u.name.u.actual)}`"
+  =/  key=tape
+    =/  expected=itype  (itype-walk expected-type sub)
+    ?:  &(?=(%fvar -.expected) ?=(^ actual) =(%result kind.u.actual))  " key"  ""
+  "{source}{key} does not unify with {wanted}: {(show-itype actual-type sub)} versus {(show-itype expected-type sub)}"
++$  idiagnostic-leaf  [left=itype right=itype path=(list idiagnostic-fit-step)]
+++  diagnostic-fit-leaf
+  |=  [actual=itype expected=itype sub=isub next=@ud path=(list idiagnostic-fit-step) fuel=@ud]
+  ^-  (unit idiagnostic-leaf)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =/  fit=ifit  (itype-fit actual expected sub next)
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  =/  shape=?
+    =/  atom-left=?  ?=(?(%atom %any-atom %flag %const) -.actual)
+    =/  atom-right=?  ?=(?(%atom %any-atom %flag %const) -.expected)
+    =/  cell-left=?  ?=(?(%cell %collection %fn) -.actual)
+    =/  cell-right=?  ?=(?(%cell %collection %fn) -.expected)
+    |(&(atom-left cell-right) &(cell-left atom-right))
+  =/  child=(unit idiagnostic-leaf)
+    ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected) =(name.actual name.expected))
+      $(actual body.actual, expected body.expected)
+    ?:  ?=(?(%face %slot) -.actual)  $(actual body.actual)
+    ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+    ?:  &(?=(%collection -.actual) ?=(%collection -.expected) =(name.actual name.expected) ?=([* ~] args.actual) ?=([* ~] args.expected))
+      $(actual i.args.actual, expected i.args.expected, path [%item path])
+    ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+      =/  head=(unit idiagnostic-leaf)
+        $(actual hed.actual, expected hed.expected, path [%head path])
+      ?^  head  head
+      $(actual tal.actual, expected tal.expected, path [%tail path])
+    ?:  &(?=(%fn -.actual) ?=(%fn -.expected))
+      =/  sam=(unit idiagnostic-leaf)
+        $(actual sample.actual, expected sample.expected, path [%sample path])
+      ?^  sam  sam
+      $(actual product.actual, expected product.expected, path [%product path])
+    ~
+  ?^  child  child
+  ?.  |(?=(%bad -.fit) shape)  ~
+  `[actual expected (flop path)]
+++  diagnostic-open-origin-valid
+  |=  [candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub] actual=itype expected=itype bad-left=itype bad-right=itype pair-sub=isub next=@ud open-direct=?]
+  ^-  ?
+  ?.  (diagnostic-closed-type typ.candidate sub.candidate)  |
+  ?:  open-direct
+    =/  fit=ifit  (itype-fit typ.candidate bad-right sub.candidate next)
+    ?=(%ok -.fit)
+  =/  l=itype  (itype-normalize actual pair-sub)
+  =/  r=itype  (itype-normalize expected sub.candidate)
+  =/  leaf=(unit idiagnostic-leaf)
+    (diagnostic-fit-leaf l r sub.candidate next ~ 1.024)
+  ?~  leaf  |
+  =/  original-l=itype  (itype-normalize bad-left pair-sub)
+  =/  original-r=itype  (itype-normalize bad-right pair-sub)
+  |(&(=(left.u.leaf original-l) =(right.u.leaf original-r)) &(=(left.u.leaf original-r) =(right.u.leaf original-l)))
+::
+::  When an expected root has already disappeared, another direct argument can
+::  still certify its written occurrence.  The annotation, the checked
+::  positional type, and the exact failed expected type must agree at one route.
+++  diagnostic-direct-ancestor-leaf
+  |=  [actual=itype left=itype right=itype ancestors=(list ifit-ancestor) pair-sub=isub next=@ud]
+  ^-  (unit idiagnostic-leaf)
+  =/  path=(unit (list idiagnostic-fit-step))
+    =/  todo=(list ifit-ancestor)  ancestors
+    =/  steps=(list idiagnostic-fit-step)  ~
+    |-
+    ^-  (unit (list idiagnostic-fit-step))
+    ?~  todo  `steps
+    =/  parent=ifit-ancestor  i.todo
+    ?:  &(=(left.parent left) =(right.parent right))
+      $(todo t.todo)
+    =/  matches=(list idiagnostic-fit-child)
+      %+  skim  (diagnostic-fit-children parent)
+      |=  child=idiagnostic-fit-child
+      &(=(left.child left) =(right.child right))
+    ?.  ?=([* ~] matches)  ~
+    =/  step=idiagnostic-fit-step  step.i.matches
+    $(left left.parent, right right.parent, todo t.todo, steps ?:(=(%same step) steps [step steps]))
+  ?~  path  ~
+  =/  occurrence=(unit itype)  (diagnostic-type-route actual u.path pair-sub 1.024)
+  ?~  occurrence  ~
+  ?.  (diagnostic-source-type-equal u.occurrence left pair-sub pair-sub next)  ~
+  `[left right u.path]
+++  diagnostic-direct-annotation-paths
+  |=  [annotation=itype actual=itype expected=itype target=itype annotation-sub=isub pair-sub=isub next=@ud path=(list idiagnostic-fit-step) fuel=@ud]
+  ^-  (list (list idiagnostic-fit-step))
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  annotation  (itype-walk annotation annotation-sub)
+  =.  actual  (itype-walk actual pair-sub)
+  =.  expected  (itype-walk expected pair-sub)
+  ?:  ?=(?(%face %slot) -.annotation)  $(annotation body.annotation)
+  ?:  ?=(?(%face %slot) -.actual)  $(actual body.actual)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+  =/  found=(list (list idiagnostic-fit-step))
+    ?.  =(expected target)  ~
+    ?.  (diagnostic-source-type-equal annotation actual annotation-sub pair-sub next)  ~
+    ~[(flop path)]
+  =/  children=(list (list idiagnostic-fit-step))
+    ?:  &(?=(%cell -.annotation) ?=(%cell -.actual) ?=(%cell -.expected))
+      %+  weld
+        $(annotation hed.annotation, actual hed.actual, expected hed.expected, path [%head path])
+      $(annotation tal.annotation, actual tal.actual, expected tal.expected, path [%tail path])
+    ?:  &(?=(%fn -.annotation) ?=(%fn -.actual) ?=(%fn -.expected))
+      %+  weld
+        $(annotation sample.annotation, actual sample.actual, expected sample.expected, path [%sample path])
+      $(annotation product.annotation, actual product.actual, expected product.expected, path [%product path])
+    ?:  &(?=(%collection -.annotation) ?=(%collection -.actual) ?=(%collection -.expected) =(name.annotation name.actual) =(name.actual name.expected) ?=([* ~] args.annotation) ?=([* ~] args.actual) ?=([* ~] args.expected))
+      $(annotation i.args.annotation, actual i.args.actual, expected i.args.expected, path [%item path])
+    ?:  &(?=(%union -.annotation) ?=(%union -.actual) ?=(%union -.expected) =(origin.annotation origin.actual) =(origin.actual origin.expected) ?=([* ~] args.annotation) ?=([* ~] args.actual) ?=([* ~] args.expected))
+      $(annotation i.args.annotation, actual i.args.actual, expected i.args.expected, path [%item path])
+    ?:  &(?=(%opaque -.annotation) ?=(%opaque -.actual) ?=(%opaque -.expected) =(origin.annotation origin.actual) =(origin.actual origin.expected) ?=([* ~] args.annotation) ?=([* ~] args.actual) ?=([* ~] args.expected))
+      $(annotation i.args.annotation, actual i.args.actual, expected i.args.expected, path [%item path])
+    ~
+  =/  direct=(list (list idiagnostic-fit-step))  (weld found children)
+  ?^  direct  direct
+  ?:  (diagnostic-closed-type expected pair-sub)  ~
+  =/  note=itype  (itype-normalize annotation annotation-sub)
+  =/  occurrence=itype  (itype-normalize actual pair-sub)
+  =/  wanted=itype  (itype-normalize target pair-sub)
+  (diagnostic-pair-paths note occurrence wanted wanted ~ path fuel)
+++  diagnostic-direct-gate-pair
+  |=  [actual=itype expected=itype pair-sub=isub]
+  ^-  (unit [actual=itype expected=itype])
+  =.  actual  (itype-walk actual pair-sub)
+  =.  expected  (itype-walk expected pair-sub)
+  ?:  ?=(?(%face %slot) -.actual)  $(actual body.actual)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+  ?.  &(?=(%fn -.actual) ?=(%fn -.expected))  ~
+  `[actual expected]
+++  diagnostic-direct-sample-origin
+  |=  [source=expr written=iwritten-gate actual=itype expected=itype target=itype pair-sub=isub next=@ud state=istate]
+  ^-  (unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  =/  gate=(unit [actual=itype expected=itype])
+    (diagnostic-direct-gate-pair actual expected pair-sub)
+  ?~  gate  ~
+  ?>  ?=(%fn -.actual.u.gate)
+  ?>  ?=(%fn -.expected.u.gate)
+  =/  e=expr  value.written
+  =.  e
+    |-  ^-  expr
+    ?:  ?=(%group -.e)  $(e inner.e)
+    e
+  =/  parts=(unit [sample=sample body=expr])  (diagnostic-gate-parts e)
+  ?~  parts  ~
+  =/  initial=istate
+    state(caps ~, binders ~, params ~, active ~, queue ~, tags ~, holes ~, level +(level.state))
+  =/  sam=isample-result
+    (infer-sample sample.u.parts (diagnostic-source-env initial) initial)
+  ?:  ?=(%| -.sam)  ~
+  =/  paths=(list (list idiagnostic-fit-step))
+    (diagnostic-direct-annotation-paths typ.p.sam sample.actual.u.gate sample.expected.u.gate target sub.state.p.sam pair-sub next ~ 1.024)
+  ?.  ?=([* ~] paths)  ~
+  `[source typ.p.sam (weld ~[%sample] i.paths) sub.state.p.sam]
+++  diagnostic-direct-result-origin
+  |=  [source=expr written=iwritten-gate actual=itype expected=itype target=itype pair-sub=isub next=@ud state=istate]
+  ^-  (unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  =/  gate=(unit [actual=itype expected=itype])
+    (diagnostic-direct-gate-pair actual expected pair-sub)
+  ?~  gate  ~
+  ?>  ?=(%fn -.actual.u.gate)
+  ?>  ?=(%fn -.expected.u.gate)
+  =/  checked=(unit [typ=itype state=istate])
+    (diagnostic-written-gate-type written state)
+  ?~  checked  ~
+  ?.  ?=(%fn -.typ.u.checked)  ~
+  =/  paths=(list (list idiagnostic-fit-step))
+    (diagnostic-direct-annotation-paths product.typ.u.checked product.actual.u.gate product.expected.u.gate target sub.state.u.checked pair-sub next ~ 1.024)
+  ?.  ?=([* ~] paths)  ~
+  `[source product.typ.u.checked (weld ~[%product] i.paths) sub.state.u.checked]
+++  diagnostic-direct-argument-origins
+  |=  [args=(list expr) actual=itype expected=itype at=span target=itype pair-sub=isub next=@ud state=istate defs=(list def)]
+  ^-  (list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  =/  todo=(list expr)  args
+  |-
+  ^-  (list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  ?~  todo  ~
+  =/  found=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    ?:  =((span-of i.todo) at)  ~
+    =/  pair=(unit [actual=itype expected=itype])
+      (diagnostic-call-argument-pair args actual expected (span-of i.todo) pair-sub)
+    ?~  pair  ~
+    =/  written=(unit iwritten-gate)  (diagnostic-written-gate i.todo defs state)
+    ?~  written  ~
+    =/  sample=(unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+      (diagnostic-direct-sample-origin i.todo u.written actual.u.pair expected.u.pair target pair-sub next state)
+    =/  result=(unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+      (diagnostic-direct-result-origin i.todo u.written actual.u.pair expected.u.pair target pair-sub next state)
+    %+  weld  ?~(sample ~ ~[u.sample])
+    ?~(result ~ ~[u.result])
+  (weld found $(todo t.todo))
+::
+::  A sample route through a unique local record must end at the exact written
+::  field whose independently checked type is the failed expected occurrence.
+++  diagnostic-written-field-leaf
+  |=  [f=field path=(list idiagnostic-fit-step)]
+  ^-  (unit [at=span body=shape])
+  ?-  -.f
+    %face
+      ?~  path  [~ [at.f shape.f]]
+      (diagnostic-written-field-route shape.f path)
+    %pun   ~
+    %bare  (diagnostic-written-field-route shape.f path)
+  ==
+::
+++  diagnostic-written-field-route
+  |=  [sh=shape path=(list idiagnostic-fit-step)]
+  ^-  (unit [at=span body=shape])
+  ?~  path  ~
+  ?.  ?=(%cell -.sh)  ~
+  =/  fields=(list field)  fields.sh
+  |-  ^-  (unit [at=span body=shape])
+  ?~  fields  ~
+  ?~  t.fields  (diagnostic-written-field-leaf i.fields path)
+  ?-  i.path
+    %head  (diagnostic-written-field-leaf i.fields t.path)
+    %tail
+      =/  rest=(list field)  t.fields
+      ?~  rest  ~
+      ?~  t.path
+        ?~  t.rest  (diagnostic-written-field-leaf i.rest ~)
+        ~
+      $(fields rest, path t.path)
+    *      ~
+  ==
+++  diagnostic-direct-record-site
+  |=  [candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub] origin=irecord-origin target=itype field=(unit span) state=istate defs=(list def)]
+  ^-  (unit iorigin-site)
+  ?~  path.candidate  ~
+  ?.  =(%sample i.path.candidate)  ~
+  =/  molds=(list def)
+    (skim defs |=(d=def &(?=(%mold -.d) =(name.d name.origin))))
+  ?.  ?=([* ~] molds)  ~
+  ?>  ?=(%mold -.i.molds)
+  ?.  ?=(%cell -.shape.i.molds)  ~
+  =/  selected=(unit [at=span body=shape])
+    (diagnostic-written-field-route shape.i.molds t.path.candidate)
+  ?~  selected  ~
+  =/  inferred=(unit [typ=itype state=istate])
+    (infer-simple-shape body.u.selected state)
+  ?~  inferred  ~
+  ?.  =((itype-normalize typ.u.inferred sub.state.u.inferred) (itype-normalize target sub.state))  ~
+  ?.  ?~(field & =(u.field at.u.selected))  ~
+  `[~[[at.u.selected (site-type-note "required model type" target sub.state)]] `name.origin %definition]
+++  diagnostic-direct-sample-records
+  |=  [candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub] state=istate defs=(list def)]
+  ^-  (list irecord-origin)
+  ?~  path.candidate  ~
+  ?.  =(%sample i.path.candidate)  ~
+  (diagnostic-record-origins defs typ.candidate state)
+++  diagnostic-unique-record-origins
+  |=  origins=(list irecord-origin)
+  ^-  (list irecord-origin)
+  ?~  origins  ~
+  =/  rest=(list irecord-origin)  $(origins t.origins)
+  ?:  (lien rest |=(origin=irecord-origin =(origin i.origins)))  rest
+  [i.origins rest]
+++  diagnostic-direct-origin-site
+  |=  [candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub] args=(list expr) actual=itype expected=itype target=itype field=(unit span) pair-sub=isub state=istate defs=(list def)]
+  ^-  (unit iorigin-site)
+  =/  records=(list irecord-origin)  (diagnostic-direct-sample-records candidate state defs)
+  ?^  records
+    ?.  ?=([* ~] records)  ~
+    (diagnostic-direct-record-site candidate i.records target field state defs)
+  =/  pair=(unit [actual=itype expected=itype])
+    (diagnostic-call-argument-pair args actual expected (span-of source.candidate) pair-sub)
+  ?~  pair  ~
+  (diagnostic-source-occurrence source.candidate path.candidate target actual.u.pair pair-sub state defs)
+++  diagnostic-unique-origin-sites
+  |=  origins=(list iorigin-site)
+  ^-  (list iorigin-site)
+  ?~  origins  ~
+  =/  rest=(list iorigin-site)  $(origins t.origins)
+  ?:  (lien rest |=(origin=iorigin-site =(sites.origin sites.i.origins)))  rest
+  [i.origins rest]
+++  diagnostic-direct-origin-sites
+  |=  [candidates=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub]) args=(list expr) actual=itype expected=itype target=itype field=(unit span) pair-sub=isub state=istate defs=(list def)]
+  ^-  (list iorigin-site)
+  =/  certified=(list iorigin-site)
+    %+  murn  candidates
+    |=  candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub]
+    (diagnostic-direct-origin-site candidate args actual expected target field pair-sub state defs)
+  (diagnostic-unique-origin-sites certified)
+++  diagnostic-primary-body-field-site
+  |=  [args=(list expr) at=span actual=itype expected=itype pair-sub=isub next=@ud state=istate defs=(list def)]
+  ^-  (unit iorigin-site)
+  =/  pair=(unit [actual=itype expected=itype])
+    (diagnostic-call-argument-pair args actual expected at pair-sub)
+  ?~  pair  ~
+  =/  source=(unit expr)  (diagnostic-expression-at args at)
+  ?~  source  ~
+  =/  written=(unit iwritten-gate)  (diagnostic-written-gate u.source defs state)
+  ?~  written  ~
+  =/  parts=(unit [sample=sample body=expr])  (diagnostic-gate-parts value.u.written)
+  ?~  parts  ~
+  =/  actual-product=(unit itype)  (diagnostic-type-route actual.u.pair ~[%product] pair-sub 1.024)
+  =/  expected-product=(unit itype)  (diagnostic-type-route expected.u.pair ~[%product] pair-sub 1.024)
+  ?~  actual-product  ~
+  ?~  expected-product  ~
+  =/  found=(unit [at=span typ=itype expected=itype names=(list term) sub=isub next=@ud])
+    (cast-field-mismatch body.u.parts u.actual-product u.expected-product ~ pair-sub next 1.024)
+  ?~  found  ~
+  `[~[[at.u.found (site-actual-note "actual type" typ.u.found expected.u.found sub.u.found next.u.found)]] ~ %result]
+::
+::  Another direct argument can carry the closed expected record while this
+::  positional product is still open. Accept only a unique direct-gate body
+::  field whose independently checked leaf types are the exact failed pair.
+++  diagnostic-paired-body-field-sites
+  |=  [candidates=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub]) args=(list expr) failed-left=itype failed-right=itype failure-sub=isub next=@ud state=istate defs=(list def)]
+  ^-  (list iorigin-site)
+  =/  expected=(list itype)
+    %+  murn  candidates
+    |=  candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub]
+    ?~  path.candidate  ~
+    ?.  =(%sample i.path.candidate)  ~
+    ?.  ?=([* ~] (diagnostic-direct-sample-records candidate state defs))  ~
+    =/  typ=itype  (itype-normalize typ.candidate sub.candidate)
+    ?.  (diagnostic-closed-type typ ~)  ~
+    `typ
+  =/  found=(list iorigin-site)
+    %-  zing
+    %+  turn  args
+    |=  arg=expr
+    ^-  (list iorigin-site)
+    =/  written=(unit iwritten-gate)  (diagnostic-written-gate arg defs state)
+    ?~  written  ~
+    =/  parts=(unit [sample=sample body=expr])  (diagnostic-gate-parts value.u.written)
+    ?~  parts  ~
+    =/  checked=(unit [typ=itype state=istate])
+      (diagnostic-written-gate-type u.written state)
+    ?~  checked  ~
+    ?.  ?=(%fn -.typ.u.checked)  ~
+    =/  actual=itype  (itype-normalize product.typ.u.checked sub.state.u.checked)
+    ?.  (diagnostic-closed-type actual ~)  ~
+    %+  murn  expected
+    |=  wanted=itype
+    =/  mismatch=(unit [at=span typ=itype expected=itype names=(list term) sub=isub next=@ud])
+      (cast-field-mismatch body.u.parts actual wanted ~ ~ next 1.024)
+    ?~  mismatch  ~
+    ?~  names.u.mismatch  ~
+    ?.  (diagnostic-source-type-equal typ.u.mismatch failed-left sub.u.mismatch failure-sub next)  ~
+    ?.  (diagnostic-source-type-equal expected.u.mismatch failed-right sub.u.mismatch failure-sub next)  ~
+    =/  site=idsite
+      [at.u.mismatch (site-actual-note "actual type" typ.u.mismatch expected.u.mismatch sub.u.mismatch next.u.mismatch)]
+    `[~[site] name.u.written %result]
+  (diagnostic-unique-origin-sites found)
+::
+++  diagnostic-primary-result-site
+  |=  [actual-site=(unit iorigin-site) args=(list expr) at=span actual=itype expected=itype failed-left=itype field=(unit span) pair-sub=isub next=@ud state=istate defs=(list def)]
+  ^-  (unit iorigin-site)
+  =/  needed=?
+    ?~  actual-site  &
+    =(%sample kind.u.actual-site)
+  ?.  needed  actual-site
+  =/  candidates=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    (diagnostic-direct-argument-origins args actual expected at (itype-normalize failed-left pair-sub) pair-sub next state defs)
+  =/  sites=(list iorigin-site)
+    (diagnostic-direct-origin-sites candidates args actual expected failed-left field pair-sub state defs)
+  =/  results=(list iorigin-site)
+    (skim sites |=(origin=iorigin-site =(%result kind.origin)))
+  =/  body=(unit iorigin-site)
+    (diagnostic-primary-body-field-site args at actual expected pair-sub next state defs)
+  =/  chosen=(unit iorigin-site)
+    ?~  results  body
+    ?.(?=([* ~] results) actual-site `i.results)
+  ?~(chosen actual-site [~ u.chosen])
+::
+++  diagnostic-call-source-origin
+  |=  [forcing=expr actual=itype expected=itype bad-left=itype bad-right=itype at=span context=span ancestors=(list ifit-ancestor) field=(unit span) pair-sub=isub sub=isub next=@ud state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%call -.forcing)  ~
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  defs=(list def)  defs.p.parsed
+  =/  source=(unit expr)  (diagnostic-expression-at ~[forcing] at)
+  ?~  source  ~
+  =/  pair=(unit [actual=itype expected=itype])
+    (diagnostic-call-argument-pair args.forcing actual expected at pair-sub)
+  ?~  pair  ~
+  =/  open-direct=?
+    =/  l=itype  (itype-walk actual.u.pair pair-sub)
+    =/  r=itype  (itype-walk expected.u.pair pair-sub)
+    &(=((span-of u.source) at) ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.l) ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.r))
+  =/  root=(unit [id=@ud path=(list idiagnostic-fit-step) sub=isub])
+    (diagnostic-fit-root bad-left bad-right ancestors ~)
+  =/  origin-ids=(list @ud)  (unique-type-vars (itype-vars expected.u.pair))
+  =/  open-candidates=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    (zing (turn origin-ids |=(id=@ud (diagnostic-call-open-origins args.forcing actual expected id at sub next))))
+  =/  open-origins=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    %+  skim  open-candidates
+    |=  candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub]
+    (diagnostic-open-origin-valid candidate actual.u.pair expected.u.pair bad-left bad-right pair-sub next open-direct)
+  =/  expected-origin=(unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    =/  rooted=(unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+      ?~  root  ~
+      (diagnostic-call-origin args.forcing actual expected id.u.root sub next)
+    ?^  rooted  rooted
+    ?:  ?=([* ~] open-origins)  `i.open-origins
+    =/  candidates=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+      %+  murn  origin-ids
+      |=  id=@ud
+      =/  found=(unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+        (diagnostic-call-origin args.forcing actual expected id sub next)
+      ?~  found  ~
+      ?:  =((span-of source.u.found) at)  ~
+      found
+    ?.(?=([* ~] candidates) ~ `i.candidates)
+  =/  origin-sub=isub  ?~(expected-origin sub sub.u.expected-origin)
+  =.  pair
+    `[actual=(itype-normalize actual.u.pair pair-sub) expected=(itype-normalize expected.u.pair origin-sub)]
+  =/  rooted=(unit itype)
+    ?~  root  ~
+    (diagnostic-type-route actual.u.pair path.u.root pair-sub 1.024)
+  =/  root-valid=?
+    ?~  rooted  |
+    =/  fit=ifit  (itype-fit u.rooted bad-left pair-sub next.state)
+    ?=(%ok -.fit)
+  =/  failed-left=itype  bad-left
+  =/  failed-right=itype  bad-right
+  =/  direct-origins=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    (diagnostic-direct-argument-origins args.forcing actual expected at (itype-normalize failed-right origin-sub) sub next state defs)
+  =/  direct-sites=(list iorigin-site)
+    (diagnostic-direct-origin-sites direct-origins args.forcing actual expected failed-right field sub state defs)
+  =/  leaf=(unit idiagnostic-leaf)
+    =/  current=(unit idiagnostic-leaf)
+      ?:  open-direct  `[bad-left bad-right ~]
+      ?:  &(?=(^ root) root-valid)  `[bad-left bad-right path.u.root]
+      (diagnostic-fit-leaf actual.u.pair expected.u.pair origin-sub next ~ 1.024)
+    ?^  current  current
+    ?~  direct-origins  ~
+    (diagnostic-direct-ancestor-leaf actual.u.pair failed-left failed-right ancestors pair-sub next)
+  =/  direct-diagnostic=(unit idiag)
+    ?^  leaf  ~
+    =/  expected-origins=(list iorigin-site)
+      (skim direct-sites |=(origin=iorigin-site =(%definition kind.origin)))
+    =/  direct-actual-origins=(list [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+      (diagnostic-direct-argument-origins args.forcing actual expected at (itype-normalize failed-left origin-sub) sub next state defs)
+    =/  direct-actual-sites=(list iorigin-site)
+      =/  paired=(list iorigin-site)
+        (diagnostic-paired-body-field-sites direct-origins args.forcing failed-left failed-right origin-sub next state defs)
+      ?:  ?=([* ~] paired)  paired
+      (diagnostic-direct-origin-sites direct-actual-origins args.forcing actual expected failed-left field sub state defs)
+    =/  actual-origins=(list iorigin-site)
+      (skim direct-actual-sites |=(origin=iorigin-site !=(%definition kind.origin)))
+    ?:  &(?=(~ expected-origins) ?=(~ actual-origins))  ~
+    =/  result-origins=(list iorigin-site)
+      (skim actual-origins |=(origin=iorigin-site =(%result kind.origin)))
+    =/  preferred-origins=(list iorigin-site)  ?^(result-origins result-origins actual-origins)
+    =/  actual-site=(unit iorigin-site)
+      ?.(?=([* ~] preferred-origins) ~ `i.preferred-origins)
+    =/  msg=tape
+      (diagnostic-origin-message actual-site (show-itype failed-right sub.state) failed-left failed-right sub.state)
+    =/  context-site=idsite  [context (site-type-note "call context" expected sub)]
+    =/  actual-sites=(list idsite)
+      ?^  actual-origins  (zing (turn actual-origins |=(origin=iorigin-site sites.origin)))
+      ~[[at (site-actual-note "argument" failed-left failed-right sub.state next.state)]]
+    =/  expected-sites=(list idsite)
+      (zing (turn expected-origins |=(origin=iorigin-site sites.origin)))
+    `[msg (weld expected-sites (weld actual-sites ~[context-site]))]
+  ?^  direct-diagnostic  direct-diagnostic
+  ?~  leaf  ~
+  =.  bad-left  left.u.leaf
+  =.  bad-right  right.u.leaf
+  =/  route=(list idiagnostic-fit-step)  path.u.leaf
+  =/  actual-site=(unit iorigin-site)
+    ?:  open-direct  ~
+    =/  aliased=(unit iorigin-site)
+      ?.  =(route ~[%product])  ~
+      (diagnostic-alias-product-site u.source bad-left state defs)
+    ?^  aliased  aliased
+    (diagnostic-source-occurrence u.source route bad-left actual.u.pair pair-sub state defs)
+  =.  actual-site  (diagnostic-primary-result-site actual-site args.forcing at actual expected bad-left field origin-sub next state defs)
+  =.  direct-origins
+    ?:  &(=(bad-left failed-left) =(bad-right failed-right))  direct-origins
+    (diagnostic-direct-argument-origins args.forcing actual expected at (itype-normalize bad-right origin-sub) sub next state defs)
+  =.  direct-sites
+    ?:  &(=(bad-left failed-left) =(bad-right failed-right))  direct-sites
+    (diagnostic-direct-origin-sites direct-origins args.forcing actual expected bad-right field sub state defs)
+  =/  molds=(list irecord-origin)
+    ?~  actual-site  ~
+    ?:  =(%definition kind.u.actual-site)  ~
+    =/  origins=(list irecord-origin)  (diagnostic-record-origins defs bad-right state)
+    ?^  origins  origins
+    ?^  expected-origin
+      (diagnostic-record-origins defs typ.u.expected-origin state)
+    (diagnostic-unique-record-origins (zing (turn direct-origins |=(candidate=[source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub] (diagnostic-direct-sample-records candidate state defs)))))
+  =/  expected-site=(unit iorigin-site)
+    ?~  expected-origin
+      ?.(?=([* ~] direct-sites) ~ `i.direct-sites)
+    ?:  ?=([* ~] molds)
+      =/  at=span
+        ?:  &(?=(^ actual-site) =(%result kind.u.actual-site) ?=(^ field))  u.field
+        at.i.molds
+      `[~[[at (site-type-note "required model type" bad-right sub.state)]] `name.i.molds %definition]
+    =/  traced=(unit iorigin-site)
+      =/  expected-pair=(unit [actual=itype expected=itype])
+        (diagnostic-call-argument-pair args.forcing actual expected (span-of source.u.expected-origin) sub)
+      ?~  expected-pair  ~
+      (diagnostic-source-occurrence source.u.expected-origin path.u.expected-origin bad-right actual.u.expected-pair sub state defs)
+    ?^  traced  traced
+    =/  certified=(unit iorigin-site)
+      ?.(?=([* ~] direct-sites) ~ `i.direct-sites)
+    ?^  certified  certified
+    ::  An imported main record has no local definition to expand.  Its exact
+    ::  argument occurrence is nevertheless the proven origin of the type.
+    =/  origin-source=expr  source.u.expected-origin
+    ?+  -.origin-source  ~
+      %wing
+        `[~[[(span-of origin-source) (site-type-note "required argument type" bad-right sub.state)]] ~ %definition]
+    ==
+  ?:  &(?=(~ actual-site) ?=(~ expected-site))  ~
+  =/  wanted=tape
+    ?:  ?=([* ~] molds)  "model `{(trip name.i.molds)}`"
+    (show-itype bad-right sub.state)
+  =/  msg=tape
+    (diagnostic-origin-message actual-site wanted bad-left bad-right sub.state)
+  =/  context-site=idsite  [context (site-type-note "call context" expected sub)]
+  =/  actual-sites=(list idsite)  ?~(actual-site ~ sites.u.actual-site)
+  =/  expected-sites=(list idsite)  ?~(expected-site ~ sites.u.expected-site)
+  =/  fallback=(list idsite)
+    ?^  actual-site  ~
+    ~[[at (site-actual-note "argument" bad-left bad-right sub.state next.state)]]
+  `[msg (weld expected-sites (weld actual-sites (weld fallback ~[context-site])))]
+++  diagnostic-call-expressions-at
+  |=  [todo=(list expr) at=span context=span]
+  ^-  (list expr)
+  ?~  todo  ~
+  =/  e=expr  i.todo
+  =/  matches=?
+    ?.  ?=(%call -.e)  |
+    |(&(=(context (span-of e)) =(at (span-of e))) =(context (span-of head.e)) (lien args.e |=(arg=expr =(at (span-of arg)))))
+  =/  rest=(list expr)  $(todo (weld (dependency-children e) t.todo))
+  ?:(matches [e rest] rest)
+++  diagnostic-owner-call
+  |=  [owner=term defs=(list def) at=span context=span]
+  ^-  (unit expr)
+  =/  owners=(list def)  (skim defs |=(d=def &(?=(%value -.d) =(name.d owner))))
+  ?.  ?=([* ~] owners)  ~
+  ?>  ?=(%value -.i.owners)
+  =/  calls=(list expr)  (diagnostic-call-expressions-at ~[val.i.owners] at context)
+  ?.(?=([* ~] calls) ~ `i.calls)
+++  diagnostic-plain-source-origin
+  |=  [edge=icore-edge state=istate defs=(list def)]
+  ^-  (unit idiag)
+  ?.  ?=(%fit -.edge)  ~
+  =/  forcing=(unit expr)  (diagnostic-owner-call owner.edge defs at.edge context.edge)
+  ?~  forcing  ~
+  (diagnostic-call-source-origin u.forcing left.edge right.edge left.edge right.edge at.edge context.edge ~[[left.edge right.edge sub.state ~]] ~ sub.state sub.state next.state state)
+++  diagnostic-guarded-source-origin
+  |=  [edge=icore-edge state=istate]
+  ^-  (unit idiag)
+  ?.  ?=(%guarded-fit -.edge)  ~
+  ?~  ancestors.edge  ~
+  ?~  local-source.state  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  top=ifit-ancestor  (rear ancestors.edge)
+  =/  root=(unit [id=@ud path=(list idiagnostic-fit-step) sub=isub])
+    (diagnostic-fit-root left.edge right.edge ancestors.edge ~)
+  =/  field=(unit span)
+    ?~  root  ~
+    (diagnostic-deferred-field edge id.u.root (itype-normalize right.edge sub.state) state defs.p.parsed)
+  (diagnostic-call-source-origin forcing.edge left.top right.top left.edge right.edge at.edge context.edge ancestors.edge field sub.top sub.top next.state state)
+++  diagnostic-deferred-origin
+  |=  [edge=icore-edge state=istate]
+  ^-  (unit [owner=term diag=idiag])
+  ?.  ?=(%guarded-fit -.edge)  ~
+  ?.  ?=(%call -.forcing.edge)  ~
+  ?~  ancestors.edge  ~
+  ?~  local-source.state  ~
+  =/  root=(unit [id=@ud path=(list idiagnostic-fit-step) sub=isub])
+    (diagnostic-fit-root left.edge right.edge ancestors.edge ~)
+  ?~  root  ~
+  =/  top=ifit-ancestor  (rear ancestors.edge)
+  =/  origin=(unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    (diagnostic-call-origin args.forcing.edge left.top right.top id.u.root sub.top next.state)
+  =?  origin  ?=(~ origin)
+    (diagnostic-call-origin-tag args.forcing.edge left.top right.top id.u.root path.u.root (itype-walk right.edge sub.state) sub.top next.state)
+  ?~  origin  ~
+  ?.  ?=(%wing -.source.u.origin)  ~
+  ?.  ?=([@ ~] names.source.u.origin)  ~
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  ~
+  =/  defs=(list def)  defs.p.parsed
+  =/  owners=(list def)
+    (skim defs |=(d=def &(?=(%value -.d) =(name.d owner.edge))))
+  ?.  ?=([* ~] owners)  ~
+  ?>  ?=(%value -.i.owners)
+  =/  owner-value=expr  val.i.owners
+  =.  owner-value
+    |-  ^-  expr
+    ?:  ?=(%group -.owner-value)  $(owner-value inner.owner-value)
+    owner-value
+  ?.  =((span-of owner-value) (span-of forcing.edge))  ~
+  =/  source=(unit [name=term value=expr])
+    (diagnostic-local-value-source i.names.source.u.origin defs ~ 1.024)
+  ?~  source  ~
+  =/  route=(list idiagnostic-fit-step)  (weld path.u.origin path.u.root)
+  =/  expression=(unit expr)  (diagnostic-source-type-path value.u.source route)
+  ?~  expression  ~
+  ?.  ?=(%lit -.u.expression)  ~
+  =/  bad=itype  (itype-normalize right.edge sub.state)
+  =/  wanted=itype  (itype-normalize left.edge sub.state)
+  :: A written null remains a tag while its union is open. Its literal
+  :: noun can prove a mismatch against a closed target without guessing a
+  :: union, provided this is the exact source occurrence already traced.
+  =/  source-bad=(unit itype)
+    ?.  ?=(%tag -.bad)  `bad
+    ?.  &(!constructor.bad =(%null form.literal.bad) =(literal.bad lit.u.expression))  ~
+    `[%const literal.bad]
+  ?~  source-bad  ~
+  =.  bad  u.source-bad
+  ?:  |((itype-has-tag bad) (itype-has-tag wanted) ?=(^ (itype-vars bad)) ?=(^ (itype-vars wanted)))  ~
+  =/  checked=ifit  (itype-fit bad wanted sub.state next.state)
+  ?.  ?=(%bad -.checked)  ~
+  =/  field=(unit span)  (diagnostic-deferred-field edge id.u.root wanted state defs)
+  =/  expected-site=span  ?~(field at.edge u.field)
+  `[name.u.source ["value does not fit its expected type" ~[[expected-site (site-type-note "expected field type" wanted sub.state)] [(span-of u.expression) (site-actual-note "value" bad wanted sub.state next.state)]]]]
+::
+:: Follow a recorded type route without inventing names or unfolding sums.
+++  diagnostic-type-route
+  |=  [typ=itype path=(list idiagnostic-fit-step) sub=isub fuel=@ud]
+  ^-  (unit itype)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  typ  (itype-walk typ sub)
+  ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ, fuel fuel)
+  ?~  path  `typ
+  ?-  i.path
+    %head  ?.  ?=(%cell -.typ)  ~
+           $(typ hed.typ, path t.path, fuel fuel)
+    %tail  ?.  ?=(%cell -.typ)  ~
+           $(typ tal.typ, path t.path, fuel fuel)
+    %sample  ?.  ?=(%fn -.typ)  ~
+             $(typ sample.typ, path t.path, fuel fuel)
+    %product  ?.  ?=(%fn -.typ)  ~
+              $(typ product.typ, path t.path, fuel fuel)
+    %item     ?:  &(?=(%collection -.typ) ?=([* ~] args.typ))
+                $(typ i.args.typ, path t.path, fuel fuel)
+              ?:  &(?=(%union -.typ) ?=([* ~] args.typ))
+                $(typ i.args.typ, path t.path, fuel fuel)
+              ?:  &(?=(%opaque -.typ) ?=([* ~] args.typ))
+                $(typ i.args.typ, path t.path, fuel fuel)
+              ~
+    %same  $(path t.path, fuel fuel)
+  ==
+:: An unresolved null may leave the first fit open. Its exact tag ID, not
+:: its noun shape, must occur at the paired source root's proven route.
+++  diagnostic-call-origin-tag
+  |=  [args=(list expr) actual=itype expected=itype root=@ud route=(list idiagnostic-fit-step) tag=itype sub=isub next=@ud]
+  ^-  (unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+  ?~  args  ~
+  ?.  ?=(%tag -.tag)  ~
+  ?.  ?=(~ (itype-lookup root sub))  ~
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(?(%face %slot) -.expected) !?=(?(%face %slot) -.actual))
+    $(expected body.expected)
+  ?:  &(?=(^ t.args) !&(?=(%cell -.actual) ?=(%cell -.expected)))  ~
+  =/  pair=[actual=itype expected=itype]
+    ?~  t.args  [actual expected]
+    ?>  &(?=(%cell -.actual) ?=(%cell -.expected))
+    [hed.actual hed.expected]
+  =/  candidates=(list idiagnostic-origin)
+    (diagnostic-fit-correspondences actual.pair expected.pair root sub ~ 1.024)
+  =/  found=(unit [source=expr typ=itype path=(list idiagnostic-fit-step) sub=isub])
+    ?.  ?=([* ~] candidates)  ~
+    =/  occurrence=(unit itype)  (diagnostic-type-route typ.i.candidates route sub 1.024)
+    ?~  occurrence  ~
+    ?.  =(u.occurrence tag)  ~
+    `[i.args typ.i.candidates path.i.candidates sub]
+  ?^  found  found
+  =/  fitted=ifit  (itype-fit actual.pair expected.pair sub next)
+  ?.  ?=(%ok -.fitted)  ~
+  ?~  t.args  ~
+  ?>  &(?=(%cell -.actual) ?=(%cell -.expected))
+  $(args t.args, actual tal.actual, expected tal.expected, sub sub.fitted, next next.fitted)
+::
+++  diagnostic-definition-expression
+  |=  [owner=term defs=(list def) site=span]
+  ^-  (unit expr)
+  ?~  defs  ~
+  ?.  &(?=(%value -.i.defs) =(owner name.i.defs))  $(defs t.defs)
+  (diagnostic-expression-at ~[val.i.defs] site)
+++  icore-branch-decimal-error
+  |=  [owner=term defs=(list def) first=[typ=itype at=span] second=[typ=itype at=span] state=istate]
+  ^-  (unit idiag)
+  =/  expression=(unit expr)  (diagnostic-definition-expression owner defs at.first)
+  ?~  expression  ~
+  =/  decimal=(unit idiag)  (decimal-misfit u.expression typ.first typ.second sub.state next.state)
+  ?~  decimal  ~
+  `(diagnostic-expected-context u.decimal at.second typ.second sub.state)
+::
+++  icore-branch-error
+  |=  [queue=(list icore-edge) state=istate]
+  ^-  (unit [owner=term diag=idiag])
+  (icore-branch-error-with-source queue state ~)
+++  icore-branch-error-with-source
+  |=  [queue=(list icore-edge) state=istate defs=(list def)]
+  ^-  (unit [owner=term diag=idiag])
+  ?~  queue  ~
+  =/  edge=icore-edge  i.queue
+  ?.  ?=(%branch-join -.edge)  $(queue t.queue)
+  =/  target=itype  (itype-walk result.edge sub.state)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.target)  $(queue t.queue)
+  =/  types=(list itype)
+    (turn arms.edge |=(arm=[typ=itype at=span] (itype-normalize typ.arm sub.state)))
+  ?:  (lien types |=(typ=itype |((itype-has-tag typ) ?=(^ (itype-vars typ)))))
+    $(queue t.queue)
+  ?^  (itype-branch-join-list types sub.state)  $(queue t.queue)
+  =/  conflict=(unit [first=[typ=itype at=span] second=[typ=itype at=span]])
+    (icore-incompatible-arms arms.edge sub.state)
+  ?~  conflict  $(queue t.queue)
+  =/  decimal=(unit idiag)
+    (icore-branch-decimal-error owner.edge defs first.u.conflict second.u.conflict state)
+  =?  decimal  ?=(~ decimal)
+    (icore-branch-decimal-error owner.edge defs second.u.conflict first.u.conflict state)
+  ?^  decimal  `[owner.edge u.decimal]
+  =/  diag=idiag
+    ["branch arms have incompatible types" ~[[at.first.u.conflict (site-type-note "first arm" typ.first.u.conflict sub.state)] [at.second.u.conflict (site-type-note "second arm" typ.second.u.conflict sub.state)]]]
+  `[owner.edge diag]
+::
+::  A printable obligation remains monomorphic until the whole module can
+::  fix its aura; if no use does, point back to the original path segment.
+++  icap-root-matches
+  |=  [id=@ud caps=icaps sub=isub]
+  ^-  ?
+  ?~  caps  |
+  =/  root=itype  (itype-walk [%var id.i.caps] sub)
+  ?:  &(?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.root) =(id +.root))  &
+  $(caps t.caps)
+::
+::  Once every definition has contributed context, decimal-only variables
+::  may take their ordinary @ud default. A written capital never defaults.
+++  icore-default-tagged-flags
+  |=  [queue=(list icore-edge) state=istate]
+  ^-  (unit istate)
+  ?~  queue  `state
+  =/  edge=icore-edge  i.queue
+  ?.  ?=(%tagged-cell -.edge)  $(queue t.queue)
+  ?.  ?=(%tuple -.source.edge)  $(queue t.queue)
+  ?~  items.source.edge  $(queue t.queue)
+  ?.  ?=(%lit -.val.i.items.source.edge)  $(queue t.queue)
+  ?.  =(%loobean form.lit.val.i.items.source.edge)  $(queue t.queue)
+  =/  target=itype  (itype-walk result.edge sub.state)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.target)  $(queue t.queue)
+  =/  actual=itype  (itype-normalize actual.edge sub.state)
+  ?:  (itype-has-tag actual)  $(queue t.queue)
+  =/  unified=(unit isub)  (itype-unify result.edge actual sub.state)
+  ?~  unified  ~
+  $(queue t.queue, state state(sub u.unified))
+::
+++  icore-default-numbers
+  |=  [queue=(list icore-edge) state=istate]
+  ^-  (unit istate)
+  ?~  queue  `state
+  =/  edge=icore-edge  i.queue
+  ?.  ?=(%number-default -.edge)  $(queue t.queue)
+  =/  typ=itype  (itype-walk typ.edge sub.state)
+  ?.  ?=(?(%nvar %rnvar) -.typ)  $(queue t.queue)
+  ?:  (icap-root-matches id.typ caps.edge sub.state)  $(queue t.queue)
+  =/  unified=(unit isub)  (itype-unify typ [%atom %ud] sub.state)
+  ?~  unified  ~
+  $(queue t.queue, state state(sub u.unified))
+::
+++  icore-default-printables
+  |=  [queue=(list icore-edge) state=istate]
+  ^-  (unit istate)
+  ?~  queue  `state
+  =/  edge=icore-edge  i.queue
+  ?.  ?=(%printable -.edge)  $(queue t.queue)
+  =/  typ=itype  (itype-unface (itype-normalize typ.edge sub.state) sub.state)
+  ?.  ?=(?(%nvar %rnvar) -.typ)  $(queue t.queue)
+  ?:  (icap-root-matches id.typ caps.edge sub.state)  $(queue t.queue)
+  =/  unified=(unit isub)  (itype-unify typ [%atom %ud] sub.state)
+  ?~  unified  ~
+  $(queue t.queue, state state(sub u.unified))
+::
+::  Defaults can discharge constraints that make other defaults available.
+::  Keep alternating with the ordinary solver until the queue and bindings
+::  stop changing; each default binds a previously unbound result.
+++  icore-settle-defaults
+  |=  state=istate
+  ^-  (unit istate)
+  =/  numbers=(unit istate)  (icore-default-numbers queue.state state)
+  ?~  numbers  ~
+  =/  decimal=(unit istate)  (icore-default-printables queue.u.numbers u.numbers)
+  ?~  decimal  ~
+  =/  flags=(unit istate)  (icore-default-tagged-flags queue.u.decimal u.decimal)
+  ?~  flags  ~
+  =/  solved=(unit istate)  (icore-solve u.flags)
+  ?~  solved  ~
+  ?^  core-error.u.solved  solved
+  ?:  &(=(sub.state sub.u.solved) =(queue.state queue.u.solved))  solved
+  $(state u.solved)
+::
+::  A printable obligation remains monomorphic until the whole module can
+::  fix its aura; if no use does, point back to the original path segment.
+++  icore-type-open-tag
+  |=  [tags=(list ipending) typ=itype sub=isub]
+  ^-  (unit ipending)
+  ?~  tags  ~
+  =/  root=itype  (itype-walk [%var id.i.tags] sub)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.root)  $(tags t.tags)
+  =/  id=@ud  ?:(?=(%tag -.root) id.root +.root)
+  ?:  (itype-occurs id typ sub)  `i.tags
+  $(tags t.tags)
+::
+++  icore-printable-error
+  |=  [queue=(list icore-edge) state=istate]
+  ^-  (unit [owner=term diag=idiag])
+  ?~  queue  ~
+  =/  edge=icore-edge  i.queue
+  ?.  ?=(%printable -.edge)  $(queue t.queue)
+  =/  typ=itype  (itype-unface (itype-normalize typ.edge sub.state) sub.state)
+  =/  tag=(unit ipending)  (icore-type-open-tag (flop tags.state) typ sub.state)
+  ?^  tag
+    =/  message=tape  "nothing fixes the union of {(show-lit literal.u.tag)}; add a `^-`"
+    `[owner.edge [message ~[[at.u.tag message]]]]
+  =/  place=tape  ?:(interpolation.edge "interpolation" "an application path")
+  =/  generic=?
+    &(?=(?(%avar %rvar %nvar %rnvar) -.typ) (icap-root-matches id.typ caps.edge sub.state))
+  =/  reason=tape
+    ?:  generic  "a generic atom in {place} needs an aura"
+    ?:  interpolation.edge  "interpolation needs a printable atom or tape with a known aura"
+    "application path segment needs an atom with a known aura"
+  =/  note=tape
+    ?:  generic  "atom with a generic aura"
+    (site-type-note ?:(interpolation.edge "interpolated value" "segment with an unknown aura") typ sub.state)
+  =/  sites=(list [at=span note=tape])  ~[[at.edge note]]
+  =/  cap=(unit icap)
+    ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.typ)  ~
+    (cap-with-id +.typ caps.edge sub.state)
+  ?^  cap
+    =.  sites  (weld sites ~[[at.u.cap "capital `{(trip name.u.cap)}` keeps its type generic"]])
+    `[owner.edge [reason sites]]
+  =?  sites  !=(at.edge context.edge)
+    (weld sites ~[[context.edge "{place} requires a fixed aura"]])
+  `[owner.edge [reason sites]]
 ::
 
-+$  iadded-definition
-  [env=ienv checked=(map term def) artifacts=(list iwidth-definition)]
-++  add-supported-result
-  |=  [d=def result=iresult initial=istate env=ienv checked=(map term def) artifacts=(list iwidth-definition)]
-  ^-  (unit iadded-definition)
-  ?>  ?=(%value -.d)
-  ?:  ?=(%| -.result)  ~
-  =.  state.p.result  (promote-restricted-numbers state.p.result env)
-  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
-  ?^  (unresolved-hole holes.state.p.result holes.initial state.p.result)  ~
-  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)  ~
-  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
-  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))  ~
-  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)  ~
-  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  =/  finalized=(unit (list iwprojection))
-    (width-finalize projections.state.p.result sub.state.p.result vars)
-  ?~  finalized  ~
-  =?  artifacts  ?=(^ u.finalized)
-    [[name.d val.d typ sub.state.p.result (flop u.finalized)] artifacts]
-  =?  checked  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  (~(put by checked) name.d d)
-  `[[[name.d (cap-names typ vars caps.state.p.result sub.state.p.result)] env] checked artifacts]
-++  add-supported-defs-core
-  |=  [ds=(list def) checked=(map term def) heads=(unit igate-prelude-evidence) env=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) artifacts=(list iwidth-definition) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
-  ^-  [env=ienv artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
-  =/  failures=(list [name=term diag=idiag])  ~
+++  icore-final-coverage
+  |=  [queue=(list icore-edge) state=istate]
+  ^-  (unit istate)
+  ?~  queue  `state(queue ~)
+  =/  edge=icore-edge  i.queue
+  ?.  ?=(%coverage -.edge)  ~
+  =/  subject=itype  (itype-normalize subject.edge sub.state)
+  ?:  (itype-has-tag subject)  ~
+  ?.  ?=(^ (itype-vars subject))  ~
+  =/  open=(unit itype)  (coverage-overapprox subject 4.096)
+  ?~  open  ~
+  =/  proof=coverage-check  (coverage-branch-check branch.edge u.open ~)
+  ?.  ?=(%ok -.proof)  ~
+  $(queue t.queue)
+::
+::  Final open tags have had the whole module to acquire a union context.
+++  icore-first-open-tag
+  |=  [tags=(list ipending) sub=isub]
+  ^-  (unit ipending)
+  ?~  tags  ~
+  =/  root=itype  (itype-walk [%var id.i.tags] sub)
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.root)  `i.tags
+  $(tags t.tags)
+++  icore-position-before
+  |=  [a=loc b=loc]
+  ^-  ?
+  |((lth line.a line.b) &(=(line.a line.b) (lte col.a col.b)))
+++  icore-tag-owner
+  |=  [site=span ds=(list def)]
+  ^-  term
+  ?~  ds  %$
+  ?:  &(?=(%value -.i.ds) (icore-position-before beg.at.i.ds beg.site) (icore-position-before end.site end.at.i.ds))  name.i.ds
+  $(ds t.ds)
+::  At module completion a tagged-cell edge whose actual type still has
+::  a pending tag supplies no additional context for that tag.
+++  icore-tag-error-owner
+  |=  [error=[owner=term diag=idiag] site=(unit span) ds=(list def)]
+  ^-  [owner=term diag=idiag]
+  ?~  site  error
+  =/  found=term  (icore-tag-owner u.site ds)
+  ?:  =(%$ found)  error
+  error(owner found)
+::
+++  icore-only-open-tag-edges
+  |=  [queue=(list icore-edge) sub=isub]
+  ^-  ?
+  ?~  queue  &
+  =/  edge=icore-edge  i.queue
+  ?-  -.edge
+    %tag  $(queue t.queue)
+    %coverage  $(queue t.queue)
+    %tagged-cell
+      ?.  (itype-has-tag (itype-normalize actual.edge sub))  |
+      :: A known union supplies context; let the caller check any earlier
+      :: payload error instead of claiming that no union was fixed.
+      =/  target=itype  (itype-walk result.edge sub)
+      ?:  ?=(%union -.target)  |
+      $(queue t.queue)
+    *  |
+  ==
+++  icore-dependency-reaches
+  |=  [todo=(list term) target=term graph=iadj seen=ivisited]
+  ^-  ?
+  ?~  todo  |
+  ?:  =(i.todo target)  &
+  ?:  (~(has by seen) i.todo)  $(todo t.todo)
+  $(todo (weld (graph-edges i.todo graph) t.todo), seen (~(put by seen) i.todo &))
+++  icore-independent-open-tag
+  |=  [tags=(list ipending) sub=isub owner=term defs=(list def) graph=iadj]
+  ^-  (unit ipending)
+  ?~  tags  ~
+  =/  root=itype  (itype-walk [%var id.i.tags] sub)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %tag) -.root)  $(tags t.tags)
+  =/  tag-owner=term  (icore-tag-owner at.i.tags defs)
+  ?:  (icore-dependency-reaches ~[owner] tag-owner graph ~)  $(tags t.tags)
+  `i.tags
+::
+++  icore-edge-at
+  |=  edge=icore-edge
+  ^-  span
+  ?-  -.edge
+    %fit  at.edge
+    %wing  at.edge
+    %tag  at.edge
+    %match  at.edge
+    %coverage  at.edge
+    %unface  at.edge
+    %join  at.edge
+    %attributes  at.edge
+    %printable  at.edge
+    %number-default  at.edge
+    %tagged-cell  at.edge
+    %branch-join  at.edge
+    %branch-fit  at.edge
+    %cast-fit  at.edge
+    %guarded-fit  at.edge
+    %guarded-join  at.edge
+  ==
+::
+++  icore-constructor-fit-diagnostic
+  |=  [actual=itype expected=itype site=span context=span state=istate]
+  ^-  (unit idiag)
+  =.  actual  (itype-normalize actual sub.state)
+  =.  expected  (itype-normalize expected sub.state)
+  ?.  &(?=(%tag -.actual) ?=(%fn -.expected))  ~
+  ?.  constructor.actual  ~
+  =/  target=itype  (itype-unface product.expected sub.state)
+  ?.  ?=(%union -.target)  ~
+  =/  case=(unit itype)  (union-payload-case cases.target val.literal.actual sub.state ~)
+  ?~  case  ~
+  ?.  ?=(%cell -.u.case)  ~
+  =/  payload=itype  (sample-slot-target tal.u.case)
+  =/  fit=ifit  (itype-fit sample.expected payload sub.state next.state)
+  ?.  ?=(%bad -.fit)  ~
+  =/  declared=span
+    ?~  origin.target  context
+    ?.  =(at.u.origin.target at.state)  context
+    =/  found-shape=(unit shape)  (find-simple-mold name.u.origin.target molds.state)
+    ?~  found-shape  context
+    =/  source=(unit [tag=span payload=shape])  (union-payload-source u.found-shape val.literal.actual)
+    ?~  source  at.u.found-shape
+    at.payload.u.source
+  =/  diag=idiag
+    ["constructor `{(show-lit literal.actual)}` sample does not fit its case payload" ~[[declared (site-type-note "case payload" payload sub.state)] [site (site-type-note "constructor sample" sample.expected sub.state)]]]
+  ?:  ?~(origin.target & =(at.u.origin.target at.state))
+    `diag
+  `(diagnostic-add-external-union diag target state)
+::
+::  Resolve the lexical source of an already rejected field access. This
+::  pass only supplies evidence; it never guesses or changes a field type.
+++  diagnostic-wing-origin-walk
+  |=  [todo=(list ishadow-node) target=span file=path src=@t]
+  ^-  (unit idsite)
+  ?~  todo  ~
+  =/  node=ishadow-node  i.todo
+  =/  e=expr  e.node
+  ?:  &(?=(%wing -.e) =(at.e target))
+    ?~  names.e  ~
+    =/  origin=(unit ishadow-origin)  (~(get by scope.node) (rear names.e))
+    ?~  origin  ~
+    =/  site=idsite  site.u.origin
+    =?  site  definition.u.origin
+      ?:  ?=(%external -.site)
+        site(at (definition-name-site file.site source.site at.site))
+      [(definition-name-site file src at.site) note.site]
+    `site
+  ?:  ?=(?(%gate %gate-wide) -.e)
+    =/  scope=ishadow-scope  (shadow-add-bindings (shadow-sample-bindings sample.e) scope.node)
+    $(todo [[body.e scope] t.todo])
+  ?:  ?=(%branch -.e)
+    =/  arms=(list ishadow-node)
+      %+  turn  arms.e
+      |=  a=arm
+      [val.a (shadow-add-bindings (shadow-pattern-bindings pat.a) scope.node)]
+    $(todo (weld [[subject.e scope.node] arms] t.todo))
+  ?:  ?=(%body -.e)
+    =/  scope=ishadow-scope  (shadow-definitions-scope defs.e scope.node file src |)
+    =/  children=(list ishadow-node)  (turn (dependency-children e) |=(child=expr [child scope]))
+    $(todo (weld children t.todo))
+  =/  children=(list ishadow-node)  (turn (dependency-children e) |=(child=expr [child scope.node]))
+  $(todo (weld children t.todo))
+++  diagnostic-wing-origin
+  |=  [site=span state=istate]
+  ^-  (unit idsite)
+  ?~  local-source.state  ~
+  =/  src=@t  u.local-source.state
+  =/  parsed=(each module error)  (parse at.state src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  scope=ishadow-scope  (shadow-prelude-scope prelude.state)
+  =.  scope  (shadow-imports-scope imports.p.parsed scope at.state src)
+  =.  scope  (shadow-definitions-scope defs.p.parsed scope at.state src |)
+  =/  todo=(list ishadow-node)
+    %+  murn  defs.p.parsed
+    |=  d=def
+    ?.  ?=(%value -.d)  ~
+    `[val.d scope]
+  (diagnostic-wing-origin-walk todo site at.state src)
+++  icore-known-field-error
+  |=  [subject=itype fields=(list term) at=span state=istate]
+  ^-  (unit idiag)
+  =/  root=itype  subject
   |-
-  ?~  ds  [env artifacts (flop failures)]
-  =/  d=def  i.ds
-  ?:  ?=(%mold -.d)  $(ds t.ds)
-  ?.  (unique-value-name name.d globals)  $(ds t.ds)
-  ?^  (ienv-lookup name.d env)  $(ds t.ds)
-  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
-  =.  grec-index.initial  index
-  =.  gate-defs.initial  checked
-  =.  head-evidence.initial  heads
-  =.  initial  (reserve-def-caps val.d initial)
-  =/  plain=iresult  (infer-fragment val.d env initial)
-  =/  result=iresult  plain
-  =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
-  ?:  ?=(%| -.result)
-    =/  failure=idiag
-      ?:  (definite-diag p.result)  p.result
-      ?:  ?=(%| -.plain)  p.plain
-      p.result
-    =?  failures  (definite-diag failure)  [[name.d failure] failures]
-    $(ds t.ds)
-  =/  added=(unit iadded-definition)
-    (add-supported-result d result initial env checked artifacts)
-  ?~  added  $(ds t.ds)
-  $(ds t.ds, env env.u.added, checked checked.u.added, artifacts artifacts.u.added)
+  ?~  fields  ~
+  =/  typ=itype  (itype-normalize subject sub.state)
+  =/  found=(list itype)  (record-fields-named i.fields typ sub.state)
+  ?:  ?=([* ~] found)  $(subject i.found, fields t.fields)
+  ::  An open position could still acquire a face when its type settles.
+  ?:  |(?=(^ (itype-vars typ)) (itype-has-tag typ))  ~
+  =/  message=tape
+    ?~  found  "record has no field `{(trip i.fields)}`"
+    "record field `{(trip i.fields)}` is ambiguous"
+  =/  origin=(unit idsite)  (diagnostic-wing-origin at state)
+  =/  evidence=(list idsite)
+    ?~  origin  ~
+    =/  site=idsite  u.origin
+    =/  note=tape  (site-type-note "record binding" root sub.state)
+    ?:  ?=(%external -.site)  ~[site(note note)]
+    ~[[at.site note]]
+  =/  prefix=(list term)  (flop t.fields)
+  =/  offset=@ud  ?~(prefix 0 (add 1 (lent (show-names prefix))))
+  =/  start=loc  [line.beg.at (add col.beg.at offset)]
+  =/  field-site=span  [start [line.start (add col.start (lent (trip i.fields)))]]
+  =/  use=(list idsite)  ~[[field-site (site-type-note "field access on record" typ sub.state)]]
+  `[message (weld evidence use)]
 ::
-::  Retry one unresolved definition to explain a pending tag. The gate
-::  evidence is built from the whole module, not only this definition.
-++  module-pending-tag-one
-  |=  [d=def env=ienv base=istate checked=(map term def) heads=(unit igate-prelude-evidence)]
-  ^-  (unit [at=span msg=tape])
-  ?.  ?=(%value -.d)  ~
-  ?^  (ienv-lookup name.d env)  ~
-  =/  initial=istate  base(gate-defs checked, head-evidence heads)
-  =.  initial  (reserve-def-caps val.d initial)
-  =/  result=iresult  (infer-fragment val.d env initial)
-  =?  result  ?=(%| -.result)  (infer-recursive-gate d env initial)
-  ?:  ?=(%| -.result)  ~
-  (pending-tag-diagnostic tags.state.p.result sub.state.p.result)
+++  icore-pending-diagnostic
+  |=  [edge=icore-edge state=istate]
+  ^-  idiag
+  =/  field=(unit idiag)
+    ?.  ?=(%wing -.edge)  ~
+    (icore-known-field-error subject.edge fields.edge at.edge state)
+  ?^  field  u.field
+  =/  message=tape
+    ?-  -.edge
+      %wing  "field access needs a determined record type; add a `^-`"
+      %unface  "unface needs a determined input type; add a `^-`"
+      %tag  "nothing fixes the union of {(show-lit literal.edge)}; add a `^-`"
+      ?(%match %coverage)  "match subject needs a determined type; add a `^-`"
+      ?(%fit %guarded-fit)  "call argument types remain unresolved; add a `^-`"
+      %cast-fit  "cast types remain unresolved"
+      ?(%join %guarded-join)  "record face constraints remain unresolved"
+      %attributes  "attribute list needs a determined attribute type"
+      %printable  "interpolation or path segment needs a known aura"
+      %number-default  "decimal literal needs a compatible atom type"
+      %tagged-cell  "tagged cell needs a determined union type; add a `^-`"
+      ?(%branch-join %branch-fit)  "match arm types remain unresolved; add a `^-`"
+    ==
+  ?:  ?=(?(%fit %guarded-fit %branch-fit) -.edge)
+    =/  fit=ifit  (itype-fit left.edge right.edge sub.state next.state)
+    =/  constructor=(unit idiag)
+      ?.  ?=(%bad -.fit)  ~
+      (icore-constructor-fit-diagnostic left.edge right.edge at.edge context.edge state)
+    ?^  constructor  u.constructor
+    =/  reason=tape  ?:(?=(%bad -.fit) "types do not unify" message)
+    =/  diag=idiag  [reason ~[[context.edge (site-type-note "expected type" right.edge sub.state)] [at.edge (site-type-note "actual type" left.edge sub.state)]]]
+    =/  enriched=(unit idiag)  (diagnostic-pending-derived-site edge diag state)
+    ?~(enriched diag u.enriched)
+  ?:  ?=(%cast-fit -.edge)
+    [message ~[[context.edge (site-type-note "cast mold" target.edge sub.state)] [at.edge (site-type-note "expression" actual.edge sub.state)]]]
+  [message ~[[(icore-edge-at edge) message]]]
 ::
-++  resolve-groups-core
-  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile) index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])]
-  ^-  iresolved
-  =/  env=ienv  ~
-  =/  grouped=(list term)  ~
-  =/  artifacts=(list iwidth-definition)  ~
+::  Locate the source list whose first item supplied this failed function
+::  type. The saved type lets deferred diagnostics check literal arguments
+::  without guessing a head from its spelling or rebuilding a module.
+++  diagnostic-list-item
+  |=  [todo=(list expr) site=span]
+  ^-  (unit expr)
+  ?~  todo  ~
+  =/  e=expr  i.todo
+  =/  matches=?
+    ?.  ?=(%list -.e)  |
+    (lien items.e |=(item=expr =((span-of item) site)))
+  ?:  matches  `e
+  $(todo (weld (dependency-children e) t.todo))
+++  diagnostic-list-head-type
+  |=  [edges=(list icore-edge) site=span sub=isub]
+  ^-  (unit itype)
+  ?~  edges  ~
+  =/  edge=icore-edge  i.edges
+  ?.  ?=(?(%fit %guarded-fit) -.edge)  $(edges t.edges)
+  ?.  =(at.edge site)  $(edges t.edges)
+  =/  typ=itype  (itype-normalize left.edge sub)
+  ?.  ?=(%fn -.typ)  $(edges t.edges)
+  `typ
+++  pending-list-call-diagnostic
+  |=  [edge=icore-edge state=istate diagnostic=idiag]
+  ^-  idiag
+  ?.  ?=(?(%fit %guarded-fit) -.edge)  diagnostic
+  ?~  local-source.state  diagnostic
+  =/  parsed=(each module error)  (parse at.state u.local-source.state)
+  ?:  ?=(%| -.parsed)  diagnostic
+  =/  bodies=(list expr)
+    =/  ds=(list def)  defs.p.parsed
+    |-  ^-  (list expr)
+    ?~  ds  ~
+    ?:  ?=(%mold -.i.ds)  $(ds t.ds)
+    [val.i.ds $(ds t.ds)]
+  =/  found=(unit expr)  (diagnostic-list-item bodies at.edge)
+  ?~  found  diagnostic
+  ?.  ?=(%list -.u.found)  diagnostic
+  ?~  items.u.found  diagnostic
+  =/  head=(unit itype)
+    (diagnostic-list-head-type queue.state (span-of i.items.u.found) sub.state)
+  ?~  head  diagnostic
+  (list-call-diagnostic-known u.found ~ state diagnostic [%& u.head state])
+::
+++  icore-pending-conflict
+  |=  [queue=(list icore-edge) state=istate defs=(list def)]
+  ^-  (unit [owner=term display=term diag=idiag])
+  ?~  queue  ~
+  =/  edge=icore-edge  i.queue
+  =/  payload=(unit [owner=term display=term diag=idiag])
+    ?-  -.edge
+      %guarded-fit
+      =/  found=(unit idiag)  (icore-list-payload-error edge state)
+      ?~  found  ~
+      `[owner.edge owner.edge u.found]
+    ::
+      %guarded-join
+      =/  found=(unit idiag)  (icore-list-payload-error edge state)
+      ?~  found  ~
+      `[owner.edge owner.edge u.found]
+    ::
+      %tagged-cell
+      =/  found=(unit idiag)  (icore-list-payload-error edge state)
+      ?~  found  ~
+      `[owner.edge owner.edge u.found]
+    ::
+      *  ~
+    ==
+  ?^  payload  payload
+  ?.  ?=(?(%fit %guarded-fit) -.edge)  $(queue t.queue)
+  =/  fit=ifit  (itype-fit left.edge right.edge sub.state next.state)
+  ?.  ?=(%bad -.fit)  $(queue t.queue)
+  =/  list-item=(unit idiag)  (icore-list-item-error edge state)
+  ?^  list-item  `[owner.edge owner.edge u.list-item]
+  =/  decimal=(unit idiag)
+    ?.  ?=(%guarded-fit -.edge)  ~
+    ?:  (nondecimal-misfit-at forcing.edge right.edge sub.state next.state)  ~
+    (decimal-misfit forcing.edge left.edge right.edge sub.state next.state)
+  ?^  decimal
+    =/  diag=idiag  (diagnostic-expected-context u.decimal context.edge right.edge sub.state)
+    `[owner.edge owner.edge diag]
+  =/  island=(unit idiag)  (icore-island-data-error edge state)
+  ?^  island  `[owner.edge owner.edge u.island]
+  =/  origin=(unit [owner=term diag=idiag])  (diagnostic-deferred-origin edge state)
+  ?^  origin  `[owner.edge owner.u.origin diag.u.origin]
+  =/  sourced=(unit idiag)
+    ?:  ?=(%guarded-fit -.edge)  (diagnostic-guarded-source-origin edge state)
+    (diagnostic-plain-source-origin edge state defs)
+  ?^  sourced  `[owner.edge owner.edge u.sourced]
+  `[owner.edge owner.edge (pending-list-call-diagnostic edge state (icore-pending-diagnostic edge state))]
+
+::
+++  icore-owner-before
+  |=  [earlier=term later=term components=icomponents]
+  ^-  ?
+  ?~  components  |
+  ?:  (lien i.components |=(n=term =(n later)))  |
+  ?:  (lien i.components |=(n=term =(n earlier)))  &
+  $(components t.components)
+::
++$  irecord-origin  [name=term at=span width=@ud]
+:: Only explicit mold references on independently passed gate arguments
+:: establish where a conflicting record type was written.
+++  diagnostic-local-reference
+  |=  [names=(list term) name=term]
+  ^-  ?
+  ?.  ?=([@ ~] names)  |
+  =(i.names name)
+++  diagnostic-shape-mentions
+  |=  [sh=shape name=term]
+  ^-  ?
+  ?-  -.sh
+    %ref  (diagnostic-local-reference names.sh name)
+    %apply  |((diagnostic-local-reference ref.sh name) (lien args.sh |=(a=shape (diagnostic-shape-mentions a name))))
+    %cell
+      %+  lien  fields.sh
+      |=  f=field
+      ?-  -.f
+        %face  (diagnostic-shape-mentions shape.f name)
+        %bare  (diagnostic-shape-mentions shape.f name)
+        *  |
+      ==
+    %fn  |($(sh sample.sh) $(sh product.sh))
+    %union  (lien cases.sh |=(a=shape (diagnostic-shape-mentions a name)))
+    %generic  $(sh body.sh)
+    *  |
+  ==
+++  diagnostic-sample-mentions
+  |=  [sam=sample name=term]
+  ^-  ?
+  ?-  -.sam
+    %face  (diagnostic-shape-mentions shape.sam name)
+    %bare  (diagnostic-shape-mentions shape.sam name)
+    %pun   =(name.sam name)
+    %cell  (lien items.sam |=(a=sample (diagnostic-sample-mentions a name)))
+    *  |
+  ==
+++  diagnostic-annotated-args
+  |=  [args=(list expr) defs=(list def) mold=term]
+  ^-  (list term)
+  ?~  args  ~
+  =/  arg=expr  i.args
+  =.  arg
+    |-  ^-  expr
+    ?:  ?=(%group -.arg)  $(arg inner.arg)
+    arg
+  ?.  ?=(%wing -.arg)  $(args t.args)
+  ?.  ?=([@ ~] names.arg)  $(args t.args)
+  =/  found=(unit def)  (direct-find-gate i.names.arg defs)
+  ?~  found  $(args t.args)
+  =/  sample=(unit sample)  (direct-gate-sample u.found)
+  ?~  sample  $(args t.args)
+  ?.  (diagnostic-sample-mentions u.sample mold)  $(args t.args)
+  [i.names.arg $(args t.args)]
+++  diagnostic-record-call-evidence
+  |=  [owner=term defs=(list def) first=term second=term]
+  ^-  ?
+  =/  found=(unit def)  (direct-find-gate owner defs)
+  ?~  found  |
+  ?.  ?=(%value -.u.found)  |
+  =/  value=expr  val.u.found
+  =.  value
+    |-  ^-  expr
+    ?:  ?=(%group -.value)  $(value inner.value)
+    value
+  ?.  ?=(%call -.value)  |
+  =/  left=(list term)  (diagnostic-annotated-args args.value defs first)
+  =/  right=(list term)  (diagnostic-annotated-args args.value defs second)
+  (lien left |=(l=term (lien right |=(r=term !=(l r)))))
+:: A diagnostic origin is used only if the entire closed inferred type
+:: agrees with one uniquely written local record mold.
+++  diagnostic-record-origins
+  |=  [ds=(list def) typ=itype state=istate]
+  ^-  (list irecord-origin)
+  ?~  ds  ~
+  ?.  ?=(%mold -.i.ds)  $(ds t.ds)
+  ?.  ?=(%cell -.shape.i.ds)  $(ds t.ds)
+  =/  inferred=(unit [template=ischeme state=istate])
+    (infer-mold-template shape.i.ds state(active ~[name.i.ds], params ~, in-mold |))
+  ?~  inferred  $(ds t.ds)
+  ?.  ?=(~ vars.template.u.inferred)  $(ds t.ds)
+  =/  display=(unit itype)  (scheme-display-type template.u.inferred)
+  ?~  display  $(ds t.ds)
+  ?.  =((itype-unface u.display ~) (itype-unface typ sub.state))  $(ds t.ds)
+  ?~  local-source.state  $(ds t.ds)
+  =/  site=span  (definition-name-site at.state u.local-source.state at.i.ds)
+  [[name.i.ds site (lent fields.shape.i.ds)] $(ds t.ds)]
+:: A different record spine is definite only after both complete types
+:: are closed and each has exactly one matching written mold.
+++  pending-record-mold-diagnostic
+  |=  [edge=icore-edge state=istate defs=(list def)]
+  ^-  (unit idiag)
+  ?.  ?=(?(%fit %guarded-fit) -.edge)  ~
+  =/  actual=itype  (itype-normalize left.edge sub.state)
+  =/  expected=itype  (itype-normalize right.edge sub.state)
+  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
+  ?:  |((itype-has-tag actual) (itype-has-tag expected) ?=(^ (itype-vars actual)) ?=(^ (itype-vars expected)))  ~
+  (diagnostic-record-pair actual expected owner.edge state defs 1.024)
+::
+:: Descend only through equal prefixes, so a later nested record mismatch
+:: cannot replace an earlier type or face error. Both record origins still
+:: require unique checked molds and distinct annotated call arguments.
+++  diagnostic-record-pair
+  |=  [actual=itype expected=itype owner=term state=istate defs=(list def) fuel=@ud]
+  ^-  (unit idiag)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  =.  actual  (itype-normalize actual sub.state)
+  =.  expected  (itype-normalize expected sub.state)
+  ?:  =(actual expected)  ~
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    =/  actuals=(list irecord-origin)  (diagnostic-record-origins defs actual state)
+    =/  expecteds=(list irecord-origin)  (diagnostic-record-origins defs expected state)
+    =/  direct=(unit idiag)
+      ?.  &(?=([* ~] actuals) ?=([* ~] expecteds))  ~
+      ?.  !=(width.i.actuals width.i.expecteds)  ~
+      ?.  (diagnostic-record-call-evidence owner defs name.i.expecteds name.i.actuals)  ~
+      `["record molds `{(trip name.i.expecteds)}` and `{(trip name.i.actuals)}` do not unify" ~[[at.i.expecteds "expected record mold"] [at.i.actuals "actual record mold"]]]
+    ?^  direct  direct
+    =/  head=(unit idiag)  $(actual hed.actual, expected hed.expected, fuel fuel)
+    ?^  head  head
+    ?.  =((itype-normalize hed.actual sub.state) (itype-normalize hed.expected sub.state))  ~
+    $(actual tal.actual, expected tal.expected, fuel fuel)
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
+    ?.  =(name.actual name.expected)  ~
+    $(actual body.actual, expected body.expected, fuel fuel)
+  ?:  ?=(%slot -.actual)  $(actual body.actual, fuel fuel)
+  ?:  ?=(%slot -.expected)  $(expected body.expected, fuel fuel)
+  ~
+++  icore-pending-error
+  |=  [queue=(list icore-edge) state=istate defs=(list def)]
+  ^-  (unit [owner=term diag=idiag])
+  ?~  queue  ~
+  =/  edge=icore-edge  i.queue
+  =/  site=span  (icore-edge-at edge)
+  ?:  ?=(%coverage -.edge)
+    =/  checked=(unit istate)  (icore-final-coverage ~[edge] state)
+    ?^  checked  $(queue t.queue)
+    `[(icore-tag-owner site defs) (pending-list-call-diagnostic edge state (icore-pending-diagnostic edge state))]
+  =/  record=(unit idiag)  (pending-record-mold-diagnostic edge state defs)
+  ?^  record  `[(icore-tag-owner site defs) u.record]
+  `[(icore-tag-owner site defs) (pending-list-call-diagnostic edge state (icore-pending-diagnostic edge state))]
+::
+++  icore-unfinished-definition
+  |=  [ds=(list def) message=tape]
+  ^-  [owner=term diag=idiag]
+  ?~  ds  [%$ [message ~]]
+  ?.  ?=(%value -.i.ds)  $(ds t.ds)
+  [name.i.ds (icore-definition-diagnostic i.ds [message ~])]
+::
+++  icore-unclosed-env
+  |=  [env=ienv sub=isub defs=(list def)]
+  ^-  [owner=term diag=idiag]
+  ?~  env  (icore-unfinished-definition defs "module interface could not be closed")
+  ?^  (icore-close-env ~[i.env] sub)  $(env t.env)
+  =/  selected=(list def)  (skim defs |=(d=def &(?=(%value -.d) =(name.d name.i.env))))
+  (icore-unfinished-definition selected "definition result type remains unresolved; add a `^-`")
+::
+++  shape-hole-sites
+  |=  sh=shape
+  ^-  (list span)
+  ?-  -.sh
+    %hole  ~[at.sh]
+    %path  (murn segs.sh |=(s=pseg ?:(?=(%inferred -.s) `at.s ~)))
+    %apply  (zing (turn args.sh shape-hole-sites))
+    %union  (zing (turn cases.sh shape-hole-sites))
+    %cell
+      %-  zing
+      %+  turn  fields.sh
+      |=  f=field
+      ?-  -.f
+        %face  (shape-hole-sites shape.f)
+        %bare  (shape-hole-sites shape.f)
+        %pun  ~
+      ==
+    %fn  (weld $(sh sample.sh) $(sh product.sh))
+    %generic  $(sh body.sh)
+    *  ~
+  ==
+::
+:: Preserve the failed component as the causal owner until earlier
+:: independent tags have had their normal priority; the source owner only
+:: changes the final diagnostic header.
+++  icore-core-error-priority
+  |=  [state=istate ds=(list def) graph=iadj components=icomponents]
+  ^-  [owner=term diag=idiag]
+  ?>  ?=(^ core-error.state)
+  =/  error=[owner=term diag=idiag]  u.core-error.state
+  ?~  error-display-owner.state  (icore-tag-error-owner error error-tag-site.state ds)
+  =/  earlier=(list ipending)
+    %+  skim  (flop tags.state)
+    |=  tag=ipending
+    (icore-owner-before (icore-tag-owner at.tag ds) owner.error components)
+  =/  unresolved=(unit ipending)
+    (icore-independent-open-tag earlier sub.state owner.error ds graph)
+  ?^  unresolved
+    =/  message=tape  "nothing fixes the union of {(show-lit literal.u.unresolved)}; add a `^-`"
+    [(icore-tag-owner at.u.unresolved ds) [message ~[[at.u.unresolved message]]]]
+  =/  named=[owner=term diag=idiag]  (icore-tag-error-owner error error-tag-site.state ds)
+  named(owner u.error-display-owner.state)
+::
+++  icore-check
+  |=  [ds=(list def) state=istate]
+  ^-  icore-output
+  (icore-check-with-env ds ~ state)
+::
+++  icore-check-with-env
+  |=  [ds=(list def) outer=ienv state=istate]
+  ^-  icore-output
   =/  names=(list term)  (global-value-names ds)
   =/  nameset=ivisited  (graph-nameset names ~)
+  ?.  =((lent names) ~(wyt by nameset))  [~ ~]
   =/  graph=iadj  (graph-make-forward ds nameset ~)
-  =/  components=icomponents  (graph-components ds names)
-  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
-  =/  ordered=(list def)  (dependency-order ds components)
+  =/  components=icomponents  (graph-components-for names graph)
+  =/  definitions=(map term icore-definition)  (icore-definition-index ds ~ 0)
+  =/  initial=(unit istate)  (icore-solve state(general-defer &))
+  ?~  initial  [~ ~]
+  =/  solved=(unit [env=ienv state=istate grouped=(list term) failure=(unit [owner=term diag=idiag prior=(list ipending)])])
+    (icore-components components definitions graph outer u.initial ~ ~)
+  ?~  solved  [~ ~]
+  =/  final=(unit istate)  (icore-solve state.u.solved)
+  ?~  final  [~ ~]
+  ?^  failure.u.solved
+    =/  failure=[owner=term diag=idiag prior=(list ipending)]  u.failure.u.solved
+    =/  unresolved=(unit ipending)
+      (icore-independent-open-tag (flop prior.failure) sub.u.final owner.failure ds graph)
+    ?^  unresolved
+      =/  message=tape  "nothing fixes the union of {(show-lit literal.u.unresolved)}; add a `^-`"
+      [~ `[(icore-tag-owner at.u.unresolved ds) [message ~[[at.u.unresolved message]]]]]
+    [~ `[owner.failure diag.failure]]
+  ?^  core-error.u.final  [~ `(icore-core-error-priority u.final ds graph components)]
+  =/  settled=(unit istate)  (icore-settle-defaults u.final)
+  ?~  settled  [~ ~]
+  ?^  core-error.u.settled  [~ `(icore-core-error-priority u.settled ds graph components)]
+  =/  match-error=(unit [owner=term diag=idiag])  (icore-match-error (flop queue.u.settled) u.settled)
+  ?^  match-error  [~ match-error]
+  =/  branch-error=(unit [owner=term diag=idiag])  (icore-branch-error-with-source (flop queue.u.settled) u.settled ds)
+  ?^  branch-error  [~ branch-error]
+  =/  printable-error=(unit [owner=term diag=idiag])  (icore-printable-error (flop queue.u.settled) u.settled)
+  ?^  printable-error  [~ printable-error]
+  =/  conflict=(unit [owner=term display=term diag=idiag])
+    (icore-pending-conflict (flop queue.u.settled) u.settled ds)
+  ?^  conflict
+    =/  earlier=(list ipending)
+      %+  skim  (flop tags.u.settled)
+      |=  tag=ipending
+      (icore-owner-before (icore-tag-owner at.tag ds) owner.u.conflict components)
+    =/  unresolved=(unit ipending)
+      (icore-independent-open-tag earlier sub.u.settled owner.u.conflict ds graph)
+    ?^  unresolved
+      =/  message=tape  "nothing fixes the union of {(show-lit literal.u.unresolved)}; add a `^-`"
+      [~ `[(icore-tag-owner at.u.unresolved ds) [message ~[[at.u.unresolved message]]]]]
+    [~ `[display.u.conflict diag.u.conflict]]
+  =/  unresolved=(unit ipending)  (icore-first-open-tag (flop tags.u.settled) sub.u.settled)
+  ?^  unresolved
+    =/  message=tape  (weld "nothing fixes the union of " (weld (show-lit literal.u.unresolved) "; add a `^-`"))
+    =/  owner=term  (icore-tag-owner at.u.unresolved ds)
+    [~ `[owner [message ~[[at.u.unresolved message]]]]]
+  =/  pending=(unit [owner=term diag=idiag])
+    (icore-pending-error (flop queue.u.settled) u.settled ds)
+  ?^  pending  [~ pending]
+  =/  coverage-final=(unit istate)  (icore-final-coverage queue.u.settled u.settled)
+  ?~  coverage-final  [~ ~]
+  =/  inferred=ienv
+    (scag (sub (lent env.u.solved) (lent outer)) env.u.solved)
+  =/  env=(unit ienv)  (icore-close-env inferred sub.u.coverage-final)
+  ?~  env  [~ `(icore-unclosed-env inferred sub.u.coverage-final ds)]
+  =/  artifacts=(unit (list iwidth-definition))
+    (icore-projection-artifacts ds u.env projections.u.coverage-final sub.u.coverage-final)
+  ?~  artifacts
+    [~ `(icore-unfinished-definition ds "projection could not be finalized")]
+  [`[u.env grouped.u.solved u.artifacts ~] ~]
+::
+++  icore-projection-bind
+  |=  [p=iwprojection scheme=ischeme sub=isub]
+  ^-  iwprojection
+  =/  masked=isub  (graph-hide-sub sub quantified.p)
+  =/  src=itype  (itype-normalize source.p masked)
+  =/  dst=itype  (itype-normalize target.p masked)
+  =/  ids=(list @ud)  (unique-type-vars (weld (itype-vars src) (itype-vars dst)))
+  =/  ren=(map @ud @ud)  ~
+  =/  local=(list @ud)  quantified.p
   |-
-  =/  next=[env=ienv artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
-    (add-supported-defs-core ordered (direct-checked-gates ds env) heads env molds globals externals surs mark-externals marks jimports reserved-molds at prelude artifacts index)
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
-  =.  grec-index.initial  index
-  =/  out=iresolved  (add-groups ds components graph env.next grouped artifacts.next initial)
-  ?:  =(env env.out)  out(failures failures.next)
-  $(env env.out, grouped grouped.out, artifacts artifacts.out)
+  ?~  ids  p(source (itype-reid src ren), target (itype-reid dst ren), quantified local)
+  =/  matching=(list @ud)
+    (skim vars.scheme |=(v=@ud =((var-count v) (var-count i.ids))))
+  ?.  ?=([* ~] matching)  $(ids t.ids)
+  $(ids t.ids, ren (~(put by ren) i.ids i.matching), local (unique-type-vars [i.matching local]))
+++  icore-projection-scope
+  |=  [defs=(list def) env=ienv p=iwprojection sub=isub]
+  ^-  iwprojection
+  ?~  defs  p
+  =/  d=def  i.defs
+  ?.  &(?=(%value -.d) (icore-position-before beg.at.d beg.at.p) (icore-position-before end.at.p end.at.d))
+    $(defs t.defs)
+  =/  scheme=(unit ischeme)  (ienv-lookup name.d env)
+  ?~  scheme  p
+  (icore-projection-bind p u.scheme sub)
+++  icore-projection-scopes
+  |=  [defs=(list def) env=ienv ps=(list iwprojection) sub=isub]
+  ^-  (list iwprojection)
+  (turn ps |=(p=iwprojection (icore-projection-scope defs env p sub)))
 ::
-::  +dependency-order: the value definitions, dependencies first
+++  icore-projection-renaming
+  |=  [ids=(list @ud) visible=(list @ud) ren=(map @ud @ud)]
+  ^-  (unit (map @ud @ud))
+  ?~  ids  `ren
+  =/  choices=(list @ud)
+    (skim visible |=(n=@ud =((var-count n) (var-count i.ids))))
+  ?.  ?=([* ~] choices)  ~
+  $(ids t.ids, ren (~(put by ren) i.ids i.choices))
+++  icore-finalize-projections
+  |=  [ps=(list iwprojection) sub=isub visible=(list @ud)]
+  ^-  (unit (list iwprojection))
+  ?~  ps  `~
+  ?:  (lien t.ps |=(p=iwprojection =(at.p at.i.ps)))  ~
+  =/  masked=isub  (graph-hide-sub sub quantified.i.ps)
+  =/  src=itype  (default-decimals (itype-normalize source.i.ps masked))
+  =/  dst=itype  (default-decimals (itype-normalize target.i.ps masked))
+  =/  allowed=(list @ud)  (unique-type-vars (weld visible quantified.i.ps))
+  =/  ids=(list @ud)  (unique-type-vars (weld (itype-vars src) (itype-vars dst)))
+  =/  ren=(unit (map @ud @ud))  (icore-projection-renaming ids allowed ~)
+  ?~  ren  ~
+  =/  p=iwprojection  i.ps(source (itype-reid src u.ren), target (itype-reid dst u.ren))
+  =/  rest=(unit (list iwprojection))  $(ps t.ps)
+  ?~  rest  ~
+  =/  checked=(unit (list iwprojection))  (width-finalize ~[p] ~ allowed)
+  ?~  checked  ~
+  `(weld u.checked u.rest)
+++  icore-projection-artifacts
+  |=  [ds=(list def) env=ienv projections=(list iwprojection) sub=isub]
+  ^-  (unit (list iwidth-definition))
+  ?~  projections  `~
+  ?~  ds  ~
+  =/  all=(list iwprojection)  projections
+  =/  d=def  i.ds
+  ?.  ?=(%value -.d)  $(ds t.ds)
+  =/  owned=(list iwprojection)
+    %+  skim  all
+    |=  p=iwprojection
+    &((icore-position-before beg.at.d beg.at.p) (icore-position-before end.at.p end.at.d))
+  ?~  owned  $(ds t.ds)
+  =/  selected=(list iwprojection)  owned
+  =/  scheme=(unit ischeme)  (ienv-lookup name.d env)
+  ?~  scheme  ~
+  =/  display=(unit itype)  (scheme-display-type u.scheme)
+  ?~  display  ~
+  =/  finalized=(unit (list iwprojection))
+    (icore-finalize-projections owned sub vars.u.scheme)
+  ?~  finalized  ~
+  =/  remaining=(list iwprojection)
+    (skip all |=(p=iwprojection (lien selected |=(q=iwprojection =(p q)))))
+  =/  rest=(unit (list iwidth-definition))  $(ds t.ds, projections remaining)
+  ?~  rest  ~
+  `[[name.d val.d u.display sub (flop u.finalized)] u.rest]
 ::
-::    +graph-components lists the components dependencies first, so one
-::    pass of +add-supported-defs-core in this order resolves a forward
-::    chain that would otherwise take a pass per link; the fixpoint above
-::    stays as the fallback (review question 12). Members of a component
-::    keep their source order. Definitions in no component (molds, and
-::    every value when duplicate names leave no components) follow in
-::    source order.
+++  icore-resolve
+  |=  [ds=(list def) state=istate]
+  ^-  (unit iresolved)
+  result:(icore-check ds state)
 ::
 ++  dependency-order
   |=  [ds=(list def) components=icomponents]
@@ -11617,12 +20128,6 @@
   =/  members=(list term)  (zing components)
   =/  named=ivisited  (graph-nameset members ~)
   (weld ranked (skip ds |=(d=def &(?=(%value -.d) (~(has by named) name.d)))))
-::
-++  resolve-supported-defs
-  |=  [ds=(list def) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
-  ^-  ienv
-  env:(resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds at prelude)
-::
 ::  A diagnostic-only proof for a narrow syntactic value cycle. Every
 ::  edge is an unqualified wing in a supported expression, and samples
 ::  may not shadow global bindings. Unknown forms yield no conclusion.
@@ -11862,43 +20367,6 @@
     %overlap
   %unknown
 ::
-::  A source-only fallback for literal-tagged cells and one-hop local
-::  generic applications.  It screens all work before ordinary inference.
-++  union-simple-shape-budget
-  |=  [s=shape fuel=@ud vars=(unit (list @t))]
-  ^-  (unit @ud)
-  ?:  =(0 fuel)  ~
-  =.  fuel  (dec fuel)
-  ?-  -.s
-    ?(%aura %noun %void %flag)  `fuel
-    %tvar
-      ?~  vars  `fuel
-      ?:((lien u.vars |=(n=@t =(n name.s))) `fuel ~)
-    %const
-      ?.  |(=(%term form.lit.s) =(%null form.lit.s) =(%loobean form.lit.s))  ~
-      ?:  &(=(%loobean form.lit.s) !|(=(0 val.lit.s) =(1 val.lit.s)))  ~
-      `fuel
-    %cell  (union-simple-fields-budget fields.s fuel vars)
-    %fn
-      =/  left=(unit @ud)  $(s sample.s, fuel fuel)
-      ?~  left  ~
-      $(s product.s, fuel u.left)
-    *  ~
-  ==
-++  union-simple-fields-budget
-  |=  [fields=(list field) fuel=@ud vars=(unit (list @t))]
-  ^-  (unit @ud)
-  ?~  fields  `fuel
-  ?:  =(0 fuel)  ~
-  =/  field-shape=shape
-    ?-  -.i.fields
-      %bare  shape.i.fields
-      %face  shape.i.fields
-      %pun   [%ref at.i.fields ~[name.i.fields]]
-    ==
-  =/  head=(unit @ud)  (union-simple-shape-budget field-shape (dec fuel) vars)
-  ?~  head  ~
-  $(fields t.fields, fuel u.head)
 ++  union-source-find
   |=  [n=term molds=imolds fuel=@ud]
   ^-  (unit [body=shape left=@ud])
@@ -11912,18 +20380,6 @@
     ?^  found  ~
     $(molds t.molds, fuel (dec fuel), found `body.i.molds)
   $(molds t.molds, fuel (dec fuel))
-++  union-source-args-budget
-  |=  [vars=(list @t) args=(list shape) fuel=@ud]
-  ^-  (unit @ud)
-  =/  seen=(set @t)  *(set @t)
-  |-
-  ?~  vars  ?~(args `fuel ~)
-  ?~  args  ~
-  ?:  =(0 fuel)  ~
-  ?:  (~(has in:..zuse seen) i.vars)  ~
-  =/  arg=(unit @ud)  (union-simple-shape-budget i.args (dec fuel) ~)
-  ?~  arg  ~
-  $(vars t.vars, args t.args, fuel u.arg, seen (~(put in:..zuse seen) i.vars))
 ++  union-source-cell-tag
   |=  s=shape
   ^-  (unit @)
@@ -11936,97 +20392,6 @@
   ?.  |(=(%term form.lit.head) =(%null form.lit.head) =(%loobean form.lit.head))  ~
   ?:  &(=(%loobean form.lit.head) !|(=(0 val.lit.head) =(1 val.lit.head)))  ~
   `val.lit.head
-++  union-source-case-tag
-  |=  [s=shape molds=imolds fuel=@ud]
-  ^-  (unit [tag=@ left=@ud])
-  ?:  ?=(%cell -.s)
-    =/  tag=(unit @)  (union-source-cell-tag s)
-    ?~  tag  ~
-    =/  left=(unit @ud)  (union-simple-shape-budget s fuel ~)
-    ?~  left  ~
-    `[u.tag u.left]
-  ?.  ?=(%apply -.s)  ~
-  ?.  ?=([@ ~] ref.s)  ~
-  ?:  =(0 fuel)  ~
-  =/  found=(unit [body=shape left=@ud])  (union-source-find i.ref.s molds (dec fuel))
-  ?~  found  ~
-  ?.  ?=(%generic -.body.u.found)  ~
-  ?~  vars.body.u.found  ~
-  =/  tag=(unit @)  (union-source-cell-tag body.body.u.found)
-  ?~  tag  ~
-  =/  args=(unit @ud)  (union-source-args-budget vars.body.u.found args.s left.u.found)
-  ?~  args  ~
-  =/  left=(unit @ud)  (union-simple-shape-budget body.body.u.found u.args `vars.body.u.found)
-  ?~  left  ~
-  `[u.tag u.left]
-++  union-source-distinct-tags
-  |=  [cases=(list shape) molds=imolds fuel=@ud]
-  ^-  ?
-  =/  seen=(set @)  *(set @)
-  =/  has-application=?  |
-  |-
-  ?~  cases  has-application
-  ?:  =(0 fuel)  |
-  =/  item=(unit [tag=@ left=@ud])  (union-source-case-tag i.cases molds (dec fuel))
-  ?~  item  |
-  ?:  (~(has in:..zuse seen) tag.u.item)  |
-  $(cases t.cases, fuel left.u.item, seen (~(put in:..zuse seen) tag.u.item), has-application |(has-application ?=(%apply -.i.cases)))
-::
-::  This inference-only screen bounds inherited work that the small source
-::  slice may consult.  It does not authenticate a caller-created state.
-++  union-state-leaf
-  |=  t=itype
-  ^-  ?
-  ?=(?(%var %fvar %avar %rvar %nvar %rnvar %atom %any-atom %flag %noun %empty %const) -.t)
-++  union-state-params-budget
-  |=  [params=iparams fuel=@ud]
-  ^-  (unit @ud)
-  ?~  params  `fuel
-  ?:  =(0 fuel)  ~
-  ?.  (union-state-leaf typ.i.params)  ~
-  $(params t.params, fuel (dec fuel))
-++  union-state-sub-budget
-  |=  [sub=isub fuel=@ud]
-  ^-  (unit @ud)
-  ?~  sub  `fuel
-  ?:  =(0 fuel)  ~
-  ?.  (union-state-leaf val.i.sub)  ~
-  $(sub t.sub, fuel (dec fuel))
-++  union-state-caps-budget
-  |=  [caps=icaps fuel=@ud]
-  ^-  (unit @ud)
-  ?~  caps  `fuel
-  ?:  =(0 fuel)  ~
-  $(caps t.caps, fuel (dec fuel))
-++  union-state-active-budget
-  |=  [active=(list term) fuel=@ud]
-  ^-  (unit @ud)
-  ?~  active  `fuel
-  ?:  =(0 fuel)  ~
-  $(active t.active, fuel (dec fuel))
-++  union-state-tags-budget
-  |=  [tags=(list ipending) fuel=@ud]
-  ^-  (unit @ud)
-  ?~  tags  `fuel
-  ?:  =(0 fuel)  ~
-  $(tags t.tags, fuel (dec fuel))
-++  union-source-state-safe
-  |=  [state=istate fuel=@ud]
-  ^-  ?
-  ?^  grec-index.state  |
-  ?^  holes.state  |
-  ?^  defer.state  |
-  ?^  obligations.state  |
-  =/  params=(unit @ud)  (union-state-params-budget params.state fuel)
-  ?~  params  |
-  =/  sub=(unit @ud)  (union-state-sub-budget sub.state u.params)
-  ?~  sub  |
-  =/  caps=(unit @ud)  (union-state-caps-budget caps.state u.sub)
-  ?~  caps  |
-  =/  active=(unit @ud)  (union-state-active-budget active.state u.caps)
-  ?~  active  |
-  ?=(^ (union-state-tags-budget tags.state u.active))
-::
 ::  Positive overlap witnesses from parsed, one-hop local source only.
 ::  Unknown or exhausted work returns no witness, never disjointness.
 +$  uow-case  [at=span head=@ payload=upat]
@@ -12260,6 +20625,114 @@
     %body  |((lien defs.e def-has-hole) $(e final.e))
     *  |
   ==
+::  `(facts ...)` is an API-path declaration, never a general mold.
+++  facts-shapes
+  |=  xs=(list shape)
+  ^-  (unit span)
+  ?~  xs  ~
+  =/  found=(unit span)  (facts-shape i.xs)
+  ?^  found  found
+  $(xs t.xs)
+++  facts-fields
+  |=  xs=(list field)
+  ^-  (unit span)
+  ?~  xs  ~
+  =/  found=(unit span)
+    ?-  -.i.xs
+      %face  (facts-shape shape.i.xs)
+      %bare  (facts-shape shape.i.xs)
+      %pun   ~
+    ==
+  ?^  found  found
+  $(xs t.xs)
+++  facts-shape
+  |=  sh=shape
+  ^-  (unit span)
+  ?-  -.sh
+    %apply  ?:(=(ref.sh ~[%facts]) `at.sh (facts-shapes args.sh))
+    %union  (facts-shapes cases.sh)
+    %cell   (facts-fields fields.sh)
+    %fn
+      =/  found=(unit span)  $(sh sample.sh)
+      ?^  found  found
+      $(sh product.sh)
+    %generic  $(sh body.sh)
+    *  ~
+  ==
+++  facts-samples
+  |=  xs=(list sample)
+  ^-  (unit span)
+  ?~  xs  ~
+  =/  found=(unit span)  (facts-sample i.xs)
+  ?^  found  found
+  $(xs t.xs)
+++  facts-sample
+  |=  sam=sample
+  ^-  (unit span)
+  ?-  -.sam
+    %face  (facts-shape shape.sam)
+    %bare  (facts-shape shape.sam)
+    %cell  (facts-samples items.sam)
+    *  ~
+  ==
+++  facts-exprs
+  |=  xs=(list expr)
+  ^-  (unit span)
+  ?~  xs  ~
+  =/  found=(unit span)  (facts-expr i.xs)
+  ?^  found  found
+  $(xs t.xs)
+++  facts-defs
+  |=  xs=(list def)
+  ^-  (unit span)
+  ?~  xs  ~
+  =/  found=(unit span)
+    ?-  -.i.xs
+      %mold   (facts-shape shape.i.xs)
+      %value  (facts-expr val.i.xs)
+    ==
+  ?^  found  found
+  $(xs t.xs)
+++  facts-expr
+  |=  e=expr
+  ^-  (unit span)
+  =/  children=(list expr)
+    ?-  -.e
+      %str    (murn pieces.e |=(p=piece ?:(?=(%expr -.p) `p.p ~)))
+      %qath   (murn segs.e |=(p=qseg ?:(?=(%expr -.p) `p.p ~)))
+      %change  (turn edits.e |=(p=edit val.p))
+      %pair   ~[val.e]
+      %unit   ~[val.e]
+      %group  ~[inner.e]
+      %list   items.e
+      %tuple  (turn items.e |=(i=item val.i))
+      ?(%gate %gate-wide)  ~[body.e]
+      %cast   ~[val.e]
+      %call   [head.e args.e]
+      %trace  ~[val.e then.e]
+      %branch  [subject.e (turn arms.e |=(a=arm val.a))]
+      %body   ~[final.e]
+      *  ~
+    ==
+  =/  direct=(unit span)
+    ?-  -.e
+      ?(%gate %gate-wide)  (facts-sample sample.e)
+      %cast  (facts-shape shape.e)
+      %body  (facts-defs defs.e)
+      *  ~
+    ==
+  ?^  direct  direct
+  (facts-exprs children)
+++  facts-outside-api-paths
+  |=  [at=path defs=(list def)]
+  ^-  (unit span)
+  ?~  defs  ~
+  ?:  &(?=([%ui %api *] at) ?=(%mold -.i.defs) =(%paths name.i.defs))
+    $(defs t.defs)
+  =/  found=(unit span)  (facts-defs ~[i.defs])
+  ?^  found  found
+  $(defs t.defs)
+::
 ++  hole-values-present
   |=  [ds=(list def) env=ienv]
   ^-  ?
@@ -12269,32 +20742,43 @@
     ?.  ?=(^ (ienv-lookup name.i.ds env))  |
     $(ds t.ds)
   $(ds t.ds)
-++  show-partial-mold
-  |=  [file=path src=@t d=def molds=imolds]
-  ^-  @t
-  ?>  ?=(%mold -.d)
-  =/  sh=shape  shape.d
-  =/  hole=(unit (unit span))  (simple-mold-hole sh)
-  ?:  &(?=(^ hole) ?=(^ u.hole))
-    =/  text=@t  (show-error src [file line.beg.u.u.hole col.beg.u.u.hole "unresolved type hole"])
-    (of-wain:format ~[(crip "+$ {(trip name.d)}: type hole needs a determined type") text])
-  =?  sh  ?=(%generic -.sh)  body.sh
-  ?.  ?=(%union -.sh)  (crip "+$ {(trip name.d)}: not checked")
-  =/  pairs=(list upair)  (union-pairs cases.sh molds)
-  =/  witness=(unit upair)  (mold-overlap-witness cases.sh pairs molds)
-  ?^  witness
-    =/  p=upair  u.witness
-    =/  summary=@t  (crip "+$ {(trip name.d)}: overlapping cases; mold not checked")
-    =/  first=@t  (show-error src [file line.beg.first.p col.beg.first.p "first union case"])
-    =/  second=@t  (show-error src [file line.beg.second.p col.beg.second.p "overlapping case"])
-    (of-wain:format ~[summary first second])
-  ?:  (lien pairs |=(p=upair =(%unknown relation.p)))
-    ?.  (union-source-distinct-tags cases.sh molds 256)
-      (crip "+$ {(trip name.d)}: case disjointness unresolved; mold not checked")
-    (crip "+$ {(trip name.d)}: cases proven disjoint; mold not checked")
-  (crip "+$ {(trip name.d)}: cases proven disjoint; mold not checked")
+++  definition-name-site
+  |=  [file=path src=@t site=span]
+  ^-  span
+  =/  tokens=(list token)  (layout file src)
+  |-
+  ?~  tokens  site
+  ?.  =(beg.at.i.tokens beg.site)  $(tokens t.tokens)
+  ?.  ?=(?(%'++' %'+$') lex.i.tokens)  site
+  ?~  t.tokens  site
+  ?.  ?=(%name -.lex.i.t.tokens)  site
+  at.i.t.tokens
 ::
-::  +show-inference-diagnostic: a partial report with both source sites
+:: A call-head span may include its opening parenthesis. For diagnostics,
+:: prefer the actual written name when the next token proves that location.
+++  call-head-name-site
+  |=  [file=path src=@t site=span]
+  ^-  span
+  =/  tokens=(list token)  (layout file src)
+  |-
+  ?~  tokens  site
+  ?.  =(beg.at.i.tokens beg.site)  $(tokens t.tokens)
+  ?.  ?=(%'(' lex.i.tokens)  site
+  ?~  t.tokens  site
+  ?.  ?=(%name -.lex.i.t.tokens)  site
+  at.i.t.tokens
+++  island-main-diagnostic-sites
+  |=  [sites=(list idsite) file=path src=@t declaration=def]
+  ^-  (list idsite)
+  ?.  ?=(%value -.declaration)  sites
+  =/  value=expr  (program-transparent val.declaration)
+  ?.  ?=(%call -.value)  sites
+  =/  site=span  (call-head-name-site file src (span-of head.value))
+  %+  turn  sites
+  |=  original=idsite
+  ?:  ?=(%external -.original)  original
+  ?.  =(note.original "island main")  original
+  original(at site)
 ::
 ++  show-inference-diagnostic
   |=  [file=path src=@t name=term diagnostic=idiag]
@@ -12302,7 +20786,11 @@
   =/  summary=@t  (crip "++ {(trip name)}: {msg.diagnostic}")
   =/  excerpts=(list @t)
     %+  turn  sites.diagnostic
-    |=  site=[at=span note=tape]
+    |=  site=idsite
+    ?:  ?=(%external -.site)
+      (show-error source.site [file.site line.beg.at.site col.beg.at.site note.site])
+    =?  at.site  |(=(note.site "definition in cycle") =(note.site "value in cycle"))
+      (definition-name-site file src at.site)
     (show-error src [file line.beg.at.site col.beg.at.site note.site])
   (of-wain:format [summary excerpts])
 ::
@@ -12313,23 +20801,18 @@
   ^-  @t
   =/  excerpts=(list @t)
     %+  turn  sites.diagnostic
-    |=  site=[at=span note=tape]
+    |=  site=idsite
+    ?:  ?=(%external -.site)
+      (show-error source.site [file.site line.beg.at.site col.beg.at.site note.site])
     (show-error src [file line.beg.at.site col.beg.at.site note.site])
   (of-wain:format [(crip msg.diagnostic) excerpts])
-::
-++  duplicate-fields-report
-  |=  [file=path src=@t diagnostic=idiag]
-  ^-  @t
-  (of-wain:format ~['partial inference; module not checked' (show-duplicate-fields file src diagnostic)])
-::
-::  +golden-types: a partial report; it does not claim the module checks
 ::
 ++  golden-types
   |=  [file=path src=@t]
   ^-  @t
   (golden-types-imports file src ~)
 ::
-::  +golden-types-imports: partial inference with caller-supplied /sur types
+::  +golden-types-imports: full checking with caller-supplied /sur types
 ::
 ::    Each entry is [module mold result], where result is exactly the
 ::    noun returned by +read-mold:jibb-import. Only imports declared with
@@ -12353,7 +20836,7 @@
 ::  Ordinary Jibb imports preserve this evidence through the resolver.
 +$  jfile-overlap  [file=path source=@t name=term cases=upair]
 +$  jfile-failure  [message=@t overlap=(unit jfile-overlap)]
-+$  jfile-detailed-result  (each [iface=ifile cache=jcache] jfile-failure)
++$  jfile-detailed-result  (each [iface=ifile cache=jcache kind=checked-kind] jfile-failure)
 +$  jimports-result  (each [resolved=ijimports cache=jcache] @t)
 ::  Preserve an imported overlap's original file and source across the graph.
 +$  jimports-detailed-result  (each [resolved=ijimports cache=jcache] jfile-failure)
@@ -12413,6 +20896,8 @@
   ^-  (unit idiag)
   ?~  items  ~
   =/  a=sample  i.items
+  :: All nested cell-sample binders enter the same gate scope.
+  ?:  ?=(%cell -.a)  $(items (weld items.a t.items))
   =/  n=(unit term)
     ?-  -.a
       %bind  `name.a
@@ -12569,59 +21054,11 @@
   |=  n=term
   ^-  ?
   |(=(n %proj) =(n %unface))
-++  reserved-sample
-  |=  sam=sample
-  ^-  ?
-  ?-  -.sam
-    %bind  (reserved-name name.sam)
-    %face  (reserved-name name.sam)
-    %pun   (reserved-name name.sam)
-    %cell  (lien items.sam reserved-sample)
-    *  |
-  ==
-++  reserved-pattern
-  |=  p=pattern
-  ^-  ?
-  ?-  -.p
-    %bind  (reserved-name name.p)
-    %cell  (lien items.p reserved-pattern)
-    *  |
-  ==
-++  reserved-def
-  |=  d=def
-  ^-  ?
-  ?:  (reserved-name name.d)  &
-  ?:  ?=(%value -.d)  (reserved-expr val.d)
-  |
-++  reserved-expr
-  |=  e=expr
-  ^-  ?
-  ?-  -.e
-    %str  (lien pieces.e |=(p=piece ?:(?=(%expr -.p) (reserved-expr p.p) |)))
-    %qath  (lien segs.e |=(p=qseg ?:(?=(%expr -.p) (reserved-expr p.p) |)))
-    %change  (lien edits.e |=(p=edit (reserved-expr val.p)))
-    %pair  $(e val.e)
-    %unit  $(e val.e)
-    %group  $(e inner.e)
-    %list  (lien items.e reserved-expr)
-    %tuple  (lien items.e |=(i=item (reserved-expr val.i)))
-    ?(%gate %gate-wide)  |((reserved-sample sample.e) $(e body.e))
-    %cast  $(e val.e)
-    %call  |($(e head.e) (lien args.e reserved-expr))
-    %trace  |($(e val.e) $(e then.e))
-    %branch  |($(e subject.e) (lien arms.e |=(a=arm |((reserved-pattern pat.a) (reserved-expr val.a)))))
-    %body  |((lien defs.e reserved-def) $(e final.e))
-    *  |
-  ==
 ::
 ++  module-has-reserved
   |=  mod=module
   ^-  ?
-  =/  imported=(list term)  (import-binding-names imports.mod)
-  =/  vals=(list term)  (global-value-names defs.mod)
-  =/  molds=imolds  (collect-simple-molds defs.mod)
-  =/  mold-names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  |((lien (weld imported (weld vals mold-names)) reserved-name) (lien defs.mod reserved-def))
+  |((lien (import-binding-names imports.mod) reserved-name) ?=(^ (reserved-defs-site defs.mod)))
 ::
 ::  A scope collision retains source sites. Prelude declarations may be in
 ::  another source, so their name and namespace are retained separately.
@@ -12667,19 +21104,92 @@
   ?:  ?=(%value -.d)
     $(defs t.defs, values (~(put by values) n at.d))
   $(defs t.defs, molds (~(put by molds) n at.d))
+::  Preserve the source of a reserved binder inside nested expressions.
+++  reserved-sample-site
+  |=  sam=sample
+  ^-  (unit [name=term at=span])
+  ?-  -.sam
+    %bind  ?:((reserved-name name.sam) `[name.sam at.sam] ~)
+    %face  ?:((reserved-name name.sam) `[name.sam at.sam] ~)
+    %pun   ?:((reserved-name name.sam) `[name.sam at.sam] ~)
+    %cell
+      =/  items=(list sample)  items.sam
+      |-
+      ?~  items  ~
+      =/  found=(unit [name=term at=span])  (reserved-sample-site i.items)
+      ?^  found  found
+      $(items t.items)
+    *  ~
+  ==
+++  reserved-pattern-site
+  |=  pat=pattern
+  ^-  (unit [name=term at=span])
+  ?+  -.pat  ~
+    %bind  ?:((reserved-name name.pat) `[name.pat at.pat] ~)
+    %cell
+      =/  items=(list pattern)  items.pat
+      |-
+      ?~  items  ~
+      =/  found=(unit [name=term at=span])  (reserved-pattern-site i.items)
+      ?^  found  found
+      $(items t.items)
+  ==
+++  reserved-def-site
+  |=  d=def
+  ^-  (unit [name=term at=span])
+  ?:  (reserved-name name.d)  `[name.d at.d]
+  ?:  ?=(%value -.d)  (reserved-expr-site val.d)
+  ~
+++  reserved-defs-site
+  |=  ds=(list def)
+  ^-  (unit [name=term at=span])
+  ?~  ds  ~
+  =/  found=(unit [name=term at=span])  (reserved-def-site i.ds)
+  ?^  found  found
+  $(ds t.ds)
+++  reserved-expr-site
+  |=  e=expr
+  ^-  (unit [name=term at=span])
+  =/  direct=(unit [name=term at=span])
+    ?+  -.e  ~
+      ?(%gate %gate-wide)  (reserved-sample-site sample.e)
+      %body  (reserved-defs-site defs.e)
+      %branch
+        =/  arms=(list arm)  arms.e
+        |-
+        ?~  arms  ~
+        =/  found=(unit [name=term at=span])  (reserved-pattern-site pat.i.arms)
+        ?^  found  found
+        $(arms t.arms)
+    ==
+  ?^  direct  direct
+  =/  todo=(list expr)  (dependency-children e)
+  |-
+  ?~  todo  ~
+  =/  found=(unit [name=term at=span])  (reserved-expr-site i.todo)
+  ?^  found  found
+  $(todo t.todo)
+::
 ++  module-scope-diagnostic
   |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
   ^-  (unit iscope-diagnostic)
   =/  imports=(each written-fields iscope-diagnostic)
     (scope-import-diagnostic imports.mod prelude-values prelude-molds ~)
   ?:  ?=(%| -.imports)  `p.imports
-  (scope-def-diagnostic defs.mod p.imports prelude-values prelude-molds ~ ~)
+  =/  ordinary=(unit iscope-diagnostic)
+    (scope-def-diagnostic defs.mod p.imports prelude-values prelude-molds ~ ~)
+  ?^  ordinary  ordinary
+  =/  reserved=(unit [name=term at=span])  (reserved-defs-site defs.mod)
+  ?~  reserved  ~
+  `[["`{(trip name.u.reserved)}` is reserved and cannot be bound" ~[[at.u.reserved "reserved binding"]]] ~]
 ++  show-scope-diagnostic
   |=  [file=path src=@t diagnostic=iscope-diagnostic prelude=(unit ifile)]
   ^-  @t
   =/  excerpts=(list @t)
     %+  turn  sites.issue.diagnostic
-    |=  site=[at=span note=tape]
+    |=  site=idsite
+    ?:  ?=(%external -.site)
+      (show-error source.site [file.site line.beg.at.site col.beg.at.site note.site])
     (show-error src [file line.beg.at.site col.beg.at.site note.site])
   =/  previous=(list @t)
     ?~  prelude.diagnostic  ~
@@ -12723,8 +21233,26 @@
   ?:  =(0 fuel)  |
   ?:  (~(has in:..zuse seen) i.vars)  |
   $(vars t.vars, seen (~(put in:..zuse seen) i.vars), fuel (dec fuel))
+:: Compare resolved case types, retaining the spans of the original cases.
+:: The noun relation reports overlap only when it can exhibit one.
+++  typed-union-overlap-tail
+  |=  [first-shape=shape first-type=itype shapes=(list shape) types=(list itype)]
+  ^-  (unit upair)
+  ?~  shapes  ~
+  ?~  types  ~
+  =/  relation=urelation  (union-relate (import-type-pattern first-type) (import-type-pattern i.types))
+  ?:  =(%overlap relation)  `[at.first-shape at.i.shapes %overlap]
+  $(shapes t.shapes, types t.types)
+++  typed-union-overlap
+  |=  [shapes=(list shape) types=(list itype)]
+  ^-  (unit upair)
+  ?~  shapes  ~
+  ?~  types  ~
+  =/  found=(unit upair)  (typed-union-overlap-tail i.shapes i.types t.shapes t.types)
+  ?^  found  found
+  $(shapes t.shapes, types t.types)
 ++  module-mold-overlap
-  |=  [m=[name=term body=shape] molds=imolds]
+  |=  [m=[name=term body=shape] state=istate]
   ^-  (unit upair)
   =/  sh=shape  body.m
   =/  valid=?
@@ -12732,10 +21260,37 @@
     ?~  vars.sh  |
     (module-mold-params-valid vars.sh *(set @t) 256)
   ?.  valid  ~
+  =/  context=istate  state(active [name.m active.state], in-mold &)
+  =?  context  ?=(%generic -.sh)
+    =/  fresh=[params=iparams vars=(list @ud) next=@ud]  (fresh-mold-params vars.sh next.context)
+    context(params params.fresh, next next.fresh)
   =?  sh  ?=(%generic -.sh)  body.sh
   ?.  ?=(%union -.sh)  ~
-  ::  A failed inference keeps no projection, so it is computed once more.
-  (mold-overlap-witness cases.sh (union-pairs cases.sh molds) molds)
+  :: Preserve the earlier syntactic witness when available. Otherwise the
+  :: inferred cases can establish overlap through arbitrary aliases.
+  =/  source=(unit upair)  (mold-overlap-witness cases.sh (union-pairs cases.sh molds.state) molds.state)
+  ?^  source  source
+  =/  inferred=(unit [types=(list itype) state=istate])  (infer-shape-args cases.sh context)
+  ?~  inferred  ~
+  (typed-union-overlap cases.sh types.u.inferred)
+:: On the first failing mold, retain proven imported reader errors and sites.
+++  module-mold-failure-diagnostic
+  |=  [molds=imolds state=istate]
+  ^-  (unit [name=term diag=idiag])
+  ?~  molds  ~
+  =/  m=[name=term body=shape]  i.molds
+  =/  context=istate  state(active [name.m active.state], in-mold &)
+  =/  inferred=(unit [template=ischeme state=istate])
+    (infer-mold-template body.m context)
+  ?^  inferred  $(molds t.molds)
+  =/  holes=(list span)  (shape-hole-sites body.m)
+  ?^  holes
+    `[name.m ["type hole must be determined by its definition" ~[[i.holes "unresolved type hole"]]]]
+  =/  invalid=(unit idiag)  (nested-import-invalid body.m context)
+  ?~  invalid
+    `[name.m ["mold needs unsupported inference" ~[[at.body.m "unsupported mold"]]]]
+  `[name.m u.invalid]
+::
 ++  module-mold-types-detail
   |=  [molds=imolds state=istate]
   ^-  (each imold-types imold-failure)
@@ -12744,7 +21299,7 @@
   =/  t=(unit [template=ischeme state=istate])
     (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  t
-    =/  overlap=(unit upair)  (module-mold-overlap m molds.state)
+    =/  overlap=(unit upair)  (module-mold-overlap m state)
     [%| ['module mold needs unsupported inference' ?~(overlap ~ `[name.m u.overlap])]]
   =.  typ.template.u.t  (label-direct-union typ.template.u.t body.m name.m state)
   =/  rest=(each imold-types imold-failure)  $(molds t.molds)
@@ -12763,9 +21318,9 @@
   ?:  ?=(%| -.rest)  rest
   [%& [[name.m template.u.t] p.rest]]
 ::
-::  Prepare a provisional interface from the trusted vendored source.
-::  Every declared name remains reserved, but only molds and values this
-::  fragment can infer are usable. Unsupported bodies are not validated.
+::  Prepare an interface from the trusted vendored source. The common
+::  module core checks every value definition before publication. Every
+::  declared mold remains reserved; only validated templates are exported.
 ::  An optional internal source supplies the prelude's one supported import;
 ::  clients cannot import that path directly. Named unions retain their origin.
 ::
@@ -12822,14 +21377,11 @@
     %union
       =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
       [%union (turn cases.typ |=(c=itype (prelude-label-nested c))) origin.typ label (turn args.typ |=(c=itype (prelude-label-nested c)))]
-    %grec
+    %mrec
       =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
       typ(label label, args (turn args.typ |=(c=itype (prelude-label-nested c))))
-    %jrec
-      =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
-      typ(label label)
     %collection  [%collection name.typ (turn args.typ |=(c=itype (prelude-label-nested c)))]
-    %face      [%face name.typ $(typ body.typ)]
+    ?(%face %slot)      ?:(?=(%slot -.typ) [%slot name.typ $(typ body.typ)] [%face name.typ $(typ body.typ)])
     %fn        [%fn $(typ sample.typ) $(typ product.typ)]
     %cell      [%cell $(typ hed.typ) $(typ tal.typ)]
     *          typ
@@ -12839,8 +21391,9 @@
   |=  [typ=itype name=term vars=(list @ud)]
   ^-  itype
   =.  typ  (prelude-label-nested typ)
-  ?:  ?=(%jrec -.typ)  typ(label `name)
-  ?:  ?=(%grec -.typ)
+  ?:  ?=(%opaque -.typ)
+    typ(label `name, args (turn vars |=(v=@ud [%var v])))
+  ?:  ?=(%mrec -.typ)
     ?.  (identity-union-parameters vars args.typ)  typ(label ~)
     typ(label `name)
   ?.  ?=(%union -.typ)  typ
@@ -12855,9 +21408,8 @@
   ^-  imold-types
   ?~  molds  ~
   =/  m=[name=term body=shape]  i.molds
-  ?:  &(=(at.state /lib/jibb/prelude/jibb) =(%list name.m))
-    ?.  (standard-prelude-list body.m)  $(molds t.molds)
-    [[%list [[%collection %list ~[[%var 0]]] ~[0]]] $(molds t.molds)]
+  ?:  &(=(at.state /lib/jibb/prelude/jibb) =(%list name.m) (standard-prelude-list body.m))
+    [[%list [[%collection %list ~[[%var 0]]] ~[0] ~]] $(molds t.molds)]
   =/  out=(unit [template=ischeme state=istate])
     (infer-mold-template body.m state(active [name.m active.state], in-mold &))
   ?~  out  $(molds t.molds)
@@ -12872,17 +21424,45 @@
   =/  a=itype  [%avar 0]
   =/  pair=itype  [%cell a a]
   =/  b=itype  [%rvar 0]
-  =/  plus=ischeme  [[%fn [%cell b b] b] ~[0]]
-  =/  minus=ischeme  [[%fn b b] ~[0]]
-  =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0]]
+  =/  plus=ischeme  [[%fn [%cell b b] b] ~[0] ~]
+  =/  minus=ischeme  [[%fn b b] ~[0] ~]
+  =/  greater=ischeme  [[%fn pair [%flag ~]] ~[0] ~]
   =/  free=itype  [%fvar 0]
-  =/  equal=ischeme  [[%fn [%cell free free] [%flag ~]] ~[0]]
+  =/  equal=ischeme  [[%fn [%cell free free] [%flag ~]] ~[0] ~]
   =/  utf8=itype  [%atom 'tD']
   =/  tape=itype  [%collection %list ~[utf8]]
   =/  codepoints=itype  [%collection %list ~[[%atom %c]]]
-  =/  text-trip=ischeme  [[%fn [%atom %t] tape] ~]
-  =/  text-tuba=ischeme  [[%fn tape codepoints] ~]
-  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater] [%raw-eq equal] [%raw-trip text-trip] [%raw-tuba text-tuba]] ~ /lib/jibb/primitives/jibb ~ ~ ~ ~ ~]
+  =/  text-trip=ischeme  [[%fn [%atom %t] tape] ~ ~]
+  =/  text-tuba=ischeme  [[%fn tape codepoints] ~ ~]
+  =/  text-crip=ischeme  [[%fn tape [%atom %t]] ~ ~]
+  =/  text-tufa=ischeme  [[%fn codepoints tape] ~ ~]
+  =/  number=itype  [%atom %ud]
+  =/  span=itype
+    [%cell [%slot %d number] [%cell [%slot %h number] [%cell [%slot %m number] [%cell [%slot %s number] [%slot %f [%collection %list ~[[%atom %ux]]]]]]]]
+  =/  date=itype
+    [%cell [%cell [%slot %a [%flag ~]] [%slot %y number]] [%cell [%slot %m number] [%slot %t span]]]
+  =/  dime=itype  [%cell [%slot %p [%atom %ta]] [%slot %q [%any-atom ~]]]
+  =/  date-pack=ischeme  [[%fn date [%atom %da]] ~ ~]
+  =/  date-unpack=ischeme  [[%fn [%atom %da] date] ~ ~]
+  =/  format-knot=ischeme  [[%fn dime [%atom %ta]] ~ ~]
+  =/  format-tape=ischeme  [[%fn dime tape] ~ ~]
+  =/  parse-atom=ischeme
+    [[%fn [%cell [%atom %tas] [%atom %ta]] [%cell [%slot %valid [%flag ~]] [%slot %value [%any-atom ~]]]] ~ ~]
+  ::  Only the checked private interface can construct this seal.
+  =/  sealed=itype  [%opaque [/lib/jibb/primitives/jibb %seal] ~ ~[[%var 0]] [%var 0]]
+  =/  seal-mold=ischeme  [sealed ~[0] ~]
+  =/  seal-gate=ischeme  [[%fn [%var 0] sealed] ~[0] ~]
+  =/  atom=itype  [%any-atom ~]
+  =/  bit-not=ischeme  [[%fn [%cell atom [%cell atom atom]] atom] ~ ~]
+  =/  key=itype  [%fvar 0]
+  =/  value=itype  [%var 1]
+  =/  map=itype  [%collection %map ~[key value]]
+  =/  nil=itype  [%const [%null %n 0 '~']]
+  =/  unit=itype
+    [%union ~[nil [%cell nil [%slot %u value]]] `[/lib/jibb/prelude/jibb %unit] `%unit ~[value]]
+  =/  map-get=ischeme  [[%fn [%cell map key] unit] ~[0 1] ~]
+  =/  map-put=ischeme  [[%fn [%cell map [%cell key value]] map] ~[0 1] ~]
+  [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater] [%raw-eq equal] [%raw-trip text-trip] [%raw-tuba text-tuba] [%raw-crip text-crip] [%raw-tufa text-tufa] [%raw-date-pack date-pack] [%raw-date-unpack date-unpack] [%raw-format-knot format-knot] [%raw-format-tape format-tape] [%raw-parse-atom parse-atom] [%raw-map-get map-get] [%raw-map-put map-put] [%raw-seal seal-gate] [%raw-bit-not bit-not]] ~[[%opaque seal-mold]] /lib/jibb/primitives/jibb ~ ~ ~ ~ ~ ~]
 ::
 ++  infer-private-internal
   |=  [src=@t public-source=@t]
@@ -12916,16 +21496,17 @@
   =/  source-list=(unit ischeme)
     ?~  written-list  ~
     ?.  (standard-prelude-list u.written-list)  ~
-    `[[%collection %list ~[[%var 0]]] ~[0]]
+    `[[%collection %list ~[[%var 0]]] ~[0] ~]
   ::  Derive the public unit template from its actual source, then compare
   ::  the complete nominal template before making it available privately.
   =/  unit-decl=(unit shape)  (find-simple-mold %unit source-molds)
   =/  source-unit=(unit ischeme)
     ?~  unit-decl  ~
     =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
-    =/  unit-state=istate  [0 ~ ~ ~ unit-molds ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | /lib/jibb/prelude/jibb ~[%unit] ~ ~ 256 ~ ~ ~ ~ ~ ~]
+    =/  unit-state=istate  *istate
+    =.  unit-state  unit-state(molds unit-molds, in-mold |, at /lib/jibb/prelude/jibb, top-molds ~[%unit], jrec-fuel 256, globals-imports |, general-defer |)
     =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
-    =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~]
+    =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~ ~]
     =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
     ?~  found  ~
     ?.  (standard-unit-template u.found /lib/jibb/prelude/jibb)  ~
@@ -12938,7 +21519,8 @@
   =/  js=ijimports  ~[[face.i.imports.mod primitive]]
   =/  reserved=(list term)  ~[face.i.imports.mod]
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals ~ ~ ~ ~ js reserved ~ ~ ~ | at top ~ ~ 256 ~ ~ ~ ~ ~ ~]
+  =/  state=istate  *istate
+  =.  state  state(molds molds, globals globals, jimports js, reserved-molds reserved, in-mold |, at at, top-molds top, jrec-fuel 256, globals-imports |, general-defer |)
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   =/  usable=(unit imold-types)
     ?:  ?=(%& -.mts)  `p.mts
@@ -12949,8 +21531,100 @@
     ?.  |(?=(~ source-list) ?=(~ source-unit))  ~
     =/  nil=itype  [%const [%null %n 0 '~']]
     =/  canonical-unit=ischeme
-      [[%union ~[nil [%cell nil [%face %u [%var 0]]]] `[/lib/jibb/prelude/jibb %unit] `%unit ~[[%var 0]]] ~[0]]
-    =/  canonical-list=ischeme  [[%collection %list ~[[%var 0]]] ~[0]]
+      [[%union ~[nil [%cell nil [%slot %u [%var 0]]]] `[/lib/jibb/prelude/jibb %unit] `%unit ~[[%var 0]]] ~[0] ~]
+    =/  canonical-list=ischeme  [[%collection %list ~[[%var 0]]] ~[0] ~]
+    =/  proof-primitive=ifile  private-primitive-interface
+    =/  fallback=imold-types  ~[[%list canonical-list] [%unit canonical-unit]]
+    =.  molds.proof-primitive  (weld fallback molds.proof-primitive)
+    =/  proof-imports=ijimports  ~[[face.i.imports.mod proof-primitive]]
+    =/  proof=(each imold-types @t)  (module-mold-types molds state(jimports proof-imports))
+    ?:  ?=(%| -.proof)  ~
+    `(partial-prelude-molds molds state)
+  ?~  usable  ~
+  =/  checked=(unit iresolved)  (icore-resolve defs.mod state(globals-imports &))
+  ?~  checked  ~
+  =/  resolution=iresolved  u.checked
+  =/  env=ienv  env.resolution
+  ?.  (module-values-complete defs.mod env)  ~
+  `[env u.usable at ~ artifacts.resolution ~ `src ~ ~]
+::
+++  prelude-imports-internal
+  |=  src=@t
+  ^-  ?
+  =/  parsed=(each module error)  (parse /lib/jibb/prelude/jibb src)
+  ?:  ?=(%| -.parsed)  |
+  ?.  ?=([[%jibb *] ~] imports.p.parsed)  |
+  =(path.i.imports.p.parsed /lib/jibb/internal)
+::
+++  private-internal-core-error
+  |=  [src=@t public-source=@t]
+  ^-  (unit @t)
+  =/  at=path  /lib/jibb/internal/jibb
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  mod=module  p.parsed
+  ?^  (duplicate-defs defs.mod)  ~
+  ?~  imports.mod
+    =/  built=jfile-detailed-result  (infer-jibb-file-detailed at src ~ ~ ~ ~[at] ~ ~ ~ ~)
+    ?:  ?=(%| -.built)  `message.p.built
+    ~
+  ?.  ?=([[%jibb *] ~] imports.mod)  ~
+  ?.  =(path.i.imports.mod /lib/jibb/primitives)  ~
+  ?.  (module-scope-valid mod ~ ~)  ~
+  =/  vals=(list term)  (global-value-names defs.mod)
+  ?:  (lien vals |=(n=term =(n %main)))  ~
+  =/  molds=imolds  (collect-simple-molds defs.mod)
+  =/  globals=(list term)  (weld (import-binding-names imports.mod) vals)
+  ::  The private source can use the public list and unit molds before the
+  ::  prelude is otherwise prepared.  Re-read the trusted public source here
+  ::  and admit only its validated canonical templates; do not accept schemes
+  ::  supplied independently by the caller.
+  =/  public=(each module error)  (parse /lib/jibb/prelude/jibb public-source)
+  ?:  ?=(%| -.public)  ~
+  ?^  (duplicate-defs defs.p.public)  ~
+  ?.  (module-scope-valid p.public ~ ~)  ~
+  =/  source-molds=imolds  (collect-simple-molds defs.p.public)
+  =/  written-list=(unit shape)  (find-simple-mold %list source-molds)
+  =/  source-list=(unit ischeme)
+    ?~  written-list  ~
+    ?.  (standard-prelude-list u.written-list)  ~
+    `[[%collection %list ~[[%var 0]]] ~[0] ~]
+  ::  Derive the public unit template from its actual source, then compare
+  ::  the complete nominal template before making it available privately.
+  =/  unit-decl=(unit shape)  (find-simple-mold %unit source-molds)
+  =/  source-unit=(unit ischeme)
+    ?~  unit-decl  ~
+    =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
+    =/  unit-state=istate  *istate
+    =.  unit-state  unit-state(molds unit-molds, in-mold |, at /lib/jibb/prelude/jibb, top-molds ~[%unit], jrec-fuel 256, globals-imports |, general-defer |)
+    =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
+    =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~ ~]
+    =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
+    ?~  found  ~
+    ?.  (standard-unit-template u.found /lib/jibb/prelude/jibb)  ~
+    found
+  =/  primitive=ifile  private-primitive-interface
+  =?  primitive  ?=(^ source-list)
+    primitive(molds [[%list u.source-list] molds.primitive])
+  =?  primitive  ?=(^ source-unit)
+    primitive(molds [[%unit u.source-unit] molds.primitive])
+  =/  js=ijimports  ~[[face.i.imports.mod primitive]]
+  =/  reserved=(list term)  ~[face.i.imports.mod]
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  state=istate  *istate
+  =.  state  state(molds molds, globals globals, jimports js, reserved-molds reserved, in-mold |, at at, top-molds top, jrec-fuel 256, globals-imports |, general-defer |)
+  =/  mts=(each imold-types @t)  (module-mold-types molds state)
+  =/  usable=(unit imold-types)
+    ?:  ?=(%& -.mts)  `p.mts
+    ::  Missing public templates may make an unrelated internal mold
+    ::  unavailable.  Validate all molds once with isolated canonical
+    ::  templates before admitting only those inferred using the actual
+    ::  source-backed templates.  The proof interface is never exported.
+    ?.  |(?=(~ source-list) ?=(~ source-unit))  ~
+    =/  nil=itype  [%const [%null %n 0 '~']]
+    =/  canonical-unit=ischeme
+      [[%union ~[nil [%cell nil [%slot %u [%var 0]]]] `[/lib/jibb/prelude/jibb %unit] `%unit ~[[%var 0]]] ~[0] ~]
+    =/  canonical-list=ischeme  [[%collection %list ~[[%var 0]]] ~[0] ~]
     =/  proof-primitive=ifile  private-primitive-interface
     =.  molds.proof-primitive  ~[[%list canonical-list] [%unit canonical-unit]]
     =/  proof-imports=ijimports  ~[[face.i.imports.mod proof-primitive]]
@@ -12958,13 +21632,132 @@
     ?:  ?=(%| -.proof)  ~
     `(partial-prelude-molds molds state)
   ?~  usable  ~
-  =/  resolution=iresolved  (resolve-groups defs.mod molds globals ~ ~ ~ ~ js reserved at ~)
-  =/  env=ienv  env.resolution
-  ?.  (module-values-complete defs.mod env)  ~
-  `[env u.usable at ~ artifacts.resolution ~ `src ~]
+  =/  checked=icore-output  (icore-check defs.mod state(globals-imports &))
+  ?~  error.checked  ~
+  `(show-inference-diagnostic at src owner.u.error.checked diag.u.error.checked)
+::
+::  Syntactic dependencies only decide which values may be used during
+::  bootstrap; no inferred type or checked value is fabricated by this scan.
++$  ibootstrap-reference  [qualified=? name=term]
++$  ibootstrap-shape-context  [locals=imolds seen=(list term)]
+++  bootstrap-shape-name
+  |=  [names=(list term) context=ibootstrap-shape-context]
+  ^-  (list ibootstrap-reference)
+  ?~  names  ~
+  ?^  t.names  ~[[& (rear names)]]
+  =/  name=term  i.names
+  =/  local=(unit shape)  (find-simple-mold name locals.context)
+  ?~  local  ~[[| name]]
+  ?:  (lien seen.context |=(n=term =(n name)))  ~
+  (bootstrap-shape-deps u.local context(seen [name seen.context]))
+++  bootstrap-shape-deps-list
+  |=  [shapes=(list shape) context=ibootstrap-shape-context]
+  ^-  (list ibootstrap-reference)
+  ?~  shapes  ~
+  (weld (bootstrap-shape-deps i.shapes context) $(shapes t.shapes))
+++  bootstrap-field-deps
+  |=  [fields=(list field) context=ibootstrap-shape-context]
+  ^-  (list ibootstrap-reference)
+  ?~  fields  ~
+  =/  f=field  i.fields
+  =/  one=(list ibootstrap-reference)
+    ?-  -.f
+      %pun  (bootstrap-shape-name ~[name.f] context)
+      %face  (bootstrap-shape-deps shape.f context)
+      %bare  (bootstrap-shape-deps shape.f context)
+    ==
+  (weld one $(fields t.fields))
+++  bootstrap-shape-deps
+  |=  [sh=shape context=ibootstrap-shape-context]
+  ^-  (list ibootstrap-reference)
+  ?-  -.sh
+    %ref  (bootstrap-shape-name names.sh context)
+    %apply  (weld (bootstrap-shape-name ref.sh context) (bootstrap-shape-deps-list args.sh context))
+    %cell  (bootstrap-field-deps fields.sh context)
+    %union  (bootstrap-shape-deps-list cases.sh context)
+    %fn  (weld $(sh sample.sh) $(sh product.sh))
+    %generic  $(sh body.sh)
+    *  ~
+  ==
+++  bootstrap-sample-deps
+  |=  [sam=sample context=ibootstrap-shape-context]
+  ^-  (list ibootstrap-reference)
+  ?-  -.sam
+    %pun  (bootstrap-shape-name ~[name.sam] context)
+    %face  (bootstrap-shape-deps shape.sam context)
+    %bare  (bootstrap-shape-deps shape.sam context)
+    %cell  (zing (turn items.sam |=(item=sample (bootstrap-sample-deps item context))))
+    *  ~
+  ==
++$  ibootstrap-expr-node  [e=expr locals=imolds]
+++  bootstrap-expr-shape-deps
+  |=  e=expr
+  ^-  (list ibootstrap-reference)
+  =/  todo=(list ibootstrap-expr-node)  ~[[e ~]]
+  =/  found=(list ibootstrap-reference)  ~
+  |-
+  ?~  todo  found
+  =/  node=ibootstrap-expr-node  i.todo
+  =/  e=expr  e.node
+  =/  locals=imolds  locals.node
+  =?  locals  ?=(%body -.e)
+    (weld (collect-simple-molds defs.e) locals)
+  =/  context=ibootstrap-shape-context  [locals ~]
+  =/  own=(list ibootstrap-reference)
+    ?-  -.e
+      %cast  (bootstrap-shape-deps shape.e context)
+      ?(%gate %gate-wide)  (bootstrap-sample-deps sample.e context)
+      %body
+        %-  zing
+        %+  turn  defs.e
+        |=  d=def
+        ?:(?=(%mold -.d) (bootstrap-shape-deps shape.d context) ~)
+      *  ~
+    ==
+  =/  children=(list ibootstrap-expr-node)
+    (turn (dependency-children e) |=(child=expr [child locals]))
+  $(todo (weld children t.todo), found (weld own found))
+::
+++  bootstrap-dependency-graph
+  |=  [defs=(list def) faces=(list term) unavailable=(list term) graph=iadj roots=(list term)]
+  ^-  [graph=iadj roots=(list term)]
+  ?~  defs  [graph roots]
+  =/  d=def  i.defs
+  ?.  ?=(%value -.d)  $(defs t.defs)
+  =/  shapes=(list ibootstrap-reference)  (bootstrap-expr-shape-deps val.d)
+  =/  blocked-shape=?
+    (lien shapes |=(ref=ibootstrap-reference ?:(qualified.ref (lien faces |=(x=term =(name.ref x))) (lien unavailable |=(x=term =(name.ref x))))))
+  =/  values=(list term)  (dependency-expr val.d)
+  =/  blocked-value=?  (lien values |=(n=term (lien faces |=(x=term =(n x)))))
+  =.  graph  (graph-add-reverse name.d values graph)
+  =?  roots  |(blocked-shape blocked-value)  [name.d roots]
+  $(defs t.defs)
+++  bootstrap-reachable
+  |=  [todo=(list term) graph=iadj seen=(set term)]
+  ^-  (set term)
+  ?~  todo  seen
+  ?:  (~(has in:..zuse seen) i.todo)  $(todo t.todo)
+  =.  seen  (~(put in:..zuse seen) i.todo)
+  $(todo (weld (graph-edges i.todo graph) t.todo))
+++  bootstrap-prelude-defs
+  |=  [defs=(list def) faces=(list term) unavailable=(list term)]
+  ^-  (list def)
+  =/  dependencies=[graph=iadj roots=(list term)]  (bootstrap-dependency-graph defs faces unavailable ~ ~)
+  =/  excluded=(set term)  (bootstrap-reachable roots.dependencies graph.dependencies ~)
+  (skim defs |=(d=def |(?=(%mold -.d) !(~(has in:..zuse excluded) name.d))))
 ::
 ++  partial-prelude-interface-with-internal
   |=  [src=@t internal-source=(unit @t)]
+  ^-  (unit ifile)
+  (partial-prelude-interface-with-groups src internal-source ~)
+::
+++  partial-prelude-interface-with-groups
+  |=  [src=@t internal-source=(unit @t) groups=(list iprelude-group)]
+  ^-  (unit ifile)
+  (partial-prelude-interface-mode src internal-source groups ~)
+::
+++  partial-prelude-interface-mode
+  |=  [src=@t internal-source=(unit @t) groups=(list iprelude-group) bootstrap-faces=(list term)]
   ^-  (unit ifile)
   ?:  =(0 src)  ~
   =/  at=path  /lib/jibb/prelude/jibb
@@ -12986,24 +21779,34 @@
   =/  ds=(list def)  defs.p.parsed
   =/  molds=imolds  (collect-simple-molds ds)
   =/  names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  globals=(list term)  (weld (import-binding-names imports.p.parsed) (global-value-names ds))
-  ::  Remove raw list before inferring any template, so an altered list
-  ::  cannot leak through an alias. Its name remains reserved either way.
+  =/  group-faces=(list term)  (turn groups |=(g=iprelude-group face.g))
+  ?.  (module-scope-valid p.parsed group-faces group-faces)  ~
+  =/  globals=(list term)  (weld group-faces (weld (import-binding-names imports.p.parsed) (global-value-names ds)))
+  ::  The canonical recursive list is the collection; another source mold
+  ::  named list retains its own actual structural type.
   =/  declared=?  (lien names |=(name=term =(%list name)))
-  =/  env-molds=imolds  molds
-  =?  env-molds  declared
-    (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
-  =/  reserved=(list term)  ?:(declared ~[%list] ~)
-  =/  state=istate  [0 ~ ~ ~ env-molds globals ~ ~ ~ ~ u.private reserved ~ ~ ~ | at names ~ ~ 256 ~ ~ ~ ~ ~ ~]
-  ::  Other prelude molds may use list only after its source has passed
-  ::  the standard-list check. The raw declaration remains removed.
   =/  declared-list=(unit shape)  (find-simple-mold %list molds)
-  =/  mold-prelude=(unit ifile)
+  =/  standard=?  ?~(declared-list | (standard-prelude-list u.declared-list))
+  =/  env-molds=imolds  molds
+  =?  env-molds  standard
+    (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
+  =/  list-reserved=(list term)  ?:(declared ~[%list] ~)
+  =/  reserved=(list term)  (weld group-faces list-reserved)
+  =/  state=istate  *istate
+  =.  state  state(molds env-molds, globals globals, jimports u.private, reserved-molds reserved, in-mold |, at at, top-molds names, jrec-fuel 256, globals-imports |, general-defer |)
+  ::  Supply the built-in collection only for the canonical source.
+  =/  list-types=imold-types
     ?~  declared-list  ~
     ?.  (standard-prelude-list u.declared-list)  ~
-    `[~ ~[[%list [[%collection %list ~[[%var 0]]] ~[0]]]] at ~ ~ ~ ~ ~]
+    ~[[%list [[%collection %list ~[[%var 0]]] ~[0] ~]]]
+  =/  mold-prelude=(unit ifile)
+    ?:  &(?=(~ list-types) ?=(~ groups))  ~
+    `[~ list-types at ~ ~ ~ ~ ~ groups]
   =/  mt=imold-types  (partial-prelude-molds molds state(prelude mold-prelude))
-  =/  partial=ifile  [~ mt at ~ ~ ~ ~ ~]
+  =/  partial=ifile  [~ mt at ~ ~ ~ ~ ~ groups]
+  ::  Once groups are checked, every public mold must have an inferred
+  ::  scheme; the bootstrap alone may omit unresolved group dependencies.
+  ?.  |(?=(^ bootstrap-faces) (levy names |=(n=term ?=(^ (find-jibb-mold n partial)))))  ~
   ::  An explicitly qualified re-export must resolve. Other unsupported
   ::  prelude declarations remain reserved but absent from the interface.
   =/  required=imolds
@@ -13013,14 +21816,97 @@
     ?.  ?=(%ref -.sh)  |
     ?~  names.sh  |
     ?=(^ t.names.sh)
-  ?.  (levy required |=(m=[name=term body=shape] ?=(^ (find-jibb-mold name.m partial))))  ~
-  =/  resolution=iresolved  (resolve-groups ds env-molds globals ~ ~ ~ ~ u.private reserved at `partial)
+  ?.  |(?=(^ bootstrap-faces) (levy required |=(m=[name=term body=shape] ?=(^ (find-jibb-mold name.m partial)))))  ~
+  ::  Bootstrap only the dependency-closed subset that does not need a
+  ::  group or an as-yet-unavailable mold. The complete source is checked
+  ::  again after the group interfaces exist.
+  =/  selected=(list def)
+    ?~  bootstrap-faces  ds
+    =/  unavailable=(list term)
+      (skim names |=(n=term ?=(~ (find-jibb-mold n partial))))
+    (bootstrap-prelude-defs ds bootstrap-faces unavailable)
+  =/  checked=(unit iresolved)  (icore-resolve selected state(prelude `partial, globals-imports &))
+  ?~  checked  ~
+  =/  resolution=iresolved  u.checked
   =/  env=ienv  env.resolution
-  ?.  (hole-values-present ds env)  ~
+  ?.  (hole-values-present selected env)  ~
   =/  deps=(list iwidth-dependency)
     ?~  u.private  ~
     ~[[at.interface.i.u.private source.interface.i.u.private elaborations.interface.i.u.private]]
-  `[env mt at ~ artifacts.resolution deps `src ~]
+  `[env mt at ~ artifacts.resolution deps `src ~ groups]
+::
+++  prelude-mode-core-error
+  |=  [src=@t internal-source=(unit @t) groups=(list iprelude-group) bootstrap-faces=(list term)]
+  ^-  (unit @t)
+  ?:  =(0 src)  ~
+  =/  at=path  /lib/jibb/prelude/jibb
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  ~
+  ?:  (named-mold-has-hole defs.p.parsed)  ~
+  ?^  (duplicate-defs defs.p.parsed)  ~
+  =/  private=(unit ijimports)
+    ?~  imports.p.parsed  `~
+    ?.  ?=([[%jibb *] ~] imports.p.parsed)  ~
+    ?.  =(path.i.imports.p.parsed /lib/jibb/internal)  ~
+    ?~  internal-source  ~
+    =/  built=(unit ifile)  (infer-private-internal u.internal-source src)
+    ?~  built  ~
+    `~[[face.i.imports.p.parsed u.built]]
+  ?~  private  ~
+  ?~  defs.p.parsed  ~
+  ?.  (module-scope-valid p.parsed ~ ~)  ~
+  =/  ds=(list def)  defs.p.parsed
+  =/  molds=imolds  (collect-simple-molds ds)
+  =/  names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  group-faces=(list term)  (turn groups |=(g=iprelude-group face.g))
+  ?.  (module-scope-valid p.parsed group-faces group-faces)  ~
+  =/  globals=(list term)  (weld group-faces (weld (import-binding-names imports.p.parsed) (global-value-names ds)))
+  ::  The canonical recursive list is the collection; another source mold
+  ::  named list retains its own actual structural type.
+  =/  declared=?  (lien names |=(name=term =(%list name)))
+  =/  declared-list=(unit shape)  (find-simple-mold %list molds)
+  =/  standard=?  ?~(declared-list | (standard-prelude-list u.declared-list))
+  =/  env-molds=imolds  molds
+  =?  env-molds  standard
+    (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
+  =/  list-reserved=(list term)  ?:(declared ~[%list] ~)
+  =/  reserved=(list term)  (weld group-faces list-reserved)
+  =/  state=istate  *istate
+  =.  state  state(molds env-molds, globals globals, jimports u.private, reserved-molds reserved, in-mold |, at at, top-molds names, jrec-fuel 256, globals-imports |, general-defer |)
+  ::  Supply the built-in collection only for the canonical source.
+  =/  list-types=imold-types
+    ?~  declared-list  ~
+    ?.  (standard-prelude-list u.declared-list)  ~
+    ~[[%list [[%collection %list ~[[%var 0]]] ~[0] ~]]]
+  =/  mold-prelude=(unit ifile)
+    ?:  &(?=(~ list-types) ?=(~ groups))  ~
+    `[~ list-types at ~ ~ ~ ~ ~ groups]
+  =/  mt=imold-types  (partial-prelude-molds molds state(prelude mold-prelude))
+  =/  partial=ifile  [~ mt at ~ ~ ~ ~ ~ groups]
+  ::  Once groups are checked, every public mold must have an inferred
+  ::  scheme; the bootstrap alone may omit unresolved group dependencies.
+  ?.  |(?=(^ bootstrap-faces) (levy names |=(n=term ?=(^ (find-jibb-mold n partial)))))  ~
+  ::  An explicitly qualified re-export must resolve. Other unsupported
+  ::  prelude declarations remain reserved but absent from the interface.
+  =/  required=imolds
+    %+  skim  molds
+    |=  m=[name=term body=shape]
+    =/  sh=shape  body.m
+    ?.  ?=(%ref -.sh)  |
+    ?~  names.sh  |
+    ?=(^ t.names.sh)
+  ?.  |(?=(^ bootstrap-faces) (levy required |=(m=[name=term body=shape] ?=(^ (find-jibb-mold name.m partial)))))  ~
+  ::  Bootstrap only the dependency-closed subset that does not need a
+  ::  group or an as-yet-unavailable mold. The complete source is checked
+  ::  again after the group interfaces exist.
+  =/  selected=(list def)
+    ?~  bootstrap-faces  ds
+    =/  unavailable=(list term)
+      (skim names |=(n=term ?=(~ (find-jibb-mold n partial))))
+    (bootstrap-prelude-defs ds bootstrap-faces unavailable)
+  =/  checked=icore-output  (icore-check selected state(prelude `partial, globals-imports &))
+  ?~  error.checked  ~
+  `(show-inference-diagnostic at src owner.u.error.checked diag.u.error.checked)
 ::
 ++  partial-prelude-interface
   |=  src=@t
@@ -13051,6 +21937,199 @@
   =/  ms=(list term)  (turn (collect-simple-molds defs.p.parsed) |=(m=[name=term body=shape] name.m))
   `[u.iface vals ms]
 ::
++$  iprelude-group-source  [face=term at=path source=@t]
+++  prelude-extra-bundle
+  |=  [modules=jbundle by-path=(map path @t) out=jbundle]
+  ^-  (unit [by-path=(map path @t) out=jbundle])
+  ?~  modules  `[by-path out]
+  =/  m=jsource  i.modules
+  ?:  |(=(at.m /lib/jibb/prelude/jibb) =(at.m /lib/jibb/internal/jibb) =(at.m /lib/jibb/primitives/jibb))  ~
+  =/  prior=(unit @t)  (~(get by by-path) at.m)
+  ?^  prior
+    ?.  =(u.prior source.m)  ~
+    $(modules t.modules)
+  $(modules t.modules, by-path (~(put by by-path) at.m source.m), out [m out])
+++  prelude-group-bundle
+  |=  [sources=(list iprelude-group-source) seen-faces=(set term) by-path=(map path @t) out=jbundle]
+  ^-  (unit jbundle)
+  ?~  sources  `out
+  =/  g=iprelude-group-source  i.sources
+  ?.  (jibb-face-name face.g)  ~
+  ?:  (reserved-name face.g)  ~
+  ?:  (~(has in:..zuse seen-faces) face.g)  ~
+  ?:  |(=(at.g /lib/jibb/prelude/jibb) =(at.g /lib/jibb/internal/jibb) =(at.g /lib/jibb/primitives/jibb))  ~
+  =/  prior=(unit @t)  (~(get by by-path) at.g)
+  ?^  prior
+    ?.  =(u.prior source.g)  ~
+    $(sources t.sources, seen-faces (~(put in:..zuse seen-faces) face.g))
+  $(sources t.sources, seen-faces (~(put in:..zuse seen-faces) face.g), by-path (~(put by by-path) at.g source.g), out [[at.g source.g] out])
+++  prelude-groups-check
+  |=  [sources=(list iprelude-group-source) bundle=jbundle prep=iprelude cache=jcache private=(unit ifile)]
+  ^-  (unit [groups=(list iprelude-group) cache=jcache])
+  (prelude-groups-check-with-externals sources bundle prep cache private ~)
+++  prelude-groups-check-with-externals
+  |=  [sources=(list iprelude-group-source) bundle=jbundle prep=iprelude cache=jcache private=(unit ifile) externals=iexternals]
+  ^-  (unit [groups=(list iprelude-group) cache=jcache])
+  ?~  sources  `[~ cache]
+  =/  g=iprelude-group-source  i.sources
+  ?:  |((lien values.prep |=(n=term =(n face.g))) (lien molds.prep |=(n=term =(n face.g))))  ~
+  =/  checked=jfile-detailed-result
+    (infer-jibb-file-with-group-private at.g source.g externals ~ bundle ~[at.g] values.prep molds.prep cache `iface.prep private)
+  ?:  ?=(%| -.checked)  ~
+  =/  f=ifile  iface.p.checked
+  =/  rest=(unit [groups=(list iprelude-group) cache=jcache])  $(sources t.sources, cache cache.p.checked)
+  ?~  rest  ~
+  `[[[face.g at.f values.f molds.f derived.f elaborations.f dependencies.f source.f graph.f (prelude-checked-dependencies cache.p.checked)] groups.u.rest] cache.u.rest]
+++  prelude-checked-dependencies
+  |=  cache=jcache
+  ^-  (list iprelude-dependency)
+  ?~  cache  ~
+  =/  f=ifile  iface.i.cache
+  [[at.i.cache values.f molds.f derived.f elaborations.f dependencies.f source.f graph.f] $(cache t.cache)]
+++  prelude-group-markers
+  |=  sources=(list iprelude-group-source)
+  ^-  (list iprelude-group)
+  ?~  sources  ~
+  [[face.i.sources at.i.sources ~ ~ ~ ~ ~ `source.i.sources ~ ~] $(sources t.sources)]
+::  Rechecking may allocate different inference IDs. Freshen both closed
+::  schemes from the same empty state and compare the complete graph and
+::  witnesses, preserving sharing and every variable restriction.
+++  prelude-scheme-equivalent
+  |=  [a=ischeme b=ischeme]
+  ^-  ?
+  ?.  &(?=(~ (scheme-free-vars a)) ?=(~ (scheme-free-vars b)))  |
+  ?:  =(a b)  &
+  =/  x=(unit [typ=itype state=istate])  (instantiate-scheme a *istate)
+  ?~  x  |
+  =/  y=(unit [typ=itype state=istate])  (instantiate-scheme b *istate)
+  ?~  y  |
+  ?&  =(typ.u.x typ.u.y)
+      =(next.state.u.x next.state.u.y)
+      =(sub.state.u.x sub.state.u.y)
+  ==
+++  prelude-retains-checked-schemes
+  |=  [before=ifile after=ifile]
+  ^-  ?
+  ?&  %+  levy  values.before
+      |=  e=[name=term scheme=ischeme]
+      =/  found=(unit ischeme)  (ienv-lookup name.e values.after)
+      ?~(found | (prelude-scheme-equivalent u.found scheme.e))
+      %+  levy  molds.before
+      |=  e=[name=term template=ischeme]
+      =/  found=(unit ischeme)  (find-jibb-mold name.e after)
+      ?~(found | (prelude-scheme-equivalent u.found template.e))
+  ==
+++  prepare-prelude-with-groups
+  |=  [src=@t internal-source=@t sources=(list iprelude-group-source)]
+  ^-  (unit iprelude)
+  (prepare-prelude-with-group-bundle src internal-source sources ~)
+::  Generic external evidence is trusted only with the exact /sur source
+::  it names.  The host supplies reader-produced descriptors; matching the
+::  path and source here binds those nouns to this prelude preparation.
+++  prelude-external-evidence-valid-raw
+  |=  [externals=iexternals modules=jbundle]
+  ^-  ?
+  ?~  externals  &
+  =/  e=[module=term name=term result=*]  i.externals
+  ?:  (lien t.externals |=(other=[module=term name=term result=*] &(=(module.other module.e) =(name.other name.e))))  |
+  ?.  ?=([%& [%generic-source @ * * @ * @]] result.e)  |
+  =/  proof=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
+    ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] +.result.e)
+  ?.  =(at.proof ~[%sur module.e %hoon])  |
+  =/  matches=jbundle  (skim modules |=(m=jsource =(at.m at.proof)))
+  ?.  ?=([* ~] matches)  |
+  ?.  =(source.i.matches source.proof)  |
+  $(externals t.externals)
+::
+++  prelude-external-evidence-valid
+  |=  [externals=iexternals modules=jbundle]
+  ^-  ?
+  =/  safe=(each ? tang)  (mule |.((prelude-external-evidence-valid-raw externals modules)))
+  ?:  ?=(%| -.safe)  |
+  p.safe
+::
+++  prepare-prelude-with-group-bundle
+  |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle]
+  ^-  (unit iprelude)
+  (prepare-prelude-with-group-evidence src internal-source sources modules ~)
+::
+++  prepare-prelude-with-group-evidence
+  |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle externals=iexternals]
+  ^-  (unit iprelude)
+  ?.  (prelude-external-evidence-valid externals modules)  ~
+  =/  faces=(list term)  (turn sources |=(g=iprelude-group-source face.g))
+  =/  built=(unit ifile)  (partial-prelude-interface-mode src `internal-source ~ faces)
+  ?~  built  ~
+  =/  parsed=(each module error)  (parse /lib/jibb/prelude/jibb src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  vals=(list term)  (global-value-names defs.p.parsed)
+  =/  molds=(list term)  (turn (collect-simple-molds defs.p.parsed) |=(m=[name=term body=shape] name.m))
+  =/  prep=(unit iprelude)  `[u.built vals molds]
+  ?~  prep  ~
+  =/  extra=(unit [by-path=(map path @t) out=jbundle])  (prelude-extra-bundle modules *(map path @t) ~)
+  ?~  extra  ~
+  =/  bundle=(unit jbundle)  (prelude-group-bundle sources *(set term) by-path.u.extra out.u.extra)
+  ?~  bundle  ~
+  ::  During checking, exact source/path markers give each group its own
+  ::  declaration scope.  They contain no exported type or value evidence.
+  =/  checking=iprelude  u.prep(iface iface.u.prep(groups (prelude-group-markers sources)))
+  =/  private=(unit ifile)  (infer-private-internal internal-source src)
+  =/  checked=(unit [groups=(list iprelude-group) cache=jcache])  (prelude-groups-check-with-externals sources u.bundle checking ~ private externals)
+  ?~  checked  ~
+  ::  A public mold or gate may refer to a checked qualified group.
+  ::  Recheck the same public source with those interfaces in scope.
+  =/  completed=(unit ifile)  (partial-prelude-interface-with-groups src `internal-source groups.u.checked)
+  ?~  completed  ~
+  ::  Groups were checked against the bootstrap prelude. Every scheme they
+  ::  could have used there must still have exactly the checked meaning.
+  ?.  (prelude-retains-checked-schemes iface.u.prep u.completed)  ~
+  `[u.completed (weld faces values.u.prep) (weld faces molds.u.prep)]
+::
+++  prelude-group-check-error
+  |=  [sources=(list iprelude-group-source) bundle=jbundle prep=iprelude cache=jcache private=(unit ifile)]
+  ^-  (unit @t)
+  (prelude-group-check-error-with-evidence sources bundle prep cache private ~)
+++  prelude-group-check-error-with-evidence
+  |=  [sources=(list iprelude-group-source) bundle=jbundle prep=iprelude cache=jcache private=(unit ifile) evidence=iexternals]
+  ^-  (unit @t)
+  ?~  sources  ~
+  =/  g=iprelude-group-source  i.sources
+  ?:  |((lien values.prep |=(n=term =(n face.g))) (lien molds.prep |=(n=term =(n face.g))))  ~
+  =/  checked=jfile-detailed-result
+    (infer-jibb-file-with-group-private at.g source.g evidence ~ bundle ~[at.g] values.prep molds.prep cache `iface.prep private)
+  ?:  ?=(%| -.checked)  `message.p.checked
+  $(sources t.sources, cache cache.p.checked)
+::
+++  prelude-group-core-error
+  |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle]
+  ^-  (unit @t)
+  (prelude-group-core-error-with-evidence src internal-source sources modules ~)
+++  prelude-group-core-error-with-evidence
+  |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle evidence=iexternals]
+  ^-  (unit @t)
+  =/  faces=(list term)  (turn sources |=(g=iprelude-group-source face.g))
+  =/  built=(unit ifile)  (partial-prelude-interface-mode src `internal-source ~ faces)
+  ?~  built  (prelude-mode-core-error src `internal-source ~ faces)
+  =/  parsed=(each module error)  (parse /lib/jibb/prelude/jibb src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  vals=(list term)  (global-value-names defs.p.parsed)
+  =/  molds=(list term)  (turn (collect-simple-molds defs.p.parsed) |=(m=[name=term body=shape] name.m))
+  =/  prep=(unit iprelude)  `[u.built vals molds]
+  ?~  prep  ~
+  =/  extra=(unit [by-path=(map path @t) out=jbundle])  (prelude-extra-bundle modules *(map path @t) ~)
+  ?~  extra  ~
+  =/  bundle=(unit jbundle)  (prelude-group-bundle sources *(set term) by-path.u.extra out.u.extra)
+  ?~  bundle  ~
+  ::  During checking, exact source/path markers give each group its own
+  ::  declaration scope.  They contain no exported type or value evidence.
+  =/  checking=iprelude  u.prep(iface iface.u.prep(groups (prelude-group-markers sources)))
+  =/  private=(unit ifile)  (infer-private-internal internal-source src)
+  =/  checked=(unit [groups=(list iprelude-group) cache=jcache])  (prelude-groups-check-with-externals sources u.bundle checking ~ private evidence)
+  ?~  checked  (prelude-group-check-error-with-evidence sources u.bundle checking ~ private evidence)
+  ::  A public mold or gate may refer to a checked qualified group.
+  ::  Recheck the same public source with those interfaces in scope.
+  (prelude-mode-core-error src `internal-source groups.u.checked ~)
+::
 ++  module-values-complete
   |=  [ds=(list def) env=ienv]
   ^-  ?
@@ -13064,98 +22143,32 @@
 ::  first such missing value is named.  Otherwise every missing value waits
 ::  on another, so following the first one each waits on, from the first
 ::  missing value, reaches a value twice, which is named.  The walk is over
-::  the syntactic dependency graph: dependency-expr ignores binders, so a
-::  sample or other local binder with a top-level value's name reads as a
-::  dependency on it.  The named value is on a cycle of that graph, but may
-::  only call into the value that failed, as when a binder in that value
-::  shadows the named one.  It claims no error in the named value.
-++  module-missing-value
-  |=  [ds=(list def) env=ienv]
-  ^-  (unit term)
-  =/  missing=(list term)
-    %+  murn  ds
-    |=  d=def
-    ?.  ?=(%value -.d)  ~
-    ?^  (ienv-lookup name.d env)  ~
-    `name.d
-  ?~  missing  ~
-  =/  pending=ivisited  (graph-nameset missing ~)
-  =/  roots=(list term)
-    %+  murn  ds
-    |=  d=def
-    ?.  ?=(%value -.d)  ~
-    ?~  (~(get by pending) name.d)  ~
-    =/  deps=(list term)  (dependency-expr val.d)
-    ?.  (levy deps |=(n=term |(=(n name.d) ?=(~ (~(get by pending) n)))))  ~
-    `name.d
-  ?^  roots  `i.roots
-  =/  seen=ivisited  ~
-  =/  here=term  i.missing
-  |-
-  ?^  (~(get by seen) here)  `here
-  =/  next=(list term)
-    %-  zing
-    %+  turn  ds
-    |=  d=def
-    ?.  ?=(%value -.d)  ~
-    ?.  =(here name.d)  ~
-    (skim (dependency-expr val.d) |=(n=term &(!=(n here) ?=(^ (~(get by pending) n)))))
-  ?~  next  `here
-  $(seen (~(put by seen) here &), here i.next)
+::  lexical dependency graph: sample, pattern and body-local binders do
+::  not produce module edges. Scope errors are reported independently;
+::  this fallback identifies only an unresolved dependency.
+++  module-limit-sample-site
+  |=  s=sample
+  ^-  span
+  ?-  -.s
+    %face  at.shape.s
+    %bare  at.shape.s
+    *  at.s
+  ==
 ::
-::  Finds the first missing value that is a gate whose own sample has the
-::  name of a value in scope.  Partial inference rejects that sample ("sample
-::  shadows a name"), and it is an error (grammar, Modules).  Mark names name
-::  molds and are left out, as are cell samples and binders deeper in the
-::  value.
-++  module-sample-shadow
-  |=  [ds=(list def) env=ienv values=(list term)]
-  ^-  (unit [name=term at=span])
-  ?~  ds  ~
-  ?.  ?=(%value -.i.ds)  $(ds t.ds)
-  ?^  (ienv-lookup name.i.ds env)  $(ds t.ds)
-  =/  e=expr  val.i.ds
-  ?.  ?=(?(%gate %gate-wide) -.e)  $(ds t.ds)
-  =/  s=sample  sample.e
-  =/  name=(unit term)
-    ?+  -.s  ~
-      %bind  `name.s
-      %face  `name.s
-      %pun   `name.s
-    ==
-  ?~  name  $(ds t.ds)
-  ?.  (lien values |=(n=term =(n u.name)))  $(ds t.ds)
-  `[u.name at.s]
-::
-::  Select the first available reason in dependency order, rather than
-::  preferring one class of diagnostic across the whole module. Only the
-::  first 64 definitions are retried for pending tags, as before.
-++  module-unresolved-diagnostic
-  |=  [ds=(list def) env=ienv base=istate checked=(map term def) heads=(unit igate-prelude-evidence) failures=(list [name=term diag=idiag]) values=(list term) file=path src=@t fuel=@ud]
-  ^-  (unit @t)
-  ?~  ds  ~
-  =/  d=def  i.ds
-  =/  remaining=@ud  ?:(=(0 fuel) 0 (dec fuel))
-  ?:  ?=(%mold -.d)  $(ds t.ds, fuel remaining)
-  ?^  (ienv-lookup name.d env)  $(ds t.ds, fuel remaining)
-  =/  found=(list [name=term diag=idiag])
-    (skim failures |=(failure=[name=term diag=idiag] =(name.failure name.d)))
-  ?^  found  `(show-inference-diagnostic file src name.d diag.i.found)
-  =/  pending=(unit [at=span msg=tape])
-    ?:  =(0 fuel)  ~
-    (module-pending-tag-one d env base checked heads)
-  ?^  pending
-    `(show-error src [file line.beg.at.u.pending col.beg.at.u.pending msg.u.pending])
-  =/  shadow=(unit [name=term at=span])  (module-sample-shadow ~[d] env values)
-  ?^  shadow
-    =/  msg=tape  "sample `{(trip name.u.shadow)}` shadows a name already in scope"
-    `(show-error src [file line.beg.at.u.shadow col.beg.at.u.shadow msg])
-  $(ds t.ds, fuel remaining)
-::
-::  Cache only completed interfaces for this invocation. The source bundle,
-::  imported Hoon types and prelude are fixed for the whole graph. Check the
-::  active path and duplicate sources before consulting it, so a cache hit
-::  cannot hide a cycle or ambiguous source.
+++  module-limit-expression
+  |=  e=expr
+  ^-  [at=span description=tape]
+  ?-  -.e
+    %group  $(e inner.e)
+    %cast  [at.shape.e "cast mold"]
+    %gate  [(module-limit-sample-site sample.e) "gate sample mold"]
+    %gate-wide  [(module-limit-sample-site sample.e) "gate sample mold"]
+    %call  [(span-of e) "call"]
+    %branch  [(span-of e) "match"]
+    %list  [(span-of e) "list"]
+    %tuple  [(span-of e) "cell"]
+    *  [(span-of e) "expression"]
+  ==
 ::
 ++  find-jibb-cache
   |=  [at=path cache=jcache]
@@ -13258,18 +22271,45 @@
 ++  resolve-jibb-imports-detailed
   |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jimports-detailed-result
+  (resolve-jibb-imports-at imports externals mark-externals modules active prelude-values prelude-molds cache prelude ~)
+::
+::  A cycle error crosses every import edge that reached it.  Keep each
+::  edge's own source, including the root source absent from the bundle.
+::  Add only the import statement in the known containing source.  Direct
+::  resolver callers without that source retain the original failure.
+++  import-error-context
+  |=  [failure=jfile-failure target=path site=span context=(unit jsource)]
+  ^-  jfile-failure
+  ?~  context  failure
+  =/  excerpt=@t
+    (show-error source.u.context [at.u.context line.beg.site col.beg.site "imports {(show-file target)} here"])
+  [(of-wain:format ~[message.failure excerpt]) overlap.failure]
+::
+++  import-cycle-context
+  |=  [failure=jfile-failure target=path site=span context=(unit jsource)]
+  ^-  jfile-failure
+  ?~  context  failure
+  =/  prefix=@t  'import cycle at '
+  ?.  =(prefix (end [3 (met 3 prefix)] message.failure))  failure
+  =/  excerpt=@t
+    (show-error source.u.context [at.u.context line.beg.site col.beg.site "imports {(show-file target)} here"])
+  [(of-wain:format ~[message.failure excerpt]) overlap.failure]
+::
+++  resolve-jibb-imports-at
+  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) context=(unit jsource)]
+  ^-  jimports-detailed-result
   ?~  imports  [%& [~ cache]]
   ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
   =/  at=path  (weld path.i.imports `path`~[%jibb])
   ?:  =(at /lib/jibb/internal/jibb)
-    [%| ['the prelude internal module is private' ~]]
+    [%| (import-error-context ['the prelude internal module is private' ~] at at.i.imports context)]
   ?:  =(at /lib/jibb/primitives/jibb)
-    [%| ['the prelude primitive interface is private' ~]]
+    [%| (import-error-context ['the prelude primitive interface is private' ~] at at.i.imports context)]
   ?:  (lien active |=(p=path =(p at)))
-    [%| [(crip "import cycle at {(spud at)}") ~]]
+    [%| (import-cycle-context [(crip "import cycle at {(spud at)}") ~] at at.i.imports context)]
   =/  found=jbundle  (skim modules |=(m=jsource =(at at.m)))
-  ?~  found  [%| [(crip "module source missing: {(spud at)}") ~]]
-  ?^  t.found  [%| [(crip "duplicate module sources: {(spud at)}") ~]]
+  ?~  found  [%| (import-error-context [(crip "module source missing: {(spud at)}") ~] at at.i.imports context)]
+  ?^  t.found  [%| (import-error-context [(crip "duplicate module sources: {(spud at)}") ~] at at.i.imports context)]
   =/  cached=(unit ifile)  (find-jibb-cache at cache)
   =/  iface=jfile-detailed-result
     ?^  cached
@@ -13281,9 +22321,11 @@
         (infer-jibb-file-detailed at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds clean prelude)
       ?.  (request-graph-reusable u.cached source.i.found externals mark-externals modules active prelude-values prelude-molds prelude)
         [%| ['cached module evidence needs unsupported inference' ~]]
-      [%& [u.cached cache]]
+      =/  kind=(unit checked-kind)  (checked-main-kind u.cached prelude)
+      ?~  kind  [%| ['cached module kind needs unsupported inference' ~]]
+      [%& [u.cached cache u.kind]]
     (infer-jibb-file-detailed at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache prelude)
-  ?:  ?=(%| -.iface)  [%| p.iface]
+  ?:  ?=(%| -.iface)  [%| (import-cycle-context p.iface at at.i.imports context)]
   =/  rest=jimports-detailed-result  $(imports t.imports, cache cache.p.iface)
   ?:  ?=(%| -.rest)  rest
   [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest]]
@@ -13633,17 +22675,29 @@
   ?~  rest  ~
   `[[name.i.params [%atom aura] at.i.params] u.rest]
 ::
-::  A single diff's fold consumes the tagged diff and the previous full value.
-::  Multiple-diff unions need a checked union representation and remain open.
+::  A fold consumes a checked tagged diff and the previous full value.
 ++  api-request-fold-type
   |=  p=iapi-path-typed
   ^-  (unit (unit itype))
   ?~  diffs.p  `~
-  ?^  t.diffs.p  ~
-  =/  d=iapi-mark-type  i.diffs.p
-  =/  literal=lit  [%term %tas name.d (crip ['%' (trip name.d)])]
-  =/  sample=itype  [%cell [%cell [%const literal] typ.d] full.p]
-  ``[%fn sample full.p]
+  =/  cases=(list itype)
+    %+  turn  diffs.p
+    |=  d=iapi-mark-type
+    =/  literal=lit  [%term %tas name.d (crip ['%' (trip name.d)])]
+    [%cell [%const literal] typ.d]
+  ?~  cases  ~
+  =/  diff=itype  ?~(t.cases i.cases [%union cases ~ ~ ~])
+  ``[%fn [%cell diff full.p] full.p]
+::  Request parameters occur in path order, followed by reply and fold.
+++  api-request-sample
+  |=  [parameters=(list iapi-request-parameter) callback=itype fold=(unit itype)]
+  ^-  itype
+  =/  args=(list itype)
+    (weld (turn parameters |=(p=iapi-request-parameter typ.p)) [callback ?~(fold ~ ~[u.fold])])
+  |-
+  ?~  args  !!
+  ?~  t.args  i.args
+  [%cell i.args $(args t.args)]
 ::
 ++  api-request-parts
   |=  [evidence=(unit iapi-path-evidence) case-name=term]
@@ -13665,9 +22719,9 @@
 ::  Check ordinary API molds and values plus every declared mark type using
 ::  the same trusted source, prepared prelude and reader inputs as path
 ::  evidence.  Keep elaborations with those inputs for a later interface.
-::  This is partial analysis: an unused /- core is not independently checked,
-::  definitions needing derived values remain unsupported, and no complete
-::  API, request or constructor is exported or given runtime behavior.
+::  This is partial analysis: an unused /- core is not independently checked.
+::  Standalone source analysis has no derived values; graph callers may supply
+::  checked derived schemes. No API is exported or given runtime behavior here.
 +$  iapi-support-evidence
   [paths=iapi-path-evidence values=ienv molds=imold-types marks=(list iapi-mark-type) elaborations=(list iwidth-definition)]
 ++  api-support-analysis-source
@@ -13697,15 +22751,24 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~ ~ ~]
+  =/  state=istate  *istate
+  =.  state  state(molds molds, globals globals, externals externals, surs surs, mark-externals marks, marks declared, jimports resolved.p.deps, reserved-molds reserved, in-mold |, at file, top-molds top, prelude prelude, jrec-fuel 256, globals-imports |, general-defer |)
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
   =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
+  ?^  failures.resolution
+    =/  failure=[name=term diag=idiag]  i.failures.resolution
+    [%| (show-inference-diagnostic file src name.failure diag.failure)]
   ?.  (module-values-complete ordinary env.resolution)  [%| 'API ordinary definitions need unsupported inference']
   [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution]]
 ::  Preserve the same graph context through supporting definitions.
 ++  api-support-analysis-graph
   |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
+  ^-  (each iapi-support-evidence @t)
+  (api-support-analysis-graph-with-env file src externals marks modules active cache prepared ~)
+::
+++  api-support-analysis-graph-with-env
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude) outer=ienv]
   ^-  (each iapi-support-evidence @t)
   =/  path-result  (api-path-evidence-graph file src externals marks modules active cache prepared)
   ?:  ?=(%| -.path-result)  [%| p.path-result]
@@ -13731,19 +22794,17 @@
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs marks declared resolved.p.deps reserved ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~ ~ ~]
+  =/  state=istate  *istate
+  =.  state  state(molds molds, globals globals, externals externals, surs surs, mark-externals marks, marks declared, jimports resolved.p.deps, reserved-molds reserved, in-mold |, at file, top-molds top, prelude prelude, jrec-fuel 256, globals-imports |, general-defer |)
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
-  =/  resolution=iresolved  (resolve-groups ordinary molds globals externals surs marks declared resolved.p.deps reserved file prelude)
+  =/  resolution=iresolved  (resolve-groups-with-env ordinary outer molds globals externals surs marks declared resolved.p.deps reserved file prelude)
+  ?^  failures.resolution
+    =/  failure=[name=term diag=idiag]  i.failures.resolution
+    [%| (show-inference-diagnostic file src name.failure diag.failure)]
   ?.  (module-values-complete ordinary env.resolution)  [%| 'API ordinary definitions need unsupported inference']
   [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution]]
 ::
-::  Type-analysis artifact for one plain request. The resolver may publish
-::  its interface only together with trusted source and reader evidence.
-::  No lowering or runtime validator exists.
-::  Value watchability remains unproved even for a watchable declaration.
-+$  ione-request-interface
-  [support=iapi-support-evidence parts=iapi-request-parts iface=ifile]
 ++  compatible-raw-poke
   |=  prelude=iprelude
   ^-  (unit ischeme)
@@ -13764,7 +22825,7 @@
     [%cell [%const [%term %tas %agent '%agent']] [%cell [%face %agent [%atom %tas]] [%cell [%face %mark [%atom %tas]] [%face %payload [%noun ~]]]]]
   =/  store-case=itype
     [%cell [%const [%term %tas %store '%store']] [%cell [%face %module [%atom %t]] [%cell [%face %action [%atom %tas]] [%face %payload [%noun ~]]]]]
-  ?.  =(cases.typ.u.poke ~[agent-case store-case])  ~
+  ?.  =((turn cases.typ.u.poke |=(t=itype (itype-slots-as-faces t))) (turn ~[agent-case store-case] |=(t=itype (itype-slots-as-faces t))))  ~
   poke
 ::
 ++  request-compatible-ask
@@ -13806,119 +22867,8 @@
     [%cell [%const [%term %tas %agent '%agent']] [%cell [%face %api [%atom %t]] [%cell [%face %case [%atom %tas]] [%cell [%face %agent [%atom %tas]] [%cell [%face %path path-type] [%cell [%face %scry u.path-unit] [%face %receive [%fn agent-input output]]]]]]]]
   =/  store-case=itype
     [%cell [%const [%term %tas %store '%store']] [%cell [%face %module [%atom %t]] [%cell [%face %name [%atom %tas]] [%face %receive [%fn store-input output]]]]]
-  ?.  =(cases.typ.u.ask ~[pure-case agent-case store-case])  ~
+  ?.  =((turn cases.typ.u.ask |=(t=itype (itype-slots-as-faces t))) (turn ~[pure-case agent-case store-case] |=(t=itype (itype-slots-as-faces t))))  ~
   ask
-::
-::  The first supported standalone API has exactly one mark import and one
-::  plain path declaration, with no other definitions or imports.  No partial
-::  success is published when source, schema, or a required mold is unknown.
-++  one-request-interface-source
-  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
-  ^-  (each ione-request-interface @t)
-  =/  out  (api-support-analysis-source file src externals marks modules prepared)
-  ?:  ?=(%| -.out)  [%| p.out]
-  =/  support=iapi-support-evidence  p.out
-  =/  ev=iapi-path-evidence  paths.support
-  =/  parsed  (parse file src)
-  ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
-  =/  mod=module  p.parsed
-  ?.  ?=(?([[%mark *] ~] [[%mark *] [%mark *] ~]) imports.mod)  [%| 'request imports need unsupported inference']
-  ?.  ?=([[%mold *] ~] defs.mod)  [%| 'request definitions need unsupported inference']
-  ?.  =(%paths name.i.defs.mod)  [%| 'request declaration needs unsupported inference']
-  ?.  ?=([* ~] paths.ev)  [%| 'request count needs unsupported inference']
-  =/  p=iapi-path-typed  i.paths.ev
-  =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
-  ?~  parts  [%| 'request components need unsupported inference']
-  ?.  ?=(?(~ [* ~]) parameters.u.parts)  [%| 'request parameters need unsupported inference']
-  ?:  &(?=(^ fold.u.parts) ?=(^ parameters.u.parts))  [%| 'request parameter and fold need unsupported inference']
-  ?^  scry.path.p  [%| 'request scry needs unsupported inference']
-  =/  valid-marks=?
-    ?~  fold.u.parts  ?=([* ~] marks.support)
-    ?=([* [* ~]] marks.support)
-  ?.  valid-marks  [%| 'request marks need unsupported inference']
-  =/  fold-open=?
-    ?~  fold.u.parts  |
-    |(?=(^ (itype-vars u.fold.u.parts)) (itype-has-tag u.fold.u.parts))
-  ?:  fold-open  [%| 'request fold needs unsupported inference']
-  ?^  (itype-vars reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
-  ?:  (itype-has-tag reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
-  =/  ask=(unit ischeme)  (request-compatible-ask prepared.ev)
-  ?~  ask  [%| 'request ask needs unsupported inference']
-  =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
-  ?~  result  [%| 'request ask needs unsupported inference']
-  =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
-  =/  sample=itype
-    ?^  fold.u.parts  [%cell callback u.fold.u.parts]
-    ?~  parameters.u.parts  callback
-    [%cell typ.i.parameters.u.parts callback]
-  =/  scheme=ischeme  [[%fn sample u.result] ~[0]]
-  =/  exports=imold-types
-    (turn marks.support |=(m=iapi-mark-type [name.m [typ.m ~]]))
-  =/  prelude=iprelude  prepared.ev
-  =/  public=ifile  iface.prelude
-  ?~  source.public  [%| 'request prelude source needs unsupported inference']
-  =/  private=(list iwidth-dependency)
-    (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
-  ?.  ?=([* ~] private)  [%| 'request internal source needs unsupported inference']
-  ?~  source.i.private  [%| 'request internal source needs unsupported inference']
-  =/  req=irequest-evidence
-    [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
-  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] ~ modules `public values.prelude molds.prelude externals marks]]
-  [%& [support u.parts interface]]
-::  Graph-aware request artifact; resolver use remains type-only.
-++  one-request-interface-graph
-  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
-  ^-  (each ione-request-interface @t)
-  =/  out  (api-support-analysis-graph file src externals marks modules active cache prepared)
-  ?:  ?=(%| -.out)  [%| p.out]
-  =/  support=iapi-support-evidence  p.out
-  =/  ev=iapi-path-evidence  paths.support
-  =/  parsed  (parse file src)
-  ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
-  =/  mod=module  p.parsed
-  ?.  ?=(?([[%mark *] ~] [[%mark *] [%mark *] ~]) imports.mod)  [%| 'request imports need unsupported inference']
-  ?.  ?=([[%mold *] ~] defs.mod)  [%| 'request definitions need unsupported inference']
-  ?.  =(%paths name.i.defs.mod)  [%| 'request declaration needs unsupported inference']
-  ?.  ?=([* ~] paths.ev)  [%| 'request count needs unsupported inference']
-  =/  p=iapi-path-typed  i.paths.ev
-  =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
-  ?~  parts  [%| 'request components need unsupported inference']
-  ?.  ?=(?(~ [* ~]) parameters.u.parts)  [%| 'request parameters need unsupported inference']
-  ?:  &(?=(^ fold.u.parts) ?=(^ parameters.u.parts))  [%| 'request parameter and fold need unsupported inference']
-  ?^  scry.path.p  [%| 'request scry needs unsupported inference']
-  =/  valid-marks=?
-    ?~  fold.u.parts  ?=([* ~] marks.support)
-    ?=([* [* ~]] marks.support)
-  ?.  valid-marks  [%| 'request marks need unsupported inference']
-  =/  fold-open=?
-    ?~  fold.u.parts  |
-    |(?=(^ (itype-vars u.fold.u.parts)) (itype-has-tag u.fold.u.parts))
-  ?:  fold-open  [%| 'request fold needs unsupported inference']
-  ?^  (itype-vars reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
-  ?:  (itype-has-tag reply-sample.u.parts)  [%| 'request payload needs unsupported inference']
-  =/  ask=(unit ischeme)  (request-compatible-ask prepared.ev)
-  ?~  ask  [%| 'request ask needs unsupported inference']
-  =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
-  ?~  result  [%| 'request ask needs unsupported inference']
-  =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
-  =/  sample=itype
-    ?^  fold.u.parts  [%cell callback u.fold.u.parts]
-    ?~  parameters.u.parts  callback
-    [%cell typ.i.parameters.u.parts callback]
-  =/  scheme=ischeme  [[%fn sample u.result] ~[0]]
-  =/  exports=imold-types
-    (turn marks.support |=(m=iapi-mark-type [name.m [typ.m ~]]))
-  =/  prelude=iprelude  prepared.ev
-  =/  public=ifile  iface.prelude
-  ?~  source.public  [%| 'request prelude source needs unsupported inference']
-  =/  private=(list iwidth-dependency)
-    (skim dependencies.public |=(d=iwidth-dependency =(at.d /lib/jibb/internal/jibb)))
-  ?.  ?=([* ~] private)  [%| 'request internal source needs unsupported inference']
-  ?~  source.i.private  [%| 'request internal source needs unsupported inference']
-  =/  req=irequest-evidence
-    [file name.path.p p src u.source.public u.source.i.private values.prelude molds.prelude externals marks]
-  =/  interface=ifile  [~[[name.path.p scheme]] exports file ~ ~ ~ `src `[(silt `(list path)`~[file]) ~[req] ~ modules `public values.prelude molds.prelude externals marks]]
-  [%& [support u.parts interface]]
 ::
 ++  api-mark-exports
   |=  [marks=(list term) all=(list term) externals=imark-externals prelude=ifile]
@@ -13926,7 +22876,7 @@
   ?~  marks  ~
   =/  t=(unit itype)  (find-imported-mark-prelude i.marks externals all prelude)
   ?~  t  $(marks t.marks)
-  [[i.marks [u.t ~]] $(marks t.marks)]
+  [[i.marks [u.t ~ ~]] $(marks t.marks)]
 ::
 ::  Experimental direct poke-only API. Unsupported API declarations fail
 ::  as a whole; supplied mark reader results retain their existing boundary.
@@ -13956,7 +22906,8 @@
   =/  compatible=?
     %+  lien  cases.typ.u.poke
     |=  c=itype
-    ?=([%cell [%const [%term %tas %agent *]] [%cell [%face %agent [%atom %tas]] [%cell [%face %mark [%atom %tas]] [%face %payload [%noun ~]]]]] c)
+    =/  plain=itype  (itype-slots-as-faces c)
+    ?=([%cell [%const [%term %tas %agent *]] [%cell [%face %agent [%atom %tas]] [%cell [%face %mark [%atom %tas]] [%face %payload [%noun ~]]]]] plain)
   ?.  compatible  [%| 'API poke prelude needs unsupported inference']
   ::  Definitions come before imports so that a module with more than a
   ::  `+$ poke` is not described by its imports.
@@ -13980,7 +22931,7 @@
   ?~  mark  [%| 'API poke mark reader result needs unsupported inference']
   =/  sc=(unit ischeme)  (derived-poke-command-scheme u.prelude u.mark)
   ?~  sc  [%| 'API poke command needs unsupported inference']
-  [%& [~[[%poke u.sc]] (api-mark-exports marks marks mark-externals u.prelude) at ~[[n i.t.t.at n]] ~ ~ ~ ~]]
+  [%& [~[[%poke u.sc]] (api-mark-exports marks marks mark-externals u.prelude) at ~[[n i.t.t.at n]] ~ ~ ~ ~ ~]]
 ::
 ::  Source-proven ordinary helpers validate each selected /sur dependency.
 ::  Unused or less direct cores remain unsupported by this first interface.
@@ -14014,9 +22965,6 @@
   =/  p=iapi-path-typed  i.paths
   =/  parts=(unit iapi-request-parts)  (api-request-parts `ev name.path.p)
   ?~  parts  ~
-  ?.  ?=(?(~ [* ~]) parameters.u.parts)  ~
-  ?:  &(?=(^ fold.u.parts) ?=(^ parameters.u.parts))  ~
-  ?^  scry.path.p  ~
   ?^  (itype-vars reply-sample.u.parts)  ~
   ?:  (itype-has-tag reply-sample.u.parts)  ~
   =/  open-fold=?
@@ -14026,11 +22974,8 @@
   =/  result=(unit itype)  (template-apply ask ~[[%var 0]])
   ?~  result  ~
   =/  callback=itype  [%fn reply-sample.u.parts [%var 0]]
-  =/  sample=itype
-    ?^  fold.u.parts  [%cell callback u.fold.u.parts]
-    ?~  parameters.u.parts  callback
-    [%cell typ.i.parameters.u.parts callback]
-  =/  scheme=ischeme  [[%fn sample u.result] ~[0]]
+  =/  sample=itype  (api-request-sample parameters.u.parts callback fold.u.parts)
+  =/  scheme=ischeme  [[%fn sample u.result] ~[0] ~]
   =/  prep=iprelude  prepared.ev
   =/  req=irequest-evidence
     [file name.path.p p src public internal values.prep molds.prep externals marks]
@@ -14067,10 +23012,10 @@
 ++  multi-request-interface-graph
   |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
   ^-  (each [iface=ifile cache=jcache] @t)
-  =/  out  (api-support-analysis-graph file src externals marks modules active cache prepared)
-  ?:  ?=(%| -.out)  [%| p.out]
-  =/  support=iapi-support-evidence  p.out
-  =/  ev=iapi-path-evidence  paths.support
+  =/  path-result
+    (api-path-evidence-graph file src externals marks modules active cache prepared)
+  ?:  ?=(%| -.path-result)  [%| p.path-result]
+  =/  ev=iapi-path-evidence  p.path-result
   =/  parsed  (parse file src)
   ?:  ?=(%| -.parsed)  [%| 'request source does not parse']
   =/  mod=module  p.parsed
@@ -14095,8 +23040,12 @@
   =/  poke=(unit [values=ienv derived=(list iderived)])
     (api-poke-from-checked file mod marks values.prep molds.prep `public)
   ?~  poke  [%| 'API poke needs unsupported inference']
+  =/  out
+    (api-support-analysis-graph-with-env file src externals marks modules active dependencies.ev prepared (weld values.u.gates values.u.poke))
+  ?:  ?=(%| -.out)  [%| p.out]
+  =/  support=iapi-support-evidence  p.out
   =/  mark-molds=imold-types
-    (turn marks.support |=(m=iapi-mark-type [name.m [typ.m ~]]))
+    (turn marks.support |=(m=iapi-mark-type [name.m [typ.m ~ ~]]))
   =/  exports=imold-types  (weld mark-molds molds.support)
   =/  names=(list term)  (turn exports |=(m=[name=term template=ischeme] name.m))
   ?.  (levy names |=(n=term (unique-value-name n names)))
@@ -14105,12 +23054,11 @@
   =/  graph=irequest-graph
     [(silt `(list path)`~[file]) requests.u.gates ~ modules `public values.prep molds.prep externals marks]
   =/  iface=ifile
-    [env exports file derived.u.poke elaborations.support ~ `src `graph]
+    [env exports file derived.u.poke elaborations.support ~ `src `graph ~]
   [%& [iface dependencies.ev]]
 ::
-::  A checked program main is only the direct four-component source call.
-::  Grouping is transparent, but aliases, qualified wings and other module
-::  kinds remain outside this slice.
+::  Locate main and direct component names for source diagnostics only.
+::  Module classification and component checking use their inferred types.
 ++  program-main-def
   |=  ds=(list def)
   ^-  (unit def)
@@ -14125,19 +23073,6 @@
   ?.  ?=(%wing -.e)  ~
   ?.  ?=([@ ~] names.e)  ~
   `i.names.e
-::
-++  program-main-args
-  |=  d=def
-  ^-  (unit (list expr))
-  ?.  ?=(%value -.d)  ~
-  |-
-  ?:  ?=(%group -.val.d)  $(val.d inner.val.d)
-  ?.  ?=(%call -.val.d)  ~
-  =/  head=(unit term)  (program-main-wing head.val.d)
-  ?~  head  ~
-  ?.  =(%program u.head)  ~
-  ?.  ?=([* * * * ~] args.val.d)  ~
-  `args.val.d
 ::
 ++  program-main-parts
   |=  d=def
@@ -14161,48 +23096,6 @@
   ?~  view  ~
   ?~  subs  ~
   `[u.init u.update u.view u.subs]
-::
-::  A data page is only the direct two-component source call. Grouping is
-::  transparent, but page aliases, qualified wings and other kinds are not.
-++  page-main-parts
-  |=  d=def
-  ^-  (unit [load=term view=term])
-  ?.  ?=(%value -.d)  ~
-  |-
-  ?:  ?=(%group -.val.d)  $(val.d inner.val.d)
-  ?.  ?=(%call -.val.d)  ~
-  =/  head=(unit term)  (program-main-wing head.val.d)
-  ?~  head  ~
-  ?.  =(%page u.head)  ~
-  ?.  ?=([* * ~] args.val.d)  ~
-  =/  args=(list expr)  args.val.d
-  ?>  ?=([* * ~] args)
-  =/  load=(unit term)  (program-main-wing i.args)
-  =/  view=(unit term)  (program-main-wing i.t.args)
-  ?~  load  ~
-  ?~  view  ~
-  `[u.load u.view]
-::
-::  A store main is only the direct two-wing source call.  Its local poke mold
-::  is checked here and remains in ordinary mold/value inference.
-++  store-main-parts
-  |=  d=def
-  ^-  (unit [init=term update=term])
-  ?.  ?=(%value -.d)  ~
-  |-
-  ?:  ?=(%group -.val.d)  $(val.d inner.val.d)
-  ?.  ?=(%call -.val.d)  ~
-  =/  head=(unit term)  (program-main-wing head.val.d)
-  ?~  head  ~
-  ?.  =(%store u.head)  ~
-  ?.  ?=([* * ~] args.val.d)  ~
-  =/  args=(list expr)  args.val.d
-  ?>  ?=([* * ~] args)
-  =/  init=(unit term)  (program-main-wing i.args)
-  =/  update=(unit term)  (program-main-wing i.t.args)
-  ?~  init  ~
-  ?~  update  ~
-  `[u.init u.update]
 ::
 +$  istore-declaration  [action=term defs=(list def)]
 ::  A failure carries a diagnostic only when it is a definite error of the
@@ -14273,27 +23166,6 @@
     ["{head} another derived name" derived]
   ["{head} a prelude name" derived]
 ::
-++  program-empty-null
-  |=  e=expr
-  ^-  ?
-  ?-  -.e
-    %lit    =(%null form.lit.e)
-    %cast   $(e val.e)
-    %group  $(e inner.e)
-    %body   ?~(defs.e $(e final.e) |)
-    *       |
-  ==
-::
-++  program-subs-empty
-  |=  d=def
-  ^-  ?
-  ?.  ?=(%value -.d)  |
-  ?-  -.val.d
-    %gate       (program-empty-null body.val.d)
-    %gate-wide  (program-empty-null body.val.d)
-    *           |
-  ==
-::
 ++  program-transparent
   |=  e=expr
   ^-  expr
@@ -14303,978 +23175,6 @@
     %body   ?~(defs.e $(e final.e) e)
     *       e
   ==
-::
-::  Recover only the update of an already recognized direct program main.
-::  Its written sample determines the message/model relationship; the canonical
-::  cmd, unit and update slot determine the result context. Publication is
-::  component-local so later subscription/view/initializer retries can accumulate.
-++  program-update-context
-  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
-  ^-  (unit iresolved)
-  =/  env=ienv  env.resolution
-  ?^  (ienv-lookup %main env)  ~
-  ?^  (ienv-lookup update.parts env)  ~
-  =/  updates=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(update.parts name.d))))
-  ?.  ?=([* ~] updates)  ~
-  =/  update-def=def  i.updates
-  ?>  ?=(%value -.update-def)
-  =/  written-update=(unit sample)  (direct-gate-sample update-def)
-  ?~  written-update  ~
-  ?.  ?=(%cell -.u.written-update)  ~
-  ?.  ?=([* * ~] items.u.written-update)  ~
-  ?~  prelude.initial  ~
-  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
-  ?~  program  ~
-  =/  command=(unit ischeme)  (find-jibb-mold %cmd u.prelude.initial)
-  =/  list-template=(unit ischeme)  (find-jibb-mold %list u.prelude.initial)
-  ?~  command  ~
-  ?~  list-template  ~
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
-  ?~  heads  ~
-  =/  written=(unit def)  (~(get by gates.u.heads) %program)
-  ?~  written  ~
-  =/  written-sample=(unit sample)  (direct-gate-sample u.written)
-  ?~  written-sample  ~
-  ?.  ?=(%cell -.u.written-sample)  ~
-  ?.  ?=([* * * * ~] items.u.written-sample)  ~
-  =/  checked=(map term def)
-    (~(put by (direct-checked-gates ds env)) update.parts update-def)
-  =/  templates=ienv
-    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  fresh=(unit @ud)
-    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
-  ?~  fresh  ~
-  =.  next.initial  u.fresh
-  =/  update-state=istate  (reserve-def-caps val.update-def initial)
-  =/  sam=isample-result  (infer-sample u.written-update env update-state)
-  ?:  ?=(%| -.sam)  ~
-  =/  actual-sample=itype  (itype-normalize typ.p.sam sub.state.p.sam)
-  ?.  ?=(%cell -.actual-sample)  ~
-  =/  message=(unit itype)
-    (direct-slot-body hed.actual-sample (direct-sample-name i.items.u.written-update))
-  =/  model=(unit itype)
-    (direct-slot-body tal.actual-sample (direct-sample-name i.t.items.u.written-update))
-  ?~  message  ~
-  ?~  model  ~
-  =/  cmd=(unit itype)  (template-apply u.command ~[u.message])
-  ?~  cmd  ~
-  =/  command-result=(unit itype)  (template-apply u.list-template ~[u.cmd])
-  ?~  command-result  ~
-  =/  product=itype  [%cell u.model u.command-result]
-  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.program state.p.sam)
-  ?.  ?=(%fn -.typ.instance)  ~
-  ?.  ?=(%cell -.sample.typ.instance)  ~
-  ?.  ?=(%cell -.tal.sample.typ.instance)  ~
-  =/  expected-update=(unit itype)
-    (direct-slot-body hed.tal.sample.typ.instance (direct-sample-name i.t.items.u.written-sample))
-  ?~  expected-update  ~
-  ?.  ?=(%fn -.u.expected-update)  ~
-  ::  Sample binders are not value faces. Strip only those two slot faces
-  ::  for the invariant canonical-gate proof; the source-faced gate is still
-  ::  used by the complete positional call and final ordinary result cast.
-  =/  canonical-candidate=itype  [%fn [%cell u.message u.model] product]
-  =/  gate-fit=ifit
-    (direct-invariant canonical-candidate u.expected-update sub.state.instance next.state.instance)
-  ?.  ?=(%ok -.gate-fit)  ~
-  =/  closed=itype
-    (itype-normalize [%fn typ.p.sam product] sub.gate-fit)
-  ?.  ?=(%fn -.closed)  ~
-  ::  The closed product no longer needs the canonical slot substitutions.
-  ::  Start the body at its ordinary sample state so existing branch retries
-  ::  keep their substitution guards, but retain the shared fresh-ID high water.
-  =/  st=istate  state.p.sam(next next.gate-fit, gate-defs checked, head-evidence heads)
-  =/  body=expr
-    ?-  -.val.update-def
-      %gate       body.val.update-def
-      %gate-wide  body.val.update-def
-      *           !!
-    ==
-  =/  inferred=iresult
-    (infer-call-context-arg body product.closed env.p.sam st (span-of body))
-  ?:  ?=(%| -.inferred)  ~
-  =/  product-fit=ifit
-    (itype-fit typ.p.inferred product.closed sub.state.p.inferred next.state.p.inferred)
-  ?.  ?=(%ok -.product-fit)  ~
-  =/  merged-product=itype
-    (itype-merge-faces typ.p.inferred product.closed sub.product-fit)
-  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
-  =/  cast=ifit
-    (itype-fit actual-cast closed sub.product-fit next.product-fit)
-  ?.  ?=(%ok -.cast)  ~
-  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
-  =/  adjusted=iresult
-    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
-  =/  added=(unit iadded-definition)
-    (add-supported-result update-def adjusted update-state env checked artifacts.resolution)
-  ?~  added  ~
-  =/  recovered=(unit ischeme)  (ienv-lookup update.parts env.u.added)
-  ?~  recovered  ~
-  ?.  ?=(~ vars.u.recovered)  ~
-  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
-::
-++  program-inferred-slot
-  |=  [typ=itype name=(unit term)]
-  ^-  itype
-  ?~  name  typ
-  ?:  &(?=(%face -.typ) =(name.typ u.name))  body.typ
-  typ
-::
-++  program-inferred-sample
-  |=  [typ=itype sam=sample]
-  ^-  itype
-  (program-inferred-slot typ (direct-sample-name sam))
-::
-++  program-two-slot-names
-  |=  sam=sample
-  ^-  (unit [first=(unit term) second=(unit term)])
-  ?-  -.sam
-    %cell
-      ?.  ?=([* * ~] items.sam)  ~
-      `[(direct-sample-name i.items.sam) (direct-sample-name i.t.items.sam)]
-    %face
-      ?.  ?=(%cell -.shape.sam)  ~
-      ?.  ?=([* * ~] fields.shape.sam)  ~
-      `[(direct-field-name i.fields.shape.sam) (direct-field-name i.t.fields.shape.sam)]
-    *  ~
-  ==
-::
-::  Read message/model from the checked update and its written source layout.
-::  The source names strip only top-level sample binder faces; nested value
-::  faces remain part of the canonical message and model.
-++  program-update-relation
-  |=  [name=term ds=(list def) env=ienv]
-  ^-  (unit [message=itype model=itype])
-  =/  update=(unit ischeme)  (ienv-lookup name env)
-  ?~  update  ~
-  ?.  ?=(~ vars.u.update)  ~
-  ?.  ?=(~ (itype-vars typ.u.update))  ~
-  ?.  ?=(%fn -.typ.u.update)  ~
-  ?.  ?=(%cell -.sample.typ.u.update)  ~
-  =/  defs=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(name name.d))))
-  ?.  ?=([* ~] defs)  ~
-  =/  written=(unit sample)  (direct-gate-sample i.defs)
-  ?~  written  ~
-  ?.  ?=(%cell -.u.written)  ~
-  ?.  ?=([* * ~] items.u.written)  ~
-  =/  message=(unit itype)
-    (direct-slot-body hed.sample.typ.u.update (direct-sample-name i.items.u.written))
-  =/  model=(unit itype)
-    (direct-slot-body tal.sample.typ.u.update (direct-sample-name i.t.items.u.written))
-  ?~  message  ~
-  ?~  model  ~
-  `[u.message u.model]
-::
-::  Recover an unannotated direct subscription component from the checked
-::  update relation and canonical fourth program slot. This establishes only
-::  the value type; the final program watch proof remains separate.
-++  program-subs-context
-  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
-  ^-  (unit iresolved)
-  =/  env=ienv  env.resolution
-  ?^  (ienv-lookup %main env)  ~
-  ?^  (ienv-lookup subs.parts env)  ~
-  =/  relation=(unit [message=itype model=itype])
-    (program-update-relation update.parts ds env)
-  ?~  relation  ~
-  =/  subs=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(subs.parts name.d))))
-  ?.  ?=([* ~] subs)  ~
-  =/  subs-def=def  i.subs
-  ?>  ?=(%value -.subs-def)
-  =/  written-subs=(unit sample)  (direct-gate-sample subs-def)
-  ?~  written-subs  ~
-  ?~  prelude.initial  ~
-  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
-  =/  sub=(unit ischeme)  (find-jibb-mold %sub u.prelude.initial)
-  =/  list-template=(unit ischeme)  (find-jibb-mold %list u.prelude.initial)
-  ?~  program  ~
-  ?~  sub  ~
-  ?~  list-template  ~
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
-  ?~  heads  ~
-  =/  written=(unit def)  (~(get by gates.u.heads) %program)
-  ?~  written  ~
-  =/  written-sample=(unit sample)  (direct-gate-sample u.written)
-  ?~  written-sample  ~
-  ?.  ?=(%cell -.u.written-sample)  ~
-  ?.  ?=([* * * * ~] items.u.written-sample)  ~
-  =/  checked=(map term def)  (direct-checked-gates ds env)
-  =/  templates=ienv
-    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  fresh=(unit @ud)
-    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
-  ?~  fresh  ~
-  =.  next.initial  u.fresh
-  =/  subs-state=istate  (reserve-def-caps val.subs-def initial)
-  =/  sam=isample-result  (infer-sample u.written-subs env subs-state)
-  ?:  ?=(%| -.sam)  ~
-  =/  actual-model=itype  (program-inferred-sample typ.p.sam u.written-subs)
-  ?.  ?=(~ (itype-vars actual-model))  ~
-  ?:  (itype-has-tag actual-model)  ~
-  =/  model-fit=ifit
-    (direct-invariant actual-model model.u.relation sub.state.p.sam next.state.p.sam)
-  ?.  ?=(%ok -.model-fit)  ~
-  =/  message-sub=(unit itype)  (template-apply u.sub ~[message.u.relation])
-  ?~  message-sub  ~
-  =/  product=(unit itype)  (template-apply u.list-template ~[u.message-sub])
-  ?~  product  ~
-  =/  instance=[typ=itype state=istate]
-    (instantiate-scheme u.program state.p.sam(sub sub.model-fit, next next.model-fit))
-  ?.  ?=(%fn -.typ.instance)  ~
-  ?.  ?=(%cell -.sample.typ.instance)  ~
-  ?.  ?=(%cell -.tal.sample.typ.instance)  ~
-  ?.  ?=(%cell -.tal.tal.sample.typ.instance)  ~
-  =/  expected-subs=(unit itype)
-    (direct-slot-body tal.tal.tal.sample.typ.instance (direct-sample-name i.t.t.t.items.u.written-sample))
-  ?~  expected-subs  ~
-  ?.  ?=(%fn -.u.expected-subs)  ~
-  =/  canonical=itype  [%fn model.u.relation u.product]
-  =/  gate-fit=ifit
-    (direct-invariant canonical u.expected-subs sub.state.instance next.state.instance)
-  ?.  ?=(%ok -.gate-fit)  ~
-  =/  closed=itype
-    (itype-normalize [%fn typ.p.sam u.product] sub.gate-fit)
-  ?.  ?=(%fn -.closed)  ~
-  =/  body=expr
-    ?-  -.val.subs-def
-      %gate       body.val.subs-def
-      %gate-wide  body.val.subs-def
-      *           !!
-    ==
-  =/  st=istate
-    state.p.sam(next next.gate-fit, gate-defs checked, head-evidence heads)
-  =/  inferred=iresult
-    (infer-call-context-arg body product.closed env.p.sam st (span-of body))
-  ?:  ?=(%| -.inferred)  ~
-  =/  product-fit=ifit
-    (itype-fit typ.p.inferred product.closed sub.state.p.inferred next.state.p.inferred)
-  ?.  ?=(%ok -.product-fit)  ~
-  =/  merged-product=itype
-    (itype-merge-faces typ.p.inferred product.closed sub.product-fit)
-  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
-  =/  cast=ifit
-    (itype-fit actual-cast closed sub.product-fit next.product-fit)
-  ?.  ?=(%ok -.cast)  ~
-  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
-  =/  adjusted=iresult
-    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
-  =/  added=(unit iadded-definition)
-    (add-supported-result subs-def adjusted subs-state env checked artifacts.resolution)
-  ?~  added  ~
-  =/  recovered=(unit ischeme)  (ienv-lookup subs.parts env.u.added)
-  ?~  recovered  ~
-  ?.  ?=(~ vars.u.recovered)  ~
-  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
-::
-+$  iview-site  [xs=expr mapper=term]
-++  program-view-site
-  |=  e=expr
-  ^-  (unit iview-site)
-  =.  e  (program-transparent e)
-  ?.  ?=(%call -.e)  ~
-  ?.  ?=([* ~] args.e)  ~
-  =/  each=expr  (program-transparent head.e)
-  ?.  ?=(%wing -.each)  ~
-  ?.  ?=([%each ~] names.each)  ~
-  =/  turned=expr  (program-transparent i.args.e)
-  ?.  ?=(%call -.turned)  ~
-  ?.  ?=([* * ~] args.turned)  ~
-  =/  turn=expr  (program-transparent head.turned)
-  ?.  ?=(%wing -.turn)  ~
-  ?.  ?=([%turn ~] names.turn)  ~
-  =/  xs=expr  (program-transparent i.args.turned)
-  ?.  ?=(%wing -.xs)  ~
-  ?~  names.xs  ~
-  =/  mapper=(unit term)  (program-main-wing i.t.args.turned)
-  ?~  mapper  ~
-  `[xs u.mapper]
-::
-++  program-sample-binders
-  |=  sam=sample
-  ^-  (list term)
-  ?-  -.sam
-    %bind   ~[name.sam]
-    %face   ~[name.sam]
-    %pun    ~[name.sam]
-    %cell   (zing (turn items.sam |=(s=sample (program-sample-binders s))))
-    *       ~
-  ==
-::
-++  program-pattern-binders
-  |=  pat=pattern
-  ^-  (list term)
-  ?-  -.pat
-    %bind   ~[name.pat]
-    %cell   (zing (turn items.pat |=(p=pattern (program-pattern-binders p))))
-    *       ~
-  ==
-::
-++  program-view-sites-merge
-  |=  [a=(unit (list iview-site)) b=(unit (list iview-site))]
-  ^-  (unit (list iview-site))
-  ?~  a  ~
-  ?~  b  ~
-  `(weld u.a u.b)
-::
-++  program-view-sites-exprs
-  |=  [xs=(list expr) locals=(list term)]
-  ^-  (unit (list iview-site))
-  ?~  xs  `~
-  (program-view-sites-merge (program-view-sites i.xs locals) $(xs t.xs))
-::
-++  program-view-sites-items
-  |=  [xs=(list item) locals=(list term)]
-  ^-  (unit (list iview-site))
-  ?~  xs  `~
-  (program-view-sites-merge (program-view-sites val.i.xs locals) $(xs t.xs))
-::
-++  program-view-sites-pieces
-  |=  [xs=(list piece) locals=(list term)]
-  ^-  (unit (list iview-site))
-  ?~  xs  `~
-  =/  here=(unit (list iview-site))
-    ?-  -.i.xs
-      %expr  (program-view-sites p.i.xs locals)
-      %text  `~
-    ==
-  (program-view-sites-merge here $(xs t.xs))
-::
-++  program-view-sites-qsegs
-  |=  [xs=(list qseg) locals=(list term)]
-  ^-  (unit (list iview-site))
-  ?~  xs  `~
-  =/  here=(unit (list iview-site))
-    ?-  -.i.xs
-      %expr  (program-view-sites p.i.xs locals)
-      %knot  `~
-    ==
-  (program-view-sites-merge here $(xs t.xs))
-::
-++  program-view-sites-edits
-  |=  [xs=(list edit) locals=(list term)]
-  ^-  (unit (list iview-site))
-  ?~  xs  `~
-  (program-view-sites-merge (program-view-sites val.i.xs locals) $(xs t.xs))
-::
-++  program-view-sites-defs
-  |=  [xs=(list def) locals=(list term)]
-  ^-  (unit (list iview-site))
-  ?~  xs  `~
-  =/  here=(unit (list iview-site))
-    ?:  ?=(%mold -.i.xs)  `~
-    (program-view-sites val.i.xs locals)
-  (program-view-sites-merge here $(xs t.xs))
-::
-++  program-view-sites-arms
-  |=  [xs=(list arm) locals=(list term)]
-  ^-  (unit (list iview-site))
-  ?~  xs  `~
-  =/  nested=(list term)  (weld (program-pattern-binders pat.i.xs) locals)
-  (program-view-sites-merge (program-view-sites val.i.xs nested) $(xs t.xs))
-::
-++  program-view-sites
-  |=  [e=expr locals=(list term)]
-  ^-  (unit (list iview-site))
-  =/  site=(unit iview-site)  (program-view-site e)
-  ?^  site
-    =/  names=(list term)  ~[%each %turn mapper.u.site]
-    ?>  ?=(%wing -.xs.u.site)
-    =/  root=term  (rear names.xs.u.site)
-    ?:  |((lien names |=(n=term (lien locals |=(x=term =(n x))))) (lien locals |=(x=term =(root x))))
-      ~
-    `~[u.site]
-  ?-  -.e
-    %str     (program-view-sites-pieces pieces.e locals)
-    %qath    (program-view-sites-qsegs segs.e locals)
-    %change  (program-view-sites-edits edits.e locals)
-    %pair    (program-view-sites val.e locals)
-    %unit    (program-view-sites val.e locals)
-    %group   (program-view-sites inner.e locals)
-    %list    (program-view-sites-exprs items.e locals)
-    %tuple   (program-view-sites-items items.e locals)
-    %gate
-      (program-view-sites body.e (weld (program-sample-binders sample.e) locals))
-    %gate-wide
-      (program-view-sites body.e (weld (program-sample-binders sample.e) locals))
-    %call
-      (program-view-sites-merge (program-view-sites head.e locals) (program-view-sites-exprs args.e locals))
-    %cast    (program-view-sites val.e locals)
-    %trace
-      (program-view-sites-merge (program-view-sites val.e locals) (program-view-sites then.e locals))
-    %branch
-      (program-view-sites-merge (program-view-sites subject.e locals) (program-view-sites-arms arms.e locals))
-    %body
-      =/  nested=(list term)  (weld (global-value-names defs.e) locals)
-      (program-view-sites-merge (program-view-sites-defs defs.e nested) (program-view-sites final.e nested))
-    *        `~
-  ==
-::
-++  program-union-tag-case
-  |=  [expected=itype tag=@]
-  ^-  (unit itype)
-  ?.  ?=(%union -.expected)  ~
-  =/  remaining=(list itype)  cases.expected
-  =/  found=(unit itype)  ~
-  =/  seen=(set @)  *(set @)
-  |-
-  ?~  remaining  found
-  =/  case=itype  i.remaining
-  =/  head=(unit @)
-    ?:  ?=(%const -.case)  `val.literal.case
-    ?.  ?=(%cell -.case)  ~
-    ?.  ?=(%const -.hed.case)  ~
-    `val.literal.hed.case
-  ?~  head  ~
-  ?:  (~(has in:..zuse seen) u.head)  ~
-  =.  seen  (~(put in:..zuse seen) u.head)
-  =?  found  =(tag u.head)
-    ?^(found ~ `case)
-  $(remaining t.remaining)
-::
-++  program-single-case-fit
-  |=  [actual=itype expected=itype sub=isub next=@ud]
-  ^-  ifit
-  =.  actual  (itype-normalize actual sub)
-  =.  expected  (itype-normalize expected sub)
-  ?.  ?=(%union -.expected)  [%unknown ~]
-  =/  found=(unit itype)
-    ?:  ?=(%const -.actual)  `actual
-    ?:  ?=(%tag -.actual)  `actual
-    ?:  ?=(%cell -.actual)  `actual
-    ?.  ?=(%union -.actual)  ~
-    ?.  ?=([* ~] cases.actual)  ~
-    `i.cases.actual
-  ?~  found  [%unknown ~]
-  =/  case=itype  u.found
-  =/  tag=(unit lit)
-    ?:  ?=(%const -.case)  `literal.case
-    ?:  ?=(%tag -.case)  `literal.case
-    ?.  ?=(%cell -.case)  ~
-    =/  head=itype  (projection-field-target hed.case)
-    ?:  ?=(%const -.head)  `literal.head
-    ?:  ?=(%tag -.head)  `literal.head
-    ~
-  ?~  tag  [%unknown ~]
-  =/  chosen=(unit itype)  (program-union-tag-case expected val.u.tag)
-  ?~  chosen  [%unknown ~]
-  ?:  |(?=(%const -.case) ?=(%tag -.case))
-    ?.  ?=(%const -.u.chosen)  [%unknown ~]
-    (itype-fit case u.chosen sub next)
-  ?.  ?=(%cell -.case)  [%unknown ~]
-  ?.  ?=(%cell -.u.chosen)  [%unknown ~]
-  =/  head-fit=ifit  (itype-fit hed.case hed.u.chosen sub next)
-  ?.  ?=(%ok -.head-fit)  head-fit
-  (itype-fit tal.case tal.u.chosen sub.head-fit next.head-fit)
-::
-++  program-single-generic-fit
-  |=  [actual=itype expected=itype sub=isub next=@ud]
-  ^-  ifit
-  =.  actual  (itype-normalize actual sub)
-  =.  expected  (itype-normalize expected sub)
-  ?.  &(?=(%union -.actual) ?=(%union -.expected))  [%unknown ~]
-  ?~  origin.actual  [%unknown ~]
-  ?.  =(origin.actual origin.expected)  [%unknown ~]
-  ?.  ?=([* ~] args.actual)  [%unknown ~]
-  ?.  ?=([* ~] args.expected)  [%unknown ~]
-  =/  argument-fit=ifit  (direct-invariant i.args.actual i.args.expected sub next)
-  ?:  ?=(%ok -.argument-fit)  argument-fit
-  (program-single-case-fit i.args.actual i.args.expected sub next)
-::
-++  program-keyed-product-fit
-  |=  [actual=itype expected=itype element=ischeme sub=isub next=@ud]
-  ^-  ifit
-  =.  actual  (itype-normalize actual sub)
-  =.  expected  (itype-normalize expected sub)
-  ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  [%unknown ~]
-  =/  key-fit=ifit
-    (itype-fit (projection-field-target hed.actual) (projection-field-target hed.expected) sub next)
-  ?.  ?=(%ok -.key-fit)  key-fit
-  =/  actual-el=itype
-    (itype-normalize (projection-field-target tal.actual) sub.key-fit)
-  =/  expected-el=itype
-    (itype-normalize (projection-field-target tal.expected) sub.key-fit)
-  ?.  &(?=(%union -.actual-el) ?=(%union -.expected-el))  [%unknown ~]
-  ?.  =(origin.actual-el origin.expected-el)  [%unknown ~]
-  ?.  ?=([* ~] args.actual-el)  [%unknown ~]
-  ?.  ?=([* ~] args.expected-el)  [%unknown ~]
-  =/  canonical-actual=(unit itype)
-    (template-apply element ~[i.args.actual-el])
-  =/  canonical-expected=(unit itype)
-    (template-apply element ~[i.args.expected-el])
-  ?~  canonical-actual  [%unknown ~]
-  ?~  canonical-expected  [%unknown ~]
-  =/  actual-check=ifit
-    (direct-invariant actual-el u.canonical-actual sub.key-fit next.key-fit)
-  ?.  ?=(%ok -.actual-check)  actual-check
-  =/  expected-check=ifit
-    (direct-invariant expected-el u.canonical-expected sub.actual-check next.actual-check)
-  ?.  ?=(%ok -.expected-check)  expected-check
-  =/  case-fit=ifit
-    (program-single-case-fit i.args.actual-el i.args.expected-el sub.expected-check next.expected-check)
-  case-fit
-::
-::  A direct view without a keyed each/turn site still needs the message type
-::  from the checked update.  Recover only that closed component; final main
-::  checking remains the canonical program-kind boundary.
-++  program-plain-view-context
-  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
-  ^-  (unit iresolved)
-  =/  env=ienv  env.resolution
-  ?^  (ienv-lookup %main env)  ~
-  ?^  (ienv-lookup view.parts env)  ~
-  =/  relation=(unit [message=itype model=itype])
-    (program-update-relation update.parts ds env)
-  ?~  relation  ~
-  =/  views=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(view.parts name.d))))
-  ?.  ?=([* ~] views)  ~
-  =/  view-def=def  i.views
-  ?>  ?=(%value -.view-def)
-  =/  written-view=(unit sample)  (direct-gate-sample view-def)
-  ?~  written-view  ~
-  =/  body=expr
-    ?-  -.val.view-def
-      %gate       body.val.view-def
-      %gate-wide  body.val.view-def
-      *           !!
-    ==
-  =/  sites=(unit (list iview-site))  (program-view-sites body ~)
-  ?~  sites  ~
-  ?^  u.sites  ~
-  ?~  prelude.initial  ~
-  ?~  (ienv-lookup %program values.u.prelude.initial)  ~
-  =/  element=(unit ischeme)  (find-jibb-mold %element u.prelude.initial)
-  ?~  element  ~
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
-  ?~  heads  ~
-  ?~  (~(get by gates.u.heads) %program)  ~
-  =/  checked=(map term def)  (direct-checked-gates ds env)
-  =/  templates=ienv
-    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  fresh=(unit @ud)
-    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
-  ?~  fresh  ~
-  =.  next.initial  u.fresh
-  =/  view-state=istate  (reserve-def-caps val.view-def initial)
-  =/  sam=isample-result  (infer-sample u.written-view env view-state)
-  ?:  ?=(%| -.sam)  ~
-  =/  actual-model=itype  (program-inferred-sample typ.p.sam u.written-view)
-  ?.  ?=(~ (itype-vars actual-model))  ~
-  ?:  (itype-has-tag actual-model)  ~
-  =/  model-fit=ifit
-    (direct-invariant actual-model model.u.relation sub.state.p.sam next.state.p.sam)
-  ?.  ?=(%ok -.model-fit)  ~
-  =/  product=(unit itype)  (template-apply u.element ~[message.u.relation])
-  ?~  product  ~
-  =/  st=istate
-    state.p.sam(sub sub.model-fit, next next.model-fit, gate-defs checked, head-evidence heads)
-  =/  inferred=iresult
-    (infer-call-context-arg body u.product env.p.sam st (span-of body))
-  ?:  ?=(%| -.inferred)  ~
-  =/  product-fit=ifit
-    (itype-fit typ.p.inferred u.product sub.state.p.inferred next.state.p.inferred)
-  ?.  ?=(%ok -.product-fit)  ~
-  =/  merged-product=itype
-    (itype-merge-faces typ.p.inferred u.product sub.product-fit)
-  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
-  =/  closed=itype  [%fn typ.p.sam u.product]
-  =/  cast=ifit
-    (itype-fit actual-cast closed sub.product-fit next.product-fit)
-  ?.  ?=(%ok -.cast)  ~
-  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
-  =/  adjusted=iresult
-    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
-  =/  added=(unit iadded-definition)
-    (add-supported-result view-def adjusted view-state env checked artifacts.resolution)
-  ?~  added  ~
-  =/  recovered=(unit ischeme)  (ienv-lookup view.parts env.u.added)
-  ?~  recovered  ~
-  ?.  ?=(~ vars.u.recovered)  ~
-  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
-::
-::  Recover exactly one direct keyed each/turn row mapper, then its view.
-::  The prelude's own each and turn schemes determine the mapper gate: the
-::  key is inferred from the mapper body, never selected by this recovery.
-++  program-view-context
-  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
-  ^-  (unit iresolved)
-  =/  env=ienv  env.resolution
-  ?^  (ienv-lookup %main env)  ~
-  ?^  (ienv-lookup view.parts env)  ~
-  =/  relation=(unit [message=itype model=itype])
-    (program-update-relation update.parts ds env)
-  ?~  relation  ~
-  =/  views=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(view.parts name.d))))
-  ?.  ?=([* ~] views)  ~
-  =/  view-def=def  i.views
-  ?>  ?=(%value -.view-def)
-  =/  written-view=(unit sample)  (direct-gate-sample view-def)
-  ?~  written-view  ~
-  =/  view-body=expr
-    ?-  -.val.view-def
-      %gate       body.val.view-def
-      %gate-wide  body.val.view-def
-      *           !!
-    ==
-  =/  sites=(unit (list iview-site))  (program-view-sites view-body ~)
-  ?~  sites  ~
-  ?.  ?=([* ~] u.sites)  ~
-  =/  site=iview-site  i.u.sites
-  =/  component-names=(list term)  ~[init.parts update.parts view.parts subs.parts]
-  ?:  (lien component-names |=(n=term =(n mapper.site)))  ~
-  ?^  (ienv-lookup mapper.site env)  ~
-  =/  mappers=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(mapper.site name.d))))
-  ?.  ?=([* ~] mappers)  ~
-  =/  mapper-def=def  i.mappers
-  ?>  ?=(%value -.mapper-def)
-  =/  written-mapper=(unit sample)  (direct-gate-sample mapper-def)
-  ?~  written-mapper  ~
-  ?~  prelude.initial  ~
-  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
-  =/  each-scheme=(unit ischeme)  (ienv-lookup %each values.u.prelude.initial)
-  =/  turn-scheme=(unit ischeme)  (ienv-lookup %turn values.u.prelude.initial)
-  =/  element=(unit ischeme)  (find-jibb-mold %element u.prelude.initial)
-  =/  list-template=(unit ischeme)  (find-jibb-mold %list u.prelude.initial)
-  ?~  program  ~
-  ?~  each-scheme  ~
-  ?~  turn-scheme  ~
-  ?~  element  ~
-  ?~  list-template  ~
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
-  ?~  heads  ~
-  =/  written-program=(unit def)  (~(get by gates.u.heads) %program)
-  =/  written-each=(unit def)  (~(get by gates.u.heads) %each)
-  =/  written-turn=(unit def)  (~(get by gates.u.heads) %turn)
-  ?~  written-program  ~
-  ?~  written-each  ~
-  ?~  written-turn  ~
-  =/  program-sample=(unit sample)  (direct-gate-sample u.written-program)
-  =/  each-sample=(unit sample)  (direct-gate-sample u.written-each)
-  =/  turn-sample=(unit sample)  (direct-gate-sample u.written-turn)
-  ?~  program-sample  ~
-  ?~  each-sample  ~
-  ?~  turn-sample  ~
-  ?.  ?=(%cell -.u.program-sample)  ~
-  ?.  ?=([* * * * ~] items.u.program-sample)  ~
-  =/  turn-names=(unit [first=(unit term) second=(unit term)])
-    (program-two-slot-names u.turn-sample)
-  ?~  turn-names  ~
-  =/  checked=(map term def)  (direct-checked-gates ds env)
-  =/  templates=ienv
-    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  fresh=(unit @ud)
-    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
-  ?~  fresh  ~
-  =.  next.initial  u.fresh
-  =/  view-state=istate  (reserve-def-caps val.view-def initial)
-  =/  sam=isample-result  (infer-sample u.written-view env view-state)
-  ?:  ?=(%| -.sam)  ~
-  =/  actual-model=itype  (program-inferred-sample typ.p.sam u.written-view)
-  =/  model-fit=ifit
-    (direct-invariant actual-model model.u.relation sub.state.p.sam next.state.p.sam)
-  ?.  ?=(%ok -.model-fit)  ~
-  =/  xs-result=iresult
-    (infer-fragment xs.site env.p.sam state.p.sam(sub sub.model-fit, next next.model-fit))
-  ?:  ?=(%| -.xs-result)  ~
-  =/  element-var=itype  [%var next.state.p.xs-result]
-  =/  list-a=(unit itype)  (template-apply u.list-template ~[element-var])
-  ?~  list-a  ~
-  =/  xs-fit=ifit
-    (itype-fit typ.p.xs-result u.list-a sub.state.p.xs-result +(next.state.p.xs-result))
-  ?.  ?=(%ok -.xs-fit)  ~
-  =/  closed-xs=itype  (itype-normalize u.list-a sub.xs-fit)
-  ?^  (itype-vars closed-xs)  ~
-  ?:  (itype-has-tag closed-xs)  ~
-  =/  each-instance=[typ=itype state=istate]
-    (instantiate-scheme u.each-scheme state.p.xs-result(sub sub.xs-fit, next next.xs-fit))
-  ?.  ?=(%fn -.typ.each-instance)  ~
-  =/  turn-instance=[typ=itype state=istate]
-    (instantiate-scheme u.turn-scheme state.each-instance)
-  ?.  ?=(%fn -.typ.turn-instance)  ~
-  ?.  ?=(%cell -.sample.typ.turn-instance)  ~
-  =/  element-message=(unit itype)
-    (template-apply u.element ~[message.u.relation])
-  ?~  element-message  ~
-  =/  each-fit=ifit
-    (itype-fit product.typ.each-instance u.element-message sub.state.turn-instance next.state.turn-instance)
-  ?.  ?=(%ok -.each-fit)  ~
-  =/  each-input=itype
-    (program-inferred-sample sample.typ.each-instance u.each-sample)
-  =/  turn-fit=ifit
-    (itype-fit product.typ.turn-instance each-input sub.each-fit next.each-fit)
-  ?.  ?=(%ok -.turn-fit)  ~
-  =/  turn-list=itype
-    (program-inferred-slot hed.sample.typ.turn-instance first.u.turn-names)
-  =/  list-fit=ifit
-    (itype-fit closed-xs turn-list sub.turn-fit next.turn-fit)
-  ?.  ?=(%ok -.list-fit)  ~
-  =/  mapper-type=itype
-    (program-inferred-slot tal.sample.typ.turn-instance second.u.turn-names)
-  =/  expected-mapper=itype  (itype-normalize mapper-type sub.list-fit)
-  ?.  ?=(%fn -.expected-mapper)  ~
-  ?^  (itype-vars sample.expected-mapper)  ~
-  ?:  (itype-has-tag sample.expected-mapper)  ~
-  ::  These faces come from the source-backed each sample. Keeping them in
-  ::  the expected mapper product lets ordinary tuple inference supply key/el.
-  ?.  ?=(%cell -.product.expected-mapper)  ~
-  ?.  ?=(%face -.hed.product.expected-mapper)  ~
-  ?.  =(%key name.hed.product.expected-mapper)  ~
-  ?.  ?=(%face -.tal.product.expected-mapper)  ~
-  ?.  =(%el name.tal.product.expected-mapper)  ~
-  =/  mapper-state=istate
-    (reserve-def-caps val.mapper-def initial(next next.list-fit))
-  =/  mapper-sam=isample-result  (infer-sample u.written-mapper env mapper-state)
-  ?:  ?=(%| -.mapper-sam)  ~
-  =/  mapper-input=itype  (program-inferred-sample typ.p.mapper-sam u.written-mapper)
-  =/  mapper-sample-fit=ifit
-    (direct-invariant mapper-input sample.expected-mapper sub.state.p.mapper-sam next.state.p.mapper-sam)
-  ?.  ?=(%ok -.mapper-sample-fit)  ~
-  =/  mapper-product=itype
-    (itype-normalize product.expected-mapper sub.mapper-sample-fit)
-  =/  mapper-body=expr
-    ?-  -.val.mapper-def
-      %gate       body.val.mapper-def
-      %gate-wide  body.val.mapper-def
-      *           !!
-    ==
-  =/  mapper-inferred=iresult
-    (infer-call-context-arg mapper-body mapper-product env.p.mapper-sam state.p.mapper-sam(sub sub.mapper-sample-fit, next next.mapper-sample-fit) (span-of mapper-body))
-  ?:  ?=(%| -.mapper-inferred)  ~
-  =/  ordinary-product-fit=ifit
-    (itype-fit typ.p.mapper-inferred mapper-product sub.state.p.mapper-inferred next.state.p.mapper-inferred)
-  =/  mapper-product-fit=ifit
-    ?:  ?=(%ok -.ordinary-product-fit)  ordinary-product-fit
-    (program-keyed-product-fit typ.p.mapper-inferred mapper-product u.element sub.state.p.mapper-inferred next.state.p.mapper-inferred)
-  ?.  ?=(%ok -.mapper-product-fit)  ~
-  =/  closed-mapper-product=itype
-    (itype-normalize mapper-product sub.mapper-product-fit)
-  ?^  (itype-vars closed-mapper-product)  ~
-  ?:  (itype-has-tag closed-mapper-product)  ~
-  =/  merged-mapper-product=itype
-    (itype-merge-faces typ.p.mapper-inferred closed-mapper-product sub.mapper-product-fit)
-  =/  mapper-cast=itype  [%fn typ.p.mapper-sam merged-mapper-product]
-  =/  closed-mapper=itype  [%fn typ.p.mapper-sam closed-mapper-product]
-  =/  mapper-cast-fit=ifit
-    (itype-fit mapper-cast closed-mapper sub.mapper-product-fit next.mapper-product-fit)
-  ?.  ?=(%ok -.mapper-cast-fit)  ~
-  =/  merged-mapper=itype
-    (itype-merge-faces mapper-cast closed-mapper sub.mapper-cast-fit)
-  =/  mapper-adjusted=iresult
-    [%& merged-mapper state.p.mapper-inferred(sub sub.mapper-cast-fit, next next.mapper-cast-fit)]
-  =/  mapper-added=(unit iadded-definition)
-    (add-supported-result mapper-def mapper-adjusted mapper-state env checked artifacts.resolution)
-  ?~  mapper-added  ~
-  =/  mapper-scheme=(unit ischeme)  (ienv-lookup mapper.site env.u.mapper-added)
-  ?~  mapper-scheme  ~
-  ?.  ?=(~ vars.u.mapper-scheme)  ~
-  ?.  ?=(~ (itype-vars typ.u.mapper-scheme))  ~
-  =/  program-instance=[typ=itype state=istate]
-    (instantiate-scheme u.program state.p.sam(next next.mapper-cast-fit))
-  ?.  ?=(%fn -.typ.program-instance)  ~
-  ?.  ?=(%cell -.sample.typ.program-instance)  ~
-  ?.  ?=(%cell -.tal.sample.typ.program-instance)  ~
-  ?.  ?=(%cell -.tal.tal.sample.typ.program-instance)  ~
-  =/  expected-view=(unit itype)
-    (direct-slot-body hed.tal.tal.sample.typ.program-instance (direct-sample-name i.t.t.items.u.program-sample))
-  ?~  expected-view  ~
-  ?.  ?=(%fn -.u.expected-view)  ~
-  =/  canonical-view=itype  [%fn model.u.relation u.element-message]
-  =/  view-fit=ifit
-    (direct-invariant canonical-view u.expected-view sub.state.program-instance next.state.program-instance)
-  ?.  ?=(%ok -.view-fit)  ~
-  =/  closed-view=itype
-    (itype-normalize [%fn typ.p.sam u.element-message] sub.view-fit)
-  ?.  ?=(%fn -.closed-view)  ~
-  =/  view-env=ienv  [[mapper.site u.mapper-scheme] env.p.sam]
-  =/  final-view-state=istate
-    (reserve-def-caps val.view-def state.p.sam(next next.view-fit, gate-defs checked.u.mapper-added, head-evidence heads))
-  =/  inferred=iresult
-    (infer-call-context-arg view-body product.closed-view view-env final-view-state (span-of view-body))
-  ?:  ?=(%| -.inferred)  ~
-  =/  product-fit=ifit
-    (itype-fit typ.p.inferred product.closed-view sub.state.p.inferred next.state.p.inferred)
-  ?.  ?=(%ok -.product-fit)  ~
-  =/  merged-product=itype
-    (itype-merge-faces typ.p.inferred product.closed-view sub.product-fit)
-  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
-  =/  cast=ifit
-    (itype-fit actual-cast closed-view sub.product-fit next.product-fit)
-  ?.  ?=(%ok -.cast)  ~
-  =/  merged=itype  (itype-merge-faces actual-cast closed-view sub.cast)
-  =/  adjusted=iresult
-    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
-  =/  added=(unit iadded-definition)
-    (add-supported-result view-def adjusted final-view-state env.u.mapper-added checked.u.mapper-added artifacts.u.mapper-added)
-  ?~  added  ~
-  =/  recovered=(unit ischeme)  (ienv-lookup view.parts env.u.added)
-  ?~  recovered  ~
-  ?.  ?=(~ vars.u.recovered)  ~
-  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
-::
-::  The model a direct program's initializer must produce. Update's written
-::  two-item sample gives it when it can be read. Otherwise main's own program
-::  fit does: update, view and subs are fitted together against the prelude
-::  program's sample, as main's call will fit them, with the initializer an
-::  open variable. Only the initializer's data may stay open, a replay of the
-::  fit must not move, and the model must come out closed and tag-free.
-++  program-init-model
-  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv program=ischeme program-def=def initial=istate]
-  ^-  (unit itype)
-  =/  relation=(unit [message=itype model=itype])
-    (program-update-relation update.parts ds env)
-  ?^  relation  `model.u.relation
-  =/  args=(unit (list expr))  (program-main-args main)
-  ?~  args  ~
-  =/  written=(unit sample)  (direct-gate-sample program-def)
-  ?~  written  ~
-  ?.  ?=(%cell -.u.written)  ~
-  ?~  items.u.written  ~
-  =/  update=(unit ischeme)  (ienv-lookup update.parts env)
-  =/  view=(unit ischeme)  (ienv-lookup view.parts env)
-  =/  subs=(unit ischeme)  (ienv-lookup subs.parts env)
-  ?~  update  ~
-  ?~  view  ~
-  ?~  subs  ~
-  =/  instance=[typ=itype state=istate]  (instantiate-scheme program initial)
-  ?.  ?=(%fn -.typ.instance)  ~
-  ?.  ?=(%cell -.sample.typ.instance)  ~
-  =/  expected-init=(unit itype)
-    (direct-slot-body hed.sample.typ.instance (direct-sample-name i.items.u.written))
-  ?~  expected-init  ~
-  ?.  ?=(%fn -.u.expected-init)  ~
-  ?.  ?=(%var -.sample.u.expected-init)  ~
-  =/  data=@ud  id.sample.u.expected-init
-  =/  init-var=itype  [%var next.state.instance]
-  =/  up=[typ=itype state=istate]
-    (instantiate-scheme u.update state.instance(next +(next.state.instance)))
-  =/  vw=[typ=itype state=istate]  (instantiate-scheme u.view state.up)
-  =/  sb=[typ=itype state=istate]  (instantiate-scheme u.subs state.vw)
-  =/  st=istate  state.sb
-  =/  actual=itype  [%cell init-var [%cell typ.up [%cell typ.vw typ.sb]]]
-  =/  fit=ifit
-    (direct-positional-fit u.args items.u.written actual sample.typ.instance env st sub.st next.st)
-  ?.  ?=(%ok -.fit)  ~
-  =/  actual-final=itype  (itype-normalize actual sub.fit)
-  =/  expected-final=itype  (itype-normalize sample.typ.instance sub.fit)
-  =/  open=(list @ud)
-    (unique-type-vars (weld (itype-vars actual-final) (itype-vars expected-final)))
-  ?.  (levy open |=(n=@ud =(data n)))  ~
-  ?:  |((itype-has-tag actual-final) (itype-has-tag expected-final))  ~
-  =/  replay=ifit
-    (direct-positional-fit u.args items.u.written actual sample.typ.instance env st sub.fit next.fit)
-  ?.  ?=(%ok -.replay)  ~
-  ?.  &(=(sub.fit sub.replay) =(next.fit next.replay))  ~
-  =/  expected=itype  (itype-normalize u.expected-init sub.fit)
-  ?.  ?=(%fn -.expected)  ~
-  ?^  (itype-vars product.expected)  ~
-  `product.expected
-::
-::  The product of an initializer inferred ordinarily, as a whole gate with no
-::  expected type, for a body that context inference cannot take, such as a
-::  branch over a nested call's union. Its sample must fit the written one.
-++  program-init-ordinary
-  |=  [init-def=def env=ienv sample=itype state=istate]
-  ^-  iresult
-  ?>  ?=(%value -.init-def)
-  =/  gate=iresult  (infer-fragment val.init-def env state)
-  =?  gate  ?=(%| -.gate)  (infer-recursive-gate init-def env state)
-  ?:  ?=(%| -.gate)  gate
-  ?.  ?=(%fn -.typ.p.gate)  [%| ["initializer is not a gate" ~]]
-  =/  fit=ifit
-    (itype-fit sample.typ.p.gate sample sub.state.p.gate next.state.p.gate)
-  ?.  ?=(%ok -.fit)  [%| ["initializer sample differs" ~]]
-  [%& product.typ.p.gate state.p.gate(sub sub.fit, next next.fit)]
-::
-::  Recover a direct program's initializer once update, view and
-::  subscriptions are resolved: its body is inferred against their closed
-::  model (+program-init-model), under its own closed written sample. This one
-::  path replaced a separate retry for bodies ending in null and a gate that
-::  took only a null sample, so any body and any closed sample check the same
-::  way (review question 8). The fresh ordinary main inference afterwards
-::  checks that all four components agree.
-++  program-plain-init-context
-  |=  [main=def parts=[init=term update=term view=term subs=term] ds=(list def) resolution=iresolved initial=istate]
-  ^-  (unit iresolved)
-  =/  env=ienv  env.resolution
-  ?^  (ienv-lookup %main env)  ~
-  ?^  (ienv-lookup init.parts env)  ~
-  ?~  (ienv-lookup update.parts env)  ~
-  ?~  (ienv-lookup view.parts env)  ~
-  ?~  (ienv-lookup subs.parts env)  ~
-  =/  inits=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(init.parts name.d))))
-  ?.  ?=([* ~] inits)  ~
-  =/  init-def=def  i.inits
-  ?>  ?=(%value -.init-def)
-  =/  written=(unit sample)  (direct-gate-sample init-def)
-  ?~  written  ~
-  =/  body=expr
-    ?-  -.val.init-def
-      %gate       body.val.init-def
-      %gate-wide  body.val.init-def
-      *           !!
-    ==
-  ?~  prelude.initial  ~
-  =/  program=(unit ischeme)  (ienv-lookup %program values.u.prelude.initial)
-  ?~  program  ~
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude.initial)
-  ?~  heads  ~
-  =/  program-def=(unit def)  (~(get by gates.u.heads) %program)
-  ?~  program-def  ~
-  =/  checked=(map term def)  (direct-checked-gates ds env)
-  =/  templates=ienv
-    (turn molds.u.prelude.initial |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  fresh=(unit @ud)
-    (ienv-fresh-id (weld env (weld values.u.prelude.initial templates)))
-  ?~  fresh  ~
-  =.  next.initial  u.fresh
-  =/  model=(unit itype)
-    %:  program-init-model
-      main  parts  ds  env  u.program  u.program-def
-      initial(gate-defs checked, head-evidence heads)
-    ==
-  ?~  model  ~
-  =/  init-state=istate  (reserve-def-caps val.init-def initial)
-  =/  sam=isample-result  (infer-sample u.written env init-state)
-  ?:  ?=(%| -.sam)  ~
-  ?.  ?=(~ (itype-vars typ.p.sam))  ~
-  ?:  (itype-has-tag typ.p.sam)  ~
-  =/  st=istate  state.p.sam(gate-defs checked, head-evidence heads)
-  =/  contextual=iresult
-    (infer-call-context-arg body u.model env.p.sam st (span-of body))
-  =/  inferred=iresult
-    ?:  ?=(%& -.contextual)  contextual
-    (program-init-ordinary init-def env typ.p.sam init-state(gate-defs checked, head-evidence heads))
-  ?:  ?=(%| -.inferred)  ~
-  =/  product-fit=ifit
-    (itype-fit typ.p.inferred u.model sub.state.p.inferred next.state.p.inferred)
-  ?.  ?=(%ok -.product-fit)  ~
-  =/  merged-product=itype
-    (itype-merge-faces typ.p.inferred u.model sub.product-fit)
-  =/  actual-cast=itype  [%fn typ.p.sam merged-product]
-  =/  closed=itype  [%fn typ.p.sam u.model]
-  =/  cast=ifit
-    (itype-fit actual-cast closed sub.product-fit next.product-fit)
-  ?.  ?=(%ok -.cast)  ~
-  =/  merged=itype  (itype-merge-faces actual-cast closed sub.cast)
-  =/  adjusted=iresult
-    [%& merged state.p.inferred(sub sub.cast, next next.cast)]
-  =/  added=(unit iadded-definition)
-    (add-supported-result init-def adjusted init-state env checked artifacts.resolution)
-  ?~  added  ~
-  =/  recovered=(unit ischeme)  (ienv-lookup init.parts env.u.added)
-  ?~  recovered  ~
-  ?.  ?=(~ vars.u.recovered)  ~
-  ?.  ?=(~ (itype-vars typ.u.recovered))  ~
-  `[env.u.added grouped.resolution artifacts.u.added failures.resolution]
 ::
 ++  derived-poke-command-scheme
   |=  [prelude=ifile action=itype]
@@ -15308,10 +23208,10 @@
     [%cell [%const [%term %tas %now '%now']] [%face %reply [%fn [%atom %da] [%var m]]]]
   =/  who-case=itype
     [%cell [%const [%term %tas %who '%who']] [%face %reply [%fn [%atom %p] [%var m]]]]
-  ?.  =(cases.typ.u.command ~[poke-case go-case wait-case now-case who-case])  ~
+  ?.  =((turn cases.typ.u.command |=(t=itype (itype-slots-as-faces t))) (turn ~[poke-case go-case wait-case now-case who-case] |=(t=itype (itype-slots-as-faces t))))  ~
   =/  command-result=(unit itype)  (template-apply u.command ~[[%var 0]])
   ?~  command-result  ~
-  `[[%fn [%cell action [%fn u.error [%var 0]]] u.command-result] ~[0]]
+  `[[%fn [%cell action [%fn u.error [%var 0]]] u.command-result] ~[0] ~]
 ::
 ++  store-derived-schemes
   |=  [prelude=ifile values=(list term) molds=(list term) state=itype action=itype]
@@ -15324,52 +23224,767 @@
   ?:  |((itype-has-tag state) (itype-has-tag action))  ~
   =/  result=(unit itype)  (template-apply u.ask ~[[%var 0]])
   ?~  result  ~
-  =/  request=ischeme  [[%fn [%fn state [%var 0]] u.result] ~[0]]
+  =/  request=ischeme  [[%fn [%fn state [%var 0]] u.result] ~[0] ~]
   =/  constructor=(unit ischeme)  (derived-poke-command-scheme prelude action)
   ?~  constructor  ~
   `[request u.constructor]
 ::
-++  program-subs-watch
-  |=  [d=def imports=ijimports graph=irequest-graph prelude=ifile]
+::  Abstract values retain proof per value occurrence, independently of types.
++$  iav-site  [file=path at=span]
++$  iav-value  [site=iav-site node=iav-node]
++$  iav-node
+  $%  [%unknown ~]
+               [%data ~]
+               [%limit ~]
+               [%seal ~]
+               [%effects checks=(list iav-value) body=iav-value]
+               [%bottom ~]
+               [%atom value=@]
+               [%cell head=iav-value tail=iav-value]
+               [%face name=term body=iav-value]
+               [%typed typ=itype body=iav-value]
+               [%choice values=(list iav-value)]
+               [%closure file=path sample=sample body=expr frames=(list iav-frame)]
+               [%constructor tag=@]
+               [%module file=path]
+               [%request-gate file=path name=term]
+      [%request file=path name=term]
+  ==
++$  iav-frame  [bindings=(list [name=term value=iav-value]) defs=(list def)]
++$  iav-scope  [file=path frames=(list iav-frame)]
++$  iav-context  [files=(map path ifile) prelude=ifile graph=irequest-graph modules=(map path module)]
++$  iav-active  (list [file=path at=span closure=* argument=*])
+++  iav-context-new
+  |=  [files=(map path ifile) prelude=ifile graph=irequest-graph]
+  ^-  iav-context
+  =/  modules=(map path module)  *(map path module)
+  =/  remaining=(list [p=path q=ifile])  ~(tap by files)
+  |-
+  ?~  remaining  [files prelude graph modules]
+  =/  iface=ifile  q.i.remaining
+  ?~  source.iface  $(remaining t.remaining)
+  =/  parsed=(each module error)  (parse at.iface u.source.iface)
+  ?:  ?=(%| -.parsed)  $(remaining t.remaining)
+  $(remaining t.remaining, modules (~(put by modules) at.iface p.parsed))
+++  iav-unknown
+  |=  site=iav-site
+  ^-  iav-value
+  [site %unknown ~]
+++  iav-plain
+  |=  value=iav-value
+  ^-  iav-value
+  ?-  -.node.value
+    ?(%face %typed %effects)  $(value body.node.value)
+    *  value
+  ==
+++  iav-at-call
+  |=  [value=iav-value site=iav-site]
+  ^-  iav-value
+  =.  site.value  site
+  ?:  ?=(%typed -.node.value)
+    value(body.node (iav-at-call body.node.value site))
+  ?:  ?=(%face -.node.value)
+    value(body.node (iav-at-call body.node.value site))
+  value
+++  iav-choice
+  |=  [site=iav-site values=(list iav-value)]
+  ^-  iav-value
+  =/  possible=(list iav-value)
+    (skip values |=(v=iav-value ?=(%bottom -.node.v)))
+  ?~  possible  [site %bottom ~]
+  ?:  (levy t.possible |=(v=iav-value =(v i.possible)))  i.possible
+  [site %choice possible]
+++  iav-checks
+  |=  [value=iav-value fuel=@ud]
+  ^-  (list iav-value)
+  ?:  =(0 fuel)  ~[[site.value %limit ~]]
+  ?-  -.node.value
+    %limit  ~[value]
+    %effects  (weld checks.node.value $(value body.node.value, fuel (dec fuel)))
+    ?(%typed %face)  $(value body.node.value, fuel (dec fuel))
+    %cell  (weld $(value head.node.value, fuel (dec fuel)) $(value tail.node.value, fuel (dec fuel)))
+    %choice  (zing (turn values.node.value |=(v=iav-value (iav-checks v (dec fuel)))))
+    *  ~
+  ==
+++  iav-carry
+  |=  [value=iav-value sources=(list iav-value) fuel=@ud]
+  ^-  iav-value
+  =/  checks=(list iav-value)
+    (zing (turn sources |=(v=iav-value (iav-checks v fuel))))
+  ?~  checks  value
+  [site.value %effects checks value]
+++  iav-seal
+  |=  [arg=iav-value site=iav-site fuel=@ud]
+  ^-  iav-value
+  ?:  =(0 fuel)  [site %limit ~]
+  =/  plain=iav-value  (iav-plain arg)
+  ?:  ?=(%choice -.node.plain)
+    (iav-choice site (turn values.node.plain |=(v=iav-value (iav-seal v site (dec fuel)))))
+  ?:  ?=(%bottom -.node.plain)  [site %bottom ~]
+  ?.  ?=(%cell -.node.plain)  [site %limit ~]
+  =/  tag=iav-value  (iav-plain head.node.plain)
+  ?.  ?=(%atom -.node.tag)  [site %limit ~]
+  ?.  =(%island value.node.tag)  (iav-unknown site)
+  =/  program=iav-value  (iav-axis tail.node.plain 2 fuel)
+  [site %effects ~[program] (iav-unknown site)]
+++  iav-axis
+  |=  [value=iav-value axis=@ud fuel=@ud]
+  ^-  iav-value
+  (iav-carry (iav-axis-raw value axis fuel) ~[value] fuel)
+++  iav-axis-raw
+  |=  [value=iav-value axis=@ud fuel=@ud]
+  ^-  iav-value
+  ?:  |(=(0 fuel) =(0 axis))  (iav-unknown site.value)
+  ?:  =(1 axis)  value
+  ?:  ?=(%data -.node.value)  value
+  ?:  ?=(%effects -.node.value)  $(value body.node.value, fuel (dec fuel))
+  ?:  ?=(%typed -.node.value)
+    =/  body=iav-value  (iav-axis body.node.value axis (dec fuel))
+    =/  typ=(unit itype)  (iav-type-axis typ.node.value axis fuel)
+    ?~  typ
+      ::  Retain an already known value. The absence proof refines only
+      ::  an unknown projection; it must not erase a finite list's end.
+      =/  plain=iav-value  (iav-plain body)
+      ?.  ?=(%unknown -.node.plain)  body
+      ?.  (iav-gate-free-value value fuel)  body
+      (iav-carry [site.value %data ~] ~[body] fuel)
+    [site.value %typed u.typ body]
+  ?:  ?=(%face -.node.value)  $(value body.node.value, fuel (dec fuel))
+  ?:  ?=(%choice -.node.value)
+    (iav-choice site.value (turn values.node.value |=(v=iav-value (iav-axis v axis (dec fuel)))))
+  ?.  ?=(%cell -.node.value)  (iav-unknown site.value)
+  =/  next=iav-value  ?:(=(2 (cap axis)) head.node.value tail.node.value)
+  $(value next, axis (mas axis), fuel (dec fuel))
+++  iav-type-axis
+  |=  [typ=itype axis=@ud fuel=@ud]
+  ^-  (unit itype)
+  ?:  |(=(0 fuel) =(0 axis))  ~
+  ?:  =(1 axis)  `typ
+  ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ, fuel (dec fuel))
+  ?.  ?=(%cell -.typ)  ~
+  $(typ ?:(=(2 (cap axis)) hed.typ tal.typ), axis (mas axis), fuel (dec fuel))
+++  iav-type-field
+  |=  [typ=itype name=term axis=@ud fuel=@ud]
+  ^-  (list @ud)
+  ?:  =(0 fuel)  ~
+  ?:  ?=(?(%face %slot) -.typ)
+    ?:(=(name name.typ) ~[axis] ~)
+  ?.  ?=(%cell -.typ)  ~
+  (weld $(typ hed.typ, axis (mul 2 axis), fuel (dec fuel)) $(typ tal.typ, axis +((mul 2 axis)), fuel (dec fuel)))
+++  iav-field
+  |=  [value=iav-value name=term context=iav-context fuel=@ud]
+  ^-  iav-value
+  (iav-carry (iav-field-raw value name context fuel) ~[value] fuel)
+++  iav-field-raw
+  |=  [value=iav-value name=term context=iav-context fuel=@ud]
+  ^-  iav-value
+  ?:  =(0 fuel)  (iav-unknown site.value)
+  ?-  -.node.value
+    %data  value
+    %effects  $(value body.node.value, fuel (dec fuel))
+    %module  (iav-member file.node.value name context (dec fuel) ~)
+    %choice
+      (iav-choice site.value (turn values.node.value |=(v=iav-value (iav-field v name context (dec fuel)))))
+    %typed
+      =/  typ=itype  typ.node.value
+      =/  axes=(list @ud)  (iav-type-field typ name 1 fuel)
+      =?  axes  &(?=(~ axes) ?=(?(%face %slot) -.typ))
+        (iav-type-field body.typ name 1 fuel)
+      ?.  ?=([* ~] axes)  $(value body.node.value, fuel (dec fuel))
+      (iav-axis body.node.value i.axes fuel)
+    *
+      =/  fields=(list iav-value)  (iav-value-fields value name fuel)
+      ?.  ?=([* ~] fields)  (iav-unknown site.value)
+      i.fields
+  ==
+++  iav-value-fields
+  |=  [value=iav-value name=term fuel=@ud]
+  ^-  (list iav-value)
+  ?:  =(0 fuel)  ~
+  ?-  -.node.value
+    %face  ?:(=(name name.node.value) ~[body.node.value] ~)
+    %cell
+      (weld $(value head.node.value, fuel (dec fuel)) $(value tail.node.value, fuel (dec fuel)))
+    *  ~
+  ==
+++  iav-module-scope
+  |=  [file=path context=iav-context]
+  ^-  (unit iav-scope)
+  =/  parsed=(unit module)  (~(get by modules.context) file)
+  ?~  parsed  ~
+  `[file ~[[~ defs.u.parsed]]]
+++  iav-member
+  |=  [file=path name=term context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  =/  site=iav-site  [file *span]
+  ?:  =(0 fuel)  [site %limit ~]
+  ?:  &(=(file /lib/jibb/primitives/jibb) =(name %raw-seal))
+    =/  primitives=ifile  private-primitive-interface
+    ?~  (ienv-lookup %raw-seal values.primitives)  (iav-unknown site)
+    [site %seal ~]
+  =/  iface=(unit ifile)  (~(get by files.context) file)
+  ?~  iface  (iav-unknown site)
+  =/  selected=ijimports  ~[[%selected u.iface]]
+  ?:  |(?=(^ (derived-request-member name %selected selected graph.context prelude.context)) ?=(^ (derived-store-request-member name %selected selected graph.context prelude.context)))
+    [site %request-gate file name]
+  =/  scope=(unit iav-scope)  (iav-module-scope file context)
+  ?~  scope  (iav-unknown site)
+  =/  value=iav-value  (iav-lookup name u.scope context (dec fuel) active |)
+  =/  scheme=(unit ischeme)  (ienv-lookup name values.u.iface)
+  ?~  scheme  value
+  =/  typ=(unit itype)  (scheme-display-type u.scheme)
+  ?~  typ  value
+  [site.value %typed u.typ value]
+++  iav-lookup
+  |=  [name=term scope=iav-scope context=iav-context fuel=@ud active=iav-active fallback=?]
+  ^-  iav-value
+  =/  missing=iav-site  [file.scope *span]
+  ?:  =(0 fuel)  [missing %limit ~]
+  ?^  frames.scope
+    =/  frame=iav-frame  i.frames.scope
+    =/  binding=(list [name=term value=iav-value])
+      (skim bindings.frame |=(b=[name=term value=iav-value] =(name name.b)))
+    ?^  binding  value.i.binding
+    =/  written=(list def)
+      (skim defs.frame |=(d=def &(?=(%value -.d) =(name name.d))))
+    ?^  written
+      =/  d=def  i.written
+      ?>  ?=(%value -.d)
+      (iav-eval val.d scope context (dec fuel) active)
+    $(scope scope(frames t.frames.scope), fuel (dec fuel))
+  =/  parsed=(unit module)  (~(get by modules.context) file.scope)
+  ?~  parsed  (iav-unknown missing)
+  =/  imports=(list import)
+    (skim imports.u.parsed |=(i=import &(?=(%jibb -.i) =(name face.i))))
+  ?^  imports
+    =/  i=import  i.imports
+    ?>  ?=(%jibb -.i)
+    [missing %module (weld path.i `path`~[~.jibb])]
+  =/  groups=(list iprelude-group)
+    (skim groups.prelude.context |=(g=iprelude-group =(name face.g)))
+  ?:  ?=([* ~] groups)  [missing %module at.i.groups]
+  ?:  &(fallback !=(file.scope at.prelude.context))
+    (iav-member at.prelude.context name context (dec fuel) active)
+  (iav-unknown missing)
+++  iav-wing
+  |=  [names=(list term) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  ?~  names  (iav-unknown site)
+  =/  order=(list term)  (flop names)
+  ?~  order  (iav-unknown site)
+  =/  value=iav-value  (iav-lookup i.order scope context fuel active &)
+  =/  fields=(list term)  t.order
+  |-
+  ?~  fields  value
+  $(value (iav-field value i.fields context fuel), fields t.fields)
+++  iav-bind-sample
+  |=  [sample=sample value=iav-value fuel=@ud]
+  ^-  (list [name=term value=iav-value])
+  ?:  =(0 fuel)  ~
+  ?-  -.sample
+    %bind  ~[[name.sample value]]
+    %face  ~[[name.sample value]]
+    %pun  ~[[name.sample value]]
+    %bare  ~
+    %cell  (iav-bind-samples items.sample value 1 fuel)
+  ==
+++  iav-bind-samples
+  |=  [samples=(list sample) value=iav-value axis=@ud fuel=@ud]
+  ^-  (list [name=term value=iav-value])
+  ?:  |(=(0 fuel) ?=(~ samples))  ~
+  =/  at-axis=@ud  ?~(t.samples axis (mul 2 axis))
+  =/  bound=(list [name=term value=iav-value])
+    (iav-bind-sample i.samples (iav-axis value at-axis fuel) (dec fuel))
+  ?~  t.samples  bound
+  (weld bound $(samples t.samples, axis +((mul 2 axis)), fuel (dec fuel)))
+::  Data abstraction retains pending program checks but cannot manufacture
+::  a closure or a request capability. A checked gate-free type is used
+::  only for this absence proof, never as watchability evidence.
+++  iav-gate-free-value
+  |=  [value=iav-value fuel=@ud]
   ^-  ?
-  ?.  ?=(%value -.d)  |
-  ?.  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d))  |
-  =/  body=expr
-    ?-  -.val.d
-      %gate       body.val.d
-      %gate-wide  body.val.d
-      *           val.d
-    ==
-  =.  body  (program-transparent body)
-  ?.  ?=(%list -.body)  |
-  ?.  ?=([* ~] items.body)  |
-  =/  watch=expr  (program-transparent i.items.body)
-  ?.  ?=(%tuple -.watch)  |
-  ?.  ?=([* * ~] items.watch)  |
-  =/  tag=item  i.items.watch
-  =/  payload=item  i.t.items.watch
-  ?.  &(?=(~ face.tag) ?=(~ face.payload))  |
-  =/  tag-expr=expr  (program-transparent val.tag)
-  ?.  ?=(%lit -.tag-expr)  |
-  ?.  &(?=(%term form.lit.tag-expr) =(%watch val.lit.tag-expr))  |
-  =/  request=expr  (program-transparent val.payload)
-  ?.  ?=(%call -.request)  |
-  ?.  ?=([* ~] args.request)  |
-  =/  head=expr  (program-transparent head.request)
-  ?.  ?=(%wing -.head)  |
-  ?.  ?=([@ @ ~] names.head)  |
-  =/  case=term  i.names.head
-  =/  face=term  i.t.names.head
-  =/  callback=expr  (program-transparent i.args.request)
-  ?.  ?=(%ctor -.callback)  |
-  ?.  ?=(%term form.tag.callback)  |
-  ?|  ?=(^ (derived-request-member case face imports graph prelude))
-      ?=(^ (derived-store-request-member case face imports graph prelude))
+  ?:  =(0 fuel)  |
+  ?-  -.node.value
+    ?(%data %atom %bottom)  &
+    ?(%face %effects)  $(value body.node.value, fuel (dec fuel))
+    %typed
+      =/  proof=igate-free  (gate-free-type typ.node.value fuel ~)
+      ?:  =(%yes verdict.proof)  &
+      $(value body.node.value, fuel (dec fuel))
+    %cell
+      &($(value head.node.value, fuel (dec fuel)) $(value tail.node.value, fuel (dec fuel)))
+    %choice
+      (levy values.node.value |=(v=iav-value (iav-gate-free-value v (dec fuel))))
+    *  |
   ==
 ::
-::  Exact derived-member and request-evidence identity, shared by direct
-::  program watches and direct data-page loads. Only a plain request in the
-::  selected interface's own source-backed graph can establish this shape.
+++  iav-value-key
+  |=  [value=iav-value fuel=@ud]
+  ^-  *
+  ?:  =(0 fuel)  node.value
+  =.  value  (iav-plain value)
+  ?-  -.node.value
+    %cell  [%cell $(value head.node.value, fuel (dec fuel)) $(value tail.node.value, fuel (dec fuel))]
+    %choice  [%choice (turn values.node.value |=(v=iav-value (iav-value-key v (dec fuel))))]
+    %closure  [%closure file.node.value at.site.value frames.node.value]
+    *  node.value
+  ==
+::  Widen growing recursive data, not a finite argument that is shrinking.
+::  Couple argument positions at the root; constructor embedding below
+::  each position recognizes an accumulator growing around its old value.
+++  iav-key-embeds
+  |=  [before=* after=* fuel=@ud]
+  ^-  ?
+  ?:  =(before after)  &
+  ?:  =(0 fuel)  |
+  ?.  ?=([%cell * *] after)  |
+  =/  paired=?
+    ?.  ?=([%cell * *] before)  |
+    &($(before +<.before, after +<.after, fuel (dec fuel)) $(before +>.before, after +>.after, fuel (dec fuel)))
+  |(paired $(after +<.after, fuel (dec fuel)) $(after +>.after, fuel (dec fuel)))
+++  iav-argument-grows
+  |=  [before=* after=*]
+  ^-  ?
+  ?:  =(before after)  |
+  ?:  &(?=([%cell * *] before) ?=([%cell * *] after))
+    &((iav-key-embeds +<.before +<.after 1.024) (iav-key-embeds +>.before +>.after 1.024))
+  (iav-key-embeds before after 1.024)
+::
+++  iav-call
+  |=  [gate=iav-value arg=iav-value site=iav-site context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  (iav-carry (iav-call-raw gate arg site context fuel active) ~[gate arg] fuel)
+++  iav-call-raw
+  |=  [gate=iav-value arg=iav-value site=iav-site context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  ?:  =(0 fuel)  [site %limit ~]
+  ?-  -.node.gate
+    %typed
+      =/  typ=itype  (projection-field-target typ.node.gate)
+      ?.  ?=(%fn -.typ)  $(gate body.node.gate, fuel (dec fuel))
+      =/  input=iav-value  [site.arg %typed sample.typ arg]
+      =/  output=iav-value  $(gate body.node.gate, arg input, fuel (dec fuel))
+      [site %typed product.typ output]
+    ?(%face %effects)  $(gate body.node.gate, fuel (dec fuel))
+    %choice
+      (iav-choice site (turn values.node.gate |=(g=iav-value (iav-call g arg site context (dec fuel) active))))
+    %seal  (iav-seal arg site fuel)
+    %request-gate  [site %request file.node.gate name.node.gate]
+    %constructor  [site %cell [site %atom tag.node.gate] arg]
+    %closure
+      =/  identity=*  [sample.node.gate body.node.gate frames.node.gate]
+      =/  current-key=*  (iav-value-key arg 32)
+      =/  recursive=?
+        (lien active |=(k=[file=path at=span closure=* argument=*] &(=(file.k file.node.gate) =(at.k at.site.gate) =(closure.k identity) (iav-argument-grows argument.k current-key))))
+      ::  Re-evaluate a recursive closure once over all gate-free data.
+      ::  Growing accumulators then reach the same abstract argument; all
+      ::  branches remain possible and existing obligations are retained.
+      =?  arg  &(recursive (iav-gate-free-value arg fuel))
+        (iav-carry [site.arg %data ~] ~[arg] fuel)
+      =/  key=[file=path at=span closure=* argument=*]
+        [file.node.gate at.site.gate identity (iav-value-key arg 32)]
+      ?:  (lien active |=(k=[file=path at=span closure=* argument=*] =(k key)))  (iav-unknown site)
+      =/  outer=iav-scope  [file.node.gate frames.node.gate]
+      =/  sampled=isample-result  (infer-sample sample.node.gate ~ (iav-mold-state outer context))
+      =?  arg  ?=(%& -.sampled)
+        [site.arg %typed (itype-normalize typ.p.sampled sub.state.p.sampled) arg]
+      =/  bindings=(list [name=term value=iav-value])  (iav-bind-sample sample.node.gate arg fuel)
+      =/  scope=iav-scope  [file.node.gate [[bindings ~] frames.node.gate]]
+      (iav-at-call (iav-eval body.node.gate scope context (dec fuel) [key active]) site)
+    %bottom  [site %bottom ~]
+    *  (iav-unknown site)
+  ==
+++  iav-eval-list
+  |=  [items=(list expr) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active tuple=?]
+  ^-  iav-value
+  ?:  =(0 fuel)  [site %limit ~]
+  ?~  items  [site %atom 0]
+  =/  head=iav-value  (iav-eval i.items scope context (dec fuel) active)
+  ?:  &(tuple ?=(~ t.items))  head
+  [site %cell head $(items t.items, fuel (dec fuel))]
+++  iav-eval-items
+  |=  [items=(list item) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  ?:  |(=(0 fuel) ?=(~ items))  (iav-unknown site)
+  =/  head=iav-value  (iav-eval val.i.items scope context (dec fuel) active)
+  =?  head  ?=(^ face.i.items)
+    [site.head %face u.face.i.items head]
+  ?~  t.items  head
+  [site %cell head $(items t.items, fuel (dec fuel))]
+++  iav-projection
+  |=  [e=expr scope=iav-scope context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  =/  site=iav-site  [file.scope (span-of e)]
+  =/  iface=(unit ifile)  (~(get by files.context) file.scope)
+  ?~  iface  (iav-unknown site)
+  =/  projections=(list iwprojection)
+    (zing (turn elaborations.u.iface |=(d=iwidth-definition projections.d)))
+  =/  matching=(list iwprojection)
+    (skim projections |=(p=iwprojection =(at.p (span-of e))))
+  ?.  ?=([* ~] matching)  (iav-unknown site)
+  =/  projection=iwprojection  i.matching
+  ?.  ?=(%call -.e)  (iav-unknown site)
+  ?.  ?=([* ~] args.e)  (iav-unknown site)
+  =/  source=iav-value  (iav-eval i.args.e scope context fuel active)
+  =/  value=iav-value  (iav-project-steps steps.projection source site fuel)
+  [site %typed target.projection value]
+++  iav-project-steps
+  |=  [steps=(list iwstep) source=iav-value site=iav-site fuel=@ud]
+  ^-  iav-value
+  ?:  |(=(0 fuel) ?=(~ steps))  (iav-unknown site)
+  =/  head=iav-value  (iav-axis source axis.i.steps fuel)
+  ?~  t.steps  head
+  [site %cell head $(steps t.steps, fuel (dec fuel))]
+++  iav-mold-state
+  |=  [scope=iav-scope context=iav-context]
+  ^-  istate
+  =/  state=istate  *istate
+  =/  defs=(list def)  (zing (turn frames.scope |=(f=iav-frame defs.f)))
+  =/  molds=imolds  (collect-simple-molds defs)
+  =.  state  state(at file.scope, in-mold |, molds molds, top-molds (turn molds |=(m=[name=term body=shape] name.m)), prelude `prelude.context, externals externals.graph.context, mark-externals marks.graph.context, jrec-fuel 256)
+  =/  parsed=(unit module)  (~(get by modules.context) file.scope)
+  ?~  parsed  state
+  =.  surs.state  (collect-sur-imports imports.u.parsed)
+  =.  marks.state  (collect-mark-imports imports.u.parsed)
+  =/  imports=ijimports
+    %+  murn  imports.u.parsed
+    |=  i=import
+    ?.  ?=(%jibb -.i)  ~
+    =/  target=path  (weld path.i `path`~[~.jibb])
+    =/  child=(unit ifile)  (~(get by files.context) target)
+    ?~  child  ~
+    `[face.i u.child]
+  state(jimports imports)
+++  iav-cast
+  |=  [sh=shape value=iav-value scope=iav-scope context=iav-context]
+  ^-  iav-value
+  =/  inferred=(unit [typ=itype state=istate])
+    (infer-simple-shape sh (iav-mold-state scope context))
+  ?~  inferred  value
+  [site.value %typed (itype-normalize typ.u.inferred sub.state.u.inferred) value]
+++  iav-field-axes
+  |=  [value=iav-value name=term axis=@ud fuel=@ud]
+  ^-  (list @ud)
+  ?:  =(0 fuel)  ~
+  ?-  -.node.value
+    %effects  $(value body.node.value, fuel (dec fuel))
+    %typed
+      =/  typ=itype  typ.node.value
+      =/  axes=(list @ud)  (iav-type-field typ name axis fuel)
+      =?  axes  &(?=(~ axes) ?=(?(%face %slot) -.typ))
+        (iav-type-field body.typ name axis fuel)
+      ?^  axes  axes
+      $(value body.node.value, fuel (dec fuel))
+    %face  ?:(=(name name.node.value) ~[axis] ~)
+    %cell  (weld $(value head.node.value, axis (mul 2 axis), fuel (dec fuel)) $(value tail.node.value, axis +((mul 2 axis)), fuel (dec fuel)))
+    *  ~
+  ==
+++  iav-set-axis
+  |=  [value=iav-value axis=@ud replacement=iav-value fuel=@ud]
+  ^-  iav-value
+  ?:  =(0 fuel)  [site.value %limit ~]
+  ?:  ?=(%effects -.node.value)
+    value(body.node $(value body.node.value, fuel (dec fuel)))
+  ?:  ?=(?(%typed %face) -.node.value)
+    value(body.node $(value body.node.value, fuel (dec fuel)))
+  ?:  =(axis 1)  replacement
+  ?:  ?=(%choice -.node.value)
+    (iav-choice site.value (turn values.node.value |=(v=iav-value (iav-set-axis v axis replacement (dec fuel)))))
+  ?.  ?=(%cell -.node.value)  (iav-unknown site.value)
+  ?:  =(2 (cap axis))
+    value(head.node $(value head.node.value, axis (mas axis), fuel (dec fuel)))
+  value(tail.node $(value tail.node.value, axis (mas axis), fuel (dec fuel)))
+++  iav-change-wing
+  |=  [value=iav-value names=(list term) replacement=iav-value fuel=@ud]
+  ^-  iav-value
+  ?:  =(0 fuel)  [site.value %limit ~]
+  ?~  names  replacement
+  =/  plain=iav-value  (iav-plain value)
+  ?:  ?=(%choice -.node.plain)
+    (iav-choice site.value (turn values.node.plain |=(v=iav-value (iav-change-wing v names replacement (dec fuel)))))
+  =/  axes=(list @ud)  (iav-field-axes value i.names 1 fuel)
+  ?.  ?=([* ~] axes)  (iav-unknown site.value)
+  =/  field=iav-value  (iav-axis value i.axes fuel)
+  =/  changed=iav-value  $(value field, names t.names, fuel (dec fuel))
+  (iav-set-axis value i.axes changed fuel)
+++  iav-change
+  |=  [value=iav-value edits=(list edit) scope=iav-scope context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  ?:  =(0 fuel)  [site.value %limit ~]
+  ?~  edits  value
+  =/  replacement=iav-value  (iav-eval val.i.edits scope context (dec fuel) active)
+  =/  changed=iav-value  (iav-change-wing value (flop names.i.edits) replacement fuel)
+  $(value (iav-carry changed ~[value replacement] fuel), edits t.edits, fuel (dec fuel))
+++  iav-eval
+  |=  [e=expr scope=iav-scope context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  =/  site=iav-site  [file.scope (span-of e)]
+  ?:  =(0 fuel)  [site %limit ~]
+  =.  fuel  (dec fuel)
+  ?-  -.e
+    %lit  [site %atom val.lit.e]
+    %str
+      ?:  (lien pieces.e |=(p=piece ?=(%expr -.p)))
+        =/  values=(list iav-value)
+          %+  murn  pieces.e
+          |=  p=piece
+          ?.  ?=(%expr -.p)  ~
+          `(iav-eval p.p scope context fuel active)
+        (iav-carry (iav-unknown site) values fuel)
+      =/  parts=(list @t)
+        %+  turn  pieces.e
+        |=  p=piece
+        ?-  -.p
+          %text  p.p
+          %expr  ''
+        ==
+      [site %atom (rap 3 parts)]
+    %path  (iav-unknown site)
+    %qath
+      =/  values=(list iav-value)
+        %+  murn  segs.e
+        |=  p=qseg
+        ?.  ?=(%expr -.p)  ~
+        `(iav-eval p.p scope context fuel active)
+      (iav-carry (iav-unknown site) values fuel)
+    %wing  (iav-wing names.e site scope context fuel active)
+    %group  $(e inner.e)
+    %cast  (iav-cast shape.e $(e val.e) scope context)
+    %trace  (iav-carry $(e then.e) ~[$(e val.e)] fuel)
+    %unit  [site %cell [site %atom 0] $(e val.e)]
+    %pair  [site %cell [site %atom tag.e] $(e val.e)]
+    %list  (iav-eval-list items.e site scope context fuel active |)
+    %tuple  (iav-eval-items items.e site scope context fuel active)
+    ?(%gate %gate-wide)  [site %closure file.scope sample.e body.e frames.scope]
+    %ctor  [site %constructor val.tag.e]
+    %call
+      ?:  &(?=(%wing -.head.e) =(names.head.e ~[%unface]) ?=([* ~] args.e))
+        $(e i.args.e)
+      ?:  &(?=(%wing -.head.e) =(names.head.e ~[%proj]))
+        (iav-projection e scope context fuel active)
+      =/  gate=iav-value  $(e head.e)
+      =/  arg=iav-value  (iav-eval-list args.e site scope context fuel active &)
+      (iav-call gate arg site context fuel active)
+    %body
+      $(e final.e, scope scope(frames [[~ defs.e] frames.scope]))
+    %branch  (iav-branch arms.e $(e subject.e) site scope context fuel active)
+    %change  (iav-change (iav-wing target.e site scope context fuel active) edits.e scope context fuel active)
+    %crash  [site %bottom ~]
+  ==
+++  iav-pattern
+  |=  [pat=pattern value=iav-value fuel=@ud]
+  ^-  [possible=? certain=? bindings=(list [name=term value=iav-value])]
+  ?:  =(0 fuel)  [& | ~]
+  =/  plain=iav-value  (iav-plain value)
+  ?-  -.pat
+    %any  [& & ~]
+    %bind  [& & ~[[name.pat value]]]
+    ?(%lit %str)
+      =/  wanted=@  ?:(?=(%lit -.pat) val.lit.pat text.pat)
+      ?:  ?=(%atom -.node.plain)
+        [=(wanted value.node.plain) =(wanted value.node.plain) ~]
+      ?:  ?=(?(%cell %closure %constructor %request-gate) -.node.plain)  [| | ~]
+      [& | ~]
+    %cell
+      ?~  items.pat  [| | ~]
+      ?:  &(?=(^ t.items.pat) ?=(%atom -.node.plain))  [| | ~]
+      =/  parts=[possible=? certain=? bindings=(list [name=term value=iav-value])]
+        (iav-patterns items.pat value 1 (dec fuel))
+      parts(certain &(certain.parts |(?=(~ t.items.pat) ?=(%cell -.node.plain))))
+  ==
+++  iav-patterns
+  |=  [patterns=(list pattern) value=iav-value axis=@ud fuel=@ud]
+  ^-  [possible=? certain=? bindings=(list [name=term value=iav-value])]
+  ?:  |(=(0 fuel) ?=(~ patterns))  [& | ~]
+  =/  at-axis=@ud  ?~(t.patterns axis (mul 2 axis))
+  =/  first=[possible=? certain=? bindings=(list [name=term value=iav-value])]
+    (iav-pattern i.patterns (iav-axis value at-axis fuel) (dec fuel))
+  ?:  |(!possible.first ?=(~ t.patterns))  first
+  =/  rest=[possible=? certain=? bindings=(list [name=term value=iav-value])]
+    $(patterns t.patterns, axis +((mul 2 axis)), fuel (dec fuel))
+  [&(possible.first possible.rest) &(certain.first certain.rest) (weld bindings.first bindings.rest)]
+++  iav-branch
+  |=  [arms=(list arm) value=iav-value site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  (iav-carry (iav-branch-raw arms value site scope context fuel active) ~[value] fuel)
+++  iav-branch-raw
+  |=  [arms=(list arm) value=iav-value site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
+  ^-  iav-value
+  ?:  =(0 fuel)  [site %limit ~]
+  =/  plain=iav-value  (iav-plain value)
+  ?:  ?=(%choice -.node.plain)
+    (iav-choice site (turn values.node.plain |=(v=iav-value (iav-branch arms v site scope context (dec fuel) active))))
+  ?:  ?=(%bottom -.node.plain)  plain
+  =/  output=(list iav-value)  ~
+  |-
+  ?~  arms  (iav-choice site (flop output))
+  ?:  =(0 fuel)  (iav-choice site [(iav-unknown site) (flop output)])
+  =/  matching=[possible=? certain=? bindings=(list [name=term value=iav-value])]
+    (iav-pattern pat.i.arms value fuel)
+  ?.  possible.matching  $(arms t.arms, fuel (dec fuel))
+  =/  body=iav-value
+    (iav-eval val.i.arms scope(frames [[bindings.matching ~] frames.scope]) context (dec fuel) active)
+  =.  output  [body output]
+  ?:  certain.matching  (iav-choice site (flop output))
+  $(arms t.arms, fuel (dec fuel))
+::  A checked source dependency provides closure bodies, never a capability.
+++  iav-add-dependencies
+  |=  [dependencies=(list iwidth-dependency) files=(map path ifile)]
+  ^-  (map path ifile)
+  ?~  dependencies  files
+  =/  d=iwidth-dependency  i.dependencies
+  ?:  (~(has by files) at.d)  $(dependencies t.dependencies)
+  =/  iface=ifile  [~ ~ at.d ~ definitions.d ~ source.d ~ ~]
+  $(dependencies t.dependencies, files (~(put by files) at.d iface))
+++  iav-group-files
+  |=  groups=(list iprelude-group)
+  ^-  (list ifile)
+  ?~  groups  ~
+  =/  g=iprelude-group  i.groups
+  =/  own=ifile  [values.g molds.g at.g derived.g elaborations.g dependencies.g source.g graph.g ~]
+  =/  closure=(list ifile)
+    %+  turn  closure.g
+    |=  d=iprelude-dependency
+    [values.d molds.d at.d derived.d elaborations.d dependencies.d source.d graph.d ~]
+  [own (weld closure $(groups t.groups))]
+++  iav-add-implicit-files
+  |=  [pending=(list ifile) files=(map path ifile)]
+  ^-  (map path ifile)
+  ?~  pending  files
+  =/  iface=ifile  i.pending
+  ?:  (~(has by files) at.iface)  $(pending t.pending)
+  =.  files  (~(put by files) at.iface iface)
+  =.  files  (iav-add-dependencies dependencies.iface files)
+  $(pending t.pending)
+++  iav-add-files
+  |=  [pending=(list ifile) files=(map path ifile)]
+  ^-  (map path ifile)
+  ?~  pending  files
+  =/  iface=ifile  i.pending
+  =.  files  (~(put by files) at.iface iface)
+  =.  files  (iav-add-dependencies dependencies.iface files)
+  =.  files  (iav-add-implicit-files (iav-group-files groups.iface) files)
+  $(pending t.pending)
+++  iav-diagnostic-site
+  |=  [site=iav-site note=tape context=iav-context]
+  ^-  idsite
+  =/  iface=(unit ifile)  (~(get by files.context) file.site)
+  ?~  iface  [at.site note]
+  ?~  source.u.iface  [at.site note]
+  [%external file.site u.source.u.iface at.site note]
+++  iav-watch-request
+  |=  [request=iav-value watch=iav-site context=iav-context fuel=@ud]
+  ^-  (unit idiag)
+  ?:  =(0 fuel)
+    `["cannot prove this watch request's origin within the analysis budget" ~[(iav-diagnostic-site watch "watch subscription" context) (iav-diagnostic-site site.request "request origin is unresolved" context)]]
+  =.  request  (iav-plain request)
+  ?-  -.node.request
+    %request  ~
+    %bottom  ~
+    %choice
+      =/  choices=(list iav-value)  values.node.request
+      |-
+      ?~  choices  ~
+      =/  failure=(unit idiag)  (iav-watch-request i.choices watch context (dec fuel))
+      ?^  failure  failure
+      $(choices t.choices)
+    *
+      `["an island may watch only a request whose origin is proved watchable" ~[(iav-diagnostic-site watch "watch subscription" context) (iav-diagnostic-site site.request "this request has no watchability proof" context)]]
+  ==
+++  iav-watch-item
+  |=  [item=iav-value context=iav-context fuel=@ud]
+  ^-  (unit idiag)
+  ?:  =(0 fuel)
+    `["cannot inspect this subscription within the analysis budget" ~[(iav-diagnostic-site site.item "subscription" context)]]
+  =.  item  (iav-plain item)
+  ?:  ?=(%bottom -.node.item)  ~
+  ?:  ?=(%choice -.node.item)
+    =/  choices=(list iav-value)  values.node.item
+    |-
+    ?~  choices  ~
+    =/  failure=(unit idiag)  (iav-watch-item i.choices context (dec fuel))
+    ?^  failure  failure
+    $(choices t.choices)
+  ?.  ?=(%cell -.node.item)
+    `["cannot prove which subscription this value constructs" ~[(iav-diagnostic-site site.item "subscription value is unresolved" context)]]
+  =/  tag=iav-value  (iav-plain head.node.item)
+  ?.  ?=(%atom -.node.tag)
+    `["cannot prove which subscription this value constructs" ~[(iav-diagnostic-site site.tag "subscription tag is unresolved" context)]]
+  ?:  ?=(?(%every %url) value.node.tag)  ~
+  ?.  =(%watch value.node.tag)
+    `["cannot prove which subscription this value constructs" ~[(iav-diagnostic-site site.tag "subscription tag" context)]]
+  (iav-watch-request tail.node.item site.tag context (dec fuel))
+++  iav-watch-list
+  |=  [value=iav-value context=iav-context fuel=@ud]
+  ^-  (unit idiag)
+  ?:  =(0 fuel)
+    `["cannot inspect this subscription list within the analysis budget" ~[(iav-diagnostic-site site.value "subscription list" context)]]
+  =.  value  (iav-plain value)
+  ?-  -.node.value
+    %bottom  ~
+    %atom
+      ?:  =(0 value.node.value)  ~
+      `["cannot prove this value is an empty subscription list" ~[(iav-diagnostic-site site.value "subscription list" context)]]
+    %cell
+      =/  first=(unit idiag)  (iav-watch-item head.node.value context (dec fuel))
+      ?^  first  first
+      $(value tail.node.value, fuel (dec fuel))
+    %choice
+      =/  choices=(list iav-value)  values.node.value
+      |-
+      ?~  choices  ~
+      =/  failure=(unit idiag)  (iav-watch-list i.choices context (dec fuel))
+      ?^  failure  failure
+      $(choices t.choices)
+    *
+      `["cannot prove the contents of this subscription list" ~[(iav-diagnostic-site site.value "subscription list or tail is unresolved" context)]]
+  ==
+++  iav-program-diagnostic
+  |=  [program=iav-value context=iav-context fuel=@ud seen=(list *)]
+  ^-  (unit idiag)
+  ?:  =(0 fuel)
+    `["cannot inspect this island program within the analysis budget" ~[(iav-diagnostic-site site.program "island program" context)]]
+  =/  subs=iav-value  (iav-field program %subs context fuel)
+  =/  model=iav-value  (iav-unknown site.subs)
+  =/  result=iav-value  (iav-call subs model site.subs context fuel ~)
+  =/  failure=(unit idiag)  (iav-watch-list result context fuel)
+  ?^  failure  failure
+  =/  view=iav-value  (iav-field program %view context fuel)
+  =/  rendered=iav-value  (iav-call view model site.view context fuel ~)
+  (iav-check-obligations (weld (iav-checks result fuel) (iav-checks rendered fuel)) context (dec fuel) seen)
+++  iav-check-obligations
+  |=  [pending=(list iav-value) context=iav-context fuel=@ud seen=(list *)]
+  ^-  (unit idiag)
+  ?~  pending  ~
+  =/  program=iav-value  i.pending
+  ?:  |(=(0 fuel) ?=(%limit -.node.program))
+    `["cannot inspect this element's island constructions within the analysis budget" ~[(iav-diagnostic-site site.program "element construction" context)]]
+  =/  key=*  (iav-value-key program 128)
+  ?:  (lien seen |=(prior=* =(prior key)))  $(pending t.pending)
+  =.  seen  [key seen]
+  =/  failure=(unit idiag)  (iav-program-diagnostic program context (dec fuel) seen)
+  ?^  failure  failure
+  $(pending t.pending, fuel (dec fuel))
+++  program-value-watch-diagnostic
+  |=  [candidate=ifile cache=jcache imports=ijimports prelude=ifile graph=irequest-graph]
+  ^-  (unit idiag)
+  =/  cached=(list ifile)  (turn cache |=(c=[at=path iface=ifile] iface.c))
+  =/  selected=(list ifile)  (turn imports |=(i=[face=term interface=ifile] interface.i))
+  =/  files=(map path ifile)  (iav-add-files (weld cached (weld selected ~[prelude candidate])) *(map path ifile))
+  =/  context=iav-context  (iav-context-new files prelude graph)
+  =/  main=iav-value  (iav-member at.candidate %main context 1.024 ~)
+  =/  kind=(unit checked-kind)  (checked-main-kind candidate `prelude)
+  ?~  kind  ~
+  =/  root=(unit idiag)
+    ?.  =(%island u.kind)  ~
+    (iav-program-diagnostic main context 1.024 ~)
+  ?^  root  root
+  =/  rendered=iav-value
+    ?.  =(%page u.kind)  main
+    =/  view=iav-value  (iav-field main %view context 1.024)
+    (iav-call view (iav-unknown site.view) site.view context 1.024 ~)
+  (iav-check-obligations (iav-checks rendered 1.024) context 1.024 ~)
+::
 ++  derived-request-member
   |=  [case=term face=term imports=ijimports graph=irequest-graph prelude=ifile]
   ^-  (unit ischeme)
@@ -15389,14 +24004,20 @@
   ?~  graph.iface  ~
   ?.  (lien requests.u.graph.iface |=(r=irequest-evidence =(r request-evidence)))  ~
   ?.  ?=(~ scry.path.path.request-evidence)  ~
-  ?.  &(?=(~ diffs.path.request-evidence) ?=(~ diffs.path.path.request-evidence))  ~
-  ?:  (lien segments.path.path.request-evidence |=(p=pseg !?=(%knot -.p)))  ~
+  ?.  =(diffs.path.path.request-evidence (turn diffs.path.request-evidence |=(d=iapi-mark-type name.d)))  ~
+  =/  raw-params=(unit (list iapi-parameter))
+    (api-path-parameters segments.path.path.request-evidence ~)
+  ?~  raw-params  ~
+  =/  params=(unit (list iapi-request-parameter))  (api-request-parameter-types u.raw-params)
+  ?~  params  ~
+  =/  fold=(unit (unit itype))  (api-request-fold-type path.request-evidence)
+  ?~  fold  ~
   ?.  ?=([@ ~] vars.u.member)  ~
   =/  message=@ud  i.vars.u.member
   ?.  ?=(%fn -.typ.u.member)  ~
-  ?.  ?=(%fn -.sample.typ.u.member)  ~
-  ?.  =(sample.sample.typ.u.member full.path.request-evidence)  ~
-  ?.  =(product.sample.typ.u.member [%var message])  ~
+  =/  callback=itype  [%fn full.path.request-evidence [%var message]]
+  =/  expected-sample=itype  (api-request-sample u.params callback u.fold)
+  ?.  =(sample.typ.u.member expected-sample)  ~
   =/  prep=iprelude  [prelude prelude-values.graph prelude-molds.graph]
   =/  ask=(unit ischeme)  (request-compatible-ask prep)
   ?~  ask  ~
@@ -15434,21 +24055,6 @@
   ?.  =(u.constructor action.u.derived)  ~
   member
 ::
-++  program-main-context
-  |=  [main=def ds=(list def) resolution=iresolved initial=istate]
-  ^-  iresolved
-  ?^  (ienv-lookup %main env.resolution)  resolution
-  =/  heads=(unit igate-prelude-evidence)
-    (direct-prelude-evidence ds prelude.initial)
-  ?~  heads  resolution
-  =/  checked=(map term def)  (direct-checked-gates ds env.resolution)
-  =/  completed=[env=ienv artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
-    (add-supported-defs-core ~[main] checked heads env.resolution molds.initial globals.initial externals.initial surs.initial mark-externals.initial marks.initial jimports.initial reserved-molds.initial at.initial prelude.initial artifacts.resolution grec-index.initial)
-  [env.completed grouped.resolution artifacts.completed failures.resolution]
-::
-::  A static main may retain a generic element message in its ordinary
-::  scheme. Instantiate that scheme, specialize it to canonical element !!,
-::  and publish only the resulting closed scheme.
 ++  static-main-specialized
   |=  [env=ienv prelude=(unit ifile)]
   ^-  (unit ischeme)
@@ -15457,53 +24063,32 @@
   ?~  element  ~
   =/  main=(unit ischeme)  (ienv-lookup %main env)
   ?~  main  ~
+  ::  An unconstrained generic is not evidence of an element value.
+  =/  visible=(unit itype)  (scheme-display-type u.main)
+  ?~  visible  ~
+  ?.  ?=(%opaque -.u.visible)  ~
   =/  canonical=(unit itype)  (template-apply u.element ~[[%empty ~]])
   ?~  canonical  ~
-  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.main *istate)
+  =/  checked-instance=(unit [typ=itype state=istate])  (instantiate-scheme u.main *istate)
+  ?~  checked-instance  ~
+  =/  instance=[typ=itype state=istate]  u.checked-instance
   =/  fit=ifit  (itype-fit typ.instance u.canonical ~ next.state.instance)
   ?.  ?=(%ok -.fit)  ~
   =/  closed=itype  (itype-normalize typ.instance sub.fit)
   ?^  (itype-vars closed)  ~
   ?:  (itype-has-tag closed)  ~
-  ?.  ?=(%union -.closed)  ~
-  ?.  ?=(%union -.u.canonical)  ~
+  ?.  ?=(%opaque -.closed)  ~
+  ?.  ?=(%opaque -.u.canonical)  ~
   ?.  &(=(origin.closed origin.u.canonical) =(args.closed args.u.canonical))  ~
   =/  exact=ifit  (direct-invariant closed u.canonical ~ next.fit)
   ?.  ?=(%ok -.exact)  ~
-  `[u.canonical ~]
+  `[u.canonical ~ ~]
 ::
-::  The load of a direct data page must itself be a direct gate whose
-::  transparent body is one plain derived request with a wing or ctor reply.
-++  page-load-derived
-  |=  [name=term ds=(list def) imports=ijimports graph=irequest-graph prelude=ifile]
-  ^-  ?
-  =/  loads=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(name name.d))))
-  ?.  ?=([* ~] loads)  |
-  =/  load=def  i.loads
-  ?>  ?=(%value -.load)
-  ?.  |(?=(%gate -.val.load) ?=(%gate-wide -.val.load))  |
-  =/  body=expr
-    ?-  -.val.load
-      %gate       body.val.load
-      %gate-wide  body.val.load
-      *           !!
-    ==
-  =.  body  (program-transparent body)
-  ?.  ?=(%call -.body)  |
-  ?.  ?=([* ~] args.body)  |
-  =/  head=expr  (program-transparent head.body)
-  ?.  ?=(%wing -.head)  |
-  ?.  ?=([@ @ ~] names.head)  |
-  =/  reply=expr  (program-transparent i.args.body)
-  ?.  ?|  &(?=(%wing -.reply) ?=([@ ~] names.reply))
-          &(?=(%ctor -.reply) ?=(%term form.tag.reply))
-      ==
-    |
-  ?=(^ (derived-request-member i.names.head i.t.names.head imports graph prelude))
-::
-++  page-main-closed
-  |=  [parts=[load=term view=term] ds=(list def) env=ienv prelude=(unit ifile) imports=ijimports graph=irequest-graph]
+::  A page is recognized from the inferred main type. The prelude page
+::  template already requires its load to be a gate to ask and its view to
+::  produce an element with no messages; no source-call shape is required.
+++  page-type-closed
+  |=  [env=ienv prelude=(unit ifile)]
   ^-  ?
   ?~  prelude  |
   =/  page=(unit ischeme)  (find-jibb-mold %page u.prelude)
@@ -15511,136 +24096,381 @@
   =/  main=(unit ischeme)  (ienv-lookup %main env)
   ?~  main  |
   ?.  ?=(~ vars.u.main)  |
-  ?.  ?=(~ (itype-vars typ.u.main))  |
-  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.page *istate)
-  =/  main-fit=ifit  (direct-invariant typ.u.main typ.instance ~ next.state.instance)
-  ?.  ?=(%ok -.main-fit)  |
-  (page-load-derived load.parts ds imports graph u.prelude)
+  =/  resolved=(unit itype)  (scheme-display-type u.main)
+  ?~  resolved  |
+  ?.  ?=(~ (itype-vars u.resolved))  |
+  =/  checked-instance=(unit [typ=itype state=istate])  (instantiate-scheme u.page *istate)
+  ?~  checked-instance  |
+  =/  instance=[typ=itype state=istate]  u.checked-instance
+  =/  fit=ifit  (direct-invariant u.resolved typ.instance ~ next.state.instance)
+  ?=(%ok -.fit)
 ::
-++  program-main-closed
-  |=  [parts=[init=term update=term view=term subs=term] ds=(list def) env=ienv prelude=(unit ifile) imports=ijimports graph=irequest-graph]
+::  The inferred main type determines the program and its data/model types.
+::  Provenance of each actual watch is checked separately below.
+::  The ordinary constraint solver can decompose invariant record and gate
+::  fits that the single-pass direct proof leaves open.
+++  itype-invariant-queued
+  |=  [actual=itype expected=itype next=@ud]
+  ^-  ?
+  =/  state=istate  *istate
+  =.  state  state(next next, general-defer &, queue ~[[%fit actual expected *span *span %$ ~] [%fit expected actual *span *span %$ ~]])
+  =/  solved=(unit istate)  (icore-solve state)
+  ?~  solved  |
+  ?^  core-error.u.solved  |
+  ?^  queue.u.solved  |
+  ?~  sub.u.solved  &
+  !(lien ~(tap by witnesses.u.sub.u.solved) |=(entry=[@ud iface-witness] ?=(%conflict -.+.entry)))
+::
+::  Report the gate-free proof's actual field path, rather than a generic
+::  kind failure. The proof itself comes entirely from the inferred type.
+++  gate-free-field-names
+  |=  segments=(list igf-segment)
+  ^-  (list term)
+  ?~  segments  ~
+  ?.  ?=(%field -.i.segments)  $(segments t.segments)
+  [name.i.segments $(segments t.segments)]
+++  gate-free-field-path
+  |=  names=(list term)
+  ^-  tape
+  ?~  names  ""
+  ?~  t.names  (trip i.names)
+  (weld (trip i.names) (weld "." $(names t.names)))
+::  A field site is used only when one local mold has the exact inferred
+::  model type and the witness path names fields written in that mold.
+++  gate-free-shape-field
+  |=  [sh=shape names=(list term)]
+  ^-  (unit span)
+  ?~  names  ~
+  ?.  ?=(%cell -.sh)  ~
+  =/  matches=(list field)
+    %+  skim  fields.sh
+    |=  f=field
+    ?-  -.f
+      %face  =(name.f i.names)
+      %pun   =(name.f i.names)
+      *  |
+    ==
+  ?.  ?=([* ~] matches)  ~
+  =/  f=field  i.matches
+  ?~  t.names  `at.f
+  ?.  ?=(%face -.f)  ~
+  $(sh shape.f, names t.names)
+++  gate-free-model-field-sites
+  |=  [defs=(list def) molds=imold-types model=itype names=(list term)]
+  ^-  (list span)
+  ?~  defs  ~
+  ?:  ?=(%value -.i.defs)  $(defs t.defs)
+  =/  found=(list [name=term template=ischeme])  (skim molds |=(m=[name=term template=ischeme] =(name.m name.i.defs)))
+  ?.  ?=([* ~] found)  $(defs t.defs)
+  ?.  ?=(~ vars.template.i.found)  $(defs t.defs)
+  =/  display=(unit itype)  (scheme-display-type template.i.found)
+  ?~  display  $(defs t.defs)
+  ?.  =((itype-slots-as-faces u.display) (itype-slots-as-faces model))  $(defs t.defs)
+  =/  site=(unit span)  (gate-free-shape-field shape.i.defs names)
+  ?~  site  $(defs t.defs)
+  [u.site $(defs t.defs)]
+++  program-gate-free-diagnostic
+  |=  [main=ischeme declaration=def initializer=(unit def) defs=(list def) molds=imold-types]
+  ^-  (unit idiag)
+  =/  resolved=(unit itype)  (scheme-display-type main)
+  ?~  resolved  ~
+  =/  init-fields=(list itype)  (record-fields-named %init u.resolved ~)
+  ?.  ?=([* ~] init-fields)  ~
+  =/  init=itype  i.init-fields
+  ?.  ?=(%fn -.init)  ~
+  =/  written=(unit sample)  ?~(initializer ~ (direct-gate-sample u.initializer))
+  =/  data-path=(list igf-segment)
+    ?~  written  ~
+    ?-  -.u.written
+      %bind   ~[[%field name.u.written]]
+      %face   ~[[%field name.u.written]]
+      %pun    ~[[%field name.u.written]]
+      *       ~
+    ==
+  =/  data=igate-free  (gate-free-type sample.init 256 data-path)
+  =/  model=igate-free  (gate-free-type product.init left.data ~)
+  ?.  |(=(%no verdict.data) =(%no verdict.model))  ~
+  =/  is-data=?  =(%no verdict.data)
+  =/  which=tape  ?:(is-data "data" "model")
+  =/  proof=igate-free  ?:(is-data data model)
+  =/  names=(list term)  ?~(path.proof ~ (gate-free-field-names u.path.proof))
+  =/  fields=tape  (gate-free-field-path names)
+  =/  message=tape
+    ?~  fields  "island {which} contains a gate"
+    "island {which} field `{fields}` contains a gate"
+  =/  init-site=span  ?~(initializer at.declaration at.u.initializer)
+  =/  actual-site=span  init-site
+  =.  actual-site
+    ?.  is-data  actual-site
+    ?~  written  actual-site
+    at.u.written
+  =/  model-sites=(list span)  ?:(is-data ~ (gate-free-model-field-sites defs molds product.init names))
+  =?  actual-site  ?=([* ~] model-sites)  i.model-sites
+  `[message ~[[actual-site "gate-bearing island type"] [at.declaration "island main"]]]
+++  program-type-closed
+  |=  [env=ienv prelude=(unit ifile)]
   ^-  ?
   ?~  prelude  |
   ?~  (ienv-lookup %program values.u.prelude)  |
+  ?~  (find-jibb-mold %cmd u.prelude)  |
+  ?~  (find-jibb-mold %list u.prelude)  |
+  ?~  (derived-poke-command-scheme u.prelude [%noun ~])  |
   =/  program=(unit ischeme)  (find-jibb-mold %program u.prelude)
   ?~  program  |
   =/  main=(unit ischeme)  (ienv-lookup %main env)
   ?~  main  |
   ?.  ?=(~ vars.u.main)  |
-  ?.  ?=(~ (itype-vars typ.u.main))  |
-  =/  instance=[typ=itype state=istate]  (instantiate-scheme u.program *istate)
-  =/  main-fit=ifit  (direct-invariant typ.u.main typ.instance ~ next.state.instance)
-  ?.  ?=(%ok -.main-fit)  |
-  =/  init=(unit ischeme)  (ienv-lookup init.parts env)
-  ?~  init  |
-  ?.  ?=(~ vars.u.init)  |
-  ?.  ?=(%fn -.typ.u.init)  |
-  ?.  ?=(~ (itype-vars sample.typ.u.init))  |
-  ?.  ?=(~ (itype-vars product.typ.u.init))  |
-  =/  data=igate-free  (gate-free-type sample.typ.u.init 256 ~)
+  =/  resolved=(unit itype)  (scheme-display-type u.main)
+  ?~  resolved  |
+  ?.  ?=(~ (itype-vars u.resolved))  |
+  =/  checked-instance=(unit [typ=itype state=istate])  (instantiate-scheme u.program *istate)
+  ?~  checked-instance  |
+  =/  instance=[typ=itype state=istate]  u.checked-instance
+  =/  main-fit=ifit  (direct-invariant u.resolved typ.instance ~ next.state.instance)
+  ?.  |(?=(%ok -.main-fit) (itype-invariant-queued u.resolved typ.instance next.state.instance))  |
+  =/  fields=(list itype)  (record-fields-named %init u.resolved ~)
+  ?.  ?=([* ~] fields)  |
+  =/  init=itype  i.fields
+  ?.  ?=(%fn -.init)  |
+  ?.  ?=(~ (itype-vars sample.init))  |
+  ?.  ?=(~ (itype-vars product.init))  |
+  =/  data=igate-free  (gate-free-type sample.init 256 ~)
   ?.  =(%yes verdict.data)  |
-  =/  model=igate-free  (gate-free-type product.typ.u.init left.data ~)
-  ?.  =(%yes verdict.model)  |
-  =/  subs=(list def)
-    (skim ds |=(d=def &(?=(%value -.d) =(subs.parts name.d))))
-  ?.  ?=([* ~] subs)  |
-  |((program-subs-empty i.subs) (program-subs-watch i.subs imports graph u.prelude))
+  =/  model=igate-free  (gate-free-type product.init left.data ~)
+  =(%yes verdict.model)
 ::
-::  The two outer sample faces are binder names, not part of the action/state
-::  relation.  Leave every face inside either component untouched.
-++  store-update-unfaced
-  |=  typ=itype
+::  A context may add a face to an unnamed position, but it may never
+::  remove or rename a face already present in a component's value type.
+++  retained-face-target
+  |=  [actual=itype expected=itype sub=isub]
+  ^-  (unit itype)
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
+  ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
+    ?.  =(name.actual name.expected)  ~
+    =/  body=(unit itype)  $(actual body.actual, expected body.expected)
+    ?~  body  ~
+    :: A component and its published field are complete values here;
+    :: compare the preserved name while retaining the actual marker.
+    ?:(?=(%slot -.actual) `[%slot name.actual u.body] `[%face name.actual u.body])
+  ?:  ?=(?(%face %slot) -.actual)  ~
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
+  ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
+    =/  head=(unit itype)  $(actual hed.actual, expected hed.expected)
+    ?~  head  ~
+    =/  tail=(unit itype)  $(actual tal.actual, expected tal.expected)
+    ?~  tail  ~
+    `[%cell u.head u.tail]
+  ?:  &(?=(%fn -.actual) ?=(%fn -.expected))
+    =/  sample=(unit itype)  $(actual sample.actual, expected sample.expected)
+    ?~  sample  ~
+    =/  product=(unit itype)  $(actual product.actual, expected product.expected)
+    ?~  product  ~
+    `[%fn u.sample u.product]
+  `expected
+++  retained-face-fit
+  |=  [actual=itype expected=itype sub=isub next=@ud]
+  ^-  ifit
+  =/  retained=(unit itype)  (retained-face-target actual expected sub)
+  ?~  retained  [%unknown ~]
+  (direct-invariant actual u.retained sub next)
+::  Positional slot markers at the outer gate sample are binders. A
+::  two-slot sample proves both value boundaries. Do not walk an unmarked
+::  cell tail: it may instead be a complete nested record value.
+++  store-value-parts
+  |=  value=itype
+  ^-  (unit [init=itype update=itype])
+  ?.  ?=(%cell -.value)  ~
+  =/  initial=itype  hed.value
+  =/  updater=itype  tal.value
+  ?:  &(?=(%slot -.initial) !=(%init name.initial))  ~
+  ?:  &(?=(?(%face %slot) -.updater) !=(%update name.updater))  ~
+  =.  initial
+    ?:  ?=(%slot -.initial)  body.initial
+    ?:  &(?=(%face -.initial) =(%init name.initial))  body.initial
+    initial
+  =?  updater  ?=(?(%face %slot) -.updater)  body.updater
+  ::  A cell here is a longer record spine, not the update position.
+  ?.  ?=(?(%fn %refined %noun) -.updater)  ~
+  `[initial updater]
+::
+::  Strip only sample-slot labels; a value face is part of the value.
+++  store-sample-position
+  |=  [actual=itype expected=itype]
   ^-  itype
-  ?.  ?=(%fn -.typ)  typ
-  ?.  ?=(%cell -.sample.typ)  typ
-  =/  head=itype  hed.sample.typ
-  =/  tail=itype  tal.sample.typ
-  =?  head  ?=(%face -.head)  body.head
-  =?  tail  ?=(%face -.tail)  body.tail
-  typ(sample [%cell head tail])
+  ?:  ?=(%slot -.actual)  body.actual
+  actual
+++  store-update-in-context
+  |=  [gate=itype action=itype state=itype]
+  ^-  itype
+  ?.  ?=(%fn -.gate)  gate
+  ?.  ?=(%cell -.sample.gate)  gate
+  gate(sample [%cell (store-sample-position hed.sample.gate action) (store-sample-position tal.sample.gate state)])
 ::
-::  The builder erases the action from main.  Recover it only from the local
-::  poke mold and check both ordinary components invariantly.
-++  store-main-closed
-  |=  [parts=[init=term update=term] action=term env=ienv molds=imold-types prelude=(unit ifile)]
+::  Every retained alternative is a possible update value.  Do not use
+::  evidence from just one occurrence of a shared generic argument.
+++  store-proof-fits
+  |=  [proof=itype action=itype state=itype sub=isub next=@ud]
+  ^-  (unit [sub=isub next=@ud])
+  ?:  ?=(%union -.proof)
+    ?.  &(?=(~ origin.proof) ?=(~ args.proof) ?=(^ cases.proof))  ~
+    (store-proof-cases cases.proof action state sub next)
+  ?.  ?=(%fn -.proof)  ~
+  =/  expected=itype  [%fn [%cell action state] state]
+  =/  fit=ifit  (retained-face-fit (store-update-in-context proof action state) expected sub next)
+  ?.  ?=(%ok -.fit)  ~
+  `[sub.fit next.fit]
+++  store-proof-cases
+  |=  [cases=(list itype) action=itype state=itype sub=isub next=@ud]
+  ^-  (unit [sub=isub next=@ud])
+  ?~  cases  `[sub next]
+  =/  fitted=(unit [sub=isub next=@ud])  (store-proof-fits i.cases action state sub next)
+  ?~  fitted  ~
+  $(cases t.cases, sub sub.u.fitted, next next.u.fitted)
+::
+++  store-main-specialize
+  |=  [main=ischeme action=itype state=itype]
   ^-  (unit ischeme)
-  ?~  prelude  ~
-  =/  builder=(unit ischeme)  (ienv-lookup %store values.u.prelude)
-  ?~  builder  ~
-  ?.  ?=([@ @ ~] vars.u.builder)  ~
-  =/  state-var=@ud  i.vars.u.builder
-  =/  action-var=@ud  i.t.vars.u.builder
-  ?:  =(state-var action-var)  ~
-  =/  builder-sample=itype
-    [%cell [%face %init [%var state-var]] [%face %update [%fn [%cell [%var action-var] [%var state-var]] [%var state-var]]]]
-  =/  builder-product=itype  [%cell [%face %init [%var state-var]] [%face %update [%noun ~]]]
-  ?.  =(typ.u.builder [%fn builder-sample builder-product])  ~
-  =/  store=(unit ischeme)  (find-jibb-mold %store u.prelude)
-  ?~  store  ~
-  ?.  ?=([@ ~] vars.u.store)  ~
-  ?.  =(typ.u.store [%cell [%face %init [%var i.vars.u.store]] [%face %update [%noun ~]]])  ~
-  =/  state=(unit ischeme)  (find-jibb-mold %state [~ molds /tmp ~ ~ ~ ~ ~])
-  ?~  state  ~
-  =/  action-mold=(unit ischeme)  (find-jibb-mold action [~ molds /tmp ~ ~ ~ ~ ~])
-  ?~  action-mold  ~
-  ?.  &(?=(~ vars.u.state) ?=(~ (itype-vars typ.u.state)))  ~
-  ?.  &(?=(~ vars.u.action-mold) ?=(~ (itype-vars typ.u.action-mold)))  ~
-  =/  canonical=(unit itype)  (template-apply u.store ~[typ.u.state])
-  ?~  canonical  ~
-  =/  main=(unit ischeme)  (ienv-lookup %main env)
-  =/  main-fit=(unit ifit)
-    ?~(main ~ `(direct-invariant typ.u.main u.canonical ~ 0))
-  =/  main-ok=?
-    ?~  main  &
-    ?.  ?=(~ vars.u.main)  |
-    ?.  ?=(~ (itype-vars typ.u.main))  |
-    ?~  main-fit  |
-    ?=(%ok -.u.main-fit)
-  ?.  main-ok  ~
-  =/  init=(unit ischeme)  (ienv-lookup init.parts env)
-  ?~  init  ~
-  ?.  ?=(~ vars.u.init)  ~
-  ?.  ?=(~ (itype-vars typ.u.init))  ~
-  =/  init-fit=ifit  (direct-invariant typ.u.init typ.u.state ~ 0)
+  ?.  &(?=(~ (itype-vars action)) ?=(~ (itype-vars state)))  ~
+  =/  instance=(unit [typ=itype state=istate])  (instantiate-scheme main *istate)
+  ?~  instance  ~
+  =/  resolved=(unit itype)  (itype-realize typ.u.instance sub.state.u.instance)
+  ?~  resolved  ~
+  =/  parts=(unit [init=itype update=itype])  (store-value-parts u.resolved)
+  ?~  parts  ~
+  =/  init-fit=ifit  (retained-face-fit init.u.parts state sub.state.u.instance next.state.u.instance)
+  =?  init-fit  &(!?=(%ok -.init-fit) ?=(%cell -.u.resolved) ?=(%face -.hed.u.resolved) =(%init name.hed.u.resolved))
+    (retained-face-fit hed.u.resolved state sub.state.u.instance next.state.u.instance)
   ?.  ?=(%ok -.init-fit)  ~
-  =/  update=(unit ischeme)  (ienv-lookup update.parts env)
-  ?~  update  ~
-  ?.  ?=(~ vars.u.update)  ~
-  ?.  ?=(~ (itype-vars typ.u.update))  ~
-  =/  expected=itype  [%fn [%cell typ.u.action-mold typ.u.state] typ.u.state]
-  =/  update-fit=ifit  (direct-invariant (store-update-unfaced typ.u.update) expected ~ 0)
-  ?.  ?=(%ok -.update-fit)  ~
-  `[u.canonical ~]
+  =/  update=itype  update.u.parts
+  =?  update  ?=(%refined -.update)  proof.update
+  =/  fit=(unit [sub=isub next=@ud])  (store-proof-fits update action state sub.init-fit next.init-fit)
+  ?~  fit  ~
+  =/  closed=(unit itype)  (itype-realize typ.u.instance sub.u.fit)
+  ?~  closed  ~
+  ?.  &(?=(~ (itype-vars u.closed)) !(itype-has-tag u.closed))  ~
+  `[u.closed ~ ~]
+++  store-main-evidence
+  |=  [main=ischeme action=itype state=itype]
+  ^-  ?
+  ?=(^ (store-main-specialize main action state))
 ::
+
 ++  infer-jibb-file
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-result
   =/  out=jfile-detailed-result
     (infer-jibb-file-detailed at src externals mark-externals modules active prelude-values prelude-molds cache prelude)
   ?:  ?=(%| -.out)  [%| message.p.out]
-  [%& p.out]
+  [%& [iface.p.out cache.p.out]]
 ::  Returns structured root-source overlap evidence after the same full check.
+++  prelude-group-local-names
+  |=  [at=path src=@t defs=(list def) prelude=(unit ifile)]
+  ^-  (list term)
+  ?~  prelude  ~
+  =/  own=?
+    (lien groups.u.prelude |=(g=iprelude-group ?~(source.g | &(=(at.g at) =(u.source.g src)))))
+  ?.  own  ~
+  (turn defs |=(d=def name.d))
+++  prelude-group-source-conflict
+  |=  [at=path src=@t modules=jbundle prelude=(unit ifile)]
+  ^-  (unit path)
+  ?~  prelude  ~
+  =/  known=(list [at=path source=@t])  (prelude-group-sources groups.u.prelude)
+  |-
+  ?~  known  ~
+  =/  d=[at=path source=@t]  i.known
+  ?:  &(=(at at.d) !=(src source.d))  `at.d
+  ?:  (lien modules |=(m=jsource &(=(at.m at.d) !=(source.m source.d))))  `at.d
+  $(known t.known)
+::  Inject the checked private prelude only for a direct group import.
+::  Transitive imports always use the ordinary private-denying resolver.
+++  resolve-group-private-imports
+  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) context=(unit jsource) private=(unit ifile)]
+  ^-  jimports-detailed-result
+  ?~  private
+    (resolve-jibb-imports-at imports externals mark-externals modules active prelude-values prelude-molds cache prelude context)
+  =/  selected=(list import)
+    (skim imports |=(i=import &(?=(%jibb -.i) =(path.i /lib/jibb/internal))))
+  ?~  selected
+    (resolve-jibb-imports-at imports externals mark-externals modules active prelude-values prelude-molds cache prelude context)
+  ?^  t.selected  [%| ['duplicate private prelude imports' ~]]
+  ?>  ?=(%jibb -.i.selected)
+  =/  rest=(list import)
+    (skim imports |=(i=import !&(?=(%jibb -.i) =(path.i /lib/jibb/internal))))
+  =/  checked=jimports-detailed-result
+    (resolve-jibb-imports-at rest externals mark-externals modules active prelude-values prelude-molds cache prelude context)
+  ?:  ?=(%| -.checked)  checked
+  =/  private-at=path  /lib/jibb/internal/jibb
+  =/  graph=irequest-graph
+    [(silt `(list path)`~[private-at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals]
+  =/  child=ifile  u.private(graph `graph)
+  =/  clean=jcache  (skim cache.p.checked |=(e=[at=path iface=ifile] !=(at.e private-at)))
+  [%& [[[face.i.selected child] resolved.p.checked] [[private-at child] clean]]]
+::
 ++  infer-jibb-file-detailed
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-detailed-result
+  =/  out=jfile-detailed-result
+    (infer-jibb-file-with-group-private at src externals mark-externals modules active prelude-values prelude-molds cache prelude ~)
+  ?:  ?=(%& -.out)  out
+  =/  parsed=(each module error)  (parse at src)
+  ?:  ?=(%| -.parsed)  out
+  =/  js=jimports-detailed-result
+    (resolve-group-private-imports imports.p.parsed externals mark-externals modules active prelude-values prelude-molds cache prelude `[at src] ~)
+  ?:  ?=(%| -.js)  out
+  =/  state=istate  *istate
+  =.  state  state(mark-externals mark-externals, marks (collect-mark-imports imports.p.parsed), jimports resolved.p.js, at at, local-source `src)
+  =/  exprs=(list expr)
+    (murn defs.p.parsed |=(d=def ?:(?=(%value -.d) `val.d ~)))
+  =/  enriched=(list idiag)
+    (diagnostic-derived-call-candidates exprs [(trip message.p.out) ~] state)
+  ?.  ?=([* ~] enriched)  out
+  [%| [(crip msg.i.enriched) ~]]
+::  Only prelude preparation supplies this checked private interface.
+++  infer-jibb-file-with-group-private
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) private=(unit ifile)]
+  ^-  jfile-detailed-result
+  =/  conflict=(unit path)  (prelude-group-source-conflict at src modules prelude)
+  ?^  conflict  [%| [(crip "source for checked prelude dependency disagrees: {(spud u.conflict)}") ~]]
   =/  parsed  (parse at src)
-  ?:  ?=(%| -.parsed)  [%| [(crip "module source does not parse: {(spud at)}") ~]]
+  ?:  ?=(%| -.parsed)  [%| [(show-error src p.parsed) ~]]
   =/  mod=module  p.parsed
+  ::  Group declarations are qualified in their clients and have their
+  ::  own namespace. Hide matching public names only while checking this
+  ::  exact supplied group source; imported modules receive the original
+  ::  prelude names and establish their own group scope independently.
+  =/  inherited-values=(list term)  prelude-values
+  =/  inherited-molds=(list term)  prelude-molds
+  =/  local-names=(list term)  (prelude-group-local-names at src defs.mod prelude)
+  =.  prelude-values  (skim prelude-values |=(n=term !(lien local-names |=(x=term =(x n)))))
+  =.  prelude-molds  (skim prelude-molds |=(n=term !(lien local-names |=(x=term =(x n)))))
   =/  duplicate=(unit idiag)  (duplicate-defs defs.mod)
   ?^  duplicate  [%| [(show-duplicate-fields at src u.duplicate) ~]]
-  ?:  &(?=([%ui %api *] at) ?=(^ (program-main-def defs.mod)))
-    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
-  ?:  ?=([%ui %api *] at)
+  =/  misplaced=(unit span)  (facts-outside-api-paths at defs.mod)
+  ?^  misplaced
+    =/  msg=@t  (show-error src [at line.beg.u.misplaced col.beg.u.misplaced "`(facts ...)` is allowed only in an API's `+$ paths`"])
+    =/  head=span  (application-head-site u.misplaced %facts)
+    =/  detail=@t  (show-error src [at line.beg.head col.beg.head "`(facts ...)` is allowed only in an API's `+$ paths`"])
+    [%| [(cat 3 msg (cat 3 '\0a' detail)) ~]]
+  :: A library may live under /ui/api without declaring an API. Only
+  :: paths or poke declarations request the derived API interface.
+  =/  api-declarations=?
+    (lien defs.mod |=(d=def &(?=(%mold -.d) |(=(%paths name.d) =(%poke name.d)))))
+  ?:  &(?=([%ui %api @ %jibb ~] at) api-declarations)
+    =/  api-main=(unit def)  (program-main-def defs.mod)
+    ?^  api-main
+      =/  diagnostic=idiag
+        ["API declarations alongside main need unsupported inference" ~[[(definition-name-site at src at.u.api-main) "main alongside API paths or poke declarations"]]]
+      [%| [(show-inference-diagnostic at src %main diagnostic) ~]]
     =/  poke=(each ifile @t)
       (api-poke-interface-result at mod mark-externals prelude-values prelude-molds prelude)
     ?:  ?=(%& -.poke)
       =/  iface=ifile  p.poke
-      =/  checked=ifile  iface(source `src, graph `[(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals])
-      [%& [checked [[at checked] cache]]]
+      =/  checked=ifile  iface(source `src, graph `[(silt `(list path)`~[at]) ~ ~ modules prelude inherited-values inherited-molds externals mark-externals])
+      [%& [checked [[at checked] cache] %library]]
     ::  A clashing derived name is an error wherever the checks below stop.
-    =/  clash=(unit idiag)
-      ?.  ?=([%ui %api @ %jibb ~] at)  ~
-      (api-derived-clash mod prelude-values)
+    =/  clash=(unit idiag)  (api-derived-clash mod prelude-values)
     ?^  clash  [%| [(show-duplicate-fields at src u.clash) ~]]
     ::  So is a name conflict in its scope, reported as for other modules.
     ::  `+$ paths` and `+$ poke` are declarations, not molds (overview), and
@@ -15670,45 +24500,23 @@
     ::  it does for other modules; the constructors below would only wrap it.
     ::  They resolve the same imports again, from the interfaces cached here.
     =/  js=jimports-detailed-result
-      (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
+      (resolve-group-private-imports imports.mod externals mark-externals modules active inherited-values inherited-molds cache prelude `[at src] private)
     ?:  ?=(%| -.js)  [%| p.js]
     ::  Without `+$ paths` only the poke-only interface applies; keep its reason.
     ?.  (lien defs.mod |=(d=def &(?=(%mold -.d) =(%paths name.d))))
       [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.poke)}") ~]]
-    ::  Each constructor names the part that stopped it; keep that reason.
-    =/  narrow=?
-      ?.  ?=([[%mark *] ~] imports.mod)  |
-      ?.  ?=([[%mold *] ~] defs.mod)  |
-      ?.  =(%paths name.i.defs.mod)  |
-      !?=(%union -.shape.i.defs.mod)
-    ?:  narrow
-      =/  request=(each ione-request-interface @t)
-        (one-request-interface-graph at src externals mark-externals modules active cache.p.js `prepared)
-      ?:  ?=(%| -.request)  [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.request)}") ~]]
-      =/  checked=ifile  iface.p.request
-      [%& [checked [[at checked] dependencies.paths.support.p.request]]]
+    ::  The general constructor names the part that stopped it; keep that reason.
     =/  multi=(each [iface=ifile cache=jcache] @t)
       (multi-request-interface-graph at src externals mark-externals modules active cache.p.js `prepared)
     ?:  ?=(%| -.multi)  [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.multi)}") ~]]
-    [%& [iface.p.multi [[at iface.p.multi] cache.p.multi]]]
+    [%& [iface.p.multi [[at iface.p.multi] cache.p.multi] %library]]
   =/  main=(unit def)  (program-main-def defs.mod)
   =/  main-parts=(unit [init=term update=term view=term subs=term])
     ?~(main ~ (program-main-parts u.main))
-  =/  page-parts=(unit [load=term view=term])
-    ?~(main ~ (page-main-parts u.main))
-  =/  store-parts=(unit [init=term update=term])
-    ?~(main ~ (store-main-parts u.main))
-  =/  declaration=(each istore-declaration (unit idiag))
-    ?~(store-parts [%| ~] (store-declaration mod prelude-values prelude-molds))
-  =/  clash=(unit idiag)  ?:(?=(%| -.declaration) p.declaration ~)
-  ?^  clash  [%| [(show-duplicate-fields at src u.clash) ~]]
-  =/  declared=(unit istore-declaration)
-    ?:(?=(%| -.declaration) ~ `p.declaration)
-  ?:  &(?=(^ store-parts) ?=(~ declared))
-    [%| [(crip "module kind or scope needs unsupported inference: {(spud at)}") ~]]
-  ?:  &(?=([%ui %stores *] at) ?=(^ main) ?=(~ store-parts))
-    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
-  =/  ds=(list def)  ?~(declared defs.mod defs.u.declared)
+  ::  A directory does not establish a module kind. Check ordinary
+  ::  definitions first; only an inferred store needs store declarations.
+  =/  declared=(unit istore-declaration)  ~
+  =/  ds=(list def)  defs.mod
   =/  checking=module  mod(defs ds)
   ?.  (module-scope-valid checking prelude-values prelude-molds)
     =/  scope=(unit iscope-diagnostic)
@@ -15716,121 +24524,142 @@
     ?^  scope  [%| [(show-scope-diagnostic at src u.scope prelude) ~]]
     [%| [(crip "module has conflicting names: {(spud at)}") ~]]
   =/  vals=(list term)  (global-value-names ds)
-  =/  js=jimports-detailed-result  (resolve-jibb-imports-detailed imports.mod externals mark-externals modules active prelude-values prelude-molds cache prelude)
+  =/  js=jimports-detailed-result  (resolve-group-private-imports imports.mod externals mark-externals modules active inherited-values inherited-molds cache prelude `[at src] private)
   ?:  ?=(%| -.js)  [%| p.js]
-  =/  collected=grec-collected
-    ?^  imports.mod  [(collect-simple-molds ds) *(map term shape)]
-    (grec-collect-molds ds)
-  =/  molds=imolds  molds.collected
+  =/  molds=imolds  (collect-simple-molds ds)
   =/  globals=(list term)  (weld prelude-values (weld (import-binding-names imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks resolved.p.js reserved ~ ~ ~ | at top prelude ~ 256 ~ ~ ~ ~ ~ ~]
-  :: Source and scope were checked above; preserve that exact root and prelude.
-  :: This first integration only indexes import-free library sources.
-  =/  index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])
-    ?^  imports.mod  ~
-    ?~  prelude  ~
-    =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude)
-    ?~  standard  ~
-    ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0]])  ~
-    =/  index=(map term shape)  proofs.collected
-    ?.  !=(index *(map term shape))  ~
-    ?:  (lien molds |=(m=[name=term body=shape] =(%list name.m)))  ~
-    `[at src u.prelude index]
-  =.  grec-index.state  index
+  =/  state=istate  *istate
+  =.  state  state(molds molds, globals globals, externals externals, surs surs, mark-externals mark-externals, marks marks, jimports resolved.p.js, reserved-molds reserved, in-mold |, at at, top-molds top, prelude prelude, jrec-fuel 256, globals-imports |, general-defer |)
+  =.  globals-imports.state  &
+  =.  diagnostic-sources.state  modules
+  =.  local-source.state  `src
+  =/  index=(unit [at=path source=@t prelude=ifile shapes=(map term shape)])  ~
   =/  mts=(each imold-types imold-failure)  (module-mold-types-detail molds state)
   ?:  ?=(%| -.mts)
-    ?~  overlap.p.mts  [%| [(crip "{(trip message.p.mts)}: {(spud at)}") ~]]
+    ?~  overlap.p.mts
+      =/  invalid=(unit [name=term diag=idiag])  (module-mold-failure-diagnostic molds state)
+      ?^  invalid
+        =/  diag=idiag  diag.u.invalid
+        =.  msg.diag  "+$ {(trip name.u.invalid)}: {msg.diag}"
+        [%| [(show-duplicate-fields at src diag) ~]]
+      [%| [(crip "{(trip message.p.mts)}: {(spud at)}") ~]]
     =/  witness=[name=term cases=upair]  u.overlap.p.mts
     =/  first=@t  (show-error src [at line.beg.first.cases.witness col.beg.first.cases.witness "first union case"])
     =/  second=@t  (show-error src [at line.beg.second.cases.witness col.beg.second.cases.witness "overlapping case"])
     =/  msg=@t  (of-wain:format ~[(crip "module mold {(trip name.witness)} has overlapping cases") first second])
     [%| [msg `[at src name.witness cases.witness]]]
-  =/  resolution=iresolved
-    ?~  index
-      (resolve-groups ds molds globals externals surs mark-externals marks resolved.p.js reserved at prelude)
-    (resolve-groups-core ds molds globals externals surs mark-externals marks resolved.p.js reserved at prelude index)
+  =/  common=icore-output  (icore-check ds state)
+  ?^  error.common
+    =/  diagnostic=@t  (show-inference-diagnostic at src owner.u.error.common diag.u.error.common)
+    [%| [diagnostic ~]]
+  ?~  result.common
+    =/  unfinished=[owner=term diag=idiag]
+      (icore-unfinished-definition ds "expression constraints could not be solved")
+    [%| [(show-inference-diagnostic at src owner.unfinished diag.unfinished) ~]]
+  =/  resolution=iresolved  u.result.common
   =/  env=ienv  env.resolution
-  =/  recovered=iresolved
-    ?~  main  resolution
-    ?~  main-parts  resolution
-    =/  updated=(unit iresolved)
-      (program-update-context u.main u.main-parts ds resolution state)
-    =/  with-update=iresolved  ?~(updated resolution u.updated)
-    =/  subscribed=(unit iresolved)
-      (program-subs-context u.main-parts ds with-update state)
-    =/  with-subs=iresolved  ?~(subscribed with-update u.subscribed)
-    =/  viewed=(unit iresolved)
-      (program-view-context u.main-parts ds with-subs state)
-    =/  with-keyed-view=iresolved  ?~(viewed with-subs u.viewed)
-    =/  plain-view=(unit iresolved)
-      ?^(viewed ~ (program-plain-view-context u.main-parts ds with-keyed-view state))
-    =/  with-view=iresolved  ?~(plain-view with-keyed-view u.plain-view)
-    =/  initialized=(unit iresolved)
-      (program-plain-init-context u.main u.main-parts ds with-view state)
-    =/  components=iresolved  ?~(initialized with-view u.initialized)
-    (program-main-context u.main ds components state)
-  =.  env  env.recovered
-  =.  artifacts.resolution  artifacts.recovered
-  =.  env
-    ?:  (module-values-complete ds env)  env
-    ?:  |(?=([%ui %stores *] at) ?=(^ imports.mod) ?=(^ prelude) ?=(^ prelude-values) ?=(^ prelude-molds))  env
-    ?:  (gth (met 3 src) 65.536)  env
-    ?:  (gth (lent ds) 64)  env
-    ?.  (dg-source-candidate ds 64)  env
-    =/  transaction=(unit dgcommit)  (dg-root-source at src)
-    ?~  transaction  env
-    ?:  (dg-interface-safe env.u.transaction)  env.u.transaction
-    env
-  =/  required=(list def)
-    ?~  store-parts  ds
-    (skim ds |=(d=def !&(?=(%value -.d) =(%main name.d))))
-  ?.  (module-values-complete required env)
-    =/  components=icomponents  (graph-components required (global-value-names required))
-    =/  ordered=(list def)  (dependency-order required components)
-    =/  values=(list term)  (weld prelude-values (weld (api-import-faces imports.mod) vals))
-    =/  checked=(map term def)  (direct-checked-gates required env)
-    =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence required prelude.state)
-    =/  diagnostic=(unit @t)
-      (module-unresolved-diagnostic ordered env state checked heads failures.resolution values at src 64)
-    ?^  diagnostic  [%| [u.diagnostic ~]]
-    =/  missing=(unit term)  (module-missing-value required env)
-    =/  named=tape  ?~(missing "" ": ++ {(trip u.missing)}")
-    [%| [(crip "module definitions need unsupported inference: {(spud at)}{named}") ~]]
-  =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals]
+  =/  initial=irequest-graph  [(silt `(list path)`~[at]) ~ ~ modules prelude inherited-values inherited-molds externals mark-externals]
   =/  graph=(unit irequest-graph)  (request-graph-merge resolved.p.js initial (add 1 (lent resolved.p.js)))
   ?~  graph  [%| ['module request evidence needs unsupported inference' ~]]
   =/  static-main=(unit ischeme)
     ?~  main  ~
     ?^  main-parts  ~
-    ?^  page-parts  ~
-    ?^  store-parts  ~
     (static-main-specialized env prelude)
   =?  env  ?=(^ static-main)
     [[%main u.static-main] (skim env |=(entry=[name=term scheme=ischeme] !=(%main name.entry)))]
-  =/  store-main=(unit ischeme)
-    ?~  store-parts  ~
-    ?~  declared  ~
-    (store-main-closed u.store-parts action.u.declared env p.mts prelude)
-  =?  env  ?=(^ store-main)
-    [[%main u.store-main] (skim env |=(entry=[name=term scheme=ischeme] !=(%main name.entry)))]
+  ::  Classify the checked main type once, then use the same kind for
+  ::  kind-specific validation and the public full-check result.
+  =/  candidate=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph ~]
+  =/  kind=(unit checked-kind)  (checked-main-kind candidate prelude)
+  ?~  kind
+    [%| [(show-inference-diagnostic at src %main (main-kind-diagnostic at src main env ~)) ~]]
+  =/  late-declaration=(each istore-declaration (unit idiag))
+    ?.  =(%store u.kind)  [%| ~]
+    (store-declaration mod prelude-values prelude-molds)
+  ?:  &(?=(%store u.kind) ?=(%| -.late-declaration))
+    ?^  p.late-declaration  [%| [(show-duplicate-fields at src u.p.late-declaration) ~]]
+    [%| [(crip "store declaration needs unsupported inference: {(spud at)}") ~]]
+  =?  declared  ?=(%& -.late-declaration)  `p.late-declaration
+  =/  gate-error=(unit idiag)
+    ?.  =(%island u.kind)  ~
+    ?~  main  ~
+    =/  main-scheme=(unit ischeme)  (ienv-lookup %main env)
+    ?~  main-scheme  ~
+    =/  initializer=(unit def)  ?~(main-parts ~ (direct-find-gate init.u.main-parts ds))
+    (program-gate-free-diagnostic u.main-scheme u.main initializer ds p.mts)
+  ?^  gate-error
+    ?~  main  [%| [(show-inference-diagnostic at src %main u.gate-error) ~]]
+    =/  diagnostic=idiag  u.gate-error
+    =.  sites.diagnostic  (island-main-diagnostic-sites sites.diagnostic at src u.main)
+    [%| [(show-inference-diagnostic at src %main diagnostic) ~]]
+  =/  watch-error=(unit idiag)
+    ?~  main  ~
+    ?~  prelude  ~
+    (program-value-watch-diagnostic candidate cache.p.js resolved.p.js u.prelude u.graph)
+  ?^  watch-error
+    [%| [(show-inference-diagnostic at src %main u.watch-error) ~]]
   =/  kind-ok=?
-    ?~  main  &
-    ?^  main-parts  (program-main-closed u.main-parts ds env prelude resolved.p.js u.graph)
-    ?^  page-parts  (page-main-closed u.page-parts ds env prelude resolved.p.js u.graph)
-    ?^  store-parts  ?=(^ store-main)
-    ?=(^ static-main)
+    ?-  u.kind
+      %library  ?=(~ main)
+      %island  (program-type-closed env prelude)
+      %store
+        ?~  declared  |
+        =/  main-scheme=(unit ischeme)  (ienv-lookup %main env)
+        ?~  main-scheme  |
+        =/  model=(unit ischeme)  (find-jibb-mold %state [~ p.mts at ~ ~ ~ ~ ~ ~])
+        ?~  model  |
+        =/  action=(unit ischeme)  (find-jibb-mold action.u.declared [~ p.mts at ~ ~ ~ ~ ~ ~])
+        ?~  action  |
+        ?.  &(?=(~ vars.u.model) ?=(~ vars.u.action))  |
+        =/  model-type=(unit itype)  (scheme-display-type u.model)
+        ?~  model-type  |
+        =/  action-type=(unit itype)  (scheme-display-type u.action)
+        ?~  action-type  |
+        (store-main-evidence u.main-scheme u.action-type u.model-type)
+      %static-page  ?=(^ static-main)
+      %page  (page-type-closed env prelude)
+    ==
   ?.  kind-ok
-    [%| [(crip "module kind needs unsupported inference: {(spud at)}") ~]]
+    [%| [(show-inference-diagnostic at src %main (main-kind-diagnostic at src main env kind)) ~]]
+  ::  Publish the template faces that the checked store positions take,
+  ::  retaining each checked value's evidence through the widening to *.
+  =/  store-published=(unit ischeme)
+    ?.  =(%store u.kind)  ~
+    ?~  prelude  ~
+    =/  main-scheme=(unit ischeme)  (ienv-lookup %main env)
+    ?~  main-scheme  ~
+    =/  model=(unit ischeme)  (find-jibb-mold %state [~ p.mts at ~ ~ ~ ~ ~ ~])
+    ?~  model  ~
+    =/  model-type=(unit itype)  (scheme-display-type u.model)
+    ?~  model-type  ~
+    ?~  declared  ~
+    =/  action=(unit ischeme)  (find-jibb-mold action.u.declared [~ p.mts at ~ ~ ~ ~ ~ ~])
+    ?~  action  ~
+    =/  action-type=(unit itype)  (scheme-display-type u.action)
+    ?~  action-type  ~
+    =/  specialized=(unit ischeme)  (store-main-specialize u.main-scheme u.action-type u.model-type)
+    ?~  specialized  ~
+    =/  resolved=(unit itype)  (scheme-display-type u.specialized)
+    ?~  resolved  ~
+    =/  parts=(unit [init=itype update=itype])  (store-value-parts u.resolved)
+    ?~  parts  ~
+    =/  update=itype  update.u.parts
+    =?  update  ?=(%fn -.update)  [%refined update]
+    `[[%cell [%face %init u.model-type] [%face %update update]] ~ ~]
+  ?:  &(=(%store u.kind) ?=(~ store-published))
+    [%| [(crip "store type needs unsupported inference: {(spud at)}") ~]]
+  =?  env  ?=(^ store-published)
+    [[%main u.store-published] (skim env |=(entry=[name=term scheme=ischeme] !=(%main name.entry)))]
   =/  store-derived=(unit [values=ienv evidence=istore-request-evidence])
     ?~  declared  ~
     ?~  prelude  ~
-    =/  state=(unit ischeme)  (find-jibb-mold %state [~ p.mts at ~ ~ ~ ~ ~])
+    =/  state=(unit ischeme)  (find-jibb-mold %state [~ p.mts at ~ ~ ~ ~ ~ ~])
     ?~  state  ~
-    =/  action-mold=(unit ischeme)  (find-jibb-mold action.u.declared [~ p.mts at ~ ~ ~ ~ ~])
+    =/  action-mold=(unit ischeme)  (find-jibb-mold action.u.declared [~ p.mts at ~ ~ ~ ~ ~ ~])
     ?~  action-mold  ~
     =/  schemes=(unit [state=ischeme action=ischeme])
       (store-derived-schemes u.prelude prelude-values prelude-molds typ.u.state typ.u.action-mold)
@@ -15845,8 +24674,8 @@
     `u.graph(stores [evidence.u.store-derived stores.u.graph])
   ?.  (request-graph-bounded u.graph)
     [%| ['module request evidence needs unsupported inference' ~]]
-  =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph]
-  [%& [iface [[at iface] cache.p.js]]]
+  =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph ~]
+  [%& [iface [[at iface] cache.p.js] u.kind]]
 ::
 ::  A source-bound analysis of one named mold, not a module, island,
 ::  request, watchability or runtime check.  The host owns the trusted
@@ -15891,7 +24720,8 @@
   =/  declared=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld molds.u.prepared (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn ms |=(m=[name=term body=shape] name.m))
-  =/  state=istate  [0 ~ ~ ~ ms globals externals surs marks declared resolved.p.js reserved ~ ~ ~ | file top `public ~ 256 ~ ~ ~ ~ ~ ~]
+  =/  state=istate  *istate
+  =.  state  state(molds ms, globals globals, externals externals, surs surs, mark-externals marks, marks declared, jimports resolved.p.js, reserved-molds reserved, in-mold |, at file, top-molds top, prelude `public, jrec-fuel 256, globals-imports |, general-defer |)
   =/  inferred=(unit [template=ischeme state=istate])
     (infer-mold-template shape.i.selected state(active ~[name], in-mold &))
   ?~  inferred  [%| 'selected mold needs unsupported inference']
@@ -15902,72 +24732,190 @@
   =/  analysis=igate-free  (gate-free-type typ.template cap ~)
   [%& [file src name u.prepared externals marks modules cache.p.js template fuel cap analysis]]
 ::
-::  +golden-types-with-modules fails closed for imports without prelude
-::  scope. +golden-types-with-prelude resolves supported library graphs;
-::  its report remains partial and unreachable sources are not examined.
+::  Full type reports use the same checked result and dependency context as
+::  the module checker; an unavailable prelude remains an error.
 ::
 ++  golden-types-with-modules
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle]
   ^-  @t
-  =/  parsed  (parse file src)
-  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
-  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
-  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
-  ?:  (lien imports.p.parsed |=(i=import ?=(%jibb -.i)))
-    'partial inference; module not checked\0aprelude source missing; module import inference unsupported'
-  (golden-types-with-marks file src externals mark-externals)
+  (full-types-in-context file src externals mark-externals modules ~)
 ::
-::  The caller supplies the actual prelude source. Its declared names are
-::  reserved, and supported inferred types are made available. The inventory
-::  and the checker are incomplete, so this never claims a checked module.
-::  Hosts may prepare the same trusted source once and reuse its interface.
+
+::  Check unavailable source mold aliases even when no value uses them.
+::  The alias walker only diagnoses a proven missing name or pure cycle.
+++  prelude-source-alias-errors
+  |=  [src=@t iface=ifile]
+  ^-  (unit idiag)
+  =/  file=path  /lib/jibb/prelude/jibb
+  =/  parsed=(each module error)  (parse file src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  source-iface=ifile  iface(at file, source `src)
+  =/  state=istate  *istate
+  =.  prelude.state  `source-iface
+  =/  defs=(list def)  defs.p.parsed
+  |-
+  ?~  defs  ~
+  ?.  ?=(%mold -.i.defs)  $(defs t.defs)
+  ?^  (find-jibb-mold name.i.defs iface)  $(defs t.defs)
+  =/  body=shape  shape.i.defs
+  =/  ref=shape
+    ?:  ?=(%generic -.body)
+      [%apply at.i.defs ~[name.i.defs] (turn vars.body |=(v=@t `shape`[%tvar at.i.defs v]))]
+    [%ref at.i.defs ~[name.i.defs]]
+  =/  error=(unit idiag)  (prelude-alias-diagnostic ref state)
+  ?^  error  error
+  $(defs t.defs)
+::
+++  source-module-diagnostic
+  |=  [file=path src=@t]
+  ^-  (unit @t)
+  =/  parsed=(each module error)  (parse file src)
+  ?:  ?=(%| -.parsed)  `(show-error src p.parsed)
+  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
+  ?^  duplicate  `(show-duplicate-fields file src u.duplicate)
+  =/  scope=(unit iscope-diagnostic)  (module-scope-diagnostic p.parsed ~ ~)
+  ?^  scope  `(show-scope-diagnostic file src u.scope ~)
+  ?.  =(file /lib/jibb/prelude/jibb)  ~
+  =/  alias-error=(unit idiag)  (prelude-source-alias-errors src *ifile)
+  ?^  alias-error  `(show-duplicate-fields file src u.alias-error)
+  ~
+::
+++  prelude-source-diagnostic
+  |=  src=@t
+  ^-  (unit @t)
+  ?:  =(0 src)
+    `(show-error src [/lib/jibb/prelude/jibb 1 1 "prelude source is empty"])
+  (source-module-diagnostic /lib/jibb/prelude/jibb src)
+::
+::  Source-bearing callers can retain definite preparation diagnostics while
+::  the unit-valued preparation entry points remain compatible.
+++  prepare-prelude-detailed
+  |=  src=@t
+  ^-  (each iprelude @t)
+  =/  prepared=(unit iprelude)  (prepare-prelude src)
+  ?^  prepared
+    =/  alias-error=(unit idiag)  (prelude-source-alias-errors src iface.u.prepared)
+    ?^  alias-error  [%| (show-duplicate-fields /lib/jibb/prelude/jibb src u.alias-error)]
+    [%& u.prepared]
+  =/  diagnostic=(unit @t)  (prelude-source-diagnostic src)
+  ?^  diagnostic  [%| u.diagnostic]
+  =/  checked-error=(unit @t)  (prelude-mode-core-error src ~ ~ ~)
+  ?^  checked-error  [%| u.checked-error]
+  [%| 'prelude interface is not supported']
+::
+++  prepare-prelude-with-internal-detailed
+  |=  [src=@t internal-source=@t]
+  ^-  (each iprelude @t)
+  =/  prepared=(unit iprelude)  (prepare-prelude-with-internal src internal-source)
+  ?^  prepared
+    =/  alias-error=(unit idiag)  (prelude-source-alias-errors src iface.u.prepared)
+    ?^  alias-error  [%| (show-duplicate-fields /lib/jibb/prelude/jibb src u.alias-error)]
+    [%& u.prepared]
+  =/  diagnostic=(unit @t)  (prelude-source-diagnostic src)
+  ?^  diagnostic  [%| u.diagnostic]
+  =/  internal-diagnostic=(unit @t)  (source-module-diagnostic /lib/jibb/internal/jibb internal-source)
+  ?^  internal-diagnostic  [%| u.internal-diagnostic]
+  =/  internal-error=(unit @t)
+    ?:  (prelude-imports-internal src)
+      (private-internal-core-error internal-source src)
+    ~
+  ?^  internal-error  [%| u.internal-error]
+  =/  checked-error=(unit @t)  (prelude-mode-core-error src `internal-source ~ ~)
+  ?^  checked-error  [%| u.checked-error]
+  [%| 'prelude interface is not supported']
 ::
 ++  golden-types-with-prelude
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prelude-source=@t]
   ^-  @t
-  =/  parsed  (parse file src)
-  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
-  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
-  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
-  ?:  =(0 prelude-source)  'partial inference; module not checked\0aprelude source missing; module import inference unsupported'
-  =/  prelude  (parse /lib/jibb/prelude/jibb prelude-source)
-  ?:  ?=(%| -.prelude)  'partial inference; module not checked\0aprelude source does not parse; module import inference unsupported'
-  =/  prepared=(unit iprelude)  (prepare-prelude prelude-source)
-  ?~  prepared  'partial inference; module not checked\0aprelude interface is not supported'
-  (golden-types-with-prepared-prelude file src externals mark-externals modules prepared)
+  =/  prepared=(each iprelude @t)  (prepare-prelude-detailed prelude-source)
+  ?:  ?=(%| -.prepared)  p.prepared
+  (golden-types-with-prepared-prelude file src externals mark-externals modules `p.prepared)
 ::
+
 ++  golden-types-with-prelude-and-internal
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prelude-source=@t internal-source=@t]
   ^-  @t
-  =/  prepared=(unit iprelude)  (prepare-prelude-with-internal prelude-source internal-source)
-  (golden-types-with-prepared-prelude file src externals mark-externals modules prepared)
+  =/  prepared=(each iprelude @t)  (prepare-prelude-with-internal-detailed prelude-source internal-source)
+  ?:  ?=(%| -.prepared)  p.prepared
+  (golden-types-with-prepared-prelude file src externals mark-externals modules `p.prepared)
+::
+++  prelude-group-source-diagnostic
+  |=  groups=(list iprelude-group-source)
+  ^-  (unit @t)
+  ?~  groups  ~
+  =/  diagnostic=(unit @t)  (source-module-diagnostic at.i.groups source.i.groups)
+  ?^  diagnostic  diagnostic
+  $(groups t.groups)
+::
+++  prepare-prelude-with-group-bundle-detailed
+  |=  [src=@t internal-source=@t groups=(list iprelude-group-source) private=jbundle]
+  ^-  (each iprelude @t)
+  =/  prepared=(unit iprelude)  (prepare-prelude-with-group-bundle src internal-source groups private)
+  ?^  prepared
+    =/  alias-error=(unit idiag)  (prelude-source-alias-errors src iface.u.prepared)
+    ?^  alias-error  [%| (show-duplicate-fields /lib/jibb/prelude/jibb src u.alias-error)]
+    [%& u.prepared]
+  =/  diagnostic=(unit @t)  (prelude-source-diagnostic src)
+  ?^  diagnostic  [%| u.diagnostic]
+  =/  internal-diagnostic=(unit @t)  (source-module-diagnostic /lib/jibb/internal/jibb internal-source)
+  ?^  internal-diagnostic  [%| u.internal-diagnostic]
+  =/  internal-error=(unit @t)
+    ?:  (prelude-imports-internal src)
+      (private-internal-core-error internal-source src)
+    ~
+  ?^  internal-error  [%| u.internal-error]
+  =/  group-diagnostic=(unit @t)  (prelude-group-source-diagnostic groups)
+  ?^  group-diagnostic  [%| u.group-diagnostic]
+  =/  checked-error=(unit @t)  (prelude-group-core-error src internal-source groups private)
+  ?^  checked-error  [%| u.checked-error]
+  [%| 'prelude interface is not supported']
+::
+++  prepare-prelude-with-group-evidence-detailed
+  |=  [src=@t internal-source=@t groups=(list iprelude-group-source) private=jbundle evidence=iexternals]
+  ^-  (each iprelude @t)
+  =/  prepared=(unit iprelude)  (prepare-prelude-with-group-evidence src internal-source groups private evidence)
+  ?^  prepared
+    =/  alias-error=(unit idiag)  (prelude-source-alias-errors src iface.u.prepared)
+    ?^  alias-error  [%| (show-duplicate-fields /lib/jibb/prelude/jibb src u.alias-error)]
+    [%& u.prepared]
+  =/  diagnostic=(unit @t)  (prelude-source-diagnostic src)
+  ?^  diagnostic  [%| u.diagnostic]
+  =/  internal-diagnostic=(unit @t)  (source-module-diagnostic /lib/jibb/internal/jibb internal-source)
+  ?^  internal-diagnostic  [%| u.internal-diagnostic]
+  =/  internal-error=(unit @t)
+    ?:  (prelude-imports-internal src)
+      (private-internal-core-error internal-source src)
+    ~
+  ?^  internal-error  [%| u.internal-error]
+  =/  group-diagnostic=(unit @t)  (prelude-group-source-diagnostic groups)
+  ?^  group-diagnostic  [%| u.group-diagnostic]
+  ?.  (prelude-external-evidence-valid evidence private)
+    [%| 'prelude Hoon reader evidence does not match its source']
+  =/  checked-error=(unit @t)  (prelude-group-core-error-with-evidence src internal-source groups private evidence)
+  ?^  checked-error  [%| u.checked-error]
+  [%| 'prelude interface is not supported']
+::
+++  golden-types-with-prelude-and-group-evidence
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prelude-source=@t internal-source=@t groups=(list iprelude-group-source) private=jbundle evidence=iexternals]
+  ^-  @t
+  =/  prepared=(each iprelude @t)  (prepare-prelude-with-group-evidence-detailed prelude-source internal-source groups private evidence)
+  ?:  ?=(%| -.prepared)  p.prepared
+  (golden-types-with-prepared-prelude file src externals mark-externals modules `p.prepared)
+::
+++  golden-types-with-prelude-and-group-bundle
+  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prelude-source=@t internal-source=@t groups=(list iprelude-group-source) private=jbundle]
+  ^-  @t
+  =/  prepared=(each iprelude @t)  (prepare-prelude-with-group-bundle-detailed prelude-source internal-source groups private)
+  ?:  ?=(%| -.prepared)  p.prepared
+  (golden-types-with-prepared-prelude file src externals mark-externals modules `p.prepared)
 ::
 ++  golden-types-with-prepared-prelude
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle prepared=(unit iprelude)]
   ^-  @t
-  =/  parsed  (parse file src)
-  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
-  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
-  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
-  ?~  prepared  'partial inference; module not checked\0aprelude interface is not supported'
-  =/  prelude-values=(list term)  values.u.prepared
-  =/  prelude-molds=(list term)  molds.u.prepared
-  =/  iface=(unit ifile)  `iface.u.prepared
-  ?.  (module-scope-valid p.parsed prelude-values prelude-molds)
-    'partial inference; module not checked\0amodule has conflicting names'
-  =/  js=jimports-result
-    (resolve-jibb-imports imports.p.parsed externals mark-externals modules ~[file] prelude-values prelude-molds ~ iface)
-  ?:  ?=(%| -.js)  (of-wain:format ~['partial inference; module not checked' p.js])
-  =/  scope-values=(list term)
-    (weld prelude-values (weld (collect-sur-imports imports.p.parsed) (collect-mark-imports imports.p.parsed)))
-  (golden-types-in-context-core file src externals mark-externals resolved.p.js scope-values prelude-molds iface prepared)
+  ?~  prepared  'prelude interface is not supported'
+  (full-types-in-context file src externals mark-externals modules prepared)
 ::
-::  +golden-types-with-marks: supply declared mark types separately from /sur
-::    entries, as [mark result] with the result from +read-mark:jibb-import.
-::    Unknown, duplicated, failed and undeclared entries never resolve a mold.
-::
-::  Callers pass unchanged structured reader results; graph validation
-::  remains in the existing bridge, and failures stay available lazily.
+
 ++  reader-result-for-checker
   |=  result=*
   ^-  *
@@ -15986,135 +24934,9 @@
 ++  golden-types-with-marks
   |=  [file=path src=@t externals=iexternals mark-externals=imark-externals]
   ^-  @t
-  (golden-types-in-context file src externals mark-externals ~ ~ ~ ~)
+  (full-types-in-context file src externals mark-externals ~ ~)
 ::
-++  golden-types-in-context
-  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals jimports=ijimports prelude-values=(list term) reserved-molds=(list term) prelude=(unit ifile)]
-  ^-  @t
-  (golden-types-in-context-core file src externals mark-externals jimports prelude-values reserved-molds prelude ~)
-++  golden-types-in-context-core
-  |=  [file=path src=@t externals=iexternals mark-externals=imark-externals jimports=ijimports prelude-values=(list term) reserved-molds=(list term) prelude=(unit ifile) prepared=(unit iprelude)]
-  ^-  @t
-  =.  reserved-molds  (weld reserved-molds (turn jimports |=(j=[face=term interface=ifile] face.j)))
-  =/  parsed  (parse file src)
-  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
-  =/  duplicate=(unit idiag)  (duplicate-defs defs.p.parsed)
-  ?^  duplicate  (duplicate-fields-report file src u.duplicate)
-  ?:  (module-has-reserved p.parsed)
-    'module has a reserved proj or unface name'
-  =/  ds=(list def)  defs.p.parsed
-  =/  molds=imolds  (collect-simple-molds ds)
-  =/  globals=(list term)  (weld prelude-values (weld (turn jimports |=(j=[face=term interface=ifile] face.j)) (global-value-names ds)))
-  =/  surs=(list term)  (collect-sur-imports imports.p.parsed)
-  =/  marks=(list term)  (collect-mark-imports imports.p.parsed)
-  =/  resolution=iresolved  (resolve-groups ds molds globals externals surs mark-externals marks jimports reserved-molds file prelude)
-  =/  cycles=(list icycle)  (definite-value-cycles ds globals)
-  =/  env=ienv  env.resolution
-  =/  recovered=(list term)  ~
-  =/  eligible=?
-    ?&  ?=(~ imports.p.parsed)
-       ?=(~ jimports)
-       !?=([%ui %api *] file)
-       !?=([%ui %stores *] file)
-       !(lien (global-value-names ds) |=(n=term =(n %main)))
-       !(module-values-complete ds env)
-       (lte (met 3 src) 65.536)
-       (lte (lent ds) 64)
-       ?|  &(?=(~ prepared) ?=(~ prelude) ?=(~ prelude-values) ?=(~ reserved-molds) (module-scope-valid p.parsed ~ ~) (dg-source-candidate ds 64))
-           ?&  ?=(^ prepared)
-               ?=(^ prelude)
-               =(u.prelude iface.u.prepared)
-               =(prelude-values values.u.prepared)
-               =(reserved-molds molds.u.prepared)
-               (module-scope-valid p.parsed values.u.prepared molds.u.prepared)
-               (dg-prepared-candidate ds 64)
-           ==
-       ==
-    ==
-  =/  transaction=(unit dgcommit)
-    ?.  eligible  ~
-    ?~  prepared  (dg-root-source file src)
-    (dg-root-prepared file src u.prepared)
-  =.  recovered
-    ?~  transaction  ~
-    ?.  &((module-values-complete ds env.u.transaction) (dg-interface-safe env.u.transaction))  ~
-    (turn (skim env.u.transaction |=(entry=[name=term scheme=ischeme] ?=(~ (ienv-lookup name.entry env)))) |=(entry=[name=term scheme=ischeme] name.entry))
-  =.  env
-    ?~  transaction  env
-    ?:  &((module-values-complete ds env.u.transaction) (dg-interface-safe env.u.transaction))  env.u.transaction
-    env
-  =/  source-defs=(map term def)  (direct-checked-gates ds env)
-  =/  heads=(unit igate-prelude-evidence)  (direct-prelude-evidence ds prelude)
-  =/  lines=(list @t)  ~
-  |-
-  ?~  ds  (of-wain:format ['partial inference; module not checked' (flop lines)])
-  =/  d=def  i.ds
-  ?:  ?=(%mold -.d)
-    $(ds t.ds, lines [(show-partial-mold file src d molds) lines])
-  ?.  (unique-value-name name.d globals)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: name already in scope") lines])
-  =/  cycle=(list icycle)  (skim cycles |=(c=icycle =(name.c name.d)))
-  ?^  cycle
-    =/  diag=idiag  ["non-gate value depends on itself through a cycle" ~[[first.i.cycle "value in cycle"] [next.i.cycle "dependency in cycle"]]]
-    $(ds t.ds, lines [(show-inference-diagnostic file src name.d diag) lines])
-  ?:  (lien recovered |=(n=term =(n name.d)))
-    =/  found=(unit ischeme)  (ienv-lookup name.d env)
-    ?~  found  $(ds t.ds, lines [(crip "++ {(trip name.d)}: committed definition unavailable") lines])
-    ?:  (itype-has-hidden-recursive typ.u.found)
-      $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive mold name is not available in this scope") lines])
-    ?:  (itype-has-hidden-generic typ.u.found)
-      $(ds t.ds, lines [(crip "++ {(trip name.d)}: generic union name is not available in this scope") lines])
-    =/  typ=itype  (canonical-itype typ.u.found vars.u.found)
-    =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
-    $(ds t.ds, lines [line lines])
-  ?:  (lien grouped.resolution |=(n=term =(n name.d)))
-    =/  found=(unit ischeme)  (ienv-lookup name.d env)
-    ?~  found  $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive group unavailable") lines])
-    =/  typ=itype  (canonical-itype typ.u.found vars.u.found)
-    =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
-    $(ds t.ds, lines [line lines])
-  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
-  =/  initial=istate  [0 ~ ~ ~ molds globals externals surs mark-externals marks jimports reserved-molds ~ ~ ~ | file top prelude ~ 256 ~ ~ ~ ~ ~ ~]
-  =.  gate-defs.initial  source-defs
-  =.  head-evidence.initial  heads
-  =.  initial  (reserve-def-caps val.d initial)
-  =/  result=iresult
-    ?:  |(?=(%gate -.val.d) ?=(%gate-wide -.val.d) ?=(^ (unfaced-gate val.d env initial)))
-      (infer-recursive-gate d env initial)
-    (infer-fragment val.d env initial)
-  ?:  ?=(%| -.result)
-    $(ds t.ds, lines [(show-inference-diagnostic file src name.d p.result) lines])
-  =.  state.p.result  (promote-restricted-numbers state.p.result env)
-  =.  state.p.result  (default-hole-numbers holes.state.p.result holes.initial state.p.result env !(itype-has-gate (itype-normalize typ.p.result sub.state.p.result)))
-  =/  hole=(unit idiag)  (unresolved-hole holes.state.p.result holes.initial state.p.result)
-  ?^  hole
-    $(ds t.ds, lines [(show-inference-diagnostic file src name.d u.hole) lines])
-  =/  merged=(unit [first=icap second=icap])
-    (merged-capitals caps.state.p.result sub.state.p.result)
-  ?^  merged
-    =/  diag=idiag
-      ["distinct type variables `{(trip name.first.u.merged)}` and `{(trip name.second.u.merged)}` must not be forced equal; use the same capital for a shared type" ~[[at.first.u.merged "first type variable"] [at.second.u.merged "second type variable"]]]
-    $(ds t.ds, lines [(show-inference-diagnostic file src name.d diag) lines])
-  ?:  (constrained-capitals caps.state.p.result sub.state.p.result)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: explicit capital constraints are not supported by partial inference") lines])
-  =/  typ=itype  (default-decimals (itype-normalize typ.p.result sub.state.p.result))
-  ?:  (pending-null tags.state.p.result sub.state.p.result)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: `~` needs context in partial inference") lines])
-  ?:  |((pending-tags tags.state.p.result sub.state.p.result) (itype-has-tag typ))
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: tag needs context in partial inference") lines])
-  ?:  (itype-has-hidden-recursive typ)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: recursive mold name is not available in this scope") lines])
-  ?:  (itype-has-hidden-generic typ)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: generic union name is not available in this scope") lines])
-  ?:  (unsupported-atom-vars typ caps.state.p.result binders.state.p.result sub.state.p.result)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: unresolved aura-variable inference") lines])
-  =/  vars=(list @ud)  (unique-type-vars (itype-vars typ))
-  ?~  (width-finalize projections.state.p.result sub.state.p.result vars)
-    $(ds t.ds, lines [(crip "++ {(trip name.d)}: record projection elaboration needs unsupported inference") lines])
-  =/  named=[typ=itype vars=(list @ud)]  (cap-names typ vars caps.state.p.result sub.state.p.result)
-  =/  printable=itype  (canonical-itype named)
-  =/  line=@t  (crip "++ {(trip name.d)}: {(show-itype printable ~)}{(show-atom-constraint printable)}")
-  $(ds t.ds, lines [line lines])
+
 ::  Experimental module-owned pending-constraint generalization only.
 ::  Inputs, IDs and substitution come from one checker-owned transaction.
 +$  dgscan  [ids=(list @ud) fuel=@ud]
@@ -16129,14 +24951,16 @@
     =/  node-id=@ud  ?:(?=(%tag -.t) id.t +.t)
     =/  found=(unit itype)  (itype-lookup node-id sub)
     ?~  found  $(todo t.todo, ids [node-id ids])
-    ?:  &(?=(?(%rvar %rnvar) -.u.found) =(node-id +.u.found))
+    ?:  &(?=(?(%fvar %rvar %rnvar) -.u.found) =(node-id +.u.found))
       $(todo t.todo, ids [node-id ids])
     $(todo [u.found t.todo])
-  ?:  ?=(%jrec -.t)  $(todo t.todo)
   ?+  -.t  ~
+    %opaque  $(todo [body.t (weld args.t t.todo)])
+    %refined  $(todo [proof.t t.todo])
+    %mrec  $(todo (weld args.t t.todo))
     %collection  $(todo (weld args.t t.todo))
     %union  $(todo (weld args.t (weld cases.t t.todo)))
-    %face  $(todo [body.t t.todo])
+    ?(%face %slot)  $(todo [body.t t.todo])
     %fn  $(todo [sample.t product.t t.todo])
     %cell  $(todo [hed.t tal.t t.todo])
     %atom  $(todo t.todo)
@@ -16146,28 +24970,6 @@
     %empty  $(todo t.todo)
     %const  $(todo t.todo)
   ==
-::
-++  dg-scan-ids
-  |=  [ids=(list @ud) sub=isub fuel=@ud blocked=(list @ud)]
-  ^-  (unit dgscan)
-  ?~  ids  `[blocked fuel]
-  =/  one=(unit dgscan)  (dg-scan ~[[%var i.ids]] sub fuel blocked)
-  ?~  one  ~
-  $(ids t.ids, fuel fuel.u.one, blocked ids.u.one)
-::
-++  dg-env
-  |=  [env=ienv sub=isub fuel=@ud blocked=(list @ud)]
-  ^-  (unit dgscan)
-  ?~  env  `[blocked fuel]
-  =/  sc=ischeme  scheme.i.env
-  ::  Quantifiers are local to the scheme: first find raw free IDs, then
-  ::  follow those IDs in the module substitution without capturing them.
-  =/  raw=(unit dgscan)  (dg-scan ~[typ.sc] ~ fuel ~)
-  ?~  raw  ~
-  =/  free=(list @ud)  (skim ids.u.raw |=(n=@ud !(lien vars.sc |=(q=@ud =(q n)))))
-  =/  resolved=(unit dgscan)  (dg-scan-ids free sub fuel.u.raw blocked)
-  ?~  resolved  ~
-  $(env t.env, fuel fuel.u.resolved, blocked ids.u.resolved)
 ::
 ++  dg-obligations
   |=  [pending=(list dgo) sub=isub fuel=@ud blocked=(list @ud)]
@@ -16190,450 +24992,6 @@
   ?~  reached  ~
   $(tags t.tags, fuel fuel.u.reached, blocked ids.u.reached)
 ::
-++  dg-generalize
-  |=  [typ=itype env=ienv pending=(list dgo) tags=(list ipending) captured=(list @ud) state=istate fuel=@ud]
-  ^-  (unit ischeme)
-  ::  Bound the obligation list and all graph/substitution walks. The
-  ::  substitution is assumed checker-owned and occurs-checked.
-  ?:  (gth (lent pending) 64)  ~
-  =/  capt=(unit dgscan)  (dg-scan-ids captured sub.state fuel ~)
-  ?~  capt  ~
-  =/  env-free=(unit dgscan)  (dg-env env sub.state fuel.u.capt ids.u.capt)
-  ?~  env-free  ~
-  =/  obligations=(unit dgscan)  (dg-obligations pending sub.state fuel.u.env-free ids.u.env-free)
-  ?~  obligations  ~
-  =/  tagged=(unit dgscan)  (dg-tags tags sub.state fuel.u.obligations ids.u.obligations)
-  ?~  tagged  ~
-  =/  bounded=(unit dgscan)  (dg-scan ~[typ] sub.state fuel.u.tagged ~)
-  ?~  bounded  ~
-  =/  normalized=itype  (itype-normalize typ sub.state)
-  =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
-  =/  quantified=(list @ud)  (skim vars |=(n=@ud !(lien ids.u.tagged |=(b=@ud =(b n)))))
-  `(cap-names normalized quantified caps.state sub.state)
-::
-+$  dgcommit  [env=ienv state=istate]
-:: A branch literal must not acquire a value face through replay.
-++  dg-literal-target-safe
-  |=  target=itype
-  ^-  ?
-  ?:  ?=(%union -.target)
-    (levy cases.target |=(c=itype ?=(?(%const %cell) -.c)))
-  ?=(?(%const %atom %any-atom %flag %noun) -.target)
-::
-++  dg-replay-edges
-  |=  [edges=(list dgo) state=istate fuel=@ud]
-  ^-  (unit istate)
-  ?~  edges  `state
-  ?:  =(0 fuel)  ~
-  =/  trial=ifit  (itype-fit left.i.edges right.i.edges sub.state next.state)
-  ?.  ?=(%ok -.trial)  ~
-  =/  valid=?
-    ?:  ?=(%tag -.left.i.edges)
-      ?.  constructor.left.i.edges
-        =/  closed=(unit dgscan)  (dg-scan ~[right.i.edges] sub.trial 512 ~)
-        ?~  closed  |
-        ?^  ids.u.closed  |
-        (dg-literal-target-safe (itype-normalize right.i.edges sub.trial))
-      =((itype-walk left.i.edges sub.trial) (itype-walk right.i.edges sub.trial))
-    =((itype-walk left.i.edges sub.trial) (itype-walk right.i.edges sub.trial))
-  ?.  valid  ~
-  $(edges t.edges, state state(sub sub.trial, next next.trial), fuel (dec fuel))
-::
-++  dg-close-env
-  |=  [env=ienv sub=isub fuel=@ud]
-  ^-  (unit ienv)
-  ?~  env  `~
-  ?:  =(0 fuel)  ~
-  =/  s=ischeme  scheme.i.env
-  :: Quantified IDs are scheme-local and cannot be rewritten on publication.
-  ?.  (levy vars.s |=(n=@ud ?=(~ (itype-lookup n sub))))  ~
-  =/  bounded=(unit dgscan)  (dg-scan ~[typ.s] sub (dec fuel) ~)
-  ?~  bounded  ~
-  =/  normalized=itype  (itype-normalize typ.s sub)
-  ?:  (itype-has-tag normalized)  ~
-  =/  vars=(list @ud)  (unique-type-vars (itype-vars normalized))
-  ?.  (levy vars |=(n=@ud (lien vars.s |=(v=@ud =(v n)))))  ~
-  =/  rest=(unit ienv)  (dg-close-env t.env sub fuel.u.bounded)
-  ?~  rest  ~
-  `[[name.i.env [normalized vars.s]] u.rest]
-::
-:: A deferred boolean branch has exactly the two literal flag patterns.
-:: Arms are inferred in order. Equal types are retained; two direct pending
-:: literals may instead retain source-owned obligations for later context.
-++  dg-boolean-patterns
-  |=  e=expr
-  ^-  ?
-  ?.  ?=(%branch -.e)  |
-  ?~  arms.e  |
-  ?~  t.arms.e  |
-  ?^  t.t.arms.e  |
-  =/  x=arm  i.arms.e
-  =/  y=arm  i.t.arms.e
-  ?.  &(?=(%lit -.pat.x) ?=(%lit -.pat.y))  |
-  ?.  &(=(%loobean form.lit.pat.x) =(%loobean form.lit.pat.y))  |
-  !=(val.lit.pat.x val.lit.pat.y)
-:: Only a direct source literal which created its own unbound pending tag
-:: may create a branch edge. The caller must retain the exact source and state.
-++  dg-owned-arm-literal
-  |=  [e=expr t=itype tags=(list ipending) sub=isub initial=@ud]
-  ^-  ?
-  ?.  ?=(%lit -.e)  |
-  ?.  ?=(%tag -.t)  |
-  ?:  constructor.t  |
-  ?.  =(lit.e literal.t)  |
-  ?:  (lth id.t initial)  |
-  ?^  (itype-lookup id.t sub)  |
-  (lien tags |=(x=ipending &(=(id.x id.t) =(literal.x literal.t))))
-++  dg-boolean-branch
-  |=  [e=expr env=ienv state=istate]
-  ^-  iresult
-  ?.  (dg-boolean-patterns e)  [%| ["deferred branch patterns need unsupported inference" ~]]
-  ?>  ?=(%branch -.e)
-  ?>  ?=(^ arms.e)
-  ?>  ?=(^ t.arms.e)
-  =/  x=arm  i.arms.e
-  =/  y=arm  i.t.arms.e
-  =/  subject=iresult  (infer-fragment subject.e env state)
-  ?:  ?=(%| -.subject)  subject
-  =/  su=(unit isub)  (itype-unify typ.p.subject [%flag ~] sub.state.p.subject)
-  ?~  su  [%| ["deferred branch subject does not unify with ?" ~]]
-  =/  left=iresult  (infer-fragment val.x env state.p.subject(sub u.su))
-  ?:  ?=(%| -.left)  left
-  =/  right=iresult  (infer-fragment val.y env state.p.left)
-  ?:  ?=(%| -.right)  right
-  =/  joined=(unit [typ=itype sub=isub])  (itype-branch-join typ.p.left typ.p.right sub.state.p.right)
-  ?^  joined  [%& typ.u.joined state.p.right(sub sub.u.joined)]
-  ?.  (dg-stable-fit typ.p.left typ.p.right sub.state.p.right)
-    =/  st=istate  state.p.right
-    ?.  (dg-owned-arm-literal val.x typ.p.left tags.st sub.st next.state)
-      [%| ["deferred branch arm context needs unsupported inference" ~]]
-    ?.  (dg-owned-arm-literal val.y typ.p.right tags.st sub.st next.state)
-      [%| ["deferred branch arm context needs unsupported inference" ~]]
-    ?>  ?=(%tag -.typ.p.left)
-    ?>  ?=(%tag -.typ.p.right)
-    ?:  =(id.typ.p.left id.typ.p.right)
-      [%| ["deferred branch arm context needs unsupported inference" ~]]
-    ?:  (gth (lent obligations.st) 62)
-      [%| ["deferred branch arm context needs unsupported inference" ~]]
-    =/  result=itype  [%var next.st]
-    =/  ex=dgo  [typ.p.left result (span-of val.x) (span-of e)]
-    =/  ey=dgo  [typ.p.right result (span-of val.y) (span-of e)]
-    [%& result st(next +(next.st), obligations [ex ey obligations.st])]
-  [%& typ.p.left state.p.right]
-::
-::  A direct tuple literal may wait for a later exact result context.
-::  Each pending literal retains its source tag and its own fit obligation.
-++  dg-infer-tuple-items
-  |=  [items=(list item) env=ienv state=istate]
-  ^-  iresult
-  ?~  items  [%| ["empty cell is not supported by partial inference" ~]]
-  =/  head=iresult  (infer-fragment val.i.items env state)
-  ?:  ?=(%| -.head)  head
-  =/  typ=itype  typ.p.head
-  =/  st=istate  state.p.head
-  =/  adjusted=(unit [typ=itype state=istate])
-    ?.  (dg-owned-arm-literal val.i.items typ tags.st sub.st next.state)  `[typ st]
-    ?:  (gth (lent obligations.st) 63)  ~
-    =/  pending=itype  [%var next.st]
-    =/  edge=dgo  [typ pending (span-of val.i.items) at.i.items]
-    `[pending st(next +(next.st), obligations [edge obligations.st])]
-  ?~  adjusted  [%| ["deferred tuple context needs unsupported inference" ~]]
-  =.  typ  typ.u.adjusted
-  =.  st  state.u.adjusted
-  =.  typ  ?~(face.i.items typ [%face u.face.i.items typ])
-  ?~  t.items  [%& typ st]
-  =/  tail=iresult  $(items t.items, state st)
-  ?:  ?=(%| -.tail)  tail
-  [%& [%cell typ typ.p.tail] state.p.tail]
-::
-::  Deferred inference uses only source forms whose successful fit sites are
-::  guarded below; a shared source-node budget bounds this screen.
-++  dg-safe-expressions
-  |=  [todo=(list expr) fuel=@ud]
-  ^-  (unit @ud)
-  ?~  todo  `fuel
-  =/  first=(unit @ud)  (dg-safe-expression i.todo fuel)
-  ?~  first  ~
-  $(todo t.todo, fuel u.first)
-++  dg-safe-items
-  |=  [items=(list item) fuel=@ud]
-  ^-  (unit @ud)
-  ?~  items  `fuel
-  =/  first=(unit @ud)  (dg-safe-expression val.i.items fuel)
-  ?~  first  ~
-  $(items t.items, fuel u.first)
-++  dg-safe-expression
-  |=  [e=expr fuel=@ud]
-  ^-  (unit @ud)
-  ?:  =(0 fuel)  ~
-  =.  fuel  (dec fuel)
-  ?+  -.e  ~
-    ?(%lit %ctor)  `fuel
-    %wing  ?:(?=([@ ~] names.e) `fuel ~)
-    %str
-      ?.  (levy pieces.e |=(p=piece ?=(%text -.p)))  ~
-      `fuel
-    %group  $(e inner.e, fuel fuel)
-    %body
-      ?^  defs.e  ~
-      $(e final.e, fuel fuel)
-    %gate  $(e body.e, fuel fuel)
-    %gate-wide  $(e body.e, fuel fuel)
-    %tuple  (dg-safe-items items.e fuel)
-    %branch
-      ?.  (dg-boolean-patterns e)  ~
-      ?>  ?=(^ arms.e)
-      ?>  ?=(^ t.arms.e)
-      =/  subject=(unit @ud)  $(e subject.e, fuel fuel)
-      ?~  subject  ~
-      (dg-safe-expressions ~[val.i.arms.e val.i.t.arms.e] u.subject)
-    %cast  $(e val.e, fuel fuel)
-    %call
-      =/  head=(unit @ud)  $(e head.e, fuel fuel)
-      ?~  head  ~
-      (dg-safe-expressions args.e u.head)
-  ==
-::  Exact normalized equality is preserved by all later substitutions.
-::  The bounded scan declines opaque types and oversized inputs.
-++  dg-stable-fit
-  |=  [actual=itype expected=itype sub=isub]
-  ^-  ?
-  ?~  (dg-scan ~[actual expected] sub 512 ~)  |
-  =((itype-normalize actual sub) (itype-normalize expected sub))
-::
-::  A positional call peels sample-slot faces during its separate face check.
-::  Require its argument, sample and result closed so that check stays valid.
-++  dg-stable-call-fit
-  |=  [actual=itype expected=itype product=itype sub=isub positional=?]
-  ^-  ?
-  =/  checked=(unit dgscan)  (dg-scan ~[actual expected product] sub 512 ~)
-  ?~  checked  |
-  ?:  &(positional ?=(^ ids.u.checked))  |
-  =((itype-normalize actual sub) (itype-normalize expected sub))
-::
-::  One definition attempt retains state only when inference succeeds.
-+$  dg-step  [env=ienv state=istate pending=(list dgo)]
-++  dg-stage-one
-  |=  [d=def env=ienv state=istate]
-  ^-  (unit dg-step)
-  ?>  ?=(%value -.d)
-  ?~  (dg-safe-expression val.d 512)  ~
-  =/  local=istate  (reserve-def-caps val.d state)
-  :: This first slice declines all written capitals and holes/projections.
-  ?^  caps.local  ~
-  =/  ordinary=iresult  (infer-fragment val.d env local)
-  ?:  ?=(%| -.ordinary)  ~
-  =/  typ=itype  typ.p.ordinary
-  =/  after=istate  state.p.ordinary
-  =/  edges=(list dgo)  obligations.after
-  ?.  =(binders.after binders.state)  ~
-  ?.  =(molds.after molds.state)  ~
-  ?.  =(globals.after globals.state)  ~
-  ?.  =(externals.after externals.state)  ~
-  ?.  =(surs.after surs.state)  ~
-  ?.  =(mark-externals.after mark-externals.state)  ~
-  ?.  =(marks.after marks.state)  ~
-  ?.  =(jimports.after jimports.state)  ~
-  ?.  =(reserved-molds.after reserved-molds.state)  ~
-  ?.  =(params.after params.state)  ~
-  ?.  =(active.after active.state)  ~
-  ?.  =(in-mold.after in-mold.state)  ~
-  ?.  =(at.after at.state)  ~
-  ?.  =(top-molds.after top-molds.state)  ~
-  ?.  =(prelude.after prelude.state)  ~
-  ?.  =(gate-defs.after gate-defs.state)  ~
-  ?.  =(head-evidence.after head-evidence.state)  ~
-  ?.  =(grec-index.after grec-index.state)  ~
-  ?.  =(defer.after defer.state)  ~
-  ?.  =(holes.after holes.state)  ~
-  ?.  =(caps.after caps.state)  ~
-  ?.  =(projections.after projections.state)  ~
-  ?:  (unsupported-atom-vars (itype-normalize typ sub.after) caps.after binders.after sub.after)  ~
-  ?:  (itype-has-nvar (itype-normalize typ sub.after))  ~
-  =/  scheme=(unit ischeme)  (dg-generalize typ env edges tags.after ~ after 32.768)
-  ?~  scheme  ~
-  `[[[name.d u.scheme] env] after edges]
-::  Retry only definitions that did not infer. Successful definitions are
-::  committed into the local transaction, never published until all close.
-++  dg-stage
-  |=  [ds=(list def) base=ienv env=ienv state=istate pending=(list dgo) fuel=@ud]
-  ^-  (unit dgcommit)
-  ?:  (gth fuel 64)  ~
-  ?:  (gth (lent ds) fuel)  ~
-  =/  remaining=(list def)  ds
-  =/  waiting=(list def)  ~
-  =/  progress=?  |
-  =/  attempts=@ud  (mul fuel fuel)
-  |-
-  ?~  remaining
-    ?^  waiting
-      ?.  progress  ~
-      $(remaining (flop waiting), waiting ~, progress |)
-    =/  replayed=(unit istate)  (dg-replay-edges pending state 64)
-    ?~  replayed  ~
-    ?:  (pending-tags tags.u.replayed sub.u.replayed)  ~
-    =/  closed-edges=(unit dgscan)  (dg-obligations pending sub.u.replayed 32.768 ~)
-    ?~  closed-edges  ~
-    ?^  ids.u.closed-edges  ~
-    =/  rechecked=(unit istate)  (dg-replay-edges pending u.replayed 64)
-    ?~  rechecked  ~
-    ?.  =(sub.u.rechecked sub.u.replayed)  ~
-    ?.  =(next.u.rechecked next.u.replayed)  ~
-    =/  closed=(unit ienv)  (dg-close-env env sub.u.replayed 32.768)
-    ?~  closed  ~
-    `[[u.closed u.replayed(defer ~, obligations ~)]]
-  ?:  =(0 attempts)  ~
-  =.  attempts  (dec attempts)
-  =/  d=def  i.remaining
-  ?:  ?=(%mold -.d)  $(remaining t.remaining)
-  ?^  (ienv-lookup name.d base)  $(remaining t.remaining)
-  ?^  (ienv-lookup name.d env)  ~
-  =/  done=(unit dg-step)  (dg-stage-one d env state)
-  ?~  done  $(remaining t.remaining, waiting [d waiting])
-  $(remaining t.remaining, env env.u.done, state state.u.done, pending pending.u.done, progress &)
-::
-::  Cheap bounded eligibility check on the already parsed source. This
-::  deliberately covers only direct constructor calls beneath transparent
-::  groups, gates, casts and definition-free bodies. Other shapes decline
-::  this fallback without a second parse or resolution pass.
-++  dg-direct-source
-  |=  [e=expr fuel=@ud]
-  ^-  ?
-  ?:  =(0 fuel)  |
-  ?+  -.e  |
-    %group  $(e inner.e, fuel (dec fuel))
-    %gate  $(e body.e, fuel (dec fuel))
-    %gate-wide  $(e body.e, fuel (dec fuel))
-    %cast  $(e val.e, fuel (dec fuel))
-    %body  ?~(defs.e $(e final.e, fuel (dec fuel)) |)
-    %call
-      ?.  ?=([* ~] args.e)  |
-      ?=(%ctor -.i.args.e)
-  ==
-++  dg-source-candidate
-  |=  [ds=(list def) fuel=@ud]
-  ^-  ?
-  ?~  ds  |
-  ?:  =(0 fuel)  |
-  ?.  ?=(%value -.i.ds)  $(ds t.ds, fuel (dec fuel))
-  ?:  (dg-direct-source val.i.ds 64)  &
-  $(ds t.ds, fuel (dec fuel))
-::
-++  dg-prepared-source
-  |=  [e=expr fuel=@ud]
-  ^-  ?
-  ?:  (dg-direct-source e fuel)  &
-  ?:  =(0 fuel)  |
-  ?+  -.e  |
-    %group  $(e inner.e, fuel (dec fuel))
-    %gate  $(e body.e, fuel (dec fuel))
-    %gate-wide  $(e body.e, fuel (dec fuel))
-    %cast  $(e val.e, fuel (dec fuel))
-    %body  ?~(defs.e $(e final.e, fuel (dec fuel)) |)
-    %tuple  &
-  ==
-++  dg-prepared-candidate
-  |=  [ds=(list def) fuel=@ud]
-  ^-  ?
-  ?~  ds  |
-  ?:  =(0 fuel)  |
-  ?.  ?=(%value -.i.ds)  $(ds t.ds, fuel (dec fuel))
-  ?:  (dg-prepared-source val.i.ds 64)  &
-  $(ds t.ds, fuel (dec fuel))
-::
-++  dg-interface-safe
-  |=  [env=ienv]
-  ^-  ?
-  ?~  env  &
-  =/  sc=ischeme  scheme.i.env
-  ?:  |((itype-has-hidden-recursive typ.sc) (itype-has-hidden-generic typ.sc))  |
-  $(env t.env)
-::  Parse status and the transaction result come from the same source parse.
-+$  dgparse  [parsed=? result=(unit dgcommit)]
-++  dg-root-source
-  |=  [at=path src=@t]
-  ^-  (unit dgcommit)
-  result:(dg-root-detail at src)
-++  dg-root-detail
-  |=  [at=path src=@t]
-  ^-  dgparse
-  =/  parsed  (parse at src)
-  ?:  ?=(%| -.parsed)  [| ~]
-  =/  transact
-    |.
-      ?^  imports.p.parsed  ~
-      ?.  (module-scope-valid p.parsed ~ ~)  ~
-      ?^  (duplicate-defs defs.p.parsed)  ~
-      =/  defs=(list def)  defs.p.parsed
-      ?:  (gth (lent defs) 64)  ~
-      =/  molds=imolds  (collect-simple-molds defs)
-      =/  globals=(list term)  (global-value-names defs)
-      =/  resolution=iresolved  (resolve-groups defs molds globals ~ ~ ~ ~ ~ ~ at ~)
-      ?^  grouped.resolution  ~
-      ?^  artifacts.resolution  ~
-      =/  base=ienv  env.resolution
-      =/  free=(unit dgscan)  (dg-env base ~ 32.768 ~)
-      ?~  free  ~
-      ?^  ids.u.free  ~
-      =/  all=(unit @ud)  (ienv-fresh-id base)
-      ?~  all  ~
-      =/  fresh=@ud  u.all
-      =/  st=istate  *istate
-      =.  st  st(next fresh, defer `~, molds molds, globals globals, at at, top-molds (turn molds |=(m=[name=term body=shape] name.m)), in-mold |, jrec-fuel 256)
-      =/  checked-molds=(each imold-types @t)  (module-mold-types molds st)
-      ?:  ?=(%| -.checked-molds)  ~
-      (dg-stage defs base base st ~ 64)
-    ::
-  [& (transact)]
-::  The caller supplies the trusted prepared prelude. This transaction is
-::  only report evidence; the ordinary module resolver does not publish it.
-++  dg-root-prepared
-  |=  [at=path src=@t prepared=iprelude]
-  ^-  (unit dgcommit)
-  ?:  ?=([%ui %api *] at)  ~
-  ?:  ?=([%ui %stores *] at)  ~
-  ?:  (gth (met 3 src) 65.536)  ~
-  =/  parsed  (parse at src)
-  ?:  ?=(%| -.parsed)  ~
-  ?^  imports.p.parsed  ~
-  ?.  (module-scope-valid p.parsed values.prepared molds.prepared)  ~
-  ?^  (duplicate-defs defs.p.parsed)  ~
-  =/  defs=(list def)  defs.p.parsed
-  ?:  (gth (lent defs) 64)  ~
-  ?:  (lien (global-value-names defs) |=(n=term =(n %main)))  ~
-  ?.  (dg-prepared-candidate defs 64)  ~
-  =/  local-molds=imolds  (collect-simple-molds defs)
-  =/  globals=(list term)  (weld values.prepared (global-value-names defs))
-  =/  iface=ifile  iface.prepared
-  =/  prelude=(unit ifile)  `iface
-  =/  resolution=iresolved
-    (resolve-groups defs local-molds globals ~ ~ ~ ~ ~ molds.prepared at prelude)
-  ?^  grouped.resolution  ~
-  ?^  artifacts.resolution  ~
-  =/  base=ienv  env.resolution
-  =/  templates=ienv
-    (turn molds.iface |=(x=[name=term template=ischeme] [name.x template.x]))
-  =/  all-env=ienv  (weld base (weld values.iface templates))
-  =/  free=(unit dgscan)  (dg-env all-env ~ 32.768 ~)
-  ?~  free  ~
-  ?^  ids.u.free  ~
-  =/  all=(unit @ud)  (ienv-fresh-id all-env)
-  ?~  all  ~
-  =/  fresh=@ud  u.all
-  =/  st=istate  *istate
-  =.  st  st(next fresh, defer `~, molds local-molds, globals globals, at at, reserved-molds molds.prepared, prelude prelude, top-molds (turn local-molds |=(m=[name=term body=shape] name.m)), in-mold |, jrec-fuel 256)
-  =/  checked-molds=(each imold-types @t)  (module-mold-types local-molds st)
-  ?:  ?=(%| -.checked-molds)  ~
-  (dg-stage defs base base st ~ 64)
-::
-::  +ienv-fresh-id: one above the largest type variable or tag ID in env
-::
-::    One pass over every ID in env's schemes, quantified or free, so a
-::    variable numbered from it captures none of them. A %recursive or
-::    %jrec type names its mold and holds no variable, so it is a leaf,
-::    and the pass is linear in the size of the types, with no budget.
-::    A scheme that still holds an unresolved tag declines.
-::
 ++  ienv-fresh-id
   |=  env=ienv
   ^-  (unit @ud)
@@ -16651,6 +25009,8 @@
   |=  [t=itype top=@ud]
   ^-  @ud
   ?-  -.t
+    %opaque  (itype-max-ids args.t (itype-max-id body.t top))
+    %refined  $(t proof.t)
     %var          (max top (var-count id.t))
     %fvar         (max top (var-count id.t))
     %avar         (max top (var-count id.t))
@@ -16658,11 +25018,11 @@
     %nvar         (max top (var-count id.t))
     %rnvar        (max top (var-count id.t))
     %tag          (max top id.t)
-    ?(%atom %any-atom %flag %noun %empty %const %recursive %jrec)  top
+    ?(%atom %any-atom %flag %noun %empty %const %recursive)  top
     %collection  (itype-max-ids args.t top)
-    %grec        (itype-max-ids args.t top)
+    %mrec        (itype-max-ids args.t top)
     %union       (itype-max-ids args.t (itype-max-ids cases.t top))
-    %face        $(t body.t)
+    ?(%face %slot)        $(t body.t)
     %fn          $(t sample.t, top $(t product.t))
     %cell        $(t hed.t, top $(t tal.t))
   ==
@@ -16673,138 +25033,508 @@
   ?~  ts  top
   $(ts t.ts, top (itype-max-id i.ts top))
 ::
-++  dg-eligible-ctor
-  |=  [e=expr head=itype actual=itype expected=itype state=istate]
-  ^-  (unit dgo)
-  ?.  ?=(%call -.e)  ~
-  ?.  ?=([* ~] args.e)  ~
-  ?.  ?=(%ctor -.i.args.e)  ~
-  ?.  ?=(%fn -.head)  ~
-  ?.  ?=(%fn -.expected)  ~
-  ?.  ?=(%tag -.actual)  ~
-  ?.  constructor.actual  ~
-  ?.  ?=(%var -.product.expected)  ~
-  ?^  (itype-lookup id.product.expected sub.state)  ~
-  =/  bounded=(unit dgscan)  (dg-scan ~[sample.expected] sub.state 256 ~)
-  ?~  bounded  ~
-  ?^  ids.u.bounded  ~
-  `[[actual expected (span-of i.args.e) (span-of head.e)]]
-::
-::  Experimental per-module, source-derived recursive tree index.
-::  The two tags and the exact children/list/self layout are fixed-shape
-::  checks, so ordinary definitions incur no type-tree or source scans.
-++  grec-tagged-fields
-  |=  sh=shape
-  ^-  (unit [tag=@ fields=(list field)])
-  ?.  ?=(%cell -.sh)  ~
-  ?~  fields.sh  ~
-  =/  head=field  i.fields.sh
-  ?.  ?=(%bare -.head)  ~
-  ?.  ?=(%const -.shape.head)  ~
-  ?.  &(?=(%term form.lit.shape.head) =(%tas aura.lit.shape.head))  ~
-  `[val.lit.shape.head t.fields.sh]
-++  grec-tree-children
-  |=  [fs=(list field) param=@t]
-  ^-  (unit field)
-  ?~  fs  ~
-  ?~  t.fs  `i.fs
-  ?^  t.t.fs  ~
-  =/  event=field  i.fs
-  =/  kids=field  i.t.fs
-  ?.  &(?=(%face -.event) ?=(%face -.kids))  ~
-  ?.  !=(name.event name.kids)  ~
-  ?.  ?=(%fn -.shape.event)  ~
-  ?.  ?=(%aura -.sample.shape.event)  ~
-  ?.  =(%t aura.sample.shape.event)  ~
-  ?.  ?=(%tvar -.product.shape.event)  ~
-  ?.  =(param name.product.shape.event)  ~
-  `kids
-::
-++  grec-tree-proof
-  |=  [name=term sh=shape]
++$  checked-kind  ?(%library %static-page %page %island %store)
+++  main-matches-template
+  |=  [main=ischeme template=ischeme]
   ^-  ?
-  ?.  ?=(%generic -.sh)  |
-  ?.  ?=([@ ~] vars.sh)  |
-  =/  param=@t  i.vars.sh
-  ?.  ?=(%union -.body.sh)  |
-  ?.  ?=([* [* ~]] cases.body.sh)  |
-  =/  a=(unit [tag=@ fields=(list field)])  (grec-tagged-fields i.cases.body.sh)
-  =/  b=(unit [tag=@ fields=(list field)])  (grec-tagged-fields i.t.cases.body.sh)
-  ?~  a  |
-  ?~  b  |
-  ?.  !=(tag.u.a tag.u.b)  |
-  ?.  ?=([* ~] fields.u.a)  |
-  =/  value=field  i.fields.u.a
-  ?.  ?=(%face -.value)  |
-  ?.  ?=(%aura -.shape.value)  |
-  ?.  =(%t aura.shape.value)  |
-  =/  selected=(unit field)  (grec-tree-children fields.u.b param)
-  ?~  selected  |
-  =/  kids=field  u.selected
-  ?.  ?=(%face -.kids)  |
-  ?.  ?=(%apply -.shape.kids)  |
-  ?.  =(ref.shape.kids ~[%list])  |
-  ?.  ?=([* ~] args.shape.kids)  |
-  =/  self=shape  i.args.shape.kids
-  ?.  ?=(%apply -.self)  |
-  ?.  =(ref.self ~[name])  |
-  ?.  ?=([* ~] args.self)  |
-  ?.  ?=(%tvar -.i.args.self)  |
-  =(name.i.args.self param)
-+$  grec-collected  [molds=imolds proofs=(map term shape)]
-::  Experimental one-layer analysis view, never an exported mold identity.
-++  grec-unfold-view
-  |=  [typ=itype fuel=@ud]
-  ^-  (unit [view=itype left=@ud])
-  ?.  ?=(%grec -.typ)  ~
-  ?:  =(fuel 0)  ~
-  ?.  ?=([* ~] args.typ)  ~
-  =/  sh=shape  proof.typ
-  ?.  (grec-tree-proof name.typ sh)  ~
-  ?>  ?=(%generic -.sh)
-  ?>  ?=([@ ~] vars.sh)
-  ?>  ?=(%union -.body.sh)
-  ?>  ?=([* [* ~]] cases.body.sh)
-  =/  ca=shape  i.cases.body.sh
-  =/  cb=shape  i.t.cases.body.sh
-  ?>  ?=(%cell -.ca)
-  ?>  ?=(%cell -.cb)
-  ?>  ?=([* [* ~]] fields.ca)
-  ?>  ?=([* *] fields.cb)
-  =/  tag-a=field  i.fields.ca
-  =/  tag-b=field  i.fields.cb
-  ?>  ?=(%bare -.tag-a)
-  ?>  ?=(%bare -.tag-b)
-  ?>  ?=(%const -.shape.tag-a)
-  ?>  ?=(%const -.shape.tag-b)
-  =/  text-field=field  i.t.fields.ca
-  ?>  ?=(%face -.text-field)
-  =/  branch=(list field)  t.fields.cb
-  =/  kids=(unit field)  (grec-tree-children branch i.vars.sh)
-  ?~  kids  ~
-  ?>  ?=(%face -.u.kids)
-  =/  children=itype  [%face name.u.kids [%collection %list ~[typ]]]
-  ?>  ?=(^ branch)
-  =/  payload=itype
-    ?~  t.branch  children
-    =/  event=field  i.branch
-    ?>  ?=(%face -.event)
-    [%cell [%face name.event [%fn [%atom %t] i.args.typ]] children]
-  =/  leaf=itype  [%cell [%const lit.shape.tag-a] [%face name.text-field [%atom %t]]]
-  =/  node=itype  [%cell [%const lit.shape.tag-b] payload]
-  `[[%union ~[leaf node] ~ ~ ~] (dec fuel)]
+  ?.  ?=(~ vars.main)  |
+  =/  resolved=(unit itype)  (scheme-display-type main)
+  ?~  resolved  |
+  ?.  ?=(~ (itype-vars u.resolved))  |
+  =/  checked-instance=(unit [typ=itype state=istate])  (instantiate-scheme template *istate)
+  ?~  checked-instance  |
+  =/  instance=[typ=itype state=istate]  u.checked-instance
+  =/  actual=itype  u.resolved
+  =/  target=itype  typ.instance
+  =/  fit=ifit  (direct-invariant actual target sub.state.instance next.state.instance)
+  |(?=(%ok -.fit) (itype-invariant-queued actual target next.state.instance))
+::  Specialize store from its inferred init field, retaining value faces
+::  before comparing the complete closed type with the prelude template.
+++  main-matches-store-template
+  |=  [main=ischeme template=ischeme]
+  ^-  ?
+  =/  instance=(unit [typ=itype state=istate])  (instantiate-scheme main *istate)
+  ?~  instance  |
+  =/  resolved=(unit itype)  (itype-realize typ.u.instance sub.state.u.instance)
+  ?~  resolved  |
+  =/  parts=(unit [init=itype update=itype])  (store-value-parts u.resolved)
+  ?~  parts  |
+  =/  closed=(unit itype)  (template-apply template ~[init.u.parts])
+  ?~  closed  |
+  =/  presentation=itype  [%cell [%face %init init.u.parts] [%face %update [%noun ~]]]
+  =/  fit=ifit  (direct-invariant (itype-slots-as-faces presentation) (itype-slots-as-faces u.closed) sub.state.u.instance next.state.u.instance)
+  ?=(%ok -.fit)
+::  Classification failures retain the inferred main type and its source.
+++  main-kind-diagnostic
+  |=  [at=path src=@t main=(unit def) env=ienv kind=(unit checked-kind)]
+  ^-  idiag
+  =/  site=span  ?~(main *span (definition-name-site at src at.u.main))
+  =/  scheme=(unit ischeme)  (ienv-lookup %main env)
+  =/  resolved=(unit itype)  ?~(scheme ~ (scheme-display-type u.scheme))
+  =/  message=tape
+    ?^  kind
+      ?+  u.kind  "main's inferred type cannot establish its module kind"
+        %island  "island main needs closed, gate-free data and model types"
+        %page  "page main needs a load gate returning ask and a view returning element !!"
+        %store  "store main does not fit its state and poke declarations"
+      ==
+    ?~  resolved  "main's type remains unresolved; add a `^-`"
+    ?:  ?=(%fn -.u.resolved)
+      "main has gate type {(show-itype u.resolved ~)}; expected an element, page, program, or store"
+    "main has type {(show-itype u.resolved ~)}; expected an element, page, program, or store"
+  =/  note=tape
+    ?~  resolved  "main's type remains unresolved"
+    ?:  &(?=(~ kind) ?=(%fn -.u.resolved))  "main has a gate type"
+    (site-type-note "main" u.resolved ~)
+  [message ~[[site note]]]
 ::
-++  grec-collect-molds
+++  checked-main-kind
+  |=  [iface=ifile prelude=(unit ifile)]
+  ^-  (unit checked-kind)
+  =/  main=(unit ischeme)  (ienv-lookup %main values.iface)
+  ?~  main  `%library
+  ?~  prelude  ~
+  =/  resolved=(unit itype)  (scheme-display-type u.main)
+  ?~  resolved  ~
+  =/  program=(unit ischeme)  (find-jibb-mold %program u.prelude)
+  =/  page=(unit ischeme)  (find-jibb-mold %page u.prelude)
+  =/  store=(unit ischeme)  (find-jibb-mold %store u.prelude)
+  =/  island=?  ?~(program | (main-matches-template u.main u.program))
+  =/  dynamic=?  ?~(page | (main-matches-template u.main u.page))
+  ::  A bare generic is not itself an element; otherwise specialization
+  ::  would assign an arbitrary polymorphic main to the static-page kind.
+  =/  static=?  &(?=(%opaque -.u.resolved) ?=(^ (static-main-specialized values.iface prelude)))
+  =/  storage=?  ?~(store | (main-matches-store-template u.main u.store))
+  =/  found=(list checked-kind)  ~
+  =?  found  island  [%island found]
+  =?  found  dynamic  [%page found]
+  =?  found  static  [%static-page found]
+  =?  found  storage  [%store found]
+  ?.  ?=([* ~] found)  ~
+  `i.found
+::
+::  Render only checked schemes, in the source definition order.  Kind is
+::  evidence supplied by the module checker, not guessed from syntax here.
+::  Rendering chooses only names available in this module. These aliases
+::  never change the checked interface: report-interface builds a disposable
+::  print view, preserving nominal identity and arguments in the real scheme.
++$  report-aliases  (list [name=@t template=ischeme])
+++  report-mold-aliases
+  |=  [molds=imold-types face=(unit term)]
+  ^-  report-aliases
+  ?~  molds  ~
+  =/  label=@t  ?~(face name.i.molds (crip "{(trip name.i.molds)}.{(trip u.face)}"))
+  [[label template.i.molds] $(molds t.molds)]
+++  report-import-aliases
+  |=  [imports=(list import) cache=jcache]
+  ^-  report-aliases
+  ?~  imports  ~
+  ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
+  =/  found=(unit ifile)  (find-jibb-cache (weld path.i.imports `path`~[%jibb]) cache)
+  ?~  found  $(imports t.imports)
+  (weld (report-mold-aliases molds.u.found `face.i.imports) $(imports t.imports))
+::  Prelude group faces are in scope without a written import.  Their
+::  checked mold entries therefore provide ordinary qualified report names.
+++  report-group-aliases
+  |=  groups=(list iprelude-group)
+  ^-  report-aliases
+  ?~  groups  ~
+  (weld (report-mold-aliases molds.i.groups `face.i.groups) $(groups t.groups))
+++  prelude-dependency-cache
+  |=  [entries=(list iprelude-dependency) cache=jcache]
+  ^-  jcache
+  ?~  entries  cache
+  =/  d=iprelude-dependency  i.entries
+  =/  iface=ifile  [values.d molds.d at.d derived.d elaborations.d dependencies.d source.d graph.d ~]
+  =?  cache  ?=(~ (find-jibb-cache at.d cache))  [[at.d iface] cache]
+  $(entries t.entries)
+++  prelude-groups-report-cache
+  |=  [groups=(list iprelude-group) cache=jcache]
+  ^-  jcache
+  ?~  groups  cache
+  $(groups t.groups, cache (prelude-dependency-cache closure.i.groups cache))
+::  Template parameters bind in a separate map. Actual variables are rigid,
+::  so a repeated parameter must match the same actual type at every use.
+++  report-match-list
+  |=  [patterns=(list itype) actuals=(list itype) vars=(list @ud) ren=isub]
+  ^-  (unit isub)
+  ?~  patterns  ?~(actuals `ren ~)
+  ?~  actuals  ~
+  =/  first=(unit isub)  (report-match i.patterns i.actuals vars ren)
+  ?~  first  ~
+  $(patterns t.patterns, actuals t.actuals, ren u.first)
+++  report-match
+  |=  [pattern=itype actual=itype vars=(list @ud) ren=isub]
+  ^-  (unit isub)
+  ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.pattern)
+    ?:  (lien vars |=(id=@ud =(id +.pattern)))
+      =/  found=(unit itype)  (itype-lookup +.pattern ren)
+      ?~  found  `(itype-bind +.pattern actual ren)
+      ?:(=(u.found actual) `ren ~)
+    ?:(=(pattern actual) `ren ~)
+  ?.  =(-.pattern -.actual)  ~
+  ?+  -.pattern  ?:(=(pattern actual) `ren ~)
+    %opaque
+      ?>  ?=(%opaque -.actual)
+      ?.  =(origin.pattern origin.actual)  ~
+      $(pattern body.pattern, actual body.actual)
+    %union
+      ?>  ?=(%union -.actual)
+      ?.  =(origin.pattern origin.actual)  ~
+      ?^  origin.pattern  (report-match-list args.pattern args.actual vars ren)
+      (report-match-list cases.pattern cases.actual vars ren)
+    %collection
+      ?>  ?=(%collection -.actual)
+      ?.  =(name.pattern name.actual)  ~
+      (report-match-list args.pattern args.actual vars ren)
+    %mrec
+      ?>  ?=(%mrec -.actual)
+      ?.  &(=(at.pattern at.actual) =(site.pattern site.actual) =(name.pattern name.actual) (rg-graphs-agree [at.pattern site.pattern name.pattern] graph.pattern graph.actual))  ~
+      (report-match-list args.pattern args.actual vars ren)
+    ?(%face %slot)
+      ?>  ?=(?(%face %slot) -.actual)
+      ?.  =(name.pattern name.actual)  ~
+      $(pattern body.pattern, actual body.actual)
+    %fn
+      ?>  ?=(%fn -.actual)
+      (report-match-list ~[sample.pattern product.pattern] ~[sample.actual product.actual] vars ren)
+    %cell
+      ?>  ?=(%cell -.actual)
+      (report-match-list ~[hed.pattern tal.pattern] ~[hed.actual tal.actual] vars ren)
+  ==
+++  report-bound-args
+  |=  [vars=(list @ud) ren=isub]
+  ^-  (unit (list itype))
+  ?~  vars  `~
+  =/  found=(unit itype)  (itype-lookup i.vars ren)
+  ?~  found  ~
+  =/  rest=(unit (list itype))  $(vars t.vars)
+  ?~  rest  ~
+  `[u.found u.rest]
+++  report-union-alias
+  |=  [typ=itype aliases=report-aliases identity=?]
+  ^-  (unit [name=@t args=(list itype)])
+  ?.  ?=(%union -.typ)  ~
+  ?~  origin.typ  ~
+  ?~  aliases  ~
+  =/  sc=ischeme  template.i.aliases
+  =/  display=(unit itype)  (scheme-display-type sc)
+  ?~  display  $(aliases t.aliases)
+  =/  template=itype  u.display
+  ?.  ?=(%union -.template)  $(aliases t.aliases)
+  ?.  =(origin.typ origin.template)  $(aliases t.aliases)
+  ?:  &(identity !(identity-union-parameters vars.sc args.template))
+    $(aliases t.aliases)
+  =/  ren=(unit isub)  (report-match-list args.template args.typ vars.sc ~)
+  ?~  ren  $(aliases t.aliases)
+  =/  args=(unit (list itype))  (report-bound-args vars.sc u.ren)
+  ?~  args  $(aliases t.aliases)
+  `[name.i.aliases u.args]
+++  report-itype
+  |=  [typ=itype aliases=report-aliases]
+  ^-  itype
+  ?+  -.typ  typ
+    %union
+      =/  preferred=(unit [name=@t args=(list itype)])
+        ?~  label.typ  ~
+        =/  named=report-aliases
+          (skim aliases |=(a=[name=@t template=ischeme] =(name.a u.label.typ)))
+        (report-union-alias typ named |)
+      =/  chosen=(unit [name=@t args=(list itype)])
+        ?~  preferred  (report-union-alias typ aliases &)
+        preferred
+      =?  chosen  ?=(~ chosen)  (report-union-alias typ aliases |)
+      ?^  chosen
+        typ(label `name.u.chosen, args (turn args.u.chosen |=(t=itype (report-itype t aliases))))
+      typ(cases (turn cases.typ |=(t=itype (report-itype t aliases))), args (turn args.typ |=(t=itype (report-itype t aliases))))
+    %mrec
+      =/  chosen=(unit [name=@t args=(list itype)])  (report-recursive-alias typ aliases)
+      ?^  chosen
+        typ(label `name.u.chosen, args (turn args.u.chosen |=(t=itype (report-itype t aliases))))
+      typ(args (turn args.typ |=(t=itype (report-itype t aliases))))
+    %collection  typ(args (turn args.typ |=(t=itype (report-itype t aliases))))
+    ?(%face %slot)  typ(body $(typ body.typ))
+    %fn  typ(sample $(typ sample.typ), product $(typ product.typ))
+    %cell  typ(hed $(typ hed.typ), tal $(typ tal.typ))
+  ==
+++  report-scheme
+  |=  [scheme=ischeme aliases=report-aliases]
+  ^-  ischeme
+  =/  display=(unit itype)  (scheme-display-type scheme)
+  ?~  display  scheme
+  [(report-itype u.display aliases) vars.scheme ~]
+++  report-interface
+  |=  [iface=ifile aliases=report-aliases]
+  ^-  ifile
+  iface(values (turn values.iface |=([name=term scheme=ischeme] [name (report-scheme scheme aliases)])), molds (turn molds.iface |=([name=term template=ischeme] [name (report-scheme template aliases)])))
+::
+::  A transitive nominal type can escape through an exported value without
+::  exporting its mold name. Supply a report-only import for its origin;
+::  expanding cases would discard nominal identity or phantom arguments.
+++  report-hidden-paths
+  |=  [todo=(list itype) cache=jcache current=path paths=(list path)]
+  ^-  (list path)
+  ?~  todo  (flop paths)
+  =/  typ=itype  i.todo
+  =/  origin=(unit path)
+    ?+  -.typ  ~
+      %union  ?~(origin.typ ~ `at.u.origin.typ)
+      %mrec  `at.typ
+    ==
+  =/  hidden=?
+    ?+  -.typ  |
+      %union  ?=(~ label.typ)
+      %mrec   ?=(~ label.typ)
+    ==
+  =/  external=?
+    ?~  origin  |
+    &(hidden !=(u.origin current) ?=(^ (find-jibb-cache u.origin cache)))
+  =?  paths  &(external ?=(^ origin))
+    ?:  (lien paths |=(p=path =(p u.origin)))  paths
+    [u.origin paths]
+  =/  more=(list itype)
+    ?+  -.typ  ~
+      %union  ?:  |(?=(^ label.typ) external)  args.typ
+              (weld args.typ cases.typ)
+      %mrec  args.typ
+      %collection  args.typ
+      ?(%face %slot)  ~[body.typ]
+      %cell  ~[hed.typ tal.typ]
+      %fn  ~[sample.typ product.typ]
+    ==
+  $(todo (weld more t.todo))
+::  A local recursive mold has no source-level name outside its lexical
+::  scope.  Give the report a display-only alias keyed by its checked
+::  declaration identity; the exported scheme and inference stay unchanged.
+++  rg-report-local-types
+  |=  [todo=(list itype) current=path found=(list itype)]
+  ^-  (list itype)
+  ?~  todo  (flop found)
+  =/  typ=itype  i.todo
+  =/  keep=?
+    ?.  ?=(%mrec -.typ)  |
+    =/  same=?
+      (lien found |=(other=itype &(?=(%mrec -.other) =(at.typ at.other) =(site.typ site.other) =(name.typ name.other) (rg-graphs-agree [at.typ site.typ name.typ] graph.typ graph.other))))
+    &(?=(~ label.typ) =(at.typ current) !same)
+  =?  found  keep  [typ found]
+  =/  more=(list itype)
+    ?+  -.typ  ~
+      %union  (weld args.typ cases.typ)
+      %mrec  args.typ
+      %collection  args.typ
+      ?(%face %slot)  ~[body.typ]
+      %cell  ~[hed.typ tal.typ]
+      %fn  ~[sample.typ product.typ]
+    ==
+  $(todo (weld more t.todo))
+++  rg-report-local-extra
+  |=  [types=(list itype) blocked=(list term) next=@ud]
+  ^-  report-extra
+  ?~  types  [~ ~]
+  =/  typ=itype  i.types
+  ?.  ?=(%mrec -.typ)  $(types t.types)
+  =/  label=term  (crip "local-{(scow %ud next)}")
+  ?:  (lien blocked |=(n=term =(n label)))  $(next +(next))
+  =/  ids=(list @ud)  ?~(args.typ ~ (gulf 0 (dec (lent args.typ))))
+  =/  args=(list itype)  (turn ids |=(id=@ud `itype`[%var id]))
+  =/  template=ischeme  [typ(args args) ids ~]
+  =/  rest=report-extra  $(types t.types, blocked [label blocked], next +(next))
+  =/  line=@t  (crip "local type {(trip label)}: {(trip name.typ)} at {(show-file at.typ)}:{(show-loc beg.site.typ)}")
+  [[[label template] aliases.rest] [line lines.rest]]
+++  report-value-types
+  |=  values=ienv
+  ^-  (list itype)
+  ?~  values  ~
+  =/  typ=(unit itype)  (scheme-display-type scheme.i.values)
+  ?~  typ  $(values t.values)
+  [u.typ $(values t.values)]
+++  report-import-names
+  |=  imports=(list import)
+  ^-  (list term)
+  ?~  imports  ~
+  =/  name=term
+    ?-  -.i.imports
+      %jibb  face.i.imports
+      %sur   name.i.imports
+      %mark  mark.i.imports
+    ==
+  [name $(imports t.imports)]
++$  report-extra  [aliases=report-aliases lines=(list @t)]
+++  report-extra-imports
+  |=  [paths=(list path) cache=jcache blocked=(list term) next=@ud]
+  ^-  report-extra
+  ?~  paths  [~ ~]
+  =/  face=term  (crip "types-{(scow %ud next)}")
+  ?:  (lien blocked |=(n=term =(n face)))  $(next +(next))
+  =/  iface=(unit ifile)  (find-jibb-cache i.paths cache)
+  ?~  iface  $(paths t.paths)
+  =/  rest=report-extra  $(paths t.paths, blocked [face blocked], next +(next))
+  =/  at=path  i.paths
+  =?  at  &(?=(^ at) =(%jibb (rear at)))  (scag (dec (lent at)) `path`at)
+  [(weld (report-mold-aliases molds.u.iface `face) aliases.rest) [(crip "/= {(trip face)} {(spud at)}") lines.rest]]
+++  report-recursive-alias
+  |=  [typ=itype aliases=report-aliases]
+  ^-  (unit [name=@t args=(list itype)])
+  ?~  aliases  ~
+  =/  sc=ischeme  template.i.aliases
+  =/  display=(unit itype)  (scheme-display-type sc)
+  ?~  display  $(aliases t.aliases)
+  =/  template=itype  u.display
+  ?:  &(?=(%mrec -.typ) ?=(%mrec -.template))
+    ?.  &(=(at.typ at.template) =(site.typ site.template) =(name.typ name.template) (rg-graphs-agree [at.typ site.typ name.typ] graph.typ graph.template))  $(aliases t.aliases)
+    =/  ren=(unit isub)  (report-match-list args.template args.typ vars.sc ~)
+    ?~  ren  $(aliases t.aliases)
+    =/  args=(unit (list itype))  (report-bound-args vars.sc u.ren)
+    ?~  args  $(aliases t.aliases)
+    `[name.i.aliases u.args]
+  $(aliases t.aliases)
+::
+++  full-report-lines
+  |=  [ds=(list def) iface=ifile src=@t]
+  ^-  (unit (list @t))
+  ?~  ds  `~
+  =/  d=def  i.ds
+  =/  scheme=(unit ischeme)
+    ?:  ?=(%mold -.d)  (find-jibb-mold name.d iface)
+    (ienv-lookup name.d values.iface)
+  =/  line=(unit @t)
+    ?~  scheme
+      ::  API paths and poke are checked declarations, not ordinary molds.
+      ?.  &(?=([%ui %api *] at.iface) ?=(%mold -.d))  ~
+      ?:  =(%paths name.d)  `'+$ paths: API paths declaration'
+      ?:  =(%poke name.d)  `'+$ poke: API poke declaration'
+      ~
+    =/  display=(unit itype)  (scheme-display-type u.scheme)
+    ?~  display  ~
+    =/  typ=itype  (canonical-itype u.display vars.u.scheme)
+    =/  marker=tape  ?:(?=(%mold -.d) "+$" "++")
+    `(crip "{marker} {(trip name.d)}: {(show-itype typ ~)}{(show-atom-constraint typ)}")
+  ?~  line  ~
+  =/  rest=(unit (list @t))  $(ds t.ds)
+  ?~  rest  ~
+  `[u.line u.rest]
+::  Derived API and store helpers are part of the checked interface. Show
+::  them separately from the definitions written in the source.
+++  full-report-generated-lines
+  |=  [values=ienv ds=(list def)]
+  ^-  (unit (list @t))
+  ?~  values  `~
+  =/  entry=[name=term scheme=ischeme]  i.values
+  ?:  (lien ds |=(d=def &(?=(%value -.d) =(name.d name.entry))))
+    $(values t.values)
+  =/  display=(unit itype)  (scheme-display-type scheme.entry)
+  ?~  display  ~
+  =/  typ=itype  (canonical-itype u.display vars.scheme.entry)
+  =/  rest=(unit (list @t))  $(values t.values)
+  ?~  rest  ~
+  `[(crip "++ {(trip name.entry)}: {(show-itype typ ~)}{(show-atom-constraint typ)} (generated)") u.rest]
+::  Named generic unions whose name is no longer visible cannot be printed
+::  by expanding their cases: doing so erases phantom arguments and origin.
+++  full-report-hidden-list
+  |=  types=(list itype)
+  ^-  (unit tape)
+  ?~  types  ~
+  =/  reason=(unit tape)  (full-report-hidden-reason i.types)
+  ?^  reason  reason
+  $(types t.types)
+++  full-report-hidden-reason
+  |=  t=itype
+  ^-  (unit tape)
+  ?+  -.t  ~
+    %recursive  ?~(label.t `"recursive mold name is not available in this scope" ~)
+    %mrec
+      ?~  label.t  `"recursive mold name is not available in this scope"
+      (full-report-hidden-list args.t)
+    %union
+      ?^  label.t  (full-report-hidden-list args.t)
+      ?^  args.t  `"generic union name is not available in this scope"
+      (full-report-hidden-list cases.t)
+    %collection  (full-report-hidden-list args.t)
+    ?(%face %slot)  $(t body.t)
+    %cell  (full-report-hidden-list ~[hed.t tal.t])
+    %fn  (full-report-hidden-list ~[sample.t product.t])
+  ==
+++  full-report-hidden-definition
+  |=  [ds=(list def) iface=ifile]
+  ^-  (unit [name=term at=span reason=tape])
+  ?~  ds  ~
+  =/  d=def  i.ds
+  =/  scheme=(unit ischeme)
+    ?:  ?=(%mold -.d)  (find-jibb-mold name.d iface)
+    (ienv-lookup name.d values.iface)
+  ?^  scheme
+    =/  display=(unit itype)  (scheme-display-type u.scheme)
+    ?~  display  $(ds t.ds)
+    =/  reason=(unit tape)  (full-report-hidden-reason u.display)
+    ?^  reason  `[name.d at.d u.reason]
+    $(ds t.ds)
+  $(ds t.ds)
+++  full-report-hidden-generated
+  |=  [values=ienv ds=(list def)]
+  ^-  (unit [name=term reason=tape])
+  ?~  values  ~
+  =/  entry=[name=term scheme=ischeme]  i.values
+  ?:  (lien ds |=(d=def &(?=(%value -.d) =(name.d name.entry))))
+    $(values t.values)
+  =/  display=(unit itype)  (scheme-display-type scheme.entry)
+  ?~  display  $(values t.values)
+  =/  reason=(unit tape)  (full-report-hidden-reason u.display)
+  ?^  reason  `[name.entry u.reason]
+  $(values t.values)
+++  full-report-generated-site
   |=  ds=(list def)
-  ^-  grec-collected
-  ?~  ds  [~ *(map term shape)]
-  =/  rest=grec-collected  $(ds t.ds)
-  ?.  ?=(%mold -.i.ds)  rest
-  =/  name=term  name.i.ds
-  =/  body=shape  shape.i.ds
-  =/  proofs=(map term shape)  proofs.rest
-  =?  proofs  (grec-tree-proof name body)  (~(put by proofs) name body)
-  [[[name body] molds.rest] proofs]
+  ^-  (unit span)
+  ?~  ds  ~
+  =/  d=def  i.ds
+  ?:  |(=(%paths name.d) =(%poke name.d) =(%main name.d))  `at.d
+  $(ds t.ds)
+++  render-full-types
+  |=  [file=path src=@t result=jfile-detailed-result]
+  ^-  @t
+  (render-full-types-with-prelude file src result ~)
+++  render-full-types-with-prelude
+  |=  [file=path src=@t result=jfile-detailed-result prelude=(unit ifile)]
+  ^-  @t
+  ?:  ?=(%| -.result)  message.p.result
+  =?  cache.p.result  ?=(^ prelude)  (prelude-groups-report-cache groups.u.prelude cache.p.result)
+  =/  parsed=(each module error)  (parse file src)
+  ?:  ?=(%| -.parsed)  (show-error src p.parsed)
+  =/  aliases=report-aliases
+    (weld (report-mold-aliases molds.iface.p.result ~) (weld ?~(prelude ~ (weld (report-mold-aliases molds.u.prelude ~) (report-group-aliases groups.u.prelude))) (report-import-aliases imports.p.parsed cache.p.result)))
+  =/  visible=ifile  (report-interface iface.p.result aliases)
+  =/  types=(list itype)
+    (weld (report-value-types values.visible) (report-value-types (turn molds.visible |=([name=term template=ischeme] [name template]))))
+  =/  paths=(list path)  (report-hidden-paths types cache.p.result file ~)
+  =/  blocked=(list term)
+    (weld (report-import-names imports.p.parsed) (weld (turn defs.p.parsed |=(d=def name.d)) ?~(prelude ~ (weld (turn values.u.prelude |=([name=term scheme=ischeme] name)) (turn molds.u.prelude |=([name=term template=ischeme] name))))))
+  =/  extra=report-extra  (report-extra-imports paths cache.p.result blocked 1)
+  =/  local-types=(list itype)  (rg-report-local-types types file ~)
+  =/  local-extra=report-extra  (rg-report-local-extra local-types blocked 1)
+  =.  iface.p.result  (report-interface iface.p.result (weld aliases (weld aliases.extra aliases.local-extra)))
+  =/  hidden=(unit [name=term at=span reason=tape])  (full-report-hidden-definition defs.p.parsed iface.p.result)
+  ?^  hidden
+    =/  site=span  (definition-name-site file src at.u.hidden)
+    (show-error src [file line.beg.site col.beg.site "cannot display `{(trip name.u.hidden)}`: {reason.u.hidden}"])
+  =/  generated-hidden=(unit [name=term reason=tape])  (full-report-hidden-generated values.iface.p.result defs.p.parsed)
+  ?^  generated-hidden
+    =/  site=(unit span)  (full-report-generated-site defs.p.parsed)
+    ?~  site  (crip "cannot display generated helper `{(trip name.u.generated-hidden)}` in {(show-file file)}: {reason.u.generated-hidden}")
+    (show-error src [file line.beg.u.site col.beg.u.site "cannot display generated helper `{(trip name.u.generated-hidden)}`: {reason.u.generated-hidden}"])
+  =/  lines=(unit (list @t))  (full-report-lines defs.p.parsed iface.p.result src)
+  ?~  lines  'checked interface is missing a source definition'
+  =/  generated=(unit (list @t))  (full-report-generated-lines values.iface.p.result defs.p.parsed)
+  ?~  generated  (crip "checked generated scheme graph needs unsupported inference: {(spud file)}")
+  (of-wain:format [(crip "module kind: {(trip kind.p.result)}") (weld lines.extra (weld lines.local-extra (weld u.lines u.generated)))])
+::
+++  full-types-in-context
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
+  ^-  @t
+  =/  values=(list term)  ?~(prepared ~ values.u.prepared)
+  =/  molds=(list term)  ?~(prepared ~ molds.u.prepared)
+  =/  prelude=(unit ifile)  ?~(prepared ~ `iface.u.prepared)
+  =/  checked=jfile-detailed-result
+    (infer-jibb-file-detailed file src externals marks modules ~[file] values molds ~ prelude)
+  (render-full-types-with-prelude file src checked prelude)
 ::
 
 --

@@ -1,0 +1,3 @@
+Expected item fields from a keyed list consumer reach the original monomorphic mapper through a generic list operation.
+expect: parse
+expect-types: accept

@@ -5,18 +5,17 @@ distinct origins decline: ok
 occurs check: ok
 cell construction stays opaque: ok
 noun construction stays opaque: ok
-unindexed recursion declined: ok
+recursive mold needs no special index: ok
 alteration rejects missing line: ok
 alteration rejects repeated line: ok
-gate freedom unknown: ok
+gate freedom rejected: ok
 gate defaulting conservative: ok
 unused mold hole declined: ok
 invalid constructor declined: ok
 invalid matching declined: ok
-nonuniform recursion declined: ok
 identical local shadow declined: ok
 different local shadow declined: ok
-local recursion declined: ok
+different origin declined: ok
 unreserved local list shadow declined: ok
 altered prelude list declined: ok
 cached source reuse: ok
@@ -25,11 +24,10 @@ changed source fresh proof: ok
 duplicate source declined: ok
 active import cycle declined: ok
 changed prelude invalidates cache: ok
-partial inference; module not checked
+module kind: library
 ++ from-first: $-((node-tree.first @t) (node-tree.first @t))
-++ from-again: $-((node-tree.again @p) (node-tree.again @p))
-++ same-origin: $-((node-tree.first @t) (node-tree.again @t))
-++ from-alias: $-((alias.via @t) (alias.via @t))
-++ through-alias: $-((node-tree.first @t) (alias.via @t))
-++ different-origin: cast constraint is not supported by partial inference
+++ from-again: $-((node-tree.first @p) (node-tree.first @p))
+++ same-origin: $-((node-tree.first @t) (node-tree.first @t))
+++ from-alias: $-((node-tree.first @t) (node-tree.first @t))
+++ through-alias: $-((node-tree.first @t) (node-tree.first @t))
 ++ independent: $-([a=(node-tree.first @t) b=(node-tree.first @p)] [(node-tree.first @t) (node-tree.first @p)])

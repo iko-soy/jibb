@@ -1,0 +1,18 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ malformed |= x=[@t @p]
+  ?- x
+    [first second third] third

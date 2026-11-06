@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-patterns-on-gap/source.jibb:5:3
+min-sites 2

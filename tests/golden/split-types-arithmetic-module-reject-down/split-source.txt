@@ -1,0 +1,3 @@
+origin types-arithmetic-module
+target value reject-down
+keep value reject-down

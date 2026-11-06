@@ -1,0 +1,18 @@
+origin types-prelude-comparison
+target value equal
+keep value equal
+keep value flags-equal
+keep value flags-forward
+keep value flags-reverse
+keep value generic-gte
+keep value generic-lte
+keep value generic-lth
+keep value greater
+keep value gte-equal
+keep value gte-greater
+keep value gte-less
+keep value hex
+keep value less
+keep value lte-equal
+keep value lte-greater
+keep value lte-less

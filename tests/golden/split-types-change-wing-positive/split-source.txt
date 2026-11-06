@@ -1,0 +1,9 @@
+origin types-change-wing
+target value flip-open
+keep mold cart
+keep mold model
+keep value flip-open
+keep value lines
+keep value original
+keep value siblings
+keep value wing-target

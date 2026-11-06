@@ -1,0 +1,10 @@
+++ v: list items do not have compatible types; calls in a list need parentheses; did you mean `~[(text "hi")]`
+/tests/golden/review-text-hi/source.jibb:1:9: sealed type
+++ v ^- (list (element !!)) ~[text "hi"]
+        ^
+/tests/golden/review-text-hi/source.jibb:1:36: unsealed literal
+++ v ^- (list (element !!)) ~[text "hi"]
+                                   ^
+/tests/golden/review-text-hi/source.jibb:1:29: calls in a list need parentheses; did you mean `~[(text "hi")]`
+++ v ^- (list (element !!)) ~[text "hi"]
+                            ^

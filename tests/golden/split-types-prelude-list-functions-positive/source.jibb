@@ -1,0 +1,18 @@
+/=  lib /ui/lib
+++ texts (lure "hi")
+++ ships (lure ~zod)
+++ joined (weld ~["a"] ~["b"])
+++ joined-ships (weld ~[~zod] ~[~zod])
+++ appended (snoc ~["a"] "b")
+++ imported value.lib
+
+
+
+
+++ turn-text (turn ~["a"] |=(x x))
+++ turn-ships (turn ~[~zod] |=(x x))
+++ turn-map (turn ~["a"] |=(x ~zod))
+++ turn-empty (turn ~[] |=(x=@t x))
+++ turn-nested (turn (^- (list (list @t)) ~[~["a"]]) |=(x x))
+++ turn-import mapped.lib
+

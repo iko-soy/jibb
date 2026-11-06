@@ -1,0 +1,19 @@
+21:1 glyph ++
+21:4 name hunt-gate-bad
+21:18 glyph (
+21:19 tight name hunt
+21:24 glyph |=(
+21:27 tight name p
+21:28 tight glyph =
+21:29 tight glyph [
+21:30 tight aura @t
+21:33 aura @p
+21:35 tight glyph ]
+21:37 lit %.y
+21:40 tight glyph )
+21:42 glyph `
+21:43 tight str "a"
+21:47 glyph `
+21:48 tight str "b"
+21:51 tight glyph )
+21:52 NEWLINE

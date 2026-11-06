@@ -1,0 +1,12 @@
+12:1 glyph ++
+12:4 name bad-tail
+12:13 glyph ^-
+12:16 glyph (
+12:17 tight name list
+12:22 aura @t
+12:24 tight glyph )
+12:26 glyph [
+12:27 tight str "hi"
+12:32 lit ~zod
+12:36 tight glyph ]
+12:37 NEWLINE

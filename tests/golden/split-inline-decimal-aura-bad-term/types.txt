@@ -1,0 +1,7 @@
+++ term: `30` is a @ud, not a @tas
+/tests/golden/split-inline-decimal-aura-bad-term/source.jibb:9:17: decimal
+++ term ^- @tas 30
+                ^
+/tests/golden/split-inline-decimal-aura-bad-term/source.jibb:9:12: expected type has type @tas
+++ term ^- @tas 30
+           ^

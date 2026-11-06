@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (mold 4:1 state
+    (cell 4:10
+      (face 4:11 title (aura 4:17 @t))
+      (face 4:20 choice (ref 4:27 msg))))
+  (value 6:1 valid
+    (cast 6:10
+      (ref 6:13 state)
+      (tuple 6:19 (str 6:20 "hi") (lit 6:25 %add))))
+  (value 12:1 take
+    (gate 12:9
+      (face 12:12 x (ref 12:14 state))
+      (wing 12:20 x))))

@@ -1,0 +1,7 @@
+++ grouped: `1.000` is a @ud, not a @t; write "1.000"
+/tests/golden/split-inline-decimal-aura-bad-grouped/source.jibb:5:18: decimal
+++ grouped ^- @t 1.000
+                 ^
+/tests/golden/split-inline-decimal-aura-bad-grouped/source.jibb:5:15: expected type has type @t
+++ grouped ^- @t 1.000
+              ^

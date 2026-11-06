@@ -1,0 +1,66 @@
+10:1 glyph ++
+10:4 name identity
+10:13 glyph |=
+10:16 name x
+11:3 INDENT
+11:3 glyph ?-
+11:6 name x
+12:5 INDENT
+12:5 glyph [
+12:6 tight name a
+12:8 name b
+12:10 name c
+12:11 tight glyph ]
+12:13 glyph [
+12:14 tight name a
+12:16 name b
+12:18 name c
+12:19 tight glyph ]
+13:1 DEDENT
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name text-value
+13:15 glyph (
+13:16 tight name identity
+13:25 str "hi"
+13:30 lit ~zod
+13:35 lit %.y
+13:38 tight glyph )
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name ship
+14:9 glyph (
+14:10 tight name identity
+14:19 lit ~zod
+14:24 str "hi"
+14:29 lit %.n
+14:32 tight glyph )
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name shared
+15:11 glyph |=
+15:14 name x
+15:15 tight glyph =
+15:16 tight glyph [
+15:17 tight tvar A
+15:19 tvar A
+15:21 tvar A
+15:22 tight glyph ]
+16:3 INDENT
+16:3 glyph ?-
+16:6 name x
+17:5 INDENT
+17:5 glyph [
+17:6 tight name a
+17:8 name b
+17:10 name c
+17:11 tight glyph ]
+17:13 glyph [
+17:14 tight name a
+17:16 name b
+17:18 name c
+17:19 tight glyph ]
+17:20 DEDENT
+17:20 DEDENT
+17:20 NEWLINE

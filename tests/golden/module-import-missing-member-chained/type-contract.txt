@@ -1,0 +1,4 @@
+message module `lib` has no value `absent`
+site /tests/golden/module-import-missing-member-chained/source.jibb:1:5
+site /tests/golden/module-import-missing-member-chained/source.jibb:2:12
+min-sites 2

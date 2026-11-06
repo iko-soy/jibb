@@ -1,4 +1,4 @@
 source: Grammar tab, Patterns: "A name is an error where the subject's type at its position is a union, or a one-case mold, with a case whose constant there is the term the name spells", so `stop` written for `%stop` below is an error, not a catch-all; the Patterns section's `step` block with its last arm's `%` dropped
 tests: a bare name in a `?-`'s last arm that spells a case of the subject's union, which would otherwise catch every case left
 expect: parses
-expect-types: a partial inference report: `describe` is an error at `stop`, 14:5, since `step` has the case `%stop`, with the subject at 9:6
+expect-types: full checker diagnostic with the relevant source sites

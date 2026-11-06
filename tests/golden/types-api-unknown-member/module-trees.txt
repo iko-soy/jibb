@@ -1,0 +1,16 @@
+/ui/api/other.jibb
+(module
+  (mark 1:1 %todos)
+  (mark 2:1 %todo-update)
+  (mark 3:1 %todo-item)
+  (mold 4:1 paths
+    (union 5:3
+      (cell 5:3
+        (const 5:4 %complex)
+        (path 5:13 /todo/[id=@ud]/[slug=@ta])
+        (apply 5:39 facts (ref 5:46 todos) (ref 5:52 todo-update) (ref 5:64 todo-item)))
+      (cell 6:3
+        (const 6:4 %separate)
+        (path 6:14 /watch/[id=@ud])
+        (ref 6:30 todos)
+        (face 6:36 scry (path 6:41 /peek/[id=@ud]))))))

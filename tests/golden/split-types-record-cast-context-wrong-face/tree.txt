@@ -1,0 +1,14 @@
+(module
+  (mold 2:1 msg
+    (union 3:3 (const 3:3 %go) (const 4:3 %stay)))
+  (mold 5:1 inner
+    (cell 5:10
+      (face 5:11 payload (ref 5:19 msg))
+      (face 5:23 xs
+        (apply 5:26 list (aura 5:32 @t)))))
+  (value 11:1 wrong-face
+    (cast 11:15
+      (ref 11:18 inner)
+      (tuple 11:24
+        (face 11:25 wrong (lit 11:31 %go))
+        (face 11:35 xs (lit 11:38 ~))))))

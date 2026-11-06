@@ -1,0 +1,5 @@
+(module
+  (value 11:1 items
+    (cast 11:10
+      (apply 11:13 list (aura 11:19 @dr))
+      (list 11:24 (lit 11:26 ~s1) (lit 11:30 2)))))

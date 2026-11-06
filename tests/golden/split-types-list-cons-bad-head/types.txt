@@ -1,0 +1,7 @@
+++ bad-head: list item does not fit its expected type
+/tests/golden/split-types-list-cons-bad-head/source.jibb:11:16: expected item has type @t
+++ bad-head ^- (list @t) [~zod ~]
+               ^
+/tests/golden/split-types-list-cons-bad-head/source.jibb:11:27: list item has type @p
+++ bad-head ^- (list @t) [~zod ~]
+                          ^

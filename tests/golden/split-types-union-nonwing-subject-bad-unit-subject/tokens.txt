@@ -1,0 +1,55 @@
+1:1 glyph +$
+1:4 name input
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %item
+2:10 name flag
+2:14 tight glyph =
+2:15 tight glyph ?
+2:17 name text
+2:21 tight glyph =
+2:22 tight aura @t
+2:24 tight glyph ]
+3:3 NEWLINE
+3:3 lit %none
+8:1 DEDENT
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name passthrough
+8:16 glyph |=
+8:19 name x
+8:20 tight glyph =
+8:21 tight name input
+8:27 name x
+79:1 NEWLINE
+79:1 glyph ++
+79:4 name bad-unit-subject
+79:21 glyph |=
+79:24 name x
+79:25 tight glyph =
+79:26 tight aura @t
+79:29 glyph ^-
+79:32 glyph (
+79:33 tight name list
+79:38 aura @t
+79:40 tight glyph )
+80:3 INDENT
+80:3 glyph ?-
+80:6 glyph (
+80:7 tight name passthrough
+80:19 name x
+80:20 tight glyph )
+81:5 INDENT
+81:5 lit ~
+81:7 glyph ~[
+81:9 tight glyph ]
+82:5 NEWLINE
+82:5 glyph [
+82:6 tight lit ~
+82:8 name value
+82:13 tight glyph ]
+82:15 glyph ~[
+82:17 tight glyph ]
+82:18 DEDENT
+82:18 DEDENT
+82:18 NEWLINE

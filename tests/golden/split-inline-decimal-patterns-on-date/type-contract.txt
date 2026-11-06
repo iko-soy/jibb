@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-patterns-on-date/source.jibb:14:3
+min-sites 2

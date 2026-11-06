@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %tick)
+        (face 2:10 at (aura 2:13 @da)))
+      (cell 3:3
+        (const 3:4 %done)
+        (face 3:10 n (aura 3:12 @ud)))))
+  (value 18:1 every
+    (cast 18:10
+      (apply 18:13 list
+        (apply 18:19 sub (ref 18:24 msg)))
+      (list 18:30
+        (tuple 18:32 (lit 18:33 %every) (lit 18:40 1) (ctor 18:42 %tick))))))

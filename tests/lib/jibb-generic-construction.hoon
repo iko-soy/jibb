@@ -1,143 +1,188 @@
-::  Source-proven generic tree construction; not a backend/runtime test.
-/+  jibb
-/*  real-prelude     %jibb  /lib/jibb/prelude/jibb
-/*  real-internal    %jibb  /lib/jibb/internal/jibb
-/*  tree             %txt   /tests/type-generic-construction/tree/txt
-/*  alias            %txt   /tests/type-generic-construction/alias/txt
-/*  client           %txt   /tests/type-generic-construction/client/txt
-/*  alias-client     %txt   /tests/type-generic-construction/alias-client/txt
-/*  tree-no-event    %txt   /tests/type-generic-construction/tree-no-event/txt
-/*  no-event-client  %txt   /tests/type-generic-construction/no-event-client/txt
-/*  owner-positive   %txt   /tests/type-generic-construction/owner-positive/txt
-/*  owner-negative   %txt   /tests/type-generic-construction/owner-negative/txt
-/*  sibling-values   %txt   /tests/type-generic-construction/sibling-values/txt
-/*  expected         %txt   /tests/type-generic-construction/expected/txt
+/+  jibb, jibb-prelude-fixture
+/*  prelude  %jibb  /lib/jibb/prelude/jibb
+/*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
+/*  owner-positive  %txt  /tests/type-generic-construction/owner-positive/txt
+/*  owner-negative  %txt  /tests/type-generic-construction/owner-negative/txt
+/*  alias  %txt  /tests/type-generic-construction/alias/txt
+/*  tree-no-event  %txt  /tests/type-generic-construction/tree-no-event/txt
+/*  sibling-values  %txt  /tests/type-generic-construction/sibling-values/txt
 |%
-++  text
-  |=  lines=wain
+++  source
+  |=  lines=(list @t)
   ^-  @t
-  (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
-++  line
-  |=  [label=@t ok=?]
-  ^-  @t
-  (crip "{(trip label)}: {?:(ok "ok" "BAD")}")
-++  construction-output
-  |=  [pre=@t internal=@t tree=@t alias=@t client=@t alias-client=@t tree-no-event=@t no-event-client=@t owner-positive=@t owner-negative=@t sibling-values=@t]
-  ^-  @t
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb pre internal)
-  ?~  prep  'BAD prelude preparation'
-  :: Complete owner is checked by the real source interface, not this unit state.
-  =/  owner=jfile-result:jibb
-    (infer-jibb-file:jibb /ui/tree/jibb owner-positive ~ ~ ~ ~[/ui/tree/jibb] values.u.prep molds.u.prep ~ `iface.u.prep)
-  ?:  ?=(%| -.owner)  'BAD valid owner'
-  =/  bad-owner=jfile-result:jibb
-    (infer-jibb-file:jibb /ui/tree/jibb owner-negative ~ ~ ~ ~[/ui/tree/jibb] values.u.prep molds.u.prep ~ `iface.u.prep)
-  =/  bad-parse=(each module:jibb error:jibb)  (parse:jibb /ui/tree/jibb owner-negative)
-  =/  mold=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree iface.p.owner)
-  ?~  mold  'BAD owner mold'
-  ?.  ?=(%grec -.typ.u.mold)  'BAD nominal owner'
-  =/  generic=itype:jibb  typ.u.mold(args ~[[%var 42]])
-  =/  target=itype:jibb  typ.u.mold(args ~[[%atom %t]])
-  ?>  ?=(%grec -.generic)
-  ?>  ?=(%grec -.target)
-  =/  owner-leaf=(unit ischeme:jibb)  (ienv-lookup:jibb %made-leaf values.iface.p.owner)
-  =/  owner-node=(unit ischeme:jibb)  (ienv-lookup:jibb %made-node values.iface.p.owner)
-  =/  leaf-ok=?  ?~(owner-leaf | &(?=(~ vars.u.owner-leaf) =(target typ.u.owner-leaf)))
-  =/  node-ok=?  ?~(owner-node | &(?=(~ vars.u.owner-node) =(target typ.u.owner-node)))
-  =/  foreign=itype:jibb  target(at /ui/foreign/jibb)
-  =/  view=(unit [view=itype:jibb left=@ud])  (grec-unfold-view:jibb generic 2)
-  ?~  view  'BAD generic view'
-  =/  target-view=(unit [view=itype:jibb left=@ud])  (grec-unfold-view:jibb target 2)
-  ?~  target-view  'BAD target view'
-  =/  expected-leaf=itype:jibb  [%cell [%const [%term %tas %text '%text']] [%face %value [%atom %t]]]
-  =/  expected-node=itype:jibb  [%cell [%const [%term %tas %node '%node']] [%cell [%face %event [%fn [%atom %t] [%var 42]]] [%face %children [%collection %list ~[generic]]]]]
-  =/  expected-view=itype:jibb  [%union ~[expected-leaf expected-node] ~ ~ ~]
-  =/  wrong-view=(unit [view=itype:jibb left=@ud])  (grec-unfold-view:jibb foreign 2)
-  =/  malformed=shape:jibb  *shape:jibb
-  =/  parsed=(each module:jibb error:jibb)  (parse:jibb /tests/tree/values/jibb sibling-values)
-  ?:  ?=(%| -.parsed)  'BAD values parse'
+  (of-wain:format lines)
+++  test-recursive-tree-owner
+  ^-  tang
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  ?~  prepared  ~[leaf+"prelude did not prepare"]
+  =/  file=path  /ui/tree/jibb
+  =/  ok=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb file (source owner-positive) ~ ~ ~ ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+  ?:  ?=(%| -.ok)  ~[leaf+(trip message.p.ok)]
+  =/  template=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree iface.p.ok)
+  ?~  template  ~[leaf+"recursive tree mold missing"]
+  =/  applied=(unit [typ=itype:jibb sub=isub:jibb])  (template-apply-sub:jibb u.template ~[[%atom %t]] ~)
+  ?~  applied  ~[leaf+"recursive tree mold did not instantiate"]
+  ?^  (rg-unfold-view:jibb typ.u.applied 0)  ~[leaf+"recursive view ignored exhausted fuel"]
+  =/  view=(unit [view=itype:jibb left=@ud])  (rg-unfold-view:jibb typ.u.applied 4.096)
+  ?~  view  ~[leaf+"recursive tree view did not unfold"]
+  ?.  ?=(%union -.view.u.view)  ~[leaf+"recursive tree view lost its cases"]
+  =/  leaf-value=(unit ischeme:jibb)  (ienv-lookup:jibb %made-leaf values.iface.p.ok)
+  =/  node-value=(unit ischeme:jibb)  (ienv-lookup:jibb %made-node values.iface.p.ok)
+  ?~  leaf-value  ~[leaf+"recursive leaf missing"]
+  ?~  node-value  ~[leaf+"recursive nested node missing"]
+  =/  leaf-type=(unit itype:jibb)  (scheme-display-type:jibb u.leaf-value)
+  =/  node-type=(unit itype:jibb)  (scheme-display-type:jibb u.node-value)
+  ?~  leaf-type  ~[leaf+"recursive leaf type could not be realized"]
+  ?~  node-type  ~[leaf+"recursive node type could not be realized"]
+  ?.  =((show-itype:jibb u.leaf-type ~) "(node-tree @t)")  ~[leaf+"leaf type changed"]
+  ?.  =((show-itype:jibb u.node-type ~) "(node-tree @t)")  ~[leaf+"node type changed"]
+  =/  bad=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb file (source owner-negative) ~ ~ ~ ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+  ?:  ?=(%& -.bad)  ~[leaf+"wrong recursive field type was accepted"]
+  ~
+++  test-recursive-tree-bad-values
+  ^-  tang
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  ?~  prepared  ~[leaf+"prelude did not prepare"]
+  =/  file=path  /tests/recursive-tree-bad/jibb
+  =/  modules=jbundle:jibb  ~[[/ui/tree/jibb (source owner-positive)] [/ui/tree-two/jibb (source owner-positive)]]
+  =/  cases=(list [name=@t code=@t])
+    :~  ['wrong event' '++ bad ^- (node-tree.first @p) [%node event=text-event children=~]']
+        ['wrong leaf' '++ bad ^- (node-tree.first @t) [%text value=~zod]']
+        ['wrong label' '++ bad ^- (node-tree.first @t) [%text other="hi"]']
+        ['unknown tag' '++ bad ^- (node-tree.first @t) [%missing value="hi"]']
+        ['unresolved tag' '++ bad |= x=(node-tree.first @t) [%missing x]']
+        ['foreign child' '++ bad |= x=(node-tree.second @t) ^- (node-tree.first @t) [%node event=text-event children=~[x]]']
+        ['extra field' '++ bad ^- (node-tree.first @t) [%text value="hi" extra="bad"]']
+        ['wrong child' '++ bad ^- (node-tree.first @t) [%node event=text-event children=~["bad"]]']
+        ['wrong children' '++ bad ^- (node-tree.first @t) [%node event=text-event children="bad"]']
+        ['swapped labels' '++ bad ^- (node-tree.first @t) [%node children=~ event=text-event]']
+        ['foreign type' '++ bad |= x=(node-tree.second @p) ^- (node-tree.first @t) [%node event=text-event children=~[x]]']
+        ['wrong argument' '++ bad |= x=(node-tree.first @p) ^- (node-tree.first @t) [%node event=text-event children=~[x]]']
+    ==
+  =/  failures=(list @t)
+    %+  turn  cases
+    |=  c=[name=@t code=@t]
+    =/  input=@t  (source ~['/= first /ui/tree' '/= second /ui/tree-two' '++ text-event |= value=@t value' code.c])
+    =/  result=jfile-detailed-result:jibb
+      (infer-jibb-file-detailed:jibb file input ~ ~ modules ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+    ?:(?=(%& -.result) name.c '')
+  =/  failures=(list @t)  (skim failures |=(name=@t !=(name '')))
+  (turn failures |=(name=@t leaf+(weld (trip name) " was accepted")))
+++  test-recursive-tree-aliases
+  ^-  tang
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  ?~  prepared  ~[leaf+"prelude did not prepare"]
+  =/  file=path  /tests/recursive-tree-alias/jibb
+  =/  modules=jbundle:jibb
+    ~[[/ui/tree/jibb (source owner-positive)] [/ui/tree-two/jibb (source owner-positive)] [/ui/tree-alias/jibb (source alias)]]
+  =/  input=@t
+    (source ~['/= first /ui/tree' '/= via /ui/tree-alias' '++ text-event |= x=@t x' '++ ship-event |= x=@t ~zod' '++ via-leaf ^- (alias.via @t) [%text value="x"]' '++ via-node ^- (alias.via @p) [%node event=ship-event children=~]' '++ cross-alias |= x=(alias.via @t) ^- (node-tree.first @t) [%node event=text-event children=~[x]]' '++ keep-generic |= f=$-(@t A) ^- (node-tree.first A) [%node event=f children=~[[%text value="x"]]]'])
+  =/  result=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb file input ~ ~ modules ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+  ?:  ?=(%| -.result)  ~[leaf+(trip message.p.result)]
+  =/  leaf-scheme=(unit ischeme:jibb)  (ienv-lookup:jibb %via-leaf values.iface.p.result)
+  =/  node-scheme=(unit ischeme:jibb)  (ienv-lookup:jibb %via-node values.iface.p.result)
+  =/  cross=(unit ischeme:jibb)  (ienv-lookup:jibb %cross-alias values.iface.p.result)
+  =/  generic=(unit ischeme:jibb)  (ienv-lookup:jibb %keep-generic values.iface.p.result)
+  ?~  leaf-scheme  ~[leaf+"alias leaf missing"]
+  ?~  node-scheme  ~[leaf+"alias node missing"]
+  ?~  cross  ~[leaf+"same-origin alias use missing"]
+  ?~  generic  ~[leaf+"generic constructor missing"]
+  =/  leaf-type=(unit itype:jibb)  (scheme-display-type:jibb u.leaf-scheme)
+  =/  node-type=(unit itype:jibb)  (scheme-display-type:jibb u.node-scheme)
+  ?~  leaf-type  ~[leaf+"alias leaf type did not realize"]
+  ?~  node-type  ~[leaf+"alias node type did not realize"]
+  ?.  ?=(%mrec -.u.leaf-type)  ~[leaf+"alias leaf lost recursive identity"]
+  ?.  ?=(%mrec -.u.node-type)  ~[leaf+"alias node lost recursive identity"]
+  ?.  &(=(at.u.leaf-type /ui/tree/jibb) =(args.u.leaf-type ~[[%atom %t]]))
+    ~[leaf+"alias leaf origin or argument changed"]
+  ?.  &(=(at.u.node-type /ui/tree/jibb) =(args.u.node-type ~[[%atom %p]]))
+    ~[leaf+"alias node origin or argument changed"]
+  ?.  =(1 (lent vars.u.generic))  ~[leaf+"generic constructor lost its quantified parameter"]
+  =/  bads=(list [name=@t src=@t])
+    :~  ['alias foreign origin' '++ bad |= x=(node-tree.second @t) ^- (alias.via @t) [%node event=text-event children=~[x]]']
+        ['alias wrong argument' '++ bad |= x=(alias.via @p) ^- (node-tree.first @t) [%node event=text-event children=~[x]]']
+    ==
+  =/  failures=(list @t)
+    %+  turn  bads
+    |=  item=[name=@t src=@t]
+    =/  bad-source=@t  (source ~['/= first /ui/tree' '/= second /ui/tree-two' '/= via /ui/tree-alias' '++ text-event |= x=@t x' src.item])
+    =/  bad=jfile-detailed-result:jibb
+      (infer-jibb-file-detailed:jibb file bad-source ~ ~ modules ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+    ?:(?=(%& -.bad) name.item '')
+  (turn (skim failures |=(name=@t !=(name ''))) |=(name=@t leaf+(weld (trip name) " was accepted")))
+++  test-recursive-tree-no-event
+  ^-  tang
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  ?~  prepared  ~[leaf+"prelude did not prepare"]
+  =/  file=path  /tests/recursive-no-event/jibb
+  =/  modules=jbundle:jibb
+    ~[[/ui/tree/jibb (source tree-no-event)] [/ui/tree-two/jibb (source tree-no-event)]]
+  =/  good=@t
+    (source ~['/= first /ui/tree' '++ leaf ^- (node-tree.first @t) [%text value="x"]' '++ node ^- (node-tree.first @p) [%node children=~]' '++ nested ^- (node-tree.first @t) [%node children=~[[%text value="x"]]]' '++ generic |= x=A ^- (node-tree.first A) [%node children=~]'])
+  =/  result=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb file good ~ ~ modules ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+  ?:  ?=(%| -.result)  ~[leaf+(trip message.p.result)]
+  =/  nested=(unit ischeme:jibb)  (ienv-lookup:jibb %nested values.iface.p.result)
+  ?~  nested  ~[leaf+"nested recursive tree missing"]
+  =/  nested-type=(unit itype:jibb)  (scheme-display-type:jibb u.nested)
+  ?~  nested-type  ~[leaf+"nested recursive tree type did not realize"]
+  ?.  ?=(%mrec -.u.nested-type)  ~[leaf+"nested recursive tree lost its identity"]
+  ?.  &(=(at.u.nested-type /ui/tree/jibb) =(args.u.nested-type ~[[%atom %t]]))
+    ~[leaf+"nested recursive tree changed origin or argument"]
+  =/  bads=(list [name=@t src=@t])
+    :~  ['foreign child' '++ bad |= x=(node-tree.second @t) ^- (node-tree.first @t) [%node children=~[x]]']
+        ['wrong children' '++ bad ^- (node-tree.first @t) [%node children="x"]']
+    ==
+  =/  failures=(list @t)
+    %+  turn  bads
+    |=  item=[name=@t src=@t]
+    =/  input=@t  (source ~['/= first /ui/tree' '/= second /ui/tree-two' src.item])
+    =/  checked=jfile-detailed-result:jibb
+      (infer-jibb-file-detailed:jibb file input ~ ~ modules ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+    ?:(?=(%& -.checked) name.item '')
+  (turn (skim failures |=(name=@t !=(name ''))) |=(name=@t leaf+(weld (trip name) " was accepted")))
+++  test-recursive-context-retry
+  ^-  tang
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  ?~  prepared  ~[leaf+"prelude did not prepare"]
+  =/  file=path  /ui/tree/jibb
+  =/  owner=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb file (source owner-positive) ~ ~ ~ ~[file] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+  ?:  ?=(%| -.owner)  ~[leaf+(trip message.p.owner)]
+  =/  template=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree iface.p.owner)
+  ?~  template  ~[leaf+"recursive mold missing"]
+  =/  target=(unit itype:jibb)  (template-apply:jibb u.template ~[[%atom %t]])
+  ?~  target  ~[leaf+"recursive mold did not instantiate"]
+  =/  parsed=(each module:jibb error:jibb)  (parse:jibb /tests/tree/values/jibb (source sibling-values))
+  ?:  ?=(%| -.parsed)  ~[leaf+"recursive values failed to parse"]
   =/  ds=(list def:jibb)  defs.p.parsed
-  ?.  ?=([* [* [* [* ~]]]] ds)  'BAD values count'
-  =/  a=def:jibb  i.ds
-  =/  b=def:jibb  i.t.ds
-  =/  c=def:jibb  i.t.t.ds
-  =/  d=def:jibb  i.t.t.t.ds
-  ?.  &(?=(%value -.a) ?=(%value -.b) ?=(%value -.c) ?=(%value -.d))  'BAD value declarations'
-  =/  env=ienv:jibb  ~[[%text-event [[%fn [%atom %t] [%atom %t]] ~]]]
+  ?.  ?=([* [* [* [* ~]]]] ds)  ~[leaf+"recursive fixture shape changed"]
+  =/  first=def:jibb  i.ds
+  =/  sibling=def:jibb  i.t.t.t.ds
+  ?.  &(?=(%value -.first) ?=(%value -.sibling))  ~[leaf+"recursive values missing"]
+  =/  env=ienv:jibb  ~[[%text-event [[%fn [%atom %t] [%atom %t]] ~ ~]]]
   =/  tag=ipending:jibb  [100 [%term %tas %unrelated '%unrelated'] *span:jibb]
   =/  projection=iwprojection:jibb  *iwprojection:jibb
-  =/  st=istate:jibb  *istate:jibb
-  =.  st  st(next 201, prelude `iface.u.prep, tags ~[tag], holes ~[[99 (span-of:jibb val.a)]], projections ~[projection])
-  =/  r0=iresult:jibb  (infer-call-context-arg:jibb val.a target env st(jrec-fuel 0) (span-of:jibb val.a))
-  =/  r1=iresult:jibb  (infer-call-context-arg:jibb val.a target env st(jrec-fuel 1) (span-of:jibb val.a))
-  =/  rnode=iresult:jibb  (infer-call-context-arg:jibb val.b target env st(jrec-fuel 1) (span-of:jibb val.b))
-  =/  short=iresult:jibb  (infer-call-context-arg:jibb val.c target env st(jrec-fuel 1) (span-of:jibb val.c))
-  =/  nested=iresult:jibb  (infer-call-context-arg:jibb val.c target env st(jrec-fuel 2) (span-of:jibb val.c))
-  =/  sibling-short=iresult:jibb  (infer-call-context-arg:jibb val.d target env st(jrec-fuel 2) (span-of:jibb val.d))
-  =/  siblings=iresult:jibb  (infer-call-context-arg:jibb val.d target env st(jrec-fuel 3) (span-of:jibb val.d))
-  =/  retry=iresult:jibb  (infer-call-context-arg:jibb val.a target env st(jrec-fuel 1) (span-of:jibb val.a))
-  =/  failed-retry=iresult:jibb  (infer-call-context-arg:jibb val.a target env st(jrec-fuel 0) (span-of:jibb val.a))
-  =/  rvar=iresult:jibb  (infer-call-context-arg:jibb val.b generic env st(jrec-fuel 1) (span-of:jibb val.b))
-  =/  hidden=istate:jibb  st(sub ~[[200 target]], jrec-fuel 2)
-  =/  rhidden=iresult:jibb  (infer-call-context-arg:jibb val.a [%var 200] env hidden (span-of:jibb val.a))
-  =/  hidden-safe=?
-    ?:  ?=(%| -.rhidden)  &
-    =/  fit=ifit:jibb  (itype-fit:jibb typ.p.rhidden [%var 200] sub.state.p.rhidden next.state.p.rhidden)
-    ?=(%unknown -.fit)
-  =/  exact=isub:jibb  (turn (gulf 1 4.096) |=(n=@ud [(add 1.000 n) [%atom %t]]))
-  =/  over=isub:jibb  [[9.999 [%atom %t]] exact]
-  =/  face-exact=isub:jibb  (turn (gulf 1 4.095) |=(n=@ud [(add 1.000 n) [%atom %t]]))
-  =/  checks=(list [label=@t ok=?])
-    :~  ['complete owner' ?=(%& -.owner)]
-        ['owner exports constructed nominal values' &(leaf-ok node-ok)]
-        ['invalid owner declined' &(?=(%& -.bad-parse) ?=(%| -.bad-owner))]
-        ['view spends one step' =(1 left.u.view)]
-        ['view retains argument and child identity' =(expected-view view.u.view)]
-        ['zero view fuel declined' ?=(~ (grec-unfold-view:jibb generic 0))]
-        ['malformed proof declined' ?=(~ (grec-unfold-view:jibb generic(proof malformed) 2))]
-        ['foreign recursive tail retained' ?:(?=(~ wrong-view) | !=(view.u.wrong-view view.u.target-view))]
-        ['zero inference fuel declined' ?=(%| -.r0)]
-        ['one-step leaf retains nominal identity' ?:(?=(%& -.r1) &(=(target typ.p.r1) =(0 jrec-fuel.state.p.r1)) |)]
-        ['one-step node succeeds' ?:(?=(%& -.rnode) &(=(target typ.p.rnode) =(0 jrec-fuel.state.p.rnode)) |)]
-        ['nested one-step declined' ?=(%| -.short)]
-        ['nested two-step succeeds' ?:(?=(%& -.nested) &(=(target typ.p.nested) =(0 jrec-fuel.state.p.nested)) |)]
-        ['siblings share fuel' &(?=(%| -.sibling-short) ?:(?=(%& -.siblings) =(0 jrec-fuel.state.p.siblings) |))]
-        ['same-state retry agrees' =(r1 retry)]
-        ['failed retry agrees' =(r0 failed-retry)]
-        ['argument binding retains source identity' ?:(?=(%& -.rvar) =(target (itype-normalize:jibb typ.p.rvar sub.state.p.rvar)) |)]
-        ['pending tag retained' ?:(?=(%& -.r1) (lien tags.state.p.r1 |=(entry=ipending:jibb =(entry tag))) |)]
-        ['pending hole retained' ?:(?=(%& -.r1) =(holes.st holes.state.p.r1) |)]
-        ['projection evidence retained' ?:(?=(%& -.r1) =(projections.st projections.state.p.r1) |)]
-        ['hidden variable declined' hidden-safe]
-        ['scan exact limit' (grec-direct-context:jibb target exact)]
-        ['scan over limit declined' !(grec-direct-context:jibb target over)]
-        ['faced scan exact limit' (grec-direct-context:jibb [%face %field target] face-exact)]
-        ['faced scan over limit declined' !(grec-direct-context:jibb [%face %field target] exact)]
-        ['structural substitution declined' !(grec-direct-context:jibb target ~[[9 [%cell [%atom %t] [%atom %t]]]])]
-    ==
-  =/  modules=jbundle:jibb  ~[[/ui/tree/jibb tree] [/ui/tree-two/jibb tree] [/ui/tree-alias/jibb alias]]
-  =/  small=jbundle:jibb  ~[[/ui/tree/jibb tree-no-event] [/ui/tree-two/jibb tree-no-event]]
-  =/  report=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/client/jibb client ~ ~ modules prep)
-  =/  aliases=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/alias-client/jibb alias-client ~ ~ modules prep)
-  =/  no-event=@t  (golden-types-with-prepared-prelude:jibb /tests/tree/no-event-client/jibb no-event-client ~ ~ small prep)
-  (cat 3 (of-wain:format (turn checks line)) (cat 3 '\0a' (cat 3 report (cat 3 '\0a' (cat 3 aliases (cat 3 '\0a' no-event))))))
-++  report
-  ^-  @t
-  (construction-output real-prelude real-internal (text tree) (text alias) (text client) (text alias-client) (text tree-no-event) (text no-event-client) (text owner-positive) (text owner-negative) (text sibling-values))
-++  test-generic-construction
-  ^-  tang
-  ?~  tree  ~[leaf+"tree source missing"]
-  ?~  alias  ~[leaf+"alias source missing"]
-  ?~  client  ~[leaf+"client source missing"]
-  ?~  alias-client  ~[leaf+"alias client missing"]
-  ?~  tree-no-event  ~[leaf+"tree without event missing"]
-  ?~  no-event-client  ~[leaf+"no-event client missing"]
-  ?~  owner-positive  ~[leaf+"owner source missing"]
-  ?~  owner-negative  ~[leaf+"invalid owner source missing"]
-  ?~  sibling-values  ~[leaf+"sibling source missing"]
-  ?~  expected  ~[leaf+"expected output missing"]
-  =/  actual=@t  report
-  ?.  =((to-wain:format (cat 3 actual '\0a')) expected)
-    ~[leaf+"generic construction output differs from expected"]
+  =/  state=istate:jibb  *istate:jibb
+  =.  state  state(next 201, prelude `iface.u.prepared, tags ~[tag], holes ~[[99 (span-of:jibb val.first)]], projections ~[projection])
+  =/  failed=iresult:jibb  (infer-call-context-arg:jibb val.first u.target env state(jrec-fuel 0) (span-of:jibb val.first))
+  =/  retry-failed=iresult:jibb  (infer-call-context-arg:jibb val.first u.target env state(jrec-fuel 0) (span-of:jibb val.first))
+  ?.  ?=(%| -.failed)  ~[leaf+"exhausted recursive fuel was accepted"]
+  ?.  =(failed retry-failed)  ~[leaf+"failed recursive retry changed its result"]
+  =/  successful=iresult:jibb  (infer-call-context-arg:jibb val.first u.target env state(jrec-fuel 4.096) (span-of:jibb val.first))
+  =/  retry=iresult:jibb  (infer-call-context-arg:jibb val.first u.target env state(jrec-fuel 4.096) (span-of:jibb val.first))
+  ?:  ?=(%| -.successful)  ~[leaf+"recursive constructor did not infer"]
+  ?.  =(successful retry)  ~[leaf+"recursive retry changed its result"]
+  ?.  =(typ.p.successful u.target)  ~[leaf+"recursive construction lost nominal identity"]
+  ?.  (lien tags.state.p.successful |=(entry=ipending:jibb =(entry tag)))  ~[leaf+"unrelated pending tag was lost"]
+  ?.  =(holes.state holes.state.p.successful)  ~[leaf+"unrelated pending hole was lost"]
+  ?.  =(projections.state projections.state.p.successful)  ~[leaf+"projection evidence was lost"]
+  =/  siblings=iresult:jibb  (infer-call-context-arg:jibb val.sibling u.target env state(jrec-fuel 4.096) (span-of:jibb val.sibling))
+  ?:  ?=(%| -.siblings)  ~[leaf+"recursive siblings did not infer"]
+  ?.  (lth jrec-fuel.state.p.siblings 4.096)  ~[leaf+"recursive siblings did not spend their shared budget"]
   ~
 --

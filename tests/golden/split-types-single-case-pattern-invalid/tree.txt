@@ -1,0 +1,10 @@
+(module
+  (value 17:1 invalid
+    (gate 17:12
+      (face 17:15 p (aura 17:17 @t))
+      (body 18:3
+        (branch 18:3
+          (wing 18:6 p)
+          (arm 19:5
+            (cell 19:5 (lit 19:6 %go) (bind 19:10 u))
+            (wing 19:13 u)))))))

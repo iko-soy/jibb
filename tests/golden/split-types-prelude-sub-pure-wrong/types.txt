@@ -1,0 +1,13 @@
+++ pure-wrong: my-msg has no case `%absent`
+/tests/golden/split-types-prelude-sub-pure-wrong/source.jibb:20:4: expected union has type my-msg
++$ my-msg
+   ^
+/tests/golden/split-types-prelude-sub-pure-wrong/source.jibb:21:3: expected union has type my-msg
+  [%got value=@t]
+  ^
+/tests/golden/split-types-prelude-sub-pure-wrong/source.jibb:37:32: expected union has type my-msg
+++ pure-wrong ^- (ask my-msg) (pure %absent)
+                               ^
+/tests/golden/split-types-prelude-sub-pure-wrong/source.jibb:37:37: tag literal has type %absent
+++ pure-wrong ^- (ask my-msg) (pure %absent)
+                                    ^

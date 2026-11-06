@@ -1,0 +1,2 @@
+site /tests/golden/split-types-change-wing-through-list/source.jibb:12:32
+min-sites 2

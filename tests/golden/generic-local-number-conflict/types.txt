@@ -1,0 +1,7 @@
+++ outer: cast mold and expression type do not unify
+/tests/golden/generic-local-number-conflict/source.jibb:7:8: cast mold has type @t
+    ^- @t (search 0)
+       ^
+/tests/golden/generic-local-number-conflict/source.jibb:7:11: expression has type @ud
+    ^- @t (search 0)
+          ^

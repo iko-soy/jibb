@@ -1,33 +1,7 @@
-partial inference; module not checked
-++ inc: $-(@ud @ud)
-++ top: call's sample and argument types do not unify
-/tests/golden/types-local-error-call/source.jibb:2:9: called gate has type $-(@ud @ud)
-++ top (inc %.y)
-        ^
-/tests/golden/types-local-error-call/source.jibb:2:13: argument has type ?
+++ top: inline gate result does not unify with @ud: ? versus @ud
+/tests/golden/types-local-error-call/source.jibb:2:13: actual type has type ?
 ++ top (inc %.y)
             ^
-++ local: call's sample and argument types do not unify
-/tests/golden/types-local-error-call/source.jibb:4:11: called gate has type $-(@ud @ud)
-  ++ bad (inc %.y)
-          ^
-/tests/golden/types-local-error-call/source.jibb:4:15: argument has type ?
-  ++ bad (inc %.y)
-              ^
-++ local-gate: call's sample and argument types do not unify
-/tests/golden/types-local-error-call/source.jibb:8:11: called gate has type $-(@ud @ud)
-  ++ bad (twice x)
-          ^
-/tests/golden/types-local-error-call/source.jibb:8:17: argument has type @t
-  ++ bad (twice x)
-                ^
-++ in-gate: call's sample and argument types do not unify
-/tests/golden/types-local-error-call/source.jibb:11:20: called gate has type $-(@ud @ud)
-  ++ bump |= y=@t (inc y)
-                   ^
-/tests/golden/types-local-error-call/source.jibb:11:24: argument has type @t
-  ++ bump |= y=@t (inc y)
-                       ^
-++ blame-order: local definitions need unsupported inference
-++ blame-empty: local definitions need unsupported inference
-++ blame-empty-c-first: $-(!! !!)
+/tests/golden/types-local-error-call/source.jibb:2:9: call context has type @ud
+++ top (inc %.y)
+        ^

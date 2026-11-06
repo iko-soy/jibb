@@ -1,0 +1,4 @@
+origin types-union-singleton
+target value wrong-input
+keep mold typed
+keep value wrong-input

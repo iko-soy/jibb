@@ -1,7 +1,8 @@
 ::  The exact todo island through real readers: partial reports only.
-/+  jibb, jibb-import
+/+  jibb, jibb-import, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  sur  %txt  /my-app/sur/todo/hoon
 /*  action  %txt  /my-app/mar/todo-action/hoon
 /*  todos  %txt  /my-app/mar/todos/hoon
@@ -24,7 +25,7 @@
 ++  todo-island-report
   |=  [public=@t private=@t sur-text=@t action-text=@t todos-text=@t update-text=@t item-text=@t api-text=@t source-text=@t]
   ^-  @t
-  =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb public private)
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  'prelude unavailable'
   =/  todo=type  -:(ride -:!>(..zuse) sur-text)
   =/  subject=type  [%cell [%face %todo todo] -:!>(..zuse)]

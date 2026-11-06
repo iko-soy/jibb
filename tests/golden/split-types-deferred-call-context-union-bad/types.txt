@@ -1,0 +1,13 @@
+++ union-bad: msg has no case `%wrong`
+/tests/golden/split-types-deferred-call-context-union-bad/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-deferred-call-context-union-bad/source.jibb:2:3: expected union has type msg
+  %good
+  ^
+/tests/golden/split-types-deferred-call-context-union-bad/source.jibb:10:22: expected union has type msg
+++ union-bad ^- msg (local-id %wrong)
+                     ^
+/tests/golden/split-types-deferred-call-context-union-bad/source.jibb:10:31: tag literal has type %wrong
+++ union-bad ^- msg (local-id %wrong)
+                              ^

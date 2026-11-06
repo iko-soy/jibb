@@ -1,0 +1,4 @@
+message capital `B` cannot be fixed to @t
+site /tests/golden/split-types-local-error-cast-empty-mask/source.jibb:41:13
+site /tests/golden/split-types-local-error-cast-empty-mask/source.jibb:41:21
+min-sites 2

@@ -1,0 +1,4 @@
+message msg.lib has no case `%wrong`
+typed-site /ui/lib.jibb:2:3
+typed-site /tests/golden/split-types-multi-import-bad-tag/source.jibb:5:25
+min-sites 2

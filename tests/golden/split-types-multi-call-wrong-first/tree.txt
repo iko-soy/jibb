@@ -1,0 +1,9 @@
+(module
+  (value 6:1 three
+    (gate 6:10
+      (face 6:13 p
+        (cell 6:15 (aura 6:16 @t) (aura 6:19 @p) (flag 6:22)))
+      (wing 6:25 p)))
+  (value 39:1 wrong-first
+    (group 39:16
+      (call 39:17 (wing 39:17 three) (lit 39:23 ~zod) (lit 39:28 ~zod) (lit 39:33 %.y)))))

@@ -1,0 +1,26 @@
+(module
+  (value 11:1 select-one
+    (gate 11:15
+      (face 11:18 r
+        (cell 11:20
+          (face 11:21 a (tvar 11:23 A))
+          (face 11:25 b (aura 11:27 @t))))
+      (body 12:3
+        (cast 12:3
+          (cell 12:6
+            (face 12:7 a (tvar 12:9 A)))
+          (group 12:12
+            (call 12:13
+              (wing 12:13 proj)
+              (tuple 12:18
+                (face 12:19 a
+                  (group 12:21
+                    (call 12:22 (wing 12:22 add) (wing 12:26 a.r) (lit 12:30 1))))
+                (face 12:33 b (wing 12:35 b.r)))))))))
+  (value 14:1 select-one-bool
+    (group 14:20
+      (call 14:21
+        (wing 14:21 select-one)
+        (tuple 14:32
+          (face 14:33 a (lit 14:35 %.y))
+          (face 14:39 b (str 14:41 "x")))))))

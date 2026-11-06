@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ commands-bad ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 ~zod]]
+
+
+
+
+

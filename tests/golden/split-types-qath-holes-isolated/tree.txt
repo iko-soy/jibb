@@ -1,0 +1,7 @@
+(module
+  (value 4:1 isolated
+    (gate 4:13
+      (cell 4:16
+        (face 4:17 p (ref 4:19 qath))
+        (face 4:24 other (hole 4:30)))
+      (wing 4:33 p))))

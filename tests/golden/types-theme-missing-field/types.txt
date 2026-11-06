@@ -1,0 +1,7 @@
+++ theme: cast is missing field `zone`
+/lib/jibb/prelude.jibb:623:5: required field has type @t
+    zone=@t
+    ^
+/ui/theme.jibb:2:3: record has no field `zone`
+  [ space=[s1="4px" s2="8px" s3="16px"]
+  ^

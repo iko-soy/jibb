@@ -1,0 +1,7 @@
++$ record [proj=@ud unface=@t]
+++ take |= r=record unface.r
+++ item ^- record [proj=1 unface="ok"]
++$ choice
+  %proj
+  %unface
+++ tag ^- choice %proj

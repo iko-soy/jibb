@@ -1,0 +1,7 @@
+++ bad-subject: inline gate result does not unify with input: @t versus input
+/tests/golden/split-types-union-nonwing-subject-bad-subject/source.jibb:67:19: actual type has type @t
+  ?- (passthrough "wrong")
+                  ^
+/tests/golden/split-types-union-nonwing-subject-bad-subject/source.jibb:67:7: call context has type input
+  ?- (passthrough "wrong")
+      ^

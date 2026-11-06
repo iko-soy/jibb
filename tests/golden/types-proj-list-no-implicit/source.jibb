@@ -1,0 +1,2 @@
+++ sink-list |= x=(list [a=@t b=B]) "ok"
+++ list-bad (sink-list ~[[a="x" b=~zod c=%.y]])

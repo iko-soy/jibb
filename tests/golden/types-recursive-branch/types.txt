@@ -1,50 +1,7 @@
-partial inference; module not checked
-++ text-forward: $-(? @t)
-++ text-reverse: $-(? @t)
-++ ship-result: $-(? @p)
-++ flag-result: $-(? ?)
-++ record-result: $-(? [who=@p label=@t])
-++ list-result: $-(? (list @t))
-++ input-base: $-(A A)
-++ inferred-base: $-(A A)
-++ captured: $-(A A)
-++ forced: explicit capital constraints are not supported by partial inference
-++ pending: tag needs context in partial inference
-++ pending-null: `~` needs context in partial inference
-++ dependent: $-(? @t)
-++ nonself: $-(? @t)
-++ polymorphic: call's sample and argument types do not unify
-/tests/golden/types-recursive-branch/source.jibb:61:10: called gate has type $-(A @t)
-    %.n (polymorphic [x x])
-         ^
-/tests/golden/types-recursive-branch/source.jibb:61:22: argument has type [A A]
-    %.n (polymorphic [x x])
-                     ^
-++ no-base: $-(? A)
-++ malformed: branch does not cover both loobeans
-++ mixed: branch arms have incompatible types
-/tests/golden/types-recursive-branch/source.jibb:71:11: first arm has type @t
-      %.y "ok"
-          ^
-/tests/golden/types-recursive-branch/source.jibb:72:11: second arm has type @p
-      %.n (mixed b)
-          ^
-++ sample-base: $-(? ?)
-++ sample-mismatch: call's sample and argument types do not unify
-/tests/golden/types-recursive-branch/source.jibb:80:10: called gate has type $-(? @t)
-    %.n (sample-mismatch "wrong")
-         ^
-/tests/golden/types-recursive-branch/source.jibb:80:26: argument has type @t
-    %.n (sample-mismatch "wrong")
-                         ^
-++ self-subject: loobean branch subject does not unify with ?
-++ aura-base: $-(? @u)
-++ aura-conflict: branch arms have incompatible types
-/tests/golden/types-recursive-branch/source.jibb:92:11: first arm has type @ux
-      %.y 0x1f
-          ^
-/tests/golden/types-recursive-branch/source.jibb:93:11: second arm has type @t
-      %.n (aura-conflict b)
-          ^
-++ traced: $-(? @t)
-++ unresolved-number: unresolved aura-variable inference
+++ forced: capital `A` cannot be fixed to @t
+/tests/golden/types-recursive-branch/source.jibb:38:16: capital
+++ forced |= x=A
+               ^
+/tests/golden/types-recursive-branch/source.jibb:40:15: forcing expression
+    %.y ^- @t x
+              ^

@@ -1,0 +1,5 @@
+module kind: library
+++ global: $-(A A)
+++ good: $-(A [A A])
+++ local-mold: $-(A A)
+++ wrap-value: $-(A $-(B A))

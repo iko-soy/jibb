@@ -1,2 +1,1 @@
-partial inference; module not checked
 API module needs unsupported inference: /ui/api/blog/jibb: API path declaration needs unsupported analysis

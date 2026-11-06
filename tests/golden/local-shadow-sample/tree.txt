@@ -1,0 +1,7 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 x (aura 1:11 @ud))
+      (body 2:3
+        (value 2:3 x (lit 2:8 1))
+        (wing 3:3 x)))))

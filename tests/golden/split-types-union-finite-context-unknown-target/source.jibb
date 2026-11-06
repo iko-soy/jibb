@@ -1,0 +1,76 @@
++$ input
+  [%p flag=? text=@t]
+  %other
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ unknown-target |= [x=input y=A] ^- A
+  ?- x
+    [%p %.y t] %go
+    [%p %.n t] %stay
+    %other %stay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

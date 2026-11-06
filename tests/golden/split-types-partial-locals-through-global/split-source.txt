@@ -1,0 +1,4 @@
+origin types-partial-locals
+target value through-global
+keep value through-global
+keep value wrap-value

@@ -1,0 +1,7 @@
+++ later: `1` is a @ud, not a @dr; write ~s1
+/tests/golden/split-inline-decimal-sites-later/source.jibb:6:26: decimal
+++ later |= d=@dr (add d 1)
+                         ^
+/tests/golden/split-inline-decimal-sites-later/source.jibb:6:20: expected type has type [A A] where A is an atom other than ?
+++ later |= d=@dr (add d 1)
+                   ^

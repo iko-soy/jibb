@@ -1,0 +1,4 @@
+source: capital face-boundary regression
+tests: a capital strips an outer face while preserving faces inside a record
+expect: parses
+expect-types: full checker

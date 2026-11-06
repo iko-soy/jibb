@@ -1,0 +1,20 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %text)
+        (face 2:10 value (aura 2:16 @t)))
+      (const 3:3 %clear)))
+  (value 20:1 unknown
+    (gate 20:12
+      (face 20:15 a (ref 20:17 msg))
+      (cast 20:21
+        (apply 20:24 list (aura 20:30 @t))
+        (body 21:3
+          (branch 21:3
+            (wing 21:6 a)
+            (arm 22:5
+              (cell 22:5 (lit 22:6 %text) (str 22:12 "x"))
+              (list 22:17))
+            (arm 23:5 (lit 23:5 %clear) (list 23:12))
+            (arm 24:5 (any 24:5) (list 24:7))))))))

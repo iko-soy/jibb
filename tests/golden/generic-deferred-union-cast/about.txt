@@ -1,0 +1,3 @@
+A cast supplies the union context to a previously inferred UI value.
+expect: parse
+expect-types: accept

@@ -1,0 +1,20 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %save)
+      (const 3:3 %toggle)
+      (cell 4:3
+        (const 4:4 %edited)
+        (face 4:12 value (aura 4:18 @t)))))
+  (value 61:1 malformed-table
+    (cast 61:20
+      (apply 61:23 element (ref 61:32 msg))
+      (body 62:3
+        (group 62:3
+          (call 62:4
+            (wing 62:4 table)
+            (list 62:10
+              (tuple 62:12
+                (face 62:13 header (str 62:20 "Name"))
+                (face 62:27 width (lit 62:33 %shrink))))
+            (lit 62:43 ~)))))))

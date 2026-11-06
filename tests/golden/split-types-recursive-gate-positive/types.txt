@@ -1,0 +1,11 @@
+module kind: library
+++ bounce: $-(? ?)
+++ recur: $-(A A)
+++ cord-result: @t
+++ ship-result: @p
+++ mutual-a: $-(A B)
+++ mutual-b: $-(A B)
+++ captured: $-(A A)
+++ local-rec: $-(A B)
+++ higher: $-($-(A A) $-(A A))
+++ local-self: $-(A B)

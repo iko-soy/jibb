@@ -25,9 +25,11 @@ FIXTURES = [
     ('import', 'Clay imports differ',
      'Clay importer golden: 4 projections passed'),
     # Clay-built library cores as well as a Clay-built /sur; the selected
-    # reader result goes to the partial checker.
+    # reader result goes to the full checker.
     ('bridge', 'Clay bridge differs',
      'Clay importer/checker bridge golden passed'),
+    ('full-import', 'Clay full import differs',
+     'Clay imported /sur full-check golden passed'),
     ('record-bridge', 'Clay record bridge differs',
      'Clay record importer/checker bridge golden passed'),
     # A /sur with a Ford import has a different parent subject. This

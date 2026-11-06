@@ -1,0 +1,3 @@
+origin types-partial-aura-family
+target value narrow
+keep value narrow

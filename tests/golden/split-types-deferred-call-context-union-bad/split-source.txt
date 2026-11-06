@@ -1,0 +1,5 @@
+origin types-deferred-call-context
+target value union-bad
+keep mold msg
+keep value local-id
+keep value union-bad

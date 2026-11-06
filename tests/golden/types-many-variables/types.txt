@@ -1,13 +1,7 @@
-partial inference; module not checked
-++ wide: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] [A T26])
-++ ends: [@t @p]
-++ spin: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] T27)
-++ ping: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] T27)
-++ pong: $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] T27)
-++ short: call's sample and argument types do not unify
-/tests/golden/types-many-variables/source.jibb:6:11: called gate has type $-([a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]] [A T26])
-++ short (wide "x")
-          ^
-/tests/golden/types-many-variables/source.jibb:6:16: argument has type @t
+++ short: inline gate result does not unify with [a=T163 [b=T164 [c=T165 [d=T166 [e=T167 [f=T168 [g=T169 [h=T170 [i=T171 [j=T172 [k=T173 [l=T174 [m=T175 [n=T176 [o=T177 [p=T178 [q=T179 [r=T180 [s=T181 [t=T182 [u=T183 [v=T184 [w=T185 [x=T186 [y=T187 [z=T188 aa=T189]]]]]]]]]]]]]]]]]]]]]]]]]]: @t versus [a=T163 [b=T164 [c=T165 [d=T166 [e=T167 [f=T168 [g=T169 [h=T170 [i=T171 [j=T172 [k=T173 [l=T174 [m=T175 [n=T176 [o=T177 [p=T178 [q=T179 [r=T180 [s=T181 [t=T182 [u=T183 [v=T184 [w=T185 [x=T186 [y=T187 [z=T188 aa=T189]]]]]]]]]]]]]]]]]]]]]]]]]]
+/tests/golden/types-many-variables/source.jibb:6:16: actual type has type @t
 ++ short (wide "x")
                ^
+/tests/golden/types-many-variables/source.jibb:6:11: call context has type [a=A [b=B [c=C [d=D [e=E [f=F [g=G [h=H [i=I [j=J [k=K [l=L [m=M [n=N [o=O [p=P [q=Q [r=R [s=S [t=T [u=U [v=V [w=W [x=X [y=Y [z=Z aa=T26]]]]]]]]]]]]]]]]]]]]]]]]]]
+++ short (wide "x")
+          ^

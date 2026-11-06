@@ -1,0 +1,11 @@
+(module
+  (value 9:1 wrong-reply
+    (cast 9:16
+      (apply 9:19 sub (aura 9:24 @t))
+      (tuple 9:28
+        (lit 9:29 %every)
+        (face 9:36 gap (lit 9:40 ~s1))
+        (face 9:44 reply
+          (gate-wide 9:50
+            (face 9:53 date (aura 9:58 @p))
+            (str 9:61 "bad")))))))

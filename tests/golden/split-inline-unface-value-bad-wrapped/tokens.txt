@@ -1,0 +1,37 @@
+1:1 glyph ++
+1:4 name lt-a
+1:9 glyph |=
+1:12 glyph [
+1:13 tight name a
+1:14 tight glyph =
+1:15 tight aura @ud
+1:19 name b
+1:20 tight glyph =
+1:21 tight aura @ud
+1:24 tight glyph ]
+1:26 glyph (
+1:27 tight name gth
+1:31 name b
+1:33 name a
+1:34 tight glyph )
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name gates
+2:10 glyph ~[
+2:12 tight name lt-a
+2:16 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name wrapped
+5:12 glyph (
+5:13 tight name turn
+5:18 name gates
+5:24 glyph |=(
+5:27 tight name g
+5:29 glyph (
+5:30 tight name unface
+5:37 name g
+5:38 tight glyph )
+5:39 tight glyph )
+5:40 tight glyph )
+5:41 NEWLINE

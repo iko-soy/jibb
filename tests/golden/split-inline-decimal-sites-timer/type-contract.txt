@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-sites-timer/source.jibb:20:30
+min-sites 2

@@ -1,0 +1,4 @@
+(module
+  (mold 1:1 yes (const 1:8 %.y))
+  (value 6:1 wrong-flag
+    (cast 6:15 (ref 6:18 yes) (lit 6:22 %.n))))

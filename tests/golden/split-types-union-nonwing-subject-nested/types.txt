@@ -1,0 +1,6 @@
+module kind: library
++$ input: input
++$ result: result
+++ local-id: $-(A A)
+++ passthrough: $-(input input)
+++ nested: $-(input result)

@@ -1,8 +1,4 @@
-partial inference; module not checked
-++ direct: $-(* *)
-++ payload: $-([value=* count=@ud] [value=* count=@ud])
-++ widen: *
-++ nested: [value=* count=@ud]
-++ narrow: cast constraint is not supported by partial inference
-++ option: sample mold is not supported by partial inference
-++ overlap: sample mold is not supported by partial inference
+++ overlap: Hoon union cases overlap
+/tests/golden/types-import-hoon-noun/source.jibb:8:17: invalid imported mold
+++ overlap |= x=overlap.fixture x
+                ^

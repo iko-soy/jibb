@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ id: $-(A A)
 ++ word: @t
 ++ ship-name: @p

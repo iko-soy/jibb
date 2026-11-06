@@ -1,0 +1,4 @@
+origin types-multi-call
+target value wrong-first
+keep value three
+keep value wrong-first

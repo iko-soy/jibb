@@ -1,0 +1,4 @@
+(module
+  (value 13:1 bad-drop
+    (group 13:13
+      (call 13:14 (wing 13:14 drop) (str 13:19 "hi")))))

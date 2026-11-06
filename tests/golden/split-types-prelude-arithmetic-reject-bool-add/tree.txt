@@ -1,0 +1,4 @@
+(module
+  (value 13:1 reject-bool-add
+    (group 13:20
+      (call 13:21 (wing 13:21 add) (lit 13:25 %.n) (lit 13:29 %.n)))))

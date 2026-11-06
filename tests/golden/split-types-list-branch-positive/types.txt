@@ -1,0 +1,8 @@
+module kind: library
+++ copy: $-((list @t) (list @t))
+++ copy-reverse: $-((list @t) (list @t))
+++ boolean: $-(? (list @t))
+++ unit-branch: $-((unit @t) (list @t))
+++ nested: $-((list @t) (list @t))
+++ consume: $-((list @t) (list @t))
+++ call: $-(? (list @t))

@@ -1,0 +1,4 @@
+source: Overview Prelude data molds; Hoon 135 section 2q
+tests: source-backed aliases axis, bean, flag, char, byts, noun, tour, tarp, date, term, wain, wall and stud, with exact Hoon field names and auras
+expect: parses
+expect-types: full checking preserves every data mold, bytes width, and text-list element type

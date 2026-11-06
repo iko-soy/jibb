@@ -1,0 +1,13 @@
+++ m: map keys cannot contain gates
+/lib/jibb/prelude.jibb:793:4: earlier binding
++$ map |$ [K V] (map.hoon K V)
+   ^
+/tests/golden/types-prelude-map-key-gate/source.jibb:1:12: key argument
+++ m |= [g=$-(@ud @ud) mp=(map $-(@ud @ud) @ud)] (put.by mp g 1)
+           ^
+/tests/golden/types-prelude-map-key-gate/source.jibb:1:28: collection has type (map A B) where A contains no gates
+++ m |= [g=$-(@ud @ud) mp=(map $-(@ud @ud) @ud)] (put.by mp g 1)
+                           ^
+/tests/golden/types-prelude-map-key-gate/source.jibb:1:32: key has type $-(@ud @ud)
+++ m |= [g=$-(@ud @ud) mp=(map $-(@ud @ud) @ud)] (put.by mp g 1)
+                               ^

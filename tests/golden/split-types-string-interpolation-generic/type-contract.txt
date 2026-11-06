@@ -1,0 +1,4 @@
+message a generic value in interpolation needs a printer
+typed-site /tests/golden/split-types-string-interpolation-generic/source.jibb:7:21
+typed-site /tests/golden/split-types-string-interpolation-generic/source.jibb:7:17
+min-sites 2

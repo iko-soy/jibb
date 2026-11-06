@@ -1,0 +1,3 @@
+message unface is not a value; write |=(g (unface g))
+site /tests/golden/split-inline-unface-value-bad-mapped/source.jibb:4:23
+min-sites 1

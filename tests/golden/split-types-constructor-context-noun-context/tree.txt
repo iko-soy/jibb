@@ -1,0 +1,12 @@
+(module
+  (value 14:1 call
+    (gate 14:9
+      (face 14:12 callback
+        (fn 14:21 (aura 14:24 @t) (tvar 14:27 M)))
+      (group 14:30
+        (call 14:31 (wing 14:31 callback) (str 14:40 "payload")))))
+  (value 36:1 noun-context
+    (cast 36:17
+      (noun 36:20)
+      (group 36:22
+        (call 36:23 (wing 36:23 call) (ctor 36:28 %got))))))

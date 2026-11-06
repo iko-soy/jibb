@@ -1,0 +1,8 @@
+module kind: library
+++ decimal: @ud
+++ hex: @ux
+++ text-value: @t
+++ ship: @p
+++ nested: $-(A A) where A is an atom other than ?
+++ inc-decimal: @ud
+++ inc-hex: @ux

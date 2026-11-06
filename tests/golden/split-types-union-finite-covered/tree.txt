@@ -1,0 +1,21 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %p)
+        (face 2:7 left (flag 2:12))
+        (face 2:14 right (flag 2:20)))
+      (const 3:3 %other)))
+  (value 23:1 covered
+    (gate 23:12
+      (face 23:15 m (ref 23:17 msg))
+      (body 24:3
+        (branch 24:3
+          (wing 24:6 m)
+          (arm 25:5
+            (cell 25:5 (lit 25:6 %p) (lit 25:9 %.y) (any 25:13))
+            (str 25:16 "a"))
+          (arm 26:5
+            (cell 26:5 (lit 26:6 %p) (lit 26:9 %.y) (lit 26:13 %.n))
+            (str 26:18 "b"))
+          (arm 27:5 (any 27:5) (str 27:7 "e")))))))

@@ -1,0 +1,7 @@
+++ main: island data field `input` contains a gate
+/ui/program-check.jibb:6:12: gate-bearing island type
+++ init |= input=$-(@t @t) ^- model [count=0]
+           ^
+/ui/program-check.jibb:5:10: island main
+++ main (program init update view subs)
+         ^

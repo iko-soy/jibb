@@ -1,0 +1,10 @@
+(module
+  (value 1:1 same-item
+    (gate 1:14
+      (face 1:17 n (aura 1:19 @ud))
+      (wing 1:23 n)))
+  (value 2:1 accepted
+    (group 2:13
+      (call 2:14
+        (wing 2:14 homo)
+        (list 2:19 (wing 2:21 same-item))))))

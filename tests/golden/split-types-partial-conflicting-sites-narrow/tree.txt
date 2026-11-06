@@ -1,0 +1,6 @@
+(module
+  (value 4:1 narrow
+    (gate 4:11
+      (face 4:14 x (aura 4:16 @))
+      (body 5:3
+        (cast 5:3 (aura 5:6 @t) (wing 5:9 x))))))

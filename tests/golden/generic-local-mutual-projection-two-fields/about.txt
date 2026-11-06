@@ -1,0 +1,1 @@
+Local polymorphic projection retains its lexical proof variables and the result faces.

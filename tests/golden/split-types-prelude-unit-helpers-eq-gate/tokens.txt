@@ -1,0 +1,8 @@
+23:1 glyph ++
+23:4 name eq-gate
+23:12 glyph (
+23:13 tight name eq
+23:16 name same
+23:21 name same
+23:25 tight glyph )
+23:26 NEWLINE

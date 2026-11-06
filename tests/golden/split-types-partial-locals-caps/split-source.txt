@@ -1,0 +1,3 @@
+origin types-partial-locals
+target value caps
+keep value caps

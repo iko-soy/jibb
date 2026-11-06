@@ -1,0 +1,7 @@
+++ contextual-bad: capital `A` cannot be fixed to @t
+/tests/golden/split-types-unit-context-contextual-bad/source.jibb:41:24: capital
+++ contextual-bad |= x=A ^- [a=A b=(unit A)] [a=x b=`"hi"]
+                       ^
+/tests/golden/split-types-unit-context-contextual-bad/source.jibb:41:46: forcing expression
+++ contextual-bad |= x=A ^- [a=A b=(unit A)] [a=x b=`"hi"]
+                                             ^

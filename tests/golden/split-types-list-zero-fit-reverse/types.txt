@@ -1,0 +1,7 @@
+++ reverse: call's sample and argument types do not unify
+/tests/golden/split-types-list-zero-fit-reverse/source.jibb:7:43: called gate has type $-(%$ @t)
+++ reverse |= [f=$-(%$ @t) xs=(list @t)] (f xs)
+                                          ^
+/tests/golden/split-types-list-zero-fit-reverse/source.jibb:7:45: argument has type (list @t)
+++ reverse |= [f=$-(%$ @t) xs=(list @t)] (f xs)
+                                            ^

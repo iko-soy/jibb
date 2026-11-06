@@ -1,0 +1,11 @@
+module kind: library
++$ spacing: spacing
++$ extent: extent
++$ attribute: attribute
+++ one: attribute
+++ equiv: attribute
+++ attributes: (list attribute)
+++ gap-structural: [@tas @tas]
+++ nested: attribute
+++ noun-pair: [* *]
+++ atom-pair: [@ta @tas]

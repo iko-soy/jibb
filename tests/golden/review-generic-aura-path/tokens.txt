@@ -1,0 +1,15 @@
+1:1 glyph ++
+1:4 name link-to
+1:12 glyph |=
+1:15 name n
+1:16 tight glyph =
+1:17 tight tvar A
+1:19 glyph %/
+1:21 tight knot blog
+1:25 tight glyph /
+1:26 tight glyph (
+1:27 tight name add
+1:31 name n
+1:33 lit 1
+1:34 tight glyph )
+1:35 NEWLINE

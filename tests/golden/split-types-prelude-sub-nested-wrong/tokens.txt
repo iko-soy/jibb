@@ -1,0 +1,15 @@
+12:1 glyph ++
+12:4 name wrong
+12:10 glyph ^-
+12:13 glyph (
+12:14 tight name sub
+12:18 aura @t
+12:20 tight glyph )
+12:22 glyph [
+12:23 tight lit %watch
+12:30 glyph (
+12:31 tight name pure
+12:36 lit ~zod
+12:40 tight glyph )
+12:41 tight glyph ]
+12:42 NEWLINE

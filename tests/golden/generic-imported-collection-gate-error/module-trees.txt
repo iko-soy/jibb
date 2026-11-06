@@ -1,0 +1,8 @@
+/ui/helper.jibb
+(module
+  (value 1:1 same-list
+    (gate 1:14
+      (face 1:17 xs
+        (apply 1:20 list (tvar 1:26 A)))
+      (group 1:29
+        (call 1:30 (wing 1:30 eq) (wing 1:33 xs) (wing 1:36 xs))))))

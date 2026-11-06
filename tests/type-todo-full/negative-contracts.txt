@@ -1,0 +1,28 @@
+The full checker must report the concrete reason and the two indicated sites
+for each invalid todo variant. The exact short reasons below are regression
+contracts; the Grammar explicitly gives the `msg has no case ...` form. The
+other reasons describe the conflicting types or watchability without locking
+the wording of each excerpt's site note. Each diagnostic must include both
+source lines and at least two separate caret lines. Generic unsupported
+inference and the unrelated initializer error do not satisfy these contracts.
+
+wrong-model
+  local sample `subs` does not unify with model `model`
+  /ui/todo-list.jibb:5:4: model mold
+  /ui/todo-list.jibb:27:12: incompatible subs sample
+wrong-message
+  msg has no case `%other`
+  /ui/todo-list.jibb:6:4: msg union
+  /ui/todo-list.jibb:40:32: unknown message tag
+wrong-result
+  local result `row-of` does not unify
+  /ui/todo-list.jibb:33:5: keyed each use
+  /ui/todo-list.jibb:40:3: incompatible mapper result
+wrong-watch
+  an island may watch only a request whose origin is proved watchable
+  /ui/todo-list.jibb:28:6: watch
+  /ui/todo-list.jibb:28:14: pure request
+wrong view type
+  local definition `init` does not unify with (element msg)
+  /ui/todo-list.jibb:13:1: incompatible init gate definition
+  /ui/todo-list.jibb:30:9: incompatible init gate used as view

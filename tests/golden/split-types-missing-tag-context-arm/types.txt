@@ -1,0 +1,13 @@
+++ arm: msg has no case `%missing`
+/tests/golden/split-types-missing-tag-context-arm/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-missing-tag-context-arm/source.jibb:2:3: expected union has type msg
+  %go
+  ^
+/tests/golden/split-types-missing-tag-context-arm/source.jibb:6:18: expected union has type msg
+++ arm |= x=? ^- msg
+                 ^
+/tests/golden/split-types-missing-tag-context-arm/source.jibb:9:9: tag literal has type %missing
+    %.n %missing
+        ^

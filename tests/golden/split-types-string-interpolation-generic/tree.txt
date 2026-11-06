@@ -1,0 +1,5 @@
+(module
+  (value 7:1 generic
+    (gate 7:12
+      (face 7:15 x (tvar 7:17 A))
+      (str 7:19 (wing 7:21 x)))))

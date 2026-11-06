@@ -1,0 +1,27 @@
+(module
+  (value 1:1 nested
+    (cast 1:11
+      (ref 1:14 qath)
+      (tuple 1:19
+        (lit 1:20 ~.blog)
+        (tuple 1:27 (lit 1:28 ~.post) (lit 1:35 ~)))))
+  (value 2:1 faced
+    (cast 2:10
+      (ref 2:13 qath)
+      (tuple 2:18
+        (face 2:19 i (lit 2:21 ~.blog))
+        (face 2:28 t
+          (tuple 2:30
+            (face 2:31 i (lit 2:33 ~.post))
+            (face 2:40 t (lit 2:42 ~)))))))
+  (value 3:1 cast
+    (cast 3:9
+      (hole 3:12)
+      (cast 3:14
+        (ref 3:17 qath)
+        (tuple 3:22
+          (face 3:23 i (lit 3:25 ~.hello))
+          (face 3:33 t
+            (tuple 3:35
+              (face 3:36 i (lit 3:38 ~.world))
+              (face 3:46 t (lit 3:48 ~)))))))))

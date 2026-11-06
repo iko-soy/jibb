@@ -1,0 +1,7 @@
+++ bad-pad: attr case `%pad` has no payload `%s4`; expected %s0 %s1 %s2 %s3
+/tests/golden/split-types-prelude-ui-bad-pad/source.jibb:58:29: expected payload has type %s0 %s1 %s2 %s3
+++ bad-pad ^- (element !!) (row ~[pad+%s4] ~)
+                            ^
+/tests/golden/split-types-prelude-ui-bad-pad/source.jibb:58:39: tag literal has type %s4
+++ bad-pad ^- (element !!) (row ~[pad+%s4] ~)
+                                      ^

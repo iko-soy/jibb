@@ -1,0 +1,411 @@
+#!/usr/bin/env python3
+"""Strict full-check regression for the milestone 2 review probes.
+
+Valid probes must check. Invalid probes must fail with the specified
+message and sites. Missing diagnostic expectations and unsupported valid
+probes are failures, never expected passes.
+"""
+
+import argparse
+from concurrent.futures import ThreadPoolExecutor
+from importlib.machinery import SourceFileLoader
+import json
+import re
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+ROOT = Path(__file__).resolve().parent.parent
+PROBES = ROOT / 'docs/reviews/2026-11-03-milestone-2-probes'
+sys.path.insert(0, str(ROOT / 'tools'))
+shiptool = SourceFileLoader('jibb_probe_ship', str(ROOT / 'tools/ship')).load_module()
+app = SourceFileLoader('jibb_probe_app', str(ROOT / 'tools/check-my-app')).load_module()
+import prelude_groups
+
+GROUPS = (tuple('p%d' % n for n in range(1, 11)) +
+          tuple('errors-p%d' % n for n in range(1, 6)) + ('imports',))
+# These cases have complete exact expectations. Other invalid cases are
+# explicitly tracked but cannot pass until their message and sites are
+# annotated; rejecting them with an unrelated generic message is not enough.
+EXACT = {
+    'E07-overlap':
+        'module mold overlap has overlapping cases\n'
+        '/ui/probe.jibb:2:3: first union case\n  @t\n  ^\n'
+        '/ui/probe.jibb:3:3: overlapping case\n  @ud\n  ^',
+    'E07b-overlap-records':
+        'module mold pt has overlapping cases\n'
+        '/ui/probe.jibb:2:3: first union case\n  [a=@ud b=@ud]\n  ^\n'
+        '/ui/probe.jibb:3:3: overlapping case\n  [x=@ud y=@ud]\n  ^',
+    'E17-dup-fields-mold':
+        'record field `a` is repeated\n'
+        '/ui/probe.jibb:1:7: first field\n+$ r [a=@ud a=@t]\n      ^\n'
+        '/ui/probe.jibb:1:13: repeated field\n+$ r [a=@ud a=@t]\n            ^',
+    'E17b-dup-fields-expr':
+        'record field `a` is repeated\n'
+        '/ui/probe.jibb:1:7: first field\n++ v [a=1 a=2]\n      ^\n'
+        '/ui/probe.jibb:1:11: repeated field\n++ v [a=1 a=2]\n          ^',
+    'X4-pt-tuple-meant':
+        'module mold pt has overlapping cases\n'
+        '/ui/probe.jibb:2:3: first union case\n  @ud\n  ^\n'
+        '/ui/probe.jibb:3:3: overlapping case\n  @ud\n  ^',
+}
+EXACT.update(json.loads((ROOT / 'tests/type-probe/import-exact.txt').read_text()))
+# This island error is required by the Grammar and milestone brief: it must
+# name the message case, point to the tag and include the union's other site.
+REQUIRED = {
+    '/ui/todo-list/jibb typo-submitt-view': (
+        ('msg has no case %submitt', '/ui/todo-list.jibb:36:20:',
+         '      button "Add" %submitt', '^'), '/ui/todo-list.jibb:', 2),
+}
+P5_ERRORS = {
+    'inc-cell-unsound?', 'inc-loobean', 'eq-gates-unsound?', 'unknown-name',
+    'print-generic-error', 'self-ref-error', 'capital-made-ud',
+}
+P8_VALID = {'todo-full-open-key', 'todo-full-cast-init', 'theme-dark-absent',
+            'page-main-ctor-page'}
+ERROR_VALID = {'ok-control', 'C0-island-ok', 'X2-pt-valid'}
+RULES = json.loads((ROOT / 'tests/type-probe/diagnostics.txt').read_text())
+IMPORT_VALID = {'I9-good-unused-bad', 'M5-api-ok'}
+RAW_INVALID = {
+    'signed': (('aura',), ('signed',)), 'flt': (('aura',), ('float',)),
+    'gat': (('gate', 'core'),), 'vas': (('vase',),),
+    'dup': (('repeat', 'duplicate'),), 'ovl': (('overlap',),),
+    'ovl2': (('overlap',),), 'cel': (('overlap',),), 'cor': (('core',),),
+}
+RAW_NAMES = ('signed', 'flt', 'gat', 'vas', 'dup', 'ovl', 'ovl2', 'cel', 'good', 'cor')
+
+
+def probe_file(group):
+    if group == 'imports':
+        return 'imports', PROBES / 'errors/import-check.hoon'
+    if group.startswith('errors-'):
+        return 'plain', PROBES / 'errors' / (group[7:] + '.jibb')
+    return 'app', PROBES / 'variants' / (group + '.jibb')
+
+
+def is_negative(group, label):
+    if group == 'imports':
+        return label not in IMPORT_VALID and label != 'RAW-good'
+    if group.startswith('errors-'):
+        return label not in ERROR_VALID
+    name = label.split()[-1]
+    if group in ('p9', 'p10'):
+        return True
+    if group == 'p8':
+        return name not in P8_VALID
+    if group == 'p5':
+        return name in P5_ERRORS
+    return label in EXACT or label in REQUIRED or label in RULES
+
+
+def sections(group):
+    mode, path = probe_file(group)
+    raw = path.read_text(encoding='utf-8')
+    if mode == 'imports':
+        matches = re.findall(r"\['((?:I|M)[^']+)' (/\S+) '((?:\\.|[^'])*)'", raw)
+        if len(matches) != 21:
+            raise ValueError('expected 21 module probes in ' + str(path))
+        cases = [(label, at, source.replace('\\0a', '\n')) for label, at, source in matches]
+        return cases + [('RAW-' + name, '/ui/probe/jibb', '') for name in RAW_NAMES]
+    out = []
+    for part in raw.split('#### ')[1:]:
+        label, sep, source = part.partition('\n')
+        words = label.split()
+        if not sep or not words:
+            raise ValueError('invalid probe section in %s: %s' % (path, label))
+        if mode == 'plain':
+            if len(words) != 1:
+                raise ValueError('invalid plain probe label: ' + label)
+            at = '/ui/probe/jibb'
+        else:
+            if not label.startswith('/') or not (len(words) == 2 or
+                                                   len(words) == 3 and words[1] == 'module'):
+                raise ValueError('invalid app probe label: ' + label)
+            at = words[0]
+            if label == '/ui/update/jibb core-update-alone':
+                # The doc block is a fragment, checked in its actual island
+                # context rather than as a module with unbound names.
+                todo = (ROOT / 'my-app/ui/todo-list.jibb').read_text()
+                original = (ROOT / 'tests/golden/doc-core-02-update/source.jibb').read_text()
+                if todo.count(original) != 1:
+                    raise ValueError('todo island no longer contains the doc update')
+                source = todo.replace(original, source.rstrip('\n') + '\n')
+                at = '/ui/todo-list/jibb'
+                label = at + ' core-update-alone'
+        out.append((label, at, source))
+    if not out or len({label for label, _, _ in out}) != len(out):
+        raise ValueError('empty or duplicate sections in %s' % path)
+    return out
+
+
+def parse_output(output, imports=False):
+    prefix = output.find('#### ')
+    if prefix < 0:
+        raise ValueError('checker returned no probe sections')
+    results = []
+    for part in output[prefix:].split('#### ')[1:]:
+        label, sep, body = part.partition('\n')
+        if not sep:
+            raise ValueError('malformed checker output')
+        if imports and label == 'RAW':
+            for line in body.strip().splitlines():
+                name, separator, desc = line.partition(': ')
+                if not separator or name not in RAW_NAMES:
+                    raise ValueError('malformed raw importer result: ' + line)
+                results.append(('RAW-' + name, 0 if desc == 'ok' else 1, desc))
+        elif body.startswith('CHECKED\n'):
+            results.append((label, 0, ''))
+        elif body.startswith('REJECTED: '):
+            results.append((label, 1, body[len('REJECTED: '):].rstrip('\n')))
+        elif body.startswith('CRASH\n'):
+            raise ValueError('checker crashed for ' + label + '\n' + body[6:])
+        else:
+            raise ValueError('missing checker outcome for ' + label)
+    return results
+
+
+def eval_results(group, cases):
+    mode, _ = probe_file(group)
+    # Reassemble the input from checked sections so the Core fragment can be
+    # embedded in its island; do not change any other source.
+    data = ''.join('#### ' + label + '\n' + source for label, _, source in cases)
+    with tempfile.TemporaryDirectory(prefix='jibb-probes-') as tmp:
+        source_path = Path(tmp) / 'cases.jibb'
+        source_path.write_text(data, encoding='utf-8')
+        command = [str(PROBES / 'run'), mode]
+        if mode != 'imports':
+            command.append(str(source_path))
+        result = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+    if result.returncode:
+        if (mode != 'imports' and len(cases) > 1 and
+                ('bail: %meme' in result.stderr or
+                 'bail: %oops' in result.stderr)):
+            middle = len(cases) // 2
+            print('%s: splitting %d probes after eval could not finish the batch' %
+                  (group, len(cases)), file=sys.stderr, flush=True)
+            return (eval_results(group, cases[:middle]) +
+                    eval_results(group, cases[middle:]))
+        raise ValueError('%s failed:\n%s' % (' '.join(command), result.stderr))
+    return parse_output(result.stdout, mode == 'imports')
+
+
+def ship_results(ship, group, cases):
+    if group == 'imports':
+        return ship_import_results(ship)
+    template = app.prepare_thread(app.ui_modules())
+    before, marker, _ = template.partition('%-  pure:m\n!>  %+  turn  modules')
+    if not marker:
+        raise ValueError('my-app thread shape changed')
+    literals = []
+    extras = []
+    for label, at, source in cases:
+        src = shiptool.hoon_cord(source.encode())
+        at_literal = '(stab ' + shiptool.hoon_cord(at.encode()) + ')'
+        literals.append('[' + shiptool.hoon_cord(label.encode()) + ' ' + at_literal + ' ' + src + ']')
+        if len(label.split()) == 3:
+            extras.append('[' + at_literal + ' ' + src + ']')
+    # Plain probes use only the prelude, as in the review's check.hoon.
+    mode, _ = probe_file(group)
+    args = ('~ ~ ~' if mode == 'plain' else 'ext marks available')
+    extra_literal = '~[' + ' '.join(extras) + ']' if extras else '~'
+    thread = before + '''=/  extra=(list [at=path source=@t])  ''' + extra_literal + '''
+=/  baseline=(list [at=path source=@t])
+  (skip modules |=(entry=[at=path source=@t] (lien extra |=(e=[at=path source=@t] =(at.entry at.e)))))
+=/  all-modules=(list [at=path source=@t])  (weld extra baseline)
+=/  cases=(list [label=@t at=path source=@t])  ~[''' + ' '.join(literals) + ''']
+%-  pure:m
+!>  %+  turn  cases
+|=  c=[label=@t at=path source=@t]
+=/  available=(list [at=path source=@t])
+  (skip all-modules |=(entry=[at=path source=@t] =(at.entry at.c)))
+=/  result=(each * [message=@t overlap=*])
+  !<((each * [message=@t overlap=*]) (slym check [at.c source.c ''' + args + ''' ~[at.c] values.p.detailed molds.p.detailed ~ `iface.p.detailed]))
+?:  ?=(%& -.result)  [label.c %& '']
+[label.c %| message.p.result]
+'''
+    out = []
+    for label, (flag, message) in app.proper_list(ship.thread(thread, timeout=1800)):
+        out.append((shiptool.text(label), flag, shiptool.text(message)))
+    return out
+
+
+def import_ship_suite():
+    """Build the import probe suite from its source and explicit group manifest."""
+    source = (PROBES / 'errors/import-check.hoon').read_text()
+    old = '=>  [lib=jibb-lib reader=reader prelude=prelude internal=internal groups=groups group-sources=group-sources reader-evidence=reader-evidence ..zuse]'
+    new = '=>  [lib=jibb reader=jibb-import prelude=prelude internal=internal groups=groups group-sources=group-sources reader-evidence=reader-evidence ..zuse]'
+    if not source.startswith(old):
+        raise ValueError('the import probe subject changed; regenerate its ship suite')
+    source = new + source[len(old):]
+    groups, private, readers = prelude_groups.load_all(str(ROOT))
+    headers, group_entries, private_entries = [], [], []
+    for number, (face, logical, _, _) in enumerate(groups + private):
+        binding = 'probe-group-' + str(number)
+        path = prelude_groups.hoon_path(logical)
+        headers.append('/*  %s  %%jibb  %s/jibb\n' % (binding, logical))
+        if face is None:
+            private_entries.append('[%s %s]' % (path, binding))
+        else:
+            group_entries.append('[%%%s %s %s]' % (face, path, binding))
+    reader_entries = []
+    reader_paths = set()
+    for number, (module, name, logical, _, data) in enumerate(readers):
+        binding = 'probe-reader-' + str(number)
+        headers.append('/*  %s  %%hoon  %s/hoon\n' % (binding, logical))
+        path = prelude_groups.sur_path(logical)
+        value = binding
+        if logical not in reader_paths:
+            private_entries.append('[%s %s]' % (path, value))
+            reader_paths.add(logical)
+        reader_entries.append('[%%%s %%%s %s %s]' % (module, name, path, value))
+    prefix = ('=/  groups  ' + shiptool.hoon_list(group_entries) + '\n'
+              '=/  group-sources  ' + shiptool.hoon_list(private_entries) + '\n'
+              '=/  reader-evidence  (turn `(list [module=term name=term at=path source=@t])`' + shiptool.hoon_list(reader_entries) +
+              ' |=(entry=[module=term name=term at=path source=@t] [module.entry name.entry '
+              '(read-generic-source:jibb-import module.entry name.entry at.entry source.entry -:(ride -:!>(..zuse) source.entry))]))\n')
+    return ("::  Generated from the review's errors/import-check.hoon; the probe runner checks this copy.\n"
+            '/+  jibb, jibb-import\n'
+            '/*  prelude  %jibb  /lib/jibb/prelude/jibb\n'
+            '/*  internal  %jibb  /lib/jibb/internal/jibb\n' + ''.join(headers) +
+            '|%\n++  report\n' +
+            ''.join('  ' + line for line in (prefix + source).splitlines(keepends=True)) + '--\n')
+
+
+def ship_import_results(ship):
+    expected = import_ship_suite()
+    suite = ROOT / 'tests/probes/jibb-probe-import.hoon'
+    if suite.read_text() != expected:
+        raise ValueError('ship import probe differs from the review source: ' + str(suite))
+    shiptool.sync(ship, 'jibb-dev')
+    thread = '''=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  now=@da  now.bowl
+=/  probe=vase  .^(vase %ca /[(scot %p our.bowl)]/jibb-dev/[(scot %da now)]/tests/probes/jibb-probe-import/hoon)
+(pure:m (slap probe (ream 'report')))
+'''
+    return parse_output(shiptool.tape(ship.thread(thread, timeout=1800)), True)
+
+
+def compare(group, cases, results):
+    labels = [label for label, _, _ in cases]
+    if [label for label, _, _ in results] != labels:
+        raise ValueError('checker did not return each probe in order')
+    failures = []
+    sources = {label: (at, source) for label, at, source in cases}
+    for label, flag, message in results:
+        if flag not in (0, 1):
+            raise ValueError('malformed checker result for ' + label)
+        if group == 'imports' and label.startswith('RAW-'):
+            name = label[4:]
+            if name == 'good':
+                if flag or message != 'ok':
+                    failures.append((label, 'valid raw import rejected', message))
+            elif (not flag or not message.startswith('invalid ') or
+                  not all(any(word in message.lower() for word in alternatives)
+                          for alternatives in RAW_INVALID[name])):
+                failures.append((label, 'wrong raw importer diagnostic', message))
+            continue
+        if not is_negative(group, label):
+            if flag:
+                failures.append((label, 'valid probe rejected', message))
+            continue
+        if not flag:
+            failures.append((label, 'invalid probe accepted', ''))
+        elif label in EXACT:
+            if message != EXACT[label]:
+                failures.append((label, 'wrong diagnostic', message))
+        elif label in REQUIRED:
+            fragments, site, count = REQUIRED[label]
+            normalized = message.replace('`', '')
+            locations = re.findall(re.escape(site) + r'\d+:\d+:', message)
+            carets = re.findall(r'(?m)^[ \t]*\^[~ \t]*$', message)
+            if (not all(fragment in normalized for fragment in fragments) or
+                    len(set(locations)) < count or len(carets) < count):
+                failures.append((label, 'wrong diagnostic or missing sites', message))
+        elif label in RULES:
+            at, source = sources[label]
+            rule = RULES[label]
+            lines = source.splitlines()
+            display = at[:-len('/jibb')] + '.jibb' if at.endswith('/jibb') else at
+            valid = 'unsupported' not in message.lower() and 'not supported' not in message.lower()
+            reason_message = message.replace('`', '') if rule.get('normalize_backticks') else message
+            for alternatives in rule['reasons']:
+                valid &= any(reason.lower() in reason_message.lower() for reason in alternatives)
+            for site in rule['sites']:
+                line_no, token = site[:2]
+                occurrence = site[2] if len(site) == 3 else 1
+                if line_no < 1 or line_no > len(lines):
+                    raise ValueError('diagnostic site line missing in ' + label)
+                line = lines[line_no - 1]
+                offset = -1
+                for _ in range(occurrence):
+                    offset = line.find(token, offset + 1)
+                    if offset < 0:
+                        raise ValueError('diagnostic site token missing in ' + label + ': ' + token)
+                valid &= ('%s:%d:%d:' % (display, line_no, offset + 1)) in message
+                valid &= line in message
+            carets = len(re.findall(r'(?m)^[ \t]*\^[~ \t]*$', message))
+            valid &= carets >= len(rule['sites'])
+            if 'other_file' in rule:
+                other = re.escape(rule['other_file'])
+                valid &= bool(re.search(other + r':\d+:\d+:', message))
+                valid &= carets >= len(rule['sites']) + 1
+            if not valid:
+                failures.append((label, 'wrong diagnostic or missing sites', message))
+        else:
+            failures.append((label, 'expected diagnostic and sites still need annotation', message))
+    return failures
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--backend', choices=('eval', 'ship'), default='eval')
+    parser.add_argument('-j', '--jobs', type=int, default=1,
+                        help='parallel eval groups (ship groups run sequentially)')
+    parser.add_argument('groups', nargs='*', choices=GROUPS)
+    args = parser.parse_args()
+    if args.jobs < 1:
+        parser.error('--jobs must be positive')
+    groups = args.groups or GROUPS
+    try:
+        groups_cases = [(group, sections(group)) for group in groups]
+        ship = None
+        if args.backend == 'ship':
+            ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
+            ship.require()
+            shiptool.sync(ship, 'my-app')
+        def run_group(item):
+            group, cases = item
+            try:
+                results = ship_results(ship, group, cases) if ship else eval_results(group, cases)
+                return group, cases, compare(group, cases, results), None
+            except (OSError, UnicodeError, ValueError, shiptool.Fail, shiptool.Unable) as error:
+                return group, cases, [], str(error)
+
+        errors = []
+        run_failed = False
+        jobs = 1 if ship else args.jobs
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            for group, cases, failures, run_error in pool.map(run_group, groups_cases):
+                if run_error is not None:
+                    run_failed = True
+                    print('%s: no complete results for %d probes\n%s' %
+                          (group, len(cases), run_error), file=sys.stderr, flush=True)
+                    continue
+                print('%s: %d/%d met their expected outcome' %
+                      (group, len(cases) - len(failures), len(cases)), flush=True)
+                errors.extend((group, *failure) for failure in failures)
+                for label, kind, message in failures:
+                    print('FAIL %s %s: %s%s' % (group, label, kind,
+                          '\n' + message if message else ''),
+                          file=sys.stderr, flush=True)
+        return 2 if run_failed else (1 if errors else 0)
+    except (OSError, UnicodeError, ValueError, shiptool.Fail, shiptool.Unable) as error:
+        print('probe-regression: %s' % error, file=sys.stderr)
+        return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main())

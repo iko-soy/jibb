@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %idle) (const 3:3 %busy)))
+  (mold 4:1 other
+    (union 5:3 (const 5:3 %idle) (const 6:3 %busy)))
+  (value 14:1 alien
+    (gate 14:10
+      (face 14:13 x (ref 14:15 other))
+      (cast 14:21
+        (apply 14:24 sub (ref 14:29 msg))
+        (tuple 14:34
+          (lit 14:35 %watch)
+          (group 14:42
+            (call 14:43 (wing 14:43 pure) (wing 14:48 x))))))))

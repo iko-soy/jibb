@@ -1,0 +1,38 @@
+5:1 glyph ++
+5:4 name hi-lo
+5:10 glyph ^-
+5:13 glyph [
+5:14 tight name hi
+5:16 tight glyph =
+5:17 tight aura @ud
+5:21 name lo
+5:23 tight glyph =
+5:24 tight aura @ud
+5:27 tight glyph ]
+5:29 glyph [
+5:30 tight lit 10
+5:33 lit 0
+5:34 tight glyph ]
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name want-lo-hi
+6:15 glyph |=
+6:18 name r
+6:19 tight glyph =
+6:20 tight glyph [
+6:21 tight name lo
+6:23 tight glyph =
+6:24 tight aura @ud
+6:28 name hi
+6:30 tight glyph =
+6:31 tight aura @ud
+6:34 tight glyph ]
+6:36 wing lo.r
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name swapped
+7:12 glyph (
+7:13 tight name want-lo-hi
+7:24 name hi-lo
+7:29 tight glyph )
+7:30 NEWLINE

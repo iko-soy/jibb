@@ -1,0 +1,17 @@
+1:1 glyph /=
+1:4 name lib
+1:8 glyph /
+1:9 tight knot ui
+1:11 tight glyph /
+1:12 tight knot lib
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name f
+3:3 INDENT
+3:3 glyph ++
+3:6 name lib
+3:10 lit 2
+4:3 NEWLINE
+4:3 name lib
+4:6 DEDENT
+4:6 NEWLINE

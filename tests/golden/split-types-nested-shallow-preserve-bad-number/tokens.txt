@@ -1,0 +1,38 @@
+1:1 glyph +$
+1:4 name extent
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %fill
+2:10 name n
+2:11 tight glyph =
+2:12 tight aura @ud
+2:15 tight glyph ]
+3:3 NEWLINE
+3:3 lit %shrink
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name attribute
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %width
+5:11 name extent
+5:17 tight glyph ]
+6:3 NEWLINE
+6:3 glyph [
+6:4 tight lit %gap
+6:9 aura @tas
+6:13 tight glyph ]
+18:1 DEDENT
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name bad-number
+18:15 glyph ^-
+18:18 name attribute
+18:28 name width
+18:33 tight glyph +
+18:34 tight glyph [
+18:35 tight lit %fill
+18:41 str "bad"
+18:46 tight glyph ]
+18:47 NEWLINE

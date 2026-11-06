@@ -1,0 +1,3 @@
+origin types-partial-atom-constraint
+target value decimal
+keep value decimal

@@ -1,0 +1,72 @@
+(module
+  (value 1:1 keep-axis
+    (gate 1:14
+      (face 1:17 value (ref 1:23 axis))
+      (wing 1:28 value)))
+  (value 2:1 keep-bean
+    (gate 2:14
+      (face 2:17 value (ref 2:23 bean))
+      (wing 2:28 value)))
+  (value 3:1 keep-flag
+    (gate 3:14
+      (face 3:17 value (ref 3:23 flag))
+      (wing 3:28 value)))
+  (value 4:1 keep-char
+    (gate 4:14
+      (face 4:17 value (ref 4:23 char))
+      (wing 4:28 value)))
+  (value 5:1 keep-byts
+    (gate 5:14
+      (face 5:17 value (ref 5:23 byts))
+      (wing 5:28 value)))
+  (value 6:1 keep-noun
+    (gate 6:14
+      (face 6:17 value (ref 6:23 noun))
+      (wing 6:28 value)))
+  (value 7:1 keep-tour
+    (gate 7:14
+      (face 7:17 value (ref 7:23 tour))
+      (wing 7:28 value)))
+  (value 8:1 keep-tarp
+    (gate 8:14
+      (face 8:17 value (ref 8:23 tarp))
+      (wing 8:28 value)))
+  (value 9:1 keep-date
+    (gate 9:14
+      (face 9:17 value (ref 9:23 date))
+      (wing 9:28 value)))
+  (value 10:1 keep-term
+    (gate 10:14
+      (face 10:17 value (ref 10:23 term))
+      (wing 10:28 value)))
+  (value 11:1 keep-wain
+    (gate 11:14
+      (face 11:17 value (ref 11:23 wain))
+      (wing 11:28 value)))
+  (value 12:1 keep-wall
+    (gate 12:14
+      (face 12:17 value (ref 12:23 wall))
+      (wing 12:28 value)))
+  (value 13:1 keep-stud
+    (gate 13:14
+      (face 13:17 value (ref 13:23 stud))
+      (wing 13:28 value)))
+  (value 14:1 bytes
+    (cast 14:10
+      (ref 14:13 byts)
+      (tuple 14:18
+        (face 14:19 wid (lit 14:23 2))
+        (face 14:25 dat (lit 14:29 0x1234)))))
+  (value 15:1 bytes-width (wing 15:16 wid.bytes))
+  (value 16:1 text-lines
+    (cast 16:15
+      (ref 16:18 wain)
+      (list 16:23 (str 16:25 "a") (str 16:29 "b"))))
+  (value 17:1 wall-lines
+    (cast 17:15
+      (ref 17:18 wall)
+      (list 17:23
+        (group 17:25
+          (call 17:26 (wing 17:26 trip) (str 17:31 "a")))
+        (group 17:36
+          (call 17:37 (wing 17:37 trip) (str 17:42 "b")))))))

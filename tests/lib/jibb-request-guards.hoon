@@ -1,7 +1,8 @@
 ::  Source-backed request certificate and cache boundary checks.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  public  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 |%
 ++  request-guard-report
   ^-  @t
@@ -14,7 +15,7 @@
   =/  other=@t  '/= api /ui/api/other\0a++ other |= reply=$-(@t A) (plain.api reply)\0a'
   =/  twoapi=@t  '/= left /lib/left\0a/= other /lib/other-helper\0a++ cord (left.left |=(x=@t "ok"))\0a++ ship (other.other |=(x=@t ~zod))\0a'
   =/  changed=@t  '/% %full\0a+$ paths [%changed /changed full]\0a'
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb prelude internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  'prelude unavailable'
   =/  api=path  /ui/api/demo/jibb
   =/  client=path  /lib/client/jibb
@@ -65,12 +66,12 @@
   =/  stale-mark  (infer-jibb-file:jibb client diamond ~ different-marks bundle ~[client] values.u.prep molds.u.prep detached pre)
   ?:  ?=(%& -.stale-mark)  'changed reader result accepted'
   =/  changed-public=@t  (cat 3 prelude '\0a:: modified\0a')
-  =/  public-prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb changed-public internal)
+  =/  public-prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture changed-public internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  public-prep  'comment-only prelude did not prepare'
   =/  stale-public  (infer-jibb-file:jibb client diamond ~ marks bundle ~[client] values.u.public-prep molds.u.public-prep detached `iface.u.public-prep)
   ?:  ?=(%& -.stale-public)  'changed public source accepted'
   =/  changed-internal=@t  (cat 3 internal '\0a:: modified\0a')
-  =/  internal-prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb prelude changed-internal)
+  =/  internal-prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude changed-internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  internal-prep  'comment-only internal did not prepare'
   =/  stale-internal  (infer-jibb-file:jibb client diamond ~ marks bundle ~[client] values.u.internal-prep molds.u.internal-prep detached `iface.u.internal-prep)
   ?:  ?=(%& -.stale-internal)  'changed internal source accepted'
@@ -81,7 +82,7 @@
   =/  src=@t  '/% %full\0a+$ paths [%plain /plain full]\0a'
   =/  helper=@t  '/= api /ui/api/demo\0a++ fetch |= reply=$-(@t A) (plain.api reply)\0a'
   =/  transitive=@t  '/= lib /lib/helper\0a++ cord (fetch.lib |=(x=@t "ok"))\0a++ ship (fetch.lib |=(x=@t ~zod))\0a'
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb prelude internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  'prelude unavailable'
   =/  api=path  /ui/api/demo/jibb
   =/  client=path  /lib/client/jibb

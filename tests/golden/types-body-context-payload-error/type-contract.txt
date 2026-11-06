@@ -1,0 +1,4 @@
+message unit payload does not fit its expected type
+typed-site /ui/body-context.jibb:1:38
+typed-site /ui/body-context.jibb:4:8
+min-sites 2

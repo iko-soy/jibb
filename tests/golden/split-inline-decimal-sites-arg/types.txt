@@ -1,0 +1,7 @@
+++ arg: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/split-inline-decimal-sites-arg/source.jibb:5:15: decimal
+++ arg (pause 30)
+              ^
+/tests/golden/split-inline-decimal-sites-arg/source.jibb:5:9: expected type has type @dr
+++ arg (pause 30)
+        ^

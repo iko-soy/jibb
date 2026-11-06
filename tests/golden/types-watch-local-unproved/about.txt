@@ -1,0 +1,4 @@
+source: watch proof regression
+tests: value occurrence watchability through ordinary Jibb expressions
+expect: parses
+expect-types: full checker result

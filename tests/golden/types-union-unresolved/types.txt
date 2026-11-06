@@ -1,2 +1,4 @@
-partial inference; module not checked
-++ alone: tag needs context in partial inference
+++ alone: nothing fixes the union of %add; add a `^-`
+/tests/golden/types-union-unresolved/source.jibb:1:10: nothing fixes the union of %add; add a `^-`
+++ alone %add
+         ^

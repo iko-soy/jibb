@@ -1,0 +1,6 @@
+++ sum |= [a=A b=A] (add a b)
+++ down |= x=A (dec x)
+++ alias sum
+++ inc |= n=A (add n 1)
+++ inc-reverse |= n=A (add 1 n)
+++ alias-inc inc

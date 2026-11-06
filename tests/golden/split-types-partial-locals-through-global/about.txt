@@ -1,0 +1,4 @@
+source: split from types-partial-locals, preserving the original source lines
+tests: the independent through-global diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

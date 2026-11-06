@@ -1,0 +1,3 @@
+origin types-prelude-text
+target value bad-tuba-items
+keep value bad-tuba-items

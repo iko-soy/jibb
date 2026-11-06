@@ -1,0 +1,1 @@
+expect-types: a nested cast field uses the explicitly named mold, even when another mold has the same shape.

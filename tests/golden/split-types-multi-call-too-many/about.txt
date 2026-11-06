@@ -1,0 +1,4 @@
+source: split from types-multi-call, preserving the original source lines
+tests: the independent too-many diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

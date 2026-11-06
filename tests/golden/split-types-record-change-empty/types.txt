@@ -1,0 +1,4 @@
+++ empty: a change takes at least one field
+/tests/golden/split-types-record-change-empty/source.jibb:15:21: empty change
+++ empty |= s=state s()
+                    ^

@@ -1,0 +1,7 @@
+module kind: library
++$ msg: msg
+++ row-of: $-(@ud [key=@ud el=(element msg)])
+++ rows: (list [key=@ud el=(element msg)])
+++ shown: (element msg)
+++ fix-message: $-((element msg) (element msg))
+++ resolved: (element msg)

@@ -1,0 +1,7 @@
+++ raw-text: (element M) is sealed; use a constructor
+/tests/golden/split-types-prelude-ui-raw-text-sealed/source.jibb:30:30: sealed type
+++ raw-text ^- (element !!) (row ~ ~[[%text "raw"]])
+                             ^
+/tests/golden/split-types-prelude-ui-raw-text-sealed/source.jibb:30:38: unsealed literal
+++ raw-text ^- (element !!) (row ~ ~[[%text "raw"]])
+                                     ^

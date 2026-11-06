@@ -1,0 +1,7 @@
+++ through-list: change wing `x.items.cart` goes through `items`, which is not a record
+/tests/golden/split-types-change-wing-through-list/source.jibb:12:32: field `items` has type (list @t)
+++ through-list |= m=model m(x.items.cart="a")
+                               ^
+/tests/golden/split-types-change-wing-through-list/source.jibb:12:28: record being changed has type [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]]
+++ through-list |= m=model m(x.items.cart="a")
+                           ^

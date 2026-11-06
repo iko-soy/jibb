@@ -1,0 +1,4 @@
+source: Overview, Prelude; Hoon 135 text gates.
+tests: The full checker rejects the incompatible argument and retains both typed source sites.
+expect: parses
+expect-types: rejected with both source sites

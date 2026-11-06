@@ -1,0 +1,7 @@
+++ decimal: cast mold and expression type do not unify
+/tests/golden/split-types-partial-atom-constraint-decimal/source.jibb:13:15: cast mold has type ?
+++ decimal ^- ? 1
+              ^
+/tests/golden/split-types-partial-atom-constraint-decimal/source.jibb:13:17: expression has type @ud
+++ decimal ^- ? 1
+                ^

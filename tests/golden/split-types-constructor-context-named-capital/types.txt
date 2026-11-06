@@ -1,0 +1,7 @@
+++ named-capital: capital `M` cannot be fixed to (maybe A)
+/tests/golden/split-types-constructor-context-named-capital/source.jibb:26:23: capital
+    (|=(callback=$-(A M) (callback value)) |=%got)
+                      ^
+/tests/golden/split-types-constructor-context-named-capital/source.jibb:26:5: forcing expression
+    (|=(callback=$-(A M) (callback value)) |=%got)
+    ^

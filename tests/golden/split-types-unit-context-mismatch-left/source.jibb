@@ -1,0 +1,46 @@
++$ msg
+  %go
+  %stay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ alt
+  %go
+  %stay
+
+
+
+
+
+++ mismatch-left |= x=msg ^- [a=alt] [a=x]
+
+
+
+
+
+
+

@@ -1,0 +1,30 @@
+
+
+
++$ outcome |$ [A]
+  [%ok value=A]
+  %fail
++$ reason
+  %fail
+  %late
+
+
+
+
+
+++ own-head |= o=(outcome reason)
+  ?- o
+    [ok r]  "x"
+    %fail   "failed"
+
+
+
+
+
+
+
+
+
+
+
+

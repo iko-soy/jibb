@@ -1,0 +1,29 @@
+++ div-decimal ^- @ud (div 7 3)
+
+++ div-hexadecimal ^- @ux (div 0x7 0x3)
+
+++ div-duration ^- @dr (div ~s7 ~s3)
+
+++ mod-decimal ^- @ud (mod 7 3)
+
+++ mod-hexadecimal ^- @ux (mod 0x7 0x3)
+
+++ mod-duration ^- @dr (mod ~s7 ~s3)
+
+++ pow-decimal ^- @ud (pow 7 3)
+
+++ pow-hexadecimal ^- @ux (pow 0x7 0x3)
+
+++ pow-duration ^- @dr (pow ~s7 ~s3)
+
+++ generic-pow |= args=[A A]
+  ?- args
+  [a b] (pow a b)
+
+++ generic-div |= args=[A A]
+  ?- args
+  [a b] (div a b)
+
+++ generic-mod |= args=[A A]
+  ?- args
+  [a b] (mod a b)

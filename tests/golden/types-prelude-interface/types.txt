@@ -1,9 +1,7 @@
-partial inference; module not checked
-++ create: (unit @t)
-++ source: (unit @t)
-++ direct: @t
-++ fallback: @t
-++ tuple-call: (list A)
-++ shadow: sample shadows a name
-++ list-id: $-((list @t) (list @t))
-++ get-gate: $-((unit A) (unit A))
+++ shadow: sample `turn` shadows a name already in scope
+/lib/jibb/prelude.jibb:51:4: earlier binding
+++ turn |= args=[(list A) $-(A B)]
+   ^
+/tests/golden/types-prelude-interface/source.jibb:8:14: conflicting sample binding
+++ shadow |= turn turn
+             ^

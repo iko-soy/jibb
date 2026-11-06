@@ -1,0 +1,3 @@
+origin types-arithmetic-module
+target value alias-bool
+keep value alias-bool

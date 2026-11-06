@@ -1,0 +1,36 @@
+9:1 glyph ++
+9:4 name after-self
+9:15 glyph |=
+9:18 name x
+9:19 tight glyph =
+9:20 tight aura @t
+10:3 INDENT
+10:3 glyph ++
+10:6 name recur
+10:12 glyph |=
+10:15 name y
+10:16 tight glyph =
+10:17 tight aura @t
+11:5 INDENT
+11:5 glyph ?-
+11:8 lit %.y
+12:7 INDENT
+12:7 lit %.y
+12:11 glyph (
+12:12 tight name recur
+12:18 name y
+12:19 tight glyph )
+13:7 NEWLINE
+13:7 lit %.n
+13:11 glyph ^-
+13:14 aura @ud
+13:18 name y
+14:3 DEDENT
+14:3 DEDENT
+14:3 NEWLINE
+14:3 glyph (
+14:4 tight name recur
+14:10 name x
+14:11 tight glyph )
+14:12 DEDENT
+14:12 NEWLINE

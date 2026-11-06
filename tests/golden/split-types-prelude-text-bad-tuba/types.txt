@@ -1,0 +1,7 @@
+++ bad-tuba: inline gate result does not unify with (list @tD): @t versus (list @tD)
+/tests/golden/split-types-prelude-text-bad-tuba/source.jibb:7:19: actual type has type @t
+++ bad-tuba (tuba "abc")
+                  ^
+/tests/golden/split-types-prelude-text-bad-tuba/source.jibb:7:14: call context has type (list @tD)
+++ bad-tuba (tuba "abc")
+             ^

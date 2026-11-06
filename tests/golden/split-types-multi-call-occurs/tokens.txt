@@ -1,0 +1,10 @@
+26:1 glyph ++
+26:4 name occurs
+26:11 glyph |=
+26:14 name f
+26:16 glyph (
+26:17 tight name f
+26:19 name f
+26:21 name f
+26:22 tight glyph )
+26:23 NEWLINE

@@ -1,0 +1,7 @@
+++ bad: union payload has type @p, but `%go` requires @t
+/tests/golden/split-types-prelude-cmd-bad/source.jibb:5:11: expected @t
+++ bad ^- (cmd @t) [%go url=~zod]
+          ^
+/tests/golden/split-types-prelude-cmd-bad/source.jibb:5:29: payload has type @p
+++ bad ^- (cmd @t) [%go url=~zod]
+                            ^

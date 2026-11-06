@@ -1,0 +1,7 @@
+++ forced: capital `A` cannot be fixed to @t
+/tests/golden/split-types-record-cast-context-forced/source.jibb:17:16: capital
+++ forced |= x=A ^- [left=A right=A] [x "hi"]
+               ^
+/tests/golden/split-types-record-cast-context-forced/source.jibb:17:38: forcing expression
+++ forced |= x=A ^- [left=A right=A] [x "hi"]
+                                     ^

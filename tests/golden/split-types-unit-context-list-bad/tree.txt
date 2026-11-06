@@ -1,0 +1,7 @@
+(module
+  (value 15:1 list-bad
+    (cast 15:13
+      (apply 15:16 unit
+        (apply 15:22 list (aura 15:28 @t)))
+      (unit 15:33
+        (list 15:34 (lit 15:36 ~zod))))))

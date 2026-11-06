@@ -1,0 +1,7 @@
+++ tag-only: msg case `%typed` needs a payload of type @t
+/tests/golden/split-types-missing-tag-named-tag-only/source.jibb:2:4: case requires a payload
+  [%typed text=@t]
+   ^
+/tests/golden/split-types-missing-tag-named-tag-only/source.jibb:13:20: tag has no payload
+++ tag-only ^- msg %typed
+                   ^

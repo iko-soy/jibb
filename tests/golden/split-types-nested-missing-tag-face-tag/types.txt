@@ -1,0 +1,7 @@
+++ face-tag: cast is missing field `choice`
+/tests/golden/split-types-nested-missing-tag-face-tag/source.jibb:4:20: required field has type msg
++$ state [title=@t choice=msg]
+                   ^
+/tests/golden/split-types-nested-missing-tag-face-tag/source.jibb:11:22: record has no field `choice`
+++ face-tag ^- state [title="hi" wrong=%missing]
+                     ^

@@ -1,0 +1,73 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ local-mono |= x=A
+  ++ inner |= y=A
+    ++ alias inner
+    ~& (alias "hi")
+      (alias ~zod)
+  (inner x)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

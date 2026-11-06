@@ -1,0 +1,1 @@
+A separate-scry request rejects an incompatible parameter at both call and argument sites.

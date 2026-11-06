@@ -1,0 +1,7 @@
+module kind: library
+++ outer: $-(A A) where A is an atom other than ?
+++ number-ok: @ud
+++ hex-ok: @ux
+++ written: $-(A A) where A is an atom other than ?
+++ written-number: @ud
+++ written-hex: @ux

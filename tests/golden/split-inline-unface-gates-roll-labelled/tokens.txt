@@ -1,0 +1,29 @@
+4:1 glyph ++
+4:4 name add-f
+4:10 glyph |=
+4:13 glyph [
+4:14 tight name a
+4:15 tight glyph =
+4:16 tight aura @ud
+4:20 name b
+4:21 tight glyph =
+4:22 tight aura @ud
+4:25 tight glyph ]
+4:27 glyph (
+4:28 tight name add
+4:32 name a
+4:34 name b
+4:35 tight glyph )
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name roll-labelled
+9:18 glyph (
+9:19 tight name roll
+9:24 glyph ~[
+9:26 tight lit 1
+9:28 lit 2
+9:29 tight glyph ]
+9:31 lit 0
+9:33 name add-f
+9:38 tight glyph )
+9:39 NEWLINE

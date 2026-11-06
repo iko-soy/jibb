@@ -1,0 +1,24 @@
++$ cart [items=(list @t) open=? deep=[level=@ud] pair=[@t @ud]]
++$ model [cart=cart note=@t data=(unit @t)]
+
+
+
+
+
+
+
+
+
+
+
+++ through-unit |= m=model m(u.data="a")
+
+
+
+
+
+
+
+
+
+

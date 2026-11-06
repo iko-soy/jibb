@@ -1,0 +1,7 @@
+++ timer: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/split-inline-decimal-sites-timer/source.jibb:20:30: decimal
+++ timer ^- (cmd msg) [%wait 30 [%done 1]]
+                             ^
+/tests/golden/split-inline-decimal-sites-timer/source.jibb:20:13: expected type has type [%wait [gap=@dr msg=msg]]
+++ timer ^- (cmd msg) [%wait 30 [%done 1]]
+            ^

@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-partial-many-atom-constraints-relay/source.jibb:13:13
+typed-site /tests/golden/split-types-partial-many-atom-constraints-relay/source.jibb:13:15
+min-sites 2

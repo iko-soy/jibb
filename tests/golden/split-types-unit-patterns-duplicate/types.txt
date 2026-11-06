@@ -1,0 +1,7 @@
+++ duplicate: branch arm is covered by earlier arms
+/tests/golden/split-types-unit-patterns-duplicate/source.jibb:25:5: covering arm
+    ~ !!
+    ^
+/tests/golden/split-types-unit-patterns-duplicate/source.jibb:26:5: covered arm
+    ~ !!
+    ^

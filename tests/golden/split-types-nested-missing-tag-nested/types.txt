@@ -1,0 +1,13 @@
+++ nested: msg has no case `%missing`
+/tests/golden/split-types-nested-missing-tag-nested/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-nested-missing-tag-nested/source.jibb:2:3: expected union has type msg
+  %add
+  ^
+/tests/golden/split-types-nested-missing-tag-nested/source.jibb:10:14: expected union has type msg
+++ nested ^- nested-state [["hi" %missing] 7]
+             ^
+/tests/golden/split-types-nested-missing-tag-nested/source.jibb:10:34: tag literal has type %missing
+++ nested ^- nested-state [["hi" %missing] 7]
+                                 ^

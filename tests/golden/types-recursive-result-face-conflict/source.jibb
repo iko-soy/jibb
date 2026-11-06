@@ -1,0 +1,10 @@
+++ run |= x=@t
+  ++ first |= [value=A stop=?]
+    ?- stop
+    %.y [left=value]
+    %.n (second value %.y)
+  ++ second |= [value=A stop=?]
+    ?- stop
+    %.y [right=value]
+    %.n (first value %.y)
+  (second x %.y)

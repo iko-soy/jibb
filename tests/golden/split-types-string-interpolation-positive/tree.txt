@@ -1,0 +1,42 @@
+(module
+  (value 1:1 render
+    (gate 1:11
+      (cell 1:14
+        (face 1:15 day (aura 1:19 @da))
+        (face 1:23 n (aura 1:25 @ud))
+        (face 1:29 ship (aura 1:34 @p))
+        (face 1:37 words (aura 1:43 @t)))
+      (str 1:47 "Updated " (wing 1:57 day) ": " (wing 1:64 n) " by " (wing 1:71 ship) ", " (wing 1:79 words))))
+  (value 2:1 bare
+    (gate 2:9
+      (face 2:12 x (aura 2:14 @))
+      (str 2:16 (wing 2:18 x))))
+  (value 3:1 repeat
+    (gate 3:11
+      (face 3:14 n (aura 3:16 @ud))
+      (str 3:20 (wing 3:22 n) " then " (wing 3:31 n))))
+  (value 4:1 nested
+    (gate 4:11
+      (face 4:14 x (aura 4:16 @t))
+      (str 4:19
+        (group 4:21
+          (call 4:22 (wing 4:22 same) (wing 4:27 x))))))
+  (value 13:1 tape
+    (gate 13:9
+      (face 13:12 x
+        (apply 13:14 list (aura 13:20 @tD)))
+      (str 13:25 (wing 13:27 x))))
+  (value 15:1 number
+    (str 15:11 "number " (lit 15:20 1)))
+  (value 16:1 number-cast
+    (str 16:16
+      "number "
+      (cast 16:25 (aura 16:28 @ud) (lit 16:32 1))))
+  (value 20:1 fixed-first
+    (gate 20:16
+      (bind 20:19 n)
+      (body 21:3
+        (trace 21:3
+          (cast 21:6 (aura 21:9 @ud) (wing 21:13 n))
+          (body 22:5
+            (str 22:5 (wing 22:7 n))))))))

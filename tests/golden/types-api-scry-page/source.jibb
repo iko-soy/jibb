@@ -1,0 +1,4 @@
+/= other /ui/api/other
+++ load |= id=@ud (separate.other id same)
+++ view |= data=todos.other ^- (element !!) (text "ok")
+++ main (page load view)

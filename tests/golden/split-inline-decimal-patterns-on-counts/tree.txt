@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 event
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %gap)
+        (face 2:9 d (aura 2:11 @dr)))
+      (cell 3:3
+        (const 3:4 %count)
+        (face 3:11 n (aura 3:13 @ud)))))
+  (value 28:1 on-counts
+    (gate 28:14
+      (face 28:17 e (ref 28:19 event))
+      (branch 28:25
+        (wing 28:28 e)
+        (arm 29:3
+          (cell 29:3 (lit 29:4 %count) (lit 29:11 0))
+          (lit 29:14 3))
+        (arm 30:3 (any 30:3) (lit 30:5 4))))))

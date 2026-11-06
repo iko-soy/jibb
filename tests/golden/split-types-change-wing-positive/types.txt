@@ -1,0 +1,8 @@
+module kind: library
++$ cart: [items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]]
++$ model: [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]]
+++ flip-open: $-([cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]] [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]])
+++ siblings: $-([cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]] [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]])
+++ original: $-([cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]] [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]])
+++ lines: $-([cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]] [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]])
+++ wing-target: $-([cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]] [items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]])

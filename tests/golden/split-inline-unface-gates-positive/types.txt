@@ -1,0 +1,9 @@
+module kind: library
+++ lth2: $-([x=A y=A] ?) where A is an atom
+++ lte2: $-([a=A b=A] ?) where A is an atom
+++ lt-a: $-([a=@ud b=@ud] ?)
+++ add-f: $-([a=@ud b=@ud] @ud)
+++ pickers: (list $-([A A] ?)) where A is an atom
+++ hunt-unfaced: (unit @ud)
+++ roll-unfaced: @ud
+++ one-off: @ud

@@ -1,0 +1,3 @@
+origin types-string-interpolation
+target value record
+keep value record

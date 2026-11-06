@@ -1,0 +1,30 @@
++$ extent
+  [%fill n=@ud]
+  %shrink
++$ attribute
+  [%width extent]
+  [%gap @tas]
+
+
+
+
+
+
+
+
+
+
+
+++ bad-number ^- attribute width+[%fill "bad"]
+
+
+
+
+
+
+
+
+
+
+
+

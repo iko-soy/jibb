@@ -1,0 +1,7 @@
+++ generic: a generic value in interpolation needs a printer
+/tests/golden/split-types-string-interpolation-generic/source.jibb:7:21: value with a generic type
+++ generic |= x=A "{x}"
+                    ^
+/tests/golden/split-types-string-interpolation-generic/source.jibb:7:17: capital `A` keeps its type generic
+++ generic |= x=A "{x}"
+                ^

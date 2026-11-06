@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %item)
+        (face 2:10 flag (flag 2:15))
+        (face 2:17 text (aura 2:22 @t)))
+      (const 3:3 %none)))
+  (value 7:1 local-id
+    (gate 7:13 (bind 7:16 x) (wing 7:18 x)))
+  (value 55:1 explicit
+    (gate 55:13
+      (cell 55:16
+        (face 55:17 x (ref 55:19 input))
+        (face 55:25 y (tvar 55:27 A)))
+      (cast 55:30
+        (apply 55:33 list (tvar 55:39 A))
+        (body 56:3
+          (branch 56:3
+            (group 56:6
+              (call 56:7 (wing 56:7 local-id) (wing 56:16 x)))
+            (arm 57:5
+              (cell 57:5 (lit 57:6 %item) (bind 57:12 flag) (bind 57:17 words))
+              (list 57:24 (str 57:26 "text")))
+            (arm 58:5 (lit 58:5 %none) (lit 58:11 ~))))))))

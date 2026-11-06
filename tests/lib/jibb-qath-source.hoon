@@ -21,6 +21,10 @@
   =/  minimal=@t  '/= internal /lib/jibb/internal\0a+$ qath qath.internal\0a'
   =/  sources=(list [source=@t internal=@t want=@tas])
     :~  [minimal real-internal %accept]
+        [minimal '+$ qath\0a  ~\0a  [i=@ta t=qath]\0a' %accept]
+        [minimal '+$ qath\0a  ~\0a  [i=@t t=qath]\0a' %decline]
+        [minimal '+$ qath\0a  ~\0a  [i=@ta t=*]\0a' %decline]
+        [minimal '+$ qath\0a  ~\0a  [i=@ta t=qath]\0a  %other\0a' %decline]
         [minimal '' %unprepared]
         ['++ identity |= x x\0a' real-internal %decline]
         ['+$ qath @t\0a' real-internal %decline]
@@ -33,11 +37,11 @@
 ++  qath-fallback-errors
   ^-  (list tape)
   =/  cases=(list [label=@t source=@t private=@t prepared=? qath=? ask=? hidden=?])
-    :~  ['neither' '/= internal /lib/jibb/internal\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal & & | |]
-        ['list only' '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal & & | |]
-        ['unit only' '/= internal /lib/jibb/internal\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal & & | |]
-        ['altered list' '/= internal /lib/jibb/internal\0a+$ list |$ [A] ~\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal & & | |]
-        ['altered unit' '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ unit |$ [A]\0a  %wrong\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal & & | |]
+    :~  ['neither' '/= internal /lib/jibb/internal\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal | | | |]
+        ['list only' '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal | | | |]
+        ['unit only' '/= internal /lib/jibb/internal\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal | | | |]
+        ['altered list' '/= internal /lib/jibb/internal\0a+$ list |$ [A] ~\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal | | | |]
+        ['altered unit' '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ unit |$ [A]\0a  %wrong\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal | | | |]
         ['canonical' '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal & & & &]
         ['duplicate list' '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ list |$ [A] ~\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal | | | |]
         ['duplicate unit' '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ unit |$ [A] ~\0a+$ qath qath.internal\0a+$ ask |$ [M] (ask.internal M)\0a+$ hidden (ask @t)\0a' real-internal | | | |]

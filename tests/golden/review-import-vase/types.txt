@@ -1,0 +1,4 @@
+++ a: vases cannot be imported
+/tests/golden/review-import-vase/source.jibb:2:11: invalid imported mold
+++ a |= x=vas.fixture x
+          ^

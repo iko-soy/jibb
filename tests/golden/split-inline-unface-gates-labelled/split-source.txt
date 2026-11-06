@@ -1,0 +1,5 @@
+origin inline-unface-gates
+target value labelled
+keep value labelled
+keep value lte2
+keep value lth2

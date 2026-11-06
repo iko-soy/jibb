@@ -1,0 +1,2 @@
+module kind: library
+++ run: $-([words=@t ship=@p] [left=@t left=@p])

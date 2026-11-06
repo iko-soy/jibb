@@ -1,0 +1,8 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 x (aura 1:11 @t))
+      (wing 1:14 x)))
+  (value 2:1 bad-call
+    (group 2:13
+      (call 2:14 (wing 2:14 f) (lit 2:16 ~zod)))))

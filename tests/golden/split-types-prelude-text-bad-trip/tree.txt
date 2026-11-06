@@ -1,0 +1,4 @@
+(module
+  (value 6:1 bad-trip
+    (group 6:13
+      (call 6:14 (wing 6:14 trip) (lit 6:19 ~zod)))))

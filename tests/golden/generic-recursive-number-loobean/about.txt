@@ -1,0 +1,4 @@
+source: Grammar, Inference and recursion
+tests: recursive groups generalize their arithmetic capitals without weakening the loobean exclusion
+expect: parses
+expect-types: exact full-checker result

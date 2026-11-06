@@ -1,0 +1,3 @@
+(module
+  (value 12:1 decimal
+    (cast 12:12 (flag 12:15) (lit 12:17 1))))

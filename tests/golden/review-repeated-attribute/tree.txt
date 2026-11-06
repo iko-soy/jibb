@@ -1,0 +1,10 @@
+(module
+  (value 1:1 v
+    (group 1:6
+      (call 1:7
+        (wing 1:7 el)
+        (list 1:10
+          (pair 1:12 pad (lit 1:16 %s1))
+          (pair 1:20 pad (lit 1:24 %s2)))
+        (group 1:29
+          (call 1:30 (wing 1:30 text) (str 1:35 "x")))))))

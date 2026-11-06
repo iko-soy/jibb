@@ -1,0 +1,4 @@
+++ main: main has gate type $-(@t @t); expected an element, page, program, or store
+/tests/golden/types-main-gate/source.jibb:1:4: main has a gate type
+++ main |= x=@t x
+   ^

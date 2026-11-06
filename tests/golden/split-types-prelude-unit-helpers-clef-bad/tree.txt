@@ -1,0 +1,11 @@
+(module
+  (value 15:1 clef-bad
+    (group 15:13
+      (call 15:14
+        (wing 15:14 clef)
+        (unit 15:19 (str 15:20 "hi"))
+        (unit 15:25 (lit 15:26 ~zod))
+        (gate-wide 15:31
+          (face 15:34 p
+            (cell 15:36 (aura 15:37 @p) (aura 15:40 @t)))
+          (unit 15:44 (str 15:45 "ok")))))))

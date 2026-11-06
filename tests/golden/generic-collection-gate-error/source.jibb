@@ -1,0 +1,3 @@
+++ same-list |= xs=(list A) (eq xs xs)
+++ callback |= x=@ud x
+++ bad (same-list ~[callback])

@@ -1,0 +1,10 @@
+15:1 glyph ++
+15:4 name bool-result
+15:16 glyph ^-
+15:19 glyph ?
+15:21 glyph (
+15:22 tight name add
+15:26 lit 1
+15:28 lit 1
+15:29 tight glyph )
+15:30 NEWLINE

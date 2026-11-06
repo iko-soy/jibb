@@ -1,0 +1,7 @@
+++ dead: branch arm is covered by earlier arms
+/tests/golden/split-types-union-nonwing-subject-dead/source.jibb:35:5: covering arm
+    %none ~
+    ^
+/tests/golden/split-types-union-nonwing-subject-dead/source.jibb:36:5: covered arm
+    %none ~
+    ^

@@ -1,0 +1,56 @@
++$ msg
+  %good
+  %other
+++ local-id |= x x
+
+
+
+
+
+++ union-bad ^- msg (local-id %wrong)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

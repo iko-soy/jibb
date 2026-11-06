@@ -1,0 +1,11 @@
+
++$ halt %halt
+
+
+
+++ stopped |= h=halt
+  ?- h
+    halt "halted"
+
+
+

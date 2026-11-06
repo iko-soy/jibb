@@ -1,0 +1,8 @@
+
+
+
+
+++ hi-lo ^- [hi=@ud lo=@ud] [10 0]
+++ want-lo-hi |= r=[lo=@ud hi=@ud] lo.r
+++ swapped (want-lo-hi hi-lo)
+

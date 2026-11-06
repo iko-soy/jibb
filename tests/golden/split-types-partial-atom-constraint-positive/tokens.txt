@@ -1,0 +1,66 @@
+1:1 glyph ++
+1:4 name keep
+1:9 glyph |=
+1:12 name x
+1:13 tight glyph =
+1:14 tight tvar A
+2:3 INDENT
+2:3 glyph ~&
+2:6 glyph ^-
+2:9 aura @
+2:11 name x
+3:5 INDENT
+3:5 name x
+4:1 DEDENT
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name ship
+4:9 glyph (
+4:10 tight name keep
+4:15 lit ~zod
+4:19 tight glyph )
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name cord
+5:9 glyph (
+5:10 tight name keep
+5:15 str "hello"
+5:22 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name flag
+6:9 glyph (
+6:10 tight name keep
+6:15 lit %.y
+6:18 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name first
+8:10 glyph |=
+8:13 name p
+8:14 tight glyph =
+8:15 tight glyph [
+8:16 tight tvar A
+8:18 tvar A
+8:19 tight glyph ]
+9:3 INDENT
+9:3 glyph ?-
+9:6 name p
+10:5 INDENT
+10:5 glyph [
+10:6 tight name a
+10:8 name b
+10:9 tight glyph ]
+11:7 INDENT
+11:7 glyph ~&
+11:10 glyph ^-
+11:13 aura @
+11:15 name a
+12:9 INDENT
+12:9 name b
+12:10 DEDENT
+12:10 DEDENT
+12:10 DEDENT
+12:10 DEDENT
+12:10 NEWLINE

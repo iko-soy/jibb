@@ -1,7 +1,7 @@
-partial inference; module not checked
+module kind: library
 ++ later: @ud
 ++ count: @ud
 ++ pair: [@ud @ud]
 ++ id: $-(A A)
 ++ applied: @ud
-++ gate: unresolved aura-variable inference
+++ gate: $-(A @ud)

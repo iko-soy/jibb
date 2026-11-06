@@ -1,0 +1,4 @@
+source: split from inline-decimal-aura-bad, preserving the original source lines
+tests: the independent grouped diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

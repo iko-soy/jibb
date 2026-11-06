@@ -1,4 +1,4 @@
-partial inference; module not checked
-+$ model: not checked
+module kind: library
++$ model: [xs=(list @t) [draft=@t error=(unit @t)]]
 ++ final: $-((list @t) [(list @t) [@t (unit @t)]])
 ++ initial: $-((list @t) [(list @t) [@t (unit @t)]])

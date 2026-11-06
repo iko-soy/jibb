@@ -1,0 +1,2 @@
+expect: parses
+expect-types: a static page under stores keeps the kind of its main type.

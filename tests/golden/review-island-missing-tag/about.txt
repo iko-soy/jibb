@@ -1,0 +1,4 @@
+source: docs/reviews/2026-11-03-milestone-2-probes/errors/p3.jibb, C1-island-submitt-view
+tests: a missing message tag in an island view retains its own diagnostic through the full checker
+expect: parses
+expect-types: exact full-checker error

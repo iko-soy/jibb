@@ -1,0 +1,4 @@
+source: split from types-union-branch-context, preserving the original source lines
+tests: the independent bad-first diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

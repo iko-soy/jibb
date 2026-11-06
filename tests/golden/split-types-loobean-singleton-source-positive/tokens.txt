@@ -1,0 +1,75 @@
+1:1 glyph +$
+1:4 name yes
+1:8 lit %.y
+3:1 NEWLINE
+3:1 glyph +$
+3:4 name flag-headed
+3:16 glyph [
+3:17 tight lit %.y
+3:21 name value
+3:26 tight glyph =
+3:27 tight aura @t
+3:29 tight glyph ]
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name yes-flag
+4:13 glyph ^-
+4:16 name yes
+4:20 lit %.y
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name yes-term
+5:13 glyph ^-
+5:16 name yes
+5:20 lit %$
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name normal-flag
+7:16 glyph ^-
+7:19 glyph ?
+7:21 lit %.y
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name normal-any
+8:15 glyph ^-
+8:18 aura @
+8:20 lit %.y
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name named-value
+12:16 glyph ^-
+12:19 name yes
+12:23 lit %.y
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name named-as-flag
+13:18 glyph ^-
+13:21 glyph ?
+13:23 name named-value
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name named-as-any
+14:17 glyph ^-
+14:20 aura @
+14:22 name named-value
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name loobean-constructor
+18:24 glyph ^-
+18:27 glyph $-(
+18:30 tight aura @t
+18:33 name flag-headed
+18:44 tight glyph )
+18:46 glyph |=
+18:48 tight lit %$
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name explicit-tag
+22:17 glyph ^-
+22:20 aura @tas
+22:25 glyph (
+22:26 tight glyph ^-
+22:29 lit %$
+22:32 lit %.y
+22:35 tight glyph )
+22:36 NEWLINE

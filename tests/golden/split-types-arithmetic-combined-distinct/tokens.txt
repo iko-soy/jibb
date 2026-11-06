@@ -1,0 +1,17 @@
+19:1 glyph ++
+19:4 name distinct
+19:13 glyph |=
+19:16 glyph [
+19:17 tight name a
+19:18 tight glyph =
+19:19 tight tvar A
+19:21 name b
+19:22 tight glyph =
+19:23 tight tvar B
+19:24 tight glyph ]
+19:26 glyph (
+19:27 tight name add
+19:31 name a
+19:33 name b
+19:34 tight glyph )
+19:35 NEWLINE

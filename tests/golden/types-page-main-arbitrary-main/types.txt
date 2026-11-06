@@ -1,0 +1,4 @@
+++ main: main has type @ud; expected an element, page, program, or store
+/ui/page-check.jibb:1:4: main has type @ud
+++ main 42
+   ^

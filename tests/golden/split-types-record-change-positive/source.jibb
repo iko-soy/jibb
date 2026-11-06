@@ -1,0 +1,19 @@
++$ state [items=(list @t) open=? name=@t nested=[word=@t]]
++$ actions
+  %start
+  %stop
++$ model [mode=actions data=(unit @t)]
+++ flip |= s=state s(open=(not open.s))
+++ put |= [s=state item=@t] s(items=[item items.s])
+++ clear |= s=state s(items=~ name="")
+++ multiple |= s=state s(name="ok" open=%.y)
+++ nested |= s=state nested.s(word="hello")
+
+
+
+
+
+++ tag |= m=model m(mode=%start data=~)
+
+
+

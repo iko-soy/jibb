@@ -1,0 +1,13 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (mold 31:1 alt
+    (union 32:3 (const 32:3 %go) (const 33:3 %stay)))
+  (value 39:1 mismatch-left
+    (gate 39:18
+      (face 39:21 x (ref 39:23 msg))
+      (cast 39:27
+        (cell 39:30
+          (face 39:31 a (ref 39:33 alt)))
+        (tuple 39:38
+          (face 39:39 a (wing 39:41 x)))))))

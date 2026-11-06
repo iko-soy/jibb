@@ -1,5 +1,5 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
+module kind: library
++$ msg: msg
 ++ update: $-([msg=msg n=@ud] @ud)
 ++ update-u: $-([msg @ud] @ud)
 ++ direct: @ud

@@ -1,8 +1,4 @@
-partial inference; module not checked
-++ inc: $-(@ud @ud)
-++ forward: $-(@ud @ud)
-++ forward-value: $-(@t @t)
-++ forward-chain: $-(@ud @ud)
-++ waits-on-unknown: local definitions need unsupported inference
-++ waits-on-pending: local definitions need unsupported inference
-++ waits-then-capital: explicit capital constraints are not supported by partial inference
+++ waits-on-unknown: unknown name `nope`
+/tests/golden/types-local-error-forward/source.jibb:17:13: unknown name
+  ++ second nope
+            ^

@@ -1,0 +1,13 @@
+++ both |= p=[A B]
+  ?- p
+    [a b]
+      ~& ^- @ a
+        ^- @ b
+++ mix (both [~zod "hi"])
+
+++ implicit |= x
+  ~& ^- @ x
+    x
+++ flag (implicit %.y)
+
+

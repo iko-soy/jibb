@@ -1,0 +1,37 @@
+
+
+
+
+
+
+
+
+
+
++$ maybe |$ [A]
+  [%got value=A]
+  %other
+
+
+
+
+
+
+
+
+
+
+++ named-capital |= value=A
+  ^- (maybe A)
+    (|=(callback=$-(A M) (callback value)) |=%got)
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 spacing
+    (union 2:3 (const 2:3 %s0) (const 3:3 %s1) (const 4:3 %s2) (const 5:3 %s3)))
+  (mold 6:1 extent
+    (union 7:3
+      (cell 7:3
+        (const 7:4 %fill)
+        (face 7:10 n (aura 7:12 @ud)))
+      (const 8:3 %shrink)))
+  (mold 9:1 attribute
+    (union 10:3
+      (cell 10:3 (const 10:4 %gap) (ref 10:9 spacing))
+      (cell 11:3 (const 11:4 %pad) (ref 11:9 spacing))
+      (cell 12:3 (const 12:4 %width) (ref 12:11 extent))))
+  (mold 13:1 other-attribute
+    (union 14:3
+      (cell 14:3 (const 14:4 %gap) (ref 14:9 spacing))
+      (cell 15:3 (const 15:4 %pad) (ref 15:9 spacing))
+      (cell 16:3 (const 16:4 %width) (ref 16:11 extent))))
+  (value 25:1 cross-origin
+    (cast 25:17
+      (ref 25:20 attribute)
+      (cast 25:30
+        (ref 25:33 other-attribute)
+        (pair 25:49 gap (lit 25:53 %s2))))))

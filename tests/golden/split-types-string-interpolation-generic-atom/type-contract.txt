@@ -1,0 +1,2 @@
+site /tests/golden/split-types-string-interpolation-generic-atom/source.jibb:19:7
+min-sites 2

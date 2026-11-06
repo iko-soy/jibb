@@ -1,0 +1,23 @@
+
+
+
++$ choice |$ [A]
+  [%some value=A]
+  %none
+
+
+
+
+
+
+
+
+
+++ generic-payload ^- (choice @t) [%some ~zod]
+
+
+
+
+
+
+

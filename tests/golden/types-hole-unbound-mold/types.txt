@@ -1,3 +1,4 @@
-partial inference; module not checked
-+$ invalid: not checked
-++ later: sample mold is not supported by partial inference
++$ invalid: type hole must be determined by its definition
+/tests/golden/types-hole-unbound-mold/source.jibb:1:26: unresolved type hole
++$ invalid [left=A right=_]
+                         ^

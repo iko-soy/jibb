@@ -1,0 +1,10 @@
+9:1 glyph ++
+9:4 name pending
+9:12 glyph |=
+9:15 name x
+9:16 tight glyph =
+9:17 tight aura @t
+9:20 str-head ""
+9:22 tight lit %orphan
+9:29 tight str-tail ""
+9:31 NEWLINE

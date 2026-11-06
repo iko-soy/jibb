@@ -1,0 +1,9 @@
+(module
+  (value 14:1 bad-skim
+    (group 14:13
+      (call 14:14
+        (wing 14:14 skim)
+        (list 14:19 (str 14:21 "hi"))
+        (gate-wide 14:27
+          (face 14:30 x (aura 14:32 @p))
+          (lit 14:35 %.y))))))

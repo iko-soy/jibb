@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/types-import-hoon-flags/source.jibb:9:15
+typed-site /tests/golden/types-import-hoon-flags/source.jibb:9:25
+min-sites 2

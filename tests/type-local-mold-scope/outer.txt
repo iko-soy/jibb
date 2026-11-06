@@ -1,0 +1,7 @@
++$ tagged |$ [A] [%wrapped A]
+++ bad |= x=@t
+  +$ tagged |$ [A] [%other A]
+  +$ choice
+    (tagged @t)
+    [%other @p]
+  x

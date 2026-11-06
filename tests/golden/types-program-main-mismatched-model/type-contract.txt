@@ -1,0 +1,4 @@
+message call's sample and argument types do not unify
+min-sites 2
+site /ui/program-check.jibb:5:10
+site /ui/program-check.jibb:5:23

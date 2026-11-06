@@ -1,0 +1,14 @@
+(module
+  (value 10:1 named
+    (gate 10:10
+      (cell 10:13
+        (face 10:14 label (aura 10:20 @t))
+        (face 10:23 ship (aura 10:28 @p)))
+      (tuple 10:32 (wing 10:33 label) (wing 10:39 ship))))
+  (value 38:1 named-mismatch
+    (group 38:19
+      (call 38:20
+        (wing 38:20 named)
+        (tuple 38:26
+          (face 38:27 other (str 38:33 "hi"))
+          (face 38:38 ship (lit 38:43 ~zod)))))))

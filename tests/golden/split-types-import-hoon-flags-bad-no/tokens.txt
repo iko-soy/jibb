@@ -1,0 +1,9 @@
+1:1 glyph /-
+1:4 name flags
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name bad-no
+11:11 glyph ^-
+11:14 wing no.flags
+11:23 lit %.y
+11:26 NEWLINE

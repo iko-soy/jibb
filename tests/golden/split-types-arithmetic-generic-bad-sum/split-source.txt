@@ -1,0 +1,4 @@
+origin types-arithmetic-generic
+target value bad-sum
+keep value bad-sum
+keep value sum

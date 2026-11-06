@@ -1,0 +1,78 @@
+(module
+  (value 1:1 copy
+    (gate 1:9
+      (face 1:12 xs
+        (apply 1:15 list (aura 1:21 @t)))
+      (body 2:3
+        (value 2:3 recur
+          (gate 2:12
+            (face 2:15 ys
+              (apply 2:18 list (aura 2:24 @t)))
+            (body 3:5
+              (cast 3:5
+                (apply 3:8 list (aura 3:14 @t))
+                (branch 3:18
+                  (wing 3:21 ys)
+                  (arm 4:7 (lit 4:7 ~) (lit 4:9 ~))
+                  (arm 5:7
+                    (cell 5:7 (bind 5:8 item) (bind 5:13 rest))
+                    (tuple 5:19
+                      (wing 5:20 item)
+                      (group 5:25
+                        (call 5:26 (wing 5:26 recur) (wing 5:32 rest))))))))))
+        (group 6:3
+          (call 6:4 (wing 6:4 recur) (wing 6:10 xs))))))
+  (value 7:1 generic
+    (gate 7:12
+      (face 7:15 x (tvar 7:17 A))
+      (body 8:3
+        (value 8:3 recur
+          (gate 8:12
+            (face 8:15 y (tvar 8:17 A))
+            (body 9:5
+              (branch 9:5
+                (lit 9:8 %.y)
+                (arm 10:7 (lit 10:7 %.y) (wing 10:11 x))
+                (arm 11:7
+                  (lit 11:7 %.n)
+                  (group 11:11
+                    (call 11:12 (wing 11:12 recur) (wing 11:18 y))))))))
+        (group 12:3
+          (call 12:4 (wing 12:4 recur) (wing 12:10 x))))))
+  (value 13:1 independently
+    (gate 13:18
+      (face 13:21 x (aura 13:23 @t))
+      (body 14:3
+        (value 14:3 recur
+          (gate 14:12
+            (bind 14:15 y)
+            (body 15:5
+              (branch 15:5
+                (lit 15:8 %.y)
+                (arm 16:7 (lit 16:7 %.y) (wing 16:11 y))
+                (arm 17:7
+                  (lit 17:7 %.n)
+                  (group 17:11
+                    (call 17:12 (wing 17:12 recur) (wing 17:18 y))))))))
+        (trace 18:3
+          (group 18:6
+            (call 18:7 (wing 18:7 recur) (wing 18:13 x)))
+          (body 19:5
+            (group 19:5
+              (call 19:6 (wing 19:6 recur) (lit 19:12 ~zod))))))))
+  (value 27:1 mutual
+    (gate 27:11
+      (face 27:14 x (aura 27:16 @t))
+      (body 28:3
+        (value 28:3 a
+          (gate 28:8
+            (face 28:11 y (aura 28:13 @t))
+            (group 28:16
+              (call 28:17 (wing 28:17 b) (wing 28:19 y)))))
+        (value 29:3 b
+          (gate 29:8
+            (face 29:11 y (aura 29:13 @t))
+            (group 29:16
+              (call 29:17 (wing 29:17 a) (wing 29:19 y)))))
+        (group 30:3
+          (call 30:4 (wing 30:4 a) (wing 30:6 x)))))))

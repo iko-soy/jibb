@@ -1,4 +1,3 @@
-partial inference; module not checked
 record field `name` is repeated
 /tests/golden/types-record-field-unused-mold/source.jibb:1:12: first field
 +$ unused [name=@t name=@p]

@@ -1,0 +1,9 @@
++$ state @ud
++$ poke %inc
+++ init ^- state 0
+++ update |= [a=poke s=state] s
+++ other |= [x=poke y=state] y
+++ first ^- * update
+++ second ^- * other
+++ choose |= [x=A y=A] y
+++ main [init (choose first second)]

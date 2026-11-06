@@ -1,0 +1,17 @@
+36:1 glyph ++
+36:4 name bool-then-any
+36:18 glyph |=
+36:21 glyph [
+36:22 tight name b
+36:23 tight glyph =
+36:24 tight glyph ?
+36:26 name x
+36:27 tight glyph =
+36:28 tight aura @
+36:29 tight glyph ]
+36:31 glyph (
+36:32 tight name add
+36:36 name b
+36:38 name x
+36:39 tight glyph )
+36:40 NEWLINE

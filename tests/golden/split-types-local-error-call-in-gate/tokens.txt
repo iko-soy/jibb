@@ -1,0 +1,32 @@
+1:1 glyph ++
+1:4 name inc
+1:8 glyph |=
+1:11 name n
+1:12 tight glyph =
+1:13 tight aura @ud
+1:17 name n
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name in-gate
+10:12 glyph |=
+10:15 name x
+10:16 tight glyph =
+10:17 tight aura @t
+11:3 INDENT
+11:3 glyph ++
+11:6 name bump
+11:11 glyph |=
+11:14 name y
+11:15 tight glyph =
+11:16 tight aura @t
+11:19 glyph (
+11:20 tight name inc
+11:24 name y
+11:25 tight glyph )
+12:3 NEWLINE
+12:3 glyph (
+12:4 tight name bump
+12:9 name x
+12:10 tight glyph )
+12:11 DEDENT
+12:11 NEWLINE

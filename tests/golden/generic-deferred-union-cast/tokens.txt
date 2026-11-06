@@ -1,0 +1,25 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %hit
+3:3 NEWLINE
+3:3 lit %miss
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name displayed
+4:14 glyph (
+4:15 tight name button
+4:22 str "x"
+4:26 lit %hit
+4:30 tight glyph )
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name resolved
+5:13 glyph ^-
+5:16 glyph (
+5:17 tight name element
+5:25 name msg
+5:28 tight glyph )
+5:30 name displayed
+5:39 NEWLINE

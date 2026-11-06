@@ -1,0 +1,22 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %tick)
+        (face 2:10 at (aura 2:13 @da)))
+      (cell 3:3
+        (const 3:4 %done)
+        (face 3:10 n (aura 3:12 @ud)))))
+  (value 4:1 pause
+    (gate 4:10
+      (face 4:13 d (aura 4:15 @dr))
+      (wing 4:19 d)))
+  (value 19:1 every-ok
+    (cast 19:13
+      (apply 19:16 list
+        (apply 19:22 sub (ref 19:27 msg)))
+      (list 19:33
+        (tuple 19:35 (lit 19:36 %every) (lit 19:43 ~s1) (ctor 19:47 %tick)))))
+  (value 23:1 note-ok
+    (group 23:12
+      (call 23:13 (wing 23:13 text) (str 23:18 "5")))))

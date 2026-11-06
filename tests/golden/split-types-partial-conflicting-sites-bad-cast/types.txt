@@ -1,0 +1,7 @@
+++ bad-cast: cast mold and expression type do not unify
+/tests/golden/split-types-partial-conflicting-sites-bad-cast/source.jibb:3:16: cast mold has type @ud
+++ bad-cast ^- @ud "hello"
+               ^
+/tests/golden/split-types-partial-conflicting-sites-bad-cast/source.jibb:3:20: expression has type @t
+++ bad-cast ^- @ud "hello"
+                   ^

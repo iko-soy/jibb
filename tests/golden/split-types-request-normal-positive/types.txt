@@ -1,0 +1,4 @@
+module kind: library
+++ cord: (ask @t)
+++ ship: (ask @p)
+++ generic: $-($-(@t A) (ask A))

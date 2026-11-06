@@ -1,0 +1,4 @@
+origin inline-pattern-tag-name-any-arm
+target value grouped
+keep mold reason
+keep value grouped

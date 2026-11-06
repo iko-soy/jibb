@@ -1,0 +1,7 @@
+module kind: library
+++ keep: $-(A A) where A is an atom
+++ alias: $-(A A) where A is an atom
+++ ship: @p
+++ cord: @t
+++ flag: ?
+++ number: @ud

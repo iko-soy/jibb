@@ -1,0 +1,4 @@
+source: program kind regression
+tests: alias-main through full checking
+expect: parses
+expect-types: full checker result

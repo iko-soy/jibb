@@ -1,0 +1,12 @@
+origin types-record-cast-context
+target value faced
+keep mold inner
+keep mold msg
+keep mold outer
+keep mold state
+keep value faced
+keep value full
+keep value init
+keep value nested
+keep value shared
+keep value unknown

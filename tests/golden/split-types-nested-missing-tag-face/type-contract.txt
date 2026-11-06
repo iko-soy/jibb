@@ -1,0 +1,4 @@
+message cast is missing field `title`
+site /tests/golden/split-types-nested-missing-tag-face/source.jibb:4:11
+site /tests/golden/split-types-nested-missing-tag-face/source.jibb:9:18
+min-sites 2

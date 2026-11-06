@@ -1,0 +1,26 @@
+1:1 glyph ++
+1:4 name keep
+1:9 glyph |=
+1:12 name x
+1:13 tight glyph =
+1:14 tight tvar A
+2:3 INDENT
+2:3 glyph ~&
+2:6 glyph ^-
+2:9 aura @
+2:11 name x
+3:5 INDENT
+3:5 name x
+7:1 DEDENT
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name bad
+7:8 glyph (
+7:9 tight name keep
+7:14 glyph [
+7:15 tight lit ~zod
+7:20 str "hi"
+7:24 tight glyph ]
+7:25 tight glyph )
+7:26 NEWLINE

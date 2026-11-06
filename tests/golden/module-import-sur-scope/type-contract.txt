@@ -1,0 +1,3 @@
+message module `fixture` is not imported
+site /ui/lib.jibb:1:18
+min-sites 1

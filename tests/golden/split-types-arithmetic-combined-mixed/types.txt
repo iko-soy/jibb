@@ -1,0 +1,7 @@
+++ mixed: call's sample and argument types do not unify
+/tests/golden/split-types-arithmetic-combined-mixed/source.jibb:17:11: called gate has type $-([@p @p] @p)
+++ mixed (add ~zod "hi")
+          ^
+/tests/golden/split-types-arithmetic-combined-mixed/source.jibb:17:20: argument has type @t
+++ mixed (add ~zod "hi")
+                   ^

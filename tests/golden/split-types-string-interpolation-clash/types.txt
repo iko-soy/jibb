@@ -1,0 +1,7 @@
+++ clash: cast mold and expression type do not unify
+/tests/golden/split-types-string-interpolation-clash/source.jibb:27:34: cast mold has type @t
+++ clash |= [x=@t y=@p] "{x} {^- @t y}"
+                                 ^
+/tests/golden/split-types-string-interpolation-clash/source.jibb:27:37: expression has type @p
+++ clash |= [x=@t y=@p] "{x} {^- @t y}"
+                                    ^

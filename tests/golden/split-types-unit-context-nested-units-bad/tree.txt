@@ -1,0 +1,10 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 43:1 nested-units-bad
+    (cast 43:21
+      (apply 43:24 list
+        (apply 43:30 unit (ref 43:36 msg)))
+      (list 43:42
+        (unit 43:44 (lit 43:45 %go))
+        (unit 43:49 (lit 43:50 %oops))))))

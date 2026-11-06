@@ -1,0 +1,9 @@
+++ later-body |= n
+  ~& "{n}"
+    ^- @ud n
+++ later-call |= n "{n}"
+++ called (later-call "hi")
+++ numeric-text "{(add 1 2)}"
+++ tape-text |= words=(list @tD) "{words}"
+++ inferred-tape |= n "{~[n]}"
+++ fix-tape |= letter=@tD (inferred-tape letter)

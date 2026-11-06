@@ -1,0 +1,4 @@
+source: split from types-prelude-ui, preserving the original source lines
+tests: independently valid definitions and their dependencies; raw-text has a sealed-constructor negative companion
+expect: parses
+expect-types: full checker types

@@ -1,0 +1,7 @@
+++ non-tape: a cell in interpolation needs a printer
+/tests/golden/split-types-string-interpolation-non-tape/source.jibb:14:30: value without a printer has type (list @t)
+++ non-tape |= x=(list @t) "{x}"
+                             ^
+/tests/golden/split-types-string-interpolation-non-tape/source.jibb:14:28: interpolation requires a printable atom or tape
+++ non-tape |= x=(list @t) "{x}"
+                           ^

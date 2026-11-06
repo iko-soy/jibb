@@ -1,0 +1,7 @@
+++ wrong-first: inline gate result does not unify with @t: @p versus @t
+/tests/golden/split-types-multi-call-wrong-first/source.jibb:39:23: actual type has type @p
+++ wrong-first (three ~zod ~zod %.y)
+                      ^
+/tests/golden/split-types-multi-call-wrong-first/source.jibb:39:17: call context has type [@t [@p ?]]
+++ wrong-first (three ~zod ~zod %.y)
+                ^

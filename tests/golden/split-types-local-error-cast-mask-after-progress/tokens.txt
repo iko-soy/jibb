@@ -1,0 +1,26 @@
+24:1 glyph ++
+24:4 name mask-after-progress
+24:24 glyph |=
+24:27 name x
+24:28 tight glyph =
+24:29 tight tvar A
+25:3 INDENT
+25:3 glyph ++
+25:6 name a
+25:8 glyph ^-
+25:11 aura @ud
+25:15 str "s"
+26:3 NEWLINE
+26:3 glyph ++
+26:6 name ok
+26:9 name x
+27:3 NEWLINE
+27:3 glyph ++
+27:6 name b
+27:8 glyph ^-
+27:11 aura @t
+27:14 name x
+28:3 NEWLINE
+28:3 name x
+28:4 DEDENT
+28:4 NEWLINE

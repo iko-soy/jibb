@@ -1,0 +1,4 @@
+origin types-prelude-sub
+target value pure-wrong
+keep mold my-msg
+keep value pure-wrong

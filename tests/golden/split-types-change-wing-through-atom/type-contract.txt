@@ -1,0 +1,2 @@
+site /tests/golden/split-types-change-wing-through-atom/source.jibb:13:32
+min-sites 2

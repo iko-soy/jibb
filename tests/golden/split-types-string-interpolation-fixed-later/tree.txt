@@ -1,0 +1,9 @@
+(module
+  (value 23:1 fixed-later
+    (gate 23:16
+      (bind 23:19 n)
+      (body 24:3
+        (trace 24:3
+          (str 24:6 (wing 24:8 n))
+          (body 25:5
+            (cast 25:5 (aura 25:8 @ud) (wing 25:12 n))))))))

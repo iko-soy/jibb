@@ -1,0 +1,7 @@
+origin types-union-nonwing-subject
+target value nested
+keep mold input
+keep mold result
+keep value local-id
+keep value nested
+keep value passthrough

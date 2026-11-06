@@ -1,0 +1,13 @@
+++ value: non-gate value `value` depends on itself through the cycle value -> maker -> value
+/tests/golden/review-mixed-cycle/source.jibb:2:4: definition in cycle
+++ value ^- @t (maker "hi")
+   ^
+/tests/golden/review-mixed-cycle/source.jibb:2:17: `value` depends on `maker` here
+++ value ^- @t (maker "hi")
+                ^
+/tests/golden/review-mixed-cycle/source.jibb:1:4: definition in cycle
+++ maker |= x=@t value
+   ^
+/tests/golden/review-mixed-cycle/source.jibb:1:18: `maker` depends on `value` here
+++ maker |= x=@t value
+                 ^

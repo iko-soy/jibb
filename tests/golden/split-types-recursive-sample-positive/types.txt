@@ -1,0 +1,8 @@
+module kind: library
+++ recurse: $-([first=@t second=@p] [@t @p])
+++ capture: $-([first=A second=B] A)
+++ early-base: $-([first=@t second=@p] @t)
+++ late-base: $-([first=@t second=@p] @t)
+++ generic: $-([first=A second=B] [A B])
+++ generic-one: [@t @p]
+++ generic-two: [@p @t]

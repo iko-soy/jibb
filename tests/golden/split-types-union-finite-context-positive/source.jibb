@@ -1,0 +1,76 @@
++$ input
+  [%p flag=? text=@t]
+  %other
++$ result
+  %go
+  %stay
+++ tags |= x=input ^- result
+  ?- x
+    [%p %.y t] %go
+    [%p %.n t] %stay
+    %other %stay
+
+
+
+
+
+++ lists |= x=input ^- (list @t)
+  ?- x
+    [%p %.y t] ~[t]
+    [%p %.n t] ~[]
+    %other ~
+++ records |= x=input ^- [text=@t xs=(list @t)]
+  ?- x
+    [%p %.y t] [t ~[t]]
+    [%p %.n t] [t ~[]]
+    %other ["none" ~]
+
+
+
+
+
+
+
+
+
+++ binder |= x=input ^- ?
+  ?- x
+    [%p flag words] flag
+    %other %.n
+
+
+
+
+
+
+
+
+
+
+
+++ partial |= x=input ^- (list @t)
+  ?- x
+    [%p %.y "a"] ~[]
+    * ~[]
++$ dual
+  [%p flag=?]
+  [%q flag=?]
+++ cross-origin |= x=dual ^- (list @t)
+  ?- x
+    [tag %.y] ~[]
+    [tag %.n] ~[]
+
+
+
+
+
+++ generic |= [x=input a=A] ^- (list A)
+  ?- x
+    [%p %.y t] ~[a]
+    [%p %.n t] ~[]
+    %other ~
+
+
+
+
+

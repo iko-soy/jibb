@@ -1,0 +1,4 @@
+(module
+  (value 7:1 bad-tuba
+    (group 7:13
+      (call 7:14 (wing 7:14 tuba) (str 7:19 "abc")))))

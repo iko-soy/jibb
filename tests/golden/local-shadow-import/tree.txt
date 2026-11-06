@@ -1,0 +1,6 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 f
+    (body 3:3
+      (value 3:3 lib (lit 3:10 2))
+      (wing 4:3 lib))))

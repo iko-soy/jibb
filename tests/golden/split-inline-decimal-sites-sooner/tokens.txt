@@ -1,0 +1,12 @@
+7:1 glyph ++
+7:4 name sooner
+7:11 glyph |=
+7:14 name d
+7:15 tight glyph =
+7:16 tight aura @dr
+7:20 glyph (
+7:21 tight name add
+7:25 lit 1
+7:27 name d
+7:28 tight glyph )
+7:29 NEWLINE

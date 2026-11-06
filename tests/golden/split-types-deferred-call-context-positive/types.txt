@@ -1,0 +1,24 @@
+module kind: library
++$ msg: msg
+++ local-id: $-(A A)
+++ empty-list: (list @t)
+++ filled-list: (list @t)
+++ unit-value: (unit msg)
+++ union-value: msg
+++ nested: (list (unit msg))
+++ already: $-(@ud @u)
+++ local-keep: $-([a=A b=A] A)
+++ repeated-good: @t
+++ rec-good: [field=(list @t) flag=?]
+++ wrap-identity: $-(A A)
+++ retain: $-(@t @t)
+++ result-later: $-((list @t) (list @t))
+++ result-repeated: (list @t)
+++ captured: $-((list @t) (list @t))
++$ choice: (choice A)
+++ param-list: $-((list A) (list A))
+++ param-list-text: (list @t)
+++ param-list-ship: (list @p)
+++ param-union: $-(A (choice A))
+++ param-union-text: (choice @t)
+++ param-union-ship: (choice @p)

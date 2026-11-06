@@ -1,0 +1,9 @@
+(module
+  (value 10:1 change
+    (gate 10:11
+      (face 10:14 m
+        (cell 10:16
+          (face 10:17 gap (aura 10:21 @dr))
+          (face 10:25 n (aura 10:27 @ud))))
+      (change 10:32 m
+        (edit 10:34 gap (lit 10:38 30))))))

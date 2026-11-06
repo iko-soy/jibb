@@ -1,0 +1,26 @@
+7:1 glyph ++
+7:4 name number-id
+7:14 glyph |=
+7:17 name x
+7:18 tight glyph =
+7:19 tight aura @ud
+7:23 name x
+30:1 NEWLINE
+30:1 glyph ++
+30:4 name unknown-target
+30:19 glyph |=
+30:22 name x
+30:23 tight glyph =
+30:24 tight tvar A
+30:26 glyph ^-
+30:29 tvar A
+30:31 name width
+30:36 tight glyph +
+30:37 tight glyph [
+30:38 tight lit %fill
+30:44 glyph (
+30:45 tight name number-id
+30:55 lit 1
+30:56 tight glyph )
+30:57 tight glyph ]
+30:58 NEWLINE

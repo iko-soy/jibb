@@ -1,0 +1,1 @@
+Full-check list diagnostics retain both incompatible types and suggest parentheses only when the corresponding call checks. Controls cover several arguments, UTF-8 source columns, an incompatible argument, a parenthesized call, and a valid list of gates.

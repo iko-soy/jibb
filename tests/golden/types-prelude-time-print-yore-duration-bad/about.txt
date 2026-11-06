@@ -1,0 +1,4 @@
+source: Overview, Prelude; Hoon 135 calendar and formatting gates.
+tests: The full checker retains exact sample and result types through the checked source prelude.
+expect: parses
+expect-types: rejected with both source sites

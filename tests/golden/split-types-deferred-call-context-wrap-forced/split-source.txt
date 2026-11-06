@@ -1,0 +1,4 @@
+origin types-deferred-call-context
+target value wrap-forced
+keep value local-id
+keep value wrap-forced

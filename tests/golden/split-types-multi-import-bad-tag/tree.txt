@@ -1,0 +1,8 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 5:1 bad-tag
+    (group 5:12
+      (call 5:13
+        (wing 5:13 combine.lib)
+        (lit 5:25 %wrong)
+        (list 5:32 (str 5:34 "hi"))))))

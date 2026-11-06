@@ -1,0 +1,6 @@
+6:1 glyph ++
+6:4 name knot
+6:9 glyph ^-
+6:12 aura @ta
+6:16 lit 30
+6:18 NEWLINE

@@ -1,0 +1,31 @@
+2:1 glyph +$
+2:4 name msg
+3:3 INDENT
+3:3 lit %go
+4:3 NEWLINE
+4:3 lit %stay
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph +$
+5:4 name inner
+5:10 glyph [
+5:11 tight name payload
+5:18 tight glyph =
+5:19 tight name msg
+5:23 name xs
+5:25 tight glyph =
+5:26 tight glyph (
+5:27 tight name list
+5:32 aura @t
+5:34 tight glyph )
+5:35 tight glyph ]
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name wrong-tag
+13:14 glyph ^-
+13:17 name inner
+13:23 glyph [
+13:24 tight lit %oops
+13:30 lit ~
+13:31 tight glyph ]
+13:32 NEWLINE

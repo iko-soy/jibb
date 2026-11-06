@@ -1,2 +1,4 @@
-partial inference; module not checked
-module has conflicting names
+`proj` is reserved and cannot be bound
+/tests/golden/types-proj-reserved-sur-import/source.jibb:1:1: reserved name
+/- proj
+^

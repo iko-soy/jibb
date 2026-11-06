@@ -1,0 +1,6 @@
+/tests/golden/review-facts-outside/source.jibb:1:6: `(facts ...)` is allowed only in an API's `+$ paths`
++$ x (facts @t @t)
+     ^
+/tests/golden/review-facts-outside/source.jibb:1:7: `(facts ...)` is allowed only in an API's `+$ paths`
++$ x (facts @t @t)
+      ^

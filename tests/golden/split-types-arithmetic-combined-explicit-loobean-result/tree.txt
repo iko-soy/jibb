@@ -1,0 +1,8 @@
+(module
+  (value 34:1 explicit-loobean-result
+    (gate 34:28
+      (face 34:31 n (tvar 34:33 A))
+      (cast 34:35
+        (flag 34:38)
+        (group 34:40
+          (call 34:41 (wing 34:41 add) (wing 34:45 n) (lit 34:47 1)))))))

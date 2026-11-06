@@ -1,0 +1,52 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ choice
+  [%a on=?]
+  %other
+
+
+
+
+
+
+
+
+++ duplicate |= x=choice
+  ?- x
+    [%a %.y] "yes"
+    [%a %$] "duplicate"
+    * "other"
+
+
+
+
+
+
+
+

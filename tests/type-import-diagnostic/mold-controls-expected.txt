@@ -1,0 +1,45 @@
+generic:
++$ box: signed and float auras cannot be imported
+/tests/mold-control.jibb:2:31: invalid imported mold
++$ box |$ [A] [first=A second=bad.foo]
+                              ^
+earlier:
++$ box: cores and gates cannot be imported
+/tests/mold-control.jibb:2:15: invalid imported mold
++$ box [first=first.foo second=bad.foo]
+              ^
+repeated:
++$ box: signed and float auras cannot be imported
+/tests/mold-control.jibb:2:15: invalid imported mold
++$ box [first=bad.foo second=bad.foo]
+              ^
+duplicate input:
++$ box: mold needs unsupported inference
+/tests/mold-control.jibb:2:8: unsupported mold
++$ box bad.foo
+       ^
+valid:
+module kind: library
++$ box: [first=A second=@t]
+++ id: $-([first=@ud second=@t] [first=@ud second=@t])
+union:
++$ box: signed and float auras cannot be imported
+/tests/mold-control.jibb:4:10: invalid imported mold
+  [%some bad.foo]
+         ^
+application:
++$ box: signed and float auras cannot be imported
+/tests/mold-control.jibb:2:14: invalid imported mold
++$ box (list bad.foo)
+             ^
+bad callee:
++$ box: signed and float auras cannot be imported
+/tests/mold-control.jibb:2:8: invalid imported mold
++$ box (bad.foo @t)
+       ^
+nested good:
+module kind: library
+++ good: $-([a=@t [b=@t c=@t]] @t)
+independent faces:
+module kind: library
+++ good: $-([outer=[same=@t] inner=[same=@t]] [same=@t])

@@ -1,0 +1,54 @@
++$ msg
+  %add
+  %remove
+  [%noted text=@t]
+
+
+
+
+
+
+
+
+
+
+++ bad |= b=?
+  ^- msg
+    ?- b
+      %.y %add
+      %.n %missing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

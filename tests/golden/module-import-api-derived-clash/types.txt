@@ -1,4 +1,3 @@
-partial inference; module not checked
 API derived name `plain` clashes with a definition
 /ui/api/demo.jibb:3:3: `plain` is derived from this path case
   [%plain /plain full]

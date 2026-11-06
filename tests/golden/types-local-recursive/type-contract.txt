@@ -1,0 +1,4 @@
+message sample `recur` shadows a name already in scope
+site /tests/golden/types-local-recursive/source.jibb:21:6
+site /tests/golden/types-local-recursive/source.jibb:21:15
+min-sites 2

@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/split-types-prelude-arithmetic-reject-bool-add/source.jibb:13:21
+site /tests/golden/split-types-prelude-arithmetic-reject-bool-add/source.jibb:13:25
+min-sites 2

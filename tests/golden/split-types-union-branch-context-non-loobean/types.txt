@@ -1,0 +1,3 @@
+module kind: library
++$ msg: msg
+++ non-loobean: $-(@t msg)

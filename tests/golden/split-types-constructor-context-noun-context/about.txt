@@ -1,0 +1,4 @@
+source: split from types-constructor-context, preserving the original source lines
+tests: the independent noun-context diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

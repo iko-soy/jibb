@@ -1,0 +1,52 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ choice
+  [%a on=?]
+  %other
+++ missing |= x=choice
+  ?- x
+    [%a %.y] "yes"
+    %other "other"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

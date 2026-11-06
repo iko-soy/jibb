@@ -1,0 +1,6 @@
+(module
+  (value 1:1 l
+    (gate 1:6
+      (face 1:9 x (tvar 1:11 A))
+      (group 1:13
+        (call 1:14 (wing 1:14 lent) (wing 1:19 x))))))

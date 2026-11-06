@@ -1,0 +1,37 @@
+7:1 glyph +$
+7:4 name reason
+8:3 INDENT
+8:3 lit %fail
+9:3 NEWLINE
+9:3 lit %late
+26:1 DEDENT
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name pick
+26:9 glyph |=
+26:12 name r
+26:13 tight glyph =
+26:14 tight name reason
+26:21 name r
+27:1 NEWLINE
+27:1 glyph ++
+27:4 name called
+27:11 glyph |=
+27:14 name r
+27:15 tight glyph =
+27:16 tight name reason
+28:3 INDENT
+28:3 glyph ?-
+28:6 glyph (
+28:7 tight name pick
+28:12 name r
+28:13 tight glyph )
+29:5 INDENT
+29:5 lit %fail
+29:12 str "f"
+30:5 NEWLINE
+30:5 name late
+30:12 str "l"
+30:15 DEDENT
+30:15 DEDENT
+30:15 NEWLINE

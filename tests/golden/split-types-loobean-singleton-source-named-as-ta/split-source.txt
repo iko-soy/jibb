@@ -1,0 +1,5 @@
+origin types-loobean-singleton-source
+target value named-as-ta
+keep mold yes
+keep value named-as-ta
+keep value named-value

@@ -1,0 +1,77 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %p)
+        (face 2:7 left (flag 2:12))
+        (face 2:14 right (flag 2:20)))
+      (const 3:3 %other)))
+  (value 4:1 boolean-table
+    (gate 4:18
+      (face 4:21 m (ref 4:23 msg))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 m)
+          (arm 6:5
+            (cell 6:5 (lit 6:6 %p) (lit 6:9 %.y) (lit 6:13 %.y))
+            (str 6:18 "a"))
+          (arm 7:5
+            (cell 7:5 (lit 7:6 %p) (lit 7:9 %.y) (lit 7:13 %.n))
+            (str 7:18 "b"))
+          (arm 8:5
+            (cell 8:5 (lit 8:6 %p) (lit 8:9 %.n) (lit 8:13 %.y))
+            (str 8:18 "c"))
+          (arm 9:5
+            (cell 9:5 (lit 9:6 %p) (lit 9:9 %.n) (lit 9:13 %.n))
+            (str 9:18 "d"))
+          (arm 10:5 (lit 10:5 %other) (str 10:12 "e"))))))
+  (value 11:1 parent
+    (gate 11:11
+      (face 11:14 m (ref 11:16 msg))
+      (body 12:3
+        (branch 12:3
+          (wing 12:6 m)
+          (arm 13:5
+            (cell 13:5 (lit 13:6 %p) (lit 13:9 %.y) (lit 13:13 %.y))
+            (lit 13:18 0x1f))
+          (arm 14:5
+            (cell 14:5 (lit 14:6 %p) (lit 14:9 %.y) (lit 14:13 %.n))
+            (cast 14:18 (aura 14:21 @u) (lit 14:24 0x1f)))
+          (arm 15:5
+            (cell 15:5 (lit 15:6 %p) (lit 15:9 %.n) (lit 15:13 %.y))
+            (lit 15:18 0))
+          (arm 16:5
+            (cell 16:5 (lit 16:6 %p) (lit 16:9 %.n) (lit 16:13 %.n))
+            (lit 16:18 0x2f))
+          (arm 17:5
+            (lit 17:5 %other)
+            (cast 17:12 (aura 17:15 @u) (lit 17:18 0x1f)))))))
+  (value 18:1 wildcard
+    (gate 18:13
+      (face 18:16 m (ref 18:18 msg))
+      (body 19:3
+        (branch 19:3
+          (wing 19:6 m)
+          (arm 20:5
+            (cell 20:5 (lit 20:6 %p) (lit 20:9 %.y) (any 20:13))
+            (str 20:16 "a"))
+          (arm 21:5
+            (cell 21:5 (lit 21:6 %p) (lit 21:9 %.n) (any 21:13))
+            (str 21:16 "b"))
+          (arm 22:5 (lit 22:5 %other) (str 22:12 "e"))))))
+  (mold 29:1 choice
+    (union 30:3
+      (cell 30:3
+        (const 30:4 %a)
+        (face 30:7 on (flag 30:10)))
+      (const 31:3 %other)))
+  (value 36:1 typed
+    (gate 36:10
+      (face 36:13 x (ref 36:15 choice))
+      (body 37:3
+        (branch 37:3
+          (wing 37:6 x)
+          (arm 38:5
+            (cell 38:5 (lit 38:6 %a) (bind 38:9 value))
+            (wing 38:16 value))
+          (arm 39:5 (lit 39:5 %other) (lit 39:12 %.n)))))))

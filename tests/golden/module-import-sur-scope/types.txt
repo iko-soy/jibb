@@ -1,2 +1,4 @@
-partial inference; module not checked
-module definitions need unsupported inference: /ui/lib/jibb: ++ identity
+++ identity: module `fixture` is not imported
+/ui/lib.jibb:1:18: unimported module
+++ identity |= x=title.fixture x
+                 ^

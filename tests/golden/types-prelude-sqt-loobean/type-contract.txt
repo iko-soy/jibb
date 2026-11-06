@@ -1,0 +1,4 @@
+message inline gate result does not unify with A: ? versus A
+site /tests/golden/types-prelude-sqt-loobean/source.jibb:1:13
+site /tests/golden/types-prelude-sqt-loobean/source.jibb:1:9
+min-sites 2

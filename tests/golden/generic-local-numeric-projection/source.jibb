@@ -1,0 +1,4 @@
+++ run |= number=@ud
+  ++ pick |= x=[left=A right=B]
+    ^- [left=A] (proj x(left=(add left.x 1)))
+  (pick [left=number right=~zod])

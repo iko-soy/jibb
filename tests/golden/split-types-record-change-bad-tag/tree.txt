@@ -1,0 +1,13 @@
+(module
+  (mold 2:1 actions
+    (union 3:3 (const 3:3 %start) (const 4:3 %stop)))
+  (mold 5:1 model
+    (cell 5:10
+      (face 5:11 mode (ref 5:16 actions))
+      (face 5:24 data
+        (apply 5:29 unit (aura 5:35 @t)))))
+  (value 17:1 bad-tag
+    (gate 17:12
+      (face 17:15 m (ref 17:17 model))
+      (change 17:23 m
+        (edit 17:25 mode (lit 17:30 %missing))))))

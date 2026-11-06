@@ -1,0 +1,78 @@
++$ msg
+  %save
+  %toggle
+  [%edited value=@t]
++$ model [count=@ud]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ save-message ^- msg %save
+++ toggle-message ^- msg %toggle
+++ save-button ^- (element msg) (button "Save" save-message)
+++ enabled-toggle ^- (element msg) (toggle %.y "Enabled" toggle-message)
+++ edit-message |= value=@t ^- msg [%edited value]
+++ name-field ^- (element msg) (field "Name" "value" edit-message)
+++ controls ^- (element msg)
+  (form save-message ~[save-button enabled-toggle name-field])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ init |= input=@t ^- model [count=0]
+++ update |= [message=msg state=model]
+  ^- [model (list (cmd msg))] [state ~]
+++ view |= state=model ^- (element msg) (controls)
+++ subs |= state=model ^- (list (sub msg)) ~
+++ concrete-program ^- (program @t model msg) (program init update view subs)
+
+++ mismatched-island-data ^- (element !!) (island concrete-program ~zod)
+
+
+
+

@@ -1,0 +1,61 @@
+(module
+  (value 1:1 run
+    (gate 1:8
+      (face 1:11 words (aura 1:17 @t))
+      (body 2:3
+        (value 2:3 first
+          (gate 2:12
+            (cell 2:15
+              (face 2:16 x
+                (cell 2:18
+                  (face 2:19 left (tvar 2:24 A))
+                  (face 2:26 right (tvar 2:32 B))
+                  (face 2:34 extra (aura 2:40 @ud))))
+              (face 2:45 stop (flag 2:50)))
+            (body 3:5
+              (branch 3:5
+                (wing 3:8 stop)
+                (arm 4:5
+                  (lit 4:5 %.y)
+                  (cast 4:9
+                    (cell 4:12
+                      (face 4:13 left (tvar 4:18 A))
+                      (face 4:20 right (tvar 4:26 B)))
+                    (group 4:29
+                      (call 4:30 (wing 4:30 proj) (wing 4:35 x)))))
+                (arm 5:5
+                  (lit 5:5 %.n)
+                  (group 5:9
+                    (call 5:10 (wing 5:10 second) (wing 5:17 x) (lit 5:19 %.y))))))))
+        (value 6:3 second
+          (gate 6:13
+            (cell 6:16
+              (face 6:17 x
+                (cell 6:19
+                  (face 6:20 left (tvar 6:25 A))
+                  (face 6:27 right (tvar 6:33 B))
+                  (face 6:35 extra (aura 6:41 @ud))))
+              (face 6:46 stop (flag 6:51)))
+            (body 7:5
+              (branch 7:5
+                (wing 7:8 stop)
+                (arm 8:5
+                  (lit 8:5 %.y)
+                  (cast 8:9
+                    (cell 8:12
+                      (face 8:13 left (tvar 8:18 A))
+                      (face 8:20 right (tvar 8:26 B)))
+                    (group 8:29
+                      (call 8:30 (wing 8:30 proj) (wing 8:35 x)))))
+                (arm 9:5
+                  (lit 9:5 %.n)
+                  (group 9:9
+                    (call 9:10 (wing 9:10 first) (wing 9:16 x) (lit 9:18 %.y))))))))
+        (group 10:3
+          (call 10:4
+            (wing 10:4 first)
+            (tuple 10:10
+              (face 10:11 left (wing 10:16 words))
+              (face 10:22 right (lit 10:28 ~zod))
+              (face 10:33 extra (lit 10:39 1)))
+            (lit 10:42 %.y)))))))

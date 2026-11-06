@@ -1,0 +1,6 @@
+module kind: library
++$ result: (result A B)
+++ either-value: $-((result A A) A)
+++ reused: $-((result A A) A)
+++ number: @ud
+++ text: @t

@@ -1,0 +1,82 @@
++$ input
+  [%item flag=? text=@t]
+  %none
++$ result
+  %good
+  %empty
+
+++ passthrough |= x=input x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ bad-subject |= x=input ^- result
+  ?- (passthrough "wrong")
+    [%item flag words] %missing
+    %none %empty
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,12 @@
+++ second |= p=[(unit @ud) (unit @ud)]
+  ?- p
+    [~ b] b
+    * ~
+++ first |= p=[(unit @ud) (unit @ud)]
+  ?- p
+    [a ~] ~
+    [a b] a
+++ tail-or-nil |= p=[? (list @t)]
+  ?- p
+    [%.y xs] xs
+    [%.n xs] ~

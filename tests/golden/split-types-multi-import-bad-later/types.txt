@@ -1,0 +1,7 @@
+++ bad-later: inline gate result does not unify with @p: @t versus @p
+/tests/golden/split-types-multi-import-bad-later/source.jibb:4:29: actual type has type @t
+++ bad-later (take.lib "hi" "no")
+                            ^
+/tests/golden/split-types-multi-import-bad-later/source.jibb:4:15: call context has type [@t @p]
+++ bad-later (take.lib "hi" "no")
+              ^

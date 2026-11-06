@@ -1,0 +1,8 @@
+module kind: library
+++ three: $-([@t [@p ?]] ?)
+++ four: $-([@t [@p [? @ux]]] @ux)
+++ rest: $-([@t [@p [? @ux]]] [? @ux])
+++ infer: $-([A [B C]] [C [B A]])
+++ record: $-([a=@t [b=@p c=?]] @t)
+++ nested: $-([@t [[@p ?] @ux]] @ux)
+++ wildcard: $-([@t [@p ?]] ?)

@@ -1,0 +1,18 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %go
+3:3 NEWLINE
+3:3 lit %stay
+9:1 DEDENT
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name invalid
+9:12 glyph ^-
+9:15 glyph (
+9:16 tight name unit
+9:21 name msg
+9:24 tight glyph )
+9:26 glyph `
+9:27 tight lit %bad
+9:31 NEWLINE

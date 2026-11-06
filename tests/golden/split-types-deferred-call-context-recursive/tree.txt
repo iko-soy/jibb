@@ -1,0 +1,22 @@
+(module
+  (value 4:1 local-id
+    (gate 4:13 (bind 4:16 x) (wing 4:18 x)))
+  (value 35:1 recursive
+    (gate 35:14
+      (cell 35:17
+        (face 35:18 flag (flag 35:23))
+        (bind 35:25 value))
+      (body 36:3
+        (cast 36:3
+          (apply 36:6 list (aura 36:12 @t))
+          (body 37:5
+            (branch 37:5
+              (wing 37:8 flag)
+              (arm 38:7
+                (lit 38:7 %.y)
+                (group 38:11
+                  (call 38:12 (wing 38:12 local-id) (wing 38:21 value))))
+              (arm 39:7
+                (lit 39:7 %.n)
+                (group 39:11
+                  (call 39:12 (wing 39:12 recursive) (wing 39:22 flag) (wing 39:27 value)))))))))))

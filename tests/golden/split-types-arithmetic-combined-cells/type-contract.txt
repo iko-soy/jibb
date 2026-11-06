@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-arithmetic-combined-cells/source.jibb:18:11
+typed-site /tests/golden/split-types-arithmetic-combined-cells/source.jibb:18:15
+min-sites 2

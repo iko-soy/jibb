@@ -1,0 +1,10 @@
+14:1 glyph ++
+14:4 name payload
+14:12 glyph ^-
+14:15 glyph (
+14:16 tight name unit
+14:21 aura @dr
+14:24 tight glyph )
+14:26 glyph `
+14:27 tight lit 30
+14:29 NEWLINE

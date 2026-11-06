@@ -1,12 +1,4 @@
-partial inference; module not checked
 ++ rec-order: local definitions need unsupported inference
-++ rec-order-g-first: $-(@t @t)
-++ rec-order-top: local definitions need unsupported inference
-++ flat-mask: $-(!! [@ux @t])
-++ flat-mask-ok: $-(!! [@ux @t])
-++ outer-mask: $-(!! [@ux @t])
-++ nest-order: local definitions need unsupported inference
-++ nest-order-ok: $-(!! [@ux @t])
-++ rec-mask: local definitions need unsupported inference
-++ rec-ok: $-(@t @t)
-++ rec-widen: $-(@t @t)
+/tests/golden/types-local-error-order/source.jibb:1:19: gate sample mold
+++ rec-order |= z=@t
+                  ^

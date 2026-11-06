@@ -1,0 +1,10 @@
+(module
+  (value 58:1 bad-pad
+    (cast 58:12
+      (apply 58:15 element (void 58:24))
+      (group 58:28
+        (call 58:29
+          (wing 58:29 row)
+          (list 58:33
+            (pair 58:35 pad (lit 58:39 %s4)))
+          (lit 58:44 ~))))))

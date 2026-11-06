@@ -1,0 +1,11 @@
+(module
+  (jibb 1:1 lib /ui/lib)
+  (value 2:1 good
+    (group 2:9
+      (call 2:10 (wing 2:10 take.lib) (str 2:19 "hi") (lit 2:24 ~zod))))
+  (value 3:1 contextual
+    (group 3:15
+      (call 3:16
+        (wing 3:16 combine.lib)
+        (lit 3:28 %add)
+        (list 3:33 (str 3:35 "hi"))))))

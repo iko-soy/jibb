@@ -1,0 +1,7 @@
+++ reject-bool-add: types do not unify
+/tests/golden/split-types-prelude-arithmetic-reject-bool-add/source.jibb:13:21: expected type has type A where A is an atom other than ?
+++ reject-bool-add (add %.n %.n)
+                    ^
+/tests/golden/split-types-prelude-arithmetic-reject-bool-add/source.jibb:13:25: actual type has type ?
+++ reject-bool-add (add %.n %.n)
+                        ^

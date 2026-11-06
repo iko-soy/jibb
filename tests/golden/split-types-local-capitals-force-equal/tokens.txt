@@ -1,0 +1,29 @@
+54:1 glyph ++
+54:4 name force-equal
+54:16 glyph |=
+54:19 name x
+54:20 tight glyph =
+54:21 tight aura @t
+55:3 INDENT
+55:3 glyph ++
+55:6 name inner
+55:12 glyph |=
+55:15 glyph [
+55:16 tight name a
+55:17 tight glyph =
+55:18 tight tvar A
+55:20 name b
+55:21 tight glyph =
+55:22 tight tvar B
+55:23 tight glyph ]
+55:25 glyph ^-
+55:28 tvar A
+55:30 name b
+56:3 NEWLINE
+56:3 glyph (
+56:4 tight name inner
+56:10 name x
+56:12 lit ~zod
+56:16 tight glyph )
+56:17 DEDENT
+56:17 NEWLINE

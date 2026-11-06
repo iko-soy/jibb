@@ -1,0 +1,10 @@
+++ decimal |= x=@ud ^- @u x
+++ hex ^- @u 0x1f
+++ base32 |= x=@uv ^- @u x
+++ text-value |= x=@tD ^- @t x
+
+
+++ dup |= p=[A A] p
+
+++ accept |= n=@u n
+++ via-call |= x=@ud (accept x)

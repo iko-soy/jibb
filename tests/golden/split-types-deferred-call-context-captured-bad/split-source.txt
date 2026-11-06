@@ -1,0 +1,3 @@
+origin types-deferred-call-context
+target value captured-bad
+keep value captured-bad

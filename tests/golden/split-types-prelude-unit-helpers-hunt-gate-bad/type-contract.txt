@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-unit-helpers-hunt-gate-bad/source.jibb:21:19
+typed-site /tests/golden/split-types-prelude-unit-helpers-hunt-gate-bad/source.jibb:21:24
+min-sites 2

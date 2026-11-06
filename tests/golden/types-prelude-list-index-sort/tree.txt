@@ -1,0 +1,45 @@
+(module
+  (value 1:1 index-number
+    (group 1:17
+      (call 1:18
+        (wing 1:18 snag)
+        (lit 1:23 1)
+        (list 1:25 (lit 1:27 2) (lit 1:29 3)))))
+  (value 2:1 index-text
+    (group 2:15
+      (call 2:16
+        (wing 2:16 snag)
+        (lit 2:21 0)
+        (list 2:23 (str 2:25 "one") (str 2:31 "two")))))
+  (value 3:1 prefix
+    (group 3:11
+      (call 3:12
+        (wing 3:12 scag)
+        (lit 3:17 2)
+        (list 3:19 (str 3:21 "a") (str 3:25 "b") (str 3:29 "c")))))
+  (value 4:1 suffix
+    (group 4:11
+      (call 4:12
+        (wing 4:12 slag)
+        (lit 4:17 1)
+        (list 4:19 (str 4:21 "a") (str 4:25 "b") (str 4:29 "c")))))
+  (value 5:1 repeated
+    (group 5:13
+      (call 5:14 (wing 5:14 reap) (lit 5:19 2) (str 5:21 "x"))))
+  (value 6:1 ascending
+    (group 6:14
+      (call 6:15
+        (wing 6:15 sort)
+        (list 6:20 (lit 6:22 3) (lit 6:24 1) (lit 6:26 2))
+        (wing 6:29 lth))))
+  (value 7:1 descending
+    (group 7:15
+      (call 7:16
+        (wing 7:16 sort)
+        (list 7:21 (lit 7:23 3) (lit 7:25 1) (lit 7:27 2))
+        (wing 7:30 gth))))
+  (value 8:1 empty
+    (cast 8:10
+      (apply 8:13 list (aura 8:19 @ud))
+      (group 8:24
+        (call 8:25 (wing 8:25 sort) (lit 8:30 ~) (wing 8:32 lth))))))

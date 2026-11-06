@@ -1,0 +1,3 @@
+origin types-list-branch
+target value opposite
+keep value opposite

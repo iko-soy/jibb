@@ -1,0 +1,3 @@
+origin types-partial-conflicting-sites
+target value bad-cast
+keep value bad-cast

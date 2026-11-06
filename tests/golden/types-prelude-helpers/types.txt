@@ -1,0 +1,15 @@
+module kind: library
+++ identity-items: (list @ud)
+++ identity-ships: (list @p)
+++ all-text: (list @ud)
+++ all-nums: (list @ud)
+++ first-text: (unit @ud)
+++ first-ships: (unit @ud)
+++ each-label: $-([item=@ud state=@ud] [@t @ud])
+++ spun-labels: [p=(list @t) q=@ud]
+++ keep-code: $-([item=@t state=@t] [@ud @t])
+++ spun-codes: [p=(list @ud) q=@t]
+++ equal-text: ?
+++ equal-ships: ?
+++ root-dec: [p=@ud q=@ud]
+++ root-hex: [p=@ux q=@ux]

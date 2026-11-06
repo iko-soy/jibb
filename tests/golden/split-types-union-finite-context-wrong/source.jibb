@@ -1,0 +1,76 @@
++$ input
+  [%p flag=? text=@t]
+  %other
++$ result
+  %go
+  %stay
+
+
+
+
+
+++ wrong |= x=input ^- result
+  ?- x
+    [%p %.y t] %missing
+    [%p %.n t] %stay
+    %other %stay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

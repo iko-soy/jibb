@@ -1,0 +1,11 @@
+(module
+  (jibb 1:1 helper /ui/helper)
+  (value 2:1 callback
+    (gate 2:13
+      (face 2:16 x (aura 2:18 @ud))
+      (wing 2:22 x)))
+  (value 3:1 bad
+    (group 3:8
+      (call 3:9
+        (wing 3:9 same-list.helper)
+        (list 3:26 (wing 3:28 callback))))))

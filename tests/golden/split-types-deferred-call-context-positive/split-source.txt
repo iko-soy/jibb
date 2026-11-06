@@ -1,0 +1,25 @@
+origin types-deferred-call-context
+target value already
+keep mold choice
+keep mold msg
+keep value already
+keep value captured
+keep value empty-list
+keep value filled-list
+keep value local-id
+keep value local-keep
+keep value nested
+keep value param-list
+keep value param-list-ship
+keep value param-list-text
+keep value param-union
+keep value param-union-ship
+keep value param-union-text
+keep value rec-good
+keep value repeated-good
+keep value result-later
+keep value result-repeated
+keep value retain
+keep value union-value
+keep value unit-value
+keep value wrap-identity

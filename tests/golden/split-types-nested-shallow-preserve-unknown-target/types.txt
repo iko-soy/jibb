@@ -1,0 +1,4 @@
+++ unknown-target: nothing fixes the union of %width; add a `^-`
+/tests/golden/split-types-nested-shallow-preserve-unknown-target/source.jibb:30:31: nothing fixes the union of %width; add a `^-`
+++ unknown-target |= x=A ^- A width+[%fill (number-id 1)]
+                              ^

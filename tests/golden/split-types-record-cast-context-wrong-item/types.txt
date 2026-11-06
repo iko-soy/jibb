@@ -1,0 +1,7 @@
+++ wrong-item: list item does not fit its expected type
+/tests/golden/split-types-record-cast-context-wrong-item/source.jibb:14:18: expected item has type @t
+++ wrong-item ^- inner [%go ~[~zod]]
+                 ^
+/tests/golden/split-types-record-cast-context-wrong-item/source.jibb:14:31: list item has type @p
+++ wrong-item ^- inner [%go ~[~zod]]
+                              ^

@@ -1,0 +1,4 @@
+origin inline-unface-gates
+target value hunt-labelled
+keep value hunt-labelled
+keep value lt-a

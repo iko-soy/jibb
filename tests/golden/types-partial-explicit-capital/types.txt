@@ -1,2 +1,7 @@
-partial inference; module not checked
-++ f: explicit capital constraints are not supported by partial inference
+++ f: capital `A` cannot be fixed to @t
+/tests/golden/types-partial-explicit-capital/source.jibb:1:11: capital
+++ f |= x=A ^- @t x
+          ^
+/tests/golden/types-partial-explicit-capital/source.jibb:1:19: forcing expression
+++ f |= x=A ^- @t x
+                  ^

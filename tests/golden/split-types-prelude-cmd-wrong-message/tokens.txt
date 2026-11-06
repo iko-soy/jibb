@@ -1,0 +1,13 @@
+10:1 glyph ++
+10:4 name wrong-message
+10:18 glyph ^-
+10:21 glyph (
+10:22 tight name cmd
+10:26 aura @t
+10:28 tight glyph )
+10:30 glyph [
+10:31 tight lit %wait
+10:37 lit ~s30
+10:42 lit ~zod
+10:46 tight glyph ]
+10:47 NEWLINE

@@ -1,0 +1,7 @@
+++ theme: cast field `tones.normal` does not fit
+/lib/jibb/prelude.jibb:620:12: expected field has type @t
+    tones=[normal=@t background=@t accent=@t danger=@t muted=@t]
+           ^
+/ui/theme.jibb:3:19: expression has type @p
+    tones=[normal=~zod background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+                  ^

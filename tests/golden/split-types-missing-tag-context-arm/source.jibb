@@ -1,0 +1,17 @@
++$ msg
+  %go
+  [%typed text=@t]
+
+
+++ arm |= x=? ^- msg
+  ?- x
+    %.y %go
+    %.n %missing
+
+
+
+
+
+
+
+

@@ -1,0 +1,18 @@
+(module
+  (value 1:1 concrete
+    (gate 1:13
+      (face 1:16 x (ref 1:18 qath))
+      (cast 1:23
+        (cell 1:26
+          (face 1:27 field (ref 1:33 qath))
+          (face 1:38 yes (flag 1:42)))
+        (tuple 1:45 (wing 1:46 x) (lit 1:48 %.y)))))
+  (value 2:1 reverse
+    (gate 2:12
+      (face 2:15 x
+        (cell 2:17
+          (face 2:18 field (ref 2:24 qath))
+          (face 2:29 yes (flag 2:33))))
+      (cast 2:36
+        (cell 2:39 (ref 2:40 qath) (flag 2:45))
+        (wing 2:48 x)))))

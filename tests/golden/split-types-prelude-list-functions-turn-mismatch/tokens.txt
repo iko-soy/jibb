@@ -1,0 +1,24 @@
+1:1 glyph /=
+1:5 name lib
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot lib
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name turn-mismatch
+18:18 glyph (
+18:19 tight name turn
+18:24 glyph ~[
+18:26 tight str "a"
+18:29 tight glyph ]
+18:31 glyph |=(
+18:34 tight name x
+18:36 glyph (
+18:37 tight glyph ^-
+18:40 aura @p
+18:43 name x
+18:44 tight glyph )
+18:45 tight glyph )
+18:46 tight glyph )
+18:47 NEWLINE

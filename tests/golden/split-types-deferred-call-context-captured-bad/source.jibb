@@ -1,0 +1,56 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ captured-bad |= sample
+  ++ local |= ignored sample
+  ~& ^- @t sample
+    ^- @p (local ~zod)
+
+
+
+
+
+
+
+
+
+

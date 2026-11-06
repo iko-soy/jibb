@@ -1,4 +1,4 @@
 source: Grammar tab, Patterns: "A name is an error where the subject's type at its position is a union, or a one-case mold, with a case whose constant there is the term the name spells"; "Positions typed by an aura, `*`, a type variable or a container's element are unaffected"
 tests: a generic union's own cases count, as `%fail` and `%ok` of `(outcome A)`; a position its mold types by a type variable doesn't, even where the argument is a union with that tag: `[%ok fail]` on `(outcome reason)`, `[~ stop]` on `(unit step)`; nor does a list's element, `[stop rest]` on `(list step)`
 expect: parses
-expect-types: a partial inference report: `own-case` is an error at `fail`, 14:5, and `own-head` at `ok`, 17:6; `argument`, `maybe` and `items` infer
+expect-types: full checker reports the first error; independent split cases retain the other checks

@@ -1,0 +1,23 @@
+3:1 glyph ++
+3:4 name zero-one-arg
+3:17 glyph |=
+3:20 name f
+3:21 tight glyph =
+3:22 tight glyph $-(
+3:25 tight glyph [
+3:26 tight glyph (
+3:27 tight name list
+3:32 aura @t
+3:34 tight glyph )
+3:36 aura @t
+3:38 tight glyph ]
+3:40 aura @t
+3:42 tight glyph )
+3:44 glyph (
+3:45 tight name f
+3:47 glyph [
+3:48 tight lit %1
+3:51 str "ok"
+3:55 tight glyph ]
+3:56 tight glyph )
+3:57 NEWLINE

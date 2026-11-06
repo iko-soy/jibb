@@ -1,0 +1,18 @@
+
+
+
+
+
+
+
+
+
+
+++ select-one |= r=[a=A b=@t]
+  ^- [a=A] (proj [a=(add a.r 1) b=b.r])
+
+++ select-one-bool (select-one [a=%.y b="x"])
+
+
+
+

@@ -1,0 +1,4 @@
+message inline gate result does not unify with @t: @p versus @t
+site /tests/golden/types-prelude-text/source.jibb:6:19
+site /tests/golden/types-prelude-text/source.jibb:6:14
+min-sites 2

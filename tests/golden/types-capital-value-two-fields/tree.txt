@@ -1,0 +1,25 @@
+(module
+  (value 1:1 gate
+    (gate 1:9
+      (face 1:12 x (aura 1:14 @t))
+      (wing 1:17 x)))
+  (value 2:1 known
+    (cast 2:10 (noun 2:13) (wing 2:15 gate)))
+  (value 3:1 atom
+    (cast 3:9 (noun 3:12) (lit 3:14 ~zod)))
+  (value 4:1 second
+    (gate 4:11
+      (cell 4:14
+        (face 4:15 x (tvar 4:17 A))
+        (face 4:19 y (tvar 4:21 A)))
+      (wing 4:24 y)))
+  (value 5:1 output
+    (group 5:11
+      (call 5:12
+        (wing 5:12 second)
+        (tuple 5:19
+          (face 5:20 val (wing 5:24 known))
+          (face 5:30 marker (str 5:37 "first")))
+        (tuple 5:46
+          (face 5:47 val (wing 5:51 atom))
+          (face 5:56 marker (str 5:63 "second")))))))

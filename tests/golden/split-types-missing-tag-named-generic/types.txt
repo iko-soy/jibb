@@ -1,0 +1,13 @@
+++ generic: (choice @t) has no case `%missing`
+/tests/golden/split-types-missing-tag-named-generic/source.jibb:4:4: expected union has type (choice @t)
++$ choice |$ [A]
+   ^
+/tests/golden/split-types-missing-tag-named-generic/source.jibb:5:3: expected union has type (choice @t)
+  [%some value=A]
+  ^
+/tests/golden/split-types-missing-tag-named-generic/source.jibb:15:15: expected union has type (choice @t)
+++ generic ^- (choice @t) %missing
+              ^
+/tests/golden/split-types-missing-tag-named-generic/source.jibb:15:27: tag literal has type %missing
+++ generic ^- (choice @t) %missing
+                          ^

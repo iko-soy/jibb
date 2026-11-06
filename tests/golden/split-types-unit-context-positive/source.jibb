@@ -1,0 +1,46 @@
++$ msg
+  %go
+  %stay
+
+
+
++$ record [u=(unit msg) xs=(list (unit @t))]
+++ valid ^- (unit msg) `%go
+
+++ str ^- (unit @t) `"hi"
+
+++ nest ^- (unit (unit @t)) ``"hi"
+
+++ lis ^- (unit (list @t)) `~["hi"]
+
+++ accept |= x=(unit msg) x
+++ call (accept `%stay)
+
+++ field-value ^- record [`%go ~[`"hi"]]
+
+
+
+
+
+
+
+
+
+++ preserve |= x=A ^- (unit A) `x
+
+
+
+
+
+
+
+
+++ known-left |= x=msg ^- [a=msg] [a=x]
+
+++ contextual |= x=A ^- [a=A b=(unit A)] [a=x b=`x]
+
+++ nested-units ^- (list (unit msg)) ~[`%go `%stay]
+
+
+
+

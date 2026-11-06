@@ -1,0 +1,7 @@
+++ wrong-input: cast mold and expression type do not unify
+/tests/golden/split-types-union-singleton-wrong-input/source.jibb:9:19: cast mold has type $-(@ud [%typed text=@t])
+++ wrong-input ^- $-(@ud typed) |=%typed
+                  ^
+/tests/golden/split-types-union-singleton-wrong-input/source.jibb:9:33: expression has type $-(@t [%typed text=@t])
+++ wrong-input ^- $-(@ud typed) |=%typed
+                                ^

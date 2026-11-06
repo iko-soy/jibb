@@ -1,0 +1,3 @@
+site /tests/golden/split-types-cell-pattern-tail-malformed/source.jibb:18:5
+typed-site /tests/golden/split-types-cell-pattern-tail-malformed/source.jibb:17:6
+min-sites 2

@@ -1,0 +1,5 @@
+module kind: library
+++ copy: $-((list @t) (list @t))
+++ generic: $-(A A)
+++ independently: $-(@t @p)
+++ mutual: $-(@t A)

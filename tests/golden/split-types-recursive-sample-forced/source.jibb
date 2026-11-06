@@ -1,0 +1,40 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ forced |= [first=A second=B]
+  ~& ^- @t first
+    (forced first second)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

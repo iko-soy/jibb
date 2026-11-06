@@ -1,0 +1,30 @@
+31:1 glyph ++
+31:4 name pending
+31:12 glyph |=
+31:15 name x
+31:16 tight glyph =
+31:17 tight aura @t
+32:3 INDENT
+32:3 glyph ++
+32:6 name recur
+32:12 glyph |=
+32:15 name y
+32:16 tight glyph =
+32:17 tight aura @t
+33:5 INDENT
+33:5 glyph ~&
+33:8 lit %orphan
+34:7 INDENT
+34:7 glyph (
+34:8 tight name recur
+34:14 name y
+34:15 tight glyph )
+35:3 DEDENT
+35:3 DEDENT
+35:3 NEWLINE
+35:3 glyph (
+35:4 tight name recur
+35:10 name x
+35:11 tight glyph )
+35:12 DEDENT
+35:12 NEWLINE

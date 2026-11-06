@@ -1,7 +1,8 @@
 ::  Source-backed private poke and poke-only API boundary under eval and ship.
-/+  jibb, jibb-import
+/+  jibb, jibb-import, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  mark  %txt  /tests/type-poke/mark/txt
 /*  api  %txt  /tests/type-poke/api/txt
 /*  client  %txt  /tests/type-poke/client/txt
@@ -49,15 +50,15 @@
   =/  tiny-prelude=@t  (crip "/= internal /lib/jibb/internal\0a+$ poke poke.internal\0a")
   =/  source=@t  (crip "++ zero ^- poke %empty\0a++ pet ^- poke [%pet \"cat\"]\0a++ look |= x=poke\0a  ?- x\0a    [%pet name] name\0a    %empty \"\"\0a")
   =/  no-source=?  ?=(~ (prepare-prelude:jibb prelude))
-  =/  malformed=?  ?=(~ (prepare-prelude-with-internal:jibb prelude (crip "+$ poke\0a")))
-  =/  empty=?  ?=(~ (prepare-prelude-with-internal:jibb prelude ''))
+  =/  malformed=?  ?=(~ (prepare-groups:jibb-prelude-fixture prelude (crip "+$ poke\0a") ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]]))
+  =/  empty=?  ?=(~ (prepare-groups:jibb-prelude-fixture prelude '' ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]]))
   =/  report  (golden-types-with-prelude-and-internal:jibb /ui/test/jibb source ~ ~ ~ tiny-prelude alternate)
   (of-wain:format ~[(crip "source-less={?:(no-source "rejected" "BAD")} malformed={?:(malformed "rejected" "BAD")} empty={?:(empty "rejected" "BAD")}") report])
 ::
 ++  bridge-output
   |=  [prelude=@t internal=@t mark=@t api=@t client=@t direct=@t alias=@t public=@t fake=@t exported=@t transitive=@t inner=@t impostor-client=@t impostor=@t]
   ^-  @t
-  =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb prelude internal)
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  'source-backed prelude preparation failed'
   =/  cor=type  -:(ride -:!>(..zuse) mark)
   =/  mark-result=*  (read-mark:jibb-import %todo-action cor)
@@ -84,7 +85,7 @@
   =/  collision=@t  (crip "/% %todo-action\0a+$ poke todo-action\0a++ poke \"bad\"\0a")
   =/  collision-modules=(list [at=path source=@t])  ~[[/ui/api/todo/jibb collision]]
   =/  k  (golden-types-with-prepared-prelude:jibb /ui/test/jibb client ~ marks collision-modules prepared)
-  =/  wrong-path-source=@t  (crip "/= todo /ui/wrong/todo\0a++ test (poke.todo \"ok\" same)\0a")
+  =/  wrong-path-source=@t  (crip "/= todo /ui/wrong/todo\0a++ demo (poke.todo \"ok\" same)\0a")
   =/  wrong-path-modules=(list [at=path source=@t])  ~[[/ui/wrong/todo/jibb api]]
   =/  l  (golden-types-with-prepared-prelude:jibb /ui/test/jibb wrong-path-source ~ marks wrong-path-modules prepared)
   (of-wain:format ~[(preparation-controls prelude internal) a b c d e f g h i j k l])

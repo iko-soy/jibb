@@ -1,0 +1,81 @@
+++ copy |= xs=(list @t)
+  ^- (list @t)
+    ?- xs
+      ~ ~
+      [item rest] [item (copy rest)]
+++ copy-reverse |= xs=(list @t)
+  ^- (list @t)
+    ?- xs
+      [item rest] [item (copy-reverse rest)]
+      ~ ~
+++ boolean |= b=?
+  ^- (list @t)
+    ?- b
+      %.y ~[]
+      %.n ["hi" ~]
+++ unit-branch |= x=(unit @t)
+  ^- (list @t)
+    ?- x
+      ~ ~[]
+      [~ item] [item ~]
+++ nested |= xs=(list @t)
+  ^- (list @t)
+    ?- xs
+      ~
+        ?- %.y
+          %.y ~[]
+          %.n ["x" ~]
+      [item rest] [item (copy rest)]
+++ consume |= xs=(list @t) xs
+++ call |= b=?
+  (consume
+    ?- b
+      %.y ~[]
+      %.n ["hi" ~]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

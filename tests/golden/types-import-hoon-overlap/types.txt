@@ -1,0 +1,4 @@
+++ overlap: Hoon union cases overlap
+/tests/golden/types-import-hoon-overlap/source.jibb:2:17: invalid imported mold
+++ overlap |= x=overlap.fixture x
+                ^

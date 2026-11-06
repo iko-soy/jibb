@@ -132,3 +132,72 @@ def module_fixtures(folder):
 def wants_modules(folder):
     """A manifest, even without sources, opts into module import checking."""
     return os.path.isfile(os.path.join(folder, 'modules.txt'))
+
+
+def excluded_prelude_molds(folder):
+    """Prelude molds redefined by a checked prelude fragment."""
+    filename = os.path.join(folder, 'type-exclude-molds.txt')
+    try:
+        with open(filename, encoding='utf-8') as f:
+            lines = [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        return []
+    except UnicodeError:
+        raise ValueError('%s: mold names must be UTF-8' % filename)
+    if len(set(lines)) != len(lines) or any(not TERM.fullmatch(x) for x in lines):
+        raise ValueError('%s: expected unique mold names' % filename)
+    if not wants_modules(folder) or not wants_types(folder):
+        raise ValueError('%s: requires prepared-prelude module type checking' % filename)
+    return lines
+
+
+def type_path(folder):
+    """Optional logical path for checking a fragment in its actual module."""
+    filename = os.path.join(folder, 'type-path.txt')
+    try:
+        with open(filename, encoding='utf-8') as f:
+            path = f.read().rstrip('\n')
+    except FileNotFoundError:
+        return None
+    except UnicodeError:
+        raise ValueError('%s: path must be UTF-8' % filename)
+    parts = path.split('/')
+    if len(parts) < 3 or parts[0] != '' or parts[1] not in ('ui', 'lib') or not parts[-1].endswith('.jibb'):
+        raise ValueError('%s: expected an absolute /ui/... or /lib/... Jibb path' % filename)
+    parts[-1] = parts[-1][:-5]
+    if any(not KNOT.fullmatch(p) or p in ('.', '..') for p in parts[1:]):
+        raise ValueError('%s: path components must be nonempty knots' % filename)
+    return '~[' + ' '.join('~.' + p for p in parts[1:] + ['jibb']) + ']'
+
+
+def type_contract(folder):
+    """Required diagnostic sites and typed notes, checked before golden updates."""
+    filename = os.path.join(folder, 'type-contract.txt')
+    try:
+        with open(filename, encoding='utf-8') as f:
+            lines = list(f)
+    except FileNotFoundError:
+        return []
+    except UnicodeError:
+        raise ValueError('%s: contract must be UTF-8' % filename)
+    rules = []
+    seen = set()
+    for number, line in enumerate(lines, 1):
+        fields = line.strip().split(maxsplit=1)
+        if not fields or fields[0].startswith('#'):
+            continue
+        if len(fields) != 2 or fields[0] not in ('site', 'typed-site', 'unresolved-site', 'min-sites', 'message'):
+            raise ValueError('%s:%d: expected site, typed-site, unresolved-site, min-sites or message' % (filename, number))
+        kind, value = fields
+        if kind == 'min-sites':
+            if not value.isdigit() or not 0 < int(value) <= 100:
+                raise ValueError('%s:%d: expected a positive site count' % (filename, number))
+        elif kind != 'message' and not re.fullmatch(r'/[^\s:]+:[1-9][0-9]*:[1-9][0-9]*', value):
+            raise ValueError('%s:%d: expected /file:line:column' % (filename, number))
+        if (kind, value) in seen:
+            raise ValueError('%s:%d: duplicate rule' % (filename, number))
+        seen.add((kind, value))
+        rules.append((kind, value))
+    if rules and not wants_types(folder):
+        raise ValueError('%s: a type contract requires a types output' % filename)
+    return rules

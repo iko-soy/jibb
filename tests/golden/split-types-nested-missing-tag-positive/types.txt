@@ -1,0 +1,5 @@
+module kind: library
++$ msg: msg
++$ state: [title=@t choice=msg]
+++ valid: [title=@t choice=msg]
+++ take: $-([title=@t choice=msg] [title=@t choice=msg])

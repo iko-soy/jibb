@@ -1,0 +1,17 @@
+::  Fixture for the documented examples; not supplied by the design doc.
+=/  todo  |%
++$  item  [id=@ud done=? text=@t]
++$  action
+  $%  [%add text=@t]
+      [%toggle id=@ud]
+  ==
++$  update
+  $%  [%added item=item]
+      [%toggled id=@ud]
+  ==
+--
+|_  a=update:todo
+++  grab  |%  ++  noun  update:todo  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

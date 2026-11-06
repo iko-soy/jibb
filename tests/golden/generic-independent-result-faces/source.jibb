@@ -1,0 +1,7 @@
+++ pair |= n=A [n n]
+++ one |= p=[left=@ud right=@ud] p
+++ two |= p=[first=@ud second=@ud] p
+++ three |= p=[name=@t title=@t] p
+++ a (one (pair 1))
+++ b (two (pair 2))
+++ c (three (pair "x"))

@@ -1,0 +1,9 @@
+module kind: library
+++ range: (list @ud)
+++ cut: (list @ud)
+++ slice: (list @t)
+++ replace: (list @ud)
+++ insert: (list @t)
+++ halves: [p=(list @ud) q=(list @ud)]
+++ hex-range: (list @ux)
+++ split-text: [p=(list @t) q=(list @t)]

@@ -1,0 +1,4 @@
+source: split from types-change-wing, preserving the original source lines
+tests: the independent unknown-inner diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

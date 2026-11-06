@@ -1,0 +1,17 @@
+14:1 glyph ++
+14:4 name wrong-reply
+14:16 glyph ^-
+14:19 glyph (
+14:20 tight name cmd
+14:24 aura @t
+14:26 tight glyph )
+14:28 glyph [
+14:29 tight lit %who
+14:34 glyph |=(
+14:37 tight name p
+14:38 tight glyph =
+14:39 tight aura @p
+14:42 lit ~zod
+14:46 tight glyph )
+14:47 tight glyph ]
+14:48 NEWLINE

@@ -1,0 +1,4 @@
+(module
+  (value 10:1 bool-add
+    (group 10:13
+      (call 10:14 (wing 10:14 add) (lit 10:18 %.n) (lit 10:22 %.n)))))

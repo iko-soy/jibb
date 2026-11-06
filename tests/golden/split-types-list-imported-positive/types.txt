@@ -1,0 +1,8 @@
+module kind: library
+++ take: $-((list @t) (list @t))
+++ as-written: $-((list @t) (list @t))
+++ to-imported: $-((list @t) (list @t))
+++ literal: (list @t)
+++ cons: (list @t)
+++ empty: (list @t)
+++ branch: $-(? (list @t))

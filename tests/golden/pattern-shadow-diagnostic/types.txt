@@ -1,0 +1,7 @@
+++ shadow: pattern binder `complete` shadows a name already in scope
+/tests/golden/pattern-shadow-diagnostic/source.jibb:4:4: earlier binding
+++ complete "c"
+   ^
+/tests/golden/pattern-shadow-diagnostic/source.jibb:7:9: shadowing binder
+    [%a complete] complete
+        ^

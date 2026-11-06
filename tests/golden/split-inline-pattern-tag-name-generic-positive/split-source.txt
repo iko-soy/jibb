@@ -1,0 +1,8 @@
+origin inline-pattern-tag-name-generic
+target value argument
+keep mold outcome
+keep mold reason
+keep mold step
+keep value argument
+keep value items
+keep value maybe

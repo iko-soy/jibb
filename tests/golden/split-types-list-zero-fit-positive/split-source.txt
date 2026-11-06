@@ -1,0 +1,6 @@
+origin types-list-zero-fit
+target value multi-arg
+keep value multi-arg
+keep value nil-arg
+keep value turn-tuple
+keep value zero-arg

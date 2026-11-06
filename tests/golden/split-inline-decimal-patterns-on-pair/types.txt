@@ -1,0 +1,7 @@
+++ on-pair: `0` is a @ud, not a @dr
+/tests/golden/split-inline-decimal-patterns-on-pair/source.jibb:23:4: decimal
+  [0 0] 1
+   ^
+/tests/golden/split-inline-decimal-patterns-on-pair/source.jibb:22:32: expected type has type [@dr @ud]
+++ on-pair |= [d=@dr n=@ud] ?- [d n]
+                               ^

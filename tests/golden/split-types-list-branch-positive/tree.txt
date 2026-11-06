@@ -1,0 +1,105 @@
+(module
+  (value 1:1 copy
+    (gate 1:9
+      (face 1:12 xs
+        (apply 1:15 list (aura 1:21 @t)))
+      (body 2:3
+        (cast 2:3
+          (apply 2:6 list (aura 2:12 @t))
+          (body 3:5
+            (branch 3:5
+              (wing 3:8 xs)
+              (arm 4:7 (lit 4:7 ~) (lit 4:9 ~))
+              (arm 5:7
+                (cell 5:7 (bind 5:8 item) (bind 5:13 rest))
+                (tuple 5:19
+                  (wing 5:20 item)
+                  (group 5:25
+                    (call 5:26 (wing 5:26 copy) (wing 5:31 rest)))))))))))
+  (value 6:1 copy-reverse
+    (gate 6:17
+      (face 6:20 xs
+        (apply 6:23 list (aura 6:29 @t)))
+      (body 7:3
+        (cast 7:3
+          (apply 7:6 list (aura 7:12 @t))
+          (body 8:5
+            (branch 8:5
+              (wing 8:8 xs)
+              (arm 9:7
+                (cell 9:7 (bind 9:8 item) (bind 9:13 rest))
+                (tuple 9:19
+                  (wing 9:20 item)
+                  (group 9:25
+                    (call 9:26 (wing 9:26 copy-reverse) (wing 9:39 rest)))))
+              (arm 10:7 (lit 10:7 ~) (lit 10:9 ~))))))))
+  (value 11:1 boolean
+    (gate 11:12
+      (face 11:15 b (flag 11:17))
+      (body 12:3
+        (cast 12:3
+          (apply 12:6 list (aura 12:12 @t))
+          (body 13:5
+            (branch 13:5
+              (wing 13:8 b)
+              (arm 14:7 (lit 14:7 %.y) (list 14:11))
+              (arm 15:7
+                (lit 15:7 %.n)
+                (tuple 15:11 (str 15:12 "hi") (lit 15:17 ~)))))))))
+  (value 16:1 unit-branch
+    (gate 16:16
+      (face 16:19 x
+        (apply 16:21 unit (aura 16:27 @t)))
+      (body 17:3
+        (cast 17:3
+          (apply 17:6 list (aura 17:12 @t))
+          (body 18:5
+            (branch 18:5
+              (wing 18:8 x)
+              (arm 19:7 (lit 19:7 ~) (list 19:9))
+              (arm 20:7
+                (cell 20:7 (lit 20:8 ~) (bind 20:10 item))
+                (tuple 20:16 (wing 20:17 item) (lit 20:22 ~)))))))))
+  (value 21:1 nested
+    (gate 21:11
+      (face 21:14 xs
+        (apply 21:17 list (aura 21:23 @t)))
+      (body 22:3
+        (cast 22:3
+          (apply 22:6 list (aura 22:12 @t))
+          (body 23:5
+            (branch 23:5
+              (wing 23:8 xs)
+              (arm 24:7
+                (lit 24:7 ~)
+                (body 25:9
+                  (branch 25:9
+                    (lit 25:12 %.y)
+                    (arm 26:11 (lit 26:11 %.y) (list 26:15))
+                    (arm 27:11
+                      (lit 27:11 %.n)
+                      (tuple 27:15 (str 27:16 "x") (lit 27:20 ~))))))
+              (arm 28:7
+                (cell 28:7 (bind 28:8 item) (bind 28:13 rest))
+                (tuple 28:19
+                  (wing 28:20 item)
+                  (group 28:25
+                    (call 28:26 (wing 28:26 copy) (wing 28:31 rest)))))))))))
+  (value 29:1 consume
+    (gate 29:12
+      (face 29:15 xs
+        (apply 29:18 list (aura 29:24 @t)))
+      (wing 29:28 xs)))
+  (value 30:1 call
+    (gate 30:9
+      (face 30:12 b (flag 30:14))
+      (body 31:3
+        (group 31:3
+          (call 31:4
+            (wing 31:4 consume)
+            (branch 32:5
+              (wing 32:8 b)
+              (arm 33:7 (lit 33:7 %.y) (list 33:11))
+              (arm 34:7
+                (lit 34:7 %.n)
+                (tuple 34:11 (str 34:12 "hi") (lit 34:17 ~))))))))))

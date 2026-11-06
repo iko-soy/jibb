@@ -1,2 +1,4 @@
-partial inference; module not checked
-++ outer: local definitions need unsupported inference
+++ outer: nothing fixes the union of %add; add a `^-`
+/tests/golden/types-union-local-pending/source.jibb:2:13: nothing fixes the union of %add; add a `^-`
+  ++ hidden %add
+            ^

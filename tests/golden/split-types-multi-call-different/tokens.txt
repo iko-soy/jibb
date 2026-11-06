@@ -1,0 +1,19 @@
+12:1 glyph ++
+12:4 name repeated
+12:13 glyph |=
+12:16 name p
+12:17 tight glyph =
+12:18 tight glyph [
+12:19 tight tvar A
+12:21 tvar A
+12:22 tight glyph ]
+12:24 name p
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name different
+14:14 glyph (
+14:15 tight name repeated
+14:24 str "a"
+14:28 lit ~zod
+14:32 tight glyph )
+14:33 NEWLINE

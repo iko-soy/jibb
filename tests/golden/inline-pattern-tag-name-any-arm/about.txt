@@ -1,4 +1,4 @@
 source: Grammar tab, Patterns: "A name is an error where the subject's type at its position is a union, or a one-case mold, with a case whose constant there is the term the name spells"; "An arm that earlier arms cover ... is an error"
 tests: the rule reads the subject's type, not the cases left: `stop` as the first arm is reported, not the arms it covers; `fail` after `%fail` is still an error; a grouped subject and a call as the subject
 expect: parses
-expect-types: a partial inference report: `first` is an error at `stop`, 13:5; `covered` at `fail`, 21:5; `grouped` at `late`, 25:5, with the subject `(r)` at 23:6; `pick` infers; `called` at `late`, 30:5, with the subject `(pick r)` at 28:6
+expect-types: full checker reports the first error; independent split cases retain the other checks

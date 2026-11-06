@@ -1,0 +1,5 @@
+origin types-multi-call
+target value invalid-item
+keep mold msg
+keep value accepts
+keep value invalid-item

@@ -1,0 +1,8 @@
+module kind: library
+++ pair: $-(A [A A])
+++ one: $-([left=@ud right=@ud] [left=@ud right=@ud])
+++ two: $-([first=@ud second=@ud] [first=@ud second=@ud])
+++ three: $-([name=@t title=@t] [name=@t title=@t])
+++ a: [left=@ud right=@ud]
+++ b: [first=@ud second=@ud]
+++ c: [name=@t title=@t]

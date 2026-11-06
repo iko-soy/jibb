@@ -1,0 +1,48 @@
+1:1 glyph ++
+1:4 name outer
+1:10 glyph |=
+1:13 name bound
+2:3 INDENT
+2:3 glyph ++
+2:6 name search
+2:13 glyph |=
+2:16 name n
+3:5 INDENT
+3:5 glyph ?-
+3:8 glyph (
+3:9 tight name lth
+3:13 name n
+3:15 name bound
+3:20 tight glyph )
+4:5 NEWLINE
+4:5 lit %.y
+4:9 glyph (
+4:10 tight name search
+4:17 glyph (
+4:18 tight name add
+4:22 name n
+4:24 lit 1
+4:25 tight glyph )
+4:26 tight glyph )
+5:5 NEWLINE
+5:5 lit %.n
+5:9 name n
+6:3 DEDENT
+6:3 NEWLINE
+6:3 glyph ~&
+6:6 glyph ^-
+6:9 aura @ud
+6:13 glyph (
+6:14 tight name search
+6:21 lit 0
+6:22 tight glyph )
+7:5 INDENT
+7:5 glyph ^-
+7:8 aura @t
+7:11 glyph (
+7:12 tight name search
+7:19 lit 0
+7:20 tight glyph )
+7:21 DEDENT
+7:21 DEDENT
+7:21 NEWLINE

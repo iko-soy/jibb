@@ -1,0 +1,4 @@
+message inline gate result does not unify with (list @tD): @t versus (list @tD)
+site /tests/golden/split-types-prelude-text-bad-tuba/source.jibb:7:19
+site /tests/golden/split-types-prelude-text-bad-tuba/source.jibb:7:14
+min-sites 2

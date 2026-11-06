@@ -1,0 +1,9 @@
+module kind: library
+++ same-list: $-((list A) ?) where A contains no gates
+++ same-nested: $-((list (unit A)) ?) where A contains no gates
+++ same-record: $-([left=(list A) right=B] ?) where A contains no gates, B contains no gates
+++ words-ok: ?
+++ ships-ok: ?
+++ keep-list: $-((list A) (list A))
+++ callback: $-(@ud @ud)
+++ callbacks: (list $-(@ud @ud))

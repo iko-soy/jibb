@@ -1,0 +1,10 @@
+(module
+  (jibb 1:1 api /ui/api/demo)
+  (value 7:1 extra
+    (group 7:10
+      (call 7:11
+        (wing 7:11 plain.api)
+        (gate-wide 7:21
+          (face 7:24 x (aura 7:26 @t))
+          (str 7:29 "ok"))
+        (str 7:35 "extra")))))

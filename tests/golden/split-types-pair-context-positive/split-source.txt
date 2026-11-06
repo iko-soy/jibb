@@ -1,0 +1,12 @@
+origin types-pair-context
+target value atom-pair
+keep mold attribute
+keep mold extent
+keep mold spacing
+keep value atom-pair
+keep value attributes
+keep value equiv
+keep value gap-structural
+keep value nested
+keep value noun-pair
+keep value one

@@ -1,0 +1,4 @@
+source: split from types-missing-tag-named, preserving the original source lines
+tests: the independent tag-only diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

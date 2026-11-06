@@ -1,0 +1,7 @@
+++ knot: `30` is a @ud, not a @ta; write ~.30
+/tests/golden/split-inline-decimal-aura-bad-knot/source.jibb:6:16: decimal
+++ knot ^- @ta 30
+               ^
+/tests/golden/split-inline-decimal-aura-bad-knot/source.jibb:6:12: expected type has type @ta
+++ knot ^- @ta 30
+           ^

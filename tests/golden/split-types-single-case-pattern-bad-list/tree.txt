@@ -1,0 +1,16 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 50:1 bad-list
+    (gate 50:13
+      (face 50:16 p (ref 50:18 packet))
+      (cast 50:25
+        (apply 50:28 list (aura 50:34 @t))
+        (body 51:3
+          (branch 51:3
+            (wing 51:6 p)
+            (arm 52:5
+              (cell 52:5 (lit 52:6 %go) (bind 52:10 u))
+              (list 52:13 (lit 52:15 ~zod)))))))))

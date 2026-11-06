@@ -1,0 +1,27 @@
+7:1 glyph +$
+7:4 name mimic
+7:10 glyph |$
+7:13 glyph [
+7:14 tight tvar A
+7:15 tight glyph ]
+8:3 INDENT
+8:3 lit ~
+9:3 NEWLINE
+9:3 glyph [
+9:4 tight lit ~
+9:6 name u
+9:7 tight glyph =
+9:8 tight tvar A
+9:9 tight glyph ]
+26:1 DEDENT
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name other-unit
+26:15 glyph ^-
+26:18 glyph (
+26:19 tight name mimic
+26:25 aura @t
+26:27 tight glyph )
+26:29 glyph `
+26:30 tight str "hi"
+26:34 NEWLINE

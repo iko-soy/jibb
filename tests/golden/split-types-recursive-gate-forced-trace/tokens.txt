@@ -1,0 +1,19 @@
+35:1 glyph ++
+35:4 name forced-trace
+35:17 glyph |=
+35:20 name x
+35:21 tight glyph =
+35:22 tight tvar A
+36:3 INDENT
+36:3 glyph ~&
+36:6 glyph ^-
+36:9 aura @t
+36:12 name x
+37:5 INDENT
+37:5 glyph (
+37:6 tight name forced-trace
+37:19 name x
+37:20 tight glyph )
+37:21 DEDENT
+37:21 DEDENT
+37:21 NEWLINE

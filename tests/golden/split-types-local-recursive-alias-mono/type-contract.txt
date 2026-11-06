@@ -1,0 +1,4 @@
+message capital `A` cannot be fixed to @t
+site /tests/golden/split-types-local-recursive-alias-mono/source.jibb:37:17
+site /tests/golden/split-types-local-recursive-alias-mono/source.jibb:39:15
+min-sites 2

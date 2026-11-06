@@ -1,0 +1,6 @@
+++ ship /posts/~zod
+++ root /
+++ cast ^- path /posts/~zod
+++ paths ~[/posts /posts/~zod /]
+++ identity |= p=path p
+++ called (identity /posts/~zod)

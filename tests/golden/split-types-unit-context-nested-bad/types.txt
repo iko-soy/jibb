@@ -1,0 +1,7 @@
+++ nested-bad: unit payload does not fit its expected type
+/tests/golden/split-types-unit-context-nested-bad/source.jibb:13:18: expected unit payload has type @t
+++ nested-bad ^- (unit (unit @t)) ``~zod
+                 ^
+/tests/golden/split-types-unit-context-nested-bad/source.jibb:13:37: payload has type @p
+++ nested-bad ^- (unit (unit @t)) ``~zod
+                                    ^

@@ -1,0 +1,3 @@
+origin types-recursive-gate
+target value forcing
+keep value forcing

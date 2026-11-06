@@ -1,7 +1,8 @@
 ::  Explicit proj retains lowering evidence and is reserved for API bindings.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  real-prelude  %jibb  /lib/jibb/prelude/jibb
 /*  real-internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 |%
 ++  proj-guard-errors
   ^-  (list tape)
@@ -50,7 +51,7 @@
   =/  bad=(unit (list iapi-path-typed:jibb))  (api-path-analysis:jibb p.clash todo ~ ~ *ifile:jibb)
   ?~  good  ~["a literal /proj path was rejected"]
   ?^  bad  ~["an API-derived proj path name was accepted"]
-  =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb real-prelude real-internal)
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture real-prelude real-internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~["real prelude did not prepare"]
   =/  derived=(unit ifile:jibb)
     (api-poke-interface:jibb /ui/api/demo/jibb p.poke proj-mark values.u.prepared molds.u.prepared `iface.u.prepared)

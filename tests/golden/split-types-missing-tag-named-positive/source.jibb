@@ -1,0 +1,23 @@
++$ msg
+  [%typed text=@t]
+  %add
+
+
+
+
+++ good ^- msg %add
+
+++ good-head ^- msg [%typed "ok"]
+
+
+
+
+
+
+++ take |= x=msg "ok"
+
+
+
+
+
+

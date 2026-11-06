@@ -1,0 +1,3 @@
+origin types-local-capitals
+target value local-mono
+keep value local-mono

@@ -1,0 +1,6 @@
+(module
+  (value 8:1 zero
+    (gate 8:9
+      (face 8:12 d (aura 8:14 @dr))
+      (group 8:18
+        (call 8:19 (wing 8:19 eq) (wing 8:22 d) (lit 8:24 0))))))

@@ -1,0 +1,22 @@
+16:1 glyph ++
+16:4 name commands-bad
+16:17 glyph ^-
+16:20 glyph (
+16:21 tight name list
+16:26 glyph (
+16:27 tight name cmd
+16:31 aura @t
+16:33 tight glyph )
+16:34 tight glyph )
+16:36 glyph ~[
+16:38 tight glyph [
+16:39 tight lit %go
+16:43 str "/home"
+16:50 tight glyph ]
+16:52 glyph [
+16:53 tight lit %wait
+16:59 lit ~s30
+16:64 lit ~zod
+16:68 tight glyph ]
+16:69 tight glyph ]
+16:70 NEWLINE

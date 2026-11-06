@@ -1,0 +1,7 @@
+++ captured-bad: cast mold and expression type do not unify
+/tests/golden/split-types-deferred-call-context-captured-bad/source.jibb:46:8: cast mold has type @p
+    ^- @p (local ~zod)
+       ^
+/tests/golden/split-types-deferred-call-context-captured-bad/source.jibb:46:11: expression has type @t
+    ^- @p (local ~zod)
+          ^

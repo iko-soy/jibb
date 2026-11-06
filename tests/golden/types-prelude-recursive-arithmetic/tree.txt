@@ -1,0 +1,25 @@
+(module
+  (value 1:1 minimum
+    (group 1:12
+      (call 1:13 (wing 1:13 min) (lit 1:17 5) (lit 1:19 3))))
+  (value 2:1 difference
+    (group 2:15
+      (call 2:16 (wing 2:16 sub) (lit 2:20 5) (lit 2:22 3))))
+  (value 3:1 product
+    (group 3:12
+      (call 3:13 (wing 3:13 mul) (lit 3:17 5) (lit 3:19 3))))
+  (value 4:1 hex-product
+    (group 4:16
+      (call 4:17 (wing 4:17 mul) (lit 4:21 0x5) (lit 4:25 0x3))))
+  (value 5:1 duration-difference
+    (group 5:24
+      (call 5:25 (wing 5:25 sub) (lit 5:29 ~s5) (lit 5:33 ~s3))))
+  (value 6:1 bit-minimum
+    (group 6:16
+      (call 6:17 (wing 6:17 min) (lit 6:21 %.y) (lit 6:25 %.n))))
+  (value 7:1 scale
+    (gate 7:10
+      (face 7:13 values
+        (cell 7:20 (tvar 7:21 A) (tvar 7:23 A)))
+      (group 7:26
+        (call 7:27 (wing 7:27 mul) (wing 7:31 values))))))

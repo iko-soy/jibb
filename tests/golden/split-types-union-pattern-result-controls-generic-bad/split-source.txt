@@ -1,0 +1,4 @@
+origin types-union-pattern-result-controls
+target value generic-bad
+keep mold msg
+keep value generic-bad

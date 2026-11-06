@@ -1,0 +1,14 @@
+(module
+  (value 1:1 ship (path 1:9 /posts/~zod))
+  (value 2:1 root (path 2:9 /))
+  (value 3:1 cast
+    (cast 3:9 (ref 3:12 path) (path 3:17 /posts/~zod)))
+  (value 4:1 paths
+    (list 4:10 (path 4:12 /posts) (path 4:19 /posts/~zod) (path 4:31 /)))
+  (value 5:1 identity
+    (gate 5:13
+      (face 5:16 p (ref 5:18 path))
+      (wing 5:23 p)))
+  (value 6:1 called
+    (group 6:11
+      (call 6:12 (wing 6:12 identity) (path 6:21 /posts/~zod)))))

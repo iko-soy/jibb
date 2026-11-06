@@ -1,0 +1,10 @@
+++ self-apply: local definition `self-apply` does not unify with A: $-([first=A second=B] C) versus A
+/tests/golden/split-types-recursive-sample-self-apply/source.jibb:17:4: direct local gate definition
+++ self-apply |= [first=A second=B] (self-apply self-apply second)
+   ^
+/tests/golden/split-types-recursive-sample-self-apply/source.jibb:17:49: local value alias
+++ self-apply |= [first=A second=B] (self-apply self-apply second)
+                                                ^
+/tests/golden/split-types-recursive-sample-self-apply/source.jibb:17:38: call context has type [A B]
+++ self-apply |= [first=A second=B] (self-apply self-apply second)
+                                     ^

@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (mold 38:1 msg
+    (union 39:3 (const 39:3 %fine) (const 40:3 %other)))
+  (value 44:1 bad-union
+    (gate 44:14
+      (face 44:17 p (ref 44:19 packet))
+      (cast 44:26
+        (ref 44:29 msg)
+        (body 45:3
+          (branch 45:3
+            (wing 45:6 p)
+            (arm 46:5
+              (cell 46:5 (lit 46:6 %go) (bind 46:10 u))
+              (lit 46:13 %oops))))))))

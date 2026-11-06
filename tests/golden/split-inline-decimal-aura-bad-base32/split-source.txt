@@ -1,0 +1,3 @@
+origin inline-decimal-aura-bad
+target value base32
+keep value base32

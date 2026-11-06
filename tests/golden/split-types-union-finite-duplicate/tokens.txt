@@ -1,0 +1,40 @@
+29:1 glyph +$
+29:4 name choice
+30:3 INDENT
+30:3 glyph [
+30:4 tight lit %a
+30:7 name on
+30:9 tight glyph =
+30:10 tight glyph ?
+30:11 tight glyph ]
+31:3 NEWLINE
+31:3 lit %other
+40:1 DEDENT
+40:1 NEWLINE
+40:1 glyph ++
+40:4 name duplicate
+40:14 glyph |=
+40:17 name x
+40:18 tight glyph =
+40:19 tight name choice
+41:3 INDENT
+41:3 glyph ?-
+41:6 name x
+42:5 INDENT
+42:5 glyph [
+42:6 tight lit %a
+42:9 lit %.y
+42:12 tight glyph ]
+42:14 str "yes"
+43:5 NEWLINE
+43:5 glyph [
+43:6 tight lit %a
+43:9 lit %$
+43:11 tight glyph ]
+43:13 str "duplicate"
+44:5 NEWLINE
+44:5 glyph *
+44:7 str "other"
+44:14 DEDENT
+44:14 DEDENT
+44:14 NEWLINE

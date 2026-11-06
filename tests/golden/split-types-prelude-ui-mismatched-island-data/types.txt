@@ -1,0 +1,7 @@
+++ mismatched-island-data: island data has type @p, but init expects @t
+/tests/golden/split-types-prelude-ui-mismatched-island-data/source.jibb:67:18: init expects @t
+++ init |= input=@t ^- model [count=0]
+                 ^
+/tests/golden/split-types-prelude-ui-mismatched-island-data/source.jibb:74:68: island data has type @p
+++ mismatched-island-data ^- (element !!) (island concrete-program ~zod)
+                                                                   ^

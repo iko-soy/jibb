@@ -1,0 +1,1 @@
+# Full checker with the checked source prelude.

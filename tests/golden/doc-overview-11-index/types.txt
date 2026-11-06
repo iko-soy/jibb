@@ -1,0 +1,4 @@
+module kind: page
+++ main: [load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ load: $-(~ (ask (list [id=@ud [done=? text=@t]])))
+++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))

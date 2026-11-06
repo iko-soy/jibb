@@ -1,0 +1,7 @@
+++ v: attribute `pad` is repeated
+/ui/probe.jibb:1:12: first attribute
+++ v (el ~[pad+%s1 pad+%s2] (text "x"))
+           ^
+/ui/probe.jibb:1:20: repeated attribute
+++ v (el ~[pad+%s1 pad+%s2] (text "x"))
+                   ^

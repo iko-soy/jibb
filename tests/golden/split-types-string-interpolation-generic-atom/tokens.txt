@@ -1,0 +1,18 @@
+17:1 glyph ++
+17:4 name generic-atom
+17:17 glyph |=
+17:20 name n
+17:21 tight glyph =
+17:22 tight tvar A
+18:3 INDENT
+18:3 glyph ~&
+18:6 glyph ^-
+18:9 aura @
+18:11 name n
+19:5 INDENT
+19:5 str-head ""
+19:7 tight name n
+19:8 tight str-tail ""
+19:10 DEDENT
+19:10 DEDENT
+19:10 NEWLINE

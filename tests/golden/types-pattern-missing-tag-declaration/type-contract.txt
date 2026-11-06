@@ -1,0 +1,4 @@
+message has no case `%c`
+min-sites 2
+site /ui/pattern.jibb:1:4
+site /ui/pattern.jibb:8:5

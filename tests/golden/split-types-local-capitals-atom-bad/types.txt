@@ -1,0 +1,7 @@
+++ atom-bad: inline gate result does not unify with A: [@t @p] versus A
+/tests/golden/split-types-local-capitals-atom-bad/source.jibb:73:10: actual type has type [@t @p]
+  (inner [x ~zod])
+         ^
+/tests/golden/split-types-local-capitals-atom-bad/source.jibb:73:4: call context has type A where A is an atom
+  (inner [x ~zod])
+   ^

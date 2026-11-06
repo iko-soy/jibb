@@ -1,0 +1,5 @@
+origin types-arithmetic-combined
+target value alias-bool
+keep value alias-bool
+keep value alias-inc
+keep value inc

@@ -1,0 +1,4 @@
+(module
+  (sur 1:1 flags)
+  (value 9:1 bad-yes
+    (cast 9:12 (ref 9:15 yes.flags) (lit 9:25 %.n))))

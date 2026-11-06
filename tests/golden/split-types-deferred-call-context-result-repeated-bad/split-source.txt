@@ -1,0 +1,4 @@
+origin types-deferred-call-context
+target value result-repeated-bad
+keep value local-keep
+keep value result-repeated-bad

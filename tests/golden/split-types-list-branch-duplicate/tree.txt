@@ -1,0 +1,16 @@
+(module
+  (value 61:1 duplicate
+    (gate 61:14
+      (face 61:17 xs
+        (apply 61:20 list (aura 61:26 @t)))
+      (body 62:3
+        (cast 62:3
+          (apply 62:6 list (aura 62:12 @t))
+          (body 63:5
+            (branch 63:5
+              (wing 63:8 xs)
+              (arm 64:7 (lit 64:7 ~) (list 64:9))
+              (arm 65:7 (lit 65:7 ~) (list 65:9))
+              (arm 66:7
+                (cell 66:7 (bind 66:8 item) (bind 66:13 rest))
+                (tuple 66:19 (wing 66:20 item) (lit 66:25 ~))))))))))

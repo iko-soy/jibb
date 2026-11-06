@@ -1,0 +1,7 @@
+++ forced: capital `A` cannot be fixed to @t
+/tests/golden/split-types-recursive-sample-forced/source.jibb:18:21: capital
+++ forced |= [first=A second=B]
+                    ^
+/tests/golden/split-types-recursive-sample-forced/source.jibb:19:12: forcing expression
+  ~& ^- @t first
+           ^

@@ -1,0 +1,9 @@
+/- fixture
+++ direct |= x=any.fixture x
+++ payload |= x=payload.fixture x
+++ widen ^- any.fixture "hello"
+++ nested ^- payload.fixture ["hello" 7]
+++ option |= x=option.fixture x
+++ left-atom ^- option.fixture [%left 0]
+++ left-cell ^- option.fixture [%left [0 1]]
+++ right ^- option.fixture [%right "ok"]

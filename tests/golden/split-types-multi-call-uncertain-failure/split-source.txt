@@ -1,0 +1,4 @@
+origin types-multi-call
+target value uncertain-failure
+keep value uncertain-failure
+keep value uncertain-target

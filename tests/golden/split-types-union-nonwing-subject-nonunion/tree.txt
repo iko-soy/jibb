@@ -1,0 +1,16 @@
+(module
+  (value 7:1 local-id
+    (gate 7:13 (bind 7:16 x) (wing 7:18 x)))
+  (value 51:1 nonunion
+    (gate 51:13
+      (face 51:16 x (aura 51:18 @t))
+      (cast 51:21
+        (apply 51:24 list (aura 51:30 @t))
+        (body 52:3
+          (branch 52:3
+            (group 52:6
+              (call 52:7 (wing 52:7 local-id) (wing 52:16 x)))
+            (arm 53:5
+              (cell 53:5 (lit 53:6 %item) (bind 53:12 flag) (bind 53:17 words))
+              (list 53:24 (wing 53:26 words)))
+            (arm 54:5 (lit 54:5 %none) (lit 54:11 ~))))))))

@@ -1,0 +1,3 @@
+++ callback |= x=@ud x
+++ each-alias each
+++ bad (each-alias ~[[key=callback el=(text "x")]])

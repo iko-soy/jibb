@@ -1,0 +1,15 @@
+(module
+  (value 4:1 add-f
+    (gate 4:10
+      (cell 4:13
+        (face 4:14 a (aura 4:16 @ud))
+        (face 4:20 b (aura 4:22 @ud)))
+      (group 4:27
+        (call 4:28 (wing 4:28 add) (wing 4:32 a) (wing 4:34 b)))))
+  (value 9:1 roll-labelled
+    (group 9:18
+      (call 9:19
+        (wing 9:19 roll)
+        (list 9:24 (lit 9:26 1) (lit 9:28 2))
+        (lit 9:31 0)
+        (wing 9:33 add-f)))))

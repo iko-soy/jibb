@@ -1,0 +1,7 @@
+++ bad-any: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-predicates-bad-any/source.jibb:6:13: called gate has type $-([(list @p) $-(@p ?)] ?)
+++ bad-any (lien ~[~zod] |=(x=@t %.y))
+            ^
+/tests/golden/split-types-prelude-predicates-bad-any/source.jibb:6:26: argument has type $-(@t ?)
+++ bad-any (lien ~[~zod] |=(x=@t %.y))
+                         ^

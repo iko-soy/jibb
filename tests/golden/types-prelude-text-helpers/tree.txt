@@ -1,0 +1,64 @@
+(module
+  (value 1:1 lower (wing 1:10 cass))
+  (value 2:1 upper (wing 2:10 cuss))
+  (value 3:1 split (wing 3:10 trim))
+  (value 4:1 pack (wing 4:9 crip))
+  (value 5:1 encode (wing 5:11 tufa))
+  (value 6:1 lower-text
+    (group 6:15
+      (call 6:16
+        (wing 6:16 crip)
+        (group 6:21
+          (call 6:22
+            (wing 6:22 cass)
+            (group 6:27
+              (call 6:28 (wing 6:28 trip) (str 6:33 "AbCz"))))))))
+  (value 7:1 upper-text
+    (group 7:15
+      (call 7:16
+        (wing 7:16 crip)
+        (group 7:21
+          (call 7:22
+            (wing 7:22 cuss)
+            (group 7:27
+              (call 7:28 (wing 7:28 trip) (str 7:33 "aBcZ"))))))))
+  (value 8:1 split-text
+    (group 8:15
+      (call 8:16
+        (wing 8:16 trim)
+        (lit 8:21 2)
+        (list 8:23 (str 8:25 "a") (str 8:29 "b") (str 8:33 "c")))))
+  (value 9:1 split-ships
+    (group 9:16
+      (call 9:17
+        (wing 9:17 trim)
+        (lit 9:22 1)
+        (list 9:24 (lit 9:26 ~zod) (lit 9:31 ~nec)))))
+  (value 10:1 round-trip
+    (group 10:15
+      (call 10:16
+        (wing 10:16 crip)
+        (group 10:21
+          (call 10:22
+            (wing 10:22 tufa)
+            (group 10:27
+              (call 10:28
+                (wing 10:28 tuba)
+                (group 10:33
+                  (call 10:34 (wing 10:34 trip) (str 10:39 "hé"))))))))))
+  (value 11:1 split-gates
+    (group 11:16
+      (call 11:17
+        (wing 11:17 trim)
+        (lit 11:22 1)
+        (list 11:24 (wing 11:26 same) (wing 11:31 same)))))
+  (value 12:1 split-records
+    (group 12:18
+      (call 12:19
+        (wing 12:19 trim)
+        (lit 12:24 1)
+        (list 12:26
+          (tuple 12:28
+            (face 12:29 x (lit 12:31 1))
+            (face 12:33 y (lit 12:35 2)))
+          (tuple 12:38 (lit 12:39 3) (lit 12:41 4)))))))

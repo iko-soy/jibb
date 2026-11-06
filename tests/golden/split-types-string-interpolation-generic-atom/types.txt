@@ -1,0 +1,7 @@
+++ generic-atom: a generic atom in interpolation needs an aura
+/tests/golden/split-types-string-interpolation-generic-atom/source.jibb:19:7: atom with a generic aura
+    "{n}"
+      ^
+/tests/golden/split-types-string-interpolation-generic-atom/source.jibb:17:22: capital `A` keeps its type generic
+++ generic-atom |= n=A
+                     ^

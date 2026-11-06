@@ -1,0 +1,7 @@
+++ bool-result: cast mold and expression type do not unify
+/tests/golden/split-types-arithmetic-combined-bool-result/source.jibb:15:19: cast mold has type ?
+++ bool-result ^- ? (add 1 1)
+                  ^
+/tests/golden/split-types-arithmetic-combined-bool-result/source.jibb:15:21: expression has type @ud
+++ bool-result ^- ? (add 1 1)
+                    ^

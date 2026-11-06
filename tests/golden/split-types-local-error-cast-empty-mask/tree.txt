@@ -1,0 +1,18 @@
+(module
+  (value 38:1 empty-mask
+    (gate 38:15
+      (bind 38:18 x)
+      (body 39:3
+        (value 39:3 a
+          (tuple 39:8
+            (group 39:9
+              (cast 39:10 (aura 39:13 @ux) (wing 39:17 x)))
+            (group 39:20
+              (cast 39:21 (aura 39:24 @t) (wing 39:27 x)))))
+        (value 40:3 g
+          (cast 40:8 (void 40:11) (wing 40:14 x)))
+        (value 41:3 d
+          (gate 41:8
+            (face 41:11 y (tvar 41:13 B))
+            (cast 41:15 (aura 41:18 @t) (wing 41:21 y))))
+        (wing 42:3 a)))))

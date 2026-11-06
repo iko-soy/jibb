@@ -10,7 +10,7 @@
 ++ missing ^- $-(@t typed) |=%missing
 ++ no-context |=%typed
 ++ use |= f=$-(@t typed) (f "hi")
-++ test (use |=%typed)
+++ demo (use |=%typed)
 ++ bad-call (use |=%nope)
 ++ id |=(x x)
 ++ through (id |=%typed)

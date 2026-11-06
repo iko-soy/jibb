@@ -1,0 +1,7 @@
+++ narrow: cast mold and expression type do not unify
+/tests/golden/split-types-partial-aura-family-narrow/source.jibb:5:22: cast mold has type @tD
+++ narrow |= x=@t ^- @tD x
+                     ^
+/tests/golden/split-types-partial-aura-family-narrow/source.jibb:5:26: expression has type @t
+++ narrow |= x=@t ^- @tD x
+                         ^

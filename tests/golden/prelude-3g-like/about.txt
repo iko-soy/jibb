@@ -1,4 +1,4 @@
 source: Overview, Prelude: Hoon 3g includes `like` and `wonk`; the value `like` maps an existing result.
 tests: The source includes the generic `like` mold, its mapping gate and `wonk`.
 expect: parses
-expect-types: a partial inference report, not a checked module
+expect-types: full checker reports the first error; independent split cases retain the other checks

@@ -1,0 +1,7 @@
+++ cells: types do not unify
+/tests/golden/split-types-arithmetic-combined-cells/source.jibb:18:11: expected type has type A where A is an atom other than ?
+++ cells (add [1 2] [3 4])
+          ^
+/tests/golden/split-types-arithmetic-combined-cells/source.jibb:18:15: actual type has type [@ud @ud]
+++ cells (add [1 2] [3 4])
+              ^

@@ -1,6 +1,4 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-++ only-one: tag needs context in partial inference
-++ choose: $-(? msg)
-++ id: $-(A A)
-++ through: msg
+++ only-one: nothing fixes the union of %unknown; add a `^-`
+/tests/golden/types-union-context-flow/source.jibb:6:5: nothing fixes the union of %unknown; add a `^-`
+    %unknown
+    ^

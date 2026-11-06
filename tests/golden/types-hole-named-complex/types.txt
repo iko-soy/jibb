@@ -1,3 +1,4 @@
-partial inference; module not checked
-+$ applied: not checked
-++ later: sample mold is not supported by partial inference
++$ applied: type hole must be determined by its definition
+/tests/golden/types-hole-named-complex/source.jibb:1:18: unresolved type hole
++$ applied (list _)
+                 ^

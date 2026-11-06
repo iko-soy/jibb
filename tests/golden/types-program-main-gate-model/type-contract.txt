@@ -1,0 +1,4 @@
+message island model field `callback` contains a gate
+min-sites 2
+site /ui/program-check.jibb:4:21
+site /ui/program-check.jibb:5:10

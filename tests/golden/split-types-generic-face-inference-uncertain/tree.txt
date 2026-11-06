@@ -1,0 +1,9 @@
+(module
+  (value 8:1 uncertain
+    (gate 8:14
+      (face 8:17 x (tvar 8:19 A))
+      (cast 8:21
+        (cell 8:24
+          (face 8:25 first (tvar 8:31 B))
+          (face 8:33 rest (aura 8:38 @t)))
+        (tuple 8:42 (wing 8:43 x) (str 8:45 "hi"))))))

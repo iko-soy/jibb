@@ -1,0 +1,2 @@
+module kind: library
+++ lt-a: $-([a=@ud b=@ud] ?)

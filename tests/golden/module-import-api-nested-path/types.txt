@@ -1,2 +1,2 @@
-partial inference; module not checked
-API module needs unsupported inference: /ui/api/foo/bar/jibb: API path evidence requires /ui/api/<agent>.jibb
+module kind: library
+++ x: @ud

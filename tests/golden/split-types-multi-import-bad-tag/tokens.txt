@@ -1,0 +1,17 @@
+1:1 glyph /=
+1:5 name lib
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot lib
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name bad-tag
+5:12 glyph (
+5:13 tight wing combine.lib
+5:25 lit %wrong
+5:32 glyph ~[
+5:34 tight str "hi"
+5:38 tight glyph ]
+5:39 tight glyph )
+5:40 NEWLINE

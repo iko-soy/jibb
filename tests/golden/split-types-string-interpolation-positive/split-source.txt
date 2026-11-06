@@ -1,0 +1,10 @@
+origin types-string-interpolation
+target value bare
+keep value bare
+keep value fixed-first
+keep value nested
+keep value number
+keep value number-cast
+keep value render
+keep value repeat
+keep value tape

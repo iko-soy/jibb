@@ -1,26 +1,7 @@
-partial inference; module not checked
-++ no-sur-export: sample mold is not supported by partial inference
-++ bad-param: call's sample and argument types do not unify
-/tests/type-todo-api/negative.jibb:3:15: called gate
-++ bad-param (todo-by-id.api ~zod |=(x=todo-item.api "ok"))
-              ^
-/tests/type-todo-api/negative.jibb:3:30: argument has type @p
-++ bad-param (todo-by-id.api ~zod |=(x=todo-item.api "ok"))
-                             ^
-++ missing-fold: call constraint is not supported by partial inference
-++ bad-action: call's sample and argument types do not unify
-/tests/type-todo-api/negative.jibb:5:16: called gate
-++ bad-action (poke.api [%typo text="hello"] same)
-               ^
-/tests/type-todo-api/negative.jibb:5:25: argument
-++ bad-action (poke.api [%typo text="hello"] same)
-                        ^
-+$ msg: cases proven disjoint; mold not checked
-++ missing: call's sample and argument types do not unify
-/tests/type-todo-api/negative.jibb:9:26: called gate
-++ missing ^- (ask msg) (todos.api |=%absent)
-                         ^
-/tests/type-todo-api/negative.jibb:9:36: argument
-++ missing ^- (ask msg) (todos.api |=%absent)
-                                   ^
-++ pending: tag needs context in partial inference
+++ no-sur-export: module `api` has no mold `todo`
+/tests/type-todo-api/negative.jibb:1:4: earlier binding
+/= api /ui/api/todo
+   ^
+/tests/type-todo-api/negative.jibb:2:23: unknown module mold
+++ no-sur-export |= x=todo.api x
+                      ^

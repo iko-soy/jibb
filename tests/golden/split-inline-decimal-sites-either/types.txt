@@ -1,0 +1,7 @@
+++ either: `2` is a @ud, not a @dr; write ~s2
+/tests/golden/split-inline-decimal-sites-either/source.jibb:17:7: decimal
+  %.n 2
+      ^
+/tests/golden/split-inline-decimal-sites-either/source.jibb:16:7: expected type has type @dr
+  %.y ~s1
+      ^

@@ -1,0 +1,7 @@
+++ mismatch: unit payload does not fit its expected type
+/tests/golden/split-types-unit-construction-mismatch/source.jibb:25:16: expected unit payload has type @p
+++ mismatch ^- (unit @p) `"hi"
+               ^
+/tests/golden/split-types-unit-construction-mismatch/source.jibb:25:27: payload has type @t
+++ mismatch ^- (unit @p) `"hi"
+                          ^

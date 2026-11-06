@@ -1,0 +1,9 @@
+(module
+  (value 8:1 wrong
+    (group 8:10
+      (call 8:11
+        (wing 8:11 bind)
+        (unit 8:16 (lit 8:17 ~zod))
+        (gate-wide 8:22
+          (face 8:25 x (aura 8:27 @t))
+          (wing 8:30 x))))))

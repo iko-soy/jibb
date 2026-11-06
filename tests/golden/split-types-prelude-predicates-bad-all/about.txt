@@ -1,0 +1,4 @@
+source: split from types-prelude-predicates, preserving the original source lines
+tests: the independent bad-all diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

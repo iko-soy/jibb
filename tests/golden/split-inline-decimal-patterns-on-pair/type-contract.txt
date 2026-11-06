@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-patterns-on-pair/source.jibb:23:4
+min-sites 2

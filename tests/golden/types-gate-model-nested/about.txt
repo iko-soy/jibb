@@ -1,0 +1,1 @@
+A gate nested in a singleton record under a list reports the precise model field.

@@ -1,0 +1,12 @@
+(module
+  (mold 4:1 choice
+    (generic 4:11 A
+      (union 5:3
+        (cell 5:3
+          (const 5:4 %some)
+          (face 5:10 value (tvar 5:16 A)))
+        (const 6:3 %none))))
+  (value 16:1 generic-payload
+    (cast 16:20
+      (apply 16:23 choice (aura 16:31 @t))
+      (tuple 16:35 (lit 16:36 %some) (lit 16:42 ~zod)))))

@@ -1,0 +1,39 @@
+(module
+  (value 1:1 range-up
+    (gate 1:13
+      (face 1:16 args
+        (cell 1:21 (tvar 1:22 A) (tvar 1:24 A)))
+      (cast 1:27
+        (apply 1:30 list (tvar 1:36 A))
+        (body 2:3
+          (branch 2:3
+            (wing 2:6 args)
+            (arm 3:3
+              (cell 3:3 (bind 3:4 start) (bind 3:10 finish))
+              (body 4:5
+                (branch 4:5
+                  (group 4:8
+                    (call 4:9 (wing 4:9 gth) (wing 4:13 start) (wing 4:19 finish)))
+                  (arm 5:5 (lit 5:5 %.y) (crash 5:9))
+                  (arm 6:5
+                    (lit 6:5 %.n)
+                    (body 7:7
+                      (branch 7:7
+                        (group 7:10
+                          (call 7:11 (wing 7:11 eq) (wing 7:14 start) (wing 7:20 finish)))
+                        (arm 8:7
+                          (lit 8:7 %.y)
+                          (tuple 8:11 (wing 8:12 start) (lit 8:18 ~)))
+                        (arm 9:7
+                          (lit 9:7 %.n)
+                          (tuple 9:11
+                            (wing 9:12 start)
+                            (group 9:18
+                              (call 9:19
+                                (wing 9:19 range-up)
+                                (group 9:28
+                                  (call 9:29 (wing 9:29 add) (wing 9:33 start) (lit 9:39 1)))
+                                (wing 9:42 finish))))))))))))))))
+  (value 10:1 bad
+    (group 10:8
+      (call 10:9 (wing 10:9 range-up) (lit 10:18 %.y) (lit 10:22 %.n)))))

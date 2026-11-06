@@ -2,8 +2,8 @@ interface retains independent polymorphism
 text use inferred
 ship use inferred
 stored built: $-(B B)
-partial inference; module not checked
-+$ message: cases proven disjoint; mold not checked
+module kind: library
++$ message: message
 ++ send: $-($-(@t A) $-(@t A))
 ++ make: $-(A $-(B B))
 ++ first: $-(@t message)
@@ -12,31 +12,68 @@ partial inference; module not checked
 ++ typed: $-(@t message)
 ++ reveal: @t
 ++ reveal-ship: @p
-conflict rejected without interface
-missing rejected without interface
-hole rejected without interface
-duplicate rejected without interface
-face rejected without interface
-store declined without interface
+conflict
+++ clash: types do not unify
+/ui/obligation.jibb:12:13: expected type has type alternate
+++ clash ^- $-(@t alternate) first
+            ^
+/ui/obligation.jibb:12:30: actual type has type message
+++ clash ^- $-(@t alternate) first
+                             ^
+missing
+++ first: message has no case `%absent`
+/ui/obligation.jibb:1:4: expected union has type message
++$ message
+   ^
+/ui/obligation.jibb:2:3: expected union has type message
+  [%got value=@t]
+  ^
+/ui/obligation.jibb:8:11: expected union has type message
+++ first (send |=%absent)
+          ^
+/ui/obligation.jibb:8:16: tag literal has type %absent
+++ first (send |=%absent)
+               ^
+hole
+++ hole: type hole must be determined by its definition
+/ui/obligation.jibb:12:12: type hole
+++ hole ^- _ %idle
+           ^
+duplicate
+definition `send` shadows an earlier definition
+/ui/obligation.jibb:7:1: earlier definition
+++ send |= f=$-(@t A) f
+^
+/ui/obligation.jibb:12:1: conflicting definition
+++ send |= arg=@p arg
+^
+face
+++ nested: constructor `%got` sample does not fit its case payload
+/ui/obligation.jibb:2:17: case payload has type [who=@t n=@ud]
+  [%got payload=[who=@t n=@ud]]
+                ^
+/ui/obligation.jibb:5:17: constructor sample has type [wrong=@t n=@ud]
+++ nested (send |=%got)
+                ^
+store-path library accepted with checked schemes
 conflict report:
-partial inference; module not checked
-+$ message: cases proven disjoint; mold not checked
-+$ alternate: cases proven disjoint; mold not checked
-++ send: $-($-(@t A) $-(@t A))
-++ first: call constraint is not supported by partial inference
-++ second: name is not available to partial inference
-++ typed: name is not available to partial inference
-++ clash: name is not available to partial inference
+++ clash: types do not unify
+/ui/obligation.jibb:12:13: expected type has type alternate
+++ clash ^- $-(@t alternate) first
+            ^
+/ui/obligation.jibb:12:30: actual type has type message
+++ clash ^- $-(@t alternate) first
+                             ^
 store report:
-partial inference; module not checked
-+$ poke: not checked
-+$ message: cases proven disjoint; mold not checked
+module kind: library
++$ poke: @t
++$ message: message
 ++ send: $-($-(@t A) $-(@t A))
 ++ make: $-(A $-(B B))
-++ first: call constraint is not supported by partial inference
-++ second: name is not available to partial inference
-++ built: name is not available to partial inference
-++ typed: name is not available to partial inference
-++ reveal: name is not available to partial inference
-++ reveal-ship: name is not available to partial inference
-prelude and import fallback declined
+++ first: $-(@t message)
+++ second: $-(@t message)
+++ built: $-(B B)
+++ typed: $-(@t message)
+++ reveal: @t
+++ reveal-ship: @p
+prelude and import contexts accepted with checked schemes

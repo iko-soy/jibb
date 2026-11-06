@@ -1,0 +1,1 @@
+Full-check field errors retain the record binding and the failing field. Controls cover global, local, nested and forward bindings, a missing intermediate field, a genuinely unresolved record and a valid field.

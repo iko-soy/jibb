@@ -1,0 +1,7 @@
+origin types-partial-atom-constraint
+target value cord
+keep value cord
+keep value first
+keep value flag
+keep value keep
+keep value ship

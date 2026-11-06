@@ -1,0 +1,4 @@
+source: 2026-11-03 milestone 2 review, error E15-text-hi
+tests: a list containing the text gate reports the missing element call through the full checker
+expect: parses
+expect-types: exact full-checker error

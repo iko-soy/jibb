@@ -1,0 +1,27 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %go
+3:3 NEWLINE
+3:3 lit %stay
+16:1 DEDENT
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name accept
+16:11 glyph |=
+16:14 name x
+16:15 tight glyph =
+16:16 tight glyph (
+16:17 tight name unit
+16:22 name msg
+16:25 tight glyph )
+16:27 name x
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name bad-call
+18:13 glyph (
+18:14 tight name accept
+18:21 glyph `
+18:22 tight lit %bad
+18:26 tight glyph )
+18:27 NEWLINE

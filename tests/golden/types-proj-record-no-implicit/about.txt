@@ -1,0 +1,4 @@
+source: Grammar, Records and tuples: no projection is inserted automatically.
+tests: A wider nested record in an ordinary call is rejected rather than implicitly projected.
+expect: parses
+expect-types: full checker result

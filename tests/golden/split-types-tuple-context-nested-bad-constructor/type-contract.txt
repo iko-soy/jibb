@@ -1,0 +1,4 @@
+message type [%typed text=@t] has no case `%other`
+typed-site /tests/golden/split-types-tuple-context-nested-bad-constructor/source.jibb:24:21
+typed-site /tests/golden/split-types-tuple-context-nested-bad-constructor/source.jibb:24:33
+min-sites 2

@@ -1,2 +1,4 @@
-partial inference; module not checked
-++ identity: sample mold is not supported by partial inference
+++ identity: Hoon mold `missing` is not declared
+/tests/golden/types-import-missing-mold/source.jibb:2:18: invalid imported mold
+++ identity |= x=missing.fixture x
+                 ^

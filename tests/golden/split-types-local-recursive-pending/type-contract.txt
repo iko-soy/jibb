@@ -1,0 +1,3 @@
+message nothing fixes the union of %orphan; add a `^-`
+site /tests/golden/split-types-local-recursive-pending/source.jibb:33:8
+min-sites 1

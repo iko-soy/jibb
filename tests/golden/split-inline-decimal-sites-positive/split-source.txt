@@ -1,0 +1,6 @@
+origin inline-decimal-sites
+target value every-ok
+keep mold msg
+keep value every-ok
+keep value note-ok
+keep value pause

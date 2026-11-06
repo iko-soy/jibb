@@ -1,0 +1,16 @@
+(module
+  (value 4:1 local-id
+    (gate 4:13 (bind 4:16 x) (wing 4:18 x)))
+  (value 28:1 rec-bad
+    (cast 28:12
+      (cell 28:15
+        (face 28:16 field
+          (apply 28:22 list (aura 28:28 @t)))
+        (face 28:32 flag (flag 28:37)))
+      (group 28:40
+        (call 28:41
+          (wing 28:41 local-id)
+          (tuple 28:50
+            (face 28:51 field
+              (list 28:57 (lit 28:59 ~zod)))
+            (face 28:65 flag (lit 28:70 %.y))))))))

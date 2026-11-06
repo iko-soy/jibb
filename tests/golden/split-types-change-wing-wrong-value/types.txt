@@ -1,0 +1,7 @@
+++ wrong-value: change field and replacement do not unify
+/tests/golden/split-types-change-wing-wrong-value/source.jibb:17:29: expected replacement has type ?
+++ wrong-value |= m=model m(open.cart="yes")
+                            ^
+/tests/golden/split-types-change-wing-wrong-value/source.jibb:17:39: replacement has type @t
+++ wrong-value |= m=model m(open.cart="yes")
+                                      ^

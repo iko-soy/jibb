@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/types-local-error-cast/source.jibb:1:11
+typed-site /tests/golden/types-local-error-cast/source.jibb:1:14
+min-sites 2

@@ -1,0 +1,9 @@
+module kind: library
+++ project-increment: $-([a=A [b=@t c=@ud]] [a=A b=@t]) where A is an atom other than ?
+++ good: [a=@ux b=@t]
+++ path-and-number: [path=qath number=@ud]
+++ with-path: $-([a=A [b=qath c=@ud]] [a=A b=qath]) where A is an atom other than ?
+++ select-one: $-([a=A b=@t] [a=A]) where A is an atom other than ?
+++ select-one-ux: [a=@ux]
+++ scalar: $-(@t @t)
+++ select-one-nested: $-([a=A b=@t] [outer=[a=A] marker=@ud]) where A is an atom other than ?

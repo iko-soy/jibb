@@ -1,0 +1,1 @@
+expect-types: a known branch result supplies literal context to other arms in either source order.

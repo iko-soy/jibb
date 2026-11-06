@@ -1,0 +1,8 @@
+module kind: library
++$ packet: [%go url=@t]
+++ extract: $-([%go url=@t] @t)
+++ fallback: $-([%go url=@t] [%go url=@t])
+++ contextual: $-([%go url=@t] @t)
++$ msg: msg
+++ contextual-union: $-([%go url=@t] msg)
+++ contextual-list: $-([%go url=@t] (list @t))

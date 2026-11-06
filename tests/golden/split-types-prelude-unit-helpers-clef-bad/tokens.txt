@@ -1,0 +1,20 @@
+15:1 glyph ++
+15:4 name clef-bad
+15:13 glyph (
+15:14 tight name clef
+15:19 glyph `
+15:20 tight str "hi"
+15:25 glyph `
+15:26 tight lit ~zod
+15:31 glyph |=(
+15:34 tight name p
+15:35 tight glyph =
+15:36 tight glyph [
+15:37 tight aura @p
+15:40 aura @t
+15:42 tight glyph ]
+15:44 glyph `
+15:45 tight str "ok"
+15:49 tight glyph )
+15:50 tight glyph )
+15:51 NEWLINE

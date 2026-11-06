@@ -1,0 +1,4 @@
+source: ordinary inferred store main
+tests: aliases and checked update values retain their type evidence
+expect: parses
+expect-types: full checker

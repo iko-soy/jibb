@@ -1,0 +1,12 @@
+(module
+  (jibb 1:1 other /ui/api/other)
+  (value 2:1 bad
+    (group 2:8
+      (call 2:9
+        (wing 2:9 complex.other)
+        (lit 2:23 ~zod)
+        (lit 2:28 %slug)
+        (wing 2:34 same)
+        (gate-wide 2:39
+          (cell 2:42 (bind 2:43 diff) (bind 2:48 prev))
+          (wing 2:54 prev))))))

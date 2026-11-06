@@ -1,0 +1,2 @@
+site /tests/golden/split-types-record-change-no-field/source.jibb:11:26
+min-sites 2

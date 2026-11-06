@@ -1,0 +1,6 @@
+origin types-union-nonwing-subject
+target value wrong
+keep mold input
+keep mold result
+keep value local-id
+keep value wrong

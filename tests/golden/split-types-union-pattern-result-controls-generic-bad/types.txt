@@ -1,0 +1,7 @@
+++ generic-bad: capital `A` cannot be fixed to @t
+/tests/golden/split-types-union-pattern-result-controls-generic-bad/source.jibb:34:28: capital
+++ generic-bad |= [a=msg x=A] ^- (list A)
+                           ^
+/tests/golden/split-types-union-pattern-result-controls-generic-bad/source.jibb:37:15: forcing expression
+    [%text v] ~["hi"]
+              ^

@@ -1,0 +1,3 @@
+origin types-recursive-gate
+target value direct-value
+keep value direct-value

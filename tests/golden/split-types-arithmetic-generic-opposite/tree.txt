@@ -1,0 +1,15 @@
+(module
+  (value 1:1 sum
+    (gate 1:8
+      (cell 1:11
+        (face 1:12 a (tvar 1:14 A))
+        (face 1:16 b (tvar 1:18 A)))
+      (group 1:21
+        (call 1:22 (wing 1:22 add) (wing 1:26 a) (wing 1:28 b)))))
+  (value 20:1 opposite
+    (gate 20:13
+      (cell 20:16
+        (face 20:17 b (flag 20:19))
+        (face 20:21 x (aura 20:23 @)))
+      (group 20:26
+        (call 20:27 (wing 20:27 sum) (wing 20:31 b) (wing 20:33 x))))))

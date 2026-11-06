@@ -1,0 +1,7 @@
+++ relay: cast mold and expression type do not unify
+/tests/golden/split-types-partial-atom-constraint-relay/source.jibb:14:13: cast mold has type ?
+++ relay ^- ? (keep 7)
+            ^
+/tests/golden/split-types-partial-atom-constraint-relay/source.jibb:14:15: expression has type @ud
+++ relay ^- ? (keep 7)
+              ^

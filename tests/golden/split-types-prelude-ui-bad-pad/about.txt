@@ -1,0 +1,4 @@
+source: split from types-prelude-ui, preserving the original source lines
+tests: the independent bad-pad diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

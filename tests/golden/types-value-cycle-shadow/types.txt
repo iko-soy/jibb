@@ -1,7 +1,7 @@
-partial inference; module not checked
-++ first: sample shadows a name
-++ second: name is not available to partial inference
-++ alpha: name is not available to partial inference
-++ beta: name is not available to partial inference
-++ gamma: name is not available to partial inference
-++ delta: name is not available to partial inference
+++ first: sample `second` shadows a name already in scope
+/tests/golden/types-value-cycle-shadow/source.jibb:2:4: earlier binding
+++ second first
+   ^
+/tests/golden/types-value-cycle-shadow/source.jibb:1:13: conflicting sample binding
+++ first |= second second
+            ^

@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-aura-bad-date/source.jibb:2:16
+min-sites 2

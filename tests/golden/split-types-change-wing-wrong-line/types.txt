@@ -1,0 +1,7 @@
+++ wrong-line: change field and replacement do not unify
+/tests/golden/split-types-change-wing-wrong-line/source.jibb:21:5: expected replacement has type @ud
+    level.deep.cart=~zod
+    ^
+/tests/golden/split-types-change-wing-wrong-line/source.jibb:21:21: replacement has type @p
+    level.deep.cart=~zod
+                    ^

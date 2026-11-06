@@ -1,0 +1,7 @@
+++ unknown-inner: record has no field `opened`
+/tests/golden/split-types-change-wing-unknown-inner/source.jibb:16:31: unknown field
+++ unknown-inner |= m=model m(opened.cart=%.y)
+                              ^
+/tests/golden/split-types-change-wing-unknown-inner/source.jibb:16:29: record being changed has type [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]]
+++ unknown-inner |= m=model m(opened.cart=%.y)
+                            ^

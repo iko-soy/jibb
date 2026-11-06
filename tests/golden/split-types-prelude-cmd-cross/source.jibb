@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+++ wrap-value |= x=A ^- (cmd A) [%wait ~s30 x]
+
+
+
+
+
+
+
+
+++ use-text |= x=(cmd @t) x
+++ cross (use-text (wrap-value ~zod))

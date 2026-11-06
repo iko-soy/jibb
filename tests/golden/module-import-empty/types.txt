@@ -1,2 +1,4 @@
-partial inference; module not checked
 module source missing: /ui/lib/jibb
+/tests/golden/module-import-empty/source.jibb:1:1: imports /ui/lib.jibb here
+/=  lib /ui/lib
+^

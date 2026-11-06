@@ -25,10 +25,10 @@
   =/  deep-expected=itype:jibb  [%cell [%face %a text-type] [%face %b [%cell text-type text-type]]]
   =?  failures  !(itype-positional-face-asym:jibb args deep-actual deep-expected ~)
     ["a same-named nested value face was ignored" failures]
-  =/  sub=isub:jibb  ~[[0 expected]]
+  =/  sub=isub:jibb  (isub-from-bindings:jibb ~[[0 expected]])
   =?  failures  !(itype-positional-face-asym:jibb args actual [%var 0] sub)
     ["a variable-bound expected spine was treated as structurally known" failures]
-  =/  sub2=isub:jibb  ~[[0 actual]]
+  =/  sub2=isub:jibb  (isub-from-bindings:jibb ~[[0 actual]])
   =?  failures  !(itype-positional-face-asym:jibb args [%var 0] expected sub2)
     ["a variable-bound actual spine was treated as structurally known" failures]
   (flop failures)

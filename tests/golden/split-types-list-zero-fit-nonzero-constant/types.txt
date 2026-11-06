@@ -1,0 +1,7 @@
+++ nonzero-constant: inline gate result does not unify with (list @t): %1 versus (list @t)
+/tests/golden/split-types-list-zero-fit-nonzero-constant/source.jibb:6:59: actual type has type %1
+++ nonzero-constant |= [f=$-([(list @t) @t] @t) z=%1] (f [z "ok"])
+                                                          ^
+/tests/golden/split-types-list-zero-fit-nonzero-constant/source.jibb:6:56: call context has type [(list @t) @t]
+++ nonzero-constant |= [f=$-([(list @t) @t] @t) z=%1] (f [z "ok"])
+                                                       ^

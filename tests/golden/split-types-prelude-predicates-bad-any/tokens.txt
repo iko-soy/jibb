@@ -1,0 +1,15 @@
+6:1 glyph ++
+6:4 name bad-any
+6:12 glyph (
+6:13 tight name lien
+6:18 glyph ~[
+6:20 tight lit ~zod
+6:24 tight glyph ]
+6:26 glyph |=(
+6:29 tight name x
+6:30 tight glyph =
+6:31 tight aura @t
+6:34 lit %.y
+6:37 tight glyph )
+6:38 tight glyph )
+6:39 NEWLINE

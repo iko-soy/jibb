@@ -1,0 +1,3 @@
+origin types-prelude-comparison
+target value bad-aura
+keep value bad-aura

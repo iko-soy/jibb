@@ -1,0 +1,4 @@
+source: recursive result occurrence regression
+tests: mutually recursive generic gates retain result faces without facing their samples
+expect: parses
+expect-types: exact full-checker error

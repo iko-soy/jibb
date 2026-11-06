@@ -1,12 +1,12 @@
 ::  Exercise supplied prelude scope and fail-closed module imports.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  expected  %txt  /tests/type-module-scope/expected/txt
 /*  real-prelude  %jibb  /lib/jibb/prelude/jibb
 /*  real-internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  real-source  %jibb  /tests/golden/types-prelude-interface/source/jibb
 /*  real-left  %jibb  /tests/golden/types-prelude-interface/modules/ui/left/jibb
 /*  real-right  %jibb  /tests/golden/types-prelude-interface/modules/ui/right/jibb
-/*  real-expected  %txt  /tests/golden/types-prelude-interface/types/txt
 |%
 ++  report
   ^-  @t
@@ -46,7 +46,7 @@
 ::
 ++  primitive-guards
   ^-  @t
-  =/  prepared  (prepare-prelude-with-internal:jibb real-prelude real-internal)
+  =/  prepared  (prepare-groups:jibb-prelude-fixture real-prelude real-internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  'private primitive preparation failed'
   =/  direct=@t  (crip "/= hidden /lib/jibb/primitives\0a++ attempt 1\0a")
   =/  transitive=@t  (crip "/= relay /ui/relay\0a++ attempt value.relay\0a")
@@ -54,15 +54,18 @@
   =/  fake=@t  (crip "++ raw-add |= x x\0a")
   =/  fixtures=(list [at=path source=@t])
     ~[[/lib/jibb/primitives/jibb fake] [/ui/relay/jibb relay]]
-  =/  expected=@t  (crip "partial inference; module not checked\0athe prelude primitive interface is private")
+  =/  message=@t  'the prelude primitive interface is private'
+  =/  expected-a=@t  (of-wain:format ~[message '/ui/direct.jibb:1:1: imports /lib/jibb/primitives.jibb here' '/= hidden /lib/jibb/primitives' '^'])
+  =/  expected-b=@t  (of-wain:format ~[message '/ui/relay.jibb:1:1: imports /lib/jibb/primitives.jibb here' '/= hidden /lib/jibb/primitives' '^'])
+  =/  expected-c=@t  (of-wain:format ~[message '/lib/jibb/internal.jibb:1:1: imports /lib/jibb/primitives.jibb here' '/= hidden /lib/jibb/primitives' '^'])
   =/  a  (golden-types-with-prepared-prelude:jibb /ui/direct/jibb direct ~ ~ fixtures prepared)
   =/  b  (golden-types-with-prepared-prelude:jibb /ui/transitive/jibb transitive ~ ~ fixtures prepared)
   =/  c  (golden-types-with-prepared-prelude:jibb /lib/jibb/internal/jibb direct ~ ~ fixtures prepared)
-  ?.  &(=(a expected) =(b expected) =(c expected))
-    'private primitive import guard failed'
+  ?.  &(=(a expected-a) =(b expected-b) =(c expected-c))
+    (of-wain:format ~['PRIMITIVE-ACTUAL' a b c 'PRIMITIVE-END'])
   =/  bad-internal=@t  (crip "/= core /lib/jibb/not-primitives\0a+$ poke @t\0a")
   =/  bad-public=@t  (crip "/= core /lib/jibb/primitives\0a++ identity |= x x\0a")
-  ?^  (prepare-prelude-with-internal:jibb real-prelude bad-internal)
+  ?^  (prepare-groups:jibb-prelude-fixture real-prelude bad-internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
     'invalid internal primitive source accepted'
   ?^  (prepare-prelude-with-internal:jibb bad-public real-internal)
     'public primitive import accepted'
@@ -72,13 +75,24 @@
   ^-  @t
   =/  fixtures=(list [at=path source=@t])
     ~[[~[%ui %left %jibb] real-left] [~[%ui %right %jibb] real-right]]
-  =/  prepared  (prepare-prelude-with-internal:jibb real-prelude real-internal)
+  =/  prepared  (prepare-groups:jibb-prelude-fixture real-prelude real-internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  'real prelude preparation failed'
-  =/  wrapper  (golden-types-with-prelude-and-internal:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures real-prelude real-internal)
-  =/  actual  (golden-types-with-prepared-prelude:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures prepared)
+  =/  lines=(list @t)  (to-wain:format real-source)
+  =/  shadows=(list @t)  (skim lines |=(line=@t =(line '++ shadow |= turn turn')))
+  ?.  =((lent shadows) 1)  'real prelude fixture shadow line changed'
+  =/  valid-lines=(list @t)  (turn lines |=(line=@t ?:(=(line '++ shadow |= turn turn') '' line)))
+  =/  valid=@t  (cat 3 (of-wain:format valid-lines) '\0a')
+  =/  wrapper  (golden-bundle:jibb-prelude-fixture /tests/golden/types-prelude-interface/source/jibb valid ~ ~ fixtures real-prelude real-internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]] ~)
+  =/  actual  (golden-types-with-prepared-prelude:jibb /tests/golden/types-prelude-interface/source/jibb valid ~ ~ fixtures prepared)
   ?.  =(wrapper actual)  'real prelude prepared/wrapper mismatch'
-  ?.  =((to-wain:format (cat 3 actual '\0a')) real-expected)  'real prelude output differs from golden'
-  'real prelude prepared/wrapper and golden match'
+  =/  shadow  (golden-types-with-prepared-prelude:jibb /tests/golden/types-prelude-interface/source/jibb real-source ~ ~ fixtures prepared)
+  =/  valid-expected=@t
+    (of-wain:format ~['module kind: library' '++ create: (unit @t)' '++ source: (unit @t)' '++ direct: @t' '++ fallback: @t' '++ tuple-call: (list A)' '++ list-id: $-((list @t) (list @t))' '++ get-gate: $-((unit A) (unit A))'])
+  =/  shadow-expected=@t
+    (of-wain:format ~['++ shadow: sample `turn` shadows a name already in scope' '/lib/jibb/prelude.jibb:51:4: earlier binding' '++ turn |= args=[(list A) $-(A B)]' '   ^' '/tests/golden/types-prelude-interface/source.jibb:8:14: conflicting sample binding' '++ shadow |= turn turn' '             ^'])
+  ?.  =(actual valid-expected)  'real prelude valid interface differs from its expected types'
+  ?.  =(shadow shadow-expected)  'real prelude shadow diagnostic differs from its expected sites'
+  (of-wain:format ~['real prelude valid' actual 'real prelude shadow' shadow])
 ::
 ++  list-guard
   ^-  @t

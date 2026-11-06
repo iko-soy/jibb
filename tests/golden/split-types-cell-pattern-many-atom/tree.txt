@@ -1,0 +1,10 @@
+(module
+  (value 22:1 atom
+    (gate 22:9
+      (face 22:12 args (aura 22:17 @t))
+      (body 23:3
+        (branch 23:3
+          (wing 23:6 args)
+          (arm 24:5
+            (cell 24:5 (bind 24:6 a) (bind 24:8 b) (bind 24:10 c))
+            (wing 24:13 a)))))))

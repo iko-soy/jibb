@@ -1,0 +1,4 @@
+source: targeted union payload field mismatch
+tests: the expected field and the first definitely wrong expression
+expect: parses
+expect-types: full checker diagnostic

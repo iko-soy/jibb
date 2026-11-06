@@ -1,0 +1,22 @@
+7:1 glyph ++
+7:4 name maybe-list
+7:15 glyph |=
+7:18 name x
+7:19 tight glyph =
+7:20 tight glyph (
+7:21 tight name list
+7:26 aura @t
+7:28 tight glyph )
+8:3 INDENT
+8:3 glyph ?-
+8:6 name x
+9:5 INDENT
+9:5 glyph [
+9:6 tight name a
+9:8 name b
+9:10 name c
+9:11 tight glyph ]
+9:13 name a
+9:14 DEDENT
+9:14 DEDENT
+9:14 NEWLINE

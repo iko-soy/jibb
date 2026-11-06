@@ -1,0 +1,5 @@
+(module
+  (value 9:1 pending
+    (gate 9:12
+      (face 9:15 x (aura 9:17 @t))
+      (str 9:20 (lit 9:22 %orphan)))))

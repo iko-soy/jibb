@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ keep-local: $-(A A)
 ++ record: [x=@t y=@p]
 ++ binders: $-([a=A b=B] [A B])

@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-recursive-gate-occurs/source.jibb:12:17
+typed-site /tests/golden/split-types-recursive-gate-occurs/source.jibb:12:19
+min-sites 2

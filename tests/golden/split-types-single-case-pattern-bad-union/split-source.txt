@@ -1,0 +1,5 @@
+origin types-single-case-pattern
+target value bad-union
+keep mold msg
+keep mold packet
+keep value bad-union

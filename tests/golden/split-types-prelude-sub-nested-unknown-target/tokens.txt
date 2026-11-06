@@ -1,0 +1,16 @@
+20:1 glyph ++
+20:4 name unknown-target
+20:19 glyph |=
+20:22 name x
+20:23 tight glyph =
+20:24 tight tvar A
+20:26 glyph ^-
+20:29 tvar A
+20:31 glyph [
+20:32 tight lit %watch
+20:39 glyph (
+20:40 tight name pure
+20:45 lit %idle
+20:50 tight glyph )
+20:51 tight glyph ]
+20:52 NEWLINE

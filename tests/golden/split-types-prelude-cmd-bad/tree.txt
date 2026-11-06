@@ -1,0 +1,7 @@
+(module
+  (value 5:1 bad
+    (cast 5:8
+      (apply 5:11 cmd (aura 5:16 @t))
+      (tuple 5:20
+        (lit 5:21 %go)
+        (face 5:25 url (lit 5:29 ~zod))))))

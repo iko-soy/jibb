@@ -191,6 +191,8 @@ Elements are ordinary gates with their own signatures. Containers take attribute
 | `form` | `msg kids` | A control; Enter in a field sends the nearest form's `msg` |
 | `island` | `program data` | Embeds an island |
 
+Keys `K` in `each` and `table` must contain no gates, including gates nested inside records or containers. The checker infers this constraint and retains it through generic helpers.
+
 Controls work only in islands; the host rejects a page that renders one outside an island.
 
 | Attribute | Values |

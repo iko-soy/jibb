@@ -1,0 +1,13 @@
+++ nested-units-bad: msg has no case `%oops`
+/tests/golden/split-types-unit-context-nested-units-bad/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-unit-context-nested-units-bad/source.jibb:2:3: expected union has type msg
+  %go
+  ^
+/tests/golden/split-types-unit-context-nested-units-bad/source.jibb:43:24: expected union has type msg
+++ nested-units-bad ^- (list (unit msg)) ~[`%go `%oops]
+                       ^
+/tests/golden/split-types-unit-context-nested-units-bad/source.jibb:43:50: tag literal has type %oops
+++ nested-units-bad ^- (list (unit msg)) ~[`%go `%oops]
+                                                 ^

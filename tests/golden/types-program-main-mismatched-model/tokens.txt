@@ -1,0 +1,101 @@
+1:1 glyph +$
+1:4 name message
+2:3 INDENT
+2:3 lit %start
+3:3 NEWLINE
+3:3 lit %stop
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name model
+4:10 glyph [
+4:11 tight name count
+4:16 tight glyph =
+4:17 tight aura @ud
+4:20 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name main
+5:9 glyph (
+5:10 tight name program
+5:18 name init
+5:23 name update
+5:30 name view
+5:35 name subs
+5:39 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name init
+6:9 glyph |=
+6:12 name input
+6:17 tight glyph =
+6:18 tight aura @t
+6:21 glyph ^-
+6:24 name model
+6:30 glyph [
+6:31 tight name count
+6:36 tight glyph =
+6:37 tight lit 0
+6:38 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name update
+7:11 glyph |=
+7:14 glyph [
+7:15 tight name msg
+7:18 tight glyph =
+7:19 tight name message
+7:27 name state
+7:32 tight glyph =
+7:33 tight aura @p
+7:35 tight glyph ]
+8:3 INDENT
+8:3 glyph ^-
+8:6 glyph [
+8:7 tight aura @p
+8:10 glyph (
+8:11 tight name list
+8:16 glyph (
+8:17 tight name cmd
+8:21 name message
+8:28 tight glyph )
+8:29 tight glyph )
+8:30 tight glyph ]
+8:32 glyph [
+8:33 tight name state
+8:39 lit ~
+8:40 tight glyph ]
+9:1 DEDENT
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name view
+9:9 glyph |=
+9:12 name state
+9:17 tight glyph =
+9:18 tight name model
+9:24 glyph ^-
+9:27 glyph (
+9:28 tight name element
+9:36 name message
+9:43 tight glyph )
+9:45 glyph (
+9:46 tight name text
+9:51 str "view"
+9:57 tight glyph )
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name subs
+10:9 glyph |=
+10:12 name state
+10:17 tight glyph =
+10:18 tight name model
+10:24 glyph ^-
+10:27 glyph (
+10:28 tight name list
+10:33 glyph (
+10:34 tight name sub
+10:38 name message
+10:45 tight glyph )
+10:46 tight glyph )
+10:48 lit ~
+10:49 NEWLINE

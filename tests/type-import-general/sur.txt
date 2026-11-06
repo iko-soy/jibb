@@ -1,0 +1,6 @@
+|%
++$  choice  $%([%& a=@ud] [%| b=@t] [%2 c=@ud])
++$  atom-or  $@(@ud [left=@ud right=@t])
++$  keyed  (map @ud @t)
++$  tree  $@(~ [value=@ud next=tree])
+--

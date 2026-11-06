@@ -1,0 +1,6 @@
+|%
++$  any  *
++$  payload  [value=* count=@ud]
++$  option  $%([%left *] [%right @t])
++$  overlap  $?(* @ud)
+--

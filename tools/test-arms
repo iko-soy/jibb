@@ -129,8 +129,8 @@ class Suite:
                 raise Unusable('%s:%d: a /* line is FACE %%MARK /PATH, not %s'
                                % (self.rel, n, m.group(2)))
             face, mark, clay = s.groups()
-            if mark not in ('txt', 'jibb'):
-                raise Unusable('%s:%d: only %%txt and %%jibb files can be '
+            if mark not in ('txt', 'jibb', 'hoon'):
+                raise Unusable('%s:%d: only %%txt, %%jibb and %%hoon files can be '
                                'bound here, not %%%s' % (self.rel, n, mark))
             self.files.append((face, mark, desk_file(desk, clay, self.rel, n)))
         # The header lines become comments, so the core keeps its line
@@ -209,7 +209,7 @@ def suite_expression(i, suite, binds):
                                else 'lib-' + lib))
     for face, mark, _ in suite.files:
         cord = 's%d-%s' % (i, face)
-        pins.append('%s=`@t`%s' % (face, cord) if mark == 'jibb'
+        pins.append('%s=`@t`%s' % (face, cord) if mark in ('jibb', 'hoon')
                     else '%s=(to-wain:format %s)' % (face, cord))
     subject = (':*  ' + '\n    '.join(pins + ['arms-show=arms-show', '..zuse'])
                + '\n==\n')
@@ -248,10 +248,36 @@ def program_for(suites, lib, debug, mode='arms'):
              '  $(w t.w, out [(crip i.w) out])',
              '(test-arms)', 'harness')
     libs = sorted({l for s in suites for l in s.libs if l != LIBRARY})
-    for name, path in ((l, lib_source(DESK, l)) for l in libs):
-        # Compiled on zuse, as Ford compiles a /+ library.
-        prog.add('=/  lib-%s\n=>  ..zuse' % name, '(test-arms)', 'harness')
-        prog.add(ue.read_text(path), ue.display_path(path), 'expr')
+    built, visiting = set(), set()
+    def compile_lib(name):
+        if name in built or name == LIBRARY:
+            return
+        if name in visiting:
+            raise Unusable('cycle in library dependencies: %s' % name)
+        visiting.add(name)
+        path = lib_source(DESK, name)
+        content = ue.read_text(path)
+        header = content.split('\n|%\n', 1)[0]
+        if not re.search(r'(?m)^/(?:\+|\*)\s', header):
+            prog.add('=/  lib-%s\n=>  ..zuse' % name, '(test-arms)', 'harness')
+            prog.add(content, ue.display_path(path), 'expr')
+        else:
+            library = Suite(path, DESK)
+            for dependency in library.libs:
+                compile_lib(dependency)
+            pins = ['%s=%s' % (dep, 'jibb-lib' if dep == LIBRARY else 'lib-' + dep) for dep in library.libs]
+            for face, mark, filename in library.files:
+                with open(filename, 'rb') as f:
+                    data = f.read()
+                pieces = [p for p in ue.cord_pieces(data) if p]
+                value = ("''" if not pieces else '(rap 3 `(list @t)`~[%s])' % ' '.join(ue.cord_literal(p) for p in pieces))
+                pins.append('%s=%s' % (face, value if mark in ('jibb', 'hoon') else '(to-wain:format %s)' % value))
+            prog.add('=/  lib-%s\n=>  :*  %s\n    ..zuse\n==\n' % (name, '\n    '.join(pins)), '(test-arms)', 'harness')
+            prog.add(library.core, ue.display_path(path), 'expr')
+        visiting.remove(name)
+        built.add(name)
+    for name in libs:
+        compile_lib(name)
     for i, suite in enumerate(suites):
         for face, mark, path in suite.files:
             with open(path, 'rb') as f:

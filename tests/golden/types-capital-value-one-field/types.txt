@@ -1,0 +1,6 @@
+module kind: library
+++ gate: $-(@t @t)
+++ known: *
+++ atom: *
+++ second: $-([x=A y=A] A)
+++ output: *

@@ -1,0 +1,10 @@
++$ list |$ [A]
+  ~
+  [i=A t=(list A)]
+++ weld |= args=[(list A) (list A)]
+  ?- args
+    [xs ys]
+      ^- (list A)
+      ?- xs
+        ~ ys
+        [item rest] [item (weld rest ys)]

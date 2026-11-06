@@ -1,0 +1,9 @@
+origin types-cell-pattern-many
+target value four
+keep value four
+keep value infer
+keep value nested
+keep value record
+keep value rest
+keep value three
+keep value wildcard

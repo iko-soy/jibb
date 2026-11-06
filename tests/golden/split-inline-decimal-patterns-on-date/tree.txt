@@ -1,0 +1,9 @@
+(module
+  (value 13:1 on-date
+    (gate 13:12
+      (face 13:15 d (aura 13:17 @da))
+      (branch 13:21
+        (wing 13:24 d)
+        (arm 14:3 (lit 14:3 0) (lit 14:5 %epoch))
+        (arm 15:3 (lit 15:3 1) (lit 15:5 %next))
+        (arm 16:3 (any 16:3) (lit 16:5 %other))))))

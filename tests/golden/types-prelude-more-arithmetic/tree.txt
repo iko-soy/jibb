@@ -1,0 +1,79 @@
+(module
+  (value 1:1 div-decimal
+    (cast 1:16
+      (aura 1:19 @ud)
+      (group 1:23
+        (call 1:24 (wing 1:24 div) (lit 1:28 7) (lit 1:30 3)))))
+  (value 3:1 div-hexadecimal
+    (cast 3:20
+      (aura 3:23 @ux)
+      (group 3:27
+        (call 3:28 (wing 3:28 div) (lit 3:32 0x7) (lit 3:36 0x3)))))
+  (value 5:1 div-duration
+    (cast 5:17
+      (aura 5:20 @dr)
+      (group 5:24
+        (call 5:25 (wing 5:25 div) (lit 5:29 ~s7) (lit 5:33 ~s3)))))
+  (value 7:1 mod-decimal
+    (cast 7:16
+      (aura 7:19 @ud)
+      (group 7:23
+        (call 7:24 (wing 7:24 mod) (lit 7:28 7) (lit 7:30 3)))))
+  (value 9:1 mod-hexadecimal
+    (cast 9:20
+      (aura 9:23 @ux)
+      (group 9:27
+        (call 9:28 (wing 9:28 mod) (lit 9:32 0x7) (lit 9:36 0x3)))))
+  (value 11:1 mod-duration
+    (cast 11:17
+      (aura 11:20 @dr)
+      (group 11:24
+        (call 11:25 (wing 11:25 mod) (lit 11:29 ~s7) (lit 11:33 ~s3)))))
+  (value 13:1 pow-decimal
+    (cast 13:16
+      (aura 13:19 @ud)
+      (group 13:23
+        (call 13:24 (wing 13:24 pow) (lit 13:28 7) (lit 13:30 3)))))
+  (value 15:1 pow-hexadecimal
+    (cast 15:20
+      (aura 15:23 @ux)
+      (group 15:27
+        (call 15:28 (wing 15:28 pow) (lit 15:32 0x7) (lit 15:36 0x3)))))
+  (value 17:1 pow-duration
+    (cast 17:17
+      (aura 17:20 @dr)
+      (group 17:24
+        (call 17:25 (wing 17:25 pow) (lit 17:29 ~s7) (lit 17:33 ~s3)))))
+  (value 19:1 generic-pow
+    (gate 19:16
+      (face 19:19 args
+        (cell 19:24 (tvar 19:25 A) (tvar 19:27 A)))
+      (body 20:3
+        (branch 20:3
+          (wing 20:6 args)
+          (arm 21:3
+            (cell 21:3 (bind 21:4 a) (bind 21:6 b))
+            (group 21:9
+              (call 21:10 (wing 21:10 pow) (wing 21:14 a) (wing 21:16 b))))))))
+  (value 23:1 generic-div
+    (gate 23:16
+      (face 23:19 args
+        (cell 23:24 (tvar 23:25 A) (tvar 23:27 A)))
+      (body 24:3
+        (branch 24:3
+          (wing 24:6 args)
+          (arm 25:3
+            (cell 25:3 (bind 25:4 a) (bind 25:6 b))
+            (group 25:9
+              (call 25:10 (wing 25:10 div) (wing 25:14 a) (wing 25:16 b))))))))
+  (value 27:1 generic-mod
+    (gate 27:16
+      (face 27:19 args
+        (cell 27:24 (tvar 27:25 A) (tvar 27:27 A)))
+      (body 28:3
+        (branch 28:3
+          (wing 28:6 args)
+          (arm 29:3
+            (cell 29:3 (bind 29:4 a) (bind 29:6 b))
+            (group 29:9
+              (call 29:10 (wing 29:10 mod) (wing 29:14 a) (wing 29:16 b)))))))))

@@ -1,0 +1,27 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %hit) (const 3:3 %miss)))
+  (value 4:1 row-of
+    (gate 4:11
+      (face 4:14 n (aura 4:16 @ud))
+      (tuple 4:20
+        (wing 4:21 n)
+        (group 4:23
+          (call 4:24 (wing 4:24 button) (str 4:31 "x") (lit 4:35 %hit))))))
+  (value 5:1 rows
+    (group 5:9
+      (call 5:10
+        (wing 5:10 turn)
+        (list 5:15 (lit 5:17 1) (lit 5:19 2))
+        (wing 5:22 row-of))))
+  (value 6:1 shown
+    (group 6:10
+      (call 6:11 (wing 6:11 each) (wing 6:16 rows))))
+  (value 7:1 fix-message
+    (gate 7:16
+      (face 7:19 x
+        (apply 7:21 element (ref 7:30 msg)))
+      (wing 7:35 x)))
+  (value 8:1 resolved
+    (group 8:13
+      (call 8:14 (wing 8:14 fix-message) (wing 8:26 shown)))))

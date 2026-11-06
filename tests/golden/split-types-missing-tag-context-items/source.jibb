@@ -1,0 +1,17 @@
++$ msg
+  %go
+  [%typed text=@t]
+++ items ^- (list msg) ~[%go %missing]
+
+
+
+
+
+
+
+
+
+
+
+
+

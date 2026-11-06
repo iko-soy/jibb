@@ -1,0 +1,9 @@
+(module
+  (value 34:1 captured
+    (gate 34:13
+      (bind 34:16 x)
+      (body 35:3
+        (value 35:3 a
+          (cast 35:8 (aura 35:11 @ud) (str 35:15 "s")))
+        (value 36:3 b (wing 36:8 x))
+        (wing 37:3 a)))))

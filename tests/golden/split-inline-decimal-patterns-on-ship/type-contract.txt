@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-patterns-on-ship/source.jibb:8:3
+min-sites 2

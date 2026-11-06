@@ -1,0 +1,7 @@
+++ generic-payload: payload field has type @p, but requires @t
+/tests/golden/split-types-missing-tag-named-generic-payload/source.jibb:5:16: expected field has type @t
+  [%some value=A]
+               ^
+/tests/golden/split-types-missing-tag-named-generic-payload/source.jibb:16:42: actual field has type @p
+++ generic-payload ^- (choice @t) [%some ~zod]
+                                         ^

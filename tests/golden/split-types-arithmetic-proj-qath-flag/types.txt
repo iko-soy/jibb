@@ -1,0 +1,7 @@
+++ flag: types do not unify
+/tests/golden/split-types-arithmetic-proj-qath-flag/source.jibb:4:10: expected type has type A where A is an atom other than ?
+++ flag (project-increment [a=%.y b="x" c=0])
+         ^
+/tests/golden/split-types-arithmetic-proj-qath-flag/source.jibb:4:31: actual type has type ?
+++ flag (project-increment [a=%.y b="x" c=0])
+                              ^

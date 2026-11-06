@@ -1,0 +1,7 @@
+++ invalid-item: list item does not fit its expected type
+/tests/golden/split-types-multi-call-invalid-item/source.jibb:20:18: expected item has type @t
+++ invalid-item (accepts %add ~[~zod])
+                 ^
+/tests/golden/split-types-multi-call-invalid-item/source.jibb:20:33: list item has type @p
+++ invalid-item (accepts %add ~[~zod])
+                                ^

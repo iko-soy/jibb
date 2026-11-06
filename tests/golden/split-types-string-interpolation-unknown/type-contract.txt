@@ -1,0 +1,4 @@
+message interpolation needs a printable atom or tape with a known aura
+typed-site /tests/golden/split-types-string-interpolation-unknown/source.jibb:8:19
+site /tests/golden/split-types-string-interpolation-unknown/source.jibb:8:17
+min-sites 2

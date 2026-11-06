@@ -1,0 +1,20 @@
+module kind: library
+++ bind-text: (unit @t)
+++ bind-ship: (unit @p)
+++ biff-text: (unit @t)
+++ both-mixed: (unit [@t @p])
+++ clap-text: (unit @t)
+++ clef-mixed: (unit @t)
+++ flit-text: (unit @t)
+++ clap-ship: (unit @p)
+++ clef-ship: (unit @p)
+++ hunt-first: (unit @t)
+++ hunt-second: (unit @t)
+++ hunt-left: (unit @t)
+++ hunt-right: (unit @t)
+++ eq-cell: ?
+++ eq-open: $-(A ?) where A contains no gates
+++ mate-same: (unit @t)
+++ mate-left: (unit @t)
+++ mate-right: (unit @t)
+++ mate-crash: (unit @t)

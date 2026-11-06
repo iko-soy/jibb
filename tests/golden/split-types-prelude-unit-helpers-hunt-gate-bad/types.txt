@@ -1,0 +1,7 @@
+++ hunt-gate-bad: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-unit-helpers-hunt-gate-bad/source.jibb:21:19: called gate has type $-([$-([@t @t] ?) [(unit @t) (unit @t)]] (unit @t))
+++ hunt-gate-bad (hunt |=(p=[@t @p] %.y) `"a" `"b")
+                  ^
+/tests/golden/split-types-prelude-unit-helpers-hunt-gate-bad/source.jibb:21:24: argument has type $-([@t @p] ?)
+++ hunt-gate-bad (hunt |=(p=[@t @p] %.y) `"a" `"b")
+                       ^

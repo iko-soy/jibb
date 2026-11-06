@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 other /ui/api/other)
+  (value 2:1 bad
+    (group 2:8
+      (call 2:9 (wing 2:9 separate.other) (lit 2:24 ~zod) (wing 2:29 same)))))

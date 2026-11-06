@@ -1,7 +1,8 @@
 ::  Source-backed recursive identities; this is not the runtime UI element model.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  real-prelude     %jibb  /lib/jibb/prelude/jibb
 /*  real-internal    %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  tree             %txt   /tests/type-generic-recursion/tree/txt
 /*  changed          %txt   /tests/type-generic-recursion/tree-changed/txt
 /*  alias            %txt   /tests/type-generic-recursion/alias/txt
@@ -37,18 +38,18 @@
 ++  generic-output
   |=  [pre=@t internal=@t tree=@t changed=@t alias=@t client=@t invalid=(list [label=@t src=@t]) shadow=@t chain=@t]
   ^-  @t
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb pre internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture pre internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  'BAD prelude preparation'
   =/  module=jfile-result:jibb
     (infer-jibb-file:jibb /ui/tree/jibb tree ~ ~ ~ ~[/ui/tree/jibb] values.u.prep molds.u.prep ~ `iface.u.prep)
   ?:  ?=(%| -.module)  (cat 3 'BAD recursive module: ' p.module)
   =/  scheme=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree iface.p.module)
   ?~  scheme  'BAD missing recursive mold'
-  ?.  ?=(%grec -.typ.u.scheme)  'BAD missing recursive identity'
+  ?.  ?=(%mrec -.typ.u.scheme)  'BAD missing recursive identity'
   =/  typ=itype:jibb  typ.u.scheme
-  ?>  ?=(%grec -.typ)
+  ?>  ?=(%mrec -.typ)
   =/  t=itype:jibb  typ(args ~[[%atom %t]])
-  ?>  ?=(%grec -.t)
+  ?>  ?=(%mrec -.t)
   =/  p=itype:jibb  typ(args ~[[%atom %p]])
   =/  variable=itype:jibb  typ(args ~[[%var 91]])
   =/  other=itype:jibb  t(at /ui/other/jibb)
@@ -68,10 +69,10 @@
         ['occurs check' ?=(~ (itype-unify:jibb [%var 91] variable ~))]
         ['cell construction stays opaque' =(%unknown -:(itype-fit:jibb [%cell [%atom %tas] [%atom %t]] t ~ 0))]
         ['noun construction stays opaque' =(%unknown -:(itype-fit:jibb [%noun ~] t ~ 0))]
-        ['unindexed recursion declined' ?=(~ (simple-source-generic-recursive:jibb %chain u.chain-shape ~[[%atom %t]] no-index))]
+        ['recursive mold needs no special index' ?=(^ (rg-mold-template:jibb %chain no-index))]
         ['alteration rejects missing line' ?=(~ (altered-list-source 'absent'))]
         ['alteration rejects repeated line' ?=(~ (altered-list-source (text ~['  [i=A t=(list A)]' '  [i=A t=(list A)]'])))]
-        ['gate freedom unknown' =(%unknown verdict:(gate-free-type:jibb t 64 ~))]
+        ['gate freedom rejected' =(%no verdict:(gate-free-type:jibb t 64 ~))]
         ['gate defaulting conservative' &((itype-has-gate:jibb t) =(numeric (default-decimals:jibb numeric)))]
     ==
   =/  invalid-lines=(list @t)
@@ -86,7 +87,7 @@
   =/  altered-source=(unit @t)  (altered-list-source pre)
   ?~  altered-source  'BAD canonical list source was missing or repeated'
   =/  altered=@t  u.altered-source
-  =/  altered-prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb altered internal)
+  =/  altered-prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture altered internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   =/  altered-result=jfile-result:jibb
     ?~  altered-prep  [%| 'altered prelude unavailable']
     (infer-jibb-file:jibb /ui/tree/jibb tree ~ ~ ~ ~[/ui/tree/jibb] values.u.altered-prep molds.u.altered-prep ~ `iface.u.altered-prep)
@@ -120,13 +121,18 @@
     =/  b=(unit ischeme:jibb)  (find-jibb-mold:jibb %node-tree u.new)
     ?~  a  |
     ?~  b  |
-    ?.  &(?=(%grec -.typ.u.a) ?=(%grec -.typ.u.b))  |
-    !=(proof.typ.u.a proof.typ.u.b)
+    ?.  &(?=(%mrec -.typ.u.a) ?=(%mrec -.typ.u.b))  |
+    !=(graph.typ.u.a graph.typ.u.b)
   =/  reuse-ok=?  ?:(?=(%| -.reuse) | =(resolved.p.first resolved.p.reuse))
   =/  shadow-parsed=(each module:jibb error:jibb)  (parse:jibb /ui/tree/jibb shadow)
   =/  altered-parsed=(each module:jibb error:jibb)  (parse:jibb /lib/jibb/prelude/jibb altered)
+  =/  foreign-source=@t
+    (text ~['/= first /ui/tree' '/= second /ui/tree-two' '++ different-origin |= x=(node-tree.first @t) ^- (node-tree.second @t) x'])
+  =/  foreign=jfile-result:jibb
+    (infer-jibb-file:jibb /tests/tree/client/jibb foreign-source ~ ~ modules ~[/tests/tree/client/jibb] values.u.prep molds.u.prep ~ `iface.u.prep)
   =/  more=(list [label=@t ok=?])
-    :~  ['unreserved local list shadow declined' &(?=(%& -.shadow-parsed) ?=(%| -.shadow-result))]
+    :~  ['different origin declined' ?=(%| -.foreign)]
+        ['unreserved local list shadow declined' &(?=(%& -.shadow-parsed) ?=(%| -.shadow-result))]
         ['altered prelude list declined' &(?=(%& -.altered-parsed) ?=(%| -.altered-result))]
         ['cached source reuse' reuse-ok]
         ['changed source invalidates cache' ?=(%| -.stale)]
@@ -144,10 +150,8 @@
     :~  ['unused mold hole declined' (text bad-mold)]
         ['invalid constructor declined' (text bad-constructor)]
         ['invalid matching declined' (text bad-match)]
-        ['nonuniform recursion declined' (text bad-parameter)]
         ['identical local shadow declined' (text local-shadow)]
         ['different local shadow declined' (text local-distinct)]
-        ['local recursion declined' (text local-only)]
     ==
   (generic-output real-prelude real-internal (text tree) (text changed) (text alias) (text client) invalid (text list-shadow) (text chain))
 ++  test-generic-recursion

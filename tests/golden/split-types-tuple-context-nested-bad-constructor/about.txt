@@ -1,0 +1,4 @@
+source: split from types-tuple-context-nested, preserving the original source lines
+tests: the independent bad-constructor diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

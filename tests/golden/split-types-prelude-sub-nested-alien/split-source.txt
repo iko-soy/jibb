@@ -1,0 +1,5 @@
+origin types-prelude-sub-nested
+target value alien
+keep mold msg
+keep mold other
+keep value alien

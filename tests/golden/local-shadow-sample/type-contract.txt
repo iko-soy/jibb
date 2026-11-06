@@ -1,0 +1,4 @@
+message local definition `x` shadows a name already in scope
+site /tests/golden/local-shadow-sample/source.jibb:1:9
+site /tests/golden/local-shadow-sample/source.jibb:2:6
+min-sites 2

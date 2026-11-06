@@ -1,0 +1,4 @@
+source: Grammar, Core language: map keys contain no gates.
+tests: A gate-bearing map key is rejected at the actual key type.
+expect: parses
+expect-types: rejected with both source sites

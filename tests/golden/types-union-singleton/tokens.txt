@@ -98,7 +98,7 @@
 12:33 tight glyph )
 13:1 NEWLINE
 13:1 glyph ++
-13:4 name test
+13:4 name demo
 13:9 glyph (
 13:10 tight name use
 13:14 glyph |=

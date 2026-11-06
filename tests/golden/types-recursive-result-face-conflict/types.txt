@@ -1,0 +1,7 @@
+++ run: branch results have conflicting value faces
+/ui/result-face.jibb:8:9: first branch result has type [right=A]
+    %.y [right=value]
+        ^
+/ui/result-face.jibb:9:9: conflicting branch result has type [left=A]
+    %.n (first value %.y)
+        ^

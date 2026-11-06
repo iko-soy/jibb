@@ -1,0 +1,68 @@
+(module
+  (value 1:1 root-rem
+    (gate 1:13
+      (face 1:16 value (tvar 1:22 A))
+      (cast 1:24
+        (cell 1:27
+          (face 1:28 p (tvar 1:30 A))
+          (face 1:32 q (tvar 1:34 A)))
+        (body 2:3
+          (value 2:3 root
+            (gate 2:11
+              (cell 2:14 (bind 2:15 low) (bind 2:19 high))
+              (body 3:5
+                (branch 3:5
+                  (group 3:8
+                    (call 3:9
+                      (wing 3:9 lth)
+                      (group 3:13
+                        (call 3:14 (wing 3:14 add) (wing 3:18 low) (lit 3:22 1)))
+                      (wing 3:25 high)))
+                  (arm 4:5 (lit 4:5 %.n) (wing 4:9 low))
+                  (arm 5:5
+                    (lit 5:5 %.y)
+                    (body 6:7
+                      (value 6:7 middle
+                        (group 6:17
+                          (call 6:18
+                            (wing 6:18 div)
+                            (group 6:22
+                              (call 6:23 (wing 6:23 add) (wing 6:27 low) (wing 6:31 high)))
+                            (lit 6:37 2))))
+                      (branch 7:7
+                        (group 7:10
+                          (call 7:11
+                            (wing 7:11 lte)
+                            (group 7:15
+                              (call 7:16 (wing 7:16 mul) (wing 7:20 middle) (wing 7:27 middle)))
+                            (wing 7:35 value)))
+                        (arm 8:7
+                          (lit 8:7 %.y)
+                          (group 8:11
+                            (call 8:12 (wing 8:12 root) (wing 8:17 middle) (wing 8:24 high))))
+                        (arm 9:7
+                          (lit 9:7 %.n)
+                          (group 9:11
+                            (call 9:12 (wing 9:12 root) (wing 9:17 low) (wing 9:21 middle)))))))))))
+          (value 10:3 result
+            (group 10:13
+              (call 10:14
+                (wing 10:14 root)
+                (lit 10:19 0)
+                (group 10:21
+                  (call 10:22 (wing 10:22 add) (wing 10:26 value) (lit 10:32 1))))))
+          (tuple 11:3
+            (face 11:4 p (wing 11:6 result))
+            (face 11:13 q
+              (group 11:15
+                (call 11:16
+                  (wing 11:16 sub)
+                  (wing 11:20 value)
+                  (group 11:26
+                    (call 11:27 (wing 11:27 mul) (wing 11:31 result) (wing 11:38 result)))))))))))
+  (value 13:1 decimal-root
+    (group 13:17
+      (call 13:18 (wing 13:18 root-rem) (lit 13:27 17))))
+  (value 14:1 hex-root
+    (group 14:13
+      (call 14:14 (wing 14:14 root-rem) (lit 14:23 0x11)))))

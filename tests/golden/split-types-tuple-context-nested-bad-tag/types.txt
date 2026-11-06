@@ -1,0 +1,13 @@
+++ bad-tag: msg has no case `%oops`
+/tests/golden/split-types-tuple-context-nested-bad-tag/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-tuple-context-nested-bad-tag/source.jibb:2:3: expected union has type msg
+  %go
+  ^
+/tests/golden/split-types-tuple-context-nested-bad-tag/source.jibb:6:13: expected union has type msg
+++ bad-tag (take [payload=%oops xs=~])
+            ^
+/tests/golden/split-types-tuple-context-nested-bad-tag/source.jibb:6:27: tag literal has type %oops
+++ bad-tag (take [payload=%oops xs=~])
+                          ^

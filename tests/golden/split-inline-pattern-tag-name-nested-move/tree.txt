@@ -1,0 +1,26 @@
+(module
+  (mold 5:1 dir
+    (union 6:3 (const 6:3 %left) (const 7:3 %right)))
+  (mold 8:1 step
+    (union 9:3
+      (cell 9:3
+        (const 9:4 %move)
+        (face 9:10 d (ref 9:12 dir))
+        (face 9:16 n (aura 9:18 @ud)))
+      (cell 10:3
+        (face 10:4 text (aura 10:9 @t))
+        (const 10:12 %draft))
+      (const 11:3 %stop)))
+  (value 18:1 move
+    (gate 18:9
+      (face 18:12 s (ref 18:14 step))
+      (body 19:3
+        (branch 19:3
+          (wing 19:6 s)
+          (arm 20:5
+            (cell 20:5 (lit 20:6 %move) (bind 20:12 left) (bind 20:17 n))
+            (str 20:20 "x"))
+          (arm 21:5
+            (cell 21:5 (bind 21:6 t) (lit 21:8 %draft))
+            (wing 21:20 t))
+          (arm 22:5 (lit 22:5 %stop) (str 22:20 "s")))))))

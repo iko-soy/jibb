@@ -1,0 +1,120 @@
+1:1 glyph +$
+1:4 name packet
+1:11 glyph [
+1:12 tight lit %go
+1:16 name url
+1:19 tight glyph =
+1:20 tight aura @t
+1:22 tight glyph ]
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name extract
+2:12 glyph |=
+2:15 name p
+2:16 tight glyph =
+2:17 tight name packet
+3:3 INDENT
+3:3 glyph ?-
+3:6 name p
+4:5 INDENT
+4:5 glyph [
+4:6 tight lit %go
+4:10 name u
+4:11 tight glyph ]
+4:13 name u
+5:1 DEDENT
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name fallback
+5:13 glyph |=
+5:16 name p
+5:17 tight glyph =
+5:18 tight name packet
+6:3 INDENT
+6:3 glyph ?-
+6:6 name p
+7:5 INDENT
+7:5 name value
+7:11 name value
+34:1 DEDENT
+34:1 DEDENT
+34:1 NEWLINE
+34:1 glyph ++
+34:4 name contextual
+34:15 glyph ^-
+34:18 glyph $-(
+34:21 tight name packet
+34:28 aura @t
+34:30 tight glyph )
+35:3 INDENT
+35:3 glyph |=
+35:6 name p
+35:7 tight glyph =
+35:8 tight name packet
+36:5 INDENT
+36:5 glyph ?-
+36:8 name p
+37:7 INDENT
+37:7 glyph [
+37:8 tight lit %go
+37:12 name u
+37:13 tight glyph ]
+37:15 name u
+38:1 DEDENT
+38:1 DEDENT
+38:1 DEDENT
+38:1 NEWLINE
+38:1 glyph +$
+38:4 name msg
+39:3 INDENT
+39:3 lit %fine
+40:3 NEWLINE
+40:3 lit %other
+41:1 DEDENT
+41:1 NEWLINE
+41:1 glyph ++
+41:4 name contextual-union
+41:21 glyph |=
+41:24 name p
+41:25 tight glyph =
+41:26 tight name packet
+41:33 glyph ^-
+41:36 name msg
+42:3 INDENT
+42:3 glyph ?-
+42:6 name p
+43:5 INDENT
+43:5 glyph [
+43:6 tight lit %go
+43:10 name u
+43:11 tight glyph ]
+43:13 lit %fine
+47:1 DEDENT
+47:1 DEDENT
+47:1 NEWLINE
+47:1 glyph ++
+47:4 name contextual-list
+47:20 glyph |=
+47:23 name p
+47:24 tight glyph =
+47:25 tight name packet
+47:32 glyph ^-
+47:35 glyph (
+47:36 tight name list
+47:41 aura @t
+47:43 tight glyph )
+48:3 INDENT
+48:3 glyph ?-
+48:6 name p
+49:5 INDENT
+49:5 glyph [
+49:6 tight lit %go
+49:10 name u
+49:11 tight glyph ]
+49:13 glyph ~[
+49:15 tight name u
+49:16 tight glyph ]
+49:17 DEDENT
+49:17 DEDENT
+49:17 NEWLINE

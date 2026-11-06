@@ -1,0 +1,4 @@
+/ui/choice.jibb
+(module
+  (mold 1:1 choice
+    (union 2:3 (const 2:3 %a) (const 3:3 %b))))

@@ -1,0 +1,25 @@
+1:1 glyph ++
+1:4 name sum
+1:8 glyph |=
+1:11 glyph [
+1:12 tight name a
+1:13 tight glyph =
+1:14 tight tvar A
+1:16 name b
+1:17 tight glyph =
+1:18 tight tvar A
+1:19 tight glyph ]
+1:21 glyph (
+1:22 tight name add
+1:26 name a
+1:28 name b
+1:29 tight glyph )
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name bad-sum
+10:12 glyph (
+10:13 tight name sum
+10:17 lit %.y
+10:21 lit %.n
+10:24 tight glyph )
+10:25 NEWLINE

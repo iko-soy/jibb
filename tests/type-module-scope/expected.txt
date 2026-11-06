@@ -1,67 +1,122 @@
-partial inference; module not checked
+module kind: library
 ++ identity: $-(@t @t)
 ++ atom: @p
-partial inference; module not checked
-prelude source missing; module import inference unsupported
-partial inference; module not checked
-prelude source does not parse; module import inference unsupported
-partial inference; module not checked
-prelude interface is not supported
-partial inference; module not checked
-prelude interface is not supported
-partial inference; module not checked
-module has conflicting names
-partial inference; module not checked
+/lib/jibb/prelude.jibb:1:1: prelude source is empty
+
+^
+/lib/jibb/prelude.jibb:1:3: expected a name, found the end of the file
++$
+  ^
+definition `foo` shadows an earlier definition
+/lib/jibb/prelude.jibb:1:1: earlier definition
+++ foo |=(x x)
+^
+/lib/jibb/prelude.jibb:2:1: conflicting definition
+++ foo |=(x x)
+^
+definition `foo` shadows an earlier definition
+/lib/jibb/prelude.jibb:1:1: earlier definition
++$ foo @t
+^
+/lib/jibb/prelude.jibb:2:1: conflicting definition
++$ foo @p
+^
+import `value` shadows a prelude name
+/ui/main.jibb:1:1: conflicting import
+/= value /ui/dep
+^
+/lib/jibb/prelude.jibb:1:1: prelude declaration
+++ value |= x x
+^
 duplicate module sources: /ui/dup/jibb
-partial inference; module not checked
+/ui/main.jibb:1:1: imports /ui/dup.jibb here
+/= dep /ui/dup
+^
 duplicate module sources: /ui/dup/jibb
-real prelude prepared/wrapper and golden match
-partial inference; module not checked
-++ imported: $-((list @t) (list @t))
-++ imported-branch: list literal needs the standard prelude in partial inference
-++ imported-cons: list literal needs the standard prelude in partial inference
-++ imported-empty: list literal needs the standard prelude in partial inference
-++ imported-pattern: list pattern needs the standard prelude in partial inference
-++ imported-literal: list literal needs the standard prelude in partial inference
-++ literal: cast mold is not supported by partial inference
-++ bridge: cast mold is not supported by partial inference
-partial inference; module not checked
-++ imported: $-((list @t) (list @t))
-++ imported-branch: list literal needs the standard prelude in partial inference
-++ imported-cons: list literal needs the standard prelude in partial inference
-++ imported-empty: list literal needs the standard prelude in partial inference
-++ imported-pattern: list pattern needs the standard prelude in partial inference
-++ imported-literal: list literal needs the standard prelude in partial inference
-++ literal: cast mold is not supported by partial inference
-++ bridge: cast mold is not supported by partial inference
-partial inference; module not checked
-prelude source does not parse; module import inference unsupported
-partial inference; module not checked
-++ attempt: name is not available to partial inference
-partial inference; module not checked
-++ attempt: name is not available to partial inference
-partial inference; module not checked
-++ attempt: name is not available to partial inference
-partial inference; module not checked
-prelude source does not parse; module import inference unsupported
-partial inference; module not checked
-++ attempt: name is not available to partial inference
-++ direct: sample mold is not supported by partial inference
-partial inference; module not checked
-++ x: unit construction needs the standard prelude in partial inference
-partial inference; module not checked
-++ x: unit construction needs the standard prelude in partial inference
-partial inference; module not checked
-prelude source does not parse; module import inference unsupported
-partial inference; module not checked
-+$ unit: not checked
-++ x: unit construction needs the standard prelude in partial inference
-partial inference; module not checked
-++ x: list literal needs the standard prelude in partial inference
-++ empty: list literal needs the standard prelude in partial inference
-partial inference; module not checked
-++ x: list literal needs the standard prelude in partial inference
-++ empty: list literal needs the standard prelude in partial inference
-partial inference; module not checked
-prelude source does not parse; module import inference unsupported
+/ui/main.jibb:2:1: imports /ui/dup.jibb here
+/= second /ui/dup
+^
+real prelude valid
+module kind: library
+++ create: (unit @t)
+++ source: (unit @t)
+++ direct: @t
+++ fallback: @t
+++ tuple-call: (list A)
+++ list-id: $-((list @t) (list @t))
+++ get-gate: $-((unit A) (unit A))
+real prelude shadow
+++ shadow: sample `turn` shadows a name already in scope
+/lib/jibb/prelude.jibb:51:4: earlier binding
+++ turn |= args=[(list A) $-(A B)]
+   ^
+/tests/golden/types-prelude-interface/source.jibb:8:14: conflicting sample binding
+++ shadow |= turn turn
+             ^
+++ imported-branch: list literal requires the standard recursive `list` mold
+/ui/main.jibb:6:11: list literal
+      %.y ~[]
+          ^
+++ imported-branch: list literal requires the standard recursive `list` mold
+/lib/jibb/prelude.jibb:1:4: earlier binding
++$ list |$ [A] [A A]
+   ^
+/ui/main.jibb:6:11: list literal
+      %.y ~[]
+          ^
+/lib/jibb/prelude.jibb:1:15: expected a mold, on its line or a deeper one, found the end of the file
++$ list |$ [A]
+              ^
+module kind: library
+++ attempt: [@t @t]
+++ helper: mold `list` is not defined
+/lib/jibb/prelude.jibb:1:22: unknown mold
+++ helper |= x=@t ^- (list @t) [x x]
+                     ^
+++ helper: local mold `list` shadows an imported or prelude name
+/lib/jibb/prelude.jibb:5:3: conflicting local mold
+  +$ list @t
+  ^
+/lib/jibb/prelude.jibb:1:15: expected a mold, on its line or a deeper one, found the end of the file
++$ list |$ [A]
+              ^
+++ attempt: inline gate result does not unify with [@t @t]: @t versus [@t @t]
+/ui/main.jibb:1:20: actual type has type @t
+++ attempt (helper "hi")
+                   ^
+/ui/main.jibb:1:13: call context has type [@t @t]
+++ attempt (helper "hi")
+            ^
+++ x: unit construction requires the standard `unit` mold
+/ui/main.jibb:1:6: unit construction
+++ x `"hi"
+     ^
+++ x: unit construction requires the standard `unit` mold
+/lib/jibb/prelude.jibb:1:4: earlier binding
++$ unit |$ [A] [A A]
+   ^
+/ui/main.jibb:1:6: unit construction
+++ x `"hi"
+     ^
+/lib/jibb/prelude.jibb:1:15: expected a mold, on its line or a deeper one, found the end of the file
++$ unit |$ [A]
+              ^
+++ x: unit construction requires the standard `unit` mold
+/ui/main.jibb:2:6: unit construction
+++ x `"hi"
+     ^
+++ x: list literal requires the standard recursive `list` mold
+/ui/main.jibb:1:6: list literal
+++ x ~["hi"]
+     ^
+++ x: list literal requires the standard recursive `list` mold
+/lib/jibb/prelude.jibb:1:4: earlier binding
++$ list |$ [A] [A A]
+   ^
+/ui/main.jibb:1:6: list literal
+++ x ~["hi"]
+     ^
+/lib/jibb/prelude.jibb:1:15: expected a mold, on its line or a deeper one, found the end of the file
++$ list |$ [A]
+              ^
 private primitive source and import guards passed

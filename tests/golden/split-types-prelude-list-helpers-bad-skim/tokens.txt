@@ -1,0 +1,15 @@
+14:1 glyph ++
+14:4 name bad-skim
+14:13 glyph (
+14:14 tight name skim
+14:19 glyph ~[
+14:21 tight str "hi"
+14:25 tight glyph ]
+14:27 glyph |=(
+14:30 tight name x
+14:31 tight glyph =
+14:32 tight aura @p
+14:35 lit %.y
+14:38 tight glyph )
+14:39 tight glyph )
+14:40 NEWLINE

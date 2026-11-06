@@ -1,0 +1,7 @@
+++ note: `5` is a @ud, not a @t; write "5"
+/tests/golden/split-inline-decimal-sites-note/source.jibb:22:15: decimal
+++ note (text 5)
+              ^
+/tests/golden/split-inline-decimal-sites-note/source.jibb:22:10: expected type has type @t
+++ note (text 5)
+         ^

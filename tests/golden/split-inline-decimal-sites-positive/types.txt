@@ -1,0 +1,5 @@
+module kind: library
++$ msg: msg
+++ pause: $-(@dr @dr)
+++ every-ok: (list (sub msg))
+++ note-ok: (element M)

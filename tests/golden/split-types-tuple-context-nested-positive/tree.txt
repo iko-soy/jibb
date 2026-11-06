@@ -1,0 +1,65 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 4:1 take
+    (gate 4:9
+      (face 4:12 p
+        (cell 4:14
+          (face 4:15 payload (ref 4:23 msg))
+          (face 4:27 xs
+            (apply 4:30 list (aura 4:36 @t)))))
+      (wing 4:41 p)))
+  (value 5:1 ok
+    (group 5:7
+      (call 5:8
+        (wing 5:8 take)
+        (tuple 5:13
+          (face 5:14 payload (lit 5:22 %go))
+          (face 5:26 xs (lit 5:29 ~))))))
+  (value 9:1 nest
+    (gate 9:9
+      (face 9:12 p
+        (cell 9:14
+          (face 9:15 data
+            (cell 9:20
+              (face 9:21 payload (ref 9:29 msg))
+              (face 9:33 xs
+                (apply 9:36 list (aura 9:42 @t)))))
+          (face 9:47 z (aura 9:49 @p))))
+      (wing 9:53 p)))
+  (value 10:1 nested
+    (group 10:11
+      (call 10:12
+        (wing 10:12 nest)
+        (tuple 10:17
+          (face 10:18 data
+            (tuple 10:23
+              (face 10:24 payload (lit 10:32 %stay))
+              (face 10:38 xs (lit 10:41 ~))))
+          (face 10:44 z (lit 10:46 ~zod))))))
+  (value 19:1 generic
+    (gate 19:12
+      (face 19:15 p
+        (cell 19:17
+          (face 19:18 left (tvar 19:23 A))
+          (face 19:25 right (tvar 19:31 A))))
+      (wing 19:34 p)))
+  (mold 21:1 typed
+    (cell 21:10
+      (const 21:11 %typed)
+      (face 21:18 text (aura 21:23 @t))))
+  (value 22:1 use-ctor
+    (gate 22:13
+      (face 22:16 p
+        (cell 22:18
+          (face 22:19 f
+            (fn 22:21 (aura 22:24 @t) (ref 22:27 typed)))
+          (face 22:34 payload (aura 22:42 @t))))
+      (wing 22:46 p)))
+  (value 23:1 constructor
+    (group 23:16
+      (call 23:17
+        (wing 23:17 use-ctor)
+        (tuple 23:26
+          (face 23:27 f (ctor 23:29 %typed))
+          (face 23:38 payload (str 23:46 "hi")))))))

@@ -1,0 +1,30 @@
++$ extent
+  [%fill n=@ud]
+  %shrink
++$ attribute
+  [%width extent]
+  [%gap @tas]
+++ number-id |= x=@ud x
+++ plain ^- attribute width+[%fill 1]
+++ direct ^- attribute [%width [%fill 1]]
+++ list ^- (list attribute) ~[width+[%fill 1]]
+++ accept |= value=attribute value
+++ call (accept width+[%fill 1])
+++ simple-call ^- attribute width+[%fill (number-id 1)]
+++ grouped-call ^- attribute width+[%fill ((number-id 1))]
+++ cast-call ^- attribute width+[%fill (^- @ud (number-id 1))]
+++ nested-call ^- attribute width+[%fill (number-id (number-id 1))]
+
+
+
+
+
+++ singleton ^- attribute width+%shrink
++$ event
+  [%got value=@t]
+  %idle
++$ envelope
+  [%handler callback=$-(@t event)]
+  [%empty value=@ud]
+++ constructor ^- envelope [%handler |=%got]
+

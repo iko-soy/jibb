@@ -1,0 +1,7 @@
+++ attrs: attribute `pad` is repeated
+/ui/probe.jibb:2:12: first attribute
+++ attrs ~[pad+%s1 pad+%s2]
+           ^
+/ui/probe.jibb:2:20: repeated attribute
+++ attrs ~[pad+%s1 pad+%s2]
+                   ^

@@ -1,0 +1,4 @@
+message inline gate result does not unify with @ud: ? versus @ud
+site /tests/golden/split-types-local-error-call-local/source.jibb:4:15
+site /tests/golden/split-types-local-error-call-local/source.jibb:4:11
+min-sites 2

@@ -1,0 +1,13 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %hit) (const 3:3 %miss)))
+  (value 4:1 source
+    (tuple 4:11
+      (face 4:12 label (lit 4:18 ~zod))
+      (face 4:23 value (lit 4:29 %hit))))
+  (value 5:1 cast
+    (cast 5:9
+      (cell 5:12
+        (face 5:13 label (aura 5:19 @t))
+        (face 5:22 value (ref 5:28 msg)))
+      (wing 5:33 source))))

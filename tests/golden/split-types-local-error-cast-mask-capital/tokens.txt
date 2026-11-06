@@ -1,0 +1,22 @@
+20:1 glyph ++
+20:4 name mask-capital
+20:17 glyph |=
+20:20 name x
+20:21 tight glyph =
+20:22 tight tvar A
+21:3 INDENT
+21:3 glyph ++
+21:6 name a
+21:8 glyph ^-
+21:11 aura @ud
+21:15 str "s"
+22:3 NEWLINE
+22:3 glyph ++
+22:6 name b
+22:8 glyph ^-
+22:11 aura @t
+22:14 name x
+23:3 NEWLINE
+23:3 name x
+23:4 DEDENT
+23:4 NEWLINE

@@ -1,0 +1,7 @@
+++ alias-bool: inline gate result does not unify with A: ? versus A
+/tests/golden/split-types-arithmetic-module-alias-bool/source.jibb:16:31: actual type has type ?
+++ alias-bool (alias-inc.math %.n)
+                              ^
+/tests/golden/split-types-arithmetic-module-alias-bool/source.jibb:16:16: call context has type A where A is an atom other than ?
+++ alias-bool (alias-inc.math %.n)
+               ^

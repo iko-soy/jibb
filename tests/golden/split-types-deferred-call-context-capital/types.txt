@@ -1,0 +1,7 @@
+++ capital: capital `A` cannot be fixed to @t
+/tests/golden/split-types-deferred-call-context-capital/source.jibb:15:17: capital
+++ capital |= x=A ^- A (local-id "text")
+                ^
+/tests/golden/split-types-deferred-call-context-capital/source.jibb:15:24: forcing expression
+++ capital |= x=A ^- A (local-id "text")
+                       ^

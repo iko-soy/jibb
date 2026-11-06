@@ -1,0 +1,2 @@
+expect: parses
+expect-types: the full checker reports this page fixture error at its source.

@@ -1,0 +1,13 @@
+5:1 glyph ++
+5:4 name record
+5:11 glyph |=
+5:14 name x
+5:15 tight glyph =
+5:16 tight glyph [
+5:17 tight aura @t
+5:20 aura @ud
+5:23 tight glyph ]
+5:25 str-head ""
+5:27 tight name x
+5:28 tight str-tail ""
+5:30 NEWLINE

@@ -1,0 +1,11 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %go)
+      (cell 3:3
+        (const 3:4 %typed)
+        (face 3:11 text (aura 3:16 @t)))))
+  (value 4:1 items
+    (cast 4:10
+      (apply 4:13 list (ref 4:19 msg))
+      (list 4:24 (lit 4:26 %go) (lit 4:30 %missing)))))

@@ -1,0 +1,13 @@
+++ bad-first: msg has no case `%missing`
+/tests/golden/split-types-union-branch-context-bad-first/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-union-branch-context-bad-first/source.jibb:2:3: expected union has type msg
+  %add
+  ^
+/tests/golden/split-types-union-branch-context-bad-first/source.jibb:21:6: expected union has type msg
+  ^- msg
+     ^
+/tests/golden/split-types-union-branch-context-bad-first/source.jibb:23:11: tag literal has type %missing
+      %.y %missing
+          ^

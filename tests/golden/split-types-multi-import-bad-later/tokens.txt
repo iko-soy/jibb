@@ -1,0 +1,15 @@
+1:1 glyph /=
+1:5 name lib
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot lib
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name bad-later
+4:14 glyph (
+4:15 tight wing take.lib
+4:24 str "hi"
+4:29 str "no"
+4:33 tight glyph )
+4:34 NEWLINE

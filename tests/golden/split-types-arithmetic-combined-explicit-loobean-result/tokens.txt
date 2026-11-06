@@ -1,0 +1,14 @@
+34:1 glyph ++
+34:4 name explicit-loobean-result
+34:28 glyph |=
+34:31 name n
+34:32 tight glyph =
+34:33 tight tvar A
+34:35 glyph ^-
+34:38 glyph ?
+34:40 glyph (
+34:41 tight name add
+34:45 name n
+34:47 lit 1
+34:48 tight glyph )
+34:49 NEWLINE

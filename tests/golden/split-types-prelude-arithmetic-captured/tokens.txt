@@ -1,0 +1,12 @@
+19:1 glyph ++
+19:4 name captured
+19:13 glyph |=
+19:16 name x
+19:17 tight glyph =
+19:18 tight glyph ?
+19:20 glyph (
+19:21 tight name add
+19:25 name x
+19:27 name x
+19:28 tight glyph )
+19:29 NEWLINE

@@ -1,0 +1,7 @@
+++ bad-aura: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-comparison-bad-aura/source.jibb:17:14: called gate has type $-([@ux @ux] ?)
+++ bad-aura (lth 0x1 (^- @ud 1))
+             ^
+/tests/golden/split-types-prelude-comparison-bad-aura/source.jibb:17:22: argument has type @ud
+++ bad-aura (lth 0x1 (^- @ud 1))
+                     ^

@@ -1,0 +1,9 @@
+(module
+  (value 7:1 resolved
+    (body 8:3
+      (value 8:3 id
+        (gate 8:9
+          (face 8:12 x (hole 8:14))
+          (cast 8:16 (aura 8:19 @t) (wing 8:22 x))))
+      (group 9:3
+        (call 9:4 (wing 9:4 id) (str 9:7 "hello"))))))

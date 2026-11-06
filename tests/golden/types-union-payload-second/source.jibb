@@ -1,0 +1,7 @@
++$ msg
+  %ok
+  %other
++$ action
+  [%every count=@ud gap=@dr reply=$-(@da msg)]
+  %none
+++ bad ^- action [%every 1 ~zod |=(now=@da %ok)]

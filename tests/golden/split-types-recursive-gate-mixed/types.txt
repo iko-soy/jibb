@@ -1,0 +1,7 @@
+++ mixed: capital `A` cannot be fixed to @t
+/tests/golden/split-types-recursive-gate-mixed/source.jibb:49:15: capital
+++ mixed |= x=A
+              ^
+/tests/golden/split-types-recursive-gate-mixed/source.jibb:51:13: forcing expression
+  ~& (alias "hi")
+            ^

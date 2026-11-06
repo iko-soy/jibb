@@ -1,0 +1,7 @@
+++ narrow: cast types remain unresolved
+/tests/golden/types-import-hoon-narrow/source.jibb:2:31: cast mold has type @t
+++ narrow |= x=any.fixture ^- @t x
+                              ^
+/tests/golden/types-import-hoon-narrow/source.jibb:2:34: expression has type *
+++ narrow |= x=any.fixture ^- @t x
+                                 ^

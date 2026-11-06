@@ -1,0 +1,23 @@
++$ union
+  [%go @t @p]
+  %stop
+++ maybe-union |= x=union
+  ?- x
+    [a b c] a
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

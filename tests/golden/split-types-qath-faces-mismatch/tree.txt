@@ -1,0 +1,12 @@
+(module
+  (value 3:1 mismatch
+    (gate 3:13
+      (face 3:16 x
+        (cell 3:18
+          (face 3:19 bad (ref 3:23 qath))
+          (face 3:28 yes (flag 3:32))))
+      (cast 3:35
+        (cell 3:38
+          (face 3:39 good (ref 3:44 qath))
+          (face 3:49 yes (flag 3:53)))
+        (wing 3:56 x)))))

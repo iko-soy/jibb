@@ -1,0 +1,7 @@
+module kind: library
++$ msg: msg
+++ boolean-table: $-(msg @t)
+++ parent: $-(msg @u)
+++ wildcard: $-(msg @t)
++$ choice: choice
+++ typed: $-(choice ?)

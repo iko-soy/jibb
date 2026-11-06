@@ -1,0 +1,7 @@
+module kind: library
++$ step: step
++$ outcome: (outcome A)
++$ reason: reason
+++ argument: $-((outcome reason) @t)
+++ maybe: $-((unit step) @t)
+++ items: $-((list step) @t)

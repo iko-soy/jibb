@@ -1,0 +1,3 @@
+module kind: library
+++ concrete: $-(qath [field=qath yes=?])
+++ reverse: $-([field=qath yes=?] [field=qath yes=?])

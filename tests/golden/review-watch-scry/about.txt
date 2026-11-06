@@ -1,0 +1,4 @@
+source: 2026-11-03 milestone 2 review, watching a request with scry=; adapted from types-watch-unproved and types-prelude-ask
+tests: an island subscription watching a request with a scry path is diagnosed through the full checker
+expect: parses
+expect-types: exact full-checker error

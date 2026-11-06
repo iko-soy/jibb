@@ -1,0 +1,10 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %hit) (const 3:3 %miss)))
+  (value 4:1 displayed
+    (group 4:14
+      (call 4:15 (wing 4:15 button) (str 4:22 "x") (lit 4:26 %hit))))
+  (value 5:1 resolved
+    (cast 5:13
+      (apply 5:16 element (ref 5:25 msg))
+      (wing 5:30 displayed))))

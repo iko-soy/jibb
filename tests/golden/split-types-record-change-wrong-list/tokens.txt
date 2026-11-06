@@ -1,0 +1,40 @@
+1:1 glyph +$
+1:4 name state
+1:10 glyph [
+1:11 tight name items
+1:16 tight glyph =
+1:17 tight glyph (
+1:18 tight name list
+1:23 aura @t
+1:25 tight glyph )
+1:27 name open
+1:31 tight glyph =
+1:32 tight glyph ?
+1:34 name name
+1:38 tight glyph =
+1:39 tight aura @t
+1:42 name nested
+1:48 tight glyph =
+1:49 tight glyph [
+1:50 tight name word
+1:54 tight glyph =
+1:55 tight aura @t
+1:57 tight glyph ]
+1:58 tight glyph ]
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name wrong-list
+13:15 glyph |=
+13:18 name s
+13:19 tight glyph =
+13:20 tight name state
+13:26 name s
+13:27 tight glyph (
+13:28 tight name items
+13:33 tight glyph =
+13:34 tight glyph [
+13:35 tight lit ~zod
+13:40 wing items.s
+13:47 tight glyph ]
+13:48 tight glyph )
+13:49 NEWLINE

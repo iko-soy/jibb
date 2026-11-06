@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/split-types-string-interpolation-clash/source.jibb:27:34
+typed-site /tests/golden/split-types-string-interpolation-clash/source.jibb:27:37
+min-sites 2

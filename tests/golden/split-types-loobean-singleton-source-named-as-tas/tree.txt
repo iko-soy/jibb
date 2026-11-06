@@ -1,0 +1,6 @@
+(module
+  (mold 1:1 yes (const 1:8 %.y))
+  (value 12:1 named-value
+    (cast 12:16 (ref 12:19 yes) (lit 12:23 %.y)))
+  (value 15:1 named-as-tas
+    (cast 15:17 (aura 15:20 @tas) (wing 15:25 named-value))))

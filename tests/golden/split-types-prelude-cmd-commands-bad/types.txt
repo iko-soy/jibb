@@ -1,0 +1,7 @@
+++ commands-bad: union payload has type [@dr @p], but `%wait` requires [gap=@dr msg=@t]
+/tests/golden/split-types-prelude-cmd-commands-bad/source.jibb:16:20: expected [gap=@dr msg=@t]
+++ commands-bad ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 ~zod]]
+                   ^
+/tests/golden/split-types-prelude-cmd-commands-bad/source.jibb:16:59: payload has type [@dr @p]
+++ commands-bad ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 ~zod]]
+                                                          ^

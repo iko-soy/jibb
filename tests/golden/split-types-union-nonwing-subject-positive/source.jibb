@@ -1,0 +1,82 @@
++$ input
+  [%item flag=? text=@t]
+  %none
+
+
+
+++ local-id |= x x
+++ passthrough |= x=input x
+++ grouped |= x=input ^- (list @t)
+  ?- (x)
+    [%item flag words] ~[words]
+    %none ~
+++ call |= x=input ^- (list @t)
+  ?- (local-id x)
+    [%item flag words] ~[words]
+    %none ~
+
+
+
+
+++ finite |= x=input ^- (list @t)
+  ?- (local-id x)
+    [%item %.y words] ~[words]
+    [%item %.n words] ~[]
+    %none ~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ payload |$ [A]
+  [%present value=A]
+  %none
+++ shared |= [x=(payload A) y=A] ^- (list A)
+  ?- (local-id x)
+    [%present v] ~[y v]
+    %none ~
+
+
+
+
+++ first-of |= [a b] a
+
+
+
+
+
+
+
+
+
+
+
+

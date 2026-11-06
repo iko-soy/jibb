@@ -1,0 +1,5 @@
+origin types-union-finite-context
+target value wrong
+keep mold input
+keep mold result
+keep value wrong

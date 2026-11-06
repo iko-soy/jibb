@@ -1,0 +1,3 @@
+module kind: library
+++ lt-a: $-([a=@ud b=@ud] ?)
+++ hunt-labelled: (unit @ud)

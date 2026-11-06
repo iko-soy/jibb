@@ -1,0 +1,7 @@
+(module
+  (value 1:1 wrong
+    (group 1:10
+      (call 1:11
+        (wing 1:11 tufa)
+        (group 1:16
+          (call 1:17 (wing 1:17 trip) (str 1:22 "hi")))))))

@@ -1,0 +1,16 @@
+7:1 glyph +$
+7:4 name reason
+8:3 INDENT
+8:3 lit %fail
+9:3 NEWLINE
+9:3 lit %late
+26:1 DEDENT
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name pick
+26:9 glyph |=
+26:12 name r
+26:13 tight glyph =
+26:14 tight name reason
+26:21 name r
+26:22 NEWLINE

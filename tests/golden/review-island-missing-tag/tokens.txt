@@ -1,0 +1,149 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %typed
+2:11 name text
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 lit %submit
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name model
+4:10 glyph [
+4:11 tight name draft
+4:16 tight glyph =
+4:17 tight aura @t
+4:19 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name main
+5:9 glyph (
+5:10 tight name program
+5:18 name init
+5:23 name update
+5:30 name view
+5:35 name subs
+5:39 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name init
+6:9 glyph |=
+6:12 name input
+6:17 tight glyph =
+6:18 tight aura @t
+6:21 glyph ^-
+6:24 name model
+6:30 glyph [
+6:31 tight name draft
+6:36 tight glyph =
+6:37 tight name input
+6:42 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name update
+7:11 glyph |=
+7:14 glyph [
+7:15 tight glyph =
+7:16 tight name msg
+7:20 name m
+7:21 tight glyph =
+7:22 tight name model
+7:27 tight glyph ]
+8:3 INDENT
+8:3 glyph ^-
+8:6 glyph [
+8:7 tight name model
+8:13 glyph (
+8:14 tight name list
+8:19 glyph (
+8:20 tight name cmd
+8:24 name msg
+8:27 tight glyph )
+8:28 tight glyph )
+8:29 tight glyph ]
+9:5 INDENT
+9:5 glyph ?-
+9:8 name msg
+10:7 INDENT
+10:7 glyph [
+10:8 tight lit %typed
+10:15 name t
+10:16 tight glyph ]
+10:19 glyph [
+10:20 tight name m
+10:21 tight glyph (
+10:22 tight name draft
+10:27 tight glyph =
+10:28 tight name t
+10:29 tight glyph )
+10:31 lit ~
+10:32 tight glyph ]
+11:7 NEWLINE
+11:7 lit %submit
+11:19 glyph [
+11:20 tight name m
+11:21 tight glyph (
+11:22 tight name draft
+11:27 tight glyph =
+11:28 tight str ""
+11:30 tight glyph )
+11:32 lit ~
+11:33 tight glyph ]
+12:1 DEDENT
+12:1 DEDENT
+12:1 DEDENT
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name view
+12:9 glyph |=
+12:12 name m
+12:13 tight glyph =
+12:14 tight name model
+12:20 glyph ^-
+12:23 glyph (
+12:24 tight name element
+12:32 name msg
+12:35 tight glyph )
+13:3 INDENT
+13:3 name row
+13:7 glyph ~[
+13:9 tight name gap
+13:12 tight glyph +
+13:13 tight lit %s1
+13:16 tight glyph ]
+13:18 glyph ~[
+14:5 INDENT
+14:5 glyph (
+14:6 tight name field
+14:12 str "New todo"
+14:23 wing draft.m
+14:31 glyph |=
+14:33 tight lit %typed
+14:39 tight glyph )
+15:5 NEWLINE
+15:5 name button
+15:12 str "Add"
+15:18 lit %submitt
+16:1 DEDENT
+16:1 DEDENT
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name subs
+16:9 glyph |=
+16:12 name m
+16:13 tight glyph =
+16:14 tight name model
+16:20 glyph ^-
+16:23 glyph (
+16:24 tight name list
+16:29 glyph (
+16:30 tight name sub
+16:34 name msg
+16:37 tight glyph )
+16:38 tight glyph )
+16:40 lit ~
+16:41 NEWLINE

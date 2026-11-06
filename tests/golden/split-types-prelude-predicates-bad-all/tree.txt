@@ -1,0 +1,9 @@
+(module
+  (value 5:1 bad-all
+    (group 5:12
+      (call 5:13
+        (wing 5:13 levy)
+        (list 5:18 (str 5:20 "a"))
+        (gate-wide 5:25
+          (face 5:28 x (aura 5:30 @p))
+          (lit 5:33 %.y))))))

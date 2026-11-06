@@ -1,0 +1,10 @@
+6:1 glyph ++
+6:4 name siblings
+6:13 glyph |=
+6:16 name x
+6:17 tight glyph =
+6:18 tight aura @ux
+6:22 glyph ^-
+6:25 aura @ud
+6:29 name x
+6:30 NEWLINE

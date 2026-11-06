@@ -1,0 +1,4 @@
+message local mold `lib` shadows an imported or prelude name
+site /tests/golden/module-import-face-shadow/source.jibb:1:5
+site /tests/golden/module-import-face-shadow/source.jibb:3:3
+min-sites 2

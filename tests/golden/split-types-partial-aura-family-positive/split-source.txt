@@ -1,0 +1,9 @@
+origin types-partial-aura-family
+target value accept
+keep value accept
+keep value base32
+keep value decimal
+keep value dup
+keep value hex
+keep value text-value
+keep value via-call

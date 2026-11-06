@@ -1,0 +1,27 @@
+module:
+++ bad: sample `original` shadows a name already in scope
+/tests/sample-shadow.jibb:1:4: earlier binding
+++ original 1
+   ^
+/tests/sample-shadow.jibb:2:18: conflicting sample binding
+++ bad |= [x=@ud original=@t] x
+                 ^
+nested:
+++ bad: sample `x` shadows a name already in scope
+/tests/sample-shadow.jibb:1:11: earlier binding
+++ bad |= x=@t |=(y=@ud |=(x=@p y))
+          ^
+/tests/sample-shadow.jibb:1:28: conflicting sample binding
+++ bad |= x=@t |=(y=@ud |=(x=@p y))
+                           ^
+repeated:
+record field `x` is repeated
+/tests/sample-shadow.jibb:1:12: first field
+++ bad |= [x=@t [y=@ud x=@p]] y
+           ^
+/tests/sample-shadow.jibb:1:24: repeated field
+++ bad |= [x=@t [y=@ud x=@p]] y
+                       ^
+good:
+module kind: library
+++ okay: $-(@t $-(@ud @t))

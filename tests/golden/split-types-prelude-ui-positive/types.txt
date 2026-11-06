@@ -1,0 +1,48 @@
+module kind: library
++$ msg: msg
++$ model: [count=@ud]
+++ row-scheme: $-([attrs=(list attr) kids=(list (element M))] (element M))
+++ column-scheme: $-([attrs=(list attr) kids=(list (element M))] (element M))
+++ wrap-scheme: $-([attrs=(list attr) kids=(list (element M))] (element M))
+++ stack-scheme: $-([attrs=(list attr) kids=(list (element M))] (element M))
+++ el-scheme: $-([attrs=(list attr) kid=(element M)] (element M))
+++ para-scheme: $-((list (element M)) (element M))
+++ text-scheme: $-(@t (element M))
+++ heading-scheme: $-([level=@ud words=@t] (element M))
+++ each-scheme: $-((list [key=K el=(element M)]) (element M)) where K contains no gates
+++ table-scheme: $-([columns=(list [header=@t [width=length align=align]]) rows=(list [key=K cells=(list (element M))])] (element M)) where K contains no gates
+++ image-scheme: $-([source=qath description=@t] (element M))
+++ image-unsafe-scheme: $-([source=[url=@t [width=@ud height=@ud]] description=@t] (element M))
+++ link-scheme: $-([target=qath label=@t] (element M))
+++ link-unsafe-scheme: $-([target=@t label=@t] (element M))
+++ button-scheme: $-([label=@t message=M] (element M))
+++ toggle-scheme: $-([on=? [label=@t message=M]] (element M))
+++ field-scheme: $-([label=@t [value=@t reply=$-(@t M)]] (element M))
+++ form-scheme: $-([message=M kids=(list (element M))] (element M))
+++ island-scheme: $-([p=[init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] data=Data] (element !!)) where Data contains no gates, Model contains no gates
+++ program-scheme: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
+++ page-scheme: $-([load=$-(Params (ask Data)) view=$-(Data (element !!))] [load=$-(Params (ask Data)) view=$-(Data (element !!))])
+++ static-text: (element !!)
+++ static-ui: (element !!)
+++ static-media: (element !!)
+++ unsafe-media: (element !!)
+++ save-message: msg
+++ toggle-message: msg
+++ save-button: (element msg)
+++ enabled-toggle: (element msg)
+++ edit-message: $-(@t msg)
+++ name-field: (element msg)
+++ controls: (element msg)
+++ keyed: $-((list [key=@t el=(element msg)]) (element msg))
+++ tabular: $-((list [key=@ud cells=(list (element msg))]) (element msg))
+++ ship-control: (element @p)
+++ text-row: $-((list (element @t)) (element @t))
+++ init: $-(@t [count=@ud])
+++ update: $-([message=msg state=[count=@ud]] [count=@ud (list (cmd msg))])
+++ view: $-([count=@ud] (element msg))
+++ subs: $-([count=@ud] (list (sub msg)))
+++ concrete-program: [init=$-(@t [count=@ud]) [update=$-([msg count=@ud] [count=@ud (list (cmd msg))]) [view=$-([count=@ud] (element msg)) subs=$-([count=@ud] (list (sub msg)))]]]
+++ embedded: (element !!)
+++ load: $-(@t (ask [count=@ud]))
+++ page-view: $-([count=@ud] (element !!))
+++ static-page: [load=$-(@t (ask [count=@ud])) view=$-([count=@ud] (element !!))]

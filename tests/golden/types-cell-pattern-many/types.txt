@@ -1,14 +1,7 @@
-partial inference; module not checked
-++ three: $-([@t [@p ?]] ?)
-++ four: $-([@t [@p [? @ux]]] @ux)
-++ rest: $-([@t [@p [? @ux]]] [? @ux])
-++ infer: $-([A [B C]] [C [B A]])
-++ duplicate: pattern shadows a name
-++ shadow: pattern shadows a name
-++ prelude-shadow: pattern shadows a name
-++ atom: cell pattern does not match the subject type
-++ too-many: cell pattern does not match the subject type
-++ record: record patterns are not supported by partial inference
-++ nested: $-([@t [[@p ?] @ux]] @ux)
-++ wildcard: $-([@t [@p ?]] ?)
-++ pending: tag needs context in partial inference
+++ duplicate: pattern binder shadows a name
+/tests/golden/types-cell-pattern-many/source.jibb:15:6: first binder
+    [a b a] a
+     ^
+/tests/golden/types-cell-pattern-many/source.jibb:15:10: repeated binder
+    [a b a] a
+         ^

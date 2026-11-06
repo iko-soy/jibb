@@ -1,0 +1,10 @@
+module kind: library
++$ msg: msg
+++ direct: $-(A (unit A))
+++ str: (unit @t)
+++ ship: (unit @p)
+++ nested: (unit (unit @t))
+++ same-first: (unit @t)
+++ same-second: (unit @p)
+++ ctx: (unit msg)
+++ tag-payload: (unit @tas)

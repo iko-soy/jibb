@@ -1,0 +1,3 @@
+site /tests/golden/split-types-missing-tag-context-existing/source.jibb:3:4
+site /tests/golden/split-types-missing-tag-context-existing/source.jibb:5:29
+min-sites 2

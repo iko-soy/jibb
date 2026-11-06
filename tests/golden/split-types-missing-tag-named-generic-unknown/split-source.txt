@@ -1,0 +1,3 @@
+origin types-missing-tag-named
+target value generic-unknown
+keep value generic-unknown

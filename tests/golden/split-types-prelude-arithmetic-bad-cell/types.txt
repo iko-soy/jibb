@@ -1,0 +1,7 @@
+++ bad-cell: types do not unify
+/tests/golden/split-types-prelude-arithmetic-bad-cell/source.jibb:7:14: expected type has type A where A is an atom
+++ bad-cell (gth [1 2] [3 4])
+             ^
+/tests/golden/split-types-prelude-arithmetic-bad-cell/source.jibb:7:18: actual type has type [@ud @ud]
+++ bad-cell (gth [1 2] [3 4])
+                 ^

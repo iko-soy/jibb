@@ -1,0 +1,22 @@
+7:1 glyph ++
+7:4 name reverse
+7:12 glyph |=
+7:15 glyph [
+7:16 tight name f
+7:17 tight glyph =
+7:18 tight glyph $-(
+7:21 tight lit %$
+7:24 aura @t
+7:26 tight glyph )
+7:28 name xs
+7:30 tight glyph =
+7:31 tight glyph (
+7:32 tight name list
+7:37 aura @t
+7:39 tight glyph )
+7:40 tight glyph ]
+7:42 glyph (
+7:43 tight name f
+7:45 name xs
+7:47 tight glyph )
+7:48 NEWLINE

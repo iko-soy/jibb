@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %add)))
+  (value 17:1 take
+    (gate 17:9
+      (face 17:12 x (ref 17:14 msg))
+      (str 17:18 "ok")))
+  (value 18:1 call
+    (group 18:9
+      (call 18:10 (wing 18:10 take) (lit 18:15 %submitt)))))

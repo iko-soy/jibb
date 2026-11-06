@@ -1,0 +1,12 @@
+module kind: store
++$ state: @ud
++$ poke: %inc
+++ init: @ud
+++ update: $-([a=%inc s=@ud] @ud)
+++ other: $-([x=%inc y=@ud] @ud)
+++ first: *
+++ second: *
+++ choose: $-([x=A y=A] A)
+++ main: [init=@ud update=*]
+++ state: $-($-(@ud A) (ask A)) (generated)
+++ poke: $-([%inc $-((unit @t) A)] (cmd A)) (generated)

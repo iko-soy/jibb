@@ -1,0 +1,13 @@
+++ f: choice.data has no case `%c`
+/ui/choice.jibb:1:4: matched union has type choice.data
++$ choice
+   ^
+/ui/choice.jibb:2:3: expected union has type choice.data
+  %a
+  ^
+/ui/pattern.jibb:3:6: expected union has type choice.data
+  ?- v
+     ^
+/ui/pattern.jibb:6:5: tag literal has type %c
+    %c "c"
+    ^

@@ -1,0 +1,32 @@
+++ bad: local mold `tagged` shadows an enclosing mold
+/ui/local-scope.jibb:1:11: enclosing mold
++$ tagged |$ [A] [%wrapped A]
+          ^
+/ui/local-scope.jibb:3:3: conflicting local mold
+  +$ tagged |$ [A] [%other A]
+  ^
+++ bad: local mold `item` shadows another local mold
+/ui/local-scope.jibb:2:3: earlier local mold
+  +$ item @t
+  ^
+/ui/local-scope.jibb:3:3: conflicting local mold
+  +$ item @ud
+  ^
+`proj` is reserved and cannot be bound
+/ui/local-scope.jibb:2:3: reserved binding
+  +$ proj @t
+  ^
+`proj` is reserved and cannot be bound
+/ui/local-scope.jibb:1:12: reserved binding
+++ bad |= [proj=@ud x=@ud] x
+           ^
+`unface` is reserved and cannot be bound
+/ui/local-scope.jibb:3:4: reserved binding
+  [unface other] other
+   ^
+module kind: library
++$ record: [proj=@ud unface=@t]
+++ take: $-([proj=@ud unface=@t] @t)
+++ item: [proj=@ud unface=@t]
++$ choice: choice
+++ tag: choice

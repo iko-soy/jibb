@@ -1,0 +1,7 @@
+++ minimum (min 5 3)
+++ difference (sub 5 3)
+++ product (mul 5 3)
+++ hex-product (mul 0x5 0x3)
+++ duration-difference (sub ~s5 ~s3)
+++ bit-minimum (min %.y %.n)
+++ scale |= values=[A A] (mul values)

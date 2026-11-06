@@ -1,0 +1,22 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %ok) (const 3:3 %other)))
+  (mold 4:1 action
+    (union 5:3
+      (cell 5:3
+        (const 5:4 %every)
+        (face 5:11 count (aura 5:17 @ud))
+        (face 5:21 gap (aura 5:25 @dr))
+        (face 5:29 reply
+          (fn 5:35 (aura 5:38 @da) (ref 5:42 msg))))
+      (const 6:3 %none)))
+  (value 7:1 bad
+    (cast 7:8
+      (ref 7:11 action)
+      (tuple 7:18
+        (lit 7:19 %every)
+        (lit 7:26 1)
+        (lit 7:28 ~zod)
+        (gate-wide 7:33
+          (face 7:36 now (aura 7:40 @da))
+          (lit 7:44 %ok))))))

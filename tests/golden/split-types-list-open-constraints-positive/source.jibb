@@ -1,0 +1,19 @@
+
+++ reverse |= [a=@tD b=@t] ~[b a]
+++ abstract |= x=@ ~[x ~zod]
+
+++ explicit |= [a=A b=A] ~[a b]
+
+++ all-num ~[1 2]
+
+
+++ empty ~[]
+++ texts ^- (list @t) empty
+++ ships ^- (list @p) empty
+
+
+
+++ repeated |= [a=A b=A] ~[a b]
+++ call-text (repeated "hi" "there")
+++ call-ship (repeated ~zod ~bus)
+

@@ -1,0 +1,7 @@
+++ on-ship: `0` is a @ud, not a @p; write ~zod
+/tests/golden/split-inline-decimal-patterns-on-ship/source.jibb:8:3: decimal
+  0 %zod
+  ^
+/tests/golden/split-inline-decimal-patterns-on-ship/source.jibb:7:23: expected type has type @p
+++ on-ship |= s=@p ?- s
+                      ^

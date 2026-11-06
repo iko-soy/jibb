@@ -1,14 +1,7 @@
-partial inference; module not checked
-++ empty: qath
-++ one: qath
-++ named: qath
-++ nested: qath
-++ identity: $-(qath qath)
-++ first: $-(qath @ta)
-++ rest: $-(qath qath)
-++ literal: qath
-++ root: qath
-++ dynamic: application path segments need unsupported inference
-++ bad-head: recursive mold cell does not fit its source shape
-++ bad-tail: recursive mold cell constraint needs unsupported inference
-++ bad-face: recursive mold cell does not fit its source shape
+++ bad-head: recursive constructor does not fit its mold
+/tests/golden/types-qath-recursive/source.jibb:17:16: recursive mold has type qath
+++ bad-head ^- qath [~zod ~]
+               ^
+/tests/golden/types-qath-recursive/source.jibb:17:21: constructor has type [@p A]; A remains unresolved for tag `~`
+++ bad-head ^- qath [~zod ~]
+                    ^

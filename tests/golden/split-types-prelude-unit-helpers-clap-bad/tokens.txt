@@ -1,0 +1,19 @@
+14:1 glyph ++
+14:4 name clap-bad
+14:13 glyph (
+14:14 tight name clap
+14:19 glyph `
+14:20 tight str "hi"
+14:25 glyph `
+14:26 tight lit ~zod
+14:31 glyph |=(
+14:34 tight name p
+14:35 tight glyph =
+14:36 tight glyph [
+14:37 tight aura @t
+14:40 aura @t
+14:42 tight glyph ]
+14:44 str "yes"
+14:49 tight glyph )
+14:50 tight glyph )
+14:51 NEWLINE

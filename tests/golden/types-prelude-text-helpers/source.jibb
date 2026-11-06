@@ -1,0 +1,12 @@
+++ lower cass
+++ upper cuss
+++ split trim
+++ pack crip
+++ encode tufa
+++ lower-text (crip (cass (trip "AbCz")))
+++ upper-text (crip (cuss (trip "aBcZ")))
+++ split-text (trim 2 ~["a" "b" "c"])
+++ split-ships (trim 1 ~[~zod ~nec])
+++ round-trip (crip (tufa (tuba (trip "hé"))))
+++ split-gates (trim 1 ~[same same])
+++ split-records (trim 1 ~[[x=1 y=2] [3 4]])

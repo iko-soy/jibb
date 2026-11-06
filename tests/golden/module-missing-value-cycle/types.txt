@@ -1,2 +1,7 @@
-partial inference; module not checked
-module definitions need unsupported inference: /ui/lib/jibb: ++ left
+++ left: call's sample and argument types do not unify
+/ui/lib.jibb:2:18: called gate has type $-(@p A)
+++ left |= x=@t (right x)
+                 ^
+/ui/lib.jibb:2:24: argument has type @t
+++ left |= x=@t (right x)
+                       ^

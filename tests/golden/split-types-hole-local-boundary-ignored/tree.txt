@@ -1,0 +1,10 @@
+(module
+  (value 4:1 ignored
+    (gate 4:12
+      (face 4:15 x (aura 4:17 @t))
+      (body 5:3
+        (value 5:3 id
+          (gate 5:9
+            (face 5:12 y (hole 5:14))
+            (wing 5:16 y)))
+        (wing 6:3 x)))))

@@ -1,0 +1,7 @@
+++ wrong: types do not unify
+/tests/golden/types-prelude-text-trim-cord-bad/source.jibb:1:11: expected type has type (list A)
+++ wrong (trim 1 "hi")
+          ^
+/tests/golden/types-prelude-text-trim-cord-bad/source.jibb:1:18: actual type has type @t
+++ wrong (trim 1 "hi")
+                 ^

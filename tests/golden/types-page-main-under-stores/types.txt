@@ -1,0 +1,3 @@
+module kind: static-page
+++ main: (element !!)
+++ view: (element M)

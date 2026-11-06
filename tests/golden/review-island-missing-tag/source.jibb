@@ -1,0 +1,16 @@
++$ msg
+  [%typed text=@t]
+  %submit
++$ model [draft=@t]
+++ main (program init update view subs)
+++ init |= input=@t ^- model [draft=input]
+++ update |= [=msg m=model]
+  ^- [model (list (cmd msg))]
+    ?- msg
+      [%typed t]  [m(draft=t) ~]
+      %submit     [m(draft="") ~]
+++ view |= m=model ^- (element msg)
+  row ~[gap+%s1] ~[
+    (field "New todo" draft.m |=%typed)
+    button "Add" %submitt
+++ subs |= m=model ^- (list (sub msg)) ~

@@ -1,0 +1,8 @@
+++ to-tape (trip "abc")
+++ to-codepoints (tuba (trip "abc"))
+++ empty-codepoints (tuba ~)
+++ count-codepoints |= value=@t
+  (lent (tuba (trip value)))
+
+
+

@@ -1,0 +1,7 @@
+++ earlier: cast field `title` does not fit
+/tests/golden/split-types-nested-missing-tag-earlier/source.jibb:4:11: expected field has type [title=@t]
++$ state [title=@t choice=msg]
+          ^
+/tests/golden/split-types-nested-missing-tag-earlier/source.jibb:8:22: expression has type @p
+++ earlier ^- state [~zod %missing]
+                     ^

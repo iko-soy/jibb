@@ -1,0 +1,7 @@
+12:1 glyph ++
+12:4 name open
+12:9 glyph ~[
+12:11 tight lit ~s1
+12:15 lit 2
+12:16 tight glyph ]
+12:17 NEWLINE

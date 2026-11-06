@@ -1,0 +1,4 @@
+origin types-union-finite
+target value duplicate
+keep mold choice
+keep value duplicate

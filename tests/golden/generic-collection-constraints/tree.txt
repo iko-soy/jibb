@@ -1,0 +1,47 @@
+(module
+  (value 1:1 same-list
+    (gate 1:14
+      (face 1:17 xs
+        (apply 1:20 list (tvar 1:26 A)))
+      (group 1:29
+        (call 1:30 (wing 1:30 eq) (wing 1:33 xs) (wing 1:36 xs)))))
+  (value 2:1 same-nested
+    (gate 2:16
+      (face 2:19 xs
+        (apply 2:22 list
+          (apply 2:28 unit (tvar 2:34 A))))
+      (group 2:38
+        (call 2:39 (wing 2:39 eq) (wing 2:42 xs) (wing 2:45 xs)))))
+  (value 3:1 same-record
+    (gate 3:16
+      (face 3:19 xs
+        (cell 3:22
+          (face 3:23 left
+            (apply 3:28 list (tvar 3:34 A)))
+          (face 3:37 right (tvar 3:43 B))))
+      (group 3:46
+        (call 3:47 (wing 3:47 eq) (wing 3:50 xs) (wing 3:53 xs)))))
+  (value 4:1 words-ok
+    (group 4:13
+      (call 4:14
+        (wing 4:14 same-list)
+        (list 4:24 (str 4:26 "hi")))))
+  (value 5:1 ships-ok
+    (group 5:13
+      (call 5:14
+        (wing 5:14 same-list)
+        (list 5:24 (lit 5:26 ~zod)))))
+  (value 6:1 keep-list
+    (gate 6:14
+      (face 6:17 xs
+        (apply 6:20 list (tvar 6:26 A)))
+      (wing 6:29 xs)))
+  (value 7:1 callback
+    (gate 7:13
+      (face 7:16 x (aura 7:18 @ud))
+      (wing 7:22 x)))
+  (value 8:1 callbacks
+    (group 8:14
+      (call 8:15
+        (wing 8:15 keep-list)
+        (list 8:25 (wing 8:27 callback))))))

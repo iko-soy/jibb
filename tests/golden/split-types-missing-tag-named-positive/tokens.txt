@@ -1,0 +1,36 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %typed
+2:11 name text
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 lit %add
+8:1 DEDENT
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name good
+8:9 glyph ^-
+8:12 name msg
+8:16 lit %add
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name good-head
+10:14 glyph ^-
+10:17 name msg
+10:21 glyph [
+10:22 tight lit %typed
+10:29 str "ok"
+10:33 tight glyph ]
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name take
+17:9 glyph |=
+17:12 name x
+17:13 tight glyph =
+17:14 tight name msg
+17:18 str "ok"
+17:22 NEWLINE

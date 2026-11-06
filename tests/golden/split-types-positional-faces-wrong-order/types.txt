@@ -1,0 +1,7 @@
+++ wrong-order: inline gate result does not unify with @ud: [x=@t y=@p] versus @ud
+/tests/golden/split-types-positional-faces-wrong-order/source.jibb:13:33: actual type has type [x=@t y=@p]
+++ wrong-order (record-identity [x="hi" y=~zod] 1)
+                                ^
+/tests/golden/split-types-positional-faces-wrong-order/source.jibb:13:17: call context has type [@ud [x=@t y=@p]]
+++ wrong-order (record-identity [x="hi" y=~zod] 1)
+                ^

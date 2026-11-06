@@ -1,0 +1,11 @@
+module kind: library
+++ siblings: $-(@t @p)
+++ captured: $-(A A)
+++ implicit: $-(A @p)
+++ fresh: $-(@t @t)
+++ captured-acyclic: $-(A A)
+++ implicit-capture: $-(@t @t)
+++ nested: $-(@t @t)
+++ atom: $-(@t @p)
+++ mold-param: $-(A [value=@t count=@ud])
+++ later-share: $-(A A)

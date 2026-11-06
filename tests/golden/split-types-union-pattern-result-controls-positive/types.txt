@@ -1,0 +1,8 @@
+module kind: library
++$ msg: msg
++$ reply: reply
+++ choose: $-(msg reply)
+++ from-call: $-((list @t) (list @t))
+++ non-wing: $-(msg (list @t))
+++ generic: $-([a=msg x=A] (list A))
+++ argument: $-(msg (list @t))

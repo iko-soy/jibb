@@ -1,0 +1,7 @@
+++ bad-aura: call's sample and argument types do not unify
+/tests/golden/split-types-deferred-call-context-bad-aura/source.jibb:14:28: called gate has type $-(@t @t)
+++ bad-aura |= x=@p ^- @t (local-id x)
+                           ^
+/tests/golden/split-types-deferred-call-context-bad-aura/source.jibb:14:37: argument has type @p
+++ bad-aura |= x=@p ^- @t (local-id x)
+                                    ^

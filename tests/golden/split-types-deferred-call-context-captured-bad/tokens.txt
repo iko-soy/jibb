@@ -1,0 +1,25 @@
+43:1 glyph ++
+43:4 name captured-bad
+43:17 glyph |=
+43:20 name sample
+44:3 INDENT
+44:3 glyph ++
+44:6 name local
+44:12 glyph |=
+44:15 name ignored
+44:23 name sample
+45:3 NEWLINE
+45:3 glyph ~&
+45:6 glyph ^-
+45:9 aura @t
+45:12 name sample
+46:5 INDENT
+46:5 glyph ^-
+46:8 aura @p
+46:11 glyph (
+46:12 tight name local
+46:18 lit ~zod
+46:22 tight glyph )
+46:23 DEDENT
+46:23 DEDENT
+46:23 NEWLINE

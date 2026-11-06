@@ -1,0 +1,7 @@
+++ different: call's sample and argument types do not unify
+/tests/golden/split-types-multi-call-different/source.jibb:14:15: called gate has type $-([@t @t] [@t @t])
+++ different (repeated "a" ~zod)
+              ^
+/tests/golden/split-types-multi-call-different/source.jibb:14:28: argument has type @p
+++ different (repeated "a" ~zod)
+                           ^

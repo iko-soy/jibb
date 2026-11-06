@@ -1,0 +1,21 @@
+++ identity |= x=(cmd @t) x
+++ generic |= x=(cmd A) x
+++ nav ^- (cmd @t) [%go url="/home"]
+++ time ^- (cmd @t) [%now reply=|=(d=@da "done")]
+
+++ send |= p=raw-poke
+  ^- (cmd @t) [%poke p |=(r=(unit @t) "done")]
+++ wait ^- (cmd @t) [%wait ~s30 "done"]
+++ who ^- (cmd @t) [%who |=(p=@p "done")]
+
+++ wrap-value |= x=A ^- (cmd A) [%wait ~s30 x]
+++ wrap-value-text (wrap-value "hello")
+++ wrap-value-ship (wrap-value ~zod)
+
+++ commands ^- (list (cmd @t)) ~[[%go "/home"] [%wait ~s30 "done"]]
+
+
+
+
+++ use-text |= x=(cmd @t) x
+

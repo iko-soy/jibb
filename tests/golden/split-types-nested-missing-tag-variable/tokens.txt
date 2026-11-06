@@ -1,0 +1,24 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %add
+3:3 NEWLINE
+3:3 lit %remove
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name variable
+17:13 glyph |=
+17:16 name x
+17:17 tight glyph =
+17:18 tight tvar A
+17:20 glyph ^-
+17:23 glyph [
+17:24 tight tvar A
+17:26 name msg
+17:29 tight glyph ]
+17:31 glyph [
+17:32 tight name x
+17:34 lit %missing
+17:42 tight glyph ]
+17:43 NEWLINE

@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ a: $-(@ud @ud)
 ++ b: $-(@ud @ud)
 ++ c: $-($-(@ud @ud) $-(@ud @ud))

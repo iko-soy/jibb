@@ -1,0 +1,37 @@
+1:1 glyph ++
+1:4 name inc
+1:8 glyph |=
+1:11 name n
+1:12 tight glyph =
+1:13 tight aura @ud
+1:17 name n
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name blame-empty-c-first
+23:24 glyph |=
+23:27 name x
+24:3 INDENT
+24:3 glyph ++
+24:6 name c
+24:8 glyph |=
+24:11 name y
+24:12 tight glyph =
+24:13 tight glyph !!
+24:16 name y
+25:3 NEWLINE
+25:3 glyph ++
+25:6 name a
+25:8 glyph (
+25:9 tight name c
+25:11 name x
+25:12 tight glyph )
+26:3 NEWLINE
+26:3 glyph ++
+26:6 name b
+26:8 glyph ^-
+26:11 aura @ud
+26:15 name x
+27:3 NEWLINE
+27:3 name a
+27:4 DEDENT
+27:4 NEWLINE

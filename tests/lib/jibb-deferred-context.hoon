@@ -16,8 +16,21 @@
   (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
 ++  report
   ^-  @t
-  =/  at=path  /ui/context/jibb
-  (golden-types-with-marks:jibb at (text rich) ~ ~)
+  %-  of-wain:format
+  :~  (case-report 'rich' rich)
+      (case-report 'plain' plain)
+      (case-report 'simple' simple)
+      (case-report 'missing' missing)
+      (case-report 'wrong' wrong)
+      (case-report 'duplicate' duplicate)
+      (case-report 'dangling' dangling)
+      (case-report 'collision early' collision-early)
+      (case-report 'collision late' collision-late)
+  ==
+++  case-report
+  |=  [label=@t source=wain]
+  ^-  @t
+  (cat 3 label (cat 3 '\0a' (golden-types-with-marks:jibb /ui/context/jibb (text source) ~ ~)))
 ++  test-context
   ^-  tang
   =/  at=path  /ui/context/jibb
@@ -70,8 +83,6 @@
   =/  actual=itype:jibb  [%tag 10 literal |]
   =/  st=istate:jibb  *istate:jibb
   =.  st  st(next 20)
-  ?^  (dg-stage:jibb ~ ~ ~ st ~ 65)  ~[leaf+"oversized retry fuel accepted"]
-  ?^  (dg-stage:jibb defs.p.parsed ~ ~ st ~ 0)  ~[leaf+"source beyond retry fuel accepted"]
   =/  atom=itype:jibb  [%const literal]
   =/  faced=itype:jibb  [%face %named atom]
   =/  union=itype:jibb  [%union ~[atom [%cell [%const [%term %tas %some '%some']] [%face %value [%atom %t]]]] ~ ~ ~]
@@ -79,9 +90,27 @@
   =/  fit
     |=  target=itype:jibb
     ^-  ?
-    =/  edge=dgo:jibb  [actual target *span:jibb *span:jibb]
-    ?=(^ (dg-replay-edges:jibb ~[edge] st 64))
-  ?.  &((fit atom) (fit union))  ~[leaf+"plain literal replay declined"]
-  ?:  |((fit faced) (fit faced-case))  ~[leaf+"faced literal replay accepted"]
+    =/  edge=icore-edge:jibb  [%fit actual target *span:jibb *span:jibb %literal ~]
+    =/  solved=(unit istate:jibb)  (icore-solve:jibb st(queue ~[edge], general-defer &))
+    ?~  solved  |
+    &(?=(~ core-error.u.solved) ?=(~ queue.u.solved))
+  ::  The retired transaction declined faced targets as a recovery limit.
+  ::  The ordinary queue can resolve them; incompatible written faces
+  ::  must still fail, and an explicit cast must retain its value face.
+  ?.  &((fit atom) (fit union) (fit faced) (fit faced-case))
+    ~[leaf+"known literal target did not settle"]
+  =/  incompatible=icore-edge:jibb
+    [%fit [%face %other atom] faced *span:jibb *span:jibb %literal ~]
+  =/  rejected=(unit istate:jibb)
+    (icore-solve:jibb st(queue ~[incompatible], general-defer &))
+  ?:  ?~(rejected | ?=(~ core-error.u.rejected))
+    ~[leaf+"conflicting literal faces were accepted"]
+  =/  literal-source=@t  '++ literal ^- [named=%none] %none\0a'
+  =/  literal-result=jfile-result:jibb
+    (infer-jibb-file:jibb at literal-source ~ ~ ~ ~[at] ~ ~ ~ ~)
+  ?:  ?=(%| -.literal-result)  ~[leaf+(trip p.literal-result)]
+  =/  value=(unit ischeme:jibb)  (ienv-lookup:jibb %literal values.iface.p.literal-result)
+  ?~  value  ~[leaf+"faced literal is missing"]
+  ?.  =(typ.u.value faced)  ~[leaf+"faced literal lost its declared face"]
   ~
 --

@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/generic-recursive-number-loobean/source.jibb:10:9
+site /tests/golden/generic-recursive-number-loobean/source.jibb:10:18
+min-sites 2

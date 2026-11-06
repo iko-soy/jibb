@@ -1,0 +1,3 @@
+message types do not unify
+site /tests/golden/split-types-request-normal-extra/source.jibb:7:11
+min-sites 2

@@ -1,8 +1,13 @@
-partial inference; module not checked
-++ open-a: name is not available to partial inference
-++ open-b: name is not available to partial inference
-++ delayed-a: name is not available to partial inference
-++ branch-a: name is not available to partial inference
-++ branch-b: name is not available to partial inference
-++ nested-a: local definitions need unsupported inference
-++ nested-b: name is not available to partial inference
+++ open-a: non-gate value `open-a` depends on itself through the cycle open-a -> open-b -> open-a
+/tests/golden/types-value-cycle-unsupported/source.jibb:1:4: definition in cycle
+++ open-a open-b
+   ^
+/tests/golden/types-value-cycle-unsupported/source.jibb:1:11: `open-a` depends on `open-b` here
+++ open-a open-b
+          ^
+/tests/golden/types-value-cycle-unsupported/source.jibb:2:4: definition in cycle
+++ open-b open-a
+   ^
+/tests/golden/types-value-cycle-unsupported/source.jibb:2:11: `open-b` depends on `open-a` here
+++ open-b open-a
+          ^

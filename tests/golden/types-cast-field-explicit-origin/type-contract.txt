@@ -1,0 +1,4 @@
+message cast field `inner.thing` does not fit
+typed-site /ui/field-origin.jibb:2:21
+typed-site /ui/field-origin.jibb:4:17
+min-sites 2

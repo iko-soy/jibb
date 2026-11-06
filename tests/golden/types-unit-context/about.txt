@@ -1,4 +1,4 @@
 source: Grammar, Literals: a backtick constructs a `(unit A)`; Tag resolution: tags and `~` take their type from context; Literals by context: cells and lists take their type from context.
 tests: Known standard unit payloads supply context through casts, calls, nested units, lists and record fields. Invalid tags, auras and faces report errors; different union origins and concrete forcing of written capitals fail closed. Shared capitals and unrelated pending literals are preserved.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker reports the first error; independent split cases retain the other checks

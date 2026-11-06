@@ -1,28 +1,28 @@
-partial inference; module not checked
+module kind: library
 ++ same: $-(A A)
 ++ head: $-([A B] A)
 ++ tail: $-([A B] B)
 ++ not: $-(? ?)
-+$ list: cases proven disjoint; mold not checked
-+$ unit: cases proven disjoint; mold not checked
++$ list: (list A)
++$ unit: (unit A)
 ++ fall: $-([(unit A) A] A)
 ++ need: $-((unit A) A)
-++ weld: sample mold is not supported by partial inference
-++ turn: sample mold is not supported by partial inference
-+$ dime: not checked
-+$ hair: not checked
-+$ pint: not checked
-+$ coin: cases proven disjoint; mold not checked
-+$ pair: not checked
-+$ trel: not checked
-+$ qual: not checked
-+$ cord: not checked
-+$ knot: not checked
-+$ tape: not checked
-+$ path: not checked
-+$ tank: cases proven disjoint; mold not checked
-+$ nail: not checked
-+$ edge: not checked
-+$ rule: not checked
-+$ spot: not checked
-+$ toon: cases proven disjoint; mold not checked
+++ weld: $-([(list A) (list A)] (list A))
+++ turn: $-([(list A) $-(A B)] (list B))
++$ dime: [p=@ta q=@]
++$ hair: [p=@ud q=@ud]
++$ pint: [p=[p=@ q=@] q=[p=@ q=@]]
++$ coin: coin
++$ pair: [p=A q=B]
++$ trel: [p=A [q=B r=C]]
++$ qual: [p=A [q=B [r=C s=D]]]
++$ cord: @t
++$ knot: @ta
++$ tape: (list @tD)
++$ path: (list @ta)
++$ tank: tank
++$ nail: [p=[p=@ud q=@ud] q=(list @tD)]
++$ edge: [p=[p=@ud q=@ud] q=(unit [p=* q=[p=[p=@ud q=@ud] q=(list @tD)]])]
++$ rule: $-([p=[p=@ud q=@ud] q=(list @tD)] [p=[p=@ud q=@ud] q=(unit [p=* q=[p=[p=@ud q=@ud] q=(list @tD)]])])
++$ spot: [p=(list @ta) q=[p=[p=@ q=@] q=[p=@ q=@]]]
++$ toon: toon

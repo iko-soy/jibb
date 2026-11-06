@@ -1,0 +1,7 @@
+++ mismatch: list item does not fit its expected type
+/tests/golden/split-types-prelude-list-functions-mismatch/source.jibb:8:14: expected item has type @t
+++ mismatch (weld ~["a"] ~[~zod])
+             ^
+/tests/golden/split-types-prelude-list-functions-mismatch/source.jibb:8:28: list item has type @p
+++ mismatch (weld ~["a"] ~[~zod])
+                           ^

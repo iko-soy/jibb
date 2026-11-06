@@ -1,36 +1,82 @@
 canonical
-partial inference; module not checked
+module kind: library
 ++ text-value: $-((list @t) (list @t))
 ++ ship: $-((list @p) (list @p))
+wrong
 ++ wrong: list item does not fit its expected type
-/ui/test.jibb:3:13: expected item has type @t
+/ui/test.jibb:1:13: expected item has type @t
 ++ wrong ^- (alias @t) ~[~zod]
             ^
-/ui/test.jibb:3:26: list item has type @p
+/ui/test.jibb:1:26: list item has type @p
 ++ wrong ^- (alias @t) ~[~zod]
                          ^
-++ shadow: local molds shadow a name
+shadow
+++ shadow: local mold `list` shadows an imported or prelude name
+/lib/jibb/prelude.jibb:1:4: earlier binding
++$ list |$ [A]
+   ^
+/ui/test.jibb:2:3: conflicting local mold
+  +$ list @t
+  ^
 altered
-partial inference; module not checked
-++ text-value: sample mold is not supported by partial inference
-++ ship: sample mold is not supported by partial inference
-++ wrong: cast mold is not supported by partial inference
-++ shadow: sample mold is not supported by partial inference
+module kind: library
+++ text-value: $-([@t @t] [@t @t])
+++ ship: $-([@p @p] [@p @p])
 omitted
-partial inference; module not checked
-++ text-value: sample mold is not supported by partial inference
-++ ship: sample mold is not supported by partial inference
-++ wrong: cast mold is not supported by partial inference
-++ shadow: sample mold is not supported by partial inference
+prelude mold `list` is not defined
+/lib/jibb/prelude.jibb:1:15: unknown mold
++$ bag |$ [A] (list A)
+              ^
+/lib/jibb/prelude.jibb:1:1: while checking this mold
++$ bag |$ [A] (list A)
+^
 duplicate
-partial inference; module not checked
-prelude interface is not supported
+definition `list` shadows an earlier definition
+/lib/jibb/prelude.jibb:1:1: earlier definition
++$ list |$ [A]
+^
+/lib/jibb/prelude.jibb:4:1: conflicting definition
++$ list |$ [A] [A A]
+^
 malformed
-partial inference; module not checked
-prelude source does not parse; module import inference unsupported
+/lib/jibb/prelude.jibb:3:18: expected `]` or a field on a deeper line, found the end of the file
+  [i=A t=(list A)
+                 ^
 cyclic
-partial inference; module not checked
-++ text-value: sample mold is not supported by partial inference
-++ ship: sample mold is not supported by partial inference
-++ wrong: cast mold is not supported by partial inference
-++ shadow: local molds shadow a name
+prelude mold aliases form a cycle at `bag`
+/lib/jibb/prelude.jibb:4:4: earlier alias
++$ bag |$ [A] (alias A)
+   ^
+/lib/jibb/prelude.jibb:5:17: cycle closes here
++$ alias |$ [A] (bag A)
+                ^
+/lib/jibb/prelude.jibb:4:1: while checking this mold
++$ bag |$ [A] (alias A)
+^
+altered literal
+++ value: list literal requires the standard recursive `list` mold
+/lib/jibb/prelude.jibb:1:4: earlier binding
++$ list |$ [A] [A A]
+   ^
+/ui/test.jibb:1:10: list literal
+++ value ~["a"]
+         ^
+omitted cast
+prelude mold `list` is not defined
+/lib/jibb/prelude.jibb:1:15: unknown mold
++$ bag |$ [A] (list A)
+              ^
+/lib/jibb/prelude.jibb:1:1: while checking this mold
++$ bag |$ [A] (list A)
+^
+cyclic cast
+prelude mold aliases form a cycle at `bag`
+/lib/jibb/prelude.jibb:4:4: earlier alias
++$ bag |$ [A] (alias A)
+   ^
+/lib/jibb/prelude.jibb:5:17: cycle closes here
++$ alias |$ [A] (bag A)
+                ^
+/lib/jibb/prelude.jibb:4:1: while checking this mold
++$ bag |$ [A] (alias A)
+^

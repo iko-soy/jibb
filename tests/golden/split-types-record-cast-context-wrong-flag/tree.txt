@@ -1,0 +1,10 @@
+(module
+  (mold 1:1 state
+    (cell 1:10
+      (face 1:11 items
+        (apply 1:17 list (aura 1:23 @t)))
+      (face 1:27 open (flag 1:32))))
+  (value 15:1 wrong-flag
+    (cast 15:15
+      (ref 15:18 state)
+      (tuple 15:24 (lit 15:25 ~) (str 15:27 "no")))))

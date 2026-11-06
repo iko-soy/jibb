@@ -1,0 +1,9 @@
+module kind: library
+++ each-alias: $-((list [key=K el=(element M)]) (element M)) where K contains no gates
+++ table-alias: $-([columns=(list [header=@t [width=length align=align]]) rows=(list [key=K cells=(list (element M))])] (element M)) where K contains no gates
+++ generic-each: $-((list [key=K el=(element M)]) (element M)) where K contains no gates
+++ generic-table: $-([columns=(list [header=@t [width=length align=align]]) rows=(list [key=K cells=(list (element M))])] (element M)) where K contains no gates
+++ keyed: (element M)
+++ nested: (element M)
+++ callback: $-(@ud @ud)
+++ gate-message: (element $-(@ud @ud))

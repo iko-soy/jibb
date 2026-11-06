@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-cmd-cross/source.jibb:21:21
+typed-site /tests/golden/split-types-prelude-cmd-cross/source.jibb:21:32
+min-sites 2

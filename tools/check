@@ -65,13 +65,14 @@ def tool(name, group='eval', *args):
 #  then the ship group, in the order they must run.  Times are from one
 #  run on four CPUs (2026-11-03).
 #
-#  arms-1 to arms-4 run the test- arms of every tests/lib suite under
+#  arms-1 to arms-8 run the test- arms of every tests/lib suite under
 #  eval, in shards of about equal time (tools/test-arms --list --shard
 #  2/4 shows the second).  A new suite in tests/lib joins a shard by
 #  itself; a slow one belongs in COSTS in tools/test-arms.
-ARM_SHARDS = 4
+ARM_SHARDS = 8
 
 CHECKS = [
+    Check('probes-eval', 'eval', ['tools/probe-regression']),
     tool('testdata/selftest'),                  # about 115 s
     tool('golden'),                             # about 60 to 100 s
 ] + [
@@ -81,6 +82,7 @@ CHECKS = [
 ] + [
     Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),
     tool('doc-fragments'),
+    tool('split-goldens'),
     #  The ship group.  ship-selftest leaves its fixture files on the
     #  jibb-dev desk, and ship-test, which syncs the desk to the repo
     #  first, puts the real ones back, so it must come after.
@@ -88,6 +90,8 @@ CHECKS = [
     Check('ship-test', 'ship', [SHIP, 'test']),
     Check('check-commit', 'ship', [SHIP, 'check-commit']),
     tool('clay-fixtures', 'ship'),
+    tool('check-my-app', 'ship'),
+    Check('probes-ship', 'ship', ['tools/probe-regression', '--backend', 'ship']),
 ]
 
 GROUPS = ('eval', 'ship')

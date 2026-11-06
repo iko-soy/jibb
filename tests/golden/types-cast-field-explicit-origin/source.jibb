@@ -1,0 +1,4 @@
++$ decoy [inner=[thing=@t] later=@ud]
++$ expected [inner=[thing=@t] later=@ud]
+++ bad ^- expected
+  [inner=[thing=~zod] later=1]

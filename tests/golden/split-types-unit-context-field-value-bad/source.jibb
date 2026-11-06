@@ -1,0 +1,46 @@
++$ msg
+  %go
+  %stay
+
+
+
++$ record [u=(unit msg) xs=(list (unit @t))]
+
+
+
+
+
+
+
+
+
+
+
+
+++ field-value-bad ^- record [`%bad ~[`"hi"]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

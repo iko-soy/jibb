@@ -1,0 +1,4 @@
+origin types-nested-missing-tag
+target value variable
+keep mold msg
+keep value variable

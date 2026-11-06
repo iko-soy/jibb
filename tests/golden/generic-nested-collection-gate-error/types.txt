@@ -1,0 +1,7 @@
+++ bad: unit payload does not fit its expected type
+/tests/golden/generic-nested-collection-gate-error/source.jibb:3:9: expected unit payload has type A where A contains no gates
+++ bad (same-nested ~[`callback])
+        ^
+/tests/golden/generic-nested-collection-gate-error/source.jibb:3:24: payload has type $-(@ud @ud)
+++ bad (same-nested ~[`callback])
+                       ^

@@ -1,0 +1,26 @@
+4:1 glyph +$
+4:4 name choice
+4:11 glyph |$
+4:14 glyph [
+4:15 tight tvar A
+4:16 tight glyph ]
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %some
+5:10 name value
+5:15 tight glyph =
+5:16 tight tvar A
+5:17 tight glyph ]
+6:3 NEWLINE
+6:3 lit %none
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name generic
+15:12 glyph ^-
+15:15 glyph (
+15:16 tight name choice
+15:23 aura @t
+15:25 tight glyph )
+15:27 lit %missing
+15:35 NEWLINE

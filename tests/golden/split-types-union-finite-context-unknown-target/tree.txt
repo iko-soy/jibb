@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %p)
+        (face 2:7 flag (flag 2:12))
+        (face 2:14 text (aura 2:19 @t)))
+      (const 3:3 %other)))
+  (value 46:1 unknown-target
+    (gate 46:19
+      (cell 46:22
+        (face 46:23 x (ref 46:25 input))
+        (face 46:31 y (tvar 46:33 A)))
+      (cast 46:36
+        (tvar 46:39 A)
+        (body 47:3
+          (branch 47:3
+            (wing 47:6 x)
+            (arm 48:5
+              (cell 48:5 (lit 48:6 %p) (lit 48:9 %.y) (bind 48:13 t))
+              (lit 48:16 %go))
+            (arm 49:5
+              (cell 49:5 (lit 49:6 %p) (lit 49:9 %.n) (bind 49:13 t))
+              (lit 49:16 %stay))
+            (arm 50:5 (lit 50:5 %other) (lit 50:12 %stay))))))))

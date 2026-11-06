@@ -1,0 +1,4 @@
+source: Overview, Prelude: Hoon section 1a arithmetic
+tests: min and recursive sub/mul retain a shared atom type, independent auras, and arithmetic's loobean exclusion
+expect: parses
+expect-types: exact call types and a generic arithmetic signature

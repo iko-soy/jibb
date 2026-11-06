@@ -1,0 +1,16 @@
+(module
+  (value 1:1 callback
+    (gate 1:13
+      (face 1:16 x (aura 1:18 @ud))
+      (wing 1:22 x)))
+  (value 2:1 each-alias (wing 2:15 each))
+  (value 3:1 bad
+    (group 3:8
+      (call 3:9
+        (wing 3:9 each-alias)
+        (list 3:20
+          (tuple 3:22
+            (face 3:23 key (wing 3:27 callback))
+            (face 3:36 el
+              (group 3:39
+                (call 3:40 (wing 3:40 text) (str 3:45 "x"))))))))))

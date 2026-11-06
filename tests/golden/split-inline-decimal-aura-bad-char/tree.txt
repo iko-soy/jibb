@@ -1,0 +1,3 @@
+(module
+  (value 10:1 char
+    (cast 10:9 (aura 10:12 @tD) (lit 10:16 97))))

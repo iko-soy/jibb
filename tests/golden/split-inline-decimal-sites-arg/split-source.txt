@@ -1,0 +1,4 @@
+origin inline-decimal-sites
+target value arg
+keep value arg
+keep value pause

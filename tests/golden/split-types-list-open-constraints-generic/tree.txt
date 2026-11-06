@@ -1,0 +1,7 @@
+(module
+  (value 4:1 generic
+    (gate 4:12
+      (cell 4:15
+        (face 4:16 a (tvar 4:18 A))
+        (face 4:20 b (tvar 4:22 B)))
+      (list 4:25 (wing 4:27 a) (wing 4:29 b)))))

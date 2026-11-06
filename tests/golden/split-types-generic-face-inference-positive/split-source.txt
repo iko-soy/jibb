@@ -1,0 +1,6 @@
+origin types-generic-face-inference
+target value make
+keep mold choice
+keep value make
+keep value nested
+keep value record

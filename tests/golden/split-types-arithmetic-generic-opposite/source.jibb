@@ -1,0 +1,21 @@
+++ sum |= [a=A b=A] (add a b)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ opposite |= [b=? x=@] (sum b x)
+

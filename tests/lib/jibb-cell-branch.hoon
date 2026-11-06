@@ -1,7 +1,8 @@
-::  Bounded closed-cell branch context; no runtime or island claim.
-/+  jibb
+::  The common matrix checks both branch arms against the supplied context.
+/+  jibb, jibb-prelude-fixture
 /*  public    %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  good      %txt   /tests/type-cell-branch/good/txt
 /*  bad       %txt   /tests/type-cell-branch/bad/txt
 |%
@@ -13,7 +14,7 @@
   ^-  tang
   ?~  good  ~[leaf+"cell branch good source missing"]
   ?~  bad  ~[leaf+"cell branch bad source missing"]
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb public internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  ~[leaf+"cell branch prelude unavailable"]
   =/  a  (parse:jibb /tests/branch/jibb (text good))
   =/  b  (parse:jibb /tests/branch/jibb (text bad))
@@ -27,27 +28,18 @@
   =/  computed=(unit itype:jibb)  (template-apply:jibb u.unit-scheme ~[[%atom %t]])
   ?~  computed  ~[leaf+"cell branch unit instantiation failed"]
   =/  expected=itype:jibb  [%cell [%atom %t] u.computed]
-  =/  env=ienv:jibb  ~[[%flag [[%flag ~] ~]]]
+  =/  env=ienv:jibb  ~[[%flag [[%flag ~] ~ ~]]]
   =/  state=istate:jibb  *istate:jibb
   =.  state  state(prelude `iface.u.prep, jrec-fuel 256)
-  =/  original=iresult:jibb  (infer-fragment:jibb val.i.bd env state)
-  =/  failed=iresult:jibb  (infer-closed-cell-branch:jibb val.i.bd expected env state (span-of:jibb val.i.bd))
-  =/  success=iresult:jibb  (infer-closed-cell-branch:jibb val.i.ad expected env state (span-of:jibb val.i.ad))
-  =/  hidden=isub:jibb  ~[[55 [%face %x [%atom %t]]]]
-  ?.  (closed-cell-branch-eligible:jibb val.i.bd expected ~)  ~[leaf+"negative branch is not eligible"]
-  ?.  ?=(%| -.original)  ~[leaf+"original negative branch unexpectedly inferred"]
-  ?.  =(original failed)  ~[leaf+"failed retry changed the original result"]
-  ?.  ?=(%& -.success)  ~[leaf+"valid closed branch did not infer"]
-  ?:  (closed-cell-branch-eligible:jibb val.i.ad expected hidden)  ~[leaf+"structural substitution accepted"]
-  =/  atom=expr:jibb  *expr:jibb
-  =/  nodes=(list expr:jibb)  (reap 512 atom)
-  ?.  (closed-cell-retry-safe:jibb nodes 512)  ~[leaf+"exact source budget rejected"]
-  ?:  (closed-cell-retry-safe:jibb [atom nodes] 512)  ~[leaf+"source budget exceeded"]
-  =/  binding=ibinding:jibb  [55 [%atom %t]]
-  =/  subs=isub:jibb  (reap 512 binding)
-  ?.  (closed-cell-sub-safe:jibb subs 512)  ~[leaf+"exact substitution budget rejected"]
-  ?:  (closed-cell-sub-safe:jibb [binding subs] 512)  ~[leaf+"substitution budget exceeded"]
-  =/  nested=expr:jibb  [%branch *span:jibb atom ~]
-  ?:  (closed-cell-retry-safe:jibb ~[nested] 512)  ~[leaf+"recursive retry was not excluded"]
+  =/  failed=iresult:jibb  (infer-call-context-arg:jibb val.i.bd expected env state (span-of:jibb val.i.bd))
+  =/  success=iresult:jibb  (infer-call-context-arg:jibb val.i.ad expected env state (span-of:jibb val.i.ad))
+  ?.  ?=(%| -.failed)  ~[leaf+"wrong branch arm was accepted"]
+  ?.  ?=([* * *] sites.p.failed)  ~[leaf+"wrong branch arm lost its two diagnostic sites"]
+  ?.  ?=(%& -.success)  ~[leaf+"valid branch did not infer"]
+  =/  fitted=ifit:jibb  (itype-fit:jibb typ.p.success expected sub.state.p.success next.state.p.success)
+  ?.  ?=(%ok -.fitted)  ~[leaf+"branch result does not fit its context"]
+  =/  hidden=isub:jibb  (isub-from-bindings:jibb ~[[55 [%face %x [%atom %t]]]])
+  =/  unrelated=iresult:jibb  (infer-call-context-arg:jibb val.i.ad expected env state(sub hidden) (span-of:jibb val.i.ad))
+  ?.  ?=(%& -.unrelated)  ~[leaf+"unrelated type binding prevented a valid branch"]
   ~
 --

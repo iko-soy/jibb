@@ -1,0 +1,7 @@
+++ occurs: call requires an infinite type: its gate occurs inside its own sample
+/tests/golden/split-types-multi-call-occurs/source.jibb:26:17: called gate has type A
+++ occurs |= f (f f f)
+                ^
+/tests/golden/split-types-multi-call-occurs/source.jibb:26:19: sample containing the same gate has type [A A]
+++ occurs |= f (f f f)
+                  ^

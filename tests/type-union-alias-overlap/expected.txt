@@ -1,8 +1,8 @@
 same head and inhabited payload overlap: ok
 zero spelling overlap: ok
 original same-case spans retained: ok
-partial report displays same overlap: ok
-partial report displays zero overlap: ok
+full report displays same overlap: ok
+full report displays zero overlap: ok
 distinct heads do not overlap: ok
 distinct singleton payloads do not overlap: ok
 empty payload has no witness: ok

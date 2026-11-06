@@ -1,0 +1,7 @@
+++ unresolved: capital `A` cannot be fixed to %missing
+/tests/golden/split-types-nested-missing-tag-unresolved/source.jibb:18:20: capital
+++ unresolved |= x=A ^- [A A] [x %missing]
+                   ^
+/tests/golden/split-types-nested-missing-tag-unresolved/source.jibb:18:31: forcing expression
+++ unresolved |= x=A ^- [A A] [x %missing]
+                              ^

@@ -1,0 +1,16 @@
+(module
+  (value 1:1 same-list
+    (gate 1:14
+      (face 1:17 xs
+        (apply 1:20 list (tvar 1:26 A)))
+      (group 1:29
+        (call 1:30 (wing 1:30 eq) (wing 1:33 xs) (wing 1:36 xs)))))
+  (value 2:1 callback
+    (gate 2:13
+      (face 2:16 x (aura 2:18 @ud))
+      (wing 2:22 x)))
+  (value 3:1 bad
+    (group 3:8
+      (call 3:9
+        (wing 3:9 same-list)
+        (list 3:19 (wing 3:21 callback))))))

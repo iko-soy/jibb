@@ -1,0 +1,4 @@
+origin types-nested-shallow-preserve
+target value unknown-target
+keep value number-id
+keep value unknown-target

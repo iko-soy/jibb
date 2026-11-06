@@ -3,4 +3,4 @@
   %idle
 ++ send |= f=$-([wrong=@t n=@ud] A) f
 ++ nested (send |=%got)
-++ main ^- $-([wrong=@t n=@ud] message) nested
+++ resolved ^- $-([wrong=@t n=@ud] message) nested

@@ -1,0 +1,47 @@
+(module
+  (mold 1:1 spacing
+    (union 2:3 (const 2:3 %s0) (const 3:3 %s1) (const 4:3 %s2) (const 5:3 %s3)))
+  (mold 6:1 extent
+    (union 7:3
+      (cell 7:3
+        (const 7:4 %fill)
+        (face 7:10 n (aura 7:12 @ud)))
+      (const 8:3 %shrink)))
+  (mold 9:1 attribute
+    (union 10:3
+      (cell 10:3 (const 10:4 %gap) (ref 10:9 spacing))
+      (cell 11:3 (const 11:4 %pad) (ref 11:9 spacing))
+      (cell 12:3 (const 12:4 %width) (ref 12:11 extent))))
+  (value 17:1 one
+    (cast 17:8
+      (ref 17:11 attribute)
+      (pair 17:21 gap (lit 17:25 %s2))))
+  (value 18:1 equiv
+    (cast 18:10
+      (ref 18:13 attribute)
+      (tuple 18:23 (lit 18:24 %gap) (lit 18:29 %s2))))
+  (value 19:1 attributes
+    (cast 19:15
+      (apply 19:18 list (ref 19:24 attribute))
+      (list 19:35
+        (pair 19:37 gap (lit 19:41 %s2))
+        (pair 19:45 pad (lit 19:49 %s3))
+        (pair 19:53 width
+          (tuple 19:59 (lit 19:60 %fill) (lit 19:66 1))))))
+  (value 20:1 gap-structural
+    (cast 20:19
+      (cell 20:22 (aura 20:23 @tas) (aura 20:28 @tas))
+      (pair 20:34 gap (lit 20:38 %s2))))
+  (value 21:1 nested
+    (cast 21:11
+      (ref 21:14 attribute)
+      (pair 21:24 width
+        (tuple 21:30 (lit 21:31 %fill) (lit 21:37 1)))))
+  (value 26:1 noun-pair
+    (cast 26:14
+      (cell 26:17 (noun 26:18) (noun 26:20))
+      (pair 26:23 gap (lit 26:27 %s2))))
+  (value 27:1 atom-pair
+    (cast 27:14
+      (cell 27:17 (aura 27:18 @ta) (aura 27:22 @tas))
+      (pair 27:28 gap (lit 27:32 %s2)))))

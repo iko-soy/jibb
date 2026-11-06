@@ -1,0 +1,82 @@
++$ input
+  [%item flag=? text=@t]
+  %none
+
+
+
+++ local-id |= x x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ explicit |= [x=input y=A] ^- (list A)
+  ?- (local-id x)
+    [%item flag words] ~["text"]
+    %none ~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

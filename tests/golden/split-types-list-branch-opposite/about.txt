@@ -1,0 +1,4 @@
+source: split from types-list-branch, preserving the original source lines
+tests: the independent opposite diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

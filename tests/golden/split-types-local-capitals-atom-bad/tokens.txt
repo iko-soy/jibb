@@ -1,0 +1,32 @@
+69:1 glyph ++
+69:4 name atom-bad
+69:13 glyph |=
+69:16 name x
+69:17 tight glyph =
+69:18 tight aura @t
+70:3 INDENT
+70:3 glyph ++
+70:6 name inner
+70:12 glyph |=
+70:15 name y
+70:16 tight glyph =
+70:17 tight tvar A
+71:5 INDENT
+71:5 glyph ~&
+71:8 glyph ^-
+71:11 aura @
+71:13 name y
+72:7 INDENT
+72:7 name y
+73:3 DEDENT
+73:3 DEDENT
+73:3 NEWLINE
+73:3 glyph (
+73:4 tight name inner
+73:10 glyph [
+73:11 tight name x
+73:13 lit ~zod
+73:17 tight glyph ]
+73:18 tight glyph )
+73:19 DEDENT
+73:19 NEWLINE

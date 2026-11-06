@@ -1,0 +1,7 @@
+++ explicit-force: capital `A` cannot be fixed to @ud
+/tests/golden/split-types-string-interpolation-explicit-force/source.jibb:26:24: capital
+++ explicit-force |= x=A "{^- @ud x}"
+                       ^
+/tests/golden/split-types-string-interpolation-explicit-force/source.jibb:26:35: forcing expression
+++ explicit-force |= x=A "{^- @ud x}"
+                                  ^

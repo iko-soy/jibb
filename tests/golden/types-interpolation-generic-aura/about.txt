@@ -1,0 +1,4 @@
+source: Grammar, Literals by context and interpolation
+tests: a later call cannot specialize an explicit generic aura; both the interpolated value and capital declaration are shown
+expect: parses
+expect-types: exact full-checker error

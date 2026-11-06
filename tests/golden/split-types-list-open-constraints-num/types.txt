@@ -1,0 +1,7 @@
+++ num: `1` is a @ud, not a @ux; write 0x1
+/tests/golden/split-types-list-open-constraints-num/source.jibb:6:10: decimal
+++ num ~[1 0x1f]
+         ^
+/tests/golden/split-types-list-open-constraints-num/source.jibb:6:12: expected type has type @ux
+++ num ~[1 0x1f]
+           ^

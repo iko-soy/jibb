@@ -1,7 +1,7 @@
-partial inference; module not checked
-++ sink-unit: $-((unit [a=@t b=B]) @t)
-++ unit-bad: unit payload constraint is not supported by partial inference
-++ sink-list: $-((list [a=@t b=B]) @t)
-++ list-bad: list item constraint is not supported by partial inference
-++ sink-nested: $-([one=[a=@t b=B] other=@ud] @t)
-++ nested-bad: call constraint is not supported by partial inference
+++ unit-bad: unit payload does not fit its expected type
+/tests/golden/types-proj-nested-no-implicit/source.jibb:2:14: expected unit payload has type [a=@t b=B]
+++ unit-bad (sink-unit `[a="x" b=~zod c=%.y])
+             ^
+/tests/golden/types-proj-nested-no-implicit/source.jibb:2:25: payload has type [a=@t [b=@p c=?]]
+++ unit-bad (sink-unit `[a="x" b=~zod c=%.y])
+                        ^

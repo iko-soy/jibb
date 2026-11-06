@@ -1,0 +1,27 @@
++$ msg
+  [%typed text=@t]
+  [%submit ~]
+  %clear
+
+
+
+
+
+
+
+
+++ typed |= m=msg
+  ?- m
+    [typed t]   t
+    [%submit ~] "s"
+    %clear      "c"
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,4 @@
+origin types-partial-atom-constraint
+target value bad
+keep value bad
+keep value keep

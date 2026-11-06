@@ -1,0 +1,20 @@
+(module
+  (value 9:1 after-self
+    (gate 9:15
+      (face 9:18 x (aura 9:20 @t))
+      (body 10:3
+        (value 10:3 recur
+          (gate 10:12
+            (face 10:15 y (aura 10:17 @t))
+            (body 11:5
+              (branch 11:5
+                (lit 11:8 %.y)
+                (arm 12:7
+                  (lit 12:7 %.y)
+                  (group 12:11
+                    (call 12:12 (wing 12:12 recur) (wing 12:18 y))))
+                (arm 13:7
+                  (lit 13:7 %.n)
+                  (cast 13:11 (aura 13:14 @ud) (wing 13:18 y)))))))
+        (group 14:3
+          (call 14:4 (wing 14:4 recur) (wing 14:10 x)))))))

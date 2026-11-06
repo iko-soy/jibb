@@ -1,0 +1,4 @@
+origin inline-pattern-tag-name-one-case
+target value stopped
+keep mold halt
+keep value stopped

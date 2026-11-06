@@ -1,7 +1,8 @@
-::  Narrow closed program-main checking, without execution or watchability claims.
-/+  jibb
+::  Full program-kind checking, aliases, closed interfaces and diagnostics.
+/+  jibb, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  source  %txt  /tests/type-program-main/source/txt
 /*  consumer  %txt  /tests/type-program-main/consumer/txt
 /*  gate-model  %txt  /tests/type-program-main/gate-model/txt
@@ -20,7 +21,7 @@
 ++  program-prepared
   |=  [public=@t private=@t]
   ^-  (unit iprelude:jibb)
-  (prepare-prelude-with-internal:jibb public private)
+  (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
 ::
 ++  program-main-detailed
   |=  [at=path src=@t modules=jbundle:jibb prepared=iprelude:jibb]
@@ -67,13 +68,7 @@
   ?~  view  ~["view interface is missing"]
   ?~  subs  ~["subs interface is missing"]
   ?~  main  ~["main interface is missing"]
-  =/  parsed  (parse:jibb at island)
-  ?:  ?=(%| -.parsed)  ~["program source no longer parses"]
-  =/  main-def=(unit def:jibb)  (program-main-def:jibb defs.p.parsed)
-  ?~  main-def  ~["program main definition is missing"]
-  =/  parts  (program-main-parts:jibb u.main-def)
-  ?~  parts  ~["program main parts are missing"]
-  ?:  (program-main-closed:jibb u.parts defs.p.parsed values.checked ~ ~ u.graph.checked)
+  ?:  (program-type-closed:jibb values.checked ~)
     ~["program kind was accepted without its source-backed prelude"]
   =/  program-scheme=(unit ischeme:jibb)  (ienv-lookup:jibb %program values.iface.u.prepared)
   ?~  program-scheme  ~["synthetic program scheme is missing"]
@@ -81,11 +76,12 @@
   =/  broken-values=ienv:jibb
     (skim values.iface.u.prepared |=(entry=[name=term scheme=ischeme:jibb] !=(%program name.entry)))
   =/  broken=ifile:jibb
-    iface.u.prepared(values [[%program [[%fn sample.typ.u.program-scheme [%atom %ud]] vars.u.program-scheme]] broken-values])
+    iface.u.prepared(values [[%program [[%fn sample.typ.u.program-scheme [%atom %ud]] vars.u.program-scheme ~]] broken-values])
   =/  malformed=jfile-detailed-result:jibb
     (infer-jibb-file-detailed:jibb at island ~ ~ ~ ~[at] values.u.prepared molds.u.prepared ~ `broken)
   ?:  ?=(%& -.malformed)  ~["program result was not checked against the program mold"]
-  =/  kind-error=@t  (crip "module kind needs unsupported inference: {(spud at)}")
+  =/  kind-error=@t
+    (of-wain:format ~['++ main: main has type @ud; expected an element, page, program, or store' '/tests/program-main/island.jibb:5:4: main has type @ud' '++ main (program (init) update view subs)' '   ^'])
   ?.  =(message.p.malformed kind-error)  ~["malformed program failed before the kind check"]
   =/  open=jfile-detailed-result:jibb
     (program-main-detailed at (snag 6 negatives) ~ u.prepared)
@@ -93,10 +89,10 @@
   =/  other-values=ienv:jibb
     (skim values.checked |=(entry=[name=term scheme=ischeme:jibb] !=(%main name.entry)))
   =/  open-values=ienv:jibb  [[%main u.main(vars ~[0])] other-values]
-  ?:  (program-main-closed:jibb u.parts defs.p.parsed open-values `iface.u.prepared ~ u.graph.checked)
+  ?:  (program-type-closed:jibb open-values `iface.u.prepared)
     ~["generic main scheme passed the closure check"]
   =/  model=itype:jibb  [%face %count [%atom %ud]]
-  ?.  =(u.init [[%fn [%atom %t] model] ~])  ~["init interface type differs"]
+  ?.  =(u.init [[%fn [%atom %t] model] ~ ~])  ~["init interface type differs"]
   ?.  ?=(~ vars.u.main)  ~["main interface is not closed"]
   =/  init-fields=(list itype:jibb)  (record-fields-named:jibb %init typ.u.main ~)
   =/  update-fields=(list itype:jibb)  (record-fields-named:jibb %update typ.u.main ~)
@@ -115,14 +111,26 @@
   ?~  use  ~["downstream imported initializer is missing"]
   ?.  =(u.use u.init)  ~["downstream imported initializer type differs"]
   ?.  =(7 (lent negatives))  ~["focused negative fixture count differs"]
+  =/  relocated=jfile-detailed-result:jibb
+    (program-main-detailed /ui/stores/program-main/jibb island ~ u.prepared)
+  ?:  ?=(%| -.relocated)  ~[(weld "program under stores directory rejected: " (trip message.p.relocated))]
+  ?.  =(%island kind.p.relocated)  ~["stores directory changed program kind"]
+  =/  api-located=jfile-detailed-result:jibb
+    (program-main-detailed /ui/api/program-main/jibb island ~ u.prepared)
+  ?:  ?=(%| -.api-located)  ~[(weld "program under api directory rejected: " (trip message.p.api-located))]
+  ?.  =(%island kind.p.api-located)  ~["api directory changed program kind"]
+  =/  aliased=jfile-detailed-result:jibb
+    (program-main-detailed at (snag 5 negatives) ~ u.prepared)
+  ?:  ?=(%| -.aliased)  ~[(weld "program builder alias rejected: " (trip message.p.aliased))]
+  =/  alias-main=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.iface.p.aliased)
+  ?~  alias-main  ~["program builder alias main missing"]
+  ?.  =(u.alias-main u.main)  ~["program builder alias changed main's type"]
   =/  cases=(list [label=@t at=path src=@t])
     :~  ['gate in model' at (snag 0 negatives)]
         ['gate in data' at (snag 1 negatives)]
         ['nonempty subs' at (snag 2 negatives)]
         ['mismatched model' at (snag 3 negatives)]
         ['arbitrary main' at (snag 4 negatives)]
-        ['store path' /ui/stores/program-main/jibb island]
-        ['program alias' at (snag 5 negatives)]
     ==
   (zing (turn cases |=(c=[label=@t at=path src=@t] (program-main-negative-errors label.c at.c src.c u.prepared))))
 ::

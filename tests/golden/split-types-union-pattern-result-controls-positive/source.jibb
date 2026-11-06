@@ -1,0 +1,55 @@
++$ msg
+  [%text value=@t]
+  %clear
++$ reply
+  %yes
+  %no
+++ choose |= a=msg ^- reply
+  ?- a
+    [%text v] %yes
+    %clear %no
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ from-call |= x=(list @t) x
+++ non-wing |= a=msg ^- (list @t)
+  ?- (same a)
+    %clear ~
+    [%text v] ~[v]
+++ generic |= [a=msg x=A] ^- (list A)
+  ?- a
+    %clear ~
+    [%text v] ~[x]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ argument |= a=msg
+  (from-call
+    ?- a
+      %clear ~
+      [%text v] ~[v]

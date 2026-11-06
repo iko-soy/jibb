@@ -1,0 +1,8 @@
+origin types-union-finite
+target value boolean-table
+keep mold choice
+keep mold msg
+keep value boolean-table
+keep value parent
+keep value typed
+keep value wildcard

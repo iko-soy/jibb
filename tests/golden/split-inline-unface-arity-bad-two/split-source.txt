@@ -1,0 +1,4 @@
+origin inline-unface-arity-bad
+target value two
+keep value lt-a
+keep value two

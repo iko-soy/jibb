@@ -1,0 +1,7 @@
+6:1 glyph ++
+6:4 name num
+6:8 glyph ~[
+6:10 tight lit 1
+6:12 lit 0x1f
+6:16 tight glyph ]
+6:17 NEWLINE

@@ -1,0 +1,12 @@
+(module
+  (value 18:1 forced
+    (gate 18:11
+      (cell 18:14
+        (face 18:15 first (tvar 18:21 A))
+        (face 18:23 second (tvar 18:30 B)))
+      (body 19:3
+        (trace 19:3
+          (cast 19:6 (aura 19:9 @t) (wing 19:12 first))
+          (body 20:5
+            (group 20:5
+              (call 20:6 (wing 20:6 forced) (wing 20:13 first) (wing 20:19 second)))))))))

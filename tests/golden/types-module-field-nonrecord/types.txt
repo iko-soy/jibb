@@ -1,2 +1,7 @@
-partial inference; module not checked
-++ wrong: field is not available to partial inference
+++ wrong: record has no field `field`
+/tests/golden/types-module-field-nonrecord/source.jibb:1:4: record binding has type [title=@t address=[zip=@t]]
+/= lib /ui/lib
+   ^
+/tests/golden/types-module-field-nonrecord/source.jibb:2:10: field access on record has type @t
+++ wrong field.title.profile.lib
+         ^

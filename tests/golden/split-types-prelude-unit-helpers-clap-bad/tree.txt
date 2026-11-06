@@ -1,0 +1,11 @@
+(module
+  (value 14:1 clap-bad
+    (group 14:13
+      (call 14:14
+        (wing 14:14 clap)
+        (unit 14:19 (str 14:20 "hi"))
+        (unit 14:25 (lit 14:26 ~zod))
+        (gate-wide 14:31
+          (face 14:34 p
+            (cell 14:36 (aura 14:37 @t) (aura 14:40 @t)))
+          (str 14:44 "yes"))))))

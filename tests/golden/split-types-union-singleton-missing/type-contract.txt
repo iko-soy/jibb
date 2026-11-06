@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-union-singleton-missing/source.jibb:10:15
+typed-site /tests/golden/split-types-union-singleton-missing/source.jibb:10:28
+min-sites 2

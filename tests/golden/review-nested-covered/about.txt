@@ -1,0 +1,4 @@
+source: docs/reviews/2026-11-03-milestone-2-probes/errors/p2.jibb, S2-move-any-covered
+tests: a strict nested move arm covered by an earlier wildcard arm is diagnosed through the full checker
+expect: parses
+expect-types: exact full-checker error

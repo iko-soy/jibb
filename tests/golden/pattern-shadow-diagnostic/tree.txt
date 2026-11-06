@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 choice
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %a)
+        (face 2:7 value (aura 2:13 @t)))
+      (const 3:3 %b)))
+  (value 4:1 complete (str 4:13 "c"))
+  (value 5:1 shadow
+    (gate 5:11
+      (face 5:14 v (ref 5:16 choice))
+      (body 6:3
+        (branch 6:3
+          (wing 6:6 v)
+          (arm 7:5
+            (cell 7:5 (lit 7:6 %a) (bind 7:9 complete))
+            (wing 7:19 complete))
+          (arm 8:5 (lit 8:5 %b) (str 8:8 "b")))))))

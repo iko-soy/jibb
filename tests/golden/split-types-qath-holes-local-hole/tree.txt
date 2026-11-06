@@ -1,0 +1,12 @@
+(module
+  (value 5:1 local-hole
+    (body 6:3
+      (value 6:3 ignored
+        (gate 6:14
+          (face 6:17 x (hole 6:19))
+          (wing 6:21 x)))
+      (cast 7:3
+        (ref 7:6 qath)
+        (tuple 7:11
+          (face 7:12 i (lit 7:14 ~.hello))
+          (face 7:22 t (lit 7:24 ~)))))))

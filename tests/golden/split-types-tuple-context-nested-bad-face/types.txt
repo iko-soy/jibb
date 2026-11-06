@@ -1,0 +1,7 @@
+++ bad-face: types do not unify
+/tests/golden/split-types-tuple-context-nested-bad-face/source.jibb:7:14: expected type has type [payload=msg]
+++ bad-face (take [wrong=%go xs=~])
+             ^
+/tests/golden/split-types-tuple-context-nested-bad-face/source.jibb:7:26: actual type has type [wrong=A]; A remains unresolved for tag `%go`
+++ bad-face (take [wrong=%go xs=~])
+                         ^

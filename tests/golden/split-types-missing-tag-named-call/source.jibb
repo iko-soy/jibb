@@ -1,0 +1,23 @@
++$ msg
+  [%typed text=@t]
+  %add
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ take |= x=msg "ok"
+++ call (take %submitt)
+
+
+
+
+

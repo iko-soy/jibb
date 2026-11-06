@@ -7,4 +7,4 @@ union mold is accepted, including when unused. Mold and
 value namespaces remain separate. The report does not claim the module is
 checked.
 expect: parses
-expect-types: a partial inference report, not a checked module
+expect-types: full checker reports the first error; independent split cases retain the other checks

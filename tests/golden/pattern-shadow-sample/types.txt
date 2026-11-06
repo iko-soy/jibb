@@ -1,0 +1,7 @@
+++ shadow: pattern binder `v` shadows a name already in scope
+/tests/golden/pattern-shadow-sample/source.jibb:4:14: earlier binding
+++ shadow |= v=choice
+             ^
+/tests/golden/pattern-shadow-sample/source.jibb:6:9: shadowing binder
+    [%a v] v
+        ^

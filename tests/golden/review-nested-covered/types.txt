@@ -1,0 +1,7 @@
+++ describe: branch arm is covered by earlier arms
+/tests/golden/review-nested-covered/source.jibb:6:5: covering arm
+    [%move * *]  "move"
+    ^
+/tests/golden/review-nested-covered/source.jibb:7:5: covered arm
+    [%move %left n]  "left"
+    ^

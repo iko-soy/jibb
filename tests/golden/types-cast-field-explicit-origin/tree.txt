@@ -1,0 +1,22 @@
+(module
+  (mold 1:1 decoy
+    (cell 1:10
+      (face 1:11 inner
+        (cell 1:17
+          (face 1:18 thing (aura 1:24 @t))))
+      (face 1:28 later (aura 1:34 @ud))))
+  (mold 2:1 expected
+    (cell 2:13
+      (face 2:14 inner
+        (cell 2:20
+          (face 2:21 thing (aura 2:27 @t))))
+      (face 2:31 later (aura 2:37 @ud))))
+  (value 3:1 bad
+    (cast 3:8
+      (ref 3:11 expected)
+      (body 4:3
+        (tuple 4:3
+          (face 4:4 inner
+            (tuple 4:10
+              (face 4:11 thing (lit 4:17 ~zod))))
+          (face 4:23 later (lit 4:29 1)))))))

@@ -1,0 +1,8 @@
+
+
+
+
+
+++ nonzero-constant |= [f=$-([(list @t) @t] @t) z=%1] (f [z "ok"])
+
+

@@ -1,0 +1,27 @@
+
+
+
+
++$ dir
+  %left
+  %right
++$ step
+  [%move d=dir n=@ud]
+  [text=@t %draft]
+  %stop
+
+
+
+
+
+
+++ move |= s=step
+  ?- s
+    [%move left n] "x"
+    [t %draft]     t
+    %stop          "s"
+
+
+
+
+

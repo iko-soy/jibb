@@ -1,0 +1,24 @@
+16:1 glyph ++
+16:4 name repeated
+16:13 glyph |=
+16:16 glyph [
+16:17 tight name a
+16:18 tight glyph =
+16:19 tight tvar A
+16:21 name b
+16:22 tight glyph =
+16:23 tight tvar A
+16:24 tight glyph ]
+16:26 glyph ~[
+16:28 tight name a
+16:30 name b
+16:31 tight glyph ]
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name call-wrong
+19:15 glyph (
+19:16 tight name repeated
+19:25 str "hi"
+19:30 lit ~zod
+19:34 tight glyph )
+19:35 NEWLINE

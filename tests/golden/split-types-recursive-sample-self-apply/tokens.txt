@@ -1,0 +1,17 @@
+17:1 glyph ++
+17:4 name self-apply
+17:15 glyph |=
+17:18 glyph [
+17:19 tight name first
+17:24 tight glyph =
+17:25 tight tvar A
+17:27 name second
+17:33 tight glyph =
+17:34 tight tvar B
+17:35 tight glyph ]
+17:37 glyph (
+17:38 tight name self-apply
+17:49 name self-apply
+17:60 name second
+17:66 tight glyph )
+17:67 NEWLINE

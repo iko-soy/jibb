@@ -1,8 +1,3 @@
-partial inference; module not checked
-++ atom-id: $-(@ @)
-++ call: @
-++ widen: @
-++ flag: @
 ++ narrow: cast mold and expression type do not unify
 /tests/golden/types-partial-atom-widening/source.jibb:5:21: cast mold has type @ud
 ++ narrow |= x=@ ^- @ud x
@@ -10,7 +5,3 @@ partial inference; module not checked
 /tests/golden/types-partial-atom-widening/source.jibb:5:25: expression has type @
 ++ narrow |= x=@ ^- @ud x
                         ^
-++ constrained: $-(A @) where A is an atom
-++ nested: call constraint is not supported by partial inference
-+$ open: not checked
-++ named: $-(@ @)

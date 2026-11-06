@@ -1,0 +1,3 @@
+origin types-arithmetic-combined
+target value distinct
+keep value distinct

@@ -1,0 +1,4 @@
+origin inline-pattern-tag-name-generic
+target value own-case
+keep mold outcome
+keep value own-case

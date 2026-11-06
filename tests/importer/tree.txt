@@ -19,7 +19,7 @@ collection-siblings: [a=(mop @ud @t) [b=(set @ud) [c=(qeu @t) [d=(unit @ud) e=(j
 dynamic-sibling-mop: error: a nested Hoon mop needs source-aware import
 mark-flag-source: (union [added item=[done=(union @f:0 @f:1) text=@t]] [removed id=@ud])
 mark-flag-union: (union [added item=[done=(union @f:0 @f:1) text=@t]] [removed id=@ud])
-mark-flag-overlap: error: a Hoon union needs a source-level disjointness check
+mark-flag-overlap: (union [x id=@ud] [x item=[done=(union @f:0 @f:1) text=@t]])
 mark-flag-hidden: error: a Hoon union needs a source-level disjointness check
 mark-flag-signed: error: signed and float auras cannot be imported
 mark-flag-callable: error: cores and gates cannot be imported
@@ -65,7 +65,7 @@ float: error: signed and float auras cannot be imported
 gate: error: cores and gates cannot be imported
 vase: error: vases cannot be imported
 failed-branch: error: a Hoon $^ union needs a source-level disjointness check
-debug-spec: valid wrapper; duplicate and malformed rejected
+debug-spec: valid wrapper; duplicate tags projected; malformed rejected
 debug-union: (union [add text=@t] [remove id=@ud])
 debug-union-overlap: error: Hoon union disjointness could not be verified
 debug-nested-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
@@ -73,7 +73,7 @@ debug-nested-cell-overlap: error: Hoon $^ union disjointness could not be verifi
 explicit-graph: error: Hoon union disjointness could not be verified
 explicit-graph-unsupported: error: signed and float auras cannot be imported
 explicit-wut-safe: (union [ok @ud] [err @t])
-explicit-percent-overlap: error: Hoon union disjointness could not be verified
+explicit-percent-overlap: error: Hoon union cases overlap
 explicit-wut-overlap: error: Hoon union cases overlap
 explicit-collapsed: error: Hoon union cases overlap
 explicit-subsumed: error: Hoon union disjointness could not be verified
@@ -130,7 +130,7 @@ nested-ford-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
 nested-valid-cell: [id=@ud value=(union [a=@ud b=@t] @ud)]
 nested-invalid-cell: error: Hoon $^ union disjointness could not be verified
 valid-cell: (union [x=@ud y=@ud] @ud)
-invalid-cell: error: Hoon $^ union disjointness could not be verified
+invalid-cell: error: Hoon union cases overlap
 chapter-malformed: unsafe
 chapter-wrapped-malformed: unsafe
 chapter-direct-hit: yes
@@ -152,7 +152,7 @@ named-ford-recursive: (union [value=@ud next=chain.small] @n:0)
 diagnostic-items: (map @ud [id=@ud text=@t])
 diagnostic-signed: invalid/aura: signed and float auras cannot be imported
 diagnostic-float: invalid/aura: signed and float auras cannot be imported
-diagnostic-overlap: unsupported: Hoon union disjointness could not be verified
+diagnostic-overlap: invalid/overlap: Hoon union cases overlap
 diagnostic-unproved: unsupported: a Hoon $^ union needs a source-level disjointness check
 diagnostic-mark-gate: invalid/core: cores and gates cannot be imported
 diagnostic-shadow-vase: unsupported: a Hoon type named vase needs source provenance
@@ -175,7 +175,7 @@ tag-nest-rec-repeat: (union [other @n:0] [nested [a=(named tag-nest-rec-list.sma
 tag-nest-rec-duplicate: error: a Hoon union needs a source-level disjointness check
 tag-nest-rec-hidden: error: a Hoon union needs a source-level disjointness check
 tag-nest-rec-mutual: error: a Hoon union needs a source-level disjointness check
-tag-nest-rec-outer-overlap: error: a Hoon union needs a source-level disjointness check
+tag-nest-rec-outer-overlap: (union [same item=(named tag-nest-rec-list.small (union [leaf @t] [branch children=(list tag-nest-rec-list.small)]))] [same @t])
 tag-nest-rec-owner: yes
 tag-nest-many: error: a Hoon union needs a source-level disjointness check
 tag-nest-shadow: error: a Hoon union needs a source-level disjointness check
@@ -193,11 +193,11 @@ tag-self-ford-collision: error: a Hoon union needs a source-level disjointness c
 tag-self-wrong-core: error: Hoon module provenance does not match the selected mold
 tag-flat-large: supported above 256
 tag-null-good: (union [ok @n:0] [err message=@t])
-tag-null-duplicate: error: Hoon union disjointness could not be verified
+tag-null-duplicate: error: Hoon union cases overlap
 tag-null-hidden: error: a Hoon union needs a source-level disjointness check
 tag-valid: (union [ok a=@t] [err a=@ud])
-tag-duplicate: error: Hoon union disjointness could not be verified
-tag-collapsed: error: Hoon union disjointness could not be verified
+tag-duplicate: error: Hoon union cases overlap
+tag-collapsed: error: Hoon union cases overlap
 tag-invalid-direct: error: a Hoon union needs a source-level disjointness check
 tag-invalid-alias: error: a Hoon union needs a source-level disjointness check
 tag-invalid-list: error: a Hoon union needs a source-level disjointness check

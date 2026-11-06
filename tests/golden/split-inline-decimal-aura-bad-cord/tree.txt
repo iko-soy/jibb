@@ -1,0 +1,3 @@
+(module
+  (value 4:1 cord
+    (cast 4:9 (aura 4:12 @t) (lit 4:15 5))))

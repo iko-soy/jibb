@@ -1,5 +1,5 @@
-partial inference; module not checked
-+$ action: cases proven disjoint; mold not checked
+module kind: library
++$ action: action
 ++ unfaced: $-([unface=@t other=@p] @t)
 ++ tag: action
 ++ plain: $-([@t @p] @t)

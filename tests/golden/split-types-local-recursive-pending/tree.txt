@@ -1,0 +1,16 @@
+(module
+  (value 31:1 pending
+    (gate 31:12
+      (face 31:15 x (aura 31:17 @t))
+      (body 32:3
+        (value 32:3 recur
+          (gate 32:12
+            (face 32:15 y (aura 32:17 @t))
+            (body 33:5
+              (trace 33:5
+                (lit 33:8 %orphan)
+                (body 34:7
+                  (group 34:7
+                    (call 34:8 (wing 34:8 recur) (wing 34:14 y))))))))
+        (group 35:3
+          (call 35:4 (wing 35:4 recur) (wing 35:10 x)))))))

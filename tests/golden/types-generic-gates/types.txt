@@ -1,7 +1,7 @@
-partial inference; module not checked
-+$ mapper: not checked
-+$ duo: not checked
+module kind: library
++$ mapper: $-(A B)
++$ duo: [left=A right=B]
 ++ gate: $-(@t @t)
 ++ pair: [left=@t right=@p]
-+$ map: not checked
++$ map: [first=A second=B]
 ++ named-map: [first=$-(@t @t) second=@t]

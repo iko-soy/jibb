@@ -1,0 +1,3 @@
+module kind: library
+++ run: $-(@t [left=@t])
+++ untouched: $-(@p @p)

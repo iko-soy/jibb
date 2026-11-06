@@ -1,0 +1,5 @@
+origin inline-pattern-tag-name-generic
+target value own-head
+keep mold outcome
+keep mold reason
+keep value own-head

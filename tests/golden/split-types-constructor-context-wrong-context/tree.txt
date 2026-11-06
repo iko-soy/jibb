@@ -1,0 +1,18 @@
+(module
+  (mold 5:1 wrong-payload
+    (union 6:3
+      (cell 6:3
+        (const 6:4 %got)
+        (face 6:9 value (aura 6:15 @p)))
+      (const 7:3 %other)))
+  (value 14:1 call
+    (gate 14:9
+      (face 14:12 callback
+        (fn 14:21 (aura 14:24 @t) (tvar 14:27 M)))
+      (group 14:30
+        (call 14:31 (wing 14:31 callback) (str 14:40 "payload")))))
+  (value 19:1 wrong-context
+    (cast 19:18
+      (ref 19:21 wrong-payload)
+      (group 19:35
+        (call 19:36 (wing 19:36 call) (ctor 19:41 %got))))))

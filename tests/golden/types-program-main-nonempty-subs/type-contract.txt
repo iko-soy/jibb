@@ -1,0 +1,4 @@
+message an island may watch only a request whose origin is proved watchable
+min-sites 2
+site /ui/program-check.jibb:12:8
+site /ui/program-check.jibb:12:16

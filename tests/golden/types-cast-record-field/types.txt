@@ -1,0 +1,7 @@
+++ init: cast field `draft` does not fit
+/ui/probe.jibb:1:24: expected field has type [draft=@t]
++$ model [xs=(list @t) draft=@t error=(unit @t)]
+                       ^
+/ui/probe.jibb:6:38: expression has type @p
+++ init |= ts=(list @t) ^- model [ts ~zod ~]
+                                     ^

@@ -1,0 +1,7 @@
+++ field-value-wrong-payload: unit payload does not fit its expected type
+/tests/golden/split-types-unit-context-field-value-wrong-payload/source.jibb:34:33: expected unit payload has type @t
+++ field-value-wrong-payload ^- record [`%go ~[`~zod]]
+                                ^
+/tests/golden/split-types-unit-context-field-value-wrong-payload/source.jibb:34:49: payload has type @p
+++ field-value-wrong-payload ^- record [`%go ~[`~zod]]
+                                                ^

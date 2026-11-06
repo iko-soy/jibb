@@ -1,0 +1,4 @@
+module kind: library
+++ same: $-([a=A b=A] A)
+++ empty-ok: $-(!! [@ux @t])
+++ empty-stall-g-first: $-(!! @ux)

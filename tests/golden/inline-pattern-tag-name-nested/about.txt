@@ -1,4 +1,4 @@
 source: Grammar tab, Patterns: "A name is an error where the subject's type at its position is a union, or a one-case mold, with a case whose constant there is the term the name spells"; the review's `[typed t]` for `[%typed t]`
 tests: names inside cell patterns: at a case's head, where the union's cases have the tags `%typed` and `%submit`; at a position typed by the union mold `dir`; at a case's tail, where it is `%draft`
 expect: parses
-expect-types: a partial inference report: `typed` is an error at `typed`, 15:6; `move` at `left`, 20:12; `draft` at `draft`, 26:8; each with its subject
+expect-types: full checker reports the first error; independent split cases retain the other checks

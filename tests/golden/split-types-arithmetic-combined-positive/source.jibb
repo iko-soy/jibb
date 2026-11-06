@@ -1,0 +1,56 @@
+++ inc |= n=A (add n 1)
+++ inc-reverse |= n=A (add 1 n)
+++ inc-decimal ^- @ud (inc 2)
+++ inc-hex ^- @ux (inc 0x2)
+++ reverse-decimal ^- @ud (inc-reverse 2)
+++ reverse-hex ^- @ux (inc-reverse 0x2)
+++ default (add 1 2)
+++ decrease-decimal ^- @ud (dec 2)
+++ decrease-hex ^- @ux (dec 0x2)
+
+
+
+
+
+
+++ compare-bool (gth %.n %.y)
+
+
+
+++ shared |= [a=A b=A] (add a b)
+
+
+
+++ nested |= n=A |= x=A (add n 1)
+
+
+
+++ identity |= x=A x
+++ identity-bool (identity %.y)
+++ alias-inc inc
+++ alias-decimal ^- @ud (alias-inc 2)
+++ alias-hex ^- @ux (alias-inc 0x2)
+
+
+
+
+
+
+
+
+++ hole-concrete |= n=_ ^- @ud (add n 1)
+++ hole-written |= n=A ^- _ (add n 1)
+
+++ standalone (add 1 2)
+++ discarded-number
+  ~& 2
+    (add 1 2)
+
+
+
+
+
+
+
+
+

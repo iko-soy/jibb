@@ -1,0 +1,4 @@
+++ two: unface takes one argument, as (unface e)
+/tests/golden/split-inline-unface-arity-bad-two/source.jibb:2:9: unface call
+++ two (unface lt-a lt-a)
+        ^

@@ -1,0 +1,4 @@
+source: split from types-prelude-arithmetic, preserving the original source lines
+tests: the independent bad-cell diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

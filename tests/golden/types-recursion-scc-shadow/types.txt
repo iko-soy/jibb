@@ -1,4 +1,7 @@
-partial inference; module not checked
-++ first: sample shadows a name
-++ second: name is not available to partial inference
-++ safe: $-(@t @t)
+++ first: sample `second` shadows a name already in scope
+/tests/golden/types-recursion-scc-shadow/source.jibb:2:4: earlier binding
+++ second |= x=@t (first x)
+   ^
+/tests/golden/types-recursion-scc-shadow/source.jibb:1:13: conflicting sample binding
+++ first |= second=@t (second second)
+            ^

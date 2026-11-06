@@ -1,0 +1,7 @@
+++ captured: cast mold and expression type do not unify
+/tests/golden/split-types-local-error-cast-captured/source.jibb:35:11: cast mold has type @ud
+  ++ a ^- @ud "s"
+          ^
+/tests/golden/split-types-local-error-cast-captured/source.jibb:35:15: expression has type @t
+  ++ a ^- @ud "s"
+              ^

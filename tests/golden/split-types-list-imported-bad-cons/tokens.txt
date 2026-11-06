@@ -1,0 +1,12 @@
+1:1 glyph /-
+1:5 name fixture
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name bad-cons
+9:13 glyph ^-
+9:16 wing texts.fixture
+9:30 glyph [
+9:31 tight lit ~zod
+9:36 lit ~
+9:37 tight glyph ]
+9:38 NEWLINE

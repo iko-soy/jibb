@@ -1,0 +1,7 @@
+++ move: `left` binds a name, but the subject's type has `%left` here; write %left, or * for a catch-all
+/tests/golden/split-inline-pattern-tag-name-nested-move/source.jibb:19:6: subject
+  ?- s
+     ^
+/tests/golden/split-inline-pattern-tag-name-nested-move/source.jibb:20:12: pattern name
+    [%move left n] "x"
+           ^

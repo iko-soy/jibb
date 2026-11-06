@@ -1,0 +1,40 @@
+++ recurse |= [first=@t second=@p]
+  ?- %.y
+    %.y [first second]
+    %.n (recurse first second)
+
+
+
+++ capture |= [first=A second=B]
+  ++ inner |= flag=? first
+  ?- %.y
+    %.y (inner %.y)
+    %.n (capture first second)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ early-base |= [first=@t second=@p]
+  ?- %.y
+    %.y "ok"
+    %.n (early-base first second)
+++ late-base |= [first=@t second=@p]
+  ?- %.y
+    %.n (late-base first second)
+    %.y "ok"
+++ generic |= [first=A second=B]
+  ?- %.y
+    %.y [first second]
+    %.n (generic first second)
+++ generic-one (generic "hi" ~zod)
+++ generic-two (generic ~zod "hi")

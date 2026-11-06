@@ -1,0 +1,7 @@
+++ pending: types do not unify
+/tests/golden/split-types-positional-faces-pending/source.jibb:14:13: expected type has type @p
+++ pending (record-identity 1 [x="hi" y=%unresolved])
+            ^
+/tests/golden/split-types-positional-faces-pending/source.jibb:14:31: actual type has type A; A remains unresolved for tag `%unresolved`
+++ pending (record-identity 1 [x="hi" y=%unresolved])
+                              ^

@@ -1,0 +1,7 @@
+++ face: cast is missing field `title`
+/tests/golden/split-types-nested-missing-tag-face/source.jibb:4:11: required field has type @t
++$ state [title=@t choice=msg]
+          ^
+/tests/golden/split-types-nested-missing-tag-face/source.jibb:9:18: record has no field `title`
+++ face ^- state [other="hi" choice=%missing]
+                 ^

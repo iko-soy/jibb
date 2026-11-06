@@ -1,0 +1,7 @@
+++ other-unit: cast mold and expression type do not unify
+/tests/golden/split-types-unit-construction-other-unit/source.jibb:26:18: cast mold has type (mimic @t)
+++ other-unit ^- (mimic @t) `"hi"
+                 ^
+/tests/golden/split-types-unit-construction-other-unit/source.jibb:26:29: expression has type (unit @t)
+++ other-unit ^- (mimic @t) `"hi"
+                            ^

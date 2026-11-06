@@ -1,0 +1,16 @@
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (cell 1:12
+        (face 1:13 condition (flag 1:23))
+        (face 1:25 value (aura 1:31 @t)))
+      (cast 1:35
+        (apply 1:38 unit (aura 1:44 @ud))
+        (body 2:3
+          (value 2:3 held (wing 2:11 value))
+          (branch 3:3
+            (wing 3:6 condition)
+            (arm 4:3
+              (lit 4:3 %.y)
+              (unit 4:7 (wing 4:8 held)))
+            (arm 5:3 (lit 5:3 %.n) (lit 5:7 ~))))))))

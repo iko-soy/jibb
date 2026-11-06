@@ -1,0 +1,16 @@
+4:1 glyph ++
+4:4 name generic
+4:12 glyph |=
+4:15 glyph [
+4:16 tight name a
+4:17 tight glyph =
+4:18 tight tvar A
+4:20 name b
+4:21 tight glyph =
+4:22 tight tvar B
+4:23 tight glyph ]
+4:25 glyph ~[
+4:27 tight name a
+4:29 name b
+4:30 tight glyph ]
+4:31 NEWLINE

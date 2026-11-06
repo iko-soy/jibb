@@ -1,0 +1,28 @@
+25:1 glyph ++
+25:4 name caps
+25:9 glyph |=
+25:12 name x
+25:13 tight glyph =
+25:14 tight tvar A
+26:3 INDENT
+26:3 glyph ++
+26:6 name same
+26:11 glyph |=
+26:14 name y
+26:15 tight glyph =
+26:16 tight tvar A
+26:18 name y
+27:3 NEWLINE
+27:3 glyph ~&
+27:6 glyph (
+27:7 tight name same
+27:12 str "hi"
+27:16 tight glyph )
+28:5 INDENT
+28:5 glyph (
+28:6 tight name same
+28:11 lit ~zod
+28:15 tight glyph )
+28:16 DEDENT
+28:16 DEDENT
+28:16 NEWLINE

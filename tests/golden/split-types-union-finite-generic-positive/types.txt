@@ -1,0 +1,7 @@
+module kind: library
++$ msg: (msg A B)
+++ shared: $-((msg A A) A)
++$ choice: (choice A)
+++ getter: $-((choice @t) @t)
+++ flag: $-((choice @t) ?)
+++ atom-parts: $-((choice @t) @t)

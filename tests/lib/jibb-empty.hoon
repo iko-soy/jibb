@@ -1,7 +1,8 @@
 ::  Source-backed empty-mold checks; no backend/runtime claim.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  real-prelude   %jibb  /lib/jibb/prelude/jibb
 /*  real-internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  good           %txt   /tests/type-empty/good/txt
 /*  overlap        %txt   /tests/type-empty/overlap/txt
 /*  dead           %txt   /tests/type-empty/dead/txt
@@ -10,6 +11,8 @@
 /*  list-dead      %txt   /tests/type-empty/list-dead/txt
 /*  unit-dead      %txt   /tests/type-empty/unit-dead/txt
 /*  late-cap       %txt   /tests/type-empty/late-cap/txt
+/*  late-cap-outer  %txt  /tests/type-empty/late-cap-outer/txt
+/*  late-cap-rec   %txt   /tests/type-empty/late-cap-rec/txt
 /*  list-live      %txt   /tests/type-empty/list-live/txt
 /*  list-open      %txt   /tests/type-empty/list-open/txt
 /*  face-source    %txt   /tests/type-empty/face-source/txt
@@ -33,19 +36,18 @@
   =/  d=def:jibb  i.ds
   ?.  ?=(%value -.d)  |
   =/  typ=itype:jibb  [%collection %list ~[[%empty ~]]]
-  =/  env=ienv:jibb  ~[[%xs [typ ~]]]
+  =/  env=ienv:jibb  ~[[%xs [typ ~ ~]]]
   =/  state=istate:jibb  *istate:jibb
   =.  state  state(prelude `prelude, jrec-fuel 256)
   =/  expected=itype:jibb  [%cell [%atom %t] [%atom %t]]
-  =/  result=(unit iresult:jibb)
-    (empty-list-null-branch:jibb val.d env state `[expected (span-of:jibb val.d)])
-  ?~  result  |
-  ?:  ?=(%| -.u.result)  |
-  (itype-has-face:jibb typ.p.u.result sub.state.p.u.result)
+  =/  result=iresult:jibb
+    (infer-call-context-arg:jibb val.d expected env state (span-of:jibb val.d))
+  ?:  ?=(%| -.result)  |
+  (itype-has-face:jibb typ.p.result sub.state.p.result)
 ++  empty-output
-  |=  [pre=@t internal=@t good=@t overlap=@t dead=@t missing=@t standard-good=@t list-dead=@t unit-dead=@t late-cap=@t list-live=@t list-open=@t face-source=@t]
+  |=  [pre=@t internal=@t good=@t overlap=@t dead=@t missing=@t standard-good=@t list-dead=@t unit-dead=@t late-cap=@t late-cap-outer=@t late-cap-rec=@t list-live=@t list-open=@t face-source=@t]
   ^-  @t
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb pre internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture pre internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  'BAD prelude preparation'
   =/  f=path  /tests/empty/jibb
   =/  valid=jfile-result:jibb  (infer-jibb-file:jibb f good ~ ~ ~ ~[f] ~ ~ ~ ~)
@@ -107,7 +109,7 @@
   =/  cap=icaps:jibb  ~[['A' 23 *span:jibb]]
   =/  open-live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof:jibb [%var 23] ~ ~ 4)
   =/  capital-live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof:jibb [%var 23] ~ cap 4)
-  =/  bound-empty=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof:jibb [%var 23] ~[[23 void]] cap 4)
+  =/  bound-empty=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof:jibb [%var 23] (isub-from-bindings:jibb ~[[23 void]]) cap 4)
   =/  opaque=itype:jibb  [%recursive %opaque %mold ~]
   =/  opaque-live=(unit [result=?(%yes %no %unknown) left=@ud])  (itype-inhabited-proof:jibb opaque ~ ~ 4)
   =/  rejected-cases=(unit (list itype:jibb))  (itype-live-cases:jibb ~[opaque] ~ ~ 4)
@@ -144,17 +146,19 @@
         ['empty gate-bearing cell is gate-free' &(=(%yes verdict.no-gates) !inhabited.no-gates)]
         ['list of empty is gate-free and inhabited' &(=(%yes verdict.list-gates) inhabited.list-gates)]
     ==
-  =/  report=@t  (golden-types-in-context:jibb f good ~ ~ ~ ~ ~ ~)
-  =/  overlap-report=@t  (golden-types-in-context:jibb f overlap ~ ~ ~ ~ ~ ~)
-  =/  dead-report=@t  (golden-types-in-context:jibb f dead ~ ~ ~ ~ ~ ~)
-  =/  missing-report=@t  (golden-types-in-context:jibb f missing ~ ~ ~ ~ ~ ~)
+  =/  report=@t  (golden-types:jibb f good)
+  =/  overlap-report=@t  (golden-types:jibb f overlap)
+  =/  dead-report=@t  (golden-types:jibb f dead)
+  =/  missing-report=@t  (golden-types:jibb f missing)
   =/  list-report=@t  (golden-types-with-prepared-prelude:jibb f list-dead ~ ~ ~ prep)
   =/  unit-report=@t  (golden-types-with-prepared-prelude:jibb f unit-dead ~ ~ ~ prep)
   =/  late-report=@t  (golden-types-with-prepared-prelude:jibb f late-cap ~ ~ ~ prep)
-  (rap 3 ~[(of-wain:format (turn checks line)) '\0a' report '\0a' overlap-report '\0a' dead-report '\0a' missing-report '\0a' list-report '\0a' unit-report '\0a' late-report])
+  =/  outer-report=@t  (golden-types-with-prepared-prelude:jibb f late-cap-outer ~ ~ ~ prep)
+  =/  recursive-report=@t  (golden-types-with-prepared-prelude:jibb f late-cap-rec ~ ~ ~ prep)
+  (rap 3 ~[(of-wain:format (turn checks line)) '\0a' report '\0a' overlap-report '\0a' dead-report '\0a' missing-report '\0a' list-report '\0a' unit-report '\0a' late-report '\0a' outer-report '\0a' recursive-report])
 ++  report
   ^-  @t
-  (empty-output real-prelude real-internal (text good) (text overlap) (text dead) (text missing) (text standard-good) (text list-dead) (text unit-dead) (text late-cap) (text list-live) (text list-open) (text face-source))
+  (empty-output real-prelude real-internal (text good) (text overlap) (text dead) (text missing) (text standard-good) (text list-dead) (text unit-dead) (text late-cap) (text late-cap-outer) (text late-cap-rec) (text list-live) (text list-open) (text face-source))
 ++  test-empty
   ^-  tang
   ?~  good  ~[leaf+"empty source missing"]

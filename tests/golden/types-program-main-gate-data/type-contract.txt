@@ -1,0 +1,4 @@
+message island data field `input` contains a gate
+min-sites 2
+site /ui/program-check.jibb:6:12
+site /ui/program-check.jibb:5:10

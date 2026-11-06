@@ -1,0 +1,8 @@
+
+
+
+
+
+
+++ nested-bad |= x=[outer=[bad=qath yes=?] done=?]
+  ^- [outer=[good=qath yes=?] done=?] x

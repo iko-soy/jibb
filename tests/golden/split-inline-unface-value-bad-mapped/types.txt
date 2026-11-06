@@ -1,0 +1,4 @@
+++ mapped: unface is not a value; write |=(g (unface g))
+/tests/golden/split-inline-unface-value-bad-mapped/source.jibb:4:23: unface used as a value
+++ mapped (turn gates unface)
+                      ^

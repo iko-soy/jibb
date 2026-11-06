@@ -1,0 +1,4 @@
+++ pending: nothing fixes the union of %orphan; add a `^-`
+/tests/golden/split-types-local-capitals-pending/source.jibb:59:8: nothing fixes the union of %orphan; add a `^-`
+    ~& %orphan
+       ^

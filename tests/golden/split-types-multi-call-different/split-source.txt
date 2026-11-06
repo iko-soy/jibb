@@ -1,0 +1,4 @@
+origin types-multi-call
+target value different
+keep value different
+keep value repeated

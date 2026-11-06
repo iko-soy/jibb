@@ -1,0 +1,8 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (aura 1:13 @ud))
+      (wing 1:17 n)))
+  (value 2:1 top
+    (group 2:8
+      (call 2:9 (wing 2:9 inc) (lit 2:13 %.y)))))

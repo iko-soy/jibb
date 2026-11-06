@@ -1,0 +1,1 @@
+A store state may contain a gate; the checked interface preserves its callback face.

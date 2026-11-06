@@ -1,0 +1,4 @@
+origin inline-pattern-tag-name-any-arm
+target value pick
+keep mold reason
+keep value pick

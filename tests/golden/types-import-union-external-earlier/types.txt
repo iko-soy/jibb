@@ -1,0 +1,7 @@
+++ bad: cast mold and expression type do not unify
+/tests/golden/types-import-union-external-earlier/source.jibb:2:11: cast mold has type [name=@t choice=msg.base]
+++ bad ^- [name=@t choice=msg.base] [~zod %wrong]
+          ^
+/tests/golden/types-import-union-external-earlier/source.jibb:2:37: expression has type [@p A]; A remains unresolved for tag `%wrong`
+++ bad ^- [name=@t choice=msg.base] [~zod %wrong]
+                                    ^

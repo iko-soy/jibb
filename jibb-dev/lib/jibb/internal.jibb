@@ -1,5 +1,32 @@
 /=  core  /lib/jibb/primitives
 
+::  Private sealing is representation-only; the compiler owns the seal
+::  identity and does not expose this module to ordinary Jibb imports.
++$ opaque |$ [A] (opaque.core A)
+++ seal |= value=A (raw-seal.core value)
+
++$ element-node |$ [M Attr Qath]
+  [%row attrs=(list.core Attr) kids=*]
+  [%column attrs=(list.core Attr) kids=*]
+  [%wrap attrs=(list.core Attr) kids=*]
+  [%stack attrs=(list.core Attr) kids=*]
+  [%el attrs=(list.core Attr) kid=*]
+  [%para kids=*]
+  [%text words=@t]
+  [%heading level=@ud words=@t]
+  [%each items=*]
+  [%table columns=* rows=*]
+  [%image source=Qath description=@t]
+  [%image-unsafe source=[url=@t width=@ud height=@ud] description=@t]
+  [%link target=Qath label=@t]
+  [%link-unsafe target=@t label=@t]
+  [%button label=@t message=M]
+  [%toggle on=? label=@t message=M]
+  [%field label=@t value=@t reply=$-(@t M)]
+  [%form message=M kids=*]
+  [%island payload=*]
+
+
 ::  Representation for agent and in-process store pokes.
 ::  The prelude re-exports this mold; effect lowering and the runtime must
 ::  agree on these cells when effect execution is implemented.
@@ -32,3 +59,26 @@
   [%pure value=M]
   [%agent api=@t case=@tas agent=@tas path=agent-path scry=(unit.core agent-path) receive=$-([mark=@tas state=(unit.core *) fact=*] [state=* message=M])]
   [%store module=@t name=@tas receive=$-([state=(unit.core *) fact=*] [state=* message=M])]
+
+::  UTF-8 byte packing and UTF-32-to-UTF-8 encoding are private primitives.
+++ crip-text |= bytes (raw-crip.core bytes)
+++ tufa-text |= values (raw-tufa.core values)
+
+::  Calendar atoms and aura-directed text have private encoding interfaces.
+++ pack-date |= value (raw-date-pack.core value)
+++ unpack-date |= value (raw-date-unpack.core value)
+++ format-knot |= value=[p=@ta q=@] (raw-format-knot.core value)
+++ format-tape |= value=[p=@ta q=@] (raw-format-tape.core value)
+++ parse-atom |= args (raw-parse-atom.core args)
+
+++ bit-not |= args=[@ @ @] (raw-bit-not.core args)
+
+::  Hoon treap operations retain their checked generic map interfaces.
+++ map-get |= args (raw-map-get.core args)
+++ map-put |= args (raw-map-put.core args)
+
+::  A key may contain data, but not a gate.
+++ checked-key |= key=K
+  ?- (raw-eq.core key key)
+    %.y key
+    %.n key

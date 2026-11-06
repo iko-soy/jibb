@@ -1,0 +1,3 @@
+origin types-local-capitals
+target value force-equal
+keep value force-equal

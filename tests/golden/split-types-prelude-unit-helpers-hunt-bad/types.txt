@@ -1,0 +1,7 @@
+++ hunt-bad: unit payload does not fit its expected type
+/tests/golden/split-types-prelude-unit-helpers-hunt-bad/source.jibb:20:14: expected unit payload has type @t
+++ hunt-bad (hunt |=(p=[@t @t] %.y) `"a" `~zod)
+             ^
+/tests/golden/split-types-prelude-unit-helpers-hunt-bad/source.jibb:20:43: payload has type @p
+++ hunt-bad (hunt |=(p=[@t @t] %.y) `"a" `~zod)
+                                          ^

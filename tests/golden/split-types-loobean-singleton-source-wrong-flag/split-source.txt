@@ -1,0 +1,4 @@
+origin types-loobean-singleton-source
+target value wrong-flag
+keep mold yes
+keep value wrong-flag

@@ -1,0 +1,35 @@
+(module
+  (value 1:1 later-body
+    (gate 1:15
+      (bind 1:18 n)
+      (body 2:3
+        (trace 2:3
+          (str 2:6 (wing 2:8 n))
+          (body 3:5
+            (cast 3:5 (aura 3:8 @ud) (wing 3:12 n)))))))
+  (value 4:1 later-call
+    (gate 4:15
+      (bind 4:18 n)
+      (str 4:20 (wing 4:22 n))))
+  (value 5:1 called
+    (group 5:11
+      (call 5:12 (wing 5:12 later-call) (str 5:23 "hi"))))
+  (value 6:1 numeric-text
+    (str 6:17
+      (group 6:19
+        (call 6:20 (wing 6:20 add) (lit 6:24 1) (lit 6:26 2)))))
+  (value 7:1 tape-text
+    (gate 7:14
+      (face 7:17 words
+        (apply 7:23 list (aura 7:29 @tD)))
+      (str 7:34 (wing 7:36 words))))
+  (value 8:1 inferred-tape
+    (gate 8:18
+      (bind 8:21 n)
+      (str 8:23
+        (list 8:25 (wing 8:27 n)))))
+  (value 9:1 fix-tape
+    (gate 9:13
+      (face 9:16 letter (aura 9:23 @tD))
+      (group 9:27
+        (call 9:28 (wing 9:28 inferred-tape) (wing 9:42 letter))))))

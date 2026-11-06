@@ -1,0 +1,5 @@
+module kind: library
++$ node: (node A)
+++ wrap-node: $-((node M) (node M))
+++ wrapped: (node @t)
+++ wrapped-ship: (node @p)

@@ -1,6 +1,4 @@
-partial inference; module not checked
-++ first: tag needs context in partial inference
-++ alias: name is not available to partial inference
-++ cell: tag needs context in partial inference
-++ gate: tag needs context in partial inference
-++ traced: tag needs context in partial inference
+++ first: nothing fixes the union of %add; add a `^-`
+/tests/golden/types-union-unresolved-flow/source.jibb:1:10: nothing fixes the union of %add; add a `^-`
+++ first %add
+         ^

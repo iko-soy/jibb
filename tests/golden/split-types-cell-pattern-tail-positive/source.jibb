@@ -1,0 +1,18 @@
+++ pair |= x=[@t (list @p)]
+  ?- x
+    [first rest] rest
+
+
+
++$ either
+  [%go @p @t]
+  %stop
+++ pair-union |= x=[@t either]
+  ?- x
+    [first rest] rest
+
+
+
+
+
+

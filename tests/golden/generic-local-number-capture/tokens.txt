@@ -1,0 +1,104 @@
+1:1 glyph ++
+1:4 name outer
+1:10 glyph |=
+1:13 name bound
+2:3 INDENT
+2:3 glyph ++
+2:6 name search
+2:13 glyph |=
+2:16 name n
+3:5 INDENT
+3:5 glyph ?-
+3:8 glyph (
+3:9 tight name lth
+3:13 name n
+3:15 name bound
+3:20 tight glyph )
+4:5 NEWLINE
+4:5 lit %.y
+4:9 glyph (
+4:10 tight name search
+4:17 glyph (
+4:18 tight name add
+4:22 name n
+4:24 lit 1
+4:25 tight glyph )
+4:26 tight glyph )
+5:5 NEWLINE
+5:5 lit %.n
+5:9 name n
+6:3 DEDENT
+6:3 NEWLINE
+6:3 glyph (
+6:4 tight name search
+6:11 lit 0
+6:12 tight glyph )
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name number-ok
+7:14 glyph (
+7:15 tight name outer
+7:21 lit 3
+7:22 tight glyph )
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name hex-ok
+8:11 glyph (
+8:12 tight name outer
+8:18 lit 0x3
+8:21 tight glyph )
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name written
+9:12 glyph |=
+9:15 name bound
+9:20 tight glyph =
+9:21 tight tvar A
+10:3 INDENT
+10:3 glyph ++
+10:6 name search
+10:13 glyph |=
+10:16 name n
+11:5 INDENT
+11:5 glyph ?-
+11:8 glyph (
+11:9 tight name lth
+11:13 name n
+11:15 name bound
+11:20 tight glyph )
+12:5 NEWLINE
+12:5 lit %.y
+12:9 glyph (
+12:10 tight name search
+12:17 glyph (
+12:18 tight name add
+12:22 name n
+12:24 lit 1
+12:25 tight glyph )
+12:26 tight glyph )
+13:5 NEWLINE
+13:5 lit %.n
+13:9 name n
+14:3 DEDENT
+14:3 NEWLINE
+14:3 glyph (
+14:4 tight name search
+14:11 lit 0
+14:12 tight glyph )
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name written-number
+15:19 glyph (
+15:20 tight name written
+15:28 lit 3
+15:29 tight glyph )
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name written-hex
+16:16 glyph (
+16:17 tight name written
+16:25 lit 0x3
+16:28 tight glyph )
+16:29 NEWLINE

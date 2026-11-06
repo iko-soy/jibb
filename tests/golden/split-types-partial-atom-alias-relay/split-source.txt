@@ -1,0 +1,5 @@
+origin types-partial-atom-alias
+target value relay
+keep value alias
+keep value keep
+keep value relay

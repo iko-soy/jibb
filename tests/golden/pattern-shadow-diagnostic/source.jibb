@@ -1,0 +1,8 @@
++$ choice
+  [%a value=@t]
+  %b
+++ complete "c"
+++ shadow |= v=choice
+  ?- v
+    [%a complete] complete
+    %b "b"

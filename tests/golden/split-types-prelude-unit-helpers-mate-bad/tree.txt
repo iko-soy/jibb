@@ -1,0 +1,7 @@
+(module
+  (value 31:1 mate-bad
+    (group 31:13
+      (call 31:14
+        (wing 31:14 mate)
+        (unit 31:19 (str 31:20 "hi"))
+        (unit 31:25 (lit 31:26 ~zod))))))

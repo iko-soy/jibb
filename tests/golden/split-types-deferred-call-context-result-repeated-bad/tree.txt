@@ -1,0 +1,15 @@
+(module
+  (value 24:1 local-keep
+    (gate 24:15
+      (cell 24:18
+        (face 24:19 a (tvar 24:21 A))
+        (face 24:23 b (tvar 24:25 A)))
+      (wing 24:28 a)))
+  (value 34:1 result-repeated-bad
+    (cast 34:24
+      (apply 34:27 list (aura 34:33 @t))
+      (group 34:37
+        (call 34:38
+          (wing 34:38 local-keep)
+          (lit 34:49 ~)
+          (list 34:51 (lit 34:53 ~zod)))))))

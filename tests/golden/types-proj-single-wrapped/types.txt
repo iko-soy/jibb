@@ -1,5 +1,4 @@
-partial inference; module not checked
 ++ scalar-branch: proj needs an expected record type
-++ nested-branch: proj needs an expected record type
-++ scalar-trace: proj needs an expected record type
-++ nested-trace: [inner=[x=@t] y=@p]
+/tests/golden/types-proj-single-wrapped/source.jibb:1:26: gate sample mold
+++ scalar-branch |= flag=?
+                         ^

@@ -7,4 +7,4 @@
 ++ send |= f=$-(@t A) f
 ++ first (send |=%absent)
 ++ second first
-++ main ^- $-(@t message) second
+++ resolved ^- $-(@t message) second

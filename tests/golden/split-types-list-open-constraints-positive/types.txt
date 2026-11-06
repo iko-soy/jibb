@@ -1,0 +1,11 @@
+module kind: library
+++ reverse: $-([a=@tD b=@t] (list @t))
+++ abstract: $-(@ (list @))
+++ explicit: $-([a=A b=A] (list A))
+++ all-num: (list @ud)
+++ empty: (list A)
+++ texts: (list @t)
+++ ships: (list @p)
+++ repeated: $-([a=A b=A] (list A))
+++ call-text: (list @t)
+++ call-ship: (list @p)

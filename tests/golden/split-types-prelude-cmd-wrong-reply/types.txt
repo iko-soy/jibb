@@ -1,0 +1,7 @@
+++ wrong-reply: gate result does not fit its expected type
+/tests/golden/split-types-prelude-cmd-wrong-reply/source.jibb:14:19: expected result has type @t
+++ wrong-reply ^- (cmd @t) [%who |=(p=@p ~zod)]
+                  ^
+/tests/golden/split-types-prelude-cmd-wrong-reply/source.jibb:14:42: gate result has type @p
+++ wrong-reply ^- (cmd @t) [%who |=(p=@p ~zod)]
+                                         ^

@@ -1,0 +1,9 @@
+(module
+  (value 17:1 generic-atom
+    (gate 17:17
+      (face 17:20 n (tvar 17:22 A))
+      (body 18:3
+        (trace 18:3
+          (cast 18:6 (aura 18:9 @) (wing 18:11 n))
+          (body 19:5
+            (str 19:5 (wing 19:7 n))))))))

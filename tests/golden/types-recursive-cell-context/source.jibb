@@ -1,0 +1,3 @@
+++ nested ^- qath [~.blog [~.post ~]]
+++ faced ^- qath [i=~.blog t=[i=~.post t=~]]
+++ cast ^- _ ^- qath [i=~.hello t=[i=~.world t=~]]

@@ -1,0 +1,11 @@
+1:1 glyph /-
+1:4 name fixture
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name overlap
+2:12 glyph |=
+2:15 name x
+2:16 tight glyph =
+2:17 tight wing overlap.fixture
+2:33 name x
+2:34 NEWLINE

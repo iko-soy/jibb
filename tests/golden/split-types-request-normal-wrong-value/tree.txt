@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 api /ui/api/demo)
+  (value 6:1 wrong-value
+    (group 6:16
+      (call 6:17 (wing 6:17 plain.api) (str 6:27 "wrong")))))

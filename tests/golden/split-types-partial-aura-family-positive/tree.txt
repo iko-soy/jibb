@@ -1,0 +1,29 @@
+(module
+  (value 1:1 decimal
+    (gate 1:12
+      (face 1:15 x (aura 1:17 @ud))
+      (cast 1:21 (aura 1:24 @u) (wing 1:27 x))))
+  (value 2:1 hex
+    (cast 2:8 (aura 2:11 @u) (lit 2:14 0x1f)))
+  (value 3:1 base32
+    (gate 3:11
+      (face 3:14 x (aura 3:16 @uv))
+      (cast 3:20 (aura 3:23 @u) (wing 3:26 x))))
+  (value 4:1 text-value
+    (gate 4:15
+      (face 4:18 x (aura 4:20 @tD))
+      (cast 4:24 (aura 4:27 @t) (wing 4:30 x))))
+  (value 7:1 dup
+    (gate 7:8
+      (face 7:11 p
+        (cell 7:13 (tvar 7:14 A) (tvar 7:16 A)))
+      (wing 7:19 p)))
+  (value 9:1 accept
+    (gate 9:11
+      (face 9:14 n (aura 9:16 @u))
+      (wing 9:19 n)))
+  (value 10:1 via-call
+    (gate 10:13
+      (face 10:16 x (aura 10:18 @ud))
+      (group 10:22
+        (call 10:23 (wing 10:23 accept) (wing 10:30 x))))))

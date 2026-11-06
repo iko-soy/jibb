@@ -1,0 +1,19 @@
+2:1 glyph +$
+2:4 name typed
+2:10 glyph [
+2:11 tight lit %typed
+2:18 name text
+2:22 tight glyph =
+2:23 tight aura @t
+2:25 tight glyph ]
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name missing
+10:12 glyph ^-
+10:15 glyph $-(
+10:18 tight aura @t
+10:21 name typed
+10:26 tight glyph )
+10:28 glyph |=
+10:30 tight lit %missing
+10:38 NEWLINE

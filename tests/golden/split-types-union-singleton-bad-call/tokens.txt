@@ -1,0 +1,31 @@
+2:1 glyph +$
+2:4 name typed
+2:10 glyph [
+2:11 tight lit %typed
+2:18 name text
+2:22 tight glyph =
+2:23 tight aura @t
+2:25 tight glyph ]
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name use
+12:8 glyph |=
+12:11 name f
+12:12 tight glyph =
+12:13 tight glyph $-(
+12:16 tight aura @t
+12:19 name typed
+12:24 tight glyph )
+12:26 glyph (
+12:27 tight name f
+12:29 str "hi"
+12:33 tight glyph )
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name bad-call
+14:13 glyph (
+14:14 tight name use
+14:18 glyph |=
+14:20 tight lit %nope
+14:25 tight glyph )
+14:26 NEWLINE

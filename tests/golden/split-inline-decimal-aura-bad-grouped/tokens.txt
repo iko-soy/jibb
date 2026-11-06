@@ -1,0 +1,6 @@
+5:1 glyph ++
+5:4 name grouped
+5:12 glyph ^-
+5:15 aura @t
+5:18 lit 1.000
+5:23 NEWLINE

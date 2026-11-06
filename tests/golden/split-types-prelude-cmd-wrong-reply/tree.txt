@@ -1,0 +1,9 @@
+(module
+  (value 14:1 wrong-reply
+    (cast 14:16
+      (apply 14:19 cmd (aura 14:24 @t))
+      (tuple 14:28
+        (lit 14:29 %who)
+        (gate-wide 14:34
+          (face 14:37 p (aura 14:39 @p))
+          (lit 14:42 ~zod))))))

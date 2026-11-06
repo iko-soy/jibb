@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-ui-bad-width/source.jibb:59:31
+typed-site /tests/golden/split-types-prelude-ui-bad-width/source.jibb:59:37
+min-sites 2

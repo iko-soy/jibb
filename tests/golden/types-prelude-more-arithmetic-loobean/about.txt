@@ -1,0 +1,4 @@
+source: Grammar, Atoms: arithmetic rejects loobeans
+tests: pow reports a loobean argument against its atom-constrained generic sample
+expect: parses
+expect-types: full checker error with both source sites

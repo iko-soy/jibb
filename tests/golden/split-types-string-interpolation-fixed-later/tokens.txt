@@ -1,0 +1,16 @@
+23:1 glyph ++
+23:4 name fixed-later
+23:16 glyph |=
+23:19 name n
+24:3 INDENT
+24:3 glyph ~&
+24:6 str-head ""
+24:8 tight name n
+24:9 tight str-tail ""
+25:5 INDENT
+25:5 glyph ^-
+25:8 aura @ud
+25:12 name n
+25:13 DEDENT
+25:13 DEDENT
+25:13 NEWLINE

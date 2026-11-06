@@ -1,0 +1,13 @@
+++ variable: msg has no case `%missing`
+/tests/golden/split-types-nested-missing-tag-variable/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-nested-missing-tag-variable/source.jibb:2:3: expected union has type msg
+  %add
+  ^
+/tests/golden/split-types-nested-missing-tag-variable/source.jibb:17:23: expected union has type msg
+++ variable |= x=A ^- [A msg] [x %missing]
+                      ^
+/tests/golden/split-types-nested-missing-tag-variable/source.jibb:17:34: tag literal has type %missing
+++ variable |= x=A ^- [A msg] [x %missing]
+                                 ^

@@ -1,0 +1,4 @@
+typed-site /tests/golden/generic-conflicting-result-faces/source.jibb:5:7
+typed-site /tests/golden/generic-conflicting-result-faces/source.jibb:5:11
+min-sites 2
+message call's sample and argument types do not unify

@@ -1,0 +1,14 @@
+7:1 glyph ++
+7:4 name bad-cell
+7:13 glyph (
+7:14 tight name gth
+7:18 glyph [
+7:19 tight lit 1
+7:21 lit 2
+7:22 tight glyph ]
+7:24 glyph [
+7:25 tight lit 3
+7:27 lit 4
+7:28 tight glyph ]
+7:29 tight glyph )
+7:30 NEWLINE

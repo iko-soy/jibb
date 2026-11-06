@@ -1,0 +1,7 @@
+++ generic-bad: call's sample and argument types do not unify
+/tests/golden/split-types-tuple-context-nested-generic-bad/source.jibb:20:17: called gate has type $-([left=@p right=@p] [left=@p right=@p])
+++ generic-bad (generic [left=~zod right="hi"])
+                ^
+/tests/golden/split-types-tuple-context-nested-generic-bad/source.jibb:20:42: argument has type @t
+++ generic-bad (generic [left=~zod right="hi"])
+                                         ^

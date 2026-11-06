@@ -1,0 +1,9 @@
+8:1 glyph ++
+8:4 name bad-tuba-items
+8:19 glyph (
+8:20 tight name tuba
+8:25 glyph ~[
+8:27 tight lit ~zod
+8:31 tight glyph ]
+8:32 tight glyph )
+8:33 NEWLINE

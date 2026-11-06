@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-union-nonwing-subject-bad-subject/source.jibb:67:7
+typed-site /tests/golden/split-types-union-nonwing-subject-bad-subject/source.jibb:67:19
+min-sites 2

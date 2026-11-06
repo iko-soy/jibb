@@ -2,7 +2,7 @@
 /=  todo-list  /ui/todo-list
 
 ++ main (page load view)
-++ load |=(~ (todo-by-id.todo 1 |=%one))
+++ load |=(~ (todo-by-id.todo 1 same))
 
 ++ view |= item=todo-item.todo
   text "One todo"

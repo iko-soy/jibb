@@ -1,0 +1,4 @@
+message inline gate result does not unify with A: ? versus A
+site /tests/golden/split-types-prelude-arithmetic-reject-bool-dec/source.jibb:16:25
+site /tests/golden/split-types-prelude-arithmetic-reject-bool-dec/source.jibb:16:21
+min-sites 2

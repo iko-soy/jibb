@@ -1,0 +1,13 @@
+(module
+  (value 1:1 wrong
+    (gate 1:10
+      (face 1:13 f
+        (fn 1:15
+          (cell 1:18
+            (apply 1:19 list (aura 1:25 @t))
+            (aura 1:29 @t))
+          (aura 1:33 @t)))
+      (group 1:37
+        (call 1:38
+          (wing 1:38 f)
+          (tuple 1:40 (lit 1:41 %1) (str 1:44 "ok")))))))

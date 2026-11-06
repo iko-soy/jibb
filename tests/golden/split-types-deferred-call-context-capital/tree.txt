@@ -1,0 +1,10 @@
+(module
+  (value 4:1 local-id
+    (gate 4:13 (bind 4:16 x) (wing 4:18 x)))
+  (value 15:1 capital
+    (gate 15:12
+      (face 15:15 x (tvar 15:17 A))
+      (cast 15:19
+        (tvar 15:22 A)
+        (group 15:24
+          (call 15:25 (wing 15:25 local-id) (str 15:34 "text")))))))

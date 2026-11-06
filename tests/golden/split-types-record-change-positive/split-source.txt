@@ -1,0 +1,11 @@
+origin types-record-change
+target value clear
+keep mold actions
+keep mold model
+keep mold state
+keep value clear
+keep value flip
+keep value multiple
+keep value nested
+keep value put
+keep value tag

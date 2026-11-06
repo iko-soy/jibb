@@ -1,0 +1,4 @@
+origin types-constructor-context
+target value named-capital
+keep mold maybe
+keep value named-capital

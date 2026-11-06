@@ -1,0 +1,13 @@
+(module
+  (value 5:1 waiting
+    (gate 5:12
+      (face 5:15 x (aura 5:17 @t))
+      (body 6:3
+        (value 6:3 first
+          (group 6:12
+            (call 6:13 (wing 6:13 second) (wing 6:20 x))))
+        (value 7:3 second
+          (gate 7:13
+            (face 7:16 y (aura 7:18 @t))
+            (cast 7:21 (aura 7:24 @ud) (wing 7:28 y))))
+        (wing 8:3 first)))))

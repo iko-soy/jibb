@@ -1,0 +1,6 @@
+origin types-prelude-predicates
+target value all-ship
+keep value all-ship
+keep value all-text
+keep value any-ship
+keep value any-text

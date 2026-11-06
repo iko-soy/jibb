@@ -1,0 +1,118 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %got
+2:9 name value
+2:14 tight glyph =
+2:15 tight aura @t
+2:17 tight glyph ]
+3:3 NEWLINE
+3:3 lit %other
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name alias
+4:10 name msg
+11:1 NEWLINE
+11:1 glyph +$
+11:4 name maybe
+11:10 glyph |$
+11:13 glyph [
+11:14 tight tvar A
+11:15 tight glyph ]
+12:3 INDENT
+12:3 glyph [
+12:4 tight lit %got
+12:9 name value
+12:14 tight glyph =
+12:15 tight tvar A
+12:16 tight glyph ]
+13:3 NEWLINE
+13:3 lit %other
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name call
+14:9 glyph |=
+14:12 name callback
+14:20 tight glyph =
+14:21 tight glyph $-(
+14:24 tight aura @t
+14:27 tvar M
+14:28 tight glyph )
+14:30 glyph (
+14:31 tight name callback
+14:40 str "payload"
+14:49 tight glyph )
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name call-ship
+15:14 glyph |=
+15:17 name callback
+15:25 tight glyph =
+15:26 tight glyph $-(
+15:29 tight aura @p
+15:32 tvar M
+15:33 tight glyph )
+15:35 glyph (
+15:36 tight name callback
+15:45 lit ~zod
+15:49 tight glyph )
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name later-context
+17:18 glyph ^-
+17:21 name msg
+17:25 glyph (
+17:26 tight name call
+17:31 glyph |=
+17:33 tight lit %got
+17:37 tight glyph )
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name named-alias
+18:16 glyph ^-
+18:19 name alias
+18:25 glyph (
+18:26 tight name call
+18:31 glyph |=
+18:33 tight lit %got
+18:37 tight glyph )
+21:1 NEWLINE
+21:1 glyph ++
+21:4 name generic-context
+21:20 glyph ^-
+21:23 glyph (
+21:24 tight name maybe
+21:30 aura @t
+21:32 tight glyph )
+21:34 glyph (
+21:35 tight name call
+21:40 glyph |=
+21:42 tight lit %got
+21:46 tight glyph )
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name generic-right-ship
+23:23 glyph ^-
+23:26 glyph (
+23:27 tight name maybe
+23:33 aura @p
+23:35 tight glyph )
+23:37 glyph (
+23:38 tight name call-ship
+23:48 glyph |=
+23:50 tight lit %got
+23:54 tight glyph )
+33:1 NEWLINE
+33:1 glyph ++
+33:4 name existing-no-context
+33:24 glyph ^-
+33:27 glyph $-(
+33:30 tight aura @t
+33:33 name msg
+33:36 tight glyph )
+33:38 glyph |=
+33:40 tight lit %got
+33:44 NEWLINE

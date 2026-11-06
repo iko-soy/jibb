@@ -1,0 +1,14 @@
+(module
+  (value 40:1 bad-tail
+    (gate 40:13
+      (face 40:16 b (flag 40:18))
+      (body 41:3
+        (cast 41:3
+          (apply 41:6 list (aura 41:12 @t))
+          (body 42:5
+            (branch 42:5
+              (wing 42:8 b)
+              (arm 43:7
+                (lit 43:7 %.y)
+                (tuple 43:11 (str 43:12 "hi") (lit 43:17 ~zod)))
+              (arm 44:7 (lit 44:7 %.n) (list 44:11)))))))))

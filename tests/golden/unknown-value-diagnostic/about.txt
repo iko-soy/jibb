@@ -1,0 +1,4 @@
+source: Grammar, Modules and Expressions: names resolve within their lexical scope.
+tests: Unknown names identify their use; declared forward and local names remain available.
+expect: parses
+expect-types: full checker report

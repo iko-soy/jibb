@@ -1,3 +1,7 @@
-partial inference; module not checked
-++ global: @t
-++ f: sample shadows a name
+++ f: sample `global` shadows a name already in scope
+/tests/golden/types-partial-shadow-global/source.jibb:1:4: earlier binding
+++ global "hi"
+   ^
+/tests/golden/types-partial-shadow-global/source.jibb:2:9: conflicting sample binding
+++ f |= global global
+        ^

@@ -1,0 +1,4 @@
+message distinct type variables `A` and `B` must not be forced equal
+site /tests/golden/types-union-finite-generic/source.jibb:10:24
+site /tests/golden/types-union-finite-generic/source.jibb:10:26
+min-sites 2

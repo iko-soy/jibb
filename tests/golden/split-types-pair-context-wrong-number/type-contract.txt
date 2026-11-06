@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/split-types-pair-context-wrong-number/source.jibb:29:36
+site /tests/golden/split-types-pair-context-wrong-number/source.jibb:29:43
+min-sites 2

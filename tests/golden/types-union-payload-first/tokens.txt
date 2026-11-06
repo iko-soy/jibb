@@ -1,0 +1,42 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %ok
+3:3 NEWLINE
+3:3 lit %other
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name action
+5:3 INDENT
+5:3 glyph [
+5:4 tight lit %every
+5:11 name gap
+5:14 tight glyph =
+5:15 tight aura @dr
+5:19 name reply
+5:24 tight glyph =
+5:25 tight glyph $-(
+5:28 tight aura @da
+5:32 name msg
+5:35 tight glyph )
+5:36 tight glyph ]
+6:3 NEWLINE
+6:3 lit %none
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name bad
+7:8 glyph ^-
+7:11 name action
+7:18 glyph [
+7:19 tight lit %every
+7:26 lit ~zod
+7:31 glyph |=(
+7:34 tight name now
+7:37 tight glyph =
+7:38 tight aura @da
+7:42 lit %ok
+7:45 tight glyph )
+7:46 tight glyph ]
+7:47 NEWLINE

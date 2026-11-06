@@ -1,0 +1,6 @@
+2:1 glyph ++
+2:4 name date
+2:9 glyph ^-
+2:12 aura @da
+2:16 lit 30
+2:18 NEWLINE

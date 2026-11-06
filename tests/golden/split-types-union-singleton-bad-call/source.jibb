@@ -1,0 +1,16 @@
+
++$ typed [%typed text=@t]
+
+
+
+
+
+
+
+
+
+++ use |= f=$-(@t typed) (f "hi")
+
+++ bad-call (use |=%nope)
+
+

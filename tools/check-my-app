@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""Check every my-app UI module with Hoon types built on a fake ship."""
+
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+import re
+import sys
+import time
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / 'tools'))
+shiptool = SourceFileLoader('jibb_ship', str(ROOT / 'tools' / 'ship')).load_module()
+import prelude_groups
+
+
+def ui_modules():
+    """Return logical UI paths in import order, rejecting missing/cyclic imports."""
+    ui = ROOT / 'my-app' / 'ui'
+    sources = {('/ui/' + p.relative_to(ui).as_posix()[:-5] + '/jibb'): p
+               for p in ui.rglob('*.jibb')}
+    if not sources:
+        raise ValueError('my-app has no UI modules')
+    visiting = set()
+    visited = set()
+    ordered = []
+    pattern = re.compile(r'^/=\s+\S+\s+(/[^\s]+)', re.MULTILINE)
+
+    def visit(path):
+        if path in visiting:
+            raise ValueError('module import cycle involving ' + path)
+        if path in visited:
+            return
+        if path not in sources:
+            raise ValueError('missing my-app module ' + path)
+        visiting.add(path)
+        for imported in pattern.findall(sources[path].read_text(encoding='utf-8')):
+            visit(imported + '/jibb')
+        visiting.remove(path)
+        visited.add(path)
+        ordered.append(path)
+
+    for path in sorted(sources):
+        visit(path)
+    return ordered
+
+
+def proper_list(noun):
+    result = []
+    while isinstance(noun, tuple):
+        result.append(noun[0])
+        noun = noun[1]
+    if noun != 0:
+        raise ValueError('checker returned an improper list')
+    return result
+
+
+def hoon_paths(paths):
+    # Build paths from cords so route names containing '_' are valid too.
+    return '~[' + ' '.join('(stab ' + shiptool.hoon_cord(path.encode()) + ')'
+                           for path in paths) + ']'
+
+
+def prepare_thread(paths):
+    """Render the Clay checker with the current explicit prelude bundle."""
+    thread = (ROOT / 'tests/clay-fixtures/my-app.txt').read_text()
+    group_sources, private_sources, reader_sources = prelude_groups.load_all(str(ROOT))
+    def group_path(logical):
+        return prelude_groups.hoon_path(logical)
+    def group_source(logical):
+        return '.^(@t %%cx (weld pre %s))' % group_path(logical)
+    group_entries = ['[%%%s %s %s]' % (face, group_path(path), group_source(path))
+                     for face, path, _, _ in group_sources]
+    private_entries = ['[%s %s]' % (group_path(path), group_source(path))
+                       for _, path, _, _ in private_sources]
+    reader_entries = []
+    reader_paths = set()
+    for module, name, logical, _, _ in reader_sources:
+        path = prelude_groups.sur_path(logical)
+        source = '.^(@t %%cx (weld pre %s))' % path
+        if logical not in reader_paths:
+            private_entries.append('[%s %s]' % (path, source))
+            reader_paths.add(logical)
+        reader_entries.append('[%%%s %%%s %s %s]' % (module, name, path, source))
+    substitutions = {
+        '@@PATHS@@': hoon_paths(paths),
+        '@@PRELUDE-GROUPS@@': shiptool.hoon_list(group_entries),
+        '@@PRELUDE-MODULES@@': shiptool.hoon_list(private_entries),
+        '@@PRELUDE-READERS@@': shiptool.hoon_list(reader_entries),
+    }
+    for placeholder, replacement in substitutions.items():
+        if thread.count(placeholder) != 1:
+            raise ValueError('my-app thread needs exactly one ' + placeholder + ' placeholder')
+        thread = thread.replace(placeholder, replacement)
+    return thread
+
+
+def main():
+    try:
+        # Keep the Clay thread honest as the desk grows: every /sur and mark
+        # must be built and added to its importer inputs.
+        expected_types = {
+            'sur/todo.hoon', 'sur/blog.hoon', 'mar/todo-action.hoon',
+            'mar/todos.hoon', 'mar/todo-update.hoon', 'mar/todo-item.hoon',
+            'mar/posts.hoon',
+        }
+        actual_types = {p.relative_to(ROOT / 'my-app').as_posix()
+                        for folder in ('sur', 'mar')
+                        for p in (ROOT / 'my-app' / folder).rglob('*.hoon')}
+        if actual_types != expected_types:
+            raise ValueError('update the Clay thread for changed /sur or mark files: '
+                             + ', '.join(sorted(actual_types ^ expected_types)))
+        paths = ui_modules()
+        thread = prepare_thread(paths)
+        ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
+        ship.require()
+        shiptool.sync(ship, 'my-app')
+        start = time.monotonic()
+        result = proper_list(ship.thread(thread, timeout=1800))
+        elapsed = time.monotonic() - start
+        actual = []
+        for item in result:
+            if not (isinstance(item, tuple) and isinstance(item[1], tuple)):
+                raise ValueError('checker returned a malformed module result')
+            path, (flag, message) = item
+            if flag not in (0, 1) or not isinstance(message, int):
+                raise ValueError('checker returned a malformed status')
+            actual.append((shiptool.path_text(path), flag, shiptool.text(message)))
+        if [path for path, _, _ in actual] != paths:
+            raise ValueError('checker did not return every module in dependency order')
+        failures = [(path, message) for path, flag, message in actual if flag == 1]
+        excerpt = (ROOT / 'tests/type-buttons/error.txt').read_text().rstrip('\n')
+        if not excerpt:
+            raise ValueError('buttons error fixture is empty')
+        _, separator, reason = excerpt.splitlines()[0].partition(': ')
+        if not separator:
+            raise ValueError('buttons error fixture is missing its diagnostic reason')
+        expected = '++ add-button: ' + reason + '\n' + excerpt
+        if failures != [('/ui/components/buttons/jibb', expected)]:
+            print('my-app checker failures differ:', file=sys.stderr)
+            for path, message in failures:
+                print(path + ':\n' + message, file=sys.stderr)
+            if not failures:
+                print('(no failures)', file=sys.stderr)
+            return 1
+        print('my-app full checker: %d modules, one expected failure (%.1fs)' %
+              (len(paths), elapsed))
+        return 0
+    except (OSError, UnicodeError, ValueError, shiptool.Fail, shiptool.Unable) as error:
+        print('check-my-app: %s' % error, file=sys.stderr)
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -1,4 +1,4 @@
-partial inference; module not checked
-+$ sign: cases proven disjoint; mold not checked
+module kind: library
++$ sign: sign
 ++ f: $-(? @ud)
 ++ g: $-(sign @ud)

@@ -1,0 +1,1 @@
+A tagged constructor with a shared head reports the disjoint payload domain and the rejected literal.

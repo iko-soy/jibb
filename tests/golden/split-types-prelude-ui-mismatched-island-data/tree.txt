@@ -1,0 +1,87 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %save)
+      (const 3:3 %toggle)
+      (cell 4:3
+        (const 4:4 %edited)
+        (face 4:12 value (aura 4:18 @t)))))
+  (mold 5:1 model
+    (cell 5:10
+      (face 5:11 count (aura 5:17 @ud))))
+  (value 44:1 save-message
+    (cast 44:17 (ref 44:20 msg) (lit 44:24 %save)))
+  (value 45:1 toggle-message
+    (cast 45:19 (ref 45:22 msg) (lit 45:26 %toggle)))
+  (value 46:1 save-button
+    (cast 46:16
+      (apply 46:19 element (ref 46:28 msg))
+      (group 46:33
+        (call 46:34 (wing 46:34 button) (str 46:41 "Save") (wing 46:48 save-message)))))
+  (value 47:1 enabled-toggle
+    (cast 47:19
+      (apply 47:22 element (ref 47:31 msg))
+      (group 47:36
+        (call 47:37 (wing 47:37 toggle) (lit 47:44 %.y) (str 47:48 "Enabled") (wing 47:58 toggle-message)))))
+  (value 48:1 edit-message
+    (gate 48:17
+      (face 48:20 value (aura 48:26 @t))
+      (cast 48:29
+        (ref 48:32 msg)
+        (tuple 48:36 (lit 48:37 %edited) (wing 48:45 value)))))
+  (value 49:1 name-field
+    (cast 49:15
+      (apply 49:18 element (ref 49:27 msg))
+      (group 49:32
+        (call 49:33 (wing 49:33 field) (str 49:39 "Name") (str 49:46 "value") (wing 49:54 edit-message)))))
+  (value 50:1 controls
+    (cast 50:13
+      (apply 50:16 element (ref 50:25 msg))
+      (body 51:3
+        (group 51:3
+          (call 51:4
+            (wing 51:4 form)
+            (wing 51:9 save-message)
+            (list 51:22 (wing 51:24 save-button) (wing 51:36 enabled-toggle) (wing 51:51 name-field)))))))
+  (value 67:1 init
+    (gate 67:9
+      (face 67:12 input (aura 67:18 @t))
+      (cast 67:21
+        (ref 67:24 model)
+        (tuple 67:30
+          (face 67:31 count (lit 67:37 0))))))
+  (value 68:1 update
+    (gate 68:11
+      (cell 68:14
+        (face 68:15 message (ref 68:23 msg))
+        (face 68:27 state (ref 68:33 model)))
+      (body 69:3
+        (cast 69:3
+          (cell 69:6
+            (ref 69:7 model)
+            (apply 69:13 list
+              (apply 69:19 cmd (ref 69:24 msg))))
+          (tuple 69:31 (wing 69:32 state) (lit 69:38 ~))))))
+  (value 70:1 view
+    (gate 70:9
+      (face 70:12 state (ref 70:18 model))
+      (cast 70:24
+        (apply 70:27 element (ref 70:36 msg))
+        (group 70:41 (wing 70:42 controls)))))
+  (value 71:1 subs
+    (gate 71:9
+      (face 71:12 state (ref 71:18 model))
+      (cast 71:24
+        (apply 71:27 list
+          (apply 71:33 sub (ref 71:38 msg)))
+        (lit 71:44 ~))))
+  (value 72:1 concrete-program
+    (cast 72:21
+      (apply 72:24 program (aura 72:33 @t) (ref 72:36 model) (ref 72:42 msg))
+      (group 72:47
+        (call 72:48 (wing 72:48 program) (wing 72:56 init) (wing 72:61 update) (wing 72:68 view) (wing 72:73 subs)))))
+  (value 74:1 mismatched-island-data
+    (cast 74:27
+      (apply 74:30 element (void 74:39))
+      (group 74:43
+        (call 74:44 (wing 74:44 island) (wing 74:51 concrete-program) (lit 74:68 ~zod))))))

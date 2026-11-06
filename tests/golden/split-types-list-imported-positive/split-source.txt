@@ -1,0 +1,9 @@
+origin types-list-imported
+target value as-written
+keep value as-written
+keep value branch
+keep value cons
+keep value empty
+keep value literal
+keep value take
+keep value to-imported

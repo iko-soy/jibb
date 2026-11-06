@@ -1,0 +1,3 @@
+origin types-arithmetic-combined
+target value bool-then-any
+keep value bool-then-any

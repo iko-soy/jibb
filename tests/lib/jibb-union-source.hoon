@@ -1,7 +1,8 @@
-::  Bounded source-backed generic-union proof checks; no runtime claim.
-/+  jibb
+::  Check resolved generic-union proofs and their diagnostics.
+/+  jibb, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  good  %txt  /tests/type-union-source/good/txt
 /*  same  %txt  /tests/type-union-source/same/txt
 /*  zero  %txt  /tests/type-union-source/zero/txt
@@ -65,15 +66,16 @@
   ?~  late-shape  ~[['BAD late source' |]]
   =/  mixed-parsed=(each module:jibb error:jibb)  (parse:jibb /tests/empty/jibb mixed-source)
   ?:  ?=(%| -.mixed-parsed)  ~[['BAD mixed parse' |]]
-  =/  mixed-collected=grec-collected:jibb  (grec-collect-molds:jibb defs.p.mixed-parsed)
-  =/  mixed-tree=(unit shape:jibb)  (~(get by proofs.mixed-collected) %node-tree)
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb public internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  ~[['BAD prepared prelude' |]]
   =/  mixed-result=jfile-result:jibb
     (infer-jibb-file:jibb /tests/empty/jibb mixed-source ~ ~ ~ ~[/tests/empty/jibb] values.u.prep molds.u.prep ~ `iface.u.prep)
+  =/  mixed-tree=(unit ischeme:jibb)
+    ?:  ?=(%| -.mixed-result)  ~
+    (find-jibb-mold:jibb %node-tree iface.p.mixed-result)
   =/  mixed-report=wain  (to-wain:format (golden-types-with-prepared-prelude:jibb /tests/empty/jibb mixed-source ~ ~ ~ prep))
-  =/  good-report=wain  (to-wain:format (golden-types-in-context:jibb /tests/empty/jibb good ~ ~ ~ ~ ~ ~))
-  =/  shadow-report=wain  (to-wain:format (golden-types-in-context:jibb /tests/empty/jibb shadow-source ~ ~ ~ ~ ~ ~))
+  =/  good-report=wain  (to-wain:format (golden-types:jibb /tests/empty/jibb good))
+  =/  shadow-report=wain  (to-wain:format (golden-types:jibb /tests/empty/jibb shadow-source))
   =/  good-checked=jfile-result:jibb
     (infer-jibb-file:jibb /tests/empty/jibb good ~ ~ ~ ~[/tests/empty/jibb] ~ ~ ~ ~)
   =/  collision-checked=jfile-result:jibb
@@ -86,53 +88,41 @@
   =/  shadow-checked=jfile-result:jibb
     (infer-jibb-file:jibb /tests/empty/jibb shadow-source ~ ~ ~ ~[/tests/empty/jibb] ~ ~ ~ ~)
   =/  state=istate:jibb  *istate:jibb
-  =/  idx=[at=path source=@t prelude=ifile:jibb shapes=(map term shape:jibb)]  [/tests/empty/jibb '' *ifile:jibb *(map term shape:jibb)]
-  =/  cap256=icaps:jibb  (turn (gulf 0 255) |=(n=@ud ['A' n *span:jibb]))
-  =/  cap257=icaps:jibb  (turn (gulf 0 256) |=(n=@ud ['A' n *span:jibb]))
   =/  initial=istate:jibb
-    state(molds molds.u.g, at /tests/empty/jibb, active ~[%outer], caps ~[['Q' 17 *span:jibb]], tags ~[[42 [%term %tas %pending '%pending'] *span:jibb]], sub ~[[71 [%atom %t]]], next 100)
+    state(molds molds.u.g, at /tests/empty/jibb, active ~[%outer], caps ~[['Q' 17 *span:jibb]], tags ~[[42 [%term %tas %pending '%pending'] *span:jibb]], sub (isub-from-bindings:jibb ~[[71 [%atom %t]]]), next 100)
   =/  preserved=(unit [typ=itype:jibb state=istate:jibb])  (infer-simple-shape:jibb u.chosen initial)
   =/  structured=istate:jibb  initial(params ~[['A' [%cell [%atom %t] [%atom %t]]]])
-  =/  rejected=(unit [typ=itype:jibb state=istate:jibb])  (infer-simple-shape:jibb u.chosen structured)
+  =/  structural=(unit [typ=itype:jibb state=istate:jibb])  (infer-simple-shape:jibb u.chosen structured)
   =/  delayed=istate:jibb  initial(molds molds.u.late, in-mold &, params ~[['A' [%var 3]]])
   =/  first=(unit [typ=itype:jibb state=istate:jibb])  (infer-simple-shape:jibb i.cases.u.late delayed)
   =/  incomplete=(unit [typ=itype:jibb state=istate:jibb])  (infer-simple-shape:jibb u.late-shape delayed)
-  :~  ['source generic distinct' (union-source-distinct-tags:jibb cases.u.g molds.u.g 256)]
-      ['actual inference preserves pending and scoped state' ?:(?=(~ preserved) | =(state.u.preserved initial))]
-      ['actual inference rejects structural state' ?=(~ rejected)]
+  =/  accepts
+    |=  source=@t
+    ^-  ?
+    =/  out=jfile-result:jibb
+      (infer-jibb-file:jibb /tests/empty/jibb source ~ ~ ~ ~[/tests/empty/jibb] ~ ~ ~ ~)
+    ?=(%& -.out)
+  :~  ['actual inference preserves pending and scoped state' ?:(?=(~ preserved) | =(state.u.preserved initial))]
+      ['actual inference preserves structural state' &(?=(^ structural) =(state.u.structural structured) ?=(%union -.typ.u.structural) (import-cases-disjoint:jibb cases.typ.u.structural))]
       ['later source failure returns no partial state' &(?=(^ first) ?=(~ incomplete))]
       ['actual local owner shadow rejected' &(?=(%& -.shadow-parsed) ?=(%| -.shadow-checked))]
       ['full generic-alias module checks' ?=(%& -.good-checked)]
       ['same-head module is not published' ?=(%| -.collision-checked)]
       ['mixed-zero module is not published' ?=(%| -.zero-checked)]
       ['wrong-arity module is not published' ?=(%| -.arity-checked)]
-      ['partial report uses source proof' (lien good-report |=(line=@t =(line '+$ choice: cases proven disjoint; mold not checked')))]
-      ['partial report preserves shadow diagnostic' (lien shadow-report |=(line=@t =(line '++ bad: local molds shadow a name')))]
-      ['recognized recursive tree causes conservative decline' &(?=(^ mixed-tree) ?=(%| -.mixed-result))]
-      ['mixed partial report remains source-only' (lien mixed-report |=(line=@t =(line '+$ choice: cases proven disjoint; mold not checked')))]
-      ['source exact fuel 18' (union-source-distinct-tags:jibb cases.u.g molds.u.g 18)]
-      ['source 17 fuel declines' !(union-source-distinct-tags:jibb cases.u.g molds.u.g 17)]
-      ['same head declines' !(union-source-distinct-tags:jibb cases.u.s molds.u.s 256)]
-      ['equal noun cross spelling declines' !(union-source-distinct-tags:jibb cases.u.z molds.u.z 256)]
-      ['nested application declines' !(union-source-distinct-tags:jibb cases.u.n molds.u.n 256)]
-      ['duplicate owner declines' !(union-source-distinct-tags:jibb cases.u.d molds.u.d 256)]
-      ['wrong arity declines' !(union-source-distinct-tags:jibb cases.u.w molds.u.w 256)]
-      ['duplicate parameters decline' !(union-source-distinct-tags:jibb cases.u.dp molds.u.dp 256)]
-      ['hidden body reference declines' !(union-source-distinct-tags:jibb cases.u.hr molds.u.hr 256)]
-      ['qualified import declines' !(union-source-distinct-tags:jibb cases.u.q molds.u.q 256)]
-      ['direct cases use existing proof' !(union-source-distinct-tags:jibb cases.u.direct molds.u.direct 256)]
-      ['wide alias body declines' !(union-source-distinct-tags:jibb cases.u.wide molds.u.wide 256)]
-      ['undeclared body parameter declines' !(union-source-distinct-tags:jibb cases.u.free molds.u.free 256)]
-      ['empty state accepted' (union-source-state-safe:jibb state 256)]
-      ['simple outer generic accepted' (union-source-state-safe:jibb state(params ~[['A' [%var 3]]], sub ~[[3 [%var 5]]]) 256)]
-      ['structured outer argument declined' !(union-source-state-safe:jibb state(params ~[['A' [%cell [%atom %t] [%atom %t]]]]) 256)]
-      ['structured substitution declined' !(union-source-state-safe:jibb state(sub ~[[3 [%cell [%atom %t] [%atom %t]]]]) 256)]
-      ['pending hole declined' !(union-source-state-safe:jibb state(holes ~[[3 *span:jibb]]) 256)]
-      ['recursive index declined' !(union-source-state-safe:jibb state(grec-index `idx) 256)]
-      ['deferred transaction declined' !(union-source-state-safe:jibb state(defer `~) 256)]
-      ['pending obligation declined' !(union-source-state-safe:jibb state(obligations ~[[[%var 1] [%var 2] *span:jibb *span:jibb]]) 256)]
-      ['256 state entries accepted' (union-source-state-safe:jibb state(caps cap256) 256)]
-      ['257 state entries declined' !(union-source-state-safe:jibb state(caps cap257) 256)]
+      ['full report prints checked union' (lien good-report |=(line=@t =(line '+$ choice: choice')))]
+      ['full report preserves named shadow diagnostic' (lien shadow-report |=(line=@t =(line '++ bad: local mold `tagged` shadows an enclosing mold')))]
+      ['recursive mold coexists with generic alias union' ?~(mixed-tree | ?=(%mrec -.typ.u.mixed-tree))]
+      ['mixed full report prints checked union' (lien mixed-report |=(line=@t =(line '+$ choice: choice')))]
+      ['nested generic aliases check' (accepts nested)]
+      ['direct disjoint cases check' (accepts direct-source)]
+      ['resolved nonrecursive aliases check' (accepts hidden-ref)]
+      ['wide alias case checks' (accepts wide-source)]
+      ['duplicate owner is rejected' !(accepts duplicate)]
+      ['duplicate parameters are rejected' !(accepts duplicate-params)]
+      ['unbound parameter is rejected' !(accepts free-source)]
+      ['undefined imported module is rejected' !(accepts qualified)]
+      ['unbound case arguments are rejected' !(accepts late-source)]
   ==
 ++  source-output
   |=  [public=@t internal=@t good=@t same=@t zero=@t nested=@t duplicate=@t wrong=@t duplicate-params=@t hidden-ref=@t qualified=@t direct-source=@t wide-source=@t free-source=@t late-source=@t shadow-source=@t mixed-source=@t]

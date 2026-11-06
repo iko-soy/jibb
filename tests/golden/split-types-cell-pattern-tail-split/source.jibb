@@ -1,0 +1,18 @@
+
+
+
+++ split |= x=[@t (list @p)]
+  ?- x
+    [first second third] third
+
+
+
+
+
+
+
+
+
+
+
+

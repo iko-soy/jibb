@@ -1,0 +1,54 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ alias-mono |= x=@t
+  ++ recur |= y=A
+    ++ alias recur
+    ~& (alias "hi")
+      (alias ~zod)
+  (recur x)
+
+
+
+
+
+
+
+
+
+
+
+
+

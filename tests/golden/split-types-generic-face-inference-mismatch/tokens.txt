@@ -1,0 +1,24 @@
+7:1 glyph ++
+7:4 name mismatch
+7:13 glyph |=
+7:16 name x
+7:17 tight glyph =
+7:18 tight glyph [
+7:19 tight name left
+7:23 tight glyph =
+7:24 tight aura @t
+7:27 name rest
+7:31 tight glyph =
+7:32 tight aura @ud
+7:35 tight glyph ]
+7:37 glyph ^-
+7:40 glyph [
+7:41 tight name right
+7:46 tight glyph =
+7:47 tight aura @t
+7:50 name rest
+7:54 tight glyph =
+7:55 tight aura @ud
+7:58 tight glyph ]
+7:60 name x
+7:61 NEWLINE

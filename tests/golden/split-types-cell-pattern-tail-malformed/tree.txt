@@ -1,0 +1,11 @@
+(module
+  (value 16:1 malformed
+    (gate 16:14
+      (face 16:17 x
+        (cell 16:19 (aura 16:20 @t) (aura 16:23 @p)))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 x)
+          (arm 18:5
+            (cell 18:5 (bind 18:6 first) (bind 18:12 second) (bind 18:19 third))
+            (wing 18:26 third)))))))

@@ -1,0 +1,6 @@
+++ run |= [words=@t ship=@p]
+  ++ outer |= x=[first=A second=B]
+    ++ pick |= y=[left=C right=D]
+      ^- [left=C] (proj y)
+    [(pick [left=first.x right=second.x]) (pick [left=second.x right=first.x])]
+  (outer [first=words second=ship])

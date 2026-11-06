@@ -1,0 +1,10 @@
+++ labelled: list items do not have compatible types; calls in a list need parentheses; did you mean `~[(lth2 lte2)]`
+/tests/golden/split-inline-unface-gates-labelled/source.jibb:5:13: expected item has type $-([x=A y=A] ?) where A is an atom
+++ labelled ~[lth2 lte2]
+            ^
+/tests/golden/split-inline-unface-gates-labelled/source.jibb:5:20: list item has type $-([a=A b=A] ?) where A is an atom
+++ labelled ~[lth2 lte2]
+                   ^
+/tests/golden/split-inline-unface-gates-labelled/source.jibb:5:13: calls in a list need parentheses; did you mean `~[(lth2 lte2)]`
+++ labelled ~[lth2 lte2]
+            ^

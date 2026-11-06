@@ -1,0 +1,4 @@
+source: docs/reviews/2026-11-03-milestone-2-probes/errors/p1.jibb, E10c-through-gate
+tests: the strict maker/value dependency cycle is diagnosed through the full checker
+expect: parses
+expect-types: exact full-checker error

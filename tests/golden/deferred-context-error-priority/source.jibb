@@ -1,0 +1,5 @@
++$ msg
+  %hit
+  %miss
+++ source [label=~zod value=%hit]
+++ cast ^- [label=@t value=msg] source

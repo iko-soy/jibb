@@ -1,0 +1,1 @@
+List identity permits gate elements; it does not inherit the no-gates restriction needed by equality and sublist search.

@@ -1,0 +1,4 @@
+message branch results have conflicting value faces
+min-sites 2
+typed-site /ui/result-face.jibb:8:9
+typed-site /ui/result-face.jibb:9:9

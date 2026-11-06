@@ -1,0 +1,3 @@
+origin types-arithmetic-module
+target value inc-bool
+keep value inc-bool

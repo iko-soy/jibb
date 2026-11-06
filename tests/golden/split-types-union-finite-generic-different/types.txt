@@ -1,0 +1,7 @@
+++ different: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/split-types-union-finite-generic-different/source.jibb:10:24: first type variable
+++ different |= m=(msg A B)
+                       ^
+/tests/golden/split-types-union-finite-generic-different/source.jibb:10:26: second type variable
+++ different |= m=(msg A B)
+                         ^

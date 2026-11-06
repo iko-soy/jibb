@@ -1,0 +1,7 @@
+++ record: `30` is a @ud, not a @dr; write ~s30
+/tests/golden/split-inline-decimal-sites-record/source.jibb:9:35: decimal
+++ record ^- [gap=@dr n=@ud] [gap=30 n=1]
+                                  ^
+/tests/golden/split-inline-decimal-sites-record/source.jibb:9:14: expected type has type [gap=@dr n=@ud]
+++ record ^- [gap=@dr n=@ud] [gap=30 n=1]
+             ^

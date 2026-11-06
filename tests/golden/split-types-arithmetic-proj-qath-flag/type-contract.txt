@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/split-types-arithmetic-proj-qath-flag/source.jibb:4:10
+site /tests/golden/split-types-arithmetic-proj-qath-flag/source.jibb:4:31
+min-sites 2

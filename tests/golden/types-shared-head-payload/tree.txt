@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 attr
+    (union 2:3
+      (cell 2:3 (const 2:4 %pad) (const 2:9 %s0))
+      (cell 3:3 (const 3:4 %pad) (const 3:9 %s1))))
+  (value 4:1 wrong
+    (cast 4:10
+      (ref 4:13 attr)
+      (pair 4:18 pad (lit 4:22 %s4)))))

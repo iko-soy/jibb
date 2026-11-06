@@ -27,33 +27,70 @@ empty cell fits a concrete type: ok
 inhabited atom does not fit empty: ok
 empty gate-bearing cell is gate-free: ok
 list of empty is gate-free and inhabited: ok
-partial inference; module not checked
-+$ never: not checked
-+$ box: not checked
-+$ split: cases proven disjoint; mold not checked
+module kind: library
++$ never: !!
++$ box: [x=A y=@t]
++$ split: split
 ++ identity: $-(!! !!)
 ++ generic-empty: $-([x=!! y=@t] [x=!! y=@t])
 ++ select: $-(split @t)
 ++ crash: !!
-partial inference; module not checked
-+$ broken: overlapping cases; mold not checked
+module mold broken has overlapping cases
 /tests/empty.jibb:2:3: first union case
   [%tag [%.y @t]]
   ^
 /tests/empty.jibb:3:3: overlapping case
   [%tag [%$ @p]]
   ^
-partial inference; module not checked
-+$ split: cases proven disjoint; mold not checked
-++ select: union pattern is not supported by partial inference
-partial inference; module not checked
-+$ split: cases proven disjoint; mold not checked
-++ select: union pattern is not supported by partial inference
-partial inference; module not checked
-++ probe: list nonempty pattern is unreachable
-partial inference; module not checked
-++ probe: unit present pattern is unreachable
-partial inference; module not checked
-++ probe-late: explicit capital constraints are not supported by partial inference
-++ probe-outer: explicit capital constraints are not supported by partial inference
-++ probe-rec: explicit capital constraints are not supported by partial inference
+++ select: pattern cannot match the subject
+/tests/empty.jibb:6:5: unreachable pattern
+    [%dead impossible] "dead"
+    ^
+/tests/empty.jibb:5:6: subject has type split
+  ?- x
+     ^
+++ select: missing match case [%other ~zod]
+/tests/empty.jibb:4:4: missing case is declared here
+  [%other @p]
+   ^
+/tests/empty.jibb:6:3: non-exhaustive match
+  ?- x
+  ^
+/tests/empty.jibb:6:6: subject has type split
+  ?- x
+     ^
+++ probe: pattern cannot match the subject
+/tests/empty.jibb:4:5: unreachable pattern
+    [x rest] "cons"
+    ^
+/tests/empty.jibb:2:6: subject has type (list !!)
+  ?- xs
+     ^
+++ probe: pattern cannot match the subject
+/tests/empty.jibb:4:5: unreachable pattern
+    [~ x] "some"
+    ^
+/tests/empty.jibb:2:6: subject has type (unit !!)
+  ?- maybe
+     ^
+++ probe-late: capital `A` cannot be fixed to !!
+/tests/empty.jibb:1:27: capital
+++ probe-late |= xs=(list A)
+                          ^
+/tests/empty.jibb:4:23: forcing expression
+    [item rest] ^- !! item
+                      ^
+++ probe-outer: capital `A` cannot be fixed to !!
+/tests/empty.jibb:1:28: capital
+++ probe-outer |= xs=(list A)
+                           ^
+/tests/empty.jibb:5:25: forcing expression
+      [item rest] ^- !! item
+                        ^
+++ probe-rec: capital `A` cannot be fixed to !!
+/tests/empty.jibb:1:26: capital
+++ probe-rec |= xs=(list A)
+                         ^
+/tests/empty.jibb:5:16: forcing expression
+      ~& ^- !! item
+               ^

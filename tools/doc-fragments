@@ -37,6 +37,20 @@ def compare(label, expected, actual):
     return False
 
 
+def standalone_mark(name):
+    """Embed a mark's /sur dependency so the eval and ship tests can ride it."""
+    source = read('my-app/mar/' + name + '.hoon')
+    imports = [line.split()[1] for line in source.splitlines()
+               if line.startswith('/- ')]
+    if len(imports) != 1:
+        raise ValueError('expected one /sur import in mark ' + name)
+    module = imports[0]
+    sur = read('my-app/sur/' + module + '.hoon')
+    core = sur[sur.index('|%'):]
+    return source.replace('/-  ' + module + '\n',
+                          '=/  ' + module + '  ' + core, 1)
+
+
 def main():
     try:
         core = read('tests/golden/doc-core-02-update/source.jibb')
@@ -49,8 +63,47 @@ def main():
                     ''.join(body for name, body in buttons.items()
                             if name != 'add-button'), valid),
         ]
+        for manifest in sorted((ROOT / 'tests/golden').glob('doc-*/modules.txt')):
+            for logical in manifest.read_text(encoding='utf-8').splitlines():
+                if not logical.strip() or logical.lstrip().startswith('#'):
+                    continue
+                if not logical.startswith('/ui/') or not logical.endswith('.jibb'):
+                    raise ValueError('invalid documented module path: ' + logical)
+                relative = Path(logical.lstrip('/'))
+                expected = (ROOT / 'my-app' / relative).read_text(encoding='utf-8')
+                actual = (manifest.parent / 'modules' / relative).read_text(encoding='utf-8')
+                checks.append(compare(manifest.parent.name + ' fixture ' + logical,
+                                      expected, actual))
+        for manifest in sorted((ROOT / 'tests/golden').glob('doc-*/imports.txt')):
+            modules = {line.split()[0] for line in manifest.read_text(encoding='utf-8').splitlines()
+                       if line.strip() and not line.lstrip().startswith('#')}
+            for module in sorted(modules):
+                checks.append(compare(manifest.parent.name + ' /sur/' + module,
+                                      read('my-app/sur/' + module + '.hoon'),
+                                      (manifest.parent / 'sur' / (module + '.txt')).read_text(encoding='utf-8')))
+        for manifest in sorted((ROOT / 'tests/golden').glob('doc-*/marks.txt')):
+            for name in manifest.read_text(encoding='utf-8').splitlines():
+                if not name.strip() or name.lstrip().startswith('#'):
+                    continue
+                checks.append(compare(manifest.parent.name + ' /mar/' + name,
+                                      standalone_mark(name),
+                                      (manifest.parent / 'mar' / (name + '.txt')).read_text(encoding='utf-8')))
         if 'add-button' not in buttons:
             raise ValueError('documented buttons have no add-button definition')
+        cmd_sub = read('tests/golden/doc-overview-01-cmd-sub/source.jibb')
+        cmd, sub = cmd_sub.split('+$ sub ', 1)
+        prelude = read('jibb-dev/lib/jibb/prelude.jibb')
+        for name, fragment in [('cmd', cmd), ('sub', '+$ sub ' + sub)]:
+            present = fragment.rstrip('\n') + '\n' in prelude
+            print(('ok     ' if present else 'FAIL   ') + 'documented ' + name + ' in prelude')
+            checks.append(present)
+        for source in sorted((ROOT / 'tests/golden').glob('doc-*/type-source.jibb')):
+            logical = (source.parent / 'path.txt').read_text(encoding='utf-8').strip()
+            if not logical.startswith('/ui/') or not logical.endswith('.jibb'):
+                raise ValueError('invalid documented type source path: ' + logical)
+            checks.append(compare(source.parent.name + ' containing module',
+                                  read('my-app/' + logical.lstrip('/')),
+                                  source.read_text(encoding='utf-8')))
         return 0 if all(checks) else 1
     except (OSError, UnicodeError, KeyError, ValueError) as e:
         print('doc-fragments: %s' % e, file=sys.stderr)

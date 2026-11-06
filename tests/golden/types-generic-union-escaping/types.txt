@@ -1,3 +1,4 @@
-partial inference; module not checked
-++ text-value: generic union name is not available in this scope
-++ ship-value: generic union name is not available in this scope
+module kind: library
+/= types-1 /ui/base
+++ text-value: (phantom.types-1 @t)
+++ ship-value: (phantom.types-1 @p)

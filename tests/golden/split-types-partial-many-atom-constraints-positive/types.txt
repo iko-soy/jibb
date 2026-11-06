@@ -1,0 +1,5 @@
+module kind: library
+++ both: $-([A B] @) where A is an atom, B is an atom
+++ mix: @
+++ implicit: $-(A A) where A is an atom
+++ flag: ?

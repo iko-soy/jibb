@@ -1,0 +1,7 @@
+++ f: local definition `same` shadows a name already in scope
+/lib/jibb/prelude.jibb:7:4: earlier binding
+++ same |= x=A x
+   ^
+/tests/golden/local-shadow-prelude/source.jibb:2:6: conflicting local definition
+  ++ same 1
+     ^

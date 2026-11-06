@@ -1,0 +1,4 @@
+(module
+  (value 23:1 eq-gate
+    (group 23:12
+      (call 23:13 (wing 23:13 eq) (wing 23:16 same) (wing 23:21 same)))))

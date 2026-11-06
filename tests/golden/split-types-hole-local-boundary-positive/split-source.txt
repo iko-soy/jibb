@@ -1,0 +1,3 @@
+origin types-hole-local-boundary
+target value resolved
+keep value resolved

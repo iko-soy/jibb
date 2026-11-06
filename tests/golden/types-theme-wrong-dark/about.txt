@@ -1,0 +1,1 @@
+expect-types: full checker reports the exact theme field and its source declaration.

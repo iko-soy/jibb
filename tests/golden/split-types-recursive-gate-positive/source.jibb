@@ -1,0 +1,55 @@
+++ bounce |= b=?
+  ?- b
+    %.y %.n
+    %.n (bounce %.y)
+++ recur |= x=A
+  ?- %.y
+    %.y x
+    %.n (recur x)
+++ cord-result (recur "hi")
+++ ship-result (recur ~zod)
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ mutual-a |= x=A (mutual-b x)
+++ mutual-b |= x=A (mutual-a x)
+++ captured |= x=A
+  ++ use |= b=?
+    ?- b
+      %.y x
+      %.n (captured x)
+  (use %.y)
+++ local-rec |= x=A
+  ++ inner |= y=A (inner y)
+  (inner x)
+
+
+
+
+
+
+++ higher |= f=$-(A A)
+  |= x=A
+    ?- %.y
+      %.y (f x)
+      %.n ((higher f) x)
+++ local-self |= x=A
+  ++ call |= y=A (local-self y)
+  (call x)
+
+
+
+
+
+
+

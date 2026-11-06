@@ -1,0 +1,25 @@
+20:1 glyph +$
+20:4 name my-msg
+21:3 INDENT
+21:3 glyph [
+21:4 tight lit %got
+21:9 name value
+21:14 tight glyph =
+21:15 tight aura @t
+21:17 tight glyph ]
+22:3 NEWLINE
+22:3 lit %idle
+37:1 DEDENT
+37:1 NEWLINE
+37:1 glyph ++
+37:4 name pure-wrong
+37:15 glyph ^-
+37:18 glyph (
+37:19 tight name ask
+37:23 name my-msg
+37:29 tight glyph )
+37:31 glyph (
+37:32 tight name pure
+37:37 lit %absent
+37:44 tight glyph )
+37:45 NEWLINE

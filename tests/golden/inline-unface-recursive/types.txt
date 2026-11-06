@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ weld2: $-([(list A) (list A)] (list A))
 ++ joined: (list @ud)
 ++ even: $-(@ud ?)

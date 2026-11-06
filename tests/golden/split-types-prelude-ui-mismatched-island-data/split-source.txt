@@ -1,0 +1,17 @@
+origin types-prelude-ui
+target value mismatched-island-data
+keep mold model
+keep mold msg
+keep value concrete-program
+keep value controls
+keep value edit-message
+keep value enabled-toggle
+keep value init
+keep value mismatched-island-data
+keep value name-field
+keep value save-button
+keep value save-message
+keep value subs
+keep value toggle-message
+keep value update
+keep value view

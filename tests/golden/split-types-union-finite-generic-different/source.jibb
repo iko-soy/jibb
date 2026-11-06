@@ -1,0 +1,48 @@
++$ msg |$ [A B]
+  [%ok bit=? val=A]
+  [%err bit=? val=B]
+
+
+
+
+
+
+++ different |= m=(msg A B)
+  ?- m
+    [%ok %.y value] value
+    [%ok %.n value] value
+    [%err %.y value] value
+    [%err %.n value] value
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

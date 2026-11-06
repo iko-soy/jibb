@@ -1,0 +1,14 @@
+/-  fixture
+++ take |= xs=texts.fixture xs
+
+
+
+++ bad |= xs=ships.fixture (take xs)
+
+
+
+
+
+
+
+

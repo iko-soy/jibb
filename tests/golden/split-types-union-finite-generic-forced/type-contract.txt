@@ -1,0 +1,4 @@
+message capital `A` cannot be fixed to @t
+site /tests/golden/split-types-union-finite-generic-forced/source.jibb:16:21
+site /tests/golden/split-types-union-finite-generic-forced/source.jibb:18:27
+min-sites 2

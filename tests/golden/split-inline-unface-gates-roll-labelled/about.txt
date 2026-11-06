@@ -1,0 +1,4 @@
+source: split from inline-unface-gates, preserving the original source lines
+tests: a faced gate fits a generic capital under the chosen face rule
+expect: parses
+expect-types: full checker type

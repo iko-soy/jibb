@@ -1,0 +1,12 @@
+origin types-list-open-constraints
+target value abstract
+keep value abstract
+keep value all-num
+keep value call-ship
+keep value call-text
+keep value empty
+keep value explicit
+keep value repeated
+keep value reverse
+keep value ships
+keep value texts

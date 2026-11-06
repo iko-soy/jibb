@@ -1,0 +1,75 @@
+1:1 glyph ++
+1:4 name later-body
+1:15 glyph |=
+1:18 name n
+2:3 INDENT
+2:3 glyph ~&
+2:6 str-head ""
+2:8 tight name n
+2:9 tight str-tail ""
+3:5 INDENT
+3:5 glyph ^-
+3:8 aura @ud
+3:12 name n
+4:1 DEDENT
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name later-call
+4:15 glyph |=
+4:18 name n
+4:20 str-head ""
+4:22 tight name n
+4:23 tight str-tail ""
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name called
+5:11 glyph (
+5:12 tight name later-call
+5:23 str "hi"
+5:27 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name numeric-text
+6:17 str-head ""
+6:19 tight glyph (
+6:20 tight name add
+6:24 lit 1
+6:26 lit 2
+6:27 tight glyph )
+6:28 tight str-tail ""
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name tape-text
+7:14 glyph |=
+7:17 name words
+7:22 tight glyph =
+7:23 tight glyph (
+7:24 tight name list
+7:29 aura @tD
+7:32 tight glyph )
+7:34 str-head ""
+7:36 tight name words
+7:41 tight str-tail ""
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name inferred-tape
+8:18 glyph |=
+8:21 name n
+8:23 str-head ""
+8:25 tight glyph ~[
+8:27 tight name n
+8:28 tight glyph ]
+8:29 tight str-tail ""
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name fix-tape
+9:13 glyph |=
+9:16 name letter
+9:22 tight glyph =
+9:23 tight aura @tD
+9:27 glyph (
+9:28 tight name inferred-tape
+9:42 name letter
+9:48 tight glyph )
+9:49 NEWLINE

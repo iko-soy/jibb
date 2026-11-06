@@ -1,0 +1,25 @@
+18:1 glyph ++
+18:4 name forced
+18:11 glyph |=
+18:14 glyph [
+18:15 tight name first
+18:20 tight glyph =
+18:21 tight tvar A
+18:23 name second
+18:29 tight glyph =
+18:30 tight tvar B
+18:31 tight glyph ]
+19:3 INDENT
+19:3 glyph ~&
+19:6 glyph ^-
+19:9 aura @t
+19:12 name first
+20:5 INDENT
+20:5 glyph (
+20:6 tight name forced
+20:13 name first
+20:19 name second
+20:25 tight glyph )
+20:26 DEDENT
+20:26 DEDENT
+20:26 NEWLINE

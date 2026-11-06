@@ -1,0 +1,57 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 2:1 extract
+    (gate 2:12
+      (face 2:15 p (ref 2:17 packet))
+      (body 3:3
+        (branch 3:3
+          (wing 3:6 p)
+          (arm 4:5
+            (cell 4:5 (lit 4:6 %go) (bind 4:10 u))
+            (wing 4:13 u))))))
+  (value 5:1 fallback
+    (gate 5:13
+      (face 5:16 p (ref 5:18 packet))
+      (body 6:3
+        (branch 6:3
+          (wing 6:6 p)
+          (arm 7:5 (bind 7:5 value) (wing 7:11 value))))))
+  (value 34:1 contextual
+    (cast 34:15
+      (fn 34:18 (ref 34:21 packet) (aura 34:28 @t))
+      (body 35:3
+        (gate 35:3
+          (face 35:6 p (ref 35:8 packet))
+          (body 36:5
+            (branch 36:5
+              (wing 36:8 p)
+              (arm 37:7
+                (cell 37:7 (lit 37:8 %go) (bind 37:12 u))
+                (wing 37:15 u))))))))
+  (mold 38:1 msg
+    (union 39:3 (const 39:3 %fine) (const 40:3 %other)))
+  (value 41:1 contextual-union
+    (gate 41:21
+      (face 41:24 p (ref 41:26 packet))
+      (cast 41:33
+        (ref 41:36 msg)
+        (body 42:3
+          (branch 42:3
+            (wing 42:6 p)
+            (arm 43:5
+              (cell 43:5 (lit 43:6 %go) (bind 43:10 u))
+              (lit 43:13 %fine)))))))
+  (value 47:1 contextual-list
+    (gate 47:20
+      (face 47:23 p (ref 47:25 packet))
+      (cast 47:32
+        (apply 47:35 list (aura 47:41 @t))
+        (body 48:3
+          (branch 48:3
+            (wing 48:6 p)
+            (arm 49:5
+              (cell 49:5 (lit 49:6 %go) (bind 49:10 u))
+              (list 49:13 (wing 49:15 u)))))))))

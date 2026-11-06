@@ -1,0 +1,13 @@
+(module
+  (value 4:1 split
+    (gate 4:10
+      (face 4:13 x
+        (cell 4:15
+          (aura 4:16 @t)
+          (apply 4:19 list (aura 4:25 @p))))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 x)
+          (arm 6:5
+            (cell 6:5 (bind 6:6 first) (bind 6:12 second) (bind 6:19 third))
+            (wing 6:26 third)))))))

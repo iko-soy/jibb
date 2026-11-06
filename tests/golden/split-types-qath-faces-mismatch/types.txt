@@ -1,0 +1,7 @@
+++ mismatch: cast mold and expression type do not unify
+/tests/golden/split-types-qath-faces-mismatch/source.jibb:3:38: cast mold has type [good=qath yes=?]
+++ mismatch |= x=[bad=qath yes=?] ^- [good=qath yes=?] x
+                                     ^
+/tests/golden/split-types-qath-faces-mismatch/source.jibb:3:56: expression has type [bad=qath yes=?]
+++ mismatch |= x=[bad=qath yes=?] ^- [good=qath yes=?] x
+                                                       ^

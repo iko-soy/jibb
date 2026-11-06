@@ -1,0 +1,23 @@
++$ msg
+  [%typed text=@t]
+  %add
+
+
+
++$ wrapped [%wrapper payload=msg]
+
+
+
+
+
+
+++ nested ^- wrapped [%wrapper %submitt]
+
+
+
+
+
+
+
+
+

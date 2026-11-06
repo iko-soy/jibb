@@ -1,0 +1,3 @@
+origin types-multi-import
+target value bad-tag
+keep value bad-tag

@@ -1,7 +1,3 @@
-partial inference; module not checked
-+$ step: cases proven disjoint; mold not checked
-+$ outcome: cases proven disjoint; mold not checked
-+$ reason: cases proven disjoint; mold not checked
 ++ own-case: `fail` binds a name, but the subject's type has `%fail` here; write %fail, or * for a catch-all
 /tests/golden/inline-pattern-tag-name-generic/source.jibb:12:6: subject
   ?- o
@@ -9,13 +5,3 @@ partial inference; module not checked
 /tests/golden/inline-pattern-tag-name-generic/source.jibb:14:5: pattern name
     fail     "failed"
     ^
-++ own-head: `ok` binds a name, but the subject's type has `%ok` here; write %ok, or * for a catch-all
-/tests/golden/inline-pattern-tag-name-generic/source.jibb:16:6: subject
-  ?- o
-     ^
-/tests/golden/inline-pattern-tag-name-generic/source.jibb:17:6: pattern name
-    [ok r]  "x"
-     ^
-++ argument: $-((outcome reason) @t)
-++ maybe: $-((unit step) @t)
-++ items: $-((list step) @t)

@@ -12,6 +12,8 @@ on every case, each under mule so that one crash doesn't stop the rest,
 with file set to the case's Clay path, /tests/golden/<case>/source/jibb,
 or its logical /ui path from path.txt. Cases with an expect-types: line
 or types.txt also call +golden-types and compare its output with types.txt.
+An optional type-source.jibb supplies the containing module for a fragment;
+type-path.txt and type-exclude-molds.txt select its prelude context.
 It runs the program with `urbit eval`, decodes the jammed result, and
 compares each output with its file, which holds the output plus one
 trailing newline.
@@ -37,6 +39,7 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
 import urbit_eval as ue  # noqa: E402
 import golden_case  # noqa: E402
+import prelude_groups  # noqa: E402
 from noun import atom_to_bytes  # noqa: E402
 
 DEFAULT_DIR = os.path.join(ue.ROOT, 'tests', 'golden')
@@ -55,7 +58,7 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
     ==
 ::
 ++  run
-  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t]) module-check=? modules=(list [label=@t at=path source=@t])] src=@t]
+  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t]) module-check=? modules=(list [label=@t at=path source=@t]) context=(unit @t) excluded=(list term) type-path=(unit path)] src=@t]
   ^-  @t
   =/  at=path  ?~(logical.metadata (file name) u.logical.metadata)
   =/  parsed  (mule |.((golden:lib at src)))
@@ -63,6 +66,8 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
     =/  why=@t  (crash p.parsed)
     (fields ~[name 'crash' why why why why])
   =/  out=[tokens=@t tree=@t]  p.parsed
+  =/  type-src=@t  ?~(context.metadata src u.context.metadata)
+  =/  type-at=path  ?~(type-path.metadata at u.type-path.metadata)
   =/  typed  (mule |.({types-expr}))
   ?:  ?=(%| -.typed)
     (fields ~[name 'types-crash' tokens.out tree.out (crash p.typed) ''])
@@ -123,18 +128,33 @@ IMPORT_HELPER = r"""
   =/  source=@t  (fixture-text source.fixture)
   ?~  source  !!
   =/  cor=type  -:(ride -:!>(..zuse) source)
-  [module.fixture mold.fixture (read-named:reader module.fixture mold.fixture cor)]
+  =/  result=*  (read-named-diagnostic:reader module.fixture mold.fixture cor)
+  [module.fixture mold.fixture ?:(?=(%ok -.result) [%& +.result] result)]
+::
+++  import-mark-sources
+  |=  fixtures=(list [module=term mold=term source=@t])
+  ^-  (list [module=term at=path source=@t])
+  =/  seen=(list term)  ~
+  |-
+  ?~  fixtures  ~
+  =/  duplicate=?  (lien seen |=(name=term =(name module.i.fixtures)))
+  =.  seen  [module.i.fixtures seen]
+  =/  rest=(list [module=term at=path source=@t])  $(fixtures t.fixtures)
+  ?:  duplicate  rest
+  [[module.i.fixtures ~[%sur module.i.fixtures %hoon] (fixture-text source.i.fixtures)] rest]
 ::
 ++  import-marks
-  |=  fixtures=(list [name=term source=@t])
+  |=  [fixtures=(list [name=term source=@t]) surs=(list [module=term mold=term source=@t])]
   ^-  (list [name=term result=*])
+  =/  sources=(list [module=term at=path source=@t])  (import-mark-sources surs)
   %+  turn  fixtures
   |=  fixture=[name=term source=@t]
   ~_  leaf+"/mar/{(trip name.fixture)}.txt fixture"
   =/  source=@t  (fixture-text source.fixture)
   ?~  source  !!
   =/  cor=type  -:(ride -:!>(..zuse) source)
-  [name.fixture (read-mark:reader name.fixture cor)]
+  =/  result=*  (read-mark-source:reader name.fixture sources cor)
+  [name.fixture ?:(?=(%& -.result) result (read-mark-diagnostic:reader name.fixture cor))]
 ::  Clay's %txt mark supplies lines, with a newline reconstructed per line.
 ++  fixture-text
   |=  source=@t
@@ -163,9 +183,17 @@ class Case:
             self.marks = golden_case.mark_imports(folder)
             self.modules = golden_case.module_fixtures(folder)
             self.want_modules = golden_case.wants_modules(folder)
+            self.excluded = golden_case.excluded_prelude_molds(folder)
+            self.type_path = golden_case.type_path(folder)
+            self.contract = golden_case.type_contract(folder)
         except ValueError as e:
             raise ue.ToolError(str(e))
         self.want_types = golden_case.wants_types(folder)
+        type_path = os.path.join(folder, 'type-source.jibb')
+        self.type_source = None
+        if os.path.isfile(type_path):
+            with open(type_path, 'rb') as f:
+                self.type_source = f.read()
         with open(self.source_path, 'rb') as f:
             self.source = f.read()
         self.crashed = False
@@ -220,11 +248,17 @@ def run_lines(case):
         source = '(rap 3 `(list @t)`~[%s])' % ' '.join(ue.cord_literal(p) for p in parts)
         fixtures.append('[%s %s %s]' % (ue.cord_literal(logical.encode()), at, source))
     modules = '~[' + ' '.join(fixtures) + ']' if fixtures else '~'
-    out = ['        %%^  run  %s  [%s %s %s %s %s %s]' % (
+    context = '~'
+    if case.type_source is not None:
+        parts = ue.cord_pieces(case.type_source)
+        context = '[~ (rap 3 `(list @t)`~[%s])]' % ' '.join(ue.cord_literal(p) for p in parts)
+    excluded = '~[' + ' '.join('%' + n for n in case.excluded) + ']' if case.excluded else '~'
+    out = ['        %%^  run  %s  [%s %s %s %s %s %s %s %s %s]' % (
                ue.cord_literal(case.name.encode()),
                '`' + case.logical_path if case.logical_path else '~',
                '%.y' if case.want_types else '%.n', imports, marks,
-               '%.y' if case.want_modules else '%.n', modules),
+               '%.y' if case.want_modules else '%.n', modules, context, excluded,
+               '`' + case.type_path if case.type_path else '~'),
            '        %-  text',
            '        :~  ' + ue.cord_literal(lines[0])]
     out += ['            ' + ue.cord_literal(line) for line in lines[1:]]
@@ -235,30 +269,57 @@ def run_lines(case):
 def golden_program(lib_path, cases):
     prog = ue.library_program(lib_path)
     runs = '\n'.join(line for case in cases for line in run_lines(case))
-    imported = any(c.imports or c.marks for c in cases)
     has_marks = any(c.marks for c in cases)
     has_modules = any(c.modules for c in cases)
     has_module_types = any(c.want_modules and c.want_types for c in cases)
+    group_sources, private_sources, reader_sources = [], [], []
+    if has_module_types:
+        try:
+            group_sources, private_sources, reader_sources = prelude_groups.load_all(ue.ROOT)
+        except ValueError as error:
+            raise ue.ToolError(str(error)) from error
+    imported = any(c.imports or c.marks for c in cases)
+    needs_reader = imported or bool(reader_sources)
+    has_excluded = any(c.excluded for c in cases)
     harness = HARNESS
-    if imported:
+    if needs_reader:
         reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
         harness = harness.replace('=>  [lib=. ..zuse]',
                                   '=/  jibb-lib  .\n=/  reader\n' + reader +
                                   '\n=>  [lib=jibb-lib reader=reader ..zuse]')
-    types_value = ("(golden-types-with-marks:lib at src "
-                  "(import-types imports.metadata) (import-marks marks.metadata))"
+    types_value = ("(golden-types-with-marks:lib type-at type-src "
+                  "(import-types imports.metadata) (import-marks marks.metadata imports.metadata))"
                   if has_marks else
-                  "?~(imports.metadata (golden-types:lib at src) "
-                  "(golden-types-imports:lib at src (import-types imports.metadata)))"
-                  if imported else "(golden-types:lib at src)")
+                  "?~(imports.metadata (golden-types:lib type-at type-src) "
+                  "(golden-types-imports:lib type-at type-src (import-types imports.metadata)))"
+                  if imported else "(golden-types:lib type-at type-src)")
     if has_module_types:
+        def source_expression(data):
+            return '(rap 3 `(list @t)`~[%s])' % ' '.join(
+                ue.cord_literal(part) for part in ue.cord_pieces(data))
+        group_expression = '~[' + ' '.join(
+            '[%%%s %s %s]' % (face, prelude_groups.hoon_path(path), source_expression(data))
+            for face, path, _, data in group_sources) + ']' if group_sources else '~'
+        private_entries = ['[%s %s]' % (prelude_groups.hoon_path(path), source_expression(data))
+                           for _, path, _, data in private_sources]
+        reader_paths = set()
+        for _, _, path, _, data in reader_sources:
+            if path not in reader_paths:
+                private_entries.append('[%s %s]' % (prelude_groups.sur_path(path), source_expression(data)))
+                reader_paths.add(path)
+        private_expression = '~[' + ' '.join(private_entries) + ']' if private_entries else '~'
+        reader_entries = ['[%%%s %%%s %s %s]' % (module, name, prelude_groups.sur_path(path), source_expression(data))
+                          for module, name, path, _, data in reader_sources]
+        reader_expression = ("(turn `(list [module=term name=term at=path source=@t])`~[" + ' '.join(reader_entries) + "] |=(entry=[module=term name=term at=path source=@t] =/(built=(each type tang) (mule |.(-:(ride -:!>(..zuse) source.entry))) [module.entry name.entry ?:(?=(%| -.built) [%| 'Hoon source could not be built'] (read-generic-source:reader module.entry name.entry at.entry source.entry p.built))])))") if reader_entries else '~'
+
         surs = '(import-types imports.metadata)' if imported else '~'
-        marks = '(import-marks marks.metadata)' if imported else '~'
+        marks = '(import-marks marks.metadata imports.metadata)' if imported else '~'
         modules = '(turn modules.metadata |=(item=[label=@t at=path source=@t] [at.item source.item]))'
+        prepared = '`(without-molds u.prepared-prelude excluded.metadata)' if has_excluded else 'prepared-prelude'
         types_value = ('?:(module-check.metadata ?~(prepared-prelude '
-                       '(golden-types-with-prelude-and-internal:lib at src %s %s %s prelude-source internal-source) '
-                       '(golden-types-with-prepared-prelude:lib at src %s %s %s prepared-prelude)) %s)'
-                       % (surs, marks, modules, surs, marks, modules, types_value))
+                       '(golden-types-with-prelude-and-group-evidence:lib type-at type-src %s %s %s prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs) '
+                       '(golden-types-with-prepared-prelude:lib type-at type-src %s %s %s %s)) %s)'
+                       % (surs, marks, modules, surs, marks, modules, prepared, types_value))
     types_expr = '?:(check.metadata %s \'\')' % types_value
     prelude_helper = ''
     if has_module_types:
@@ -274,7 +335,16 @@ def golden_program(lib_path, cases):
                 internal_parts = ue.cord_pieces(f.read())
         except OSError as e:
             raise ue.ToolError('cannot read the internal Jibb prelude %s: %s' % (internal_path, e))
-        prelude_helper = "++  prelude-source\n  ^-  @t\n  (rap 3 `(list @t)`~[%s])\n" % (
+        prelude_helper = """++  without-molds
+  |=  [prepared=iprelude:lib excluded=(list term)]
+  ^-  iprelude:lib
+  =/  kept=imold-types:lib
+    (skim molds.iface.prepared |=(m=[name=term template=ischeme:lib] !(lien excluded |=(n=term =(n name.m)))))
+  =/  names=(list term)
+    (skim molds.prepared |=(n=term !(lien excluded |=(x=term =(x n)))))
+  [iface.prepared(molds kept) values.prepared names]
+""" if has_excluded else ''
+        prelude_helper += "++  prelude-source\n  ^-  @t\n  (rap 3 `(list @t)`~[%s])\n" % (
             ' '.join(ue.cord_literal(p) for p in parts))
         prelude_helper += "++  internal-source\n  ^-  @t\n  (rap 3 `(list @t)`~[%s])\n" % (
             ' '.join(ue.cord_literal(p) for p in internal_parts))
@@ -287,10 +357,13 @@ def golden_program(lib_path, cases):
         #  trace, and the other cases still run.
         harness = harness.replace(
             '|^  %+  rap  3',
+            '=/  prelude-group-sources  %s\n'
+            '=/  prelude-group-modules  %s\n'
+            '=/  prelude-reader-inputs  %s\n'
             '=/  prepared-prelude\n'
-            '  =/  prep  (mule |.((prepare-prelude-with-internal:lib %s %s)))\n'
+            '  =/  prep  (mule |.((prepare-prelude-with-group-evidence:lib %s %s prelude-group-sources prelude-group-modules prelude-reader-inputs)))\n'
             '  ?:(?=(%%& -.prep) p.prep ~)\n'
-            '|^  %%+  rap  3' % (prelude_expr, internal_expr))
+            '|^  %%+  rap  3' % (group_expression, private_expression, reader_expression, prelude_expr, internal_expr))
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")
@@ -466,6 +539,37 @@ def diff_lines(path, expected, actual):
     return out
 
 
+def contract_problems(case):
+    """Check diagnostic quality independently of its exact golden text."""
+    if case.crashed or not case.contract:
+        return []
+    actual = case.outputs['types'].decode('utf-8', 'surrogateescape')
+    lines = actual.splitlines()
+    sites = [line for line in lines if re.match(r'^/[^\s:]+:[1-9][0-9]*:[1-9][0-9]*: ', line)]
+    problems = []
+    for kind, value in case.contract:
+        if kind == 'message':
+            if not lines or value not in lines[0]:
+                problems.append('type contract requires diagnostic message ' + value)
+            continue
+        if kind == 'min-sites':
+            if len(sites) < int(value):
+                problems.append('type contract requires %s diagnostic sites; got %d' % (value, len(sites)))
+            continue
+        matches = [line[len(value)+2:] for line in sites if line.startswith(value + ': ')]
+        if not matches:
+            problems.append('type contract requires site ' + value)
+        elif kind == 'typed-site' and not any(
+                any(token in note for token in ('type', '@', '$-', '(list ', '(unit '))
+                for note in matches):
+            problems.append('type contract requires a type at ' + value)
+        elif kind == 'unresolved-site' and not any(
+                ('constructor' in note or 'tag' in note) and
+                ('unresolved' in note or 'not fixed' in note) for note in matches):
+            problems.append('type contract requires an unresolved tag or constructor at ' + value)
+    return problems
+
+
 def compare(case):
     """PASS or FAIL lines for one case."""
     if case.crashed:
@@ -476,7 +580,7 @@ def compare(case):
             out += ['  at %s' % case.crash_at.label(),
                     case.crash_at.excerpt(indent='    ')]
         return False, out
-    problems = []
+    problems = contract_problems(case)
     for kind in case.outputs:
         path = os.path.join(case.folder, kind + '.txt')
         want = case.outputs[kind] + b'\n'
@@ -579,10 +683,13 @@ def main(argv):
         return 2
 
     crashed = [c for c in cases if c.crashed]
+    contract_failed = [c for c in cases if contract_problems(c)]
     if opts.show:
         for case in cases:
             print('\n'.join(show(case)))
-        return 1 if crashed else 0
+            for problem in contract_problems(case):
+                print('type contract: ' + problem)
+        return 1 if crashed or contract_failed else 0
 
     if opts.update:
         written = []
@@ -591,13 +698,18 @@ def main(argv):
                 print('\n'.join(compare(case)[1]))
                 print('  not written: a crash is never an expected output')
                 continue
+            problems = contract_problems(case)
+            if problems:
+                print('FAIL  %s: %s' % (case.name, '; '.join(problems)))
+                print('  not written: the type contract is not satisfied')
+                continue
             for path in update(case):
                 written.append(path)
                 print('wrote %s' % ue.display_path(path))
         print('%d file%s written, %d case%s crashed (%.1f s)' % (
             len(written), '' if len(written) == 1 else 's',
             len(crashed), '' if len(crashed) == 1 else 's', took))
-        return 1 if crashed else 0
+        return 1 if crashed or contract_failed else 0
 
     failed = 0
     for case in cases:

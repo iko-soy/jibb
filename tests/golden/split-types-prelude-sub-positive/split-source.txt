@@ -1,0 +1,15 @@
+origin types-prelude-sub
+target value independent-ship
+keep mold msg
+keep mold my-msg
+keep value independent-ship
+keep value independent-text
+keep value periodic
+keep value pure-direct
+keep value pure-typed
+keep value route
+keep value take-watch
+keep value watch-cord
+keep value watch-generic
+keep value watch-pure
+keep value watch-value

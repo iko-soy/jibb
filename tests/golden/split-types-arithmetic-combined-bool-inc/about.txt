@@ -1,0 +1,4 @@
+source: split from types-arithmetic-combined, preserving the original source lines
+tests: the independent bool-inc diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

@@ -1,0 +1,31 @@
+13:1 glyph ++
+13:4 name alias-use
+13:14 glyph |=
+13:17 glyph [
+13:18 tight name first
+13:23 tight glyph =
+13:24 tight tvar A
+13:26 name second
+13:32 tight glyph =
+13:33 tight tvar A
+13:34 tight glyph ]
+14:3 INDENT
+14:3 glyph ++
+14:6 name alias
+14:12 name alias-use
+15:3 NEWLINE
+15:3 glyph ~&
+15:6 glyph (
+15:7 tight name alias
+15:13 str "hi"
+15:18 str "hi"
+15:22 tight glyph )
+16:5 INDENT
+16:5 glyph (
+16:6 tight name alias
+16:12 lit ~zod
+16:17 lit ~zod
+16:21 tight glyph )
+16:22 DEDENT
+16:22 DEDENT
+16:22 NEWLINE

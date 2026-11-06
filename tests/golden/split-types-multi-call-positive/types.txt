@@ -1,0 +1,20 @@
+module kind: library
++$ msg: msg
++$ typed: [%typed text=@t]
+++ two: $-([@t @p] [@t @p])
+++ three: $-([@t [@p ?]] [@t [@p ?]])
+++ two-call: [@t @p]
+++ three-call: [@t [@p ?]]
+++ rest-call: [@t [@p ?]]
+++ named: $-([label=@t ship=@p] [@t @p])
+++ named-call: [@t @p]
+++ repeated: $-([A A] [A A])
+++ same-text: [@t @t]
+++ accepts: $-([msg (list @t)] [msg (list @t)])
+++ contextual: [msg (list @t)]
+++ cons-context: [msg (list @t)]
+++ constructor: $-([$-(@t [%typed text=@t]) @t] [$-(@t [%typed text=@t]) @t])
+++ constructor-call: [$-(@t [%typed text=@t]) @t]
+++ unknown: $-($-([@t @p] A) A)
+++ recurse: $-([@t @p] [@t @p])
+++ uncertain-target: $-([A @p] [A @p])

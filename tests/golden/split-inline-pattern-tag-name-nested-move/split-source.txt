@@ -1,0 +1,5 @@
+origin inline-pattern-tag-name-nested
+target value move
+keep mold dir
+keep mold step
+keep value move

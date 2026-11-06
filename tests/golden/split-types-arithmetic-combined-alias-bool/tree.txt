@@ -1,0 +1,10 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (tvar 1:13 A))
+      (group 1:15
+        (call 1:16 (wing 1:16 add) (wing 1:20 n) (lit 1:22 1)))))
+  (value 30:1 alias-inc (wing 30:14 inc))
+  (value 33:1 alias-bool
+    (group 33:15
+      (call 33:16 (wing 33:16 alias-inc) (lit 33:26 %.y)))))

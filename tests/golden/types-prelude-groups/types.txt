@@ -1,0 +1,5 @@
+module kind: library
+++ compiler-result: tone.hoon
+++ offset: @u
+++ by-bloq: bite
+++ by-pair: bite

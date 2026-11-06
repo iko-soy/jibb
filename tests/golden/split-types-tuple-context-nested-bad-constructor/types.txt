@@ -1,0 +1,7 @@
+++ bad-constructor: type [%typed text=@t] has no case `%other`
+/tests/golden/split-types-tuple-context-nested-bad-constructor/source.jibb:24:21: expected case has type [%typed text=@t]
+++ bad-constructor (use-ctor [f=|=%other payload="hi"])
+                    ^
+/tests/golden/split-types-tuple-context-nested-bad-constructor/source.jibb:24:33: tag literal has type %other
+++ bad-constructor (use-ctor [f=|=%other payload="hi"])
+                                ^

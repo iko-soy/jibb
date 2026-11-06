@@ -1,0 +1,9 @@
+origin types-prelude-sub-nested
+target value direct
+keep mold msg
+keep value direct
+keep value generic
+keep value watch
+keep value watch-cord
+keep value watch-ship
+keep value watch-typed

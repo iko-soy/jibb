@@ -1,0 +1,26 @@
+57:1 glyph ++
+57:4 name incomplete
+57:15 glyph |=
+57:18 name xs
+57:20 tight glyph =
+57:21 tight glyph (
+57:22 tight name list
+57:27 aura @t
+57:29 tight glyph )
+58:3 INDENT
+58:3 glyph ^-
+58:6 glyph (
+58:7 tight name list
+58:12 aura @t
+58:14 tight glyph )
+59:5 INDENT
+59:5 glyph ?-
+59:8 name xs
+60:7 INDENT
+60:7 lit ~
+60:9 glyph ~[
+60:11 tight glyph ]
+60:12 DEDENT
+60:12 DEDENT
+60:12 DEDENT
+60:12 NEWLINE

@@ -1,0 +1,13 @@
+module kind: library
+++ lower: $-((list @tD) (list @tD))
+++ upper: $-((list @tD) (list @tD))
+++ split: $-([@ud (list A)] [p=(list A) q=(list A)])
+++ pack: $-((list @tD) @t)
+++ encode: $-((list @c) (list @tD))
+++ lower-text: @t
+++ upper-text: @t
+++ split-text: [p=(list @t) q=(list @t)]
+++ split-ships: [p=(list @p) q=(list @p)]
+++ round-trip: @t
+++ split-gates: [p=(list $-(A A)) q=(list $-(A A))]
+++ split-records: [p=(list [x=@ud y=@ud]) q=(list [x=@ud y=@ud])]

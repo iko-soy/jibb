@@ -1,0 +1,18 @@
+4:1 glyph ++
+4:4 name ignored
+4:12 glyph |=
+4:15 name x
+4:16 tight glyph =
+4:17 tight aura @t
+5:3 INDENT
+5:3 glyph ++
+5:6 name id
+5:9 glyph |=
+5:12 name y
+5:13 tight glyph =
+5:14 tight glyph _
+5:16 name y
+6:3 NEWLINE
+6:3 name x
+6:4 DEDENT
+6:4 NEWLINE

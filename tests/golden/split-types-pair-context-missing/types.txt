@@ -1,0 +1,13 @@
+++ missing: extent has no case `%oops`
+/tests/golden/split-types-pair-context-missing/source.jibb:6:4: expected union has type extent
++$ extent
+   ^
+/tests/golden/split-types-pair-context-missing/source.jibb:7:3: expected union has type extent
+  [%fill n=@ud]
+  ^
+/tests/golden/split-types-pair-context-missing/source.jibb:23:31: expected union has type extent
+++ missing ^- attribute width+[%oops 1]
+                              ^
+/tests/golden/split-types-pair-context-missing/source.jibb:23:32: tag literal has type %oops
+++ missing ^- attribute width+[%oops 1]
+                               ^

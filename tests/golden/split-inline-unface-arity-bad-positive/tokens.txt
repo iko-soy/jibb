@@ -1,0 +1,17 @@
+1:1 glyph ++
+1:4 name lt-a
+1:9 glyph |=
+1:12 glyph [
+1:13 tight name a
+1:14 tight glyph =
+1:15 tight aura @ud
+1:19 name b
+1:20 tight glyph =
+1:21 tight aura @ud
+1:24 tight glyph ]
+1:26 glyph (
+1:27 tight name gth
+1:31 name b
+1:33 name a
+1:34 tight glyph )
+1:35 NEWLINE

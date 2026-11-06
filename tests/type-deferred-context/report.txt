@@ -1,7 +1,8 @@
-partial inference; module not checked
-+$ message: cases proven disjoint; mold not checked
-+$ maybe: cases proven disjoint; mold not checked
-+$ other: cases proven disjoint; mold not checked
+rich
+module kind: library
++$ message: message
++$ maybe: maybe
++$ other: other
 ++ final: $-(? maybe)
 ++ final-ship: $-(? other)
 ++ choose: $-(? maybe)
@@ -13,3 +14,72 @@ partial inference; module not checked
 ++ built: $-(B B)
 ++ reveal: @t
 ++ reveal-ship: @p
+plain
+module kind: library
+++ final: $-(@t message)
++$ message: message
+++ send: $-($-(@t A) $-(@t A))
+++ make: $-(A $-(B B))
+++ first: $-(@t message)
+++ second: $-(@t message)
+++ built: $-(B B)
+++ reveal: @t
+++ reveal-ship: @p
+simple
+module kind: library
++$ message: message
+++ final: $-(@t message)
+++ pick: $-(? $-(@t message))
+++ send: $-($-(@t A) $-(@t A))
+++ first: $-(@t message)
+missing
+++ choose: maybe has no case `%absent`
+/ui/context.jibb:4:4: expected union has type maybe
++$ maybe
+   ^
+/ui/context.jibb:5:3: expected union has type maybe
+  %none
+  ^
+/ui/context.jibb:9:3: expected union has type maybe
+  ?- flag
+  ^
+/ui/context.jibb:11:9: tag literal has type %absent
+    %.n %absent
+        ^
+wrong
+++ choose: branch arm does not fit its expected type
+/ui/context.jibb:9:3: expected branch result has type @t
+  ?- flag
+  ^
+/ui/context.jibb:10:9: branch arm has type A; A remains unresolved for tag `%none`
+    %.y %none
+        ^
+duplicate
+++ choose: branch arm is covered by earlier arms
+/ui/context.jibb:10:5: covering arm
+    %.y %none
+    ^
+/ui/context.jibb:11:5: covered arm
+    %.y %none
+    ^
+dangling
+++ unrelated: nothing fixes the union of %dangling; add a `^-`
+/ui/context.jibb:16:22: nothing fixes the union of %dangling; add a `^-`
+++ unrelated |= x=@t %dangling
+                     ^
+collision early
+++ final: types do not unify
+/ui/context.jibb:11:13: expected type has type maybe
+++ final ^- $-(? maybe) choose
+            ^
+/ui/context.jibb:11:25: actual type has type other
+++ final ^- $-(? maybe) choose
+                        ^
+collision late
+++ incompatible: types do not unify
+/ui/context.jibb:28:20: expected type has type other
+++ incompatible ^- $-(? other) choose
+                   ^
+/ui/context.jibb:28:32: actual type has type maybe
+++ incompatible ^- $-(? other) choose
+                               ^

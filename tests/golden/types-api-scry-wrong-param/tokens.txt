@@ -1,0 +1,17 @@
+1:1 glyph /=
+1:4 name other
+1:10 glyph /
+1:11 tight knot ui
+1:13 tight glyph /
+1:14 tight knot api
+1:17 tight glyph /
+1:18 tight knot other
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name bad
+2:8 glyph (
+2:9 tight wing separate.other
+2:24 lit ~zod
+2:29 name same
+2:33 tight glyph )
+2:34 NEWLINE

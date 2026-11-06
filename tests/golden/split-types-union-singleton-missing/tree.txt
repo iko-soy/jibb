@@ -1,0 +1,9 @@
+(module
+  (mold 2:1 typed
+    (cell 2:10
+      (const 2:11 %typed)
+      (face 2:18 text (aura 2:23 @t))))
+  (value 10:1 missing
+    (cast 10:12
+      (fn 10:15 (aura 10:18 @t) (ref 10:21 typed))
+      (ctor 10:28 %missing))))

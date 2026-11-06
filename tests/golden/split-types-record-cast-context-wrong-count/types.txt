@@ -1,0 +1,7 @@
+++ wrong-count: cast mold and expression type do not unify
+/tests/golden/split-types-record-cast-context-wrong-count/source.jibb:12:19: cast mold has type [payload=msg xs=(list @t)]
+++ wrong-count ^- inner [%go ~ "extra"]
+                  ^
+/tests/golden/split-types-record-cast-context-wrong-count/source.jibb:12:25: expression has type [msg [A @t]]; A remains unresolved for tag `~`
+++ wrong-count ^- inner [%go ~ "extra"]
+                        ^

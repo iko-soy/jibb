@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-request-normal-wrong-value/source.jibb:6:17
+typed-site /tests/golden/split-types-request-normal-wrong-value/source.jibb:6:27
+min-sites 2

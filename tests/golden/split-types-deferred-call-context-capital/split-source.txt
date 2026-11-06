@@ -1,0 +1,4 @@
+origin types-deferred-call-context
+target value capital
+keep value capital
+keep value local-id

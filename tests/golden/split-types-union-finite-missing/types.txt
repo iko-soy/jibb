@@ -1,0 +1,10 @@
+++ missing: missing match case [%a %.n]
+/tests/golden/split-types-union-finite-missing/source.jibb:30:4: missing case is declared here
+  [%a on=?]
+   ^
+/tests/golden/split-types-union-finite-missing/source.jibb:33:3: non-exhaustive match
+  ?- x
+  ^
+/tests/golden/split-types-union-finite-missing/source.jibb:33:6: subject has type choice
+  ?- x
+     ^

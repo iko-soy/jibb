@@ -1,0 +1,3 @@
+(module
+  (value 5:1 grouped
+    (cast 5:12 (aura 5:15 @t) (lit 5:18 1.000))))

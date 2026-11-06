@@ -1,1 +1,1 @@
-'partial inference; module not checked\0a++ identity: $-(@t @t)'
+'module kind: library\0a++ identity: $-(@t @t)'

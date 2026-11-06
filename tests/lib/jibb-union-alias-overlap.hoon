@@ -1,4 +1,4 @@
-::  Source-backed alias overlap diagnostics, without a full module claim.
+::  Alias overlap witnesses and their full-module diagnostics.
 /+  jibb
 /*  positive  %txt  /tests/type-union-alias-overlap/positive/txt
 /*  negative  %txt  /tests/type-union-alias-overlap/negative/txt
@@ -60,21 +60,23 @@
   ?~  t.cases.u.a  ~[['BAD second same case' |]]
   =/  same=(unit upair:jibb)  (union-source-overlap:jibb cases.u.a molds.u.a 256)
   =/  zero=(unit upair:jibb)  (union-source-overlap:jibb cases.u.z molds.u.z 256)
-  =/  report=wain  (to-wain:format (golden-types-in-context:jibb /tests/overlap/jibb positive ~ ~ ~ ~ ~ ~))
+  =/  report=wain  (to-wain:format (golden-types:jibb /tests/overlap/jibb positive))
+  =/  zero-source=@t  (of-wain:format (slag 4 (to-wain:format positive)))
+  =/  zero-report=wain  (to-wain:format (golden-types:jibb /tests/overlap/jibb zero-source))
   =/  failed=jfile-result:jibb  (infer-jibb-file:jibb /tests/overlap/jibb positive ~ ~ ~ ~[/tests/overlap/jibb] ~ ~ ~ ~)
-  =/  nonzero-report=wain  (to-wain:format (golden-types-in-context:jibb /tests/overlap/jibb nonzero ~ ~ ~ ~ ~ ~))
+  =/  nonzero-report=wain  (to-wain:format (golden-types:jibb /tests/overlap/jibb nonzero))
   :~  ['same head and inhabited payload overlap' ?=(^ same)]
       ['zero spelling overlap' ?=(^ zero)]
       ['original same-case spans retained' ?~(same | &(=(first.u.same at.i.cases.u.a) =(second.u.same at.i.t.cases.u.a)))]
-      ['partial report displays same overlap' (lien report |=(line=@t =(line '+$ same: overlapping cases; mold not checked')))]
-      ['partial report displays zero overlap' (lien report |=(line=@t =(line '+$ same-zero: overlapping cases; mold not checked')))]
+      ['full report displays same overlap' (lien report |=(line=@t =(line 'module mold same has overlapping cases')))]
+      ['full report displays zero overlap' (lien zero-report |=(line=@t =(line 'module mold same-zero has overlapping cases')))]
       ['distinct heads do not overlap' ?=(~ (union-source-overlap:jibb cases.u.d molds.u.d 256))]
       ['distinct singleton payloads do not overlap' ?=(~ (union-source-overlap:jibb cases.u.c molds.u.c 256))]
       ['empty payload has no witness' ?=(~ (union-source-overlap:jibb cases.u.e molds.u.e 256))]
       ['outer variable has no witness' ?=(~ (union-source-overlap:jibb cases.u.g molds.u.g 256))]
       ['unresolved reference has no witness' ?=(~ (union-source-overlap:jibb cases.u.x molds.u.x 256))]
       ['equal nonzero singleton payload overlaps' ?=(^ (union-source-overlap:jibb cases.u.nz molds.u.nz 256))]
-      ['nonzero overlap reported' (lien nonzero-report |=(line=@t =(line '+$ same: overlapping cases; mold not checked')))]
+      ['nonzero overlap reported' (lien nonzero-report |=(line=@t =(line 'module mold same has overlapping cases')))]
       ['late pair in three cases overlaps' ?=(^ (union-source-overlap:jibb cases.u.m molds.u.m 256))]
       ['opaque gate payload declines' ?=(~ (union-source-overlap:jibb cases.u.o molds.u.o 256))]
       ['wrong alias arity declines' ?=(~ (union-source-overlap:jibb cases.u.w molds.u.w 256))]

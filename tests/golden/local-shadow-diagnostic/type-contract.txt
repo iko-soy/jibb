@@ -1,0 +1,4 @@
+message local definition `y` shadows a name already in scope
+site /tests/golden/local-shadow-diagnostic/source.jibb:1:4
+site /tests/golden/local-shadow-diagnostic/source.jibb:3:6
+min-sites 2

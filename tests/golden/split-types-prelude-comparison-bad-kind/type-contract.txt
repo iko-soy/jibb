@@ -1,0 +1,4 @@
+message call's sample and argument types do not unify
+typed-site /tests/golden/split-types-prelude-comparison-bad-kind/source.jibb:18:14
+typed-site /tests/golden/split-types-prelude-comparison-bad-kind/source.jibb:18:23
+min-sites 2

@@ -1,0 +1,3 @@
+origin types-local-recursive
+target value alias-mono
+keep value alias-mono

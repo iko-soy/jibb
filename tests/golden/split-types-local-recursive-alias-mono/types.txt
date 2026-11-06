@@ -1,0 +1,7 @@
+++ alias-mono: capital `A` cannot be fixed to @t
+/tests/golden/split-types-local-recursive-alias-mono/source.jibb:37:17: capital
+  ++ recur |= y=A
+                ^
+/tests/golden/split-types-local-recursive-alias-mono/source.jibb:39:15: forcing expression
+    ~& (alias "hi")
+              ^

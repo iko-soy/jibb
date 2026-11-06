@@ -1,0 +1,5 @@
+origin types-request-normal
+target value cord
+keep value cord
+keep value generic
+keep value ship

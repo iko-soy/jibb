@@ -1,0 +1,13 @@
+++ both |= p=[A B]
+  ?- p
+    [a b]
+      ~& ^- @ a
+        ^- @ b
+
+++ bad (both [~zod [~zod "hi"]])
+
+
+
+
+
+

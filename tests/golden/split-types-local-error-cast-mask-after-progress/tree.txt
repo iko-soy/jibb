@@ -1,0 +1,11 @@
+(module
+  (value 24:1 mask-after-progress
+    (gate 24:24
+      (face 24:27 x (tvar 24:29 A))
+      (body 25:3
+        (value 25:3 a
+          (cast 25:8 (aura 25:11 @ud) (str 25:15 "s")))
+        (value 26:3 ok (wing 26:9 x))
+        (value 27:3 b
+          (cast 27:8 (aura 27:11 @t) (wing 27:14 x)))
+        (wing 28:3 x)))))

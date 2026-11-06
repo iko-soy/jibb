@@ -1,0 +1,6 @@
++$ node |$ [M]
+  [%leaf message=M]
+  [%parent child=*]
+++ wrap-node |= child=(node M) ^- (node M) [%parent child]
+++ wrapped ^- (node @t) (wrap-node (^- (node @t) [%leaf "hi"]))
+++ wrapped-ship ^- (node @p) (wrap-node (^- (node @p) [%leaf ~zod]))

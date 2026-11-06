@@ -1,0 +1,10 @@
+5:1 glyph ++
+5:4 name narrow
+5:11 glyph |=
+5:14 name x
+5:15 tight glyph =
+5:16 tight aura @t
+5:19 glyph ^-
+5:22 aura @tD
+5:26 name x
+5:27 NEWLINE

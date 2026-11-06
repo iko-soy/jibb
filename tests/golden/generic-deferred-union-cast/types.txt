@@ -1,0 +1,4 @@
+module kind: library
++$ msg: msg
+++ displayed: (element msg)
+++ resolved: (element msg)

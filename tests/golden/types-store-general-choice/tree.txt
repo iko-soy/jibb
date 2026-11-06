@@ -1,0 +1,32 @@
+(module
+  (mold 1:1 state (aura 1:10 @ud))
+  (mold 2:1 poke (const 2:9 %inc))
+  (value 3:1 init
+    (cast 3:9 (ref 3:12 state) (lit 3:18 0)))
+  (value 4:1 update
+    (gate 4:11
+      (cell 4:14
+        (face 4:15 a (ref 4:17 poke))
+        (face 4:22 s (ref 4:24 state)))
+      (wing 4:31 s)))
+  (value 5:1 other
+    (gate 5:10
+      (cell 5:13
+        (face 5:14 x (ref 5:16 poke))
+        (face 5:21 y (ref 5:23 state)))
+      (wing 5:30 y)))
+  (value 6:1 first
+    (cast 6:10 (noun 6:13) (wing 6:15 update)))
+  (value 7:1 second
+    (cast 7:11 (noun 7:14) (wing 7:16 other)))
+  (value 8:1 choose
+    (gate 8:11
+      (cell 8:14
+        (face 8:15 x (tvar 8:17 A))
+        (face 8:19 y (tvar 8:21 A)))
+      (wing 8:24 y)))
+  (value 9:1 main
+    (tuple 9:9
+      (wing 9:10 init)
+      (group 9:15
+        (call 9:16 (wing 9:16 choose) (wing 9:23 first) (wing 9:29 second))))))

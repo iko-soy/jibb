@@ -1,0 +1,55 @@
++$ msg
+  [%text value=@t]
+  %clear
++$ reply
+  %yes
+  %no
+
+
+
+
+++ invalid |= a=msg ^- reply
+  ?- a
+    [%text v] %missing
+    %clear %no
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

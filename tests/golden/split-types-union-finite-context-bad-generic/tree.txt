@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %p)
+        (face 2:7 flag (flag 2:12))
+        (face 2:14 text (aura 2:19 @t)))
+      (const 3:3 %other)))
+  (value 72:1 bad-generic
+    (gate 72:16
+      (cell 72:19
+        (face 72:20 x (ref 72:22 input))
+        (face 72:28 a (tvar 72:30 A)))
+      (cast 72:33
+        (apply 72:36 list (tvar 72:42 A))
+        (body 73:3
+          (branch 73:3
+            (wing 73:6 x)
+            (arm 74:5
+              (cell 74:5 (lit 74:6 %p) (lit 74:9 %.y) (bind 74:13 t))
+              (list 74:16 (str 74:18 "bad")))
+            (arm 75:5
+              (cell 75:5 (lit 75:6 %p) (lit 75:9 %.n) (bind 75:13 t))
+              (list 75:16))
+            (arm 76:5 (lit 76:5 %other) (lit 76:12 ~))))))))

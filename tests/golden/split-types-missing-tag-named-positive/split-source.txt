@@ -1,0 +1,6 @@
+origin types-missing-tag-named
+target value good
+keep mold msg
+keep value good
+keep value good-head
+keep value take

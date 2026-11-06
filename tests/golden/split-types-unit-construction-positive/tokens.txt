@@ -1,0 +1,67 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %go
+3:3 NEWLINE
+3:3 lit %stay
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name direct
+10:11 glyph |=
+10:14 name x
+10:15 tight glyph =
+10:16 tight tvar A
+10:18 glyph `
+10:19 tight name x
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name str
+11:8 glyph `
+11:9 tight str "hi"
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name ship
+12:9 glyph `
+12:10 tight lit ~zod
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name nested
+13:11 glyph `
+13:12 tight glyph `
+13:13 tight str "hi"
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name same-first
+14:15 glyph (
+14:16 tight name some
+14:21 str "hi"
+14:25 tight glyph )
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name same-second
+15:16 glyph (
+15:17 tight name some
+15:22 lit ~zod
+15:26 tight glyph )
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name ctx
+16:8 glyph ^-
+16:11 glyph (
+16:12 tight name unit
+16:17 name msg
+16:20 tight glyph )
+16:22 glyph `
+16:23 tight lit %go
+29:1 NEWLINE
+29:1 glyph ++
+29:4 name tag-payload
+29:16 glyph ^-
+29:19 glyph (
+29:20 tight name unit
+29:25 aura @tas
+29:29 tight glyph )
+29:31 glyph `
+29:32 tight lit %go
+29:35 NEWLINE

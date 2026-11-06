@@ -1,0 +1,27 @@
+57:1 glyph ++
+57:4 name pending
+57:12 glyph |=
+57:15 name x
+57:16 tight glyph =
+57:17 tight aura @t
+58:3 INDENT
+58:3 glyph ++
+58:6 name inner
+58:12 glyph |=
+58:15 name y
+58:16 tight glyph =
+58:17 tight tvar A
+59:5 INDENT
+59:5 glyph ~&
+59:8 lit %orphan
+60:7 INDENT
+60:7 name y
+61:3 DEDENT
+61:3 DEDENT
+61:3 NEWLINE
+61:3 glyph (
+61:4 tight name inner
+61:10 name x
+61:11 tight glyph )
+61:12 DEDENT
+61:12 NEWLINE

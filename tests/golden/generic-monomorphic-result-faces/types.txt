@@ -1,0 +1,4 @@
+module kind: library
+++ pair: $-(@ud [left=@ud right=@ud])
+++ labelled: $-([left=@ud right=@ud] [left=@ud right=@ud])
+++ output: [left=@ud right=@ud]

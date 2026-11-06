@@ -1,0 +1,4 @@
+origin types-prelude-ui
+target value malformed-each
+keep mold msg
+keep value malformed-each

@@ -1,0 +1,7 @@
+++ theme: cast field `dark` does not fit
+/lib/jibb/prelude.jibb:625:5: expected field has type (unit [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]]])
+    dark=(unit [tones=[normal=@t background=@t accent=@t danger=@t muted=@t]])
+    ^
+/ui/theme.jibb:8:10: expression has type @t
+    dark="dark"
+         ^

@@ -1,0 +1,5 @@
+origin inline-unface-value-bad
+target value wrapped
+keep value gates
+keep value lt-a
+keep value wrapped

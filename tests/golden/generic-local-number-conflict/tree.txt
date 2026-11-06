@@ -1,0 +1,30 @@
+(module
+  (value 1:1 outer
+    (gate 1:10
+      (bind 1:13 bound)
+      (body 2:3
+        (value 2:3 search
+          (gate 2:13
+            (bind 2:16 n)
+            (body 3:5
+              (branch 3:5
+                (group 3:8
+                  (call 3:9 (wing 3:9 lth) (wing 3:13 n) (wing 3:15 bound)))
+                (arm 4:5
+                  (lit 4:5 %.y)
+                  (group 4:9
+                    (call 4:10
+                      (wing 4:10 search)
+                      (group 4:17
+                        (call 4:18 (wing 4:18 add) (wing 4:22 n) (lit 4:24 1))))))
+                (arm 5:5 (lit 5:5 %.n) (wing 5:9 n))))))
+        (trace 6:3
+          (cast 6:6
+            (aura 6:9 @ud)
+            (group 6:13
+              (call 6:14 (wing 6:14 search) (lit 6:21 0))))
+          (body 7:5
+            (cast 7:5
+              (aura 7:8 @t)
+              (group 7:11
+                (call 7:12 (wing 7:12 search) (lit 7:19 0))))))))))

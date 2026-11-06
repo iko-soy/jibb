@@ -1,0 +1,7 @@
+++ noun-context: nothing fixes the union of %got; add a `^-`
+/tests/golden/split-types-constructor-context-noun-context/source.jibb:36:28: constructor `|=%got` has no union context
+++ noun-context ^- * (call |=%got)
+                           ^
+/tests/golden/split-types-constructor-context-noun-context/source.jibb:36:23: expected constructor gate has type $-(@t *)
+++ noun-context ^- * (call |=%got)
+                      ^

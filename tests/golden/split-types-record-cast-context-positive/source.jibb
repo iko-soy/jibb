@@ -1,0 +1,24 @@
++$ state [items=(list @t) open=?]
++$ msg
+  %go
+  %stay
++$ inner [payload=msg xs=(list @t)]
++$ outer [data=inner title=@t]
+++ init ^- state [~ %.n]
+++ full ^- state [~["x"] %.y]
+++ nested ^- outer [[%go ~["x"]] "ok"]
+++ faced ^- inner [payload=%stay xs=~]
+
+
+
+
+
+++ shared |= x=A ^- [left=A right=A] [x x]
+
+
+
+
+
+
+
+++ unknown |= x ^- [left=A right=A] [x x]

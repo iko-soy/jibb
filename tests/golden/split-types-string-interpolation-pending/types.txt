@@ -1,0 +1,4 @@
+++ pending: nothing fixes the union of %orphan; add a `^-`
+/tests/golden/split-types-string-interpolation-pending/source.jibb:9:22: nothing fixes the union of %orphan; add a `^-`
+++ pending |= x=@t "{%orphan}"
+                     ^

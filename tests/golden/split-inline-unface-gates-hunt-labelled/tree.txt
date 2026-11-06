@@ -1,0 +1,15 @@
+(module
+  (value 3:1 lt-a
+    (gate 3:9
+      (cell 3:12
+        (face 3:13 a (aura 3:15 @ud))
+        (face 3:19 b (aura 3:21 @ud)))
+      (group 3:26
+        (call 3:27 (wing 3:27 gth) (wing 3:31 b) (wing 3:33 a)))))
+  (value 7:1 hunt-labelled
+    (group 7:18
+      (call 7:19
+        (wing 7:19 hunt)
+        (wing 7:24 lt-a)
+        (unit 7:29 (lit 7:30 1))
+        (unit 7:32 (lit 7:33 2))))))

@@ -1,0 +1,18 @@
+++ project-increment |= r=[a=A b=@t c=@ud]
+  ^- [a=A b=@t] (proj [a=(add a.r 1) b=b.r c=c.r])
+++ good ^- [a=@ux b=@t] (project-increment [a=0x7 b="x" c=0])
+
+
+++ path-and-number [path=%/foo number=(add 1 2)]
+
+++ with-path |= r=[a=A b=qath c=@ud]
+  ^- [a=A b=qath] (proj [a=(dec a.r) b=b.r c=c.r])
+
+++ select-one |= r=[a=A b=@t]
+  ^- [a=A] (proj [a=(add a.r 1) b=b.r])
+++ select-one-ux ^- [a=@ux] (select-one [a=0x7 b="x"])
+
+++ scalar |= x=@t x
+
+++ select-one-nested |= r=[a=A b=@t]
+  ^- [outer=[a=A] marker=@ud] [outer=(proj [a=(add a.r 1) b=b.r]) marker=0]

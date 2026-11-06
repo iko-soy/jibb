@@ -1,0 +1,7 @@
+++ bool-add: types do not unify
+/tests/golden/split-types-arithmetic-combined-bool-add/source.jibb:10:14: expected type has type A where A is an atom other than ?
+++ bool-add (add %.n %.n)
+             ^
+/tests/golden/split-types-arithmetic-combined-bool-add/source.jibb:10:18: actual type has type ?
+++ bool-add (add %.n %.n)
+                 ^

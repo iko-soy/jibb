@@ -1,0 +1,13 @@
+++ bad: union %ok %stop has no case `%wrong`
+/ui/base.jibb:1:4: expected union has type %ok %stop
++$ msg
+   ^
+/ui/base.jibb:2:3: expected union has type %ok %stop
+  %ok
+  ^
+/tests/golden/types-import-union-external-transitive/source.jibb:2:9: expected union has type %ok %stop
+++ bad (emit.mid %wrong)
+        ^
+/tests/golden/types-import-union-external-transitive/source.jibb:2:18: tag literal has type %wrong
+++ bad (emit.mid %wrong)
+                 ^

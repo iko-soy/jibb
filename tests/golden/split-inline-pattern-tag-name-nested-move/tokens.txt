@@ -1,0 +1,59 @@
+5:1 glyph +$
+5:4 name dir
+6:3 INDENT
+6:3 lit %left
+7:3 NEWLINE
+7:3 lit %right
+8:1 DEDENT
+8:1 NEWLINE
+8:1 glyph +$
+8:4 name step
+9:3 INDENT
+9:3 glyph [
+9:4 tight lit %move
+9:10 name d
+9:11 tight glyph =
+9:12 tight name dir
+9:16 name n
+9:17 tight glyph =
+9:18 tight aura @ud
+9:21 tight glyph ]
+10:3 NEWLINE
+10:3 glyph [
+10:4 tight name text
+10:8 tight glyph =
+10:9 tight aura @t
+10:12 lit %draft
+10:18 tight glyph ]
+11:3 NEWLINE
+11:3 lit %stop
+18:1 DEDENT
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name move
+18:9 glyph |=
+18:12 name s
+18:13 tight glyph =
+18:14 tight name step
+19:3 INDENT
+19:3 glyph ?-
+19:6 name s
+20:5 INDENT
+20:5 glyph [
+20:6 tight lit %move
+20:12 name left
+20:17 name n
+20:18 tight glyph ]
+20:20 str "x"
+21:5 NEWLINE
+21:5 glyph [
+21:6 tight name t
+21:8 lit %draft
+21:14 tight glyph ]
+21:20 name t
+22:5 NEWLINE
+22:5 lit %stop
+22:20 str "s"
+22:23 DEDENT
+22:23 DEDENT
+22:23 NEWLINE

@@ -1,3 +1,3 @@
-partial inference; module not checked
+module kind: library
 ++ ship: @p
 ++ text-value: @t

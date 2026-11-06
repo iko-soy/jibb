@@ -1,0 +1,7 @@
+++ v: attribute `pad` is repeated
+/ui/probe.jibb:2:18: first attribute
+++ v (decorate ~[pad+%s1 pad+%s2])
+                 ^
+/ui/probe.jibb:2:26: repeated attribute
+++ v (decorate ~[pad+%s1 pad+%s2])
+                         ^

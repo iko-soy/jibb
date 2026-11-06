@@ -1,0 +1,8 @@
+module kind: library
+++ minimum: @ud
+++ difference: @ud
+++ product: @ud
+++ hex-product: @ux
+++ duration-difference: @dr
+++ bit-minimum: ?
+++ scale: $-([A A] A) where A is an atom other than ?

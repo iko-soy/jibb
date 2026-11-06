@@ -1,0 +1,3 @@
+module kind: library
+++ local-id: $-(A A)
+++ recursive: $-([flag=? value=(list @t)] (list @t))

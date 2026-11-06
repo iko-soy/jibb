@@ -1,0 +1,13 @@
+(module
+  (value 41:1 contextual-bad
+    (gate 41:19
+      (face 41:22 x (tvar 41:24 A))
+      (cast 41:26
+        (cell 41:29
+          (face 41:30 a (tvar 41:32 A))
+          (face 41:34 b
+            (apply 41:36 unit (tvar 41:42 A))))
+        (tuple 41:46
+          (face 41:47 a (wing 41:49 x))
+          (face 41:51 b
+            (unit 41:53 (str 41:54 "hi"))))))))

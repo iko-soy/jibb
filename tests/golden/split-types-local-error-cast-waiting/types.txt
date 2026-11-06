@@ -1,0 +1,7 @@
+++ waiting: cast mold and expression type do not unify
+/tests/golden/split-types-local-error-cast-waiting/source.jibb:7:24: cast mold has type @ud
+  ++ second |= y=@t ^- @ud y
+                       ^
+/tests/golden/split-types-local-error-cast-waiting/source.jibb:7:28: expression has type @t
+  ++ second |= y=@t ^- @ud y
+                           ^

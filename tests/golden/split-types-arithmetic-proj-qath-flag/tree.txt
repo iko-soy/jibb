@@ -1,0 +1,30 @@
+(module
+  (value 1:1 project-increment
+    (gate 1:22
+      (face 1:25 r
+        (cell 1:27
+          (face 1:28 a (tvar 1:30 A))
+          (face 1:32 b (aura 1:34 @t))
+          (face 1:37 c (aura 1:39 @ud))))
+      (body 2:3
+        (cast 2:3
+          (cell 2:6
+            (face 2:7 a (tvar 2:9 A))
+            (face 2:11 b (aura 2:13 @t)))
+          (group 2:17
+            (call 2:18
+              (wing 2:18 proj)
+              (tuple 2:23
+                (face 2:24 a
+                  (group 2:26
+                    (call 2:27 (wing 2:27 add) (wing 2:31 a.r) (lit 2:35 1))))
+                (face 2:38 b (wing 2:40 b.r))
+                (face 2:44 c (wing 2:46 c.r)))))))))
+  (value 4:1 flag
+    (group 4:9
+      (call 4:10
+        (wing 4:10 project-increment)
+        (tuple 4:28
+          (face 4:29 a (lit 4:31 %.y))
+          (face 4:35 b (str 4:37 "x"))
+          (face 4:41 c (lit 4:43 0)))))))

@@ -1,0 +1,6 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 a
+    (gate 2:6
+      (face 2:9 x (ref 2:11 vas.fixture))
+      (wing 2:23 x))))

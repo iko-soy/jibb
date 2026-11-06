@@ -49,6 +49,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import golden_case
+import prelude_groups
 
 ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 PIER = os.environ.get('JIBB_PIER', '/root/urbit/zod')
@@ -723,7 +724,7 @@ MANIFEST = r"""
 RUN_TEST = r"""
 =/  m  (strand ,vase)
 ;<  =bowl:spider  bind:m  get-bowl
-=/  pax=path  /(scot %p our.bowl)/@@DESK@@/(scot %da now.bowl)/tests
+=/  pax=path  /(scot %p our.bowl)/@@DESK@@/(scot %da now.bowl)/@@PAX@@
 ;<  res=thread-result  bind:m  (await-thread %test !>([~ pax]))
 ?-  -.res
   %&  (pure:m !>([%& ;;(? q.p.res)]))
@@ -884,6 +885,19 @@ def show(path):
     return path if rel.startswith('..') else rel
 
 
+def generate_test_batches(golden):
+    """Generated golden suites split into bounded test files."""
+    cases = golden_cases(golden)
+    if len(cases) <= 100:
+        return {os.path.join('tests', 'lib', 'jibb.hoon'): generate_tests(golden)}
+    out = {}
+    for start in range(0, len(cases), 100):
+        batch = cases[start:start + 100]
+        label = '%s batch %03d' % (show(golden), start // 100)
+        out[os.path.join('tests', 'lib', 'jibb-golden-%03d.hoon' % (start // 100))] = generate_tests(golden, label, batch)
+    return out
+
+
 def assemble(desk, lib=None, golden=None):
     """The files of one of the repo's desks, checked as vere and Clay
     will see them.  lib replaces /lib/jibb.hoon; golden, for the
@@ -918,9 +932,9 @@ def assemble(desk, lib=None, golden=None):
                 a.add_tree(golden, os.path.join('tests', 'golden'),
                            drop=lambda rel: linked_desk_path(
                                desk, os.path.join(golden, rel)) is not None)
-            a.add(os.path.join('tests', 'lib', 'jibb.hoon'),
-                  generate_tests(golden).encode(),
-                  'tools/ship gen-tests --golden %s' % show(golden))
+            for rel, content in generate_test_batches(golden).items():
+                a.add(rel, content.encode(),
+                      'tools/ship gen-tests --golden %s' % show(golden))
         else:
             a.add_tree(os.path.join(ROOT, folder), into, skip=skip)
     for rel, src in EXTRA.get(desk, {}).items():
@@ -1105,12 +1119,14 @@ def hoon_list(items):
     return '~[' + ' '.join(items) + ']' if items else '~'
 
 
-def generate_tests(golden):
-    cases = golden_cases(golden)
+def generate_tests(golden, source=None, cases=None):
+    if cases is None:
+        cases = golden_cases(golden)
     has_imports = False
     has_marks = False
     has_modules = False
     has_module_types = False
+    has_excluded = False
     for _, folder in cases:
         try:
             sur = golden_case.sur_imports(folder)
@@ -1121,13 +1137,42 @@ def generate_tests(golden):
             has_modules |= bool(modules)
             has_module_types |= bool(golden_case.wants_modules(folder) and
                                      golden_case.wants_types(folder))
+            has_excluded |= bool(golden_case.excluded_prelude_molds(folder))
         except ValueError as e:
             raise Unable(str(e))
-    lines = [fill(TESTS_HEADER, SOURCE=show(golden)).rstrip('\n'),
+    lines = [fill(TESTS_HEADER, SOURCE=source or show(golden)).rstrip('\n'),
              '/+  jibb, jibb-import' if has_imports or has_module_types else '/+  jibb']
     if has_module_types:
         lines.append('/*  prelude-source  %jibb  /lib/jibb/prelude/jibb')
         lines.append('/*  internal-source  %jibb  /lib/jibb/internal/jibb')
+        try:
+            group_sources, private_sources, reader_sources = prelude_groups.load_all(ROOT)
+        except ValueError as error:
+            raise Unable(str(error)) from error
+        group_entries = []
+        private_entries = []
+        for number, (face, path, _, _) in enumerate(group_sources, 1):
+            resource = 'prelude-group-%d' % number
+            lines.append('/*  %s  %%jibb  %s/jibb' % (resource, path))
+            group_entries.append('[%%%s %s %s]' % (face, prelude_groups.hoon_path(path), resource))
+        for number, (_, path, _, _) in enumerate(private_sources, 1):
+            resource = 'prelude-private-%d' % number
+            lines.append('/*  %s  %%jibb  %s/jibb' % (resource, path))
+            private_entries.append('[%s %s]' % (prelude_groups.hoon_path(path), resource))
+        reader_entries = []
+        reader_paths = set()
+        for number, (module, name, path, _, data) in enumerate(reader_sources, 1):
+            resource = 'prelude-reader-%d' % number
+            lines.append('/*  %s  %%hoon  %s/hoon' % (resource, path))
+            source = resource
+            logical = prelude_groups.sur_path(path)
+            if path not in reader_paths:
+                private_entries.append('[%s %s]' % (logical, source))
+                reader_paths.add(path)
+            reader_entries.append('[%%%s %%%s %s %s]' % (module, name, logical, source))
+        groups_expr = hoon_list(group_entries)
+        private_expr = hoon_list(private_entries)
+        readers_expr = hoon_list(reader_entries)
     arms = []
     for i, ((name, folder), arm) in enumerate(
             zip(cases, arm_names([c[0] for c in cases])), 1):
@@ -1143,6 +1188,9 @@ def generate_tests(golden):
             marks = golden_case.mark_imports(folder)
             modules = golden_case.module_fixtures(folder)
             want_modules = golden_case.wants_modules(folder)
+            excluded = golden_case.excluded_prelude_molds(folder)
+            type_path = golden_case.type_path(folder)
+            contract = golden_case.type_contract(folder)
         except ValueError as e:
             raise Unable(str(e))
         args = ['~.%s' % name]
@@ -1164,12 +1212,27 @@ def generate_tests(golden):
                 'jibb-dev', fixture, '%s/modules%s/jibb' % (base, module[:-5]))))
             module_fixtures.append('[%s %s %s]' % (hoon_cord(module.encode()), at, face))
         if golden_case.wants_types(folder):
+            type_source = os.path.join(folder, 'type-source.jibb')
+            type_face = 'src-%d' % i
+            if os.path.isfile(type_source):
+                type_face = 'type-src-%d' % i
+                lines.append('/*  %s  %%jibb  %s' % (type_face, clay_file(
+                    'jibb-dev', type_source, '%s/type-source/jibb' % base)))
             if os.path.isfile(os.path.join(folder, 'types.txt')):
                 lines.append('/*  typ-%d  %%txt   %s/types/txt' % (i, base))
                 expected_types = '`typ-%d' % i
             else:
                 expected_types = '~'
-            path = logical or '~[%%tests %%golden ~.%s %%source %%jibb]' % name
+            path = type_path or logical or '~[%%tests %%golden ~.%s %%source %%jibb]' % name
+            contract_rules = []
+            for kind, value in contract:
+                if kind == 'min-sites':
+                    contract_rules.append("[%%min-sites '' %s]" % value)
+                elif kind == 'message':
+                    contract_rules.append('[%%message %s 0]' % hoon_cord(value.encode()))
+                else:
+                    contract_rules.append('[%%%s %s 0]' % (kind, hoon_cord((value + ':').encode())))
+            rules = hoon_list(contract_rules)
             if want_modules:
                 fixtures = []
                 for j, (module, mold, _) in enumerate(imports, 1):
@@ -1181,9 +1244,10 @@ def generate_tests(golden):
                     face = 'mark-%d-%d' % (i, j)
                     lines.append('/*  %s  %%txt  %s/mar/%s/txt' % (face, base, mark))
                     mark_fixtures.append('[%%%s %s]' % (mark, face))
-                call = '(weld %s (check-module-types ~.%s %s src-%d %s %s %s %s))' % (
-                    call, name, path, i, expected_types, hoon_list(fixtures),
-                    hoon_list(mark_fixtures), hoon_list(module_fixtures))
+                call = '(weld %s (check-module-types ~.%s %s %s %s %s %s %s %s %s))' % (
+                    call, name, path, type_face, expected_types, hoon_list(fixtures),
+                    hoon_list(mark_fixtures), hoon_list(module_fixtures),
+                    hoon_list(['%%%s' % n for n in excluded]), rules)
             elif marks:
                 fixtures = []
                 for j, (module, mold, _) in enumerate(imports, 1):
@@ -1195,20 +1259,20 @@ def generate_tests(golden):
                     face = 'mark-%d-%d' % (i, j)
                     lines.append('/*  %s  %%txt  %s/mar/%s/txt' % (face, base, mark))
                     mark_fixtures.append('[%%%s %s]' % (mark, face))
-                call = '(weld %s (check-mark-types ~.%s %s src-%d %s %s %s))' % (
-                    call, name, path, i, expected_types, hoon_list(fixtures),
-                    hoon_list(mark_fixtures))
+                call = '(weld %s (check-mark-types ~.%s %s %s %s %s %s %s))' % (
+                    call, name, path, type_face, expected_types, hoon_list(fixtures),
+                    hoon_list(mark_fixtures), rules)
             elif imports:
                 fixtures = []
                 for j, (module, mold, _) in enumerate(imports, 1):
                     face = 'imp-%d-%d' % (i, j)
                     lines.append('/*  %s  %%txt  %s/sur/%s/txt' % (face, base, module))
                     fixtures.append('[%%%s %%%s %s]' % (module, mold, face))
-                call = '(weld %s (check-import-types ~.%s %s src-%d %s ~[%s]))' % (
-                    call, name, path, i, expected_types, ' '.join(fixtures))
+                call = '(weld %s (check-import-types ~.%s %s %s %s ~[%s] %s))' % (
+                    call, name, path, type_face, expected_types, ' '.join(fixtures), rules)
             else:
-                call = '(weld %s (check-types ~.%s %s src-%d %s))' % (
-                    call, name, path, i, expected_types)
+                call = '(weld %s (check-types ~.%s %s %s %s %s))' % (
+                    call, name, path, type_face, expected_types, rules)
         if modules:
             if os.path.isfile(os.path.join(folder, 'module-trees.txt')):
                 lines.append('/*  mtre-%d  %%txt  %s/module-trees/txt' % (i, base))
@@ -1219,7 +1283,10 @@ def generate_tests(golden):
                 call, name, expected_modules, ' '.join(module_fixtures))
         arms.append('++  %s\n  %s' % (arm, call))
     if has_module_types:
-        lines.append('=/  prepared-prelude  (prepare-prelude-with-internal:jibb prelude-source internal-source)')
+        lines.append('=/  prelude-group-sources  %s' % groups_expr)
+        lines.append('=/  prelude-group-modules  %s' % private_expr)
+        lines.append("=/  prelude-reader-inputs  (turn `(list [module=term name=term at=path source=@t])`%s |=(entry=[module=term name=term at=path source=@t] =/(built=(each type tang) (mule |.(-:(ride -:!>(..zuse) source.entry))) [module.entry name.entry ?:(?=(%%| -.built) [%%| 'Hoon source could not be built'] (read-generic-source:jibb-import module.entry name.entry at.entry source.entry p.built))])))" % readers_expr)
+        lines.append('=/  prepared-prelude  (prepare-prelude-with-group-evidence:jibb prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs)')
     lines.append('|%')
     if arms:
         lines.append('::  one arm per case')
@@ -1229,19 +1296,20 @@ def generate_tests(golden):
     if any(golden_case.wants_types(folder) for _, folder in cases):
         types_helper = '''::
 ++  check-types
-  |=  [case=@ta at=path src=@t want=(unit wain)]
+  |=  [case=@ta at=path src=@t want=(unit wain) rules=(list [kind=term needle=@t count=@ud])]
   ^-  tang
-  (compare (file case "types.txt") want (golden-types:jibb at src))
+  =/  result=@t  (golden-types:jibb at src)
+  (weld (check-type-contract case rules result) (compare (file case "types.txt") want result))
 '''
     if has_imports:
         types_helper += '''::
 ++  check-import-types
-  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain])]
+  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) rules=(list [kind=term needle=@t count=@ud])]
   ^-  tang
   =/  result  (mule |.((import-types-result at src fixtures)))
   ?:  ?=(%| -.result)
     [leaf+"fixture compilation or type checking crashed" p.result]
-  (compare (file case "types.txt") want p.result)
+  (weld (check-type-contract case rules p.result) (compare (file case "types.txt") want p.result))
 ::
 ++  import-types-result
   |=  [at=path src=@t fixtures=(list [module=term mold=term source=wain])]
@@ -1253,18 +1321,34 @@ def generate_tests(golden):
     ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
-    [module.fixture mold.fixture (read-named:jibb-import module.fixture mold.fixture cor)]
+    =/  result=*  (read-named-diagnostic:jibb-import module.fixture mold.fixture cor)
+    [module.fixture mold.fixture ?:(?=(%ok -.result) [%& +.result] result)]
   (golden-types-imports:jibb at src external)
+'''
+    if has_marks or has_module_types:
+        types_helper += '''::
+++  mark-source-inputs
+  |=  fixtures=(list [module=term mold=term source=wain])
+  ^-  (list [module=term at=path source=@t])
+  =/  seen=(list term)  ~
+  |-
+  ?~  fixtures  ~
+  =/  duplicate=?  (lien seen |=(name=term =(name module.i.fixtures)))
+  =.  seen  [module.i.fixtures seen]
+  =/  rest=(list [module=term at=path source=@t])  $(fixtures t.fixtures)
+  ?:  duplicate  rest
+  =/  text=@t  (rap 3 (turn source.i.fixtures |=(line=@t (cat 3 line '\\0a'))))
+  [[module.i.fixtures ~[%sur module.i.fixtures %hoon] text] rest]
 '''
     if has_marks:
         types_helper += '''::
 ++  check-mark-types
-  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain])]
+  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain]) rules=(list [kind=term needle=@t count=@ud])]
   ^-  tang
   =/  result  (mule |.((mark-types-result at src fixtures marks)))
   ?:  ?=(%| -.result)
     [leaf+"fixture compilation or type checking crashed" p.result]
-  (compare (file case "types.txt") want p.result)
+  (weld (check-type-contract case rules p.result) (compare (file case "types.txt") want p.result))
 ::
 ++  mark-types-result
   |=  [at=path src=@t fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain])]
@@ -1276,7 +1360,8 @@ def generate_tests(golden):
     ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
-    [module.fixture mold.fixture (read-named:jibb-import module.fixture mold.fixture cor)]
+    =/  result=*  (read-named-diagnostic:jibb-import module.fixture mold.fixture cor)
+    [module.fixture mold.fixture ?:(?=(%ok -.result) [%& +.result] result)]
   =/  mark-external=(list [name=term result=*])
     %+  turn  marks
     |=  fixture=[name=term source=wain]
@@ -1284,7 +1369,8 @@ def generate_tests(golden):
     ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
-    [name.fixture (read-mark:jibb-import name.fixture cor)]
+    =/  result=*  (read-mark-source:jibb-import name.fixture (mark-source-inputs fixtures) cor)
+    [name.fixture ?:(?=(%& -.result) result (read-mark-diagnostic:jibb-import name.fixture cor))]
   (golden-types-with-marks:jibb at src external mark-external)
 '''
     if has_modules:
@@ -1313,15 +1399,15 @@ def generate_tests(golden):
     if has_module_types:
         types_helper += '''::
 ++  check-module-types
-  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain]) modules=(list [label=@t at=path source=@t])]
+  |=  [case=@ta at=path src=@t want=(unit wain) fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain]) modules=(list [label=@t at=path source=@t]) excluded=(list term) rules=(list [kind=term needle=@t count=@ud])]
   ^-  tang
-  =/  result  (mule |.((module-types-result at src fixtures marks modules)))
+  =/  result  (mule |.((module-types-result at src fixtures marks modules excluded)))
   ?:  ?=(%| -.result)
     [leaf+"fixture compilation or type checking crashed" p.result]
-  (compare (file case "types.txt") want p.result)
+  (weld (check-type-contract case rules p.result) (compare (file case "types.txt") want p.result))
 ::
 ++  module-types-result
-  |=  [at=path src=@t fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain]) modules=(list [label=@t at=path source=@t])]
+  |=  [at=path src=@t fixtures=(list [module=term mold=term source=wain]) marks=(list [name=term source=wain]) modules=(list [label=@t at=path source=@t]) excluded=(list term)]
   ^-  @t
   =/  external=(list [module=term name=term result=*])
     %+  turn  fixtures
@@ -1330,7 +1416,8 @@ def generate_tests(golden):
     ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
-    [module.fixture mold.fixture (read-named:jibb-import module.fixture mold.fixture cor)]
+    =/  result=*  (read-named-diagnostic:jibb-import module.fixture mold.fixture cor)
+    [module.fixture mold.fixture ?:(?=(%ok -.result) [%& +.result] result)]
   =/  mark-external=(list [name=term result=*])
     %+  turn  marks
     |=  fixture=[name=term source=wain]
@@ -1338,13 +1425,105 @@ def generate_tests(golden):
     ?~  source.fixture  !!
     =/  text=@t  (rap 3 (turn source.fixture |=(line=@t (cat 3 line '\\0a'))))
     =/  cor=type  -:(ride -:!>(..zuse) text)
-    [name.fixture (read-mark:jibb-import name.fixture cor)]
+    =/  result=*  (read-mark-source:jibb-import name.fixture (mark-source-inputs fixtures) cor)
+    [name.fixture ?:(?=(%& -.result) result (read-mark-diagnostic:jibb-import name.fixture cor))]
   =/  sources=(list [path=path source=@t])
     (turn modules |=(item=[label=@t at=path source=@t] [at.item source.item]))
   ?~  prepared-prelude
-    (golden-types-with-prelude-and-internal:jibb at src external mark-external sources prelude-source internal-source)
-  (golden-types-with-prepared-prelude:jibb at src external mark-external sources prepared-prelude)
+    (golden-types-with-prelude-and-group-evidence:jibb at src external mark-external sources prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs)
+@@PREPARED-PRELUDE@@
 '''
+    if any(golden_case.wants_types(folder) for _, folder in cases):
+        types_helper += '''
+::  Diagnostic contracts supplement, but never replace, exact type goldens.
+++  contract-prefix
+  |=  [needle=tape hay=tape]
+  ^-  ?
+  ?~  needle  &
+  ?~  hay  |
+  ?.  =(i.needle i.hay)  |
+  $(needle t.needle, hay t.hay)
+++  contract-after
+  |=  [needle=tape hay=tape]
+  ^-  (unit tape)
+  ?~  hay  ~
+  ?:  (contract-prefix needle hay)
+    =/  remaining=tape  `tape`hay
+    `(slag (lent needle) remaining)
+  $(hay t.hay)
+++  contract-has
+  |=  [needle=tape hay=tape]
+  ^-  ?
+  ?=(^ (contract-after needle hay))
+++  contract-number
+  |=  text=tape
+  ^-  (unit tape)
+  =/  seen=?  |
+  |-
+  ?~  text  ~
+  ?:  =(':' i.text)  ?:(seen `t.text ~)
+  ?.  &((gte i.text '0') (lte i.text '9'))  ~
+  $(text t.text, seen &)
+++  contract-is-site
+  |=  line=@t
+  ^-  ?
+  =/  text=tape  (trip line)
+  ?~  text  |
+  ?.  =('/' i.text)  |
+  =/  first=(unit tape)  (contract-after ":" text)
+  ?~  first  |
+  =/  second=(unit tape)  (contract-number u.first)
+  ?~  second  |
+  =/  third=(unit tape)  (contract-number u.second)
+  ?~  third  |
+  ?~  u.third  |
+  =(' ' i.u.third)
+++  contract-match
+  |=  [line=@t needle=@t kind=term]
+  ^-  ?
+  =/  tail=(unit tape)  (contract-after (trip needle) (trip line))
+  ?~  tail  |
+  ?:  =(%site kind)  &
+  ?:  =(%unresolved-site kind)
+    &(|((contract-has "constructor" u.tail) (contract-has "tag" u.tail)) |((contract-has "unresolved" u.tail) (contract-has "not fixed" u.tail)))
+  ?|  (contract-has "type" u.tail)
+      (contract-has "@" u.tail)
+      (contract-has "$-" u.tail)
+      (contract-has "(list " u.tail)
+      (contract-has "(unit " u.tail)
+  ==
+++  check-type-contract
+  |=  [case=@ta rules=(list [kind=term needle=@t count=@ud]) got=@t]
+  ^-  tang
+  ?~  rules  ~
+  =/  rule=[kind=term needle=@t count=@ud]  i.rules
+  =/  lines=wain  (to-wain:format got)
+  =/  passed=?
+    ?:  =(%min-sites kind.rule)
+      (gte (lent (skim lines contract-is-site)) count.rule)
+    ?:  =(%message kind.rule)
+      ?~(lines | (contract-has (trip needle.rule) (trip i.lines)))
+    (lien lines |=(line=@t (contract-match line needle.rule kind.rule)))
+  =/  rest=tang  $(rules t.rules)
+  ?:  passed  rest
+  =/  note=tape
+    ?:  =(%min-sites kind.rule)  "requires {(a-co:co count.rule)} diagnostic sites"
+    ?:  =(%message kind.rule)  "requires diagnostic message {(trip needle.rule)}"
+    ?:  =(%typed-site kind.rule)  "requires a type at {(trip needle.rule)}"
+    ?:  =(%unresolved-site kind.rule)  "requires an unresolved tag or constructor at {(trip needle.rule)}"
+    "requires site {(trip needle.rule)}"
+  [leaf+"{(file case "type-contract.txt")}: {note}" rest]
+'''
+    prepared_call = "  (golden-types-with-prepared-prelude:jibb at src external mark-external sources prepared-prelude)"
+    if has_excluded:
+        prepared_call = """  =/  prepared=iprelude:jibb  u.prepared-prelude
+  =/  kept=imold-types:jibb
+    (skim molds.iface.prepared |=(m=[name=term template=ischeme:jibb] !(lien excluded |=(n=term =(n name.m)))))
+  =/  names=(list term)
+    (skim molds.prepared |=(n=term !(lien excluded |=(x=term =(x n)))))
+  =/  reduced=iprelude:jibb  [iface.prepared(molds kept) values.prepared names]
+  (golden-types-with-prepared-prelude:jibb at src external mark-external sources `reduced)"""
+    types_helper = types_helper.replace('@@PREPARED-PRELUDE@@', prepared_call)
     return '\n'.join(lines) + '\n' + TESTS_HELPERS.replace('\n--\n', '\n' + types_helper + '--\n')
 
 
@@ -1891,27 +2070,35 @@ def cmd_test(ship, args):
     if not args.no_sync:
         sync(ship, 'jibb-dev', lib=lib, golden=golden, timeout=args.timeout)
     synced = time.time()
+    files = assemble('jibb-dev', lib=lib, golden=golden).files
+    test_paths = sorted(rel for rel in files
+                        if rel.startswith('tests/lib/') and rel.endswith('.hoon'))
     offset = ship.log_size()
-    flag, rest = ship.thread(fill(RUN_TEST, DESK='jibb-dev'),
-                             timeout=args.timeout)
-    lines = settle(ship, offset)
-    for line in lines:
-        say(line)
     counts = {'OK': 0, 'FAILED': 0, 'CRASHED': 0}
-    for line in lines:
-        m = TEST_LINE.match(line)
-        if m and m.group(1) in counts and '/test-' in m.group(2):
-            counts[m.group(1)] += 1
-    built_failed = any(re.match(r'^FAILED +\S+ \(build\)', l) for l in lines)
+    ok = True
+    built_failed = False
+    for rel in test_paths:
+        flag, rest = ship.thread(fill(RUN_TEST, DESK='jibb-dev',
+                                      PAX='/'.join(clay_path(rel))),
+                                 timeout=args.timeout)
+        lines = settle(ship, offset)
+        offset = ship.log_size()
+        for line in lines:
+            say(line)
+        for line in lines:
+            m = TEST_LINE.match(line)
+            if m and m.group(1) in counts and '/test-' in m.group(2):
+                counts[m.group(1)] += 1
+        built_failed |= any(re.match(r'^FAILED +\S+ \(build\)', l) for l in lines)
+        if flag != 0:
+            mote, tang = rest
+            say('-test itself failed: %%%s' % text(mote))
+            for line in tang_lines(tang):
+                say('  ' + line)
+            ok = False
+            break
+        ok = ok and rest == 0
     took = 'sync %.1fs, -test %.1fs' % (synced - started, time.time() - synced)
-    if flag != 0:
-        mote, tang = rest
-        say('-test itself failed: %%%s' % text(mote))
-        for line in tang_lines(tang):
-            say('  ' + line)
-        say('FAIL (%s)' % took)
-        return 1
-    ok = rest == 0
     summary = '%d OK, %d FAILED, %d CRASHED' % (
         counts['OK'], counts['FAILED'], counts['CRASHED'])
     if built_failed:

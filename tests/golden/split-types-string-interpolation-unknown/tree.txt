@@ -1,0 +1,5 @@
+(module
+  (value 8:1 unknown
+    (gate 8:12
+      (bind 8:15 x)
+      (str 8:17 (wing 8:19 x)))))

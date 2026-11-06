@@ -1,0 +1,12 @@
+24:1 glyph ++
+24:4 name shown
+24:10 glyph ^-
+24:13 glyph (
+24:14 tight name element
+24:22 glyph !!
+24:24 tight glyph )
+24:26 glyph (
+24:27 tight name text
+24:32 lit 5
+24:33 tight glyph )
+24:34 NEWLINE

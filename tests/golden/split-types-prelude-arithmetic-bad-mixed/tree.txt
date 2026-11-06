@@ -1,0 +1,4 @@
+(module
+  (value 6:1 bad-mixed
+    (group 6:14
+      (call 6:15 (wing 6:15 gth) (lit 6:19 ~zod) (str 6:24 "hi")))))

@@ -1,0 +1,3 @@
+origin types-recursive-gate
+target value forced-trace
+keep value forced-trace

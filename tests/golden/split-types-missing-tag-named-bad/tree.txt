@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %add)))
+  (value 9:1 bad
+    (cast 9:8 (ref 9:11 msg) (lit 9:15 %submitt))))

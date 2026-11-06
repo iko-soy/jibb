@@ -1,0 +1,18 @@
+++ project-increment |= r=[a=A b=@t c=@ud]
+  ^- [a=A b=@t] (proj [a=(add a.r 1) b=b.r c=c.r])
+
+++ flag (project-increment [a=%.y b="x" c=0])
+
+
+
+
+
+
+
+
+
+
+
+
+
+

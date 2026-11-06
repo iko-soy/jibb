@@ -1,0 +1,7 @@
+++ dead: branch arm is covered by earlier arms
+/tests/golden/split-types-union-finite-context-dead/source.jibb:33:5: covering arm
+    [%p %.y t] %go
+    ^
+/tests/golden/split-types-union-finite-context-dead/source.jibb:34:5: covered arm
+    [%p %.y t] %stay
+    ^

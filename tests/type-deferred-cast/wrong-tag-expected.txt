@@ -1,0 +1,13 @@
+++ displayed: msg has no case `%typo`
+/tests/deferred-cast.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/deferred-cast.jibb:2:3: expected union has type msg
+  %hit
+  ^
+/tests/deferred-cast.jibb:5:16: expected union has type msg
+++ resolved ^- (element msg) displayed
+               ^
+/tests/deferred-cast.jibb:4:26: tag literal has type %typo
+++ displayed (button "x" %typo)
+                         ^

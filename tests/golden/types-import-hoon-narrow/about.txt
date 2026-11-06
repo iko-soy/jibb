@@ -1,0 +1,4 @@
+source: Grammar, Molds: a typed value fits `*`, but the reverse requires a check.
+tests: Narrowing an imported noun to a cord is rejected with its expected and actual sites.
+expect: parses
+expect-types: full checker result

@@ -1,0 +1,22 @@
++$ yes %.y
+
+
+
+
+
+
+
+
+
+
+++ named-value ^- yes %.y
+
+
+
+++ named-as-ta ^- @ta named-value
+
+
+
+
+
+

@@ -92,7 +92,7 @@ def write_case(golden, case, src, expected=True):
 
 
 def arms(text):
-    return re.findall(r'^\+\+  (test-\S*)\n  \(check (.*)\)$', text, re.M)
+    return re.findall(r'^\+\+  (test-\S*)\n  (?:\(weld )?\(check ([^)]*)\)', text, re.M)
 
 
 # ---------------------------------------------------------------- generator
@@ -113,16 +113,16 @@ def generator_checks(tmp):
     check('ship-golden: one test- arm per case, in name order',
           [a for a, _ in got] == ship.arm_names(names), got)
     check('ship-golden: odd.name_1 becomes test-odd-name-1 with a knot',
-          ('test-odd-name-1', '~.odd.name_1 src-7 `tok-7 `tre-7') in got, got)
+          ('test-odd-name-1', '~.odd.name_1 src-%d `tok-%d `tre-%d' % ((names.index('odd.name_1') + 1,) * 3)) in got, got)
     check('ship-golden: a missing tree.txt is passed as ~',
-          ('test-missing-tree', '~.missing-tree src-5 `tok-5 ~') in got and
+          ('test-missing-tree', '~.missing-tree src-%d `tok-%d ~' % ((names.index('missing-tree') + 1,) * 2)) in got and
           '/tests/golden/missing-tree/tree/txt' not in out, got)
     imports = re.findall(r'^/\*  (\S+) +%(\S+) +(\S+)$', out, re.M)
     check('ship-golden: /* imports source.jibb as %jibb, the rest as %txt',
           ('src-1', 'jibb', '/tests/golden/basic/source/jibb') in imports and
           ('tok-1', 'txt', '/tests/golden/basic/tokens/txt') in imports and
           ('tre-1', 'txt', '/tests/golden/basic/tree/txt') in imports and
-          len(imports) == 3 * len(names) - 1, imports)
+          len(imports) == 3 * len(names), imports)
 
     logical = os.path.join(tmp, 'logical')
     write_case(logical, 'api', b'++ x\n')
@@ -140,7 +140,25 @@ def generator_checks(tmp):
         f.write('expect-types: partial report\n')
     out = ship.generate_tests(logical)
     check('missing opted-in types are passed as a missing expectation',
-          'src-1 ~)' in out and '++  check-types' in out, out)
+          'src-1 ~ ~)' in out and '++  check-types' in out, out)
+    contract = os.path.join(logical, 'api', 'type-contract.txt')
+    with open(contract, 'w') as f:
+        f.write('typed-site /ui/api/todo.jibb:2:3\nmin-sites 2\nmessage case not found\n')
+    out = ship.generate_tests(logical)
+    check('diagnostic contracts reach the generated checker',
+          "[%typed-site '/ui/api/todo.jibb:2:3:' 0]" in out and
+          "[%min-sites '' 2]" in out and "[%message 'case not found' 0]" in out and
+          '++  check-type-contract' in out, out)
+    with open(contract, 'w') as f:
+        f.write('typed-site nowhere\n')
+    try:
+        ship.generate_tests(logical)
+    except ship.Unable:
+        bad_contract = True
+    else:
+        bad_contract = False
+    check('invalid diagnostic contracts are rejected', bad_contract)
+    os.remove(contract)
     with open(os.path.join(logical, 'api', 'path.txt'), 'w') as f:
         f.write('/ui/api/../todo.jibb\n')
     try:
@@ -172,17 +190,37 @@ def generator_checks(tmp):
           '(check-module-types ~.main' in out and
           '/*  prelude-source  %jibb  /lib/jibb/prelude/jibb' in out and
           '/*  internal-source  %jibb  /lib/jibb/internal/jibb' in out and
-          '=/  prepared-prelude  (prepare-prelude-with-internal:jibb prelude-source internal-source)' in out and
+          '/*  prelude-reader-1  %hoon  /sur/jibb-collections/hoon' in out and
+          'read-generic-source:jibb-import' in out and
+          '=/  prepared-prelude  (prepare-prelude-with-group-evidence:jibb prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs)' in out and
           '(golden-types-with-prepared-prelude:jibb at src external mark-external sources prepared-prelude)' in out and
-          '(golden-types-with-prelude-and-internal:jibb at src external mark-external sources prelude-source internal-source)' in out and
+          '(golden-types-with-prelude-and-group-evidence:jibb at src external mark-external sources prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs)' in out and
           "['/ui/card.jibb' ~[~.ui ~.card ~.jibb] mod-1-1]" in out and
           'src-1 `typ-1 ~ ~ ~[[' in out and '~[]' not in out, out)
+    original_load = ship.prelude_groups.load_all
+    def shared_reader_sources(root):
+        groups, private, readers = original_load(root)
+        if not readers:
+            raise ValueError('the standard prelude reader is missing')
+        module, _, logical, filename, data = readers[0]
+        return groups, private, readers + [(module, 'other-reader', logical, filename, data)]
+    try:
+        ship.prelude_groups.load_all = shared_reader_sources
+        shared = ship.generate_tests(module_cases)
+    finally:
+        ship.prelude_groups.load_all = original_load
+    bundle = next(line for line in shared.splitlines() if line.startswith('=/  prelude-group-modules '))
+    evidence = next(line for line in shared.splitlines() if line.startswith('=/  prelude-reader-inputs '))
+    check('multiple readers share one source while keeping both descriptors',
+          bundle.count('~[~.sur ~.jibb-collections ~.hoon]') == 1 and
+          '%jibb-collections %table' in evidence and
+          '%jibb-collections %other-reader' in evidence, bundle + '\n' + evidence)
     with open(os.path.join(folder, 'modules.txt'), 'w') as f:
         f.write('# no module fixtures\n')
     out = ship.generate_tests(module_cases)
     check('an empty module bundle still opts into module checking',
           '(check-module-types ~.main' in out and
-          'src-1 `typ-1 ~ ~ ~)' in out and
+          'src-1 `typ-1 ~ ~ ~ ~ ~)' in out and
           '(check-module-trees ~.main' not in out and '~[]' not in out, out)
     with open(os.path.join(folder, 'modules.txt'), 'w') as f:
         f.write('/ui/card.jibb\n')
@@ -302,7 +340,7 @@ def generator_checks(tmp):
     normal_tests = {p for p in normal.files if p.startswith('tests/lib/') and
                     p.endswith('.hoon')}
     check('default assembly keeps the repository test programs',
-          {'tests/lib/jibb.hoon', 'tests/lib/jibb-import.hoon',
+          {'tests/lib/jibb-import.hoon',
            'tests/lib/jibb-import-default.hoon',
            'tests/lib/jibb-import-overlap.hoon',
            'tests/lib/jibb-import-structural.hoon',
@@ -351,15 +389,15 @@ def generator_checks(tmp):
               'tree', 'tree-changed', 'alias', 'client', 'bad-mold',
               'bad-constructor', 'bad-match', 'bad-parameter', 'local-shadow',
               'local-distinct', 'local-only', 'list-shadow', 'chain', 'expected')} <= set(normal.files))
-    check('generic construction sources and golden are assembled',
+    check('generic construction sources are assembled',
           {f'tests/type-generic-construction/{name}.txt' for name in (
               'tree', 'alias', 'client', 'alias-client', 'tree-no-event',
               'no-event-client', 'owner-positive', 'owner-negative',
-              'sibling-values', 'expected')} <= set(normal.files))
-    check('generic pattern sources and golden are assembled',
+              'sibling-values')} <= set(normal.files))
+    check('generic pattern sources are assembled',
           {f'tests/type-generic-pattern/{name}.txt' for name in (
               'client', 'no-event', 'values', 'poly-values', 'owner',
-              'owner-bad', 'expected')} <= set(normal.files))
+              'owner-bad')} <= set(normal.files))
     check('empty mold sources and golden are assembled',
           {f'tests/type-empty/{name}.txt' for name in (
               'good', 'overlap', 'dead', 'missing', 'standard-good',
@@ -464,11 +502,11 @@ def generator_checks(tmp):
            'my-app/mar/todos.hoon'} <= set(normal.files) and
           not {'my-app/desk.bill', 'my-app/desk.docket-0',
                'my-app/sys.kelvin'} & set(normal.files))
+    generated = ''.join(normal.files[path][0].decode() for path in normal_tests
+                        if re.match(r'tests/lib/jibb-golden-\d+\.hoon$', path))
     check('a golden case file that links to my-app is read from /my-app',
           os.path.islink(os.path.join(ship.ROOT, linked)) and
-          linked not in normal.files and
-          '/my-app/ui/theme/jibb' in
-          normal.files['tests/lib/jibb.hoon'][0].decode())
+          linked not in normal.files and '/my-app/ui/theme/jibb' in generated)
     fixtures = ship.assemble('jibb-fixtures')
     check('jibb-fixtures is my-app plus tests/clay-fixtures/desk, '
           'which only it holds',
@@ -485,8 +523,9 @@ def generator_checks(tmp):
         assembled = ship.assemble('jibb-dev', **kwargs)
         tests = {p for p in assembled.files if p.startswith('tests/lib/') and
                  p.endswith('.hoon')}
+        expected = set(ship.generate_test_batches(kwargs.get('golden', ship.GOLDEN)))
         check(label + ' runs only its generated golden tests',
-              tests == {'tests/lib/jibb.hoon'}, sorted(tests))
+              tests == expected, sorted(tests))
 
     clash = os.path.join(tmp, 'clash')
     for case in ('a.b', 'a_b', 'a-b', 'Upper', 'has space'):
@@ -514,6 +553,11 @@ def generator_checks(tmp):
           len(got) == 400 and len(re.findall(r'^/\* ', out, re.M)) == 1200
           and '/*  tre-400  %txt   /tests/golden/case-399/tree/txt' in out,
           len(got))
+    batches = ship.generate_test_batches(many)
+    repeated = ship.generate_test_batches(many)
+    counts = [len(arms(text)) for _, text in sorted(batches.items())]
+    check('400 cases: deterministic batches retain all 400 arms',
+          batches == repeated and counts == [100, 100, 100, 100], counts)
 
     target = os.path.join(tmp, 'check.hoon')
     first = run('gen-tests', '--golden', CASES, '--out', target)

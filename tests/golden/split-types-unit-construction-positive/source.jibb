@@ -1,0 +1,29 @@
++$ msg
+  %go
+  %stay
+
+
+
+
+
+
+++ direct |= x=A `x
+++ str `"hi"
+++ ship `~zod
+++ nested ``"hi"
+++ same-first (some "hi")
+++ same-second (some ~zod)
+++ ctx ^- (unit msg) `%go
+
+
+
+
+
+
+
+
+
+
+
+
+++ tag-payload ^- (unit @tas) `%go

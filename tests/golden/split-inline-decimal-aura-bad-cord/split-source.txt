@@ -1,0 +1,3 @@
+origin inline-decimal-aura-bad
+target value cord
+keep value cord

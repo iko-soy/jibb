@@ -1,0 +1,30 @@
++$ event
+  [%gap d=@dr]
+  [%count n=@ud]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ on-counts |= e=event ?- e
+  [%count 0] 3
+  * 4

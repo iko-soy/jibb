@@ -1,0 +1,4 @@
+module kind: library
+++ root-rem: $-(A [p=A q=A]) where A is an atom other than ?
+++ decimal-root: [p=@ud q=@ud]
+++ hex-root: [p=@ux q=@ux]

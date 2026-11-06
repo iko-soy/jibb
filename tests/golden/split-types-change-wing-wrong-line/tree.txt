@@ -1,0 +1,24 @@
+(module
+  (mold 1:1 cart
+    (cell 1:9
+      (face 1:10 items
+        (apply 1:16 list (aura 1:22 @t)))
+      (face 1:26 open (flag 1:31))
+      (face 1:33 deep
+        (cell 1:38
+          (face 1:39 level (aura 1:45 @ud))))
+      (face 1:50 pair
+        (cell 1:55 (aura 1:56 @t) (aura 1:59 @ud)))))
+  (mold 2:1 model
+    (cell 2:10
+      (face 2:11 cart (ref 2:16 cart))
+      (face 2:21 note (aura 2:26 @t))
+      (face 2:29 data
+        (apply 2:34 unit (aura 2:40 @t)))))
+  (value 18:1 wrong-line
+    (gate 18:15
+      (face 18:18 m (ref 18:20 model))
+      (body 19:3
+        (change 19:3 m
+          (edit 20:5 note (str 20:10 "ok"))
+          (edit 21:5 level.deep.cart (lit 21:21 ~zod)))))))

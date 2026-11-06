@@ -1,0 +1,2 @@
+++ v (el attrs (text "x"))
+++ attrs ~[pad+%s1 pad+%s2]

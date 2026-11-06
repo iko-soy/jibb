@@ -1,0 +1,4 @@
+message a cell in interpolation needs a printer
+typed-site /tests/golden/types-string-interpolation/source.jibb:5:27
+site /tests/golden/types-string-interpolation/source.jibb:5:25
+min-sites 2

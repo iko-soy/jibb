@@ -1,0 +1,10 @@
+31:1 glyph ++
+31:4 name mate-bad
+31:13 glyph (
+31:14 tight name mate
+31:19 glyph `
+31:20 tight str "hi"
+31:25 glyph `
+31:26 tight lit ~zod
+31:30 tight glyph )
+31:31 NEWLINE

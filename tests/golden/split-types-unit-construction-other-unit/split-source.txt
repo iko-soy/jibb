@@ -1,0 +1,4 @@
+origin types-unit-construction
+target value other-unit
+keep mold mimic
+keep value other-unit

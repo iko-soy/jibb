@@ -1,0 +1,38 @@
+7:1 glyph ++
+7:4 name local-id
+7:13 glyph |=
+7:16 name x
+7:18 name x
+51:1 NEWLINE
+51:1 glyph ++
+51:4 name nonunion
+51:13 glyph |=
+51:16 name x
+51:17 tight glyph =
+51:18 tight aura @t
+51:21 glyph ^-
+51:24 glyph (
+51:25 tight name list
+51:30 aura @t
+51:32 tight glyph )
+52:3 INDENT
+52:3 glyph ?-
+52:6 glyph (
+52:7 tight name local-id
+52:16 name x
+52:17 tight glyph )
+53:5 INDENT
+53:5 glyph [
+53:6 tight lit %item
+53:12 name flag
+53:17 name words
+53:22 tight glyph ]
+53:24 glyph ~[
+53:26 tight name words
+53:31 tight glyph ]
+54:5 NEWLINE
+54:5 lit %none
+54:11 lit ~
+54:12 DEDENT
+54:12 DEDENT
+54:12 NEWLINE

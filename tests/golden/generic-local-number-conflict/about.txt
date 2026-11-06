@@ -1,0 +1,4 @@
+source: Grammar, Inference, local definitions and recursion
+tests: local numeric constraints retain enclosing variable identity and finalize at the enclosing definition
+expect: parses
+expect-types: exact full-checker result

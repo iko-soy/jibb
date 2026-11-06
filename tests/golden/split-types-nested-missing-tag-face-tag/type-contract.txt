@@ -1,0 +1,4 @@
+message cast is missing field `choice`
+site /tests/golden/split-types-nested-missing-tag-face-tag/source.jibb:4:20
+site /tests/golden/split-types-nested-missing-tag-face-tag/source.jibb:11:22
+min-sites 2

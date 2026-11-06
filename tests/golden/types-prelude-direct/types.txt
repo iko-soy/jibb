@@ -1,6 +1,7 @@
-partial inference; module not checked
-++ echo: $-((unit A) (unit A))
-++ extract: $-((unit A) A)
-++ concrete: (unit @t)
-++ tuple-call: (list A)
-++ shadow: sample shadows a name
+++ shadow: sample `need` shadows a name already in scope
+/lib/jibb/prelude.jibb:39:4: earlier binding
+++ need |= maybe=(unit A)
+   ^
+/tests/golden/types-prelude-direct/source.jibb:5:14: conflicting sample binding
+++ shadow |= need need
+             ^

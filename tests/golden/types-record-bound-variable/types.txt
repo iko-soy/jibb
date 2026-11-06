@@ -1,5 +1,5 @@
-partial inference; module not checked
+module kind: library
 ++ id: $-(A A)
 ++ constrained: $-([x=@t y=@p] [x=@t y=@p])
-++ bound-first: cast constraint is not supported by partial inference
+++ bound-first: $-([x=@t y=@p] [x=@t y=@p])
 ++ sample: [x=@t y=@p]

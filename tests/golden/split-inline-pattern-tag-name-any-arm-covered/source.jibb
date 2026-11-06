@@ -1,0 +1,30 @@
+
+
+
+
+
+
++$ reason
+  %fail
+  %late
+
+
+
+
+
+
+
+
+++ covered |= r=reason
+  ?- r
+    %fail  "f"
+    fail   "l"
+
+
+
+
+
+
+
+
+

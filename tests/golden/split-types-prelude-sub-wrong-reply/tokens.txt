@@ -1,0 +1,22 @@
+9:1 glyph ++
+9:4 name wrong-reply
+9:16 glyph ^-
+9:19 glyph (
+9:20 tight name sub
+9:24 aura @t
+9:26 tight glyph )
+9:28 glyph [
+9:29 tight lit %every
+9:36 name gap
+9:39 tight glyph =
+9:40 tight lit ~s1
+9:44 name reply
+9:49 tight glyph =
+9:50 tight glyph |=(
+9:53 tight name date
+9:57 tight glyph =
+9:58 tight aura @p
+9:61 str "bad"
+9:66 tight glyph )
+9:67 tight glyph ]
+9:68 NEWLINE

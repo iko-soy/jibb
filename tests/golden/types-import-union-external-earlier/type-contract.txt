@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/types-import-union-external-earlier/source.jibb:2:11
+typed-site /tests/golden/types-import-union-external-earlier/source.jibb:2:37
+min-sites 2

@@ -1,0 +1,13 @@
+++ bad-tag: actions has no case `%missing`
+/tests/golden/split-types-record-change-bad-tag/source.jibb:2:4: expected union has type actions
++$ actions
+   ^
+/tests/golden/split-types-record-change-bad-tag/source.jibb:3:3: expected union has type actions
+  %start
+  ^
+/tests/golden/split-types-record-change-bad-tag/source.jibb:17:25: expected union has type actions
+++ bad-tag |= m=model m(mode=%missing)
+                        ^
+/tests/golden/split-types-record-change-bad-tag/source.jibb:17:30: tag literal has type %missing
+++ bad-tag |= m=model m(mode=%missing)
+                             ^

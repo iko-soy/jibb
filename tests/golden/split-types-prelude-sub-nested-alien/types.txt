@@ -1,0 +1,7 @@
+++ alien: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-sub-nested-alien/source.jibb:14:43: called gate has type $-(msg (ask msg))
+++ alien |= x=other ^- (sub msg) [%watch (pure x)]
+                                          ^
+/tests/golden/split-types-prelude-sub-nested-alien/source.jibb:14:48: argument has type other
+++ alien |= x=other ^- (sub msg) [%watch (pure x)]
+                                               ^

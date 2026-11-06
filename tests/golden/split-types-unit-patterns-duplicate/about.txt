@@ -1,0 +1,4 @@
+source: split from types-unit-patterns, preserving the original source lines
+tests: the independent duplicate diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

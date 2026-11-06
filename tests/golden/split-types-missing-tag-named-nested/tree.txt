@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %add)))
+  (mold 7:1 wrapped
+    (cell 7:12
+      (const 7:13 %wrapper)
+      (face 7:22 payload (ref 7:30 msg))))
+  (value 14:1 nested
+    (cast 14:11
+      (ref 14:14 wrapped)
+      (tuple 14:22 (lit 14:23 %wrapper) (lit 14:32 %submitt)))))

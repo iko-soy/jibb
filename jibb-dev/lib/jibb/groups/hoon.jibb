@@ -1,0 +1,10 @@
+/- jibb-collections
+:: Hoon names that would otherwise conflict with Jibb's public prelude.
++$ step @u
+
++$ tone
+  [%0 product=*]
+  [%1 block=*]
+  [%2 trace=(list [@ta *])]
+
++$ map |$ [K V] (table.jibb-collections K V)

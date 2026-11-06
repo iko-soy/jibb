@@ -1,0 +1,7 @@
+(module
+  (value 18:1 unresolved
+    (gate 18:15
+      (face 18:18 x (tvar 18:20 A))
+      (cast 18:22
+        (cell 18:25 (tvar 18:26 A) (tvar 18:28 A))
+        (tuple 18:31 (wing 18:32 x) (lit 18:34 %missing))))))

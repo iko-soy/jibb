@@ -1,0 +1,13 @@
+++ bad-tag: extent has no case `%missing`
+/tests/golden/split-types-nested-shallow-preserve-bad-tag/source.jibb:1:4: expected union has type extent
++$ extent
+   ^
+/tests/golden/split-types-nested-shallow-preserve-bad-tag/source.jibb:2:3: expected union has type extent
+  [%fill n=@ud]
+  ^
+/tests/golden/split-types-nested-shallow-preserve-bad-tag/source.jibb:17:31: expected union has type extent
+++ bad-tag ^- attribute width+[%missing 1]
+                              ^
+/tests/golden/split-types-nested-shallow-preserve-bad-tag/source.jibb:17:32: tag literal has type %missing
+++ bad-tag ^- attribute width+[%missing 1]
+                               ^

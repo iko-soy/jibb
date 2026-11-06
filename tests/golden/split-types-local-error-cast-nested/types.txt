@@ -1,0 +1,7 @@
+++ nested: cast mold and expression type do not unify
+/tests/golden/split-types-local-error-cast-nested/source.jibb:17:17: cast mold has type @p
+    ++ inner ^- @p y
+                ^
+/tests/golden/split-types-local-error-cast-nested/source.jibb:17:20: expression has type @t
+    ++ inner ^- @p y
+                   ^

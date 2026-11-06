@@ -1,0 +1,7 @@
+++ bad: payload field has type @p, but requires @dr
+/tests/golden/types-union-payload-nested/source.jibb:5:33: expected field has type @dr
+  [%every header=[count=@ud gap=@dr] reply=$-(@da msg)]
+                                ^
+/tests/golden/types-union-payload-nested/source.jibb:7:39: actual field has type @p
+++ bad ^- action [%every [count=1 gap=~zod] |=(now=@da %ok)]
+                                      ^

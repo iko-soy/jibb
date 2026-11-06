@@ -1,0 +1,28 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 10:1 direct
+    (gate 10:11
+      (face 10:14 x (tvar 10:16 A))
+      (unit 10:18 (wing 10:19 x))))
+  (value 11:1 str
+    (unit 11:8 (str 11:9 "hi")))
+  (value 12:1 ship
+    (unit 12:9 (lit 12:10 ~zod)))
+  (value 13:1 nested
+    (unit 13:11
+      (unit 13:12 (str 13:13 "hi"))))
+  (value 14:1 same-first
+    (group 14:15
+      (call 14:16 (wing 14:16 some) (str 14:21 "hi"))))
+  (value 15:1 same-second
+    (group 15:16
+      (call 15:17 (wing 15:17 some) (lit 15:22 ~zod))))
+  (value 16:1 ctx
+    (cast 16:8
+      (apply 16:11 unit (ref 16:17 msg))
+      (unit 16:22 (lit 16:23 %go))))
+  (value 29:1 tag-payload
+    (cast 29:16
+      (apply 29:19 unit (aura 29:25 @tas))
+      (unit 29:31 (lit 29:32 %go)))))

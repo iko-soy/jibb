@@ -1,0 +1,19 @@
+2:1 glyph +$
+2:4 name halt
+2:9 lit %halt
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name stopped
+6:12 glyph |=
+6:15 name h
+6:16 tight glyph =
+6:17 tight name halt
+7:3 INDENT
+7:3 glyph ?-
+7:6 name h
+8:5 INDENT
+8:5 name halt
+8:10 str "halted"
+8:18 DEDENT
+8:18 DEDENT
+8:18 NEWLINE

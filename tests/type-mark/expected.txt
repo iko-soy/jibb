@@ -1,19 +1,37 @@
-partial inference; module not checked
+module kind: library
 ++ identity: $-(@t @t)
-partial inference; module not checked
+++ identity: mold `label` is not defined
+/test.jibb:1:18: unknown mold
+++ identity |= x=label x
+                 ^
+++ identity: mold `label` is not defined
+/test.jibb:2:18: unknown mold
+++ identity |= x=label x
+                 ^
+definition `label` shadows an import
+/test.jibb:1:1: import
+/% %label
+^
+/test.jibb:2:1: conflicting definition
++$ label @ud
+^
 ++ identity: sample mold is not supported by partial inference
-partial inference; module not checked
+/test.jibb:2:19: gate sample mold
+++  identity |= x=label x
+                  ^
 ++ identity: sample mold is not supported by partial inference
-partial inference; module not checked
-+$ label: not checked
+/test.jibb:2:19: gate sample mold
+++  identity |= x=label x
+                  ^
 ++ identity: sample mold is not supported by partial inference
-partial inference; module not checked
+/test.jibb:2:19: gate sample mold
+++  identity |= x=label x
+                  ^
 ++ identity: sample mold is not supported by partial inference
-partial inference; module not checked
+/test.jibb:2:19: gate sample mold
+++  identity |= x=label x
+                  ^
 ++ identity: sample mold is not supported by partial inference
-partial inference; module not checked
-++ identity: sample mold is not supported by partial inference
-partial inference; module not checked
-++ identity: sample mold is not supported by partial inference
-partial inference; module not checked
-++ identity: sample mold is not supported by partial inference
+/test.jibb:2:19: gate sample mold
+++  identity |= x=label x
+                  ^

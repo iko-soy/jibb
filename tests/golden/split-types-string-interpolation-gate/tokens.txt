@@ -1,0 +1,13 @@
+6:1 glyph ++
+6:4 name gate
+6:9 glyph |=
+6:12 name x
+6:13 tight glyph =
+6:14 tight glyph $-(
+6:17 tight aura @t
+6:20 aura @t
+6:22 tight glyph )
+6:24 str-head ""
+6:26 tight name x
+6:27 tight str-tail ""
+6:29 NEWLINE

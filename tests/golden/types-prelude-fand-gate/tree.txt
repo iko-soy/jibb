@@ -1,0 +1,11 @@
+(module
+  (value 1:1 same-item
+    (gate 1:14
+      (face 1:17 n (aura 1:19 @ud))
+      (wing 1:23 n)))
+  (value 2:1 bad
+    (group 2:8
+      (call 2:9
+        (wing 2:9 fand)
+        (list 2:14 (wing 2:16 same-item))
+        (list 2:27 (wing 2:29 same-item))))))

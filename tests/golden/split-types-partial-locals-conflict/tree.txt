@@ -1,0 +1,17 @@
+(module
+  (value 7:1 conflict
+    (gate 7:13
+      (bind 7:16 x)
+      (body 8:3
+        (value 8:3 capture
+          (gate 8:14 (bind 8:17 y) (wing 8:19 x)))
+        (trace 9:3
+          (cast 9:6
+            (aura 9:9 @t)
+            (group 9:12
+              (call 9:13 (wing 9:13 capture) (lit 9:21 ~zod))))
+          (body 10:5
+            (cast 10:5
+              (aura 10:8 @p)
+              (group 10:11
+                (call 10:12 (wing 10:12 capture) (str 10:20 "hi"))))))))))

@@ -6,8 +6,7 @@
 /*  expected  %txt  /tests/type-full-overlap/expected-graph/txt
 |%
 +$  overlap-evidence  [file=path source=@t name=term cases=upair:jibb]
-+$  detailed-result
-  (each [iface=ifile:jibb cache=jcache:jibb] [message=@t overlap=(unit overlap-evidence)])
++$  detailed-result  jfile-detailed-result:jibb
 ++  detailed
   |=  [file=path source=@t modules=jbundle:jibb]
   ^-  detailed-result
@@ -28,7 +27,7 @@
   |=  [r=detailed-result expected-message=@t]
   ^-  ?
   ?:  ?=(%& -.r)  |
-  &(=(message.p.r expected-message) ?=(~ overlap.p.r))
+  =(message.p.r expected-message)
 ++  run
   |=  [parent=@t child=@t distinct=@t]
   ^-  (list [@t ?])
@@ -96,13 +95,15 @@
   =/  cycle-parsed  (parse:jibb root cycle-src)
   =/  private-result=detailed-result  (detailed root private-src ~)
   =/  cycle-result=detailed-result  (detailed root cycle-src ~)
+  =/  cycle-message=@t
+    (of-wain:format ~['import cycle at /ui/root/jibb' '/ui/root.jibb:1:1: imports /ui/root.jibb here' '/= mine /ui/root' '^'])
   =/  duplicate-result=detailed-result  (detailed root parent ~[[child-file child] [child-file child]])
   =/  missing-result=detailed-result  (detailed root parent ~)
   :~  ['detached cache rebuild preserves child evidence' rebuilt.cache-controls]
       ['mismatched graph cache declines without evidence' stale.cache-controls]
       ['verified cache source binding' source-bound.cache-controls]
-      ['private import declines before source proof' &(?=(%& -.private-parsed) (failure-message private-result 'the prelude internal module is private'))]
-      ['active cycle declines before source proof' &(?=(%& -.cycle-parsed) (failure-message cycle-result (crip "import cycle at {(spud root)}")))]
+      ['private import declines before source proof' &(?=(%& -.private-parsed) (failure-message private-result (of-wain:format ~['the prelude internal module is private' '/ui/root.jibb:1:1: imports /lib/jibb/internal.jibb here' '/= secret /lib/jibb/internal' '^'])))]
+      ['active cycle declines before source proof' &(?=(%& -.cycle-parsed) (failure-message cycle-result cycle-message))]
       ['duplicate child sources decline without evidence' (clean-failure duplicate-result)]
       ['missing child source declines without evidence' (clean-failure missing-result)]
       ['transitive import retains leaf source' transitive-ok]

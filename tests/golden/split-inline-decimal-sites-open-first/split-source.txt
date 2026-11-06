@@ -1,0 +1,3 @@
+origin inline-decimal-sites
+target value open-first
+keep value open-first

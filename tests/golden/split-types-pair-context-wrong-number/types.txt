@@ -1,0 +1,7 @@
+++ wrong-number: types do not unify
+/tests/golden/split-types-pair-context-wrong-number/source.jibb:29:36: expected type has type @ud
+++ wrong-number ^- attribute width+[%fill "hi"]
+                                   ^
+/tests/golden/split-types-pair-context-wrong-number/source.jibb:29:43: actual type has type @t
+++ wrong-number ^- attribute width+[%fill "hi"]
+                                          ^

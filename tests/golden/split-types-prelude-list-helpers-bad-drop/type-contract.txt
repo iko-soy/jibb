@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-list-helpers-bad-drop/source.jibb:13:14
+typed-site /tests/golden/split-types-prelude-list-helpers-bad-drop/source.jibb:13:19
+min-sites 2

@@ -1,0 +1,6 @@
+origin types-union-nonwing-subject
+target value bad-subject
+keep mold input
+keep mold result
+keep value bad-subject
+keep value passthrough

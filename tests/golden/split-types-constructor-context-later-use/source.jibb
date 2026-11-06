@@ -1,0 +1,37 @@
++$ msg
+  [%got value=@t]
+  %other
+
+
+
+
+
+
+
+
+
+
+++ call |= callback=$-(@t M) (callback "payload")
+
+++ unknown (call |=%got)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ later-use ^- msg unknown
+
+

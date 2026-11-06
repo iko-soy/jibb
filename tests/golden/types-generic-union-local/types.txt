@@ -1,22 +1,7 @@
-partial inference; module not checked
-+$ choice: cases proven disjoint; mold not checked
-+$ phantom: cases proven disjoint; mold not checked
-+$ swapped: not checked
-++ text-choice: (choice @t @p)
-++ ship-choice: (choice @t @p)
-++ text-constructor: $-(@t (choice @t @p))
-++ ship-constructor: $-(@p (choice @t @p))
-++ inverse-choice: (choice @p @t)
-++ test-phantom: (phantom @t)
-++ phantom-gate: (phantom $-(@t @p))
-++ identity: $-((choice A B) (choice A B))
-++ repeated: $-((choice A A) (choice A A))
-++ reverse: $-((choice B A) (choice B A))
-++ first: (choice @t @p)
-++ second: (choice @t @p)
-++ third: (choice @p @t)
-++ repeated-call: call constraint is not supported by partial inference
-++ swap-concrete: (choice @p @t)
-++ wrong-phantom: cast constraint is not supported by partial inference
-++ forced: explicit capital constraints are not supported by partial inference
-++ pending: tag needs context in partial inference
+++ repeated-call: call's sample and argument types do not unify
+/tests/golden/types-generic-union-local/source.jibb:21:19: called gate has type $-((choice @t @t) (choice @t @t))
+++ repeated-call (repeated text-choice)
+                  ^
+/tests/golden/types-generic-union-local/source.jibb:21:28: argument has type @p
+++ repeated-call (repeated text-choice)
+                           ^

@@ -1,0 +1,21 @@
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (cell 1:12
+        (face 1:13 condition (flag 1:23))
+        (face 1:25 value (aura 1:31 @)))
+      (cast 1:34
+        (apply 1:37 unit (aura 1:43 @))
+        (body 2:3
+          (value 2:3 parsed
+            (cast 2:13
+              (cell 2:16
+                (face 2:17 valid (flag 2:23))
+                (face 2:25 value (aura 2:31 @)))
+              (tuple 2:34 (wing 2:35 condition) (wing 2:45 value))))
+          (branch 3:3
+            (wing 3:6 valid.parsed)
+            (arm 4:3
+              (lit 4:3 %.y)
+              (unit 4:7 (wing 4:8 value.parsed)))
+            (arm 5:3 (lit 5:3 %.n) (lit 5:7 ~))))))))

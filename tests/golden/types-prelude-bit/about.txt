@@ -1,0 +1,4 @@
+source: Overview, Prelude; Hoon 135 bit logic.
+tests: The checked `not.bit` interface takes three unrestricted atoms, including loobeans, and returns an unrestricted atom.
+expect: parses
+expect-types: checks

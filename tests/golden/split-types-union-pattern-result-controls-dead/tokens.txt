@@ -1,0 +1,44 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %text
+2:10 name value
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 lit %clear
+15:1 DEDENT
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name dead
+15:9 glyph |=
+15:12 name a
+15:13 tight glyph =
+15:14 tight name msg
+15:18 glyph ^-
+15:21 glyph (
+15:22 tight name list
+15:27 aura @t
+15:29 tight glyph )
+16:3 INDENT
+16:3 glyph ?-
+16:6 name a
+17:5 INDENT
+17:5 lit %clear
+17:12 lit ~
+18:5 NEWLINE
+18:5 lit %clear
+18:12 lit ~
+19:5 NEWLINE
+19:5 glyph [
+19:6 tight lit %text
+19:12 name v
+19:13 tight glyph ]
+19:15 glyph ~[
+19:17 tight name v
+19:18 tight glyph ]
+19:19 DEDENT
+19:19 DEDENT
+19:19 NEWLINE

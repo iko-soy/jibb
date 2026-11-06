@@ -1,0 +1,20 @@
+59:1 glyph ++
+59:4 name bad-width
+59:14 glyph ^-
+59:17 glyph (
+59:18 tight name element
+59:26 glyph !!
+59:28 tight glyph )
+59:30 glyph (
+59:31 tight name row
+59:35 glyph ~[
+59:37 tight name width
+59:42 tight glyph +
+59:43 tight glyph [
+59:44 tight lit %chars
+59:51 str "wide"
+59:57 tight glyph ]
+59:58 tight glyph ]
+59:60 lit ~
+59:61 tight glyph )
+59:62 NEWLINE

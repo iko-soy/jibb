@@ -1,0 +1,4 @@
+message call's sample and argument types do not unify
+typed-site /tests/golden/types-prelude-arithmetic/source.jibb:6:15
+typed-site /tests/golden/types-prelude-arithmetic/source.jibb:6:24
+min-sites 2

@@ -1,0 +1,8 @@
+++ same-list |= xs=(list A) (eq xs xs)
+++ same-nested |= xs=(list (unit A)) (eq xs xs)
+++ same-record |= xs=[left=(list A) right=B] (eq xs xs)
+++ words-ok (same-list ~["hi"])
+++ ships-ok (same-list ~[~zod])
+++ keep-list |= xs=(list A) xs
+++ callback |= x=@ud x
+++ callbacks (keep-list ~[callback])

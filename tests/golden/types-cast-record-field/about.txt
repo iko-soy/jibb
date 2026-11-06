@@ -1,0 +1,1 @@
+A mismatched record cast reports the declared field and the incompatible expression.

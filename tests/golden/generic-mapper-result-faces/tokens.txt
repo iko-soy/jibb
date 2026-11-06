@@ -1,0 +1,59 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %hit
+3:3 NEWLINE
+3:3 lit %miss
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name row-of
+4:11 glyph |=
+4:14 name n
+4:15 tight glyph =
+4:16 tight aura @ud
+4:20 glyph [
+4:21 tight name n
+4:23 glyph (
+4:24 tight name button
+4:31 str "x"
+4:35 lit %hit
+4:39 tight glyph )
+4:40 tight glyph ]
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name rows
+5:9 glyph (
+5:10 tight name turn
+5:15 glyph ~[
+5:17 tight lit 1
+5:19 lit 2
+5:20 tight glyph ]
+5:22 name row-of
+5:28 tight glyph )
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name shown
+6:10 glyph (
+6:11 tight name each
+6:16 name rows
+6:20 tight glyph )
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name fix-message
+7:16 glyph |=
+7:19 name x
+7:20 tight glyph =
+7:21 tight glyph (
+7:22 tight name element
+7:30 name msg
+7:33 tight glyph )
+7:35 name x
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name resolved
+8:13 glyph (
+8:14 tight name fix-message
+8:26 name shown
+8:31 tight glyph )
+8:32 NEWLINE

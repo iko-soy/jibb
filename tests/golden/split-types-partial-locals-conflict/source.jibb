@@ -1,0 +1,44 @@
+
+
+
+
+
+
+++ conflict |= x
+  ++ capture |= y x
+  ~& ^- @t (capture ~zod)
+    ^- @p (capture "hi")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

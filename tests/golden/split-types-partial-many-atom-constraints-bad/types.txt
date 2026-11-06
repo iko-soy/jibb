@@ -1,0 +1,7 @@
+++ bad: types do not unify
+/tests/golden/split-types-partial-many-atom-constraints-bad/source.jibb:7:9: expected type has type B where B is an atom
+++ bad (both [~zod [~zod "hi"]])
+        ^
+/tests/golden/split-types-partial-many-atom-constraints-bad/source.jibb:7:20: actual type has type [@p @t]
+++ bad (both [~zod [~zod "hi"]])
+                   ^

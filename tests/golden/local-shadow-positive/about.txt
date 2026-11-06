@@ -1,0 +1,4 @@
+source: Grammar, Modules and Patterns: names may not shadow earlier bindings.
+tests: Fresh or already declared names remain valid in their lexical scope.
+expect: parses
+expect-types: full checked interface

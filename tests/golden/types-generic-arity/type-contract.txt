@@ -1,0 +1,3 @@
+message generic mold `carrier` expects 1 type argument, received 2
+site /tests/golden/types-generic-arity/source.jibb:3:16
+min-sites 1

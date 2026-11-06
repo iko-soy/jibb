@@ -1,0 +1,4 @@
+source: split from types-list-imported, preserving the original source lines
+tests: the independent bad-cons diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

@@ -1,0 +1,4 @@
+source: split from types-unit-context, preserving the original source lines
+tests: the independent nested-units-bad diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

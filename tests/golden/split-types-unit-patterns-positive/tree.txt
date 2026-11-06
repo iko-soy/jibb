@@ -1,0 +1,27 @@
+(module
+  (mold 1:1 maybe
+    (union 2:3
+      (const 2:3 ~)
+      (cell 3:3
+        (const 3:4 ~)
+        (face 3:6 value (aura 3:12 @t)))))
+  (value 4:1 need
+    (gate 4:9
+      (face 4:12 x (ref 4:14 maybe))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 x)
+          (arm 6:5 (lit 6:5 ~) (crash 6:7))
+          (arm 7:5
+            (cell 7:5 (lit 7:6 ~) (bind 7:8 value))
+            (wing 7:15 value))))))
+  (value 8:1 reverse
+    (gate 8:12
+      (face 8:15 x (ref 8:17 maybe))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 x)
+          (arm 10:5
+            (cell 10:5 (lit 10:6 ~) (bind 10:8 value))
+            (wing 10:15 value))
+          (arm 11:5 (lit 11:5 ~) (crash 11:7)))))))

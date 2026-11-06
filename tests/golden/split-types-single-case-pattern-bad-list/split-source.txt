@@ -1,0 +1,4 @@
+origin types-single-case-pattern
+target value bad-list
+keep mold packet
+keep value bad-list

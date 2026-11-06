@@ -1,0 +1,59 @@
++$ packet [%go url=@t]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ msg
+  %fine
+  %other
+
+
+
+++ bad-union |= p=packet ^- msg
+  ?- p
+    [%go u] %oops
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,3 @@
-partial inference; module not checked
-++ global: $-(A A)
-++ good: $-(A [A A])
 ++ conflict: cast mold and expression type do not unify
 /tests/golden/types-partial-locals/source.jibb:10:8: cast mold has type @p
     ^- @p (capture "hi")
@@ -8,25 +5,3 @@ partial inference; module not checked
 /tests/golden/types-partial-locals/source.jibb:10:11: expression has type @t
     ^- @p (capture "hi")
           ^
-++ duplicate: local definitions shadow a name
-++ shadow: local definitions shadow a name
-++ global-shadow: local definitions shadow a name
-++ missing: local definitions need unsupported inference
-++ caps: call's sample and argument types do not unify
-/tests/golden/types-partial-locals/source.jibb:28:6: called gate has type $-(@t @t)
-    (same ~zod)
-     ^
-/tests/golden/types-partial-locals/source.jibb:28:11: argument has type @p
-    (same ~zod)
-          ^
-++ unused-bad: local definitions need unsupported inference
-++ local-mold: $-(A A)
-++ wrap-value: $-(A $-(B A))
-++ through-global: cast mold and expression type do not unify
-/tests/golden/types-partial-locals/source.jibb:39:8: cast mold has type @p
-    ^- @p (local "hi")
-       ^
-/tests/golden/types-partial-locals/source.jibb:39:11: expression has type @t
-    ^- @p (local "hi")
-          ^
-++ nested-shadow: local definitions need unsupported inference

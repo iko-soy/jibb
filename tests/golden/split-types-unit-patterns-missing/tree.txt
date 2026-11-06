@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 maybe
+    (union 2:3
+      (const 2:3 ~)
+      (cell 3:3
+        (const 3:4 ~)
+        (face 3:6 value (aura 3:12 @t)))))
+  (value 20:1 missing
+    (gate 20:12
+      (face 20:15 x (ref 20:17 maybe))
+      (body 21:3
+        (branch 21:3
+          (wing 21:6 x)
+          (arm 22:5 (lit 22:5 ~) (crash 22:7)))))))

@@ -1,0 +1,4 @@
+++ too-few: generic mold `duo` expects 2 type arguments, received 1
+/tests/golden/split-types-generic-arity-too-few/source.jibb:4:15: generic mold application
+++ too-few ^- (duo @t) [left="hi" right=~zod]
+              ^

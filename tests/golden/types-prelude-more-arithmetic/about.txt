@@ -1,0 +1,4 @@
+source: Overview, Prelude: Hoon section 1a arithmetic
+tests: div, mod and pow keep a shared numeric aura; independent decimal, hexadecimal and duration calls preserve their auras
+expect: parses
+expect-types: exact full-checker arithmetic types

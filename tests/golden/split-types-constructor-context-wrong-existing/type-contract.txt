@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-constructor-context-wrong-existing/source.jibb:34:22
+typed-site /tests/golden/split-types-constructor-context-wrong-existing/source.jibb:34:33
+min-sites 2

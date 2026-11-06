@@ -1,0 +1,19 @@
+
++$ actions
+  %start
+  %stop
++$ model [mode=actions data=(unit @t)]
+
+
+
+
+
+
+
+
+
+
+
+++ bad-tag |= m=model m(mode=%missing)
+
+

@@ -1,0 +1,4 @@
+message capital `A` cannot be fixed to @t
+site /tests/golden/split-types-local-recursive-captures/source.jibb:45:18
+site /tests/golden/split-types-local-recursive-captures/source.jibb:48:17
+min-sites 2

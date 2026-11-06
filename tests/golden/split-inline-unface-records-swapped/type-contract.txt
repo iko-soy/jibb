@@ -1,0 +1,4 @@
+message call's sample and argument types do not unify
+typed-site /tests/golden/split-inline-unface-records-swapped/source.jibb:7:13
+typed-site /tests/golden/split-inline-unface-records-swapped/source.jibb:7:24
+min-sites 2

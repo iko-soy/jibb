@@ -1,4 +1,4 @@
 source: Grammar, Runes: "Gates may call themselves and their siblings; other values can't depend on themselves, even through a gate"; Modules: "Names may refer to each other in any order."
 tests: Every missing value of the imported library waits on another: `user` calls into the failing `left`/`right` cycle without being on it. The generic error follows those waits from `user` until a value repeats and names `++ left`, a cycle member, not `++ user`. It claims no error in the named value.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker reports the first error; independent split cases retain the other checks

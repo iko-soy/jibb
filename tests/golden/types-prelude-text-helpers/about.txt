@@ -1,0 +1,4 @@
+source: Overview, Prelude; Hoon 135 text gates.
+tests: The five source-backed text/list helpers retain their exact schemes, independent element types, gate-valued list elements and record faces.
+expect: parses
+expect-types: checks

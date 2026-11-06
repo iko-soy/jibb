@@ -1,0 +1,5 @@
+origin types-local-error-cast
+target value empty-ok
+keep value empty-ok
+keep value empty-stall-g-first
+keep value same

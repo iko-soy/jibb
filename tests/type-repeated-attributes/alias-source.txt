@@ -1,0 +1,2 @@
+++ decorate |= attrs=(list attr) (el attrs (text "x"))
+++ v (decorate ~[pad+%s1 pad+%s2])

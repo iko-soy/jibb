@@ -1,0 +1,7 @@
+++ wrong-context: constructor `%got` sample does not fit its case payload
+/tests/golden/split-types-constructor-context-wrong-context/source.jibb:6:15: case payload has type @p
+  [%got value=@p]
+              ^
+/tests/golden/split-types-constructor-context-wrong-context/source.jibb:19:41: constructor sample has type @t
+++ wrong-context ^- wrong-payload (call |=%got)
+                                        ^

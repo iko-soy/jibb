@@ -1,0 +1,7 @@
+++ select-one-bool: types do not unify
+/tests/golden/split-types-arithmetic-proj-qath-select-one-bool/source.jibb:14:21: expected type has type A where A is an atom other than ?
+++ select-one-bool (select-one [a=%.y b="x"])
+                    ^
+/tests/golden/split-types-arithmetic-proj-qath-select-one-bool/source.jibb:14:35: actual type has type ?
+++ select-one-bool (select-one [a=%.y b="x"])
+                                  ^

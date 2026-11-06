@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-cmd-wrong-reply/source.jibb:14:19
+typed-site /tests/golden/split-types-prelude-cmd-wrong-reply/source.jibb:14:42
+min-sites 2

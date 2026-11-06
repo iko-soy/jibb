@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %item)
+        (face 2:10 flag (flag 2:15))
+        (face 2:17 text (aura 2:22 @t)))
+      (const 3:3 %none)))
+  (value 8:1 passthrough
+    (gate 8:16
+      (face 8:19 x (ref 8:21 input))
+      (wing 8:27 x)))
+  (value 79:1 bad-unit-subject
+    (gate 79:21
+      (face 79:24 x (aura 79:26 @t))
+      (cast 79:29
+        (apply 79:32 list (aura 79:38 @t))
+        (body 80:3
+          (branch 80:3
+            (group 80:6
+              (call 80:7 (wing 80:7 passthrough) (wing 80:19 x)))
+            (arm 81:5 (lit 81:5 ~) (list 81:7))
+            (arm 82:5
+              (cell 82:5 (lit 82:6 ~) (bind 82:8 value))
+              (list 82:15))))))))

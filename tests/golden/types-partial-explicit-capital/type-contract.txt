@@ -1,0 +1,4 @@
+message capital `A` cannot be fixed to @t
+site /tests/golden/types-partial-explicit-capital/source.jibb:1:11
+site /tests/golden/types-partial-explicit-capital/source.jibb:1:19
+min-sites 2

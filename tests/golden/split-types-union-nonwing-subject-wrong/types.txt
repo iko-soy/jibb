@@ -1,0 +1,13 @@
+++ wrong: result has no case `%missing`
+/tests/golden/split-types-union-nonwing-subject-wrong/source.jibb:4:4: expected union has type result
++$ result
+   ^
+/tests/golden/split-types-union-nonwing-subject-wrong/source.jibb:5:3: expected union has type result
+  %good
+  ^
+/tests/golden/split-types-union-nonwing-subject-wrong/source.jibb:26:24: expected union has type result
+++ wrong |= x=input ^- result
+                       ^
+/tests/golden/split-types-union-nonwing-subject-wrong/source.jibb:28:24: tag literal has type %missing
+    [%item flag words] %missing
+                       ^

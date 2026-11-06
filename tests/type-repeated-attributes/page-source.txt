@@ -1,0 +1,2 @@
+++ attrs ~[pad+%s1 pad+%s2]
+++ main (el attrs (text "x"))

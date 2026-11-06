@@ -1,0 +1,7 @@
+++ wrap-forced: capital `A` cannot be fixed to @t
+/tests/golden/split-types-deferred-call-context-wrap-forced/source.jibb:30:21: capital
+++ wrap-forced |= x=A ^- @t (local-id x)
+                    ^
+/tests/golden/split-types-deferred-call-context-wrap-forced/source.jibb:30:39: forcing expression
+++ wrap-forced |= x=A ^- @t (local-id x)
+                                      ^

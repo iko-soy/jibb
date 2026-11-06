@@ -1,0 +1,7 @@
+++ captured: types do not unify
+/tests/golden/split-types-prelude-arithmetic-captured/source.jibb:19:21: expected type has type A where A is an atom other than ?
+++ captured |= x=? (add x x)
+                    ^
+/tests/golden/split-types-prelude-arithmetic-captured/source.jibb:19:25: actual type has type ?
+++ captured |= x=? (add x x)
+                        ^

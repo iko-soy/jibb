@@ -1,0 +1,9 @@
+/= api /ui/api/demo
+++ cord (plain.api |=(x=@t "ok"))
+++ ship (plain.api |=(x=@t ~zod))
+++ generic |= convert=$-(@t A) (plain.api convert)
+
+
+
+
+

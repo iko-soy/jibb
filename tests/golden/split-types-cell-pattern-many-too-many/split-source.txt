@@ -1,0 +1,3 @@
+origin types-cell-pattern-many
+target value too-many
+keep value too-many

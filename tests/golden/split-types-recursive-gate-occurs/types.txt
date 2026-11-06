@@ -1,0 +1,7 @@
+++ occurs: call requires an infinite type: its gate occurs inside its own sample
+/tests/golden/split-types-recursive-gate-occurs/source.jibb:12:17: called gate has type A
+++ occurs |= x (x x)
+                ^
+/tests/golden/split-types-recursive-gate-occurs/source.jibb:12:19: sample containing the same gate has type A
+++ occurs |= x (x x)
+                  ^

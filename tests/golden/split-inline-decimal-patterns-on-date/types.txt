@@ -1,0 +1,7 @@
+++ on-date: `0` is a @ud, not a @da
+/tests/golden/split-inline-decimal-patterns-on-date/source.jibb:14:3: decimal
+  0 %epoch
+  ^
+/tests/golden/split-inline-decimal-patterns-on-date/source.jibb:13:24: expected type has type @da
+++ on-date |= d=@da ?- d
+                       ^

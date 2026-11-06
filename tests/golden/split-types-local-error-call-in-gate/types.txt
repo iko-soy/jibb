@@ -1,0 +1,7 @@
+++ in-gate: call's sample and argument types do not unify
+/tests/golden/split-types-local-error-call-in-gate/source.jibb:11:20: called gate has type $-(@ud @ud)
+  ++ bump |= y=@t (inc y)
+                   ^
+/tests/golden/split-types-local-error-call-in-gate/source.jibb:11:24: argument has type @t
+  ++ bump |= y=@t (inc y)
+                       ^

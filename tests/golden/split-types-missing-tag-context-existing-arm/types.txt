@@ -1,0 +1,7 @@
+++ existing-arm: msg case `%typed` needs a payload of type @t
+/tests/golden/split-types-missing-tag-context-existing-arm/source.jibb:3:4: case requires a payload
+  [%typed text=@t]
+   ^
+/tests/golden/split-types-missing-tag-context-existing-arm/source.jibb:13:9: tag has no payload
+    %.n %typed
+        ^

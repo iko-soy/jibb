@@ -1,0 +1,11 @@
+module kind: library
+++ empty: (list @t)
+++ one: (list @t)
+++ zero-tail: (list @t)
+++ zero-number: (list @t)
+++ zero-amp: (list @t)
+++ multiple: (list @t)
+++ nested: (list (list @t))
+++ nested-cons: (list (list @t))
+++ take: $-((list @t) (list @t))
+++ call: (list @t)

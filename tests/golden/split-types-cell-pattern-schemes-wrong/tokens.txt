@@ -1,0 +1,36 @@
+15:1 glyph ++
+15:4 name shared
+15:11 glyph |=
+15:14 name x
+15:15 tight glyph =
+15:16 tight glyph [
+15:17 tight tvar A
+15:19 tvar A
+15:21 tvar A
+15:22 tight glyph ]
+16:3 INDENT
+16:3 glyph ?-
+16:6 name x
+17:5 INDENT
+17:5 glyph [
+17:6 tight name a
+17:8 name b
+17:10 name c
+17:11 tight glyph ]
+17:13 glyph [
+17:14 tight name a
+17:16 name b
+17:18 name c
+17:19 tight glyph ]
+18:1 DEDENT
+18:1 DEDENT
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name wrong
+18:10 glyph (
+18:11 tight name shared
+18:18 str "hi"
+18:23 lit ~zod
+18:28 str "ok"
+18:32 tight glyph )
+18:33 NEWLINE

@@ -1,0 +1,4 @@
+origin types-multi-call
+target value too-many
+keep value too-many
+keep value two

@@ -1,0 +1,13 @@
+++ view: msg has no case `%submitt`
+/tests/golden/review-island-missing-tag/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/review-island-missing-tag/source.jibb:2:3: expected union has type msg
+  [%typed text=@t]
+  ^
+/tests/golden/review-island-missing-tag/source.jibb:12:23: expected union has type msg
+++ view |= m=model ^- (element msg)
+                      ^
+/tests/golden/review-island-missing-tag/source.jibb:15:18: tag literal has type %submitt
+    button "Add" %submitt
+                 ^

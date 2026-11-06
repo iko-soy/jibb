@@ -1,0 +1,14 @@
+origin types-prelude-list-functions
+target value appended
+keep value appended
+keep value imported
+keep value joined
+keep value joined-ships
+keep value ships
+keep value texts
+keep value turn-empty
+keep value turn-import
+keep value turn-map
+keep value turn-nested
+keep value turn-ships
+keep value turn-text

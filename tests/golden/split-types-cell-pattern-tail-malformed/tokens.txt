@@ -1,0 +1,22 @@
+16:1 glyph ++
+16:4 name malformed
+16:14 glyph |=
+16:17 name x
+16:18 tight glyph =
+16:19 tight glyph [
+16:20 tight aura @t
+16:23 aura @p
+16:25 tight glyph ]
+17:3 INDENT
+17:3 glyph ?-
+17:6 name x
+18:5 INDENT
+18:5 glyph [
+18:6 tight name first
+18:12 name second
+18:19 name third
+18:24 tight glyph ]
+18:26 name third
+18:31 DEDENT
+18:31 DEDENT
+18:31 NEWLINE

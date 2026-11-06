@@ -1,0 +1,21 @@
+6:1 glyph ++
+6:4 name three
+6:10 glyph |=
+6:13 name p
+6:14 tight glyph =
+6:15 tight glyph [
+6:16 tight aura @t
+6:19 aura @p
+6:22 glyph ?
+6:23 tight glyph ]
+6:25 name p
+39:1 NEWLINE
+39:1 glyph ++
+39:4 name wrong-first
+39:16 glyph (
+39:17 tight name three
+39:23 lit ~zod
+39:28 lit ~zod
+39:33 lit %.y
+39:36 tight glyph )
+39:37 NEWLINE

@@ -1,0 +1,15 @@
+4:1 glyph ++
+4:4 name pause
+4:10 glyph |=
+4:13 name d
+4:14 tight glyph =
+4:15 tight aura @dr
+4:19 name d
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name arg
+5:8 glyph (
+5:9 tight name pause
+5:15 lit 30
+5:17 tight glyph )
+5:18 NEWLINE

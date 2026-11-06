@@ -1,4 +1,4 @@
-partial inference; module not checked
-+$ stray: not checked
-+$ box: not checked
-++ example: cast mold is not supported by partial inference
++$ stray: mold needs unsupported inference
+/tests/golden/types-generic-lexical-alias/source.jibb:1:10: unsupported mold
++$ stray [field=A count=@ud]
+         ^

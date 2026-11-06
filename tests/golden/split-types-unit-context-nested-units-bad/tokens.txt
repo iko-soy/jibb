@@ -1,0 +1,25 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %go
+3:3 NEWLINE
+3:3 lit %stay
+43:1 DEDENT
+43:1 NEWLINE
+43:1 glyph ++
+43:4 name nested-units-bad
+43:21 glyph ^-
+43:24 glyph (
+43:25 tight name list
+43:30 glyph (
+43:31 tight name unit
+43:36 name msg
+43:39 tight glyph )
+43:40 tight glyph )
+43:42 glyph ~[
+43:44 tight glyph `
+43:45 tight lit %go
+43:49 glyph `
+43:50 tight lit %oops
+43:55 tight glyph ]
+43:56 NEWLINE

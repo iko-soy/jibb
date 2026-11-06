@@ -1,0 +1,4 @@
+origin types-list-imported
+target value bad
+keep value bad
+keep value take

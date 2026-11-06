@@ -1,0 +1,7 @@
+++ wrong-callback: inline gate sample does not unify with @t: @p versus @t
+/tests/golden/split-types-request-normal-wrong-callback/source.jibb:5:33: written gate sample
+++ wrong-callback (plain.api |=(x=@p "wrong"))
+                                ^
+/tests/golden/split-types-request-normal-wrong-callback/source.jibb:5:20: call context has type $-(@t A)
+++ wrong-callback (plain.api |=(x=@p "wrong"))
+                   ^

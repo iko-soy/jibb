@@ -1,0 +1,12 @@
+(module
+  (value 7:1 mismatch
+    (gate 7:13
+      (face 7:16 x
+        (cell 7:18
+          (face 7:19 left (aura 7:24 @t))
+          (face 7:27 rest (aura 7:32 @ud))))
+      (cast 7:37
+        (cell 7:40
+          (face 7:41 right (aura 7:47 @t))
+          (face 7:50 rest (aura 7:55 @ud)))
+        (wing 7:60 x)))))

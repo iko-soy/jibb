@@ -1,0 +1,4 @@
+message inline gate sample does not unify with @t: @p versus @t
+site /tests/golden/split-types-request-normal-wrong-callback/source.jibb:5:33
+site /tests/golden/split-types-request-normal-wrong-callback/source.jibb:5:20
+min-sites 2

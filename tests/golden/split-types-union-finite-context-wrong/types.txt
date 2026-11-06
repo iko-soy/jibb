@@ -1,0 +1,13 @@
+++ wrong: result has no case `%missing`
+/tests/golden/split-types-union-finite-context-wrong/source.jibb:4:4: expected union has type result
++$ result
+   ^
+/tests/golden/split-types-union-finite-context-wrong/source.jibb:5:3: expected union has type result
+  %go
+  ^
+/tests/golden/split-types-union-finite-context-wrong/source.jibb:12:24: expected union has type result
+++ wrong |= x=input ^- result
+                       ^
+/tests/golden/split-types-union-finite-context-wrong/source.jibb:14:16: tag literal has type %missing
+    [%p %.y t] %missing
+               ^

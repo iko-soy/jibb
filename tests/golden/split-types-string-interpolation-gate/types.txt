@@ -1,0 +1,7 @@
+++ gate: a gate in interpolation needs a printer
+/tests/golden/split-types-string-interpolation-gate/source.jibb:6:26: value without a printer has type $-(@t @t)
+++ gate |= x=$-(@t @t) "{x}"
+                         ^
+/tests/golden/split-types-string-interpolation-gate/source.jibb:6:24: interpolation requires a printable atom or tape
+++ gate |= x=$-(@t @t) "{x}"
+                       ^

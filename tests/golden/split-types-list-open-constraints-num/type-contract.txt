@@ -1,0 +1,2 @@
+site /tests/golden/split-types-list-open-constraints-num/source.jibb:6:10
+min-sites 2

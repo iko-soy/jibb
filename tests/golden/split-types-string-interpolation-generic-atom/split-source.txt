@@ -1,0 +1,3 @@
+origin types-string-interpolation
+target value generic-atom
+keep value generic-atom

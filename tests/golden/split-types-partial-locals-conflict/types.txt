@@ -1,0 +1,7 @@
+++ conflict: cast mold and expression type do not unify
+/tests/golden/split-types-partial-locals-conflict/source.jibb:10:8: cast mold has type @p
+    ^- @p (capture "hi")
+       ^
+/tests/golden/split-types-partial-locals-conflict/source.jibb:10:11: expression has type @t
+    ^- @p (capture "hi")
+          ^

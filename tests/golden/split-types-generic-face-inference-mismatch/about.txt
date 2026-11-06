@@ -1,0 +1,4 @@
+source: split from types-generic-face-inference, preserving the original source lines
+tests: the independent mismatch diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

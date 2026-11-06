@@ -1,0 +1,10 @@
+(module
+  (value 4:1 local-id
+    (gate 4:13 (bind 4:16 x) (wing 4:18 x)))
+  (value 30:1 wrap-forced
+    (gate 30:16
+      (face 30:19 x (tvar 30:21 A))
+      (cast 30:23
+        (aura 30:26 @t)
+        (group 30:29
+          (call 30:30 (wing 30:30 local-id) (wing 30:39 x)))))))

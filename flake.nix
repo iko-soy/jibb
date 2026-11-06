@@ -33,13 +33,17 @@
         ./tests
         ./tools/ship
         ./tools/golden_case.py
+        ./tools/prelude_groups.py
         ./tools/hoon
         ./tools/urbit_eval.py
         ./tools/noun.py
       ];
-      # What the checks read: the desks' files, the tools and the doc's
-      # tabs, but not the other docs, so editing those reruns nothing.
-      checkFiles = fs.unions [ deskFiles ./tools ./docs/spec ];
+      # What the checks read: the desks, tools, spec tabs and review
+      # regression corpus. Other documentation does not rerun checks.
+      checkFiles = fs.unions [
+        deskFiles ./tools ./docs/spec
+        ./docs/reviews/2026-11-03-milestone-2-probes
+      ];
       source = fileset: fs.toSource { root = ./.; inherit fileset; };
 
       perSystem = pkgs:

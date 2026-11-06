@@ -1,0 +1,20 @@
++$ msg
+  %idle
+  %busy
++$ other
+  %idle
+  %busy
+
+
+
+
+
+
+
+++ alien |= x=other ^- (sub msg) [%watch (pure x)]
+
+
+
+
+
+

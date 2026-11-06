@@ -1,0 +1,19 @@
+(module
+  (mold 4:1 outcome
+    (generic 4:12 A
+      (union 5:3
+        (cell 5:3
+          (const 5:4 %ok)
+          (face 5:8 value (tvar 5:14 A)))
+        (const 6:3 %fail))))
+  (value 11:1 own-case
+    (gate 11:13
+      (face 11:16 o
+        (apply 11:18 outcome (aura 11:27 @t)))
+      (body 12:3
+        (branch 12:3
+          (wing 12:6 o)
+          (arm 13:5
+            (cell 13:5 (lit 13:6 %ok) (bind 13:10 v))
+            (wing 13:14 v))
+          (arm 14:5 (bind 14:5 fail) (str 14:14 "failed")))))))

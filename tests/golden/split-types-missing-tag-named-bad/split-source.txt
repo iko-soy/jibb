@@ -1,0 +1,4 @@
+origin types-missing-tag-named
+target value bad
+keep mold msg
+keep value bad

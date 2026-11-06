@@ -1,0 +1,14 @@
+module kind: library
+++ compare-bools: ?
+++ compare-bool-gate: $-([a=? b=?] ?)
+++ compare-decimal: ?
+++ compare-hex: ?
+++ compare-generic: $-(A ?) where A is an atom
+++ atom-id: $-(A A) where A is an atom
+++ atom-id-bool: ?
+++ atom-id-text: @t
+++ add-decimal: @ud
+++ add-hex: @ux
+++ dec-hex: @ux
+++ list-length: @ud
+++ inc: $-(A A) where A is an atom other than ?

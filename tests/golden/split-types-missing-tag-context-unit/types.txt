@@ -1,0 +1,13 @@
+++ unit: msg has no case `%missing`
+/tests/golden/split-types-missing-tag-context-unit/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-missing-tag-context-unit/source.jibb:2:3: expected union has type msg
+  %go
+  ^
+/tests/golden/split-types-missing-tag-context-unit/source.jibb:17:12: expected union has type msg
+++ unit ^- (unit msg) `%missing
+           ^
+/tests/golden/split-types-missing-tag-context-unit/source.jibb:17:24: tag literal has type %missing
+++ unit ^- (unit msg) `%missing
+                       ^

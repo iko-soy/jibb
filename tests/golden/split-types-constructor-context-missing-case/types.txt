@@ -1,0 +1,13 @@
+++ missing-case: missing has no case `%got`
+/tests/golden/split-types-constructor-context-missing-case/source.jibb:8:4: expected union has type missing
++$ missing
+   ^
+/tests/golden/split-types-constructor-context-missing-case/source.jibb:9:3: expected union has type missing
+  [%different value=@t]
+  ^
+/tests/golden/split-types-constructor-context-missing-case/source.jibb:20:29: expected union has type missing
+++ missing-case ^- missing (call |=%got)
+                            ^
+/tests/golden/split-types-constructor-context-missing-case/source.jibb:20:34: tag literal has type %got
+++ missing-case ^- missing (call |=%got)
+                                 ^

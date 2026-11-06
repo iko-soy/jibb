@@ -1,0 +1,7 @@
+++ link-to: a generic atom in an application path needs an aura
+/tests/golden/review-generic-aura-path/source.jibb:1:27: atom with a generic aura
+++ link-to |= n=A %/blog/(add n 1)
+                          ^
+/tests/golden/review-generic-aura-path/source.jibb:1:17: capital `A` keeps its type generic
+++ link-to |= n=A %/blog/(add n 1)
+                ^

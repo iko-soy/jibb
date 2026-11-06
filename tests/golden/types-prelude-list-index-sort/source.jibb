@@ -1,0 +1,8 @@
+++ index-number (snag 1 ~[2 3])
+++ index-text (snag 0 ~["one" "two"])
+++ prefix (scag 2 ~["a" "b" "c"])
+++ suffix (slag 1 ~["a" "b" "c"])
+++ repeated (reap 2 "x")
+++ ascending (sort ~[3 1 2] lth)
+++ descending (sort ~[3 1 2] gth)
+++ empty ^- (list @ud) (sort ~ lth)

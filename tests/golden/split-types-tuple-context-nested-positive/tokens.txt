@@ -1,0 +1,143 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %go
+3:3 NEWLINE
+3:3 lit %stay
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name take
+4:9 glyph |=
+4:12 name p
+4:13 tight glyph =
+4:14 tight glyph [
+4:15 tight name payload
+4:22 tight glyph =
+4:23 tight name msg
+4:27 name xs
+4:29 tight glyph =
+4:30 tight glyph (
+4:31 tight name list
+4:36 aura @t
+4:38 tight glyph )
+4:39 tight glyph ]
+4:41 name p
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name ok
+5:7 glyph (
+5:8 tight name take
+5:13 glyph [
+5:14 tight name payload
+5:21 tight glyph =
+5:22 tight lit %go
+5:26 name xs
+5:28 tight glyph =
+5:29 tight lit ~
+5:30 tight glyph ]
+5:31 tight glyph )
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name nest
+9:9 glyph |=
+9:12 name p
+9:13 tight glyph =
+9:14 tight glyph [
+9:15 tight name data
+9:19 tight glyph =
+9:20 tight glyph [
+9:21 tight name payload
+9:28 tight glyph =
+9:29 tight name msg
+9:33 name xs
+9:35 tight glyph =
+9:36 tight glyph (
+9:37 tight name list
+9:42 aura @t
+9:44 tight glyph )
+9:45 tight glyph ]
+9:47 name z
+9:48 tight glyph =
+9:49 tight aura @p
+9:51 tight glyph ]
+9:53 name p
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name nested
+10:11 glyph (
+10:12 tight name nest
+10:17 glyph [
+10:18 tight name data
+10:22 tight glyph =
+10:23 tight glyph [
+10:24 tight name payload
+10:31 tight glyph =
+10:32 tight lit %stay
+10:38 name xs
+10:40 tight glyph =
+10:41 tight lit ~
+10:42 tight glyph ]
+10:44 name z
+10:45 tight glyph =
+10:46 tight lit ~zod
+10:50 tight glyph ]
+10:51 tight glyph )
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name generic
+19:12 glyph |=
+19:15 name p
+19:16 tight glyph =
+19:17 tight glyph [
+19:18 tight name left
+19:22 tight glyph =
+19:23 tight tvar A
+19:25 name right
+19:30 tight glyph =
+19:31 tight tvar A
+19:32 tight glyph ]
+19:34 name p
+21:1 NEWLINE
+21:1 glyph +$
+21:4 name typed
+21:10 glyph [
+21:11 tight lit %typed
+21:18 name text
+21:22 tight glyph =
+21:23 tight aura @t
+21:25 tight glyph ]
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name use-ctor
+22:13 glyph |=
+22:16 name p
+22:17 tight glyph =
+22:18 tight glyph [
+22:19 tight name f
+22:20 tight glyph =
+22:21 tight glyph $-(
+22:24 tight aura @t
+22:27 name typed
+22:32 tight glyph )
+22:34 name payload
+22:41 tight glyph =
+22:42 tight aura @t
+22:44 tight glyph ]
+22:46 name p
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name constructor
+23:16 glyph (
+23:17 tight name use-ctor
+23:26 glyph [
+23:27 tight name f
+23:28 tight glyph =
+23:29 tight glyph |=
+23:31 tight lit %typed
+23:38 name payload
+23:45 tight glyph =
+23:46 tight str "hi"
+23:50 tight glyph ]
+23:51 tight glyph )
+23:52 NEWLINE

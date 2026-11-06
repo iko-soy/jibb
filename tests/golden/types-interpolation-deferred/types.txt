@@ -1,0 +1,8 @@
+module kind: library
+++ later-body: $-(@ud @ud)
+++ later-call: $-(@t @t)
+++ called: @t
+++ numeric-text: @t
+++ tape-text: $-((list @tD) @t)
+++ inferred-tape: $-(@tD @t)
+++ fix-tape: $-(@tD @t)

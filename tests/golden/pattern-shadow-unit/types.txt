@@ -1,0 +1,7 @@
+++ f: pattern binder `y` shadows a name already in scope
+/tests/golden/pattern-shadow-unit/source.jibb:1:4: earlier binding
+++ y 1
+   ^
+/tests/golden/pattern-shadow-unit/source.jibb:5:8: shadowing binder
+    [~ y] y
+       ^

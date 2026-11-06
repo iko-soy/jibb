@@ -1,0 +1,7 @@
+++ bad: capital `M` cannot be fixed to @t
+/tests/deferred-cast.jibb:5:13: capital
+++ bad |= x=M
+            ^
+/tests/deferred-cast.jibb:7:20: forcing expression
+  (expects pending x)
+                   ^

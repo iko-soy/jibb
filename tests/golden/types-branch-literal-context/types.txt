@@ -1,0 +1,4 @@
+module kind: library
+++ second: $-([(unit @ud) (unit @ud)] (unit @ud))
+++ first: $-([(unit @ud) (unit @ud)] (unit @ud))
+++ tail-or-nil: $-([? (list @t)] (list @t))

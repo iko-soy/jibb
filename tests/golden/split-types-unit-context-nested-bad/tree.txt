@@ -1,0 +1,7 @@
+(module
+  (value 13:1 nested-bad
+    (cast 13:15
+      (apply 13:18 unit
+        (apply 13:24 unit (aura 13:30 @t)))
+      (unit 13:35
+        (unit 13:36 (lit 13:37 ~zod))))))

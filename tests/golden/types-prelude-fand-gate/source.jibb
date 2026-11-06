@@ -1,0 +1,2 @@
+++ same-item |= n=@ud n
+++ bad (fand ~[same-item] ~[same-item])

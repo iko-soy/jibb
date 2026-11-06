@@ -1,0 +1,23 @@
+origin types-arithmetic-combined
+target value alias-decimal
+keep value alias-decimal
+keep value alias-hex
+keep value alias-inc
+keep value compare-bool
+keep value decrease-decimal
+keep value decrease-hex
+keep value default
+keep value discarded-number
+keep value hole-concrete
+keep value hole-written
+keep value identity
+keep value identity-bool
+keep value inc
+keep value inc-decimal
+keep value inc-hex
+keep value inc-reverse
+keep value nested
+keep value reverse-decimal
+keep value reverse-hex
+keep value shared
+keep value standalone

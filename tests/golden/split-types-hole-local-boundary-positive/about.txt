@@ -1,0 +1,4 @@
+source: split from types-hole-local-boundary, preserving the original source lines
+tests: independently valid definitions and their dependencies
+expect: parses
+expect-types: full checker types

@@ -1,0 +1,4 @@
+source: split from types-cell-pattern-tail, preserving the original source lines
+tests: the independent split diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

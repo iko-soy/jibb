@@ -1,0 +1,27 @@
+++ inc |= n=@ud n
+
+
+
+
+
+
+
+
+++ in-gate |= x=@t
+  ++ bump |= y=@t (inc y)
+  (bump x)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1 @@
+A context that depends on a pending value reports its concrete mismatch before the unresolved tag; an alias retains that dependency.

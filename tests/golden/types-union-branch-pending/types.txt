@@ -1,6 +1,4 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-++ unresolved: branch tag or union context is not supported by partial inference
-++ discarded: tag needs context in partial inference
-++ one-open: branch tag or union context is not supported by partial inference
-++ local-pending: local definitions need unsupported inference
+++ unresolved: nothing fixes the union of %add; add a `^-`
+/tests/golden/types-union-branch-pending/source.jibb:6:9: nothing fixes the union of %add; add a `^-`
+    %.y %add
+        ^

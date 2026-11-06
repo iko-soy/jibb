@@ -1,0 +1,10 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %idle) (const 3:3 %busy)))
+  (value 13:1 missing
+    (cast 13:12
+      (apply 13:15 sub (ref 13:20 msg))
+      (tuple 13:25
+        (lit 13:26 %watch)
+        (group 13:33
+          (call 13:34 (wing 13:34 pure) (lit 13:39 %missing)))))))

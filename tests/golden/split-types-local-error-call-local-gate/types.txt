@@ -1,0 +1,7 @@
+++ local-gate: call's sample and argument types do not unify
+/tests/golden/split-types-local-error-call-local-gate/source.jibb:8:11: called gate has type $-(@ud @ud)
+  ++ bad (twice x)
+          ^
+/tests/golden/split-types-local-error-call-local-gate/source.jibb:8:17: argument has type @t
+  ++ bad (twice x)
+                ^

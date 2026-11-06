@@ -1,3 +1,7 @@
-partial inference; module not checked
-++ shadow-sur: sample shadows a name
-++ shadow-mark: sample shadows a name
+++ shadow-sur: sample `fixture` shadows a name already in scope
+/tests/golden/module-import-root-import-shadow/source.jibb:1:5: earlier binding
+/-  fixture
+    ^
+/tests/golden/module-import-root-import-shadow/source.jibb:3:18: conflicting sample binding
+++ shadow-sur |=(fixture fixture)
+                 ^

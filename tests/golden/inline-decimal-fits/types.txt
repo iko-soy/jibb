@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ plain: @ud
 ++ unsigned: @u
 ++ atom: @

@@ -1,0 +1,5 @@
+++ pair |= n=@ud [n n]
+++ one |= p=[left=@ud right=@ud] p
+++ two |= p=[first=@ud second=@ud] p
+++ a (one (pair 1))
+++ b (two (pair 2))

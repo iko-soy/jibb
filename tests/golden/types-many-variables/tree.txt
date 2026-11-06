@@ -6,11 +6,11 @@
   (value 2:1 ends
     (group 2:9
       (call 2:10 (wing 2:10 wide) (str 2:15 "x") (lit 2:19 2) (lit 2:21 3) (lit 2:23 4) (lit 2:25 5) (lit 2:27 6) (lit 2:29 7) (lit 2:31 8) (lit 2:33 9) (lit 2:35 10) (lit 2:38 11) (lit 2:41 12) (lit 2:44 13) (lit 2:47 14) (lit 2:50 15) (lit 2:53 16) (lit 2:56 17) (lit 2:59 18) (lit 2:62 19) (lit 2:65 20) (lit 2:68 21) (lit 2:71 22) (lit 2:74 23) (lit 2:77 24) (lit 2:80 25) (lit 2:83 26) (lit 2:86 ~zod))))
-  (value 3:1 spin
+  (value 3:1 loop
     (gate 3:9
       (cell 3:12 (bind 3:13 a) (bind 3:15 b) (bind 3:17 c) (bind 3:19 d) (bind 3:21 e) (bind 3:23 f) (bind 3:25 g) (bind 3:27 h) (bind 3:29 i) (bind 3:31 j) (bind 3:33 k) (bind 3:35 l) (bind 3:37 m) (bind 3:39 n) (bind 3:41 o) (bind 3:43 p) (bind 3:45 q) (bind 3:47 r) (bind 3:49 s) (bind 3:51 t) (bind 3:53 u) (bind 3:55 v) (bind 3:57 w) (bind 3:59 x) (bind 3:61 y) (bind 3:63 z) (bind 3:65 aa))
       (group 3:69
-        (call 3:70 (wing 3:70 spin) (wing 3:75 a) (wing 3:77 b) (wing 3:79 c) (wing 3:81 d) (wing 3:83 e) (wing 3:85 f) (wing 3:87 g) (wing 3:89 h) (wing 3:91 i) (wing 3:93 j) (wing 3:95 k) (wing 3:97 l) (wing 3:99 m) (wing 3:101 n) (wing 3:103 o) (wing 3:105 p) (wing 3:107 q) (wing 3:109 r) (wing 3:111 s) (wing 3:113 t) (wing 3:115 u) (wing 3:117 v) (wing 3:119 w) (wing 3:121 x) (wing 3:123 y) (wing 3:125 z) (wing 3:127 aa)))))
+        (call 3:70 (wing 3:70 loop) (wing 3:75 a) (wing 3:77 b) (wing 3:79 c) (wing 3:81 d) (wing 3:83 e) (wing 3:85 f) (wing 3:87 g) (wing 3:89 h) (wing 3:91 i) (wing 3:93 j) (wing 3:95 k) (wing 3:97 l) (wing 3:99 m) (wing 3:101 n) (wing 3:103 o) (wing 3:105 p) (wing 3:107 q) (wing 3:109 r) (wing 3:111 s) (wing 3:113 t) (wing 3:115 u) (wing 3:117 v) (wing 3:119 w) (wing 3:121 x) (wing 3:123 y) (wing 3:125 z) (wing 3:127 aa)))))
   (value 4:1 ping
     (gate 4:9
       (cell 4:12 (bind 4:13 a) (bind 4:15 b) (bind 4:17 c) (bind 4:19 d) (bind 4:21 e) (bind 4:23 f) (bind 4:25 g) (bind 4:27 h) (bind 4:29 i) (bind 4:31 j) (bind 4:33 k) (bind 4:35 l) (bind 4:37 m) (bind 4:39 n) (bind 4:41 o) (bind 4:43 p) (bind 4:45 q) (bind 4:47 r) (bind 4:49 s) (bind 4:51 t) (bind 4:53 u) (bind 4:55 v) (bind 4:57 w) (bind 4:59 x) (bind 4:61 y) (bind 4:63 z) (bind 4:65 aa))

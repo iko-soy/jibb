@@ -1,17 +1,19 @@
 unchanged todo: partial inference only
-partial inference; module not checked
-++ main: name is not available to partial inference
-+$ model: not checked
-+$ msg: cases proven disjoint; mold not checked
-++ init: `~` needs context in partial inference
-++ update: branch tag or union context is not supported by partial inference
-++ subs: call constraint is not supported by partial inference
-++ view: name is not available to partial inference
-++ row-of: tag needs context in partial inference
+module kind: island
+++ main: [init=$-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]) [update=$-([msg [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))]) [view=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg)) subs=$-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))]]]
++$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
++$ msg: msg
+++ init: $-((list [id=@ud [done=? text=@t]]) [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]])
+++ update: $-([msg=msg m=[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]] [[todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (cmd msg))])
+++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ view: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (element msg))
+++ row-of: $-([id=@ud [done=? text=@t]] [key=@ud el=(element msg)])
 negative API imports
 missing-mark: rejected
 duplicate-mark: rejected
 missing-selected-sur: rejected
 missing module: partial report
-partial inference; module not checked
 module source missing: /ui/api/todo/jibb
+/ui/todo-list.jibb:1:1: imports /ui/api/todo.jibb here
+/=  todo  /ui/api/todo
+^

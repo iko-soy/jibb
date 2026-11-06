@@ -1,0 +1,4 @@
+message actions has no case `%missing`
+typed-site /tests/golden/split-types-record-change-bad-tag/source.jibb:3:3
+typed-site /tests/golden/split-types-record-change-bad-tag/source.jibb:17:30
+min-sites 2

@@ -1,0 +1,5 @@
++$ state [callback=$-(@t @t)]
++$ poke %set
+++ main (store init update)
+++ init ^- state [callback=same]
+++ update |= [a=poke s=state] s

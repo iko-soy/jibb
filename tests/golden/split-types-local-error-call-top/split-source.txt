@@ -1,0 +1,4 @@
+origin types-local-error-call
+target value top
+keep value inc
+keep value top

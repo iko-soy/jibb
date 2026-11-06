@@ -1,0 +1,6 @@
+origin types-partial-locals
+target value global
+keep value global
+keep value good
+keep value local-mold
+keep value wrap-value

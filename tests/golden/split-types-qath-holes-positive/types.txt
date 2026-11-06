@@ -1,0 +1,6 @@
+module kind: library
+++ resolved: $-(qath qath)
+++ literal: qath
+++ nested: qath
+++ record-number: [path=qath n=@ud]
+++ nested-number: [payload=[path=qath] n=@ud]

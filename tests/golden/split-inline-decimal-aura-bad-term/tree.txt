@@ -1,0 +1,3 @@
+(module
+  (value 9:1 term
+    (cast 9:9 (aura 9:12 @tas) (lit 9:17 30))))

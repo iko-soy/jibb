@@ -1,8 +1,8 @@
-partial inference; module not checked
-+$ equivalent: not checked
-+$ swapped: not checked
-+$ repeated: not checked
-+$ fixed: not checked
+module kind: library
++$ equivalent: (each A B)
++$ swapped: (each B A)
++$ repeated: (each A A)
++$ fixed: (each A @p)
 ++ direct: $-((each A B) (each A B))
 ++ alias-id: $-((each A B) (each A B))
 ++ reversed: $-((each B A) (each B A))

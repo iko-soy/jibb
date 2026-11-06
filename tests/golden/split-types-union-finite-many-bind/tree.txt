@@ -1,0 +1,15 @@
+(module
+  (mold 29:1 choice
+    (union 30:3
+      (cell 30:3
+        (const 30:4 %a)
+        (face 30:7 on (flag 30:10)))
+      (const 31:3 %other)))
+  (value 49:1 many-bind
+    (gate 49:14
+      (face 49:17 x (ref 49:19 choice))
+      (body 50:3
+        (branch 50:3
+          (wing 50:6 x)
+          (arm 51:5 (bind 51:5 value) (str 51:11 "anything"))
+          (arm 52:5 (lit 52:5 %other) (str 52:12 "dead")))))))

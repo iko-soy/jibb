@@ -1,0 +1,6 @@
+1:1 glyph ++
+1:4 name top
+1:8 glyph ^-
+1:11 aura @t
+1:14 lit %.y
+1:17 NEWLINE

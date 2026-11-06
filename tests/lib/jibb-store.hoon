@@ -1,7 +1,8 @@
 ::  Unchanged cart store and basket, derived requests, and rejection guards.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  cart      %txt   /my-app/ui/stores/cart/jibb
 /*  basket    %txt   /my-app/ui/basket/jibb
 |%
@@ -68,13 +69,6 @@
   ^-  (list tape)
   ?~  graph.cart  ~["cart evidence is missing"]
   ?~  graph.basket  ~["basket evidence is missing"]
-  =/  parsed  (parse:jibb /ui/basket/jibb src)
-  ?:  ?=(%| -.parsed)  ~["basket evidence source does not parse"]
-  =/  main=(unit def:jibb)  (program-main-def:jibb defs.p.parsed)
-  ?~  main  ~["basket evidence main is missing"]
-  =/  parts=(unit [init=term update=term view=term subs=term])
-    (program-main-parts:jibb u.main)
-  ?~  parts  ~["basket evidence main parts are missing"]
   ?.  ?=([* ~] stores.u.graph.cart)  ~["cart store evidence is not unique"]
   =/  evidence=istore-request-evidence:jibb  i.stores.u.graph.cart
   =/  imports=ijimports:jibb  ~[[%cart cart]]
@@ -93,11 +87,11 @@
   =/  ordinary=ienv:jibb
     (skim values.cart |=(entry=[name=term scheme=ischeme:jibb] !=(%state name.entry)))
   =/  forged=ifile:jibb
-    cart(values [[%state [[%fn [%atom %t] [%atom %t]] ~]] ordinary])
+    cart(values [[%state [[%fn [%atom %t] [%atom %t]] ~ ~]] ordinary])
   =/  without-action=ienv:jibb
     (skim values.cart |=(entry=[name=term scheme=ischeme:jibb] !=(%poke name.entry)))
   =/  forged-action=ifile:jibb
-    cart(values [[%poke [[%fn [%atom %t] [%atom %t]] ~]] without-action])
+    cart(values [[%poke [[%fn [%atom %t] [%atom %t]] ~ ~]] without-action])
   =/  graphs=(list [label=tape graph=irequest-graph:jibb])
     :~  ["missing store evidence" missing]
         ["store source mismatch" mismatch]
@@ -106,14 +100,14 @@
   =/  failures=(list tape)
     %+  murn  graphs
     |=  c=[label=tape graph=irequest-graph:jibb]
-    ?:  (program-main-closed:jibb u.parts defs.p.parsed values.basket `prelude imports graph.c)
+    ?~  (program-value-watch-diagnostic:jibb basket ~ imports prelude graph.c)
       `label.c
     ~
-  =?  failures  (program-main-closed:jibb u.parts defs.p.parsed values.basket `prelude ~[[%cart detached]] u.graph.basket)
+  =?  failures  ?=(~ (program-value-watch-diagnostic:jibb basket ~ ~[[%cart detached]] prelude u.graph.basket))
     ["evidence outside the store interface" failures]
-  =?  failures  (program-main-closed:jibb u.parts defs.p.parsed values.basket `prelude ~[[%cart forged]] u.graph.basket)
+  =?  failures  ?=(~ (program-value-watch-diagnostic:jibb basket ~ ~[[%cart forged]] prelude u.graph.basket))
     ["forged state member" failures]
-  =?  failures  (program-main-closed:jibb u.parts defs.p.parsed values.basket `prelude ~[[%cart forged-action]] u.graph.basket)
+  =?  failures  ?=(~ (program-value-watch-diagnostic:jibb basket ~ ~[[%cart forged-action]] prelude u.graph.basket))
     ["forged action constructor" failures]
   failures
 ::
@@ -121,7 +115,7 @@
   |=  [public=@t private=@t cart-source=@t basket-source=@t]
   ^-  (list tape)
   =/  prepared=(unit iprelude:jibb)
-    (prepare-prelude-with-internal:jibb public private)
+    (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~["store prelude did not prepare"]
   =/  store-value=(unit ischeme:jibb)  (ienv-lookup:jibb %store values.iface.u.prepared)
   =/  store-mold=(unit ischeme:jibb)  (find-jibb-mold:jibb %store iface.u.prepared)
@@ -132,9 +126,13 @@
   =/  a=@ud  (named-var:jibb 'A' 1)
   =/  expected-builder=itype:jibb
     [%fn [%cell [%face %init [%var s]] [%face %update [%fn [%cell [%var a] [%var s]] [%var s]]]] [%cell [%face %init [%var s]] [%face %update [%noun ~]]]]
-  ?.  &(?=([@ @ ~] vars.u.store-value) =(typ.u.store-value expected-builder))  ~["store builder scheme differs"]
+  =/  builder-display=(unit itype:jibb)  (scheme-display-type:jibb u.store-value)
+  ?~  builder-display  ~["store builder scheme did not realize"]
+  ?.  &(?=([@ @ ~] vars.u.store-value) =((show-itype:jibb u.builder-display ~) (show-itype:jibb expected-builder ~)))  ~["store builder scheme differs"]
   =/  expected-mold=itype:jibb  [%cell [%face %init [%var 0]] [%face %update [%noun ~]]]
-  ?.  &(?=([@ ~] vars.u.store-mold) =(typ.u.store-mold expected-mold))  ~["store mold scheme differs"]
+  =/  mold-display=(unit itype:jibb)  (scheme-display-type:jibb u.store-mold)
+  ?~  mold-display  ~["store mold scheme did not realize"]
+  ?.  &(?=([@ ~] vars.u.store-mold) =((itype-slots-as-faces:jibb u.mold-display) expected-mold))  ~["store mold scheme differs"]
   =/  cart-at=path  /ui/stores/cart/jibb
   =/  modules=jbundle:jibb  ~[[cart-at cart-source]]
   =/  detailed=jfile-detailed-result:jibb
@@ -160,7 +158,7 @@
   ?~  poke  ~["canonical poke is unavailable"]
   =/  ask-result=(unit itype:jibb)  (template-apply:jibb u.ask ~[[%var 0]])
   ?~  ask-result  ~["canonical ask did not instantiate"]
-  =/  expected-state=ischeme:jibb  [[%fn [%fn typ.u.state [%var 0]] u.ask-result] ~[0]]
+  =/  expected-state=ischeme:jibb  [[%fn [%fn typ.u.state [%var 0]] u.ask-result] ~[0] ~]
   =/  expected-action=(unit ischeme:jibb)  (derived-poke-command-scheme:jibb iface.u.prepared typ.u.action)
   ?~  expected-action  ~["derived action scheme did not instantiate"]
   =/  command=(unit ischeme:jibb)  (find-jibb-mold:jibb %cmd iface.u.prepared)
@@ -250,6 +248,12 @@
   =/  normal-main=@t  '++ main (store init update)\0a'
   =/  normal-init=@t  '++ init ^- state [~ %.n]\0a'
   =/  normal-update=@t  '++ update |= [a=poke s=state]\0a  ?- a\0a    [%add item]  s(items=[item items.s])\0a    %toggle      s(open=(not open.s))\0a'
+  =/  alias-main=@t  (store-cart-source normal-poke '++ main (build init update)\0a' normal-init normal-update '++ build store\0a')
+  =/  alias-result=jfile-detailed-result:jibb  (store-detailed /tests/store/alias-main/jibb alias-main ~ u.prepared)
+  ?:  ?=(%| -.alias-result)  ~[(weld "aliased store was rejected: " (trip message.p.alias-result))]
+  =/  hand-main=@t  (store-cart-source normal-poke '++ main [init update]\0a' normal-init normal-update '')
+  =/  hand-result=jfile-detailed-result:jibb  (store-detailed /tests/store/hand-main/jibb hand-main ~ u.prepared)
+  ?:  ?=(%| -.hand-result)  ~[(weld "hand-built store was rejected: " (trip message.p.hand-result))]
   =/  cart-cases=(list [label=tape at=path src=@t modules=jbundle:jibb])
     :~  ["wrong init" /tests/store/wrong-init/jibb (store-cart-source normal-poke normal-main '++ init ^- state [~ "bad"]\0a' normal-update '') ~]
         ["wrong action" /tests/store/wrong-action/jibb (store-cart-source normal-poke normal-main normal-init '++ update |= [a=@t s=state] s\0a' '') ~]
@@ -261,8 +265,6 @@
         ["state derived collision" /tests/store/state-collision/jibb (store-cart-source normal-poke normal-main normal-init normal-update '++ state 0\0a') ~]
         ["action derived collision" /tests/store/action-collision/jibb (store-cart-source normal-poke normal-main normal-init normal-update '++ poke 0\0a') ~]
         ["import derived collision" /tests/store/import-collision/jibb (cat 3 '/= state /ui/stores/other\0a' (store-cart-source normal-poke normal-main normal-init normal-update '')) ~]
-        ["alias main" /tests/store/alias-main/jibb (store-cart-source normal-poke '++ main (build init update)\0a' normal-init normal-update '++ build store\0a') ~]
-        ["hand-built main" /tests/store/hand-main/jibb (store-cart-source normal-poke '++ main [init update]\0a' normal-init normal-update '') ~]
     ==
   =/  normal-basket-update=@t  '++ update |= [=msg m=model]\0a  ?- msg\0a    [%noted t]     [m(note=t) ~]\0a    %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]\0a    %toggle        [m ~[(poke.cart %toggle |=%acked)]]\0a    [%got c]       [m(cart=c) ~]\0a    [%acked err]   [m ~]\0a'
   =/  normal-subs=@t  '++ subs |= m=model\0a  ~[[%watch (state.cart |=%got)]]\0a'
@@ -270,13 +272,24 @@
   =/  basket-cases=(list [label=tape at=path src=@t modules=jbundle:jibb])
     :~  ["wrong poke payload" /ui/basket/jibb (store-basket-source wrong-payload normal-subs '') modules]
         ["wrong state reply" /ui/basket/jibb (store-basket-source normal-basket-update '++ subs |= m=model\0a  ~[[%watch (state.cart |=%acked)]]\0a' '') modules]
-        ["helper state request" /ui/basket/jibb (store-basket-source normal-basket-update '++ subs |= m=model\0a  ~[[%watch request]]\0a' '++ request ^- (ask msg) (state.cart |=%got)\0a') modules]
-        ["program under store path" /ui/stores/basket/jibb basket-source modules]
     ==
+  =/  helper-source=@t
+    (store-basket-source normal-basket-update '++ subs |= m=model\0a  ~[[%watch request]]\0a' '++ request ^- (ask msg) (state.cart |=%got)\0a')
+  =/  helper=jfile-detailed-result:jibb
+    (store-detailed /ui/basket/jibb helper-source modules u.prepared)
+  ?:  ?=(%| -.helper)  ~[(weld "indirect store state request rejected: " (trip message.p.helper))]
+  ?.  =(%island kind.p.helper)  ~["indirect store state request changed program kind"]
+  =/  relocated=jfile-detailed-result:jibb
+    (store-detailed /ui/stores/basket/jibb basket-source modules u.prepared)
+  ?:  ?=(%| -.relocated)  ~[(weld "program under stores directory rejected: " (trip message.p.relocated))]
+  ?.  =(%island kind.p.relocated)  ~["stores directory changed program kind"]
   =/  page=@t  '/= cart /ui/stores/cart\0a++ main (page load view)\0a++ load |= ~ (state.cart same)\0a++ view |= s=state.cart ^- (element !!) (text "page")\0a'
-  =/  page-case=[label=tape at=path src=@t modules=jbundle:jibb]
-    ["store state as page load" /tests/store/page/jibb page modules]
-  =/  failures=(list tape)  (store-rejections (weld cart-cases (weld basket-cases ~[page-case])) u.prepared)
+  ::  A store state request is an ask, so it is a valid page load.
+  =/  page-result=jfile-detailed-result:jibb
+    (store-detailed /tests/store/page/jibb page modules u.prepared)
+  ?:  ?=(%| -.page-result)
+    ~[(weld "store state as page load was rejected: " (trip message.p.page-result))]
+  =/  failures=(list tape)  (store-rejections (weld cart-cases basket-cases) u.prepared)
   ?^  failures  failures
   ~
 ::

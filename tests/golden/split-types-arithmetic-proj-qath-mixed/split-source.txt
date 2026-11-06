@@ -1,0 +1,3 @@
+origin types-arithmetic-proj-qath
+target value mixed
+keep value mixed

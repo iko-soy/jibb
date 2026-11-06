@@ -1,46 +1,98 @@
-#!/bin/sh
-# Rerun the milestone 2 review's probes through the full module checker,
-# infer-jibb-file-detailed, from the repo root:
-#
-#   docs/reviews/2026-11-03-milestone-2-probes/run plain   FILE   one module per section
-#   docs/reviews/2026-11-03-milestone-2-probes/run app     FILE   sections at my-app paths, with its imports
-#   docs/reviews/2026-11-03-milestone-2-probes/run imports        the Hoon import errors
-#
-# FILE holds sections, each starting with a line "#### <label>"; see README.md.
-set -e
-HERE=$(cd "$(dirname "$0")" && pwd)
-ROOT=$(cd "$HERE/../../.." && pwd)
-cd "$ROOT"
-TMP=$(mktemp -d)
-trap 'rm -rf "$TMP"' EXIT
-PRELUDE="--cord prelude=jibb-dev/lib/jibb/prelude.jibb --cord internal=jibb-dev/lib/jibb/internal.jibb"
-case "$1" in
-  plain)
-    tools/hoon --raw $PRELUDE --cord src="$2" -f "$HERE/check.hoon"
-    ;;
-  app)
-    # Marks without their /- lines, which ride can't parse; the check binds
-    # the /sur face by hand, as the tests/lib suites do.
-    for m in todo-action todos todo-update todo-item posts; do
-      grep -v '^/-' "my-app/mar/$m.hoon" > "$TMP/$m.hoon"
-    done
-    { printf '=/  imp\n  =>  ..zuse\n'; cat jibb-dev/lib/jibb-import.hoon; cat "$HERE/app-check.hoon"; } > "$TMP/check.hoon"
-    tools/hoon --raw $PRELUDE \
-      --cord sur=my-app/sur/todo.hoon --cord blogsur=my-app/sur/blog.hoon \
-      --cord action="$TMP/todo-action.hoon" --cord todos="$TMP/todos.hoon" \
-      --cord update="$TMP/todo-update.hoon" --cord item="$TMP/todo-item.hoon" \
-      --cord posts="$TMP/posts.hoon" \
-      --cord todoapi=my-app/ui/api/todo.jibb --cord todolist=my-app/ui/todo-list.jibb \
-      --cord blogapi=my-app/ui/api/blog.jibb --cord card=my-app/ui/components/card.jibb \
-      --cord cart=my-app/ui/stores/cart.jibb \
-      --cord src="$2" -f "$TMP/check.hoon"
-    ;;
-  imports)
-    { printf '=/  jibb-lib  .\n=/  reader\n'; cat jibb-dev/lib/jibb-import.hoon; printf '\n'; cat "$HERE/errors/import-check.hoon"; } > "$TMP/check.hoon"
-    tools/hoon --raw $PRELUDE -f "$TMP/check.hoon"
-    ;;
-  *)
-    sed -n '2,10p' "$0"
-    exit 2
-    ;;
-esac
+#!/usr/bin/env python3
+"""Rerun review probes: run plain FILE, run app FILE, or run imports."""
+
+import argparse
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[2]
+sys.path.insert(0, str(ROOT / 'tools'))
+import prelude_groups
+
+
+def hoon_list(entries):
+    return '~[' + ' '.join(entries) + ']' if entries else '~'
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('mode', choices=('plain', 'app', 'imports'))
+    parser.add_argument('source', nargs='?')
+    args = parser.parse_args()
+    if args.mode != 'imports' and args.source is None:
+        parser.error('plain and app require a sectioned source file')
+    command = [str(ROOT / 'tools/hoon'), '--raw']
+
+    def cord(name, path):
+        command.extend(['--cord', name + '=' + str(path)])
+
+    cord('prelude', ROOT / 'jibb-dev/lib/jibb/prelude.jibb')
+    cord('internal', ROOT / 'jibb-dev/lib/jibb/internal.jibb')
+    groups, private, readers = prelude_groups.load_all(str(ROOT))
+    group_entries, private_entries = [], []
+    for number, (face, logical, filename, _) in enumerate(groups + private):
+        binding = 'probe-group-' + str(number)
+        cord(binding, filename)
+        path = prelude_groups.hoon_path(logical)
+        if face is None:
+            private_entries.append('[%s %s]' % (path, binding))
+        else:
+            group_entries.append('[%%%s %s %s]' % (face, path, binding))
+    reader_entries = []
+    reader_paths = set()
+    for number, (module, name, logical, filename, _) in enumerate(readers):
+        binding = 'probe-reader-' + str(number)
+        cord(binding, filename)
+        path = prelude_groups.sur_path(logical)
+        if logical not in reader_paths:
+            private_entries.append('[%s %s]' % (path, binding))
+            reader_paths.add(logical)
+        reader_entries.append('[%%%s %%%s %s %s]' % (module, name, path, binding))
+    reader_core = ('=/  prelude-reader\n=>  ..zuse\n' +
+                   (ROOT / 'jibb-dev/lib/jibb-import.hoon').read_text() + '\n')
+    prefix = (reader_core + '=/  groups  ' + hoon_list(group_entries) + '\n'
+              '=/  group-sources  ' + hoon_list(private_entries) + '\n'
+              '=/  reader-evidence  (turn `(list [module=term name=term at=path source=@t])`' + hoon_list(reader_entries) +
+              ' |=(entry=[module=term name=term at=path source=@t] [module.entry name.entry '
+              '(read-generic-source:prelude-reader module.entry name.entry at.entry source.entry -:(ride -:!>(..zuse) source.entry))]))\n')
+    with tempfile.TemporaryDirectory(prefix='jibb-review-') as scratch:
+        scratch = Path(scratch)
+        if args.mode == 'plain':
+            expression = prefix + (HERE / 'check.hoon').read_text()
+        elif args.mode == 'app':
+            # Standalone ride uses the explicit /sur face supplied in app-check.
+            for name, mark in [('action', 'todo-action'), ('todos', 'todos'),
+                               ('update', 'todo-update'), ('item', 'todo-item'),
+                               ('posts', 'posts')]:
+                path = scratch / (mark + '.hoon')
+                lines = (ROOT / 'my-app/mar' / (mark + '.hoon')).read_text().splitlines(True)
+                path.write_text(''.join(line for line in lines if not line.startswith('/-')))
+                cord(name, path)
+            for name, path in [('sur', 'sur/todo.hoon'), ('blogsur', 'sur/blog.hoon'),
+                               ('todoapi', 'ui/api/todo.jibb'), ('todolist', 'ui/todo-list.jibb'),
+                               ('blogapi', 'ui/api/blog.jibb'), ('card', 'ui/components/card.jibb'),
+                               ('cart', 'ui/stores/cart.jibb')]:
+                cord(name, ROOT / 'my-app' / path)
+            expression = ('=/  imp\n  =>  ..zuse\n' +
+                          (ROOT / 'jibb-dev/lib/jibb-import.hoon').read_text() +
+                          '\n' + prefix + (HERE / 'app-check.hoon').read_text())
+        else:
+            expression = ('=/  jibb-lib  .\n=/  reader\n' +
+                          (ROOT / 'jibb-dev/lib/jibb-import.hoon').read_text() +
+                          '\n' + prefix + (HERE / 'errors/import-check.hoon').read_text())
+        if args.source is not None:
+            cord('src', Path(args.source).resolve())
+        path = scratch / 'check.hoon'
+        path.write_text(expression)
+        return subprocess.run(command + ['-f', str(path)], cwd=ROOT).returncode
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError) as error:
+        print('review probes: ' + str(error), file=sys.stderr)
+        sys.exit(2)

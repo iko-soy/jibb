@@ -1,0 +1,4 @@
+message missing match case ["" %stop]
+site /tests/golden/split-types-cell-pattern-tail-split-union/source.jibb:14:3
+typed-site /tests/golden/split-types-cell-pattern-tail-split-union/source.jibb:14:6
+min-sites 2

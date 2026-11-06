@@ -1,0 +1,5 @@
+origin types-union-finite-context
+target value missing
+keep mold input
+keep mold result
+keep value missing

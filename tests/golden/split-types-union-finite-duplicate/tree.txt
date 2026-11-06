@@ -1,0 +1,20 @@
+(module
+  (mold 29:1 choice
+    (union 30:3
+      (cell 30:3
+        (const 30:4 %a)
+        (face 30:7 on (flag 30:10)))
+      (const 31:3 %other)))
+  (value 40:1 duplicate
+    (gate 40:14
+      (face 40:17 x (ref 40:19 choice))
+      (body 41:3
+        (branch 41:3
+          (wing 41:6 x)
+          (arm 42:5
+            (cell 42:5 (lit 42:6 %a) (lit 42:9 %.y))
+            (str 42:14 "yes"))
+          (arm 43:5
+            (cell 43:5 (lit 43:6 %a) (lit 43:9 %$))
+            (str 43:13 "duplicate"))
+          (arm 44:5 (any 44:5) (str 44:7 "other")))))))

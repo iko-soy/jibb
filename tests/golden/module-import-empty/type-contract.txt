@@ -1,0 +1,3 @@
+message module source missing: /ui/lib/jibb
+site /tests/golden/module-import-empty/source.jibb:1:1
+min-sites 1

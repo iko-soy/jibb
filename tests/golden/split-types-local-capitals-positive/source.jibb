@@ -1,0 +1,73 @@
+++ siblings |= x=@t
+  ++ first |= y=A y
+  ++ second |= z=A z
+  ~& (first x)
+    (second ~zod)
+
+
+
+
+++ captured |= x=A
+  ++ inner |= y=A
+    ?- %.y
+      %.y x
+      %.n (inner y)
+  (inner x)
+++ implicit |= x
+  ++ inner |= y
+    ?- %.y
+      %.y y
+      %.n (inner y)
+  ~& (inner "hi")
+    (inner ~zod)
+
+
+
+
+
+
+++ fresh |= x=@t
+  ++ inner |= y=A y
+  (inner x)
+++ captured-acyclic |= x=A
+  ++ inner |= y=A y
+  (inner x)
+++ implicit-capture |= x
+  ++ inner |= flag=?
+    ?- flag
+      %.y x
+      %.n (inner %.y)
+  ~& ^- @t x
+    (inner %.y)
+++ nested |= x=@t
+  ++ first |= y=A
+    ++ inner |= z=B z
+    ~& (inner ~zod)
+      y
+  (first x)
+++ atom |= x=@t
+  ++ inner |= y=A
+    ~& ^- @ y
+      y
+  ~& (inner x)
+    (inner ~zod)
+
+
+
+
+
+
+
+
+++ mold-param |= x=A
+  +$ box |$ [A] [value=A count=@ud]
+  ^- (box @t) [value="hi" count=1]
+++ later-share |= x
+  ++ inner |= y=A y
+  ~& (inner x)
+    ^- A x
+
+
+
+
+

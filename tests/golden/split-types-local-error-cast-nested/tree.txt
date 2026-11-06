@@ -1,0 +1,14 @@
+(module
+  (value 15:1 nested
+    (gate 15:11
+      (face 15:14 x (aura 15:16 @t))
+      (body 16:3
+        (value 16:3 outer
+          (gate 16:12
+            (face 16:15 y (aura 16:17 @t))
+            (body 17:5
+              (value 17:5 inner
+                (cast 17:14 (aura 17:17 @p) (wing 17:20 y)))
+              (wing 18:5 inner))))
+        (group 19:3
+          (call 19:4 (wing 19:4 outer) (wing 19:10 x)))))))

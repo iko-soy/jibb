@@ -1,0 +1,40 @@
+/=  core  /lib/jibb/primitives
+
+::  Representation for agent and in-process store pokes.
+::  The prelude re-exports this mold; effect lowering and the runtime must
+::  agree on these cells when effect execution is implemented.
++$ raw-poke
+  [%agent agent=@tas mark=@tas payload=*]
+  [%store module=@t action=@tas payload=*]
+
+::  The compiler supplies this private interface; execution is not yet implemented.
+++ gth-atom |= args=[A A] (raw-gth.core args)
+++ eq-data |= args=[A A] (raw-eq.core args)
+
+::  Application paths are knot sequences.
++$ qath
+  ~
+  [i=@ta t=qath]
+
+::  Private compiler primitive wrappers; execution is a later milestone.
+++ add-atom |= args=[A A] (raw-add.core args)
+++ dec-atom |= atom=A (raw-dec.core atom)
+++ trip-text |= value=@t (raw-trip.core value)
+++ tuba-text |= values (raw-tuba.core values)
+
+::  Transparent request data. Identity and path fields are writable and do not
+::  prove a schema or watchability. A future executor must bind them to checked
+::  source evidence and validate facts and state; generated receivers must
+::  decode before calling typed replies or folds. Runtime validation, watch
+::  provenance and effect execution are not implemented.
++$ agent-path (list.core @ta)
++$ ask |$ [M]
+  [%pure value=M]
+  [%agent api=@t case=@tas agent=@tas path=agent-path scry=(unit.core agent-path) receive=$-([mark=@tas state=(unit.core *) fact=*] [state=* message=M])]
+  [%store module=@t name=@tas receive=$-([state=(unit.core *) fact=*] [state=* message=M])]
+
+::  UTF-8 byte packing and UTF-32-to-UTF-8 encoding are private primitives.
+++ crip-text |= bytes (raw-crip.core bytes)
+++ tufa-text |= values (raw-tufa.core values)
+
+++ bit-not |= args=[@ @ @] (raw-bit-not.core args)

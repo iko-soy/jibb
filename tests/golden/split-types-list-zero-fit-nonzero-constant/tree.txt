@@ -1,0 +1,15 @@
+(module
+  (value 6:1 nonzero-constant
+    (gate 6:21
+      (cell 6:24
+        (face 6:25 f
+          (fn 6:27
+            (cell 6:30
+              (apply 6:31 list (aura 6:37 @t))
+              (aura 6:41 @t))
+            (aura 6:45 @t)))
+        (face 6:49 z (const 6:51 %1)))
+      (group 6:55
+        (call 6:56
+          (wing 6:56 f)
+          (tuple 6:58 (wing 6:59 z) (str 6:61 "ok")))))))

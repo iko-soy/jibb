@@ -1,2 +1,10 @@
-partial inference; module not checked
 import cycle at /ui/a/jibb
+/ui/b.jibb:1:1: imports /ui/a.jibb here
+/=  a /ui/a
+^
+/ui/a.jibb:1:1: imports /ui/b.jibb here
+/=  b /ui/b
+^
+/ui/main.jibb:1:1: imports /ui/a.jibb here
+/=  a /ui/a
+^

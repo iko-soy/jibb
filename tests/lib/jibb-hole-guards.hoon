@@ -1,13 +1,14 @@
 ::  Verify hole defaulting and API fail-closed boundaries under eval and ship.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  real-prelude  %jibb  /lib/jibb/prelude/jibb
 /*  real-internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 |%
 ++  hole-guard-errors
   ^-  (list tape)
   =/  base=istate:jibb  *istate:jibb
-  =.  base  base(sub ~[[0 [%nvar 1]]], holes ~[[0 *span:jibb]], next 2)
-  =/  env=ienv:jibb  ~[[%outer [[%var 1] ~]]]
+  =.  base  base(sub (isub-from-bindings:jibb ~[[0 [%nvar 1]]]), holes ~[[0 *span:jibb]], next 2)
+  =/  env=ienv:jibb  ~[[%outer [[%var 1] ~ ~]]]
   =/  guarded=istate:jibb  (default-hole-numbers:jibb holes.base ~ base env &)
   =/  independent=istate:jibb  (default-hole-numbers:jibb holes.base ~ base ~ &)
   =/  explicit=istate:jibb  base(caps ~[['A' 1 *span:jibb]])
@@ -54,7 +55,7 @@
     ["an API path ignored an unused mold hole" failures]
   =?  failures  ?=(^ (api-path-analysis:jibb p.v ext ~ ~ *ifile:jibb))
     ["an API path ignored an unused value hole" failures]
-  =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb real-prelude real-internal)
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture real-prelude real-internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ["actual prelude was not prepared" failures]
   =/  poke-good=@t  (crip "/% %todo\0a+$ poke todo\0a")
   =/  poke-bad=@t  (cat 3 poke-good '+$ unused [a=_]\0a')

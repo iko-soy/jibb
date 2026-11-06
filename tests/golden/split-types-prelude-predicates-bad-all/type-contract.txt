@@ -1,0 +1,4 @@
+message call's sample and argument types do not unify
+typed-site /tests/golden/split-types-prelude-predicates-bad-all/source.jibb:5:13
+typed-site /tests/golden/split-types-prelude-predicates-bad-all/source.jibb:5:25
+min-sites 2

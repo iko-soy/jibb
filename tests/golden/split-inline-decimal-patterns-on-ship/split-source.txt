@@ -1,0 +1,3 @@
+origin inline-decimal-patterns
+target value on-ship
+keep value on-ship

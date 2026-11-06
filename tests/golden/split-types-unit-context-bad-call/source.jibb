@@ -1,0 +1,46 @@
++$ msg
+  %go
+  %stay
+
+
+
+
+
+
+
+
+
+
+
+
+++ accept |= x=(unit msg) x
+
+++ bad-call (accept `%bad)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

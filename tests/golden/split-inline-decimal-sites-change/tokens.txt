@@ -1,0 +1,20 @@
+10:1 glyph ++
+10:4 name change
+10:11 glyph |=
+10:14 name m
+10:15 tight glyph =
+10:16 tight glyph [
+10:17 tight name gap
+10:20 tight glyph =
+10:21 tight aura @dr
+10:25 name n
+10:26 tight glyph =
+10:27 tight aura @ud
+10:30 tight glyph ]
+10:32 name m
+10:33 tight glyph (
+10:34 tight name gap
+10:37 tight glyph =
+10:38 tight lit 30
+10:40 tight glyph )
+10:41 NEWLINE

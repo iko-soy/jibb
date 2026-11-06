@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 state (aura 1:10 @ud))
+  (mold 2:1 poke (const 2:9 %inc))
+  (value 3:1 init
+    (cast 3:9 (ref 3:12 state) (lit 3:18 0)))
+  (value 4:1 update
+    (gate 4:11
+      (cell 4:14
+        (face 4:15 a (ref 4:17 poke))
+        (face 4:22 s (ref 4:24 state)))
+      (wing 4:31 s)))
+  (value 5:1 build (wing 5:10 store))
+  (value 6:1 main
+    (group 6:9
+      (call 6:10 (wing 6:10 build) (wing 6:16 init) (wing 6:21 update)))))

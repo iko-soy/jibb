@@ -1,0 +1,82 @@
++$ input
+  [%item flag=? text=@t]
+  %none
+
+
+
+++ local-id |= x x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ dead |= x=input ^- (list @t)
+  ?- (local-id x)
+    %none ~
+    %none ~
+    [%item flag words] ~[words]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

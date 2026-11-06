@@ -1,0 +1,36 @@
++$ maybe
+  ~
+  [~ value=@t]
+++ need |= x=maybe
+  ?- x
+    ~ !!
+    [~ value] value
+++ reverse |= x=maybe
+  ?- x
+    [~ value] value
+    ~ !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,3 @@
+message nothing fixes the union of %orphan; add a `^-`
+site /tests/golden/split-types-string-interpolation-pending/source.jibb:9:22
+min-sites 1

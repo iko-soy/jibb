@@ -1,0 +1,3 @@
+++ outer |= x=@t
+  ++ attrs ~[pad+%s1 pad+%s2]
+  (el attrs (text x))

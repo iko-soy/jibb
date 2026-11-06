@@ -1,0 +1,7 @@
+++ bad-skim: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-list-helpers-bad-skim/source.jibb:14:14: called gate has type $-([(list @t) $-(@t ?)] (list @t))
+++ bad-skim (skim ~["hi"] |=(x=@p %.y))
+             ^
+/tests/golden/split-types-prelude-list-helpers-bad-skim/source.jibb:14:27: argument has type $-(@p ?)
+++ bad-skim (skim ~["hi"] |=(x=@p %.y))
+                          ^

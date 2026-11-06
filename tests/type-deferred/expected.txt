@@ -1,39 +1,85 @@
-nested lexical gate and alias agree
-later source context closes nested constructor
-nested obligation discharged
-independent built result stays polymorphic
-text use inferred
-ship use inferred independently
-deferred branch joins present parent
-missing constructor leaves no result
-conflicting context leaves no result
-duplicate source binding declined
-definition hole does not escape
-local deferred definition declined
-recursive deferred group declined
-unused mold hole declined
-fresh ID exceeds raw and quantified IDs
-fresh ID of an empty environment is 1
-original structural binding rejects wrong face
-dropping binding would accept wrong face
-unresolved edge remains open after fit
-closed constructor edge has no free IDs
-final replay is unchanged
-open interface stays unpublished
-raw bound variable hides atom constraint
-normalized unsupported atom constraint rejected
-scheme-local quantifier cannot hide captured ID
-captured outer variable remains monomorphic
-pending tag binding keeps reachable variable monomorphic
-recursive obligation component stays monomorphic
-faced callback source accepted
-wrong nested callback face rejected
-constructor resolves to exact callback
-callback retains its face
-post-fit face asymmetry is absent
-record output stays cell-capable
-prebound incompatible callback is rejected
-grec constraint scan declines
-fresh ID passes over grec arguments and recursive leaves
-default inference declines; explicit capability creates obligation
-candidate screen boundaries passed
+nested
+module kind: library
++$ message: message
+++ send: $-($-(@t A) $-(@t A))
+++ nested: $-(@t $-(@t message))
+++ alias: $-(@t $-(@t message))
+++ resolved: $-(@t $-(@t message))
+principal
+module kind: library
++$ message: message
+++ send: $-($-(@t A) $-(@t A))
+++ make: $-(A $-(B B))
+++ first: $-(@t message)
+++ second: $-(@t message)
+++ built: $-(B B)
+++ resolved: $-(@t message)
+++ reveal: @t
+++ reveal-ship: @p
+missing
+++ first: message has no case `%absent`
+/ui/obligation.jibb:1:4: expected union has type message
++$ message
+   ^
+/ui/obligation.jibb:2:3: expected union has type message
+  [%got value=@t]
+  ^
+/ui/obligation.jibb:8:11: expected union has type message
+++ first (send |=%absent)
+          ^
+/ui/obligation.jibb:8:16: tag literal has type %absent
+++ first (send |=%absent)
+               ^
+conflict
+++ clash: types do not unify
+/ui/obligation.jibb:12:13: expected type has type alternate
+++ clash ^- $-(@t alternate) first
+            ^
+/ui/obligation.jibb:12:30: actual type has type message
+++ clash ^- $-(@t alternate) first
+                             ^
+duplicate
+definition `send` shadows an earlier definition
+/ui/obligation.jibb:7:1: earlier definition
+++ send |= f=$-(@t A) f
+^
+/ui/obligation.jibb:12:1: conflicting definition
+++ send |= arg=@p arg
+^
+hole
+++ hole: type hole must be determined by its definition
+/ui/obligation.jibb:12:12: type hole
+++ hole ^- _ %idle
+           ^
+local
+module kind: library
++$ message: message
+++ send: $-($-(@t A) $-(@t A))
+++ outer: $-(@t $-(@t message))
+++ resolved: $-(@t $-(@t message))
+mutual
+module kind: library
++$ message: message
+++ send: $-($-(@t A) $-(@t A))
+++ first: $-(@t A)
+++ second: $-($-(@t message) A)
+++ resolved: $-(@t message)
+mold hole
++$ unused: type hole must be determined by its definition
+/ui/obligation.jibb:12:11: unresolved type hole
++$ unused _
+          ^
+faced callback
+module kind: library
++$ message: message
+++ send: $-($-([who=@t n=@ud] A) $-([who=@t n=@ud] A))
+++ nested: $-([who=@t n=@ud] message)
+++ resolved: $-([who=@t n=@ud] message)
+wrong callback face
+++ nested: constructor `%got` sample does not fit its case payload
+/ui/obligation.jibb:2:17: case payload has type [who=@t n=@ud]
+  [%got payload=[who=@t n=@ud]]
+                ^
+/ui/obligation.jibb:5:17: constructor sample has type [wrong=@t n=@ud]
+++ nested (send |=%got)
+                ^

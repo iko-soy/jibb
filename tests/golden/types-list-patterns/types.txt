@@ -1,18 +1,7 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-++ first-item: $-((list @t) @t)
-++ rest-items: $-((list @t) (list @t))
-++ parent: $-((list @t) @u)
-++ with-context: $-((list @t) msg)
-++ shadow: pattern binder shadows a name
-++ duplicate: pattern binder shadows a name
-++ unknown: unit branch pattern is not supported by partial inference
-++ not-list: unit branch pattern is not supported by partial inference
-++ missing: branch pattern is not supported by partial inference
-++ invalid: list branch pattern is not supported by partial inference
-++ unresolved: list branch results need unsupported inference
-++ duplicate-arm: branch is not supported by partial inference
-++ unrelated: tag needs context in partial inference
-++ empty-elements: list nonempty pattern is unreachable
-+$ maybe: cases proven disjoint; mold not checked
-++ unit-shape: unit branch pattern is not supported by partial inference
+++ shadow: pattern binder `xs` shadows a name already in scope
+/tests/golden/types-list-patterns/source.jibb:21:14: earlier binding
+++ shadow |= xs=(list @t)
+             ^
+/tests/golden/types-list-patterns/source.jibb:24:6: shadowing binder
+    [xs rest] xs
+     ^

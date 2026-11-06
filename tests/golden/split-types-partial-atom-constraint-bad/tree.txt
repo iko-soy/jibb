@@ -1,0 +1,13 @@
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (face 1:12 x (tvar 1:14 A))
+      (body 2:3
+        (trace 2:3
+          (cast 2:6 (aura 2:9 @) (wing 2:11 x))
+          (body 3:5 (wing 3:5 x))))))
+  (value 7:1 bad
+    (group 7:8
+      (call 7:9
+        (wing 7:9 keep)
+        (tuple 7:14 (lit 7:15 ~zod) (str 7:20 "hi"))))))

@@ -1,0 +1,8 @@
+/=  todo       /ui/api/todo
+/=  todo-list  /ui/todo-list
+
+++ main (page load view)
+++ load |=(~ (todo-by-id.todo 1 |=%one))
+
+++ view |= item=todo-item.todo
+  text "One todo"

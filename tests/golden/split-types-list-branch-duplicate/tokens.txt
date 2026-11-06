@@ -1,0 +1,39 @@
+61:1 glyph ++
+61:4 name duplicate
+61:14 glyph |=
+61:17 name xs
+61:19 tight glyph =
+61:20 tight glyph (
+61:21 tight name list
+61:26 aura @t
+61:28 tight glyph )
+62:3 INDENT
+62:3 glyph ^-
+62:6 glyph (
+62:7 tight name list
+62:12 aura @t
+62:14 tight glyph )
+63:5 INDENT
+63:5 glyph ?-
+63:8 name xs
+64:7 INDENT
+64:7 lit ~
+64:9 glyph ~[
+64:11 tight glyph ]
+65:7 NEWLINE
+65:7 lit ~
+65:9 glyph ~[
+65:11 tight glyph ]
+66:7 NEWLINE
+66:7 glyph [
+66:8 tight name item
+66:13 name rest
+66:17 tight glyph ]
+66:19 glyph [
+66:20 tight name item
+66:25 lit ~
+66:26 tight glyph ]
+66:27 DEDENT
+66:27 DEDENT
+66:27 DEDENT
+66:27 NEWLINE

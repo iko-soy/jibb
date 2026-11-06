@@ -1,0 +1,7 @@
+++ bad-width: list item does not fit its expected type
+/tests/golden/split-types-prelude-ui-bad-width/source.jibb:59:31: expected item has type attr
+++ bad-width ^- (element !!) (row ~[width+[%chars "wide"]] ~)
+                              ^
+/tests/golden/split-types-prelude-ui-bad-width/source.jibb:59:37: list item has type [%width [%chars @t]]
+++ bad-width ^- (element !!) (row ~[width+[%chars "wide"]] ~)
+                                    ^

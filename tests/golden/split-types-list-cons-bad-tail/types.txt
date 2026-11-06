@@ -1,0 +1,7 @@
+++ bad-tail: list tail does not fit its expected type
+/tests/golden/split-types-list-cons-bad-tail/source.jibb:12:16: expected list has type (list @t)
+++ bad-tail ^- (list @t) ["hi" ~zod]
+               ^
+/tests/golden/split-types-list-cons-bad-tail/source.jibb:12:32: list tail has type @p
+++ bad-tail ^- (list @t) ["hi" ~zod]
+                               ^

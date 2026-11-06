@@ -1,5 +1,5 @@
-partial inference; module not checked
-++ concrete: generic union name is not available in this scope
-++ via: generic union name is not available in this scope
-++ generic: generic union name is not available in this scope
-++ via-generic: generic union name is not available in this scope
+module kind: library
+++ concrete: (relay.mid @t @p)
+++ via: (relay.mid @t @p)
+++ generic: $-((relay.mid A B) (relay.mid A B))
+++ via-generic: (relay.mid @t B)

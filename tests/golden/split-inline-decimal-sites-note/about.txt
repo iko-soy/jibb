@@ -1,0 +1,4 @@
+source: split from inline-decimal-sites, preserving the original source lines
+tests: the independent note diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

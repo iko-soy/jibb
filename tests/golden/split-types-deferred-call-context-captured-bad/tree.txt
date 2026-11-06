@@ -1,0 +1,14 @@
+(module
+  (value 43:1 captured-bad
+    (gate 43:17
+      (bind 43:20 sample)
+      (body 44:3
+        (value 44:3 local
+          (gate 44:12 (bind 44:15 ignored) (wing 44:23 sample)))
+        (trace 45:3
+          (cast 45:6 (aura 45:9 @t) (wing 45:12 sample))
+          (body 46:5
+            (cast 46:5
+              (aura 46:8 @p)
+              (group 46:11
+                (call 46:12 (wing 46:12 local) (lit 46:18 ~zod))))))))))

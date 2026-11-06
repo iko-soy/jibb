@@ -1,0 +1,7 @@
+++ wrong-value: inline gate result does not unify with $-(@t A): @t versus $-(@t A)
+/tests/golden/split-types-request-normal-wrong-value/source.jibb:6:27: actual type has type @t
+++ wrong-value (plain.api "wrong")
+                          ^
+/tests/golden/split-types-request-normal-wrong-value/source.jibb:6:17: call context has type $-(@t A)
+++ wrong-value (plain.api "wrong")
+                ^

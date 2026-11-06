@@ -1,0 +1,2 @@
+message main has type
+site /ui/main-kind.jibb:1:4

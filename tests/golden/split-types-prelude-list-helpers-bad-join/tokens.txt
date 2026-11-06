@@ -1,0 +1,10 @@
+15:1 glyph ++
+15:4 name bad-join
+15:13 glyph (
+15:14 tight name join
+15:19 lit ~zod
+15:24 glyph ~[
+15:26 tight str "hi"
+15:30 tight glyph ]
+15:31 tight glyph )
+15:32 NEWLINE

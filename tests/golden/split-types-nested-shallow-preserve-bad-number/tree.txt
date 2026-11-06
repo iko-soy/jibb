@@ -1,0 +1,16 @@
+(module
+  (mold 1:1 extent
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %fill)
+        (face 2:10 n (aura 2:12 @ud)))
+      (const 3:3 %shrink)))
+  (mold 4:1 attribute
+    (union 5:3
+      (cell 5:3 (const 5:4 %width) (ref 5:11 extent))
+      (cell 6:3 (const 6:4 %gap) (aura 6:9 @tas))))
+  (value 18:1 bad-number
+    (cast 18:15
+      (ref 18:18 attribute)
+      (pair 18:28 width
+        (tuple 18:34 (lit 18:35 %fill) (str 18:41 "bad"))))))

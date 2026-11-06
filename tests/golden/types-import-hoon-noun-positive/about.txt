@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: `$%` imports as a union when its cases differ as nouns.
+tests: A tagged union with a noun payload imports and accepts atom and cell payloads under distinct tags.
+expect: parses
+expect-types: full checker result

@@ -1,0 +1,7 @@
+++ x: module `lib` has no value `absent`
+/tests/golden/module-import-missing-member-chained/source.jibb:1:5: earlier binding
+/=  lib /ui/lib
+    ^
+/tests/golden/module-import-missing-member-chained/source.jibb:2:12: unknown module member
+++ x title.absent.lib
+           ^

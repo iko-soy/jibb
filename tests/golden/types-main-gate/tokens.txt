@@ -1,0 +1,8 @@
+1:1 glyph ++
+1:4 name main
+1:9 glyph |=
+1:12 name x
+1:13 tight glyph =
+1:14 tight aura @t
+1:17 name x
+1:18 NEWLINE

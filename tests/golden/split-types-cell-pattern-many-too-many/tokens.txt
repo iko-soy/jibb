@@ -1,0 +1,22 @@
+25:1 glyph ++
+25:4 name too-many
+25:13 glyph |=
+25:16 name args
+25:20 tight glyph =
+25:21 tight glyph [
+25:22 tight aura @t
+25:25 aura @p
+25:27 tight glyph ]
+26:3 INDENT
+26:3 glyph ?-
+26:6 name args
+27:5 INDENT
+27:5 glyph [
+27:6 tight name a
+27:8 name b
+27:10 name c
+27:11 tight glyph ]
+27:13 name a
+27:14 DEDENT
+27:14 DEDENT
+27:14 NEWLINE

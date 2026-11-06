@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ choose: $-((unit @t) @t)
 ++ missing: @t
 ++ present: @t

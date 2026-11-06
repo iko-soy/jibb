@@ -1,0 +1,10 @@
++$ model @ud
++$ msg %ok
+++ init |= data=@t ^- model 0
+++ update |= [m=msg s=model] ^- [model (list (cmd msg))] [s ~]
+++ view |= s=model ^- (element msg) (text "ok")
+++ subs |= s=model ^- (list (sub msg)) ~[[%watch (pure %ok)]]
+++ p (program init update view subs)
+++ record [visible=(island p "seed") extra=0]
+++ revised record(visible=(^- (element !!) (text "ok")))
+++ main visible.revised

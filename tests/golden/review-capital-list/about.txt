@@ -1,0 +1,4 @@
+source: 2026-11-03 milestone 2 review, error E14c-capital-list
+tests: a capital constrained to a list by its body is diagnosed through the full checker
+expect: parses
+expect-types: exact full-checker error

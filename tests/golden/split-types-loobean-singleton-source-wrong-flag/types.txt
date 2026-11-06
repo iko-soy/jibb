@@ -1,0 +1,7 @@
+++ wrong-flag: cast mold and expression type do not unify
+/tests/golden/split-types-loobean-singleton-source-wrong-flag/source.jibb:6:18: cast mold has type %.y
+++ wrong-flag ^- yes %.n
+                 ^
+/tests/golden/split-types-loobean-singleton-source-wrong-flag/source.jibb:6:22: expression has type %.n
+++ wrong-flag ^- yes %.n
+                     ^

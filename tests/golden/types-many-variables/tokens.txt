@@ -69,7 +69,7 @@
 2:90 tight glyph )
 3:1 NEWLINE
 3:1 glyph ++
-3:4 name spin
+3:4 name loop
 3:9 glyph |=
 3:12 glyph [
 3:13 tight name a
@@ -101,7 +101,7 @@
 3:65 name aa
 3:67 tight glyph ]
 3:69 glyph (
-3:70 tight name spin
+3:70 tight name loop
 3:75 name a
 3:77 name b
 3:79 name c

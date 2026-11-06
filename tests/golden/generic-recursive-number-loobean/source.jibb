@@ -1,0 +1,10 @@
+++ range-up |= args=[A A] ^- (list A)
+  ?- args
+  [start finish]
+    ?- (gth start finish)
+    %.y !!
+    %.n
+      ?- (eq start finish)
+      %.y [start ~]
+      %.n [start (range-up (add start 1) finish)]
+++ bad (range-up %.y %.n)

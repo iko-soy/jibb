@@ -1,0 +1,6 @@
+8:1 glyph ++
+8:4 name base32
+8:11 glyph ^-
+8:14 aura @uv
+8:18 lit 30
+8:20 NEWLINE

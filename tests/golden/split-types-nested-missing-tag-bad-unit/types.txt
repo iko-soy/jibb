@@ -1,0 +1,13 @@
+++ bad-unit: msg has no case `%missing`
+/tests/golden/split-types-nested-missing-tag-bad-unit/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-nested-missing-tag-bad-unit/source.jibb:2:3: expected union has type msg
+  %add
+  ^
+/tests/golden/split-types-nested-missing-tag-bad-unit/source.jibb:14:16: expected union has type msg
+++ bad-unit ^- (unit state) `["hi" %missing]
+               ^
+/tests/golden/split-types-nested-missing-tag-bad-unit/source.jibb:14:36: tag literal has type %missing
+++ bad-unit ^- (unit state) `["hi" %missing]
+                                   ^

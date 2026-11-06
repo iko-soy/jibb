@@ -1,7 +1,9 @@
 ::  Budgeted gate-free verdicts require a witness and an inhabited sibling.
 /+  jibb
+/*  internal  %jibb  /lib/jibb/internal/jibb
 |%
 ++  gate-free-guard-errors
+  |=  qath=itype:jibb
   ^-  (list tape)
   =/  atom=itype:jibb  [%atom %t]
   =/  flag=itype:jibb  [%flag ~]
@@ -37,9 +39,9 @@
         ['nested unknown sibling' [%cell [%face %callback gate] [%face %other var]] 30 %unknown]
         ['unknown union and gate union' [%union ~[var gate] ~ ~ ~] 30 %no]
         ['empty union' [%union ~ ~ ~ ~] 30 %unknown]
-        ['validated jrec qath' [%jrec /lib/jibb/internal/jibb %qath ~ %i %ta %t] 30 %yes]
-        ['jrec gate sibling' [%cell gate [%jrec /lib/jibb/internal/jibb %qath ~ %i %ta %t]] 30 %no]
-        ['jrec list member' [%collection %list ~[[%jrec /lib/jibb/internal/jibb %qath ~ %i %ta %t]]] 30 %yes]
+        ['checked recursive qath' qath 1.024 %yes]
+        ['recursive qath gate sibling' [%cell gate qath] 1.024 %no]
+        ['recursive qath list member' [%collection %list ~[qath]] 1.024 %yes]
         ['nominal recursion' [%recursive %sur %node ~] 30 %unknown]
         ['unknown sibling budget' [%cell gate var] 2 %unknown]
         ['known sibling budget' [%cell gate atom] 2 %unknown]
@@ -60,10 +62,12 @@
   =?  errors  !=(path.b `~[[%item ~]])  ['list path incorrect' errors]
   =/  c=igate-free:jibb  (gate-free-type:jibb model 100 ~)
   =?  errors  ?=(^ path.c)  ['gate-free result carries witness path' errors]
-  =/  scheme=ischeme:jibb  [[%fn [%fvar 40] [%fvar 40]] ~[40]]
+  =/  scheme=ischeme:jibb  [[%fn [%fvar 40] [%fvar 40]] ~[40] ~]
   =/  initial=istate:jibb  *istate:jibb
-  =/  instantiated=[typ=itype:jibb state=istate:jibb]
+  =/  checked-instance=(unit [typ=itype:jibb state=istate:jibb])
     (instantiate-scheme:jibb scheme initial(next 50))
+  ?~  checked-instance  ~[leaf+"scheme instantiation failed"]
+  =/  instantiated=[typ=itype:jibb state=istate:jibb]  u.checked-instance
   =?  errors  !=(typ.instantiated [%fn [%fvar 50] [%fvar 50]])
     ['instantiation lost the gate-free constraint' errors]
   =?  errors  !=(next.state.instantiated 51)
@@ -73,25 +77,25 @@
   =/  keyed=(unit [types=(list itype:jibb) sub=isub:jibb])
     (itype-collection-keys:jibb %map ~[[%var 60] gate] ~)
   =/  expected-keys=(list itype:jibb)  ~[[%fvar 60] gate]
-  =/  expected-key-sub=isub:jibb  ~[[60 [%fvar 60]]]
+  =/  expected-key-sub=isub:jibb  (isub-from-bindings:jibb ~[[60 [%fvar 60]]])
   =?  errors  !=(keyed [~ [expected-keys expected-key-sub]])
     ['map key constraint or independent value changed' errors]
   =/  set-key=(unit [types=(list itype:jibb) sub=isub:jibb])
     (itype-collection-keys:jibb %set ~[[%cell [%var 61] [%var 62]]] ~)
   =/  expected-set=(list itype:jibb)  ~[[%cell [%fvar 61] [%fvar 62]]]
-  =/  expected-set-sub=isub:jibb  ~[[62 [%fvar 62]] [61 [%fvar 61]]]
+  =/  expected-set-sub=isub:jibb  (isub-from-bindings:jibb ~[[62 [%fvar 62]] [61 [%fvar 61]]])
   =?  errors  !=(set-key [~ [expected-set expected-set-sub]])
     ['nested set key variables were not constrained' errors]
   =?  errors  ?=(^ (itype-collection-keys:jibb %map ~[gate atom] ~))
     ['a gate-bearing map key was accepted' errors]
   =?  errors  ?=(^ (itype-collection-keys:jibb %set ~[[%cell atom gate]] ~))
     ['a nested gate-bearing set key was accepted' errors]
-  =?  errors  ?=(^ (itype-collection-keys:jibb %map ~[[%var 63] atom] ~[[63 gate]]))
+  =?  errors  ?=(^ (itype-collection-keys:jibb %map ~[[%var 63] atom] (isub-from-bindings:jibb ~[[63 gate]])))
     ['an existing gate substitution bypassed a map key' errors]
   =?  errors  ?=(^ (itype-unify:jibb [%var 60] gate expected-key-sub))
     ['a later gate substitution bypassed a map key' errors]
   =/  map-template=ischeme:jibb
-    [[%collection %map ~[[%fvar 70] [%var 71]]] ~[70 71]]
+    [[%collection %map ~[[%fvar 70] [%var 71]]] ~[70 71] ~]
   =?  errors  ?=(^ (template-apply:jibb map-template ~[gate atom]))
     ['template application accepted a gate map key' errors]
   =/  applied=(unit itype:jibb)
@@ -100,12 +104,12 @@
     [%collection %map ~[[%fvar 72] gate]]
   =?  errors  !=(applied [~ expected-applied])
     ['template application lost key constraint or changed value' errors]
-  =/  existing-sub=isub:jibb  ~[[72 gate]]
+  =/  existing-sub=isub:jibb  (isub-from-bindings:jibb ~[[72 gate]])
   =?  errors  ?=(^ (template-apply-sub:jibb map-template ~[[%var 72] atom] existing-sub))
     ['an existing gate substitution bypassed template validation' errors]
   =/  applied-sub=(unit [typ=itype:jibb sub=isub:jibb])
     (template-apply-sub:jibb map-template ~[[%var 72] gate] ~)
-  =/  expected-applied-sub=isub:jibb  ~[[72 [%fvar 72]]]
+  =/  expected-applied-sub=isub:jibb  (isub-from-bindings:jibb ~[[72 [%fvar 72]]])
   =?  errors  !=(applied-sub [~ [expected-applied expected-applied-sub]])
     ['template application did not retain the key substitution' errors]
   ::  The explicit budget is shared across the entire normalized type.
@@ -139,5 +143,11 @@
   (turn errors trip)
 ++  test-gate-free-guards
   ^-  tang
-  (turn gate-free-guard-errors |=(reason=tape leaf+reason))
+  =/  source=@t  '/= internal /lib/jibb/internal\0a+$ qath qath.internal\0a'
+  =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb source internal)
+  ?~  prepared  ~[leaf+"qath source did not prepare"]
+  =/  mold=(unit ischeme:jibb)  (find-jibb-mold:jibb %qath iface.u.prepared)
+  ?~  mold  ~[leaf+"qath source did not export its mold"]
+  ?.  ?=(%mrec -.typ.u.mold)  ~[leaf+"qath is not a checked recursive mold"]
+  (turn (gate-free-guard-errors typ.u.mold) |=(reason=tape leaf+reason))
 --

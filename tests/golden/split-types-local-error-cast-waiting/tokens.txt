@@ -1,0 +1,27 @@
+5:1 glyph ++
+5:4 name waiting
+5:12 glyph |=
+5:15 name x
+5:16 tight glyph =
+5:17 tight aura @t
+6:3 INDENT
+6:3 glyph ++
+6:6 name first
+6:12 glyph (
+6:13 tight name second
+6:20 name x
+6:21 tight glyph )
+7:3 NEWLINE
+7:3 glyph ++
+7:6 name second
+7:13 glyph |=
+7:16 name y
+7:17 tight glyph =
+7:18 tight aura @t
+7:21 glyph ^-
+7:24 aura @ud
+7:28 name y
+8:3 NEWLINE
+8:3 name first
+8:8 DEDENT
+8:8 NEWLINE

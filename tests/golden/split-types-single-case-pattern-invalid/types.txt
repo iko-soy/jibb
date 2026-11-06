@@ -1,0 +1,7 @@
+++ invalid: pattern cannot match the subject
+/tests/golden/split-types-single-case-pattern-invalid/source.jibb:19:5: unreachable pattern
+    [%go u] u
+    ^
+/tests/golden/split-types-single-case-pattern-invalid/source.jibb:18:6: subject has type @t
+  ?- p
+     ^

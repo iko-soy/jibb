@@ -1,56 +1,7 @@
-partial inference; module not checked
-++ compare-bools: ?
-++ compare-bool-gate: $-([a=? b=?] ?)
-++ compare-decimal: ?
-++ compare-hex: ?
-++ compare-generic: $-(A ?) where A is an atom
 ++ bad-mixed: call's sample and argument types do not unify
-/tests/golden/types-prelude-arithmetic/source.jibb:6:15: called gate has type $-([A A] ?) where A is an atom
+/tests/golden/types-prelude-arithmetic/source.jibb:6:15: called gate has type $-([@p @p] ?)
 ++ bad-mixed (gth ~zod "hi")
               ^
-/tests/golden/types-prelude-arithmetic/source.jibb:6:19: argument has type [@p @t]
+/tests/golden/types-prelude-arithmetic/source.jibb:6:24: argument has type @t
 ++ bad-mixed (gth ~zod "hi")
-                  ^
-++ bad-cell: call's sample and argument types do not unify
-/tests/golden/types-prelude-arithmetic/source.jibb:7:14: called gate has type $-([A A] ?) where A is an atom
-++ bad-cell (gth [1 2] [3 4])
-             ^
-/tests/golden/types-prelude-arithmetic/source.jibb:7:18: argument
-++ bad-cell (gth [1 2] [3 4])
-                 ^
-++ atom-id: $-(A A) where A is an atom
-++ atom-id-bool: ?
-++ atom-id-text: @t
-++ reject-bool-add: call's sample and argument types do not unify
-/tests/golden/types-prelude-arithmetic/source.jibb:13:21: called gate has type $-([A A] A) where A is an atom other than ?
-++ reject-bool-add (add %.n %.n)
-                    ^
-/tests/golden/types-prelude-arithmetic/source.jibb:13:25: argument has type ?
-++ reject-bool-add (add %.n %.n)
-                        ^
-++ add-decimal: @ud
-++ add-hex: @ux
-++ reject-bool-dec: call's sample and argument types do not unify
-/tests/golden/types-prelude-arithmetic/source.jibb:16:21: called gate has type $-(A A) where A is an atom other than ?
-++ reject-bool-dec (dec %.n)
-                    ^
-/tests/golden/types-prelude-arithmetic/source.jibb:16:25: argument has type ?
-++ reject-bool-dec (dec %.n)
-                        ^
-++ dec-hex: @ux
-++ list-length: @ud
-++ captured: call's sample and argument types do not unify
-/tests/golden/types-prelude-arithmetic/source.jibb:19:21: called gate has type $-([A A] A) where A is an atom other than ?
-++ captured |= x=? (add x x)
-                    ^
-/tests/golden/types-prelude-arithmetic/source.jibb:19:25: argument has type ?
-++ captured |= x=? (add x x)
-                        ^
-++ captured-local: call's sample and argument types do not unify
-/tests/golden/types-prelude-arithmetic/source.jibb:21:20: called gate has type $-([A A] A) where A is an atom other than ?
-  ++ local |= y=? (add x y)
-                   ^
-/tests/golden/types-prelude-arithmetic/source.jibb:21:24: argument has type ?
-  ++ local |= y=? (add x y)
                        ^
-++ inc: $-(A A) where A is an atom other than ?

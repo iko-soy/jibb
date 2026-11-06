@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-union-singleton-bad-call/source.jibb:14:14
+typed-site /tests/golden/split-types-union-singleton-bad-call/source.jibb:14:18
+min-sites 2

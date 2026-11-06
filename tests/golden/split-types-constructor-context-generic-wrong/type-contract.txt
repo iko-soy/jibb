@@ -1,0 +1,4 @@
+message constructor `%got` sample does not fit its case payload
+site /tests/golden/split-types-constructor-context-generic-wrong/source.jibb:12:15
+site /tests/golden/split-types-constructor-context-generic-wrong/source.jibb:22:38
+min-sites 2

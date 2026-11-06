@@ -1,0 +1,3 @@
+origin inline-decimal-sites
+target value payload
+keep value payload

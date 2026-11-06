@@ -1,0 +1,22 @@
+(module
+  (value 1:1 both
+    (gate 1:9
+      (face 1:12 p
+        (cell 1:14 (tvar 1:15 A) (tvar 1:17 B)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 p)
+          (arm 3:5
+            (cell 3:5 (bind 3:6 a) (bind 3:8 b))
+            (body 4:7
+              (trace 4:7
+                (cast 4:10 (aura 4:13 @) (wing 4:15 a))
+                (body 5:9
+                  (cast 5:9 (aura 5:12 @) (wing 5:14 b))))))))))
+  (value 7:1 bad
+    (group 7:8
+      (call 7:9
+        (wing 7:9 both)
+        (tuple 7:14
+          (lit 7:15 ~zod)
+          (tuple 7:20 (lit 7:21 ~zod) (str 7:26 "hi")))))))

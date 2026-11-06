@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ same: $-(A A)
 ++ head: $-([A B] A)
 ++ tail: $-([A B] B)

@@ -1,0 +1,7 @@
+++ base32: `30` is a @ud, not a @uv; write 0vu
+/tests/golden/split-inline-decimal-aura-bad-base32/source.jibb:8:18: decimal
+++ base32 ^- @uv 30
+                 ^
+/tests/golden/split-inline-decimal-aura-bad-base32/source.jibb:8:14: expected type has type @uv
+++ base32 ^- @uv 30
+             ^

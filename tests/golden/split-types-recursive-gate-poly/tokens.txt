@@ -1,0 +1,14 @@
+11:1 glyph ++
+11:4 name poly
+11:9 glyph |=
+11:12 name x
+11:13 tight glyph =
+11:14 tight tvar A
+11:16 glyph (
+11:17 tight name poly
+11:22 glyph [
+11:23 tight name x
+11:25 name x
+11:26 tight glyph ]
+11:27 tight glyph )
+11:28 NEWLINE

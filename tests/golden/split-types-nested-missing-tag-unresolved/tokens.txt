@@ -1,0 +1,16 @@
+18:1 glyph ++
+18:4 name unresolved
+18:15 glyph |=
+18:18 name x
+18:19 tight glyph =
+18:20 tight tvar A
+18:22 glyph ^-
+18:25 glyph [
+18:26 tight tvar A
+18:28 tvar A
+18:29 tight glyph ]
+18:31 glyph [
+18:32 tight name x
+18:34 lit %missing
+18:42 tight glyph ]
+18:43 NEWLINE

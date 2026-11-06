@@ -1,0 +1,212 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %save
+3:3 NEWLINE
+3:3 lit %toggle
+4:3 NEWLINE
+4:3 glyph [
+4:4 tight lit %edited
+4:12 name value
+4:17 tight glyph =
+4:18 tight aura @t
+4:20 tight glyph ]
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph +$
+5:4 name model
+5:10 glyph [
+5:11 tight name count
+5:16 tight glyph =
+5:17 tight aura @ud
+5:20 tight glyph ]
+44:1 NEWLINE
+44:1 glyph ++
+44:4 name save-message
+44:17 glyph ^-
+44:20 name msg
+44:24 lit %save
+45:1 NEWLINE
+45:1 glyph ++
+45:4 name toggle-message
+45:19 glyph ^-
+45:22 name msg
+45:26 lit %toggle
+46:1 NEWLINE
+46:1 glyph ++
+46:4 name save-button
+46:16 glyph ^-
+46:19 glyph (
+46:20 tight name element
+46:28 name msg
+46:31 tight glyph )
+46:33 glyph (
+46:34 tight name button
+46:41 str "Save"
+46:48 name save-message
+46:60 tight glyph )
+47:1 NEWLINE
+47:1 glyph ++
+47:4 name enabled-toggle
+47:19 glyph ^-
+47:22 glyph (
+47:23 tight name element
+47:31 name msg
+47:34 tight glyph )
+47:36 glyph (
+47:37 tight name toggle
+47:44 lit %.y
+47:48 str "Enabled"
+47:58 name toggle-message
+47:72 tight glyph )
+48:1 NEWLINE
+48:1 glyph ++
+48:4 name edit-message
+48:17 glyph |=
+48:20 name value
+48:25 tight glyph =
+48:26 tight aura @t
+48:29 glyph ^-
+48:32 name msg
+48:36 glyph [
+48:37 tight lit %edited
+48:45 name value
+48:50 tight glyph ]
+49:1 NEWLINE
+49:1 glyph ++
+49:4 name name-field
+49:15 glyph ^-
+49:18 glyph (
+49:19 tight name element
+49:27 name msg
+49:30 tight glyph )
+49:32 glyph (
+49:33 tight name field
+49:39 str "Name"
+49:46 str "value"
+49:54 name edit-message
+49:66 tight glyph )
+50:1 NEWLINE
+50:1 glyph ++
+50:4 name controls
+50:13 glyph ^-
+50:16 glyph (
+50:17 tight name element
+50:25 name msg
+50:28 tight glyph )
+51:3 INDENT
+51:3 glyph (
+51:4 tight name form
+51:9 name save-message
+51:22 glyph ~[
+51:24 tight name save-button
+51:36 name enabled-toggle
+51:51 name name-field
+51:61 tight glyph ]
+51:62 tight glyph )
+67:1 DEDENT
+67:1 NEWLINE
+67:1 glyph ++
+67:4 name init
+67:9 glyph |=
+67:12 name input
+67:17 tight glyph =
+67:18 tight aura @t
+67:21 glyph ^-
+67:24 name model
+67:30 glyph [
+67:31 tight name count
+67:36 tight glyph =
+67:37 tight lit 0
+67:38 tight glyph ]
+68:1 NEWLINE
+68:1 glyph ++
+68:4 name update
+68:11 glyph |=
+68:14 glyph [
+68:15 tight name message
+68:22 tight glyph =
+68:23 tight name msg
+68:27 name state
+68:32 tight glyph =
+68:33 tight name model
+68:38 tight glyph ]
+69:3 INDENT
+69:3 glyph ^-
+69:6 glyph [
+69:7 tight name model
+69:13 glyph (
+69:14 tight name list
+69:19 glyph (
+69:20 tight name cmd
+69:24 name msg
+69:27 tight glyph )
+69:28 tight glyph )
+69:29 tight glyph ]
+69:31 glyph [
+69:32 tight name state
+69:38 lit ~
+69:39 tight glyph ]
+70:1 DEDENT
+70:1 NEWLINE
+70:1 glyph ++
+70:4 name view
+70:9 glyph |=
+70:12 name state
+70:17 tight glyph =
+70:18 tight name model
+70:24 glyph ^-
+70:27 glyph (
+70:28 tight name element
+70:36 name msg
+70:39 tight glyph )
+70:41 glyph (
+70:42 tight name controls
+70:50 tight glyph )
+71:1 NEWLINE
+71:1 glyph ++
+71:4 name subs
+71:9 glyph |=
+71:12 name state
+71:17 tight glyph =
+71:18 tight name model
+71:24 glyph ^-
+71:27 glyph (
+71:28 tight name list
+71:33 glyph (
+71:34 tight name sub
+71:38 name msg
+71:41 tight glyph )
+71:42 tight glyph )
+71:44 lit ~
+72:1 NEWLINE
+72:1 glyph ++
+72:4 name concrete-program
+72:21 glyph ^-
+72:24 glyph (
+72:25 tight name program
+72:33 aura @t
+72:36 name model
+72:42 name msg
+72:45 tight glyph )
+72:47 glyph (
+72:48 tight name program
+72:56 name init
+72:61 name update
+72:68 name view
+72:73 name subs
+72:77 tight glyph )
+74:1 NEWLINE
+74:1 glyph ++
+74:4 name mismatched-island-data
+74:27 glyph ^-
+74:30 glyph (
+74:31 tight name element
+74:39 glyph !!
+74:41 tight glyph )
+74:43 glyph (
+74:44 tight name island
+74:51 name concrete-program
+74:68 lit ~zod
+74:72 tight glyph )
+74:73 NEWLINE

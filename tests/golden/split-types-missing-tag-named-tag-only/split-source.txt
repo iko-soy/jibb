@@ -1,0 +1,4 @@
+origin types-missing-tag-named
+target value tag-only
+keep mold msg
+keep value tag-only

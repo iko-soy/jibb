@@ -1,0 +1,42 @@
+(module
+  (value 1:1 nil-arg
+    (gate 1:12
+      (face 1:15 f
+        (fn 1:17
+          (cell 1:20
+            (apply 1:21 list (aura 1:27 @t))
+            (aura 1:31 @t))
+          (aura 1:35 @t)))
+      (group 1:39
+        (call 1:40
+          (wing 1:40 f)
+          (tuple 1:42 (lit 1:43 ~) (str 1:45 "ok"))))))
+  (value 2:1 zero-arg
+    (gate 2:13
+      (face 2:16 f
+        (fn 2:18
+          (cell 2:21
+            (apply 2:22 list (aura 2:28 @t))
+            (aura 2:32 @t))
+          (aura 2:36 @t)))
+      (group 2:40
+        (call 2:41
+          (wing 2:41 f)
+          (tuple 2:43 (lit 2:44 %$) (str 2:47 "ok"))))))
+  (value 4:1 multi-arg
+    (gate 4:14
+      (face 4:17 f
+        (fn 4:19
+          (cell 4:22
+            (apply 4:23 list (aura 4:29 @t))
+            (aura 4:33 @t))
+          (aura 4:37 @t)))
+      (group 4:41
+        (call 4:42 (wing 4:42 f) (lit 4:44 ~) (str 4:46 "ok")))))
+  (value 8:1 turn-tuple
+    (group 8:15
+      (call 8:16
+        (wing 8:16 turn)
+        (tuple 8:21
+          (lit 8:22 ~)
+          (gate-wide 8:24 (bind 8:27 x) (wing 8:29 x)))))))

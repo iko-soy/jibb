@@ -1,0 +1,7 @@
+++ bad: types do not unify
+/ui/helpers.jibb:1:9: expected type has type A where A is an atom other than ?
+++ bad (mul %.y %.n)
+        ^
+/ui/helpers.jibb:1:13: actual type has type ?
+++ bad (mul %.y %.n)
+            ^

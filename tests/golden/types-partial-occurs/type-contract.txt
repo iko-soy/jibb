@@ -1,0 +1,4 @@
+message call requires an infinite type: its gate occurs inside its own sample
+typed-site /tests/golden/types-partial-occurs/source.jibb:1:21
+typed-site /tests/golden/types-partial-occurs/source.jibb:1:23
+min-sites 2

@@ -1,0 +1,4 @@
+++ a: cores and gates cannot be imported
+/tests/golden/review-import-core/source.jibb:2:11: invalid imported mold
+++ a |= x=cor.fixture x
+          ^

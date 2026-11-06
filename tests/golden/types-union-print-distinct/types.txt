@@ -1,9 +1,7 @@
-partial inference; module not checked
-++ a: $-(msg.left msg.left)
-++ b: $-(msg.right msg.right)
-++ c: $-(msg.twin msg.twin)
-++ from-left: msg.left
-++ cross: call constraint is not supported by partial inference
-++ apply: $-($-(msg.left @t) @t)
-++ other: $-(msg.twin @t)
-++ higher: call constraint is not supported by partial inference
+++ cross: call's sample and argument types do not unify
+/tests/golden/types-union-print-distinct/source.jibb:8:11: called gate has type $-(msg.twin msg.twin)
+++ cross (c from-left)
+          ^
+/tests/golden/types-union-print-distinct/source.jibb:8:13: argument has type msg.left
+++ cross (c from-left)
+            ^

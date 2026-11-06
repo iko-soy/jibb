@@ -1,0 +1,7 @@
+++ bad: list item does not fit its expected type
+/tests/golden/generic-collection-gate-error/source.jibb:3:9: expected item has type A where A contains no gates
+++ bad (same-list ~[callback])
+        ^
+/tests/golden/generic-collection-gate-error/source.jibb:3:21: list item has type $-(@ud @ud)
+++ bad (same-list ~[callback])
+                    ^

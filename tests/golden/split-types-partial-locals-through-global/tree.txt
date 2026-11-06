@@ -1,0 +1,22 @@
+(module
+  (value 35:1 wrap-value
+    (gate 35:15
+      (bind 35:18 y)
+      (gate-wide 35:20 (bind 35:23 z) (wing 35:25 y))))
+  (value 36:1 through-global
+    (gate 36:19
+      (bind 36:22 x)
+      (body 37:3
+        (value 37:3 local
+          (group 37:12
+            (call 37:13 (wing 37:13 wrap-value) (wing 37:24 x))))
+        (trace 38:3
+          (cast 38:6
+            (aura 38:9 @t)
+            (group 38:12
+              (call 38:13 (wing 38:13 local) (lit 38:19 ~zod))))
+          (body 39:5
+            (cast 39:5
+              (aura 39:8 @p)
+              (group 39:11
+                (call 39:12 (wing 39:12 local) (str 39:18 "hi"))))))))))

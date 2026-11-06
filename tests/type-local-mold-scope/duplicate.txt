@@ -1,0 +1,4 @@
+++ bad |= x=@t
+  +$ item @t
+  +$ item @ud
+  x

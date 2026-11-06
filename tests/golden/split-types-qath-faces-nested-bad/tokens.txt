@@ -1,0 +1,40 @@
+7:1 glyph ++
+7:4 name nested-bad
+7:15 glyph |=
+7:18 name x
+7:19 tight glyph =
+7:20 tight glyph [
+7:21 tight name outer
+7:26 tight glyph =
+7:27 tight glyph [
+7:28 tight name bad
+7:31 tight glyph =
+7:32 tight name qath
+7:37 name yes
+7:40 tight glyph =
+7:41 tight glyph ?
+7:42 tight glyph ]
+7:44 name done
+7:48 tight glyph =
+7:49 tight glyph ?
+7:50 tight glyph ]
+8:3 INDENT
+8:3 glyph ^-
+8:6 glyph [
+8:7 tight name outer
+8:12 tight glyph =
+8:13 tight glyph [
+8:14 tight name good
+8:18 tight glyph =
+8:19 tight name qath
+8:24 name yes
+8:27 tight glyph =
+8:28 tight glyph ?
+8:29 tight glyph ]
+8:31 name done
+8:35 tight glyph =
+8:36 tight glyph ?
+8:37 tight glyph ]
+8:39 name x
+8:40 DEDENT
+8:40 NEWLINE

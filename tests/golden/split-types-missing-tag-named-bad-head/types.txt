@@ -1,0 +1,13 @@
+++ bad-head: msg has no case `%other`
+/tests/golden/split-types-missing-tag-named-bad-head/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-missing-tag-named-bad-head/source.jibb:2:3: expected union has type msg
+  [%typed text=@t]
+  ^
+/tests/golden/split-types-missing-tag-named-bad-head/source.jibb:11:20: expected union has type msg
+++ bad-head ^- msg [%other "ok"]
+                   ^
+/tests/golden/split-types-missing-tag-named-bad-head/source.jibb:11:21: tag literal has type %other
+++ bad-head ^- msg [%other "ok"]
+                    ^

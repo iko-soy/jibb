@@ -1,0 +1,5 @@
+origin types-record-cast-context
+target value wrong-tag
+keep mold inner
+keep mold msg
+keep value wrong-tag

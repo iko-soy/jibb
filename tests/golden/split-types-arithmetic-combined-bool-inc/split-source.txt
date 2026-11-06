@@ -1,0 +1,4 @@
+origin types-arithmetic-combined
+target value bool-inc
+keep value bool-inc
+keep value inc

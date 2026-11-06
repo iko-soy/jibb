@@ -1,0 +1,4 @@
+message list item does not fit its expected type
+typed-site /tests/golden/generic-collection-gate-error/source.jibb:3:9
+typed-site /tests/golden/generic-collection-gate-error/source.jibb:3:21
+min-sites 2

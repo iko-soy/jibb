@@ -1,0 +1,18 @@
+module kind: library
+++ keep-axis: $-(@ @)
+++ keep-bean: $-(? ?)
+++ keep-flag: $-(? ?)
+++ keep-char: $-(@t @t)
+++ keep-byts: $-([wid=@ud dat=@] [wid=@ud dat=@])
+++ keep-noun: $-(* *)
+++ keep-tour: $-((list @c) (list @c))
+++ keep-tarp: $-([d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]] [d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]])
+++ keep-date: $-([[a=? y=@ud] [m=@ud t=[d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]]]] [[a=? y=@ud] [m=@ud t=[d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]]]])
+++ keep-term: $-(@tas @tas)
+++ keep-wain: $-((list @t) (list @t))
+++ keep-wall: $-((list (list @tD)) (list (list @tD)))
+++ keep-stud: $-(stud stud)
+++ bytes: [wid=@ud dat=@]
+++ bytes-width: @ud
+++ text-lines: (list @t)
+++ wall-lines: (list (list @tD))

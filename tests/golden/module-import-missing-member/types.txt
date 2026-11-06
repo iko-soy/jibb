@@ -1,2 +1,7 @@
-partial inference; module not checked
-++ x: module member is not available to partial inference
+++ x: module `lib` has no value `absent`
+/tests/golden/module-import-missing-member/source.jibb:1:5: earlier binding
+/=  lib /ui/lib
+    ^
+/tests/golden/module-import-missing-member/source.jibb:2:7: unknown module member
+++ x (absent.lib "hi")
+      ^

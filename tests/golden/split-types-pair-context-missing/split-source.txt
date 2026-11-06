@@ -1,0 +1,6 @@
+origin types-pair-context
+target value missing
+keep mold attribute
+keep mold extent
+keep mold spacing
+keep value missing

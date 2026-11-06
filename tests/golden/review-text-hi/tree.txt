@@ -1,0 +1,6 @@
+(module
+  (value 1:1 v
+    (cast 1:6
+      (apply 1:9 list
+        (apply 1:15 element (void 1:24)))
+      (list 1:29 (wing 1:31 text) (str 1:36 "hi")))))

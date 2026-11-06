@@ -1,0 +1,7 @@
+(module
+  (value 1:1 link-to
+    (gate 1:12
+      (face 1:15 n (tvar 1:17 A))
+      (qath 1:19
+        blog
+        (call 1:27 (wing 1:27 add) (wing 1:31 n) (lit 1:33 1))))))

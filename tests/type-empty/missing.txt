@@ -1,6 +1,7 @@
 +$ split
   [%dead [!! @t]]
   [%live @t]
+  [%other @p]
 ++ select |= x=split
   ?- x
-    [%dead impossible] "dead"
+    [%live text] text

@@ -1,0 +1,7 @@
+++ force-equal: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/split-types-local-capitals-force-equal/source.jibb:55:18: first type variable
+  ++ inner |= [a=A b=B] ^- A b
+                 ^
+/tests/golden/split-types-local-capitals-force-equal/source.jibb:55:22: second type variable
+  ++ inner |= [a=A b=B] ^- A b
+                     ^

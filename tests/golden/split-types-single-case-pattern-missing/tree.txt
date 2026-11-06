@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 8:1 missing
+    (gate 8:12
+      (face 8:15 p (ref 8:17 packet))
+      (body 9:3
+        (branch 9:3
+          (wing 9:6 p)
+          (arm 10:5
+            (cell 10:5 (lit 10:6 %stop) (bind 10:12 u))
+            (wing 10:15 u)))))))

@@ -1,0 +1,4 @@
+++ isolated: type hole needs a determined type
+/tests/golden/split-types-qath-holes-isolated/source.jibb:4:30: unresolved type hole
+++ isolated |= [p=qath other=_] p
+                             ^

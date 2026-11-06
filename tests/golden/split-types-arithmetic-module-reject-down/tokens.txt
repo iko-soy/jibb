@@ -1,0 +1,14 @@
+1:1 glyph /=
+1:4 name math
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot math
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name reject-down
+7:16 glyph (
+7:17 tight wing down.math
+7:27 lit %.y
+7:30 tight glyph )
+7:31 NEWLINE

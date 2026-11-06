@@ -5,4 +5,4 @@
 ++ outer |= input=@t
   ++ tmp (send |=%got)
   tmp
-++ main ^- $-(@t $-(@t message)) outer
+++ resolved ^- $-(@t $-(@t message)) outer

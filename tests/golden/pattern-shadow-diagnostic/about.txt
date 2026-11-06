@@ -1,0 +1,4 @@
+source: Grammar, Modules and Patterns: names may not shadow earlier bindings.
+tests: Lexical binding diagnostics preserve the earlier and conflicting sites.
+expect: parses
+expect-types: full checker report

@@ -1,0 +1,3 @@
+origin types-loobean-singleton-source
+target value wrong-ud
+keep value wrong-ud

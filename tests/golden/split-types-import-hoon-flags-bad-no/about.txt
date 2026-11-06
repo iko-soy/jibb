@@ -1,0 +1,4 @@
+source: split from types-import-hoon-flags, preserving the original source lines
+tests: the independent bad-no diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

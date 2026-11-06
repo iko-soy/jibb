@@ -1,0 +1,7 @@
+++ generic-unknown: capital `A` cannot be fixed to %submitt
+/tests/golden/split-types-missing-tag-named-generic-unknown/source.jibb:23:25: capital
+++ generic-unknown |= x=A ^- A %submitt
+                        ^
+/tests/golden/split-types-missing-tag-named-generic-unknown/source.jibb:23:32: forcing expression
+++ generic-unknown |= x=A ^- A %submitt
+                               ^

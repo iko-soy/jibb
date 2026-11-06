@@ -1,2 +1,7 @@
-partial inference; module not checked
-module has conflicting names
+definition `list` shadows a prelude name
+/tests/golden/module-import-prelude-mold-shadow/source.jibb:1:1: conflicting definition
++$ list @t
+^
+/lib/jibb/prelude.jibb:24:1: prelude declaration
++$ list |$ [A]
+^

@@ -1,0 +1,8 @@
+++ nil-arg |= f=$-([(list @t) @t] @t) (f [~ "ok"])
+++ zero-arg |= f=$-([(list @t) @t] @t) (f [%$ "ok"])
+
+++ multi-arg |= f=$-([(list @t) @t] @t) (f ~ "ok")
+
+
+
+++ turn-tuple (turn [~ |=(x x)])

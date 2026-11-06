@@ -1,0 +1,3 @@
+origin types-prelude-arithmetic
+target value bad-cell
+keep value bad-cell

@@ -1,0 +1,56 @@
+
+
+
+++ local-id |= x x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ recursive |= [flag=? value]
+  ^- (list @t)
+    ?- flag
+      %.y (local-id value)
+      %.n (recursive flag value)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

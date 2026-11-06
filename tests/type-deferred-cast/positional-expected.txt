@@ -1,0 +1,34 @@
+forward:
+module kind: library
++$ msg: msg
+++ expects: $-([node=(element msg) payload=[label=@t count=@ud]] [label=@t count=@ud])
+++ pending: (element msg)
+++ result: [label=@t count=@ud]
+reverse:
+module kind: library
++$ msg: msg
+++ result: [label=@t count=@ud]
+++ pending: (element msg)
+++ expects: $-([node=(element msg) payload=[label=@t count=@ud]] [label=@t count=@ud])
+wrong payload:
+++ bad: inline gate result does not unify with @t: @p versus @t
+/tests/call-positional.jibb:6:32: actual type has type @p
+++ bad (expects pending [label=~zod count=5])
+                               ^
+/tests/call-positional.jibb:6:9: call context has type [(element msg) [label=@t count=@ud]]
+++ bad (expects pending [label=~zod count=5])
+        ^
+wrong tag:
+++ pending: msg has no case `%typo`
+/tests/call-positional.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/call-positional.jibb:2:3: expected union has type msg
+  %hit
+  ^
+/tests/call-positional.jibb:6:12: expected union has type msg
+++ result (expects pending [label="hi" count=5])
+           ^
+/tests/call-positional.jibb:5:24: tag literal has type %typo
+++ pending (button "x" %typo)
+                       ^

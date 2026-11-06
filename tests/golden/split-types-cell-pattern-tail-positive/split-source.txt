@@ -1,0 +1,5 @@
+origin types-cell-pattern-tail
+target value pair
+keep mold either
+keep value pair
+keep value pair-union

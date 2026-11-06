@@ -1,0 +1,7 @@
+++ bad-sum: inline gate result does not unify with A: ? versus A
+/tests/golden/split-types-arithmetic-generic-bad-sum/source.jibb:10:17: actual type has type ?
+++ bad-sum (sum %.y %.n)
+                ^
+/tests/golden/split-types-arithmetic-generic-bad-sum/source.jibb:10:13: call context has type [A A] where A is an atom other than ?
+++ bad-sum (sum %.y %.n)
+            ^

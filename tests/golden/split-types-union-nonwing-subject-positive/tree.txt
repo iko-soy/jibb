@@ -1,0 +1,82 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %item)
+        (face 2:10 flag (flag 2:15))
+        (face 2:17 text (aura 2:22 @t)))
+      (const 3:3 %none)))
+  (value 7:1 local-id
+    (gate 7:13 (bind 7:16 x) (wing 7:18 x)))
+  (value 8:1 passthrough
+    (gate 8:16
+      (face 8:19 x (ref 8:21 input))
+      (wing 8:27 x)))
+  (value 9:1 grouped
+    (gate 9:12
+      (face 9:15 x (ref 9:17 input))
+      (cast 9:23
+        (apply 9:26 list (aura 9:32 @t))
+        (body 10:3
+          (branch 10:3
+            (group 10:6 (wing 10:7 x))
+            (arm 11:5
+              (cell 11:5 (lit 11:6 %item) (bind 11:12 flag) (bind 11:17 words))
+              (list 11:24 (wing 11:26 words)))
+            (arm 12:5 (lit 12:5 %none) (lit 12:11 ~)))))))
+  (value 13:1 call
+    (gate 13:9
+      (face 13:12 x (ref 13:14 input))
+      (cast 13:20
+        (apply 13:23 list (aura 13:29 @t))
+        (body 14:3
+          (branch 14:3
+            (group 14:6
+              (call 14:7 (wing 14:7 local-id) (wing 14:16 x)))
+            (arm 15:5
+              (cell 15:5 (lit 15:6 %item) (bind 15:12 flag) (bind 15:17 words))
+              (list 15:24 (wing 15:26 words)))
+            (arm 16:5 (lit 16:5 %none) (lit 16:11 ~)))))))
+  (value 21:1 finite
+    (gate 21:11
+      (face 21:14 x (ref 21:16 input))
+      (cast 21:22
+        (apply 21:25 list (aura 21:31 @t))
+        (body 22:3
+          (branch 22:3
+            (group 22:6
+              (call 22:7 (wing 22:7 local-id) (wing 22:16 x)))
+            (arm 23:5
+              (cell 23:5 (lit 23:6 %item) (lit 23:12 %.y) (bind 23:16 words))
+              (list 23:23 (wing 23:25 words)))
+            (arm 24:5
+              (cell 24:5 (lit 24:6 %item) (lit 24:12 %.n) (bind 24:16 words))
+              (list 24:23))
+            (arm 25:5 (lit 25:5 %none) (lit 25:11 ~)))))))
+  (mold 59:1 payload
+    (generic 59:12 A
+      (union 60:3
+        (cell 60:3
+          (const 60:4 %present)
+          (face 60:13 value (tvar 60:19 A)))
+        (const 61:3 %none))))
+  (value 62:1 shared
+    (gate 62:11
+      (cell 62:14
+        (face 62:15 x
+          (apply 62:17 payload (tvar 62:26 A)))
+        (face 62:29 y (tvar 62:31 A)))
+      (cast 62:34
+        (apply 62:37 list (tvar 62:43 A))
+        (body 63:3
+          (branch 63:3
+            (group 63:6
+              (call 63:7 (wing 63:7 local-id) (wing 63:16 x)))
+            (arm 64:5
+              (cell 64:5 (lit 64:6 %present) (bind 64:15 v))
+              (list 64:18 (wing 64:20 y) (wing 64:22 v)))
+            (arm 65:5 (lit 65:5 %none) (lit 65:11 ~)))))))
+  (value 70:1 first-of
+    (gate 70:13
+      (cell 70:16 (bind 70:17 a) (bind 70:19 b))
+      (wing 70:22 a))))

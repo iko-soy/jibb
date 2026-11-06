@@ -1,0 +1,16 @@
+
++$ typed [%typed text=@t]
+
+
+
+
+
+
+
+++ missing ^- $-(@t typed) |=%missing
+
+
+
+
+
+

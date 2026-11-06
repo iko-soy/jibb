@@ -1,0 +1,15 @@
+1:1 glyph /=
+1:4 name math
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot math
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name reject-alias
+8:17 glyph (
+8:18 tight wing alias.math
+8:29 lit %.n
+8:33 lit %.y
+8:36 tight glyph )
+8:37 NEWLINE

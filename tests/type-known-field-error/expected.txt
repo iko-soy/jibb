@@ -1,0 +1,56 @@
+sample record
+++ f: record has no field `c`
+/ui/fields.jibb:1:9: record binding has type [a=@ud b=@ud]
+++ f |= p=[a=@ud b=@ud] c.p
+        ^
+/ui/fields.jibb:1:25: field access on record has type [a=@ud b=@ud]
+++ f |= p=[a=@ud b=@ud] c.p
+                        ^
+global record
+++ missing: record has no field `c`
+/ui/fields.jibb:1:4: record binding has type [a=@t b=@p]
+++ record [a="hi" b=~zod]
+   ^
+/ui/fields.jibb:2:12: field access on record has type [a=@t b=@p]
+++ missing c.record
+           ^
+local record
+++ f: record has no field `c`
+/ui/fields.jibb:2:6: record binding has type [a=@ud b=@t]
+  ++ record [a=n b="hi"]
+     ^
+/ui/fields.jibb:3:3: field access on record has type [a=@ud b=@t]
+  c.record
+  ^
+nested record
+++ f: record has no field `c`
+/ui/fields.jibb:1:9: record binding has type [inner=[a=@ud b=@ud] other=@t]
+++ f |= p=[inner=[a=@ud b=@ud] other=@t] c.inner.p
+        ^
+/ui/fields.jibb:1:42: field access on record has type [a=@ud b=@ud]
+++ f |= p=[inner=[a=@ud b=@ud] other=@t] c.inner.p
+                                         ^
+missing intermediate field
+++ f: record has no field `absent`
+/ui/fields.jibb:1:9: record binding has type [a=@ud b=@ud]
+++ f |= p=[a=@ud b=@ud] value.absent.p
+        ^
+/ui/fields.jibb:1:31: field access on record has type [a=@ud b=@ud]
+++ f |= p=[a=@ud b=@ud] value.absent.p
+                              ^
+forward record
+++ missing: record has no field `c`
+/ui/fields.jibb:2:4: record binding has type [a=@t b=@p]
+++ record [a="hi" b=~zod]
+   ^
+/ui/fields.jibb:1:12: field access on record has type [a=@t b=@p]
+++ missing c.record
+           ^
+unresolved record
+++ f: field access needs a determined record type; add a `^-`
+/ui/fields.jibb:1:11: field access needs a determined record type; add a `^-`
+++ f |= p c.p
+          ^
+valid field
+module kind: library
+++ f: $-([a=@ud b=@ud] @ud)

@@ -1,0 +1,13 @@
+++ bad-union: msg has no case `%oops`
+/tests/golden/split-types-single-case-pattern-bad-union/source.jibb:38:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-single-case-pattern-bad-union/source.jibb:39:3: expected union has type msg
+  %fine
+  ^
+/tests/golden/split-types-single-case-pattern-bad-union/source.jibb:44:29: expected union has type msg
+++ bad-union |= p=packet ^- msg
+                            ^
+/tests/golden/split-types-single-case-pattern-bad-union/source.jibb:46:13: tag literal has type %oops
+    [%go u] %oops
+            ^

@@ -1,0 +1,19 @@
+(module
+  (value 7:1 nested-bad
+    (gate 7:15
+      (face 7:18 x
+        (cell 7:20
+          (face 7:21 outer
+            (cell 7:27
+              (face 7:28 bad (ref 7:32 qath))
+              (face 7:37 yes (flag 7:41))))
+          (face 7:44 done (flag 7:49))))
+      (body 8:3
+        (cast 8:3
+          (cell 8:6
+            (face 8:7 outer
+              (cell 8:13
+                (face 8:14 good (ref 8:19 qath))
+                (face 8:24 yes (flag 8:28))))
+            (face 8:31 done (flag 8:36)))
+          (wing 8:39 x))))))

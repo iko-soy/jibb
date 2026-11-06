@@ -1,0 +1,2631 @@
+{
+  "E01-aura-call": {
+    "reasons": [
+      [
+        "call"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "inc "
+      ],
+      [
+        2,
+        "\"hi\""
+      ]
+    ]
+  },
+  "E01b-aura-cast": {
+    "reasons": [
+      [
+        "@ud"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit",
+        "cast"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "@ud"
+      ],
+      [
+        1,
+        "\"hi\""
+      ]
+    ]
+  },
+  "E01c-aura-sample-only": {
+    "reasons": [
+      [
+        "@ud"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit",
+        "cast"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "@ud"
+      ],
+      [
+        1,
+        "x",
+        2
+      ]
+    ]
+  },
+  "E01d-at-to-ud": {
+    "reasons": [
+      [
+        "@ud"
+      ],
+      [
+        "@"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit",
+        "cast"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "@ud"
+      ],
+      [
+        1,
+        "x",
+        2
+      ]
+    ]
+  },
+  "E02-faces-call": {
+    "reasons": [
+      [
+        "[a=@ud b=@ud]"
+      ],
+      [
+        "[x=@ud y=@ud]"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "f q"
+      ],
+      [
+        2,
+        "q",
+        2
+      ]
+    ]
+  },
+  "E02b-faces-cast": {
+    "reasons": [
+      [
+        "[a=@ud b=@ud]"
+      ],
+      [
+        "[x=@ud y=@ud]"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        4,
+        "xy"
+      ],
+      [
+        4,
+        "v"
+      ]
+    ]
+  },
+  "E03-submitt-cast": {
+    "reasons": [
+      [
+        "msg has no case %submitt"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "[%typed"
+      ],
+      [
+        4,
+        "%submitt"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "E03b-submitt-call": {
+    "reasons": [
+      [
+        "msg has no case %submitt"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "[%typed"
+      ],
+      [
+        5,
+        "%submitt"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "E04-unresolved-tag": {
+    "reasons": [
+      [
+        "nothing fixes the union of %submitt"
+      ],
+      [
+        "add a ^-"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "%submitt"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "E04b-add-button": {
+    "reasons": [
+      [
+        "nothing fixes the union of %add"
+      ],
+      [
+        "add a ^-"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "%add"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "E05-open-null": {
+    "reasons": [
+      [
+        "nothing fixes the union of ~"
+      ],
+      [
+        "add a ^-"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "~"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "E06-ctor-no-case": {
+    "reasons": [
+      [
+        "msg"
+      ],
+      [
+        "no case"
+      ],
+      [
+        "%other"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "[%typed"
+      ],
+      [
+        4,
+        "|=%other"
+      ]
+    ]
+  },
+  "E08-missing-case": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "%c"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "?-"
+      ],
+      [
+        6,
+        "v"
+      ]
+    ]
+  },
+  "E08b-missing-loobean": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "%.n"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "?-"
+      ],
+      [
+        2,
+        "b"
+      ]
+    ]
+  },
+  "E09-covered-arm": {
+    "reasons": [
+      [
+        "covered",
+        "unreachable",
+        "dead"
+      ]
+    ],
+    "sites": [
+      [
+        8,
+        "%b"
+      ],
+      [
+        9,
+        "%b"
+      ]
+    ]
+  },
+  "E09b-covered-after-wild": {
+    "reasons": [
+      [
+        "covered",
+        "unreachable",
+        "dead"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "*"
+      ],
+      [
+        7,
+        "%c"
+      ]
+    ]
+  },
+  "E10-self-ref-doc": {
+    "reasons": [
+      [
+        "title"
+      ],
+      [
+        "cycle",
+        "itself",
+        "recursive",
+        "self"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "title"
+      ],
+      [
+        1,
+        "title",
+        2
+      ]
+    ]
+  },
+  "E10b-self-ref-cast": {
+    "reasons": [
+      [
+        "title"
+      ],
+      [
+        "cycle",
+        "itself",
+        "recursive",
+        "self"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "title"
+      ],
+      [
+        1,
+        "title",
+        2
+      ]
+    ]
+  },
+  "E10c-through-gate": {
+    "reasons": [
+      [
+        "maker"
+      ],
+      [
+        "value"
+      ],
+      [
+        "cycle",
+        "itself",
+        "recursive",
+        "self"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "maker"
+      ],
+      [
+        2,
+        "value"
+      ]
+    ]
+  },
+  "E11-shadow-prelude-sample": {
+    "reasons": [
+      [
+        "add"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "add=@ud"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "E11b-shadow-global-sample": {
+    "reasons": [
+      [
+        "x"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "x"
+      ],
+      [
+        2,
+        "x=@ud"
+      ]
+    ]
+  },
+  "E11c-shadow-local": {
+    "reasons": [
+      [
+        "y"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "y"
+      ],
+      [
+        3,
+        "y"
+      ]
+    ]
+  },
+  "E11d-shadow-pattern": {
+    "reasons": [
+      [
+        "complete"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        4,
+        "complete"
+      ],
+      [
+        7,
+        "complete"
+      ]
+    ]
+  },
+  "E11e-shadow-prelude-top": {
+    "reasons": [
+      [
+        "add"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "++ add"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "E11f-shadow-prelude-mold": {
+    "reasons": [
+      [
+        "list"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "+$ list"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "E12-cell-printer": {
+    "reasons": [
+      [
+        "print"
+      ],
+      [
+        "cell",
+        "record"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "x}"
+      ],
+      [
+        1,
+        "\"{x}"
+      ]
+    ]
+  },
+  "E13-generic-aura-interp": {
+    "reasons": [
+      [
+        "interpolation"
+      ],
+      [
+        "generic atom"
+      ],
+      [
+        "aura"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        1,
+        "(add"
+      ]
+    ]
+  },
+  "E13b-generic-aura-path": {
+    "reasons": [
+      [
+        "aura",
+        "generic",
+        "type variable"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        1,
+        "add"
+      ]
+    ]
+  },
+  "E14-capital-ud": {
+    "reasons": [
+      [
+        "A"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "capital",
+        "type variable"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        1,
+        "x",
+        2
+      ]
+    ]
+  },
+  "E14b-capital-ud-arith": {
+    "reasons": [
+      [
+        "A"
+      ],
+      [
+        "@ud"
+      ],
+      [
+        "capital",
+        "type variable"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        1,
+        "(add"
+      ]
+    ]
+  },
+  "E14c-capital-list": {
+    "reasons": [
+      [
+        "A"
+      ],
+      [
+        "list"
+      ],
+      [
+        "capital",
+        "type variable"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        1,
+        "x",
+        2
+      ]
+    ]
+  },
+  "E15-text-hi": {
+    "reasons": [
+      [
+        "~[(text \"hi\")]"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "~[text"
+      ]
+    ]
+  },
+  "E16-empty-change": {
+    "reasons": [
+      [
+        "change"
+      ],
+      [
+        "empty",
+        "at least one"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "m()"
+      ]
+    ]
+  },
+  "E18-proj-defined": {
+    "reasons": [
+      [
+        "proj"
+      ],
+      [
+        "reserved"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "++ proj"
+      ]
+    ]
+  },
+  "E19-loobean-arith": {
+    "reasons": [
+      [
+        "arithmetic",
+        "atom",
+        "number"
+      ],
+      [
+        "%.y",
+        "loobean",
+        "?"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "add"
+      ],
+      [
+        1,
+        "%.y"
+      ]
+    ]
+  },
+  "E20-capitals-forced": {
+    "reasons": [
+      [
+        "A"
+      ],
+      [
+        "B"
+      ],
+      [
+        "distinct",
+        "equal"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "A"
+      ],
+      [
+        2,
+        "B"
+      ]
+    ]
+  },
+  "E21-hole-unconstrained": {
+    "reasons": [
+      [
+        "hole"
+      ],
+      [
+        "unconstrained",
+        "determined",
+        "unresolved"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "_"
+      ]
+    ]
+  },
+  "E21b-hole-mold": {
+    "reasons": [
+      [
+        "hole"
+      ],
+      [
+        "unconstrained",
+        "determined",
+        "unresolved"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "_"
+      ]
+    ]
+  },
+  "E22-eq-gate": {
+    "reasons": [
+      [
+        "gate"
+      ],
+      [
+        "eq",
+        "equal"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "eq"
+      ],
+      [
+        1,
+        "g",
+        2
+      ]
+    ]
+  },
+  "E22b-map-key-gate": {
+    "reasons": [
+      [
+        "gate"
+      ],
+      [
+        "key",
+        "map"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "$-"
+      ],
+      [
+        1,
+        "map"
+      ]
+    ]
+  },
+  "E23-facts-outside": {
+    "reasons": [
+      [
+        "facts"
+      ],
+      [
+        "paths",
+        "api"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "(facts"
+      ]
+    ]
+  },
+  "E24-repeat-attr": {
+    "reasons": [
+      [
+        "pad"
+      ],
+      [
+        "repeated",
+        "duplicate"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "pad+%s1"
+      ],
+      [
+        1,
+        "pad+%s2"
+      ]
+    ]
+  },
+  "E25-empty-cell": {
+    "reasons": [
+      [
+        "empty"
+      ],
+      [
+        "cell",
+        "tuple"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "[]"
+      ]
+    ]
+  },
+  "G1-gate-model": {
+    "reasons": [
+      [
+        "callback"
+      ],
+      [
+        "gate"
+      ]
+    ],
+    "sites": [
+      [
+        4,
+        "callback"
+      ],
+      [
+        5,
+        "program"
+      ]
+    ]
+  },
+  "G2-gate-data": {
+    "reasons": [
+      [
+        "input"
+      ],
+      [
+        "gate"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "input"
+      ],
+      [
+        5,
+        "program"
+      ]
+    ]
+  },
+  "G3-gate-model-nested": {
+    "reasons": [
+      [
+        "cb"
+      ],
+      [
+        "gate"
+      ]
+    ],
+    "sites": [
+      [
+        4,
+        "cb="
+      ],
+      [
+        5,
+        "program"
+      ]
+    ]
+  },
+  "S1-step-missing-stop": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "%stop"
+      ]
+    ],
+    "sites": [
+      [
+        8,
+        "?-"
+      ],
+      [
+        8,
+        "s"
+      ]
+    ]
+  },
+  "S2-move-any-covered": {
+    "reasons": [
+      [
+        "covered",
+        "unreachable",
+        "dead"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "[%move * *]"
+      ],
+      [
+        7,
+        "[%move %left n]"
+      ]
+    ]
+  },
+  "S3-loobean-repeated": {
+    "reasons": [
+      [
+        "covered",
+        "unreachable",
+        "dead"
+      ]
+    ],
+    "sites": [
+      [
+        3,
+        "%.y"
+      ],
+      [
+        4,
+        "%.y"
+      ]
+    ]
+  },
+  "S4-list-missing": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "list",
+        "cell",
+        "["
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "?-"
+      ],
+      [
+        2,
+        "xs"
+      ]
+    ]
+  },
+  "S5-pattern-no-case": {
+    "reasons": [
+      [
+        "choice"
+      ],
+      [
+        "%c"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "choice"
+      ],
+      [
+        8,
+        "%c"
+      ]
+    ]
+  },
+  "T1-local-aura": {
+    "reasons": [
+      [
+        "call"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        3,
+        "inc "
+      ],
+      [
+        3,
+        "%.y"
+      ]
+    ]
+  },
+  "T2-change-bad-tag": {
+    "reasons": [
+      [
+        "actions"
+      ],
+      [
+        "%missing"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "%start"
+      ],
+      [
+        5,
+        "%missing"
+      ]
+    ]
+  },
+  "T3-hole-path": {
+    "reasons": [
+      [
+        "expected a path segment"
+      ],
+      [
+        "found `[`"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "["
+      ]
+    ]
+  },
+  "T4-unit-inner": {
+    "reasons": [
+      [
+        "@ud"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "(unit"
+      ],
+      [
+        1,
+        "\"x\""
+      ]
+    ]
+  },
+  "T5-list-item": {
+    "reasons": [
+      [
+        "@ud"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "(list"
+      ],
+      [
+        1,
+        "\"x\""
+      ]
+    ]
+  },
+  "T6-repeat-attr-column": {
+    "reasons": [
+      [
+        "gap"
+      ],
+      [
+        "repeated",
+        "duplicate"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "gap+%s1"
+      ],
+      [
+        1,
+        "gap+%s2"
+      ]
+    ]
+  },
+  "T7-msg-mismatch-element": {
+    "reasons": [
+      [
+        "msg"
+      ],
+      [
+        "%c"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "%a"
+      ],
+      [
+        4,
+        "%c"
+      ]
+    ]
+  },
+  "T8-generic-aura-path-sample": {
+    "reasons": [
+      [
+        "aura",
+        "generic",
+        "type variable"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        3,
+        "m"
+      ]
+    ]
+  },
+  "T9-wing-unknown-field": {
+    "reasons": [
+      [
+        "c"
+      ],
+      [
+        "field",
+        "wing"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "p=["
+      ],
+      [
+        1,
+        "c.p"
+      ]
+    ]
+  },
+  "T10-unknown-name": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "unknown",
+        "unbound",
+        "not found"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "missing"
+      ]
+    ]
+  },
+  "C1-island-submitt-view": {
+    "reasons": [
+      [
+        "msg has no case %submitt"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "[%typed"
+      ],
+      [
+        15,
+        "%submitt"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "C2-island-submitt-noview-cast": {
+    "reasons": [
+      [
+        "msg has no case %submitt"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "[%typed"
+      ],
+      [
+        15,
+        "%submitt"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "C3-island-ctor-typo": {
+    "reasons": [
+      [
+        "msg"
+      ],
+      [
+        "%typd"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "[%typed"
+      ],
+      [
+        14,
+        "|=%typd"
+      ]
+    ]
+  },
+  "X1-multiarg-site": {
+    "reasons": [
+      [
+        "@ud"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "add"
+      ],
+      [
+        1,
+        "\"x\""
+      ]
+    ]
+  },
+  "X3-pt-faced-cases": {
+    "reasons": [
+      [
+        "expected the end of the line"
+      ],
+      [
+        "found `=`"
+      ],
+      [
+        "record's fields go in a ["
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "="
+      ]
+    ]
+  },
+  "X5-step-doc-missing-stop": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "%stop"
+      ]
+    ],
+    "sites": [
+      [
+        8,
+        "?-"
+      ],
+      [
+        8,
+        "s"
+      ]
+    ]
+  },
+  "X6-title-trim-annotated": {
+    "reasons": [
+      [
+        "title"
+      ],
+      [
+        "cycle",
+        "itself",
+        "recursive",
+        "self"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "title"
+      ],
+      [
+        1,
+        "title",
+        2
+      ]
+    ]
+  },
+  "W1-initializer-error": {
+    "reasons": [
+      [
+        "error"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "~"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "error=@t"
+      ],
+      [
+        6,
+        "~"
+      ]
+    ]
+  },
+  "W2-initializer-earlier": {
+    "reasons": [
+      [
+        "draft"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "@p",
+        "~zod"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "draft=@t"
+      ],
+      [
+        6,
+        "~zod"
+      ]
+    ]
+  },
+  "W3-initializer-model": {
+    "reasons": [
+      [
+        "model",
+        "other"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "model"
+      ],
+      [
+        2,
+        "other"
+      ]
+    ]
+  },
+  "W4-earlier-annotated": {
+    "reasons": [
+      [
+        "draft"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "@p",
+        "~zod"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "draft=@t"
+      ],
+      [
+        6,
+        "~zod"
+      ]
+    ]
+  },
+  "/ui/probe/jibb inc-cell-unsound?": {
+    "reasons": [
+      [
+        "where A is an atom other than ?"
+      ],
+      [
+        "[@ud @ud]"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "inc"
+      ],
+      [
+        2,
+        "[1 2]"
+      ]
+    ]
+  },
+  "/ui/probe/jibb inc-loobean": {
+    "reasons": [
+      [
+        "where A is an atom other than ?"
+      ],
+      [
+        "actual type has type ?"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "inc"
+      ],
+      [
+        2,
+        "%.y"
+      ]
+    ]
+  },
+  "/ui/probe/jibb eq-gates-unsound?": {
+    "reasons": [
+      [
+        "where A contains no gates"
+      ],
+      [
+        "$-(A A)"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "same-as"
+      ],
+      [
+        2,
+        "same",
+        2
+      ]
+    ]
+  },
+  "/ui/probe/jibb unknown-name": {
+    "reasons": [
+      [
+        "nosuch"
+      ],
+      [
+        "unknown",
+        "unbound",
+        "not found"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "nosuch"
+      ]
+    ]
+  },
+  "/ui/probe/jibb print-generic-error": {
+    "reasons": [
+      [
+        "interpolation"
+      ],
+      [
+        "generic atom"
+      ],
+      [
+        "aura"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        2,
+        "(add"
+      ]
+    ]
+  },
+  "/ui/probe/jibb self-ref-error": {
+    "reasons": [
+      [
+        "title"
+      ],
+      [
+        "cycle",
+        "itself",
+        "recursive",
+        "self"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "title"
+      ]
+    ]
+  },
+  "/ui/probe/jibb capital-made-ud": {
+    "reasons": [
+      [
+        "A"
+      ],
+      [
+        "@ud"
+      ],
+      [
+        "capital",
+        "type variable"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "A"
+      ],
+      [
+        1,
+        "@ud"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb todo-full-wrong-model": {
+    "reasons": [
+      [
+        "model"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        5,
+        "model"
+      ],
+      [
+        27,
+        "m=[count=@ud]"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb todo-full-wrong-message": {
+    "reasons": [
+      [
+        "msg"
+      ],
+      [
+        "%other"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "msg"
+      ],
+      [
+        40,
+        "%other"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb todo-full-wrong-result": {
+    "reasons": [
+      [
+        "each",
+        "row",
+        "element"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        33,
+        "each"
+      ],
+      [
+        40,
+        "text.t"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb todo-full-wrong-watch": {
+    "reasons": [
+      [
+        "watch"
+      ],
+      [
+        "cannot",
+        "unwatch",
+        "not watchable",
+        "no watchability proof",
+        "scry"
+      ]
+    ],
+    "sites": [
+      [
+        28,
+        "%watch"
+      ],
+      [
+        28,
+        "pure"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb todo-full-non-gate-view": {
+    "reasons": [
+      [
+        "view"
+      ],
+      [
+        "element"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        13,
+        "++ init"
+      ],
+      [
+        30,
+        "init"
+      ]
+    ]
+  },
+  "/ui/theme/jibb theme-wrong-nested-aura": {
+    "reasons": [
+      [
+        "normal"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "@p",
+        "~zod"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        3,
+        "~zod"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "/ui/theme/jibb theme-missing-field": {
+    "reasons": [
+      [
+        "zone"
+      ],
+      [
+        "missing",
+        "field"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "[ space="
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "/ui/theme/jibb theme-wrong-font": {
+    "reasons": [
+      [
+        "font"
+      ],
+      [
+        "qath"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        7,
+        "\"/static"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "/ui/theme/jibb theme-wrong-dark": {
+    "reasons": [
+      [
+        "dark"
+      ],
+      [
+        "unit"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        8,
+        "\"dark\""
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "/ui/index/jibb page-main-wrong-static": {
+    "reasons": [
+      [
+        "nothing fixes"
+      ],
+      [
+        "%go"
+      ],
+      [
+        "^-"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "%go"
+      ]
+    ]
+  },
+  "/ui/index/jibb page-main-arbitrary-main": {
+    "reasons": [
+      [
+        "main"
+      ],
+      [
+        "kind",
+        "page",
+        "program",
+        "store"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "main"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb typo-typd-ctor": {
+    "reasons": [
+      [
+        "msg"
+      ],
+      [
+        "%typd"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "msg"
+      ],
+      [
+        35,
+        "|=%typd"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb typo-in-update-pattern": {
+    "reasons": [
+      [
+        "msg"
+      ],
+      [
+        "%submitt"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "msg"
+      ],
+      [
+        22,
+        "%submitt"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb missing-case-in-update": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "%acked"
+      ]
+    ],
+    "sites": [
+      [
+        11,
+        "%acked"
+      ],
+      [
+        17,
+        "?-"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb aura-mismatch-update": {
+    "reasons": [
+      [
+        "@t"
+      ],
+      [
+        "@p",
+        "~zod"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        5,
+        "draft=@t"
+      ],
+      [
+        21,
+        "~zod"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb dead-arm-update": {
+    "reasons": [
+      [
+        "covered",
+        "unreachable",
+        "dead"
+      ]
+    ],
+    "sites": [
+      [
+        22,
+        "%submit"
+      ],
+      [
+        26,
+        "%submit"
+      ]
+    ]
+  },
+  "/ui/basket/jibb basket-typo-addd": {
+    "reasons": [
+      [
+        "msg"
+      ],
+      [
+        "%addd"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        7,
+        "msg"
+      ],
+      [
+        32,
+        "%addd"
+      ]
+    ]
+  },
+  "/ui/basket/jibb basket-missing-case": {
+    "reasons": [
+      [
+        "missing"
+      ],
+      [
+        "%acked"
+      ]
+    ],
+    "sites": [
+      [
+        12,
+        "%acked"
+      ],
+      [
+        18,
+        "?-"
+      ]
+    ]
+  },
+  "/ui/index/jibb BAD-island-data-atom": {
+    "reasons": [
+      [
+        "island"
+      ],
+      [
+        "list"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        10,
+        "main.todo-list"
+      ],
+      [
+        10,
+        "5"
+      ]
+    ]
+  },
+  "/ui/index/jibb BAD-view-sample": {
+    "reasons": [
+      [
+        "view"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        5,
+        "todos.todo"
+      ],
+      [
+        7,
+        "ts=(list @t)"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb BAD-cmd-bare-tag": {
+    "reasons": [
+      [
+        "cmd"
+      ],
+      [
+        "%submit"
+      ],
+      [
+        "no case",
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        24,
+        "%submit"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "/ui/basket/jibb BAD-cart-poke-case": {
+    "reasons": [
+      [
+        "%remove"
+      ],
+      [
+        "no case"
+      ]
+    ],
+    "sites": [
+      [
+        20,
+        "%remove"
+      ]
+    ],
+    "other_file": "/ui/stores/cart.jibb"
+  },
+  "/ui/todo-list/jibb BAD-watch-reply": {
+    "reasons": [
+      [
+        "watch",
+        "reply"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        11,
+        "(unit @t)"
+      ],
+      [
+        28,
+        "|=%acked"
+      ]
+    ]
+  },
+  "/ui/stores/cart/jibb BAD-cart-open-num": {
+    "reasons": [
+      [
+        "open"
+      ],
+      [
+        "?",
+        "loobean"
+      ],
+      [
+        "@ud",
+        "number",
+        "5"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "open=?"
+      ],
+      [
+        12,
+        "5"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb BAD-init-error-cord": {
+    "reasons": [
+      [
+        "error"
+      ],
+      [
+        "unit"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        5,
+        "error=(unit @t)"
+      ],
+      [
+        14,
+        "\"x\""
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb BAD-model-gate": {
+    "reasons": [
+      [
+        "f"
+      ],
+      [
+        "gate"
+      ]
+    ],
+    "sites": [
+      [
+        5,
+        "f=$-"
+      ],
+      [
+        3,
+        "program"
+      ]
+    ]
+  },
+  "/ui/blog/index/jibb BAD-card-wrong": {
+    "reasons": [
+      [
+        "element"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        9,
+        "turn"
+      ],
+      [
+        9,
+        "p=post.blog"
+      ]
+    ]
+  },
+  "/ui/todo-list/jibb BAD-poke-payload": {
+    "reasons": [
+      [
+        "@ud"
+      ],
+      [
+        "@t"
+      ],
+      [
+        "unif",
+        "mismatch",
+        "fit"
+      ]
+    ],
+    "sites": [
+      [
+        23,
+        "\"x\""
+      ]
+    ],
+    "other_file": "/sur/todo.hoon"
+  },
+  "/ui/todo-list/jibb BAD-row-key-gate": {
+    "reasons": [
+      [
+        "key"
+      ],
+      [
+        "gate"
+      ]
+    ],
+    "sites": [
+      [
+        33,
+        "each"
+      ],
+      [
+        40,
+        "same"
+      ]
+    ]
+  },
+  "/ui/components/buttons/jibb buttons": {
+    "reasons": [
+      [
+        "nothing fixes the union of %add"
+      ],
+      [
+        "add a ^-"
+      ]
+    ],
+    "sites": [
+      [
+        3,
+        "%add"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "/ui/components/buttons/jibb buttons-reorder": {
+    "reasons": [
+      [
+        "nothing fixes the union of %add"
+      ],
+      [
+        "add a ^-"
+      ]
+    ],
+    "sites": [
+      [
+        6,
+        "%add"
+      ]
+    ],
+    "normalize_backticks": true
+  },
+  "I1-signed": {
+    "reasons": [
+      [
+        "signed"
+      ],
+      [
+        "aura"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "signed.fix"
+      ]
+    ]
+  },
+  "I2-float": {
+    "reasons": [
+      [
+        "float"
+      ],
+      [
+        "aura"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "flt.fix"
+      ]
+    ]
+  },
+  "I3-gate": {
+    "reasons": [
+      [
+        "gate",
+        "core"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "gat.fix"
+      ]
+    ]
+  },
+  "I3b-core": {
+    "reasons": [
+      [
+        "core"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "cor.fix"
+      ]
+    ]
+  },
+  "I4-vase": {
+    "reasons": [
+      [
+        "vase"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "vas.fix"
+      ]
+    ]
+  },
+  "I5-dupfields": {
+    "reasons": [
+      [
+        "a"
+      ],
+      [
+        "repeat",
+        "duplicate"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "dup.fix"
+      ]
+    ]
+  },
+  "I6-overlap-cen": {
+    "reasons": [
+      [
+        "overlap"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "ovl.fix"
+      ]
+    ]
+  },
+  "I7-overlap-wut": {
+    "reasons": [
+      [
+        "overlap"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "ovl2.fix"
+      ]
+    ]
+  },
+  "I8-overlap-ket": {
+    "reasons": [
+      [
+        "overlap"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "cel.fix"
+      ]
+    ]
+  },
+  "M1-cycle": {
+    "reasons": [
+      [
+        "cycle"
+      ],
+      [
+        "/ui/a"
+      ],
+      [
+        "/ui/b"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "/= "
+      ]
+    ],
+    "other_file": "/ui/a.jibb"
+  },
+  "M1b-root-cycle": {
+    "reasons": [
+      [
+        "cycle"
+      ],
+      [
+        "/ui/a"
+      ],
+      [
+        "/ui/probe"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "/= "
+      ]
+    ],
+    "other_file": "/ui/a.jibb"
+  },
+  "M3-facts-in-library": {
+    "reasons": [
+      [
+        "facts"
+      ],
+      [
+        "paths",
+        "api"
+      ]
+    ],
+    "sites": [
+      [
+        2,
+        "facts"
+      ]
+    ]
+  },
+  "M3b-facts-in-api-other-mold": {
+    "reasons": [
+      [
+        "facts"
+      ],
+      [
+        "paths",
+        "api"
+      ]
+    ],
+    "sites": [
+      [
+        4,
+        "facts"
+      ]
+    ]
+  },
+  "M4-shadow-import-face": {
+    "reasons": [
+      [
+        "lib"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "lib"
+      ],
+      [
+        2,
+        "lib=@t"
+      ]
+    ]
+  },
+  "M4b-shadow-import-value": {
+    "reasons": [
+      [
+        "lib"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "/=  lib"
+      ],
+      [
+        2,
+        "++ lib"
+      ]
+    ]
+  },
+  "/ui/probe/jibb pattern-pair-units": {
+    "reasons": [
+      [
+        "both"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "++ both"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  },
+  "/ui/probe/jibb clap": {
+    "reasons": [
+      [
+        "both"
+      ],
+      [
+        "shadow"
+      ]
+    ],
+    "sites": [
+      [
+        1,
+        "++ both"
+      ]
+    ],
+    "other_file": "/lib/jibb/prelude.jibb"
+  }
+}

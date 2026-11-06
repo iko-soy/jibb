@@ -1,0 +1,7 @@
+++ bad-no: cast mold and expression type do not unify
+/tests/golden/split-types-import-hoon-flags-bad-no/source.jibb:11:14: cast mold has type %.n
+++ bad-no ^- no.flags %.y
+             ^
+/tests/golden/split-types-import-hoon-flags-bad-no/source.jibb:11:23: expression has type %.y
+++ bad-no ^- no.flags %.y
+                      ^

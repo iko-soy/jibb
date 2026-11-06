@@ -1,0 +1,4 @@
+source: Grammar, Inference and the equality gate
+tests: quantified no-gates restrictions survive nested structural graphs, fresh instantiations and imported interfaces
+expect: parses
+expect-types: exact full-checker types

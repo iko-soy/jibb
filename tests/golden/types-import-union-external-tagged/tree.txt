@@ -1,0 +1,6 @@
+(module
+  (jibb 1:1 base /ui/base)
+  (value 2:1 bad
+    (cast 2:8
+      (ref 2:11 msg.base)
+      (tuple 2:20 (lit 2:21 %wrong) (lit 2:28 1)))))

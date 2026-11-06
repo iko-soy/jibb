@@ -1,0 +1,6 @@
+origin types-nested-missing-tag
+target value nested
+keep mold msg
+keep mold nested-state
+keep mold state
+keep value nested

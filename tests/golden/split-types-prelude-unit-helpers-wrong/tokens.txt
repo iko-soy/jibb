@@ -1,0 +1,14 @@
+8:1 glyph ++
+8:4 name wrong
+8:10 glyph (
+8:11 tight name bind
+8:16 glyph `
+8:17 tight lit ~zod
+8:22 glyph |=(
+8:25 tight name x
+8:26 tight glyph =
+8:27 tight aura @t
+8:30 name x
+8:31 tight glyph )
+8:32 tight glyph )
+8:33 NEWLINE

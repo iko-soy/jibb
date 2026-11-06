@@ -1,0 +1,18 @@
+(module
+  (value 11:1 wrap-value
+    (gate 11:15
+      (face 11:18 x (tvar 11:20 A))
+      (cast 11:22
+        (apply 11:25 cmd (tvar 11:30 A))
+        (tuple 11:33 (lit 11:34 %wait) (lit 11:40 ~s30) (wing 11:45 x)))))
+  (value 20:1 use-text
+    (gate 20:13
+      (face 20:16 x
+        (apply 20:18 cmd (aura 20:23 @t)))
+      (wing 20:27 x)))
+  (value 21:1 cross
+    (group 21:10
+      (call 21:11
+        (wing 21:11 use-text)
+        (group 21:20
+          (call 21:21 (wing 21:21 wrap-value) (lit 21:32 ~zod)))))))

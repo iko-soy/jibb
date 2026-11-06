@@ -1,0 +1,4 @@
+message sample `lib` shadows a name already in scope
+site /tests/golden/types-module-field-shadow/source.jibb:1:4
+site /tests/golden/types-module-field-shadow/source.jibb:2:11
+min-sites 2

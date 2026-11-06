@@ -1,0 +1,7 @@
+++ wrong-ta: cast mold and expression type do not unify
+/tests/golden/split-types-loobean-singleton-source-wrong-ta/source.jibb:10:16: cast mold has type @ta
+++ wrong-ta ^- @ta %.y
+               ^
+/tests/golden/split-types-loobean-singleton-source-wrong-ta/source.jibb:10:20: expression has type ?
+++ wrong-ta ^- @ta %.y
+                   ^

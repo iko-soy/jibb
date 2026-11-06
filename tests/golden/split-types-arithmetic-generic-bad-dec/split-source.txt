@@ -1,0 +1,4 @@
+origin types-arithmetic-generic
+target value bad-dec
+keep value bad-dec
+keep value decreasing

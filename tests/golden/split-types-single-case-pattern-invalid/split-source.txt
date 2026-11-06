@@ -1,0 +1,3 @@
+origin types-single-case-pattern
+target value invalid
+keep value invalid

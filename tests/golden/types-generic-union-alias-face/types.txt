@@ -1,12 +1,7 @@
-partial inference; module not checked
-+$ relay: not checked
-++ make: $-(A (choice.base B A))
-++ reveal: $-((choice.base B A) (choice.base B A))
-++ with-text: (choice.base @p @t)
-++ with-ship: cast mold and expression type do not unify
-/tests/golden/types-generic-union-alias-face/source.jibb:6:17: cast mold
+++ with-ship: union payload has type @p, but `%err` requires @t
+/tests/golden/types-generic-union-alias-face/source.jibb:6:17: expected @t
 ++ with-ship ^- (relay @t @p) [%err ~zod]
                 ^
-/tests/golden/types-generic-union-alias-face/source.jibb:6:31: expression
+/tests/golden/types-generic-union-alias-face/source.jibb:6:37: payload has type @p
 ++ with-ship ^- (relay @t @p) [%err ~zod]
-                              ^
+                                    ^

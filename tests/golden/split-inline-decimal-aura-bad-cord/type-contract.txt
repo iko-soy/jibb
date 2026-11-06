@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-aura-bad-cord/source.jibb:4:15
+min-sites 2

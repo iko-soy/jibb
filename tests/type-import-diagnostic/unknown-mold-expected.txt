@@ -1,0 +1,28 @@
+unknown first:
++$ box: mold `missing` is not defined
+/tests/unknown-mold.jibb:2:15: unknown mold
++$ box [first=missing second=bad.foo]
+              ^
+reader first:
++$ box: signed and float auras cannot be imported
+/tests/unknown-mold.jibb:2:15: invalid imported mold
++$ box [first=bad.foo second=missing]
+              ^
+sample:
+++ bad: mold `missing` is not defined
+/tests/unknown-mold.jibb:1:13: unknown mold
+++ bad |= x=missing x
+            ^
+application:
+++ bad: mold `missing` is not defined
+/tests/unknown-mold.jibb:1:11: unknown mold
+++ bad ^- (missing @t) !!
+          ^
+known:
+module kind: library
++$ known: @t
+++ good: $-(@t @t)
+generic:
+module kind: library
++$ box: [first=A second=@t]
+++ good: $-([first=@ud second=@t] [first=@ud second=@t])

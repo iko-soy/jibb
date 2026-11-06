@@ -1,0 +1,7 @@
+++ duplicate: branch arm is covered by earlier arms
+/tests/golden/split-types-list-branch-duplicate/source.jibb:64:7: covering arm
+      ~ ~[]
+      ^
+/tests/golden/split-types-list-branch-duplicate/source.jibb:65:7: covered arm
+      ~ ~[]
+      ^

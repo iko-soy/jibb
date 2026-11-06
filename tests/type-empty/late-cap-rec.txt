@@ -1,0 +1,6 @@
+++ probe-rec |= xs=(list A)
+  ?- xs
+    ~ !!
+    [item rest]
+      ~& ^- !! item
+        (probe-rec rest)

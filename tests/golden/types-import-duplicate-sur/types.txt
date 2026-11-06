@@ -1,5 +1,4 @@
-partial inference; module not checked
-++ direct-id: sample mold is not supported by partial inference
-++ nested-id: sample mold is not supported by partial inference
-++ valid-id: $-([same=@t nested=[same=@ud other=@t]] [same=@t nested=[same=@ud other=@t]])
-++ valid-read: $-([same=@t nested=[same=@ud other=@t]] @ud)
+++ direct-id: Hoon record repeats field `same`
+/tests/golden/types-import-duplicate-sur/source.jibb:2:19: invalid imported mold
+++ direct-id |= x=direct.fixture x
+                  ^

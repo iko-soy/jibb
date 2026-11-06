@@ -1,0 +1,7 @@
+++ hex: `1` is a @ud, not a @ux; write 0x1
+/tests/golden/split-inline-decimal-aura-bad-hex/source.jibb:7:15: decimal
+++ hex ^- @ux 1
+              ^
+/tests/golden/split-inline-decimal-aura-bad-hex/source.jibb:7:11: expected type has type @ux
+++ hex ^- @ux 1
+          ^

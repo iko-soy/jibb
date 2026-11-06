@@ -1,0 +1,3 @@
+origin types-qath-holes
+target value local-hole
+keep value local-hole

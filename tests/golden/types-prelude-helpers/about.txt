@@ -1,0 +1,1 @@
+All six source-written public helpers are usable with independent atom types and stateful mapping. Their schemes are separately asserted by jibb-prelude-helpers.

@@ -1,0 +1,152 @@
+(module
+  (value 1:1 bind-text
+    (group 1:14
+      (call 1:15
+        (wing 1:15 bind)
+        (unit 1:20 (str 1:21 "hi"))
+        (gate-wide 1:26 (bind 1:29 x) (wing 1:31 x)))))
+  (value 2:1 bind-ship
+    (group 2:14
+      (call 2:15
+        (wing 2:15 bind)
+        (unit 2:20 (lit 2:21 ~zod))
+        (gate-wide 2:26 (bind 2:29 x) (wing 2:31 x)))))
+  (value 3:1 biff-text
+    (group 3:14
+      (call 3:15
+        (wing 3:15 biff)
+        (unit 3:20 (str 3:21 "hi"))
+        (gate-wide 3:26
+          (bind 3:29 x)
+          (unit 3:31 (wing 3:32 x))))))
+  (value 4:1 both-mixed
+    (group 4:15
+      (call 4:16
+        (wing 4:16 both)
+        (unit 4:21 (str 4:22 "hi"))
+        (unit 4:27 (lit 4:28 ~zod)))))
+  (value 5:1 clap-text
+    (group 5:14
+      (call 5:15
+        (wing 5:15 clap)
+        (unit 5:20 (str 5:21 "hi"))
+        (unit 5:26 (str 5:27 "there"))
+        (gate-wide 5:35
+          (face 5:38 p
+            (cell 5:40 (aura 5:41 @t) (aura 5:44 @t)))
+          (str 5:48 "yes")))))
+  (value 6:1 clef-mixed
+    (group 6:15
+      (call 6:16
+        (wing 6:16 clef)
+        (unit 6:21 (str 6:22 "hi"))
+        (unit 6:27 (lit 6:28 ~zod))
+        (gate-wide 6:33
+          (face 6:36 p
+            (cell 6:38 (aura 6:39 @t) (aura 6:42 @p)))
+          (unit 6:46 (str 6:47 "ok"))))))
+  (value 7:1 flit-text
+    (group 7:14
+      (call 7:15
+        (group 7:15
+          (call 7:16
+            (wing 7:16 flit)
+            (gate-wide 7:21
+              (face 7:24 x (aura 7:26 @t))
+              (lit 7:29 %.y))))
+        (str 7:35 "hi"))))
+  (value 12:1 clap-ship
+    (group 12:14
+      (call 12:15
+        (wing 12:15 clap)
+        (unit 12:20 (lit 12:21 ~zod))
+        (unit 12:26 (lit 12:27 ~bus))
+        (gate-wide 12:32
+          (face 12:35 p
+            (cell 12:37 (aura 12:38 @p) (aura 12:41 @p)))
+          (lit 12:45 ~zod)))))
+  (value 13:1 clef-ship
+    (group 13:14
+      (call 13:15
+        (wing 13:15 clef)
+        (unit 13:20 (str 13:21 "hi"))
+        (unit 13:26 (lit 13:27 ~zod))
+        (gate-wide 13:32
+          (face 13:35 p
+            (cell 13:37 (aura 13:38 @t) (aura 13:41 @p)))
+          (unit 13:45 (lit 13:46 ~zod))))))
+  (value 16:1 hunt-first
+    (group 16:15
+      (call 16:16
+        (wing 16:16 hunt)
+        (gate-wide 16:21
+          (face 16:24 p
+            (cell 16:26 (aura 16:27 @t) (aura 16:30 @t)))
+          (lit 16:34 %.y))
+        (unit 16:39 (str 16:40 "a"))
+        (unit 16:44 (str 16:45 "b")))))
+  (value 17:1 hunt-second
+    (group 17:16
+      (call 17:17
+        (wing 17:17 hunt)
+        (gate-wide 17:22
+          (face 17:25 p
+            (cell 17:27 (aura 17:28 @t) (aura 17:31 @t)))
+          (lit 17:35 %.n))
+        (unit 17:40 (str 17:41 "a"))
+        (unit 17:45 (str 17:46 "b")))))
+  (value 18:1 hunt-left
+    (group 18:14
+      (call 18:15
+        (wing 18:15 hunt)
+        (gate-wide 18:20
+          (face 18:23 p
+            (cell 18:25 (aura 18:26 @t) (aura 18:29 @t)))
+          (lit 18:33 %.y))
+        (lit 18:38 ~)
+        (unit 18:40 (str 18:41 "b")))))
+  (value 19:1 hunt-right
+    (group 19:15
+      (call 19:16
+        (wing 19:16 hunt)
+        (gate-wide 19:21
+          (face 19:24 p
+            (cell 19:26 (aura 19:27 @t) (aura 19:30 @t)))
+          (lit 19:34 %.n))
+        (unit 19:39 (str 19:40 "a"))
+        (lit 19:44 ~))))
+  (value 22:1 eq-cell
+    (group 22:12
+      (call 22:13
+        (wing 22:13 eq)
+        (tuple 22:16 (lit 22:17 1) (str 22:19 "a"))
+        (tuple 22:24 (lit 22:25 1) (str 22:27 "a")))))
+  (value 25:1 eq-open
+    (gate 25:12
+      (face 25:15 x (tvar 25:17 A))
+      (group 25:19
+        (call 25:20 (wing 25:20 eq) (wing 25:23 x) (wing 25:25 x)))))
+  (value 26:1 mate-same
+    (group 26:14
+      (call 26:15
+        (wing 26:15 mate)
+        (unit 26:20 (str 26:21 "hi"))
+        (unit 26:26 (str 26:27 "hi")))))
+  (value 27:1 mate-left
+    (group 27:14
+      (call 27:15
+        (wing 27:15 mate)
+        (lit 27:20 ~)
+        (unit 27:22 (str 27:23 "hi")))))
+  (value 28:1 mate-right
+    (group 28:15
+      (call 28:16
+        (wing 28:16 mate)
+        (unit 28:21 (str 28:22 "hi"))
+        (lit 28:27 ~))))
+  (value 29:1 mate-crash
+    (group 29:15
+      (call 29:16
+        (wing 29:16 mate)
+        (unit 29:21 (str 29:22 "hi"))
+        (unit 29:27 (str 29:28 "there"))))))

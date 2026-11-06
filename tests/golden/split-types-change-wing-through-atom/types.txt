@@ -1,0 +1,7 @@
+++ through-atom: change wing `x.note` goes through `note`, which is not a record
+/tests/golden/split-types-change-wing-through-atom/source.jibb:13:32: field `note` has type @t
+++ through-atom |= m=model m(x.note="a")
+                               ^
+/tests/golden/split-types-change-wing-through-atom/source.jibb:13:28: record being changed has type [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]]
+++ through-atom |= m=model m(x.note="a")
+                           ^

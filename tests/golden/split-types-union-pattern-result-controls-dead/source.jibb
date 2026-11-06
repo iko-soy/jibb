@@ -1,0 +1,55 @@
++$ msg
+  [%text value=@t]
+  %clear
+
+
+
+
+
+
+
+
+
+
+
+++ dead |= a=msg ^- (list @t)
+  ?- a
+    %clear ~
+    %clear ~
+    [%text v] ~[v]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

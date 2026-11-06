@@ -1,0 +1,7 @@
+++ zero: `0` is a @ud, not a @dr; write ~s0
+/tests/golden/split-inline-decimal-sites-zero/source.jibb:8:24: decimal
+++ zero |= d=@dr (eq d 0)
+                       ^
+/tests/golden/split-inline-decimal-sites-zero/source.jibb:8:19: expected type has type [A A] where A contains no gates
+++ zero |= d=@dr (eq d 0)
+                  ^

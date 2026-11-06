@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 math /ui/math)
+  (value 8:1 reject-alias
+    (group 8:17
+      (call 8:18 (wing 8:18 alias.math) (lit 8:29 %.n) (lit 8:33 %.y)))))

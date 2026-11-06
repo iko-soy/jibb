@@ -1,0 +1,15 @@
+(module
+  (value 7:1 number-id
+    (gate 7:14
+      (face 7:17 x (aura 7:19 @ud))
+      (wing 7:23 x)))
+  (value 30:1 unknown-target
+    (gate 30:19
+      (face 30:22 x (tvar 30:24 A))
+      (cast 30:26
+        (tvar 30:29 A)
+        (pair 30:31 width
+          (tuple 30:37
+            (lit 30:38 %fill)
+            (group 30:44
+              (call 30:45 (wing 30:45 number-id) (lit 30:55 1)))))))))

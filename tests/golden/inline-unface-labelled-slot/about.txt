@@ -1,4 +1,4 @@
 source: docs/spec/grammar.md, Expressions, Unface: "`(unface e)` is `e` with every face removed from its type, so a gate or record fits where other names are expected"
-tests: An unfaced gate passed to a slot that writes its own labels: a closed gate fits, as "an unnamed position can unify with a faced position" allows; a generic one still fails, because its capital A meets the faced x=@ud, and a capital binding only the type under a face is S1 step 1, not part of this rule.
+tests: An unfaced gate passed to a slot that writes its own labels: a closed gate fits, as "an unnamed position can unify with a faced position" allows; a generic one fits too: its capital binds the type under the faced x=@ud, as the chosen face rule requires.
 expect: parses
 expect-types: a partial inference report

@@ -1,0 +1,29 @@
+19:1 glyph ++
+19:4 name generic
+19:12 glyph |=
+19:15 name p
+19:16 tight glyph =
+19:17 tight glyph [
+19:18 tight name left
+19:22 tight glyph =
+19:23 tight tvar A
+19:25 name right
+19:30 tight glyph =
+19:31 tight tvar A
+19:32 tight glyph ]
+19:34 name p
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name generic-bad
+20:16 glyph (
+20:17 tight name generic
+20:25 glyph [
+20:26 tight name left
+20:30 tight glyph =
+20:31 tight lit ~zod
+20:36 name right
+20:41 tight glyph =
+20:42 tight str "hi"
+20:46 tight glyph ]
+20:47 tight glyph )
+20:48 NEWLINE

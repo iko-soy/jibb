@@ -1,0 +1,7 @@
+++ through-unit: change wing `u.data` goes through `data`, which is not a record
+/tests/golden/split-types-change-wing-through-unit/source.jibb:14:32: field `data` has type (unit @t)
+++ through-unit |= m=model m(u.data="a")
+                               ^
+/tests/golden/split-types-change-wing-through-unit/source.jibb:14:28: record being changed has type [cart=[items=(list @t) [open=? [deep=[level=@ud] pair=[@t @ud]]]] [note=@t data=(unit @t)]]
+++ through-unit |= m=model m(u.data="a")
+                           ^

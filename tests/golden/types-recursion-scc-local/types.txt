@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ outer: $-(@t @t)
 ++ global-a: $-(@t A)
 ++ global-b: $-(@t A)

@@ -1,0 +1,9 @@
+module kind: island
++$ message: message
++$ model: [count=@ud]
+++ main: [init=$-(@t [count=@ud]) [update=$-([message count=@ud] [count=@ud (list (cmd message))]) [view=$-([count=@ud] (element message)) subs=$-([count=@ud] (list (sub message)))]]]
+++ init: $-(@t [count=@ud])
+++ update: $-([msg=message state=[count=@ud]] [count=@ud (list (cmd message))])
+++ view: $-([count=@ud] (element message))
+++ subs: $-([count=@ud] (list (sub message)))
+++ program-alias: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])

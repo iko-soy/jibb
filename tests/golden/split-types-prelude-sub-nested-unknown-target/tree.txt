@@ -1,0 +1,10 @@
+(module
+  (value 20:1 unknown-target
+    (gate 20:19
+      (face 20:22 x (tvar 20:24 A))
+      (cast 20:26
+        (tvar 20:29 A)
+        (tuple 20:31
+          (lit 20:32 %watch)
+          (group 20:39
+            (call 20:40 (wing 20:40 pure) (lit 20:45 %idle))))))))

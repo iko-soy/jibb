@@ -1,0 +1,4 @@
+origin inline-decimal-patterns
+target value on-event
+keep mold event
+keep value on-event

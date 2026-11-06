@@ -1,0 +1,55 @@
+1:1 glyph ++
+1:4 name run
+1:8 glyph |=
+1:11 name number
+1:17 tight glyph =
+1:18 tight aura @ud
+2:3 INDENT
+2:3 glyph ++
+2:6 name pick
+2:11 glyph |=
+2:14 name x
+2:15 tight glyph =
+2:16 tight glyph [
+2:17 tight name left
+2:21 tight glyph =
+2:22 tight tvar A
+2:24 name right
+2:29 tight glyph =
+2:30 tight tvar B
+2:31 tight glyph ]
+3:5 INDENT
+3:5 glyph ^-
+3:8 glyph [
+3:9 tight name left
+3:13 tight glyph =
+3:14 tight tvar A
+3:15 tight glyph ]
+3:17 glyph (
+3:18 tight name proj
+3:23 name x
+3:24 tight glyph (
+3:25 tight name left
+3:29 tight glyph =
+3:30 tight glyph (
+3:31 tight name add
+3:35 wing left.x
+3:42 lit 1
+3:43 tight glyph )
+3:44 tight glyph )
+3:45 tight glyph )
+4:3 DEDENT
+4:3 NEWLINE
+4:3 glyph (
+4:4 tight name pick
+4:9 glyph [
+4:10 tight name left
+4:14 tight glyph =
+4:15 tight name number
+4:22 name right
+4:27 tight glyph =
+4:28 tight lit ~zod
+4:32 tight glyph ]
+4:33 tight glyph )
+4:34 DEDENT
+4:34 NEWLINE

@@ -1,0 +1,7 @@
+16:1 glyph ++
+16:4 name reject-bool-dec
+16:20 glyph (
+16:21 tight name dec
+16:25 lit %.n
+16:28 tight glyph )
+16:29 NEWLINE

@@ -14,4 +14,7 @@
 +$  cross-zero  $?([%tag %.y @t] [%tag %$ @t])
 +$  boolean-tail  $?([%tag %$ ?] [%tag ? ?])
 +$  empty-tail  $?([%tag %$ ~] [%tag ? @t])
++$  noun-tags  $%([%left *] [%right @t])
++$  noun-overlap  $%([%left *] [%left @t])
++$  noun-root  $?(* @ud)
 --

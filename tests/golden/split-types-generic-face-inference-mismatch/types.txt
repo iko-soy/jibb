@@ -1,0 +1,7 @@
+++ mismatch: cast mold and expression type do not unify
+/tests/golden/split-types-generic-face-inference-mismatch/source.jibb:7:40: cast mold has type [right=@t rest=@ud]
+++ mismatch |= x=[left=@t rest=@ud] ^- [right=@t rest=@ud] x
+                                       ^
+/tests/golden/split-types-generic-face-inference-mismatch/source.jibb:7:60: expression has type [left=@t rest=@ud]
+++ mismatch |= x=[left=@t rest=@ud] ^- [right=@t rest=@ud] x
+                                                           ^

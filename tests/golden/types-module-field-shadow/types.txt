@@ -1,2 +1,7 @@
-partial inference; module not checked
-++ bad: sample shadows a name
+++ bad: sample `lib` shadows a name already in scope
+/tests/golden/types-module-field-shadow/source.jibb:1:4: earlier binding
+/= lib /ui/lib
+   ^
+/tests/golden/types-module-field-shadow/source.jibb:2:11: conflicting sample binding
+++ bad |= lib=@t title.profile.lib
+          ^

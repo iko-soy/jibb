@@ -1,0 +1,9 @@
+(module
+  (value 37:1 no-field-context
+    (gate 37:21
+      (face 37:24 x (tvar 37:26 A))
+      (cast 37:28
+        (cell 37:31
+          (face 37:32 a (tvar 37:34 A)))
+        (tuple 37:37
+          (face 37:38 wrong (wing 37:44 x)))))))

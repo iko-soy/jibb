@@ -1,0 +1,7 @@
+++ bad-tuba-items: list item does not fit its expected type
+/tests/golden/split-types-prelude-text-bad-tuba-items/source.jibb:8:20: expected item has type @tD
+++ bad-tuba-items (tuba ~[~zod])
+                   ^
+/tests/golden/split-types-prelude-text-bad-tuba-items/source.jibb:8:27: list item has type @p
+++ bad-tuba-items (tuba ~[~zod])
+                          ^

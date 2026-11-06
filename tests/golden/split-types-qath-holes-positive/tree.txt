@@ -1,0 +1,28 @@
+(module
+  (value 1:1 resolved
+    (gate 1:13
+      (face 1:16 x (ref 1:18 qath))
+      (cast 1:23 (hole 1:26) (wing 1:28 x))))
+  (value 2:1 literal
+    (cast 2:12 (hole 2:15) (qath 2:17 foo)))
+  (value 3:1 nested
+    (cast 3:11
+      (hole 3:14)
+      (cast 3:16
+        (ref 3:19 qath)
+        (tuple 3:24
+          (face 3:25 i (lit 3:27 ~.hello))
+          (face 3:35 t
+            (tuple 3:37
+              (face 3:38 i (lit 3:40 ~.world))
+              (face 3:48 t (lit 3:50 ~))))))))
+  (value 15:1 record-number
+    (tuple 15:18
+      (face 15:19 path (qath 15:24 foo))
+      (face 15:30 n (lit 15:32 1))))
+  (value 16:1 nested-number
+    (tuple 16:18
+      (face 16:19 payload
+        (tuple 16:27
+          (face 16:28 path (qath 16:33 foo))))
+      (face 16:40 n (lit 16:42 1)))))

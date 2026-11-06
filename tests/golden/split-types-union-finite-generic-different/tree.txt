@@ -1,0 +1,31 @@
+(module
+  (mold 1:1 msg
+    (generic 1:8 A B
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %ok)
+          (face 2:8 bit (flag 2:12))
+          (face 2:14 val (tvar 2:18 A)))
+        (cell 3:3
+          (const 3:4 %err)
+          (face 3:9 bit (flag 3:13))
+          (face 3:15 val (tvar 3:19 B))))))
+  (value 10:1 different
+    (gate 10:14
+      (face 10:17 m
+        (apply 10:19 msg (tvar 10:24 A) (tvar 10:26 B)))
+      (body 11:3
+        (branch 11:3
+          (wing 11:6 m)
+          (arm 12:5
+            (cell 12:5 (lit 12:6 %ok) (lit 12:10 %.y) (bind 12:14 value))
+            (wing 12:21 value))
+          (arm 13:5
+            (cell 13:5 (lit 13:6 %ok) (lit 13:10 %.n) (bind 13:14 value))
+            (wing 13:21 value))
+          (arm 14:5
+            (cell 14:5 (lit 14:6 %err) (lit 14:11 %.y) (bind 14:15 value))
+            (wing 14:22 value))
+          (arm 15:5
+            (cell 15:5 (lit 15:6 %err) (lit 15:11 %.n) (bind 15:15 value))
+            (wing 15:22 value)))))))

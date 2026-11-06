@@ -1,0 +1,7 @@
+++ reject-down: inline gate result does not unify with A: ? versus A
+/tests/golden/split-types-arithmetic-module-reject-down/source.jibb:7:27: actual type has type ?
+++ reject-down (down.math %.y)
+                          ^
+/tests/golden/split-types-arithmetic-module-reject-down/source.jibb:7:17: call context has type A where A is an atom other than ?
+++ reject-down (down.math %.y)
+                ^

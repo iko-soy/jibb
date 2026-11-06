@@ -1,0 +1,13 @@
+++ mismatch: spacing has no case `%shrink`
+/tests/golden/split-types-pair-context-mismatch/source.jibb:1:4: expected union has type spacing
++$ spacing
+   ^
+/tests/golden/split-types-pair-context-mismatch/source.jibb:2:3: expected union has type spacing
+  %s0
+  ^
+/tests/golden/split-types-pair-context-mismatch/source.jibb:22:16: expected union has type spacing
+++ mismatch ^- attribute gap+%shrink
+               ^
+/tests/golden/split-types-pair-context-mismatch/source.jibb:22:30: tag literal has type %shrink
+++ mismatch ^- attribute gap+%shrink
+                             ^

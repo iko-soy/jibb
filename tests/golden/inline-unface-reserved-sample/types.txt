@@ -1,2 +1,4 @@
-partial inference; module not checked
-module has conflicting names
+`unface` is reserved and cannot be bound
+/tests/golden/inline-unface-reserved-sample/source.jibb:1:13: reserved binding
+++ okay |= [unface=@t other=@p] other
+            ^

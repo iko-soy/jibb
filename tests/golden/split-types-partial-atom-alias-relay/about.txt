@@ -1,0 +1,4 @@
+source: split from types-partial-atom-alias, preserving the original source lines
+tests: the independent relay diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

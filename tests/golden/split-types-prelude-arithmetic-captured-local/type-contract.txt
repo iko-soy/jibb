@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/split-types-prelude-arithmetic-captured-local/source.jibb:21:20
+site /tests/golden/split-types-prelude-arithmetic-captured-local/source.jibb:21:24
+min-sites 2

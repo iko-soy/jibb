@@ -1,0 +1,55 @@
++$ msg
+  [%text value=@t]
+  %clear
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ generic-bad |= [a=msg x=A] ^- (list A)
+  ?- a
+    %clear ~
+    [%text v] ~["hi"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

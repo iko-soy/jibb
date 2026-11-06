@@ -1,0 +1,20 @@
+9:1 glyph ++
+9:4 name record
+9:11 glyph ^-
+9:14 glyph [
+9:15 tight name gap
+9:18 tight glyph =
+9:19 tight aura @dr
+9:23 name n
+9:24 tight glyph =
+9:25 tight aura @ud
+9:28 tight glyph ]
+9:30 glyph [
+9:31 tight name gap
+9:34 tight glyph =
+9:35 tight lit 30
+9:38 name n
+9:39 tight glyph =
+9:40 tight lit 1
+9:41 tight glyph ]
+9:42 NEWLINE

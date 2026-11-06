@@ -54,7 +54,7 @@
 =/  nested=spec  [%bccl ~[[%leaf %tas %x] [%bcwt ~[[%leaf %tas %a] [%leaf %tas %b]]]]]
 ?.  ?=(~ (tagged-bounded-cases:jibb-import ~[nested] ~ 1.000 128))  'nested union case accepted'
 =/  unknown=spec  [%base [%atom %t]]
-?.  ?=(~ (tagged-bounded-cases:jibb-import ~[unknown] ~ 1.000 128))  'non-tagged source accepted'
+?.  =(`~[[0 unknown]] (tagged-bounded-cases:jibb-import ~[unknown] ~ 1.000 128))  'atomic case projection differs'
 'bounded source screen controls passed'
 
 ++  overlap-output
@@ -62,7 +62,7 @@
   ^-  @t
   =/  cor=type  -:(ride -:!>(..zuse) sur-text)
   =/  names=(list term)
-    ~[%mixed-zero %nonzero %unequal-singletons %swapped %separate-tags %separate-terms %different-value %different-tail %unknown-middle %unsupported-gate %dollar-percent %identical %cross-zero %boolean-tail %empty-tail]
+    ~[%mixed-zero %nonzero %unequal-singletons %swapped %separate-tags %separate-terms %different-value %different-tail %unknown-middle %unsupported-gate %dollar-percent %identical %cross-zero %boolean-tail %empty-tail %noun-tags %noun-overlap %noun-root]
   =/  cases=wall
     %+  turn  names
     |=  n=term

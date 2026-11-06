@@ -1,0 +1,10 @@
+++ keep |= x=A
+  ~& ^- @ x
+    x
+++ alias keep
+
+
+
+++ bad (alias [~zod "hi"])
+
+

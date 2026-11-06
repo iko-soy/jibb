@@ -1,0 +1,4 @@
+origin types-single-case-pattern
+target value duplicate
+keep mold packet
+keep value duplicate

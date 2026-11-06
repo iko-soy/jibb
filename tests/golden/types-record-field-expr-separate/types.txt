@@ -1,2 +1,2 @@
-partial inference; module not checked
+module kind: library
 ++ okay: [left=[value=@t yes=?] right=[value=@p yes=?]]

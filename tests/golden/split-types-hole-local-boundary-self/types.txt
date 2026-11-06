@@ -1,0 +1,4 @@
+++ self: holes in recursive groups need unsupported inference
+/tests/golden/split-types-hole-local-boundary-self/source.jibb:10:14: gate sample mold
+++ self |= x=_ (self x)
+             ^

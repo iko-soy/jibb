@@ -1,0 +1,38 @@
+(module
+  (value 1:1 pair-pq
+    (cast 1:12
+      (cell 1:15
+        (face 1:16 p (aura 1:18 @t))
+        (face 1:21 q (aura 1:23 @ud)))
+      (tuple 1:28 (str 1:29 "a") (lit 1:33 1))))
+  (value 2:1 take-kv
+    (gate 2:12
+      (cell 2:15
+        (face 2:16 k (aura 2:18 @t))
+        (face 2:21 v (aura 2:23 @ud)))
+      (wing 2:28 v)))
+  (value 4:1 unfaced
+    (group 4:12
+      (call 4:13
+        (wing 4:13 take-kv)
+        (group 4:21
+          (call 4:22 (wing 4:22 unface) (wing 4:29 pair-pq))))))
+  (value 5:1 hi-lo
+    (cast 5:10
+      (cell 5:13
+        (face 5:14 hi (aura 5:17 @ud))
+        (face 5:21 lo (aura 5:24 @ud)))
+      (tuple 5:29 (lit 5:30 10) (lit 5:33 0))))
+  (value 6:1 want-lo-hi
+    (gate 6:15
+      (face 6:18 r
+        (cell 6:20
+          (face 6:21 lo (aura 6:24 @ud))
+          (face 6:28 hi (aura 6:31 @ud))))
+      (wing 6:36 lo.r)))
+  (value 8:1 by-position
+    (group 8:16
+      (call 8:17
+        (wing 8:17 want-lo-hi)
+        (group 8:28
+          (call 8:29 (wing 8:29 unface) (wing 8:36 hi-lo)))))))

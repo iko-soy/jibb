@@ -1,0 +1,7 @@
+++ load: types do not unify
+/ui/page-check.jibb:5:15: expected type has type $-([id=@ud [done=? text=@t]] [id=@ud [done=? text=@t]])
+++ load |=(~ (todo-by-id.todo 1 |=%one))
+              ^
+/ui/page-check.jibb:5:33: actual type has type A; A remains unresolved for constructor `|=%one`
+++ load |=(~ (todo-by-id.todo 1 |=%one))
+                                ^

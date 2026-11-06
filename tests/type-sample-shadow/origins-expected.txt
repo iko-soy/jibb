@@ -1,0 +1,37 @@
+import:
+++ bad: sample `card` shadows a name already in scope
+/tests/sample-shadow.jibb:1:4: earlier binding
+/= card /lib/card
+   ^
+/tests/sample-shadow.jibb:2:18: conflicting sample binding
+++ bad |= [x=@ud card=@t] x
+                 ^
+prelude:
+++ bad: sample `taken` shadows a name already in scope
+/lib/jibb/prelude.jibb:1:4: earlier binding
+++ taken |= a a
+   ^
+/tests/sample-shadow.jibb:1:18: conflicting sample binding
+++ bad |= [x=@ud taken=@t] x
+                 ^
+local:
+++ bad: sample `thing` shadows a name already in scope
+/tests/sample-shadow.jibb:2:6: earlier binding
+  ++ thing x
+     ^
+/tests/sample-shadow.jibb:3:6: conflicting sample binding
+  |=(thing=@t thing)
+     ^
+branch:
+++ bad: sample `z` shadows a name already in scope
+/tests/sample-shadow.jibb:3:3: earlier binding
+  z |=(z=@t z)
+  ^
+/tests/sample-shadow.jibb:3:8: conflicting sample binding
+  z |=(z=@t z)
+       ^
+earlier:
+++ first: nothing fixes the union of %open; add a `^-`
+/tests/sample-shadow.jibb:1:10: nothing fixes the union of %open; add a `^-`
+++ first %open
+         ^

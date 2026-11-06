@@ -1,0 +1,4 @@
+source: split from types-local-recursive, preserving the original source lines
+tests: the independent alias-mono diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

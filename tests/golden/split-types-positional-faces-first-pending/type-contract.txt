@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-positional-faces-first-pending/source.jibb:19:19
+unresolved-site /tests/golden/split-types-positional-faces-first-pending/source.jibb:19:35
+min-sites 2

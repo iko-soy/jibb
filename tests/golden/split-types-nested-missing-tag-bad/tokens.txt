@@ -1,0 +1,28 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %add
+3:3 NEWLINE
+3:3 lit %remove
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name state
+4:10 glyph [
+4:11 tight name title
+4:16 tight glyph =
+4:17 tight aura @t
+4:20 name choice
+4:26 tight glyph =
+4:27 tight name msg
+4:30 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name bad
+7:8 glyph ^-
+7:11 name state
+7:17 glyph [
+7:18 tight str "hi"
+7:23 lit %missing
+7:31 tight glyph ]
+7:32 NEWLINE

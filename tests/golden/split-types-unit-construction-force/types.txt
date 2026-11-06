@@ -1,0 +1,7 @@
+++ force: capital `A` cannot be fixed to @t
+/tests/golden/split-types-unit-construction-force/source.jibb:27:15: capital
+++ force |= x=A ^- (unit A) `"hi"
+              ^
+/tests/golden/split-types-unit-construction-force/source.jibb:27:29: forcing expression
+++ force |= x=A ^- (unit A) `"hi"
+                            ^

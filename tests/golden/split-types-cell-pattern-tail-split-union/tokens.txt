@@ -1,0 +1,34 @@
+7:1 glyph +$
+7:4 name either
+8:3 INDENT
+8:3 glyph [
+8:4 tight lit %go
+8:8 aura @p
+8:11 aura @t
+8:13 tight glyph ]
+9:3 NEWLINE
+9:3 lit %stop
+13:1 DEDENT
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name split-union
+13:16 glyph |=
+13:19 name x
+13:20 tight glyph =
+13:21 tight glyph [
+13:22 tight aura @t
+13:25 name either
+13:31 tight glyph ]
+14:3 INDENT
+14:3 glyph ?-
+14:6 name x
+15:5 INDENT
+15:5 glyph [
+15:6 tight name first
+15:12 name second
+15:19 name third
+15:24 tight glyph ]
+15:26 name third
+15:31 DEDENT
+15:31 DEDENT
+15:31 NEWLINE

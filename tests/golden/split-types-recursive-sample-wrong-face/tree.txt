@@ -1,0 +1,12 @@
+(module
+  (value 6:1 wrong-face
+    (gate 6:15
+      (cell 6:18
+        (face 6:19 first (aura 6:25 @t))
+        (face 6:28 second (aura 6:35 @p)))
+      (group 6:39
+        (call 6:40
+          (wing 6:40 wrong-face)
+          (tuple 6:51
+            (face 6:52 other (wing 6:58 first))
+            (face 6:64 second (wing 6:71 second))))))))

@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ left: $-(@t A)
 ++ right: $-(@t A)
 ++ third: $-(@p A)

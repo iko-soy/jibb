@@ -1,0 +1,7 @@
+++ captures: capital `A` cannot be fixed to @t
+/tests/golden/split-types-local-recursive-captures/source.jibb:45:18: capital
+++ captures |= x=A
+                 ^
+/tests/golden/split-types-local-recursive-captures/source.jibb:48:17: forcing expression
+      %.y ^- @t x
+                ^

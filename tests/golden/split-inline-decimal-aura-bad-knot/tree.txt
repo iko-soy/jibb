@@ -1,0 +1,3 @@
+(module
+  (value 6:1 knot
+    (cast 6:9 (aura 6:12 @ta) (lit 6:16 30))))

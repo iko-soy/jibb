@@ -1,0 +1,16 @@
+1:1 glyph +$
+1:4 name yes
+1:8 lit %.y
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name named-value
+12:16 glyph ^-
+12:19 name yes
+12:23 lit %.y
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name named-as-ta
+16:16 glyph ^-
+16:19 aura @ta
+16:23 name named-value
+16:34 NEWLINE

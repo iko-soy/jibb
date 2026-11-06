@@ -1,0 +1,13 @@
+++ f: choice has no case `%c`
+/ui/pattern.jibb:1:4: matched union has type choice
++$ choice
+   ^
+/ui/pattern.jibb:2:3: expected union has type choice
+  %a
+  ^
+/ui/pattern.jibb:5:6: expected union has type choice
+  ?- v
+     ^
+/ui/pattern.jibb:8:5: tag literal has type %c
+    %c "c"
+    ^

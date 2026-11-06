@@ -1,0 +1,4 @@
+++ pending: nothing fixes the union of %orphan; add a `^-`
+/tests/golden/split-types-local-recursive-pending/source.jibb:33:8: nothing fixes the union of %orphan; add a `^-`
+    ~& %orphan
+       ^

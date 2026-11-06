@@ -1,7 +1,3 @@
-partial inference; module not checked
-++ widen: list item widening is not supported by partial inference
-++ reverse: $-([a=@tD b=@t] (list @t))
-++ abstract: $-(@ (list @))
 ++ generic: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
 /tests/golden/types-list-open-constraints/source.jibb:4:18: first type variable
 ++ generic |= [a=A b=B] ~[a b]
@@ -9,25 +5,3 @@ partial inference; module not checked
 /tests/golden/types-list-open-constraints/source.jibb:4:22: second type variable
 ++ generic |= [a=A b=B] ~[a b]
                      ^
-++ explicit: $-([a=A b=A] (list A))
-++ num: `1` is a @ud, not a @ux; write 0x1
-/tests/golden/types-list-open-constraints/source.jibb:6:10: decimal
-++ num ~[1 0x1f]
-         ^
-++ all-num: (list @ud)
-++ ctor: list item needs context in partial inference
-++ payload: list item constraint is not supported by partial inference
-++ empty: (list A)
-++ texts: (list @t)
-++ ships: (list @p)
-++ discarded: tag needs context in partial inference
-++ repeated: $-([a=A b=A] (list A))
-++ call-text: (list @t)
-++ call-ship: (list @p)
-++ call-wrong: call's sample and argument types do not unify
-/tests/golden/types-list-open-constraints/source.jibb:19:16: called gate has type $-([a=A b=A] (list A))
-++ call-wrong (repeated "hi" ~zod)
-               ^
-/tests/golden/types-list-open-constraints/source.jibb:19:25: argument has type [@t @p]
-++ call-wrong (repeated "hi" ~zod)
-                        ^

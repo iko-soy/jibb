@@ -1,0 +1,1 @@
+type of /tests/golden/contract-missing-site/source/jibb: 5 bytes

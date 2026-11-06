@@ -1,0 +1,3 @@
+origin types-prelude-arithmetic
+target value captured-local
+keep value captured-local

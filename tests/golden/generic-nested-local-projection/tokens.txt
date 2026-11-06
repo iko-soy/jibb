@@ -1,0 +1,91 @@
+1:1 glyph ++
+1:4 name run
+1:8 glyph |=
+1:11 glyph [
+1:12 tight name words
+1:17 tight glyph =
+1:18 tight aura @t
+1:21 name ship
+1:25 tight glyph =
+1:26 tight aura @p
+1:28 tight glyph ]
+2:3 INDENT
+2:3 glyph ++
+2:6 name outer
+2:12 glyph |=
+2:15 name x
+2:16 tight glyph =
+2:17 tight glyph [
+2:18 tight name first
+2:23 tight glyph =
+2:24 tight tvar A
+2:26 name second
+2:32 tight glyph =
+2:33 tight tvar B
+2:34 tight glyph ]
+3:5 INDENT
+3:5 glyph ++
+3:8 name pick
+3:13 glyph |=
+3:16 name y
+3:17 tight glyph =
+3:18 tight glyph [
+3:19 tight name left
+3:23 tight glyph =
+3:24 tight tvar C
+3:26 name right
+3:31 tight glyph =
+3:32 tight tvar D
+3:33 tight glyph ]
+4:7 INDENT
+4:7 glyph ^-
+4:10 glyph [
+4:11 tight name left
+4:15 tight glyph =
+4:16 tight tvar C
+4:17 tight glyph ]
+4:19 glyph (
+4:20 tight name proj
+4:25 name y
+4:26 tight glyph )
+5:5 DEDENT
+5:5 NEWLINE
+5:5 glyph [
+5:6 tight glyph (
+5:7 tight name pick
+5:12 glyph [
+5:13 tight name left
+5:17 tight glyph =
+5:18 tight wing first.x
+5:26 name right
+5:31 tight glyph =
+5:32 tight wing second.x
+5:40 tight glyph ]
+5:41 tight glyph )
+5:43 glyph (
+5:44 tight name pick
+5:49 glyph [
+5:50 tight name left
+5:54 tight glyph =
+5:55 tight wing second.x
+5:64 name right
+5:69 tight glyph =
+5:70 tight wing first.x
+5:77 tight glyph ]
+5:78 tight glyph )
+5:79 tight glyph ]
+6:3 DEDENT
+6:3 NEWLINE
+6:3 glyph (
+6:4 tight name outer
+6:10 glyph [
+6:11 tight name first
+6:16 tight glyph =
+6:17 tight name words
+6:23 name second
+6:29 tight glyph =
+6:30 tight name ship
+6:34 tight glyph ]
+6:35 tight glyph )
+6:36 DEDENT
+6:36 NEWLINE

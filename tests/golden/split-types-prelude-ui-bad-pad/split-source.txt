@@ -1,0 +1,3 @@
+origin types-prelude-ui
+target value bad-pad
+keep value bad-pad

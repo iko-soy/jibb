@@ -1,0 +1,13 @@
+(module
+  (value 1:1 lt-a
+    (gate 1:9
+      (cell 1:12
+        (face 1:13 a (aura 1:15 @ud))
+        (face 1:19 b (aura 1:21 @ud)))
+      (group 1:26
+        (call 1:27 (wing 1:27 gth) (wing 1:31 b) (wing 1:33 a)))))
+  (value 2:1 gates
+    (list 2:10 (wing 2:12 lt-a)))
+  (value 4:1 mapped
+    (group 4:11
+      (call 4:12 (wing 4:12 turn) (wing 4:17 gates) (wing 4:23 unface)))))

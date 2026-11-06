@@ -1,0 +1,35 @@
+5:1 glyph ++
+5:4 name record-identity
+5:20 glyph |=
+5:23 glyph [
+5:24 tight name n
+5:25 tight glyph =
+5:26 tight aura @ud
+5:30 name item
+5:34 tight glyph =
+5:35 tight glyph [
+5:36 tight name x
+5:37 tight glyph =
+5:38 tight aura @t
+5:41 name y
+5:42 tight glyph =
+5:43 tight aura @p
+5:45 tight glyph ]
+5:46 tight glyph ]
+5:48 name item
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name wrong-order
+13:16 glyph (
+13:17 tight name record-identity
+13:33 glyph [
+13:34 tight name x
+13:35 tight glyph =
+13:36 tight str "hi"
+13:41 name y
+13:42 tight glyph =
+13:43 tight lit ~zod
+13:47 tight glyph ]
+13:49 lit 1
+13:50 tight glyph )
+13:51 NEWLINE

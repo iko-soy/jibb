@@ -1,0 +1,6 @@
+4:1 glyph ++
+4:4 name cord
+4:9 glyph ^-
+4:12 aura @t
+4:15 lit 5
+4:16 NEWLINE

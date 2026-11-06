@@ -1,0 +1,7 @@
+++ wrong: list item does not fit its expected type
+/tests/golden/types-prelude-text-crip-ship-bad/source.jibb:1:11: expected item has type @tD
+++ wrong (crip ~[~zod])
+          ^
+/tests/golden/types-prelude-text-crip-ship-bad/source.jibb:1:18: list item has type @p
+++ wrong (crip ~[~zod])
+                 ^

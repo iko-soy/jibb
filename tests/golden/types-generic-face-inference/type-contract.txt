@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/types-generic-face-inference/source.jibb:7:40
+typed-site /tests/golden/types-generic-face-inference/source.jibb:7:60
+min-sites 2

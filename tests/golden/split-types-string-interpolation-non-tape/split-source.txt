@@ -1,0 +1,3 @@
+origin types-string-interpolation
+target value non-tape
+keep value non-tape

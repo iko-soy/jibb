@@ -1,0 +1,3 @@
+From: written for the diagnostic contract runner.
+Tests: an exact type golden cannot pass when its required diagnostic site is absent.
+Expected: FAILED, with "requires 1 diagnostic sites".

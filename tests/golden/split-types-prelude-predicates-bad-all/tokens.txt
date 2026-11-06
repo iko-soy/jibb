@@ -1,0 +1,15 @@
+5:1 glyph ++
+5:4 name bad-all
+5:12 glyph (
+5:13 tight name levy
+5:18 glyph ~[
+5:20 tight str "a"
+5:23 tight glyph ]
+5:25 glyph |=(
+5:28 tight name x
+5:29 tight glyph =
+5:30 tight aura @p
+5:33 lit %.y
+5:36 tight glyph )
+5:37 tight glyph )
+5:38 NEWLINE

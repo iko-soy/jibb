@@ -1,0 +1,4 @@
+origin types-union-finite-context
+target value bad-generic
+keep mold input
+keep value bad-generic

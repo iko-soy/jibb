@@ -1,0 +1,4 @@
++$ attr
+  [%pad %s0]
+  [%pad %s1]
+++ wrong ^- attr pad+%s4

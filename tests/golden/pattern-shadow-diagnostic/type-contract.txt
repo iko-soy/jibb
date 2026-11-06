@@ -1,0 +1,4 @@
+message pattern binder `complete` shadows a name already in scope
+site /tests/golden/pattern-shadow-diagnostic/source.jibb:4:4
+site /tests/golden/pattern-shadow-diagnostic/source.jibb:7:9
+min-sites 2

@@ -1,0 +1,14 @@
+++ root-rem |= value=A ^- [p=A q=A]
+  ++ root |= [low high]
+    ?- (lth (add low 1) high)
+    %.n low
+    %.y
+      ++ middle (div (add low high) 2)
+      ?- (lte (mul middle middle) value)
+      %.y (root middle high)
+      %.n (root low middle)
+  ++ result (root 0 (add value 1))
+  [p=result q=(sub value (mul result result))]
+
+++ decimal-root (root-rem 17)
+++ hex-root (root-rem 0x11)

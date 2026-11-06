@@ -1,0 +1,7 @@
+++ missing: type [%typed text=@t] has no case `%missing`
+/tests/golden/split-types-union-singleton-missing/source.jibb:10:15: expected case has type [%typed text=@t]
+++ missing ^- $-(@t typed) |=%missing
+              ^
+/tests/golden/split-types-union-singleton-missing/source.jibb:10:28: tag literal has type %missing
+++ missing ^- $-(@t typed) |=%missing
+                           ^

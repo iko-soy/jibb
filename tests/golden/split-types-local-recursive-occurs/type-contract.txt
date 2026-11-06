@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/split-types-local-recursive-occurs/source.jibb:43:18
+site /tests/golden/split-types-local-recursive-occurs/source.jibb:43:24
+min-sites 2

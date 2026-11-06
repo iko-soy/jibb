@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-partial-atom-alias-relay/source.jibb:10:13
+typed-site /tests/golden/split-types-partial-atom-alias-relay/source.jibb:10:15
+min-sites 2

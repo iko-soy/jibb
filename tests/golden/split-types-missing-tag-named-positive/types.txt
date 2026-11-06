@@ -1,0 +1,5 @@
+module kind: library
++$ msg: msg
+++ good: msg
+++ good-head: msg
+++ take: $-(msg @t)

@@ -1,0 +1,8 @@
++$ step
+  [%move dir=@tas n=@ud]
+  %stop
+++ describe |= s=step
+  ?- s
+    [%move * *]  "move"
+    [%move %left n]  "left"
+    %stop  "stop"

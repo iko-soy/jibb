@@ -1,0 +1,7 @@
+++ malformed-table: list item does not fit its expected type
+/tests/golden/split-types-prelude-ui-malformed-table/source.jibb:62:4: expected item has type [header=@t [width=length align=align]]
+  (table ~[[header="Name" width=%shrink]] ~)
+   ^
+/tests/golden/split-types-prelude-ui-malformed-table/source.jibb:62:12: list item has type [header=@t width=A]; A remains unresolved for tag `%shrink`
+  (table ~[[header="Name" width=%shrink]] ~)
+           ^

@@ -1,0 +1,7 @@
+++ after-self: cast mold and expression type do not unify
+/tests/golden/split-types-local-error-cast-after-self/source.jibb:13:14: cast mold has type @ud
+      %.n ^- @ud y
+             ^
+/tests/golden/split-types-local-error-cast-after-self/source.jibb:13:18: expression has type @t
+      %.n ^- @ud y
+                 ^

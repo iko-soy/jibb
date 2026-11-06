@@ -1,0 +1,4 @@
+message msg.right has no case `%wrong`
+typed-site /ui/right.jibb:2:3
+typed-site /tests/golden/types-import-union-external-origins/source.jibb:3:21
+min-sites 2

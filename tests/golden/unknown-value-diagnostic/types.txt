@@ -1,0 +1,4 @@
+++ f: unknown name `missing`
+/tests/golden/unknown-value-diagnostic/source.jibb:1:6: unknown name
+++ f missing
+     ^

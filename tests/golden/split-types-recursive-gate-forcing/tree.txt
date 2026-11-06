@@ -1,0 +1,14 @@
+(module
+  (value 13:1 forcing
+    (gate 13:12
+      (face 13:15 x (tvar 13:17 A))
+      (body 14:3
+        (branch 14:3
+          (lit 14:6 %.y)
+          (arm 15:5
+            (lit 15:5 %.y)
+            (cast 15:9 (aura 15:12 @t) (wing 15:15 x)))
+          (arm 16:5
+            (lit 16:5 %.n)
+            (group 16:9
+              (call 16:10 (wing 16:10 forcing) (wing 16:18 x)))))))))

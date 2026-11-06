@@ -1,0 +1,8 @@
+(module
+  (value 4:1 pause
+    (gate 4:10
+      (face 4:13 d (aura 4:15 @dr))
+      (wing 4:19 d)))
+  (value 5:1 arg
+    (group 5:8
+      (call 5:9 (wing 5:9 pause) (lit 5:15 30)))))

@@ -1,0 +1,4 @@
+source: split from types-recursive-sample, preserving the original source lines
+tests: the independent forced diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic and sites

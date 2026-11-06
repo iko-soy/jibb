@@ -1,0 +1,7 @@
+++ wrong-flag: cast field `open` does not fit
+/tests/golden/split-types-record-cast-context-wrong-flag/source.jibb:1:27: expected field has type [open=?]
++$ state [items=(list @t) open=?]
+                          ^
+/tests/golden/split-types-record-cast-context-wrong-flag/source.jibb:15:27: expression has type @t
+++ wrong-flag ^- state [~ "no"]
+                          ^

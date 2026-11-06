@@ -1,0 +1,7 @@
+++ l: capital `A` cannot be fixed to (list A)
+/tests/golden/review-capital-list/source.jibb:1:11: capital
+++ l |= x=A (lent x)
+          ^
+/tests/golden/review-capital-list/source.jibb:1:19: forcing expression
+++ l |= x=A (lent x)
+                  ^

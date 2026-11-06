@@ -1,0 +1,7 @@
+++ mimic-mismatch: cast mold and expression type do not unify
+/tests/golden/split-types-unit-context-mimic-mismatch/source.jibb:21:22: cast mold has type (mimic @t)
+++ mimic-mismatch ^- (mimic @t) `"hi"
+                     ^
+/tests/golden/split-types-unit-context-mimic-mismatch/source.jibb:21:33: expression has type (unit @t)
+++ mimic-mismatch ^- (mimic @t) `"hi"
+                                ^

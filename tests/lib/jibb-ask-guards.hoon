@@ -1,11 +1,12 @@
 ::  Source-identity and canonical template guards for the partial ask prelude.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  public  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 |%
 ++  ask-guard-errors
   ^-  (list tape)
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb public internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  ~["source-backed prelude did not prepare"]
   ?.  =(source.iface.u.prep `public)  ~["public prelude source changed"]
   =/  ask=(unit ischeme:jibb)  (find-jibb-mold:jibb %ask iface.u.prep)
@@ -23,7 +24,7 @@
     (skim dependencies.iface.u.prep |=(d=iwidth-dependency:jibb =(at.d /lib/jibb/internal/jibb)))
   ?.  ?=([* ~] private)  ~["private source dependency missing or ambiguous"]
   ?.  =(source.i.private `internal)  ~["private source dependency changed"]
-  ?.  ?=(~ (prepare-prelude-with-internal:jibb public ''))  ~["missing private source was accepted"]
+  ?.  ?=(~ (prepare-groups:jibb-prelude-fixture public '' ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]]))  ~["missing private source was accepted"]
   ::  A same-named public mold must not acquire the private nominal origin.
   =/  fake=@t  '/= internal /lib/jibb/internal\0a+$ list |$ [A]\0a  ~\0a  [i=A t=(list A)]\0a+$ unit |$ [A]\0a  ~\0a  [~ u=A]\0a+$ ask |$ [M] [%local value=M]\0a'
   =/  fake-prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb fake internal)

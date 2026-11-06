@@ -1,0 +1,82 @@
++$ input
+  [%item flag=? text=@t]
+  %none
++$ result
+  %good
+  %empty
+++ local-id |= x x
+++ passthrough |= x=input x
+
+
+
+
+
+
+
+
+++ nested |= x=input ^- result
+  ?- (local-id (passthrough x))
+    [%item flag words] %good
+    %none %empty
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

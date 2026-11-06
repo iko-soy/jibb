@@ -1,0 +1,18 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (aura 1:13 @ud))
+      (wing 1:17 n)))
+  (value 6:1 local-gate
+    (gate 6:15
+      (face 6:18 x (aura 6:20 @t))
+      (body 7:3
+        (value 7:3 twice
+          (gate 7:12
+            (face 7:15 y (aura 7:17 @ud))
+            (group 7:21
+              (call 7:22 (wing 7:22 inc) (wing 7:26 y)))))
+        (value 8:3 bad
+          (group 8:10
+            (call 8:11 (wing 8:11 twice) (wing 8:17 x))))
+        (wing 9:3 bad)))))

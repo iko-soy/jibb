@@ -1,0 +1,10 @@
+origin types-arithmetic-proj-qath
+target value good
+keep value good
+keep value path-and-number
+keep value project-increment
+keep value scalar
+keep value select-one
+keep value select-one-nested
+keep value select-one-ux
+keep value with-path

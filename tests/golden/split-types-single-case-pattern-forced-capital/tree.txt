@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 53:1 forced-capital
+    (gate 53:19
+      (cell 53:22
+        (face 53:23 x (tvar 53:25 A))
+        (face 53:27 p (ref 53:29 packet)))
+      (cast 53:37
+        (tvar 53:40 A)
+        (body 54:3
+          (branch 54:3
+            (wing 54:6 p)
+            (arm 55:5
+              (cell 55:5 (lit 55:6 %go) (bind 55:10 u))
+              (str 55:13 "text"))))))))

@@ -1,4 +1,4 @@
 source: Grammar, Runes: "A sample's mold may be left out"; the printer names type variables A to Z and then T26, T27 and on (review question 14).
 tests: A gate, a self-recursive gate and a mutually recursive pair with 27 bare binders generalize over more than 26 type variables and print the later ones as T26 and T27; a later definition can call the gate, and a wrong call names the gate's full type. The number of variables does not decide which definitions check.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker reports the first error; independent split cases retain the other checks

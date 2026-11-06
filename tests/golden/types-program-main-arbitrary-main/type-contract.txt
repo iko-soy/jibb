@@ -1,0 +1,3 @@
+message main has gate type
+min-sites 1
+site /ui/program-check.jibb:5:4

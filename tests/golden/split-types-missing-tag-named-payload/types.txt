@@ -1,0 +1,7 @@
+++ payload: payload field has type @p, but requires @t
+/tests/golden/split-types-missing-tag-named-payload/source.jibb:2:16: expected field has type @t
+  [%typed text=@t]
+               ^
+/tests/golden/split-types-missing-tag-named-payload/source.jibb:12:27: actual field has type @p
+++ payload ^- msg [%typed ~zod]
+                          ^

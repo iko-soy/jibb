@@ -1,0 +1,32 @@
+(module
+  (value 1:1 global
+    (gate 1:11 (bind 1:14 g) (wing 1:16 g)))
+  (value 2:1 good
+    (gate 2:9
+      (bind 2:12 x)
+      (body 3:3
+        (value 3:3 first
+          (group 3:12
+            (call 3:13 (wing 3:13 id) (lit 3:16 ~zod))))
+        (value 4:3 id
+          (gate 4:9 (bind 4:12 y) (wing 4:14 y)))
+        (value 5:3 capture
+          (gate 5:14 (bind 5:17 y) (wing 5:19 x)))
+        (tuple 6:3
+          (group 6:4
+            (call 6:5 (wing 6:5 capture) (wing 6:13 first)))
+          (group 6:20
+            (call 6:21
+              (wing 6:21 capture)
+              (group 6:29
+                (call 6:30 (wing 6:30 id) (str 6:33 "hi")))))))))
+  (value 32:1 local-mold
+    (gate 32:15
+      (bind 32:18 x)
+      (body 33:3
+        (mold 33:3 item (aura 33:11 @t))
+        (wing 34:3 x))))
+  (value 35:1 wrap-value
+    (gate 35:15
+      (bind 35:18 y)
+      (gate-wide 35:20 (bind 35:23 z) (wing 35:25 y)))))

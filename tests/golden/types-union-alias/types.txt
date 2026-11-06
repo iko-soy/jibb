@@ -1,4 +1,4 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-+$ alias: not checked
+module kind: library
++$ msg: msg
++$ alias: msg
 ++ via: msg

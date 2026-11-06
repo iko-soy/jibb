@@ -1,2 +1,7 @@
-partial inference; module not checked
-module has conflicting names
+definition `same` shadows a prelude name
+/ui/stores/cart.jibb:2:1: conflicting definition
+++ same "bad"
+^
+/lib/jibb/prelude.jibb:7:1: prelude declaration
+++ same |= x=A x
+^

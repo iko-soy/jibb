@@ -1,0 +1,10 @@
+module kind: library
+++ flag: $-(? @t)
+++ yes: $-(%.y %.y)
+++ no: $-(%.n %.n)
+++ nested: $-([on=? [yes=%.y no=%.n]] [on=? [yes=%.y no=%.n]])
+++ use-yes: %.y
+++ use-no: %.n
+++ read-flag: $-([on=? [yes=%.y no=%.n]] ?)
+++ read-yes: $-([on=? [yes=%.y no=%.n]] %.y)
+++ read-no: $-([on=? [yes=%.y no=%.n]] %.n)

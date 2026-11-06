@@ -1,0 +1,6 @@
+/= data /ui/choice
+++ f |= v=choice.data
+  ?- v
+    %a "a"
+    %b "b"
+    %c "c"

@@ -1,0 +1,4 @@
+++ alias: unface is not a value; write |=(g (unface g))
+/tests/golden/split-inline-unface-value-bad-alias/source.jibb:3:10: unface used as a value
+++ alias unface
+         ^

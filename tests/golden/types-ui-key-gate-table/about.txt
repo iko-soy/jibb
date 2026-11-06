@@ -1,0 +1,4 @@
+source: Grammar, Types and molds; Overview, Layout.
+tests: Keyed UI constructors retain the gate-free key constraint.
+expect: parses
+expect-types: rejects gate-containing keys at their source

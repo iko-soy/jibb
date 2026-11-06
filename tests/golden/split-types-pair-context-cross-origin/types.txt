@@ -1,0 +1,7 @@
+++ cross-origin: cast mold and expression type do not unify
+/tests/golden/split-types-pair-context-cross-origin/source.jibb:25:20: cast mold has type attribute
+++ cross-origin ^- attribute ^- other-attribute gap+%s2
+                   ^
+/tests/golden/split-types-pair-context-cross-origin/source.jibb:25:30: expression has type other-attribute
+++ cross-origin ^- attribute ^- other-attribute gap+%s2
+                             ^

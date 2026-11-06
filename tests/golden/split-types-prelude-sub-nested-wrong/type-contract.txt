@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-sub-nested-wrong/source.jibb:12:31
+typed-site /tests/golden/split-types-prelude-sub-nested-wrong/source.jibb:12:36
+min-sites 2

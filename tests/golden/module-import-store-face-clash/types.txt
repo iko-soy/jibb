@@ -1,8 +1,7 @@
-partial inference; module not checked
-store derived name `poke` clashes with an import face
-/ui/stores/cart.jibb:3:1: `poke` is derived from this mold
-+$ poke
-^
-/ui/stores/cart.jibb:1:1: clashing import face
+definition `poke` shadows an import
+/ui/stores/cart.jibb:1:1: import
 /- poke
+^
+/ui/stores/cart.jibb:3:1: conflicting definition
++$ poke
 ^

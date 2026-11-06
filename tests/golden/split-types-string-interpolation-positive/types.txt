@@ -1,0 +1,9 @@
+module kind: library
+++ render: $-([day=@da [n=@ud [ship=@p words=@t]]] @t)
+++ bare: $-(@ @t)
+++ repeat: $-(@ud @t)
+++ nested: $-(@t @t)
+++ tape: $-((list @tD) @t)
+++ number: @t
+++ number-cast: @t
+++ fixed-first: $-(@ud @t)

@@ -1,0 +1,7 @@
+++ poly: types do not unify
+/tests/golden/split-types-recursive-gate-poly/source.jibb:11:17: expected type has type A
+++ poly |= x=A (poly [x x])
+                ^
+/tests/golden/split-types-recursive-gate-poly/source.jibb:11:22: actual type has type [A A]
+++ poly |= x=A (poly [x x])
+                     ^

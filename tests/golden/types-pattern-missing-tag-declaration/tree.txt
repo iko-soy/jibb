@@ -1,0 +1,12 @@
+(module
+  (mold 1:1 choice
+    (union 2:3 (const 2:3 %a) (const 3:3 %b)))
+  (value 4:1 f
+    (gate 4:6
+      (face 4:9 v (ref 4:11 choice))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 v)
+          (arm 6:5 (lit 6:5 %a) (str 6:8 "a"))
+          (arm 7:5 (lit 7:5 %b) (str 7:8 "b"))
+          (arm 8:5 (lit 8:5 %c) (str 8:8 "c")))))))

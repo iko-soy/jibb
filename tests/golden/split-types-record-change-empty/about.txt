@@ -1,0 +1,4 @@
+source: split from types-record-change, preserving the original source lines
+tests: the independent empty diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

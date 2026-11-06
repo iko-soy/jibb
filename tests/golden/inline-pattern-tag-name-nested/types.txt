@@ -1,7 +1,3 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-+$ dir: cases proven disjoint; mold not checked
-+$ step: cases proven disjoint; mold not checked
 ++ typed: `typed` binds a name, but the subject's type has `%typed` here; write %typed, or * for a catch-all
 /tests/golden/inline-pattern-tag-name-nested/source.jibb:14:6: subject
   ?- m
@@ -9,17 +5,3 @@ partial inference; module not checked
 /tests/golden/inline-pattern-tag-name-nested/source.jibb:15:6: pattern name
     [typed t]   t
      ^
-++ move: `left` binds a name, but the subject's type has `%left` here; write %left, or * for a catch-all
-/tests/golden/inline-pattern-tag-name-nested/source.jibb:19:6: subject
-  ?- s
-     ^
-/tests/golden/inline-pattern-tag-name-nested/source.jibb:20:12: pattern name
-    [%move left n] "x"
-           ^
-++ draft: `draft` binds a name, but the subject's type has `%draft` here; write %draft, or * for a catch-all
-/tests/golden/inline-pattern-tag-name-nested/source.jibb:24:6: subject
-  ?- s
-     ^
-/tests/golden/inline-pattern-tag-name-nested/source.jibb:26:8: pattern name
-    [t draft]      t
-       ^

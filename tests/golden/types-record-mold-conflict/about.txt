@@ -1,0 +1,1 @@
+A checked call with incompatible declared record molds reports both declaration names.

@@ -1,0 +1,7 @@
+++ cast: cast mold and expression type do not unify
+/tests/golden/deferred-transitive-error-priority/source.jibb:6:12: cast mold has type [label=@t value=msg]
+++ cast ^- [label=@t value=msg] alias
+           ^
+/tests/golden/deferred-transitive-error-priority/source.jibb:6:33: expression has type [label=@p value=msg]
+++ cast ^- [label=@t value=msg] alias
+                                ^

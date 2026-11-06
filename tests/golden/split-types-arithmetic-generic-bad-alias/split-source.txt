@@ -1,0 +1,5 @@
+origin types-arithmetic-generic
+target value bad-alias
+keep value bad-alias
+keep value forward
+keep value sum

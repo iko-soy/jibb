@@ -1,0 +1,10 @@
+++ run |= words=@t
+  ++ first |= [x=[left=A right=B] stop=?]
+    ?- stop
+    %.y ^- [left=A] (proj x)
+    %.n (second x %.y)
+  ++ second |= [x=[left=A right=B] stop=?]
+    ?- stop
+    %.y ^- [left=A] (proj x)
+    %.n (first x %.y)
+  (first [left=words right=~zod] %.y)

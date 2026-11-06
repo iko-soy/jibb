@@ -71,10 +71,8 @@
         ['void' ?=([~ [%.n *]] (overlap-pair:jibb-import [%void ~] [%noun ~] 20))]
         ['void position' ?=([~ [%.n *]] (overlap-pair:jibb-import [%cell zero [%void ~]] [%cell zero [%noun ~]] 20))]
         ['opaque apply' ?=([~ [%.n *]] (overlap-pair:jibb-import [%apply %list ~[txt]] [%noun ~] 20))]
-        ['source node fuel' ?=(~ (overlap-source-cases:jibb-import specs 1 128))]
-        ['source case cap' ?=(~ (overlap-source-cases:jibb-import specs 4.096 3))]
-        ['wrong projected head' !(overlap-projections-match:jibb-import ~[[%a i.specs]] ~[[%cell [%atom %tas `%b] txt]])]
-        ['wrong case count' !(overlap-projections-match:jibb-import ~[[%a i.specs]] ~)]
+        ['source node fuel' ?=(~ (overlap-source-parts:jibb-import specs 1 128))]
+        ['source case cap' ?=(~ (overlap-source-parts:jibb-import specs 4.096 3))]
     ==
   =/  results=wall
     %+  turn  checks

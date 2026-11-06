@@ -1,0 +1,115 @@
+1:1 glyph +$
+1:4 name result
+1:11 glyph |$
+1:14 glyph [
+1:15 tight tvar V
+1:17 tvar E
+1:18 tight glyph ]
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %ok
+2:8 name value
+2:13 tight glyph =
+2:14 tight tvar V
+2:15 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %err
+3:9 name error
+3:14 tight glyph =
+3:15 tight tvar E
+3:16 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name either-value
+4:17 glyph |=
+4:20 name r
+4:21 tight glyph =
+4:22 tight glyph (
+4:23 tight name result
+4:30 tvar A
+4:32 tvar A
+4:33 tight glyph )
+5:3 INDENT
+5:3 glyph ?-
+5:6 name r
+6:5 INDENT
+6:5 glyph [
+6:6 tight lit %ok
+6:10 name value
+6:15 tight glyph ]
+6:17 name value
+7:5 NEWLINE
+7:5 glyph [
+7:6 tight lit %err
+7:11 name error
+7:16 tight glyph ]
+7:18 name error
+8:1 DEDENT
+8:1 DEDENT
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name reused
+8:11 glyph |=
+8:14 name r
+8:15 tight glyph =
+8:16 tight glyph (
+8:17 tight name result
+8:24 tvar A
+8:26 tvar A
+8:27 tight glyph )
+9:3 INDENT
+9:3 glyph ?-
+9:6 name r
+10:5 INDENT
+10:5 glyph [
+10:6 tight lit %ok
+10:10 name item
+10:14 tight glyph ]
+10:16 name item
+11:5 NEWLINE
+11:5 glyph [
+11:6 tight lit %err
+11:11 name item
+11:15 tight glyph ]
+11:17 name item
+12:1 DEDENT
+12:1 DEDENT
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name number
+12:11 glyph (
+12:12 tight name either-value
+12:25 glyph (
+12:26 tight glyph ^-
+12:29 glyph (
+12:30 tight name result
+12:37 aura @ud
+12:41 aura @ud
+12:44 tight glyph )
+12:46 glyph [
+12:47 tight lit %ok
+12:51 lit 1
+12:52 tight glyph ]
+12:53 tight glyph )
+12:54 tight glyph )
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name text
+13:9 glyph (
+13:10 tight name either-value
+13:23 glyph (
+13:24 tight glyph ^-
+13:27 glyph (
+13:28 tight name result
+13:35 aura @t
+13:38 aura @t
+13:40 tight glyph )
+13:42 glyph [
+13:43 tight lit %err
+13:48 str "ok"
+13:52 tight glyph ]
+13:53 tight glyph )
+13:54 tight glyph )
+13:55 NEWLINE

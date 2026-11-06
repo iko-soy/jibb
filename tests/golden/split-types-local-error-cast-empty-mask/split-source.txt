@@ -1,0 +1,3 @@
+origin types-local-error-cast
+target value empty-mask
+keep value empty-mask

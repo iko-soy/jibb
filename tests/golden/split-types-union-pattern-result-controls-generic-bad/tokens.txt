@@ -1,0 +1,46 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %text
+2:10 name value
+2:15 tight glyph =
+2:16 tight aura @t
+2:18 tight glyph ]
+3:3 NEWLINE
+3:3 lit %clear
+34:1 DEDENT
+34:1 NEWLINE
+34:1 glyph ++
+34:4 name generic-bad
+34:16 glyph |=
+34:19 glyph [
+34:20 tight name a
+34:21 tight glyph =
+34:22 tight name msg
+34:26 name x
+34:27 tight glyph =
+34:28 tight tvar A
+34:29 tight glyph ]
+34:31 glyph ^-
+34:34 glyph (
+34:35 tight name list
+34:40 tvar A
+34:41 tight glyph )
+35:3 INDENT
+35:3 glyph ?-
+35:6 name a
+36:5 INDENT
+36:5 lit %clear
+36:12 lit ~
+37:5 NEWLINE
+37:5 glyph [
+37:6 tight lit %text
+37:12 name v
+37:13 tight glyph ]
+37:15 glyph ~[
+37:17 tight str "hi"
+37:21 tight glyph ]
+37:22 DEDENT
+37:22 DEDENT
+37:22 NEWLINE

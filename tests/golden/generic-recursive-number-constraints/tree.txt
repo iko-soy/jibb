@@ -1,0 +1,65 @@
+(module
+  (value 1:1 range-up
+    (gate 1:13
+      (face 1:16 args
+        (cell 1:21 (tvar 1:22 A) (tvar 1:24 A)))
+      (cast 1:27
+        (apply 1:30 list (tvar 1:36 A))
+        (body 2:3
+          (branch 2:3
+            (wing 2:6 args)
+            (arm 3:3
+              (cell 3:3 (bind 3:4 start) (bind 3:10 finish))
+              (body 4:5
+                (branch 4:5
+                  (group 4:8
+                    (call 4:9 (wing 4:9 gth) (wing 4:13 start) (wing 4:19 finish)))
+                  (arm 5:5 (lit 5:5 %.y) (crash 5:9))
+                  (arm 6:5
+                    (lit 6:5 %.n)
+                    (body 7:7
+                      (branch 7:7
+                        (group 7:10
+                          (call 7:11 (wing 7:11 eq) (wing 7:14 start) (wing 7:20 finish)))
+                        (arm 8:7
+                          (lit 8:7 %.y)
+                          (tuple 8:11 (wing 8:12 start) (lit 8:18 ~)))
+                        (arm 9:7
+                          (lit 9:7 %.n)
+                          (tuple 9:11
+                            (wing 9:12 start)
+                            (group 9:18
+                              (call 9:19
+                                (wing 9:19 range-up)
+                                (group 9:28
+                                  (call 9:29 (wing 9:29 add) (wing 9:33 start) (lit 9:39 1)))
+                                (wing 9:42 finish))))))))))))))))
+  (value 10:1 first
+    (gate 10:10
+      (face 10:13 x (tvar 10:15 A))
+      (cast 10:17
+        (tvar 10:20 A)
+        (group 10:22
+          (call 10:23
+            (wing 10:23 second)
+            (group 10:30
+              (call 10:31 (wing 10:31 add) (wing 10:35 x) (lit 10:37 1))))))))
+  (value 11:1 second
+    (gate 11:11
+      (face 11:14 x (tvar 11:16 A))
+      (cast 11:18
+        (tvar 11:21 A)
+        (group 11:23
+          (call 11:24 (wing 11:24 first) (wing 11:30 x))))))
+  (value 12:1 nums
+    (group 12:9
+      (call 12:10 (wing 12:10 range-up) (lit 12:19 1) (lit 12:21 3))))
+  (value 13:1 hexes
+    (group 13:10
+      (call 13:11 (wing 13:11 range-up) (lit 13:20 0x1) (lit 13:24 0x3))))
+  (value 14:1 dec-result
+    (group 14:15
+      (call 14:16 (wing 14:16 first) (lit 14:22 1))))
+  (value 15:1 hex-result
+    (group 15:15
+      (call 15:16 (wing 15:16 second) (lit 15:23 0x1)))))

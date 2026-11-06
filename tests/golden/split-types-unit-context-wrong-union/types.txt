@@ -1,0 +1,7 @@
+++ wrong-union: unit payload does not fit its expected type
+/tests/golden/split-types-unit-context-wrong-union/source.jibb:36:28: expected unit payload has type msg
+++ wrong-union |= x=alt ^- record [`x ~[`"hi"]]
+                           ^
+/tests/golden/split-types-unit-context-wrong-union/source.jibb:36:37: payload has type alt
+++ wrong-union |= x=alt ^- record [`x ~[`"hi"]]
+                                    ^

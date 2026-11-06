@@ -1,0 +1,13 @@
+++ bad: msg.base has no case `%wrong`
+/ui/base.jibb:1:4: expected union has type msg.base
++$ msg
+   ^
+/ui/base.jibb:2:3: expected union has type msg.base
+  [%ok n=@ud]
+  ^
+/tests/golden/types-import-union-external-tagged/source.jibb:2:20: expected union has type msg.base
+++ bad ^- msg.base [%wrong 1]
+                   ^
+/tests/golden/types-import-union-external-tagged/source.jibb:2:21: tag literal has type %wrong
+++ bad ^- msg.base [%wrong 1]
+                    ^

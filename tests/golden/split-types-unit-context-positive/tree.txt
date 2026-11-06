@@ -1,0 +1,80 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (mold 7:1 record
+    (cell 7:11
+      (face 7:12 u
+        (apply 7:14 unit (ref 7:20 msg)))
+      (face 7:25 xs
+        (apply 7:28 list
+          (apply 7:34 unit (aura 7:40 @t))))))
+  (value 8:1 valid
+    (cast 8:10
+      (apply 8:13 unit (ref 8:19 msg))
+      (unit 8:24 (lit 8:25 %go))))
+  (value 10:1 str
+    (cast 10:8
+      (apply 10:11 unit (aura 10:17 @t))
+      (unit 10:21 (str 10:22 "hi"))))
+  (value 12:1 nest
+    (cast 12:9
+      (apply 12:12 unit
+        (apply 12:18 unit (aura 12:24 @t)))
+      (unit 12:29
+        (unit 12:30 (str 12:31 "hi")))))
+  (value 14:1 lis
+    (cast 14:8
+      (apply 14:11 unit
+        (apply 14:17 list (aura 14:23 @t)))
+      (unit 14:28
+        (list 14:29 (str 14:31 "hi")))))
+  (value 16:1 accept
+    (gate 16:11
+      (face 16:14 x
+        (apply 16:16 unit (ref 16:22 msg)))
+      (wing 16:27 x)))
+  (value 17:1 call
+    (group 17:9
+      (call 17:10
+        (wing 17:10 accept)
+        (unit 17:17 (lit 17:18 %stay)))))
+  (value 19:1 field-value
+    (cast 19:16
+      (ref 19:19 record)
+      (tuple 19:26
+        (unit 19:27 (lit 19:28 %go))
+        (list 19:32
+          (unit 19:34 (str 19:35 "hi"))))))
+  (value 29:1 preserve
+    (gate 29:13
+      (face 29:16 x (tvar 29:18 A))
+      (cast 29:20
+        (apply 29:23 unit (tvar 29:29 A))
+        (unit 29:32 (wing 29:33 x)))))
+  (value 38:1 known-left
+    (gate 38:15
+      (face 38:18 x (ref 38:20 msg))
+      (cast 38:24
+        (cell 38:27
+          (face 38:28 a (ref 38:30 msg)))
+        (tuple 38:35
+          (face 38:36 a (wing 38:38 x))))))
+  (value 40:1 contextual
+    (gate 40:15
+      (face 40:18 x (tvar 40:20 A))
+      (cast 40:22
+        (cell 40:25
+          (face 40:26 a (tvar 40:28 A))
+          (face 40:30 b
+            (apply 40:32 unit (tvar 40:38 A))))
+        (tuple 40:42
+          (face 40:43 a (wing 40:45 x))
+          (face 40:47 b
+            (unit 40:49 (wing 40:50 x)))))))
+  (value 42:1 nested-units
+    (cast 42:17
+      (apply 42:20 list
+        (apply 42:26 unit (ref 42:32 msg)))
+      (list 42:38
+        (unit 42:40 (lit 42:41 %go))
+        (unit 42:45 (lit 42:46 %stay))))))

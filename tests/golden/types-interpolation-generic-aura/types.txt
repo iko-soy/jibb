@@ -1,0 +1,7 @@
+++ render: a generic atom in interpolation needs an aura
+/tests/golden/types-interpolation-generic-aura/source.jibb:3:7: atom with a generic aura
+    "{n}"
+      ^
+/tests/golden/types-interpolation-generic-aura/source.jibb:1:16: capital `A` keeps its type generic
+++ render |= n=A
+               ^

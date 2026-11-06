@@ -1,0 +1,4 @@
+source: split from types-generic-arity, preserving the original source lines
+tests: the independent too-few diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

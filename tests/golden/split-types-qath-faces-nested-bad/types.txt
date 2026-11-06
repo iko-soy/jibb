@@ -1,0 +1,7 @@
+++ nested-bad: cast mold and expression type do not unify
+/tests/golden/split-types-qath-faces-nested-bad/source.jibb:8:6: cast mold has type [outer=[good=qath yes=?] done=?]
+  ^- [outer=[good=qath yes=?] done=?] x
+     ^
+/tests/golden/split-types-qath-faces-nested-bad/source.jibb:8:39: expression has type [outer=[bad=qath yes=?] done=?]
+  ^- [outer=[good=qath yes=?] done=?] x
+                                      ^

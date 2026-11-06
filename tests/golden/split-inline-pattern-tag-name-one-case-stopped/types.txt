@@ -1,0 +1,7 @@
+++ stopped: `halt` binds a name, but the subject's type has `%halt` here; write %halt, or * for a catch-all
+/tests/golden/split-inline-pattern-tag-name-one-case-stopped/source.jibb:7:6: subject
+  ?- h
+     ^
+/tests/golden/split-inline-pattern-tag-name-one-case-stopped/source.jibb:8:5: pattern name
+    halt "halted"
+    ^

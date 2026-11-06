@@ -1,0 +1,1 @@
+expect-types: an impossible tag pattern names the exact union declaration and arm.

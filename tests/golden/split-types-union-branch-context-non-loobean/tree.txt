@@ -1,0 +1,19 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %add)
+      (const 3:3 %remove)
+      (cell 4:3
+        (const 4:4 %noted)
+        (face 4:11 text (aura 4:16 @t)))))
+  (value 50:1 non-loobean
+    (gate 50:16
+      (face 50:19 x (aura 50:21 @t))
+      (body 51:3
+        (cast 51:3
+          (ref 51:6 msg)
+          (body 52:5
+            (branch 52:5
+              (wing 52:8 x)
+              (arm 53:7 (str 53:7 "a") (lit 53:11 %add))
+              (arm 54:7 (any 54:7) (lit 54:9 %remove)))))))))

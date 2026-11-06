@@ -1,0 +1,5 @@
++$ state @ud
++$ poke %inc
+++ init ^- state 0
+++ update |= [a=poke s=state] s
+++ main [init update]

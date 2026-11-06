@@ -1,0 +1,4 @@
+message unit payload does not fit its expected type
+typed-site /tests/golden/generic-nested-collection-gate-error/source.jibb:3:9
+typed-site /tests/golden/generic-nested-collection-gate-error/source.jibb:3:24
+min-sites 2

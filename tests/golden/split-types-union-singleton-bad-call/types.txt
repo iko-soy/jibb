@@ -1,0 +1,7 @@
+++ bad-call: type [%typed text=@t] has no case `%nope`
+/tests/golden/split-types-union-singleton-bad-call/source.jibb:14:14: expected case has type [%typed text=@t]
+++ bad-call (use |=%nope)
+             ^
+/tests/golden/split-types-union-singleton-bad-call/source.jibb:14:18: tag literal has type %nope
+++ bad-call (use |=%nope)
+                 ^

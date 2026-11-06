@@ -1,0 +1,13 @@
+++ value-a: non-gate value `value-a` depends on itself through the cycle value-a -> value-b -> value-a
+/tests/golden/split-types-recursive-gate-value-a/source.jibb:54:4: definition in cycle
+++ value-a value-b
+   ^
+/tests/golden/split-types-recursive-gate-value-a/source.jibb:54:12: `value-a` depends on `value-b` here
+++ value-a value-b
+           ^
+/tests/golden/split-types-recursive-gate-value-a/source.jibb:55:4: definition in cycle
+++ value-b value-a
+   ^
+/tests/golden/split-types-recursive-gate-value-a/source.jibb:55:12: `value-b` depends on `value-a` here
+++ value-b value-a
+           ^

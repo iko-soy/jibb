@@ -1,0 +1,1 @@
+Independent instances of a quantified gate keep separate result field names, including instances at the same underlying atom type.

@@ -1,0 +1,20 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %add)
+      (cell 3:3
+        (const 3:4 %noted)
+        (face 3:11 text (aura 3:16 @t)))))
+  (value 15:1 accepts
+    (gate 15:12
+      (face 15:15 p
+        (cell 15:17
+          (ref 15:18 msg)
+          (apply 15:22 list (aura 15:28 @t))))
+      (wing 15:33 p)))
+  (value 20:1 invalid-item
+    (group 20:17
+      (call 20:18
+        (wing 20:18 accepts)
+        (lit 20:26 %add)
+        (list 20:31 (lit 20:33 ~zod))))))

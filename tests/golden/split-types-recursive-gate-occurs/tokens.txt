@@ -1,0 +1,9 @@
+12:1 glyph ++
+12:4 name occurs
+12:11 glyph |=
+12:14 name x
+12:16 glyph (
+12:17 tight name x
+12:19 name x
+12:20 tight glyph )
+12:21 NEWLINE

@@ -1,9 +1,7 @@
-partial inference; module not checked
-+$ broken: overlapping cases; mold not checked
+module mold broken has overlapping cases
 /tests/golden/types-union-overlap-nested/source.jibb:2:3: first union case
   [%same @t]
   ^
 /tests/golden/types-union-overlap-nested/source.jibb:3:3: overlapping case
   [%same @ud]
   ^
-++ identity: $-(A A)

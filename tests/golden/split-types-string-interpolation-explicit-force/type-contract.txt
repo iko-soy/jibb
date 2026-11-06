@@ -1,0 +1,4 @@
+message capital `A` cannot be fixed to @ud
+site /tests/golden/split-types-string-interpolation-explicit-force/source.jibb:26:24
+site /tests/golden/split-types-string-interpolation-explicit-force/source.jibb:26:35
+min-sites 2

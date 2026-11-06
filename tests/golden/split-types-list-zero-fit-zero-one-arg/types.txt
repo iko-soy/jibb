@@ -1,0 +1,7 @@
+++ zero-one-arg: (list @t) has no case `%1`
+/tests/golden/split-types-list-zero-fit-zero-one-arg/source.jibb:3:45: expected list has type (list @t)
+++ zero-one-arg |= f=$-([(list @t) @t] @t) (f [%1 "ok"])
+                                            ^
+/tests/golden/split-types-list-zero-fit-zero-one-arg/source.jibb:3:48: tag literal has type %1
+++ zero-one-arg |= f=$-([(list @t) @t] @t) (f [%1 "ok"])
+                                               ^

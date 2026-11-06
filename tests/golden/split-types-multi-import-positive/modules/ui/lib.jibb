@@ -1,0 +1,5 @@
++$ msg
+  %add
+  %remove
+++ take |= p=[@t @p] p
+++ combine |= p=[msg (list @t)] p

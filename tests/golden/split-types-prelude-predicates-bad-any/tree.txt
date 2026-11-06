@@ -1,0 +1,9 @@
+(module
+  (value 6:1 bad-any
+    (group 6:12
+      (call 6:13
+        (wing 6:13 lien)
+        (list 6:18 (lit 6:20 ~zod))
+        (gate-wide 6:26
+          (face 6:29 x (aura 6:31 @t))
+          (lit 6:34 %.y))))))

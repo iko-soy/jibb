@@ -1,0 +1,7 @@
+++ bad: call's sample and argument types do not unify
+/tests/golden/split-types-list-imported-bad/source.jibb:6:29: called gate has type $-((list @t) (list @t))
+++ bad |= xs=ships.fixture (take xs)
+                            ^
+/tests/golden/split-types-list-imported-bad/source.jibb:6:34: argument has type (list @p)
+++ bad |= xs=ships.fixture (take xs)
+                                 ^

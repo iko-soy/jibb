@@ -1,0 +1,7 @@
+++ bool-reverse: call's sample and argument types do not unify
+/tests/golden/split-types-arithmetic-combined-bool-reverse/source.jibb:12:18: called gate has type $-([@ud @ud] @ud)
+++ bool-reverse (add 1 %.y)
+                 ^
+/tests/golden/split-types-arithmetic-combined-bool-reverse/source.jibb:12:24: argument has type ?
+++ bool-reverse (add 1 %.y)
+                       ^

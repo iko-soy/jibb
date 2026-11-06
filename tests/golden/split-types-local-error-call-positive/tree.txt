@@ -1,0 +1,19 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (aura 1:13 @ud))
+      (wing 1:17 n)))
+  (value 23:1 blame-empty-c-first
+    (gate 23:24
+      (bind 23:27 x)
+      (body 24:3
+        (value 24:3 c
+          (gate 24:8
+            (face 24:11 y (void 24:13))
+            (wing 24:16 y)))
+        (value 25:3 a
+          (group 25:8
+            (call 25:9 (wing 25:9 c) (wing 25:11 x))))
+        (value 26:3 b
+          (cast 26:8 (aura 26:11 @ud) (wing 26:15 x)))
+        (wing 27:3 a)))))

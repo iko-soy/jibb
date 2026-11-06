@@ -1,0 +1,23 @@
+13:1 glyph ++
+13:4 name forcing
+13:12 glyph |=
+13:15 name x
+13:16 tight glyph =
+13:17 tight tvar A
+14:3 INDENT
+14:3 glyph ?-
+14:6 lit %.y
+15:5 INDENT
+15:5 lit %.y
+15:9 glyph ^-
+15:12 aura @t
+15:15 name x
+16:5 NEWLINE
+16:5 lit %.n
+16:9 glyph (
+16:10 tight name forcing
+16:18 name x
+16:19 tight glyph )
+16:20 DEDENT
+16:20 DEDENT
+16:20 NEWLINE

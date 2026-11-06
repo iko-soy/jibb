@@ -1,0 +1,36 @@
+1:1 glyph ++
+1:4 name inc
+1:8 glyph |=
+1:11 name n
+1:12 tight glyph =
+1:13 tight aura @ud
+1:17 name n
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name local-gate
+6:15 glyph |=
+6:18 name x
+6:19 tight glyph =
+6:20 tight aura @t
+7:3 INDENT
+7:3 glyph ++
+7:6 name twice
+7:12 glyph |=
+7:15 name y
+7:16 tight glyph =
+7:17 tight aura @ud
+7:21 glyph (
+7:22 tight name inc
+7:26 name y
+7:27 tight glyph )
+8:3 NEWLINE
+8:3 glyph ++
+8:6 name bad
+8:10 glyph (
+8:11 tight name twice
+8:17 name x
+8:18 tight glyph )
+9:3 NEWLINE
+9:3 name bad
+9:6 DEDENT
+9:6 NEWLINE

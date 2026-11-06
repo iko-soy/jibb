@@ -1,0 +1,7 @@
+++ bad-mixed: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-arithmetic-bad-mixed/source.jibb:6:15: called gate has type $-([@p @p] ?)
+++ bad-mixed (gth ~zod "hi")
+              ^
+/tests/golden/split-types-prelude-arithmetic-bad-mixed/source.jibb:6:24: argument has type @t
+++ bad-mixed (gth ~zod "hi")
+                       ^

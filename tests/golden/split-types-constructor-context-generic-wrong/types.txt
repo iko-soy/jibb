@@ -1,0 +1,7 @@
+++ generic-wrong: constructor `%got` sample does not fit its case payload
+/tests/golden/split-types-constructor-context-generic-wrong/source.jibb:12:15: case payload has type @p
+  [%got value=A]
+              ^
+/tests/golden/split-types-constructor-context-generic-wrong/source.jibb:22:38: constructor sample has type @t
+++ generic-wrong ^- (maybe @p) (call |=%got)
+                                     ^

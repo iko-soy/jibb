@@ -1,0 +1,7 @@
+++ many-bind: branch arm is covered by earlier arms
+/tests/golden/split-types-union-finite-many-bind/source.jibb:51:5: covering arm
+    value "anything"
+    ^
+/tests/golden/split-types-union-finite-many-bind/source.jibb:52:5: covered arm
+    %other "dead"
+    ^

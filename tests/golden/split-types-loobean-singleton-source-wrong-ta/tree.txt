@@ -1,0 +1,3 @@
+(module
+  (value 10:1 wrong-ta
+    (cast 10:13 (aura 10:16 @ta) (lit 10:20 %.y))))

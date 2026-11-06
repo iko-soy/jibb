@@ -1,0 +1,3 @@
+origin types-prelude-arithmetic
+target value reject-bool-dec
+keep value reject-bool-dec

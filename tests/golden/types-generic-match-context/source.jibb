@@ -1,0 +1,13 @@
++$ result |$ [V E]
+  [%ok value=V]
+  [%err error=E]
+++ either-value |= r=(result A A)
+  ?- r
+    [%ok value] value
+    [%err error] error
+++ reused |= r=(result A A)
+  ?- r
+    [%ok item] item
+    [%err item] item
+++ number (either-value (^- (result @ud @ud) [%ok 1]))
+++ text (either-value (^- (result @t @t) [%err "ok"]))

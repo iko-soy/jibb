@@ -1,0 +1,7 @@
+++ f: local definition `x` shadows a name already in scope
+/tests/golden/local-shadow-sample/source.jibb:1:9: earlier binding
+++ f |= x=@ud
+        ^
+/tests/golden/local-shadow-sample/source.jibb:2:6: conflicting local definition
+  ++ x 1
+     ^

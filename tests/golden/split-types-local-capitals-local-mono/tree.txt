@@ -1,0 +1,18 @@
+(module
+  (value 23:1 local-mono
+    (gate 23:15
+      (face 23:18 x (tvar 23:20 A))
+      (body 24:3
+        (value 24:3 inner
+          (gate 24:12
+            (face 24:15 y (tvar 24:17 A))
+            (body 25:5
+              (value 25:5 alias (wing 25:14 inner))
+              (trace 26:5
+                (group 26:8
+                  (call 26:9 (wing 26:9 alias) (str 26:15 "hi")))
+                (body 27:7
+                  (group 27:7
+                    (call 27:8 (wing 27:8 alias) (lit 27:14 ~zod))))))))
+        (group 28:3
+          (call 28:4 (wing 28:4 inner) (wing 28:10 x)))))))

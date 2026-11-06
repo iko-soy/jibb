@@ -1,0 +1,1 @@
+expect-types: group exports through the host bundle

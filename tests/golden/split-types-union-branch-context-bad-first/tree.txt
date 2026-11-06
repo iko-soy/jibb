@@ -1,0 +1,19 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %add)
+      (const 3:3 %remove)
+      (cell 4:3
+        (const 4:4 %noted)
+        (face 4:11 text (aura 4:16 @t)))))
+  (value 20:1 bad-first
+    (gate 20:14
+      (face 20:17 b (flag 20:19))
+      (body 21:3
+        (cast 21:3
+          (ref 21:6 msg)
+          (body 22:5
+            (branch 22:5
+              (wing 22:8 b)
+              (arm 23:7 (lit 23:7 %.y) (lit 23:11 %missing))
+              (arm 24:7 (lit 24:7 %.n) (lit 24:11 %remove)))))))))

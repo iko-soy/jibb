@@ -1,0 +1,7 @@
+++ local: types do not unify
+/tests/golden/split-types-prelude-arithmetic-captured-local/source.jibb:21:20: expected type has type A where A is an atom other than ?
+  ++ local |= y=? (add x y)
+                   ^
+/tests/golden/split-types-prelude-arithmetic-captured-local/source.jibb:21:24: actual type has type ?
+  ++ local |= y=? (add x y)
+                       ^

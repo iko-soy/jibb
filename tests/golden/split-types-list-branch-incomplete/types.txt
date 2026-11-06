@@ -1,0 +1,7 @@
+++ incomplete: missing match case ["" ~]
+/tests/golden/split-types-list-branch-incomplete/source.jibb:59:5: non-exhaustive match
+    ?- xs
+    ^
+/tests/golden/split-types-list-branch-incomplete/source.jibb:59:8: subject has type (list @t)
+    ?- xs
+       ^

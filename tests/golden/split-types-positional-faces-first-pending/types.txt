@@ -1,0 +1,7 @@
+++ first-pending: types do not unify
+/tests/golden/split-types-positional-faces-first-pending/source.jibb:19:19: expected type has type @ud
+++ first-pending (record-identity %unresolved [x="hi" y=~zod])
+                  ^
+/tests/golden/split-types-positional-faces-first-pending/source.jibb:19:35: actual type has type A; A remains unresolved for tag `%unresolved`
+++ first-pending (record-identity %unresolved [x="hi" y=~zod])
+                                  ^

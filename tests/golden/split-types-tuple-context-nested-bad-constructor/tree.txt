@@ -1,0 +1,20 @@
+(module
+  (mold 21:1 typed
+    (cell 21:10
+      (const 21:11 %typed)
+      (face 21:18 text (aura 21:23 @t))))
+  (value 22:1 use-ctor
+    (gate 22:13
+      (face 22:16 p
+        (cell 22:18
+          (face 22:19 f
+            (fn 22:21 (aura 22:24 @t) (ref 22:27 typed)))
+          (face 22:34 payload (aura 22:42 @t))))
+      (wing 22:46 p)))
+  (value 24:1 bad-constructor
+    (group 24:20
+      (call 24:21
+        (wing 24:21 use-ctor)
+        (tuple 24:30
+          (face 24:31 f (ctor 24:33 %other))
+          (face 24:42 payload (str 24:50 "hi")))))))

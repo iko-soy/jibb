@@ -7,5 +7,4 @@
 ++ same-origin |= x=(node-tree.first @t) ^- (node-tree.again @t) x
 ++ from-alias |= x=(alias.via @t) x
 ++ through-alias |= x=(node-tree.first @t) ^- (alias.via @t) x
-++ different-origin |= x=(node-tree.first @t) ^- (node-tree.second @t) x
 ++ independent |= [a=(node-tree.first @t) b=(node-tree.first @p)] [(generic-id.first a) (generic-id.first b)]

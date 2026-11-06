@@ -1,0 +1,13 @@
+++ bad-tag: msg.lib has no case `%wrong`
+/ui/lib.jibb:1:4: expected union has type msg.lib
++$ msg
+   ^
+/ui/lib.jibb:2:3: expected union has type msg.lib
+  %add
+  ^
+/tests/golden/split-types-multi-import-bad-tag/source.jibb:5:13: expected union has type msg.lib
+++ bad-tag (combine.lib %wrong ~["hi"])
+            ^
+/tests/golden/split-types-multi-import-bad-tag/source.jibb:5:25: tag literal has type %wrong
+++ bad-tag (combine.lib %wrong ~["hi"])
+                        ^

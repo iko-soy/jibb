@@ -1,0 +1,11 @@
++$ packet [%go url=@t]
+
+
+
+
+
+
+
+++ extract-ok |= p=packet
+  ?- p
+    [%go u] u

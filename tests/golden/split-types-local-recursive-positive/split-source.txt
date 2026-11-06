@@ -1,0 +1,6 @@
+origin types-local-recursive
+target value copy
+keep value copy
+keep value generic
+keep value independently
+keep value mutual

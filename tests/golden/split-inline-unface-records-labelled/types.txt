@@ -1,0 +1,7 @@
+++ labelled: call's sample and argument types do not unify
+/tests/golden/split-inline-unface-records-labelled/source.jibb:3:14: called gate has type $-([k=@t v=@ud] @ud)
+++ labelled (take-kv pair-pq)
+             ^
+/tests/golden/split-inline-unface-records-labelled/source.jibb:3:22: argument has type [p=@t q=@ud]
+++ labelled (take-kv pair-pq)
+                     ^

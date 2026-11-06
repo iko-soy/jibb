@@ -1,0 +1,40 @@
+(module
+  (value 1:1 run
+    (gate 1:8
+      (face 1:11 x (aura 1:13 @t))
+      (body 2:3
+        (value 2:3 first
+          (gate 2:12
+            (cell 2:15
+              (face 2:16 value (tvar 2:22 A))
+              (face 2:24 stop (flag 2:29)))
+            (body 3:5
+              (branch 3:5
+                (wing 3:8 stop)
+                (arm 4:5
+                  (lit 4:5 %.y)
+                  (tuple 4:9
+                    (face 4:10 left (wing 4:15 value))))
+                (arm 5:5
+                  (lit 5:5 %.n)
+                  (group 5:9
+                    (call 5:10 (wing 5:10 second) (wing 5:17 value) (lit 5:23 %.y))))))))
+        (value 6:3 second
+          (gate 6:13
+            (cell 6:16
+              (face 6:17 value (tvar 6:23 A))
+              (face 6:25 stop (flag 6:30)))
+            (body 7:5
+              (branch 7:5
+                (wing 7:8 stop)
+                (arm 8:5 (lit 8:5 %.y) (wing 8:9 value))
+                (arm 9:5
+                  (lit 9:5 %.n)
+                  (group 9:9
+                    (call 9:10 (wing 9:10 first) (wing 9:16 value) (lit 9:22 %.y))))))))
+        (group 10:3
+          (call 10:4 (wing 10:4 second) (wing 10:11 x) (lit 10:13 %.y))))))
+  (value 11:1 untouched
+    (gate 11:14
+      (face 11:17 x (aura 11:19 @p))
+      (wing 11:22 x))))

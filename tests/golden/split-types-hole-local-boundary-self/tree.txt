@@ -1,0 +1,6 @@
+(module
+  (value 10:1 self
+    (gate 10:9
+      (face 10:12 x (hole 10:14))
+      (group 10:16
+        (call 10:17 (wing 10:17 self) (wing 10:22 x))))))

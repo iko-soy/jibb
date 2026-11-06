@@ -1,11 +1,12 @@
 ::  Source-backed sub retains the public ask and depends on its actual source.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  public  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 |%
 ++  sub-guard-errors
   ^-  (list tape)
-  =/  prep=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb public internal)
+  =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prep  ~["real prelude did not prepare"]
   ?~  (find-jibb-mold:jibb %sub iface.u.prep)  ~["sub is unavailable in real prelude"]
   =/  intro=@t  '/= internal /lib/jibb/internal\0a'

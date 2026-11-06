@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/generic-local-number-conflict/source.jibb:7:8
+typed-site /tests/golden/generic-local-number-conflict/source.jibb:7:11
+min-sites 2

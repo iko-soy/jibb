@@ -1,0 +1,9 @@
+origin types-arithmetic-module
+target value decimal
+keep value decimal
+keep value hex
+keep value inc-decimal
+keep value inc-hex
+keep value nested
+keep value ship
+keep value text-value

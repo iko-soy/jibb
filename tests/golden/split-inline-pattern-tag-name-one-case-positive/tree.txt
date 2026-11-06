@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 9:1 extract-ok
+    (gate 9:15
+      (face 9:18 p (ref 9:20 packet))
+      (body 10:3
+        (branch 10:3
+          (wing 10:6 p)
+          (arm 11:5
+            (cell 11:5 (lit 11:6 %go) (bind 11:10 u))
+            (wing 11:13 u)))))))

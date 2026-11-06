@@ -1,112 +1,78 @@
 real reader:
-partial inference; module not checked
-+$ alias: not checked
-+$ box: not checked
-++ valid: $-(@t @t)
-++ unused-valid: @t
-++ sample: signed and float auras cannot be imported
-/ui/test.jibb:7:16: invalid imported mold
-++ sample |= x=signed.fixture x
-               ^
-++ nested: cores and gates cannot be imported
-/ui/test.jibb:4:27: invalid imported mold
-+$ box [ok=@t nested=[bad=core.fixture]]
-                          ^
-++ alias-use: signed and float auras cannot be imported
++$ alias: signed and float auras cannot be imported
 /ui/test.jibb:3:10: invalid imported mold
 +$ alias signed.fixture
          ^
-++ mark-use: signed and float auras cannot be imported
-/ui/test.jibb:10:18: invalid imported mold
-++ mark-use |= x=bad-mark x
-                 ^
-++ core-sample: cores and gates cannot be imported
-/ui/test.jibb:11:21: invalid imported mold
-++ core-sample |= x=core.fixture x
-                    ^
-++ core-cast: cores and gates cannot be imported
-/ui/test.jibb:12:17: invalid imported mold
-++ core-cast ^- core.fixture !!
-                ^
-++ signed-cast: signed and float auras cannot be imported
-/ui/test.jibb:13:19: invalid imported mold
-++ signed-cast ^- signed.fixture !!
-                  ^
 nested:
-partial inference; module not checked
-+$ alias: not checked
-+$ recursive: not checked
-++ nested: signed and float auras cannot be imported
-/ui/test.jibb:4:22: invalid imported mold
-++ nested |= [a=@t b=bad.foo] a
-                     ^
-++ cast: signed and float auras cannot be imported
-/ui/test.jibb:5:20: invalid imported mold
-++ cast ^- [a=@t b=bad.foo] !!
-                   ^
-++ func: signed and float auras cannot be imported
-/ui/test.jibb:6:18: invalid imported mold
-++ func ^- $-(@t bad.foo) !!
-                 ^
-++ alias-use: signed and float auras cannot be imported
-/ui/test.jibb:2:10: invalid imported mold
-+$ alias bad.foo
-         ^
-++ first-unsupported: signed and float auras cannot be imported
-/ui/test.jibb:8:32: invalid imported mold
-++ first-unsupported ^- [a=* b=bad.foo] !!
-                               ^
-++ recursive-first: cast mold is not supported by partial inference
-++ shadow: sample shadows a name
-++ first-invalid: signed and float auras cannot be imported
-/ui/test.jibb:11:24: invalid imported mold
-++ first-invalid |= [a=bad.foo b=bad.foo] a
-                       ^
+record field `a` is repeated
+/ui/test.jibb:10:15: first field
+++ shadow |= [a=@t [a=bad.foo b=@t]] a
+              ^
+/ui/test.jibb:10:21: repeated field
+++ shadow |= [a=@t [a=bad.foo b=@t]] a
+                    ^
 duplicate:
-partial inference; module not checked
 ++ cast: cast mold is not supported by partial inference
-++ sample: sample mold is not supported by partial inference
-++ safe: $-(@t @t)
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
 unsupported:
-partial inference; module not checked
-++ cast: cast mold is not supported by partial inference
-++ sample: sample mold is not supported by partial inference
-++ safe: $-(@t @t)
+++ cast: imported Hoon mold is unsupported
+/test.jibb:2:12: unsupported imported mold
+++ cast ^- bad.foo 0
+           ^
 unknown code:
-partial inference; module not checked
 ++ cast: cast mold is not supported by partial inference
-++ sample: sample mold is not supported by partial inference
-++ safe: $-(@t @t)
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
 malformed message:
-partial inference; module not checked
 ++ cast: cast mold is not supported by partial inference
-++ sample: sample mold is not supported by partial inference
-++ safe: $-(@t @t)
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
 missing:
-partial inference; module not checked
 ++ cast: cast mold is not supported by partial inference
-++ sample: sample mold is not supported by partial inference
-++ safe: $-(@t @t)
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
 unused:
-partial inference; module not checked
+module kind: library
 ++ safe: $-(@t @t)
 undeclared:
-partial inference; module not checked
-++ cast: cast mold is not supported by partial inference
-++ safe: $-(@t @t)
+++ cast: module `foo` is not imported
+/test.jibb:1:12: unimported module
+++ cast ^- bad.foo 0
+           ^
 shadow:
-partial inference; module not checked
-++ shadow: sample shadows a name
-++ safe: $-(@t @t)
+++ shadow: sample `shadow` shadows a name already in scope
+/test.jibb:2:4: earlier binding
+++ shadow |= shadow=bad.foo shadow
+   ^
+/test.jibb:2:14: conflicting sample binding
+++ shadow |= shadow=bad.foo shadow
+             ^
 import clash:
-partial inference; module not checked
-++ use: sample mold is not supported by partial inference
-++ use-mark: sample mold is not supported by partial inference
+import `foo` shadows an earlier import
+/test.jibb:1:1: earlier import
+/- foo
+^
+/test.jibb:2:1: conflicting import
+/% %foo
+^
 value clash:
-partial inference; module not checked
-++ foo: @t
-++ use: sample mold is not supported by partial inference
+definition `foo` shadows an import
+/test.jibb:1:1: import
+/- foo
+^
+/test.jibb:2:1: conflicting definition
+++ foo "value"
+^
 mold clash:
-partial inference; module not checked
-+$ foo: not checked
-++ use: sample mold is not supported by partial inference
+definition `foo` shadows an import
+/test.jibb:1:1: import
+/% %foo
+^
+/test.jibb:2:1: conflicting definition
++$ foo @t
+^

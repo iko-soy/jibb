@@ -1,134 +1,21 @@
-partial inference; module not checked
-++ f: $-(@t @t)
-++ g: $-([@ud @t] [@ud @t])
-++ face: $-([name=@t age=@ud] [name=@t age=@ud])
-++ read-name: $-([name=@t age=@ud] @t)
-++ nested: $-([entry=[name=@t age=@ud] number=@ud] @t)
-++ constant: $-(%yes %yes)
-++ choice: $-((%no %yes) (%no %yes))
 ++ failed: sample mold is not supported by partial inference
-++ duplicate: sample mold is not supported by partial inference
-++ undeclared: sample mold is not supported by partial inference
-++ yes: %no %yes
-++ absent: union %no %yes has no case `%other`
-/test.jibb:14:14: expected union
-++ absent ^- choice.fixture %other
-             ^
-/test.jibb:14:29: tag
-++ absent ^- choice.fixture %other
-                            ^
-++ status: $-([status=(%deny %approve) text=@t] (%deny %approve))
-++ nested-yes: [status=(%deny %approve) text=@t]
-++ nested-absent: union %deny %approve has no case `%other`
-/test.jibb:17:21: expected union
-++ nested-absent ^- nested-choice.fixture [%other "hi"]
-                    ^
-/test.jibb:17:44: tag
-++ nested-absent ^- nested-choice.fixture [%other "hi"]
-                                           ^
-++ overlap: sample mold is not supported by partial inference
-++ malformed: sample mold is not supported by partial inference
-++ collapsed: sample mold is not supported by partial inference
-++ one-case: sample mold is not supported by partial inference
-++ bad-term: sample mold is not supported by partial inference
-++ nested-overlap: sample mold is not supported by partial inference
-++ dollar: $-(%$ %$)
-++ dollar-choice: $-((%$ %yes) (%$ %yes))
-++ dollar-value: %$ %yes
-++ text-list: $-((list @t) (list @t))
-++ nested-tags: $-((list ([%x @ud] [%y @t])) (list ([%x @ud] [%y @t])))
-++ get-items: $-([items=(list @t) slots=(unit @ud)] (list @t))
-++ same-list: $-((list @t) (list @t))
-++ wrong-item: call's sample and argument types do not unify
-/test.jibb:31:37: called gate has type $-((list @t) (list @t))
-++ wrong-item |= x=numbers.fixture (text-list x)
-                                    ^
-/test.jibb:31:47: argument has type (list @ud)
-++ wrong-item |= x=numbers.fixture (text-list x)
-                                              ^
-++ wrong-kind: call's sample and argument types do not unify
-/test.jibb:32:35: called gate has type $-((list @t) (list @t))
-++ wrong-kind |= x=maybe.fixture (text-list x)
-                                  ^
-/test.jibb:32:45: argument has type (unit @t)
-++ wrong-kind |= x=maybe.fixture (text-list x)
-                                            ^
-++ maybe-id: $-((unit @t) (unit @t))
-++ bad-kind: sample mold is not supported by partial inference
-++ bad-arity: sample mold is not supported by partial inference
-++ bad-argument: sample mold is not supported by partial inference
-++ bucket-id: $-((map @ud @t) (map @ud @t))
-++ raw-rec: sample mold is not supported by partial inference
-++ direct-list: cast mold is not supported by partial inference
-++ chain-id: $-(chain.fixture chain.fixture)
-++ chain-again: $-(chain.fixture chain.fixture)
-++ other-id: $-(other.fixture other.fixture)
-++ chain-mismatch: call's sample and argument types do not unify
-/test.jibb:43:39: called gate has type $-(chain.fixture chain.fixture)
-++ chain-mismatch |= x=other.fixture (chain-id x)
-                                      ^
-/test.jibb:43:48: argument has type other.fixture
-++ chain-mismatch |= x=other.fixture (chain-id x)
-                                               ^
-++ recursive-field: field is not available to partial inference
-++ chain-null: cast constraint is not supported by partial inference
-++ chain-alias: sample mold is not supported by partial inference
-++ foreign-ref: sample mold is not supported by partial inference
-++ overlap-ref: sample mold is not supported by partial inference
-++ raw-ref: sample mold is not supported by partial inference
-++ raw-null: $-(~ ~)
-++ cross-module: call's sample and argument types do not unify
-/test.jibb:51:36: called gate has type $-(chain.fixture chain.fixture)
-++ cross-module |= x=chain.second (chain-id x)
-                                   ^
-/test.jibb:51:45: argument has type chain.second
-++ cross-module |= x=chain.second (chain-id x)
-                                            ^
-++ chain-pattern: recursive pattern is not supported by partial inference
-++ chain-branch: recursive branch matching is not supported by partial inference
-++ zero-id: $-(([text=@t n=@ud] ~) ([text=@t n=@ud] ~))
-++ zero-empty: [text=@t n=@ud] ~
-++ zero-record: [text=@t n=@ud] ~
-++ zero-field: $-([entry=([text=@t n=@ud] ~) code=@ud] ([text=@t n=@ud] ~))
-++ zero-invalid: sample mold is not supported by partial inference
-++ zero-duplicate: sample mold is not supported by partial inference
-++ zero-flag-duplicate: sample mold is not supported by partial inference
-++ zero-lookalike: $-(([~ @t] ~) ([~ @t] ~))
-++ zero-lookalike-value: unit construction needs the standard prelude in partial inference
-++ flag-forward: $-(? ?)
-++ flag-reverse: $-(? ?)
-++ flag-open: sample mold is not supported by partial inference
-++ flag-invalid: sample mold is not supported by partial inference
-++ flag-duplicate: sample mold is not supported by partial inference
-++ flag-null-overlap: sample mold is not supported by partial inference
-++ flag-term-overlap: sample mold is not supported by partial inference
-++ flag-extra: sample mold is not supported by partial inference
-++ flag-faced: sample mold is not supported by partial inference
-++ flag-malformed: sample mold is not supported by partial inference
-++ mixed-zero: Hoon union cases overlap
-/test.jibb:82:20: invalid imported mold
-++ mixed-zero |= x=mixed-zero.fixture x
-                   ^
-++ separate-tags: $-(([%left [%$ @t]] [%right [? @t]]) ([%left [%$ @t]] [%right [? @t]]))
-++ separate-terms: $-(([%left [%$ @t]] [%right [%yes @t]]) ([%left [%$ @t]] [%right [%yes @t]]))
+/test.jibb:10:16: gate sample mold
+++ failed |= x=failed.fixture x
+               ^
 reader-collapsed: error: Hoon union cases overlap
 reader-mixed-zero: error: Hoon union cases overlap
-reader-separate-tags: (union [left [ @t]] [right [(union @f:0 @f:1) @t]])
-reader-separate-terms: (union [left [ @t]] [right [yes @t]])
-partial inference; module not checked
-++ use: recursive mold name is not available in this scope
-partial inference; module not checked
-++ canonical: (unit @t)
-++ canonical-fall: $-((unit @t) @t)
-++ canonical-need: $-((unit @t) @t)
-++ canonical-cast: $-((unit @t) (unit @t))
-++ maybe-id: $-((unit @t) (unit @t))
-++ maybe-fall: $-((unit @t) @t)
-++ maybe-need: $-((unit @t) @t)
-++ maybe-cast: $-((unit @t) (unit @t))
-++ unit-choice-need: $-((~ [%some (unit @t)]) @t)
-++ unit-list-need: $-((list (unit @t)) @t)
-++ lookalike: cast constraint is not supported by partial inference
+reader-separate-tags: (union [left [%$ @t]] [right [(union @f:0 @f:1) @t]])
+reader-separate-terms: (union [left [%$ @t]] [right [yes @t]])
+/ui/main.jibb:2:4: cannot display `use`: recursive mold name is not available in this scope
+++ use chain-id.helper
+   ^
+++ lookalike: cast types remain unresolved
+/ui/unit-client.jibb:18:17: cast mold has type [~ @t] ~
+++ lookalike ^- zero-lookalike.fixture `"hi"
+                ^
+/ui/unit-client.jibb:18:40: expression has type (unit @t)
+++ lookalike ^- zero-lookalike.fixture `"hi"
+                                       ^
 noun: *
 malformed: unsupported
 noun-atom: unsupported
@@ -142,7 +29,7 @@ recursive-list wrong-module: ok
 recursive-list wrong-name: ok
 recursive-list two-arguments: ok
 recursive-list no-argument: ok
-recursive-list other-collection: ok
+recursive-list recursive-set: ok
 recursive-list malformed-reference: ok
 recursive-list null-overlap: ok
 recursive-list duplicate-faces: ok

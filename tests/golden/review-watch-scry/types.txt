@@ -1,0 +1,7 @@
+++ request: call argument types remain unresolved; add a `^-`
+/tests/golden/review-watch-scry/source.jibb:7:77: expected type has type @ud
+  [%agent api="/ui/api/demo" case=%plain agent=%demo path=~ scry=`~ receive=|=(input=[mark=@tas state=(unit @ud) fact=*] [state=0 message="ok"])]
+                                                                            ^
+/tests/golden/review-watch-scry/source.jibb:7:3: actual type has type *
+  [%agent api="/ui/api/demo" case=%plain agent=%demo path=~ scry=`~ receive=|=(input=[mark=@tas state=(unit @ud) fact=*] [state=0 message="ok"])]
+  ^

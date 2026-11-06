@@ -1,0 +1,4 @@
+source: split from types-partial-atom-constraint, preserving the original source lines
+tests: the independent decimal diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

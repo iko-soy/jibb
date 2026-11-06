@@ -1,0 +1,12 @@
+(module
+  (mold 4:1 mimic
+    (generic 4:10 A
+      (union 5:3
+        (const 5:3 ~)
+        (cell 6:3
+          (const 6:4 ~)
+          (face 6:6 u (tvar 6:8 A))))))
+  (value 21:1 mimic-mismatch
+    (cast 21:19
+      (apply 21:22 mimic (aura 21:29 @t))
+      (unit 21:33 (str 21:34 "hi")))))

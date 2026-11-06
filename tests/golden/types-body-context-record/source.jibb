@@ -1,0 +1,5 @@
+++ keep |= [condition=? value=@] ^- (unit @)
+  ++ parsed ^- [valid=? value=@] [condition value]
+  ?- valid.parsed
+  %.y `value.parsed
+  %.n ~

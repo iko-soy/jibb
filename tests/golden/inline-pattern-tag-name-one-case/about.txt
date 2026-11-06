@@ -1,4 +1,4 @@
 source: Grammar tab, Patterns: "A name is an error where the subject's type at its position is a union, or a one-case mold, with a case whose constant there is the term the name spells"; Tag resolution: "A mold that isn't a union counts as a union of one case"
 tests: a name at a one-case mold's tag, in a cell pattern and as the whole pattern; the same pattern with the tag written checks
 expect: parses
-expect-types: a partial inference report: `extract` is an error at `go`, 5:6, and `stopped` at `halt`, 8:5; `extract-ok` infers
+expect-types: full checker reports the first error; independent split cases retain the other checks

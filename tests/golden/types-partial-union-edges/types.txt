@@ -1,15 +1,7 @@
-partial inference; module not checked
-+$ empty: cases proven disjoint; mold not checked
-+$ empty-cell: cases proven disjoint; mold not checked
-+$ inner: cases proven disjoint; mold not checked
-+$ named-disjoint: cases proven disjoint; mold not checked
-+$ named-overlap: overlapping cases; mold not checked
+module mold named-overlap has overlapping cases
 /tests/golden/types-partial-union-edges/source.jibb:14:3: first union case
   inner
   ^
 /tests/golden/types-partial-union-edges/source.jibb:15:3: overlapping case
   %b
   ^
-+$ opaque: case disjointness unresolved; mold not checked
-+$ tagged-gates: cases proven disjoint; mold not checked
-+$ same-tag-gates: case disjointness unresolved; mold not checked

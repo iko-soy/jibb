@@ -1,0 +1,1 @@
+expect-types: a parsed Hoon path literal uses the checked prelude path mold.

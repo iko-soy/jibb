@@ -1,0 +1,4 @@
+message a gate in interpolation needs a printer
+typed-site /tests/golden/split-types-string-interpolation-gate/source.jibb:6:26
+site /tests/golden/split-types-string-interpolation-gate/source.jibb:6:24
+min-sites 2

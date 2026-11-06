@@ -1,0 +1,7 @@
+++ bad: cast field `inner.thing` does not fit
+/ui/field-origin.jibb:2:21: expected field has type @t
++$ expected [inner=[thing=@t] later=@ud]
+                    ^
+/ui/field-origin.jibb:4:17: expression has type @p
+  [inner=[thing=~zod] later=1]
+                ^

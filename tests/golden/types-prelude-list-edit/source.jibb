@@ -1,0 +1,8 @@
+++ range (gulf 1 4)
+++ cut (oust [1 2] ~[1 2 3 4])
+++ slice (swag [1 2] ~["a" "b" "c" "d"])
+++ replace (snap ~[1 2 3] 1 4)
+++ insert (into ~["a" "c"] 1 "b")
+++ halves (skid ~[1 2 3] |=(x=@ud (gth x 1)))
+++ hex-range (gulf 0x1 0x4)
+++ split-text (skid ~["a" "b"] |=(word=@t (eq word "a")))

@@ -1,0 +1,33 @@
+(module
+  (mold 1:1 list
+    (generic 1:9 A
+      (union 2:3
+        (const 2:3 ~)
+        (cell 3:3
+          (face 3:4 i (tvar 3:6 A))
+          (face 3:8 t
+            (apply 3:10 list (tvar 3:16 A)))))))
+  (value 4:1 weld
+    (gate 4:9
+      (face 4:12 args
+        (cell 4:17
+          (apply 4:18 list (tvar 4:24 A))
+          (apply 4:27 list (tvar 4:33 A))))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 args)
+          (arm 6:5
+            (cell 6:5 (bind 6:6 xs) (bind 6:9 ys))
+            (body 7:7
+              (cast 7:7
+                (apply 7:10 list (tvar 7:16 A))
+                (body 8:7
+                  (branch 8:7
+                    (wing 8:10 xs)
+                    (arm 9:9 (lit 9:9 ~) (wing 9:11 ys))
+                    (arm 10:9
+                      (cell 10:9 (bind 10:10 item) (bind 10:15 rest))
+                      (tuple 10:21
+                        (wing 10:22 item)
+                        (group 10:27
+                          (call 10:28 (wing 10:28 weld) (wing 10:33 rest) (wing 10:38 ys)))))))))))))))

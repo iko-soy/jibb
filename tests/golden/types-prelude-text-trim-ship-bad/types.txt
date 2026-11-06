@@ -1,0 +1,7 @@
+++ wrong: call's sample and argument types do not unify
+/tests/golden/types-prelude-text-trim-ship-bad/source.jibb:1:11: called gate has type $-([@ud (list @t)] [p=(list @t) q=(list @t)])
+++ wrong (trim ~zod ~["hi"])
+          ^
+/tests/golden/types-prelude-text-trim-ship-bad/source.jibb:1:16: argument has type @p
+++ wrong (trim ~zod ~["hi"])
+               ^

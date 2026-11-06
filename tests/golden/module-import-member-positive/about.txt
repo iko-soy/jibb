@@ -1,0 +1,4 @@
+source: Grammar, Imports: a supplied module exports its checked values.
+tests: An existing imported member is callable.
+expect: parses
+expect-types: full checked @t interface

@@ -1,0 +1,10 @@
+++ opposite: call argument does not unify with A: ? versus A
+/tests/golden/split-types-arithmetic-generic-opposite/source.jibb:20:33: required argument type has type A where A is an atom other than ?
+++ opposite |= [b=? x=@] (sum b x)
+                                ^
+/tests/golden/split-types-arithmetic-generic-opposite/source.jibb:20:31: argument has type ?
+++ opposite |= [b=? x=@] (sum b x)
+                              ^
+/tests/golden/split-types-arithmetic-generic-opposite/source.jibb:20:27: call context has type [A A] where A is an atom other than ?
+++ opposite |= [b=? x=@] (sum b x)
+                          ^

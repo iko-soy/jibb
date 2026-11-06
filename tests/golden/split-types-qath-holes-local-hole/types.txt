@@ -1,0 +1,4 @@
+++ local-hole: type hole needs a determined type
+/tests/golden/split-types-qath-holes-local-hole/source.jibb:6:19: unresolved type hole
+  ++ ignored |= x=_ x
+                  ^

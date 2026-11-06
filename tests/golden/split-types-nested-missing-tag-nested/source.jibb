@@ -1,0 +1,18 @@
++$ msg
+  %add
+  %remove
++$ state [title=@t choice=msg]
++$ nested-state [inner=state count=@ud]
+
+
+
+
+++ nested ^- nested-state [["hi" %missing] 7]
+
+
+
+
+
+
+
+

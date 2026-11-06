@@ -1,0 +1,6 @@
+origin types-cell-pattern-schemes
+target value identity
+keep value identity
+keep value shared
+keep value ship
+keep value text-value

@@ -1,0 +1,7 @@
+++ mismatch: change field and replacement do not unify
+/tests/golden/split-types-record-change-mismatch/source.jibb:1:34: expected field has type @t
++$ state [items=(list @t) open=? name=@t nested=[word=@t]]
+                                 ^
+/tests/golden/split-types-record-change-mismatch/source.jibb:12:31: replacement has type @p
+++ mismatch |= s=state s(name=~zod)
+                              ^

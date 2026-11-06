@@ -1,0 +1,7 @@
+origin types-pair-context
+target value cross-origin
+keep mold attribute
+keep mold extent
+keep mold other-attribute
+keep mold spacing
+keep value cross-origin

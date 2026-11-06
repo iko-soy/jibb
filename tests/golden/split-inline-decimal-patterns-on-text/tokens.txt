@@ -1,0 +1,16 @@
+10:1 glyph ++
+10:4 name on-text
+10:12 glyph |=
+10:15 name t
+10:16 tight glyph =
+10:17 tight aura @t
+10:20 glyph ?-
+10:23 name t
+11:3 INDENT
+11:3 lit 5
+11:5 lit %five
+12:3 NEWLINE
+12:3 glyph *
+12:5 lit %other
+12:11 DEDENT
+12:11 NEWLINE

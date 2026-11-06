@@ -1,0 +1,7 @@
+++ mate-gate: unit payload does not fit its expected type
+/tests/golden/split-types-prelude-unit-helpers-mate-gate/source.jibb:30:15: expected unit payload has type A where A contains no gates
+++ mate-gate (mate `same `same)
+              ^
+/tests/golden/split-types-prelude-unit-helpers-mate-gate/source.jibb:30:21: payload has type $-(A A)
+++ mate-gate (mate `same `same)
+                    ^

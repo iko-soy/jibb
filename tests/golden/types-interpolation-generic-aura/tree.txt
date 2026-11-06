@@ -1,0 +1,12 @@
+(module
+  (value 1:1 render
+    (gate 1:11
+      (face 1:14 n (tvar 1:16 A))
+      (body 2:3
+        (trace 2:3
+          (cast 2:6 (aura 2:9 @) (wing 2:11 n))
+          (body 3:5
+            (str 3:5 (wing 3:7 n)))))))
+  (value 4:1 use
+    (group 4:8
+      (call 4:9 (wing 4:9 render) (lit 4:16 3)))))

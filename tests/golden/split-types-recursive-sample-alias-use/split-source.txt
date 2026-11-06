@@ -1,0 +1,3 @@
+origin types-recursive-sample
+target value alias-use
+keep value alias-use

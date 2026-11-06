@@ -1,0 +1,68 @@
+29:1 glyph ++
+29:4 name same
+29:9 glyph |=
+29:12 glyph [
+29:13 tight name a
+29:14 tight glyph =
+29:15 tight tvar A
+29:17 name b
+29:18 tight glyph =
+29:19 tight tvar A
+29:20 tight glyph ]
+29:22 name a
+43:1 NEWLINE
+43:1 glyph ++
+43:4 name empty-ok
+43:13 glyph |=
+43:16 name x
+44:3 INDENT
+44:3 glyph ++
+44:6 name a
+44:8 glyph [
+44:9 tight glyph (
+44:10 tight glyph ^-
+44:13 aura @ux
+44:17 name x
+44:18 tight glyph )
+44:20 glyph (
+44:21 tight glyph ^-
+44:24 aura @t
+44:27 name x
+44:28 tight glyph )
+44:29 tight glyph ]
+45:3 NEWLINE
+45:3 glyph ++
+45:6 name g
+45:8 glyph ^-
+45:11 glyph !!
+45:14 name x
+46:3 NEWLINE
+46:3 name a
+52:1 DEDENT
+52:1 NEWLINE
+52:1 glyph ++
+52:4 name empty-stall-g-first
+52:24 glyph |=
+52:27 name x
+53:3 INDENT
+53:3 glyph ++
+53:6 name g
+53:8 glyph ^-
+53:11 glyph !!
+53:14 name x
+54:3 NEWLINE
+54:3 glyph ++
+54:6 name a
+54:8 glyph ^-
+54:11 aura @ux
+54:15 name x
+55:3 NEWLINE
+55:3 glyph ++
+55:6 name b
+55:8 glyph ^-
+55:11 aura @t
+55:14 name x
+56:3 NEWLINE
+56:3 name a
+56:4 DEDENT
+56:4 NEWLINE

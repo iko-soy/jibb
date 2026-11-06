@@ -1,0 +1,13 @@
+(module
+  (value 8:1 implicit
+    (gate 8:13
+      (bind 8:16 x)
+      (body 9:3
+        (trace 9:3
+          (cast 9:6 (aura 9:9 @) (wing 9:11 x))
+          (body 10:5 (wing 10:5 x))))))
+  (value 13:1 relay
+    (cast 13:10
+      (flag 13:13)
+      (group 13:15
+        (call 13:16 (wing 13:16 implicit) (lit 13:25 7))))))

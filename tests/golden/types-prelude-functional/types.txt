@@ -1,23 +1,7 @@
-partial inference; module not checked
-++ pick: $-([@t @p] @t)
-++ curried: $-(@p @t)
-++ use-cury: @t
-++ right-curried: $-(@t @t)
-++ use-curr: @t
-++ polymorphic: $-(A A)
-++ use-text: @t
-++ use-ship: @p
-++ textify: $-(@p @t)
-++ shipify: $-(@t @p)
-++ forward: $-(@t @t)
-++ backward: $-(@t @t)
-++ use-forward: @t
-++ use-backward: @t
 ++ bad-compose: call's sample and argument types do not unify
-/tests/golden/types-prelude-functional/source.jibb:17:17: called gate has type $-([$-(A B) $-(B C)] $-(A C))
+/tests/golden/types-prelude-functional/source.jibb:17:17: called gate has type $-([$-(@t @p) $-(@p C)] $-(@t C))
 ++ bad-compose (cork shipify shipify)
                 ^
-/tests/golden/types-prelude-functional/source.jibb:17:30: argument has type $-(@t @p)
+/tests/golden/types-prelude-functional/source.jibb:17:30: argument has type @t
 ++ bad-compose (cork shipify shipify)
                              ^
-++ faced-cury: call constraint is not supported by partial inference

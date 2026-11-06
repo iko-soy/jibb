@@ -1,0 +1,4 @@
+++ v: an empty `[]` is not a valid tuple
+/tests/golden/review-empty-cell/source.jibb:1:6: empty tuple
+++ v []
+     ^

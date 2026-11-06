@@ -1,0 +1,2 @@
+file: /tests/golden/contract-missing-site/source/jibb
+1| ++ x

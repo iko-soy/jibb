@@ -1,0 +1,12 @@
+module kind: library
++$ yes: %.y
++$ flag-headed: [%.y value=@t]
+++ yes-flag: %.y
+++ yes-term: %.y
+++ normal-flag: ?
+++ normal-any: @
+++ named-value: %.y
+++ named-as-flag: ?
+++ named-as-any: @
+++ loobean-constructor: $-(@t [%.y value=@t])
+++ explicit-tag: @tas

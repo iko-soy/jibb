@@ -1,0 +1,9 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (value 17:1 variable
+    (gate 17:13
+      (face 17:16 x (tvar 17:18 A))
+      (cast 17:20
+        (cell 17:23 (tvar 17:24 A) (ref 17:26 msg))
+        (tuple 17:31 (wing 17:32 x) (lit 17:34 %missing))))))

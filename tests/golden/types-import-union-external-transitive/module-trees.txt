@@ -1,0 +1,11 @@
+/ui/base.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %ok) (const 3:3 %stop))))
+/ui/mid.jibb
+(module
+  (jibb 1:1 base /ui/base)
+  (value 2:1 emit
+    (gate 2:9
+      (face 2:12 m (ref 2:14 msg.base))
+      (wing 2:23 m))))

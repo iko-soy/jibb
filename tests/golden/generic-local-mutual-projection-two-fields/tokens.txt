@@ -1,0 +1,120 @@
+1:1 glyph ++
+1:4 name run
+1:8 glyph |=
+1:11 name words
+1:16 tight glyph =
+1:17 tight aura @t
+2:3 INDENT
+2:3 glyph ++
+2:6 name first
+2:12 glyph |=
+2:15 glyph [
+2:16 tight name x
+2:17 tight glyph =
+2:18 tight glyph [
+2:19 tight name left
+2:23 tight glyph =
+2:24 tight tvar A
+2:26 name right
+2:31 tight glyph =
+2:32 tight tvar B
+2:34 name extra
+2:39 tight glyph =
+2:40 tight aura @ud
+2:43 tight glyph ]
+2:45 name stop
+2:49 tight glyph =
+2:50 tight glyph ?
+2:51 tight glyph ]
+3:5 INDENT
+3:5 glyph ?-
+3:8 name stop
+4:5 NEWLINE
+4:5 lit %.y
+4:9 glyph ^-
+4:12 glyph [
+4:13 tight name left
+4:17 tight glyph =
+4:18 tight tvar A
+4:20 name right
+4:25 tight glyph =
+4:26 tight tvar B
+4:27 tight glyph ]
+4:29 glyph (
+4:30 tight name proj
+4:35 name x
+4:36 tight glyph )
+5:5 NEWLINE
+5:5 lit %.n
+5:9 glyph (
+5:10 tight name second
+5:17 name x
+5:19 lit %.y
+5:22 tight glyph )
+6:3 DEDENT
+6:3 NEWLINE
+6:3 glyph ++
+6:6 name second
+6:13 glyph |=
+6:16 glyph [
+6:17 tight name x
+6:18 tight glyph =
+6:19 tight glyph [
+6:20 tight name left
+6:24 tight glyph =
+6:25 tight tvar A
+6:27 name right
+6:32 tight glyph =
+6:33 tight tvar B
+6:35 name extra
+6:40 tight glyph =
+6:41 tight aura @ud
+6:44 tight glyph ]
+6:46 name stop
+6:50 tight glyph =
+6:51 tight glyph ?
+6:52 tight glyph ]
+7:5 INDENT
+7:5 glyph ?-
+7:8 name stop
+8:5 NEWLINE
+8:5 lit %.y
+8:9 glyph ^-
+8:12 glyph [
+8:13 tight name left
+8:17 tight glyph =
+8:18 tight tvar A
+8:20 name right
+8:25 tight glyph =
+8:26 tight tvar B
+8:27 tight glyph ]
+8:29 glyph (
+8:30 tight name proj
+8:35 name x
+8:36 tight glyph )
+9:5 NEWLINE
+9:5 lit %.n
+9:9 glyph (
+9:10 tight name first
+9:16 name x
+9:18 lit %.y
+9:21 tight glyph )
+10:3 DEDENT
+10:3 NEWLINE
+10:3 glyph (
+10:4 tight name first
+10:10 glyph [
+10:11 tight name left
+10:15 tight glyph =
+10:16 tight name words
+10:22 name right
+10:27 tight glyph =
+10:28 tight lit ~zod
+10:33 name extra
+10:38 tight glyph =
+10:39 tight lit 1
+10:40 tight glyph ]
+10:42 lit %.y
+10:45 tight glyph )
+10:46 DEDENT
+10:46 NEWLINE

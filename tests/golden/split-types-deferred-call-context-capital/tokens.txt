@@ -1,0 +1,19 @@
+4:1 glyph ++
+4:4 name local-id
+4:13 glyph |=
+4:16 name x
+4:18 name x
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name capital
+15:12 glyph |=
+15:15 name x
+15:16 tight glyph =
+15:17 tight tvar A
+15:19 glyph ^-
+15:22 tvar A
+15:24 glyph (
+15:25 tight name local-id
+15:34 str "text"
+15:40 tight glyph )
+15:41 NEWLINE

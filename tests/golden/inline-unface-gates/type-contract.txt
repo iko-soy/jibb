@@ -1,0 +1,4 @@
+message list items do not have compatible types
+typed-site /tests/golden/inline-unface-gates/source.jibb:5:13
+typed-site /tests/golden/inline-unface-gates/source.jibb:5:20
+min-sites 2

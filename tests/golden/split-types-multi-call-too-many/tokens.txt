@@ -1,0 +1,20 @@
+5:1 glyph ++
+5:4 name two
+5:8 glyph |=
+5:11 name p
+5:12 tight glyph =
+5:13 tight glyph [
+5:14 tight aura @t
+5:17 aura @p
+5:19 tight glyph ]
+5:21 name p
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name too-many
+23:13 glyph (
+23:14 tight name two
+23:18 str "hi"
+23:23 lit ~zod
+23:28 lit %.y
+23:31 tight glyph )
+23:32 NEWLINE

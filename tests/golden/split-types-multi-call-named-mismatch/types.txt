@@ -1,0 +1,7 @@
+++ named-mismatch: call's sample and argument types do not unify
+/tests/golden/split-types-multi-call-named-mismatch/source.jibb:38:20: called gate has type $-([label=@t ship=@p] [@t @p])
+++ named-mismatch (named [other="hi" ship=~zod])
+                   ^
+/tests/golden/split-types-multi-call-named-mismatch/source.jibb:38:26: argument has type [other=@t ship=@p]
+++ named-mismatch (named [other="hi" ship=~zod])
+                         ^

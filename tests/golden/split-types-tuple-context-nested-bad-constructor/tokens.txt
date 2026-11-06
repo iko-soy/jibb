@@ -1,0 +1,42 @@
+21:1 glyph +$
+21:4 name typed
+21:10 glyph [
+21:11 tight lit %typed
+21:18 name text
+21:22 tight glyph =
+21:23 tight aura @t
+21:25 tight glyph ]
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name use-ctor
+22:13 glyph |=
+22:16 name p
+22:17 tight glyph =
+22:18 tight glyph [
+22:19 tight name f
+22:20 tight glyph =
+22:21 tight glyph $-(
+22:24 tight aura @t
+22:27 name typed
+22:32 tight glyph )
+22:34 name payload
+22:41 tight glyph =
+22:42 tight aura @t
+22:44 tight glyph ]
+22:46 name p
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name bad-constructor
+24:20 glyph (
+24:21 tight name use-ctor
+24:30 glyph [
+24:31 tight name f
+24:32 tight glyph =
+24:33 tight glyph |=
+24:35 tight lit %other
+24:42 name payload
+24:49 tight glyph =
+24:50 tight str "hi"
+24:54 tight glyph ]
+24:55 tight glyph )
+24:56 NEWLINE

@@ -1,0 +1,53 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %go
+3:3 NEWLINE
+3:3 lit %stay
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph +$
+7:4 name record
+7:11 glyph [
+7:12 tight name u
+7:13 tight glyph =
+7:14 tight glyph (
+7:15 tight name unit
+7:20 name msg
+7:23 tight glyph )
+7:25 name xs
+7:27 tight glyph =
+7:28 tight glyph (
+7:29 tight name list
+7:34 glyph (
+7:35 tight name unit
+7:40 aura @t
+7:42 tight glyph )
+7:43 tight glyph )
+7:44 tight glyph ]
+31:1 NEWLINE
+31:1 glyph +$
+31:4 name alt
+32:3 INDENT
+32:3 lit %go
+33:3 NEWLINE
+33:3 lit %stay
+36:1 DEDENT
+36:1 NEWLINE
+36:1 glyph ++
+36:4 name wrong-union
+36:16 glyph |=
+36:19 name x
+36:20 tight glyph =
+36:21 tight name alt
+36:25 glyph ^-
+36:28 name record
+36:35 glyph [
+36:36 tight glyph `
+36:37 tight name x
+36:39 glyph ~[
+36:41 tight glyph `
+36:42 tight str "hi"
+36:46 tight glyph ]
+36:47 tight glyph ]
+36:48 NEWLINE

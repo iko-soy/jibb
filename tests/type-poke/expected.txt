@@ -1,66 +1,45 @@
 source-less=rejected malformed=rejected empty=rejected
-partial inference; module not checked
+module kind: library
 ++ zero: poke
 ++ pet: poke
 ++ look: $-(poke @t)
-partial inference; module not checked
-+$ copy: not checked
-+$ double: not checked
-++ good: (cmd (unit @t))
-++ pass: $-(raw-poke raw-poke)
-++ pass-alias: $-(raw-poke raw-poke)
-++ direct: raw-poke
-++ alias: raw-poke
-++ getter: field is not available to partial inference
-++ inspect: $-(raw-poke @t)
-++ change: change target needs a known record in partial inference
-++ cast-atom: cast constraint is not supported by partial inference
-++ leaked: cast constraint is not supported by partial inference
-++ split: cell pattern subject is not supported by partial inference
-++ number: [(cmd (unit @t)) @ud]
-++ bad-constructor: call's sample and argument types do not unify
-/ui/test.jibb:21:21: called gate
-++ bad-constructor (poke.todo ~zod same)
-                    ^
-/ui/test.jibb:21:31: argument has type @p
-++ bad-constructor (poke.todo ~zod same)
-                              ^
-++ bad-mark: cast mold and expression type do not unify
-/ui/test.jibb:22:16: cast mold
-++ bad-mark ^- raw-poke [%agent %todo 0x1f "x"]
-               ^
-/ui/test.jibb:22:25: expression
-++ bad-mark ^- raw-poke [%agent %todo 0x1f "x"]
-                        ^
-++ bad-case: cast mold and expression type do not unify
-/ui/test.jibb:23:16: cast mold
-++ bad-case ^- raw-poke [%alien %todo %todo-action "x"]
-               ^
-/ui/test.jibb:23:25: expression
-++ bad-case ^- raw-poke [%alien %todo %todo-action "x"]
-                        ^
-partial inference; module not checked
+++ leaked: cast mold and expression type do not unify
+/ui/test.jibb:16:24: cast mold has type @t
+++ leaked |= x=copy ^- @t x
+                       ^
+/ui/test.jibb:16:27: expression has type raw-poke
+++ leaked |= x=copy ^- @t x
+                          ^
 the prelude internal module is private
-partial inference; module not checked
-++ nope: sample mold is not supported by partial inference
-partial inference; module not checked
-++ pass: $-(raw-poke raw-poke)
-++ fake-to-real: cast constraint is not supported by partial inference
-++ real-to-fake: cast constraint is not supported by partial inference
-++ match-tag: union pattern is not supported by partial inference
-partial inference; module not checked
+/ui/test.jibb:1:1: imports /lib/jibb/internal.jibb here
+/= leak /lib/jibb/internal
+^
+++ nope: module `fake` has no mold `raw-poke`
+/ui/test.jibb:1:4: earlier binding
+/= fake /ui/internal
+   ^
+/ui/test.jibb:2:14: unknown module mold
+++ nope |= x=raw-poke.fake x
+             ^
+++ fake-to-real: cast mold and expression type do not unify
+/ui/test.jibb:4:35: cast mold has type raw-poke
+++ fake-to-real |= x=faux.fake ^- raw-poke x
+                                  ^
+/ui/test.jibb:4:44: expression has type faux.fake
+++ fake-to-real |= x=faux.fake ^- raw-poke x
+                                           ^
 the prelude internal module is private
-partial inference; module not checked
+/ui/inner.jibb:1:1: imports /lib/jibb/internal.jibb here
+/= hidden /lib/jibb/internal
+^
 API module needs unsupported inference: /ui/api/todo/jibb: API poke mark %todo-action has no reader result
-partial inference; module not checked
 API module needs unsupported inference: /ui/api/todo/jibb: API poke mark %todo-action has duplicate reader results
-partial inference; module not checked
 API module needs unsupported inference: /ui/api/todo/jibb: API path declaration needs unsupported analysis
-partial inference; module not checked
 the prelude internal module is private
-partial inference; module not checked
+/ui/test.jibb:1:1: imports /lib/jibb/internal.jibb here
+/= hidden /lib/jibb/internal
+^
 API module needs unsupported inference: /ui/api/todo/jibb: poke-only API mark imports need unsupported inference
-partial inference; module not checked
 API derived name `poke` clashes with a definition
 /ui/api/todo.jibb:2:1: `poke` is derived from this mold
 +$ poke todo-action
@@ -68,5 +47,10 @@ API derived name `poke` clashes with a definition
 /ui/api/todo.jibb:3:1: clashing definition
 ++ poke "bad"
 ^
-partial inference; module not checked
-++ test: module member is not available to partial inference
+++ demo: module `todo` has no value `poke`
+/ui/test.jibb:1:4: earlier binding
+/= todo /ui/wrong/todo
+   ^
+/ui/test.jibb:2:10: unknown module member
+++ demo (poke.todo "ok" same)
+         ^

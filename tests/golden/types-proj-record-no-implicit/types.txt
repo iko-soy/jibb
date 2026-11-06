@@ -1,0 +1,7 @@
+++ nested-bad: types do not unify
+/tests/golden/types-proj-record-no-implicit/source.jibb:2:16: expected type has type [a=@t b=B]
+++ nested-bad (sink-nested [one=[a="x" b=~zod c=%.y] other=0])
+               ^
+/tests/golden/types-proj-record-no-implicit/source.jibb:2:33: actual type has type [a=@t [b=@p c=?]]
+++ nested-bad (sink-nested [one=[a="x" b=~zod c=%.y] other=0])
+                                ^

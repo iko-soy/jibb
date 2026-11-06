@@ -1,0 +1,7 @@
+++ wrong-item: list item does not fit its expected type
+/tests/golden/split-types-tuple-context-nested-wrong-item/source.jibb:15:16: expected item has type @t
+++ wrong-item (take [payload=%go xs=~[~zod]])
+               ^
+/tests/golden/split-types-tuple-context-nested-wrong-item/source.jibb:15:39: list item has type @p
+++ wrong-item (take [payload=%go xs=~[~zod]])
+                                      ^

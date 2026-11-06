@@ -1,0 +1,7 @@
+++ on-gap: `0` is a @ud, not a @dr
+/tests/golden/split-inline-decimal-patterns-on-gap/source.jibb:5:3: decimal
+  0 %zero
+  ^
+/tests/golden/split-inline-decimal-patterns-on-gap/source.jibb:4:23: expected type has type @dr
+++ on-gap |= d=@dr ?- d
+                      ^

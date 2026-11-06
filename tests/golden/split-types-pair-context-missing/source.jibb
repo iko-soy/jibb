@@ -1,0 +1,32 @@
++$ spacing
+  %s0
+  %s1
+  %s2
+  %s3
++$ extent
+  [%fill n=@ud]
+  %shrink
++$ attribute
+  [%gap spacing]
+  [%pad spacing]
+  [%width extent]
+
+
+
+
+
+
+
+
+
+
+++ missing ^- attribute width+[%oops 1]
+
+
+
+
+
+
+
+
+

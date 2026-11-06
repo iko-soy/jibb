@@ -1,0 +1,3 @@
+origin types-recursive-gate
+target value poly
+keep value poly

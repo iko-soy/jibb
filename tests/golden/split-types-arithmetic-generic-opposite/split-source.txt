@@ -1,0 +1,4 @@
+origin types-arithmetic-generic
+target value opposite
+keep value opposite
+keep value sum

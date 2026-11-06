@@ -1,0 +1,13 @@
+module kind: library
+++ texts: (list @t)
+++ ships: (list @p)
+++ joined: (list @t)
+++ joined-ships: (list @p)
+++ appended: (list @t)
+++ imported: (list @p)
+++ turn-text: (list @t)
+++ turn-ships: (list @p)
+++ turn-map: (list @p)
+++ turn-empty: (list @t)
+++ turn-nested: (list (list @t))
+++ turn-import: (list @p)

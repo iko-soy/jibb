@@ -1,0 +1,16 @@
+(module
+  (value 69:1 atom-bad
+    (gate 69:13
+      (face 69:16 x (aura 69:18 @t))
+      (body 70:3
+        (value 70:3 inner
+          (gate 70:12
+            (face 70:15 y (tvar 70:17 A))
+            (body 71:5
+              (trace 71:5
+                (cast 71:8 (aura 71:11 @) (wing 71:13 y))
+                (body 72:7 (wing 72:7 y))))))
+        (group 73:3
+          (call 73:4
+            (wing 73:4 inner)
+            (tuple 73:10 (wing 73:11 x) (lit 73:13 ~zod))))))))

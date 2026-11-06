@@ -1,0 +1,23 @@
+6:1 glyph ++
+6:4 name wrong-face
+6:15 glyph |=
+6:18 glyph [
+6:19 tight name first
+6:24 tight glyph =
+6:25 tight aura @t
+6:28 name second
+6:34 tight glyph =
+6:35 tight aura @p
+6:37 tight glyph ]
+6:39 glyph (
+6:40 tight name wrong-face
+6:51 glyph [
+6:52 tight name other
+6:57 tight glyph =
+6:58 tight name first
+6:64 name second
+6:70 tight glyph =
+6:71 tight name second
+6:77 tight glyph ]
+6:78 tight glyph )
+6:79 NEWLINE

@@ -1,0 +1,75 @@
+(module
+  (mold 1:1 msg
+    (generic 1:8 A B
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %ok)
+          (face 2:8 bit (flag 2:12))
+          (face 2:14 val (tvar 2:18 A)))
+        (cell 3:3
+          (const 3:4 %err)
+          (face 3:9 bit (flag 3:13))
+          (face 3:15 val (tvar 3:19 B))))))
+  (value 4:1 shared
+    (gate 4:11
+      (face 4:14 m
+        (apply 4:16 msg (tvar 4:21 A) (tvar 4:23 A)))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 m)
+          (arm 6:5
+            (cell 6:5 (lit 6:6 %ok) (lit 6:10 %.y) (bind 6:14 value))
+            (wing 6:21 value))
+          (arm 7:5
+            (cell 7:5 (lit 7:6 %ok) (lit 7:10 %.n) (bind 7:14 value))
+            (wing 7:21 value))
+          (arm 8:5
+            (cell 8:5 (lit 8:6 %err) (lit 8:11 %.y) (bind 8:15 value))
+            (wing 8:22 value))
+          (arm 9:5
+            (cell 9:5 (lit 9:6 %err) (lit 9:11 %.n) (bind 9:15 value))
+            (wing 9:22 value))))))
+  (mold 28:1 choice
+    (generic 28:11 A
+      (union 29:3
+        (cell 29:3
+          (const 29:4 %hit)
+          (face 29:9 on (flag 29:12))
+          (face 29:14 payload (tvar 29:22 A)))
+        (const 30:3 %other))))
+  (value 31:1 getter
+    (gate 31:11
+      (face 31:14 input
+        (apply 31:20 choice (aura 31:28 @t)))
+      (body 32:3
+        (branch 32:3
+          (wing 32:6 input)
+          (arm 33:5
+            (cell 33:5 (lit 33:6 %hit) (lit 33:11 %.y) (bind 33:15 payload))
+            (wing 33:24 payload))
+          (arm 34:5
+            (cell 34:5 (lit 34:6 %hit) (lit 34:11 %.n) (bind 34:15 payload))
+            (wing 34:24 payload))
+          (arm 35:5 (lit 35:5 %other) (str 35:12 "other"))))))
+  (value 36:1 flag
+    (gate 36:9
+      (face 36:12 input
+        (apply 36:18 choice (aura 36:26 @t)))
+      (body 37:3
+        (branch 37:3
+          (wing 37:6 input)
+          (arm 38:5
+            (cell 38:5 (lit 38:6 %hit) (bind 38:11 on) (any 38:14))
+            (wing 38:17 on))
+          (arm 39:5 (lit 39:5 %other) (lit 39:12 %.n))))))
+  (value 40:1 atom-parts
+    (gate 40:15
+      (face 40:18 input
+        (apply 40:24 choice (aura 40:32 @t)))
+      (body 41:3
+        (branch 41:3
+          (wing 41:6 input)
+          (arm 42:5
+            (cell 42:5 (lit 42:6 %hit) (lit 42:11 %.y) (str 42:15 "hello"))
+            (str 42:24 "yes"))
+          (arm 43:5 (any 43:5) (str 43:7 "no")))))))

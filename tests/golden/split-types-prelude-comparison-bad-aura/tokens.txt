@@ -1,0 +1,12 @@
+17:1 glyph ++
+17:4 name bad-aura
+17:13 glyph (
+17:14 tight name lth
+17:18 lit 0x1
+17:22 glyph (
+17:23 tight glyph ^-
+17:26 aura @ud
+17:30 lit 1
+17:31 tight glyph )
+17:32 tight glyph )
+17:33 NEWLINE

@@ -1,0 +1,7 @@
+module kind: library
+++ pair-pq: [p=@t q=@ud]
+++ take-kv: $-([k=@t v=@ud] @ud)
+++ unfaced: @ud
+++ hi-lo: [hi=@ud lo=@ud]
+++ want-lo-hi: $-([lo=@ud hi=@ud] @ud)
+++ by-position: @ud

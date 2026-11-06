@@ -1,0 +1,10 @@
+module kind: library
++$ go: [%go url=@t]
++$ typed: [%typed text=@t]
++$ msg: msg
+++ go-value: [%go url=@t]
+++ constructor: $-(@t [%typed text=@t])
+++ union-constructor: $-(@t msg)
+++ use: $-($-(@t [%typed text=@t]) [%typed text=@t])
+++ demo: [%typed text=@t]
+++ id: $-(A A)

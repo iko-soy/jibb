@@ -1,0 +1,7 @@
+++ distinct: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/split-types-arithmetic-combined-distinct/source.jibb:19:19: first type variable
+++ distinct |= [a=A b=B] (add a b)
+                  ^
+/tests/golden/split-types-arithmetic-combined-distinct/source.jibb:19:23: second type variable
+++ distinct |= [a=A b=B] (add a b)
+                      ^

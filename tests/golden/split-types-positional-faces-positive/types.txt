@@ -1,0 +1,16 @@
+module kind: library
+++ convert-record: $-([f=$-(A B) input=[a=A b=@t]] [value=B label=@t])
+++ data: [a=@ud b=@t]
+++ positional: [value=@t label=@t]
+++ named: [value=@t label=@t]
+++ record-identity: $-([n=@ud item=[x=@t y=@p]] [x=@t y=@p])
+++ typed-record: [x=@t y=@p]
+++ unfaced-identity: $-([n=@ud item=[@t @p]] [@t @p])
+++ nested-identity: $-([n=@ud item=[inner=[@t @p] label=@t]] [inner=[@t @p] label=@t])
+++ generic-identity: $-([n=@ud item=A] A)
+++ preserve-generic: [x=@t y=@p]
+++ generic-apply: $-([f=$-(A B) input=A] B)
+++ accepts-tuple: $-([@t @p] [@t @p])
+++ pick-first: $-([first=A other=@t] A)
+++ first-record: [foo=@t bar=@p]
+++ matching-face-collision: [foo=@t bar=@p]

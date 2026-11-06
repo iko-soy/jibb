@@ -1,0 +1,6 @@
+(module
+  (value 6:1 gate
+    (gate 6:9
+      (face 6:12 x
+        (fn 6:14 (aura 6:17 @t) (aura 6:20 @t)))
+      (str 6:24 (wing 6:26 x)))))

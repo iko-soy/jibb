@@ -1,0 +1,30 @@
+
+
+
+
+
+
++$ reason
+  %fail
+  %late
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ pick |= r=reason r
+++ called |= r=reason
+  ?- (pick r)
+    %fail  "f"
+    late   "l"

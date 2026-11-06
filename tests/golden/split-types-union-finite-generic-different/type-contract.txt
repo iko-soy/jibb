@@ -1,0 +1,4 @@
+message distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+typed-site /tests/golden/split-types-union-finite-generic-different/source.jibb:10:24
+typed-site /tests/golden/split-types-union-finite-generic-different/source.jibb:10:26
+min-sites 2

@@ -1,0 +1,8 @@
+(module
+  (value 4:1 on-gap
+    (gate 4:11
+      (face 4:14 d (aura 4:16 @dr))
+      (branch 4:20
+        (wing 4:23 d)
+        (arm 5:3 (lit 5:3 0) (lit 5:5 %zero))
+        (arm 6:3 (any 6:3) (lit 6:5 %other))))))

@@ -1,4 +1,4 @@
 source: Grammar, Modules: "Names may refer to each other in any order, and no name may shadow one already in scope, imports and the prelude included."
 tests: In the imported library, `helper`'s sample `user` shadows the top-level `user`, which calls `helper`. The error is that sample, shown at it, not a generic error naming `++ user`, which a walk over dependencies that ignore binders would reach.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker reports the first error; independent split cases retain the other checks

@@ -1,0 +1,7 @@
+origin types-qath-holes
+target value literal
+keep value literal
+keep value nested
+keep value nested-number
+keep value record-number
+keep value resolved

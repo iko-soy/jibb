@@ -1,32 +1,7 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-++ watch-value: $-((ask msg) (sub msg))
-++ watch-cord: $-((ask @t) (sub @t))
-++ wrong-watch: cast constraint is not supported by partial inference
-++ periodic: (sub @t)
-++ route: (sub @t)
-++ wrong-reply: cast mold and expression type do not unify
-/tests/golden/types-prelude-sub/source.jibb:9:19: cast mold
-++ wrong-reply ^- (sub @t) [%every gap=~s1 reply=|=(date=@p "bad")]
-                  ^
-/tests/golden/types-prelude-sub/source.jibb:9:28: expression
-++ wrong-reply ^- (sub @t) [%every gap=~s1 reply=|=(date=@p "bad")]
-                           ^
-++ incomplete: missing union case [%url reply=$-((list @ta) msg)]
-++ complete: union branch result matching needs unsupported inference
-+$ my-msg: cases proven disjoint; mold not checked
-++ take-watch: $-((sub my-msg) (ask my-msg))
-++ watch-pure: (sub my-msg)
-++ watch-generic: $-((ask A) (sub A))
-++ independent-text: $-((ask @t) (sub @t))
-++ independent-ship: $-((ask @p) (sub @p))
-++ wrong-watch-generic: cast constraint is not supported by partial inference
-++ pure-direct: (ask my-msg)
-++ pure-typed: (ask my-msg)
-++ pure-wrong: my-msg has no case `%absent`
-/tests/golden/types-prelude-sub/source.jibb:37:32: expected union
-++ pure-wrong ^- (ask my-msg) (pure %absent)
-                               ^
-/tests/golden/types-prelude-sub/source.jibb:37:37: tag
-++ pure-wrong ^- (ask my-msg) (pure %absent)
-                                    ^
+++ wrong-watch: types do not unify
+/tests/golden/types-prelude-sub/source.jibb:6:42: expected type has type @t
+++ wrong-watch |= a=(ask @p) ^- (sub @t) [%watch a]
+                                         ^
+/tests/golden/types-prelude-sub/source.jibb:6:50: actual type has type @p
+++ wrong-watch |= a=(ask @p) ^- (sub @t) [%watch a]
+                                                 ^

@@ -1,0 +1,6 @@
+12:1 glyph ++
+12:4 name decimal
+12:12 glyph ^-
+12:15 glyph ?
+12:17 lit 1
+12:18 NEWLINE

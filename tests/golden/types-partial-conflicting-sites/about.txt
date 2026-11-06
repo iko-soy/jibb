@@ -1,4 +1,4 @@
 source: type errors name both conflicting sites, with excerpts.
 tests: definite call and cast mismatches report the gate or mold and the argument or expression, including an indented case.
 expect: parses
-expect-types: a partial inference report, not a checked module
+expect-types: full checker reports the first error; independent split cases retain the other checks

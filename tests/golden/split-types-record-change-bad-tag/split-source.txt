@@ -1,0 +1,5 @@
+origin types-record-change
+target value bad-tag
+keep mold actions
+keep mold model
+keep value bad-tag

@@ -1,0 +1,7 @@
+++ uncertain-failure: call's sample and argument types do not unify
+/tests/golden/split-types-multi-call-uncertain-failure/source.jibb:41:23: called gate has type $-([@t @p] [@t @p])
+++ uncertain-failure (uncertain-target "hi" "bad")
+                      ^
+/tests/golden/split-types-multi-call-uncertain-failure/source.jibb:41:45: argument has type @t
+++ uncertain-failure (uncertain-target "hi" "bad")
+                                            ^

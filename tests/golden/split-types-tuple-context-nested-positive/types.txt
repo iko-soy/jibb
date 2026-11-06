@@ -1,0 +1,10 @@
+module kind: library
++$ msg: msg
+++ take: $-([payload=msg xs=(list @t)] [payload=msg xs=(list @t)])
+++ ok: [payload=msg xs=(list @t)]
+++ nest: $-([data=[payload=msg xs=(list @t)] z=@p] [data=[payload=msg xs=(list @t)] z=@p])
+++ nested: [data=[payload=msg xs=(list @t)] z=@p]
+++ generic: $-([left=A right=A] [left=A right=A])
++$ typed: [%typed text=@t]
+++ use-ctor: $-([f=$-(@t [%typed text=@t]) payload=@t] [f=$-(@t [%typed text=@t]) payload=@t])
+++ constructor: [f=$-(@t [%typed text=@t]) payload=@t]

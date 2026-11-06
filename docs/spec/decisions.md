@@ -8,7 +8,7 @@ The choices behind the Language tab, made on 2026-10-23; a later date marks a re
 
 Until the Claude doc is synced with this copy, this copy is the spec (review question 42). Synced says whether the doc's Decisions tab has the row as written here. A row decided by 2026-10-29 or undated was in the doc when `spec/` was copied from it on 2026-10-30, and is unchanged. A row decided on or after 2026-10-31 is only here. A row of 2026-10-30 says Check: the copy had that day's answers to the 12 grammar questions, but other rows of that day were added or edited here afterwards ([docs/README.md](../README.md#the-spec)), and nobody has compared them with the doc yet.
 
-Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews/2026-11-02-syntax-review.md): S1 with its step 1, S2, S4 to S7, S11 to S13 and S15. S1 step 1 is decided but not built yet; the checker core that review question 5 asks for will build it.
+Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews/2026-11-02-syntax-review.md): S1 with its step 1, S2, S4 to S7, S11 to S13 and S15. The general checker implements S1 step 1 through ordinary face-aware inference.
 
 | Decision | Choice | Status | Synced |
 | --- | --- | --- | --- |
@@ -33,6 +33,7 @@ Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews
 | Printed type constraints | Print an atom constraint as `$-([A A] A) where A is an atom`, an arithmetic atom constraint as `where A is an atom other than ?`, and a gate-free constraint as `$-([A A] ?) where A contains no gates`; separate multiple clauses with commas, as `where A is an atom, B contains no gates` | Decided 2026-10-31 | No |
 | Branching | `?-` only, loobeans included; exhaustive, with explicit catch-alls; covered arms are errors; failures say `!!` | Decided 2026-10-29 | Yes |
 | Equality and negation | The gates `eq` and `not`, with Hoon's bitwise `not` exposed as `not.bit`; `eq`'s arguments and map and set keys contain no gates, even nested; the checker infers and generalizes that constraint; union matching never inspects a gate to distinguish cases | Decided 2026-10-30 | Check |
+| UI keys | `each` and `table` keys contain no gates, including gates nested in a key; infer and generalize this constraint through their prelude signatures | Decided by @iko 2026-11-04 | No |
 | Special rules | No built-ins; type-directed rules are welcome, each listed in the Grammar tab | Decided 2026-10-29 | Yes |
 | Inference | Hindley–Milner with aura variables; `@` is any atom, a specific atom fits `@` and a more specific aura fits an ancestor in its Hoon aura family, but each reverse needs a check, and repeated atom-constrained capitals give the same type; a decimal is a `@ud`, which fits `@u`, `@` and `*` but no other aura, except where its `++` is generic over its aura; distinct specific auras remain distinct; faces are part of record types, and an unnamed position can take a face but two different faces don't unify; a capital that meets a faced position binds only the type under the face, so `$-([A A] ?)` takes a gate with named parameters (not built yet); principal types | Decided 2026-11-03 | No |
 | Effects | The library unions `cmd` and `sub`; `raw-poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally; derived gates and `pure` also construct requests; islands read agents only by watching; replies get full state, and diffs take a fold; timers carry the time; `%who` gives the owner's `@p`; nacks reach replies as text | Decided 2026-11-01 | No |
@@ -104,7 +105,7 @@ Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews
 
 ## Settled milestone 2 questions
 
-Kept only in this copy. These were open questions in [open-questions.md](../open-questions.md) until @iko settled them; the rows above record each choice, and the questions keep their numbers there, so references to them stay valid. Questions 3 and 32 are still open there.
+Kept only in this copy. These were open questions in [open-questions.md](../open-questions.md) until @iko settled them; the rows above record each choice, and the questions keep their numbers there, so references to them stay valid. Only the field-order detail in question 32 remains open there. Question 3's selected prelude interfaces and deliberate omissions are documented in [prelude-inventory.md](../prelude-inventory.md).
 
 On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treating gates as opaque when distinguishing union cases, and rejecting a non-gate value that depends on itself even through a gate. The checker infers and generalizes the gate-free constraint. @iko also said jetted prelude functions may take gates.
 
@@ -116,7 +117,7 @@ On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treat
 
 **5. Settled: cells of no items or one.** On 2026-10-30, @iko said a single-item cell is the value and `[]` is an error. The theme's `dark=[tones=[…]]`, a record of one field, must still check.
 
-**6. Settled: a change with no items.** On 2026-10-30, @iko said `m()` is an error. The parser still accepts it; the checker needs to reject it and add a golden case.
+**6. Settled: a change with no items.** On 2026-10-30, @iko said `m()` is an error. The full checker rejects it with its exact message and source excerpt; `split-types-record-change-empty` pins the behavior.
 
 **7. Settled: the doc's blocks that aren't whole modules.** On 2026-10-30, @iko agreed to check each in its intended context: the `cmd` and `sub` definitions as prelude source, the Core language tab's `update` inside the todo island, and the Grammar's imports example against fixture files.
 
@@ -142,7 +143,7 @@ On 2026-10-30, @iko adopted gate-free `eq` arguments and map and set keys, treat
 
 **18. Settled: the value gate `like`.** On 2026-10-31, @iko chose a gate `(like convert result)` that maps the product of an existing `(like A)` result with `convert=$-(A B)`, yielding `(like B)` while preserving its position and remaining input. An absent result stays absent. The `(like A)` mold remains available in the separate mold namespace. Hoon's wet `+like` instead builds a gate that constructs a result from an input noun; the chosen Jibb value gate is an adaptation of that behavior.
 
-**19. Settled: Hoon aura families and `step.hoon`.** On 2026-10-30, @iko chose `step.hoon` for Hoon 1c `step`, avoiding a clash with the Grammar example's `step`, and chose one-way widening across Hoon aura families: for example, `@ud` and `@ux` fit `@u`, and `@tD` fits `@t`. The reverse needs a check. The `step.hoon` group representation is not implemented yet.
+**19. Settled: Hoon aura families and `step.hoon`.** On 2026-10-30, @iko chose `step.hoon` for Hoon 1c `step`, avoiding a clash with the Grammar example's `step`, and chose one-way widening across Hoon aura families: for example, `@ud` and `@ux` fit `@u`, and `@tD` fits `@t`. The reverse needs a check. The checked source-backed `hoon` group exports `step.hoon` and `tone.hoon`.
 
 **20. Settled: the type of `clap`.** On 2026-10-30, @iko chose one shared value type for both units and the combining gate. If either unit is absent, `clap` returns the other; if both are present, it applies the gate to their values and wraps the result.
 

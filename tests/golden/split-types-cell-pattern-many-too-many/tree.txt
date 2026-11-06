@@ -1,0 +1,11 @@
+(module
+  (value 25:1 too-many
+    (gate 25:13
+      (face 25:16 args
+        (cell 25:21 (aura 25:22 @t) (aura 25:25 @p)))
+      (body 26:3
+        (branch 26:3
+          (wing 26:6 args)
+          (arm 27:5
+            (cell 27:5 (bind 27:6 a) (bind 27:8 b) (bind 27:10 c))
+            (wing 27:13 a)))))))

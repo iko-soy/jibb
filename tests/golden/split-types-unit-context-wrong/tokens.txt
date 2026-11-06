@@ -1,0 +1,10 @@
+11:1 glyph ++
+11:4 name wrong
+11:10 glyph ^-
+11:13 glyph (
+11:14 tight name unit
+11:19 aura @t
+11:21 tight glyph )
+11:23 glyph `
+11:24 tight lit ~zod
+11:28 NEWLINE

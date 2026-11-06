@@ -1,0 +1,31 @@
+(module
+  (value 29:1 same
+    (gate 29:9
+      (cell 29:12
+        (face 29:13 a (tvar 29:15 A))
+        (face 29:17 b (tvar 29:19 A)))
+      (wing 29:22 a)))
+  (value 43:1 empty-ok
+    (gate 43:13
+      (bind 43:16 x)
+      (body 44:3
+        (value 44:3 a
+          (tuple 44:8
+            (group 44:9
+              (cast 44:10 (aura 44:13 @ux) (wing 44:17 x)))
+            (group 44:20
+              (cast 44:21 (aura 44:24 @t) (wing 44:27 x)))))
+        (value 45:3 g
+          (cast 45:8 (void 45:11) (wing 45:14 x)))
+        (wing 46:3 a))))
+  (value 52:1 empty-stall-g-first
+    (gate 52:24
+      (bind 52:27 x)
+      (body 53:3
+        (value 53:3 g
+          (cast 53:8 (void 53:11) (wing 53:14 x)))
+        (value 54:3 a
+          (cast 54:8 (aura 54:11 @ux) (wing 54:15 x)))
+        (value 55:3 b
+          (cast 55:8 (aura 55:11 @t) (wing 55:14 x)))
+        (wing 56:3 a)))))

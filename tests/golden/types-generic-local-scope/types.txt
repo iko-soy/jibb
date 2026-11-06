@@ -1,2 +1,2 @@
-partial inference; module not checked
-++ make: local molds need unsupported inference
+module kind: library
+++ make: $-(A [outer=A inner=@t])

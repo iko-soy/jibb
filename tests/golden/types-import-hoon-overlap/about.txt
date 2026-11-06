@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: overlapping union cases are an error where used.
+tests: A root noun union overlaps an unsigned-atom case and is rejected at its use site.
+expect: parses
+expect-types: full checker result

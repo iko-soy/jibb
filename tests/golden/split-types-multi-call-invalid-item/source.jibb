@@ -1,0 +1,42 @@
++$ msg
+  %add
+  [%noted text=@t]
+
+
+
+
+
+
+
+
+
+
+
+++ accepts |= p=[msg (list @t)] p
+
+
+
+
+++ invalid-item (accepts %add ~[~zod])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

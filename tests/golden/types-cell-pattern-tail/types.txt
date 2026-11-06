@@ -1,7 +1,7 @@
-partial inference; module not checked
-++ pair: $-([@t (list @p)] (list @p))
-++ split: cell pattern subject is not supported by partial inference
-+$ either: cases proven disjoint; mold not checked
-++ pair-union: $-([@t either] either)
-++ split-union: cell pattern subject is not supported by partial inference
-++ malformed: cell pattern does not match the subject type
+++ split: missing match case ["" ~]
+/tests/golden/types-cell-pattern-tail/source.jibb:5:3: non-exhaustive match
+  ?- x
+  ^
+/tests/golden/types-cell-pattern-tail/source.jibb:5:6: subject has type [@t (list @p)]
+  ?- x
+     ^

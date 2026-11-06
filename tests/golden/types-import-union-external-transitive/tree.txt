@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 mid /ui/mid)
+  (value 2:1 bad
+    (group 2:8
+      (call 2:9 (wing 2:9 emit.mid) (lit 2:18 %wrong)))))

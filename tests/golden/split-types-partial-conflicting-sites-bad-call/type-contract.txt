@@ -1,0 +1,4 @@
+message inline gate result does not unify with @t: @p versus @t
+site /tests/golden/split-types-partial-conflicting-sites-bad-call/source.jibb:2:16
+site /tests/golden/split-types-partial-conflicting-sites-bad-call/source.jibb:2:14
+min-sites 2

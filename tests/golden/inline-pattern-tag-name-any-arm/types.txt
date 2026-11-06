@@ -1,32 +1,7 @@
-partial inference; module not checked
-+$ step: cases proven disjoint; mold not checked
-+$ reason: cases proven disjoint; mold not checked
 ++ first: `stop` binds a name, but the subject's type has `%stop` here; write %stop, or * for a catch-all
 /tests/golden/inline-pattern-tag-name-any-arm/source.jibb:12:6: subject
   ?- s
      ^
 /tests/golden/inline-pattern-tag-name-any-arm/source.jibb:13:5: pattern name
     stop              "stop"
-    ^
-++ covered: `fail` binds a name, but the subject's type has `%fail` here; write %fail, or * for a catch-all
-/tests/golden/inline-pattern-tag-name-any-arm/source.jibb:19:6: subject
-  ?- r
-     ^
-/tests/golden/inline-pattern-tag-name-any-arm/source.jibb:21:5: pattern name
-    fail   "l"
-    ^
-++ grouped: `late` binds a name, but the subject's type has `%late` here; write %late, or * for a catch-all
-/tests/golden/inline-pattern-tag-name-any-arm/source.jibb:23:6: subject
-  ?- (r)
-     ^
-/tests/golden/inline-pattern-tag-name-any-arm/source.jibb:25:5: pattern name
-    late   "l"
-    ^
-++ pick: $-(reason reason)
-++ called: `late` binds a name, but the subject's type has `%late` here; write %late, or * for a catch-all
-/tests/golden/inline-pattern-tag-name-any-arm/source.jibb:28:6: subject
-  ?- (pick r)
-     ^
-/tests/golden/inline-pattern-tag-name-any-arm/source.jibb:30:5: pattern name
-    late   "l"
     ^

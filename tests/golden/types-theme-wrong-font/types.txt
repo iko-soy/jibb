@@ -1,0 +1,7 @@
+++ theme: cast field `font`: unit payload does not fit its expected type
+/lib/jibb/prelude.jibb:624:5: expected unit payload has type qath
+    font=(unit qath)
+    ^
+/ui/theme.jibb:7:11: payload has type @t
+    font=`"/static/fonts/inter.woff2"
+          ^

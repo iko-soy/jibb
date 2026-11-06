@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/split-types-tuple-context-nested-bad-face/source.jibb:7:14
+site /tests/golden/split-types-tuple-context-nested-bad-face/source.jibb:7:26
+min-sites 2

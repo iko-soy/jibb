@@ -1,0 +1,21 @@
+origin types-prelude-unit-helpers
+target value biff-text
+keep value biff-text
+keep value bind-ship
+keep value bind-text
+keep value both-mixed
+keep value clap-ship
+keep value clap-text
+keep value clef-mixed
+keep value clef-ship
+keep value eq-cell
+keep value eq-open
+keep value flit-text
+keep value hunt-first
+keep value hunt-left
+keep value hunt-right
+keep value hunt-second
+keep value mate-crash
+keep value mate-left
+keep value mate-right
+keep value mate-same

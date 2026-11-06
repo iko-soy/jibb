@@ -1,0 +1,12 @@
+origin types-local-capitals
+target value atom
+keep value atom
+keep value captured
+keep value captured-acyclic
+keep value fresh
+keep value implicit
+keep value implicit-capture
+keep value later-share
+keep value mold-param
+keep value nested
+keep value siblings

@@ -1,0 +1,8 @@
+(module
+  (value 1:1 invert (wing 1:11 not.bit))
+  (value 2:1 sized
+    (group 2:10
+      (call 2:11 (wing 2:11 not.bit) (lit 2:19 0) (lit 2:21 4) (lit 2:23 42))))
+  (value 3:1 flags
+    (group 3:10
+      (call 3:11 (wing 3:11 not.bit) (lit 3:19 %.y) (lit 3:23 %.n) (lit 3:27 42)))))

@@ -1,0 +1,7 @@
+++ forced-capital: capital `A` cannot be fixed to @t
+/tests/golden/split-types-single-case-pattern-forced-capital/source.jibb:53:25: capital
+++ forced-capital |= [x=A p=packet] ^- A
+                        ^
+/tests/golden/split-types-single-case-pattern-forced-capital/source.jibb:55:13: forcing expression
+    [%go u] "text"
+            ^

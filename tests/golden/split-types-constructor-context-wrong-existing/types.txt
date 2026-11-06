@@ -1,0 +1,7 @@
+++ wrong-existing: cast mold and expression type do not unify
+/tests/golden/split-types-constructor-context-wrong-existing/source.jibb:34:22: cast mold has type $-(@p msg)
+++ wrong-existing ^- $-(@p msg) |=%got
+                     ^
+/tests/golden/split-types-constructor-context-wrong-existing/source.jibb:34:33: expression has type $-(@t msg)
+++ wrong-existing ^- $-(@p msg) |=%got
+                                ^

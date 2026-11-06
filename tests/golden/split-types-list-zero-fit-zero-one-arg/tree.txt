@@ -1,0 +1,13 @@
+(module
+  (value 3:1 zero-one-arg
+    (gate 3:17
+      (face 3:20 f
+        (fn 3:22
+          (cell 3:25
+            (apply 3:26 list (aura 3:32 @t))
+            (aura 3:36 @t))
+          (aura 3:40 @t)))
+      (group 3:44
+        (call 3:45
+          (wing 3:45 f)
+          (tuple 3:47 (lit 3:48 %1) (str 3:51 "ok")))))))

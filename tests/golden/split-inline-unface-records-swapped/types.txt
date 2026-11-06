@@ -1,0 +1,7 @@
+++ swapped: call's sample and argument types do not unify
+/tests/golden/split-inline-unface-records-swapped/source.jibb:7:13: called gate has type $-([lo=@ud hi=@ud] @ud)
+++ swapped (want-lo-hi hi-lo)
+            ^
+/tests/golden/split-inline-unface-records-swapped/source.jibb:7:24: argument has type [hi=@ud lo=@ud]
+++ swapped (want-lo-hi hi-lo)
+                       ^

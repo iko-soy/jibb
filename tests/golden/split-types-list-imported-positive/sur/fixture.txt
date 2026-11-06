@@ -1,0 +1,4 @@
+|%
++$  texts  (list @t)
++$  ships  (list @p)
+--

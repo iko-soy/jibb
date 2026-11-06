@@ -1,0 +1,4 @@
+origin types-local-error-call
+target value blame-empty-c-first
+keep value blame-empty-c-first
+keep value inc

@@ -1,0 +1,16 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %tick)
+        (face 2:10 at (aura 2:13 @da)))
+      (cell 3:3
+        (const 3:4 %done)
+        (face 3:10 n (aura 3:12 @ud)))))
+  (value 20:1 timer
+    (cast 20:10
+      (apply 20:13 cmd (ref 20:18 msg))
+      (tuple 20:23
+        (lit 20:24 %wait)
+        (lit 20:30 30)
+        (tuple 20:33 (lit 20:34 %done) (lit 20:40 1))))))

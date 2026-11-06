@@ -1,0 +1,11 @@
+module kind: library
++$ state: [items=(list @t) open=?]
++$ msg: msg
++$ inner: [payload=msg xs=(list @t)]
++$ outer: [data=[payload=msg xs=(list @t)] title=@t]
+++ init: [items=(list @t) open=?]
+++ full: [items=(list @t) open=?]
+++ nested: [data=[payload=msg xs=(list @t)] title=@t]
+++ faced: [payload=msg xs=(list @t)]
+++ shared: $-(A [left=A right=A])
+++ unknown: $-(A [left=A right=A])

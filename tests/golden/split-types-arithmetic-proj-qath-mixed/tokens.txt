@@ -1,0 +1,8 @@
+5:1 glyph ++
+5:4 name mixed
+5:10 glyph (
+5:11 tight name add
+5:15 lit ~zod
+5:20 str "x"
+5:23 tight glyph )
+5:24 NEWLINE

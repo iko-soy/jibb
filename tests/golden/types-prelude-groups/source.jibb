@@ -1,0 +1,4 @@
+++ compiler-result ^- tone.hoon [%0 product="ok"]
+++ offset ^- step.hoon 0x1f
+++ by-bloq ^- bite 3
+++ by-pair ^- bite [bloq=3 step=0x1f]

@@ -1,0 +1,29 @@
++$ msg
+  %go
+  %stay
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ bad-tag ^- (unit msg) `%bad
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,11 @@
+origin types-import-hoon-flags
+target value flag
+keep value flag
+keep value nested
+keep value no
+keep value read-flag
+keep value read-no
+keep value read-yes
+keep value use-no
+keep value use-yes
+keep value yes

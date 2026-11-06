@@ -1,0 +1,149 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %add
+3:3 NEWLINE
+3:3 lit %remove
+4:3 NEWLINE
+4:3 glyph [
+4:4 tight lit %noted
+4:11 name text
+4:15 tight glyph =
+4:16 tight aura @t
+4:18 tight glyph ]
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name choose
+5:11 glyph |=
+5:14 name b
+5:15 tight glyph =
+5:16 tight glyph ?
+6:3 INDENT
+6:3 glyph ^-
+6:6 name msg
+7:5 INDENT
+7:5 glyph ?-
+7:8 name b
+8:7 INDENT
+8:7 lit %.y
+8:11 lit %add
+9:7 NEWLINE
+9:7 lit %.n
+9:11 lit %remove
+10:1 DEDENT
+10:1 DEDENT
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name records
+10:12 glyph |=
+10:15 name b
+10:16 tight glyph =
+10:17 tight glyph ?
+11:3 INDENT
+11:3 glyph ^-
+11:6 name msg
+12:5 INDENT
+12:5 glyph ?-
+12:8 name b
+13:7 INDENT
+13:7 lit %.y
+13:11 glyph [
+13:12 tight lit %noted
+13:19 str "hi"
+13:23 tight glyph ]
+14:7 NEWLINE
+14:7 lit %.n
+14:11 lit %add
+25:1 DEDENT
+25:1 DEDENT
+25:1 DEDENT
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name nested
+25:11 glyph |=
+25:14 name b
+25:15 tight glyph =
+25:16 tight glyph ?
+26:3 INDENT
+26:3 glyph ^-
+26:6 name msg
+27:5 INDENT
+27:5 glyph ?-
+27:8 name b
+28:7 INDENT
+28:7 lit %.y
+29:9 INDENT
+29:9 glyph ?-
+29:12 name b
+30:11 INDENT
+30:11 lit %.y
+30:15 lit %add
+31:11 NEWLINE
+31:11 lit %.n
+31:15 lit %remove
+32:7 DEDENT
+32:7 DEDENT
+32:7 NEWLINE
+32:7 lit %.n
+32:11 lit %remove
+33:1 DEDENT
+33:1 DEDENT
+33:1 DEDENT
+33:1 NEWLINE
+33:1 glyph ++
+33:4 name grouped
+33:12 glyph |=
+33:15 name b
+33:16 tight glyph =
+33:17 tight glyph ?
+34:3 INDENT
+34:3 glyph ^-
+34:6 name msg
+35:5 INDENT
+35:5 glyph (
+36:7 INDENT
+36:7 glyph ?-
+36:10 name b
+37:9 INDENT
+37:9 lit %.y
+37:13 lit %add
+38:9 NEWLINE
+38:9 lit %.n
+38:13 lit %remove
+39:1 DEDENT
+39:1 DEDENT
+39:1 DEDENT
+39:1 DEDENT
+39:1 NEWLINE
+39:1 glyph ++
+39:4 name consume
+39:12 glyph |=
+39:15 name x
+39:16 tight glyph =
+39:17 tight name msg
+39:21 str "ok"
+40:1 NEWLINE
+40:1 glyph ++
+40:4 name call
+40:9 glyph |=
+40:12 name b
+40:13 tight glyph =
+40:14 tight glyph ?
+41:3 INDENT
+41:3 glyph (
+41:4 tight name consume
+42:5 INDENT
+42:5 glyph ?-
+42:8 name b
+43:7 INDENT
+43:7 lit %.y
+43:11 lit %add
+44:7 NEWLINE
+44:7 lit %.n
+44:11 lit %remove
+44:18 DEDENT
+44:18 DEDENT
+44:18 DEDENT
+44:18 NEWLINE

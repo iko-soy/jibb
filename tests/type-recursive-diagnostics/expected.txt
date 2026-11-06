@@ -1,0 +1,58 @@
+alias
+++ loop: non-gate value `loop` depends on itself through the cycle loop -> loop
+/ui/cycle.jibb:1:4: definition in cycle
+++ loop loop
+   ^
+/ui/cycle.jibb:1:9: `loop` depends on `loop` here
+++ loop loop
+        ^
+two aliases
+++ first: non-gate value `first` depends on itself through the cycle first -> second -> first
+/ui/cycle.jibb:1:4: definition in cycle
+++ first second
+   ^
+/ui/cycle.jibb:1:10: `first` depends on `second` here
+++ first second
+         ^
+/ui/cycle.jibb:2:4: definition in cycle
+++ second first
+   ^
+/ui/cycle.jibb:2:11: `second` depends on `first` here
+++ second first
+          ^
+value through gate
+++ value: non-gate value `value` depends on itself through the cycle value -> read -> value
+/ui/cycle.jibb:1:4: definition in cycle
+++ value ^- @ud (read ~)
+   ^
+/ui/cycle.jibb:1:18: `value` depends on `read` here
+++ value ^- @ud (read ~)
+                 ^
+/ui/cycle.jibb:2:4: definition in cycle
+++ read |= ~ value
+   ^
+/ui/cycle.jibb:2:14: `read` depends on `value` here
+++ read |= ~ value
+             ^
+record through gate
+++ value: non-gate value `value` depends on itself through the cycle value -> read -> value
+/ui/cycle.jibb:1:4: definition in cycle
+++ value [x=(read ~) y=0]
+   ^
+/ui/cycle.jibb:1:14: `value` depends on `read` here
+++ value [x=(read ~) y=0]
+             ^
+/ui/cycle.jibb:2:4: definition in cycle
+++ read |= ~ x.value
+   ^
+/ui/cycle.jibb:2:14: `read` depends on `value` here
+++ read |= ~ x.value
+             ^
+mutual mismatch
+++ second: inline gate result does not unify with @ud: @t versus @ud
+/ui/cycle.jibb:2:27: actual type has type @t
+++ second |= n=@ud (first "bad")
+                          ^
+/ui/cycle.jibb:2:21: call context has type @ud
+++ second |= n=@ud (first "bad")
+                    ^

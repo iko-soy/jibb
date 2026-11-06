@@ -1,0 +1,6 @@
+3:1 glyph ++
+3:4 name ship
+3:9 glyph ^-
+3:12 aura @p
+3:15 lit 0
+3:16 NEWLINE

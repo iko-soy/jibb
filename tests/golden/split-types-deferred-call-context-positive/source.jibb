@@ -1,0 +1,56 @@
++$ msg
+  %good
+  %other
+++ local-id |= x x
+++ empty-list ^- (list @t) (local-id ~)
+++ filled-list ^- (list @t) (local-id ~["hi"])
+
+++ unit-value ^- (unit msg) (local-id `%good)
+++ union-value ^- msg (local-id %good)
+
+++ nested ^- (list (unit msg)) (local-id ~[`%good])
+
+++ already |= x=@ud ^- @u (local-id x)
+
+
+
+
+
+
+
+
+
+
+++ local-keep |= [a=A b=A] a
+++ repeated-good ^- @t (local-keep "hi" "bye")
+
+++ rec-good ^- [field=(list @t) flag=?] (local-id [field=~ flag=%.y])
+
+++ wrap-identity |= x=A ^- A (local-id x)
+
+++ retain |= x=@t (local-id x)
+++ result-later |= x ^- (list @t) (local-id x)
+++ result-repeated ^- (list @t) (local-keep ~ ~)
+
+
+
+
+
+
+++ captured |= sample
+  ++ local |= ignored sample
+  ^- (list @t) (local ~zod)
+
+
+
+
++$ choice |$ [A]
+  [%one value=A]
+  %none
+++ param-list |= x=(list A) ^- (list A) (local-id ~)
+++ param-list-text (param-list ~["hi"])
+++ param-list-ship (param-list ~[~zod])
+++ param-union |= x=A ^- (choice A) (local-id [%one x])
+++ param-union-text (param-union "hi")
+++ param-union-ship (param-union ~zod)
+

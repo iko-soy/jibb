@@ -1,0 +1,1 @@
+++ same-list |= xs=(list A) (eq xs xs)

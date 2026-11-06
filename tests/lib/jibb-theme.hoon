@@ -1,7 +1,8 @@
 ::  Full checking for the documented theme mold and real app theme only.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  source  %txt  /my-app/ui/theme/jibb
 /*  dark-absent  %txt  /tests/type-theme/dark-absent/txt
 /*  wrong-nested-aura  %txt  /tests/type-theme/wrong-nested-aura/txt
@@ -61,7 +62,7 @@
   |=  [public=@t private=@t source=@t dark-absent=@t wrong-nested-aura=@t missing-field=@t wrong-font=@t wrong-dark=@t]
   ^-  (list tape)
   =/  prepared=(unit iprelude:jibb)
-    (prepare-prelude-with-internal:jibb public private)
+    (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~["theme prelude did not prepare"]
   =/  expected=tape  "[space=[s1=@t [s2=@t s3=@t]] [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]] [wide=@t [lang=@t [zone=@t [font=(unit qath) dark=(unit [tones=[normal=@t [background=@t [accent=@t [danger=@t muted=@t]]]]])]]]]]]"
   =/  negatives=(list [label=tape src=@t])

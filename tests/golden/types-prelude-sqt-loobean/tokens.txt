@@ -1,0 +1,7 @@
+1:1 glyph ++
+1:4 name bad
+1:8 glyph (
+1:9 tight name sqt
+1:13 lit %.y
+1:16 tight glyph )
+1:17 NEWLINE

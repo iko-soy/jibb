@@ -1,0 +1,5 @@
+(module
+  (value 23:1 generic-unknown
+    (gate 23:20
+      (face 23:23 x (tvar 23:25 A))
+      (cast 23:27 (tvar 23:30 A) (lit 23:32 %submitt)))))

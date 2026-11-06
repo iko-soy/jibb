@@ -1,0 +1,59 @@
++$ packet [%go url=@t]
+++ extract |= p=packet
+  ?- p
+    [%go u] u
+++ fallback |= p=packet
+  ?- p
+    value value
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ contextual ^- $-(packet @t)
+  |= p=packet
+    ?- p
+      [%go u] u
++$ msg
+  %fine
+  %other
+++ contextual-union |= p=packet ^- msg
+  ?- p
+    [%go u] %fine
+
+
+
+++ contextual-list |= p=packet ^- (list @t)
+  ?- p
+    [%go u] ~[u]
+
+
+
+
+
+
+
+
+
+

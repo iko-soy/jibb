@@ -1,0 +1,17 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (mold 7:1 record
+    (cell 7:11
+      (face 7:12 u
+        (apply 7:14 unit (ref 7:20 msg)))
+      (face 7:25 xs
+        (apply 7:28 list
+          (apply 7:34 unit (aura 7:40 @t))))))
+  (value 34:1 field-value-wrong-payload
+    (cast 34:30
+      (ref 34:33 record)
+      (tuple 34:40
+        (unit 34:41 (lit 34:42 %go))
+        (list 34:46
+          (unit 34:48 (lit 34:49 ~zod)))))))

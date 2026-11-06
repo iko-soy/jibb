@@ -1,15 +1,15 @@
-partial inference; module not checked
+module kind: library
 ++ same: $-(A A)
 ++ head: $-([A B] A)
 ++ tail: $-([A B] B)
 ++ not: $-(? ?)
-+$ list: cases proven disjoint; mold not checked
-+$ unit: cases proven disjoint; mold not checked
++$ list: (list A)
++$ unit: (unit A)
 ++ fall: $-([(unit A) A] A)
 ++ need: $-((unit A) A)
-++ weld: sample mold is not supported by partial inference
-++ turn: sample mold is not supported by partial inference
-+$ dime: not checked
-+$ hair: not checked
-+$ pint: not checked
-+$ coin: cases proven disjoint; mold not checked
+++ weld: $-([(list A) (list A)] (list A))
+++ turn: $-([(list A) $-(A B)] (list B))
++$ dime: [p=@ta q=@]
++$ hair: [p=@ud q=@ud]
++$ pint: [p=[p=@ q=@] q=[p=@ q=@]]
++$ coin: coin

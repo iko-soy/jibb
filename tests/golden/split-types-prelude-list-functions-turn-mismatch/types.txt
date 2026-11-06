@@ -1,0 +1,7 @@
+++ turn-mismatch: cast mold and expression type do not unify
+/tests/golden/split-types-prelude-list-functions-turn-mismatch/source.jibb:18:40: cast mold has type @p
+++ turn-mismatch (turn ~["a"] |=(x (^- @p x)))
+                                       ^
+/tests/golden/split-types-prelude-list-functions-turn-mismatch/source.jibb:18:43: expression has type @t
+++ turn-mismatch (turn ~["a"] |=(x (^- @p x)))
+                                          ^

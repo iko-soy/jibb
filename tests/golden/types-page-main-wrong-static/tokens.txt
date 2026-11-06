@@ -1,0 +1,8 @@
+1:1 glyph ++
+1:4 name main
+1:9 glyph (
+1:10 tight name button
+1:17 str "Go"
+1:22 lit %go
+1:25 tight glyph )
+1:26 NEWLINE

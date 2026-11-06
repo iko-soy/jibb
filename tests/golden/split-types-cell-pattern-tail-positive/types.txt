@@ -1,0 +1,4 @@
+module kind: library
+++ pair: $-([@t (list @p)] (list @p))
++$ either: either
+++ pair-union: $-([@t either] either)

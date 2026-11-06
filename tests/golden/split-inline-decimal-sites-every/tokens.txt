@@ -1,0 +1,37 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %tick
+2:10 name at
+2:12 tight glyph =
+2:13 tight aura @da
+2:16 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %done
+3:10 name n
+3:11 tight glyph =
+3:12 tight aura @ud
+3:15 tight glyph ]
+18:1 DEDENT
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name every
+18:10 glyph ^-
+18:13 glyph (
+18:14 tight name list
+18:19 glyph (
+18:20 tight name sub
+18:24 name msg
+18:27 tight glyph )
+18:28 tight glyph )
+18:30 glyph ~[
+18:32 tight glyph [
+18:33 tight lit %every
+18:40 lit 1
+18:42 glyph |=
+18:44 tight lit %tick
+18:49 tight glyph ]
+18:50 tight glyph ]
+18:51 NEWLINE

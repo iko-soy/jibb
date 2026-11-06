@@ -1,0 +1,20 @@
+8:1 glyph ++
+8:4 name uncertain
+8:14 glyph |=
+8:17 name x
+8:18 tight glyph =
+8:19 tight tvar A
+8:21 glyph ^-
+8:24 glyph [
+8:25 tight name first
+8:30 tight glyph =
+8:31 tight tvar B
+8:33 name rest
+8:37 tight glyph =
+8:38 tight aura @t
+8:40 tight glyph ]
+8:42 glyph [
+8:43 tight name x
+8:45 str "hi"
+8:49 tight glyph ]
+8:50 NEWLINE

@@ -1,4 +1,4 @@
 source: a specific atom fits `@`, and a subaura fits its parent; different specific auras do not unify.
 tests: every uncontextual branch kind unifies first, then joins an already present parent aura or unrestricted atom; open variables retain unification substitutions, decimal results work with or without context, late union parents widen earlier results without order-dependent variable substitutions, singleton atoms and restricted decimals join explicit `@`, and sibling auras remain distinct without a common parent.
 expect: parses
-expect-types: a partial inference report, not a checked module
+expect-types: full checker reports the first error; independent split cases retain the other checks

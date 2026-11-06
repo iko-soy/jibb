@@ -1,0 +1,11 @@
+28:1 glyph ++
+28:4 name wrong-head
+28:15 glyph ^-
+28:18 glyph [
+28:19 tight aura @ud
+28:23 aura @tas
+28:27 tight glyph ]
+28:29 name gap
+28:32 tight glyph +
+28:33 tight lit %s2
+28:36 NEWLINE

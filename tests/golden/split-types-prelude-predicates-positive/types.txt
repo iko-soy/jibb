@@ -1,0 +1,5 @@
+module kind: library
+++ all-text: ?
+++ all-ship: ?
+++ any-text: ?
+++ any-ship: ?

@@ -1,0 +1,17 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %go)
+      (cell 3:3
+        (const 3:4 %typed)
+        (face 3:11 text (aura 3:16 @t)))))
+  (value 10:1 existing-arm
+    (gate 10:17
+      (face 10:20 x (flag 10:22))
+      (cast 10:24
+        (ref 10:27 msg)
+        (body 11:3
+          (branch 11:3
+            (wing 11:6 x)
+            (arm 12:5 (lit 12:5 %.y) (lit 12:9 %go))
+            (arm 13:5 (lit 13:5 %.n) (lit 13:9 %typed))))))))

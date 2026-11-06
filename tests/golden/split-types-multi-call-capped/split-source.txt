@@ -1,0 +1,4 @@
+origin types-multi-call
+target value capped
+keep value capped
+keep value repeated

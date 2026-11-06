@@ -1,0 +1,14 @@
+origin types-prelude-cmd
+target value commands
+keep value commands
+keep value generic
+keep value identity
+keep value nav
+keep value send
+keep value time
+keep value use-text
+keep value wait
+keep value who
+keep value wrap-value
+keep value wrap-value-ship
+keep value wrap-value-text

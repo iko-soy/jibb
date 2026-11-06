@@ -1,0 +1,8 @@
+(module
+  (value 5:1 wrong-arg
+    (gate 5:14
+      (cell 5:17
+        (face 5:18 first (aura 5:24 @t))
+        (face 5:27 second (aura 5:34 @p)))
+      (group 5:38
+        (call 5:39 (wing 5:39 wrong-arg) (wing 5:49 first) (wing 5:55 first))))))

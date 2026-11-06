@@ -1,0 +1,5 @@
+++ gate |= x=@t x
+++ known ^- * gate
+++ atom ^- * ~zod
+++ second |= [x=A y=A] y
+++ output (second [val=known marker="first"] [val=atom marker="second"])

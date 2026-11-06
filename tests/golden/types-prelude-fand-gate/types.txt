@@ -1,0 +1,7 @@
+++ bad: list item does not fit its expected type
+/tests/golden/types-prelude-fand-gate/source.jibb:2:9: expected item has type A where A contains no gates
+++ bad (fand ~[same-item] ~[same-item])
+        ^
+/tests/golden/types-prelude-fand-gate/source.jibb:2:16: list item has type $-(@ud @ud)
+++ bad (fand ~[same-item] ~[same-item])
+               ^

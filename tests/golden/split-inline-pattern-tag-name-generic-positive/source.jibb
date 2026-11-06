@@ -1,0 +1,30 @@
++$ step
+  [%go n=@ud]
+  %stop
++$ outcome |$ [A]
+  [%ok value=A]
+  %fail
++$ reason
+  %fail
+  %late
+
+
+
+
+
+
+
+
+
+++ argument |= o=(outcome reason)
+  ?- o
+    [%ok fail]  "x"
+    %fail       "failed"
+++ maybe |= u=(unit step)
+  ?- u
+    ~         "none"
+    [~ stop]  "s"
+++ items |= xs=(list step)
+  ?- xs
+    ~            "none"
+    [stop rest]  "s"

@@ -1,0 +1,11 @@
+origin types-union-nonwing-subject
+target value call
+keep mold input
+keep mold payload
+keep value call
+keep value finite
+keep value first-of
+keep value grouped
+keep value local-id
+keep value passthrough
+keep value shared

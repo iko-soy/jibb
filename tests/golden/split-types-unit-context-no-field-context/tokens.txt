@@ -1,0 +1,18 @@
+37:1 glyph ++
+37:4 name no-field-context
+37:21 glyph |=
+37:24 name x
+37:25 tight glyph =
+37:26 tight tvar A
+37:28 glyph ^-
+37:31 glyph [
+37:32 tight name a
+37:33 tight glyph =
+37:34 tight tvar A
+37:35 tight glyph ]
+37:37 glyph [
+37:38 tight name wrong
+37:43 tight glyph =
+37:44 tight name x
+37:45 tight glyph ]
+37:46 NEWLINE

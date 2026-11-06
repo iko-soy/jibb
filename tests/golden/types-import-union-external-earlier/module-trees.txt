@@ -1,0 +1,4 @@
+/ui/base.jibb
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %ok) (const 3:3 %stop))))

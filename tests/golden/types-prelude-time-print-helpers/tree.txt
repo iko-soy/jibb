@@ -1,0 +1,39 @@
+(module
+  (value 1:1 pack-time (wing 1:14 year))
+  (value 2:1 unpack-time (wing 2:16 yore))
+  (value 3:1 print-knot (wing 3:15 scot))
+  (value 4:1 print-tape (wing 4:15 scow))
+  (value 5:1 parse-atom (wing 5:15 slaw))
+  (value 6:1 need-atom (wing 6:14 slav))
+  (value 7:1 when
+    (group 7:9
+      (call 7:10
+        (wing 7:10 year)
+        (group 7:15
+          (call 7:16 (wing 7:16 yore) (lit 7:21 ~2026.10.29..14.30.00))))))
+  (value 8:1 printed
+    (group 8:12
+      (call 8:13
+        (wing 8:13 scot)
+        (tuple 8:18 (lit 8:19 %ud) (lit 8:23 1.000)))))
+  (value 9:1 printed-text
+    (group 9:17
+      (call 9:18
+        (wing 9:18 crip)
+        (group 9:23
+          (call 9:24
+            (wing 9:24 scow)
+            (tuple 9:29 (lit 9:30 %p) (lit 9:33 ~zod)))))))
+  (value 10:1 read-atom
+    (group 10:14
+      (call 10:15 (wing 10:15 slav) (lit 10:20 %ud) (lit 10:24 ~.1.000))))
+  (value 11:1 maybe
+    (group 11:10
+      (call 11:11 (wing 11:11 slaw) (lit 11:16 %ud) (lit 11:20 ~.oops))))
+  (value 12:1 generic-printer
+    (gate 12:20
+      (face 12:23 value (aura 12:29 @))
+      (group 12:31
+        (call 12:32
+          (wing 12:32 scot)
+          (tuple 12:37 (lit 12:38 %ud) (wing 12:42 value)))))))

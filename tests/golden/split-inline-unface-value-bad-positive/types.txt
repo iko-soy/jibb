@@ -1,0 +1,4 @@
+module kind: library
+++ lt-a: $-([a=@ud b=@ud] ?)
+++ gates: (list $-([a=@ud b=@ud] ?))
+++ typed: (list $-([@ud @ud] ?))

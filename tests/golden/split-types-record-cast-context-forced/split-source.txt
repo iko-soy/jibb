@@ -1,0 +1,3 @@
+origin types-record-cast-context
+target value forced
+keep value forced

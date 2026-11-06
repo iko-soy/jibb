@@ -1,0 +1,4 @@
+source: split from types-union-finite-generic, preserving the original source lines
+tests: the independent different diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

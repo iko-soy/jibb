@@ -1,0 +1,9 @@
+(module
+  (mold 2:1 halt (const 2:9 %halt))
+  (value 6:1 stopped
+    (gate 6:12
+      (face 6:15 h (ref 6:17 halt))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 h)
+          (arm 8:5 (bind 8:5 halt) (str 8:10 "halted")))))))

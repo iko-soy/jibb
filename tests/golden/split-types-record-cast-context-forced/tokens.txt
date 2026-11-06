@@ -1,0 +1,20 @@
+17:1 glyph ++
+17:4 name forced
+17:11 glyph |=
+17:14 name x
+17:15 tight glyph =
+17:16 tight tvar A
+17:18 glyph ^-
+17:21 glyph [
+17:22 tight name left
+17:26 tight glyph =
+17:27 tight tvar A
+17:29 name right
+17:34 tight glyph =
+17:35 tight tvar A
+17:36 tight glyph ]
+17:38 glyph [
+17:39 tight name x
+17:41 str "hi"
+17:45 tight glyph ]
+17:46 NEWLINE

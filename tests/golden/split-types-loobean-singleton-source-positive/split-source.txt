@@ -1,0 +1,13 @@
+origin types-loobean-singleton-source
+target value explicit-tag
+keep mold flag-headed
+keep mold yes
+keep value explicit-tag
+keep value loobean-constructor
+keep value named-as-any
+keep value named-as-flag
+keep value named-value
+keep value normal-any
+keep value normal-flag
+keep value yes-flag
+keep value yes-term

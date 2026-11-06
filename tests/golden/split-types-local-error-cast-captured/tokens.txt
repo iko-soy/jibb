@@ -1,0 +1,18 @@
+34:1 glyph ++
+34:4 name captured
+34:13 glyph |=
+34:16 name x
+35:3 INDENT
+35:3 glyph ++
+35:6 name a
+35:8 glyph ^-
+35:11 aura @ud
+35:15 str "s"
+36:3 NEWLINE
+36:3 glyph ++
+36:6 name b
+36:8 name x
+37:3 NEWLINE
+37:3 name a
+37:4 DEDENT
+37:4 NEWLINE

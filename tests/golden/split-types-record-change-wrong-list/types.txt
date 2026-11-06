@@ -1,0 +1,7 @@
+++ wrong-list: list item does not fit its expected type
+/tests/golden/split-types-record-change-wrong-list/source.jibb:13:28: expected item has type @t
+++ wrong-list |= s=state s(items=[~zod items.s])
+                           ^
+/tests/golden/split-types-record-change-wrong-list/source.jibb:13:35: list item has type @p
+++ wrong-list |= s=state s(items=[~zod items.s])
+                                  ^

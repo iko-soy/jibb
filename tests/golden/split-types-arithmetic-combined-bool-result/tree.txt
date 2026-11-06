@@ -1,0 +1,6 @@
+(module
+  (value 15:1 bool-result
+    (cast 15:16
+      (flag 15:19)
+      (group 15:21
+        (call 15:22 (wing 15:22 add) (lit 15:26 1) (lit 15:28 1))))))

@@ -1,0 +1,3 @@
+module kind: library
+++ same-item: $-(@ud @ud)
+++ accepted: (list $-(@ud @ud))

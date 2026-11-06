@@ -1,24 +1,7 @@
-partial inference; module not checked
-++ copy: $-((list @t) (list @t))
-++ generic: $-(A A)
-++ independently: $-(@t @p)
-++ collide: local definitions need unsupported inference
-++ cycle: local definitions need unsupported inference
-++ mutual: $-(@t A)
-++ pending: local definitions need unsupported inference
-++ alias-mono: call's sample and argument types do not unify
-/tests/golden/types-local-recursive/source.jibb:40:8: called gate has type $-(@t A)
-      (alias ~zod)
-       ^
-/tests/golden/types-local-recursive/source.jibb:40:14: argument has type @p
-      (alias ~zod)
-             ^
-++ occurs: call's sample and argument types do not unify
-/tests/golden/types-local-recursive/source.jibb:43:18: called gate has type $-(A B)
-  ++ recur |= y (recur recur)
-                 ^
-/tests/golden/types-local-recursive/source.jibb:43:24: argument has type $-(A B)
-  ++ recur |= y (recur recur)
-                       ^
-++ captures: explicit capital constraints are not supported by partial inference
-++ via-gate: local definitions need unsupported inference
+++ collide: sample `recur` shadows a name already in scope
+/tests/golden/types-local-recursive/source.jibb:21:6: earlier binding
+  ++ recur |= recur=@t (recur recur)
+     ^
+/tests/golden/types-local-recursive/source.jibb:21:15: conflicting sample binding
+  ++ recur |= recur=@t (recur recur)
+              ^

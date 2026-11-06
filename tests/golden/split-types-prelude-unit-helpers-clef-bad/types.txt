@@ -1,0 +1,7 @@
+++ clef-bad: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-unit-helpers-clef-bad/source.jibb:15:14: called gate has type $-([(unit @t) [(unit @p) $-([@t @p] (unit C))]] (unit C))
+++ clef-bad (clef `"hi" `~zod |=(p=[@p @t] `"ok"))
+             ^
+/tests/golden/split-types-prelude-unit-helpers-clef-bad/source.jibb:15:31: argument has type @p
+++ clef-bad (clef `"hi" `~zod |=(p=[@p @t] `"ok"))
+                              ^

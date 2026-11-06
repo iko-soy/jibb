@@ -1,0 +1,7 @@
+++ no-field-context: cast mold and expression type do not unify
+/tests/golden/split-types-unit-context-no-field-context/source.jibb:37:31: cast mold has type [a=A]
+++ no-field-context |= x=A ^- [a=A] [wrong=x]
+                              ^
+/tests/golden/split-types-unit-context-no-field-context/source.jibb:37:37: expression has type [wrong=A]
+++ no-field-context |= x=A ^- [a=A] [wrong=x]
+                                    ^

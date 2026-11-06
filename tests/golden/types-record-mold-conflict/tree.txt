@@ -1,0 +1,52 @@
+(module
+  (mold 1:1 model
+    (cell 1:10
+      (face 1:11 xs
+        (apply 1:14 list (aura 1:20 @t)))
+      (face 1:24 draft (aura 1:30 @t))
+      (face 1:33 error
+        (apply 1:39 unit (aura 1:45 @t)))))
+  (mold 2:1 other
+    (cell 2:10
+      (face 2:11 xs
+        (apply 2:14 list (aura 2:20 @t)))
+      (face 2:24 draft (aura 2:30 @t))
+      (face 2:33 error
+        (apply 2:39 unit (aura 2:45 @t)))
+      (face 2:49 extra (aura 2:55 @ud))))
+  (mold 3:1 message
+    (union 4:3 (const 4:3 %start) (const 5:3 %stop)))
+  (value 6:1 main
+    (group 6:9
+      (call 6:10 (wing 6:10 program) (wing 6:18 init) (wing 6:23 update) (wing 6:30 view) (wing 6:35 subs))))
+  (value 7:1 init
+    (gate 7:9
+      (face 7:12 ts
+        (apply 7:15 list (aura 7:21 @t)))
+      (tuple 7:25 (wing 7:26 ts) (str 7:29 "") (lit 7:32 ~))))
+  (value 8:1 update
+    (gate 8:11
+      (cell 8:14
+        (face 8:15 msg (ref 8:19 message))
+        (face 8:27 state (ref 8:33 other)))
+      (body 9:3
+        (cast 9:3
+          (cell 9:6
+            (ref 9:7 other)
+            (apply 9:13 list
+              (apply 9:19 cmd (ref 9:24 message))))
+          (tuple 9:35 (wing 9:36 state) (lit 9:42 ~))))))
+  (value 10:1 view
+    (gate 10:9
+      (face 10:12 state (ref 10:18 model))
+      (cast 10:24
+        (apply 10:27 element (ref 10:36 message))
+        (group 10:45
+          (call 10:46 (wing 10:46 text) (str 10:51 "view"))))))
+  (value 11:1 subs
+    (gate 11:9
+      (face 11:12 state (ref 11:18 model))
+      (cast 11:24
+        (apply 11:27 list
+          (apply 11:33 sub (ref 11:38 message)))
+        (lit 11:48 ~)))))

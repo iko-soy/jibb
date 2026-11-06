@@ -1,0 +1,17 @@
+1:1 glyph ++
+1:4 name same-item
+1:14 glyph |=
+1:17 name n
+1:18 tight glyph =
+1:19 tight aura @ud
+1:23 name n
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name accepted
+2:13 glyph (
+2:14 tight name homo
+2:19 glyph ~[
+2:21 tight name same-item
+2:30 tight glyph ]
+2:31 tight glyph )
+2:32 NEWLINE

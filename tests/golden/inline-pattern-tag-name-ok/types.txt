@@ -1,13 +1,13 @@
-partial inference; module not checked
-+$ step: cases proven disjoint; mold not checked
-+$ colour: cases proven disjoint; mold not checked
-+$ shape: cases proven disjoint; mold not checked
+module kind: library
++$ step: step
++$ colour: colour
++$ shape: shape
 ++ describe: $-(step @t)
 ++ elsewhere: $-(step @t)
-++ rest: partial union pattern is not supported by partial inference
+++ rest: $-(step @t)
 ++ aura: $-(shape @t)
 ++ other-union: $-(shape @t)
 ++ sample: $-(step @t)
 ++ sample-bare: $-(step @t)
-++ atom: branch is not supported by partial inference
-++ noun: branch pattern is not supported by partial inference
+++ atom: $-(@tas @t)
+++ noun: $-(* @t)

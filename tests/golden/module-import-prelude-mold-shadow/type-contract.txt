@@ -1,0 +1,4 @@
+message definition `list` shadows a prelude name
+site /tests/golden/module-import-prelude-mold-shadow/source.jibb:1:1
+site /lib/jibb/prelude.jibb:24:1
+min-sites 2

@@ -1,0 +1,4 @@
+source: split from inline-decimal-patterns, preserving the original source lines
+tests: the independent on-gap diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

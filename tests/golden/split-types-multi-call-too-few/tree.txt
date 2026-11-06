@@ -1,0 +1,9 @@
+(module
+  (value 6:1 three
+    (gate 6:10
+      (face 6:13 p
+        (cell 6:15 (aura 6:16 @t) (aura 6:19 @p) (flag 6:22)))
+      (wing 6:25 p)))
+  (value 22:1 too-few
+    (group 22:12
+      (call 22:13 (wing 22:13 three) (str 22:19 "hi") (lit 22:24 ~zod)))))

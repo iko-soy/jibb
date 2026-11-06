@@ -1,0 +1,15 @@
+++ range-up |= args=[A A] ^- (list A)
+  ?- args
+  [start finish]
+    ?- (gth start finish)
+    %.y !!
+    %.n
+      ?- (eq start finish)
+      %.y [start ~]
+      %.n [start (range-up (add start 1) finish)]
+++ first |= x=A ^- A (second (add x 1))
+++ second |= x=A ^- A (first x)
+++ nums (range-up 1 3)
+++ hexes (range-up 0x1 0x3)
+++ dec-result (first 1)
+++ hex-result (second 0x1)

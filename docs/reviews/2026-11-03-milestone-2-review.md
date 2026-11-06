@@ -1,5 +1,6 @@
 # Milestone 2 review, 2026-11-03
 
+**2026-11-06 evidence update:** the appendix now links current full-checker golden evidence, and every specified error row is Met. The verdict and findings below remain the historical review at `f84a29e`; see [status.md](../status.md) for current acceptance validation.
 A review of milestone 2, "Types and prelude", at [`f84a29e`](https://github.com/iko-soy/jibb/commit/f84a29e1a0af663afdb77e793c933470b59a249b), asked for in the project chat. It judges the combined result of the milestone's commits, from `1dd92a6` ("Start type inference and Hoon imports", 2026-10-30) to `f84a29e`, about 150 of them, against the plan in [implementation-plan.md](../spec/implementation-plan.md) and the brief in [prompts/milestone-2.md](../prompts/milestone-2.md). It builds on the [repository review of 2026-11-02](2026-11-02-repo-review.md) (findings A1 to A137, at `4bf477e`) and does not repeat what that review settled.
 
 **This is a first version.** The review runs in nine areas. Two have finished: whether the doc's examples typecheck (done-criterion 1) and whether every error the spec describes has a test with its message (done-criterion 2). The other seven are still running: the Hoon import table (done-criterion 3), inference soundness, unions and `?-`, modules, APIs and the prelude, what became of the earlier review's findings, tests and docs, and architecture and speed. Their results, and a second reviewer's check of every finding, will be added to this file. The findings below had one reviewer each, who reproduced them with probes; the headline ones (M1, M2, M3 and M9) were reproduced again for this write-up.
@@ -75,41 +76,41 @@ These come from probes the inference reviewer had run when this version was writ
 
 ## Appendix: the errors the spec describes
 
-From [grammar.md](../spec/grammar.md), [overview.md](../spec/overview.md), [core-language.md](../spec/core-language.md) and [decisions.md](../spec/decisions.md), leaving out milestone 1's parse errors and the route, static-file and contrast checks that the brief leaves to milestone 4. "Full" is what `infer-jibb-file-detailed`, the checker a build runs, reports; "generic" is "module definitions need unsupported inference: <path>: ++ name". "Partial" is the report `types.txt` shows.
+From [grammar.md](../spec/grammar.md), [overview.md](../spec/overview.md), [core-language.md](../spec/core-language.md) and [decisions.md](../spec/decisions.md), leaving out milestone 1's parse errors and the route, static-file and contrast checks that the brief leaves to milestone 4. "Full" is what `infer-jibb-file-detailed`, the checker a build runs, reports; "generic" is "module definitions need unsupported inference: <path>: ++ name". "Partial" describes the original review’s legacy report. The public `types.txt` pipeline now uses the full checker; rows are updated below as their full-check diagnostics pass eval and fake-ship tests.
 
 | Error | Test with its message | Full checker | Status |
 | --- | --- | --- | --- |
-| Aura mismatch | Partial only (`types-local-error-call`) | Generic | Partly |
-| Mismatched faces | Partial only (`types-record-faces`) | Generic | Partly |
-| `msg has no case %submitt` | Partial only (`types-missing-tag-named`) | Generic; in an island, the `~` error of M3 | Partly |
+| Aura mismatch | `types-local-error-call` | Exact inline-result message, actual and call-context excerpts | Met |
+| Mismatched faces | `types-record-faces` | Exact cast message and both record excerpts | Met |
+| `msg has no case %submitt` | `split-types-missing-tag-named-bad`, [review-island-missing-tag](../../tests/golden/review-island-missing-tag/) | Exact union declaration, expected-context and tag excerpts, including an island view | Met |
 | Unresolved tag, "nothing fixes the union of %add" | `jibb-buttons` | Exact, one site | Met |
-| `~` still pending at the end of a module | None | Exact, one site | Partly |
-| `\|=%tag` with no case of an equal head | Partial, as a generic unify failure | Generic | Partly |
+| `~` still pending at the end of a module | `types-null-unresolved` | Exact unresolved-null message and excerpt | Met |
+| `\|=%tag` with no case of an equal head | `split-types-union-singleton-missing` | Exact expected-case and constructor excerpts | Met |
 | Overlapping union cases | `jibb-full-overlap-basic`, `types-union-overlap` | Exact, both sites | Met |
-| Missing `?-` case, named | Partial, no site | Generic | Partly |
-| Arm that earlier arms cover | Partial, one site; `[%move * *]` unsupported | Generic | Partly |
-| Value that depends on itself | Partial, annotated values only | Generic | Partly |
-| Shadowing, prelude and imports included | Gate samples only | Exact for samples; "module has conflicting names" or generic otherwise | Partly |
-| Cell in `{…}` with no printer | Partial | Generic | Partly |
-| Generic aura in `{…}` or a path's `(…)` | Partial, one narrow form | Generic | Partly |
-| Capital that a body makes `@ud` or a list | None; partial says "not supported" | Generic | Partly |
-| `~[text "hi"]`, suggesting `~[(text "hi")]` | None | Generic | Partly |
+| Missing `?-` case, named | `types-union-patterns` | Named case, declaration, match and subject excerpts | Met |
+| Arm that earlier arms cover | [review-nested-covered](../../tests/golden/review-nested-covered/) | Exact covering and covered arm excerpts, including `[%move * *]` | Met |
+| Value that depends on itself | `types-value-cycles`, [review-mixed-cycle](../../tests/golden/review-mixed-cycle/) | Exact cycle chain, declaration and reference excerpts, including a non-gate cycle through a gate | Met |
+| Shadowing, prelude and imports included | `local-shadow-diagnostic`, `pattern-shadow-diagnostic`, `module-import-prelude-mold-shadow`, `module-import-store-face-clash` | Exact names and both sites for locals, patterns, prelude molds and import faces | Met |
+| Cell in `{…}` with no printer | `split-types-string-interpolation-record` | Exact cell and interpolation excerpts | Met |
+| Generic aura in `{…}` or a path's `(…)` | `split-types-string-interpolation-generic-atom`, [review-generic-aura-path](../../tests/golden/review-generic-aura-path/) | Exact generic atom and capital excerpts in both forms | Met |
+| Capital that a body makes `@ud` or a list | `split-types-string-interpolation-explicit-force`, [review-capital-list](../../tests/golden/review-capital-list/) | Exact capital and forcing-expression excerpts for both constraints | Met |
+| `~[text "hi"]`, suggesting `~[(text "hi")]` | [review-text-hi](../../tests/golden/review-text-hi/) | Exact suggestion, sealed/unsealed type sites and list-call excerpt | Met |
 | Clashing derived names, import faces included | `module-import-api-derived-clash` and three more | Exact, both sites | Met |
-| Import cycle | `module-import-cycle`, `module-import-root-cycle` | One path, no site | Partly |
-| Imported signed or float aura | Partial (`type-import-diagnostic`) | Generic | Partly |
-| Imported core, gate or vase | Partial for cores and gates; vases "unsupported" | Generic | Partly |
-| Imported `$%`, `$?`, `$^` whose cases overlap | Partial for one form | Generic | Partly |
-| Imported record with a repeated field | None; silently dropped | Generic | Partly |
-| `(facts …)` outside an API's `paths` | None; partial accepts it | "module mold needs unsupported inference" | Partly |
-| Gate in island data or a model, naming the field | Rejection only | "module kind needs unsupported inference", no field | Partly |
-| Repeated attribute in a literal list | None | Accepted | Not met |
+| Import cycle | `jibb-import-cycle`, `module-import-cycle`, `module-import-root-cycle` | Exact chain with every import edge’s excerpt and caret; root, indirect and self-cycle controls pass eval and ship | Met |
+| Imported signed or float aura | [review-import-signed](../../tests/golden/review-import-signed/), [review-import-float](../../tests/golden/review-import-float/) | Exact signed/float diagnostic and import-use excerpt | Met |
+| Imported core, gate or vase | [review-import-gate](../../tests/golden/review-import-gate/), [review-import-core](../../tests/golden/review-import-core/), [review-import-vase](../../tests/golden/review-import-vase/) | Exact core/gate and vase diagnostics with import-use excerpts | Met |
+| Imported `$%`, `$?`, `$^` whose cases overlap | [review-import-overlap-cen](../../tests/golden/review-import-overlap-cen/), `types-import-hoon-overlap`, [review-import-overlap-ket](../../tests/golden/review-import-overlap-ket/) | Exact overlap diagnostic and import-use excerpt for all three forms | Met |
+| Imported record with a repeated field | `types-import-duplicate-sur`, `types-import-duplicate-mark` | Exact repeated-field diagnostic and import-use excerpt | Met |
+| `(facts …)` outside an API's `paths` | [review-facts-outside](../../tests/golden/review-facts-outside/) | Exact facts construct and name excerpts | Met |
+| Gate in island data or a model, naming the field | `types-gate-data`, `types-gate-model`, `types-gate-model-nested` | Exact field path, field and main excerpts | Met |
+| Repeated attribute in a literal list | [review-repeated-attribute](../../tests/golden/review-repeated-attribute/) | Exact attribute name and both occurrence excerpts | Met |
 | Repeated field in a Jibb record | `types-record-field-expr-duplicate` and two more | Exact, both sites | Met |
-| `proj` is reserved | "module has conflicting names" | Same, no name | Partly |
-| `m()` | Partial | Generic | Partly |
-| `[]` | None; partial says "not supported" | Generic | Partly |
-| Loobean operands to arithmetic | Partial | Generic | Partly |
-| Two distinct capitals forced equal | Partial, both sites | Generic | Partly |
-| Unconstrained hole, or one fixed only by a later use | Partial | Generic; a mold's hole names neither | Partly |
-| Gates in `eq` arguments and map or set keys | Partial | Generic | Partly |
-| Watching an unwatchable request, or one with `scry=` | The generic kind message is the expected value | "module kind needs unsupported inference" | Partly |
-| Each error names both conflicting sites, with excerpts | | Two sites only for overlaps, repeated fields and derived clashes | Partly |
+| `proj` is reserved | `jibb-local-mold-scope`, `jibb-full-diagnostics` | Named full-check error and binder excerpt; nested molds, samples and patterns pass eval and ship; fields and tags remain allowed | Met |
+| `m()` | `split-types-record-change-empty` | Exact empty-change message and excerpt | Met |
+| `[]` | [review-empty-cell](../../tests/golden/review-empty-cell/) | Exact empty-tuple message and excerpt | Met |
+| Loobean operands to arithmetic | `types-prelude-more-arithmetic-loobean` | Exact expected atom constraint and actual loobean excerpts | Met |
+| Two distinct capitals forced equal | `types-capital-distinct` | Exact, both capital sites | Met |
+| Unconstrained hole, or one fixed only by a later use | `types-hole-unsupported`, `split-types-hole-local-boundary-later`, `types-hole-generic-mold` | Exact hole diagnostics for values, later uses and molds | Met |
+| Gates in `eq` arguments and map or set keys | `split-types-prelude-unit-helpers-eq-gate`, `types-prelude-map-key-gate`, `types-ui-key-gate-each`, `types-ui-key-gate-table`, `types-ui-key-nested-each` | Exact gate-free constraint and argument/key excerpts; no set type is exported by the checked prelude | Met |
+| Watching an unwatchable request, or one with `scry=` | `types-watch-unproved`, [review-watch-scry](../../tests/golden/review-watch-scry/) | Exact subscription/request and receiver diagnostics; both unproved watches and a request carrying `scry=` are rejected | Met |
+| Each error names both conflicting sites, with excerpts | [review-island-missing-tag](../../tests/golden/review-island-missing-tag/), [review-repeated-attribute](../../tests/golden/review-repeated-attribute/), [review-mixed-cycle](../../tests/golden/review-mixed-cycle/), [review-text-hi](../../tests/golden/review-text-hi/) and the other linked goldens | Full-checker messages retain the relevant declaration, context and actual-expression sites with excerpts across the error classes | Met |

@@ -23,14 +23,14 @@
     (of-wain:format ~['definition `foo` shadows an import' '/ui/probe.jibb:1:1: import' '/= foo /ui/other' '^' '/ui/probe.jibb:2:1: conflicting definition' '++ foo 1' '^'])
   ?.  =(collision-expected message.p.collision-result)  ~[leaf+"import conflict diagnostic differs"]
   =/  prelude-source=@t  '++ add |= n n'
-  =/  iface=ifile:jibb  [~ ~ /lib/jibb/prelude/jibb ~ ~ ~ `prelude-source ~]
+  =/  iface=ifile:jibb  [~ ~ /lib/jibb/prelude/jibb ~ ~ ~ `prelude-source ~ ~]
   =/  shadows=@t  '++ add 1'
   =/  shadow-result  (infer-jibb-file-detailed:jibb file shadows ~ ~ ~ ~[file] ~[%add] ~ ~ `iface)
   ?:  ?=(%& -.shadow-result)  ~[leaf+"prelude shadow was accepted"]
   =/  shadow-expected=@t
     (of-wain:format ~['definition `add` shadows a prelude name' '/ui/probe.jibb:1:1: conflicting definition' '++ add 1' '^' '/lib/jibb/prelude.jibb:1:1: prelude declaration' '++ add |= n n' '^'])
   ?.  =(shadow-expected message.p.shadow-result)  ~[leaf+"prelude shadow diagnostic differs"]
-  =/  nested=@t  '++ test |=(proj proj)'
+  =/  nested=@t  '++ demo |=(proj proj)'
   =/  nested-result  (infer-jibb-file-detailed:jibb file nested ~ ~ ~ ~[file] ~ ~ ~ ~)
   ?:  ?=(%& -.nested-result)  ~[leaf+"reserved sample was accepted"]
   ~

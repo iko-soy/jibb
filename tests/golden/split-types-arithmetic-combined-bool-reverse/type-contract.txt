@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-arithmetic-combined-bool-reverse/source.jibb:12:18
+typed-site /tests/golden/split-types-arithmetic-combined-bool-reverse/source.jibb:12:24
+min-sites 2

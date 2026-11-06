@@ -1,0 +1,11 @@
+(module
+  (value 7:1 maybe-list
+    (gate 7:15
+      (face 7:18 x
+        (apply 7:20 list (aura 7:26 @t)))
+      (body 8:3
+        (branch 8:3
+          (wing 8:6 x)
+          (arm 9:5
+            (cell 9:5 (bind 9:6 a) (bind 9:8 b) (bind 9:10 c))
+            (wing 9:13 a)))))))

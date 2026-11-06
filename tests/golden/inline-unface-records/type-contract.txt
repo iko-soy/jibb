@@ -1,0 +1,4 @@
+message call's sample and argument types do not unify
+typed-site /tests/golden/inline-unface-records/source.jibb:3:14
+typed-site /tests/golden/inline-unface-records/source.jibb:3:22
+min-sites 2

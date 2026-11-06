@@ -1,0 +1,7 @@
+++ bad-drop: inline gate result does not unify with (unit A): @t versus (unit A)
+/tests/golden/split-types-prelude-list-helpers-bad-drop/source.jibb:13:19: actual type has type @t
+++ bad-drop (drop "hi")
+                  ^
+/tests/golden/split-types-prelude-list-helpers-bad-drop/source.jibb:13:14: call context has type (unit A)
+++ bad-drop (drop "hi")
+             ^

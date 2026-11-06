@@ -1,0 +1,24 @@
++$ cart [items=(list @t) open=? deep=[level=@ud] pair=[@t @ud]]
++$ model [cart=cart note=@t data=(unit @t)]
+
+++ flip-open |= m=model m(open.cart=(not open.cart.m))
+++ siblings |= m=model m(open.cart=%.y items.cart=~ note="x" level.deep.cart=5)
+++ original |= m=model m(level.deep.cart=(add 1 level.deep.cart.m) open.cart=open.cart.m)
+++ lines |= m=model
+  m(
+    open.cart=%.n
+    level.deep.cart=(add 1 level.deep.cart.m)
+++ wing-target |= m=model cart.m(level.deep=1)
+
+
+
+
+
+
+
+
+
+
+
+
+

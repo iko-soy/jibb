@@ -1,0 +1,7 @@
+++ bad: list item does not fit its expected type
+/tests/golden/types-ui-key-nested-each/source.jibb:2:9: expected item has type [key=K el=(element M)] where K contains no gates
+++ bad (each ~[[key=[v=callback label="x"] el=(text "x")]])
+        ^
+/tests/golden/types-ui-key-nested-each/source.jibb:2:16: list item has type [key=[v=$-(@ud @ud) label=@t] el=(element M)]
+++ bad (each ~[[key=[v=callback label="x"] el=(text "x")]])
+               ^

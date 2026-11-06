@@ -1,0 +1,20 @@
+(module
+  (mold 1:1 state
+    (cell 1:10
+      (face 1:11 callback
+        (fn 1:20 (aura 1:23 @t) (aura 1:26 @t)))))
+  (mold 2:1 poke (const 2:9 %set))
+  (value 3:1 main
+    (group 3:9
+      (call 3:10 (wing 3:10 store) (wing 3:16 init) (wing 3:21 update))))
+  (value 4:1 init
+    (cast 4:9
+      (ref 4:12 state)
+      (tuple 4:18
+        (face 4:19 callback (wing 4:28 same)))))
+  (value 5:1 update
+    (gate 5:11
+      (cell 5:14
+        (face 5:15 a (ref 5:17 poke))
+        (face 5:22 s (ref 5:24 state)))
+      (wing 5:31 s))))

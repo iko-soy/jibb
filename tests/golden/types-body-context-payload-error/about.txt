@@ -1,0 +1,4 @@
+source: general bidirectional body inference
+tests: expected unit type through local definitions and nested match bodies
+expect: parses
+expect-types: exact full-checker error

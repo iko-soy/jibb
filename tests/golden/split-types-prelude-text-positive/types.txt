@@ -1,0 +1,5 @@
+module kind: library
+++ to-tape: (list @tD)
+++ to-codepoints: (list @c)
+++ empty-codepoints: (list @c)
+++ count-codepoints: $-(@t @ud)

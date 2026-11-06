@@ -18,8 +18,7 @@
 /*  expected  %txt  /tests/type-full-overlap/expected-basic/txt
 |%
 +$  overlap-evidence  [file=path source=@t name=term cases=upair:jibb]
-+$  detailed-result
-  (each [iface=ifile:jibb cache=jcache:jibb] [message=@t overlap=(unit overlap-evidence)])
++$  detailed-result  jfile-detailed-result:jibb
 ++  source-pair
   |=  [file=path source=@t name=term]
   ^-  (unit upair:jibb)
@@ -130,7 +129,7 @@
     &(=(file.ev root) =(name.ev %bad) (pair-at cases.ev 5 6))
   =/  order-partial=wain  (to-wain:format (golden-types:jibb root order))
   =/  order-reported=?
-    ?&  (lien order-partial |=(line=@t =(line '+$ bad: overlapping cases; mold not checked')))
+    ?&  (lien order-partial |=(line=@t =(line 'module mold bad has overlapping cases')))
        (lien order-partial |=(line=@t =(line '/ui/root.jibb:5:3: first union case')))
        (lien order-partial |=(line=@t =(line '/ui/root.jibb:6:3: overlapping case')))
     ==

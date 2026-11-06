@@ -1,0 +1,7 @@
+++ capped: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/split-types-multi-call-capped/source.jibb:25:17: first type variable
+++ capped |= [a=A b=B] (repeated a b)
+                ^
+/tests/golden/split-types-multi-call-capped/source.jibb:25:21: second type variable
+++ capped |= [a=A b=B] (repeated a b)
+                    ^

@@ -1,11 +1,13 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-++ simple: msg
-++ record: msg
 ++ wrong: msg has no case `%missing`
-/tests/golden/types-union-tags/source.jibb:6:13: expected union
+/tests/golden/types-union-tags/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/types-union-tags/source.jibb:2:3: expected union has type msg
+  [%noted text=@t]
+  ^
+/tests/golden/types-union-tags/source.jibb:6:13: expected union has type msg
 ++ wrong ^- msg %missing
             ^
-/tests/golden/types-union-tags/source.jibb:6:17: tag
+/tests/golden/types-union-tags/source.jibb:6:17: tag literal has type %missing
 ++ wrong ^- msg %missing
                 ^

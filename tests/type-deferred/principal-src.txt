@@ -6,6 +6,6 @@
 ++ first (send |=%got)
 ++ second first
 ++ built (make first)
-++ main ^- $-(@t message) second
+++ resolved ^- $-(@t message) second
 ++ reveal (built "hello")
 ++ reveal-ship (built ~zod)

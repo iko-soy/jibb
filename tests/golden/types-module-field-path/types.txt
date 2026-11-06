@@ -1,9 +1,7 @@
-partial inference; module not checked
-++ title: @t
-++ zip: @t
-++ first: @t
-++ second: @p
-++ absent: field is not available to partial inference
-++ absent-root: module member is not available to partial inference
-++ profile: @t
-++ use-again: @t
+++ absent-root: module `lib` has no value `nope`
+/tests/golden/types-module-field-path/source.jibb:1:4: earlier binding
+/= lib /ui/lib
+   ^
+/tests/golden/types-module-field-path/source.jibb:7:22: unknown module member
+++ absent-root title.nope.lib
+                     ^

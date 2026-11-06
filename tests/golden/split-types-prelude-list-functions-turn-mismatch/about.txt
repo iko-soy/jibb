@@ -1,0 +1,4 @@
+source: split from types-prelude-list-functions, preserving the original source lines
+tests: the independent turn-mismatch diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

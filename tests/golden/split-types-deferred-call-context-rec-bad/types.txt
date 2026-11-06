@@ -1,0 +1,7 @@
+++ rec-bad: list item does not fit its expected type
+/tests/golden/split-types-deferred-call-context-rec-bad/source.jibb:28:41: expected item has type @t
+++ rec-bad ^- [field=(list @t) flag=?] (local-id [field=~[~zod] flag=%.y])
+                                        ^
+/tests/golden/split-types-deferred-call-context-rec-bad/source.jibb:28:59: list item has type @p
+++ rec-bad ^- [field=(list @t) flag=?] (local-id [field=~[~zod] flag=%.y])
+                                                          ^

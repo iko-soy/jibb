@@ -1,33 +1,13 @@
-partial inference; module not checked
-+$ extent: cases proven disjoint; mold not checked
-+$ attribute: cases proven disjoint; mold not checked
-++ number-id: $-(@ud @ud)
-++ plain: attribute
-++ direct: attribute
-++ list: (list attribute)
-++ accept: $-(attribute attribute)
-++ call: attribute
-++ simple-call: attribute
-++ grouped-call: attribute
-++ cast-call: attribute
-++ nested-call: attribute
-++ bad-tag: cast mold and expression type do not unify
-/tests/golden/types-nested-shallow-preserve/source.jibb:17:15: cast mold
+++ bad-tag: extent has no case `%missing`
+/tests/golden/types-nested-shallow-preserve/source.jibb:1:4: expected union has type extent
++$ extent
+   ^
+/tests/golden/types-nested-shallow-preserve/source.jibb:2:3: expected union has type extent
+  [%fill n=@ud]
+  ^
+/tests/golden/types-nested-shallow-preserve/source.jibb:17:31: expected union has type extent
 ++ bad-tag ^- attribute width+[%missing 1]
-              ^
-/tests/golden/types-nested-shallow-preserve/source.jibb:17:25: expression
+                              ^
+/tests/golden/types-nested-shallow-preserve/source.jibb:17:32: tag literal has type %missing
 ++ bad-tag ^- attribute width+[%missing 1]
-                        ^
-++ bad-number: cast mold and expression type do not unify
-/tests/golden/types-nested-shallow-preserve/source.jibb:18:18: cast mold
-++ bad-number ^- attribute width+[%fill "bad"]
-                 ^
-/tests/golden/types-nested-shallow-preserve/source.jibb:18:28: expression
-++ bad-number ^- attribute width+[%fill "bad"]
-                           ^
-++ pending: tag needs context in partial inference
-++ singleton: attribute
-+$ event: cases proven disjoint; mold not checked
-+$ envelope: cases proven disjoint; mold not checked
-++ constructor: envelope
-++ unknown-target: explicit capital constraints are not supported by partial inference
+                               ^

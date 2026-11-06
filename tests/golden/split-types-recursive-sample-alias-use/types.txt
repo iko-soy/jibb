@@ -1,0 +1,7 @@
+++ alias-use: capital `A` cannot be fixed to @t
+/tests/golden/split-types-recursive-sample-alias-use/source.jibb:13:24: capital
+++ alias-use |= [first=A second=A]
+                       ^
+/tests/golden/split-types-recursive-sample-alias-use/source.jibb:15:13: forcing expression
+  ~& (alias "hi" "hi")
+            ^

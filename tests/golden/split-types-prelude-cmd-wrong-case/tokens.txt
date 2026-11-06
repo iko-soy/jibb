@@ -1,0 +1,9 @@
+19:1 glyph ++
+19:4 name wrong-case
+19:15 glyph ^-
+19:18 glyph (
+19:19 tight name cmd
+19:23 aura @t
+19:25 tight glyph )
+19:27 lit %oops
+19:32 NEWLINE

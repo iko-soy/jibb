@@ -1,0 +1,3 @@
+module kind: library
+++ identity: $-((map @t @p) (map @t @p))
+++ generic: $-((map A @t) (map A @t)) where A contains no gates

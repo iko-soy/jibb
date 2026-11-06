@@ -1,4 +1,4 @@
-partial inference; module not checked
-+$ carrier: not checked
+module kind: library
++$ carrier: [payload=A count=@ud]
 ++ cord: [payload=@t count=@ud]
 ++ ship: [payload=@p count=@ud]

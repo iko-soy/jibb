@@ -122,9 +122,9 @@
 #### /ui/probe/jibb eq-list-null
 ++ empty |= xs=(list @t) (eq xs ~)
 #### /ui/probe/jibb eq-list-null-cast
-++ empty |= xs=(list @t) (eq xs ^-((list @t) ~))
+++ empty |= xs=(list @t) (eq xs (^- (list @t) ~))
 #### /ui/probe/jibb self-ref-error
 ++ title (lent title)
 #### /ui/probe/jibb capital-made-ud
-++ f |= x=A (add x ^- @ud 1)
+++ f |= x=A (add x (^- @ud 1))
 

@@ -1,0 +1,4 @@
+origin types-record-change
+target value empty
+keep mold state
+keep value empty

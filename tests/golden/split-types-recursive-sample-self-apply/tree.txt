@@ -1,0 +1,8 @@
+(module
+  (value 17:1 self-apply
+    (gate 17:15
+      (cell 17:18
+        (face 17:19 first (tvar 17:25 A))
+        (face 17:27 second (tvar 17:34 B)))
+      (group 17:37
+        (call 17:38 (wing 17:38 self-apply) (wing 17:49 self-apply) (wing 17:60 second))))))

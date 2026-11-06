@@ -1,0 +1,52 @@
+1:1 glyph +$
+1:4 name event
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %gap
+2:9 name d
+2:10 tight glyph =
+2:11 tight aura @dr
+2:14 tight glyph ]
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight lit %count
+3:11 name n
+3:12 tight glyph =
+3:13 tight aura @ud
+3:16 tight glyph ]
+17:1 DEDENT
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name on-event
+17:13 glyph |=
+17:16 name e
+17:17 tight glyph =
+17:18 tight name event
+17:24 glyph ?-
+17:27 name e
+18:3 INDENT
+18:3 glyph [
+18:4 tight lit %gap
+18:9 lit 0
+18:10 tight glyph ]
+18:12 lit 1
+19:3 NEWLINE
+19:3 glyph [
+19:4 tight lit %gap
+19:9 glyph *
+19:10 tight glyph ]
+19:12 lit 2
+20:3 NEWLINE
+20:3 glyph [
+20:4 tight lit %count
+20:11 lit 0
+20:12 tight glyph ]
+20:14 lit 3
+21:3 NEWLINE
+21:3 glyph [
+21:4 tight lit %count
+21:11 glyph *
+21:12 tight glyph ]
+21:14 lit 4
+21:15 DEDENT
+21:15 NEWLINE

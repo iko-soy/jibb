@@ -1,0 +1,7 @@
+++ keep: unit payload does not fit its expected type
+/ui/body-context.jibb:1:38: expected unit payload has type @ud
+++ keep |= [condition=? value=@t] ^- (unit @ud)
+                                     ^
+/ui/body-context.jibb:4:8: payload has type @t
+  %.y `held
+       ^

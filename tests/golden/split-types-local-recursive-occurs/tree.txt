@@ -1,0 +1,12 @@
+(module
+  (value 42:1 occurs
+    (gate 42:11
+      (face 42:14 x (aura 42:16 @t))
+      (body 43:3
+        (value 43:3 recur
+          (gate 43:12
+            (bind 43:15 y)
+            (group 43:17
+              (call 43:18 (wing 43:18 recur) (wing 43:24 recur)))))
+        (group 44:3
+          (call 44:4 (wing 44:4 recur) (wing 44:10 x)))))))

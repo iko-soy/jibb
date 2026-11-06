@@ -1,0 +1,3 @@
+origin types-import-hoon-flags
+target value bad-yes
+keep value bad-yes

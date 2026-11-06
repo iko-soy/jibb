@@ -1,0 +1,8 @@
+module kind: library
++$ msg: msg
+++ choose: $-(? msg)
+++ records: $-(? msg)
+++ nested: $-(? msg)
+++ grouped: $-(? msg)
+++ consume: $-(msg @t)
+++ call: $-(? @t)

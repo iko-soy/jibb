@@ -1,12 +1,7 @@
-partial inference; module not checked
-++ simple: $-(@t A)
-++ polymorphic: $-(@t A)
-++ capture: $-(A B)
-++ bad-shadow: local definitions need unsupported inference
-++ bad-value: local definitions need unsupported inference
-++ pending: local definitions need unsupported inference
-++ atom-capture: $-(@t @t)
-++ linked: $-(@t @t)
-++ distinct: local definitions need unsupported inference
-++ local-mold: $-(@t A)
-++ nested-groups: $-(@t @t)
+++ bad-shadow: sample `right` shadows a name already in scope
+/tests/golden/types-local-scc/source.jibb:18:6: earlier binding
+  ++ right |= y=@t (left y)
+     ^
+/tests/golden/types-local-scc/source.jibb:17:14: conflicting sample binding
+  ++ left |= right=@t right
+             ^

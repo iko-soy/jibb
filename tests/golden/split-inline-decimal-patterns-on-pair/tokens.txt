@@ -1,0 +1,27 @@
+22:1 glyph ++
+22:4 name on-pair
+22:12 glyph |=
+22:15 glyph [
+22:16 tight name d
+22:17 tight glyph =
+22:18 tight aura @dr
+22:22 name n
+22:23 tight glyph =
+22:24 tight aura @ud
+22:27 tight glyph ]
+22:29 glyph ?-
+22:32 glyph [
+22:33 tight name d
+22:35 name n
+22:36 tight glyph ]
+23:3 INDENT
+23:3 glyph [
+23:4 tight lit 0
+23:6 lit 0
+23:7 tight glyph ]
+23:9 lit 1
+24:3 NEWLINE
+24:3 glyph *
+24:5 lit 2
+24:6 DEDENT
+24:6 NEWLINE

@@ -1,0 +1,7 @@
+++ bad: module `other` has no value `missing`
+/tests/golden/types-api-unknown-member/source.jibb:1:4: earlier binding
+/= other /ui/api/other
+   ^
+/tests/golden/types-api-unknown-member/source.jibb:2:9: unknown module member
+++ bad (missing.other)
+        ^

@@ -80,11 +80,29 @@
 
 +$ path (list knot)
 
++$ axis @
++$ bean ?
++$ flag ?
++$ char @t
++$ byts [wid=@ud dat=@]
++$ noun *
++$ tour (list @c)
++$ tarp [d=@ud h=@ud m=@ud s=@ud f=(list @ux)]
++$ date [[a=? y=@ud] m=@ud t=tarp]
++$ term @tas
++$ wain (list cord)
++$ wall (list tape)
++$ stud
+  [mark=@tas]
+  [auth=@tas type=path]
+
 +$ tank
   cord
   [%leaf p=tape]
   [%palm p=(qual tape tape tape tape) q=(list tank)]
   [%rose p=(trel tape tape tape) q=(list tank)]
+
++$ tang (list tank)
 
 +$ nail [p=hair q=tape]
 
@@ -328,6 +346,83 @@
     ~ item
     [next more] (rear rest)
 
+++ snag |= args=[@ud (list A)]
+  ?- args
+  [index xs]
+    ?- xs
+    ~ !!
+    [item rest]
+      ?- (eq index 0)
+      %.y item
+      %.n (snag (dec index) rest)
+
+++ scag |= args=[@ud (list A)] ^- (list A)
+  ?- args
+  [count xs]
+    ?- (eq count 0)
+    %.y ~
+    %.n
+      ?- xs
+      ~ ~
+      [item rest] [item (scag (dec count) rest)]
+
+++ slag |= args=[@ud (list A)] ^- (list A)
+  ?- args
+  [count xs]
+    ?- (eq count 0)
+    %.y xs
+    %.n
+      ?- xs
+      ~ ~
+      [item rest] (slag (dec count) rest)
+
+++ reap |= args=[@ud A] ^- (list A)
+  ?- args
+  [count item]
+    ?- (eq count 0)
+    %.y ~
+    %.n [item (reap (dec count) item)]
+
+++ sort |= args=[(list A) $-([A A] ?)] ^- (list A)
+  ?- args
+  [xs before]
+    ?- xs
+    ~ ~
+    [pivot rest]
+      ++ left (skim rest |=(item=A (before item pivot)))
+      ++ right (skip rest |=(item=A (before item pivot)))
+      (weld (sort left before) [pivot (sort right before)])
+
+++ gulf |= args=[A A] ^- (list A)
+  ?- args
+  [start finish]
+    ?- (gth start finish)
+    %.y !!
+    %.n
+      ?- (eq start finish)
+      %.y [start ~]
+      %.n [start (gulf (add start 1) finish)]
+
+++ oust |= args=[[@ud @ud] (list A)] ^- (list A)
+  ?- args
+  [[start count] xs] (weld (scag start xs) (slag (add start count) xs))
+
+++ swag |= args=[[@ud @ud] (list A)] ^- (list A)
+  ?- args
+  [[start count] xs] (scag count (slag start xs))
+
+++ snap |= args=[(list A) @ud A] ^- (list A)
+  ?- args
+  [xs index item] (weld (scag index xs) [item (slag (add index 1) xs)])
+
+++ into |= args=[(list A) @ud A] ^- (list A)
+  ?- args
+  [xs index item] (weld (scag index xs) [item (slag index xs)])
+
+++ skid |= args=[(list A) $-(A ?)] ^- [p=(list A) q=(list A)]
+  ?- args
+  [xs predicate] [p=(skim xs predicate) q=(skip xs predicate)]
+
 ++ cork |= gates=[$-(A B) $-(B C)]
   ?- gates
   [f g] |= x=A (g (f x))
@@ -354,6 +449,33 @@
 ++ gth |= args=[A A] (gth-atom.internal args)
 ++ add |= args=[A A] (add-atom.internal args)
 ++ dec |= atom=A (dec-atom.internal atom)
+++ max |= args=[A A]
+  ?- args
+  [a b]
+    ?- (gth a b)
+    %.y a
+    %.n b
+
+++ min |= args=[A A]
+  ?- args
+  [a b]
+    ?- (gth a b)
+    %.y b
+    %.n a
+
+++ sub |= args=[A A]
+  ?- args
+  [a b]
+    ?- (eq b 0)
+    %.y a
+    %.n (sub (dec a) (dec b))
+
+++ mul |= args=[A A]
+  ?- args
+  [a b]
+    ?- (eq a 0)
+    %.y a
+    %.n (add b (mul (dec a) b))
 
 +$ ask |$ [M] (ask.internal M)
 ++ pure |= x=M ^- (ask M) [%pure x]
@@ -434,80 +556,64 @@
   [%role role=role]
   [%tone tone=tone]
 
-+$ element |$ [M]
-  [%row attrs=(list attr) kids=*]
-  [%column attrs=(list attr) kids=*]
-  [%wrap attrs=(list attr) kids=*]
-  [%stack attrs=(list attr) kids=*]
-  [%el attrs=(list attr) kid=*]
-  [%para kids=*]
-  [%text words=@t]
-  [%heading level=@ud words=@t]
-  [%each items=*]
-  [%table columns=* rows=*]
-  [%image source=qath description=@t]
-  [%image-unsafe source=[url=@t width=@ud height=@ud] description=@t]
-  [%link target=qath label=@t]
-  [%link-unsafe target=@t label=@t]
-  [%button label=@t message=M]
-  [%toggle on=? label=@t message=M]
-  [%field label=@t value=@t reply=$-(@t M)]
-  [%form message=M kids=*]
-  [%island payload=*]
+::  The public element type is sealed by the private compiler interface.
++$ element |$ [M] (opaque.internal (element-node.internal M attr qath))
 
 ++ row |= [attrs=(list attr) kids=(list (element M))]
-  ^- (element M) [%row attrs kids]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%row attrs kids]))
 
 ++ column |= [attrs=(list attr) kids=(list (element M))]
-  ^- (element M) [%column attrs kids]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%column attrs kids]))
 
 ++ wrap |= [attrs=(list attr) kids=(list (element M))]
-  ^- (element M) [%wrap attrs kids]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%wrap attrs kids]))
 
 ++ stack |= [attrs=(list attr) kids=(list (element M))]
-  ^- (element M) [%stack attrs kids]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%stack attrs kids]))
 
 ++ el |= [attrs=(list attr) kid=(element M)]
-  ^- (element M) [%el attrs kid]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%el attrs kid]))
 
 ++ para |= kids=(list (element M))
-  ^- (element M) [%para kids]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%para kids]))
 
 ++ text |= words=@t
-  ^- (element M) [%text words]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%text words]))
 
 ++ heading |= [level=@ud words=@t]
-  ^- (element M) [%heading level words]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%heading level words]))
 
 ++ each |= items=(list [key=K el=(element M)])
-  ^- (element M) [%each items]
+  ++ checked (turn items |=(item [key=(checked-key.internal key.item) el=el.item]))
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%each checked]))
 
 ++ table |= [columns=(list [header=@t width=length align=align]) rows=(list [key=K cells=(list (element M))])]
-  ^- (element M) [%table columns rows]
+  ++ checked (turn rows |=(entry [key=(checked-key.internal key.entry) cells=cells.entry]))
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%table columns checked]))
 
 ++ image |= [source=qath description=@t]
-  ^- (element M) [%image source description]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%image source description]))
 
 ++ image-unsafe |= [source=[url=@t width=@ud height=@ud] description=@t]
-  ^- (element M) [%image-unsafe source description]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%image-unsafe source description]))
 
 ++ link |= [target=qath label=@t]
-  ^- (element M) [%link target label]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%link target label]))
 
 ++ link-unsafe |= [target=@t label=@t]
-  ^- (element M) [%link-unsafe target label]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%link-unsafe target label]))
 
 ++ button |= [label=@t message=M]
-  ^- (element M) [%button label message]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%button label message]))
 
 ++ toggle |= [on=? label=@t message=M]
-  ^- (element M) [%toggle on label message]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%toggle on label message]))
 
 ++ field |= [label=@t value=@t reply=$-(@t M)]
-  ^- (element M) [%field label value reply]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%field label value reply]))
 
 ++ form |= [message=M kids=(list (element M))]
-  ^- (element M) [%form message kids]
+  ^- (element M) (seal.internal (^- (element-node.internal M attr qath) [%form message kids]))
 
 +$ theme
   [ space=[s1=@t s2=@t s3=@t]
@@ -528,7 +634,9 @@
   ^- (program Data Model Msg) [init update view subs]
 
 ++ island |= [p=(program Data Model Msg) data=Data]
-  ^- (element !!) [%island [p data]]
+  ++ check-data |= value=Data (eq value value)
+  ++ check-model |= model=Model (eq model model)
+  ^- (element !!) (seal.internal (^- (element-node.internal !! attr qath) [%island [p data]]))
 
 +$ page |$ [Params Data]
   [load=$-(Params (ask Data)) view=$-(Data (element !!))]
@@ -540,3 +648,151 @@
 
 ++ store |= [init=S update=$-([A S] S)]
   ^- (store S) [init update]
+
+++ dvr |= args=[A A] ^- [p=A q=A]
+  ?- args
+  [a b]
+    ?- (eq b 0)
+    %.y !!
+    %.n
+      ?- (gth b a)
+      %.y [p=0 q=a]
+      %.n
+        ?- (dvr (sub a b) b)
+        [quotient remainder] [p=(add quotient 1) q=remainder]
+
+++ div |= args=[A A]
+  ?- args
+  [a b]
+    ++ result (dvr a b)
+    p.result
+
+++ mod |= args=[A A]
+  ?- args
+  [a b]
+    ++ result (dvr a b)
+    q.result
+
+++ pow |= args=[A A]
+  ?- args
+  [a b]
+    ?- (eq b 0)
+    %.y 1
+    %.n (mul a (pow a (dec b)))
+
++$ gate $-(* *)
+
++$ mold $-(* *)
+
+::  Collection identity, sublist search, a stateful map, equality and root.
+
+++ homo |= xs=(list A) xs
+
+++ fand |= [needle=(list A) haystack=(list A)] ^- (list @ud)
+  ?- needle
+  ~ ~
+  *
+    ?- haystack
+    ~ ~
+    [item rest]
+      ++ shifted (turn (fand needle rest) |=(index=@ud (add index 1)))
+      ?- (eq needle (scag (lent needle) haystack))
+      %.y [0 shifted]
+      %.n shifted
+
+++ find |= [needle=(list A) haystack=(list A)] ^- (unit @ud)
+  ?- needle
+  ~ ~
+  *
+    ?- haystack
+    ~ ~
+    [item rest]
+      ?- (eq needle (scag (lent needle) haystack))
+      %.y `0
+      %.n (bind (find needle rest) |=(index=@ud (add index 1)))
+
+++ spin |= args=[(list A) B $-([A B] [C B])] ^- [p=(list C) q=B]
+  ?- args
+  [xs state apply]
+    ?- xs
+    ~ [p=~ q=state]
+    [item rest]
+      ?- (apply item state)
+      [mapped next]
+        ++ result (spin rest next apply)
+        [p=[mapped p.result] q=q.result]
+
+++ test |= args=[A A] (eq args)
+
+++ sqt |= value=A ^- [p=A q=A]
+  ++ root |= [low high]
+    ?- (lth (add low 1) high)
+    %.n low
+    %.y
+      ++ middle (div (add low high) 2)
+      ?- (lte (mul middle middle) value)
+      %.y (root middle high)
+      %.n (root low middle)
+  ++ result (root 0 (add value 1))
+  [p=result q=(sub value (mul result result))]
+
+
+::  ASCII case conversion and list splitting follow Hoon 135.
+++ cass |= letters=tape
+  ++ lower-byte |= byte=@tD
+    ?- (gte byte (snag 0 (trip "A")))
+    %.n byte
+    %.y
+      ?- (lte byte (snag 0 (trip "Z")))
+      %.n byte
+      %.y (add byte (sub (snag 0 (trip "a")) (snag 0 (trip "A"))))
+  turn letters lower-byte
+
+++ cuss |= letters=tape
+  ++ upper-byte |= byte=@tD
+    ?- (gte byte (snag 0 (trip "a")))
+    %.n byte
+    %.y
+      ?- (lte byte (snag 0 (trip "z")))
+      %.n byte
+      %.y (sub byte (sub (snag 0 (trip "a")) (snag 0 (trip "A"))))
+  turn letters upper-byte
+
+++ trim |= args=[@ud (list A)] ^- [p=(list A) q=(list A)]
+  ?- args
+  [count xs]
+    ?- (eq count 0)
+    %.y [p=~ q=xs]
+    %.n
+      ?- xs
+      ~ [p=~ q=~]
+      [item rest]
+        ++ halves (trim (dec count) rest)
+        [p=[item p.halves] q=q.halves]
+
+++ crip |= bytes=tape (crip-text.internal bytes)
+++ tufa |= points=(list @c) (tufa-text.internal points)
+
++$ bite
+  bloq
+  [bloq=bloq step=step.hoon]
+
+::  Calendar and formatting gates retain the Hoon 135 sample and product types.
+++ year |= value=date (pack-date.internal value)
+++ yore |= value=@da (unpack-date.internal value)
+++ scot |= value=dime (format-knot.internal value)
+++ scow |= value=dime (format-tape.internal value)
+++ slaw |= args=[@tas @ta] ^- (unit @)
+  ++ parsed (parse-atom.internal args)
+  ?- valid.parsed
+  %.y `value.parsed
+  %.n ~
+++ slav |= args=[@tas @ta] (need (slaw args))
+
+::  Hoon map retains its key constraint and map identity.
++$ map |$ [K V] (map.hoon K V)
+
+++ by
+  ++ get |= [m=(map K V) k=K] (map-get.internal m k)
+  ++ put |= [m=(map K V) k=K v=V] (map-put.internal m k v)
+  [get=get put=put]

@@ -1,0 +1,7 @@
+++ explicit: capital `A` cannot be fixed to @t
+/tests/golden/split-types-union-nonwing-subject-explicit/source.jibb:55:27: capital
+++ explicit |= [x=input y=A] ^- (list A)
+                          ^
+/tests/golden/split-types-union-nonwing-subject-explicit/source.jibb:57:24: forcing expression
+    [%item flag words] ~["text"]
+                       ^

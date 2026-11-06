@@ -16,15 +16,14 @@ From [spec/implementation-plan.md](spec/implementation-plan.md), Open questions:
 
 ## Questions milestone 2 raises
 
-Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. Question 3 remains open, and the field-order detail in question 32. The others are settled and are in [Decisions](spec/decisions.md#settled-milestone-2-questions), which keeps their numbers, so existing references stay valid.
+Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. Only the field-order detail in question 32 remains open. The prelude inventory selected in question 3 is now documented in [prelude-inventory.md](prelude-inventory.md), including its checked interfaces and deliberate omissions. The other settled answers are in [Decisions](spec/decisions.md#settled-milestone-2-questions), which keeps their numbers, so existing references stay valid.
 
-**3. The prelude's inventory.** On 2026-10-30, @iko chose to include all names from the listed Hoon library sections, excluding groups the spec explicitly leaves out. All of 3g is included; its Hoon `tone` is exposed as `tone.hoon`, distinct from the styling type. Hoon 1c `step` is exposed as `step.hoon`, leaving the Grammar example's `step` name available. On 2026-10-30, @iko also approved `%$` as a term literal and pattern, so Jibb can write the `%$` case of Hoon `coin`. For parsing sections 4j and 4l, only the explicitly listed `slav` and `slaw` are included; other parser helpers are left out. Jibb's `not` negates a loobean, and Hoon's bitwise `not` is exposed as `not.bit`. @iko also agreed to specifying the complete exported inventory in the doc, building its types and gates needed by the examples in milestone 2, and doing native implementations in milestone 3. Prelude unions such as spaces, roles and tones need names that other modules cannot shadow. The actual inventory and signatures still need to be specified.
 
 **32. Partly settled: type-directed record projection.** On 2026-10-31, @iko chose an explicit `(proj record)` whose expected result type selects the fields. There is no automatic projection, and `proj` is reserved against definitions and imports. The result contains exactly the fields of its expected type. Whether the result may reorder fields from the source remains open.
 
 ## Review rulings waiting for @iko
 
-The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language and spec questions. Montelot answered them on 2026-11-02 as proposals. Each waits for @iko to confirm before it goes in [Decisions](spec/decisions.md) and the code changes.
+The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language and spec questions. Montelot answered them on 2026-11-02 as proposals. Each waits for @iko to confirm before it goes in [Decisions](spec/decisions.md) and the code changes. Full-checker diagnostics for a proposal's examples do not settle the separate language question.
 
 | # | Question | Proposed answer | Refs |
 | --- | --- | --- | --- |

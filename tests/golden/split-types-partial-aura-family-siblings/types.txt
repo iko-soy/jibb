@@ -1,0 +1,7 @@
+++ siblings: cast mold and expression type do not unify
+/tests/golden/split-types-partial-aura-family-siblings/source.jibb:6:25: cast mold has type @ud
+++ siblings |= x=@ux ^- @ud x
+                        ^
+/tests/golden/split-types-partial-aura-family-siblings/source.jibb:6:29: expression has type @ux
+++ siblings |= x=@ux ^- @ud x
+                            ^

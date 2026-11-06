@@ -1,0 +1,4 @@
+(module
+  (sur 1:1 flags)
+  (value 11:1 bad-no
+    (cast 11:11 (ref 11:14 no.flags) (lit 11:23 %.y))))

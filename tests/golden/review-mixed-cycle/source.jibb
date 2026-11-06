@@ -1,0 +1,2 @@
+++ maker |= x=@t value
+++ value ^- @t (maker "hi")

@@ -1,0 +1,4 @@
+typed-site /tests/golden/deferred-transitive-error-priority/source.jibb:6:12
+typed-site /tests/golden/deferred-transitive-error-priority/source.jibb:6:33
+min-sites 2
+message cast mold and expression type do not unify

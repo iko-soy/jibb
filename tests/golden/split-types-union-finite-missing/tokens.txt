@@ -1,0 +1,34 @@
+29:1 glyph +$
+29:4 name choice
+30:3 INDENT
+30:3 glyph [
+30:4 tight lit %a
+30:7 name on
+30:9 tight glyph =
+30:10 tight glyph ?
+30:11 tight glyph ]
+31:3 NEWLINE
+31:3 lit %other
+32:1 DEDENT
+32:1 NEWLINE
+32:1 glyph ++
+32:4 name missing
+32:12 glyph |=
+32:15 name x
+32:16 tight glyph =
+32:17 tight name choice
+33:3 INDENT
+33:3 glyph ?-
+33:6 name x
+34:5 INDENT
+34:5 glyph [
+34:6 tight lit %a
+34:9 lit %.y
+34:12 tight glyph ]
+34:14 str "yes"
+35:5 NEWLINE
+35:5 lit %other
+35:12 str "other"
+35:19 DEDENT
+35:19 DEDENT
+35:19 NEWLINE

@@ -1,0 +1,3 @@
+message unface takes one argument, as (unface e)
+site /tests/golden/split-inline-unface-arity-bad-none/source.jibb:3:9
+min-sites 1

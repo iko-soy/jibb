@@ -1,0 +1,3 @@
+module kind: library
++$ list: (list A)
+++ weld: $-([(list A) (list A)] (list A))

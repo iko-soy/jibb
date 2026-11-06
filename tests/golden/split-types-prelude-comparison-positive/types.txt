@@ -1,0 +1,17 @@
+module kind: library
+++ less: ?
+++ greater: ?
+++ equal: ?
+++ gte-less: ?
+++ gte-greater: ?
+++ gte-equal: ?
+++ lte-less: ?
+++ lte-greater: ?
+++ lte-equal: ?
+++ flags-forward: ?
+++ flags-reverse: ?
+++ flags-equal: ?
+++ hex: ?
+++ generic-lth: $-([a=A b=A] ?) where A is an atom
+++ generic-gte: $-([a=A b=A] ?) where A is an atom
+++ generic-lte: $-([a=A b=A] ?) where A is an atom

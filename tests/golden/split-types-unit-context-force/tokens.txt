@@ -1,0 +1,14 @@
+30:1 glyph ++
+30:4 name force
+30:10 glyph |=
+30:13 name x
+30:14 tight glyph =
+30:15 tight tvar A
+30:17 glyph ^-
+30:20 glyph (
+30:21 tight name unit
+30:26 tvar A
+30:27 tight glyph )
+30:29 glyph `
+30:30 tight str "hi"
+30:34 NEWLINE

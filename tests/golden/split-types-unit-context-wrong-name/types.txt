@@ -1,0 +1,7 @@
+++ wrong-name: cast is missing field `u`
+/tests/golden/split-types-unit-context-wrong-name/source.jibb:7:12: required field has type (unit msg)
++$ record [u=(unit msg) xs=(list (unit @t))]
+           ^
+/tests/golden/split-types-unit-context-wrong-name/source.jibb:35:25: record has no field `u`
+++ wrong-name ^- record [wrong=`%go xs=~[`"hi"]]
+                        ^

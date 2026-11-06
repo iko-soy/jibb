@@ -1,0 +1,7 @@
+++ items: `2` is a @ud, not a @dr; write ~s2
+/tests/golden/split-inline-decimal-sites-items/source.jibb:11:30: decimal
+++ items ^- (list @dr) ~[~s1 2]
+                             ^
+/tests/golden/split-inline-decimal-sites-items/source.jibb:11:13: expected type has type @dr
+++ items ^- (list @dr) ~[~s1 2]
+            ^

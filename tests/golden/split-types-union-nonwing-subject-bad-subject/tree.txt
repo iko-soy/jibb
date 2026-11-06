@@ -1,0 +1,27 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %item)
+        (face 2:10 flag (flag 2:15))
+        (face 2:17 text (aura 2:22 @t)))
+      (const 3:3 %none)))
+  (mold 4:1 result
+    (union 5:3 (const 5:3 %good) (const 6:3 %empty)))
+  (value 8:1 passthrough
+    (gate 8:16
+      (face 8:19 x (ref 8:21 input))
+      (wing 8:27 x)))
+  (value 66:1 bad-subject
+    (gate 66:16
+      (face 66:19 x (ref 66:21 input))
+      (cast 66:27
+        (ref 66:30 result)
+        (body 67:3
+          (branch 67:3
+            (group 67:6
+              (call 67:7 (wing 67:7 passthrough) (str 67:19 "wrong")))
+            (arm 68:5
+              (cell 68:5 (lit 68:6 %item) (bind 68:12 flag) (bind 68:17 words))
+              (lit 68:24 %missing))
+            (arm 69:5 (lit 69:5 %none) (lit 69:11 %empty))))))))

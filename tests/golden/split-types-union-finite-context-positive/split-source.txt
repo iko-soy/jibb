@@ -1,0 +1,12 @@
+origin types-union-finite-context
+target value binder
+keep mold dual
+keep mold input
+keep mold result
+keep value binder
+keep value cross-origin
+keep value generic
+keep value lists
+keep value partial
+keep value records
+keep value tags

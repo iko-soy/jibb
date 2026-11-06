@@ -1,0 +1,7 @@
+++ on-event: `0` is a @ud, not a @dr
+/tests/golden/split-inline-decimal-patterns-on-event/source.jibb:18:9: decimal
+  [%gap 0] 1
+        ^
+/tests/golden/split-inline-decimal-patterns-on-event/source.jibb:17:27: expected type has type event
+++ on-event |= e=event ?- e
+                          ^

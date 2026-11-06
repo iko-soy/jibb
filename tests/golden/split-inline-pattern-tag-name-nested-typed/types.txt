@@ -1,0 +1,7 @@
+++ typed: `typed` binds a name, but the subject's type has `%typed` here; write %typed, or * for a catch-all
+/tests/golden/split-inline-pattern-tag-name-nested-typed/source.jibb:14:6: subject
+  ?- m
+     ^
+/tests/golden/split-inline-pattern-tag-name-nested-typed/source.jibb:15:6: pattern name
+    [typed t]   t
+     ^

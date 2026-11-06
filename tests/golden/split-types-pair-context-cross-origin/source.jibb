@@ -1,0 +1,32 @@
++$ spacing
+  %s0
+  %s1
+  %s2
+  %s3
++$ extent
+  [%fill n=@ud]
+  %shrink
++$ attribute
+  [%gap spacing]
+  [%pad spacing]
+  [%width extent]
++$ other-attribute
+  [%gap spacing]
+  [%pad spacing]
+  [%width extent]
+
+
+
+
+
+
+
+
+++ cross-origin ^- attribute ^- other-attribute gap+%s2
+
+
+
+
+
+
+

@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/split-types-local-error-cast-nested/source.jibb:17:17
+typed-site /tests/golden/split-types-local-error-cast-nested/source.jibb:17:20
+min-sites 2

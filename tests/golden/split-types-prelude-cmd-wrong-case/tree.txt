@@ -1,0 +1,5 @@
+(module
+  (value 19:1 wrong-case
+    (cast 19:15
+      (apply 19:18 cmd (aura 19:23 @t))
+      (lit 19:27 %oops))))

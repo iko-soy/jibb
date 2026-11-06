@@ -1,0 +1,13 @@
+module kind: library
+++ pack-time: $-([[a=? y=@ud] [m=@ud t=[d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]]]] @da)
+++ unpack-time: $-(@da [[a=? y=@ud] [m=@ud t=[d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]]]])
+++ print-knot: $-([p=@ta q=@] @ta)
+++ print-tape: $-([p=@ta q=@] (list @tD))
+++ parse-atom: $-([@tas @ta] (unit @))
+++ need-atom: $-([@tas @ta] @)
+++ when: @da
+++ printed: @ta
+++ printed-text: @t
+++ read-atom: @
+++ maybe: (unit @)
+++ generic-printer: $-(@ @ta)

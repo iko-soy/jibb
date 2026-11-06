@@ -1,0 +1,11 @@
+10:1 glyph ++
+10:4 name self
+10:9 glyph |=
+10:12 name x
+10:13 tight glyph =
+10:14 tight glyph _
+10:16 glyph (
+10:17 tight name self
+10:22 name x
+10:23 tight glyph )
+10:24 NEWLINE

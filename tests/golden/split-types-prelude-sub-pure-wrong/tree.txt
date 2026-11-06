@@ -1,0 +1,12 @@
+(module
+  (mold 20:1 my-msg
+    (union 21:3
+      (cell 21:3
+        (const 21:4 %got)
+        (face 21:9 value (aura 21:15 @t)))
+      (const 22:3 %idle)))
+  (value 37:1 pure-wrong
+    (cast 37:15
+      (apply 37:18 ask (ref 37:23 my-msg))
+      (group 37:31
+        (call 37:32 (wing 37:32 pure) (lit 37:37 %absent))))))

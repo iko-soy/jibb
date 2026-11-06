@@ -1,3 +1,5 @@
 source: docs/spec/grammar.md, Tag resolution: “A variable constrained by tag resolution, and any it mentions, doesn't generalize; it stays open until something in the module fixes it.”
 
-Source-owned deferred constructor transaction: partial type artifact only; no module kind, runtime or watchability proof. Every source case checks parse success in the same analysis. Captured IDs and replay safety are checked directly.
+Complete library checks with deferred constructors, aliases, local definitions and mutually recursive gates. The context-providing definition is named `resolved`: a gate named `main` would require a page, island or store kind. Exact reports cover accepted schemes and each rejection's message and source excerpts.
+
+The suite also checks the common queue's replay and publication rules, levels and captured variables, constructor faces, recursive arguments, and a module containing 100 deferred gates. These checks replace the retired transaction's safety tests and its artificial 64-definition limit.

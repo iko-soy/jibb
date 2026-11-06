@@ -1,0 +1,14 @@
+(module
+  (mold 2:1 typed
+    (cell 2:10
+      (const 2:11 %typed)
+      (face 2:18 text (aura 2:23 @t))))
+  (value 12:1 use
+    (gate 12:8
+      (face 12:11 f
+        (fn 12:13 (aura 12:16 @t) (ref 12:19 typed)))
+      (group 12:26
+        (call 12:27 (wing 12:27 f) (str 12:29 "hi")))))
+  (value 14:1 bad-call
+    (group 14:13
+      (call 14:14 (wing 14:14 use) (ctor 14:18 %nope)))))

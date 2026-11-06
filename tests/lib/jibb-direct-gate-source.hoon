@@ -1,7 +1,9 @@
-::  Exercise direct-source gate layouts through a synthetic program scaffold.
-/+  jibb
+::  Check every original gate-layout example through the common module checker.
+::  Dependency slices preserve original lines, so each error has its own site.
+/+  jibb, jibb-prelude-fixture
 /*  real-prelude  %jibb  /lib/jibb/prelude/jibb
 /*  real-internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  source  %txt  /tests/type-direct-gate/source/txt
 /*  expected  %txt  /tests/type-direct-gate/expected/txt
 |%
@@ -14,7 +16,7 @@
   ^-  (unit iprelude:jibb)
   ::  Program and element come from the real prelude; only layout helpers are synthetic.
   =/  extra=@t  '\0a++ choose-layout |= [f=$-([A B] C) value=[A B]] (f value)\0a++ higher |= [f=$-([@t [x=@t y=@p]] @t) marker=?] f\0a++ higher-generic |= [f=$-([@t X] X) state=X] state\0a'
-  (prepare-prelude-with-internal:jibb (cat 3 prelude extra) internal)
+  (prepare-groups:jibb-prelude-fixture (cat 3 prelude extra) internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
 ++  direct-gate-source-output
   |=  [src=@t prepared=(unit iprelude:jibb)]
   ^-  @t
@@ -32,10 +34,52 @@
   ?:  !=(1 (lent projections.i.defs))  ~["unexpected projection action count"]
   ?.  =(steps.i.projections.i.defs ~[[%count 2] [%label 6]])  ~["projection axes changed"]
   ~
+++  selected-source
+  |=  [lines=wain ds=(list def:jibb) selected=ivisited:jibb]
+  ^-  @t
+  =/  row=@ud  1
+  =/  active=?  &
+  =/  out=wain  ~
+  |-
+  ?~  lines  (text (flop out))
+  =/  next=(unit [keep=? rest=(list def:jibb)])
+    ?~  ds  ~
+    ?.  =(row line.beg.at.i.ds)  ~
+    `[|(?=(%mold -.i.ds) ?=(^ (~(get by selected) name.i.ds))) t.ds]
+  =?  active  ?=(^ next)  keep.u.next
+  =?  ds  ?=(^ next)  rest.u.next
+  $(lines t.lines, row +(row), out [?:(active i.lines '') out])
+++  layout-reports
+  |=  [src=wain prepared=iprelude:jibb]
+  ^-  @t
+  =/  at=path  /tests/sub/client/jibb
+  =/  parsed  (parse:jibb at (text src))
+  ?:  ?=(%| -.parsed)  'layout fixture did not parse'
+  =/  ds=(list def:jibb)  defs.p.parsed
+  =/  names=(list term)  (global-value-names:jibb ds)
+  =/  graph=iadj:jibb  (graph-make-forward:jibb ds (graph-nameset:jibb names ~) ~)
+  =/  entries=(list @t)
+    %+  turn  ds
+    |=  d=def:jibb
+    ::  Keep every written mold. The selected gate and its dependencies
+    ::  are checked together, with all other source lines left blank.
+    =/  closure=icresult:jibb  (graph-collect:jibb ~[name.d] ~ ~ graph)
+    =/  selected=ivisited:jibb  seen.closure
+    ::  This example intentionally shadows the independent update gate.
+    =?  selected  =(%local-shadow name.d)  (~(put by selected) %update &)
+    =/  isolated=@t  (selected-source src ds selected)
+    =/  checked=jfile-result:jibb
+      (infer-jibb-file:jibb at isolated ~ ~ ~ ~[at] values.prepared molds.prepared ~ `iface.prepared)
+    ?:  ?=(%| -.checked)  p.checked
+    =/  line=(unit (list @t))  (full-report-lines:jibb ~[d] iface.p.checked isolated)
+    ?~  line  'checked layout definition has no printable type'
+    (of-wain:format u.line)
+  (of-wain:format entries)
 ++  report
   ^-  @t
   =/  prepared=(unit iprelude:jibb)  (direct-gate-prepared real-prelude real-internal)
-  (direct-gate-source-output (text source) prepared)
+  ?~  prepared  'layout prelude did not prepare'
+  (layout-reports source u.prepared)
 ++  test-direct-gate-source
   ^-  tang
   ?~  source  ~[leaf+"direct gate source is missing"]
@@ -43,7 +87,8 @@
   =/  prepared=(unit iprelude:jibb)  (direct-gate-prepared real-prelude real-internal)
   =/  errors=(list tape)  (direct-gate-projection-errors prepared)
   ?^  errors  (turn errors |=(reason=tape leaf+reason))
-  =/  got=@t  report
+  ?~  prepared  ~[leaf+"layout prelude did not prepare"]
+  =/  got=@t  (layout-reports source u.prepared)
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"direct gate source output differs from its golden"]
   ~

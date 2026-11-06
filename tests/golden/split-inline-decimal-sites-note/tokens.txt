@@ -1,0 +1,7 @@
+22:1 glyph ++
+22:4 name note
+22:9 glyph (
+22:10 tight name text
+22:15 lit 5
+22:16 tight glyph )
+22:17 NEWLINE

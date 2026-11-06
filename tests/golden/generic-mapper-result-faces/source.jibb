@@ -1,0 +1,8 @@
++$ msg
+  %hit
+  %miss
+++ row-of |= n=@ud [n (button "x" %hit)]
+++ rows (turn ~[1 2] row-of)
+++ shown (each rows)
+++ fix-message |= x=(element msg) x
+++ resolved (fix-message shown)

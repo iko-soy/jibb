@@ -1,0 +1,37 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ my-msg
+  [%got value=@t]
+  %idle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ pure-wrong ^- (ask my-msg) (pure %absent)

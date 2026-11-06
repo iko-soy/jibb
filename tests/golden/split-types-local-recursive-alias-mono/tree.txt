@@ -1,0 +1,18 @@
+(module
+  (value 36:1 alias-mono
+    (gate 36:15
+      (face 36:18 x (aura 36:20 @t))
+      (body 37:3
+        (value 37:3 recur
+          (gate 37:12
+            (face 37:15 y (tvar 37:17 A))
+            (body 38:5
+              (value 38:5 alias (wing 38:14 recur))
+              (trace 39:5
+                (group 39:8
+                  (call 39:9 (wing 39:9 alias) (str 39:15 "hi")))
+                (body 40:7
+                  (group 40:7
+                    (call 40:8 (wing 40:8 alias) (lit 40:14 ~zod))))))))
+        (group 41:3
+          (call 41:4 (wing 41:4 recur) (wing 41:10 x)))))))

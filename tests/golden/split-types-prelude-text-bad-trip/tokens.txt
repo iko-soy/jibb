@@ -1,0 +1,7 @@
+6:1 glyph ++
+6:4 name bad-trip
+6:13 glyph (
+6:14 tight name trip
+6:19 lit ~zod
+6:23 tight glyph )
+6:24 NEWLINE

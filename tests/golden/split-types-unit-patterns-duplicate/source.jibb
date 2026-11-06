@@ -1,0 +1,36 @@
++$ maybe
+  ~
+  [~ value=@t]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ duplicate |= x=maybe
+  ?- x
+    ~ !!
+    ~ !!
+    [~ value] value
+
+
+
+
+
+
+
+
+

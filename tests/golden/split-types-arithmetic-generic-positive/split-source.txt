@@ -1,0 +1,15 @@
+origin types-arithmetic-generic
+target value accept-bool
+keep value accept-bool
+keep value capture
+keep value compare
+keep value decimal
+keep value decrease-dec
+keep value decrease-hex
+keep value decreasing
+keep value forward
+keep value hex
+keep value identity
+keep value ship-aura
+keep value sum
+keep value text-aura

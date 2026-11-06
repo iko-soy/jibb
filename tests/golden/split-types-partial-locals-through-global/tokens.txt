@@ -1,0 +1,38 @@
+35:1 glyph ++
+35:4 name wrap-value
+35:15 glyph |=
+35:18 name y
+35:20 glyph |=(
+35:23 tight name z
+35:25 name y
+35:26 tight glyph )
+36:1 NEWLINE
+36:1 glyph ++
+36:4 name through-global
+36:19 glyph |=
+36:22 name x
+37:3 INDENT
+37:3 glyph ++
+37:6 name local
+37:12 glyph (
+37:13 tight name wrap-value
+37:24 name x
+37:25 tight glyph )
+38:3 NEWLINE
+38:3 glyph ~&
+38:6 glyph ^-
+38:9 aura @t
+38:12 glyph (
+38:13 tight name local
+38:19 lit ~zod
+38:23 tight glyph )
+39:5 INDENT
+39:5 glyph ^-
+39:8 aura @p
+39:11 glyph (
+39:12 tight name local
+39:18 str "hi"
+39:22 tight glyph )
+39:23 DEDENT
+39:23 DEDENT
+39:23 NEWLINE

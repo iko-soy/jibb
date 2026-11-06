@@ -1,32 +1,13 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-+$ other: cases proven disjoint; mold not checked
-+$ mimic: cases proven disjoint; mold not checked
-++ direct: $-(A (unit A))
-++ str: (unit @t)
-++ ship: (unit @p)
-++ nested: (unit (unit @t))
-++ same-first: (unit @t)
-++ same-second: (unit @p)
-++ ctx: (unit msg)
 ++ bad-tag: msg has no case `%bad`
-/tests/golden/types-unit-construction/source.jibb:17:15: expected union
+/tests/golden/types-unit-construction/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/types-unit-construction/source.jibb:2:3: expected union has type msg
+  %go
+  ^
+/tests/golden/types-unit-construction/source.jibb:17:15: expected union has type msg
 ++ bad-tag ^- (unit msg) `%bad
               ^
-/tests/golden/types-unit-construction/source.jibb:17:27: tag
+/tests/golden/types-unit-construction/source.jibb:17:27: tag literal has type %bad
 ++ bad-tag ^- (unit msg) `%bad
                           ^
-++ missing-tag: tag needs context in partial inference
-++ discarded-tag: tag needs context in partial inference
-++ discarded-null: `~` needs context in partial inference
-++ mismatch: unit payload does not fit its expected type
-/tests/golden/types-unit-construction/source.jibb:25:16: expected unit payload has type @p
-++ mismatch ^- (unit @p) `"hi"
-               ^
-/tests/golden/types-unit-construction/source.jibb:25:27: payload has type @t
-++ mismatch ^- (unit @p) `"hi"
-                          ^
-++ other-unit: cast constraint is not supported by partial inference
-++ force: explicit capital constraints are not supported by partial inference
-++ null-payload: `~` needs context in partial inference
-++ tag-payload: (unit @tas)

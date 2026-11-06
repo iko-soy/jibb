@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ first: @t
 ++ second: @t
 ++ third: @t

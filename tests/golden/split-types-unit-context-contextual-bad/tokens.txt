@@ -1,0 +1,28 @@
+41:1 glyph ++
+41:4 name contextual-bad
+41:19 glyph |=
+41:22 name x
+41:23 tight glyph =
+41:24 tight tvar A
+41:26 glyph ^-
+41:29 glyph [
+41:30 tight name a
+41:31 tight glyph =
+41:32 tight tvar A
+41:34 name b
+41:35 tight glyph =
+41:36 tight glyph (
+41:37 tight name unit
+41:42 tvar A
+41:43 tight glyph )
+41:44 tight glyph ]
+41:46 glyph [
+41:47 tight name a
+41:48 tight glyph =
+41:49 tight name x
+41:51 name b
+41:52 tight glyph =
+41:53 tight glyph `
+41:54 tight str "hi"
+41:58 tight glyph ]
+41:59 NEWLINE

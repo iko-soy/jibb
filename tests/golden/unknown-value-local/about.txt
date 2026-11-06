@@ -1,0 +1,4 @@
+source: Grammar, Modules and Expressions: names resolve within their lexical scope.
+tests: Fresh or already declared names remain valid in their lexical scope.
+expect: parses
+expect-types: full checked interface

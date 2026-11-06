@@ -1,0 +1,4 @@
+typed-site /tests/golden/types-union-payload-second/source.jibb:5:25
+typed-site /tests/golden/types-union-payload-second/source.jibb:7:28
+min-sites 2
+message payload field has type

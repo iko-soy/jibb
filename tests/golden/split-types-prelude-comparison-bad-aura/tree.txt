@@ -1,0 +1,8 @@
+(module
+  (value 17:1 bad-aura
+    (group 17:13
+      (call 17:14
+        (wing 17:14 lth)
+        (lit 17:18 0x1)
+        (group 17:22
+          (cast 17:23 (aura 17:26 @ud) (lit 17:30 1)))))))

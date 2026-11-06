@@ -1,0 +1,6 @@
+(module
+  (value 26:1 occurs
+    (gate 26:11
+      (bind 26:14 f)
+      (group 26:16
+        (call 26:17 (wing 26:17 f) (wing 26:19 f) (wing 26:21 f))))))

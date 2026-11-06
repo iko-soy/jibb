@@ -1,0 +1,13 @@
+4:1 glyph ++
+4:4 name isolated
+4:13 glyph |=
+4:16 glyph [
+4:17 tight name p
+4:18 tight glyph =
+4:19 tight name qath
+4:24 name other
+4:29 tight glyph =
+4:30 tight glyph _
+4:31 tight glyph ]
+4:33 name p
+4:34 NEWLINE

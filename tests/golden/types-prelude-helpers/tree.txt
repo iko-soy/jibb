@@ -1,0 +1,76 @@
+(module
+  (value 1:1 identity-items
+    (group 1:19
+      (call 1:20
+        (wing 1:20 homo)
+        (list 1:25 (lit 1:27 1) (lit 1:29 2)))))
+  (value 2:1 identity-ships
+    (group 2:19
+      (call 2:20
+        (wing 2:20 homo)
+        (list 2:25 (lit 2:27 ~zod)))))
+  (value 3:1 all-text
+    (group 3:13
+      (call 3:14
+        (wing 3:14 fand)
+        (list 3:19 (str 3:21 "a"))
+        (list 3:26 (str 3:28 "a") (str 3:32 "b") (str 3:36 "a")))))
+  (value 4:1 all-nums
+    (group 4:13
+      (call 4:14
+        (wing 4:14 fand)
+        (list 4:19 (lit 4:21 1))
+        (list 4:24 (lit 4:26 1) (lit 4:28 2) (lit 4:30 1)))))
+  (value 5:1 first-text
+    (group 5:15
+      (call 5:16
+        (wing 5:16 find)
+        (list 5:21 (str 5:23 "a"))
+        (list 5:28 (str 5:30 "b") (str 5:34 "a")))))
+  (value 6:1 first-ships
+    (group 6:16
+      (call 6:17
+        (wing 6:17 find)
+        (list 6:22 (lit 6:24 ~zod))
+        (list 6:30 (lit 6:32 ~nec) (lit 6:37 ~zod)))))
+  (value 7:1 each-label
+    (gate 7:15
+      (cell 7:18
+        (face 7:19 item (aura 7:24 @ud))
+        (face 7:28 state (aura 7:34 @ud)))
+      (tuple 7:39
+        (str 7:40 "x")
+        (group 7:44
+          (call 7:45 (wing 7:45 add) (wing 7:49 item) (wing 7:54 state))))))
+  (value 8:1 spun-labels
+    (group 8:16
+      (call 8:17
+        (wing 8:17 spin)
+        (list 8:22 (lit 8:24 1) (lit 8:26 2))
+        (lit 8:29 0)
+        (wing 8:31 each-label))))
+  (value 9:1 keep-code
+    (gate 9:14
+      (cell 9:17
+        (face 9:18 item (aura 9:23 @t))
+        (face 9:26 state (aura 9:32 @t)))
+      (tuple 9:36 (lit 9:37 1) (wing 9:39 item))))
+  (value 10:1 spun-codes
+    (group 10:15
+      (call 10:16
+        (wing 10:16 spin)
+        (list 10:21 (str 10:23 "a"))
+        (str 10:28 "seed")
+        (wing 10:35 keep-code))))
+  (value 11:1 equal-text
+    (group 11:15
+      (call 11:16 (wing 11:16 test) (str 11:21 "a") (str 11:25 "b"))))
+  (value 12:1 equal-ships
+    (group 12:16
+      (call 12:17 (wing 12:17 test) (lit 12:22 ~zod) (lit 12:27 ~nec))))
+  (value 13:1 root-dec
+    (group 13:13
+      (call 13:14 (wing 13:14 sqt) (lit 13:18 17))))
+  (value 14:1 root-hex
+    (group 14:13
+      (call 14:14 (wing 14:14 sqt) (lit 14:18 0x11)))))

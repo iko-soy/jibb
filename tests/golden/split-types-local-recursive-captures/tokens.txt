@@ -1,0 +1,36 @@
+45:1 glyph ++
+45:4 name captures
+45:13 glyph |=
+45:16 name x
+45:17 tight glyph =
+45:18 tight tvar A
+46:3 INDENT
+46:3 glyph ++
+46:6 name recur
+46:12 glyph |=
+46:15 name flag
+46:19 tight glyph =
+46:20 tight glyph ?
+47:5 INDENT
+47:5 glyph ?-
+47:8 name flag
+48:7 INDENT
+48:7 lit %.y
+48:11 glyph ^-
+48:14 aura @t
+48:17 name x
+49:7 NEWLINE
+49:7 lit %.n
+49:11 glyph (
+49:12 tight name recur
+49:18 lit %.y
+49:21 tight glyph )
+50:3 DEDENT
+50:3 DEDENT
+50:3 NEWLINE
+50:3 glyph (
+50:4 tight name recur
+50:10 lit %.y
+50:13 tight glyph )
+50:14 DEDENT
+50:14 NEWLINE

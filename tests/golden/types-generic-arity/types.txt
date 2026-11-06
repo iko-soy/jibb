@@ -1,5 +1,4 @@
-partial inference; module not checked
-+$ carrier: not checked
-+$ duo: not checked
-++ too-many: cast mold is not supported by partial inference
-++ too-few: cast mold is not supported by partial inference
+++ too-many: generic mold `carrier` expects 1 type argument, received 2
+/tests/golden/types-generic-arity/source.jibb:3:16: generic mold application
+++ too-many ^- (carrier @t @p) [payload="hi" count=1]
+               ^

@@ -1,0 +1,7 @@
+++ duplicate: branch arm is covered by earlier arms
+/tests/golden/split-types-union-finite-duplicate/source.jibb:42:5: covering arm
+    [%a %.y] "yes"
+    ^
+/tests/golden/split-types-union-finite-duplicate/source.jibb:43:5: covered arm
+    [%a %$] "duplicate"
+    ^

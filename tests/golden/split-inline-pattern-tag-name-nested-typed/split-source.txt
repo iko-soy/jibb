@@ -1,0 +1,4 @@
+origin inline-pattern-tag-name-nested
+target value typed
+keep mold msg
+keep value typed

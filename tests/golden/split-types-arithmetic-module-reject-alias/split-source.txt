@@ -1,0 +1,3 @@
+origin types-arithmetic-module
+target value reject-alias
+keep value reject-alias

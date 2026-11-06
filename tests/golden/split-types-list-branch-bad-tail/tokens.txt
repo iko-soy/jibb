@@ -1,0 +1,29 @@
+40:1 glyph ++
+40:4 name bad-tail
+40:13 glyph |=
+40:16 name b
+40:17 tight glyph =
+40:18 tight glyph ?
+41:3 INDENT
+41:3 glyph ^-
+41:6 glyph (
+41:7 tight name list
+41:12 aura @t
+41:14 tight glyph )
+42:5 INDENT
+42:5 glyph ?-
+42:8 name b
+43:7 INDENT
+43:7 lit %.y
+43:11 glyph [
+43:12 tight str "hi"
+43:17 lit ~zod
+43:21 tight glyph ]
+44:7 NEWLINE
+44:7 lit %.n
+44:11 glyph ~[
+44:13 tight glyph ]
+44:14 DEDENT
+44:14 DEDENT
+44:14 DEDENT
+44:14 NEWLINE

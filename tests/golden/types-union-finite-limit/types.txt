@@ -1,10 +1,10 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
+module kind: library
++$ msg: msg
 ++ whole: $-(msg @t)
-++ partial: union pattern expansion needs unsupported inference
-+$ under: cases proven disjoint; mold not checked
+++ partial: $-(msg @t)
++$ under: under
 ++ allowed: $-(under @t)
-+$ over: cases proven disjoint; mold not checked
-++ capped: union pattern expansion needs unsupported inference
-+$ empty-msg: cases proven disjoint; mold not checked
++$ over: over
+++ capped: $-(over @t)
++$ empty-msg: empty-msg
 ++ one: $-(empty-msg @t)

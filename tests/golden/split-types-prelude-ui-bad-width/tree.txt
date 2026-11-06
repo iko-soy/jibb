@@ -1,0 +1,11 @@
+(module
+  (value 59:1 bad-width
+    (cast 59:14
+      (apply 59:17 element (void 59:26))
+      (group 59:30
+        (call 59:31
+          (wing 59:31 row)
+          (list 59:35
+            (pair 59:37 width
+              (tuple 59:43 (lit 59:44 %chars) (str 59:51 "wide"))))
+          (lit 59:60 ~))))))

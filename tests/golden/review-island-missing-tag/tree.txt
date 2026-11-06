@@ -1,0 +1,67 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %typed)
+        (face 2:11 text (aura 2:16 @t)))
+      (const 3:3 %submit)))
+  (mold 4:1 model
+    (cell 4:10
+      (face 4:11 draft (aura 4:17 @t))))
+  (value 5:1 main
+    (group 5:9
+      (call 5:10 (wing 5:10 program) (wing 5:18 init) (wing 5:23 update) (wing 5:30 view) (wing 5:35 subs))))
+  (value 6:1 init
+    (gate 6:9
+      (face 6:12 input (aura 6:18 @t))
+      (cast 6:21
+        (ref 6:24 model)
+        (tuple 6:30
+          (face 6:31 draft (wing 6:37 input))))))
+  (value 7:1 update
+    (gate 7:11
+      (cell 7:14
+        (pun 7:15 msg)
+        (face 7:20 m (ref 7:22 model)))
+      (body 8:3
+        (cast 8:3
+          (cell 8:6
+            (ref 8:7 model)
+            (apply 8:13 list
+              (apply 8:19 cmd (ref 8:24 msg))))
+          (body 9:5
+            (branch 9:5
+              (wing 9:8 msg)
+              (arm 10:7
+                (cell 10:7 (lit 10:8 %typed) (bind 10:15 t))
+                (tuple 10:19
+                  (change 10:20 m
+                    (edit 10:22 draft (wing 10:28 t)))
+                  (lit 10:31 ~)))
+              (arm 11:7
+                (lit 11:7 %submit)
+                (tuple 11:19
+                  (change 11:20 m
+                    (edit 11:22 draft (str 11:28 "")))
+                  (lit 11:32 ~)))))))))
+  (value 12:1 view
+    (gate 12:9
+      (face 12:12 m (ref 12:14 model))
+      (cast 12:20
+        (apply 12:23 element (ref 12:32 msg))
+        (body 13:3
+          (call 13:3
+            (wing 13:3 row)
+            (list 13:7
+              (pair 13:9 gap (lit 13:13 %s1)))
+            (list 13:18
+              (group 14:5
+                (call 14:6 (wing 14:6 field) (str 14:12 "New todo") (wing 14:23 draft.m) (ctor 14:31 %typed)))
+              (call 15:5 (wing 15:5 button) (str 15:12 "Add") (lit 15:18 %submitt))))))))
+  (value 16:1 subs
+    (gate 16:9
+      (face 16:12 m (ref 16:14 model))
+      (cast 16:20
+        (apply 16:23 list
+          (apply 16:29 sub (ref 16:34 msg)))
+        (lit 16:40 ~)))))

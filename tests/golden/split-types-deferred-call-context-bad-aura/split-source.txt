@@ -1,0 +1,4 @@
+origin types-deferred-call-context
+target value bad-aura
+keep value bad-aura
+keep value local-id

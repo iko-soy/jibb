@@ -1,8 +1,7 @@
-partial inference; module not checked
-++ self-apply: call's sample and argument types do not unify
-/tests/golden/types-partial-occurs/source.jibb:1:21: called gate
+++ self-apply: call requires an infinite type: its gate occurs inside its own sample
+/tests/golden/types-partial-occurs/source.jibb:1:21: called gate has type A
 ++ self-apply |=(x (x x))
                     ^
-/tests/golden/types-partial-occurs/source.jibb:1:23: argument
+/tests/golden/types-partial-occurs/source.jibb:1:23: sample containing the same gate has type A
 ++ self-apply |=(x (x x))
                       ^

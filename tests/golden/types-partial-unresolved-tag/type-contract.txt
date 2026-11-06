@@ -1,0 +1,3 @@
+message nothing fixes the union of %hello; add a `^-`
+site /tests/golden/types-partial-unresolved-tag/source.jibb:1:12
+min-sites 1

@@ -1,0 +1,4 @@
+source: split from types-nested-missing-tag, preserving the original source lines
+tests: independently valid definitions and their dependencies
+expect: parses
+expect-types: full checker types

@@ -1,10 +1,7 @@
-partial inference; module not checked
-++ n: @ud
-++ good: @u
 ++ bad: cast mold and expression type do not unify
 /tests/golden/types-partial-aura/source.jibb:3:11: cast mold has type ?
 ++ bad ^- ? 1
           ^
-/tests/golden/types-partial-aura/source.jibb:3:13: expression
+/tests/golden/types-partial-aura/source.jibb:3:13: expression has type @ud
 ++ bad ^- ? 1
             ^

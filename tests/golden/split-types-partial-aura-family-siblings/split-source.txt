@@ -1,0 +1,3 @@
+origin types-partial-aura-family
+target value siblings
+keep value siblings

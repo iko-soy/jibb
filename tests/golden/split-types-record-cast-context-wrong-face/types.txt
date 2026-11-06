@@ -1,0 +1,7 @@
+++ wrong-face: cast is missing field `payload`
+/tests/golden/split-types-record-cast-context-wrong-face/source.jibb:5:11: required field has type msg
++$ inner [payload=msg xs=(list @t)]
+          ^
+/tests/golden/split-types-record-cast-context-wrong-face/source.jibb:11:24: record has no field `payload`
+++ wrong-face ^- inner [wrong=%go xs=~]
+                       ^

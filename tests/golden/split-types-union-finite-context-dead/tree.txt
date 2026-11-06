@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 input
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %p)
+        (face 2:7 flag (flag 2:12))
+        (face 2:14 text (aura 2:19 @t)))
+      (const 3:3 %other)))
+  (mold 4:1 result
+    (union 5:3 (const 5:3 %go) (const 6:3 %stay)))
+  (value 31:1 dead
+    (gate 31:9
+      (face 31:12 x (ref 31:14 input))
+      (cast 31:20
+        (ref 31:23 result)
+        (body 32:3
+          (branch 32:3
+            (wing 32:6 x)
+            (arm 33:5
+              (cell 33:5 (lit 33:6 %p) (lit 33:9 %.y) (bind 33:13 t))
+              (lit 33:16 %go))
+            (arm 34:5
+              (cell 34:5 (lit 34:6 %p) (lit 34:9 %.y) (bind 34:13 t))
+              (lit 34:16 %stay))
+            (arm 35:5 (any 35:5) (lit 35:7 %stay))))))))

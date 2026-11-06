@@ -1,2 +1,4 @@
-partial inference; module not checked
-++ identity: sample mold is not supported by partial inference
+++ identity: Hoon record repeats field `same`
+/tests/golden/types-import-duplicate-mark/source.jibb:2:18: invalid imported mold
+++ identity |= x=duplicate x
+                 ^

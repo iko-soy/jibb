@@ -1,0 +1,4 @@
+source: Grammar, Modules: a local value cannot shadow an import face.
+tests: Report both the import binding and local definition.
+expect: parses
+expect-types: full checker report

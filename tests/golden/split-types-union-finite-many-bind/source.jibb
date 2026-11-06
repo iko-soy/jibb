@@ -1,0 +1,52 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ choice
+  [%a on=?]
+  %other
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ many-bind |= x=choice
+  ?- x
+    value "anything"
+    %other "dead"

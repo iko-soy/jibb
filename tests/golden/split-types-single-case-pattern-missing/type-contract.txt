@@ -1,0 +1,3 @@
+site /tests/golden/split-types-single-case-pattern-missing/source.jibb:10:5
+typed-site /tests/golden/split-types-single-case-pattern-missing/source.jibb:9:6
+min-sites 2

@@ -1,0 +1,10 @@
+(module
+  (value 27:1 clash
+    (gate 27:10
+      (cell 27:13
+        (face 27:14 x (aura 27:16 @t))
+        (face 27:19 y (aura 27:21 @p)))
+      (str 27:25
+        (wing 27:27 x)
+        " "
+        (cast 27:31 (aura 27:34 @t) (wing 27:37 y))))))

@@ -1,0 +1,3 @@
+(module
+  (value 2:1 date
+    (cast 2:9 (aura 2:12 @da) (lit 2:16 30))))

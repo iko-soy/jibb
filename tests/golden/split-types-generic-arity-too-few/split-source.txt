@@ -1,0 +1,5 @@
+origin types-generic-arity
+target value too-few
+keep mold carrier
+keep mold duo
+keep value too-few

@@ -1,0 +1,13 @@
+++ wrong-tag: msg has no case `%oops`
+/tests/golden/split-types-record-cast-context-wrong-tag/source.jibb:2:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-record-cast-context-wrong-tag/source.jibb:3:3: expected union has type msg
+  %go
+  ^
+/tests/golden/split-types-record-cast-context-wrong-tag/source.jibb:13:17: expected union has type msg
+++ wrong-tag ^- inner [%oops ~]
+                ^
+/tests/golden/split-types-record-cast-context-wrong-tag/source.jibb:13:24: tag literal has type %oops
+++ wrong-tag ^- inner [%oops ~]
+                       ^

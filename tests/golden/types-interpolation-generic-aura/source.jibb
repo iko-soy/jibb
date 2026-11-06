@@ -1,0 +1,4 @@
+++ render |= n=A
+  ~& ^- @ n
+    "{n}"
+++ use (render 3)

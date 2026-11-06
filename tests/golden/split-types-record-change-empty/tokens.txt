@@ -1,0 +1,34 @@
+1:1 glyph +$
+1:4 name state
+1:10 glyph [
+1:11 tight name items
+1:16 tight glyph =
+1:17 tight glyph (
+1:18 tight name list
+1:23 aura @t
+1:25 tight glyph )
+1:27 name open
+1:31 tight glyph =
+1:32 tight glyph ?
+1:34 name name
+1:38 tight glyph =
+1:39 tight aura @t
+1:42 name nested
+1:48 tight glyph =
+1:49 tight glyph [
+1:50 tight name word
+1:54 tight glyph =
+1:55 tight aura @t
+1:57 tight glyph ]
+1:58 tight glyph ]
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name empty
+15:10 glyph |=
+15:13 name s
+15:14 tight glyph =
+15:15 tight name state
+15:21 name s
+15:22 tight glyph (
+15:23 tight glyph )
+15:24 NEWLINE

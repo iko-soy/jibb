@@ -1,0 +1,4 @@
+source: split from types-unit-construction, preserving the original source lines
+tests: the independent force diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic and sites

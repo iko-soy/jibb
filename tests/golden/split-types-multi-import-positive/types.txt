@@ -1,0 +1,3 @@
+module kind: library
+++ good: [@t @p]
+++ contextual: [msg.lib (list @t)]

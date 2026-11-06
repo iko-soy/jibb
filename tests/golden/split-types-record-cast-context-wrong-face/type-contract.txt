@@ -1,0 +1,4 @@
+message cast is missing field `payload`
+site /tests/golden/split-types-record-cast-context-wrong-face/source.jibb:5:11
+site /tests/golden/split-types-record-cast-context-wrong-face/source.jibb:11:24
+min-sites 2

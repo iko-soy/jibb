@@ -1,0 +1,8 @@
+8:1 glyph ++
+8:4 name unknown
+8:12 glyph |=
+8:15 name x
+8:17 str-head ""
+8:19 tight name x
+8:20 tight str-tail ""
+8:22 NEWLINE

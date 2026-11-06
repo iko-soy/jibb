@@ -1,4 +1,3 @@
-partial inference; module not checked
 ++ top: cast mold and expression type do not unify
 /tests/golden/types-local-error-cast/source.jibb:1:11: cast mold has type @t
 ++ top ^- @t %.y
@@ -6,49 +5,3 @@ partial inference; module not checked
 /tests/golden/types-local-error-cast/source.jibb:1:14: expression has type ?
 ++ top ^- @t %.y
              ^
-++ local: cast mold and expression type do not unify
-/tests/golden/types-local-error-cast/source.jibb:3:14: cast mold has type @t
-  ++ flag ^- @t %.y
-             ^
-/tests/golden/types-local-error-cast/source.jibb:3:17: expression has type ?
-  ++ flag ^- @t %.y
-                ^
-++ waiting: cast mold and expression type do not unify
-/tests/golden/types-local-error-cast/source.jibb:7:24: cast mold has type @ud
-  ++ second |= y=@t ^- @ud y
-                       ^
-/tests/golden/types-local-error-cast/source.jibb:7:28: expression has type @t
-  ++ second |= y=@t ^- @ud y
-                           ^
-++ after-self: cast mold and expression type do not unify
-/tests/golden/types-local-error-cast/source.jibb:13:14: cast mold has type @ud
-      %.n ^- @ud y
-             ^
-/tests/golden/types-local-error-cast/source.jibb:13:18: expression has type @t
-      %.n ^- @ud y
-                 ^
-++ nested: cast mold and expression type do not unify
-/tests/golden/types-local-error-cast/source.jibb:17:17: cast mold has type @p
-    ++ inner ^- @p y
-                ^
-/tests/golden/types-local-error-cast/source.jibb:17:20: expression has type @t
-    ++ inner ^- @p y
-                   ^
-++ mask-capital: explicit capital constraints are not supported by partial inference
-++ mask-after-progress: explicit capital constraints are not supported by partial inference
-++ same: $-([a=A b=A] A)
-++ mask-hole: type hole needs unsupported inference
-/tests/golden/types-local-error-cast/source.jibb:32:11: type hole
-  ++ b ^- _ (same x 1)
-          ^
-++ captured: cast mold and expression type do not unify
-/tests/golden/types-local-error-cast/source.jibb:35:11: cast mold has type @ud
-  ++ a ^- @ud "s"
-          ^
-/tests/golden/types-local-error-cast/source.jibb:35:15: expression has type @t
-  ++ a ^- @ud "s"
-              ^
-++ empty-mask: explicit capital constraints are not supported by partial inference
-++ empty-ok: $-(!! [@ux @t])
-++ empty-stall: local definitions need unsupported inference
-++ empty-stall-g-first: $-(!! @ux)

@@ -7,6 +7,6 @@
 ++ send |= f=$-(@t A) f
 ++ first (send |=%got)
 ++ second first
-++ main ^- $-(@t message) second
+++ resolved ^- $-(@t message) second
 
 ++ send |= arg=@p arg

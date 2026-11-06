@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/split-types-partial-conflicting-sites-narrow/source.jibb:5:6
+typed-site /tests/golden/split-types-partial-conflicting-sites-narrow/source.jibb:5:9
+min-sites 2

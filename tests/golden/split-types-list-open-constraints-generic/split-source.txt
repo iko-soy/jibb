@@ -1,0 +1,3 @@
+origin types-list-open-constraints
+target value generic
+keep value generic

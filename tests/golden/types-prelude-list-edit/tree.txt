@@ -1,0 +1,51 @@
+(module
+  (value 1:1 range
+    (group 1:10
+      (call 1:11 (wing 1:11 gulf) (lit 1:16 1) (lit 1:18 4))))
+  (value 2:1 cut
+    (group 2:8
+      (call 2:9
+        (wing 2:9 oust)
+        (tuple 2:14 (lit 2:15 1) (lit 2:17 2))
+        (list 2:20 (lit 2:22 1) (lit 2:24 2) (lit 2:26 3) (lit 2:28 4)))))
+  (value 3:1 slice
+    (group 3:10
+      (call 3:11
+        (wing 3:11 swag)
+        (tuple 3:16 (lit 3:17 1) (lit 3:19 2))
+        (list 3:22 (str 3:24 "a") (str 3:28 "b") (str 3:32 "c") (str 3:36 "d")))))
+  (value 4:1 replace
+    (group 4:12
+      (call 4:13
+        (wing 4:13 snap)
+        (list 4:18 (lit 4:20 1) (lit 4:22 2) (lit 4:24 3))
+        (lit 4:27 1)
+        (lit 4:29 4))))
+  (value 5:1 insert
+    (group 5:11
+      (call 5:12
+        (wing 5:12 into)
+        (list 5:17 (str 5:19 "a") (str 5:23 "c"))
+        (lit 5:28 1)
+        (str 5:30 "b"))))
+  (value 6:1 halves
+    (group 6:11
+      (call 6:12
+        (wing 6:12 skid)
+        (list 6:17 (lit 6:19 1) (lit 6:21 2) (lit 6:23 3))
+        (gate-wide 6:26
+          (face 6:29 x (aura 6:31 @ud))
+          (group 6:35
+            (call 6:36 (wing 6:36 gth) (wing 6:40 x) (lit 6:42 1)))))))
+  (value 7:1 hex-range
+    (group 7:14
+      (call 7:15 (wing 7:15 gulf) (lit 7:20 0x1) (lit 7:24 0x4))))
+  (value 8:1 split-text
+    (group 8:15
+      (call 8:16
+        (wing 8:16 skid)
+        (list 8:21 (str 8:23 "a") (str 8:27 "b"))
+        (gate-wide 8:32
+          (face 8:35 word (aura 8:40 @t))
+          (group 8:43
+            (call 8:44 (wing 8:44 eq) (wing 8:47 word) (str 8:52 "a"))))))))

@@ -1,0 +1,5 @@
+++ keep |= [condition=? value=@t] ^- (unit @ud)
+  ++ held value
+  ?- condition
+  %.y `held
+  %.n ~

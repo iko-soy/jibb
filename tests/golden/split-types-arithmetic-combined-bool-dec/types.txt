@@ -1,0 +1,7 @@
+++ bool-dec: inline gate result does not unify with A: ? versus A
+/tests/golden/split-types-arithmetic-combined-bool-dec/source.jibb:11:18: actual type has type ?
+++ bool-dec (dec %.n)
+                 ^
+/tests/golden/split-types-arithmetic-combined-bool-dec/source.jibb:11:14: call context has type A where A is an atom other than ?
+++ bool-dec (dec %.n)
+             ^

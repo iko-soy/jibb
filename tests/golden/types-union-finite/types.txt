@@ -1,18 +1,7 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-++ boolean-table: $-(msg @t)
-++ parent: $-(msg @u)
-++ wildcard: $-(msg @t)
 ++ covered: branch arm is covered by earlier arms
+/tests/golden/types-union-finite/source.jibb:25:5: covering arm
+    [%p %.y *] "a"
+    ^
 /tests/golden/types-union-finite/source.jibb:26:5: covered arm
     [%p %.y %.n] "b"
     ^
-+$ choice: cases proven disjoint; mold not checked
-++ missing: missing union case [%a on=%.n]
-++ typed: $-(choice ?)
-++ duplicate: branch arm is covered by earlier arms
-/tests/golden/types-union-finite/source.jibb:43:5: covered arm
-    [%a %$] "duplicate"
-    ^
-++ shadow: pattern binder shadows a name
-++ many-bind: a union pattern binding several cases is not supported by partial inference

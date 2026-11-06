@@ -1,0 +1,12 @@
+11:1 glyph ++
+11:4 name items
+11:10 glyph ^-
+11:13 glyph (
+11:14 tight name list
+11:19 aura @dr
+11:22 tight glyph )
+11:24 glyph ~[
+11:26 tight lit ~s1
+11:30 lit 2
+11:31 tight glyph ]
+11:32 NEWLINE

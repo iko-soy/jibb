@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 4:1 take
+    (gate 4:9
+      (face 4:12 p
+        (cell 4:14
+          (face 4:15 payload (ref 4:23 msg))
+          (face 4:27 xs
+            (apply 4:30 list (aura 4:36 @t)))))
+      (wing 4:41 p)))
+  (value 6:1 bad-tag
+    (group 6:12
+      (call 6:13
+        (wing 6:13 take)
+        (tuple 6:18
+          (face 6:19 payload (lit 6:27 %oops))
+          (face 6:33 xs (lit 6:36 ~)))))))

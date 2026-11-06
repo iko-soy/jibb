@@ -1,0 +1,11 @@
+(module
+  (value 20:1 hunt-bad
+    (group 20:13
+      (call 20:14
+        (wing 20:14 hunt)
+        (gate-wide 20:19
+          (face 20:22 p
+            (cell 20:24 (aura 20:25 @t) (aura 20:28 @t)))
+          (lit 20:32 %.y))
+        (unit 20:37 (str 20:38 "a"))
+        (unit 20:42 (lit 20:43 ~zod))))))

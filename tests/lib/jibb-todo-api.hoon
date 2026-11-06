@@ -1,7 +1,8 @@
 ::  The exact todo API reaches partial client inference through real /sur and mark readers.
-/+  jibb, jibb-import
+/+  jibb, jibb-import, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  sur  %txt  /my-app/sur/todo/hoon
 /*  action  %txt  /my-app/mar/todo-action/hoon
 /*  todos  %txt  /my-app/mar/todos/hoon
@@ -27,7 +28,7 @@
 ++  todo-run
   |=  [prelude=@t internal=@t sur=@t action=@t todos=@t update=@t item=@t api=@t source=@t negative=@t unsupported=@t]
   ^-  [report=@t bad-report=@t guards=@t]
-  =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb prelude internal)
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ['prelude unavailable' 'prelude unavailable' 'prelude unavailable']
   =/  todo=type  -:(ride -:!>(..zuse) sur)
   =/  subject=type  [%cell [%face %todo todo] -:!>(..zuse)]

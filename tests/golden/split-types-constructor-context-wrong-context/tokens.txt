@@ -1,0 +1,37 @@
+5:1 glyph +$
+5:4 name wrong-payload
+6:3 INDENT
+6:3 glyph [
+6:4 tight lit %got
+6:9 name value
+6:14 tight glyph =
+6:15 tight aura @p
+6:17 tight glyph ]
+7:3 NEWLINE
+7:3 lit %other
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name call
+14:9 glyph |=
+14:12 name callback
+14:20 tight glyph =
+14:21 tight glyph $-(
+14:24 tight aura @t
+14:27 tvar M
+14:28 tight glyph )
+14:30 glyph (
+14:31 tight name callback
+14:40 str "payload"
+14:49 tight glyph )
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name wrong-context
+19:18 glyph ^-
+19:21 name wrong-payload
+19:35 glyph (
+19:36 tight name call
+19:41 glyph |=
+19:43 tight lit %got
+19:47 tight glyph )
+19:48 NEWLINE

@@ -1,0 +1,6 @@
+(module
+  (value 6:1 later
+    (gate 6:10
+      (face 6:13 d (aura 6:15 @dr))
+      (group 6:19
+        (call 6:20 (wing 6:20 add) (wing 6:24 d) (lit 6:26 1))))))

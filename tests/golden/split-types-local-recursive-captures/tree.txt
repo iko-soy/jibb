@@ -1,0 +1,20 @@
+(module
+  (value 45:1 captures
+    (gate 45:13
+      (face 45:16 x (tvar 45:18 A))
+      (body 46:3
+        (value 46:3 recur
+          (gate 46:12
+            (face 46:15 flag (flag 46:20))
+            (body 47:5
+              (branch 47:5
+                (wing 47:8 flag)
+                (arm 48:7
+                  (lit 48:7 %.y)
+                  (cast 48:11 (aura 48:14 @t) (wing 48:17 x)))
+                (arm 49:7
+                  (lit 49:7 %.n)
+                  (group 49:11
+                    (call 49:12 (wing 49:12 recur) (lit 49:18 %.y))))))))
+        (group 50:3
+          (call 50:4 (wing 50:4 recur) (lit 50:10 %.y)))))))

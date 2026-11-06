@@ -1,0 +1,23 @@
+++ compare-bools (gth %.n %.y)
+++ compare-bool-gate |= [a=? b=?] (gth a b)
+++ compare-decimal (gth 1 2)
+++ compare-hex (gth 0x1 0x2)
+++ compare-generic |= n=A (gth n n)
+
+
+++ atom-id |= x=A
+  ~& ^- @ x
+    x
+++ atom-id-bool (atom-id %.n)
+++ atom-id-text (atom-id "hi")
+
+++ add-decimal (add 1 2)
+++ add-hex (add 0x1 0x2)
+
+++ dec-hex (dec 0x2)
+++ list-length (lent ~["a"])
+
+
+
+
+++ inc |= n=A (add n 1)

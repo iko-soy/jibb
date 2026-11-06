@@ -1,0 +1,7 @@
+++ explicit-loobean-result: cast mold and expression type do not unify
+/tests/golden/split-types-arithmetic-combined-explicit-loobean-result/source.jibb:34:38: cast mold has type ?
+++ explicit-loobean-result |= n=A ^- ? (add n 1)
+                                     ^
+/tests/golden/split-types-arithmetic-combined-explicit-loobean-result/source.jibb:34:40: expression has type @ud
+++ explicit-loobean-result |= n=A ^- ? (add n 1)
+                                       ^

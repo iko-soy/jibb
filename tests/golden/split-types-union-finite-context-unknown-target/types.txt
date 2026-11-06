@@ -1,0 +1,7 @@
+++ unknown-target: capital `A` cannot be fixed to %go
+/tests/golden/split-types-union-finite-context-unknown-target/source.jibb:46:33: capital
+++ unknown-target |= [x=input y=A] ^- A
+                                ^
+/tests/golden/split-types-union-finite-context-unknown-target/source.jibb:48:16: forcing expression
+    [%p %.y t] %go
+               ^

@@ -1,0 +1,3 @@
+origin types-recursive-sample
+target value forced
+keep value forced

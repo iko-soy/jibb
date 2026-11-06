@@ -1,0 +1,37 @@
+
+
+
+
+
+
+
+
+
+
++$ maybe |$ [A]
+  [%got value=A]
+  %other
+++ call |= callback=$-(@t M) (callback "payload")
+
+
+
+
+
+
+
+++ generic-wrong ^- (maybe @p) (call |=%got)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

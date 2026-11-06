@@ -1,0 +1,10 @@
+23:1 glyph ++
+23:4 name generic-unknown
+23:20 glyph |=
+23:23 name x
+23:24 tight glyph =
+23:25 tight tvar A
+23:27 glyph ^-
+23:30 tvar A
+23:32 lit %submitt
+23:40 NEWLINE

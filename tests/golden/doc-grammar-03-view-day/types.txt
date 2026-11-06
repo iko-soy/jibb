@@ -1,0 +1,2 @@
+module kind: library
+++ view: $-([day=@da n=@ud] (element M))

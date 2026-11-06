@@ -1,0 +1,4 @@
+message pattern binder `y` shadows a name already in scope
+site /tests/golden/pattern-shadow-unit/source.jibb:1:4
+site /tests/golden/pattern-shadow-unit/source.jibb:5:8
+min-sites 2

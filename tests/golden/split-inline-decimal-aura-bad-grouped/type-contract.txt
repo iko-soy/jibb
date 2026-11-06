@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-aura-bad-grouped/source.jibb:5:18
+min-sites 2

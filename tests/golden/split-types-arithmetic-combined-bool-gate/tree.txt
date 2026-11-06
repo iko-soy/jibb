@@ -1,0 +1,11 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (tvar 1:13 A))
+      (group 1:15
+        (call 1:16 (wing 1:16 add) (wing 1:20 n) (lit 1:22 1)))))
+  (value 14:1 bool-gate
+    (gate 14:14
+      (face 14:17 x (flag 14:19))
+      (group 14:21
+        (call 14:22 (wing 14:22 inc) (wing 14:26 x))))))

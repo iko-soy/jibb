@@ -1,0 +1,7 @@
+++ bool-inc: inline gate result does not unify with A: ? versus A
+/tests/golden/split-types-arithmetic-combined-bool-inc/source.jibb:13:18: actual type has type ?
+++ bool-inc (inc %.y)
+                 ^
+/tests/golden/split-types-arithmetic-combined-bool-inc/source.jibb:13:14: call context has type A where A is an atom other than ?
+++ bool-inc (inc %.y)
+             ^

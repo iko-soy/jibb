@@ -1,0 +1,7 @@
+++ wrong-head: cast mold and expression type do not unify
+/tests/golden/split-types-pair-context-wrong-head/source.jibb:28:18: cast mold has type [@ud @tas]
+++ wrong-head ^- [@ud @tas] gap+%s2
+                 ^
+/tests/golden/split-types-pair-context-wrong-head/source.jibb:28:29: expression has type [A %s2]; A remains unresolved for tag `%gap`
+++ wrong-head ^- [@ud @tas] gap+%s2
+                            ^

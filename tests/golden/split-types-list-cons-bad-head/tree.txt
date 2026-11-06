@@ -1,0 +1,5 @@
+(module
+  (value 11:1 bad-head
+    (cast 11:13
+      (apply 11:16 list (aura 11:22 @t))
+      (tuple 11:26 (lit 11:27 ~zod) (lit 11:32 ~)))))

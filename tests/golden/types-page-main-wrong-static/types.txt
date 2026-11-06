@@ -1,0 +1,4 @@
+++ main: nothing fixes the union of %go; add a `^-`
+/ui/page-check.jibb:1:22: nothing fixes the union of %go; add a `^-`
+++ main (button "Go" %go)
+                     ^

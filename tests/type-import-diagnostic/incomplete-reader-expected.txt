@@ -1,0 +1,65 @@
+duplicate cast:
+++ cast: cast mold is not supported by partial inference
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
+duplicate sample:
+++ sample: sample mold is not supported by partial inference
+/test.jibb:3:16: gate sample mold
+++ sample |= x=bad.foo x
+               ^
+unsupported cast:
+++ cast: imported Hoon mold is unsupported
+/test.jibb:2:12: unsupported imported mold
+++ cast ^- bad.foo 0
+           ^
+unsupported sample:
+++ sample: imported Hoon mold is unsupported
+/test.jibb:3:16: unsupported imported mold
+++ sample |= x=bad.foo x
+               ^
+forged cast:
+++ cast: cast mold is not supported by partial inference
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
+forged sample:
+++ sample: sample mold is not supported by partial inference
+/test.jibb:3:16: gate sample mold
+++ sample |= x=bad.foo x
+               ^
+malformed cast:
+++ cast: cast mold is not supported by partial inference
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
+malformed sample:
+++ sample: sample mold is not supported by partial inference
+/test.jibb:3:16: gate sample mold
+++ sample |= x=bad.foo x
+               ^
+missing cast:
+++ cast: cast mold is not supported by partial inference
+/test.jibb:2:12: cast mold
+++ cast ^- bad.foo 0
+           ^
+missing sample:
+++ sample: sample mold is not supported by partial inference
+/test.jibb:3:16: gate sample mold
+++ sample |= x=bad.foo x
+               ^
+unimported:
+++ cast: module `foo` is not imported
+/test.jibb:1:12: unimported module
+++ cast ^- bad.foo 0
+           ^
+valid reader cast:
+++ cast: signed and float auras cannot be imported
+/test.jibb:2:12: invalid imported mold
+++ cast ^- bad.foo 0
+           ^
+valid reader sample:
+++ sample: signed and float auras cannot be imported
+/test.jibb:3:16: invalid imported mold
+++ sample |= x=bad.foo x
+               ^

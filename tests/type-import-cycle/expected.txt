@@ -1,0 +1,21 @@
+import cycle at /ui/a/jibb
+/ui/b.jibb:2:1: imports /ui/a.jibb here
+/= back /ui/a
+^
+/ui/a.jibb:2:1: imports /ui/b.jibb here
+/= next /ui/b
+^
+/ui/root.jibb:3:1: imports /ui/a.jibb here
+/= loop /ui/a
+^
+import cycle at /ui/self/jibb
+/ui/self.jibb:1:1: imports /ui/self.jibb here
+/= self /ui/self
+^
+import cycle at /ui/root/jibb
+/ui/a.jibb:1:1: imports /ui/root.jibb here
+/= root /ui/root
+^
+/ui/root.jibb:1:1: imports /ui/a.jibb here
+/= child /ui/a
+^

@@ -1,0 +1,7 @@
+(module
+  (value 27:1 force
+    (gate 27:10
+      (face 27:13 x (tvar 27:15 A))
+      (cast 27:17
+        (apply 27:20 unit (tvar 27:26 A))
+        (unit 27:29 (str 27:30 "hi"))))))

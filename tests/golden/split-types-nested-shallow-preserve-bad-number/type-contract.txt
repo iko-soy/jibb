@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/split-types-nested-shallow-preserve-bad-number/source.jibb:18:34
+site /tests/golden/split-types-nested-shallow-preserve-bad-number/source.jibb:18:41
+min-sites 2

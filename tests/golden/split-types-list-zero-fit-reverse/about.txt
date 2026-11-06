@@ -1,0 +1,4 @@
+source: split from types-list-zero-fit, preserving the original source lines
+tests: the independent reverse diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

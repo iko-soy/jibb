@@ -1,0 +1,7 @@
+++ forcing: capital `A` cannot be fixed to @t
+/tests/golden/split-types-recursive-gate-forcing/source.jibb:13:17: capital
+++ forcing |= x=A
+                ^
+/tests/golden/split-types-recursive-gate-forcing/source.jibb:15:15: forcing expression
+    %.y ^- @t x
+              ^

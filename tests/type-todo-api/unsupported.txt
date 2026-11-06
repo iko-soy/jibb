@@ -11,3 +11,4 @@
   [%todos /todos todos]
   [%changes /changes (facts todos todo-update todo-item)]
   [%todo-by-id /todo/[id=@ud] todo-item]
+  [%todos /todos todos]

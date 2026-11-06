@@ -1,0 +1,7 @@
+++ v: attribute `gap` is repeated
+/ui/probe.jibb:1:16: first attribute
+++ v (column ~[gap+%s1 gap+%s2] ~[(text "x")])
+               ^
+/ui/probe.jibb:1:24: repeated attribute
+++ v (column ~[gap+%s1 gap+%s2] ~[(text "x")])
+                       ^

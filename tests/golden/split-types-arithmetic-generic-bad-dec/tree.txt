@@ -1,0 +1,9 @@
+(module
+  (value 2:1 decreasing
+    (gate 2:15
+      (face 2:18 x (tvar 2:20 A))
+      (group 2:22
+        (call 2:23 (wing 2:23 dec) (wing 2:27 x)))))
+  (value 11:1 bad-dec
+    (group 11:12
+      (call 11:13 (wing 11:13 decreasing) (lit 11:24 %.y)))))

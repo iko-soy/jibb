@@ -1,0 +1,19 @@
+22:1 glyph ++
+22:4 name atom
+22:9 glyph |=
+22:12 name args
+22:16 tight glyph =
+22:17 tight aura @t
+23:3 INDENT
+23:3 glyph ?-
+23:6 name args
+24:5 INDENT
+24:5 glyph [
+24:6 tight name a
+24:8 name b
+24:10 name c
+24:11 tight glyph ]
+24:13 name a
+24:14 DEDENT
+24:14 DEDENT
+24:14 NEWLINE

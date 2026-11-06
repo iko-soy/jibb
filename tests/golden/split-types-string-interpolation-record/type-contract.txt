@@ -1,0 +1,2 @@
+site /tests/golden/split-types-string-interpolation-record/source.jibb:5:27
+min-sites 2

@@ -1,0 +1,7 @@
+++ b: call's sample and argument types do not unify
+/tests/golden/generic-conflicting-result-faces/source.jibb:5:7: called gate has type $-([first=@ud second=@ud] [first=@ud second=@ud])
+++ b (two (pair 2))
+      ^
+/tests/golden/generic-conflicting-result-faces/source.jibb:5:11: argument has type [left=@ud right=@ud]
+++ b (two (pair 2))
+          ^

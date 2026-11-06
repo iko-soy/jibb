@@ -1,0 +1,17 @@
+(module
+  (value 5:1 hi-lo
+    (cast 5:10
+      (cell 5:13
+        (face 5:14 hi (aura 5:17 @ud))
+        (face 5:21 lo (aura 5:24 @ud)))
+      (tuple 5:29 (lit 5:30 10) (lit 5:33 0))))
+  (value 6:1 want-lo-hi
+    (gate 6:15
+      (face 6:18 r
+        (cell 6:20
+          (face 6:21 lo (aura 6:24 @ud))
+          (face 6:28 hi (aura 6:31 @ud))))
+      (wing 6:36 lo.r)))
+  (value 7:1 swapped
+    (group 7:12
+      (call 7:13 (wing 7:13 want-lo-hi) (wing 7:24 hi-lo)))))

@@ -1,0 +1,4 @@
+message types do not unify
+min-sites 2
+site /ui/page-check.jibb:5:15
+site /ui/page-check.jibb:5:33

@@ -1,0 +1,13 @@
+(module
+  (value 54:1 force-equal
+    (gate 54:16
+      (face 54:19 x (aura 54:21 @t))
+      (body 55:3
+        (value 55:3 inner
+          (gate 55:12
+            (cell 55:15
+              (face 55:16 a (tvar 55:18 A))
+              (face 55:20 b (tvar 55:22 B)))
+            (cast 55:25 (tvar 55:28 A) (wing 55:30 b))))
+        (group 56:3
+          (call 56:4 (wing 56:4 inner) (wing 56:10 x) (lit 56:12 ~zod)))))))

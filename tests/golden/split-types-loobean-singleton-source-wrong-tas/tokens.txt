@@ -1,0 +1,6 @@
+9:1 glyph ++
+9:4 name wrong-tas
+9:14 glyph ^-
+9:17 aura @tas
+9:22 lit %.y
+9:25 NEWLINE

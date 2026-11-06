@@ -1,0 +1,3 @@
+origin types-partial-locals
+target value conflict
+keep value conflict

@@ -1,0 +1,7 @@
+++ wrong: inline gate result does not unify with @c: @tD versus @c
+/tests/golden/types-prelude-text-tufa-byte-bad/source.jibb:1:17: call result element has type @tD
+++ wrong (tufa (trip "hi"))
+                ^
+/tests/golden/types-prelude-text-tufa-byte-bad/source.jibb:1:11: call context has type (list @c)
+++ wrong (tufa (trip "hi"))
+          ^

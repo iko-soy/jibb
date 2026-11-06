@@ -1,0 +1,4 @@
+origin types-cell-pattern-tail
+target value split-union
+keep mold either
+keep value split-union

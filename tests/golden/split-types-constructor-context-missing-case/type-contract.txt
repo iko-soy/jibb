@@ -1,0 +1,4 @@
+message missing has no case `%got`
+typed-site /tests/golden/split-types-constructor-context-missing-case/source.jibb:9:3
+typed-site /tests/golden/split-types-constructor-context-missing-case/source.jibb:20:34
+min-sites 2

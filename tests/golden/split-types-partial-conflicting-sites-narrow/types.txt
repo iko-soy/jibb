@@ -1,0 +1,7 @@
+++ narrow: cast mold and expression type do not unify
+/tests/golden/split-types-partial-conflicting-sites-narrow/source.jibb:5:6: cast mold has type @t
+  ^- @t x
+     ^
+/tests/golden/split-types-partial-conflicting-sites-narrow/source.jibb:5:9: expression has type @
+  ^- @t x
+        ^

@@ -1,0 +1,5 @@
+module kind: library
+++ nil-arg: $-($-([(list @t) @t] @t) @t)
+++ zero-arg: $-($-([(list @t) @t] @t) @t)
+++ multi-arg: $-($-([(list @t) @t] @t) @t)
+++ turn-tuple: (list A)

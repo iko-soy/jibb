@@ -1,0 +1,3 @@
+origin types-prelude-predicates
+target value bad-any
+keep value bad-any

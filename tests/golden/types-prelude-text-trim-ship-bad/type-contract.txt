@@ -1,0 +1,4 @@
+message call's sample and argument types do not unify
+min-sites 2
+typed-site /tests/golden/types-prelude-text-trim-ship-bad/source.jibb:1:11
+typed-site /tests/golden/types-prelude-text-trim-ship-bad/source.jibb:1:16

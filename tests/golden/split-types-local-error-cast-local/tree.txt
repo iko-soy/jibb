@@ -1,0 +1,8 @@
+(module
+  (value 2:1 local
+    (gate 2:10
+      (face 2:13 x (aura 2:15 @t))
+      (body 3:3
+        (value 3:3 flag
+          (cast 3:11 (aura 3:14 @t) (lit 3:17 %.y)))
+        (wing 4:3 x)))))

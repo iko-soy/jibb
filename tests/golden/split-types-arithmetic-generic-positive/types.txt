@@ -1,0 +1,14 @@
+module kind: library
+++ sum: $-([a=A b=A] A) where A is an atom other than ?
+++ decreasing: $-(A A) where A is an atom other than ?
+++ forward: $-([a=A b=A] A) where A is an atom other than ?
+++ text-aura: @t
+++ ship-aura: @p
+++ decimal: @ud
+++ hex: @ux
+++ decrease-dec: @ud
+++ decrease-hex: @ux
+++ compare: ?
+++ identity: $-(A A)
+++ accept-bool: ?
+++ capture: $-(A A) where A is an atom other than ?

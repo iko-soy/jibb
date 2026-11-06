@@ -1,0 +1,4 @@
+(module
+  (value 1:1 main
+    (group 1:9
+      (call 1:10 (wing 1:10 text) (str 1:15 "page")))))

@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-sites-zero/source.jibb:8:24
+min-sites 2

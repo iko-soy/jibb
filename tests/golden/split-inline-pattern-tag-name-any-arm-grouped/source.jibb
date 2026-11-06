@@ -1,0 +1,30 @@
+
+
+
+
+
+
++$ reason
+  %fail
+  %late
+
+
+
+
+
+
+
+
+
+
+
+
+++ grouped |= r=reason
+  ?- (r)
+    %fail  "f"
+    late   "l"
+
+
+
+
+

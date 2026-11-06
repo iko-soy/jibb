@@ -15,7 +15,7 @@
   =/  report=@t
     (golden-types-with-prepared-prelude:jibb /ui/client/jibb source ~ ~ ~[[/ui/dep/jibb dependency]] prepared)
   =/  want=@t
-    'partial inference; module not checked\0a++ direct: $-((forward A B) (forward A B))\0a++ concrete: $-((forward @t @p) (forward @t @p))\0a++ imported: $-((forward A B) (forward A B))\0a++ choice-imported: $-(choice choice)\0a++ swapped: generic union name is not available in this scope\0a++ fixed-alias: generic union name is not available in this scope\0a++ phantom-alias: generic union name is not available in this scope\0a++ repeat-alias: generic union name is not available in this scope'
+    'module kind: library\0a++ direct: $-((forward A B) (forward A B))\0a++ concrete: $-((forward @t @p) (forward @t @p))\0a++ imported: $-((forward A B) (forward A B))\0a++ choice-imported: $-(choice choice)\0a++ swapped: $-((forward B A) (forward B A))\0a++ fixed-alias: $-((forward A @t) (forward A @t))\0a++ phantom-alias: $-((forward A @t) (forward A @t))\0a++ repeat-alias: $-((forward A A) (forward A A))'
   ?.  =(report want)  ~["generic alias source or import report changed"]
   =/  orig=[at=path name=term]  [/lib/jibb/internal/jibb %union-source]
   =/  args=(list itype:jibb)  ~[[%atom %t] [%atom %p]]
@@ -39,8 +39,8 @@
   =/  fixed-source=@t  '/= dep /ui/dep\0a++ exposed identity.dep\0a'
   =/  fixed-report=@t
     (golden-types-with-prepared-prelude:jibb /ui/client/jibb fixed-source ~ ~ ~[[/ui/dep/jibb fixed-dep]] fixed-prepared)
-  ?.  =(fixed-report 'partial inference; module not checked\0a++ exposed: generic union name is not available in this scope')
-    ~["fixed specialization import no longer fails closed"]
+  ?.  =(fixed-report 'module kind: library\0a++ exposed: $-(specialized specialized)')
+    ~["fixed specialization import did not print its public mold name"]
   ~
 ++  test-generic-alias
   ^-  tang

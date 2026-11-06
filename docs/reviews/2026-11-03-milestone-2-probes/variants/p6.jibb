@@ -123,9 +123,9 @@
 /=  todo-list  /ui/todo-list
 
 ++ main (page load view)
-++ load |=(~
+++ load |= ~
   ^- (ask (list item.todo))
-  [%agent api="/ui/api/todo" case=%todos agent=%todo path=~[%todos] scry=~ receive=receive])
+  [%agent api="/ui/api/todo" case=%todos agent=%todo path=~[%todos] scry=~ receive=receive]
 ++ receive |= input=[mark=@tas state=(unit *) fact=*]
   ^- [state=* message=(list item.todo)] [state=0 message=~]
 
@@ -138,7 +138,7 @@
 /=  todo-list  /ui/todo-list
 
 ++ main (page load view)
-++ load |=(~ (todo-by-id.todo 1 |=%one))
+++ load |=(~ (todo-by-id.todo 1 same))
 
 ++ view |= item=todo-item.todo
   text "One todo"

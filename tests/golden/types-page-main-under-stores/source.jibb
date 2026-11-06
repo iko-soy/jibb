@@ -1,0 +1,7 @@
+++ main view
+
+++ view
+  column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
+    heading 1 "About this ship"
+    para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
+    el ~[tone+%accent] (link %/blog "Read the blog")

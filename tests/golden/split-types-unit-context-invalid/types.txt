@@ -1,0 +1,13 @@
+++ invalid: msg has no case `%bad`
+/tests/golden/split-types-unit-context-invalid/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-unit-context-invalid/source.jibb:2:3: expected union has type msg
+  %go
+  ^
+/tests/golden/split-types-unit-context-invalid/source.jibb:9:15: expected union has type msg
+++ invalid ^- (unit msg) `%bad
+              ^
+/tests/golden/split-types-unit-context-invalid/source.jibb:9:27: tag literal has type %bad
+++ invalid ^- (unit msg) `%bad
+                          ^

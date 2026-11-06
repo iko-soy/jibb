@@ -1,0 +1,12 @@
+origin types-recursive-gate
+target value bounce
+keep value bounce
+keep value captured
+keep value cord-result
+keep value higher
+keep value local-rec
+keep value local-self
+keep value mutual-a
+keep value mutual-b
+keep value recur
+keep value ship-result

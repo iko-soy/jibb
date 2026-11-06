@@ -1,0 +1,4 @@
+source: split from types-arithmetic-generic, preserving the original source lines
+tests: the independent bad-alias diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

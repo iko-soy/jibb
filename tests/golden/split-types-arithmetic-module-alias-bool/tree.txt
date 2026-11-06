@@ -1,0 +1,5 @@
+(module
+  (jibb 1:1 math /ui/math)
+  (value 16:1 alias-bool
+    (group 16:15
+      (call 16:16 (wing 16:16 alias-inc.math) (lit 16:31 %.n)))))

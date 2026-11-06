@@ -1,0 +1,9 @@
+(module
+  (value 17:1 forced
+    (gate 17:11
+      (face 17:14 x (tvar 17:16 A))
+      (cast 17:18
+        (cell 17:21
+          (face 17:22 left (tvar 17:27 A))
+          (face 17:29 right (tvar 17:35 A)))
+        (tuple 17:38 (wing 17:39 x) (str 17:41 "hi"))))))

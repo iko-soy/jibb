@@ -1,0 +1,8 @@
+module kind: library
+++ range-up: $-([A A] (list A)) where A is an atom other than ?
+++ first: $-(A A) where A is an atom other than ?
+++ second: $-(A A) where A is an atom other than ?
+++ nums: (list @ud)
+++ hexes: (list @ux)
+++ dec-result: @ud
+++ hex-result: @ux

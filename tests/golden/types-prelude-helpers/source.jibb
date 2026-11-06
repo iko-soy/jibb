@@ -1,0 +1,14 @@
+++ identity-items (homo ~[1 2])
+++ identity-ships (homo ~[~zod])
+++ all-text (fand ~["a"] ~["a" "b" "a"])
+++ all-nums (fand ~[1] ~[1 2 1])
+++ first-text (find ~["a"] ~["b" "a"])
+++ first-ships (find ~[~zod] ~[~nec ~zod])
+++ each-label |= [item=@ud state=@ud] ["x" (add item state)]
+++ spun-labels (spin ~[1 2] 0 each-label)
+++ keep-code |= [item=@t state=@t] [1 item]
+++ spun-codes (spin ~["a"] "seed" keep-code)
+++ equal-text (test "a" "b")
+++ equal-ships (test ~zod ~nec)
+++ root-dec (sqt 17)
+++ root-hex (sqt 0x11)

@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-aura-bad-ship/source.jibb:3:15
+min-sites 2

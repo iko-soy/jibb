@@ -1,0 +1,7 @@
+++ wrong: unit payload does not fit its expected type
+/tests/golden/split-types-unit-context-wrong/source.jibb:11:13: expected unit payload has type @t
+++ wrong ^- (unit @t) `~zod
+            ^
+/tests/golden/split-types-unit-context-wrong/source.jibb:11:24: payload has type @p
+++ wrong ^- (unit @t) `~zod
+                       ^

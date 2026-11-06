@@ -1,2 +1,4 @@
-partial inference; module not checked
-module has conflicting names
+`proj` is reserved and cannot be bound
+/tests/golden/types-proj-reserved-local/source.jibb:2:3: reserved binding
+  ++ proj |= x=@t x
+  ^

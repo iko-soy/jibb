@@ -1,0 +1,21 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %text)
+        (face 2:10 value (aura 2:16 @t)))
+      (const 3:3 %clear)))
+  (mold 4:1 reply
+    (union 5:3 (const 5:3 %yes) (const 6:3 %no)))
+  (value 11:1 invalid
+    (gate 11:12
+      (face 11:15 a (ref 11:17 msg))
+      (cast 11:21
+        (ref 11:24 reply)
+        (body 12:3
+          (branch 12:3
+            (wing 12:6 a)
+            (arm 13:5
+              (cell 13:5 (lit 13:6 %text) (bind 13:12 v))
+              (lit 13:15 %missing))
+            (arm 14:5 (lit 14:5 %clear) (lit 14:12 %no))))))))

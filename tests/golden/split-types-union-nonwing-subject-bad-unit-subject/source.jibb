@@ -1,0 +1,82 @@
++$ input
+  [%item flag=? text=@t]
+  %none
+
+
+
+
+++ passthrough |= x=input x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ bad-unit-subject |= x=@t ^- (list @t)
+  ?- (passthrough x)
+    ~ ~[]
+    [~ value] ~[]

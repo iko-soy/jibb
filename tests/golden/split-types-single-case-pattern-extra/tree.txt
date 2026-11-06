@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 30:1 extra
+    (gate 30:10
+      (face 30:13 p (ref 30:15 packet))
+      (body 31:3
+        (branch 31:3
+          (wing 31:6 p)
+          (arm 32:5
+            (cell 32:5 (lit 32:6 %go) (bind 32:10 u))
+            (wing 32:13 u))
+          (arm 33:5 (any 33:5) (str 33:7 "dead")))))))

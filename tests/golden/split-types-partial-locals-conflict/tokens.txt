@@ -1,0 +1,28 @@
+7:1 glyph ++
+7:4 name conflict
+7:13 glyph |=
+7:16 name x
+8:3 INDENT
+8:3 glyph ++
+8:6 name capture
+8:14 glyph |=
+8:17 name y
+8:19 name x
+9:3 NEWLINE
+9:3 glyph ~&
+9:6 glyph ^-
+9:9 aura @t
+9:12 glyph (
+9:13 tight name capture
+9:21 lit ~zod
+9:25 tight glyph )
+10:5 INDENT
+10:5 glyph ^-
+10:8 aura @p
+10:11 glyph (
+10:12 tight name capture
+10:20 str "hi"
+10:24 tight glyph )
+10:25 DEDENT
+10:25 DEDENT
+10:25 NEWLINE

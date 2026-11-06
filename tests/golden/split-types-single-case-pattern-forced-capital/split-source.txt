@@ -1,0 +1,4 @@
+origin types-single-case-pattern
+target value forced-capital
+keep mold packet
+keep value forced-capital

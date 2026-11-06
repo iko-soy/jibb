@@ -1,0 +1,11 @@
+origin types-tuple-context-nested
+target value constructor
+keep mold msg
+keep mold typed
+keep value constructor
+keep value generic
+keep value nest
+keep value nested
+keep value ok
+keep value take
+keep value use-ctor

@@ -1,0 +1,7 @@
+++ ship: `0` is a @ud, not a @p; write ~zod
+/tests/golden/split-inline-decimal-aura-bad-ship/source.jibb:3:15: decimal
+++ ship ^- @p 0
+              ^
+/tests/golden/split-inline-decimal-aura-bad-ship/source.jibb:3:12: expected type has type @p
+++ ship ^- @p 0
+           ^

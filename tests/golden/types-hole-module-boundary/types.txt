@@ -1,2 +1,4 @@
-partial inference; module not checked
-module definitions need unsupported inference: /ui/lib/jibb: ++ id
+++ id: type hole needs a determined type
+/ui/lib.jibb:1:12: unresolved type hole
+++ id |= x=_ x
+           ^

@@ -1,0 +1,4 @@
+message local definition `same` shadows a name already in scope
+site /lib/jibb/prelude.jibb:7:4
+site /tests/golden/local-shadow-prelude/source.jibb:2:6
+min-sites 2

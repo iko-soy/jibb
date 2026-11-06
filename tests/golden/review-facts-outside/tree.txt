@@ -1,0 +1,3 @@
+(module
+  (mold 1:1 x
+    (apply 1:6 facts (aura 1:13 @t) (aura 1:16 @t))))

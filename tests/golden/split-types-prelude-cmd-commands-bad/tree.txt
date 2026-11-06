@@ -1,0 +1,8 @@
+(module
+  (value 16:1 commands-bad
+    (cast 16:17
+      (apply 16:20 list
+        (apply 16:26 cmd (aura 16:31 @t)))
+      (list 16:36
+        (tuple 16:38 (lit 16:39 %go) (str 16:43 "/home"))
+        (tuple 16:52 (lit 16:53 %wait) (lit 16:59 ~s30) (lit 16:64 ~zod))))))

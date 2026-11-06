@@ -1,0 +1,16 @@
+(module
+  (value 1:1 inc
+    (gate 1:8
+      (face 1:11 n (aura 1:13 @ud))
+      (wing 1:17 n)))
+  (value 10:1 in-gate
+    (gate 10:12
+      (face 10:15 x (aura 10:17 @t))
+      (body 11:3
+        (value 11:3 bump
+          (gate 11:11
+            (face 11:14 y (aura 11:16 @t))
+            (group 11:19
+              (call 11:20 (wing 11:20 inc) (wing 11:24 y)))))
+        (group 12:3
+          (call 12:4 (wing 12:4 bump) (wing 12:9 x)))))))

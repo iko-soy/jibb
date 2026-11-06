@@ -1,0 +1,4 @@
+origin types-local-error-call
+target value local-gate
+keep value inc
+keep value local-gate

@@ -1,0 +1,55 @@
++$ msg
+  [%text value=@t]
+  %clear
++$ reply
+  %yes
+  %no
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ nested-missing |= a=msg ^- [reply @t]
+  ?- a
+    [%text v] [%missing v]
+    %clear [%yes "ok"]
+
+
+
+
+

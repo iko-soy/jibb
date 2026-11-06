@@ -1,0 +1,15 @@
+(module
+  (value 19:1 generic
+    (gate 19:12
+      (face 19:15 p
+        (cell 19:17
+          (face 19:18 left (tvar 19:23 A))
+          (face 19:25 right (tvar 19:31 A))))
+      (wing 19:34 p)))
+  (value 20:1 generic-bad
+    (group 20:16
+      (call 20:17
+        (wing 20:17 generic)
+        (tuple 20:25
+          (face 20:26 left (lit 20:31 ~zod))
+          (face 20:36 right (str 20:42 "hi")))))))

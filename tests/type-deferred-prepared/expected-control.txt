@@ -1,7 +1,4 @@
-partial inference; module not checked
-+$ model: not checked
-+$ message: cases proven disjoint; mold not checked
-++ initial: `~` needs context in partial inference
-++ send: $-($-(@t A) $-(@t A))
-++ first: call constraint is not supported by partial inference
-++ fixed: name is not available to partial inference
+++ initial: nothing fixes the union of ~; add a `^-`
+/ui/prepared.jibb:5:35: nothing fixes the union of ~; add a `^-`
+++ initial |= xs=(list @t) [xs "" ~]
+                                  ^

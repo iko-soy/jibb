@@ -1,0 +1,19 @@
+40:1 glyph ++
+40:4 name uncertain-target
+40:21 glyph |=
+40:24 name p
+40:25 tight glyph =
+40:26 tight glyph [
+40:27 tight tvar A
+40:29 aura @p
+40:31 tight glyph ]
+40:33 name p
+42:1 NEWLINE
+42:1 glyph ++
+42:4 name uncertain-tag
+42:18 glyph (
+42:19 tight name uncertain-target
+42:36 lit %mystery
+42:45 str "bad"
+42:50 tight glyph )
+42:51 NEWLINE

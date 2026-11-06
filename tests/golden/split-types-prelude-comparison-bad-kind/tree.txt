@@ -1,0 +1,4 @@
+(module
+  (value 18:1 bad-kind
+    (group 18:13
+      (call 18:14 (wing 18:14 gte) (lit 18:18 ~zod) (str 18:23 "text")))))

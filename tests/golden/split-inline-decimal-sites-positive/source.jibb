@@ -1,0 +1,24 @@
++$ msg
+  [%tick at=@da]
+  [%done n=@ud]
+++ pause |= d=@dr d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ every-ok ^- (list (sub msg)) ~[[%every ~s1 |=%tick]]
+
+
+
+++ note-ok (text "5")
+

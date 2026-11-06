@@ -1,0 +1,8 @@
+
+
+++ zero-one-arg |= f=$-([(list @t) @t] @t) (f [%1 "ok"])
+
+
+
+
+

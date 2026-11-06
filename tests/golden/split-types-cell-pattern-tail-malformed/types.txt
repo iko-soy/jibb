@@ -1,0 +1,7 @@
+++ malformed: pattern cannot match the subject
+/tests/golden/split-types-cell-pattern-tail-malformed/source.jibb:18:5: unreachable pattern
+    [first second third] third
+    ^
+/tests/golden/split-types-cell-pattern-tail-malformed/source.jibb:17:6: subject has type [@t @p]
+  ?- x
+     ^

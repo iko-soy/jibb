@@ -1,0 +1,24 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++$ typed [%typed text=@t]
+++ use-ctor |= p=[f=$-(@t typed) payload=@t] p
+
+++ bad-constructor (use-ctor [f=|=%other payload="hi"])

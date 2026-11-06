@@ -1,0 +1,8 @@
++$ choice
+  %a
+  %b
+++ f |= v=choice
+  ?- v
+    %a "a"
+    %b "b"
+    %c "c"

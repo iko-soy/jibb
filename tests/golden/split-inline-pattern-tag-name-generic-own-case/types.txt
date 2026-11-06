@@ -1,0 +1,7 @@
+++ own-case: `fail` binds a name, but the subject's type has `%fail` here; write %fail, or * for a catch-all
+/tests/golden/split-inline-pattern-tag-name-generic-own-case/source.jibb:12:6: subject
+  ?- o
+     ^
+/tests/golden/split-inline-pattern-tag-name-generic-own-case/source.jibb:14:5: pattern name
+    fail     "failed"
+    ^

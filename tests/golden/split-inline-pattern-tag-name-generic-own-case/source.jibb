@@ -1,0 +1,30 @@
+
+
+
++$ outcome |$ [A]
+  [%ok value=A]
+  %fail
+
+
+
+
+++ own-case |= o=(outcome @t)
+  ?- o
+    [%ok v]  v
+    fail     "failed"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

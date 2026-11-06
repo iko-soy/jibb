@@ -1,0 +1,23 @@
+24:1 glyph ++
+24:4 name local-keep
+24:15 glyph |=
+24:18 glyph [
+24:19 tight name a
+24:20 tight glyph =
+24:21 tight tvar A
+24:23 name b
+24:24 tight glyph =
+24:25 tight tvar A
+24:26 tight glyph ]
+24:28 name a
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name repeated-bad
+26:17 glyph ^-
+26:20 aura @t
+26:23 glyph (
+26:24 tight name local-keep
+26:35 str "hi"
+26:40 lit ~zod
+26:44 tight glyph )
+26:45 NEWLINE

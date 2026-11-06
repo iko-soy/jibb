@@ -1,0 +1,7 @@
+++ bad-number: types do not unify
+/tests/golden/split-types-nested-shallow-preserve-bad-number/source.jibb:18:34: expected type has type @ud
+++ bad-number ^- attribute width+[%fill "bad"]
+                                 ^
+/tests/golden/split-types-nested-shallow-preserve-bad-number/source.jibb:18:41: actual type has type @t
+++ bad-number ^- attribute width+[%fill "bad"]
+                                        ^

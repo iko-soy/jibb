@@ -1,0 +1,49 @@
+11:1 glyph +$
+11:4 name maybe
+11:10 glyph |$
+11:13 glyph [
+11:14 tight tvar A
+11:15 tight glyph ]
+12:3 INDENT
+12:3 glyph [
+12:4 tight lit %got
+12:9 name value
+12:14 tight glyph =
+12:15 tight tvar A
+12:16 tight glyph ]
+13:3 NEWLINE
+13:3 lit %other
+24:1 DEDENT
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name named-capital
+24:18 glyph |=
+24:21 name value
+24:26 tight glyph =
+24:27 tight tvar A
+25:3 INDENT
+25:3 glyph ^-
+25:6 glyph (
+25:7 tight name maybe
+25:13 tvar A
+25:14 tight glyph )
+26:5 INDENT
+26:5 glyph (
+26:6 tight glyph |=(
+26:9 tight name callback
+26:17 tight glyph =
+26:18 tight glyph $-(
+26:21 tight tvar A
+26:23 tvar M
+26:24 tight glyph )
+26:26 glyph (
+26:27 tight name callback
+26:36 name value
+26:41 tight glyph )
+26:42 tight glyph )
+26:44 glyph |=
+26:46 tight lit %got
+26:50 tight glyph )
+26:51 DEDENT
+26:51 DEDENT
+26:51 NEWLINE

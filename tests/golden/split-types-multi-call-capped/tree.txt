@@ -1,0 +1,13 @@
+(module
+  (value 12:1 repeated
+    (gate 12:13
+      (face 12:16 p
+        (cell 12:18 (tvar 12:19 A) (tvar 12:21 A)))
+      (wing 12:24 p)))
+  (value 25:1 capped
+    (gate 25:11
+      (cell 25:14
+        (face 25:15 a (tvar 25:17 A))
+        (face 25:19 b (tvar 25:21 B)))
+      (group 25:24
+        (call 25:25 (wing 25:25 repeated) (wing 25:34 a) (wing 25:36 b))))))

@@ -1,0 +1,9 @@
+(module
+  (value 12:1 repeated
+    (gate 12:13
+      (face 12:16 p
+        (cell 12:18 (tvar 12:19 A) (tvar 12:21 A)))
+      (wing 12:24 p)))
+  (value 14:1 different
+    (group 14:14
+      (call 14:15 (wing 14:15 repeated) (str 14:24 "a") (lit 14:28 ~zod)))))

@@ -1,0 +1,15 @@
+15:1 glyph ++
+15:4 name list-bad
+15:13 glyph ^-
+15:16 glyph (
+15:17 tight name unit
+15:22 glyph (
+15:23 tight name list
+15:28 aura @t
+15:30 tight glyph )
+15:31 tight glyph )
+15:33 glyph `
+15:34 tight glyph ~[
+15:36 tight lit ~zod
+15:40 tight glyph ]
+15:41 NEWLINE

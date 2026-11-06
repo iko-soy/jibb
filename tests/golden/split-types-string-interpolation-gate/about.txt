@@ -1,0 +1,4 @@
+source: split from types-string-interpolation, preserving the original source lines
+tests: the independent gate diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

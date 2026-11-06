@@ -1,0 +1,7 @@
+++ char: `97` is a @ud, not a @tD
+/tests/golden/split-inline-decimal-aura-bad-char/source.jibb:10:16: decimal
+++ char ^- @tD 97
+               ^
+/tests/golden/split-inline-decimal-aura-bad-char/source.jibb:10:12: expected type has type @tD
+++ char ^- @tD 97
+           ^

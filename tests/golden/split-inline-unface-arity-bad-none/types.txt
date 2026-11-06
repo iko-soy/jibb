@@ -1,0 +1,4 @@
+++ none: unface takes one argument, as (unface e)
+/tests/golden/split-inline-unface-arity-bad-none/source.jibb:3:9: unface call
+++ none (unface)
+        ^

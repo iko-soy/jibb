@@ -1,0 +1,16 @@
+(module
+  (jibb 1:1 todo /ui/api/todo)
+  (jibb 2:1 todo-list /ui/todo-list)
+  (value 4:1 main
+    (group 4:9
+      (call 4:10 (wing 4:10 page) (wing 4:15 load) (wing 4:20 view))))
+  (value 5:1 load
+    (gate-wide 5:9
+      (const 5:12 ~)
+      (group 5:14
+        (call 5:15 (wing 5:15 todo-by-id.todo) (lit 5:31 1) (ctor 5:33 %one)))))
+  (value 7:1 view
+    (gate 7:9
+      (face 7:12 item (ref 7:17 todo-item.todo))
+      (body 8:3
+        (call 8:3 (wing 8:3 text) (str 8:8 "One todo"))))))

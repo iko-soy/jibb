@@ -1,0 +1,4 @@
+source: split from types-single-case-pattern, preserving the original source lines
+tests: the independent invalid diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

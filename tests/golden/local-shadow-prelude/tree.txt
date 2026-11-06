@@ -1,0 +1,5 @@
+(module
+  (value 1:1 f
+    (body 2:3
+      (value 2:3 same (lit 2:11 1))
+      (wing 3:3 same))))

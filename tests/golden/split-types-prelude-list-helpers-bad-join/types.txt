@@ -1,0 +1,7 @@
+++ bad-join: call's sample and argument types do not unify
+/tests/golden/split-types-prelude-list-helpers-bad-join/source.jibb:15:14: called gate has type $-([@t (list @t)] (list @t))
+++ bad-join (join ~zod ~["hi"])
+             ^
+/tests/golden/split-types-prelude-list-helpers-bad-join/source.jibb:15:19: argument has type @p
+++ bad-join (join ~zod ~["hi"])
+                  ^

@@ -1,0 +1,10 @@
+(module
+  (value 7:1 reverse
+    (gate 7:12
+      (cell 7:15
+        (face 7:16 f
+          (fn 7:18 (const 7:21 %$) (aura 7:24 @t)))
+        (face 7:28 xs
+          (apply 7:31 list (aura 7:37 @t))))
+      (group 7:42
+        (call 7:43 (wing 7:43 f) (wing 7:45 xs))))))

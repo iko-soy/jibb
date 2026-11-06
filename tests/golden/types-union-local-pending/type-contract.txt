@@ -1,0 +1,3 @@
+message nothing fixes the union of %add; add a `^-`
+site /tests/golden/types-union-local-pending/source.jibb:2:13
+min-sites 1

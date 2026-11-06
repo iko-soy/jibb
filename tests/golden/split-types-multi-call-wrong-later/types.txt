@@ -1,0 +1,7 @@
+++ wrong-later: inline gate result does not unify with ?: @t versus ?
+/tests/golden/split-types-multi-call-wrong-later/source.jibb:21:33: actual type has type @t
+++ wrong-later (three "hi" ~zod "bad")
+                                ^
+/tests/golden/split-types-multi-call-wrong-later/source.jibb:21:17: call context has type [@t [@p ?]]
+++ wrong-later (three "hi" ~zod "bad")
+                ^

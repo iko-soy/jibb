@@ -1,0 +1,5 @@
+module kind: library
+++ identity: $-([A [B C]] [A [B C]])
+++ text-value: [@t [@p ?]]
+++ ship: [@p [@t ?]]
+++ shared: $-([A [A A]] [A [A A]])

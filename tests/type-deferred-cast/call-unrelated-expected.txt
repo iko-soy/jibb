@@ -1,0 +1,4 @@
+module kind: library
++$ msg: msg
+++ expects: $-([node=(element msg) word=@t] @t)
+++ keep: $-(M @t)

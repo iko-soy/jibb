@@ -1,0 +1,9 @@
+module kind: static-page
++$ model: @ud
++$ msg: %ok
+++ init: $-(@t @ud)
+++ update: $-([m=%ok s=@ud] [@ud (list (cmd %ok))])
+++ view: $-(@ud (element %ok))
+++ subs: $-(@ud (list (sub %ok)))
+++ p: [init=$-(@t @ud) [update=$-([%ok @ud] [@ud (list (cmd %ok))]) [view=$-(@ud (element %ok)) subs=$-(@ud (list (sub %ok)))]]]
+++ main: (element !!)

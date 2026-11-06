@@ -1,0 +1,19 @@
+7:1 glyph ++
+7:4 name resolved
+8:3 INDENT
+8:3 glyph ++
+8:6 name id
+8:9 glyph |=
+8:12 name x
+8:13 tight glyph =
+8:14 tight glyph _
+8:16 glyph ^-
+8:19 aura @t
+8:22 name x
+9:3 NEWLINE
+9:3 glyph (
+9:4 tight name id
+9:7 str "hello"
+9:14 tight glyph )
+9:15 DEDENT
+9:15 NEWLINE

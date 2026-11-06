@@ -1,0 +1,8 @@
+++ each-alias each
+++ table-alias table
+++ generic-each |= items=(list [key=K el=(element M)]) (each items)
+++ generic-table |= [columns=(list [header=@t width=length align=align]) rows=(list [key=K cells=(list (element M))])] (table columns rows)
+++ keyed (each ~[[key="one" el=(text "x")]])
+++ nested (each ~[[key=[label="one" count=1] el=(text "x")]])
+++ callback |= x=@ud x
+++ gate-message (each ~[[key="ok" el=(button "x" callback)]])

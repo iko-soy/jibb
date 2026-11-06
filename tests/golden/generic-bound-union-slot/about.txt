@@ -1,0 +1,4 @@
+source: Grammar, type variables beneath faced positions
+tests: a bound generic union fits a positional slot whose body accepts any noun; constructor and nominal context survive
+expect: parses
+expect-types: exact full-checker types

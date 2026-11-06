@@ -1,0 +1,7 @@
+(module
+  (value 24:1 eq-nested-gate
+    (group 24:19
+      (call 24:20
+        (wing 24:20 eq)
+        (tuple 24:23 (lit 24:24 1) (wing 24:26 same))
+        (tuple 24:32 (lit 24:33 1) (wing 24:35 same))))))

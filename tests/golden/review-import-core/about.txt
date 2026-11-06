@@ -1,0 +1,4 @@
+source: Milestone 2 review, import-check.hoon I3b-core: imported core molds are rejected.
+tests: A used imported core mold is rejected by the full checker at its use site.
+expect: parses
+expect-types: full checker result

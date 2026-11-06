@@ -1,0 +1,7 @@
+++ malformed-each: list item does not fit its expected type
+/tests/golden/split-types-prelude-ui-malformed-each/source.jibb:60:37: expected item has type [key=K el=(element M)] where K contains no gates
+++ malformed-each ^- (element msg) (each ~[[key="row" kid=(text "child")]])
+                                    ^
+/tests/golden/split-types-prelude-ui-malformed-each/source.jibb:60:44: list item has type [key=@t kid=(element M)]
+++ malformed-each ^- (element msg) (each ~[[key="row" kid=(text "child")]])
+                                           ^

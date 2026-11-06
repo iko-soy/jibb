@@ -1,0 +1,7 @@
+++ call-wrong: call's sample and argument types do not unify
+/tests/golden/split-types-list-open-constraints-call-wrong/source.jibb:19:16: called gate has type $-([a=@t b=@t] (list @t))
+++ call-wrong (repeated "hi" ~zod)
+               ^
+/tests/golden/split-types-list-open-constraints-call-wrong/source.jibb:19:30: argument has type @p
+++ call-wrong (repeated "hi" ~zod)
+                             ^

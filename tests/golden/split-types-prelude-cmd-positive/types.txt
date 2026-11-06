@@ -1,0 +1,13 @@
+module kind: library
+++ identity: $-((cmd @t) (cmd @t))
+++ generic: $-((cmd A) (cmd A))
+++ nav: (cmd @t)
+++ time: (cmd @t)
+++ send: $-(raw-poke (cmd @t))
+++ wait: (cmd @t)
+++ who: (cmd @t)
+++ wrap-value: $-(A (cmd A))
+++ wrap-value-text: (cmd @t)
+++ wrap-value-ship: (cmd @p)
+++ commands: (list (cmd @t))
+++ use-text: $-((cmd @t) (cmd @t))

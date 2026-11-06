@@ -1,0 +1,21 @@
+origin types-multi-call
+target value accepts
+keep mold msg
+keep mold typed
+keep value accepts
+keep value cons-context
+keep value constructor
+keep value constructor-call
+keep value contextual
+keep value named
+keep value named-call
+keep value recurse
+keep value repeated
+keep value rest-call
+keep value same-text
+keep value three
+keep value three-call
+keep value two
+keep value two-call
+keep value uncertain-target
+keep value unknown

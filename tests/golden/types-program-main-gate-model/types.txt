@@ -1,0 +1,7 @@
+++ main: island model field `callback` contains a gate
+/ui/program-check.jibb:4:21: gate-bearing island type
++$ model [count=@ud callback=$-(@t @t)]
+                    ^
+/ui/program-check.jibb:5:10: island main
+++ main (program init update view subs)
+         ^

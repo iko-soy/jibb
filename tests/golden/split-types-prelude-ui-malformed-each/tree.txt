@@ -1,0 +1,20 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %save)
+      (const 3:3 %toggle)
+      (cell 4:3
+        (const 4:4 %edited)
+        (face 4:12 value (aura 4:18 @t)))))
+  (value 60:1 malformed-each
+    (cast 60:19
+      (apply 60:22 element (ref 60:31 msg))
+      (group 60:36
+        (call 60:37
+          (wing 60:37 each)
+          (list 60:42
+            (tuple 60:44
+              (face 60:45 key (str 60:49 "row"))
+              (face 60:55 kid
+                (group 60:59
+                  (call 60:60 (wing 60:60 text) (str 60:65 "child")))))))))))

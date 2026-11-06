@@ -1,0 +1,7 @@
+++ covered: branch arm is covered by earlier arms
+/tests/golden/split-types-union-finite-covered/source.jibb:25:5: covering arm
+    [%p %.y *] "a"
+    ^
+/tests/golden/split-types-union-finite-covered/source.jibb:26:5: covered arm
+    [%p %.y %.n] "b"
+    ^

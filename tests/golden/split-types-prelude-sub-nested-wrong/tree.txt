@@ -1,0 +1,8 @@
+(module
+  (value 12:1 wrong
+    (cast 12:10
+      (apply 12:13 sub (aura 12:18 @t))
+      (tuple 12:22
+        (lit 12:23 %watch)
+        (group 12:30
+          (call 12:31 (wing 12:31 pure) (lit 12:36 ~zod)))))))

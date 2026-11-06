@@ -1,0 +1,11 @@
+origin types-union-singleton
+target value constructor
+keep mold go
+keep mold msg
+keep mold typed
+keep value constructor
+keep value go-value
+keep value id
+keep value demo
+keep value union-constructor
+keep value use

@@ -1,0 +1,13 @@
+module kind: library
+++ div-decimal: @ud
+++ div-hexadecimal: @ux
+++ div-duration: @dr
+++ mod-decimal: @ud
+++ mod-hexadecimal: @ux
+++ mod-duration: @dr
+++ pow-decimal: @ud
+++ pow-hexadecimal: @ux
+++ pow-duration: @dr
+++ generic-pow: $-([A A] A) where A is an atom other than ?
+++ generic-div: $-([A A] A) where A is an atom other than ?
+++ generic-mod: $-([A A] A) where A is an atom other than ?

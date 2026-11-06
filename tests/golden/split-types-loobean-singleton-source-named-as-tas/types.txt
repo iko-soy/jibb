@@ -1,0 +1,7 @@
+++ named-as-tas: cast mold and expression type do not unify
+/tests/golden/split-types-loobean-singleton-source-named-as-tas/source.jibb:15:20: cast mold has type @tas
+++ named-as-tas ^- @tas named-value
+                   ^
+/tests/golden/split-types-loobean-singleton-source-named-as-tas/source.jibb:15:25: expression has type %.y
+++ named-as-tas ^- @tas named-value
+                        ^

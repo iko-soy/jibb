@@ -1,0 +1,5 @@
+origin types-nested-shallow-preserve
+target value bad-number
+keep mold attribute
+keep mold extent
+keep value bad-number

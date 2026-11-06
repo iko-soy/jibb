@@ -1,0 +1,8 @@
+module kind: library
++$ item: [id=@ud [done=? text=@t]]
++$ poke: API poke declaration
++$ paths: API paths declaration
+++ todos: $-($-((list [id=@ud [done=? text=@t]]) A) (ask A)) (generated)
+++ changes: $-([$-((list [id=@ud [done=? text=@t]]) A) $-([[%todo-update ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud])] (list [id=@ud [done=? text=@t]])] (list [id=@ud [done=? text=@t]]))] (ask A)) (generated)
+++ todo-by-id: $-([@ud $-([id=@ud [done=? text=@t]] A)] (ask A)) (generated)
+++ poke: $-([([%add text=@t] [%toggle id=@ud]) $-((unit @t) A)] (cmd A)) (generated)

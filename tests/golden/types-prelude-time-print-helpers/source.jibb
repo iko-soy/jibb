@@ -1,0 +1,12 @@
+++ pack-time year
+++ unpack-time yore
+++ print-knot scot
+++ print-tape scow
+++ parse-atom slaw
+++ need-atom slav
+++ when (year (yore ~2026.10.29..14.30.00))
+++ printed (scot [%ud 1.000])
+++ printed-text (crip (scow [%p ~zod]))
+++ read-atom (slav %ud ~.1.000)
+++ maybe (slaw %ud ~.oops)
+++ generic-printer |= value=@ (scot [%ud value])

@@ -1,0 +1,4 @@
+++ unknown-target: nothing fixes the union of %watch; add a `^-`
+/tests/golden/split-types-prelude-sub-nested-unknown-target/source.jibb:20:32: nothing fixes the union of %watch; add a `^-`
+++ unknown-target |= x=A ^- A [%watch (pure %idle)]
+                               ^

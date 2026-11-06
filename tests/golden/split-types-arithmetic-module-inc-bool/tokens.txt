@@ -1,0 +1,14 @@
+1:1 glyph /=
+1:4 name math
+1:9 glyph /
+1:10 tight knot ui
+1:12 tight glyph /
+1:13 tight knot math
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name inc-bool
+15:13 glyph (
+15:14 tight wing inc.math
+15:23 lit %.y
+15:26 tight glyph )
+15:27 NEWLINE

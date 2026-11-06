@@ -1,0 +1,11 @@
+++ run |= x=@t
+  ++ first |= [value=A stop=?]
+    ?- stop
+    %.y [left=value]
+    %.n (second value %.y)
+  ++ second |= [value=A stop=?]
+    ?- stop
+    %.y value
+    %.n (first value %.y)
+  (second x %.y)
+++ untouched |= x=@p x

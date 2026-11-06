@@ -1,0 +1,11 @@
+++ lth2 |= [x=A y=A] (gth y x)
+++ lte2 |= [a=A b=A] (not (gth a b))
+
+
+++ labelled ~[lth2 lte2]
+
+
+
+
+
+

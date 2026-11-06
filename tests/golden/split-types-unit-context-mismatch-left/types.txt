@@ -1,0 +1,7 @@
+++ mismatch-left: cast mold and expression type do not unify
+/tests/golden/split-types-unit-context-mismatch-left/source.jibb:39:30: cast mold has type [a=alt]
+++ mismatch-left |= x=msg ^- [a=alt] [a=x]
+                             ^
+/tests/golden/split-types-unit-context-mismatch-left/source.jibb:39:38: expression has type [a=msg]
+++ mismatch-left |= x=msg ^- [a=alt] [a=x]
+                                     ^

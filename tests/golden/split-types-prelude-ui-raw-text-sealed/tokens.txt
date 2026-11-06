@@ -1,0 +1,621 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %save
+3:3 NEWLINE
+3:3 lit %toggle
+4:3 NEWLINE
+4:3 glyph [
+4:4 tight lit %edited
+4:12 name value
+4:17 tight glyph =
+4:18 tight aura @t
+4:20 tight glyph ]
+5:1 DEDENT
+5:1 NEWLINE
+5:1 glyph +$
+5:4 name model
+5:10 glyph [
+5:11 tight name count
+5:16 tight glyph =
+5:17 tight aura @ud
+5:20 tight glyph ]
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name row-scheme
+7:15 name row
+8:1 NEWLINE
+8:1 glyph ++
+8:4 name column-scheme
+8:18 name column
+9:1 NEWLINE
+9:1 glyph ++
+9:4 name wrap-scheme
+9:16 name wrap
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name stack-scheme
+10:17 name stack
+11:1 NEWLINE
+11:1 glyph ++
+11:4 name el-scheme
+11:14 name el
+12:1 NEWLINE
+12:1 glyph ++
+12:4 name para-scheme
+12:16 name para
+13:1 NEWLINE
+13:1 glyph ++
+13:4 name text-scheme
+13:16 name text
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name heading-scheme
+14:19 name heading
+15:1 NEWLINE
+15:1 glyph ++
+15:4 name each-scheme
+15:16 name each
+16:1 NEWLINE
+16:1 glyph ++
+16:4 name table-scheme
+16:17 name table
+17:1 NEWLINE
+17:1 glyph ++
+17:4 name image-scheme
+17:17 name image
+18:1 NEWLINE
+18:1 glyph ++
+18:4 name image-unsafe-scheme
+18:24 name image-unsafe
+19:1 NEWLINE
+19:1 glyph ++
+19:4 name link-scheme
+19:16 name link
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name link-unsafe-scheme
+20:23 name link-unsafe
+21:1 NEWLINE
+21:1 glyph ++
+21:4 name button-scheme
+21:18 name button
+22:1 NEWLINE
+22:1 glyph ++
+22:4 name toggle-scheme
+22:18 name toggle
+23:1 NEWLINE
+23:1 glyph ++
+23:4 name field-scheme
+23:17 name field
+24:1 NEWLINE
+24:1 glyph ++
+24:4 name form-scheme
+24:16 name form
+25:1 NEWLINE
+25:1 glyph ++
+25:4 name island-scheme
+25:18 name island
+26:1 NEWLINE
+26:1 glyph ++
+26:4 name program-scheme
+26:19 name program
+27:1 NEWLINE
+27:1 glyph ++
+27:4 name page-scheme
+27:16 name page
+29:1 NEWLINE
+29:1 glyph ++
+29:4 name static-text
+29:16 glyph ^-
+29:19 glyph (
+29:20 tight name element
+29:28 glyph !!
+29:30 tight glyph )
+29:32 glyph (
+29:33 tight name text
+29:38 str "hello"
+29:45 tight glyph )
+30:1 NEWLINE
+30:1 glyph ++
+30:4 name raw-text
+30:13 glyph ^-
+30:16 glyph (
+30:17 tight name element
+30:25 glyph !!
+30:27 tight glyph )
+30:29 glyph (
+30:30 tight name row
+30:34 lit ~
+30:36 glyph ~[
+30:38 tight glyph [
+30:39 tight lit %text
+30:45 str "raw"
+30:50 tight glyph ]
+30:51 tight glyph ]
+30:52 tight glyph )
+31:1 NEWLINE
+31:1 glyph ++
+31:4 name static-ui
+31:14 glyph ^-
+31:17 glyph (
+31:18 tight name element
+31:26 glyph !!
+31:28 tight glyph )
+32:3 INDENT
+32:3 name column
+32:10 glyph ~[
+32:12 tight name pad
+32:15 tight glyph +
+32:16 tight lit %s1
+32:20 name gap
+32:23 tight glyph +
+32:24 tight lit %s2
+32:28 name width
+32:33 tight glyph +
+32:34 tight glyph [
+32:35 tight lit %fill
+32:41 lit 1
+32:42 tight glyph ]
+32:44 name align
+32:49 tight glyph +
+32:50 tight lit %center
+32:58 name role
+32:62 tight glyph +
+32:63 tight lit %body
+32:69 name tone
+32:73 tight glyph +
+32:74 tight lit %muted
+32:80 tight glyph ]
+32:82 glyph ~[
+33:5 INDENT
+33:5 name text
+33:10 str "one"
+34:5 NEWLINE
+34:5 name para
+34:10 glyph ~[
+34:12 tight glyph (
+34:13 tight name text
+34:18 str "two"
+34:23 tight glyph )
+34:24 tight glyph ]
+35:5 NEWLINE
+35:5 name heading
+35:13 lit 2
+35:15 str "heading"
+36:1 DEDENT
+36:1 DEDENT
+36:1 NEWLINE
+36:1 glyph ++
+36:4 name static-media
+36:17 glyph ^-
+36:20 glyph (
+36:21 tight name element
+36:29 glyph !!
+36:31 tight glyph )
+37:3 INDENT
+37:3 name stack
+37:9 glyph ~[
+37:11 tight name width
+37:16 tight glyph +
+37:17 tight glyph [
+37:18 tight lit %chars
+37:25 lit 20
+37:27 tight glyph ]
+37:28 tight glyph ]
+37:30 glyph ~[
+38:5 INDENT
+38:5 name image
+38:11 glyph %/
+38:13 tight knot images
+38:19 tight glyph /
+38:20 tight knot logo.png
+38:29 str "Logo"
+39:5 NEWLINE
+39:5 name link
+39:10 glyph %/
+39:12 tight knot home
+39:17 str "Home"
+40:1 DEDENT
+40:1 DEDENT
+40:1 NEWLINE
+40:1 glyph ++
+40:4 name unsafe-media
+40:17 glyph ^-
+40:20 glyph (
+40:21 tight name element
+40:29 glyph !!
+40:31 tight glyph )
+41:3 INDENT
+41:3 name wrap
+41:8 glyph ~[
+41:10 tight name width
+41:15 tight glyph +
+41:16 tight lit %shrink
+41:24 name role
+41:28 tight glyph +
+41:29 tight lit %caption
+41:38 name tone
+41:42 tight glyph +
+41:43 tight lit %accent
+41:50 tight glyph ]
+41:52 glyph ~[
+42:5 INDENT
+42:5 name image-unsafe
+42:18 glyph [
+42:19 tight name url
+42:22 tight glyph =
+42:23 tight str "https://example.com/a.png"
+42:51 name width
+42:56 tight glyph =
+42:57 tight lit 20
+42:60 name height
+42:66 tight glyph =
+42:67 tight lit 10
+42:69 tight glyph ]
+42:71 str "Remote"
+43:5 NEWLINE
+43:5 name link-unsafe
+43:17 str "/elsewhere"
+43:30 str "Elsewhere"
+44:1 DEDENT
+44:1 DEDENT
+44:1 NEWLINE
+44:1 glyph ++
+44:4 name save-message
+44:17 glyph ^-
+44:20 name msg
+44:24 lit %save
+45:1 NEWLINE
+45:1 glyph ++
+45:4 name toggle-message
+45:19 glyph ^-
+45:22 name msg
+45:26 lit %toggle
+46:1 NEWLINE
+46:1 glyph ++
+46:4 name save-button
+46:16 glyph ^-
+46:19 glyph (
+46:20 tight name element
+46:28 name msg
+46:31 tight glyph )
+46:33 glyph (
+46:34 tight name button
+46:41 str "Save"
+46:48 name save-message
+46:60 tight glyph )
+47:1 NEWLINE
+47:1 glyph ++
+47:4 name enabled-toggle
+47:19 glyph ^-
+47:22 glyph (
+47:23 tight name element
+47:31 name msg
+47:34 tight glyph )
+47:36 glyph (
+47:37 tight name toggle
+47:44 lit %.y
+47:48 str "Enabled"
+47:58 name toggle-message
+47:72 tight glyph )
+48:1 NEWLINE
+48:1 glyph ++
+48:4 name edit-message
+48:17 glyph |=
+48:20 name value
+48:25 tight glyph =
+48:26 tight aura @t
+48:29 glyph ^-
+48:32 name msg
+48:36 glyph [
+48:37 tight lit %edited
+48:45 name value
+48:50 tight glyph ]
+49:1 NEWLINE
+49:1 glyph ++
+49:4 name name-field
+49:15 glyph ^-
+49:18 glyph (
+49:19 tight name element
+49:27 name msg
+49:30 tight glyph )
+49:32 glyph (
+49:33 tight name field
+49:39 str "Name"
+49:46 str "value"
+49:54 name edit-message
+49:66 tight glyph )
+50:1 NEWLINE
+50:1 glyph ++
+50:4 name controls
+50:13 glyph ^-
+50:16 glyph (
+50:17 tight name element
+50:25 name msg
+50:28 tight glyph )
+51:3 INDENT
+51:3 glyph (
+51:4 tight name form
+51:9 name save-message
+51:22 glyph ~[
+51:24 tight name save-button
+51:36 name enabled-toggle
+51:51 name name-field
+51:61 tight glyph ]
+51:62 tight glyph )
+52:1 DEDENT
+52:1 NEWLINE
+52:1 glyph ++
+52:4 name keyed
+52:10 glyph |=
+52:13 name items
+52:18 tight glyph =
+52:19 tight glyph (
+52:20 tight name list
+52:25 glyph [
+52:26 tight name key
+52:29 tight glyph =
+52:30 tight aura @t
+52:33 name el
+52:35 tight glyph =
+52:36 tight glyph (
+52:37 tight name element
+52:45 name msg
+52:48 tight glyph )
+52:49 tight glyph ]
+52:50 tight glyph )
+53:3 INDENT
+53:3 glyph ^-
+53:6 glyph (
+53:7 tight name element
+53:15 name msg
+53:18 tight glyph )
+53:20 glyph (
+53:21 tight name each
+53:26 name items
+53:31 tight glyph )
+54:1 DEDENT
+54:1 NEWLINE
+54:1 glyph ++
+54:4 name tabular
+54:12 glyph |=
+54:15 name rows
+54:19 tight glyph =
+54:20 tight glyph (
+54:21 tight name list
+54:26 glyph [
+54:27 tight name key
+54:30 tight glyph =
+54:31 tight aura @ud
+54:35 name cells
+54:40 tight glyph =
+54:41 tight glyph (
+54:42 tight name list
+54:47 glyph (
+54:48 tight name element
+54:56 name msg
+54:59 tight glyph )
+54:60 tight glyph )
+54:61 tight glyph ]
+54:62 tight glyph )
+55:3 INDENT
+55:3 glyph ^-
+55:6 glyph (
+55:7 tight name element
+55:15 name msg
+55:18 tight glyph )
+56:5 INDENT
+56:5 glyph (
+56:6 tight name table
+56:12 glyph ~[
+56:14 tight glyph [
+56:15 tight name header
+56:21 tight glyph =
+56:22 tight str "Name"
+56:29 name width
+56:34 tight glyph =
+56:35 tight glyph [
+56:36 tight lit %fill
+56:42 lit 1
+56:43 tight glyph ]
+56:45 name align
+56:50 tight glyph =
+56:51 tight lit %start
+56:57 tight glyph ]
+56:58 tight glyph ]
+56:60 name rows
+56:64 tight glyph )
+63:1 DEDENT
+63:1 DEDENT
+63:1 NEWLINE
+63:1 glyph ++
+63:4 name ship-control
+63:17 glyph ^-
+63:20 glyph (
+63:21 tight name element
+63:29 aura @p
+63:31 tight glyph )
+63:33 glyph (
+63:34 tight name button
+63:41 str "Ship"
+63:48 lit ~zod
+63:52 tight glyph )
+64:1 NEWLINE
+64:1 glyph ++
+64:4 name text-row
+64:13 glyph |=
+64:16 name kids
+64:20 tight glyph =
+64:21 tight glyph (
+64:22 tight name list
+64:27 glyph (
+64:28 tight name element
+64:36 aura @t
+64:38 tight glyph )
+64:39 tight glyph )
+64:41 glyph ^-
+64:44 glyph (
+64:45 tight name element
+64:53 aura @t
+64:55 tight glyph )
+64:57 glyph (
+64:58 tight name row
+64:62 lit ~
+64:64 name kids
+64:68 tight glyph )
+67:1 NEWLINE
+67:1 glyph ++
+67:4 name init
+67:9 glyph |=
+67:12 name input
+67:17 tight glyph =
+67:18 tight aura @t
+67:21 glyph ^-
+67:24 name model
+67:30 glyph [
+67:31 tight name count
+67:36 tight glyph =
+67:37 tight lit 0
+67:38 tight glyph ]
+68:1 NEWLINE
+68:1 glyph ++
+68:4 name update
+68:11 glyph |=
+68:14 glyph [
+68:15 tight name message
+68:22 tight glyph =
+68:23 tight name msg
+68:27 name state
+68:32 tight glyph =
+68:33 tight name model
+68:38 tight glyph ]
+69:3 INDENT
+69:3 glyph ^-
+69:6 glyph [
+69:7 tight name model
+69:13 glyph (
+69:14 tight name list
+69:19 glyph (
+69:20 tight name cmd
+69:24 name msg
+69:27 tight glyph )
+69:28 tight glyph )
+69:29 tight glyph ]
+69:31 glyph [
+69:32 tight name state
+69:38 lit ~
+69:39 tight glyph ]
+70:1 DEDENT
+70:1 NEWLINE
+70:1 glyph ++
+70:4 name view
+70:9 glyph |=
+70:12 name state
+70:17 tight glyph =
+70:18 tight name model
+70:24 glyph ^-
+70:27 glyph (
+70:28 tight name element
+70:36 name msg
+70:39 tight glyph )
+70:41 glyph (
+70:42 tight name controls
+70:50 tight glyph )
+71:1 NEWLINE
+71:1 glyph ++
+71:4 name subs
+71:9 glyph |=
+71:12 name state
+71:17 tight glyph =
+71:18 tight name model
+71:24 glyph ^-
+71:27 glyph (
+71:28 tight name list
+71:33 glyph (
+71:34 tight name sub
+71:38 name msg
+71:41 tight glyph )
+71:42 tight glyph )
+71:44 lit ~
+72:1 NEWLINE
+72:1 glyph ++
+72:4 name concrete-program
+72:21 glyph ^-
+72:24 glyph (
+72:25 tight name program
+72:33 aura @t
+72:36 name model
+72:42 name msg
+72:45 tight glyph )
+72:47 glyph (
+72:48 tight name program
+72:56 name init
+72:61 name update
+72:68 name view
+72:73 name subs
+72:77 tight glyph )
+73:1 NEWLINE
+73:1 glyph ++
+73:4 name embedded
+73:13 glyph ^-
+73:16 glyph (
+73:17 tight name element
+73:25 glyph !!
+73:27 tight glyph )
+73:29 glyph (
+73:30 tight name island
+73:37 name concrete-program
+73:54 str "seed"
+73:60 tight glyph )
+76:1 NEWLINE
+76:1 glyph ++
+76:4 name load
+76:9 glyph |=
+76:12 name route
+76:17 tight glyph =
+76:18 tight aura @t
+76:21 glyph ^-
+76:24 glyph (
+76:25 tight name ask
+76:29 name model
+76:34 tight glyph )
+76:36 glyph (
+76:37 tight name pure
+76:42 glyph [
+76:43 tight name count
+76:48 tight glyph =
+76:49 tight lit 0
+76:50 tight glyph ]
+76:51 tight glyph )
+77:1 NEWLINE
+77:1 glyph ++
+77:4 name page-view
+77:14 glyph |=
+77:17 name data
+77:21 tight glyph =
+77:22 tight name model
+77:28 glyph ^-
+77:31 glyph (
+77:32 tight name element
+77:40 glyph !!
+77:42 tight glyph )
+77:44 glyph (
+77:45 tight name text
+77:50 str "page"
+77:56 tight glyph )
+78:1 NEWLINE
+78:1 glyph ++
+78:4 name static-page
+78:16 glyph ^-
+78:19 glyph (
+78:20 tight name page
+78:25 aura @t
+78:28 name model
+78:33 tight glyph )
+78:35 glyph (
+78:36 tight name page
+78:41 name load
+78:46 name page-view
+78:55 tight glyph )
+78:56 NEWLINE

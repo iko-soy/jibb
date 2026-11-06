@@ -1,0 +1,15 @@
+(module
+  (mold 1:1 state
+    (cell 1:10
+      (face 1:11 items
+        (apply 1:17 list (aura 1:23 @t)))
+      (face 1:27 open (flag 1:32))
+      (face 1:34 name (aura 1:39 @t))
+      (face 1:42 nested
+        (cell 1:49
+          (face 1:50 word (aura 1:55 @t))))))
+  (value 12:1 mismatch
+    (gate 12:13
+      (face 12:16 s (ref 12:18 state))
+      (change 12:24 s
+        (edit 12:26 name (lit 12:31 ~zod))))))

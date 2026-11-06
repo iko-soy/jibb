@@ -1,0 +1,8 @@
+12:1 glyph ++
+12:4 name bool-reverse
+12:17 glyph (
+12:18 tight name add
+12:22 lit 1
+12:24 lit %.y
+12:27 tight glyph )
+12:28 NEWLINE

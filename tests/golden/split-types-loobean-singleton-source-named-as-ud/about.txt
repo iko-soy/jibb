@@ -1,0 +1,4 @@
+source: split from types-loobean-singleton-source, preserving the original source lines
+tests: the independent named-as-ud diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

@@ -1,0 +1,7 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 9:1 invalid
+    (cast 9:12
+      (apply 9:15 unit (ref 9:21 msg))
+      (unit 9:26 (lit 9:27 %bad)))))

@@ -1,0 +1,4 @@
+source: split from types-union-nonwing-subject, preserving the original source lines
+tests: the independent explicit diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic and sites

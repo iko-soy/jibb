@@ -1,0 +1,4 @@
+message nothing fixes the union of %got; add a `^-`
+typed-site /tests/golden/split-types-constructor-context-noun-context/source.jibb:36:23
+site /tests/golden/split-types-constructor-context-noun-context/source.jibb:36:28
+min-sites 2

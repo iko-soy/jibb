@@ -1,0 +1,16 @@
+
++$ typed [%typed text=@t]
+
+
+
+
+
+
+++ wrong-input ^- $-(@ud typed) |=%typed
+
+
+
+
+
+
+

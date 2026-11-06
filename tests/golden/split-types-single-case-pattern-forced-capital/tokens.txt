@@ -1,0 +1,34 @@
+1:1 glyph +$
+1:4 name packet
+1:11 glyph [
+1:12 tight lit %go
+1:16 name url
+1:19 tight glyph =
+1:20 tight aura @t
+1:22 tight glyph ]
+53:1 NEWLINE
+53:1 glyph ++
+53:4 name forced-capital
+53:19 glyph |=
+53:22 glyph [
+53:23 tight name x
+53:24 tight glyph =
+53:25 tight tvar A
+53:27 name p
+53:28 tight glyph =
+53:29 tight name packet
+53:35 tight glyph ]
+53:37 glyph ^-
+53:40 tvar A
+54:3 INDENT
+54:3 glyph ?-
+54:6 name p
+55:5 INDENT
+55:5 glyph [
+55:6 tight lit %go
+55:10 name u
+55:11 tight glyph ]
+55:13 str "text"
+55:19 DEDENT
+55:19 DEDENT
+55:19 NEWLINE

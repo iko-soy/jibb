@@ -1,0 +1,23 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ shared |= x=[A A A]
+  ?- x
+    [a b c] [a b c]
+++ wrong (shared "hi" ~zod "ok")
+
+
+
+
+

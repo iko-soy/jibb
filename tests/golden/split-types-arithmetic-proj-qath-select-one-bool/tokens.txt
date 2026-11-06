@@ -1,0 +1,51 @@
+11:1 glyph ++
+11:4 name select-one
+11:15 glyph |=
+11:18 name r
+11:19 tight glyph =
+11:20 tight glyph [
+11:21 tight name a
+11:22 tight glyph =
+11:23 tight tvar A
+11:25 name b
+11:26 tight glyph =
+11:27 tight aura @t
+11:29 tight glyph ]
+12:3 INDENT
+12:3 glyph ^-
+12:6 glyph [
+12:7 tight name a
+12:8 tight glyph =
+12:9 tight tvar A
+12:10 tight glyph ]
+12:12 glyph (
+12:13 tight name proj
+12:18 glyph [
+12:19 tight name a
+12:20 tight glyph =
+12:21 tight glyph (
+12:22 tight name add
+12:26 wing a.r
+12:30 lit 1
+12:31 tight glyph )
+12:33 name b
+12:34 tight glyph =
+12:35 tight wing b.r
+12:38 tight glyph ]
+12:39 tight glyph )
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name select-one-bool
+14:20 glyph (
+14:21 tight name select-one
+14:32 glyph [
+14:33 tight name a
+14:34 tight glyph =
+14:35 tight lit %.y
+14:39 name b
+14:40 tight glyph =
+14:41 tight str "x"
+14:44 tight glyph ]
+14:45 tight glyph )
+14:46 NEWLINE

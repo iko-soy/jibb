@@ -1,0 +1,3 @@
+origin types-recursive-sample
+target value self-apply
+keep value self-apply

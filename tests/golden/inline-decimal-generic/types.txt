@@ -1,4 +1,4 @@
-partial inference; module not checked
+module kind: library
 ++ bump: $-(A A) where A is an atom other than ?
 ++ later: @dr
 ++ hex: @ux

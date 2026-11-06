@@ -1,0 +1,24 @@
+3:1 glyph ++
+3:4 name mismatch
+3:13 glyph |=
+3:16 name x
+3:17 tight glyph =
+3:18 tight glyph [
+3:19 tight name bad
+3:22 tight glyph =
+3:23 tight name qath
+3:28 name yes
+3:31 tight glyph =
+3:32 tight glyph ?
+3:33 tight glyph ]
+3:35 glyph ^-
+3:38 glyph [
+3:39 tight name good
+3:43 tight glyph =
+3:44 tight name qath
+3:49 name yes
+3:52 tight glyph =
+3:53 tight glyph ?
+3:54 tight glyph ]
+3:56 name x
+3:57 NEWLINE

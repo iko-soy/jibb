@@ -1,0 +1,13 @@
+module kind: library
+++ drop-text: (list @t)
+++ drop-ship: (list @p)
+++ skim-text: (list @t)
+++ skim-ship: (list @p)
+++ skip-text: (list @t)
+++ skip-ship: (list @p)
+++ murn-text: (list @t)
+++ murn-ship: (list @p)
+++ join-text: (list @t)
+++ join-ship: (list @p)
+++ snip-text: (list @t)
+++ snip-ship: (list @p)

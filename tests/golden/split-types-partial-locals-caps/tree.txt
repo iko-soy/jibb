@@ -1,0 +1,15 @@
+(module
+  (value 25:1 caps
+    (gate 25:9
+      (face 25:12 x (tvar 25:14 A))
+      (body 26:3
+        (value 26:3 same
+          (gate 26:11
+            (face 26:14 y (tvar 26:16 A))
+            (wing 26:18 y)))
+        (trace 27:3
+          (group 27:6
+            (call 27:7 (wing 27:7 same) (str 27:12 "hi")))
+          (body 28:5
+            (group 28:5
+              (call 28:6 (wing 28:6 same) (lit 28:11 ~zod)))))))))

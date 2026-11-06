@@ -1,0 +1,4 @@
+++ later: type hole needs a determined type
+/tests/golden/split-types-hole-local-boundary-later/source.jibb:2:14: unresolved type hole
+  ++ id |= x=_ x
+             ^

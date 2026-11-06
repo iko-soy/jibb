@@ -1,0 +1,17 @@
+module kind: library
++$ extent: extent
++$ attribute: attribute
+++ number-id: $-(@ud @ud)
+++ plain: attribute
+++ direct: attribute
+++ list: (list attribute)
+++ accept: $-(attribute attribute)
+++ call: attribute
+++ simple-call: attribute
+++ grouped-call: attribute
+++ cast-call: attribute
+++ nested-call: attribute
+++ singleton: attribute
++$ event: event
++$ envelope: envelope
+++ constructor: envelope

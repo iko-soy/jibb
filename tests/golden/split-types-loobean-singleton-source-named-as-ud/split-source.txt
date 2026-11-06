@@ -1,0 +1,5 @@
+origin types-loobean-singleton-source
+target value named-as-ud
+keep mold yes
+keep value named-as-ud
+keep value named-value

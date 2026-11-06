@@ -1,0 +1,4 @@
+origin types-union-singleton
+target value missing
+keep mold typed
+keep value missing

@@ -1,2 +1,2 @@
-partial inference; module not checked
-API module needs unsupported inference: /ui/api/demo/jibb: request paths need unsupported inference
+module kind: library
+++ cord: (ask @t)

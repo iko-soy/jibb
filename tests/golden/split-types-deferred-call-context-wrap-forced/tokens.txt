@@ -1,0 +1,19 @@
+4:1 glyph ++
+4:4 name local-id
+4:13 glyph |=
+4:16 name x
+4:18 name x
+30:1 NEWLINE
+30:1 glyph ++
+30:4 name wrap-forced
+30:16 glyph |=
+30:19 name x
+30:20 tight glyph =
+30:21 tight tvar A
+30:23 glyph ^-
+30:26 aura @t
+30:29 glyph (
+30:30 tight name local-id
+30:39 name x
+30:40 tight glyph )
+30:41 NEWLINE

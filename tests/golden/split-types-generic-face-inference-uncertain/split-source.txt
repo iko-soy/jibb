@@ -1,0 +1,3 @@
+origin types-generic-face-inference
+target value uncertain
+keep value uncertain

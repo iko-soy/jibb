@@ -1,0 +1,10 @@
+module kind: library
++$ input: input
+++ local-id: $-(A A)
+++ passthrough: $-(input input)
+++ grouped: $-(input (list @t))
+++ call: $-(input (list @t))
+++ finite: $-(input (list @t))
++$ payload: (payload A)
+++ shared: $-([x=(payload A) y=A] (list A))
+++ first-of: $-([a=A b=B] A)

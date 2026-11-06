@@ -1,0 +1,18 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %got)
+        (face 2:9 value (aura 2:15 @t)))
+      (const 3:3 %other)))
+  (value 14:1 call
+    (gate 14:9
+      (face 14:12 callback
+        (fn 14:21 (aura 14:24 @t) (tvar 14:27 M)))
+      (group 14:30
+        (call 14:31 (wing 14:31 callback) (str 14:40 "payload")))))
+  (value 16:1 unknown
+    (group 16:12
+      (call 16:13 (wing 16:13 call) (ctor 16:18 %got))))
+  (value 35:1 later-use
+    (cast 35:14 (ref 35:17 msg) (wing 35:21 unknown))))

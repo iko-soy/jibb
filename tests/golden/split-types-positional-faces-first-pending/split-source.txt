@@ -1,0 +1,4 @@
+origin types-positional-faces
+target value first-pending
+keep value first-pending
+keep value record-identity

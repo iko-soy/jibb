@@ -1,0 +1,21 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %text)
+        (face 2:10 value (aura 2:16 @t)))
+      (const 3:3 %clear)))
+  (value 34:1 generic-bad
+    (gate 34:16
+      (cell 34:19
+        (face 34:20 a (ref 34:22 msg))
+        (face 34:26 x (tvar 34:28 A)))
+      (cast 34:31
+        (apply 34:34 list (tvar 34:40 A))
+        (body 35:3
+          (branch 35:3
+            (wing 35:6 a)
+            (arm 36:5 (lit 36:5 %clear) (lit 36:12 ~))
+            (arm 37:5
+              (cell 37:5 (lit 37:6 %text) (bind 37:12 v))
+              (list 37:15 (str 37:17 "hi")))))))))

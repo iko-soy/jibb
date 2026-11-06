@@ -1,0 +1,3 @@
+++ same-nested |= xs=(list (unit A)) (eq xs xs)
+++ callback |= x=@ud x
+++ bad (same-nested ~[`callback])

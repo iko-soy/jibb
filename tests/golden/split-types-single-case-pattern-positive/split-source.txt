@@ -1,0 +1,9 @@
+origin types-single-case-pattern
+target value contextual
+keep mold msg
+keep mold packet
+keep value contextual
+keep value contextual-list
+keep value contextual-union
+keep value extract
+keep value fallback

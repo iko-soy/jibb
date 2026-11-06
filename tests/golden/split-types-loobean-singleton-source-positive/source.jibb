@@ -1,0 +1,22 @@
++$ yes %.y
+
++$ flag-headed [%.y value=@t]
+++ yes-flag ^- yes %.y
+++ yes-term ^- yes %$
+
+++ normal-flag ^- ? %.y
+++ normal-any ^- @ %.y
+
+
+
+++ named-value ^- yes %.y
+++ named-as-flag ^- ? named-value
+++ named-as-any ^- @ named-value
+
+
+
+++ loobean-constructor ^- $-(@t flag-headed) |=%$
+
+
+
+++ explicit-tag ^- @tas (^- %$ %.y)

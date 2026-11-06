@@ -1,0 +1,9 @@
+(module
+  (value 40:1 uncertain-target
+    (gate 40:21
+      (face 40:24 p
+        (cell 40:26 (tvar 40:27 A) (aura 40:29 @p)))
+      (wing 40:33 p)))
+  (value 42:1 uncertain-tag
+    (group 42:18
+      (call 42:19 (wing 42:19 uncertain-target) (lit 42:36 %mystery) (str 42:45 "bad")))))

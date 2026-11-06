@@ -1,0 +1,7 @@
+++ unknown: interpolation needs a printable atom or tape with a known aura
+/tests/golden/split-types-string-interpolation-unknown/source.jibb:8:19: interpolated value has type A
+++ unknown |= x "{x}"
+                  ^
+/tests/golden/split-types-string-interpolation-unknown/source.jibb:8:17: interpolation requires a fixed aura
+++ unknown |= x "{x}"
+                ^

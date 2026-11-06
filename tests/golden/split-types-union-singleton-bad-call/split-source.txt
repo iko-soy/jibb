@@ -1,0 +1,5 @@
+origin types-union-singleton
+target value bad-call
+keep mold typed
+keep value bad-call
+keep value use

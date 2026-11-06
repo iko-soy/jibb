@@ -1,7 +1,8 @@
 ::  Full checking for the Grammar's documented buttons library only.
-/+  jibb
+/+  jibb, jibb-prelude-fixture
 /*  prelude  %jibb  /lib/jibb/prelude/jibb
 /*  internal  %jibb  /lib/jibb/internal/jibb
+/*  standard-group  %jibb  /lib/jibb/groups/hoon/jibb
 /*  source  %jibb  /my-app/ui/components/buttons/jibb
 /*  valid  %txt  /tests/type-buttons/valid/txt
 /*  expected  %txt  /tests/type-buttons/expected/txt
@@ -42,13 +43,14 @@
 ++  buttons-error-matches
   |=  actual=@t
   ^-  ?
-  =((to-wain:format (cat 3 actual '\0a')) error)
+  =/  header=@t  '++ add-button: nothing fixes the union of %add; add a `^-`'
+  =((to-wain:format (cat 3 actual '\0a')) [header error])
 ::
 ++  buttons-errors
   |=  [public=@t private=@t full=@t valid-source=@t]
   ^-  (list tape)
   =/  prepared=(unit iprelude:jibb)
-    (prepare-prelude-with-internal:jibb public private)
+    (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~["buttons prelude did not prepare"]
   =/  detailed=jfile-detailed-result:jibb  (buttons-detailed valid-source u.prepared)
   =/  legacy=jfile-result:jibb  (buttons-legacy valid-source u.prepared)

@@ -1,0 +1,7 @@
+++ too-many: call's sample and argument types do not unify
+/tests/golden/split-types-multi-call-too-many/source.jibb:23:14: called gate has type $-([@t @p] [@t @p])
+++ too-many (two "hi" ~zod %.y)
+             ^
+/tests/golden/split-types-multi-call-too-many/source.jibb:23:18: argument has type [@t [@p ?]]
+++ too-many (two "hi" ~zod %.y)
+                 ^

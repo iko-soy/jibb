@@ -1,0 +1,7 @@
+++ local-mono: capital `A` cannot be fixed to @t
+/tests/golden/split-types-local-capitals-local-mono/source.jibb:23:20: capital
+++ local-mono |= x=A
+                   ^
+/tests/golden/split-types-local-capitals-local-mono/source.jibb:26:15: forcing expression
+    ~& (alias "hi")
+              ^

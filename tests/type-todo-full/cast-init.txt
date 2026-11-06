@@ -11,7 +11,7 @@
   [%acked err=(unit @t)]
 
 ++ make-model |= ts=(list item.todo)
-  ^- model [ts "" ~]
+  ^- model [todos=ts draft="" error=~]
 
 ++ init ^- $-((list item.todo) model)
   |= ts=(list item.todo) (make-model ts)

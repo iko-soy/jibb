@@ -1,0 +1,22 @@
+module kind: library
+++ inc: $-(A A) where A is an atom other than ?
+++ inc-reverse: $-(A A) where A is an atom other than ?
+++ inc-decimal: @ud
+++ inc-hex: @ux
+++ reverse-decimal: @ud
+++ reverse-hex: @ux
+++ default: @ud
+++ decrease-decimal: @ud
+++ decrease-hex: @ux
+++ compare-bool: ?
+++ shared: $-([a=A b=A] A) where A is an atom other than ?
+++ nested: $-(A $-(A A)) where A is an atom other than ?
+++ identity: $-(A A)
+++ identity-bool: ?
+++ alias-inc: $-(A A) where A is an atom other than ?
+++ alias-decimal: @ud
+++ alias-hex: @ux
+++ hole-concrete: $-(@ud @ud)
+++ hole-written: $-(A A) where A is an atom other than ?
+++ standalone: @ud
+++ discarded-number: @ud

@@ -1,0 +1,7 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %go) (const 3:3 %stay)))
+  (value 17:1 bad-tag
+    (cast 17:12
+      (apply 17:15 unit (ref 17:21 msg))
+      (unit 17:26 (lit 17:27 %bad)))))

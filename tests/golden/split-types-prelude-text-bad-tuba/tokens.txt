@@ -1,0 +1,7 @@
+7:1 glyph ++
+7:4 name bad-tuba
+7:13 glyph (
+7:14 tight name tuba
+7:19 str "abc"
+7:24 tight glyph )
+7:25 NEWLINE

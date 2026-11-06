@@ -1,0 +1,13 @@
+++ bad: msg has no case `%missing`
+/tests/golden/split-types-nested-missing-tag-bad/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/split-types-nested-missing-tag-bad/source.jibb:2:3: expected union has type msg
+  %add
+  ^
+/tests/golden/split-types-nested-missing-tag-bad/source.jibb:7:11: expected union has type msg
+++ bad ^- state ["hi" %missing]
+          ^
+/tests/golden/split-types-nested-missing-tag-bad/source.jibb:7:23: tag literal has type %missing
+++ bad ^- state ["hi" %missing]
+                      ^

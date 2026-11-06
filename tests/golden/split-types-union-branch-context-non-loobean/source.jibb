@@ -1,0 +1,54 @@
++$ msg
+  %add
+  %remove
+  [%noted text=@t]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ non-loobean |= x=@t
+  ^- msg
+    ?- x
+      "a" %add
+      * %remove

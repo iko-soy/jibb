@@ -1,0 +1,5 @@
+origin types-union-nonwing-subject
+target value dead
+keep mold input
+keep value dead
+keep value local-id

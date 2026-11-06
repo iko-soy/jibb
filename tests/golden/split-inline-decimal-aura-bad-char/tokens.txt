@@ -1,0 +1,6 @@
+10:1 glyph ++
+10:4 name char
+10:9 glyph ^-
+10:12 aura @tD
+10:16 lit 97
+10:18 NEWLINE

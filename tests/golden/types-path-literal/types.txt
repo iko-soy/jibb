@@ -1,0 +1,7 @@
+module kind: library
+++ ship: (list @ta)
+++ root: (list @ta)
+++ cast: (list @ta)
+++ paths: (list (list @ta))
+++ identity: $-((list @ta) (list @ta))
+++ called: (list @ta)

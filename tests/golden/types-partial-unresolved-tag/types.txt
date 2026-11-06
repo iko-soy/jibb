@@ -1,2 +1,4 @@
-partial inference; module not checked
-++ message: tag needs context in partial inference
+++ message: nothing fixes the union of %hello; add a `^-`
+/tests/golden/types-partial-unresolved-tag/source.jibb:1:12: nothing fixes the union of %hello; add a `^-`
+++ message %hello
+           ^

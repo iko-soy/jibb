@@ -1,0 +1,4 @@
+++ main: record face constraints remain unresolved
+/ui/program-check.jibb:2:30: record face constraints remain unresolved
+++ main (program init update view subs)
+                             ^

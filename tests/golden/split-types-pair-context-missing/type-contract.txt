@@ -1,0 +1,3 @@
+site /tests/golden/split-types-pair-context-missing/source.jibb:7:3
+site /tests/golden/split-types-pair-context-missing/source.jibb:23:32
+min-sites 2

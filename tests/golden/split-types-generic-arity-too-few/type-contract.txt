@@ -1,0 +1,3 @@
+message generic mold `duo` expects 2 type arguments, received 1
+site /tests/golden/split-types-generic-arity-too-few/source.jibb:4:15
+min-sites 1

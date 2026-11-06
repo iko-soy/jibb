@@ -1,0 +1,31 @@
+29:1 glyph +$
+29:4 name choice
+30:3 INDENT
+30:3 glyph [
+30:4 tight lit %a
+30:7 name on
+30:9 tight glyph =
+30:10 tight glyph ?
+30:11 tight glyph ]
+31:3 NEWLINE
+31:3 lit %other
+49:1 DEDENT
+49:1 NEWLINE
+49:1 glyph ++
+49:4 name many-bind
+49:14 glyph |=
+49:17 name x
+49:18 tight glyph =
+49:19 tight name choice
+50:3 INDENT
+50:3 glyph ?-
+50:6 name x
+51:5 INDENT
+51:5 name value
+51:11 str "anything"
+52:5 NEWLINE
+52:5 lit %other
+52:12 str "dead"
+52:18 DEDENT
+52:18 DEDENT
+52:18 NEWLINE

@@ -1,4 +1,4 @@
 source: docs/spec/grammar.md, Modules: "`proj` and `unface` are reserved: no module can define, import or bind either, as a value or a mold"
 tests: Without the prelude, the report names the reserved names.
 expect: parses
-expect-types: the report says the module has a reserved name
+expect-types: full checker rejects with the name and source excerpts below

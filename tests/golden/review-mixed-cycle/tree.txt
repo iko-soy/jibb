@@ -1,0 +1,10 @@
+(module
+  (value 1:1 maker
+    (gate 1:10
+      (face 1:13 x (aura 1:15 @t))
+      (wing 1:18 value)))
+  (value 2:1 value
+    (cast 2:10
+      (aura 2:13 @t)
+      (group 2:16
+        (call 2:17 (wing 2:17 maker) (str 2:23 "hi"))))))

@@ -1,0 +1,2 @@
+site /tests/golden/split-inline-decimal-patterns-on-text/source.jibb:11:3
+min-sites 2

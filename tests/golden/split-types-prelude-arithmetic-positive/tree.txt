@@ -1,0 +1,54 @@
+(module
+  (value 1:1 compare-bools
+    (group 1:18
+      (call 1:19 (wing 1:19 gth) (lit 1:23 %.n) (lit 1:27 %.y))))
+  (value 2:1 compare-bool-gate
+    (gate 2:22
+      (cell 2:25
+        (face 2:26 a (flag 2:28))
+        (face 2:30 b (flag 2:32)))
+      (group 2:35
+        (call 2:36 (wing 2:36 gth) (wing 2:40 a) (wing 2:42 b)))))
+  (value 3:1 compare-decimal
+    (group 3:20
+      (call 3:21 (wing 3:21 gth) (lit 3:25 1) (lit 3:27 2))))
+  (value 4:1 compare-hex
+    (group 4:16
+      (call 4:17 (wing 4:17 gth) (lit 4:21 0x1) (lit 4:25 0x2))))
+  (value 5:1 compare-generic
+    (gate 5:20
+      (face 5:23 n (tvar 5:25 A))
+      (group 5:27
+        (call 5:28 (wing 5:28 gth) (wing 5:32 n) (wing 5:34 n)))))
+  (value 8:1 atom-id
+    (gate 8:12
+      (face 8:15 x (tvar 8:17 A))
+      (body 9:3
+        (trace 9:3
+          (cast 9:6 (aura 9:9 @) (wing 9:11 x))
+          (body 10:5 (wing 10:5 x))))))
+  (value 11:1 atom-id-bool
+    (group 11:17
+      (call 11:18 (wing 11:18 atom-id) (lit 11:26 %.n))))
+  (value 12:1 atom-id-text
+    (group 12:17
+      (call 12:18 (wing 12:18 atom-id) (str 12:26 "hi"))))
+  (value 14:1 add-decimal
+    (group 14:16
+      (call 14:17 (wing 14:17 add) (lit 14:21 1) (lit 14:23 2))))
+  (value 15:1 add-hex
+    (group 15:12
+      (call 15:13 (wing 15:13 add) (lit 15:17 0x1) (lit 15:21 0x2))))
+  (value 17:1 dec-hex
+    (group 17:12
+      (call 17:13 (wing 17:13 dec) (lit 17:17 0x2))))
+  (value 18:1 list-length
+    (group 18:16
+      (call 18:17
+        (wing 18:17 lent)
+        (list 18:22 (str 18:24 "a")))))
+  (value 23:1 inc
+    (gate 23:8
+      (face 23:11 n (tvar 23:13 A))
+      (group 23:15
+        (call 23:16 (wing 23:16 add) (wing 23:20 n) (lit 23:22 1))))))

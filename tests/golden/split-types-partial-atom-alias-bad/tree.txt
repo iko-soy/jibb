@@ -1,0 +1,14 @@
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (face 1:12 x (tvar 1:14 A))
+      (body 2:3
+        (trace 2:3
+          (cast 2:6 (aura 2:9 @) (wing 2:11 x))
+          (body 3:5 (wing 3:5 x))))))
+  (value 4:1 alias (wing 4:10 keep))
+  (value 8:1 bad
+    (group 8:8
+      (call 8:9
+        (wing 8:9 alias)
+        (tuple 8:15 (lit 8:16 ~zod) (str 8:21 "hi"))))))

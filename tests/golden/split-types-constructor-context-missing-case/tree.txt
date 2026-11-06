@@ -1,0 +1,18 @@
+(module
+  (mold 8:1 missing
+    (union 9:3
+      (cell 9:3
+        (const 9:4 %different)
+        (face 9:15 value (aura 9:21 @t)))
+      (const 10:3 %other)))
+  (value 14:1 call
+    (gate 14:9
+      (face 14:12 callback
+        (fn 14:21 (aura 14:24 @t) (tvar 14:27 M)))
+      (group 14:30
+        (call 14:31 (wing 14:31 callback) (str 14:40 "payload")))))
+  (value 20:1 missing-case
+    (cast 20:17
+      (ref 20:20 missing)
+      (group 20:28
+        (call 20:29 (wing 20:29 call) (ctor 20:34 %got))))))

@@ -1,0 +1,24 @@
+49:1 glyph ++
+49:4 name mixed
+49:10 glyph |=
+49:13 name x
+49:14 tight glyph =
+49:15 tight tvar A
+50:3 INDENT
+50:3 glyph ++
+50:6 name alias
+50:12 name mixed
+51:3 NEWLINE
+51:3 glyph ~&
+51:6 glyph (
+51:7 tight name alias
+51:13 str "hi"
+51:17 tight glyph )
+52:5 INDENT
+52:5 glyph (
+52:6 tight name alias
+52:12 lit ~zod
+52:16 tight glyph )
+52:17 DEDENT
+52:17 DEDENT
+52:17 NEWLINE

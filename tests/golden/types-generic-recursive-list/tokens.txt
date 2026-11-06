@@ -1,0 +1,75 @@
+1:1 glyph +$
+1:4 name list
+1:9 glyph |$
+1:12 glyph [
+1:13 tight tvar A
+1:14 tight glyph ]
+2:3 INDENT
+2:3 lit ~
+3:3 NEWLINE
+3:3 glyph [
+3:4 tight name i
+3:5 tight glyph =
+3:6 tight tvar A
+3:8 name t
+3:9 tight glyph =
+3:10 tight glyph (
+3:11 tight name list
+3:16 tvar A
+3:17 tight glyph )
+3:18 tight glyph ]
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name weld
+4:9 glyph |=
+4:12 name args
+4:16 tight glyph =
+4:17 tight glyph [
+4:18 tight glyph (
+4:19 tight name list
+4:24 tvar A
+4:25 tight glyph )
+4:27 glyph (
+4:28 tight name list
+4:33 tvar A
+4:34 tight glyph )
+4:35 tight glyph ]
+5:3 INDENT
+5:3 glyph ?-
+5:6 name args
+6:5 INDENT
+6:5 glyph [
+6:6 tight name xs
+6:9 name ys
+6:11 tight glyph ]
+7:7 INDENT
+7:7 glyph ^-
+7:10 glyph (
+7:11 tight name list
+7:16 tvar A
+7:17 tight glyph )
+8:7 NEWLINE
+8:7 glyph ?-
+8:10 name xs
+9:9 INDENT
+9:9 lit ~
+9:11 name ys
+10:9 NEWLINE
+10:9 glyph [
+10:10 tight name item
+10:15 name rest
+10:19 tight glyph ]
+10:21 glyph [
+10:22 tight name item
+10:27 glyph (
+10:28 tight name weld
+10:33 name rest
+10:38 name ys
+10:40 tight glyph )
+10:41 tight glyph ]
+10:42 DEDENT
+10:42 DEDENT
+10:42 DEDENT
+10:42 DEDENT
+10:42 NEWLINE

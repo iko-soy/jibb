@@ -1,1 +1,4 @@
-module has a reserved proj or unface name
+`unface` is reserved and cannot be bound
+/tests/golden/inline-unface-reserved-no-prelude/source.jibb:1:1: reserved name
++$ unface @t
+^

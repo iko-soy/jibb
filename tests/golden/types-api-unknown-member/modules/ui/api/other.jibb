@@ -1,0 +1,6 @@
+/% %todos
+/% %todo-update
+/% %todo-item
++$ paths
+  [%complex /todo/[id=@ud]/[slug=@ta] (facts todos todo-update todo-item)]
+  [%separate /watch/[id=@ud] todos scry=/peek/[id=@ud]]

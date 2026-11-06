@@ -1,0 +1,7 @@
+++ forced: capital `A` cannot be fixed to @t
+/tests/golden/split-types-union-finite-generic-forced/source.jibb:16:21: capital
+++ forced |= m=(msg A B)
+                    ^
+/tests/golden/split-types-union-finite-generic-forced/source.jibb:18:27: forcing expression
+    [%ok %.y value] ^- @t value
+                          ^

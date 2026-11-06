@@ -1,0 +1,3 @@
+++ invert not.bit
+++ sized (not.bit 0 4 42)
+++ flags (not.bit %.y %.n 42)

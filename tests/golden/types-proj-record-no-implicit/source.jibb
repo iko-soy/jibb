@@ -1,0 +1,2 @@
+++ sink-nested |= x=[one=[a=@t b=B] other=@ud] "ok"
+++ nested-bad (sink-nested [one=[a="x" b=~zod c=%.y] other=0])

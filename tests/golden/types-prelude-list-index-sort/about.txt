@@ -1,0 +1,4 @@
+source: Overview, Prelude: list indexing and sorting; Hoon 135 section 2b
+tests: source-backed snag, scag, slag, reap and sort; independent item types and comparator calls
+expect: parses
+expect-types: list helpers keep their polymorphic item type

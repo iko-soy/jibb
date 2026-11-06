@@ -1,0 +1,24 @@
++$ msg
+  [%tick at=@da]
+  [%done n=@ud]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ timer-pair ^- (cmd msg) wait+[30 [%done 1]]
+
+
+

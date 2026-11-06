@@ -1,0 +1,17 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (mold 4:1 state
+    (cell 4:10
+      (face 4:11 title (aura 4:17 @t))
+      (face 4:20 choice (ref 4:27 msg))))
+  (mold 5:1 nested-state
+    (cell 5:17
+      (face 5:18 inner (ref 5:24 state))
+      (face 5:30 count (aura 5:36 @ud))))
+  (value 10:1 nested
+    (cast 10:11
+      (ref 10:14 nested-state)
+      (tuple 10:27
+        (tuple 10:28 (str 10:29 "hi") (lit 10:34 %missing))
+        (lit 10:44 7)))))

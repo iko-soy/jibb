@@ -1,34 +1,13 @@
-partial inference; module not checked
-+$ msg: cases proven disjoint; mold not checked
-+$ inner: cases proven disjoint; mold not checked
-+$ null-out: cases proven disjoint; mold not checked
-+$ flag-out: cases proven disjoint; mold not checked
-+$ term-out: cases proven disjoint; mold not checked
-+$ competitors: case disjointness unresolved; mold not checked
-++ inner: $-(A (inner A))
-++ null-null: (null-out msg)
-++ flag-null: (null-out msg)
-++ term-null: (null-out msg)
-++ null-flag: (flag-out msg)
-++ flag-flag: (flag-out msg)
-++ term-flag: (flag-out msg)
-++ null-term: (term-out msg)
-++ flag-term: (term-out msg)
-++ term-term: (term-out msg)
 ++ wrong-inner: msg has no case `%missing`
-/tests/golden/types-nested-noun-context/source.jibb:29:39: expected union
+/tests/golden/types-nested-noun-context/source.jibb:1:4: expected union has type msg
++$ msg
+   ^
+/tests/golden/types-nested-noun-context/source.jibb:2:3: expected union has type msg
+  %ready
+  ^
+/tests/golden/types-nested-noun-context/source.jibb:29:39: expected union has type msg
 ++ wrong-inner ^- (null-out msg) [%$ (inner %missing)]
                                       ^
-/tests/golden/types-nested-noun-context/source.jibb:29:45: tag
+/tests/golden/types-nested-noun-context/source.jibb:29:45: tag literal has type %missing
 ++ wrong-inner ^- (null-out msg) [%$ (inner %missing)]
                                             ^
-++ wrong-payload: call's sample and argument types do not unify
-/tests/golden/types-nested-noun-context/source.jibb:30:39: called gate
-++ wrong-payload ^- (flag-out @t) [~ (inner ~zod)]
-                                      ^
-/tests/golden/types-nested-noun-context/source.jibb:30:45: argument has type @p
-++ wrong-payload ^- (flag-out @t) [~ (inner ~zod)]
-                                            ^
-++ pending: tag needs context in partial inference
-++ unknown-target: explicit capital constraints are not supported by partial inference
-++ ambiguous: cast mold is not supported by partial inference

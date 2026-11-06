@@ -1,5 +1,5 @@
-=>  [lib=jibb-lib reader=reader prelude=prelude internal=internal ..zuse]
-=/  prepared=iprelude:lib  (need (prepare-prelude-with-internal:lib prelude internal))
+=>  [lib=jibb-lib reader=reader prelude=prelude internal=internal groups=groups group-sources=group-sources reader-evidence=reader-evidence ..zuse]
+=/  prepared=iprelude:lib  (need (prepare-prelude-with-group-evidence:lib prelude internal groups group-sources reader-evidence))
 =/  sur=@t
   '''
   |%

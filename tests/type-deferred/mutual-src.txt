@@ -4,4 +4,4 @@
 ++ send |= f=$-(@t A) f
 ++ first |= input=@t (second (send |=%got))
 ++ second |= callback=$-(@t message) (first "hello")
-++ main ^- $-(@t message) (send |=%got)
+++ resolved ^- $-(@t message) (send |=%got)

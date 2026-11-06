@@ -1,0 +1,8 @@
+10:1 glyph ++
+10:4 name bool-add
+10:13 glyph (
+10:14 tight name add
+10:18 lit %.n
+10:22 lit %.n
+10:25 tight glyph )
+10:26 NEWLINE

@@ -1,0 +1,7 @@
+(module
+  (value 18:1 cells
+    (group 18:10
+      (call 18:11
+        (wing 18:11 add)
+        (tuple 18:15 (lit 18:16 1) (lit 18:18 2))
+        (tuple 18:21 (lit 18:22 3) (lit 18:24 4))))))

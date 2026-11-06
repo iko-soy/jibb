@@ -1,0 +1,23 @@
++$ msg
+  [%typed text=@t]
+  %add
+
+
+
+
+
+
+
+++ bad-head ^- msg [%other "ok"]
+
+
+
+
+
+
+
+
+
+
+
+

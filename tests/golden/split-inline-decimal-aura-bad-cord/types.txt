@@ -1,0 +1,7 @@
+++ cord: `5` is a @ud, not a @t; write "5"
+/tests/golden/split-inline-decimal-aura-bad-cord/source.jibb:4:15: decimal
+++ cord ^- @t 5
+              ^
+/tests/golden/split-inline-decimal-aura-bad-cord/source.jibb:4:12: expected type has type @t
+++ cord ^- @t 5
+           ^

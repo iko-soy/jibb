@@ -1,4 +1,3 @@
-partial inference; module not checked
 change fields `open.cart` and `cart` overlap
 /tests/golden/types-change-overlap-lines/source.jibb:6:5: first field
     open.cart=%.y

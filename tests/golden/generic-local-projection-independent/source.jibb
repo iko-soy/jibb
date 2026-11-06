@@ -1,0 +1,4 @@
+++ run |= words=@t
+  ++ pick |= x=[left=A right=B]
+    ^- [left=A] (proj x)
+  [(pick [left=words right=~zod]) (pick [left=~zod right=words])]

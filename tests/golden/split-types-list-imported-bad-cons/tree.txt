@@ -1,0 +1,6 @@
+(module
+  (sur 1:1 fixture)
+  (value 9:1 bad-cons
+    (cast 9:13
+      (ref 9:16 texts.fixture)
+      (tuple 9:30 (lit 9:31 ~zod) (lit 9:36 ~)))))

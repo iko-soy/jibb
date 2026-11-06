@@ -1,0 +1,5 @@
+(module
+  (value 12:1 bad-tail
+    (cast 12:13
+      (apply 12:16 list (aura 12:22 @t))
+      (tuple 12:26 (str 12:27 "hi") (lit 12:32 ~zod)))))

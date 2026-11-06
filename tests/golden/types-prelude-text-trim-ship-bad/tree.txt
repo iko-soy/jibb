@@ -1,0 +1,7 @@
+(module
+  (value 1:1 wrong
+    (group 1:10
+      (call 1:11
+        (wing 1:11 trim)
+        (lit 1:16 ~zod)
+        (list 1:21 (str 1:23 "hi"))))))

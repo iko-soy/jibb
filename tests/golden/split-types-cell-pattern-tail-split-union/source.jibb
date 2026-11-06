@@ -1,0 +1,18 @@
+
+
+
+
+
+
++$ either
+  [%go @p @t]
+  %stop
+
+
+
+++ split-union |= x=[@t either]
+  ?- x
+    [first second third] third
+
+
+

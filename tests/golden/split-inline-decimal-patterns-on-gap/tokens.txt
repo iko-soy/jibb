@@ -1,0 +1,16 @@
+4:1 glyph ++
+4:4 name on-gap
+4:11 glyph |=
+4:14 name d
+4:15 tight glyph =
+4:16 tight aura @dr
+4:20 glyph ?-
+4:23 name d
+5:3 INDENT
+5:3 lit 0
+5:5 lit %zero
+6:3 NEWLINE
+6:3 glyph *
+6:5 lit %other
+6:11 DEDENT
+6:11 NEWLINE

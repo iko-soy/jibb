@@ -1,0 +1,5 @@
+(module
+  (value 6:1 siblings
+    (gate 6:13
+      (face 6:16 x (aura 6:18 @ux))
+      (cast 6:22 (aura 6:25 @ud) (wing 6:29 x)))))

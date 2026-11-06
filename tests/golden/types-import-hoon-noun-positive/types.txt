@@ -1,0 +1,9 @@
+module kind: library
+++ direct: $-(* *)
+++ payload: $-([value=* count=@ud] [value=* count=@ud])
+++ widen: *
+++ nested: [value=* count=@ud]
+++ option: $-(([%left *] [%right @t]) ([%left *] [%right @t]))
+++ left-atom: [%left *] [%right @t]
+++ left-cell: [%left *] [%right @t]
+++ right: [%left *] [%right @t]

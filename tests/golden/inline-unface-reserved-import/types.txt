@@ -1,2 +1,4 @@
-partial inference; module not checked
-module has conflicting names
+`unface` is reserved and cannot be bound
+/tests/golden/inline-unface-reserved-import/source.jibb:1:1: reserved name
+/= unface /ui/lib
+^

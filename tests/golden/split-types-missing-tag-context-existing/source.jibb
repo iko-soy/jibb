@@ -1,0 +1,17 @@
++$ msg
+  %go
+  [%typed text=@t]
+
+++ existing ^- (list msg) ~[%typed]
+
+
+
+
+
+
+
+
+
+
+
+

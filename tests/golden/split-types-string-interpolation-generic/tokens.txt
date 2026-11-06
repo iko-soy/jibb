@@ -1,0 +1,10 @@
+7:1 glyph ++
+7:4 name generic
+7:12 glyph |=
+7:15 name x
+7:16 tight glyph =
+7:17 tight tvar A
+7:19 str-head ""
+7:21 tight name x
+7:22 tight str-tail ""
+7:24 NEWLINE

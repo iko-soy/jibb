@@ -1,0 +1,8 @@
+++ pair-pq ^- [p=@t q=@ud] ["a" 1]
+++ take-kv |= [k=@t v=@ud] v
+++ labelled (take-kv pair-pq)
+
+
+
+
+

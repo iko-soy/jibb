@@ -1,0 +1,5 @@
+++ y 1
+++ f |= xs=(list @ud)
+  ?- xs
+    ~ 0
+    [y rest] y

@@ -1,0 +1,37 @@
+
+
+
+
++$ wrong-payload
+  [%got value=@p]
+  %other
+
+
+
+
+
+
+++ call |= callback=$-(@t M) (callback "payload")
+
+
+
+
+++ wrong-context ^- wrong-payload (call |=%got)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

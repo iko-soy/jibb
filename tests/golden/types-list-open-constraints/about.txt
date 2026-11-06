@@ -1,4 +1,4 @@
 source: Grammar, Literals: a list literal has type `(list A)`; Tag resolution: tags and `~` take their type from context.
 tests: Uncontextualized lists use a fresh, independently generalizable element type and a validated prelude list. Nested and homogeneous lists infer; a decimal beside a hexadecimal is an error, since a decimal is a `@ud`; uncertain widening and unresolved tags fail closed, and unrelated pending literals stay pending.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker reports the first error; independent split cases retain the other checks

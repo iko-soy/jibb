@@ -1,0 +1,3 @@
+module kind: library
+++ a: (ask (list [id=@ud [done=? text=@t]]))
+++ b: (ask (list [id=@ud [done=? text=@t]]))

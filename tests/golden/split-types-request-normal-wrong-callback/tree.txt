@@ -1,0 +1,9 @@
+(module
+  (jibb 1:1 api /ui/api/demo)
+  (value 5:1 wrong-callback
+    (group 5:19
+      (call 5:20
+        (wing 5:20 plain.api)
+        (gate-wide 5:30
+          (face 5:33 x (aura 5:35 @p))
+          (str 5:38 "wrong"))))))

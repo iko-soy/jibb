@@ -1,4 +1,4 @@
 source: docs/spec/grammar.md, Expressions, Unface: "Like `proj`, it is an operation the checker handles by type, not a gate"
 tests: unface written where a value goes, alone or as a gate's argument, is an error that suggests a lambda; the lambda itself hits the partial checker's gap for a sample whose type the call fixes, and a typed sample infers.
 expect: parses
-expect-types: a partial inference report: the bare uses are errors at the name, and the untyped lambda is unsupported
+expect-types: full checker reports the first error; independent split cases retain the other checks

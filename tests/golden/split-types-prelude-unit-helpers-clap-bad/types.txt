@@ -1,0 +1,7 @@
+++ clap-bad: unit payload does not fit its expected type
+/tests/golden/split-types-prelude-unit-helpers-clap-bad/source.jibb:14:14: expected unit payload has type @t
+++ clap-bad (clap `"hi" `~zod |=(p=[@t @t] "yes"))
+             ^
+/tests/golden/split-types-prelude-unit-helpers-clap-bad/source.jibb:14:26: payload has type @p
+++ clap-bad (clap `"hi" `~zod |=(p=[@t @t] "yes"))
+                         ^

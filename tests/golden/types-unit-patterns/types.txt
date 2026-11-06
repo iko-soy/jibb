@@ -1,13 +1,7 @@
-partial inference; module not checked
-+$ maybe: cases proven disjoint; mold not checked
-++ need: $-(maybe @t)
-++ reverse: $-(maybe @t)
-++ shadow: pattern binder shadows a name
-++ unknown: unit branch subject is not supported by partial inference
-++ missing: branch pattern is not supported by partial inference
-++ duplicate: branch arm is covered by earlier arms
-/tests/golden/types-unit-patterns/source.jibb:26:5: covered arm
-    ~ !!
-    ^
-++ pending: unit branch results need unsupported inference
-++ unrelated: tag needs context in partial inference
+++ shadow: pattern binder `x` shadows a name already in scope
+/tests/golden/types-unit-patterns/source.jibb:12:14: earlier binding
+++ shadow |= x=maybe
+             ^
+/tests/golden/types-unit-patterns/source.jibb:15:8: shadowing binder
+    [~ x] x
+       ^

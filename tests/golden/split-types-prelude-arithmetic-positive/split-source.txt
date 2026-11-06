@@ -1,0 +1,15 @@
+origin types-prelude-arithmetic
+target value add-decimal
+keep value add-decimal
+keep value add-hex
+keep value atom-id
+keep value atom-id-bool
+keep value atom-id-text
+keep value compare-bool-gate
+keep value compare-bools
+keep value compare-decimal
+keep value compare-generic
+keep value compare-hex
+keep value dec-hex
+keep value inc
+keep value list-length

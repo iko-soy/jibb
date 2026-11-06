@@ -1,0 +1,5 @@
+# A group exposes checked members under its qualified face.
+group hoon /lib/jibb/groups/hoon
+reader jibb-collections /sur/jibb-collections table
+reader jibb-collections /sur/jibb-collections keys
+group bit /lib/jibb/groups/bit

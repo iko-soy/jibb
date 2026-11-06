@@ -1,0 +1,4 @@
+message types do not unify
+site /tests/golden/types-prelude-text-trim-cord-bad/source.jibb:1:11
+site /tests/golden/types-prelude-text-trim-cord-bad/source.jibb:1:18
+min-sites 2

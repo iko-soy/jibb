@@ -330,7 +330,7 @@
 ++ row-of |= t=item.todo
   [id.t (toggle done.t text.t [%toggled id.t])]
 
-+$ flag ?
++$ switch-flag ?
 #### /ui/todo-list/jibb swap-model-fields
 /=  todo  /ui/api/todo
 
@@ -872,6 +872,7 @@
     el ~[tone+%danger] (text (fall error.m ""))
 
 ++ row-of |= t=item.todo
+  ^- [@ud (element msg)]
   [id.t (toggle done.t text.t [%toggled id.t])]
 #### /ui/todo-list/jibb update-helper-cmd
 /=  todo  /ui/api/todo

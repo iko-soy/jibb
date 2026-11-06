@@ -1,0 +1,17 @@
+origin types-positional-faces
+target value accepts-tuple
+keep value accepts-tuple
+keep value convert-record
+keep value data
+keep value first-record
+keep value generic-apply
+keep value generic-identity
+keep value matching-face-collision
+keep value named
+keep value nested-identity
+keep value pick-first
+keep value positional
+keep value preserve-generic
+keep value record-identity
+keep value typed-record
+keep value unfaced-identity

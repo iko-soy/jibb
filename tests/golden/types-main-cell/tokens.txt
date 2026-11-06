@@ -1,0 +1,7 @@
+1:1 glyph ++
+1:4 name main
+1:9 glyph [
+1:10 tight lit 1
+1:12 lit 2
+1:13 tight glyph ]
+1:14 NEWLINE

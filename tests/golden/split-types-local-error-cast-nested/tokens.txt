@@ -1,0 +1,29 @@
+15:1 glyph ++
+15:4 name nested
+15:11 glyph |=
+15:14 name x
+15:15 tight glyph =
+15:16 tight aura @t
+16:3 INDENT
+16:3 glyph ++
+16:6 name outer
+16:12 glyph |=
+16:15 name y
+16:16 tight glyph =
+16:17 tight aura @t
+17:5 INDENT
+17:5 glyph ++
+17:8 name inner
+17:14 glyph ^-
+17:17 aura @p
+17:20 name y
+18:5 NEWLINE
+18:5 name inner
+19:3 DEDENT
+19:3 NEWLINE
+19:3 glyph (
+19:4 tight name outer
+19:10 name x
+19:11 tight glyph )
+19:12 DEDENT
+19:12 NEWLINE

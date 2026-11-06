@@ -1,0 +1,8 @@
+origin types-union-finite-generic
+target value atom-parts
+keep mold choice
+keep mold msg
+keep value atom-parts
+keep value flag
+keep value getter
+keep value shared

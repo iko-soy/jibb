@@ -1,0 +1,17 @@
+58:1 glyph ++
+58:4 name bad-pad
+58:12 glyph ^-
+58:15 glyph (
+58:16 tight name element
+58:24 glyph !!
+58:26 tight glyph )
+58:28 glyph (
+58:29 tight name row
+58:33 glyph ~[
+58:35 tight name pad
+58:38 tight glyph +
+58:39 tight lit %s4
+58:42 tight glyph ]
+58:44 lit ~
+58:45 tight glyph )
+58:46 NEWLINE

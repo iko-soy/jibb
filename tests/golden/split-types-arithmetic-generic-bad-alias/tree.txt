@@ -1,0 +1,12 @@
+(module
+  (value 1:1 sum
+    (gate 1:8
+      (cell 1:11
+        (face 1:12 a (tvar 1:14 A))
+        (face 1:16 b (tvar 1:18 A)))
+      (group 1:21
+        (call 1:22 (wing 1:22 add) (wing 1:26 a) (wing 1:28 b)))))
+  (value 3:1 forward (wing 3:12 sum))
+  (value 12:1 bad-alias
+    (group 12:14
+      (call 12:15 (wing 12:15 forward) (lit 12:23 %.y) (lit 12:27 %.n)))))

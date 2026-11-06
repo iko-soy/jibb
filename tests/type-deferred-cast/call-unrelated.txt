@@ -1,0 +1,7 @@
++$ msg
+  %hit
+  %miss
+++ expects |= [node=(element msg) word=@t] word
+++ keep |= x=M
+  ++ pending (button "x" %hit)
+  (expects pending "okay")

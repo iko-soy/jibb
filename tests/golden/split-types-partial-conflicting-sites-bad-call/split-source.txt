@@ -1,0 +1,4 @@
+origin types-partial-conflicting-sites
+target value bad-call
+keep value bad-call
+keep value f

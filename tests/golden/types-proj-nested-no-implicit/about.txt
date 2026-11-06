@@ -1,4 +1,4 @@
 source: docs/spec/grammar.md, Records and tuples: "The explicit type-directed operation `(proj record)` selects fields from its argument according to the expected result type" and "`proj` is reserved: a module cannot define or import another name `proj`".
-tests: A wider record at each nested call site must fail closed; an ambiguous generic tail may report unsupported.
+tests: A wider record in a unit payload must fail closed with expected and actual sites. List and nested-record calls have focused companion cases.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker result

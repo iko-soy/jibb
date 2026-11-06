@@ -1,0 +1,22 @@
+42:1 glyph ++
+42:4 name occurs
+42:11 glyph |=
+42:14 name x
+42:15 tight glyph =
+42:16 tight aura @t
+43:3 INDENT
+43:3 glyph ++
+43:6 name recur
+43:12 glyph |=
+43:15 name y
+43:17 glyph (
+43:18 tight name recur
+43:24 name recur
+43:29 tight glyph )
+44:3 NEWLINE
+44:3 glyph (
+44:4 tight name recur
+44:10 name x
+44:11 tight glyph )
+44:12 DEDENT
+44:12 NEWLINE

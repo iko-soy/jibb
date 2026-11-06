@@ -1,0 +1,4 @@
+message has no case `%wrong`
+typed-site /ui/base.jibb:2:3
+typed-site /tests/golden/types-import-union-external-transitive/source.jibb:2:18
+min-sites 2

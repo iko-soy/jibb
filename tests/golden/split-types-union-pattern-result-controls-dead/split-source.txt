@@ -1,0 +1,4 @@
+origin types-union-pattern-result-controls
+target value dead
+keep mold msg
+keep value dead

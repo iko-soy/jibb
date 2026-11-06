@@ -1,0 +1,38 @@
+11:1 glyph ++
+11:4 name wrap-value
+11:15 glyph |=
+11:18 name x
+11:19 tight glyph =
+11:20 tight tvar A
+11:22 glyph ^-
+11:25 glyph (
+11:26 tight name cmd
+11:30 tvar A
+11:31 tight glyph )
+11:33 glyph [
+11:34 tight lit %wait
+11:40 lit ~s30
+11:45 name x
+11:46 tight glyph ]
+20:1 NEWLINE
+20:1 glyph ++
+20:4 name use-text
+20:13 glyph |=
+20:16 name x
+20:17 tight glyph =
+20:18 tight glyph (
+20:19 tight name cmd
+20:23 aura @t
+20:25 tight glyph )
+20:27 name x
+21:1 NEWLINE
+21:1 glyph ++
+21:4 name cross
+21:10 glyph (
+21:11 tight name use-text
+21:20 glyph (
+21:21 tight name wrap-value
+21:32 lit ~zod
+21:36 tight glyph )
+21:37 tight glyph )
+21:38 NEWLINE

@@ -1,0 +1,19 @@
+27:1 glyph ++
+27:4 name clash
+27:10 glyph |=
+27:13 glyph [
+27:14 tight name x
+27:15 tight glyph =
+27:16 tight aura @t
+27:19 name y
+27:20 tight glyph =
+27:21 tight aura @p
+27:23 tight glyph ]
+27:25 str-head ""
+27:27 tight name x
+27:28 tight str-mid " "
+27:31 tight glyph ^-
+27:34 aura @t
+27:37 name y
+27:38 tight str-tail ""
+27:40 NEWLINE

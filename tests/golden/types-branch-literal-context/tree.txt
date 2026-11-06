@@ -1,0 +1,44 @@
+(module
+  (value 1:1 second
+    (gate 1:11
+      (face 1:14 p
+        (cell 1:16
+          (apply 1:17 unit (aura 1:23 @ud))
+          (apply 1:28 unit (aura 1:34 @ud))))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 p)
+          (arm 3:5
+            (cell 3:5 (lit 3:6 ~) (bind 3:8 b))
+            (wing 3:11 b))
+          (arm 4:5 (any 4:5) (lit 4:7 ~))))))
+  (value 5:1 first
+    (gate 5:10
+      (face 5:13 p
+        (cell 5:15
+          (apply 5:16 unit (aura 5:22 @ud))
+          (apply 5:27 unit (aura 5:33 @ud))))
+      (body 6:3
+        (branch 6:3
+          (wing 6:6 p)
+          (arm 7:5
+            (cell 7:5 (bind 7:6 a) (lit 7:8 ~))
+            (lit 7:11 ~))
+          (arm 8:5
+            (cell 8:5 (bind 8:6 a) (bind 8:8 b))
+            (wing 8:11 a))))))
+  (value 9:1 tail-or-nil
+    (gate 9:16
+      (face 9:19 p
+        (cell 9:21
+          (flag 9:22)
+          (apply 9:24 list (aura 9:30 @t))))
+      (body 10:3
+        (branch 10:3
+          (wing 10:6 p)
+          (arm 11:5
+            (cell 11:5 (lit 11:6 %.y) (bind 11:10 xs))
+            (wing 11:14 xs))
+          (arm 12:5
+            (cell 12:5 (lit 12:6 %.n) (bind 12:10 xs))
+            (lit 12:14 ~)))))))

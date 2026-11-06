@@ -1,0 +1,28 @@
+1:1 glyph +$
+1:4 name packet
+1:11 glyph [
+1:12 tight lit %go
+1:16 name url
+1:19 tight glyph =
+1:20 tight aura @t
+1:22 tight glyph ]
+27:1 NEWLINE
+27:1 glyph ++
+27:4 name duplicate
+27:14 glyph |=
+27:17 name p
+27:18 tight glyph =
+27:19 tight name packet
+28:3 INDENT
+28:3 glyph ?-
+28:6 name p
+29:5 INDENT
+29:5 glyph [
+29:6 tight lit %go
+29:10 name u
+29:12 name u
+29:13 tight glyph ]
+29:15 name u
+29:16 DEDENT
+29:16 DEDENT
+29:16 NEWLINE

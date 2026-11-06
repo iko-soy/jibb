@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 packet
+    (cell 1:11
+      (const 1:12 %go)
+      (face 1:16 url (aura 1:20 @t))))
+  (value 27:1 duplicate
+    (gate 27:14
+      (face 27:17 p (ref 27:19 packet))
+      (body 28:3
+        (branch 28:3
+          (wing 28:6 p)
+          (arm 29:5
+            (cell 29:5 (lit 29:6 %go) (bind 29:10 u) (bind 29:12 u))
+            (wing 29:15 u)))))))

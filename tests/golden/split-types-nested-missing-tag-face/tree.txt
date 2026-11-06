@@ -1,0 +1,13 @@
+(module
+  (mold 1:1 msg
+    (union 2:3 (const 2:3 %add) (const 3:3 %remove)))
+  (mold 4:1 state
+    (cell 4:10
+      (face 4:11 title (aura 4:17 @t))
+      (face 4:20 choice (ref 4:27 msg))))
+  (value 9:1 face
+    (cast 9:9
+      (ref 9:12 state)
+      (tuple 9:18
+        (face 9:19 other (str 9:25 "hi"))
+        (face 9:30 choice (lit 9:37 %missing))))))

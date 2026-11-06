@@ -1,0 +1,19 @@
+4:1 glyph ++
+4:4 name local-id
+4:13 glyph |=
+4:16 name x
+4:18 name x
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name bad-aura
+14:13 glyph |=
+14:16 name x
+14:17 tight glyph =
+14:18 tight aura @p
+14:21 glyph ^-
+14:24 aura @t
+14:27 glyph (
+14:28 tight name local-id
+14:37 name x
+14:38 tight glyph )
+14:39 NEWLINE

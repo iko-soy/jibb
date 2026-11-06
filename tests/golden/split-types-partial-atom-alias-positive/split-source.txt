@@ -1,0 +1,8 @@
+origin types-partial-atom-alias
+target value alias
+keep value alias
+keep value cord
+keep value flag
+keep value keep
+keep value number
+keep value ship

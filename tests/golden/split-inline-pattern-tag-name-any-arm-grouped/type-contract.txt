@@ -1,0 +1,4 @@
+message `late` binds a name, but the subject's type has `%late` here; write %late, or * for a catch-all
+site /tests/golden/split-inline-pattern-tag-name-any-arm-grouped/source.jibb:23:6
+site /tests/golden/split-inline-pattern-tag-name-any-arm-grouped/source.jibb:25:5
+min-sites 2

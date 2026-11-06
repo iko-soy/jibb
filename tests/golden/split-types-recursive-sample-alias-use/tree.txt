@@ -1,0 +1,14 @@
+(module
+  (value 13:1 alias-use
+    (gate 13:14
+      (cell 13:17
+        (face 13:18 first (tvar 13:24 A))
+        (face 13:26 second (tvar 13:33 A)))
+      (body 14:3
+        (value 14:3 alias (wing 14:12 alias-use))
+        (trace 15:3
+          (group 15:6
+            (call 15:7 (wing 15:7 alias) (str 15:13 "hi") (str 15:18 "hi")))
+          (body 16:5
+            (group 16:5
+              (call 16:6 (wing 16:6 alias) (lit 16:12 ~zod) (lit 16:17 ~zod)))))))))

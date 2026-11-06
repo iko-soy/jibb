@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-ui-malformed-each/source.jibb:60:37
+typed-site /tests/golden/split-types-prelude-ui-malformed-each/source.jibb:60:44
+min-sites 2

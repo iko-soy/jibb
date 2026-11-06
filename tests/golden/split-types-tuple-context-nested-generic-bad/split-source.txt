@@ -1,0 +1,4 @@
+origin types-tuple-context-nested
+target value generic-bad
+keep value generic
+keep value generic-bad

@@ -1,0 +1,7 @@
+++ named-as-ud: cast mold and expression type do not unify
+/tests/golden/split-types-loobean-singleton-source-named-as-ud/source.jibb:17:19: cast mold has type @ud
+++ named-as-ud ^- @ud named-value
+                  ^
+/tests/golden/split-types-loobean-singleton-source-named-as-ud/source.jibb:17:23: expression has type %.y
+++ named-as-ud ^- @ud named-value
+                      ^

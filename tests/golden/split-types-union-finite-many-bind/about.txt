@@ -1,0 +1,4 @@
+source: split from types-union-finite, preserving the original source lines
+tests: the independent many-bind diagnostic and its dependencies
+expect: parses
+expect-types: full checker diagnostic

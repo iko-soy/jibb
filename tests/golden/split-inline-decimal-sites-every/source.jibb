@@ -1,0 +1,24 @@
++$ msg
+  [%tick at=@da]
+  [%done n=@ud]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++ every ^- (list (sub msg)) ~[[%every 1 |=%tick]]
+
+
+
+
+
+

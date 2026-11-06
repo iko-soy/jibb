@@ -1,0 +1,5 @@
+(module
+  (value 1:1 f
+    (body 2:3
+      (value 2:3 local (lit 2:12 1))
+      (wing 3:3 local))))

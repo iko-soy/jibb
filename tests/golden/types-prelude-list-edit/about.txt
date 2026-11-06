@@ -1,0 +1,4 @@
+source: Overview, Prelude: Hoon section 2b list operations
+tests: ordinary Jibb gulf, oust, swag, snap, into and skid; independent atom and list element types
+expect: parses
+expect-types: range preserves arithmetic auras, editing preserves element types, partition returns two faced lists

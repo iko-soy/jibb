@@ -1,0 +1,3 @@
+origin inline-decimal-sites
+target value either
+keep value either

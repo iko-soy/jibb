@@ -1,0 +1,8 @@
+(module
+  (value 10:1 on-text
+    (gate 10:12
+      (face 10:15 t (aura 10:17 @t))
+      (branch 10:20
+        (wing 10:23 t)
+        (arm 11:3 (lit 11:3 5) (lit 11:5 %five))
+        (arm 12:3 (any 12:3) (lit 12:5 %other))))))

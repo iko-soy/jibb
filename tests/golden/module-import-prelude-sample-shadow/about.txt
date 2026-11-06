@@ -1,4 +1,4 @@
 source: Grammar, Modules: "No name may shadow one already in scope, imports and the prelude included"; molds and values have separate namespaces.
 tests: A gate sample cannot shadow the prelude value `same`.
 expect: parses
-expect-types: a partial inference report
+expect-types: full checker diagnostic with both binding sites

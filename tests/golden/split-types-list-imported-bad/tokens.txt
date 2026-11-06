@@ -1,0 +1,22 @@
+1:1 glyph /-
+1:5 name fixture
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name take
+2:9 glyph |=
+2:12 name xs
+2:14 tight glyph =
+2:15 tight wing texts.fixture
+2:29 name xs
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name bad
+6:8 glyph |=
+6:11 name xs
+6:13 tight glyph =
+6:14 tight wing ships.fixture
+6:28 glyph (
+6:29 tight name take
+6:34 name xs
+6:36 tight glyph )
+6:37 NEWLINE

@@ -1,0 +1,1 @@
+expect-types: module kind follows the inferred main type.

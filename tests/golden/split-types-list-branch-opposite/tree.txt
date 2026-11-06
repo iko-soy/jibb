@@ -1,0 +1,16 @@
+(module
+  (value 67:1 opposite
+    (gate 67:13
+      (face 67:16 b (flag 67:18))
+      (body 68:3
+        (cast 68:3
+          (apply 68:6 list (aura 68:12 @t))
+          (body 69:5
+            (branch 69:5
+              (wing 69:8 b)
+              (arm 70:7
+                (lit 70:7 %.y)
+                (tuple 70:11 (lit 70:12 ~zod) (lit 70:17 ~)))
+              (arm 71:7
+                (lit 71:7 %.n)
+                (tuple 71:11 (str 71:12 "hi") (lit 71:17 ~))))))))))

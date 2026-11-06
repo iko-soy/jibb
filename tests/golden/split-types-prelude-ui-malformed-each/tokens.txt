@@ -1,0 +1,39 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %save
+3:3 NEWLINE
+3:3 lit %toggle
+4:3 NEWLINE
+4:3 glyph [
+4:4 tight lit %edited
+4:12 name value
+4:17 tight glyph =
+4:18 tight aura @t
+4:20 tight glyph ]
+60:1 DEDENT
+60:1 NEWLINE
+60:1 glyph ++
+60:4 name malformed-each
+60:19 glyph ^-
+60:22 glyph (
+60:23 tight name element
+60:31 name msg
+60:34 tight glyph )
+60:36 glyph (
+60:37 tight name each
+60:42 glyph ~[
+60:44 tight glyph [
+60:45 tight name key
+60:48 tight glyph =
+60:49 tight str "row"
+60:55 name kid
+60:58 tight glyph =
+60:59 tight glyph (
+60:60 tight name text
+60:65 str "child"
+60:72 tight glyph )
+60:73 tight glyph ]
+60:74 tight glyph ]
+60:75 tight glyph )
+60:76 NEWLINE

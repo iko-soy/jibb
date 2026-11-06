@@ -1,0 +1,8 @@
+(module
+  (value 15:1 either
+    (gate 15:11
+      (face 15:14 b (flag 15:16))
+      (branch 15:18
+        (wing 15:21 b)
+        (arm 16:3 (lit 16:3 %.y) (lit 16:7 ~s1))
+        (arm 17:3 (lit 17:3 %.n) (lit 17:7 2))))))

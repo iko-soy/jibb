@@ -1,0 +1,13 @@
+++ nested-missing: reply has no case `%missing`
+/tests/golden/split-types-union-pattern-result-controls-nested-missing/source.jibb:4:4: expected union has type reply
++$ reply
+   ^
+/tests/golden/split-types-union-pattern-result-controls-nested-missing/source.jibb:5:3: expected union has type reply
+  %yes
+  ^
+/tests/golden/split-types-union-pattern-result-controls-nested-missing/source.jibb:47:31: expected union has type reply
+++ nested-missing |= a=msg ^- [reply @t]
+                              ^
+/tests/golden/split-types-union-pattern-result-controls-nested-missing/source.jibb:49:16: tag literal has type %missing
+    [%text v] [%missing v]
+               ^

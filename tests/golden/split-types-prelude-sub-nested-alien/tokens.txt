@@ -1,0 +1,35 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %idle
+3:3 NEWLINE
+3:3 lit %busy
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph +$
+4:4 name other
+5:3 INDENT
+5:3 lit %idle
+6:3 NEWLINE
+6:3 lit %busy
+14:1 DEDENT
+14:1 NEWLINE
+14:1 glyph ++
+14:4 name alien
+14:10 glyph |=
+14:13 name x
+14:14 tight glyph =
+14:15 tight name other
+14:21 glyph ^-
+14:24 glyph (
+14:25 tight name sub
+14:29 name msg
+14:32 tight glyph )
+14:34 glyph [
+14:35 tight lit %watch
+14:42 glyph (
+14:43 tight name pure
+14:48 name x
+14:49 tight glyph )
+14:50 tight glyph ]
+14:51 NEWLINE

@@ -1,0 +1,3 @@
+typed-site /tests/golden/split-types-prelude-unit-helpers-mate-gate/source.jibb:30:15
+typed-site /tests/golden/split-types-prelude-unit-helpers-mate-gate/source.jibb:30:21
+min-sites 2

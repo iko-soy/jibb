@@ -1,0 +1,10 @@
+(module
+  (value 20:1 mask-capital
+    (gate 20:17
+      (face 20:20 x (tvar 20:22 A))
+      (body 21:3
+        (value 21:3 a
+          (cast 21:8 (aura 21:11 @ud) (str 21:15 "s")))
+        (value 22:3 b
+          (cast 22:8 (aura 22:11 @t) (wing 22:14 x)))
+        (wing 23:3 x)))))

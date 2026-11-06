@@ -1,0 +1,7 @@
+13:1 glyph ++
+13:4 name bad-drop
+13:13 glyph (
+13:14 tight name drop
+13:19 str "hi"
+13:23 tight glyph )
+13:24 NEWLINE

@@ -1,0 +1,4 @@
+message cast mold and expression type do not unify
+typed-site /tests/golden/split-types-local-error-cast-mask-after-progress/source.jibb:25:11
+typed-site /tests/golden/split-types-local-error-cast-mask-after-progress/source.jibb:25:15
+min-sites 2

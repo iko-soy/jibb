@@ -1,2 +1,7 @@
-partial inference; module not checked
-++ f: sample shadows a name
+++ f: sample `same` shadows a name already in scope
+/lib/jibb/prelude.jibb:7:4: earlier binding
+++ same |= x=A x
+   ^
+/tests/golden/module-import-prelude-sample-shadow/source.jibb:2:9: conflicting sample binding
+++ f |=(same same)
+        ^

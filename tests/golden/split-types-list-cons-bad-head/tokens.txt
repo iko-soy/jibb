@@ -1,0 +1,12 @@
+11:1 glyph ++
+11:4 name bad-head
+11:13 glyph ^-
+11:16 glyph (
+11:17 tight name list
+11:22 aura @t
+11:24 tight glyph )
+11:26 glyph [
+11:27 tight lit ~zod
+11:32 lit ~
+11:33 tight glyph ]
+11:34 NEWLINE

@@ -1,0 +1,6 @@
+module kind: library
+++ keep: $-(A A) where A is an atom
+++ ship: @p
+++ cord: @t
+++ flag: ?
+++ first: $-([A A] A) where A is an atom

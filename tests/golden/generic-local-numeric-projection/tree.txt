@@ -1,0 +1,28 @@
+(module
+  (value 1:1 run
+    (gate 1:8
+      (face 1:11 number (aura 1:18 @ud))
+      (body 2:3
+        (value 2:3 pick
+          (gate 2:11
+            (face 2:14 x
+              (cell 2:16
+                (face 2:17 left (tvar 2:22 A))
+                (face 2:24 right (tvar 2:30 B))))
+            (body 3:5
+              (cast 3:5
+                (cell 3:8
+                  (face 3:9 left (tvar 3:14 A)))
+                (group 3:17
+                  (call 3:18
+                    (wing 3:18 proj)
+                    (change 3:23 x
+                      (edit 3:25 left
+                        (group 3:30
+                          (call 3:31 (wing 3:31 add) (wing 3:35 left.x) (lit 3:42 1)))))))))))
+        (group 4:3
+          (call 4:4
+            (wing 4:4 pick)
+            (tuple 4:9
+              (face 4:10 left (wing 4:15 number))
+              (face 4:22 right (lit 4:28 ~zod)))))))))
