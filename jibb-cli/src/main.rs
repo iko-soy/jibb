@@ -31,6 +31,19 @@ enum Command {
         #[arg(value_name = "FILE", help = "Files to format, or standard input")]
         files: Vec<PathBuf>,
     },
+    #[command(about = "Statically check Jibb source without evaluating it")]
+    Check {
+        #[arg(
+            value_name = "FILE",
+            required = true,
+            help = "Files to check, or `-` for standard input"
+        )]
+        files: Vec<PathBuf>,
+        #[arg(long = "source-root", help = "Root for `/=` module imports")]
+        source_roots: Vec<PathBuf>,
+        #[arg(long, help = "Source prelude module to include")]
+        prelude: Option<PathBuf>,
+    },
     #[command(about = "Statically check and evaluate a Jibb entry point")]
     Run {
         #[arg(value_name = "FILE", help = "Jibb source file")]
@@ -67,6 +80,11 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     match cli.command {
         Command::Fmt { check, diff, files } => run_fmt(&files, check, diff),
+        Command::Check {
+            files,
+            source_roots,
+            prelude,
+        } => run_check(&files, &source_roots, prelude.as_deref()),
         Command::Run {
             file,
             entry,
@@ -104,6 +122,51 @@ fn run_program(
             ExitCode::from(EXIT_FORMATTING)
         }
     }
+}
+
+fn run_check(files: &[PathBuf], source_roots: &[PathBuf], prelude: Option<&Path>) -> ExitCode {
+    let stdin_requested = files.iter().any(|path| path == Path::new("-"));
+    if stdin_requested && files.len() != 1 {
+        eprintln!("jibb check: '-' must be the only input file");
+        return ExitCode::from(EXIT_TOOL);
+    }
+
+    let mut status = RunStatus::default();
+    if stdin_requested {
+        let mut source = String::new();
+        match io::stdin().read_to_string(&mut source) {
+            Ok(_) => {
+                if let Err(error) = jibb::loader::check_source(
+                    &source,
+                    Path::new("stdin.jibb"),
+                    source_roots,
+                    prelude,
+                ) {
+                    eprintln!("jibb check: -: {error}");
+                    status.invalid_source = true;
+                }
+            }
+            Err(error) => {
+                eprintln!("jibb check: failed to read standard input: {error}");
+                status.tool_error = true;
+            }
+        }
+        return status.exit_code();
+    }
+
+    for file in files {
+        let label = file.to_string_lossy();
+        if let Err(error) = fs::read_to_string(file) {
+            eprintln!("jibb check: {label}: failed to read: {error}");
+            status.tool_error = true;
+            continue;
+        }
+        if let Err(error) = jibb::loader::check_path(file, source_roots, prelude) {
+            eprintln!("jibb check: {label}: {error}");
+            status.invalid_source = true;
+        }
+    }
+    status.exit_code()
 }
 
 fn run_fmt(files: &[PathBuf], check: bool, diff: bool) -> ExitCode {

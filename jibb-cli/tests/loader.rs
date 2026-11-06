@@ -1,5 +1,5 @@
 use jibb::{
-    loader::evaluate_path,
+    loader::{check_path, check_source, evaluate_path},
     value::{Noun, Value},
 };
 use num_bigint::BigUint;
@@ -81,6 +81,25 @@ fn evaluates_internal_prelude_constructor() {
         noun,
         Rc::new(Noun::Cell(tag, Rc::new(Noun::Atom(BigUint::from(42u32)))))
     );
+}
+
+#[test]
+fn checks_files_and_source_without_evaluating() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::write(root.join("util.jibb"), "++ answer 42\n").unwrap();
+    let source = "/= util /util\n++ main !!\n++ copied answer.util\n";
+    let main = root.join("main.jibb");
+    fs::write(&main, source).unwrap();
+
+    check_path(&main, &[root.to_path_buf()], None).expect("check file without evaluating");
+    check_source(
+        source,
+        &root.join("stdin.jibb"),
+        &[root.to_path_buf()],
+        None,
+    )
+    .expect("check source without evaluating");
 }
 
 #[test]

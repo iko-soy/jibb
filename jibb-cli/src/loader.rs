@@ -4,6 +4,7 @@ use crate::{
         Definition, DefinitionKind, Expr, ExprKind, ImportKind, Module, Mold, MoldKind, Sample,
         SampleKind, Span,
     },
+    check::{self, CheckedModule},
     evaluate, parse_ast,
     value::Value,
 };
@@ -13,21 +14,42 @@ use std::{
     path::{Path, PathBuf},
 };
 
+pub fn check_path(
+    file: &Path,
+    source_roots: &[PathBuf],
+    prelude: Option<&Path>,
+) -> Result<CheckedModule, Diagnostic> {
+    let module = load_path(file, source_roots, prelude)?;
+    check::check(&module)
+}
+
+pub fn check_source(
+    source: &str,
+    file: &Path,
+    source_roots: &[PathBuf],
+    prelude: Option<&Path>,
+) -> Result<CheckedModule, Diagnostic> {
+    let mut loader = Loader::new(source_roots, prelude);
+    let module = loader.load_source_with_prelude(source, file)?;
+    check::check(&module)
+}
+
 pub fn evaluate_path(
     file: &Path,
     entry: &str,
     source_roots: &[PathBuf],
     prelude: Option<&Path>,
 ) -> Result<Value, Diagnostic> {
-    let mut loader = Loader {
-        source_roots,
-        prelude,
-        loading: Vec::new(),
-        cache: BTreeMap::new(),
-        hoon_cache: BTreeMap::new(),
-    };
-    let module = loader.load_with_prelude(file)?;
+    let module = load_path(file, source_roots, prelude)?;
     evaluate(&module, entry)
+}
+
+fn load_path(
+    file: &Path,
+    source_roots: &[PathBuf],
+    prelude: Option<&Path>,
+) -> Result<Module, Diagnostic> {
+    Loader::new(source_roots, prelude).load_with_prelude(file)
 }
 
 struct Loader<'a> {
@@ -38,9 +60,32 @@ struct Loader<'a> {
     hoon_cache: BTreeMap<PathBuf, Vec<Definition>>,
 }
 
-impl Loader<'_> {
+impl<'a> Loader<'a> {
+    fn new(source_roots: &'a [PathBuf], prelude: Option<&'a Path>) -> Self {
+        Self {
+            source_roots,
+            prelude,
+            loading: Vec::new(),
+            cache: BTreeMap::new(),
+            hoon_cache: BTreeMap::new(),
+        }
+    }
+
     fn load_with_prelude(&mut self, file: &Path) -> Result<Module, Diagnostic> {
-        let mut module = self.load(file)?;
+        let module = self.load(file)?;
+        self.with_prelude(module)
+    }
+
+    fn load_source_with_prelude(
+        &mut self,
+        source: &str,
+        file: &Path,
+    ) -> Result<Module, Diagnostic> {
+        let module = self.load_source(source, file)?;
+        self.with_prelude(module)
+    }
+
+    fn with_prelude(&mut self, mut module: Module) -> Result<Module, Diagnostic> {
         if let Some(prelude) = self.prelude {
             let prelude = self.load(prelude)?;
             module.definitions = [prelude.definitions, module.definitions].concat();
@@ -53,16 +98,29 @@ impl Loader<'_> {
         if let Some(module) = self.cache.get(&key) {
             return Ok(module.clone());
         }
+        let source = fs::read_to_string(&key).map_err(|error| {
+            Diagnostic::new(format!("{}: failed to read: {error}", key.display()))
+        })?;
+        let module = parse_ast(&source)?;
+        self.link(module, key)
+    }
+
+    fn load_source(&mut self, source: &str, file: &Path) -> Result<Module, Diagnostic> {
+        let key = fs::canonicalize(file).unwrap_or_else(|_| file.to_path_buf());
+        let module = parse_ast(source)?;
+        self.link(module, key)
+    }
+
+    fn link(&mut self, mut module: Module, key: PathBuf) -> Result<Module, Diagnostic> {
+        if let Some(module) = self.cache.get(&key) {
+            return Ok(module.clone());
+        }
         if self.loading.contains(&key) {
             return Err(Diagnostic::new(format!(
                 "module import cycle at {}",
                 key.display()
             )));
         }
-        let source = fs::read_to_string(&key).map_err(|error| {
-            Diagnostic::new(format!("{}: failed to read: {error}", key.display()))
-        })?;
-        let mut module = parse_ast(&source)?;
         self.loading.push(key.clone());
         let result = (|| {
             let mut linked = Vec::new();

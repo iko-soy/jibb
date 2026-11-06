@@ -335,11 +335,13 @@ Paths, application paths, dates, durations, and other literal families are added
 Add:
 
 ```text
+jibb check FILE...
+jibb check -
 jibb run FILE
 jibb run FILE --entry NAME
 ```
 
-`run` parses and lowers the file, evaluates `main` by default, and prints the resulting value in a documented Jibb-oriented noun format. A gate requiring arguments is an error until command-line noun arguments are implemented.
+`check` parses, links and statically checks each file, or standard input with `-`, without evaluating an entry point. `run` parses and lowers the file, evaluates `main` by default, and prints the resulting value in a documented Jibb-oriented noun format. A gate requiring arguments is an error until command-line noun arguments are implemented.
 
 Use exit status 0 for a returned value, 1 for a Jibb syntax/runtime error, and 2 for CLI or I/O failures. Write values to stdout and diagnostics to stderr.
 

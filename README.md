@@ -42,13 +42,17 @@ jibb fmt FILE...          # format files in place
 jibb fmt                  # read standard input and write standard output
 jibb fmt --check FILE...  # report files that would change; exit 1
 jibb fmt --diff FILE...   # print unified diffs without writing
+jibb check FILE...        # statically check files without evaluating them
+jibb check -              # read standard input and check it
+jibb check FILE --source-root DIR
+jibb check FILE --prelude FILE
 jibb run FILE             # statically check and evaluate main
 jibb run FILE --entry NAME  # evaluate another entry definition
 jibb run FILE --source-root DIR  # resolve `/=` module imports under DIR
 jibb run FILE --prelude FILE   # include a source prelude module
 ```
 
-Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. `/=` imports are resolved from `--source-root` directories, and `--prelude` links an optional source prelude. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
+Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `check` parses, links and statically checks source without evaluating it, reporting all requested files' errors and producing no output on success. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. Both commands resolve `/=` imports from `--source-root` directories, and `--prelude` links an optional source prelude. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
 
 ## Golden tests
 
