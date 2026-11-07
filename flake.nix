@@ -163,7 +163,7 @@
             dontFixup = true;
             buildPhase = ''
               runHook preBuild
-              patchShebangs tools > /dev/null
+              patchShebangs tools docs/reviews/2026-11-03-milestone-2-probes/run > /dev/null
               mkdir $out
               tools/check ${args} --logs $out
               runHook postBuild
