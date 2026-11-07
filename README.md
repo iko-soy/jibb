@@ -50,9 +50,13 @@ jibb run FILE             # statically check and evaluate main
 jibb run FILE --entry NAME  # evaluate another entry definition
 jibb run FILE --source-root DIR  # resolve `/=` module imports under DIR
 jibb run FILE --prelude FILE   # include a source prelude module
+jibb docs PATH...             # write module documentation under docs/api
+jibb docs PATH... -o DIR      # write module documentation and readme.md under DIR
 ```
 
 Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `check` parses, links and statically checks source without evaluating it, reporting all requested files' errors and producing no output on success. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. Both commands resolve `/=` imports from `--source-root` directories, and `--prelude` links an optional source prelude. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
+
+`docs` accepts Jibb files and directories, recursively includes their `/=` imports, and statically checks each module. It writes one Markdown file per module, preserving relative paths, with a table of contents, leading `::` documentation comments, mold definitions, and inferred value types. The output directory's `readme.md` links to every generated module. Its default output directory is `docs/api`; `--source-root` and `--prelude` have the same meaning as for `check` and `run`.
 
 ## Golden tests
 

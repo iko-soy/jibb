@@ -274,3 +274,145 @@ fn check_reads_standard_input() {
     assert!(errors.contains("jibb check: -:"), "{errors}");
     assert!(errors.contains("type mismatch"), "{errors}");
 }
+
+#[test]
+fn docs_generates_module_files_and_readme_index() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::create_dir(root.join("lib")).expect("create library directory");
+    let main = root.join("main.jibb");
+    fs::write(
+        &main,
+        ":: Main module documentation.\n/= util /lib/util\n\n:: The answer.\n++ answer 42\n\n:: A color.\n+$ color ?\n\n:: Next value.\n++ next 43\n",
+    )
+    .expect("write main module");
+    fs::write(
+        root.join("lib/util.jibb"),
+        "::  Utility module documentation.\n::\n::  Identity function.\n++ id |= x=@ud x\n",
+    )
+    .expect("write utility module");
+    fs::write(root.join("empty.jibb"), ":: Empty module documentation.\n")
+        .expect("write empty module");
+    let output = root.join("generated");
+
+    let result = jibb()
+        .args(["docs", "--source-root"])
+        .arg(root)
+        .arg("--output")
+        .arg(&output)
+        .arg(root)
+        .output()
+        .expect("generate documentation");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(result.stdout.is_empty());
+    assert!(result.stderr.is_empty());
+
+    let index = fs::read_to_string(output.join("readme.md")).expect("read index");
+    assert_eq!(
+        index,
+        "# Jibb module documentation\n\n- [empty](<empty.md>)\n- [lib/util](<lib/util.md>)\n- [main](<main.md>)\n"
+    );
+    let empty_docs = fs::read_to_string(output.join("empty.md")).expect("read empty docs");
+    assert_eq!(
+        empty_docs,
+        "# empty\n\nEmpty module documentation.\n\n## Table of contents\n\nThis module has no declarations.\n"
+    );
+    let main_docs = fs::read_to_string(output.join("main.md")).expect("read main docs");
+    assert!(main_docs.starts_with("# main\n\nMain module documentation.\n"));
+    assert!(main_docs.contains("## Table of contents\n"));
+    assert!(main_docs.contains("- [Imports](#imports)\n"));
+    assert!(main_docs.contains("- [`+$ color`](#mold-color)\n"));
+    assert!(main_docs.contains("- [`++ answer`](#value-answer)\n"));
+    assert!(main_docs.contains("### `++ answer`\n\nThe answer.\n"));
+    assert!(main_docs.contains("**Type**\n\n```jibb\n@ud\n```"));
+    assert!(main_docs.contains("### `+$ color`\n\nA color.\n\n```jibb\n+$ color ?\n```"));
+
+    let util_docs = fs::read_to_string(output.join("lib/util.md")).expect("read utility docs");
+    assert!(util_docs.starts_with("# lib/util\n\nUtility module documentation.\n"));
+    assert!(util_docs.contains("### `++ id`\n\nIdentity function.\n"));
+    assert!(util_docs.contains("$-(@ud @ud)"));
+
+    let imported_output = root.join("imported-output");
+    let result = jibb()
+        .args(["docs", "--source-root"])
+        .arg(root)
+        .arg("--output")
+        .arg(&imported_output)
+        .arg(&main)
+        .output()
+        .expect("document imported modules");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(imported_output.join("main.md").is_file());
+    assert!(imported_output.join("lib/util.md").is_file());
+}
+
+#[test]
+fn docs_reports_source_and_io_errors_without_writing_an_index() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    let invalid = root.join("invalid.jibb");
+    let output = root.join("generated");
+    fs::write(&invalid, "++ bad ^- @ud \"1\"\n").expect("write invalid module");
+
+    let result = jibb()
+        .args(["docs", "--output"])
+        .arg(&output)
+        .arg(&invalid)
+        .output()
+        .expect("reject invalid documentation input");
+    assert_eq!(result.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&result.stderr).contains("type mismatch"));
+    assert!(!output.join("readme.md").exists());
+
+    let result = jibb()
+        .args(["docs"])
+        .arg(root.join("missing.jibb"))
+        .output()
+        .expect("report missing documentation input");
+    assert_eq!(result.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&result.stderr).contains("missing.jibb"));
+}
+
+#[test]
+fn docs_handles_virtual_and_parent_relative_imports() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::create_dir(root.join("a")).expect("create module directory");
+    let main = root.join("a/main.jibb");
+    fs::write(
+        &main,
+        "/= core /lib/jibb/primitives\n/= util /util\n++ answer 42\n",
+    )
+    .expect("write importing module");
+    fs::write(root.join("a/util.jibb"), "++ answer 42\n").expect("write utility");
+    let output = root.join("generated");
+
+    let result = jibb()
+        .args(["docs", "--source-root"])
+        .arg(root)
+        .arg("--output")
+        .arg(&output)
+        .arg(&main)
+        .output()
+        .expect("document virtual and relative imports");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(output.join("a/main.md").is_file());
+    assert!(output.join("a/util.md").is_file());
+    let index = fs::read_to_string(output.join("readme.md")).expect("read index");
+    assert_eq!(
+        index,
+        "# Jibb module documentation\n\n- [a/main](<a/main.md>)\n- [a/util](<a/util.md>)\n"
+    );
+}

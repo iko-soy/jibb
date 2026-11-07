@@ -52,6 +52,38 @@ fn load_path(
     Loader::new(source_roots, prelude).load_with_prelude(file)
 }
 
+pub fn is_primitive_module_path(segments: &[String]) -> bool {
+    segments == ["lib", "jibb", "primitives"]
+}
+
+pub fn resolve_module_path(
+    segments: &[String],
+    importing: &Path,
+    source_roots: &[PathBuf],
+) -> Result<PathBuf, Diagnostic> {
+    if segments.is_empty() {
+        return Err(Diagnostic::new("empty module import path"));
+    }
+    let relative = format!("{}.jibb", segments.join("/"));
+    for root in source_roots {
+        let candidate = root.join(&relative);
+        if candidate.is_file() {
+            return Ok(candidate);
+        }
+    }
+    let parent = importing.parent().unwrap_or_else(|| Path::new("."));
+    let candidate = parent.join(relative);
+    if candidate.is_file() {
+        return Ok(candidate);
+    }
+    Err(Diagnostic::new(format!(
+        "cannot resolve module import /{} from {} (roots: {:?})",
+        segments.join("/"),
+        importing.display(),
+        source_roots
+    )))
+}
+
 struct Loader<'a> {
     source_roots: &'a [PathBuf],
     prelude: Option<&'a Path>,
@@ -161,13 +193,7 @@ impl<'a> Loader<'a> {
                                 import.span,
                             ));
                         }
-                        if path
-                            == &[
-                                "lib".to_string(),
-                                "jibb".to_string(),
-                                "primitives".to_string(),
-                            ]
-                        {
+                        if is_primitive_module_path(path) {
                             linked.extend(native_molds());
                             for definition in &mut module.definitions {
                                 rewrite_definition(definition, name, &BTreeMap::new());
@@ -200,28 +226,7 @@ impl<'a> Loader<'a> {
     }
 
     fn resolve(&self, segments: &[String], importing: &Path) -> Result<PathBuf, Diagnostic> {
-        if segments.is_empty() {
-            return Err(Diagnostic::new("empty module import path"));
-        }
-        let relative = segments.join("/");
-        let relative = format!("{relative}.jibb");
-        for root in self.source_roots {
-            let candidate = root.join(&relative);
-            if candidate.is_file() {
-                return Ok(candidate);
-            }
-        }
-        let parent = importing.parent().unwrap_or_else(|| Path::new("."));
-        let candidate = parent.join(relative);
-        if candidate.is_file() {
-            return Ok(candidate);
-        }
-        Err(Diagnostic::new(format!(
-            "cannot resolve module import /{} from {} (roots: {:?})",
-            segments.join("/"),
-            importing.display(),
-            self.source_roots
-        )))
+        resolve_module_path(segments, importing, self.source_roots)
     }
     fn resolve_hoon(&self, segments: &[String], importing: &Path) -> Result<PathBuf, Diagnostic> {
         if segments.is_empty() {

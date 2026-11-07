@@ -44,6 +44,26 @@ enum Command {
         #[arg(long, help = "Source prelude module to include")]
         prelude: Option<PathBuf>,
     },
+    #[command(about = "Generate Markdown documentation for Jibb modules")]
+    Docs {
+        #[arg(
+            value_name = "PATH",
+            required = true,
+            help = "Jibb files or directories to document"
+        )]
+        paths: Vec<PathBuf>,
+        #[arg(
+            short,
+            long,
+            default_value = "docs/api",
+            help = "Directory for generated Markdown files"
+        )]
+        output: PathBuf,
+        #[arg(long = "source-root", help = "Root for `/=` module imports")]
+        source_roots: Vec<PathBuf>,
+        #[arg(long, help = "Source prelude module to include")]
+        prelude: Option<PathBuf>,
+    },
     #[command(about = "Statically check and evaluate a Jibb entry point")]
     Run {
         #[arg(value_name = "FILE", help = "Jibb source file")]
@@ -85,6 +105,12 @@ fn main() -> ExitCode {
             source_roots,
             prelude,
         } => run_check(&files, &source_roots, prelude.as_deref()),
+        Command::Docs {
+            paths,
+            output,
+            source_roots,
+            prelude,
+        } => run_docs(&paths, &output, &source_roots, prelude.as_deref()),
         Command::Run {
             file,
             entry,
@@ -92,6 +118,49 @@ fn main() -> ExitCode {
             prelude,
         } => run_program(&file, &entry, &source_roots, prelude.as_deref()),
     }
+}
+
+fn run_docs(
+    paths: &[PathBuf],
+    output: &Path,
+    source_roots: &[PathBuf],
+    prelude: Option<&Path>,
+) -> ExitCode {
+    let files = match jibb::docs::generate(paths, source_roots, prelude) {
+        Ok(files) => files,
+        Err(error) => {
+            eprintln!("jibb docs: {error}");
+            return ExitCode::from(if error.is_io() {
+                EXIT_TOOL
+            } else {
+                EXIT_FORMATTING
+            });
+        }
+    };
+    for (relative, contents) in files
+        .iter()
+        .filter(|(path, _)| *path != Path::new("readme.md"))
+    {
+        if let Err(error) = write_documentation_file(output, relative, contents) {
+            eprintln!("jibb docs: {}: {error}", output.join(relative).display());
+            return ExitCode::from(EXIT_TOOL);
+        }
+    }
+    if let Some(index) = files.get(Path::new("readme.md"))
+        && let Err(error) = write_documentation_file(output, Path::new("readme.md"), index)
+    {
+        eprintln!("jibb docs: {}: {error}", output.join("readme.md").display());
+        return ExitCode::from(EXIT_TOOL);
+    }
+    ExitCode::from(EXIT_SUCCESS)
+}
+
+fn write_documentation_file(output: &Path, relative: &Path, contents: &str) -> io::Result<()> {
+    let path = output.join(relative);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    atomic_write(&path, contents.as_bytes())
 }
 
 fn run_program(
@@ -280,7 +349,11 @@ fn write_stdout(bytes: &[u8]) -> io::Result<()> {
 fn atomic_write(path: &Path, contents: &[u8]) -> io::Result<()> {
     static NEXT_TEMP_FILE: AtomicU64 = AtomicU64::new(0);
 
-    let permissions = fs::metadata(path)?.permissions();
+    let permissions = match fs::metadata(path) {
+        Ok(metadata) => Some(metadata.permissions()),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => None,
+        Err(error) => return Err(error),
+    };
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
@@ -311,7 +384,10 @@ fn atomic_write(path: &Path, contents: &[u8]) -> io::Result<()> {
 
         let write_result = temp_file
             .write_all(contents)
-            .and_then(|()| temp_file.set_permissions(permissions.clone()))
+            .and_then(|()| match &permissions {
+                Some(permissions) => temp_file.set_permissions(permissions.clone()),
+                None => Ok(()),
+            })
             .and_then(|()| temp_file.sync_all());
         drop(temp_file);
 
