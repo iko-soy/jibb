@@ -165,7 +165,7 @@
               runHook preBuild
               patchShebangs tools docs/reviews/2026-11-03-milestone-2-probes/run > /dev/null
               mkdir $out
-              tools/check ${args} --logs $out
+              tools/check ${args} --timeout 10800 --logs $out
               runHook postBuild
             '';
           } // extra);
