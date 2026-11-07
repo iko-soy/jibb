@@ -8,7 +8,7 @@ As of 2026-11-07. This is the current capability and acceptance table. History a
 | --- | --- | --- |
 | 1 | Parser and mark | Done |
 | 2 | Types and prelude | Done: the general full checker, checked prelude and Hoon importer meet the milestone acceptance criteria under eval, on the fake ship and in the integrated Nix checks |
-| 3 | Core language | Not started in the Hoon pipeline |
+| 3 | Core language | Briefed in [prompts/milestone-3.md](prompts/milestone-3.md); implementation not started |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
 | 6 | Islands | Not started |

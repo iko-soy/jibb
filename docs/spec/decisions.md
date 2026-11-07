@@ -66,7 +66,7 @@ Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews
 | Refinement types | None | Decided | Yes |
 | Imports | `/-`, `/%` (a mark's type, with no face) and `/=`; no `/+`; cycles are errors | Decided 2026-10-29 | Yes |
 | Hoon marks for Jibb types | None: wire types are the agent's marks, and Jibb's own types never cross | Decided 2026-10-26 | Yes |
-| Core language | A small untyped core language between the checker and both backends: Nock's operations on nouns plus a lambda calculus with names; one sample per call; s-expressions as its text form; a reference interpreter in Hoon; three rules in its tab still proposed | Decided | Yes |
+| Core language | A small untyped core language between the checker and both backends: Nock's operations on nouns plus a lambda calculus with names; one sample per call; s-expressions as its text form; a reference interpreter in Hoon | Decided | Yes |
 | Stages | By kind: pages without data at commit, with data in the host, islands and stores in the browser; never inferred | Decided 2026-10-29 | Yes |
 | Page loading | `load` maps route parameters, `~` for none, to one `ask` or `pure`; pages render per request from a fresh scry of the path, or of its case's scry path; nothing is watched or kept | Decided 2026-10-29 | Yes |
 | Compile targets | Nock on the ship, JavaScript in the browser | Decided | Yes |
