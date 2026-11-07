@@ -1,13 +1,13 @@
 # Status
 
-As of 2026-11-06. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
+As of 2026-11-07. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
 
 ## Milestones
 
 | # | Milestone | Status |
 | --- | --- | --- |
 | 1 | Parser and mark | Done |
-| 2 | Types and prelude | Implementation complete; final acceptance validation in progress. All report expectations use the general full checker, the replaced recovery paths are deleted, and all 33 specified error rows have full-checker evidence. Milestone 2 remains open until the final eval, fake-ship, Clay, probe, and Nix runs pass |
+| 2 | Types and prelude | Done: the general full checker, checked prelude and Hoon importer meet the milestone acceptance criteria under eval, on the fake ship and in the integrated Nix checks |
 | 3 | Core language | Not started in the Hoon pipeline |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
@@ -21,15 +21,15 @@ The repository [specification](spec/) and its [decisions](spec/decisions.md) are
 
 | Check | Corpus and required result | Current evidence |
 | --- | --- | --- |
-| Golden cases | 1,376 cases; exact tokens, trees, and full-checker type reports | Final eval run passed in 609 seconds |
+| Golden cases | 1,376 cases; exact tokens, trees, and full-checker type reports | Final integrated Nix eval run passed in 572 seconds |
 | Test arms | 518 `test-` arms in 256 `tests/lib` suites, in eight eval shards | Final eval run passed all eight shards |
-| Strict review regression | 317 source probes and 31 import probes; valid inputs check and invalid inputs produce their own specified messages, sites, excerpts, and carets | Final eval run passed in 2,936 seconds; final ship run passed in 1,177 seconds |
-| Fake-ship corpus | The 1,376 golden arms plus 518 suite arms: 1,894 arms total | Final unified run passed 1,894/1,894 in 6,383 seconds, with no failures or crashes |
+| Strict review regression | 317 source probes and 31 import probes; valid inputs check and invalid inputs produce their own specified messages, sites, excerpts, and carets | Final integrated Nix runs passed eval in 2,915 seconds and ship in 1,144 seconds |
+| Fake-ship corpus | The 1,376 golden arms plus 518 suite arms: 1,894 arms total | Final integrated Nix run passed 1,894/1,894 in 6,238 seconds, with no failures or crashes |
 | Error table | All 33 specified errors and the source-site summary row | Met with full-checker goldens in the [review appendix](reviews/2026-11-03-milestone-2-review.md#appendix-the-errors-the-spec-describes), including 17 `review-*` cases |
 | Hoon import table | `$%`, `$@`, atoms/cells, maps, and recursive molds, printed and used through the full checker under eval and on the ship | [jibb-import-general](../tests/lib/jibb-import-general.hoon), [Clay full-import](../tests/clay-fixtures/full-import.txt); final eval and Clay/ship runs passed |
 | `my-app` through Clay | Build `/sur` files and marks, then check all 11 UI modules in dependency order with exactly one expected failure: `buttons.jibb` at 3:16 | Final source-aware run passed in 63.5 seconds |
 | Debug-disabled performance | Generated 2,000-line modules in both declaration orders and the desk | Recorded below |
-| Complete registered checks | `tools/check` and `nix flake check` on the final integrated tree | Eval group: 14/14 checks passed in 5,662 seconds. Every ship component passed; integrated Nix check pending |
+| Complete registered checks | `tools/check` and `nix flake check` on the final integrated tree | Integrated serialized Nix run passed: 14/14 eval checks in 5,604 seconds and 6/6 ship checks in 7,622 seconds, plus desks and native CLI |
 
 The public `golden-types*` reporters render only the full-module result: checked definitions and module kind, or the actual diagnostic with source excerpts. The old partial-report and source-shaped recovery pipelines are deleted; their behavioral suites remain as regressions. Final validation uses compiler SHA-256 `d369b012ae312f0d4dfc6930c789e2f143e8baa33f9f99e799632365b6806731` and importer SHA-256 `d7fc1f8f1a62415c2b3ffdaae1c93060c8f38639da6ec2f7689dd68eb9fca4f0`.
 
