@@ -1,6 +1,6 @@
 # Status
 
-As of 2026-11-07. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
+As of 2026-11-08. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
 
 ## Milestones
 
@@ -11,7 +11,7 @@ As of 2026-11-07. This is the current capability and acceptance table. History a
 | 3 | Core language | Briefed in [prompts/milestone-3.md](prompts/milestone-3.md); implementation not started |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
-| 6 | Islands | Not started |
+| 6 | Islands | In progress: an independent hand-written-Core JavaScript reader, backend, and Node semantic tests are being built; lowering integration, the benchmark decision, and the browser runtime remain outstanding |
 | 7 | Tooling | Not started |
 | 8 | Polish | Not started |
 
@@ -111,7 +111,7 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 - Milestone 3: lowering, backends, execution, `proj` lowering, and jet recognition.
 - Milestone 4: host, routes, static files, rendering, and theme contrast.
 - Milestone 5: per-request host behavior. Static `load` checking is already part of milestone 2.
-- Milestone 6: browser runtime and runtime request handling.
+- Milestone 6: the JavaScript backend is proceeding independently against hand-written Core; lowering integration, the browser-backend benchmark decision, browser runtime, and runtime request handling remain.
 - Milestone 7: formatter and later tooling.
 - The checked prelude's deliberate omissions are documented in [prelude-inventory.md](prelude-inventory.md); they are not silently implemented with different signatures.
 - Open language questions remain in [open-questions.md](open-questions.md), including `proj` field reordering and unconfirmed review proposals. Current checker diagnostics do not settle those proposals.

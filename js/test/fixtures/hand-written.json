@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "arbitrary-precision atom",
+      "source": "1.234.567.890.123.456.789.012.345.678.901.234.567.890",
+      "natives": [],
+      "outcome": {"atom": "1234567890123456789012345678901234567890"}
+    },
+    {
+      "name": "cell construction and projection",
+      "source": "(slot 6 (cons 1 (cons 2 3)))",
+      "natives": [],
+      "outcome": {"atom": "2"}
+    },
+    {
+      "name": "immutable edit",
+      "source": "(edit 6 (cons 1 (cons 2 3)) 42)",
+      "natives": [],
+      "outcome": {"cell": [{"atom": "1"}, {"cell": [{"atom": "42"}, {"atom": "3"}]}]}
+    },
+    {
+      "name": "structural equality",
+      "source": "(eq (cons 1 2) (cons 1 2))",
+      "natives": [],
+      "outcome": {"atom": "0"}
+    },
+    {
+      "name": "lazy selected branch",
+      "source": "(if %.y 42 (crash))",
+      "natives": [],
+      "outcome": {"atom": "42"}
+    },
+    {
+      "name": "strict unused let",
+      "source": "(let x (crash) 42)",
+      "natives": [],
+      "outcome": {"crash": true}
+    },
+    {
+      "name": "lexical closure and native sample",
+      "source": "(app (let x 40 (lam y (app (native add) (cons x y)))) 2)",
+      "natives": ["add"],
+      "outcome": {"atom": "42"}
+    },
+    {
+      "name": "mutual recursion",
+      "source": "(rec ((even (lam x (if (eq x 0) %.y (app odd (app (native sub) (cons x 1)))))) (odd (lam x (if (eq x 0) %.n (app even (app (native sub) (cons x 1))))))) (app even 10))",
+      "natives": ["sub"],
+      "outcome": {"atom": "0"}
+    },
+    {
+      "name": "higher-order native callback",
+      "source": "(app (native apply-twice) (cons (lam x (app (native add) (cons x 1))) 40))",
+      "natives": ["add", "apply-twice"],
+      "outcome": {"atom": "42"}
+    },
+    {
+      "name": "explicit crash",
+      "source": "(crash)",
+      "natives": [],
+      "outcome": {"crash": true}
+    },
+    {
+      "name": "malformed runtime axis",
+      "source": "(slot 2 1)",
+      "natives": [],
+      "outcome": {"crash": true}
+    }
+  ]
+}

@@ -49,7 +49,7 @@
       # What the checks read: the desks, CLI, tools, spec tabs and review
       # regression corpus. Other documentation does not rerun checks.
       checkFiles = fs.unions [
-        deskFiles cliFiles ./tools ./docs/spec
+        deskFiles cliFiles ./tools ./docs/spec ./js
         ./docs/reviews/2026-11-03-milestone-2-probes
       ];
       source = fileset: fs.toSource { root = ./.; inherit fileset; };
@@ -171,7 +171,7 @@
           check = name: args: extra: pkgs.stdenvNoCC.mkDerivation ({
             name = "jibb-check-${name}";
             src = source checkFiles;
-            nativeBuildInputs = [ python3 urbit ];
+            nativeBuildInputs = [ python3 urbit nodejs ];
             dontConfigure = true;
             dontInstall = true;
             dontFixup = true;

@@ -2,7 +2,7 @@
 """Run the repo's checks: all of them, a group, or some by name.
 
     tools/check                    every check: eval and native, then ship
-    tools/check --group eval       the checks that need only urbit and Python
+    tools/check --group eval       the checks that need only urbit, Python and Node
     tools/check --group native     the Rust CLI's checks
     tools/check --group ship       the checks that need the fake ~zod
     tools/check golden 'type-*'    only the checks these names or globs match
@@ -76,6 +76,7 @@ CHECKS = [
     Check('probes-eval', 'eval', ['tools/probe-regression']),
     tool('testdata/selftest'),                  # about 115 s
     tool('golden'),                             # about 60 to 100 s
+    tool('test-js'),
     Check('jibb-cli', 'native',
           ['cargo', 'test', '--manifest-path', 'jibb-cli/Cargo.toml']),
 ] + [
