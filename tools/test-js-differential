@@ -88,7 +88,98 @@ def load_cases():
     return cases
 
 
+def javascript_asts(sources):
+    script = r'''
+import {readCore} from './js/core/reader.mjs';
+import {readLiteral} from './js/core/literal.mjs';
+const sources = JSON.parse(process.argv[1]);
+function augment(node) {
+  if (node.type === 'literal') node.decoded = readLiteral(node.text);
+  for (const value of Object.values(node)) {
+    if (Array.isArray(value)) value.forEach(item => item && typeof item === 'object' && augment(item));
+    else if (value && typeof value === 'object') augment(value);
+  }
+  return node;
+}
+const asts = sources.map(source => augment(readCore(source)));
+console.log(JSON.stringify(asts, (key, value) => typeof value === 'bigint' ? value.toString() : value));
+'''
+    result = run(['node', '--input-type=module', '-e', script, json.dumps(sources)],
+                 cwd=ROOT)
+    if result.returncode:
+        raise FixtureError('JavaScript Core reader failed:\n' + result.stdout)
+    return json.loads(result.stdout)
+
+
+def atom_literal(value):
+    digits = str(int(value))
+    groups = []
+    while digits:
+        groups.append(digits[-3:])
+        digits = digits[:-3]
+    return '.'.join(reversed(groups))
+
+
+def name_text(name):
+    if name.startswith('_'):
+        return f'[%generated {ue.cord_literal(name.encode())}]'
+    if ':' in name:
+        path, local = name.rsplit(':', 1)
+        return f'[%qualified /{path} %{local}]'
+    return f'[%own %{name}]'
+
+
+def expr_text(node):
+    kind = node['type']
+    if kind == 'literal':
+        decoded = node['decoded']
+        auras = {'?': 'f', 'null': 'n', 'knot': 'ta'}
+        aura = auras.get(decoded['aura'], decoded['aura'].lstrip('@'))
+        text = ue.cord_literal(decoded['text'].encode())
+        return f'[%lit [%{aura} {atom_literal(decoded["value"])} {text}]]'
+    if kind == 'name':
+        return f'[%var {name_text(node["name"])}]'
+    if kind == 'native':
+        return f'[%native {name_text(node["name"])}]'
+    if kind == 'crash':
+        return '[%crash ~]'
+    if kind == 'cons':
+        return f'[%cons {expr_text(node["head"])} {expr_text(node["tail"])}]'
+    if kind == 'slot':
+        return f'[%slot {atom_literal(node["axis"])} {expr_text(node["value"])}]'
+    if kind == 'edit':
+        target = expr_text(node['target'])
+        value = expr_text(node['value'])
+        return f'[%edit {atom_literal(node["axis"])} {target} {value}]'
+    if kind == 'cell':
+        return f'[%cell {expr_text(node["value"])}]'
+    if kind == 'eq':
+        return f'[%eq {expr_text(node["left"])} {expr_text(node["right"])}]'
+    if kind == 'if':
+        condition = expr_text(node['condition'])
+        yes = expr_text(node['then'])
+        no = expr_text(node['else'])
+        return f'[%if {condition} {yes} {no}]'
+    if kind == 'let':
+        name = name_text(node['name'])
+        value = expr_text(node['value'])
+        body = expr_text(node['body'])
+        return f'[%let {name} {value} {body}]'
+    if kind == 'rec':
+        arms = ' '.join(f'[{name_text(binding["name"])} {expr_text(binding["lambda"])}]'
+                        for binding in node['bindings'])
+        return f'[%rec ~[{arms}] {expr_text(node["body"])}]'
+    if kind == 'lam':
+        return f'[%lam {name_text(node["parameter"])} {expr_text(node["body"])}]'
+    if kind == 'app':
+        return f'[%app {expr_text(node["fn"])} {expr_text(node["argument"])}]'
+    if kind == 'trace':
+        return f'[%trace {expr_text(node["message"])} {expr_text(node["body"])}]'
+    raise FixtureError('unsupported differential AST node: %s' % kind)
+
+
 def hoon_expression(cases):
+    asts = javascript_asts([source for _, source, _, _ in cases])
     # The registry flags are not native dispatch: they only select which
     # explicitly defined gates are installed. Callback invocation uses the
     # same registry, including apply-twice itself, as the enclosing run.
@@ -104,7 +195,7 @@ def hoon_expression(cases):
   ?.  ?=(%cell -.v)  !!
   ?.  ?=(%atom -.hed.v)  !!
   ?.  ?=(%atom -.tal.v)  !!
-  [%atom (add val.hed.v val.tal.v)]
+  [[%atom (add val.hed.v val.tal.v)] ~]
 ::
 ++  sub-native
   ^-  native
@@ -113,7 +204,7 @@ def hoon_expression(cases):
   ?.  ?=(%atom -.hed.v)  !!
   ?.  ?=(%atom -.tal.v)  !!
   ?:  (lth val.hed.v val.tal.v)  !!
-  [%atom (sub val.hed.v val.tal.v)]
+  [[%atom (sub val.hed.v val.tal.v)] ~]
 ::
 ++  call-value
   |=  [fun=value sample=value flags=@]
@@ -123,7 +214,7 @@ def hoon_expression(cases):
     %closure
       val:(evaluate-env body.fun [[%value sample.fun sample] env.fun] (registry flags))
     %native
-      (run.fun sample)
+      val:(run.fun sample)
   ==
 ::
 ++  apply-twice-native
@@ -132,7 +223,7 @@ def hoon_expression(cases):
   |=  v=value
   ?.  ?=(%cell -.v)  !!
   =/  once=value  (call-value hed.v tal.v flags)
-  (call-value hed.v once flags)
+  [(call-value hed.v once flags) ~]
 ::
 ++  registry
   |=  flags=@
@@ -156,12 +247,10 @@ def hoon_expression(cases):
   (rap 3 ~['(' $(n -.n) ' ' $(n +.n) ')'])
 ::
 ++  source-outcome
-  |=  [src=@t flags=@]
+  |=  [e=expr flags=@]
   ^-  @t
   =/  reg=native-registry  (registry flags)
-  =/  parsed=(each expr @t)  (read-expr src reg)
-  ?:  ?=(%| -.parsed)  (rap 3 ~['reader-error ' p.parsed])
-  =/  got=outcome  (run p.parsed reg)
+  =/  got=outcome  (run e reg)
   ?-  -.got
     %crash  'crash'
     %ok     (rap 3 ~['ok ' (noun-text val.got)])
@@ -173,8 +262,8 @@ def hoon_expression(cases):
   :~
 """
     rows = ['      (source-outcome %s %d)'
-            % (ue.cord_literal(source.encode('utf-8')), flags)
-            for _, source, flags, _ in cases]
+            % (expr_text(ast), flags)
+            for ast, (_, source, flags, _) in zip(asts, cases)]
     return head + '\n'.join(rows) + '\n  ==\n--\n'
 
 

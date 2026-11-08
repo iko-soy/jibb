@@ -11,11 +11,11 @@ As of 2026-11-08. This is the current capability and acceptance table. History a
 | 3 | Core language | In progress: the independent 15-node Core AST and Hoon reference interpreter have 13 passing eval test arms; the Core text form, Nock backend, checked-artifact capture, lowering, linking, and ship validation remain |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
-| 6 | Islands | In progress: the independent JavaScript reader, backend, and entry linker are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits the Hoon Core/lowering libraries, and the benchmark decision and browser runtime remain outstanding |
+| 6 | Islands | In progress: the independent JavaScript reader, backend, entry linker, and native runtime are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits checked lowering, and the benchmark decision and browser runtime remain outstanding |
 | 7 | Tooling | Not started |
 | 8 | Polish | Not started |
 
-JavaScript integration evidence on 2026-11-08: all 11 shared outcomes matched Hoon Core candidate SHA-256 `ebda891bd18688908aa2c7f95665d847562485be31e1128cfb6700be6b90543d`; checked-lowered literal and authenticated-native probes through lowering candidate SHA-256 `2e868bf058e4f59bef4b55b3b2d858234f7612367c60a0606b3207ecd3d8486d` both executed in JavaScript as 42. These are parallel-candidate integration checks, not milestone 3 acceptance or evidence that those Hoon libraries are in `master`.
+JavaScript integration evidence on 2026-11-08: all 11 shared outcomes matched the Hoon Core interpreter in `master`, SHA-256 `781646afe47925091b590aecfb2d41b6cb5f72f7fa76723a5338023bcae8c678`. Checked-lowered literal and authenticated-native probes through lowering candidate SHA-256 `2e868bf058e4f59bef4b55b3b2d858234f7612367c60a0606b3207ecd3d8486d` both executed in JavaScript as 42. The lowering probes are parallel-candidate checks, not milestone 3 acceptance or evidence that lowering is in `master`.
 
 The repository [specification](spec/) and its [decisions](spec/decisions.md) are authoritative. Later-milestone native CLI work is integrated independently; it does not replace the Hoon compiler acceptance checks below.
 
@@ -113,7 +113,7 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 - Milestone 3: the Core reader/printer, Nock backend, checked-artifact capture, lowering, linking, `proj` lowering, jet recognition, and fake-ship validation. The Hoon reference interpreter covers all 15 nodes under eval.
 - Milestone 4: host, routes, static files, rendering, and theme contrast.
 - Milestone 5: per-request host behavior. Static `load` checking is already part of milestone 2.
-- Milestone 6: the JavaScript backend and entry linker proceed independently against hand-written and candidate-lowered Core; Hoon Core/lowering integration into `master`, the browser-backend benchmark decision, browser runtime, and runtime request handling remain.
+- Milestone 6: the JavaScript backend and entry linker proceed independently against hand-written and candidate-lowered Core; checked-lowering integration into `master`, the browser-backend benchmark decision, browser runtime, and runtime request handling remain.
 - Milestone 7: formatter and later tooling.
 - The checked prelude's deliberate omissions are documented in [prelude-inventory.md](prelude-inventory.md); they are not silently implemented with different signatures.
 - Open language questions remain in [open-questions.md](open-questions.md), including `proj` field reordering and unconfirmed review proposals. Current checker diagnostics do not settle those proposals.

@@ -3,3 +3,4 @@ export { compileLinkedCore, linkCore } from './core/linker.mjs';
 export { readLiteral } from './core/literal.mjs';
 export { CoreSyntaxError, readCore } from './core/reader.mjs';
 export * as runtime from './core/runtime.mjs';
+export * as natives from './natives/index.mjs';
