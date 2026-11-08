@@ -31,6 +31,11 @@ enum Command {
         #[arg(value_name = "FILE", help = "Files to format, or standard input")]
         files: Vec<PathBuf>,
     },
+    #[command(about = "Create a Hoon agent and Jibb frontend project")]
+    Init {
+        #[arg(value_name = "DIRECTORY", help = "New or empty project directory")]
+        directory: PathBuf,
+    },
     #[command(about = "Statically check Jibb source without evaluating it")]
     Check {
         #[arg(
@@ -100,6 +105,7 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     match cli.command {
         Command::Fmt { check, diff, files } => run_fmt(&files, check, diff),
+        Command::Init { directory } => run_init(&directory),
         Command::Check {
             files,
             source_roots,
@@ -117,6 +123,19 @@ fn main() -> ExitCode {
             source_roots,
             prelude,
         } => run_program(&file, &entry, &source_roots, prelude.as_deref()),
+    }
+}
+
+fn run_init(directory: &Path) -> ExitCode {
+    match jibb::init::create(directory) {
+        Ok(name) => {
+            println!("Initialized `{name}` in {}", directory.display());
+            ExitCode::from(EXIT_SUCCESS)
+        }
+        Err(error) => {
+            eprintln!("jibb init: {error}");
+            ExitCode::from(EXIT_TOOL)
+        }
     }
 }
 

@@ -38,6 +38,7 @@ Limits: the ship checks need Linux, since `tools/ship` finds the ship's processe
 The Rust executable needs neither a ship nor `urbit`. Build it with `nix build .#jibb`, or run it from a Rust toolchain with `cargo run --manifest-path jibb-cli/Cargo.toml -- <arguments>`.
 
 ```
+jibb init DIRECTORY        # create a Hoon agent and Jibb frontend project
 jibb fmt FILE...          # format files in place
 jibb fmt                  # read standard input and write standard output
 jibb fmt --check FILE...  # report files that would change; exit 1
@@ -53,6 +54,8 @@ jibb run FILE --prelude FILE   # include a source prelude module
 jibb docs PATH...             # write module documentation under docs/api
 jibb docs PATH... -o DIR      # write module documentation and readme.md under DIR
 ```
+
+`init` creates a counter application in a new or empty directory. The desk name comes from the directory's final component and must be a lowercase Hoon term. The template includes a Gall agent, shared `/sur` types and `/mar` marks, an agent API module, a Jibb island, and desk metadata. It refuses to overwrite a nonempty directory.
 
 Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `check` parses, links and statically checks source without evaluating it, reporting all requested files' errors and producing no output on success. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. Both commands resolve `/=` imports from `--source-root` directories, and `--prelude` links an optional source prelude. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
 

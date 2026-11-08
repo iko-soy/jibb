@@ -5,6 +5,7 @@ mod eval;
 mod formatter;
 mod hoon;
 mod infer;
+pub mod init;
 mod literal;
 pub mod loader;
 mod lower;

@@ -9,6 +9,104 @@ fn jibb() -> Command {
 }
 
 #[test]
+fn init_creates_a_formatted_agent_and_frontend_project() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let project = directory.path().join("counter-app");
+
+    let result = jibb()
+        .args(["init"])
+        .arg(&project)
+        .output()
+        .expect("initialize project");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(result.stderr.is_empty());
+    assert_eq!(
+        String::from_utf8(result.stdout).expect("output UTF-8"),
+        format!("Initialized `counter-app` in {}\n", project.display())
+    );
+
+    for relative in [
+        "app/counter-app.hoon",
+        "desk.bill",
+        "desk.docket-0",
+        "mar/counter-app-action.hoon",
+        "mar/counter-app-state.hoon",
+        "README.md",
+        "sur/counter-app.hoon",
+        "sys.kelvin",
+        "ui/api/counter-app.jibb",
+        "ui/index.jibb",
+    ] {
+        assert!(project.join(relative).is_file(), "missing {relative}");
+    }
+
+    let agent = fs::read_to_string(project.join("app/counter-app.hoon")).expect("read agent");
+    assert!(agent.contains("/+  default-agent, dbug"));
+    assert!(agent.contains("%counter-app-action"));
+    assert!(agent.contains("++  on-poke"));
+    assert!(agent.contains("++  on-watch"));
+    let frontend = fs::read_to_string(project.join("ui/index.jibb")).expect("read frontend");
+    assert!(frontend.contains("++  main  program init update view subs"));
+    assert!(frontend.contains("poke.counter %increment"));
+    assert!(frontend.contains("state.counter |=%got"));
+    assert!(frontend.contains("heading 1 \"Counter App\""));
+    let docket = fs::read_to_string(project.join("desk.docket-0")).expect("read docket");
+    assert!(docket.contains("title+'Counter App'"));
+    assert!(docket.contains("site+/apps/counter-app"));
+
+    let formatted = jibb()
+        .args(["fmt", "--check"])
+        .arg(project.join("ui/index.jibb"))
+        .arg(project.join("ui/api/counter-app.jibb"))
+        .output()
+        .expect("check generated formatting");
+    assert!(
+        formatted.status.success(),
+        "{}",
+        String::from_utf8_lossy(&formatted.stdout)
+    );
+}
+
+#[test]
+fn init_refuses_to_overwrite_or_use_an_invalid_desk_name() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let project = directory.path().join("existing");
+    fs::create_dir(&project).expect("create destination");
+    let sentinel = project.join("keep.txt");
+    fs::write(&sentinel, "keep me\n").expect("write existing file");
+
+    let result = jibb()
+        .args(["init"])
+        .arg(&project)
+        .output()
+        .expect("reject nonempty destination");
+    assert_eq!(result.status.code(), Some(2));
+    assert!(result.stdout.is_empty());
+    let error = String::from_utf8_lossy(&result.stderr);
+    assert!(error.contains("already exists and is not empty"), "{error}");
+    assert!(error.contains("no files were overwritten"), "{error}");
+    assert_eq!(
+        fs::read_to_string(&sentinel).expect("read sentinel"),
+        "keep me\n"
+    );
+    assert_eq!(fs::read_dir(&project).expect("read destination").count(), 1);
+
+    let invalid = directory.path().join("Invalid-name");
+    let result = jibb()
+        .args(["init"])
+        .arg(&invalid)
+        .output()
+        .expect("reject invalid desk name");
+    assert_eq!(result.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&result.stderr).contains("invalid desk name"));
+    assert!(!invalid.exists());
+}
+
+#[test]
 fn formats_standard_input() {
     let mut child = jibb()
         .args(["fmt"])
