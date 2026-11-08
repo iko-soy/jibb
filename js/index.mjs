@@ -6,3 +6,4 @@ export * as runtime from './core/runtime.mjs';
 export * as natives from './natives/index.mjs';
 export { emitCore } from './nock/emitter.mjs';
 export { applyNock, runNock } from './nock/interpreter.mjs';
+export * as browser from './browser/index.mjs';

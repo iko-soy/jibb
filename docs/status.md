@@ -11,7 +11,7 @@ As of 2026-11-08. This is the current capability and acceptance table. History a
 | 3 | Core language | In progress: the independent 15-node Core AST, canonical text reader/printer, and Hoon reference interpreter have 25 passing eval test arms and 11 matching JavaScript differential outcomes; the Nock backend, checked-artifact capture, lowering, linking, and ship validation remain |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
-| 6 | Islands | In progress: the independent JavaScript reader, backend, entry linker, and native runtime are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits checked lowering; the initial benchmark selected generated JavaScript, with full browser performance and runtime work outstanding |
+| 6 | Islands | In progress: the independent JavaScript reader, backend, entry linker, and native runtime are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits checked lowering; the initial benchmark selected generated JavaScript, and the virtual DOM/island loop is implemented with focus-preserving tests. Channel, subscription, store, URL, and full browser performance work remains outstanding |
 | 7 | Tooling | Not started |
 | 8 | Polish | Not started |
 
@@ -113,7 +113,7 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 - Milestone 3: the Nock backend, checked-artifact capture, lowering, linking, `proj` lowering, jet recognition, and fake-ship validation. The Core reader/printer and Hoon reference interpreter cover all 15 nodes under eval.
 - Milestone 4: host, routes, static files, rendering, and theme contrast.
 - Milestone 5: per-request host behavior. Static `load` checking is already part of milestone 2.
-- Milestone 6: the JavaScript backend and entry linker proceed independently against hand-written and candidate-lowered Core; checked-lowering integration into `master`, browser runtime, full browser/phone performance validation, and runtime request handling remain. The initial Core benchmark selected generated JavaScript.
+- Milestone 6: the JavaScript backend and entry linker proceed independently against hand-written and candidate-lowered Core; checked-lowering integration into `master`, channel/subscription/store/URL runtime, full browser/phone performance validation, and runtime request handling remain. The initial Core benchmark selected generated JavaScript; virtual DOM and the island loop are implemented.
 - Milestone 7: formatter and later tooling.
 - The checked prelude's deliberate omissions are documented in [prelude-inventory.md](prelude-inventory.md); they are not silently implemented with different signatures.
 - Open language questions remain in [open-questions.md](open-questions.md), including `proj` field reordering and unconfirmed review proposals. Current checker diagnostics do not settle those proposals.
