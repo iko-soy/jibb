@@ -45,11 +45,15 @@ class Scope {
     this.names = new Map();
   }
 
+  fresh() {
+    return `$${this.context.nextVariable++}`;
+  }
+
   define(name) {
     if (this.names.has(name)) {
       throw new Error(`duplicate JavaScript binding for ${name}`);
     }
-    const variable = `$${this.context.nextVariable++}`;
+    const variable = this.fresh();
     this.names.set(name, variable);
     return variable;
   }
@@ -97,7 +101,7 @@ function expression(node, context, scope) {
         if (binding.lambda.type !== 'lam') {
           throw new Error(`recursive binding ${binding.name} is not a lambda`);
         }
-        return lambda(binding.lambda, context, inner, variable, true);
+        return lambda(binding.lambda, context, inner, variable, true, binding.name);
       });
       return `(() => {\n${declarations.join('\n')}\nreturn ${expression(node.body, context, inner)};\n})()`;
     }
@@ -120,14 +124,67 @@ function expression(node, context, scope) {
   }
 }
 
-function lambda(node, context, scope, variable, declaration) {
+function lambda(node, context, scope, variable, declaration, recursiveName = null) {
   if (node.type !== 'lam') {
     throw new Error('expected lambda');
   }
   const inner = new Scope(context, scope);
   const parameter = inner.define(node.parameter);
+  if (declaration && containsSelfTail(node.body, recursiveName)) {
+    const state = inner.fresh();
+    const current = inner.fresh();
+    inner.names.set(node.parameter, current);
+    const body = tailExpression(node.body, context, inner, { name: recursiveName, state });
+    return `function ${variable}(${parameter}) {\nlet ${state} = ${parameter};\nfor (;;) {\nconst ${current} = ${state};\n${body}\n}\n}`;
+  }
   const body = expression(node.body, context, inner);
   return declaration
     ? `function ${variable}(${parameter}) { return ${body}; }`
     : `((${parameter}) => ${body})`;
+}
+
+function containsSelfTail(node, name) {
+  if (name === null) return false;
+  switch (node.type) {
+    case 'app':
+      return node.fn.type === 'name' && node.fn.name === name;
+    case 'if':
+      return containsSelfTail(node.then, name) || containsSelfTail(node.else, name);
+    case 'let':
+      return containsSelfTail(node.body, name);
+    case 'rec':
+      return containsSelfTail(node.body, name);
+    default:
+      return false;
+  }
+}
+
+function tailExpression(node, context, scope, self) {
+  switch (node.type) {
+    case 'app':
+      if (node.fn.type === 'name' && node.fn.name === self.name) {
+        return `${self.state} = ${expression(node.argument, context, scope)};\ncontinue;`;
+      }
+      break;
+    case 'if':
+      return `if (requireLoobean(${expression(node.condition, context, scope)})) {\n${tailExpression(node.then, context, scope, self)}\n} else {\n${tailExpression(node.else, context, scope, self)}\n}`;
+    case 'let': {
+      const inner = new Scope(context, scope);
+      const value = expression(node.value, context, scope);
+      const variable = inner.define(node.name);
+      return `const ${variable} = ${value};\n${tailExpression(node.body, context, inner, self)}`;
+    }
+    case 'rec': {
+      const inner = new Scope(context, scope);
+      const bindings = node.bindings.map((binding) => ({
+        binding,
+        variable: inner.define(binding.name),
+      }));
+      const declarations = bindings.map(({ binding, variable }) =>
+        lambda(binding.lambda, context, inner, variable, true, binding.name)
+      );
+      return `${declarations.join('\n')}\n${tailExpression(node.body, context, inner, self)}`;
+    }
+  }
+  return `return ${expression(node, context, scope)};`;
 }

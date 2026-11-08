@@ -119,3 +119,15 @@ For each rewrite, test the smallest positive and negative cases, then compare un
 - Native and higher-order-native calls.
 
 Benchmark compilation and execution separately on a fake ship, with compiler-debug tracing disabled for representative production timings. Include small modules, many independent definitions, recursive groups, deep records, large matches, and several entries sharing dependencies. Report both costs; a faster generated program is not sufficient justification for an optimization that makes ordinary compilation substantially slower.
+
+## Measured JavaScript and Nock comparison
+
+On 2026-11-08, `tools/bench-js` compared the same hand-written Core through generated JavaScript and the iterative JavaScript Nock interpreter in `js/nock/`. The environment was Node 24.21.0 on Linux, with three warmups and 20 measured iterations. Source emission and execution were measured separately; all results were checked against the expected nouns before timing.
+
+| Case | JavaScript emission | Nock emission | JavaScript execution median | Nock execution median | Nock/JavaScript |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1,000-step self-tail countdown | 0.131 ms | 0.098 ms | 0.657 ms | 54.644 ms | 83.15× |
+| 1,000-step tail sum | 0.039 ms | 0.063 ms | 1.222 ms | 122.048 ms | 99.89× |
+| Record edit | 0.017 ms | 0.011 ms | 0.002 ms | 0.002 ms | 1.09× |
+
+The comparison selects generated JavaScript as the browser backend. It does not establish browser frame time, the 500-row phone target, or a final size bound. Self-tail-calls now compile to loops with fresh parameter bindings per iteration, so captured closures retain the correct sample. Run `tools/bench-js --json` for machine-readable results, or select a case and iteration count with `--case`, `--warmups`, and `--iterations`.
