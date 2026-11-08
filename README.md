@@ -65,6 +65,12 @@ Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source
 
 `docs` accepts Jibb files and directories, recursively includes their `/=` imports, and statically checks each module. It writes one Markdown file per module, preserving relative paths, with a table of contents, leading `::` documentation comments, mold definitions, and inferred value types. The output directory's `readme.md` links to every generated module. Its default output directory is `docs/api`; `--source-root` and `--prelude` have the same meaning as for `check` and `run`.
 
+### Runtime packaging
+
+Urbit is deliberately a runtime dependency, not embedded in the Rust executable. The Nix package supplies a pinned runtime closure with Urbit, click, Python, and the ship helper, so `dev` needs no separate installation of those tools. Embedding only Urbit would not make the CLI standalone: click and the ship helper would remain external, and the executable would need OS/architecture-specific builds, larger releases, and a new update process for Vere compatibility and security fixes. Urbit also docks binaries into a pier at runtime.
+
+For a single-download distribution, use a self-extracting, platform-specific bundle containing the CLI and its complete runtime rather than embedding Urbit with `include_bytes!`. The startup pill is a separate input: `dev` requires `--pill` for a new pier and never downloads one implicitly. The flake's reproducible `.#fakezod` package uses the separately pinned brass pill from `flake.nix`.
+
 ## Golden tests
 
 Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, or select marks in `marks.txt` and provide their source in `mar/<name>.txt`. `modules.txt` selects Jibb source fixtures; their trees go in `module-trees.txt`, and the partial checker can resolve a subset of library imports. See [docs/development.md](docs/development.md).
