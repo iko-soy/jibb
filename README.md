@@ -9,7 +9,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `jibb-dev/`: what app desks vendor: the `%jibb` mark, the compiler, the partial Hoon type reader and the beginning of the prelude; later the browser library.
 - `jibb-cli/`: the native Rust `jibb` executable and its tree-sitter grammar, for earth-side utilities.
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
-- `js/`: the Core-to-JavaScript backend, entry linker, and Node/differential tests; the browser runtime comes later.
+- `js/`: the Core-to-JavaScript backend, entry linker, native runtime, Nock comparison backend, virtual DOM/island loop, Eyre channel/effects, shared stores, URL runtime, and Node/differential tests; full browser integration comes later.
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
 - `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and in `clay-fixtures/`, the threads `tools/clay-fixtures` runs and, in `clay-fixtures/desk/`, the Hoon files the `jibb-fixtures` desk adds to `my-app`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
@@ -61,6 +61,8 @@ jibb docs PATH... -o DIR      # write module documentation and readme.md under D
 `init` creates a counter application in a new or empty directory. The desk name comes from the directory's final component and must be a lowercase Hoon term. The template includes a Gall agent, shared `/sur` types and `/mar` marks, an agent API module, a Jibb island, and desk metadata. It refuses to overwrite a nonempty directory.
 
 `dev` performs the complete local setup in one command: it boots a fake `~zod` when the pier is absent (or starts an existing pier), creates the desk if needed, mounts it, mirrors the application over the standard Jibb/vendor dependencies, commits it, and verifies the result. Its default pier is `DIRECTORY/.jibb/zod`; `--pier` selects another, and `--desk` overrides the directory-derived desk name. A new pier needs `--pill`; subsequent runs do not. The ship remains running. `--urbit`, `--click`, and `--timeout` customize the runtime, while `--ship-tool` or `$JIBB_SHIP_TOOL` selects a ship helper outside the normal repository or installed-package locations. A root `README.md` and dotfiles such as `.jibb/` stay earth-side.
+
+File commands select the source language from the filename extension; there are no language-selection flags. `.jibb` is currently the supported source extension, and file inputs with another or no extension are rejected. Standard input is Jibb.
 
 Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `check` parses, links and statically checks source without evaluating it, reporting all requested files' errors and producing no output on success. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. Both commands resolve `/=` imports from `--source-root` directories, and `--prelude` links an optional source prelude. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
 

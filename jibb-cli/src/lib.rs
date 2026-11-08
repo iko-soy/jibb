@@ -19,7 +19,7 @@ pub use eval::evaluate;
 pub use formatter::format_source;
 
 use ast::{SourceId, Span};
-use std::fmt;
+use std::{fmt, path::Path};
 use tree_sitter::{Language, Node, Parser};
 
 unsafe extern "C" {
@@ -28,6 +28,38 @@ unsafe extern "C" {
 
 pub fn language() -> Language {
     unsafe { tree_sitter_jibb() }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SourceLanguage {
+    Jibb,
+}
+
+impl SourceLanguage {
+    pub fn from_path(path: &Path) -> Result<Self, Diagnostic> {
+        match path.extension() {
+            Some(extension) if extension == "jibb" => Ok(Self::Jibb),
+            Some(extension) => Err(Diagnostic::new(format!(
+                "unsupported source extension `.{}`; expected `.jibb`",
+                extension.to_string_lossy()
+            ))),
+            None => Err(Diagnostic::new(
+                "source file has no extension; expected `.jibb`",
+            )),
+        }
+    }
+
+    pub fn parse_ast(self, source: &str) -> Result<ast::Module, Diagnostic> {
+        match self {
+            Self::Jibb => parse_ast(source),
+        }
+    }
+
+    pub fn format(self, source: &str) -> Result<String, String> {
+        match self {
+            Self::Jibb => format_source(source),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

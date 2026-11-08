@@ -366,6 +366,59 @@ fn check_checks_multiple_files_without_evaluating() {
 }
 
 #[test]
+fn file_extensions_select_the_source_language() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    let hoon = root.join("source.hoon");
+    let extensionless = root.join("source");
+    fs::write(&hoon, "++ main 42\n").expect("write Hoon-named input");
+    fs::write(&extensionless, "++ main 42\n").expect("write extensionless input");
+
+    let output = jibb()
+        .args(["check"])
+        .arg(&hoon)
+        .output()
+        .expect("check Hoon");
+    assert_eq!(output.status.code(), Some(1));
+    let error = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        error.contains("unsupported source extension `.hoon`"),
+        "{error}"
+    );
+    assert!(error.contains("expected `.jibb`"), "{error}");
+
+    let output = jibb()
+        .args(["run"])
+        .arg(&extensionless)
+        .output()
+        .expect("run extensionless input");
+    assert_eq!(output.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("source file has no extension"));
+
+    let output = jibb()
+        .args(["fmt", "--check"])
+        .arg(&hoon)
+        .output()
+        .expect("format Hoon-named input");
+    assert_eq!(output.status.code(), Some(1));
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("unsupported source extension `.hoon`")
+    );
+    assert_eq!(
+        fs::read_to_string(&hoon).expect("read Hoon-named input"),
+        "++ main 42\n"
+    );
+
+    let output = jibb()
+        .args(["docs"])
+        .arg(&extensionless)
+        .output()
+        .expect("document extensionless input");
+    assert_eq!(output.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("source file has no extension"));
+}
+
+#[test]
 fn check_loads_imports_and_preludes() {
     let directory = tempfile::tempdir().expect("temporary directory");
     let root = directory.path();
@@ -468,6 +521,8 @@ fn docs_generates_module_files_and_readme_index() {
     .expect("write utility module");
     fs::write(root.join("empty.jibb"), ":: Empty module documentation.\n")
         .expect("write empty module");
+    fs::write(root.join("ignored.hoon"), "not valid Jibb\n").expect("write Hoon file");
+    fs::write(root.join("ignored"), "not valid Jibb\n").expect("write extensionless file");
     let output = root.join("generated");
 
     let result = jibb()

@@ -83,7 +83,8 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/split-goldens` | Checks that isolated type-error cases retain their original source lines and import fixtures |
 | `tools/ship` | Runs the fake ship: `dev` (boot, create, mount and sync an application directory), `start`, `stop`, `status`, `log`, `sync <desk>`, `assemble --out <dir>` (no ship needed), `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
 | `tools/test-js` | Runs the JavaScript Core reader, literal, runtime, code-generation, and entry-linker tests under Node |
-| `tools/test-js-differential` | Runs the shared hand-written corpus in JavaScript and the integrated Hoon Core library, comparing canonical nouns and crashes. `--core-lib PATH` selects another Core implementation for compatibility checks |
+| `tools/test-js-differential` | Runs the shared hand-written corpus in JavaScript and the Hoon Core interpreter, comparing canonical nouns and crashes. The JavaScript reader supplies the AST, which the harness translates directly to Hoon `expr`; `--core-lib PATH` selects another interpreter |
+| `tools/bench-js` | Compares generated JavaScript with the iterative Nock interpreter on identical Core, checking nouns before reporting separate emission and execution timings. Supports `--case`, `--warmups`, `--iterations`, and `--json` |
 | `tools/testdata/selftest` | Tests `tools/golden` and `tools/hoon` against a stub library, `tools/test-arms` against the stub library with suites it writes, and `tools/doc-blocks` against Markdown it writes |
 | `tools/testdata/ship-selftest` | Tests `tools/ship`'s test generator and runner against a stub library on the ship |
 

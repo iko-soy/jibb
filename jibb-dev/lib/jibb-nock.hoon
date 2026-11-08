@@ -14,10 +14,10 @@
 ::
 ::  Lexical references contain static axes. A let puts its value at axis 2.
 ::  A closure captures its whole current subject at axis 7 and its sample at
-::  axis 6. A rec group is a core whose battery contains one gate-building
-::  arm per function. Each resulting gate captures [rec-core outer-subject]
-::  at axis 7, so recursive arms are available at axis 14 and captured outer
-::  bindings at axis 15. No cyclic runtime noun is required.
+::  axis 6. A rec group is a finite core of gate-building arm formulas. Its
+::  complete battery is right-nested beneath axis 2. Each resulting gate captures
+::  [rec-core outer-subject] at axis 7, so recursive arms use core axis 14 and
+::  captured outer bindings use axis 15. No cyclic runtime noun is required.
 ::
 /+  jibb-core
 |%
@@ -55,19 +55,18 @@
   ^-  noun
   ?-  -.ref
     %local  [0 axis.ref]
-    %arm    [7 [9 2 0 core.ref] 0 arm.ref]
+    %arm    [9 arm.ref 0 core.ref]
   ==
 ::
 ++  recursive-environment
   |=  [arms=(list rec-arm:jibb-core) core=@]
   ^-  environment
   =|  out=(list binding)
-  =/  battery=@  ?:((gth (lent arms) 1) 2 1)
+  =/  battery=@  2
   |-
   ?~  arms  (flop out)
-  =/  arm=@  battery
-  =/  rest-battery=@
-    ?~(t.arms battery ?~(t.t.arms +(battery) (peg 3 battery)))
+  =/  arm=@  ?~(t.arms battery (peg battery 2))
+  =/  rest-battery=@  ?~(t.arms battery (peg battery 3))
   $(arms t.arms, battery rest-battery, out [[name.i.arms [%arm arm core]] out])
 ::
 ++  battery-noun
@@ -76,6 +75,12 @@
   ?~  formulas  !!
   ?~  t.formulas  i.formulas
   [i.formulas $(formulas t.formulas)]
+::
+++  rec-core-formula
+  |=  formulas=(list noun)
+  ^-  noun
+  ?~  formulas  !!
+  [[1 (battery-noun formulas)] [0 1]]
 ::
 ++  valid-rec-arms
   |=  arms=(list rec-arm:jibb-core)
@@ -143,7 +148,7 @@
       ?~  arms.e  $(e body.e)
       ?.  (valid-rec-arms arms.e)  [0 0]
       =/  formulas=(list noun)  (rec-battery arms.e arms.e env registry)
-      =/  core=noun  [[1 (battery-noun formulas)] [0 1]]
+      =/  core=noun  (rec-core-formula formulas)
       =/  scope=environment
         (weld (recursive-environment arms.e 2) (shift-environment 3 env))
       [8 core $(e body.e, env scope)]

@@ -375,6 +375,17 @@ fn process_input(
     output: &mut String,
     status: &mut RunStatus,
 ) {
+    let language = match path {
+        Some(path) => match jibb::SourceLanguage::from_path(path) {
+            Ok(language) => language,
+            Err(error) => {
+                eprintln!("jibb fmt: {label}: {error}");
+                status.invalid_source = true;
+                return;
+            }
+        },
+        None => jibb::SourceLanguage::Jibb,
+    };
     let source = match String::from_utf8(bytes) {
         Ok(source) => source,
         Err(error) => {
@@ -385,7 +396,7 @@ fn process_input(
         }
     };
 
-    let formatted = match jibb::format_source(&source) {
+    let formatted = match language.format(&source) {
         Ok(formatted) => formatted,
         Err(error) => {
             eprintln!("jibb fmt: {label}: invalid source: {error}");

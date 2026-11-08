@@ -13,14 +13,14 @@
   ^-  native:jibb-core
   |=  v=value:jibb-core
   ?.  ?=(%atom -.v)  !!
-  [%atom +(val.v)]
+  [[%atom +(val.v)] ~]
 ::
 ++  dec-native
   ^-  native:jibb-core
   |=  v=value:jibb-core
   ?.  ?=(%atom -.v)  !!
   ?:  =(0 val.v)  !!
-  [%atom (dec val.v)]
+  [[%atom (dec val.v)] ~]
 ::
 ++  add-native
   ^-  native:jibb-core
@@ -28,7 +28,7 @@
   ?.  ?=(%cell -.v)  !!
   ?.  ?=(%atom -.hed.v)  !!
   ?.  ?=(%atom -.tal.v)  !!
-  [%atom (add val.hed.v val.tal.v)]
+  [[%atom (add val.hed.v val.tal.v)] ~]
 ::
 ++  fail-native
   ^-  native:jibb-core
@@ -37,32 +37,32 @@
 ::
 ++  apply-interpreted
   |=  [fun=value:jibb-core sample=value:jibb-core]
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?-  -.fun
     ?(%atom %cell)  !!
     %native         (run.fun sample)
     %closure
       =/  env=environment:jibb-core
         [[%value sample.fun sample] env.fun]
-      val:(evaluate-env:jibb-core body.fun env interpreter-registry)
+      (evaluate-env:jibb-core body.fun env interpreter-registry)
   ==
 ::
 ++  turn-native
   ^-  native:jibb-core
   |=  v=value:jibb-core
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?.  ?=(%cell -.v)  !!
   =/  items=value:jibb-core  hed.v
   =/  fun=value:jibb-core  tal.v
   |-
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?:  ?=(%atom -.items)
     ?.  =(0 val.items)  !!
-    [%atom 0]
+    [[%atom 0] ~]
   ?.  ?=(%cell -.items)  !!
-  =/  hed=value:jibb-core  (apply-interpreted fun hed.items)
-  =/  tal=value:jibb-core  $(items tal.items)
-  [%cell hed tal]
+  =/  hed=evaluation:jibb-core  (apply-interpreted fun hed.items)
+  =/  tal=evaluation:jibb-core  $(items tal.items)
+  [[%cell val.hed val.tal] (weld traces.hed traces.tal)]
 ::
 ++  interpreter-registry
   ^-  native-registry:jibb-core
@@ -88,7 +88,7 @@
   =/  parsed=(each expr:jibb-core @t)
     (read-expr:jibb-core src interpreter-registry)
   ?-  -.parsed
-    %|  !!
+    %|  ~|(p.parsed !!)
     %&  p.parsed
   ==
 ::
@@ -96,6 +96,13 @@
   |=  [got=outcome:jibb-core expected=noun]
   ^-  ?
   &(?=(%ok -.got) =(val.got expected))
+::
+++  noun-at
+  |=  [axis=@ value=noun]
+  ^-  noun
+  =/  got  (mock [value [0 axis]] |=(^ ~))
+  ?.  ?=(%0 -.got)  !!
+  p.got
 ::
 ++  agrees
   |=  src=@t
@@ -171,7 +178,9 @@
   =/  bad=(unit @t)  (agreement-error sources)
   ?^  bad  ~[leaf+(trip u.bad)]
   =/  folded=noun  (emit:jibb-nock (parse '(if %.y 42 (crash))') nock-registry)
-  ?.  =(folded [1 42])  ~[leaf+"constant if was not locally simplified"]
+  ?.  =(folded [1 42])  ~[leaf+"constant yes if was not locally simplified"]
+  =/  folded-no=noun  (emit:jibb-nock (parse '(if %.n (crash) 42)') nock-registry)
+  ?.  =(folded-no [1 42])  ~[leaf+"constant no if was not locally simplified"]
   =/  beta=noun
     (emit:jibb-nock (parse '(app (lam x x) 41)') nock-registry)
   ?.  =(beta [8 [1 41] [0 2]])  ~[leaf+"beta rewrite changed strict let structure"]
@@ -196,6 +205,66 @@
       '(app (app (app (lam x (lam y (lam z (app (native add) (cons x (app (native add) (cons y z))))))) 1) 2) 3)'
   ==
 ::
+++  test-nock-recursive-arm-references
+  ^-  tang
+  =/  one=noun
+    (emit:jibb-nock (parse '(rec ((one (lam n 1))) one)') nock-registry)
+  ?.  =((noun-at 7 one) [9 2 0 2])
+    ~[leaf+"singleton rec reference is not direct [9 2 0 2]"]
+  =/  two=noun
+    (emit:jibb-nock (parse '(rec ((one (lam n 1)) (two (lam n 2))) (cons one two))') nock-registry)
+  ?.  =((noun-at 7 two) [[9 4 0 2] [9 5 0 2]])
+    ~[leaf+"two-arm rec references do not use axes 4 and 5"]
+  =/  three=noun
+    (emit:jibb-nock (parse '(rec ((one (lam n 1)) (two (lam n 2)) (three (lam n 3))) (cons one (cons two three)))') nock-registry)
+  ?.  =((noun-at 7 three) [[9 4 0 2] [[9 10 0 2] [9 11 0 2]]])
+    ~[leaf+"three-arm rec references do not use axes 4, 10, and 11"]
+  =/  four=noun
+    (emit:jibb-nock (parse '(rec ((one (lam n 1)) (two (lam n 2)) (three (lam n 3)) (four (lam n 4))) (cons one (cons two (cons three four))))') nock-registry)
+  ?.  =((noun-at 7 four) [[9 4 0 2] [[9 10 0 2] [[9 22 0 2] [9 23 0 2]]]])
+    ~[leaf+"four-arm rec references do not use axes 4, 10, 22, and 23"]
+  =/  nested=expr:jibb-core
+    (parse '(rec ((one (lam n one)) (two (lam n two)) (three (lam n three)) (four (lam n four))) 0)')
+  ?>  ?=(%rec -.nested)
+  =/  formulas=(list noun)
+    (rec-battery:jibb-nock arms.nested arms.nested ~ nock-registry)
+  =/  expected=(list noun)
+    :~  [9 4 0 14]
+        [9 10 0 14]
+        [9 22 0 14]
+        [9 23 0 14]
+    ==
+  |-
+  ?~  formulas
+    ?~(expected ~ ~[leaf+"recursive gate emitted too few arms"])
+  ?~  expected  ~[leaf+"recursive gate emitted too many arms"]
+  ?.  =((noun-at 5 i.formulas) i.expected)
+    ~[leaf+"recursive gate body does not reference its captured core at axis 14"]
+  $(formulas t.formulas, expected t.expected)
+::
+++  test-nock-external-rec-core-layout
+  ^-  tang
+  =/  e=expr:jibb-core
+    (parse '(rec ((one (lam n 1)) (two (lam n 2)) (three (lam n 3))) 0)')
+  =/  core-formula=noun  (noun-at 6 (emit:jibb-nock e nock-registry))
+  =/  made  (mock [0 core-formula] |=(^ ~))
+  ?.  ?=(%0 -.made)  ~[leaf+"rec core construction crashed"]
+  =/  core=noun  p.made
+  =/  payload  (mock [core [0 3]] |=(^ ~))
+  ?.  &(?=(%0 -.payload) =(0 p.payload))  ~[leaf+"rec core payload is not the outer subject at axis 3"]
+  =/  checks=(list [axis=@ expected=@])  ~[[4 1] [10 2] [11 3]]
+  |-
+  ?~  checks  ~
+  =/  armed  (mock [core [9 axis.i.checks 0 1]] |=(^ ~))
+  ?.  ?=(%0 -.armed)
+    ~[leaf+"external Hoon arm invocation crashed" (sell !>(axis.i.checks))]
+  =/  gate=noun  p.armed
+  =/  called
+    (mock [gate [9 2 10 [6 [1 0]] [0 1]]] |=(^ ~))
+  ?.  &(?=(%0 -.called) =(expected.i.checks p.called))
+    ~[leaf+"external Hoon arm returned the wrong result" (sell !>(axis.i.checks))]
+  $(checks t.checks)
+::
 ++  test-nock-recursion
   ^-  tang
   =/  second=@t  '(rec ((even (lam n %.y)) (odd (lam n %.n))) (app odd 0))'
@@ -207,17 +276,17 @@
   ?:  ?=(%crash -.mutual-result)  ~[leaf+"mutual recursion crashed in Nock"]
   ?.  (outcome-is mutual-result [0 1 1 0])
     ~[leaf+"mutual recursion returned the wrong noun" (sell !>(val.mutual-result))]
-  =/  three=@t  '(rec ((one (lam n 1)) (two (lam n 2)) (three (lam n 3))) (cons (app one 0) (cons (app two 0) (app three 0))))'
-  =/  three-formula=noun  (emit:jibb-nock (parse three) nock-registry)
-  =/  three-result=outcome:jibb-core  (run:jibb-nock (parse three) nock-registry)
-  ?:  ?=(%crash -.three-result)  ~[leaf+"three-arm selection crashed" (sell !>(three-formula))]
-  ?.  (outcome-is three-result [1 2 3])  ~[leaf+"three-arm selection returned wrong result" (sell !>(three-formula))]
   %-  report-agreements
   :~  '(rec ((loop (lam n (if (eq n 0) 42 (app loop (app (native dec) n)))))) (app loop 20))'
       mutual
       '(let base 40 (rec ((add-base (lam n (app (native add) (cons base n))))) (app add-base 2)))'
+      '(let base 40 (rec ((count (lam n (if (eq n 0) base (app count (app (native dec) n)))))) (app count 3)))'
       '(rec ((outer (lam n (app (lam m (app (native add) (cons n m))) 2)))) (app outer 40))'
+      '(rec ((outer (lam n (lam m (app (native add) (cons n m)))))) (app (app outer 40) 2))'
+      '(let base 40 (rec ((outer (lam n (lam m (app (native add) (cons base m)))))) (app (app outer 0) 2)))'
+      '(rec ((base (lam n n)) (outer (lam n (lam m (app base m))))) (app (app outer 0) 42))'
       '(rec ((one (lam n (if (eq n 0) 1 (app two (app (native dec) n))))) (two (lam n (if (eq n 0) 2 (app three (app (native dec) n))))) (three (lam n (if (eq n 0) 3 (app one (app (native dec) n)))))) (app one 8))'
+      '(rec ((one (lam n 1)) (two (lam n 2)) (three (lam n 3)) (four (lam n 4))) (cons (app one 0) (cons (app two 0) (cons (app three 0) (app four 0)))))'
       '(rec () 42)'
   ==
 ::
@@ -257,6 +326,23 @@
   ?.  ?=(%crash -.empty-got)  ~[leaf+"spelling manufactured an unregistered native gate"]
   ~
 ::
+++  test-nock-native-fixture-traces
+  ^-  tang
+  =/  source=@t
+    '(app (native turn) (cons (cons 1 (cons 2 ~)) (lam x (trace "callback" (app (native inc) x)))))'
+  =/  e=expr:jibb-core  (parse source)
+  =/  interpreted=execution:jibb-core
+    (run-traced:jibb-core e interpreter-registry)
+  ?.  ?&  ?=(%ok -.out.interpreted)
+          =(val.out.interpreted [2 3 0])
+          =(traces.interpreted ~['callback' 'callback'])
+      ==
+    ~[leaf+"interpreter native fixture lost or reordered callback traces"]
+  =/  compiled=outcome:jibb-core  (run:jibb-nock e nock-registry)
+  ?.  (outcome-is compiled [2 3 0])
+    ~[leaf+"traced higher-order native changed the Nock result"]
+  ~
+::
 ++  test-nock-invalid-runtime-nouns
   ^-  tang
   =/  sources=(list @t)
@@ -278,6 +364,7 @@
         [%var [%own %unbound]]
         [%rec ~[[[%own %bad] [%lit [%ud 1 '1']]]] [%lit [%ud 2 '2']]]
         [%app [%native [%own %missing]] [%lit [%ud 1 '1']]]
+        [%app [%native [%qualified /prelude %inc]] [%lit [%ud 1 '1']]]
     ==
   |-
   ?~  direct  ~
@@ -289,8 +376,16 @@
   ^-  tang
   =/  e=expr:jibb-core  (parse '(trace "hello" 9)')
   =/  formula=noun  (emit:jibb-nock e nock-registry)
-  ?.  ?=([%11 [%slog [%9 %2 %10 [%6 *] *]] *] formula)
-    ~[leaf+"trace is not a dynamic Nock 11 %slog hint"]
+  ?.  =((noun-at 2 formula) 11)  ~[leaf+"trace does not use Nock 11"]
+  ?.  =((noun-at 12 formula) %slog)  ~[leaf+"trace hint is not %slog"]
+  ?.  =((noun-at 7 formula) [1 9])  ~[leaf+"trace changed its body formula"]
+  =/  hint=noun  (noun-at 13 formula)
+  =/  printer=noun  (noun-at 63 hint)
+  ?.  =(hint [9 2 10 [6 [1 'hello']] [1 printer]])
+    ~[leaf+"trace is not the exact dynamic %slog printer application"]
+  =/  clue=outcome:jibb-core  (execute:jibb-nock 0 hint)
+  ?.  (outcome-is clue [0 leaf+(trip 'hello')])
+    ~[leaf+"trace printer did not produce [0 leaf+(trip message)]"]
   =/  got=outcome:jibb-core  (run:jibb-nock e nock-registry)
   ?.  (outcome-is got 9)  ~[leaf+"trace hint did not return its body result"]
   =/  nested=@t  '(trace "first" (trace "second" (app (native inc) 41)))'
@@ -308,6 +403,8 @@
   ?.  =(cons [[1 1] [1 2]])  ~[leaf+"cons did not use autocons"]
   =/  slot=noun  (emit:jibb-nock (parse '(slot 2 (cons 1 2))') nock-registry)
   ?.  =(slot [7 [[1 1] [1 2]] 0 2])  ~[leaf+"slot formula is not composed Nock 0"]
+  =/  whole=noun  (emit:jibb-nock (parse '(slot 1 (cons 1 2))') nock-registry)
+  ?.  =(whole [[1 1] [1 2]])  ~[leaf+"slot 1 did not preserve only its body formula"]
   =/  edit=noun  (emit:jibb-nock (parse '(edit 2 (cons 1 2) 9)') nock-registry)
   ?.  =(edit [10 [2 [1 9]] [[1 1] [1 2]]])  ~[leaf+"edit formula is not Nock 10"]
   =/  cell=noun  (emit:jibb-nock (parse '(cell? 0)') nock-registry)
@@ -315,12 +412,33 @@
   =/  eq=noun  (emit:jibb-nock (parse '(eq 1 1)') nock-registry)
   ?.  =(eq [5 [1 1] [1 1]])  ~[leaf+"eq formula is not Nock 5"]
   =/  conditional=noun  (emit:jibb-nock (parse '(if (eq 1 1) 1 2)') nock-registry)
-  ?.  ?=([%6 * * *] conditional)  ~[leaf+"dynamic if formula is not Nock 6"]
+  ?.  =(conditional [6 [5 [1 1] [1 1]] [1 1] [1 2]])
+    ~[leaf+"dynamic if formula is not exact Nock 6"]
+  =/  inc-gate=noun  (~(got by nock-registry) [%own %inc])
+  =/  add-gate=noun  (~(got by nock-registry) [%own %add])
+  =/  let=noun  (emit:jibb-nock (parse '(let x 40 (app (native inc) x))') nock-registry)
+  ?.  =(let [8 [1 40] [9 2 10 [6 [0 2]] [1 inc-gate]]])
+    ~[leaf+"let value/name are not at Nock 8 and axis 2"]
+  =/  nested=noun
+    (emit:jibb-nock (parse '(let x 40 (let y 2 (app (native add) (cons x y))))') nock-registry)
+  ?.  =(nested [8 [1 40] [8 [1 2] [9 2 10 [6 [[0 6] [0 2]]] [1 add-gate]]]])
+    ~[leaf+"nested let did not shift the captured binding to axis 6"]
+  =/  closure=noun
+    (emit:jibb-nock (parse '(let x 40 (lam y (cons x y)))') nock-registry)
+  ?.  =(closure [8 [1 40] [[1 [[0 14] [0 6]]] [[1 0] [0 1]]]])
+    ~[leaf+"closure sample/capture axes are not 6 and 14"]
   =/  lam=noun  (emit:jibb-nock (parse '(lam x x)') nock-registry)
   ?.  =(lam [[1 [0 6]] [[1 0] [0 1]]])  ~[leaf+"lambda does not construct the documented gate"]
   =/  app=noun  (emit:jibb-nock (parse '(app (native inc) 41)') nock-registry)
-  ?.  ?=([%9 %2 %10 *] app)
-    ~[leaf+"application does not use direct Nock 9/Nock 10 gate invocation"]
+  ?.  =(app [9 2 10 [6 [1 41]] [1 inc-gate]])
+    ~[leaf+"application does not use exact Nock 9/Nock 10 gate invocation"]
+  =/  direct=noun  (emit:jibb-nock (parse '(native inc)') nock-registry)
+  ?.  =(direct [1 inc-gate])  ~[leaf+"native was not emitted as its exact gate constant"]
+  =/  missing=expr:jibb-core  [%native [%own %missing]]
+  ?.  =((emit:jibb-nock missing nock-registry) [0 0])
+    ~[leaf+"unknown native did not emit a crashing formula"]
+  =/  empty=noun  (emit:jibb-nock (parse '(rec () (cons 1 2))') nock-registry)
+  ?.  =(empty [[1 1] [1 2]])  ~[leaf+"empty rec did not emit only its body"]
   =/  crash=noun  (emit:jibb-nock (parse '(crash)') nock-registry)
   ?.  =(crash [0 0])  ~[leaf+"crash formula is not invalid Nock 0"]
   ~

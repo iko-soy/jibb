@@ -70,6 +70,7 @@ Rows dated 2026-11-03 are Montelot's decisions on the [syntax review](../reviews
 | Stages | By kind: pages without data at commit, with data in the host, islands and stores in the browser; never inferred | Decided 2026-10-29 | Yes |
 | Page loading | `load` maps route parameters, `~` for none, to one `ask` or `pure`; pages render per request from a fresh scry of the path, or of its case's scry path; nothing is watched or kept | Decided 2026-10-29 | Yes |
 | Compile targets | Nock on the ship, JavaScript in the browser | Decided | Yes |
+| Browser backend | JavaScript from the core language, selected by the 2026-11-08 comparative harness: generated JavaScript was 83× and 100× faster than the JavaScript Nock interpreter on recursive countdown and tail-sum cases. Full browser and phone benchmarks remain outstanding | Decided 2026-11-08 | No |
 | Optimizer | Basic lowering; holes later | Decided 2026-10-29 | Yes |
 | Island `update` | In the browser; returns the model and a list of commands, which the runtime processes one at a time in list order | Decided 2026-11-02 | No |
 | Island `init` | Takes the page's data, returns the model | Decided 2026-10-29 | Yes |

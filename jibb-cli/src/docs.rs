@@ -1,8 +1,7 @@
 use crate::{
-    Diagnostic,
+    Diagnostic, SourceLanguage,
     ast::{Definition, DefinitionKind, ImportKind, Module},
     loader::{check_path, is_primitive_module_path, resolve_module_path},
-    parse_ast,
 };
 use std::{
     collections::{BTreeMap, VecDeque},
@@ -67,10 +66,12 @@ pub fn generate(
             path: candidate.file.clone(),
             error,
         })?;
-        let syntax = parse_ast(&source).map_err(|error| Error::Diagnostic {
-            path: candidate.file.clone(),
-            error,
-        })?;
+        let syntax = SourceLanguage::from_path(&candidate.file)
+            .and_then(|language| language.parse_ast(&source))
+            .map_err(|error| Error::Diagnostic {
+                path: candidate.file.clone(),
+                error,
+            })?;
         for import in &syntax.imports {
             if let ImportKind::Module { path, .. } = &import.kind
                 && !is_primitive_module_path(path)
@@ -175,15 +176,8 @@ fn discover_input(
         })?;
         discover_directory(&root, &root, pending)
     } else if metadata.is_file() {
-        if input
-            .extension()
-            .is_none_or(|extension| extension != "jibb")
-        {
-            return Err(Error::Invalid(format!(
-                "{}: input file does not have a `.jibb` extension",
-                input.display()
-            )));
-        }
+        SourceLanguage::from_path(input)
+            .map_err(|error| Error::Invalid(format!("{}: {error}", input.display())))?;
         let file = fs::canonicalize(input).map_err(|error| Error::Io {
             path: input.to_path_buf(),
             error,
@@ -224,10 +218,7 @@ fn discover_directory(
         if file_type.is_dir() {
             discover_directory(root, &entry.path(), pending)?;
         } else if (file_type.is_file() || file_type.is_symlink())
-            && entry
-                .path()
-                .extension()
-                .is_some_and(|extension| extension == "jibb")
+            && SourceLanguage::from_path(&entry.path()).is_ok()
             && entry.path().is_file()
         {
             let file = fs::canonicalize(entry.path()).map_err(|error| Error::Io {

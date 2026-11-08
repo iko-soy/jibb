@@ -1,34 +1,21 @@
-::  /lib/jibb-core.hoon: the independent Core language
-::
-::  The fifteen-node Core tree, its canonical S-expression text form, and
-::  the Hoon reference interpreter. This library deliberately has no Ford
-::  runes and no dependency on the surface Jibb parser or checker.
+::  /lib/jibb-core.hoon: independent Core text form and reference interpreter
 ::
 ::  API
-::    +print-expr    expr                         @t
-::    +print-module  module                       @t
-::    +read-expr     [src=@t native-registry]     (each expr @t)
-::    +read-module   [src=@t native-registry]     (each module @t)
-::    +validate-expr [expr native-registry]       (unit @t)
-::    +run           [expr native-registry]       outcome
-::    +run-traced    [expr native-registry]       execution
+::    +print-expr    expr                            @t
+::    +print-module  module                          @t
+::    +read-expr     [src=@t native-registry]        (each expr @t)
+::    +read-module   [src=@t native-registry]        (each module @t)
+::    +validate-expr [expr native-registry]          (unit @t)
+::    +evaluate-env  [expr environment native-registry]  evaluation
+::    +evaluate      [expr native-registry]              evaluation
+::    +apply-value   [value value native-registry]       evaluation
+::    +run-traced    [expr native-registry]              execution
+::    +run           [expr native-registry]              outcome
 ::
-::  Literal text is retained, including separators and its print aura. Names
-::  distinguish own, qualified, and generated identities. A reader recognizes
-::  a native only when its exact name is in the caller's registry; evaluation
-::  also resolves natives only through that registry. There are no built-in
-::  native spellings.
-::
-::  A runtime value is an atom, a cell, a closure, or a native function. The
-::  canonical test outcome is a noun or a crash. Consequently a result which
-::  still contains a function is not a canonical result: apply it to noun
-::  samples before comparing it. Trace cords are returned separately as well
-::  as printed; traces are smoke-test evidence, not canonical outcomes.
-::
-::  Recursive environments are finite. A recursive binding retains its arm
-::  group and parent environment, and lookup makes a closure over a freshly
-::  assembled environment for that same group. This provides mutual recursion
-::  without constructing a cyclic Hoon noun.
+::  Functions are values and may occur in cells, but are not nouns. Recursive
+::  environments are finite frames: looking up a recursive arm makes a closure
+::  over a freshly assembled frame for its group. Native lookup uses only the
+::  explicit registry supplied by the caller.
 ::
 |%
 +$  literal  [aura=@ta val=@ txt=@t]
@@ -66,7 +53,7 @@
       [%closure sample=name body=expr env=environment]
       [%native name=name run=native]
   ==
-+$  native  $-(value value)
++$  native  $-(value evaluation)
 +$  native-registry  (map name native)
 +$  binding
   $~  [%value [%own %x] [%atom 0]]
@@ -110,6 +97,16 @@
   ^-  @t
   (join-text '/' (turn at |=(part=@ta (crip (trip part)))))
 ::
+++  print-axis
+  |=  axis=@
+  ^-  @t
+  =|  rev=tape
+  |-
+  =/  split=[quot=@ rem=@]  (dvr axis 10)
+  =.  rev  [(add '0' rem.split) rev]
+  ?:  =(0 quot.split)  (crip rev)
+  $(axis quot.split)
+::
 ++  print-name
   |=  n=name
   ^-  @t
@@ -136,8 +133,8 @@
     %lit     txt.lit.e
     %var     (print-name name.e)
     %cons    (rap 3 ~['(cons ' (print-expr hed.e) ' ' (print-expr tal.e) ')'])
-    %slot    (rap 3 ~['(slot ' (scot %ud axis.e) ' ' (print-expr body.e) ')'])
-    %edit    (rap 3 ~['(edit ' (scot %ud axis.e) ' ' (print-expr body.e) ' ' (print-expr value.e) ')'])
+    %slot    (rap 3 ~['(slot ' (print-axis axis.e) ' ' (print-expr body.e) ')'])
+    %edit    (rap 3 ~['(edit ' (print-axis axis.e) ' ' (print-expr body.e) ' ' (print-expr value.e) ')'])
     %cell    (rap 3 ~['(cell? ' (print-expr body.e) ')'])
     %eq      (rap 3 ~['(eq ' (print-expr left.e) ' ' (print-expr right.e) ')'])
     %if      (rap 3 ~['(if ' (print-expr test.e) ' ' (print-expr yes.e) ' ' (print-expr no.e) ')'])
@@ -165,7 +162,7 @@
 ++  whitespace
   |=  c=@
   ^-  ?
-  |(=(' ' c) =('\0a' c) =('\09' c) =('\0d' c))
+  |(=(' ' c) =('\0a' c) =('\09' c) =('\0b' c) =('\0c' c) =('\0d' c))
 ::
 ++  comment-start
   |=  cs=tape
@@ -188,6 +185,8 @@
   ?~  cs  [%| 'unterminated string literal']
   ?:  |(=('\0a' i.cs) =('\0d' i.cs))
     [%| 'a string literal must close on its own line']
+  ?:  |((lth i.cs 32) =(127 i.cs))
+    [%| 'unescaped control character in string literal']
   ?:  =('"' i.cs)
     [%& [(crip (flop ['"' rev])) t.cs]]
   ?:  =('\\' i.cs)
@@ -201,7 +200,7 @@
   |=  cs=tape
   ^-  tape
   ?~  cs  ~
-  ?:  =('\0a' i.cs)  cs
+  ?:  |(=('\0a' i.cs) =('\0d' i.cs))  cs
   $(cs t.cs)
 ::
 ++  lex
@@ -384,6 +383,15 @@
   ?:  &((gte c 'a') (lte c 'f'))  `(add 10 (sub c 'a'))
   ~
 ::
+++  pack-bytes
+  |=  bytes=tape
+  ^-  @t
+  =|  out=@t
+  =|  offset=@
+  |-
+  ?~  bytes  out
+  $(bytes t.bytes, out (add out (lsh [3 offset] i.bytes)), offset +(offset))
+::
 ++  read-string
   |=  txt=@t
   ^-  (each literal @t)
@@ -395,11 +403,13 @@
   ?~  rest  [%| 'unterminated string literal']
   ?:  =('"' i.rest)
     ?^  t.rest  [%| 'trailing characters after a string literal']
-    [%& [%t (rap 3 (flop rev)) txt]]
+    [%& [%t (pack-bytes (flop rev)) txt]]
   ?:  =('{' i.rest)
     [%| 'interpolated strings are not Core atom literals']
   ?:  |(=('\0a' i.rest) =('\0d' i.rest))
     [%| 'a string literal must close on its own line']
+  ?:  |((lth i.rest 32) =(127 i.rest))
+    [%| 'unescaped control character in string literal']
   ?.  =('\\' i.rest)
     $(rest t.rest, rev [i.rest rev])
   ?~  t.rest  [%| 'unterminated string escape']
@@ -451,11 +461,6 @@
   ?~  cs  [%| 'empty atom literal']
   ?:  =('"' i.cs)  (read-string txt)
   ?:  =('%' i.cs)  (read-term txt)
-  =/  second=@  ?~(t.cs 0 i.t.cs)
-  ?:  &(=('0' i.cs) |(?=(?(%'b' %'c' %'i' %'w') second)))
-    [%| 'unsupported literal aura in Core']
-  ?:  &(=('~' i.cs) |(?=(?(%'-' %'~' %'0') second)))
-    [%| 'unsupported literal aura in Core']
   =/  tried=(each (like coin) tang)
     (mule |.((nuck:so [[1 1] cs])))
   ?:  ?=(%| -.tried)  [%| 'invalid Core atom literal']
@@ -481,16 +486,23 @@
   ?.  (digit i.cs)  |
   $(cs t.cs)
 ::
+++  decimal-value
+  |=  cs=tape
+  ^-  @
+  =|  out=@
+  |-
+  ?~  cs  out
+  $(cs t.cs, out (add (mul 10 out) (sub i.cs '0')))
+::
 ++  read-axis
   |=  txt=@t
   ^-  (each @ @t)
   =/  cs=tape  (trip txt)
   ?~  cs  [%| 'an axis needs decimal digits']
   ?.  (decimal-digits cs)  [%| 'an axis needs decimal digits']
-  =/  parsed=(unit @)  (slaw %ud txt)
-  ?~  parsed  [%| 'an axis needs decimal digits']
-  ?:  =(0 u.parsed)  [%| 'Core axis 0 is invalid']
-  [%& u.parsed]
+  =/  parsed=@  (decimal-value cs)
+  ?:  =(0 parsed)  [%| 'Core axis 0 is invalid']
+  [%& parsed]
 ::
 ::  Structural conversion. Arity is checked by each node before recursion.
 ::
@@ -644,8 +656,15 @@
   ^-  (unit @t)
   ?^(first first second)
 ::
-++  validate-expr
-  |=  [e=expr registry=native-registry]
+++  name-visible
+  |=  [wanted=name scope=(list name)]
+  ^-  ?
+  ?~  scope  |
+  ?:  =(wanted i.scope)  &
+  $(scope t.scope)
+::
+++  validate-scoped
+  |=  [e=expr registry=native-registry scope=(list name)]
   ^-  (unit @t)
   ?-  -.e
     %lit
@@ -655,45 +674,62 @@
         `'literal text, aura, and value disagree'
       ~
     %var      ?.((valid-name name.e) `'invalid name' ~)
-    %cons     (validation-both (validate-expr hed.e registry) (validate-expr tal.e registry))
+    %cons     (validation-both (validate-scoped hed.e registry scope) (validate-scoped tal.e registry scope))
     %slot
       ?:  =(0 axis.e)  `'Core axis 0 is invalid'
-      (validate-expr body.e registry)
+      (validate-scoped body.e registry scope)
     %edit
       ?:  =(0 axis.e)  `'Core axis 0 is invalid'
-      ?~  a=(validate-expr body.e registry)
-        (validate-expr value.e registry)
+      ?~  a=(validate-scoped body.e registry scope)
+        (validate-scoped value.e registry scope)
       a
-    %cell     (validate-expr body.e registry)
-    %eq       (validation-both (validate-expr left.e registry) (validate-expr right.e registry))
+    %cell     (validate-scoped body.e registry scope)
+    %eq       (validation-both (validate-scoped left.e registry scope) (validate-scoped right.e registry scope))
     %if
-      ?~  a=(validate-expr test.e registry)
-        (validation-both (validate-expr yes.e registry) (validate-expr no.e registry))
+      ?~  a=(validate-scoped test.e registry scope)
+        (validation-both (validate-scoped yes.e registry scope) (validate-scoped no.e registry scope))
       a
     %let
       ?.  (valid-name name.e)  `'invalid binding name'
-      (validation-both (validate-expr value.e registry) (validate-expr body.e registry))
+      =/  bad  (validate-scoped value.e registry scope)
+      ?^  bad  bad
+      ?:  (name-visible name.e scope)  `'binding shadows an enclosing binding'
+      (validate-scoped body.e registry [name.e scope])
     %rec
-      =/  duplicate  (duplicate-name (turn arms.e |=(a=rec-arm name.a)))
+      =/  names=(list name)  (turn arms.e |=(a=rec-arm name.a))
+      =/  duplicate  (duplicate-name names)
       ?^  duplicate  `'duplicate rec binding'
+      =/  check=(list name)  names
       |-
-      ?~  arms.e  (validate-expr body.e registry)
-      ?.  (valid-name name.i.arms.e)  `'invalid rec binding name'
-      ?.  ?=(%lam -.fun.i.arms.e)  `'every rec right side must be a lam'
-      ?~  bad=(validate-expr fun.i.arms.e registry)
-        $(arms.e t.arms.e)
-      bad
+      ?~  check
+        =/  inner=(list name)  (weld names scope)
+        =/  check-arms=(list rec-arm)  arms.e
+        |-
+        ?~  check-arms  (validate-scoped body.e registry inner)
+        ?.  ?=(%lam -.fun.i.check-arms)  `'every rec right side must be a lam'
+        =/  bad  (validate-scoped fun.i.check-arms registry inner)
+        ?^  bad  bad
+        $(check-arms t.check-arms)
+      ?.  (valid-name i.check)  `'invalid rec binding name'
+      ?:  (name-visible i.check scope)  `'rec binding shadows an enclosing binding'
+      $(check t.check)
     %lam
       ?.  (valid-name sample.e)  `'invalid lambda sample name'
-      (validate-expr body.e registry)
-    %app      (validation-both (validate-expr fun.e registry) (validate-expr sample.e registry))
+      ?:  (name-visible sample.e scope)  `'lambda sample shadows an enclosing binding'
+      (validate-scoped body.e registry [sample.e scope])
+    %app      (validation-both (validate-scoped fun.e registry scope) (validate-scoped sample.e registry scope))
     %native
       ?.  (valid-name name.e)  `'invalid native name'
       ?:  (~(has by registry) name.e)  ~
       `'unknown native'
     %crash    ~
-    %trace    (validation-both (validate-expr message.e registry) (validate-expr body.e registry))
+    %trace    (validation-both (validate-scoped message.e registry scope) (validate-scoped body.e registry scope))
   ==
+::
+++  validate-expr
+  |=  [e=expr registry=native-registry]
+  ^-  (unit @t)
+  (validate-scoped e registry ~)
 ::
 ++  read-expr
   |=  [src=@t registry=native-registry]
@@ -721,12 +757,13 @@
   |-
   ?~  ds
     =/  m=module  [p.at (flop defs)]
-    =/  duplicate  (duplicate-name (turn defs.m |=(d=definition name.d)))
+    =/  names=(list name)  (turn defs.m |=(d=definition name.d))
+    =/  duplicate  (duplicate-name names)
     ?^  duplicate  [%| 'duplicate module definition']
     =/  check=(list definition)  defs.m
     |-
     ?~  check  [%& m]
-    =/  bad  (validate-expr value.i.check registry)
+    =/  bad  (validate-scoped value.i.check registry names)
     ?^  bad  [%| u.bad]
     $(check t.check)
   ?.  ?=(%list -.i.ds)  [%| 'a module member must be a def form']
@@ -745,18 +782,19 @@
   =/  root  (parse-root src)
   ?:  ?=(%| -.root)  root
   (module-tree p.root registry)
-::
-::  Runtime noun operations. Functions are not nouns and are never compared
-::  or serialized into a canonical outcome.
+::  Convert a complete value to a noun, rejecting functions at any depth.
 ::
 ++  value-noun
   |=  v=value
   ^-  noun
   ?-  -.v
-    %atom      val.v
-    %cell      [$(v hed.v) $(v tal.v)]
+    %atom                val.v
+    %cell                [$(v hed.v) $(v tal.v)]
     ?(%closure %native)  !!
   ==
+::
+::  Nock axes are arbitrary-precision atoms. cap/mas consume one path bit per
+::  step rather than converting an axis to a machine integer.
 ::
 ++  slot-inner
   |=  [axis=@ v=value]
@@ -810,6 +848,17 @@
     [%recursive name.arm sample.fun.arm body.fun.arm arms parent]
   (weld made parent)
 ::
+++  apply-value
+  |=  [fun=value sample=value registry=native-registry]
+  ^-  evaluation
+  ?-  -.fun
+    ?(%atom %cell)  !!
+    %closure
+      (evaluate-env body.fun [[%value sample.fun sample] env.fun] registry)
+    %native
+      (run.fun sample)
+  ==
+::
 ++  evaluate-env
   |=  [e=expr env=environment registry=native-registry]
   ^-  evaluation
@@ -855,15 +904,8 @@
     %app
       =/  fun  (evaluate-env fun.e env registry)
       =/  sample  (evaluate-env sample.e env registry)
-      ?-  -.val.fun
-        ?(%atom %cell)  !!
-        %closure
-          =/  called
-            (evaluate-env body.val.fun [[%value sample.val.fun val.sample] env.val.fun] registry)
-          called(traces (weld (weld traces.fun traces.sample) traces.called))
-        %native
-          [(run.val.fun val.sample) (weld traces.fun traces.sample)]
-      ==
+      =/  called  (apply-value val.fun val.sample registry)
+      called(traces (weld (weld traces.fun traces.sample) traces.called))
     %native
       =/  found  (~(get by registry) name.e)
       ?~  found  !!
@@ -873,8 +915,8 @@
     %trace
       =/  message  (evaluate-env message.e env registry)
       ?.  ?=(%atom -.val.message)  !!
-      =/  body  (evaluate-env body.e env registry)
       ~&  val.val.message
+      =/  body  (evaluate-env body.e env registry)
       body(traces (weld traces.message [val.val.message traces.body]))
   ==
 ::
@@ -883,16 +925,19 @@
   ^-  evaluation
   (evaluate-env e ~ registry)
 ::
+::  The sole trap is outside both evaluation and canonical noun conversion.
+::  A crash in either phase has the same canonical result.
+::
 ++  run-traced
   |=  [e=expr registry=native-registry]
   ^-  execution
-  =/  tried=(each evaluation tang)
-    (mule |.((evaluate e registry)))
+  =/  tried=(each [val=noun traces=(list @t)] tang)
+    %-  mule
+    |.
+    =/  got=evaluation  (evaluate e registry)
+    [(value-noun val.got) traces.got]
   ?:  ?=(%| -.tried)  [[%crash ~] ~]
-  =/  canonical=(each noun tang)
-    (mule |.((value-noun val.p.tried)))
-  ?:  ?=(%| -.canonical)  [[%crash ~] traces.p.tried]
-  [[%ok p.canonical] traces.p.tried]
+  [[%ok val.p.tried] traces.p.tried]
 ::
 ++  run
   |=  [e=expr registry=native-registry]

@@ -40,24 +40,24 @@
 ::
 ++  atom-native
   |=  [v=value:jibb-core operation=$-(@ @)]
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?.  ?=(%atom -.v)  !!
-  [%atom (operation val.v)]
+  [[%atom (operation val.v)] ~]
 ::
 ++  pair-native
   |=  [v=value:jibb-core operation=$-([@ @] @)]
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?.  ?=(%cell -.v)  !!
   ?.  ?=(%atom -.hed.v)  !!
   ?.  ?=(%atom -.tal.v)  !!
-  [%atom (operation val.hed.v val.tal.v)]
+  [[%atom (operation val.hed.v val.tal.v)] ~]
 ::
 ++  apply-reference
   |=  [fun=value:jibb-core sample=value:jibb-core]
   ^-  evaluation:jibb-core
   ?-  -.fun
     ?(%atom %cell)  !!
-    %native         [(run.fun sample) ~]
+    %native         (run.fun sample)
     %closure
       %:  evaluate-env:jibb-core
         body.fun
@@ -68,33 +68,34 @@
 ::
 ++  turn-native
   |=  v=value:jibb-core
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?.  ?=(%cell -.v)  !!
   =/  items=value:jibb-core  hed.v
   =/  fun=value:jibb-core  tal.v
   |-
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?:  ?=(%atom -.items)
     ?.  =(0 val.items)  !!
-    [%atom 0]
+    [[%atom 0] ~]
   ?.  ?=(%cell -.items)  !!
   =/  called=evaluation:jibb-core  (apply-reference fun hed.items)
-  [%cell val.called $(items tal.items)]
+  =/  rest=evaluation:jibb-core  $(items tal.items)
+  [[%cell val.called val.rest] (weld traces.called traces.rest)]
 ::
 ++  lent-native
   |=  v=value:jibb-core
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   =/  count=@ud  0
   |-
   ?:  ?=(%atom -.v)
     ?.  =(0 val.v)  !!
-    [%atom count]
+    [[%atom count] ~]
   ?.  ?=(%cell -.v)  !!
   $(v tal.v, count +(count))
 ::
 ++  fail-native
   |=  v=value:jibb-core
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   !!
 ::
 ++  reference-registry
@@ -110,9 +111,9 @@
   =.  r  (~(put by r) [%own %fail] fail-native)
   %+  ~(put by r)  [%own %eq]
   |=  v=value:jibb-core
-  ^-  value:jibb-core
+  ^-  evaluation:jibb-core
   ?.  ?=(%cell -.v)  !!
-  [%atom ?:(=((value-noun:jibb-core hed.v) (value-noun:jibb-core tal.v)) 0 1)]
+  [[%atom ?:(=((value-noun:jibb-core hed.v) (value-noun:jibb-core tal.v)) 0 1)] ~]
 ::
 ++  nock-registry
   ^-  native-registry:jibb-nock

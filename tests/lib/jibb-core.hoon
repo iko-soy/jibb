@@ -10,14 +10,14 @@
   ^-  native:jibb-core
   |=  v=value:jibb-core
   ?.  ?=(%atom -.v)  !!
-  [%atom +(val.v)]
+  [[%atom +(val.v)] ~]
 ::
 ++  dec-native
   ^-  native:jibb-core
   |=  v=value:jibb-core
   ?.  ?=(%atom -.v)  !!
   ?:  =(0 val.v)  !!
-  [%atom (dec val.v)]
+  [[%atom (dec val.v)] ~]
 ::
 ++  add-native
   ^-  native:jibb-core
@@ -25,7 +25,7 @@
   ?.  ?=(%cell -.v)  !!
   ?.  ?=(%atom -.hed.v)  !!
   ?.  ?=(%atom -.tal.v)  !!
-  [%atom (add val.hed.v val.tal.v)]
+  [[%atom (add val.hed.v val.tal.v)] ~]
 ::
 ++  fail-native
   ^-  native:jibb-core

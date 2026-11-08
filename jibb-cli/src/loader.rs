@@ -1,5 +1,5 @@
 use crate::{
-    Diagnostic,
+    Diagnostic, SourceLanguage,
     ast::{
         Definition, DefinitionKind, Expr, ExprKind, ImportKind, Module, Mold, MoldKind, Sample,
         SampleKind, Span,
@@ -147,13 +147,13 @@ impl<'a> Loader<'a> {
         let source = fs::read_to_string(&key).map_err(|error| {
             Diagnostic::new(format!("{}: failed to read: {error}", key.display()))
         })?;
-        let module = parse_ast(&source)?;
+        let module = SourceLanguage::from_path(&key)?.parse_ast(&source)?;
         self.link(module, key)
     }
 
     fn load_source(&mut self, source: &str, file: &Path) -> Result<Module, Diagnostic> {
         let key = fs::canonicalize(file).unwrap_or_else(|_| file.to_path_buf());
-        let module = parse_ast(source)?;
+        let module = SourceLanguage::from_path(&key)?.parse_ast(source)?;
         self.link(module, key)
     }
 
