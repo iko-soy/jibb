@@ -8,7 +8,7 @@ As of 2026-11-08. This is the current capability and acceptance table. History a
 | --- | --- | --- |
 | 1 | Parser and mark | Done |
 | 2 | Types and prelude | Done: the general full checker, checked prelude and Hoon importer meet the milestone acceptance criteria under eval, on the fake ship and in the integrated Nix checks |
-| 3 | Core language | In progress: the independent 15-node Core AST, canonical text reader/printer, Hoon reference interpreter, and Hoon Nock emitter have 36 passing eval test arms and 11 interpreter/JavaScript differential outcomes; Nock semantic/trace differential acceptance, checked-artifact capture, lowering, linking, and ship validation remain |
+| 3 | Core language | In progress: the independent 15-node Core AST, canonical text reader/printer, Hoon reference interpreter, Hoon Nock emitter, and isolated trace evaluator have 43 passing eval test arms and 11 interpreter/JavaScript differential outcomes; Nock function-provenance semantics, checked-artifact capture, lowering, linking, and ship validation remain |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
 | 6 | Islands | In progress: the independent JavaScript reader, backend, entry linker, and native runtime are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits checked lowering; the initial benchmark selected generated JavaScript, and the virtual DOM/island loop is implemented with focus-preserving tests. Channel, subscriptions, timers, and poke replies are implemented with mocked transport tests. Store and URL transports are implemented with lifecycle tests. Full browser integration and performance work remain outstanding |
@@ -110,7 +110,7 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Remaining work and open questions
 
-- Milestone 3: Nock semantic/trace differential acceptance, checked-artifact capture, lowering, linking, `proj` lowering, jet recognition, and fake-ship validation. The Core reader/printer, Hoon reference interpreter, and Hoon Nock emitter cover all 15 nodes under eval.
+- Milestone 3: Nock function-provenance semantics, checked-artifact capture, lowering, linking, `proj` lowering, jet recognition, and fake-ship trace/differential validation. The Core reader/printer, Hoon reference interpreter, Hoon Nock emitter, and isolated trace evaluator cover all 15 nodes under eval, including traces before crashes and higher-order native callbacks.
 - Milestone 4: host, routes, static files, rendering, and theme contrast.
 - Milestone 5: per-request host behavior. Static `load` checking is already part of milestone 2.
 - Milestone 6: the JavaScript backend and entry linker proceed independently against hand-written and candidate-lowered Core; checked-lowering integration into `master`, full browser/phone performance validation, and runtime request handling remain. Store and URL transports are implemented with lifecycle tests. Eyre channels, subscriptions, timers, and poke replies are implemented with mocked transport tests. The initial Core benchmark selected generated JavaScript; virtual DOM and the island loop are implemented.

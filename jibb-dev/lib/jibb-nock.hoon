@@ -15,8 +15,7 @@
 ::  Lexical references contain static axes. A let puts its value at axis 2.
 ::  A closure captures its whole current subject at axis 7 and its sample at
 ::  axis 6. A rec group is a finite core of gate-building arm formulas. Its
-::  first arm is at axis 2 for one formula and axis 4 for several; further
-::  formulas are right-nested at axis 7. Each resulting gate captures
+::  complete battery is right-nested beneath axis 2. Each resulting gate captures
 ::  [rec-core outer-subject] at axis 7, so recursive arms use core axis 14 and
 ::  captured outer bindings use axis 15. No cyclic runtime noun is required.
 ::
@@ -67,9 +66,7 @@
   |-
   ?~  arms  (flop out)
   =/  arm=@  ?~(t.arms battery (peg battery 2))
-  =/  rest-battery=@
-    ?~  t.arms  battery
-    ?:(=(2 battery) 7 (peg battery 3))
+  =/  rest-battery=@  ?~(t.arms battery (peg battery 3))
   $(arms t.arms, battery rest-battery, out [[name.i.arms [%arm arm core]] out])
 ::
 ++  battery-noun
@@ -83,11 +80,7 @@
   |=  formulas=(list noun)
   ^-  noun
   ?~  formulas  !!
-  ::  The outer subject is at axis 6. With several arms, axis 2 heads the
-  ::  first formula and axis 7 holds the right-nested remaining formulas.
-  ?~  t.formulas
-    [[1 i.formulas] [[0 1] [1 0]]]
-  [[1 [i.formulas 0]] [[0 1] [1 (battery-noun t.formulas)]]]
+  [[1 (battery-noun formulas)] [0 1]]
 ::
 ++  valid-rec-arms
   |=  arms=(list rec-arm:jibb-core)
@@ -100,7 +93,7 @@
   |=  battery=noun
   ^-  noun
   ::  On the rec core, build [battery [0 [rec-core outer-subject]]].
-  [[1 battery] [[1 0] [[0 1] [0 6]]]]
+  [[1 battery] [[1 0] [[0 1] [0 3]]]]
 ::
 ++  rec-battery
   |=  $:  arms=(list rec-arm:jibb-core)
