@@ -7,7 +7,7 @@
 ::  This generic evaluator is intentionally separate from the production
 ::  emitter and raw mock runner. It retains completed slog messages on crashes.
 ::
-/+  jibb-core, jibb-nock
+/+  jibb-core, jibb-nock, jibb-nock-checked
 |%
 ++  decode-slog-clue
   |=  clue=noun
@@ -225,4 +225,24 @@
   |=  [e=expr:jibb-core registry=native-registry:jibb-nock]
   ^-  execution:jibb-core
   (execute-traced 0 (emit:jibb-nock e registry))
+::
+++  execute-checked-traced
+  |=  [subject=noun formula=noun]
+  ^-  execution:jibb-core
+  =/  result=execution:jibb-core  (evaluate-traced subject formula)
+  =.  traces.result  (flop traces.result)
+  ?:  ?=(%crash -.out.result)  result
+  =/  tried=(each noun tang)
+    %-  mule
+    |.
+    (canonical:jibb-nock-checked val.out.result)
+  ?-  -.tried
+    %|  result(out [%crash ~])
+    %&  result(out [%ok p.tried])
+  ==
+::
+++  run-checked-traced
+  |=  [e=expr:jibb-core registry=native-registry:jibb-nock-checked]
+  ^-  execution:jibb-core
+  (execute-checked-traced 0 (emit:jibb-nock-checked e registry))
 --
