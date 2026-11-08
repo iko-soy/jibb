@@ -9,7 +9,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `jibb-dev/`: what app desks vendor: the `%jibb` mark, the compiler, the partial Hoon type reader and the beginning of the prelude; later the browser library.
 - `jibb-cli/`: the native Rust `jibb` executable and its tree-sitter grammar, for earth-side utilities.
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
-- `js/`: the independent Core-to-JavaScript backend, entry linker, native runtime, Nock comparison backend, virtual DOM/island loop, Eyre channel/effects, and Node/differential tests; store/URL and full browser integration come later.
+- `js/`: the independent Core-to-JavaScript backend, entry linker, native runtime, Nock comparison backend, virtual DOM/island loop, Eyre channel/effects, shared stores, URL runtime, and Node/differential tests; full browser integration comes later.
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
 - `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and in `clay-fixtures/`, the threads `tools/clay-fixtures` runs and, in `clay-fixtures/desk/`, the Hoon files the `jibb-fixtures` desk adds to `my-app`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
