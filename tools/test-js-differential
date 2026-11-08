@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+"""Differentially run the shared Core fixtures in JavaScript and Hoon.
+
+    tools/test-js-differential
+    tools/test-js-differential --core-lib /path/to/jibb-core.hoon
+
+JavaScript runs its fixture test directly. One tools/hoon invocation then
+reads and runs every source with exactly its declared native registry. The
+canonical comparison is a noun or a crash; reader failures remain distinct.
+No surface-language or Rust evaluator participates in this check.
+"""
+
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+TOOLS = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, TOOLS)
+
+import urbit_eval as ue  # noqa: E402
+
+ROOT = os.path.dirname(TOOLS)
+FIXTURE = os.path.join(ROOT, 'js', 'test', 'fixtures', 'hand-written.json')
+NATIVE_BITS = {'add': 1, 'sub': 2, 'apply-twice': 4}
+
+
+class FixtureError(Exception):
+    pass
+
+
+def noun_text(value):
+    """Return the same unambiguous noun encoding as the Hoon harness."""
+    if not isinstance(value, dict) or len(value) != 1:
+        raise FixtureError('expected one atom or cell key: %r' % (value,))
+    if 'atom' in value:
+        atom = value['atom']
+        if not isinstance(atom, str) or not atom.isascii() or not atom.isdigit():
+            raise FixtureError('atom must be a nonnegative decimal string: %r' % atom)
+        return str(int(atom))
+    cell = value['cell']
+    if not isinstance(cell, list) or len(cell) != 2:
+        raise FixtureError('cell must contain exactly two nouns: %r' % (cell,))
+    return '(%s %s)' % (noun_text(cell[0]), noun_text(cell[1]))
+
+
+def load_cases():
+    with open(FIXTURE, encoding='utf-8') as f:
+        fixture = json.load(f)
+    if fixture.get('version') != 1 or not isinstance(fixture.get('cases'), list):
+        raise FixtureError('%s: expected version 1 and a cases list' % FIXTURE)
+    cases = []
+    names = set()
+    for index, case in enumerate(fixture['cases'], 1):
+        if not isinstance(case, dict):
+            raise FixtureError('case %d is not an object' % index)
+        name = case.get('name')
+        source = case.get('source')
+        natives = case.get('natives')
+        if not isinstance(name, str) or not name or name in names:
+            raise FixtureError('case %d has a missing or duplicate name' % index)
+        if not isinstance(source, str):
+            raise FixtureError('%s: source must be a string' % name)
+        if not isinstance(natives, list) or any(not isinstance(n, str) for n in natives):
+            raise FixtureError('%s: natives must be a list of names' % name)
+        unknown = sorted(set(natives) - set(NATIVE_BITS))
+        if unknown:
+            raise FixtureError('%s: no Hoon native registry for %s'
+                               % (name, ', '.join(unknown)))
+        flags = 0
+        for native in natives:
+            flags |= NATIVE_BITS[native]
+        outcome = case.get('outcome')
+        if outcome == {'crash': True}:
+            expected = 'crash'
+        else:
+            try:
+                expected = 'ok ' + noun_text(outcome)
+            except FixtureError as e:
+                raise FixtureError('%s: %s' % (name, e)) from e
+        names.add(name)
+        cases.append((name, source, flags, expected))
+    if not cases:
+        raise FixtureError('%s: no cases' % FIXTURE)
+    return cases
+
+
+def hoon_expression(cases):
+    # The registry flags are not native dispatch: they only select which
+    # explicitly defined gates are installed. Callback invocation uses the
+    # same registry, including apply-twice itself, as the enclosing run.
+    head = r"""=<  report
+|%
+++  empty-registry
+  ^-  native-registry
+  *(map name native)
+::
+++  add-native
+  ^-  native
+  |=  v=value
+  ?.  ?=(%cell -.v)  !!
+  ?.  ?=(%atom -.hed.v)  !!
+  ?.  ?=(%atom -.tal.v)  !!
+  [%atom (add val.hed.v val.tal.v)]
+::
+++  sub-native
+  ^-  native
+  |=  v=value
+  ?.  ?=(%cell -.v)  !!
+  ?.  ?=(%atom -.hed.v)  !!
+  ?.  ?=(%atom -.tal.v)  !!
+  ?:  (lth val.hed.v val.tal.v)  !!
+  [%atom (sub val.hed.v val.tal.v)]
+::
+++  call-value
+  |=  [fun=value sample=value flags=@]
+  ^-  value
+  ?-  -.fun
+    ?(%atom %cell)  !!
+    %closure
+      val:(evaluate-env body.fun [[%value sample.fun sample] env.fun] (registry flags))
+    %native
+      (run.fun sample)
+  ==
+::
+++  apply-twice-native
+  |=  flags=@
+  ^-  native
+  |=  v=value
+  ?.  ?=(%cell -.v)  !!
+  =/  once=value  (call-value hed.v tal.v flags)
+  (call-value hed.v once flags)
+::
+++  registry
+  |=  flags=@
+  ^-  native-registry
+  =/  r=native-registry  empty-registry
+  =.  r
+    ?:  =(0 (mod flags 2))  r
+    (~(put by r) [%own %add] add-native)
+  =.  r
+    ?:  =(0 (mod (div flags 2) 2))  r
+    (~(put by r) [%own %sub] sub-native)
+  =.  r
+    ?:  =(0 (mod (div flags 4) 2))  r
+    (~(put by r) [%own %apply-twice] (apply-twice-native flags))
+  r
+::
+++  noun-text
+  |=  n=noun
+  ^-  @t
+  ?@  n  (crip (skip (trip (scot %ud n)) |=(c=@ =(c '.'))))
+  (rap 3 ~['(' $(n -.n) ' ' $(n +.n) ')'])
+::
+++  source-outcome
+  |=  [src=@t flags=@]
+  ^-  @t
+  =/  reg=native-registry  (registry flags)
+  =/  parsed=(each expr @t)  (read-expr src reg)
+  ?:  ?=(%| -.parsed)  (rap 3 ~['reader-error ' p.parsed])
+  =/  got=outcome  (run p.parsed reg)
+  ?-  -.got
+    %crash  'crash'
+    %ok     (rap 3 ~['ok ' (noun-text val.got)])
+  ==
+::
+++  report
+  ^-  @t
+  %-  of-wain:format
+  :~
+"""
+    rows = ['      (source-outcome %s %d)'
+            % (ue.cord_literal(source.encode('utf-8')), flags)
+            for _, source, flags, _ in cases]
+    return head + '\n'.join(rows) + '\n  ==\n--\n'
+
+
+def run(argv, **kwargs):
+    return subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, **kwargs)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('--core-lib', default='jibb-dev/lib/jibb-core.hoon',
+                    metavar='PATH', help='Hoon Core library (default: %(default)s)')
+    ap.add_argument('--timeout', type=float, default=600, metavar='SECONDS',
+                    help='Hoon eval timeout (default: %(default)s)')
+    opts = ap.parse_args(argv)
+    core = os.path.abspath(opts.core_lib)
+    if not os.path.isfile(core):
+        print('error: Hoon Core library is absent: %s' % opts.core_lib,
+              file=sys.stderr)
+        return 2
+    try:
+        cases = load_cases()
+    except (OSError, ValueError, FixtureError) as e:
+        print('error: cannot load shared fixtures: %s' % e, file=sys.stderr)
+        return 2
+
+    with open(core, 'rb') as f:
+        digest = hashlib.sha256(f.read()).hexdigest()
+    print('Core library: %s' % ue.display_path(core))
+    print('SHA256: %s' % digest)
+
+    js = run(['node', '--test', 'test/fixtures.test.mjs'], cwd=os.path.join(ROOT, 'js'))
+    if js.returncode:
+        print('error: JavaScript shared fixture evaluation failed:', file=sys.stderr)
+        print(js.stdout, file=sys.stderr)
+        return 1
+    print('JavaScript: %d shared cases passed' % len(cases))
+
+    cmd = [os.path.join(ROOT, 'tools', 'hoon'), '--lib', core, '--raw',
+           '--timeout', str(opts.timeout), '-f', '-']
+    try:
+        hoon = run(cmd, cwd=ROOT, input=hoon_expression(cases),
+                   timeout=opts.timeout + 30)
+    except subprocess.TimeoutExpired:
+        print('error: Hoon differential batch timed out', file=sys.stderr)
+        return 1
+    if hoon.returncode:
+        print('error: Hoon differential batch failed:', file=sys.stderr)
+        print(hoon.stdout, file=sys.stderr)
+        return 1
+
+    actual = hoon.stdout.splitlines()
+    if len(actual) != len(cases):
+        print('error: Hoon returned %d outcomes for %d cases'
+              % (len(actual), len(cases)), file=sys.stderr)
+        print(hoon.stdout, file=sys.stderr)
+        return 1
+
+    mismatches = 0
+    for (name, source, _, expected), got in zip(cases, actual):
+        if got == expected:
+            print('MATCH %s: %s' % (name, got))
+            continue
+        mismatches += 1
+        print('MISMATCH %s\n  source:   %s\n  expected: %s\n  Hoon:     %s'
+              % (name, source, expected, got))
+    print('Hoon: %d/%d outcomes matched' % (len(cases) - mismatches, len(cases)))
+    return 1 if mismatches else 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(130)

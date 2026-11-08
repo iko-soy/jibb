@@ -82,7 +82,8 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
 | `tools/split-goldens` | Checks that isolated type-error cases retain their original source lines and import fixtures |
 | `tools/ship` | Runs the fake ship: `dev` (boot, create, mount and sync an application directory), `start`, `stop`, `status`, `log`, `sync <desk>`, `assemble --out <dir>` (no ship needed), `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
-| `tools/test-js` | Runs the JavaScript Core reader, literal, runtime, and code-generation tests under Node |
+| `tools/test-js` | Runs the JavaScript Core reader, literal, runtime, code-generation, and entry-linker tests under Node |
+| `tools/test-js-differential` | Runs the shared hand-written corpus in JavaScript and a selected Hoon Core library, comparing canonical nouns and crashes. `--core-lib PATH` selects a parallel candidate until the reference library is in `master`; it is not yet a registered check |
 | `tools/testdata/selftest` | Tests `tools/golden` and `tools/hoon` against a stub library, `tools/test-arms` against the stub library with suites it writes, and `tools/doc-blocks` against Markdown it writes |
 | `tools/testdata/ship-selftest` | Tests `tools/ship`'s test generator and runner against a stub library on the ship |
 
