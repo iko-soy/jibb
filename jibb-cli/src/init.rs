@@ -297,5 +297,11 @@ Check the frontend's canonical formatting from this directory:
 jibb fmt --check ui/index.jibb ui/api/@NAME@.jibb
 ```
 
-Install this directory as an Urbit desk in a development environment that provides the Jibb compiler, its prelude, and the standard `%base` libraries. The Jibb browser runtime is still under development.
+Boot a fake ship, create and mount the desk, and synchronize this application with one command:
+
+```sh
+jibb dev --pill /path/to/brass.pill
+```
+
+The pier lives in `.jibb/zod`. After the first run, synchronize changes with `jibb dev`; no pill is needed. The Jibb browser runtime is still under development.
 "#;

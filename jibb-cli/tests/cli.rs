@@ -106,6 +106,83 @@ fn init_refuses_to_overwrite_or_use_an_invalid_desk_name() {
     assert!(!invalid.exists());
 }
 
+#[cfg(unix)]
+#[test]
+fn dev_invokes_the_complete_ship_workflow_and_propagates_failures() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let tool = directory.path().join("ship-tool");
+    let arguments = directory.path().join("arguments");
+    fs::write(
+        &tool,
+        "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$JIBB_TEST_ARGS\"\nexit \"${JIBB_TEST_STATUS:-0}\"\n",
+    )
+    .expect("write fake ship tool");
+    let mut permissions = fs::metadata(&tool)
+        .expect("ship tool metadata")
+        .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(&tool, permissions).expect("make ship tool executable");
+    let project = directory.path().join("counter-app");
+
+    let result = jibb()
+        .args(["dev", "--ship-tool"])
+        .arg(&tool)
+        .args(["--pier", "/pier", "--click", "/click", "--timeout", "42"])
+        .args([
+            "--desk",
+            "counter",
+            "--pill",
+            "/boot.pill",
+            "--urbit",
+            "/urbit",
+        ])
+        .arg(&project)
+        .env("JIBB_TEST_ARGS", &arguments)
+        .output()
+        .expect("run development workflow");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        fs::read_to_string(&arguments).expect("read forwarded arguments"),
+        format!(
+            "--pier\n/pier\n--click\n/click\ndev\n--timeout\n42\n--desk\ncounter\n--pill\n/boot.pill\n--urbit\n/urbit\n{}\n",
+            project.display()
+        )
+    );
+
+    let result = jibb()
+        .args(["dev", "--ship-tool"])
+        .arg(&tool)
+        .arg(&project)
+        .env("JIBB_TEST_ARGS", &arguments)
+        .output()
+        .expect("run development workflow with defaults");
+    assert!(result.status.success());
+    assert_eq!(
+        fs::read_to_string(&arguments).expect("read default arguments"),
+        format!(
+            "--pier\n{}\ndev\n--timeout\n600\n{}\n",
+            project.join(".jibb/zod").display(),
+            project.display()
+        )
+    );
+
+    let result = jibb()
+        .args(["dev", "--ship-tool"])
+        .arg(&tool)
+        .arg(&project)
+        .env("JIBB_TEST_ARGS", &arguments)
+        .env("JIBB_TEST_STATUS", "7")
+        .output()
+        .expect("propagate development workflow failure");
+    assert_eq!(result.status.code(), Some(7));
+}
+
 #[test]
 fn formats_standard_input() {
     let mut child = jibb()

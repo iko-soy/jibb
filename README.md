@@ -35,10 +35,12 @@ Limits: the ship checks need Linux, since `tools/ship` finds the ship's processe
 
 ## Earth-side CLI
 
-The Rust executable needs neither a ship nor `urbit`. Build it with `nix build .#jibb`, or run it from a Rust toolchain with `cargo run --manifest-path jibb-cli/Cargo.toml -- <arguments>`.
+The source utilities need neither a ship nor `urbit`; `dev` is the exception. Build the executable with `nix build .#jibb`, or run it from a Rust toolchain with `cargo run --manifest-path jibb-cli/Cargo.toml -- <arguments>`. The Nix package includes the ship helper, its Python/Urbit/click runtime dependencies, and the Jibb desk dependencies.
 
 ```
 jibb init DIRECTORY        # create a Hoon agent and Jibb frontend project
+jibb dev DIRECTORY --pill PILL  # boot a fake ship, create/mount/sync the desk
+jibb dev DIRECTORY         # start its existing pier and sync the desk again
 jibb fmt FILE...          # format files in place
 jibb fmt                  # read standard input and write standard output
 jibb fmt --check FILE...  # report files that would change; exit 1
@@ -56,6 +58,8 @@ jibb docs PATH... -o DIR      # write module documentation and readme.md under D
 ```
 
 `init` creates a counter application in a new or empty directory. The desk name comes from the directory's final component and must be a lowercase Hoon term. The template includes a Gall agent, shared `/sur` types and `/mar` marks, an agent API module, a Jibb island, and desk metadata. It refuses to overwrite a nonempty directory.
+
+`dev` performs the complete local setup in one command: it boots a fake `~zod` when the pier is absent (or starts an existing pier), creates the desk if needed, mounts it, mirrors the application over the standard Jibb/vendor dependencies, commits it, and verifies the result. Its default pier is `DIRECTORY/.jibb/zod`; `--pier` selects another, and `--desk` overrides the directory-derived desk name. A new pier needs `--pill`; subsequent runs do not. The ship remains running. `--urbit`, `--click`, and `--timeout` customize the runtime, while `--ship-tool` or `$JIBB_SHIP_TOOL` selects a ship helper outside the normal repository or installed-package locations. A root `README.md` and dotfiles such as `.jibb/` stay earth-side.
 
 Formatting follows the canonical style in `docs/spec/grammar.md`. Invalid source is not written. `check` parses, links and statically checks source without evaluating it, reporting all requested files' errors and producing no output on success. `run` evaluates the supported pure fragment only after static checking; unsupported language features report errors rather than executing unchecked code. Both commands resolve `/=` imports from `--source-root` directories, and `--prelude` links an optional source prelude. `cargo test --manifest-path jibb-cli/Cargo.toml` runs the CLI, parser, formatter, static-checker and runtime tests, including the repository's golden corpus when run from a checkout.
 
@@ -141,10 +145,13 @@ Jibb is under the MIT licence, in [LICENSE](LICENSE). Two kinds of files in it a
 
 ## Fake ship
 
+For an application directory, `jibb dev DIRECTORY --pill brass.pill` performs the whole initial setup and leaves the fake ship running. Run `jibb dev DIRECTORY` after later source changes.
+
 `tools/ship` runs the desks on a fake `~zod` at `/root/urbit/zod` (`--pier` or `$JIBB_PIER`). It needs Python 3 and click (`/root/src/tools/pkg/click/click`, or `--click`). The ship runs in the background, logging to `/root/urbit/zod.log`.
 
 ```
-tools/ship start                # start it and wait until it's live
+tools/ship dev . --pill brass.pill  # the same complete workflow for the current app
+tools/ship start                # start an existing pier and wait until it's live
 tools/ship status               # running or not; desks, revisions, mounts
 tools/ship log                  # the end of its log
 tools/ship stop

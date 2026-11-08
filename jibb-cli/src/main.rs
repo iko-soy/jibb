@@ -36,6 +36,33 @@ enum Command {
         #[arg(value_name = "DIRECTORY", help = "New or empty project directory")]
         directory: PathBuf,
     },
+    #[command(about = "Boot a fake ship and synchronize an application desk")]
+    Dev {
+        #[arg(
+            value_name = "DIRECTORY",
+            default_value = ".",
+            help = "Application desk directory"
+        )]
+        directory: PathBuf,
+        #[arg(long, help = "Desk name (defaults to the directory name)")]
+        desk: Option<String>,
+        #[arg(long, help = "Pier path (defaults to DIRECTORY/.jibb/zod)")]
+        pier: Option<PathBuf>,
+        #[arg(long, help = "Boot pill, required when the pier does not exist")]
+        pill: Option<PathBuf>,
+        #[arg(long, help = "Urbit binary used to boot a new pier")]
+        urbit: Option<PathBuf>,
+        #[arg(long, help = "Click executable, or use JIBB_CLICK")]
+        click: Option<PathBuf>,
+        #[arg(long, help = "Ship helper, or use JIBB_SHIP_TOOL")]
+        ship_tool: Option<PathBuf>,
+        #[arg(
+            long,
+            default_value_t = 600,
+            help = "Seconds to wait for boot and commit"
+        )]
+        timeout: u64,
+    },
     #[command(about = "Statically check Jibb source without evaluating it")]
     Check {
         #[arg(
@@ -106,6 +133,25 @@ fn main() -> ExitCode {
     match cli.command {
         Command::Fmt { check, diff, files } => run_fmt(&files, check, diff),
         Command::Init { directory } => run_init(&directory),
+        Command::Dev {
+            directory,
+            desk,
+            pier,
+            pill,
+            urbit,
+            click,
+            ship_tool,
+            timeout,
+        } => run_dev(jibb::dev::DevOptions {
+            directory,
+            desk,
+            pier,
+            pill,
+            urbit,
+            click,
+            ship_tool,
+            timeout,
+        }),
         Command::Check {
             files,
             source_roots,
@@ -134,6 +180,22 @@ fn run_init(directory: &Path) -> ExitCode {
         }
         Err(error) => {
             eprintln!("jibb init: {error}");
+            ExitCode::from(EXIT_TOOL)
+        }
+    }
+}
+
+fn run_dev(options: jibb::dev::DevOptions) -> ExitCode {
+    match jibb::dev::run(&options) {
+        Ok(status) if status.success() => ExitCode::from(EXIT_SUCCESS),
+        Ok(status) => ExitCode::from(
+            status
+                .code()
+                .and_then(|code| u8::try_from(code).ok())
+                .unwrap_or(EXIT_TOOL),
+        ),
+        Err(error) => {
+            eprintln!("jibb dev: {error}");
             ExitCode::from(EXIT_TOOL)
         }
     }

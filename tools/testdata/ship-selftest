@@ -527,6 +527,64 @@ def generator_checks(tmp):
         check(label + ' runs only its generated golden tests',
               tests == expected, sorted(tests))
 
+    app = os.path.join(tmp, 'application')
+    os.makedirs(os.path.join(app, 'app'))
+    os.makedirs(os.path.join(app, 'ui'))
+    os.makedirs(os.path.join(app, '.jibb'))
+    for rel, data in {
+        'app/application.hoon': '|%  ++  on-init  !!  --\n',
+        'desk.bill': '~\n',
+        'README.md': 'earth-side documentation\n',
+        'sys.kelvin': '[%zuse 408]\n',
+        'ui/index.jibb': '++ main view\n++ view (text "hello")\n',
+        '.jibb/ignored': 'not a desk file\n',
+    }.items():
+        with open(os.path.join(app, rel), 'w') as f:
+            f.write(data)
+    application = ship.assemble_app(app, 'application')
+    check('application assembly overlays Jibb dependencies and ignores local files',
+          {'app/application.hoon', 'desk.bill', 'sys.kelvin', 'ui/index.jibb',
+           'lib/jibb.hoon', 'mar/jibb.hoon'} <= set(application.files) and
+          'README.md' not in application.files and
+          not any(path.startswith('.jibb/') for path in application.files))
+    missing_pier = ship.Ship(os.path.join(tmp, 'missing-zod'), None, ship.CLICK)
+    try:
+        missing_pier.boot(None, 1)
+        boot_error = None
+    except ship.Unable as error:
+        boot_error = str(error)
+    check('booting a missing pier explains that a pill is required',
+          boot_error is not None and '--pill FILE' in boot_error, boot_error)
+
+    pill = os.path.join(tmp, 'brass.pill')
+    urbit = os.path.join(tmp, 'urbit')
+    for path in (pill, urbit):
+        with open(path, 'w') as f:
+            f.write('fixture\n')
+    os.chmod(urbit, 0o755)
+    boot_calls = []
+    class InitialBoot:
+        pid = 12345
+        def wait(self, timeout=None):
+            boot_calls.append(('wait', timeout))
+            return 0
+    def initial_popen(arguments, **kwargs):
+        boot_calls.append(('popen', arguments, kwargs))
+        return InitialBoot()
+    booting = ship.Ship(os.path.join(tmp, 'new-zod'), None, ship.CLICK)
+    booting.start = lambda timeout: boot_calls.append(('start', timeout))
+    original_popen = ship.subprocess.Popen
+    ship.subprocess.Popen = initial_popen
+    try:
+        booting.boot(pill, 12, urbit=urbit)
+    finally:
+        ship.subprocess.Popen = original_popen
+    boot_arguments = next(call[1] for call in boot_calls if call[0] == 'popen')
+    check('a new pier boots to completion and is then started in the background',
+          boot_arguments[:3] == [os.path.realpath(urbit), '-F', 'zod'] and
+          '-x' in boot_arguments and ('wait', 12) in boot_calls and
+          ('start', 12) in boot_calls, boot_calls)
+
     clash = os.path.join(tmp, 'clash')
     for case in ('a.b', 'a_b', 'a-b', 'Upper', 'has space'):
         write_case(clash, case, b'++ x\n')

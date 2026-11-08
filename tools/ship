@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run the Jibb desks on a fake ship: start it, sync desks, run the tests.
 
+    tools/ship dev [DIR]             boot, create, mount and sync an app
     tools/ship start                 start the fake ship in the background
     tools/ship stop                  stop it
     tools/ship status                running or not; desks, revisions, mounts
@@ -380,6 +381,53 @@ class Ship:
         say('starting the ship at %s (pid %d), logging to %s'
             % (self.pier, proc.pid, self.log))
         self.wait_live(time.time() + timeout, proc, 0)
+
+    def boot(self, pill, timeout, urbit=None):
+        """Start this pier, booting a fake ~zod first when it is absent."""
+        if self.running() or os.path.isdir(os.path.join(self.pier, '.urb')):
+            self.start(timeout)
+            return
+        if not pill:
+            raise Unable('no pier at %s; give --pill FILE to boot a fake ~zod'
+                         % self.pier)
+        pill = os.path.realpath(pill)
+        if not os.path.isfile(pill):
+            raise Unable('no boot pill at %s' % pill)
+        if urbit:
+            binary = os.path.realpath(urbit)
+            if not os.access(binary, os.X_OK):
+                raise Unable('no executable urbit binary at %s' % binary)
+        else:
+            binary = find_urbit(self.pier)
+        parent = os.path.dirname(self.pier)
+        os.makedirs(parent, exist_ok=True)
+        if os.path.exists(self.log) and os.path.getsize(self.log):
+            os.replace(self.log, self.log + '.1')
+        offset = self.log_size()
+        logf = open(self.log, 'ab')
+        logf.write(('tools/ship: booting %s -F zod -B %s -t -x -c %s at %s\n'
+                    % (binary, pill, self.pier,
+                       datetime.datetime.now().isoformat(timespec='seconds'))).encode())
+        logf.flush()
+        proc = subprocess.Popen(
+            [binary, '-F', 'zod', '-B', pill, '-t', '-x', '-c', self.pier],
+            stdin=subprocess.DEVNULL, stdout=logf, stderr=subprocess.STDOUT,
+            cwd=parent, start_new_session=True)
+        logf.close()
+        say('booting a fake ~zod at %s (pid %d), logging to %s'
+            % (self.pier, proc.pid, self.log))
+        try:
+            status = proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            raise Unable('the initial boot did not finish in %ds; see %s'
+                         % (timeout, self.log))
+        if status:
+            tail = '\n'.join(self.log_since(offset)[-30:])
+            raise Unable('the initial boot exited with status %d; the end of '
+                         'its log:\n%s' % (status, tail))
+        self.start(timeout)
 
     def wait_live(self, deadline, proc, offset):
         """Wait for the pier to say it's live and for a thread to run."""
@@ -945,6 +993,22 @@ def assemble(desk, lib=None, golden=None):
             raise Unable('desk %s has no lib/jibb.hoon to replace' % desk)
         with open(lib, 'rb') as f:
             a.replace('lib/jibb.hoon', f.read(), show(lib))
+    check_assembly(a)
+    return a
+
+
+def assemble_app(source, desk):
+    """An application directory over the same Jibb dependencies as my-app."""
+    source = os.path.realpath(source)
+    if not os.path.isdir(source):
+        raise Unable('no application folder %s' % show(source))
+    a = Assembly(desk)
+    vendor = os.path.join(ROOT, 'vendor')
+    for pkg in sorted(os.listdir(vendor)):
+        if os.path.isdir(os.path.join(vendor, pkg)) and not pkg.startswith('.'):
+            a.add_tree(os.path.join(vendor, pkg), '')
+    a.add_tree(os.path.join(ROOT, 'jibb-dev'), '', skip=['tests'])
+    a.add_tree(source, '', drop=lambda rel: rel == 'README.md')
     check_assembly(a)
     return a
 
@@ -1654,7 +1718,7 @@ def verify(ship, desk, files):
     problems = []
     extra = sorted(set(desk_files) - set(by_path))
     for pax in extra:
-        problems.append('%s is on the desk but not in the repo' % pax)
+        problems.append('%s is on the desk but not in the source' % pax)
     converted = {path_text(p): ok == 0 for p, ok in items(conv_res)}
     for pax, rel in sorted(by_path.items()):
         data, src = files[rel]
@@ -1678,17 +1742,15 @@ def verify(ship, desk, files):
 
 
 def sync(ship, desk, lib=None, golden=None, timeout=60, quiet=False):
-    """Assemble a desk, copy it into its mount and |commit; the revision.
+    """Assemble one of the repo's desks and synchronize it."""
+    return sync_assembly(ship, assemble(desk, lib=lib, golden=golden),
+                         timeout=timeout, quiet=quiet)
 
-    The desk is checked against the repo first: when they already match
-    there's nothing to commit.  Files on the desk that the repo doesn't
-    have are deleted through Clay first, since a |commit deletes only
-    the files vere has seen in the mount, and vere forgets them when
-    the ship restarts.  Then the commit runs in a thread that waits for
-    the new revision, or for Clay's error.
-    """
+
+def sync_assembly(ship, a, timeout=60, quiet=False):
+    """Create and mount a desk, mirror an assembly and verify its commit."""
     started = time.time()
-    a = assemble(desk, lib=lib, golden=golden)
+    desk = a.desk
     ship.require()
     mount = ensure_desk(ship, desk, quiet=quiet)
     rev, problems, extra = verify(ship, desk, a.files)
@@ -1705,14 +1767,14 @@ def sync(ship, desk, lib=None, golden=None, timeout=60, quiet=False):
         rev, problems, _ = verify(ship, desk, a.files)
         if problems:
             raise Fail('%s: after |commit, at revision %d, the desk still '
-                       "doesn't match the repo:\n  %s"
+                       "doesn't match the source:\n  %s"
                        % (desk, rev, '\n  '.join(problems[:20])))
         what = '; '.join(done)
     else:
         what = 'nothing to commit: already at revision %d' % rev
     if not quiet:
         say('%s: %d files; copied +%d ~%d -%d; %s; the desk matches the '
-            'repo (%.1fs)' % (desk, len(a.files), len(added), len(changed),
+            'source (%.1fs)' % (desk, len(a.files), len(added), len(changed),
                               len(deleted), what, time.time() - started))
     return rev
 
@@ -1980,6 +2042,15 @@ def cmd_sync(ship, args):
     lib = STUB if args.stub else args.lib
     for desk in args.desks:
         sync(ship, desk, lib=lib, golden=args.golden, timeout=args.timeout)
+
+
+def cmd_dev(ship, args):
+    source = os.path.realpath(args.directory)
+    desk = desk_term(args.desk or os.path.basename(source))
+    a = assemble_app(source, desk)
+    ship.boot(args.pill, args.timeout, urbit=args.urbit)
+    sync_assembly(ship, a, timeout=args.timeout)
+    say('%s: application is synchronized and the ship is running' % desk)
 
 
 def cmd_assemble(ship, args):
@@ -2543,6 +2614,14 @@ def main(argv):
     sub = ap.add_subparsers(dest='command', metavar='command')
     sub.required = True
 
+    p = sub.add_parser('dev', help='boot a ship and synchronize an application')
+    p.add_argument('directory', nargs='?', default='.',
+                   help='application desk directory (default: current directory)')
+    p.add_argument('--desk', help='desk name (default: directory name)')
+    p.add_argument('--pill', help='boot pill, needed only for a new pier')
+    p.add_argument('--urbit', help='urbit binary for booting a new pier')
+    p.add_argument('--timeout', type=int, default=600,
+                   help='seconds to wait for boot and commit (default: %(default)s)')
     p = sub.add_parser('start', help='start the ship in the background')
     p.add_argument('--timeout', type=int, default=600)
     p = sub.add_parser('stop', help='stop the ship')
@@ -2633,6 +2712,7 @@ def main(argv):
     args = ap.parse_args(argv)
     ship = Ship(args.pier, args.log, args.click)
     handlers = {
+        'dev': lambda: cmd_dev(ship, args),
         'start': lambda: ship.start(args.timeout),
         'stop': lambda: ship.stop(args.timeout, args.force),
         'status': lambda: cmd_status(ship, args),

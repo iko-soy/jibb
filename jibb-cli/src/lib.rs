@@ -1,5 +1,6 @@
 pub mod ast;
 pub mod check;
+pub mod dev;
 pub mod docs;
 mod eval;
 mod formatter;

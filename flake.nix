@@ -147,6 +147,20 @@
             version = "0.1.0";
             src = cliSource;
             cargoLock.lockFile = ./jibb-cli/Cargo.lock;
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            postInstall = ''
+              mkdir -p $out/share/jibb/tools
+              install -m755 ${./tools/ship} $out/share/jibb/tools/ship
+              install -m644 ${./tools/golden_case.py} $out/share/jibb/tools/golden_case.py
+              install -m644 ${./tools/prelude_groups.py} $out/share/jibb/tools/prelude_groups.py
+              cp -r ${./vendor} $out/share/jibb/vendor
+              cp -r ${./jibb-dev} $out/share/jibb/jibb-dev
+              chmod -R u+w $out/share/jibb
+              rm -rf $out/share/jibb/jibb-dev/tests
+              wrapProgram $out/share/jibb/tools/ship \
+                --prefix PATH : ${lib.makeBinPath [ python3 urbit ]} \
+                --set-default JIBB_CLICK ${lib.getExe click}
+            '';
             meta = {
               description = "The Jibb command-line interface";
               mainProgram = "jibb";

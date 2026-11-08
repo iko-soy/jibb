@@ -81,7 +81,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/bench-check` | Measures full checking of a generated 2,000-definition chain in both source orders with `tools/hoon --no-debug`, plus startup; `--lines` changes its size. It snapshots the library for the run. |
 | `tools/doc-blocks` | Checks the doc's `jibb` blocks against the `doc-*` golden cases: `tools/doc-blocks docs/spec` |
 | `tools/split-goldens` | Checks that isolated type-error cases retain their original source lines and import fixtures |
-| `tools/ship` | Runs the fake ship: `start`, `stop`, `status`, `log`, `sync <desk>`, `assemble --out <dir>` (no ship needed), `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
+| `tools/ship` | Runs the fake ship: `dev` (boot, create, mount and sync an application directory), `start`, `stop`, `status`, `log`, `sync <desk>`, `assemble --out <dir>` (no ship needed), `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
 | `tools/testdata/selftest` | Tests `tools/golden` and `tools/hoon` against a stub library, `tools/test-arms` against the stub library with suites it writes, and `tools/doc-blocks` against Markdown it writes |
 | `tools/testdata/ship-selftest` | Tests `tools/ship`'s test generator and runner against a stub library on the ship |
 
