@@ -111,12 +111,12 @@
         '42'
         '1.000'
         '12.345.678.901.234.567.890.123.456.789.012.345.678.901.234.567.890'
-        '12345678901234567890123456789012345678901234567890'
         '0xdead.beef.0123.4567.89ab.cdef'
         '0x1.0000.0000.0000.0000.0000.0000.0000.0001'
+        '0v0'
         '0v5.fdf99'
         '0v1.00000.00000.00000.00000.00000.00000.00000.00001'
-        '0v123456789abcdefghijklmno'
+        '0v1234.56789.abcde.fghij.klmno'
         '""'
         '"milk"'
         '"Unicode: 😀 λ"'
@@ -136,6 +136,8 @@
         '~'
         '~zod'
         '~2026.11.8..01.02.03'
+        '~0.1.1'
+        '~1-.1.1'
         '~s30'
         '~h1.m30'
         '~.my-post'
@@ -145,8 +147,8 @@
   =/  cases=(list [src=@t aura=@ta val=@])
     :~  ['1.000' %ud 1.000]
         ['12.345.678.901.234.567.890.123.456.789.012.345.678.901.234.567.890' %ud 12.345.678.901.234.567.890.123.456.789.012.345.678.901.234.567.890]
-        ['12345678901234567890123456789012345678901234567890' %ud 12.345.678.901.234.567.890.123.456.789.012.345.678.901.234.567.890]
         ['0xdead.beef' %ux 0xdead.beef]
+        ['0v0' %uv 0]
         ['0v10' %uv 32]
         ['0v5.fdf99' %uv 0v5.fdf99]
         ['0v1.00000.00000.00000.00000.00000.00000.00000.00001' %uv 0v1.00000.00000.00000.00000.00000.00000.00000.00001]
@@ -164,6 +166,8 @@
         ['~' %n 0]
         ['~zod' %p ~zod]
         ['~2026.11.8..01.02.03' %da ~2026.11.8..01.02.03]
+        ['~0.1.1' %da ~1-.1.1]
+        ['~1-.1.1' %da ~1-.1.1]
         ['~h1.m30' %dr ~h1.m30]
         ['~.my-post' %ta 'my-post']
     ==
@@ -241,6 +245,12 @@
   =/  crlf-parsed=(each expr:jibb-core @t)  (read-expr:jibb-core crlf registry)
   ?:  ?=(%| -.crlf-parsed)  ~[leaf+"CRLF comments or whitespace failed"]
   ?.  =('(cons 1 2)' (print-expr:jibb-core p.crlf-parsed))  ~[leaf+"CRLF changed the expression"]
+  =/  vertical=(each expr:jibb-core @t)  (read-expr:jibb-core '(cons 1\0b2)' registry)
+  ?:  ?=(%| -.vertical)  ~[leaf+"vertical tab did not separate tokens"]
+  ?.  =('(cons 1 2)' (print-expr:jibb-core p.vertical))  ~[leaf+"vertical tab changed the expression"]
+  =/  feed=(each expr:jibb-core @t)  (read-expr:jibb-core '(cons 1\0c2)' registry)
+  ?:  ?=(%| -.feed)  ~[leaf+"form feed did not separate tokens"]
+  ?.  =('(cons 1 2)' (print-expr:jibb-core p.feed))  ~[leaf+"form feed changed the expression"]
   ~
 ::
 ++  test-core-arbitrary-precision-axes
@@ -304,7 +314,10 @@
         '(let Bad 1 2)'  '(lam _bad-name body)'  '(native missing!)'
         '0b101'  '0c3'  '0i9'  '0w9'  '~~cord'  '~0v1'
         '0v'  '0v.'  '0v1.'  '0v.1'  '0v1..2'  '0vw'  '0v1w'
-        '%bad_name'  '%.maybe'  '%01'  '%0x10'
+        '0v00'  '0v01'  '0v0.000'  '0v00.000'  '0v123456789abcdefghijklmno'
+        '%bad_name'  '%.maybe'  '%01'  '%0x10'  '%1000'
+        '00'  '01'  '1000'  '12345678901234567890123456789012345678901234567890'
+        '1.00'  '1.0000'  '1.'  '1..000'  '1.000.00'
     ==
   =/  wrong  (rejection-error bad 'malformed name or literal accepted')
   ?^  wrong  ~[leaf+(trip u.wrong)]

@@ -162,7 +162,7 @@
 ++  whitespace
   |=  c=@
   ^-  ?
-  |(=(' ' c) =('\0a' c) =('\09' c) =('\0d' c))
+  |(=(' ' c) =('\0a' c) =('\09' c) =('\0b' c) =('\0c' c) =('\0d' c))
 ::
 ++  comment-start
   |=  cs=tape
@@ -454,32 +454,6 @@
   ?.  (valid-jname-tape rest)  [%| 'invalid term literal']
   [%& [%tas (crip rest) txt]]
 ::
-++  base32-digit
-  |=  c=@
-  ^-  (unit @ud)
-  ?:  &((gte c '0') (lte c '9'))  `(sub c '0')
-  ?:  &((gte c 'a') (lte c 'v'))  `(add 10 (sub c 'a'))
-  ~
-::
-++  read-base32
-  |=  txt=@t
-  ^-  (each literal @t)
-  =/  cs=tape  (trip txt)
-  ?.  ?=([%'0' %'v' *] cs)  [%| 'invalid base32 literal']
-  =/  rest=tape  t.t.cs
-  =|  out=@
-  =|  last=@ud
-  |-
-  ?~  rest
-    ?:  =(1 last)  [%& [%uv out txt]]
-    [%| 'invalid base32 literal']
-  ?:  =('.' i.rest)
-    ?:  |(=(0 last) =(2 last))  [%| 'invalid base32 literal']
-    $(rest t.rest, last 2)
-  =/  digit=(unit @ud)  (base32-digit i.rest)
-  ?~  digit  [%| 'invalid base32 literal']
-  $(rest t.rest, out (add (mul 32 out) u.digit), last 1)
-::
 ++  read-literal
   |=  txt=@t
   ^-  (each literal @t)
@@ -487,13 +461,6 @@
   ?~  cs  [%| 'empty atom literal']
   ?:  =('"' i.cs)  (read-string txt)
   ?:  =('%' i.cs)  (read-term txt)
-  ?:  ?=([%'0' %'v' *] cs)  (read-base32 txt)
-  =/  second=@  ?~(t.cs 0 i.t.cs)
-  ?:  &(=('0' i.cs) |(?=(?(%'b' %'c' %'i' %'w') second)))
-    [%| 'unsupported literal aura in Core']
-  ?:  &(=('~' i.cs) |(?=(?(%'-' %'~' %'0') second)))
-    [%| 'unsupported literal aura in Core']
-  ?:  (decimal-digits cs)  [%& [%ud (decimal-value cs) txt]]
   =/  tried=(each (like coin) tang)
     (mule |.((nuck:so [[1 1] cs])))
   ?:  ?=(%| -.tried)  [%| 'invalid Core atom literal']

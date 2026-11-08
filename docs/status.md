@@ -8,7 +8,7 @@ As of 2026-11-08. This is the current capability and acceptance table. History a
 | --- | --- | --- |
 | 1 | Parser and mark | Done |
 | 2 | Types and prelude | Done: the general full checker, checked prelude and Hoon importer meet the milestone acceptance criteria under eval, on the fake ship and in the integrated Nix checks |
-| 3 | Core language | In progress: the independent 15-node Core AST and Hoon reference interpreter have 13 passing eval test arms; the Core text form, Nock backend, checked-artifact capture, lowering, linking, and ship validation remain |
+| 3 | Core language | In progress: the independent 15-node Core AST, canonical text reader/printer, and Hoon reference interpreter have 25 passing eval test arms and 11 matching JavaScript differential outcomes; the Nock backend, checked-artifact capture, lowering, linking, and ship validation remain |
 | 4 | Host and static pages: the first release | Not started |
 | 5 | Published pages | Not started |
 | 6 | Islands | In progress: the independent JavaScript reader, backend, entry linker, and native runtime are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits checked lowering, and the benchmark decision and browser runtime remain outstanding |
@@ -110,7 +110,7 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Remaining work and open questions
 
-- Milestone 3: the Core reader/printer, Nock backend, checked-artifact capture, lowering, linking, `proj` lowering, jet recognition, and fake-ship validation. The Hoon reference interpreter covers all 15 nodes under eval.
+- Milestone 3: the Nock backend, checked-artifact capture, lowering, linking, `proj` lowering, jet recognition, and fake-ship validation. The Core reader/printer and Hoon reference interpreter cover all 15 nodes under eval.
 - Milestone 4: host, routes, static files, rendering, and theme contrast.
 - Milestone 5: per-request host behavior. Static `load` checking is already part of milestone 2.
 - Milestone 6: the JavaScript backend and entry linker proceed independently against hand-written and candidate-lowered Core; checked-lowering integration into `master`, the browser-backend benchmark decision, browser runtime, and runtime request handling remain.
