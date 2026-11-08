@@ -13,6 +13,7 @@ export class Island {
     container,
     document,
     dispatchCommand,
+    onUpdate = () => {},
     onCrash = () => {},
   }) {
     if (!program || typeof program.init !== 'function'
@@ -27,6 +28,7 @@ export class Island {
     this.container = container;
     this.document = document;
     this.dispatchCommand = dispatchCommand;
+    this.onUpdate = onUpdate;
     this.onCrash = onCrash;
     this.queue = [];
     this.processing = false;
@@ -51,6 +53,7 @@ export class Island {
       this.container.appendChild(this.node);
       this.active = true;
       syncControls(this.node, this.vnode);
+      this.onUpdate(this);
       return this;
     } catch (error) {
       this.fail(error);
@@ -85,6 +88,7 @@ export class Island {
       this.model = next;
       syncControls(this.node, this.vnode);
       this.runCommands(commands);
+      this.onUpdate(this);
       return;
     }
 
@@ -97,6 +101,7 @@ export class Island {
     this.vnode = vnode;
     this.node = node;
     this.runCommands(commands);
+    this.onUpdate(this);
   }
 
   runCommands(commands) {
