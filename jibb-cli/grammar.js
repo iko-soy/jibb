@@ -372,7 +372,7 @@ module.exports = grammar({
       ),
     ),
 
-    tuple: $ => seq('[', $._closed_item, repeat($._closed_item), ']'),
+    tuple: $ => seq('[', repeat($._closed_item), ']'),
 
     open_tuple: $ => seq(
       '[',

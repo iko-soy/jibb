@@ -121,7 +121,15 @@ fn evaluates_private_native_primitives() {
 
     let source =
         "+$ list |$ [A]\n  ~\n  [i=A t=(list A)]\n++ main (raw-tuba.core (raw-trip.core \"hi\"))\n";
-    assert_eq!(noun(source), atom(2));
+    assert_eq!(noun(source), cell(atom(104), cell(atom(105), atom(0))));
+    assert_eq!(
+        noun("++ main (raw-crip.core (raw-trip.core \"hi\"))\n"),
+        Rc::new(Noun::Atom(BigUint::from_bytes_le(b"hi")))
+    );
+    assert_eq!(
+        noun("++ main (raw-tufa.core (raw-tuba.core (raw-trip.core \"hé\")))\n"),
+        noun("++ main (raw-trip.core \"hé\")\n")
+    );
 
     let module = parse_ast("++ main (raw-dec.core 0)\n").unwrap();
     assert!(evaluate(&module, "main").is_err());

@@ -19,6 +19,14 @@ fn empty_and_whitespace_only_files_have_no_output() {
 }
 
 #[test]
+fn trailing_blank_lines_do_not_change_layout_decisions() {
+    check(
+        "++ count |= value=@t\n  lent (tuba (trip value))\n\n\n",
+        "++  count  |=  value=@t  lent (tuba (trip value))\n",
+    );
+}
+
+#[test]
 fn invalid_syntax_is_rejected_without_output() {
     let error = format_source("++ broken [a\n").unwrap_err();
     assert!(error.contains("invalid Jibb syntax"), "{error}");

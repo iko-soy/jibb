@@ -45,6 +45,7 @@ impl Unifier {
                 let Some(binding) = self.bindings.get(variable).cloned() else {
                     return typ.clone();
                 };
+
                 let resolved = self.resolve(&binding);
                 self.bindings.insert(*variable, resolved.clone());
                 resolved
@@ -137,6 +138,23 @@ impl Unifier {
                 .with_note("explicit type variable", rigid.span))
             }
             (_, Type::Var(variable)) if self.rigid.contains_key(variable) => {
+                let loobean = matches!(left, Type::Flag | Type::LoobeanConstant(_));
+                if matches!(
+                    left,
+                    Type::Atom(_)
+                        | Type::AnyAtom
+                        | Type::Constant(_)
+                        | Type::NumericTerm(_)
+                        | Type::LoobeanConstant(_)
+                        | Type::Flag
+                ) && (!loobean
+                    || !self.has_constraint(*variable, ConstraintKind::ArithmeticAtom))
+                {
+                    if !self.has_atom_constraint(*variable) {
+                        self.constrain_variable(*variable, ConstraintKind::Atom, span);
+                    }
+                    return Ok(Type::Var(*variable));
+                }
                 let rigid = self.rigid[variable].clone();
                 Err(Diagnostic::at(
                     format!(

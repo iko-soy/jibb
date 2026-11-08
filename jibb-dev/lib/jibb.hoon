@@ -7172,6 +7172,51 @@
 +$  iwstep  [name=term axis=@ud]
 +$  iwidth-result  [steps=(list iwstep) sub=isub next=@ud]
 +$  iwprojection  [at=span original=expr source=itype target=itype steps=(list iwstep) quantified=(list @ud)]
+::  Checked-module evidence is captured only for the lowering entry point.
+::  Spans and occurrence roles form stable source-local identities; lexical
+::  owners are the immediate definition names used by the full checker.
++$  lowering-occurrence-role  ?(%expression %sample %pattern)
++$  lowering-occurrence-id  [at=span role=lowering-occurrence-role]
++$  lowering-occurrence  [id=lowering-occurrence-id owner=term typ=itype]
++$  lowering-binder  [id=lowering-occurrence-id owner=term name=term definition=lowering-definition typ=itype axis=@ud]
+  +$  lowering-definition
+  $%  [%local name=term at=span]
+      [%own at=path name=term]
+      [%prelude at=path name=term]
+      [%import at=path name=term]
+      [%module at=path names=(list term)]
+  ==
++$  lowering-derived
+  $%  [%poke at=path agent=term mark=term]
+      [%request evidence=irequest-evidence]
+      [%store-poke at=path name=term]
+      [%store-request evidence=istore-request-evidence]
+  ==
++$  lowering-reference-target
+  $%  [%resolved definition=lowering-definition]
+      [%local-or-own name=term]
+  ==
++$  lowering-reference-request  [id=lowering-occurrence-id owner=term target=lowering-reference-target]
+::  Native and intrinsic identities come only from the authenticated
+::  prelude/private registry. Derived plans retain their checked declaration
+::  evidence, so lowering never reconstructs them from a source spelling.
++$  lowering-reference
+  [id=lowering-occurrence-id owner=term definition=lowering-definition native=(unit term) intrinsic=(unit term) derived=(unit lowering-derived)]
++$  lowering-wing-request  [id=lowering-occurrence-id owner=term names=(list term) subject=itype fields=(list term)]
++$  lowering-wing  [id=lowering-occurrence-id owner=term names=(list term) subject=itype steps=(list iwstep)]
++$  lowering-edit-request  [at=span owner=term names=(list term) target=itype]
++$  lowering-edit  [at=span owner=term names=(list term) target=itype steps=(list iwstep)]
++$  lowering-scc  [scope=(unit span) owner=term members=(list term)]
++$  lowering-match-arm  [at=span pattern=lowering-occurrence-id value=lowering-occurrence-id]
++$  lowering-match
+  [id=lowering-occurrence-id owner=term subject=itype domain=domain:coverage graph=bindings:coverage matrix=matrix:coverage arms=(list lowering-match-arm) refinements=(list lowering-binder)]
++$  lowering-projection  [id=lowering-occurrence-id owner=term plan=iwprojection]
++$  lowering-evidence
+  [occurrences=(list lowering-occurrence) binders=(list lowering-binder) references=(list lowering-reference-request) wings=(list lowering-wing-request) edits=(list lowering-edit-request) components=(list lowering-scc) matches=(list lowering-match)]
++$  checked-module
+  [at=path source=module kind=checked-kind interface=ifile imports=(list [face=term at=path]) occurrences=(list lowering-occurrence) binders=(list lowering-binder) references=(list lowering-reference) wings=(list lowering-wing) edits=(list lowering-edit) components=(list lowering-scc) matches=(list lowering-match) projections=(list lowering-projection) natives=(list term) derived=(list [name=term plan=lowering-derived])]
++$  jlowering-cache  (list [at=path artifact=checked-module])
++$  jlowering-result  (each [root=checked-module cache=jlowering-cache kind=checked-kind] jfile-failure)
 ++  width-scan
   |=  [typ=itype sub=isub axis=@ud fuel=@ud]
   ^-  (unit iwfields)
@@ -7374,7 +7419,56 @@
 ::  A fresh inference state starts in the conservative legacy mode. Hoon's
 ::  ordinary ? mold bunts to &, so give opt-in modes an explicit | bunt.
 +$  iflag  $~(| ?)
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) level=@ud levels=(map @ud @ud) registered=@ud globals-imports=iflag general-defer=iflag queue=(list icore-edge) owner=term core-error=(unit [owner=term diag=idiag]) indexed-sub=isub sub-index=(map @ud itype) sub-counts=(map @ud (list @ud)) wake=(unit iwake) diagnostic-sources=(list [at=path source=@t]) local-source=(unit @t) error-tag-site=(unit span) error-display-owner=(unit term) mold-captures=imold-captures tagged-actuals=(map @ud [actual=itype sub=isub]) tagged-sources=(map span [actual=itype sub=isub])]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) level=@ud levels=(map @ud @ud) registered=@ud globals-imports=iflag general-defer=iflag queue=(list icore-edge) owner=term core-error=(unit [owner=term diag=idiag]) indexed-sub=isub sub-index=(map @ud itype) sub-counts=(map @ud (list @ud)) wake=(unit iwake) diagnostic-sources=(list [at=path source=@t]) local-source=(unit @t) error-tag-site=(unit span) error-display-owner=(unit term) mold-captures=imold-captures tagged-actuals=(map @ud [actual=itype sub=isub]) tagged-sources=(map span [actual=itype sub=isub]) lowering=iflag lowering-own=(list term) lowering-occurrences=(list lowering-occurrence) lowering-binders=(list lowering-binder) lowering-references=(list lowering-reference-request) lowering-wings=(list lowering-wing-request) lowering-edits=(list lowering-edit-request) lowering-components=(list lowering-scc) lowering-matches=(list lowering-match) lowering-suppress=(list lowering-occurrence-id)]
+++  lowering-record-occurrence
+  |=  [at=span role=lowering-occurrence-role typ=itype state=istate]
+  ^-  istate
+  ?.  lowering.state  state
+  ?:  (lien lowering-suppress.state |=(id=lowering-occurrence-id =(id [at role])))
+    state
+  =/  entry=lowering-occurrence  [[at role] owner.state typ]
+  state(lowering-occurrences [entry lowering-occurrences.state])
+++  lowering-record-binder
+  |=  [at=span role=lowering-occurrence-role name=term typ=itype axis=@ud state=istate]
+  ^-  istate
+  ?.  lowering.state  state
+  =/  entry=lowering-binder  [[at role] owner.state name [%local name at] typ axis]
+  state(lowering-binders [entry lowering-binders.state])
+++  lowering-record-reference
+  |=  [at=span target=lowering-reference-target state=istate]
+  ^-  istate
+  ?.  lowering.state  state
+  =/  entry=lowering-reference-request  [[at %expression] owner.state target]
+  state(lowering-references [entry lowering-references.state])
+++  lowering-record-wing
+  |=  [at=span names=(list term) subject=itype fields=(list term) state=istate]
+  ^-  istate
+  ?.  lowering.state  state
+  =/  entry=lowering-wing-request  [[at %expression] owner.state names subject fields]
+  state(lowering-wings [entry lowering-wings.state])
+++  lowering-record-edit
+  |=  [entry=edit target=itype state=istate]
+  ^-  istate
+  ?.  lowering.state  state
+  =/  captured=lowering-edit-request  [at.entry owner.state names.entry target]
+  state(lowering-edits [captured lowering-edits.state])
+++  lowering-record-components
+  |=  [scope=(unit span) components=icomponents state=istate]
+  ^-  istate
+  ?.  lowering.state  state
+  =/  captured=(list lowering-scc)
+    (turn components |=(members=(list term) [scope owner.state members]))
+  state(lowering-components (weld captured lowering-components.state))
+++  lowering-record-match
+  |=  [e=expr subject=itype domain=domain:coverage graph=bindings:coverage matrix=matrix:coverage state=istate]
+  ^-  istate
+  ?.  lowering.state  state
+  ?>  ?=(%branch -.e)
+  =/  arms=(list lowering-match-arm)
+    (turn arms.e |=(a=arm [at.a [at.pat.a %pattern] [(span-of val.a) %expression]]))
+  =/  entry=lowering-match
+    [[at.e %expression] owner.state subject domain graph matrix arms ~]
+  state(lowering-matches [entry lowering-matches.state])
 +$  idsite  $%([at=span note=tape] [%external file=path source=@t at=span note=tape])
 +$  idiag  [msg=tape sites=(list idsite)]
 +$  iresult  (each [typ=itype state=istate] idiag)
@@ -10321,7 +10415,11 @@
 ++  infer-sample
   |=  [s=sample env=ienv state=istate]
   ^-  isample-result
-  ?-  -.s
+  (infer-sample-at s env state 1)
+++  infer-sample-at
+  |=  [s=sample env=ienv state=istate axis=@ud]
+  ^-  isample-result
+  =/  result=isample-result  ?-  -.s
     %bind
       ?:  |((reserved-name name.s) ?=(^ (ienv-lookup name.s env)) (lien globals.state |=(x=term =(x name.s))))
         [%| "sample shadows a name"]
@@ -10349,17 +10447,30 @@
     %pun
       $(s [%face at.s name.s [%ref at.s ~[name.s]]])
     %cell
-      (infer-sample-items items.s env state)
+      (infer-sample-items items.s env state axis)
   ==
+  ?:  ?=(%| -.result)  result
+  =/  st=istate  (lowering-record-occurrence at.s %sample typ.p.result state.p.result)
+  =/  binder-name=(unit term)
+    ?-  -.s
+      %bind  `name.s
+      %face  `name.s
+      %pun   `name.s
+      *      ~
+    ==
+  =?  st  ?=(^ binder-name)
+    (lowering-record-binder at.s %sample u.binder-name typ.p.result axis st)
+  [%& typ.p.result env.p.result st]
 ::
 ::  Cell-sample binders are faces on their positions; at the top of a
 ::  sample a binder only supplies a name for the whole sample.
 ::
 ++  infer-sample-items
-  |=  [items=(list sample) env=ienv state=istate]
+  |=  [items=(list sample) env=ienv state=istate axis=@ud]
   ^-  isample-result
   ?~  items  [%| "empty sample is not supported by partial inference"]
-  =/  head=isample-result  (infer-sample i.items env state)
+  =/  at-axis=@ud  ?~(t.items axis (mul 2 axis))
+  =/  head=isample-result  (infer-sample-at i.items env state at-axis)
   ?:  ?=(%| -.head)  head
   =/  ht=itype  typ.p.head
   =.  ht
@@ -10370,7 +10481,8 @@
       *      ht
     ==
   ?~  t.items  [%& ht env.p.head state.p.head]
-  =/  tail=isample-result  $(items t.items, env env.p.head, state state.p.head)
+  =/  tail-axis=@ud  +((mul 2 axis))
+  =/  tail=isample-result  $(items t.items, env env.p.head, state state.p.head, axis tail-axis)
   ?:  ?=(%| -.tail)  tail
   [%& [%cell ht typ.p.tail] env.p.tail state.p.tail]
 ::
@@ -11235,6 +11347,13 @@
   =/  remaining=(list term)  ?~(iface fields t.fields)
   =/  all-fields=(list term)  remaining
   =/  typ=itype  typ.u.inst
+  =/  target=lowering-reference-target
+    ?^  iface  [%resolved [%import at.u.iface i.fields]]
+    ?:  ?=(^ (ienv-lookup i.reverse env))  [%local-or-own i.reverse]
+    ?~  prelude.state  [%local-or-own i.reverse]
+    [%resolved [%prelude at.u.prelude.state i.reverse]]
+  =.  state.u.inst  (lowering-record-reference site target state.u.inst)
+  =.  state.u.inst  (lowering-record-wing site names typ.u.inst remaining state.u.inst)
   |-
   ?~  remaining  [%& typ state.u.inst]
   =/  found=(list itype)  (record-fields-named i.remaining typ sub.state.u.inst)
@@ -11246,6 +11365,38 @@
   ?^  t.found  [%| ["field name is ambiguous in partial inference" ~]]
   $(remaining t.remaining, typ i.found)
 ::
+++  lowering-tape-before
+  |=  [a=tape b=tape]
+  ^-  ?
+  ?~  a  ?=(^ b)
+  ?~  b  |
+  ?:  =(i.a i.b)  $(a t.a, b t.b)
+  (lth i.a i.b)
+++  lowering-sort-terms
+  |=  names=(list term)
+  ^-  (list term)
+  (sort names |=([a=term b=term] (lowering-tape-before (trip a) (trip b))))
+++  infer-whole-module-value
+  |=  [iface=ifile face=term prelude=(unit ifile) state=istate]
+  ^-  (unit [typ=itype state=istate])
+  =/  names=(list term)
+    (lowering-sort-terms (turn values.iface |=(v=[name=term scheme=ischeme] name.v)))
+  ?~  names  ~
+  =/  remaining=(list term)  names
+  |-
+  ?~  remaining  ~
+  =/  scheme=(unit ischeme)  (ienv-lookup i.remaining values.iface)
+  ?~  scheme  ~
+  =/  imported=ischeme  (scheme-in-import u.scheme iface face prelude)
+  =/  instance=(unit [typ=itype state=istate])
+    (instantiate-scheme imported state)
+  ?~  instance  ~
+  =/  field=itype  [%face i.remaining typ.u.instance]
+  ?~  t.remaining  `[field state.u.instance]
+  =/  rest=(unit [typ=itype state=istate])
+    $(remaining t.remaining, state state.u.instance)
+  ?~  rest  ~
+  `[[%cell field typ.u.rest] state.u.rest]
 ::  Propagate a known union or list through supported loobean, unit and list
 ::  branches. Empty bodies and groups are transparent; bodies with definitions
 ::  keep their normal scoping and wait for general bidirectional inference.
@@ -11378,6 +11529,15 @@
   diagnostic(msg "list items do not have compatible types; {suggestion}", sites (weld sites.diagnostic extra))
 ::
 ++  infer-list-context
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  =/  result=iresult  (infer-list-context-step e expected env state context)
+  ?:  ?=(%| -.result)  result
+  =/  st=istate
+    (lowering-record-occurrence (span-of e) %expression typ.p.result state.p.result)
+  [%& typ.p.result st]
+::
+++  infer-list-context-step
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
   ?:  ?=(%group -.e)  $(e inner.e)
@@ -11990,8 +12150,9 @@
 ::  Coverage reports are separate from body inference: an unknown domain or
 ::  exhausted matrix is not evidence of either exhaustiveness or a dead arm.
 +$  coverage-prior  [at=span pat=pattern:coverage]
++$  coverage-proof  [domain=domain:coverage graph=bindings:coverage matrix=matrix:coverage]
 +$  coverage-check
-  $%  [%ok ~]
+  $%  [%ok proof=coverage-proof]
       [%unknown ~]
       [%error diag=idiag witness=(unit *)]
   ==
@@ -12083,7 +12244,7 @@
       (useful:coverage matrix ~[[%wild ~]] ~[domain] graph 4.096)
     ?-  -.missing
       %unknown  [%unknown ~]
-      %no  [%ok ~]
+      %no  [%ok [domain graph (flop matrix)]]
       %yes
         ?~  witness.missing  [%unknown ~]
         =/  shown=tape  (coverage-show-typed i.witness.missing subject sub 128)
@@ -12313,35 +12474,37 @@
   ==
 ::
 ++  coverage-bind-items
-  |=  [items=(list pattern) t=itype env=ienv state=istate fuel=@ud]
+  |=  [items=(list pattern) t=itype env=ienv state=istate fuel=@ud axis=@ud]
   ^-  (unit coverage-bind-result)
   ?~  items  ~
   ?:  =(0 fuel)  ~
-  ?~  t.items  (coverage-bind-pattern i.items t env state (dec fuel))
+  ?~  t.items  (coverage-bind-pattern i.items t env state (dec fuel) axis)
   =/  p=pattern  [%cell at.i.items items]
   =/  parts=(unit coverage-parts)  (coverage-project p t sub.state (dec fuel))
   ?~  parts  ~
   =/  first=(unit coverage-bind-result)
-    (coverage-bind-pattern i.items head.u.parts env state(sub sub.u.parts) (dec fuel))
+    (coverage-bind-pattern i.items head.u.parts env state(sub sub.u.parts) (dec fuel) (mul 2 axis))
   ?~  first  ~
-  $(items t.items, t tail.u.parts, env env.u.first, state state.u.first, fuel (dec fuel))
+  $(items t.items, t tail.u.parts, env env.u.first, state state.u.first, fuel (dec fuel), axis +((mul 2 axis)))
 ::
 ++  coverage-bind-pattern
-  |=  [p=pattern t=itype env=ienv state=istate fuel=@ud]
+  |=  [p=pattern t=itype env=ienv state=istate fuel=@ud axis=@ud]
   ^-  (unit coverage-bind-result)
   ?:  =(0 fuel)  ~
   ::  A pattern name binds the value at the position, not the position's
   ::  record face. Preserve faces nested inside that value.
   =.  t  (itype-walk t sub.state)
   =.  t  ?:(?=(%slot -.t) body.t t)
+  =.  state  (lowering-record-occurrence at.p %pattern t state)
   ?-  -.p
     %any  `[env state]
     %lit  `[env state]
     %str  `[env state]
     %bind
       ?:  |((reserved-name name.p) ?=(^ (ienv-lookup name.p env)) (lien globals.state |=(n=term =(n name.p))))  ~
+      =.  state  (lowering-record-binder at.p %pattern name.p t axis state)
       `[[[name.p [t ~ ~]] env] state]
-    %cell  (coverage-bind-items items.p t env state (dec fuel))
+    %cell  (coverage-bind-items items.p t env state (dec fuel) axis)
   ==
 ::
 ::
@@ -12432,7 +12595,7 @@
     =/  enriched=(unit idiag)  (shadow-binding-context at.pat.a %pattern state)
     ?^  enriched  `[%| u.enriched]
     `[%| u.collision]
-  =/  bound=(unit coverage-bind-result)  (coverage-bind-pattern pat.a typ env state 1.024)
+  =/  bound=(unit coverage-bind-result)  (coverage-bind-pattern pat.a typ env state 1.024 1)
   ?~  bound  ~
   =/  body=iresult
     ?~  expected  (infer-fragment val.a env.u.bound state.u.bound)
@@ -12493,7 +12656,13 @@
   ?:  ?=(%error -.checked)
     =/  diag=idiag  (coverage-missing-tag-diagnostic diag.checked e typ state.p.subject)
     `[%| (coverage-missing-case-diagnostic diag witness.checked typ state.p.subject)]
-  (coverage-infer-arms arms.e typ env state.p.subject expected ~ at.e 1.024)
+  =/  inferred=(unit iresult)
+    (coverage-infer-arms arms.e typ env state.p.subject expected ~ at.e 1.024)
+  ?~  inferred  ~
+  ?:  ?=(%| -.u.inferred)  inferred
+  =/  st=istate  state.p.u.inferred
+  =.  st  (lowering-record-match e typ domain.proof.checked graph.proof.checked matrix.proof.checked st)
+  `[%& typ.p.u.inferred st]
 ::
 ::
 ::  Coverage is over nouns, but a written literal must also fit the aura at
@@ -12574,6 +12743,7 @@
   ^-  iresult
   ?~  edits  [%& target state]
   =/  entry=edit  i.edits
+  =.  state  (lowering-record-edit entry target state)
   =/  outer=(list term)  (flop names.entry)
   ?:  (lien seen |=(prior=(list term) (wing-overlap prior outer)))
     [%| ["repeated change fields are not supported by partial inference" ~]]
@@ -13670,6 +13840,8 @@
   ?.  (local-molds-supported local-molds local-state)
     [%| ["local molds need unsupported inference" ~]]
   =/  values=(list def)  (local-value-defs defs.e)
+  =/  local-components=icomponents  (graph-components values local-names)
+  =.  local-state  (lowering-record-components `at.e local-components local-state)
   =/  locals=ilocal-result  (infer-local-defs values env local-state)
   ?:  ?=(%| -.locals)  locals
   =/  result=iresult
@@ -13690,8 +13862,13 @@
 ++  infer-fragment
   |=  [e=expr env=ienv state=istate]
   ^-  iresult
-  ?-  -.e
-    %pair  $(e (pair-as-cell e))
+  =/  result=iresult  ?-  -.e
+    %pair
+      =/  saved=(list lowering-occurrence-id)  lowering-suppress.state
+      =/  pair=iresult
+        $(e (pair-as-cell e), state state(lowering-suppress [[at.e %expression] saved]))
+      ?:  ?=(%| -.pair)  pair
+      pair(p [typ.p.pair state.p.pair(lowering-suppress saved)])
     %lit
       ?-  form.lit.e
         %number    ?:  =(%ud aura.lit.e)
@@ -13774,7 +13951,19 @@
         =.  u.member  (scheme-in-import u.member u.iface i.t.names.e prelude.state)
         =/  instance=(unit [typ=itype state=istate])  (instantiate-scheme u.member state)
         ?~  instance  [%| ["scheme graph needs unsupported inference" ~[[at.e "invalid scheme"]]]]
-        [%& typ.u.instance state.u.instance]
+        =/  target=lowering-reference-target  [%resolved [%import at.u.iface i.names.e]]
+        [%& typ.u.instance (lowering-record-reference at.e target state.u.instance)]
+      =/  imported=(unit ifile)
+        (find-scope-interface i.names.e jimports.state prelude.state)
+      ?^  imported
+        =/  instance=(unit [typ=itype state=istate])
+          (infer-whole-module-value u.imported i.names.e prelude.state state)
+        ?~  instance  [%| ["whole module value needs unsupported inference" ~[[at.e "module value"]]]]
+        =/  names=(list term)
+          (lowering-sort-terms (turn values.u.imported |=(v=[name=term scheme=ischeme] name.v)))
+        =/  target=lowering-reference-target
+          [%resolved [%module at.u.imported names]]
+        [%& typ.u.instance (lowering-record-reference at.e target state.u.instance)]
       =/  scheme=(unit ischeme)  (ienv-lookup i.names.e env)
       ?~  scheme
         ?:  =(i.names.e %unface)  [%| (unface-value at.e)]
@@ -13783,10 +13972,12 @@
         ?~  prelude-entry  (unknown-value-result i.names.e at.e state)
         =/  inst=(unit [typ=itype state=istate])  (instantiate-scheme u.prelude-entry state)
         ?~  inst  [%| ["scheme graph needs unsupported inference" ~[[at.e "invalid scheme"]]]]
-        [%& typ.u.inst state.u.inst]
+        =/  target=lowering-reference-target  [%resolved [%prelude at.u.prelude.state i.names.e]]
+        [%& typ.u.inst (lowering-record-reference at.e target state.u.inst)]
       =/  instance=(unit [typ=itype state=istate])  (instantiate-scheme u.scheme state)
       ?~  instance  [%| ["scheme graph needs unsupported inference" ~[[at.e "invalid scheme"]]]]
-      [%& typ.u.instance state.u.instance]
+      =/  target=lowering-reference-target  [%local-or-own i.names.e]
+      [%& typ.u.instance (lowering-record-reference at.e target state.u.instance)]
     %group
       ?:  &(?=(%wing -.inner.e) =(names.inner.e ~[%unface]) ?=(~ (ienv-lookup %unface env)))
         [%| ["unface takes one argument, as (unface e)" ~[[at.e "unface call"]]]]
@@ -13917,6 +14108,10 @@
       ?:  (reserved-call %unface e env state)  (infer-unface e env state)
       (infer-call-with-head e env state (infer-fragment head.e env state))
   ==
+  ?:  ?=(%| -.result)  result
+  =/  st=istate
+    (lowering-record-occurrence (span-of e) %expression typ.p.result state.p.result)
+  [%& typ.p.result st]
 ::  Source lookup for post-inference kind checks.
 ++  direct-find-gate
   |=  [n=term ds=(list def)]
@@ -14570,7 +14765,14 @@
 ++  infer-proj-source
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
-  ?:  ?=(%group -.e)  $(e inner.e)
+  =/  result=iresult  (infer-proj-source-step e expected env state context)
+  ?:  ?=(%| -.result)  result
+  =/  st=istate  (lowering-record-occurrence (span-of e) %expression typ.p.result state.p.result)
+  [%& typ.p.result st]
+++  infer-proj-source-step
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
+  ?:  ?=(%group -.e)  (infer-proj-source inner.e expected env state context)
   =/  literal=(unit iresult)  (width-infer-literal e expected env state context)
   ?^  literal  u.literal
   (infer-fragment e env state)
@@ -14659,15 +14861,28 @@
 ++  infer-call-context-arg
   |=  [e=expr expected=itype env=ienv state=istate context=span]
   ^-  iresult
+  =/  result=iresult  (infer-call-context-arg-step e expected env state context)
+  ?:  ?=(%| -.result)  result
+  =/  st=istate
+    (lowering-record-occurrence (span-of e) %expression typ.p.result state.p.result)
+  [%& typ.p.result st]
+++  infer-call-context-arg-step
+  |=  [e=expr expected=itype env=ienv state=istate context=span]
+  ^-  iresult
   ?:  &(?=(%tuple -.e) ?=(~ items.e))
     [%| ["an empty `[]` is not a valid tuple" ~[[at.e "empty tuple"]]]]
-  ?:  ?=(%pair -.e)  $(e (pair-as-cell e))
-  ?:  ?=(%group -.e)  $(e inner.e)
+  ?:  ?=(%pair -.e)
+    =/  saved=(list lowering-occurrence-id)  lowering-suppress.state
+    =/  pair=iresult
+      (infer-call-context-arg (pair-as-cell e) expected env state(lowering-suppress [[at.e %expression] saved]) context)
+    ?:  ?=(%| -.pair)  pair
+    pair(p [typ.p.pair state.p.pair(lowering-suppress saved)])
+  ?:  ?=(%group -.e)  (infer-call-context-arg inner.e expected env state context)
   ?:  ?=(%body -.e)  (infer-body e env state `[expected context])
   ?:  ?=(%trace -.e)
     =/  traced=iresult  (infer-fragment val.e env state)
     ?:  ?=(%| -.traced)  traced
-    $(e then.e, state state.p.traced)
+    (infer-call-context-arg then.e expected env state.p.traced context)
   =/  matrix-result=(unit iresult)
     ?.  ?=(%branch -.e)  ~
     =/  matrix-subject=iresult  (infer-fragment subject.e env state)
@@ -15630,7 +15845,8 @@
   ?~  uni  [%| ["recursive gate constraint is not supported by partial inference" ~]]
   =/  typ=itype  [%fn typ.p.sam typ.p.out]
   =?  typ  ?=(^ peeled)  (itype-unface typ u.uni)
-  [%& typ state.p.out(sub u.uni)]
+  =/  captured=istate  (lowering-record-occurrence at.gate %expression typ state.p.out(sub u.uni))
+  [%& typ captured]
 ::
 ::  Expression children in source order, for dependency-site diagnostics.
 ++  dependency-children
@@ -15862,7 +16078,7 @@
 ::  Infer a cyclic component with one monomorphic seed per gate. All members
 ::  must succeed before any scheme is available; pending constraints and
 ::  unresolved branch joins remain partial.
-+$  igate-entry  [name=term typ=itype body=expr env=ienv caps=icaps unfaced=?]
++$  igate-entry  [name=term at=span typ=itype body=expr env=ienv caps=icaps unfaced=?]
 +$  igate-seeds  (each [entries=(list igate-entry) state=istate] idiag)
 ++  seed-gate-group
   |=  [ds=(list def) env=ienv state=istate]
@@ -15906,7 +16122,7 @@
     ==
   =/  seed=itype  [%fn typ.p.sam [%var next.state.p.sam]]
   =?  seed  ?=(^ peeled)  (itype-unface seed sub.state.p.sam)
-  =/  entry=igate-entry  [name.d seed body env.p.sam caps.state.p.sam ?=(^ peeled)]
+  =/  entry=igate-entry  [name.d at.gate seed body env.p.sam caps.state.p.sam ?=(^ peeled)]
   =/  after=istate  state.p.sam(next +(next.state.p.sam), caps caps.state)
   =/  rest=igate-seeds  $(ds t.ds, state after)
   ?:  ?=(%| -.rest)  rest
@@ -15941,7 +16157,9 @@
     `(itype-bind u.root typ.p.out sub.state.p.out)
   ?~  uni  [%| ["recursive group constraint is not supported by partial inference" ~]]
   =.  caps.entry  caps.state.p.out
-  =/  after=istate  state.p.out(sub u.uni, caps caps.state, owner owner.state)
+  =/  captured=istate  state.p.out(sub u.uni)
+  =.  captured  (lowering-record-occurrence at.entry %expression typ.entry captured)
+  =/  after=istate  captured(caps caps.state, owner owner.state)
   ::  A recursive seed may have acquired an unfaced structural binding
   ::  before its body supplied the result's explicit field names.
   =?  queue.after  general-defer.after
@@ -16111,7 +16329,7 @@
   `[entry u.rest]
 ::
 
-+$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag])]
++$  iresolved  [env=ienv grouped=(list term) artifacts=(list iwidth-definition) failures=(list [name=term diag=idiag]) lowering=(unit lowering-evidence)]
 +$  iadj  (map term (list term))
 +$  ivisited  (map term ?)
 +$  iwork  (list [name=term done=?])
@@ -16221,7 +16439,16 @@
     state(molds molds, globals globals, externals externals, surs surs, mark-externals mark-externals, marks marks, jimports jimports, reserved-molds reserved-molds, at at, top-molds (turn molds |=(m=[name=term body=shape] name.m)), prelude prelude, jrec-fuel 256, globals-imports &)
   =/  checked=icore-output  (icore-check-with-env ds outer state)
   ?^  result.checked  u.result.checked
-  [~ ~ ~ ?~(error.checked ~ ~[[owner.u.error.checked diag.u.error.checked]])]
+      [~ ~ ~ ?~(error.checked ~ ~[[owner.u.error.checked diag.u.error.checked]]) ~]
+++  resolve-groups-capture-with-env
+  |=  [ds=(list def) outer=ienv molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) at=path prelude=(unit ifile)]
+  ^-  iresolved
+  =/  state=istate  *istate
+  =.  state
+    state(molds molds, globals globals, externals externals, surs surs, mark-externals mark-externals, marks marks, jimports jimports, reserved-molds reserved-molds, at at, top-molds (turn molds |=(m=[name=term body=shape] name.m)), prelude prelude, jrec-fuel 256, globals-imports &, lowering &, lowering-own (global-value-names ds))
+  =/  checked=icore-output  (icore-check-with-env ds outer state)
+  ?^  result.checked  u.result.checked
+  [~ ~ ~ ?~(error.checked ~ ~[[owner.u.error.checked diag.u.error.checked]]) ~]
 ::
 +$  icore-pass  [state=istate pending=(list icore-edge) solved=?]
 ++  icore-wing
@@ -17199,6 +17426,7 @@
         =/  diag=idiag  (coverage-missing-tag-diagnostic diag.checked branch.edge subject state)
         =/  enriched=idiag  (coverage-missing-case-diagnostic diag witness.checked subject state)
         `[state(core-error `[owner.edge enriched]) (flop pending) &]
+      =.  state  (lowering-record-match branch.edge subject domain.proof.checked graph.proof.checked matrix.proof.checked state)
       $(todo t.todo, solved &)
     %match
       =/  subject=itype  (itype-walk subject.edge sub.state)
@@ -19957,6 +20185,113 @@
   =/  named=[owner=term diag=idiag]  (icore-tag-error-owner error error-tag-site.state ds)
   named(owner u.error-display-owner.state)
 ::
+++  lowering-span-contains
+  |=  [outer=span inner=span]
+  ^-  ?
+  &((icore-position-before beg.outer beg.inner) (icore-position-before end.inner end.outer))
+++  lowering-final-occurrences
+  |=  [xs=(list lowering-occurrence) sub=isub out=(list lowering-occurrence)]
+  ^-  (unit (list lowering-occurrence))
+  ?~  xs  `(flop out)
+  =/  entry=lowering-occurrence  i.xs
+  =.  typ.entry  (default-decimals (itype-normalize typ.entry sub))
+  =/  prior=(list lowering-occurrence)
+    (skim out |=(old=lowering-occurrence =(id.old id.entry)))
+  ?^  prior
+    ?:  =(i.prior entry)  $(xs t.xs, out out)
+    ~
+  $(xs t.xs, out [entry out])
+++  lowering-final-binders
+  |=  [xs=(list lowering-binder) sub=isub out=(list lowering-binder)]
+  ^-  (unit (list lowering-binder))
+  ?~  xs  `(flop out)
+  =/  entry=lowering-binder  i.xs
+  =.  typ.entry  (default-decimals (itype-normalize typ.entry sub))
+  =/  prior=(list lowering-binder)
+    (skim out |=(old=lowering-binder =(id.old id.entry)))
+  ?^  prior
+    ?:  =(i.prior entry)  $(xs t.xs, out out)
+    ~
+  $(xs t.xs, out [entry out])
+++  lowering-final-references
+  |=  [xs=(list lowering-reference-request) out=(list lowering-reference-request)]
+  ^-  (unit (list lowering-reference-request))
+  ?~  xs  `(flop out)
+  =/  prior=(list lowering-reference-request)
+    (skim out |=(old=lowering-reference-request =(id.old id.i.xs)))
+  ?^  prior
+    ?:  =(i.prior i.xs)  $(xs t.xs, out out)
+    ~
+  $(xs t.xs, out [i.xs out])
+++  lowering-final-wings
+  |=  [xs=(list lowering-wing-request) sub=isub out=(list lowering-wing-request)]
+  ^-  (unit (list lowering-wing-request))
+  ?~  xs  `(flop out)
+  =/  entry=lowering-wing-request  i.xs
+  =.  subject.entry  (default-decimals (itype-normalize subject.entry sub))
+  =/  prior=(list lowering-wing-request)
+    (skim out |=(old=lowering-wing-request =(id.old id.entry)))
+  ?^  prior
+    ?:  =(i.prior entry)  $(xs t.xs, out out)
+    ~
+  $(xs t.xs, out [entry out])
+++  lowering-final-edits
+  |=  [xs=(list lowering-edit-request) sub=isub out=(list lowering-edit-request)]
+  ^-  (unit (list lowering-edit-request))
+  ?~  xs  `(flop out)
+  =/  entry=lowering-edit-request  i.xs
+  =.  target.entry  (default-decimals (itype-normalize target.entry sub))
+  =/  prior=(list lowering-edit-request)
+    (skim out |=(old=lowering-edit-request &(=(at.old at.entry) =(names.old names.entry))))
+  ?^  prior
+    ?:  =(i.prior entry)  $(xs t.xs, out out)
+    ~
+  $(xs t.xs, out [entry out])
+++  lowering-match-refinements
+  |=  [entry=lowering-match binders=(list lowering-binder)]
+  ^-  (list lowering-binder)
+  %+  skim  binders
+  |=  binder=lowering-binder
+  ?&  =(owner.binder owner.entry)
+      (lien arms.entry |=(a=lowering-match-arm (lowering-span-contains at.a at.id.binder)))
+  ==
+++  lowering-final-matches
+  |=  [xs=(list lowering-match) sub=isub binders=(list lowering-binder) out=(list lowering-match)]
+  ^-  (unit (list lowering-match))
+  ?~  xs  `(flop out)
+  =/  entry=lowering-match  i.xs
+  =.  subject.entry  (default-decimals (itype-normalize subject.entry sub))
+  =.  refinements.entry  (lowering-match-refinements entry binders)
+  =/  prior=(list lowering-match)
+    (skim out |=(old=lowering-match =(id.old id.entry)))
+  ?^  prior
+    ?:  =(i.prior entry)  $(xs t.xs, out out)
+    ~
+  $(xs t.xs, out [entry out])
+++  lowering-final-evidence
+  |=  [state=istate components=icomponents]
+  ^-  (unit lowering-evidence)
+  =/  occurrences=(unit (list lowering-occurrence))
+    (lowering-final-occurrences lowering-occurrences.state sub.state ~)
+  ?~  occurrences  ~
+  =/  binders=(unit (list lowering-binder))
+    (lowering-final-binders lowering-binders.state sub.state ~)
+  ?~  binders  ~
+  =/  references=(unit (list lowering-reference-request))
+    (lowering-final-references lowering-references.state ~)
+  ?~  references  ~
+  =/  wings=(unit (list lowering-wing-request))
+    (lowering-final-wings lowering-wings.state sub.state ~)
+  ?~  wings  ~
+  =/  edits=(unit (list lowering-edit-request))
+    (lowering-final-edits lowering-edits.state sub.state ~)
+  ?~  edits  ~
+  =/  matches=(unit (list lowering-match))
+    (lowering-final-matches lowering-matches.state sub.state u.binders ~)
+  ?~  matches  ~
+  =/  top=(list lowering-scc)
+    (turn components |=(members=(list term) [~ %$ members]))
+  `[u.occurrences u.binders u.references u.wings u.edits (weld top lowering-components.state) u.matches]
 ++  icore-check
   |=  [ds=(list def) state=istate]
   ^-  icore-output
@@ -20027,7 +20362,12 @@
     (icore-projection-artifacts ds u.env projections.u.coverage-final sub.u.coverage-final)
   ?~  artifacts
     [~ `(icore-unfinished-definition ds "projection could not be finalized")]
-  [`[u.env grouped.u.solved u.artifacts ~] ~]
+  =/  evidence=(unit lowering-evidence)
+    ?.  lowering.state  ~
+    (lowering-final-evidence u.coverage-final components)
+  ?:  &(lowering.state ?=(~ evidence))
+    [~ `(icore-unfinished-definition ds "lowering occurrences could not be finalized")]
+  [`[u.env grouped.u.solved u.artifacts ~ evidence] ~]
 ::
 ++  icore-projection-bind
   |=  [p=iwprojection scheme=ischeme sub=isub]
@@ -20837,6 +21177,10 @@
 +$  jfile-overlap  [file=path source=@t name=term cases=upair]
 +$  jfile-failure  [message=@t overlap=(unit jfile-overlap)]
 +$  jfile-detailed-result  (each [iface=ifile cache=jcache kind=checked-kind] jfile-failure)
++$  jfile-lowering-internal
+  (each [iface=ifile cache=jcache kind=checked-kind artifact=(unit checked-module) lowering-cache=jlowering-cache] jfile-failure)
++$  jimports-lowering-result
+  (each [resolved=ijimports cache=jcache lowering-cache=jlowering-cache] jfile-failure)
 +$  jimports-result  (each [resolved=ijimports cache=jcache] @t)
 ::  Preserve an imported overlap's original file and source across the graph.
 +$  jimports-detailed-result  (each [resolved=ijimports cache=jcache] jfile-failure)
@@ -21464,6 +21808,101 @@
   =/  map-put=ischeme  [[%fn [%cell map [%cell key value]] map] ~[0 1] ~]
   [~[[%raw-add plus] [%raw-dec minus] [%raw-gth greater] [%raw-eq equal] [%raw-trip text-trip] [%raw-tuba text-tuba] [%raw-crip text-crip] [%raw-tufa text-tufa] [%raw-date-pack date-pack] [%raw-date-unpack date-unpack] [%raw-format-knot format-knot] [%raw-format-tape format-tape] [%raw-parse-atom parse-atom] [%raw-map-get map-get] [%raw-map-put map-put] [%raw-seal seal-gate] [%raw-bit-not bit-not]] ~[[%opaque seal-mold]] /lib/jibb/primitives/jibb ~ ~ ~ ~ ~ ~]
 ::
++$  iprelude-artifact
+  [iface=ifile artifact=(unit checked-module) lowering-cache=jlowering-cache]
+++  infer-private-internal-capture
+  |=  [src=@t public-source=@t capture=?]
+  ^-  (unit iprelude-artifact)
+  =/  at=path  /lib/jibb/internal/jibb
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  mod=module  p.parsed
+  ?^  (duplicate-defs defs.mod)  ~
+  ?~  imports.mod
+    =/  built=jfile-lowering-internal
+      (infer-jibb-file-capture at src ~ ~ ~ ~[at] ~ ~ ~ ~ ~ ?:(capture `~ ~))
+    ?:  ?=(%| -.built)  ~
+    `[iface.p.built artifact.p.built lowering-cache.p.built]
+  ?.  ?=([[%jibb *] ~] imports.mod)  ~
+  ?.  =(path.i.imports.mod /lib/jibb/primitives)  ~
+  ?.  (module-scope-valid mod ~ ~)  ~
+  =/  vals=(list term)  (global-value-names defs.mod)
+  ?:  (lien vals |=(n=term =(n %main)))  ~
+  =/  molds=imolds  (collect-simple-molds defs.mod)
+  =/  globals=(list term)  (weld (import-binding-names imports.mod) vals)
+  ::  The private source can use the public list and unit molds before the
+  ::  prelude is otherwise prepared.  Re-read the trusted public source here
+  ::  and admit only its validated canonical templates; do not accept schemes
+  ::  supplied independently by the caller.
+  =/  public=(each module error)  (parse /lib/jibb/prelude/jibb public-source)
+  ?:  ?=(%| -.public)  ~
+  ?^  (duplicate-defs defs.p.public)  ~
+  ?.  (module-scope-valid p.public ~ ~)  ~
+  =/  source-molds=imolds  (collect-simple-molds defs.p.public)
+  =/  written-list=(unit shape)  (find-simple-mold %list source-molds)
+  =/  source-list=(unit ischeme)
+    ?~  written-list  ~
+    ?.  (standard-prelude-list u.written-list)  ~
+    `[[%collection %list ~[[%var 0]]] ~[0] ~]
+  ::  Derive the public unit template from its actual source, then compare
+  ::  the complete nominal template before making it available privately.
+  =/  unit-decl=(unit shape)  (find-simple-mold %unit source-molds)
+  =/  source-unit=(unit ischeme)
+    ?~  unit-decl  ~
+    =/  unit-molds=imolds  ~[[%unit u.unit-decl]]
+    =/  unit-state=istate  *istate
+    =.  unit-state  unit-state(molds unit-molds, in-mold |, at /lib/jibb/prelude/jibb, top-molds ~[%unit], jrec-fuel 256, globals-imports |, general-defer |)
+    =/  unit-types=imold-types  (partial-prelude-molds unit-molds unit-state)
+    =/  unit-iface=ifile  [~ unit-types /lib/jibb/prelude/jibb ~ ~ ~ ~ ~ ~]
+    =/  found=(unit ischeme)  (find-jibb-mold %unit unit-iface)
+    ?~  found  ~
+    ?.  (standard-unit-template u.found /lib/jibb/prelude/jibb)  ~
+    found
+  =/  primitive=ifile  private-primitive-interface
+  =?  primitive  ?=(^ source-list)
+    primitive(molds [[%list u.source-list] molds.primitive])
+  =?  primitive  ?=(^ source-unit)
+    primitive(molds [[%unit u.source-unit] molds.primitive])
+  =/  js=ijimports  ~[[face.i.imports.mod primitive]]
+  =/  reserved=(list term)  ~[face.i.imports.mod]
+  =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  state=istate  *istate
+  =.  state  state(molds molds, globals globals, jimports js, reserved-molds reserved, in-mold |, at at, top-molds top, jrec-fuel 256, globals-imports |, general-defer |)
+  =/  mts=(each imold-types @t)  (module-mold-types molds state)
+  =/  usable=(unit imold-types)
+    ?:  ?=(%& -.mts)  `p.mts
+    ::  Missing public templates may make an unrelated internal mold
+    ::  unavailable.  Validate all molds once with isolated canonical
+    ::  templates before admitting only those inferred using the actual
+    ::  source-backed templates.  The proof interface is never exported.
+    ?.  |(?=(~ source-list) ?=(~ source-unit))  ~
+    =/  nil=itype  [%const [%null %n 0 '~']]
+    =/  canonical-unit=ischeme
+      [[%union ~[nil [%cell nil [%slot %u [%var 0]]]] `[/lib/jibb/prelude/jibb %unit] `%unit ~[[%var 0]]] ~[0] ~]
+    =/  canonical-list=ischeme  [[%collection %list ~[[%var 0]]] ~[0] ~]
+    =/  proof-primitive=ifile  private-primitive-interface
+    =/  fallback=imold-types  ~[[%list canonical-list] [%unit canonical-unit]]
+    =.  molds.proof-primitive  (weld fallback molds.proof-primitive)
+    =/  proof-imports=ijimports  ~[[face.i.imports.mod proof-primitive]]
+    =/  proof=(each imold-types @t)  (module-mold-types molds state(jimports proof-imports))
+    ?:  ?=(%| -.proof)  ~
+    `(partial-prelude-molds molds state)
+  ?~  usable  ~
+  =/  checked=icore-output
+    (icore-check defs.mod state(globals-imports &, lowering capture, lowering-own vals))
+  ?^  error.checked  ~
+  ?~  result.checked  ~
+  =/  resolution=iresolved  u.result.checked
+  =/  env=ienv  env.resolution
+  ?.  (module-values-complete defs.mod env)  ~
+  =/  iface=ifile  [env u.usable at ~ artifacts.resolution ~ `src ~ ~]
+  =/  artifact=(unit checked-module)
+    ?.  capture  ~
+    ?~  lowering.resolution  ~
+    (build-checked-module at mod %library iface js ~ u.lowering.resolution)
+  ?:  &(capture ?=(~ artifact))  ~
+  =/  cache=jlowering-cache  ?~(artifact ~ ~[[at u.artifact]])
+  `[iface artifact cache]
 ++  infer-private-internal
   |=  [src=@t public-source=@t]
   ^-  (unit ifile)
@@ -21756,6 +22195,100 @@
   ^-  (unit ifile)
   (partial-prelude-interface-mode src internal-source groups ~)
 ::
+++  partial-prelude-interface-mode-capture
+  |=  [src=@t internal-source=(unit @t) groups=(list iprelude-group) bootstrap-faces=(list term) capture=?]
+  ^-  (unit iprelude-artifact)
+  ?:  =(0 src)  ~
+  =/  at=path  /lib/jibb/prelude/jibb
+  =/  parsed  (parse at src)
+  ?:  ?=(%| -.parsed)  ~
+  ?:  (named-mold-has-hole defs.p.parsed)  ~
+  ?^  (duplicate-defs defs.p.parsed)  ~
+  =/  private-capture=(unit iprelude-artifact)  ~
+  =/  private-data=[private=(unit ijimports) capture=(unit iprelude-artifact)]
+    ?~  imports.p.parsed  [~ ~]
+    ?.  ?=([[%jibb *] ~] imports.p.parsed)  [~ ~]
+    ?.  =(path.i.imports.p.parsed /lib/jibb/internal)  [~ ~]
+    ?~  internal-source  [~ ~]
+    =/  built=(unit iprelude-artifact)
+      (infer-private-internal-capture u.internal-source src capture)
+    ?~  built  [~ ~]
+    [`~[[face.i.imports.p.parsed iface.u.built]] built]
+  =/  private=(unit ijimports)  private.private-data
+  =.  private-capture  capture.private-data
+  ?~  private  ~
+  ?~  defs.p.parsed  ~
+  ?.  (module-scope-valid p.parsed ~ ~)  ~
+  =/  ds=(list def)  defs.p.parsed
+  =/  molds=imolds  (collect-simple-molds ds)
+  =/  names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
+  =/  group-faces=(list term)  (turn groups |=(g=iprelude-group face.g))
+  ?.  (module-scope-valid p.parsed group-faces group-faces)  ~
+  =/  globals=(list term)  (weld group-faces (weld (import-binding-names imports.p.parsed) (global-value-names ds)))
+  ::  The canonical recursive list is the collection; another source mold
+  ::  named list retains its own actual structural type.
+  =/  declared=?  (lien names |=(name=term =(%list name)))
+  =/  declared-list=(unit shape)  (find-simple-mold %list molds)
+  =/  standard=?  ?~(declared-list | (standard-prelude-list u.declared-list))
+  =/  env-molds=imolds  molds
+  =?  env-molds  standard
+    (skim molds |=(m=[name=term body=shape] !=(%list name.m)))
+  =/  list-reserved=(list term)  ?:(declared ~[%list] ~)
+  =/  reserved=(list term)  (weld group-faces list-reserved)
+  =/  state=istate  *istate
+  =.  state  state(molds env-molds, globals globals, jimports u.private, reserved-molds reserved, in-mold |, at at, top-molds names, jrec-fuel 256, globals-imports |, general-defer |)
+  ::  Supply the built-in collection only for the canonical source.
+  =/  list-types=imold-types
+    ?~  declared-list  ~
+    ?.  (standard-prelude-list u.declared-list)  ~
+    ~[[%list [[%collection %list ~[[%var 0]]] ~[0] ~]]]
+  =/  mold-prelude=(unit ifile)
+    ?:  &(?=(~ list-types) ?=(~ groups))  ~
+    `[~ list-types at ~ ~ ~ ~ ~ groups]
+  =/  mt=imold-types  (partial-prelude-molds molds state(prelude mold-prelude))
+  =/  partial=ifile  [~ mt at ~ ~ ~ ~ ~ groups]
+  ::  Once groups are checked, every public mold must have an inferred
+  ::  scheme; the bootstrap alone may omit unresolved group dependencies.
+  ?.  |(?=(^ bootstrap-faces) (levy names |=(n=term ?=(^ (find-jibb-mold n partial)))))  ~
+  ::  An explicitly qualified re-export must resolve. Other unsupported
+  ::  prelude declarations remain reserved but absent from the interface.
+  =/  required=imolds
+    %+  skim  molds
+    |=  m=[name=term body=shape]
+    =/  sh=shape  body.m
+    ?.  ?=(%ref -.sh)  |
+    ?~  names.sh  |
+    ?=(^ t.names.sh)
+  ?.  |(?=(^ bootstrap-faces) (levy required |=(m=[name=term body=shape] ?=(^ (find-jibb-mold name.m partial)))))  ~
+  ::  Bootstrap only the dependency-closed subset that does not need a
+  ::  group or an as-yet-unavailable mold. The complete source is checked
+  ::  again after the group interfaces exist.
+  =/  selected=(list def)
+    ?~  bootstrap-faces  ds
+    =/  unavailable=(list term)
+      (skim names |=(n=term ?=(~ (find-jibb-mold n partial))))
+    (bootstrap-prelude-defs ds bootstrap-faces unavailable)
+  =/  checked=icore-output
+    (icore-check selected state(prelude `partial, globals-imports &, lowering capture, lowering-own (global-value-names selected)))
+  ?^  error.checked  ~
+  ?~  result.checked  ~
+  =/  resolution=iresolved  u.result.checked
+  =/  env=ienv  env.resolution
+  ?.  (hole-values-present selected env)  ~
+  =/  deps=(list iwidth-dependency)
+    ?~  u.private  ~
+    ~[[at.interface.i.u.private source.interface.i.u.private elaborations.interface.i.u.private]]
+  =/  iface=ifile  [env mt at ~ artifacts.resolution deps `src ~ groups]
+  =/  artifact=(unit checked-module)
+    ?.  capture  ~
+    ?^  bootstrap-faces  ~
+    ?~  lowering.resolution  ~
+    (build-checked-module at p.parsed %library iface u.private `partial u.lowering.resolution)
+  ?:  &(capture ?=(~ bootstrap-faces) ?=(~ artifact))  ~
+  =/  cache=jlowering-cache  ?~(private-capture ~ lowering-cache.u.private-capture)
+  =?  cache  ?=(^ artifact)
+    [[at u.artifact] (skim cache |=(e=[at=path artifact=checked-module] !=(at.e at)))]
+  `[iface artifact cache]
 ++  partial-prelude-interface-mode
   |=  [src=@t internal-source=(unit @t) groups=(list iprelude-group) bootstrap-faces=(list term)]
   ^-  (unit ifile)
@@ -21914,6 +22447,7 @@
   (partial-prelude-interface-with-internal src ~)
 ::
 +$  iprelude  [iface=ifile values=(list term) molds=(list term)]
++$  iprelude-lowering  [prepared=iprelude cache=jlowering-cache]
 ::
 ++  prepare-prelude
   |=  src=@t
@@ -22053,6 +22587,44 @@
   ^-  (unit iprelude)
   (prepare-prelude-with-group-evidence src internal-source sources modules ~)
 ::
+++  prepare-prelude-with-group-evidence-capture
+  |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle externals=iexternals capture=?]
+  ^-  (unit iprelude-lowering)
+  ?.  (prelude-external-evidence-valid externals modules)  ~
+  =/  faces=(list term)  (turn sources |=(g=iprelude-group-source face.g))
+  =/  built=(unit ifile)  (partial-prelude-interface-mode src `internal-source ~ faces)
+  ?~  built  ~
+  =/  parsed=(each module error)  (parse /lib/jibb/prelude/jibb src)
+  ?:  ?=(%| -.parsed)  ~
+  =/  vals=(list term)  (global-value-names defs.p.parsed)
+  =/  molds=(list term)  (turn (collect-simple-molds defs.p.parsed) |=(m=[name=term body=shape] name.m))
+  =/  prep=(unit iprelude)  `[u.built vals molds]
+  ?~  prep  ~
+  =/  extra=(unit [by-path=(map path @t) out=jbundle])  (prelude-extra-bundle modules *(map path @t) ~)
+  ?~  extra  ~
+  =/  bundle=(unit jbundle)  (prelude-group-bundle sources *(set term) by-path.u.extra out.u.extra)
+  ?~  bundle  ~
+  ::  During checking, exact source/path markers give each group its own
+  ::  declaration scope.  They contain no exported type or value evidence.
+  =/  checking=iprelude  u.prep(iface iface.u.prep(groups (prelude-group-markers sources)))
+  =/  private=(unit ifile)  (infer-private-internal internal-source src)
+  =/  checked=(unit [groups=(list iprelude-group) cache=jcache])  (prelude-groups-check-with-externals sources u.bundle checking ~ private externals)
+  ?~  checked  ~
+  ::  A public mold or gate may refer to a checked qualified group.
+  ::  Recheck the same public source with those interfaces in scope.
+  =/  completed=(unit iprelude-artifact)
+    (partial-prelude-interface-mode-capture src `internal-source groups.u.checked ~ capture)
+  ?~  completed  ~
+  ::  Groups were checked against the bootstrap prelude. Every scheme they
+  ::  could have used there must still have exactly the checked meaning.
+  ?.  (prelude-retains-checked-schemes iface.u.prep iface.u.completed)  ~
+  =/  prepared=iprelude
+    [iface.u.completed (weld faces values.u.prep) (weld faces molds.u.prep)]
+  `[prepared lowering-cache.u.completed]
+++  prepare-prelude-with-group-evidence-for-lowering
+  |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle externals=iexternals]
+  ^-  (unit iprelude-lowering)
+  (prepare-prelude-with-group-evidence-capture src internal-source sources modules externals &)
 ++  prepare-prelude-with-group-evidence
   |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle externals=iexternals]
   ^-  (unit iprelude)
@@ -22295,6 +22867,12 @@
     (show-error source.u.context [at.u.context line.beg.site col.beg.site "imports {(show-file target)} here"])
   [(of-wain:format ~[message.failure excerpt]) overlap.failure]
 ::
+++  find-jlowering-cache
+  |=  [at=path cache=jlowering-cache]
+  ^-  (unit checked-module)
+  ?~  cache  ~
+  ?:  =(at at.i.cache)  `artifact.i.cache
+  $(cache t.cache)
 ++  resolve-jibb-imports-at
   |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) context=(unit jsource)]
   ^-  jimports-detailed-result
@@ -22329,6 +22907,52 @@
   =/  rest=jimports-detailed-result  $(imports t.imports, cache cache.p.iface)
   ?:  ?=(%| -.rest)  rest
   [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest]]
+++  resolve-jibb-imports-lowering-at
+  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) context=(unit jsource) lowering=(unit jlowering-cache)]
+  ^-  jimports-lowering-result
+  ?~  imports  [%& [~ cache ?~(lowering ~ u.lowering)]]
+  ?.  ?=(%jibb -.i.imports)  $(imports t.imports)
+  =/  at=path  (weld path.i.imports `path`~[%jibb])
+  ?:  =(at /lib/jibb/internal/jibb)
+    [%| (import-error-context ['the prelude internal module is private' ~] at at.i.imports context)]
+  ?:  =(at /lib/jibb/primitives/jibb)
+    [%| (import-error-context ['the prelude primitive interface is private' ~] at at.i.imports context)]
+  ?:  (lien active |=(p=path =(p at)))
+    [%| (import-cycle-context [(crip "import cycle at {(spud at)}") ~] at at.i.imports context)]
+  =/  found=jbundle  (skim modules |=(m=jsource =(at at.m)))
+  ?~  found  [%| (import-error-context [(crip "module source missing: {(spud at)}") ~] at at.i.imports context)]
+  ?^  t.found  [%| (import-error-context [(crip "duplicate module sources: {(spud at)}") ~] at at.i.imports context)]
+  =/  cached=(unit ifile)  (find-jibb-cache at cache)
+  =/  cached-artifact=(unit checked-module)
+    ?~(lowering ~ (find-jlowering-cache at u.lowering))
+  =/  stale-artifact=?
+    ?~  cached-artifact  &
+    ?.  =(at.u.cached-artifact at)  &
+    |(?=(~ cached) !=(interface.u.cached-artifact u.cached))
+  =/  iface=jfile-lowering-internal
+    ?^  cached
+      ?.  =(at.u.cached at)  [%| ['cached module identity needs unsupported inference' ~]]
+      ?:  &(?=(^ lowering) stale-artifact)
+        =/  clean=jcache  (skim cache |=(x=[at=path iface=ifile] !=(at.x at)))
+        =/  clean-lowering=jlowering-cache
+          (skim u.lowering |=(x=[at=path artifact=checked-module] !=(at.x at)))
+        (infer-jibb-file-capture at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds clean prelude ~ `clean-lowering)
+      ?~  graph.u.cached
+        =/  clean=jcache  (skim cache |=(x=[at=path iface=ifile] !=(at.x at)))
+        (infer-jibb-file-capture at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds clean prelude ~ lowering)
+      ?.  (request-graph-reusable u.cached source.i.found externals mark-externals modules active prelude-values prelude-molds prelude)
+        [%| ['cached module evidence needs unsupported inference' ~]]
+      =/  kind=(unit checked-kind)  (checked-main-kind u.cached prelude)
+      ?~  kind  [%| ['cached module kind needs unsupported inference' ~]]
+      [%& [u.cached cache u.kind cached-artifact ?~(lowering ~ u.lowering)]]
+    (infer-jibb-file-capture at source.i.found externals mark-externals modules [at active] prelude-values prelude-molds cache prelude ~ lowering)
+  ?:  ?=(%| -.iface)  [%| (import-cycle-context p.iface at at.i.imports context)]
+  ?:  &(?=(^ lowering) ?=(~ artifact.p.iface))
+    [%| ['imported module has no checked lowering artifact' ~]]
+  =/  rest=jimports-lowering-result
+    $(imports t.imports, cache cache.p.iface, lowering ?~(lowering ~ `lowering-cache.p.iface))
+  ?:  ?=(%| -.rest)  rest
+  [%& [[[face.i.imports iface.p.iface] resolved.p.rest] cache.p.rest lowering-cache.p.rest]]
 ::
 ::  Provisional declaration extraction only; this does not derive asks,
 ::  validate imported types, or claim that an API module has checked.
@@ -22723,7 +23347,7 @@
 ::  Standalone source analysis has no derived values; graph callers may supply
 ::  checked derived schemes. No API is exported or given runtime behavior here.
 +$  iapi-support-evidence
-  [paths=iapi-path-evidence values=ienv molds=imold-types marks=(list iapi-mark-type) elaborations=(list iwidth-definition)]
+  [paths=iapi-path-evidence values=ienv molds=imold-types marks=(list iapi-mark-type) elaborations=(list iwidth-definition) lowering=(unit lowering-evidence)]
 ++  api-support-analysis-source
   |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle prepared=(unit iprelude)]
   ^-  (each iapi-support-evidence @t)
@@ -22760,15 +23384,15 @@
     =/  failure=[name=term diag=idiag]  i.failures.resolution
     [%| (show-inference-diagnostic file src name.failure diag.failure)]
   ?.  (module-values-complete ordinary env.resolution)  [%| 'API ordinary definitions need unsupported inference']
-  [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution]]
+  [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution ~]]
 ::  Preserve the same graph context through supporting definitions.
 ++  api-support-analysis-graph
   |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
   ^-  (each iapi-support-evidence @t)
-  (api-support-analysis-graph-with-env file src externals marks modules active cache prepared ~)
+  (api-support-analysis-graph-with-env file src externals marks modules active cache prepared ~ |)
 ::
 ++  api-support-analysis-graph-with-env
-  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude) outer=ienv]
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude) outer=ienv capture=?]
   ^-  (each iapi-support-evidence @t)
   =/  path-result  (api-path-evidence-graph file src externals marks modules active cache prepared)
   ?:  ?=(%| -.path-result)  [%| p.path-result]
@@ -22798,12 +23422,15 @@
   =.  state  state(molds molds, globals globals, externals externals, surs surs, mark-externals marks, marks declared, jimports resolved.p.deps, reserved-molds reserved, in-mold |, at file, top-molds top, prelude prelude, jrec-fuel 256, globals-imports |, general-defer |)
   =/  mts=(each imold-types @t)  (module-mold-types molds state)
   ?:  ?=(%| -.mts)  [%| p.mts]
-  =/  resolution=iresolved  (resolve-groups-with-env ordinary outer molds globals externals surs marks declared resolved.p.deps reserved file prelude)
+  =/  resolution=iresolved
+    ?:  capture
+      (resolve-groups-capture-with-env ordinary outer molds globals externals surs marks declared resolved.p.deps reserved file prelude)
+    (resolve-groups-with-env ordinary outer molds globals externals surs marks declared resolved.p.deps reserved file prelude)
   ?^  failures.resolution
     =/  failure=[name=term diag=idiag]  i.failures.resolution
     [%| (show-inference-diagnostic file src name.failure diag.failure)]
   ?.  (module-values-complete ordinary env.resolution)  [%| 'API ordinary definitions need unsupported inference']
-  [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution]]
+  [%& [evidence env.resolution p.mts u.mark-types artifacts.resolution lowering.resolution]]
 ::
 ++  compatible-raw-poke
   |=  prelude=iprelude
@@ -23010,8 +23637,8 @@
 ::  source definitions, declared marks and the poke must check. Unselected
 ::  /sur bindings, runtime validation and value watchability remain unproved.
 ++  multi-request-interface-graph
-  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude)]
-  ^-  (each [iface=ifile cache=jcache] @t)
+  |=  [file=path src=@t externals=iexternals marks=imark-externals modules=jbundle active=(list path) cache=jcache prepared=(unit iprelude) lowering=(unit jlowering-cache)]
+  ^-  (each [iface=ifile cache=jcache artifact=(unit checked-module) lowering-cache=jlowering-cache] @t)
   =/  path-result
     (api-path-evidence-graph file src externals marks modules active cache prepared)
   ?:  ?=(%| -.path-result)  [%| p.path-result]
@@ -23041,7 +23668,7 @@
     (api-poke-from-checked file mod marks values.prep molds.prep `public)
   ?~  poke  [%| 'API poke needs unsupported inference']
   =/  out
-    (api-support-analysis-graph-with-env file src externals marks modules active dependencies.ev prepared (weld values.u.gates values.u.poke))
+    (api-support-analysis-graph-with-env file src externals marks modules active dependencies.ev prepared (weld values.u.gates values.u.poke) ?=(^ lowering))
   ?:  ?=(%| -.out)  [%| p.out]
   =/  support=iapi-support-evidence  p.out
   =/  mark-molds=imold-types
@@ -23055,7 +23682,16 @@
     [(silt `(list path)`~[file]) requests.u.gates ~ modules `public values.prep molds.prep externals marks]
   =/  iface=ifile
     [env exports file derived.u.poke elaborations.support ~ `src `graph ~]
-  [%& [iface dependencies.ev]]
+  =/  artifact=(unit checked-module)
+    ?~  lowering  ~
+    ?~  lowering.support  ~
+    (build-checked-module file mod %library iface ~ `public u.lowering.support)
+  ?:  &(?=(^ lowering) ?=(~ artifact))
+    [%| 'checked API lowering artifact could not be finalized']
+  =/  enriched=jlowering-cache
+    ?~  artifact  ?~(lowering ~ u.lowering)
+    [[file u.artifact] (skim ?~(lowering ~ u.lowering) |=(e=[at=path artifact=checked-module] !=(at.e file)))]
+  [%& [iface dependencies.ev artifact enriched]]
 ::
 ::  Locate main and direct component names for source diagnostics only.
 ::  Module classification and component checking use their inferred types.
@@ -24407,7 +25043,628 @@
   =/  child=ifile  u.private(graph `graph)
   =/  clean=jcache  (skim cache.p.checked |=(e=[at=path iface=ifile] !=(at.e private-at)))
   [%& [[[face.i.selected child] resolved.p.checked] [[private-at child] clean]]]
+++  resolve-group-private-imports-capture
+  |=  [imports=(list import) externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) context=(unit jsource) private=(unit ifile) lowering=(unit jlowering-cache)]
+  ^-  jimports-lowering-result
+  ?~  private
+    (resolve-jibb-imports-lowering-at imports externals mark-externals modules active prelude-values prelude-molds cache prelude context lowering)
+  =/  selected=(list import)
+    (skim imports |=(i=import &(?=(%jibb -.i) =(path.i /lib/jibb/internal))))
+  ?~  selected
+    (resolve-jibb-imports-lowering-at imports externals mark-externals modules active prelude-values prelude-molds cache prelude context lowering)
+  ?^  t.selected  [%| ['duplicate private prelude imports' ~]]
+  ?^  lowering  [%| ['private prelude lowering artifacts are not yet available' ~]]
+  ?>  ?=(%jibb -.i.selected)
+  =/  rest=(list import)
+    (skim imports |=(i=import !&(?=(%jibb -.i) =(path.i /lib/jibb/internal))))
+  =/  checked=jimports-lowering-result
+    (resolve-jibb-imports-lowering-at rest externals mark-externals modules active prelude-values prelude-molds cache prelude context lowering)
+  ?:  ?=(%| -.checked)  checked
+  =/  private-at=path  /lib/jibb/internal/jibb
+  =/  graph=irequest-graph
+    [(silt `(list path)`~[private-at]) ~ ~ modules prelude prelude-values prelude-molds externals mark-externals]
+  =/  child=ifile  u.private(graph `graph)
+  =/  clean=jcache  (skim cache.p.checked |=(e=[at=path iface=ifile] !=(at.e private-at)))
+  [%& [[[face.i.selected child] resolved.p.checked] [[private-at child] clean] lowering-cache.p.checked]]
 ::
+++  lowering-axis-steps
+  |=  [typ=itype fields=(list term)]
+  ^-  (unit (list iwstep))
+  ?~  fields  `~
+  =/  scanned=(unit iwfields)  (width-scan typ ~ 1 4.096)
+  ?~  scanned  ~
+  =/  found=(unit iwfield)  (~(get by index.u.scanned) i.fields)
+  ?~  found  ~
+  =/  rest=(unit (list iwstep))  $(typ typ.u.found, fields t.fields)
+  ?~  rest  ~
+  `[[i.fields axis.u.found] u.rest]
+++  lowering-build-wings
+  |=  requests=(list lowering-wing-request)
+  ^-  (unit (list lowering-wing))
+  ?~  requests  `~
+  =/  steps=(unit (list iwstep))  (lowering-axis-steps subject.i.requests fields.i.requests)
+  ?~  steps  ~
+  =/  rest=(unit (list lowering-wing))  $(requests t.requests)
+  ?~  rest  ~
+  `[[id.i.requests owner.i.requests names.i.requests subject.i.requests u.steps] u.rest]
+++  lowering-build-edits
+  |=  requests=(list lowering-edit-request)
+  ^-  (unit (list lowering-edit))
+  ?~  requests  `~
+  =/  steps=(unit (list iwstep))  (lowering-axis-steps target.i.requests (flop names.i.requests))
+  ?~  steps  ~
+  =/  rest=(unit (list lowering-edit))  $(requests t.requests)
+  ?~  rest  ~
+  `[[at.i.requests owner.i.requests names.i.requests target.i.requests u.steps] u.rest]
+++  lowering-local-binder-matches
+  |=  [bindings=(list ishadow-binding) name=term]
+  ^-  (list lowering-definition)
+  %+  murn  bindings
+  |=  binding=ishadow-binding
+  ?.  =(name name.binding)  ~
+  `[%local name at.binding]
+++  lowering-local-matches-list
+  |=  [es=(list expr) site=span name=term]
+  ^-  (list lowering-definition)
+  ?~  es  ~
+  (weld (lowering-local-matches i.es site name) $(es t.es))
+++  lowering-local-matches-arms
+  |=  [arms=(list arm) site=span name=term]
+  ^-  (list lowering-definition)
+  ?~  arms  ~
+  =/  own=(list lowering-definition)
+    ?.  (lowering-span-contains at.i.arms site)  ~
+    (lowering-local-binder-matches (shadow-pattern-bindings pat.i.arms) name)
+  (weld own (weld (lowering-local-matches val.i.arms site name) $(arms t.arms)))
+++  lowering-local-matches
+  |=  [e=expr site=span name=term]
+  ^-  (list lowering-definition)
+  ?.  (lowering-span-contains (span-of e) site)  ~
+  ?-  -.e
+    ?(%gate %gate-wide)
+      =/  own=(list lowering-definition)
+        ?.  (lowering-span-contains (span-of body.e) site)  ~
+        (lowering-local-binder-matches (shadow-sample-bindings sample.e) name)
+      (weld own (lowering-local-matches body.e site name))
+    %branch
+      (weld (lowering-local-matches subject.e site name) (lowering-local-matches-arms arms.e site name))
+    %body
+      =/  own=(list lowering-definition)
+        %+  murn  defs.e
+        |=  d=def
+        ?.  &(?=(%value -.d) =(name name.d))  ~
+        `[%local name at.d]
+      (weld own (lowering-local-matches-list (dependency-children e) site name))
+    *
+      (lowering-local-matches-list (dependency-children e) site name)
+  ==
+++  lowering-resolve-local
+  |=  [mod=module at=path site=span name=term]
+  ^-  (unit lowering-definition)
+  =/  values=(list expr)
+    (murn defs.mod |=(d=def ?:(?=(%value -.d) `val.d ~)))
+  =/  found=(list lowering-definition)  (lowering-local-matches-list values site name)
+  ?^  found
+    ?^(t.found ~ `i.found)
+  ?:  (lien defs.mod |=(d=def &(?=(%value -.d) =(name name.d))))
+    `[%own at name]
+  ~
+++  lowering-native-table
+  ^-  (list [at=path name=term native=term])
+  =/  public=path  /lib/jibb/prelude/jibb
+  =/  internal=path  /lib/jibb/internal/jibb
+  =/  primitive=path  /lib/jibb/primitives/jibb
+  :~  [public %gth %gth]       [public %add %add]
+      [public %dec %dec]       [public %eq %eq]
+      [public %lent %lent]     [public %trip %trip]
+      [public %tuba %tuba]     [public %scot %scot]
+      [internal %gth-atom %gth]     [internal %eq-data %eq]
+      [internal %add-atom %add]     [internal %dec-atom %dec]
+      [internal %trip-text %trip]   [internal %tuba-text %tuba]
+      [internal %crip-text %crip]   [internal %tufa-text %tufa]
+      [internal %pack-date %year]   [internal %unpack-date %yore]
+      [internal %format-knot %scot]  [internal %format-tape %scow]
+      [internal %parse-atom %parse-atom]
+      [internal %bit-not %bit-not]
+      [internal %map-get %map-get]  [internal %map-put %map-put]
+      [primitive %raw-gth %gth]     [primitive %raw-eq %eq]
+      [primitive %raw-add %add]     [primitive %raw-dec %dec]
+      [primitive %raw-trip %trip]   [primitive %raw-tuba %tuba]
+      [primitive %raw-crip %crip]   [primitive %raw-tufa %tufa]
+      [primitive %raw-date-pack %year]
+      [primitive %raw-date-unpack %yore]
+      [primitive %raw-format-knot %scot]
+      [primitive %raw-format-tape %scow]
+      [primitive %raw-parse-atom %parse-atom]
+      [primitive %raw-bit-not %bit-not]
+      [primitive %raw-map-get %map-get]
+      [primitive %raw-map-put %map-put]
+  ==
+++  lowering-interface-at
+  |=  [at=path imports=ijimports prelude=(unit ifile)]
+  ^-  (unit ifile)
+  ?~  imports
+    ?.  ?&(?=(^ prelude) =(at at.u.prelude))  ~
+    prelude
+  ?:  =(at at.interface.i.imports)  `interface.i.imports
+  $(imports t.imports)
+++  lowering-registered-definition
+  |=  [definition=lowering-definition imports=ijimports prelude=(unit ifile)]
+  ^-  (unit ifile)
+  ?.  ?=(?(%prelude %import) -.definition)  ~
+  =/  iface=(unit ifile)  (lowering-interface-at at.definition imports prelude)
+  ?~  iface  ~
+  ?~  (ienv-lookup name.definition values.u.iface)  ~
+  iface
+++  lowering-native-identity
+  |=  [definition=lowering-definition imports=ijimports prelude=(unit ifile)]
+  ^-  (unit term)
+  ?~  (lowering-registered-definition definition imports prelude)  ~
+  =/  table=(list [at=path name=term native=term])  lowering-native-table
+  ?.  ?=(?(%prelude %import) -.definition)  ~
+  |-  ^-  (unit term)
+  ?~  table  ~
+  ?:  &(=(at.i.table at.definition) =(name.i.table name.definition))
+    `native.i.table
+  $(table t.table)
+++  lowering-intrinsic-identity
+  |=  [definition=lowering-definition imports=ijimports prelude=(unit ifile)]
+  ^-  (unit term)
+  ?.  ?=(%prelude -.definition)  ~
+  ?.  =(at.definition /lib/jibb/prelude/jibb)  ~
+  ?.  =(%pure name.definition)  ~
+  ?~  (lowering-registered-definition definition imports prelude)  ~
+  `%pure
+++  lowering-derived-identity
+  |=  [definition=lowering-definition imports=ijimports prelude=(unit ifile)]
+  ^-  (unit lowering-derived)
+  ?.  ?=(%import -.definition)  ~
+  =/  iface=(unit ifile)  (lowering-interface-at at.definition imports prelude)
+  ?~  iface  ~
+  =/  pokes=(list iderived)
+    ?:  =(%poke name.definition)  derived.u.iface
+    ~
+  =/  derived-poke=(unit lowering-derived)
+    ?.  &(?=([* ~] pokes) =(%poke name.definition))  ~
+    `[%poke at.definition agent.i.pokes mark.i.pokes]
+  ?^  derived-poke  derived-poke
+  ?~  graph.u.iface  ~
+  =/  requests=(list irequest-evidence)
+    (skim requests.u.graph.u.iface |=(r=irequest-evidence =(name.definition name.r)))
+  =/  found-request=(unit lowering-derived)
+    ?.  ?=([* ~] requests)  ~
+    `[%request i.requests]
+  ?^  found-request  found-request
+  =/  stores=(list istore-request-evidence)
+    (skim stores.u.graph.u.iface |=(r=istore-request-evidence =(store-at.r at.definition)))
+  ?.  ?=([* ~] stores)  ~
+  ?:  =(%state name.definition)  `[%store-request i.stores]
+  ?:  =(action-name.i.stores name.definition)
+    `[%store-poke store-at.i.stores action-name.i.stores]
+  ~
+++  lowering-available-natives
+  |=  [imports=ijimports prelude=(unit ifile)]
+  ^-  (list term)
+  =/  out=(list term)  ~
+  =/  table=(list [at=path name=term native=term])  lowering-native-table
+  |-
+  ?~  table
+    ?~  prelude  out
+    ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  out
+    ?~  source.u.prelude  out
+    ?~  (find-jibb-mold %cord u.prelude)  out
+    ?~  (find-jibb-mold %tape u.prelude)  out
+    ?:  (lien out |=(n=term =(%join n)))  out
+    [%join out]
+  =/  definition=lowering-definition
+    ?:  =(at.i.table /lib/jibb/prelude/jibb)
+      [%prelude at.i.table name.i.table]
+    [%import at.i.table name.i.table]
+  =/  registered=(unit ifile)
+    (lowering-registered-definition definition imports prelude)
+  =?  out  &(?=(^ registered) !(lien out |=(n=term =(n native.i.table))))
+    [native.i.table out]
+  $(table t.table)
+++  lowering-derived-definitions
+  |=  iface=ifile
+  ^-  (list [name=term plan=lowering-derived])
+  =/  pokes=(list [name=term plan=lowering-derived])
+    (turn derived.iface |=(d=iderived ^-([name=term plan=lowering-derived] [name.d [%poke at.iface agent.d mark.d]])))
+  =/  requests=(list [name=term plan=lowering-derived])
+    ?~  graph.iface  ~
+    (turn requests.u.graph.iface |=(r=irequest-evidence [name.r [%request r]]))
+  =/  stores=(list [name=term plan=lowering-derived])
+    ?~  graph.iface  ~
+    %-  zing
+    %+  turn  stores.u.graph.iface
+    |=  r=istore-request-evidence
+    ^-  (list [name=term plan=lowering-derived])
+    :~  [%state [%store-request r]]
+        [action-name.r [%store-poke store-at.r action-name.r]]
+    ==
+  :(weld pokes requests stores)
+++  lowering-build-references
+  |=  [mod=module at=path imports=ijimports prelude=(unit ifile) requests=(list lowering-reference-request)]
+  ^-  (unit (list lowering-reference))
+  ?~  requests  `~
+  =/  definition=(unit lowering-definition)
+    ?-  -.target.i.requests
+      %resolved      `definition.target.i.requests
+      %local-or-own  (lowering-resolve-local mod at at.id.i.requests name.target.i.requests)
+    ==
+  ?~  definition  ~
+  =/  native=(unit term)
+    (lowering-native-identity u.definition imports prelude)
+  =/  intrinsic=(unit term)
+    (lowering-intrinsic-identity u.definition imports prelude)
+  =/  derived=(unit lowering-derived)
+    (lowering-derived-identity u.definition imports prelude)
+  =/  rest=(unit (list lowering-reference))  $(requests t.requests)
+  ?~  rest  ~
+  `[[id.i.requests owner.i.requests u.definition native intrinsic derived] u.rest]
+++  lowering-direct-imports
+  |=  imports=(list import)
+  ^-  (list [face=term at=path])
+  %+  murn  imports
+  |=  entry=import
+  ?.  ?=(%jibb -.entry)  ~
+  `[face.entry (weld path.entry `path`~[%jibb])]
+++  lowering-projections
+  |=  definitions=(list iwidth-definition)
+  ^-  (list lowering-projection)
+  %-  zing
+  %+  turn  definitions
+  |=  definition=iwidth-definition
+  %+  turn  projections.definition
+  |=  plan=iwprojection
+  [[at.plan %expression] name.definition plan]
+::  A checked projection's operator is intrinsic syntax, not a value reference.
+::  All other call heads, including unresolved intrinsic lookalikes, remain
+::  mandatory typed occurrences and fail closed when evidence is absent.
+++  lowering-projection-operator-ids
+  |=  projections=(list lowering-projection)
+  ^-  (list lowering-occurrence-id)
+  %+  murn  projections
+  |=  projection=lowering-projection
+  =/  original=expr  original.plan.projection
+  ?.  ?=(%call -.original)  ~
+  `[(span-of head.original) %expression]
+++  lowering-unface-operator-ids-list
+  |=  es=(list expr)
+  ^-  (list lowering-occurrence-id)
+  ?~  es  ~
+  (weld (lowering-unface-operator-ids i.es) $(es t.es))
+++  lowering-unface-operator-ids
+  |=  e=expr
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ~
+  =?  own  ?&(?=(%call -.e) ?=(%wing -.head.e) =(names.head.e ~[%unface]))
+    ~[[at.head.e %expression]]
+  (weld own (lowering-unface-operator-ids-list (dependency-children e)))
+++  lowering-unface-module-ids
+  |=  mod=module
+  ^-  (list lowering-occurrence-id)
+  %-  zing
+  %+  turn  defs.mod
+  |=  d=def
+  ?.  ?=(%value -.d)  ~
+  (lowering-unface-operator-ids val.d)
+++  lowering-required-samples-list
+  |=  items=(list sample)
+  ^-  (list lowering-occurrence-id)
+  ?~  items  ~
+  (weld (lowering-required-samples i.items) $(items t.items))
+++  lowering-required-samples
+  |=  s=sample
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ~[[at.s %sample]]
+  ?.  ?=(%cell -.s)  own
+  (weld own (lowering-required-samples-list items.s))
+++  lowering-required-patterns-list
+  |=  items=(list pattern)
+  ^-  (list lowering-occurrence-id)
+  ?~  items  ~
+  (weld (lowering-required-patterns i.items) $(items t.items))
+++  lowering-required-patterns
+  |=  p=pattern
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ~[[at.p %pattern]]
+  ?.  ?=(%cell -.p)  own
+  (weld own (lowering-required-patterns-list items.p))
+++  lowering-required-expression-list
+  |=  es=(list expr)
+  ^-  (list lowering-occurrence-id)
+  ?~  es  ~
+  (weld (lowering-required-expressions i.es) $(es t.es))
+++  lowering-required-pattern-arms
+  |=  arms=(list arm)
+  ^-  (list lowering-occurrence-id)
+  ?~  arms  ~
+  (weld (lowering-required-patterns pat.i.arms) $(arms t.arms))
+++  lowering-required-expressions
+  |=  e=expr
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ~[[(span-of e) %expression]]
+  =?  own  ?=(?(%gate %gate-wide) -.e)
+    (weld own (lowering-required-samples sample.e))
+  =?  own  ?=(%branch -.e)
+    (weld own (lowering-required-pattern-arms arms.e))
+  (weld own (lowering-required-expression-list (dependency-children e)))
+++  lowering-required-module
+  |=  mod=module
+  ^-  (list lowering-occurrence-id)
+  %-  zing
+  %+  turn  defs.mod
+  |=  d=def
+  ?.  ?=(%value -.d)  ~
+  (lowering-required-expressions val.d)
+++  lowering-missing-ids
+  |=  [required=(list lowering-occurrence-id) actual=(list lowering-occurrence-id)]
+  ^-  (list lowering-occurrence-id)
+  ?~  required  ~
+  ?:  (lien actual |=(have=lowering-occurrence-id =(i.required have)))
+    $(required t.required)
+  [i.required $(required t.required)]
+::
+++  lowering-ids-present
+  |=  [required=(list lowering-occurrence-id) actual=(list lowering-occurrence-id)]
+  ^-  ?
+  (levy required |=(id=lowering-occurrence-id (lien actual |=(have=lowering-occurrence-id =(id have)))))
+++  lowering-required-binders-sample-list
+  |=  items=(list sample)
+  ^-  (list lowering-occurrence-id)
+  ?~  items  ~
+  (weld (lowering-required-binders-sample i.items) $(items t.items))
+++  lowering-required-binders-sample
+  |=  s=sample
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)
+    ?.  ?=(?(%bind %face %pun) -.s)  ~
+    ~[[at.s %sample]]
+  ?.  ?=(%cell -.s)  own
+  (weld own (lowering-required-binders-sample-list items.s))
+++  lowering-required-binders-pattern-list
+  |=  items=(list pattern)
+  ^-  (list lowering-occurrence-id)
+  ?~  items  ~
+  (weld (lowering-required-binders-pattern i.items) $(items t.items))
+++  lowering-required-binders-pattern
+  |=  p=pattern
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ?:(?=(%bind -.p) ~[[at.p %pattern]] ~)
+  ?.  ?=(%cell -.p)  own
+  (weld own (lowering-required-binders-pattern-list items.p))
+++  lowering-required-binders-list
+  |=  es=(list expr)
+  ^-  (list lowering-occurrence-id)
+  ?~  es  ~
+  (weld (lowering-required-binders-expr i.es) $(es t.es))
+++  lowering-required-binder-arms
+  |=  arms=(list arm)
+  ^-  (list lowering-occurrence-id)
+  ?~  arms  ~
+  (weld (lowering-required-binders-pattern pat.i.arms) $(arms t.arms))
+++  lowering-required-binders-expr
+  |=  e=expr
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ~
+  =?  own  ?=(?(%gate %gate-wide) -.e)
+    (lowering-required-binders-sample sample.e)
+  =?  own  ?=(%branch -.e)
+    (lowering-required-binder-arms arms.e)
+  (weld own (lowering-required-binders-list (dependency-children e)))
+++  lowering-required-binders
+  |=  mod=module
+  ^-  (list lowering-occurrence-id)
+  %-  zing
+  %+  turn  defs.mod
+  |=  d=def
+  ?.  ?=(%value -.d)  ~
+  (lowering-required-binders-expr val.d)
+++  lowering-required-references-list
+  |=  es=(list expr)
+  ^-  (list lowering-occurrence-id)
+  ?~  es  ~
+  (weld (lowering-required-references-expr i.es) $(es t.es))
+++  lowering-required-references-expr
+  |=  e=expr
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ?:(?=(%wing -.e) ~[[at.e %expression]] ~)
+  (weld own (lowering-required-references-list (dependency-children e)))
+++  lowering-required-references
+  |=  mod=module
+  ^-  (list lowering-occurrence-id)
+  %-  zing
+  %+  turn  defs.mod
+  |=  d=def
+  ?.  ?=(%value -.d)  ~
+  (lowering-required-references-expr val.d)
+++  lowering-required-matches-list
+  |=  es=(list expr)
+  ^-  (list lowering-occurrence-id)
+  ?~  es  ~
+  (weld (lowering-required-matches-expr i.es) $(es t.es))
+++  lowering-required-matches-expr
+  |=  e=expr
+  ^-  (list lowering-occurrence-id)
+  =/  own=(list lowering-occurrence-id)  ?:(?=(%branch -.e) ~[[at.e %expression]] ~)
+  (weld own (lowering-required-matches-list (dependency-children e)))
+++  lowering-required-matches
+  |=  mod=module
+  ^-  (list lowering-occurrence-id)
+  %-  zing
+  %+  turn  defs.mod
+  |=  d=def
+  ?.  ?=(%value -.d)  ~
+  (lowering-required-matches-expr val.d)
+++  lowering-expression-at
+  |=  [e=expr at=span]
+  ^-  (unit expr)
+  ?:  &(?=(%branch -.e) =(at at.e))  `e
+  =/  todo=(list expr)  ~[e]
+  |-
+  ?~  todo  ~
+  =/  current=expr  i.todo
+  ?:  &(?=(%branch -.current) =(at at.current))  `current
+  $(todo (weld (dependency-children current) t.todo))
+::
+++  lowering-branch-at
+  |=  [mod=module at=span]
+  ^-  (unit expr)
+  =/  remaining=(list def)  defs.mod
+  |-
+  ?~  remaining  ~
+  ?.  ?=(%value -.i.remaining)  $(remaining t.remaining)
+  =/  found=(unit expr)  (lowering-expression-at val.i.remaining at)
+  ?^  found  found
+  $(remaining t.remaining)
+::
+++  lowering-occurrence-at
+  |=  [xs=(list lowering-occurrence) id=lowering-occurrence-id]
+  ^-  (unit lowering-occurrence)
+  ?~  xs  ~
+  ?:  =(id id.i.xs)  `i.xs
+  $(xs t.xs)
+::
+++  lowering-binder-at
+  |=  [xs=(list lowering-binder) at=span]
+  ^-  (unit lowering-binder)
+  ?~  xs  ~
+  ?:  =(at at.id.i.xs)  `i.xs
+  $(xs t.xs)
+::
+++  lowering-coverage-rows
+  |=  arms=(list arm)
+  ^-  (unit matrix:coverage)
+  ?~  arms  `~
+  =/  candidate=(unit pattern:coverage)  (coverage-pattern pat.i.arms)
+  ?~  candidate  ~
+  =/  rest=(unit matrix:coverage)  $(arms t.arms)
+  ?~  rest  ~
+  `[[u.candidate ~] u.rest]
+::
+++  lowering-match-proof
+  |=  [e=expr subject=itype owner=term]
+  ^-  (unit lowering-match)
+  ?>  ?=(%branch -.e)
+  =/  arms=(list lowering-match-arm)
+    (turn arms.e |=(a=arm [at.a [at.pat.a %pattern] [(span-of val.a) %expression]]))
+  =/  built=(unit coverage-type-result)
+    =/  exact=(unit coverage-type-result)  (coverage-type subject ~ [0 ~ ~] 4.096)
+    ?^  exact  exact
+    =/  broad=(unit itype)  (coverage-overapprox subject 4.096)
+    ?~  broad  ~
+    (coverage-type u.broad ~ [0 ~ ~] 4.096)
+  ?~  built  ~
+  =/  rows=(unit matrix:coverage)  (lowering-coverage-rows arms.e)
+  ?~  rows  ~
+  `[[at.e %expression] owner subject domain.u.built graph.state.u.built u.rows arms ~]
+::
+++  lowering-complete-match
+  |=  [at=span mod=module occurrences=(list lowering-occurrence) binders=(list lowering-binder)]
+  ^-  (each lowering-match @t)
+  =/  found=(unit expr)  (lowering-branch-at mod at)
+  ?~  found  [%| 'match branch expression is missing']
+  ?.  ?=(%branch -.u.found)  [%| 'match occurrence is not a branch']
+  =/  subject=(unit lowering-occurrence)
+    (lowering-occurrence-at occurrences [(span-of subject.u.found) %expression])
+  =/  binder=(unit lowering-binder)
+    ?^  subject  ~
+    (lowering-binder-at binders (span-of subject.u.found))
+  =/  subject-type=(unit itype)
+    ?^  subject  `typ.u.subject
+    ?~(binder ~ `typ.u.binder)
+  ?~  subject-type  [%| 'match subject has no checked type occurrence or binder']
+  =/  branch=(unit lowering-occurrence)
+    (lowering-occurrence-at occurrences [at.u.found %expression])
+  =/  owner=term
+    ?^  branch  owner.u.branch
+    ?~(binder %$ owner.u.binder)
+  =/  result=(unit lowering-match)
+    (lowering-match-proof u.found u.subject-type owner)
+  ?~  result  [%| 'match domain or source matrix could not be constructed']
+  [%& u.result]
+::
+++  lowering-complete-matches
+  |=  [mod=module occurrences=(list lowering-occurrence) binders=(list lowering-binder) existing=(list lowering-match)]
+  ^-  (each (list lowering-match) @t)
+  =/  required=(list lowering-occurrence-id)  (lowering-required-matches mod)
+  =/  out=(list lowering-match)  existing
+  |-
+  ?~  required  [%& out]
+  =/  id=lowering-occurrence-id  i.required
+  ?:  (lien out |=(m=lowering-match =(id id.m)))  $(required t.required)
+  =/  built=(each lowering-match @t)  (lowering-complete-match at.id mod occurrences binders)
+  ?:  ?=(%| -.built)  built
+  ?>  ?=(%& -.built)
+  $(required t.required, out [p.built out])
+::
+++  build-checked-module
+  |=  [at=path mod=module kind=checked-kind iface=ifile imports=ijimports prelude=(unit ifile) evidence=lowering-evidence]
+  ^-  (unit checked-module)
+  =/  plans=(list lowering-projection)  (lowering-projections elaborations.iface)
+  =/  intrinsic=(list lowering-occurrence-id)
+    (weld (lowering-projection-operator-ids plans) (lowering-unface-module-ids mod))
+  =/  required=(list lowering-occurrence-id)
+    (skip (lowering-required-module mod) |=(id=lowering-occurrence-id (lien intrinsic |=(skip=lowering-occurrence-id =(id skip)))))
+  =/  actual=(list lowering-occurrence-id)
+    (turn occurrences.evidence |=(o=lowering-occurrence id.o))
+  =/  missing=(list lowering-occurrence-id)
+    (lowering-missing-ids required actual)
+  ?.  =(~ missing)  ~
+  =/  required-binders=(list lowering-occurrence-id)  (lowering-required-binders mod)
+  =/  actual-binders=(list lowering-occurrence-id)
+    (turn binders.evidence |=(b=lowering-binder id.b))
+  ?.  (lowering-ids-present required-binders actual-binders)  ~
+  =/  required-matches=(list lowering-occurrence-id)  (lowering-required-matches mod)
+  =/  completed=(each (list lowering-match) @t)
+    (lowering-complete-matches mod occurrences.evidence binders.evidence matches.evidence)
+  ?:  ?=(%| -.completed)  ~
+  =/  finalized=(unit (list lowering-match))
+    (lowering-final-matches p.completed ~ binders.evidence ~)
+  ?~  finalized  ~
+  =/  actual-matches=(list lowering-occurrence-id)
+    (turn u.finalized |=(m=lowering-match id.m))
+  ?.  (lowering-ids-present required-matches actual-matches)  ~
+  =/  references=(unit (list lowering-reference))
+    (lowering-build-references mod at imports prelude references.evidence)
+  ?~  references  ~
+  =/  required-references=(list lowering-occurrence-id)
+    (skip (lowering-required-references mod) |=(id=lowering-occurrence-id (lien intrinsic |=(skip=lowering-occurrence-id =(id skip)))))
+  =/  actual-references=(list lowering-occurrence-id)
+    (turn u.references |=(r=lowering-reference id.r))
+  ?.  (lowering-ids-present required-references actual-references)  ~
+  =/  wings=(unit (list lowering-wing))  (lowering-build-wings wings.evidence)
+  ?~  wings  ~
+  =/  edits=(unit (list lowering-edit))  (lowering-build-edits edits.evidence)
+  ?~  edits  ~
+  =/  natives=(list term)  (lowering-available-natives imports prelude)
+  =/  derived=(list [name=term plan=lowering-derived])
+    (lowering-derived-definitions iface)
+  =/  derived-components=(list lowering-scc)
+    (turn derived |=(d=[name=term plan=lowering-derived] [~ %$ ~[name.d]]))
+  `[at mod kind iface (lowering-direct-imports imports.mod) occurrences.evidence binders.evidence u.references u.wings u.edits (weld components.evidence derived-components) u.finalized plans natives derived]
+::  Derived API and private-prelude modules currently have no checked source
+::  expression artifact and return no checked-module. Exact final match
+::  domains and unresolved reference/axis evidence are likewise mandatory.
+++  check-jibb-file-for-lowering
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
+  ^-  jlowering-result
+  (check-jibb-file-for-lowering-with-cache at src externals mark-externals modules active prelude-values prelude-molds cache prelude ~)
+++  check-jibb-file-for-lowering-prepared
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) cache=jcache prepared=iprelude-lowering]
+  ^-  jlowering-result
+  =/  public=iprelude  prepared.prepared
+  (check-jibb-file-for-lowering-with-cache at src externals mark-externals modules active values.public molds.public cache `iface.public cache.prepared)
+++  check-jibb-file-for-lowering-with-cache
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) artifacts=jlowering-cache]
+  ^-  jlowering-result
+  =/  out=jfile-lowering-internal
+    (infer-jibb-file-capture at src externals mark-externals modules active prelude-values prelude-molds cache prelude ~ `artifacts)
+  ?:  ?=(%| -.out)  [%| p.out]
+  ?~  artifact.p.out
+    [%| ['this checked module form has no lowering artifact' ~]]
+  [%& [u.artifact.p.out lowering-cache.p.out kind.p.out]]
 ++  infer-jibb-file-detailed
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile)]
   ^-  jfile-detailed-result
@@ -24431,6 +25688,13 @@
 ++  infer-jibb-file-with-group-private
   |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) private=(unit ifile)]
   ^-  jfile-detailed-result
+  =/  out=jfile-lowering-internal
+    (infer-jibb-file-capture at src externals mark-externals modules active prelude-values prelude-molds cache prelude private ~)
+  ?:  ?=(%| -.out)  [%| p.out]
+  [%& [iface.p.out cache.p.out kind.p.out]]
+++  infer-jibb-file-capture
+  |=  [at=path src=@t externals=iexternals mark-externals=imark-externals modules=jbundle active=(list path) prelude-values=(list term) prelude-molds=(list term) cache=jcache prelude=(unit ifile) private=(unit ifile) lowering=(unit jlowering-cache)]
+  ^-  jfile-lowering-internal
   =/  conflict=(unit path)  (prelude-group-source-conflict at src modules prelude)
   ?^  conflict  [%| [(crip "source for checked prelude dependency disagrees: {(spud u.conflict)}") ~]]
   =/  parsed  (parse at src)
@@ -24468,7 +25732,15 @@
     ?:  ?=(%& -.poke)
       =/  iface=ifile  p.poke
       =/  checked=ifile  iface(source `src, graph `[(silt `(list path)`~[at]) ~ ~ modules prelude inherited-values inherited-molds externals mark-externals])
-      [%& [checked [[at checked] cache] %library]]
+      =/  artifact=(unit checked-module)
+        ?~  lowering  ~
+        (build-checked-module at mod %library checked ~ prelude [~ ~ ~ ~ ~ ~ ~])
+      ?:  &(?=(^ lowering) ?=(~ artifact))
+        [%| ['checked API lowering artifact could not be finalized' ~]]
+      =/  enriched=jlowering-cache
+        ?~  artifact  ?~(lowering ~ u.lowering)
+        [[at u.artifact] (skim ?~(lowering ~ u.lowering) |=(e=[at=path artifact=checked-module] !=(at.e at)))]
+      [%& [checked [[at checked] cache] %library artifact enriched]]
     ::  A clashing derived name is an error wherever the checks below stop.
     =/  clash=(unit idiag)  (api-derived-clash mod prelude-values)
     ?^  clash  [%| [(show-duplicate-fields at src u.clash) ~]]
@@ -24499,17 +25771,17 @@
     ::  A failing Jibb import gives its own error, which may be definite, as
     ::  it does for other modules; the constructors below would only wrap it.
     ::  They resolve the same imports again, from the interfaces cached here.
-    =/  js=jimports-detailed-result
-      (resolve-group-private-imports imports.mod externals mark-externals modules active inherited-values inherited-molds cache prelude `[at src] private)
+    =/  js=jimports-lowering-result
+      (resolve-group-private-imports-capture imports.mod externals mark-externals modules active inherited-values inherited-molds cache prelude `[at src] private lowering)
     ?:  ?=(%| -.js)  [%| p.js]
     ::  Without `+$ paths` only the poke-only interface applies; keep its reason.
     ?.  (lien defs.mod |=(d=def &(?=(%mold -.d) =(%paths name.d))))
       [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.poke)}") ~]]
     ::  The general constructor names the part that stopped it; keep that reason.
-    =/  multi=(each [iface=ifile cache=jcache] @t)
-      (multi-request-interface-graph at src externals mark-externals modules active cache.p.js `prepared)
+    =/  multi=(each [iface=ifile cache=jcache artifact=(unit checked-module) lowering-cache=jlowering-cache] @t)
+      (multi-request-interface-graph at src externals mark-externals modules active cache.p.js `prepared ?~(lowering ~ `lowering-cache.p.js))
     ?:  ?=(%| -.multi)  [%| [(crip "API module needs unsupported inference: {(spud at)}: {(trip p.multi)}") ~]]
-    [%& [iface.p.multi [[at iface.p.multi] cache.p.multi] %library]]
+    [%& [iface.p.multi [[at iface.p.multi] cache.p.multi] %library artifact.p.multi lowering-cache.p.multi]]
   =/  main=(unit def)  (program-main-def defs.mod)
   =/  main-parts=(unit [init=term update=term view=term subs=term])
     ?~(main ~ (program-main-parts u.main))
@@ -24524,7 +25796,7 @@
     ?^  scope  [%| [(show-scope-diagnostic at src u.scope prelude) ~]]
     [%| [(crip "module has conflicting names: {(spud at)}") ~]]
   =/  vals=(list term)  (global-value-names ds)
-  =/  js=jimports-detailed-result  (resolve-group-private-imports imports.mod externals mark-externals modules active inherited-values inherited-molds cache prelude `[at src] private)
+  =/  js=jimports-lowering-result  (resolve-group-private-imports-capture imports.mod externals mark-externals modules active inherited-values inherited-molds cache prelude `[at src] private lowering)
   ?:  ?=(%| -.js)  [%| p.js]
   =/  molds=imolds  (collect-simple-molds ds)
   =/  globals=(list term)  (weld prelude-values (weld (import-binding-names imports.mod) vals))
@@ -24533,7 +25805,7 @@
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   =/  state=istate  *istate
-  =.  state  state(molds molds, globals globals, externals externals, surs surs, mark-externals mark-externals, marks marks, jimports resolved.p.js, reserved-molds reserved, in-mold |, at at, top-molds top, prelude prelude, jrec-fuel 256, globals-imports |, general-defer |)
+  =.  state  state(molds molds, globals globals, externals externals, surs surs, mark-externals mark-externals, marks marks, jimports resolved.p.js, reserved-molds reserved, in-mold |, at at, top-molds top, prelude prelude, jrec-fuel 256, globals-imports |, general-defer |, lowering ?=(^ lowering), lowering-own vals)
   =.  globals-imports.state  &
   =.  diagnostic-sources.state  modules
   =.  local-source.state  `src
@@ -24675,7 +25947,18 @@
   ?.  (request-graph-bounded u.graph)
     [%| ['module request evidence needs unsupported inference' ~]]
   =/  iface=ifile  [env p.mts at ~ artifacts.resolution ~ `src graph ~]
-  [%& [iface [[at iface] cache.p.js] u.kind]]
+  =/  artifact=(unit checked-module)
+    ?~  lowering  ~
+    ?~  lowering.resolution  ~
+    (build-checked-module at mod u.kind iface resolved.p.js prelude u.lowering.resolution)
+  ?:  &(?=(^ lowering) ?=(~ artifact))
+    [%| ['checked module lowering artifact could not be finalized' ~]]
+  =/  enriched=jlowering-cache
+    ?~  artifact  lowering-cache.p.js
+    =/  prior=jlowering-cache
+      (skim lowering-cache.p.js |=(e=[at=path artifact=checked-module] !=(at.e at)))
+    [[at u.artifact] prior]
+  [%& [iface [[at iface] cache.p.js] u.kind artifact enriched]]
 ::
 ::  A source-bound analysis of one named mold, not a module, island,
 ::  request, watchability or runtime check.  The host owns the trusted

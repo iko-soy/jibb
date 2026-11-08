@@ -1766,7 +1766,7 @@ impl<'a> Renderer<'a> {
             return true;
         }
         let start = node.start_position().row;
-        let end = last_row(node);
+        let end = self.last_code_row(node);
         (start..=end).any(|row| {
             row > start
                 && row < end

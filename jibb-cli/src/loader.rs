@@ -119,8 +119,22 @@ impl<'a> Loader<'a> {
 
     fn with_prelude(&mut self, mut module: Module) -> Result<Module, Diagnostic> {
         if let Some(prelude) = self.prelude {
-            let prelude = self.load(prelude)?;
-            module.definitions = [prelude.definitions, module.definitions].concat();
+            let mut prelude = self.load(prelude)?;
+            for definition in &mut prelude.definitions {
+                rewrite_definition(definition, "hoon", &BTreeMap::new());
+            }
+            let existing = module
+                .definitions
+                .iter()
+                .chain(&prelude.definitions)
+                .map(|definition| definition.name.as_str())
+                .collect::<BTreeSet<_>>();
+            let native = [native_molds(), native_hoon_molds()]
+                .concat()
+                .into_iter()
+                .filter(|definition| !existing.contains(definition.name.as_str()))
+                .collect::<Vec<_>>();
+            module.definitions = [native, prelude.definitions, module.definitions].concat();
         }
         Ok(module)
     }
@@ -195,6 +209,7 @@ impl<'a> Loader<'a> {
                         }
                         if is_primitive_module_path(path) {
                             linked.extend(native_molds());
+                            linked.extend(native_hoon_molds());
                             for definition in &mut module.definitions {
                                 rewrite_definition(definition, name, &BTreeMap::new());
                             }
@@ -318,11 +333,19 @@ impl<'a> Loader<'a> {
 }
 
 fn native_molds() -> Vec<Definition> {
-    let source = "+$ list |$ [A]\n  ~\n  [i=A t=(list A)]\n+$ unit |$ [A]\n  ~\n  [~ u=A]\n";
+    let source = "+$ list |$ [A]\n  ~\n  [i=A t=(list A)]\n+$ unit |$ [A]\n  ~\n  [~ u=A]\n+$ opaque |$ [A] A\n";
     let definitions = parse_ast(source)
         .expect("native mold source parses")
         .definitions;
     prefix_definitions(&definitions, "core")
+}
+
+fn native_hoon_molds() -> Vec<Definition> {
+    let source = "+$ map |$ [K V] (tree [p=K q=V])\n+$ tree |$ [A]\n  ~\n  [n=A l=(tree A) r=(tree A)]\n+$ step @ud\n";
+    let definitions = parse_ast(source)
+        .expect("native Hoon mold source parses")
+        .definitions;
+    prefix_definitions(&definitions, "hoon")
 }
 
 fn prefix_definitions(definitions: &[Definition], face: &str) -> Vec<Definition> {

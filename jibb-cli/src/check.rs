@@ -67,6 +67,7 @@ struct Checker<'a> {
     local_scopes: Vec<BTreeSet<String>>,
     local_mold_definitions: Vec<BTreeMap<String, (MoldDefinition, Span)>>,
     local_resolved_molds: Vec<BTreeMap<String, ResolvedMold>>,
+    recursive_products: BTreeSet<TypeVar>,
 }
 
 impl<'a> Checker<'a> {
@@ -82,6 +83,7 @@ impl<'a> Checker<'a> {
             local_scopes: Vec::new(),
             local_mold_definitions: Vec::new(),
             local_resolved_molds: Vec::new(),
+            recursive_products: BTreeSet::new(),
         }
     }
 
@@ -543,6 +545,18 @@ impl<'a> Checker<'a> {
         )
     }
 
+    fn transparent_case(&self, typ: &Type) -> Option<Type> {
+        if !matches!(typ, Type::Named { .. }) {
+            return None;
+        }
+        let cases = self.expanded_cases(typ)?;
+        if cases.len() == 1 {
+            cases.first().cloned()
+        } else {
+            None
+        }
+    }
+
     fn check_values(&mut self) -> Result<(), Diagnostic> {
         let definitions = self
             .module
@@ -556,6 +570,20 @@ impl<'a> Checker<'a> {
             self.check_value_group(&group, &definitions, &dependencies)?;
         }
         Ok(())
+    }
+
+    fn recursive_product(
+        &mut self,
+        body: &Expr,
+        variables: &mut BTreeMap<String, TypeVar>,
+    ) -> Result<Type, Diagnostic> {
+        if let ExprKind::Cast { mold, .. } = &body.kind {
+            self.resolve_mold(mold, variables, true, true)
+        } else {
+            let variable = self.fresh_variable();
+            self.recursive_products.insert(variable);
+            Ok(Type::Var(variable))
+        }
     }
 
     fn check_value_group(
@@ -592,7 +620,7 @@ impl<'a> Checker<'a> {
         for name in group {
             let definition = value_definition(definitions, name);
             let DefinitionKind::Value(Expr {
-                kind: ExprKind::Gate { sample, .. },
+                kind: ExprKind::Gate { sample, body },
                 ..
             }) = &definition.kind
             else {
@@ -605,7 +633,7 @@ impl<'a> Checker<'a> {
             let mut sample_environment = Environment::new();
             let sample =
                 self.infer_sample(sample, None, &mut variables, &mut sample_environment)?;
-            let product = Type::Var(self.fresh_variable());
+            let product = self.recursive_product(body, &mut variables)?;
             let gate = Type::Gate {
                 sample: Box::new(sample),
                 product: Box::new(product.clone()),
@@ -778,7 +806,9 @@ impl<'a> Checker<'a> {
                 unreachable!()
             };
             let mut variables = outer_variables.clone();
-            let typ = self.infer_expression(expression, None, &mut variables, environment)?;
+            let mut local_environment = environment.clone();
+            let typ =
+                self.infer_expression(expression, None, &mut variables, &mut local_environment)?;
             let typ = self.unifier.normalize(&typ);
             self.ensure_holes_resolved(&typ)?;
             self.validate_constraints()?;
@@ -792,7 +822,7 @@ impl<'a> Checker<'a> {
         for name in group {
             let definition = value_definition(definitions, name);
             let DefinitionKind::Value(Expr {
-                kind: ExprKind::Gate { sample, .. },
+                kind: ExprKind::Gate { sample, body },
                 ..
             }) = &definition.kind
             else {
@@ -805,7 +835,7 @@ impl<'a> Checker<'a> {
             let mut sample_environment = environment.clone();
             let sample =
                 self.infer_sample(sample, None, &mut variables, &mut sample_environment)?;
-            let product = Type::Var(self.fresh_variable());
+            let product = self.recursive_product(body, &mut variables)?;
             let gate = Type::Gate {
                 sample: Box::new(sample),
                 product: Box::new(product.clone()),
@@ -1847,11 +1877,16 @@ impl<'a> Checker<'a> {
         items: &[crate::ast::Item],
     ) -> Option<Vec<TypeField>> {
         let count = items.len();
-        let tag = items.first().and_then(|item| match &item.value.kind {
-            ExprKind::Literal(Literal::Term(term)) => Some(term.value.clone()),
-            ExprKind::Literal(Literal::Null) => Some(BigUint::default()),
-            ExprKind::Literal(Literal::Loobean(yes)) => Some(BigUint::from(u8::from(!yes))),
-            _ => None,
+        let tag = items.first().and_then(|item| {
+            if item.face.is_some() {
+                return None;
+            }
+            match &item.value.kind {
+                ExprKind::Literal(Literal::Term(term)) => Some(term.value.clone()),
+                ExprKind::Literal(Literal::Null) => Some(BigUint::default()),
+                ExprKind::Literal(Literal::Loobean(yes)) => Some(BigUint::from(u8::from(!yes))),
+                _ => None,
+            }
         });
         match typ {
             Type::Cell(fields)
@@ -2067,6 +2102,16 @@ impl<'a> Checker<'a> {
         expected: Option<&Type>,
         span: Span,
     ) -> Result<Type, Diagnostic> {
+        if matches!(literal, Literal::Number(_))
+            && let Some(expected) = expected
+            && let Type::Var(variable) = self.unifier.resolve(expected)
+            && self.recursive_products.contains(&variable)
+        {
+            let variable = self.fresh_variable();
+            self.unifier
+                .constrain_variable(variable, ConstraintKind::Atom, span);
+            return self.fit_or_error(Type::Var(variable), Some(expected), span);
+        }
         let actual = match literal {
             Literal::Number(number) => Type::Atom(Aura::new(match number.aura {
                 NumberAura::Decimal => "ud",
@@ -2156,18 +2201,55 @@ impl<'a> Checker<'a> {
         if self.types_fit(&actual, &expected) {
             return Ok(expected);
         }
+        let actual_case = self.transparent_case(&actual);
+        let expected_case = self.transparent_case(&expected);
+        if actual_case.is_some() || expected_case.is_some() {
+            let expanded_actual = actual_case.unwrap_or_else(|| actual.clone());
+            let expanded_expected = expected_case.unwrap_or_else(|| expected.clone());
+            if self
+                .unifier
+                .unify(&expanded_actual, &expanded_expected, span)
+                .is_err()
+            {
+                return Err(Diagnostic::at(
+                    format!(
+                        "type mismatch: expected {}, found {}",
+                        TypeScheme::mono(expected),
+                        TypeScheme::mono(actual)
+                    ),
+                    span,
+                ));
+            }
+            return Ok(self.unifier.normalize(&expected));
+        }
         let typ = self.unifier.unify(&actual, &expected, span)?;
         Ok(self.unifier.normalize(&typ))
     }
 
     fn types_fit(&self, actual: &Type, expected: &Type) -> bool {
+        self.types_fit_with_visited(actual, expected, &mut HashSet::new())
+    }
+
+    fn types_fit_with_visited(
+        &self,
+        actual: &Type,
+        expected: &Type,
+        visiting: &mut HashSet<(Type, Type)>,
+    ) -> bool {
         if actual == expected || matches!(actual, Type::Void) || matches!(expected, Type::Noun) {
             return true;
         }
         if let (Some(actual), Some(expected)) = (constant_value(actual), constant_value(expected)) {
             return actual == expected;
         }
-        match (actual, expected) {
+        let pair = (matches!(actual, Type::Named { .. }) || matches!(expected, Type::Named { .. }))
+            .then(|| (actual.clone(), expected.clone()));
+        if let Some(pair) = &pair
+            && !visiting.insert(pair.clone())
+        {
+            return true;
+        }
+        let result = match (actual, expected) {
             (Type::Var(variable), Type::AnyAtom) if self.unifier.has_atom_constraint(*variable) => {
                 true
             }
@@ -2209,7 +2291,7 @@ impl<'a> Checker<'a> {
                         (actual.face == expected.face
                             || actual.face.is_none()
                             || expected.face.is_none())
-                            && self.types_fit(&actual.typ, &expected.typ)
+                            && self.types_fit_with_visited(&actual.typ, &expected.typ, visiting)
                     })
             }
             (
@@ -2222,19 +2304,31 @@ impl<'a> Checker<'a> {
                     product: expected_product,
                 },
             ) => {
-                self.types_fit(actual_sample, expected_sample)
-                    && self.types_fit(actual_product, expected_product)
+                self.types_fit_with_visited(actual_sample, expected_sample, visiting)
+                    && self.types_fit_with_visited(actual_product, expected_product, visiting)
             }
-            (Type::Union(cases), _) => cases.iter().all(|case| self.types_fit(case, expected)),
-            (_, Type::Union(cases)) => cases.iter().any(|case| self.types_fit(actual, case)),
-            (Type::Named { .. }, _) => self
-                .expanded_cases(actual)
-                .is_some_and(|cases| cases.iter().all(|case| self.types_fit(case, expected))),
-            (_, Type::Named { .. }) => self
-                .expanded_cases(expected)
-                .is_some_and(|cases| cases.iter().any(|case| self.types_fit(actual, case))),
+            (Type::Union(cases), _) => cases
+                .iter()
+                .all(|case| self.types_fit_with_visited(case, expected, visiting)),
+            (_, Type::Union(cases)) => cases
+                .iter()
+                .any(|case| self.types_fit_with_visited(actual, case, visiting)),
+            (Type::Named { .. }, _) => self.expanded_cases(actual).is_some_and(|cases| {
+                cases
+                    .iter()
+                    .all(|case| self.types_fit_with_visited(case, expected, visiting))
+            }),
+            (_, Type::Named { .. }) => self.expanded_cases(expected).is_some_and(|cases| {
+                cases
+                    .iter()
+                    .any(|case| self.types_fit_with_visited(actual, case, visiting))
+            }),
             _ => false,
+        };
+        if let Some(pair) = pair {
+            visiting.remove(&pair);
         }
+        result
     }
 
     fn fresh_variable(&mut self) -> TypeVar {

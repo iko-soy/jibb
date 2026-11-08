@@ -72,7 +72,7 @@ git clone https://github.com/urbit/tools /root/src/tools
 | --- | --- |
 | `tools/check` | Runs every check in this table, or a group (`--group eval`, `native` or `ship`), or some by name: see [Before pushing](#before-pushing) |
 | `jibb-cli` | `cargo test --manifest-path jibb-cli/Cargo.toml` tests the native executable, parser, formatter and golden corpus; `cargo run --manifest-path jibb-cli/Cargo.toml -- fmt` runs the formatter |
-| `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them |
+| `tools/golden` | Runs the golden cases under `urbit eval`: every case, or those matching `--case`; `--update` rewrites the expected outputs; `--show` prints them. `expect-core:` opts into checked lowering and canonical `core.txt` output |
 | `tools/test-arms` | Runs the `test-` arms of the `tests/lib` suites under `urbit eval`, each with the subject Ford would give it on the `jibb-dev` desk: every suite, or those named or matched by a glob, as `tools/test-arms jibb-store 'jibb-program-*'`; `--shard I/N` runs the I-th of N balanced shards; `--list` prints the suites and their arms; `--report` and `--update` print or rewrite a golden-report suite's report. See [The test suites](#the-test-suites) |
 | `tools/clay-fixtures` | Syncs `my-app` and `jibb-fixtures`, builds their example `/sur` files and marks through Clay, checks selected mold and mark projections and the full checker, and records Ford and mark subject shapes on the fake ship |
 | `tools/check-my-app` | Syncs `my-app`, builds its `/sur` files and marks through Clay, and runs the full checker over every UI module in dependency order; asserts the one expected buttons error and prints the checking time |
@@ -83,11 +83,11 @@ git clone https://github.com/urbit/tools /root/src/tools
 | `tools/split-goldens` | Checks that isolated type-error cases retain their original source lines and import fixtures |
 | `tools/ship` | Runs the fake ship: `dev` (boot, create, mount and sync an application directory), `start`, `stop`, `status`, `log`, `sync <desk>`, `assemble --out <dir>` (no ship needed), `test`, `gen-tests`, `check-commit`, `scry`, `hoon`, `run`, `poke`, `commit`, `mount`, `unmount` |
 | `tools/test-js` | Runs the JavaScript Core reader, literal, runtime, code-generation, and entry-linker tests under Node |
-| `tools/test-js-differential` | Runs the shared hand-written corpus in JavaScript and a selected Hoon Core library, comparing canonical nouns and crashes. `--core-lib PATH` selects a parallel candidate until the reference library is in `master`; it is not yet a registered check |
+| `tools/test-js-differential` | Runs the shared hand-written corpus in JavaScript and the integrated Hoon Core library, comparing canonical nouns and crashes. `--core-lib PATH` selects another Core implementation for compatibility checks |
 | `tools/testdata/selftest` | Tests `tools/golden` and `tools/hoon` against a stub library, `tools/test-arms` against the stub library with suites it writes, and `tools/doc-blocks` against Markdown it writes |
 | `tools/testdata/ship-selftest` | Tests `tools/ship`'s test generator and runner against a stub library on the ship |
 
-`tools/golden` starts `urbit eval` once and builds the library, which takes about 27 s, then runs every case under `mule`, so a crash fails only its own case.
+`tools/golden` starts `urbit eval` once and builds the library, which takes about 27 s, then runs every case under `mule`, so a crash fails only its own case. A golden case with `expect-core:` in `about.txt`, or an existing `core.txt`, lowers its successfully checked tree and compares `print-module:jibb-core` with `core.txt`. The marker remains mandatory after an expected file is deleted, so `--update` cannot silently disable the stage. Cases without `about.txt` need no Core metadata.
 
 ## The test suites
 
@@ -136,6 +136,12 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 | `jibb-generic-recursion` | Source-backed generic recursive identity and provenance | `tests/type-generic-recursion/expected.txt` |
 | `jibb-hole-guards` | Hole-defaulting and API interface guards | |
 | `jibb-hoon-reference` | Hoon translations of the Jibb-written `zing`, `lead`, `late` and `succ` against Hoon's own arms, on selected inputs; this does not execute Jibb, test lowering or prove jet recognition | |
+| `jibb-core` | Independent Core reader/printer round trips, malformed inputs, strict reference interpretation, recursion, native registries, traces and crash behavior | |
+| `jibb-nock` | Every Core node's Nock emission, local rewrites, closures, recursive cores, Hoon gate ABI, higher-order natives and differential crash behavior | |
+| `jibb-lowering-artifacts` | Final occurrence/reference/axis/SCC/match/projection capture, prepared dependencies, and failed/provisional nonpublication | |
+| `jibb-lower` | Checked-tree lowering, exact documented `update`, linking, source-once controls, derived API calls, authenticated printers, and fail-closed projection reordering | |
+| `jibb-store-lower` | Derived store state/poke shapes, runtime envelopes, full-state delivery and reply execution under the reference interpreter and Nock | |
+| `jibb-lower-differential` | Lowered Jibb programs executed through the Hoon reference interpreter and Nock with independently specified noun/crash outcomes | |
 | `jibb-import` | The partial Hoon importer's diagnostic trees and errors over the importer fixtures, and the structured values behind them; the projection is an internal tree, not the Jibb type printer | `tests/importer/tree.txt` |
 | `jibb-import-default` | Default-wrapped union source proofs over a real Tlon mold, and adversarial cases | `tests/type-import-default/expected.txt` |
 | `jibb-import-general` | A `/sur` containing `$%`, `$@`, a map and a recursive mold through the full checker; `tools/clay-fixtures` also builds these molds through Clay and prints their types | `tests/clay-fixtures/full-import-expected.txt` |

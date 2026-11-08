@@ -12,7 +12,9 @@ on every case, each under mule so that one crash doesn't stop the rest,
 with file set to the case's Clay path, /tests/golden/<case>/source/jibb,
 or its logical /ui path from path.txt. Cases with an expect-types: line
 or types.txt also call +golden-types and compare its output with types.txt.
-An optional type-source.jibb supplies the containing module for a fragment;
+Cases with an expect-core: line or core.txt also lower the checked tree and
+compare its canonical Core text with core.txt. An optional type-source.jibb
+supplies the containing module for a fragment;
 type-path.txt and type-exclude-molds.txt select its prelude context.
 It runs the program with `urbit eval`, decodes the jammed result, and
 compares each output with its file, which holds the output plus one
@@ -49,7 +51,7 @@ KNOT = re.compile(r'^[a-z0-9\-.~_]+$')
 HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
 ::  golden:lib on each case under mule and returns one cord of fields,
 ::  each <length>:<bytes>, first jibb-golden and the case count, then
-::  per case its name, status, tokens, tree, types and module trees.
+::  per case its name, status, tokens, tree, types, Core and module trees.
 ::
 =>  [lib=. ..zuse]
 |^  %+  rap  3
@@ -58,23 +60,30 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
     ==
 ::
 ++  run
-  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t]) module-check=? modules=(list [label=@t at=path source=@t]) context=(unit @t) excluded=(list term) type-path=(unit path)] src=@t]
+  |=  [name=@t metadata=[logical=(unit path) check=? imports=(list [module=term mold=term source=@t]) marks=(list [name=term source=@t]) module-check=? modules=(list [label=@t at=path source=@t]) context=(unit @t) excluded=(list term) type-path=(unit path) core-check=?] src=@t]
   ^-  @t
   =/  at=path  ?~(logical.metadata (file name) u.logical.metadata)
   =/  parsed  (mule |.((golden:lib at src)))
   ?:  ?=(%| -.parsed)
     =/  why=@t  (crash p.parsed)
-    (fields ~[name 'crash' why why why why])
+    (fields ~[name 'crash' why why why why why])
   =/  out=[tokens=@t tree=@t]  p.parsed
   =/  type-src=@t  ?~(context.metadata src u.context.metadata)
   =/  type-at=path  ?~(type-path.metadata at u.type-path.metadata)
   =/  typed  (mule |.({types-expr}))
   ?:  ?=(%| -.typed)
-    (fields ~[name 'types-crash' tokens.out tree.out (crash p.typed) ''])
+    (fields ~[name 'types-crash' tokens.out tree.out (crash p.typed) '' ''])
+  =/  cored=(each @t tang)
+    ?.  core-check.metadata  [%& '']
+    %-  mule
+      |.
+        {core-expr}
+  ?:  ?=(%| -.cored)
+    (fields ~[name 'core-crash' tokens.out tree.out p.typed (crash p.cored) ''])
   =/  modules  (mule |.({modules-expr}))
   ?:  ?=(%| -.modules)
-    (fields ~[name 'modules-crash' tokens.out tree.out p.typed (crash p.modules)])
-  (fields ~[name 'ok' tokens.out tree.out p.typed p.modules])
+    (fields ~[name 'modules-crash' tokens.out tree.out p.typed p.cored (crash p.modules)])
+  (fields ~[name 'ok' tokens.out tree.out p.typed p.cored p.modules])
 ::
 ++  file
   |=  name=@
@@ -189,6 +198,7 @@ class Case:
         except ValueError as e:
             raise ue.ToolError(str(e))
         self.want_types = golden_case.wants_types(folder)
+        self.want_core = golden_case.wants_core(folder)
         type_path = os.path.join(folder, 'type-source.jibb')
         self.type_source = None
         if os.path.isfile(type_path):
@@ -253,12 +263,13 @@ def run_lines(case):
         parts = ue.cord_pieces(case.type_source)
         context = '[~ (rap 3 `(list @t)`~[%s])]' % ' '.join(ue.cord_literal(p) for p in parts)
     excluded = '~[' + ' '.join('%' + n for n in case.excluded) + ']' if case.excluded else '~'
-    out = ['        %%^  run  %s  [%s %s %s %s %s %s %s %s %s]' % (
+    out = ['        %%^  run  %s  [%s %s %s %s %s %s %s %s %s %s]' % (
                ue.cord_literal(case.name.encode()),
                '`' + case.logical_path if case.logical_path else '~',
                '%.y' if case.want_types else '%.n', imports, marks,
                '%.y' if case.want_modules else '%.n', modules, context, excluded,
-               '`' + case.type_path if case.type_path else '~'),
+               '`' + case.type_path if case.type_path else '~',
+               '%.y' if case.want_core else '%.n'),
            '        %-  text',
            '        :~  ' + ue.cord_literal(lines[0])]
     out += ['            ' + ue.cord_literal(line) for line in lines[1:]]
@@ -271,7 +282,9 @@ def golden_program(lib_path, cases):
     runs = '\n'.join(line for case in cases for line in run_lines(case))
     has_marks = any(c.marks for c in cases)
     has_modules = any(c.modules for c in cases)
-    has_module_types = any(c.want_modules and c.want_types for c in cases)
+    has_core = any(c.want_core for c in cases)
+    has_module_types = any(c.want_modules and (c.want_types or c.want_core)
+                           for c in cases)
     group_sources, private_sources, reader_sources = [], [], []
     if has_module_types:
         try:
@@ -282,11 +295,26 @@ def golden_program(lib_path, cases):
     needs_reader = imported or bool(reader_sources)
     has_excluded = any(c.excluded for c in cases)
     harness = HARNESS
+    if has_core:
+        core = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-core.hoon'))
+        lower = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-lower.hoon'))
+        lower = '|%\n' + lower.split('\n|%\n', 1)[1]
+        harness = harness.replace(
+            '=>  [lib=. ..zuse]',
+            '=/  jibb-lib  .\n=/  core-lib\n=>  ..zuse\n' + core +
+            '\n=/  lower-lib\n=>  :*  jibb=jibb-lib  jibb-core=core-lib  ..zuse\n==\n' +
+            lower + '\n=>  [lib=jibb-lib core-lib=core-lib lower-lib=lower-lib ..zuse]')
     if needs_reader:
         reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
-        harness = harness.replace('=>  [lib=. ..zuse]',
-                                  '=/  jibb-lib  .\n=/  reader\n' + reader +
-                                  '\n=>  [lib=jibb-lib reader=reader ..zuse]')
+        if has_core:
+            harness = harness.replace(
+                '=>  [lib=jibb-lib core-lib=core-lib lower-lib=lower-lib ..zuse]',
+                '=/  reader\n' + reader +
+                '\n=>  [lib=jibb-lib reader=reader core-lib=core-lib lower-lib=lower-lib ..zuse]')
+        else:
+            harness = harness.replace('=>  [lib=. ..zuse]',
+                                      '=/  jibb-lib  .\n=/  reader\n' + reader +
+                                      '\n=>  [lib=jibb-lib reader=reader ..zuse]')
     types_value = ("(golden-types-with-marks:lib type-at type-src "
                   "(import-types imports.metadata) (import-marks marks.metadata imports.metadata))"
                   if has_marks else
@@ -321,6 +349,21 @@ def golden_program(lib_path, cases):
                        '(golden-types-with-prepared-prelude:lib type-at type-src %s %s %s %s)) %s)'
                        % (surs, marks, modules, surs, marks, modules, prepared, types_value))
     types_expr = '?:(check.metadata %s \'\')' % types_value
+    simple_surs = '(import-types imports.metadata)' if imported else '~'
+    simple_marks = '(import-marks marks.metadata imports.metadata)' if imported else '~'
+    core_check = ('(check-jibb-file-for-lowering:lib type-at type-src %s %s ~ ~[type-at] ~ ~ ~ ~)'
+                  % (simple_surs, simple_marks))
+    if has_module_types:
+        core_check = ('(check-jibb-file-for-lowering-prepared:lib type-at type-src %s %s %s ~[type-at] ~ u.prepared-lowering)'
+                      % (surs, marks, modules))
+    core_body = ('=/  built=jlowering-result:lib  %s\n'
+                 '        ?:  ?=(%%| -.built)  (cat 3 \'lowering check failed: \' message.p.built)\n'
+                 '        =/  lowered=(each module:core-lib @t)  (lower-checked-module:lower-lib root.p.built)\n'
+                 '        ?:  ?=(%%| -.lowered)  (cat 3 \'Core lowering failed: \' p.lowered)\n'
+                 '        (print-module:core-lib p.lowered)' % core_check)
+    core_value = core_body
+    if has_module_types:
+        core_value = "?~  prepared-lowering  'prelude lowering preparation failed'\n        " + core_body
     prelude_helper = ''
     if has_module_types:
         prelude_path = os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb', 'prelude.jibb')
@@ -352,6 +395,17 @@ def golden_program(lib_path, cases):
             ' '.join(ue.cord_literal(p) for p in parts))
         internal_expr = '(rap 3 `(list @t)`~[%s])' % (
             ' '.join(ue.cord_literal(p) for p in internal_parts))
+        prelude_preparation = (
+            '=/  prepared-prelude\n'
+            '  =/  prep  (mule |.((prepare-prelude-with-group-evidence:lib %s %s prelude-group-sources prelude-group-modules prelude-reader-inputs)))\n'
+            '  ?:(?=(%%& -.prep) p.prep ~)'
+            % (prelude_expr, internal_expr))
+        if has_core:
+            prelude_preparation = (
+                '=/  prepared-lowering\n'
+                '  =/  prep  (mule |.((prepare-prelude-with-group-evidence-for-lowering:lib %s %s prelude-group-sources prelude-group-modules prelude-reader-inputs)))\n'
+                '  ?:(?=(%%& -.prep) p.prep ~)\n'
+                % (prelude_expr, internal_expr)) + prelude_preparation
         #  Under mule: when preparing the prelude crashes, the cases that
         #  need it prepare it again under their own mule and fail with the
         #  trace, and the other cases still run.
@@ -360,13 +414,12 @@ def golden_program(lib_path, cases):
             '=/  prelude-group-sources  %s\n'
             '=/  prelude-group-modules  %s\n'
             '=/  prelude-reader-inputs  %s\n'
-            '=/  prepared-prelude\n'
-            '  =/  prep  (mule |.((prepare-prelude-with-group-evidence:lib %s %s prelude-group-sources prelude-group-modules prelude-reader-inputs)))\n'
-            '  ?:(?=(%%& -.prep) p.prep ~)\n'
-            '|^  %%+  rap  3' % (group_expression, private_expression, reader_expression, prelude_expr, internal_expr))
+            '%s\n'
+            '|^  %%+  rap  3' % (group_expression, private_expression, reader_expression, prelude_preparation))
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")
+                    .replace('{core-expr}', core_value if has_core else "''")
                     .replace('{import-helper}', IMPORT_HELPER if imported else '')
                     .replace('{modules-expr}', '(module-trees modules.metadata)' if has_modules else "''")
                     .replace('{module-helper}', MODULE_HELPER if has_modules else '')
@@ -404,22 +457,26 @@ def decode(prog, noun, cases):
     except ValueError as e:
         raise ue.ToolError('the harness output is malformed: %s' % e)
     if fields[:2] != [MAGIC, str(len(cases)).encode()] or \
-            len(fields) != 2 + 6 * len(cases):
+            len(fields) != 2 + 7 * len(cases):
         raise ue.ToolError('the harness output has the wrong shape')
     for i, case in enumerate(cases):
-        name, status, tokens, tree, types, modules = fields[2 + 6 * i:8 + 6 * i]
+        name, status, tokens, tree, types, core, modules = fields[2 + 7 * i:9 + 7 * i]
         if name != case.name.encode():
             raise ue.ToolError('the harness output is out of order at %s'
                                % case.name)
-        case.crashed = status in (b'crash', b'types-crash', b'modules-crash')
+        case.crashed = status in (b'crash', b'types-crash', b'core-crash', b'modules-crash')
         if status == b'crash':
             tokens, case.crash_at = crash_text(
                 prog, tokens.decode('utf-8', 'surrogateescape').split('\n'))
-            tree = types = tokens
+            tree = types = core = tokens
         elif status == b'types-crash':
             case.crash_kind = 'types'
             types, case.crash_at = crash_text(
                 prog, types.decode('utf-8', 'surrogateescape').split('\n'))
+        elif status == b'core-crash':
+            case.crash_kind = 'core'
+            core, case.crash_at = crash_text(
+                prog, core.decode('utf-8', 'surrogateescape').split('\n'))
         elif status == b'modules-crash':
             case.crash_kind = 'module-trees'
             modules, case.crash_at = crash_text(
@@ -427,6 +484,8 @@ def decode(prog, noun, cases):
         case.outputs = {'tokens': tokens, 'tree': tree}
         if case.want_types:
             case.outputs['types'] = types
+        if case.want_core:
+            case.outputs['core'] = core
         if case.modules:
             case.outputs['module-trees'] = modules
 
@@ -438,6 +497,8 @@ def eval_crash(prog, res, case):
     case.outputs = {'tokens': out, 'tree': out}
     if case.want_types:
         case.outputs['types'] = out
+    if case.want_core:
+        case.outputs['core'] = out
 
 
 def run_cases(lib_path, cases, opts):
@@ -632,7 +693,7 @@ def main(argv):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='Run the golden tests (tests/golden/<case>/source.jibb) '
                     'through urbit eval and compare the outputs with '
-                    'tokens.txt, tree.txt and any opted-in types.txt.',
+                    'tokens.txt, tree.txt and any opted-in types.txt/core.txt.',
         epilog=EPILOG)
     ap.add_argument('--dir', default=DEFAULT_DIR,
                     help='the folder of cases (default: tests/golden).  The '
@@ -644,7 +705,7 @@ def main(argv):
                     help='the library (default: jibb-dev/lib/jibb.hoon)')
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument('--update', action='store_true',
-                      help='write tokens.txt, tree.txt and any opted-in types.txt')
+                      help='write tokens.txt, tree.txt and opted-in types/core outputs')
     mode.add_argument('--show', action='store_true',
                       help='print the outputs without comparing')
     ap.add_argument('--timeout', type=float, default=600, metavar='SECONDS',

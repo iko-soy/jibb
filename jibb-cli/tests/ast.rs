@@ -115,6 +115,15 @@ fn open_and_closed_containers_lower_identically() {
 }
 
 #[test]
+fn empty_cells_lower_and_survive_formatting() {
+    let expression = value("++ empty []\n");
+    assert!(matches!(expression.kind, ExprKind::Tuple(items) if items.is_empty()));
+    let formatted = format_source("++ empty []\n").expect("empty cell should format");
+    assert_eq!(formatted, "++  empty  []\n");
+    assert_same_surface("++ empty []\n", &formatted);
+}
+
+#[test]
 fn redundant_groups_disappear_and_calls_have_head_and_arguments() {
     assert_same_surface("++ x (((f (g 1))))\n", "++ x f (g 1)\n");
     let expression = value("++ x f 1 2\n");
@@ -283,9 +292,7 @@ fn valid_case(about: &Path) -> bool {
     metadata
         .lines()
         .find(|line| line.starts_with("expect:"))
-        .is_none_or(|line| {
-            line.starts_with("expect: parses") || line.starts_with("expect: unclear")
-        })
+        .is_none_or(|line| line.starts_with("expect: parse") || line.starts_with("expect: unclear"))
 }
 
 #[test]

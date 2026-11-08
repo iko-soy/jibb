@@ -8,9 +8,7 @@ fn valid_case(about: &Path) -> bool {
     metadata
         .lines()
         .find(|line| line.starts_with("expect:"))
-        .is_none_or(|line| {
-            line.starts_with("expect: parses") || line.starts_with("expect: unclear")
-        })
+        .is_none_or(|line| line.starts_with("expect: parse") || line.starts_with("expect: unclear"))
 }
 
 #[test]

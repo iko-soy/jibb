@@ -9,7 +9,7 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 - `jibb-dev/`: what app desks vendor: the `%jibb` mark, the compiler, the partial Hoon type reader and the beginning of the prelude; later the browser library.
 - `jibb-cli/`: the native Rust `jibb` executable and its tree-sitter grammar, for earth-side utilities.
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
-- `js/`: the independent Core-to-JavaScript backend, entry linker, and Node/differential tests; the browser runtime comes later.
+- `js/`: the Core-to-JavaScript backend, entry linker, and Node/differential tests; the browser runtime comes later.
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
 - `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and in `clay-fixtures/`, the threads `tools/clay-fixtures` runs and, in `clay-fixtures/desk/`, the Hoon files the `jibb-fixtures` desk adds to `my-app`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
@@ -74,7 +74,7 @@ For a single-download distribution, use a self-extracting, platform-specific bun
 
 ## Golden tests
 
-Each case, `tests/golden/<case>/`, holds `source.jibb`, `about.txt` (where it comes from, what it tests, the expected outcome), and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into the provisional `golden-types` checker output in `types.txt`; `--update` creates it. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, or select marks in `marks.txt` and provide their source in `mar/<name>.txt`. `modules.txt` selects Jibb source fixtures; their trees go in `module-trees.txt`, and the partial checker can resolve a subset of library imports. See [docs/development.md](docs/development.md).
+Each case, `tests/golden/<case>/`, holds `source.jibb` and the expected outputs: `tokens.txt` from the layout pass and `tree.txt` from the parser. Optional `about.txt` records where it comes from, what it tests, and the expected outcome. A file holds the output plus one trailing newline. A case may also have a `path.txt` specifying its logical `/ui/.../*.jibb` path. An `expect-types:` line in `about.txt` opts it into full-checker output in `types.txt`; `expect-core:` opts into checked lowering and canonical Core output in `core.txt`. `--update` creates opted-in outputs. A case can select Hoon molds in `imports.txt` and provide each module in `sur/<module>.txt`, or select marks in `marks.txt` and provide their source in `mar/<name>.txt`. `modules.txt` selects Jibb source fixtures; their trees go in `module-trees.txt`, and the partial checker can resolve a subset of library imports. See [docs/development.md](docs/development.md).
 
 Run them without a ship. This needs `urbit` on PATH and Python 3.
 
@@ -172,7 +172,7 @@ tools/ship stop
 | `jibb` | `vendor/*`, then `jibb` |
 | `jibb-dev` | `vendor/*`, then `jibb-dev`, then `tests/`, with `tests/lib/jibb.hoon` generated, and `jibb/sys.kelvin` |
 
-The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, reading a `source.jibb` that links to a `my-app` file from `/my-app`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the partial inference output. The file is generated, not committed (review question 32): desk assembly writes it afresh, and `.gitignore` lists it. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
+The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, reading a `source.jibb` that links to a `my-app` file from `/my-app`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the full-checker report; cases opted into `core.txt` also compare canonical lowered Core. The file is generated, not committed (review question 32): desk assembly writes it afresh, and `.gitignore` lists it. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
 
 ```
 tools/ship test                                   # the library and tests/golden

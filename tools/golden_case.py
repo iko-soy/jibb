@@ -41,6 +41,16 @@ def wants_types(folder):
     return marked or os.path.isfile(os.path.join(folder, 'types.txt'))
 
 
+def wants_core(folder):
+    """An expect-core line keeps a deleted expected file from disabling a test."""
+    try:
+        with open(os.path.join(folder, 'about.txt'), encoding='utf-8') as f:
+            marked = any(line.startswith('expect-core:') for line in f)
+    except FileNotFoundError:
+        marked = False
+    return marked or os.path.isfile(os.path.join(folder, 'core.txt'))
+
+
 def sur_imports(folder):
     """Selected /sur molds as (module, mold, fixture path), in file order.
 
@@ -69,8 +79,8 @@ def sur_imports(folder):
             raise ValueError('%s:%d: no fixture at %s' % (filename, number, fixture))
         seen.add((module, mold))
         out.append((module, mold, fixture))
-    if out and not wants_types(folder):
-        raise ValueError('%s: imported molds require a types output' % filename)
+    if out and not (wants_types(folder) or wants_core(folder)):
+        raise ValueError('%s: imported molds require a types output or Core output' % filename)
     return out
 
 
@@ -97,8 +107,8 @@ def mark_imports(folder):
             raise ValueError('%s:%d: no fixture at %s' % (filename, number, fixture))
         seen.add(mark)
         out.append((mark, fixture))
-    if out and not wants_types(folder):
-        raise ValueError('%s: imported marks require a types output' % filename)
+    if out and not (wants_types(folder) or wants_core(folder)):
+        raise ValueError('%s: imported marks require a types output or Core output' % filename)
     return out
 
 

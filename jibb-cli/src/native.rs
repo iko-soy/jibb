@@ -14,6 +14,17 @@ pub enum NativeFunction {
     Dec,
     Trip,
     Tuba,
+    Crip,
+    Tufa,
+    DatePack,
+    DateUnpack,
+    FormatKnot,
+    FormatTape,
+    ParseAtom,
+    MapGet,
+    MapPut,
+    Seal,
+    BitNot,
 }
 
 impl NativeFunction {
@@ -25,6 +36,17 @@ impl NativeFunction {
             "raw-dec" => Some(Self::Dec),
             "raw-trip" => Some(Self::Trip),
             "raw-tuba" => Some(Self::Tuba),
+            "raw-crip" => Some(Self::Crip),
+            "raw-tufa" => Some(Self::Tufa),
+            "raw-date-pack" => Some(Self::DatePack),
+            "raw-date-unpack" => Some(Self::DateUnpack),
+            "raw-format-knot" => Some(Self::FormatKnot),
+            "raw-format-tape" => Some(Self::FormatTape),
+            "raw-parse-atom" => Some(Self::ParseAtom),
+            "raw-map-get" => Some(Self::MapGet),
+            "raw-map-put" => Some(Self::MapPut),
+            "raw-seal" => Some(Self::Seal),
+            "raw-bit-not" => Some(Self::BitNot),
             _ => None,
         }
     }
@@ -37,112 +59,175 @@ impl NativeFunction {
             Self::Dec => "raw-dec",
             Self::Trip => "raw-trip",
             Self::Tuba => "raw-tuba",
+            Self::Crip => "raw-crip",
+            Self::Tufa => "raw-tufa",
+            Self::DatePack => "raw-date-pack",
+            Self::DateUnpack => "raw-date-unpack",
+            Self::FormatKnot => "raw-format-knot",
+            Self::FormatTape => "raw-format-tape",
+            Self::ParseAtom => "raw-parse-atom",
+            Self::MapGet => "raw-map-get",
+            Self::MapPut => "raw-map-put",
+            Self::Seal => "raw-seal",
+            Self::BitNot => "raw-bit-not",
         }
     }
 }
 
 pub(crate) fn scheme(native: NativeFunction, source: SourceId) -> TypeScheme {
-    let variable = 0;
-    let generic = QuantifiedVariable {
-        id: variable,
-        name: Some("A".to_string()),
-    };
-    let (typ, constraint) = match native {
+    let a = Type::Var(0);
+    let b = Type::Var(1);
+    let atom = |aura| Type::Atom(Aura::new(aura));
+    let list = |element| named(source, "list", vec![element]);
+    let tape = list(atom("tD"));
+    let number = atom("ud");
+    let span = faced_cell(vec![
+        ("d", number.clone()),
+        ("h", number.clone()),
+        ("m", number.clone()),
+        ("s", number.clone()),
+        ("f", list(atom("ux"))),
+    ]);
+    let date = Type::Cell(vec![
+        TypeField {
+            face: None,
+            typ: faced_cell(vec![("a", Type::Flag), ("y", number.clone())]),
+        },
+        TypeField {
+            face: Some("m".to_string()),
+            typ: number,
+        },
+        TypeField {
+            face: Some("t".to_string()),
+            typ: span,
+        },
+    ]);
+    let dime = faced_cell(vec![("p", atom("ta")), ("q", Type::AnyAtom)]);
+    let map = named(source, "map", vec![a.clone(), b.clone()]);
+    let unit = named(source, "unit", vec![b.clone()]);
+    let opaque = named(source, "core__opaque", vec![a.clone()]);
+    let (typ, variables, constraints) = match native {
         NativeFunction::Gth => (
-            Type::Gate {
-                sample: Box::new(Type::Cell(vec![
-                    TypeField {
-                        face: None,
-                        typ: Type::Var(variable),
-                    },
-                    TypeField {
-                        face: None,
-                        typ: Type::Var(variable),
-                    },
-                ])),
-                product: Box::new(Type::Flag),
-            },
-            ConstraintKind::Atom,
+            gate(cell(vec![a.clone(), a]), Type::Flag),
+            vec![(0, "A")],
+            vec![Constraint {
+                variable: 0,
+                kind: ConstraintKind::Atom,
+            }],
         ),
         NativeFunction::Eq => (
-            Type::Gate {
-                sample: Box::new(Type::Cell(vec![
-                    TypeField {
-                        face: None,
-                        typ: Type::Var(variable),
-                    },
-                    TypeField {
-                        face: None,
-                        typ: Type::Var(variable),
-                    },
-                ])),
-                product: Box::new(Type::Flag),
-            },
-            ConstraintKind::GateFree,
+            gate(cell(vec![a.clone(), a]), Type::Flag),
+            vec![(0, "A")],
+            vec![Constraint {
+                variable: 0,
+                kind: ConstraintKind::GateFree,
+            }],
         ),
         NativeFunction::Add => (
-            Type::Gate {
-                sample: Box::new(Type::Cell(vec![
-                    TypeField {
-                        face: None,
-                        typ: Type::Var(variable),
-                    },
-                    TypeField {
-                        face: None,
-                        typ: Type::Var(variable),
-                    },
-                ])),
-                product: Box::new(Type::Var(variable)),
-            },
-            ConstraintKind::ArithmeticAtom,
+            gate(cell(vec![a.clone(), a.clone()]), a),
+            vec![(0, "A")],
+            vec![Constraint {
+                variable: 0,
+                kind: ConstraintKind::ArithmeticAtom,
+            }],
         ),
         NativeFunction::Dec => (
-            Type::Gate {
-                sample: Box::new(Type::Var(variable)),
-                product: Box::new(Type::Var(variable)),
-            },
-            ConstraintKind::ArithmeticAtom,
+            gate(a.clone(), a),
+            vec![(0, "A")],
+            vec![Constraint {
+                variable: 0,
+                kind: ConstraintKind::ArithmeticAtom,
+            }],
         ),
-        NativeFunction::Trip => (
-            Type::Gate {
-                sample: Box::new(Type::Atom(Aura::new("t"))),
-                product: Box::new(Type::Named {
-                    module: source,
-                    name: "list".to_string(),
-                    arguments: vec![Type::Atom(Aura::new("tD"))],
-                }),
-            },
-            ConstraintKind::Atom,
+        NativeFunction::Trip => (gate(atom("t"), tape), Vec::new(), Vec::new()),
+        NativeFunction::Tuba => (gate(tape, list(atom("c"))), Vec::new(), Vec::new()),
+        NativeFunction::Crip => (gate(tape, atom("t")), Vec::new(), Vec::new()),
+        NativeFunction::Tufa => (gate(list(atom("c")), tape), Vec::new(), Vec::new()),
+        NativeFunction::DatePack => (gate(date.clone(), atom("da")), Vec::new(), Vec::new()),
+        NativeFunction::DateUnpack => (gate(atom("da"), date), Vec::new(), Vec::new()),
+        NativeFunction::FormatKnot => (gate(dime.clone(), atom("ta")), Vec::new(), Vec::new()),
+        NativeFunction::FormatTape => (gate(dime, tape), Vec::new(), Vec::new()),
+        NativeFunction::ParseAtom => (
+            gate(
+                cell(vec![atom("tas"), atom("ta")]),
+                faced_cell(vec![("valid", Type::Flag), ("value", Type::AnyAtom)]),
+            ),
+            Vec::new(),
+            Vec::new(),
         ),
-        NativeFunction::Tuba => (
-            Type::Gate {
-                sample: Box::new(Type::Named {
-                    module: source,
-                    name: "list".to_string(),
-                    arguments: vec![Type::Atom(Aura::new("tD"))],
-                }),
-                product: Box::new(Type::Atom(Aura::new("ud"))),
-            },
-            ConstraintKind::Atom,
+        NativeFunction::MapGet => (
+            gate(cell(vec![map.clone(), a.clone()]), unit),
+            vec![(0, "K"), (1, "V")],
+            vec![Constraint {
+                variable: 0,
+                kind: ConstraintKind::GateFree,
+            }],
         ),
-    };
-    let constraints = if matches!(native, NativeFunction::Trip | NativeFunction::Tuba) {
-        Vec::new()
-    } else {
-        vec![Constraint {
-            variable,
-            kind: constraint,
-        }]
+        NativeFunction::MapPut => (
+            gate(cell(vec![map.clone(), a.clone(), b]), map),
+            vec![(0, "K"), (1, "V")],
+            vec![Constraint {
+                variable: 0,
+                kind: ConstraintKind::GateFree,
+            }],
+        ),
+        NativeFunction::Seal => (gate(a, opaque), vec![(0, "A")], Vec::new()),
+        NativeFunction::BitNot => (
+            gate(
+                cell(vec![Type::AnyAtom, Type::AnyAtom, Type::AnyAtom]),
+                Type::AnyAtom,
+            ),
+            Vec::new(),
+            Vec::new(),
+        ),
     };
     TypeScheme {
-        variables: if matches!(native, NativeFunction::Trip | NativeFunction::Tuba) {
-            Vec::new()
-        } else {
-            vec![generic]
-        },
+        variables: variables
+            .into_iter()
+            .map(|(id, name)| QuantifiedVariable {
+                id,
+                name: Some(name.to_string()),
+            })
+            .collect(),
         constraints,
         typ,
     }
+}
+
+fn named(source: SourceId, name: &str, arguments: Vec<Type>) -> Type {
+    Type::Named {
+        module: source,
+        name: name.to_string(),
+        arguments,
+    }
+}
+
+fn gate(sample: Type, product: Type) -> Type {
+    Type::Gate {
+        sample: Box::new(sample),
+        product: Box::new(product),
+    }
+}
+
+fn cell(types: Vec<Type>) -> Type {
+    Type::Cell(
+        types
+            .into_iter()
+            .map(|typ| TypeField { face: None, typ })
+            .collect(),
+    )
+}
+
+fn faced_cell(fields: Vec<(&str, Type)>) -> Type {
+    Type::Cell(
+        fields
+            .into_iter()
+            .map(|(face, typ)| TypeField {
+                face: Some(face.to_string()),
+                typ,
+            })
+            .collect(),
+    )
 }
 
 pub(crate) fn apply(
@@ -197,27 +282,98 @@ pub(crate) fn apply(
             })
         }
         NativeFunction::Tuba => {
-            let Value::Noun(noun) = &sample.value else {
-                return Err(Diagnostic::at("tuba expects a text list", span));
-            };
-            let mut length = 0u64;
-            let mut current = noun.clone();
-            loop {
-                match current.as_ref() {
-                    Noun::Atom(value) if *value == BigUint::default() => break,
-                    Noun::Cell(_, tail) => {
-                        length += 1;
-                        current = tail.clone();
-                    }
-                    _ => return Err(Diagnostic::at("tuba expects a proper text list", span)),
-                }
-            }
+            let bytes = byte_list(&sample.value, "tuba", span)?;
+            let text = String::from_utf8(bytes)
+                .map_err(|_| Diagnostic::at("tuba expects valid UTF-8", span))?;
             Ok(TypedValue {
-                value: Value::Noun(Noun::atom(BigUint::from(length))),
-                typ: Type::Atom(Aura::new("ud")),
+                value: Value::Noun(Noun::list(
+                    text.chars()
+                        .map(|character| Noun::atom(BigUint::from(character as u32)))
+                        .collect(),
+                )),
+                typ: Type::Noun,
             })
         }
+        NativeFunction::Crip => Ok(TypedValue {
+            value: Value::Noun(Noun::atom(BigUint::from_bytes_le(&byte_list(
+                &sample.value,
+                "crip",
+                span,
+            )?))),
+            typ: Type::Atom(Aura::new("t")),
+        }),
+        NativeFunction::Tufa => {
+            let mut bytes = Vec::new();
+            for codepoint in atom_list(&sample.value, "tufa", span)? {
+                let codepoint = u32::try_from(codepoint)
+                    .ok()
+                    .and_then(char::from_u32)
+                    .ok_or_else(|| Diagnostic::at("tufa expects valid codepoints", span))?;
+                let mut encoded = [0; 4];
+                bytes.extend_from_slice(codepoint.encode_utf8(&mut encoded).as_bytes());
+            }
+            Ok(TypedValue {
+                value: Value::Noun(Noun::list(
+                    bytes
+                        .into_iter()
+                        .map(|byte| Noun::atom(BigUint::from(byte)))
+                        .collect(),
+                )),
+                typ: Type::Noun,
+            })
+        }
+        NativeFunction::Seal => Ok(sample.clone()),
+        NativeFunction::DatePack
+        | NativeFunction::DateUnpack
+        | NativeFunction::FormatKnot
+        | NativeFunction::FormatTape
+        | NativeFunction::ParseAtom
+        | NativeFunction::MapGet
+        | NativeFunction::MapPut
+        | NativeFunction::BitNot => Err(Diagnostic::at(
+            format!("{} execution is not implemented", native.field()),
+            span,
+        )),
     }
+}
+
+fn atom_list(value: &Value, operation: &str, span: Span) -> Result<Vec<BigUint>, Diagnostic> {
+    let Value::Noun(noun) = value else {
+        return Err(Diagnostic::at(format!("{operation} expects a list"), span));
+    };
+    let mut atoms = Vec::new();
+    let mut current = noun.clone();
+    loop {
+        match current.as_ref() {
+            Noun::Atom(value) if *value == BigUint::default() => return Ok(atoms),
+            Noun::Cell(head, tail) => {
+                let Noun::Atom(value) = head.as_ref() else {
+                    return Err(Diagnostic::at(
+                        format!("{operation} expects an atom list"),
+                        span,
+                    ));
+                };
+                atoms.push(value.clone());
+                current = tail.clone();
+            }
+            _ => {
+                return Err(Diagnostic::at(
+                    format!("{operation} expects a proper atom list"),
+                    span,
+                ));
+            }
+        }
+    }
+}
+
+fn byte_list(value: &Value, operation: &str, span: Span) -> Result<Vec<u8>, Diagnostic> {
+    atom_list(value, operation, span)?
+        .into_iter()
+        .map(|atom| {
+            u8::try_from(atom)
+                .map_err(|_| Diagnostic::at(format!("{operation} expects bytes"), span))
+        })
+        .collect()
 }
 
 fn atom_pair(sample: &TypedValue, span: Span) -> Result<(BigUint, BigUint), Diagnostic> {

@@ -1669,10 +1669,6 @@
           "value": "["
         },
         {
-          "type": "SYMBOL",
-          "name": "_closed_item"
-        },
-        {
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
