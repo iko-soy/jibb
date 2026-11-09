@@ -6,3 +6,4 @@
   column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
     heading 1 "Notes"
     para ~[(text greeting.note)]
+    image %/static/img/dot.png "A green dot"

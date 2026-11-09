@@ -123,6 +123,15 @@
   =/  asset=payload:jibb-host
     (request-response:jibb-host example-routes example-cache & %'GET' '/apps/my-app/static/missing.js')
   ?.  =(404 (status asset))  ~[leaf+"unknown asset did not produce 404"]
+  =/  public=payload:jibb-host
+    (request-response:jibb-host example-routes example-cache | %'GET' '/apps/my-app/static/0v1/a.png')
+  ?.  =(404 (status public))  ~[leaf+"a logged-out request for a removed static file was not a 404"]
+  =/  sheet=payload:jibb-host
+    (request-response:jibb-host example-routes example-cache | %'GET' '/apps/my-app/~jibb/s/0v1.css')
+  ?.  =(404 (status sheet))  ~[leaf+"a logged-out request for a removed stylesheet was not a 404"]
+  =/  page=payload:jibb-host
+    (request-response:jibb-host example-routes example-cache | %'GET' '/apps/my-app/static')
+  ?.  =(404 (status page))  ~[leaf+"the static folder itself was not a 404"]
   =/  post=payload:jibb-host
     (request-response:jibb-host example-routes example-cache & %'POST' '/apps/my-app')
   ?.  =(405 (status post))  ~[leaf+"unsupported method did not produce 405"]
@@ -169,8 +178,10 @@
   ~
 ++  test-page-source-routing
   ^-  tang
-  ?.  =(/static/fonts/inter/woff2 (application-asset:jibb-host /ui/static/fonts/inter/woff2))
+  ?.  =(/static/fonts/[~.inter.woff2] (application-asset:jibb-host /ui/static/fonts/inter/woff2))
     ~[leaf+"Clay asset path did not become its application path"]
+  ?.  =(/static/[~.logo.png] (application-asset:jibb-host /ui/static/logo/png))
+    ~[leaf+"a top-level static file lost its extension"]
   ?.  =(`~['about'] (page-site:jibb-host /ui/about/jibb))
     ~[leaf+"about source did not retain its route"]
   ?.  =([~ ~] (page-site:jibb-host /ui/index/jibb))
@@ -181,6 +192,8 @@
     ~[leaf+"nested page source did not retain its route"]
   ?.  ?=(~ (page-site:jibb-host /ui/theme/jibb))
     ~[leaf+"theme library became a public page"]
+  ?.  ?=(~ (page-site:jibb-host /ui/static/notes/jibb))
+    ~[leaf+"a module under /ui/static became a page the host's files would hide"]
   ?.  ?=(~ (page-site:jibb-host /lib/jibb/renderer/jibb))
     ~[leaf+"renderer library became a public page"]
   ?.  ?=(~ (page-site:jibb-host /ui/about/txt))
@@ -269,7 +282,7 @@
 ++  module
   |=  [at=path jibb=(list path)]
   ^-  module-info:jibb-host
-  [at 'source' (sham at) jibb ~ ~ |]
+  [at 'source' (sham at) jibb ~ ~ | ~]
 ++  test-incremental-closure-and-order
   ^-  tang
   =/  modules=(map path module-info:jibb-host)
@@ -354,5 +367,63 @@
   =/  anonymous=payload:jibb-host
     (serve:jibb-host example-routes ~ building | %'GET' '/apps/my-app/about')
   ?.  =(307 (status anonymous))  ~[leaf+"a logged-out request skipped the login redirect"]
+  ~
+++  test-static-file-urls
+  ^-  tang
+  ?.  =(`'image/png' (static-type:jibb-host %png))  ~[leaf+"a PNG had no media type"]
+  ?.  =(`'font/woff2' (static-type:jibb-host %woff2))  ~[leaf+"a font had no media type"]
+  ?.  =(~ (static-type:jibb-host %exe))  ~[leaf+"an unknown extension was given a media type"]
+  =/  data=octs  [3 'abc']
+  =/  url=@t  (static-url:jibb-host /apps/my-app /static/img/[~.logo.png] data)
+  =/  expected=@t
+    (rap 3 ~['/apps/my-app/static/' (short-hash:jibb-host data) '/img/logo.png'])
+  ?.  =(expected url)  ~[leaf+"a static URL did not name the base, hash and file"]
+  ?.  =(url (static-url:jibb-host /apps/my-app /static/img/[~.logo.png] data))
+    ~[leaf+"the same bytes gave a different URL"]
+  ?:  =(url (static-url:jibb-host /apps/my-app /static/img/[~.logo.png] [3 'abd']))
+    ~[leaf+"changed bytes kept the old URL"]
+  =/  sheet=@t  (stylesheet-url:jibb-host /apps/my-app 'p{}')
+  ?.  =((rap 3 ~['/apps/my-app/~jibb/s/' (short-hash:jibb-host 'p{}') '.css']) sheet)
+    ~[leaf+"the stylesheet URL did not name its hash"]
+  =/  served=payload:jibb-host  (static-payload:jibb-host 'image/png' data)
+  ?.  =(200 (status served))  ~[leaf+"a static file was not a 200"]
+  ?.  =(`data data.served)  ~[leaf+"a static file lost its bytes"]
+  ?.  =(`'public, max-age=31536000, immutable' (get-header:http 'cache-control' headers.response-header.served))
+    ~[leaf+"a static file was not cached as immutable"]
+  ~
+++  test-static-file-publishing
+  ^-  tang
+  =/  now=@da  ~2026.11.9
+  =/  file=payload:jibb-host  (static-payload:jibb-host 'image/png' [1 'a'])
+  =/  old=cached-urls:jibb-host
+    (malt `(list [@t (unit @da)])`~[['/a' ~] ['/b' ~] ['/c' `(add now ~h1)]])
+  =/  [urls=cached-urls:jibb-host cards=(list card:agent:gall)]
+    (publish-urls:jibb-host old ~[['/a' file] ['/d' file]] now)
+  ?.  =(~[(cache-card:jibb-host '/d' `file)] cards)
+    ~[leaf+"publishing did not add exactly the new file"]
+  ?.  =([%pass /eyre/cache %arvo %e %set-response '/d' `[| %payload file]] (snag 0 cards))
+    ~[leaf+"the Eyre cache card was malformed"]
+  =/  expected=cached-urls:jibb-host
+    %-  malt
+    ^-  (list [@t (unit @da)])
+    ~[['/a' ~] ['/b' `(add now ~d1)] ['/c' `(add now ~h1)] ['/d' ~]]
+  ?.  =(expected urls)  ~[leaf+"a replaced file was not kept for a day"]
+  ?.  =(`(add now ~h1) (next-expiry:jibb-host urls))  ~[leaf+"the next expiry was not the earliest"]
+  ?.  =(~ (next-expiry:jibb-host (malt `(list [@t (unit @da)])`~[['/a' ~]])))
+    ~[leaf+"a desk with no retired file had an expiry"]
+  =/  [later=cached-urls:jibb-host gone=(list card:agent:gall)]
+    (expire-urls:jibb-host urls (add now ~d1))
+  ?.  =((sort ~[(cache-card:jibb-host '/b' ~) (cache-card:jibb-host '/c' ~)] aor) (sort gone aor))
+    ~[leaf+"expiry did not remove exactly the files whose day was over"]
+  ?.  =((malt `(list [@t (unit @da)])`~[['/a' ~] ['/d' ~]]) later)
+    ~[leaf+"expiry removed a file still in use"]
+  =/  back=[cached-urls:jibb-host (list card:agent:gall)]
+    (publish-urls:jibb-host urls ~[['/b' file]] now)
+  ?.  =(~[(cache-card:jibb-host '/b' `file)] +.back)
+    ~[leaf+"a retired file used again was not republished"]
+  ?.  =(~ (~(got by -.back) '/b'))  ~[leaf+"a retired file used again kept its expiry"]
+  ?.  =(4 (lent (clear-urls:jibb-host urls)))  ~[leaf+"clearing missed a published file"]
+  ?.  =([%pass /eyre/cache %arvo %e %set-response '/a' ~] (cache-card:jibb-host '/a' ~))
+    ~[leaf+"removing a file did not clear its Eyre entry"]
   ~
 --

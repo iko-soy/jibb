@@ -23,6 +23,11 @@ Why each file is here:
 - base-dev/lib/test.hoon: expect-eq and friends, for the -test thread's test files
 - landscape/mar/docket-0.hoon: docket's mark, for desk.docket-0
 - landscape/lib/docket.hoon, landscape/sur/docket.hoon: imported by docket-0.hoon (/+  dock=docket) and docket.hoon (/-  *docket)
+- base-dev/sur/spider.hoon, base-dev/lib/strand.hoon, base-dev/lib/strandio.hoon: the thread
+  libraries -jibb!clear (jibb/ted/clear.hoon) builds against; upstream they are
+  pkg/arvo/sur/spider.hoon and pkg/arvo/lib/strand.hoon and strandio.hoon, which base-dev links.
+  These three were copied on 2026-11-09 from the %base desk of the fake ~zod booted from
+  the flake's pinned brass pill, the kernel the checks run, rather than from the commit above.
 
 sha256 of each file, from the vendor/ folder:
 55d5196a3a8dbd5323943c06f138c9b9aa8fd955506c4f4b14e5d56ff05abcc6  base-dev/lib/test.hoon
@@ -36,4 +41,7 @@ f1b94f43735fd3a6b86f5cd4619851bc1af9145281f68a07724c4bea870de535  base-dev/mar/m
 cb76a42e114f3b8f3ac37d09bfe7b1b41bc5c54e6406c0c01fb249af6910bc5d  base-dev/mar/txt.hoon
 031be1e2e944835a3d11a90f26c6c61f9bbd40123d2dd249ff7b728acbb1d025  landscape/lib/docket.hoon
 a0e69786863df79ad837211a44216efa49401b98a1800a86c647639025a9d028  landscape/mar/docket-0.hoon
+97b2c326494239ed326156ed8eebe2e366addacc1d352ebd7cc41e8510ac2e95  base-dev/lib/strand.hoon
+3408c7d279bea54f3aee9c2db61f6353522da1e37d31a5cd58aca43fd79d2ef7  base-dev/lib/strandio.hoon
+39746f99a2d740e499d0ca3937ccae6e029901fcb6abc80ad64e40760110eda8  base-dev/sur/spider.hoon
 dd930bf411fa129551bf78496b23a96e19743ec4534f4a08bfa37c92c71fc029  landscape/sur/docket.hoon

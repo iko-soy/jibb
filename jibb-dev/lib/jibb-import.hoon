@@ -840,7 +840,7 @@
   ^-  (each imported @t)
   ?.  =(at ~[%sur module %hoon])
     [%| 'Hoon generic source path does not match its imported module']
-  =/  rebuilt=(each type tang)  (mule |.(-:(ride -:!>(..zuse) source)))
+  =/  rebuilt=(each type tang)  (mule |.(-:(~(mint ut -:!>(..zuse)) %noun (ream source))))
   ?:  ?=(%| -.rebuilt)  [%| 'Hoon generic source could not be reconstructed']
   ?.  =(p.rebuilt cor)  [%| 'Hoon generic source does not match its selected core']
   =/  proof=(unit imported)  (generic-source-proof name cor)
@@ -1031,7 +1031,7 @@
   ^-  (unit mark-source-declaration)
   ?.  =(at.input ~[%sur module.input %hoon])  ~
   =/  rebuilt=(each type tang)
-    (mule |.(-:(ride -:!>(..zuse) source.input)))
+    (mule |.(-:(~(mint ut -:!>(..zuse)) %noun (ream source.input))))
   ?:  ?=(%| -.rebuilt)  ~
   ?.  ?=([%core *] p.rebuilt)  ~
   ?:  =(p.rebuilt -:!>(..zuse))  ~

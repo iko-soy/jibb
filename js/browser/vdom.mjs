@@ -2,19 +2,10 @@ import { CoreCrash, requireLoobean } from '../core/runtime.mjs';
 import { cell, listToArray, text } from '../natives/helpers.mjs';
 import { validateRawSeal } from '../natives/legacy.mjs';
 
-const SPACES = {
-  s0: '0',
-  s1: '4px',
-  s2: '8px',
-  s3: '16px',
-};
-
-const TONES = {
-  normal: '#222222',
-  muted: '#5f5f5f',
-  accent: '#17734f',
-  danger: '#b3261e',
-};
+// Style attributes are the theme stylesheet's atomic classes, as the server
+// renders them, so the browser needs no theme tokens of its own.
+const SPACES = new Set(['s0', 's1', 's2', 's3']);
+const TONES = new Set(['normal', 'muted', 'accent', 'danger']);
 
 function fail(message) {
   throw new CoreCrash(`toVnode: ${message}`);
@@ -66,7 +57,7 @@ function lengthStyle(value) {
   }
   const [tag, payload] = pair(value, 'width');
   const name = atomText(tag, 'width');
-  if (name === 'chars') return { flex: `0 0 ${atomText(payload, 'width')}ch` };
+  if (name === 'chars') return { flex: `0 0 ${payload}ch` };
   if (name === 'fill') {
     const weight = payload < 1n ? 1n : payload;
     return { flex: `${weight} 1 0%`, minWidth: '0' };
@@ -74,7 +65,33 @@ function lengthStyle(value) {
   fail(`unknown width %${name}`);
 }
 
-function decodeAttrs(raw) {
+// A width is a class, except chars and fill, which stay inline.
+function lengthAttrs(value, classes, style) {
+  if (typeof value === 'bigint') {
+    if (atomText(value, 'width') !== 'shrink') fail('unknown width');
+    classes.set('width', 'j-shrink');
+    return;
+  }
+  const [tag, payload] = pair(value, 'width');
+  const name = atomText(tag, 'width');
+  if (name === 'chars') {
+    style.flex = `0 0 ${payload}ch`;
+    return;
+  }
+  if (name === 'fill') {
+    const weight = payload < 1n ? 1n : payload;
+    style.flex = `${weight} 1 0%`;
+    style.minWidth = '0';
+    return;
+  }
+  fail(`unknown width %${name}`);
+}
+
+// One class per family, the last of each winning in the family's first
+// place, as the server's serializer does.
+function decodeAttrs(raw, layoutClass) {
+  const classes = new Map();
+  if (layoutClass !== undefined) classes.set('layout', layoutClass);
   const style = {};
   const attrs = { style };
   for (const entry of items(raw, 'attributes')) {
@@ -82,43 +99,33 @@ function decodeAttrs(raw) {
     const name = atomText(tag, 'attribute');
     if (name === 'pad' || name === 'gap') {
       const space = atomText(payload, name);
-      if (!(space in SPACES)) fail(`unknown ${name} %${space}`);
-      style[name === 'pad' ? 'padding' : 'gap'] = SPACES[space];
+      if (!SPACES.has(space)) fail(`unknown ${name} %${space}`);
+      classes.set(name, `j-${name}-${space}`);
     } else if (name === 'width') {
-      Object.assign(style, lengthStyle(payload));
+      lengthAttrs(payload, classes, style);
     } else if (name === 'align') {
       const align = atomText(payload, 'align');
       if (!['start', 'center', 'end'].includes(align)) fail(`unknown align %${align}`);
-      style.textAlign = align;
-      style.justifyContent = align === 'start' ? 'flex-start' : align === 'end' ? 'flex-end' : align;
+      classes.set('align', `j-align-${align}`);
     } else if (name === 'role') {
       const role = atomText(payload, 'role');
       if (!['body', 'caption', 'label'].includes(role)) fail(`unknown role %${role}`);
-      attrs['data-role'] = role;
+      classes.set('role', `j-role-${role}`);
     } else if (name === 'tone') {
       const tone = atomText(payload, 'tone');
-      if (!(tone in TONES)) fail(`unknown tone %${tone}`);
-      attrs['data-tone'] = tone;
-      style.color = TONES[tone];
+      if (!TONES.has(tone)) fail(`unknown tone %${tone}`);
+      classes.set('tone', `j-tone-${tone}`);
       if (tone === 'danger') attrs['aria-live'] = 'polite';
     } else {
       fail(`unknown attribute %${name}`);
     }
   }
+  if (classes.size) attrs.class = [...classes.values()].join(' ');
   return attrs;
 }
 
-function layout(tag, rawAttrs, kids, direction) {
-  const attrs = decodeAttrs(rawAttrs);
-  attrs['data-layout'] = tag;
-  Object.assign(attrs.style, {
-    display: 'flex',
-    flexDirection: direction,
-    overflowWrap: 'anywhere',
-  });
-  if (tag === 'row' || tag === 'wrap') attrs.style.alignItems = 'center';
-  if (tag === 'wrap') attrs.style.flexWrap = 'wrap';
-  return element('div', attrs, kids);
+function layout(tag, rawAttrs, kids) {
+  return element('div', decodeAttrs(rawAttrs, `j-${tag}`), kids);
 }
 
 function decodePath(raw) {
@@ -178,18 +185,14 @@ export function toVnode(sealed) {
     case 'wrap':
     case 'stack': {
       const [attrs, children] = pair(payload, tag);
-      const direction = tag === 'column' || tag === 'stack' ? 'column' : 'row';
-      return layout(tag, attrs, items(children, `${tag} children`).map(toVnode), direction);
+      return layout(tag, attrs, items(children, `${tag} children`).map(toVnode));
     }
     case 'el': {
       const [attrs, child] = pair(payload, 'el');
-      const decoded = decodeAttrs(attrs);
-      decoded['data-layout'] = 'el';
-      return element('div', decoded, [toVnode(child)]);
+      return element('div', decodeAttrs(attrs, 'j-el'), [toVnode(child)]);
     }
     case 'para':
-      return element('p', { style: { overflowWrap: 'anywhere' } },
-        items(payload, 'para children').map(toVnode));
+      return element('p', {}, items(payload, 'para children').map(toVnode));
     case 'text':
       return words(payload);
     case 'heading': {

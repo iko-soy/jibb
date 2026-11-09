@@ -1,0 +1,7 @@
+::  A page for About's %/blog link, which links are checked against.
+++ main view
+
+++ view
+  column ~[pad+%s3 gap+%s2] ~[
+    heading 1 "Blog"
+    para ~[(text "Nothing here yet.")]

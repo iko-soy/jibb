@@ -1,0 +1,11 @@
+::  A page with a definition whose mold is generic, from /sur/tables.hoon.
+/- tables
+
+++ main view
+
+++ identity |= value=(table.tables @t @ud) value
+
+++ view
+  column ~[pad+%s3 gap+%s2] ~[
+    heading 1 "Tables"
+    para ~[(text "A generic mold checked.")]

@@ -22,18 +22,32 @@
       watched=(map desk @ud)
       built=(map desk built:jibb-host)
   ==
-+$  state-3
-  $:  %3
+::  published holds the URLs each desk has put in Eyre's cache, saved so
+::  that a later suspend or -jibb!clear can take them out again.  timer is
+::  the one Behn timer set for the earliest retired file.
++$  saved-4
+  $:  %4
+      registry=registry:jibb-host
+      pages=page-cache:jibb-host
+      watched=(map desk @ud)
+      built=(map desk built:jibb-host)
+      published=(map desk cached-urls:jibb-host)
+      timer=(unit @da)
+  ==
++$  state-4
+  $:  %4
       registry=registry:jibb-host
       pages=page-cache:jibb-host
       watched=(map desk @ud)
       builds=(map desk build:jibb-host)
       stores=(map desk store:jibb-host)
       built=(map desk built:jibb-host)
+      published=(map desk cached-urls:jibb-host)
+      timer=(unit @da)
   ==
-+$  versioned-state  $%(state-0 state-1 state-2 saved-3)
++$  versioned-state  $%(state-0 state-1 state-2 saved-3 saved-4)
 --
-=|  state-3
+=|  state-4
 =*  state  -
 ^-  agent:gall
 =<
@@ -43,7 +57,7 @@
 ++  on-init
   ^-  (quip card _this)
   [~[tire-card:jibb-host] this]
-++  on-save  !>(`saved-3`[%3 registry pages watched built])
+++  on-save  !>(`saved-4`[%4 registry pages watched built published timer])
 ::  Published routes and their pages survive reloads and keep serving while
 ::  every published desk builds again from an empty cache, renewing its
 ::  commit subscription.  Pending binds are retried.
@@ -53,18 +67,34 @@
   =/  previous=versioned-state  !<(versioned-state old)
   =.  state
     ?-  -.previous
-      %3  [%3 registry.previous pages.previous watched.previous ~ ~ built.previous]
-      %2  [%3 registry.previous pages.previous watched.previous ~ ~ built.previous]
-      %1  [%3 registry.previous pages.previous ~ ~ ~ ~]
+      %4  :*  %4  registry.previous  pages.previous  watched.previous
+              ~  ~  built.previous  published.previous  timer.previous
+          ==
+      %3  [%4 registry.previous pages.previous watched.previous ~ ~ built.previous ~ ~]
+      %2  [%4 registry.previous pages.previous watched.previous ~ ~ built.previous ~ ~]
+      %1  [%4 registry.previous pages.previous ~ ~ ~ ~ ~ ~]
     ::  Legacy published bindings predate cached HTML.  Reconnect them so
     ::  their acknowledgments build pages through the same transaction.
-      %0  [%3 [~ routes.registry.previous live.registry.previous] ~ ~ ~ ~ ~]
+      %0  [%4 [~ routes.registry.previous live.registry.previous] ~ ~ ~ ~ ~ ~ ~]
     ==
   =^  cards  state  rebuild-published:hc
-  [(weld (restore-cards:jibb-host dap.bowl registry) cards) this]
+  =^  timers  state  schedule:hc
+  :_  this
+  ;:  weld
+    (restore-cards:jibb-host dap.bowl registry)
+    cards
+    timers
+  ==
+::  -jibb!clear pokes %clear: every static file leaves Eyre's cache, as it
+::  must before %jibb is uninstalled.  The host takes pokes only from us.
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
+  ?:  ?=(%noun mark)
+    ?>  =(src.bowl our.bowl)
+    ?.  =(%clear q.vase)  [~ this]
+    =^  cards  state  clear-all:hc
+    [cards this]
   ?.  ?=(%handle-http-request mark)  [~ this]
   =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
   =/  result=payload:jibb-host
@@ -105,6 +135,11 @@
     ?~  rev  [~ this]
     =^  cards  state  (built-file:hc i.t.wire u.rev t.t.t.wire ?=(^ p.sign-arvo))
     [cards this]
+  ?:  ?=([%expire ~] wire)
+    ?.  ?=([%behn %wake *] sign-arvo)  [~ this]
+    =.  timer  ~
+    =^  cards  state  expire:hc
+    [cards this]
   ?.  ?=([%desks ~] wire)  [~ this]
   ?.  ?=([%clay %tire *] sign-arvo)  [~ this]
   =/  result=(each rock:tire wave:tire)  p.sign-arvo
@@ -121,7 +156,8 @@
 ++  on-agent  |=  [=wire =sign:agent:gall]  ^-  (quip card _this)  [~ this]
 ::  /x/build/<desk>: the revisions of its last completed build and of the
 ::  build in progress.  /x/modules/<desk>: the revision whose build last
-::  checked each module of the completed build.
+::  checked each module of the completed build.  /x/static/<desk>: the URLs
+::  it has in Eyre's cache, each with the time it expires if retired.
 ++  on-peek
   |=  =path
   ^-  (unit (unit cage))
@@ -135,6 +171,8 @@
   ?:  ?=([%x %modules @ ~] path)
     =/  done=(unit built:jibb-host)  (~(get by built) i.t.t.path)
     ``noun+!>(?~(done ~ modules.u.done))
+  ?:  ?=([%x %static @ ~] path)
+    ``noun+!>(`(list [@t (unit @da)])`~(tap by (~(gut by published) i.t.t.path ~)))
   ~
 ++  on-fail  |=  [=term =tang]  ^-  (quip card _this)  [~ this]
 --
@@ -207,12 +245,17 @@
     %+  murn  before
     |=  r=route:jibb-host
     ?:((~(has in live.registry) desk.r) ~ `desk.r)
+  =/  out=(list card)
+    ;:  weld
+      cards.next
+      (turn gone unwatch-card)
+      (clear-desks gone)
+    ==
   =.  state  (forget gone)
   =/  found=(each (list route:jibb-host) @t)
     (discover-routes:jibb-host (discover live.registry))
   ?:  ?=(%| -.found)  ~|(p.found !!)
   =/  discovered=(list route:jibb-host)  p.found
-  =/  out=(list card)  (weld cards.next (turn gone unwatch-card))
   |-
   ?~  discovered  [out state]
   =/  added=(each transition:jibb-host @t)
@@ -223,28 +266,76 @@
     registry    registry.p.added
     out         (welp out cards.p.added)
   ==
-::  A desk's builds, compile cache and commit subscription end with it.
+::  A desk's builds, compile cache, commit subscription and static files end
+::  with it; the caller removes the files from Eyre's cache.
 ++  forget
   |=  desks=(list desk)
   ^-  _state
   ?~  desks  state
   %=  $
-    desks    t.desks
-    pages    (~(del by pages) i.desks)
-    watched  (~(del by watched) i.desks)
-    builds   (~(del by builds) i.desks)
-    stores   (~(del by stores) i.desks)
-    built    (~(del by built) i.desks)
+    desks      t.desks
+    pages      (~(del by pages) i.desks)
+    watched    (~(del by watched) i.desks)
+    builds     (~(del by builds) i.desks)
+    stores     (~(del by stores) i.desks)
+    built      (~(del by built) i.desks)
+    published  (~(del by published) i.desks)
   ==
 ++  retire
   |=  =desk
   ^-  (quip card _state)
   =/  next=transition:jibb-host  (retire-desk:jibb-host registry desk)
   =/  cards=(list card)
-    ?.  (~(has by watched) desk)  cards.next
-    [(unwatch-card desk) cards.next]
+    %+  weld
+      ?.  (~(has by watched) desk)  cards.next
+      [(unwatch-card desk) cards.next]
+    (clear-urls:jibb-host (~(gut by published) desk ~))
   =.  registry  registry.next
   [cards (forget ~[desk])]
+::  Every desk's static files leave Eyre's cache.
+++  clear-all
+  ^-  (quip card _state)
+  :-  (clear-desks ~(tap in ~(key by published)))
+  state(published ~)
+::  The cards removing these desks' files from Eyre's cache: a loop, since
+::  +zing of card lists is a fuse-loop.
+++  clear-desks
+  |=  desks=(list desk)
+  ^-  (list card)
+  ?~  desks  ~
+  (weld (clear-urls:jibb-host (~(gut by published) i.desks ~)) $(desks t.desks))
+::  Remove the retired static files whose day is over.
+++  expire
+  ^-  (quip card _state)
+  =/  desks=(list [=desk urls=cached-urls:jibb-host])  ~(tap by published)
+  =|  cards=(list card)
+  |-
+  ?~  desks
+    =^  timers  state  schedule
+    [(weld cards timers) state]
+  =/  done=[urls=cached-urls:jibb-host cards=(list card)]
+    (expire-urls:jibb-host urls.i.desks now.bowl)
+  %=  $
+    desks      t.desks
+    cards      (weld cards cards.done)
+    published  (~(put by published) desk.i.desks urls.done)
+  ==
+::  One timer, for the earliest retired file, if any: a timer set for a
+::  later file is moved, and one no file needs is cancelled.
+++  schedule
+  ^-  (quip card _state)
+  =/  times=(list @da)  (murn ~(val by published) next-expiry:jibb-host)
+  =/  soonest=(unit @da)
+    ?~  times  ~
+    =/  low=@da  i.times
+    =/  rest=(list @da)  t.times
+    |-
+    ?~  rest  `low
+    $(rest t.rest, low (min low i.rest))
+  ?:  =(soonest timer)  [~ state]
+  =/  rest=(list card)  ?~(timer ~ ~[[%pass /expire %arvo %b %rest u.timer]])
+  =/  wait=(list card)  ?~(soonest ~ ~[[%pass /expire %arvo %b %wait u.soonest]])
+  [(weld rest wait) state(timer soonest)]
 ++  revive
   |=  =desk
   ^-  (quip card _state)
@@ -373,26 +464,51 @@
     %sur      (sur-step desk name.step b s)
     %mark     (mark-step desk name.step b s)
     %check    (check-step desk at.step b s)
+    %style    (style-step desk b s)
     %render   (render-step desk at.step b s)
     %publish  [| b s]
   ==
 ::  A completed build replaces the pages it was built for, failed pages
-::  included (doc question: see docs/open-questions.md).  A desk-level
-::  failure keeps the store, so the next build reuses what still holds.
+::  included (Decisions: Failed builds).  A build that could not run keeps
+::  the last good pages and their files, or shows its error if there are
+::  none, and keeps the store, so the next build reuses what still holds.
 ++  publish
   |=  [=desk b=build:jibb-host s=store:jibb-host]
   ^-  (quip card _state)
+  =/  last=(unit desk-pages:jibb-host)  (~(get by pages) desk)
+  =/  keep=?  &(?=(^ failure.b) ?=(^ last) ?=(~ error.u.last))
   =/  served=desk-pages:jibb-host
-    ?^  failure.b  [~ failure.b]
-    [served.b ~]
+    ?~  failure.b  [served.b ~]
+    ?:  keep  (need last)
+    [~ failure.b]
+  =/  checked=(list [at=path rev=@ud])
+    ?.  keep  (built-modules:jibb-host s b)
+    modules:(~(gut by built) desk *built:jibb-host)
   =/  kept=store:jibb-host  ?^(failure.b s (prune-store:jibb-host s b))
-  :-  ~
+  ::  The build's static files, and its stylesheet, go into Eyre's cache;
+  ::  files it no longer uses stay a day.  A desk-level failure keeps them.
+  =/  files=(list [url=@t =payload:jibb-host])
+    %+  weld
+      %+  turn  assets.b
+      |=(f=static-file:jibb-host [url.f (static-payload:jibb-host type.f data.f)])
+    ?~  style.b  ~
+    ?.  ?=(%& -.result.u.style.b)  ~
+    =/  sheet=[url=@t css=@t]  p.result.u.style.b
+    =/  css=octs  (as-octs:mimes:html css.sheet)
+    ~[[url.sheet (static-payload:jibb-host 'text/css; charset=utf-8' css)]]
+  =/  plan=[urls=cached-urls:jibb-host cards=(list card)]
+    =/  old=cached-urls:jibb-host  (~(gut by published) desk ~)
+    ?^  failure.b  [old ~]
+    (publish-urls:jibb-host old files now.bowl)
+  =.  published  (~(put by published) desk urls.plan)
+  =^  timers  state  schedule
+  :-  (weld cards.plan timers)
   %-  (slog (build-report desk b s))
   %=  state
     pages   (~(put by pages) desk served)
     builds  (~(del by builds) desk)
     stores  (~(put by stores) desk kept)
-    built   (~(put by built) desk [rev.b (built-modules:jibb-host s b)])
+    built   (~(put by built) desk [rev.b checked])
   ==
 ::  Each error this build found, with its file, line, column and excerpt.
 ++  build-report
@@ -430,10 +546,7 @@
     [& b(failure `'static build: /lib/jibb-import.hoon does not build') s]
   =/  pre=path  (desk-path desk rev.b)
   =/  files=(list path)  .^((list path) %ct pre)
-  =/  assets=(list path)
-    %+  turn
-      (skim files |=(at=path ?=(^ (prefix:jibb-host /ui/static at))))
-    application-asset:jibb-host
+  =/  assets=(list static-file:jibb-host)  (read-static-files pre base.b files)
   =/  sources=(list path)  (sort (skim files ui-file) aor)
   =/  bundle=(each (list [at=path source=@t]) @t)  (read-all pre sources)
   ?:  ?=(%| -.bundle)  [& b(failure `p.bundle) s]
@@ -481,12 +594,28 @@
   =/  mars-hash=@uv
     ?.  (lien files |=(at=path ?=([%mar *] at)))  0v0
     .^(@uvI %cz (weld pre /mar))
+  ::  Each /sur file is read for every mold any module names from it.
+  =/  uses=(list [module=term name=term])
+    =/  infos=(list module-info:jibb-host)  ~(val by modules)
+    =|  out=(list [module=term name=term])
+    |-
+    ?~  infos  out
+    $(infos t.infos, out (weld out uses.i.infos))
+  =/  wanted=(map term (list term))
+    %-  malt
+    %+  turn  ~(tap by sur-files)
+    |=  [module=term at=path]
+    :-  module
+    %+  sort
+      ~(tap in (silt (murn uses |=(u=[module=term name=term] ?.(=(module module.u) ~ `name.u)))))
+    aor
   =/  sur-keys=(map term @uv)
     %-  malt
     %+  murn  p.sur-sources
     |=  [module=term at=path source=@t]
     ?.  =(`at (~(get by sur-files) module))  ~
-    `[module (sur-key:jibb-host env module source surs-hash)]
+    =/  names=(list term)  (~(gut by wanted) module ~)
+    `[module (sur-key:jibb-host env module source surs-hash names)]
   =/  mark-keys=(map term @uv)
     %-  malt
     %+  turn  p.mark-sources
@@ -521,7 +650,14 @@
   =/  renders=(list build-step:jibb-host)
     (turn sites |=([at=path *] [%render at]))
   =/  steps=(list build-step:jibb-host)
-    :(weld setup readers checks renders `(list build-step:jibb-host)`~[[%publish ~]])
+    ;:  weld
+      setup
+      readers
+      checks
+      `(list build-step:jibb-host)`~[[%style ~]]
+      renders
+      `(list build-step:jibb-host)`~[[%publish ~]]
+    ==
   :+  &
     %=  b
       steps        steps
@@ -538,6 +674,7 @@
       sur-sources  p.sur-sources
       sur-keys     sur-keys
       mark-keys    mark-keys
+      wanted       wanted
     ==
   s
 ++  prelude-step
@@ -559,8 +696,9 @@
   =/  value=(each (list [module=term name=term result=*]) @t)
     ?.  (~(gut by buildable.b) at |)
       [%| (crip "static build: cannot build imported Hoon source {(show-file:jibb at)}")]
+    =/  names=(list term)  (~(gut by wanted.b) name ~)
     =/  made=(each (each (list [module=term name=term result=*]) @t) tang)
-      (mule |.((read-sur (desk-path desk rev.b) i.files)))
+      (mule |.((read-sur (desk-path desk rev.b) i.files names)))
     ?:  ?=(%| -.made)
       [%| (trace-error (crip "static build: Hoon reader crashed on {(show-file:jibb at)}") p.made)]
     ?:  ?=(%& -.p.made)  p.made
@@ -579,7 +717,7 @@
       %-  mule  |.
       =/  built=vase  .^(vase %ca (weld pre at))
       =/  read-mark=vase  (slap (reader-vase pre) (ream 'read-mark-source-diagnostic'))
-      +:(slym read-mark [name sur-sources.b p.built])
+      +:(slam read-mark !>([name sur-sources.b p.built]))
     ?:  ?=(%& -.made)  p.made
     [%| (trace-error (crip "static build: Hoon mark reader crashed on {(show-file:jibb at)}") p.made)]
   [& b s(marks (~(put by marks.s) key [(sham value) value]))]
@@ -603,6 +741,34 @@
   =/  result=(each [kind=@tas interface=* artifact=*] @t)
     (check-module desk at info closure surs marks b s)
   [& b(checked +(checked.b)) s(checks (~(put by checks.s) key [rev.b result]))]
+::  The routes a page may link to are the sites of the modules that checked
+::  as pages, and of those that may be pages but failed, which answer there
+::  with their error; the stylesheet comes from the checked theme.
+++  style-step
+  |=  [=desk b=build:jibb-host s=store:jibb-host]
+  ^-  [work=? b=build:jibb-host s=store:jibb-host]
+  =.  routes.b
+    %+  murn  sites.b
+    |=  [at=path site=(list @t)]
+    =/  result=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s at)
+    ?:  ?=(%| -.result)  ?:(main:(~(got by modules.b) at) `site ~)
+    ?.  ?=(?(%static-page %page) kind.p.result)  ~
+    `site
+  =/  theme=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s theme.b)
+  =/  urls=(list @t)  (turn assets.b |=(f=static-file:jibb-host url.f))
+  =/  key=@uv
+    (style-key:jibb-host env.b (~(gut by check-keys.b) theme.b 0v0) base.b urls)
+  =/  cached=(unit (each @t @t))  (~(get by styles.s) key)
+  =/  css=(each @t @t)
+    ?^  cached  u.cached
+    ?:  ?=(%| -.theme)  [%| p.theme]
+    (theme-css-call desk b s artifact.p.theme)
+  =/  result=(each [url=@t css=@t] @t)
+    ?:  ?=(%| -.css)  [%| p.css]
+    [%& (stylesheet-url:jibb-host base.b p.css) p.css]
+  :+  ?=(~ cached)
+    b(style `[key result])
+  s(styles (~(put by styles.s) key css))
 ++  render-step
   |=  [=desk at=path b=build:jibb-host s=store:jibb-host]
   ^-  [work=? b=build:jibb-host s=store:jibb-host]
@@ -622,6 +788,11 @@
   ?:  ?=(%| -.theme)  [| (serve-page b site (failed-page:jibb-host p.theme)) s]
   =/  renderer=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s renderer.b)
   ?:  ?=(%| -.renderer)  [| (serve-page b site (failed-page:jibb-host p.renderer)) s]
+  ?~  style.b
+    [| (serve-page b site (failed-page:jibb-host 'static build: no stylesheet was made')) s]
+  ?:  ?=(%| -.result.u.style.b)
+    [| (serve-page b site (failed-page:jibb-host p.result.u.style.b)) s]
+  =/  stylesheet=@t  url.p.result.u.style.b
   =/  key=@uv
     %:  render-key:jibb-host
       env.b
@@ -629,13 +800,15 @@
       (~(got by check-keys.b) theme.b)
       (~(got by check-keys.b) renderer.b)
       base.b
-      assets.b
+      (turn assets.b |=(f=static-file:jibb-host url.f))
+      routes.b
+      stylesheet
     ==
   =.  render-keys.b  (~(put by render-keys.b) at key)
   =/  cached=(unit rendered:jibb-host)  (~(get by renders.s) key)
   ?^  cached  [| (serve-page b site (rendered-page result.u.cached)) s]
   =/  result=(each @t @t)
-    (render-page desk at b s artifact.p.page artifact.p.theme artifact.p.renderer)
+    (render-page desk at b s artifact.p.page artifact.p.theme artifact.p.renderer stylesheet)
   :+  &
     (serve-page b(rendered +(rendered.b)) site (rendered-page result))
   s(renders (~(put by renders.s) key [rev.b result]))
@@ -733,16 +906,14 @@
   ?~  roots  [out s]
   =/  hash=@uv  (sham source.i.roots)
   =/  key=@uv  (imports-key:jibb-host env at.i.roots hash)
-  =/  found=(unit [jibb=(list path) surs=(list term) marks=(list term) main=?])
-    (~(get by imports.s) key)
-  =/  outline=[jibb=(list path) surs=(list term) marks=(list term) main=?]
+  =/  found=(unit outline:jibb-host)  (~(get by imports.s) key)
+  =/  parsed=outline:jibb-host
     ?^  found  u.found
-    !<  [jibb=(list path) surs=(list term) marks=(list term) main=?]
-    (slam gate !>([at.i.roots source.i.roots]))
+    !<(outline:jibb-host (slam gate !>([at.i.roots source.i.roots])))
   %=  $
     roots      t.roots
-    out        (~(put by out) at.i.roots [at.i.roots source.i.roots hash outline])
-    imports.s  (~(put by imports.s) key outline)
+    out        (~(put by out) at.i.roots [at.i.roots source.i.roots hash parsed])
+    imports.s  (~(put by imports.s) key parsed)
   ==
 ::  The prelude a desk's compiler prepares is the one its own manifest,
 ::  /lib/jibb/prelude-groups.txt, names, as the eval tools read it: groups
@@ -787,7 +958,7 @@
     =/  found=(list [at=path source=@t])
       (skim p.reader-sources |=(f=[at=path source=@t] =(at.f at.i.entries)))
     ?~  found  [%| (crip "static build: cannot read the prelude reader {file}")]
-    =/  core=(each type tang)  (mule |.(-:(ride -:!>(..zuse) source.i.found)))
+    =/  core=(each type tang)  (mule |.(-:(~(mint ut -:!>(..zuse)) %noun (ream source.i.found))))
     ?:  ?=(%| -.core)  [%| (crip "static build: cannot rebuild the prelude reader {file}")]
     =/  read=(each imported:jibb-import @t)
       !<  (each imported:jibb-import @t)
@@ -800,7 +971,7 @@
   =/  modules=jbundle:jibb  (weld p.sources p.reader-sources)
   =/  prepare=vase  (slap (builder-vase pre) (ream 'prepare-lowering'))
   =/  prepared=vase
-    (slym prepare [p.public p.private p.groups modules p.externals])
+    (slam prepare !>([p.public p.private p.groups modules p.externals]))
   ?~  +.prepared  [%| 'static build: checked Clay prelude did not prepare']
   [%& +>.prepared]
 ::  A manifest line is `group FACE /path`, `source /path` or
@@ -854,14 +1025,34 @@
   ?:  |(=(' ' i.text) =('\09' i.text))
     $(text t.text, word ~, out ?~(word out [(flop word) out]))
   $(text t.text, word [i.text word])
-::  Called only once Clay has said the file builds.
+::  Called only once Clay has said the file builds.  A /sur source without
+::  Ford runes is read from the type ride gives it, as under eval: Clay's
+::  build carries debugging spots that a generic mold's source proof does
+::  not match.  Each wanted mold the file does not declare gets the reader's
+::  own definite result for it.
 ++  read-sur
-  |=  [pre=path file=[module=term at=path source=@t]]
+  |=  [pre=path file=[module=term at=path source=@t] wanted=(list term)]
   ^-  (each (list [module=term name=term result=*]) @t)
   =/  built=vase  .^(vase %ca (weld pre at.file))
-  =/  read-module=vase  (slap (reader-vase pre) (ream 'read-module'))
-  !<  (each (list [module=term name=term result=*]) @t)
-  (slam read-module !>([module.file at.file source.file p.built]))
+  =/  rebuilt=(each type tang)  (mule |.(-:(~(mint ut -:!>(..zuse)) %noun (ream source.file))))
+  =/  core=type  ?:(?=(%& -.rebuilt) p.rebuilt p.built)
+  =/  reader=vase  (reader-vase pre)
+  =/  read-module=vase  (slap reader (ream 'read-module'))
+  =/  declared=(each (list [module=term name=term result=*]) @t)
+    !<  (each (list [module=term name=term result=*]) @t)
+    (slam read-module !>([module.file at.file source.file core]))
+  ?:  ?=(%| -.declared)  declared
+  =/  names=(set term)
+    (silt (turn p.declared |=(e=[module=term name=term result=*] name.e)))
+  =/  missing=(list term)  (skip wanted |=(n=term (~(has in names) n)))
+  ?~  missing  declared
+  =/  read-one=vase  (slap reader (ream 'read-module-result'))
+  =/  extra=(list [module=term name=term result=*])
+    %+  turn  missing
+    |=  name=term
+    :+  module.file  name
+    +:(slam read-one !>([module.file name at.file source.file core]))
+  [%& (weld p.declared extra)]
 ++  sur-hash
   |=  [b=build:jibb-host s=store:jibb-host name=term]
   ^-  (unit @uv)
@@ -936,50 +1127,144 @@
     =/  entry=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s p)
     ?:  ?=(%| -.entry)  ~
     `[p interface.p.entry artifact.p.entry]
-  =/  gate=vase  (slap (builder-vase (desk-path desk rev.b)) (ream 'check-module'))
+  =/  builder=vase  (builder-vase (desk-path desk rev.b))
+  =/  gate=vase  (slap builder (ream 'check-module'))
+  =/  interfaces=*
+    (turn deps |=(d=[at=path interface=* artifact=*] [at.d interface.d]))
+  =/  artifacts=*
+    (turn deps |=(d=[at=path interface=* artifact=*] [at.d artifact.d]))
   =/  made=(each vase tang)
     %-  mule  |.
-    %+  slym  gate
-    :*  at
-        source.info
-        externals
-        mark-externals
-        modules
-        (turn deps |=(d=[at=path interface=* artifact=*] [at.d interface.d]))
-        (turn deps |=(d=[at=path interface=* artifact=*] [at.d artifact.d]))
-        p.prepared
+    %+  slam  gate
+    ;:  slop
+      !>(at)
+      !>(source.info)
+      !>(externals)
+      !>(mark-externals)
+      !>(modules)
+      [(compiler-type builder 'jcache:jibb') interfaces]
+      [(compiler-type builder 'jlowering-cache:jibb') artifacts]
+      [(compiler-type builder 'iprelude-lowering:jibb') p.prepared]
     ==
   ?:  ?=(%| -.made)
     [%| (trace-error (crip "static build: compiler crashed while checking {(spud at)}") p.made)]
   ;;((each [kind=@tas interface=* artifact=*] @t) q.p.made)
 ++  render-page
-  |=  [=desk at=path b=build:jibb-host s=store:jibb-host page=* theme=* renderer=*]
+  |=  $:  =desk
+          at=path
+          b=build:jibb-host
+          s=store:jibb-host
+          page=*
+          theme=*
+          renderer=*
+          stylesheet=@t
+      ==
   ^-  (each @t @t)
   =/  prepared=(each * @t)
     (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
   ?:  ?=(%| -.prepared)  [%| p.prepared]
-  =/  closure=(list path)
-    =/  paths=(list path)
-      ;:  weld
-        (module-closure:jibb-host modules.b at)
-        (module-closure:jibb-host modules.b theme.b)
-        (module-closure:jibb-host modules.b renderer.b)
-      ==
-    (sort ~(tap in (silt paths)) aor)
-  =/  artifacts=(list [at=path artifact=*])
-    %+  murn  closure
-    |=  p=path
-    =/  entry=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s p)
-    ?:  ?=(%| -.entry)  ~
-    `[p artifact.p.entry]
-  =/  gate=vase  (slap (builder-vase (desk-path desk rev.b)) (ream 'render-checked'))
+  =/  artifacts=*  (closure-artifacts b s ~[at theme.b renderer.b])
+  =/  builder=vase  (builder-vase (desk-path desk rev.b))
+  =/  gate=vase  (slap builder (ream 'render-checked'))
+  =/  module-type=type  (compiler-type builder 'checked-module:jibb')
   =/  made=(each vase tang)
     %-  mule  |.
-    (slym gate [(crip (spud base.b)) page theme renderer artifacts p.prepared assets.b])
-  ?:  ?=(%| -.made)  [%| 'static build: compiler crashed while rendering page']
-  =/  output=(each [title=@t html=@t] @t)  ;;((each [title=@t html=@t] @t) q.p.made)
-  ?:  ?=(%| -.output)  [%| p.output]
-  [%& html.p.output]
+    %+  slam  gate
+    ;:  slop
+      !>((crip (spud base.b)))
+      [module-type page]
+      [module-type theme]
+      [module-type renderer]
+      [(compiler-type builder 'jlowering-cache:jibb') artifacts]
+      [(compiler-type builder 'iprelude-lowering:jibb') p.prepared]
+      !>(assets.b)
+      !>(routes.b)
+      !>(stylesheet)
+    ==
+  ?:  ?=(%| -.made)
+    [%| (trace-error 'static build: compiler crashed while rendering page' p.made)]
+  =/  output=(each (each [title=@t html=@t] @t) tang)
+    (mule |.(;;((each [title=@t html=@t] @t) q.p.made)))
+  ?:  ?=(%| -.output)  [%| 'static build: the desk compiler returned a malformed page']
+  ?:  ?=(%| -.p.output)  [%| p.p.output]
+  [%& html.p.p.output]
+::  The stylesheet from the desk's own +theme-css.
+++  theme-css-call
+  |=  [=desk b=build:jibb-host s=store:jibb-host theme=*]
+  ^-  (each @t @t)
+  =/  prepared=(each * @t)
+    (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
+  ?:  ?=(%| -.prepared)  [%| p.prepared]
+  =/  builder=vase  (builder-vase (desk-path desk rev.b))
+  =/  gate=vase  (slap builder (ream 'theme-css'))
+  =/  artifacts=*  (closure-artifacts b s ~[theme.b])
+  =/  made=(each vase tang)
+    %-  mule  |.
+    %+  slam  gate
+    ;:  slop
+      [(compiler-type builder 'checked-module:jibb') theme]
+      [(compiler-type builder 'jlowering-cache:jibb') artifacts]
+      [(compiler-type builder 'iprelude-lowering:jibb') p.prepared]
+      !>(assets.b)
+    ==
+  ?:  ?=(%| -.made)
+    [%| (trace-error 'static build: compiler crashed while making the stylesheet' p.made)]
+  =/  output=(each (each @t @t) tang)  (mule |.(;;((each @t @t) q.p.made)))
+  ?:  ?=(%| -.output)  [%| 'static build: the desk compiler returned a malformed stylesheet']
+  p.output
+::  The checked artifacts of every module these import, themselves included.
+++  closure-artifacts
+  |=  [b=build:jibb-host s=store:jibb-host roots=(list path)]
+  ^-  (list [at=path artifact=*])
+  ::  A typed loop: +zing of path lists is a fuse-loop.
+  =/  found=(list path)
+    =|  out=(list path)
+    |-
+    ?~  roots  out
+    $(roots t.roots, out (weld out (module-closure:jibb-host modules.b i.roots)))
+  =/  paths=(list path)  (sort ~(tap in (silt found)) aor)
+  %+  murn  paths
+  |=  p=path
+  =/  entry=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s p)
+  ?:  ?=(%| -.entry)  ~
+  `[p artifact.p.entry]
+::  The desk compiler's own type for one of its molds.  Every call into the
+::  desk's compiler is checked against its entry point's sample this way,
+::  so a desk whose vendored compiler expects other inputs is refused, not
+::  misread.  The opaque nouns it produced take back their own types.
+++  compiler-type
+  |=  [builder=vase mold=@t]
+  ^-  type
+  (~(play ut p.builder) (ream (cat 3 '*' mold)))
+::  Every file under /ui/static of a type this host serves, at its URL.
+++  read-static-files
+  |=  [pre=path base=path files=(list path)]
+  ^-  (list static-file:jibb-host)
+  %+  murn  files
+  |=  at=path
+  ::  Not ?=: the wet +rear cannot take a refined path.
+  ?.  =(/ui/static (scag 2 at))  ~
+  =/  mark=@ta  (rear at)
+  =/  type=(unit @t)  (static-type:jibb-host mark)
+  ?~  type  ~
+  =/  data=(unit octs)  (static-bytes pre at mark)
+  ?~  data  ~
+  =/  app=path  (application-asset:jibb-host at)
+  `[app (static-url:jibb-host base app u.data) u.type u.data]
+::  Static marks keep the length with the bytes; text marks keep text.
+++  static-bytes
+  |=  [pre=path at=path mark=@ta]
+  ^-  (unit octs)
+  =/  raw=*  .^(* %cx (weld pre at))
+  ?:  =(%txt mark)
+    =/  lines=(unit wain)  ((soft wain) raw)
+    ?~  lines  ~
+    `(as-octs:mimes:html (of-wain:format u.lines))
+  ?:  =(%js mark)
+    ?.  ?=(@ raw)  ~
+    `(as-octs:mimes:html raw)
+  ?.  ?=([@ @] raw)  ~
+  `[-.raw +.raw]
 ++  serve-page
   |=  [b=build:jibb-host site=(list @t) page=cached-page:jibb-host]
   ^-  build:jibb-host

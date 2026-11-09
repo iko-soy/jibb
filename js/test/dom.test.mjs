@@ -54,18 +54,23 @@ test('toVnode decodes layouts, text, attributes, headings, and authenticates sea
   assert.equal(row.kind, 'element');
   assert.equal(row.tag, 'div');
   assert.deepEqual(row.children, [{ kind: 'text', text: 'hello' }]);
-  assert.equal(row.attrs.style.display, 'flex');
-  assert.equal(row.attrs.style.flexDirection, 'row');
-  assert.equal(row.attrs.style.padding, '8px');
-  assert.equal(row.attrs.style.gap, '16px');
-  assert.equal(row.attrs.style.flex, '1 1 0%');
-  assert.equal(row.attrs.style.justifyContent, 'center');
-  assert.equal(row.attrs['data-role'], 'body');
-  assert.equal(row.attrs['data-tone'], 'danger');
+  // The server's atomic classes, in its order; only fill is inline.
+  assert.equal(row.attrs.class, 'j-row j-pad-s2 j-gap-s3 j-align-center j-role-body j-tone-danger');
+  assert.deepEqual(row.attrs.style, { flex: '1 1 0%', minWidth: '0' });
+  assert.equal(row.attrs['aria-live'], 'polite');
+  const later = toVnode(seal('row', [list(
+    [cord('pad'), cord('s1')],
+    [cord('width'), [cord('chars'), 12n]],
+    [cord('pad'), cord('s3')],
+    [cord('width'), cord('shrink')],
+  ), 0n]));
+  assert.equal(later.attrs.class, 'j-row j-pad-s3 j-shrink');
+  assert.equal(later.attrs.style.flex, '0 0 12ch');
 
-  assert.equal(toVnode(seal('column', [0n, 0n])).attrs.style.flexDirection, 'column');
-  assert.equal(toVnode(seal('wrap', [0n, 0n])).attrs.style.flexWrap, 'wrap');
-  assert.equal(toVnode(seal('stack', [0n, 0n])).attrs['data-layout'], 'stack');
+  assert.equal(toVnode(seal('column', [0n, 0n])).attrs.class, 'j-column');
+  assert.equal(toVnode(seal('wrap', [0n, 0n])).attrs.class, 'j-wrap');
+  assert.equal(toVnode(seal('stack', [0n, 0n])).attrs.class, 'j-stack');
+  assert.equal(toVnode(seal('el', [0n, textElement('x')])).attrs.class, 'j-el');
   assert.equal(toVnode(seal('el', [0n, textElement('x')])).children[0].text, 'x');
   assert.equal(toVnode(seal('para', list(textElement('p')))).tag, 'p');
   assert.equal(toVnode(seal('heading', [1n, cord('title')])).tag, 'h1');

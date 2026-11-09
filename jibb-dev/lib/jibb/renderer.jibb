@@ -4,7 +4,12 @@
   [%text words=@t]
   [%node tag=@t attrs=(list [name=@t value=@t]) kids=(list A)]
   [%link target=qath label=@t]
+  [%link-unsafe target=@t label=@t]
+  [%image source=qath description=@t]
+  [%image-unsafe source=[url=@t width=@ud height=@ud] description=@t]
 
+::  Style attributes are the theme stylesheet's atomic classes, one family
+::  each, so the last of a family wins. Only chars and fill are inline.
 ++ fill-weight |= n=@ud
   ^- @ud
   ?- (gth 1 n)
@@ -14,66 +19,42 @@
 ++ length-attrs |= value=length
   ^- (list [name=@t value=@t])
   ?- value
-  %shrink ~[["style:flex" "0 0 auto"] ["style:width" "auto"]]
-  [%chars n] ~[["style:flex" "0 0 {(scot %ud n)}ch"]]
+  %shrink ~[["class:width" "j-shrink"]]
+  [%chars n] ~[["style:flex" "0 0 {n}ch"]]
   [%fill n]
-    ~[["style:flex" "{(scot %ud (fill-weight n))} 1 0%"] ["style:min-width" "0"]]
+    ~[["style:flex" "{(fill-weight n)} 1 0%"] ["style:min-width" "0"]]
 
-++ tone-color |= [skin=theme value=tone]
-  ^- @t
-  ?- value
-  %normal normal.tones.skin
-  %muted muted.tones.skin
-  %accent accent.tones.skin
-  %danger danger.tones.skin
-
-++ tone-attrs |= [skin=theme value=tone]
+++ tone-attrs |= value=tone
   ^- (list [name=@t value=@t])
   ?- value
-  %danger
-    ~[["data-tone" "danger"] ["style:color" (tone-color skin value)] ["aria-live" "polite"]]
-  %normal ~[["data-tone" "normal"] ["style:color" (tone-color skin value)]]
-  %muted ~[["data-tone" "muted"] ["style:color" (tone-color skin value)]]
-  %accent ~[["data-tone" "accent"] ["style:color" (tone-color skin value)]]
+  %danger ~[["class:tone" "j-tone-danger"] ["aria-live" "polite"]]
+  %normal ~[["class:tone" "j-tone-normal"]]
+  %muted ~[["class:tone" "j-tone-muted"]]
+  %accent ~[["class:tone" "j-tone-accent"]]
 
 ++ decode-attr |= [skin=theme value=attr]
   ^- (list [name=@t value=@t])
   ?- value
-  [%pad %s0] ~[["style:padding" "0"]]
-  [%pad %s1] ~[["style:padding" s1.space.skin]]
-  [%pad %s2] ~[["style:padding" s2.space.skin]]
-  [%pad %s3] ~[["style:padding" s3.space.skin]]
-  [%gap %s0] ~[["style:gap" "0"]]
-  [%gap %s1] ~[["style:gap" s1.space.skin]]
-  [%gap %s2] ~[["style:gap" s2.space.skin]]
-  [%gap %s3] ~[["style:gap" s3.space.skin]]
+  [%pad %s0] ~[["class:pad" "j-pad-s0"]]
+  [%pad %s1] ~[["class:pad" "j-pad-s1"]]
+  [%pad %s2] ~[["class:pad" "j-pad-s2"]]
+  [%pad %s3] ~[["class:pad" "j-pad-s3"]]
+  [%gap %s0] ~[["class:gap" "j-gap-s0"]]
+  [%gap %s1] ~[["class:gap" "j-gap-s1"]]
+  [%gap %s2] ~[["class:gap" "j-gap-s2"]]
+  [%gap %s3] ~[["class:gap" "j-gap-s3"]]
   [%width w] (length-attrs w)
-  [%align %start] ~[["style:text-align" "start"] ["style:justify-content" "flex-start"]]
-  [%align %center] ~[["style:text-align" "center"] ["style:justify-content" "center"]]
-  [%align %end] ~[["style:text-align" "end"] ["style:justify-content" "flex-end"]]
-  [%role %body] ~[["data-role" "body"]]
-  [%role %caption] ~[["data-role" "caption"]]
-  [%role %label] ~[["data-role" "label"]]
-  [%tone t] (tone-attrs skin t)
+  [%align %start] ~[["class:align" "j-align-start"]]
+  [%align %center] ~[["class:align" "j-align-center"]]
+  [%align %end] ~[["class:align" "j-align-end"]]
+  [%role %body] ~[["class:role" "j-role-body"]]
+  [%role %caption] ~[["class:role" "j-role-caption"]]
+  [%role %label] ~[["class:role" "j-role-label"]]
+  [%tone t] (tone-attrs t)
 
-++ layout-centered |= tag=@t
+++ layout-base |= tag=@t
   ^- (list [name=@t value=@t])
-  ?- tag
-  "column" ~
-  "stack" ~
-  "row" ~[["style:align-items" "center"]]
-  "wrap" ~[["style:align-items" "center"] ["style:flex-wrap" "wrap"]]
-  * ~
-
-++ layout-base |= [tag=@t direction=@t]
-  ^- (list [name=@t value=@t])
-  (weld
-    ~[
-      ["data-layout" tag]
-      ["style:display" "flex"]
-      ["style:flex-direction" direction]
-      ["style:overflow-wrap" "anywhere"]
-    (layout-centered tag)
+  ~[["class:layout" "j-{tag}"]]
 
 ++ heading-tag |= level=@ud
   ^- @t
@@ -86,30 +67,29 @@
 
 ++ render-row |= [skin=theme payload=[attrs=(list [name=@t value=@t]) kids=(list A)]]
   ^- (vnode A)
-  [%node "div" (weld (layout-base "row" "row") attrs.payload) kids.payload]
+  [%node "div" (weld (layout-base "row") attrs.payload) kids.payload]
 
 ++ render-column |= [skin=theme payload=[attrs=(list [name=@t value=@t]) kids=(list A)]]
   ^- (vnode A)
-  [%node "div" (weld (layout-base "column" "column") attrs.payload) kids.payload]
+  [%node "div" (weld (layout-base "column") attrs.payload) kids.payload]
 
 ++ render-wrap |= [skin=theme payload=[attrs=(list [name=@t value=@t]) kids=(list A)]]
   ^- (vnode A)
-  [%node "div" (weld (layout-base "wrap" "row") attrs.payload) kids.payload]
+  [%node "div" (weld (layout-base "wrap") attrs.payload) kids.payload]
 
 ++ render-stack |= [skin=theme payload=[attrs=(list [name=@t value=@t]) kids=(list A)]]
   ^- (vnode A)
-  [%node "div" (weld (layout-base "stack" "column") attrs.payload) kids.payload]
+  [%node "div" (weld (layout-base "stack") attrs.payload) kids.payload]
 
 ++ render-el |= [skin=theme payload=[attrs=(list [name=@t value=@t]) kid=A]]
   ^- (vnode A)
-  ++ own ^- (list [name=@t value=@t]) ~[["data-layout" "el"]]
+  ++ own ^- (list [name=@t value=@t]) ~[["class:layout" "j-el"]]
   ++ all ^- (list [name=@t value=@t]) (weld own attrs.payload)
   [%node "div" all ~[kid.payload]]
 
 ++ render-para |= [skin=theme kids=(list A)]
   ^- (vnode A)
-  ++ own ^- (list [name=@t value=@t]) ~[["style:overflow-wrap" "anywhere"]]
-  [%node "p" own kids]
+  [%node "p" ~ kids]
 
 ++ render-text |= [skin=theme words=@t]
   ^- (vnode !!) [%text words]
@@ -121,6 +101,12 @@
 ++ render-link |= [skin=theme payload=[target=qath label=@t]]
   ^- (vnode !!) [%link target.payload label.payload]
 
+::  The build facade decides whether an unchecked URL is a link at all.
 ++ render-link-unsafe |= [skin=theme payload=[target=@t label=@t]]
-  ^- (vnode (vnode !!))
-  [%node "a" ~[["href" target.payload]] ~[[%text label.payload]]]
+  ^- (vnode !!) [%link-unsafe target.payload label.payload]
+
+++ render-image |= [skin=theme payload=[source=qath description=@t]]
+  ^- (vnode !!) [%image source.payload description.payload]
+
+++ render-image-unsafe |= [skin=theme payload=[source=[url=@t width=@ud height=@ud] description=@t]]
+  ^- (vnode !!) [%image-unsafe source.payload description.payload]

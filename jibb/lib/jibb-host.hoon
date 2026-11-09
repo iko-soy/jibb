@@ -38,6 +38,15 @@
       surs=(list term)
       marks=(list term)
       main=?
+      uses=(list [module=term name=term])
+  ==
+::  What the desk's +module-outline says of one module.
++$  outline
+  $:  jibb=(list path)
+      surs=(list term)
+      marks=(list term)
+      main=?
+      uses=(list [module=term name=term])
   ==
 ::  A %build step asks Clay whether a Hoon file builds: Gall cannot catch
 ::  a failed scry, so a build that may fail is never scried first.
@@ -48,6 +57,7 @@
       [%sur name=term]
       [%mark name=term]
       [%check at=path]
+      [%style ~]
       [%render at=path]
       [%publish ~]
   ==
@@ -63,7 +73,7 @@
       modules=(map path module-info)
       order=(list path)
       sites=(list [at=path site=(list @t)])
-      assets=(list path)
+      assets=(list static-file)
       theme=path
       renderer=path
       prelude=@uv
@@ -73,23 +83,33 @@
       sur-sources=(list [module=term at=path source=@t])
       sur-keys=(map term @uv)
       mark-keys=(map term @uv)
+      wanted=(map term (list term))
       check-keys=(map path @uv)
       render-keys=(map path @uv)
+      routes=(list (list @t))
+      style=(unit [key=@uv result=(each [url=@t css=@t] @t)])
       served=(map (list @t) cached-page)
       checked=@ud
       rendered=@ud
       failure=(unit @t)
   ==
+::  A file under /ui/static: its application path, the URL it is served at,
+::  its media type and bytes, as the desk's +render-checked takes them.
++$  static-file  [at=path url=@t type=@t data=octs]
+::  The URLs a desk has put in Eyre's cache: ~ while its last build uses one,
+::  then the time it expires.
++$  cached-urls  (map @t (unit @da))
 ::  A check or render records the revision whose build computed it.
 +$  checked  [rev=@ud result=(each [kind=@tas interface=* artifact=*] @t)]
 +$  rendered  [rev=@ud result=(each @t @t)]
 ::  The compiler's nouns are opaque here: each desk builds with its own.
 +$  store
-  $:  imports=(map @uv [jibb=(list path) surs=(list term) marks=(list term) main=?])
+  $:  imports=(map @uv outline)
       preludes=(map @uv (each * @t))
       surs=(map @uv [hash=@uv value=(each (list [module=term name=term result=*]) @t)])
       marks=(map @uv [hash=@uv value=*])
       checks=(map @uv checked)
+      styles=(map @uv (each @t @t))
       renders=(map @uv rendered)
   ==
 ::  The last completed build: its revision, and when each module checked.
@@ -230,10 +250,11 @@
 ::  mark's on the /sur and /mar files it imports; its origin evidence is
 ::  read against every /sur source.  So surs hashes every /sur source and
 ::  mars the /mar tree; env covers /lib.
+::  wanted names the molds the modules use from the file, declared or not.
 ++  sur-key
-  |=  [env=@uv module=term source=@t surs=@uv]
+  |=  [env=@uv module=term source=@t surs=@uv wanted=(list term)]
   ^-  @uv
-  (sham [%jibb-sur-2 env module (sham source) surs])
+  (sham [%jibb-sur-3 env module (sham source) surs wanted])
 ++  mark-key
   |=  [env=@uv mark=term source=@t surs=@uv mars=@uv]
   ^-  @uv
@@ -248,10 +269,23 @@
       ==
   ^-  @uv
   (sham [%jibb-check-1 env prelude sources surs marks])
-++  render-key
-  |=  [env=@uv page=@uv theme=@uv renderer=@uv base=path assets=(list path)]
+::  A static file's URL names its bytes, so the URLs stand for the files.
+++  style-key
+  |=  [env=@uv theme=@uv base=path urls=(list @t)]
   ^-  @uv
-  (sham [%jibb-render-1 env page theme renderer base assets])
+  (sham [%jibb-style-1 env theme base urls])
+++  render-key
+  |=  $:  env=@uv
+          page=@uv
+          theme=@uv
+          renderer=@uv
+          base=path
+          urls=(list @t)
+          routes=(list (list @t))
+          stylesheet=@t
+      ==
+  ^-  @uv
+  (sham [%jibb-render-2 env page theme renderer base urls routes stylesheet])
 ::
 ::  +prune-store: only the entries a completed build used
 ::
@@ -268,11 +302,13 @@
   =/  mark-keys=(set @uv)  (silt ~(val by mark-keys.b))
   =/  check-keys=(set @uv)  (silt ~(val by check-keys.b))
   =/  render-keys=(set @uv)  (silt ~(val by render-keys.b))
+  =/  style-keys=(set @uv)  ?~(style.b ~ (silt ~[key.u.style.b]))
   :*  (malt (skim ~(tap by imports.s) |=([k=@uv *] (~(has in import-keys) k))))
       (malt (skim ~(tap by preludes.s) |=([k=@uv *] =(k prelude.b))))
       (malt (skim ~(tap by surs.s) |=([k=@uv *] (~(has in sur-keys) k))))
       (malt (skim ~(tap by marks.s) |=([k=@uv *] (~(has in mark-keys) k))))
       (malt (skim ~(tap by checks.s) |=([k=@uv *] (~(has in check-keys) k))))
+      (malt (skim ~(tap by styles.s) |=([k=@uv *] (~(has in style-keys) k))))
       (malt (skim ~(tap by renders.s) |=([k=@uv *] (~(has in render-keys) k))))
   ==
 ::
@@ -359,11 +395,117 @@
   ?~  parsed  ~
   +5.u.parsed
 ::
+::  A Clay path keeps a file's extension as its last segment; an application
+::  path keeps it in the name, as /static/img/logo.png.
 ++  application-asset
   |=  at=path
   ^-  path
-  ?.  ?=([%ui *] at)  at
-  t.at
+  =/  rest=path  ?.(?=([%ui *] at) at t.at)
+  =/  back=(list @ta)  (flop rest)
+  ?.  ?=([@ @ *] back)  rest
+  (flop [(rap 3 ~[i.t.back '.' i.back]) t.t.back])
+::
+::  Static files.  Each is public and immutable at a URL naming a hash of its
+::  bytes, cached by Eyre, which serves it without an Arvo event.  A file a
+::  newer build no longer uses stays a day, for pages already open.
+::
+++  static-type
+  |=  mark=@ta
+  ^-  (unit @t)
+  ?+  mark  ~
+    %png    `'image/png'
+    %jpg    `'image/jpeg'
+    %jpeg   `'image/jpeg'
+    %gif    `'image/gif'
+    %webp   `'image/webp'
+    %svg    `'image/svg+xml'
+    %ico    `'image/x-icon'
+    %woff   `'font/woff'
+    %woff2  `'font/woff2'
+    %ttf    `'font/ttf'
+    %otf    `'font/otf'
+    %pdf    `'application/pdf'
+    %css    `'text/css; charset=utf-8'
+    %txt    `'text/plain; charset=utf-8'
+    %js     `'text/javascript; charset=utf-8'
+  ==
+::
+++  short-hash
+  |=  data=*
+  ^-  @t
+  (scot %uv (end [0 40] (sham data)))
+::
+++  static-url
+  |=  [base=path at=path data=octs]
+  ^-  @t
+  =/  rest=path  ?:(?=([%static *] at) t.at at)
+  (rap 3 ~[(spat base) '/static/' (short-hash data) (spat rest)])
+::
+++  stylesheet-url
+  |=  [base=path css=@t]
+  ^-  @t
+  (rap 3 ~[(spat base) '/~jibb/s/' (short-hash css) '.css'])
+::
+++  static-payload
+  |=  [type=@t data=octs]
+  ^-  payload
+  :_  `data
+  :-  200
+  ~[['content-type' type] ['cache-control' 'public, max-age=31536000, immutable']]
+::
+++  cache-card
+  |=  [url=@t entry=(unit payload)]
+  ^-  card:agent:gall
+  :*  %pass  /eyre/cache  %arvo  %e  %set-response  url
+      ?~(entry ~ `[| %payload u.entry])
+  ==
+::
+::  +publish-urls: put a build's files in Eyre's cache and retire the rest
+++  publish-urls
+  |=  [old=cached-urls new=(list [url=@t =payload]) now=@da]
+  ^-  [cached-urls (list card:agent:gall)]
+  =/  fresh=(set @t)  (silt (turn new |=(n=[url=@t =payload] url.n)))
+  =/  cards=(list card:agent:gall)
+    %+  murn  new
+    |=  n=[url=@t =payload]
+    ?:  =(`~ (~(get by old) url.n))  ~
+    `(cache-card url.n `payload.n)
+  =/  retired=cached-urls
+    %-  malt
+    %+  murn  ~(tap by old)
+    |=  [url=@t expiry=(unit @da)]
+    ?:  (~(has in fresh) url)  ~
+    `[url ?~(expiry `(add now ~d1) expiry)]
+  =/  current=cached-urls  (malt (turn new |=(n=[url=@t =payload] [url.n ~])))
+  [(~(uni by retired) current) cards]
+::
+::  +expire-urls: remove the retired files whose day is over
+++  expire-urls
+  |=  [urls=cached-urls now=@da]
+  ^-  [cached-urls (list card:agent:gall)]
+  =/  gone=(list @t)
+    %+  murn  ~(tap by urls)
+    |=  [url=@t expiry=(unit @da)]
+    ?~  expiry  ~
+    ?:((lte u.expiry now) `url ~)
+  :-  (~(dif by urls) (malt (turn gone |=(url=@t [url ~]))))
+  (turn gone |=(url=@t (cache-card url ~)))
+::
+++  next-expiry
+  |=  urls=cached-urls
+  ^-  (unit @da)
+  =/  times=(list @da)  (murn ~(val by urls) |=(e=(unit @da) e))
+  ?~  times  ~
+  =/  low=@da  i.times
+  =/  rest=(list @da)  t.times
+  |-
+  ?~  rest  `low
+  $(rest t.rest, low (min low i.rest))
+::
+++  clear-urls
+  |=  urls=cached-urls
+  ^-  (list card:agent:gall)
+  (turn ~(tap in ~(key by urls)) |=(url=@t (cache-card url ~)))
 ::
 ++  prefix
   |=  [base=(list @t) site=(list @t)]
@@ -539,6 +681,8 @@
   =/  parts=path  (flop t.reversed)
   ?~  parts  ~
   ?:  =(~[%theme] parts)  ~
+  ::  /static/ belongs to the host.
+  ?:  ?=([%static *] parts)  ~
   =/  site=path
     |-
     ?~  t.parts  ?:(=(%index i.parts) ~ parts)
@@ -578,15 +722,17 @@
 ::
 ::  +serve: one request, given the desks whose builds are in progress
 ::
-::    A completed build keeps serving while the next one runs.
+::    A completed build keeps serving while the next one runs.  Static
+::    files are public and Eyre answers for each one it holds, so a request
+::    that reaches the host for one is a 404, logged in or not.
 ++  serve
   |=  [routes=(list route) cache=page-cache building=(set desk) authenticated=? =method:http url=@t]
   ^-  payload
+  =/  found=(unit route-match)  (route-request routes (target-site url))
+  ?:  &(?=(^ found) (unknown-asset remaining.u.found))  not-found
   =/  allowed=(each ~ payload)  (authorize authenticated url)
   ?:  ?=(%| -.allowed)  p.allowed
-  =/  found=(unit route-match)  (route-request routes (target-site url))
   ?~  found  not-found
-  ?:  (unknown-asset remaining.u.found)  not-found
   ?.  ?=(?(%'GET' %'HEAD') method)  method-not-allowed
   =/  result=payload
     =/  built=(unit desk-pages)  (~(get by cache) desk.route.u.found)

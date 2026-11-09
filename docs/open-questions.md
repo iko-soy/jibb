@@ -8,7 +8,6 @@ From [spec/implementation-plan.md](spec/implementation-plan.md), Open questions:
 
 | Question | Needed by |
 | --- | --- |
-| What is the typography scale for heading levels and the `role` values? | Milestone 4 |
 | Does the Eyre channel CSRF test reproduce on a fake ship? @iko has the write-up; if it does, it goes to Urbit privately. | Milestone 4 |
 | What is the benchmark's bar? Proposed: a keystroke in a 500-row list island renders within one 16 ms frame on a mid-range phone. | Milestone 6 |
 | Are the proposed loop rules adopted, along with no overlays in v1? | Milestone 6 |
@@ -23,9 +22,7 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking i
 
 ## Questions milestone 4 raises
 
-| Question | Reading the host follows meanwhile |
-| --- | --- |
-| The plan says "until a new build links, the last one keeps serving". Does a build that finishes with errors replace the pages it was built for? | Yes. The host builds each commit over several Behn wakes and serves the last completed build until the new one finishes. A finished build then replaces it even where a page failed to check or render; that page answers with its diagnostic, as on a desk's first build, and each new error is printed with its file, line, column and excerpt. The other reading keeps the last good HTML of a failed page, or of the whole desk, until a commit fixes it |
+None remain open. The typography scale and whether a build that finishes with errors replaces the last pages are now [Decisions](spec/decisions.md) rows of 2026-11-09, chosen by the implementer at @iko's request; @iko may revise them.
 
 ## Review rulings waiting for @iko
 

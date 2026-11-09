@@ -2675,8 +2675,10 @@ desks:
   jibb      vendor/* + jibb-dev (without any tests/) + jibb
   jibb-host-fixture
             vendor/* + jibb-dev (without any tests/) + the default-theme
-            HTTP host acceptance desk in tests/host-fixture/desk: About, and a
-            notes page whose imported library tools/check-host edits
+            HTTP host acceptance desk in tests/host-fixture/desk: About and
+            the blog it links to; a notes page with an image, whose image
+            and imported library tools/check-host edits; and pages with a
+            generic and a misspelled /sur mold
   jibb-fixtures
             vendor/* + jibb-dev (without any tests/) + my-app (without
             desk.docket-0) + tests/clay-fixtures/desk, for tools/clay-fixtures
