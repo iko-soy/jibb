@@ -96,6 +96,7 @@ CHECKS = [
     Check('check-commit', 'ship', [SHIP, 'check-commit']),
     tool('clay-fixtures', 'ship'),
     tool('check-my-app', 'ship'),
+    tool('check-host', 'ship'),
     Check('probes-ship', 'ship', ['tools/probe-regression', '--backend', 'ship']),
 ]
 

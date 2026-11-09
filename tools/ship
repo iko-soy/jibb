@@ -68,7 +68,9 @@ TESTS_LIB = os.path.join(ROOT, 'tests', 'lib', 'jibb.hoon')
 #  tests/clay-fixtures/desk so the example app doesn't carry them.
 DESKS = {
     'my-app': [('jibb-dev', '', ['tests']), ('my-app', '', [])],
-    'jibb': [('jibb', '', [])],
+    'jibb': [('jibb-dev', '', ['tests']), ('jibb', '', [])],
+    'jibb-host-fixture': [('jibb-dev', '', ['tests']),
+                          (os.path.join('tests', 'host-fixture', 'desk'), '', [])],
     'jibb-dev': [('jibb-dev', '', []),
                  ('tests', 'tests', [os.path.join('clay-fixtures', 'desk')]),
                  ('my-app', 'my-app',
@@ -2667,7 +2669,10 @@ def _read(path):
 EPILOG = """\
 desks:
   my-app    vendor/* + jibb-dev (without any tests/) + my-app
-  jibb      vendor/* + jibb
+  jibb      vendor/* + jibb-dev (without any tests/) + jibb
+  jibb-host-fixture
+            vendor/* + jibb-dev (without any tests/) + the about-only,
+            fontless HTTP host acceptance desk in tests/host-fixture/desk
   jibb-fixtures
             vendor/* + jibb-dev (without any tests/) + my-app (without
             desk.docket-0) + tests/clay-fixtures/desk, for tools/clay-fixtures

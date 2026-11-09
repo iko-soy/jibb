@@ -11,6 +11,23 @@
 ++  example-registry
   ^-  registry:jibb-host
   [~ ~ (sy ~[%my-app %blog %other])]
+++  cache-with
+  |=  page=cached-page:jibb-host
+  ^-  page-cache:jibb-host
+  =/  pages=(map (list @t) cached-page:jibb-host)
+    (~(gas by *(map (list @t) cached-page:jibb-host)) ~[[~ page]])
+  (~(gas by *(map desk desk-pages:jibb-host)) ~[[%my-app [pages ~]]])
+++  example-cache
+  ^-  page-cache:jibb-host
+  =/  root=cached-page:jibb-host
+    (successful-page:jibb-host '<h1>About this ship</h1><a href="/apps/my-app/blog">Read the blog</a>')
+  =/  blog=cached-page:jibb-host  (successful-page:jibb-host '<h1>First post</h1>')
+  =/  root-pages=(map (list @t) cached-page:jibb-host)
+    (~(gas by *(map (list @t) cached-page:jibb-host)) ~[[~ root]])
+  =/  blog-pages=(map (list @t) cached-page:jibb-host)
+    (~(gas by *(map (list @t) cached-page:jibb-host)) ~[[~['first-post'] blog]])
+  %-  ~(gas by *(map desk desk-pages:jibb-host))
+  ~[[%my-app [root-pages ~]] [%blog [blog-pages ~]]]
 ++  status
   |=  result=payload:jibb-host
   ^-  @ud
@@ -90,10 +107,10 @@
   ?.  =(~ (target-site:jibb-host 'not-an-origin-form-target'))
     ~[leaf+"a malformed request target was parsed as a route"]
   ~
-++  test-admission-methods-and-placeholder-responses
+++  test-admission-methods-and-static-responses
   ^-  tang
   =/  denied=payload:jibb-host
-    (request-response:jibb-host example-routes | %'POST' '/apps/my-app?tab=1&x=2')
+    (request-response:jibb-host example-routes example-cache | %'POST' '/apps/my-app?tab=1&x=2')
   =/  expected=payload:jibb-host
     [[307 ~[['location' '/~/login?redirect=%2Fapps%2Fmy-app%3Ftab%3D1%26x%3D2']]] ~]
   ?.  =(expected denied)  ~[leaf+"login redirect lost the exact original target"]
@@ -101,22 +118,72 @@
     (authorize:jibb-host & '/apps/my-app')
   ?.  ?=(%& -.allowed)  ~[leaf+"the owner was redirected"]
   =/  missing=payload:jibb-host
-    (request-response:jibb-host example-routes & %'GET' '/apps/other')
+    (request-response:jibb-host example-routes example-cache & %'GET' '/apps/other')
   ?.  =(404 (status missing))  ~[leaf+"unknown route did not produce 404"]
   =/  asset=payload:jibb-host
-    (request-response:jibb-host example-routes & %'GET' '/apps/my-app/static/missing.js')
+    (request-response:jibb-host example-routes example-cache & %'GET' '/apps/my-app/static/missing.js')
   ?.  =(404 (status asset))  ~[leaf+"unknown asset did not produce 404"]
   =/  post=payload:jibb-host
-    (request-response:jibb-host example-routes & %'POST' '/apps/my-app')
+    (request-response:jibb-host example-routes example-cache & %'POST' '/apps/my-app')
   ?.  =(405 (status post))  ~[leaf+"unsupported method did not produce 405"]
   ?.  ?=(^ (find ~[['allow' 'GET, HEAD']] headers.response-header.post))
     ~[leaf+"405 response did not advertise supported methods"]
   =/  get=payload:jibb-host
-    (request-response:jibb-host example-routes & %'GET' '/apps/my-app/blog/first-post')
-  ?.  =(501 (status get))  ~[leaf+"matched route did not expose the renderer placeholder"]
+    (request-response:jibb-host example-routes example-cache & %'GET' '/apps/my-app/blog/first-post')
+  ?.  =(200 (status get))  ~[leaf+"matched static route did not produce 200"]
+  ?.  =(`[19 '<h1>First post</h1>'] data.get)  ~[leaf+"static HTML body was not returned"]
+  ?.  ?=(^ (find ~[['content-type' 'text/html; charset=utf-8']] headers.response-header.get))
+    ~[leaf+"static route did not return the HTML content type"]
   =/  head=payload:jibb-host
-    (request-response:jibb-host example-routes & %'HEAD' '/apps/my-app')
-  ?.  =(501 (status head))  ~[leaf+"HEAD was rejected with GET implemented"]
+    (request-response:jibb-host example-routes example-cache & %'HEAD' '/apps/my-app')
+  ?.  =(200 (status head))  ~[leaf+"HEAD was rejected with GET implemented"]
+  ?.  =(~ data.head)  ~[leaf+"HEAD returned a response body"]
+  ?.  ?=(^ (find ~[['content-type' 'text/html; charset=utf-8']] headers.response-header.head))
+    ~[leaf+"HEAD lost the HTML content type"]
+  =/  missing-page=payload:jibb-host
+    (request-response:jibb-host example-routes example-cache & %'GET' '/apps/my-app/missing')
+  ?.  =(404 (status missing-page))  ~[leaf+"an unbuilt page became a successful route"]
+  ~
+++  test-build-failures-are-not-successful-pages
+  ^-  tang
+  =/  missing=cached-page:jibb-host
+    (failed-page:jibb-host 'missing static asset: /static/fonts/inter.woff2')
+  =/  denied=payload:jibb-host
+    (request-response:jibb-host example-routes (cache-with missing) & %'GET' '/apps/my-app')
+  ?.  =(500 (status denied))  ~[leaf+"missing asset did not produce a build diagnostic"]
+  ?~  data.denied  ~[leaf+"missing asset response had no diagnostic"]
+  ?.  =('missing static asset: /static/fonts/inter.woff2' q.u.data.denied)
+    ~[leaf+"missing asset diagnostic was not preserved"]
+  =/  dynamic=cached-page:jibb-host
+    (failed-page:jibb-host 'unsupported module kind for static build: page')
+  =/  later=payload:jibb-host
+    (request-response:jibb-host example-routes (cache-with dynamic) & %'GET' '/apps/my-app')
+  ?.  =(501 (status later))  ~[leaf+"dynamic page did not produce a later-stage response"]
+  ?~  data.later  ~[leaf+"dynamic page response had no diagnostic"]
+  ?.  ?=(^ (find "dynamic pages are a later-stage feature" (trip q.u.data.later)))
+    ~[leaf+"dynamic page diagnostic did not identify the later stage"]
+  ~
+++  test-page-source-routing
+  ^-  tang
+  ?.  =(/static/fonts/inter/woff2 (application-asset:jibb-host /ui/static/fonts/inter/woff2))
+    ~[leaf+"Clay asset path did not become its application path"]
+  ?.  =(`~['about'] (page-site:jibb-host /ui/about/jibb))
+    ~[leaf+"about source did not retain its route"]
+  ?.  =([~ ~] (page-site:jibb-host /ui/index/jibb))
+    ~[leaf+"index source did not map to the application root"]
+  ?.  =(`~['blog'] (page-site:jibb-host /ui/blog/index/jibb))
+    ~[leaf+"nested index source did not map to its folder"]
+  ?.  =(`~['blog' 'first-post'] (page-site:jibb-host /ui/blog/first-post/jibb))
+    ~[leaf+"nested page source did not retain its route"]
+  ?.  ?=(~ (page-site:jibb-host /ui/theme/jibb))
+    ~[leaf+"theme library became a public page"]
+  ?.  ?=(~ (page-site:jibb-host /lib/jibb/renderer/jibb))
+    ~[leaf+"renderer library became a public page"]
+  ?.  ?=(~ (page-site:jibb-host /ui/about/txt))
+    ~[leaf+"non-Jibb UI file became a public page"]
+  =/  pruned=page-cache:jibb-host  (prune-pages:jibb-host example-cache (sy ~[%other]))
+  ?.  ?=(~ (~(get by pruned) %my-app))
+    ~[leaf+"retired desk retained rendered private HTML"]
   ~
 ++  test-response-cards
   ^-  tang

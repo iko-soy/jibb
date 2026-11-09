@@ -103,9 +103,10 @@
           '';
 
           # The desks, as tools/ship assembles them for the ship:
-          # $out/my-app, $out/jibb, $out/jibb-dev, the test desk, and
-          # $out/jibb-fixtures, for the Clay fixtures.  The
-          # check phase compiles the two libraries under urbit eval.
+          # $out/my-app, $out/jibb, $out/jibb-dev, the test desk,
+          # $out/jibb-fixtures for the Clay fixtures, and the real-Clay
+          # static host fixture.  The check phase compiles the two libraries
+          # under urbit eval.
           desks = pkgs.stdenvNoCC.mkDerivation {
             # No version in the name, so a commit that changes no desk
             # file reuses the last build.
@@ -137,7 +138,7 @@
             # The files are the desks' as they are: nothing to patch.
             dontFixup = true;
             meta = {
-              description = "The Jibb desks: my-app, jibb, jibb-dev and jibb-fixtures";
+              description = "The Jibb desks, test fixtures, and static host fixture";
               platforms = systems;
             };
           };
@@ -155,6 +156,7 @@
               install -m644 ${./tools/prelude_groups.py} $out/share/jibb/tools/prelude_groups.py
               cp -r ${./vendor} $out/share/jibb/vendor
               cp -r ${./jibb-dev} $out/share/jibb/jibb-dev
+              cp -r ${./jibb} $out/share/jibb/jibb
               chmod -R u+w $out/share/jibb
               rm -rf $out/share/jibb/jibb-dev/tests
               wrapProgram $out/share/jibb/tools/ship \

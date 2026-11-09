@@ -10,6 +10,9 @@
 +$  route-match  [route=route remaining=(list @t)]
 +$  docket-entry  [desk=desk docket=(unit noun)]
 +$  payload  simple-payload:http
++$  cached-page  [status=@ud result=(each @t @t)]
++$  desk-pages  [pages=(map (list @t) cached-page) error=(unit @t)]
++$  page-cache  (map desk desk-pages)
 +$  registry
   $:  routes=(list route)
       pending=(list route)
@@ -88,6 +91,12 @@
   =/  parsed=(unit [pork quay])  (parse-target url)
   ?~  parsed  ~
   +5.u.parsed
+::
+++  application-asset
+  |=  at=path
+  ^-  path
+  ?.  ?=([%ui *] at)  at
+  t.at
 ::
 ++  prefix
   |=  [base=(list @t) site=(list @t)]
@@ -222,6 +231,11 @@
   ^-  payload
   [[404 ~] ~]
 ::
+++  html-response
+  |=  html=@t
+  ^-  payload
+  [[200 ~[['content-type' 'text/html; charset=utf-8']]] [~ [(met 3 html) html]]]
+::
 ++  text-response
   |=  [status=@ud text=@t]
   ^-  payload
@@ -232,9 +246,41 @@
   =/  text=@t  'method not allowed'
   [[405 ~[['content-type' 'text/plain; charset=utf-8'] ['allow' 'GET, HEAD']]] [~ [(met 3 text) text]]]
 ::
-++  renderer-unavailable
-  ^-  payload
-  (text-response 501 'Jibb renderer is not built yet')
+++  successful-page
+  |=  html=@t
+  ^-  cached-page
+  [200 %& html]
+::
+++  failed-page
+  |=  message=@t
+  ^-  cached-page
+  ?:  =('unsupported module kind for static build: page' message)
+    :-  501
+    :-  %|
+    (cat 3 'dynamic pages are a later-stage feature: ' message)
+  [500 %| message]
+::
+++  page-site
+  |=  at=path
+  ^-  (unit (list @t))
+  ?.  ?=([%ui *] at)  ~
+  =/  reversed=(list @ta)  (flop t.at)
+  ?~  reversed  ~
+  ?.  =(%jibb i.reversed)  ~
+  =/  parts=path  (flop t.reversed)
+  ?~  parts  ~
+  ?:  =(~[%theme] parts)  ~
+  =/  site=path
+    |-
+    ?~  t.parts  ?:(=(%index i.parts) ~ parts)
+    [i.parts $(parts t.parts)]
+  `(turn site |=(part=@ta (crip (trip part))))
+::
+++  prune-pages
+  |=  [cache=page-cache live=(set desk)]
+  ^-  page-cache
+  %-  ~(gas by *(map desk desk-pages))
+  (skim ~(tap by cache) |=(entry=[=desk *] (~(has in live) desk.entry)))
 ::
 ++  authorize
   |=  [authenticated=? url=@t]
@@ -250,7 +296,7 @@
   ==
 ::
 ++  request-response
-  |=  [routes=(list route) authenticated=? =method:http url=@t]
+  |=  [routes=(list route) cache=page-cache authenticated=? =method:http url=@t]
   ^-  payload
   =/  allowed=(each ~ payload)  (authorize authenticated url)
   ?:  ?=(%| -.allowed)  p.allowed
@@ -258,7 +304,18 @@
   ?~  found  not-found
   ?:  (unknown-asset remaining.u.found)  not-found
   ?.  ?=(?(%'GET' %'HEAD') method)  method-not-allowed
-  renderer-unavailable
+  =/  result=payload
+    =/  built=(unit desk-pages)  (~(get by cache) desk.route.u.found)
+    ?~  built  not-found
+    ?^  error.u.built  (text-response 500 u.error.u.built)
+    =/  page=(unit cached-page)
+      (~(get by pages.u.built) remaining.u.found)
+    ?~  page  not-found
+    ?:  ?=(%| -.result.u.page)
+      (text-response status.u.page p.result.u.page)
+    (html-response p.result.u.page)
+  ?:  ?=(%'HEAD' method)  result(data ~)
+  result
 ::
 ++  payload-header
   |=  result=payload

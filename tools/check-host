@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+"""Exercise the Jibb host through a real fake ship and HTTP."""
+
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+import http.cookiejar
+import json
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / 'tools'))
+shiptool = SourceFileLoader('jibb_ship', str(ROOT / 'tools' / 'ship')).load_module()
+
+DESK = 'jibb-host-fixture'
+BASE = '/apps/' + DESK
+PAGE = BASE + '/about'
+PASSWORD = 'lidlut-tabwed-pillex-ridrup'
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+class Client:
+    def __init__(self, origin, cookies=None):
+        handlers = [NoRedirect()]
+        if cookies is not None:
+            handlers.append(urllib.request.HTTPCookieProcessor(cookies))
+        self.origin = origin
+        self.opener = urllib.request.build_opener(*handlers)
+
+    def request(self, method, target, data=None):
+        req = urllib.request.Request(self.origin + target, data=data, method=method)
+        try:
+            with self.opener.open(req, timeout=120) as response:
+                return response.status, response.headers, response.read()
+        except urllib.error.HTTPError as response:
+            with response:
+                return response.code, response.headers, response.read()
+
+
+def expect(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def poke(ship, mark, value):
+    ship.thread(shiptool.fill(shiptool.POKE, AGENT='hood', MARK=mark, VALUE=value),
+                timeout=180)
+
+
+def route_count(ship):
+    care, path = shiptool.parse_scry('/gx/=jibb=/routes/noun')
+    return ship.thread(shiptool.fill(
+        shiptool.SCRY, TYPE='@ud', CARE=care, PATH=path, NOW='now.bowl',
+        RESULT='(pure:m !>(val))'), timeout=120)
+
+
+def route_present(ship):
+    care, path = shiptool.parse_scry('/gx/=jibb=/routes/%s/noun' % DESK)
+    value = ship.thread(shiptool.fill(
+        shiptool.SCRY, TYPE='?', CARE=care, PATH=path, NOW='now.bowl',
+        RESULT='(pure:m !>(val))'), timeout=120)
+    return value == 0
+
+
+def wait_for(what, probe, timeout=600):
+    deadline = time.monotonic() + timeout
+    last = None
+    while time.monotonic() < deadline:
+        try:
+            value = probe()
+            if value is not None:
+                return value
+            last = 'condition is not ready'
+        except (OSError, ValueError, urllib.error.URLError,
+                shiptool.Fail, shiptool.Unable) as error:
+            last = str(error)
+        time.sleep(1)
+    raise ValueError('timed out waiting for %s: %s' % (what, last))
+
+
+def http_port(pier):
+    ports = Path(pier) / '.http.ports'
+    for line in ports.read_text().splitlines():
+        words = line.split()
+        if len(words) == 3 and words[1:] == ['insecure', 'public']:
+            return int(words[0])
+    raise ValueError('no insecure public HTTP port in %s' % ports)
+
+
+def main():
+    ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
+    ship.require()
+    shiptool.sync(ship, DESK, timeout=300)
+    shiptool.sync(ship, 'jibb', timeout=300)
+    poke(ship, 'kiln-revive', '%' + DESK)
+    poke(ship, 'kiln-revive', '%jibb')
+
+    # Wait until on-init has installed the agent and its Clay subscription.
+    # Otherwise a fresh desk's suspend/revive can both precede that subscription.
+    wait_for('host agent installation', lambda: route_count(ship) >= 0 or None)
+    # Force a fresh acknowledged discovery so the acceptance page cannot come
+    # from an earlier agent-side cache or from files outside the current desks.
+    poke(ship, 'kiln-suspend-many', '~[%%%s]' % DESK)
+    wait_for('initial fixture suspension', lambda: not route_present(ship) or None)
+    poke(ship, 'kiln-revive', '%' + DESK)
+    wait_for('initial fixture build', lambda: route_present(ship) or None)
+
+    origin = 'http://127.0.0.1:%d' % http_port(ship.pier)
+    anonymous = Client(origin)
+    cookies = http.cookiejar.CookieJar()
+    owner = Client(origin, cookies)
+    status, _, _ = owner.request(
+        'POST', '/~/login', urllib.parse.urlencode({'password': PASSWORD}).encode())
+    expect(status == 200, 'owner login failed with HTTP %d' % status)
+
+    suspended = False
+    try:
+        wait_for('acknowledged static build', lambda: route_present(ship) or None)
+        target = PAGE + '?tab=1&x=2'
+        status, headers, body = anonymous.request('GET', target)
+        expect(status == 307, 'logged-out request was HTTP %d, not 307' % status)
+        expected = '/~/login?redirect=' + urllib.parse.quote(target, safe='')
+        expect(headers.get('location') == expected,
+               'login target differed: %r != %r' % (headers.get('location'), expected))
+        expect(body == b'', 'logged-out redirect unexpectedly had a body')
+
+        status, headers, body = owner.request('GET', PAGE)
+        expect(status == 200, 'owner About request was HTTP %d: %r' % (status, body))
+        expect(headers.get_content_type() == 'text/html',
+               'About content type was %r' % headers.get('content-type'))
+        expect(headers.get('cache-control') is None,
+               'private About response requested Eyre caching')
+        for text in ('About this ship', BASE + '/blog',
+                     'Hosted on Urbit. This page ships no JavaScript.'):
+            expect(text.encode() in body, 'rendered About page is missing %r' % text)
+        expect(b'<script' not in body, 'static About page contained JavaScript')
+
+        status, headers, body = owner.request('HEAD', PAGE)
+        expect(status == 200, 'HEAD About request was HTTP %d' % status)
+        expect(headers.get_content_type() == 'text/html', 'HEAD lost HTML content type')
+        expect(body == b'', 'HEAD returned a body')
+
+        for target in (BASE, BASE + '/missing', BASE + '/static/missing.js'):
+            status, _, _ = owner.request('GET', target)
+            expect(status == 404, '%s was HTTP %d, not 404' % (target, status))
+        status, headers, _ = owner.request('POST', PAGE, b'ignored=1')
+        expect(status == 405, 'POST About request was HTTP %d, not 405' % status)
+        expect(headers.get('allow') == 'GET, HEAD', '405 Allow header was not GET, HEAD')
+
+        status, _, body = owner.request('GET', '/~debug/eyre/cache.json')
+        expect(status == 200, 'could not read Eyre cache: HTTP %d' % status)
+        cache = json.loads(body)
+        private = [entry for entry in cache if BASE in entry.get('url', '')]
+        expect(not private, 'private About URL appeared in Eyre cache: %r' % private)
+
+        poke(ship, 'kiln-suspend-many', '~[%%%s]' % DESK)
+        suspended = True
+        wait_for('route removal after suspend', lambda: not route_present(ship) or None)
+        status, _, _ = owner.request('GET', PAGE)
+        expect(status == 404, 'suspended desk route was HTTP %d, not 404' % status)
+        print('check-host: 307/login, 200 HTML, HEAD, 404, 405, Eyre cache and suspend passed')
+        return 0
+    finally:
+        # Leave the dedicated fixture usable for a subsequent run, including
+        # when an assertion above fails. This revives only our fixture desk.
+        poke(ship, 'kiln-revive', '%' + DESK)
+        if suspended:
+            wait_for('fixture revival after acceptance', lambda: route_present(ship) or None)
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError,
+            urllib.error.URLError, shiptool.Fail, shiptool.Unable) as error:
+        print('check-host: %s' % error, file=sys.stderr)
+        sys.exit(1)

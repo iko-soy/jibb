@@ -2,11 +2,11 @@
 
 Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its specification is [Jibb — an Elm-architecture UI language for Urbit](docs/spec/overview.md), with the remaining specification documents in [docs/spec/](docs/spec/). Where this code and the spec disagree, the spec wins.
 
-Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milestone 2, types and prelude, is in progress. The type checker and Hoon importer are partial. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and the brief for milestone 2.
+Milestones 1 through 3 of the doc's eight are done. Milestone 4, the shared host and static pages, is in progress; later browser-runtime work is also present but not complete. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and milestone briefs.
 
 ## Layout
 
-- `jibb-dev/`: what app desks vendor: the `%jibb` mark, the compiler, the partial Hoon type reader and the beginning of the prelude; later the browser library.
+- `jibb-dev/`: what app desks vendor: the `%jibb` mark, compiler, Hoon type reader, checked prelude, lowering and backends, renderer, and browser library.
 - `jibb-cli/`: the native Rust `jibb` executable and its tree-sitter grammar, for earth-side utilities.
 - `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
 - `js/`: the Core-to-JavaScript backend, entry linker, native runtime, Nock comparison backend, virtual DOM/island loop, Eyre channel/effects, shared stores, URL runtime, and Node/differential tests; full browser integration comes later.
@@ -21,14 +21,14 @@ Milestone 1 of the doc's eight, the parser and the `%jibb` mark, is done; milest
 The flake (`flake.nix`, pinned by `flake.lock`) builds the desks and runs every check, with vere 4.6, Python 3, click and the brass pill pinned:
 
 ```
-nix build              # result/my-app, result/jibb, result/jibb-dev, result/jibb-fixtures: the desks
+nix build              # result/{my-app,jibb,jibb-dev,jibb-fixtures,jibb-host-fixture}: the desks
 nix build .#jibb       # result/bin/jibb: the native earth-side executable
 nix flake check        # every check: the CLI, eval group and, on Linux, the ship group on a fresh fake ~zod
 nix develop            # a shell with urbit, Python, click, Rust and tree-sitter
 nix build .#fakezod    # a freshly booted fake ~zod pier (Linux)
 ```
 
-The default `nix build` writes the four desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build. The separate `jibb` package builds the native CLI without Urbit.
+The default `nix build` writes the five desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build. The separate `jibb` package builds the native CLI without Urbit.
 
 `nix flake check` builds those and the CLI, runs the CLI's Rust tests, then runs `tools/check --group eval` and, on Linux, `tools/check --group ship` against a copy of a fake ~zod it boots from the pill. Everything runs in the Nix sandbox without network, so a check can't pass because of something on your machine. Each group is one build; a failure prints the failing checks' output, and a passing build keeps every check's log in its output. On four CPUs it takes about 10 minutes, the two groups building side by side: under 3 minutes for the eval group (it took 18 before `tools/test-arms` replaced a script per suite) and 10 for the ship group. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
 
@@ -171,7 +171,8 @@ tools/ship stop
 | Desk | Assembled from |
 | --- | --- |
 | `my-app` | `vendor/*`, then `jibb-dev` without `tests/`, then `my-app` |
-| `jibb` | `vendor/*`, then `jibb` |
+| `jibb` | `vendor/*`, then `jibb-dev` without `tests/`, then `jibb` |
+| `jibb-host-fixture` | `vendor/*`, then `jibb-dev` without `tests/`, then `tests/host-fixture/desk` |
 | `jibb-dev` | `vendor/*`, then `jibb-dev`, then `tests/`, with `tests/lib/jibb.hoon` generated, and `jibb/sys.kelvin` |
 
 The `jibb-dev` desk runs the golden cases on the ship, as `-test` arms. `tools/ship gen-tests` writes `tests/lib/jibb.hoon` from `tests/golden`: for each case it imports `source.jibb`, `tokens.txt` and `tree.txt` with `/*`, reading a `source.jibb` that links to a `my-app` file from `/my-app`, and its `test-` arm compares `golden:jibb` with them. Cases opted into `types.txt` also compare the full-checker report; cases opted into `core.txt` also compare canonical lowered Core. The file is generated, not committed (review question 32): desk assembly writes it afresh, and `.gitignore` lists it. `tools/ship test` regenerates it, syncs the desk and runs `-test /=jibb-dev=/tests`, printing each case's OK, FAILED or CRASHED and the reason. It exits 0 only when every case passes.
