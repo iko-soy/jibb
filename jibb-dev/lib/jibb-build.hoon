@@ -13,6 +13,8 @@
       theme-source=@t
       modules=jbundle:jibb
       assets=(list path)
+      externals=iexternals:jibb
+      marks=imark-externals:jibb
   ==
 +$  static-output  [title=@t html=@t]
 +$  theme-view
@@ -53,6 +55,21 @@
   |-
   ?~  rest  out
   $(rest t.rest, out (rap 3 ~[out separator i.rest]))
+::
+++  default-theme-source
+  ^-  @t
+  %-  join-text
+  :-  '\0a'
+  :~  '++ theme  ^- theme'
+      '  [ space=[s1="4px" s2="8px" s3="16px"]'
+      '    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]'
+      '    wide="60rem"'
+      '    lang="en"'
+      '    zone="UTC"'
+      '    font=~'
+      '    dark=~'
+      ''
+  ==
 ::
 ++  raw-seal-native
   |=  value=noun
@@ -398,21 +415,47 @@
   ?:  ?=(%| -.gate)  gate
   $(linked t.linked, out (~(put by out) tag.i.linked p.gate))
 ::
-++  build-static
+++  static-imports
+  |=  modules=jbundle:jibb
+  ^-  [surs=(list term) marks=(list term)]
+  =|  surs=(list term)
+  =|  marks=(list term)
+  =/  entries=jbundle:jibb  modules
+  |-
+  ?~  entries
+    [(sort ~(tap in (sy surs)) aor) (sort ~(tap in (sy marks)) aor)]
+  =/  parsed=(each module:jibb error:jibb)  (parse:jibb at.i.entries source.i.entries)
+  ?:  ?=(%| -.parsed)  $(entries t.entries)
+  %=  $
+    entries  t.entries
+    surs  (weld (collect-sur-imports:jibb imports.p.parsed) surs)
+    marks  (weld (collect-mark-imports:jibb imports.p.parsed) marks)
+  ==
+::
+++  check-static
   |=  [request=static-request prepared=iprelude-lowering:jibb]
+  ^-  jlowering-result:jibb
+  (check-jibb-file-for-lowering-prepared:jibb at.request source.request externals.request marks.request modules.request ~[at.request] ~ prepared)
+::
+++  static-kind
+  |=  page=jlowering-result:jibb
+  ^-  (each checked-kind:jibb @t)
+  ?:  ?=(%| -.page)  [%| message.p.page]
+  [%& kind.p.page]
+::
+++  build-static-checked
+  |=  [request=static-request prepared=iprelude-lowering:jibb page=jlowering-result:jibb]
   ^-  (each static-output @t)
   ?.  (valid-base base.request)  [%| 'static build: base must be an absolute path without a trailing slash']
-  =/  page=jlowering-result:jibb
-    (check-jibb-file-for-lowering-prepared:jibb at.request source.request ~ ~ modules.request ~[at.request] ~ prepared)
   ?:  ?=(%| -.page)  [%| message.p.page]
   ?.  =(%static-page kind.p.page)
     [%| (crip "unsupported module kind for static build: {(trip kind.p.page)}")]
   =/  skin=jlowering-result:jibb
-    (check-jibb-file-for-lowering-prepared:jibb theme-at.request theme-source.request ~ ~ modules.request ~[theme-at.request] ~ prepared)
+    (check-jibb-file-for-lowering-prepared:jibb theme-at.request theme-source.request externals.request marks.request modules.request ~[theme-at.request] ~ prepared)
   ?:  ?=(%| -.skin)  [%| message.p.skin]
   ?.  =(%library kind.p.skin)  [%| 'static build: theme module must be a library']
   =/  renderer=jlowering-result:jibb
-    (check-jibb-file-for-lowering-prepared:jibb renderer-at.request renderer-source.request ~ ~ modules.request ~[renderer-at.request] ~ prepared)
+    (check-jibb-file-for-lowering-prepared:jibb renderer-at.request renderer-source.request externals.request marks.request modules.request ~[renderer-at.request] ~ prepared)
   ?:  ?=(%| -.renderer)  [%| message.p.renderer]
   ?.  =(%library kind.p.renderer)  [%| 'static build: renderer module must be a library']
   =/  page-core=(each expr:jibb-core @t)
@@ -452,6 +495,11 @@
     (render-static-element ctx p.page-value)
   ?:  ?=(%| -.tree)  tree
   [%& (render-document base.request skin-view p.tree)]
+::
+++  build-static
+  |=  [request=static-request prepared=iprelude-lowering:jibb]
+  ^-  (each static-output @t)
+  (build-static-checked request prepared (check-static request prepared))
 ::
 ++  render-static
   |=  [request=static-request prepared=iprelude-lowering:jibb]

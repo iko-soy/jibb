@@ -18,6 +18,7 @@ shiptool = SourceFileLoader('jibb_ship', str(ROOT / 'tools' / 'ship')).load_modu
 DESK = 'jibb-host-fixture'
 BASE = '/apps/' + DESK
 PAGE = BASE + '/about'
+MY_APP_BASE = '/apps/my-app'
 PASSWORD = 'lidlut-tabwed-pillex-ridrup'
 
 
@@ -61,8 +62,8 @@ def route_count(ship):
         RESULT='(pure:m !>(val))'), timeout=120)
 
 
-def route_present(ship):
-    care, path = shiptool.parse_scry('/gx/=jibb=/routes/%s/noun' % DESK)
+def route_present(ship, desk=DESK):
+    care, path = shiptool.parse_scry('/gx/=jibb=/routes/%s/noun' % desk)
     value = ship.thread(shiptool.fill(
         shiptool.SCRY, TYPE='?', CARE=care, PATH=path, NOW='now.bowl',
         RESULT='(pure:m !>(val))'), timeout=120)
@@ -98,8 +99,10 @@ def main():
     ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
     ship.require()
     shiptool.sync(ship, DESK, timeout=300)
+    shiptool.sync(ship, 'my-app', timeout=300)
     shiptool.sync(ship, 'jibb', timeout=300)
     poke(ship, 'kiln-revive', '%' + DESK)
+    poke(ship, 'kiln-revive', '%my-app')
     poke(ship, 'kiln-revive', '%jibb')
 
     # Wait until on-init has installed the agent and its Clay subscription.
@@ -121,7 +124,16 @@ def main():
     expect(status == 200, 'owner login failed with HTTP %d' % status)
 
     suspended = False
+    application_suspended = False
     try:
+        poke(ship, 'kiln-suspend-many', '~[%my-app]')
+        application_suspended = True
+        wait_for('initial application suspension',
+                 lambda: not route_present(ship, 'my-app') or None)
+        poke(ship, 'kiln-revive', '%my-app')
+        application_suspended = False
+        wait_for('real application build', lambda: route_present(ship, 'my-app') or None,
+                 timeout=1800)
         wait_for('acknowledged static build', lambda: route_present(ship) or None)
         target = PAGE + '?tab=1&x=2'
         status, headers, body = anonymous.request('GET', target)
@@ -154,6 +166,17 @@ def main():
         expect(status == 405, 'POST About request was HTTP %d, not 405' % status)
         expect(headers.get('allow') == 'GET, HEAD', '405 Allow header was not GET, HEAD')
 
+        status, _, body = owner.request('GET', MY_APP_BASE + '/about')
+        expect(status == 500, 'my-app About was HTTP %d, not the asset error: %r' % (status, body))
+        expect(b'missing static asset: /static/fonts/inter.woff2' in body,
+               'my-app did not reach its expected missing-font diagnostic: %r' % body)
+        status, _, body = owner.request('GET', MY_APP_BASE + '/blog')
+        expect(status == 501, 'checked dynamic page was HTTP %d, not 501: %r' % (status, body))
+        for target in (MY_APP_BASE + '/todo-list', MY_APP_BASE + '/stores/cart',
+                       MY_APP_BASE + '/components/card', MY_APP_BASE + '/api/todo'):
+            status, _, body = owner.request('GET', target)
+            expect(status == 404, 'non-page %s was HTTP %d, not 404: %r' % (target, status, body))
+
         status, _, body = owner.request('GET', '/~debug/eyre/cache.json')
         expect(status == 200, 'could not read Eyre cache: HTTP %d' % status)
         cache = json.loads(body)
@@ -165,7 +188,7 @@ def main():
         wait_for('route removal after suspend', lambda: not route_present(ship) or None)
         status, _, _ = owner.request('GET', PAGE)
         expect(status == 404, 'suspended desk route was HTTP %d, not 404' % status)
-        print('check-host: 307/login, 200 HTML, HEAD, 404, 405, Eyre cache and suspend passed')
+        print('check-host: default theme, real Clay imports, page kinds, HTTP and suspend passed')
         return 0
     finally:
         # Leave the dedicated fixture usable for a subsequent run, including
@@ -173,6 +196,8 @@ def main():
         poke(ship, 'kiln-revive', '%' + DESK)
         if suspended:
             wait_for('fixture revival after acceptance', lambda: route_present(ship) or None)
+        if application_suspended:
+            poke(ship, 'kiln-revive', '%my-app')
 
 
 if __name__ == '__main__':

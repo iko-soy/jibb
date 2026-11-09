@@ -850,6 +850,44 @@
   ?~  selected  [%| 'Hoon generic source arm is unavailable']
   [%& [%generic-source arity.u.proof body.u.proof at source u.selected (sham cor)]]
 ::
+++  read-module-result
+  |=  [module=term name=term at=path source=@t cor=type]
+  ^-  *
+  =/  proof=(unit imported)  (generic-source-proof name cor)
+  ?~  proof
+    =/  diagnostic=import-diagnostic  (read-named-diagnostic module name cor)
+    ?:  ?=(%ok -.diagnostic)  [%& +.diagnostic]
+    diagnostic
+  ?.  ?=(%generic -.u.proof)
+    =/  diagnostic=import-diagnostic  (read-named-diagnostic module name cor)
+    ?:  ?=(%ok -.diagnostic)  [%& +.diagnostic]
+    diagnostic
+  =/  generic=(each imported @t)  (read-generic-source module name at source cor)
+  ?:  ?=(%| -.generic)  [%unsupported p.generic]
+  generic
+::
+++  read-module
+  |=  [module=term at=path source=@t cor=type]
+  ^-  (each (list [module=term name=term result=*]) @t)
+  ?.  ?=([%core *] cor)  [%| 'Hoon module provenance is unavailable']
+  ?:  =(cor -:!>(..zuse))  [%| 'Hoon module provenance is unavailable']
+  =/  chapters=(map term tome)  q.r.q.cor
+  =/  entries=(list [term tome])  ~(tap by chapters)
+  =/  names=(each (list term) @t)
+    |-
+    ?~  entries  [%& ~]
+    =/  chapter=(unit (list term))  (chapter-names +.i.entries)
+    ?~  chapter  [%| 'Hoon module declarations could not be verified']
+    =/  rest=(each (list term) @t)  $(entries t.entries)
+    ?:  ?=(%| -.rest)  rest
+    [%& (weld u.chapter p.rest)]
+  ?:  ?=(%| -.names)  names
+  =/  ordered=(list term)  (sort ~(tap in:..zuse (sy p.names)) aor)
+  :-  %&
+  %+  turn  ordered
+  |=  name=term
+  [module name (read-module-result module name at source cor)]
+::
 ++  read-named
   |=  [module=term name=term cor=type]
   ^-  (each imported @t)
@@ -1126,6 +1164,15 @@
     (mark-source-text-site source.declaration name.declaration)
   ?~  site  ~
   `[module.declaration name.declaration at.declaration source.declaration u.site]
+::
+++  read-mark-source-diagnostic
+  |=  [name=term sources=(list [module=term at=path source=@t]) cor=type]
+  ^-  *
+  =/  diagnostic=import-diagnostic  (read-mark-diagnostic name cor)
+  ?.  ?=(%ok -.diagnostic)  diagnostic
+  =/  sourced=(each mark-source @t)  (read-mark-source name sources cor)
+  ?:  ?=(%| -.sourced)  [%unsupported p.sourced]
+  sourced
 ::
 ++  read-mark-source
   |=  [name=term sources=(list [module=term at=path source=@t]) cor=type]
@@ -1664,6 +1711,23 @@
   =/  children=*  +.m
   =/  found=(list hoon)  ?:(=(-.kv target) ~[;;(hoon +.kv)] ~)
   (weld found (weld $(m -.children) $(m +.children)))
+::
+++  arm-map-names
+  |=  m=*
+  ^-  (list term)
+  ?@  m  ~
+  =/  kv=*  -.m
+  =/  children=*  +.m
+  :-  ;;(term -.kv)
+  (weld $(m -.children) $(m +.children))
+::
+++  chapter-names
+  |=  chapter=*
+  ^-  (unit (list term))
+  ?:  (arm-map-valid chapter)  [~ (arm-map-names chapter)]
+  ?@  chapter  ~
+  ?.  (arm-map-valid +.chapter)  ~
+  [~ (arm-map-names +.chapter)]
 ::
 ++  chapter-source
   |=  [chapter=* target=term]

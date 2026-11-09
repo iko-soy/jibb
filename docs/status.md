@@ -9,7 +9,7 @@ As of 2026-11-08. This is the current capability and acceptance table. History a
 | 1 | Parser and mark | Done |
 | 2 | Types and prelude | Done: the general full checker, checked prelude and Hoon importer meet the milestone acceptance criteria under eval, on the fake ship and in the integrated Nix checks |
 | 3 | Core language | Done: checked-artifact capture, lowering/linking, the Core reader/interpreter, Nock backend and authenticated natives pass the exact Core golden, focused suites, and the final integrated Nix eval and fake-ship checks. Provenance-checked Nock execution adds 13 focused eval arms for function-as-noun and trace controls |
-| 4 | Host and static pages: the first release | In progress: real-Clay static checking, Nock rendering, agent-side HTML caching, owner-only HTTP responses, and desk lifecycle handling pass focused eval and fake-ship HTTP checks; incremental rebuilds, full application imports, hashed Eyre assets, and the remaining acceptance criteria are unfinished |
+| 4 | Host and static pages: the first release | In progress: desk-local compiler execution, real Clay application imports, checked page-kind routing, default themes, Nock rendering, agent-side HTML caching, owner-only HTTP responses, and desk lifecycle handling pass focused eval and fake-ship HTTP checks; incremental rebuilds, hashed Eyre assets, and the remaining acceptance criteria are unfinished |
 | 5 | Published pages | Not started |
 | 6 | Islands | In progress: the independent JavaScript reader, backend, entry linker, and native runtime are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits checked lowering; the initial benchmark selected generated JavaScript, and the virtual DOM/island loop is implemented with focus-preserving tests. Channel, subscriptions, timers, and poke replies are implemented with mocked transport tests. Store and URL transports are implemented with lifecycle tests. Full browser integration and performance work remain outstanding |
 | 7 | Tooling | Not started |
@@ -51,10 +51,11 @@ The public `golden-types*` reporters render only the full-module result: checked
 | Area | Current evidence |
 | --- | --- |
 | Static build and render | The checked build facade resolves the renderer and theme, executes linked Nock, serializes HTML, and rejects missing theme assets; focused build suites pass under eval |
-| Real-Clay host | The agent reads the app desk's Jibb sources, prelude, renderer, theme, and collection interfaces through Clay, caches rendered pages by desk and route, and serves them without adding private pages to Eyre's cache |
+| Real-Clay host | Each desk's `%ca`-built compiler and importer prepare, check, and render its sources at one Clay revision; the agent caches rendered pages by desk and route and serves them without adding private pages to Eyre's cache |
+| Application interfaces and kinds | Authenticated `/sur` declaration enumeration and `/mar` readers feed checking; real `my-app` imports reach the expected missing-font diagnostic, dynamic pages return 501, and libraries, islands, and stores return 404; a missing theme uses the checked default |
 | HTTP and lifecycle | `tools/check-host` passed on a fake ship: exact logged-out login redirect, owner `GET` and `HEAD`, `/about` plus root/missing/asset 404 behavior, 405, no private Eyre cache entries, and route/cache removal and rebuilding across suspend and revive |
 | Regression validation | `nix flake check` passed with the real-Clay host and fixture: desks, native CLI, all eval checks, and the complete fresh-ship group |
-| Remaining acceptance work | Executing each desk's own vendored compiler, commit-driven incremental compilation, application `/-` and `/%` interfaces, excluding non-page module kinds from public routes, default themes, content-hashed public assets in Eyre, route/link validation, theme stylesheet and contrast work, and `-jibb!clear` remain incomplete; milestone 4 is not done |
+| Remaining acceptance work | Commit-driven incremental compilation, content-hashed public assets in Eyre, route/link validation, theme stylesheet and contrast work, and `-jibb!clear` remain incomplete; milestone 4 is not done |
 
 ## Parser and mark
 
@@ -141,7 +142,7 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 ## Remaining work and open questions
 
 - Milestone 3 is complete. `proj` field reordering still fails closed pending its owner ruling. The additional provenance-checked backend preserves function identity through ordinary data, recursion, and explicit native adapters, with trace-preserving differential controls under eval.
-- Milestone 4 is in progress. The real-Clay static HTML/HTTP slice above is verified; commit-driven incremental builds, full application imports, static files in Eyre, routing/application-path validation, the theme stylesheet and contrast checks, and `-jibb!clear` remain.
+- Milestone 4 is in progress. Desk-local real-Clay builds and the static HTML/HTTP slice above are verified; commit-driven incremental builds, static files in Eyre, routing/application-path validation, the theme stylesheet and contrast checks, and `-jibb!clear` remain.
 - Milestone 5: per-request host behavior. Static `load` checking is already part of milestone 2.
 - Milestone 6: checked-lowering integration is present; full browser/phone performance validation and runtime request handling remain. Store and URL transports are implemented with lifecycle tests. Eyre channels, subscriptions, timers, and poke replies are implemented with mocked transport tests. The initial Core benchmark selected generated JavaScript; virtual DOM and the island loop are implemented.
 - Milestone 7: formatter and later tooling.

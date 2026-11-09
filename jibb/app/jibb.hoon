@@ -72,6 +72,11 @@
     |=  message=@t
     ^-  desk-pages:jibb-host
     [*(map (list @t) cached-page:jibb-host) `message]
+  ++  trace-error
+    |=  [message=@t trace=tang]
+    ^-  @t
+    =/  lines=wall  (zing (turn (flop trace) |=(line=tank (wash [0 80] line))))
+    (rap 3 ~[message '\0a' (crip (zing lines))])
   ++  read-clay
     |=  [pre=path at=path]
     ^-  (each @t @t)
@@ -89,8 +94,8 @@
     ?:  ?=(%| -.source)  source
     $(paths t.paths, modules [[i.paths p.source] modules])
   ++  prepare-clay
-    |=  pre=path
-    ^-  (each iprelude-lowering:jibb @t)
+    |=  [pre=path reader=vase prepare=vase]
+    ^-  (each * @t)
     =/  public=(each @t @t)  (read-clay pre /lib/jibb/prelude/jibb)
     ?:  ?=(%| -.public)  public
     =/  private=(each @t @t)  (read-clay pre /lib/jibb/internal/jibb)
@@ -104,11 +109,14 @@
     =/  core=(each type tang)
       (mule |.(-:(ride -:!>(..zuse) p.collections)))
     ?:  ?=(%| -.core)  [%| 'static build: cannot rebuild the Clay collection reader']
+    =/  read-generic=vase  (slap reader (ream 'read-generic-source'))
     =/  table=(each imported:jibb-import @t)
-      (read-generic-source:jibb-import %jibb-collections %table /sur/jibb-collections/hoon p.collections p.core)
+      !<  (each imported:jibb-import @t)
+      (slam read-generic !>([%jibb-collections %table /sur/jibb-collections/hoon p.collections p.core]))
     ?:  ?=(%| -.table)  table
     =/  keys=(each imported:jibb-import @t)
-      (read-generic-source:jibb-import %jibb-collections %keys /sur/jibb-collections/hoon p.collections p.core)
+      !<  (each imported:jibb-import @t)
+      (slam read-generic !>([%jibb-collections %keys /sur/jibb-collections/hoon p.collections p.core]))
     ?:  ?=(%| -.keys)  keys
     =/  groups=(list iprelude-group-source:jibb)
       :~  [%hoon /lib/jibb/groups/hoon/jibb p.hoon]
@@ -119,10 +127,60 @@
           [%jibb-collections %keys keys]
       ==
     =/  modules=jbundle:jibb  ~[[/sur/jibb-collections/hoon p.collections]]
-    =/  prepared=(unit iprelude-lowering:jibb)
-      (prepare-lowering:jibb-build p.public p.private groups modules externals)
-    ?~  prepared  [%| 'static build: checked Clay prelude did not prepare']
-    [%& u.prepared]
+    =/  prepared=vase
+      (slym prepare [p.public p.private groups modules externals])
+    ?~  +.prepared  [%| 'static build: checked Clay prelude did not prepare']
+    [%& +>.prepared]
+  ++  application-inputs
+    |=  [pre=path reader=vase files=(list path) surs=(list term) used-marks=(list term)]
+    ^-  (each [externals=iexternals:jibb marks=imark-externals:jibb] @t)
+    =/  sur-paths=(list path)
+      %+  skim  files
+      |=  at=path
+      ?&  ?=([%sur @ %hoon ~] at)
+          (lien surs |=(module=term =(module ;;(term +6.at))))
+      ==
+    =/  mar-paths=(list path)
+      %+  skim  files
+      |=  at=path
+      ?&  ?=([%mar @ %hoon ~] at)
+          (lien used-marks |=(mark=term =(mark ;;(term +6.at))))
+      ==
+    =/  read-module=vase  (slap reader (ream 'read-module'))
+    =/  read-mark=vase  (slap reader (ream 'read-mark-source-diagnostic'))
+    =/  sur-data=(each [sources=(list [module=term at=path source=@t]) externals=iexternals:jibb] @t)
+      |-
+      ?~  sur-paths  [%& [~ ~]]
+      =/  at=path  i.sur-paths
+      =/  module=term  ;;(term +6.at)
+      =/  source=(each @t @t)  (read-clay pre at)
+      ?:  ?=(%| -.source)  [%| p.source]
+      =/  built=(each vase tang)  (mule |.(.^(vase %ca (weld pre at))))
+      ?:  ?=(%| -.built)
+        [%| (crip "static build: cannot build imported Hoon source {(spud at)}")]
+      =/  read=(each iexternals:jibb @t)
+        !<  (each iexternals:jibb @t)
+        (slam read-module !>([module at p.source -.p.built]))
+      ?:  ?=(%| -.read)  [%| p.read]
+      =/  rest=(each [sources=(list [module=term at=path source=@t]) externals=iexternals:jibb] @t)
+        $(sur-paths t.sur-paths)
+      ?:  ?=(%| -.rest)  rest
+      [%& [[[module at p.source] sources.p.rest] (weld p.read externals.p.rest)]]
+    ?:  ?=(%| -.sur-data)  [%| p.sur-data]
+    =/  marks=(each imark-externals:jibb @t)
+      |-
+      ?~  mar-paths  [%& ~]
+      =/  at=path  i.mar-paths
+      =/  mark=term  ;;(term +6.at)
+      =/  built=(each vase tang)  (mule |.(.^(vase %ca (weld pre at))))
+      =/  read=*
+        ?:  ?=(%| -.built)  [%| 'Hoon mark could not be built through Clay']
+        +:(slym read-mark [mark sources.p.sur-data -.p.built])
+      =/  rest=(each imark-externals:jibb @t)  $(mar-paths t.mar-paths)
+      ?:  ?=(%| -.rest)  rest
+      [%& [[mark read] p.rest]]
+    ?:  ?=(%| -.marks)  [%| p.marks]
+    [%& [externals.p.sur-data p.marks]]
   ++  ui-file
     |=  at=path
     ^-  ?
@@ -143,9 +201,27 @@
     ?:  ?=(%| -.modules)  (desk-error p.modules)
     =/  renderer=(each @t @t)  (read-clay pre /lib/jibb/renderer/jibb)
     ?:  ?=(%| -.renderer)  (desk-error p.renderer)
-    =/  skin=(each @t @t)  (read-clay pre /ui/theme/jibb)
+    =/  builder=vase  .^(vase %ca (weld pre /lib/jibb-build/hoon))
+    =/  reader=vase  .^(vase %ca (weld pre /lib/jibb-import/hoon))
+    =/  prepare=vase  (slap builder (ream 'prepare-lowering'))
+    =/  imports=vase  (slap builder (ream 'static-imports'))
+    =/  check=vase  (slap builder (ream 'check-static'))
+    =/  build=vase  (slap builder (ream 'build-static-checked'))
+    =/  kind=vase  (slap builder (ream 'static-kind'))
+    =/  default-theme=@t  !<(@t (slap builder (ream 'default-theme-source')))
+    =/  skin=(each @t @t)
+      ?:  (lien files |=(at=path =(at /ui/theme/jibb)))
+        (read-clay pre /ui/theme/jibb)
+      [%& default-theme]
     ?:  ?=(%| -.skin)  (desk-error p.skin)
-    =/  prepared=(each iprelude-lowering:jibb @t)  (prepare-clay pre)
+    =/  needed=[surs=(list term) marks=(list term)]
+      !<  [surs=(list term) marks=(list term)]
+      (slam imports !>(p.modules))
+    =/  inputs=(each [externals=iexternals:jibb marks=imark-externals:jibb] @t)
+      (application-inputs pre reader files surs.needed marks.needed)
+    ?:  ?=(%| -.inputs)  (desk-error p.inputs)
+    =/  prepared=(each * @t)
+      (prepare-clay pre reader prepare)
     ?:  ?=(%| -.prepared)  (desk-error p.prepared)
     =|  pages=(map (list @t) cached-page:jibb-host)
     =/  entries=jbundle:jibb  p.modules
@@ -170,22 +246,40 @@
           theme-source
           page-modules
           page-assets
+          externals.p.inputs
+          marks.p.inputs
       ==
-    =/  made=(each (each static-output:jibb-build @t) tang)
-      (mule |.((build-static:jibb-build request p.prepared)))
-    =/  page=cached-page:jibb-host
+    =/  checked=(each vase tang)
+      (mule |.((slym check [request p.prepared])))
+    =/  kind-result=(each checked-kind:jibb @t)
+      ?:  ?=(%| -.checked)  [%| 'static build: compiler crashed while checking page']
+      !<  (each checked-kind:jibb @t)
+      (slym kind +.p.checked)
+    =/  page=(unit cached-page:jibb-host)
+      ?:  ?=(%| -.kind-result)
+        `(failed-page:jibb-host p.kind-result)
+      ?:  !?=(?(%static-page %page) p.kind-result)  ~
+      ?:  =(%page p.kind-result)
+        `(failed-page:jibb-host 'unsupported module kind for static build: page')
+      =/  made=(each (each static-output:jibb-build @t) tang)
+        %-  mule
+        |.
+        !<  (each static-output:jibb-build @t)
+        (slym build [request p.prepared +.p.checked])
       ?:  ?=(%| -.made)
-        (failed-page:jibb-host 'static build: compiler crashed while rendering page')
-      ?:  ?=(%| -.p.made)  (failed-page:jibb-host p.p.made)
-      (successful-page:jibb-host html.p.p.made)
-    $(entries t.entries, pages (~(put by pages) u.site page))
+        `(failed-page:jibb-host 'static build: compiler crashed while rendering page')
+      ?:  ?=(%| -.p.made)
+        `(failed-page:jibb-host p.p.made)
+      `(successful-page:jibb-host html.p.p.made)
+    ?~  page  $(entries t.entries)
+    $(entries t.entries, pages (~(put by pages) u.site u.page))
   ++  build-route
     |=  r=route:jibb-host
     ^-  desk-pages:jibb-host
     =/  made=(each desk-pages:jibb-host tang)
       (mule |.((build-route-clay r)))
     ?:  ?=(%& -.made)  p.made
-    (desk-error 'static build: Clay source read or compiler execution failed')
+    (desk-error (trace-error 'static build: Clay source read or compiler execution failed' p.made))
   ++  discover
     |=  live=(set desk)
     ^-  (list docket-entry:jibb-host)

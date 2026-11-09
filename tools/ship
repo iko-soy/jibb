@@ -2672,7 +2672,7 @@ desks:
   jibb      vendor/* + jibb-dev (without any tests/) + jibb
   jibb-host-fixture
             vendor/* + jibb-dev (without any tests/) + the about-only,
-            fontless HTTP host acceptance desk in tests/host-fixture/desk
+            default-theme HTTP host acceptance desk in tests/host-fixture/desk
   jibb-fixtures
             vendor/* + jibb-dev (without any tests/) + my-app (without
             desk.docket-0) + tests/clay-fixtures/desk, for tools/clay-fixtures

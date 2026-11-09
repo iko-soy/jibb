@@ -20,18 +20,6 @@
 ++  prepared
   ^-  (unit iprelude-lowering:jibb)
   (prepare-prelude-with-group-evidence-for-lowering:jibb prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]] (bundle:jibb-prelude-fixture ~) evidence:jibb-prelude-fixture)
-++  theme-without-font
-  ^-  @t
-  %-  text
-  :~  '++ theme  ^- theme'
-      '  [ space=[s1="4px" s2="8px" s3="16px"]'
-      '    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]'
-      '    wide="60rem"'
-      '    lang="en"'
-      '    zone="UTC"'
-      '    font=~'
-      '    dark=~'
-  ==
 ++  request
   |=  [at=path source=@t skin=@t base=@t assets=(list path)]
   ^-  static-request:jibb-build
@@ -44,6 +32,8 @@
       skin
       ~
       assets
+      ~
+      ~
   ==
 ++  expect-html
   |=  [html=@t wanted=(list @t)]
@@ -57,7 +47,7 @@
   =/  prep=(unit iprelude-lowering:jibb)  prepared
   ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
   =/  built=(each static-output:jibb-build @t)
-    (build-static:jibb-build (request /ui/about/jibb (text about-source) theme-without-font '/apps/my-app' ~) u.prep)
+    (build-static:jibb-build (request /ui/about/jibb (text about-source) default-theme-source:jibb-build '/apps/my-app' ~) u.prep)
   ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
   ?.  =('About this ship' title.p.built)  ~[leaf+"document title did not come from the first h1"]
   =/  html=@t  html.p.built
@@ -79,9 +69,20 @@
         '    link-unsafe "/outside?a=1&b=<two>" "Away & elsewhere"'
     ==
   =/  built=(each static-output:jibb-build @t)
-    (build-static:jibb-build (request /ui/escape/jibb source theme-without-font '/apps/my-app' ~) u.prep)
+    (build-static:jibb-build (request /ui/escape/jibb source default-theme-source:jibb-build '/apps/my-app' ~) u.prep)
   ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
   (expect-html html.p.built ~['<title>A &lt;B&gt; &amp; C</title>' 'Fish &amp; &lt;ships&gt;' 'href="/outside?a=1&amp;b=&lt;two&gt;"' 'Away &amp; elsewhere'])
+++  test-static-import-dependencies
+  ^-  tang
+  =/  modules=jbundle:jibb
+    :~  [/ui/api/todo (text ~['/- todo' '/%  %todo-action' '++ item item.todo'])]
+        [/ui/bad 'not valid Jibb']
+    ==
+  =/  needed=[surs=(list term) marks=(list term)]
+    (static-imports:jibb-build modules)
+  ?.  =(surs.needed ~[%todo])  ~[leaf+"static imports did not select exactly the declared /sur dependency"]
+  ?.  =(marks.needed ~[%todo-action])  ~[leaf+"static imports did not select exactly the declared mark dependency"]
+  ~
 ++  test-unsupported-kind-and-missing-asset
   ^-  tang
   =/  prep=(unit iprelude-lowering:jibb)  prepared
@@ -93,7 +94,7 @@
         '++ view |= value=~ (text "dynamic")'
     ==
   =/  rejected=(each static-output:jibb-build @t)
-    (build-static:jibb-build (request /ui/dynamic/jibb dynamic theme-without-font '/apps/my-app' ~) u.prep)
+    (build-static:jibb-build (request /ui/dynamic/jibb dynamic default-theme-source:jibb-build '/apps/my-app' ~) u.prep)
   ?:  ?=(%& -.rejected)  ~[leaf+"dynamic page was accepted by the static facade"]
   ?.  =(p.rejected 'unsupported module kind for static build: page')
     ~[leaf+(trip p.rejected)]
