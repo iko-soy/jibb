@@ -5,6 +5,7 @@ from importlib.machinery import SourceFileLoader
 from pathlib import Path
 import http.cookiejar
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -18,8 +19,19 @@ shiptool = SourceFileLoader('jibb_ship', str(ROOT / 'tools' / 'ship')).load_modu
 DESK = 'jibb-host-fixture'
 BASE = '/apps/' + DESK
 PAGE = BASE + '/about'
+NOTES = BASE + '/notes'
+NOTE_FILE = os.path.join('ui', 'parts', 'note.jibb')
+#  A page importing the fixture's deliberately unbuildable /sur/unused.hoon.
+BROKEN = BASE + '/broken'
+BROKEN_FILE = os.path.join('ui', 'broken.jibb')
+BROKEN_SOURCE = b'/- unused\n\n++ main\n  column ~ ~[(text "never")]\n'
 MY_APP_BASE = '/apps/my-app'
 PASSWORD = 'lidlut-tabwed-pillex-ridrup'
+#  The fixture's modules, its default theme and the vendored renderer.
+FIXTURE_MODULES = {'/ui/about/jibb', '/ui/notes/jibb', '/ui/parts/note/jibb',
+                   '/ui/theme/jibb', '/lib/jibb/renderer/jibb'}
+#  The modules a commit to the note library checks again.
+NOTE_CLOSURE = {'/ui/parts/note/jibb', '/ui/notes/jibb'}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -70,6 +82,57 @@ def route_present(ship, desk=DESK):
     return value == 0
 
 
+def scry(ship, spec, mold):
+    care, path = shiptool.parse_scry(spec)
+    return ship.thread(shiptool.fill(
+        shiptool.SCRY, TYPE=mold, CARE=care, PATH=path, NOW='now.bowl',
+        RESULT='(pure:m !>(val))'), timeout=120)
+
+
+def build_state(ship, desk):
+    """The revisions of the desk's last completed build and of the build in
+    progress, each None when there is none."""
+    done, running = scry(ship, '/gx/=jibb=/build/%s/noun' % desk,
+                         '[(unit @ud) (unit @ud)]')
+    return (None if done == 0 else done[1],
+            None if running == 0 else running[1])
+
+
+def module_revisions(ship, desk):
+    """For the completed build, the revision whose build checked each module."""
+    value = scry(ship, '/gx/=jibb=/modules/%s/noun' % desk, '(list [path @ud])')
+    return {shiptool.path_text(at): rev for at, rev in shiptool.items(value)}
+
+
+def wait_built(ship, desk, rev=0, timeout=600):
+    """Wait until a build at revision rev or later has completed and no other
+    is running; its revision."""
+    def done():
+        finished, running = build_state(ship, desk)
+        if running is None and finished is not None and finished >= rev:
+            return finished
+        return None
+    return wait_for('%s to build revision %d' % (desk, rev), done, timeout)
+
+
+def commit_file(ship, rel, data):
+    """Write one fixture file, or delete it when data is None, and commit;
+    the new revision."""
+    path = os.path.join(ship.pier, DESK, rel)
+    if data is None:
+        os.remove(path)
+    else:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb') as f:
+            f.write(data)
+    return shiptool.commit_and_wait(ship, DESK, 300)
+
+
+def commit_note(ship, data):
+    """Commit new text for the fixture's note library; the new revision."""
+    return commit_file(ship, NOTE_FILE, data)
+
+
 def wait_for(what, probe, timeout=600):
     deadline = time.monotonic() + timeout
     last = None
@@ -113,7 +176,8 @@ def main():
     poke(ship, 'kiln-suspend-many', '~[%%%s]' % DESK)
     wait_for('initial fixture suspension', lambda: not route_present(ship) or None)
     poke(ship, 'kiln-revive', '%' + DESK)
-    wait_for('initial fixture build', lambda: route_present(ship) or None)
+    wait_for('initial fixture route', lambda: route_present(ship) or None)
+    first = wait_built(ship, DESK, timeout=1800)
 
     origin = 'http://127.0.0.1:%d' % http_port(ship.pier)
     anonymous = Client(origin)
@@ -123,8 +187,11 @@ def main():
         'POST', '/~/login', urllib.parse.urlencode({'password': PASSWORD}).encode())
     expect(status == 200, 'owner login failed with HTTP %d' % status)
 
+    original_note = (ROOT / 'tests' / 'host-fixture' / 'desk' / NOTE_FILE).read_bytes()
     suspended = False
     application_suspended = False
+    edited = False
+    broken = False
     try:
         poke(ship, 'kiln-suspend-many', '~[%my-app]')
         application_suspended = True
@@ -132,8 +199,8 @@ def main():
                  lambda: not route_present(ship, 'my-app') or None)
         poke(ship, 'kiln-revive', '%my-app')
         application_suspended = False
-        wait_for('real application build', lambda: route_present(ship, 'my-app') or None,
-                 timeout=1800)
+        wait_for('real application route', lambda: route_present(ship, 'my-app') or None)
+        wait_built(ship, 'my-app', timeout=1800)
         wait_for('acknowledged static build', lambda: route_present(ship) or None)
         target = PAGE + '?tab=1&x=2'
         status, headers, body = anonymous.request('GET', target)
@@ -159,12 +226,65 @@ def main():
         expect(headers.get_content_type() == 'text/html', 'HEAD lost HTML content type')
         expect(body == b'', 'HEAD returned a body')
 
-        for target in (BASE, BASE + '/missing', BASE + '/static/missing.js'):
+        for target in (BASE, BASE + '/missing', BASE + '/static/missing.js',
+                       BASE + '/parts/note'):
             status, _, _ = owner.request('GET', target)
             expect(status == 404, '%s was HTTP %d, not 404' % (target, status))
         status, headers, _ = owner.request('POST', PAGE, b'ignored=1')
         expect(status == 405, 'POST About request was HTTP %d, not 405' % status)
         expect(headers.get('allow') == 'GET, HEAD', '405 Allow header was not GET, HEAD')
+
+        # A commit that changes one module checks only it and its importer
+        # again; the other modules keep the revision their check came from.
+        status, _, body = owner.request('GET', NOTES)
+        expect(status == 200 and b'First note' in body,
+               'the notes page was HTTP %d: %r' % (status, body))
+        before = module_revisions(ship, DESK)
+        expect(set(before) == FIXTURE_MODULES,
+               'the fixture build checked %r' % sorted(before))
+        expect(all(rev == first for rev in before.values()),
+               'the fresh fixture build reused earlier checks: %r' % before)
+        edited = True
+        rev = commit_note(ship, original_note.replace(b'First note', b'Second note'))
+        wait_built(ship, DESK, rev)
+        after = module_revisions(ship, DESK)
+        expect(set(after) == FIXTURE_MODULES, 'the rebuild checked %r' % sorted(after))
+        rechecked = {at for at, at_rev in after.items() if at_rev != before[at]}
+        expect(rechecked == NOTE_CLOSURE,
+               'a commit to the note library checked %r again, not only it and '
+               'its importer' % sorted(rechecked))
+        expect(all(after[at] == rev for at in NOTE_CLOSURE),
+               'the changed modules did not check at revision %d: %r' % (rev, after))
+        status, _, body = owner.request('GET', NOTES)
+        expect(status == 200 and b'Second note' in body and b'First note' not in body,
+               'the rebuilt notes page was not served: HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', PAGE)
+        expect(status == 200 and b'About this ship' in body,
+               'About did not survive the rebuild: HTTP %d: %r' % (status, body))
+        rev = commit_note(ship, original_note)
+        edited = False
+        wait_built(ship, DESK, rev)
+        status, _, body = owner.request('GET', NOTES)
+        expect(status == 200 and b'First note' in body,
+               'the restored notes page was not served: HTTP %d: %r' % (status, body))
+
+        # An imported /sur file that does not build is that page's error;
+        # the build still completes and the other pages are unaffected.
+        broken = True
+        rev = commit_file(ship, BROKEN_FILE, BROKEN_SOURCE)
+        wait_built(ship, DESK, rev)
+        status, _, body = owner.request('GET', BROKEN)
+        expect(status == 500 and
+               b'cannot build imported Hoon source /sur/unused.hoon' in body,
+               'a page importing an unbuildable /sur was HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', PAGE)
+        expect(status == 200 and b'About this ship' in body,
+               'About did not survive a broken import elsewhere: HTTP %d' % status)
+        rev = commit_file(ship, BROKEN_FILE, None)
+        broken = False
+        wait_built(ship, DESK, rev)
+        status, _, _ = owner.request('GET', BROKEN)
+        expect(status == 404, 'a deleted page was HTTP %d, not 404' % status)
 
         status, _, body = owner.request('GET', MY_APP_BASE + '/about')
         expect(status == 500, 'my-app About was HTTP %d, not the asset error: %r' % (status, body))
@@ -172,27 +292,35 @@ def main():
                'my-app did not reach its expected missing-font diagnostic: %r' % body)
         status, _, body = owner.request('GET', MY_APP_BASE + '/blog')
         expect(status == 501, 'checked dynamic page was HTTP %d, not 501: %r' % (status, body))
+        # buttons is a library with the expected 3:16 error: it is not a page.
         for target in (MY_APP_BASE + '/todo-list', MY_APP_BASE + '/stores/cart',
-                       MY_APP_BASE + '/components/card', MY_APP_BASE + '/api/todo'):
+                       MY_APP_BASE + '/components/card', MY_APP_BASE + '/api/todo',
+                       MY_APP_BASE + '/components/buttons'):
             status, _, body = owner.request('GET', target)
             expect(status == 404, 'non-page %s was HTTP %d, not 404: %r' % (target, status, body))
 
         status, _, body = owner.request('GET', '/~debug/eyre/cache.json')
         expect(status == 200, 'could not read Eyre cache: HTTP %d' % status)
         cache = json.loads(body)
-        private = [entry for entry in cache if BASE in entry.get('url', '')]
-        expect(not private, 'private About URL appeared in Eyre cache: %r' % private)
+        private = [entry for entry in cache
+                   if any(base in entry.get('url', '') for base in (BASE, MY_APP_BASE))]
+        expect(not private, 'a private page appeared in Eyre cache: %r' % private)
 
         poke(ship, 'kiln-suspend-many', '~[%%%s]' % DESK)
         suspended = True
         wait_for('route removal after suspend', lambda: not route_present(ship) or None)
         status, _, _ = owner.request('GET', PAGE)
         expect(status == 404, 'suspended desk route was HTTP %d, not 404' % status)
-        print('check-host: default theme, real Clay imports, page kinds, HTTP and suspend passed')
+        print('check-host: default theme, real Clay imports, page kinds, '
+              'incremental rebuild, HTTP and suspend passed')
         return 0
     finally:
         # Leave the dedicated fixture usable for a subsequent run, including
         # when an assertion above fails. This revives only our fixture desk.
+        if edited:
+            commit_note(ship, original_note)
+        if broken:
+            commit_file(ship, BROKEN_FILE, None)
         poke(ship, 'kiln-revive', '%' + DESK)
         if suspended:
             wait_for('fixture revival after acceptance', lambda: route_present(ship) or None)

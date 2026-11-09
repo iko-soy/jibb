@@ -83,6 +83,74 @@
   ?.  =(surs.needed ~[%todo])  ~[leaf+"static imports did not select exactly the declared /sur dependency"]
   ?.  =(marks.needed ~[%todo-action])  ~[leaf+"static imports did not select exactly the declared mark dependency"]
   ~
+::  The host checks one module at a time against its dependencies' own
+::  results, then renders from the artifacts; the page must match the
+::  one-shot build of the same sources.
+++  test-stepwise-build-matches-one-shot
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  note-at=path  /ui/parts/note/jibb
+  =/  note=@t  (text ~['++ greeting ^- @t "First note"'])
+  =/  page-at=path  /ui/notes/jibb
+  =/  page=@t
+    %-  text
+    :~  '/= note /ui/parts/note'
+        '++ main'
+        '  column ~ ~['
+        '    heading 1 "Notes"'
+        '    para ~[(text greeting.note)]'
+    ==
+  =/  modules=jbundle:jibb  ~[[page-at page] [note-at note]]
+  =/  outline=[jibb=(list path) surs=(list term) marks=(list term) main=?]
+    (module-outline:jibb-build page-at page)
+  ?.  =(outline [~[note-at] ~ ~ &])
+    ~[leaf+"the page's outline did not name exactly its Jibb import and main"]
+  ?.  =([~ ~ ~ |] (module-outline:jibb-build note-at note))
+    ~[leaf+"a library without main was outlined as a possible page"]
+  ?.  =([~ ~ ~ &] (module-outline:jibb-build page-at 'not valid Jibb'))
+    ~[leaf+"an unparsed module named imports or was not kept as a possible page"]
+  =/  lib=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build note-at note ~ ~ ~[[note-at note]] ~ ~ u.prep)
+  ?:  ?=(%| -.lib)  ~[leaf+(trip p.lib)]
+  ?.  =(%library kind.p.lib)  ~[leaf+"the note module was not a library"]
+  =/  checked=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    %:  check-module:jibb-build
+      page-at  page  ~  ~  modules
+      ~[[note-at interface.p.lib]]
+      ~[[note-at artifact.p.lib]]
+      u.prep
+    ==
+  ?:  ?=(%| -.checked)  ~[leaf+(trip p.checked)]
+  ?.  =(%static-page kind.p.checked)  ~[leaf+"the notes page was not a static page"]
+  =/  theme-at=path  /ui/theme/jibb
+  =/  theme=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build theme-at default-theme-source:jibb-build ~ ~ ~[[theme-at default-theme-source:jibb-build]] ~ ~ u.prep)
+  ?:  ?=(%| -.theme)  ~[leaf+(trip p.theme)]
+  =/  renderer-at=path  /lib/jibb/renderer/jibb
+  =/  renderer=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build renderer-at renderer-source ~ ~ ~[[renderer-at renderer-source]] ~ ~ u.prep)
+  ?:  ?=(%| -.renderer)  ~[leaf+(trip p.renderer)]
+  =/  stepwise=(each static-output:jibb-build @t)
+    %:  render-checked:jibb-build
+      '/apps/my-app'
+      artifact.p.checked
+      artifact.p.theme
+      artifact.p.renderer
+      ~[[note-at artifact.p.lib]]
+      u.prep
+      ~
+    ==
+  ?:  ?=(%| -.stepwise)  ~[leaf+(trip p.stepwise)]
+  =/  request=static-request:jibb-build
+    :*  page-at  page  '/apps/my-app'
+        renderer-at  renderer-source
+        theme-at  default-theme-source:jibb-build
+        modules  ~  ~  ~
+    ==
+  =/  one-shot=(each static-output:jibb-build @t)  (build-static:jibb-build request u.prep)
+  ?.  =(one-shot stepwise)  ~[leaf+"stepwise and one-shot builds differ"]
+  (expect-html html.p.stepwise ~['<title>Notes</title>' 'First note'])
 ++  test-unsupported-kind-and-missing-asset
   ^-  tang
   =/  prep=(unit iprelude-lowering:jibb)  prepared

@@ -154,14 +154,18 @@
   ?~  data.denied  ~[leaf+"missing asset response had no diagnostic"]
   ?.  =('missing static asset: /static/fonts/inter.woff2' q.u.data.denied)
     ~[leaf+"missing asset diagnostic was not preserved"]
-  =/  dynamic=cached-page:jibb-host
-    (failed-page:jibb-host 'unsupported module kind for static build: page')
   =/  later=payload:jibb-host
-    (request-response:jibb-host example-routes (cache-with dynamic) & %'GET' '/apps/my-app')
+    (request-response:jibb-host example-routes (cache-with dynamic-page:jibb-host) & %'GET' '/apps/my-app')
   ?.  =(501 (status later))  ~[leaf+"dynamic page did not produce a later-stage response"]
   ?~  data.later  ~[leaf+"dynamic page response had no diagnostic"]
   ?.  ?=(^ (find "dynamic pages are a later-stage feature" (trip q.u.data.later)))
     ~[leaf+"dynamic page diagnostic did not identify the later stage"]
+  ::  The kind is data: a failure that happens to share that text is a 500.
+  =/  spelled=cached-page:jibb-host
+    (failed-page:jibb-host 'unsupported module kind for static build: page')
+  =/  failed=payload:jibb-host
+    (request-response:jibb-host example-routes (cache-with spelled) & %'GET' '/apps/my-app')
+  ?.  =(500 (status failed))  ~[leaf+"a failure message was matched back into a page kind"]
   ~
 ++  test-page-source-routing
   ^-  tang
@@ -261,5 +265,94 @@
     (reconcile-live:jibb-host reg (sy ~[%my-app]))
   ?.  =(~[expected] cards.reconciled)
     ~[leaf+"full tire snapshot did not remove deleted desks"]
+  ~
+++  module
+  |=  [at=path jibb=(list path)]
+  ^-  module-info:jibb-host
+  [at 'source' (sham at) jibb ~ ~ |]
+++  test-incremental-closure-and-order
+  ^-  tang
+  =/  modules=(map path module-info:jibb-host)
+    %-  malt
+    ^-  (list [path module-info:jibb-host])
+    :~  [/ui/a/jibb (module /ui/a/jibb ~[/ui/b/jibb])]
+        [/ui/b/jibb (module /ui/b/jibb ~[/ui/c/jibb])]
+        [/ui/c/jibb (module /ui/c/jibb ~)]
+        [/ui/d/jibb (module /ui/d/jibb ~[/ui/b/jibb /ui/missing/jibb])]
+        [/ui/e/jibb (module /ui/e/jibb ~[/ui/f/jibb])]
+        [/ui/f/jibb (module /ui/f/jibb ~[/ui/e/jibb])]
+    ==
+  ?.  =(~[/ui/a/jibb /ui/b/jibb /ui/c/jibb] (module-closure:jibb-host modules /ui/a/jibb))
+    ~[leaf+"a closure missed a transitive import"]
+  ?.  =(~[/ui/b/jibb /ui/c/jibb /ui/d/jibb] (module-closure:jibb-host modules /ui/d/jibb))
+    ~[leaf+"a closure kept an import with no module"]
+  ?.  =(~[/ui/e/jibb /ui/f/jibb] (module-closure:jibb-host modules /ui/f/jibb))
+    ~[leaf+"a cycle's closure was incomplete"]
+  =/  order=(list path)  (module-order:jibb-host modules)
+  ?.  =((sort order aor) (sort ~(tap in ~(key by modules)) aor))
+    ~[leaf+"the check order lost or repeated a module"]
+  =/  before
+    |=  [x=path y=path]
+    ^-  ?
+    (lth (need (find ~[x] order)) (need (find ~[y] order)))
+  ?.  &((before /ui/c/jibb /ui/b/jibb) (before /ui/b/jibb /ui/a/jibb) (before /ui/b/jibb /ui/d/jibb))
+    ~[leaf+"a module was ordered before one it imports"]
+  ~
+++  test-incremental-store-pruning
+  ^-  tang
+  =|  s=store:jibb-host
+  =.  checks.s
+    %-  malt
+    ^-  (list [@uv checked:jibb-host])
+    ~[[0v1 [3 %| 'kept']] [0v2 [1 %| 'abandoned']]]
+  =.  renders.s
+    %-  malt
+    ^-  (list [@uv rendered:jibb-host])
+    ~[[0v3 [3 %& '<p>kept</p>']] [0v4 [1 %& '<p>old</p>']]]
+  =/  b=build:jibb-host  (new-build:jibb-host 4 /apps/my-app)
+  =/  first=(list build-step:jibb-host)
+    ~[[%build /lib/jibb-build/hoon] [%build /lib/jibb-import/hoon] [%scan ~]]
+  ?.  =(first steps.b)
+    ~[leaf+"a new build did not ask whether the desk's compiler builds before its scan"]
+  =.  check-keys.b  (malt `(list [path @uv])`~[[/ui/a/jibb 0v1]])
+  =.  render-keys.b  (malt `(list [path @uv])`~[[/ui/a/jibb 0v3]])
+  =/  kept=store:jibb-host  (prune-store:jibb-host s b)
+  ?.  =(~[0v1] ~(tap in ~(key by checks.kept)))  ~[leaf+"pruning kept an unused check"]
+  ?.  =(~[0v3] ~(tap in ~(key by renders.kept)))  ~[leaf+"pruning kept an unused render"]
+  ?.  =(~[[/ui/a/jibb 3]] (built-modules:jibb-host s b))
+    ~[leaf+"a module's check revision was not reported"]
+  ~
+++  test-hoon-file-names
+  ^-  tang
+  ::  Clay's order: each dash stays before it becomes a separator.
+  =/  wanted=(list path)  ~[/a-b-c /a-b/c /a/b-c /a/b/c]
+  ?.  =(wanted (name-paths:jibb-host %a-b-c))  ~[leaf+"dashed names did not expand in Clay's order"]
+  ?.  =(~[/todo] (name-paths:jibb-host %todo))  ~[leaf+"a plain name did not name one file"]
+  ?.  =(`%todo-action (hoon-name:jibb-host %mar /mar/todo/action/hoon))
+    ~[leaf+"a nested mark file did not keep its dashed name"]
+  ?.  =(`%todo (hoon-name:jibb-host %sur /sur/todo/hoon))  ~[leaf+"a /sur file lost its name"]
+  ?.  =(~ (hoon-name:jibb-host %sur /sur/todo/txt))  ~[leaf+"a non-Hoon file was named"]
+  ?.  =(~ (hoon-name:jibb-host %sur /mar/todo/hoon))  ~[leaf+"a mark was named as a /sur file"]
+  ~
+++  test-first-build-in-progress
+  ^-  tang
+  =/  building=(set desk)  (sy ~[%my-app])
+  =/  pending=payload:jibb-host
+    (serve:jibb-host example-routes ~ building & %'GET' '/apps/my-app/about')
+  ?.  =(503 (status pending))  ~[leaf+"a desk building its first pages did not say so"]
+  ?.  =(`'5' (get-header:http 'retry-after' headers.response-header.pending))
+    ~[leaf+"the in-progress response did not ask the reader to retry"]
+  =/  head=payload:jibb-host
+    (serve:jibb-host example-routes ~ building & %'HEAD' '/apps/my-app/about')
+  ?.  &(=(503 (status head)) =(~ data.head))  ~[leaf+"HEAD of a building desk was wrong"]
+  =/  absent=payload:jibb-host
+    (serve:jibb-host example-routes ~ ~ & %'GET' '/apps/my-app/about')
+  ?.  =(404 (status absent))  ~[leaf+"a desk with no build reported one in progress"]
+  =/  previous=payload:jibb-host
+    (serve:jibb-host example-routes example-cache building & %'GET' '/apps/my-app')
+  ?.  =(200 (status previous))  ~[leaf+"a completed build stopped serving while the next one ran"]
+  =/  anonymous=payload:jibb-host
+    (serve:jibb-host example-routes ~ building | %'GET' '/apps/my-app/about')
+  ?.  =(307 (status anonymous))  ~[leaf+"a logged-out request skipped the login redirect"]
   ~
 --

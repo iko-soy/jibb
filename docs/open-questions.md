@@ -21,6 +21,12 @@ Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking i
 
 **32. Partly settled: type-directed record projection.** On 2026-10-31, @iko chose an explicit `(proj record)` whose expected result type selects the fields. There is no automatic projection, and `proj` is reserved against definitions and imports. The result contains exactly the fields of its expected type. Whether the result may reorder fields from the source remains open.
 
+## Questions milestone 4 raises
+
+| Question | Reading the host follows meanwhile |
+| --- | --- |
+| The plan says "until a new build links, the last one keeps serving". Does a build that finishes with errors replace the pages it was built for? | Yes. The host builds each commit over several Behn wakes and serves the last completed build until the new one finishes. A finished build then replaces it even where a page failed to check or render; that page answers with its diagnostic, as on a desk's first build, and each new error is printed with its file, line, column and excerpt. The other reading keeps the last good HTML of a failed page, or of the whole desk, until a commit fixes it |
+
 ## Review rulings waiting for @iko
 
 The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language and spec questions. Montelot answered them on 2026-11-02 as proposals. Each waits for @iko to confirm before it goes in [Decisions](spec/decisions.md) and the code changes. Full-checker diagnostics for a proposal's examples do not settle the separate language question.

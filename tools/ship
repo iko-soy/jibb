@@ -65,14 +65,17 @@ TESTS_LIB = os.path.join(ROOT, 'tests', 'lib', 'jibb.hoon')
 #  desk holds my-app's sources under /my-app, so tests read them there
 #  instead of keeping copies.  jibb-fixtures is my-app plus the Hoon
 #  /sur and mark files only the importer's Clay fixtures build, kept in
-#  tests/clay-fixtures/desk so the example app doesn't carry them.
+#  tests/clay-fixtures/desk so the example app doesn't carry them.  The
+#  host fixture's desk, with its deliberately unbuildable Hoon, is a desk
+#  of its own and stays off the test desk's /tests.
 DESKS = {
     'my-app': [('jibb-dev', '', ['tests']), ('my-app', '', [])],
     'jibb': [('jibb-dev', '', ['tests']), ('jibb', '', [])],
     'jibb-host-fixture': [('jibb-dev', '', ['tests']),
                           (os.path.join('tests', 'host-fixture', 'desk'), '', [])],
     'jibb-dev': [('jibb-dev', '', []),
-                 ('tests', 'tests', [os.path.join('clay-fixtures', 'desk')]),
+                 ('tests', 'tests', [os.path.join('clay-fixtures', 'desk'),
+                                     os.path.join('host-fixture', 'desk')]),
                  ('my-app', 'my-app',
                   ['desk.bill', 'desk.docket-0', 'sys.kelvin'])],
     'jibb-fixtures': [('jibb-dev', '', ['tests']),
@@ -2671,8 +2674,9 @@ desks:
   my-app    vendor/* + jibb-dev (without any tests/) + my-app
   jibb      vendor/* + jibb-dev (without any tests/) + jibb
   jibb-host-fixture
-            vendor/* + jibb-dev (without any tests/) + the about-only,
-            default-theme HTTP host acceptance desk in tests/host-fixture/desk
+            vendor/* + jibb-dev (without any tests/) + the default-theme
+            HTTP host acceptance desk in tests/host-fixture/desk: About, and a
+            notes page whose imported library tools/check-host edits
   jibb-fixtures
             vendor/* + jibb-dev (without any tests/) + my-app (without
             desk.docket-0) + tests/clay-fixtures/desk, for tools/clay-fixtures

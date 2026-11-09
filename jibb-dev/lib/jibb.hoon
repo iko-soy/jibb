@@ -4880,11 +4880,14 @@
 ::  fits this fragment, including named closed fold gates.
 ::
 ::  Each case's source-derived schema and canonical API identity travel in a
-::  dependency closure bound to the exact supplied bundle, prelude, scope and
-::  trusted reader results. Unknown cached entries are rebuilt. Request-bearing
-::  closures are limited to 256 source paths and requests. This is type
-::  inference only: no request lowering, runtime schema validator or proof that
-::  an arbitrary ask value is watchable is supplied.
+::  dependency closure bound to the exact sources of that closure, the
+::  prelude, scope and the trusted reader results it was checked with;
+::  sources outside the closure are not compared, so a host may reuse it
+::  across commits that leave the closure unchanged (+graph-closure-agrees).
+::  Unknown cached entries are rebuilt. Request-bearing closures are limited
+::  to 256 source paths and requests. This is type inference only: no request
+::  lowering, runtime schema validator or proof that an arbitrary ask value
+::  is watchable is supplied.
 ::
 ::  A closed gate sample may omit one outer face from a known input slot when
 ::  its product is identical. Distinct written names, nested value faces,
@@ -13177,9 +13180,10 @@
   $(edges t.edges)
 ::
 ::  Source provenance must come from a checked import graph.  A graph's
-::  path set proves the origin was checked and its source bundle preserves
-::  the exact input used by that check. Ambiguous or unavailable source is
-::  deliberately omitted from the diagnostic.
+::  path set proves the origin was checked, and its recorded bundle must
+::  agree with the current sources on that closure, the exact input used by
+::  that check. Ambiguous or unavailable source is deliberately omitted from
+::  the diagnostic.
 ++  diagnostic-import-source
   |=  [file=path imports=ijimports sources=(list [at=path source=@t])]
   ^-  (unit @t)
@@ -13188,7 +13192,9 @@
   ?~  graph.iface  $(imports t.imports)
   =/  g=irequest-graph  u.graph.iface
   ?.  (~(has in:..zuse paths.g) file)  $(imports t.imports)
-  ?.  =(bundle-input.g sources)  $(imports t.imports)
+  =/  closure=(list path)  ~(tap in:..zuse paths.g)
+  =/  recorded=(unit (list *))  (graph-bundle-on bundle-input.g closure)
+  ?.  &(?=(^ recorded) =(recorded (graph-bundle-on sources closure)))  $(imports t.imports)
   =/  found=(list [at=path source=@t])
     (skim sources |=(x=[at=path source=@t] =(file at.x)))
   ?~  found  $(imports t.imports)
@@ -22751,9 +22757,57 @@
 ::
 ::  These certificates retain the complete checked source closure. The
 ::  trusted host must supply the identical prepared prelude and reader nouns.
-::  Exact bundle equality binds all source paths and versions; the set
-::  retains transitive paths for active-cycle checks. Request-bearing graphs
-::  alone have a size limit; incompatible diamond evidence fails closed.
+::  The path set records the transitive import closure. A certificate binds
+::  the exact path and version of every source in it, and the reader results
+::  it was checked with, compared for the same /sur modules and marks. Other
+::  sources and reader results cannot reach the check, so an interface stays
+::  reusable after a change elsewhere in the desk: compiled modules are
+::  cached by their own and their imports' hashes (overview, The mark). A
+::  malformed recorded bundle matches nothing. The set also serves the
+::  active-cycle checks. Request-bearing graphs alone have a size limit;
+::  incompatible diamond evidence fails closed.
+++  graph-bundle-on
+  |=  [bundle=* closure=(list path)]
+  ^-  (unit (list *))
+  =|  out=(list *)
+  |-
+  ?@  bundle  ?.(=(~ bundle) ~ `(flop out))
+  ?@  -.bundle  ~
+  =/  keep=?  (lien closure |=(p=path =(p -<.bundle)))
+  $(bundle +.bundle, out ?:(keep [-.bundle out] out))
+++  graph-external-modules
+  |=  externals=iexternals
+  ^-  (list term)
+  (turn externals |=(e=[module=term name=term result=*] module.e))
+++  graph-externals-on
+  |=  [externals=iexternals modules=(list term)]
+  ^-  iexternals
+  (skim externals |=(e=[module=term name=term result=*] (lien modules |=(m=term =(m module.e)))))
+++  graph-mark-names
+  |=  marks=imark-externals
+  ^-  (list term)
+  (turn marks |=(e=[mark=term result=*] mark.e))
+++  graph-marks-on
+  |=  [marks=imark-externals names=(list term)]
+  ^-  imark-externals
+  (skim marks |=(e=[mark=term result=*] (lien names |=(n=term =(n mark.e)))))
+::  +graph-closure-agrees: a recorded certificate agrees with inputs on its closure
+::
+::    The recorded bundle, externals and marks are the certificate's own;
+::    the others are the inputs of the check that would reuse or merge it.
+::    A checked graph always holds its own path, so an empty closure is
+::    malformed and agrees with nothing.
+++  graph-closure-agrees
+  |=  [g=irequest-graph bundle=* externals=iexternals marks=imark-externals]
+  ^-  ?
+  =/  closure=(list path)  ~(tap in:..zuse paths.g)
+  =/  recorded=(unit (list *))  (graph-bundle-on bundle-input.g closure)
+  ?&  ?=(^ closure)
+      ?=(^ recorded)
+      =(recorded (graph-bundle-on bundle closure))
+      =(externals.g (graph-externals-on externals (graph-external-modules externals.g)))
+      =(marks.g (graph-marks-on marks (graph-mark-names marks.g)))
+  ==
 ++  request-graph-requests-add
   |=  [pending=(list irequest-evidence) acc=(list irequest-evidence) fuel=@ud]
   ^-  (unit (list irequest-evidence))
@@ -22769,12 +22823,10 @@
 ++  request-graph-inputs-match
   |=  [g=irequest-graph externals=iexternals marks=imark-externals modules=jbundle values=(list term) molds=(list term) prelude=(unit ifile)]
   ^-  ?
-  ?&  =(bundle-input.g modules)
+  ?&  (graph-closure-agrees g modules externals marks)
       =(prelude-input.g prelude)
       =(prelude-values.g values)
       =(prelude-molds.g molds)
-      =(externals.g externals)
-      =(marks.g marks)
   ==
 ++  request-graph-bounded
   |=  g=irequest-graph
@@ -22803,12 +22855,10 @@
   =/  child=ifile  interface.i.imports
   ?~  graph.child  ~
   =/  cg=irequest-graph  u.graph.child
-  ?.  ?&  =(bundle-input.g bundle-input.cg)
+  ?.  ?&  (graph-closure-agrees cg bundle-input.g externals.g marks.g)
            =(prelude-input.g prelude-input.cg)
            =(prelude-values.g prelude-values.cg)
            =(prelude-molds.g prelude-molds.cg)
-           =(externals.g externals.cg)
-           =(marks.g marks.cg)
        ==
     ~
   =/  merged=(set path)  (~(uni in:..zuse paths.g) paths.cg)

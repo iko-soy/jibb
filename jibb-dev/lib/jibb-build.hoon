@@ -432,16 +432,57 @@
     marks  (weld (collect-mark-imports:jibb imports.p.parsed) marks)
   ==
 ::
+::  +module-outline: one module's direct imports, and whether it may be a page
+::
+::    The host orders its checks by the Jibb imports and reads only the Hoon
+::    inputs named. main is set when the module defines main, as every page
+::    does, or does not parse; a failed module without main is a library,
+::    and is not routed. A module that does not parse has no imports; its
+::    check reports the parse error.
+++  module-outline
+  |=  [at=path source=@t]
+  ^-  [jibb=(list path) surs=(list term) marks=(list term) main=?]
+  =/  parsed=(each module:jibb error:jibb)  (parse:jibb at source)
+  ?:  ?=(%| -.parsed)  [~ ~ ~ &]
+  :^    %+  murn  imports.p.parsed
+        |=  i=import:jibb
+        ?.  ?=(%jibb -.i)  ~
+        `(weld path.i `path`~[%jibb])
+      (collect-sur-imports:jibb imports.p.parsed)
+    (collect-mark-imports:jibb imports.p.parsed)
+  ?=(^ (program-main-def:jibb defs.p.parsed))
+::
+::  +check-module: check one module against checked dependencies
+::
+::    The host checks a desk's modules one at a time, in dependency order.
+::    interfaces and artifacts hold each dependency's own result. Their
+::    certificates bind only their own closures, so a result from an earlier
+::    revision stays usable while its closure is unchanged; a mismatched one
+::    is an error, never a silent recheck.
+++  check-module
+  |=  $:  at=path
+          source=@t
+          externals=iexternals:jibb
+          marks=imark-externals:jibb
+          modules=jbundle:jibb
+          interfaces=jcache:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+      ==
+  ^-  (each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+  =/  public=iprelude:jibb  prepared.prepared
+  =/  result=jlowering-result:jibb
+    %:  check-jibb-file-for-lowering-with-cache:jibb
+      at  source  externals  marks  modules  ~[at]  values.public  molds.public
+      interfaces  `iface.public  (weld artifacts cache.prepared)
+    ==
+  ?:  ?=(%| -.result)  [%| message.p.result]
+  [%& [kind.p.result interface.root.p.result root.p.result]]
+::
 ++  check-static
   |=  [request=static-request prepared=iprelude-lowering:jibb]
   ^-  jlowering-result:jibb
   (check-jibb-file-for-lowering-prepared:jibb at.request source.request externals.request marks.request modules.request ~[at.request] ~ prepared)
-::
-++  static-kind
-  |=  page=jlowering-result:jibb
-  ^-  (each checked-kind:jibb @t)
-  ?:  ?=(%| -.page)  [%| message.p.page]
-  [%& kind.p.page]
 ::
 ++  build-static-checked
   |=  [request=static-request prepared=iprelude-lowering:jibb page=jlowering-result:jibb]
@@ -458,17 +499,41 @@
     (check-jibb-file-for-lowering-prepared:jibb renderer-at.request renderer-source.request externals.request marks.request modules.request ~[renderer-at.request] ~ prepared)
   ?:  ?=(%| -.renderer)  [%| message.p.renderer]
   ?.  =(%library kind.p.renderer)  [%| 'static build: renderer module must be a library']
+  =/  artifacts=jlowering-cache:jibb
+    (weld cache.p.page (weld cache.p.skin cache.p.renderer))
+  (render-checked base.request root.p.page root.p.skin root.p.renderer artifacts prepared assets.request)
+::
+::  +render-checked: a static page's HTML from checked artifacts
+::
+::    artifacts holds the modules that the page, theme and renderer import;
+::    the prelude's come from prepared. Nothing is checked again here.
+++  render-checked
+  |=  $:  base=@t
+          page=checked-module:jibb
+          theme=checked-module:jibb
+          renderer=checked-module:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+          assets=(list path)
+      ==
+  ^-  (each static-output @t)
+  ?.  (valid-base base)  [%| 'static build: base must be an absolute path without a trailing slash']
+  ?.  =(%static-page kind.page)
+    [%| (crip "unsupported module kind for static build: {(trip kind.page)}")]
+  ?.  =(%library kind.theme)  [%| 'static build: theme module must be a library']
+  ?.  =(%library kind.renderer)  [%| 'static build: renderer module must be a library']
+  =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
   =/  page-core=(each expr:jibb-core @t)
-    (link-entry:jibb-lower %main root.p.page cache.p.page)
+    (link-entry:jibb-lower %main page cache)
   ?:  ?=(%| -.page-core)  page-core
   =/  theme-core=(each expr:jibb-core @t)
-    (link-entry:jibb-lower %theme root.p.skin cache.p.skin)
+    (link-entry:jibb-lower %theme theme cache)
   ?:  ?=(%| -.theme-core)  theme-core
   =/  renderer-cores=(each (list [tag=@tas core=expr:jibb-core]) @t)
-    (link-renderer-entries renderer-entries root.p.renderer cache.p.renderer)
+    (link-renderer-entries renderer-entries renderer cache)
   ?:  ?=(%| -.renderer-cores)  renderer-cores
   =/  attribute-core=(each expr:jibb-core @t)
-    (link-entry:jibb-lower %decode-attr root.p.renderer cache.p.renderer)
+    (link-entry:jibb-lower %decode-attr renderer cache)
   ?:  ?=(%| -.attribute-core)  attribute-core
   =/  node-expressions=(list expr:jibb-core)
     (turn p.renderer-cores |=(entry=[tag=@tas core=expr:jibb-core] core.entry))
@@ -479,7 +544,7 @@
     (execute-linked 'static theme' p.theme-core p.registry)
   ?:  ?=(%| -.theme-value)  theme-value
   =/  skin-view=theme-view  ;;(theme-view p.theme-value)
-  =/  assets-ok=(each ~ @t)  (check-theme-assets skin-view assets.request)
+  =/  assets-ok=(each ~ @t)  (check-theme-assets skin-view assets)
   ?:  ?=(%| -.assets-ok)  assets-ok
   =/  page-value=(each noun @t)
     (execute-linked 'static page' p.page-core p.registry)
@@ -494,7 +559,7 @@
   =/  tree=(each vnode @t)
     (render-static-element ctx p.page-value)
   ?:  ?=(%| -.tree)  tree
-  [%& (render-document base.request skin-view p.tree)]
+  [%& (render-document base skin-view p.tree)]
 ::
 ++  build-static
   |=  [request=static-request prepared=iprelude-lowering:jibb]

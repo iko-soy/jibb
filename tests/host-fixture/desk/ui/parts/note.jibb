@@ -1,0 +1,3 @@
+::  tools/check-host commits a change to this greeting; only this module
+::  and /ui/notes.jibb, which imports it, check again.
+++ greeting ^- @t "First note"
