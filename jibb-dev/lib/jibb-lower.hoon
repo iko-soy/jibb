@@ -1401,22 +1401,27 @@
   (path-before at.a at.b)
 ::
 ++  reference-from-name
-  |=  [n=name:jibb-core at=path]
+  |=  [n=name:jibb-core at=path state=link-state]
   ^-  (unit link-reference)
   ?-  -.n
-    %own        `[[at name.n]]
+    %own
+      =/  cached=(each [value=module:jibb-core state=link-state] @t)
+        (lower-module-cached at state)
+      ?:  ?=(%| -.cached)  ~
+      ?^  (module-definition name.n value.p.cached)  `[[at name.n]]
+      `[[/lib/jibb/prelude/jibb name.n]]
     %qualified  `[[(weld at.n `path`~[%jibb]) name.n]]
     %generated  ~
   ==
 ::
 ++  definition-references
-  |=  definition=linked-definition
+  |=  [definition=linked-definition state=link-state]
   ^-  (each (list link-reference) @t)
   =/  names=(list name:jibb-core)  (unique-core-names (free-core-names value.definition ~))
   =|  out=(list link-reference)
   |-
   ?~  names  [%& (sort out |=([a=link-reference b=link-reference] (reference-before a b)))]
-  =/  ref=(unit link-reference)  (reference-from-name i.names at.definition)
+  =/  ref=(unit link-reference)  (reference-from-name i.names at.definition state)
   ?~  ref  [%| 'a generated name escaped its lexical scope']
   $(names t.names, out (weld out ~[u.ref]))
 ::
@@ -1481,6 +1486,38 @@
         (turn arms.e |=(a=rec-arm:jibb-core a(fun ^$(e fun.a))))
       e(arms arms, body $(e body.e))
     %lam      e(body $(e body.e))
+    %app      e(fun $(e fun.e), sample $(e sample.e))
+    %trace   e(message $(e message.e), body $(e body.e))
+  ==
+::
+++  qualify-prelude-references
+  |=  [e=expr:jibb-core names=(list term) bound=(list name:jibb-core)]
+  ^-  expr:jibb-core
+  ?-  -.e
+    %var
+      ?.  ?=(%own -.name.e)  e
+      ?:  (core-name-member name.e bound)  e
+      ?:  (member-name name.name.e names)  e
+      e(name [%qualified (core-path /lib/jibb/prelude/jibb) name.name.e])
+    %lit      e
+    %native   e
+    %crash    e
+    %cons     e(hed $(e hed.e), tal $(e tal.e))
+    %slot     e(body $(e body.e))
+    %edit     e(body $(e body.e), value $(e value.e))
+    %cell     e(body $(e body.e))
+    %eq       e(left $(e left.e), right $(e right.e))
+    %if       e(test $(e test.e), yes $(e yes.e), no $(e no.e))
+    %let
+      =/  value=expr:jibb-core  $(e value.e)
+      e(value value, body $(e body.e, bound [name.e bound]))
+    %rec
+      =/  inner=(list name:jibb-core)
+        (weld (turn arms.e |=(a=rec-arm:jibb-core name.a)) bound)
+      =/  arms=(list rec-arm:jibb-core)
+        (turn arms.e |=(a=rec-arm:jibb-core a(fun ^$(e fun.a, bound inner))))
+      e(arms arms, body $(e body.e, bound inner))
+    %lam      e(body $(e body.e, bound [sample.e bound]))
     %app      e(fun $(e fun.e), sample $(e sample.e))
     %trace    e(message $(e message.e), body $(e body.e))
   ==
@@ -1558,9 +1595,11 @@
   =/  value=(unit expr:jibb-core)  (module-definition name value.p.lowered)
   ?~  value  [%| (crip "linked definition is missing: {(spud at)}:{(trip name)}")]
   =/  names=(list term)  (module-definition-names value.p.lowered)
-  =/  actual=expr:jibb-core
+  =/  local=expr:jibb-core
     ?:  =(at at.root.state)  u.value
     (qualify-expression u.value at names)
+  =/  actual=expr:jibb-core
+    (qualify-prelude-references local names ~)
   =/  definition=linked-definition
     [at name actual (definition-order name value.p.lowered)]
   =/  with=link-state
@@ -1568,7 +1607,7 @@
   =/  group=(each link-state @t)
     (reach-component at (top-component name u.artifact) with)
   ?:  ?=(%| -.group)  group
-  =/  references=(each (list link-reference) @t)  (definition-references definition)
+  =/  references=(each (list link-reference) @t)  (definition-references definition state)
   ?:  ?=(%| -.references)  references
   (reach-references p.references p.group)
 ::
@@ -1639,12 +1678,12 @@
   &(=(at.ref at.node) (member-name name.ref members.node))
 ::
 ++  node-ready
-  |=  [node=linked-node emitted=(list linked-definition)]
+  |=  [node=linked-node emitted=(list linked-definition) state=link-state]
   ^-  (each ? @t)
   =/  definitions=(list linked-definition)  definitions.node
   |-
   ?~  definitions  [%& &]
-  =/  references=(each (list link-reference) @t)  (definition-references i.definitions)
+  =/  references=(each (list link-reference) @t)  (definition-references i.definitions state)
   ?:  ?=(%| -.references)  references
   =/  refs=(list link-reference)  p.references
   |-
@@ -1683,7 +1722,7 @@
   [i.nodes $(nodes t.nodes)]
 ::
 ++  emit-linked-nodes
-  |=  [pending=(list linked-node) emitted=(list linked-definition)]
+  |=  [pending=(list linked-node) emitted=(list linked-definition) state=link-state]
   ^-  (each (list linked-node) @t)
   ?~  pending  [%& ~]
   =/  ready=(list linked-node)  ~
@@ -1700,7 +1739,7 @@
       ^$(pending remaining, emitted (weld emitted definitions.chosen))
     ?:  ?=(%| -.rest)  rest
     [%& [chosen p.rest]]
-  =/  ok=(each ? @t)  (node-ready i.todo emitted)
+  =/  ok=(each ? @t)  (node-ready i.todo emitted state)
   ?:  ?=(%| -.ok)  ok
   ?:  p.ok
     $(todo t.todo, ready (weld ready ~[i.todo]))
@@ -1771,7 +1810,7 @@
   ?:  ?=(%| -.reached)  reached
   =/  nodes=(each (list linked-node) @t)  (build-linked-nodes p.reached)
   ?:  ?=(%| -.nodes)  nodes
-  =/  emitted=(each (list linked-node) @t)  (emit-linked-nodes p.nodes ~)
+  =/  emitted=(each (list linked-node) @t)  (emit-linked-nodes p.nodes ~ p.reached)
   ?:  ?=(%| -.emitted)  emitted
   =/  body=(each expr:jibb-core @t)
     ?-  -.requested

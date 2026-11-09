@@ -25179,6 +25179,7 @@
       [primitive %raw-bit-not %bit-not]
       [primitive %raw-map-get %map-get]
       [primitive %raw-map-put %map-put]
+      [primitive %raw-seal %raw-seal]
   ==
 ++  lowering-interface-at
   |=  [at=path imports=ijimports prelude=(unit ifile)]
