@@ -368,3 +368,9 @@ export function traceLazy(message, body, logger = console.log) {
   logTrace(message, logger);
   return body();
 }
+
+// The public runtime permits foreign JavaScript gates and mutable inputs.
+// Only checked browser modules may opt into the compiler's immutable view proof.
+export function viewTemplate(gate) {
+  return gate;
+}

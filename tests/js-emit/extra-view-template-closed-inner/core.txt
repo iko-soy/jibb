@@ -1,0 +1,1 @@
+(lam ignored (lam words (app (native raw-seal) (cons %text words))))

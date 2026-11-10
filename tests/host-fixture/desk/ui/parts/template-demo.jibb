@@ -1,0 +1,16 @@
+::  A fixed layout with a model-dependent text hole. Timer messages exercise
+::  template updates without putting a control in the optimized view.
+++ main (program init update view subs)
+
+++ init |= data=@ud data
+
+++ update |= [message=%tick count=@ud]
+  [(add count 1) ~]
+
+++ view |= count=@ud
+  column ~ ~[
+    heading 1 "Compiled template"
+    text "Count: {count}"
+
+++ subs |= count=@ud
+  ~[[%every ~s1 |=(stamp=@da %tick)]]

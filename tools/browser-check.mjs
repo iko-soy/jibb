@@ -346,6 +346,33 @@ async function sharedModules(session) {
   console.log('ok   shared island module across pages: one URL, independent models');
 }
 
+async function viewTemplates(session) {
+  await session.navigate(`${origin}/apps/jibb-host-fixture/template-demo`);
+  await session.until('the template island to start', STARTED);
+  await session.evaluate(`(() => {
+    const root = document.querySelector('[data-jibb-island]').firstChild;
+    window.templateNodes = { root, heading: root.firstChild, text: root.lastChild };
+    window.templateCount = Number(root.lastChild.nodeValue.slice('Count: '.length));
+    // Ordinary vnode diffing would enumerate these attributes on each tick.
+    // A compiled text-hole update must leave the static structure alone.
+    root.__jibb.vnode.attrs = new Proxy(root.__jibb.vnode.attrs, {
+      ownKeys() { throw new Error('template update revisited static attributes'); },
+    });
+  })()`);
+  await session.until('the timer to update the template text',
+    `Number(window.templateNodes.text.nodeValue.slice('Count: '.length)) > window.templateCount`);
+  const kept = await session.evaluate(`(() => {
+    const { root, heading, text } = window.templateNodes;
+    return root === document.querySelector('[data-jibb-island]').firstChild
+      && root.firstChild === heading && heading.textContent === 'Compiled template'
+      && root.lastChild === text;
+  })()`);
+  expect(kept, 'the template update replaced its static DOM or text hole');
+  const problems = session.takeProblems();
+  expect(problems.length === 0, `view templates logged: ${problems.join('; ')}`);
+  console.log('ok   compiled view template: timer updates text and retains static DOM');
+}
+
 async function appRoutes(session) {
   const heading = `document.querySelector('[data-jibb-island] h1')?.textContent`;
   await session.navigate(`${origin}/apps/jibb-host-fixture/app/one`);
@@ -435,7 +462,7 @@ try {
     console.log(`Chromium's output:\n${browser.output()}`);
     throw error;
   }
-  const steps = [exampleThree, storeExample, crashNotice, sharedModules, appRoutes, benchmark]
+  const steps = [exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, appRoutes, benchmark]
     .filter(step => !args.only || args.only.split(',').includes(step.name));
   for (const step of steps) {
     try {
@@ -452,5 +479,5 @@ if (failures.length !== 0) {
   console.log(`browser-check: ${failures.length} failed`);
   process.exit(1);
 }
-console.log('browser-check: worked example 3, the store example, shared modules, the crash notice, an app and the benchmark pass in Chromium');
+console.log('browser-check: all selected browser checks passed in Chromium');
 process.exit(0);

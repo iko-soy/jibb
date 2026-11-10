@@ -52,6 +52,27 @@
 /*  core-15  %txt  /tests/js-emit/extra-closed-inner-lambda/core/txt
 /*  natives-15  %txt  /tests/js-emit/extra-closed-inner-lambda/natives/txt
 /*  js-15  %txt  /tests/js-emit/extra-closed-inner-lambda/js/txt
+/*  core-16  %txt  /tests/js-emit/extra-checked-view-template/core/txt
+/*  natives-16  %txt  /tests/js-emit/extra-checked-view-template/natives/txt
+/*  js-16  %txt  /tests/js-emit/extra-checked-view-template/js/txt
+/*  core-17  %txt  /tests/js-emit/extra-view-template-trace/core/txt
+/*  natives-17  %txt  /tests/js-emit/extra-view-template-trace/natives/txt
+/*  js-17  %txt  /tests/js-emit/extra-view-template-trace/js/txt
+/*  core-18  %txt  /tests/js-emit/extra-view-template-recursive/core/txt
+/*  natives-18  %txt  /tests/js-emit/extra-view-template-recursive/natives/txt
+/*  js-18  %txt  /tests/js-emit/extra-view-template-recursive/js/txt
+/*  core-19  %txt  /tests/js-emit/extra-view-template-inner/core/txt
+/*  natives-19  %txt  /tests/js-emit/extra-view-template-inner/natives/txt
+/*  js-19  %txt  /tests/js-emit/extra-view-template-inner/js/txt
+/*  core-20  %txt  /tests/js-emit/extra-view-template-closed-inner/core/txt
+/*  natives-20  %txt  /tests/js-emit/extra-view-template-closed-inner/natives/txt
+/*  js-20  %txt  /tests/js-emit/extra-view-template-closed-inner/js/txt
+/*  core-21  %txt  /tests/js-emit/extra-view-template-branches/core/txt
+/*  natives-21  %txt  /tests/js-emit/extra-view-template-branches/natives/txt
+/*  js-21  %txt  /tests/js-emit/extra-view-template-branches/js/txt
+/*  core-22  %txt  /tests/js-emit/extra-view-template-limits/core/txt
+/*  natives-22  %txt  /tests/js-emit/extra-view-template-limits/natives/txt
+/*  js-22  %txt  /tests/js-emit/extra-view-template-limits/js/txt
 |%
 ++  text
   |=  lines=wain
@@ -93,5 +114,12 @@
     (check "extra-nested-lets" core-13 natives-13 js-13)
     (check "extra-trace" core-14 natives-14 js-14)
     (check "extra-closed-inner-lambda" core-15 natives-15 js-15)
+    (check "extra-checked-view-template" core-16 natives-16 js-16)
+    (check "extra-view-template-trace" core-17 natives-17 js-17)
+    (check "extra-view-template-recursive" core-18 natives-18 js-18)
+    (check "extra-view-template-inner" core-19 natives-19 js-19)
+    (check "extra-view-template-closed-inner" core-20 natives-20 js-20)
+    (check "extra-view-template-branches" core-21 natives-21 js-21)
+    (check "extra-view-template-limits" core-22 natives-22 js-22)
   ==
 --

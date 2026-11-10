@@ -7,11 +7,12 @@ import { Channel, installPagehide } from './channel.mjs';
 import { Effects } from './effects.mjs';
 import { Island } from './island.mjs';
 import { StoreRegistry } from './stores.mjs';
+import { compiledViewTemplate } from './template.mjs';
 import { UrlRuntime } from './url.mjs';
 
 // Only the primitives both Core emitters put in evaluate(runtime, natives).
 // Other runtime exports are helpers for the library, not the module ABI.
-const runtime = { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo };
+const runtime = { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate: compiledViewTemplate };
 
 // The server's notice for a crashed island, which the browser shows too.
 export const CRASH_NOTICE = 'This part of the page stopped working. Reloading the page may fix it.';

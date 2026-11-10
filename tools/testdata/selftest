@@ -782,6 +782,13 @@ def check_bundle_budget(c, tmp):
                 'if arg.startswith("--outfile="))\n'
                 'shutil.copyfile(os.environ["JIBB_TEST_BUNDLE"], out)\n')
     os.chmod(stub, 0o755)
+    minifier = os.path.join(tmp, 'bin', 'terser')
+    with open(minifier, 'w') as f:
+        f.write('#!' + sys.executable + '\n'
+                'import shutil, sys\n'
+                'out = sys.argv[sys.argv.index("--output") + 1]\n'
+                'shutil.copyfile(sys.argv[1], out)\n')
+    os.chmod(minifier, 0o755)
     env = dict(os.environ, JIBB_TEST_BUNDLE=payload,
                PATH=os.path.join(tmp, 'bin') + os.pathsep + os.environ['PATH'])
 

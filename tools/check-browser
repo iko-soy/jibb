@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Run worked example 3, the Grammar tab's store example, the crash notice
-and the benchmark's list island in headless Chromium, against the host on
-a fake ship: syncs the host, my-app and the host fixture, waits for their
-builds, then drives the browser with tools/browser-check.mjs."""
+"""Run the worked examples, crash notice, shared modules, compiled templates,
+app navigation and list benchmark in headless Chromium against a fake ship:
+sync the host, my-app and host fixture, wait for their builds, then drive the
+browser with tools/browser-check.mjs."""
 
 from importlib.machinery import SourceFileLoader
 from pathlib import Path

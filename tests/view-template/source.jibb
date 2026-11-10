@@ -1,0 +1,1 @@
+++ view |= words=@t (column ~ ~[(heading 1 "Title") (text words)])

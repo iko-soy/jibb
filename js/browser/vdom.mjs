@@ -11,7 +11,7 @@ function fail(message) {
   throw new CoreCrash(`toVnode: ${message}`);
 }
 
-function atomText(value, operation) {
+export function atomText(value, operation) {
   try {
     return text(value);
   } catch (error) {

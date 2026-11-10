@@ -3,6 +3,7 @@ import { cue } from '../natives/codec.mjs';
 import { pair, listToArray } from '../natives/helpers.mjs';
 import { createDom, patchDom, syncControls } from './dom.mjs';
 import { toVnode } from './vdom.mjs';
+import { createViewTemplate } from './template.mjs';
 
 export class Island {
   constructor({
@@ -37,6 +38,7 @@ export class Island {
     this.active = false;
     this.node = null;
     this.vnode = null;
+    this.template = null;
   }
 
   start() {
@@ -47,11 +49,14 @@ export class Island {
           ? apply(this.program.init, this.data)
           : cue(this.packedModel);
       }
-      this.vnode = toVnode(apply(this.program.view, this.model), this.paths);
-      this.node = createDom(this.vnode, {
+      const value = apply(this.program.view, this.model);
+      const options = {
         document: this.document,
         dispatch: (message) => this.send(message),
-      });
+      };
+      this.template = createViewTemplate(this.program.view, value, options);
+      this.vnode = this.template?.vnode ?? toVnode(value, this.paths);
+      this.node = this.template?.node ?? createDom(this.vnode, options);
       this.container.appendChild(this.node);
       this.active = true;
       syncControls(this.node, this.vnode);
@@ -94,11 +99,19 @@ export class Island {
       return;
     }
 
-    const vnode = toVnode(apply(this.program.view, next), this.paths);
-    const node = patchDom(this.container, this.node, vnode, {
-      document: this.document,
-      dispatch: (reply) => this.send(reply),
-    });
+    const value = apply(this.program.view, next);
+    let vnode = this.vnode;
+    let node = this.node;
+    if (this.template?.view === this.program.view) {
+      this.template.update(value);
+    } else {
+      vnode = toVnode(value, this.paths);
+      node = patchDom(this.container, this.node, vnode, {
+        document: this.document,
+        dispatch: (reply) => this.send(reply),
+      });
+      this.template = null;
+    }
     this.model = next;
     this.vnode = vnode;
     this.node = node;
@@ -125,6 +138,7 @@ export class Island {
     if (this.node.parentNode) this.node.parentNode.removeChild(this.node);
     this.node = null;
     this.vnode = null;
+    this.template = null;
   }
 }
 

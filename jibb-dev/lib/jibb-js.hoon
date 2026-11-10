@@ -12,11 +12,12 @@
 ::  API
 ::    +compile  expr  @t     an ES module whose evaluate returns the value
 ::
-/+  jibb-core
+/+  jibb-core, jibb-js-template
 |%
 ::  Bindings, innermost scope first; each maps a Core name to its variable.
 ::  depth counts the lambdas around a scope: 0 is the module's own level.
-+$  scopes  (list [depth=@ud names=(map name:jibb-core @t)])
++$  scopes
+  (list [depth=@ud names=(map name:jibb-core @t) known=environment:jibb-js-template])
 ::  The emitter's state: the next variable's number, the natives used, the
 ::  slots of the lambdas made once, latest first, and whether the program
 ::  remembers products, which it does unless it traces.
@@ -35,7 +36,7 @@
   %+  rap  3
   :~  '// Generated from Jibb Core. Do not edit.\0a'
       'export function evaluate(runtime, natives) {\0a'
-      'const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo} = runtime;\0a'
+      'const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;\0a'
       'const requireNative = (registry, name) => {\0a'
       '  if (registry === null || typeof registry !== \'object\' || !Object.hasOwn(registry, name) || typeof registry[name] !== \'function\') {\0a'
       '    throw new TypeError(`missing native ${name}`);\0a'
@@ -86,7 +87,34 @@
   ?>  ?=(^ sc)
   ?<  (~(has by names.i.sc) n)
   =^  var  s  (fresh s)
-  [var [i.sc(names (~(put by names.i.sc) n var)) t.sc] s]
+  [var [i.sc(names (~(put by names.i.sc) n var), known (~(put by known.i.sc) n [%unknown ~])) t.sc] s]
+::  Immutable abstract bindings at this lexical site, outer scopes first.
+++  scope-env
+  |=  sc=scopes
+  ^-  environment:jibb-js-template
+  ?~  sc  ~
+  =/  env=environment:jibb-js-template  $(sc t.sc)
+  =/  bindings=(list [name:jibb-core value:jibb-js-template])  ~(tap by known.i.sc)
+  |-
+  ?~  bindings  env
+  $(bindings t.bindings, env (~(put by env) -.i.bindings +.i.bindings))
+::
+++  bind-known
+  |=  [n=name:jibb-core value=value:jibb-js-template sc=scopes]
+  ^-  scopes
+  ?>  ?=(^ sc)
+  [i.sc(known (~(put by known.i.sc) n value)) t.sc]
+::  Decorate after memoization; the ordinary gate's identity and execution
+::  remain unchanged. The browser requires the canonical native registry.
+++  decorate
+  |=  [made=@t e=expr:jibb-core sc=scopes]
+  ^-  [out=@t planned=?]
+  =/  plan=(unit plan:jibb-js-template)
+    (view-template:jibb-js-template e (scope-env sc))
+  ?~  plan  [made |]
+  =/  axes=@t
+    (join-text ', ' (turn axes.u.plan |=(axis=@ud (crip (a-co:co axis)))))
+  [(rap 3 ~['viewTemplate(' made ', ' tree.u.plan ', [' axes '], natives)']) &]
 ::
 ++  lookup
   |=  [n=name:jibb-core sc=scopes]
@@ -113,12 +141,12 @@
 ++  nested
   |=  sc=scopes
   ^-  scopes
-  [[(scope-depth sc) ~] sc]
+  [[(scope-depth sc) ~ ~] sc]
 ::
 ++  inside
   |=  sc=scopes
   ^-  scopes
-  [[+((scope-depth sc)) ~] sc]
+  [[+((scope-depth sc)) ~ ~] sc]
 ::
 ++  has-trace
   |=  e=expr:jibb-core
@@ -212,6 +240,8 @@
       %let
     =^  value  s  $(e value.e)
     =/  inner=[var=@t sc=scopes s=state]  (define name.e (nested sc) s)
+    =.  sc.inner
+      (bind-known name.e (abstract-value:jibb-js-template value.e (scope-env sc)) sc.inner)
     =^  body  s  $(e body.e, sc sc.inner, s s.inner)
     [(rap 3 ~['(() => { const ' var.inner ' = ' value '; return ' body '; })()']) s]
   ::
@@ -226,8 +256,11 @@
   ::
       %lam
     =^  made  s  (lambda e sc s ~ |)
+    =?  made  &(=(0 (scope-depth sc)) memoize.s)  (rap 3 ~['memo(' made ')'])
+    =/  decorated=[out=@t planned=?]  (decorate made e sc)
+    =.  made  out.decorated
     ?:  =(0 (scope-depth sc))
-      [?:(memoize.s (rap 3 ~['memo(' made ')']) made) s]
+      [made s]
     ?.  (closed e sc)  [made s]
     =/  slot=@t  (cat 3 '$h' (crip (a-co:co (lent hoisted.s))))
     [(rap 3 ~['(' slot ' ??= ' made ')']) s(hoisted [slot hoisted.s])]
@@ -268,7 +301,10 @@
   ?~  vars  !!
   ?.  ?=(%lam -.fun.i.arms)  ~|([%recursive-binding-not-a-lambda name.i.arms] !!)
   =^  decl  s  (lambda fun.i.arms sc s `[var=i.vars name=name.i.arms] &)
-  =?  decl  memo  (rap 3 ~['const ' i.vars ' = memo(' decl ');'])
+  =?  decl  memo  (rap 3 ~['memo(' decl ')'])
+  =/  decorated=[out=@t planned=?]  (decorate decl fun.i.arms sc)
+  =.  decl
+    ?:(|(memo planned.decorated) (rap 3 ~['const ' i.vars ' = ' out.decorated ';']) out.decorated)
   $(arms t.arms, vars t.vars, out [decl out])
 ::
 ::  A lambda, or a recursive arm's declaration: one whose body calls itself
@@ -328,6 +364,8 @@
   ?:  ?=(%let -.e)
     =^  value  s  (expression value.e sc s)
     =/  inner=[var=@t sc=scopes s=state]  (define name.e (nested sc) s)
+    =.  sc.inner
+      (bind-known name.e (abstract-value:jibb-js-template value.e (scope-env sc)) sc.inner)
     =^  body  s  $(e body.e, sc sc.inner, s s.inner)
     [(rap 3 ~['const ' var.inner ' = ' value ';\0a' body]) s]
   ?:  ?=(%rec -.e)

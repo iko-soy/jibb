@@ -35,10 +35,43 @@ for (const entry of fixture.cases) {
   const ast = readCore(entry.source, { nativeNames: entry.natives });
   cases.push({ name: `fixture-${slug(entry.name)}`, source: entry.source, ast });
 }
+// Compact constructors for additional template coverage. These build Core
+// source only; the checker-linked fixture below remains the source proof.
+const sealed = (tag, payload) => `(app (native raw-seal) (cons %${tag} ${payload}))`;
+const coreList = (...items) => items.reduceRight((tail, head) => `(cons ${head} ${tail})`, '~');
+const layout = (tag, ...children) => sealed(tag, `(cons ~ ${coreList(...children)})`);
+const templateBranches = `(lam words ${layout('row', layout('wrap',
+  sealed('heading', '(cons 0 "low")'),
+  layout('stack', sealed('heading', '(cons 9 "high")'),
+    sealed('el', `(cons ~ ${sealed('para', coreList(
+      sealed('text', String.raw`"quote \" and slash \\"`),
+      sealed('text', '"λ"'), sealed('text', 'words'),
+    ))})`)),
+))})`;
+let deepTemplate = sealed('text', 'words');
+for (let i = 0; i < 20; i++) deepTemplate = `(app wrap ${deepTemplate})`;
+let wideTemplate = sealed('text', 'words');
+for (let i = 0; i < 6; i++) wideTemplate = `(app pair ${wideTemplate})`;
+// This projection is valid Core, but its 54-bit axis is outside analysis.
+let projectedTemplate = sealed('text', 'words');
+for (let i = 0; i < 53; i++) projectedTemplate = `(cons ${projectedTemplate} ~)`;
+projectedTemplate = `(slot 9007199254740992 ${projectedTemplate})`;
+const templateLimits = `(let wrap (lam child ${sealed('el', '(cons ~ child)')})
+  (let pair (lam child ${sealed('para', coreList('child', 'child'))})
+    (cons (lam words ${deepTemplate})
+      (cons (lam words ${wideTemplate}) (lam words ${projectedTemplate})))))`;
+
 // Closed expressions the shared fixtures leave out: a self tail call, which
 // compiles to a loop, a recursive arm in tail position, nested lets, a trace
 // and closed lambdas inside a gate, which are made once.
 const extra = [
+  ['checked-view-template', readFileSync(join(root, 'tests', 'view-template', 'core.txt'), 'utf8').trim(), ['raw-seal']],
+  ['view-template-trace', '(lam words (let seen (trace "render" ~) (app (native raw-seal) (cons %text words))))', ['raw-seal']],
+  ['view-template-recursive', '(rec ((view (lam words (app (native raw-seal) (cons %text words))))) view)', ['raw-seal']],
+  ['view-template-inner', '(lam captured (lam ignored (app (native raw-seal) (cons %text captured))))', ['raw-seal']],
+  ['view-template-closed-inner', '(lam ignored (lam words (app (native raw-seal) (cons %text words))))', ['raw-seal']],
+  ['view-template-branches', templateBranches, ['raw-seal']],
+  ['view-template-limits', templateLimits, ['raw-seal']],
   ['self-tail-loop', '(rec ((count (lam n (if (eq n 0) %done (app count (app (native dec) n)))))) (app count 5))', ['dec']],
   ['tail-rec-arm', '(rec ((walk (lam p (if (cell? p) (app walk (slot 3 p)) p)))) (let start (cons 1 (cons 2 3)) (app walk start)))', []],
   ['nested-lets', '(let x 1 (let y (cons x 2) (let z (edit 2 y 7) (cons (slot 2 z) (slot 3 y)))))', []],

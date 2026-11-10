@@ -1,5 +1,6 @@
 import { readCore } from './reader.mjs';
 import { readLiteral } from './literal.mjs';
+import { abstractValue, UNKNOWN, viewTemplate as templatePlan } from './view-template.mjs';
 
 export function compileCore(input, { nativeNames = [] } = {}) {
   const ast = typeof input === 'string'
@@ -24,9 +25,12 @@ export function compileCore(input, { nativeNames = [] } = {}) {
       const variable = names.define(definition.name);
       return { definition, variable };
     });
-    const statements = declarations.map(({ definition, variable }) =>
-      `const ${variable} = ${expression(definition.expression, context, names)};`
-    );
+    const statements = declarations.map(({ definition, variable }) => {
+      const value = abstractValue(definition.expression, names.abstractEnvironment());
+      const made = expression(definition.expression, context, names);
+      names.abstracts.set(definition.name, value);
+      return `const ${variable} = ${made};`;
+    });
     const entries = declarations.map(({ definition, variable }) =>
       `${JSON.stringify(definition.name)}: ${variable}`
     );
@@ -39,7 +43,7 @@ export function compileCore(input, { nativeNames = [] } = {}) {
     `requireNative(natives, ${JSON.stringify(name)});`
   );
   const slots = context.hoisted.length === 0 ? '' : `let ${context.hoisted.join(', ')};\n`;
-  return `// Generated from Jibb Core. Do not edit.\nexport function evaluate(runtime, natives) {\nconst {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo} = runtime;\nconst requireNative = (registry, name) => {\n  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {\n    throw new TypeError(\`missing native \${name}\`);\n  }\n};\n${nativeChecks.join('\n')}\n${slots}${body}\n}\n`;
+  return `// Generated from Jibb Core. Do not edit.\nexport function evaluate(runtime, natives) {\nconst {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;\nconst requireNative = (registry, name) => {\n  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {\n    throw new TypeError(\`missing native \${name}\`);\n  }\n};\n${nativeChecks.join('\n')}\n${slots}${body}\n}\n`;
 }
 
 function containsTrace(node) {
@@ -117,19 +121,28 @@ class Scope {
     this.parent = parent;
     this.depth = depth;
     this.names = new Map();
+    this.abstracts = new Map();
   }
 
   fresh() {
     return `$${this.context.nextVariable++}`;
   }
 
-  define(name) {
+  define(name, value = UNKNOWN) {
     if (this.names.has(name)) {
       throw new Error(`duplicate JavaScript binding for ${name}`);
     }
     const variable = this.fresh();
     this.names.set(name, variable);
+    this.abstracts.set(name, value);
     return variable;
+  }
+
+  // One independent lexical snapshot per call, with outer bindings first.
+  abstractEnvironment(environment = new Map()) {
+    this.parent?.abstractEnvironment(environment);
+    for (const [name, value] of this.abstracts) environment.set(name, value);
+    return environment;
   }
 
   lookup(name) {
@@ -145,6 +158,19 @@ class Scope {
     if (this.parent === null) throw new Error(`unbound Core name ${name}`);
     return this.parent.depthOf(name);
   }
+}
+
+function decorateTemplate(node, made, scope) {
+  const plan = templatePlan(node, scope?.abstractEnvironment());
+  if (plan === undefined) return made;
+  return `viewTemplate(${made}, ${JSON.stringify(plan.tree)}, [${plan.axes.join(', ')}], natives)`;
+}
+
+function recursiveDeclaration(binding, variable, context, scope, memoize) {
+  const declaration = lambda(binding.lambda, context, scope, variable, true, binding.name);
+  const made = memoize ? `memo(${declaration})` : declaration;
+  const decorated = decorateTemplate(binding.lambda, made, scope);
+  return memoize || decorated !== declaration ? `const ${variable} = ${decorated};` : declaration;
 }
 
 function expression(node, context, scope) {
@@ -168,7 +194,7 @@ function expression(node, context, scope) {
     case 'let': {
       const inner = new Scope(context, scope ?? null);
       const value = expression(node.value, context, scope);
-      const variable = inner.define(node.name);
+      const variable = inner.define(node.name, abstractValue(node.value, scope?.abstractEnvironment()));
       return `(() => { const ${variable} = ${value}; return ${expression(node.body, context, inner)}; })()`;
     }
     case 'rec': {
@@ -181,18 +207,18 @@ function expression(node, context, scope) {
         if (binding.lambda.type !== 'lam') {
           throw new Error(`recursive binding ${binding.name} is not a lambda`);
         }
-        const declaration = lambda(binding.lambda, context, inner, variable, true, binding.name);
         // A module-level arm remembers its last product; inside, its name is
         // the bare function, so its own recursion does not.
-        return depthOf(scope) === 0 && context.memoize
-          ? `const ${variable} = memo(${declaration});`
-          : declaration;
+        return recursiveDeclaration(binding, variable, context, inner, depthOf(scope) === 0 && context.memoize);
       });
       return `(() => {\n${declarations.join('\n')}\nreturn ${expression(node.body, context, inner)};\n})()`;
     }
     case 'lam': {
-      const made = lambda(node, context, scope, null, false);
-      if (depthOf(scope) === 0) return context.memoize ? `memo(${made})` : made;
+      let made = lambda(node, context, scope, null, false);
+      if (depthOf(scope) === 0) {
+        return decorateTemplate(node, context.memoize ? `memo(${made})` : made, scope);
+      }
+      made = decorateTemplate(node, made, scope);
       if (!closed(node, scope)) return made;
       const slot = `$h${context.hoisted.length}`;
       context.hoisted.push(slot);
@@ -262,7 +288,7 @@ function tailExpression(node, context, scope, self) {
     case 'let': {
       const inner = new Scope(context, scope ?? null);
       const value = expression(node.value, context, scope);
-      const variable = inner.define(node.name);
+      const variable = inner.define(node.name, abstractValue(node.value, scope?.abstractEnvironment()));
       return `const ${variable} = ${value};\n${tailExpression(node.body, context, inner, self)}`;
     }
     case 'rec': {
@@ -272,7 +298,7 @@ function tailExpression(node, context, scope, self) {
         variable: inner.define(binding.name),
       }));
       const declarations = bindings.map(({ binding, variable }) =>
-        lambda(binding.lambda, context, inner, variable, true, binding.name)
+        recursiveDeclaration(binding, variable, context, inner, false)
       );
       return `${declarations.join('\n')}\n${tailExpression(node.body, context, inner, self)}`;
     }

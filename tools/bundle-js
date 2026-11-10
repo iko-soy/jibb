@@ -6,10 +6,15 @@
 set -eu
 cd "$(dirname "$0")/.."
 vendored=jibb-dev/lib/jibb/runtime.js
+bundled=$(mktemp)
 out=$(mktemp)
-trap 'rm -f "$out"' EXIT
+trap 'rm -f "$bundled" "$out"' EXIT
 esbuild js/browser/entry.mjs --bundle --format=esm --minify --target=es2020 \
-  --legal-comments=none --log-level=warning --outfile="$out"
+  --legal-comments=none --log-level=warning --outfile="$bundled"
+# Terser's standard compression reduces the shared library further without
+# changing property names or enabling unsafe transformations.
+terser "$bundled" --compress passes=3 --mangle --module --ecma 2020 \
+  --comments false --output "$out"
 bytes=$(wc -c < "$out")
 gzipped=$(gzip -9nc "$out" | wc -c)
 if [ "$gzipped" -ge 20000 ]; then

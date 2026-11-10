@@ -1,0 +1,11 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+requireNative(natives, "raw-seal");
+return (() => { const $1 = memo((($0) => apply(natives["raw-seal"], cons(BigInt("27749"), cons(BigInt("0"), $0))))); return (() => { const $3 = memo((($2) => apply(natives["raw-seal"], cons(BigInt("1634886000"), cons($2, cons($2, BigInt("0"))))))); return cons(memo((($4) => apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply($1, apply(natives["raw-seal"], cons(BigInt("1954047348"), $4)))))))))))))))))))))))), cons(memo((($5) => apply($3, apply($3, apply($3, apply($3, apply($3, apply($3, apply(natives["raw-seal"], cons(BigInt("1954047348"), $5)))))))))), memo((($6) => slot(9007199254740992n, cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), $6)), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0")), BigInt("0"))))))); })(); })();
+}

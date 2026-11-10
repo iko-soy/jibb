@@ -9,6 +9,13 @@ fixture-mutual-recursion
 fixture-higher-order-native-callback
 fixture-explicit-crash
 fixture-malformed-runtime-axis
+extra-checked-view-template
+extra-view-template-trace
+extra-view-template-recursive
+extra-view-template-inner
+extra-view-template-closed-inner
+extra-view-template-branches
+extra-view-template-limits
 extra-self-tail-loop
 extra-tail-rec-arm
 extra-nested-lets

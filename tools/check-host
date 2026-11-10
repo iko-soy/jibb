@@ -41,6 +41,7 @@ FIXTURE_MODULES = {'/ui/about/jibb', '/ui/notes/jibb', '/ui/parts/note/jibb',
                    '/ui/blog/index/jibb', '/ui/tables/jibb', '/ui/misspelled/jibb',
                    '/ui/numbered/_n/jibb', '/ui/crash/jibb',
                    '/ui/bench/jibb', '/ui/bench-small/jibb', '/ui/parts/rows/jibb',
+                   '/ui/template-demo/jibb', '/ui/parts/template-demo/jibb',
                    '/ui/fragile/jibb', '/ui/parts/fragile/jibb',
                    '/ui/tests/sums/jibb', '/ui/app/__rest/jibb', '/ui/parts/router/jibb',
                    '/ui/theme/jibb', '/lib/jibb/renderer/jibb'}
@@ -417,8 +418,8 @@ def main():
                    if '/~jibb/m/' in url or '/~jibb/r/' in url}
         library = [url for url in scripts if '/~jibb/r/' in url]
         modules = [url for url in scripts if '/~jibb/m/' in url]
-        expect(len(library) == 1 and len(modules) == 3,
-               'the fixture published scripts %r, not one library and its three islands'
+        expect(len(library) == 1 and len(modules) == 4,
+               'the fixture published scripts %r, not one library and its four islands'
                % sorted(scripts))
         fetch_public(anonymous, library[0], 'text/javascript; charset=utf-8',
                      (ROOT / 'jibb-dev' / 'lib' / 'jibb' / 'runtime.js').read_bytes())

@@ -1,0 +1,11 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+requireNative(natives, "raw-seal");
+return (() => { const $1 = memo((($0) => apply(natives["raw-seal"], $0))); return (() => { const $5 = memo((($2) => (() => { const $3 = slot(2n, $2); return (() => { const $4 = slot(3n, $2); return apply($1, cons(BigInt("121416400531299"), cons($3, $4))); })(); })())); return (() => { const $7 = viewTemplate(memo((($6) => apply($1, cons(BigInt("1954047348"), $6)))), 0, [7], natives); return (() => { const $11 = memo((($8) => (() => { const $9 = slot(2n, $8); return (() => { const $10 = slot(3n, $8); return apply($1, cons(BigInt("29113321535923560"), cons($9, $10))); })(); })())); return (() => { const $13 = viewTemplate(memo((($12) => apply($5, cons(BigInt("0"), cons(apply($11, cons(BigInt("1"), BigInt("435611265364"))), cons(apply($7, $12), BigInt("0"))))))), ["div",{"class":"j-column"},[["h1",{"tabIndex":"-1"},["Title"]],0]], [251], natives); return $13; })(); })(); })(); })(); })();
+}
