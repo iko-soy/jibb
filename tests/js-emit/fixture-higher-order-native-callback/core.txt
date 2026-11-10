@@ -1,0 +1,1 @@
+(app (native apply-twice) (cons (lam x (app (native add) (cons x 1))) 40))

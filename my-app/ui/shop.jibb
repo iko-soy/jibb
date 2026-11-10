@@ -1,0 +1,9 @@
+::  The Grammar tab's store example on a page: two baskets on one cart.
+/=  basket  /ui/basket
+::
+++  main  view
+::
+++  view
+  (column
+    ~[pad+%s3 gap+%s2]
+    ~[(heading 1 "Shop") (island main.basket ~) (island main.basket ~)]

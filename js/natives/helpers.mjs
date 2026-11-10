@@ -33,8 +33,16 @@ export function arrayToList(items) {
   return items.reduceRight((tail, item) => [item, tail], 0n);
 }
 
+const encoder = new TextEncoder();
+
 export function cord(text) {
-  return bytesToAtom(new TextEncoder().encode(text));
+  // Printed atoms and most UI text are ASCII, whose bytes are its codes.
+  if (text.length <= 1024 && /^[\x00-\x7f]*$/.test(text)) {
+    const bytes = new Uint8Array(text.length);
+    for (let index = 0; index < text.length; index += 1) bytes[index] = text.charCodeAt(index);
+    return bytesToAtom(bytes);
+  }
+  return bytesToAtom(encoder.encode(text));
 }
 
 export function text(value) {

@@ -1,24 +1,25 @@
 (module
-  (value 1:1 main (wing 1:9 view))
+  (value 1:1 main (wing 1:11 view))
   (value 3:1 view
     (body 4:3
-      (call 4:3
-        (wing 4:3 column)
-        (list 4:10
-          (pair 4:12 width
-            (tuple 4:18 (lit 4:19 %fill) (lit 4:25 1)))
-          (pair 4:28 pad (lit 4:32 %s3))
-          (pair 4:36 gap (lit 4:40 %s2)))
-        (list 4:45
-          (call 5:5 (wing 5:5 heading) (lit 5:13 1) (str 5:15 "About this ship"))
-          (call 6:5
-            (wing 6:5 para)
-            (list 6:10
-              (group 6:12
-                (call 6:13 (wing 6:13 text) (str 6:18 "Hosted on Urbit. This page ships no JavaScript.")))))
-          (call 7:5
-            (wing 7:5 el)
-            (list 7:8
-              (pair 7:10 tone (lit 7:15 %accent)))
-            (group 7:24
-              (call 7:25 (wing 7:25 link) (qath 7:30 blog) (str 7:37 "Read the blog")))))))))
+      (group 4:3
+        (call 4:4
+          (wing 4:4 column)
+          (list 5:5
+            (pair 5:7 width
+              (tuple 5:13 (lit 5:14 %fill) (lit 5:20 1)))
+            (pair 5:23 pad (lit 5:27 %s3))
+            (pair 5:31 gap (lit 5:35 %s2)))
+          (list 6:5
+            (call 7:7 (wing 7:7 heading) (lit 7:15 1) (str 7:17 "About this ship"))
+            (call 8:7
+              (wing 8:7 para)
+              (list 8:12
+                (group 8:14
+                  (call 8:15 (wing 8:15 text) (str 8:20 "Hosted on Urbit. This page ships no JavaScript.")))))
+            (call 9:7
+              (wing 9:7 el)
+              (list 9:10
+                (pair 9:12 tone (lit 9:17 %accent)))
+              (group 9:26
+                (call 9:27 (wing 9:27 link) (qath 9:32 blog) (str 9:39 "Read the blog"))))))))))

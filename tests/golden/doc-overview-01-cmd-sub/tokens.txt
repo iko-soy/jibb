@@ -1,9 +1,9 @@
 1:1 glyph +$
-1:4 name cmd
-1:8 glyph |$
-1:11 glyph [
-1:12 tight tvar M
-1:13 tight glyph ]
+1:5 name cmd
+1:10 glyph |$
+1:14 glyph [
+1:15 tight tvar M
+1:16 tight glyph ]
 2:3 INDENT
 2:3 glyph [
 2:4 tight lit %poke
@@ -17,9 +17,9 @@
 2:31 tight name unit
 2:36 aura @t
 2:38 tight glyph )
-2:40 tvar M
-2:41 tight glyph )
-2:42 tight glyph ]
+2:41 tvar M
+2:42 tight glyph )
+2:43 tight glyph ]
 3:3 NEWLINE
 3:3 glyph [
 3:4 tight lit %go
@@ -44,9 +44,9 @@
 5:14 tight glyph =
 5:15 tight glyph $-(
 5:18 tight aura @da
-5:22 tvar M
-5:23 tight glyph )
-5:24 tight glyph ]
+5:23 tvar M
+5:24 tight glyph )
+5:25 tight glyph ]
 6:3 NEWLINE
 6:3 glyph [
 6:4 tight lit %who
@@ -54,17 +54,17 @@
 6:14 tight glyph =
 6:15 tight glyph $-(
 6:18 tight aura @p
-6:21 tvar M
-6:22 tight glyph )
-6:23 tight glyph ]
+6:22 tvar M
+6:23 tight glyph )
+6:24 tight glyph ]
 7:1 DEDENT
 7:1 NEWLINE
 7:1 glyph +$
-7:4 name sub
-7:8 glyph |$
-7:11 glyph [
-7:12 tight tvar M
-7:13 tight glyph ]
+7:5 name sub
+7:10 glyph |$
+7:14 glyph [
+7:15 tight tvar M
+7:16 tight glyph ]
 8:3 INDENT
 8:3 glyph [
 8:4 tight lit %watch
@@ -85,9 +85,9 @@
 9:24 tight glyph =
 9:25 tight glyph $-(
 9:28 tight aura @da
-9:32 tvar M
-9:33 tight glyph )
-9:34 tight glyph ]
+9:33 tvar M
+9:34 tight glyph )
+9:35 tight glyph ]
 10:3 NEWLINE
 10:3 glyph [
 10:4 tight lit %url
@@ -95,8 +95,8 @@
 10:14 tight glyph =
 10:15 tight glyph $-(
 10:18 tight name path
-10:23 tvar M
-10:24 tight glyph )
-10:25 tight glyph ]
-10:26 DEDENT
-10:26 NEWLINE
+10:24 tvar M
+10:25 tight glyph )
+10:26 tight glyph ]
+10:27 DEDENT
+10:27 NEWLINE

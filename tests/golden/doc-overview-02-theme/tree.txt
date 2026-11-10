@@ -1,33 +1,33 @@
 (module
   (value 1:1 theme
-    (cast 1:11
-      (ref 1:14 theme)
+    (cast 1:12
+      (ref 1:16 theme)
       (body 2:3
         (tuple 2:3
-          (face 2:5 space
-            (tuple 2:11
-              (face 2:12 s1 (str 2:15 "4px"))
-              (face 2:21 s2 (str 2:24 "8px"))
-              (face 2:30 s3 (str 2:33 "16px"))))
-          (face 3:5 tones
+          (face 3:5 space
             (tuple 3:11
-              (face 3:12 normal (str 3:19 "#222"))
-              (face 3:26 background (str 3:37 "#fff"))
-              (face 3:44 accent (str 3:51 "#17734f"))
-              (face 3:61 danger (str 3:68 "#b3261e"))
-              (face 3:78 muted (str 3:84 "#5f5f5f"))))
-          (face 4:5 wide (str 4:10 "60rem"))
-          (face 5:5 lang (str 5:10 "en"))
-          (face 6:5 zone (str 6:10 "UTC"))
-          (face 7:5 font
-            (unit 7:10 (qath 7:11 static fonts inter.woff2)))
-          (face 8:5 dark
-            (unit 8:10
-              (tuple 8:11
-                (face 8:12 tones
-                  (tuple 8:18
-                    (face 8:19 normal (str 8:26 "#eee"))
-                    (face 8:33 background (str 8:44 "#111"))
-                    (face 8:51 accent (str 8:58 "#4c9"))
-                    (face 8:65 danger (str 8:72 "#f28b82"))
-                    (face 8:82 muted (str 8:88 "#aaa"))))))))))))
+              (face 3:12 s1 (str 3:15 "4px"))
+              (face 3:21 s2 (str 3:24 "8px"))
+              (face 3:30 s3 (str 3:33 "16px"))))
+          (face 4:5 tones
+            (tuple 4:11
+              (face 5:7 normal (str 5:14 "#222"))
+              (face 6:7 background (str 6:18 "#fff"))
+              (face 7:7 accent (str 7:14 "#17734f"))
+              (face 8:7 danger (str 8:14 "#b3261e"))
+              (face 9:7 muted (str 9:13 "#5f5f5f"))))
+          (face 10:5 wide (str 10:10 "60rem"))
+          (face 11:5 lang (str 11:10 "en"))
+          (face 12:5 zone (str 12:10 "UTC"))
+          (face 13:5 font
+            (unit 13:10 (qath 13:11 static fonts inter.woff2)))
+          (face 14:5 dark
+            (unit 14:10
+              (tuple 14:11
+                (face 14:12 tones
+                  (tuple 14:18
+                    (face 14:19 normal (str 14:26 "#eee"))
+                    (face 14:33 background (str 14:44 "#111"))
+                    (face 14:51 accent (str 14:58 "#4c9"))
+                    (face 14:65 danger (str 14:72 "#f28b82"))
+                    (face 14:82 muted (str 14:88 "#aaa"))))))))))))

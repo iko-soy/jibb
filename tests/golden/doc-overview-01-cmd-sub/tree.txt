@@ -1,6 +1,6 @@
 (module
   (mold 1:1 cmd
-    (generic 1:8 M
+    (generic 1:10 M
       (union 2:3
         (cell 2:3
           (const 2:4 %poke)
@@ -8,7 +8,7 @@
           (face 2:21 reply
             (fn 2:27
               (apply 2:30 unit (aura 2:36 @t))
-              (tvar 2:40 M))))
+              (tvar 2:41 M))))
         (cell 3:3
           (const 3:4 %go)
           (face 3:8 url (aura 3:12 @t)))
@@ -19,13 +19,13 @@
         (cell 5:3
           (const 5:4 %now)
           (face 5:9 reply
-            (fn 5:15 (aura 5:18 @da) (tvar 5:22 M))))
+            (fn 5:15 (aura 5:18 @da) (tvar 5:23 M))))
         (cell 6:3
           (const 6:4 %who)
           (face 6:9 reply
-            (fn 6:15 (aura 6:18 @p) (tvar 6:21 M)))))))
+            (fn 6:15 (aura 6:18 @p) (tvar 6:22 M)))))))
   (mold 7:1 sub
-    (generic 7:8 M
+    (generic 7:10 M
       (union 8:3
         (cell 8:3
           (const 8:4 %watch)
@@ -35,8 +35,8 @@
           (const 9:4 %every)
           (face 9:11 gap (aura 9:15 @dr))
           (face 9:19 reply
-            (fn 9:25 (aura 9:28 @da) (tvar 9:32 M))))
+            (fn 9:25 (aura 9:28 @da) (tvar 9:33 M))))
         (cell 10:3
           (const 10:4 %url)
           (face 10:9 reply
-            (fn 10:15 (ref 10:18 path) (tvar 10:23 M))))))))
+            (fn 10:15 (ref 10:18 path) (tvar 10:24 M))))))))

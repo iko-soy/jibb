@@ -1,12 +1,11 @@
 (module
   (jibb 2:1 cart /ui/stores/cart)
   (value 4:1 main
-    (group 4:9
-      (call 4:10 (wing 4:10 program) (wing 4:18 init) (wing 4:23 update) (wing 4:30 view) (wing 4:35 subs))))
+    (call 4:11 (wing 4:11 program) (wing 4:19 init) (wing 4:24 update) (wing 4:31 view) (wing 4:36 subs)))
   (mold 6:1 model
-    (cell 6:10
-      (face 6:11 cart (ref 6:16 state.cart))
-      (face 6:27 note (aura 6:32 @t))))
+    (cell 6:12
+      (face 6:13 cart (ref 6:18 state.cart))
+      (face 6:29 note (aura 6:34 @t))))
   (mold 7:1 msg
     (union 8:3
       (cell 8:3
@@ -22,80 +21,77 @@
         (face 12:11 err
           (apply 12:15 unit (aura 12:21 @t))))))
   (value 14:1 init
-    (gate 14:9
-      (const 14:12 ~)
-      (body 15:3
-        (tuple 15:3
-          (face 15:4 cart
-            (tuple 15:9
-              (face 15:10 items (lit 15:16 ~))
-              (face 15:18 open (lit 15:23 %.n))))
-          (face 15:28 note (str 15:33 ""))))))
-  (value 17:1 update
-    (gate 17:11
-      (cell 17:14
-        (pun 17:15 msg)
-        (face 17:20 m (ref 17:22 model)))
-      (body 18:3
-        (branch 18:3
-          (wing 18:6 msg)
+    (gate 14:11
+      (const 14:15 ~)
+      (tuple 14:18
+        (face 14:19 cart
+          (tuple 14:24
+            (face 14:25 items (lit 14:31 ~))
+            (face 14:33 open (lit 14:38 %.n))))
+        (face 14:43 note (str 14:48 "")))))
+  (value 16:1 update
+    (gate 16:13
+      (cell 16:17
+        (pun 16:18 msg)
+        (face 16:23 m (ref 16:25 model)))
+      (body 17:3
+        (branch 17:3
+          (wing 17:7 msg)
+          (arm 18:3
+            (cell 18:3 (lit 18:4 %noted) (bind 18:11 t))
+            (tuple 18:15
+              (change 18:16 m
+                (edit 18:18 note (wing 18:23 t)))
+              (lit 18:26 ~)))
           (arm 19:3
-            (cell 19:3 (lit 19:4 %noted) (bind 19:11 t))
-            (tuple 19:18
-              (change 19:19 m
-                (edit 19:21 note (wing 19:26 t)))
-              (lit 19:29 ~)))
+            (lit 19:3 %add)
+            (tuple 19:9
+              (change 19:10 m
+                (edit 19:12 note (str 19:17 "")))
+              (list 19:21
+                (group 19:23
+                  (call 19:24
+                    (wing 19:24 poke.cart)
+                    (tuple 19:34 (lit 19:35 %add) (wing 19:40 note.m))
+                    (ctor 19:48 %acked))))))
           (arm 20:3
-            (lit 20:3 %add)
-            (tuple 20:18
-              (change 20:19 m
-                (edit 20:21 note (str 20:26 "")))
-              (list 20:30
-                (group 20:32
-                  (call 20:33
-                    (wing 20:33 poke.cart)
-                    (tuple 20:43 (lit 20:44 %add) (wing 20:49 note.m))
-                    (ctor 20:57 %acked))))))
+            (lit 20:3 %toggle)
+            (tuple 20:12
+              (wing 20:13 m)
+              (list 20:15
+                (group 20:17
+                  (call 20:18 (wing 20:18 poke.cart) (lit 20:28 %toggle) (ctor 20:36 %acked))))))
           (arm 21:3
-            (lit 21:3 %toggle)
-            (tuple 21:18
-              (wing 21:19 m)
-              (list 21:21
-                (group 21:23
-                  (call 21:24 (wing 21:24 poke.cart) (lit 21:34 %toggle) (ctor 21:42 %acked))))))
+            (cell 21:3 (lit 21:4 %got) (bind 21:9 c))
+            (tuple 21:13
+              (change 21:14 m
+                (edit 21:16 cart (wing 21:21 c)))
+              (lit 21:24 ~)))
           (arm 22:3
-            (cell 22:3 (lit 22:4 %got) (bind 22:9 c))
-            (tuple 22:18
-              (change 22:19 m
-                (edit 22:21 cart (wing 22:26 c)))
-              (lit 22:29 ~)))
-          (arm 23:3
-            (cell 23:3 (lit 23:4 %acked) (bind 23:11 err))
-            (tuple 23:18 (wing 23:19 m) (lit 23:21 ~)))))))
-  (value 25:1 subs
-    (gate 25:9
-      (face 25:12 m (ref 25:14 model))
-      (body 26:3
-        (list 26:3
-          (tuple 26:5
-            (lit 26:6 %watch)
-            (group 26:13
-              (call 26:14 (wing 26:14 state.cart) (ctor 26:25 %got))))))))
-  (value 28:1 view
-    (gate 28:9
-      (face 28:12 m (ref 28:14 model))
-      (body 29:3
-        (call 29:3
-          (wing 29:3 column)
-          (list 29:10
-            (pair 29:12 gap (lit 29:16 %s1)))
-          (list 29:21
-            (group 30:5
-              (call 30:6
-                (wing 30:6 text)
-                (str 30:11
-                  (group 30:13
-                    (call 30:14 (wing 30:14 lent) (wing 30:19 items.cart.m)))
-                  " items")))
-            (call 31:5 (wing 31:5 field) (str 31:11 "Item") (wing 31:18 note.m) (ctor 31:25 %noted))
-            (call 32:5 (wing 32:5 button) (str 32:12 "Add") (lit 32:18 %add))))))))
+            (cell 22:3 (lit 22:4 %acked) (bind 22:11 err))
+            (tuple 22:17 (wing 22:18 m) (lit 22:20 ~)))))))
+  (value 24:1 subs
+    (gate 24:11
+      (face 24:15 m (ref 24:17 model))
+      (list 24:24
+        (tuple 24:26
+          (lit 24:27 %watch)
+          (group 24:34
+            (call 24:35 (wing 24:35 state.cart) (ctor 24:46 %got)))))))
+  (value 26:1 view
+    (gate 26:11
+      (face 26:15 m (ref 26:17 model))
+      (body 27:3
+        (group 27:3
+          (call 27:4
+            (wing 27:4 column)
+            (list 28:5
+              (pair 28:7 gap (lit 28:11 %s1)))
+            (list 29:5
+              (call 30:7
+                (wing 30:7 text)
+                (str 30:12
+                  (call 30:14 (wing 30:14 lent) (wing 30:19 items.cart.m))
+                  " items"))
+              (call 31:7 (wing 31:7 field) (str 31:13 "Item") (wing 31:20 note.m) (ctor 31:27 %noted))
+              (call 32:7 (wing 32:7 button) (str 32:14 "Add") (lit 32:20 %add)))))))))

@@ -29,14 +29,15 @@ function assertAtom(value, operation) {
   return value;
 }
 
-// Validate the complete noun, rather than only the portion an operation reads.
-// The explicit stack handles deep nouns; the two sets distinguish shared
-// substructure (valid) from cycles (invalid).
+// Each operation checks its operands one level deep: an atom is a
+// nonnegative BigInt, and a cell a two-element array whose head and tail are
+// each an atom, a function or another two-element array. Every cell a Core
+// program makes comes from cons or edit, so cells stay well formed
+// throughout, and no operation costs more than the part of a noun it reads.
+// same reads whole nouns, and checks them whole: there a cycle, or a
+// function anywhere, is an error. Its explicit stack handles deep nouns; the
+// two sets distinguish shared substructure (valid) from cycles (invalid).
 function assertNoun(value, operation) {
-  return assertValue(value, operation, false);
-}
-
-function assertValue(value, operation, allowFunctions = true) {
   const active = new Set();
   const complete = new Set();
   const stack = [{ value, exit: false }];
@@ -51,9 +52,6 @@ function assertValue(value, operation, allowFunctions = true) {
     }
 
     if (typeof current === 'function') {
-      if (allowFunctions) {
-        continue;
-      }
       fail(`${operation}: functions are not nouns`);
     }
 
@@ -83,6 +81,25 @@ function assertValue(value, operation, allowFunctions = true) {
     );
   }
 
+  return value;
+}
+
+function assertPart(part, operation) {
+  if (typeof part === 'bigint') {
+    assertAtom(part, operation);
+  } else if (typeof part !== 'function' && (!Array.isArray(part) || part.length !== 2)) {
+    fail(`${operation}: expected an atom or a two-element cell`);
+  }
+}
+
+function assertValue(value, operation) {
+  if (typeof value === 'bigint') return assertAtom(value, operation);
+  if (typeof value === 'function') return value;
+  if (!Array.isArray(value) || value.length !== 2) {
+    fail(`${operation}: expected an atom or a two-element cell`);
+  }
+  assertPart(value[0], operation);
+  assertPart(value[1], operation);
   return value;
 }
 
@@ -126,7 +143,7 @@ export function same(left, right) {
 
 function normalizeAxis(axis) {
   if (typeof axis === 'bigint') {
-    if (axis < 1n || axis > BigInt(Number.MAX_SAFE_INTEGER)) {
+    if (axis < 1n || axis > MAX_SAFE) {
       fail('Axis must be a safe integer greater than or equal to 1');
     }
     return Number(axis);
@@ -145,14 +162,24 @@ function axisPath(axis) {
 }
 
 export function slot(axis, value) {
-  const path = axisPath(axis);
+  const number = normalizeAxis(axis);
   if (typeof value === 'function') {
     fail('slot: functions are not nouns');
   }
   assertValue(value, 'slot');
 
   let current = value;
-  for (const direction of path) {
+  if (number < 0x80000000) {
+    // The bits below the leading one, most significant first.
+    for (let bit = 30 - Math.clz32(number); bit >= 0; bit -= 1) {
+      if (!Array.isArray(current)) {
+        fail(`slot: axis ${String(axis)} does not exist`);
+      }
+      current = current[(number >>> bit) & 1];
+    }
+    return current;
+  }
+  for (const direction of number.toString(2).slice(1)) {
     if (!Array.isArray(current)) {
       fail(`slot: axis ${String(axis)} does not exist`);
     }
@@ -210,22 +237,71 @@ export function apply(fn, argument) {
   return fn(argument);
 }
 
+// A module-level function remembers its last few samples and products:
+// called again with one of those samples, or a cell of the same two parts,
+// it gives the same product, so the parts of a view whose inputs did not
+// change are the same nouns as before, which the browser need not render
+// again. A few, since one render may call a gate from several places.
+const REMEMBERED = 4;
+
+function sameSample(left, right) {
+  return left === right || (Array.isArray(left) && Array.isArray(right)
+    && left[0] === right[0] && left[1] === right[1]);
+}
+
+export function memo(fn) {
+  const samples = [];
+  const products = [];
+  return (argument) => {
+    for (let index = 0; index < samples.length; index += 1) {
+      if (sameSample(samples[index], argument)) return products[index];
+    }
+    const result = fn(argument);
+    if (samples.length === REMEMBERED) {
+      samples.pop();
+      products.pop();
+    }
+    samples.unshift(argument);
+    products.unshift(result);
+    return result;
+  };
+}
+
+const MAX_SAFE = BigInt(Number.MAX_SAFE_INTEGER);
+const HEX_BYTES = Array.from({ length: 256 }, (_, byte) => byte.toString(16).padStart(2, '0'));
+const HEX_VALUES = new Uint8Array(128);
+for (let digit = 0; digit < 16; digit += 1) {
+  HEX_VALUES['0123456789abcdef'.charCodeAt(digit)] = digit;
+}
+
 export function atomToBytes(atom) {
   assertAtom(atom, 'atomToBytes');
   if (atom === 0n) {
     return new Uint8Array(0);
   }
 
-  let hexadecimal = atom.toString(16);
-  if (hexadecimal.length % 2 !== 0) {
-    hexadecimal = `0${hexadecimal}`;
+  // Urbit atoms store the least-significant byte first.
+  if (atom <= MAX_SAFE) {
+    let rest = Number(atom);
+    let length = 0;
+    for (let probe = rest; probe > 0; probe = Math.floor(probe / 256)) length += 1;
+    const bytes = new Uint8Array(length);
+    for (let index = 0; index < length; index += 1) {
+      bytes[index] = rest % 256;
+      rest = Math.floor(rest / 256);
+    }
+    return bytes;
   }
 
-  const bytes = new Uint8Array(hexadecimal.length / 2);
-  // Urbit atoms store the least-significant byte first.
+  const hexadecimal = atom.toString(16);
+  const odd = hexadecimal.length % 2;
+  const bytes = new Uint8Array((hexadecimal.length + odd) / 2);
+  let offset = hexadecimal.length;
   for (let index = 0; index < bytes.length; index += 1) {
-    const offset = hexadecimal.length - 2 * (index + 1);
-    bytes[index] = Number.parseInt(hexadecimal.slice(offset, offset + 2), 16);
+    const low = HEX_VALUES[hexadecimal.charCodeAt(offset - 1)];
+    const high = offset >= 2 ? HEX_VALUES[hexadecimal.charCodeAt(offset - 2)] : 0;
+    bytes[index] = high * 16 + low;
+    offset -= 2;
   }
   return bytes;
 }
@@ -235,15 +311,39 @@ export function bytesToAtom(bytes) {
     fail('bytesToAtom: expected a Uint8Array');
   }
 
-  let atom = 0n;
-  for (let index = bytes.length - 1; index >= 0; index -= 1) {
-    atom = (atom << 8n) | BigInt(bytes[index]);
+  if (bytes.length <= 6) {
+    let small = 0;
+    for (let index = bytes.length - 1; index >= 0; index -= 1) {
+      small = small * 256 + bytes[index];
+    }
+    return BigInt(small);
   }
-  return atom;
+  let hexadecimal = '0x';
+  for (let index = bytes.length - 1; index >= 0; index -= 1) {
+    hexadecimal += HEX_BYTES[bytes[index]];
+  }
+  return BigInt(hexadecimal);
 }
 
+// Views decode the same cords again on every render, so recent decodings
+// are kept, a bounded number of them.
+const decoder = new TextDecoder('utf-8');
+const decoded = new Map();
+const DECODED_LIMIT = 8192;
+
 export function atomToText(atom) {
-  return new TextDecoder('utf-8').decode(atomToBytes(atom));
+  const known = decoded.get(atom);
+  if (known !== undefined) return known;
+  const bytes = atomToBytes(atom);
+  let text;
+  if (bytes.length <= 1024 && bytes.every(byte => byte < 0x80)) {
+    text = String.fromCharCode(...bytes);
+  } else {
+    text = decoder.decode(bytes);
+  }
+  if (decoded.size >= DECODED_LIMIT) decoded.clear();
+  decoded.set(atom, text);
+  return text;
 }
 
 function logTrace(message, logger) {

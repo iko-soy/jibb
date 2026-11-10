@@ -78,6 +78,7 @@ CHECKS = [
     tool('golden'),                             # about 60 to 100 s
     tool('test-js'),
     tool('test-js-differential'),
+    tool('bundle-js', 'eval', '--check'),
     Check('jibb-cli', 'native',
           ['cargo', 'test', '--manifest-path', 'jibb-cli/Cargo.toml']),
 ] + [
@@ -87,6 +88,7 @@ CHECKS = [
 ] + [
     Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),
     tool('doc-fragments'),
+    tool('doc-format'),
     tool('split-goldens'),
     #  The ship group.  ship-selftest leaves its fixture files on the
     #  jibb-dev desk, and ship-test, which syncs the desk to the repo
@@ -97,6 +99,8 @@ CHECKS = [
     tool('clay-fixtures', 'ship'),
     tool('check-my-app', 'ship'),
     tool('check-host', 'ship'),
+    tool('check-browser', 'ship'),
+    tool('check-node-tests', 'ship'),
     Check('probes-ship', 'ship', ['tools/probe-regression', '--backend', 'ship']),
 ]
 

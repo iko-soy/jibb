@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Run each desk's tests through the Node harness: every test- arm under
+/ui/tests, as the host compiled it to JavaScript and to Nock, runs in Node
+with tools/node-tests.mjs, and both outcomes must agree with each other
+and with what -jibb!test gives on the ship."""
+
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import urllib.error
+
+ROOT = Path(__file__).resolve().parent.parent
+host = SourceFileLoader('jibb_check_host', str(ROOT / 'tools' / 'check-host')).load_module()
+shiptool = host.shiptool
+
+PROGRAMS = '(each (list [at=path programs=(list [arm=term js=@t nock=*])]) @t)'
+RESULT = '?:  ?=(%| -.val)  ~|(p.val !!)  (pure:m !>((jam p.val)))'
+
+
+def outcome(ok, message):
+    """The harness's word for a -jibb!test outcome."""
+    if ok:
+        return 'yes'
+    if message.endswith('crashed during Nock execution'):
+        return 'crash'
+    if message.endswith('is %.n'):
+        return 'no'
+    return None
+
+
+def main():
+    ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
+    ship.require()
+    revisions = {desk: shiptool.sync(ship, desk, timeout=300)
+                 for desk in ('jibb', 'my-app', host.DESK)}
+    for desk in revisions:
+        host.poke(ship, 'kiln-revive', '%' + desk)
+    host.wait_for('host agent installation', lambda: host.route_count(ship) >= 0 or None)
+    failures = []
+    with tempfile.TemporaryDirectory() as folder:
+        for desk, wanted in host.EXPECTED_TESTS.items():
+            host.wait_built(ship, desk, revisions[desk], timeout=3600)
+            care, path = shiptool.parse_scry('/gx/=jibb=/test-programs/%s/noun' % desk)
+            packed = ship.thread(shiptool.fill(
+                shiptool.SCRY, TYPE=PROGRAMS, CARE=care, PATH=path, NOW='now.bowl',
+                RESULT=RESULT), timeout=host.REPLY)
+            file = os.path.join(folder, desk + '.jam')
+            Path(file).write_bytes(shiptool.atom_bytes(packed))
+            run = subprocess.run(['node', str(ROOT / 'tools' / 'node-tests.mjs'), file],
+                                 capture_output=True, text=True)
+            if run.returncode != 0:
+                failures.append('%s: the harness failed: %s' % (desk, run.stderr.strip()))
+                continue
+            got = {(r['at'], r['arm']): r for r in map(json.loads, run.stdout.splitlines())}
+            expected = {(at, arm): outcome(ok, message)
+                        for at, tests in wanted for arm, ok, message in tests
+                        if outcome(ok, message) is not None}
+            if set(got) != set(expected):
+                failures.append('%s: the harness ran %r, not %r'
+                                % (desk, sorted(got), sorted(expected)))
+                continue
+            for key, want in sorted(expected.items()):
+                result = got[key]
+                if result['js'] != result['nock']:
+                    failures.append('%s %s: JavaScript gave %s and Nock %s'
+                                    % (key[0], key[1], result['js'], result['nock']))
+                elif result['js'] != want:
+                    failures.append('%s %s: both gave %s, but -jibb!test %s'
+                                    % (key[0], key[1], result['js'], want))
+                else:
+                    print('ok   %s %s: %s in JavaScript and Nock' % (key[0], key[1], want))
+    for failure in failures:
+        print('FAIL ' + failure)
+    if failures:
+        return 1
+    print('check-node-tests: every test agrees in JavaScript, Nock and -jibb!test')
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, json.JSONDecodeError, urllib.error.URLError,
+            shiptool.Fail, shiptool.Unable) as error:
+        print('check-node-tests: %s' % error, file=sys.stderr)
+        sys.exit(1)

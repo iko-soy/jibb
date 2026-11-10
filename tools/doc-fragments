@@ -9,7 +9,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def definitions(text):
-    """Return top-level ++ definitions, including their indented bodies."""
+    """Return top-level ++ definitions, including their indented bodies,
+    without the bare :: lines the formatter writes between definitions."""
     lines = text.splitlines(keepends=True)
     starts = [i for i, line in enumerate(lines) if line.startswith('++ ')]
     result = {}
@@ -18,7 +19,10 @@ def definitions(text):
         name = lines[start].split()[1]
         if name in result:
             raise ValueError('duplicate definition: ' + name)
-        result[name] = ''.join(lines[start:end]).rstrip('\n') + '\n'
+        body = lines[start:end]
+        while body and body[-1].strip() in ('', '::'):
+            body.pop()
+        result[name] = ''.join(body).rstrip('\n') + '\n'
     return result
 
 
@@ -91,9 +95,9 @@ def main():
         if 'add-button' not in buttons:
             raise ValueError('documented buttons have no add-button definition')
         cmd_sub = read('tests/golden/doc-overview-01-cmd-sub/source.jibb')
-        cmd, sub = cmd_sub.split('+$ sub ', 1)
+        cmd, sub = cmd_sub.split('+$  sub  ', 1)
         prelude = read('jibb-dev/lib/jibb/prelude.jibb')
-        for name, fragment in [('cmd', cmd), ('sub', '+$ sub ' + sub)]:
+        for name, fragment in [('cmd', cmd), ('sub', '+$  sub  ' + sub)]:
             present = fragment.rstrip('\n') + '\n' in prelude
             print(('ok     ' if present else 'FAIL   ') + 'documented ' + name + ' in prelude')
             checks.append(present)

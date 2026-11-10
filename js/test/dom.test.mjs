@@ -380,3 +380,23 @@ test('syncControls writes only changed value, checked, and disabled properties',
   assert.equal(node.checked, true);
   assert.equal(node.disabled, true);
 });
+
+test('the same element is the same vnode, and patching it touches nothing', () => {
+  const document = createFakeDocument();
+  const rows = seal('each', list([1n, seal('text', cord('one'))], [2n, seal('text', cord('two'))]));
+  const view = (draft) => seal('column', [0n, list(seal('text', cord(draft)), rows)]);
+  const before = toVnode(view('a'));
+  const after = toVnode(view('ab'));
+  assert.strictEqual(before.children[1], after.children[1]);
+  assert.notStrictEqual(before.children[0], after.children[0]);
+  const node = createDom(before, { document });
+  document.body.appendChild(node);
+  const each = node.childNodes[1];
+  const first = each.childNodes[0];
+  first.nodeValue = 'changed behind its back';
+  patchDom(document.body, node, after, { document });
+  assert.equal(node.childNodes[0].nodeValue, 'ab');
+  // The unchanged subtree was passed over, so even a stray edit stays.
+  assert.strictEqual(node.childNodes[1], each);
+  assert.equal(each.childNodes[0].nodeValue, 'changed behind its back');
+});

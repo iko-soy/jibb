@@ -54,19 +54,14 @@ function normalizePath(path) {
   return path;
 }
 
-function decodeSign(value) {
-  const [tag, payload] = cell(value, 'channel sign');
-  switch (text(tag)) {
-    case 'ok':
-      if (payload !== 0n) throw new Error('channel %ok sign must have a ~ tail');
-      break;
-    case 'err':
-      // The payload is the application-supplied tang noun, left uninterpreted.
-      break;
-    default:
-      throw new Error(`unknown channel sign %${text(tag)}`);
-  }
-  return value;
+// Gall's acks, as Eyre's noun channel sends them, carry a (unit tang): ~
+// for success, else the agent's tang, left uninterpreted. The callbacks get
+// [%ok ~] or [%err tang].
+function decodeAck(value) {
+  if (value === 0n) return [cord('ok'), 0n];
+  const [none, tang] = cell(value, 'channel ack');
+  if (none !== 0n) throw new Error('a channel ack must be a (unit tang)');
+  return [cord('err'), tang];
 }
 
 function eventId(value) {
@@ -176,7 +171,9 @@ export class Channel {
     this.freshUid = options.freshUid ?? (() => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-jibb`);
     this.uid = String(uid);
     this.url = `${this.base}/~/channel/${encodeURIComponent(this.uid)}`;
-    this.fetchImpl = options.fetchImpl ?? globalThis.fetch;
+    // A browser's fetch throws when called as another object's method.
+    this.fetchImpl = options.fetchImpl
+      ?? (typeof globalThis.fetch === 'function' ? (...args) => globalThis.fetch(...args) : undefined);
     if (typeof this.fetchImpl !== 'function') throw new TypeError('Channel requires fetchImpl');
 
     this.onPokeAck = options.onPokeAck ?? (() => {});
@@ -184,6 +181,10 @@ export class Channel {
     this.onFact = options.onFact ?? (() => {});
     this.onKick = options.onKick ?? (() => {});
     this.onError = options.onError ?? (() => {});
+    this.onSent = options.onSent ?? (() => {});
+    // PUTs go one at a time, so Eyre takes requests in the order made.
+    this.sending = Promise.resolve();
+    this.closed = false;
 
     this.lastEventId = null;
     this.abortController = null;
@@ -195,13 +196,15 @@ export class Channel {
   async request(requests, ...rest) {
     const batch = normalizeRequests(requests, rest);
     const body = encodeUw(jam(arrayToList(batch)));
-    const response = await this.fetchImpl(this.url, {
+    const sent = this.sending.then(() => this.fetchImpl(this.url, {
       method: 'PUT',
       credentials: 'include',
       headers: { 'content-type': CHANNEL_FORMAT },
       body,
-    });
-    requireOk(response);
+    }));
+    this.sending = sent.then(() => {}, () => {});
+    requireOk(await sent);
+    this.onSent();
   }
 
   poke(requestId, ship, app, mark, noun) {
@@ -303,16 +306,19 @@ export class Channel {
     const [tag, payload] = cell(event, 'channel event');
     switch (text(tag)) {
       case 'poke-ack':
-        this.onPokeAck(requestId, decodeSign(payload), eventId);
+        this.onPokeAck(requestId, decodeAck(payload), eventId);
         return;
       case 'watch-ack':
-        this.onWatchAck(requestId, decodeSign(payload), eventId);
+        this.onWatchAck(requestId, decodeAck(payload), eventId);
         return;
       case 'kick':
-        this.onKick(requestId, decodeSign(payload), eventId);
+        if (payload !== 0n) throw new Error('a channel kick must have a ~ tail');
+        this.onKick(requestId, [cord('ok'), 0n], eventId);
         return;
       case 'fact': {
-        const [mark, noun] = cell(payload, 'channel fact');
+        // A fact names its agent's desk, then its mark and noun.
+        const [, markAndNoun] = cell(payload, 'channel fact');
+        const [mark, noun] = cell(markAndNoun, 'channel fact');
         this.onFact(requestId, mark, noun, eventId);
         return;
       }
@@ -334,6 +340,7 @@ export class Channel {
   }
 
   close() {
+    this.closed = true;
     this.abortController?.abort();
   }
 }

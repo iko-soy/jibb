@@ -1,0 +1,11 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+
+return (() => { const $0 = BigInt("1"); return (() => { const $1 = cons($0, BigInt("2")); return (() => { const $2 = edit(2n, $1, BigInt("7")); return cons(slot(2n, $2), slot(3n, $1)); })(); })(); })();
+}

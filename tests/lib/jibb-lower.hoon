@@ -246,15 +246,17 @@
   $(hay t.hay, out [i.hay out])
 ++  ordinary-doc-update
   ^-  @t
+  ::  The module is in the formatter's canonical form: two spaces after
+  ::  ++ and the name, and :: between definitions.
   =/  block=tape
-    (tape-skip-to "++ update" (trip (text todo-source)))
-  =/  hay=tape  (tape-take-to "\0a++ subs" block)
+    (tape-skip-to "++  update" (trip (text todo-source)))
+  =/  hay=tape  (tape-take-to "\0a::\0a++  subs" block)
   =/  renamed=@t  (tape-replace "poke.todo" "todo-action.todo" hay)
   =/  added=@t
     (tape-replace "(todo-action.todo [%add draft.m] |=%acked)" "[%poke (todo-action.todo [%add draft.m]) |=%acked]" (trip renamed))
   =/  toggled=@t
     (tape-replace "(todo-action.todo [%toggle id] |=%acked)" "[%poke (todo-action.todo [%toggle id]) |=%acked]" (trip added))
-  (tape-replace "++ update |= [=msg m=model]" "++ update ^- $-([msg model] [model (list (cmd msg))]) |= [=msg m=model]" (trip toggled))
+  (tape-replace "++  update  |=  [=msg m=model]" "++  update  ^-  $-([msg model] [model (list (cmd msg))])  |=  [=msg m=model]" (trip toggled))
 ++  test-doc-update-lowering-modulo-derived-import
   ^-  tang
   =/  prepared=(unit iprelude:jibb)
@@ -463,6 +465,18 @@
     ~[leaf+"public prelude checked artifact was not retained" (sell !>((turn cache.p.built |=(entry=[at=path artifact=checked-module:jibb] at.entry))))]
   ?.  ?=(^ (find-jlowering-cache:jibb /lib/jibb/internal/jibb cache.p.built))
     ~[leaf+"private prelude checked artifact was not retained"]
+  ~
+++  test-text-family-and-tapes-splice
+  ^-  tang
+  =/  src=@t
+    '++ at-knot |= k=@ta "at {k}"\0a++ is-term |= t=@tas "is {t}"\0a++ said |= s=(list @tD) "say {s}"\0a'
+  =/  built=(each [root=checked-module:jibb cache=jlowering-cache:jibb core=module:jibb-core] @t)
+    (lower-with-real-prelude /tests/lower/text/jibb src)
+  ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
+  =/  expected=@t
+    '(module tests/lower/text (def at-knot (lam k (app (native join) (cons "" (cons "at " (cons k ~)))))) (def is-term (lam t (app (native join) (cons "" (cons "is " (cons t ~)))))) (def said (lam s (app (native join) (cons "" (cons "say " (cons (app (native crip) s) ~)))))))'
+  =/  actual=@t  (print-module:jibb-core core.p.built)
+  ?.  =(expected actual)  ~[leaf+(trip actual)]
   ~
 ++  test-derived-pure-lowers-as-lambda
   ^-  tang

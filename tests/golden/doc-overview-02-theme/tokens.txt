@@ -1,89 +1,95 @@
 1:1 glyph ++
-1:4 name theme
-1:11 glyph ^-
-1:14 name theme
+1:5 name theme
+1:12 glyph ^-
+1:16 name theme
 2:3 INDENT
 2:3 glyph [
-2:5 name space
-2:10 tight glyph =
-2:11 tight glyph [
-2:12 tight name s1
-2:14 tight glyph =
-2:15 tight str "4px"
-2:21 name s2
-2:23 tight glyph =
-2:24 tight str "8px"
-2:30 name s3
-2:32 tight glyph =
-2:33 tight str "16px"
-2:39 tight glyph ]
 3:5 INDENT
-3:5 name tones
+3:5 name space
 3:10 tight glyph =
 3:11 tight glyph [
-3:12 tight name normal
-3:18 tight glyph =
-3:19 tight str "#222"
-3:26 name background
-3:36 tight glyph =
-3:37 tight str "#fff"
-3:44 name accent
-3:50 tight glyph =
-3:51 tight str "#17734f"
-3:61 name danger
-3:67 tight glyph =
-3:68 tight str "#b3261e"
-3:78 name muted
-3:83 tight glyph =
-3:84 tight str "#5f5f5f"
-3:93 tight glyph ]
+3:12 tight name s1
+3:14 tight glyph =
+3:15 tight str "4px"
+3:21 name s2
+3:23 tight glyph =
+3:24 tight str "8px"
+3:30 name s3
+3:32 tight glyph =
+3:33 tight str "16px"
+3:39 tight glyph ]
 4:5 NEWLINE
-4:5 name wide
-4:9 tight glyph =
-4:10 tight str "60rem"
-5:5 NEWLINE
-5:5 name lang
-5:9 tight glyph =
-5:10 tight str "en"
-6:5 NEWLINE
-6:5 name zone
-6:9 tight glyph =
-6:10 tight str "UTC"
-7:5 NEWLINE
-7:5 name font
-7:9 tight glyph =
-7:10 tight glyph `
-7:11 tight glyph %/
-7:13 tight knot static
-7:19 tight glyph /
-7:20 tight knot fonts
-7:25 tight glyph /
-7:26 tight knot inter.woff2
-8:5 NEWLINE
-8:5 name dark
-8:9 tight glyph =
-8:10 tight glyph `
-8:11 tight glyph [
-8:12 tight name tones
-8:17 tight glyph =
-8:18 tight glyph [
-8:19 tight name normal
-8:25 tight glyph =
-8:26 tight str "#eee"
-8:33 name background
-8:43 tight glyph =
-8:44 tight str "#111"
-8:51 name accent
-8:57 tight glyph =
-8:58 tight str "#4c9"
-8:65 name danger
-8:71 tight glyph =
-8:72 tight str "#f28b82"
-8:82 name muted
-8:87 tight glyph =
-8:88 tight str "#aaa"
-8:94 tight glyph ]
-8:95 tight glyph ]
-8:96 DEDENT
-8:96 DEDENT
-8:96 NEWLINE
+4:5 name tones
+4:10 tight glyph =
+4:11 tight glyph [
+5:7 INDENT
+5:7 name normal
+5:13 tight glyph =
+5:14 tight str "#222"
+6:7 NEWLINE
+6:7 name background
+6:17 tight glyph =
+6:18 tight str "#fff"
+7:7 NEWLINE
+7:7 name accent
+7:13 tight glyph =
+7:14 tight str "#17734f"
+8:7 NEWLINE
+8:7 name danger
+8:13 tight glyph =
+8:14 tight str "#b3261e"
+9:7 NEWLINE
+9:7 name muted
+9:12 tight glyph =
+9:13 tight str "#5f5f5f"
+10:5 DEDENT
+10:5 NEWLINE
+10:5 name wide
+10:9 tight glyph =
+10:10 tight str "60rem"
+11:5 NEWLINE
+11:5 name lang
+11:9 tight glyph =
+11:10 tight str "en"
+12:5 NEWLINE
+12:5 name zone
+12:9 tight glyph =
+12:10 tight str "UTC"
+13:5 NEWLINE
+13:5 name font
+13:9 tight glyph =
+13:10 tight glyph `
+13:11 tight glyph %/
+13:13 tight knot static
+13:19 tight glyph /
+13:20 tight knot fonts
+13:25 tight glyph /
+13:26 tight knot inter.woff2
+14:5 NEWLINE
+14:5 name dark
+14:9 tight glyph =
+14:10 tight glyph `
+14:11 tight glyph [
+14:12 tight name tones
+14:17 tight glyph =
+14:18 tight glyph [
+14:19 tight name normal
+14:25 tight glyph =
+14:26 tight str "#eee"
+14:33 name background
+14:43 tight glyph =
+14:44 tight str "#111"
+14:51 name accent
+14:57 tight glyph =
+14:58 tight str "#4c9"
+14:65 name danger
+14:71 tight glyph =
+14:72 tight str "#f28b82"
+14:82 name muted
+14:87 tight glyph =
+14:88 tight str "#aaa"
+14:94 tight glyph ]
+14:95 tight glyph ]
+14:96 DEDENT
+14:96 DEDENT
+14:96 NEWLINE

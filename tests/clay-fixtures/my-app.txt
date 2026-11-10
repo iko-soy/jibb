@@ -20,12 +20,14 @@
 =/  mu=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-update/hoon)
 =/  mi=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/todo-item/hoon)
 =/  mp=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/posts/hoon)
+=/  mo=vase  .^(vase %ca /[(scot %p our.bowl)]/my-app/[(scot %da now)]/mar/post/hoon)
 =/  rma=vase  (slym read-mark-source [%todo-action mark-sources -.ma])
 =/  rmt=vase  (slym read-mark-source [%todos mark-sources -.mt])
 =/  rmu=vase  (slym read-mark-source [%todo-update mark-sources -.mu])
 =/  rmi=vase  (slym read-mark-source [%todo-item mark-sources -.mi])
 =/  rmp=vase  (slym read-mark-source [%posts mark-sources -.mp])
-=/  marks=(list [term *])  ~[[%todo-action +.rma] [%todos +.rmt] [%todo-update +.rmu] [%todo-item +.rmi] [%posts +.rmp]]
+=/  rmo=vase  (slym read-mark-source [%post mark-sources -.mo])
+=/  marks=(list [term *])  ~[[%todo-action +.rma] [%todos +.rmt] [%todo-update +.rmu] [%todo-item +.rmi] [%posts +.rmp] [%post +.rmo]]
 =/  prepare=vase  (slap jibb (ream 'prepare-prelude-with-group-evidence-detailed'))
 =/  read-generic=vase  (slap reader (ream 'read-generic-source'))
 =/  reader-sources=(list [module=term name=term at=path source=@t])  @@PRELUDE-READERS@@

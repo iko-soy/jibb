@@ -140,16 +140,16 @@ Loads and renders run in Nock.
 **Effects.** Commands and subscriptions are library values:
 
 ```jibb
-+$ cmd |$ [M]
-  [%poke p=raw-poke reply=$-((unit @t) M)]
++$  cmd  |$  [M]
+  [%poke p=raw-poke reply=$-((unit @t)  M)]
   [%go url=@t]
   [%wait gap=@dr msg=M]
-  [%now reply=$-(@da M)]
-  [%who reply=$-(@p M)]
-+$ sub |$ [M]
+  [%now reply=$-(@da  M)]
+  [%who reply=$-(@p  M)]
++$  sub  |$  [M]
   [%watch a=(ask M)]
-  [%every gap=@dr reply=$-(@da M)]
-  [%url reply=$-(path M)]
+  [%every gap=@dr reply=$-(@da  M)]
+  [%url reply=$-(path  M)]
 ```
 
 An island's `update` returns `[model (list (cmd M))]`, so one message may produce several commands. The runtime processes the returned commands one at a time, in list order. A store's `update` consumes exactly one poke with the current state and returns the next state.
@@ -213,9 +213,15 @@ The same attribute twice in a literal list is an error; otherwise the last wins.
 The theme, `++ theme` in `/ui/theme.jibb`, uses the prelude's `theme` mold, with a default for desks without one. It requires `s1` to `s3` (`s0` is zero), five tones, with `normal` the text and `background` the page colour, the page's language, and the time zone dates print in. `wide` is the breakpoint where `stack` becomes a row. Dark tones go under `dark`, used when the reader prefers dark. An optional `font` is an application path to a static font. Tokens become CSS custom properties and `wide` a media query; values must be CSS lengths or colours, and each tone needs 4.5:1 contrast with its background.
 
 ```jibb
-++ theme  ^- theme
-  [ space=[s1="4px" s2="8px" s3="16px"]
-    tones=[normal="#222" background="#fff" accent="#17734f" danger="#b3261e" muted="#5f5f5f"]
+++  theme  ^-  theme
+  [
+    space=[s1="4px" s2="8px" s3="16px"]
+    tones=[
+      normal="#222"
+      background="#fff"
+      accent="#17734f"
+      danger="#b3261e"
+      muted="#5f5f5f"
     wide="60rem"
     lang="en"
     zone="UTC"
@@ -293,10 +299,10 @@ Each agent Jibb talks to has `/ui/api/<agent>.jibb`, declaring its pokes in `+$ 
 /%  %todos
 /%  %todo-update
 /%  %todo-item
-
-+$ item item.todo
-+$ poke todo-action
-+$ paths
+::
++$  item  item.todo
++$  poke  todo-action
++$  paths
   [%todos /todos todos]
   [%changes /changes (facts todos todo-update)]
   [%todo-by-id /todo/[id=@ud] todo-item]
@@ -424,13 +430,15 @@ One page per stage.
 ### 1. Static: `/ui/about.jibb`
 
 ```jibb
-++ main view
-
-++ view
-  column ~[width+[%fill 1] pad+%s3 gap+%s2] ~[
-    heading 1 "About this ship"
-    para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
-    el ~[tone+%accent] (link %/blog "Read the blog")
+++  main  view
+::
+++  view
+  (column
+    ~[width+[%fill 1] pad+%s3 gap+%s2]
+    ~[
+      heading 1 "About this ship"
+      para ~[(text "Hosted on Urbit. This page ships no JavaScript.")]
+      el ~[tone+%accent] (link %/blog "Read the blog")
 ```
 
 An `(element !!)`: build stage, one HTML file plus the stylesheet, rendered on commit, titled "About this ship".
@@ -439,14 +447,13 @@ An `(element !!)`: build stage, one HTML file plus the stylesheet, rendered on c
 
 ```jibb
 /-  blog
-/=  api   /ui/api/blog
+/=  api  /ui/api/blog
 /=  card  /ui/components/card
-
-++ main (page load view)
-++ load |=(~ (posts.api same))
-
-++ view |= ps=(list post.blog)
-  column ~[gap+%s2] (turn ps card.card)
+::
+++  main  page load view
+++  load  |=  ~  posts.api same
+::
+++  view  |=  ps=(list post.blog)  column ~[gap+%s2] (turn ps card.card)
 ```
 
 A `page`: each request scries `%blog` and renders in Nock.
@@ -455,58 +462,57 @@ A `page`: each request scries `%blog` and renders in Nock.
 
 ```jibb
 /=  todo  /ui/api/todo
-
-++ main (program init update view subs)
-
-+$ model [todos=(list item.todo) draft=@t error=(unit @t)]
-+$ msg
+::
+++  main  program init update view subs
+::
++$  model  [todos=(list item.todo) draft=@t error=(unit @t)]
++$  msg
   [%typed text=@t]
   %submit
   [%toggled id=@ud]
   [%got todos=(list item.todo)]
   [%acked err=(unit @t)]
-
-++ init |= ts=(list item.todo)
-  [todos=ts draft="" error=~]
-
-++ update |= [=msg m=model]
-  ?- msg
+::
+++  init  |=  ts=(list item.todo)  [todos=ts draft="" error=~]
+::
+++  update  |=  [=msg m=model]
+  ?-  msg
   [%typed t]
-    ?- (gth (lent (tuba (trip t))) 80)
+    ?-  gth (lent (tuba (trip t))) 80
     %.y  [m(draft=t error=`"Too long") ~]
     %.n  [m(draft=t error=~) ~]
-  %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+  %submit  [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
   [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
-  [%got ts]      [m(todos=ts) ~]
-  [%acked err]   [m(error=err) ~]
-
-++ subs |= m=model
-  ~[[%watch (todos.todo |=%got)]]
-
-++ view |= m=model
-  column ~[gap+%s2] ~[
-    heading 2 "Todos"
-    each (turn todos.m row-of)
-    row ~[gap+%s1] ~[
-      el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
-      button "Add" %submit
-    el ~[tone+%danger] (text (fall error.m ""))
-
-++ row-of |= t=item.todo
-  [id.t (toggle done.t text.t [%toggled id.t])]
+  [%got ts]  [m(todos=ts) ~]
+  [%acked err]  [m(error=err) ~]
+::
+++  subs  |=  m=model  ~[[%watch (todos.todo |=%got)]]
+::
+++  view  |=  m=model
+  (column
+    ~[gap+%s2]
+    ~[
+      heading 2 "Todos"
+      each (turn todos.m row-of)
+      (row
+        ~[gap+%s1]
+        ~[
+          el ~[width+[%fill 1]] (field "New todo" draft.m |=%typed)
+          button "Add" %submit
+      el ~[tone+%danger] (text (fall error.m ""))
+::
+++  row-of  |=  t=item.todo  [id.t (toggle done.t text.t [%toggled id.t])]
 ```
 
 ```jibb
-/=  todo       /ui/api/todo
+/=  todo  /ui/api/todo
 /=  todo-list  /ui/todo-list
-
-++ main (page load view)
-++ load |=(~ (todos.todo same))
-
-++ view |= ts=(list item.todo)
-  column ~[pad+%s3] ~[
-    heading 1 "My ship"
-    island main.todo-list ts
+::
+++  main  page load view
+++  load  |=  ~  todos.todo same
+::
+++  view  |=  ts=(list item.todo)
+  column ~[pad+%s3] ~[(heading 1 "My ship") (island main.todo-list ts)]
 ```
 
 | Part | Stage | Becomes |

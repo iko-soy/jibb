@@ -10,9 +10,10 @@
 =/  blog-subject=type  [%cell [%face %blog blog] -:!>(..zuse)]
 =/  blog-sources=(list [module=term at=path source=@t])  ~[[%blog /sur/blog/hoon blogsur]]
 =/  mp=*  (read-mark-source:imp %posts blog-sources -:(ride blog-subject posts))
+=/  mo=*  (read-mark-source:imp %post blog-sources -:(ride blog-subject postmark))
 =/  item-input=*  (read-named:imp %todo %item todo)
 =/  post-input=*  (read-named:imp %blog %post blog)
-=/  marks=imark-externals  ~[[%todo-action ma] [%todos mt] [%todo-update mu] [%todo-item mi] [%posts mp]]
+=/  marks=imark-externals  ~[[%todo-action ma] [%todos mt] [%todo-update mu] [%todo-item mi] [%posts mp] [%post mo]]
 =/  externals=iexternals  ~[[%todo %item item-input] [%blog %post post-input]]
 =/  all-modules=jbundle
   :~  [/ui/api/todo/jibb todoapi]

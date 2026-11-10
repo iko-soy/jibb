@@ -74,7 +74,7 @@
   =/  state=(unit expr:jibb-core)  (definition-named %state p.built)
   ?~  state  ~[leaf+"derived store state is missing"]
   =/  state-expected=@t
-    '(def state (lam _1 (cons %store (cons "stores/cart" (cons %state (lam _2 (let _fact (slot 3 _2) (cons _fact (app _1 _fact)))))))))'
+    '(def state (lam _1 (cons %store (cons "stores/cart" (cons %state (lam _2 (let _3 (slot 3 _2) (cons _3 (app _1 _3)))))))))'
   ?.  =(state-expected (print-definition:jibb-core [[%own %state] u.state]))
     ~[leaf+(trip (print-definition:jibb-core [[%own %state] u.state]))]
   =/  poke=(unit expr:jibb-core)  (definition-named %poke p.built)

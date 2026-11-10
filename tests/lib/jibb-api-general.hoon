@@ -74,7 +74,8 @@
   =/  checked=jfile-detailed-result:jibb  (infer-jibb-file-detailed:jibb client-at client ~ marks modules ~[client-at] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
   ?:  ?=(%| -.checked)  ~[leaf+"general API calls failed" leaf+(trip message.p.checked)]
   =/  page=@t  '/= other /ui/api/other\0a++ load |= id=@ud (separate.other id same)\0a++ view |= data=todos.other ^- (element !!) (text "ok")\0a++ main (page load view)\0a'
-  =/  page-at=path  /ui/search/jibb
+  ::  A page whose load takes an id has the route parameter _id.
+  =/  page-at=path  /ui/search/[~._id]/jibb
   =/  page-result=jfile-detailed-result:jibb  (infer-jibb-file-detailed:jibb page-at page ~ marks modules ~[page-at] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
   ?:  ?=(%| -.page-result)  ~[leaf+"page using separate-scry request failed" leaf+(trip message.p.page-result)]
   ?.  =(%page kind.p.page-result)  ~[leaf+"separate-scry page has wrong kind"]

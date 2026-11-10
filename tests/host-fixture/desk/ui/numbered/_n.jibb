@@ -1,0 +1,8 @@
+::  A page with a numeric route parameter: a segment that is not a @ud
+::  is a 404.
+++ main (page load view)
+++ load |= n=@ud (pure n)
+
+++ view |= n=@ud
+  column ~[pad+%s3 gap+%s2] ~[
+    heading 1 "Number {n}"

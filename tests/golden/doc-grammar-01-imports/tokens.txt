@@ -6,10 +6,10 @@
 3:1 NEWLINE
 3:1 glyph /=
 3:5 name card
-3:13 glyph /
-3:14 tight knot ui
-3:16 tight glyph /
-3:17 tight knot components
-3:27 tight glyph /
-3:28 tight knot card
-3:32 NEWLINE
+3:11 glyph /
+3:12 tight knot ui
+3:14 tight glyph /
+3:15 tight knot components
+3:25 tight glyph /
+3:26 tight knot card
+3:30 NEWLINE

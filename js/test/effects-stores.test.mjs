@@ -14,7 +14,7 @@ const storeRequest = (receive) => [
 ];
 
 function islandWithStore(registry, state = { messages: [] }) {
-  const receive = ([mark, [previous, fact]]) => [fact, fact];
+  const receive = ([previous, fact]) => [fact, fact];
   const program = {
     init: () => 0n,
     update: ([message, model]) => {

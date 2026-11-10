@@ -163,12 +163,16 @@
   ?~  data.denied  ~[leaf+"missing asset response had no diagnostic"]
   ?.  =('missing static asset: /static/fonts/inter.woff2' q.u.data.denied)
     ~[leaf+"missing asset diagnostic was not preserved"]
-  =/  later=payload:jibb-host
-    (request-response:jibb-host example-routes (cache-with dynamic-page:jibb-host) & %'GET' '/apps/my-app')
-  ?.  =(501 (status later))  ~[leaf+"dynamic page did not produce a later-stage response"]
-  ?~  data.later  ~[leaf+"dynamic page response had no diagnostic"]
-  ?.  ?=(^ (find "dynamic pages are a later-stage feature" (trip q.u.data.later)))
-    ~[leaf+"dynamic page diagnostic did not identify the later stage"]
+  ::  A page with data goes to the agent, with its desk, compiler revision
+  ::  and the request's site.
+  =/  data=served:jibb-host
+    (serve-request:jibb-host example-routes (cache-with [%data 7 %prepared]) ~ & %'HEAD' '/apps/my-app')
+  ?.  =([%data %my-app 7 %prepared ~ &] data)
+    ~[leaf+"a page with data was not handed to the agent with its site and HEAD"]
+  =/  anonymous=served:jibb-host
+    (serve-request:jibb-host example-routes (cache-with [%data 7 %prepared]) ~ | %'GET' '/apps/my-app')
+  ?.  ?=(%payload -.anonymous)  ~[leaf+"a logged-out reader reached a page with data"]
+  ?.  =(307 (status result.anonymous))  ~[leaf+"a logged-out reader of a page with data was not redirected"]
   ::  The kind is data: a failure that happens to share that text is a 500.
   =/  spelled=cached-page:jibb-host
     (failed-page:jibb-host 'unsupported module kind for static build: page')
@@ -425,5 +429,76 @@
   ?.  =(4 (lent (clear-urls:jibb-host urls)))  ~[leaf+"clearing missed a published file"]
   ?.  =([%pass /eyre/cache %arvo %e %set-response '/a' ~] (cache-card:jibb-host '/a' ~))
     ~[leaf+"removing a file did not clear its Eyre entry"]
+  ~
+++  test-route-patterns-and-precedence
+  ^-  tang
+  =/  pages=(map (list @t) cached-page:jibb-host)
+    %-  malt
+    ^-  (list [(list @t) cached-page:jibb-host])
+    :~  [~['blog'] (successful-page:jibb-host 'index')]
+        [~['blog' 'about'] (successful-page:jibb-host 'about')]
+        [~['blog' '_slug'] [%data 1 %slug]]
+        [~['blog' '__rest'] [%data 1 %rest]]
+        [~['_user' 'posts'] [%data 1 %user]]
+    ==
+  =/  pick
+    |=  site=(list @t)
+    ^-  (unit (list @t))
+    (bind (match-page:jibb-host pages site) |=(m=[pattern=(list @t) page=cached-page:jibb-host] pattern.m))
+  ?.  =(`~['blog' 'about'] (pick ~['blog' 'about']))  ~[leaf+"a literal did not beat a parameter"]
+  ?.  =(`~['blog' '_slug'] (pick ~['blog' 'first-post']))  ~[leaf+"a parameter did not beat a catch-all"]
+  ?.  =(`~['blog' '__rest'] (pick ~['blog' 'a' 'b']))  ~[leaf+"a catch-all did not take the rest"]
+  ?.  =(`~['blog'] (pick ~['blog']))  ~[leaf+"a folder's index lost to its catch-all"]
+  ?.  =(`~['_user' 'posts'] (pick ~['zod' 'posts']))  ~[leaf+"a folder parameter did not match"]
+  ?.  =(`~['blog' '_slug'] (pick ~['blog' 'posts']))  ~[leaf+"a parameter beat an earlier literal"]
+  ?.  =(~ (pick ~['other']))  ~[leaf+"an unknown site matched"]
+  ~
+++  test-route-conflicts
+  ^-  tang
+  =/  conflicts=(map path @t)
+    %-  route-conflicts:jibb-host
+    :~  [/ui/blog/jibb ~['blog']]
+        [/ui/blog/index/jibb ~['blog']]
+        [/ui/news/[~._a]/jibb ~['news' '_a']]
+        [/ui/news/[~._b]/jibb ~['news' '_b']]
+        [/ui/settings/index/jibb ~['settings']]
+        [/ui/settings/[~.__rest]/jibb ~['settings' '__rest']]
+        [/ui/docs/[~._page]/jibb ~['docs' '_page']]
+        [/ui/docs/[~.__rest]/jibb ~['docs' '__rest']]
+    ==
+  =/  expected=@t
+    'route conflict: /ui/blog.jibb and /ui/blog/index.jibb both route to the same address'
+  ?.  =(`expected (~(get by conflicts) /ui/blog/jibb))
+    ~[leaf+"two files with one site did not conflict"]
+  ?.  (~(has by conflicts) /ui/news/[~._b]/jibb)  ~[leaf+"two parameters at one level did not conflict"]
+  ?.  (~(has by conflicts) /ui/settings/[~.__rest]/jibb)
+    ~[leaf+"a catch-all beside its folder's index did not conflict"]
+  ?:  (~(has by conflicts) /ui/docs/[~._page]/jibb)  ~[leaf+"a parameter beside a catch-all conflicted"]
+  ?:  (~(has by conflicts) /ui/docs/[~.__rest]/jibb)  ~[leaf+"a catch-all beside a parameter conflicted"]
+  ~
+++  test-request-sites-keep-dots
+  ^-  tang
+  ?.  =(~['apps' 'my-app' 'blog' '2026.1.1'] (target-site:jibb-host '/apps/my-app/blog/2026.1.1?x=1'))
+    ~[leaf+"a final segment lost its dots"]
+  ?.  =(~['apps' 'my-app' 'blog'] (target-site:jibb-host '/apps/my-app/blog/'))
+    ~[leaf+"a trailing slash was kept as a segment"]
+  ?.  =(~['apps' 'a b'] (target-site:jibb-host '/apps/a%20b'))
+    ~[leaf+"a percent-encoded segment was not decoded"]
+  ~
+::  An app's section is its catch-all route's literal prefix.
+++  test-app-sections
+  ^-  tang
+  ?.  =(`'/app' (page-section:jibb-host ~['app' '__rest']))
+    ~[leaf+"/ui/app/__rest's section was not /app"]
+  ?.  =(`'/docs/guide' (page-section:jibb-host ~['docs' 'guide' '__page']))
+    ~[leaf+"a deeper catch-all's section was not its whole prefix"]
+  ?.  =(`'' (page-section:jibb-host ~['__rest']))
+    ~[leaf+"a root catch-all's section was not the base"]
+  ?.  =(~ (page-section:jibb-host ~['blog' '_slug']))
+    ~[leaf+"a page with a parameter had a section"]
+  ?.  =(~ (page-section:jibb-host ~['user' '_id' '__rest']))
+    ~[leaf+"a catch-all after a parameter had a section"]
+  ?.  =(~ (page-section:jibb-host ~))
+    ~[leaf+"the index had a section"]
   ~
 --

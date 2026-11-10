@@ -207,8 +207,9 @@ function sameKey(left, right) {
   return left.length === right.length && left.every((part, index) => sameKey(part, right[index]));
 }
 
+// An atom key is its own token: a Map compares BigInts by value.
 function keyToken(key) {
-  if (typeof key === 'bigint') return `a:${key}`;
+  if (typeof key === 'bigint') return key;
   if (Array.isArray(key)) return `c:${key.length}:${key.map(keyToken).join('|')}`;
   return `j:${typeof key}:${String(key)}`;
 }
@@ -217,8 +218,30 @@ function oldKey(node) {
   return node[METADATA]?.vnode?.key;
 }
 
+// The children keep their keys in order, as after most messages: each
+// patches its own node.
+function inOrder(oldNodes, children) {
+  if (oldNodes.length !== children.length) return false;
+  for (let index = 0; index < children.length; index += 1) {
+    const before = oldKey(oldNodes[index]);
+    const after = children[index].key;
+    if (before === undefined || after === undefined) {
+      if (before !== after) return false;
+    } else if (!sameKey(before, after)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function patchChildren(parent, children, context) {
   const oldNodes = Array.from(parent.childNodes);
+  if (inOrder(oldNodes, children)) {
+    for (let index = 0; index < children.length; index += 1) {
+      patchDom(parent, oldNodes[index], children[index], context);
+    }
+    return;
+  }
   const keyed = new Map();
   const unkeyed = [];
   for (const node of oldNodes) {
@@ -276,6 +299,9 @@ export function patchDom(parent, node, vnode, options = {}) {
   }
 
   const previous = node[METADATA]?.vnode;
+  // The same vnode shows the same DOM. A control the reader changed is
+  // reset by the dispatch that reported it.
+  if (previous === vnode) return node;
   const compatible = previous && previous.kind === vnode.kind
     && (vnode.kind === 'text' || previous.tag === vnode.tag);
   if (!compatible) {

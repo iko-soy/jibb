@@ -1,0 +1,27 @@
+::  The benchmark's list island: a field above n rows.  A keystroke changes
+::  the field and the line that echoes it, and view runs over every row.
+++ main (program init update view subs)
+
++$ model [draft=@t rows=(list @ud)]
++$ msg [%typed text=@t]
+
+++ init |= n=@ud
+  [draft="" rows=(count n)]
+
+++ count |= n=@ud
+  ^- (list @ud)
+  ?- (eq n 0)
+  %.y ~
+  %.n [n (count (dec n))]
+
+++ update |= [=msg m=model]
+  ?- msg
+  [%typed t]  [m(draft=t) ~]
+
+++ subs |= m=model ~
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    field "Filter" draft.m |=%typed
+    (text "Typed: {draft.m}")
+    each (turn rows.m |=(n=@ud [n (el ~ (text "Row {n}"))]))

@@ -1,0 +1,8 @@
+/=  fragile  /ui/parts/fragile
+
+++ main view
+
+++ view
+  column ~[pad+%s3 gap+%s2] ~[
+    heading 1 "Fragile"
+    island main.fragile ~

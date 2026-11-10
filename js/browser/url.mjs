@@ -10,20 +10,30 @@ export function pathToNoun(pathname) {
   }));
 }
 
+// prefix is the page's base path and, for an app under a catch-all route,
+// the section that route covers: %url gives the path within it.
 export class UrlRuntime {
-  constructor({ window, document, defer = queueMicrotask }) {
+  constructor({ window, document, defer = callback => queueMicrotask(callback), prefix = '' }) {
     if (!window?.history || !window.location) throw new TypeError('URL runtime needs a window with history and location');
     this.window = window;
     this.document = document;
     this.defer = defer;
+    this.prefix = prefix;
     this.nextId = 1n;
     this.watchers = new Map();
     this.onPopstate = () => this.notify();
     window.addEventListener('popstate', this.onPopstate);
   }
 
+  contains(pathname) {
+    return this.prefix === '' || pathname === this.prefix || pathname.startsWith(`${this.prefix}/`);
+  }
+
   currentPath() {
-    return pathToNoun(this.window.location.pathname);
+    const pathname = this.window.location.pathname;
+    return pathToNoun(this.prefix !== '' && this.contains(pathname)
+      ? pathname.slice(this.prefix.length)
+      : pathname);
   }
 
   watch(reply) {

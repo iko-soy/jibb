@@ -307,21 +307,44 @@
     (fresh state.p.scry)
   =/  input=expr:jibb-core  [%var -.receive-made]
   =/  fact=expr:jibb-core  (make-slot 7 input)
-  =/  fact-var=expr:jibb-core  [%var [%generated '_fact']]
-  =/  receive-body=expr:jibb-core
+  ::  Generated names are numbered, as the JavaScript Core reader requires.
+  =/  fact-made=[name=name:jibb-core state=lowering-state]  (fresh +.receive-made)
+  =/  state-made=[name=name:jibb-core state=lowering-state]  (fresh +.fact-made)
+  =/  next-made=[name=name:jibb-core state=lowering-state]  (fresh +.state-made)
+  =/  fact-var=expr:jibb-core  [%var -.fact-made]
+  =/  state-var=expr:jibb-core  [%var -.state-made]
+  ::  A fact is checked against its type before a typed reply or fold sees
+  ::  it: the first against full state, each later one against the diff its
+  ::  mark names, which the fold receives tagged with that mark.
+  =/  full=lowered  (check-noun full.path.evidence fact-var +.next-made)
+  ?:  ?=(%| -.full)  full
+  =/  full-made=[name=name:jibb-core state=lowering-state]  (fresh state.p.full)
+  =/  receive-body=lowered
     ?.  fold
-      [%let [%generated '_fact'] fact [%cons fact-var [%app reply fact-var]]]
+      :+  %&
+        :^  %let  -.fact-made  fact
+        [%let -.full-made value.p.full [%cons fact-var [%app reply fact-var]]]
+      +.full-made
     =/  current=expr:jibb-core  (make-slot 6 input)
-    =/  next=expr:jibb-core  [%var [%generated '_next']]
+    =/  mark=expr:jibb-core  (make-slot 2 input)
+    =/  next=expr:jibb-core  [%var -.next-made]
+    =/  diff=lowered  (check-diff diffs mark fact-var +.full-made)
+    ?:  ?=(%| -.diff)  diff
+    =/  diff-made=[name=name:jibb-core state=lowering-state]  (fresh state.p.diff)
     =/  folded=expr:jibb-core
       =/  fold-var=expr:jibb-core  (snag (add 1 (lent u.params)) vars)
-      [%app fold-var [%cons fact-var (make-slot 3 [%var [%generated '_state']])]]
-    :^  %let  [%generated '_fact']  fact
-    :^  %let  [%generated '_state']  current
-    :^  %let  [%generated '_next']
-      [%if [%cell [%var [%generated '_state']]] folded fact-var]
-    [%cons next [%app reply next]]
-  =/  receive=expr:jibb-core  [%lam -.receive-made receive-body]
+      :^  %let  -.diff-made  value.p.diff
+      [%app fold-var [%cons [%cons mark fact-var] (make-slot 3 state-var)]]
+    =/  first=expr:jibb-core  [%let -.full-made value.p.full fact-var]
+    :+  %&
+      :^  %let  -.fact-made  fact
+      :^  %let  -.state-made  current
+      :^  %let  -.next-made
+        [%if [%cell state-var] folded first]
+      [%cons next [%app reply next]]
+    +.diff-made
+  ?:  ?=(%| -.receive-body)  receive-body
+  =/  receive=expr:jibb-core  [%lam -.receive-made value.p.receive-body]
   =/  api=@t  (crip (spud (core-path api-at.evidence)))
   =/  agent=term  (snag 2 api-at.evidence)
   =/  fields=(list expr:jibb-core)
@@ -335,7 +358,181 @@
     ==
   =/  body=(unit expr:jibb-core)  (make-arguments fields)
   ?~  body  [%| 'derived request lost its checked payload fields']
-  [%& [[%lam -.made u.body] +.receive-made]]
+  [%& [[%lam -.made u.body] state.p.receive-body]]
+::
+::  Facts and scried state arrive from agents as untyped nouns.  +check-noun
+::  makes an expression that is ~ when value, a pure expression, fits the
+::  type, as a Hoon clam would check it, and crashes otherwise; a map or
+::  set's order is not checked.  A type that cannot arrive in a fact, such
+::  as a gate, and one not checked yet, such as a recursive mold, fail
+::  closed at lowering.
+++  check-zero  ^-  expr:jibb-core  [%lit [%ud 0 '0']]
+++  check-one  ^-  expr:jibb-core  [%lit [%ud 1 '1']]
+++  check-both
+  |=  [first=expr:jibb-core second=expr:jibb-core state=lowering-state]
+  ^-  [expr:jibb-core lowering-state]
+  =/  made=[name=name:jibb-core state=lowering-state]  (fresh state)
+  [[%let -.made first second] +.made]
+++  check-unsupported
+  |=  [typ=itype:jibb why=tape]
+  ^-  lowered
+  [%| (crip "a fact of type {(show-itype:jibb typ ~)} cannot be checked yet: {why}")]
+++  check-noun
+  |=  [typ=itype:jibb value=expr:jibb-core state=lowering-state]
+  ^-  lowered
+  ?-  -.typ
+    ?(%face %slot)  $(typ body.typ)
+    %noun           [%& [null state]]
+    %empty          [%& [[%crash ~] state]]
+    ?(%atom %any-atom)  [%& [[%if [%cell value] [%crash ~] null] state]]
+    %flag
+      =/  bit=expr:jibb-core
+        [%if [%eq value check-zero] null [%if [%eq value check-one] null [%crash ~]]]
+      [%& [[%if [%cell value] [%crash ~] bit] state]]
+    %const  [%& [[%if [%eq value (literal literal.typ)] null [%crash ~]] state]]
+    %tag    [%& [[%if [%eq value (literal literal.typ)] null [%crash ~]] state]]
+    %cell
+      =/  hed=lowered  $(typ hed.typ, value (make-slot 2 value))
+      ?:  ?=(%| -.hed)  hed
+      =/  tal=lowered  $(typ tal.typ, value (make-slot 3 value), state state.p.hed)
+      ?:  ?=(%| -.tal)  tal
+      =/  both=[expr:jibb-core lowering-state]  (check-both value.p.hed value.p.tal state.p.tal)
+      [%& [[%if [%cell value] -.both [%crash ~]] +.both]]
+    %union          (check-union cases.typ value state)
+    %collection     (check-collection typ value state)
+    %fn             (check-unsupported typ "a gate cannot arrive in a fact")
+    %opaque         (check-unsupported typ "its representation is private")
+    ?(%recursive %mrec)  (check-unsupported typ "recursive molds are not checked yet")
+    ?(%var %fvar %avar %rvar %nvar %rnvar %refined)
+      (check-unsupported typ "its type is not closed")
+  ==
+::
+::  A list, unit, set or map is checked by a recursive arm over its nodes.
+++  check-collection
+  |=  [typ=itype:jibb value=expr:jibb-core state=lowering-state]
+  ^-  lowered
+  ?>  ?=(%collection -.typ)
+  =/  args=(list itype:jibb)  args.typ
+  ?:  &(=(%unit name.typ) ?=([* ~] args))
+    =/  item=lowered  (check-noun i.args (make-slot 3 value) state)
+    ?:  ?=(%| -.item)  item
+    =/  some=expr:jibb-core
+      [%if [%eq (make-slot 2 value) null] value.p.item [%crash ~]]
+    [%& [[%if [%cell value] some [%if [%eq value null] null [%crash ~]]] state.p.item]]
+  ?:  &(=(%list name.typ) ?=([* ~] args))
+    (check-tree i.args value ~[2] ~[3] state)
+  ?:  &(=(%set name.typ) ?=([* ~] args))
+    (check-tree i.args value ~[2] ~[6 7] state)
+  ?:  &(=(%map name.typ) ?=([* * ~] args))
+    (check-tree [%cell i.args i.t.args] value ~[2] ~[6 7] state)
+  (check-unsupported typ "only lists, units, sets and maps are checked")
+::
+::  +check-tree: a recursive arm checking each node's item at the axes in
+::  items and recurring at the axes in rest; ~ ends a branch
+++  check-tree
+  |=  [item=itype:jibb value=expr:jibb-core items=(list @) rest=(list @) state=lowering-state]
+  ^-  lowered
+  =/  self=[name=name:jibb-core state=lowering-state]  (fresh state)
+  =/  node=[name=name:jibb-core state=lowering-state]  (fresh +.self)
+  =/  at=expr:jibb-core  [%var -.node]
+  =/  checks=(list expr:jibb-core)  ~
+  =/  next=lowering-state  +.node
+  |-
+  ?^  items
+    =/  one=lowered  (check-noun item (make-slot i.items at) next)
+    ?:  ?=(%| -.one)  one
+    $(items t.items, checks [value.p.one checks], next state.p.one)
+  ?^  rest
+    $(rest t.rest, checks [[%app [%var -.self] (make-slot i.rest at)] checks])
+  =/  body=[expr:jibb-core lowering-state]
+    =/  ordered=(list expr:jibb-core)  (flop checks)
+    ?~  ordered  [null next]
+    =/  out=expr:jibb-core  i.ordered
+    =/  more=(list expr:jibb-core)  t.ordered
+    |-
+    ?~  more  [out next]
+    =/  joined=[expr:jibb-core lowering-state]  (check-both out i.more next)
+    $(more t.more, out -.joined, next +.joined)
+  =/  arm=expr:jibb-core
+    [%lam -.node [%if [%cell at] -.body [%if [%eq at null] null [%crash ~]]]]
+  [%& [[%rec ~[[-.self arm]] [%app [%var -.self] value]] +.body]]
+::
+::  A union's cases differ as nouns.  Constants and cells headed by one are
+::  told apart by those constants; what remains is one case, checked as
+::  itself, or an atom case and a cell case, told apart by shape.
+++  check-union
+  |=  [cases=(list itype:jibb) value=expr:jibb-core state=lowering-state]
+  ^-  lowered
+  =/  bare=(list itype:jibb)  (turn cases check-unface)
+  =/  tagged=(list [test=expr:jibb-core typ=itype:jibb])
+    %+  murn  bare
+    |=  c=itype:jibb
+    =/  whole=(unit lit:jibb)  (check-constant c)
+    ?^  whole  `[[%eq value (literal u.whole)] c]
+    ?.  ?=(%cell -.c)  ~
+    =/  head=(unit lit:jibb)  (check-constant (check-unface hed.c))
+    ?~  head  ~
+    `[[%eq (make-slot 2 value) (literal u.head)] c]
+  =/  others=(list itype:jibb)
+    %+  skip  bare
+    |=  c=itype:jibb
+    ?^  (check-constant c)  &
+    ?.  ?=(%cell -.c)  |
+    ?=(^ (check-constant (check-unface hed.c)))
+  ::  Split before any ?~: the wet +skim cannot take a refined list.
+  =/  atom=(list itype:jibb)  (skim others check-atom-shaped)
+  =/  cell=(list itype:jibb)  (skim others |=(c=itype:jibb ?=(%cell -.c)))
+  =/  fallback=lowered
+    ?:  =(~ others)  [%& [[%crash ~] state]]
+    ?:  =(1 (lent others))  (check-noun (snag 0 others) value state)
+    ?.  &(=(2 (lent others)) ?=([* ~] atom) ?=([* ~] cell))
+      (check-unsupported [%union cases ~ ~ ~] "its cases are not told apart by shape or constant")
+    =/  yes=lowered  (check-noun i.cell value state)
+    ?:  ?=(%| -.yes)  yes
+    =/  no=lowered  (check-noun i.atom value state.p.yes)
+    ?:  ?=(%| -.no)  no
+    [%& [[%if [%cell value] value.p.yes value.p.no] state.p.no]]
+  ?:  ?=(%| -.fallback)  fallback
+  =/  out=expr:jibb-core  value.p.fallback
+  =/  next=lowering-state  state.p.fallback
+  =/  rest=(list [test=expr:jibb-core typ=itype:jibb])  (flop tagged)
+  |-
+  ?~  rest  [%& [out next]]
+  =/  case=lowered  (check-noun typ.i.rest value next)
+  ?:  ?=(%| -.case)  case
+  ::  A cell headed by a constant needs a cell before its head is read.
+  =/  test=expr:jibb-core
+    ?.  ?=(%cell -.typ.i.rest)  test.i.rest
+    [%if [%cell value] test.i.rest [%lit [%f 1 '%.n']]]
+  $(rest t.rest, out [%if test value.p.case out], next state.p.case)
+++  check-constant
+  |=  typ=itype:jibb
+  ^-  (unit lit:jibb)
+  ?:  ?=(%const -.typ)  `literal.typ
+  ?:  ?=(%tag -.typ)  `literal.typ
+  ~
+++  check-unface
+  |=  typ=itype:jibb
+  ^-  itype:jibb
+  ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ)
+  typ
+++  check-atom-shaped
+  |=  typ=itype:jibb
+  ^-  ?
+  ?=(?(%atom %any-atom %flag) -.typ)
+::
+::  A later fact's mark names its diff; another mark crashes the receiver.
+++  check-diff
+  |=  [diffs=(list iapi-mark-type:jibb) mark=expr:jibb-core fact=expr:jibb-core state=lowering-state]
+  ^-  lowered
+  ?~  diffs  [%& [[%crash ~] state]]
+  =/  one=lowered  (check-noun typ.i.diffs fact state)
+  ?:  ?=(%| -.one)  one
+  =/  rest=lowered  $(diffs t.diffs, state state.p.one)
+  ?:  ?=(%| -.rest)  rest
+  :+  %&
+    [%if [%eq mark (term-literal name.i.diffs)] value.p.one value.p.rest]
+  state.p.rest
 ++  lower-store-poke
   |=  [at=path name=term state=lowering-state]
   ^-  lowered
@@ -359,9 +556,11 @@
     (fresh state.made)
   =/  input=expr:jibb-core  [%var -.receive-made]
   =/  fact=expr:jibb-core  (make-slot 3 input)
-  =/  fact-var=expr:jibb-core  [%var [%generated '_fact']]
+  ::  Generated names are numbered, as the JavaScript Core reader requires.
+  =/  fact-made=[name=name:jibb-core state=lowering-state]  (fresh +.receive-made)
+  =/  fact-var=expr:jibb-core  [%var -.fact-made]
   =/  receive-body=expr:jibb-core
-    [%let [%generated '_fact'] fact [%cons fact-var [%app reply fact-var]]]
+    [%let -.fact-made fact [%cons fact-var [%app reply fact-var]]]
   =/  receive=expr:jibb-core  [%lam -.receive-made receive-body]
   =/  module=@t  (crip (slag 1 (spud (core-path store-at.evidence))))
   =/  fields=(list expr:jibb-core)
@@ -372,7 +571,7 @@
     ==
   =/  body=(unit expr:jibb-core)  (make-arguments fields)
   ?~  body  [%| 'derived store request lost its checked payload fields']
-  [%& [[%lam -.made u.body] +.receive-made]]
+  [%& [[%lam -.made u.body] +.fact-made]]
 ::
 ++  lower-derived
   |=  [plan=lowering-derived:jibb state=lowering-state]
@@ -475,13 +674,23 @@
   ^-  lowered
   [%& [(make-cons-list (turn segs knot-literal)) state]]
 ::
+::  The Grammar splices @t, @ta, @tas and the rest of Hoon's @t family as
+::  text, and tapes once packed; other atoms print by aura.
 ++  atom-text-type
   |=  typ=itype:jibb
   ^-  ?
   ?-  -.typ
     ?(%face %slot)  $(typ body.typ)
-    %atom           =(%t aura.typ)
-    %const          =(%t aura.literal.typ)
+    %atom           =('t' (end 3 aura.typ))
+    %const          =('t' (end 3 aura.literal.typ))
+    *               |
+  ==
+++  tape-type
+  |=  typ=itype:jibb
+  ^-  ?
+  ?-  -.typ
+    ?(%face %slot)  $(typ body.typ)
+    %collection     &(=(%list name.typ) ?=([* ~] args.typ) (atom-text-type i.args.typ))
     *               |
   ==
 ++  printer-aura
@@ -504,6 +713,10 @@
   =/  value=lowered  (lower-expression e state)
   ?:  ?=(%| -.value)  value
   ?:  (atom-text-type typ.u.found)  value
+  ?:  (tape-type typ.u.found)
+    ?.  (lien natives.root.state |=(n=term =(%crip n)))
+      [%| (fail "tape interpolation requires an authenticated crip native ID" `(span-of:jibb e))]
+    [%& [[%app [%native [%own %crip]] value.p.value] state.p.value]]
   =/  aura=(unit @ta)  (printer-aura typ.u.found)
   ?~  aura  [%| (fail "printer native ID is unavailable for this checked type" `(span-of:jibb e))]
   ?.  (lien natives.root.state |=(n=term =(%scot n)))
@@ -607,6 +820,46 @@
   ?.  ?=([* ~] args.e)  ~
   `i.args.e
 ::
+::  An island's program is an island module's main, imported with /=: the
+::  page's HTML names that module, which the browser runs.  The lowering
+::  pairs the program with its module's path, which the prelude's island
+::  seals unread; any other program fails closed here.
+++  island-call
+  |=  [e=expr:jibb root=checked-module:jibb]
+  ^-  ?
+  ?.  ?=(%call -.e)  |
+  ?.  ?=(%wing -.head.e)  |
+  =/  ref=(unit lowering-reference:jibb)  (find-reference [at.head.e %expression] root)
+  ?~  ref  |
+  =(definition.u.ref [%prelude /lib/jibb/prelude/jibb %island])
+++  island-module
+  |=  [e=expr:jibb root=checked-module:jibb]
+  ^-  (unit path)
+  ?.  ?=(%wing -.e)  ~
+  =/  ref=(unit lowering-reference:jibb)  (find-reference [at.e %expression] root)
+  ?~  ref  ~
+  ?.  ?=(%import -.definition.u.ref)  ~
+  ?.  =(%main name.definition.u.ref)  ~
+  `at.definition.u.ref
+++  lower-island-call
+  |=  [e=expr:jibb state=lowering-state]
+  ^-  lowered
+  ?>  ?=(%call -.e)
+  ?.  ?=([* * ~] args.e)  [%| (fail "an island takes a program and its data" `at.e)]
+  =/  module=(unit path)  (island-module i.args.e root.state)
+  ?~  module
+    =/  why=tape
+      "an island's program must be the main of an island module imported with /=, as `island main.todo-list ts`"
+    [%| (fail why `(span-of:jibb i.args.e))]
+  =/  fun=lowered  (lower-expression head.e state)
+  ?:  ?=(%| -.fun)  fun
+  =/  program=lowered  (lower-expression i.args.e state.p.fun)
+  ?:  ?=(%| -.program)  program
+  =/  data=lowered  (lower-expression i.t.args.e state.p.program)
+  ?:  ?=(%| -.data)  data
+  =/  named=expr:jibb-core  [%cons (string-literal (crip (spud u.module))) value.p.program]
+  [%& [(make-app value.p.fun [%cons named value.p.data]) state.p.data]]
+::
 ++  derived-poke-call
   |=  [e=expr:jibb root=checked-module:jibb]
   ^-  (unit [at=path agent=term mark=term])
@@ -646,6 +899,7 @@
   =/  derived=(unit [at=path agent=term mark=term])
     (derived-poke-call e root.state)
   ?^  derived  (lower-poke-call u.derived args.e state)
+  ?:  (island-call e root.state)  (lower-island-call e state)
   =/  fun=lowered  (lower-expression head.e state)
   ?:  ?=(%| -.fun)  fun
   =/  args=(each [values=(list expr:jibb-core) state=lowering-state] @t)

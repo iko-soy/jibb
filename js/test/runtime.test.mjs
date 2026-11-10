@@ -16,6 +16,7 @@ import {
   atomToBytes,
   bytesToAtom,
   atomToText,
+  memo,
 } from '../core/runtime.mjs';
 
 function throwsCore(fn, message) {
@@ -76,9 +77,13 @@ test('cons and isCell reject malformed values and direct function inspection', (
   throwsCore(() => cons(0, 0n), /atom/);
   throwsCore(() => cons(0n, [0n]), /two-element/);
 
+  // isCell reads its operand one level deep; same, which reads whole
+  // nouns, finds the cycle.
   const cyclic = [0n, 0n];
   cyclic[0] = cyclic;
-  throwsCore(() => isCell(cyclic), /cyclic/);
+  assert.equal(isCell(cyclic), 0n);
+  throwsCore(() => same(cyclic, cyclic), /cyclic/);
+  throwsCore(() => isCell([1n, [0n]]), /two-element/);
 });
 
 test('cells can carry functions without making them noun data', () => {
@@ -373,4 +378,36 @@ test('trace validates its cord and logger before printing', () => {
   throwsCore(() => trace(cord('hello'), 0n, null), /callable/);
   throwsCore(() => trace(cord('hello'), 0n, 'log'), /callable/);
   assert.equal(calls, 0);
+});
+
+test('memo gives the same product for the same sample or a cell of the same parts', () => {
+  let calls = 0;
+  const pairUp = memo((sample) => { calls += 1; return [sample, sample]; });
+  const list = [1n, [2n, 0n]];
+  const fn = () => 0n;
+  const first = pairUp([list, fn]);
+  // A new cell of the same two parts, as a caller builds each time.
+  assert.strictEqual(pairUp([list, fn]), first);
+  assert.equal(calls, 1);
+  assert.strictEqual(pairUp(7n), pairUp(7n));
+  assert.equal(calls, 2);
+  // Equal but not the same parts are computed again.
+  pairUp([[1n, [2n, 0n]], fn]);
+  assert.equal(calls, 3);
+  // The last four samples are remembered, as one render may call a gate
+  // from several places; a fifth sample forgets the oldest.
+  assert.strictEqual(pairUp([list, fn]), first);
+  pairUp(8n);
+  pairUp(9n);
+  assert.equal(calls, 5);
+  pairUp([list, fn]);
+  assert.equal(calls, 6);
+});
+
+test('memo remembers no crash', () => {
+  let calls = 0;
+  const failing = memo(() => { calls += 1; crash('no'); });
+  throwsCore(() => failing(1n), /no/);
+  throwsCore(() => failing(1n), /no/);
+  assert.equal(calls, 2);
 });

@@ -101,7 +101,7 @@ def main():
         expected_types = {
             'sur/todo.hoon', 'sur/blog.hoon', 'mar/todo-action.hoon',
             'mar/todos.hoon', 'mar/todo-update.hoon', 'mar/todo-item.hoon',
-            'mar/posts.hoon',
+            'mar/posts.hoon', 'mar/post.hoon',
         }
         actual_types = {p.relative_to(ROOT / 'my-app').as_posix()
                         for folder in ('sur', 'mar')

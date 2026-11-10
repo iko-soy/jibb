@@ -1,0 +1,97 @@
+::  The Hoon port of the Core-to-JavaScript compiler, jibb-js, against the
+::  text js/core/compiler.mjs emits for the same Core.  tests/js-emit holds
+::  each case's Core, natives and expected module; node
+::  tools/js-emit-update.mjs regenerates them, and js/test/emit.test.mjs
+::  keeps them equal to the JavaScript compiler's output.
+/+  jibb-core, jibb-js
+/*  core-0  %txt  /tests/js-emit/fixture-arbitrary-precision-atom/core/txt
+/*  natives-0  %txt  /tests/js-emit/fixture-arbitrary-precision-atom/natives/txt
+/*  js-0  %txt  /tests/js-emit/fixture-arbitrary-precision-atom/js/txt
+/*  core-1  %txt  /tests/js-emit/fixture-cell-construction-and-projection/core/txt
+/*  natives-1  %txt  /tests/js-emit/fixture-cell-construction-and-projection/natives/txt
+/*  js-1  %txt  /tests/js-emit/fixture-cell-construction-and-projection/js/txt
+/*  core-2  %txt  /tests/js-emit/fixture-immutable-edit/core/txt
+/*  natives-2  %txt  /tests/js-emit/fixture-immutable-edit/natives/txt
+/*  js-2  %txt  /tests/js-emit/fixture-immutable-edit/js/txt
+/*  core-3  %txt  /tests/js-emit/fixture-structural-equality/core/txt
+/*  natives-3  %txt  /tests/js-emit/fixture-structural-equality/natives/txt
+/*  js-3  %txt  /tests/js-emit/fixture-structural-equality/js/txt
+/*  core-4  %txt  /tests/js-emit/fixture-lazy-selected-branch/core/txt
+/*  natives-4  %txt  /tests/js-emit/fixture-lazy-selected-branch/natives/txt
+/*  js-4  %txt  /tests/js-emit/fixture-lazy-selected-branch/js/txt
+/*  core-5  %txt  /tests/js-emit/fixture-strict-unused-let/core/txt
+/*  natives-5  %txt  /tests/js-emit/fixture-strict-unused-let/natives/txt
+/*  js-5  %txt  /tests/js-emit/fixture-strict-unused-let/js/txt
+/*  core-6  %txt  /tests/js-emit/fixture-lexical-closure-and-native-sample/core/txt
+/*  natives-6  %txt  /tests/js-emit/fixture-lexical-closure-and-native-sample/natives/txt
+/*  js-6  %txt  /tests/js-emit/fixture-lexical-closure-and-native-sample/js/txt
+/*  core-7  %txt  /tests/js-emit/fixture-mutual-recursion/core/txt
+/*  natives-7  %txt  /tests/js-emit/fixture-mutual-recursion/natives/txt
+/*  js-7  %txt  /tests/js-emit/fixture-mutual-recursion/js/txt
+/*  core-8  %txt  /tests/js-emit/fixture-higher-order-native-callback/core/txt
+/*  natives-8  %txt  /tests/js-emit/fixture-higher-order-native-callback/natives/txt
+/*  js-8  %txt  /tests/js-emit/fixture-higher-order-native-callback/js/txt
+/*  core-9  %txt  /tests/js-emit/fixture-explicit-crash/core/txt
+/*  natives-9  %txt  /tests/js-emit/fixture-explicit-crash/natives/txt
+/*  js-9  %txt  /tests/js-emit/fixture-explicit-crash/js/txt
+/*  core-10  %txt  /tests/js-emit/fixture-malformed-runtime-axis/core/txt
+/*  natives-10  %txt  /tests/js-emit/fixture-malformed-runtime-axis/natives/txt
+/*  js-10  %txt  /tests/js-emit/fixture-malformed-runtime-axis/js/txt
+/*  core-11  %txt  /tests/js-emit/extra-self-tail-loop/core/txt
+/*  natives-11  %txt  /tests/js-emit/extra-self-tail-loop/natives/txt
+/*  js-11  %txt  /tests/js-emit/extra-self-tail-loop/js/txt
+/*  core-12  %txt  /tests/js-emit/extra-tail-rec-arm/core/txt
+/*  natives-12  %txt  /tests/js-emit/extra-tail-rec-arm/natives/txt
+/*  js-12  %txt  /tests/js-emit/extra-tail-rec-arm/js/txt
+/*  core-13  %txt  /tests/js-emit/extra-nested-lets/core/txt
+/*  natives-13  %txt  /tests/js-emit/extra-nested-lets/natives/txt
+/*  js-13  %txt  /tests/js-emit/extra-nested-lets/js/txt
+/*  core-14  %txt  /tests/js-emit/extra-trace/core/txt
+/*  natives-14  %txt  /tests/js-emit/extra-trace/natives/txt
+/*  js-14  %txt  /tests/js-emit/extra-trace/js/txt
+/*  core-15  %txt  /tests/js-emit/extra-closed-inner-lambda/core/txt
+/*  natives-15  %txt  /tests/js-emit/extra-closed-inner-lambda/natives/txt
+/*  js-15  %txt  /tests/js-emit/extra-closed-inner-lambda/js/txt
+|%
+++  text
+  |=  lines=wain
+  ^-  @t
+  (cat 3 (of-wain:format lines) '\0a')
+::  A registry naming each native the case uses; the emitter never runs one.
+++  registry
+  |=  names=wain
+  ^-  native-registry:jibb-core
+  %-  malt
+  %+  turn  (skip names |=(n=@t =('' n)))
+  |=  n=@t
+  ^-  [name:jibb-core native:jibb-core]
+  [[%own `@tas`n] |=(v=value:jibb-core [v ~])]
+++  check
+  |=  [label=tape core=wain natives=wain js=wain]
+  ^-  tang
+  =/  read=(each expr:jibb-core @t)  (read-expr:jibb-core (of-wain:format core) (registry natives))
+  ?:  ?=(%| -.read)  ~[leaf+"{label}: {(trip p.read)}"]
+  =/  got=@t  (compile:jibb-js p.read)
+  ?:  =((text js) got)  ~
+  ~[leaf+"{label}: the Hoon emitter differs from js/core/compiler.mjs" leaf+(trip got)]
+++  test-emitter-matches-javascript
+  ^-  tang
+  ;:  weld
+    (check "fixture-arbitrary-precision-atom" core-0 natives-0 js-0)
+    (check "fixture-cell-construction-and-projection" core-1 natives-1 js-1)
+    (check "fixture-immutable-edit" core-2 natives-2 js-2)
+    (check "fixture-structural-equality" core-3 natives-3 js-3)
+    (check "fixture-lazy-selected-branch" core-4 natives-4 js-4)
+    (check "fixture-strict-unused-let" core-5 natives-5 js-5)
+    (check "fixture-lexical-closure-and-native-sample" core-6 natives-6 js-6)
+    (check "fixture-mutual-recursion" core-7 natives-7 js-7)
+    (check "fixture-higher-order-native-callback" core-8 natives-8 js-8)
+    (check "fixture-explicit-crash" core-9 natives-9 js-9)
+    (check "fixture-malformed-runtime-axis" core-10 natives-10 js-10)
+    (check "extra-self-tail-loop" core-11 natives-11 js-11)
+    (check "extra-tail-rec-arm" core-12 natives-12 js-12)
+    (check "extra-nested-lets" core-13 natives-13 js-13)
+    (check "extra-trace" core-14 natives-14 js-14)
+    (check "extra-closed-inner-lambda" core-15 natives-15 js-15)
+  ==
+--

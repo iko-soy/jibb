@@ -9,7 +9,7 @@ function crashCord(error) {
 }
 
 export class StoreRegistry {
-  constructor({ defer = globalThis.queueMicrotask } = {}) {
+  constructor({ defer = callback => queueMicrotask(callback) } = {}) {
     if (typeof defer !== 'function') throw new TypeError('StoreRegistry requires a defer function');
     this.defer = defer;
     this.stores = new Map();

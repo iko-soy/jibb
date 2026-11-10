@@ -106,9 +106,9 @@ Left out on purpose:
 Imports come first:
 
 ```jibb
-/-  todo                         ::  the molds from /sur/todo.hoon this module uses
-/%  %todo-action                 ::  a mark's type, named todo-action
-/=  card    /ui/components/card  ::  a Jibb module
+/-  todo  ::  the molds from /sur/todo.hoon this module uses
+/%  %todo-action  ::  a mark's type, named todo-action
+/=  card  /ui/components/card  ::  a Jibb module
 ```
 
 An imported Hoon record with duplicate field names is an error where used; imported union cases must differ as nouns. `/%` names a type after its mark, so it takes no face, and any mark name works; Hoon's `/%` binds the mark's core instead. Derived helpers such as `poke.todo` supply the agent and mark, so callers need not write those details. API modules re-export their `/%` types, not `/-` faces or `/=` modules. Import cycles are errors.
@@ -171,12 +171,12 @@ A tag literal or `~` gets a fresh type variable and a pending constraint: the va
 
 ```jibb
 ::  /ui/components/buttons.jibb, a library with no main
-++ add-button |= label=@t
-  button label %add                ::  error: nothing fixes the union of %add
-++ labelled |= [label=@t msg=M]
-  button label msg                 ::  fine: the caller's union
-++ wide  ^- (list attr)
-  ~[width+[%fill 1] pad+%s2]       ::  fine: the cast fixes the tags
+++  add-button  |=  label=@t
+  button label %add  ::  error: nothing fixes the union of %add
+++  labelled  |=  [label=@t msg=M]
+  button label msg  ::  fine: the caller's union
+++  wide  ^-  (list attr)
+  ~[width+[%fill 1] pad+%s2]  ::  fine: the cast fixes the tags
 ```
 
 ## Literals by context
@@ -195,10 +195,12 @@ Number and cell literals resolve like tags: each waits for its context and takes
 - A typed segment prints and parses by aura, whether `[id=@ud]` in an agent's paths, a `_` route parameter typed by `load`'s sample, or a `(…)` segment of an application path; `@ta` and `@tas` are raw text.
 
 ```jibb
-++ view |= [day=@da n=@ud]
-  column ~[gap+%s1] ~[
-    (text "Updated {day}")     ::  day printed as a date
-    (text "{n} items")         ::  n printed as @ud
+++  view  |=  [day=@da n=@ud]
+  (column
+    ~[gap+%s1]
+    ~[
+      text "Updated {day}"  ::  day printed as a date
+      text "{n} items"  ::  n printed as @ud
 ```
 
 ## Patterns
@@ -226,20 +228,20 @@ Cells nest, so one arm can look into several values, or a list's first cells. A 
 Tags can sit anywhere in a case, and a case can carry several:
 
 ```jibb
-+$ step
++$  step
   [%move %left n=@ud]
   [%move %right n=@ud]
   [text=@t %draft]
   [text=@t %sent at=@da]
   %stop
-
-++ describe |= s=step
-  ?- s
-  [%move %left n]   "left {n}"
+::
+++  describe  |=  s=step
+  ?-  s
+  [%move %left n]  "left {n}"
   [%move %right n]  "right {n}"
-  [t %draft]        t
-  [t %sent sent-at] t
-  %stop             "stop"
+  [t %draft]  t
+  [t %sent sent-at]  t
+  %stop  "stop"
 ```
 
 Leaving out `%stop` is an error naming it; to crash instead, write `%stop !!`.
@@ -325,52 +327,53 @@ knot       = { lower | digit | "-" | "." | "~" | "_" } ;
 
 ```jibb
 ::  /ui/stores/cart.jibb
-+$ state [items=(list @t) open=?]
-+$ poke
++$  state  [items=(list @t) open=?]
++$  poke
   [%add item=@t]
   %toggle
-
-++ main (store init update)
-++ init ^- state [items=~ open=%.n]
-++ update |= [a=poke s=state]
-  ?- a
+::
+++  main  store init update
+++  init
+  ^-  state  [items=~ open=%.n]
+++  update  |=  [a=poke s=state]
+  ?-  a
   [%add item]  s(items=[item items.s])
-  %toggle      s(open=(not open.s))
+  %toggle  s(open=(not open.s))
 ```
 
 ```jibb
 ::  /ui/basket.jibb
 /=  cart  /ui/stores/cart
-
-++ main (program init update view subs)
-
-+$ model [cart=state.cart note=@t]
-+$ msg
+::
+++  main  program init update view subs
+::
++$  model  [cart=state.cart note=@t]
++$  msg
   [%noted text=@t]
   %add
   %toggle
   [%got cart=state.cart]
   [%acked err=(unit @t)]
-
-++ init |= ~
-  [cart=[items=~ open=%.n] note=""]
-
-++ update |= [=msg m=model]
-  ?- msg
-  [%noted t]     [m(note=t) ~]
-  %add           [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
-  %toggle        [m ~[(poke.cart %toggle |=%acked)]]
-  [%got c]       [m(cart=c) ~]
-  [%acked err]   [m ~]
-
-++ subs |= m=model
-  ~[[%watch (state.cart |=%got)]]
-
-++ view |= m=model
-  column ~[gap+%s1] ~[
-    (text "{(lent items.cart.m)} items")
-    field "Item" note.m |=%noted
-    button "Add" %add
+::
+++  init  |=  ~  [cart=[items=~ open=%.n] note=""]
+::
+++  update  |=  [=msg m=model]
+  ?-  msg
+  [%noted t]  [m(note=t) ~]
+  %add  [m(note="") ~[(poke.cart [%add note.m] |=%acked)]]
+  %toggle  [m ~[(poke.cart %toggle |=%acked)]]
+  [%got c]  [m(cart=c) ~]
+  [%acked err]  [m ~]
+::
+++  subs  |=  m=model  ~[[%watch (state.cart |=%got)]]
+::
+++  view  |=  m=model
+  (column
+    ~[gap+%s1]
+    ~[
+      text "{lent items.cart.m} items"
+      field "Item" note.m |=%noted
+      button "Add" %add
 ```
 
 A store is written like an API file: `state`, `+$ poke` and `(store init update)`. Islands can poke it with derived constructors and watch it with `(state.cart |=%got)`, whose first fact is the current state and each later fact the next. It runs in the browser, shared by the page's islands.

@@ -1,0 +1,16 @@
+fixture-arbitrary-precision-atom
+fixture-cell-construction-and-projection
+fixture-immutable-edit
+fixture-structural-equality
+fixture-lazy-selected-branch
+fixture-strict-unused-let
+fixture-lexical-closure-and-native-sample
+fixture-mutual-recursion
+fixture-higher-order-native-callback
+fixture-explicit-crash
+fixture-malformed-runtime-axis
+extra-self-tail-loop
+extra-tail-rec-arm
+extra-nested-lets
+extra-trace
+extra-closed-inner-lambda

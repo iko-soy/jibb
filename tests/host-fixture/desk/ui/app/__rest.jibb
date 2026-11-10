@@ -1,0 +1,9 @@
+::  An app: one island under a catch-all route, given the path by pure.
+/=  router  /ui/parts/router
+
+++ main (page load view)
+++ load |= p=path (pure p)
+
+++ view |= p=path
+  column ~[pad+%s3] ~[
+    island main.router p

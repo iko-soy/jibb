@@ -1,51 +1,55 @@
 1:1 glyph ++
-1:4 name main
-1:9 name view
+1:5 name main
+1:11 name view
 3:1 NEWLINE
 3:1 glyph ++
-3:4 name view
+3:5 name view
 4:3 INDENT
-4:3 name column
-4:10 glyph ~[
-4:12 tight name width
-4:17 tight glyph +
-4:18 tight glyph [
-4:19 tight lit %fill
-4:25 lit 1
-4:26 tight glyph ]
-4:28 name pad
-4:31 tight glyph +
-4:32 tight lit %s3
-4:36 name gap
-4:39 tight glyph +
-4:40 tight lit %s2
-4:43 tight glyph ]
-4:45 glyph ~[
+4:3 glyph (
+4:4 tight name column
 5:5 INDENT
-5:5 name heading
-5:13 lit 1
-5:15 str "About this ship"
+5:5 glyph ~[
+5:7 tight name width
+5:12 tight glyph +
+5:13 tight glyph [
+5:14 tight lit %fill
+5:20 lit 1
+5:21 tight glyph ]
+5:23 name pad
+5:26 tight glyph +
+5:27 tight lit %s3
+5:31 name gap
+5:34 tight glyph +
+5:35 tight lit %s2
+5:38 tight glyph ]
 6:5 NEWLINE
-6:5 name para
-6:10 glyph ~[
-6:12 tight glyph (
-6:13 tight name text
-6:18 str "Hosted on Urbit. This page ships no JavaScript."
-6:67 tight glyph )
-6:68 tight glyph ]
-7:5 NEWLINE
-7:5 name el
-7:8 glyph ~[
-7:10 tight name tone
-7:14 tight glyph +
-7:15 tight lit %accent
-7:22 tight glyph ]
-7:24 glyph (
-7:25 tight name link
-7:30 glyph %/
-7:32 tight knot blog
-7:37 str "Read the blog"
-7:52 tight glyph )
-7:53 DEDENT
-7:53 DEDENT
-7:53 NEWLINE
+6:5 glyph ~[
+7:7 INDENT
+7:7 name heading
+7:15 lit 1
+7:17 str "About this ship"
+8:7 NEWLINE
+8:7 name para
+8:12 glyph ~[
+8:14 tight glyph (
+8:15 tight name text
+8:20 str "Hosted on Urbit. This page ships no JavaScript."
+8:69 tight glyph )
+8:70 tight glyph ]
+9:7 NEWLINE
+9:7 name el
+9:10 glyph ~[
+9:12 tight name tone
+9:16 tight glyph +
+9:17 tight lit %accent
+9:24 tight glyph ]
+9:26 glyph (
+9:27 tight name link
+9:32 glyph %/
+9:34 tight knot blog
+9:39 str "Read the blog"
+9:54 tight glyph )
+9:55 DEDENT
+9:55 DEDENT
+9:55 DEDENT
+9:55 NEWLINE

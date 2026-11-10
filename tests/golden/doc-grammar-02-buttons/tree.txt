@@ -1,19 +1,19 @@
 (module
   (value 2:1 add-button
-    (gate 2:15
-      (face 2:18 label (aura 2:24 @t))
+    (gate 2:17
+      (face 2:21 label (aura 2:27 @t))
       (body 3:3
         (call 3:3 (wing 3:3 button) (wing 3:10 label) (lit 3:16 %add)))))
   (value 4:1 labelled
-    (gate 4:13
-      (cell 4:16
-        (face 4:17 label (aura 4:23 @t))
-        (face 4:26 msg (tvar 4:30 M)))
+    (gate 4:15
+      (cell 4:19
+        (face 4:20 label (aura 4:26 @t))
+        (face 4:29 msg (tvar 4:33 M)))
       (body 5:3
         (call 5:3 (wing 5:3 button) (wing 5:10 label) (wing 5:16 msg)))))
   (value 6:1 wide
-    (cast 6:10
-      (apply 6:13 list (ref 6:19 attr))
+    (cast 6:11
+      (apply 6:15 list (ref 6:21 attr))
       (body 7:3
         (list 7:3
           (pair 7:5 width

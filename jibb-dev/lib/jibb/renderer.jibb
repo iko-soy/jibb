@@ -110,3 +110,42 @@
 
 ++ render-image-unsafe |= [skin=theme payload=[source=[url=@t width=@ud height=@ud] description=@t]]
   ^- (vnode !!) [%image-unsafe source.payload description.payload]
+::  Inside an island.  The browser owns these once the island starts, so a
+::  control's message, an each's keys and a row's key stay out of the HTML.
+++ render-each |= [skin=theme kids=(list A)]
+  ^- (vnode A)
+  [%node "div" ~[["data-each" ""] ["style:display" "contents"]] kids]
+
+++ render-button |= [skin=theme label=@t]
+  ^- (vnode (vnode !!))
+  [%node "button" ~[["type" "button"]] ~[[%text label]]]
+
+++ render-toggle |= [skin=theme payload=[on=? label=@t]]
+  ^- (vnode !!)
+  ++ checked ^- (list [name=@t value=@t])
+    ?- on.payload
+    %.y ~[["checked" ""]]
+    %.n ~
+  [%node "input" (weld ~[["type" "checkbox"] ["aria-label" label.payload]] checked) ~]
+
+::  A field is read-only until its island starts (Decisions: Inputs).
+++ render-field |= [skin=theme payload=[label=@t value=@t]]
+  ^- (vnode !!)
+  [%node "input" ~[["type" "text"] ["value" value.payload] ["aria-label" label.payload] ["readonly" ""]] ~]
+
+++ render-form |= [skin=theme kids=(list A)]
+  ^- (vnode A)
+  [%node "form" ~ kids]
+
+++ align-style |= value=align
+  ^- (list [name=@t value=@t])
+  ?- value
+  %start ~[["style:text-align" "start"]]
+  %center ~[["style:text-align" "center"]]
+  %end ~[["style:text-align" "end"]]
+
+++ render-table-head |= [skin=theme payload=[header=@t width=length align=align]]
+  ^- (vnode (vnode !!))
+  ++ attrs ^- (list [name=@t value=@t])
+    (weld ~[["scope" "col"]] (weld (length-attrs width.payload) (align-style align.payload)))
+  [%node "th" attrs ~[[%text header.payload]]]

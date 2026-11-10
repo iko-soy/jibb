@@ -103,16 +103,16 @@ Types, faces and casts leave nothing behind. Everything else lowers by these rul
 The todo island's `update`, from worked example 3:
 
 ```jibb
-++ update |= [=msg m=model]
-  ?- msg
+++  update  |=  [=msg m=model]
+  ?-  msg
   [%typed t]
-    ?- (gth (lent (tuba (trip t))) 80)
+    ?-  gth (lent (tuba (trip t))) 80
     %.y  [m(draft=t error=`"Too long") ~]
     %.n  [m(draft=t error=~) ~]
-  %submit        [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
+  %submit  [m(draft="") ~[(poke.todo [%add draft.m] |=%acked)]]
   [%toggled id]  [m ~[(poke.todo [%toggle id] |=%acked)]]
-  [%got ts]      [m(todos=ts) ~]
-  [%acked err]   [m(error=err) ~]
+  [%got ts]  [m(todos=ts) ~]
+  [%acked err]  [m(error=err) ~]
 ```
 
 lowers to the program below. The model `[todos draft error]` puts `todos` at axis 2, `draft` at 6 and `error` at 7, and `%submit`, the only atom case, needs no test once `cell?` fails.

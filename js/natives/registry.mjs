@@ -25,3 +25,8 @@ export function createNativeRegistry(identities) {
   }
   return registry;
 }
+
+// Every native defined so far, as a browser page's islands may use any.
+export function nativeNames() {
+  return [...implementations.keys()];
+}

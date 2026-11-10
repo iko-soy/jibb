@@ -1,5 +1,7 @@
 ::  Fixture for the documented examples; not supplied by the design doc.
 /%  %posts
-
-+$ paths
+/%  %post
+::
++$  paths
   [%posts /posts posts]
+  [%post /post/[slug=@ta] post]

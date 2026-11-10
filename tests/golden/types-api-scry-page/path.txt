@@ -1,1 +1,1 @@
-/ui/search.jibb
+/ui/search/_id.jibb

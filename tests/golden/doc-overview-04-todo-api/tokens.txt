@@ -14,15 +14,15 @@
 6:5 lit %todo-item
 8:1 NEWLINE
 8:1 glyph +$
-8:4 name item
-8:9 wing item.todo
+8:5 name item
+8:11 wing item.todo
 9:1 NEWLINE
 9:1 glyph +$
-9:4 name poke
-9:9 name todo-action
+9:5 name poke
+9:11 name todo-action
 10:1 NEWLINE
 10:1 glyph +$
-10:4 name paths
+10:5 name paths
 11:3 INDENT
 11:3 glyph [
 11:4 tight lit %todos

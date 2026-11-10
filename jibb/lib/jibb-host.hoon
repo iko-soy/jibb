@@ -10,7 +10,25 @@
 +$  route-match  [route=route remaining=(list @t)]
 +$  docket-entry  [desk=desk docket=(unit noun)]
 +$  payload  simple-payload:http
-+$  cached-page  [status=@ud result=(each @t @t)]
+::  A built page: HTML, or an error with its status, to serve as it is; or
+::  a page with data, prepared by the compiler of the desk at rev, which
+::  renders it per request.  html is & for HTML and | for plain text.
++$  cached-page
+  $%  [%static status=@ud html=? body=@t]
+      [%data rev=@ud page=*]
+  ==
+::  How the host answers one request: a response now, or a page with data
+::  for the agent to run through the desk's compiler.
++$  served
+  $%  [%payload result=payload]
+      [%data =desk rev=@ud page=* site=(list @t) head=?]
+  ==
+::  What the desk's +page-request gives back, read by the host as a mold.
++$  page-step
+  $%  [%done title=@t html=@t]
+      [%scry agent=@tas path=path receive=*]
+      [%fail status=@ud message=@t html=@t]
+  ==
 +$  desk-pages  [pages=(map (list @t) cached-page) error=(unit @t)]
 +$  page-cache  (map desk desk-pages)
 +$  registry
@@ -57,13 +75,15 @@
       [%sur name=term]
       [%mark name=term]
       [%check at=path]
+      [%client at=path]
       [%style ~]
       [%render at=path]
       [%publish ~]
   ==
-::  A build in progress.  check-keys and render-keys name the store
-::  entries the build uses; served holds the pages it has decided.  While
-::  waiting holds a file, Clay's answer, not a Behn wake, resumes it.
+::  A build in progress.  check-keys, client-keys and render-keys name the
+::  store entries the build uses; served holds the pages it has decided.
+::  While waiting holds a file, Clay's answer, not a Behn wake, resumes it.
+::  library is the desk's browser library, which pages with islands load.
 +$  build
   $:  rev=@ud
       base=path
@@ -85,9 +105,12 @@
       mark-keys=(map term @uv)
       wanted=(map term (list term))
       check-keys=(map path @uv)
+      client-keys=(map path @uv)
       render-keys=(map path @uv)
+      library=(unit [url=@t js=@t])
       routes=(list (list @t))
-      style=(unit [key=@uv result=(each [url=@t css=@t] @t)])
+      style=(unit [key=@uv result=(each [url=@t css=@t lang=@t] @t)])
+      conflicts=(map path @t)
       served=(map (list @t) cached-page)
       checked=@ud
       rendered=@ud
@@ -102,6 +125,32 @@
 ::  A check or render records the revision whose build computed it.
 +$  checked  [rev=@ud result=(each [kind=@tas interface=* artifact=*] @t)]
 +$  rendered  [rev=@ud result=(each @t @t)]
+::  An island or store module's JavaScript, at the URL that names it.
++$  client  [rev=@ud kind=@tas result=(each [url=@t hash=@t js=@t] @t)]
+::  What a page with islands gives the browser, as the desk's compiler
+::  takes it: the library's URL, the ship, each island module's hash by
+::  its path and each store module's by its name.
++$  client-context
+  $:  library=@t
+      ship=@p
+      islands=(map @t @t)
+      stores=(list [module=@t hash=@t])
+      section=(unit @t)
+  ==
+::
+::  The part of a catch-all page's route before its catch-all, as /app for
+::  /ui/app/__rest: the section an app's links stay in (Decisions: Apps).
+::  ~ for other pages, and for a route with a parameter before its
+::  catch-all, whose section is not one address.
+++  page-section
+  |=  site=(list @t)
+  ^-  (unit @t)
+  =/  parts=(list @t)  (flop site)
+  ?~  parts  ~
+  ?.  =('__' (end [3 2] i.parts))  ~
+  =/  before=(list @t)  (flop t.parts)
+  ?:  (lien before |=(p=@t =('_' (end 3 p))))  ~
+  `(rap 3 (turn before |=(p=@t (cat 3 '/' p))))
 ::  The compiler's nouns are opaque here: each desk builds with its own.
 +$  store
   $:  imports=(map @uv outline)
@@ -109,9 +158,13 @@
       surs=(map @uv [hash=@uv value=(each (list [module=term name=term result=*]) @t)])
       marks=(map @uv [hash=@uv value=*])
       checks=(map @uv checked)
-      styles=(map @uv (each @t @t))
+      styles=(map @uv (each [css=@t lang=@t] @t))
       renders=(map @uv rendered)
+      prepares=(map @uv prepared)
+      clients=(map @uv client)
   ==
+::  A page with data, prepared by the compiler of the build at rev.
++$  prepared  [rev=@ud result=(each * @t)]
 ::  The last completed build: its revision, and when each module checked.
 +$  built  [rev=@ud modules=(list [at=path rev=@ud])]
 ::
@@ -286,6 +339,11 @@
       ==
   ^-  @uv
   (sham [%jibb-render-2 env page theme renderer base urls routes stylesheet])
+::  A module's JavaScript follows from what checked it; its URL from base.
+++  client-key
+  |=  [check=@uv base=path]
+  ^-  @uv
+  (sham [%jibb-client-1 check base])
 ::
 ::  +prune-store: only the entries a completed build used
 ::
@@ -302,6 +360,7 @@
   =/  mark-keys=(set @uv)  (silt ~(val by mark-keys.b))
   =/  check-keys=(set @uv)  (silt ~(val by check-keys.b))
   =/  render-keys=(set @uv)  (silt ~(val by render-keys.b))
+  =/  client-keys=(set @uv)  (silt ~(val by client-keys.b))
   =/  style-keys=(set @uv)  ?~(style.b ~ (silt ~[key.u.style.b]))
   :*  (malt (skim ~(tap by imports.s) |=([k=@uv *] (~(has in import-keys) k))))
       (malt (skim ~(tap by preludes.s) |=([k=@uv *] =(k prelude.b))))
@@ -310,6 +369,8 @@
       (malt (skim ~(tap by checks.s) |=([k=@uv *] (~(has in check-keys) k))))
       (malt (skim ~(tap by styles.s) |=([k=@uv *] (~(has in style-keys) k))))
       (malt (skim ~(tap by renders.s) |=([k=@uv *] (~(has in render-keys) k))))
+      (malt (skim ~(tap by prepares.s) |=([k=@uv *] (~(has in render-keys) k))))
+      (malt (skim ~(tap by clients.s) |=([k=@uv *] (~(has in client-keys) k))))
   ==
 ::
 ::  +built-modules: when each module of a build last checked
@@ -388,12 +449,33 @@
   ^-  (unit [pork quay])
   (rush url ;~(plug apat:de-purl:html yque:de-purl:html))
 ::
+::  A request's site: its path's segments, decoded, without the query or
+::  fragment.  A final segment keeps its dots, unlike Eyre's +apat, which
+::  splits off an extension.  Empty segments, as from a trailing slash, are
+::  dropped; a segment that does not decode stays as it was sent.
 ++  target-site
   |=  url=@t
   ^-  (list @t)
-  =/  parsed=(unit [pork quay])  (parse-target url)
-  ?~  parsed  ~
-  +5.u.parsed
+  =/  text=tape  (trip url)
+  =/  end=@ud  (lent text)
+  =/  query=(unit @ud)  (find "?" text)
+  =/  hash=(unit @ud)  (find "#" text)
+  =?  end  ?=(^ query)  (min end u.query)
+  =?  end  ?=(^ hash)  (min end u.hash)
+  ?~  (parse-target url)  ~
+  %+  murn  (split-slash (scag end text))
+  |=  part=tape
+  ?~  part  ~
+  `(fall (rush (crip part) smeg:de-purl:html) (crip part))
+++  split-slash
+  |=  text=tape
+  ^-  (list tape)
+  =|  out=(list tape)
+  =|  part=tape
+  |-
+  ?~  text  (flop [(flop part) out])
+  ?:  =('/' i.text)  $(text t.text, out [(flop part) out], part ~)
+  $(text t.text, part [i.text part])
 ::
 ::  A Clay path keeps a file's extension as its last segment; an application
 ::  path keeps it in the name, as /static/img/logo.png.
@@ -445,6 +527,23 @@
   |=  [base=path css=@t]
   ^-  @t
   (rap 3 ~[(spat base) '/~jibb/s/' (short-hash css) '.css'])
+::  An island or store module, and the browser library, by their text.
+++  module-url
+  |=  [base=path js=@t]
+  ^-  @t
+  (rap 3 ~[(spat base) '/~jibb/m/' (short-hash js) '.js'])
+++  library-url
+  |=  [base=path js=@t]
+  ^-  @t
+  (rap 3 ~[(spat base) '/~jibb/r/' (short-hash js) '.js'])
+::  The name a store's pokes and watches give it: its path under /ui
+::  without the mark, as stores/cart for /ui/stores/cart/jibb.
+++  store-name
+  |=  at=path
+  ^-  @t
+  =/  parts=path  (scag (dec (lent at)) at)
+  =?  parts  ?=([%ui *] parts)  t.parts
+  (crip (slag 1 (spud parts)))
 ::
 ++  static-payload
   |=  [type=@t data=octs]
@@ -658,18 +757,111 @@
 ++  successful-page
   |=  html=@t
   ^-  cached-page
-  [200 %& html]
+  [%static 200 & html]
 ::
+::  A page that failed to build.  The desk's error page, when its compiler
+::  could make one, or else the message as text.
 ++  failed-page
   |=  message=@t
   ^-  cached-page
-  [500 %| message]
-::
-::  A checked page with data; the host serves those from milestone 5 on.
-++  dynamic-page
+  [%static 500 | message]
+++  failed-page-html
+  |=  html=@t
   ^-  cached-page
-  :+  501  %|
-  'dynamic pages are a later-stage feature: unsupported module kind for static build: page'
+  [%static 500 & html]
+::
+++  html-status-response
+  |=  [status=@ud html=@t]
+  ^-  payload
+  [[status ~[['content-type' 'text/html; charset=utf-8']]] [~ [(met 3 html) html]]]
+::
+::  Routes.  A page's site keeps its file's `_name` and `__name` segments.
+::  A literal segment beats a parameter, which beats a catch-all, from the
+::  first segment on.
+++  pattern-matches
+  |=  [pattern=(list @t) site=(list @t)]
+  ^-  ?
+  ?~  pattern  ?=(~ site)
+  ?:  =('__' (end [3 2] i.pattern))  &
+  ?~  site  |
+  ?:  =('_' (end [3 1] i.pattern))  $(pattern t.pattern, site t.site)
+  ?.  =(i.pattern i.site)  |
+  $(pattern t.pattern, site t.site)
+++  pattern-rank
+  |=  pattern=(list @t)
+  ^-  (list @ud)
+  %+  turn  pattern
+  |=  seg=@t
+  ?:  =('__' (end [3 2] seg))  2
+  ?:  =('_' (end [3 1] seg))  1
+  0
+++  rank-before
+  |=  [a=(list @ud) b=(list @ud)]
+  ^-  ?
+  ?~  a  ?=(^ b)
+  ?~  b  |
+  ?:  (lth i.a i.b)  &
+  ?:  (gth i.a i.b)  |
+  $(a t.a, b t.b)
+++  match-page
+  |=  [pages=(map (list @t) cached-page) site=(list @t)]
+  ^-  (unit [pattern=(list @t) page=cached-page])
+  =/  entries=(list [pattern=(list @t) page=cached-page])  ~(tap by pages)
+  =|  best=(unit [pattern=(list @t) page=cached-page rank=(list @ud)])
+  |-
+  ?~  entries  ?~(best ~ `[pattern.u.best page.u.best])
+  ?.  (pattern-matches pattern.i.entries site)  $(entries t.entries)
+  =/  rank=(list @ud)  (pattern-rank pattern.i.entries)
+  ?:  &(?=(^ best) !(rank-before rank rank.u.best))  $(entries t.entries)
+  $(entries t.entries, best `[pattern.i.entries page.i.entries rank])
+::
+::  Routes that cannot both be served: one site from two files, two
+::  parameters at one level, and a catch-all beside its folder's index.
+::  Each file of such a pair gets the error.
+++  route-conflicts
+  |=  sites=(list [at=path site=(list @t)])
+  ^-  (map path @t)
+  =|  out=(map path @t)
+  =/  all=(list [at=path site=(list @t)])  sites
+  |-
+  ?~  sites  out
+  =/  mine=[at=path site=(list @t)]  i.sites
+  =/  others=(list [at=path site=(list @t)])
+    (skip all |=(o=[at=path site=(list @t)] =(at.o at.mine)))
+  =/  clash=(unit [at=path why=tape])
+    |-
+    ?~  others  ~
+    =/  why=(unit tape)  (route-clash site.mine site.i.others)
+    ?^  why  `[at.i.others u.why]
+    $(others t.others)
+  ?~  clash  $(sites t.sites)
+  =/  message=@t
+    (crip "route conflict: {(file-name at.mine)} and {(file-name at.u.clash)} {why.u.clash}")
+  $(sites t.sites, out (~(put by out) at.mine message))
+++  route-clash
+  |=  [a=(list @t) b=(list @t)]
+  ^-  (unit tape)
+  ?:  =(a b)  `"both route to the same address"
+  |-
+  ?~  a
+    ?:  ?&(?=([@ ~] b) =('__' (end [3 2] i.b)))  `"are a folder's index and its catch-all"
+    ~
+  ?~  b
+    ?:  ?&(?=([@ ~] a) =('__' (end [3 2] i.a)))  `"are a folder's index and its catch-all"
+    ~
+  ::  A parameter and a catch-all may share a level: the parameter wins.
+  =/  ka=@ud  (snag 0 (pattern-rank ~[i.a]))
+  =/  kb=@ud  (snag 0 (pattern-rank ~[i.b]))
+  ?:  &(=(1 ka) =(1 kb) !=(i.a i.b))  `"are parameters at one level"
+  ?:  &(=(2 ka) =(2 kb) !=(i.a i.b))  `"are catch-alls at one level"
+  ?.  =(i.a i.b)  ~
+  $(a t.a, b t.b)
+++  file-name
+  |=  at=path
+  ^-  tape
+  =/  back=(list @ta)  (flop at)
+  ?.  ?=([@ @ *] back)  (spud at)
+  (weld (spud (flop t.t.back)) "/{(trip i.t.back)}.{(trip i.back)}")
 ::
 ++  page-site
   |=  at=path
@@ -720,34 +912,50 @@
   ^-  payload
   (serve routes cache ~ authenticated method url)
 ::
-::  +serve: one request, given the desks whose builds are in progress
+::  +serve: a request's response when the host can give one itself
+::
+::    A page with data needs the desk's compiler, which only the agent can
+::    run; here it is a 500.
+++  serve
+  |=  [routes=(list route) cache=page-cache building=(set desk) authenticated=? =method:http url=@t]
+  ^-  payload
+  =/  answer=served  (serve-request routes cache building authenticated method url)
+  ?:  ?=(%payload -.answer)  result.answer
+  (text-response 500 'a page with data runs in the agent')
+::
+::  +serve-request: one request, given the desks whose builds are in progress
 ::
 ::    A completed build keeps serving while the next one runs.  Static
 ::    files are public and Eyre answers for each one it holds, so a request
 ::    that reaches the host for one is a 404, logged in or not.
-++  serve
+++  serve-request
   |=  [routes=(list route) cache=page-cache building=(set desk) authenticated=? =method:http url=@t]
-  ^-  payload
+  ^-  served
   =/  found=(unit route-match)  (route-request routes (target-site url))
-  ?:  &(?=(^ found) (unknown-asset remaining.u.found))  not-found
+  ?:  &(?=(^ found) (unknown-asset remaining.u.found))  [%payload not-found]
   =/  allowed=(each ~ payload)  (authorize authenticated url)
-  ?:  ?=(%| -.allowed)  p.allowed
-  ?~  found  not-found
-  ?.  ?=(?(%'GET' %'HEAD') method)  method-not-allowed
-  =/  result=payload
-    =/  built=(unit desk-pages)  (~(get by cache) desk.route.u.found)
+  ?:  ?=(%| -.allowed)  [%payload p.allowed]
+  ?~  found  [%payload not-found]
+  ?.  ?=(?(%'GET' %'HEAD') method)  [%payload method-not-allowed]
+  =/  head=?  ?=(%'HEAD' method)
+  =/  built=(unit desk-pages)  (~(get by cache) desk.route.u.found)
+  =/  answer=served
     ?~  built
-      ?:  (~(has in building) desk.route.u.found)  build-in-progress
-      not-found
-    ?^  error.u.built  (text-response 500 u.error.u.built)
-    =/  page=(unit cached-page)
-      (~(get by pages.u.built) remaining.u.found)
-    ?~  page  not-found
-    ?:  ?=(%| -.result.u.page)
-      (text-response status.u.page p.result.u.page)
-    (html-response p.result.u.page)
-  ?:  ?=(%'HEAD' method)  result(data ~)
-  result
+      ?:  (~(has in building) desk.route.u.found)  [%payload build-in-progress]
+      [%payload not-found]
+    ?^  error.u.built  [%payload (text-response 500 u.error.u.built)]
+    =/  page=(unit [pattern=(list @t) page=cached-page])
+      (match-page pages.u.built remaining.u.found)
+    ?~  page  [%payload not-found]
+    ?:  ?=(%data -.page.u.page)
+      [%data desk.route.u.found rev.page.u.page page.page.u.page remaining.u.found head]
+    =/  static=cached-page  page.u.page
+    ?>  ?=(%static -.static)
+    :-  %payload
+    ?:  html.static  (html-status-response status.static body.static)
+    (text-response status.static body.static)
+  ?.  &(head ?=(%payload -.answer))  answer
+  answer(data.result ~)
 ::
 ++  payload-header
   |=  result=payload

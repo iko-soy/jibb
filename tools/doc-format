@@ -1,0 +1,17 @@
+#!/bin/sh
+# Checks that the formatter leaves every example in the doc unchanged: each
+# Jibb block of docs/spec, which tools/doc-blocks keeps as a doc-* golden
+# case's source.  Uses jibb on PATH, or builds the CLI with cargo.
+set -eu
+cd "$(dirname "$0")/.."
+if command -v jibb >/dev/null 2>&1; then
+  jibb=jibb
+else
+  cargo build --quiet --release --manifest-path jibb-cli/Cargo.toml
+  jibb=jibb-cli/target/release/jibb
+fi
+if ! "$jibb" fmt --check tests/golden/doc-*/source.jibb; then
+  echo "doc-format: the formatter changes the doc examples above; format them and update docs/spec" >&2
+  exit 1
+fi
+echo "doc-format: the formatter leaves all $(ls -d tests/golden/doc-* | wc -l) doc examples unchanged"

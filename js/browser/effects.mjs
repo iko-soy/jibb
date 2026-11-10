@@ -56,16 +56,17 @@ export class Effects {
     channel,
     owner = 0n,
     now = () => dateFromMilliseconds(Date.now()),
-    setTimer = globalThis.setTimeout,
-    clearTimer = globalThis.clearTimeout,
-    setInterval = globalThis.setInterval,
-    clearInterval = globalThis.clearInterval,
+    // A browser's own timers throw when called as another object's methods.
+    setTimer = (callback, ms) => globalThis.setTimeout(callback, ms),
+    clearTimer = handle => globalThis.clearTimeout(handle),
+    setInterval = (callback, ms) => globalThis.setInterval(callback, ms),
+    clearInterval = handle => globalThis.clearInterval(handle),
     navigate,
     stores,
     urlRuntime,
     window,
     document,
-    defer = queueMicrotask,
+    defer = callback => queueMicrotask(callback),
   }) {
     if (!island || !channel) throw new TypeError('effects need an island and channel');
     this.island = island;
@@ -260,8 +261,11 @@ export class Effects {
     for (const watch of this.watches.values()) {
       if (watch.id !== requestId || watch.kind !== kind) continue;
       try {
-        const [state, message] = pair(apply(watch.receive, [mark, [watch.state, noun]]), 'watch reply');
-        watch.state = state;
+        // A generated receiver takes its last state as a unit, ~ before the
+        // first fact; an agent's also takes the fact's mark, a store's not.
+        const input = watch.kind === 'store' ? [watch.state, noun] : [mark, [watch.state, noun]];
+        const [state, message] = pair(apply(watch.receive, input), 'watch reply');
+        watch.state = [0n, state];
         watch.first = false;
         this.island.send(message);
       } finally {

@@ -1,4 +1,4 @@
-import { readLiteral } from '../core/literal.mjs';
+import { readShip } from '../core/literal.mjs';
 import {
   CoreCrash,
   atomToBytes,
@@ -16,7 +16,9 @@ import {
 const DATE_OFFSET = 292_277_024_400n;
 const MAX_U64 = 0xffff_ffff_ffff_ffffn;
 const SEAL_TAG = cord('jibb.private.seal.v1');
-const sealedValues = new WeakSet();
+// A seal's provenance is a module-private symbol on its own cell, cheaper to
+// set than a WeakSet entry; a copied cell, or one cued from a server, has none.
+const SEALED = Symbol('jibb.sealed');
 
 function crash(operation, message) {
   throw new CoreCrash(`${operation}: ${message}`);
@@ -274,8 +276,8 @@ function parseAura(aura, source) {
       return source.startsWith('~.') && /^[a-z0-9._~-]*$/.test(source.slice(2))
         ? cord(source.slice(2)) : undefined;
     case 'p': {
-      const parsed = readLiteral(source);
-      return parsed.aura === '@p' ? parsed.value : undefined;
+      if (!source.startsWith('~')) return undefined;
+      return readShip(source).value;
     }
     case 'da': return parseDate(source);
     case 'dr': return parseDuration(source);
@@ -321,13 +323,13 @@ export function rawBitNot(sample) {
 // provenance additionally lets JS consumers reject raw and copied lookalikes.
 export function rawSeal(value) {
   const sealed = [SEAL_TAG, value];
-  sealedValues.add(sealed);
+  sealed[SEALED] = true;
   return sealed;
 }
 
 export function isRawSeal(value) {
   return Array.isArray(value) && value.length === 2 && value[0] === SEAL_TAG
-    && sealedValues.has(value);
+    && value[SEALED] === true;
 }
 
 export function validateRawSeal(value) {

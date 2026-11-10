@@ -1,0 +1,18 @@
+# Every commit runs the repo's checks, as nix flake check runs them: the
+# native CLI's tests, the eval group, and the ship group on a fresh fake
+# ship, which includes -jibb!test, the Node harness and the browser checks.
+name: check
+on:
+  push:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - run: nix flake check -L

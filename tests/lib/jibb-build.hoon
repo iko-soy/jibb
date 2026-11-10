@@ -227,6 +227,7 @@
       ~
       ~
       stylesheet
+      ~
     ==
   ?:  ?=(%| -.stepwise)  ~[leaf+(trip p.stepwise)]
   =/  one-shot=(each static-output:jibb-build @t)
@@ -409,5 +410,324 @@
   ?:  ?=(%& -.missing)  ~[leaf+"missing theme font was accepted"]
   ?.  =(p.missing 'missing static asset: /static/fonts/inter.woff2')
     ~[leaf+(trip p.missing)]
+  ~
+::  A page with data, prepared as the host prepares one.
+++  data-page-for
+  |=  [request=static-request:jibb-build prep=iprelude-lowering:jibb]
+  ^-  (each data-page:jibb-build @t)
+  =/  page=jlowering-result:jibb  (check-static:jibb-build request prep)
+  ?:  ?=(%| -.page)  [%| message.p.page]
+  =/  skin=jlowering-result:jibb
+    (check-jibb-file-for-lowering-prepared:jibb theme-at.request theme-source.request externals.request marks.request modules.request ~[theme-at.request] ~ prep)
+  ?:  ?=(%| -.skin)  [%| message.p.skin]
+  =/  renderer=jlowering-result:jibb
+    (check-jibb-file-for-lowering-prepared:jibb renderer-at.request renderer-source.request externals.request marks.request modules.request ~[renderer-at.request] ~ prep)
+  ?:  ?=(%| -.renderer)  [%| message.p.renderer]
+  =/  artifacts=jlowering-cache:jibb  (weld cache.p.page (weld cache.p.skin cache.p.renderer))
+  %:  prepare-page:jibb-build
+    base.request  root.p.page  root.p.skin  root.p.renderer  artifacts  prep
+    assets.request  routes.request  '/apps/my-app/~jibb/s/0v1.css'  ~
+  ==
+++  test-pages-with-data
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  source=@t
+    %-  text
+    :~  '++ main (page load view)'
+        '++ load |= n=@ud (pure n)'
+        ''
+        '++ view |= n=@ud'
+        '  column ~ ~['
+        '    heading 1 "Number {n}"'
+    ==
+  =/  made=(each data-page:jibb-build @t)
+    (data-page-for (request /ui/numbered/[~._n]/jibb source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.made)  ~[leaf+(trip p.made)]
+  ?.  =(~[[%n %ud |]] fields.p.made)  ~[leaf+"load's sample fields were not read from its type"]
+  ?.  =(~['numbered' '_n'] route.p.made)  ~[leaf+"the page lost its route"]
+  =/  twelve=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['numbered' '12']])
+  ?.  ?=(%done -.twelve)  ~[leaf+"a page with data did not render"]
+  ?.  =('Number 12' title.twelve)  ~[leaf+(trip title.twelve)]
+  ?.  (contains (trip html.twelve) "<link rel=\"stylesheet\" href=\"/apps/my-app/~jibb/s/0v1.css\">")
+    ~[leaf+"a page with data lost its stylesheet"]
+  =/  word=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['numbered' 'twelve']])
+  ?.  ?=(%fail -.word)  ~[leaf+"an unparseable parameter rendered"]
+  ?.  =(404 status.word)  ~[leaf+"an unparseable parameter was not a 404"]
+  ?.  =('the segment twelve is not a @ud, as the route parameter n needs' message.word)
+    ~[leaf+(trip message.word)]
+  ?.  (contains (trip html.word) "<h1>Not found</h1><pre>the segment twelve is not a @ud")
+    ~[leaf+"the 404 was not Jibb's error page"]
+  =/  short=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['numbered']])
+  ?.  &(?=(%fail -.short) =(404 status.short))  ~[leaf+"a missing parameter was not a 404"]
+  ::  A catch-all page takes the rest of the path, any length, as its sample.
+  =/  rest-source=@t
+    %-  text
+    :~  '++ main (page load view)'
+        '++ load |=(p=path (pure p))'
+        ''
+        '++ view |= p=path'
+        '  column ~ ~['
+        '    heading 1 "Depth {(lent p)}"'
+    ==
+  =/  rest=(each data-page:jibb-build @t)
+    (data-page-for (request /ui/docs/[~.__rest]/jibb rest-source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.rest)  ~[leaf+(trip p.rest)]
+  =/  deep=page-step:jibb-build  (page-request:jibb-build p.rest [%load ~['docs' 'a' 'b']])
+  ?.  &(?=(%done -.deep) =('Depth 2' title.deep))  ~[leaf+"a catch-all did not take the rest of the path"]
+  =/  none=page-step:jibb-build  (page-request:jibb-build p.rest [%load ~['docs']])
+  ?.  &(?=(%done -.none) =('Depth 0' title.none))  ~[leaf+"a catch-all did not match its folder"]
+  =/  bad=page-step:jibb-build  (page-request:jibb-build p.rest [%load ~['docs' 'A B']])
+  ?.  &(?=(%fail -.bad) =(404 status.bad))  ~[leaf+"a segment of a catch-all that is not a knot was not a 404"]
+  ~
+++  test-page-scries-an-agent
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  source=@t
+    %-  text
+    :~  '++ main (page load view)'
+        '++ load |= slug=@ta'
+        '  ^- (ask @t)'
+        '  [%agent api="/ui/api/notes" case=%note agent=%notes path=~[%note slug] scry=~ receive=receive]'
+        '++ receive |= input=[mark=@tas state=(unit *) fact=*]'
+        '  ^- [state=* message=@t] [state=0 message="from the agent"]'
+        ''
+        '++ view |= words=@t'
+        '  column ~ ~['
+        '    heading 1 words'
+    ==
+  =/  made=(each data-page:jibb-build @t)
+    (data-page-for (request /ui/notes/[~._slug]/jibb source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.made)  ~[leaf+(trip p.made)]
+  =/  first=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['notes' 'hello']])
+  ?.  ?=(%scry -.first)  ~[leaf+"an agent's ask did not ask the host to scry"]
+  ?.  =([%notes /note/hello] [agent.first path.first])  ~[leaf+"the scry named another agent or path"]
+  =/  done=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.first %noun 42])
+  ?.  ?=(%done -.done)  ~[leaf+"the agent's answer did not render"]
+  ?.  =('from the agent' title.done)  ~[leaf+(trip title.done)]
+  =/  why=@t  'the agent %notes did not answer /note/hello'
+  =/  rejected=page-step:jibb-build  (page-request:jibb-build p.made [%reject why])
+  ?.  &(?=(%fail -.rejected) =(404 status.rejected) =(why message.rejected))
+    ~[leaf+"a rejected path was not a 404"]
+  ~
+++  test-route-parameters-are-checked
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  cases=(list [at=path load=@t wanted=tape])
+    :~  [/ui/numbered/[~._n]/jibb '++ load |=(~ (pure 0))' "the route parameter `n` must be an atom"]
+        [/ui/[~._a]/[~._b]/jibb '++ load |= n=@ud (pure n)' "load's sample must be a record of the route parameters"]
+        [/ui/[~._a]/[~._b]/jibb '++ load |= [a=@ta c=@ud] (pure c)' "has no field `b` for the route parameter `_b`"]
+        [/ui/numbered/jibb '++ load |= n=@ud (pure n)' "a page with no route parameters takes ~"]
+        [/ui/numbered/[~._n]/jibb '++ load |= n=[@ud @ud] (pure 0)' "the route parameter `n` must be an atom"]
+        [/ui/[~.__rest]/jibb '++ load |= rest=@ta (pure 0)' "a catch-all page takes the rest of the path as load's sample"]
+        [/ui/[~._user]/[~.__rest]/jibb '++ load |= [user=@ta rest=@ud] (pure 0)' "the catch-all `rest` takes the rest of the path"]
+    ==
+  |-
+  ?~  cases  ~
+  =/  source=@t
+    (text ~['++ main (page load view)' load.i.cases '' '++ view |= n=@ud' '  column ~ ~[(text "x")]'])
+  =/  checked=jlowering-result:jibb
+    (check-static:jibb-build (request at.i.cases source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%& -.checked)  ~[leaf+"{(spud at.i.cases)} with {(trip load.i.cases)} checked"]
+  ?.  (contains (trip message.p.checked) wanted.i.cases)  ~[leaf+(trip message.p.checked)]
+  ?.  (contains (trip message.p.checked) "++ main:")  ~[leaf+"the route error was not reported at main"]
+  $(cases t.cases)
+::  An island renders its init's first view on the ship, with its model
+::  for the browser, and the page loads the browser library; the island's
+::  module compiles to the JavaScript the browser runs.
+++  test-islands-render-their-first-view
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  island-at=path  /ui/counter/jibb
+  =/  island=@t
+    %-  text
+    :~  '++ main (program init update view subs)'
+        ''
+        '+$ model [count=@ud draft=@t]'
+        '+$ msg'
+        '  %add'
+        '  [%typed text=@t]'
+        ''
+        '++ init |= n=@ud'
+        '  [count=n draft=""]'
+        ''
+        '++ update |= [=msg m=model]'
+        '  ?- msg'
+        '  %add        [m(count=(add 1 count.m)) ~]'
+        '  [%typed t]  [m(draft=t) ~]'
+        ''
+        '++ subs |= m=model ~'
+        ''
+        '++ view |= m=model'
+        '  column ~ ~['
+        '    (text "Count {count.m}")'
+        '    field "Draft" draft.m |=%typed'
+        '    button "Add" %add'
+    ==
+  =/  page-at=path  /ui/counting/jibb
+  =/  page=@t
+    %-  text
+    :~  '/= counter /ui/counter'
+        '++ main'
+        '  column ~ ~['
+        '    heading 1 "Counting"'
+        '    island main.counter 41'
+    ==
+  =/  modules=jbundle:jibb  ~[[page-at page] [island-at island]]
+  =/  counter=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build island-at island ~ ~ ~[[island-at island]] ~ ~ u.prep)
+  ?:  ?=(%| -.counter)  ~[leaf+(trip p.counter)]
+  ?.  =(%island kind.p.counter)  ~[leaf+"the counter module was not an island"]
+  =/  checked=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    %:  check-module:jibb-build
+      page-at  page  ~  ~  modules
+      ~[[island-at interface.p.counter]]
+      ~[[island-at artifact.p.counter]]
+      u.prep
+    ==
+  ?:  ?=(%| -.checked)  ~[leaf+(trip p.checked)]
+  ?.  =(%static-page kind.p.checked)  ~[leaf+"the counting page was not a static page"]
+  =/  theme-at=path  /ui/theme/jibb
+  =/  theme=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build theme-at default-theme-source:jibb-build ~ ~ ~[[theme-at default-theme-source:jibb-build]] ~ ~ u.prep)
+  ?:  ?=(%| -.theme)  ~[leaf+(trip p.theme)]
+  =/  renderer-at=path  /lib/jibb/renderer/jibb
+  =/  renderer=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build renderer-at renderer-source ~ ~ ~[[renderer-at renderer-source]] ~ ~ u.prep)
+  ?:  ?=(%| -.renderer)  ~[leaf+(trip p.renderer)]
+  =/  client=client-context:jibb-build
+    :*  '/apps/my-app/~jibb/r/0vlib.js'
+        ~zod
+        (malt ~[['/ui/counter/jibb' '0vcounter']])
+        ~[['stores/cart' '0vcart']]
+        `'/app'
+    ==
+  =/  render
+    |=  context=(unit client-context:jibb-build)
+    ^-  (each static-output:jibb-build @t)
+    %:  render-checked:jibb-build
+      '/apps/my-app'
+      artifact.p.checked
+      artifact.p.theme
+      artifact.p.renderer
+      ~[[island-at artifact.p.counter]]
+      u.prep
+      ~
+      ~
+      '/apps/my-app/~jibb/s/0v1.css'
+      context
+    ==
+  =/  rendered=(each static-output:jibb-build @t)  (render `client)
+  ?:  ?=(%| -.rendered)  ~[leaf+(trip p.rendered)]
+  =/  state=@t  (scot %uw (jam [41 '']))
+  =/  html=tang
+    %+  expect-html  html.p.rendered
+    :~  '<div data-jibb-island="0vcounter">'
+        'Count 41'
+        '<input type="text" value="" aria-label="Draft" readonly="">'
+        '<button type="button">Add</button>'
+        (rap 3 ~['<script type="application/x-jibb-state">' state '</script></div>'])
+        ::  A JSON object's keys come in its map's order.
+        '<script type="application/x-jibb-client">{'
+        '"base":"/apps/my-app"'
+        '"ship":"~zod"'
+        '"stores":{"stores/cart":"0vcart"}'
+        '"assets":{}'
+        '"section":"/app"'
+        '}</script><script type="module" src="/apps/my-app/~jibb/r/0vlib.js"></script></head>'
+    ==
+  ?^  html  html
+  ::  A page whose build compiled no island module for it cannot render one.
+  =/  alone=(each static-output:jibb-build @t)  (render ~)
+  ?:  ?=(%& -.alone)  ~[leaf+"an island rendered without its compiled module"]
+  ?.  =(p.alone 'static renderer: /ui/counter/jibb is not an island module this build compiled')
+    ~[leaf+(trip p.alone)]
+  =/  js=(each @t @t)
+    (prepare-browser:jibb-build artifact.p.counter ~[[island-at artifact.p.counter]] u.prep)
+  ?:  ?=(%| -.js)  ~[leaf+(trip p.js)]
+  =/  script=tang
+    %+  expect-html  p.js
+    :~  'export function evaluate(runtime, natives) {'
+        'requireNative(natives, "raw-seal");'
+    ==
+  ?^  script  script
+  =/  page-js=(each @t @t)
+    (prepare-browser:jibb-build artifact.p.checked ~[[island-at artifact.p.counter]] u.prep)
+  ?:  ?=(%& -.page-js)  ~[leaf+"a page was compiled for the browser"]
+  ?.  =(p.page-js 'an island or store module was expected, not a module of kind static-page')
+    ~[leaf+(trip p.page-js)]
+  ~
+::  -jibb!test's runner: each test- arm passes when it is %.y; one that is
+::  %.n, crashes, or is not a ? fails, with why; other arms are not tests.
+++  test-run-tests-reports-each-arm
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  at=path  /ui/tests/sums/jibb
+  =/  source=@t
+    %-  text
+    :~  '++ test-adds  (eq (add 2 2) 4)'
+        '++ test-fails  (eq (add 2 2) 5)'
+        '++ test-crashes  ^- ?  !!'
+        '++ test-is-a-number  42'
+        '++ helper  7'
+    ==
+  =/  checked=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build at source ~ ~ ~[[at source]] ~ ~ u.prep)
+  ?:  ?=(%| -.checked)  ~[leaf+(trip p.checked)]
+  =/  outcomes=(list test-outcome:jibb-build)
+    (run-tests:jibb-build artifact.p.checked ~[[at artifact.p.checked]] u.prep)
+  =/  wanted=(list test-outcome:jibb-build)
+    :~  [%test-adds & '']
+        [%test-crashes | 'test-crashes crashed during Nock execution']
+        [%test-fails | 'test-fails is %.n']
+        [%test-is-a-number | 'test-is-a-number is a @ud, not a ?']
+    ==
+  ?:  =(wanted outcomes)  ~
+  :~  leaf+"the test outcomes differ"
+      leaf+"wanted {<wanted>}"
+      leaf+"got {<outcomes>}"
+  ==
+::  The Node harness's programs: each test- arm that is a ?, as JavaScript
+::  and as Nock whose natives are placeholders; the ship runs that Nock
+::  with its own gates in their place to the same values.
+++  test-test-programs-for-the-node-harness
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  at=path  /ui/tests/sums/jibb
+  =/  source=@t
+    %-  text
+    :~  '++ test-adds  (eq (add 2 2) 4)'
+        '++ test-fails  (eq (add 2 2) 5)'
+        '++ test-is-a-number  42'
+    ==
+  =/  checked=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build at source ~ ~ ~[[at source]] ~ ~ u.prep)
+  ?:  ?=(%| -.checked)  ~[leaf+(trip p.checked)]
+  =/  programs=(list [arm=term js=@t nock=*])
+    (test-programs:jibb-build artifact.p.checked ~[[at artifact.p.checked]] u.prep)
+  ?.  =(~[%test-adds %test-fails] (turn programs |=(p=[arm=term *] arm.p)))
+    ~[leaf+"the harness's programs are not exactly the ? arms, in name order"]
+  ?>  ?=([* * ~] programs)
+  =/  js=tang
+    (expect-html js.i.programs ~['export function evaluate(runtime, natives) {' 'requireNative(natives, "add");'])
+  ?^  js  js
+  ::  The ship's own gates in the placeholders' places give the same value.
+  =/  swap
+    |=  formula=*
+    ^-  *
+    ?@  formula  formula
+    ?:  ?=([[%0 %0] %0 %jibb-native @] formula)
+      ?:  =('add' +>+.formula)  add
+      |=([a=* b=*] =(a b))
+    [$(formula -.formula) $(formula +.formula)]
+  =/  adds=outcome:jibb-core  (execute:jibb-nock 0 (swap nock.i.programs))
+  =/  fails=outcome:jibb-core  (execute:jibb-nock 0 (swap nock.i.t.programs))
+  ?.  &(=([%ok 0] adds) =([%ok 1] fails))
+    ~[leaf+"the placeholder Nock did not run to %.y and %.n: {<[adds fails]>}"]
   ~
 --

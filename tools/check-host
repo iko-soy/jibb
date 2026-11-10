@@ -39,6 +39,10 @@ REPLY = 900
 #  The fixture's modules, its default theme and the vendored renderer.
 FIXTURE_MODULES = {'/ui/about/jibb', '/ui/notes/jibb', '/ui/parts/note/jibb',
                    '/ui/blog/index/jibb', '/ui/tables/jibb', '/ui/misspelled/jibb',
+                   '/ui/numbered/_n/jibb', '/ui/crash/jibb',
+                   '/ui/bench/jibb', '/ui/parts/rows/jibb',
+                   '/ui/fragile/jibb', '/ui/parts/fragile/jibb',
+                   '/ui/tests/sums/jibb', '/ui/app/__rest/jibb', '/ui/parts/router/jibb',
                    '/ui/theme/jibb', '/lib/jibb/renderer/jibb'}
 STYLESHEET = re.compile(rb'<link rel="stylesheet" href="([^"]+)">')
 IMAGE = re.compile(rb'<img src="([^"]+)" alt="([^"]*)" width="([0-9]+)" height="([0-9]+)">')
@@ -59,6 +63,34 @@ CLEAR = r"""
 ?.  ?=(%thread-done p.cage)  ~|([%clear-failed p.cage] !!)
 (pure:m q.cage)
 """
+#  -jibb!test %DESK, run as dojo runs a thread from the %jibb desk.
+TEST = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  tid  (scot %ta (cat 3 'strand_jibb_test_' (scot %uv (sham %test eny.bowl))))
+=/  start=vase
+  !>(`start-args:spider`[`tid.bowl `tid [our.bowl %jibb da+now.bowl] %test !>([%@@DESK@@ ~])])
+;<  ~  bind:m  (watch-our /awaiting/[tid] %spider /thread-result/[tid])
+;<  ~  bind:m  (poke-our %spider %spider-start start)
+;<  =cage  bind:m  (take-fact /awaiting/[tid])
+;<  ~  bind:m  (take-kick /awaiting/[tid])
+?.  ?=(%thread-done p.cage)  ~|([%test-failed p.cage] !!)
+(pure:m q.cage)
+"""
+#  What -jibb!test gives for each desk's test modules, test by test.
+EXPECTED_TESTS = {
+    DESK: [('/ui/tests/sums/jibb', [
+        ('test-adds', True, ''),
+        ('test-crashes', False, 'test-crashes crashed during Nock execution'),
+        ('test-fails', False, 'test-fails is %.n'),
+        ('test-is-a-number', False, 'test-is-a-number is a @ud, not a ?'),
+    ])],
+    'my-app': [('/ui/tests/todo/jibb', [
+        ('test-a-long-draft-is-refused', True, ''),
+        ('test-a-short-draft-has-no-error', True, ''),
+        ('test-adding-clears-the-draft', True, ''),
+    ])],
+}
 #  The modules a commit to the note library checks again.
 NOTE_CLOSURE = {'/ui/parts/note/jibb', '/ui/notes/jibb'}
 
@@ -230,6 +262,18 @@ def wait_for(what, probe, timeout=600):
     raise ValueError('timed out waiting for %s: %s' % (what, last))
 
 
+def desk_tests(ship, desk):
+    """-jibb!test's outcomes for a desk: (module, [(arm, ok, message)])."""
+    value = ship.thread(TEST.replace('@@DESK@@', desk), timeout=REPLY)
+    modules = []
+    for entry in shiptool.items(value):
+        at, tests = entry
+        modules.append((shiptool.path_text(at), [
+            (shiptool.text(arm), ok == 0, shiptool.text(message))
+            for arm, (ok, message) in shiptool.items(tests)]))
+    return modules
+
+
 def http_port(pier):
     ports = Path(pier) / '.http.ports'
     for line in ports.read_text().splitlines():
@@ -367,7 +411,23 @@ def main():
                'the image was not described and sized from its file: %r'
                % ((alt, width, height),))
         fetch_public(anonymous, dot_url, 'image/png', dot)
-        expect(published(ship, DESK) == {stylesheet: None, dot_url: None},
+        # Its islands' JavaScript and the browser library are public,
+        # immutable files too, at URLs naming a hash of their text.
+        scripts = {url for url in published(ship, DESK)
+                   if '/~jibb/m/' in url or '/~jibb/r/' in url}
+        library = [url for url in scripts if '/~jibb/r/' in url]
+        modules = [url for url in scripts if '/~jibb/m/' in url]
+        expect(len(library) == 1 and len(modules) == 3,
+               'the fixture published scripts %r, not one library and its three islands'
+               % sorted(scripts))
+        fetch_public(anonymous, library[0], 'text/javascript; charset=utf-8',
+                     (ROOT / 'jibb-dev' / 'lib' / 'jibb' / 'runtime.js').read_bytes())
+        for url in modules:
+            body = fetch_public(anonymous, url, 'text/javascript; charset=utf-8')
+            expect(body.startswith(b'// Generated from Jibb Core. Do not edit.'),
+                   'an island module was not generated JavaScript: %r' % body[:80])
+        files = {stylesheet: None, dot_url: None, **{url: None for url in scripts}}
+        expect(published(ship, DESK) == files,
                'the fixture published %r' % published(ship, DESK))
 
         before = module_revisions(ship, DESK)
@@ -398,7 +458,7 @@ def main():
         status, _, body = owner.request('GET', NOTES)
         expect(status == 200 and b'First note' in body,
                'the restored notes page was not served: HTTP %d: %r' % (status, body))
-        expect(published(ship, DESK) == {stylesheet: None, dot_url: None},
+        expect(published(ship, DESK) == files,
                'editing a module changed the published files: %r' % published(ship, DESK))
 
         # A changed file gets a new URL, and the old one stays a day for
@@ -483,8 +543,49 @@ def main():
         for text in ('@media (prefers-color-scheme:dark){:root{--j-normal:#eee;',
                      '@media (min-width:60rem){.j-stack{flex-direction:row}}'):
             expect(text in app_css, 'my-app\'s stylesheet is missing %r' % text)
+        # Pages with data render per request from a fresh scry of my-app's
+        # %blog agent; nothing about them is cached.
+        status, headers, body = owner.request('GET', MY_APP_BASE + '/blog')
+        expect(status == 200 and b'Hello, Urbit' in body and b'Pages from a scry' in body,
+               'worked example 2 was HTTP %d: %r' % (status, body))
+        expect(headers.get('cache-control') is None, 'a page with data asked to be cached')
+        status, _, body = owner.request('GET', MY_APP_BASE + '/blog/hello-urbit')
+        expect(status == 200 and b'<h1' in body and b'Hello, Urbit' in body
+               and b'address is hello-urbit.' in body,
+               'the _slug page was HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('HEAD', MY_APP_BASE + '/blog/hello-urbit')
+        expect(status == 200 and body == b'', 'HEAD of a page with data was HTTP %d: %r'
+               % (status, body))
+        status, headers, _ = anonymous.request('GET', MY_APP_BASE + '/blog/hello-urbit')
+        expect(status == 307, 'a logged-out reader of a page with data got HTTP %d' % status)
+        status, _, body = owner.request('GET', MY_APP_BASE + '/blog/no-such-post')
+        expect(status == 404 and b'did not answer /post/no-such-post' in body,
+               'a path the agent rejects was HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', MY_APP_BASE + '/blog/malformed')
+        expect(status == 500 and b'does not fit its type' in body,
+               'an answer that does not fit its type was HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', MY_APP_BASE + '/blog/Not%20a%20knot')
+        expect(status == 404 and b'is not a @ta' in body,
+               'a segment that is not a knot was HTTP %d: %r' % (status, body))
+        ship.thread(shiptool.fill(shiptool.POKE, AGENT='blog', MARK='noun',
+                                  VALUE="[%add 'Fresh from a poke' ~.fresh-post]"),
+                    timeout=REPLY)
         status, _, body = owner.request('GET', MY_APP_BASE + '/blog')
-        expect(status == 501, 'checked dynamic page was HTTP %d, not 501: %r' % (status, body))
+        expect(status == 200 and b'Fresh from a poke' in body,
+               'worked example 2 did not read a fresh scry: HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', MY_APP_BASE + '/blog/fresh-post')
+        expect(status == 200 and b'Fresh from a poke' in body,
+               'the _slug page did not read a fresh scry: HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', BASE + '/numbered/12')
+        expect(status == 200 and b'Number 12' in body,
+               'a page with a @ud parameter was HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', BASE + '/numbered/twelve')
+        expect(status == 404 and b'is not a @ud' in body,
+               'an unparseable parameter was HTTP %d: %r' % (status, body))
+        for _ in range(2):
+            status, _, body = owner.request('GET', BASE + '/crash')
+            expect(status == 500 and b'crashed in its view' in body,
+                   'a crashing render was HTTP %d: %r' % (status, body))
         # buttons is a library with the expected 3:16 error: it is not a page.
         for target in (MY_APP_BASE + '/todo-list', MY_APP_BASE + '/stores/cart',
                        MY_APP_BASE + '/components/card', MY_APP_BASE + '/api/todo',
@@ -498,13 +599,21 @@ def main():
         fixture_files = set(published(ship, DESK))
         app_files = set(published(ship, 'my-app'))
         cached = {entry.get('url') for entry in cache}
+        # An entry whose val is null is one Eyre no longer serves: a file
+        # an earlier build retired.
         private = [entry for entry in cache
-                   if any(base in entry.get('url', '') for base in (BASE, MY_APP_BASE))
+                   if entry.get('val') is not None
+                   and any(base in entry.get('url', '') for base in (BASE, MY_APP_BASE))
                    and entry.get('url') not in fixture_files | app_files]
         expect(not private, 'a private page appeared in Eyre cache: %r' % private)
         expect(fixture_files | app_files <= cached,
                'published files were not in Eyre cache: %r'
                % sorted((fixture_files | app_files) - cached))
+
+        # -jibb!test runs each test- arm under /ui/tests as Nock.
+        for desk, wanted in EXPECTED_TESTS.items():
+            got = desk_tests(ship, desk)
+            expect(got == wanted, '-jibb!test %%%s gave %r, not %r' % (desk, got, wanted))
 
         # -jibb!clear takes every desk's files out of Eyre's cache; the next
         # build publishes its files again.
@@ -516,7 +625,7 @@ def main():
         edited = True
         rev = commit_note(ship, original_note.replace(b'First note', b'Third note'))
         wait_built(ship, DESK, rev)
-        expect(published(ship, DESK) == {stylesheet: None, dot_url: None},
+        expect(published(ship, DESK) == files,
                'the build after clearing published %r' % published(ship, DESK))
         fetch_public(anonymous, stylesheet, 'text/css; charset=utf-8', css.encode())
         fetch_public(anonymous, dot_url, 'image/png', dot)
@@ -534,7 +643,8 @@ def main():
         # send a logged-out reader to the login page: ask as the owner.
         expect_gone(owner, (stylesheet, dot_url), 'after suspending the desk')
         print('check-host: default theme, real Clay imports, page kinds, static files, '
-              'stylesheets, -jibb!clear, incremental rebuild, HTTP and suspend passed')
+              'stylesheets, pages with data, -jibb!test, -jibb!clear, incremental rebuild, '
+              'HTTP and suspend passed')
         return 0
     finally:
         # Leave the dedicated fixture usable for a subsequent run, including

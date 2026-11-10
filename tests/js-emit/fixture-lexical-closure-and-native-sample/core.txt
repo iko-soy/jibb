@@ -1,0 +1,1 @@
+(app (let x 40 (lam y (app (native add) (cons x y)))) 2)

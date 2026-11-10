@@ -2,14 +2,17 @@
 =,  clay
 |%
 +$  card  card:agent:gall
+::  Pages as states 1 to 4 saved them, before pages with data.
++$  page-cache-4
+  (map desk [pages=(map (list @t) [status=@ud result=(each @t @t)]) error=(unit @t)])
 +$  state-0  [%0 registry=registry:jibb-host]
-+$  state-1  [%1 registry=registry:jibb-host pages=page-cache:jibb-host]
++$  state-1  [%1 registry=registry:jibb-host pages=page-cache-4]
 ::  Builds in progress and compile caches are not saved: their types change
 ::  with the host, and a reload rebuilds them.
 +$  state-2
   $:  %2
       registry=registry:jibb-host
-      pages=page-cache:jibb-host
+      pages=page-cache-4
       watched=(map desk @ud)
       builds=*
       stores=*
@@ -18,7 +21,7 @@
 +$  saved-3
   $:  %3
       registry=registry:jibb-host
-      pages=page-cache:jibb-host
+      pages=page-cache-4
       watched=(map desk @ud)
       built=(map desk built:jibb-host)
   ==
@@ -28,14 +31,29 @@
 +$  saved-4
   $:  %4
       registry=registry:jibb-host
-      pages=page-cache:jibb-host
+      pages=page-cache-4
       watched=(map desk @ud)
       built=(map desk built:jibb-host)
       published=(map desk cached-urls:jibb-host)
       timer=(unit @da)
   ==
-+$  state-4
-  $:  %4
+::  pending holds each request for a page with data whose agent a thread is
+::  scrying, by Eyre's request id: the page, made by the compiler of the
+::  desk at rev, whether the request was a HEAD, and the ask's receiver,
+::  agent and path.
++$  pending-page  [=desk rev=@ud page=* head=? receive=* agent=@tas at=path]
++$  saved-5
+  $:  %5
+      registry=registry:jibb-host
+      pages=page-cache:jibb-host
+      watched=(map desk @ud)
+      built=(map desk built:jibb-host)
+      published=(map desk cached-urls:jibb-host)
+      timer=(unit @da)
+      pending=(map @ta pending-page)
+  ==
++$  state-5
+  $:  %5
       registry=registry:jibb-host
       pages=page-cache:jibb-host
       watched=(map desk @ud)
@@ -44,10 +62,13 @@
       built=(map desk built:jibb-host)
       published=(map desk cached-urls:jibb-host)
       timer=(unit @da)
+      pending=(map @ta pending-page)
+      ::  Each desk's last completed build, whose tests -jibb!test runs.
+      finished=(map desk build:jibb-host)
   ==
-+$  versioned-state  $%(state-0 state-1 state-2 saved-3 saved-4)
++$  versioned-state  $%(state-0 state-1 state-2 saved-3 saved-4 saved-5)
 --
-=|  state-4
+=|  state-5
 =*  state  -
 ^-  agent:gall
 =<
@@ -57,7 +78,7 @@
 ++  on-init
   ^-  (quip card _this)
   [~[tire-card:jibb-host] this]
-++  on-save  !>(`saved-4`[%4 registry pages watched built published timer])
+++  on-save  !>(`saved-5`[%5 registry pages watched built published timer pending])
 ::  Published routes and their pages survive reloads and keep serving while
 ::  every published desk builds again from an empty cache, renewing its
 ::  commit subscription.  Pending binds are retried.
@@ -67,15 +88,24 @@
   =/  previous=versioned-state  !<(versioned-state old)
   =.  state
     ?-  -.previous
-      %4  :*  %4  registry.previous  pages.previous  watched.previous
+      %5  :*  %5  registry.previous  pages.previous  watched.previous
               ~  ~  built.previous  published.previous  timer.previous
+              pending.previous  ~
           ==
-      %3  [%4 registry.previous pages.previous watched.previous ~ ~ built.previous ~ ~]
-      %2  [%4 registry.previous pages.previous watched.previous ~ ~ built.previous ~ ~]
-      %1  [%4 registry.previous pages.previous ~ ~ ~ ~ ~ ~]
+      %4  :*  %5  registry.previous  (upgrade-pages:hc pages.previous)
+              watched.previous  ~  ~  built.previous  published.previous
+              timer.previous  ~  ~
+          ==
+      %3  :*  %5  registry.previous  (upgrade-pages:hc pages.previous)
+              watched.previous  ~  ~  built.previous  ~  ~  ~  ~
+          ==
+      %2  :*  %5  registry.previous  (upgrade-pages:hc pages.previous)
+              watched.previous  ~  ~  built.previous  ~  ~  ~  ~
+          ==
+      %1  [%5 registry.previous (upgrade-pages:hc pages.previous) ~ ~ ~ ~ ~ ~ ~ ~]
     ::  Legacy published bindings predate cached HTML.  Reconnect them so
     ::  their acknowledgments build pages through the same transaction.
-      %0  [%4 [~ routes.registry.previous live.registry.previous] ~ ~ ~ ~ ~ ~ ~]
+      %0  [%5 [~ routes.registry.previous live.registry.previous] ~ ~ ~ ~ ~ ~ ~ ~ ~]
     ==
   =^  cards  state  rebuild-published:hc
   =^  timers  state  schedule:hc
@@ -97,12 +127,15 @@
     [cards this]
   ?.  ?=(%handle-http-request mark)  [~ this]
   =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
-  =/  result=payload:jibb-host
-    %:  serve:jibb-host
+  =/  answer=served:jibb-host
+    %:  serve-request:jibb-host
       routes.registry  pages  ~(key by builds)
       authenticated.req  method.request.req  url.request.req
     ==
-  [(give-payload:jibb-host eyre-id result) this]
+  ?:  ?=(%payload -.answer)  [(give-payload:jibb-host eyre-id result.answer) this]
+  =^  cards  state
+    (page-step:hc eyre-id [desk rev page head ~ %$ ~]:answer [%load site.answer])
+  [cards this]
 ++  on-watch
   |=  =path
   ^-  (quip card _this)
@@ -135,6 +168,12 @@
     ?~  rev  [~ this]
     =^  cards  state  (built-file:hc i.t.wire u.rev t.t.t.wire ?=(^ p.sign-arvo))
     [cards this]
+  ::  A thread's scry for a page with data: its noun, or a failure, which is
+  ::  that page's 404.
+  ?:  ?=([%scry @ ~] wire)
+    ?.  ?=([%khan %arow *] sign-arvo)  [~ this]
+    =^  cards  state  (scried:hc i.t.wire p.sign-arvo)
+    [cards this]
   ?:  ?=([%expire ~] wire)
     ?.  ?=([%behn %wake *] sign-arvo)  [~ this]
     =.  timer  ~
@@ -152,7 +191,13 @@
     ?.  ?=(%live zest.p.result)  (retire:hc desk)
     (revive:hc desk)
   [cards this]
-++  on-leave  |=  =path  ^-  (quip card _this)  [~ this]
+::  Eyre leaves a request it no longer waits for; its scry's answer is
+::  then dropped.
+++  on-leave
+  |=  =path
+  ^-  (quip card _this)
+  ?.  ?=([%http-response @ ~] path)  [~ this]
+  [~ this(pending (~(del by pending) i.t.path))]
 ++  on-agent  |=  [=wire =sign:agent:gall]  ^-  (quip card _this)  [~ this]
 ::  /x/build/<desk>: the revisions of its last completed build and of the
 ::  build in progress.  /x/modules/<desk>: the revision whose build last
@@ -173,6 +218,12 @@
     ``noun+!>(?~(done ~ modules.u.done))
   ?:  ?=([%x %static @ ~] path)
     ``noun+!>(`(list [@t (unit @da)])`~(tap by (~(gut by published) i.t.t.path ~)))
+  ::  -jibb!test reads its results here.
+  ?:  ?=([%x %test @ ~] path)
+    ``noun+!>((desk-tests:hc i.t.t.path))
+  ::  The Node harness reads each test as JavaScript and Nock here.
+  ?:  ?=([%x %test-programs @ ~] path)
+    ``noun+!>((desk-test-programs:hc i.t.t.path))
   ~
 ++  on-fail  |=  [=term =tang]  ^-  (quip card _this)  [~ this]
 --
@@ -280,6 +331,7 @@
     stores     (~(del by stores) i.desks)
     built      (~(del by built) i.desks)
     published  (~(del by published) i.desks)
+    finished   (~(del by finished) i.desks)
   ==
 ++  retire
   |=  =desk
@@ -464,6 +516,7 @@
     %sur      (sur-step desk name.step b s)
     %mark     (mark-step desk name.step b s)
     %check    (check-step desk at.step b s)
+    %client   (client-step desk at.step b s)
     %style    (style-step desk b s)
     %render   (render-step desk at.step b s)
     %publish  [| b s]
@@ -491,9 +544,10 @@
     %+  weld
       %+  turn  assets.b
       |=(f=static-file:jibb-host [url.f (static-payload:jibb-host type.f data.f)])
+    %+  weld  (client-files b s)
     ?~  style.b  ~
     ?.  ?=(%& -.result.u.style.b)  ~
-    =/  sheet=[url=@t css=@t]  p.result.u.style.b
+    =/  sheet=[url=@t css=@t lang=@t]  p.result.u.style.b
     =/  css=octs  (as-octs:mimes:html css.sheet)
     ~[[url.sheet (static-payload:jibb-host 'text/css; charset=utf-8' css)]]
   =/  plan=[urls=cached-urls:jibb-host cards=(list card)]
@@ -505,11 +559,29 @@
   :-  (weld cards.plan timers)
   %-  (slog (build-report desk b s))
   %=  state
-    pages   (~(put by pages) desk served)
-    builds  (~(del by builds) desk)
-    stores  (~(put by stores) desk kept)
-    built   (~(put by built) desk [rev.b checked])
+    pages     (~(put by pages) desk served)
+    builds    (~(del by builds) desk)
+    stores    (~(put by stores) desk kept)
+    built     (~(put by built) desk [rev.b checked])
+    finished  ?^(failure.b finished (~(put by finished) desk b))
   ==
+::  Each island and store module's JavaScript, and the browser library if
+::  there is any: public, immutable files, as static files are.
+++  client-files
+  |=  [b=build:jibb-host s=store:jibb-host]
+  ^-  (list [url=@t =payload:jibb-host])
+  =/  script=$-(@t payload:jibb-host)
+    |=(js=@t (static-payload:jibb-host 'text/javascript; charset=utf-8' (as-octs:mimes:html js)))
+  =/  modules=(list [url=@t =payload:jibb-host])
+    %+  murn  ~(val by client-keys.b)
+    |=  key=@uv
+    =/  entry=(unit client:jibb-host)  (~(get by clients.s) key)
+    ?~  entry  ~
+    ?.  ?=(%& -.result.u.entry)  ~
+    `[url.p.result.u.entry (script js.p.result.u.entry)]
+  ?:  =(~ modules)  ~
+  ?~  library.b  modules
+  [[url.u.library.b (script js.u.library.b)] modules]
 ::  Each error this build found, with its file, line, column and excerpt.
 ++  build-report
   |=  [=desk b=build:jibb-host s=store:jibb-host]
@@ -554,6 +626,13 @@
   =/  renderer=(each @t @t)  (read-clay pre renderer-at)
   ?:  ?=(%| -.renderer)  [& b(failure `p.renderer) s]
   =/  builder=vase  (builder-vase pre)
+  ::  The browser library the desk vendors with its compiler.
+  =/  library-at=path  /lib/jibb/runtime/js
+  =/  library=(unit [url=@t js=@t])
+    ?.  (has-file files library-at)  ~
+    =/  js=(each @t @t)  (read-clay pre library-at)
+    ?:  ?=(%| -.js)  ~
+    `[(library-url:jibb-host base.b p.js) p.js]
   =/  theme-at=path  /ui/theme/jibb
   =/  theme=(each @t @t)
     ?:  (has-file files theme-at)  (read-clay pre theme-at)
@@ -647,6 +726,9 @@
     `[[%build (~(got by mark-files) n)] [%mark n]]
   =/  checks=(list build-step:jibb-host)
     (turn order |=(at=path [%check at]))
+  ::  Islands and stores, known once checked, are compiled for the browser.
+  =/  clients=(list build-step:jibb-host)
+    (turn order |=(at=path [%client at]))
   =/  renders=(list build-step:jibb-host)
     (turn sites |=([at=path *] [%render at]))
   =/  steps=(list build-step:jibb-host)
@@ -654,6 +736,7 @@
       setup
       readers
       checks
+      clients
       `(list build-step:jibb-host)`~[[%style ~]]
       renders
       `(list build-step:jibb-host)`~[[%publish ~]]
@@ -675,6 +758,7 @@
       sur-keys     sur-keys
       mark-keys    mark-keys
       wanted       wanted
+      library      library
     ==
   s
 ++  prelude-step
@@ -741,6 +825,22 @@
   =/  result=(each [kind=@tas interface=* artifact=*] @t)
     (check-module desk at info closure surs marks b s)
   [& b(checked +(checked.b)) s(checks (~(put by checks.s) key [rev.b result]))]
+::  An island or store module that checked becomes its JavaScript.
+++  client-step
+  |=  [=desk at=path b=build:jibb-host s=store:jibb-host]
+  ^-  [work=? b=build:jibb-host s=store:jibb-host]
+  =/  result=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s at)
+  ?:  ?=(%| -.result)  [| b s]
+  ?.  ?=(?(%island %store) kind.p.result)  [| b s]
+  =/  key=@uv  (client-key:jibb-host (~(got by check-keys.b) at) base.b)
+  =.  client-keys.b  (~(put by client-keys.b) at key)
+  ?:  (~(has by clients.s) key)  [| b s]
+  =/  made=(each @t @t)  (prepare-client desk at b s artifact.p.result)
+  =/  entry=client:jibb-host
+    :+  rev.b  kind.p.result
+    ?:  ?=(%| -.made)  [%| p.made]
+    [%& (module-url:jibb-host base.b p.made) (short-hash:jibb-host p.made) p.made]
+  [& b s(clients (~(put by clients.s) key entry))]
 ::  The routes a page may link to are the sites of the modules that checked
 ::  as pages, and of those that may be pages but failed, which answer there
 ::  with their error; the stylesheet comes from the checked theme.
@@ -758,17 +858,18 @@
   =/  urls=(list @t)  (turn assets.b |=(f=static-file:jibb-host url.f))
   =/  key=@uv
     (style-key:jibb-host env.b (~(gut by check-keys.b) theme.b 0v0) base.b urls)
-  =/  cached=(unit (each @t @t))  (~(get by styles.s) key)
-  =/  css=(each @t @t)
+  =/  cached=(unit (each [css=@t lang=@t] @t))  (~(get by styles.s) key)
+  =/  look=(each [css=@t lang=@t] @t)
     ?^  cached  u.cached
     ?:  ?=(%| -.theme)  [%| p.theme]
-    (theme-css-call desk b s artifact.p.theme)
-  =/  result=(each [url=@t css=@t] @t)
-    ?:  ?=(%| -.css)  [%| p.css]
-    [%& (stylesheet-url:jibb-host base.b p.css) p.css]
+    (theme-look-call desk b s artifact.p.theme)
+  =/  result=(each [url=@t css=@t lang=@t] @t)
+    ?:  ?=(%| -.look)  [%| p.look]
+    [%& (stylesheet-url:jibb-host base.b css.p.look) css.p.look lang.p.look]
+  =.  conflicts.b  (route-conflicts:jibb-host sites.b)
   :+  ?=(~ cached)
     b(style `[key result])
-  s(styles (~(put by styles.s) key css))
+  s(styles (~(put by styles.s) key look))
 ++  render-step
   |=  [=desk at=path b=build:jibb-host s=store:jibb-host]
   ^-  [work=? b=build:jibb-host s=store:jibb-host]
@@ -778,21 +879,24 @@
     ?~(found ~ site.i.found)
   =/  page=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s at)
   ::  Libraries, islands and stores are only imported.  A module that fails
-  ::  to check shows its error at its route only if it may be a page.
+  ::  to check shows its error at its route only if it may be a page, and
+  ::  two pages whose routes conflict each show the conflict.
   ?:  ?=(%| -.page)
     ?.  main:(~(got by modules.b) at)  [| b s]
-    [| (serve-page b site (failed-page:jibb-host p.page)) s]
-  ?:  =(%page kind.p.page)  [| (serve-page b site dynamic-page:jibb-host) s]
-  ?.  =(%static-page kind.p.page)  [| b s]
+    (fail-page desk b s site p.page)
+  ?.  ?=(?(%static-page %page) kind.p.page)  [| b s]
+  =/  conflict=(unit @t)  (~(get by conflicts.b) at)
+  ?^  conflict  (fail-page desk b s site u.conflict)
   =/  theme=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s theme.b)
-  ?:  ?=(%| -.theme)  [| (serve-page b site (failed-page:jibb-host p.theme)) s]
+  ?:  ?=(%| -.theme)  (fail-page desk b s site p.theme)
   =/  renderer=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s renderer.b)
-  ?:  ?=(%| -.renderer)  [| (serve-page b site (failed-page:jibb-host p.renderer)) s]
-  ?~  style.b
-    [| (serve-page b site (failed-page:jibb-host 'static build: no stylesheet was made')) s]
-  ?:  ?=(%| -.result.u.style.b)
-    [| (serve-page b site (failed-page:jibb-host p.result.u.style.b)) s]
+  ?:  ?=(%| -.renderer)  (fail-page desk b s site p.renderer)
+  ?~  style.b  (fail-page desk b s site 'static build: no stylesheet was made')
+  ?:  ?=(%| -.result.u.style.b)  (fail-page desk b s site p.result.u.style.b)
   =/  stylesheet=@t  url.p.result.u.style.b
+  ::  An island module that failed to compile fails its pages.
+  =/  client=(each (unit client-context:jibb-host) @t)  (page-client at site b s)
+  ?:  ?=(%| -.client)  (fail-page desk b s site p.client)
   =/  key=@uv
     %:  render-key:jibb-host
       env.b
@@ -805,13 +909,48 @@
       stylesheet
     ==
   =.  render-keys.b  (~(put by render-keys.b) at key)
+  ::  A page with data is prepared now and rendered per request.
+  ?:  =(%page kind.p.page)
+    =/  cached=(unit prepared:jibb-host)  (~(get by prepares.s) key)
+    =/  made=prepared:jibb-host
+      ?^  cached  u.cached
+      :-  rev.b
+      (prepare-data-page desk at b s artifact.p.page artifact.p.theme artifact.p.renderer stylesheet p.client)
+    =.  prepares.s  (~(put by prepares.s) key made)
+    ?:  ?=(%| -.result.made)  (fail-page desk b s site p.result.made)
+    =?  rendered.b  ?=(~ cached)  +(rendered.b)
+    [?=(~ cached) (serve-page b site [%data rev.made p.result.made]) s]
   =/  cached=(unit rendered:jibb-host)  (~(get by renders.s) key)
-  ?^  cached  [| (serve-page b site (rendered-page result.u.cached)) s]
   =/  result=(each @t @t)
-    (render-page desk at b s artifact.p.page artifact.p.theme artifact.p.renderer stylesheet)
-  :+  &
-    (serve-page b(rendered +(rendered.b)) site (rendered-page result))
-  s(renders (~(put by renders.s) key [rev.b result]))
+    ?^  cached  result.u.cached
+    (render-page desk at b s artifact.p.page artifact.p.theme artifact.p.renderer stylesheet p.client)
+  =?  renders.s  ?=(~ cached)  (~(put by renders.s) key [rev.b result])
+  ?:  ?=(%| -.result)  (fail-page desk b s site p.result)
+  =?  rendered.b  ?=(~ cached)  +(rendered.b)
+  [?=(~ cached) (serve-page b site (successful-page:jibb-host p.result)) s]
+::  A page that failed to build shows the desk's error page.
+++  fail-page
+  |=  [=desk b=build:jibb-host s=store:jibb-host site=(list @t) message=@t]
+  ^-  [work=? b=build:jibb-host s=store:jibb-host]
+  [& (serve-page b site (error-html desk b 500 message)) s]
+::  The desk's own +error-page, with the theme's language and stylesheet
+::  when the theme checked; its message as text if that fails too.
+++  error-html
+  |=  [=desk b=build:jibb-host status=@ud message=@t]
+  ^-  cached-page:jibb-host
+  =/  look=(unit [url=@t lang=@t])
+    ?~  style.b  ~
+    ?.  ?=(%& -.result.u.style.b)  ~
+    `[url.p.result.u.style.b lang.p.result.u.style.b]
+  =/  made=(each vase tang)
+    %-  mule  |.
+    =/  builder=vase  (builder-vase (desk-path desk rev.b))
+    %+  slam  (slap builder (ream 'error-page'))
+    !>([?~(look 'en' lang.u.look) ?~(look ~ `url.u.look) status message])
+  ?:  ?=(%| -.made)  (failed-page:jibb-host message)
+  =/  html=(unit @t)  ((soft @t) q.p.made)
+  ?~  html  (failed-page:jibb-host message)
+  [%static status & u.html]
 ::
 ::  Step helpers
 ::
@@ -1158,6 +1297,7 @@
           theme=*
           renderer=*
           stylesheet=@t
+          client=(unit client-context:jibb-host)
       ==
   ^-  (each @t @t)
   =/  prepared=(each * @t)
@@ -1180,6 +1320,7 @@
       !>(assets.b)
       !>(routes.b)
       !>(stylesheet)
+      [(compiler-type builder '(unit client-context)') client]
     ==
   ?:  ?=(%| -.made)
     [%| (trace-error 'static build: compiler crashed while rendering page' p.made)]
@@ -1188,15 +1329,173 @@
   ?:  ?=(%| -.output)  [%| 'static build: the desk compiler returned a malformed page']
   ?:  ?=(%| -.p.output)  [%| p.p.output]
   [%& html.p.p.output]
-::  The stylesheet from the desk's own +theme-css.
-++  theme-css-call
-  |=  [=desk b=build:jibb-host s=store:jibb-host theme=*]
+::  A page with data, prepared by the desk's own +prepare-page: an opaque
+::  noun its +page-request takes per request.
+++  prepare-data-page
+  |=  $:  =desk
+          at=path
+          b=build:jibb-host
+          s=store:jibb-host
+          page=*
+          theme=*
+          renderer=*
+          stylesheet=@t
+          client=(unit client-context:jibb-host)
+      ==
+  ^-  (each * @t)
+  =/  prepared=(each * @t)
+    (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
+  ?:  ?=(%| -.prepared)  [%| p.prepared]
+  =/  artifacts=*  (closure-artifacts b s ~[at theme.b renderer.b])
+  =/  builder=vase  (builder-vase (desk-path desk rev.b))
+  =/  gate=vase  (slap builder (ream 'prepare-page'))
+  =/  module-type=type  (compiler-type builder 'checked-module:jibb')
+  =/  made=(each vase tang)
+    %-  mule  |.
+    %+  slam  gate
+    ;:  slop
+      !>((crip (spud base.b)))
+      [module-type page]
+      [module-type theme]
+      [module-type renderer]
+      [(compiler-type builder 'jlowering-cache:jibb') artifacts]
+      [(compiler-type builder 'iprelude-lowering:jibb') p.prepared]
+      !>(assets.b)
+      !>(routes.b)
+      !>(stylesheet)
+      [(compiler-type builder '(unit client-context)') client]
+    ==
+  ?:  ?=(%| -.made)
+    [%| (trace-error 'static build: compiler crashed while preparing a page with data' p.made)]
+  =/  output=(each (each * @t) tang)  (mule |.(;;((each * @t) q.p.made)))
+  ?:  ?=(%| -.output)  [%| 'static build: the desk compiler returned a malformed page with data']
+  p.output
+::  An island or store module's JavaScript, from the desk's own
+::  +prepare-browser.
+++  prepare-client
+  |=  [=desk at=path b=build:jibb-host s=store:jibb-host module=*]
   ^-  (each @t @t)
   =/  prepared=(each * @t)
     (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
   ?:  ?=(%| -.prepared)  [%| p.prepared]
+  =/  artifacts=*  (closure-artifacts b s ~[at])
   =/  builder=vase  (builder-vase (desk-path desk rev.b))
-  =/  gate=vase  (slap builder (ream 'theme-css'))
+  =/  gate=vase  (slap builder (ream 'prepare-browser'))
+  =/  made=(each vase tang)
+    %-  mule  |.
+    %+  slam  gate
+    ;:  slop
+      [(compiler-type builder 'checked-module:jibb') module]
+      [(compiler-type builder 'jlowering-cache:jibb') artifacts]
+      [(compiler-type builder 'iprelude-lowering:jibb') p.prepared]
+    ==
+  ?:  ?=(%| -.made)
+    [%| (trace-error 'static build: compiler crashed while compiling for the browser' p.made)]
+  =/  output=(each (each @t @t) tang)  (mule |.(;;((each @t @t) q.p.made)))
+  ?:  ?=(%| -.output)  [%| 'static build: the desk compiler returned malformed JavaScript']
+  p.output
+::  What a page gives the browser: the island and store modules it
+::  imports, by the hashes naming their JavaScript; ~ when it imports
+::  none.  A module that failed to compile is the page's error.
+++  page-client
+  |=  [at=path site=(list @t) b=build:jibb-host s=store:jibb-host]
+  ^-  (each (unit client-context:jibb-host) @t)
+  =/  closure=(list path)  (module-closure:jibb-host modules.b at)
+  =|  islands=(list [@t @t])
+  =|  stores=(list [module=@t hash=@t])
+  |-
+  ?~  closure
+    ?:  &(=(~ islands) =(~ stores))  [%& ~]
+    ?~  library.b
+      [%| 'static build: pages with islands load the browser library, /lib/jibb/runtime.js, which this desk lacks']
+    [%& ~ url.u.library.b our.bowl (malt islands) (flop stores) (page-section:jibb-host site)]
+  =/  key=(unit @uv)  (~(get by client-keys.b) i.closure)
+  ?~  key  $(closure t.closure)
+  =/  entry=(unit client:jibb-host)  (~(get by clients.s) u.key)
+  ?~  entry  $(closure t.closure)
+  ?:  ?=(%| -.result.u.entry)  [%| p.result.u.entry]
+  =/  hash=@t  hash.p.result.u.entry
+  ?:  =(%island kind.u.entry)
+    $(closure t.closure, islands [[(crip (spud i.closure)) hash] islands])
+  $(closure t.closure, stores [[(store-name:jibb-host i.closure) hash] stores])
+::  -jibb!test: each module under /ui/tests in the desk's last completed
+::  build, with its test- arms' outcomes from the desk's own +run-tests.
+::  A module that failed to check fails with its error.
+++  desk-tests
+  |=  =desk
+  ^-  (each (list [at=path tests=(list [arm=term ok=? message=@t])]) @t)
+  =/  done=(unit build:jibb-host)  (~(get by finished) desk)
+  ?~  done  [%| (crip "%{(trip desk)} has no completed build")]
+  =/  b=build:jibb-host  u.done
+  =/  s=store:jibb-host  (~(gut by stores) desk *store:jibb-host)
+  =/  prepared=(each * @t)
+    (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
+  =/  modules=(list path)
+    (sort (skim order.b |=(at=path =(/ui/tests (scag 2 at)))) aor)
+  :-  %&
+  %+  turn  modules
+  |=  at=path
+  ^-  [at=path tests=(list [arm=term ok=? message=@t])]
+  =/  checked=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s at)
+  ?:  ?=(%| -.checked)  [at ~[[%check | p.checked]]]
+  ?:  ?=(%| -.prepared)  [at ~[[%check | p.prepared]]]
+  =/  made=(each vase tang)
+    %-  mule  |.
+    =/  builder=vase  (builder-vase (desk-path desk rev.b))
+    %+  slam  (slap builder (ream 'run-tests'))
+    ;:  slop
+      [(compiler-type builder 'checked-module:jibb') artifact.p.checked]
+      [(compiler-type builder 'jlowering-cache:jibb') (closure-artifacts b s ~[at])]
+      [(compiler-type builder 'iprelude-lowering:jibb') p.prepared]
+    ==
+  ?:  ?=(%| -.made)
+    [at ~[[%run | (trace-error 'jibb: the desk compiler crashed while running tests' p.made)]]]
+  =/  outcomes=(unit (list [arm=term ok=? message=@t]))
+    ((soft ,(list [arm=term ok=? message=@t])) q.p.made)
+  ?~  outcomes  [at ~[[%run | 'jibb: the desk compiler returned malformed test results']]]
+  [at u.outcomes]
+::  Each test module's test- arms as JavaScript and Nock, from the desk's
+::  own +test-programs; a module that failed to check has none.
+++  desk-test-programs
+  |=  =desk
+  ^-  (each (list [at=path programs=(list [arm=term js=@t nock=*])]) @t)
+  =/  done=(unit build:jibb-host)  (~(get by finished) desk)
+  ?~  done  [%| (crip "%{(trip desk)} has no completed build")]
+  =/  b=build:jibb-host  u.done
+  =/  s=store:jibb-host  (~(gut by stores) desk *store:jibb-host)
+  =/  prepared=(each * @t)
+    (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
+  ?:  ?=(%| -.prepared)  [%| p.prepared]
+  =/  modules=(list path)
+    (sort (skim order.b |=(at=path =(/ui/tests (scag 2 at)))) aor)
+  :-  %&
+  %+  turn  modules
+  |=  at=path
+  ^-  [at=path programs=(list [arm=term js=@t nock=*])]
+  =/  checked=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s at)
+  ?:  ?=(%| -.checked)  [at ~]
+  =/  made=(each vase tang)
+    %-  mule  |.
+    =/  builder=vase  (builder-vase (desk-path desk rev.b))
+    %+  slam  (slap builder (ream 'test-programs'))
+    ;:  slop
+      [(compiler-type builder 'checked-module:jibb') artifact.p.checked]
+      [(compiler-type builder 'jlowering-cache:jibb') (closure-artifacts b s ~[at])]
+      [(compiler-type builder 'iprelude-lowering:jibb') p.prepared]
+    ==
+  ?:  ?=(%| -.made)  [at ~]
+  =/  programs=(unit (list [arm=term js=@t nock=*]))
+    ((soft ,(list [arm=term js=@t nock=*])) q.p.made)
+  [at (fall programs ~)]
+::  The stylesheet and language from the desk's own +theme-look.
+++  theme-look-call
+  |=  [=desk b=build:jibb-host s=store:jibb-host theme=*]
+  ^-  (each [css=@t lang=@t] @t)
+  =/  prepared=(each * @t)
+    (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
+  ?:  ?=(%| -.prepared)  [%| p.prepared]
+  =/  builder=vase  (builder-vase (desk-path desk rev.b))
+  =/  gate=vase  (slap builder (ream 'theme-look'))
   =/  artifacts=*  (closure-artifacts b s ~[theme.b])
   =/  made=(each vase tang)
     %-  mule  |.
@@ -1209,7 +1508,8 @@
     ==
   ?:  ?=(%| -.made)
     [%| (trace-error 'static build: compiler crashed while making the stylesheet' p.made)]
-  =/  output=(each (each @t @t) tang)  (mule |.(;;((each @t @t) q.p.made)))
+  =/  output=(each (each [css=@t lang=@t] @t) tang)
+    (mule |.(;;((each [css=@t lang=@t] @t) q.p.made)))
   ?:  ?=(%| -.output)  [%| 'static build: the desk compiler returned a malformed stylesheet']
   p.output
 ::  The checked artifacts of every module these import, themselves included.
@@ -1269,9 +1569,73 @@
   |=  [b=build:jibb-host site=(list @t) page=cached-page:jibb-host]
   ^-  build:jibb-host
   b(served (~(put by served.b) site page))
-++  rendered-page
-  |=  result=(each @t @t)
+::  A saved page from before pages with data.
+++  upgrade-pages
+  |=  old=page-cache-4
+  ^-  page-cache:jibb-host
+  %-  ~(run by old)
+  |=  d=[pages=(map (list @t) [status=@ud result=(each @t @t)]) error=(unit @t)]
+  ^-  desk-pages:jibb-host
+  :_  error.d
+  %-  ~(run by pages.d)
+  |=  p=[status=@ud result=(each @t @t)]
   ^-  cached-page:jibb-host
-  ?:  ?=(%& -.result)  (successful-page:jibb-host p.result)
-  (failed-page:jibb-host p.result)
+  [%static status.p ?=(%& -.result.p) `@t`+.result.p]
+::
+::  Pages with data.  Each request runs the page through the desk's own
+::  +page-request, from the compiler of the revision that prepared it: a
+::  page renders, fails with the desk's error page, or names an agent's
+::  path, which a thread on this desk scries, so that a path the agent
+::  rejects fails the thread, not this event.  The answer goes back to the
+::  page's receiver.  Nothing is cached.
+++  page-step
+  |=  [eyre-id=@ta wait=pending-page input=*]
+  ^-  (quip card _state)
+  =/  step=(each page-step:jibb-host @t)  (run-page wait input)
+  =/  give
+    |=  result=payload:jibb-host
+    ^-  (list card)
+    (give-payload:jibb-host eyre-id ?.(head.wait result result(data ~)))
+  ?:  ?=(%| -.step)  [(give (text-response:jibb-host 500 p.step)) state]
+  ?-  -.p.step
+    %done  [(give (html-response:jibb-host html.p.step)) state]
+    %fail  [(give (html-status-response:jibb-host status.p.step html.p.step)) state]
+  ::
+      %scry
+    =/  next=pending-page  wait(receive receive.p.step, agent agent.p.step, at path.p.step)
+    :_  state(pending (~(put by pending) eyre-id next))
+    :~  :*  %pass  /scry/[eyre-id]  %arvo  %k  %fard
+            q.byk.bowl  %scry  %noun  !>([agent.p.step path.p.step])
+    ==  ==
+  ==
+::  A thread answered a request's scry.
+++  scried
+  |=  [eyre-id=@ta result=(each cage goof)]
+  ^-  (quip card _state)
+  =/  wait=(unit pending-page)  (~(get by pending) eyre-id)
+  ?~  wait  [~ state]
+  =.  pending  (~(del by pending) eyre-id)
+  ?:  ?=(%| -.result)
+    =/  why=@t
+      (crip "the agent %{(trip agent.u.wait)} did not answer {(spud at.u.wait)}")
+    (page-step eyre-id u.wait [%reject why])
+  (page-step eyre-id u.wait [%receive receive.u.wait %noun q.q.p.result])
+::  One call of the desk's +page-request, typed by its own molds.
+++  run-page
+  |=  [wait=pending-page input=*]
+  ^-  (each page-step:jibb-host @t)
+  =/  builder=vase  (builder-vase (desk-path desk.wait rev.wait))
+  =/  gate=vase  (slap builder (ream 'page-request'))
+  =/  made=(each vase tang)
+    %-  mule  |.
+    %+  slam  gate
+    ::  The builder is jibb-build itself: its own molds have no face.
+    %+  slop
+      [(compiler-type builder 'data-page') page.wait]
+    [(compiler-type builder 'page-input') input]
+  ?:  ?=(%| -.made)
+    [%| (trace-error 'static build: compiler crashed answering a request' p.made)]
+  =/  step=(unit page-step:jibb-host)  ((soft page-step:jibb-host) q.p.made)
+  ?~  step  [%| 'static build: the desk compiler returned a malformed page step']
+  [%& u.step]
 --

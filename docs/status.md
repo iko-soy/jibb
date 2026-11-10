@@ -1,6 +1,6 @@
 # Status
 
-As of 2026-11-09. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
+As of 2026-11-10. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
 
 ## Milestones
 
@@ -10,10 +10,10 @@ As of 2026-11-09. This is the current capability and acceptance table. History a
 | 2 | Types and prelude | Done: the general full checker, checked prelude and Hoon importer meet the milestone acceptance criteria under eval, on the fake ship and in the integrated Nix checks |
 | 3 | Core language | Done: checked-artifact capture, lowering/linking, the Core reader/interpreter, Nock backend and authenticated natives pass the exact Core golden, focused suites, and the final integrated Nix eval and fake-ship checks. Provenance-checked Nock execution adds 13 focused eval arms for function-as-noun and trace controls |
 | 4 | Host and static pages: the first release | Done: the shared host builds each desk with its own vendored compiler at one Clay revision, one compiler step per Behn wake, caches every result under a hash of its inputs, and serves static pages only to the owner. Static files and each desk's theme stylesheet are public, immutable files in Eyre's cache at hashed URLs; links and images are checked against routes and static files; suspending a desk clears its files and `-jibb!clear` every desk's. The acceptance criteria pass on the fake ship and in `nix flake check` |
-| 5 | Published pages | Not started |
-| 6 | Islands | In progress: the independent JavaScript reader, backend, entry linker, and native runtime are implemented with Node semantic tests and shared Hoon differential outcomes; full integration awaits checked lowering; the initial benchmark selected generated JavaScript, and the virtual DOM/island loop is implemented with focus-preserving tests. Channel, subscriptions, timers, and poke replies are implemented with mocked transport tests. Store and URL transports are implemented with lifecycle tests. Full browser integration and performance work remain outstanding |
-| 7 | Tooling | Not started |
-| 8 | Polish | Not started |
+| 5 | Published pages | Done: a page with data is prepared at build time and rendered per request from a fresh scry, run in a thread so that a path its agent rejects is the page's 404; route parameters bind `load`'s sample by name and parse by aura, with catch-alls; derived receivers check what agents answer against its type; failures get Jibb's error page; nothing is cached. The acceptance criteria pass on the fake ship |
+| 6 | Islands | Done except the benchmark's bar, which waits for @iko: islands render their `init`'s first view on the ship with their jammed model, and the host compiles island and store modules to JavaScript with a Hoon port of the Core compiler, publishing them and the browser library at hashed URLs. In headless Chromium, worked example 3 adds and toggles todos through the `%todo` agent, the Grammar tab's store example shares one cart between two baskets, a crashing island shows the notice, and an app follows its in-section links without loading a page. The browser code agrees with the reference interpreter, and the Hoon emitter with the JavaScript compiler. The benchmark's measurements are below |
+| 7 | Tooling | Done except CI's first run: `-jibb!test` runs each `test-` arm under `/ui/tests` in Nock; the Node harness runs every test as JavaScript and as Nock and requires them to agree with `-jibb!test`; the formatter leaves every example in the doc unchanged, the examples now in its canonical form; the tree-sitter grammar is `jibb-cli`'s. `.github/workflows/check.yml` runs `nix flake check` on every commit and pull request, and has not run yet |
+| 8 | Polish | In part: island and store modules are files of their own, shared across pages and evaluated once per page, and views reuse their unchanged parts. The library is 57 KB minified and 20,629 bytes gzipped, just over 20 KiB, so the size target is missed by about 150 bytes. Views are not compiled to templates with holes |
 
 JavaScript integration evidence on 2026-11-08: all 11 shared outcomes matched the integrated Hoon Core interpreter, and all JavaScript tests passed. Checked lowering, authenticated natives, derived API/store calls, and entry linking are now integrated; 58 focused lowering arms and the exact Core golden pass under eval and on the fake ship. These checks complement, rather than replace, the later browser-runtime milestones.
 
@@ -65,6 +65,43 @@ The public `golden-types*` reporters render only the full-module result: checked
 | Incremental rebuilds | A commit to a published desk starts a build of that Clay revision, run as one compiler step per Behn wake while the last completed build keeps serving; until a desk's first build completes, its pages answer 503. Parsed imports, the prelude, `/sur` and mark reader results, module checks, the stylesheet and renders are cached under hashes of their inputs, and a compiler certificate binds only its module's import closure. Because certificates bind the sources of that closure rather than its interfaces, a change to a module's body still checks its dependents again; the plan's separate interface and body hashes are not used yet. Hoon files are built through Clay requests rather than scries, which Gall cannot recover from. A changed static file renders every static page again, since each render is keyed on all of the desk's file URLs, but checks no module again |
 | HTTP and lifecycle | `tools/check-host` passed on a fake ship: owner `GET` and `HEAD`, the root, missing pages, unbuilt static files and libraries as 404s, logged out too for static files, 405 with `Allow`, a page importing an unbuildable `/sur` file answering with that build error while the others kept serving, and routes and files removed and rebuilt across suspend and revive |
 | Regression validation | `nix flake check` on the working tree, with a fresh fake ship: the native CLI's 127 tests and all 16 eval checks passed, including every golden case, the eight test-arm shards and the strict probes. The ship group passed on its fresh ship too: `ship-selftest`, `ship-test` (every suite on the ship), `check-commit`, `clay-fixtures`, `check-my-app` with its one expected `buttons.jibb` error, `check-host` and `probes-ship` |
+
+## Milestone 5 acceptance
+
+| Criterion | Evidence |
+| --- | --- |
+| Worked example 2 renders from a fresh scry on every request | `tools/check-host`: `my-app`'s `/ui/blog/index.jibb` lists the posts its new `%blog` fixture agent answers at `/posts`, and a post added by a poke appears on the next request, with no commit |
+| A `_slug` route renders from a fresh scry | `tools/check-host`: `/ui/blog/_slug.jibb`, `++ load |= slug=@ta (post.api slug same)`, renders a post and a newly added one; `HEAD` has no body and a logged-out reader is sent to the login page |
+| An unparseable parameter gives a 404 | `tools/check-host`: `/blog/Not%20a%20knot` and the fixture's `/numbered/twelve`, a `@ud` route parameter, answer 404 with Jibb's error page; a path the agent rejects is a 404 too |
+| A crashing render gives a 500 | `tools/check-host`: the fixture's `/crash` answers 500 on every request, and an agent answer that does not fit its type, `/blog/malformed`, is a 500 rather than a page |
+| Neither is cached | `tools/check-host`: Eyre's cache holds only the desks' static files after these requests; the host keeps no rendered page with data |
+
+| Area | Current evidence |
+| --- | --- |
+| Routes and `load` | The checker requires that a page under `/ui` takes exactly its route's parameters, each an atom of a path aura, a catch-all page the path itself, and a page with none `~`, reporting a mismatch at `main` with its sample's type. `jibb-build` (12 arms) binds and parses them, and its suite renders, rejects and scries through `+page-request`. The host routes a literal before a parameter before a catch-all, and reports conflicting routes as each file's error (`jibb-host`, 19 arms) |
+| Checked facts | A derived request's receiver checks a fact against its full or diff type before the typed reply or fold, and the fold now receives each diff tagged with its mark, as its checked type says; `doc-core-02-update`'s Core shows both. Recursive molds in facts fail closed at lowering |
+| Interpolation | `@ta`, `@tas` and the rest of the `@t` family splice as text and tapes through `crip`, as the Grammar says; before, a knot printed as `~.1` and a tape failed to lower (`jibb-lower`) |
+
+## Milestone 6 acceptance
+
+| Criterion | Evidence |
+| --- | --- |
+| Worked example 3 runs end to end in a browser | `tools/check-browser`: in headless Chromium, `my-app`'s index renders "My ship" and the todo island's first view from a fresh scry of the `%todo` agent, with its field read-only until the island starts; typing a todo and pressing Add pokes the agent, whose fact on `/todos` brings the new todo into the list; its toggle is checked by the next fact; 81 characters show "Too long" at once; and the page renders the toggled todo from a fresh scry |
+| The Grammar tab's store example runs end to end | `tools/check-browser`: `my-app`'s `/shop` has two baskets on the `cart` store; adding an item in one shows "1 items" in both |
+| The browser code agrees with the reference interpreter | `test-js-differential` runs the shared corpus through the JavaScript backend and the Hoon Core interpreter; `jibb-js` checks that the Hoon emitter the host compiles islands with gives the JavaScript compiler's text on `tests/js-emit`'s 16 cases; the Node harness runs each test arm in JavaScript and Nock |
+| A keystroke in the benchmark's list island meets the bar | Waits for the bar, which is still an open question. In headless Chromium at a 4x CPU slowdown, in the Nix sandbox on a fresh fake ship, a keystroke in the host fixture's 500-row list island took a median of 12.5 ms and a p95 of 19.5 ms, the island's own update, view and patch a median of 8.7 ms and the rest Chromium's style and layout; on the shared test ship, a median of 14.4 to 15.5 ms and a p95 of 23.5 to 25.6 ms; under heavier load, at a load average of about 20, medians were 15 to 46 ms. Views now reuse their unchanged parts: before that a keystroke took a median of 58 ms at 4x, and before the runtime stopped checking whole nouns on every operation, 7.5 s. In Node, without the browser's layout, the island's work takes a median of 0.5 ms. `tools/check-browser --bar=16` fails a p95 over 16 ms |
+
+| Area | Current evidence |
+| --- | --- |
+| Islands on the ship | `jibb-build` (15 arms) renders an island's first view with its model and the page's client configuration, compiles it for the browser, and refuses a page; the host's build compiles each island and store module after the checks and publishes their files and the library, which `tools/check-host` fetches logged out |
+| Browser runtime | 246 JavaScript tests: the boot script, stores shared by a page's islands, the crash notice, app sections and links, Eyre's noun events as Eyre sends them, timers and `fetch` called as browsers require, memoized gates and kept vnodes |
+
+## Milestone 7 acceptance
+
+| Criterion | Evidence |
+| --- | --- |
+| CI runs both test suites on every commit | `.github/workflows/check.yml` runs `nix flake check`, whose ship group includes `check-host`, which runs `-jibb!test` on both desks, and `check-node-tests`, the Node harness; it has not run on GitHub yet |
+| The formatter leaves every example in the doc unchanged | `tools/doc-format` and the CLI's `doc_examples_are_canonical` format each of the doc's 14 examples to itself. The examples, and the `my-app` modules and prelude definitions they mirror, were rewritten in the formatter's canonical form; their parse trees are unchanged but for layout, and the goldens that quote them were regenerated |
 
 ## Parser and mark
 
@@ -124,7 +161,7 @@ The public and private preludes are checked Jibb source. Their values and molds 
 | Import diagnostics | Signed/float auras, cores, gates, vases, overlapping unions, repeated fields, missing molds, and invalid readers report definite errors at Jibb use sites | `review-import-*`, [jibb-import-diagnostic](../tests/lib/jibb-import-diagnostic.hoon), strict import probes |
 | Source-aware mark origins | Done: a unique declaration is rebuilt from the supplied `/sur` source; selected and raw dependency types must have the same canonical `read-mold` representation. The checker accepts origin only from a unique direct result for that mark. Missing, stale, wrong-path, duplicate, or same-shaped-decoy evidence publishes no origin and never hides the semantic result | [jibb-import-mark-source](../tests/lib/jibb-import-mark-source.hoon), [jibb-external-origin](../tests/lib/jibb-external-origin.hoon) |
 | Clay fixtures | `/sur` files and marks build through Clay; imported types feed the full checker, including the required union/atom/map/recursive fixture | `tools/clay-fixtures`, [full-import](../tests/clay-fixtures/full-import.txt) |
-| `my-app` | All 11 modules check in dependency order through real Clay types, with exactly the expected `buttons.jibb` error at 3:16 | `tools/check-my-app` |
+| `my-app` | All its modules, 14 now, check in dependency order through real Clay types, with exactly the expected `buttons.jibb` error at 3:16 | `tools/check-my-app` |
 
 ## Performance
 
@@ -138,6 +175,8 @@ Measured on 2026-11-06 with final compiler SHA-256 prefix `d369b012` and debug d
 | `my-app`, 11 modules through Clay with source-aware origins | 63.5 s |
 
 `my-app`'s first build through the host, from an empty compile cache, took 53 s on 2026-11-10 in `tools/check-host`, on a fake ship sharing 8 CPUs with other builds at a load average of about 30; at a load average of about 50 it took 107 s. That covers checking its 11 UI modules and the renderer, making its stylesheet and rendering its one static page, one compiler step per Behn wake.
+
+With its pages with data, islands, store and tests, 14 UI modules in all, `my-app`'s first build took 135 s in the flake's ship check on 2026-11-10, and 170 to 491 s in `tools/check-host` on the shared test ship while other builds loaded the machine; island and store modules are compiled to JavaScript in the same build.
 
 Milestone-3 Nock measurements on 2026-11-08 used a temporary focused suite on the fake ship, after all acceptance checks passed. Emission and execution were separate arms; the suite was removed and the accepted desk was restored.
 
@@ -154,12 +193,15 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 - Milestone 3 is complete. `proj` field reordering still fails closed pending its owner ruling. The additional provenance-checked backend preserves function identity through ordinary data, recursion, and explicit native adapters, with trace-preserving differential controls under eval.
 - Milestone 4's acceptance criteria hold on the fake ship. The plan's question of whether the Eyre channel CSRF test reproduces on a fake ship waits for @iko's write-up. The typography scale and the reading of failed builds are [Decisions](spec/decisions.md) rows of 2026-11-09 that @iko may revise. Known host gaps: a generic `/sur` mold in a file with `/-` or `/+` imports is still reported unsupported, since only a Ford-free file is rebuilt for the importer; link and image errors name the path but not its source site, because they are checked on the rendered page; a `chars` or `fill` number of 1,000 or more prints with Hoon's dots, as `1.000`, which CSS reads as 1; and a changed static file renders every static page of its desk again.
-- Milestone 5: per-request host behavior. Static `load` checking is already part of milestone 2.
-- Milestone 6: checked-lowering integration is present; full browser/phone performance validation and runtime request handling remain. Store and URL transports are implemented with lifecycle tests. Eyre channels, subscriptions, timers, and poke replies are implemented with mocked transport tests. The initial Core benchmark selected generated JavaScript; virtual DOM and the island loop are implemented.
-- Milestone 7: formatter and later tooling.
+- Milestone 5 is complete. Known gaps: a fact whose type is a recursive mold fails closed when its request is lowered; a page's error messages name no source site for failures found while it renders; and the `%blog` agent is a fixture of the documented examples.
+- Milestone 6 is done but for the benchmark's bar, which @iko has yet to agree; the measurements above are from a loaded machine. Known gaps: an island starts by replacing the server's view, not by binding to its nodes; a model containing a sealed element cannot be shown again after it crosses to the browser; and an app's section must be a literal prefix, so a catch-all after a parameter has none.
+- Milestone 7 is done but for CI's first run. The Node harness runs its Nock in the repo's own interpreter rather than nockjs, whose published package has no interpreter.
+- Milestone 8: the library is about 150 bytes over 20 KiB gzipped, and views are not compiled to templates with holes.
 - The checked prelude's deliberate omissions are documented in [prelude-inventory.md](prelude-inventory.md); they are not silently implemented with different signatures.
 - Open language questions remain in [open-questions.md](open-questions.md), including `proj` field reordering and unconfirmed review proposals. Current checker diagnostics do not settle those proposals.
 
 ## Checking it
+
+On 2026-11-10, `nix flake check` on the working tree passed every eval check, among them all 1,376 golden cases, the eight test-arm shards, the strict probes, `doc-format` and `bundle-js`, and every ship check but one: `ship-test`, `check-commit`, `clay-fixtures`, `check-my-app`, `check-host`, `check-node-tests` and `probes-ship`. `check-browser` hung there, because the sandbox has no fonts and Chromium's renderer hangs laying out text without them. The ship check now gives Chromium a fontconfig with DejaVu fonts, and the browser driver fails a call with no answer rather than waiting; in the same sandbox, on a fresh fake ship, `check-browser` and `check-node-tests` then passed.
 
 [Before pushing](development.md#before-pushing) documents `tools/check`, its eval/native/ship groups, and `nix flake check`. Individual suites and goldens can be selected with `tools/test-arms`, `tools/golden --case`, and `tools/probe-regression`. Every final count above must pass on the integrated commit before milestone 2 is marked Done.

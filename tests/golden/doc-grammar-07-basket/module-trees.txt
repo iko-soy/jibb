@@ -1,10 +1,10 @@
 /ui/stores/cart.jibb
 (module
   (mold 2:1 state
-    (cell 2:10
-      (face 2:11 items
-        (apply 2:17 list (aura 2:23 @t)))
-      (face 2:27 open (flag 2:32))))
+    (cell 2:12
+      (face 2:13 items
+        (apply 2:19 list (aura 2:25 @t)))
+      (face 2:29 open (flag 2:34))))
   (mold 3:1 poke
     (union 4:3
       (cell 4:3
@@ -12,30 +12,30 @@
         (face 4:9 item (aura 4:14 @t)))
       (const 5:3 %toggle)))
   (value 7:1 main
-    (group 7:9
-      (call 7:10 (wing 7:10 store) (wing 7:16 init) (wing 7:21 update))))
+    (call 7:11 (wing 7:11 store) (wing 7:17 init) (wing 7:22 update)))
   (value 8:1 init
-    (cast 8:9
-      (ref 8:12 state)
-      (tuple 8:18
-        (face 8:19 items (lit 8:25 ~))
-        (face 8:27 open (lit 8:32 %.n)))))
-  (value 9:1 update
-    (gate 9:11
-      (cell 9:14
-        (face 9:15 a (ref 9:17 poke))
-        (face 9:22 s (ref 9:24 state)))
-      (body 10:3
-        (branch 10:3
-          (wing 10:6 a)
-          (arm 11:3
-            (cell 11:3 (lit 11:4 %add) (bind 11:9 item))
-            (change 11:16 s
-              (edit 11:18 items
-                (tuple 11:24 (wing 11:25 item) (wing 11:30 items.s)))))
+    (body 9:3
+      (cast 9:3
+        (ref 9:7 state)
+        (tuple 9:14
+          (face 9:15 items (lit 9:21 ~))
+          (face 9:23 open (lit 9:28 %.n))))))
+  (value 10:1 update
+    (gate 10:13
+      (cell 10:17
+        (face 10:18 a (ref 10:20 poke))
+        (face 10:25 s (ref 10:27 state)))
+      (body 11:3
+        (branch 11:3
+          (wing 11:7 a)
           (arm 12:3
-            (lit 12:3 %toggle)
+            (cell 12:3 (lit 12:4 %add) (bind 12:9 item))
             (change 12:16 s
-              (edit 12:18 open
-                (group 12:23
-                  (call 12:24 (wing 12:24 not) (wing 12:28 open.s)))))))))))
+              (edit 12:18 items
+                (tuple 12:24 (wing 12:25 item) (wing 12:30 items.s)))))
+          (arm 13:3
+            (lit 13:3 %toggle)
+            (change 13:12 s
+              (edit 13:14 open
+                (group 13:19
+                  (call 13:20 (wing 13:20 not) (wing 13:24 open.s)))))))))))

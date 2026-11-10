@@ -4,10 +4,10 @@
 /%  %todos
 /%  %todo-update
 /%  %todo-item
-
-+$ item item.todo
-+$ poke todo-action
-+$ paths
+::
++$  item  item.todo
++$  poke  todo-action
++$  paths
   [%todos /todos todos]
   [%changes /changes (facts todos todo-update)]
   [%todo-by-id /todo/[id=@ud] todo-item]

@@ -57,7 +57,7 @@
 
       perSystem = pkgs:
         let
-          inherit (pkgs) python3 urbit cargo rustc rustfmt clippy tree-sitter nodejs;
+          inherit (pkgs) python3 urbit cargo rustc rustfmt clippy tree-sitter nodejs esbuild;
           isLinux = pkgs.stdenv.hostPlatform.isLinux;
 
           click = pkgs.stdenvNoCC.mkDerivation {
@@ -173,7 +173,8 @@
           check = name: args: extra: pkgs.stdenvNoCC.mkDerivation ({
             name = "jibb-check-${name}";
             src = source checkFiles;
-            nativeBuildInputs = [ python3 urbit nodejs ];
+            # jibb is the CLI, for tools/doc-format.
+            nativeBuildInputs = [ python3 urbit nodejs esbuild jibb ];
             dontConfigure = true;
             dontInstall = true;
             dontFixup = true;
@@ -191,6 +192,10 @@
 
           # The checks that need a ship, on a writable copy of fakezod.
           shipChecks = check "ship" "--group ship" {
+            # check-browser drives headless Chromium, which hangs rendering
+            # text when the sandbox has no fonts.
+            nativeBuildInputs = [ python3 urbit nodejs esbuild jibb pkgs.chromium ];
+            FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [ pkgs.dejavu_fonts ]; };
             preBuild = ''
               cp -r ${fakezod} $TMPDIR/zod
               chmod -R u+w $TMPDIR/zod
@@ -217,7 +222,8 @@
           } // lib.optionalAttrs isLinux { ship = shipChecks; };
 
           devShells.default = pkgs.mkShell {
-            packages = [ python3 urbit click cargo rustc rustfmt clippy tree-sitter nodejs ];
+            packages = [ python3 urbit click cargo rustc rustfmt clippy tree-sitter nodejs esbuild ]
+              ++ lib.optionals isLinux [ pkgs.chromium ];
             # tools/ship looks for click here; the pier stays
             # /root/urbit/zod unless $JIBB_PIER says otherwise.
             JIBB_CLICK = lib.getExe click;

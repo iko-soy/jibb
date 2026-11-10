@@ -1,6 +1,6 @@
 # Open questions
 
-Questions the doc doesn't settle yet, as of 2026-11-02. Language questions belong to the doc's author, @iko: the plan says they go "as comments on the doc, on the words they're about", and a change to the language is "agreed first and recorded in Decisions". When one is settled, record it there, change the code if needed, and move it from here to [Decisions](spec/decisions.md), which holds the settled ones.
+Questions the doc doesn't settle yet, as of 2026-11-10. Language questions belong to the doc's author, @iko: the plan says they go "as comments on the doc, on the words they're about", and a change to the language is "agreed first and recorded in Decisions". When one is settled, record it there, change the code if needed, and move it from here to [Decisions](spec/decisions.md), which holds the settled ones.
 
 ## The plan's open questions
 
@@ -9,7 +9,7 @@ From [spec/implementation-plan.md](spec/implementation-plan.md), Open questions:
 | Question | Needed by |
 | --- | --- |
 | Does the Eyre channel CSRF test reproduce on a fake ship? @iko has the write-up; if it does, it goes to Urbit privately. | Milestone 4 |
-| What is the benchmark's bar? Proposed: a keystroke in a 500-row list island renders within one 16 ms frame on a mid-range phone. | Milestone 6 |
+| What is the benchmark's bar? Proposed: a keystroke in a 500-row list island renders within one 16 ms frame on a mid-range phone. Measured on 2026-11-10 in headless Chromium at a 4x CPU slowdown, on a machine shared with other builds: a median of 12.5 ms per keystroke and a p95 of 19.5 ms in the Nix sandbox, of which the island's own work took a median of 8.7 ms, and a median of 14.4 to 15.5 ms on a shared test ship; see [status.md](status.md#milestone-6-acceptance). `tools/check-browser --bar=16` checks a bar once one is agreed. | Milestone 6 |
 | Are the proposed loop rules adopted, along with no overlays in v1? | Milestone 6 |
 | What do controls look like by default: buttons, toggles and fields, with their focus and disabled states? | Milestone 6 |
 

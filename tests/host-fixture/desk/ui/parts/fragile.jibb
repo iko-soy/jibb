@@ -1,0 +1,16 @@
+::  An island whose update crashes, so the browser shows the crash notice.
+++ main (program init update view subs)
+
++$ model @ud
++$ msg %press
+
+++ init |= ~ 0
+
+++ update |= [=msg m=model] !!
+
+++ subs |= m=model ~
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    (text "Pressed {m} times")
+    button "Press" %press

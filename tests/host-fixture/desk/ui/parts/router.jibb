@@ -1,0 +1,27 @@
+::  An app's island: its model is the path within its section, which %url
+::  gives it on every change; its links within the section act as go.
+++ main (program init update view subs)
+
++$ model path
++$ msg [%moved to=path]
+
+++ init |= p=path p
+
+++ update |= [=msg m=model]
+  ?- msg
+  [%moved to]  [to ~]
+
+++ subs |= m=model ~[[%url |=(p=path [%moved p])]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    heading 1 (where m)
+    (link %/app/one "One")
+    (link %/app/two "Two")
+    (link %/about "Away")
+
+++ where |= p=path
+  ^- @t
+  ?- p
+  ~  "Home"
+  [i t]  "At {i}"

@@ -2,7 +2,7 @@
 ::  /lib/jibb/renderer.jibb; this library orchestrates checked Nock execution,
 ::  authenticates the seal representation, checks the theme and every link
 ::  and image a page uses, and serializes the page and the theme's stylesheet.
-/+  jibb, jibb-core, jibb-lower, jibb-nock
+/+  jibb, jibb-core, jibb-js, jibb-lower, jibb-nock
 |%
 ::  A file under /ui/static, at its application path, with the URL the host
 ::  serves it at, its media type and its bytes.
@@ -44,10 +44,31 @@
       [%image-unsafe source=[url=@t width=@ud height=@ud] description=@t]
   ==
 +$  vattr  [name=@t value=@t]
-+$  renderer-context  [skin=noun nodes=(map @tas noun) attrs=noun]
+::  islands maps each island module's path to the hash naming its
+::  JavaScript; inside is set while rendering an island's first view, where
+::  alone controls may render.
++$  renderer-context
+  [skin=noun nodes=(map @tas noun) attrs=noun islands=(map @t @t) inside=?]
 +$  renderer-entry  [tag=@tas name=term]
-::  What serializing a page needs besides its tree.
-+$  page-context  [base=@t assets=(list static-asset) routes=(list (list @t))]
+::  What serializing a page needs besides its tree.  client is what a
+::  page with islands gives the browser.
++$  page-context
+  $:  base=@t
+      assets=(list static-asset)
+      routes=(list (list @t))
+      client=(unit client-context)
+  ==
+::  The browser library's URL, the ship, each island module's hash by its
+::  path, each store module's hash by the name its pokes and watches give
+::  it, such as stores/cart, and for a page under a catch-all route the
+::  section the route covers, as /app, whose links the browser follows.
++$  client-context
+  $:  library=@t
+      ship=@p
+      islands=(map @t @t)
+      stores=(list [module=@t hash=@t])
+      section=(unit @t)
+  ==
 ::
 ++  prepare-lowering
   |=  $:  public=@t
@@ -92,16 +113,41 @@
   |=  id=name:jibb-core
   ^-  (unit noun)
   ?.  ?=(%own -.id)  ~
+  ::  Every native the lowering emits, as Hoon's own gate where one has
+  ::  the native's sample; the JavaScript natives keep the same samples.
   ?+  name.id  ~
     %raw-seal          `raw-seal-native
     %join             `join-text
     %scot             `scot
-    %gth              `gth
-    %raw-format-tape  `scow
-    %raw-crip         `crip
     %scow             `scow
+    %raw-format-tape  `scow
+    %gth              `gth
+    %add              `add
+    %dec              `dec
+    %eq               `|=([a=* b=*] =(a b))
+    %lent             `lent
+    %trip             `trip
+    %tuba             `tuba
+    %tufa             `tufa
     %crip             `crip
+    %raw-crip         `crip
+    %year             `year
+    %yore             `yore
+    %bit-not          `not
+    %parse-atom       `parse-atom-native
+    %map-get          `|=([a=(map * *) b=*] (~(get by a) b))
+    %map-put          `|=([a=(map * *) b=[* *]] (~(put by a) -.b +.b))
   ==
+::
+::  [valid value]: text that does not parse, or whose parse crashes, as a
+::  BC year zero does, is invalid.
+++  parse-atom-native
+  |=  [aura=@tas text=@ta]
+  ^-  [? @]
+  =/  parsed=(each (unit @) tang)  (mule |.((slaw aura text)))
+  ?:  ?=(%| -.parsed)  [| 0]
+  ?~  p.parsed  [| 0]
+  [& u.p.parsed]
 ::
 ++  native-names
   |=  e=expr:jibb-core
@@ -221,7 +267,15 @@
   ?.  ?=(@ -.raw)  [%| 'static renderer: malformed element tag']
   =/  tag=@tas  ;;(@tas -.raw)
   ?+  tag  [%| (crip "static renderer: unsupported element {(trip tag)}")]
-    %island  [%| 'static renderer: islands are not supported yet']
+    %island
+      ?:  inside.ctx  [%| 'static renderer: an island cannot hold another island']
+      (render-island ctx +.raw)
+    ?(%button %toggle %field %form)
+      ?.  inside.ctx
+        [%| (crip "a {(trip tag)} is a control, which renders only inside an island")]
+      (render-control ctx tag +.raw)
+    %each  (render-each ctx +.raw)
+    %table  (render-table ctx +.raw)
     ?(%text %heading %link %link-unsafe %image %image-unsafe)
       (render-static-node ctx raw)
     ?(%row %column %wrap %stack)  (render-static-layout ctx tag +.raw)
@@ -237,6 +291,107 @@
       ?:  ?=(%| -.kid)  kid
       (render-static-node ctx [%el p.attrs p.kid])
   ==
+::
+::  A control's message stays in the browser: only what it shows renders.
+++  render-control
+  |=  [ctx=renderer-context tag=@tas payload=noun]
+  ^-  (each vnode @t)
+  ?.  ?=(^ payload)  [%| (crip "static renderer: malformed {(trip tag)}")]
+  ?+  tag  [%| (crip "static renderer: unsupported control {(trip tag)}")]
+    %button  (render-static-node ctx [%button -.payload])
+  ::
+      %toggle
+    ?.  ?=([* * *] payload)  [%| 'static renderer: malformed toggle']
+    (render-static-node ctx [%toggle -.payload +<.payload])
+  ::
+      %field
+    ?.  ?=([* * *] payload)  [%| 'static renderer: malformed field']
+    (render-static-node ctx [%field -.payload +<.payload])
+  ::
+      %form
+    =/  kids=(each (list noun) @t)  (render-static-children ctx +.payload)
+    ?:  ?=(%| -.kids)  kids
+    (render-static-node ctx [%form p.kids])
+  ==
+::
+::  Keyed items: the keys are the browser's.
+++  render-each
+  |=  [ctx=renderer-context items=noun]
+  ^-  (each vnode @t)
+  =|  out=(list noun)
+  |-
+  ?~  items  (render-static-node ctx [%each (flop out)])
+  ?.  ?=([[* *] *] items)  [%| 'static renderer: malformed each item']
+  =/  kid=(each vnode @t)  (render-static-element ctx ->.items)
+  ?:  ?=(%| -.kid)  kid
+  $(items +.items, out [p.kid out])
+::
+::  A table: each column's head through the renderer, each row's cells in
+::  table cells.
+++  render-table
+  |=  [ctx=renderer-context payload=noun]
+  ^-  (each vnode @t)
+  ?.  ?=(^ payload)  [%| 'static renderer: malformed table']
+  =/  heads=(each (list vnode) @t)
+    =|  out=(list vnode)
+    =/  columns=noun  -.payload
+    |-
+    ?~  columns  [%& (flop out)]
+    ?.  ?=(^ columns)  [%| 'static renderer: malformed table columns']
+    =/  head=(each vnode @t)  (render-static-node ctx [%table-head -.columns])
+    ?:  ?=(%| -.head)  head
+    $(columns +.columns, out [p.head out])
+  ?:  ?=(%| -.heads)  heads
+  =/  rows=(each (list vnode) @t)
+    =|  out=(list vnode)
+    =/  raw=noun  +.payload
+    |-
+    ?~  raw  [%& (flop out)]
+    ?.  ?=([[* *] *] raw)  [%| 'static renderer: malformed table row']
+    =/  cells=(each (list noun) @t)  (render-static-children ctx ->.raw)
+    ?:  ?=(%| -.cells)  cells
+    =/  tds=(list vnode)  (turn p.cells |=(c=noun [%node 'td' ~ ~[;;(vnode c)]]))
+    $(raw +.raw, out [[%node 'tr' ~ tds] out])
+  ?:  ?=(%| -.rows)  rows
+  :-  %&
+  :^  %node  'table'  ~[['style:border-collapse' 'collapse'] ['style:max-width' '100%']]
+  :~  [%node 'thead' ~ ~[[%node 'tr' ~ p.heads]]]
+      [%node 'tbody' ~ p.rows]
+  ==
+::
+::  An island's first view, rendered with its data at the page's stage, then
+::  its model, jammed, for the browser to resume from.  Its program came
+::  paired with its module's path, which names the island's JavaScript.  A
+::  crash in init or the first view shows the crash notice instead.
+++  render-island
+  |=  [ctx=renderer-context payload=noun]
+  ^-  (each vnode @t)
+  ?.  ?=([[@ *] *] payload)  [%| 'static renderer: an island lost its module']
+  =/  module=@t  -<.payload
+  =/  hash=(unit @t)  (~(get by islands.ctx) module)
+  ?~  hash
+    [%| (crip "static renderer: {(trip module)} is not an island module this build compiled")]
+  =/  program=noun  ->.payload
+  ?.  ?=([* * * *] program)  [%| 'static renderer: an island program is not init, update, view and subs']
+  =/  model=(each noun @t)  (apply-linked 'island init' -.program +.payload)
+  =/  view=(each noun @t)
+    ?:  ?=(%| -.model)  model
+    (apply-linked 'island view' +>-.program p.model)
+  =/  inner=(each vnode @t)
+    ?:  ?=(%| -.view)  view
+    (render-static-element ctx(inside &) p.view)
+  ?:  |(?=(%| -.model) ?=(%| -.inner))
+    [%& [%node 'div' ~[['data-jibb-island' u.hash] ['data-jibb-crashed' '']] ~[crash-notice]]]
+  =/  state=@t  (scot %uw (jam p.model))
+  :-  %&
+  :^  %node  'div'  ~[['data-jibb-island' u.hash]]
+  ~[p.inner [%node 'script' ~[['type' 'application/x-jibb-state']] ~[[%text state]]]]
+::
+::  The standard notice of a crashed island, as the browser shows it too.
+++  crash-notice
+  ^-  vnode
+  :^  %node  'p'  ~[['role' 'alert'] ['class:tone' 'j-tone-danger'] ['data-jibb-notice' '']]
+  ~[[%text 'This part of the page stopped working. Reloading the page may fix it.']]
 ::
 ::  Theme checks.  Spaces and wide are CSS lengths; tones are hex colours,
 ::  each needing 4.5:1 contrast with its background, dark tones included;
@@ -832,6 +987,9 @@
   ?-  -.node
     %text  (escape-html words.node)
     %node
+      ::  An input is a void element: no children and no end tag.
+      ?:  =('input' tag.node)
+        (rap 3 ~['<' tag.node (serialize-attributes attrs.node) '>'])
       %+  rap  3
       :~  '<'  tag.node  (serialize-attributes attrs.node)  '>'
           (serialize-vnodes ctx kids.node)  '</'  tag.node  '>'
@@ -910,11 +1068,68 @@
         (escape-html title)
         '</title><link rel="stylesheet" href="'
         (escape-html stylesheet)
-        '"></head><body><main>'
+        '">'
+        ?.  &(?=(^ client.ctx) (has-island tree))  ''
+        (client-scripts ctx u.client.ctx)
+        '</head><body><main>'
         (serialize-vnode ctx tree)
         '</main></body></html>'
     ==
   [title (rap 3 pieces)]
+::
+::  A page with islands loads the browser library, a module script, which
+::  runs once the page is parsed and reads the page's configuration.
+++  client-scripts
+  |=  [ctx=page-context client=client-context]
+  ^-  @t
+  =/  assets=(list [@t json])
+    %+  turn  assets.ctx
+    |=  asset=static-asset
+    =/  size=(unit [width=@ud height=@ud])  (image-size type.asset data.asset)
+    =/  fields=(list [@t json])
+      ?~  size  ~[url+s+url.asset]
+      :~  url+s+url.asset
+          width+(numb:enjs:format width.u.size)
+          height+(numb:enjs:format height.u.size)
+      ==
+    [(spat at.asset) (pairs:enjs:format fields)]
+  =/  config=json
+    %-  pairs:enjs:format
+    %+  weld
+      ^-  (list [@t json])
+      :~  base+s+base.ctx
+          ship+s+(scot %p ship.client)
+          :-  'stores'
+          (pairs:enjs:format (turn stores.client |=([m=@t h=@t] [m s+h])))
+          assets+(pairs:enjs:format assets)
+      ==
+    ^-  (list [@t json])
+    ?~  section.client  ~
+    ~[section+s+u.section.client]
+  %+  rap  3
+  :~  '<script type="application/x-jibb-client">'
+      (script-text (en:json:html config))
+      '</script><script type="module" src="'
+      (escape-html library.client)
+      '"></script>'
+  ==
+::
+::  JSON inside a script element, which ends at the first </script.
+++  script-text
+  |=  text=@t
+  ^-  @t
+  =/  bytes=(list @tD)  (trip text)
+  =/  out=@t  ''
+  |-
+  ?~  bytes  out
+  $(bytes t.bytes, out (cat 3 out ?:(=('<' i.bytes) '\\u003c' (crip ~[i.bytes]))))
+::
+++  has-island
+  |=  tree=vnode
+  ^-  ?
+  ?.  ?=(%node -.tree)  |
+  ?:  (lien attrs.tree |=(a=vattr =('data-jibb-island' name.a)))  &
+  (lien kids.tree has-island)
 ::
 ++  renderer-entries
   ^-  (list renderer-entry)
@@ -930,6 +1145,12 @@
       [%link-unsafe %render-link-unsafe]
       [%image %render-image]
       [%image-unsafe %render-image-unsafe]
+      [%each %render-each]
+      [%button %render-button]
+      [%toggle %render-toggle]
+      [%field %render-field]
+      [%form %render-form]
+      [%table-head %render-table-head]
   ==
 ::
 ++  link-renderer-entries
@@ -1070,8 +1291,24 @@
     (rap 3 ~[base.request '/~jibb/s/' (scot %uv (end [0 40] (sham p.css))) '.css'])
   %:  render-checked
     base.request  root.p.page  root.p.skin  root.p.renderer  artifacts
-    prepared  assets.request  routes.request  stylesheet
+    prepared  assets.request  routes.request  stylesheet  ~
   ==
+::
+::  +theme-look: the desk's stylesheet and language, once its theme is
+::  checked; the host gives its error pages both
+++  theme-look
+  |=  $:  theme=checked-module:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+          assets=(list static-asset)
+      ==
+  ^-  (each [css=@t lang=@t] @t)
+  ?.  =(%library kind.theme)  [%| 'static build: theme module must be a library']
+  =/  skin=(each theme-view @t)  (theme-value theme (weld artifacts cache.prepared))
+  ?:  ?=(%| -.skin)  skin
+  =/  checked=(each (unit static-asset) @t)  (check-theme p.skin assets)
+  ?:  ?=(%| -.checked)  checked
+  [%& (theme-stylesheet p.skin p.checked) lang.p.skin]
 ::
 ::  +theme-css: the desk's stylesheet, once its theme is checked
 ++  theme-css
@@ -1107,27 +1344,18 @@
 ::    the prelude's come from prepared. Nothing is checked again here, but
 ::    every link and image must resolve. stylesheet is the URL the host
 ::    serves the desk's +theme-css at.
-++  render-checked
-  |=  $:  base=@t
-          page=checked-module:jibb
+::  The theme and renderer a desk's pages share, linked and executed: what
+::  turning an element into HTML needs besides the page's own value.
++$  render-kit  [ctx=renderer-context skin=theme-view registry=native-registry:jibb-nock]
+++  prepare-kit
+  |=  $:  page-core=expr:jibb-core
           theme=checked-module:jibb
           renderer=checked-module:jibb
-          artifacts=jlowering-cache:jibb
-          prepared=iprelude-lowering:jibb
-          assets=(list static-asset)
-          routes=(list (list @t))
-          stylesheet=@t
+          cache=jlowering-cache:jibb
       ==
-  ^-  (each static-output @t)
-  ?.  (valid-base base)  [%| 'static build: base must be an absolute path without a trailing slash']
-  ?.  =(%static-page kind.page)
-    [%| (crip "unsupported module kind for static build: {(trip kind.page)}")]
+  ^-  (each render-kit @t)
   ?.  =(%library kind.theme)  [%| 'static build: theme module must be a library']
   ?.  =(%library kind.renderer)  [%| 'static build: renderer module must be a library']
-  =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
-  =/  page-core=(each expr:jibb-core @t)
-    (link-entry:jibb-lower %main page cache)
-  ?:  ?=(%| -.page-core)  page-core
   =/  theme-core=(each expr:jibb-core @t)
     (link-entry:jibb-lower %theme theme cache)
   ?:  ?=(%| -.theme-core)  theme-core
@@ -1140,29 +1368,392 @@
   =/  node-expressions=(list expr:jibb-core)
     (turn p.renderer-cores |=(entry=[tag=@tas core=expr:jibb-core] core.entry))
   =/  registry=(each native-registry:jibb-nock @t)
-    (native-registry (weld ~[p.page-core p.theme-core p.attribute-core] node-expressions))
+    (native-registry (weld ~[page-core p.theme-core p.attribute-core] node-expressions))
   ?:  ?=(%| -.registry)  registry
   =/  theme-value=(each noun @t)
     (execute-linked 'static theme' p.theme-core p.registry)
   ?:  ?=(%| -.theme-value)  theme-value
-  =/  skin-view=theme-view  ;;(theme-view p.theme-value)
-  =/  page-value=(each noun @t)
-    (execute-linked 'static page' p.page-core p.registry)
-  ?:  ?=(%| -.page-value)  page-value
   =/  render-gates=(each (map @tas noun) @t)
     (execute-renderer-entries p.renderer-cores p.registry)
   ?:  ?=(%| -.render-gates)  render-gates
   =/  attribute-gate=(each noun @t)
     (execute-linked 'static attribute renderer' p.attribute-core p.registry)
   ?:  ?=(%| -.attribute-gate)  attribute-gate
-  =/  ctx=renderer-context  [p.theme-value p.render-gates p.attribute-gate]
-  =/  tree=(each vnode @t)
-    (render-static-element ctx p.page-value)
+  :-  %&
+  :+  [p.theme-value p.render-gates p.attribute-gate ~ |]
+    ;;(theme-view p.theme-value)
+  p.registry
+::
+::  +render-tree: an executed element as a checked HTML document
+++  render-tree
+  |=  [kit=render-kit context=page-context stylesheet=@t element=noun]
+  ^-  (each static-output @t)
+  =/  islands=(map @t @t)  ?~(client.context ~ islands.u.client.context)
+  =/  tree=(each vnode @t)  (render-static-element ctx.kit(islands islands) element)
   ?:  ?=(%| -.tree)  tree
-  =/  context=page-context  [base assets routes]
   =/  references=(each ~ @t)  (check-references context p.tree)
   ?:  ?=(%| -.references)  references
-  [%& (render-document context skin-view stylesheet p.tree)]
+  [%& (render-document context skin.kit stylesheet p.tree)]
+::
+++  render-checked
+  |=  $:  base=@t
+          page=checked-module:jibb
+          theme=checked-module:jibb
+          renderer=checked-module:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+          assets=(list static-asset)
+          routes=(list (list @t))
+          stylesheet=@t
+          client=(unit client-context)
+      ==
+  ^-  (each static-output @t)
+  ?.  (valid-base base)  [%| 'static build: base must be an absolute path without a trailing slash']
+  ?.  =(%static-page kind.page)
+    [%| (crip "unsupported module kind for static build: {(trip kind.page)}")]
+  =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
+  =/  page-core=(each expr:jibb-core @t)
+    (link-entry:jibb-lower %main page cache)
+  ?:  ?=(%| -.page-core)  page-core
+  =/  kit=(each render-kit @t)  (prepare-kit p.page-core theme renderer cache)
+  ?:  ?=(%| -.kit)  kit
+  =/  page-value=(each noun @t)
+    (execute-linked 'static page' p.page-core registry.p.kit)
+  ?:  ?=(%| -.page-value)  page-value
+  (render-tree p.kit [base assets routes client] stylesheet p.page-value)
+::
+::  Pages with data.  +prepare-page links and executes a page's load and
+::  view at build time, with the renderer and theme; +page-request then
+::  answers each request from that, binding load's sample from the URL,
+::  running load, and, once the host has scried what an agent's ask names,
+::  checking the answer through the ask's receiver and rendering the view.
+::  A request's page is never cached.
++$  route-field  [name=term aura=@ta rest=?]
++$  data-page
+  $:  load=noun
+      view=noun
+      kit=render-kit
+      context=page-context
+      stylesheet=@t
+      route=(list @t)
+      fields=(list route-field)
+  ==
+::  A request starts with %load; after a %scry step the host asks again
+::  with the agent's answer, or with %reject when the scry failed.  A failed
+::  step carries its rendered error page.
++$  page-input
+  $%  [%load site=(list @t)]
+      [%receive receive=noun mark=@tas fact=noun]
+      [%reject message=@t]
+  ==
++$  page-step
+  $%  [%done title=@t html=@t]
+      [%scry agent=@tas path=path receive=noun]
+      [%fail status=@ud message=@t html=@t]
+  ==
+::
+++  prepare-page
+  |=  $:  base=@t
+          page=checked-module:jibb
+          theme=checked-module:jibb
+          renderer=checked-module:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+          assets=(list static-asset)
+          routes=(list (list @t))
+          stylesheet=@t
+          client=(unit client-context)
+      ==
+  ^-  (each data-page @t)
+  ?.  (valid-base base)  [%| 'static build: base must be an absolute path without a trailing slash']
+  ?.  =(%page kind.page)
+    [%| (crip "a page with data was expected, not a module of kind {(trip kind.page)}")]
+  =/  fields=(each (list route-field) @t)  (page-route-fields page)
+  ?:  ?=(%| -.fields)  fields
+  =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
+  =/  page-core=(each expr:jibb-core @t)
+    (link-entry:jibb-lower %main page cache)
+  ?:  ?=(%| -.page-core)  page-core
+  =/  kit=(each render-kit @t)  (prepare-kit p.page-core theme renderer cache)
+  ?:  ?=(%| -.kit)  kit
+  =/  page-value=(each noun @t)
+    (execute-linked 'page' p.page-core registry.p.kit)
+  ?:  ?=(%| -.page-value)  page-value
+  ?.  ?=(^ p.page-value)  [%| 'static build: a page with data is not a load and a view']
+  :*  %&
+      -.p.page-value
+      +.p.page-value
+      p.kit
+      [base assets routes client]
+      stylesheet
+      (page-route at.page)
+      p.fields
+  ==
+::
+::  +prepare-browser: an island or store module's JavaScript
+::
+::    The browser runs an island's update, view and subs from its module,
+::    compiled from the same linked Core the ship renders its init and
+::    first view with, and a page's stores from theirs.  Its evaluate
+::    export returns the module's main: an island's program, or a store's
+::    init and update.
+++  prepare-browser
+  |=  $:  module=checked-module:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+      ==
+  ^-  (each @t @t)
+  ?.  ?=(?(%island %store) kind.module)
+    [%| (crip "an island or store module was expected, not a module of kind {(trip kind.module)}")]
+  =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
+  =/  core=(each expr:jibb-core @t)  (link-entry:jibb-lower %main module cache)
+  ?:  ?=(%| -.core)  core
+  =/  made=(each @t tang)  (mule |.((compile:jibb-js p.core)))
+  ?:  ?=(%| -.made)
+    [%| (crip "static build: {(trip kind.module)} {(spud at.module)} could not be compiled to JavaScript")]
+  [%& p.made]
+::
+::  +run-tests: a test module's test- arms, each one test, run in Nock
+::
+::    A test passes when its value is %.y and fails when it is %.n or
+::    crashes; an arm of another type fails with that type.  The arms run
+::    in name order, as Hoon's -test runs them.
++$  test-outcome  [arm=term ok=? message=@t]
+++  run-tests
+  |=  $:  module=checked-module:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+      ==
+  ^-  (list test-outcome)
+  =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
+  =/  arms=(list [name=term scheme=ischeme:jibb])
+    %+  sort
+      %+  skim  values.interface.module
+      |=(v=[name=term scheme=ischeme:jibb] =("test-" (scag 5 (trip name.v))))
+    |=([a=[name=term *] b=[name=term *]] (aor name.a name.b))
+  %+  turn  arms
+  |=  [name=term scheme=ischeme:jibb]
+  ^-  test-outcome
+  =/  typ=itype:jibb  typ.scheme
+  =?  typ  ?=(%face -.typ)  body.typ
+  ?.  ?=(%flag -.typ)
+    [name | (crip "{(trip name)} is a {(show-itype:jibb typ.scheme ~)}, not a ?")]
+  =/  core=(each expr:jibb-core @t)  (link-entry:jibb-lower name module cache)
+  ?:  ?=(%| -.core)  [name | p.core]
+  =/  registry=(each native-registry:jibb-nock @t)  (native-registry ~[p.core])
+  ?:  ?=(%| -.registry)  [name | p.registry]
+  =/  value=(each noun @t)  (execute-linked name p.core p.registry)
+  ?:  ?=(%| -.value)  [name | p.value]
+  ?:  =(0 p.value)  [name & '']
+  [name | (crip "{(trip name)} is %.n")]
+::
+::  +test-programs: each test- arm of a test module, as the JavaScript the
+::  browser would run and the Nock the ship would, for the Node harness,
+::  which runs both and compares them.  The Nock names its natives by
+::  placeholders, [[0 0] 0 %jibb-native name], which the harness gives its
+::  own implementations, rather than carrying the ship's gates.
+++  test-programs
+  |=  $:  module=checked-module:jibb
+          artifacts=jlowering-cache:jibb
+          prepared=iprelude-lowering:jibb
+      ==
+  ^-  (list [arm=term js=@t nock=*])
+  =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
+  =/  arms=(list [name=term scheme=ischeme:jibb])
+    %+  sort
+      %+  skim  values.interface.module
+      |=  v=[name=term scheme=ischeme:jibb]
+      =/  typ=itype:jibb  typ.scheme.v
+      =?  typ  ?=(%face -.typ)  body.typ
+      &(=("test-" (scag 5 (trip name.v))) ?=(%flag -.typ))
+    |=([a=[name=term *] b=[name=term *]] (aor name.a name.b))
+  %+  murn  arms
+  |=  [name=term *]
+  ^-  (unit [arm=term js=@t nock=*])
+  =/  core=(each expr:jibb-core @t)  (link-entry:jibb-lower name module cache)
+  ?:  ?=(%| -.core)  ~
+  =/  js=(each @t tang)  (mule |.((compile:jibb-js p.core)))
+  ?:  ?=(%| -.js)  ~
+  =/  placeholders=native-registry:jibb-nock
+    %-  malt
+    %+  turn  (unique-names (native-names p.core))
+    |=(n=name:jibb-core [n [[0 0] 0 %jibb-native (print-name:jibb-core n)]])
+  `[name p.js (emit:jibb-nock p.core placeholders)]
+::
+::  A page's route, as its site with its _ and __ segments: /ui/blog/_slug
+::  is ['blog' '_slug'], and an index file its folder's.
+++  page-route
+  |=  at=path
+  ^-  (list @t)
+  ?.  ?=([%ui * *] at)  ~
+  =/  parts=path  (snip `path`t.at)
+  ::  =(~ parts), not ?~: the wet +rear cannot take a refined list.
+  ?:  =(~ parts)  ~
+  =?  parts  =(%index (rear parts))  (snip parts)
+  (turn parts |=(part=@ta `@t`part))
+::
+::  load's sample fields, in their order, from the checked main.  The
+::  checker has proved they are exactly the route's parameters.
+++  page-route-fields
+  |=  page=checked-module:jibb
+  ^-  (each (list route-field) @t)
+  =/  params=(unit (list route-param:jibb))  (route-params:jibb at.page)
+  ?~  params  [%& ~]
+  =/  routed=(list route-param:jibb)  u.params
+  ?:  =(~ routed)  [%& ~]
+  ::  A catch-all alone is the sample itself, whatever its face.
+  ?:  ?=([[* %&] ~] routed)  [%& ~[[name.i.routed %ta &]]]
+  =/  scheme=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.interface.page)
+  ?~  scheme  [%| 'static build: a page with data has no checked main']
+  =/  resolved=(unit itype:jibb)  (scheme-display-type:jibb u.scheme)
+  ?~  resolved  [%| 'static build: a page with data has no checked main']
+  =/  loads=(list itype:jibb)  (record-fields-named:jibb %load u.resolved ~)
+  ?.  ?=([* ~] loads)  [%| 'static build: a page with data has no load']
+  =/  load=itype:jibb  (route-unface:jibb i.loads)
+  ?.  ?=(%fn -.load)  [%| 'static build: a page with data has no load']
+  =/  found=(unit (list [name=term typ=itype:jibb]))
+    =/  faced=(unit (list [name=term typ=itype:jibb]))  (route-sample-fields:jibb sample.load)
+    ?^  faced  faced
+    ?.  =(1 (lent routed))  ~
+    `~[[name:(snag 0 routed) sample.load]]
+  ?~  found  [%| 'static build: load does not take a record of the route parameters']
+  :-  %&
+  %+  turn  u.found
+  |=  f=[name=term typ=itype:jibb]
+  =/  rest=?  (lien routed |=(r=route-param:jibb &(=(name.r name.f) rest.r)))
+  =/  bare=itype:jibb  (route-unface:jibb typ.f)
+  [name.f ?:(?=(%atom -.bare) aura.bare %ta) rest]
+::
+++  page-request
+  |=  [page=data-page input=page-input]
+  ^-  page-step
+  ?-  -.input
+      %load
+    =/  sample=(each noun @t)  (route-sample route.page fields.page site.input)
+    ?:  ?=(%| -.sample)  (page-fail page 404 p.sample)
+    =/  ask=(each noun @t)  (apply-linked 'load' load.page p.sample)
+    ?:  ?=(%| -.ask)  (page-fail page 500 'the page crashed in load')
+    (page-ask page p.ask)
+  ::
+      %receive
+    =/  received=(each noun @t)
+      (apply-linked 'receive' receive.input [mark.input ~ fact.input])
+    ?:  ?=(%| -.received)
+      (page-fail page 500 'the agent answered with data that does not fit its type, or the page crashed reading it')
+    ?.  ?=(^ p.received)  (page-fail page 500 'the page read the agent\'s answer as something other than data')
+    (page-render page +.p.received)
+  ::
+      %reject
+    (page-fail page 404 message.input)
+  ==
+::
+++  page-fail
+  |=  [page=data-page status=@ud message=@t]
+  ^-  page-step
+  [%fail status message (error-page lang.skin.kit.page `stylesheet.page status message)]
+::
+::  An ask: pure data, or an agent's path, scried per request; the host
+::  scries a case's separate scry path when it has one.  Stores run in the
+::  browser, so a page cannot load from one.
+++  page-ask
+  |=  [page=data-page ask=noun]
+  ^-  page-step
+  ?:  ?=([%pure *] ask)  (page-render page +.ask)
+  ?:  ?=([%store *] ask)  (page-fail page 500 'a page cannot load from a store, which runs in the browser')
+  =/  read=(unit [%agent api=@t case=@tas agent=@tas path=path scry=(unit path) receive=*])
+    %-  mole  |.
+    ;;([%agent api=@t case=@tas agent=@tas path=path scry=(unit path) receive=*] ask)
+  ?~  read  (page-fail page 500 'load returned something other than an ask')
+  ?.  ((sane %tas) agent.u.read)  (page-fail page 500 'load returned an ask with a malformed agent name')
+  [%scry agent.u.read (fall scry.u.read path.u.read) receive.u.read]
+::
+++  page-render
+  |=  [page=data-page data=noun]
+  ^-  page-step
+  =/  element=(each noun @t)  (apply-linked 'view' view.page data)
+  ?:  ?=(%| -.element)  (page-fail page 500 'the page crashed in its view')
+  =/  out=(each static-output @t)
+    (render-tree kit.page context.page stylesheet.page p.element)
+  ?:  ?=(%| -.out)  (page-fail page 500 p.out)
+  [%done title.p.out html.p.out]
+::
+::  load's sample from a request's site: each _ segment parsed by its
+::  field's aura, the __ segment the rest of the path, as knots.  A segment
+::  that does not parse is a 404.
+++  route-sample
+  |=  [route=(list @t) fields=(list route-field) site=(list @t)]
+  ^-  (each noun @t)
+  =|  bound=(list [name=term value=noun])
+  |-
+  ?~  route
+    ?^  site  [%| 'the address has more segments than the page\'s route']
+    (route-record fields bound)
+  ?:  =('__' (end [3 2] i.route))
+    =/  name=term  (rsh [3 2] i.route)
+    ?.  (levy site |=(s=@t ((sane %ta) s)))
+      [%| (crip "a segment after {(trip name)} is not a knot")]
+    $(route t.route, site ~, bound [[name site] bound])
+  ?~  site  [%| 'the address has fewer segments than the page\'s route']
+  ?.  =('_' (end [3 1] i.route))  $(route t.route, site t.site)
+  =/  name=term  (rsh [3 1] i.route)
+  =/  field=(unit route-field)  (find-route-field name fields)
+  ?~  field  [%| (crip "the route parameter {(trip name)} has no field in load's sample")]
+  =/  value=(unit @)  (route-value aura.u.field i.site)
+  ?~  value
+    [%| (crip "the segment {(trip i.site)} is not a @{(trip aura.u.field)}, as the route parameter {(trip name)} needs")]
+  $(route t.route, site t.site, bound [[name u.value] bound])
+::
+++  find-route-field
+  |=  [name=term fields=(list route-field)]
+  ^-  (unit route-field)
+  ?~  fields  ~
+  ?:  =(name name.i.fields)  `i.fields
+  $(fields t.fields)
+::
+++  route-value
+  |=  [aura=@ta seg=@t]
+  ^-  (unit @)
+  ?:  =(%ta aura)  ?.(((sane %ta) seg) ~ `seg)
+  ?:  =(%tas aura)  ?.(((sane %tas) seg) ~ `seg)
+  ?:  =(%u aura)  (slaw %ud seg)
+  (slaw aura seg)
+::
+::  The record of the bound values, in load's field order: one field is
+::  the value itself, several a cell, and none ~.
+++  route-record
+  |=  [fields=(list route-field) bound=(list [name=term value=noun])]
+  ^-  (each noun @t)
+  =/  values=(list noun)
+    %+  murn  fields
+    |=  f=route-field
+    =/  hit=(list [name=term value=noun])  (skim bound |=(b=[name=term value=noun] =(name.b name.f)))
+    ?~(hit ~ `value.i.hit)
+  ?.  =((lent values) (lent fields))  [%| 'a field of load\'s sample has no route parameter']
+  ?:  =(~ values)  [%& ~]
+  =/  out=noun  (rear values)
+  =/  rest=(list noun)  (flop (snip values))
+  |-
+  ?~  rest  [%& out]
+  $(rest t.rest, out [i.rest out])
+::
+::  +error-page: Jibb's page for a request that failed, the message shown
+::  to the owner as preformatted text
+++  error-page
+  |=  [lang=@t stylesheet=(unit @t) status=@ud message=@t]
+  ^-  @t
+  =/  title=@t
+    ?:  =(404 status)  'Not found'
+    ?:  =(500 status)  'This page failed'
+    'Error'
+  =/  sheet=@t
+    ?~  stylesheet  ''
+    (rap 3 ~['<link rel="stylesheet" href="' (escape-html u.stylesheet) '">'])
+  %+  rap  3
+  :~  '<!doctype html><html lang="'  (escape-html lang)
+      '"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="script-src \'self\'"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'
+      title  '</title>'  sheet  '</head><body><main class="j-column j-pad-s3 j-gap-s2"><h1>'
+      title  '</h1><pre>'  (escape-html message)  '</pre></main></body></html>'
+  ==
 ::
 ++  build-static
   |=  [request=static-request prepared=iprelude-lowering:jibb]

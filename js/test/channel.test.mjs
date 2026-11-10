@@ -96,7 +96,8 @@ test('connect parses split SSE frames, CRLF, comments, multiline data, and every
   const tang = list(cord('first trace'), [cord('second'), 42n]);
   const errorSign = [cord('err'), tang];
   const factNoun = [cord('answer'), 9007199254740993n];
-  const pokePayload = packet(21n, [cord('poke-ack'), okSign()]);
+  // As Eyre sends them: acks with a (unit tang), facts with their desk.
+  const pokePayload = packet(21n, [cord('poke-ack'), 0n]);
   const splitAt = Math.floor(pokePayload.length / 2);
   const frames = [
     ': keepalive\r\n',
@@ -104,12 +105,12 @@ test('connect parses split SSE frames, CRLF, comments, multiline data, and every
     `data: ${pokePayload.slice(0, splitAt)}\r\n`,
     `data: ${pokePayload.slice(splitAt)}\r\n\r\n`,
     'id: 101\n',
-    `data: ${packet(22n, [cord('watch-ack'), errorSign])}\n\n`,
+    `data: ${packet(22n, [cord('watch-ack'), [0n, tang]])}\n\n`,
     ': another comment\n',
     'id: 102\n',
-    `data: ${packet(23n, [cord('fact'), [cord('json'), factNoun]])}\n\n`,
+    `data: ${packet(23n, [cord('fact'), [cord('my-app'), [cord('json'), factNoun]]])}\n\n`,
     'id: 103\n',
-    `data: ${packet(24n, [cord('kick'), okSign()])}\n\n`,
+    `data: ${packet(24n, [cord('kick'), 0n])}\n\n`,
   ].join('');
   const { calls, fetchImpl } = recordingFetch([
     { ok: true, status: 200, body: byteStream(frames) },
@@ -142,7 +143,7 @@ test('connect parses split SSE frames, CRLF, comments, multiline data, and every
 });
 
 test('connect resumes from the last received SSE id when no explicit id is supplied', async () => {
-  const frame = `id: 51\ndata: ${packet(1n, [cord('poke-ack'), okSign()])}\n\n`;
+  const frame = `id: 51\ndata: ${packet(1n, [cord('poke-ack'), 0n])}\n\n`;
   const { calls, fetchImpl } = recordingFetch([
     { ok: true, status: 200, body: byteStream(frame) },
     { ok: true, status: 200, body: byteStream('') },
@@ -158,7 +159,7 @@ test('connect resumes from the last received SSE id when no explicit id is suppl
 test('reconnect replaces a missing channel and drops the stale resume id', async () => {
   const { calls, fetchImpl } = recordingFetch([
     { ok: false, status: 404, statusText: 'Not Found' },
-    { ok: true, status: 200, body: byteStream(`id: 9\ndata: ${packet(1n, [cord('poke-ack'), okSign()])}\n\n`) },
+    { ok: true, status: 200, body: byteStream(`id: 9\ndata: ${packet(1n, [cord('poke-ack'), 0n])}\n\n`) },
   ]);
   const events = [];
   const channel = new Channel('expired', {

@@ -12,6 +12,7 @@
 /*  todo-island  %txt  /my-app/ui/todo-list/jibb
 /*  blog-sur  %txt  /my-app/sur/blog/hoon
 /*  posts  %txt  /my-app/mar/posts/hoon
+/*  post  %txt  /my-app/mar/post/hoon
 /*  blog-api  %txt  /my-app/ui/api/blog/jibb
 /*  card  %txt  /my-app/ui/components/card/jibb
 /*  about  %txt  /my-app/ui/about/jibb
@@ -45,7 +46,7 @@
   (infer-jibb-file-detailed:jibb at src externals marks modules ~[at] values.prepared molds.prepared ~ `iface.prepared)
 ::
 ++  page-main-reader-inputs
-  |=  [sur=@t action=@t todos=@t update=@t item=@t blog-sur=@t posts=@t]
+  |=  [sur=@t action=@t todos=@t update=@t item=@t blog-sur=@t posts=@t post=@t]
   ^-  [marks=imark-externals:jibb externals=iexternals:jibb]
   =/  todo=type  -:(ride -:!>(..zuse) sur)
   =/  todo-subject=type  [%cell [%face %todo todo] -:!>(..zuse)]
@@ -56,10 +57,11 @@
   =/  blog=type  -:(ride -:!>(..zuse) blog-sur)
   =/  blog-subject=type  [%cell [%face %blog blog] -:!>(..zuse)]
   =/  mp=*  (read-mark:jibb-import %posts -:(ride blog-subject posts))
+  =/  mo=*  (read-mark:jibb-import %post -:(ride blog-subject post))
   =/  item-input=*  (read-named:jibb-import %todo %item todo)
   =/  post-input=*  (read-named:jibb-import %blog %post blog)
   :_  ~[[%todo %item item-input] [%blog %post post-input]]
-  ~[[%todo-action ma] [%todos mt] [%todo-update mu] [%todo-item mi] [%posts mp]]
+  ~[[%todo-action ma] [%todos mt] [%todo-update mu] [%todo-item mi] [%posts mp] [%post mo]]
 ::
 ++  page-main-positive
   |=  [label=tape at=path src=@t expected=@t consumer-at=path consumer=@t face=term externals=iexternals:jibb marks=imark-externals:jibb modules=jbundle:jibb prepared=iprelude:jibb]
@@ -111,13 +113,13 @@
   ~
 ::
 ++  page-main-errors
-  |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t todo-api=@t todo-island=@t blog-sur=@t posts=@t blog-api=@t card=@t about=@t blog-index=@t index=@t ctor-page=@t valid-variants=(list [label=@t src=@t]) negatives=(list [label=@t src=@t])]
+  |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t todo-api=@t todo-island=@t blog-sur=@t posts=@t post=@t blog-api=@t card=@t about=@t blog-index=@t index=@t ctor-page=@t valid-variants=(list [label=@t src=@t]) negatives=(list [label=@t src=@t])]
   ^-  (list tape)
   =/  prepared=(unit iprelude:jibb)
     (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~["page prelude did not prepare"]
   =/  inputs=[marks=imark-externals:jibb externals=iexternals:jibb]
-    (page-main-reader-inputs sur action todos update item blog-sur posts)
+    (page-main-reader-inputs sur action todos update item blog-sur posts post)
   =/  modules=jbundle:jibb
     :~  [/ui/api/todo/jibb todo-api]
         [/ui/todo-list/jibb todo-island]
@@ -167,6 +169,6 @@
         ['typed reply does not fit view' (text typed-mismatch)]
     ==
   =/  failures=(list tape)
-    (page-main-errors prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text todo-api) (text todo-island) (text blog-sur) (mark-text posts) (text blog-api) (text card) (text about) (text blog-index) (text index) (text ctor-page) valid-variants negatives)
+    (page-main-errors prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text todo-api) (text todo-island) (text blog-sur) (mark-text posts) (mark-text post) (text blog-api) (text card) (text about) (text blog-index) (text index) (text ctor-page) valid-variants negatives)
   (turn failures |=(reason=tape leaf+reason))
 --

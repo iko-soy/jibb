@@ -50,6 +50,33 @@ fn golden_syntax_and_formatting_corpus() {
     assert!(checked >= 750, "only {checked} golden cases were found");
 }
 
+// Milestone 7: the formatter leaves every example in the doc unchanged.
+// tools/doc-blocks keeps each Jibb block of docs/spec as a doc-* case.
+#[test]
+fn doc_examples_are_canonical() {
+    let golden = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests/golden");
+    if !golden.is_dir() {
+        return;
+    }
+    let mut checked = 0;
+    for entry in fs::read_dir(golden).expect("read golden corpus") {
+        let directory = entry.expect("golden directory entry").path();
+        let is_doc = directory
+            .file_name()
+            .is_some_and(|name| name.to_string_lossy().starts_with("doc-"));
+        if !is_doc {
+            continue;
+        }
+        let source = directory.join("source.jibb");
+        let text = fs::read_to_string(&source).expect("read a doc example");
+        let formatted = format_source(&text)
+            .unwrap_or_else(|error| panic!("{} should format: {error}", source.display()));
+        assert_eq!(formatted, text, "the formatter changes {}", source.display());
+        checked += 1;
+    }
+    assert!(checked >= 14, "only {checked} doc examples were found");
+}
+
 #[test]
 fn app_and_prelude_sources_format_and_converge() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");

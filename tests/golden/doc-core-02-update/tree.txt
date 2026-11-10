@@ -1,28 +1,27 @@
 (module
   (value 1:1 update
-    (gate 1:11
-      (cell 1:14
-        (pun 1:15 msg)
-        (face 1:20 m (ref 1:22 model)))
+    (gate 1:13
+      (cell 1:17
+        (pun 1:18 msg)
+        (face 1:23 m (ref 1:25 model)))
       (body 2:3
         (branch 2:3
-          (wing 2:6 msg)
+          (wing 2:7 msg)
           (arm 3:3
             (cell 3:3 (lit 3:4 %typed) (bind 3:11 t))
             (body 4:5
               (branch 4:5
-                (group 4:8
-                  (call 4:9
-                    (wing 4:9 gth)
-                    (group 4:13
-                      (call 4:14
-                        (wing 4:14 lent)
-                        (group 4:19
-                          (call 4:20
-                            (wing 4:20 tuba)
-                            (group 4:25
-                              (call 4:26 (wing 4:26 trip) (wing 4:31 t)))))))
-                    (lit 4:36 80)))
+                (call 4:9
+                  (wing 4:9 gth)
+                  (group 4:13
+                    (call 4:14
+                      (wing 4:14 lent)
+                      (group 4:19
+                        (call 4:20
+                          (wing 4:20 tuba)
+                          (group 4:25
+                            (call 4:26 (wing 4:26 trip) (wing 4:31 t)))))))
+                  (lit 4:36 80))
                 (arm 5:5
                   (lit 5:5 %.y)
                   (tuple 5:10
@@ -40,15 +39,15 @@
                     (lit 6:30 ~))))))
           (arm 7:3
             (lit 7:3 %submit)
-            (tuple 7:18
-              (change 7:19 m
-                (edit 7:21 draft (str 7:27 "")))
-              (list 7:31
-                (group 7:33
-                  (call 7:34
-                    (wing 7:34 poke.todo)
-                    (tuple 7:44 (lit 7:45 %add) (wing 7:50 draft.m))
-                    (ctor 7:59 %acked))))))
+            (tuple 7:12
+              (change 7:13 m
+                (edit 7:15 draft (str 7:21 "")))
+              (list 7:25
+                (group 7:27
+                  (call 7:28
+                    (wing 7:28 poke.todo)
+                    (tuple 7:38 (lit 7:39 %add) (wing 7:44 draft.m))
+                    (ctor 7:53 %acked))))))
           (arm 8:3
             (cell 8:3 (lit 8:4 %toggled) (bind 8:13 id))
             (tuple 8:18
@@ -61,13 +60,13 @@
                     (ctor 8:47 %acked))))))
           (arm 9:3
             (cell 9:3 (lit 9:4 %got) (bind 9:9 ts))
-            (tuple 9:18
-              (change 9:19 m
-                (edit 9:21 todos (wing 9:27 ts)))
-              (lit 9:31 ~)))
+            (tuple 9:14
+              (change 9:15 m
+                (edit 9:17 todos (wing 9:23 ts)))
+              (lit 9:27 ~)))
           (arm 10:3
             (cell 10:3 (lit 10:4 %acked) (bind 10:11 err))
-            (tuple 10:18
-              (change 10:19 m
-                (edit 10:21 error (wing 10:27 err)))
-              (lit 10:32 ~))))))))
+            (tuple 10:17
+              (change 10:18 m
+                (edit 10:20 error (wing 10:26 err)))
+              (lit 10:31 ~))))))))

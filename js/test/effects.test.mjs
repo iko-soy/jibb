@@ -47,7 +47,11 @@ function setup({ subs, receive, now = () => 42n, navigate, ...options } = {}) {
 }
 
 test('watch facts apply stateful folds, acknowledge, and preserve request ids', () => {
-  const receive = ([mark, [state, fact]]) => [state + fact, fact];
+  const states = [];
+  const receive = ([mark, [state, fact]]) => {
+    states.push(state);
+    return [(state === 0n ? 0n : state[1]) + fact, fact];
+  };
   const watch = [cord('watch'), agentRequest(receive)];
   const { channel, island, effects } = setup({ subs: () => arrayToList([watch]) });
   const id = channel.subscriptions[0][0];
@@ -57,11 +61,16 @@ test('watch facts apply stateful folds, acknowledge, and preserve request ids', 
   channel.onFact(id, cord('state'), 2n, 8n);
   assert.equal(island.model, 2n);
   assert.deepEqual(channel.acks, [7n, 8n]);
+  // The receiver gets ~ first, then the state it returned, as a unit.
+  assert.deepEqual(states, [0n, [0n, 40n]]);
   effects.stop();
 });
 
 test('watch removal unsubscribes and kicks reseed from first state', () => {
-  const receive = ([mark, [state, fact]]) => [state + fact, state + fact];
+  const receive = ([mark, [state, fact]]) => {
+    const previous = state === 0n ? 0n : state[1];
+    return [previous + fact, previous + fact];
+  };
   const watch = [cord('watch'), agentRequest(receive)];
   let enabled = true;
   const { channel, island } = setup({

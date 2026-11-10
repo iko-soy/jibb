@@ -24791,6 +24791,120 @@
   =/  fit=ifit  (direct-invariant u.resolved typ.instance ~ next.state.instance)
   ?=(%ok -.fit)
 ::
+::  Routes.  Under /ui a page's file names its route: a `_name` segment is a
+::  parameter and a final `__name` the rest of the path.  load's sample has
+::  exactly those fields, bound by name: each parameter an atom whose aura a
+::  path prints and parses, the rest a `path`.  A page with none takes ~,
+::  and one whose only parameter is a catch-all takes the path itself.
++$  route-param  [name=term rest=?]
+++  route-params
+  |=  at=path
+  ^-  (unit (list route-param))
+  ?.  ?=([%ui * *] at)  ~
+  ::  A path again: wet gates cannot take the refined one.
+  =/  parts=path  t.at
+  `(murn (snip parts) route-segment-param)
+++  route-segment-param
+  |=  seg=@ta
+  ^-  (unit route-param)
+  =/  text=tape  (trip seg)
+  ?.  ?=([%'_' *] text)  ~
+  ?:  ?=([%'_' %'_' *] text)  `[(crip t.t.text) &]
+  `[(crip t.text) |]
+++  route-param-text
+  |=  p=route-param
+  ^-  tape
+  ?:(rest.p "__{(trip name.p)}" "_{(trip name.p)}")
+++  route-aura
+  |=  aura=@ta
+  ^-  ?
+  |(?=(?(%u %ud %ux %uv %t %ta %tas %p %da %dr) aura) =('tD' aura))
+++  route-unface
+  |=  typ=itype
+  ^-  itype
+  ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ)
+  typ
+++  route-sample-fields
+  |=  typ=itype
+  ^-  (unit (list [name=term typ=itype]))
+  ?:  ?=(?(%face %slot) -.typ)  `~[[name.typ body.typ]]
+  ?.  ?=(%cell -.typ)  ~
+  ?.  ?=(?(%face %slot) -.hed.typ)  ~
+  =/  rest=(unit (list [name=term typ=itype]))  $(typ tal.typ)
+  ?~  rest  ~
+  `[[name.hed.typ body.hed.typ] u.rest]
+++  route-field-fits
+  |=  [typ=itype rest=?]
+  ^-  ?
+  =/  bare=itype  (route-unface typ)
+  ?.  rest  &(?=(%atom -.bare) (route-aura aura.bare))
+  ?.  ?=(%collection -.bare)  |
+  ?.  =(%list name.bare)  |
+  ?.  ?=([* ~] args.bare)  |
+  =/  item=itype  (route-unface i.args.bare)
+  &(?=(%atom -.item) =(%ta aura.item))
+++  page-route-diagnostic
+  |=  [at=path src=@t main=(unit def) env=ienv]
+  ^-  (unit idiag)
+  =/  found=(unit (list route-param))  (route-params at)
+  ?~  found  ~
+  ::  Not refined by ?~ below: the wet list gates cannot take that.
+  =/  params=(list route-param)  u.found
+  =/  scheme=(unit ischeme)  (ienv-lookup %main env)
+  ?~  scheme  ~
+  =/  resolved=(unit itype)  (scheme-display-type u.scheme)
+  ?~  resolved  ~
+  =/  loads=(list itype)  (record-fields-named %load u.resolved ~)
+  ?.  ?=([* ~] loads)  ~
+  =/  load=itype  (route-unface i.loads)
+  ?.  ?=(%fn -.load)  ~
+  =/  sample=itype  sample.load
+  =/  site=span  ?~(main *span (definition-name-site at src at.u.main))
+  =/  note=tape  (site-type-note "load's sample" sample ~)
+  =/  file=tape  (show-file at)
+  =/  folders=(list @ta)
+    ?.  ?=([%ui * *] at)  ~
+    =/  parts=path  t.at
+    (snip (snip parts))
+  ?:  (lien folders |=(seg=@ta =(`& (bind (route-segment-param seg) |=(p=route-param rest.p)))))
+    `["only a file's own name can be a catch-all `__` segment: {file}" ~[[site note]]]
+  =/  names=(list term)  (turn params |=(p=route-param name.p))
+  ?.  =((lent names) ~(wyt in:..zuse (silt names)))
+    `["a route parameter is named twice in {file}" ~[[site note]]]
+  ?:  =(~ params)
+    =/  bare=itype  (route-unface sample)
+    ?:  &(?=(%const -.bare) =(%null form.literal.bare))  ~
+    `["a page with no route parameters takes ~ in load, as `|=(~ …)`" ~[[site note]]]
+  ::  A page whose only parameter is a catch-all takes the path itself.
+  ?:  ?=([[* %&] ~] params)
+    ?:  (route-field-fits sample &)  ~
+    `["a catch-all page takes the rest of the path as load's sample: give it the mold `path`" ~[[site note]]]
+  ::  A gate's sample keeps no face, so one parameter may be the sample
+  ::  itself; a record's faces are its type, and bind by name.
+  =/  fields=(unit (list [name=term typ=itype]))
+    =/  faced=(unit (list [name=term typ=itype]))  (route-sample-fields sample)
+    ?^  faced  faced
+    ?.  =(1 (lent params))  ~
+    `~[[name:(snag 0 params) sample]]
+  ?~  fields
+    `["load's sample must be a record of the route parameters of {file}" ~[[site note]]]
+  =/  missing=(list route-param)
+    (skip params |=(p=route-param (lien u.fields |=(f=[name=term typ=itype] =(name.f name.p)))))
+  ?^  missing
+    `["load's sample has no field `{(trip name.i.missing)}` for the route parameter `{(route-param-text i.missing)}`" ~[[site note]]]
+  =/  extra=(list [name=term typ=itype])
+    (skip u.fields |=(f=[name=term typ=itype] (lien params |=(p=route-param =(name.f name.p)))))
+  ?^  extra
+    `["load's sample field `{(trip name.i.extra)}` is not a route parameter of {file}" ~[[site note]]]
+  =/  bad=(list [name=term typ=itype])
+    %+  skip  u.fields
+    |=  f=[name=term typ=itype]
+    (route-field-fits typ.f (lien params |=(p=route-param &(=(name.p name.f) rest.p))))
+  ?~  bad  ~
+  ?:  (lien params |=(p=route-param &(=(name.p name.i.bad) rest.p)))
+    `["the catch-all `{(trip name.i.bad)}` takes the rest of the path: give it the mold `path`" ~[[site note]]]
+  `["the route parameter `{(trip name.i.bad)}` must be an atom whose aura a path can print and parse, such as @ta, @ud or @da" ~[[site note]]]
+::
 ::  The inferred main type determines the program and its data/model types.
 ::  Provenance of each actual watch is checked separately below.
 ::  The ordinary constraint solver can decompose invariant record and gate
@@ -25208,6 +25322,7 @@
       [public %dec %dec]       [public %eq %eq]
       [public %lent %lent]     [public %trip %trip]
       [public %tuba %tuba]     [public %scot %scot]
+      [public %crip %crip]
       [internal %gth-atom %gth]     [internal %eq-data %eq]
       [internal %add-atom %add]     [internal %dec-atom %dec]
       [internal %trip-text %trip]   [internal %tuba-text %tuba]
@@ -25948,6 +26063,11 @@
     ==
   ?.  kind-ok
     [%| [(show-inference-diagnostic at src %main (main-kind-diagnostic at src main env kind)) ~]]
+  =/  route-error=(unit idiag)
+    ?.  =(%page u.kind)  ~
+    (page-route-diagnostic at src main env)
+  ?^  route-error
+    [%| [(show-inference-diagnostic at src %main u.route-error) ~]]
   ::  Publish the template faces that the checked store positions take,
   ::  retaining each checked value's evidence through the widening to *.
   =/  store-published=(unit ischeme)

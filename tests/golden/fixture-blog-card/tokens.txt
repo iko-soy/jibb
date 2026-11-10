@@ -2,13 +2,11 @@
 2:5 name blog
 4:1 NEWLINE
 4:1 glyph ++
-4:4 name card
-4:9 glyph |=
-4:12 name p
-4:13 tight glyph =
-4:14 tight wing post.blog
-5:3 INDENT
-5:3 name text
-5:8 wing title.p
-5:15 DEDENT
-5:15 NEWLINE
+4:5 name card
+4:11 glyph |=
+4:15 name p
+4:16 tight glyph =
+4:17 tight wing post.blog
+4:28 name text
+4:33 wing title.p
+4:40 NEWLINE

@@ -70,7 +70,8 @@
   =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~[leaf+"prelude failed to prepare"]
   =/  static=@t  '++ main (text "hi")'
-  =/  page=@t  (of-wain:format ~['++ main (page load view)' '++ load |= x=@ud (pure x)' '++ view |= x=@ud (text "hi")'])
+  ::  /ui/probe has no route parameters, so its load takes ~.
+  =/  page=@t  (of-wain:format ~['++ main (page load view)' '++ load |=(~ (pure 1))' '++ view |= x=@ud (text "hi")'])
   =/  store=@t  (of-wain:format ~['+$ state @ud' '+$ poke %hit' '++ main (store init update)' '++ init ^- state 0' '++ update |= [a=poke s=state] s'])
   =/  island=@t  (of-wain:format ~['+$ model @ud' '+$ msg %hit' '++ main (program init update view subs)' '++ init |= d=@t ^- model 0' '++ update |= [m=msg s=model] ^- [model (list (cmd msg))] [s ~]' '++ view |= s=model ^- (element msg) (text "hi")' '++ subs |= s=model ^- (list (sub msg)) ~'])
   (zing `(list tang)`~[(check-real-kind "static page" static %static-page u.prepared) (check-real-kind "data page" page %page u.prepared) (check-real-kind "store" store %store u.prepared) (check-real-kind "island" island %island u.prepared)])

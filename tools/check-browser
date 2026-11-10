@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Run worked example 3, the Grammar tab's store example, the crash notice
+and the benchmark's list island in headless Chromium, against the host on
+a fake ship: syncs the host, my-app and the host fixture, waits for their
+builds, then drives the browser with tools/browser-check.mjs."""
+
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+import os
+import shutil
+import subprocess
+import sys
+import urllib.error
+
+ROOT = Path(__file__).resolve().parent.parent
+host = SourceFileLoader('jibb_check_host', str(ROOT / 'tools' / 'check-host')).load_module()
+shiptool = host.shiptool
+
+
+def main():
+    chromium = os.environ.get('JIBB_CHROMIUM') or shutil.which('chromium')
+    if chromium is None:
+        raise ValueError('no Chromium: put chromium on PATH or set JIBB_CHROMIUM')
+    ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
+    ship.require()
+    revisions = {desk: shiptool.sync(ship, desk, timeout=300)
+                 for desk in ('jibb', 'my-app', host.DESK)}
+    for desk in revisions:
+        host.poke(ship, 'kiln-revive', '%' + desk)
+    host.wait_for('host agent installation', lambda: host.route_count(ship) >= 0 or None)
+    for desk in ('my-app', host.DESK):
+        host.wait_for('the %s route' % desk, lambda: host.route_present(ship, desk) or None)
+        host.wait_built(ship, desk, revisions[desk], timeout=3600)
+    origin = 'http://127.0.0.1:%d' % host.http_port(ship.pier)
+    result = subprocess.run(
+        ['node', str(ROOT / 'tools' / 'browser-check.mjs'), '--origin=' + origin,
+         '--password=' + host.PASSWORD, '--chromium=' + chromium] + sys.argv[1:])
+    return result.returncode
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, urllib.error.URLError,
+            shiptool.Fail, shiptool.Unable) as error:
+        print('check-browser: %s' % error, file=sys.stderr)
+        sys.exit(1)

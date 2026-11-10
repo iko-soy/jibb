@@ -1,0 +1,15 @@
+::  Fixture for the documented examples; not supplied by the design doc.
+::  One post, read by slug from a fresh scry on every request.
+/-  blog
+/=  api  /ui/api/blog
+::
+++  main  page load view
+++  load  |=  slug=@ta  post.api slug same
+::
+++  view  |=  p=post.blog
+  (column
+    ~[pad+%s3 gap+%s2]
+    ~[
+      heading 1 title.p
+      para ~[(text "This post's address is {slug.p}.")]
+      el ~[tone+%accent] (link %/blog "All posts")

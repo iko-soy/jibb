@@ -15,6 +15,7 @@ export class Island {
     dispatchCommand,
     onUpdate = () => {},
     onCrash = () => {},
+    paths,
   }) {
     if (!program || typeof program.init !== 'function'
       || typeof program.update !== 'function' || typeof program.view !== 'function') {
@@ -30,6 +31,7 @@ export class Island {
     this.dispatchCommand = dispatchCommand;
     this.onUpdate = onUpdate;
     this.onCrash = onCrash;
+    this.paths = paths;
     this.queue = [];
     this.processing = false;
     this.active = false;
@@ -45,7 +47,7 @@ export class Island {
           ? apply(this.program.init, this.data)
           : cue(this.packedModel);
       }
-      this.vnode = toVnode(apply(this.program.view, this.model));
+      this.vnode = toVnode(apply(this.program.view, this.model), this.paths);
       this.node = createDom(this.vnode, {
         document: this.document,
         dispatch: (message) => this.send(message),
@@ -92,7 +94,7 @@ export class Island {
       return;
     }
 
-    const vnode = toVnode(apply(this.program.view, next));
+    const vnode = toVnode(apply(this.program.view, next), this.paths);
     const node = patchDom(this.container, this.node, vnode, {
       document: this.document,
       dispatch: (reply) => this.send(reply),

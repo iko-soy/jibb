@@ -18,21 +18,21 @@
         (face 5:18 at (aura 5:21 @da)))
       (const 6:3 %stop)))
   (value 8:1 describe
-    (gate 8:13
-      (face 8:16 s (ref 8:18 step))
+    (gate 8:15
+      (face 8:19 s (ref 8:21 step))
       (body 9:3
         (branch 9:3
-          (wing 9:6 s)
+          (wing 9:7 s)
           (arm 10:3
             (cell 10:3 (lit 10:4 %move) (lit 10:10 %left) (bind 10:16 n))
-            (str 10:21 "left " (wing 10:28 n)))
+            (str 10:20 "left " (wing 10:27 n)))
           (arm 11:3
             (cell 11:3 (lit 11:4 %move) (lit 11:10 %right) (bind 11:17 n))
             (str 11:21 "right " (wing 11:29 n)))
           (arm 12:3
             (cell 12:3 (bind 12:4 t) (lit 12:6 %draft))
-            (wing 12:21 t))
+            (wing 12:15 t))
           (arm 13:3
             (cell 13:3 (bind 13:4 t) (lit 13:6 %sent) (bind 13:12 sent-at))
-            (wing 13:21 t))
-          (arm 14:3 (lit 14:3 %stop) (str 14:21 "stop")))))))
+            (wing 13:22 t))
+          (arm 14:3 (lit 14:3 %stop) (str 14:10 "stop")))))))

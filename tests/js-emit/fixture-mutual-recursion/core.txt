@@ -1,0 +1,1 @@
+(rec ((even (lam x (if (eq x 0) %.y (app odd (app (native sub) (cons x 1)))))) (odd (lam x (if (eq x 0) %.n (app even (app (native sub) (cons x 1))))))) (app even 10))

@@ -1,0 +1,20 @@
+::  The todo list's tests: each test- arm is one test.
+/=  todo-list  /ui/todo-list
+::
+++  test-a-short-draft-has-no-error
+  ?-  update.todo-list [%typed "Milk"] [todos=~ draft="" error=~]
+  [m cmds]
+    ?-  error.m
+    ~  %.y
+    [~ e]  %.n
+::
+++  test-a-long-draft-is-refused
+  ?-  update.todo-list [%typed "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"] [todos=~ draft="" error=~]
+  [m cmds]
+    ?-  error.m
+    ~  %.n
+    [~ e]  eq e "Too long"
+::
+++  test-adding-clears-the-draft
+  ?-  update.todo-list %submit [todos=~ draft="Milk" error=~]
+  [m cmds]  eq draft.m ""

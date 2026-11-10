@@ -1,4 +1,4 @@
 ++ add-button: nothing fixes the union of %add; add a `^-`
 /tests/golden/doc-grammar-02-buttons/source.jibb:3:16: nothing fixes the union of %add; add a `^-`
-  button label %add                ::  error: nothing fixes the union of %add
+  button label %add  ::  error: nothing fixes the union of %add
                ^

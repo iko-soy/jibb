@@ -5,8 +5,8 @@
   (mark 4:1 %todos)
   (mark 5:1 %todo-update)
   (mark 6:1 %todo-item)
-  (mold 8:1 item (ref 8:9 item.todo))
-  (mold 9:1 poke (ref 9:9 todo-action))
+  (mold 8:1 item (ref 8:11 item.todo))
+  (mold 9:1 poke (ref 9:11 todo-action))
   (mold 10:1 paths
     (union 11:3
       (cell 11:3 (const 11:4 %todos) (path 11:11 /todos) (ref 11:18 todos))

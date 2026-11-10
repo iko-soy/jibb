@@ -1,9 +1,9 @@
 ++ wrong-case: (cmd @t) has no case `%oops`
-/lib/jibb/prelude.jibb:442:4: expected union has type (cmd @t)
-+$ cmd |$ [M]
-   ^
+/lib/jibb/prelude.jibb:442:5: expected union has type (cmd @t)
++$  cmd  |$  [M]
+    ^
 /lib/jibb/prelude.jibb:443:3: expected union has type (cmd @t)
-  [%poke p=raw-poke reply=$-((unit @t) M)]
+  [%poke p=raw-poke reply=$-((unit @t)  M)]
   ^
 /tests/golden/split-types-prelude-cmd-wrong-case/source.jibb:19:18: expected union has type (cmd @t)
 ++ wrong-case ^- (cmd @t) %oops

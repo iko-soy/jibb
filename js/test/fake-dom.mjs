@@ -239,6 +239,14 @@ class FakeElement extends FakeNode {
       if (selector.startsWith('.')) {
         return (node.getAttribute('class') ?? '').split(/\s+/).includes(selector.slice(1));
       }
+      // tag[name] and tag[name="value"], the tag optional.
+      const attribute = /^([a-z0-9-]*)\[([a-z0-9-]+)(?:="([^"]*)")?\]$/.exec(selector);
+      if (attribute !== null) {
+        const [, tag, name, value] = attribute;
+        if (tag !== '' && node.localName !== tag) return false;
+        const actual = node.getAttribute(name);
+        return value === undefined ? actual !== null : actual === value;
+      }
       return node.localName === selector.toLowerCase();
     };
     for (const child of this.children) {
@@ -269,6 +277,25 @@ class FakeDocument extends FakeNode {
 
   createTextNode(value) {
     return new FakeText(this, value);
+  }
+
+  querySelectorAll(selector) {
+    return FakeElement.prototype.querySelectorAll.call(this, selector);
+  }
+
+  addEventListener(type, listener) {
+    const listeners = this.listeners.get(type) ?? [];
+    if (!listeners.includes(listener)) listeners.push(listener);
+    this.listeners.set(type, listeners);
+  }
+
+  removeEventListener(type, listener) {
+    const listeners = this.listeners.get(type) ?? [];
+    this.listeners.set(type, listeners.filter(candidate => candidate !== listener));
+  }
+
+  querySelector(selector) {
+    return this.querySelectorAll(selector)[0] ?? null;
   }
 }
 

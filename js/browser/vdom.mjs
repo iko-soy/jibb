@@ -46,8 +46,18 @@ function words(value) {
   return { kind: 'text', text: atomText(value, 'text') };
 }
 
+// A keyed child of a given vnode is made once per key, so a view that
+// keeps its parts keeps its keyed vnodes too.
+const KEYED = Symbol('jibb.keyed');
 function keyed(key, vnode) {
-  return { ...vnode, key };
+  if (typeof key !== 'bigint') return { ...vnode, key };
+  const byKey = vnode[KEYED] ?? (vnode[KEYED] = new Map());
+  let made = byKey.get(key);
+  if (made === undefined) {
+    made = { ...vnode, key };
+    byKey.set(key, made);
+  }
+  return made;
 }
 
 function lengthStyle(value) {
@@ -128,16 +138,30 @@ function layout(tag, rawAttrs, kids) {
   return element('div', decodeAttrs(rawAttrs, `j-${tag}`), kids);
 }
 
-function decodePath(raw) {
-  const path = items(raw, 'path').map(part => encodeURIComponent(atomText(part, 'path')));
-  return `/${path.join('/')}`;
+// Without a page's paths, application paths stay bare, as in tests.
+const BARE_PATHS = Object.freeze({ base: '', assets: undefined });
+
+function pathParts(raw) {
+  return items(raw, 'path').map(part => atomText(part, 'path'));
+}
+
+// An application path under the page's base, or a static file's hashed URL,
+// as the server's links are.
+function decodePath(raw, paths) {
+  const parts = pathParts(raw);
+  if (parts[0] === 'static' && paths.assets !== undefined) {
+    const asset = paths.assets.get(`/${parts.join('/')}`);
+    if (asset !== undefined) return asset.url;
+  }
+  if (parts.length === 0) return paths.base === '' ? '/' : paths.base;
+  return `${paths.base}/${parts.map(part => encodeURIComponent(part)).join('/')}`;
 }
 
 function decodeLengthAttribute(raw) {
   return lengthStyle(raw);
 }
 
-function decodeTable(raw) {
+function decodeTable(raw, paths) {
   const [rawColumns, rawRows] = pair(raw, 'table');
   const columns = items(rawColumns, 'table columns').map(column => {
     const [header, rest] = pair(column, 'table column');
@@ -160,7 +184,7 @@ function decodeTable(raw) {
   const rows = items(rawRows, 'table rows').map(rawRow => {
     const [key, rawCells] = pair(rawRow, 'table row');
     const cells = items(rawCells, 'table cells').map(rawCell => (
-      element('td', {}, [toVnode(rawCell)])
+      element('td', {}, [toVnode(rawCell, paths)])
     ));
     return keyed(key, element('tr', {}, cells));
   });
@@ -173,8 +197,26 @@ function wordsFromString(value) {
   return { kind: 'text', text: value };
 }
 
-/** Decode one authentic sealed internal element into renderer-independent vnodes. */
-export function toVnode(sealed) {
+/**
+ * Decode one authentic sealed internal element into renderer-independent
+ * vnodes. paths gives the page's base and its static files, by path.
+ */
+// Each element's vnode is made once for a page's paths, and kept on the
+// element: a view that returns the same parts, as memoized gates do,
+// returns the same vnodes, which the DOM patch passes over.
+const VNODE = Symbol('jibb.vnode');
+
+export function toVnode(sealed, paths = BARE_PATHS) {
+  if (!Array.isArray(sealed)) return decode(sealed, paths);
+  const kept = sealed[VNODE];
+  if (kept !== undefined && kept.paths === paths) return kept.vnode;
+  const vnode = decode(sealed, paths);
+  if (Object.isExtensible(sealed)) sealed[VNODE] = { paths, vnode };
+  return vnode;
+}
+
+function decode(sealed, paths) {
+  const child = value => toVnode(value, paths);
   const raw = validateRawSeal(sealed);
   const [rawTag, payload] = pair(raw, 'element');
   const tag = atomText(rawTag, 'element tag');
@@ -185,14 +227,14 @@ export function toVnode(sealed) {
     case 'wrap':
     case 'stack': {
       const [attrs, children] = pair(payload, tag);
-      return layout(tag, attrs, items(children, `${tag} children`).map(toVnode));
+      return layout(tag, attrs, items(children, `${tag} children`).map(child));
     }
     case 'el': {
-      const [attrs, child] = pair(payload, 'el');
-      return element('div', decodeAttrs(attrs, 'j-el'), [toVnode(child)]);
+      const [attrs, inner] = pair(payload, 'el');
+      return element('div', decodeAttrs(attrs, 'j-el'), [child(inner)]);
     }
     case 'para':
-      return element('p', {}, items(payload, 'para children').map(toVnode));
+      return element('p', {}, items(payload, 'para children').map(child));
     case 'text':
       return words(payload);
     case 'heading': {
@@ -202,8 +244,8 @@ export function toVnode(sealed) {
     }
     case 'each': {
       const children = items(payload, 'each items').map(entry => {
-        const [key, child] = pair(entry, 'each item');
-        return keyed(key, toVnode(child));
+        const [key, value] = pair(entry, 'each item');
+        return keyed(key, child(value));
       });
       return element('div', {
         'data-each': '',
@@ -211,14 +253,23 @@ export function toVnode(sealed) {
       }, children);
     }
     case 'table':
-      return decodeTable(payload);
+      return decodeTable(payload, paths);
     case 'image': {
       const [source, description] = pair(payload, 'image');
-      return element('img', {
-        src: decodePath(source),
-        alt: atomText(description, 'image description'),
-        style: { maxWidth: '100%' },
-      });
+      const alt = atomText(description, 'image description');
+      if (paths.assets === undefined) {
+        return element('img', { src: decodePath(source, paths), alt, style: { maxWidth: '100%' } });
+      }
+      // A page's image is one of its desk's static files, as on the server.
+      const at = `/${pathParts(source).join('/')}`;
+      const asset = paths.assets.get(at);
+      if (asset === undefined) fail(`missing static file ${at}`);
+      const attrs = { src: asset.url, alt, style: { maxWidth: '100%' } };
+      if (asset.width !== undefined) {
+        attrs.width = String(asset.width);
+        attrs.height = String(asset.height);
+      }
+      return element('img', attrs);
     }
     case 'image-unsafe': {
       const [source, description] = pair(payload, 'image-unsafe');
@@ -239,7 +290,7 @@ export function toVnode(sealed) {
     case 'link-unsafe': {
       const [target, label] = pair(payload, tag);
       return element('a', {
-        href: tag === 'link' ? decodePath(target) : atomText(target, 'link target'),
+        href: tag === 'link' ? decodePath(target, paths) : atomText(target, 'link target'),
       }, [words(label)]);
     }
     case 'button': {
@@ -268,7 +319,7 @@ export function toVnode(sealed) {
     }
     case 'form': {
       const [message, children] = pair(payload, 'form');
-      return element('form', {}, items(children, 'form children').map(toVnode), {
+      return element('form', {}, items(children, 'form children').map(child), {
         type: 'form', message,
       });
     }

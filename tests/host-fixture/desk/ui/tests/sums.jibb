@@ -1,0 +1,11 @@
+::  -jibb!test's cases: a test that passes, one that is %.n, one that
+::  crashes and an arm that is not a ?; helpers are not tests.
+++ test-adds  (eq (add 2 2) 4)
+
+++ test-fails  (eq (add 2 2) 5)
+
+++ test-crashes  ^- ?  !!
+
+++ test-is-a-number  42
+
+++ helper  7

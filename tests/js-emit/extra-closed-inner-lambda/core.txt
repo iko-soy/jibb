@@ -1,0 +1,1 @@
+(let f (lam x (cons x x)) (let g (lam y (cons (lam z (app f z)) (lam w (cons y w)))) (app (slot 2 (app g 1)) 2)))

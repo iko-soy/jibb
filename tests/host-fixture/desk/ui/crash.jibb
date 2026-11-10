@@ -1,0 +1,8 @@
+::  A page with data whose view crashes on every request: a 500, which is
+::  never cached.
+++ main (page load view)
+++ load |=(~ (pure 0))
+
+++ view |= n=@ud
+  ^- (element !!)
+  !!

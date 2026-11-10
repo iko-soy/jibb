@@ -2,14 +2,14 @@
 
 Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its specification is [Jibb — an Elm-architecture UI language for Urbit](docs/spec/overview.md), with the remaining specification documents in [docs/spec/](docs/spec/). Where this code and the spec disagree, the spec wins.
 
-Milestones 1 through 3 of the doc's eight are done. Milestone 4, the shared host and static pages, is in progress; later browser-runtime work is also present but not complete. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and milestone briefs.
+Milestones 1 through 5 of the doc's eight are done, and the builds of milestones 6 to 8 are in place: islands, stores and the browser runtime; `-jibb!test`, the Node harness and the formatter; shared island modules, views that reuse their unchanged parts, and a library of about 20 KB gzipped. What remains is in [docs/status.md](docs/status.md): the benchmark's bar, which waits for @iko, CI's first run, the library's last 150 bytes over 20 KiB, and compiling views with holes. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and milestone briefs.
 
 ## Layout
 
 - `jibb-dev/`: what app desks vendor: the `%jibb` mark, compiler, Hoon type reader, checked prelude, lowering and backends, renderer, and browser library.
 - `jibb-cli/`: the native Rust `jibb` executable and its tree-sitter grammar, for earth-side utilities.
-- `jibb/`: the `%jibb` desk, for the shared host (milestone 4).
-- `js/`: the Core-to-JavaScript backend, entry linker, native runtime, Nock comparison backend, virtual DOM/island loop, Eyre channel/effects, shared stores, URL runtime, and Node/differential tests; full browser integration comes later.
+- `jibb/`: the `%jibb` desk, for the shared host and its threads, `-jibb!clear` and `-jibb!test`.
+- `js/`: the browser library, bundled into `jibb-dev/lib/jibb/runtime.js` by `tools/bundle-js`: the Core-to-JavaScript backend, native runtime, virtual DOM and island loop, Eyre channel and effects, shared stores, URL runtime and the boot script that starts a page's islands; with the entry linker, the Nock comparison backend, and Node and differential tests.
 - `my-app/`: an example app desk built from the doc's worked examples.
 - `vendor/`: pinned copies of the base-dev and landscape files the desks need.
 - `tests/`: golden cases in `golden/<case>/`, test suites in `lib/` and their fixtures, for `tools/test-arms` and the ship's `-test` thread, and in `clay-fixtures/`, the threads `tools/clay-fixtures` runs and, in `clay-fixtures/desk/`, the Hoon files the `jibb-fixtures` desk adds to `my-app`. `lib/jibb.hoon`, which runs the golden cases on the ship, is generated.
