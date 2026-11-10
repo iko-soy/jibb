@@ -1,7 +1,8 @@
 #!/bin/sh
 # Bundles the browser library, js/browser/entry.mjs and what it imports,
 # into jibb-dev/lib/jibb/runtime.js, which app desks vendor and the host
-# serves to pages with islands.  --check fails if that file is stale.
+# serves to pages with islands. --check fails if that file is stale.
+# Every build must stay under 20,000 bytes compressed with gzip -9n.
 set -eu
 cd "$(dirname "$0")/.."
 vendored=jibb-dev/lib/jibb/runtime.js
@@ -9,13 +10,19 @@ out=$(mktemp)
 trap 'rm -f "$out"' EXIT
 esbuild js/browser/entry.mjs --bundle --format=esm --minify --target=es2020 \
   --legal-comments=none --log-level=warning --outfile="$out"
+bytes=$(wc -c < "$out")
+gzipped=$(gzip -9nc "$out" | wc -c)
+if [ "$gzipped" -ge 20000 ]; then
+  echo "browser library is $gzipped bytes gzipped; it must be under 20000" >&2
+  exit 1
+fi
 if [ "${1:-}" = --check ]; then
   if ! cmp -s "$out" "$vendored"; then
     echo "$vendored is stale: run tools/bundle-js" >&2
     exit 1
   fi
-  echo "$vendored is current ($(wc -c < "$vendored") bytes, $(gzip -9c "$vendored" | wc -c) gzipped)"
+  echo "$vendored is current ($bytes bytes, $gzipped gzipped; budget <20000)"
 else
   cp "$out" "$vendored"
-  echo "wrote $vendored ($(wc -c < "$vendored") bytes, $(gzip -9c "$vendored" | wc -c) gzipped)"
+  echo "wrote $vendored ($bytes bytes, $gzipped gzipped; budget <20000)"
 fi

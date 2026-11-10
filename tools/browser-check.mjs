@@ -1,7 +1,7 @@
 // Drives headless Chromium through the DevTools protocol against a fake ship
 // serving the host, my-app and the host fixture: worked example 3, the
-// Grammar tab's store example, the crash notice, and the benchmark's list
-// island under a 4x CPU slowdown. tools/check-browser runs it once the
+// Grammar tab's store example, shared modules across pages, the crash notice,
+// and the benchmark's list island under a 4x CPU slowdown. tools/check-browser runs it once the
 // desks have built. Prints one line per result; exits 1 on any failure.
 
 import { spawn } from 'node:child_process';
@@ -319,6 +319,33 @@ async function crashNotice(session) {
   console.log('ok   the crash notice: shown once, with the model kept');
 }
 
+async function sharedModules(session) {
+  let sharedHash;
+  for (const [route, count] of [['bench-small', 3], ['bench', 500], ['bench-small', 3]]) {
+    await session.navigate(`${origin}/apps/jibb-host-fixture/${route}`);
+    await session.until('the shared rows island to start', STARTED);
+    const state = await session.evaluate(`(() => {
+      const island = document.querySelector('[data-jibb-island]');
+      return {
+        hash: island.getAttribute('data-jibb-island'),
+        rows: island.querySelectorAll('[data-each] > *').length,
+        value: island.querySelector('input').value,
+      };
+    })()`);
+    sharedHash ??= state.hash;
+    expect(state.hash === sharedHash, 'the rows module URL changed between pages');
+    expect(state.rows === count, `${route} rendered ${state.rows} rows, not ${count}`);
+    expect(state.value === '', `${route} retained another page's input`);
+    await session.focus('[data-jibb-island] input');
+    await session.type('page-local');
+    await session.until('the page-local model to update',
+      `document.querySelector('[data-jibb-island]').textContent.includes('Typed: page-local')`);
+  }
+  const problems = session.takeProblems();
+  expect(problems.length === 0, `shared modules logged: ${problems.join('; ')}`);
+  console.log('ok   shared island module across pages: one URL, independent models');
+}
+
 async function appRoutes(session) {
   const heading = `document.querySelector('[data-jibb-island] h1')?.textContent`;
   await session.navigate(`${origin}/apps/jibb-host-fixture/app/one`);
@@ -408,7 +435,7 @@ try {
     console.log(`Chromium's output:\n${browser.output()}`);
     throw error;
   }
-  const steps = [exampleThree, storeExample, crashNotice, appRoutes, benchmark]
+  const steps = [exampleThree, storeExample, crashNotice, sharedModules, appRoutes, benchmark]
     .filter(step => !args.only || args.only.split(',').includes(step.name));
   for (const step of steps) {
     try {
@@ -425,5 +452,5 @@ if (failures.length !== 0) {
   console.log(`browser-check: ${failures.length} failed`);
   process.exit(1);
 }
-console.log('browser-check: worked example 3, the store example, the crash notice, an app and the benchmark pass in Chromium');
+console.log('browser-check: worked example 3, the store example, shared modules, the crash notice, an app and the benchmark pass in Chromium');
 process.exit(0);

@@ -34,10 +34,10 @@ function assertAtom(value, operation) {
 // each an atom, a function or another two-element array. Every cell a Core
 // program makes comes from cons or edit, so cells stay well formed
 // throughout, and no operation costs more than the part of a noun it reads.
-// same reads whole nouns, and checks them whole: there a cycle, or a
-// function anywhere, is an error. Its explicit stack handles deep nouns; the
-// two sets distinguish shared substructure (valid) from cycles (invalid).
-function assertNoun(value, operation) {
+// same and collection boundaries read whole values. Keys and compared nouns
+// disallow functions; map values permit them. The explicit stack handles deep
+// nouns; the two sets distinguish shared structure (valid) from cycles.
+export function validateValue(value, operation, allowFunctions = false) {
   const active = new Set();
   const complete = new Set();
   const stack = [{ value, exit: false }];
@@ -52,6 +52,7 @@ function assertNoun(value, operation) {
     }
 
     if (typeof current === 'function') {
+      if (allowFunctions) continue;
       fail(`${operation}: functions are not nouns`);
     }
 
@@ -118,9 +119,13 @@ export function isCell(value) {
 }
 
 export function same(left, right) {
-  assertNoun(left, 'eq left');
-  assertNoun(right, 'eq right');
+  validateValue(left, 'eq left');
+  validateValue(right, 'eq right');
+  return equalNouns(left, right) ? 0n : 1n;
+}
 
+// Both operands have passed validateValue with functions disallowed.
+export function equalNouns(left, right) {
   const pending = [[left, right]];
   while (pending.length !== 0) {
     const [a, b] = pending.pop();
@@ -129,16 +134,13 @@ export function same(left, right) {
       continue;
     }
     if (typeof a === 'bigint' || typeof b === 'bigint') {
-      return 1n;
-    }
-    if (!Array.isArray(a) || !Array.isArray(b)) {
-      return 1n;
+      return false;
     }
 
     pending.push([a[0], b[0]], [a[1], b[1]]);
   }
 
-  return 0n;
+  return true;
 }
 
 function normalizeAxis(axis) {

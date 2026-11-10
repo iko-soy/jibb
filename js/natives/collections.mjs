@@ -1,137 +1,25 @@
-import { CoreCrash } from '../core/runtime.mjs';
+import { murmur32 } from '../core/hash.mjs';
+import { CoreCrash, atomToBytes, equalNouns as equalValid, validateValue } from '../core/runtime.mjs';
 import { arrayToList, call, cell, loob, pair, unit } from './helpers.mjs';
-
-const MASK_32 = 0xffffffffn;
-const MASK_31 = 0x7fffffffn;
 
 function fail(message) {
   throw new CoreCrash(message);
 }
 
-// Validate Core data without coercion. Keys and compared nouns disallow
-// functions; map values permit them, as the checked map type does.
-function assertValue(value, operation, allowFunctions) {
-  const active = new Set();
-  const complete = new Set();
-  const stack = [{ value, exit: false }];
-
-  while (stack.length !== 0) {
-    const frame = stack.pop();
-    const current = frame.value;
-
-    if (typeof current === 'bigint') {
-      if (current < 0n) fail(`${operation}: atoms cannot be negative`);
-      continue;
-    }
-    if (typeof current === 'function') {
-      if (allowFunctions) continue;
-      fail(`${operation}: functions are not nouns`);
-    }
-    if (!Array.isArray(current) || current.length !== 2) {
-      fail(`${operation}: expected an atom or a two-element cell`);
-    }
-    if (complete.has(current)) continue;
-    if (frame.exit) {
-      active.delete(current);
-      complete.add(current);
-      continue;
-    }
-    if (active.has(current)) fail(`${operation}: cyclic cells are not nouns`);
-
-    active.add(current);
-    stack.push(
-      { value: current, exit: true },
-      { value: current[1], exit: false },
-      { value: current[0], exit: false },
-    );
-  }
-  return value;
-}
-
 function assertNoun(value, operation) {
-  return assertValue(value, operation, false);
+  return validateValue(value, operation);
 }
 
 function assertMapValue(value, operation) {
-  return assertValue(value, operation, true);
-}
-
-function equalValid(left, right) {
-  const pending = [[left, right]];
-  while (pending.length !== 0) {
-    const [a, b] = pending.pop();
-    if (a === b) continue;
-    if (typeof a === 'bigint' || typeof b === 'bigint') return false;
-    pending.push([a[0], b[0]], [a[1], b[1]]);
-  }
-  return true;
-}
-
-function rotateLeft32(value, count) {
-  return ((value << count) | (value >> (32n - count))) & MASK_32;
-}
-
-// Hoon 135 +muk, including its intentional floor(len/4) block count.
-function muk(seed, length, key) {
-  let h1 = seed & MASK_32;
-  const c1 = 0xcc9e2d51n;
-  const c2 = 0x1b873593n;
-  const blocks = length / 4n;
-
-  for (let index = 0n; index < blocks; index += 1n) {
-    let k1 = (key >> (index * 32n)) & MASK_32;
-    k1 = (k1 * c1) & MASK_32;
-    k1 = rotateLeft32(k1, 15n);
-    k1 = (k1 * c2) & MASK_32;
-    h1 ^= k1;
-    h1 = rotateLeft32(h1, 13n);
-    h1 = (h1 * 5n + 0xe6546b64n) & MASK_32;
-  }
-
-  const tail = key >> (blocks * 32n);
-  const tailLength = Number(length & 3n);
-  let k1 = 0n;
-  if (tailLength === 3) {
-    k1 ^= (tail >> 16n) & 0xffn;
-    k1 <<= 8n;
-    k1 ^= (tail >> 8n) & 0xffn;
-    k1 <<= 8n;
-    k1 ^= tail & 0xffn;
-  } else if (tailLength === 2) {
-    k1 ^= (tail >> 8n) & 0xffn;
-    k1 <<= 8n;
-    k1 ^= tail & 0xffn;
-  } else if (tailLength === 1) {
-    k1 = tail & 0xffn;
-  }
-
-  if (tailLength !== 0) {
-    k1 = (k1 * c1) & MASK_32;
-    k1 = rotateLeft32(k1, 15n);
-    k1 = (k1 * c2) & MASK_32;
-    h1 ^= k1;
-  }
-
-  h1 ^= length & MASK_32;
-  h1 ^= h1 >> 16n;
-  h1 = (h1 * 0x85ebca6bn) & MASK_32;
-  h1 ^= h1 >> 13n;
-  h1 = (h1 * 0xc2b2ae35n) & MASK_32;
-  h1 ^= h1 >> 16n;
-  return h1 & MASK_32;
-}
-
-function atomBytes(value) {
-  if (value === 0n) return 0;
-  return Math.ceil(value.toString(16).length / 2);
+  return validateValue(value, operation, true);
 }
 
 function mum(seed, fallback, key) {
-  const length = atomBytes(key);
+  const bytes = atomToBytes(key);
   for (let attempt = 0; attempt < 8; attempt += 1) {
-    const hashed = muk(seed + BigInt(attempt), BigInt(length), key);
-    const result = (hashed >> 31n) ^ (hashed & MASK_31);
-    if (result !== 0n) return result;
+    const hashed = murmur32(seed + attempt, bytes);
+    const result = (hashed >>> 31) ^ (hashed & 0x7fffffff);
+    if (result !== 0) return BigInt(result);
   }
   return fallback;
 }
@@ -145,14 +33,14 @@ function mugValid(value) {
     const frame = stack.pop();
     const current = frame.value;
     if (typeof current === 'bigint') {
-      results.push(mum(0xcafebaben, 0x7fffn, current));
+      results.push(mum(0xcafebabe, 0x7fffn, current));
       continue;
     }
     if (frame.exit) {
       const tail = results.pop();
       const head = results.pop();
       const combined = (tail << 32n) | head;
-      const hashed = mum(0xdeadbeefn, 0xfffen, combined);
+      const hashed = mum(0xdeadbeef, 0xfffen, combined);
       memo.set(current, hashed);
       results.push(hashed);
       continue;
@@ -536,7 +424,7 @@ export function rawMapPut(argument) {
   return mapPut(tree, key, value);
 }
 
-export const collectionNatives = Object.freeze({
+export const collectionNatives = /* @__PURE__ */ Object.freeze({
   'raw-map-get': rawMapGet,
   'raw-map-put': rawMapPut,
 });

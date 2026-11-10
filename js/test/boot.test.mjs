@@ -137,6 +137,39 @@ test('a page has one store, which its islands share', async () => {
   assert.equal(containers[1].childNodes[0].textContent, '1');
 });
 
+test('pages share module files without sharing their models or stores', async () => {
+  const makePage = () => page({
+    islands: [{ hash: '0vbasket', model: 0n }, { hash: '0vbasket', model: 0n }],
+    stores: { 'ui/stores/cart': '0vcart' },
+    sources: { '0vbasket': BASKET, '0vcart': CART },
+  });
+  const first = makePage();
+  const second = makePage();
+  // Node's module loader, like the browser's, reuses the module namespace.
+  assert.equal(await first.load('/apps/test/~jibb/m/0vbasket.js'),
+    await second.load('/apps/test/~jibb/m/0vbasket.js'));
+  first.loaded.length = 0;
+  second.loaded.length = 0;
+  const start = view => boot({
+    document: view.document, window: fakeWindow(), load: view.load,
+    fetchImpl: noFetch, uid: 'u',
+  });
+  const a = await start(first);
+  const b = await start(second);
+  assert.deepEqual(first.loaded, second.loaded);
+  assert.equal(first.loaded.length, 2);
+  first.containers[0].firstChild.click();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.deepEqual(a.map(island => island.model), [1n, 1n]);
+  assert.deepEqual(b.map(island => island.model), [0n, 0n]);
+  second.containers[1].firstChild.click();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.deepEqual(a.map(island => island.model), [1n, 1n]);
+  assert.deepEqual(b.map(island => island.model), [1n, 1n]);
+});
+
 test('an island that cannot start keeps the server view and shows the notice', async () => {
   const { document, containers, load } = page({
     islands: [{ hash: '0vbroken', model: 1n }, { hash: '0vmissing', model: 1n }],

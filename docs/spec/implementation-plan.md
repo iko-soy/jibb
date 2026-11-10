@@ -31,7 +31,7 @@ Each milestone ends with its checks passing on a fake ship. No dates yet: agree 
    - Done when: CI runs both test suites on every commit, and the formatter leaves every example in the doc unchanged.
 8. **Polish**
    - Builds: island modules shared across pages, holes, and size work.
-   - Done when: the shared library stays under 20 KB.
+   - Done when: the shared library stays under 20,000 gzipped bytes (gzip level 9, without filename or timestamp metadata).
 
 ## Setup and ground rules
 

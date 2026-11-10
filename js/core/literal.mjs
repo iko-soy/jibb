@@ -1,3 +1,4 @@
+import { shipRound } from './ship-codec.mjs';
 import { PREFIXES, SUFFIXES } from './syllables.mjs';
 
 const DECIMAL = /^(?:0|[1-9][0-9]{0,2}(?:\.[0-9]{3})*)$/;
@@ -11,11 +12,8 @@ const DATE_OFFSET = 292_277_024_400n;
 const MAX_U32 = 0xffff_ffffn;
 const MAX_U64 = 0xffff_ffff_ffff_ffffn;
 
-
-
 const PREFIX_VALUES = new Map(PREFIXES.map((name, value) => [name, value]));
 const SUFFIX_VALUES = new Map(SUFFIXES.map((name, value) => [name, value]));
-const RAKU = [0xb76d5eed, 0xee281300, 0x85bcae01, 0x4b387af7];
 
 function fail(text, reason = 'invalid literal') {
   throw new SyntaxError(`${reason}: ${JSON.stringify(text)}`);
@@ -164,26 +162,6 @@ function readDuration(text, match) {
     seconds += BigInt(segment.slice(1)) * units[unit];
   }
   return result(text, (seconds << 64n) | readFractions(match[2]), '@dr');
-}
-
-function murmur32(seed, value) {
-  let key = value & 0xffff;
-  key = Math.imul(key, 0xcc9e2d51);
-  key = (key << 15) | (key >>> 17);
-  key = Math.imul(key, 0x1b873593);
-
-  let hash = (seed | 0) ^ key;
-  hash ^= 2;
-  hash ^= hash >>> 16;
-  hash = Math.imul(hash, 0x85ebca6b);
-  hash ^= hash >>> 13;
-  hash = Math.imul(hash, 0xc2b2ae35);
-  hash ^= hash >>> 16;
-  return hash >>> 0;
-}
-
-function shipRound(round, value) {
-  return murmur32(RAKU[round], value);
 }
 
 function inverseFeistel(value) {

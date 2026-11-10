@@ -2,7 +2,7 @@
 
 Jibb is a UI language for Urbit: a Hoon dialect with an indentation layout. Its specification is [Jibb — an Elm-architecture UI language for Urbit](docs/spec/overview.md), with the remaining specification documents in [docs/spec/](docs/spec/). Where this code and the spec disagree, the spec wins.
 
-Milestones 1 through 5 of the doc's eight are done, and the builds of milestones 6 to 8 are in place: islands, stores and the browser runtime; `-jibb!test`, the Node harness and the formatter; shared island modules, views that reuse their unchanged parts, and a library of about 20 KB gzipped. What remains is in [docs/status.md](docs/status.md): the benchmark's bar, which waits for @iko, CI's first run, the library's last 150 bytes over 20 KiB, and compiling views with holes. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and milestone briefs.
+Milestones 1 through 5 of the doc's eight are done, and the builds of milestones 6 to 8 are in place: islands, stores and the browser runtime; `-jibb!test`, the Node harness and the formatter; shared island modules, views that reuse their unchanged parts, and a library of 19,938 gzipped bytes, checked against its 20,000-byte limit. What remains is in [docs/status.md](docs/status.md): the benchmark's bar, which waits for @iko, CI's first run, and compiling views with holes. [docs/](docs/) holds a copy of the doc's tabs, the status of each milestone, the open questions, a development guide, a map of the compiler, and milestone briefs.
 
 ## Layout
 

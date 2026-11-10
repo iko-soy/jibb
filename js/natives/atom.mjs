@@ -1,3 +1,5 @@
+import { shipRound } from '../core/ship-codec.mjs';
+import { rawDateUnpack } from './legacy.mjs';
 import {
   CoreCrash,
   atomToBytes,
@@ -17,14 +19,9 @@ import {
 import { PREFIXES, SUFFIXES } from '../core/syllables.mjs';
 
 const MAX_CODEPOINT = 0x10ffffn;
-const DATE_OFFSET = 292_277_024_400n;
 const MAX_U32 = 0xffff_ffffn;
 const MAX_U64 = 0xffff_ffff_ffff_ffffn;
 const SHIP_DOMAIN = 0xffff * 0x1_0000;
-
-
-
-const RAKU = [0xb76d5eed, 0xee281300, 0x85bcae01, 0x4b387af7];
 
 function crash(operation, message) {
   throw new CoreCrash(`${operation}: ${message}`);
@@ -70,26 +67,6 @@ function prefixedAtom(prefix, value, operation) {
   return bytesToAtom(bytes);
 }
 
-function murmur32(seed, value) {
-  let key = value & 0xffff;
-  key = Math.imul(key, 0xcc9e2d51);
-  key = (key << 15) | (key >>> 17);
-  key = Math.imul(key, 0x1b873593);
-
-  let hash = (seed | 0) ^ key;
-  hash ^= 2;
-  hash ^= hash >>> 16;
-  hash = Math.imul(hash, 0x85ebca6b);
-  hash ^= hash >>> 13;
-  hash = Math.imul(hash, 0xc2b2ae35);
-  hash ^= hash >>> 16;
-  return hash >>> 0;
-}
-
-function shipRound(round, value) {
-  return murmur32(RAKU[round], value);
-}
-
 // Hoon's generalized four-round Feistel permutation, including its legacy
 // even-round representation and the cycle-walking wrapper used by +feis.
 function shipPermutation(input) {
@@ -121,33 +98,6 @@ function fein(value) {
     return (value & ~MAX_U32) | fein(value & MAX_U32);
   }
   return value;
-}
-
-function isLeap(year) {
-  return year % 4n === 0n && (year % 100n !== 0n || year % 400n === 0n);
-}
-
-function civilFromDays(totalDays) {
-  const era = totalDays / 146_097n;
-  let days = totalDays % 146_097n;
-  let year = era * 400n;
-
-  while (days >= (isLeap(year) ? 366n : 365n)) {
-    days -= isLeap(year) ? 366n : 365n;
-    year += 1n;
-  }
-
-  const lengths = [
-    31n, isLeap(year) ? 29n : 28n, 31n, 30n, 31n, 30n,
-    31n, 31n, 30n, 31n, 30n, 31n,
-  ];
-  let month = 1n;
-  for (const length of lengths) {
-    if (days < length) break;
-    days -= length;
-    month += 1n;
-  }
-  return [year, month, days + 1n];
 }
 
 function pad2(value) {
@@ -374,20 +324,11 @@ export function formatP(value) {
 
 export function formatDa(value) {
   const current = atom(value, 'formatDa');
+  const [[ad, year], [month, [day, [hours, [minutes, [seconds]]]]]] = rawDateUnpack(current);
   const fraction = current & MAX_U64;
-  let seconds = current >> 64n;
-  const days = seconds / 86_400n;
-  seconds %= 86_400n;
-  const [year, month, day] = civilFromDays(days);
-  const bc = year <= DATE_OFFSET;
-  const displayYear = bc ? DATE_OFFSET + 1n - year : year - DATE_OFFSET;
-  let rendered = `~${displayYear}${bc ? '-' : ''}.${pad2(month)}.${pad2(day)}`;
-
-  if (seconds !== 0n || fraction !== 0n) {
-    const hours = seconds / 3_600n;
-    const minutes = seconds % 3_600n / 60n;
-    const remainder = seconds % 60n;
-    rendered += `..${pad2(hours)}.${pad2(minutes)}.${pad2(remainder)}${formatFraction(fraction)}`;
+  let rendered = `~${year}${ad === 1n ? '-' : ''}.${pad2(month)}.${pad2(day)}`;
+  if (hours !== 0n || minutes !== 0n || seconds !== 0n || fraction !== 0n) {
+    rendered += `..${pad2(hours)}.${pad2(minutes)}.${pad2(seconds)}${formatFraction(fraction)}`;
   }
   return cord(rendered);
 }
@@ -428,5 +369,5 @@ export function scot(sample) {
 }
 
 export function scow(sample) {
-  return arrayToList([...atomToBytes(scot(sample))].map(BigInt));
+  return tripBytes(scot(sample));
 }

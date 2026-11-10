@@ -1,12 +1,11 @@
-// The natives checked lowering emits, which the browser registers: a page's
-// islands need no others. index.mjs registers these and the rest.
+// The natives checked lowering emits, shared by the browser's modules.
+// index.mjs registers these and the additional Node-facing identities.
 import * as atom from './atom.mjs';
 import { lent } from './list.mjs';
 import { rawMapGet, rawMapPut } from './collections.mjs';
 import { rawBitNot, rawDatePack, rawDateUnpack, rawParseAtom, rawSeal } from './legacy.mjs';
-import { defineNative } from './registry.mjs';
 
-export const loweredNatives = {
+export const loweredNatives = Object.freeze(Object.assign(Object.create(null), {
   add: atom.add,
   dec: atom.dec,
   gth: atom.gth,
@@ -26,7 +25,4 @@ export const loweredNatives = {
   'map-get': rawMapGet,
   'map-put': rawMapPut,
   'raw-seal': rawSeal,
-};
-for (const [name, implementation] of Object.entries(loweredNatives)) {
-  defineNative(name, implementation);
-}
+}));

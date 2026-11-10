@@ -13,7 +13,9 @@ every check passes.
 """
 
 import argparse
+import gzip
 import os
+import random
 import re
 import shutil
 import subprocess
@@ -761,6 +763,57 @@ def check_test_arms(c, tmp):
     status, out = test_arms('--dir', lib, 'header')
     c.expect(status == 2 and 'only /+ and /* lines' in out,
              'a /- line: %d\n%s' % (status, out))
+
+
+def check_bundle_budget(c, tmp):
+    """Exercise stale and oversize builds without replacing the real bundle."""
+    os.makedirs(os.path.join(tmp, 'tools'))
+    os.makedirs(os.path.join(tmp, 'jibb-dev', 'lib', 'jibb'))
+    os.makedirs(os.path.join(tmp, 'bin'))
+    script = os.path.join(tmp, 'tools', 'bundle-js')
+    shutil.copy2(os.path.join(TOOLS, 'bundle-js'), script)
+    payload = os.path.join(tmp, 'payload')
+    vendored = os.path.join(tmp, 'jibb-dev', 'lib', 'jibb', 'runtime.js')
+    stub = os.path.join(tmp, 'bin', 'esbuild')
+    with open(stub, 'w') as f:
+        f.write('#!' + sys.executable + '\n'
+                'import os, shutil, sys\n'
+                'out = next(arg.split("=", 1)[1] for arg in sys.argv '
+                'if arg.startswith("--outfile="))\n'
+                'shutil.copyfile(os.environ["JIBB_TEST_BUNDLE"], out)\n')
+    os.chmod(stub, 0o755)
+    env = dict(os.environ, JIBB_TEST_BUNDLE=payload,
+               PATH=os.path.join(tmp, 'bin') + os.pathsep + os.environ['PATH'])
+
+    def bundle(*args):
+        result = subprocess.run([script, *args], env=env, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
+        return result.returncode, result.stdout.decode('utf-8', 'replace')
+
+    small = b'export default 42;\n'
+    with open(payload, 'wb') as f:
+        f.write(small)
+    with open(vendored, 'wb') as f:
+        f.write(b'old bundle\n')
+    status, out = bundle('--check')
+    c.expect(status != 0 and 'is stale' in out, 'stale bundle must fail: ' + out)
+    status, out = bundle()
+    c.expect(status == 0 and read(vendored) == small, 'small build must write: ' + out)
+    compressed = len(gzip.compress(small, compresslevel=9, mtime=0))
+    c.expect('%d gzipped' % compressed in out, 'gzip size must omit file metadata: ' + out)
+    first = bundle('--check')
+    os.utime(vendored, (123456789, 123456789))
+    c.expect(first[0] == 0 and bundle('--check') == first,
+             'bundle check must be independent of file timestamps')
+
+    # Incompressible output exceeds the budget even when minification ran.
+    with open(payload, 'wb') as f:
+        f.write(random.Random(42).randbytes(30000))
+    for args in [(), ('--check',)]:
+        status, out = bundle(*args)
+        c.expect(status != 0 and 'must be under 20000' in out,
+                 'oversize build must fail before writing: ' + out)
+        c.expect(read(vendored) == small, 'oversize build replaced the vendored bundle')
 
 
 CHECKS =[(name[len('check_'):], fn) for name, fn in globals().items()

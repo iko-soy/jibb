@@ -40,7 +40,7 @@ REPLY = 900
 FIXTURE_MODULES = {'/ui/about/jibb', '/ui/notes/jibb', '/ui/parts/note/jibb',
                    '/ui/blog/index/jibb', '/ui/tables/jibb', '/ui/misspelled/jibb',
                    '/ui/numbered/_n/jibb', '/ui/crash/jibb',
-                   '/ui/bench/jibb', '/ui/parts/rows/jibb',
+                   '/ui/bench/jibb', '/ui/bench-small/jibb', '/ui/parts/rows/jibb',
                    '/ui/fragile/jibb', '/ui/parts/fragile/jibb',
                    '/ui/tests/sums/jibb', '/ui/app/__rest/jibb', '/ui/parts/router/jibb',
                    '/ui/theme/jibb', '/lib/jibb/renderer/jibb'}
@@ -426,6 +426,19 @@ def main():
             body = fetch_public(anonymous, url, 'text/javascript; charset=utf-8')
             expect(body.startswith(b'// Generated from Jibb Core. Do not edit.'),
                    'an island module was not generated JavaScript: %r' % body[:80])
+        # Two different pages use the same island with different data. Its
+        # file belongs to the module, not to either page or initial model.
+        island_hashes = []
+        for route in ('/bench', '/bench-small'):
+            status, _, body = owner.request('GET', BASE + route)
+            expect(status == 200, '%s was HTTP %d' % (route, status))
+            hashes = re.findall(rb'data-jibb-island="([^"]+)"', body)
+            expect(len(hashes) == 1, '%s did not render exactly one island' % route)
+            island_hashes.append(hashes[0].decode())
+        expect(island_hashes[0] == island_hashes[1],
+               'two pages compiled the same island to different module files')
+        expect(BASE + '/~jibb/m/' + island_hashes[0] + '.js' in modules,
+               'the shared island does not reference its published module')
         files = {stylesheet: None, dot_url: None, **{url: None for url in scripts}}
         expect(published(ship, DESK) == files,
                'the fixture published %r' % published(ship, DESK))

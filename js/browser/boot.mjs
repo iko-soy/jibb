@@ -1,14 +1,17 @@
-import * as runtime from '../core/runtime.mjs';
+import { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo } from '../core/runtime.mjs';
 import { readShip } from '../core/literal.mjs';
 import { decodeUw } from '../natives/codec.mjs';
 import { cell, cord } from '../natives/helpers.mjs';
-import { createNativeRegistry, nativeNames } from '../natives/registry.mjs';
-import '../natives/lowered.mjs';
+import { loweredNatives as natives } from '../natives/lowered.mjs';
 import { Channel, installPagehide } from './channel.mjs';
 import { Effects } from './effects.mjs';
 import { Island } from './island.mjs';
 import { StoreRegistry } from './stores.mjs';
 import { UrlRuntime } from './url.mjs';
+
+// Only the primitives both Core emitters put in evaluate(runtime, natives).
+// Other runtime exports are helpers for the library, not the module ABI.
+const runtime = { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo };
 
 // The server's notice for a crashed island, which the browser shows too.
 export const CRASH_NOTICE = 'This part of the page stopped working. Reloading the page may fix it.';
@@ -85,7 +88,6 @@ export async function boot({
   wait = ms => new Promise(resolve => setTimeout(resolve, ms)),
 } = {}) {
   const config = readConfig(document);
-  const natives = createNativeRegistry(nativeNames());
   // Islands of one module share its evaluation, as stores and islands
   // share a module's file across pages.
   const evaluated = new Map();

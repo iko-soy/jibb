@@ -74,6 +74,7 @@ Rows dated 2026-11-09 are choices the implementer made when @iko asked for miles
 | Compile targets | Nock on the ship, JavaScript in the browser | Decided | Yes |
 | Browser backend | JavaScript from the core language, selected by the 2026-11-08 comparative harness: generated JavaScript was 83× and 100× faster than the JavaScript Nock interpreter on recursive countdown and tail-sum cases. Full browser and phone benchmarks remain outstanding | Decided 2026-11-08 | No |
 | Optimizer | Basic lowering; holes later | Decided 2026-10-29 | Yes |
+| Browser library size | The shared browser library must be smaller than 20,000 gzipped bytes, measured with gzip at level 9 without a filename or timestamp in its header. The limit applies to the complete shared library; island and store modules remain separate files | Chosen by @iko 2026-11-10 | No |
 | Island `update` | In the browser; returns the model and a list of commands, which the runtime processes one at a time in list order | Decided 2026-11-02 | No |
 | Island `init` | Takes the page's data, returns the model | Decided 2026-10-29 | Yes |
 | Island rendering | `view` re-runs on model changes; a keyed diff patches the DOM; holes later | Decided 2026-10-29 | Yes |

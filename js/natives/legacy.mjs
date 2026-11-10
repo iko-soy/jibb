@@ -1,3 +1,4 @@
+import { civilFromDays, monthLengths } from '../core/calendar.mjs';
 import { readShip } from '../core/literal.mjs';
 import {
   CoreCrash,
@@ -24,17 +25,6 @@ function crash(operation, message) {
   throw new CoreCrash(`${operation}: ${message}`);
 }
 
-function isLeap(year) {
-  return year % 4n === 0n && (year % 100n !== 0n || year % 400n === 0n);
-}
-
-function monthLengths(year) {
-  return [
-    31n, isLeap(year) ? 29n : 28n, 31n, 30n, 31n, 30n,
-    31n, 31n, 30n, 31n, 30n, 31n,
-  ];
-}
-
 // Hoon +yawn. Years are absolute proleptic-Gregorian years, with year zero
 // preceding AD 1 at DATE_OFFSET. Days and months are one-based; an excessive
 // day deliberately carries into later months, just as it does in Hoon.
@@ -51,27 +41,6 @@ function daysFromCivil(year, month, day, operation) {
     days += lengths[Number(index - 1n)];
   }
   return days + day - 1n;
-}
-
-// Hoon +yall. Removing complete 400-year eras leaves fewer than 400 years to
-// walk, and preserves year zero's leap day at the start of every era.
-function civilFromDays(totalDays) {
-  const era = totalDays / 146_097n;
-  let days = totalDays % 146_097n;
-  let year = era * 400n;
-
-  while (days >= (isLeap(year) ? 366n : 365n)) {
-    days -= isLeap(year) ? 366n : 365n;
-    year += 1n;
-  }
-
-  let month = 1n;
-  for (const length of monthLengths(year)) {
-    if (days < length) break;
-    days -= length;
-    month += 1n;
-  }
-  return [year, month, days + 1n];
 }
 
 function packFraction(items, operation) {

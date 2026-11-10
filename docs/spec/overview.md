@@ -378,7 +378,7 @@ The `%todo` and `%blog` agents run on their own desks; this desk copies their `/
 Islands compile to small JavaScript modules sharing one hand-written library; pages without islands load neither.
 
 - **Two backends.** Each module lowers to the core language (Core language), which both backends compile: Nock on the ship for rendering and `init`, with natives calling jets, and JavaScript in the browser for `update`, `subs` and `view`. Differential tests under Node, from jibb-dev, keep them in agreement.
-- **Shared library**, under 20 KB: its own noun codec (`jam`, `cue`, `@uw`, treaps, aura printing), the channel client, a keyed DOM differ, stores and URL subscriptions. It reads events over `fetch`, since `EventSource` can't send `x-channel-format`, deletes its channel on `pagehide`, and opens a fresh one when a reconnect gets a 404.
+- **Shared library**, under 20,000 gzipped bytes (gzip level 9, without filename or timestamp metadata): its own noun codec (`jam`, `cue`, `@uw`, treaps, aura printing), the channel client, a keyed DOM differ, stores and URL subscriptions. It reads events over `fetch`, since `EventSource` can't send `x-channel-format`, deletes its channel on `pagehide`, and opens a fresh one when a reconnect gets a 404.
 
 ### What a page with an island looks like
 

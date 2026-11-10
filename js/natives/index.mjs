@@ -4,9 +4,10 @@ import { cue, jam, validateNoun } from './codec.mjs';
 import { rawMapGet, rawMapPut } from './collections.mjs';
 import { rawBitNot, rawDatePack, rawDateUnpack, rawParseAtom, rawSeal } from './legacy.mjs';
 import { defineNative } from './registry.mjs';
-import './lowered.mjs';
+import { loweredNatives } from './lowered.mjs';
 
 const implementations = {
+  ...loweredNatives,
   sub: atom.sub,
   mul: atom.mul,
   inc: atom.inc,
@@ -40,7 +41,7 @@ const implementations = {
 for (const [name, implementation] of Object.entries(implementations)) {
   defineNative(name, implementation);
 }
-// lowered.mjs registered lent, which the browser needs too.
+// lent is already in the lowered-native table.
 for (const [name, implementation] of Object.entries(list)) {
   if (name !== 'lent') defineNative(name, implementation);
 }

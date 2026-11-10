@@ -82,19 +82,7 @@ function lengthAttrs(value, classes, style) {
     classes.set('width', 'j-shrink');
     return;
   }
-  const [tag, payload] = pair(value, 'width');
-  const name = atomText(tag, 'width');
-  if (name === 'chars') {
-    style.flex = `0 0 ${payload}ch`;
-    return;
-  }
-  if (name === 'fill') {
-    const weight = payload < 1n ? 1n : payload;
-    style.flex = `${weight} 1 0%`;
-    style.minWidth = '0';
-    return;
-  }
-  fail(`unknown width %${name}`);
+  Object.assign(style, lengthStyle(value));
 }
 
 // One class per family, the last of each winning in the family's first

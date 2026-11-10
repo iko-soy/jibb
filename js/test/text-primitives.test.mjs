@@ -30,3 +30,10 @@ test('byte and Unicode primitives reject malformed input', () => {
   assert.throws(() => tufaCodepoints(arrayToList([0xd800n])), CoreCrash);
   assert.throws(() => tufaCodepoints(arrayToList([0x110000n])), CoreCrash);
 });
+
+test('raw tufa retains NUL codepoints at the end of its byte list', () => {
+  for (const codepoints of [[0n], [65n, 0n], [955n, 0n, 0n]]) {
+    const expected = [...new TextEncoder().encode(String.fromCodePoint(...codepoints.map(Number)))].map(BigInt);
+    assert.deepEqual(listToArray(tufaCodepoints(arrayToList(codepoints))), expected);
+  }
+});

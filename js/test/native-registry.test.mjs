@@ -3,6 +3,20 @@ import assert from 'node:assert/strict';
 import { createNativeRegistry, defineNative } from '../natives/registry.mjs';
 import { isRawSeal, validateRawSeal } from '../natives/index.mjs';
 import { cord, listToArray } from '../natives/helpers.mjs';
+import { loweredNatives } from '../natives/lowered.mjs';
+
+test('browser native table is immutable, own-only, and matches checked lowering in Node', () => {
+  const names = ['add', 'dec', 'gth', 'eq', 'lent', 'trip', 'tuba', 'crip', 'tufa',
+    'join', 'scot', 'scow', 'year', 'yore', 'parse-atom', 'bit-not', 'map-get', 'map-put', 'raw-seal'];
+  const node = createNativeRegistry(names);
+  assert.deepEqual(Object.keys(loweredNatives), names);
+  assert.equal(Object.getPrototypeOf(loweredNatives), null);
+  assert.equal(Object.isFrozen(loweredNatives), true);
+  for (const name of names) assert.strictEqual(loweredNatives[name], node[name]);
+  assert.equal(loweredNatives.toString, undefined);
+  assert.throws(() => { loweredNatives.add = () => 0n; }, TypeError);
+  assert.throws(() => { loweredNatives.unchecked = () => 0n; }, TypeError);
+});
 
 test('native registries contain exactly the requested authenticated identities', () => {
   const add = ([left, right]) => left + right;
