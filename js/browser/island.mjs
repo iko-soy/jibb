@@ -100,12 +100,12 @@ export class Island {
       return;
     }
 
-    const value = apply(this.program.view, next);
     let vnode = this.vnode;
     let node = this.node;
     if (this.template?.view === this.program.view) {
-      this.template.update(value);
+      this.template.update(next);
     } else {
+      const value = apply(this.program.view, next);
       vnode = toVnode(value, this.paths);
       node = patchDom(this.container, this.node, vnode, {
         document: this.document,

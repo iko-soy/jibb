@@ -1,6 +1,8 @@
 import { readCore } from './reader.mjs';
 import { readLiteral } from './literal.mjs';
-import { abstractValue, UNKNOWN, viewTemplate as templatePlan } from './view-template.mjs';
+import { abstractValue, boundValue, UNKNOWN, viewTemplate as templatePlan } from './view-template.mjs';
+import { directHoles } from './direct-template.mjs';
+import { freeNames } from './free-names.mjs';
 
 export function compileCore(input, { nativeNames = [] } = {}) {
   const ast = typeof input === 'string'
@@ -16,6 +18,7 @@ export function compileCore(input, { nativeNames = [] } = {}) {
     // A program with a trace remembers no products, so every trace prints.
     memoize: !containsTrace(ast),
     hoisted: [],
+    hoistSites: [],
   };
   let body;
   if (ast.type === 'module') {
@@ -28,7 +31,7 @@ export function compileCore(input, { nativeNames = [] } = {}) {
     const statements = declarations.map(({ definition, variable }) => {
       const value = abstractValue(definition.expression, names.abstractEnvironment());
       const made = expression(definition.expression, context, names);
-      names.abstracts.set(definition.name, value);
+      names.abstracts.set(definition.name, boundValue(value, variable));
       return `const ${variable} = ${made};`;
     });
     const entries = declarations.map(({ definition, variable }) =>
@@ -43,7 +46,7 @@ export function compileCore(input, { nativeNames = [] } = {}) {
     `requireNative(natives, ${JSON.stringify(name)});`
   );
   const slots = context.hoisted.length === 0 ? '' : `let ${context.hoisted.join(', ')};\n`;
-  return `// Generated from Jibb Core. Do not edit.\nexport function evaluate(runtime, natives) {\nconst {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;\nconst requireNative = (registry, name) => {\n  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {\n    throw new TypeError(\`missing native \${name}\`);\n  }\n};\n${nativeChecks.join('\n')}\n${slots}${body}\n}\n`;
+  return `// Generated from Jibb Core. Do not edit.\nexport function evaluate(runtime, natives) {\nconst {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;\nconst requireNative = (registry, name) => {\n  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {\n    throw new TypeError(\`missing native \${name}\`);\n  }\n};\n${nativeChecks.join('\n')}\n${slots}${body}\n}\n`;
 }
 
 function containsTrace(node) {
@@ -52,53 +55,6 @@ function containsTrace(node) {
   return Object.values(node).some(value => (Array.isArray(value)
     ? value.some(containsTrace)
     : containsTrace(value)));
-}
-
-// The Core names a node uses that it does not bind.
-function freeNames(node, bound, out) {
-  switch (node.type) {
-    case 'name':
-      if (!bound.has(node.name)) out.add(node.name);
-      return out;
-    case 'literal':
-    case 'native':
-    case 'crash':
-      return out;
-    case 'cons':
-      freeNames(node.head, bound, out);
-      return freeNames(node.tail, bound, out);
-    case 'slot':
-    case 'cell':
-      return freeNames(node.value, bound, out);
-    case 'edit':
-      freeNames(node.target, bound, out);
-      return freeNames(node.value, bound, out);
-    case 'eq':
-      freeNames(node.left, bound, out);
-      return freeNames(node.right, bound, out);
-    case 'if':
-      freeNames(node.condition, bound, out);
-      freeNames(node.then, bound, out);
-      return freeNames(node.else, bound, out);
-    case 'let':
-      freeNames(node.value, bound, out);
-      return freeNames(node.body, new Set([...bound, node.name]), out);
-    case 'rec': {
-      const inner = new Set([...bound, ...node.bindings.map(binding => binding.name)]);
-      for (const binding of node.bindings) freeNames(binding.lambda, inner, out);
-      return freeNames(node.body, inner, out);
-    }
-    case 'lam':
-      return freeNames(node.body, new Set([...bound, node.parameter]), out);
-    case 'app':
-      freeNames(node.fn, bound, out);
-      return freeNames(node.argument, bound, out);
-    case 'trace':
-      freeNames(node.message, bound, out);
-      return freeNames(node.body, bound, out);
-    default:
-      throw new Error(`unsupported Core node ${node.type}`);
-  }
 }
 
 // A lambda inside another whose every free name is bound outside all
@@ -134,7 +90,7 @@ class Scope {
     }
     const variable = this.fresh();
     this.names.set(name, variable);
-    this.abstracts.set(name, value);
+    this.abstracts.set(name, boundValue(value, variable));
     return variable;
   }
 
@@ -160,16 +116,18 @@ class Scope {
   }
 }
 
-function decorateTemplate(node, made, scope) {
-  const plan = templatePlan(node, scope?.abstractEnvironment());
+function decorateTemplate(node, made, scope, context) {
+  const environment = scope?.abstractEnvironment();
+  const plan = templatePlan(node, environment);
   if (plan === undefined) return made;
-  return `viewTemplate(${made}, ${JSON.stringify(plan.tree)}, [${plan.axes.join(', ')}], natives)`;
+  const direct = directHoles(node, environment, plan.axes, context.hoistSites);
+  return `viewTemplate(${made}, ${JSON.stringify(plan.tree)}, [${plan.axes.join(', ')}], natives${direct === undefined ? '' : `, ${direct}`})`;
 }
 
 function recursiveDeclaration(binding, variable, context, scope, memoize) {
   const declaration = lambda(binding.lambda, context, scope, variable, true, binding.name);
   const made = memoize ? `memo(${declaration})` : declaration;
-  const decorated = decorateTemplate(binding.lambda, made, scope);
+  const decorated = decorateTemplate(binding.lambda, made, scope, context);
   return memoize || decorated !== declaration ? `const ${variable} = ${decorated};` : declaration;
 }
 
@@ -216,13 +174,17 @@ function expression(node, context, scope) {
     case 'lam': {
       let made = lambda(node, context, scope, null, false);
       if (depthOf(scope) === 0) {
-        return decorateTemplate(node, context.memoize ? `memo(${made})` : made, scope);
+        return decorateTemplate(node, context.memoize ? `memo(${made})` : made, scope, context);
       }
-      made = decorateTemplate(node, made, scope);
+      made = decorateTemplate(node, made, scope, context);
       if (!closed(node, scope)) return made;
       const slot = `$h${context.hoisted.length}`;
       context.hoisted.push(slot);
-      return `(${slot} ??= ${made})`;
+      const code = `(${slot} ??= ${made})`;
+      const references = new Map([...freeNames(node, new Set(), new Set())]
+        .map(name => [name, scope.lookup(name)]));
+      context.hoistSites.push({ node, references, code });
+      return code;
     }
     case 'app':
       return `apply(${expression(node.fn, context, scope)}, ${expression(node.argument, context, scope)})`;
@@ -251,6 +213,7 @@ function lambda(node, context, scope, variable, declaration, recursiveName = nul
     const state = inner.fresh();
     const current = inner.fresh();
     inner.names.set(node.parameter, current);
+    inner.abstracts.set(node.parameter, boundValue(UNKNOWN, current));
     const body = tailExpression(node.body, context, inner, { name: recursiveName, state });
     return `function ${variable}(${parameter}) {\nlet ${state} = ${parameter};\nfor (;;) {\nconst ${current} = ${state};\n${body}\n}\n}`;
   }

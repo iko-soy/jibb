@@ -1,0 +1,6 @@
+(lam model (let original (cons model 0)
+  (let changed (edit 3 original 1)
+    (let cell (cell? changed)
+      (let chosen (if (eq cell 0) (slot 2 changed) (crash))
+        (let ignored (trace "ordered" ~)
+          (app (native raw-seal) (cons %column (cons ~ (cons (app (native raw-seal) (cons %text chosen)) (cons (app (native raw-seal) (cons %button (cons "Press" chosen))) ~)))))))))))

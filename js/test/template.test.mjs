@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { compiledViewTemplate as viewTemplate } from '../browser/template.mjs';
+import { viewTemplate as publicViewTemplate } from '../core/runtime.mjs';
 import { startIsland } from '../browser/island.mjs';
 import { toVnode } from '../browser/vdom.mjs';
 import { rawSeal } from '../natives/legacy.mjs';
@@ -325,4 +326,164 @@ test('negative-looking static text stays a template and an element-only hole fal
   const b = mount(subtree);
   assert.equal(b.island.template, null);
   assert.equal(b.document.body.textContent, 'first');
+});
+
+test('direct holes run only after ordinary mount and retain generic calls and changed-view fallback', () => {
+  let ordinary = 0;
+  const samples = [];
+  const view = viewTemplate(model => { ordinary++; return draw(model); }, plan, [251], loweredNatives,
+    model => { samples.push(model); return [model]; });
+  const errors = [];
+  const { document, island } = mount(view, cord('first'), error => errors.push(error));
+  const root = island.node;
+  assert.equal(ordinary, 1);
+  assert.deepEqual(samples, []);
+  island.send(cord('second'));
+  island.send(cord('second'));
+  assert.equal(ordinary, 1);
+  assert.deepEqual(samples, [cord('second')]);
+  assert.equal(document.body.textContent, 'Titlesecond');
+  assert.equal(toVnode(view(cord('generic'))).children[1].text, 'generic');
+  assert.equal(ordinary, 2);
+  const template = island.template;
+  island.program.view = () => { throw new Error('replacement failed'); };
+  island.send(cord('discarded'));
+  assert.equal(errors[0].message, 'replacement failed');
+  assert.equal(island.model, cord('second'));
+  assert.equal(island.template, template);
+  island.program.view = model => draw(model);
+  island.send(cord('ordinary'));
+  assert.equal(island.template, null);
+  assert.equal(island.node, root);
+  assert.equal(document.body.textContent, 'Titleordinary');
+  assert.deepEqual(samples, [cord('second')]);
+});
+
+test('direct evaluation cannot bypass ordinary first-mount errors', () => {
+  let direct = 0;
+  const holeGate = () => { direct++; return [cord('incorrect success')]; };
+  for (const normal of [
+    () => { throw new Error('ordinary view failed'); },
+    () => [cord('forged'), 0n],
+  ]) {
+    const errors = [];
+    const view = viewTemplate(normal, 0, [7], loweredNatives, holeGate);
+    const { document, island } = mount(view, 0n, error => errors.push(error));
+    assert.equal(island.active, false);
+    assert.equal(document.body.childNodes.length, 0);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0].message, /ordinary view failed|expected a value produced by rawSeal/);
+  }
+  assert.equal(direct, 0);
+});
+
+test('direct holes require both the private decorator and the canonical native registry', () => {
+  let direct = 0;
+  const holeGate = () => { direct++; return [cord('untrusted')]; };
+  for (const [decorate, natives] of [
+    [publicViewTemplate, loweredNatives],
+    [viewTemplate, { ...loweredNatives }],
+    [viewTemplate, Object.freeze({ ...loweredNatives })],
+  ]) {
+    const view = decorate(model => text(model), 0, [7], natives, holeGate);
+    const { document, island } = mount(view);
+    assert.equal(island.template, null);
+    island.send(cord('ordinary'));
+    assert.equal(document.body.textContent, 'ordinary');
+  }
+  assert.equal(direct, 0);
+});
+
+test('direct vectors and every hole are validated before any patch, and later evaluation errors win', () => {
+  let ordinary = 0;
+  const button = label => seal('button', [label, 7n]);
+  const view = viewTemplate(model => {
+    ordinary++;
+    return column([text(model), button(model)]);
+  }, ['div', attrs, [0, -2]], [123, 62], loweredNatives, model => {
+    if (model === cord('short')) return [cord('changed')];
+    if (model === cord('long')) return [cord('changed'), button(model), 0n];
+    if (model === cord('atom')) return 0n;
+    if (model === cord('sparse')) return new Array(2);
+    if (model === cord('bad child')) return [cord('changed'), [cord('forged'), 0n]];
+    if (model === cord('later failure')) return [[1n, 2n], (() => { throw new Error('later evaluation failed'); })()];
+    return [model, button(model)];
+  });
+  const errors = [];
+  const { document, island } = mount(view, cord('kept'), error => errors.push(error));
+  const children = [...island.node.childNodes];
+  for (const model of ['short', 'long', 'atom', 'sparse', 'bad child', 'later failure']) {
+    island.send(cord(model));
+    assert.equal(island.model, cord('kept'));
+    assert.equal(document.body.textContent, 'keptkept');
+    assert.deepEqual(island.node.childNodes, children);
+    assert.equal(island.vnode.children[0].text, 'kept');
+    assert.equal(island.vnode.children[1].children[0].text, 'kept');
+  }
+  assert.deepEqual(errors.slice(0, 3).map(error => error.message),
+    Array(3).fill('view template: invalid hole vector'));
+  assert.match(errors[3].message, /text: expected an unsigned atom/);
+  assert.match(errors[4].message, /expected a value produced by rawSeal/);
+  assert.equal(errors[5].message, 'later evaluation failed');
+  island.send(cord('recovered'));
+  assert.equal(document.body.textContent, 'recoveredrecovered');
+  assert.deepEqual(island.node.childNodes, children);
+  assert.equal(ordinary, 1);
+});
+
+test('a direct gate with no holes still runs strict work on changed models', () => {
+  const calls = [];
+  const view = viewTemplate(() => text(cord('fixed')), 'fixed', [], loweredNatives, model => {
+    calls.push(model);
+    if (model === 1n) throw new Error('discarded work failed');
+    return [];
+  });
+  const errors = [];
+  const { document, island } = mount(view, 0n, error => errors.push(error));
+  island.send(1n);
+  assert.equal(island.model, 0n);
+  assert.equal(errors[0].message, 'discarded work failed');
+  island.send(2n);
+  island.send(2n);
+  assert.deepEqual(calls, [1n, 2n]);
+  assert.equal(island.model, 2n);
+  assert.equal(document.body.textContent, 'fixed');
+});
+
+test('direct subtree holes preserve control state, keyed identity, and page paths', () => {
+  let ordinary = 0;
+  let direct = 0;
+  const pieces = model => [
+    seal('field', [cord('Draft'), [model[0], value => [value, model[1]]]]),
+    seal('each', arrayToList(listToArray(model[1]).map(key => [key, text(cord(String(key)))]))),
+    seal('link', [arrayToList([model[0]]), model[0]]),
+  ];
+  const view = viewTemplate(model => { ordinary++; return column(pieces(model)); },
+    ['div', attrs, [-1, -2, -3]], [30, 62, 126], loweredNatives,
+    model => { direct++; return pieces(model); });
+  const { document, island } = mount(view, [cord('a'), arrayToList([1n, 2n])], undefined,
+    { paths: { base: '/apps/example' } });
+  island.program.update = ([message, model]) => [message[0] === cord('reject') ? model : message, 0n];
+  const [input, each, link] = island.node.childNodes;
+  const [one, two] = each.childNodes;
+  input.focus();
+  input.value = 'ab';
+  input.setSelectionRange(2, 2);
+  input.dispatchEvent(new FakeEvent('input'));
+  assert.equal(input.value, 'ab');
+  assert.equal(input.selectionStart, 2);
+  assert.equal(document.activeElement, input);
+  assert.equal(link.getAttribute('href'), '/apps/example/ab');
+  input.value = 'reject';
+  input.dispatchEvent(new FakeEvent('input'));
+  assert.equal(input.value, 'ab');
+  assert.equal(direct, 1);
+  island.send([cord('next page'), arrayToList([2n, 1n])]);
+  assert.deepEqual(each.childNodes, [two, one]);
+  assert.equal(island.node.firstChild, input);
+  assert.equal(document.activeElement, input);
+  assert.equal(link.getAttribute('href'), '/apps/example/next%20page');
+  assert.equal(island.vnode.children[1], each.__jibb.vnode);
+  assert.equal(ordinary, 1);
+  assert.equal(direct, 2);
 });

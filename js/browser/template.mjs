@@ -1,4 +1,4 @@
-import { slot } from '../core/runtime.mjs';
+import { apply, slot } from '../core/runtime.mjs';
 import { validateRawSeal } from '../natives/legacy.mjs';
 import { loweredNatives } from '../natives/lowered.mjs';
 import { createDom, patchDom } from './dom.mjs';
@@ -9,21 +9,22 @@ const viewTemplates = new WeakMap();
 // Boot supplies this decorator only to checked host modules. Arbitrary JS
 // callers use the public runtime's identity decorator: foreign callbacks or
 // mutable captured cells cannot establish the compiler's immutable view proof.
-export function compiledViewTemplate(gate, tree, axes, natives) {
-  viewTemplates.set(gate, { tree, axes, natives });
+export function compiledViewTemplate(gate, tree, axes, natives, holesGate) {
+  viewTemplates.set(gate, { tree, axes, natives, holesGate });
   return gate;
 }
 
-// The compiler proves the fixed structure; the original gate still runs on
-// every render. Only model-dependent holes are decoded and patched afterward.
+// The ordinary view establishes the fixed structure and attributes at mount.
+// A proven residual gate can compute only its holes on subsequent renders.
 // A same-named native supplied by a caller cannot establish that proof;
 // custom natives may mutate cells or the registry behind an ordinary gate.
 export function createViewTemplate(view, value, options) {
   const plan = viewTemplates.get(view);
   if (!plan || plan.natives !== loweredNatives
     || (typeof plan.tree === 'number' && plan.tree < 0)) return null;
-  const read = (tree, value) => {
-    const raw = slot(plan.axes[tree < 0 ? -tree - 1 : tree], value);
+  const read = (tree, value, direct) => {
+    const index = tree < 0 ? -tree - 1 : tree;
+    const raw = direct ? value[index] : slot(plan.axes[index], value);
     return tree < 0 ? toVnode(raw, options.paths) : atomText(raw, 'text');
   };
   validateRawSeal(value);
@@ -58,11 +59,17 @@ export function createViewTemplate(view, value, options) {
   bind(plan.tree, vnode, node);
   return {
     view, vnode, node,
-    update(value) {
+    update(model) {
       // Validate every hole before changing any DOM, so a failed render
       // leaves both the previous model and its complete view in place.
-      validateRawSeal(value);
-      holes.map(hole => read(hole.tree, value)).forEach((decoded, index) => {
+      const direct = plan.holesGate;
+      const value = apply(direct ?? view, model);
+      if (direct) {
+        if (!Array.isArray(value) || value.length !== plan.axes.length) {
+          throw new TypeError('view template: invalid hole vector');
+        }
+      } else validateRawSeal(value);
+      holes.map(hole => read(hole.tree, value, direct)).forEach((decoded, index) => {
         const hole = holes[index];
         if (hole.tree < 0) {
           hole.node = patchDom(hole.node.parentNode, hole.node, decoded, options);

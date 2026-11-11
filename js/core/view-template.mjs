@@ -3,9 +3,12 @@ import { readLiteral } from './literal.mjs';
 // This is analysis of authenticated Core, not a second evaluator. It discovers
 // only structure guaranteed by ordinary lexical bindings and raw-seal calls.
 // Unknown subtrees use ordinary rendering inside the fixed layout. Analysis
-// limits leave the ordinary view in place. The emitted gate still runs,
-// including every crash and trace.
+// limits leave the ordinary view in place. Direct hole evaluation is a
+// separate strict specialization; this shape proof alone never skips work.
 export const UNKNOWN = Object.freeze({ kind: 'unknown' });
+// References belong to lexical bindings, not to an expression's abstract
+// result. Closure snapshots retain them for the direct-hole specialization.
+export const boundValue = (value, reference) => ({ kind: 'bound', reference, value });
 const LIMIT = 2000;
 const NODES = 128;
 const exhausted = Symbol('template analysis limit');
@@ -20,7 +23,7 @@ function evaluate(node, environment, remaining) {
     case 'literal':
       return { kind: 'atom', value: readLiteral(node.text).value };
     case 'name':
-      return environment.get(node.name) ?? UNKNOWN;
+      return unbound(environment.get(node.name) ?? UNKNOWN);
     case 'native':
       return { kind: 'native', name: node.name };
     case 'cons':
@@ -64,6 +67,11 @@ function evaluate(node, environment, remaining) {
     default:
       return UNKNOWN;
   }
+}
+
+function unbound(value) {
+  while (value.kind === 'bound') value = value.value;
+  return value;
 }
 
 /** An immutable abstract value for one lexical binding. */
@@ -110,7 +118,17 @@ function properList(value) {
 }
 
 /** Static DOM structure with text and element holes in the returned noun. */
-export function viewTemplate(node, environment = new Map()) {
+export function viewTemplate(node, environment = new Map(), sample = UNKNOWN) {
+  try {
+    return valueTemplate(evaluate(node.body, bind(environment, node.parameter, sample), { nodes: LIMIT }));
+  } catch (error) {
+    if (error !== exhausted) throw error;
+    return undefined;
+  }
+}
+
+/** A template for an already analyzed value, with independent shape bounds. */
+export function valueTemplate(value) {
   const axes = [];
   let count = NODES;
   const point = axis => {
@@ -181,7 +199,6 @@ export function viewTemplate(node, environment = new Map()) {
   };
 
   try {
-    const value = evaluate(node.body, bind(environment, node.parameter, UNKNOWN), { nodes: LIMIT });
     const tree = element(value, 1);
     // Wrapping an entirely dynamic view would only repeat ordinary rendering.
     return typeof tree === 'number' && tree < 0 ? undefined : { tree, axes };

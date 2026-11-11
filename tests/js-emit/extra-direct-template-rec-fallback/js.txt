@@ -1,0 +1,14 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+requireNative(natives, "raw-seal");
+return viewTemplate(memo((($0) => (() => { const $3 = (() => {
+function $1($2) { return $2; }
+return apply($1, $0);
+})(); return apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), $0)), BigInt("0"))))); })())), ["div",{"class":"j-column"},[0]], [123], natives);
+}

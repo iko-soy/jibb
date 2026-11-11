@@ -1,6 +1,6 @@
 // Generated from Jibb Core. Do not edit.
 export function evaluate(runtime, natives) {
-const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
 const requireNative = (registry, name) => {
   if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
     throw new TypeError(`missing native ${name}`);
@@ -8,5 +8,8 @@ const requireNative = (registry, name) => {
 };
 requireNative(natives, "raw-seal");
 let $h0;
-return memo((($0) => ($h0 ??= viewTemplate((($1) => apply(natives["raw-seal"], cons(BigInt("1954047348"), $1))), 0, [7], natives))));
+return memo((($0) => ($h0 ??= viewTemplate((($1) => apply(natives["raw-seal"], cons(BigInt("1954047348"), $1))), 0, [7], natives, (($model) => {
+checkValue($model, "cons tail");
+return [$model];
+})))));
 }

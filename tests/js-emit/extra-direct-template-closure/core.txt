@@ -1,0 +1,3 @@
+(lam model (let saved (cons model ~)
+  (let handler (lam words (cons (slot 2 saved) words))
+    (app (native raw-seal) (cons %column (cons ~ (cons (app (native raw-seal) (cons %text model)) (cons (app (native raw-seal) (cons %field (cons "Draft" (cons model handler)))) ~))))))))

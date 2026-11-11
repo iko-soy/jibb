@@ -82,6 +82,84 @@ const templateConstantBounds = `(cons
   (lam child ${styledLayout('el', repeatedAttrs(31), 'child')})
   (cons (lam child ${styledLayout('el', '~', styledLayout('column', repeatedAttrs(32)))})
     (lam child ${styledLayout('el', '~', layout('column', ...Array(129).fill('child')))})))`;
+const directOperations = `(lam model (let original (cons model 0)
+  (let changed (edit 3 original 1)
+    (let cell (cell? changed)
+      (let chosen (if (eq cell 0) (slot 2 changed) (crash))
+        (let ignored (trace "ordered" ~)
+          ${layout('column', sealed('text', 'chosen'), sealed('button', '(cons "Press" chosen)'))}))))))`;
+const directClosure = `(lam model (let saved (cons model ~)
+  (let handler (lam words (cons (slot 2 saved) words))
+    ${layout('column', sealed('text', 'model'),
+      sealed('field', '(cons "Draft" (cons model handler))'))})))`;
+const directSharing = `(lam model (let saved (cons model ~)
+  ${layout('column', sealed('text', '(slot 2 saved)'),
+    sealed('button', '(cons "Pair" (cons saved saved))'))}))`;
+const directBranchSharing = `(lam model (let first (lam words (cons (cons "first" model) words))
+  (let second (lam words (cons (cons "second" model) words))
+    (let selected (if (eq model 0) first second)
+      ${layout('column',
+        sealed('field', '(cons "Selected" (cons model selected))'),
+        sealed('field', '(cons "First" (cons model first))'),
+      )}))))`;
+const directCaptureOrder = `(lam model (let aa (cons model 1)
+  (let b (cons model 2)
+    ${layout('column', sealed('field',
+      '(cons "Ordered" (cons model (lam words (cons (slot 2 aa) (cons (slot 2 b) words)))))'),
+    )})))`;
+const directCaptureFallback = `(let render
+  (let saved (app (native scot) (cons %ud 1))
+    (lam words ${sealed('text', 'saved')}))
+  (lam model (app render model)))`;
+const directRecFallback = `(lam model
+  (let ignored (rec ((identity (lam value value))) (app identity model))
+    ${layout('column', sealed('text', 'model'))}))`;
+const directLoopCapture = `(rec ((walk (lam state
+  (if (eq (slot 2 state) 0)
+    (lam ignored ${sealed('text', '(slot 3 state)')})
+    (app walk (cons (app (native dec) (slot 2 state)) (slot 3 state)))))))
+  (app walk (cons 2 "done")))`;
+const directFuel = `(lam model
+  (let ignored (app (native lent) ${coreList(...Array(600).fill('model'))})
+    ${sealed('text', 'model')}))`;
+const directOrigins = `(let wrap (lam child
+  (let ignored (cons 0 ~) ${sealed('el', '(cons ~ child)')}))
+  (let item (lam message ${sealed('button', '(cons "Press" message)')})
+    (let identity (lam value value)
+      (let head (lam pair (slot 2 pair))
+        (lam model ${layout('column',
+          `(app identity ${sealed('text', '(slot 2 model)')})`,
+          '(app wrap (app item (slot 3 model)))',
+          '(app head (cons (app item (slot 3 model)) ~))',
+        )})))))`;
+const directHoisted = `(let each (lam items ${sealed('each', 'items')})
+  (rec ((map (lam pair (if (cell? (slot 2 pair))
+    (cons (app (slot 3 pair) (slot 4 pair))
+      (app map (cons (slot 5 pair) (slot 3 pair)))) ~))))
+    (lam model ${layout('column',
+      sealed('field', '(cons "Draft" (cons (slot 2 model) (lam words (cons %typed words))))'),
+      `(app each (app map (cons (slot 3 model)
+        (lam n (cons n ${sealed('text', '(app (native scot) (cons %ud n))')})))))`,
+    )})))`;
+const duplicateCallback = '(lam words (cons %typed words))';
+const directAmbiguous = `(lam model ${layout('column',
+  sealed('field', `(cons "First" (cons model ${duplicateCallback}))`),
+  sealed('field', `(cons "Second" (cons model ${duplicateCallback}))`),
+)})`;
+const directEffectful = `(let item (lam message
+  (let ignored (trace "once" ~) ${sealed('button', '(cons "Press" message)')}))
+  (lam model ${layout('column', '(app item model)')}))`;
+let directShapeFuel = `(let ignored (app discard part12) ${sealed('text', 'model')})`;
+for (let index = 12; index >= 1; index--) {
+  const previous = index === 1 ? 'model' : `part${index - 1}`;
+  directShapeFuel = `(let part${index} (cons ${previous} ${previous}) ${directShapeFuel})`;
+}
+directShapeFuel = `(let discard (lam value 0) (lam model ${directShapeFuel}))`;
+let directNestedBranchFuel = sealed('text', '"leaf"');
+for (let depth = 0; depth < 12; depth++) {
+  directNestedBranchFuel = `(if (eq model ${depth}) ${directNestedBranchFuel} ${sealed('text', '"other"')})`;
+}
+directNestedBranchFuel = `(lam model ${layout('column', directNestedBranchFuel)})`;
 
 // Closed expressions the shared fixtures leave out: a self tail call, which
 // compiles to a loop, a recursive arm in tail position, nested lets, a trace
@@ -97,6 +175,21 @@ const extra = [
   ['view-template-child-holes', templateHoles, ['raw-seal']],
   ['view-template-child-fallbacks', templateFallbacks, ['raw-seal']],
   ['view-template-constant-bounds', templateConstantBounds, ['raw-seal']],
+  ['direct-template-operations', directOperations, ['raw-seal']],
+  ['direct-template-closure', directClosure, ['raw-seal']],
+  ['direct-template-sharing', directSharing, ['raw-seal']],
+  ['direct-template-branch-sharing', directBranchSharing, ['raw-seal']],
+  ['direct-template-capture-order', directCaptureOrder, ['raw-seal']],
+  ['direct-template-capture-fallback', directCaptureFallback, ['raw-seal', 'scot']],
+  ['direct-template-rec-fallback', directRecFallback, ['raw-seal']],
+  ['direct-template-loop-capture', directLoopCapture, ['raw-seal', 'dec']],
+  ['direct-template-fuel', directFuel, ['raw-seal', 'lent']],
+  ['direct-template-origins', directOrigins, ['raw-seal']],
+  ['direct-template-hoisted', directHoisted, ['raw-seal', 'scot']],
+  ['direct-template-ambiguous', directAmbiguous, ['raw-seal']],
+  ['direct-template-effectful', directEffectful, ['raw-seal']],
+  ['direct-template-shape-fuel', directShapeFuel, ['raw-seal']],
+  ['direct-template-nested-branch-fuel', directNestedBranchFuel, ['raw-seal']],
   ['self-tail-loop', '(rec ((count (lam n (if (eq n 0) %done (app count (app (native dec) n)))))) (app count 5))', ['dec']],
   ['tail-rec-arm', '(rec ((walk (lam p (if (cell? p) (app walk (slot 3 p)) p)))) (let start (cons 1 (cons 2 3)) (app walk start)))', []],
   ['nested-lets', '(let x 1 (let y (cons x 2) (let z (edit 2 y 7) (cons (slot 2 z) (slot 3 y)))))', []],

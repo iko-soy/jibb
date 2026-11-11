@@ -1,0 +1,28 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+requireNative(natives, "raw-seal");
+return viewTemplate(memo((($0) => (() => { const $1 = cons($0, BigInt("0")); return (() => { const $3 = (($2) => cons(slot(2n, $1), $2)); return apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), $0)), cons(apply(natives["raw-seal"], cons(BigInt("431315315046"), cons(BigInt("499933868612"), cons($0, $3)))), BigInt("0")))))); })(); })())), ["div",{"class":"j-column"},[0,-2]], [123, 62], natives, (($model) => {
+checkValue($model, "cons head");
+checkValue($model, "cons tail");
+checkValue($model, "cons head");
+const $v0 = cons($model, BigInt("0"));
+const $v4 = (($v1) => {
+const $v2 = slot(2n, $v0);
+checkValue($v2, "cons head");
+checkValue($v1, "cons tail");
+const $v3 = cons($v2, $v1);
+return $v3;
+});
+const $v5 = cons($model, $v4);
+const $v6 = cons(BigInt("499933868612"), $v5);
+const $v7 = cons(BigInt("431315315046"), $v6);
+const $v8 = apply(natives["raw-seal"], $v7);
+return [$model, $v8];
+}));
+}

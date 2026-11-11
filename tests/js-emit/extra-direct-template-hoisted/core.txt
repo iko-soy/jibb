@@ -1,0 +1,6 @@
+(let each (lam items (app (native raw-seal) (cons %each items)))
+  (rec ((map (lam pair (if (cell? (slot 2 pair))
+    (cons (app (slot 3 pair) (slot 4 pair))
+      (app map (cons (slot 5 pair) (slot 3 pair)))) ~))))
+    (lam model (app (native raw-seal) (cons %column (cons ~ (cons (app (native raw-seal) (cons %field (cons "Draft" (cons (slot 2 model) (lam words (cons %typed words)))))) (cons (app each (app map (cons (slot 3 model)
+        (lam n (cons n (app (native raw-seal) (cons %text (app (native scot) (cons %ud n))))))))) ~))))))))

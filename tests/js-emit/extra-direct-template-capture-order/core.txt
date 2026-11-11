@@ -1,0 +1,3 @@
+(lam model (let aa (cons model 1)
+  (let b (cons model 2)
+    (app (native raw-seal) (cons %column (cons ~ (cons (app (native raw-seal) (cons %field (cons "Ordered" (cons model (lam words (cons (slot 2 aa) (cons (slot 2 b) words))))))) ~)))))))

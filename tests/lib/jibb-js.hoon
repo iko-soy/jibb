@@ -82,6 +82,51 @@
 /*  core-25  %txt  /tests/js-emit/extra-view-template-constant-bounds/core/txt
 /*  natives-25  %txt  /tests/js-emit/extra-view-template-constant-bounds/natives/txt
 /*  js-25  %txt  /tests/js-emit/extra-view-template-constant-bounds/js/txt
+/*  core-26  %txt  /tests/js-emit/extra-direct-template-operations/core/txt
+/*  natives-26  %txt  /tests/js-emit/extra-direct-template-operations/natives/txt
+/*  js-26  %txt  /tests/js-emit/extra-direct-template-operations/js/txt
+/*  core-27  %txt  /tests/js-emit/extra-direct-template-closure/core/txt
+/*  natives-27  %txt  /tests/js-emit/extra-direct-template-closure/natives/txt
+/*  js-27  %txt  /tests/js-emit/extra-direct-template-closure/js/txt
+/*  core-28  %txt  /tests/js-emit/extra-direct-template-sharing/core/txt
+/*  natives-28  %txt  /tests/js-emit/extra-direct-template-sharing/natives/txt
+/*  js-28  %txt  /tests/js-emit/extra-direct-template-sharing/js/txt
+/*  core-29  %txt  /tests/js-emit/extra-direct-template-capture-fallback/core/txt
+/*  natives-29  %txt  /tests/js-emit/extra-direct-template-capture-fallback/natives/txt
+/*  js-29  %txt  /tests/js-emit/extra-direct-template-capture-fallback/js/txt
+/*  core-30  %txt  /tests/js-emit/extra-direct-template-rec-fallback/core/txt
+/*  natives-30  %txt  /tests/js-emit/extra-direct-template-rec-fallback/natives/txt
+/*  js-30  %txt  /tests/js-emit/extra-direct-template-rec-fallback/js/txt
+/*  core-31  %txt  /tests/js-emit/extra-direct-template-loop-capture/core/txt
+/*  natives-31  %txt  /tests/js-emit/extra-direct-template-loop-capture/natives/txt
+/*  js-31  %txt  /tests/js-emit/extra-direct-template-loop-capture/js/txt
+/*  core-32  %txt  /tests/js-emit/extra-direct-template-fuel/core/txt
+/*  natives-32  %txt  /tests/js-emit/extra-direct-template-fuel/natives/txt
+/*  js-32  %txt  /tests/js-emit/extra-direct-template-fuel/js/txt
+/*  core-33  %txt  /tests/js-emit/extra-direct-template-origins/core/txt
+/*  natives-33  %txt  /tests/js-emit/extra-direct-template-origins/natives/txt
+/*  js-33  %txt  /tests/js-emit/extra-direct-template-origins/js/txt
+/*  core-34  %txt  /tests/js-emit/extra-direct-template-hoisted/core/txt
+/*  natives-34  %txt  /tests/js-emit/extra-direct-template-hoisted/natives/txt
+/*  js-34  %txt  /tests/js-emit/extra-direct-template-hoisted/js/txt
+/*  core-35  %txt  /tests/js-emit/extra-direct-template-ambiguous/core/txt
+/*  natives-35  %txt  /tests/js-emit/extra-direct-template-ambiguous/natives/txt
+/*  js-35  %txt  /tests/js-emit/extra-direct-template-ambiguous/js/txt
+/*  core-36  %txt  /tests/js-emit/extra-direct-template-effectful/core/txt
+/*  natives-36  %txt  /tests/js-emit/extra-direct-template-effectful/natives/txt
+/*  js-36  %txt  /tests/js-emit/extra-direct-template-effectful/js/txt
+/*  core-37  %txt  /tests/js-emit/extra-direct-template-shape-fuel/core/txt
+/*  natives-37  %txt  /tests/js-emit/extra-direct-template-shape-fuel/natives/txt
+/*  js-37  %txt  /tests/js-emit/extra-direct-template-shape-fuel/js/txt
+/*  core-38  %txt  /tests/js-emit/extra-direct-template-branch-sharing/core/txt
+/*  natives-38  %txt  /tests/js-emit/extra-direct-template-branch-sharing/natives/txt
+/*  js-38  %txt  /tests/js-emit/extra-direct-template-branch-sharing/js/txt
+/*  core-39  %txt  /tests/js-emit/extra-direct-template-capture-order/core/txt
+/*  natives-39  %txt  /tests/js-emit/extra-direct-template-capture-order/natives/txt
+/*  js-39  %txt  /tests/js-emit/extra-direct-template-capture-order/js/txt
+/*  core-40  %txt  /tests/js-emit/extra-direct-template-nested-branch-fuel/core/txt
+/*  natives-40  %txt  /tests/js-emit/extra-direct-template-nested-branch-fuel/natives/txt
+/*  js-40  %txt  /tests/js-emit/extra-direct-template-nested-branch-fuel/js/txt
 |%
 ++  text
   |=  lines=wain
@@ -133,5 +178,20 @@
     (check "extra-view-template-child-holes" core-23 natives-23 js-23)
     (check "extra-view-template-child-fallbacks" core-24 natives-24 js-24)
     (check "extra-view-template-constant-bounds" core-25 natives-25 js-25)
+    (check "extra-direct-template-operations" core-26 natives-26 js-26)
+    (check "extra-direct-template-closure" core-27 natives-27 js-27)
+    (check "extra-direct-template-sharing" core-28 natives-28 js-28)
+    (check "extra-direct-template-capture-fallback" core-29 natives-29 js-29)
+    (check "extra-direct-template-rec-fallback" core-30 natives-30 js-30)
+    (check "extra-direct-template-loop-capture" core-31 natives-31 js-31)
+    (check "extra-direct-template-fuel" core-32 natives-32 js-32)
+    (check "extra-direct-template-origins" core-33 natives-33 js-33)
+    (check "extra-direct-template-hoisted" core-34 natives-34 js-34)
+    (check "extra-direct-template-ambiguous" core-35 natives-35 js-35)
+    (check "extra-direct-template-effectful" core-36 natives-36 js-36)
+    (check "extra-direct-template-shape-fuel" core-37 natives-37 js-37)
+    (check "extra-direct-template-branch-sharing" core-38 natives-38 js-38)
+    (check "extra-direct-template-capture-order" core-39 natives-39 js-39)
+    (check "extra-direct-template-nested-branch-fuel" core-40 natives-40 js-40)
   ==
 --

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   CoreCrash,
+  checkValue,
   cons,
   isCell,
   same,
@@ -84,6 +85,27 @@ test('cons and isCell reject malformed values and direct function inspection', (
   assert.equal(isCell(cyclic), 0n);
   throwsCore(() => same(cyclic, cyclic), /cyclic/);
   throwsCore(() => isCell([1n, [0n]]), /two-element/);
+});
+
+test('checkValue retains cons validation and diagnostics without copying its operand', () => {
+  const fn = () => 0n;
+  const cell = Object.freeze([1n, Object.freeze([2n, fn])]);
+  for (const value of [0n, 2n ** 4096n, fn, cell, [0n, [0n, 'deeper']]]) {
+    assert.strictEqual(checkValue(value, 'cons head'), value);
+    assert.strictEqual(checkValue(value, 'cons tail'), value);
+  }
+  const failure = run => {
+    try { run(); }
+    catch (error) { return { name: error.name, message: error.message }; }
+    assert.fail('expected validation to fail');
+  };
+  for (const value of [undefined, null, 0, -1n, {}, [], [1n], [1n, 2n, 3n],
+    [0n, -1n], [0n, 'bad'], [0n, [1n]], new Array(2)]) {
+    assert.deepEqual(failure(() => checkValue(value, 'cons head')),
+      failure(() => cons(value, 0n)));
+    assert.deepEqual(failure(() => checkValue(value, 'cons tail')),
+      failure(() => cons(0n, value)));
+  }
 });
 
 test('cells can carry functions without making them noun data', () => {

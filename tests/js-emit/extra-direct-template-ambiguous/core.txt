@@ -1,0 +1,1 @@
+(lam model (app (native raw-seal) (cons %column (cons ~ (cons (app (native raw-seal) (cons %field (cons "First" (cons model (lam words (cons %typed words)))))) (cons (app (native raw-seal) (cons %field (cons "Second" (cons model (lam words (cons %typed words)))))) ~))))))

@@ -108,6 +108,7 @@ class Session {
     this.sessionId = undefined;
     this.problems = [];
     this.waiters = [];
+    this.directCoverage = null;
     socket.addEventListener('message', event => this.receive(JSON.parse(event.data)));
   }
 
@@ -292,6 +293,55 @@ async function login(session) {
   session.takeProblems();
 }
 
+// Precise V8 call counts prove that the checked island's residual evaluator
+// ran. Ordinary Core parameters have numbered names; only the compiler's
+// private hole evaluator uses $model. No application code or runtime is changed.
+async function startDirectCoverage(session) {
+  const module = await session.evaluate(`(async () => {
+    const config = JSON.parse(document.querySelector('script[type="application/x-jibb-client"]').textContent);
+    const hash = document.querySelector('[data-jibb-island]').getAttribute('data-jibb-island');
+    const url = new URL((config.base ?? '') + '/~jibb/m/' + hash + '.js', location.href).href;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('could not read island module: HTTP ' + response.status);
+    return { url, source: await response.text() };
+  })()`);
+  await session.send('Profiler.enable');
+  await session.send('Profiler.startPreciseCoverage', { callCount: true, detailed: false });
+  session.directCoverage = module;
+}
+
+async function stopDirectCoverage(session) {
+  if (session.directCoverage === null) return;
+  session.directCoverage = null;
+  try {
+    await session.send('Profiler.stopPreciseCoverage');
+  } finally {
+    await session.send('Profiler.disable');
+  }
+}
+
+async function checkDirectCoverage(session, label) {
+  const { url, source } = session.directCoverage;
+  let coverage;
+  try {
+    coverage = await session.send('Profiler.takePreciseCoverage');
+  } finally {
+    await stopDirectCoverage(session);
+  }
+  let calls = 0;
+  for (const script of coverage.result.filter(script => script.url === url)) {
+    for (const fn of script.functions) {
+      const range = fn.ranges[0];
+      if (/^\(\$model\)\s*=>/.test(source.slice(range.startOffset, range.startOffset + 32))) {
+        calls += range.count;
+      }
+    }
+  }
+  if (expect(calls > 0, `${label} did not execute a direct hole evaluator from its checked module`)) {
+    console.log(`ok   ${label}: the checked module's direct hole evaluator ran ${calls} times`);
+  }
+}
+
 async function exampleThree(session) {
   const page = `${origin}/apps/my-app`;
   await session.navigate(page);
@@ -326,6 +376,7 @@ async function exampleThree(session) {
       && nodes.error.node.getAttribute('aria-live') === 'polite';
   })()`);
   expect(styled, 'the todo template lost its constant gap, width or danger-tone attributes');
+  await startDirectCoverage(session);
   const stamp = Date.now();
   const item = `Buy milk ${stamp}`;
   await session.focus(field);
@@ -375,6 +426,7 @@ async function exampleThree(session) {
       && field.selectionStart === 2 && field.selectionEnd === 2;
   })()`), 'the todo template lost field identity, focus or selection while clearing validation');
   await checkStaticLayout(session, 'the todo template');
+  await checkDirectCoverage(session, 'the todo template');
   // A fresh scry renders the new todo on the server too.
   await session.navigate(page);
   const fresh = await session.evaluate(`fetch(location.href).then(r => r.text())`);
@@ -446,6 +498,7 @@ async function sharedModules(session) {
 async function viewTemplates(session) {
   await session.navigate(`${origin}/apps/jibb-host-fixture/template-demo`);
   await session.until('the template island to start', STARTED);
+  await startDirectCoverage(session);
   await session.evaluate(`(() => {
     const root = document.querySelector('[data-jibb-island]').firstChild;
     window.templateNodes = { root, heading: root.firstChild, text: root.lastChild };
@@ -465,6 +518,7 @@ async function viewTemplates(session) {
       && root.lastChild === text;
   })()`);
   expect(kept, 'the template update replaced its static DOM or text hole');
+  await checkDirectCoverage(session, 'the timer template');
   const problems = session.takeProblems();
   expect(problems.length === 0, `view templates logged: ${problems.join('; ')}`);
   console.log('ok   compiled view template: timer updates text and retains static DOM');
@@ -482,12 +536,14 @@ async function rowTemplates(session) {
       field: root.querySelector('input'),
       echo: root.childNodes[1],
       each,
+      eachVnode: each.__jibb.vnode,
       rows: [...each.children].map(node => [node.__jibb.vnode.key, node]),
     };
     if (!root.classList.contains('j-gap-s1')) throw new Error('the rows template lost its gap');
     return each.children.length;
   })()`);
   expect(count === 500, `the rows template started with ${count} rows, not 500`);
+  await startDirectCoverage(session);
   await session.focus('[data-jibb-island] input');
   await session.type('ac');
   await session.evaluate('window.jibbRowNodes.field.setSelectionRange(1, 1)');
@@ -504,7 +560,10 @@ async function rowTemplates(session) {
       && each === container.querySelector('[data-each]') && current.length === rows.length
       && rows.every(([key, node], index) => current[index] === node && node.__jibb.vnode.key === key);
   })()`), 'the rows template replaced its field, echo or keyed rows, or moved focus or the caret');
+  expect(await session.evaluate(`window.jibbRowNodes.each.__jibb.vnode === window.jibbRowNodes.eachVnode`),
+    'typing rebuilt the unchanged keyed subtree instead of retaining its memoized view');
   await checkStaticLayout(session, 'the rows template');
+  await checkDirectCoverage(session, 'the rows template');
   const problems = session.takeProblems();
   expect(problems.length === 0, `the rows template logged: ${problems.join('; ')}`);
   console.log('ok   compiled rows template: static gap, control focus and caret, text and 500 keyed rows survive updates');
@@ -607,6 +666,10 @@ try {
     } catch (error) {
       const problems = session.takeProblems();
       expect(false, `${step.name}: ${error.message}${problems.length ? `; the page logged: ${problems.join('; ')}` : ''}`);
+    } finally {
+      // A failed correctness assertion must not leave precise coverage on
+      // during a later page or the separately navigated timing benchmark.
+      await stopDirectCoverage(session);
     }
   }
 } finally {

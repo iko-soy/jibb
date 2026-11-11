@@ -1,5 +1,6 @@
 ::  Bounded analysis of authenticated Core for static DOM templates.
-::  The ordinary gate still runs; this analysis never changes evaluation.
+::  Shape proof never removes strict work. Direct residualization is a
+::  separate pass; this analysis itself never changes evaluation.
 ::  Keep its bounds, descriptors and traversal in step with
 ::  js/core/view-template.mjs. Unknown children take the ordinary path.
 /+  jibb-core
@@ -12,12 +13,21 @@
       [%closure sample=name:jibb-core body=expr:jibb-core env=environment]
       [%native name=@t]
       [%seal body=value]
+      [%bound ref=@t val=value]
   ==
 +$  environment  (map name:jibb-core value)
 +$  evaluation  [val=value left=@ud]
 +$  shape-state  [left=@ud axes=(list @ud)]
 +$  rendered  [out=@t s=shape-state]
 +$  plan  [tree=@t axes=(list @ud)]
+::  Lexical bindings retain their actual JavaScript references for the direct
+::  hole pass. Shape analysis sees only the bound value; closure environments
+::  keep the wrapper so captured unknown values remain accessible.
+++  unbound
+  |=  v=value
+  ^-  value
+  ?:  ?=(%bound -.v)  $(v val.v)
+  v
 ::  One unit of fuel per syntax node, shared across lexical applications.
 ++  evaluate
   |=  [e=expr:jibb-core env=environment fuel=@ud]
@@ -26,7 +36,7 @@
   =.  fuel  (dec fuel)
   ?+  -.e  `[[%unknown ~] fuel]
     %lit  `[[%atom val.lit.e] fuel]
-    %var  `[(~(gut by env) name.e [%unknown ~]) fuel]
+    %var  `[(unbound (~(gut by env) name.e [%unknown ~])) fuel]
     %native  `[[%native (print-name:jibb-core name.e)] fuel]
     %lam  `[[%closure sample.e body.e env] fuel]
     %cons
@@ -217,15 +227,23 @@
       ?~  kids  ~
       `[(rap 3 ~['["p",{},' out.u.kids ']']) s.u.kids]
   ==
-::  Compute a gate's plan with an unknown sample at its lexical definition.
-++  view-template
-  |=  [e=expr:jibb-core env=environment]
+::  Shape bounds are independent of the abstract Core evaluation budget.
+++  value-template
+  |=  value=value
   ^-  (unit plan)
-  ?.  ?=(%lam -.e)  ~
-  =/  value=value
-    (abstract-value body.e (~(put by env) sample.e [%unknown ~]))
   =/  tree=(unit rendered)  (element value 1 [128 ~])
   ?~  tree  ~
   ?:  =('-' (end 3 out.u.tree))  ~
   `[out.u.tree (flop axes.s.u.tree)]
+::  Compute a gate's plan with an unknown sample at its lexical definition.
+++  view-template
+  |=  [e=expr:jibb-core env=environment]
+  ^-  (unit plan)
+  (view-template-with-sample e env [%unknown ~])
+::
+++  view-template-with-sample
+  |=  [e=expr:jibb-core env=environment sample=value]
+  ^-  (unit plan)
+  ?.  ?=(%lam -.e)  ~
+  (value-template (abstract-value body.e (~(put by env) sample.e sample)))
 --

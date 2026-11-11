@@ -1,0 +1,3 @@
+(let item (lam message
+  (let ignored (trace "once" ~) (app (native raw-seal) (cons %button (cons "Press" message)))))
+  (lam model (app (native raw-seal) (cons %column (cons ~ (cons (app item model) ~))))))

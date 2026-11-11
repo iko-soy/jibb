@@ -1,4 +1,4 @@
-import { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo } from '../core/runtime.mjs';
+import { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, checkValue } from '../core/runtime.mjs';
 import { readShip } from '../core/literal.mjs';
 import { decodeUw } from '../natives/codec.mjs';
 import { cell, cord } from '../natives/helpers.mjs';
@@ -12,7 +12,7 @@ import { UrlRuntime } from './url.mjs';
 
 // Only the primitives both Core emitters put in evaluate(runtime, natives).
 // Other runtime exports are helpers for the library, not the module ABI.
-const runtime = { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate: compiledViewTemplate };
+const runtime = { apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, checkValue, viewTemplate: compiledViewTemplate };
 
 // The server's notice for a crashed island, which the browser shows too.
 export const CRASH_NOTICE = 'This part of the page stopped working. Reloading the page may fix it.';

@@ -29,8 +29,8 @@
   ::  Constant attribute axes, the unique static heading, and element-hole
   ::  axes all belong to this view's full returned sealed value.
   =/  wanted=@t
-    ', ["column",14,[["h2",{"tabIndex":"-1"},["Items"]],-1,["row",1014,[["el",16246,[-2]],-3]],["el",2038,[-4]]]], [62, 16247, 4062, 2039], natives)'
+    ', ["column",14,[["h2",{"tabIndex":"-1"},["Items"]],-1,["row",1014,[["el",16246,[-2]],-3]],["el",2038,[-4]]]], [62, 16247, 4062, 2039], natives, (($model) => {'
   ?.  (contains (trip actual) (trip wanted))
-    ~[leaf+"checked view lost its static attributes or element-hole template" leaf+(trip actual)]
+    ~[leaf+"checked view lost its attributes, element holes or direct evaluator" leaf+(trip actual)]
   ~
 --

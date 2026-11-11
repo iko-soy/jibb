@@ -1,0 +1,4 @@
+(lam model (let first (lam words (cons (cons "first" model) words))
+  (let second (lam words (cons (cons "second" model) words))
+    (let selected (if (eq model 0) first second)
+      (app (native raw-seal) (cons %column (cons ~ (cons (app (native raw-seal) (cons %field (cons "Selected" (cons model selected)))) (cons (app (native raw-seal) (cons %field (cons "First" (cons model first)))) ~)))))))))

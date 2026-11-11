@@ -251,7 +251,7 @@ A module's kind fixes where it runs; nothing infers stages.
 - **Re-render, then diff**: each message that changes the model re-runs `view`, and a virtual-DOM diff patches the DOM. Children of `each` are keyed, as in Elm's `Html.Keyed`, so focus survives reordering.
 - **Functions have no stage**: a gate compiles for whichever side calls it.
 - **No JavaScript needed**: pages render without it, and islands show their server-rendered state, with controls `aria-disabled` and fields read-only until they start.
-- **Holes later**: compiling views to static HTML plus small functions of the model is an optimisation that changes no types or errors, so it waits.
+- **Compiled holes**: eligible checked views retain fixed DOM and compute only changing text or element values on updates. This optimisation changes no types or errors; first mount and unsupported views keep ordinary evaluation.
 
 ## The mark
 

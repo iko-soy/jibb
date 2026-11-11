@@ -1,0 +1,6 @@
+(let wrap (lam child
+  (let ignored (cons 0 ~) (app (native raw-seal) (cons %el (cons ~ child)))))
+  (let item (lam message (app (native raw-seal) (cons %button (cons "Press" message))))
+    (let identity (lam value value)
+      (let head (lam pair (slot 2 pair))
+        (lam model (app (native raw-seal) (cons %column (cons ~ (cons (app identity (app (native raw-seal) (cons %text (slot 2 model)))) (cons (app wrap (app item (slot 3 model))) (cons (app head (cons (app item (slot 3 model)) ~)) ~)))))))))))

@@ -1,11 +1,14 @@
 // Generated from Jibb Core. Do not edit.
 export function evaluate(runtime, natives) {
-const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
 const requireNative = (registry, name) => {
   if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
     throw new TypeError(`missing native ${name}`);
   }
 };
 requireNative(natives, "raw-seal");
-return viewTemplate(memo((($0) => apply(natives["raw-seal"], cons(BigInt("7827314"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1885434487"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(BigInt("0"), BigInt("7827308")))), cons(apply(natives["raw-seal"], cons(BigInt("461228831859"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(BigInt("9"), BigInt("1751607656")))), cons(apply(natives["raw-seal"], cons(BigInt("27749"), cons(BigInt("0"), apply(natives["raw-seal"], cons(BigInt("1634886000"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("2054491694147865366558199569744027550502319473"))), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("48078"))), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), $0)), BigInt("0"))))))))), BigInt("0")))))), BigInt("0")))))), BigInt("0"))))))), ["div",{"class":"j-row"},[["div",{"class":"j-wrap"},[["h1",{"tabIndex":"-1"},["low"]],["div",{"class":"j-stack"},[["h6",{"tabIndex":"-1"},["high"]],["div",{"class":"j-el"},[["p",{},["quote \" and slash \\",0,1]]]]]]]]]], [16236027, 32472059], natives);
+return viewTemplate(memo((($0) => apply(natives["raw-seal"], cons(BigInt("7827314"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1885434487"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(BigInt("0"), BigInt("7827308")))), cons(apply(natives["raw-seal"], cons(BigInt("461228831859"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(BigInt("9"), BigInt("1751607656")))), cons(apply(natives["raw-seal"], cons(BigInt("27749"), cons(BigInt("0"), apply(natives["raw-seal"], cons(BigInt("1634886000"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("2054491694147865366558199569744027550502319473"))), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("48078"))), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), $0)), BigInt("0"))))))))), BigInt("0")))))), BigInt("0")))))), BigInt("0"))))))), ["div",{"class":"j-row"},[["div",{"class":"j-wrap"},[["h1",{"tabIndex":"-1"},["low"]],["div",{"class":"j-stack"},[["h6",{"tabIndex":"-1"},["high"]],["div",{"class":"j-el"},[["p",{},["quote \" and slash \\",0,1]]]]]]]]]], [16236027, 32472059], natives, (($model) => {
+checkValue($model, "cons tail");
+return [BigInt("48078"), $model];
+}));
 }

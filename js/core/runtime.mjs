@@ -93,7 +93,9 @@ function assertPart(part, operation) {
   }
 }
 
-function assertValue(value, operation) {
+// Residual view evaluators retain a removed cons's validation without making
+// its cell. Keep the operation label so the ordinary diagnostic is unchanged.
+export function checkValue(value, operation) {
   if (typeof value === 'bigint') return assertAtom(value, operation);
   if (typeof value === 'function') return value;
   if (!Array.isArray(value) || value.length !== 2) {
@@ -105,8 +107,8 @@ function assertValue(value, operation) {
 }
 
 export function cons(head, tail) {
-  assertValue(head, 'cons head');
-  assertValue(tail, 'cons tail');
+  checkValue(head, 'cons head');
+  checkValue(tail, 'cons tail');
   return [head, tail];
 }
 
@@ -114,7 +116,7 @@ export function isCell(value) {
   if (typeof value === 'function') {
     fail('cell?: functions are not nouns');
   }
-  assertValue(value, 'cell?');
+  checkValue(value, 'cell?');
   return Array.isArray(value) ? 0n : 1n;
 }
 
@@ -168,7 +170,7 @@ export function slot(axis, value) {
   if (typeof value === 'function') {
     fail('slot: functions are not nouns');
   }
-  assertValue(value, 'slot');
+  checkValue(value, 'slot');
 
   let current = value;
   if (number < 0x80000000) {
@@ -195,8 +197,8 @@ export function edit(axis, target, value) {
   if (typeof target === 'function') {
     fail('edit: functions are not nouns');
   }
-  assertValue(target, 'edit target');
-  assertValue(value, 'edit replacement');
+  checkValue(target, 'edit target');
+  checkValue(value, 'edit replacement');
 
   if (path.length === 0) {
     return value;

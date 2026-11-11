@@ -12,7 +12,7 @@
 ::  API
 ::    +compile  expr  @t     an ES module whose evaluate returns the value
 ::
-/+  jibb-core, jibb-js-template
+/+  jibb-core, jibb-js-template, jibb-js-direct
 |%
 ::  Bindings, innermost scope first; each maps a Core name to its variable.
 ::  depth counts the lambdas around a scope: 0 is the module's own level.
@@ -21,12 +21,12 @@
 ::  The emitter's state: the next variable's number, the natives used, the
 ::  slots of the lambdas made once, latest first, and whether the program
 ::  remembers products, which it does unless it traces.
-+$  state  [next=@ud natives=(set @t) hoisted=(list @t) memoize=?]
++$  state  [next=@ud natives=(set @t) hoisted=(list @t) memoize=? sites=(list site:jibb-js-direct)]
 ::
 ++  compile
   |=  e=expr:jibb-core
   ^-  @t
-  =/  made=[out=@t s=state]  (expression e ~ [0 ~ ~ !(has-trace e)])
+  =/  made=[out=@t s=state]  (expression e ~ [0 ~ ~ !(has-trace e) ~])
   =/  slots=@t
     ?~  hoisted.s.made  ''
     (rap 3 ~['let ' (join-text ', ' (flop hoisted.s.made)) ';\0a'])
@@ -36,7 +36,7 @@
   %+  rap  3
   :~  '// Generated from Jibb Core. Do not edit.\0a'
       'export function evaluate(runtime, natives) {\0a'
-      'const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;\0a'
+      'const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;\0a'
       'const requireNative = (registry, name) => {\0a'
       '  if (registry === null || typeof registry !== \'object\' || !Object.hasOwn(registry, name) || typeof registry[name] !== \'function\') {\0a'
       '    throw new TypeError(`missing native ${name}`);\0a'
@@ -87,7 +87,7 @@
   ?>  ?=(^ sc)
   ?<  (~(has by names.i.sc) n)
   =^  var  s  (fresh s)
-  [var [i.sc(names (~(put by names.i.sc) n var), known (~(put by known.i.sc) n [%unknown ~])) t.sc] s]
+  [var [i.sc(names (~(put by names.i.sc) n var), known (~(put by known.i.sc) n [%bound var [%unknown ~]])) t.sc] s]
 ::  Immutable abstract bindings at this lexical site, outer scopes first.
 ++  scope-env
   |=  sc=scopes
@@ -103,18 +103,21 @@
   |=  [n=name:jibb-core value=value:jibb-js-template sc=scopes]
   ^-  scopes
   ?>  ?=(^ sc)
-  [i.sc(known (~(put by known.i.sc) n value)) t.sc]
+  [i.sc(known (~(put by known.i.sc) n [%bound (lookup n sc) value])) t.sc]
 ::  Decorate after memoization; the ordinary gate's identity and execution
 ::  remain unchanged. The browser requires the canonical native registry.
 ++  decorate
-  |=  [made=@t e=expr:jibb-core sc=scopes]
+  |=  [made=@t e=expr:jibb-core sc=scopes sites=(list site:jibb-js-direct)]
   ^-  [out=@t planned=?]
+  =/  environment=environment:jibb-js-template  (scope-env sc)
   =/  plan=(unit plan:jibb-js-template)
-    (view-template:jibb-js-template e (scope-env sc))
+    (view-template:jibb-js-template e environment)
   ?~  plan  [made |]
+  =/  direct=(unit @t)  (direct-holes:jibb-js-direct e environment axes.u.plan sites)
+  =/  extra=@t  ?~(direct '' (rap 3 ~[', ' u.direct]))
   =/  axes=@t
     (join-text ', ' (turn axes.u.plan |=(axis=@ud (crip (a-co:co axis)))))
-  [(rap 3 ~['viewTemplate(' made ', ' tree.u.plan ', [' axes '], natives)']) &]
+  [(rap 3 ~['viewTemplate(' made ', ' tree.u.plan ', [' axes '], natives' extra ')']) &]
 ::
 ++  lookup
   |=  [n=name:jibb-core sc=scopes]
@@ -170,28 +173,7 @@
 ++  free-names
   |=  [e=expr:jibb-core bound=(set name:jibb-core)]
   ^-  (set name:jibb-core)
-  ?-  -.e
-    ?(%lit %native %crash)  ~
-    %var     ?:((~(has in bound) name.e) ~ (sy ~[name.e]))
-    %cons    (~(uni in $(e hed.e)) $(e tal.e))
-    %slot    $(e body.e)
-    %edit    (~(uni in $(e body.e)) $(e value.e))
-    %cell    $(e body.e)
-    %eq      (~(uni in $(e left.e)) $(e right.e))
-    %if      (~(uni in (~(uni in $(e test.e)) $(e yes.e))) $(e no.e))
-    %let     (~(uni in $(e value.e)) $(e body.e, bound (~(put in bound) name.e)))
-    %rec
-      =/  inner=(set name:jibb-core)
-        (~(gas in bound) (turn arms.e |=(a=rec-arm:jibb-core name.a)))
-      =/  arms=(list rec-arm:jibb-core)  arms.e
-      =/  out=(set name:jibb-core)  $(e body.e, bound inner)
-      |-
-      ?~  arms  out
-      $(arms t.arms, out (~(uni in out) ^$(e fun.i.arms, bound inner)))
-    %lam     $(e body.e, bound (~(put in bound) sample.e))
-    %app     (~(uni in $(e fun.e)) $(e sample.e))
-    %trace   (~(uni in $(e message.e)) $(e body.e))
-  ==
+  (free-names:jibb-js-direct e bound)
 ::
 ::  A lambda inside another whose every free name is bound outside all
 ::  lambdas is the same closure each time, so it is made once.
@@ -257,13 +239,17 @@
       %lam
     =^  made  s  (lambda e sc s ~ |)
     =?  made  &(=(0 (scope-depth sc)) memoize.s)  (rap 3 ~['memo(' made ')'])
-    =/  decorated=[out=@t planned=?]  (decorate made e sc)
+    =/  decorated=[out=@t planned=?]  (decorate made e sc (flop sites.s))
     =.  made  out.decorated
     ?:  =(0 (scope-depth sc))
       [made s]
     ?.  (closed e sc)  [made s]
     =/  slot=@t  (cat 3 '$h' (crip (a-co:co (lent hoisted.s))))
-    [(rap 3 ~['(' slot ' ??= ' made ')']) s(hoisted [slot hoisted.s])]
+    =/  code=@t  (rap 3 ~['(' slot ' ??= ' made ')'])
+    =/  refs=(map name:jibb-core @t)
+      %-  malt
+      (turn ~(tap in (free-names e ~)) |=(name=name:jibb-core [name (lookup name sc)]))
+    [code s(hoisted [slot hoisted.s], sites [[e refs code] sites.s])]
   ::
       %app
     =^  fun  s  $(e fun.e)
@@ -302,7 +288,7 @@
   ?.  ?=(%lam -.fun.i.arms)  ~|([%recursive-binding-not-a-lambda name.i.arms] !!)
   =^  decl  s  (lambda fun.i.arms sc s `[var=i.vars name=name.i.arms] &)
   =?  decl  memo  (rap 3 ~['memo(' decl ')'])
-  =/  decorated=[out=@t planned=?]  (decorate decl fun.i.arms sc)
+  =/  decorated=[out=@t planned=?]  (decorate decl fun.i.arms sc (flop sites.s))
   =.  decl
     ?:(|(memo planned.decorated) (rap 3 ~['const ' i.vars ' = ' out.decorated ';']) out.decorated)
   $(arms t.arms, vars t.vars, out [decl out])
@@ -325,7 +311,7 @@
     =^  current  s.inner  (fresh s.inner)
     ?>  ?=(^ sc.inner)
     =/  looped=scopes
-      [i.sc.inner(names (~(put by names.i.sc.inner) sample.e current)) t.sc.inner]
+      [i.sc.inner(names (~(put by names.i.sc.inner) sample.e current), known (~(put by known.i.sc.inner) sample.e [%bound current [%unknown ~]])) t.sc.inner]
     =^  body  s.inner  (tail-expression body.e looped s.inner [loop name.u.self])
     :_  s.inner
     %+  rap  3

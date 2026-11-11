@@ -1,0 +1,2 @@
+(lam model (let saved (cons model ~)
+  (app (native raw-seal) (cons %column (cons ~ (cons (app (native raw-seal) (cons %text (slot 2 saved))) (cons (app (native raw-seal) (cons %button (cons "Pair" (cons saved saved)))) ~)))))))

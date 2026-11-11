@@ -1,0 +1,5 @@
+(rec ((walk (lam state
+  (if (eq (slot 2 state) 0)
+    (lam ignored (app (native raw-seal) (cons %text (slot 3 state))))
+    (app walk (cons (app (native dec) (slot 2 state)) (slot 3 state)))))))
+  (app walk (cons 2 "done")))

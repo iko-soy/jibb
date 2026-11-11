@@ -1,0 +1,30 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+requireNative(natives, "raw-seal");
+requireNative(natives, "scot");
+let $h0, $h1;
+return (() => { const $1 = memo((($0) => apply(natives["raw-seal"], cons(BigInt("1751343461"), $0)))); return (() => {
+const $2 = memo(function $2($3) { return (requireLoobean(isCell(slot(2n, $3))) ? cons(apply(slot(3n, $3), slot(4n, $3)), apply($2, cons(slot(5n, $3), slot(3n, $3)))) : BigInt("0")); });
+return viewTemplate(memo((($4) => apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("431315315046"), cons(BigInt("499933868612"), cons(slot(2n, $4), ($h0 ??= (($5) => cons(BigInt("431198599540"), $5))))))), cons(apply($1, apply($2, cons(slot(3n, $4), ($h1 ??= (($6) => cons($6, apply(natives["raw-seal"], cons(BigInt("1954047348"), apply(natives["scot"], cons(BigInt("25717"), $6)))))))))), BigInt("0")))))))), ["div",{"class":"j-column"},[-1,-2]], [30, 62], natives, (($model) => {
+const $v0 = slot(2n, $model);
+checkValue($v0, "cons head");
+const $v1 = slot(3n, $model);
+checkValue($v1, "cons head");
+const $v2 = cons($v1, ($h1 ??= (($6) => cons($6, apply(natives["raw-seal"], cons(BigInt("1954047348"), apply(natives["scot"], cons(BigInt("25717"), $6))))))));
+const $v3 = apply($2, $v2);
+const $v4 = apply($1, $v3);
+checkValue($v4, "cons head");
+const $v5 = cons($v0, ($h0 ??= (($5) => cons(BigInt("431198599540"), $5))));
+const $v6 = cons(BigInt("499933868612"), $v5);
+const $v7 = cons(BigInt("431315315046"), $v6);
+const $v8 = apply(natives["raw-seal"], $v7);
+return [$v8, $v4];
+}));
+})(); })();
+}

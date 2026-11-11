@@ -1,11 +1,42 @@
 // Generated from Jibb Core. Do not edit.
 export function evaluate(runtime, natives) {
-const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
 const requireNative = (registry, name) => {
   if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
     throw new TypeError(`missing native ${name}`);
   }
 };
 requireNative(natives, "raw-seal");
-return cons(viewTemplate(memo((($0) => apply(natives["raw-seal"], cons(BigInt("7827314"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), slot(3n, $0))))), cons(apply(natives["raw-seal"], cons(BigInt("1885434487"), cons(cons(cons(BigInt("7364967"), slot(2n, $0)), BigInt("0")), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("7827314"))), BigInt("0"))))), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(slot(2n, $0), BigInt("8588042669732815793031778040132")))), cons(apply(natives["raw-seal"], cons(BigInt("1634886000"), cons(slot(3n, $0), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), BigInt("0"))))), BigInt("0")))))))))), ["div",{"class":"j-row"},[-1,-2,-3,["p",{},[-4,4]]]], [30, 62, 126, 2038, 16315], natives), memo((($1) => apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), $1))))));
+return cons(viewTemplate(memo((($0) => apply(natives["raw-seal"], cons(BigInt("7827314"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), slot(3n, $0))))), cons(apply(natives["raw-seal"], cons(BigInt("1885434487"), cons(cons(cons(BigInt("7364967"), slot(2n, $0)), BigInt("0")), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("7827314"))), BigInt("0"))))), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(slot(2n, $0), BigInt("8588042669732815793031778040132")))), cons(apply(natives["raw-seal"], cons(BigInt("1634886000"), cons(slot(3n, $0), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), BigInt("0"))))), BigInt("0")))))))))), ["div",{"class":"j-row"},[-1,-2,-3,["p",{},[-4,4]]]], [30, 62, 126, 2038, 16315], natives, (($model) => {
+const $v0 = slot(2n, $model);
+checkValue($v0, "cons tail");
+const $v1 = slot(3n, $model);
+checkValue($v1, "cons tail");
+const $v2 = slot(2n, $model);
+checkValue($v2, "cons tail");
+const $v3 = slot(2n, $model);
+checkValue($v3, "cons head");
+const $v4 = slot(3n, $model);
+const $v5 = slot(2n, $model);
+checkValue($v5, "cons tail");
+checkValue($v4, "cons head");
+const $v6 = cons(BigInt("1954047348"), $v0);
+const $v7 = apply(natives["raw-seal"], $v6);
+const $v8 = cons($v7, $v1);
+const $v9 = cons(BigInt("0"), $v8);
+const $v10 = cons(BigInt("121416400531299"), $v9);
+const $v11 = apply(natives["raw-seal"], $v10);
+const $v12 = cons(BigInt("7364967"), $v2);
+const $v13 = cons($v12, BigInt("0"));
+const $v14 = cons(BigInt("1954047348"), BigInt("7827314"));
+const $v15 = apply(natives["raw-seal"], $v14);
+const $v16 = cons($v15, BigInt("0"));
+const $v17 = cons($v13, $v16);
+const $v18 = cons(BigInt("1885434487"), $v17);
+const $v19 = apply(natives["raw-seal"], $v18);
+const $v20 = cons($v3, BigInt("8588042669732815793031778040132"));
+const $v21 = cons(BigInt("29113321535923560"), $v20);
+const $v22 = apply(natives["raw-seal"], $v21);
+return [$v11, $v19, $v22, $v4, $v5];
+})), memo((($1) => apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), $1))))));
 }
