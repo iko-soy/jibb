@@ -2,8 +2,9 @@ import { readLiteral } from './literal.mjs';
 
 // This is analysis of authenticated Core, not a second evaluator. It discovers
 // only structure guaranteed by ordinary lexical bindings and raw-seal calls.
-// Unknown operations, recursive names and analysis limits leave the ordinary
-// view in place. The emitted gate still runs, including every crash and trace.
+// Unknown subtrees use ordinary rendering inside the fixed layout. Analysis
+// limits leave the ordinary view in place. The emitted gate still runs,
+// including every crash and trace.
 export const UNKNOWN = Object.freeze({ kind: 'unknown' });
 const LIMIT = 2000;
 const NODES = 128;
@@ -90,7 +91,25 @@ function ascii(value) {
   return result;
 }
 
-/** Static DOM structure and text-hole noun axes for an ordinary gate. */
+// Attribute nouns must be constant, not merely known cells with unknown leaves.
+// Their decoder still runs at mount, preserving its validation and errors.
+function constant(value, remaining = { nodes: NODES }) {
+  if (--remaining.nodes < 0) throw exhausted;
+  return value.kind === 'atom' || (value.kind === 'cell'
+    && constant(value.head, remaining) && constant(value.tail, remaining));
+}
+
+// Discover a fixed child count before recording any descendant hole axes.
+function properList(value) {
+  let left = NODES;
+  while (value.kind === 'cell') {
+    if (--left < 0) throw exhausted;
+    value = value.tail;
+  }
+  return value.kind === 'atom' && value.value === 0n;
+}
+
+/** Static DOM structure with text and element holes in the returned noun. */
 export function viewTemplate(node, environment = new Map()) {
   const axes = [];
   let count = NODES;
@@ -114,9 +133,14 @@ export function viewTemplate(node, environment = new Map()) {
     if (value.kind !== 'atom' || value.value !== 0n) throw exhausted;
     return result;
   };
+  const childHole = axis => {
+    axes.push(axis);
+    // Nonnegative indices are text holes; -1-index denotes an element hole.
+    return -axes.length;
+  };
   const element = (value, axis) => {
     point(axis);
-    if (value.kind !== 'seal' || value.value.kind !== 'cell') throw exhausted;
+    if (value.kind !== 'seal' || value.value.kind !== 'cell') return childHole(axis);
     const tag = ascii(value.value.head);
     const payload = value.value.tail;
     // A seal is [seal-tag raw]; raw is [tag payload].
@@ -125,7 +149,7 @@ export function viewTemplate(node, environment = new Map()) {
       case 'text':
         return words(payload, at);
       case 'heading': {
-        if (payload.kind !== 'cell' || payload.head.kind !== 'atom') throw exhausted;
+        if (payload.kind !== 'cell' || payload.head.kind !== 'atom') return childHole(axis);
         const level = payload.head.value;
         const tag = `h${level < 1n ? 1 : level > 6n ? 6 : Number(level)}`;
         return [tag, { tabIndex: '-1' }, [words(payload.tail, at * 2 + 1)]];
@@ -135,23 +159,32 @@ export function viewTemplate(node, environment = new Map()) {
       case 'wrap':
       case 'stack':
       case 'el': {
-        if (payload.kind !== 'cell' || payload.head.kind !== 'atom' || payload.head.value !== 0n) {
-          throw exhausted;
+        if (payload.kind !== 'cell' || !constant(payload.head)
+          || (tag !== 'el' && !properList(payload.tail))) {
+          return childHole(axis);
         }
-        return ['div', { class: `j-${tag}` }, tag === 'el'
+        const empty = payload.head.kind === 'atom' && payload.head.value === 0n;
+        if (!empty) point(at * 2);
+        const kids = tag === 'el'
           ? [element(payload.tail, at * 2 + 1)]
-          : children(payload.tail, at * 2 + 1)];
+          : children(payload.tail, at * 2 + 1);
+        // Numeric attrs select a proven constant noun, decoded once by the
+        // ordinary attribute decoder. The descriptor tag names its layout.
+        return empty ? ['div', { class: `j-${tag}` }, kids] : [tag, at * 2, kids];
       }
       case 'para':
+        if (!properList(payload)) return childHole(axis);
         return ['p', {}, children(payload, at)];
       default:
-        throw exhausted;
+        return childHole(axis);
     }
   };
 
   try {
     const value = evaluate(node.body, bind(environment, node.parameter, UNKNOWN), { nodes: LIMIT });
-    return { tree: element(value, 1), axes };
+    const tree = element(value, 1);
+    // Wrapping an entirely dynamic view would only repeat ordinary rendering.
+    return typeof tree === 'number' && tree < 0 ? undefined : { tree, axes };
   } catch (error) {
     if (error !== exhausted) throw error;
     return undefined;

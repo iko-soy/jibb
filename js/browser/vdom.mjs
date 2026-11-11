@@ -87,7 +87,7 @@ function lengthAttrs(value, classes, style) {
 
 // One class per family, the last of each winning in the family's first
 // place, as the server's serializer does.
-function decodeAttrs(raw, layoutClass) {
+export function decodeAttrs(raw, layoutClass) {
   const classes = new Map();
   if (layoutClass !== undefined) classes.set('layout', layoutClass);
   const style = {};

@@ -75,15 +75,19 @@ ARM_SHARDS = 8
 CHECKS = [
     Check('probes-eval', 'eval', ['tools/probe-regression']),
     tool('testdata/selftest'),                  # about 115 s
-    tool('golden'),                             # about 60 to 100 s
+    # Isolation after a failed batch must stay within this runner's job cap.
+    tool('golden', 'eval', '--jobs', '1'),
     tool('test-js'),
     tool('test-js-differential'),
     tool('bundle-js', 'eval', '--check'),
     Check('jibb-cli', 'native',
           ['cargo', 'test', '--manifest-path', 'jibb-cli/Cargo.toml']),
 ] + [
-    Check('arms-%d' % i, 'eval',                # 55 to 80 s each
-          ['tools/test-arms', '--shard', '%d/%d' % (i, ARM_SHARDS)])
+    # Full-checker batches can exceed half an hour on shared builders.
+    # This bounds each eval; the outer check timeout still applies too.
+    Check('arms-%d' % i, 'eval',
+          ['tools/test-arms', '--timeout', '3600',
+           '--shard', '%d/%d' % (i, ARM_SHARDS)])
     for i in range(1, ARM_SHARDS + 1)
 ] + [
     Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),

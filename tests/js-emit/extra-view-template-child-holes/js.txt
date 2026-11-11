@@ -1,0 +1,12 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+requireNative(natives, "raw-seal");
+let $h0;
+return viewTemplate(memo((($0) => apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(cons(cons(BigInt("7364967"), BigInt("12915")), cons(cons(BigInt("448629336439"), cons(BigInt("1819044198"), BigInt("1"))), cons(cons(BigInt("1701736308"), BigInt("125779852550500")), BigInt("0")))), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(BigInt("2"), BigInt("435611265364")))), cons(apply(natives["raw-seal"], cons(BigInt("431315315046"), cons(BigInt("499933868612"), cons(slot(2n, $0), ($h0 ??= (($1) => $1)))))), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), cons(apply(natives["raw-seal"], cons(BigInt("1751343461"), slot(3n, $0))), cons(apply(natives["raw-seal"], cons(BigInt("27749"), cons(cons(cons(BigInt("1701736308"), BigInt("431198860653")), BigInt("0")), (requireLoobean(same(slot(2n, $0), BigInt("0"))) ? slot(3n, $0) : crash("explicit Core crash"))))), BigInt("0"))))))))))), ["column",14,[["h2",{"tabIndex":"-1"},["Title"]],-1,1,-3,["el",4086,[-4]]]], [62, 507, 254, 4087], natives);
+}

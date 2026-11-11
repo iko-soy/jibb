@@ -73,6 +73,15 @@
 /*  core-22  %txt  /tests/js-emit/extra-view-template-limits/core/txt
 /*  natives-22  %txt  /tests/js-emit/extra-view-template-limits/natives/txt
 /*  js-22  %txt  /tests/js-emit/extra-view-template-limits/js/txt
+/*  core-23  %txt  /tests/js-emit/extra-view-template-child-holes/core/txt
+/*  natives-23  %txt  /tests/js-emit/extra-view-template-child-holes/natives/txt
+/*  js-23  %txt  /tests/js-emit/extra-view-template-child-holes/js/txt
+/*  core-24  %txt  /tests/js-emit/extra-view-template-child-fallbacks/core/txt
+/*  natives-24  %txt  /tests/js-emit/extra-view-template-child-fallbacks/natives/txt
+/*  js-24  %txt  /tests/js-emit/extra-view-template-child-fallbacks/js/txt
+/*  core-25  %txt  /tests/js-emit/extra-view-template-constant-bounds/core/txt
+/*  natives-25  %txt  /tests/js-emit/extra-view-template-constant-bounds/natives/txt
+/*  js-25  %txt  /tests/js-emit/extra-view-template-constant-bounds/js/txt
 |%
 ++  text
   |=  lines=wain
@@ -121,5 +130,8 @@
     (check "extra-view-template-closed-inner" core-20 natives-20 js-20)
     (check "extra-view-template-branches" core-21 natives-21 js-21)
     (check "extra-view-template-limits" core-22 natives-22 js-22)
+    (check "extra-view-template-child-holes" core-23 natives-23 js-23)
+    (check "extra-view-template-child-fallbacks" core-24 natives-24 js-24)
+    (check "extra-view-template-constant-bounds" core-25 natives-25 js-25)
   ==
 --

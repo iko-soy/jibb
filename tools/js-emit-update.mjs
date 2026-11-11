@@ -60,6 +60,28 @@ const templateLimits = `(let wrap (lam child ${sealed('el', '(cons ~ child)')})
   (let pair (lam child ${sealed('para', coreList('child', 'child'))})
     (cons (lam words ${deepTemplate})
       (cons (lam words ${wideTemplate}) (lam words ${projectedTemplate})))))`;
+const styledLayout = (tag, attrs, ...children) => sealed(tag,
+  `(cons ${attrs} ${tag === 'el' ? children[0] : coreList(...children)})`);
+const constantAttrs = coreList('(cons %gap %s2)', '(cons %width (cons %fill 1))', '(cons %tone %danger)');
+const templateHoles = `(lam model ${styledLayout('column', constantAttrs,
+  sealed('heading', '(cons 2 "Title")'),
+  sealed('field', '(cons "Draft" (cons (slot 2 model) (lam words words)))'),
+  sealed('text', '(slot 2 model)'),
+  sealed('each', '(slot 3 model)'),
+  styledLayout('el', coreList('(cons %tone %muted)'),
+    '(if (eq (slot 2 model) 0) (slot 3 model) (crash))'),
+)})`;
+const templateFallbacks = `(cons (lam model ${layout('row',
+  sealed('column', `(cons ~ (cons ${sealed('text', '(slot 2 model)')} (slot 3 model)))`),
+  styledLayout('wrap', coreList('(cons %gap (slot 2 model))'), sealed('text', '"row"')),
+  sealed('heading', '(cons (slot 2 model) "Dynamic level")'),
+  sealed('para', coreList('(slot 3 model)', sealed('text', '(slot 2 model)'))),
+)}) (lam model ${sealed('column', '(cons ~ model)')}))`;
+const repeatedAttrs = count => coreList(...Array(count).fill('(cons %gap %s1)'));
+const templateConstantBounds = `(cons
+  (lam child ${styledLayout('el', repeatedAttrs(31), 'child')})
+  (cons (lam child ${styledLayout('el', '~', styledLayout('column', repeatedAttrs(32)))})
+    (lam child ${styledLayout('el', '~', layout('column', ...Array(129).fill('child')))})))`;
 
 // Closed expressions the shared fixtures leave out: a self tail call, which
 // compiles to a loop, a recursive arm in tail position, nested lets, a trace
@@ -72,6 +94,9 @@ const extra = [
   ['view-template-closed-inner', '(lam ignored (lam words (app (native raw-seal) (cons %text words))))', ['raw-seal']],
   ['view-template-branches', templateBranches, ['raw-seal']],
   ['view-template-limits', templateLimits, ['raw-seal']],
+  ['view-template-child-holes', templateHoles, ['raw-seal']],
+  ['view-template-child-fallbacks', templateFallbacks, ['raw-seal']],
+  ['view-template-constant-bounds', templateConstantBounds, ['raw-seal']],
   ['self-tail-loop', '(rec ((count (lam n (if (eq n 0) %done (app count (app (native dec) n)))))) (app count 5))', ['dec']],
   ['tail-rec-arm', '(rec ((walk (lam p (if (cell? p) (app walk (slot 3 p)) p)))) (let start (cons 1 (cons 2 3)) (app walk start)))', []],
   ['nested-lets', '(let x 1 (let y (cons x 2) (let z (edit 2 y 7) (cons (slot 2 z) (slot 3 y)))))', []],

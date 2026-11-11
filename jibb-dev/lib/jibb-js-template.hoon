@@ -1,7 +1,7 @@
 ::  Bounded analysis of authenticated Core for static DOM templates.
 ::  The ordinary gate still runs; this analysis never changes evaluation.
 ::  Keep its bounds, descriptors and traversal in step with
-::  js/core/view-template.mjs. Unknown structure takes the ordinary path.
+::  js/core/view-template.mjs. Unknown children take the ordinary path.
 /+  jibb-core
 |%
 +$  value
@@ -90,6 +90,29 @@
   =/  byte=@  (end 3 atom)
   ?.  &((gte byte 32) (lte byte 126))  ~
   $(atom (rsh 3 atom))
+::  An attribute noun is fixed only when every reachable part is known.
+::  Its independent fuel limit must not become an ordinary element hole.
+++  constant
+  |=  [v=value fuel=@ud]
+  ^-  (unit [known=? left=@ud])
+  ?~  fuel  ~
+  =.  fuel  (dec fuel)
+  ?:  ?=(%atom -.v)  `[& fuel]
+  ?.  ?=(%cell -.v)  `[| fuel]
+  =/  hed=(unit [known=? left=@ud])  $(v hed.v)
+  ?~  hed  ~
+  ?.  known.u.hed  hed
+  $(v tal.v, fuel left.u.hed)
+::  Check the complete child-list spine before recording descendant holes.
+::  An unknown tail uses one whole element hole; an exhausted limit declines
+::  the complete plan, just like descriptor or Core analysis exhaustion.
+++  proper-list
+  |=  [v=value fuel=@ud]
+  ^-  (unit ?)
+  ?:  ?=(%cell -.v)
+    ?~  fuel  ~
+    $(v tal.v, fuel (dec fuel))
+  `&(?=(%atom -.v) =(0 val.v))
 ::
 ++  json-text
   |=  text=@t
@@ -117,6 +140,12 @@
   =/  text=(unit @t)  (ascii v)
   ?^  text  `[(json-text u.text) s]
   `[(crip (a-co:co (lent axes.s))) s(axes [axis axes.s])]
+::  Negative descriptors refer to complete ordinary element subtrees.
+::  Text and element holes share one encounter-ordered axis list.
+++  element-hole
+  |=  [axis=@ s=shape-state]
+  ^-  (unit rendered)
+  `[(rap 3 ~['-' (crip (a-co:co +((lent axes.s))))]) s(axes [axis axes.s])]
 ::
 ++  children
   |=  [v=value axis=@ s=shape-state]
@@ -136,25 +165,39 @@
   =/  next=(unit shape-state)  (point axis s)
   ?~  next  ~
   =.  s  u.next
-  ?.  ?=(%seal -.v)  ~
-  ?.  ?=(%cell -.body.v)  ~
+  ?.  ?=(%seal -.v)  (element-hole axis s)
+  ?.  ?=(%cell -.body.v)  (element-hole axis s)
   =/  tag=(unit @t)  (ascii hed.body.v)
-  ?~  tag  ~
+  ?~  tag  (element-hole axis s)
   =/  payload=value  tal.body.v
   ::  A seal is [seal-tag raw], and raw is [tag payload].
   =/  at=@  (add (mul axis 4) 3)
-  ?+  u.tag  ~
+  ?+  u.tag  (element-hole axis s)
     %text  (words payload at s)
     %heading
-      ?.  ?=(%cell -.payload)  ~
-      ?.  ?=(%atom -.hed.payload)  ~
+      ?.  ?=(%cell -.payload)  (element-hole axis s)
+      ?.  ?=(%atom -.hed.payload)  (element-hole axis s)
       =/  level=@  (min 6 (max 1 val.hed.payload))
       =/  child=(unit rendered)  (words tal.payload +((mul at 2)) s)
       ?~  child  ~
       `[(rap 3 ~['["h' (crip (a-co:co level)) '",{"tabIndex":"-1"},[' out.u.child ']]']) s.u.child]
     ?(%row %column %wrap %stack %el)
-      ?.  ?=(%cell -.payload)  ~
-      ?.  &(?=(%atom -.hed.payload) =(0 val.hed.payload))  ~
+      ?.  ?=(%cell -.payload)  (element-hole axis s)
+      =/  fixed=(unit [known=? left=@ud])  (constant hed.payload 128)
+      ?~  fixed  ~
+      ?.  known.u.fixed  (element-hole axis s)
+      =/  proper=(unit ?)
+        ?:  =('el' u.tag)  `&
+        (proper-list tal.payload 128)
+      ?~  proper  ~
+      ?.  u.proper  (element-hole axis s)
+      =/  empty=?  &(?=(%atom -.hed.payload) =(0 val.hed.payload))
+      =/  attrs-axis=@  (mul at 2)
+      =/  after-attrs=(unit shape-state)
+        ?:  empty  `s
+        (point attrs-axis s)
+      ?~  after-attrs  ~
+      =.  s  u.after-attrs
       =/  kids=(unit rendered)
         ?:  =('el' u.tag)
           =/  child=(unit rendered)  $(v tal.payload, axis +((mul at 2)))
@@ -162,8 +205,14 @@
           `[(rap 3 ~['[' out.u.child ']']) s.u.child]
         (children tal.payload +((mul at 2)) s)
       ?~  kids  ~
-      `[(rap 3 ~['["div",{"class":"j-' u.tag '"},' out.u.kids ']']) s.u.kids]
+      =/  prefix=@t
+        ?:  empty  (rap 3 ~['["div",{"class":"j-' u.tag '"},'])
+        (rap 3 ~['[' (json-text u.tag) ',' (crip (a-co:co attrs-axis)) ','])
+      `[(rap 3 ~[prefix out.u.kids ']']) s.u.kids]
     %para
+      =/  proper=(unit ?)  (proper-list payload 128)
+      ?~  proper  ~
+      ?.  u.proper  (element-hole axis s)
       =/  kids=(unit rendered)  (children payload at s)
       ?~  kids  ~
       `[(rap 3 ~['["p",{},' out.u.kids ']']) s.u.kids]
@@ -177,5 +226,6 @@
     (abstract-value body.e (~(put by env) sample.e [%unknown ~]))
   =/  tree=(unit rendered)  (element value 1 [128 ~])
   ?~  tree  ~
+  ?:  =('-' (end 3 out.u.tree))  ~
   `[out.u.tree (flop axes.s.u.tree)]
 --

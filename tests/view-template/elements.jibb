@@ -1,0 +1,19 @@
+::  A checked view with the same layout, controls and keyed-list boundaries
+::  as the todo and rows islands, without their agent or page dependencies.
++$ model [draft=@t rows=(list @ud) warning=?]
++$ msg [%typed text=@t]
+
+++ view |= m=model
+  ^- (element msg)
+  column ~[gap+%s2] ~[
+    heading 2 "Items"
+    each (turn rows.m |=(n=@ud [n (el ~ (text "Row {n}"))]))
+    row ~[gap+%s1] ~[
+      el ~[width+[%fill 1]] (field "Draft" draft.m |=%typed)
+      button "Clear" [%typed ""]
+    el ~[tone+%danger] (warning-view warning.m)
+
+++ warning-view |= show=?
+  ?- show
+  %.y (text "Too long")
+  %.n (text "")

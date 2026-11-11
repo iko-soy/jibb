@@ -237,6 +237,49 @@ const ISLANDS = `[...document.querySelectorAll('[data-jibb-island]')].map(island
 // Every island on the page has started, and there is one.
 const STARTED = `(() => { const islands = ${ISLANDS}; return islands.length > 0 && islands.every(i => i.started); })()`;
 
+// Protect the known static layout, while controls and keyed lists remain free
+// to use ordinary patching inside element holes. A changed view rendered by
+// the ordinary whole-tree diff would enumerate one of these attribute bags.
+// Inspecting the emitted JavaScript for a particular source name would not
+// prove that the browser actually used its template.
+async function guardStaticLayout(session, selectors) {
+  await session.evaluate(`(() => {
+    const container = document.querySelector('[data-jibb-island]');
+    const visits = [];
+    const nodes = Object.fromEntries(Object.entries(${JSON.stringify(selectors)}).map(([name, selector]) => {
+      const node = container.querySelector(selector);
+      if (!node?.__jibb?.vnode?.attrs) throw new Error('missing managed static node: ' + name);
+      const attributes = [...node.attributes].map(({ name, value }) => [name, value]);
+      node.__jibb.vnode.attrs = new Proxy(node.__jibb.vnode.attrs, {
+        ownKeys() {
+          visits.push(name);
+          throw new Error('template update revisited static attributes: ' + name);
+        },
+      });
+      return [name, { node, selector, attributes }];
+    }));
+    window.jibbTemplateGuard = { container, nodes, visits };
+  })()`);
+}
+
+async function checkStaticLayout(session, label) {
+  const state = await session.evaluate(`(() => {
+    const { container, nodes, visits } = window.jibbTemplateGuard;
+    return {
+      visits,
+      notice: container.querySelector('[data-jibb-notice]')?.textContent ?? null,
+      changed: Object.entries(nodes).filter(([, { node, selector, attributes }]) =>
+        !node.isConnected || node !== container.querySelector(selector)
+        || node.attributes.length !== attributes.length
+        || attributes.some(([name, value]) => node.getAttribute(name) !== value)
+      ).map(([name]) => name),
+    };
+  })()`);
+  expect(state.visits.length === 0, `${label} revisited static attributes: ${state.visits.join(', ')}`);
+  expect(state.changed.length === 0, `${label} changed static DOM or attributes: ${state.changed.join(', ')}`);
+  expect(state.notice === null, `${label} showed a crash notice: ${state.notice}`);
+}
+
 async function login(session) {
   await session.navigate(`${origin}/~/login`);
   const status = await session.evaluate(`fetch('/~/login', {
@@ -260,24 +303,78 @@ async function exampleThree(session) {
   await session.until('the todo island to start', STARTED);
   const field = '[data-jibb-island] input[type="text"]';
   const add = '[data-jibb-island] button';
-  const item = `Buy milk ${Date.now()}`;
+  await guardStaticLayout(session, {
+    column: ':scope > .j-column',
+    heading: ':scope > .j-column > h2',
+    row: ':scope > .j-column > .j-row',
+    fieldFrame: ':scope > .j-column > .j-row > .j-el',
+    error: ':scope > .j-column > .j-tone-danger',
+  });
+  const styled = await session.evaluate(`(() => {
+    const { container, nodes } = window.jibbTemplateGuard;
+    const each = container.querySelector('[data-each]');
+    window.jibbTodoNodes = {
+      field: container.querySelector('input[type="text"]'),
+      button: container.querySelector('button'),
+      each,
+      rows: [...each.children].map(node => [node.__jibb.vnode.key, node]),
+    };
+    return nodes.column.node.classList.contains('j-gap-s2')
+      && nodes.row.node.classList.contains('j-gap-s1')
+      && nodes.fieldFrame.node.style.flex === '1 1 0%'
+      && parseFloat(nodes.fieldFrame.node.style.minWidth) === 0
+      && nodes.error.node.getAttribute('aria-live') === 'polite';
+  })()`);
+  expect(styled, 'the todo template lost its constant gap, width or danger-tone attributes');
+  const stamp = Date.now();
+  const item = `Buy milk ${stamp}`;
   await session.focus(field);
-  await session.type(item);
+  await session.type(`Buy ${stamp}`);
+  await session.evaluate('window.jibbTodoNodes.field.setSelectionRange(4, 4)');
+  await session.type('milk ');
+  expect(await session.evaluate(`(() => {
+    const { field } = window.jibbTodoNodes;
+    return field === document.querySelector(${JSON.stringify(field)})
+      && field === document.activeElement && field.value === ${JSON.stringify(item)}
+      && field.selectionStart === 9 && field.selectionEnd === 9;
+  })()`), 'the todo template replaced its field or moved the caret during a middle insertion');
   await session.click(add);
   await session.until('the new todo from the agent',
     `!!document.querySelector('[data-jibb-island] input[type="checkbox"][aria-label=${JSON.stringify(item)}]')`);
   expect(await session.evaluate(`document.querySelector(${JSON.stringify(field)}).value`) === '',
     'the todo field was not cleared after Add');
   const toggle = `[data-jibb-island] input[type="checkbox"][aria-label=${JSON.stringify(item)}]`;
+  expect(await session.evaluate(`(() => {
+    const { each, rows, button } = window.jibbTodoNodes;
+    const current = new Map([...each.children].map(node => [node.__jibb.vnode.key, node]));
+    window.jibbTodoNodes.toggle = document.querySelector(${JSON.stringify(toggle)});
+    return each === document.querySelector('[data-jibb-island] [data-each]')
+      && button === document.querySelector(${JSON.stringify(add)})
+      && rows.every(([key, node]) => current.get(key) === node);
+  })()`), 'adding a todo replaced the keyed list, an existing row or the Add control');
   expect(!(await session.evaluate(`document.querySelector(${JSON.stringify(toggle)}).checked`)),
     'a new todo started done');
   await session.click(toggle);
   await session.until('the toggled todo from the agent',
     `document.querySelector(${JSON.stringify(toggle)}).checked`);
+  expect(await session.evaluate(`window.jibbTodoNodes.toggle === document.querySelector(${JSON.stringify(toggle)})
+    && document.activeElement === window.jibbTodoNodes.toggle`),
+  'the todo fact replaced its toggle or lost its focus');
   // update's validation: more than 80 characters shows an error at once.
   await session.focus(field);
   await session.type('x'.repeat(81));
   await session.until('the length error', `document.querySelector('[data-jibb-island]').textContent.includes('Too long')`);
+  await session.evaluate('window.jibbTodoNodes.field.setSelectionRange(0, 81)');
+  await session.type('ok');
+  await session.until('the length error to clear',
+    `window.jibbTemplateGuard.nodes.error.node.textContent === ''`);
+  expect(await session.evaluate(`(() => {
+    const { field } = window.jibbTodoNodes;
+    return field === document.querySelector(${JSON.stringify(field)})
+      && document.activeElement === field && field.value === 'ok'
+      && field.selectionStart === 2 && field.selectionEnd === 2;
+  })()`), 'the todo template lost field identity, focus or selection while clearing validation');
+  await checkStaticLayout(session, 'the todo template');
   // A fresh scry renders the new todo on the server too.
   await session.navigate(page);
   const fresh = await session.evaluate(`fetch(location.href).then(r => r.text())`);
@@ -286,7 +383,7 @@ async function exampleThree(session) {
   await session.until('the todo island to start again', STARTED);
   const problems = session.takeProblems();
   expect(problems.length === 0, `worked example 3 logged: ${problems.join('; ')}`);
-  console.log('ok   worked example 3: the island added and toggled a todo through the %todo agent');
+  console.log('ok   worked example 3: compiled layout keeps controls and keyed rows while adding and toggling a todo through the %todo agent');
 }
 
 async function storeExample(session) {
@@ -371,6 +468,46 @@ async function viewTemplates(session) {
   const problems = session.takeProblems();
   expect(problems.length === 0, `view templates logged: ${problems.join('; ')}`);
   console.log('ok   compiled view template: timer updates text and retains static DOM');
+}
+
+async function rowTemplates(session) {
+  await session.navigate(`${origin}/apps/jibb-host-fixture/bench`);
+  await session.until('the rows template to start', STARTED);
+  await guardStaticLayout(session, { column: ':scope > .j-column' });
+  const count = await session.evaluate(`(() => {
+    const { container, nodes } = window.jibbTemplateGuard;
+    const root = nodes.column.node;
+    const each = root.querySelector('[data-each]');
+    window.jibbRowNodes = {
+      field: root.querySelector('input'),
+      echo: root.childNodes[1],
+      each,
+      rows: [...each.children].map(node => [node.__jibb.vnode.key, node]),
+    };
+    if (!root.classList.contains('j-gap-s1')) throw new Error('the rows template lost its gap');
+    return each.children.length;
+  })()`);
+  expect(count === 500, `the rows template started with ${count} rows, not 500`);
+  await session.focus('[data-jibb-island] input');
+  await session.type('ac');
+  await session.evaluate('window.jibbRowNodes.field.setSelectionRange(1, 1)');
+  await session.type('b');
+  await session.until('the rows template to echo the middle insertion',
+    `document.querySelector('[data-jibb-island]').textContent.includes('Typed: abc')`);
+  expect(await session.evaluate(`(() => {
+    const { container, nodes } = window.jibbTemplateGuard;
+    const { field, echo, each, rows } = window.jibbRowNodes;
+    const current = [...each.children];
+    return field === container.querySelector('input') && field === document.activeElement
+      && field.value === 'abc' && field.selectionStart === 2 && field.selectionEnd === 2
+      && echo === nodes.column.node.childNodes[1] && echo.nodeValue === 'Typed: abc'
+      && each === container.querySelector('[data-each]') && current.length === rows.length
+      && rows.every(([key, node], index) => current[index] === node && node.__jibb.vnode.key === key);
+  })()`), 'the rows template replaced its field, echo or keyed rows, or moved focus or the caret');
+  await checkStaticLayout(session, 'the rows template');
+  const problems = session.takeProblems();
+  expect(problems.length === 0, `the rows template logged: ${problems.join('; ')}`);
+  console.log('ok   compiled rows template: static gap, control focus and caret, text and 500 keyed rows survive updates');
 }
 
 async function appRoutes(session) {
@@ -462,7 +599,7 @@ try {
     console.log(`Chromium's output:\n${browser.output()}`);
     throw error;
   }
-  const steps = [exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, appRoutes, benchmark]
+  const steps = [exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, rowTemplates, appRoutes, benchmark]
     .filter(step => !args.only || args.only.split(',').includes(step.name));
   for (const step of steps) {
     try {

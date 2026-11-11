@@ -53,6 +53,7 @@ export class Island {
       const options = {
         document: this.document,
         dispatch: (message) => this.send(message),
+        paths: this.paths,
       };
       this.template = createViewTemplate(this.program.view, value, options);
       this.vnode = this.template?.vnode ?? toVnode(value, this.paths);

@@ -16,6 +16,9 @@ extra-view-template-inner
 extra-view-template-closed-inner
 extra-view-template-branches
 extra-view-template-limits
+extra-view-template-child-holes
+extra-view-template-child-fallbacks
+extra-view-template-constant-bounds
 extra-self-tail-loop
 extra-tail-rec-arm
 extra-nested-lets

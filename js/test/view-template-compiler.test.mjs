@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { compileCore } from '../core/compiler.mjs';
 import { evaluateCore } from '../core/node.mjs';
 import * as runtime from '../core/runtime.mjs';
-import { cord } from '../natives/helpers.mjs';
+import { arrayToList, cord } from '../natives/helpers.mjs';
 import { loweredNatives } from '../natives/lowered.mjs';
 import { rawSeal } from '../natives/legacy.mjs';
 import { toVnode } from '../browser/vdom.mjs';
@@ -32,6 +32,11 @@ async function compiledForBrowser(source, natives = loweredNatives) {
   const module = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
   return module.evaluate({ ...runtime, viewTemplate: compiledViewTemplate }, natives);
 }
+
+const sealed = (tag, payload) => `(app (native raw-seal) (cons %${tag} ${payload}))`;
+const coreList = (...items) => items.reduceRight((tail, head) => `(cons ${head} ${tail})`, '~');
+const layout = (tag, attrs, ...children) => sealed(tag,
+  `(cons ${attrs} ${tag === 'el' ? children[0] : coreList(...children)})`);
 
 test('a checked view compiles to a static layout and model-dependent text hole', async () => {
   // The Hoon suite checks source.jibb and pins this actual linked Core.
@@ -128,6 +133,67 @@ test('shape uncertainty, dynamic attributes and same-spelled ordinary gates stay
   const noNative = await compiled('(lam x (cons %text x))', {});
   assert.equal(noNative.js.includes('requireNative(natives, "raw-seal")'), false);
   assert.equal(noNative.plans.has(noNative.value), false);
+});
+
+test('constant layout attributes and element holes retain exact returned-noun axes', async () => {
+  const attrs = coreList('(cons %gap %s2)', '(cons %width (cons %fill 1))', '(cons %tone %danger)');
+  const source = `(lam child ${layout('column', attrs,
+    sealed('heading', '(cons 2 "Title")'), 'child', sealed('text', '"after"'))})`;
+  const { value: view, plans } = await compiled(source);
+  const plan = plans.get(view);
+  assert.deepEqual(plan.tree, ['column', 14, [['h2', { tabIndex: '-1' }, ['Title']], -1, 'after']]);
+  assert.deepEqual(plan.axes, [62]);
+  for (const child of [rawSeal([cord('text'), cord('first')]), rawSeal([cord('button'), [cord('Press'), 42n]])]) {
+    const noun = view(child);
+    assert.strictEqual(runtime.slot(plan.axes[0], noun), child);
+    assert.deepEqual(runtime.slot(plan.tree[1], noun), arrayToList([
+      [cord('gap'), cord('s2')], [cord('width'), [cord('fill'), 1n]], [cord('tone'), cord('danger')],
+    ]));
+    const vnode = toVnode(noun);
+    assert.equal(vnode.attrs.class, 'j-column j-gap-s2 j-tone-danger');
+    assert.equal(vnode.attrs['aria-live'], 'polite');
+    assert.equal(vnode.attrs.style.flex, '1 1 0%');
+    assert.deepEqual(vnode.children[1], toVnode(child));
+  }
+});
+
+test('unknown child lists and dynamic attributes become whole subtree holes without stray axes', async () => {
+  const changing = sealed('column', `(cons ~ (cons ${sealed('text', '(slot 2 model)')} (slot 3 model)))`);
+  const attrs = coreList('(cons %gap (slot 2 model))');
+  const dynamicAttrs = layout('row', attrs, sealed('text', '"row"'));
+  const { value: view, plans } = await compiled(`(lam model ${layout('column', '~',
+    changing, dynamicAttrs, sealed('text', '"after"'))})`);
+  assert.deepEqual(plans.get(view).tree, ['div', { class: 'j-column' }, [-1, -2, 'after']]);
+  assert.deepEqual(plans.get(view).axes, [30, 62]);
+  const noun = view([cord('s1'), 0n]);
+  assert.equal(toVnode(runtime.slot(30, noun)).children[0].text, 's1');
+  assert.equal(toVnode(runtime.slot(62, noun)).attrs.class, 'j-row j-gap-s1');
+});
+
+test('mixed text and changing control holes share ordered axes and retain strict failures', async () => {
+  const branch = `(if (eq model 0) ${sealed('button', '(cons "Press" 42)')}
+    ${sealed('heading', '(cons model "Title")')})`;
+  const source = `(lam model ${layout('row', '~', sealed('text', 'model'), branch)})`;
+  const { value: view, plans } = await compiled(source);
+  assert.deepEqual(plans.get(view).tree, ['div', { class: 'j-row' }, [0, -2]]);
+  assert.deepEqual(plans.get(view).axes, [123, 62]);
+  assert.equal(toVnode(runtime.slot(62, view(0n))).tag, 'button');
+  assert.equal(toVnode(runtime.slot(62, view(3n))).tag, 'h3');
+  const crash = await compiled(`(lam ignored ${layout('el', '~', '(crash)')})`);
+  assert.equal(crash.plans.has(crash.value), true);
+  assert.throws(() => crash.value(0n), /explicit Core crash/);
+});
+
+test('constant attribute and fixed-list analysis bounds preserve ordinary gate execution', async () => {
+  // 32 two-atom attributes need 129 abstract nodes including the list tail.
+  const attrs = coreList(...Array(32).fill('(cons %gap %s1)'));
+  const wideAttrs = await compiled(`(lam child ${layout('el', '~', layout('column', attrs))})`);
+  assert.equal(wideAttrs.plans.has(wideAttrs.value), false);
+  assert.equal(toVnode(wideAttrs.value(0n)).children[0].attrs.class, 'j-column j-gap-s1');
+  const wideChildren = await compiled(`(lam child ${layout('el', '~', layout('column', '~',
+    ...Array(129).fill('child')))})`);
+  assert.equal(wideChildren.plans.has(wideChildren.value), false);
+  assert.equal(toVnode(wideChildren.value(rawSeal([cord('text'), cord('kept')]))).children[0].children.length, 129);
 });
 
 test('decoration preserves strict discarded work and every trace at equal samples', async () => {
