@@ -7,6 +7,7 @@
     tools/test-arms --list               the suites, their arms and reports
     tools/test-arms --report jibb-poke-bridge
     tools/test-arms --update jibb-poke-bridge
+    tools/test-arms --desk-map batch.json jibb-store jibb-api-paths
 
 The ship runs the same arms with -test /=jibb-dev=/tests (tools/ship
 test). Here each suite gets the subject Ford would give it on the
@@ -39,6 +40,7 @@ import difflib
 import fnmatch
 import importlib.machinery
 import importlib.util
+import json
 import os
 import re
 import sys
@@ -87,6 +89,48 @@ REPORT = re.compile(r'^\+\+  report\s*$', re.M)
 
 class Unusable(Exception):
     pass
+
+
+class MappedDesk:
+    """The recorded subset of an assembled desk used by a narrow run."""
+
+    def __init__(self, files):
+        self.files = files
+
+
+def mapped_desk(mapping):
+    """Load desk-relative path -> repo-relative source entries."""
+    if not isinstance(mapping, dict):
+        raise Unusable('a desk map must be a JSON object')
+    files = {}
+    for rel, source in mapping.items():
+        if not isinstance(rel, str) or not isinstance(source, str):
+            raise Unusable('desk map paths and sources must be strings')
+        for value, what in ((rel, 'desk path'), (source, 'source path')):
+            parts = value.split('/')
+            if (not value or value.startswith('/') or
+                    any(part in ('', '.', '..') for part in parts)):
+                raise Unusable('invalid %s in desk map: %s' % (what, value))
+        path = os.path.join(ROOT, *source.split('/'))
+        try:
+            with open(path, 'rb') as f:
+                data = f.read()
+        except OSError as e:
+            raise Unusable('cannot read desk map source %s: %s' % (source, e))
+        files[rel] = (data, source)
+    return MappedDesk(files)
+
+
+def load_desk_map(path):
+    """Load either an arm batch object or its direct desk mapping."""
+    try:
+        with open(path, encoding='utf-8') as f:
+            data = json.load(f)
+    except (OSError, ValueError) as e:
+        raise Unusable('cannot load desk map %s: %s' % (path, e))
+    if isinstance(data, dict) and 'desk' in data:
+        data = data['desk']
+    return mapped_desk(data)
 
 
 def load_ship():
@@ -419,6 +463,9 @@ def main(argv):
                     help='tests/lib suites by name or glob (default: all)')
     ap.add_argument('--shard', metavar='I/N',
                     help='run only the I-th of N balanced shards')
+    ap.add_argument('--desk-map', metavar='FILE',
+                    help='use a recorded desk map and explicit suites, '
+                         'without assembling the full desk')
     ap.add_argument('--dir', default=LIB_DIR, metavar='DIR',
                     help='the folder of suites (default: tests/lib)')
     ap.add_argument('--lib', default=ue.DEFAULT_LIB, metavar='PATH',
@@ -441,11 +488,20 @@ def main(argv):
     try:
         if not os.path.isfile(opts.lib):
             raise Unusable('no library at %s' % ue.display_path(opts.lib))
-        ship = load_ship()
-        try:
-            DESK = ship.assemble('jibb-dev')
-        except ship.Unable as e:
-            raise Unusable(str(e))
+        if opts.desk_map:
+            if not opts.suites:
+                raise Unusable('--desk-map requires explicit suite names')
+            if opts.shard:
+                raise Unusable('--desk-map and --shard are mutually exclusive')
+            if any(any(c in name for c in '*?[') for name in opts.suites):
+                raise Unusable('--desk-map takes suite names, not globs')
+            DESK = load_desk_map(opts.desk_map)
+        else:
+            ship = load_ship()
+            try:
+                DESK = ship.assemble('jibb-dev')
+            except ship.Unable as e:
+                raise Unusable(str(e))
         if not os.path.isdir(opts.dir):
             raise Unusable('no folder %s' % ue.display_path(opts.dir))
         suites = [Suite(os.path.join(opts.dir, n + '.hoon'), DESK)

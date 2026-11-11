@@ -2201,12 +2201,30 @@ def settle(ship, offset, quiet=0.5, limit=5.0):
     return [l for l in ship.log_since(offset) if l.strip() and not NOISE.match(l)]
 
 
+def select_test_paths(test_paths, only):
+    def is_golden(rel):
+        return (rel == 'tests/lib/jibb.hoon' or
+                re.fullmatch(r'tests/lib/jibb-golden-[^/]*\.hoon', rel) is not None)
+
+    selected = [rel for rel in test_paths
+                if only == 'all' or is_golden(rel) == (only == 'goldens')]
+    if not selected:
+        raise Fail('--only %s selected no test files' % only)
+    return selected
+
+
+def validate_golden_selection(golden, only):
+    if only == 'goldens' and not golden_cases(golden):
+        raise Fail('--only goldens selected no golden cases')
+
+
 def cmd_test(ship, args):
     ship.require()
     lib = STUB if args.stub else args.lib
     golden = args.golden or GOLDEN
+    validate_golden_selection(golden, args.only)
     started = time.time()
-    if args.golden is None:
+    if args.golden is None and args.only != 'suites':
         content = generate_tests(golden)
         try:
             with open(TESTS_LIB, encoding='utf-8') as f:
@@ -2230,8 +2248,10 @@ def cmd_test(ship, args):
         sync(ship, 'jibb-dev', lib=lib, golden=golden, timeout=args.timeout)
     synced = time.time()
     files = assemble('jibb-dev', lib=lib, golden=golden).files
-    test_paths = sorted(rel for rel in files
-                        if rel.startswith('tests/lib/') and rel.endswith('.hoon'))
+    test_paths = select_test_paths(
+        sorted(rel for rel in files
+               if rel.startswith('tests/lib/') and rel.endswith('.hoon')),
+        args.only)
     offset = ship.log_size()
     counts = {'OK': 0, 'FAILED': 0, 'CRASHED': 0}
     ok = True
@@ -2755,6 +2775,9 @@ def main(argv):
     g.add_argument('--lib', help='use this file as /lib/jibb.hoon')
     p.add_argument('--golden', help='test these golden cases instead of '
                    'tests/golden (and leave tests/lib/jibb.hoon alone)')
+    p.add_argument('--only', choices=('all', 'suites', 'goldens'), default='all',
+                   help='run all tests, only ordinary suites, or only golden '
+                   'tests (default: %(default)s)')
     p.add_argument('--no-sync', action='store_true',
                    help='run -test on the desk as it is')
     p.add_argument('--timeout', type=int, default=3600)

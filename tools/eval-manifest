@@ -1,0 +1,352 @@
+#!/usr/bin/env python3
+"""Generate and check the dependency manifest for incremental eval checks.
+
+    tools/eval-manifest --write    write nix/eval-manifest.json
+    tools/eval-manifest --check    check freshness, coverage and narrow programs
+
+Golden cases are sorted and chunked 100 at a time. Arm batches use the eight
+balanced tools/test-arms shards from tools/check. An arm batch's "desk" object
+is accepted directly by tools/test-arms --desk-map; that option also accepts
+the desk mapping itself, without the surrounding batch object.
+"""
+
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+import os
+import sys
+
+sys.dont_write_bytecode = True
+TOOLS = os.path.dirname(os.path.realpath(__file__))
+ROOT = os.path.dirname(TOOLS)
+MANIFEST = os.path.join(ROOT, 'nix', 'eval-manifest.json')
+sys.path.insert(0, TOOLS)
+
+import prelude_groups  # noqa: E402
+import urbit_eval as ue  # noqa: E402
+
+
+class ManifestError(Exception):
+    pass
+
+
+def load_tool(name):
+    path = os.path.join(TOOLS, name)
+    module_name = 'eval_manifest_' + name.replace('-', '_')
+    loader = importlib.machinery.SourceFileLoader(module_name, path)
+    spec = importlib.util.spec_from_loader(module_name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+golden = load_tool('golden')
+test_arms = load_tool('test-arms')
+checks = load_tool('check')
+
+
+def repo_relative(path):
+    absolute = os.path.abspath(path)
+    relative = os.path.relpath(absolute, ROOT)
+    if relative == '..' or relative.startswith('..' + os.sep):
+        raise ManifestError('dependency is outside the repository: %s' % path)
+    return relative.replace(os.sep, '/')
+
+
+def in_repo(path):
+    try:
+        return repo_relative(path)
+    except ManifestError:
+        return None
+
+
+def add_file(paths, path):
+    """Add an in-repo file and its final in-repo symlink target."""
+    relative = repo_relative(path)
+    if not os.path.isfile(path):
+        raise ManifestError('dependency is not a file: %s' % relative)
+    paths.add(relative)
+    real = os.path.realpath(path)
+    target = in_repo(real)
+    if target is not None and os.path.isfile(real):
+        paths.add(target)
+
+
+def add_case(paths, folder):
+    paths.add(repo_relative(folder))
+    for dirpath, dirnames, filenames in os.walk(folder):
+        for name in filenames:
+            path = os.path.join(dirpath, name)
+            real = os.path.realpath(path)
+            if real != os.path.abspath(path) and in_repo(real) is not None:
+                add_file(paths, real)
+        for name in dirnames:
+            path = os.path.join(dirpath, name)
+            if not os.path.islink(path):
+                continue
+            real = os.path.realpath(path)
+            if in_repo(real) is None:
+                continue
+            if os.path.isfile(real):
+                add_file(paths, real)
+            elif os.path.isdir(real):
+                for target_dir, _, target_files in os.walk(real):
+                    for filename in target_files:
+                        add_file(paths, os.path.join(target_dir, filename))
+
+
+GOLDEN_COMMON = [
+    'tools/golden',
+    'tools/urbit_eval.py',
+    'tools/noun.py',
+    'tools/golden_case.py',
+    'tools/prelude_groups.py',
+    'jibb-dev/lib/jibb.hoon',
+    'jibb-dev/lib/jibb-core.hoon',
+    'jibb-dev/lib/jibb-lower.hoon',
+    'jibb-dev/lib/jibb-import.hoon',
+    'jibb-dev/lib/jibb/prelude.jibb',
+    'jibb-dev/lib/jibb/internal.jibb',
+    'jibb-dev/lib/jibb/prelude-groups.txt',
+]
+
+ARM_COMMON = [
+    'tools/test-arms',
+    'tools/urbit_eval.py',
+    'tools/noun.py',
+    'jibb-dev/lib/jibb.hoon',
+]
+
+
+def golden_batches(cases):
+    paths = set()
+    for path in GOLDEN_COMMON:
+        add_file(paths, os.path.join(ROOT, path))
+    try:
+        groups, private, readers = prelude_groups.load_all(ROOT)
+    except ValueError as error:
+        raise ManifestError(str(error)) from error
+    for entry in groups + private:
+        add_file(paths, entry[2])
+    for entry in readers:
+        add_file(paths, entry[3])
+    common = sorted(paths)
+    batches = []
+    for start in range(0, len(cases), 100):
+        chunk = cases[start:start + 100]
+        batch_paths = set(common)
+        for case in chunk:
+            add_case(batch_paths, case.folder)
+        batches.append({
+            'name': 'golden-%d' % (start // 100 + 1),
+            'cases': [case.name for case in chunk],
+            'paths': sorted(batch_paths),
+        })
+    return batches
+
+
+_MISSING = object()
+
+
+class RecordingFiles(dict):
+    """An assembled desk's files, remembering only successful lookups."""
+
+    def __init__(self, files):
+        super().__init__(files)
+        self.used = {}
+
+    def get(self, key, default=None):
+        value = dict.get(self, key, _MISSING)
+        if value is _MISSING:
+            return default
+        self.used[key] = value
+        return value
+
+    def __getitem__(self, key):
+        value = dict.__getitem__(self, key)
+        self.used[key] = value
+        return value
+
+
+def arm_program(suite_paths, desk, lib):
+    test_arms.DESK = desk
+    suites = [test_arms.Suite(path, desk) for path in suite_paths]
+    return test_arms.program_for(suites, lib, True).encode()
+
+
+def arm_batches(all_suites, assembled, lib):
+    original_files = assembled.files
+    batches = []
+    for index in range(1, checks.ARM_SHARDS + 1):
+        selected = test_arms.shard(all_suites, index, checks.ARM_SHARDS)
+        suite_paths = [suite.path for suite in selected]
+        recording = RecordingFiles(original_files)
+        assembled.files = recording
+        full_program = arm_program(suite_paths, assembled, lib)
+
+        desk_map = {}
+        paths = set(ARM_COMMON)
+        for path in suite_paths:
+            add_file(paths, path)
+        for desk_path in sorted(recording.used):
+            source = recording.used[desk_path][1]
+            absolute = os.path.join(ROOT, source)
+            relative = repo_relative(absolute)
+            add_file(paths, absolute)
+            desk_map[desk_path] = relative
+        desk_map = {key: desk_map[key] for key in sorted(desk_map)}
+
+        # Exercise the same mapped-desk path as test-arms --desk-map. The
+        # batch object and the direct mapping are both accepted by that CLI.
+        narrow = test_arms.mapped_desk(desk_map)
+        narrow_program = arm_program(suite_paths, narrow, lib)
+        if full_program != narrow_program:
+            raise ManifestError(
+                'full and narrow Hoon programs differ for arms-%d' % index)
+        batches.append({
+            'name': 'arms-%d' % index,
+            'suites': [suite.name for suite in selected],
+            'paths': sorted(paths),
+            'desk': desk_map,
+        })
+    assembled.files = original_files
+    return batches
+
+
+def valid_relative(path):
+    return (isinstance(path, str) and path and not path.startswith('/') and
+            all(part not in ('', '.', '..') for part in path.split('/')))
+
+
+def validate(manifest, cases, suites, residual):
+    if set(manifest) != {'version', 'golden_batches', 'arm_batches', 'residual'}:
+        raise ManifestError('manifest has the wrong top-level schema')
+    if manifest['version'] != 1:
+        raise ManifestError('manifest version must be 1')
+
+    golden_cases = []
+    for number, batch in enumerate(manifest['golden_batches'], 1):
+        if set(batch) != {'name', 'cases', 'paths'}:
+            raise ManifestError('golden batch has the wrong schema')
+        if batch['name'] != 'golden-%d' % number:
+            raise ManifestError('golden batches are not numbered in order')
+        if batch['cases'] != sorted(batch['cases']) or not batch['cases']:
+            raise ManifestError('%s cases are empty or unsorted' % batch['name'])
+        if len(batch['cases']) > 100 or batch['paths'] != sorted(set(batch['paths'])):
+            raise ManifestError('%s has invalid chunking or paths' % batch['name'])
+        if any(not valid_relative(path) for path in batch['paths']):
+            raise ManifestError('%s has a non-repo-relative path' % batch['name'])
+        golden_cases.extend(batch['cases'])
+    expected_cases = [case.name for case in cases]
+    if golden_cases != expected_cases or len(golden_cases) != len(set(golden_cases)):
+        raise ManifestError('golden batches do not cover every case exactly once')
+
+    arm_suites = []
+    arm_names = []
+    for number, batch in enumerate(manifest['arm_batches'], 1):
+        if set(batch) != {'name', 'suites', 'paths', 'desk'}:
+            raise ManifestError('arm batch has the wrong schema')
+        name = 'arms-%d' % number
+        if batch['name'] != name:
+            raise ManifestError('arm batches are not numbered in order')
+        arm_names.append(name)
+        if batch['suites'] != sorted(batch['suites']) or not batch['suites']:
+            raise ManifestError('%s suites are empty or unsorted' % name)
+        if batch['paths'] != sorted(set(batch['paths'])):
+            raise ManifestError('%s paths are unsorted or duplicated' % name)
+        if any(not valid_relative(path) for path in batch['paths']):
+            raise ManifestError('%s has a non-repo-relative path' % name)
+        if list(batch['desk']) != sorted(batch['desk']):
+            raise ManifestError('%s desk map is unsorted' % name)
+        for desk_path, source in batch['desk'].items():
+            if not valid_relative(desk_path) or not valid_relative(source):
+                raise ManifestError('%s has an invalid desk map entry' % name)
+            if source not in batch['paths']:
+                raise ManifestError('%s omits desk source %s' % (name, source))
+        for suite in batch['suites']:
+            source = 'tests/lib/%s.hoon' % suite
+            if source not in batch['paths']:
+                raise ManifestError('%s omits suite source %s' % (name, source))
+        arm_suites.extend(batch['suites'])
+    expected_suites = [suite.name for suite in suites]
+    if (len(arm_suites) != len(set(arm_suites)) or
+            set(arm_suites) != set(expected_suites)):
+        raise ManifestError('arm batches do not cover every suite exactly once')
+    if len(manifest['arm_batches']) != checks.ARM_SHARDS:
+        raise ManifestError('manifest does not have all eight arm shards')
+    if manifest['residual'] != residual:
+        raise ManifestError('residual checks are stale')
+
+    covered = ['golden'] + arm_names + manifest['residual']
+    eval_names = [check.name for check in checks.CHECKS if check.group == 'eval']
+    if len(covered) != len(set(covered)) or set(covered) != set(eval_names):
+        raise ManifestError('eval checks are not covered completely and disjointly')
+
+
+def build():
+    cases = golden.find_cases(os.path.join(ROOT, 'tests', 'golden'), [])
+    ship = test_arms.load_ship()
+    try:
+        assembled = ship.assemble('jibb-dev')
+    except ship.Unable as error:
+        raise ManifestError(str(error)) from error
+    test_arms.DESK = assembled
+    suites = [test_arms.Suite(os.path.join(test_arms.LIB_DIR, name + '.hoon'),
+                              assembled)
+              for name in test_arms.select(test_arms.LIB_DIR, [])]
+    residual = [check.name for check in checks.CHECKS
+                if check.group == 'eval' and check.name != 'golden'
+                and not check.name.startswith('arms-')]
+    manifest = {
+        'version': 1,
+        'golden_batches': golden_batches(cases),
+        'arm_batches': arm_batches(suites, assembled, ue.DEFAULT_LIB),
+        'residual': residual,
+    }
+    validate(manifest, cases, suites, residual)
+    return manifest
+
+
+def canonical(manifest):
+    return (json.dumps(manifest, indent=2, sort_keys=True) + '\n').encode('utf-8')
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(prog='tools/eval-manifest',
+                                     description=__doc__.split('\n\n')[0])
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--write', action='store_true',
+                      help='write the canonical manifest')
+    mode.add_argument('--check', action='store_true',
+                      help='check canonical freshness and program equivalence')
+    opts = parser.parse_args(argv)
+    try:
+        manifest = build()
+        encoded = canonical(manifest)
+        if opts.write:
+            os.makedirs(os.path.dirname(MANIFEST), exist_ok=True)
+            with open(MANIFEST, 'wb') as stream:
+                stream.write(encoded)
+            print('wrote %s' % repo_relative(MANIFEST))
+        else:
+            try:
+                with open(MANIFEST, 'rb') as stream:
+                    current = stream.read()
+            except OSError as error:
+                raise ManifestError('cannot read manifest: %s' % error) from error
+            if current != encoded:
+                raise ManifestError(
+                    'nix/eval-manifest.json is stale or non-canonical; '
+                    'run tools/eval-manifest --write')
+            print('eval-manifest: %d golden batches, %d arm batches; '
+                  'coverage and narrow programs match'
+                  % (len(manifest['golden_batches']), len(manifest['arm_batches'])))
+        return 0
+    except (ManifestError, test_arms.Unusable, ue.ToolError, OSError) as error:
+        print('eval-manifest: %s' % error, file=sys.stderr)
+        return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

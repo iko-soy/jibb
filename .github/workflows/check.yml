@@ -15,4 +15,4 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-      - run: nix flake check -L
+      - run: nix flake check -L -j 2

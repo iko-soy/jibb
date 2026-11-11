@@ -169,45 +169,91 @@
             };
           };
 
-          # A check: tools/check run on the repo with the given arguments.
-          check = name: args: extra: pkgs.stdenvNoCC.mkDerivation ({
-            name = "jibb-check-${name}";
-            src = source checkFiles;
-            # jibb is the CLI, for tools/doc-format.
-            nativeBuildInputs = [ python3 urbit nodejs esbuild terser jibb ];
+          check = name: fileset: command: extra: pkgs.stdenvNoCC.mkDerivation ({
+            inherit name;
+            src = source fileset;
+            nativeBuildInputs = [ python3 urbit ];
             dontConfigure = true;
             dontInstall = true;
             dontFixup = true;
             buildPhase = ''
               runHook preBuild
-              patchShebangs tools docs/reviews/2026-11-03-milestone-2-probes/run > /dev/null
+              patchShebangs tools > /dev/null
+              if test -d docs/reviews/2026-11-03-milestone-2-probes; then
+                patchShebangs docs/reviews/2026-11-03-milestone-2-probes/run > /dev/null
+              fi
               mkdir $out
-              tools/check ${args} --timeout 10800 --logs $out
+              set -o pipefail
+              ${command} 2>&1 | tee $out/check.log
               runHook postBuild
             '';
           } // extra);
 
-          # Every check that needs only urbit and Python, with bounded eval concurrency.
-          evalChecks = check "eval" "--group eval -j 2" { };
+          evalManifest = builtins.fromJSON (builtins.readFile ./nix/eval-manifest.json);
+          manifestFiles = paths: fs.unions (map (path: ./. + ("/" + path))
+            (builtins.filter (path: builtins.pathExists (./. + ("/" + path))) paths));
+          quote = values: builtins.concatStringsSep " " (map lib.escapeShellArg values);
+          residual = check "eval-residual" checkFiles
+            "tools/check ${quote evalManifest.residual} -j 1 --timeout 10800 --logs $out" {
+              nativeBuildInputs = [ python3 urbit nodejs esbuild terser jibb ];
+            };
+          manifestCheck = check "eval-manifest" (fs.unions [checkFiles ./nix/eval-manifest.json])
+            "tools/eval-manifest --check" { };
+          goldenParts = builtins.listToAttrs (map (batch: {
+            name = "eval-${batch.name}";
+            value = check "eval-${batch.name}" (manifestFiles batch.paths)
+              "timeout 10800s tools/golden --jobs 1 ${quote (builtins.concatMap (case: [ "--case" case ]) batch.cases)}" { };
+          }) evalManifest.golden_batches);
+          armParts = builtins.listToAttrs (map (batch: {
+            name = "eval-${batch.name}";
+            value = let
+              desk = pkgs.writeText "${batch.name}-desk.json" (builtins.toJSON batch.desk);
+            in check "eval-${batch.name}" (manifestFiles batch.paths)
+              "timeout 10800s tools/test-arms --desk-map ${desk} --timeout 3600 ${quote batch.suites}" { };
+          }) evalManifest.arm_batches);
+          evalParts = goldenParts // armParts // {
+            inherit residual manifestCheck;
+          };
+          evalChecks = pkgs.linkFarm "jibb-check-eval" (lib.mapAttrsToList
+            (name: path: { inherit name path; }) evalParts);
 
-          # The checks that need a ship, on a writable copy of fakezod.
-          shipChecks = check "ship" "--group ship" {
-            # check-browser drives headless Chromium, which hangs rendering
-            # text when the sandbox has no fonts.
-            nativeBuildInputs = [ python3 urbit nodejs esbuild terser jibb pkgs.chromium ];
-            FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [ pkgs.dejavu_fonts ]; };
+          shipTestFiles = fs.unions [
+            ./jibb-dev ./my-app ./vendor ./jibb
+            ./tools/check ./tools/ship ./tools/golden_case.py ./tools/prelude_groups.py
+          ];
+          shipExtra = {
             preBuild = ''
               cp -r ${fakezod} $TMPDIR/zod
               chmod -R u+w $TMPDIR/zod
               export JIBB_PIER=$TMPDIR/zod
               export JIBB_CLICK=${lib.getExe click}
             '';
-            # A failed run shows the end of the ship's log too.
             failureHook = ''
               echo "the end of the ship's log, $TMPDIR/zod.log:"
               tail -n 100 $TMPDIR/zod.log || true
             '';
           };
+          shipSuites = check "ship-suites" (fs.unions ([
+            shipTestFiles
+          ] ++ map (batch: manifestFiles batch.paths) evalManifest.arm_batches)) "tools/check ship-test-suites --timeout 10800 --logs $out" shipExtra;
+          shipGoldens = check "ship-goldens" (fs.unions [
+            shipTestFiles ./tests ./tools/testdata
+          ]) "tools/check ship-selftest ship-test-goldens --timeout 10800 --logs $out" shipExtra;
+          shipIntegrationFiles = fs.unions [
+            deskFiles ./tools ./docs/spec ./js ./tests
+            ./docs/reviews/2026-11-03-milestone-2-probes
+          ];
+          shipIntegration = check "ship-integration" shipIntegrationFiles
+            "tools/check check-commit clay-fixtures check-my-app check-host check-browser check-node-tests probes-ship --timeout 10800 --logs $out"
+            (shipExtra // {
+              nativeBuildInputs = [ python3 urbit nodejs esbuild terser pkgs.chromium ];
+              FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [ pkgs.dejavu_fonts ]; };
+            });
+          shipParts = {
+            inherit shipSuites shipGoldens shipIntegration;
+          };
+          shipChecks = pkgs.linkFarm "jibb-check-ship" (lib.mapAttrsToList
+            (name: path: { inherit name path; }) shipParts);
         in
         {
           packages = {

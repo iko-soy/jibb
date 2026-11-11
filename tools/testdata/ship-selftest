@@ -649,6 +649,42 @@ def results(stdout):
     return out
 
 
+def selection_checks():
+    goldens = ['tests/lib/jibb.hoon', 'tests/lib/jibb-golden-000.hoon',
+               'tests/lib/jibb-golden-extra.hoon']
+    suites = ['tests/lib/jibb-core.hoon', 'tests/lib/jibb-import.hoon']
+    paths = sorted(goldens + suites)
+    selected_suites = ship.select_test_paths(paths, 'suites')
+    selected_goldens = ship.select_test_paths(paths, 'goldens')
+    check('--only suites and goldens are disjoint and cover --only all',
+          selected_suites == sorted(suites) and
+          selected_goldens == sorted(goldens) and
+          not set(selected_suites) & set(selected_goldens) and
+          sorted(selected_suites + selected_goldens) ==
+          ship.select_test_paths(paths, 'all'))
+
+    for only, candidates in (('all', []), ('suites', goldens),
+                             ('goldens', suites)):
+        try:
+            ship.select_test_paths(candidates, only)
+        except ship.Fail as error:
+            rejected = '--only %s selected no test files' % only == str(error)
+        else:
+            rejected = False
+        check('--only %s rejects an empty selection' % only, rejected)
+
+    with tempfile.TemporaryDirectory() as empty:
+        try:
+            ship.validate_golden_selection(empty, 'goldens')
+        except ship.Fail as error:
+            rejected = str(error) == '--only goldens selected no golden cases'
+        else:
+            rejected = False
+        check('--only goldens rejects a corpus with no cases', rejected)
+        ship.validate_golden_selection(empty, 'all')
+        ship.validate_golden_selection(CASES, 'goldens')
+
+
 def deletion_checks():
     # Model a full golden desk being replaced by the much smaller stub desk.
     paths = ['/tests/golden/case-%04d/source/jibb' % i for i in range(3000)]
@@ -798,6 +834,7 @@ def main():
     tmp = tempfile.mkdtemp(prefix='ship-selftest-')
     try:
         generator_checks(tmp)
+        selection_checks()
         deletion_checks()
         if not args.no_ship:
             if not ship.Ship(ship.PIER, None, ship.CLICK).running():

@@ -94,11 +94,11 @@ CHECKS = [
     tool('doc-fragments'),
     tool('doc-format'),
     tool('split-goldens'),
-    #  The ship group.  ship-selftest leaves its fixture files on the
-    #  jibb-dev desk, and ship-test, which syncs the desk to the repo
-    #  first, puts the real ones back, so it must come after.
+    #  ship-selftest leaves its fixture files on the jibb-dev desk. The
+    #  following golden run syncs the real desk back before later checks.
     tool('testdata/ship-selftest', 'ship'),
-    Check('ship-test', 'ship', [SHIP, 'test']),
+    Check('ship-test-goldens', 'ship', [SHIP, 'test', '--only', 'goldens']),
+    Check('ship-test-suites', 'ship', [SHIP, 'test', '--only', 'suites']),
     Check('check-commit', 'ship', [SHIP, 'check-commit']),
     tool('clay-fixtures', 'ship'),
     tool('check-my-app', 'ship'),
