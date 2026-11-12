@@ -5022,6 +5022,44 @@
       ]
     }
   ],
+  "probe_batches": [
+    {
+      "groups": [
+        "p1",
+        "p2",
+        "p3",
+        "errors-p1"
+      ],
+      "name": "probes-1"
+    },
+    {
+      "groups": [
+        "p4",
+        "p5",
+        "p6",
+        "errors-p2",
+        "errors-p3"
+      ],
+      "name": "probes-2"
+    },
+    {
+      "groups": [
+        "p7",
+        "p8",
+        "p9",
+        "errors-p4"
+      ],
+      "name": "probes-3"
+    },
+    {
+      "groups": [
+        "p10",
+        "errors-p5",
+        "imports"
+      ],
+      "name": "probes-4"
+    }
+  ],
   "residual": [
     "probes-eval",
     "selftest",

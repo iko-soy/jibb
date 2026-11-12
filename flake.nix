@@ -202,8 +202,11 @@
             ./tests/type-probe ./tests/type-buttons/error.txt
             ./tests/golden/doc-core-02-update ./tests/clay-fixtures/my-app.txt
           ];
-          evalProbes = check "eval-probes" probeEvalFiles
-            "tools/check probes-eval --timeout 10800 --logs $out" { };
+          evalProbeParts = builtins.listToAttrs (map (batch: {
+            name = "eval-${batch.name}";
+            value = check "eval-${batch.name}" probeEvalFiles
+              "timeout 10800s python3 tools/probe-regression ${quote batch.groups}" { };
+          }) evalManifest.probe_batches);
           selftestFiles = fs.unions [deskFiles ./tools ./docs/spec ./js];
           evalSelftest = check "eval-selftest" selftestFiles
             "tools/check selftest --timeout 10800 --logs $out" {
@@ -229,8 +232,8 @@
             in check "eval-${batch.name}" (manifestFiles batch.paths)
               "timeout 10800s tools/test-arms --desk-map ${desk} --timeout 3600 ${quote batch.suites}" { };
           }) evalManifest.arm_batches);
-          evalParts = goldenParts // armParts // {
-            inherit residual manifestCheck evalProbes evalSelftest;
+          evalParts = goldenParts // armParts // evalProbeParts // {
+            inherit residual manifestCheck evalSelftest;
           };
           evalChecks = pkgs.linkFarm "jibb-check-eval" (lib.mapAttrsToList
             (name: path: { inherit name path; }) evalParts);
@@ -272,16 +275,21 @@
           ];
           shipBase = check "ship-base" shipIntegrationFiles
             "tools/check check-commit clay-fixtures check-my-app --timeout 10800 --logs $out" shipExtra;
-          shipProbes = check "ship-probes" shipIntegrationFiles
-            "tools/check probes-ship --timeout 10800 --logs $out" shipExtra;
+          shipProbeFiles = fs.unions [probeEvalFiles ./tests/probes];
+          shipProbeParts = builtins.listToAttrs (map (batch: {
+            name = "ship-${batch.name}";
+            value = check "ship-${batch.name}" shipProbeFiles
+              "timeout 10800s python3 tools/probe-regression --backend ship ${quote batch.groups}"
+              directShipExtra;
+          }) evalManifest.probe_batches);
           shipHost = check "ship-host" shipIntegrationFiles
             "tools/check check-host check-browser check-node-tests --timeout 10800 --logs $out"
             (shipExtra // {
               nativeBuildInputs = [ python3 urbit nodejs esbuild terser pkgs.chromium ];
               FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [ pkgs.dejavu_fonts ]; };
             });
-          shipParts = shipSuiteParts // {
-            inherit shipGoldens shipBase shipProbes shipHost;
+          shipParts = shipSuiteParts // shipProbeParts // {
+            inherit shipGoldens shipBase shipHost;
           };
           shipChecks = pkgs.linkFarm "jibb-check-ship" (lib.mapAttrsToList
             (name: path: { inherit name path; }) shipParts);

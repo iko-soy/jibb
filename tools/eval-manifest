@@ -44,6 +44,7 @@ def load_tool(name):
 golden = load_tool('golden')
 test_arms = load_tool('test-arms')
 checks = load_tool('check')
+probe_regression = load_tool('probe-regression')
 
 
 def repo_relative(path):
@@ -117,6 +118,13 @@ ARM_COMMON = [
     'tools/noun.py',
     'jibb-dev/lib/jibb.hoon',
 ]
+
+PROBE_GROUPS = (
+    ('p1', 'p2', 'p3', 'errors-p1'),
+    ('p4', 'p5', 'p6', 'errors-p2', 'errors-p3'),
+    ('p7', 'p8', 'p9', 'errors-p4'),
+    ('p10', 'errors-p5', 'imports'),
+)
 
 
 def golden_batches(cases):
@@ -219,8 +227,13 @@ def valid_relative(path):
             all(part not in ('', '.', '..') for part in path.split('/')))
 
 
+def probe_batches():
+    return [{'name': 'probes-%d' % (index + 1), 'groups': list(groups)}
+            for index, groups in enumerate(PROBE_GROUPS)]
+
+
 def validate(manifest, cases, suites, residual):
-    if set(manifest) != {'version', 'golden_batches', 'arm_batches', 'residual'}:
+    if set(manifest) != {'version', 'golden_batches', 'arm_batches', 'probe_batches', 'residual'}:
         raise ManifestError('manifest has the wrong top-level schema')
     if manifest['version'] != 1:
         raise ManifestError('manifest version must be 1')
@@ -275,6 +288,15 @@ def validate(manifest, cases, suites, residual):
         raise ManifestError('arm batches do not cover every suite exactly once')
     if len(manifest['arm_batches']) != checks.ARM_SHARDS:
         raise ManifestError('manifest does not have all eight arm shards')
+    groups = []
+    for number, batch in enumerate(manifest['probe_batches'], 1):
+        if set(batch) != {'name', 'groups'}:
+            raise ManifestError('probe batch has the wrong schema')
+        if batch['name'] != 'probes-%d' % number or not batch['groups']:
+            raise ManifestError('probe batches are not named and populated in order')
+        groups.extend(batch['groups'])
+    if len(groups) != len(set(groups)) or set(groups) != set(probe_regression.GROUPS):
+        raise ManifestError('probe batches do not cover every group exactly once')
     if manifest['residual'] != residual:
         raise ManifestError('residual checks are stale')
 
@@ -302,6 +324,7 @@ def build():
         'version': 1,
         'golden_batches': golden_batches(cases),
         'arm_batches': arm_batches(suites, assembled, ue.DEFAULT_LIB),
+        'probe_batches': probe_batches(),
         'residual': residual,
     }
     validate(manifest, cases, suites, residual)
