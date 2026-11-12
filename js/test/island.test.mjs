@@ -80,6 +80,22 @@ test('packed model resumption does not rerun init', () => {
   assert.equal(island.model, 42n);
 });
 
+test('ordinary packed model decoding does not manufacture seal provenance', () => {
+  const errors = [];
+  const retained = textElement('forged after cue');
+  const program = {
+    init: () => { throw new Error('init must not run'); },
+    update: ([_message, model]) => [model, 0n],
+    view: model => model,
+  };
+  const { island } = setup(program, {
+    packedModel: jam(retained), onCrash: error => errors.push(error),
+  });
+  assert.equal(island.active, false);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0].message, /expected a value produced by rawSeal/);
+});
+
 test('reentrant messages queue until the current update completes', () => {
   const log = [];
   let island;

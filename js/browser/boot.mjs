@@ -176,6 +176,7 @@ export async function boot({
     const island = new Island({
       program: programOf(loaded.main),
       packedModel: decodeUw(state.textContent.trim()),
+      checkedInit: true,
       container,
       document,
       paths,

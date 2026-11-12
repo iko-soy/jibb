@@ -296,6 +296,19 @@ export function rawSeal(value) {
   return sealed;
 }
 
+export function restoreSealedModel(value) {
+  const seen = new Set();
+  const pending = [value];
+  while (pending.length !== 0) {
+    const current = pending.pop();
+    if (!Array.isArray(current) || seen.has(current)) continue;
+    seen.add(current);
+    if (current.length === 2 && current[0] === SEAL_TAG) current[SEALED] = true;
+    pending.push(current[0], current[1]);
+  }
+  return value;
+}
+
 export function isRawSeal(value) {
   return Array.isArray(value) && value.length === 2 && value[0] === SEAL_TAG
     && value[SEALED] === true;

@@ -4,6 +4,7 @@ import test from 'node:test';
 import { readLiteral } from '../core/literal.mjs';
 import { CoreCrash, atomToBytes, bytesToAtom } from '../core/runtime.mjs';
 import { scot } from '../natives/atom.mjs';
+import { cue, jam } from '../natives/codec.mjs';
 import {
   arrayToList,
   cord,
@@ -17,6 +18,7 @@ import {
   rawDateUnpack,
   rawParseAtom,
   rawSeal,
+  restoreSealedModel,
   validateRawSeal,
 } from '../natives/legacy.mjs';
 
@@ -315,6 +317,19 @@ test('seal preserves the value ABI and validation rejects raw and forged wrapper
   first[0] = 0n;
   assert.equal(isRawSeal(first), false);
   throwsCore(() => validateRawSeal(first));
+});
+
+test('checked-init restoration preserves nested sharing while generic cue stays unauthenticated', () => {
+  const element = rawSeal([cord('text'), cord('kept')]);
+  const decoded = cue(jam([element, [element, 0n]]));
+  assert.strictEqual(decoded[0], decoded[1][0]);
+  assert.equal(isRawSeal(decoded[0]), false);
+  throwsCore(() => validateRawSeal(decoded[0]));
+  const restored = restoreSealedModel(decoded);
+  assert.strictEqual(restored, decoded);
+  assert.strictEqual(restored[0], restored[1][0]);
+  assert.equal(isRawSeal(restored[0]), true);
+  assert.equal(isRawSeal(restored[1][0]), true);
 });
 
 test('sealed nouns retain their byte-level atom/list representation', () => {

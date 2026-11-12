@@ -1,6 +1,7 @@
 import { apply, same } from '../core/runtime.mjs';
 import { cue } from '../natives/codec.mjs';
 import { pair, listToArray } from '../natives/helpers.mjs';
+import { restoreSealedModel } from '../natives/legacy.mjs';
 import { createDom, patchDom, syncControls } from './dom.mjs';
 import { toVnode } from './vdom.mjs';
 import { createViewTemplate } from './template.mjs';
@@ -11,6 +12,7 @@ export class Island {
     data = 0n,
     model,
     packedModel,
+    checkedInit = false,
     container,
     document,
     dispatchCommand,
@@ -27,6 +29,7 @@ export class Island {
     this.data = data;
     this.model = model;
     this.packedModel = packedModel;
+    this.checkedInit = checkedInit;
     this.container = container;
     this.document = document;
     this.dispatchCommand = dispatchCommand;
@@ -45,9 +48,12 @@ export class Island {
     if (this.active) return this;
     try {
       if (this.model === undefined) {
-        this.model = this.packedModel === undefined
-          ? apply(this.program.init, this.data)
-          : cue(this.packedModel);
+        if (this.packedModel === undefined) {
+          this.model = apply(this.program.init, this.data);
+        } else {
+          const resumed = cue(this.packedModel);
+          this.model = this.checkedInit ? restoreSealedModel(resumed) : resumed;
+        }
       }
       const value = apply(this.program.view, this.model);
       const options = {

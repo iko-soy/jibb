@@ -4,6 +4,7 @@ import { compileCore } from '../core/compiler.mjs';
 import { boot, CRASH_NOTICE } from '../browser/boot.mjs';
 import { encodeUw, jam } from '../natives/codec.mjs';
 import { cord } from '../natives/helpers.mjs';
+import { rawSeal } from '../natives/legacy.mjs';
 import { nativeNames } from '../natives/index.mjs';
 import { createFakeDocument, FakeEvent } from './fake-dom.mjs';
 
@@ -18,6 +19,13 @@ const COUNTER = module(`
   (lam m 0))))`);
 
 // A store whose state adds each %add's payload.
+const RETAINED = module(`
+  (cons (lam d (crash))
+  (cons (lam s (cons (cons (slot 2 (slot 3 s)) (slot 2 s)) 0))
+  (cons (lam m (app (native raw-seal) (cons %column (cons 0
+    (cons (slot 2 m) (cons (app (native raw-seal) (cons %text (slot 3 m))) 0))))))
+  (lam m 0))))`);
+
 const CART = module(`
   (cons 0 (lam a (app (native add) (cons (slot 3 a) (slot 3 (slot 2 a))))))`);
 
@@ -114,6 +122,22 @@ test('boot starts each island from the model the server rendered with', async ()
   button.dispatchEvent(new FakeEvent('click', { bubbles: true }));
   assert.equal(island.model, 42n);
   assert.equal(container.childNodes[0].textContent, '42');
+});
+
+test('boot restores elements retained in a checked init model and renders them again', async () => {
+  const retained = rawSeal([cord('text'), cord('kept')]);
+  const { document, containers, load } = page({
+    islands: [{ hash: '0vretained', model: [retained, cord('first')] }],
+    sources: { '0vretained': RETAINED },
+  });
+  const [island] = await boot({ document, window: fakeWindow(), load, fetchImpl: noFetch, uid: 'u' });
+  assert.equal(island.active, true);
+  assert.equal(containers[0].textContent, 'keptfirst');
+  assert.equal(containers[0].querySelector('[data-jibb-notice]'), null);
+  const resumed = island.model[0];
+  island.send(cord('second'));
+  assert.equal(containers[0].textContent, 'keptsecond');
+  assert.strictEqual(island.model[0], resumed);
 });
 
 test('a page has one store, which its islands share', async () => {
