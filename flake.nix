@@ -193,8 +193,26 @@
           manifestFiles = paths: fs.unions (map (path: ./. + ("/" + path))
             (builtins.filter (path: builtins.pathExists (./. + ("/" + path))) paths));
           quote = values: builtins.concatStringsSep " " (map lib.escapeShellArg values);
+          probeEvalFiles = fs.unions [
+            ./jibb-dev ./my-app ./vendor ./jibb
+            ./tools/check ./tools/probe-regression ./tools/check-my-app ./tools/ship
+            ./tools/hoon ./tools/urbit_eval.py ./tools/noun.py
+            ./tools/golden_case.py ./tools/prelude_groups.py
+            ./docs/reviews/2026-11-03-milestone-2-probes
+            ./tests/type-probe ./tests/type-buttons/error.txt
+            ./tests/golden/doc-core-02-update ./tests/clay-fixtures/my-app.txt
+          ];
+          evalProbes = check "eval-probes" probeEvalFiles
+            "tools/check probes-eval --timeout 10800 --logs $out" { };
+          selftestFiles = fs.unions [deskFiles ./tools ./docs/spec ./js];
+          evalSelftest = check "eval-selftest" selftestFiles
+            "tools/check selftest --timeout 10800 --logs $out" {
+              nativeBuildInputs = [ python3 urbit nodejs esbuild terser ];
+            };
+          residualNames = builtins.filter
+            (name: name != "probes-eval" && name != "selftest") evalManifest.residual;
           residual = check "eval-residual" checkFiles
-            "tools/check ${quote evalManifest.residual} -j 1 --timeout 10800 --logs $out" {
+            "tools/check ${quote residualNames} -j 1 --timeout 10800 --logs $out" {
               nativeBuildInputs = [ python3 urbit nodejs esbuild terser jibb ];
             };
           manifestCheck = check "eval-manifest" (fs.unions [checkFiles ./nix/eval-manifest.json])
@@ -212,7 +230,7 @@
               "timeout 10800s tools/test-arms --desk-map ${desk} --timeout 3600 ${quote batch.suites}" { };
           }) evalManifest.arm_batches);
           evalParts = goldenParts // armParts // {
-            inherit residual manifestCheck;
+            inherit residual manifestCheck evalProbes evalSelftest;
           };
           evalChecks = pkgs.linkFarm "jibb-check-eval" (lib.mapAttrsToList
             (name: path: { inherit name path; }) evalParts);
@@ -233,9 +251,18 @@
               tail -n 100 $TMPDIR/zod.log || true
             '';
           };
-          shipSuites = check "ship-suites" (fs.unions ([
-            shipTestFiles
-          ] ++ map (batch: manifestFiles batch.paths) evalManifest.arm_batches)) "tools/check ship-test-suites --timeout 10800 --logs $out" shipExtra;
+          directShipExtra = shipExtra // {
+            preBuild = shipExtra.preBuild + ''
+              python3 tools/ship start
+              trap 'python3 tools/ship stop --force' EXIT
+            '';
+          };
+          shipSuiteParts = builtins.listToAttrs (map (batch: {
+            name = "ship-${batch.name}";
+            value = check "ship-${batch.name}" (fs.unions [
+              shipTestFiles (manifestFiles batch.paths)
+            ]) "timeout 10800s python3 tools/ship test --only suites ${quote (builtins.concatMap (suite: [ "--suite" suite ]) batch.suites)}" directShipExtra;
+          }) evalManifest.arm_batches);
           shipGoldens = check "ship-goldens" (fs.unions [
             shipTestFiles ./tests ./tools/testdata
           ]) "tools/check ship-selftest ship-test-goldens --timeout 10800 --logs $out" shipExtra;
@@ -243,14 +270,18 @@
             deskFiles ./tools ./docs/spec ./js ./tests
             ./docs/reviews/2026-11-03-milestone-2-probes
           ];
-          shipIntegration = check "ship-integration" shipIntegrationFiles
-            "tools/check check-commit clay-fixtures check-my-app check-host check-browser check-node-tests probes-ship --timeout 10800 --logs $out"
+          shipBase = check "ship-base" shipIntegrationFiles
+            "tools/check check-commit clay-fixtures check-my-app --timeout 10800 --logs $out" shipExtra;
+          shipProbes = check "ship-probes" shipIntegrationFiles
+            "tools/check probes-ship --timeout 10800 --logs $out" shipExtra;
+          shipHost = check "ship-host" shipIntegrationFiles
+            "tools/check check-host check-browser check-node-tests --timeout 10800 --logs $out"
             (shipExtra // {
               nativeBuildInputs = [ python3 urbit nodejs esbuild terser pkgs.chromium ];
               FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [ pkgs.dejavu_fonts ]; };
             });
-          shipParts = {
-            inherit shipSuites shipGoldens shipIntegration;
+          shipParts = shipSuiteParts // {
+            inherit shipGoldens shipBase shipProbes shipHost;
           };
           shipChecks = pkgs.linkFarm "jibb-check-ship" (lib.mapAttrsToList
             (name: path: { inherit name path; }) shipParts);

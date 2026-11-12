@@ -662,6 +662,22 @@ def selection_checks():
           not set(selected_suites) & set(selected_goldens) and
           sorted(selected_suites + selected_goldens) ==
           ship.select_test_paths(paths, 'all'))
+    check('--suite selects exactly the named ordinary suites',
+          ship.select_test_paths(paths, 'suites', ['jibb-core']) ==
+          ['tests/lib/jibb-core.hoon'])
+
+    for only, selected, expected in (
+            ('all', ['jibb-core'], '--suite requires --only suites'),
+            ('suites', ['jibb-core', 'jibb-core'], 'duplicate --suite name'),
+            ('suites', ['jibb-golden-000'], '--suite takes ordinary suites, not tests/lib/jibb-golden-000.hoon'),
+            ('suites', ['missing'], 'suites not on the jibb-dev desk: tests/lib/missing.hoon')):
+        try:
+            ship.select_test_paths(paths, only, selected)
+        except ship.Fail as error:
+            rejected = str(error) == expected
+        else:
+            rejected = False
+        check('--suite rejects invalid selection: %s' % expected, rejected)
 
     for only, candidates in (('all', []), ('suites', goldens),
                              ('goldens', suites)):

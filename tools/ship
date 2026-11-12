@@ -2201,13 +2201,31 @@ def settle(ship, offset, quiet=0.5, limit=5.0):
     return [l for l in ship.log_since(offset) if l.strip() and not NOISE.match(l)]
 
 
-def select_test_paths(test_paths, only):
+def validate_suite_options(only, suites):
+    if suites and only != 'suites':
+        raise Fail('--suite requires --only suites')
+    if len(set(suites)) != len(suites):
+        raise Fail('duplicate --suite name')
+
+
+def select_test_paths(test_paths, only, suites=()):
     def is_golden(rel):
         return (rel == 'tests/lib/jibb.hoon' or
                 re.fullmatch(r'tests/lib/jibb-golden-[^/]*\.hoon', rel) is not None)
 
-    selected = [rel for rel in test_paths
-                if only == 'all' or is_golden(rel) == (only == 'goldens')]
+    validate_suite_options(only, suites)
+    if suites:
+        wanted = {'tests/lib/%s.hoon' % suite for suite in suites}
+        generated = sorted(rel for rel in wanted if is_golden(rel))
+        if generated:
+            raise Fail('--suite takes ordinary suites, not %s' % ', '.join(generated))
+        missing = sorted(wanted - set(test_paths))
+        if missing:
+            raise Fail('suites not on the jibb-dev desk: %s' % ', '.join(missing))
+        selected = [rel for rel in test_paths if rel in wanted]
+    else:
+        selected = [rel for rel in test_paths
+                    if only == 'all' or is_golden(rel) == (only == 'goldens')]
     if not selected:
         raise Fail('--only %s selected no test files' % only)
     return selected
@@ -2219,6 +2237,7 @@ def validate_golden_selection(golden, only):
 
 
 def cmd_test(ship, args):
+    validate_suite_options(args.only, args.suite)
     ship.require()
     lib = STUB if args.stub else args.lib
     golden = args.golden or GOLDEN
@@ -2244,14 +2263,14 @@ def cmd_test(ship, args):
                      "%%txt mark keeps only lines, and vere's +to-wain jet "
                      "drops a final newline), but tools/golden fails it"
                      % show(os.path.join(folder, fn)))
-    if not args.no_sync:
-        sync(ship, 'jibb-dev', lib=lib, golden=golden, timeout=args.timeout)
-    synced = time.time()
     files = assemble('jibb-dev', lib=lib, golden=golden).files
     test_paths = select_test_paths(
         sorted(rel for rel in files
                if rel.startswith('tests/lib/') and rel.endswith('.hoon')),
-        args.only)
+        args.only, args.suite)
+    if not args.no_sync:
+        sync(ship, 'jibb-dev', lib=lib, golden=golden, timeout=args.timeout)
+    synced = time.time()
     offset = ship.log_size()
     counts = {'OK': 0, 'FAILED': 0, 'CRASHED': 0}
     ok = True
@@ -2778,6 +2797,8 @@ def main(argv):
     p.add_argument('--only', choices=('all', 'suites', 'goldens'), default='all',
                    help='run all tests, only ordinary suites, or only golden '
                    'tests (default: %(default)s)')
+    p.add_argument('--suite', action='append', default=[], metavar='NAME',
+                   help='with --only suites, run only this ordinary suite; repeatable')
     p.add_argument('--no-sync', action='store_true',
                    help='run -test on the desk as it is')
     p.add_argument('--timeout', type=int, default=3600)
