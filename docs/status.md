@@ -213,6 +213,30 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+The five rejection cases in `jibb-ui-keys` now share one prepared prelude, including its authenticated Hoon-reader evidence. The suite still has three test arms, each preparing independently; preparation calls fall from seven to three. Every case retains fresh inference state and its original empty module cache. All positive and negative Jibb source bytes are unchanged. The negative cases additionally compare the complete diagnostic text, including both source sites, excerpts and carets. A scratch comparison found all five complete detailed results identical before and after reuse; existing missing, stale and forged evidence controls remain unchanged.
+
+Measurements on 2026-11-13 compare `a66cf9f` with this suite change, using pinned Vere 4.6 on x86_64-linux. The complete `arms-6` eval batch contains 85 arms in 32 suites; `tools/bench-eval --batch arms-6 --stage full` returned byte-identical output and all expected results in order. Only the suite source changed among its inputs.
+
+| Complete eval batch | Before | Shared preparation |
+| --- | ---: | ---: |
+| Wall time | 838.35 s | 754.68 s |
+| Evaluator user CPU | 815.25 s | 735.34 s |
+
+That is about 10% less wall and user CPU time for this batch, including the stronger diagnostic assertions. A separate matched-harness prototype of the rejection arm, before adding those assertions, took 228.31 to 170.64 seconds wall and 223.11 to 161.28 seconds user CPU, including common startup and compilation. Preparation-stage controls were not additive and did not establish a separate evidence-construction cost; the setup control briefly overlapped an interrupted duplicate process. These are single observations on a shared machine, not a measurement of the complete Nix check's critical path.
+
+The same 85-arm batch passed on two fresh ships with no failures or crashes. The baseline used a name-only derivation override to force execution despite an existing Nix result; its source, builder, command, desk map and dependencies were unchanged, with only its name and resulting output paths changed. The candidate used the ordinary acceptance derivation.
+
+| Fresh-ship measurement | Before | Shared preparation |
+| --- | ---: | ---: |
+| Rejection arm | 122.47 s | 25.41 s |
+| Complete three-arm UI-key suite | 171.84 s | 76.38 s |
+| Complete 85-arm test phase | 1,029.7 s | 974.2 s |
+| Build client wall time, including setup | 1,043.42 s | 987.78 s |
+
+The two independently prepared UI-key controls took 24.42 and 24.96 seconds before, and 24.93 and 26.04 seconds after. Sharing saved 95.46 seconds in the suite (55.6%); the complete ship test phase saved 55.5 seconds (5.4%). Unrelated arms took 705.68 seconds before and 743.44 seconds after. The ships overlapped other work at different times, so these single samples do not isolate background-load effects or establish an overall Nix speedup.
+
+Full `nix flake check -L -j 2 --keep-going` passed on x86_64-linux. Compared with `a66cf9f`, 41 of 48 check leaves were unchanged and reused; all seven changed leaves passed: desks, eval batch 6, manifest validation, the eight residual checks, the tooling selftest, ship batch 6 and ship goldens. The official eval batch passed in 788 seconds and the tooling selftest in 546 seconds. The fresh golden pier passed its selftest in 43 seconds and all 1,376 goldens in 871 seconds, including 210.1 seconds syncing and 660.5 seconds testing. Current runner discovery still counts 274 suites with 681 ordinary arms, 1,376 goldens and 348 probes per backend. Required leaves were prebuilt separately and reused by the full check; this validation is not a cold timing of the complete check.
+
 Eval profiling on 2026-11-13 used the unchanged programs from `f843494`, pinned Vere 4.6 on x86_64-linux, and compiler SHA-256 `b6a9f82b5b13bdd52cfc3bc0b2d9757d9e7818fc6c2cfa0b5516a9d3042ae38f`. `arms-2` contains 87 arms in 33 suites; `arms-builder` contains 21 arms in two suites. Both unchanged and trap-wrapped executions returned every expected arm result in order. Fresh-process startup took 0.40–0.47 seconds wall and 0.33–0.39 seconds user CPU; compiling only the root compiler took 75.38–75.77 seconds wall and 73.09–73.18 seconds user CPU.
 
 | Eval stage | Regular wall | Regular user CPU | Builder wall | Builder user CPU |
