@@ -1,0 +1,287 @@
+#!/usr/bin/env python3
+"""Measure compilation and execution of fixed eval test-arm batches.
+
+All programs are uninstrumented and frozen before the first eval. The prefix
+stage returns a hash of the shared subject. The compile stage puts the original
+batch tail in a trap and hashes its battery without running the arms; wrapped
+executes that trap, and full runs the unchanged test-arms program. Both execution
+stages must return every expected OK line, in order.
+
+Stage differences estimate costs: the trap changes the subject, and compilation,
+memoization and garbage collection need not be additive. Compare wrapped with
+full before interpreting compile subtraction. Timings include process startup;
+wall time also includes result decoding. This is a manual benchmark, not a check.
+"""
+
+import argparse
+import difflib
+import hashlib
+import importlib.machinery
+import json
+import math
+from pathlib import Path
+import resource
+import subprocess
+import sys
+import time
+
+sys.dont_write_bytecode = True
+TOOLS = Path(__file__).resolve().parent
+ROOT = TOOLS.parent
+sys.path.insert(0, str(TOOLS))
+
+import urbit_eval as ue
+from noun import bytes_to_atom, cue
+
+arms = importlib.machinery.SourceFileLoader(
+    'bench_eval_arms', str(TOOLS / 'test-arms')).load_module()
+STAGES = ('startup', 'compiler', 'prefix', 'compile', 'wrapped', 'full')
+BATCH_TAIL = '^-  wain\n%-  zing\n^-  (list wain)\n:~\n'
+
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def file_digest(path):
+    with open(path, 'rb') as source:
+        return hashlib.file_digest(source, 'sha256').hexdigest()
+
+
+def write_json(path, value):
+    path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
+
+
+def copy_program(program, start=0, end=None):
+    result = ue.Program()
+    for text, segment in list(zip(program.parts, program.segments))[start:end]:
+        result.add(text, segment.name, segment.kind)
+    return result
+
+
+def append_program(target, source, start=0):
+    for text, segment in list(zip(source.parts, source.segments))[start:]:
+        target.add(text, segment.name, segment.kind)
+
+
+def freeze(output, batch_names, selected_stages):
+    """Generate every input before timing; reject files changing during assembly."""
+    manifest_bytes = (ROOT / 'nix/eval-manifest.json').read_bytes()
+    manifest = json.loads(manifest_bytes)
+    batches = {batch['name']: batch for batch in manifest['arm_batches']}
+    unknown = set(batch_names) - batches.keys()
+    if unknown:
+        raise ValueError('unknown batch: ' + ', '.join(sorted(unknown)))
+    selected = [batches[name] for name in batch_names]
+    paths = {'nix/eval-manifest.json', 'tools/bench-eval', 'tools/test-arms',
+             'tools/urbit_eval.py', 'tools/noun.py', 'jibb-dev/lib/jibb.hoon'}
+    for batch in selected:
+        paths.update(batch['paths'])
+    before = {path: file_digest(ROOT / path) for path in sorted(paths)}
+    if before['nix/eval-manifest.json'] != digest(manifest_bytes):
+        raise ValueError('manifest changed while preparing the benchmark')
+    jobs = []
+
+    def add(name, stage, program, expected=None, batch=None):
+        if stage in selected_stages:
+            jobs.append(dict(name=name, stage=stage, program=program,
+                             expected=expected, batch=batch))
+
+    startup = ue.Program()
+    startup.add('42', '(benchmark)', 'harness')
+    add('startup', 'startup', startup, 42)
+    compiler = ue.library_program(ue.DEFAULT_LIB, debug=False)
+    compiler.add('%.y', '(benchmark)', 'harness')
+    add('compiler', 'compiler', compiler, 0)
+    descriptions = []
+    for batch in selected:
+        name = batch['name']
+        arms.DESK = arms.mapped_desk(batch['desk'])
+        suites = [arms.Suite(str(ROOT / 'tests/lib' / (suite + '.hoon')),
+                             arms.DESK) for suite in batch['suites']]
+        problems = arms.check_goldens(suites)
+        if problems:
+            raise ValueError('\n'.join(problems))
+        program = arms.program_for(suites, ue.DEFAULT_LIB, False)
+        expected = ['OK ' + suite.name + ' ' + arm
+                    for suite in suites for arm in suite.arms]
+        if program.parts.count(BATCH_TAIL) != 1:
+            raise ValueError('test-arms program no longer has one batch tail')
+        split = program.parts.index(BATCH_TAIL)
+        prefix = copy_program(program, end=split)
+        prefix.add('(mug .)', '(benchmark)', 'harness')
+        add(name + '-prefix', 'prefix', prefix, batch=name)
+        compiled = copy_program(program, end=split)
+        compiled.add('=/  eval-profile-thunk\n|.', '(benchmark)', 'harness')
+        append_program(compiled, program, split)
+        hashed = copy_program(compiled)
+        hashed.add('(mug -.eval-profile-thunk)', '(benchmark)', 'harness')
+        add(name + '-compile', 'compile', hashed, batch=name)
+        wrapped = copy_program(compiled)
+        wrapped.add('=>  eval-profile-thunk\n$', '(benchmark)', 'harness')
+        add(name + '-wrapped', 'wrapped', wrapped, expected, name)
+        add(name + '-full', 'full', program, expected, name)
+        expected_bytes = ('\n'.join(expected) + '\n').encode()
+        (output / (name + '-expected.wain')).write_bytes(expected_bytes)
+        descriptions.append(dict(
+            name=name, suites=batch['suites'], arms=len(expected),
+            full_program_sha256=digest(program.encode()),
+            expected_sha256=digest(expected_bytes),
+            source_hashes={path: before[path] for path in batch['paths']}))
+    changed = [path for path, sha in before.items()
+               if file_digest(ROOT / path) != sha]
+    if changed:
+        raise ValueError('inputs changed while preparing: ' + ', '.join(changed))
+    for job in jobs:
+        program = job['program']
+        data = program.encode()
+        job['program_sha256'] = digest(data)
+        job['program_bytes'] = len(data)
+        (output / (job['name'] + '.hoon')).write_bytes(data)
+        write_json(output / (job['name'] + '-segments.json'), [
+            dict(name=segment.name, kind=segment.kind, start=segment.start,
+                 lines=len(segment.lines)) for segment in program.segments])
+    (output / 'manifest.json').write_bytes(manifest_bytes)
+    return jobs, dict(batches=descriptions, source_hashes=before)
+
+
+def evaluate(job, output, runtime, timeout):
+    """Use the runner's framing/diagnostics, retaining the raw process output."""
+    name, program = job['name'], job['program']
+    stdout_path, stderr_path = output / (name + '.stdout'), output / (name + '.stderr')
+    result = ue.EvalResult()
+    result.timeout = timeout
+    before = resource.getrusage(resource.RUSAGE_CHILDREN)
+    start = time.monotonic()
+    # A real file is essential: eval can exit before a large stdout pipe drains.
+    with stdout_path.open('wb') as stdout, stderr_path.open('wb') as stderr:
+        try:
+            process = subprocess.run([runtime, 'eval', '-j', '-n'],
+                                     input=program.encode(), stdout=stdout,
+                                     stderr=stderr, timeout=timeout)
+            result.status = process.returncode
+        except subprocess.TimeoutExpired:
+            result.timed_out = True
+    after = resource.getrusage(resource.RUSAGE_CHILDREN)
+    raw = stdout_path.read_bytes()
+    for line in ue._clean_lines(stderr_path.read_bytes()):
+        match = ue.BAIL.match(line.strip())
+        if match:
+            result.bail = match.group(1)
+        elif not ue.BOOT_NOISE.match(line.strip()):
+            result.notes.append(line.rstrip())
+    frame = None
+    if not result.timed_out and not result.bail and result.status == 0:
+        frame = ue._newt_frame(raw)
+        if frame is not None:
+            try:
+                result.noun = cue(bytes_to_atom(frame))
+                result.ok = True
+            except (ValueError, TypeError, IndexError) as error:
+                result.notes.append('invalid jam result: ' + str(error))
+    if not result.ok:
+        result.trace = [line.rstrip() for line in ue._clean_lines(raw)
+                        if line.strip()]
+    elapsed = time.monotonic() - start
+    record = dict(name=name, stage=job['stage'], batch=job['batch'],
+                  ok=result.ok, wall_seconds=elapsed,
+                  user_seconds=after.ru_utime - before.ru_utime,
+                  system_seconds=after.ru_stime - before.ru_stime,
+                  program_sha256=job['program_sha256'],
+                  program_bytes=job['program_bytes'], status=result.status,
+                  timed_out=result.timed_out, stdout_bytes=len(raw),
+                  stdout_sha256=digest(raw),
+                  result_sha256=digest(frame) if frame is not None else None)
+    failure = None
+    if not result.ok:
+        failure = ue.failure_report(program, result, result.describe())
+    elif isinstance(job['expected'], list):
+        try:
+            lines = arms.wain_of(result)
+        except (TypeError, ValueError) as error:
+            lines = []
+            failure = 'result is not a wain: ' + str(error)
+        (output / (name + '.wain')).write_text('\n'.join(lines) + '\n')
+        record['result_lines'] = len(lines)
+        record['expected_matches'] = lines == job['expected']
+        if not record['expected_matches'] and failure is None:
+            failure = 'arm results differ from the exact expected lines:\n' + ''.join(
+                difflib.unified_diff([line + '\n' for line in job['expected']],
+                                     [line + '\n' for line in lines],
+                                     fromfile='expected', tofile='actual'))
+    else:
+        if not isinstance(result.noun, int):
+            failure = 'control did not return an atom'
+        elif result.noun.bit_length() <= 64:
+            record['result_atom'] = result.noun
+        else:
+            record['result_atom_bits'] = result.noun.bit_length()
+        if job['expected'] is not None:
+            record['expected_matches'] = result.noun == job['expected']
+            if not record['expected_matches']:
+                failure = 'control result differs from expected atom'
+    record['ok'] = result.ok and failure is None
+    if failure:
+        failure_path = output / (name + '.failure.txt')
+        failure_path.write_text(failure + '\n')
+        record['failure_file'] = failure_path.name
+    write_json(output / (name + '.json'), record)
+    with (output / 'results.jsonl').open('a') as log:
+        log.write(json.dumps(record, sort_keys=True) + '\n')
+    print('%s: %s in %.3fs wall / %.3fs CPU' % (
+        name, 'passed' if record['ok'] else 'FAILED', elapsed,
+        record['user_seconds'] + record['system_seconds']), flush=True)
+    if failure:
+        print('bench-eval: ' + str(output / (name + '.failure.txt')), file=sys.stderr)
+    return record['ok']
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--batch', action='append', metavar='NAME',
+                        help='manifest arm batch; repeat to select more '
+                             '(default: arms-2 and arms-builder)')
+    parser.add_argument('--stage', action='append', choices=STAGES,
+                        help='stage to measure; repeat to select more (default: all)')
+    parser.add_argument('--output', required=True, type=Path, metavar='DIRECTORY',
+                        help='new evidence directory; an existing path is rejected')
+    parser.add_argument('--timeout', type=float, default=1800, metavar='SECONDS',
+                        help='timeout per evaluator process (default: 1800)')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='freeze programs and metadata without running Hoon')
+    args = parser.parse_args(argv)
+    if not math.isfinite(args.timeout) or args.timeout <= 0:
+        parser.error('--timeout must be finite and positive')
+    batches = list(dict.fromkeys(args.batch or ['arms-2', 'arms-builder']))
+    stages = list(dict.fromkeys(args.stage or STAGES))
+    try:
+        args.output.mkdir(parents=True, exist_ok=False)
+        runtime = None
+        try:
+            runtime = str(Path(ue.find_urbit()).resolve())
+        except ue.ToolError:
+            if not args.dry_run:
+                raise
+        jobs, metadata = freeze(args.output, batches, stages)
+        metadata.update(schema=1, dry_run=args.dry_run, timeout=args.timeout,
+                        runtime=runtime,
+                        runtime_sha256=file_digest(runtime) if runtime else None,
+                        stages=[dict(name=job['name'], stage=job['stage'],
+                                     program_sha256=job['program_sha256']) for job in jobs],
+                        protocol=__doc__)
+        write_json(args.output / 'profile.json', metadata)
+        print('Frozen %d programs in %s' % (len(jobs), args.output), flush=True)
+        if args.dry_run:
+            return 0
+        for job in jobs:
+            if not evaluate(job, args.output, runtime, args.timeout):
+                return 1
+        return 0
+    except (OSError, ValueError, arms.Unusable, ue.ToolError) as error:
+        print('bench-eval: ' + str(error), file=sys.stderr)
+        return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -197,4 +197,89 @@ with tempfile.TemporaryDirectory(prefix='jibb-arm-inputs-test-') as folder:
                     status, output = cli(option, 'jibb-build', *conflict, 'direct')
                     assert status == 2, (option, conflict, output)
 
-print('check-inputs: recorded assemblies, library dependencies and stable partitions passed')
+bench = importlib.machinery.SourceFileLoader(
+    'check_inputs_bench', str(ROOT / 'tools/bench-eval')).load_module()
+from noun import atom_to_bytes, cord, from_list, jam
+
+
+with tempfile.TemporaryDirectory(prefix='jibb-bench-inputs-test-') as folder:
+    root = Path(folder)
+
+    def put(path, text):
+        target = root / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text)
+        return target
+
+    compiler = put('jibb-dev/lib/jibb.hoon', '|%\n++  value  42\n--\n')
+    suite = put('tests/lib/fixture.hoon', '/+  jibb\n|%\n'
+                '++  test-one\n  ~\n++  test-two\n  ~\n--\n')
+    mapping = {'lib/jibb.hoon': 'jibb-dev/lib/jibb.hoon'}
+    put('nix/eval-manifest.json', json.dumps({'arm_batches': [{
+        'name': 'arms-fixture', 'suites': ['fixture'], 'desk': mapping,
+        'paths': ['jibb-dev/lib/jibb.hoon', 'tests/lib/fixture.hoon'],
+    }]}))
+    for name in ('bench-eval', 'test-arms', 'urbit_eval.py', 'noun.py'):
+        put('tools/' + name, 'synthetic tool input\n')
+    runtime = put('mock-urbit', 'synthetic runtime\n')
+    expected = ['OK fixture test-one', 'OK fixture test-two']
+
+    def benchmark(output, *arguments):
+        captured = io.StringIO()
+        with redirect_stdout(captured), redirect_stderr(captured):
+            status = bench.main(['--batch', 'arms-fixture', '--stage', 'full',
+                                 '--output', str(output), *arguments])
+        return status, captured.getvalue()
+
+    def frame(lines):
+        raw = atom_to_bytes(jam(from_list([cord(line) for line in lines])))
+        return b'\0' + len(raw).to_bytes(4, 'little') + raw
+
+    with patch.object(bench, 'ROOT', root), \
+            patch.object(bench.arms, 'ROOT', str(root)), \
+            patch.object(bench.ue, 'DEFAULT_LIB', str(compiler)), \
+            patch.object(bench.ue, 'find_urbit', return_value=str(runtime)):
+        dry = root / 'dry'
+        with patch.object(bench.subprocess, 'run',
+                          side_effect=AssertionError('dry run invoked Hoon')) as process:
+            status, output = benchmark(dry, '--dry-run', '--stage', 'wrapped')
+            assert status == 0, output
+            process.assert_not_called()
+            direct = bench.arms.program_for(
+                [bench.arms.Suite(str(suite), bench.arms.DESK)], str(compiler), False)
+            frozen = dry / 'arms-fixture-full.hoon'
+            assert frozen.read_bytes() == direct.encode()
+            assert (dry / 'arms-fixture-expected.wain').read_text().splitlines() == expected
+            evidence = (dry / 'profile.json').read_bytes()
+            status, output = benchmark(dry, '--dry-run')
+            assert status == 2, output
+            assert (dry / 'profile.json').read_bytes() == evidence
+            assert frozen.read_bytes() == direct.encode()
+
+        for name, raw, error, timeout, wanted in [
+                ('pass', frame(expected), b'', False, 0),
+                ('bail', b'synthetic crash\n', b'eval: bail: %exit\n', False, 1),
+                ('wrong-wain', frame(list(reversed(expected))), b'', False, 1),
+                ('timeout', b'partial trace\n', b'', True, 1)]:
+            def fake_process(command, **kwargs):
+                assert command == [str(runtime), 'eval', '-j', '-n']
+                assert kwargs['input'] == direct.encode()
+                kwargs['stdout'].write(raw)
+                kwargs['stderr'].write(error)
+                if timeout:
+                    raise bench.subprocess.TimeoutExpired(command, kwargs['timeout'])
+                return SimpleNamespace(returncode=0)
+
+            destination = root / name
+            with patch.object(bench.subprocess, 'run', side_effect=fake_process) as process:
+                status, output = benchmark(destination)
+                assert status == wanted, (name, status, output)
+                assert process.call_count == 1
+            record = json.loads((destination / 'arms-fixture-full.json').read_text())
+            assert record['ok'] is (wanted == 0), record
+            assert record['timed_out'] is timeout, record
+            assert (destination / 'arms-fixture-full.stdout').read_bytes() == raw
+            if wanted:
+                assert (destination / record['failure_file']).read_text().strip()
+
+print('check-inputs: assemblies, library dependencies, partitions and eval profiling passed')

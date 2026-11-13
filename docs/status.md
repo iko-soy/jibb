@@ -213,6 +213,31 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+Eval profiling on 2026-11-13 used the unchanged programs from `f843494`, pinned Vere 4.6 on x86_64-linux, and compiler SHA-256 `b6a9f82b5b13bdd52cfc3bc0b2d9757d9e7818fc6c2cfa0b5516a9d3042ae38f`. `arms-2` contains 87 arms in 33 suites; `arms-builder` contains 21 arms in two suites. Both unchanged and trap-wrapped executions returned every expected arm result in order. Fresh-process startup took 0.40–0.47 seconds wall and 0.33–0.39 seconds user CPU; compiling only the root compiler took 75.38–75.77 seconds wall and 73.09–73.18 seconds user CPU.
+
+| Eval stage | Regular wall | Regular user CPU | Builder wall | Builder user CPU |
+| --- | ---: | ---: | ---: | ---: |
+| Shared libraries and bound inputs | 155.5 s | 150.9 s | 157.8 s | 153.6 s |
+| Compile complete batch without executing arms | 165.5 s | 160.5 s | 167.2 s | 159.7 s |
+| Execute through the profiling trap | 1,014.5 s | 988.1 s | 664.7 s | 642.2 s |
+| Unchanged complete batch | 999.2 s | 975.7 s | 638.5 s | 626.9 s |
+
+These are individual runs on a shared machine, with at most two eval processes active. Stage subtraction estimates that test execution accounts for roughly 75–84% of these two batches' user CPU time; it is not an additive accounting of compiler work, memoization and garbage collection. The trap changes the subject, so its successful execution and its timing relative to the original program are necessary controls. `tools/bench-eval` reproduces the measured programs, freezes source/runtime hashes and expected results before starting, and retains raw output, diagnostics and wall/user/system timings in a new evidence directory. Its Python regression controls cover exact program generation, evidence preservation, ordered results, exit-zero crashes and timeouts; a real startup smoke passed under `nix develop`.
+
+A compiler-artifact prototype remains experimental. It saved a 967,186-byte typed constructor formula, executing construction afresh on each load; a small crash/trace control verified repeated construction. Producing the artifact took 90.33 seconds wall and 87.69 seconds user CPU, including Python work. A loader smoke took 21.41 seconds wall and 20.60 seconds evaluator user CPU. Complete cached runs returned all 87 and 21 expected results: 961.80 seconds wall / 934.51 seconds user CPU for the regular batch, and 611.62 / 599.49 seconds for the builder batch, including loader generation, validation and output handling.
+
+| Sum of the two measured batches | Wall time | User CPU |
+| --- | ---: | ---: |
+| Original programs | 1,637.6 s | 1,602.6 s |
+| Compiler artifact already available | 1,573.4 s | 1,534.0 s |
+| Create the artifact and run both batches | 1,663.8 s | 1,621.7 s |
+
+The warm saving is about 4%; including creation makes this first pair about 1–2% slower. These sums describe the two sampled batches, not the critical path of all nine batches or the complete Nix check. Baseline CPU figures measure Vere alone; cached totals also include approximately 0.2 seconds of Python user CPU per batch. A separate cached regular-prefix control preserved the subject hash and took 129.68 seconds wall / 125.50 seconds user CPU, saving only about 25 CPU seconds over the original prefix; compiler-only and loader-smoke times cannot predict the complete saving. This sample does not justify adding the artifact format and loading path to production, so normal checks retain source compilation. Test execution is the larger remaining target.
+
+Parser equivalence was checked separately from passing test output. The initial builder prototype used `rain` with a custom base path, changing the meaning of the existing `%/nowhere` in `jibb-build` despite all 21 tests passing; that measurement is excluded above. The corrected builder run uses `ream`, with a separate default-path control. The compiler source and regular suffix produced identical ASTs under both parsers, so their earlier measurements remain usable. Any future cache must preserve the default parser, constructor effects, crash/trace behavior, exact input identities and full-source diagnostic replay.
+
+The profiling tool and its regression coverage passed `nix flake check -L -j 2 --keep-going` on x86_64-linux. Derivation comparison with `f843494` confirmed 44 of 48 leaves unchanged; the four changed leaves passed: manifest validation, all eight residual checks, the tooling selftest in 622 seconds, and ship goldens on a fresh pier. The latter passed its selftest in 41 seconds and all 1,376 goldens in 837 seconds, with no failures or crashes. The full check reused those prebuilds and completed both aggregate outputs. No compiler artifact is enabled in Nix or the normal test runners.
+
 Builder-dependent test suites now have a separate `arms-builder` batch under eval and on a fresh ship. Membership follows the actual library and bound-file source closure, including indirect imports; it is extracted after the existing eight-way assignment, so all 272 other suites keep their original positions. The current dedicated batch contains `jibb-build` and `jibb-build-probe`: 21 arms in two suites. Previously, a builder edit reran 197 arms in 66 suites per backend, including 176 unrelated arms. All 681 ordinary arms in 274 suites remain covered exactly once, and full, narrow and ship-map programs agree. Synthetic dependency and CLI controls pass; all nine batches' debug and fast programs are byte-identical to programs produced by the previous runner for the same suite selections.
 
 Isolated Nix derivation comparisons show a builder-only edit invalidating 10 of 48 check leaves, versus 12 of 46 before the split. All eight regular eval and ship arm batches stay cached; the new builder batches and other builder-dependent integration checks still rebuild. A new test with an indirect builder dependency joins the dedicated batch, and a compiler edit still invalidates all 48 leaves. The raw Rust build is reused in every control. These comparisons establish invalidation behavior, not execution timings. A fully uncached suite pass now starts nine eval processes and nine fresh suite piers instead of eight of each; the saved work above applies when the unrelated batches are already cached.
