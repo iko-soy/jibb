@@ -5,6 +5,8 @@ name: check
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -15,4 +17,33 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+      - name: Restore and save Nix checks
+        uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
+        with:
+          # Each commit can save new results; unchanged derivations remain
+          # reusable after restoring a prior commit with the same inputs.
+          primary-key: nix-checks-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock') }}-${{ github.sha }}
+          restore-prefixes-first-match: |
+            nix-checks-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock') }}-
+            nix-checks-v1-${{ runner.os }}-${{ runner.arch }}-
+          # PRs, including forks, can reuse the base branch's results without
+          # uploading another snapshot. No separate cache credentials needed.
+          save: ${{ github.event_name == 'push' }}
+          # This is a GC target: rooted current results are retained even if
+          # larger. GitHub's repository cache quota evicts older snapshots.
+          gc-max-store-size-linux: 4G
       - run: nix flake check -L -j 2
+      - name: Keep passing check outputs through cache garbage collection
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          # flake check leaves no result links. Root every top-level check;
+          # the eval/ship aggregates retain their individual batch results.
+          nix eval --json .#checks.x86_64-linux --apply builtins.attrNames > "$RUNNER_TEMP/jibb-check-names.json"
+          jq -r '.[] | ".#checks.x86_64-linux." + .' "$RUNNER_TEMP/jibb-check-names.json" > "$RUNNER_TEMP/jibb-check-installables"
+          mapfile -t checks < "$RUNNER_TEMP/jibb-check-installables"
+          test "${#checks[@]}" -gt 0
+          # Packaging copies the binary, so its output does not keep the raw
+          # Rust build alive as a runtime reference. Ship checks likewise copy
+          # their clean seed. Keep both reusable inputs explicitly rooted.
+          nix build -L -j 2 --out-link "$RUNNER_TEMP/jibb-check-results" "${checks[@]}" .#jibb-cli-unwrapped .#fakezod

@@ -143,13 +143,23 @@
             };
           };
 
-          jibb = pkgs.rustPlatform.buildRustPackage {
+          cliUnwrapped = pkgs.rustPlatform.buildRustPackage {
             pname = "jibb-cli";
             version = "0.1.0";
             src = cliSource;
             cargoLock.lockFile = ./jibb-cli/Cargo.lock;
-            nativeBuildInputs = [ pkgs.makeWrapper ];
-            postInstall = ''
+            meta.mainProgram = "jibb";
+          };
+          jibb = pkgs.runCommand "jibb-cli-0.1.0" {
+            nativeBuildInputs = [ pkgs.makeWrapper python3 ];
+            meta = {
+              description = "The Jibb command-line interface";
+              mainProgram = "jibb";
+            };
+          } ''
+              mkdir -p $out/bin
+              # current_exe locates ../share/jibb; keep the executable here.
+              cp ${cliUnwrapped}/bin/jibb $out/bin/jibb
               mkdir -p $out/share/jibb/tools
               install -m755 ${./tools/ship} $out/share/jibb/tools/ship
               install -m644 ${./tools/golden_case.py} $out/share/jibb/tools/golden_case.py
@@ -159,15 +169,20 @@
               cp -r ${./jibb} $out/share/jibb/jibb
               chmod -R u+w $out/share/jibb
               rm -rf $out/share/jibb/jibb-dev/tests
+              patchShebangs $out/share/jibb/tools
               wrapProgram $out/share/jibb/tools/ship \
                 --prefix PATH : ${lib.makeBinPath [ python3 urbit ]} \
                 --set-default JIBB_CLICK ${lib.getExe click}
-            '';
-            meta = {
-              description = "The Jibb command-line interface";
-              mainProgram = "jibb";
-            };
-          };
+              mkdir unrelated
+              cd unrelated
+              # Fail in the installed helper before booting a pier, proving
+              # current_exe finds that helper from outside the source tree.
+              if $out/bin/jibb dev "$PWD/missing-app" > helper.log 2>&1; then
+                echo "jibb dev unexpectedly accepted a missing application"
+                exit 1
+              fi
+              grep -F "no application folder" helper.log
+          '';
 
           check = name: fileset: command: extra: pkgs.stdenvNoCC.mkDerivation ({
             inherit name;
@@ -193,21 +208,16 @@
           manifestFiles = paths: fs.unions (map (path: ./. + ("/" + path))
             (builtins.filter (path: builtins.pathExists (./. + ("/" + path))) paths));
           quote = values: builtins.concatStringsSep " " (map lib.escapeShellArg values);
-          probeEvalFiles = fs.unions [
-            ./jibb-dev ./my-app ./vendor ./jibb
-            ./tools/check ./tools/probe-regression ./tools/check-my-app ./tools/ship
-            ./tools/hoon ./tools/urbit_eval.py ./tools/noun.py
-            ./tools/golden_case.py ./tools/prelude_groups.py
-            ./docs/reviews/2026-11-03-milestone-2-probes
-            ./tests/type-probe ./tests/type-buttons/error.txt
-            ./tests/golden/doc-core-02-update ./tests/clay-fixtures/my-app.txt
-          ];
           evalProbeParts = builtins.listToAttrs (map (batch: {
             name = "eval-${batch.name}";
-            value = check "eval-${batch.name}" probeEvalFiles
-              "timeout 10800s python3 tools/probe-regression ${quote batch.groups}" { };
+            value = check "eval-${batch.name}" (manifestFiles batch.paths)
+              "timeout 10800s python3 tools/probe-regression --fast ${quote batch.groups}" { };
           }) evalManifest.probe_batches);
-          selftestFiles = fs.unions [deskFiles ./tools ./docs/spec ./js];
+          selftestFiles = fs.unions [
+            deskFiles ./tools/check ./tools/testdata ./tools/golden
+            ./tools/test-arms ./tools/doc-blocks ./tools/bundle-js
+            ./tools/probe-regression ./tools/check-my-app
+          ];
           evalSelftest = check "eval-selftest" selftestFiles
             "tools/check selftest --timeout 10800 --logs $out" {
               nativeBuildInputs = [ python3 urbit nodejs esbuild terser ];
@@ -216,21 +226,21 @@
             (name: name != "probes-eval" && name != "selftest") evalManifest.residual;
           residual = check "eval-residual" checkFiles
             "tools/check ${quote residualNames} -j 1 --timeout 10800 --logs $out" {
-              nativeBuildInputs = [ python3 urbit nodejs esbuild terser jibb ];
+              nativeBuildInputs = [ python3 urbit nodejs esbuild terser cliUnwrapped ];
             };
           manifestCheck = check "eval-manifest" (fs.unions [checkFiles ./nix/eval-manifest.json])
             "tools/eval-manifest --check" { };
           goldenParts = builtins.listToAttrs (map (batch: {
             name = "eval-${batch.name}";
             value = check "eval-${batch.name}" (manifestFiles batch.paths)
-              "timeout 10800s tools/golden --jobs 1 ${quote (builtins.concatMap (case: [ "--case" case ]) batch.cases)}" { };
+              "timeout 10800s tools/golden --fast --jobs 1 ${quote (builtins.concatMap (case: [ "--case" case ]) batch.cases)}" { };
           }) evalManifest.golden_batches);
           armParts = builtins.listToAttrs (map (batch: {
             name = "eval-${batch.name}";
             value = let
               desk = pkgs.writeText "${batch.name}-desk.json" (builtins.toJSON batch.desk);
             in check "eval-${batch.name}" (manifestFiles batch.paths)
-              "timeout 10800s tools/test-arms --desk-map ${desk} --timeout 3600 ${quote batch.suites}" { };
+              "timeout 10800s tools/test-arms --fast --desk-map ${desk} --timeout 3600 ${quote batch.suites}" { };
           }) evalManifest.arm_batches);
           evalParts = goldenParts // armParts // evalProbeParts // {
             inherit residual manifestCheck evalSelftest;
@@ -260,29 +270,39 @@
               trap 'python3 tools/ship stop --force' EXIT
             '';
           };
+          mappedShipExtra = batch: directShipExtra // {
+            JIBB_DESK_MAPS = pkgs.writeText "${batch.name}-ship-desks.json"
+              (builtins.toJSON batch.ship_desks);
+          };
           shipSuiteParts = builtins.listToAttrs (map (batch: {
             name = "ship-${batch.name}";
-            value = check "ship-${batch.name}" (fs.unions [
-              shipTestFiles (manifestFiles batch.paths)
-            ]) "timeout 10800s python3 tools/ship test --only suites ${quote (builtins.concatMap (suite: [ "--suite" suite ]) batch.suites)}" directShipExtra;
+            value = check "ship-${batch.name}" (manifestFiles batch.ship_paths)
+              "timeout 10800s python3 tools/ship test --only suites ${quote (builtins.concatMap (suite: [ "--suite" suite ]) batch.suites)}" (mappedShipExtra batch);
           }) evalManifest.arm_batches);
           shipGoldens = check "ship-goldens" (fs.unions [
             shipTestFiles ./tests ./tools/testdata
           ]) "tools/check ship-selftest ship-test-goldens --timeout 10800 --logs $out" shipExtra;
-          shipIntegrationFiles = fs.unions [
-            deskFiles ./tools ./docs/spec ./js ./tests
-            ./docs/reviews/2026-11-03-milestone-2-probes
+          shipBaseFiles = fs.unions [
+            shipTestFiles ./tools/clay-fixtures ./tools/check-my-app
+            ./tests/clay-fixtures ./tests/type-buttons/error.txt
+            # The Clay fixture's real Tlon /sur is a symlink here.
+            ./tests/golden/types-import-tlon-notes/sur
+            ./tests/type-import-general/sur.txt
           ];
-          shipBase = check "ship-base" shipIntegrationFiles
+          shipBase = check "ship-base" shipBaseFiles
             "tools/check check-commit clay-fixtures check-my-app --timeout 10800 --logs $out" shipExtra;
-          shipProbeFiles = fs.unions [probeEvalFiles ./tests/probes];
           shipProbeParts = builtins.listToAttrs (map (batch: {
             name = "ship-${batch.name}";
-            value = check "ship-${batch.name}" shipProbeFiles
+            value = check "ship-${batch.name}" (manifestFiles batch.ship_paths)
               "timeout 10800s python3 tools/probe-regression --backend ship ${quote batch.groups}"
-              directShipExtra;
+              (mappedShipExtra batch);
           }) evalManifest.probe_batches);
-          shipHost = check "ship-host" shipIntegrationFiles
+          shipHostFiles = fs.unions [
+            shipTestFiles ./tests/host-fixture ./js
+            ./tools/check-host ./tools/check-browser ./tools/browser-check.mjs
+            ./tools/check-node-tests ./tools/node-tests.mjs
+          ];
+          shipHost = check "ship-host" shipHostFiles
             "tools/check check-host check-browser check-node-tests --timeout 10800 --logs $out"
             (shipExtra // {
               nativeBuildInputs = [ python3 urbit nodejs esbuild terser pkgs.chromium ];
@@ -297,6 +317,7 @@
         {
           packages = {
             inherit desks click jibb;
+            jibb-cli-unwrapped = cliUnwrapped;
             default = desks;
           } // lib.optionalAttrs isLinux { inherit fakezod; };
 

@@ -38,6 +38,7 @@ check), 2 when the command couldn't run (a usage error, no ship).
 import argparse
 import datetime
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -951,12 +952,44 @@ def generate_test_batches(golden):
     return out
 
 
+def mapped_assembly(desk, mapping):
+    """Load an explicit source closure without scanning unrelated desk files."""
+    if not isinstance(mapping, dict) or not mapping:
+        raise Unable('desk map must be a nonempty object: ' + desk)
+    assembly = Assembly(desk)
+    for rel, source in mapping.items():
+        for path in (rel, source):
+            if (not isinstance(path, str) or not path or path.startswith('/') or
+                    any(part in ('', '.', '..') for part in path.split('/'))):
+                raise Unable('invalid path in desk map: %r' % (path,))
+        filename = os.path.join(ROOT, source)
+        if os.path.commonpath((ROOT, os.path.realpath(filename))) != ROOT:
+            raise Unable('desk map source escapes the repository: ' + source)
+        with open(filename, 'rb') as stream:
+            assembly.add(rel, stream.read(), source)
+    check_assembly(assembly)
+    return assembly
+
+
 def assemble(desk, lib=None, golden=None):
     """The files of one of the repo's desks, checked as vere and Clay
     will see them.  lib replaces /lib/jibb.hoon; golden, for the
     jibb-dev test desk, is the folder of golden cases. When either is
     overridden, exclude other /tests/lib programs so they don't run
     against an unrelated library or pollute the custom case results."""
+    maps = os.environ.get('JIBB_DESK_MAPS')
+    if maps:
+        if lib is not None or (golden is not None and
+                              os.path.abspath(golden) != os.path.abspath(GOLDEN)):
+            raise Unable('recorded desk maps cannot replace a library or golden corpus')
+        try:
+            with open(maps, encoding='utf-8') as stream:
+                mappings = json.load(stream)
+        except (OSError, ValueError) as error:
+            raise Unable('cannot read recorded desk maps: %s' % error) from error
+        if not isinstance(mappings, dict) or desk not in mappings:
+            raise Unable('no recorded desk map for ' + desk)
+        return mapped_assembly(desk, mappings[desk])
     if desk not in DESKS:
         raise Unable('no desk %s here; the repo builds %s'
                      % (desk, ', '.join(sorted(DESKS))))

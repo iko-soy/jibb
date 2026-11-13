@@ -73,10 +73,11 @@ def tool(name, group='eval', *args):
 ARM_SHARDS = 8
 
 CHECKS = [
-    Check('probes-eval', 'eval', ['tools/probe-regression']),
+    Check('probes-eval', 'eval', ['tools/probe-regression', '--fast']),
     tool('testdata/selftest'),                  # about 115 s
+    tool('testdata/check-inputs'),
     # Isolation after a failed batch must stay within this runner's job cap.
-    tool('golden', 'eval', '--jobs', '1'),
+    tool('golden', 'eval', '--fast', '--jobs', '1'),
     tool('test-js'),
     tool('test-js-differential'),
     tool('bundle-js', 'eval', '--check'),
@@ -86,7 +87,7 @@ CHECKS = [
     # Full-checker batches can exceed half an hour on shared builders.
     # This bounds each eval; the outer check timeout still applies too.
     Check('arms-%d' % i, 'eval',
-          ['tools/test-arms', '--timeout', '3600',
+          ['tools/test-arms', '--fast', '--timeout', '3600',
            '--shard', '%d/%d' % (i, ARM_SHARDS)])
     for i in range(1, ARM_SHARDS + 1)
 ] + [

@@ -19,6 +19,9 @@ crashed with, placed in the suite and the library. A suite that doesn't
 build is reported as FAILED (build) after the eval is retried one suite
 at a time.
 
+--fast tests without Hoon debug spots and reruns failures with spots for
+diagnostics. A diagnostic rerun cannot clear the original failure.
+
 A suite whose core has a `report` arm and an `expected` /* file is a
 golden report: --report prints report's text, --update writes it to the
 expected file, and a failing arm shows the difference.
@@ -416,6 +419,32 @@ def report_text(suite, lib, debug, timeout):
     return '\n'.join(wain_of(res)) + '\n'
 
 
+def run_fast(suites, lib, timeout):
+    """Run without debug spots, retaining failures after a diagnostic rerun."""
+    prog = program_for(suites, lib, False)
+    res = ue.run_eval(prog, jam=True, timeout=timeout)
+    if not res.ok:
+        print('test-arms: fast eval failed (%s); rerunning with debug spots' %
+              res.describe(),
+              file=sys.stderr)
+        lines = run(suites, lib, True, timeout)
+        if any(line.startswith(('FAILED ', 'CRASHED ')) for line in lines):
+            return lines
+        return (['FAILED %s (fast eval: %s)' % (s.name, res.describe())
+                 for s in suites] +
+                ['  instrumented rerun passed; fast failure retained'])
+    lines = placed(prog, wain_of(res))
+    failed = {line.split()[1] for line in lines
+              if line.startswith(('FAILED ', 'CRASHED '))}
+    if failed:
+        print('test-arms: fast tests failed; rerunning with debug spots',
+              file=sys.stderr)
+        diagnostic = run([s for s in suites if s.name in failed], lib, True, timeout)
+        lines += ['  instrumented diagnostic rerun (fast failures retained):']
+        lines += ['  ' + line for line in diagnostic]
+    return lines
+
+
 # ---------------------------------------------------------------- shards
 
 
@@ -472,8 +501,11 @@ def main(argv):
                     help='the library (default: jibb-dev/lib/jibb.hoon)')
     ap.add_argument('--timeout', type=float, default=1800, metavar='SECONDS',
                     help='how long one eval may run (default: 1800)')
-    ap.add_argument('--no-debug', dest='debug', action='store_false',
+    execution = ap.add_mutually_exclusive_group()
+    execution.add_argument('--no-debug', dest='debug', action='store_false',
                     help="leave out !:, for timings; errors lose positions")
+    execution.add_argument('--fast', action='store_true',
+                    help='test without debug spots, rerun failures with them')
     ap.add_argument('--list', action='store_true',
                     help='print the suites that would run, and their arms')
     mode = ap.add_mutually_exclusive_group()
@@ -483,6 +515,8 @@ def main(argv):
                       help="write suites' report arms to their expected "
                            "files")
     opts = ap.parse_args(argv)
+    if opts.fast and (opts.report or opts.update):
+        ap.error('--fast is only for testing, not --report or --update')
 
     global DESK
     try:
@@ -546,7 +580,8 @@ def main(argv):
                 print('FAILED golden file: %s' % p)
             return 1
         start = time.time()
-        lines = run(suites, opts.lib, opts.debug, opts.timeout)
+        lines = (run_fast(suites, opts.lib, opts.timeout) if opts.fast else
+                 run(suites, opts.lib, opts.debug, opts.timeout))
     except (Unusable, ue.ToolError) as e:
         print('test-arms: %s' % e, file=sys.stderr)
         return 2

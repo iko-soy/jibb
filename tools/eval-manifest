@@ -15,7 +15,11 @@ import importlib.machinery
 import importlib.util
 import json
 import os
+from pathlib import Path
+import shutil
 import sys
+import tempfile
+from types import SimpleNamespace
 
 sys.dont_write_bytecode = True
 TOOLS = os.path.dirname(os.path.realpath(__file__))
@@ -212,11 +216,21 @@ def arm_batches(all_suites, assembled, lib):
         if full_program != narrow_program:
             raise ManifestError(
                 'full and narrow Hoon programs differ for arms-%d' % index)
+        ship_sources = set(desk_map.values()) | {
+            'jibb-dev/lib/jibb.hoon', *map(repo_relative, suite_paths)}
+        ship_desk = ship_mapping(assembled, ship_sources)
+        ship_paths = ship_dependencies(ship_desk)
+        ship_program = arm_program(suite_paths,
+                                   probe_regression.shiptool.mapped_assembly('jibb-dev', ship_desk), lib)
+        if full_program != ship_program:
+            raise ManifestError('full and ship-map programs differ for arms-%d' % index)
         batches.append({
             'name': 'arms-%d' % index,
             'suites': [suite.name for suite in selected],
             'paths': sorted(paths),
             'desk': desk_map,
+            'ship_paths': ship_paths,
+            'ship_desks': {'jibb-dev': ship_desk},
         })
     assembled.files = original_files
     return batches
@@ -227,16 +241,158 @@ def valid_relative(path):
             all(part not in ('', '.', '..') for part in path.split('/')))
 
 
+SHIP_TOOLS = ['tools/ship', 'tools/golden_case.py', 'tools/prelude_groups.py']
+PROBE_COMMON = SHIP_TOOLS + [
+    'tools/probe-regression', 'tools/check-my-app', 'tools/hoon',
+    'tools/urbit_eval.py', 'tools/noun.py',
+    'jibb-dev/lib/jibb.hoon', 'jibb-dev/lib/jibb-import.hoon',
+    'jibb-dev/lib/jibb/prelude.jibb', 'jibb-dev/lib/jibb/internal.jibb',
+    'jibb-dev/lib/jibb/prelude-groups.txt', 'tests/type-probe',
+    'tests/clay-fixtures/my-app.txt',
+]
+REVIEW = 'docs/reviews/2026-11-03-milestone-2-probes'
+
+
+def include_tree(paths, relative):
+    absolute = os.path.join(ROOT, relative)
+    if os.path.isdir(absolute):
+        for folder, _, files in os.walk(absolute):
+            for name in files:
+                add_file(paths, os.path.join(folder, name))
+    else:
+        add_file(paths, absolute)
+
+
+def prelude_paths():
+    groups, private, readers = prelude_groups.load_all(ROOT)
+    return {repo_relative(entry[2]) for entry in groups + private} | {
+        repo_relative(entry[3]) for entry in readers}
+
+
+def ship_mapping(assembled, sources):
+    """Keep test inputs plus unchanged Ford/mark support and desk metadata."""
+    mapping = {}
+    for rel, (data, source) in assembled.files.items():
+        if (source in sources or source.startswith(('vendor/', 'jibb-dev/mar/')) or
+                rel == 'sys.kelvin'):
+            mapping[rel] = source
+    mapping = dict(sorted(mapping.items()))
+    narrow = probe_regression.shiptool.mapped_assembly(assembled.desk, mapping)
+    for rel, value in narrow.files.items():
+        if value != assembled.files[rel]:
+            raise ManifestError('mapped desk differs from full assembly: ' + rel)
+    missing = sources - set(mapping.values())
+    if missing:
+        raise ManifestError('required sources absent from desk: ' + ', '.join(sorted(missing)))
+    return mapping
+
+
+def ship_dependencies(mapping):
+    paths = set(SHIP_TOOLS)
+    for source in mapping.values():
+        add_file(paths, os.path.join(ROOT, source))
+    return sorted(paths)
+
+
+def probe_signature(root, groups):
+    """Generate actual eval arguments and ship threads without evaluating Hoon."""
+    runner_path = os.path.join(root, REVIEW, 'run')
+    loader = importlib.machinery.SourceFileLoader('manifest_probe_runner', runner_path)
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    runner = importlib.util.module_from_spec(spec)
+    loader.exec_module(runner)
+    saved = (probe_regression.ROOT, probe_regression.PROBES,
+             probe_regression.app.ROOT, sys.argv, runner.subprocess.run)
+    signature = []
+    def capture(command, **kwargs):
+        cords = []
+        for index, word in enumerate(command):
+            if word == '--cord':
+                name, path = command[index + 1].split('=', 1)
+                cords.append((name, Path(path).read_bytes()))
+        signature.append((cords, Path(command[-1]).read_bytes()))
+        return SimpleNamespace(returncode=0)
+    try:
+        probe_regression.ROOT = probe_regression.app.ROOT = Path(root)
+        probe_regression.PROBES = Path(root) / REVIEW
+        runner.subprocess.run = capture
+        for group in groups:
+            cases = probe_regression.sections(group)
+            signature.append(cases)
+            mode, _ = probe_regression.probe_file(group)
+            with tempfile.TemporaryDirectory(prefix='jibb-probe-source-') as scratch:
+                source = Path(scratch) / 'cases.jibb'
+                source.write_text(''.join('#### ' + label + '\n' + text
+                                         for label, _, text in cases))
+                sys.argv = [runner_path, mode] + ([] if mode == 'imports' else [str(source)])
+                runner.main()
+            if group == 'imports':
+                signature.append(probe_regression.import_ship_suite())
+            else:
+                class CaptureShip:
+                    def thread(self, thread, **kwargs):
+                        signature.append(thread)
+                        return 0
+                probe_regression.ship_results(CaptureShip(), group, cases)
+        return signature
+    finally:
+        (probe_regression.ROOT, probe_regression.PROBES,
+         probe_regression.app.ROOT, sys.argv, runner.subprocess.run) = saved
+
+
 def probe_batches():
-    return [{'name': 'probes-%d' % (index + 1), 'groups': list(groups)}
-            for index, groups in enumerate(PROBE_GROUPS)]
+    ship = probe_regression.shiptool
+    app_desk, test_desk = ship.assemble('my-app'), ship.assemble('jibb-dev')
+    common = set()
+    for path in PROBE_COMMON:
+        include_tree(common, path)
+    common.update(prelude_paths())
+    app_sources = set(prelude_paths()) | {
+        path for path in common if path.startswith('jibb-dev/')}
+    for folder in ('my-app/ui', 'my-app/sur', 'my-app/mar'):
+        include_tree(app_sources, folder)
+    app_map = ship_mapping(app_desk, app_sources)
+    batches = []
+    for index, groups in enumerate(PROBE_GROUPS):
+        paths = common | app_sources | {REVIEW + '/run'}
+        for group in groups:
+            mode, filename = probe_regression.probe_file(group)
+            add_file(paths, filename)
+            if mode != 'imports':
+                paths.add(REVIEW + ('/app-check.hoon' if mode == 'app' else '/check.hoon'))
+        # The p1 fragment is read only by its selected group.
+        if 'p1' in groups:
+            include_tree(paths, 'tests/golden/doc-core-02-update/source.jibb')
+        desks = {'my-app': app_map}
+        if 'imports' in groups:
+            sources = {path for path in common if path.startswith('jibb-dev/')}
+            sources.add('tests/probes/jibb-probe-import.hoon')
+            desks['jibb-dev'] = ship_mapping(test_desk, sources)
+        ship_paths = set(paths)
+        for mapping in desks.values():
+            ship_paths.update(ship_dependencies(mapping))
+        # Exercise the exact eval closure, without letting extra ship support
+        # hide a missing eval input. These files also generate ship threads;
+        # ship_mapping separately checks their Ford/mark support sources.
+        full = probe_signature(ROOT, groups)
+        with tempfile.TemporaryDirectory(prefix='jibb-probe-inputs-') as narrow:
+            for path in sorted(paths):
+                target = Path(narrow) / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(Path(ROOT) / path, target)
+            if probe_signature(narrow, groups) != full:
+                raise ManifestError('full and narrow probe inputs differ for batch %d' % (index + 1))
+        batches.append({'name': 'probes-%d' % (index + 1), 'groups': list(groups),
+                        'paths': sorted(paths), 'ship_paths': sorted(ship_paths),
+                        'ship_desks': desks})
+    return batches
 
 
 def validate(manifest, cases, suites, residual):
     if set(manifest) != {'version', 'golden_batches', 'arm_batches', 'probe_batches', 'residual'}:
         raise ManifestError('manifest has the wrong top-level schema')
-    if manifest['version'] != 1:
-        raise ManifestError('manifest version must be 1')
+    if manifest['version'] != 2:
+        raise ManifestError('manifest version must be 2')
 
     golden_cases = []
     for number, batch in enumerate(manifest['golden_batches'], 1):
@@ -258,7 +414,7 @@ def validate(manifest, cases, suites, residual):
     arm_suites = []
     arm_names = []
     for number, batch in enumerate(manifest['arm_batches'], 1):
-        if set(batch) != {'name', 'suites', 'paths', 'desk'}:
+        if set(batch) != {'name', 'suites', 'paths', 'desk', 'ship_paths', 'ship_desks'}:
             raise ManifestError('arm batch has the wrong schema')
         name = 'arms-%d' % number
         if batch['name'] != name:
@@ -290,7 +446,7 @@ def validate(manifest, cases, suites, residual):
         raise ManifestError('manifest does not have all eight arm shards')
     groups = []
     for number, batch in enumerate(manifest['probe_batches'], 1):
-        if set(batch) != {'name', 'groups'}:
+        if set(batch) != {'name', 'groups', 'paths', 'ship_paths', 'ship_desks'}:
             raise ManifestError('probe batch has the wrong schema')
         if batch['name'] != 'probes-%d' % number or not batch['groups']:
             raise ManifestError('probe batches are not named and populated in order')
@@ -321,7 +477,7 @@ def build():
                 if check.group == 'eval' and check.name != 'golden'
                 and not check.name.startswith('arms-')]
     manifest = {
-        'version': 1,
+        'version': 2,
         'golden_batches': golden_batches(cases),
         'arm_batches': arm_batches(suites, assembled, ue.DEFAULT_LIB),
         'probe_batches': probe_batches(),

@@ -23,12 +23,17 @@ trailing newline.
 A crash's output is CRASH and its trace.  A crash always fails, and
 --update never writes one.
 
+--fast tests without Hoon debug spots and reruns failures with spots for
+diagnostics. A diagnostic rerun cannot clear the original failure. Resource
+isolation keeps the same mode; --fast cannot update or merely show outputs.
+
 Exit status: 0 when every case passes, 1 when a case fails or crashes,
 2 when the tests can't run (the library doesn't compile, a usage error).
 """
 
 import argparse
 import concurrent.futures
+import copy
 import difflib
 import fnmatch
 import os
@@ -210,6 +215,7 @@ class Case:
         self.crash_kind = 'tokens'  # the output holding a crash's trace
         self.crash_at = None    # the innermost library spot of a crash
         self.outputs = {}       # 'tokens' and 'tree' -> bytes
+        self.fast_note = None
 
 
 def find_cases(root, globs):
@@ -277,8 +283,8 @@ def run_lines(case):
     return out
 
 
-def golden_program(lib_path, cases):
-    prog = ue.library_program(lib_path)
+def golden_program(lib_path, cases, debug=True):
+    prog = ue.library_program(lib_path, debug=debug)
     runs = '\n'.join(line for case in cases for line in run_lines(case))
     has_marks = any(c.marks for c in cases)
     has_modules = any(c.modules for c in cases)
@@ -506,7 +512,10 @@ def run_cases(lib_path, cases, opts):
     can't stop (out of memory, a timeout), split them in two and run each
     half, at most opts.jobs evals at once, until the cases that kill it
     run alone."""
+    if getattr(opts, 'fast', False):
+        return run_fast_cases(lib_path, cases, opts)
     pool = concurrent.futures.ThreadPoolExecutor(opts.jobs)
+    interrupted = False
     try:
         pending = {pool.submit(run_batch, lib_path, cases, opts, True)}
         while pending:
@@ -516,14 +525,54 @@ def run_cases(lib_path, cases, opts):
                 for part in f.result():
                     pending.add(pool.submit(run_batch, lib_path, part, opts,
                                             False))
+    except KeyboardInterrupt:
+        interrupted = True
+        raise
     finally:
-        #  On an error or ^C, drop the evals that haven't started.
-        pool.shutdown(wait=False, cancel_futures=True)
+        # Drain ordinary failures before a diagnostic retry so it cannot
+        # exceed --jobs; preserve prompt cancellation on an interruption.
+        pool.shutdown(wait=not interrupted, cancel_futures=True)
+
+
+def run_fast_cases(lib_path, cases, opts):
+    """Retry failures with spots without letting the retry bless a failure."""
+    first = copy.copy(opts)
+    first.fast, first.debug = False, False
+    diagnostic = copy.copy(opts)
+    diagnostic.fast, diagnostic.debug = False, True
+    diagnostic.save_program = None
+    try:
+        run_cases(lib_path, cases, first)
+    except ue.ToolError as error:
+        warn('fast eval failed; rerunning with debug spots')
+        # A fresh set also discards any partially decoded initial output.
+        rerun = [Case(case.name, case.folder) for case in cases]
+        try:
+            run_cases(lib_path, rerun, diagnostic)
+        except ue.ToolError as detail:
+            raise ue.ToolError('%s\ninstrumented diagnostic rerun:\n%s' %
+                               (error, detail)) from error
+        details = [line for case in rerun if not compare(case)[0]
+                   for line in compare(case)[1]]
+        raise ue.ToolError('%s\ninstrumented diagnostic rerun:\n%s' % (
+            error, '\n'.join(details) if details else
+            'all cases passed; fast failure retained')) from error
+    failed = [case for case in cases if not compare(case)[0]]
+    if not failed:
+        return
+    warn('fast tests failed; rerunning %d cases with debug spots' % len(failed))
+    rerun = [Case(case.name, case.folder) for case in failed]
+    run_cases(lib_path, rerun, diagnostic)
+    for original, repeated in zip(failed, rerun):
+        if not compare(repeated)[0]:
+            original.__dict__.update(repeated.__dict__)
+        else:
+            original.fast_note = 'instrumented rerun passed; fast failure retained'
 
 
 def run_batch(lib_path, cases, opts, top):
     """Run cases in one eval; the halves to run again if the eval died."""
-    prog = golden_program(lib_path, cases)
+    prog = golden_program(lib_path, cases, debug=getattr(opts, 'debug', True))
     if opts.save_program and top:
         with open(opts.save_program, 'wb') as f:
             f.write(prog.encode())
@@ -632,6 +681,13 @@ def contract_problems(case):
 
 
 def compare(case):
+    ok, lines = compare_outputs(case)
+    if case.fast_note:
+        lines.append('  ' + case.fast_note)
+    return ok, lines
+
+
+def compare_outputs(case):
     """PASS or FAIL lines for one case."""
     if case.crashed:
         out = [colour('31', 'FAIL') + '  %s: crashed' % case.name]
@@ -715,7 +771,11 @@ def main(argv):
                     'which one kills the eval (default: 2)')
     ap.add_argument('--save-program', metavar='FILE',
                     help='also write the generated Hoon program to FILE')
+    ap.add_argument('--fast', action='store_true',
+                    help='test without debug spots, rerun failures with them')
     opts = ap.parse_args(argv)
+    if opts.fast and (opts.update or opts.show):
+        ap.error('--fast is only for testing, not --update or --show')
     # Outputs that aren't UTF-8 are held with surrogateescape; print them
     # back out as the bytes they were.
     sys.stdout.reconfigure(errors='surrogateescape')

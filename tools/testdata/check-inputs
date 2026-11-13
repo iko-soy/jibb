@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Check recorded ship assemblies without a running ship or Hoon evaluation."""
+
+import importlib.machinery
+import json
+import os
+from pathlib import Path
+import sys
+import tempfile
+
+sys.dont_write_bytecode = True
+ROOT = Path(__file__).resolve().parents[2]
+ship = importlib.machinery.SourceFileLoader(
+    'check_inputs_ship', str(ROOT / 'tools/ship')).load_module()
+
+
+def rejects(operation, fragment):
+    try:
+        operation()
+    except ship.Unable as error:
+        assert fragment in str(error), str(error)
+    else:
+        raise AssertionError('accepted invalid recorded assembly: ' + fragment)
+
+
+with tempfile.TemporaryDirectory(prefix='jibb-check-inputs-test-') as folder:
+    root = Path(folder)
+    ship.ROOT = folder
+    (root / 'mark.hoon').write_text('|_  a=*\n++  grab  |%  ++  noun  *  --\n--\n')
+    (root / 'value.hoon').write_text('42\n')
+    (root / 'sys.kelvin').write_text('[%zuse 310]\n')
+    mapping = {'mar/hoon.hoon': 'mark.hoon', 'mar/kelvin.hoon': 'mark.hoon',
+               'sys.kelvin': 'sys.kelvin', 'lib/value.hoon': 'value.hoon'}
+    assembly = ship.mapped_assembly('fixture', mapping)
+    assert assembly.files['lib/value.hoon'] == (b'42\n', 'value.hoon')
+    rejects(lambda: ship.mapped_assembly('fixture', {}), 'nonempty object')
+    for path in ('../escape', '/absolute', 'a//b', 'a/./b', '', 3):
+        rejects(lambda: ship.mapped_assembly('fixture', {path: 'value.hoon'}), 'invalid path')
+        rejects(lambda: ship.mapped_assembly('fixture', {'lib/value.hoon': path}), 'invalid path')
+    (root / 'outside.hoon').symlink_to(ROOT / 'jibb-dev/lib/jibb.hoon')
+    rejects(lambda: ship.mapped_assembly('fixture', {'lib/outside.hoon': 'outside.hoon'}),
+            'escapes the repository')
+    rejects(lambda: ship.mapped_assembly('fixture', {'lib/value.hoon': 'value.hoon'}),
+            'no mark')
+    maps = root / 'desks.json'
+    maps.write_text(json.dumps({'fixture': mapping}))
+    previous = os.environ.get('JIBB_DESK_MAPS')
+    os.environ['JIBB_DESK_MAPS'] = str(maps)
+    try:
+        assert ship.assemble('fixture').files == assembly.files
+        rejects(lambda: ship.assemble('unknown'), 'no recorded desk map')
+        rejects(lambda: ship.assemble('fixture', lib='value.hoon'), 'cannot replace')
+        rejects(lambda: ship.assemble('fixture', golden='custom'), 'cannot replace')
+        # Sources remain live inputs, not cached bytes from manifest creation.
+        (root / 'value.hoon').write_text('43\n')
+        assert ship.assemble('fixture').files['lib/value.hoon'][0] == b'43\n'
+    finally:
+        if previous is None:
+            del os.environ['JIBB_DESK_MAPS']
+        else:
+            os.environ['JIBB_DESK_MAPS'] = previous
+
+print('check-inputs: recorded assembly sources, validation and isolation passed')

@@ -4,6 +4,10 @@
 Valid probes must check. Invalid probes must fail with the specified
 message and sites. Missing diagnostic expectations and unsupported valid
 probes are failures, never expected passes.
+
+--fast omits Hoon debug spots under eval and repeats failures with spots;
+the diagnostic retry cannot clear a failure. Resource isolation retains
+the selected mode, and ship checks are unchanged.
 """
 
 import argparse
@@ -165,7 +169,7 @@ def parse_output(output, imports=False):
     return results
 
 
-def eval_results(group, cases):
+def eval_results(group, cases, debug=True):
     mode, _ = probe_file(group)
     # Reassemble the input from checked sections so the Core fragment can be
     # embedded in its island; do not change any other source.
@@ -174,6 +178,8 @@ def eval_results(group, cases):
         source_path = Path(tmp) / 'cases.jibb'
         source_path.write_text(data, encoding='utf-8')
         command = [str(PROBES / 'run'), mode]
+        if not debug:
+            command.append('--no-debug')
         if mode != 'imports':
             command.append(str(source_path))
         result = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE,
@@ -185,8 +191,8 @@ def eval_results(group, cases):
             middle = len(cases) // 2
             print('%s: splitting %d probes after eval could not finish the batch' %
                   (group, len(cases)), file=sys.stderr, flush=True)
-            return (eval_results(group, cases[:middle]) +
-                    eval_results(group, cases[middle:]))
+            return (eval_results(group, cases[:middle], debug) +
+                    eval_results(group, cases[middle:], debug))
         raise ValueError('%s failed:\n%s' % (' '.join(command), result.stderr))
     return parse_output(result.stdout, mode == 'imports')
 
@@ -359,11 +365,37 @@ def compare(group, cases, results):
     return failures
 
 
+def eval_group(group, cases, fast=False):
+    """Return failures/error; a debug retry explains, never clears, failure."""
+    def attempt(debug):
+        try:
+            return compare(group, cases, eval_results(group, cases, debug)), None
+        except (OSError, UnicodeError, ValueError) as error:
+            return [], str(error)
+    failures, error = attempt(not fast)
+    if not fast or not (failures or error):
+        return failures, error
+    print('%s: fast eval failed; rerunning with debug spots' % group,
+          file=sys.stderr, flush=True)
+    repeated, detail = attempt(True)
+    if detail is None:
+        detail = '\n'.join('%s: %s\n%s' % failure for failure in repeated)
+        if not detail:
+            detail = 'all probes passed; fast failure retained'
+    detail = 'instrumented diagnostic rerun:\n' + detail
+    if error is not None:
+        return failures, error + '\n' + detail
+    return [(label, reason, message + '\n' + detail)
+            for label, reason, message in failures], None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--backend', choices=('eval', 'ship'), default='eval')
     parser.add_argument('-j', '--jobs', type=int, default=1,
                         help='parallel eval groups (ship groups run sequentially)')
+    parser.add_argument('--fast', action='store_true',
+                        help='eval without debug spots, rerun failures with them')
     parser.add_argument('groups', nargs='*', choices=GROUPS)
     args = parser.parse_args()
     if args.jobs < 1:
@@ -379,8 +411,10 @@ def main():
         def run_group(item):
             group, cases = item
             try:
-                results = ship_results(ship, group, cases) if ship else eval_results(group, cases)
-                return group, cases, compare(group, cases, results), None
+                if ship:
+                    return group, cases, compare(group, cases, ship_results(ship, group, cases)), None
+                failures, error = eval_group(group, cases, args.fast)
+                return group, cases, failures, error
             except (OSError, UnicodeError, ValueError, shiptool.Fail, shiptool.Unable) as error:
                 return group, cases, [], str(error)
 

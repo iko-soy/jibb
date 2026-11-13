@@ -14,6 +14,7 @@ every check passes.
 
 import argparse
 import gzip
+from importlib.machinery import SourceFileLoader
 import os
 import random
 import re
@@ -21,6 +22,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
+from unittest.mock import patch
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 TOOLS = os.path.dirname(HERE)
@@ -821,6 +824,191 @@ def check_bundle_budget(c, tmp):
         c.expect(status != 0 and 'must be under 20000' in out,
                  'oversize build must fail before writing: ' + out)
         c.expect(read(vendored) == small, 'oversize build replaced the vendored bundle')
+
+
+def check_fast_goldens(c, tmp):
+    """Fast successes stay uninstrumented; actual failures regain source spots."""
+    program = os.path.join(tmp, 'fast.hoon')
+    status, out = golden('--dir', CASES, '--lib', STUB, '--case', 'basic',
+                         '--fast', '--jobs', '1', '--save-program', program)
+    c.expect(status == 0 and 'rerunning' not in out and
+             not read(program).startswith(b'!:'), 'fast passing golden: ' + out)
+    cases = copy_cases(tmp)
+    add_case(cases, 'crashy', b'crash\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic',
+                         '--case', 'crashy', '--fast', '--jobs', '1')
+    line = stub_line('?>  =(1 2)')
+    c.expect(status == 1 and 'PASS  basic' in out and 'FAIL  crashy' in out and
+             'rerunning 1 cases with debug spots' in out and
+             'tools/testdata/stub.hoon:%d:3' % line in out and
+             '?>  =(1 2)' in out and '^' in out,
+             'fast golden crash must recover its source excerpt: ' + out)
+    tree = os.path.join(cases, 'basic', 'tree.txt')
+    with open(tree, 'wb') as f:
+        f.write(b'wrong expected output\n')
+    status, out = golden('--dir', cases, '--lib', STUB, '--case', 'basic',
+                         '--fast', '--jobs', '1')
+    c.expect(status == 1 and 'rerunning' in out and '-wrong expected output' in out,
+             'fast golden mismatch must remain a mismatch: ' + out)
+    status, out = golden('--dir', cases, '--lib', STUB, '--fast', '--update')
+    c.expect(status == 2 and read(tree) == b'wrong expected output\n',
+             '--fast --update must not rewrite goldens: ' + out)
+    lib, line = stub_with(tmp, 'typo-fast.hoon', "?~(lines '' i.lines)",
+                          "?~(lines '' (add i.lines %oops 3))")
+    status, out = golden('--dir', CASES, '--lib', lib, '--case', 'basic',
+                         '--fast', '--jobs', '1')
+    c.expect(status == 2 and 'rerunning with debug spots' in out and
+             re.search(r'typo-fast\.hoon:%d:\d+' % line, out),
+             'fast golden build failure must recover its source location: ' + out)
+
+
+def check_fast_arms(c, tmp):
+    lib = os.path.join(tmp, 'lib')
+    os.makedirs(lib)
+    for name, source in ARM_SUITES.items():
+        with open(os.path.join(lib, name + '.hoon'), 'w') as f:
+            f.write(source)
+    status, out = test_arms('--dir', lib, '--fast', 'pass')
+    c.expect(status == 0 and 'rerunning' not in out, 'fast passing arm: ' + out)
+    status, out = test_arms('--dir', lib, '--fast', 'crash', 'fail')
+    line = stub_line('?>  =(1 2)')
+    c.expect(status == 1 and 'CRASHED crash test-crash' in out and
+             'FAILED fail test-wrong' in out and '2 suites, 3 arms: 2 failed' in out and
+             'tools/testdata/stub.hoon:%d:3' % line in out and
+             re.search(r'crash\.hoon:5:', out) and '?>  =(1 2)' in out,
+             'fast arm failures must retain counts and recover source excerpts: ' + out)
+    status, out = test_arms('--dir', lib, '--fast', 'nobuild')
+    c.expect(status == 1 and 'FAILED nobuild (build)' in out and
+             re.search(r'nobuild\.hoon:5:', out),
+             'fast arm build failure must recover its source location: ' + out)
+
+
+def check_fast_failure_preserved(c, tmp):
+    """A passing diagnostic replay must not erase a real first-run failure."""
+    sys.path.insert(0, TOOLS)
+    import urbit_eval as ue
+    from noun import bytes_to_atom, from_list
+    arms = SourceFileLoader('selftest_fast_arms', TEST_ARMS).load_module()
+    goldens = SourceFileLoader('selftest_fast_goldens', GOLDEN).load_module()
+    probes = SourceFileLoader('selftest_fast_probes', os.path.join(TOOLS, 'probe-regression')).load_module()
+    suite = SimpleNamespace(name='sample')
+    for first_lines in (['FAILED sample test-sample', '  original mismatch'], None):
+        seen = []
+        def eval_arm(prog, **kwargs):
+            seen.append(prog.debug)
+            result = ue.EvalResult()
+            result.ok = prog.debug or first_lines is not None
+            result.bail = 'exit'
+            result.noun = from_list([bytes_to_atom(line.encode()) for line in
+                                     (['OK sample test-sample'] if prog.debug else first_lines or [])])
+            return result
+        with patch.object(arms, 'program_for', lambda suites, lib, debug: SimpleNamespace(debug=debug)), \
+                patch.object(arms.ue, 'run_eval', eval_arm):
+            lines = arms.run_fast([suite], STUB, 10)
+        c.expect(seen == [False, True] and any(line.startswith('FAILED sample') for line in lines),
+                 'passing debug arm replay cleared failure: %r %r' % (seen, lines))
+
+    # Feed canonical harness output through the real golden decoder/comparer.
+    cases = copy_cases(tmp)
+    for malformed in (False, True):
+        seen = []
+        case = goldens.Case('basic', os.path.join(cases, 'basic'))
+        def eval_golden(prog, **kwargs):
+            debug = prog.text().startswith('!:')
+            seen.append(debug)
+            result = ue.EvalResult()
+            result.ok = True
+            if malformed and not debug:
+                result.noun = bytes_to_atom(b'not harness output')
+                return result
+            fields = [goldens.MAGIC, b'1', b'basic', b'ok',
+                      read(os.path.join(case.folder, 'tokens.txt'))[:-1],
+                      read(os.path.join(case.folder, 'tree.txt'))[:-1] if debug else b'fast-only mismatch',
+                      b'', b'', b'']
+            result.noun = bytes_to_atom(b''.join(str(len(field)).encode() + b':' + field + b','
+                                                for field in fields))
+            return result
+        opts = SimpleNamespace(fast=True, jobs=1, timeout=10, save_program=None)
+        error = None
+        with patch.object(goldens.ue, 'run_eval', eval_golden):
+            try:
+                goldens.run_cases(STUB, [case], opts)
+            except ue.ToolError as caught:
+                error = str(caught)
+        c.expect(seen == [False, True], 'golden replay did not switch debug mode: %r' % seen)
+        if malformed:
+            c.expect(error and 'fast failure retained' in error,
+                     'passing debug replay cleared malformed initial output: %r' % error)
+        else:
+            ok, lines = goldens.compare(case)
+            c.expect(not ok and 'fast-only mismatch' in '\n'.join(lines) and
+                     'fast failure retained' in '\n'.join(lines),
+                     'passing debug golden replay cleared mismatch: %r' % lines)
+
+    sample = [('valid', '/ui/probe/jibb', '++ main 1\n')]
+    for crashed in (False, True):
+        seen = []
+        def eval_probe(group, cases, debug=True):
+            seen.append(debug)
+            if debug:
+                return [('valid', 0, '')]
+            if crashed:
+                raise ValueError('initial eval crash')
+            return [('valid', 1, 'initial wrong rejection')]
+        with patch.object(probes, 'eval_results', eval_probe):
+            failures, error = probes.eval_group('p1', sample, fast=True)
+        c.expect(seen == [False, True] and (failures or error) and
+                 'fast failure retained' in str(error or failures),
+                 'passing debug probe replay cleared failure: %r %r' % (failures, error))
+
+
+def check_fast_resource_isolation(c, tmp):
+    """Splitting a resource-limited batch retains the requested fast mode."""
+    sys.path.insert(0, TOOLS)
+    import urbit_eval as ue
+    from noun import bytes_to_atom
+    goldens = SourceFileLoader('selftest_split_goldens', GOLDEN).load_module()
+    probes = SourceFileLoader('selftest_split_probes', os.path.join(TOOLS, 'probe-regression')).load_module()
+    cases = goldens.find_cases(CASES, [])[:2]
+    seen = []
+    def eval_golden(prog, **kwargs):
+        seen.append((len(prog.cases), prog.debug))
+        result = ue.EvalResult()
+        if len(prog.cases) > 1:
+            result.bail = 'meme'
+            return result
+        result.ok = True
+        case = prog.cases[0]
+        fields = [goldens.MAGIC, b'1', case.name.encode(), b'ok',
+                  read(os.path.join(case.folder, 'tokens.txt'))[:-1],
+                  read(os.path.join(case.folder, 'tree.txt'))[:-1], b'', b'', b'']
+        result.noun = bytes_to_atom(b''.join(str(len(field)).encode() + b':' + field + b','
+                                            for field in fields))
+        return result
+    opts = SimpleNamespace(fast=True, jobs=1, timeout=10, save_program=None)
+    with patch.object(goldens, 'golden_program',
+                      lambda lib, cases, debug=True: SimpleNamespace(cases=cases, debug=debug)), \
+            patch.object(goldens.ue, 'run_eval', eval_golden):
+        goldens.run_cases(STUB, cases, opts)
+    c.expect(seen == [(2, False), (1, False), (1, False)] and
+             all(goldens.compare(case)[0] for case in cases),
+             'golden resource isolation changed debug mode or outcomes: %r' % seen)
+
+    seen = []
+    def run_probe(command, **kwargs):
+        seen.append('--no-debug' in command)
+        labels = re.findall(r'^#### (.*)$', read(command[-1]).decode(), re.M)
+        if len(labels) > 1:
+            return SimpleNamespace(returncode=1, stderr='bail: %oops', stdout='')
+        return SimpleNamespace(returncode=0, stderr='',
+                               stdout='#### %s\nCHECKED\n' % labels[0])
+    sample = [('first', '/ui/probe/jibb', '++ main 1\n'),
+              ('second', '/ui/probe/jibb', '++ main 2\n')]
+    with patch.object(probes.subprocess, 'run', run_probe):
+        failures, error = probes.eval_group('p1', sample, fast=True)
+    c.expect(seen == [True, True, True] and not failures and error is None,
+             'probe resource isolation changed debug mode or outcomes: %r %r %r' %
+             (seen, failures, error))
 
 
 CHECKS =[(name[len('check_'):], fn) for name, fn in globals().items()

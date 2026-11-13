@@ -21,10 +21,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=('plain', 'app', 'imports'))
     parser.add_argument('source', nargs='?')
+    parser.add_argument('--no-debug', action='store_true',
+                        help='omit Hoon debug spots for the fast regression pass')
     args = parser.parse_args()
     if args.mode != 'imports' and args.source is None:
         parser.error('plain and app require a sectioned source file')
     command = [str(ROOT / 'tools/hoon'), '--raw']
+    if args.no_debug:
+        command.append('--no-debug')
 
     def cord(name, path):
         command.extend(['--cord', name + '=' + str(path)])

@@ -28,11 +28,13 @@ nix develop            # a shell with urbit, Python, click, Rust and tree-sitter
 nix build .#fakezod    # a freshly booted fake ~zod pier (Linux)
 ```
 
-The default `nix build` writes the five desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build. The separate `jibb` package builds the native CLI without Urbit.
+The default `nix build` writes the five desks exactly as `tools/ship sync` would commit them (it runs `tools/ship assemble`), and compiles `jibb.hoon` and `jibb-import.hoon` under `urbit eval` to check that they build. `jibb-cli-unwrapped` builds and tests the native CLI without Urbit; `jibb` packages a copy of that executable with its runtime helpers and vendored desks. Changing those files repackages the CLI without recompiling Rust.
 
-`nix flake check -j 2` builds those and the CLI, runs the CLI's Rust tests, and runs the eval and Linux ship checks in the Nix sandbox without network. The eval aggregate has 14 golden batches, eight arm shards, four strict-probe batches, a separate tooling selftest, a residual group and a manifest-freshness check. The ship aggregate has eight ordinary-suite groups plus golden, base integration, four ship-probe groups, and the host/browser/Node chain, each with an independent fresh pier copied from the pinned pill. Nix reuses a batch whose complete source closure is unchanged. `nix/eval-manifest.json` records those closures; run `tools/eval-manifest --write` after changing case or suite membership, dependencies or shard assignments, and `tools/eval-manifest --check` to verify it. A first full run still takes hours, but an unrelated change need not repeat every Hoon expression. Each aggregate keeps links to its batches' logs. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
+`nix flake check -j 2` builds those and the CLI, runs the CLI's Rust tests, and runs the eval and Linux ship checks in the Nix sandbox without network. The eval aggregate has 14 golden batches, eight arm shards, four strict-probe batches, a separate tooling selftest, a residual group and a manifest-freshness check. The ship aggregate has eight ordinary-suite groups plus golden, base integration, four ship-probe groups, and the host/browser/Node chain, each with an independent fresh pier copied from the pinned pill. Nix reuses a batch whose complete source closure is unchanged. `nix/eval-manifest.json` records eval and ship closures, including the selected probes. Its checker compares full and narrowed Hoon programs, probe inputs and recorded desk files. Run `tools/eval-manifest --write` after changing case or suite membership, dependencies or shard assignments, and `tools/eval-manifest --check` to verify it. Eval tests use `--fast`, retaining debug replay on failure; the tooling selftest remains instrumented. A first full run still takes hours, but an unrelated change need not repeat every Hoon expression. Each aggregate keeps links to its batches' logs. To run a single check, use `nix develop -c tools/check <name>` (see [docs/development.md](docs/development.md#before-pushing)).
 
 Limits: the ship checks need Linux, since `tools/ship` finds the ship's processes in `/proc`, so on macOS `nix flake check` runs only the CLI and eval group. Only `x86_64-linux` has been tried; the flake also declares `aarch64-linux` and `aarch64-darwin`, the other platforms nixpkgs builds vere for.
+
+CI restores Nix results from prior commits and saves successful push results in GitHub Actions' cache. Check outputs, the raw Rust executable and the clean fake-ship seed are rooted before cache garbage collection so the individual batch results, compiled CLI and ship setup survive. Pull requests restore caches without uploading them. The cache targets a 4 GiB store after collecting unreferenced paths; live results can exceed that target, and GitHub's repository cache quota controls retention. No separate cache credentials are needed.
 
 ## Earth-side CLI
 
@@ -82,6 +84,7 @@ Run them without a ship. This needs `urbit` on PATH and Python 3.
 
 ```
 tools/golden                         # every case: PASS or FAIL, a diff per failure, a summary
+tools/golden --fast                  # omit Hoon instrumentation; replay failures with debug
 tools/golden --case 'doc-grammar-*'  # only the cases matching a glob
 tools/golden --show --case foo       # print the outputs, don't compare
 ```
@@ -121,6 +124,7 @@ Each `tests/lib/<suite>.hoon` file is a test suite: a core whose `test-` arms re
 
 ```
 tools/test-arms                              # every suite
+tools/test-arms --fast jibb-store             # fast execution, diagnostic replay on failure
 tools/test-arms jibb-store 'jibb-program-*'  # suites by name or glob
 tools/test-arms --shard 2/4                  # the second of four shards, balanced by measured cost
 tools/test-arms --list                       # the suites and their arms; ", report" marks a golden report
@@ -128,7 +132,7 @@ tools/test-arms --report jibb-import         # print a golden-report suite's rep
 tools/test-arms --update jibb-import         # write it to the suite's expected file
 ```
 
-Many suites share one eval, so the library is built once per eval, not once per suite. Each arm runs under `mule` and prints OK, FAILED or CRASHED, as `-test` does, with what it returned or, for a crash, its trace mapped to lines of the suite and the library. When an eval fails, it is run again one suite at a time, and each suite that doesn't build is reported as `FAILED <suite> (build)`, with its error placed in the suite file. An eval that runs past `--timeout`, 1800 s by default, fails each of its suites as `(timeout)`. The exit status is 0 when every arm passes, 1 when an arm or a golden file fails, and 2 when the suites can't run, for example on a usage error or a suite header it can't read. `tools/check` runs the suites in four shards, `arms-1` to `arms-4`.
+Many suites share one eval, so the library is built once per eval, not once per suite. Each arm runs under `mule` and prints OK, FAILED or CRASHED, as `-test` does, with what it returned or, for a crash, its trace mapped to lines of the suite and the library. When an eval fails, it is run again one suite at a time, and each suite that doesn't build is reported as `FAILED <suite> (build)`, with its error placed in the suite file. An eval that runs past `--timeout`, 1800 s by default, fails each of its suites as `(timeout)`. The exit status is 0 when every arm passes, 1 when an arm or a golden file fails, and 2 when the suites can't run, for example on a usage error or a suite header it can't read. `tools/check` runs the suites in eight shards, `arms-1` to `arms-8`, using `--fast`. Standalone runs retain debug instrumentation unless `--fast` is requested. A fast failure stays a failure even when its diagnostic replay passes.
 
 A golden-report suite has a `report` arm and a `/*` file bound to the face `expected`; when one of its arms fails, the runner prints a diff between that file and the report. Before any eval, the runner checks the golden files of the suites it runs, the `%txt` files bound to a face containing `expected`: each must end in exactly one newline, which an arm can't see in the file's wain, and hold no line that starts `BAD ` or ends `: BAD`. `--update` won't write a report that breaks either rule.
 
