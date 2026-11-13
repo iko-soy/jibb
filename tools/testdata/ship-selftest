@@ -12,10 +12,11 @@ aren't knots, and on a few hundred made-up cases, and --check.
 The ship checks run tools/ship test --stub --golden on the running fake
 ship: the cases in tools/testdata/ship-golden, whose about.txt files
 end with what each should give ("Expected: OK", or FAILED or CRASHED,
-with words the failure must print), then a library that doesn't build,
-and with --many, that many made-up cases that all pass.  They leave the
-jibb-dev desk holding the last run's files; tools/ship test puts back
-the real ones.
+with words the failure must print), a valid logical-path case, a library
+that doesn't build, and the valid case again to verify recovery on the
+same desk. With --many, they also run that many made-up cases that all
+pass. They leave the jibb-dev desk holding the last run's files;
+tools/ship test puts back the real ones.
 
 Exit status: 0 when every check passes, 1 otherwise.
 """
@@ -823,6 +824,15 @@ def ship_checks(tmp, many):
               r'syntax error at \[\d+ \d+\] in /lib/jibb/hoon', res.stdout)
           and 'FAILED  /tests/lib/jibb/hoon (build)' in
           res.stdout and 'a test file failed to build' in res.stdout,
+          res.stdout[-1500:] + res.stderr)
+
+    # A failed build must not poison the next sync and test on this desk.
+    res = run('test', '--stub', '--golden', logical)
+    recovered = results(res.stdout)
+    check('a valid library recovers after a failed build on the same desk',
+          res.returncode == 0 and
+          'PASS: 1 OK, 0 FAILED, 0 CRASHED' in res.stdout and
+          set(recovered) == {'test-api'} and recovered['test-api'][0] == 'OK',
           res.stdout[-1500:] + res.stderr)
 
     if many:

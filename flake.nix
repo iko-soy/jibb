@@ -279,9 +279,13 @@
             value = check "ship-${batch.name}" (manifestFiles batch.ship_paths)
               "timeout 10800s python3 tools/ship test --only suites ${quote (builtins.concatMap (suite: [ "--suite" suite ]) batch.suites)}" (mappedShipExtra batch);
           }) evalManifest.arm_batches);
-          shipGoldens = check "ship-goldens" (fs.unions [
+          # The selftest checks full desk assembly as well as stub runs.
+          shipSelftest = check "ship-selftest" (fs.unions [
             shipTestFiles ./tests ./tools/testdata
-          ]) "tools/check ship-selftest ship-test-goldens --timeout 10800 --logs $out" shipExtra;
+          ]) "tools/check ship-selftest --timeout 10800 --logs $out" shipExtra;
+          shipGoldens = check "ship-goldens" (fs.unions (
+            [ shipTestFiles ] ++ map (batch: manifestFiles batch.paths) evalManifest.golden_batches
+          )) "tools/check ship-test-goldens --timeout 10800 --logs $out" shipExtra;
           shipBaseFiles = fs.unions [
             shipTestFiles ./tools/clay-fixtures ./tools/check-my-app
             ./tests/clay-fixtures ./tests/type-buttons/error.txt
@@ -327,7 +331,7 @@
               '';
             });
           shipParts = shipSuiteParts // shipProbeParts // {
-            inherit shipGoldens shipBase shipHost;
+            inherit shipSelftest shipGoldens shipBase shipHost;
           };
           shipChecks = pkgs.linkFarm "jibb-check-ship" (lib.mapAttrsToList
             (name: path: { inherit name path; }) shipParts);
