@@ -233,7 +233,25 @@ A focused fresh-ship run on 2026-11-13 exercised three static pages and one data
 
 A separate real-ship probe called the desk's Ford-built `+execute-linked` in four events. Both repeated successes returned 42 and emitted their trace; both repeated crashes retained their exact diagnostic and emitted their trace. Each pair's second call hit the emission cache. Scratch counters and probes are absent from the production sources. The current runner discovers 681 ordinary arms in 274 suites, plus 1,376 golden cases.
 
-Full `nix flake check -L -j 1` passed on x86_64-linux, reusing unchanged checks and completing all 46 check leaves. The changed eval shards passed 111 and 86 arms in 1,152 and 1,072 seconds; their fresh-ship counterparts passed with no failures or crashes. The complete check set covers all 681 ordinary arms and 1,376 goldens on both backends, all 348 probe outcomes on each backend, 128 Rust tests and 322 JavaScript tests. The tooling selftest passed in 562 seconds, all eight residual checks passed, and the browser library remained 55,729 bytes, 19,826 under `gzip -9n`.
+Render-stage profiling on 2026-11-13 compares `2c39dd6` with `57d41eb` using the checked host fixture's About page, default theme and vendored renderer under pinned, debug-disabled eval. Each fresh process compiled and checked the same inputs and prepared the stage inputs once before repeating one operation. Marginal times subtract a no-loop control's user CPU time: baseline controls were 186.85 and 208.11 seconds; candidate controls were 194.35 and 196.75 seconds. The ranges below subtract each observed control; they are not statistical confidence intervals.
+
+| Repeated operation | Repetitions | Marginal CPU time per operation |
+| --- | ---: | ---: |
+| Baseline page linking | 10 | 0.54–2.67 s |
+| Baseline support linking: theme, 18 renderer entries and attribute decoder | 10 bundles | 6.08–8.20 s |
+| Baseline complete kit preparation | 6 | 5.27–8.81 s |
+| Baseline element-to-vnode conversion | 50,000 | 0.15–0.58 ms |
+| Baseline HTML serialization: 609 bytes per document | 20,000 | 0.41–1.47 ms |
+| Baseline complete render | 6 | 4.76–8.30 s |
+| Candidate complete render | 1,000 | 4.08–6.48 ms |
+
+Additional baseline runs covered native discovery (500 bundles), Nock emission (100 bundles), execution of already-emitted programs (50,000 bundles), and reference validation (100,000 trees). Each program bundle contains the page, theme, attribute decoder and 18 renderer entries: 21 programs. Their smaller marginal costs were not resolved against the baseline control spread. The stage scopes overlap, and separate process measurements do not form an exact additive breakdown. Some component estimates exceed the separately measured complete render; these runs locate expensive stages without establishing their proportions.
+
+The candidate's common setup warmed kit and emission caches; its complete-render loop still included one initial page-link cache miss. Every render executed the programs, checked references and serialized HTML again. These timings describe this fixture; the complete host measurements establish the effect on the acceptance workload.
+
+Full `nix flake check -L -j 1` passed on x86_64-linux, reusing unchanged checks and completing all 46 check leaves. The changed eval shards passed 111 and 86 arms in 1,152 and 1,072 seconds; their fresh-ship counterparts passed with no failures or crashes. The complete check set covers all 681 ordinary arms and 1,376 goldens on both backends, all 348 probe outcomes on each backend, 128 Rust tests and 322 JavaScript tests. The tooling selftest passed in 562 seconds, all eight residual checks passed, and the browser library remained 55,729 bytes, 19,826 under `gzip -9n`. A final `nix flake check -L -j 2` rerun passed in 7.5 seconds with `running 0 flake checks`.
+
+GitHub Actions [run 43415210856](https://github.com/iko-soy/jibb/actions/runs/43415210856) passed for `57d41eb`. It restored the `2c39dd6` Nix cache, reused 34 of 46 check leaves and rebuilt the 12 affected leaves: eval and ship arm shards 5/6, eval manifest/residual/selftests, ship base/goldens/host, desks and the CLI wrapper. The raw Rust CLI was reused. The Nix check step took 24 minutes 9 seconds; host/browser/Node acceptance took 360.7 seconds within it. Rooting and cache garbage collection succeeded, and the commit's new cache was saved at 1,204,521,045 bytes (1.12 GiB). These CI timings are separate observations from the local comparison.
 
 Host-chain profiling on 2026-11-13 removed redundant builds from acceptance setup and cleanup. Applications remain suspended until the host is installed, and each first build asserts that no earlier result, checked module or published file exists. After `-jibb!clear`, an unrelated Clay commit republishes `my-app` assets while retaining its checked modules; the runner restores the temporary file in both the filesystem and Clay and verifies every asset's public, immutable response. Nix runs browser and Node acceptance before the final fixture suspension, then stops its disposable pier. Standalone runs still revive the fixture, and failures retain restoration cleanup. All 98 original host assertion sites remain; 14 mocked republish cases, 19 lifecycle cases and six pinned Nix exit-hook cases passed.
 
