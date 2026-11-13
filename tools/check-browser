@@ -17,24 +17,29 @@ host = SourceFileLoader('jibb_check_host', str(ROOT / 'tools' / 'check-host')).l
 shiptool = host.shiptool
 
 
+@host.timed_phase('total')
 def main():
     chromium = os.environ.get('JIBB_CHROMIUM') or shutil.which('chromium')
     if chromium is None:
         raise ValueError('no Chromium: put chromium on PATH or set JIBB_CHROMIUM')
     ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
     ship.require()
-    revisions = {desk: shiptool.sync(ship, desk, timeout=300)
-                 for desk in ('jibb', 'my-app', host.DESK)}
-    for desk in revisions:
-        host.poke(ship, 'kiln-revive', '%' + desk)
-    host.wait_for('host agent installation', lambda: host.route_count(ship) >= 0 or None)
-    for desk in ('my-app', host.DESK):
-        host.wait_for('the %s route' % desk, lambda: host.route_present(ship, desk) or None)
-        host.wait_built(ship, desk, revisions[desk], timeout=3600)
+    with host.timed_phase('synchronize desks'):
+        revisions = {desk: shiptool.sync(ship, desk, timeout=300)
+                     for desk in ('jibb', 'my-app', host.DESK)}
+    with host.timed_phase('activate desks'):
+        for desk in revisions:
+            host.poke(ship, 'kiln-revive', '%' + desk)
+    with host.timed_phase('wait for host and applications'):
+        host.wait_for('host agent installation', lambda: host.route_count(ship) >= 0 or None)
+        for desk in ('my-app', host.DESK):
+            host.wait_for('the %s route' % desk, lambda: host.route_present(ship, desk) or None)
+            host.wait_built(ship, desk, revisions[desk], timeout=3600)
     origin = 'http://127.0.0.1:%d' % host.http_port(ship.pier)
-    result = subprocess.run(
-        ['node', str(ROOT / 'tools' / 'browser-check.mjs'), '--origin=' + origin,
-         '--password=' + host.PASSWORD, '--chromium=' + chromium] + sys.argv[1:])
+    with host.timed_phase('browser acceptance and benchmark'):
+        result = subprocess.run(
+            ['node', str(ROOT / 'tools' / 'browser-check.mjs'), '--origin=' + origin,
+             '--password=' + host.PASSWORD, '--chromium=' + chromium] + sys.argv[1:])
     return result.returncode
 
 

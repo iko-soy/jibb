@@ -213,6 +213,22 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+Host-chain profiling on 2026-11-13 removed redundant builds from acceptance setup and cleanup. Applications remain suspended until the host is installed, and each first build asserts that no earlier result, checked module or published file exists. After `-jibb!clear`, an unrelated Clay commit republishes `my-app` assets while retaining its checked modules; the runner restores the temporary file in both the filesystem and Clay and verifies every asset's public, immutable response. Nix runs browser and Node acceptance before the final fixture suspension, then stops its disposable pier. Standalone runs still revive the fixture, and failures retain restoration cleanup. All 98 original host assertion sites remain; 14 mocked republish cases, 19 lifecycle cases and six pinned Nix exit-hook cases passed.
+
+The timing-only baseline and optimized full `nix flake check -L -j 2` both passed on x86_64-linux. Unchanged check results were reused; host acceptance ran on a fresh pier in each run. Phase records are retained in `shipHost/timings.jsonl` with the aggregate log. This is one before/after pair on a shared machine, not a general throughput guarantee:
+
+| Measurement | Baseline | Optimized |
+| --- | ---: | ---: |
+| Complete host/browser/Node tools, excluding pier startup/shutdown | 3,005.4 s | 2,454.9 s |
+| Fresh fixture build | 408.7 s | 240.5 s |
+| Fresh `my-app` build | 136.4 s | 141.6 s |
+| Browser runner, including setup | 357.6 s | 20.4 s |
+| Browser execution and measurement itself | 6.0 s | 6.0 s |
+| Node runner | 14.7 s | 14.3 s |
+| Complete incremental Nix command | 3,028.9 s | 2,466.7 s |
+
+The tool chain saved 550.5 seconds (18.3%). The cached `my-app` republish took 20.3 seconds; browser waits for applications fell from 307.8 to 3.4 seconds. The unchanged expensive phases remain static-asset mutation/restoration (564.5 seconds), render diagnostics (755.9 seconds) and broken-import recovery (380.5 seconds). Browser acceptance and JavaScript/Nock agreement passed, and the ship stopped cleanly. An unchanged rerun passed in 5.2 seconds with `running 0 flake checks`. The browser measurement was median 17.4 ms, p95 27.8 ms and maximum 28.6 ms for 40 keystrokes at 4× CPU slowdown; no unagreed benchmark bar was imposed. Compiler, runtime and vendored browser bytes are unchanged.
+
 Nix check optimization on 2026-11-13 adds recorded ship/probe input closures, separate Rust compilation and CLI packaging, GitHub Actions result caching, and fast eval with instrumented failure replay. Isolated derivation comparisons show a runtime-bundle-only edit invalidating 8 of 46 check leaves instead of 24, and a browser-driver-only edit invalidating 3 instead of 5. A suite-only edit changes its matching eval/ship shards; a compiler edit still invalidates all 46 checks. The raw Rust derivation is reused in all four controls. Manifest validation compares full and narrow arm programs, probe inputs and desk sources; mapped-input negative tests and fast-runner failure/replay tests pass.
 
 Before implementation, an unchanged cached check passed in 7.8 seconds. On the same source, one two-suite, three-arm timing sample took 286 seconds with debug and 201 without it; compiler-only startup took 107 and 70 seconds. These include startup and are single samples on a shared machine, not an estimate of whole-suite speedup. CI now roots successful check outputs, the separate Rust executable and the clean fake-ship seed before saving its cache; actual cross-run transfer costs and cache hits still require observation in Actions.

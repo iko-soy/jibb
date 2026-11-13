@@ -32,26 +32,32 @@ def outcome(ok, message):
     return None
 
 
+@host.timed_phase('total')
 def main():
     ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
     ship.require()
-    revisions = {desk: shiptool.sync(ship, desk, timeout=300)
-                 for desk in ('jibb', 'my-app', host.DESK)}
-    for desk in revisions:
-        host.poke(ship, 'kiln-revive', '%' + desk)
-    host.wait_for('host agent installation', lambda: host.route_count(ship) >= 0 or None)
+    with host.timed_phase('synchronize desks'):
+        revisions = {desk: shiptool.sync(ship, desk, timeout=300)
+                     for desk in ('jibb', 'my-app', host.DESK)}
+    with host.timed_phase('activate desks'):
+        for desk in revisions:
+            host.poke(ship, 'kiln-revive', '%' + desk)
+    with host.timed_phase('wait for host'):
+        host.wait_for('host agent installation', lambda: host.route_count(ship) >= 0 or None)
     failures = []
     with tempfile.TemporaryDirectory() as folder:
         for desk, wanted in host.EXPECTED_TESTS.items():
             host.wait_built(ship, desk, revisions[desk], timeout=3600)
             care, path = shiptool.parse_scry('/gx/=jibb=/test-programs/%s/noun' % desk)
-            packed = ship.thread(shiptool.fill(
-                shiptool.SCRY, TYPE=PROGRAMS, CARE=care, PATH=path, NOW='now.bowl',
-                RESULT=RESULT), timeout=host.REPLY)
+            with host.timed_phase('read compiled test programs', desk=desk):
+                packed = ship.thread(shiptool.fill(
+                    shiptool.SCRY, TYPE=PROGRAMS, CARE=care, PATH=path, NOW='now.bowl',
+                    RESULT=RESULT), timeout=host.REPLY)
             file = os.path.join(folder, desk + '.jam')
             Path(file).write_bytes(shiptool.atom_bytes(packed))
-            run = subprocess.run(['node', str(ROOT / 'tools' / 'node-tests.mjs'), file],
-                                 capture_output=True, text=True)
+            with host.timed_phase('run Node harness', desk=desk):
+                run = subprocess.run(['node', str(ROOT / 'tools' / 'node-tests.mjs'), file],
+                                     capture_output=True, text=True)
             if run.returncode != 0:
                 failures.append('%s: the harness failed: %s' % (desk, run.stderr.strip()))
                 continue

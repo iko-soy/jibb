@@ -303,10 +303,28 @@
             ./tools/check-node-tests ./tools/node-tests.mjs
           ];
           shipHost = check "ship-host" shipHostFiles
-            "tools/check check-host check-browser check-node-tests --timeout 10800 --logs $out"
+            "JIBB_CHECK_TIMINGS=$out/timings.jsonl timeout 10800s python3 tools/check-host --clients --leave-suspended"
             (shipExtra // {
+              # Keep stdenv's EXIT handler so failures retain the ship log.
+              preBuild = shipExtra.preBuild + ''
+                python3 tools/ship start
+              '';
+              exitHook = "python3 tools/ship stop --force";
+              failureHook = shipExtra.failureHook + ''
+                python3 tools/ship stop --force
+              '';
               nativeBuildInputs = [ python3 urbit nodejs esbuild terser pkgs.chromium ];
               FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [ pkgs.dejavu_fonts ]; };
+              postBuild = ''
+                python3 - <<'PY'
+                import json, os
+                from pathlib import Path
+                for line in (Path(os.environ['out']) / 'timings.jsonl').read_text().splitlines():
+                    phase = json.loads(line)
+                    if phase['event'] == 'finish' and phase['depth'] <= 1:
+                        print("{tool}: {name}: {elapsed:.3f} s ({status})".format(**phase))
+                PY
+              '';
             });
           shipParts = shipSuiteParts // shipProbeParts // {
             inherit shipGoldens shipBase shipHost;
