@@ -9,10 +9,11 @@
 ::    +link-entry           [term checked cache]      (each expr:jibb-core @t)
 ::    +link-checked-entry   [entry checked cache]     (each expr:jibb-core @t)
 ::    +link-module-value    [path checked cache]      (each expr:jibb-core @t)
+::    +link-render-entry    [term checked cache]      render-only element origins
 ::
 /+  jibb, jibb-core
 |%
-+$  lowering-state  [root=checked-module:jibb next=@ud]
++$  lowering-state  [root=checked-module:jibb next=@ud render=?]
 +$  lowered  (each [value=expr:jibb-core state=lowering-state] @t)
 +$  entry
   $%  [%definition at=path name=term]
@@ -22,7 +23,7 @@
 +$  linked-node  [at=path members=(list term) definitions=(list linked-definition)]
 +$  link-reference  [at=path name=term]
 +$  link-state
-  [root=checked-module:jibb cache=jlowering-cache:jibb reachable=(list linked-definition) lowered=(list [at=path value=module:jibb-core])]
+  [root=checked-module:jibb cache=jlowering-cache:jibb reachable=(list linked-definition) lowered=(list [at=path value=module:jibb-core]) render=?]
 +$  decision-pattern  [cov=pattern:coverage:jibb src=(unit pattern:jibb)]
 +$  decision-row  [arm=@ud pats=(list decision-pattern)]
 +$  decision-column  [value=expr:jibb-core domain=domain:coverage:jibb]
@@ -890,24 +891,57 @@
     [%cons (term-literal %poke) [%cons raw reply]]
   [%& [body state.p.values]]
 ::
+++  lower-call-result
+  |=  [e=expr:jibb result=lowered state=lowering-state]
+  ^-  lowered
+  ?:  ?=(%| -.result)  result
+  ?.  render.state  result
+  ::  The prelude's own seal implementation stays byte-for-byte ordinary.
+  ?:  ?|  =(at.root.state /lib/jibb/prelude/jibb)
+          =(at.root.state /lib/jibb/internal/jibb)
+          =(at.root.state /lib/jibb/primitives/jibb)
+      ==
+    result
+  =/  checked=(unit lowering-occurrence:jibb)
+    (find-occurrence (occurrence-id e) root.state)
+  ?~  checked  result
+  =/  typ=itype:jibb  typ.u.checked
+  =.  typ
+    |-  ^-  itype:jibb
+    ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ)
+    ?:  ?=(%refined -.typ)  $(typ proof.typ)
+    typ
+  ?.  ?=(%opaque -.typ)  result
+  ?.  =(origin.typ [/lib/jibb/primitives/jibb %seal])  result
+  ?.  ?=(%union -.body.typ)  result
+  ?.  =(origin.body.typ `[/lib/jibb/internal/jibb %element-node])  result
+  =/  file=expr:jibb-core
+    (make-cons-list (turn at.root.state knot-literal))
+  =/  origin=expr:jibb-core
+    :+  %cons  file
+    [%cons [%lit [%ud line.beg.at.e (scot %ud line.beg.at.e)]] [%cons [%lit [%ud col.beg.at.e (scot %ud col.beg.at.e)]] value.p.result]]
+  [%& [[%app [%native [%own %render-origin]] origin] state.p.result]]
+::
 ++  lower-call
   |=  [e=expr:jibb state=lowering-state]
   ^-  lowered
   ?>  ?=(%call -.e)
-  =/  unface=(unit expr:jibb)  (unface-call e)
-  ?^  unface  (lower-expression u.unface state)
-  =/  derived=(unit [at=path agent=term mark=term])
-    (derived-poke-call e root.state)
-  ?^  derived  (lower-poke-call u.derived args.e state)
-  ?:  (island-call e root.state)  (lower-island-call e state)
-  =/  fun=lowered  (lower-expression head.e state)
-  ?:  ?=(%| -.fun)  fun
-  =/  args=(each [values=(list expr:jibb-core) state=lowering-state] @t)
-    (lower-expressions args.e state.p.fun)
-  ?:  ?=(%| -.args)  args
-  =/  sample=(unit expr:jibb-core)  (make-arguments values.p.args)
-  ?~  sample  [%| (fail "a checked call has no arguments" `at.e)]
-  [%& [(make-app value.p.fun u.sample) state.p.args]]
+  =/  result=lowered
+    =/  unface=(unit expr:jibb)  (unface-call e)
+    ?^  unface  (lower-expression u.unface state)
+    =/  derived=(unit [at=path agent=term mark=term])
+      (derived-poke-call e root.state)
+    ?^  derived  (lower-poke-call u.derived args.e state)
+    ?:  (island-call e root.state)  (lower-island-call e state)
+    =/  fun=lowered  (lower-expression head.e state)
+    ?:  ?=(%| -.fun)  fun
+    =/  args=(each [values=(list expr:jibb-core) state=lowering-state] @t)
+      (lower-expressions args.e state.p.fun)
+    ?:  ?=(%| -.args)  args
+    =/  sample=(unit expr:jibb-core)  (make-arguments values.p.args)
+    ?~  sample  [%| (fail "a checked call has no arguments" `at.e)]
+    [%& [(make-app value.p.fun u.sample) state.p.args]]
+  (lower-call-result e result state)
 ::
 ++  lower-change-edits
   |=  [edits=(list edit:jibb) base=expr:jibb-core state=lowering-state]
@@ -1170,10 +1204,10 @@
   ==
 ::
 ++  lower-definition
-  |=  [definition=def:jibb root=checked-module:jibb]
+  |=  [definition=def:jibb root=checked-module:jibb render=?]
   ^-  (each definition:jibb-core @t)
   ?.  ?=(%value -.definition)  [%| 'only value definitions lower to Core']
-  =/  result=lowered  (lower-expression val.definition [root 1])
+  =/  result=lowered  (lower-expression val.definition [root 1 render])
   ?:  ?=(%| -.result)  result
   [%& [[%own name.definition] value.p.result]]
 ::
@@ -1181,13 +1215,13 @@
   |=  [plans=(list [name=term plan=lowering-derived:jibb]) root=checked-module:jibb]
   ^-  (each (list definition:jibb-core) @t)
   ?~  plans  [%& ~]
-  =/  first=lowered  (lower-derived plan.i.plans [root 1])
+  =/  first=lowered  (lower-derived plan.i.plans [root 1 |])
   ?:  ?=(%| -.first)  first
   =/  rest=(each (list definition:jibb-core) @t)  $(plans t.plans)
   ?:  ?=(%| -.rest)  rest
   [%& [[[%own name.i.plans] value.p.first] p.rest]]
-++  lower-checked-module
-  |=  root=checked-module:jibb
+++  lower-module
+  |=  [root=checked-module:jibb render=?]
   ^-  (each module:jibb-core @t)
   =/  todo=(list def:jibb)  defs.source.root
   =|  out=(list definition:jibb-core)
@@ -1198,9 +1232,19 @@
     ?:  ?=(%| -.derived)  derived
     [%& [(core-path at.root) (weld out p.derived)]]
   ?:  ?=(%mold -.i.todo)  $(todo t.todo)
-  =/  one=(each definition:jibb-core @t)  (lower-definition i.todo root)
+  =/  one=(each definition:jibb-core @t)  (lower-definition i.todo root render)
   ?:  ?=(%| -.one)  one
   $(todo t.todo, out (weld out ~[p.one]))
+::
+++  lower-checked-module
+  |=  root=checked-module:jibb
+  ^-  (each module:jibb-core @t)
+  (lower-module root |)
+::
+++  lower-render-module
+  |=  root=checked-module:jibb
+  ^-  (each module:jibb-core @t)
+  (lower-module root &)
 ::
 ++  domain-status
   |=  [d=domain:coverage:jibb graph=bindings:coverage:jibb fuel=@ud]
@@ -1707,7 +1751,8 @@
     $(cached t.cached)
   =/  artifact=(unit checked-module:jibb)  (find-artifact at state)
   ?~  artifact  [%| (crip "missing checked dependency artifact: {(spud at)}")]
-  =/  lowered=(each module:jibb-core @t)  (lower-checked-module u.artifact)
+  =/  lowered=(each module:jibb-core @t)
+    ?:(render.state (lower-render-module u.artifact) (lower-checked-module u.artifact))
   ?:  ?=(%| -.lowered)  lowered
   [%& [p.lowered state(lowered [[at p.lowered] lowered.state])]]
 ::
@@ -2043,10 +2088,10 @@
   ?:  ?=(%| -.rest)  rest
   [%& [%cons i.remaining p.rest]]
 ::
-++  link-checked-entry
-  |=  [requested=entry root=checked-module:jibb cache=jlowering-cache:jibb]
+++  link-entry-mode
+  |=  [requested=entry root=checked-module:jibb cache=jlowering-cache:jibb render=?]
   ^-  (each expr:jibb-core @t)
-  =/  initial=link-state  [root cache ~ ~]
+  =/  initial=link-state  [root cache ~ ~ render]
   =/  reached=(each link-state @t)
     ?-  -.requested
       %definition  (reach-definition at.requested name.requested initial)
@@ -2073,6 +2118,16 @@
     ==
   ?:  ?=(%| -.body)  body
   (wrap-linked-program p.emitted at.root p.body)
+::
+++  link-checked-entry
+  |=  [requested=entry root=checked-module:jibb cache=jlowering-cache:jibb]
+  ^-  (each expr:jibb-core @t)
+  (link-entry-mode requested root cache |)
+::
+++  link-render-entry
+  |=  [name=term root=checked-module:jibb cache=jlowering-cache:jibb]
+  ^-  (each expr:jibb-core @t)
+  (link-entry-mode [%definition at.root name] root cache &)
 ::
 ++  link-entry
   |=  [name=term root=checked-module:jibb cache=jlowering-cache:jibb]

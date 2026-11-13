@@ -4,6 +4,7 @@
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 import http.cookiejar
+import html
 import json
 import os
 import re
@@ -32,6 +33,38 @@ BROKEN_SOURCE = b'/- unused\n\n++ main\n  column ~ ~[(text "never")]\n'
 DOT_FILE = os.path.join('ui', 'static', 'img', 'dot.png')
 FONT_FILE = ROOT / 'my-app' / 'ui' / 'static' / 'fonts' / 'inter.woff2'
 MY_APP_BASE = '/apps/my-app'
+DIAGNOSTIC_FILES = {
+    os.path.join('ui', 'diagnostics', 'direct.jibb'): (
+        b'++ main\n'
+        b'  column ~ ~[\n'
+        b'    text "sibling"\n'
+        b'    para ~[(link %/nowhere "Nested")]\n'),
+    os.path.join('ui', 'diagnostics', 'imported.jibb'): (
+        b'/= parts /ui/diagnostics/parts\n'
+        b'++ main (around.parts exported.parts)\n'),
+    os.path.join('ui', 'diagnostics', 'parts.jibb'): (
+        b'++ exported ^- (element !!)\n'
+        b'  para ~[(image %/static/img/gone.png "Imported")]\n'
+        b'++ around |= kid=(element !!)\n'
+        b'  column ~ ~[kid (text "outer")]\n'),
+    os.path.join('ui', 'diagnostics', 'data.jibb'): (
+        b'++ main (page load view)\n'
+        b'++ load |= ~ (pure 0)\n'
+        b'++ view |= n=@ud\n'
+        b'  para ~[(image %/static/img/gone.png "Data")]\n'),
+    os.path.join('ui', 'diagnostics', 'unreadable.jibb'): (
+        b'++ main (image %/static/img/dot.png "Unreadable")\n'),
+    os.path.join('ui', 'diagnostics', 'island.jibb'): (
+        b'++ main (program init update view subs)\n'
+        b'++ init |= n=@ud n\n'
+        b'++ update |= [msg=@ud model=@ud] [model ~]\n'
+        b'++ subs |= model=@ud ~\n'
+        b'++ view |= model=@ud\n'
+        b'  para ~[(link %/nowhere "Island")]\n'),
+    os.path.join('ui', 'diagnostics', 'island-page.jibb'): (
+        b'/= broken /ui/diagnostics/island\n'
+        b'++ main (island main.broken 0)\n'),
+}
 PASSWORD = 'lidlut-tabwed-pillex-ridrup'
 #  A build step holds the ship's event loop, for minutes on a loaded
 #  machine, so a request may wait that long for its answer.
@@ -232,19 +265,37 @@ def wait_built(ship, desk, rev=0, timeout=1800):
 def commit_file(ship, rel, data):
     """Write one fixture file, or delete it when data is None, and commit;
     the new revision."""
-    path = os.path.join(ship.pier, DESK, rel)
-    if data is None:
-        os.remove(path)
-    else:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, 'wb') as f:
-            f.write(data)
+    return commit_files(ship, {rel: data})
+
+
+def commit_files(ship, changes):
+    """Write or delete several fixture files in one commit; the new revision."""
+    for rel, data in changes.items():
+        path = os.path.join(ship.pier, DESK, rel)
+        if data is None:
+            os.remove(path)
+        else:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'wb') as f:
+                f.write(data)
     return shiptool.commit_and_wait(ship, DESK, REPLY)
 
 
 def commit_note(ship, data):
     """Commit new text for the fixture's note library; the new revision."""
     return commit_file(ship, NOTE_FILE, data)
+
+
+def expect_render_error(client, target, file, line, column, message, excerpt):
+    """A failed render's exact source diagnostic, after HTML unescaping."""
+    status, _, body = client.request('GET', target)
+    expect(status == 500, '%s was HTTP %d, not 500: %r' % (target, status, body))
+    found = re.search(rb'<pre>(.*?)</pre>', body, re.DOTALL)
+    expect(found is not None, '%s had no diagnostic element: %r' % (target, body))
+    actual = html.unescape(found.group(1).decode())
+    expected = '%s:%d:%d: %s\n%s\n%s^' % (
+        file, line, column, message, excerpt, ' ' * (column - 1))
+    expect(actual == expected, '%s diagnostic was\n%s\nnot\n%s' % (target, actual, expected))
 
 
 def wait_for(what, probe, timeout=600):
@@ -321,6 +372,7 @@ def main():
     dot_edited = False
     broken = False
     compiler_broken = False
+    diagnostics = False
     cleared = False
     compiler = os.path.join('lib', 'jibb-build.hoon')
     good_compiler = (Path(ship.pier) / DESK / compiler).read_bytes()
@@ -495,9 +547,10 @@ def main():
                'the replaced image was not kept for a day: %r' % urls)
         rev = commit_file(ship, DOT_FILE, None)
         wait_built(ship, DESK, rev)
-        status, _, body = owner.request('GET', NOTES)
-        expect(status == 500 and b'missing static asset: /static/img/dot.png' in body,
-               'a page drawing a deleted image was HTTP %d: %r' % (status, body))
+        expect_render_error(
+            owner, NOTES, '/ui/notes.jibb', 9, 5,
+            'missing static asset: /static/img/dot.png',
+            '    image %/static/img/dot.png "A green dot"')
         status, _, body = owner.request('GET', PAGE)
         expect(status == 200 and b'About this ship' in body,
                'About did not survive a missing image elsewhere: HTTP %d' % status)
@@ -509,6 +562,46 @@ def main():
         urls = published(ship, DESK)
         expect(urls.get(dot_url, 0) is None and isinstance(urls.get(new_url), int),
                'restoring the image did not swap the files back: %r' % urls)
+
+        # Host render diagnostics belong to the element's original call, even
+        # through imported aliases and outer layouts, not to the page's root.
+        diagnostics = True
+        rev = commit_files(ship, DIAGNOSTIC_FILES)
+        wait_built(ship, DESK, rev)
+        expect_render_error(
+            owner, BASE + '/diagnostics/direct', '/ui/diagnostics/direct.jibb', 4, 13,
+            'link to a missing page: %/nowhere',
+            '    para ~[(link %/nowhere "Nested")]')
+        expect_render_error(
+            owner, BASE + '/diagnostics/imported', '/ui/diagnostics/parts.jibb', 2, 11,
+            'missing static asset: /static/img/gone.png',
+            '  para ~[(image %/static/img/gone.png "Imported")]')
+        expect_render_error(
+            owner, BASE + '/diagnostics/data', '/ui/diagnostics/data.jibb', 4, 11,
+            'missing static asset: /static/img/gone.png',
+            '  para ~[(image %/static/img/gone.png "Data")]')
+        expect_render_error(
+            owner, BASE + '/diagnostics/island-page', '/ui/diagnostics/island.jibb', 6, 11,
+            'link to a missing page: %/nowhere',
+            '  para ~[(link %/nowhere "Island")]')
+        status, _, body = owner.request('GET', BASE + '/diagnostics/island-page')
+        expect(b'This part of the page stopped working' not in body,
+               'an island reference error became its crash notice')
+        rev = commit_file(ship, DOT_FILE, b'odd')
+        dot_edited = True
+        wait_built(ship, DESK, rev)
+        expect_render_error(
+            owner, BASE + '/diagnostics/unreadable', '/ui/diagnostics/unreadable.jibb', 1, 10,
+            'static image has no size this build can read: /static/img/dot.png',
+            '++ main (image %/static/img/dot.png "Unreadable")')
+        changes = {name: None for name in DIAGNOSTIC_FILES}
+        changes[DOT_FILE] = dot
+        rev = commit_files(ship, changes)
+        diagnostics = False
+        dot_edited = False
+        wait_built(ship, DESK, rev)
+        status, _, _ = owner.request('GET', BASE + '/diagnostics/direct')
+        expect(status == 404, 'a deleted diagnostic page was HTTP %d, not 404' % status)
 
         # An imported /sur file that does not build is that page's error;
         # the build still completes and the other pages are unaffected.
@@ -671,6 +764,8 @@ def main():
             commit_file(ship, BROKEN_FILE, None)
         if compiler_broken:
             commit_file(ship, compiler, good_compiler)
+        if diagnostics:
+            commit_files(ship, {name: None for name in DIAGNOSTIC_FILES})
         poke(ship, 'kiln-revive', '%' + DESK)
         if suspended:
             wait_for('fixture revival after acceptance', lambda: route_present(ship) or None)

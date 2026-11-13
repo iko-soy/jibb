@@ -34,13 +34,15 @@
       font=(unit path)
       dark=(unit [tones=tones-view])
   ==
++$  render-origin  [file=path line=@ud col=@ud]
++$  render-error  [message=@t origin=(unit render-origin)]
 +$  vnode
   $~  [%text '']
   $%  [%text words=@t]
       [%node tag=@t attrs=(list vattr) kids=(list vnode)]
-      [%link target=path label=@t]
+      [%link target=path label=@t origin=(unit render-origin)]
       [%link-unsafe target=@t label=@t]
-      [%image source=path description=@t]
+      [%image source=path description=@t origin=(unit render-origin)]
       [%image-unsafe source=[url=@t width=@ud height=@ud] description=@t]
   ==
 +$  vattr  [name=@t value=@t]
@@ -105,6 +107,20 @@
       ''
   ==
 ::
+++  read-render-origin
+  |=  value=noun
+  ^-  (unit [origin=render-origin sealed=noun])
+  =/  read=(unit [tag=@t file=path line=@ud col=@ud sealed=noun])
+    (mole |.(;;([tag=@t file=path line=@ud col=@ud sealed=noun] value)))
+  ?~  read  ~
+  ?.  =('jibb.host.render-origin.v1' tag.u.read)  ~
+  `[[file.u.read line.u.read col.u.read] sealed.u.read]
+::
+++  render-origin-native
+  |=  [file=path line=@ud col=@ud value=noun]
+  ?^  (read-render-origin value)  value
+  ['jibb.host.render-origin.v1' file line col value]
+::
 ++  raw-seal-native
   |=  value=noun
   ['jibb.private.seal.v1' value]
@@ -117,6 +133,7 @@
   ::  the native's sample; the JavaScript natives keep the same samples.
   ?+  name.id  ~
     %raw-seal          `raw-seal-native
+    %render-origin     `render-origin-native
     %join             `join-text
     %scot             `scot
     %scow             `scow
@@ -211,146 +228,197 @@
   ?:  ?=(%crash -.result)  [%| (cat 3 label ' crashed during Nock execution')]
   [%& val.result]
 ::
+++  render-failure
+  |=  [message=@t origin=(unit render-origin)]
+  ^-  render-error
+  [message origin]
+::
+++  annotate-rendered-vnode
+  |=  [origin=(unit render-origin) raw=noun]
+  ^-  noun
+  ?.  ?=(^ raw)  raw
+  ?:  ?=([%link * * *] raw)
+    =/  target=path  ;;(path +<.raw)
+    =/  label=@t  ;;(@t +>-.raw)
+    [%link target label origin]
+  ?:  ?=([%image * * *] raw)
+    =/  source=path  ;;(path +<.raw)
+    =/  description=@t  ;;(@t +>-.raw)
+    [%image source description origin]
+  ?:  ?=([%link * *] raw)
+    =/  link=[%link target=path label=@t]  ;;([%link target=path label=@t] raw)
+    [%link target.link label.link origin]
+  ?:  ?=([%image * *] raw)
+    =/  image=[%image source=path description=@t]
+      ;;([%image source=path description=@t] raw)
+    [%image source.image description.image origin]
+  raw
+::
 ++  render-static-node
-  |=  [ctx=renderer-context raw=noun]
-  ^-  (each vnode @t)
-  ?.  ?=(^ raw)  [%| 'static renderer: malformed node']
-  ?.  ?=(@ -.raw)  [%| 'static renderer: malformed node tag']
+  |=  [ctx=renderer-context origin=(unit render-origin) raw=noun]
+  ^-  (each vnode render-error)
+  ?.  ?=(^ raw)  [%| (render-failure 'static renderer: malformed node' origin)]
+  ?.  ?=(@ -.raw)  [%| (render-failure 'static renderer: malformed node tag' origin)]
   =/  tag=@tas  ;;(@tas -.raw)
   =/  found=(unit noun)  (~(get by nodes.ctx) tag)
-  ?~  found  [%| 'static renderer: no checked node renderer']
+  ?~  found  [%| (render-failure 'static renderer: no checked node renderer' origin)]
   =/  rendered=(each noun @t)
     (apply-linked 'static renderer' u.found [skin.ctx +.raw])
-  ?:  ?=(%| -.rendered)  rendered
-  [%& ;;(vnode p.rendered)]
+  ?:  ?=(%| -.rendered)  [%| (render-failure p.rendered origin)]
+  =/  decoded=(each vnode tang)
+    (mule |.(;;(vnode (annotate-rendered-vnode origin p.rendered))))
+  ?:  ?=(%| -.decoded)
+    [%| (render-failure 'static renderer: malformed rendered node' origin)]
+  [%& p.decoded]
 ::
 ++  render-static-attributes
-  |=  [ctx=renderer-context raw=noun]
-  ^-  (each (list vattr) @t)
+  |=  [ctx=renderer-context origin=(unit render-origin) raw=noun]
+  ^-  (each (list vattr) render-error)
   ?~  raw  [%& ~]
-  ?.  ?=(^ raw)  [%| 'static renderer: malformed attributes']
+  ?.  ?=(^ raw)  [%| (render-failure 'static renderer: malformed attributes' origin)]
   =/  first=(each noun @t)
     (apply-linked 'static attribute renderer' attrs.ctx [skin.ctx -.raw])
-  ?:  ?=(%| -.first)  first
-  =/  rest=(each (list vattr) @t)  $(raw +.raw)
+  ?:  ?=(%| -.first)  [%| (render-failure p.first origin)]
+  =/  rest=(each (list vattr) render-error)  $(raw +.raw)
   ?:  ?=(%| -.rest)  rest
-  [%& (weld ;;((list vattr) p.first) p.rest)]
+  =/  decoded=(each (list vattr) tang)  (mule |.(;;((list vattr) p.first)))
+  ?:  ?=(%| -.decoded)
+    [%| (render-failure 'static renderer: malformed rendered attributes' origin)]
+  [%& (weld p.decoded p.rest)]
 ::
 ++  render-static-children
-  |=  [ctx=renderer-context children=noun]
-  ^-  (each (list noun) @t)
+  |=  [ctx=renderer-context origin=(unit render-origin) children=noun]
+  ^-  (each (list vnode) render-error)
   ?~  children  [%& ~]
-  ?.  ?=(^ children)  [%| 'static renderer: malformed element children']
-  =/  first=(each vnode @t)  (render-static-element ctx -.children)
+  ?.  ?=(^ children)
+    [%| (render-failure 'static renderer: malformed element children' origin)]
+  =/  first=(each vnode render-error)  (render-static-element ctx -.children)
   ?:  ?=(%| -.first)  first
-  =/  rest=(each (list noun) @t)  $(children +.children)
+  =/  rest=(each (list vnode) render-error)  $(children +.children)
   ?:  ?=(%| -.rest)  rest
   [%& [p.first p.rest]]
 ::
 ++  render-static-layout
-  |=  [ctx=renderer-context tag=@tas raw=noun]
-  ^-  (each vnode @t)
-  ?.  ?=(^ raw)  [%| 'static renderer: malformed layout payload']
-  =/  attrs=(each (list vattr) @t)  (render-static-attributes ctx -.raw)
+  |=  [ctx=renderer-context origin=(unit render-origin) tag=@tas raw=noun]
+  ^-  (each vnode render-error)
+  ?.  ?=(^ raw)
+    [%| (render-failure 'static renderer: malformed layout payload' origin)]
+  =/  attrs=(each (list vattr) render-error)
+    (render-static-attributes ctx origin -.raw)
   ?:  ?=(%| -.attrs)  attrs
-  =/  kids=(each (list noun) @t)  (render-static-children ctx +.raw)
+  =/  kids=(each (list vnode) render-error)
+    (render-static-children ctx origin +.raw)
   ?:  ?=(%| -.kids)  kids
-  (render-static-node ctx [tag p.attrs p.kids])
+  (render-static-node ctx origin [tag p.attrs p.kids])
 ::
 ++  render-static-element
-  |=  [ctx=renderer-context sealed=noun]
-  ^-  (each vnode @t)
+  |=  [ctx=renderer-context wrapped=noun]
+  ^-  (each vnode render-error)
+  =/  found=(unit [origin=render-origin sealed=noun])
+    (read-render-origin wrapped)
+  =/  origin=(unit render-origin)  ?~(found ~ `origin.u.found)
+  =/  sealed=noun  ?~(found wrapped sealed.u.found)
   ?.  &(?=(^ sealed) =('jibb.private.seal.v1' -.sealed))
-    [%| 'static renderer: element lost its authenticated seal']
+    [%| (render-failure 'static renderer: element lost its authenticated seal' origin)]
   =/  raw=noun  +.sealed
-  ?.  ?=(^ raw)  [%| 'static renderer: malformed element']
-  ?.  ?=(@ -.raw)  [%| 'static renderer: malformed element tag']
+  ?.  ?=(^ raw)  [%| (render-failure 'static renderer: malformed element' origin)]
+  ?.  ?=(@ -.raw)  [%| (render-failure 'static renderer: malformed element tag' origin)]
   =/  tag=@tas  ;;(@tas -.raw)
-  ?+  tag  [%| (crip "static renderer: unsupported element {(trip tag)}")]
+  ?+  tag  [%| (render-failure (crip "static renderer: unsupported element {(trip tag)}") origin)]
     %island
-      ?:  inside.ctx  [%| 'static renderer: an island cannot hold another island']
-      (render-island ctx +.raw)
+      ?:  inside.ctx
+        [%| (render-failure 'static renderer: an island cannot hold another island' origin)]
+      (render-island ctx origin +.raw)
     ?(%button %toggle %field %form)
       ?.  inside.ctx
-        [%| (crip "a {(trip tag)} is a control, which renders only inside an island")]
-      (render-control ctx tag +.raw)
-    %each  (render-each ctx +.raw)
-    %table  (render-table ctx +.raw)
+        [%| (render-failure (crip "a {(trip tag)} is a control, which renders only inside an island") origin)]
+      (render-control ctx origin tag +.raw)
+    %each  (render-each ctx origin +.raw)
+    %table  (render-table ctx origin +.raw)
     ?(%text %heading %link %link-unsafe %image %image-unsafe)
-      (render-static-node ctx raw)
-    ?(%row %column %wrap %stack)  (render-static-layout ctx tag +.raw)
+      (render-static-node ctx origin raw)
+    ?(%row %column %wrap %stack)  (render-static-layout ctx origin tag +.raw)
     %para
-      =/  kids=(each (list noun) @t)  (render-static-children ctx +.raw)
+      =/  kids=(each (list vnode) render-error)
+        (render-static-children ctx origin +.raw)
       ?:  ?=(%| -.kids)  kids
-      (render-static-node ctx [%para p.kids])
+      (render-static-node ctx origin [%para p.kids])
     %el
-      ?.  ?=(^ +.raw)  [%| 'static renderer: malformed el payload']
-      =/  attrs=(each (list vattr) @t)  (render-static-attributes ctx +<.raw)
+      ?.  ?=(^ +.raw)  [%| (render-failure 'static renderer: malformed el payload' origin)]
+      =/  attrs=(each (list vattr) render-error)
+        (render-static-attributes ctx origin +<.raw)
       ?:  ?=(%| -.attrs)  attrs
-      =/  kid=(each vnode @t)  (render-static-element ctx +>.raw)
+      =/  kid=(each vnode render-error)  (render-static-element ctx +>.raw)
       ?:  ?=(%| -.kid)  kid
-      (render-static-node ctx [%el p.attrs p.kid])
+      (render-static-node ctx origin [%el p.attrs p.kid])
   ==
 ::
 ::  A control's message stays in the browser: only what it shows renders.
 ++  render-control
-  |=  [ctx=renderer-context tag=@tas payload=noun]
-  ^-  (each vnode @t)
-  ?.  ?=(^ payload)  [%| (crip "static renderer: malformed {(trip tag)}")]
-  ?+  tag  [%| (crip "static renderer: unsupported control {(trip tag)}")]
-    %button  (render-static-node ctx [%button -.payload])
+  |=  [ctx=renderer-context origin=(unit render-origin) tag=@tas payload=noun]
+  ^-  (each vnode render-error)
+  ?.  ?=(^ payload)
+    [%| (render-failure (crip "static renderer: malformed {(trip tag)}") origin)]
+  ?+  tag  [%| (render-failure (crip "static renderer: unsupported control {(trip tag)}") origin)]
+    %button  (render-static-node ctx origin [%button -.payload])
   ::
       %toggle
-    ?.  ?=([* * *] payload)  [%| 'static renderer: malformed toggle']
-    (render-static-node ctx [%toggle -.payload +<.payload])
+    ?.  ?=([* * *] payload)  [%| (render-failure 'static renderer: malformed toggle' origin)]
+    (render-static-node ctx origin [%toggle -.payload +<.payload])
   ::
       %field
-    ?.  ?=([* * *] payload)  [%| 'static renderer: malformed field']
-    (render-static-node ctx [%field -.payload +<.payload])
+    ?.  ?=([* * *] payload)  [%| (render-failure 'static renderer: malformed field' origin)]
+    (render-static-node ctx origin [%field -.payload +<.payload])
   ::
       %form
-    =/  kids=(each (list noun) @t)  (render-static-children ctx +.payload)
+    =/  kids=(each (list vnode) render-error)
+      (render-static-children ctx origin +.payload)
     ?:  ?=(%| -.kids)  kids
-    (render-static-node ctx [%form p.kids])
+    (render-static-node ctx origin [%form p.kids])
   ==
 ::
 ::  Keyed items: the keys are the browser's.
 ++  render-each
-  |=  [ctx=renderer-context items=noun]
-  ^-  (each vnode @t)
-  =|  out=(list noun)
+  |=  [ctx=renderer-context origin=(unit render-origin) items=noun]
+  ^-  (each vnode render-error)
+  =|  out=(list vnode)
   |-
-  ?~  items  (render-static-node ctx [%each (flop out)])
-  ?.  ?=([[* *] *] items)  [%| 'static renderer: malformed each item']
-  =/  kid=(each vnode @t)  (render-static-element ctx ->.items)
+  ?~  items  (render-static-node ctx origin [%each (flop out)])
+  ?.  ?=([[* *] *] items)
+    [%| (render-failure 'static renderer: malformed each item' origin)]
+  =/  kid=(each vnode render-error)  (render-static-element ctx ->.items)
   ?:  ?=(%| -.kid)  kid
   $(items +.items, out [p.kid out])
 ::
 ::  A table: each column's head through the renderer, each row's cells in
 ::  table cells.
 ++  render-table
-  |=  [ctx=renderer-context payload=noun]
-  ^-  (each vnode @t)
-  ?.  ?=(^ payload)  [%| 'static renderer: malformed table']
-  =/  heads=(each (list vnode) @t)
+  |=  [ctx=renderer-context origin=(unit render-origin) payload=noun]
+  ^-  (each vnode render-error)
+  ?.  ?=(^ payload)  [%| (render-failure 'static renderer: malformed table' origin)]
+  =/  heads=(each (list vnode) render-error)
     =|  out=(list vnode)
     =/  columns=noun  -.payload
     |-
     ?~  columns  [%& (flop out)]
-    ?.  ?=(^ columns)  [%| 'static renderer: malformed table columns']
-    =/  head=(each vnode @t)  (render-static-node ctx [%table-head -.columns])
+    ?.  ?=(^ columns)
+      [%| (render-failure 'static renderer: malformed table columns' origin)]
+    =/  head=(each vnode render-error)
+      (render-static-node ctx origin [%table-head -.columns])
     ?:  ?=(%| -.head)  head
     $(columns +.columns, out [p.head out])
   ?:  ?=(%| -.heads)  heads
-  =/  rows=(each (list vnode) @t)
+  =/  rows=(each (list vnode) render-error)
     =|  out=(list vnode)
     =/  raw=noun  +.payload
     |-
     ?~  raw  [%& (flop out)]
-    ?.  ?=([[* *] *] raw)  [%| 'static renderer: malformed table row']
-    =/  cells=(each (list noun) @t)  (render-static-children ctx ->.raw)
+    ?.  ?=([[* *] *] raw)
+      [%| (render-failure 'static renderer: malformed table row' origin)]
+    =/  cells=(each (list vnode) render-error)
+      (render-static-children ctx origin ->.raw)
     ?:  ?=(%| -.cells)  cells
-    =/  tds=(list vnode)  (turn p.cells |=(c=noun [%node 'td' ~ ~[;;(vnode c)]]))
+    =/  tds=(list vnode)  (turn p.cells |=(c=vnode [%node 'td' ~ ~[c]]))
     $(raw +.raw, out [[%node 'tr' ~ tds] out])
   ?:  ?=(%| -.rows)  rows
   :-  %&
@@ -362,31 +430,32 @@
 ::  An island's first view, rendered with its data at the page's stage, then
 ::  its model, jammed, for the browser to resume from.  Its program came
 ::  paired with its module's path, which names the island's JavaScript.  A
-::  crash in init or the first view shows the crash notice instead.
+::  crash in init or the first view shows the crash notice instead. Reference
+::  validation is a separate post-pass and remains a page error.
 ++  render-island
-  |=  [ctx=renderer-context payload=noun]
-  ^-  (each vnode @t)
-  ?.  ?=([[@ *] *] payload)  [%| 'static renderer: an island lost its module']
+  |=  [ctx=renderer-context origin=(unit render-origin) payload=noun]
+  ^-  (each vnode render-error)
+  ?.  ?=([[@ *] *] payload)
+    [%| (render-failure 'static renderer: an island lost its module' origin)]
   =/  module=@t  -<.payload
   =/  hash=(unit @t)  (~(get by islands.ctx) module)
   ?~  hash
-    [%| (crip "static renderer: {(trip module)} is not an island module this build compiled")]
+    [%| (render-failure (crip "static renderer: {(trip module)} is not an island module this build compiled") origin)]
   =/  program=noun  ->.payload
-  ?.  ?=([* * * *] program)  [%| 'static renderer: an island program is not init, update, view and subs']
+  ?.  ?=([* * * *] program)
+    [%| (render-failure 'static renderer: an island program is not init, update, view and subs' origin)]
   =/  model=(each noun @t)  (apply-linked 'island init' -.program +.payload)
   =/  view=(each noun @t)
     ?:  ?=(%| -.model)  model
     (apply-linked 'island view' +>-.program p.model)
-  =/  inner=(each vnode @t)
-    ?:  ?=(%| -.view)  view
+  =/  inner=(each vnode render-error)
     (render-static-element ctx(inside &) p.view)
-  ?:  |(?=(%| -.model) ?=(%| -.inner))
+  ?:  |(?=(%| -.model) ?=(%| -.view) ?=(%| -.inner))
     [%& [%node 'div' ~[['data-jibb-island' u.hash] ['data-jibb-crashed' '']] ~[crash-notice]]]
   =/  state=@t  (scot %uw (jam p.model))
   :-  %&
   :^  %node  'div'  ~[['data-jibb-island' u.hash]]
   ~[p.inner [%node 'script' ~[['type' 'application/x-jibb-state']] ~[[%text state]]]]
-::
 ::  The standard notice of a crashed island, as the browser shows it too.
 ++  crash-notice
   ^-  vnode
@@ -832,42 +901,42 @@
 ::
 ++  check-references
   |=  [ctx=page-context node=vnode]
-  ^-  (each ~ @t)
+  ^-  (each ~ render-error)
   ?-  -.node
     %text          [%& ~]
     %node          (check-reference-list ctx kids.node)
-    %link          (check-link ctx target.node)
+    %link          (check-link ctx target.node origin.node)
     %link-unsafe   [%& ~]
-    %image         (check-image ctx source.node)
+    %image         (check-image ctx source.node origin.node)
     %image-unsafe  [%& ~]
   ==
 ::
 ++  check-reference-list
   |=  [ctx=page-context nodes=(list vnode)]
-  ^-  (each ~ @t)
+  ^-  (each ~ render-error)
   ?~  nodes  [%& ~]
-  =/  first=(each ~ @t)  (check-references ctx i.nodes)
+  =/  first=(each ~ render-error)  (check-references ctx i.nodes)
   ?:  ?=(%| -.first)  first
   $(nodes t.nodes)
 ::
 ++  check-link
-  |=  [ctx=page-context target=path]
-  ^-  (each ~ @t)
+  |=  [ctx=page-context target=path origin=(unit render-origin)]
+  ^-  (each ~ render-error)
   ?:  ?=([%static *] target)
     ?^  (find-asset assets.ctx target)  [%& ~]
-    [%| (crip "missing static asset: {(spud target)}")]
+    [%| (render-failure (crip "missing static asset: {(spud target)}") origin)]
   ?:  (lien routes.ctx |=(r=(list @t) (route-matches r target)))  [%& ~]
-  [%| (crip "link to a missing page: %{(spud target)}")]
+  [%| (render-failure (crip "link to a missing page: %{(spud target)}") origin)]
 ::
 ++  check-image
-  |=  [ctx=page-context source=path]
-  ^-  (each ~ @t)
+  |=  [ctx=page-context source=path origin=(unit render-origin)]
+  ^-  (each ~ render-error)
   ?.  ?=([%static *] source)
-    [%| (crip "an image's application path must name a static file: %{(spud source)}")]
+    [%| (render-failure (crip "an image's application path must name a static file: %{(spud source)}") origin)]
   =/  asset=(unit static-asset)  (find-asset assets.ctx source)
-  ?~  asset  [%| (crip "missing static asset: {(spud source)}")]
+  ?~  asset  [%| (render-failure (crip "missing static asset: {(spud source)}") origin)]
   ?~  (image-size type.u.asset data.u.asset)
-    [%| (crip "static image has no size this build can read: {(spud source)}")]
+    [%| (render-failure (crip "static image has no size this build can read: {(spud source)}") origin)]
   [%& ~]
 ::
 ++  last-byte
@@ -1346,9 +1415,41 @@
 ::    serves the desk's +theme-css at.
 ::  The theme and renderer a desk's pages share, linked and executed: what
 ::  turning an element into HTML needs besides the page's own value.
-+$  render-kit  [ctx=renderer-context skin=theme-view registry=native-registry:jibb-nock]
++$  render-source  [file=path source=@t]
++$  render-kit
+  [ctx=renderer-context skin=theme-view registry=native-registry:jibb-nock sources=(list render-source)]
+::
+++  render-sources
+  |=  [page=checked-module:jibb cache=jlowering-cache:jibb]
+  ^-  (list render-source)
+  =/  artifacts=(list checked-module:jibb)
+    [page (turn cache |=(entry=[at=path artifact=checked-module:jibb] artifact.entry))]
+  %+  murn  artifacts
+  |=  artifact=checked-module:jibb
+  ?~  source.interface.artifact  ~
+  `[[at.artifact u.source.interface.artifact]]
+::
+++  show-render-error
+  |=  [sources=(list render-source) failure=render-error]
+  ^-  @t
+  ?~  origin.failure  message.failure
+  =/  matches=(list @t)
+    %+  murn  sources
+    |=  entry=render-source
+    ?:(=(file.u.origin.failure file.entry) `source.entry ~)
+  =/  unique=(list @t)  ~
+  |-  ^-  @t
+  ?^  matches
+    =/  next=(list @t)
+      ?:  (lien unique |=(source=@t =(source i.matches)))  unique
+      (snoc unique i.matches)
+    $(matches t.matches, unique next)
+  ?.  ?=([* ~] unique)  message.failure
+  (show-error:jibb i.unique [file.u.origin.failure line.u.origin.failure col.u.origin.failure (trip message.failure)])
+::
 ++  prepare-kit
   |=  $:  page-core=expr:jibb-core
+          page=checked-module:jibb
           theme=checked-module:jibb
           renderer=checked-module:jibb
           cache=jlowering-cache:jibb
@@ -1380,19 +1481,22 @@
     (execute-linked 'static attribute renderer' p.attribute-core p.registry)
   ?:  ?=(%| -.attribute-gate)  attribute-gate
   :-  %&
-  :+  [p.theme-value p.render-gates p.attribute-gate ~ |]
-    ;;(theme-view p.theme-value)
-  p.registry
+  :*  [p.theme-value p.render-gates p.attribute-gate ~ |]
+      ;;(theme-view p.theme-value)
+      p.registry
+      (render-sources page cache)
+  ==
 ::
 ::  +render-tree: an executed element as a checked HTML document
 ++  render-tree
   |=  [kit=render-kit context=page-context stylesheet=@t element=noun]
   ^-  (each static-output @t)
   =/  islands=(map @t @t)  ?~(client.context ~ islands.u.client.context)
-  =/  tree=(each vnode @t)  (render-static-element ctx.kit(islands islands) element)
-  ?:  ?=(%| -.tree)  tree
-  =/  references=(each ~ @t)  (check-references context p.tree)
-  ?:  ?=(%| -.references)  references
+  =/  tree=(each vnode render-error)
+    (render-static-element ctx.kit(islands islands) element)
+  ?:  ?=(%| -.tree)  [%| (show-render-error sources.kit p.tree)]
+  =/  references=(each ~ render-error)  (check-references context p.tree)
+  ?:  ?=(%| -.references)  [%| (show-render-error sources.kit p.references)]
   [%& (render-document context skin.kit stylesheet p.tree)]
 ::
 ++  render-checked
@@ -1413,9 +1517,9 @@
     [%| (crip "unsupported module kind for static build: {(trip kind.page)}")]
   =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
   =/  page-core=(each expr:jibb-core @t)
-    (link-entry:jibb-lower %main page cache)
+    (link-render-entry:jibb-lower %main page cache)
   ?:  ?=(%| -.page-core)  page-core
-  =/  kit=(each render-kit @t)  (prepare-kit p.page-core theme renderer cache)
+  =/  kit=(each render-kit @t)  (prepare-kit p.page-core page theme renderer cache)
   ?:  ?=(%| -.kit)  kit
   =/  page-value=(each noun @t)
     (execute-linked 'static page' p.page-core registry.p.kit)
@@ -1472,9 +1576,9 @@
   ?:  ?=(%| -.fields)  fields
   =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
   =/  page-core=(each expr:jibb-core @t)
-    (link-entry:jibb-lower %main page cache)
+    (link-render-entry:jibb-lower %main page cache)
   ?:  ?=(%| -.page-core)  page-core
-  =/  kit=(each render-kit @t)  (prepare-kit p.page-core theme renderer cache)
+  =/  kit=(each render-kit @t)  (prepare-kit p.page-core page theme renderer cache)
   ?:  ?=(%| -.kit)  kit
   =/  page-value=(each noun @t)
     (execute-linked 'page' p.page-core registry.p.kit)

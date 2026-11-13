@@ -285,27 +285,154 @@
   ?^  missing  missing
   ?:  (contains (trip html.p.good) "javascript:")  ~[leaf+"an unsafe image URL was kept"]
   =/  expect-error
-    |=  [lines=wain wanted=@t]
+    |=  [lines=wain line=@ud col=@ud wanted=@t]
     ^-  tang
     =/  made=(each static-output:jibb-build @t)  (build lines)
     ?:  ?=(%& -.made)  ~[leaf+(trip (cat 3 'built despite: ' wanted))]
-    ?:  =(wanted p.made)  ~
-    ~[leaf+(trip (rap 3 ~['wanted ' wanted ', got ' p.made]))]
+    =/  located=@t  (show-error:jibb (text lines) [/ui/links/jibb line col (trip wanted)])
+    ?:  =(located p.made)  ~
+    ~[leaf+(trip (rap 3 ~['wanted\0a' located '\0agot\0a' p.made]))]
+  =/  inspected-source=@t  '++ main (link %/nowhere "Gone")'
+  =/  inspected=jlowering-result:jibb
+    (check-static:jibb-build (request /ui/links/jibb inspected-source default-theme-source:jibb-build '/apps/my-app' assets routes) u.prep)
+  ?:  ?=(%| -.inspected)  ~[leaf+(trip message.p.inspected)]
+  =/  ordinary=(each expr:jibb-core @t)
+    (link-entry:jibb-lower %main root.p.inspected cache.p.inspected)
+  ?:  ?=(%| -.ordinary)  ~[leaf+(trip p.ordinary)]
+  =/  render=(each expr:jibb-core @t)
+    (link-render-entry:jibb-lower %main root.p.inspected cache.p.inspected)
+  ?:  ?=(%| -.render)  ~[leaf+(trip p.render)]
+  =/  ordinary-natives=(list name:jibb-core)  (native-names:jibb-build p.ordinary)
+  =/  render-natives=(list name:jibb-core)  (native-names:jibb-build p.render)
+  ?:  (lien ordinary-natives |=(n=name:jibb-core =(n [%own %render-origin])))
+    ~[leaf+"ordinary lowering emitted the host-only origin native"]
+  ?.  (lien render-natives |=(n=name:jibb-core =(n [%own %render-origin])))
+    ~[leaf+(trip (print-expr:jibb-core p.render))]
   =/  page-error=tang
-    (expect-error ~['++ main (link %/nowhere "Gone")'] 'link to a missing page: %/nowhere')
+    (expect-error ~['++ main (link %/nowhere "Gone")'] 1 10 'link to a missing page: %/nowhere')
   ?^  page-error  page-error
   =/  deeper-error=tang
-    (expect-error ~['++ main (link %/blog/a/b "Too deep")'] 'link to a missing page: %/blog/a/b')
+    (expect-error ~['++ main (link %/blog/a/b "Too deep")'] 1 10 'link to a missing page: %/blog/a/b')
   ?^  deeper-error  deeper-error
   =/  asset-error=tang
-    (expect-error ~['++ main (image %/static/img/gone.png "Gone")'] 'missing static asset: /static/img/gone.png')
+    (expect-error ~['++ main (image %/static/img/gone.png "Gone")'] 1 10 'missing static asset: /static/img/gone.png')
   ?^  asset-error  asset-error
   =/  place-error=tang
     %+  expect-error  ~['++ main (image %/blog/x "Not a file")']
-    'an image\'s application path must name a static file: %/blog/x'
+    [1 10 'an image\'s application path must name a static file: %/blog/x']
   ?^  place-error  place-error
   %+  expect-error  ~['++ main (image %/static/img/odd.png "Odd")']
-  'static image has no size this build can read: /static/img/odd.png'
+  [1 10 'static image has no size this build can read: /static/img/odd.png']
+++  test-render-diagnostic-ownership
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  direct=@t
+    %-  text
+    :~  '++ main'
+        '  column ~ ~['
+        '    text "sibling"'
+        '    para ~[(link %/nowhere "Nested")]'
+    ==
+  =/  made=(each static-output:jibb-build @t)
+    %+  build-static:jibb-build
+      (request /ui/direct/jibb direct default-theme-source:jibb-build '/apps/my-app' ~ ~)
+    u.prep
+  ?:  ?=(%& -.made)  ~[leaf+"a nested bad link rendered"]
+  =/  wanted=@t
+    (show-error:jibb direct [/ui/direct/jibb 4 13 "link to a missing page: %/nowhere"])
+  ?.  =(wanted p.made)  ~[leaf+(trip p.made)]
+  =/  library=@t
+    %-  text
+    :~  '++ exported ^- (element !!)'
+        '  para ~[(link %/nowhere "Imported")]'
+        '++ around |= kid=(element !!)'
+        '  column ~ ~[kid (text "outer")]'
+    ==
+  =/  page=@t
+    %-  text
+    :~  '/= assets /ui/parts/assets'
+        '++ main (around.assets exported.assets)'
+    ==
+  =/  modules=jbundle:jibb
+    ~[[/ui/direct/jibb page] [/ui/parts/assets/jibb library]]
+  =/  imported-request=static-request:jibb-build
+    (request /ui/direct/jibb page default-theme-source:jibb-build '/apps/my-app' ~ ~)
+  =/  imported=(each static-output:jibb-build @t)
+    (build-static:jibb-build imported-request(modules modules) u.prep)
+  ?:  ?=(%& -.imported)  ~[leaf+"an imported bad link rendered"]
+  =/  imported-wanted=@t
+    (show-error:jibb library [/ui/parts/assets/jibb 2 11 "link to a missing page: %/nowhere"])
+  ?.  =(imported-wanted p.imported)  ~[leaf+(trip p.imported)]
+  =/  data-source=@t
+    %-  text
+    :~  '++ main (page load view)'
+        '++ load |= ~ (pure 0)'
+        '++ view |= n=@ud'
+        '  para ~[(image %/static/img/gone.png "Data")]'
+    ==
+  =/  data=(each data-page:jibb-build @t)
+    %+  data-page-for
+      (request /ui/data/jibb data-source default-theme-source:jibb-build '/apps/my-app' ~ ~)
+    u.prep
+  ?:  ?=(%| -.data)  ~[leaf+(trip p.data)]
+  =/  failed=page-step:jibb-build  (page-request:jibb-build p.data [%load ~['data']])
+  ?.  ?=(%fail -.failed)  ~[leaf+"a data page with a missing image rendered"]
+  =/  data-wanted=@t
+    (show-error:jibb data-source [/ui/data/jibb 4 11 "missing static asset: /static/img/gone.png"])
+  ?.  =(data-wanted message.failed)  ~[leaf+(trip message.failed)]
+  ?.  (contains (trip html.failed) (trip (escape-html:jibb-build data-wanted)))
+    ~[leaf+"the data-page HTML lost its diagnostic"]
+  ~
+::
+++  test-render-error-fallbacks-and-seal
+  ^-  tang
+  =/  origin=render-origin:jibb-build  [/ui/malformed/jibb 4 7]
+  =/  wrapped=noun
+    (render-origin-native:jibb-build file.origin line.origin col.origin (raw-seal-native:jibb-build 42))
+  =/  again=noun  (render-origin-native:jibb-build /ui/outer/jibb 9 9 wrapped)
+  ?.  =(wrapped again)  ~[leaf+"an outer call replaced an element's origin"]
+  =/  malformed=(each vnode:jibb-build render-error:jibb-build)
+    (render-static-element:jibb-build [~ ~ ~ ~ |] wrapped)
+  ?:  ?=(%& -.malformed)  ~[leaf+"a malformed sealed element rendered"]
+  ?.  =('static renderer: malformed element' message.p.malformed)
+    ~[leaf+(trip message.p.malformed)]
+  ?.  =(`origin origin.p.malformed)  ~[leaf+"a malformed element lost its origin"]
+  =/  source=@t  (text ~['one' 'two' 'three' 'bad'])
+  =/  shown=@t  (show-render-error:jibb-build ~[[file.origin source]] p.malformed)
+  =/  wanted=@t
+    (show-error:jibb source [file.origin line.origin col.origin "static renderer: malformed element"])
+  ?.  =(wanted shown)  ~[leaf+(trip shown)]
+  =/  unsupported=(each vnode:jibb-build render-error:jibb-build)
+    (render-static-element:jibb-build [~ ~ ~ ~ |] (render-origin-native:jibb-build file.origin 4 7 (raw-seal-native:jibb-build [%unknown ~])))
+  ?:  ?=(%& -.unsupported)  ~[leaf+"an unsupported element rendered"]
+  ?.  =('static renderer: unsupported element unknown' message.p.unsupported)
+    ~[leaf+(trip message.p.unsupported)]
+  =/  plain=(each vnode:jibb-build render-error:jibb-build)
+    (render-static-element:jibb-build [~ ~ ~ ~ |] (raw-seal-native:jibb-build 42))
+  ?:  ?=(%& -.plain)  ~[leaf+"an unlocated malformed element rendered"]
+  ?.  =(~ origin.p.plain)  ~[leaf+"ordinary raw sealing manufactured provenance"]
+  =/  fallback=@t  (show-render-error:jibb-build ~[[file.origin source]] p.plain)
+  ?.  =('static renderer: malformed element' fallback)  ~[leaf+(trip fallback)]
+  =/  ambiguous=@t
+    (show-render-error:jibb-build ~[[file.origin source] [file.origin 'different']] p.malformed)
+  ?.  =('static renderer: malformed element' ambiguous)  ~[leaf+(trip ambiguous)]
+  =/  annotated=noun  (annotate-rendered-vnode:jibb-build `origin [%link %/nowhere 'x' ~])
+  ?.  ?=(%link -.annotated)  ~[leaf+"a checked link was not annotated"]
+  ?.  =(`origin +>+.annotated)  ~[leaf+"a checked link kept renderer-supplied provenance"]
+  =/  overwritten=noun  (annotate-rendered-vnode:jibb-build ~ annotated)
+  ?.  ?=(%link -.overwritten)  ~[leaf+"a checked link changed shape"]
+  ?.  =(~ +>+.overwritten)  ~[leaf+"a renderer could erase trusted provenance"]
+  =/  crashed=(each vnode:jibb-build render-error:jibb-build)
+    (render-island:jibb-build [~ ~ ~ (malt ~[['module' '0vtest']]) |] `origin [['module' [0 0 0 0]] ~])
+  ?:  ?=(%| -.crashed)  ~[leaf+(trip message.p.crashed)]
+  =/  expected=vnode:jibb-build
+    [%node 'div' ~[['data-jibb-island' '0vtest'] ['data-jibb-crashed' '']] ~[crash-notice:jibb-build]]
+  ?.  =(expected p.crashed)  ~[leaf+"an island renderer failure lost its crash notice"]
+  ?.  =(['jibb.private.seal.v1' 42] (raw-seal-native:jibb-build 42))
+    ~[leaf+"the public raw seal representation changed"]
+  ~
+::
 ++  test-theme-checks-and-stylesheet
   ^-  tang
   ::  A face: view(...) would edit the test core, since view is an arm.
@@ -643,7 +770,9 @@
   ::  A page whose build compiled no island module for it cannot render one.
   =/  alone=(each static-output:jibb-build @t)  (render ~)
   ?:  ?=(%& -.alone)  ~[leaf+"an island rendered without its compiled module"]
-  ?.  =(p.alone 'static renderer: /ui/counter/jibb is not an island module this build compiled')
+  =/  alone-message=@t
+    (show-error:jibb page [/ui/counting/jibb 5 5 "static renderer: /ui/counter/jibb is not an island module this build compiled"])
+  ?.  =(p.alone alone-message)
     ~[leaf+(trip p.alone)]
   =/  js=(each @t @t)
     (prepare-browser:jibb-build artifact.p.counter ~[[island-at artifact.p.counter]] u.prep)
@@ -660,6 +789,61 @@
   ?.  =(p.page-js 'an island or store module was expected, not a module of kind static-page')
     ~[leaf+(trip p.page-js)]
   ~
+++  test-island-view-reference-errors-are-located
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  island-at=path  /ui/broken-island/jibb
+  =/  island=@t
+    %-  text
+    :~  '++ main (program init update view subs)'
+        '++ init |= n=@ud n'
+        '++ update |= [msg=@ud model=@ud] [model ~]'
+        '++ subs |= model=@ud ~'
+        '++ view |= model=@ud'
+        '  para ~[(link %/nowhere "Island")]'
+    ==
+  =/  page-at=path  /ui/island-errors/jibb
+  =/  page=@t
+    (text ~['/= broken /ui/broken-island' '++ main (island main.broken 0)'])
+  =/  modules=jbundle:jibb  ~[[page-at page] [island-at island]]
+  =/  checked-request=static-request:jibb-build
+    (request page-at page default-theme-source:jibb-build '/apps/my-app' ~ ~)
+  =/  checked=jlowering-result:jibb
+    (check-static:jibb-build checked-request(modules modules) u.prep)
+  ?:  ?=(%| -.checked)  ~[leaf+(trip message.p.checked)]
+  =/  skin=jlowering-result:jibb
+    (check-static:jibb-build (request /ui/theme/jibb default-theme-source:jibb-build default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.skin)  ~[leaf+(trip message.p.skin)]
+  =/  renderer=jlowering-result:jibb
+    (check-static:jibb-build (request /lib/jibb/renderer/jibb renderer-source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.renderer)  ~[leaf+(trip message.p.renderer)]
+  =/  client=client-context:jibb-build
+    :*  '/apps/my-app/~jibb/r/0vlib.js'
+        ~zod
+        (malt ~[[(crip (spud island-at)) '0visland']])
+        ~
+        ~
+    ==
+  =/  rendered=(each static-output:jibb-build @t)
+    %:  render-checked:jibb-build
+        '/apps/my-app'
+        root.p.checked
+        root.p.skin
+        root.p.renderer
+        (weld cache.p.checked (weld cache.p.skin cache.p.renderer))
+        u.prep
+        ~
+        ~
+        '/apps/my-app/~jibb/s/0v1.css'
+        `client
+    ==
+  ?:  ?=(%& -.rendered)  ~[leaf+"an island's bad link became HTML or a crash notice"]
+  =/  wanted=@t
+    (show-error:jibb island [island-at 6 11 "link to a missing page: %/nowhere"])
+  ?.  =(wanted p.rendered)  ~[leaf+(trip p.rendered)]
+  ~
+::
 ::  -jibb!test's runner: each test- arm passes when it is %.y; one that is
 ::  %.n, crashes, or is not a ? fails, with why; other arms are not tests.
 ++  test-run-tests-reports-each-arm
