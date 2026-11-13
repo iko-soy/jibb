@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
-"""Check recorded ship assemblies without a running ship or Hoon evaluation."""
+"""Check recorded assemblies and suite partitions without ships or Hoon eval."""
 
 import importlib.machinery
+from contextlib import redirect_stderr, redirect_stdout
+import io
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
+from types import SimpleNamespace
+from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
 ship = importlib.machinery.SourceFileLoader(
     'check_inputs_ship', str(ROOT / 'tools/ship')).load_module()
+arms = importlib.machinery.SourceFileLoader(
+    'check_inputs_arms', str(ROOT / 'tools/test-arms')).load_module()
 
 
 def rejects(operation, fragment):
@@ -60,4 +67,134 @@ with tempfile.TemporaryDirectory(prefix='jibb-check-inputs-test-') as folder:
         else:
             os.environ['JIBB_DESK_MAPS'] = previous
 
-print('check-inputs: recorded assembly sources, validation and isolation passed')
+def arm_rejects(operation, fragment):
+    try:
+        operation()
+    except arms.Unusable as error:
+        assert fragment in str(error), str(error)
+    else:
+        raise AssertionError('accepted invalid library dependencies: ' + fragment)
+
+
+with tempfile.TemporaryDirectory(prefix='jibb-arm-inputs-test-') as folder:
+    root = Path(folder)
+    suite_dir = root / 'suites'
+    suite_dir.mkdir()
+    files = {}
+
+    def source(path, text):
+        target = root / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text)
+        return target
+
+    def library(name, text, path=None):
+        target = source(path or 'sources/' + name + '.hoon', text)
+        files['lib/' + name + '.hoon'] = (target.read_bytes(), str(target.relative_to(root)))
+        return target
+
+    def suite(name, header, directory=suite_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / (name + '.hoon')
+        path.write_text(header + '\n|%\n++  test-smoke\n  %.y\n--\n')
+        return arms.Suite(str(path), desk)
+
+    plain = ':: synthetic library\n|%\n++  value  42\n--\n'
+    compiler = library('jibb', plain)
+    builder = library('jibb-build', plain)
+    library('shared', '/+  jibb-build\n' + plain)
+    library('left', '/+  shared\n' + plain)
+    library('right', '/+  shared\n' + plain)
+    library('raw-reader', '/*  builder  %hoon  /lib/jibb-build/hoon\n' + plain)
+    library('lookalike', plain)
+    files['lib/renamed.hoon'] = files['lib/jibb-build.hoon']
+    files['lib/nested/builder.hoon'] = files['lib/jibb-build.hoon']
+    link = root / 'sources/builder-link.hoon'
+    link.symlink_to(builder)
+    files['lib/symlinked.hoon'] = (link.read_bytes(), str(link.relative_to(root)))
+    desk = arms.MappedDesk(files)
+
+    with patch.object(arms, 'ROOT', str(root)):
+        suites = [
+            suite('direct', '/+  jibb-build'),
+            suite('transitive', '/+  left'),
+            suite('diamond', '/+  left, right'),
+            suite('file-read', '/*  builder  %hoon  /lib/jibb-build/hoon'),
+            suite('library-file-read', '/+  raw-reader'),
+            suite('renamed', '/+  renamed'),
+            suite('nested', '/+  nested-builder'),
+            suite('symlinked', '/+  symlinked'),
+            suite('unrelated', '/+  lookalike'),
+            suite('jibb-build', ':: a suite name is not a dependency'),
+            suite('ordinary', '/+  jibb'),
+        ]
+        expected = {'direct', 'transitive', 'diamond', 'file-read',
+                    'library-file-read', 'renamed', 'nested', 'symlinked'}
+        selected = arms.library_dependents(suites, desk, 'jibb-build', str(compiler))
+        assert selected == expected, (selected, expected)
+        assert arms.library_dependents(suites, desk, 'renamed', str(compiler)) == expected
+        # Every generated program starts with the selected root compiler.
+        assert arms.library_dependents(suites, desk, 'jibb', str(compiler)) == {
+            item.name for item in suites}
+
+        invalid_dir = root / 'invalid'
+        library('cycle-a', '/+  cycle-b\n' + plain)
+        library('cycle-b', '/+  cycle-a\n' + plain)
+        cycle = suite('cycle', '/+  cycle-a', invalid_dir)
+        arm_rejects(lambda: arms.library_dependents([cycle], desk, 'jibb-build', str(compiler)),
+                    'cycle')
+        missing = suite('missing', '/+  missing', invalid_dir)
+        arm_rejects(lambda: arms.library_dependents([missing], desk, 'jibb-build', str(compiler)),
+                    'missing')
+        library('missing-file', '/*  data  %txt  /missing/txt\n' + plain)
+        missing_file = suite('missing-file', '/+  missing-file', invalid_dir)
+        arm_rejects(lambda: arms.library_dependents([missing_file], desk, 'jibb-build', str(compiler)),
+                    'not on the jibb-dev desk')
+        arm_rejects(lambda: arms.library_dependents(suites, desk, 'absent', str(compiler)),
+                    'absent')
+
+        def cli(*arguments):
+            output = io.StringIO()
+            with redirect_stdout(output), redirect_stderr(output):
+                try:
+                    status = arms.main(['--dir', str(suite_dir), '--lib', str(compiler),
+                                        '--list', *arguments])
+                except SystemExit as error:
+                    status = error.code
+            return status, output.getvalue()
+
+        def listed(*arguments):
+            status, output = cli(*arguments)
+            assert status == 0, output
+            return set(re.findall(r'^([a-z0-9-]+) \(', output, re.M))
+
+        fake_ship = SimpleNamespace(assemble=lambda _: desk, Unable=arms.Unusable)
+        with patch.object(arms, 'load_ship', return_value=fake_ship), \
+                patch.object(arms, 'run', side_effect=AssertionError('unexpected eval')), \
+                patch.object(arms, 'run_fast', side_effect=AssertionError('unexpected eval')):
+            all_names = {item.name for item in suites}
+            assert listed() == all_names
+            assert listed('--include-library', 'jibb-build') == expected
+            assert listed('--exclude-library', 'jibb-build') == all_names - expected
+            ordinary = set()
+            for index in range(1, 4):
+                shard = ['--shard', '%d/3' % index]
+                original = listed(*shard)
+                retained = listed(*shard, '--exclude-library', 'jibb-build')
+                moved = listed(*shard, '--include-library', 'jibb-build')
+                assert retained == original - expected, (index, original, retained)
+                assert moved == original & expected, (index, original, moved)
+                assert not ordinary & retained
+                ordinary.update(retained)
+            assert ordinary | expected == all_names and not ordinary & expected
+            status, output = cli('--include-library', 'jibb-build',
+                                 '--exclude-library', 'jibb-build')
+            assert status == 2, output
+            mapping = root / 'desk.json'
+            mapping.write_text(json.dumps({name: entry[1] for name, entry in files.items()}))
+            for option in ('--include-library', '--exclude-library'):
+                for conflict in (['--desk-map', str(mapping)], ['--report'], ['--update']):
+                    status, output = cli(option, 'jibb-build', *conflict, 'direct')
+                    assert status == 2, (option, conflict, output)
+
+print('check-inputs: recorded assemblies, library dependencies and stable partitions passed')

@@ -66,11 +66,13 @@ def tool(name, group='eval', *args):
 #  then the ship group, in the order they must run.  Times are from one
 #  run on four CPUs (2026-11-03).
 #
-#  arms-1 to arms-8 run the test- arms of every tests/lib suite under
+#  arms-1 to arms-8 and arms-builder run every tests/lib suite under
 #  eval, in shards of about equal time (tools/test-arms --list --shard
 #  2/8 shows the second).  A new suite in tests/lib joins a shard by
-#  itself; a slow one belongs in COSTS in tools/test-arms.
+#  itself; a slow one belongs in COSTS in tools/test-arms. Builder-dependent
+#  suites are extracted after balancing, retaining all other assignments.
 ARM_SHARDS = 8
+ARM_BUILDER_LIBRARY = 'jibb-build'
 
 CHECKS = [
     Check('probes-eval', 'eval', ['tools/probe-regression', '--fast']),
@@ -88,9 +90,13 @@ CHECKS = [
     # This bounds each eval; the outer check timeout still applies too.
     Check('arms-%d' % i, 'eval',
           ['tools/test-arms', '--fast', '--timeout', '3600',
-           '--shard', '%d/%d' % (i, ARM_SHARDS)])
+           '--shard', '%d/%d' % (i, ARM_SHARDS),
+           '--exclude-library', ARM_BUILDER_LIBRARY])
     for i in range(1, ARM_SHARDS + 1)
 ] + [
+    Check('arms-builder', 'eval',
+          ['tools/test-arms', '--fast', '--timeout', '3600',
+           '--include-library', ARM_BUILDER_LIBRARY]),
     Check('doc-blocks', 'eval', ['tools/doc-blocks', 'docs/spec']),
     tool('doc-fragments'),
     tool('doc-format'),

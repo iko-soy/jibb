@@ -4,6 +4,7 @@
     tools/test-arms                      every suite, in one eval
     tools/test-arms jibb-store 'jibb-program-*'
     tools/test-arms --shard 2/4          the second of four balanced shards
+    tools/test-arms --include-library jibb-build
     tools/test-arms --list               the suites, their arms and reports
     tools/test-arms --report jibb-poke-bridge
     tools/test-arms --update jibb-poke-bridge
@@ -220,6 +221,51 @@ def lib_source(desk, name):
     raise Unusable('no /lib/%s.hoon on the jibb-dev desk' % name)
 
 
+def library_input(desk, name):
+    """Resolve a library and parse the Ford inputs used by program_for."""
+    path = lib_source(desk, name)
+    content = ue.read_text(path)
+    header = content.split('\n|%\n', 1)[0]
+    library = (Suite(path, desk)
+               if re.search(r'(?m)^/(?:\+|\*)\s', header) else None)
+    return path, content, library
+
+
+def library_dependents(suites, desk, library, lib):
+    """Suite names whose compiled libraries or bound files read library.
+
+    Follow the same resolved sources and headers as program_for. The root
+    compiler is supplied by --lib, rather than resolved from the desk.
+    """
+    target = os.path.realpath(lib if library == LIBRARY
+                              else lib_source(desk, library))
+    known = {LIBRARY: {os.path.realpath(lib)}}
+    visiting = set()
+
+    def inputs(suite):
+        paths = {os.path.realpath(path) for _, _, path in suite.files}
+        for name in suite.libs:
+            paths.update(dependencies(name))
+        return paths
+
+    def dependencies(name):
+        if name in known:
+            return known[name]
+        if name in visiting:
+            raise Unusable('cycle in library dependencies: %s' % name)
+        visiting.add(name)
+        path, _, imported = library_input(desk, name)
+        paths = {os.path.realpath(path)}
+        if imported is not None:
+            paths.update(inputs(imported))
+        visiting.remove(name)
+        known[name] = paths
+        return paths
+
+    return {suite.name for suite in suites
+            if target in (inputs(suite) | known[LIBRARY])}
+
+
 def golden_problems(text):
     """What is wrong with a golden file's or report's bytes, or None."""
     if not text.endswith(b'\n') or text.endswith(b'\n\n'):
@@ -302,14 +348,11 @@ def program_for(suites, lib, debug, mode='arms'):
         if name in visiting:
             raise Unusable('cycle in library dependencies: %s' % name)
         visiting.add(name)
-        path = lib_source(DESK, name)
-        content = ue.read_text(path)
-        header = content.split('\n|%\n', 1)[0]
-        if not re.search(r'(?m)^/(?:\+|\*)\s', header):
+        path, content, library = library_input(DESK, name)
+        if library is None:
             prog.add('=/  lib-%s\n=>  ..zuse' % name, '(test-arms)', 'harness')
             prog.add(content, ue.display_path(path), 'expr')
         else:
-            library = Suite(path, DESK)
             for dependency in library.libs:
                 compile_lib(dependency)
             pins = ['%s=%s' % (dep, 'jibb-lib' if dep == LIBRARY else 'lib-' + dep) for dep in library.libs]
@@ -492,6 +535,13 @@ def main(argv):
                     help='tests/lib suites by name or glob (default: all)')
     ap.add_argument('--shard', metavar='I/N',
                     help='run only the I-th of N balanced shards')
+    dependencies = ap.add_mutually_exclusive_group()
+    dependencies.add_argument('--include-library', metavar='NAME',
+                              help='keep suites that read this library, '
+                                   'directly or indirectly, after sharding')
+    dependencies.add_argument('--exclude-library', metavar='NAME',
+                              help='omit suites that read this library, '
+                                   'directly or indirectly, after sharding')
     ap.add_argument('--desk-map', metavar='FILE',
                     help='use a recorded desk map and explicit suites, '
                          'without assembling the full desk')
@@ -517,6 +567,10 @@ def main(argv):
     opts = ap.parse_args(argv)
     if opts.fast and (opts.report or opts.update):
         ap.error('--fast is only for testing, not --report or --update')
+    dependency = opts.include_library or opts.exclude_library
+    if dependency and (opts.desk_map or opts.report or opts.update):
+        ap.error('library selection cannot be combined with --desk-map, '
+                 '--report or --update')
 
     global DESK
     try:
@@ -545,6 +599,10 @@ def main(argv):
             if not m or not 1 <= int(m.group(1)) <= int(m.group(2)):
                 raise Unusable('--shard takes I/N with 1 <= I <= N')
             suites = shard(suites, int(m.group(1)), int(m.group(2)))
+        if dependency:
+            selected = library_dependents(suites, DESK, dependency, opts.lib)
+            suites = [s for s in suites
+                      if (s.name in selected) == bool(opts.include_library)]
         if opts.list:
             for s in suites:
                 print('%s (%ds)%s: %s' % (s.name, s.cost(),

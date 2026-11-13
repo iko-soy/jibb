@@ -5,7 +5,8 @@
     tools/eval-manifest --check    check freshness, coverage and narrow programs
 
 Golden cases are sorted and chunked 100 at a time. Arm batches use the eight
-balanced tools/test-arms shards from tools/check. An arm batch's "desk" object
+balanced tools/test-arms shards, extracting builder dependencies into their
+own batch after balancing. An arm batch's "desk" object
 is accepted directly by tools/test-arms --desk-map; that option also accepts
 the desk mapping itself, without the surrounding batch object.
 """
@@ -190,8 +191,16 @@ def arm_program(suite_paths, desk, lib):
 def arm_batches(all_suites, assembled, lib):
     original_files = assembled.files
     batches = []
+    builder = test_arms.library_dependents(
+        all_suites, assembled, checks.ARM_BUILDER_LIBRARY, lib)
+    selections = []
     for index in range(1, checks.ARM_SHARDS + 1):
-        selected = test_arms.shard(all_suites, index, checks.ARM_SHARDS)
+        selected = [suite for suite in test_arms.shard(
+            all_suites, index, checks.ARM_SHARDS) if suite.name not in builder]
+        selections.append(('arms-%d' % index, selected))
+    selections.append(('arms-builder', [suite for suite in all_suites
+                                        if suite.name in builder]))
+    for name, selected in selections:
         suite_paths = [suite.path for suite in selected]
         recording = RecordingFiles(original_files)
         assembled.files = recording
@@ -215,7 +224,7 @@ def arm_batches(all_suites, assembled, lib):
         narrow_program = arm_program(suite_paths, narrow, lib)
         if full_program != narrow_program:
             raise ManifestError(
-                'full and narrow Hoon programs differ for arms-%d' % index)
+                'full and narrow Hoon programs differ for %s' % name)
         ship_sources = set(desk_map.values()) | {
             'jibb-dev/lib/jibb.hoon', *map(repo_relative, suite_paths)}
         ship_desk = ship_mapping(assembled, ship_sources)
@@ -223,9 +232,9 @@ def arm_batches(all_suites, assembled, lib):
         ship_program = arm_program(suite_paths,
                                    probe_regression.shiptool.mapped_assembly('jibb-dev', ship_desk), lib)
         if full_program != ship_program:
-            raise ManifestError('full and ship-map programs differ for arms-%d' % index)
+            raise ManifestError('full and ship-map programs differ for %s' % name)
         batches.append({
-            'name': 'arms-%d' % index,
+            'name': name,
             'suites': [suite.name for suite in selected],
             'paths': sorted(paths),
             'desk': desk_map,
@@ -413,12 +422,13 @@ def validate(manifest, cases, suites, residual):
 
     arm_suites = []
     arm_names = []
-    for number, batch in enumerate(manifest['arm_batches'], 1):
+    expected_arm_names = ['arms-%d' % number
+                          for number in range(1, checks.ARM_SHARDS + 1)]
+    expected_arm_names.append('arms-builder')
+    for batch in manifest['arm_batches']:
         if set(batch) != {'name', 'suites', 'paths', 'desk', 'ship_paths', 'ship_desks'}:
             raise ManifestError('arm batch has the wrong schema')
-        name = 'arms-%d' % number
-        if batch['name'] != name:
-            raise ManifestError('arm batches are not numbered in order')
+        name = batch['name']
         arm_names.append(name)
         if batch['suites'] != sorted(batch['suites']) or not batch['suites']:
             raise ManifestError('%s suites are empty or unsorted' % name)
@@ -438,12 +448,12 @@ def validate(manifest, cases, suites, residual):
             if source not in batch['paths']:
                 raise ManifestError('%s omits suite source %s' % (name, source))
         arm_suites.extend(batch['suites'])
+    if arm_names != expected_arm_names:
+        raise ManifestError('manifest must have the balanced arm shards and arms-builder')
     expected_suites = [suite.name for suite in suites]
     if (len(arm_suites) != len(set(arm_suites)) or
             set(arm_suites) != set(expected_suites)):
         raise ManifestError('arm batches do not cover every suite exactly once')
-    if len(manifest['arm_batches']) != checks.ARM_SHARDS:
-        raise ManifestError('manifest does not have all eight arm shards')
     groups = []
     for number, batch in enumerate(manifest['probe_batches'], 1):
         if set(batch) != {'name', 'groups', 'paths', 'ship_paths', 'ship_desks'}:
