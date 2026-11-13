@@ -240,6 +240,121 @@
     u.prep
   ?.  =(one-shot stepwise)  ~[leaf+"stepwise and one-shot builds differ"]
   (expect-html html.p.stepwise ~['<title>Notes</title>' 'First note'])
+::  Reusing checked artifacts must not retain an earlier render's assets,
+::  routes, stylesheet or failure.  Only the render context changes here.
+++  test-render-checked-refreshes-context
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  at=path  /ui/context/jibb
+  =/  source=@t
+    %-  text
+    :~  '++ main'
+        '  column ~ ~['
+        '    heading 1 "Context"'
+        '    image %/static/img/dot.png "A dot"'
+        '    link %/target "Target"'
+    ==
+  =/  page=jlowering-result:jibb
+    (check-static:jibb-build (request at source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.page)  ~[leaf+(trip message.p.page)]
+  =/  skin=jlowering-result:jibb
+    (check-static:jibb-build (request /ui/theme/jibb default-theme-source:jibb-build default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.skin)  ~[leaf+(trip message.p.skin)]
+  =/  renderer=jlowering-result:jibb
+    (check-static:jibb-build (request /lib/jibb/renderer/jibb renderer-source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.renderer)  ~[leaf+(trip message.p.renderer)]
+  =/  artifacts=jlowering-cache:jibb
+    (weld cache.p.page (weld cache.p.skin cache.p.renderer))
+  =/  render
+    |=  [assets=(list static-asset:jibb-build) routes=(list (list @t)) stylesheet=@t]
+    ^-  (each static-output:jibb-build @t)
+    %:  render-checked:jibb-build
+      '/apps/my-app'  root.p.page  root.p.skin  root.p.renderer
+      artifacts  u.prep  assets  routes  stylesheet  ~
+    ==
+  =/  dot=static-asset:jibb-build
+    (asset /static/img/[~.dot.png] 'image/png' (png 640 480))
+  =/  routes=(list (list @t))  ~[~['target']]
+  =/  stylesheet=@t  '/apps/my-app/~jibb/s/0v1.css'
+  =/  first=(each static-output:jibb-build @t)  (render ~[dot] routes stylesheet)
+  ?:  ?=(%| -.first)  ~[leaf+(trip p.first)]
+  =/  first-html=tang
+    %+  expect-html  html.p.first
+    :~  '<img src="/apps/my-app/static/0v1.abcde/img/dot.png" alt="A dot" width="640" height="480">'
+        '<a href="/apps/my-app/target">Target</a>'
+        '<link rel="stylesheet" href="/apps/my-app/~jibb/s/0v1.css">'
+    ==
+  ?^  first-html  first-html
+  =/  unrelated=static-asset:jibb-build
+    (asset /static/[~.other.txt] 'text/plain' [5 'other'])
+  ?.  =(first (render ~[dot unrelated] routes stylesheet))
+    ~[leaf+"an unrelated asset changed ordinary static HTML"]
+  =/  changed=static-asset:jibb-build
+    dot(url '/apps/my-app/static/0v2/img/dot.png', data (png 4 5))
+  =/  later=(each static-output:jibb-build @t)
+    (render ~[changed] routes '/apps/my-app/~jibb/s/0v2.css')
+  ?:  ?=(%| -.later)  ~[leaf+(trip p.later)]
+  =/  later-html=tang
+    %+  expect-html  html.p.later
+    :~  '<img src="/apps/my-app/static/0v2/img/dot.png" alt="A dot" width="4" height="5">'
+        '<link rel="stylesheet" href="/apps/my-app/~jibb/s/0v2.css">'
+    ==
+  ?^  later-html  later-html
+  ?:  (contains (trip html.p.later) "0v1.abcde")
+    ~[leaf+"the changed image kept its earlier URL"]
+  =/  missing=(each static-output:jibb-build @t)  (render ~ routes stylesheet)
+  =/  missing-message=@t
+    (show-error:jibb source [at 4 5 "missing static asset: /static/img/dot.png"])
+  ?.  =([%| missing-message] missing)  ~[leaf+"a missing image lost its current source diagnostic"]
+  ?.  =(first (render ~[dot] routes stylesheet))
+    ~[leaf+"restoring the asset retained a render error or changed its HTML"]
+  =/  gone=(each static-output:jibb-build @t)  (render ~[dot] ~ stylesheet)
+  =/  gone-message=@t
+    (show-error:jibb source [at 5 5 "link to a missing page: %/target"])
+  ?.  =([%| gone-message] gone)  ~[leaf+"a missing route lost its current source diagnostic"]
+  ?.  =(first (render ~[dot] routes stylesheet))
+    ~[leaf+"restoring the route retained a render error or changed its HTML"]
+  ~
+::  Emission may be reused, but its key includes the native gate nouns,
+::  and executing its result must still run and fail on every call.
+++  test-linked-emission-keeps-runtime-inputs
+  ^-  tang
+  =/  empty=native-registry:jibb-nock  *(map name:jibb-core noun)
+  =/  first=native-registry:jibb-nock
+    (~(put by empty) [%own %probe] |=(n=@ +(n)))
+  =/  second=native-registry:jibb-nock
+    (~(put by empty) [%own %probe] |=(n=@ (add n 2)))
+  =/  broken=native-registry:jibb-nock
+    (~(put by empty) [%own %probe] |=(* !!))
+  =/  call=expr:jibb-core  [%app [%native [%own %probe]] [%lit [%ud 41 '41']]]
+  =/  traced=expr:jibb-core  [%trace [%lit [%t 'before' '"before"']] call]
+  =/  trace-crash=expr:jibb-core  [%trace [%lit [%t 'before' '"before"']] [%crash ~]]
+  =/  cases=(list [label=@t core=expr:jibb-core registry=native-registry:jibb-nock expected=(each noun @t)])
+    :~  ['first native' call first [%& 42]]
+        ['second native' call second [%& 43]]
+        ['first native again' call first [%& 42]]
+        ['traced native' traced second [%& 43]]
+        ['broken native' call broken [%| 'broken native crashed during Nock execution']]
+        ['missing native' call empty [%| 'missing native crashed during Nock execution']]
+        ['traced crash' trace-crash empty [%| 'traced crash crashed during Nock execution']]
+    ==
+  |-
+  ?~  cases  ~
+  =/  formula=noun  (emit-linked:jibb-build core.i.cases registry.i.cases)
+  ?.  =(formula (emit:jibb-nock core.i.cases registry.i.cases))
+    ~[leaf+"cached emission changed the native or trace formula"]
+  ?.  =(formula (emit-linked:jibb-build core.i.cases registry.i.cases))
+    ~[leaf+"repeated emission changed its formula"]
+  =/  result=(each noun @t)
+    (execute-linked:jibb-build label.i.cases core.i.cases registry.i.cases)
+  ?.  =(expected.i.cases result)
+    ~[leaf+"{(trip label.i.cases)} returned the wrong outcome" (sell !>(result))]
+  =/  repeated=(each noun @t)
+    (execute-linked:jibb-build label.i.cases core.i.cases registry.i.cases)
+  ?.  =(expected.i.cases repeated)
+    ~[leaf+"{(trip label.i.cases)} changed its repeated outcome" (sell !>(repeated))]
+  $(cases t.cases)
 ::  Links name pages or static files; images name static files whose size
 ::  the build reads.  Every other target is a definite error.
 ++  test-links-images-and-routes
@@ -618,11 +733,19 @@
         '  ^- (ask @t)'
         '  [%agent api="/ui/api/notes" case=%note agent=%notes path=~[%note slug] scry=~ receive=receive]'
         '++ receive |= input=[mark=@tas state=(unit *) fact=*]'
-        '  ^- [state=* message=@t] [state=0 message="from the agent"]'
+        '  ^- [state=* message=@t]'
+        '  ?- [mark.input fact.input]'
+        '    [%noun 42] [state=0 message="First from the agent"]'
+        '    [%noun 43] [state=0 message="Second from the agent"]'
+        '    [%noun 44] [state=0 message="crash"]'
+        '    * !!'
         ''
         '++ view |= words=@t'
-        '  column ~ ~['
-        '    heading 1 words'
+        '  ?- (eq words "crash")'
+        '    %.y !!'
+        '    %.n'
+        '      column ~ ~['
+        '        heading 1 words'
     ==
   =/  made=(each data-page:jibb-build @t)
     (data-page-for (request /ui/notes/[~._slug]/jibb source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
@@ -632,12 +755,41 @@
   ?.  =([%notes /note/hello] [agent.first path.first])  ~[leaf+"the scry named another agent or path"]
   =/  done=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.first %noun 42])
   ?.  ?=(%done -.done)  ~[leaf+"the agent's answer did not render"]
-  ?.  =('from the agent' title.done)  ~[leaf+(trip title.done)]
+  ?.  =('First from the agent' title.done)  ~[leaf+(trip title.done)]
+  ?.  (contains (trip html.done) "First from the agent</h1>")
+    ~[leaf+"the first answer was missing from the rendered HTML"]
+  ::  Reuse the same prepared page, but ask again even for the same URL.
+  =/  second=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['notes' 'hello']])
+  ?.  ?=(%scry -.second)  ~[leaf+"a repeated request reused data instead of scrying"]
+  ?.  =([%notes /note/hello] [agent.second path.second])
+    ~[leaf+"the repeated request changed its agent or path"]
+  =/  changed=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.second %noun 43])
+  ?.  ?=(%done -.changed)  ~[leaf+"the second answer did not render"]
+  ?.  =('Second from the agent' title.changed)  ~[leaf+(trip title.changed)]
+  ?.  (contains (trip html.changed) "Second from the agent</h1>")
+    ~[leaf+"the second answer was missing from the rendered HTML"]
+  ?:  (contains (trip html.changed) "First from the agent")
+    ~[leaf+"the prepared page retained the first answer's HTML"]
   =/  why=@t  'the agent %notes did not answer /note/hello'
   =/  rejected=page-step:jibb-build  (page-request:jibb-build p.made [%reject why])
   ?.  &(?=(%fail -.rejected) =(404 status.rejected) =(why message.rejected))
     ~[leaf+"a rejected path was not a 404"]
-  ~
+  =/  malformed=page-step:jibb-build
+    (page-request:jibb-build p.made [%receive receive.second %noun [42 43]])
+  ?.  ?=(%fail -.malformed)  ~[leaf+"a malformed answer rendered"]
+  ?.  =(500 status.malformed)  ~[leaf+"a malformed answer was not a 500"]
+  ?.  =('the agent answered with data that does not fit its type, or the page crashed reading it' message.malformed)
+    ~[leaf+(trip message.malformed)]
+  =/  remaining=@ud  2
+  |-
+  ?:  =(0 remaining)  ~
+  =/  again=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['notes' 'hello']])
+  ?.  ?=(%scry -.again)  ~[leaf+"a failed view stopped a later request from scrying"]
+  =/  crashed=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.again %noun 44])
+  ?.  ?=(%fail -.crashed)  ~[leaf+"a crashing view rendered"]
+  ?.  &(=(500 status.crashed) =('the page crashed in its view' message.crashed))
+    ~[leaf+"a repeated view crash lost its 500 diagnostic"]
+  $(remaining (dec remaining))
 ++  test-route-parameters-are-checked
   ^-  tang
   =/  prep=(unit iprelude-lowering:jibb)  prepared
@@ -733,7 +885,7 @@
         `'/app'
     ==
   =/  render
-    |=  context=(unit client-context:jibb-build)
+    |=  [context=(unit client-context:jibb-build) assets=(list static-asset:jibb-build)]
     ^-  (each static-output:jibb-build @t)
     %:  render-checked:jibb-build
       '/apps/my-app'
@@ -742,12 +894,12 @@
       artifact.p.renderer
       ~[[island-at artifact.p.counter]]
       u.prep
-      ~
+      assets
       ~
       '/apps/my-app/~jibb/s/0v1.css'
       context
     ==
-  =/  rendered=(each static-output:jibb-build @t)  (render `client)
+  =/  rendered=(each static-output:jibb-build @t)  (render `client ~)
   ?:  ?=(%| -.rendered)  ~[leaf+(trip p.rendered)]
   =/  state=@t  (scot %uw (jam [41 '']))
   =/  html=tang
@@ -767,8 +919,27 @@
         '}</script><script type="module" src="/apps/my-app/~jibb/r/0vlib.js"></script></head>'
     ==
   ?^  html  html
+  ::  The same checked page must use the current asset map and module URLs.
+  =/  dot=static-asset:jibb-build
+    (asset /static/img/[~.dot.png] 'image/png' (png 4 5))
+  =/  changed-client=client-context:jibb-build
+    client(library '/apps/my-app/~jibb/r/0vnew.js', islands (malt ~[['/ui/counter/jibb' '0vnewcounter']]))
+  =/  changed=(each static-output:jibb-build @t)  (render `changed-client ~[dot])
+  ?:  ?=(%| -.changed)  ~[leaf+(trip p.changed)]
+  =/  changed-html=tang
+    %+  expect-html  html.p.changed
+    :~  '<div data-jibb-island="0vnewcounter">'
+        '"/static/img/dot.png":{'
+        '"url":"/apps/my-app/static/0v1.abcde/img/dot.png"'
+        '"width":4'
+        '"height":5'
+        '<script type="module" src="/apps/my-app/~jibb/r/0vnew.js">'
+    ==
+  ?^  changed-html  changed-html
+  ?.  =(rendered (render `client ~))
+    ~[leaf+"restoring the client context retained another render's assets or URLs"]
   ::  A page whose build compiled no island module for it cannot render one.
-  =/  alone=(each static-output:jibb-build @t)  (render ~)
+  =/  alone=(each static-output:jibb-build @t)  (render ~ ~)
   ?:  ?=(%& -.alone)  ~[leaf+"an island rendered without its compiled module"]
   =/  alone-message=@t
     (show-error:jibb page [/ui/counting/jibb 5 5 "static renderer: /ui/counter/jibb is not an island module this build compiled"])

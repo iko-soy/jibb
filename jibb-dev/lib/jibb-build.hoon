@@ -213,10 +213,39 @@
     [%| (rap 3 ~['static build: authenticated native implementation is missing: ' (print-name:jibb-core i.names)])]
   $(names t.names, out (~(put by out) i.names u.implementation))
 ::
+::  These helpers only link authenticated artifacts and emit formulas.
+::  Give them no scry namespace, so Vere may retain their portable memo
+::  entries across events. Re-raise a compiler crash with its original tang.
+::  Execution, reference checking and serialization stay outside this scope.
+++  pure-preparation
+  |=  =(trap *)
+  ^-  noun
+  ::  Eval's older kernel types +mock with a non-null namespace gate.
+  ::  +slum supplies the null namespace accepted by the pinned Vere jet.
+  =/  result=toon  ;;(toon (slum mock [[trap %9 2 %0 1] ~]))
+  ?-  -.result
+    %0  p.result
+    %1  (mean ~[leaf+"pure render preparation attempted a scry"])
+    %2  (mean p.result)
+  ==
+::
+++  link-page
+  |=  [page=checked-module:jibb cache=jlowering-cache:jibb]
+  ^-  (each expr:jibb-core @t)
+  ~>  %memo./jibb/render-page-link/v1
+  (link-render-entry:jibb-lower %main page cache)
+::
+++  emit-linked
+  |=  [e=expr:jibb-core registry=native-registry:jibb-nock]
+  ^-  noun
+  ~>  %memo./jibb/render-emission/v1
+  (emit:jibb-nock e registry)
+::
 ++  execute-linked
   |=  [label=@t e=expr:jibb-core registry=native-registry:jibb-nock]
   ^-  (each noun @t)
-  =/  result=outcome:jibb-core  (run:jibb-nock e registry)
+  =/  formula=noun  (pure-preparation |.((emit-linked e registry)))
+  =/  result=outcome:jibb-core  (execute:jibb-nock 0 formula)
   ?:  ?=(%crash -.result)  [%| (cat 3 label ' crashed during Nock execution')]
   [%& val.result]
 ::
@@ -1447,14 +1476,25 @@
   ?.  ?=([* ~] unique)  message.failure
   (show-error:jibb i.unique [file.u.origin.failure line.u.origin.failure col.u.origin.failure (trip message.failure)])
 ::
-++  prepare-kit
++$  linked-kit
+  $:  theme=expr:jibb-core
+      renderer=(list [tag=@tas core=expr:jibb-core])
+      attribute=expr:jibb-core
+      registry=native-registry:jibb-nock
+      sources=(list render-source)
+  ==
+::  Every input is compiler-owned and independent of current asset URLs,
+::  routes and client context. The page remains in the key: it owns native
+::  requirements and diagnostic excerpts that another page cannot supply.
+++  link-kit
   |=  $:  page-core=expr:jibb-core
           page=checked-module:jibb
           theme=checked-module:jibb
           renderer=checked-module:jibb
           cache=jlowering-cache:jibb
       ==
-  ^-  (each render-kit @t)
+  ^-  (each linked-kit @t)
+  ~>  %memo./jibb/render-kit-link/v1
   ?.  =(%library kind.theme)  [%| 'static build: theme module must be a library']
   ?.  =(%library kind.renderer)  [%| 'static build: renderer module must be a library']
   =/  theme-core=(each expr:jibb-core @t)
@@ -1471,20 +1511,33 @@
   =/  registry=(each native-registry:jibb-nock @t)
     (native-registry (weld ~[page-core p.theme-core p.attribute-core] node-expressions))
   ?:  ?=(%| -.registry)  registry
+  [%& p.theme-core p.renderer-cores p.attribute-core p.registry (render-sources page cache)]
+::
+++  prepare-kit
+  |=  $:  page-core=expr:jibb-core
+          page=checked-module:jibb
+          theme=checked-module:jibb
+          renderer=checked-module:jibb
+          cache=jlowering-cache:jibb
+      ==
+  ^-  (each render-kit @t)
+  =/  linked=(each linked-kit @t)
+    ;;((each linked-kit @t) (pure-preparation |.((link-kit page-core page theme renderer cache))))
+  ?:  ?=(%| -.linked)  linked
   =/  theme-value=(each noun @t)
-    (execute-linked 'static theme' p.theme-core p.registry)
+    (execute-linked 'static theme' theme.p.linked registry.p.linked)
   ?:  ?=(%| -.theme-value)  theme-value
   =/  render-gates=(each (map @tas noun) @t)
-    (execute-renderer-entries p.renderer-cores p.registry)
+    (execute-renderer-entries renderer.p.linked registry.p.linked)
   ?:  ?=(%| -.render-gates)  render-gates
   =/  attribute-gate=(each noun @t)
-    (execute-linked 'static attribute renderer' p.attribute-core p.registry)
+    (execute-linked 'static attribute renderer' attribute.p.linked registry.p.linked)
   ?:  ?=(%| -.attribute-gate)  attribute-gate
   :-  %&
   :*  [p.theme-value p.render-gates p.attribute-gate ~ |]
       ;;(theme-view p.theme-value)
-      p.registry
-      (render-sources page cache)
+      registry.p.linked
+      sources.p.linked
   ==
 ::
 ::  +render-tree: an executed element as a checked HTML document
@@ -1517,7 +1570,7 @@
     [%| (crip "unsupported module kind for static build: {(trip kind.page)}")]
   =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
   =/  page-core=(each expr:jibb-core @t)
-    (link-render-entry:jibb-lower %main page cache)
+    ;;((each expr:jibb-core @t) (pure-preparation |.((link-page page cache))))
   ?:  ?=(%| -.page-core)  page-core
   =/  kit=(each render-kit @t)  (prepare-kit p.page-core page theme renderer cache)
   ?:  ?=(%| -.kit)  kit
@@ -1576,7 +1629,7 @@
   ?:  ?=(%| -.fields)  fields
   =/  cache=jlowering-cache:jibb  (weld artifacts cache.prepared)
   =/  page-core=(each expr:jibb-core @t)
-    (link-render-entry:jibb-lower %main page cache)
+    ;;((each expr:jibb-core @t) (pure-preparation |.((link-page page cache))))
   ?:  ?=(%| -.page-core)  page-core
   =/  kit=(each render-kit @t)  (prepare-kit p.page-core page theme renderer cache)
   ?:  ?=(%| -.kit)  kit

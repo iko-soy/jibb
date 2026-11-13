@@ -213,6 +213,28 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+Render preparation now memoizes page linking, renderer/theme linking with authenticated native selection, and Nock emission. It retains page-owned diagnostic sources and keys emission by the actual native gates. Execution, reference validation and serialization still use the current render context; facade signatures, prepared data-page layout and host state are unchanged. The runtime's persistent memo cache is shared and limited by entry count, not bytes; eviction only causes recomputation.
+
+Fresh-ship Nix host/browser/Node acceptance passed on the production source. Against `2c39dd6`, the complete chain fell from 2,454.9 to 1,014.9 seconds, saving 1,440.0 seconds (58.7%). All existing assertions remained in place:
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| Fresh fixture build | 240.5 s | 302.8 s |
+| Fresh `my-app` build | 141.6 s | 152.2 s |
+| Static asset change, deletion and restoration | 564.5 s | 26.9 s |
+| Render diagnostics and recovery | 755.9 s | 134.8 s |
+| Broken-import recovery | 380.5 s | 19.8 s |
+| Browser acceptance | 20.4 s | 20.8 s |
+| Node agreement | 14.3 s | 13.7 s |
+
+Both cold builds regressed in this sample. These single runs shared the machine with other jobs; they cannot separate cache setup, key hashing and compilation overhead from load effects. The browser run measured 40 keystrokes in the 500-row island at 4× CPU slowdown: median 11.9 ms, p95 17.5 ms and maximum 20.0 ms. No unagreed performance bar was imposed. Six current test results agreed across JavaScript, Nock and `-jibb!test`, and the pier stopped cleanly.
+
+A focused fresh-ship run on 2026-11-13 exercised three static pages and one data page, with seven checked modules. The first build made four page-link calls, four kit-link calls and 85 emission calls, with 4, 4 and 25 misses respectively. Five asset-only commits each reused all 93 computations with zero misses and unchanged checked-module revisions. They passed current image URL, byte and dimension checks, exact missing-image diagnostics and restoration, unchanged unrelated HTML/CSP, and distinct data responses for parameters 41, 42 and 41. Persistent memo storage grew from 4,394,720 to 5,378,592 bytes on the initial build and stayed exactly flat across those commits. The rebuilds took 15.7, 15.6, 4.9, 4.7 and 4.7 seconds; these focused timings are not a baseline comparison.
+
+A separate real-ship probe called the desk's Ford-built `+execute-linked` in four events. Both repeated successes returned 42 and emitted their trace; both repeated crashes retained their exact diagnostic and emitted their trace. Each pair's second call hit the emission cache. Scratch counters and probes are absent from the production sources. The current runner discovers 681 ordinary arms in 274 suites, plus 1,376 golden cases.
+
+Full `nix flake check -L -j 1` passed on x86_64-linux, reusing unchanged checks and completing all 46 check leaves. The changed eval shards passed 111 and 86 arms in 1,152 and 1,072 seconds; their fresh-ship counterparts passed with no failures or crashes. The complete check set covers all 681 ordinary arms and 1,376 goldens on both backends, all 348 probe outcomes on each backend, 128 Rust tests and 322 JavaScript tests. The tooling selftest passed in 562 seconds, all eight residual checks passed, and the browser library remained 55,729 bytes, 19,826 under `gzip -9n`.
+
 Host-chain profiling on 2026-11-13 removed redundant builds from acceptance setup and cleanup. Applications remain suspended until the host is installed, and each first build asserts that no earlier result, checked module or published file exists. After `-jibb!clear`, an unrelated Clay commit republishes `my-app` assets while retaining its checked modules; the runner restores the temporary file in both the filesystem and Clay and verifies every asset's public, immutable response. Nix runs browser and Node acceptance before the final fixture suspension, then stops its disposable pier. Standalone runs still revive the fixture, and failures retain restoration cleanup. All 98 original host assertion sites remain; 14 mocked republish cases, 19 lifecycle cases and six pinned Nix exit-hook cases passed.
 
 The timing-only baseline and optimized full `nix flake check -L -j 2` both passed on x86_64-linux. Unchanged check results were reused; host acceptance ran on a fresh pier in each run. Phase records are retained in `shipHost/timings.jsonl` with the aggregate log. This is one before/after pair on a shared machine, not a general throughput guarantee:
