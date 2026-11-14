@@ -127,6 +127,9 @@
 /*  core-40  %txt  /tests/js-emit/extra-direct-template-nested-branch-fuel/core/txt
 /*  natives-40  %txt  /tests/js-emit/extra-direct-template-nested-branch-fuel/natives/txt
 /*  js-40  %txt  /tests/js-emit/extra-direct-template-nested-branch-fuel/js/txt
+/*  core-41  %txt  /tests/js-emit/extra-checked-recursive-facts/core/txt
+/*  natives-41  %txt  /tests/js-emit/extra-checked-recursive-facts/natives/txt
+/*  js-41  %txt  /tests/js-emit/extra-checked-recursive-facts/js/txt
 |%
 ++  text
   |=  lines=wain
@@ -193,5 +196,6 @@
     (check "extra-direct-template-branch-sharing" core-38 natives-38 js-38)
     (check "extra-direct-template-capture-order" core-39 natives-39 js-39)
     (check "extra-direct-template-nested-branch-fuel" core-40 natives-40 js-40)
+    (check "extra-checked-recursive-facts" core-41 natives-41 js-41)
   ==
 --

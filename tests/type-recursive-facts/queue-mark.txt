@@ -1,0 +1,5 @@
+|_  a=(qeu @ud)
+++  grab  |%  ++  noun  (qeu @ud)  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

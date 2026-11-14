@@ -69,6 +69,9 @@ LIBRARY = 'jibb'            # /+  jibb: the library under test, --lib
 #  shard's suites use once, as LIB_COSTS says.  A suite not listed counts
 #  as DEFAULT_COST.
 COSTS = {
+    # Conservative placement weights from 2026-11-14 focused runs (184 s
+    # and 204 s total, including shared library setup).
+    'jibb-fact-validation': 100, 'jibb-recursive-facts': 100,
     'jibb-deferred-prepared': 32, 'jibb-todo-full': 23, 'jibb-bridge': 20,
     'jibb-api-evidence': 19, 'jibb-api-paths': 18, 'jibb-doc-examples': 17,
     'jibb-program-init': 12, 'jibb-cell-branch': 11,

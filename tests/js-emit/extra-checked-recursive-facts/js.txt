@@ -1,0 +1,57 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+
+return (() => { const $19 = memo((($0) => cons(BigInt("500068345697"), cons(BigInt("2057904928638517611929375691792687"), cons(BigInt("495622386292"), cons(BigInt("1871653629349127742834"), cons(cons(BigInt("1701147252"), BigInt("0")), cons(BigInt("0"), (($1) => (() => { const $2 = slot(7n, $1); return (() => { const $3 = slot(6n, $1); return (() => { const $18 = (requireLoobean(isCell($3)) ? (() => { const $10 = (requireLoobean(same(slot(2n, $1), BigInt("1888947435128934986356"))) ? (() => {
+function $4($6) { return (requireLoobean((requireLoobean(isCell($6)) ? (requireLoobean((requireLoobean(isCell(slot(2n, $6))) ? BigInt("1") : same(slot(2n, $6), BigInt("1717658988")))) ? (requireLoobean(isCell(slot(3n, $6))) ? (requireLoobean((requireLoobean(isCell(slot(6n, $6))) ? BigInt("1") : (requireLoobean(same(slot(6n, $6), BigInt("0"))) ? BigInt("0") : same(slot(6n, $6), BigInt("1"))))) ? (requireLoobean(isCell(slot(7n, $6))) ? BigInt("1") : BigInt("0")) : BigInt("1")) : BigInt("1")) : BigInt("1")) : BigInt("1"))) ? BigInt("0") : (requireLoobean(isCell($6)) ? (requireLoobean((requireLoobean(isCell(slot(2n, $6))) ? BigInt("1") : same(slot(2n, $6), BigInt("114776262931042")))) ? apply($5, slot(3n, $6)) : BigInt("1")) : BigInt("1"))); }
+function $5($7) {
+let $8 = $7;
+for (;;) {
+const $9 = $8;
+if (requireLoobean((requireLoobean(isCell($9)) ? BigInt("1") : same($9, BigInt("0"))))) {
+return BigInt("0");
+} else {
+if (requireLoobean(isCell($9))) {
+if (requireLoobean(apply($4, slot(2n, $9)))) {
+$8 = slot(3n, $9);
+continue;
+} else {
+return BigInt("1");
+}
+} else {
+return BigInt("1");
+}
+}
+}
+}
+return (requireLoobean((requireLoobean(isCell($2)) ? (requireLoobean((requireLoobean(isCell(slot(2n, $2))) ? (requireLoobean(apply($5, slot(4n, $2))) ? (requireLoobean(isCell(slot(5n, $2))) ? BigInt("1") : BigInt("0")) : BigInt("1")) : BigInt("1"))) ? (requireLoobean(isCell(slot(3n, $2))) ? BigInt("1") : BigInt("0")) : BigInt("1")) : BigInt("1"))) ? BigInt("0") : crash("explicit Core crash"));
+})() : crash("explicit Core crash")); return apply(slot(3n, $0), cons(cons(slot(2n, $1), $2), slot(3n, $3))); })() : (() => { const $17 = (() => {
+function $11($13) { return (requireLoobean((requireLoobean(isCell($13)) ? (requireLoobean((requireLoobean(isCell(slot(2n, $13))) ? BigInt("1") : same(slot(2n, $13), BigInt("1717658988")))) ? (requireLoobean(isCell(slot(3n, $13))) ? (requireLoobean((requireLoobean(isCell(slot(6n, $13))) ? BigInt("1") : (requireLoobean(same(slot(6n, $13), BigInt("0"))) ? BigInt("0") : same(slot(6n, $13), BigInt("1"))))) ? (requireLoobean(isCell(slot(7n, $13))) ? BigInt("1") : BigInt("0")) : BigInt("1")) : BigInt("1")) : BigInt("1")) : BigInt("1"))) ? BigInt("0") : (requireLoobean(isCell($13)) ? (requireLoobean((requireLoobean(isCell(slot(2n, $13))) ? BigInt("1") : same(slot(2n, $13), BigInt("114776262931042")))) ? apply($12, slot(3n, $13)) : BigInt("1")) : BigInt("1"))); }
+function $12($14) {
+let $15 = $14;
+for (;;) {
+const $16 = $15;
+if (requireLoobean((requireLoobean(isCell($16)) ? BigInt("1") : same($16, BigInt("0"))))) {
+return BigInt("0");
+} else {
+if (requireLoobean(isCell($16))) {
+if (requireLoobean(apply($11, slot(2n, $16)))) {
+$15 = slot(3n, $16);
+continue;
+} else {
+return BigInt("1");
+}
+} else {
+return BigInt("1");
+}
+}
+}
+}
+return (requireLoobean((requireLoobean(isCell($2)) ? (requireLoobean(apply($12, slot(2n, $2))) ? (requireLoobean(isCell(slot(3n, $2))) ? BigInt("1") : BigInt("0")) : BigInt("1")) : BigInt("1"))) ? BigInt("0") : crash("explicit Core crash"));
+})(); return $2; })()); return cons($18, apply(slot(2n, $0), $18)); })(); })(); })()))))))))); return (() => { const $20 = $19; return $20; })(); })();
+}

@@ -57,6 +57,32 @@
     (fixture-test (lines-to-cord small) (lines-to-cord epic) (lines-to-cord presence) (lines-to-cord docs) (lines-to-cord shadow))
   |=(what=@t leaf+"importer structured value differs: {(trip what)}")
 ::
+++  test-inline-recursive-mark-boundaries
+  ^-  tang
+  =,  jibb-import
+  =/  owned=type
+    -:(ride zuse-type '|%\0a+$  fact-tree  $%([%leaf value=@ud] [%branch children=(list fact-tree)])\0a--\0a')
+  =/  root=(each imported @t)  (read-named %tree-state %fact-tree owned)
+  =/  root-text=@t
+    '(union [leaf value=@ud] [branch children=(list fact-tree.tree-state)])'
+  =/  root-actual=@t  (crip (show-result root))
+  ?.  =(root-text root-actual)
+    ~[leaf+"a top-level recursive reader result lost its existing root shape" leaf+(trip root-actual)]
+  =/  cases=(list [sample=@t expected=@t])
+    :~  ['[roots=(list fact-tree) stamp=@ud]' '[roots=(list (named fact-tree.tree-state (union [leaf value=@ud] [branch children=(list fact-tree.tree-state)]))) stamp=@ud]']
+        ['[root=fact-tree stamp=@ud]' '[root=(named fact-tree.tree-state (union [leaf value=@ud] [branch children=(list fact-tree.tree-state)])) stamp=@ud]']
+        ['(list fact-tree)' '(list (named fact-tree.tree-state (union [leaf value=@ud] [branch children=(list fact-tree.tree-state)])))']
+    ==
+  |-
+  ?~  cases  ~
+  =/  source=@t
+    (crip "|_  a={(trip sample.i.cases)}\0a++  grab  |%  ++  noun  {(trip sample.i.cases)}  --\0a++  grow  |%  ++  noun  a  --\0a++  grad  %noun\0a--\0a")
+  =/  mark=type  -:(ride owned source)
+  =/  actual=@t  (crip (show-result (read-mark %tree-state mark)))
+  ?.  =(expected.i.cases actual)
+    ~[leaf+"inline mark lost a source-proven recursive boundary" leaf+(trip sample.i.cases) leaf+(trip actual)]
+  $(cases t.cases)
+::
 ::  The standard library's type, which the fixtures are built against.
 ::  Under =, jibb-import, ..zuse no longer finds the standard library.
 ++  zuse-type

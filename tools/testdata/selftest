@@ -903,6 +903,66 @@ def check_bundle_budget(c, tmp):
         c.expect(read(vendored) == small, 'oversize build replaced the vendored bundle')
 
 
+def check_golden_lowerer_dependencies(c, tmp):
+    """Core goldens bind the lowerer's real dependency graph in both modes."""
+    sys.path.insert(0, TOOLS)
+    goldens = SourceFileLoader('selftest_golden_dependencies', GOLDEN).load_module()
+    real_read = goldens.ue.read_text
+    fixtures = {
+        'jibb-core.hoon': '|%\n++  core-marker  41\n--\n',
+        'jibb-fact-types.hoon': '/+  jibb\n|%\n++  fact-marker  (identity:jibb 42)\n--\n',
+        'jibb-lower.hoon': '/+  jibb, jibb-core, jibb-fact-types\n|%\n++  lower-marker  fact-marker:jibb-fact-types\n--\n',
+        'jibb-import.hoon': '|%\n++  reader-marker  43\n--\n',
+    }
+    reads = []
+
+    def read_library(path):
+        reads.append(os.path.basename(path))
+        return fixtures.get(os.path.basename(path)) or real_read(path)
+
+    with patch.object(goldens.ue, 'read_text', read_library), \
+            patch.object(goldens.ue, 'run_eval', side_effect=AssertionError('pure generation started eval')):
+        for debug in (False, True):
+            plain = goldens.Case('basic', os.path.join(CASES, 'basic'))
+            reads.clear()
+            unchanged = goldens.golden_program(STUB, [plain], debug=debug)
+            c.expect(reads == ['stub.hoon'] and 'fact-types-lib' not in unchanged.text(),
+                     'non-Core golden acquired lowerer dependencies: %r' % reads)
+            for imported in (False, True):
+                case = goldens.Case('basic', os.path.join(CASES, 'basic'))
+                case.want_core = True
+                if imported:
+                    case.imports = [('fixture', 'mold', STUB)]
+                reads.clear()
+                program = goldens.golden_program(STUB, [case], debug=debug)
+                text = program.text()
+                expected_reads = ['stub.hoon', 'jibb-core.hoon', 'jibb-fact-types.hoon', 'jibb-lower.hoon']
+                if imported:
+                    expected_reads.append('jibb-import.hoon')
+                c.expect(reads == expected_reads, 'Core golden dependency reads: %r' % reads)
+                c.expect('=/  fact-types-lib\n=>  [jibb=jibb-lib ..zuse]\n|%\n++  fact-marker' in text and
+                         'jibb-core=core-lib  jibb-fact-types=fact-types-lib  ..zuse\n==\n|%\n++  lower-marker' in text,
+                         'Core golden omitted an authenticated lowerer dependency binding')
+                c.expect('/+  ' not in text and text.startswith('!:\n=>\n' if debug else '=>\n'),
+                         'Core golden retained Ford headers or changed its debug mode')
+                if imported:
+                    c.expect('reader=reader core-lib=core-lib lower-lib=lower-lib' in text,
+                             'Core golden lost the importer after binding lowerer dependencies')
+                # The compiler's original source mapping must survive the added
+                # harness library; all later lines remain in the harness segment.
+                lib_segment = program.segments[1]
+                c.expect(lib_segment.lines == real_read(STUB).splitlines(),
+                         'Core golden changed the original compiler source lines')
+                for offset in (0, len(lib_segment.lines) - 1):
+                    segment, line = program.locate(lib_segment.start + offset)
+                    c.expect(segment is lib_segment and line == offset + 1,
+                             'Core golden changed compiler diagnostic source mapping')
+                c.expect(program.locate(program.next_line - 1)[0].kind == 'harness',
+                         'Core golden has a gap in its generated harness source map')
+            c.expect(goldens.golden_program(STUB, [plain], debug=debug).encode() == unchanged.encode(),
+                     'Core generation changed later non-Core program bytes')
+
+
 def check_fast_goldens(c, tmp):
     """Fast successes stay uninstrumented; actual failures regain source spots."""
     program = os.path.join(tmp, 'fast.hoon')

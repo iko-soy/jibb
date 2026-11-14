@@ -157,6 +157,8 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 | `jibb-direct-gate-source` | Each original gate-layout definition through the full checker with its dependencies, retaining original source lines | `tests/type-direct-gate/expected.txt` |
 | `jibb-doc-examples` | Full checking of the import-only, view-day, step and cmd/sub doc fragments in their intended contexts, through detailed and legacy inference | |
 | `jibb-empty` | Empty molds, inhabitedness and match coverage through the common pattern matrix | `tests/type-empty/expected.txt` |
+| `jibb-fact-types` | Exact authenticated reader bodies for recursive facts, preserved identities, and missing, malformed, ambiguous and conflicting evidence | |
+| `jibb-fact-validation` | Full-checked recursive Jibb molds, generic and mutual recursion, nested collections, deep values, construction budgets and malformed graphs through Core and Nock | |
 | `jibb-full-overlap-basic` | Structured full-module overlap evidence: source-bound overlap witnesses, generic parameter limits, precedence and rejection controls, and the legacy full-module error text | `tests/type-full-overlap/expected-basic.txt` |
 | `jibb-full-overlap-graph` | Imported-source attribution of overlap evidence across parent and child modules: cache rebuilds and source binding, and private, cyclic, duplicate, missing and transitive imports | `tests/type-full-overlap/expected-graph.txt` |
 | `jibb-gate-free-guards` | Bounded gate-free verdicts, persistent constraints, substitution safeguards, collection keys and witness paths | |
@@ -186,6 +188,7 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 | `jibb-import-overlap` | Source-aware Hoon union overlap, provenance and proof-budget controls | `tests/type-import-overlap/expected.txt` |
 | `jibb-import-structural` | Multi-case and nested Hoon union overlap witnesses | `tests/type-import-structural/expected.txt` |
 | `jibb-recursive-diagnostics` | Full recursive-group errors, actual value-cycle chains, scoped references, dependency-order priority and rollback of failed group constraints | `tests/type-recursive-diagnostics/expected.txt` |
+| `jibb-recursive-facts` | Real Hoon marks through checked API receivers, exact Core, full-state and diff validation before callbacks, and located unsupported-type diagnostics; shared JavaScript/Nock cases | `tests/type-recursive-facts/core.txt` |
 | `jibb-recursive-watch-data` | Recursive data abstraction around embedded islands, discarded-watch diagnostics, finite subscriptions and evidence and growth controls | |
 | `jibb-local-island-watch` | Occurrence-based watch checking for local and embedded islands, including generic helpers and discarded or overwritten values | |
 | `jibb-local-mold-capture` | Lexical capital capture by local generic and non-generic molds, deferred matches and scope-leak controls | |

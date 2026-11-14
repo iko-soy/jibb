@@ -2182,6 +2182,14 @@
 ++  walk
   |=  [module=term typ=type sig=signatures seen=visiting context=(unit type)]
   ^-  imported
+  (walk-root module typ sig seen context typ)
+::
+::  Hold visitation proves recursive references, not structural nesting. A
+::  cell or a recognized collection can contain a recursive mold before any
+::  hold has been visited; keep that proven mold's nominal boundary too.
+++  walk-root
+  |=  [module=term typ=type sig=signatures seen=visiting context=(unit type) root=type]
+  ^-  imported
   ?-  typ
     %noun  [%noun ~]
     %void  [%void ~]
@@ -2211,7 +2219,7 @@
         [%ref u.origin u.u.prior]
       =/  nested=(unit imported)  (nested-tagged-union module typ context)
       ?^  nested
-        ?:  ?=(~ seen)  u.nested
+        ?:  &(?=(~ seen) =(typ root))  u.nested
         =/  name=(unit term)  (hold-name q.typ)
         ?~  name  u.nested
         ?.  (contains-named-ref u.nested module u.name)  u.nested

@@ -197,6 +197,8 @@ const extra = [
   // Inside a module-level gate, a lambda using only module-level names is
   // made once; one using the gate's sample is made each call.
   ['closed-inner-lambda', '(let f (lam x (cons x x)) (let g (lam y (cons (lam z (app f z)) (lam w (cons y w)))) (app (slot 2 (app g 1)) 2)))', []],
+  // Pinned by the full-checking recursive mark receiver suite.
+  ['checked-recursive-facts', readFileSync(join(root, 'tests', 'type-recursive-facts', 'core.txt'), 'utf8').trim(), []],
 ];
 for (const [name, source, natives] of extra) {
   cases.push({ name: `extra-${name}`, source, ast: readCore(source, { nativeNames: natives }) });

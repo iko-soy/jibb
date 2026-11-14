@@ -303,12 +303,15 @@ def golden_program(lib_path, cases, debug=True):
     harness = HARNESS
     if has_core:
         core = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-core.hoon'))
+        fact_types = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-fact-types.hoon'))
+        fact_types = '|%\n' + fact_types.split('\n|%\n', 1)[1]
         lower = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-lower.hoon'))
         lower = '|%\n' + lower.split('\n|%\n', 1)[1]
         harness = harness.replace(
             '=>  [lib=. ..zuse]',
             '=/  jibb-lib  .\n=/  core-lib\n=>  ..zuse\n' + core +
-            '\n=/  lower-lib\n=>  :*  jibb=jibb-lib  jibb-core=core-lib  ..zuse\n==\n' +
+            '\n=/  fact-types-lib\n=>  [jibb=jibb-lib ..zuse]\n' + fact_types +
+            '\n=/  lower-lib\n=>  :*  jibb=jibb-lib  jibb-core=core-lib  jibb-fact-types=fact-types-lib  ..zuse\n==\n' +
             lower + '\n=>  [lib=jibb-lib core-lib=core-lib lower-lib=lower-lib ..zuse]')
     if needs_reader:
         reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))

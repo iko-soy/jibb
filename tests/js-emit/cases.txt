@@ -39,3 +39,4 @@ extra-tail-rec-arm
 extra-nested-lets
 extra-trace
 extra-closed-inner-lambda
+extra-checked-recursive-facts

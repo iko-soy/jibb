@@ -110,6 +110,7 @@ GOLDEN_COMMON = [
     'tools/prelude_groups.py',
     'jibb-dev/lib/jibb.hoon',
     'jibb-dev/lib/jibb-core.hoon',
+    'jibb-dev/lib/jibb-fact-types.hoon',
     'jibb-dev/lib/jibb-lower.hoon',
     'jibb-dev/lib/jibb-import.hoon',
     'jibb-dev/lib/jibb/prelude.jibb',

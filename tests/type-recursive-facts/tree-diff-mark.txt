@@ -1,0 +1,9 @@
+=>
+|%
++$  fact-tree  $%([%leaf flag=? value=@ud] [%branch children=(list fact-tree)])
+--
+|_  a=[replacement=[roots=(list fact-tree) stamp=@ud] nonce=@ud]
+++  grab  |%  ++  noun  [replacement=[roots=(list fact-tree) stamp=@ud] nonce=@ud]  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

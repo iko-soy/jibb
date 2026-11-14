@@ -1,0 +1,4 @@
+/% %tree-state
+/% %tree-diff
++$ paths
+  [%trees /tree (facts tree-state tree-diff)]
