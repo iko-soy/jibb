@@ -58,13 +58,16 @@
   ?~  prepared  'prelude unavailable'
   =/  inputs=[marks=imark-externals:jibb externals=iexternals:jibb]
     (todo-full-reader-inputs sur action todos update item)
-  =/  marks=imark-externals:jibb  marks.inputs
-  =/  externals=iexternals:jibb  externals.inputs
+  (todo-full-prepared-report api src externals.inputs marks.inputs u.prepared)
+::
+++  todo-full-prepared-report
+  |=  [api=@t src=@t externals=iexternals:jibb marks=imark-externals:jibb prepared=iprelude:jibb]
+  ^-  @t
   =/  api-at=path  /ui/api/todo/jibb
   =/  at=path  /ui/todo-list/jibb
   =/  modules=jbundle:jibb  ~[[api-at api]]
   =/  detailed=jfile-detailed-result:jibb
-    (todo-full-detailed at src externals marks modules u.prepared)
+    (todo-full-detailed at src externals marks modules prepared)
   ?:  ?=(%| -.detailed)  (cat 3 'full todo rejected: ' message.p.detailed)
   =/  checked=ifile:jibb  iface.p.detailed
   =/  main=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.checked)
@@ -76,19 +79,13 @@
   (todo-full-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text source))
 ::
 ++  todo-full-legacy-report
-  |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t api=@t src=@t]
+  |=  [api=@t src=@t externals=iexternals:jibb marks=imark-externals:jibb prepared=iprelude:jibb]
   ^-  @t
-  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
-  ?~  prepared  'prelude unavailable'
-  =/  inputs=[marks=imark-externals:jibb externals=iexternals:jibb]
-    (todo-full-reader-inputs sur action todos update item)
-  =/  marks=imark-externals:jibb  marks.inputs
-  =/  externals=iexternals:jibb  externals.inputs
   =/  api-at=path  /ui/api/todo/jibb
   =/  at=path  /ui/todo-list/jibb
   =/  modules=jbundle:jibb  ~[[api-at api]]
   =/  legacy=jfile-result:jibb
-    (infer-jibb-file:jibb at src externals marks modules ~[at] values.u.prepared molds.u.prepared ~ `iface.u.prepared)
+    (infer-jibb-file:jibb at src externals marks modules ~[at] values.prepared molds.prepared ~ `iface.prepared)
   ?:  ?=(%| -.legacy)  (cat 3 'legacy full todo rejected: ' p.legacy)
   =/  checked=ifile:jibb  iface.p.legacy
   =/  main=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.checked)
@@ -96,27 +93,23 @@
   (cat 3 'full todo accepted\0a' (crip (show-itype:jibb typ.u.main ~)))
 ::
 ++  todo-full-import-report
-  |=  [public=@t private=@t sur=@t action=@t todos=@t update=@t item=@t api=@t src=@t]
+  |=  [api=@t src=@t externals=iexternals:jibb marks=imark-externals:jibb prepared=iprelude:jibb]
   ^-  @t
-  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture public private ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
-  ?~  prepared  'prelude unavailable'
-  =/  inputs=[marks=imark-externals:jibb externals=iexternals:jibb]
-    (todo-full-reader-inputs sur action todos update item)
   =/  at=path  /ui/todo-list/jibb
   =/  root=jfile-detailed-result:jibb
-    (todo-full-detailed at src externals.inputs marks.inputs ~[[/ui/api/todo/jibb api]] u.prepared)
+    (todo-full-detailed at src externals marks ~[[/ui/api/todo/jibb api]] prepared)
   ?:  ?=(%| -.root)  (cat 3 'full todo root rejected: ' message.p.root)
   =/  main=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.iface.p.root)
   ?~  main  'full todo root main missing'
   =/  consumer-at=path  /tests/todo-full/consumer/jibb
   =/  consumer=@t  '/= island-prog /ui/todo-list\0a++ imported main.island-prog\0a'
   =/  imported=jfile-detailed-result:jibb
-    (todo-full-detailed consumer-at consumer externals.inputs marks.inputs ~[[at src] [/ui/api/todo/jibb api]] u.prepared)
+    (todo-full-detailed consumer-at consumer externals marks ~[[at src] [/ui/api/todo/jibb api]] prepared)
   ?:  ?=(%| -.imported)  (cat 3 'downstream full todo import rejected: ' message.p.imported)
   =/  use=(unit ischeme:jibb)  (ienv-lookup:jibb %imported values.iface.p.imported)
   ?~  use  'downstream imported main missing'
   =/  expected-import=itype:jibb
-    (itype-in-import:jibb typ.u.main iface.p.root %island-prog `iface.u.prepared)
+    (itype-in-import:jibb typ.u.main iface.p.root %island-prog `iface.prepared)
   ?.  &(?=(~ vars.u.use) =(typ.u.use expected-import))  'downstream main type differs'
   'downstream import accepted'
 ::
@@ -156,16 +149,22 @@
   =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"full todo report differs"]
+  ::  Keep report above cold; the other cases share only immutable inputs.
+  ::  Every inference call retains its own root and empty module cache.
+  =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  ?~  prepared  ~[leaf+"prelude unavailable"]
+  =/  inputs=[marks=imark-externals:jibb externals=iexternals:jibb]
+    (todo-full-reader-inputs (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item))
   =/  legacy=@t
-    (todo-full-legacy-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text source))
+    (todo-full-legacy-report (text api) (text source) externals.inputs marks.inputs u.prepared)
   ?.  =((to-wain:format (cat 3 legacy '\0a')) expected)
     ~[leaf+"legacy full todo report differs"]
   =/  cast-report=@t
-    (todo-full-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text cast-init))
+    (todo-full-prepared-report (text api) (text cast-init) externals.inputs marks.inputs u.prepared)
   ?.  =((to-wain:format (cat 3 cast-report '\0a')) expected)
     ~[leaf+"ordinary annotated initializer was rejected"]
   =/  cast-legacy=@t
-    (todo-full-legacy-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text cast-init))
+    (todo-full-legacy-report (text api) (text cast-init) externals.inputs marks.inputs u.prepared)
   ?.  =((to-wain:format (cat 3 cast-legacy '\0a')) expected)
     ~[leaf+"legacy ordinary annotated initializer was rejected"]
   ::  Each, mapper aliases and !! are ordinary expressions, not errors.
@@ -178,12 +177,12 @@
     %+  murn  variants
     |=  v=[label=tape src=@t]
     =/  actual=@t
-      (todo-full-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) src.v)
+      (todo-full-prepared-report (text api) src.v externals.inputs marks.inputs u.prepared)
     ?:  =((to-wain:format (cat 3 actual '\0a')) expected)  ~
     `(weld label.v (weld ": " (trip actual)))
   ?^  variant-failures  (turn variant-failures |=(reason=tape leaf+reason))
   =/  imported=@t
-    (todo-full-import-report prelude internal (text sur) (mark-text action) (mark-text todos) (mark-text update) (mark-text item) (text api) (text source))
+    (todo-full-import-report (text api) (text source) externals.inputs marks.inputs u.prepared)
   ?.  =(imported 'downstream import accepted')
     ~[leaf+"downstream full todo import differs"]
   ~

@@ -213,6 +213,32 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+The positive `jibb-todo-full` arm shares its immutable prepared prelude and real Hoon reader inputs across its detailed, legacy, initializer-variant and downstream-import checks. Its first `report` still takes source and prepares independently, preserving cold entry-point coverage. Preparation and reader passes fall from eight to two while all nine positive inference calls retain fresh roots and empty module caches. Both negative test arms, their diagnostic assertions, and all fixture and expected-result bytes are unchanged.
+
+On 2026-11-14, `tools/bench-eval --batch arms-2 --stage full` compared `72c633a` with this suite change under pinned Vere 4.6. The complete batch contains 87 arms in 33 suites; every ordered result matched exactly, and only `tests/lib/jibb-todo-full.hoon` changed among the measured inputs.
+
+| Complete eval batch | Before | Shared preparation |
+| --- | ---: | ---: |
+| Wall time | 1,062.75 s | 949.73 s |
+| Evaluator user CPU | 1,036.55 s | 926.58 s |
+
+This saves 113.02 seconds wall and 109.97 seconds user CPU, both 10.6%. A separate scratch comparison captured all 15 complete inference results from each version: nine positive results, including both downstream-import checks, and six negative results. The complete nouns matched exactly, including interfaces, reports and every diagnostic byte. The production negative assertions and cold `report` also passed.
+
+The same 87-arm batch passed on two fresh ships with identical ordered results and no failures or crashes. A name-only override forced the baseline to execute; the candidate built the actual Nix check leaf. The seed, runtime, desk map, commands and lifecycle hooks matched, and only the suite source differed.
+
+| Fresh-ship measurement | Before | Shared preparation |
+| --- | ---: | ---: |
+| Positive todo arm | 219.58 s | 64.75 s |
+| Complete three-arm todo suite | 274.30 s | 121.50 s |
+| Complete 87-arm test phase | 1,369.0 s | 1,203.6 s |
+| Build client wall time, including setup | 1,380.99 s | 1,215.09 s |
+
+The positive arm saved 154.82 seconds (70.5%), the whole suite 152.80 seconds (55.7%), and the complete ship test phase 165.4 seconds (12.1%). The two unchanged negative arms took 25.08 and 29.65 seconds before, and 27.25 and 29.49 seconds after; the other 84 arms totalled 935.86 and 916.23 seconds. These are overlapping single pairs on a shared host. Per-arm times omit suite compilation; the test phase includes it, and client wall additionally includes ship setup and shutdown. No ship CPU measurement or whole-check critical-path saving is inferred.
+
+The source audit preserves all three arm names and the 33-suite batch selection. Six of 50 Nix leaves change; the other 44 retain their outputs, including tooling selftests and ship goldens. All 49 source-bearing store closures match the tracked inputs.
+
+Integrated `nix flake check -L -j 1 --keep-going` passed on x86_64-linux on 2026-11-14. All 50 leaf outputs are valid, including the exact 87-arm results on each backend, 351 probes per backend and all 35 tooling selftests. Manifest validation passed, all eight residual checks passed in seven seconds, and the fresh-ship runner selftest passed in 62 seconds including cleanup. The full check took 868.60 seconds, sharing the measured candidate ship output and concurrent builds of the remaining checks; it is not a cold whole-check benchmark. Other platforms were not tested.
+
 Ship probe batches now share immutable Clay-built compiler/importer inputs, reader evidence, marks and prepared prelude across at most five source groups, including at most three app groups. All reads for those source groups use the numeric `my-app` revision returned by sync. App overrides remain local to their group, plain groups receive empty application inputs, and each combined case leaves its `mule` road with only a status and complete diagnostic. Import-only probes remain separate. The four manifest batches use five checker threads instead of sixteen; standalone default ordering uses six.
 
 On 2026-11-14, a paired fresh-ship comparison against `34895b8` measured the complete first manifest batch: `p1`, `p2`, `p3` and `errors-p1`, 133 cases. Both builds used the same pinned Vere 4.6, Python, fake-ship seed, desk map, lifecycle hooks and observer. Only `tools/probe-regression` differed in their narrowed source inputs. All ordered input cases, labels, status flags and full diagnostic strings matched exactly; both piers stopped cleanly.
