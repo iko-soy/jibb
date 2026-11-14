@@ -213,6 +213,25 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+`jibb-local-mold-recursive-capture` now prepares the prelude once for its three rejection cases, down from three times. Each case retains fresh inference and an empty module cache; the original helper and three independently prepared positive arms are byte-identical. The rejection loop requires each complete observed message, source location, excerpt and caret, and explicitly fails if preparation fails. The first two cases retain their unsupported-inference diagnostics; the third retains the undefined `chain` diagnostic. No compiler behavior, Jibb input source or logical source path changed. Scratch captures before and after matched all three complete result nouns and diagnostic bytes exactly.
+
+On 2026-11-14, paired measurements against `d5507e9` used pinned Vere 4.6 and the complete `arms-4` batch: 56 arms in 33 suites. All ordered outcomes matched on both backends. Only the suite source changed among measured inputs. The fresh-ship baseline used a name-only override to force execution; the candidate built the actual acceptance leaf, with identical seed, runtime, desk map and lifecycle hooks.
+
+| Measurement | Before | Shared preparation and exact assertions |
+| --- | ---: | ---: |
+| Complete eval batch wall time | 831.85 s | 896.74 s |
+| Evaluator user CPU | 666.62 s | 641.22 s |
+| Ship rejection arm | 73.82 s | 25.39 s |
+| Ship complete four-arm capture suite | 151.04 s | 98.96 s |
+| Ship complete 56-arm test phase | 910.1 s | 918.2 s |
+| Ship build client wall, including setup | 921.99 s | 930.52 s |
+
+Eval user CPU fell by 25.40 seconds (3.8%), while wall time increased by 64.89 seconds (7.8%). On the ship, the rejection arm saved 48.43 seconds (65.6%) and the complete target suite saved 52.08 seconds (34.5%), but the complete test phase increased by 8.1 seconds (0.9%). The unchanged three positive arms totalled 77.23 seconds before and 73.58 after; the other 52 arms totalled 609.86 and 663.84 seconds. These are overlapping single pairs on a shared host, and unchanged-control variation prevents attributing every timing change to preparation reuse. This pair establishes no complete-batch wall-time improvement on either backend. Per-arm times exclude suite compilation; the test phase includes it, and client wall also includes ship setup and shutdown. No ship CPU or whole-check critical-path saving is claimed.
+
+The source audit preserves all four arms, the exact three negative inputs and every cold positive assertion. Six of 50 Nix leaves change and 44 retain their outputs; all 49 source-bearing store closures match the tracked inputs.
+
+Integrated `nix flake check -L -j 2 --keep-going` passed on x86_64-linux on 2026-11-14. All 50 registered leaf outputs are valid, including the exact 56-arm results on each backend, 351 probes per backend and 35 tooling selftests. The registered eval batch passed in 668 seconds. Manifest validation passed, all eight residual checks passed in nine seconds, and the fresh-ship runner selftest passed in 58 seconds (62 including cleanup). The full check took 684.01 seconds, reusing the measured candidate ship output and unchanged checks; this is not a cold whole-check benchmark. Other platforms were not tested.
+
 `jibb-local-mold-capture` now prepares the prelude once for its three rejection cases, down from three times. Each case retains fresh inference and an empty module cache; the original helper and four independent cold positive arms are byte-identical. The rejection loop now requires the complete observed message, location, excerpt and caret, and preparation failure explicitly fails the arm. The first two cases retain their existing unsupported-inference diagnostics; the third retains the undefined `box` diagnostic. No compiler behavior or Jibb input source changed. Scratch captures before and after matched all three complete result nouns and diagnostic bytes exactly.
 
 On 2026-11-14, paired measurements against `dbf7835` used pinned Vere 4.6 and the complete `arms-8` batch: 105 arms in 37 suites. All ordered outcomes matched on both backends. Only the suite source changed among measured inputs. The fresh-ship baseline used a name-only override to force execution; the candidate built the actual acceptance leaf, with identical seed, runtime, desk map and lifecycle hooks.

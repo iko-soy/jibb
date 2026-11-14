@@ -25,12 +25,26 @@
   ~
 ++  test-recursive-capture-does-not-leak
   ^-  tang
-  =/  bads=(list @t)
-    ~['++ make |= x=A\0a  +$ chain |$ [B]\0a    ~\0a    [outer=C inner=B rest=(chain B)]\0a  ^- (chain @t) [outer=x inner="hi" rest=~]\0a' '+$ chain |$ [B]\0a  ~\0a  [outer=A inner=B rest=(chain B)]\0a++ make |= x=A ^- (chain @t) [outer=x inner="hi" rest=~]\0a' '++ maker |= x=A\0a  +$ chain |$ [B]\0a    ~\0a    [outer=A inner=B rest=(chain B)]\0a  x\0a++ outside |= x=A ^- (chain @t) [outer=x inner="hi" rest=~]\0a']
+  ::  Share only immutable preparation; each case starts fresh inference.
+  =/  prep=(unit iprelude:jibb)
+    (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb group]])
+  ?~  prep  ~[leaf+"prelude did not prepare"]
+  =/  file=path  /tests/local-mold-capture/jibb
+  =/  bads=(list [src=@t want=@t])
+    :~  :-  '++ make |= x=A\0a  +$ chain |$ [B]\0a    ~\0a    [outer=C inner=B rest=(chain B)]\0a  ^- (chain @t) [outer=x inner="hi" rest=~]\0a'
+        (of-wain:format ~['++ make: local molds need unsupported inference' '/tests/local-mold-capture.jibb:1:14: gate sample mold' '++ make |= x=A' '             ^'])
+        :-  '+$ chain |$ [B]\0a  ~\0a  [outer=A inner=B rest=(chain B)]\0a++ make |= x=A ^- (chain @t) [outer=x inner="hi" rest=~]\0a'
+        (of-wain:format ~['+$ chain: mold needs unsupported inference' '/tests/local-mold-capture.jibb:1:10: unsupported mold' '+$ chain |$ [B]' '         ^'])
+        :-  '++ maker |= x=A\0a  +$ chain |$ [B]\0a    ~\0a    [outer=A inner=B rest=(chain B)]\0a  x\0a++ outside |= x=A ^- (chain @t) [outer=x inner="hi" rest=~]\0a'
+        (of-wain:format ~['++ outside: mold `chain` is not defined' '/tests/local-mold-capture.jibb:6:22: unknown mold' '++ outside |= x=A ^- (chain @t) [outer=x inner="hi" rest=~]' '                     ^'])
+    ==
   |-
   ?~  bads  ~
-  =/  got=jfile-detailed-result:jibb  (run-source i.bads)
+  =/  got=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb file src.i.bads ~ ~ ~ ~[file] values.u.prep molds.u.prep ~ `iface.u.prep)
   ?:  ?=(%& -.got)  ~[leaf+"a recursive mold captured an unbound or out-of-scope capital"]
+  ?.  =(want.i.bads message.p.got)
+    ~[leaf+"recursive local mold capture diagnostic differs" leaf+"expected:" leaf+(trip want.i.bads) leaf+"actual:" leaf+(trip message.p.got)]
   $(bads t.bads)
 ++  test-nested-recursive-local-mold-capture
   ^-  tang
