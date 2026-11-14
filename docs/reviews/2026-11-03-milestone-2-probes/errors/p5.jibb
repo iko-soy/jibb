@@ -43,3 +43,12 @@
   ^- [model (list (cmd message))] [state ~]
 ++ view |= state=model ^- (element message) (text "view")
 ++ subs |= state=model ^- (list (sub message)) ~
+#### plain-module
+/= todo /ui/api/todo
++$ probe item.todo
+#### plain-mark
+/% %todo-action
++$ action todo-action
+#### plain-external
+/- todo
+++ keep |= x=item.todo x

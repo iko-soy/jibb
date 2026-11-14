@@ -2,5 +2,8 @@
   "M2-derived-clash": "API derived name `plain` clashes with a definition\n/ui/api/demo.jibb:3:3: `plain` is derived from this path case\n  [%plain /plain full]\n  ^\n/ui/api/demo.jibb:5:1: clashing definition\n++ plain 5\n^",
   "M2b-derived-clash-root": "API derived name `plain` clashes with a definition\n/ui/api/demo.jibb:3:3: `plain` is derived from this path case\n  [%plain /plain full]\n  ^\n/ui/api/demo.jibb:5:1: clashing definition\n++ plain 5\n^",
   "M2c-derived-face-clash": "API derived name `plain` clashes with an import face\n/ui/api/demo.jibb:4:3: `plain` is derived from this path case\n  [%plain /plain full]\n  ^\n/ui/api/demo.jibb:2:1: clashing import face\n/- plain\n^",
-  "M2d-poke-clash": "API derived name `poke` clashes with a definition\n/ui/api/demo.jibb:2:1: `poke` is derived from this mold\n+$ poke full\n^\n/ui/api/demo.jibb:3:1: clashing definition\n++ poke \"bad\"\n^"
+  "M2d-poke-clash": "API derived name `poke` clashes with a definition\n/ui/api/demo.jibb:2:1: `poke` is derived from this mold\n+$ poke full\n^\n/ui/api/demo.jibb:3:1: clashing definition\n++ poke \"bad\"\n^",
+  "plain-module": "module source missing: /ui/api/todo/jibb\n/ui/probe.jibb:1:1: imports /ui/api/todo.jibb here\n/= todo /ui/api/todo\n^",
+  "plain-mark": "+$ action: mold needs unsupported inference\n/ui/probe.jibb:2:11: unsupported mold\n+$ action todo-action\n          ^",
+  "plain-external": "++ keep: sample mold is not supported by partial inference\n/ui/probe.jibb:2:14: gate sample mold\n++ keep |= x=item.todo x\n             ^"
 }

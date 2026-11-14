@@ -1,8 +1,6 @@
-::  Full-module check of several sources in one eval.  Bind `src` to a
-::  file whose sections each start with a line "#### <label>"; each
-::  section is checked on its own as /ui/probe/jibb against the real
-::  prelude.  Bind: prelude, internal, groups, group-sources, src.
-=/  prepared=iprelude  (need (prepare-prelude-with-group-evidence prelude internal groups group-sources reader-evidence))
+::  Check one sectioned plain source against the prepared prelude.
+::  Every section uses /ui/probe/jibb and empty app context.
+|=  src=@t
 =/  at=path  /ui/probe/jibb
 =/  lines=wain  (to-wain:format src)
 =|  out=(list [label=@t body=wain])

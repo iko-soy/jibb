@@ -3,7 +3,9 @@
 
 App mode accepts up to three independent groups, adding --app-source FILE
 for each source after the positional file. Each group keeps its own module
-overrides; output follows source order.
+overrides; output follows source order. Batch mode accepts ordered
+--group app FILE and --group plain FILE options, up to five groups in total
+and at most three app groups.
 """
 
 import argparse
@@ -24,26 +26,47 @@ def hoon_list(entries):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('plain', 'app', 'imports'))
+    parser.add_argument('mode', choices=('plain', 'app', 'imports', 'batch'))
     parser.add_argument('source', nargs='?')
     parser.add_argument('--app-source', action='append', default=[], metavar='FILE',
                         help='another independent app group (at most three total; '
                              'positional source first, then option order)')
+    parser.add_argument('--group', action='append', nargs=2, default=[],
+                        metavar=('MODE', 'FILE'),
+                        help='independent app/plain group in batch mode (source order retained)')
     parser.add_argument('--no-debug', action='store_true',
                         help='omit Hoon debug spots for the fast regression pass')
     args = parser.parse_args()
     if args.app_source and args.mode != 'app':
         parser.error('--app-source is only for app mode')
+    if args.group and args.mode != 'batch':
+        parser.error('--group is only for batch mode')
     app_sources = ([args.source] if args.source is not None else []) + args.app_source
     if args.mode == 'plain' and args.source is None:
         parser.error('plain requires a sectioned source file')
     if args.mode == 'app' and not 1 <= len(app_sources) <= 3:
         parser.error('app requires one to three independent source files')
+    if args.mode == 'batch':
+        if args.source is not None:
+            parser.error('batch sources must use --group MODE FILE')
+        if not 1 <= len(args.group) <= 5:
+            parser.error('batch requires one to five independent groups')
+        if any(mode not in ('app', 'plain') for mode, _ in args.group):
+            parser.error('batch groups must use app or plain mode')
+        if sum(mode == 'app' for mode, _ in args.group) > 3:
+            parser.error('batch accepts at most three app groups')
+    source_groups = (args.group if args.mode == 'batch' else
+                     [('app', source) for source in app_sources] if args.mode == 'app' else
+                     [('plain', args.source)] if args.mode == 'plain' else [])
+    has_plain = any(mode == 'plain' for mode, _ in source_groups)
+    has_app = any(mode == 'app' for mode, _ in source_groups)
     command = [str(ROOT / 'tools/hoon'), '--raw']
     if args.no_debug:
         command.append('--no-debug')
     if args.mode == 'app' and len(app_sources) > 1:
         command.extend(['--timeout', str(600 * len(app_sources))])
+    elif args.mode == 'batch':
+        command.extend(['--timeout', str(600 * len(source_groups))])
 
     def cord(name, path):
         command.extend(['--cord', name + '=' + str(path)])
@@ -79,9 +102,15 @@ def main():
               '(read-generic-source:prelude-reader module.entry name.entry at.entry source.entry -:(ride -:!>(..zuse) source.entry))]))\n')
     with tempfile.TemporaryDirectory(prefix='jibb-review-') as scratch:
         scratch = Path(scratch)
-        if args.mode == 'plain':
-            expression = prefix + (HERE / 'check.hoon').read_text()
-        elif args.mode == 'app':
+        expression = prefix
+        if source_groups:
+            expression += ('=/  prepared=iprelude  '
+                           '(need (prepare-prelude-with-group-evidence prelude internal '
+                           'groups group-sources reader-evidence))\n')
+        if has_plain:
+            # Bind plain before the app gate: its only context is the prelude.
+            expression += '=/  run-plain\n' + (HERE / 'check.hoon').read_text()
+        if has_app:
             # Standalone ride uses the explicit /sur face supplied in app-check.
             for name, mark in [('action', 'todo-action'), ('todos', 'todos'),
                                ('update', 'todo-update'), ('item', 'todo-item'),
@@ -95,19 +124,28 @@ def main():
                                ('blogapi', 'ui/api/blog.jibb'), ('card', 'ui/components/card.jibb'),
                                ('cart', 'ui/stores/cart.jibb')]:
                 cord(name, ROOT / 'my-app' / path)
-            source_bindings = []
-            for number, source in enumerate(app_sources):
-                binding = 'probe-source-' + str(number)
-                cord(binding, Path(source).resolve())
-                source_bindings.append(binding)
-            expression = (prefix + '=/  imp  prelude-reader\n' +
-                          '=/  sources=(list @t)  ' + hoon_list(source_bindings) + '\n' +
-                          (HERE / 'app-check.hoon').read_text())
-        else:
+            expression += ('=/  imp  prelude-reader\n=/  run-app\n' +
+                           (HERE / 'app-check.hoon').read_text())
+        if source_groups:
+            expression += '^-  tape\n'
+        if args.mode == 'imports':
             expression = ('=/  jibb-lib  .\n=/  reader\n' +
                           (ROOT / 'jibb-dev/lib/jibb-import.hoon').read_text() +
                           '\n' + prefix + (HERE / 'errors/import-check.hoon').read_text())
-        if args.source is not None and args.mode != 'app':
+        elif args.mode == 'plain':
+            expression += '(run-plain src)\n'
+        else:
+            source_bindings, calls = [], []
+            for number, (mode, source) in enumerate(source_groups):
+                binding = 'probe-source-' + str(number)
+                cord(binding, Path(source).resolve())
+                source_bindings.append(binding)
+                calls.append('(run-' + mode + ' ' + binding + ')')
+            if args.mode == 'app':
+                expression += '(zing (turn `(list @t)`' + hoon_list(source_bindings) + ' run-app))\n'
+            else:
+                expression += '(zing `(list tape)`' + hoon_list(calls) + ')\n'
+        if args.source is not None and args.mode in ('plain', 'imports'):
             cord('src', Path(args.source).resolve())
         path = scratch / 'check.hoon'
         path.write_text(expression)

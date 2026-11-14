@@ -9,8 +9,9 @@ probes are failures, never expected passes.
 the diagnostic retry cannot clear a failure. Resource isolation retains
 the selected mode, and ship checks are unchanged.
 
-Eval shares immutable setup across at most three adjacent app groups.
-Each group retains its own module overrides and each case its own eval road.
+Eval shares immutable setup across at most five adjacent source groups,
+including at most three app groups. Each group retains its own checking
+context and each case its own eval road; import probes run separately.
 """
 
 import argparse
@@ -172,22 +173,23 @@ def parse_output(output, imports=False):
     return results
 
 
-def eval_process(mode, case_groups, debug):
-    """Run independent source groups with one shared app setup."""
+def eval_process(groups, debug):
+    """Run ordered (mode, cases) groups with shared immutable setup."""
     # Reassemble the input from checked sections so the Core fragment can be
     # embedded in its island; do not change any other source.
     with tempfile.TemporaryDirectory(prefix='jibb-probes-') as tmp:
-        command = [str(PROBES / 'run'), mode]
+        batched = len(groups) > 1
+        command = [str(PROBES / 'run'), 'batch' if batched else groups[0][0]]
         if not debug:
             command.append('--no-debug')
-        if mode != 'imports':
-            for index, cases in enumerate(case_groups):
+        for index, (mode, cases) in enumerate(groups):
+            if mode != 'imports':
                 source_path = Path(tmp) / ('cases-%d.jibb' % index)
                 source_path.write_text(''.join('#### ' + label + '\n' + source
                                               for label, _, source in cases),
                                        encoding='utf-8')
-                if index:
-                    command.append('--app-source')
+                if batched:
+                    command.extend(['--group', mode])
                 command.append(str(source_path))
         result = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
@@ -201,7 +203,7 @@ def resource_failure(result):
 
 def eval_results(group, cases, debug=True):
     mode, _ = probe_file(group)
-    command, result = eval_process(mode, [cases], debug)
+    command, result = eval_process([(mode, cases)], debug)
     if result.returncode:
         if mode != 'imports' and len(cases) > 1 and resource_failure(result):
             middle = len(cases) // 2
@@ -213,37 +215,43 @@ def eval_results(group, cases, debug=True):
     return parse_output(result.stdout, mode == 'imports')
 
 
-def eval_batches(items, max_groups=3):
-    """Keep order, sharing setup only across bounded adjacent app groups."""
-    if not 1 <= max_groups <= 3:
-        raise ValueError('app batches require between one and three groups')
+def eval_batches(items, max_groups=5, max_app_groups=3):
+    """Bound shared setup without mixing imports or group contexts."""
+    if not 1 <= max_groups <= 5 or not 1 <= max_app_groups <= 3:
+        raise ValueError('batches allow one to five groups and one to three app groups')
     batches = []
     pending = []
+    app_count = 0
     for item in items:
-        if probe_file(item[0])[0] == 'app':
-            pending.append(item)
-            if len(pending) == max_groups:
-                batches.append(pending)
-                pending = []
-        else:
+        mode = probe_file(item[0])[0]
+        if (mode == 'imports' or len(pending) == max_groups or
+                mode == 'app' and app_count == max_app_groups):
             if pending:
                 batches.append(pending)
                 pending = []
+                app_count = 0
+        if mode == 'imports':
             batches.append([item])
+        else:
+            pending.append(item)
+            app_count += mode == 'app'
     if pending:
         batches.append(pending)
     return batches
 
 
 def eval_batch_results(items, debug=True):
-    """Return one result list per group, retaining independent module maps."""
-    if not 1 <= len(items) <= 3 or any(probe_file(g)[0] != 'app' for g, _ in items):
-        raise ValueError('an app batch requires one to three app groups')
+    """Return one result list per group, retaining each mode's context."""
+    groups = [(probe_file(group)[0], cases) for group, cases in items]
+    if (not 1 <= len(groups) <= 5 or
+            sum(mode == 'app' for mode, _ in groups) > 3 or
+            any(mode == 'imports' for mode, _ in groups)):
+        raise ValueError('a source batch requires one to five groups, at most three app groups')
     if len(items) == 1:
         return [eval_results(*items[0], debug=debug)]
-    command, result = eval_process('app', [cases for _, cases in items], debug)
+    command, result = eval_process(groups, debug)
     if resource_failure(result):
-        print('%s: running app groups separately after eval could not finish the batch' %
+        print('%s: running source groups separately after eval could not finish the batch' %
               ', '.join(group for group, _ in items), file=sys.stderr, flush=True)
         return [eval_results(group, cases, debug) for group, cases in items]
     if result.returncode:

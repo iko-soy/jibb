@@ -345,21 +345,20 @@ def probe_signature(root, groups):
                         signature.append(thread)
                         return 0
                 probe_regression.ship_results(CaptureShip(), group, cases)
-        # App groups share preparation but retain separate source/module contexts.
+        # Mixed groups share preparation but retain their mode and source context.
         # Audit the combined program as well as every original single/ship input.
         for batch in probe_regression.eval_batches(items):
             if len(batch) < 2:
                 continue
-            signature.append(('app-batch', tuple(group for group, _ in batch)))
+            signature.append(('source-batch', tuple(group for group, _ in batch)))
             with tempfile.TemporaryDirectory(prefix='jibb-probe-batch-') as scratch:
-                command = [runner_path, 'app']
-                for index, (_, cases) in enumerate(batch):
+                command = [runner_path, 'batch']
+                for index, (group, cases) in enumerate(batch):
                     source = Path(scratch) / ('cases-%d.jibb' % index)
                     source.write_text(''.join('#### ' + label + '\n' + text
                                              for label, _, text in cases))
-                    if index:
-                        command.append('--app-source')
-                    command.append(str(source))
+                    mode, _ = probe_regression.probe_file(group)
+                    command.extend(['--group', mode, str(source)])
                 sys.argv = command
                 runner.main()
         return signature
