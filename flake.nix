@@ -105,15 +105,14 @@
           # The desks, as tools/ship assembles them for the ship:
           # $out/my-app, $out/jibb, $out/jibb-dev, the test desk,
           # $out/jibb-fixtures for the Clay fixtures, and the real-Clay
-          # static host fixture.  The check phase compiles the two libraries
-          # under urbit eval.
+          # static host fixture. Compilation is cached separately; compare
+          # the assembled libraries with the exact sources that passed it.
           desks = pkgs.stdenvNoCC.mkDerivation {
             # No version in the name, so a commit that changes no desk
             # file reuses the last build.
             name = "jibb-desks";
             src = source deskFiles;
             nativeBuildInputs = [ python3 ];
-            nativeCheckInputs = [ urbit ];
             dontConfigure = true;
             buildPhase = ''
               runHook preBuild
@@ -125,8 +124,7 @@
             checkPhase = ''
               runHook preCheck
               for lib in jibb jibb-import; do
-                echo "compiling $lib.hoon"
-                tools/hoon --lib desks/jibb-dev/lib/$lib.hoon '~'
+                cmp desks/jibb-dev/lib/$lib.hoon ${librarySmoke}/$lib.hoon
               done
               runHook postCheck
             '';
@@ -204,6 +202,23 @@
             '';
           } // extra);
 
+          # These standalone Hoon cores read no other desk sources. Keep
+          # the original instrumented compilation checks mandatory for
+          # desks without repeating them after unrelated fixture edits.
+          librarySmoke = check "eval-library-smoke" (fs.unions [
+            ./jibb-dev/lib/jibb.hoon ./jibb-dev/lib/jibb-import.hoon
+            ./tools/hoon ./tools/urbit_eval.py ./tools/noun.py
+          ]) (lib.concatStringsSep " " [
+            "for lib in jibb jibb-import; do"
+            ''echo "compiling $lib.hoon";''
+            "tools/hoon --lib jibb-dev/lib/$lib.hoon '~' || exit $?;"
+            "done"
+          ]) {
+            postBuild = ''
+              cp jibb-dev/lib/jibb.hoon jibb-dev/lib/jibb-import.hoon $out/
+            '';
+          };
+
           evalManifest = builtins.fromJSON (builtins.readFile ./nix/eval-manifest.json);
           manifestFiles = paths: fs.unions (map (path: ./. + ("/" + path))
             (builtins.filter (path: builtins.pathExists (./. + ("/" + path))) paths));
@@ -249,7 +264,9 @@
               "timeout 10800s tools/test-arms --fast --desk-map ${desk} --timeout 3600 ${quote batch.suites}" { };
           }) evalManifest.arm_batches);
           evalParts = goldenParts // armParts // evalProbeParts // {
-            inherit residual manifestCheck evalSelftest;
+            # Keep the certified sources alive through CI cache GC too:
+            # desks only uses them while building, not in its output.
+            inherit residual manifestCheck evalSelftest librarySmoke;
           };
           evalChecks = pkgs.linkFarm "jibb-check-eval" (lib.mapAttrsToList
             (name: path: { inherit name path; }) evalParts);
