@@ -1179,6 +1179,250 @@ def check_probe_batch_replay(c, tmp):
                          'batch replay lost original failure: ' + detail)
 
 
+def probe_ship_list(values, tail=0):
+    for value in reversed(values):
+        tail = (value, tail)
+    return tail
+
+
+def probe_ship_rows(probes, items, results):
+    atom = probes.shiptool.term
+    return [(atom(group), probe_ship_list([
+        (atom(label), (0, (flag, atom(message)))) for label, flag, message in rows]))
+            for (group, _), rows in zip(items, results)]
+
+
+def check_probe_ship_batch_inputs(c, tmp):
+    """Ship batches retain group context, fixed revisions and request bounds."""
+    probes, items, passing = probe_batch_fixture()
+    prefix = ('=/  now=@da  now.bowl\n'
+              '=/  pre=path  (en-beam [our.bowl %my-app da+now] /)\n' +
+              ''.join('=/  built-%d  .^(vase %%ca /my-app/[(scot %%da now)]/lib/x/hoon)\n'
+                      % number for number in range(10)))
+    template = prefix + '%-  pure:m\n!>  %+  turn  modules\nlegacy-body\n'
+    with patch.object(probes.app, 'prepare_thread', return_value=template), \
+            patch.object(probes.app, 'ui_modules', return_value=[]):
+        c.expect(probes.ship_prefix() == prefix, 'unpinned ship prefix changed')
+        thread = probes.ship_batch_thread(items, revision=1234)
+        c.expect('=/  revision=@ud  1.234\n' in thread and 'ud+revision' in thread and
+                 thread.count('(scot %ud revision)') == 10 and
+                 all(old not in thread for old in ('now.bowl', 'da+now', '(scot %da now)')),
+                 'ship batch retained a live or mixed Clay revision')
+        offsets = []
+        for group, cases in items:
+            mode = probes.probe_file(group)[0]
+            literals, extras = probes.ship_source_literals(cases)
+            entry = '[%s %%%s %s %s]' % (probes.shiptool.hoon_cord(group.encode()),
+                                       mode, extras, literals)
+            offsets.append(thread.find(entry))
+        c.expect(all(offset >= 0 for offset in offsets) and offsets == sorted(offsets),
+                 'ship groups changed mode, source, module extras or order')
+        for invalid in ([], items + [items[0]], items + [items[1], items[1]],
+                        [items[0], ('imports', [])],
+                        [items[0], ('errors-p1', [('bad', '/ui/wrong/jibb', '++ main 1\n')])]):
+            error = None
+            try:
+                probes.ship_batch_thread(invalid, revision=1234)
+            except ValueError as caught:
+                error = str(caught)
+            c.expect(error, 'accepted invalid ship batch: %r' % invalid)
+        for revision in (-1, True, '1234'):
+            error = None
+            try:
+                probes.ship_prefix(revision)
+            except ValueError as caught:
+                error = str(caught)
+            c.expect(error, 'accepted invalid Clay revision: %r' % revision)
+        with patch.object(probes.app, 'prepare_thread', return_value=template.replace(
+                '(scot %da now)', '(scot %da changed)', 1)):
+            error = None
+            try:
+                probes.ship_prefix(1234)
+            except ValueError as caught:
+                error = str(caught)
+            c.expect(error, 'silently pinned a changed Clay selector template')
+
+    seen = []
+    def program(selected, revision=None):
+        seen.append(revision)
+        return '|'.join(group for group, _ in selected)
+    with patch.object(probes, 'ship_batch_thread', program), \
+            patch.object(probes.shiptool, 'click_argument_bytes', lambda text: 100 * len(text.split('|'))), \
+            patch.object(probes, 'SHIP_BATCH_BYTES', 200):
+        batches = probes.ship_batches(items + [('imports', [])], revision=1234)
+    c.expect(batches == [items[:2], items[2:], [('imports', [])]] and
+             seen and all(revision == 1234 for revision in seen),
+             'request-size partition changed groups, imports or revision: %r' % batches)
+    requests = []
+    def thread(text, timeout):
+        selected = [item for name in text.split('|') for item in items if item[0] == name]
+        requests.append((selected, timeout))
+        results = [[(label, 0, '') for label, _, _ in cases] for _, cases in selected]
+        return probe_ship_list(probe_ship_rows(probes, selected, results))
+    with patch.object(probes, 'ship_batch_thread', program), \
+            patch.object(probes.shiptool, 'click_argument_bytes', lambda text: 100 * len(text.split('|'))), \
+            patch.object(probes, 'SHIP_BATCH_BYTES', 200):
+        actual = probes.ship_batch_results(SimpleNamespace(thread=thread), items, revision=1234)
+    c.expect(actual == passing and requests == [(items[:2], 3600), (items[2:], 3600)] and
+             all(revision == 1234 for revision in seen),
+             'oversized direct request was sent or lost groups/revision: %r' % requests)
+    ship = SimpleNamespace(thread=lambda *args, **kwargs: None)
+    with patch.object(probes, 'ship_thread', return_value='oversized'), \
+            patch.object(probes.shiptool, 'click_argument_bytes', return_value=probes.SHIP_BATCH_BYTES + 1), \
+            patch.object(ship, 'thread') as submitted:
+        for attempt in (lambda: probes.ship_batches(items[:1], revision=1234),
+                        lambda: probes.ship_results(ship, *items[0], revision=1234)):
+            error = None
+            try:
+                attempt()
+            except ValueError as caught:
+                error = str(caught)
+            c.expect(error and 'p1' in error and not submitted.called,
+                     'oversized single group was submitted or lost its name: %r' % error)
+
+
+def check_probe_ship_batch_results(c, tmp):
+    """Validate every result envelope before allowing a case to pass."""
+    probes, items, passing = probe_batch_fixture()
+    rows = probe_ship_rows(probes, items, passing)
+    noun = probe_ship_list(rows)
+    c.expect(probes.ship_batch_decode(items, noun) == passing,
+             'valid nested ship results changed group boundaries')
+    wrong = [0, (), (rows[0],), (rows[0], 0, 0), probe_ship_list(rows, False),
+             probe_ship_list(rows, 7), probe_ship_list(rows[:-1]),
+             probe_ship_list(rows + rows[:1]), probe_ship_list([rows[1], rows[0], *rows[2:]]),
+             probe_ship_list([(0, rows[0][1]), *rows[1:]]),
+             probe_ship_list([(rows[0][0], 0), *rows[1:]]),
+             probe_ship_list([(rows[0][0], False), *rows[1:]])]
+    label = probes.shiptool.term(items[0][1][0][0])
+    for row in (0, (0, (0, (0, 0))), (label, 0), (label, (2, 0)), (label, (1, False)),
+                (label, (0, 0)), (label, (0, (2, 0))),
+                (label, (0, (False, 0))), (label, (0, (0, (0, 0))))):
+        wrong.append(probe_ship_list([(rows[0][0], probe_ship_list([row])), *rows[1:]]))
+    many = probes.app.proper_list(rows[2][1])
+    wrong.append(probe_ship_list([*rows[:2], (rows[2][0], probe_ship_list(many[::-1])), *rows[3:]]))
+    for bad in wrong:
+        error = None
+        try:
+            probes.ship_batch_decode(items, bad)
+        except ValueError as caught:
+            error = str(caught)
+        c.expect(error, 'accepted malformed ship batch results: %r' % (bad,))
+
+    negative = [('errors-p5', [('plain-mark', '/ui/probe/jibb', 'unused')]), items[0]]
+    message = probes.EXACT['plain-mark']
+    rejection = [[('plain-mark', 1, message)], passing[0]]
+    rejected_rows = probe_ship_rows(probes, negative, rejection)
+    c.expect(probes.ship_batch_decode(negative, probe_ship_list(rejected_rows)) == rejection,
+             'valid exact rejection changed in ship decoder')
+    tang = probe_ship_list([(probes.shiptool.term('leaf'), probe_ship_list(list(message.encode())))])
+    crashed = (probes.shiptool.term('plain-mark'), (1, tang))
+    crashed_noun = probe_ship_list([(rejected_rows[0][0], probe_ship_list([crashed])), rejected_rows[1]])
+    error = None
+    try:
+        probes.ship_batch_decode(negative, crashed_noun)
+    except ValueError as caught:
+        error = str(caught)
+    c.expect(error and 'crashed' in error and message in error,
+             'a trapped crash became an expected rejection or lost its trace')
+
+
+def check_probe_ship_batch_fallback(c, tmp):
+    """Only terminal resource errors retry, with original groups and revision."""
+    probes, items, passing = probe_batch_fixture()
+    revision = 1234
+    error = None
+    try:
+        probes.ship_batch(object(), [], revision)
+    except ValueError as caught:
+        error = str(caught)
+    c.expect(error, 'empty ship batch became a passing empty outcome')
+    for mote in ('meme', 'oops'):
+        seen = []
+        def thread(program, timeout):
+            seen.append(('batch', program, timeout))
+            raise probes.shiptool.Fail('the thread failed: %' + mote + '\nresource trace')
+        def single(ship, group, cases, revision=None):
+            seen.append(('single', group, cases, revision))
+            return [(label, 0, '') for label, _, _ in cases]
+        with patch.object(probes, 'ship_batch_thread', return_value='batch'), \
+                patch.object(probes, 'ship_results', single):
+            result = probes.ship_batch_results(SimpleNamespace(thread=thread), items, revision)
+        c.expect(result == passing and seen == [('batch', 'batch', 1800 * len(items))] +
+                 [('single', group, cases, revision) for group, cases in items],
+                 'resource fallback changed group inputs or revision: %r' % seen)
+        with patch.object(probes, 'ship_batch_thread', return_value='batch'), \
+                patch.object(probes, 'ship_results') as fallback:
+            outcomes = probes.ship_batch(SimpleNamespace(thread=thread), items, revision=None)
+        c.expect(not fallback.called and all(error and '%' + mote in error
+                                            for _, _, _, error in outcomes),
+                 'resource fallback reread an unpinned Clay revision')
+
+    for failure in (probes.shiptool.Fail('the thread failed: %exit\nmentions %meme'),
+                    probes.shiptool.Fail('the ship refused the request: %meme'),
+                    probes.shiptool.Unable('socket unavailable'), TimeoutError('thread timed out'),
+                    OSError('connection closed')):
+        calls = []
+        def thread(program, timeout):
+            calls.append(program)
+            raise failure
+        with patch.object(probes, 'ship_batch_thread', return_value='batch'), \
+                patch.object(probes, 'ship_results') as fallback:
+            runs = list(probes.ship_runs(SimpleNamespace(thread=thread), [items, items], revision))
+        c.expect(len(runs) == 1 and calls == ['batch'] and not fallback.called and
+                 all(error and str(failure) in error for _, _, _, error in runs[0]),
+                 'unknown failure retried, dispatched later work, or lost its error: %r' % runs)
+
+    rejected = [list(group) for group in passing]
+    rejected[0][0] = (rejected[0][0][0], 1, 'initial wrong rejection')
+    noun = probe_ship_list(probe_ship_rows(probes, items, rejected))
+    with patch.object(probes, 'ship_batch_thread', return_value='batch'), \
+            patch.object(probes, 'ship_results') as fallback:
+        outcomes = probes.ship_batch(SimpleNamespace(thread=lambda *args, **kwargs: noun), items, revision)
+    c.expect(outcomes[0][2] and 'initial wrong rejection' in str(outcomes[0][2]) and
+             not fallback.called and all(not failures and error is None
+                                         for _, _, failures, error in outcomes[1:]),
+             'ship semantic failure was cleared, retried or spread to passing groups')
+
+    for item in (items[0], ('imports', [('import', '/ui/probe/jibb', '')])):
+        with patch.object(probes, 'ship_results', return_value=['legacy']) as single, \
+                patch.object(probes, 'ship_batch_thread') as combined:
+            result = probes.ship_batch_results(object(), [item], revision)
+        c.expect(result == [['legacy']] and single.call_args.args[1:] == item and
+                 single.call_args.kwargs == {'revision': revision} and not combined.called,
+                 'singleton/import ship path changed')
+    with patch.object(probes, 'ship_import_results', return_value=['imports']) as imports, \
+            patch.object(probes, 'ship_thread') as generated:
+        ship = object()
+        result = probes.ship_results(ship, 'imports', [], revision=revision)
+    c.expect(result == ['imports'] and imports.call_args.args == (ship,) and not generated.called,
+             'import-only ship suite entered shared setup')
+
+    # Main must carry the synchronized revision through planning and dispatch,
+    # and must not queue later work after the first uncertain failure.
+    import io
+    from contextlib import redirect_stderr, redirect_stdout
+    planned = items + [('imports', [])]
+    dispatched = []
+    def unavailable(ship, selected, revision=None):
+        dispatched.append((selected, revision))
+        raise TimeoutError('unfinished Khan request')
+    fake_ship = SimpleNamespace(require=lambda: None)
+    with patch.object(sys, 'argv', ['probe-regression', '--backend', 'ship', '--jobs', '8'] +
+                      [group for group, _ in planned]), \
+            patch.object(probes, 'sections', lambda group: dict(planned)[group]), \
+            patch.object(probes.shiptool, 'Ship', return_value=fake_ship), \
+            patch.object(probes.shiptool, 'sync', return_value=revision) as synced, \
+            patch.object(probes, 'ship_batches', return_value=[items, planned[-1:]]) as planner, \
+            patch.object(probes, 'ship_batch_results', unavailable), \
+            patch.object(probes, 'ThreadPoolExecutor', side_effect=AssertionError('ship queued parallel work')), \
+            redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+        status = probes.main()
+    c.expect(status == 2 and synced.call_args.args == (fake_ship, 'my-app') and
+             planner.call_args.args == (planned, revision) and dispatched == [(items, revision)],
+             'ship main lost its fixed revision or dispatched after timeout: %r' % dispatched)
+
+
 CHECKS =[(name[len('check_'):], fn) for name, fn in globals().items()
           if name.startswith('check_')]
 

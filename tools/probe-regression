@@ -9,12 +9,13 @@ probes are failures, never expected passes.
 the diagnostic retry cannot clear a failure. Resource isolation retains
 the selected mode, and ship checks are unchanged.
 
-Eval shares immutable setup across at most five adjacent source groups,
+Both backends share immutable setup across at most five adjacent source groups,
 including at most three app groups. Each group retains its own checking
-context and each case its own eval road; import probes run separately.
+context; combined runs isolate each case. Import probes run separately.
 """
 
 import argparse
+from contextlib import ExitStack
 from concurrent.futures import ThreadPoolExecutor
 from importlib.machinery import SourceFileLoader
 import json
@@ -270,13 +271,28 @@ def eval_batch_results(items, debug=True):
     return grouped
 
 
-def ship_results(ship, group, cases):
-    if group == 'imports':
-        return ship_import_results(ship)
+def ship_prefix(revision=None):
+    """Prepare Clay inputs once, optionally at the revision returned by sync."""
     template = app.prepare_thread(app.ui_modules())
     before, marker, _ = template.partition('%-  pure:m\n!>  %+  turn  modules')
     if not marker:
         raise ValueError('my-app thread shape changed')
+    if revision is not None:
+        if type(revision) is not int or revision < 0:
+            raise ValueError('invalid my-app Clay revision')
+        binding = '=/  now=@da  now.bowl\n'
+        if (before.count(binding) != 1 or before.count('da+now') != 1 or
+                before.count('(scot %da now)') != 10):
+            raise ValueError('my-app thread revision selectors changed')
+        before = before.replace(binding, '=/  revision=@ud  %s\n' % shiptool.hoon_ud(revision))
+        before = before.replace('da+now', 'ud+revision')
+        before = before.replace('(scot %da now)', '(scot %ud revision)')
+        if 'now.bowl' in before or 'da+now' in before:
+            raise ValueError('my-app thread retained a live revision selector')
+    return before
+
+
+def ship_source_literals(cases):
     literals = []
     extras = []
     for label, at, source in cases:
@@ -285,15 +301,21 @@ def ship_results(ship, group, cases):
         literals.append('[' + shiptool.hoon_cord(label.encode()) + ' ' + at_literal + ' ' + src + ']')
         if len(label.split()) == 3:
             extras.append('[' + at_literal + ' ' + src + ']')
+    return shiptool.hoon_list(literals), shiptool.hoon_list(extras)
+
+
+def ship_thread(group, cases, revision=None):
+    """The original single-group program, also used for resource fallback."""
+    before = ship_prefix(revision)
+    literals, extra_literal = ship_source_literals(cases)
     # Plain probes use only the prelude, as in the review's check.hoon.
     mode, _ = probe_file(group)
     args = ('~ ~ ~' if mode == 'plain' else 'ext marks available')
-    extra_literal = '~[' + ' '.join(extras) + ']' if extras else '~'
     thread = before + '''=/  extra=(list [at=path source=@t])  ''' + extra_literal + '''
 =/  baseline=(list [at=path source=@t])
   (skip modules |=(entry=[at=path source=@t] (lien extra |=(e=[at=path source=@t] =(at.entry at.e)))))
 =/  all-modules=(list [at=path source=@t])  (weld extra baseline)
-=/  cases=(list [label=@t at=path source=@t])  ~[''' + ' '.join(literals) + ''']
+=/  cases=(list [label=@t at=path source=@t])  ''' + literals + '''
 %-  pure:m
 !>  %+  turn  cases
 |=  c=[label=@t at=path source=@t]
@@ -304,10 +326,172 @@ def ship_results(ship, group, cases):
 ?:  ?=(%& -.result)  [label.c %& '']
 [label.c %| message.p.result]
 '''
+    return thread
+
+
+def ship_results(ship, group, cases, revision=None):
+    if group == 'imports':
+        return ship_import_results(ship)
+    thread = ship_thread(group, cases, revision)
+    if shiptool.click_argument_bytes(thread) > SHIP_BATCH_BYTES:
+        raise ValueError('ship probe group %s exceeds the click request limit' % group)
     out = []
     for label, (flag, message) in app.proper_list(ship.thread(thread, timeout=1800)):
         out.append((shiptool.text(label), flag, shiptool.text(message)))
     return out
+
+
+# click -i still passes the escaped program as one Linux command argument.
+# Leave room below its 128 KiB limit; never split a group's module fixtures.
+SHIP_BATCH_BYTES = 120000
+
+
+def ship_batch_thread(items, revision=None):
+    modes = [probe_file(group)[0] for group, _ in items]
+    if (not 1 <= len(items) <= 5 or modes.count('app') > 3 or
+            'imports' in modes):
+        raise ValueError('a ship source batch requires one to five groups, at most three app groups')
+    entries = []
+    for (group, cases), mode in zip(items, modes):
+        if mode == 'plain' and any(at != '/ui/probe/jibb' for _, at, _ in cases):
+            raise ValueError('plain ship probes require /ui/probe/jibb')
+        literals, extras = ship_source_literals(cases)
+        entries.append('[%s %%%s %s %s]' %
+                       (shiptool.hoon_cord(group.encode()), mode, extras, literals))
+    return ship_prefix(revision) + '''=/  groups=(list [name=@t mode=?(%app %plain) extra=(list [at=path source=@t]) cases=(list [label=@t at=path source=@t])])  ''' + shiptool.hoon_list(entries) + '''
+%-  pure:m
+!>  %+  turn  groups
+|=  group=[name=@t mode=?(%app %plain) extra=(list [at=path source=@t]) cases=(list [label=@t at=path source=@t])]
+=/  baseline=(list [at=path source=@t])
+  (skip modules |=(entry=[at=path source=@t] (lien extra.group |=(e=[at=path source=@t] =(at.entry at.e)))))
+=/  all-modules=(list [at=path source=@t])  (weld extra.group baseline)
+:-  name.group
+%+  turn  cases.group
+|=  c=[label=@t at=path source=@t]
+:-  label.c
+::  Retain only the compact result after each case leaves its road.
+%-  mule
+|.
+^-  [flag=? message=@t]
+=/  available=(list [at=path source=@t])
+  (skip all-modules |=(entry=[at=path source=@t] =(at.entry at.c)))
+=/  sample=*
+  ?:  =(%plain mode.group)
+    [at.c source.c ~ ~ ~ ~[at.c] values.p.detailed molds.p.detailed ~ `iface.p.detailed]
+  [at.c source.c ext marks available ~[at.c] values.p.detailed molds.p.detailed ~ `iface.p.detailed]
+=/  result=(each * [message=@t overlap=*])
+  !<((each * [message=@t overlap=*]) (slym check sample))
+?:  ?=(%& -.result)  [%& '']
+[%| message.p.result]
+'''
+
+
+def ship_batches(items, revision=None):
+    """Bound group count and click's actual escaped argument size."""
+    def partition(batch):
+        if len(batch) == 1:
+            group, cases = batch[0]
+            if (group != 'imports' and
+                    shiptool.click_argument_bytes(ship_thread(group, cases, revision)) > SHIP_BATCH_BYTES):
+                raise ValueError('ship probe group %s exceeds the click request limit' % group)
+            return [batch]
+        if shiptool.click_argument_bytes(ship_batch_thread(batch, revision)) <= SHIP_BATCH_BYTES:
+            return [batch]
+        middle = len(batch) // 2
+        return partition(batch[:middle]) + partition(batch[middle:])
+    return [part for batch in eval_batches(items) for part in partition(batch)]
+
+
+def ship_batch_decode(items, noun):
+    """Validate the entire protocol before any result can count as a pass."""
+    def proper_list(value):
+        values = []
+        while isinstance(value, tuple):
+            if len(value) != 2:
+                raise ValueError('malformed ship probe list')
+            head, value = value
+            values.append(head)
+        if type(value) is not int or value != 0:
+            raise ValueError('malformed ship probe list')
+        return values
+
+    def atom(value):
+        if type(value) is not int or value < 0:
+            raise ValueError('malformed ship probe atom')
+        return shiptool.text(value)
+
+    rows = proper_list(noun)
+    if len(rows) != len(items):
+        raise ValueError('checker did not return each ship group in order')
+    grouped = []
+    for (group, cases), entry in zip(items, rows):
+        if not isinstance(entry, tuple) or len(entry) != 2 or atom(entry[0]) != group:
+            raise ValueError('checker did not return each ship group in order')
+        reported = proper_list(entry[1])
+        if len(reported) != len(cases):
+            raise ValueError('checker did not return each ship probe in order')
+        results = []
+        for (label, _, _), row in zip(cases, reported):
+            if not isinstance(row, tuple) or len(row) != 2 or atom(row[0]) != label:
+                raise ValueError('checker did not return each ship probe in order')
+            attempted = row[1]
+            if (not isinstance(attempted, tuple) or len(attempted) != 2 or
+                    type(attempted[0]) is not int or attempted[0] not in (0, 1)):
+                raise ValueError('malformed ship probe attempt')
+            if attempted[0] == 1:
+                proper_list(attempted[1])
+                trace = '\n'.join(shiptool.tang_lines(attempted[1]))
+                raise ValueError('ship probe %s %s crashed:\n%s' % (group, label, trace))
+            result = attempted[1]
+            if (not isinstance(result, tuple) or len(result) != 2 or
+                    type(result[0]) is not int or result[0] not in (0, 1)):
+                raise ValueError('malformed ship probe result')
+            results.append((label, result[0], atom(result[1])))
+        grouped.append(results)
+    return grouped
+
+
+def ship_batch_results(ship, items, revision=None):
+    if not items:
+        raise ValueError('no probe groups selected for ship')
+    if len(items) == 1:
+        return [ship_results(ship, *items[0], revision=revision)]
+    thread = ship_batch_thread(items, revision)
+    if shiptool.click_argument_bytes(thread) > SHIP_BATCH_BYTES:
+        return [results for batch in ship_batches(items, revision)
+                for results in ship_batch_results(ship, batch, revision)]
+    try:
+        noun = ship.thread(thread, timeout=1800 * len(items))
+    except shiptool.Fail as error:
+        # Only an avow reply confirms that the failed thread has finished.
+        # A timeout/closed socket can leave it running; never retry those.
+        if revision is None or str(error).split('\n', 1)[0] not in (
+                'the thread failed: %meme', 'the thread failed: %oops'):
+            raise
+        print('%s: running ship groups separately after a terminal resource failure' %
+              ', '.join(group for group, _ in items), file=sys.stderr, flush=True)
+        return [ship_results(ship, group, cases, revision=revision) for group, cases in items]
+    return ship_batch_decode(items, noun)
+
+
+def ship_batch(ship, items, revision=None):
+    if not items:
+        raise ValueError('no probe groups selected for ship')
+    try:
+        grouped = ship_batch_results(ship, items, revision)
+        return [(group, cases, compare(group, cases, results), None)
+                for (group, cases), results in zip(items, grouped)]
+    except (OSError, UnicodeError, ValueError, shiptool.Fail, shiptool.Unable) as error:
+        return [(group, cases, [], str(error)) for group, cases in items]
+
+
+def ship_runs(ship, batches, revision=None):
+    """Do not queue another request after an uncertain thread failure."""
+    for batch in batches:
+        outcomes = ship_batch(ship, batch, revision)
+        yield outcomes
+        if any(error is not None for _, _, _, error in outcomes):
+            return
 
 
 def import_ship_suite():
@@ -499,7 +683,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--backend', choices=('eval', 'ship'), default='eval')
     parser.add_argument('-j', '--jobs', type=int, default=1,
-                        help='parallel eval batches (ship groups run sequentially)')
+                        help='parallel eval batches (ship batches run sequentially)')
     parser.add_argument('--fast', action='store_true',
                         help='eval without debug spots, rerun failures with them')
     parser.add_argument('groups', nargs='*', choices=GROUPS)
@@ -510,26 +694,27 @@ def main():
     try:
         groups_cases = [(group, sections(group)) for group in groups]
         ship = None
+        revision = None
         if args.backend == 'ship':
             ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
             ship.require()
-            shiptool.sync(ship, 'my-app')
+            revision = shiptool.sync(ship, 'my-app')
         def run_batch(items):
             try:
-                if ship:
-                    group, cases = items[0]
-                    return [(group, cases, compare(group, cases, ship_results(ship, group, cases)), None)]
                 return eval_batch(items, args.fast)
             except (OSError, UnicodeError, ValueError, shiptool.Fail, shiptool.Unable) as error:
                 return [(group, cases, [], str(error)) for group, cases in items]
 
         errors = []
         run_failed = False
-        jobs = 1 if ship else args.jobs
-        batches = [[item] for item in groups_cases] if ship else eval_batches(groups_cases)
-        with ThreadPoolExecutor(max_workers=jobs) as pool:
+        with ExitStack() as stack:
+            if ship:
+                outcomes = ship_runs(ship, ship_batches(groups_cases, revision), revision)
+            else:
+                pool = stack.enter_context(ThreadPoolExecutor(max_workers=args.jobs))
+                outcomes = pool.map(run_batch, eval_batches(groups_cases))
             for group, cases, failures, run_error in (
-                    outcome for outcomes in pool.map(run_batch, batches) for outcome in outcomes):
+                    outcome for batch_outcomes in outcomes for outcome in batch_outcomes):
                 if run_error is not None:
                     run_failed = True
                     print('%s: no complete results for %d probes\n%s' %

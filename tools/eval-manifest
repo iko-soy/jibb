@@ -340,11 +340,9 @@ def probe_signature(root, groups):
             if group == 'imports':
                 signature.append(probe_regression.import_ship_suite())
             else:
-                class CaptureShip:
-                    def thread(self, thread, **kwargs):
-                        signature.append(thread)
-                        return 0
-                probe_regression.ship_results(CaptureShip(), group, cases)
+                signature.append(probe_regression.ship_thread(group, cases))
+                signature.append(('ship-revision', group,
+                                  probe_regression.ship_thread(group, cases, revision=1)))
         # Mixed groups share preparation but retain their mode and source context.
         # Audit the combined program as well as every original single/ship input.
         for batch in probe_regression.eval_batches(items):
@@ -361,6 +359,10 @@ def probe_signature(root, groups):
                     command.extend(['--group', mode, str(source)])
                 sys.argv = command
                 runner.main()
+        for batch in probe_regression.ship_batches(items, revision=1):
+            if len(batch) > 1:
+                signature.append(('ship-batch', tuple(group for group, _ in batch),
+                                  probe_regression.ship_batch_thread(batch, revision=1)))
         return signature
     finally:
         (probe_regression.ROOT, probe_regression.PROBES,

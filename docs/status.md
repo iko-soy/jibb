@@ -213,6 +213,29 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+Ship probe batches now share immutable Clay-built compiler/importer inputs, reader evidence, marks and prepared prelude across at most five source groups, including at most three app groups. All reads for those source groups use the numeric `my-app` revision returned by sync. App overrides remain local to their group, plain groups receive empty application inputs, and each combined case leaves its `mule` road with only a status and complete diagnostic. Import-only probes remain separate. The four manifest batches use five checker threads instead of sixteen; standalone default ordering uses six.
+
+On 2026-11-14, a paired fresh-ship comparison against `34895b8` measured the complete first manifest batch: `p1`, `p2`, `p3` and `errors-p1`, 133 cases. Both builds used the same pinned Vere 4.6, Python, fake-ship seed, desk map, lifecycle hooks and observer. Only `tools/probe-regression` differed in their narrowed source inputs. All ordered input cases, labels, status flags and full diagnostic strings matched exactly; both piers stopped cleanly.
+
+| First fresh-ship probe batch | Separate group setup | Shared setup |
+| --- | ---: | ---: |
+| Complete Nix build client wall time | 544.85 s | 393.45 s |
+| Runner wall time, including sync | 534.47 s | 381.64 s |
+| Accounted user CPU | 510.19 s | 359.50 s |
+| Persistent ship user CPU | 500.77 s | 348.67 s |
+| Sampled concurrent king/serf RSS peak | 227.64 MiB | 217.68 MiB |
+| Probe checker threads | 4 | 1 |
+
+Runner wall time fell by 152.83 seconds (28.6%), accounted user CPU by 150.69 seconds (29.5%). The CPU total includes the persistent king and serf, waited helper processes and observer, without double-counting persistent ship children; its window excludes boot and shutdown, which the Nix client wall includes. Sync took 6.43 and 6.01 seconds. Six sync requests were unchanged, bringing total requests from ten to seven. RSS was sampled every 200 ms, counts shared pages in each process and may miss brief peaks; helper memory is separate. Serf lifetime high-water RSS, including startup, was 202.93 and 201.86 MiB. This is one shared-host pair, not a whole-check critical-path measurement.
+
+The runner preflights escaped requests at 120,000 bytes, splits only whole source groups and rejects an oversized singleton before submission. At the measured fresh-pier revision, manifest requests are at most 66,502 bytes. Only an explicit terminal resource failure permits retrying original groups at the same pinned revision; uncertain transport failures, malformed results and trapped crashes stop subsequent requests. A timeout does not cancel its Khan thread. Three new tooling checks cover these boundaries, revision pinning, complete output validation, crash/rejection separation and preservation of semantic failures. The original 32 checks remain unchanged.
+
+Source audits preserve all 351 existing inputs and expectations, including 149 negatives, all 54 captured eval programs/options, and every legacy single-group ship program and the import suite. Full and narrowed inputs generate identical new programs. The Nix graph changes 12 of 50 leaves and preserves 38; all 49 source-bearing store closures match their tracked files, bytes, modes and symlinks.
+
+A separate fresh-pier control run passed 13 exact legacy/shared comparisons (eight checked, five rejected), including conflicting app overrides, intervening plain groups and missing-module controls. A deliberately trapped checker crash produced the group, case and unique trace marker, followed by a successful health request. After changing a module on that disposable pier from revision 2 to 3, the production batch pinned to revision 2 kept its original results; the latest-revision batch produced the expected changed diagnostic. The source store and ship processes remained unchanged, and the pier stopped cleanly. These controls establish correctness, not a second timing comparison.
+
+Integrated acceptance on 2026-11-14 passed `nix flake check -L -j 2 --keep-going` on `x86_64-linux`. All 50 registered leaf outputs are valid; all 351 probes pass on each backend in batches of 133, 128, 41 and 49, with no fallback or diagnostic replay. The tooling selftest passed all 35 checks in 666 seconds, and the ship runner selftest passed in 54 seconds. Manifest validation and all eight residual checks passed. The dedicated ship aggregate took 1,295.89 seconds; the full check took 625.62 seconds after the tooling prebuild, overlapping the ship run and reusing unchanged outputs. These acceptance timings do not measure a cold whole-check speedup. Other platforms were not tested.
+
 Strict eval probe batches now share immutable compiler/importer, reader evidence and prepared prelude across at most five adjacent app/plain groups, including at most three app groups. App groups also share mark setup. Each app group retains its own module overrides; plain groups retain `/ui/probe/jibb` with empty external, mark and module inputs. Every case keeps its original `mule` road, fresh inference state and empty module cache. Import-only probes remain separate. The four manifest batches start five eval processes instead of ten before fallback. Their original 348 cases remain, with three added plain-context controls: 351 cases in 16 groups, including 149 expected negatives.
 
 On 2026-11-14, a frozen comparison against `77872bc` measured the complete first manifest batch (`p1`, `p2`, `p3`, `errors-p1`), using pinned Vere 4.6 and Python on x86_64-linux. All 133 inputs, ordered outcomes, full diagnostics, source excerpts and positive type reports matched exactly: all 58,293 returned report bytes. The comparison removed only the one transport newline appended by `tools/hoon --raw` per process; raw outputs were retained. The added controls belong to the fourth batch and do not change this measured corpus.
