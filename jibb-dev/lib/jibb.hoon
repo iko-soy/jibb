@@ -22596,6 +22596,7 @@
 ++  prepare-prelude-with-group-evidence-capture
   |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle externals=iexternals capture=?]
   ^-  (unit iprelude-lowering)
+  ~+
   ?.  (prelude-external-evidence-valid externals modules)  ~
   =/  faces=(list term)  (turn sources |=(g=iprelude-group-source face.g))
   =/  built=(unit ifile)  (partial-prelude-interface-mode src `internal-source ~ faces)
@@ -22634,6 +22635,7 @@
 ++  prepare-prelude-with-group-evidence
   |=  [src=@t internal-source=@t sources=(list iprelude-group-source) modules=jbundle externals=iexternals]
   ^-  (unit iprelude)
+  ~+
   ?.  (prelude-external-evidence-valid externals modules)  ~
   =/  faces=(list term)  (turn sources |=(g=iprelude-group-source face.g))
   =/  built=(unit ifile)  (partial-prelude-interface-mode src `internal-source ~ faces)

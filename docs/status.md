@@ -213,6 +213,42 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+Prelude preparation now memoizes its complete ordinary and lowering computations within the current evaluation road. The keys bind the compiler context, exact public/private/group sources, module bundles, reader evidence and capture flag. Independently run test arms retain separate transient caches, while repeated calls within an arm can reuse the immutable prepared interface and lowering artifacts. Reader construction, its authentication and logs, detailed diagnostic fallback, and fresh module inference remain at their existing stages. [compiler.md](compiler.md#imports-and-prelude) records the cache boundary and lifetime.
+
+On 2026-11-14, fixed-concurrency measurements compared `9ce3d37` with exactly these two memo hints under pinned Vere 4.6. Each job used a fresh evaluator and one outer `mule`; each iteration included fresh fixture reader construction and returned its complete preparation result. All ordinary and lowering results matched exactly across repetitions and versions, and ordinary results also matched the original uninstrumented preparation control. Timings include compiler/helper setup and result serialization.
+
+| Preparation calls | Baseline wall | Memoized wall | Baseline user CPU | Memoized user CPU |
+| --- | ---: | ---: | ---: | ---: |
+| Ordinary, once | 153.63 s | 159.41 s | 151.07 s | 154.91 s |
+| Ordinary, seven | 296.53 s | 170.15 s | 273.89 s | 166.55 s |
+| Lowering, once | 168.71 s | 162.13 s | 164.31 s | 158.06 s |
+| Lowering, seven | 283.93 s | 171.00 s | 278.01 s | 166.63 s |
+
+The seven-call runs used 39.2% less user CPU for ordinary preparation and 40.1% less for lowering. The single-call pairs moved in opposite directions: ordinary CPU increased 2.5%, while lowering CPU decreased 3.8%. These are single pairs on a shared host; they do not establish a consistent cold-call change or a whole-check speedup. Peak evaluator RSS for seven calls changed from 169.6 to 165.7 MiB for ordinary preparation and from 194.7 to 170.6 MiB for lowering; these are whole-process peaks, not isolated memo-table measurements.
+
+A separate comparison passed 44 calls on one road, changing public/private sources, group names/paths/sources, module bundles, reader evidence and the capture flag, then restoring valid inputs. Both versions returned exactly the same complete nouns, including retained lowering artifacts and repeated failures. Three complete detailed failures also matched exactly: malformed private and group sources retained their locations, excerpts and carets; duplicated reader evidence retained its existing unlocated diagnostic.
+
+`tools/bench-eval --batch arms-7 --stage full` then compared the complete 70-arm batch in 37 suites. Every ordered result matched exactly. The compiler was the only changed input among 103 recorded files, and regenerating both complete programs reproduced the measured bytes and source maps.
+
+| Complete eval batch | Baseline | Memoized preparation |
+| --- | ---: | ---: |
+| Wall time | 912.50 s | 837.67 s |
+| Evaluator user CPU | 879.45 s | 813.52 s |
+
+The observed difference was 74.83 seconds wall (8.2%) and 65.93 seconds user CPU (7.5%). Both runs include compiler/helper/suite compilation and all arm executions; wall time also includes result decoding. This is one overlapping pair on a shared host, not a stable causal percentage or a whole-Nix-check critical-path measurement.
+
+The same 70-arm batch passed on two fresh ships with identical ordered outcomes and no failures or crashes. A name-only override forced the baseline to execute; the candidate built the actual acceptance leaf. The seed, runtime, desk map and lifecycle hooks matched, and only the compiler source differed. Both piers stopped cleanly. The complete captured reader-log sequences matched globally and in each completed arm window: 42 messages each for parsing, compiling and compiled. This checks those 126 reader messages, not every runtime trace.
+
+| Fresh-ship measurement | Baseline | Memoized preparation |
+| --- | ---: | ---: |
+| Sum of all 70 arm times | 989.44 s | 889.14 s |
+| Complete test phase | 1,141.0 s | 1,040.4 s |
+| Nix build client wall, including setup | 1,155.39 s | 1,053.51 s |
+
+The complete ship test phase fell by 100.6 seconds (8.8%) in this overlapping pair on a shared host. Per-arm sums exclude suite compilation, which the complete test phase includes; client wall additionally includes seed copy, startup, sync and shutdown. No ship CPU, peak memory or whole-check critical-path saving is inferred.
+
+Integrated acceptance passed on 2026-11-14 with `nix flake check -L -j 2 --keep-going` on x86_64-linux in 9,627.63 seconds. Verification confirmed all 50 registered outputs and all 49 source-bearing closures, with 681 arms in 274 suites, 1,376 goldens and 351 strict probes on each backend, plus 35 tooling selftests, library compilation, desk assembly, CLI packaging and the host/browser/Node chain. The final check reused 10 outputs already built and validated for this candidate and the unchanged raw Rust CLI result, so its elapsed time is not a cold whole-check benchmark. Other platforms were not tested.
+
 `jibb-local-mold-recursive-capture` now prepares the prelude once for its three rejection cases, down from three times. Each case retains fresh inference and an empty module cache; the original helper and three independently prepared positive arms are byte-identical. The rejection loop requires each complete observed message, source location, excerpt and caret, and explicitly fails if preparation fails. The first two cases retain their unsupported-inference diagnostics; the third retains the undefined `chain` diagnostic. No compiler behavior, Jibb input source or logical source path changed. Scratch captures before and after matched all three complete result nouns and diagnostic bytes exactly.
 
 On 2026-11-14, paired measurements against `d5507e9` used pinned Vere 4.6 and the complete `arms-4` batch: 56 arms in 33 suites. All ordered outcomes matched on both backends. Only the suite source changed among measured inputs. The fresh-ship baseline used a name-only override to force execution; the candidate built the actual acceptance leaf, with identical seed, runtime, desk map and lifecycle hooks.
