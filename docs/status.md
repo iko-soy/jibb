@@ -213,6 +213,25 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+`jibb-local-mold-capture` now prepares the prelude once for its three rejection cases, down from three times. Each case retains fresh inference and an empty module cache; the original helper and four independent cold positive arms are byte-identical. The rejection loop now requires the complete observed message, location, excerpt and caret, and preparation failure explicitly fails the arm. The first two cases retain their existing unsupported-inference diagnostics; the third retains the undefined `box` diagnostic. No compiler behavior or Jibb input source changed. Scratch captures before and after matched all three complete result nouns and diagnostic bytes exactly.
+
+On 2026-11-14, paired measurements against `dbf7835` used pinned Vere 4.6 and the complete `arms-8` batch: 105 arms in 37 suites. All ordered outcomes matched on both backends. Only the suite source changed among measured inputs. The fresh-ship baseline used a name-only override to force execution; the candidate built the actual acceptance leaf, with identical seed, runtime, desk map and lifecycle hooks.
+
+| Measurement | Before | Shared preparation and exact assertions |
+| --- | ---: | ---: |
+| Complete eval batch wall time | 929.93 s | 954.52 s |
+| Evaluator user CPU | 824.69 s | 845.74 s |
+| Ship rejection arm | 127.41 s | 28.14 s |
+| Ship complete five-arm capture suite | 262.02 s | 138.26 s |
+| Ship complete 105-arm test phase | 1,301.5 s | 1,214.4 s |
+| Ship build client wall, including setup | 1,314.31 s | 1,234.87 s |
+
+The complete eval batch was 24.59 seconds slower (2.6%), with 21.05 seconds more user CPU (2.6%); this pair demonstrates no full-eval speedup. On the ship, the rejection arm saved 99.27 seconds (77.9%) and the complete test phase saved 87.1 seconds (6.7%). The unchanged four positive arms totalled 134.61 seconds before and 110.12 after; the other 100 arms totalled 838.50 and 871.33 seconds. These are overlapping single pairs on a shared host, so the unchanged-control variation prevents attributing every timing change to preparation reuse. Per-arm times exclude suite compilation; the test phase includes it, and client wall also includes ship setup and shutdown. No ship CPU or whole-check critical-path saving is claimed.
+
+The source audit preserves all five arms, the exact three negative inputs and every cold positive assertion. Six of 50 Nix leaves change and 44 retain their outputs; all 49 source-bearing store closures match the tracked inputs.
+
+Integrated `nix flake check -L -j 2 --keep-going` passed on x86_64-linux on 2026-11-14. All 50 leaf outputs are valid, including the exact 105-arm results on each backend, 351 probes per backend and 35 tooling selftests. Manifest validation passed, all eight residual checks passed in ten seconds, and the fresh-ship runner selftest passed in 58 seconds (67 including cleanup). The full check took 844.46 seconds, reusing the measured candidate ship output and unchanged checks; this is not a cold whole-check benchmark. Other platforms were not tested.
+
 The positive `jibb-todo-full` arm shares its immutable prepared prelude and real Hoon reader inputs across its detailed, legacy, initializer-variant and downstream-import checks. Its first `report` still takes source and prepares independently, preserving cold entry-point coverage. Preparation and reader passes fall from eight to two while all nine positive inference calls retain fresh roots and empty module caches. Both negative test arms, their diagnostic assertions, and all fixture and expected-result bytes are unchanged.
 
 On 2026-11-14, `tools/bench-eval --batch arms-2 --stage full` compared `72c633a` with this suite change under pinned Vere 4.6. The complete batch contains 87 arms in 33 suites; every ordered result matched exactly, and only `tests/lib/jibb-todo-full.hoon` changed among the measured inputs.

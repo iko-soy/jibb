@@ -43,12 +43,26 @@
   ~
 ++  test-capture-does-not-leak
   ^-  tang
-  =/  bads=(list @t)
-    ~['++ make |= x=A\0a  +$ box |$ [B] [outer=C inner=B]\0a  ^- (box @t) [outer=x inner="hi"]\0a' '+$ box |$ [B] [outer=A inner=B]\0a++ make |= x=A ^- (box @t) [outer=x inner="hi"]\0a' '++ maker |= x=A\0a  +$ box |$ [B] [outer=A inner=B]\0a  x\0a++ outside |= x=A ^- (box @t) [outer=x inner="hi"]\0a']
+  ::  Share only immutable preparation; each case starts fresh inference.
+  =/  prep=(unit iprelude:jibb)
+    (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb group]])
+  ?~  prep  ~[leaf+"prelude did not prepare"]
+  =/  file=path  /tests/local-mold-capture/jibb
+  =/  bads=(list [src=@t want=@t])
+    :~  :-  '++ make |= x=A\0a  +$ box |$ [B] [outer=C inner=B]\0a  ^- (box @t) [outer=x inner="hi"]\0a'
+        (of-wain:format ~['++ make: local molds need unsupported inference' '/tests/local-mold-capture.jibb:1:14: gate sample mold' '++ make |= x=A' '             ^'])
+        :-  '+$ box |$ [B] [outer=A inner=B]\0a++ make |= x=A ^- (box @t) [outer=x inner="hi"]\0a'
+        (of-wain:format ~['+$ box: mold needs unsupported inference' '/tests/local-mold-capture.jibb:1:8: unsupported mold' '+$ box |$ [B] [outer=A inner=B]' '       ^'])
+        :-  '++ maker |= x=A\0a  +$ box |$ [B] [outer=A inner=B]\0a  x\0a++ outside |= x=A ^- (box @t) [outer=x inner="hi"]\0a'
+        (of-wain:format ~['++ outside: mold `box` is not defined' '/tests/local-mold-capture.jibb:4:22: unknown mold' '++ outside |= x=A ^- (box @t) [outer=x inner="hi"]' '                     ^'])
+    ==
   |-
   ?~  bads  ~
-  =/  got=jfile-detailed-result:jibb  (run-source i.bads)
+  =/  got=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb file src.i.bads ~ ~ ~ ~[file] values.u.prep molds.u.prep ~ `iface.u.prep)
   ?:  ?=(%& -.got)  ~[leaf+"an unbound mold capital was captured from the wrong scope"]
+  ?.  =(want.i.bads message.p.got)
+    ~[leaf+"local mold capture diagnostic differs" leaf+"expected:" leaf+(trip want.i.bads) leaf+"actual:" leaf+(trip message.p.got)]
   $(bads t.bads)
 ++  test-nongeneric-capture
   ^-  tang
