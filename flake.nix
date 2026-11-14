@@ -214,9 +214,15 @@
               "timeout 10800s python3 tools/probe-regression --fast ${quote batch.groups}" { };
           }) evalManifest.probe_batches);
           selftestFiles = fs.unions [
-            deskFiles ./tools/check ./tools/testdata ./tools/golden
+            (fs.difference deskFiles ./tests)
+            ./tools/check ./tools/testdata/selftest
+            ./tools/testdata/stub.hoon ./tools/testdata/golden ./tools/golden
             ./tools/test-arms ./tools/doc-blocks ./tools/bundle-js
             ./tools/probe-regression ./tools/check-my-app
+            # The real-compiler crash fixture and its linked mark source.
+            ./tests/golden/types-import-mark ./tests/clay-fixtures/desk/mar/label.hoon
+            # probe-regression reads these when the selftest imports it.
+            ./tests/type-probe/import-exact.txt ./tests/type-probe/diagnostics.txt
           ];
           evalSelftest = check "eval-selftest" selftestFiles
             "tools/check selftest --timeout 10800 --logs $out" {
