@@ -767,6 +767,83 @@ def check_test_arms(c, tmp):
     c.expect(status == 2 and 'only /+ and /* lines' in out,
              'a /- line: %d\n%s' % (status, out))
 
+    prefix = ("/+  jibb\n=/  shared=@t\n"
+              "  tree:(golden:jibb /shared/jibb 'hello')\n")
+    after = ("++  test-after\n  ^-  tang\n"
+             "  ?:  =('hello' shared)  ~\n  ~[leaf+\"wrong shared setup\"]\n")
+    crashing_arm = ("++  test-crash\n  ^-  tang\n"
+                    "  ?:  =('' tree:(golden:jibb /arm/jibb 'crash'))  ~\n  ~\n")
+    with open(os.path.join(lib, 'prefixed.hoon'), 'w') as f:
+        f.write(prefix + '|%\n' + crashing_arm + after + '--\n')
+    status, out = test_arms('--dir', lib, 'prefixed')
+    c.expect(status == 1 and 'CRASHED prefixed test-crash' in out and
+             'OK prefixed test-after' in out and
+             out.index('CRASHED prefixed test-crash') < out.index('OK prefixed test-after') and
+             '2 arms: 1 failed' in out,
+             'shared setup must preserve arm crash isolation: %d\n%s' % (status, out))
+    c.expect('[%stub-crash /arm/jibb]' in out and
+             re.search(r'prefixed\.hoon:7:', out) and '(test-arms)' not in out,
+             'a prefixed arm must retain its original source line and trace:\n' + out)
+
+    for name, setup, diagnostic in [
+            ('setup-type-error', prefix.replace("tree:(golden:jibb /shared/jibb 'hello')",
+                                                'no-such-face'), 'no-such-face'),
+            ('setup-crash', prefix.replace("'hello'", "'crash'"),
+             '[%stub-crash /shared/jibb]')]:
+        with open(os.path.join(lib, name + '.hoon'), 'w') as f:
+            f.write(setup + '|%\n' + after + '--\n')
+        status, out = test_arms('--dir', lib, name)
+        c.expect(status == 1 and 'FAILED %s (build)' % name in out and
+                 diagnostic in out and re.search(re.escape(name) + r'\.hoon:3:', out) and
+                 'OK %s ' % name not in out,
+                 'failed suite setup must fail at its original source: %d\n%s' % (status, out))
+
+    replay = """/+  jibb
+=/  shared=(each @t tang)
+  (mule |.(~|(%shared-preparation-outer tree:(golden:jibb /shared/jibb 'crash'))))
+|%
+++  prepared
+  ^-  @t
+  ?-  -.shared
+    %&  p.shared
+    %|  (mean (flop p.shared))
+  ==
+++  test-first
+  ^-  tang
+  ?:  =('hello' prepared)  ~
+  ~[leaf+"wrong shared setup"]
+++  test-second
+  ^-  tang
+  ?:  =('hello' prepared)  ~
+  ~[leaf+"wrong shared setup"]
+++  test-trace-order
+  ^-  tang
+  =/  first=(each @t tang)  (mule |.(prepared))
+  =/  second=(each @t tang)  (mule |.(prepared))
+  ?:  ?=(%& -.shared)  ~[leaf+"setup unexpectedly passed"]
+  ?:  ?=(%& -.first)  ~[leaf+"first rethrow unexpectedly passed"]
+  ?:  ?=(%& -.second)  ~[leaf+"second rethrow unexpectedly passed"]
+  ?.  =(p.shared (scag (lent p.shared) p.first))
+    ~[leaf+"first rethrow trace tanks or order changed"]
+  ?.  =(p.shared (scag (lent p.shared) p.second))
+    ~[leaf+"second rethrow trace tanks or order changed"]
+  ~
+++  test-independent
+  ^-  tang
+  ~
+--
+"""
+    with open(os.path.join(lib, 'setup-replay.hoon'), 'w') as f:
+        f.write(replay)
+    status, out = test_arms('--dir', lib, 'setup-replay')
+    c.expect(status == 1 and 'CRASHED setup-replay test-first' in out and
+             'CRASHED setup-replay test-second' in out and
+             'OK setup-replay test-trace-order' in out and
+             'OK setup-replay test-independent' in out and
+             '4 arms: 2 failed' in out and
+             out.count('[%stub-crash /shared/jibb]') == 2,
+             'captured setup crash must replay its trace per consuming arm: %d\n%s' % (status, out))
+
 
 def check_bundle_budget(c, tmp):
     """Exercise stale and oversize builds without replacing the real bundle."""

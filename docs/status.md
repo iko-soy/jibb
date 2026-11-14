@@ -213,6 +213,27 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+The builder test suite now constructs its immutable lowering prelude once before its test core. Its 14 preparations become two: shared setup and an independent preparation in the About-page arm, which compares the complete result with the shared value. The separate probe still prepares independently, so the complete builder batch goes from 15 preparations to three. All 20 builder arms and the probe remain; 19 builder arm bodies are byte-identical, and the About-page arm retains its existing assertions. Request-dependent work, fresh inference and module-cache arguments remain inside the arms.
+
+The shared setup captures a crash with `mule`; each consuming arm rethrows all its original diagnostic tanks in order, followed by that arm's own frames. Other arms still run, and a successful `None` retains the existing failure assertion. `tools/test-arms` now preserves Hoon setup expressions after the Ford headers and before the unindented `|%`, including their original source lines. Tooling controls cover malformed or misplaced headers, interpolated paths, library dependency discovery, setup errors, per-arm crash isolation and complete trace-order preservation. All 273 unchanged suites produce byte-identical programs and source maps in both debug modes.
+
+On 2026-11-14, frozen comparisons against `48fbb63` used pinned Vere 4.6 and the complete 21-arm builder batch. Every ordered result matched under eval and on two fresh ships. Only the suite and runner changed among eval inputs; only the suite changed among ship inputs. The baseline ship used a name-only override to force execution; the candidate built the actual acceptance leaf, with identical seed, runtime, desk map and lifecycle hooks. Both piers stopped cleanly.
+
+| Complete builder batch | Baseline | Shared setup |
+| --- | ---: | ---: |
+| Eval wall time | 612.58 s | 379.07 s |
+| Evaluator user CPU | 602.58 s | 371.92 s |
+| Ship complete test phase | 930.6 s | 674.9 s |
+| Ship build client wall, including setup | 946.28 s | 691.17 s |
+
+Eval wall time fell by 233.51 seconds (38.1%) and user CPU by 230.66 seconds (38.3%); the complete ship test phase fell by 255.7 seconds (27.5%). These are single paired measurements on a shared host, not a whole-Nix-check critical-path saving. Eval includes compiler/helper/suite compilation and execution, with decoding included in wall time. The ship test phase includes suite construction and all arm executions; client wall also includes seed copy, startup, sync and shutdown. Per-arm sums fell from 825.16 to 535.40 seconds, but exclude the setup moved into suite construction and therefore overstate the complete saving. The shared noun remains in the constructed suite/Ford context; memory impact and ship CPU were not measured.
+
+A separate capture compared the baseline's complete prepared noun with both the shared and independently prepared candidate values. All three matched exactly, including lowering artifacts, provenance and caches. The ship logs contain 15 parsing/compiling/compiled reader sequences before and three after, matching the intended preparation count. The original compiler, builder implementation, fixture library and probe are unchanged.
+
+The Nix graph changes 15 of 50 leaves and preserves 35; all 49 source-bearing store closures match the intended files, bytes, modes and symlinks. On 2026-11-14, `nix flake check -L -j 2 --keep-going` passed on `x86_64-linux` in 3,434.89 seconds (57 minutes 15 seconds). All 50 leaf outputs are registered and valid. Their accepted logs cover 681 arms in 274 suites, 1,376 goldens and 351 probes (149 negative) per backend, plus all 35 tooling selftests and the native, host, browser and Node checks. The ordinary eval batches passed without diagnostic replay; ordered arm results agree with the baseline.
+
+This was an incremental acceptance run: it reused 35 unchanged outputs and the actual ship-builder output from the fresh-ship measurement, then built the remaining 14. Its elapsed time does not measure a cold whole-check speedup. Other platforms were not built. The final acceptance audit also verified the assembled builder suite and unchanged compiler bytes against the frozen inputs.
+
 Prelude preparation now memoizes its complete ordinary and lowering computations within the current evaluation road. The keys bind the compiler context, exact public/private/group sources, module bundles, reader evidence and capture flag. Independently run test arms retain separate transient caches, while repeated calls within an arm can reuse the immutable prepared interface and lowering artifacts. Reader construction, its authentication and logs, detailed diagnostic fallback, and fresh module inference remain at their existing stages. [compiler.md](compiler.md#imports-and-prelude) records the cache boundary and lifetime.
 
 On 2026-11-14, fixed-concurrency measurements compared `9ce3d37` with exactly these two memo hints under pinned Vere 4.6. Each job used a fresh evaluator and one outer `mule`; each iteration included fresh fixture reader construction and returned its complete preparation result. All ordinary and lowering results matched exactly across repetitions and versions, and ordinary results also matched the original uninstrumented preparation control. Timings include compiler/helper setup and result serialization.

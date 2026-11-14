@@ -122,6 +122,8 @@ It matches each labelled block to the case whose `source.jibb` is the block's te
 
 Each `tests/lib/<suite>.hoon` file is a test suite: a core whose `test-` arms return a `tang`, empty when the arm passes. `tools/ship test` runs every suite on the fake ship with the `-test` thread. `tools/test-arms` runs the same arms under `urbit eval`, without a ship, for every suite but the generated `jibb.hoon`, whose golden cases `tools/golden` runs. It gives each suite the subject Ford would give it on the `jibb-dev` desk: its `/+` libraries and its `/*` files, which must be `%txt`, `%jibb` or `%hoon` files, from where `tools/ship assemble` puts them. Like `tools/golden`, it needs `urbit` on PATH and Python 3.
 
+After its Ford headers, a suite may use a Hoon expression before its unindented `|%` to prepare immutable values shared by its arms. Setup runs when constructing the suite value; each arm retains its own `mule`. The [development guide](docs/development.md#the-test-suites) describes failure handling and the independent preparation control in the builder suite.
+
 ```
 tools/test-arms                              # every suite
 tools/test-arms --fast jibb-store             # fast execution, diagnostic replay on failure

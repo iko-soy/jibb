@@ -5,6 +5,14 @@
 /*  renderer-source  %jibb  /lib/jibb/renderer/jibb
 /*  about-source  %txt  /my-app/ui/about/jibb
 /*  theme-source  %txt  /my-app/ui/theme/jibb
+::  Prepare immutable inputs once, retaining a setup crash for each arm
+::  that consumes them. Test arms still run on separate mule roads.
+=/  prepare-fresh
+  |.
+  ^-  (unit iprelude-lowering:jibb)
+  (prepare-prelude-with-group-evidence-for-lowering:jibb prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]] (bundle:jibb-prelude-fixture ~) evidence:jibb-prelude-fixture)
+=/  shared-setup=(each (unit iprelude-lowering:jibb) tang)
+  (mule prepare-fresh)
 |%
 ++  text
   |=  lines=wain
@@ -17,9 +25,15 @@
   ?~  hay  |
   ?:  =((scag (lent needle) `tape`hay) needle)  &
   $(hay t.hay)
+++  cold-prepared
+  ^-  (unit iprelude-lowering:jibb)
+  $:prepare-fresh
 ++  prepared
   ^-  (unit iprelude-lowering:jibb)
-  (prepare-prelude-with-group-evidence-for-lowering:jibb prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]] (bundle:jibb-prelude-fixture ~) evidence:jibb-prelude-fixture)
+  ?-  -.shared-setup
+    %&  p.shared-setup
+    %|  (mean (flop p.shared-setup))
+  ==
 ++  request
   |=  $:  at=path
           source=@t
@@ -79,8 +93,9 @@
   ==
 ++  test-real-about-document
   ^-  tang
-  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  =/  prep=(unit iprelude-lowering:jibb)  cold-prepared
   ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  ?.  =(prep prepared)  ~[leaf+"shared prelude differs from cold preparation"]
   =/  built=(each static-output:jibb-build @t)
     %+  build-static:jibb-build
       (request /ui/about/jibb (text about-source) default-theme-source:jibb-build '/apps/my-app' ~ ~[~['blog']])

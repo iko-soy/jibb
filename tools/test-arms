@@ -161,13 +161,27 @@ class Suite:
             raise Unusable('%s: no |%% core after its runes' % self.rel)
         head = text[:at + 1].split('\n')[:-1]
         self.libs, self.files = [], []
+        header = True
+        rendered = []
         for n, line in enumerate(head, 1):
+            rendered.append(line)
             if not line.strip() or line.startswith('::'):
                 continue
             m = HEADER.match(line)
+            ford = re.match(r'^\s*/[^\w\s/](?:\s|$)', line)
+            if not header:
+                if ford:
+                    raise Unusable('%s:%d: Ford headers must come before '
+                                   'the Hoon expression, not %s'
+                                   % (self.rel, n, line))
+                continue
             if not m:
-                raise Unusable('%s:%d: only /+ and /* lines may come before '
-                               'the core, not %s' % (self.rel, n, line))
+                if ford:
+                    raise Unusable('%s:%d: only /+ and /* lines may be Ford '
+                                   'headers, not %s' % (self.rel, n, line))
+                header = False
+                continue
+            rendered[-1] = '::' + line[2:]
             if m.group(1) == '/+':
                 for lib in (l.strip() for l in m.group(2).split(',')):
                     self.libs.append(lib)
@@ -181,10 +195,10 @@ class Suite:
                 raise Unusable('%s:%d: only %%txt, %%jibb and %%hoon files can be '
                                'bound here, not %%%s' % (self.rel, n, mark))
             self.files.append((face, mark, desk_file(desk, clay, self.rel, n)))
-        # The header lines become comments, so the core keeps its line
-        # numbers in error reports.
-        self.core = '\n'.join('::' + l[2:] if l.startswith(('/+', '/*'))
-                              else l for l in head) + text[at:]
+        # Only Ford headers become comments. Preserve the Hoon expression
+        # before |% too, including its lines in error reports: it can bind
+        # immutable setup shared by the core's arms, just as on the ship.
+        self.core = '\n'.join(rendered) + text[at:]
         self.arms = ARM.findall(text[at:])
         self.reports = bool(REPORT.search(text[at:]))
         self.expected = next((p for f, _, p in self.files if f == 'expected'),
