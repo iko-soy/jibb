@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Rerun review probes: run plain FILE, run app FILE, or run imports."""
+"""Rerun review probes: run plain FILE, run app FILE, or run imports.
+
+App mode accepts up to three independent groups, adding --app-source FILE
+for each source after the positional file. Each group keeps its own module
+overrides; output follows source order.
+"""
 
 import argparse
 from pathlib import Path
@@ -21,14 +26,24 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=('plain', 'app', 'imports'))
     parser.add_argument('source', nargs='?')
+    parser.add_argument('--app-source', action='append', default=[], metavar='FILE',
+                        help='another independent app group (at most three total; '
+                             'positional source first, then option order)')
     parser.add_argument('--no-debug', action='store_true',
                         help='omit Hoon debug spots for the fast regression pass')
     args = parser.parse_args()
-    if args.mode != 'imports' and args.source is None:
-        parser.error('plain and app require a sectioned source file')
+    if args.app_source and args.mode != 'app':
+        parser.error('--app-source is only for app mode')
+    app_sources = ([args.source] if args.source is not None else []) + args.app_source
+    if args.mode == 'plain' and args.source is None:
+        parser.error('plain requires a sectioned source file')
+    if args.mode == 'app' and not 1 <= len(app_sources) <= 3:
+        parser.error('app requires one to three independent source files')
     command = [str(ROOT / 'tools/hoon'), '--raw']
     if args.no_debug:
         command.append('--no-debug')
+    if args.mode == 'app' and len(app_sources) > 1:
+        command.extend(['--timeout', str(600 * len(app_sources))])
 
     def cord(name, path):
         command.extend(['--cord', name + '=' + str(path)])
@@ -80,14 +95,19 @@ def main():
                                ('blogapi', 'ui/api/blog.jibb'), ('card', 'ui/components/card.jibb'),
                                ('cart', 'ui/stores/cart.jibb')]:
                 cord(name, ROOT / 'my-app' / path)
-            expression = ('=/  imp\n  =>  ..zuse\n' +
-                          (ROOT / 'jibb-dev/lib/jibb-import.hoon').read_text() +
-                          '\n' + prefix + (HERE / 'app-check.hoon').read_text())
+            source_bindings = []
+            for number, source in enumerate(app_sources):
+                binding = 'probe-source-' + str(number)
+                cord(binding, Path(source).resolve())
+                source_bindings.append(binding)
+            expression = (prefix + '=/  imp  prelude-reader\n' +
+                          '=/  sources=(list @t)  ' + hoon_list(source_bindings) + '\n' +
+                          (HERE / 'app-check.hoon').read_text())
         else:
             expression = ('=/  jibb-lib  .\n=/  reader\n' +
                           (ROOT / 'jibb-dev/lib/jibb-import.hoon').read_text() +
                           '\n' + prefix + (HERE / 'errors/import-check.hoon').read_text())
-        if args.source is not None:
+        if args.source is not None and args.mode != 'app':
             cord('src', Path(args.source).resolve())
         path = scratch / 'check.hoon'
         path.write_text(expression)

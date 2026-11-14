@@ -8,6 +8,9 @@ probes are failures, never expected passes.
 --fast omits Hoon debug spots under eval and repeats failures with spots;
 the diagnostic retry cannot clear a failure. Resource isolation retains
 the selected mode, and ship checks are unchanged.
+
+Eval shares immutable setup across at most three adjacent app groups.
+Each group retains its own module overrides and each case its own eval road.
 """
 
 import argparse
@@ -169,25 +172,38 @@ def parse_output(output, imports=False):
     return results
 
 
-def eval_results(group, cases, debug=True):
-    mode, _ = probe_file(group)
+def eval_process(mode, case_groups, debug):
+    """Run independent source groups with one shared app setup."""
     # Reassemble the input from checked sections so the Core fragment can be
     # embedded in its island; do not change any other source.
-    data = ''.join('#### ' + label + '\n' + source for label, _, source in cases)
     with tempfile.TemporaryDirectory(prefix='jibb-probes-') as tmp:
-        source_path = Path(tmp) / 'cases.jibb'
-        source_path.write_text(data, encoding='utf-8')
         command = [str(PROBES / 'run'), mode]
         if not debug:
             command.append('--no-debug')
         if mode != 'imports':
-            command.append(str(source_path))
+            for index, cases in enumerate(case_groups):
+                source_path = Path(tmp) / ('cases-%d.jibb' % index)
+                source_path.write_text(''.join('#### ' + label + '\n' + source
+                                              for label, _, source in cases),
+                                       encoding='utf-8')
+                if index:
+                    command.append('--app-source')
+                command.append(str(source_path))
         result = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
+    return command, result
+
+
+def resource_failure(result):
+    return result.returncode and ('bail: %meme' in result.stderr or
+                                  'bail: %oops' in result.stderr)
+
+
+def eval_results(group, cases, debug=True):
+    mode, _ = probe_file(group)
+    command, result = eval_process(mode, [cases], debug)
     if result.returncode:
-        if (mode != 'imports' and len(cases) > 1 and
-                ('bail: %meme' in result.stderr or
-                 'bail: %oops' in result.stderr)):
+        if mode != 'imports' and len(cases) > 1 and resource_failure(result):
             middle = len(cases) // 2
             print('%s: splitting %d probes after eval could not finish the batch' %
                   (group, len(cases)), file=sys.stderr, flush=True)
@@ -195,6 +211,55 @@ def eval_results(group, cases, debug=True):
                     eval_results(group, cases[middle:], debug))
         raise ValueError('%s failed:\n%s' % (' '.join(command), result.stderr))
     return parse_output(result.stdout, mode == 'imports')
+
+
+def eval_batches(items, max_groups=3):
+    """Keep order, sharing setup only across bounded adjacent app groups."""
+    if not 1 <= max_groups <= 3:
+        raise ValueError('app batches require between one and three groups')
+    batches = []
+    pending = []
+    for item in items:
+        if probe_file(item[0])[0] == 'app':
+            pending.append(item)
+            if len(pending) == max_groups:
+                batches.append(pending)
+                pending = []
+        else:
+            if pending:
+                batches.append(pending)
+                pending = []
+            batches.append([item])
+    if pending:
+        batches.append(pending)
+    return batches
+
+
+def eval_batch_results(items, debug=True):
+    """Return one result list per group, retaining independent module maps."""
+    if not 1 <= len(items) <= 3 or any(probe_file(g)[0] != 'app' for g, _ in items):
+        raise ValueError('an app batch requires one to three app groups')
+    if len(items) == 1:
+        return [eval_results(*items[0], debug=debug)]
+    command, result = eval_process('app', [cases for _, cases in items], debug)
+    if resource_failure(result):
+        print('%s: running app groups separately after eval could not finish the batch' %
+              ', '.join(group for group, _ in items), file=sys.stderr, flush=True)
+        return [eval_results(group, cases, debug) for group, cases in items]
+    if result.returncode:
+        raise ValueError('%s failed:\n%s' % (' '.join(command), result.stderr))
+    results = parse_output(result.stdout)
+    if len(results) != sum(len(cases) for _, cases in items):
+        raise ValueError('checker did not return each batched probe in order')
+    grouped = []
+    offset = 0
+    for _, cases in items:
+        selected = results[offset:offset + len(cases)]
+        if [label for label, _, _ in selected] != [label for label, _, _ in cases]:
+            raise ValueError('checker did not return each batched probe in order')
+        grouped.append(selected)
+        offset += len(cases)
+    return grouped
 
 
 def ship_results(ship, group, cases):
@@ -375,6 +440,11 @@ def eval_group(group, cases, fast=False):
     failures, error = attempt(not fast)
     if not fast or not (failures or error):
         return failures, error
+    return replay_failure(group, failures, error, attempt)
+
+
+def replay_failure(group, failures, error, attempt):
+    """Replay one group for diagnostics without clearing its first failure."""
     print('%s: fast eval failed; rerunning with debug spots' % group,
           file=sys.stderr, flush=True)
     repeated, detail = attempt(True)
@@ -389,11 +459,39 @@ def eval_group(group, cases, fast=False):
             for label, reason, message in failures], None
 
 
+def eval_batch(items, fast=False):
+    if not items:
+        raise ValueError('no probe groups selected for eval')
+    if len(items) == 1:
+        group, cases = items[0]
+        failures, error = eval_group(group, cases, fast)
+        return [(group, cases, failures, error)]
+    try:
+        grouped = eval_batch_results(items, debug=not fast)
+        outcomes = [(group, cases, compare(group, cases, results), None)
+                    for (group, cases), results in zip(items, grouped)]
+    except (OSError, UnicodeError, ValueError) as error:
+        outcomes = [(group, cases, [], str(error)) for group, cases in items]
+    if not fast:
+        return outcomes
+    replayed = []
+    for group, cases, failures, error in outcomes:
+        if failures or error:
+            def attempt(debug):
+                try:
+                    return compare(group, cases, eval_results(group, cases, debug)), None
+                except (OSError, UnicodeError, ValueError) as caught:
+                    return [], str(caught)
+            failures, error = replay_failure(group, failures, error, attempt)
+        replayed.append((group, cases, failures, error))
+    return replayed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--backend', choices=('eval', 'ship'), default='eval')
     parser.add_argument('-j', '--jobs', type=int, default=1,
-                        help='parallel eval groups (ship groups run sequentially)')
+                        help='parallel eval batches (ship groups run sequentially)')
     parser.add_argument('--fast', action='store_true',
                         help='eval without debug spots, rerun failures with them')
     parser.add_argument('groups', nargs='*', choices=GROUPS)
@@ -408,21 +506,22 @@ def main():
             ship = shiptool.Ship(shiptool.PIER, None, shiptool.CLICK)
             ship.require()
             shiptool.sync(ship, 'my-app')
-        def run_group(item):
-            group, cases = item
+        def run_batch(items):
             try:
                 if ship:
-                    return group, cases, compare(group, cases, ship_results(ship, group, cases)), None
-                failures, error = eval_group(group, cases, args.fast)
-                return group, cases, failures, error
+                    group, cases = items[0]
+                    return [(group, cases, compare(group, cases, ship_results(ship, group, cases)), None)]
+                return eval_batch(items, args.fast)
             except (OSError, UnicodeError, ValueError, shiptool.Fail, shiptool.Unable) as error:
-                return group, cases, [], str(error)
+                return [(group, cases, [], str(error)) for group, cases in items]
 
         errors = []
         run_failed = False
         jobs = 1 if ship else args.jobs
+        batches = [[item] for item in groups_cases] if ship else eval_batches(groups_cases)
         with ThreadPoolExecutor(max_workers=jobs) as pool:
-            for group, cases, failures, run_error in pool.map(run_group, groups_cases):
+            for group, cases, failures, run_error in (
+                    outcome for outcomes in pool.map(run_batch, batches) for outcome in outcomes):
                 if run_error is not None:
                     run_failed = True
                     print('%s: no complete results for %d probes\n%s' %

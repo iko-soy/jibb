@@ -213,6 +213,26 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Checking it
 
+Strict eval probe batches now share immutable compiler/importer, reader evidence, prelude and mark setup across at most three adjacent app groups. The importer is constructed once in the app harness. Each source group retains its own module overrides and each case retains its original `mule` road, fresh inference state and empty module cache. Plain and import-only programs remain byte-identical and run separately. The four manifest batches now start ten eval processes instead of sixteen before fallback; all 348 cases in 16 groups, including 146 expected negatives, remain covered exactly once. Ship-generated programs and scheduling are unchanged.
+
+On 2026-11-14, a frozen before/after comparison against `8652c2b` used pinned Vere 4.6 and Python on x86_64-linux. The complete first manifest batch includes `p1`, `p2`, `p3` and `errors-p1`: 133 cases. All inputs, ordered outcomes, full diagnostics, source excerpts and positive type reports matched exactly. All 58,293 returned report bytes matched; the audit removed only the one transport newline that `tools/hoon --raw` appends per process, retaining the original raw output files.
+
+| First probe batch | Separate app groups | Shared app setup |
+| --- | ---: | ---: |
+| Complete batch wall time | 686.30 s | 372.65 s |
+| Complete batch child user CPU | 669.00 s | 361.34 s |
+| App groups only, wall time | 523.44 s | 213.57 s |
+| Separate plain-group control, wall time | 162.86 s | 159.08 s |
+| Eval processes | 4 | 2 |
+
+This saves 313.65 seconds (45.7%) wall and 307.67 seconds (46.0%) child user CPU for this batch. CPU includes the subprocess Python tools. This is one paired sample on a shared host, with at most two evals active; it measures complete compilation, setup and checking for the batch, not the full Nix check's critical path. Neither run needed resource fallback or diagnostic replay.
+
+An additional real-Hoon isolation control defines the same module path with an `@ud` value in one group and an `@t` value in another, then imports that path from a third group where it is absent. Separate baseline runs and one combined run return identical 410-byte reports: four typed successes and the expected missing-module rejection, including its exact source site and excerpt. This detects module leakage or accidental concatenation of group sources.
+
+Three new tooling selftests cover group and source ordering, repeated labels across groups, missing/extra/reordered results, whole-group resource fallback in both debug modes, and retention of fast failures after successful debug replay. Existing fast-failure and resource-isolation controls still pass. Manifest validation now compares combined app programs as well as the individual eval inputs and ship programs against their narrowed sources. The Nix graph changes 12 of 50 leaves and preserves 38; actual Git-flake inputs match the clean tracked snapshot, and all 49 source-bearing store closures retain their projected files, bytes, executable modes and symlink targets.
+
+Full `nix flake check -L -j 2 --keep-going` passed on x86_64-linux with all 50 leaves valid: 38 unchanged results were reused and all 12 affected leaves passed. All 348 probe outcomes passed under eval and on fresh ships, without resource fallback or diagnostic replay. The tooling selftest passed all 32 checks in 495 seconds, retaining the original 29 checks in order; all eight residual checks passed in seven seconds, and the ship runner selftest passed in 62 seconds. The full command reused separately completed checks, including fresh-ship work shared with a concurrent Nix build, so its elapsed time is not a standalone cold benchmark.
+
 Library smoke compilation is now cached separately from desk assembly. Its source contains exactly five files: `jibb.hoon`, `jibb-import.hoon`, `tools/hoon`, `tools/urbit_eval.py` and `tools/noun.py`, with pinned Python and Urbit dependencies. Both libraries still compile sequentially with debug instrumentation and the existing timeout. The smoke output contains the exact compiled sources, and `desks` compares both assembled libraries against them. The eval aggregate retains this output through CI cache cleanup.
 
 On 2026-11-14, full `nix flake check -L -j 2 --keep-going` passed on x86_64-linux with all 50 leaves valid. Compared with `7bedfd2`, 48 existing leaves were unchanged and reused; desks changed and the smoke leaf was added. The smoke build phase took 151 seconds, and the incremental full check took 165.72 seconds. These are individual shared-machine measurements with previously cached eval, native and ship results, not a cold full-check benchmark.

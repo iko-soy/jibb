@@ -1011,6 +1011,114 @@ def check_fast_resource_isolation(c, tmp):
              (seen, failures, error))
 
 
+def probe_batch_fixture():
+    probes = SourceFileLoader('selftest_batch_probes', os.path.join(TOOLS, 'probe-regression')).load_module()
+    # Repeated labels in different groups are valid; module additions stay local.
+    items = [
+        ('p1', [('/ui/shared/jibb same', '/ui/shared/jibb', '++ main 1\n')]),
+        ('p2', [('/ui/helper/jibb module local', '/ui/helper/jibb', '++ value 2\n'),
+                ('/ui/use/jibb use', '/ui/use/jibb', '/= helper /ui/helper\n++ main value.helper\n')]),
+        ('p3', [('/ui/shared/jibb same', '/ui/shared/jibb', '++ main 3\n')]),
+    ]
+    passing = [[(label, 0, '') for label, _, _ in cases] for _, cases in items]
+    return probes, items, passing
+
+
+def check_probe_batch_inputs(c, tmp):
+    """Batch boundaries and output slicing preserve every group and source."""
+    probes, items, passing = probe_batch_fixture()
+    names = ['p1', 'p2', 'p3', 'p4', 'errors-p1', 'p5', 'imports',
+             'p6', 'p7', 'p8', 'p9']
+    selected = [(name, items[0][1]) for name in names]
+    grouped = probes.eval_batches(selected)
+    c.expect([[group for group, _ in batch] for batch in grouped] ==
+             [['p1', 'p2', 'p3'], ['p4'], ['errors-p1'], ['p5'], ['imports'],
+              ['p6', 'p7', 'p8'], ['p9']], 'app batching changed group order: %r' % grouped)
+    c.expect([item for batch in grouped for item in batch] == selected and
+             probes.eval_batches(selected, max_groups=1) == [[item] for item in selected],
+             'batching lost inputs or changed singleton selection')
+
+    flattened = [result for group in passing for result in group]
+    seen = []
+    def process(command, **kwargs):
+        sources = [word for word in command[2:] if word not in ('--no-debug', '--app-source')]
+        seen.append((command[1], '--no-debug' in command, command.count('--app-source'),
+                     [read(path).decode() for path in sources]))
+        return SimpleNamespace(returncode=0, stderr='', stdout=''.join(
+            '#### %s\nCHECKED\n' % label for label, _, _ in flattened))
+    with patch.object(probes.subprocess, 'run', process):
+        actual = probes.eval_batch_results(items, debug=False)
+    expected_sources = [''.join('#### ' + label + '\n' + source
+                                for label, _, source in cases) for _, cases in items]
+    c.expect(actual == passing and seen == [('app', True, 2, expected_sources)],
+             'batch command or result boundaries changed: %r %r' % (seen, actual))
+
+    for wrong in (flattened[:-1], flattened + flattened[:1],
+                  [flattened[1], flattened[0], *flattened[2:]]):
+        output = ''.join('#### %s\nCHECKED\n' % label for label, _, _ in wrong)
+        with patch.object(probes.subprocess, 'run', return_value=SimpleNamespace(
+                returncode=0, stderr='', stdout=output)):
+            error = None
+            try:
+                probes.eval_batch_results(items)
+            except ValueError as caught:
+                error = str(caught)
+        c.expect(error and 'each batched probe in order' in error,
+                 'accepted missing, extra or reordered batch results: %r' % wrong)
+
+
+def check_probe_batch_resources(c, tmp):
+    """Resource fallback keeps whole group inputs and the selected debug mode."""
+    probes, items, passing = probe_batch_fixture()
+    for debug in (False, True):
+        for bail in ('meme', 'oops'):
+            seen = []
+            def single(group, cases, debug=True):
+                seen.append((group, cases, debug))
+                return [(label, 0, '') for label, _, _ in cases]
+            limited = SimpleNamespace(returncode=1, stderr='bail: %' + bail, stdout='')
+            with patch.object(probes.subprocess, 'run', return_value=limited), \
+                    patch.object(probes, 'eval_results', single):
+                actual = probes.eval_batch_results(items, debug=debug)
+            c.expect(actual == passing and seen == [(group, cases, debug) for group, cases in items],
+                     'batch resource fallback changed mode or group context: %r' % seen)
+
+
+def check_probe_batch_replay(c, tmp):
+    """Replay failed groups only, and never erase their original fast failure."""
+    probes, items, passing = probe_batch_fixture()
+    for crashed in (False, True):
+        seen = []
+        def initial(selected, debug=True):
+            seen.append(('batch', selected, debug))
+            if crashed:
+                raise ValueError('initial batch crash')
+            results = [list(group) for group in passing]
+            label = results[1][0][0]
+            results[1][0] = (label, 1, 'initial wrong rejection')
+            return results
+        def replay(group, cases, debug=True):
+            seen.append(('group', (group, cases), debug))
+            return [(label, 0, '') for label, _, _ in cases]
+        with patch.object(probes, 'eval_batch_results', initial), \
+                patch.object(probes, 'eval_results', replay):
+            outcomes = probes.eval_batch(items, fast=True)
+        replayed = items if crashed else items[1:2]
+        c.expect(seen == [('batch', items, False)] + [('group', item, True) for item in replayed],
+                 'batch replay changed inputs or repeated passing groups: %r' % seen)
+        c.expect([(group, cases) for group, cases, _, _ in outcomes] == items,
+                 'batch replay changed output order or case counts: %r' % outcomes)
+        for group, _, failures, error in outcomes:
+            failed = crashed or group == 'p2'
+            detail = str(error or failures)
+            c.expect(bool(failures or error) == failed and
+                     (not failed or 'fast failure retained' in detail),
+                     'passing debug replay changed initial batch outcome: %s %s' % (group, detail))
+            if failed:
+                c.expect(('initial batch crash' if crashed else 'initial wrong rejection') in detail,
+                         'batch replay lost original failure: ' + detail)
+
+
 CHECKS =[(name[len('check_'):], fn) for name, fn in globals().items()
           if name.startswith('check_')]
 
