@@ -33,8 +33,8 @@ def load_all(root):
                     logical != "/sur/" + module or (module, name) in reader_names):
                 raise ValueError("invalid or duplicate prelude reader at line %d" % number)
             reader_names.add((module, name))
-            filename = os.path.realpath(os.path.join(desk, "sur", module + ".hoon"))
-            if os.path.commonpath((desk, filename)) != desk:
+            filename = os.path.join(desk, "sur", module + ".hoon")
+            if os.path.commonpath((desk, os.path.realpath(filename))) != desk:
                 raise ValueError("prelude reader source escapes its desk at line %d" % number)
             try:
                 with open(filename, "rb") as stream:
@@ -57,8 +57,8 @@ def load_all(root):
         if (not logical.startswith("/") or len(parts) < 2 or
                 any(not PART.fullmatch(part) or part in (".", "..") for part in parts[1:])):
             raise ValueError("invalid prelude group module path at line %d" % number)
-        filename = os.path.realpath(os.path.join(desk, *parts[1:]) + ".jibb")
-        if os.path.commonpath((desk, filename)) != desk:
+        filename = os.path.join(desk, *parts[1:]) + ".jibb"
+        if os.path.commonpath((desk, os.path.realpath(filename))) != desk:
             raise ValueError("prelude group source escapes its desk at line %d" % number)
         try:
             with open(filename, "rb") as stream:
@@ -76,6 +76,69 @@ def load_all(root):
 def load(root):
     groups, modules, _ = load_all(root)
     return groups, modules
+
+
+def reader_inventory(root, readers):
+    """Unique Hoon sources available to the reader, with logical desk paths.
+
+    Self-contained readers need only their roots. A possible Ford import
+    makes the entire /sur and /lib Hoon inventory available; the Hoon reader
+    alone parses headers, selects paths and authenticates the reached closure.
+    The byte search is deliberately an overapproximation, not a Ford parser.
+    """
+    sources = {}
+    for _, _, logical, filename, data in readers:
+        entry = (logical, filename, data)
+        if logical in sources and sources[logical][2] != data:
+            raise ValueError("conflicting prelude reader source: " + logical)
+        sources[logical] = entry
+    if any(b"/-" in entry[4] or b"/+" in entry[4] for entry in readers):
+        desk = os.path.realpath(os.path.join(root, "jibb-dev"))
+        repository = os.path.realpath(root)
+        vendor = os.path.join(root, "vendor")
+        packages = sorted(os.listdir(vendor)) if os.path.isdir(vendor) else []
+        trees = [os.path.join(vendor, name) for name in packages
+                 if not name.startswith('.') and os.path.isdir(os.path.join(vendor, name))]
+        # Match assembly order and duplicate handling, including the libraries
+        # vendored into every desk. The final filename is the desk's identity.
+        for tree in trees + [desk]:
+            for namespace in ("sur", "lib"):
+                base = os.path.join(tree, namespace)
+                if os.path.islink(base):
+                    continue
+                for folder, dirs, files in os.walk(base):
+                    # Hidden entries and directory links are not published.
+                    dirs[:] = sorted(name for name in dirs if not name.startswith('.')
+                                     and not os.path.islink(os.path.join(folder, name)))
+                    for name in sorted(files):
+                        if name.startswith('.') or not name.endswith(".hoon"):
+                            continue
+                        filename = os.path.join(folder, name)
+                        # Keep logical link filenames; the manifest also
+                        # retains their repository-contained physical targets.
+                        if os.path.commonpath((repository, os.path.realpath(filename))) != repository:
+                            raise ValueError("prelude reader source escapes its repository: " + filename)
+                        logical = "/" + os.path.relpath(filename, tree)[:-5].replace(os.sep, "/")
+                        try:
+                            with open(filename, "rb") as stream:
+                                data = stream.read()
+                        except OSError as error:
+                            raise ValueError("cannot read prelude reader source %s: %s" % (filename, error)) from error
+                        if logical in sources and sources[logical][2] != data:
+                            raise ValueError("conflicting prelude reader source: " + logical)
+                        sources[logical] = (logical, filename, data)
+    return [sources[path] for path in sorted(sources)]
+
+
+def reader_expression(entries, reader):
+    """Keep legacy evidence for bare roots, reconstruct Ford roots on failure."""
+    return ("(turn `(list [module=term name=term at=path source=@t])`%s "
+            "|=(entry=[module=term name=term at=path source=@t] "
+            "=/(built=(each type tang) (mule |.(-:(ride -:!>(..zuse) source.entry))) "
+            "[module.entry name.entry ?:(?=(%%| -.built) "
+            "(read-generic-bundle:%s module.entry name.entry at.entry prelude-reader-sources) "
+            "(read-generic-source:%s module.entry name.entry at.entry source.entry p.built))])))"
+            % (entries, reader, reader))
 
 
 def hoon_path(logical):

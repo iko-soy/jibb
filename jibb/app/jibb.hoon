@@ -638,14 +638,16 @@
     ?:  (has-file files theme-at)  (read-clay pre theme-at)
     [%& !<(@t (slap builder (ream 'default-theme-source')))]
   ?:  ?=(%| -.theme)  [& b(failure `p.theme) s]
-  ::  The compiler, prelude, renderer and collection reader identify the
-  ::  build environment; the prelude step reports a missing reader.
-  =/  collections=path  /sur/jibb-collections/hoon
+  ::  Custom prelude readers can depend on any /sur source. Include the
+  ::  whole tree so edits, deletions and newly preferred Ford paths cannot
+  ::  reuse a preparation from another source inventory. /lib covers the
+  ::  compiler, manifest, prelude, renderer and Ford libraries.
   =/  env=@uv
     %-  sham
-    :+  %jibb-env-1
+    :+  %jibb-env-2
       .^(@uvI %cz (weld pre /lib))
-    ?.((has-file files collections) 0v0 .^(@uvI %cz (weld pre collections)))
+    ?.  (lien files |=(at=path ?=([%sur *] at)))  0v0
+    .^(@uvI %cz (weld pre /sur))
   =/  roots=(list [at=path source=@t])
     ?:  (lien p.bundle |=(m=[at=path source=@t] =(at.m theme-at)))
       (snoc p.bundle [renderer-at p.renderer])
@@ -1100,30 +1102,61 @@
     aor
   =/  reader-sources=(each (list [at=path source=@t]) @t)  (read-all pre reader-files)
   ?:  ?=(%| -.reader-sources)  reader-sources
-  =/  read-generic=vase  (slap (reader-vase pre) (ream 'read-generic-source'))
-  =/  externals=(each iexternals:jibb @t)
+  =/  reader=vase  (reader-vase pre)
+  =/  read-generic=vase  (slap reader (ream 'read-generic-source'))
+  =/  bundle-reader=?  (slab %read %read-generic-bundle p.reader)
+  =/  readers=(each [externals=iexternals:jibb bundle=jbundle:jibb] @t)
     =|  out=iexternals:jibb
+    =|  inventory=(unit jbundle:jibb)
     =/  entries=(list [module=term at=path name=term])  readers.p.manifest
     |-
-    ?~  entries  [%& (flop out)]
+    ?~  entries  [%& (flop out) ?~(inventory p.reader-sources u.inventory)]
     =/  file=tape  (show-file:jibb at.i.entries)
     =/  found=(list [at=path source=@t])
       (skim p.reader-sources |=(f=[at=path source=@t] =(at.f at.i.entries)))
     ?~  found  [%| (crip "static build: cannot read the prelude reader {file}")]
     =/  core=(each type tang)  (mule |.(-:(~(mint ut -:!>(..zuse)) %noun (ream source.i.found))))
-    ?:  ?=(%| -.core)  [%| (crip "static build: cannot rebuild the prelude reader {file}")]
+    ::  Retain the exact legacy evidence for self-contained sources. Older
+    ::  vendored readers keep their existing failure when a rebuild needs
+    ::  Ford; never call an API their type does not expose.
+    ?.  |(?=(%& -.core) bundle-reader)
+      [%| (crip "static build: cannot rebuild the prelude reader {file}")]
+    =/  files=(each jbundle:jibb @t)
+      ?^  inventory  [%& u.inventory]
+      ?:  ?=(%& -.core)  [%& ~]
+      (read-ford-sources pre)
+    ?:  ?=(%| -.files)  files
+    =?  inventory  ?=(%| -.core)  `p.files
     =/  read=(each imported:jibb-import @t)
+      ?:  ?=(%| -.core)
+        !<  (each imported:jibb-import @t)
+        %+  slam  (slap reader (ream 'read-generic-bundle'))
+        !>([module.i.entries name.i.entries at.i.entries p.files])
       !<  (each imported:jibb-import @t)
       %+  slam  read-generic
       !>([module.i.entries name.i.entries at.i.entries source.i.found p.core])
     ?:  ?=(%| -.read)
       [%| (crip "static build: prelude reader {file} {(trip name.i.entries)}: {(trip p.read)}")]
     $(entries t.entries, out [[module.i.entries name.i.entries read] out])
-  ?:  ?=(%| -.externals)  externals
-  =/  modules=jbundle:jibb  (weld p.sources p.reader-sources)
+  ?:  ?=(%| -.readers)  readers
+  ::  Multiple readers may share dependencies or an explicitly supplied
+  ::  source. Supply one exact entry per path, rejecting conflicting bytes.
+  =/  modules=(each jbundle:jibb @t)
+    =/  pending=jbundle:jibb  (weld p.sources bundle.p.readers)
+    =|  out=jbundle:jibb
+    =|  seen=(map path @t)
+    |-
+    ?~  pending  [%& (flop out)]
+    =/  prior=(unit @t)  (~(get by seen) at.i.pending)
+    ?^  prior
+      ?.  =(u.prior source.i.pending)
+        [%| (crip "static build: conflicting prelude source {(show-file:jibb at.i.pending)}")]
+      $(pending t.pending)
+    $(pending t.pending, out [i.pending out], seen (~(put by seen) at.i.pending source.i.pending))
+  ?:  ?=(%| -.modules)  modules
   =/  prepare=vase  (slap (builder-vase pre) (ream 'prepare-lowering'))
   =/  prepared=vase
-    (slam prepare !>([p.public p.private p.groups modules p.externals]))
+    (slam prepare !>([p.public p.private p.groups p.modules externals.p.readers]))
   ?~  +.prepared  [%| 'static build: checked Clay prelude did not prepare']
   [%& +>.prepared]
 ::  A manifest line is `group FACE /path`, `source /path` or

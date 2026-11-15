@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import sys
 import tempfile
 from types import SimpleNamespace
@@ -66,6 +67,97 @@ with tempfile.TemporaryDirectory(prefix='jibb-check-inputs-test-') as folder:
             del os.environ['JIBB_DESK_MAPS']
         else:
             os.environ['JIBB_DESK_MAPS'] = previous
+
+
+manifest = importlib.machinery.SourceFileLoader(
+    'check_inputs_manifest', str(ROOT / 'tools/eval-manifest')).load_module()
+
+
+with tempfile.TemporaryDirectory(prefix='jibb-reader-inputs-test-') as folder:
+    root = Path(folder)
+
+    def put(path, text):
+        target = root / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text)
+        return target
+
+    put('jibb-dev/lib/jibb/prelude-groups.txt',
+        'group fixture /lib/group\nreader custom /sur/custom table\n'
+        'reader custom /sur/custom keys\n')
+    put('jibb-dev/lib/jibb/prelude.jibb', '')
+    put('jibb-dev/lib/jibb/internal.jibb', '')
+    put('jibb-dev/lib/jibb-import.hoon', '|%\n++  fixture  42\n--\n')
+    put('jibb-dev/.readers/custom.hoon', '/+  helper\n|%\n--\n')
+    put('jibb-dev/.groups/group.jibb', '/- custom\n+$ maps |$ [K V] (table.custom K V)\n')
+    put('shared/helper.hoon', '/-  dep-base\n/+  vendored\n|%\n--\n')
+    put('vendor/fixture/lib/vendored.hoon', '|%\n+$  value  @ud\n--\n')
+    put('jibb-dev/sur/dep/base.hoon', '|%\n+$  value  @ud\n--\n')
+    put('jibb-dev/lib/.ignored.hoon', 'hidden file must not become a binding\n')
+    put('jibb-dev/lib/.hidden/ignored.hoon', 'hidden directory must not become a binding\n')
+    put('unpublished/ignored.hoon', 'directory link must not become a binding\n')
+    (root / 'jibb-dev/sur/custom.hoon').symlink_to('../.readers/custom.hoon')
+    (root / 'jibb-dev/lib/group.jibb').symlink_to('../.groups/group.jibb')
+    (root / 'jibb-dev/lib/helper.hoon').symlink_to('../../shared/helper.hoon')
+    (root / 'jibb-dev/lib/linked').symlink_to('../../unpublished', target_is_directory=True)
+    for mark in ('hoon', 'jibb', 'txt', 'kelvin'):
+        put('jibb-dev/mar/' + mark + '.hoon', '42\n')
+    put('jibb-dev/sys.kelvin', '[%zuse 310]\n')
+    for directory in ('ui', 'sur', 'mar'):
+        (root / 'my-app' / directory).mkdir(parents=True)
+    put('my-app/ui/example.jibb', '++ main 42\n')
+    review = manifest.REVIEW
+    copied = [review + '/run', review + '/check.hoon', 'tests/clay-fixtures/my-app.txt']
+    for relative in copied:
+        put(relative, (ROOT / relative).read_text())
+    put(review + '/errors/p1.jibb', '#### fixture\n++ value 42\n')
+    common = ['jibb-dev/lib/jibb-import.hoon', 'jibb-dev/lib/jibb/prelude.jibb',
+              'jibb-dev/lib/jibb/internal.jibb', 'jibb-dev/lib/jibb/prelude-groups.txt',
+              'tests/clay-fixtures/my-app.txt']
+    test_ship = manifest.probe_regression.shiptool
+    with patch.object(manifest, 'ROOT', str(root)), \
+            patch.object(test_ship, 'ROOT', str(root)), \
+            patch.object(manifest.probe_regression, 'PROBES', root / review), \
+            patch.object(manifest, 'PROBE_COMMON', common), \
+            patch.object(manifest, 'PROBE_GROUPS', [('errors-p1',)]):
+        assembled = test_ship.Assembly('my-app')
+        assembled.add_tree(str(root / 'vendor/fixture'), '')
+        assembled.add_tree(str(root / 'jibb-dev'), '')
+        assembled.add_tree(str(root / 'my-app'), '')
+        logical = manifest.prelude_paths(include_targets=False)
+        physical = manifest.prelude_paths()
+        targets = {'jibb-dev/.readers/custom.hoon', 'jibb-dev/.groups/group.jibb',
+                   'shared/helper.hoon'}
+        assert targets <= physical and not targets & logical
+        assert {'jibb-dev/sur/custom.hoon', 'jibb-dev/lib/helper.hoon',
+                'vendor/fixture/lib/vendored.hoon'} <= logical
+        assert not any('ignored' in path or '/linked/' in path for path in physical)
+        mapping = manifest.ship_mapping(assembled, logical)
+        assert mapping['sur/custom.hoon'] == 'jibb-dev/sur/custom.hoon'
+        assert mapping['lib/helper.hoon'] == 'jibb-dev/lib/helper.hoon'
+        assert mapping['lib/vendored.hoon'] == 'vendor/fixture/lib/vendored.hoon'
+        assert targets <= set(manifest.ship_dependencies(mapping))
+        # Exercise the actual caller: physical targets inside jibb-dev must
+        # not leak back into its required desk source identities.
+        with patch.object(test_ship, 'assemble', return_value=assembled):
+            batches = manifest.probe_batches()
+        assert len(batches) == 1
+        batch = batches[0]
+        assert targets <= set(batch['paths'])
+        assert not targets & set(batch['ship_desks']['my-app'].values())
+        full = manifest.probe_signature(str(root), batch['groups'])
+        # Preserve links here. A dereferencing copy could hide a missing Nix
+        # input by copying the target's bytes into the link's own filename.
+        with tempfile.TemporaryDirectory(prefix='jibb-reader-narrow-test-') as narrow:
+            for relative in batch['paths']:
+                source, target = root / relative, Path(narrow) / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if source.is_symlink():
+                    target.symlink_to(os.readlink(source))
+                else:
+                    shutil.copy2(source, target)
+            assert manifest.probe_signature(narrow, batch['groups']) == full
+
 
 def arm_rejects(operation, fragment):
     try:
@@ -369,4 +461,4 @@ with tempfile.TemporaryDirectory(prefix='jibb-bench-inputs-test-') as folder:
             if wanted:
                 assert (destination / record['failure_file']).read_text().strip()
 
-print('check-inputs: assemblies, library dependencies, suite prefixes, partitions and eval profiling passed')
+print('check-inputs: assemblies, prelude closures, library dependencies, suite prefixes, partitions and eval profiling passed')

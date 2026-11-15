@@ -1,0 +1,9 @@
+::  Only the manifest supplies these authenticated generic reader interfaces.
+++ map-id |= value=(maps.ford @t @ud) value
+++ set-id |= value=(sets.ford @t) value
+++ more-id |= value=(more-maps.ford @t @ud) value
+
+++ main
+  column ~ ~[
+    heading 1 "Manifest Ford readers"
+    text "Shared custom readers checked."

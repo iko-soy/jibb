@@ -73,7 +73,7 @@ PASSWORD = 'lidlut-tabwed-pillex-ridrup'
 #  machine, so a request may wait that long for its answer.
 REPLY = 900
 #  The fixture's modules, its default theme and the vendored renderer.
-FIXTURE_MODULES = {'/ui/about/jibb', '/ui/css-numbers/jibb',
+FIXTURE_MODULES = {'/ui/about/jibb', '/ui/css-numbers/jibb', '/ui/prelude-ford/jibb',
                    '/ui/notes/jibb', '/ui/parts/note/jibb',
                    '/ui/blog/index/jibb', '/ui/tables/jibb', '/ui/misspelled/jibb',
                    '/ui/numbered/_n/jibb', '/ui/crash/jibb',
@@ -508,6 +508,83 @@ def check_ford_dependencies(ship, owner):
             wait_built(ship, DESK, rev)
 
 
+def exercise_prelude_ford(ship, owner):
+    """Exercise current manifest reader inputs; return the observed errors.
+
+    The exact-message check below and the diagnostic capture use this same
+    sequence, including successful restoration and cleanup after a failure.
+    """
+    fixture = ROOT / 'tests' / 'prelude-ford'
+    base_file = 'sur/manifest/base.hoon'
+    preferred_file = 'sur/manifest-base.hoon'
+    original = (fixture / 'base.hoon').read_bytes()
+    shadowed = (fixture / 'shadowed-base.hoon').read_bytes()
+    preferred_path = Path(ship.pier) / DESK / preferred_file
+    expect(not preferred_path.exists(), 'the preferred manifest dependency already exists')
+    target = BASE + '/prelude-ford'
+    status, _, initial = owner.request('GET', target)
+    expect(status == 200 and b'Shared custom readers checked.' in initial,
+           'the custom manifest readers did not check: HTTP %d: %r' % (status, initial))
+    original_modules = set(module_revisions(ship, DESK))
+    observed = []
+    dirty = False
+
+    def failed(label, revision):
+        wait_built(ship, DESK, revision)
+        message = page_error(owner, target)
+        modules = module_revisions(ship, DESK)
+        expect(set(modules) == original_modules,
+               'a failed manifest prelude changed the set of checked modules')
+        expect(modules.get('/ui/prelude-ford/jibb') == revision,
+               'the changed manifest dependency reused an earlier module check')
+        observed.append({'stage': label, 'revision': revision,
+                         'message': message, 'module_revisions': modules})
+
+    def recovered(revision):
+        wait_built(ship, DESK, revision)
+        status, _, body = owner.request('GET', target)
+        expect(status == 200 and body == initial,
+               'restoring the manifest dependencies did not recover the original page: '
+               'HTTP %d: %r' % (status, body))
+        status, _, body = owner.request('GET', PAGE)
+        expect(status == 200 and b'About this ship' in body,
+               'About did not recover with the manifest prelude: HTTP %d' % status)
+
+    try:
+        dirty = True
+        # Both reader roots, and both arms on the first root, depend on this
+        # source through the same /lib. A cached prelude must see its new proof.
+        failed('changed', commit_file(ship, base_file, shadowed))
+        failed('missing', commit_file(ship, base_file, None))
+        recovered(commit_file(ship, base_file, original))
+        # Clay prefers the flat dashed spelling over the nested path. The
+        # original lower-priority file remains valid throughout this control.
+        failed('preferred', commit_file(ship, preferred_file, shadowed))
+        recovered(commit_file(ship, preferred_file, None))
+        dirty = False
+    finally:
+        if dirty:
+            changes = {base_file: original}
+            if preferred_path.exists():
+                changes[preferred_file] = None
+            revision = commit_files(ship, changes)
+            wait_built(ship, DESK, revision)
+    return observed
+
+
+def check_prelude_ford(ship, owner):
+    fixture = ROOT / 'tests' / 'prelude-ford'
+    expected = {stage: (fixture / ('host-' + stage + '-error.txt')).read_text().removesuffix('\n')
+                for stage in ('changed', 'missing', 'preferred')}
+    expect(all(expected.values()), 'manifest Ford diagnostic expectations must not be empty')
+    observed = exercise_prelude_ford(ship, owner)
+    for entry in observed:
+        stage, actual = entry['stage'], entry['message']
+        expect(actual == expected[stage],
+               '%s manifest Ford diagnostic was\n%s\nnot\n%s'
+               % (stage, actual, expected[stage]))
+
+
 def wait_for(what, probe, timeout=600):
     deadline = time.monotonic() + timeout
     last = None
@@ -867,6 +944,9 @@ def main(args):
 
         with timed_phase('Ford dependencies and recovery'):
             check_ford_dependencies(ship, owner)
+
+        with timed_phase('manifest Ford readers and recovery'):
+            check_prelude_ford(ship, owner)
 
         with timed_phase('broken compiler and recovery'):
             # A build that cannot run, here because the desk's compiler does not

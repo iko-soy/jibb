@@ -1,0 +1,5 @@
+static build: prelude reader /sur/manifest-collections.hoon table: Hoon source /sur/manifest-collections/hoon:2:5: Hoon source /lib/manifest-helpers/hoon:1:5: missing Ford dependency /sur/manifest-base/hoon
+/-  manifest-base
+    ^
+/+  manifest-helpers
+    ^

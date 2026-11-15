@@ -1,0 +1,48 @@
+valid manifest collections:
+module kind: library
+++ maps: $-((map @ud @t) (map @ud @t))
+++ sets: $-((set @p) (set @p))
+++ more: $-((map @t @ud) (map @t @ud))
+invalid map key:
+++ wrong: map keys cannot contain gates
+/lib/jibb/prelude.jibb:1:4: earlier binding
++$ map |$ [K V] (maps.ford K V)
+   ^
+/tests/prelude-ford.jibb:1:20: collection has type (map A B) where A contains no gates
+++ wrong |= value=(map $-(@t @t) @ud) value
+                   ^
+/tests/prelude-ford.jibb:1:24: key has type $-(@t @t)
+++ wrong |= value=(map $-(@t @t) @ud) value
+                       ^
+changed dependency bytes with old proof:
+prelude Hoon reader evidence does not match its source
+deleted dependency with old proof:
+prelude Hoon reader evidence does not match its source
+preferred dependency with old proof:
+prelude Hoon reader evidence does not match its source
+duplicate dependency bytes:
+prelude Hoon reader evidence does not match its source
+duplicate reader declaration:
+prelude Hoon reader evidence does not match its source
+fresh commented dependency:
+module kind: library
+++ maps: $-((map @ud @t) (map @ud @t))
+++ sets: $-((set @p) (set @p))
+++ more: $-((map @t @ud) (map @t @ud))
+fresh preferred dependency:
+module kind: library
+++ maps: $-((map @ud @t) (map @ud @t))
+++ sets: $-((set @p) (set @p))
+++ more: $-((map @t @ud) (map @t @ud))
+fresh shadowed constructor:
+Hoon generic collection forwarding is not proven
+missing direct dependency:
+Hoon source /sur/manifest-collections/hoon:2:5: missing Ford dependency /lib/manifest-helpers/hoon
+/+  manifest-helpers
+    ^
+missing transitive dependency:
+Hoon source /sur/manifest-collections/hoon:2:5: Hoon source /lib/manifest-helpers/hoon:1:5: missing Ford dependency /sur/manifest-base/hoon
+/-  manifest-base
+    ^
+/+  manifest-helpers
+    ^

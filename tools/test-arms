@@ -72,6 +72,7 @@ COSTS = {
     # Conservative placement weights from 2026-11-15 focused Ford runs
     # (145 s and 137 s total, including shared library setup).
     'jibb-ford-rebuild': 60, 'jibb-ford-imports': 60,
+    'jibb-prelude-ford': 60,
     # Conservative placement weights from 2026-11-14 focused runs (184 s
     # and 204 s total, including shared library setup).
     'jibb-fact-validation': 100, 'jibb-recursive-facts': 100,

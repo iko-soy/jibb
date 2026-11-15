@@ -503,6 +503,7 @@ def import_ship_suite():
         raise ValueError('the import probe subject changed; regenerate its ship suite')
     source = new + source[len(old):]
     groups, private, readers = prelude_groups.load_all(str(ROOT))
+    inventory = prelude_groups.reader_inventory(str(ROOT), readers)
     headers, group_entries, private_entries = [], [], []
     for number, (face, logical, _, _) in enumerate(groups + private):
         binding = 'probe-group-' + str(number)
@@ -512,22 +513,22 @@ def import_ship_suite():
             private_entries.append('[%s %s]' % (path, binding))
         else:
             group_entries.append('[%%%s %s %s]' % (face, path, binding))
-    reader_entries = []
-    reader_paths = set()
-    for number, (module, name, logical, _, data) in enumerate(readers):
+    inventory_entries, reader_resources = [], {}
+    for number, (logical, _, _) in enumerate(inventory):
         binding = 'probe-reader-' + str(number)
         headers.append('/*  %s  %%hoon  %s/hoon\n' % (binding, logical))
         path = prelude_groups.sur_path(logical)
-        value = binding
-        if logical not in reader_paths:
-            private_entries.append('[%s %s]' % (path, value))
-            reader_paths.add(logical)
-        reader_entries.append('[%%%s %%%s %s %s]' % (module, name, path, value))
+        inventory_entries.append('[%s %s]' % (path, binding))
+        reader_resources[logical] = binding
+    private_entries += inventory_entries
+    reader_entries = ['[%%%s %%%s %s %s]' % (
+        module, name, prelude_groups.sur_path(logical), reader_resources[logical])
+        for module, name, logical, _, _ in readers]
     prefix = ('=/  groups  ' + shiptool.hoon_list(group_entries) + '\n'
+              '=/  prelude-reader-sources  ' + shiptool.hoon_list(inventory_entries) + '\n'
               '=/  group-sources  ' + shiptool.hoon_list(private_entries) + '\n'
-              '=/  reader-evidence  (turn `(list [module=term name=term at=path source=@t])`' + shiptool.hoon_list(reader_entries) +
-              ' |=(entry=[module=term name=term at=path source=@t] [module.entry name.entry '
-              '(read-generic-source:jibb-import module.entry name.entry at.entry source.entry -:(ride -:!>(..zuse) source.entry))]))\n')
+              '=/  reader-evidence  ' + prelude_groups.reader_expression(
+                  shiptool.hoon_list(reader_entries), 'jibb-import') + '\n')
     return ("::  Generated from the review's errors/import-check.hoon; the probe runner checks this copy.\n"
             '/+  jibb, jibb-import\n'
             '/*  prelude  %jibb  /lib/jibb/prelude/jibb\n'

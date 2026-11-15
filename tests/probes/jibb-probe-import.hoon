@@ -5,12 +5,12 @@
 /*  probe-group-0  %jibb  /lib/jibb/groups/hoon/jibb
 /*  probe-group-1  %jibb  /lib/jibb/groups/bit/jibb
 /*  probe-reader-0  %hoon  /sur/jibb-collections/hoon
-/*  probe-reader-1  %hoon  /sur/jibb-collections/hoon
 |%
 ++  report
   =/  groups  ~[[%hoon ~[~.lib ~.jibb ~.groups ~.hoon ~.jibb] probe-group-0] [%bit ~[~.lib ~.jibb ~.groups ~.bit ~.jibb] probe-group-1]]
+  =/  prelude-reader-sources  ~[[~[~.sur ~.jibb-collections ~.hoon] probe-reader-0]]
   =/  group-sources  ~[[~[~.sur ~.jibb-collections ~.hoon] probe-reader-0]]
-  =/  reader-evidence  (turn `(list [module=term name=term at=path source=@t])`~[[%jibb-collections %table ~[~.sur ~.jibb-collections ~.hoon] probe-reader-0] [%jibb-collections %keys ~[~.sur ~.jibb-collections ~.hoon] probe-reader-1]] |=(entry=[module=term name=term at=path source=@t] [module.entry name.entry (read-generic-source:jibb-import module.entry name.entry at.entry source.entry -:(ride -:!>(..zuse) source.entry))]))
+  =/  reader-evidence  (turn `(list [module=term name=term at=path source=@t])`~[[%jibb-collections %table ~[~.sur ~.jibb-collections ~.hoon] probe-reader-0] [%jibb-collections %keys ~[~.sur ~.jibb-collections ~.hoon] probe-reader-0]] |=(entry=[module=term name=term at=path source=@t] =/(built=(each type tang) (mule |.(-:(ride -:!>(..zuse) source.entry))) [module.entry name.entry ?:(?=(%| -.built) (read-generic-bundle:jibb-import module.entry name.entry at.entry prelude-reader-sources) (read-generic-source:jibb-import module.entry name.entry at.entry source.entry p.built))])))
   =>  [lib=jibb reader=jibb-import prelude=prelude internal=internal groups=groups group-sources=group-sources reader-evidence=reader-evidence ..zuse]
   =/  prepared=iprelude:lib  (need (prepare-prelude-with-group-evidence:lib prelude internal groups group-sources reader-evidence))
   =/  sur=@t

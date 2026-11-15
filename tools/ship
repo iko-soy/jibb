@@ -72,7 +72,7 @@ TESTS_LIB = os.path.join(ROOT, 'tests', 'lib', 'jibb.hoon')
 DESKS = {
     'my-app': [('jibb-dev', '', ['tests']), ('my-app', '', [])],
     'jibb': [('jibb-dev', '', ['tests']), ('jibb', '', [])],
-    'jibb-host-fixture': [('jibb-dev', '', ['tests']),
+    'jibb-host-fixture': [('jibb-dev', '', ['tests', os.path.join('lib', 'jibb', 'prelude-groups.txt')]),
                           (os.path.join('tests', 'host-fixture', 'desk'), '', [])],
     'jibb-dev': [('jibb-dev', '', []),
                  ('tests', 'tests', [os.path.join('clay-fixtures', 'desk'),
@@ -1263,6 +1263,7 @@ def generate_tests(golden, source=None, cases=None):
         lines.append('/*  internal-source  %jibb  /lib/jibb/internal/jibb')
         try:
             group_sources, private_sources, reader_sources = prelude_groups.load_all(ROOT)
+            reader_inventory = prelude_groups.reader_inventory(ROOT, reader_sources)
         except ValueError as error:
             raise Unable(str(error)) from error
         group_entries = []
@@ -1275,19 +1276,20 @@ def generate_tests(golden, source=None, cases=None):
             resource = 'prelude-private-%d' % number
             lines.append('/*  %s  %%jibb  %s/jibb' % (resource, path))
             private_entries.append('[%s %s]' % (prelude_groups.hoon_path(path), resource))
-        reader_entries = []
-        reader_paths = set()
-        for number, (module, name, path, _, data) in enumerate(reader_sources, 1):
+        inventory_entries = []
+        reader_resources = {}
+        for number, (path, _, _) in enumerate(reader_inventory, 1):
             resource = 'prelude-reader-%d' % number
             lines.append('/*  %s  %%hoon  %s/hoon' % (resource, path))
-            source = resource
             logical = prelude_groups.sur_path(path)
-            if path not in reader_paths:
-                private_entries.append('[%s %s]' % (logical, source))
-                reader_paths.add(path)
-            reader_entries.append('[%%%s %%%s %s %s]' % (module, name, logical, source))
+            inventory_entries.append('[%s %s]' % (logical, resource))
+            reader_resources[path] = resource
+        private_entries += inventory_entries
+        reader_entries = ['[%%%s %%%s %s %s]' % (module, name, prelude_groups.sur_path(path), reader_resources[path])
+                          for module, name, path, _, _ in reader_sources]
         groups_expr = hoon_list(group_entries)
         private_expr = hoon_list(private_entries)
+        inventory_expr = hoon_list(inventory_entries)
         readers_expr = hoon_list(reader_entries)
     arms = []
     for i, ((name, folder), arm) in enumerate(
@@ -1424,8 +1426,9 @@ def generate_tests(golden, source=None, cases=None):
         arms.append('++  %s\n  %s' % (arm, call))
     if has_module_types or has_core:
         lines.append('=/  prelude-group-sources  %s' % groups_expr)
+        lines.append('=/  prelude-reader-sources  %s' % inventory_expr)
         lines.append('=/  prelude-group-modules  %s' % private_expr)
-        lines.append("=/  prelude-reader-inputs  (turn `(list [module=term name=term at=path source=@t])`%s |=(entry=[module=term name=term at=path source=@t] =/(built=(each type tang) (mule |.(-:(ride -:!>(..zuse) source.entry))) [module.entry name.entry ?:(?=(%%| -.built) [%%| 'Hoon source could not be built'] (read-generic-source:jibb-import module.entry name.entry at.entry source.entry p.built))])))" % readers_expr)
+        lines.append('=/  prelude-reader-inputs  ' + prelude_groups.reader_expression(readers_expr, 'jibb-import'))
     if has_module_types:
         lines.append('=/  prepared-prelude  (prepare-prelude-with-group-evidence:jibb prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs)')
     lines.append('|%')

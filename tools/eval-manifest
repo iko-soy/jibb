@@ -143,8 +143,8 @@ def golden_batches(cases):
         raise ManifestError(str(error)) from error
     for entry in groups + private:
         add_file(paths, entry[2])
-    for entry in readers:
-        add_file(paths, entry[3])
+    for _, filename, _ in prelude_groups.reader_inventory(ROOT, readers):
+        add_file(paths, filename)
     common = sorted(paths)
     batches = []
     for start in range(0, len(cases), 100):
@@ -273,10 +273,18 @@ def include_tree(paths, relative):
         add_file(paths, absolute)
 
 
-def prelude_paths():
+def prelude_paths(include_targets=True):
     groups, private, readers = prelude_groups.load_all(ROOT)
-    return {repo_relative(entry[2]) for entry in groups + private} | {
-        repo_relative(entry[3]) for entry in readers}
+    filenames = [entry[2] for entry in groups + private]
+    filenames += [filename for _, filename, _ in prelude_groups.reader_inventory(ROOT, readers)]
+    if not include_targets:
+        # A symlink target is a physical Nix input, not a second source
+        # identity in the assembled desk. ship_dependencies retains both.
+        return {repo_relative(filename) for filename in filenames}
+    paths = set()
+    for filename in filenames:
+        add_file(paths, filename)
+    return paths
 
 
 def ship_mapping(assembled, sources):
@@ -376,9 +384,11 @@ def probe_batches():
     common = set()
     for path in PROBE_COMMON:
         include_tree(common, path)
-    common.update(prelude_paths())
-    app_sources = set(prelude_paths()) | {
+    prelude_sources = prelude_paths(include_targets=False)
+    desk_sources = prelude_sources | {
         path for path in common if path.startswith('jibb-dev/')}
+    common.update(prelude_paths())
+    app_sources = set(desk_sources)
     for folder in ('my-app/ui', 'my-app/sur', 'my-app/mar'):
         include_tree(app_sources, folder)
     app_map = ship_mapping(app_desk, app_sources)
@@ -395,7 +405,7 @@ def probe_batches():
             include_tree(paths, 'tests/golden/doc-core-02-update/source.jibb')
         desks = {'my-app': app_map}
         if 'imports' in groups:
-            sources = {path for path in common if path.startswith('jibb-dev/')}
+            sources = set(desk_sources)
             sources.add('tests/probes/jibb-probe-import.hoon')
             desks['jibb-dev'] = ship_mapping(test_desk, sources)
         ship_paths = set(paths)

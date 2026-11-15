@@ -234,6 +234,7 @@
             ./tools/testdata/stub.hoon ./tools/testdata/golden ./tools/golden
             ./tools/test-arms ./tools/doc-blocks ./tools/bundle-js
             ./tools/probe-regression ./tools/check-my-app
+            ./tests/clay-fixtures/my-app.txt
             # The real-compiler crash fixture and its linked mark source.
             ./tests/golden/types-import-mark ./tests/clay-fixtures/desk/mar/label.hoon
             # probe-regression reads these when the selftest imports it.
@@ -327,7 +328,7 @@
               (mappedShipExtra batch);
           }) evalManifest.probe_batches);
           shipHostFiles = fs.unions [
-            shipTestFiles ./tests/host-fixture ./tests/type-ford-imports ./tests/css-numbers ./js
+            shipTestFiles ./tests/host-fixture ./tests/type-ford-imports ./tests/prelude-ford ./tests/css-numbers ./js
             ./tools/check-host ./tools/check-browser ./tools/browser-check.mjs
             ./tools/check-node-tests ./tools/node-tests.mjs
           ];

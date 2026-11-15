@@ -30,13 +30,17 @@
 =/  marks=(list [term *])  ~[[%todo-action +.rma] [%todos +.rmt] [%todo-update +.rmu] [%todo-item +.rmi] [%posts +.rmp] [%post +.rmo]]
 =/  prepare=vase  (slap jibb (ream 'prepare-prelude-with-group-evidence-detailed'))
 =/  read-generic=vase  (slap reader (ream 'read-generic-source'))
+=/  bundle-reader=?  (slab %read %read-generic-bundle p.reader)
+=/  prelude-reader-sources=(list [at=path source=@t])  @@PRELUDE-READER-SOURCES@@
 =/  reader-sources=(list [module=term name=term at=path source=@t])  @@PRELUDE-READERS@@
 =/  reader-evidence=(list [module=term name=term result=*])
   %+  turn  reader-sources
   |=  item=[module=term name=term at=path source=@t]
   =/  built=(each type tang)  (mule |.(-:(ride -:!>(..zuse) source.item)))
   =/  result=*
-    ?:  ?=(%| -.built)  [%| 'Hoon source could not be built']
+    ?:  ?=(%| -.built)
+      ?.  bundle-reader  [%| 'Hoon source could not be built']
+      +:(slym (slap reader (ream 'read-generic-bundle')) [module.item name.item at.item prelude-reader-sources])
     +:(slym read-generic [module.item name.item at.item source.item p.built])
   [module.item name.item result]
 =/  public=@t  .^(@t %cx (weld pre /lib/jibb/prelude/jibb))

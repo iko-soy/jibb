@@ -1,0 +1,1 @@
+static build: prelude reader /sur/manifest-collections.hoon table: Hoon generic collection forwarding is not proven

@@ -295,6 +295,7 @@ def golden_program(lib_path, cases, debug=True):
     if has_module_types:
         try:
             group_sources, private_sources, reader_sources = prelude_groups.load_all(ue.ROOT)
+            reader_inventory = prelude_groups.reader_inventory(ue.ROOT, reader_sources)
         except ValueError as error:
             raise ue.ToolError(str(error)) from error
     imported = any(c.imports or c.marks for c in cases)
@@ -339,15 +340,14 @@ def golden_program(lib_path, cases, debug=True):
             for face, path, _, data in group_sources) + ']' if group_sources else '~'
         private_entries = ['[%s %s]' % (prelude_groups.hoon_path(path), source_expression(data))
                            for _, path, _, data in private_sources]
-        reader_paths = set()
-        for _, _, path, _, data in reader_sources:
-            if path not in reader_paths:
-                private_entries.append('[%s %s]' % (prelude_groups.sur_path(path), source_expression(data)))
-                reader_paths.add(path)
+        inventory_entries = ['[%s %s]' % (prelude_groups.sur_path(path), source_expression(data))
+                             for path, _, data in reader_inventory]
+        inventory_expression = '~[' + ' '.join(inventory_entries) + ']' if inventory_entries else '~'
+        private_entries += inventory_entries
         private_expression = '~[' + ' '.join(private_entries) + ']' if private_entries else '~'
         reader_entries = ['[%%%s %%%s %s %s]' % (module, name, prelude_groups.sur_path(path), source_expression(data))
                           for module, name, path, _, data in reader_sources]
-        reader_expression = ("(turn `(list [module=term name=term at=path source=@t])`~[" + ' '.join(reader_entries) + "] |=(entry=[module=term name=term at=path source=@t] =/(built=(each type tang) (mule |.(-:(ride -:!>(..zuse) source.entry))) [module.entry name.entry ?:(?=(%| -.built) [%| 'Hoon source could not be built'] (read-generic-source:reader module.entry name.entry at.entry source.entry p.built))])))") if reader_entries else '~'
+        reader_expression = prelude_groups.reader_expression('~[' + ' '.join(reader_entries) + ']', 'reader') if reader_entries else '~'
 
         surs = '(import-types imports.metadata)' if imported else '~'
         marks = '(import-marks marks.metadata imports.metadata)' if imported else '~'
@@ -421,10 +421,11 @@ def golden_program(lib_path, cases, debug=True):
         harness = harness.replace(
             '|^  %+  rap  3',
             '=/  prelude-group-sources  %s\n'
+            '=/  prelude-reader-sources  %s\n'
             '=/  prelude-group-modules  %s\n'
             '=/  prelude-reader-inputs  %s\n'
             '%s\n'
-            '|^  %%+  rap  3' % (group_expression, private_expression, reader_expression, prelude_preparation))
+            '|^  %%+  rap  3' % (group_expression, inventory_expression, private_expression, reader_expression, prelude_preparation))
     prog.add(harness.replace('{count}', str(len(cases)))
                     .replace('{runs}', runs)
                     .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")

@@ -1,0 +1,5 @@
+/- manifest-collections
+/- manifest-more
++$ maps |$ [K V] (table.manifest-collections K V)
++$ sets |$ [K] (keys.manifest-collections K)
++$ more-maps |$ [K V] (table.manifest-more K V)

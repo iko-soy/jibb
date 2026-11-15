@@ -903,6 +903,114 @@ def check_bundle_budget(c, tmp):
         c.expect(read(vendored) == small, 'oversize build replaced the vendored bundle')
 
 
+def check_prelude_reader_inventory(c, tmp):
+    """Reader inputs retain selection candidates and shared source identity."""
+    sys.path.insert(0, TOOLS)
+    import prelude_groups
+    desk = os.path.join(tmp, 'jibb-dev')
+
+    def write(path, data):
+        filename = os.path.join(desk, path)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'wb') as stream:
+            stream.write(data)
+        return filename
+
+    write('lib/jibb/prelude-groups.txt',
+          b'reader custom /sur/custom table\nreader custom /sur/custom keys\n')
+    plain = b'|%\n++  table  |$  [key value]  (map key value)\n++  keys  |$  [key]  (set key)\n--\n'
+    write('sur/custom.hoon', plain)
+    write('sur/helper/base.hoon', b'|%\n+$  amount  @ud\n--\n')
+    write('lib/helper.hoon', b'/-  helper-base\n|%\n+$  count  amount:helper-base\n--\n')
+    write('lib/unrelated.hoon', b'this unused source deliberately does not compile\n')
+    write('lib/ignored.jibb', b'++ value 42\n')
+    write('lib/.hidden.hoon', b'not on the assembled desk\n')
+    write('sur/.hidden/ignored.hoon', b'not on the assembled desk\n')
+    os.symlink(os.path.join(desk, 'sur', 'helper'), os.path.join(desk, 'lib', 'linked-dir'))
+    vendor = os.path.join(tmp, 'vendor', 'fixture', 'sur')
+    os.makedirs(vendor)
+    with open(os.path.join(vendor, 'vendor.hoon'), 'wb') as stream:
+        stream.write(b'|%\n+$  amount  @ud\n--\n')
+
+    def inventory():
+        _, _, readers = prelude_groups.load_all(tmp)
+        return prelude_groups.reader_inventory(tmp, readers)
+
+    c.expect([entry[0] for entry in inventory()] == ['/sur/custom'],
+             'self-contained shared readers should retain one root')
+    write('sur/custom.hoon', b'/+  helper\n' + plain)
+    initial = inventory()
+    c.expect([entry[0] for entry in initial] ==
+             ['/lib/helper', '/lib/unrelated', '/sur/custom', '/sur/helper/base', '/sur/vendor'],
+             'Ford reader lost sources or duplicated its shared root: %r' % initial)
+    preferred = write('sur/helper-base.hoon', b'|%\n+$  amount  @t\n--\n')
+    c.expect('/sur/helper-base' in dict((p, d) for p, _, d in inventory()),
+             'new higher-priority candidate missing from inventory')
+    os.unlink(preferred)
+    c.expect(inventory() == initial, 'dependency deletion/restoration changed other inputs')
+
+    # The real desk vendors jibb-host through an in-repository file link.
+    shared = os.path.join(tmp, 'other.hoon')
+    with open(shared, 'wb') as stream:
+        stream.write(b'42\n')
+    link = os.path.join(desk, 'lib', 'shared.hoon')
+    os.symlink(shared, link)
+    c.expect(('/lib/shared', link, b'42\n') in inventory(),
+             'repository-contained links must retain the logical path and link filename')
+    os.unlink(link)
+    with tempfile.TemporaryDirectory(prefix='jibb-reader-outside-') as outside:
+        external = os.path.join(outside, 'outside.hoon')
+        with open(external, 'wb') as stream:
+            stream.write(b'42\n')
+        os.symlink(external, link)
+        try:
+            inventory()
+        except ValueError as error:
+            c.expect('escapes its repository' in str(error), str(error))
+        else:
+            c.expect(False, 'reader inventory accepted a link outside its repository')
+    os.unlink(link)
+    _, _, readers = prelude_groups.load_all(tmp)
+    module, arm, logical, filename, data = readers[0]
+    try:
+        prelude_groups.reader_inventory(tmp, readers + [(module, arm, logical, filename, data + b':: changed\n')])
+    except ValueError as error:
+        c.expect('conflicting prelude reader source' in str(error), str(error))
+    else:
+        c.expect(False, 'reader inventory accepted conflicting root bytes')
+
+    # Both generators must carry the same inventory into reader construction
+    # and compiler preparation, including candidates unused by a prior build.
+    goldens = SourceFileLoader('selftest_ford_goldens', GOLDEN).load_module()
+    ship = SourceFileLoader('selftest_ford_ship', os.path.join(TOOLS, 'ship')).load_module()
+    write('lib/jibb/prelude.jibb', b'')
+    write('lib/jibb/internal.jibb', b'')
+    write('lib/jibb-import.hoon', b'|%\n++  marker  42\n--\n')
+    cases = copy_cases(tmp)
+    folder = os.path.join(cases, 'basic')
+    with open(os.path.join(folder, 'modules.txt'), 'w') as stream:
+        stream.write('# empty bundle still prepares the manifest\n')
+    with open(os.path.join(folder, 'types.txt'), 'w') as stream:
+        stream.write('fixture\n')
+    with patch.object(goldens.ue, 'ROOT', tmp), patch.object(ship, 'ROOT', tmp):
+        case = goldens.Case('basic', folder)
+        generated_eval = goldens.golden_program(STUB, [case], debug=False).text()
+        generated_ship = ship.generate_tests(cases, cases=[('basic', folder)])
+    for name, generated, reader in [('eval', generated_eval, 'reader'),
+                                     ('ship', generated_ship, 'jibb-import')]:
+        inventory_line = next(line for line in generated.splitlines()
+                              if line.startswith('=/  prelude-reader-sources '))
+        c.expect(inventory_line.count('~[~.sur ~.custom ~.hoon]') == 1 and
+                 '~[~.sur ~.helper ~.base ~.hoon]' in inventory_line and
+                 '~[~.lib ~.helper ~.hoon]' in inventory_line,
+                 name + ' lost shared roots or transitive selection inputs')
+        c.expect('read-generic-bundle:' + reader in generated and
+                 'read-generic-source:' + reader in generated,
+                 name + ' lost Ford fallback or legacy preparation')
+    c.expect(generated_ship.count('%hoon  /sur/custom/hoon') == 1,
+             'ship generator bound a shared reader root more than once')
+
+
 def check_golden_lowerer_dependencies(c, tmp):
     """Core goldens bind the lowerer's real dependency graph in both modes."""
     sys.path.insert(0, TOOLS)
@@ -1331,7 +1439,45 @@ def probe_ship_rows(probes, items, results):
 
 def check_probe_ship_batch_inputs(c, tmp):
     """Ship batches retain group context, fixed revisions and request bounds."""
+    from pathlib import Path
     probes, items, passing = probe_batch_fixture()
+    # Exercise the actual Clay template and source loader as well as the
+    # small protocol fixture below. Two reader arms share one root, and the
+    # inventory must retain both dependency path candidates at the same rev.
+    fixture = Path(tmp)
+    template_file = fixture / 'tests/clay-fixtures/my-app.txt'
+    template_file.parent.mkdir(parents=True)
+    template_file.write_text((Path(ROOT) / 'tests/clay-fixtures/my-app.txt').read_text())
+    files = {
+        'lib/jibb/prelude-groups.txt':
+            'reader custom /sur/custom table\nreader custom /sur/custom keys\n',
+        'sur/custom.hoon': '/+  helper\n|%\n--\n',
+        'lib/helper.hoon': '/-  dep-base\n|%\n--\n',
+        'sur/dep/base.hoon': '|%\n+$  item  @ud\n--\n',
+        'sur/dep-base.hoon': '|%\n+$  item  @t\n--\n',
+    }
+    for relative, source in files.items():
+        path = fixture / 'jibb-dev' / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(source)
+    with patch.object(probes.app, 'ROOT', fixture), \
+            patch.object(probes.app, 'ui_modules', return_value=[]):
+        actual = probes.ship_prefix(revision=4567)
+    inventory = next(line for line in actual.splitlines()
+                     if line.startswith('=/  prelude-reader-sources='))
+    for logical in ('/sur/custom', '/lib/helper', '/sur/dep/base', '/sur/dep-base'):
+        at = probes.prelude_groups.sur_path(logical)
+        entry = '[%s .^(@t %%cx (weld pre %s))]' % (at, at)
+        c.expect(inventory.count(entry) == 1,
+                 'Clay reader inventory lost or duplicated %s: %s' % (logical, inventory))
+    c.expect('(slab %read %read-generic-bundle p.reader)' in actual and
+             "?.  bundle-reader  [%| 'Hoon source could not be built']" in actual and
+             "(slap reader (ream 'read-generic-bundle'))" in actual,
+             'Clay reader lost the guarded Ford path or legacy failure')
+    c.expect('=/  revision=@ud  4.567\n' in actual and 'ud+revision' in actual and
+             actual.count('(scot %ud revision)') == 10 and
+             all(old not in actual for old in ('now.bowl', 'da+now', '(scot %da now)', '@@')),
+             'real Clay reader template retained a live revision or placeholder')
     prefix = ('=/  now=@da  now.bowl\n'
               '=/  pre=path  (en-beam [our.bowl %my-app da+now] /)\n' +
               ''.join('=/  built-%d  .^(vase %%ca /my-app/[(scot %%da now)]/lib/x/hoon)\n'

@@ -1,0 +1,11 @@
+# A group exposes checked members under its qualified face.
+group hoon /lib/jibb/groups/hoon
+reader jibb-collections /sur/jibb-collections table
+reader jibb-collections /sur/jibb-collections keys
+group bit /lib/jibb/groups/bit
+
+# Custom source-backed readers share a root and a transitive Ford closure.
+group ford /lib/jibb/groups/ford
+reader manifest-collections /sur/manifest-collections table
+reader manifest-collections /sur/manifest-collections keys
+reader manifest-more /sur/manifest-more table

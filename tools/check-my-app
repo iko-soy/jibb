@@ -64,6 +64,7 @@ def prepare_thread(paths):
     """Render the Clay checker with the current explicit prelude bundle."""
     thread = (ROOT / 'tests/clay-fixtures/my-app.txt').read_text()
     group_sources, private_sources, reader_sources = prelude_groups.load_all(str(ROOT))
+    reader_inventory = prelude_groups.reader_inventory(str(ROOT), reader_sources)
     def group_path(logical):
         return prelude_groups.hoon_path(logical)
     def group_source(logical):
@@ -72,19 +73,22 @@ def prepare_thread(paths):
                      for face, path, _, _ in group_sources]
     private_entries = ['[%s %s]' % (group_path(path), group_source(path))
                        for _, path, _, _ in private_sources]
+    inventory_entries = []
+    for logical, _, _ in reader_inventory:
+        path = prelude_groups.sur_path(logical)
+        source = '.^(@t %%cx (weld pre %s))' % path
+        inventory_entries.append('[%s %s]' % (path, source))
+    private_entries += inventory_entries
     reader_entries = []
-    reader_paths = set()
     for module, name, logical, _, _ in reader_sources:
         path = prelude_groups.sur_path(logical)
         source = '.^(@t %%cx (weld pre %s))' % path
-        if logical not in reader_paths:
-            private_entries.append('[%s %s]' % (path, source))
-            reader_paths.add(logical)
         reader_entries.append('[%%%s %%%s %s %s]' % (module, name, path, source))
     substitutions = {
         '@@PATHS@@': hoon_paths(paths),
         '@@PRELUDE-GROUPS@@': shiptool.hoon_list(group_entries),
         '@@PRELUDE-MODULES@@': shiptool.hoon_list(private_entries),
+        '@@PRELUDE-READER-SOURCES@@': shiptool.hoon_list(inventory_entries),
         '@@PRELUDE-READERS@@': shiptool.hoon_list(reader_entries),
     }
     for placeholder, replacement in substitutions.items():

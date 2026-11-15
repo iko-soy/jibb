@@ -74,6 +74,7 @@ def main():
     cord('prelude', ROOT / 'jibb-dev/lib/jibb/prelude.jibb')
     cord('internal', ROOT / 'jibb-dev/lib/jibb/internal.jibb')
     groups, private, readers = prelude_groups.load_all(str(ROOT))
+    inventory = prelude_groups.reader_inventory(str(ROOT), readers)
     group_entries, private_entries = [], []
     for number, (face, logical, filename, _) in enumerate(groups + private):
         binding = 'probe-group-' + str(number)
@@ -83,23 +84,24 @@ def main():
             private_entries.append('[%s %s]' % (path, binding))
         else:
             group_entries.append('[%%%s %s %s]' % (face, path, binding))
-    reader_entries = []
-    reader_paths = set()
-    for number, (module, name, logical, filename, _) in enumerate(readers):
+    inventory_entries, reader_resources = [], {}
+    for number, (logical, filename, _) in enumerate(inventory):
         binding = 'probe-reader-' + str(number)
         cord(binding, filename)
         path = prelude_groups.sur_path(logical)
-        if logical not in reader_paths:
-            private_entries.append('[%s %s]' % (path, binding))
-            reader_paths.add(logical)
-        reader_entries.append('[%%%s %%%s %s %s]' % (module, name, path, binding))
+        inventory_entries.append('[%s %s]' % (path, binding))
+        reader_resources[logical] = binding
+    private_entries += inventory_entries
+    reader_entries = ['[%%%s %%%s %s %s]' % (
+        module, name, prelude_groups.sur_path(logical), reader_resources[logical])
+        for module, name, logical, _, _ in readers]
     reader_core = ('=/  prelude-reader\n=>  ..zuse\n' +
                    (ROOT / 'jibb-dev/lib/jibb-import.hoon').read_text() + '\n')
     prefix = (reader_core + '=/  groups  ' + hoon_list(group_entries) + '\n'
+              '=/  prelude-reader-sources  ' + hoon_list(inventory_entries) + '\n'
               '=/  group-sources  ' + hoon_list(private_entries) + '\n'
-              '=/  reader-evidence  (turn `(list [module=term name=term at=path source=@t])`' + hoon_list(reader_entries) +
-              ' |=(entry=[module=term name=term at=path source=@t] [module.entry name.entry '
-              '(read-generic-source:prelude-reader module.entry name.entry at.entry source.entry -:(ride -:!>(..zuse) source.entry))]))\n')
+              '=/  reader-evidence  ' + prelude_groups.reader_expression(
+                  hoon_list(reader_entries), 'prelude-reader') + '\n')
     with tempfile.TemporaryDirectory(prefix='jibb-review-') as scratch:
         scratch = Path(scratch)
         expression = prefix
