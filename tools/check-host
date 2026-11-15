@@ -517,17 +517,51 @@ def exercise_prelude_ford(ship, owner):
     fixture = ROOT / 'tests' / 'prelude-ford'
     base_file = 'sur/manifest/base.hoon'
     preferred_file = 'sur/manifest-base.hoon'
+    unrelated_file = 'sur/manifest-unrelated.hoon'
+    page_file = 'ui/prelude-ford.jibb'
+    page_module = '/ui/prelude-ford/jibb'
     original = (fixture / 'base.hoon').read_bytes()
     shadowed = (fixture / 'shadowed-base.hoon').read_bytes()
+    original_page = (Path(ship.pier) / DESK / page_file).read_bytes()
     preferred_path = Path(ship.pier) / DESK / preferred_file
+    unrelated_path = Path(ship.pier) / DESK / unrelated_file
     expect(not preferred_path.exists(), 'the preferred manifest dependency already exists')
+    expect(not unrelated_path.exists(), 'the unrelated manifest control already exists')
     target = BASE + '/prelude-ford'
     status, _, initial = owner.request('GET', target)
     expect(status == 200 and b'Shared custom readers checked.' in initial,
            'the custom manifest readers did not check: HTTP %d: %r' % (status, initial))
-    original_modules = set(module_revisions(ship, DESK))
+    status, _, initial_about = owner.request('GET', PAGE)
+    expect(status == 200 and b'About this ship' in initial_about,
+           'About was not ready before the manifest controls: HTTP %d' % status)
+    original_revisions = module_revisions(ship, DESK)
+    original_modules = set(original_revisions)
+    # These modules use the prepared prelude, without direct /sur imports.
+    # Other fixture modules may conservatively invalidate their Hoon readers.
+    retained = {'/ui/prelude-ford/jibb', '/ui/about/jibb',
+                '/ui/theme/jibb', '/lib/jibb/renderer/jibb'}
+    expect(retained <= original_modules,
+           'the manifest reuse controls are missing checked modules')
     observed = []
     dirty = False
+
+    def unchanged(label, revision, *, page_changed=False):
+        wait_built(ship, DESK, revision)
+        modules = module_revisions(ship, DESK)
+        expect(set(modules) == original_modules,
+               '%s unrelated /sur source changed the checked modules' % label)
+        for at in sorted(retained):
+            if page_changed and at == page_module:
+                continue
+            expect(modules[at] == original_revisions[at],
+                   '%s unrelated /sur source rechecked %s: revision %d became %d'
+                   % (label, at, original_revisions[at], modules[at]))
+        for page, expected in ((target, initial), (PAGE, initial_about)):
+            status, _, body = owner.request('GET', page)
+            expect(status == 200 and body == expected,
+                   '%s unrelated /sur source changed %s: HTTP %d: %r'
+                   % (label, page, status, body))
+        return modules
 
     def failed(label, revision):
         wait_built(ship, DESK, revision)
@@ -552,6 +586,24 @@ def exercise_prelude_ford(ship, owner):
 
     try:
         dirty = True
+        # None of the manifest readers imports this path. Check both inventory
+        # changes and changed source bytes against the same completed results.
+        with timed_phase('unrelated manifest reader sources'):
+            unchanged('adding', commit_file(ship, unrelated_file,
+                                            b'|%\n+$  unused  @ud\n--\n'))
+            # Exercise the retained preparation during a new full check and
+            # render, not only through already cached module/page results.
+            revision = commit_file(ship, page_file,
+                                   original_page + b'\n:: Recheck with an unrelated /sur source.\n')
+            modules = unchanged('rechecking a page with an', revision, page_changed=True)
+            expect(modules[page_module] == revision,
+                   'the changed manifest page reused an earlier module check')
+            revision = commit_file(ship, page_file, original_page)
+            original_revisions = unchanged('restoring a page with an', revision,
+                                           page_changed=True)
+            unchanged('editing', commit_file(ship, unrelated_file,
+                                             b'|%\n+$  unused  @t\n--\n'))
+            unchanged('deleting', commit_file(ship, unrelated_file, None))
         # Both reader roots, and both arms on the first root, depend on this
         # source through the same /lib. A cached prelude must see its new proof.
         failed('changed', commit_file(ship, base_file, shadowed))
@@ -564,9 +616,11 @@ def exercise_prelude_ford(ship, owner):
         dirty = False
     finally:
         if dirty:
-            changes = {base_file: original}
+            changes = {base_file: original, page_file: original_page}
             if preferred_path.exists():
                 changes[preferred_file] = None
+            if unrelated_path.exists():
+                changes[unrelated_file] = None
             revision = commit_files(ship, changes)
             wait_built(ship, DESK, revision)
     return observed

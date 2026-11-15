@@ -1132,6 +1132,109 @@
   ?:  ?=(%| -.rebuilt)  rebuilt
   (read-generic-rebuilt name at p.rebuilt)
 ::
+::  Host-owned cache metadata from already authenticated reader results.
+::  This is not reader evidence and cannot authenticate a supplied interface.
+::  The host also binds the snapshot to its compiler, manifest and Jibb sources.
++$  reader-snapshot
+  [%reader-dependencies-1 sources=(list ford-source) bindings=(list ford-binding)]
+::  +reader-dependencies-valid: compare selected bytes and current path choices.
+::    No source is compiled. Unknown metadata makes the host take its broad path.
+++  reader-dependencies-valid
+  |=  [snapshot=* sources=(list ford-source)]
+  ^-  ?
+  =/  made=(each ? tang)
+    (mule |.((reader-dependencies-valid-raw snapshot sources)))
+  ?:  ?=(%| -.made)  |
+  p.made
+++  reader-dependencies-valid-raw
+  |=  [snapshot=* sources=(list ford-source)]
+  ^-  ?
+  =/  saved=reader-snapshot  ;;(reader-snapshot snapshot)
+  =/  pending=(list ford-source)  sources.saved
+  =|  seen=(set path)
+  |-
+  ?^  pending
+    =/  at=path  at.i.pending
+    ?.  ?=([?(%sur %lib) ^] at)  |
+    ?.  =(%hoon (rear `path`at))  |
+    ?:  (~(has in:..zuse seen) at)  |
+    =/  found=(list ford-source)  (skim sources |=(s=ford-source =(at at.s)))
+    ?.  ?=([* ~] found)  |
+    ?.  =(source.i.pending source.i.found)  |
+    $(pending t.pending, seen (~(put in:..zuse seen) at))
+  %+  levy  bindings.saved
+  |=  binding=ford-binding
+  ?.  (~(has in:..zuse seen) from.binding)  |
+  ?.  (~(has in:..zuse seen) at.binding)  |
+  =/  selected=(each path @t)  (ford-find folder.binding name.binding sources)
+  ?:  ?=(%| -.selected)  |
+  =(p.selected at.binding)
+::  Normalize only the source-bearing descriptor variants produced above.
+++  reader-dependency-proof
+  |=  [module=term result=*]
+  ^-  (unit reader-snapshot)
+  ?.  ?=([%& ^] result)  ~
+  =/  raw=*  +.result
+  =/  proof=[arity=@ud at=path source=@t scope=@ sources=(list ford-source) bindings=(list ford-binding)]
+    ?:  ?=(%generic-source -.raw)
+      =/  plain=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
+        ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] raw)
+      [arity.plain at.plain source.plain scope.plain ~[[at.plain source.plain]] ~]
+    ?.  ?=(%generic-ford -.raw)  !!
+    =/  ford=[%generic-ford arity=@ud body=* at=path source=@t arm=* scope=@ sources=(list ford-source) bindings=(list ford-binding)]
+      ;;([%generic-ford arity=@ud body=* at=path source=@t arm=* scope=@ sources=(list ford-source) bindings=(list ford-binding)] raw)
+    [arity.ford at.ford source.ford scope.ford sources.ford bindings.ford]
+  ?:  |(=(0 arity.proof) (gth arity.proof 16) =(0 source.proof) =(0 scope.proof))  ~
+  =/  roots=(list ford-source)  (skim sources.proof |=(s=ford-source =(at.s at.proof)))
+  ?.  ?=([* ~] roots)  ~
+  ?.  =(source.proof source.i.roots)  ~
+  :-  ~
+  :+  %reader-dependencies-1
+    sources.proof
+  [[at.proof %sur module at.proof] bindings.proof]
+::  +reader-dependencies: one unique closure for all successful manifest readers.
+::    Failed, unrecognized or conflicting results disable narrow cache reuse.
+++  reader-dependencies
+  |=  [externals=(list [module=term name=term result=*]) sources=(list ford-source)]
+  ^-  (unit *)
+  =/  made=(each (unit reader-snapshot) tang)
+    (mule |.((reader-dependencies-raw externals sources)))
+  ?:  ?=(%| -.made)  ~
+  p.made
+++  reader-dependencies-raw
+  |=  [externals=(list [module=term name=term result=*]) sources=(list ford-source)]
+  ^-  (unit reader-snapshot)
+  =|  known=(map path @t)
+  =|  bindings=(set ford-binding)
+  =|  names=(set [module=term name=term])
+  |-
+  ?~  externals
+    :-  ~
+    :+  %reader-dependencies-1
+      (sort ~(tap by known) |=([a=ford-source b=ford-source] (aor at.a at.b)))
+    ~(tap in:..zuse bindings)
+  =/  entry=[module=term name=term result=*]  i.externals
+  ?:  (~(has in:..zuse names) [module.entry name.entry])  ~
+  =/  proof=(unit reader-snapshot)  (reader-dependency-proof module.entry result.entry)
+  ?~  proof  ~
+  ?.  (reader-dependencies-valid-raw u.proof sources)  ~
+  =/  files=(list ford-source)  sources.u.proof
+  =/  merged=(unit (map path @t))
+    |-
+    ?~  files  `known
+    =/  prior=(unit @t)  (~(get by known) at.i.files)
+    ?^  prior
+      ?.  =(u.prior source.i.files)  ~
+      $(files t.files)
+    $(files t.files, known (~(put by known) at.i.files source.i.files))
+  ?~  merged  ~
+  %=  $
+    externals  t.externals
+    known      u.merged
+    bindings   (~(uni in:..zuse bindings) (silt bindings.u.proof))
+    names      (~(put in:..zuse names) [module.entry name.entry])
+  ==
+::
 ++  read-module-result-rebuilt
   |=  [module=term name=term at=path rebuilt=ford-rebuilt]
   ^-  *

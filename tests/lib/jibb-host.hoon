@@ -355,6 +355,64 @@
   ?.  (ford-reader-available:jibb-host complete)
     ~[leaf+"a reader with every Ford bundle API arm was not detected"]
   ~
+++  test-compiler-environment-identities
+  ^-  tang
+  =/  builder=vase  [[%atom %ud ~] 42]
+  =/  reader=vase  [[%atom %t ~] 'reader']
+  =/  env=@uv  (environment-key:jibb-host 0v1 builder reader)
+  ?.  =(env (environment-key:jibb-host 0v1 builder reader))
+    ~[leaf+"unchanged compiler vases changed the environment identity"]
+  =/  changes=(list @uv)
+    :~  (environment-key:jibb-host 0v2 builder reader)
+        (environment-key:jibb-host 0v1 builder(p %noun) reader)
+        (environment-key:jibb-host 0v1 builder(q 43) reader)
+        (environment-key:jibb-host 0v1 builder reader(p %noun))
+        (environment-key:jibb-host 0v1 builder reader(q 'changed'))
+    ==
+  =/  outline=@uv  (imports-key:jibb-host env /ui/a/jibb 0v3)
+  =/  checked=@uv  (check-key:jibb-host env 0v2 ~[[/ui/a/jibb 0v3]] ~ ~)
+  ?.  (levy changes |=(other=@uv !=(env other)))
+    ~[leaf+"a changed compiler type, value or /lib tree reused its environment"]
+  ?.  (levy changes |=(other=@uv !=(outline (imports-key:jibb-host other /ui/a/jibb 0v3))))
+    ~[leaf+"a changed compiler type or value reused parsed imports"]
+  ?.  (levy changes |=(other=@uv !=(checked (check-key:jibb-host other 0v2 ~[[/ui/a/jibb 0v3]] ~ ~))))
+    ~[leaf+"a changed compiler type or value reused checked modules"]
+  ~
+++  test-prelude-cache-identities
+  ^-  tang
+  =/  dependencies=prelude-dependencies:jibb-host
+    [0v1 ~[[/lib/custom/group/jibb 'source']] [%reader-snapshot 1]]
+  =/  prelude=@uv  (prelude-dependency-key:jibb-host dependencies)
+  ?:  =(prelude (prelude-key:jibb-host 0v1))
+    ~[leaf+"narrow and conservative prelude identities aliased"]
+  =/  changes=(list prelude-dependencies:jibb-host)
+    :~  dependencies(env 0v2)
+        dependencies(sources ~[[/lib/custom/group/jibb 'changed']])
+        dependencies(sources ~[[/lib/custom/other/jibb 'source']])
+        dependencies(sources ~)
+        dependencies(proof [%reader-snapshot 2])
+    ==
+  ?.  (levy changes |=(changed=prelude-dependencies:jibb-host !=(prelude (prelude-dependency-key:jibb-host changed))))
+    ~[leaf+"a changed prelude input reused its cache identity"]
+  =/  other=@uv
+    (prelude-dependency-key:jibb-host dependencies(proof [%reader-snapshot 2]))
+  =/  checked=@uv
+    (check-key:jibb-host 0v1 prelude ~[[/ui/a/jibb 0v3]] ~ ~)
+  =/  rechecked=@uv
+    (check-key:jibb-host 0v1 other ~[[/ui/a/jibb 0v3]] ~ ~)
+  ?:  =(checked rechecked)
+    ~[leaf+"a changed prelude reused a checked module"]
+  ?:  =((client-key:jibb-host checked /apps/test) (client-key:jibb-host rechecked /apps/test))
+    ~[leaf+"a changed prelude reused compiled browser code"]
+  ?:  =((style-key:jibb-host 0v1 checked /apps/test ~) (style-key:jibb-host 0v1 rechecked /apps/test ~))
+    ~[leaf+"a changed prelude reused the checked theme's stylesheet"]
+  =/  rendered=@uv
+    (render-key:jibb-host 0v1 checked checked checked /apps/test ~ ~ 'sheet')
+  =/  render-inputs=(list [page=@uv theme=@uv renderer=@uv])
+    ~[[rechecked checked checked] [checked rechecked checked] [checked checked rechecked]]
+  ?.  (levy render-inputs |=([page=@uv theme=@uv renderer=@uv] !=(rendered (render-key:jibb-host 0v1 page theme renderer /apps/test ~ ~ 'sheet'))))
+    ~[leaf+"a changed prelude consumer reused a render or data-page preparation"]
+  ~
 ++  test-incremental-store-pruning
   ^-  tang
   =|  s=store:jibb-host
@@ -366,6 +424,16 @@
     %-  malt
     ^-  (list [@uv rendered:jibb-host])
     ~[[0v3 [3 %& '<p>kept</p>']] [0v4 [1 %& '<p>old</p>']]]
+  =/  dependencies=prelude-dependencies:jibb-host
+    [0v1 ~[[/lib/custom/group/jibb 'source']] [%reader-snapshot 1]]
+  =.  preludes.s
+    %-  malt
+    ^-  (list [@uv (each * @t)])
+    ~[[0v5 [%& %kept]] [0v6 [%| 'abandoned']]]
+  =.  prelude-deps.s
+    %-  malt
+    ^-  (list [@uv prelude-dependencies:jibb-host])
+    ~[[0v5 dependencies] [0v6 dependencies(env 0v2)] [0v7 dependencies(env 0v3)]]
   =/  b=build:jibb-host  (new-build:jibb-host 4 /apps/my-app)
   =/  first=(list build-step:jibb-host)
     ~[[%build /lib/jibb-build/hoon] [%build /lib/jibb-import/hoon] [%scan ~]]
@@ -373,9 +441,16 @@
     ~[leaf+"a new build did not ask whether the desk's compiler builds before its scan"]
   =.  check-keys.b  (malt `(list [path @uv])`~[[/ui/a/jibb 0v1]])
   =.  render-keys.b  (malt `(list [path @uv])`~[[/ui/a/jibb 0v3]])
+  =.  prelude.b  0v5
   =/  kept=store:jibb-host  (prune-store:jibb-host s b)
   ?.  =(~[0v1] ~(tap in ~(key by checks.kept)))  ~[leaf+"pruning kept an unused check"]
   ?.  =(~[0v3] ~(tap in ~(key by renders.kept)))  ~[leaf+"pruning kept an unused render"]
+  ?.  =(~[0v5] ~(tap in ~(key by preludes.kept)))
+    ~[leaf+"pruning kept an unused prelude"]
+  ?.  =(~[0v5] ~(tap in ~(key by prelude-deps.kept)))
+    ~[leaf+"pruning retained abandoned or orphaned prelude metadata"]
+  ?.  =(`dependencies (~(get by prelude-deps.kept) 0v5))
+    ~[leaf+"pruning changed the retained prelude dependency proof"]
   ?.  =(~[[/ui/a/jibb 3]] (built-modules:jibb-host s b))
     ~[leaf+"a module's check revision was not reported"]
   ~

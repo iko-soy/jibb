@@ -638,16 +638,17 @@
     ?:  (has-file files theme-at)  (read-clay pre theme-at)
     [%& !<(@t (slap builder (ream 'default-theme-source')))]
   ?:  ?=(%| -.theme)  [& b(failure `p.theme) s]
-  ::  Custom prelude readers can depend on any /sur source. Include the
-  ::  whole tree so edits, deletions and newly preferred Ford paths cannot
-  ::  reuse a preparation from another source inventory. /lib covers the
-  ::  compiler, manifest, prelude, renderer and Ford libraries.
+  ::  /lib covers the compiler, manifest, prelude and renderer. The built
+  ::  vases also bind compiler/importer dependencies outside that tree.
+  ::  Prelude sources have their own key, so an unrelated /sur change
+  ::  need not discard module outlines or successfully checked modules.
+  =/  reader=vase  (reader-vase pre)
   =/  env=@uv
-    %-  sham
-    :+  %jibb-env-2
+    %:  environment-key:jibb-host
       .^(@uvI %cz (weld pre /lib))
-    ?.  (lien files |=(at=path ?=([%sur *] at)))  0v0
-    .^(@uvI %cz (weld pre /sur))
+      builder
+      reader
+    ==
   =/  roots=(list [at=path source=@t])
     ?:  (lien p.bundle |=(m=[at=path source=@t] =(at.m theme-at)))
       (snoc p.bundle [renderer-at p.renderer])
@@ -702,7 +703,29 @@
     %+  turn  p.mark-sources
     |=  [module=term at=path source=@t]
     [module (mark-key:jibb-host env module source surs-hash mars-hash)]
-  =/  prelude=@uv  (prelude-key:jibb-host env)
+  ::  Invalid or missing manifest inputs must retain preparation's own
+  ::  diagnostic. Without a readable input list, bind the fallback to the
+  ::  whole desk so restoring a source outside /lib or /sur cannot hit it.
+  =/  input-read=(each (each jbundle:jibb @t) tang)
+    (mule |.((prelude-source-inputs pre)))
+  =/  inputs=(unit jbundle:jibb)
+    ?.  ?&(?=(%& -.input-read) ?=(%& -.p.input-read))  ~
+    `p.p.input-read
+  =/  reuse=(unit @uv)
+    ?~  inputs  ~
+    (cached-prelude pre reader env u.inputs s)
+  =/  prelude=@uv
+    ?^  reuse  u.reuse
+    %-  prelude-key:jibb-host
+    %-  sham
+    :*  %jibb-prelude-fallback-2
+        env
+        ?:  (lien files |=(at=path ?=([%sur *] at)))
+          .^(@uvI %cz (weld pre /sur))
+        0v0
+        ?~  inputs  [%desk .^(@uvI %cz pre)]
+        [%sources u.inputs]
+    ==
   =/  order=(list path)  (module-order:jibb-host modules)
   =/  sites=(list [at=path site=(list @t)])
     %+  murn  sources
@@ -766,10 +789,20 @@
 ++  prelude-step
   |=  [=desk b=build:jibb-host s=store:jibb-host]
   ^-  [work=? b=build:jibb-host s=store:jibb-host]
-  =/  made=(each (each * @t) tang)  (mule |.((prepare-clay (desk-path desk rev.b))))
+  =/  made=(each (each [value=* dependencies=(unit prelude-dependencies:jibb-host)] @t) tang)
+    (mule |.((prepare-clay (desk-path desk rev.b) env.b)))
   =/  value=(each * @t)
-    ?:  ?=(%& -.made)  p.made
-    [%| (trace-error 'static build: compiler crashed while preparing the prelude' p.made)]
+    ?:  ?=(%| -.made)
+      [%| (trace-error 'static build: compiler crashed while preparing the prelude' p.made)]
+    ?:  ?=(%| -.p.made)  p.made
+    [%& value.p.p.made]
+  =/  dependencies=(unit prelude-dependencies:jibb-host)
+    ?.  ?&(?=(%& -.made) ?=(%& -.p.made))  ~
+    dependencies.p.p.made
+  =?  prelude.b  ?=(^ dependencies)
+    (prelude-dependency-key:jibb-host u.dependencies)
+  =?  prelude-deps.s  ?=(^ dependencies)
+    (~(put by prelude-deps.s) prelude.b u.dependencies)
   [& b s(preludes (~(put by preludes.s) prelude.b value))]
 ++  sur-step
   |=  [=desk name=term b=build:jibb-host s=store:jibb-host]
@@ -1069,12 +1102,89 @@
     out        (~(put by out) at.i.roots [at.i.roots source.i.roots hash parsed])
     imports.s  (~(put by imports.s) key parsed)
   ==
+::  These optional APIs describe inputs to an already successful reader;
+::  they never authenticate a new interface or prepare the prelude.
+++  prelude-cache-available
+  |=  reader=type
+  ^-  ?
+  ?&  (slab %read %reader-dependencies reader)
+      (slab %read %reader-dependencies-valid reader)
+  ==
+::  Explicit manifest inputs may live outside /lib. Keep their exact paths
+::  and bytes in both narrow metadata and conservative fallback keys.
+++  prelude-source-inputs
+  |=  pre=path
+  ^-  (each jbundle:jibb @t)
+  =/  manifest-at=path  /lib/jibb/prelude-groups/txt
+  ?.  .^(? %cu (weld pre manifest-at))
+    [%| 'static build: cannot read /lib/jibb/prelude-groups.txt']
+  =/  manifest=(each prelude-manifest @t)
+    (read-manifest .^(wain %cx (weld pre manifest-at)))
+  ?:  ?=(%| -.manifest)  manifest
+  =/  paths=(list path)
+    (weld sources.p.manifest (turn groups.p.manifest |=([face=term at=path] at)))
+  (read-all pre (sort ~(tap in (silt paths)) aor))
+::  Only successful cached preparation may supply reusable metadata. The
+::  current reader checks every saved dependency and import selection at
+::  this revision, so a new preferred path invalidates unchanged old bytes.
+++  cached-prelude
+  |=  [pre=path reader=vase env=@uv sources=jbundle:jibb s=store:jibb-host]
+  ^-  (unit @uv)
+  =/  made=(each (unit @uv) tang)
+    (mule |.((cached-prelude-raw pre reader env sources s)))
+  ?:  ?=(%| -.made)  ~
+  p.made
+++  cached-prelude-raw
+  |=  [pre=path reader=vase env=@uv sources=jbundle:jibb s=store:jibb-host]
+  ^-  (unit @uv)
+  ?.  (prelude-cache-available p.reader)  ~
+  =/  entries=(list [key=@uv dependencies=prelude-dependencies:jibb-host])
+    ~(tap by prelude-deps.s)
+  =|  inventory=(unit jbundle:jibb)
+  |-
+  ?~  entries  ~
+  =/  entry=[key=@uv dependencies=prelude-dependencies:jibb-host]  i.entries
+  ?.  &(=(env env.dependencies.entry) =(sources sources.dependencies.entry))
+    $(entries t.entries)
+  =/  value=(unit (each * @t))  (~(get by preludes.s) key.entry)
+  ?~  value  $(entries t.entries)
+  ?.  ?=(%& -.u.value)  $(entries t.entries)
+  =/  files=(each jbundle:jibb @t)
+    ?^  inventory  [%& u.inventory]
+    (read-ford-sources pre)
+  ?:  ?=(%| -.files)  ~
+  =.  inventory  `p.files
+  =/  valid=(each ? tang)
+    %-  mule  |.
+    !<  ?
+    %+  slam  (slap reader (ream 'reader-dependencies-valid'))
+    !>([proof.dependencies.entry p.files])
+  ?:  &(?=(%& -.valid) p.valid)  `key.entry
+  $(entries t.entries)
+::  Failure to obtain optional metadata keeps the conservative key. It
+::  cannot turn a successful preparation into a failed application build.
+++  prelude-dependencies
+  |=  [pre=path env=@uv reader=vase externals=iexternals:jibb sources=jbundle:jibb]
+  ^-  (unit prelude-dependencies:jibb-host)
+  ?.  (prelude-cache-available p.reader)  ~
+  =/  made=(each (unit prelude-dependencies:jibb-host) tang)
+    %-  mule  |.
+    =/  proof=(unit *)
+      !<  (unit *)
+      %+  slam  (slap reader (ream 'reader-dependencies'))
+      !>([externals sources])
+    ?~  proof  ~
+    =/  inputs=(each jbundle:jibb @t)  (prelude-source-inputs pre)
+    ?:  ?=(%| -.inputs)  ~
+    `[env p.inputs u.proof]
+  ?:  ?=(%| -.made)  ~
+  p.made
 ::  The prelude a desk's compiler prepares is the one its own manifest,
 ::  /lib/jibb/prelude-groups.txt, names, as the eval tools read it: groups
 ::  with their faces, private sources, and certified collection readers.
 ++  prepare-clay
-  |=  pre=path
-  ^-  (each * @t)
+  |=  [pre=path env=@uv]
+  ^-  (each [value=* dependencies=(unit prelude-dependencies:jibb-host)] @t)
   =/  public=(each @t @t)  (read-clay pre /lib/jibb/prelude/jibb)
   ?:  ?=(%| -.public)  public
   =/  private=(each @t @t)  (read-clay pre /lib/jibb/internal/jibb)
@@ -1158,7 +1268,8 @@
   =/  prepared=vase
     (slam prepare !>([p.public p.private p.groups p.modules externals.p.readers]))
   ?~  +.prepared  [%| 'static build: checked Clay prelude did not prepare']
-  [%& +>.prepared]
+  :+  %&  +>.prepared
+  (prelude-dependencies pre env reader externals.p.readers bundle.p.readers)
 ::  A manifest line is `group FACE /path`, `source /path` or
 ::  `reader MODULE /sur/MODULE ARM`, with `#` starting a comment.
 +$  prelude-manifest

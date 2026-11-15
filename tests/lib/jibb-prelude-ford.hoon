@@ -150,4 +150,78 @@
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)
     ~[leaf+"manifest Ford diagnostics differ" leaf+(trip got)]
   ~
+++  test-reader-dependency-snapshot
+  ^-  tang
+  =/  evidence=(each iexternals:jibb @t)  (readers sources)
+  ?:  ?=(%| -.evidence)
+    ~[leaf+"snapshot readers failed" leaf+(trip p.evidence)]
+  =/  snapshot=(unit *)  (reader-dependencies:jibb-import p.evidence sources)
+  ?~  snapshot  ~[leaf+"successful readers did not yield dependency metadata"]
+  =/  saved=reader-snapshot:jibb-import  ;;(reader-snapshot:jibb-import u.snapshot)
+  ?~  sources.saved  ~[leaf+"successful readers produced an empty dependency closure"]
+  ?.  =(5 (lent sources.saved))  ~[leaf+"shared dependency paths were not deduplicated"]
+  ?.  =(snapshot (reader-dependencies:jibb-import (flop p.evidence) (flop sources)))
+    ~[leaf+"reader or inventory order changed the dependency snapshot"]
+  =/  unchanged=(list jbundle:jibb)
+    :~  sources
+        (flop sources)
+        [[/sur/unrelated/hoon 'an unused source need not compile'] sources]
+        [[/sur/manifest/collections/hoon 'a lower priority source need not compile'] sources]
+    ==
+  ?.  (levy unchanged |=(bundle=jbundle:jibb (reader-dependencies-valid:jibb-import u.snapshot bundle)))
+    ~[leaf+"unchanged selections or unrelated sources invalidated the snapshot"]
+  =/  invalidated=(list jbundle:jibb)
+    :~  changed-base
+        (without /sur/manifest/base/hoon)
+        preferred-base
+        duplicate-base
+        (changed /sur/manifest-collections/hoon 'root changed')
+        (changed /lib/manifest-helpers/hoon 'library changed')
+    ==
+  ?:  (lien invalidated |=(bundle=jbundle:jibb (reader-dependencies-valid:jibb-import u.snapshot bundle)))
+    ~[leaf+"changed, deleted, duplicated or newly preferred source reused a snapshot"]
+  ?.  (reader-dependencies-valid:jibb-import u.snapshot sources)
+    ~[leaf+"restoring exact sources did not restore snapshot validity"]
+  ?^  (reader-dependencies:jibb-import p.evidence changed-base)
+    ~[leaf+"stale reader evidence produced dependency metadata"]
+  ?^  (reader-dependencies:jibb-import (weld p.evidence p.evidence) sources)
+    ~[leaf+"duplicate reader declarations produced dependency metadata"]
+  =/  malformed=(list *)
+    :~  ~
+        [0 1]
+        [%reader-dependencies-2 ~ ~]
+        [%reader-dependencies-1 [i.sources.saved sources.saved] bindings.saved]
+        [%reader-dependencies-1 sources.saved ~[[/sur/absent/hoon %sur %manifest-collections /sur/manifest-collections/hoon]]]
+        [%reader-dependencies-1 sources.saved ~[[/sur/manifest-collections/hoon %mar %manifest-collections /sur/manifest-collections/hoon]]]
+        [%reader-dependencies-1 42 ~]
+    ==
+  ?:  (lien malformed |=(raw=* (reader-dependencies-valid:jibb-import raw sources)))
+    ~[leaf+"malformed or unknown snapshot was accepted"]
+  =/  failed=(list *)
+    :~  [%| 'reader failed']
+        [%unsupported 'unknown result']
+        [%& [%generic 2 [%apply %map ~[[%param 0] [%param 1]]]]]
+        [%& [%generic-ford 2]]
+        [%& 42]
+    ==
+  ?:  (lien failed |=(raw=* ?=([~ *] (reader-dependencies:jibb-import ~[[%manifest-collections %table raw]] sources))))
+    ~[leaf+"failed or unknown reader result produced dependency metadata"]
+  =/  empty=(unit *)  (reader-dependencies:jibb-import ~ sources)
+  ?~  empty  ~[leaf+"empty readers did not produce an empty snapshot"]
+  ?.  (reader-dependencies-valid:jibb-import u.empty ~)
+    ~[leaf+"empty snapshot depended on unrelated sources"]
+  =/  plain=@t  '|%\0a++  table  |$  [key value]  (map key value)\0a--\0a'
+  =/  cor=type  -:(~(mint ut -:!>(..zuse)) %noun (ream plain))
+  =/  read=(each imported:jibb-import @t)
+    (read-generic-source:jibb-import %plain %table /sur/plain/hoon plain cor)
+  ?:  ?=(%| -.read)  ~[leaf+"self-contained reader failed" leaf+(trip p.read)]
+  =/  plain-files=jbundle:jibb  ~[[/sur/plain/hoon plain]]
+  =/  plain-snapshot=(unit *)
+    (reader-dependencies:jibb-import ~[[%plain %table read]] plain-files)
+  ?~  plain-snapshot  ~[leaf+"legacy self-contained evidence lost snapshot support"]
+  ?.  (reader-dependencies-valid:jibb-import u.plain-snapshot plain-files)
+    ~[leaf+"self-contained snapshot rejected its unchanged source"]
+  ?:  (reader-dependencies-valid:jibb-import u.plain-snapshot ~)
+    ~[leaf+"self-contained snapshot ignored its missing root"]
+  ~
 --

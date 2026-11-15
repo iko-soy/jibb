@@ -151,10 +151,18 @@
   =/  before=(list @t)  (flop t.parts)
   ?:  (lien before |=(p=@t =('_' (end 3 p))))  ~
   `(rap 3 (turn before |=(p=@t (cat 3 '/' p))))
+::  The reader's dependency proof is opaque to the host.  Exact manifest
+::  source bytes and the compiler environment complete the prelude identity.
++$  prelude-dependencies
+  $:  env=@uv
+      sources=(list [at=path source=@t])
+      proof=*
+  ==
 ::  The compiler's nouns are opaque here: each desk builds with its own.
 +$  store
   $:  imports=(map @uv outline)
       preludes=(map @uv (each * @t))
+      prelude-deps=(map @uv prelude-dependencies)
       surs=(map @uv [hash=@uv value=(each (list [module=term name=term result=*]) @t)])
       marks=(map @uv [hash=@uv value=*])
       checks=(map @uv checked)
@@ -280,8 +288,13 @@
       (slab %read %read-module-result-fallback reader)
   ==
 ::
-::  Cache keys.  env names the desk's compiler, prelude and collection
-::  reader; every other key includes it.
+::  Cache keys.  env binds /lib plus the complete built compiler and reader
+::  vases, whose Ford dependencies may extend outside /lib.  Prelude identity
+::  separately binds its explicit sources and reader dependencies.
+++  environment-key
+  |=  [library=@uv builder=vase reader=vase]
+  ^-  @uv
+  (sham [%jibb-environment-1 library builder reader])
 ++  imports-key
   |=  [env=@uv at=path hash=@uv]
   ^-  @uv
@@ -290,6 +303,10 @@
   |=  env=@uv
   ^-  @uv
   (sham [%jibb-prelude-1 env])
+++  prelude-dependency-key
+  |=  dependencies=prelude-dependencies
+  ^-  @uv
+  (sham [%jibb-prelude-dependencies-1 dependencies])
 ::  A /sur file's type also depends on the /sur files it imports, and a
 ::  mark's on the /sur and /mar files it imports; its origin evidence is
 ::  read against every /sur source.  So surs hashes every /sur source and
@@ -355,6 +372,7 @@
   =/  style-keys=(set @uv)  ?~(style.b ~ (silt ~[key.u.style.b]))
   :*  (malt (skim ~(tap by imports.s) |=([k=@uv *] (~(has in import-keys) k))))
       (malt (skim ~(tap by preludes.s) |=([k=@uv *] =(k prelude.b))))
+      (malt (skim ~(tap by prelude-deps.s) |=([k=@uv *] =(k prelude.b))))
       (malt (skim ~(tap by surs.s) |=([k=@uv *] (~(has in sur-keys) k))))
       (malt (skim ~(tap by marks.s) |=([k=@uv *] (~(has in mark-keys) k))))
       (malt (skim ~(tap by checks.s) |=([k=@uv *] (~(has in check-keys) k))))
