@@ -110,6 +110,26 @@ test('toVnode decodes keyed collections and table rows without dropping duplicat
   assert.deepEqual(rows.map(row => row.children[0].children[0].text), ['a', 'b']);
 });
 
+test('CSS lengths use exact decimal atoms in layouts and table headings', () => {
+  const values = ['0', '1', '999', '1000', '1001', '1000000', '9007199254740993'];
+  for (const kind of ['chars', 'fill']) {
+    for (const digits of values) {
+      const width = [cord(kind), BigInt(digits)];
+      const label = `${kind}-${digits}`;
+      const layout = toVnode(seal('el', [list([cord('width'), width]), textElement(label)]));
+      const table = toVnode(seal('table', [
+        list([cord(label), [width, cord('start')]]), 0n,
+      ]));
+      const heading = table.children[0].children[0].children[0];
+      const expected = kind === 'chars' ? `0 0 ${digits}ch` : `${digits === '0' ? '1' : digits} 1 0%`;
+      for (const vnode of [layout, heading]) {
+        assert.equal(vnode.attrs.style.flex, expected, label);
+        assert.equal(vnode.attrs.style.minWidth, kind === 'fill' ? '0' : undefined, label);
+      }
+    }
+  }
+});
+
 test('toVnode decodes media, links, and all control payloads', () => {
   const image = toVnode(seal('image', [list(cord('static'), cord('a.png')), cord('description')]));
   assert.equal(image.tag, 'img');

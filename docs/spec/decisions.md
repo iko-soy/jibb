@@ -95,6 +95,7 @@ Rows dated 2026-11-09 are choices the implementer made when @iko asked for miles
 | Subscriptions | By agent and path, shared per page; the first fact is full state, so no paths that need a scry path | Decided 2026-10-29 | Yes |
 | Apps | One island under a catch-all route, given the path by `pure`; `%url` delivers the path on every change; in-section links act as `go`; focus moves to the first heading | Decided 2026-10-29 | Yes |
 | Layout vocabulary | Jibb's elements and theme tokens; the stylesheet comes from the theme alone; chars and fill are inline; `[%fill n]` below 1 counts as 1 | Decided 2026-10-29 | Yes |
+| CSS numbers | Inline `chars` and `fill` values use ungrouped decimal digits on the ship and in the browser, including table headings. Ordinary number printing retains Hoon's grouping; the existing fill minimum is unchanged | Implementation correction 2026-11-15 | No |
 | Responsive layout | `stack` switches at the theme's `wide` | Decided 2026-10-29 | Yes |
 | Theme | A prelude mold with every token required: spaces, five tones with `normal` and `background`, language, zone, `wide`, and an optional static font; optional values such as dark tones use explicit backtick unit syntax; 4.5:1 contrast enforced | Decided 2026-11-01 | No |
 | Dark mode | Hand-written dark tones under `dark`, used when the reader prefers dark | Decided 2026-10-27 | Yes |

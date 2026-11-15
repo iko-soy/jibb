@@ -327,7 +327,7 @@
               (mappedShipExtra batch);
           }) evalManifest.probe_batches);
           shipHostFiles = fs.unions [
-            shipTestFiles ./tests/host-fixture ./tests/type-ford-imports ./js
+            shipTestFiles ./tests/host-fixture ./tests/type-ford-imports ./tests/css-numbers ./js
             ./tools/check-host ./tools/check-browser ./tools/browser-check.mjs
             ./tools/check-node-tests ./tools/node-tests.mjs
           ];

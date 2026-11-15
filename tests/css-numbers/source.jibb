@@ -1,0 +1,37 @@
+::  Shared server/browser CSS decimal regression, including exact large atoms.
+++ main
+  column ~ ~[
+    heading 1 "CSS numeric widths"
+    el ~[width+[%chars 0]] (text "chars-0")
+    el ~[width+[%chars 1]] (text "chars-1")
+    el ~[width+[%chars 999]] (text "chars-999")
+    el ~[width+[%chars 1.000]] (text "chars-1000")
+    el ~[width+[%chars 1.001]] (text "chars-1001")
+    el ~[width+[%chars 1.000.000]] (text "chars-1000000")
+    el ~[width+[%chars 9.007.199.254.740.993]] (text "chars-9007199254740993")
+    el ~[width+[%fill 0]] (text "fill-0")
+    el ~[width+[%fill 1]] (text "fill-1")
+    el ~[width+[%fill 999]] (text "fill-999")
+    el ~[width+[%fill 1.000]] (text "fill-1000")
+    el ~[width+[%fill 1.001]] (text "fill-1001")
+    el ~[width+[%fill 1.000.000]] (text "fill-1000000")
+    el ~[width+[%fill 9.007.199.254.740.993]] (text "fill-9007199254740993")
+    table width-columns ~[[0 ~[(text "column widths")]]]
+    text "Grouped control: {1.000.000}"
+
+++ width-columns
+  ~[
+    [header="table-chars-0" width=[%chars 0] align=%start]
+    [header="table-chars-1" width=[%chars 1] align=%start]
+    [header="table-chars-999" width=[%chars 999] align=%start]
+    [header="table-chars-1000" width=[%chars 1.000] align=%start]
+    [header="table-chars-1001" width=[%chars 1.001] align=%start]
+    [header="table-chars-1000000" width=[%chars 1.000.000] align=%start]
+    [header="table-chars-9007199254740993" width=[%chars 9.007.199.254.740.993] align=%start]
+    [header="table-fill-0" width=[%fill 0] align=%start]
+    [header="table-fill-1" width=[%fill 1] align=%start]
+    [header="table-fill-999" width=[%fill 999] align=%start]
+    [header="table-fill-1000" width=[%fill 1.000] align=%start]
+    [header="table-fill-1001" width=[%fill 1.001] align=%start]
+    [header="table-fill-1000000" width=[%fill 1.000.000] align=%start]
+    [header="table-fill-9007199254740993" width=[%fill 9.007.199.254.740.993] align=%start]

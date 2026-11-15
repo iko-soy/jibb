@@ -8,6 +8,9 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { toVnode } from '../js/browser/vdom.mjs';
+import { arrayToList, cord } from '../js/natives/helpers.mjs';
+import { rawSeal } from '../js/natives/legacy.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map(arg => {
   const [name, ...rest] = arg.replace(/^--/, '').split('=');
@@ -291,6 +294,77 @@ async function login(session) {
   }).then(response => response.status)`);
   expect([200, 204, 303, 0].includes(status), `owner login answered ${status}`);
   session.takeProblems();
+}
+
+async function cssNumbers(session) {
+  // Decode the same widths with the production client decoder, then compare
+  // its exact strings with real server HTML before a CSS parser can round them.
+  const values = [0n, 1n, 999n, 1000n, 1001n, 1000000n, 9007199254740993n];
+  const expected = [];
+  for (const kind of ['chars', 'fill']) {
+    for (const value of values) {
+      const width = [cord(kind), value];
+      const label = `${kind}-${value}`;
+      const layout = toVnode(rawSeal([cord('el'), [
+        arrayToList([[cord('width'), width]]), rawSeal([cord('text'), cord(label)]),
+      ]]));
+      const table = toVnode(rawSeal([cord('table'), [
+        arrayToList([[cord(`table-${label}`), [width, cord('start')]]]), 0n,
+      ]]));
+      for (const [name, vnode] of [[label, layout], [`table-${label}`, table.children[0].children[0].children[0]]]) {
+        expected.push({ label: name, style: vnode.attrs.style, compareComputed: value <= 1000000n });
+      }
+    }
+  }
+  await session.navigate(`${origin}/apps/jibb-host-fixture/css-numbers`);
+  const actual = await session.evaluate(`(() => {
+    const expected = new Map(${JSON.stringify(expected)}.map(row => [row.label, row]));
+    const rows = [...document.querySelectorAll('.j-el, th')].map(node => {
+      const label = node.textContent;
+      const wanted = expected.get(label);
+      if (!wanted) throw new Error('unexpected CSS number fixture label: ' + label);
+      const declarations = (node.getAttribute('style') ?? '').split(';')
+        .map(part => part.trim()).filter(part => part.startsWith('flex:'))
+        .map(part => part.slice('flex:'.length).trim());
+      let computedEqual = null;
+      if (wanted.compareComputed) {
+        const client = node.cloneNode(false);
+        client.removeAttribute('style');
+        Object.assign(client.style, wanted.style);
+        node.parentNode.appendChild(client);
+        try {
+          const serverStyle = getComputedStyle(node);
+          const clientStyle = getComputedStyle(client);
+          computedEqual = ['flexGrow', 'flexShrink', 'flexBasis', 'minWidth']
+            .every(name => serverStyle[name] === clientStyle[name]);
+        } finally {
+          client.remove();
+        }
+      }
+      return { label, declarations, computedEqual };
+    });
+    return {
+      rows,
+      groupedText: document.body.textContent.includes('Grouped control: 1.000.000'),
+      staticPage: document.querySelector('[data-jibb-island]') === null,
+    };
+  })()`);
+  expect(actual.staticPage, 'the CSS number control unexpectedly became an island');
+  expect(actual.groupedText, 'CSS number formatting changed ordinary grouped text interpolation');
+  expect(actual.rows.length === expected.length, `CSS numbers rendered ${actual.rows.length} cases, not ${expected.length}`);
+  for (const wanted of expected) {
+    const found = actual.rows.filter(row => row.label === wanted.label);
+    if (!expect(found.length === 1, `CSS numbers did not render ${wanted.label} exactly once`)) continue;
+    const row = found[0];
+    expect(row.declarations.length === 1 && row.declarations[0] === wanted.style.flex,
+      `${wanted.label}: server CSS ${JSON.stringify(row.declarations)} differs from client flex ${wanted.style.flex}`);
+    if (wanted.compareComputed) {
+      expect(row.computedEqual, `${wanted.label}: browser-parsed server and client CSS differ`);
+    }
+  }
+  const problems = session.takeProblems();
+  expect(problems.length === 0, `CSS numbers logged: ${problems.join('; ')}`);
+  console.log('ok   CSS numbers: server/client decimal widths, table headings, large atoms and grouped text');
 }
 
 // Precise V8 call counts prove that the checked island's residual evaluator
@@ -658,7 +732,7 @@ try {
     console.log(`Chromium's output:\n${browser.output()}`);
     throw error;
   }
-  const steps = [exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, rowTemplates, appRoutes, benchmark]
+  const steps = [cssNumbers, exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, rowTemplates, appRoutes, benchmark]
     .filter(step => !args.only || args.only.split(',').includes(step.name));
   for (const step of steps) {
     try {

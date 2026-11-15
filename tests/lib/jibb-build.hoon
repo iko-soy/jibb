@@ -5,6 +5,7 @@
 /*  renderer-source  %jibb  /lib/jibb/renderer/jibb
 /*  about-source  %txt  /my-app/ui/about/jibb
 /*  theme-source  %txt  /my-app/ui/theme/jibb
+/*  css-numbers-source  %txt  /tests/css-numbers/source/jibb
 ::  Prepare immutable inputs once, retaining a setup crash for each arm
 ::  that consumes them. Test arms still run on separate mule roads.
 =/  prepare-fresh
@@ -162,6 +163,36 @@
   ?.  =(surs.needed ~[%todo])  ~[leaf+"static imports did not select exactly the declared /sur dependency"]
   ?.  =(marks.needed ~[%todo-action])  ~[leaf+"static imports did not select exactly the declared mark dependency"]
   ~
+++  test-css-numbers
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  built=(each static-output:jibb-build @t)
+    %+  build-static:jibb-build
+      (request /ui/css-numbers/jibb (text css-numbers-source) default-theme-source:jibb-build '/apps/my-app' ~ ~)
+    u.prep
+  ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
+  =/  cases=(list [digits=@t weight=@t])
+    :~  ['0' '1']  ['1' '1']  ['999' '999']
+        ['1000' '1000']  ['1001' '1001']
+        ['1000000' '1000000']
+        ['9007199254740993' '9007199254740993']
+    ==
+  =/  wanted=(list @t)  ~['Grouped control: 1.000.000']
+  |-
+  ?~  cases  (expect-html html.p.built wanted)
+  =/  digits=@t  digits.i.cases
+  =/  weight=@t  weight.i.cases
+  %=  $
+    cases  t.cases
+    wanted
+      %+  weld  wanted
+      :~  (crip "<div class=\"j-el\" style=\"flex: 0 0 {(trip digits)}ch\">chars-{(trip digits)}</div>")
+          (crip "<div class=\"j-el\" style=\"flex: {(trip weight)} 1 0%; min-width: 0\">fill-{(trip digits)}</div>")
+          (crip "<th scope=\"col\" style=\"flex: 0 0 {(trip digits)}ch; text-align: start\">table-chars-{(trip digits)}</th>")
+          (crip "<th scope=\"col\" style=\"flex: {(trip weight)} 1 0%; min-width: 0; text-align: start\">table-fill-{(trip digits)}</th>")
+      ==
+  ==
 ::  The molds a module may use from each /sur face, misspelled ones
 ::  included, so the host can read each one.
 ++  test-outline-sur-uses

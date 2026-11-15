@@ -73,7 +73,8 @@ PASSWORD = 'lidlut-tabwed-pillex-ridrup'
 #  machine, so a request may wait that long for its answer.
 REPLY = 900
 #  The fixture's modules, its default theme and the vendored renderer.
-FIXTURE_MODULES = {'/ui/about/jibb', '/ui/notes/jibb', '/ui/parts/note/jibb',
+FIXTURE_MODULES = {'/ui/about/jibb', '/ui/css-numbers/jibb',
+                   '/ui/notes/jibb', '/ui/parts/note/jibb',
                    '/ui/blog/index/jibb', '/ui/tables/jibb', '/ui/misspelled/jibb',
                    '/ui/numbered/_n/jibb', '/ui/crash/jibb',
                    '/ui/bench/jibb', '/ui/bench-small/jibb', '/ui/parts/rows/jibb',
