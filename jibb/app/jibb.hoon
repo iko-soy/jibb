@@ -974,6 +974,19 @@
   =/  source=(each @t @t)  (read-clay pre i.paths)
   ?:  ?=(%| -.source)  source
   $(paths t.paths, out [[i.paths p.source] out])
+::  The pure Ford reader selects its exact dependency closure from these
+::  same-revision sources.  Read only Hoon files in the two supported
+::  namespaces; unused files are never compiled by reconstruction.
+++  read-ford-sources
+  |=  pre=path
+  ^-  (each (list [at=path source=@t]) @t)
+  =/  files=(list path)  .^((list path) %ct pre)
+  =/  paths=(list path)
+    %+  skim  files
+    |=  at=path
+    ?.  ?=([?(%sur %lib) ^] at)  |
+    =(%hoon (rear `path`at))
+  (read-all pre (sort paths aor))
 ++  read-named
   |=  [pre=path files=(list [module=term at=path])]
   ^-  (each (list [module=term at=path source=@t]) @t)
@@ -1164,11 +1177,12 @@
   ?:  |(=(' ' i.text) =('\09' i.text))
     $(text t.text, word ~, out ?~(word out [(flop word) out]))
   $(text t.text, word [i.text word])
-::  Called only once Clay has said the file builds.  A /sur source without
-::  Ford runes is read from the type ride gives it, as under eval: Clay's
-::  build carries debugging spots that a generic mold's source proof does
-::  not match.  Each wanted mold the file does not declare gets the reader's
-::  own definite result for it.
+::  Called only once Clay has said the file builds.  Preserve the existing
+::  plain-source reconstruction; Ford sources are rebuilt from exact /sur
+::  and /lib bytes at this revision.  If that bounded reconstruction cannot
+::  handle a source, Clay still supplies its monomorphic molds, while local
+::  wet molds retain the reconstruction failure instead of losing provenance.
+::  Each undeclared wanted mold gets the same reader path's definite result.
 ++  read-sur
   |=  [pre=path file=[module=term at=path source=@t] wanted=(list term)]
   ^-  (each (list [module=term name=term result=*]) @t)
@@ -1176,21 +1190,43 @@
   =/  rebuilt=(each type tang)  (mule |.(-:(~(mint ut -:!>(..zuse)) %noun (ream source.file))))
   =/  core=type  ?:(?=(%& -.rebuilt) p.rebuilt p.built)
   =/  reader=vase  (reader-vase pre)
-  =/  read-module=vase  (slap reader (ream 'read-module'))
+  ::  Desks vendor their own compiler.  An older reader retains its old
+  ::  monomorphic Ford behavior rather than crashing on a missing API arm.
+  =/  use-bundle=?
+    &(?=(%| -.rebuilt) (ford-reader-available:jibb-host p.reader))
+  =/  sources=(each (list [at=path source=@t]) @t)
+    ?.  use-bundle  [%& ~]
+    (read-ford-sources pre)
+  ?:  ?=(%| -.sources)  [%| p.sources]
   =/  declared=(each (list [module=term name=term result=*]) @t)
+    ?:  use-bundle
+      !<  (each (list [module=term name=term result=*]) @t)
+      %+  slam  (slap reader (ream 'read-module-bundle'))
+      !>([module.file at.file p.sources])
     !<  (each (list [module=term name=term result=*]) @t)
-    (slam read-module !>([module.file at.file source.file core]))
+    %+  slam  (slap reader (ream 'read-module'))
+    !>([module.file at.file source.file core])
+  =/  fallback=(unit @t)
+    ?:  &(use-bundle ?=(%| -.declared))  `p.declared
+    ~
+  =?  declared  ?=(^ fallback)
+    !<  (each (list [module=term name=term result=*]) @t)
+    %+  slam  (slap reader (ream 'read-module-fallback'))
+    !>([module.file at.file source.file core u.fallback])
   ?:  ?=(%| -.declared)  declared
   =/  names=(set term)
     (silt (turn p.declared |=(e=[module=term name=term result=*] name.e)))
   =/  missing=(list term)  (skip wanted |=(n=term (~(has in names) n)))
   ?~  missing  declared
-  =/  read-one=vase  (slap reader (ream 'read-module-result'))
   =/  extra=(list [module=term name=term result=*])
     %+  turn  missing
     |=  name=term
     :+  module.file  name
-    +:(slam read-one !>([module.file name at.file source.file core]))
+    ?^  fallback
+      +:(slam (slap reader (ream 'read-module-result-fallback')) !>([module.file name at.file source.file core u.fallback]))
+    ?:  use-bundle
+      +:(slam (slap reader (ream 'read-module-result-bundle')) !>([module.file name at.file p.sources]))
+    +:(slam (slap reader (ream 'read-module-result')) !>([module.file name at.file source.file core]))
   [%& (weld p.declared extra)]
 ++  sur-hash
   |=  [b=build:jibb-host s=store:jibb-host name=term]

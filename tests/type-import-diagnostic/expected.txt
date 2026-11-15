@@ -17,6 +17,11 @@ duplicate:
 ++ cast ^- bad.foo 0
            ^
 unsupported:
+++ cast: Hoon type is unsupported
+/test.jibb:2:12: unsupported imported mold
+++ cast ^- bad.foo 0
+           ^
+empty unsupported reason:
 ++ cast: imported Hoon mold is unsupported
 /test.jibb:2:12: unsupported imported mold
 ++ cast ^- bad.foo 0

@@ -1,0 +1,1 @@
+../../../type-ford-imports/tables.hoon

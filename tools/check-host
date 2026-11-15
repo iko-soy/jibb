@@ -437,16 +437,74 @@ def republish_cached_app(ship, client, modules_before, urls_before):
                'republished my-app asset %s was not immutable' % url)
 
 
-def expect_render_error(client, target, file, line, column, message, excerpt):
-    """A failed render's exact source diagnostic, after HTML unescaping."""
+def page_error(client, target):
+    """A failed page's complete diagnostic, after HTML unescaping."""
     status, _, body = client.request('GET', target)
     expect(status == 500, '%s was HTTP %d, not 500: %r' % (target, status, body))
     found = re.search(rb'<pre>(.*?)</pre>', body, re.DOTALL)
     expect(found is not None, '%s had no diagnostic element: %r' % (target, body))
-    actual = html.unescape(found.group(1).decode())
+    return html.unescape(found.group(1).decode())
+
+
+def expect_render_error(client, target, file, line, column, message, excerpt):
+    """A failed render's exact source diagnostic, after HTML unescaping."""
+    actual = page_error(client, target)
     expected = '%s:%d:%d: %s\n%s\n%s^' % (
         file, line, column, message, excerpt, ' ' * (column - 1))
     expect(actual == expected, '%s diagnostic was\n%s\nnot\n%s' % (target, actual, expected))
+
+
+def check_ford_dependencies(ship, owner):
+    """Use current transitive /sur and /lib bytes, recovering after each error."""
+    fixture = ROOT / 'tests' / 'type-ford-imports'
+    base_file = 'sur/ford-base.hoon'
+    helper_file = 'lib/ford-helpers.hoon'
+    originals = {
+        base_file: (fixture / 'ford-base.hoon').read_bytes(),
+        helper_file: (fixture / 'ford-helpers.hoon').read_bytes(),
+    }
+    errors = {name: (fixture / ('host-' + name + '-error.txt')).read_text().removesuffix('\n')
+              for name in ('changed', 'missing')}
+    expect(all(errors.values()), 'Ford diagnostic expectations must not be empty')
+    target = BASE + '/tables'
+    dirty = False
+    try:
+        # The library imports this /sur indirectly. A cached reader must not
+        # retain its old atom mold when the current mold becomes a cell.
+        dirty = True
+        rev = commit_file(ship, base_file, b'|%\n+$  amount  [left=@ud right=@ud]\n--\n')
+        wait_built(ship, DESK, rev)
+        actual = page_error(owner, target)
+        expect(actual == errors['changed'],
+               'changed Ford dependency diagnostic was\n%s\nnot\n%s'
+               % (actual, errors['changed']))
+        status, _, body = owner.request('GET', PAGE)
+        expect(status == 200 and b'About this ship' in body,
+               'About did not survive a changed Ford dependency: HTTP %d' % status)
+
+        # Restore the /sur while removing its importing /lib. This checks
+        # library-tree invalidation and that the new error replaces the old.
+        rev = commit_files(ship, {base_file: originals[base_file], helper_file: None})
+        wait_built(ship, DESK, rev)
+        actual = page_error(owner, target)
+        expect(actual == errors['missing'],
+               'missing Ford dependency diagnostic was\n%s\nnot\n%s'
+               % (actual, errors['missing']))
+        status, _, body = owner.request('GET', PAGE)
+        expect(status == 200 and b'About this ship' in body,
+               'About did not survive a missing Ford dependency: HTTP %d' % status)
+
+        rev = commit_file(ship, helper_file, originals[helper_file])
+        wait_built(ship, DESK, rev)
+        dirty = False
+        status, _, body = owner.request('GET', target)
+        expect(status == 200 and b'A generic mold checked.' in body,
+               'restored Ford dependencies did not recover the page: HTTP %d: %r'
+               % (status, body))
+    finally:
+        if dirty:
+            rev = commit_files(ship, originals)
+            wait_built(ship, DESK, rev)
 
 
 def wait_for(what, probe, timeout=600):
@@ -805,6 +863,9 @@ def main(args):
             wait_built(ship, DESK, rev)
             status, _, _ = owner.request('GET', BROKEN)
             expect(status == 404, 'a deleted page was HTTP %d, not 404' % status)
+
+        with timed_phase('Ford dependencies and recovery'):
+            check_ford_dependencies(ship, owner)
 
         with timed_phase('broken compiler and recovery'):
             # A build that cannot run, here because the desk's compiler does not

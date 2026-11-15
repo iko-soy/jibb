@@ -7163,6 +7163,9 @@
 ::  This core has no Ford dependencies; unrecognized payloads fail closed.
 +$  iexternals  (list [module=term name=term result=*])
 +$  imark-externals  (list [mark=term result=*])
++$  igeneric-binding  [from=path folder=term name=term at=path]
++$  igeneric-evidence
+  [arity=@ud body=* at=path source=@t arm=* scope=@ sources=jbundle bindings=(list igeneric-binding) ford=?]
 ::  Hole obligations survive discarded expressions until their owning
 ::  definition has inferred; their source spans support unresolved reports.
 +$  ihole  [id=@ud at=span]
@@ -9286,17 +9289,81 @@
         `[typ.u.applied sub.u.applied left.u.args]
       `[[%collection name types.u.keyed] sub.u.keyed left.u.args]
   ==
+++  import-generic-path-name
+  |=  [folder=term at=path]
+  ^-  (unit term)
+  ?~  at  ~
+  ?.  =(folder i.at)  ~
+  =/  reversed=path  (flop t.at)
+  ?.  ?=([%hoon ^] reversed)  ~
+  =/  parts=path  (flop t.reversed)
+  ?~  parts  ~
+  =/  joined=@t  i.parts
+  ?:  =(joined 0)  ~
+  =/  rest=path  t.parts
+  |-
+  ?~  rest
+    ?.  (jibb-face-name joined)  ~
+    `(@tas joined)
+  ?:  =(i.rest 0)  ~
+  $(rest t.rest, joined (crip :(weld (trip joined) "-" (trip i.rest))))
+::  Use Clay's own candidate order, including mixed dash/slash paths.
+++  import-generic-selected
+  |=  [folder=term name=term at=path sources=jbundle]
+  ^-  ?
+  ?.  =(`name (import-generic-path-name folder at))  |
+  =/  dashes=@ud  (lent (skim (trip name) |=(c=@ =(c '-'))))
+  ?:  (gth dashes 10)  |
+  =/  candidates=(list path)  (segments:clay name)
+  |-
+  ?~  candidates  |
+  =/  selected=path  [folder (snoc i.candidates %hoon)]
+  =/  found=jbundle  (skim sources |=(s=jsource =(at.s selected)))
+  ?~  found  $(candidates t.candidates)
+  ?.  ?=([* ~] found)  |
+  =(selected at)
+++  import-generic-evidence-raw
+  |=  raw=*
+  ^-  (unit igeneric-evidence)
+  =/  proof=igeneric-evidence
+    ?:  ?=([%generic-source @ * * @ * @] raw)
+      =/  old=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
+        ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] raw)
+      [arity.old body.old at.old source.old arm.old scope.old ~[[at.old source.old]] ~ |]
+    ?.  ?=([%generic-ford @ * * @ * @ * *] raw)  !!
+    =/  new=[%generic-ford arity=@ud body=* at=path source=@t arm=* scope=@ sources=jbundle bindings=(list igeneric-binding)]
+      ;;([%generic-ford arity=@ud body=* at=path source=@t arm=* scope=@ sources=jbundle bindings=(list igeneric-binding)] raw)
+    [arity.new body.new at.new source.new arm.new scope.new sources.new bindings.new &]
+  ?:  |(=(0 arity.proof) (gth arity.proof 16))  ~
+  ?~  (import-generic-path-name %sur at.proof)  ~
+  ?:  |(=(0 source.proof) =(0 scope.proof))  ~
+  ?.  ?=([%apply *] body.proof)  ~
+  =/  roots=jbundle  (skim sources.proof |=(s=jsource =(at.s at.proof)))
+  ?.  ?=([* ~] roots)  ~
+  ?.  =(source.i.roots source.proof)  ~
+  =/  pending=jbundle  sources.proof
+  =|  seen=(set path)
+  |-
+  ?^  pending
+    =/  s=jsource  i.pending
+    ?:  (~(has in:..zuse seen) at.s)  ~
+    ?:  =(source.s 0)  ~
+    ?.  |(?=(^ (import-generic-path-name %sur at.s)) ?=(^ (import-generic-path-name %lib at.s)))  ~
+    $(pending t.pending, seen (~(put in:..zuse seen) at.s))
+  ?.  (levy bindings.proof |=(b=igeneric-binding ?&((~(has in:..zuse seen) from.b) ?=(?(%sur %lib) folder.b) (import-generic-selected folder.b name.b at.b sources.proof))))  ~
+  `proof
+++  import-generic-evidence
+  |=  raw=*
+  ^-  (unit igeneric-evidence)
+  =/  safe=(each (unit igeneric-evidence) tang)  (mule |.((import-generic-evidence-raw raw)))
+  ?:  ?=(%| -.safe)  ~
+  p.safe
 ++  import-generic-template-raw
   |=  [raw=* standard=(unit ischeme)]
   ^-  (unit ischeme)
-  ?.  ?=([%generic-source @ * * @ * @] raw)  ~
-  =/  proof=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
-    ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] raw)
-  ?:  |(=(0 arity.proof) (gth arity.proof 16))  ~
-  ?~  at.proof  ~
-  ?.  =(%hoon (rear at.proof))  ~
-  ?:  |(=(0 source.proof) =(0 scope.proof))  ~
-  ?.  ?=([%apply *] body.proof)  ~
+  =/  normalized=(unit igeneric-evidence)  (import-generic-evidence raw)
+  ?~  normalized  ~
+  =/  proof=igeneric-evidence  u.normalized
   =/  out=(unit [typ=itype sub=isub left=@ud])
     (import-generic-node body.proof arity.proof ~ 512 standard)
   ?~  out  ~
@@ -9316,10 +9383,11 @@
     (skim externals |=(e=[module=term name=term result=*] &(=(module module.e) =(name name.e))))
   ?.  ?=([* ~] found)  ~
   =/  result=*  result.i.found
-  ?.  ?=([%& [%generic-source @ * * @ * @]] result)  ~
-  =/  proof=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
-    ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] +.result)
-  ?.  =(at.proof ~[%sur module %hoon])  ~
+  ?.  ?=([%& *] result)  ~
+  =/  normalized=(unit igeneric-evidence)  (import-generic-evidence +.result)
+  ?~  normalized  ~
+  =/  proof=igeneric-evidence  u.normalized
+  ?.  ?:(ford.proof (import-generic-selected %sur module at.proof sources.proof) =(at.proof ~[%sur module %hoon]))  ~
   (import-generic-template +.result (find-jibb-mold %unit prelude))
 ::
 ++  find-imported-mold-prelude
@@ -9705,8 +9773,8 @@
   ?.  (levy (itype-vars typ.u.out) |=(n=@ud (lien captured |=(p=@ud =(p n)))))  ~
   `[[(itype-value-root typ.u.out) ~ ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
 ::
-::  A direct imported reference may carry definite reader evidence. Only
-::  uniquely supplied, declared inputs are used; unsupported data stay generic.
+::  A direct imported reference retains definite reader reasons from uniquely
+::  supplied, declared inputs. Malformed or ambiguous evidence stays generic.
 ++  direct-import-invalid
   |=  [sh=shape state=istate]
   ^-  (unit idiag)
@@ -9738,7 +9806,9 @@
     ?^  t.found  ~
     result.i.found
   ?:  ?=([%unsupported @] raw)
-    `["imported Hoon mold is unsupported" ~[[at.sh "unsupported imported mold"]]]
+    =/  why=tape
+      ?:(=(0 +.raw) "imported Hoon mold is unsupported" (trip +.raw))
+    `[why ~[[at.sh "unsupported imported mold"]]]
   ?.  ?=([%invalid ?(%aura %core %overlap %vase %face %missing) @] raw)  ~
   `["{(trip +>.raw)}" ~[[at.sh "invalid imported mold"]]]
 ::
@@ -22563,23 +22633,30 @@
   |=  [src=@t internal-source=@t sources=(list iprelude-group-source)]
   ^-  (unit iprelude)
   (prepare-prelude-with-group-bundle src internal-source sources ~)
-::  Generic external evidence is trusted only with the exact /sur source
-::  it names.  The host supplies reader-produced descriptors; matching the
-::  path and source here binds those nouns to this prelude preparation.
+::  The host supplies reader-produced descriptors. Bind every source in a
+::  Ford closure to this preparation, including dependency resolution: a new
+::  higher-priority path invalidates the old proof even if old bytes remain.
 ++  prelude-external-evidence-valid-raw
   |=  [externals=iexternals modules=jbundle]
   ^-  ?
   ?~  externals  &
   =/  e=[module=term name=term result=*]  i.externals
   ?:  (lien t.externals |=(other=[module=term name=term result=*] &(=(module.other module.e) =(name.other name.e))))  |
-  ?.  ?=([%& [%generic-source @ * * @ * @]] result.e)  |
-  =/  proof=[%generic-source arity=@ud body=* at=path source=@t arm=* scope=@]
-    ;;([%generic-source arity=@ud body=* at=path source=@t arm=* scope=@] +.result.e)
-  ?.  =(at.proof ~[%sur module.e %hoon])  |
-  =/  matches=jbundle  (skim modules |=(m=jsource =(at.m at.proof)))
-  ?.  ?=([* ~] matches)  |
-  ?.  =(source.i.matches source.proof)  |
+  ?.  ?=([%& *] result.e)  |
+  =/  normalized=(unit igeneric-evidence)  (import-generic-evidence +.result.e)
+  ?~  normalized  |
+  =/  proof=igeneric-evidence  u.normalized
+  ?.  ?:(ford.proof (import-generic-selected %sur module.e at.proof modules) =(at.proof ~[%sur module.e %hoon]))  |
+  ?.  (levy sources.proof |=(s=jsource (prelude-generic-source-matches s modules)))  |
+  ?.  (levy bindings.proof |=(b=igeneric-binding (import-generic-selected folder.b name.b at.b modules)))  |
   $(externals t.externals)
+::
+++  prelude-generic-source-matches
+  |=  [wanted=jsource modules=jbundle]
+  ^-  ?
+  =/  matches=jbundle  (skim modules |=(m=jsource =(at.m at.wanted)))
+  ?.  ?=([* ~] matches)  |
+  =(source.i.matches source.wanted)
 ::
 ++  prelude-external-evidence-valid
   |=  [externals=iexternals modules=jbundle]

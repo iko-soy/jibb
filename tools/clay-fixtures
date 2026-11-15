@@ -38,6 +38,8 @@ FIXTURES = [
     ('ford', 'Clay Ford subject differs', 'Clay Ford subject golden passed'),
     ('ford-import', 'Clay Ford import differs',
      'Clay Ford importer golden passed'),
+    ('ford-generic-bridge', 'Clay Ford generic bridge differs',
+     'Clay Ford generic source/full-check bridge passed'),
     ('ford-recursive', 'Clay recursive Ford import differs',
      'Clay recursive Ford importer golden passed'),
     ('ford-nested-union', 'Clay nested union import differs',

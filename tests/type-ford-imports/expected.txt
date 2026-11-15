@@ -1,0 +1,31 @@
+valid dependency graph:
+CHECKED
+changed transitive mold:
+++ dependency-witness: cast mold and expression type do not unify
+/ui/ford-imports.jibb:3:26: cast mold has type [title=@t count=[left=@ud right=@ud]]
+++ dependency-witness ^- sample.tables [title="Ford" count=7]
+                         ^
+/ui/ford-imports.jibb:3:40: expression has type [title=@t count=@ud]
+++ dependency-witness ^- sample.tables [title="Ford" count=7]
+                                       ^
+shadowed standard map:
+++ pass-table: cores and gates cannot be imported
+/ui/ford-imports.jibb:2:24: invalid imported mold
+++ pass-table |= value=(table.tables @t @ud) value
+                       ^
+missing direct library:
+++ pass-table: Hoon source /sur/tables/hoon:2:5: missing Ford dependency /lib/ford-helpers/hoon
+/+  ford-helpers
+    ^
+/ui/ford-imports.jibb:2:24: unsupported imported mold
+++ pass-table |= value=(table.tables @t @ud) value
+                       ^
+missing transitive source:
+++ pass-table: Hoon source /sur/tables/hoon:2:5: Hoon source /lib/ford-helpers/hoon:1:5: missing Ford dependency /sur/ford-base/hoon
+/-  ford-base
+    ^
+/+  ford-helpers
+    ^
+/ui/ford-imports.jibb:2:24: unsupported imported mold
+++ pass-table |= value=(table.tables @t @ud) value
+                       ^

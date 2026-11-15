@@ -45,6 +45,7 @@
       [%param index=@ud]
       [%generic arity=@ud body=imported]
       [%generic-source arity=@ud body=imported at=path source=@t arm=hoon scope=@uvH]
+      [%generic-ford arity=@ud body=imported at=path source=@t arm=hoon scope=@uvH sources=(list ford-source) bindings=(list ford-binding)]
       [%bad reason=@t]
       [%invalid code=?(%aura %core %vase %face) reason=@t]
   ==
@@ -762,6 +763,187 @@
   ?~  params  &
   ?:  (lien t.params |=(name=term =(name i.params)))  |
   $(params t.params)
+::
+::  Reconstruct the supported Ford source graph from an exact source inventory.
+::  Header parsing and subject order follow pinned Clay 50c7f523; source spots
+::  stay in the body AST. Only /- and /+ headers are reconstructed here.
+::  Unknown headers, ambiguity, cycles and exhausted budgets fail closed.
++$  ford-source  [at=path source=@t]
++$  ford-binding  [from=path folder=term name=term at=path]
++$  ford-rebuilt  [cor=type sources=(list ford-source) bindings=(list ford-binding)]
++$  ford-taut  [face=(unit term) name=term]
++$  ford-import  [face=(unit term) name=term site=hair]
++$  ford-pile  [sur=(list ford-import) lib=(list ford-import) body=hoon]
+++  ford-pant
+  |*  parser=rule
+  ;~(pose parser (easy ~))
+++  ford-mast
+  |*  [separator=rule parser=rule]
+  ;~(sfix (more separator parser) separator)
+++  ford-rune
+  |*  [glyph=rule parser=rule]
+  %-  ford-pant
+  %+  ford-mast  gap
+  ;~(pfix fas glyph gap parser)
+++  ford-taut-rule
+  %+  here
+    |=  [site=pint value=ford-taut]
+    [face.value name.value p.site]
+  ;~  pose
+    (stag ~ ;~(pfix tar sym))
+    ;~(plug (stag ~ sym) ;~(pfix tis sym))
+    (cook |=(a=term [`a a]) sym)
+  ==
+++  ford-pile-rule
+  |=  at=path
+  %-  full
+  %+  ifix  [gay gay]
+  ;~  plug
+    %+  cook  (bake zing (list (list ford-import)))
+    %+  ford-rune  hep
+    (most ;~(plug com gaw) ford-taut-rule)
+  ::
+    %+  cook  (bake zing (list (list ford-import)))
+    %+  ford-rune  lus
+    (most ;~(plug com gaw) ford-taut-rule)
+  ::
+    (ford-body-rule at)
+  ==
+::  Hoon's body parser can consume Ford-looking lines without rejecting
+::  them. Stop at an unsupported or misplaced header before invoking it.
+++  ford-body-rule
+  |=  at=path
+  |=  stream=nail
+  ^-  (like hoon)
+  ?:  (ford-header-prefix q.stream)
+    [p.stream ~]
+  ((stag %tssg (most gap tall:(vang & at))) stream)
+++  ford-header-prefix
+  |=  text=tape
+  ^-  ?
+  ::  Use the same gap as Clay's headers. A body path such as /~zod
+  ::  must not be classified as a /~ header.
+  =/  parsed=edge
+    (;~(plug fas ;~(pose wut hep lus tis sig cen buc tar) gap) [1 1] text)
+  ?=(^ q.parsed)
+++  ford-path
+  |=  at=path
+  ^-  tape
+  ?~  at  ~
+  :(weld "/" (trip i.at) $(at t.at))
+++  ford-error
+  |=  [at=path source=@t site=hair message=@t]
+  ^-  @t
+  =/  lines=wain  (to-wain:format source)
+  =/  excerpt=@t
+    ?:  |(=(0 p.site) (gth p.site (lent lines)))  '<<end of file>>'
+    (snag (dec p.site) lines)
+  %-  of-wain:format
+  :~  (crip "Hoon source {(ford-path at)}:{(scow %ud p.site)}:{(scow %ud q.site)}: {(trip message)}")
+      excerpt
+      (crip (runt [?:(=(q.site 0) 0 (dec q.site)) ' '] "^"))
+  ==
+++  ford-parse
+  |=  [at=path source=@t]
+  ^-  (each ford-pile @t)
+  =/  parsed=[where=hair result=(unit [value=ford-pile rest=nail])]
+    ((ford-pile-rule at) [1 1] (trip source))
+  ?~  result.parsed
+    [%| (ford-error at source where.parsed (ford-parse-message source where.parsed))]
+  [%& value.u.result.parsed]
+::  Name a rejected header without changing or reparsing the source body.
+++  ford-parse-message
+  |=  [source=@t site=hair]
+  ^-  @t
+  =/  lines=wain  (to-wain:format source)
+  ?:  |(=(0 p.site) (gth p.site (lent lines)))  'invalid Hoon source'
+  =/  line=tape  (trip (snag (dec p.site) lines))
+  |-
+  ?~  line  'invalid Hoon source'
+  ?:  =(i.line ' ')  $(line t.line)
+  ?~  t.line  'invalid Hoon source'
+  ?.  (ford-header-prefix line)  'invalid Hoon source'
+  =/  kind=tape  ?:(|(=(i.t.line '-') =(i.t.line '+')) "invalid or misplaced" "unsupported")
+  (crip "{kind} Ford header `/{(trip i.t.line)}`")
+++  ford-find
+  |=  [folder=term name=term sources=(list ford-source)]
+  ^-  (each path @t)
+  ?.  ?=(?(%sur %lib) folder)  [%| 'Ford imports require /sur or /lib']
+  =/  count=@ud  (lent (skim (trip name) |=(c=@ =(c '-'))))
+  ?:  (gth count 10)  [%| 'Ford import path search exceeds its budget']
+  =/  candidates=(list path)  (segments:clay name)
+  |-
+  ?~  candidates
+    [%| (crip "missing Ford dependency /{(trip folder)}/{(trip name)}/hoon")]
+  =/  at=path  [folder (snoc i.candidates %hoon)]
+  =/  found=(list ford-source)  (skim sources |=(s=ford-source =(at at.s)))
+  ?~  found  $(candidates t.candidates)
+  ?^  t.found
+    [%| (crip "ambiguous Ford dependency {(ford-path at)}")]
+  [%& at]
+::  Reconstruction has one shared budget for distinct files and import edges.
++$  ford-state
+  [known=(map path type) used=(map path @t) bindings=(list ford-binding) files-left=@ud edges-left=@ud]
++$  ford-build-result  (each [cor=type state=ford-state] @t)
+++  ford-compile
+  |=  [at=path source=@t body=hoon scope=type state=ford-state]
+  ^-  ford-build-result
+  =/  made=(each type tang)
+    (mule |.(-:(~(mint ut scope) %noun body)))
+  ?:  ?=(%| -.made)
+    =/  details=@t
+      %-  of-wain:format
+      (turn p.made |=(t=tank (crip ~(ram re t))))
+    [%| (ford-error at source [1 1] (cat 3 'Ford source does not compile: ' details))]
+  [%& p.made state(known (~(put by known.state) at p.made))]
+++  ford-build
+  |=  [at=path sources=(list ford-source) active=(list path) state=ford-state]
+  ^-  ford-build-result
+  ?:  (lien active |=(p=path =(p at)))
+    [%| (crip "Ford dependency cycle reaches {(ford-path at)}")]
+  =/  prior=(unit type)  (~(get by known.state) at)
+  ?^  prior  [%& u.prior state]
+  =/  found=(list ford-source)  (skim sources |=(s=ford-source =(at at.s)))
+  ?~  found  [%| (crip "missing Ford source {(ford-path at)}")]
+  ?^  t.found  [%| (crip "ambiguous Ford source {(ford-path at)}")]
+  =/  source=@t  source.i.found
+  ?:  =(files-left.state 0)
+    [%| (ford-error at source [1 1] 'Ford dependency graph exceeds its file budget')]
+  =.  state
+    state(files-left (dec files-left.state), used (~(put by used.state) at source))
+  =/  parsed=(each ford-pile @t)  (ford-parse at source)
+  ?:  ?=(%| -.parsed)  parsed
+  =/  deps=(list [folder=term entry=ford-import])
+    %+  weld
+      (turn sur.p.parsed |=(entry=ford-import [`term`%sur entry]))
+    (turn lib.p.parsed |=(entry=ford-import [`term`%lib entry]))
+  =/  scope=type  -:!>(..zuse)
+  |-  ^-  ford-build-result
+  ?~  deps  (ford-compile at source body.p.parsed scope state)
+  =/  dep=[folder=term entry=ford-import]  i.deps
+  ?:  =(edges-left.state 0)
+    [%| (ford-error at source site.entry.dep 'Ford dependency graph exceeds its import budget')]
+  =/  selected=(each path @t)  (ford-find folder.dep name.entry.dep sources)
+  ?:  ?=(%| -.selected)
+    [%| (ford-error at source site.entry.dep p.selected)]
+  =.  state
+    state(edges-left (dec edges-left.state), bindings [[at folder.dep name.entry.dep p.selected] bindings.state])
+  =/  built=ford-build-result  (ford-build p.selected sources [at active] state)
+  ?:  ?=(%| -.built)
+    [%| (ford-error at source site.entry.dep p.built)]
+  =/  typ=type  cor.p.built
+  =?  typ  ?=(^ face.entry.dep)  [%face u.face.entry.dep typ]
+  $(deps t.deps, scope [%cell typ scope], state state.p.built)
+++  rebuild-source
+  |=  [at=path sources=(list ford-source)]
+  ^-  (each ford-rebuilt @t)
+  =/  made=ford-build-result
+    (ford-build at sources ~ [*(map path type) *(map path @t) ~ 256 1.024])
+  ?:  ?=(%| -.made)  made
+  =/  closure=(list ford-source)
+    (sort ~(tap by used.state.p.made) |=([a=ford-source b=ford-source] (aor at.a at.b)))
+  [%& cor.p.made closure (flop bindings.state.p.made)]
+::
 ++  generic-standard-arity
   |=  name=term
   ^-  @ud
@@ -869,6 +1051,16 @@
 ++  read-module
   |=  [module=term at=path source=@t cor=type]
   ^-  (each (list [module=term name=term result=*]) @t)
+  =/  names=(each (list term) @t)  (read-module-names cor)
+  ?:  ?=(%| -.names)  names
+  :-  %&
+  %+  turn  p.names
+  |=  name=term
+  [module name (read-module-result module name at source cor)]
+::
+++  read-module-names
+  |=  cor=type
+  ^-  (each (list term) @t)
   ?.  ?=([%core *] cor)  [%| 'Hoon module provenance is unavailable']
   ?:  =(cor -:!>(..zuse))  [%| 'Hoon module provenance is unavailable']
   =/  chapters=(map term tome)  q.r.q.cor
@@ -882,11 +1074,98 @@
     ?:  ?=(%| -.rest)  rest
     [%& (weld u.chapter p.rest)]
   ?:  ?=(%| -.names)  names
-  =/  ordered=(list term)  (sort ~(tap in:..zuse (sy p.names)) aor)
+  [%& (sort ~(tap in:..zuse (sy p.names)) aor)]
+::
+::  A failed reconstruction must not erase its reason for a local wet mold.
+::  Monomorphic readers retain the legacy Clay path and diagnostics.
+++  read-module-result-fallback
+  |=  [module=term name=term at=path source=@t cor=type error=@t]
+  ^-  *
+  =/  arm=(unit hoon)  (local-arm-source cor name)
+  ?^  arm
+    =/  plain=(unit *)  (source-unwrap u.arm 8)
+    ?^  plain
+      ?:  ?=([%brbc * *] u.plain)  [%unsupported error]
+      (read-module-result module name at source cor)
+    (read-module-result module name at source cor)
+  (read-module-result module name at source cor)
+::
+++  read-module-fallback
+  |=  [module=term at=path source=@t cor=type error=@t]
+  ^-  (each (list [module=term name=term result=*]) @t)
+  =/  names=(each (list term) @t)  (read-module-names cor)
+  ?:  ?=(%| -.names)  names
   :-  %&
-  %+  turn  ordered
+  %+  turn  p.names
   |=  name=term
-  [module name (read-module-result module name at source cor)]
+  [module name (read-module-result-fallback module name at source cor error)]
+::
+::  Rebuild a complete source closure once, without comparing Clay debug
+::  spots to a source compiled against zuse. The reader owns construction;
+::  callers cannot supply a replacement type or a guessed dependency path.
+++  read-module-rebuild
+  |=  [module=term at=path sources=(list ford-source)]
+  ^-  (each ford-rebuilt @t)
+  =/  selected=(each path @t)  (ford-find %sur module sources)
+  ?:  ?=(%| -.selected)  selected
+  ?.  =(p.selected at)
+    [%| 'Hoon source path does not match its imported module']
+  (rebuild-source at sources)
+::
+++  read-generic-rebuilt
+  |=  [name=term at=path rebuilt=ford-rebuilt]
+  ^-  (each imported @t)
+  =/  root=(list ford-source)
+    (skim sources.rebuilt |=(s=ford-source =(at.s at)))
+  ?.  ?=([* ~] root)  [%| 'Hoon generic source closure has no unique root']
+  =/  proof=(unit imported)  (generic-source-proof name cor.rebuilt)
+  ?~  proof  [%| 'Hoon generic collection forwarding is not proven']
+  ?.  ?=(%generic -.u.proof)  [%| 'Hoon generic collection forwarding is not proven']
+  =/  selected=(unit hoon)  (local-arm-source cor.rebuilt name)
+  ?~  selected  [%| 'Hoon generic source arm is unavailable']
+  [%& [%generic-ford arity.u.proof body.u.proof at source.i.root u.selected (sham cor.rebuilt) sources.rebuilt bindings.rebuilt]]
+::
+++  read-generic-bundle
+  |=  [module=term name=term at=path sources=(list ford-source)]
+  ^-  (each imported @t)
+  =/  rebuilt=(each ford-rebuilt @t)  (read-module-rebuild module at sources)
+  ?:  ?=(%| -.rebuilt)  rebuilt
+  (read-generic-rebuilt name at p.rebuilt)
+::
+++  read-module-result-rebuilt
+  |=  [module=term name=term at=path rebuilt=ford-rebuilt]
+  ^-  *
+  =/  proof=(unit imported)  (generic-source-proof name cor.rebuilt)
+  ?~  proof
+    =/  diagnostic=import-diagnostic  (read-named-diagnostic module name cor.rebuilt)
+    ?:  ?=(%ok -.diagnostic)  [%& +.diagnostic]
+    diagnostic
+  ?.  ?=(%generic -.u.proof)
+    =/  diagnostic=import-diagnostic  (read-named-diagnostic module name cor.rebuilt)
+    ?:  ?=(%ok -.diagnostic)  [%& +.diagnostic]
+    diagnostic
+  =/  generic=(each imported @t)  (read-generic-rebuilt name at rebuilt)
+  ?:  ?=(%| -.generic)  [%unsupported p.generic]
+  generic
+::
+++  read-module-result-bundle
+  |=  [module=term name=term at=path sources=(list ford-source)]
+  ^-  *
+  =/  rebuilt=(each ford-rebuilt @t)  (read-module-rebuild module at sources)
+  ?:  ?=(%| -.rebuilt)  [%unsupported p.rebuilt]
+  (read-module-result-rebuilt module name at p.rebuilt)
+::
+++  read-module-bundle
+  |=  [module=term at=path sources=(list ford-source)]
+  ^-  (each (list [module=term name=term result=*]) @t)
+  =/  rebuilt=(each ford-rebuilt @t)  (read-module-rebuild module at sources)
+  ?:  ?=(%| -.rebuilt)  rebuilt
+  =/  names=(each (list term) @t)  (read-module-names cor.p.rebuilt)
+  ?:  ?=(%| -.names)  names
+  :-  %&
+  %+  turn  p.names
+  |=  name=term
+  [module name (read-module-result-rebuilt module name at p.rebuilt)]
 ::
 ++  read-named
   |=  [module=term name=term cor=type]
@@ -1760,11 +2039,15 @@
   ?:  =(scope -:!>(..zuse))  &
   ?-  scope
     [%cell *]
-      ?.  ?=([%face *] p.scope)  |
-      ?^  p.p.scope  |
-      ?:  =(p.p.scope target)  |
-      ?.  ?=([%core *] q.p.scope)  |
-      &($(scope q.p.scope) $(scope q.scope))
+      ?:  ?=([%face *] p.scope)
+        ?^  p.p.scope  |
+        ?:  =(p.p.scope target)  |
+        ?.  ?=([%core *] q.p.scope)  |
+        &($(scope q.p.scope) $(scope q.scope))
+      ::  Ford's *name import opens the same core without a face. Check
+      ::  both lexical layers; its arms must not shadow the selected name.
+      ?.  ?=([%core *] p.scope)  |
+      &($(scope p.scope) $(scope q.scope))
     [%core *]
       ?.  =(p.scope q.q.scope)  |
       =/  chapters=(map term tome)  q.r.q.scope
@@ -2354,6 +2637,7 @@
     [%param *]  ~
     [%generic *]  $(out body.out)
     [%generic-source *]  $(out body.out)
+    [%generic-ford *]  $(out body.out)
     [%bad *]  [~ reason.out]
     [%invalid *]  [~ reason.out]
     [%face *]  $(out body.out)
@@ -2385,6 +2669,7 @@
     [%param *]  ~
     [%generic *]  $(out body.out)
     [%generic-source *]  $(out body.out)
+    [%generic-ford *]  $(out body.out)
     [%bad *]  `[%unsupported reason.out]
     [%invalid *]  `[%invalid code.out reason.out]
     [%face *]  $(out body.out)
@@ -2430,6 +2715,7 @@
     [%param *]  "#{(scow %ud index.out)}"
     [%generic *]  "(generic {(scow %ud arity.out)} {(show-import body.out)})"
     [%generic-source *]  "(source-generic {(scow %ud arity.out)} {(show-import body.out)})"
+    [%generic-ford *]  "(source-generic {(scow %ud arity.out)} {(show-import body.out)})"
     [%bad *]  "error: {(trip reason.out)}"
     [%invalid *]  "error: {(trip reason.out)}"
   ==

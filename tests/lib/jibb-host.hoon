@@ -314,6 +314,46 @@
     (lth (need (find ~[x] order)) (need (find ~[y] order)))
   ?.  &((before /ui/c/jibb /ui/b/jibb) (before /ui/b/jibb /ui/a/jibb) (before /ui/b/jibb /ui/d/jibb))
     ~[leaf+"a module was ordered before one it imports"]
+  ::  A /sur reader can depend on another /sur file and on /lib through
+  ::  Ford.  Neither edit changes the imported root's own source bytes.
+  =/  sur=@t  '/- parent\0a/+ helper\0a|%\0a+$ item @ud\0a--\0a'
+  =/  key=@uv  (sur-key:jibb-host 0v1 %child sur 0v2 ~[%item])
+  ?:  =(key (sur-key:jibb-host 0v3 %child sur 0v2 ~[%item]))
+    ~[leaf+"a changed /lib environment reused a Ford reader"]
+  ?:  =(key (sur-key:jibb-host 0v1 %child sur 0v4 ~[%item]))
+    ~[leaf+"a changed /sur dependency reused a Ford reader"]
+  ?:  =(key (sur-key:jibb-host 0v1 %child sur 0v2 ~[%other]))
+    ~[leaf+"a changed requested mold reused the old reader result"]
+  =/  checked=@uv
+    (check-key:jibb-host 0v1 0v2 ~[[/ui/a/jibb 0v3]] ~[[%child `0v4]] ~)
+  ?:  =(checked (check-key:jibb-host 0v1 0v2 ~[[/ui/a/jibb 0v3]] ~[[%child `0v5]] ~))
+    ~[leaf+"a changed authenticated reader result reused a checked module"]
+  =/  legacy-value
+    |%
+    ++  read-module  ~
+    ++  read-module-result  ~
+    --
+  =/  legacy=type  -:!>(legacy-value)
+  ?:  (ford-reader-available:jibb-host legacy)
+    ~[leaf+"a legacy vendored reader claimed the Ford bundle API"]
+  =/  partial-value
+    |%
+    ++  read-module-bundle  ~
+    ++  read-module-result-bundle  ~
+    --
+  =/  partial=type  -:!>(partial-value)
+  ?:  (ford-reader-available:jibb-host partial)
+    ~[leaf+"a reader without diagnostic fallback claimed the Ford bundle API"]
+  =/  complete-value
+    |%
+    ++  read-module-bundle  ~
+    ++  read-module-result-bundle  ~
+    ++  read-module-fallback  ~
+    ++  read-module-result-fallback  ~
+    --
+  =/  complete=type  -:!>(complete-value)
+  ?.  (ford-reader-available:jibb-host complete)
+    ~[leaf+"a reader with every Ford bundle API arm was not detected"]
   ~
 ++  test-incremental-store-pruning
   ^-  tang
@@ -341,9 +381,17 @@
   ~
 ++  test-hoon-file-names
   ^-  tang
-  ::  Clay's order: each dash stays before it becomes a separator.
-  =/  wanted=(list path)  ~[/a-b-c /a-b/c /a/b-c /a/b/c]
+  ::  The pinned implementation's order, including competing mixed paths.
+  =/  wanted=(list path)  ~[/a-b-c /a/b-c /a-b/c /a/b/c]
   ?.  =(wanted (name-paths:jibb-host %a-b-c))  ~[leaf+"dashed names did not expand in Clay's order"]
+  =/  longer=(list path)
+    ~[/a-b-c-d /a/b-c-d /a-b/c-d /a/b/c-d /a-b-c/d /a/b-c/d /a-b/c/d /a/b/c/d]
+  ?.  =(longer (name-paths:jibb-host %a-b-c-d))
+    ~[leaf+"four-part names did not expand in Clay's order"]
+  =/  competing=(list path)
+    (skim (name-paths:jibb-host %a-b-c) |=(at=path |(=(at /a-b/c) =(at /a/b-c))))
+  ?.  =(~[/a/b-c /a-b/c] competing)
+    ~[leaf+"competing mixed paths would select a different root than Clay"]
   ?.  =(~[/todo] (name-paths:jibb-host %todo))  ~[leaf+"a plain name did not name one file"]
   ?.  =(`%todo-action (hoon-name:jibb-host %mar /mar/todo/action/hoon))
     ~[leaf+"a nested mark file did not keep its dashed name"]

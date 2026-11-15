@@ -1,0 +1,7 @@
+++ dependency-witness: cast mold and expression type do not unify
+/ui/tables.jibb:8:26: cast mold has type [title=@t count=[left=@ud right=@ud]]
+++ dependency-witness ^- sample.tables [title="Ford" count=7]
+                         ^
+/ui/tables.jibb:8:40: expression has type [title=@t count=@ud]
+++ dependency-witness ^- sample.tables [title="Ford" count=7]
+                                       ^

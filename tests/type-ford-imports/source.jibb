@@ -1,0 +1,3 @@
+/- tables
+++ pass-table |= value=(table.tables @t @ud) value
+++ dependency-witness ^- sample.tables [title="Ford" count=7]

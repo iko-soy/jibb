@@ -1,0 +1,1 @@
+static build: cannot build imported Hoon source /sur/tables.hoon

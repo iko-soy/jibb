@@ -45,6 +45,7 @@
   =/  nested-report  (golden-types-with-reader-diagnostics:jibb /ui/test/jibb nested-src ~[[%foo %bad invalid]] ~)
   =/  dup  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad invalid] [%foo %bad invalid]] ~)
   =/  inconclusive  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad unsupported]] ~)
+  =/  empty-reason  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad [%unsupported '']]] ~)
   =/  bad-code  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad [%invalid %other 'forged']]] ~)
   =/  bad-message  (golden-types-with-reader-diagnostics:jibb /test/jibb sample ~[[%foo %bad [%invalid %aura [1 2]]]] ~)
   =/  absent  (golden-types-with-reader-diagnostics:jibb /test/jibb noimport ~[[%foo %bad invalid]] ~)
@@ -58,5 +59,5 @@
   =/  ic  (golden-types-with-reader-diagnostics:jibb /test/jibb import-clash ~[[%foo %bad invalid]] ~[[%foo invalid]])
   =/  vc  (golden-types-with-reader-diagnostics:jibb /test/jibb value-clash ~[[%foo %bad invalid]] ~)
   =/  mc  (golden-types-with-reader-diagnostics:jibb /test/jibb mold-clash ~ ~[[%foo invalid]])
-  (of-wain:format ~['real reader:' real 'nested:' nested-report 'duplicate:' dup 'unsupported:' inconclusive 'unknown code:' bad-code 'malformed message:' bad-message 'missing:' missing 'unused:' unused 'undeclared:' absent 'shadow:' collision 'import clash:' ic 'value clash:' vc 'mold clash:' mc])
+  (of-wain:format ~['real reader:' real 'nested:' nested-report 'duplicate:' dup 'unsupported:' inconclusive 'empty unsupported reason:' empty-reason 'unknown code:' bad-code 'malformed message:' bad-message 'missing:' missing 'unused:' unused 'undeclared:' absent 'shadow:' collision 'import clash:' ic 'value clash:' vc 'mold clash:' mc])
 --

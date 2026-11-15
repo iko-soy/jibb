@@ -5,6 +5,8 @@
 
 ++ identity |= value=(table.tables @t @ud) value
 
+++ dependency-witness ^- sample.tables [title="Ford" count=7]
+
 ++ view
   column ~[pad+%s3 gap+%s2] ~[
     heading 1 "Tables"

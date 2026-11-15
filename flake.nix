@@ -315,6 +315,8 @@
             # The Clay fixture's real Tlon /sur is a symlink here.
             ./tests/golden/types-import-tlon-notes/sur
             ./tests/type-import-general/sur.txt
+            # Shared sources linked into the Clay and HTTP fixture desks.
+            ./tests/type-ford-imports
           ];
           shipBase = check "ship-base" shipBaseFiles
             "tools/check check-commit clay-fixtures check-my-app --timeout 10800 --logs $out" shipExtra;
@@ -325,7 +327,7 @@
               (mappedShipExtra batch);
           }) evalManifest.probe_batches);
           shipHostFiles = fs.unions [
-            shipTestFiles ./tests/host-fixture ./js
+            shipTestFiles ./tests/host-fixture ./tests/type-ford-imports ./js
             ./tools/check-host ./tools/check-browser ./tools/browser-check.mjs
             ./tools/check-node-tests ./tools/node-tests.mjs
           ];

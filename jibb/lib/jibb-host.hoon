@@ -247,32 +247,12 @@
 ::
 ::  +name-paths: the paths, under /sur or /mar, a /- or /% name may select
 ::
-::    As Clay's fit-path tries them: each dash stays or becomes a path
-::    separator, left to right, a dash first, as a-b-c, a-b/c, a/b-c, a/b/c.
+::    Use Clay's implementation rather than duplicating its ordering.
+::    For a-b-c it tries a-b-c, a/b-c, a-b/c, then a/b/c.
 ++  name-paths
   |=  name=@ta
   ^-  (list path)
-  =/  parts=(list tape)  (dash-parts (trip name))
-  ?~  parts  ~
-  %+  turn  (name-joins i.parts t.parts)
-  |=(segments=(list tape) (turn segments |=(segment=tape (crip segment))))
-++  name-joins
-  |=  [current=tape rest=(list tape)]
-  ^-  (list (list tape))
-  ?~  rest  ~[~[current]]
-  %+  weld
-    $(current :(weld current "-" i.rest), rest t.rest)
-  %+  turn  $(current i.rest, rest t.rest)
-  |=(segments=(list tape) `(list tape)`[current segments])
-++  dash-parts
-  |=  text=tape
-  ^-  (list tape)
-  =|  current=tape
-  =|  out=(list tape)
-  |-
-  ?~  text  (flop [(flop current) out])
-  ?:  =('-' i.text)  $(text t.text, out [(flop current) out], current ~)
-  $(text t.text, current [i.text current])
+  (segments:clay name)
 ::  +hoon-name: the /- or /% name of a Hoon file under folder, if any
 ++  hoon-name
   |=  [folder=@ta at=path]
@@ -288,6 +268,17 @@
   |-
   ?~  rest  `(crip joined)
   $(joined :(weld joined "-" i.rest), rest t.rest)
+::
+::  A desk may still vendor an older reader.  Select the optional bundle
+::  protocol only when both readers and both diagnostic fallbacks exist.
+++  ford-reader-available
+  |=  reader=type
+  ^-  ?
+  ?&  (slab %read %read-module-bundle reader)
+      (slab %read %read-module-result-bundle reader)
+      (slab %read %read-module-fallback reader)
+      (slab %read %read-module-result-fallback reader)
+  ==
 ::
 ::  Cache keys.  env names the desk's compiler, prelude and collection
 ::  reader; every other key includes it.

@@ -9,12 +9,12 @@ duplicate sample:
 ++ sample |= x=bad.foo x
                ^
 unsupported cast:
-++ cast: imported Hoon mold is unsupported
+++ cast: Hoon type is unsupported
 /test.jibb:2:12: unsupported imported mold
 ++ cast ^- bad.foo 0
            ^
 unsupported sample:
-++ sample: imported Hoon mold is unsupported
+++ sample: Hoon type is unsupported
 /test.jibb:3:16: unsupported imported mold
 ++ sample |= x=bad.foo x
                ^
