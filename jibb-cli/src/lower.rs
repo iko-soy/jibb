@@ -13,28 +13,63 @@ use tree_sitter::Node;
 
 type LResult<T> = Result<T, Diagnostic>;
 
-pub(crate) fn validate(node: Node<'_>) -> LResult<()> {
-    if node.kind() == "ERROR" || node.is_missing() {
-        return Err(Diagnostic::at(
-            if node.is_missing() {
-                format!("invalid Jibb syntax: missing {}", node.kind())
-            } else {
-                "invalid Jibb syntax".to_string()
-            },
-            node_span(node),
-        ));
+/// Rejects a tree with any `ERROR` or missing node, including the missing
+/// layout tokens tree-sitter inserts invisibly, naming the innermost visible
+/// node that holds the error.
+pub(crate) fn validate(root: Node<'_>) -> LResult<()> {
+    if !root.has_error() {
+        return reject_empty_nodes(root);
     }
-    if node.is_named() && node.kind() != "source_file" && node.start_byte() == node.end_byte() {
-        return Err(Diagnostic::at(
-            format!("invalid Jibb syntax: empty {} node", node.kind()),
-            node_span(node),
-        ));
+    let mut node = root;
+    loop {
+        if node.is_error() {
+            return Err(Diagnostic::at("invalid Jibb syntax", node_span(node)));
+        }
+        if node.is_missing() {
+            return Err(Diagnostic::at(
+                format!("invalid Jibb syntax: missing {}", node.kind()),
+                node_span(node),
+            ));
+        }
+        let mut cursor = node.walk();
+        let child = node
+            .children(&mut cursor)
+            .find(|child| child.has_error() || child.is_missing());
+        match child {
+            Some(child) => node = child,
+            None => {
+                return Err(Diagnostic::at(
+                    format!("invalid Jibb syntax in {}", node.kind()),
+                    node_span(node),
+                ));
+            }
+        }
     }
-    let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
-        validate(child)?;
+}
+
+/// Rejects zero-width named nodes, which only error recovery produces.
+fn reject_empty_nodes(root: Node<'_>) -> LResult<()> {
+    let mut cursor = root.walk();
+    loop {
+        let node = cursor.node();
+        if node.is_named() && node.kind() != "source_file" && node.start_byte() == node.end_byte() {
+            return Err(Diagnostic::at(
+                format!("invalid Jibb syntax: empty {} node", node.kind()),
+                node_span(node),
+            ));
+        }
+        if cursor.goto_first_child() {
+            continue;
+        }
+        loop {
+            if cursor.goto_next_sibling() {
+                break;
+            }
+            if !cursor.goto_parent() {
+                return Ok(());
+            }
+        }
     }
-    Ok(())
 }
 
 pub(crate) fn lower_module(source: &str, root: Node<'_>) -> LResult<Module> {

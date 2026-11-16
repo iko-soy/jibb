@@ -49,6 +49,28 @@ pub struct TypeField {
     pub typ: Type,
 }
 
+/// A cell's fields spread to `count` positions: `[a [b c]]` is `[a b c]`, so
+/// an unfaced cell in the last position supplies the remaining fields. Faced
+/// fields are never grouped, since a record does not fit a narrower one.
+pub(crate) fn spread_cell_fields(fields: &[TypeField], count: usize) -> Option<Vec<TypeField>> {
+    if fields.len() == count {
+        return Some(fields.to_vec());
+    }
+    if fields.len() > count {
+        return None;
+    }
+    let last = fields.last()?;
+    let Type::Cell(inner) = &last.typ else {
+        return None;
+    };
+    if last.face.is_some() || inner.len() < 2 {
+        return None;
+    }
+    let mut spread = fields[..fields.len() - 1].to_vec();
+    spread.extend(inner.iter().cloned());
+    spread_cell_fields(&spread, count)
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum PathSegmentType {
     Knot(String),
@@ -187,11 +209,14 @@ impl TypePrinter {
                     format!("({name} {arguments})")
                 }
             }
-            Type::Union(cases) => cases
-                .iter()
-                .map(|case| self.typ(case))
-                .collect::<Vec<_>>()
-                .join(" "),
+            Type::Union(cases) => format!(
+                "({})",
+                cases
+                    .iter()
+                    .map(|case| self.typ(case))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
             Type::Path(segments) => {
                 let segments = segments
                     .iter()

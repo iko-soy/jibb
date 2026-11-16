@@ -42,6 +42,7 @@ enum Token {
     Word(String),
     Aura(String),
     Term(BigUint),
+    Loobean(bool),
     Null,
     Void,
     Flag,
@@ -71,6 +72,12 @@ fn lex(source: &str) -> Result<Vec<Token>, Diagnostic> {
             ')' => tokens.push(Token::RightParen),
             '[' => tokens.push(Token::LeftBracket),
             ']' => tokens.push(Token::RightBracket),
+            // `$?` is a union rune; a bare `?` is the loobean mold.
+            '?' if matches!(tokens.last(), Some(Token::Word(previous)) if previous == "$") => {
+                if let Some(Token::Word(previous)) = tokens.last_mut() {
+                    previous.push('?');
+                }
+            }
             '?' => tokens.push(Token::Flag),
             '*' => tokens.push(Token::Noun),
             '~' => tokens.push(Token::Null),
@@ -120,14 +127,32 @@ fn lex(source: &str) -> Result<Vec<Token>, Diagnostic> {
                         break;
                     }
                 }
-                let value = if term.starts_with(|character: char| character.is_ascii_digit()) {
-                    BigUint::parse_bytes(term.replace('.', "").as_bytes(), 10).ok_or_else(|| {
-                        Diagnostic::at("invalid Hoon numeric term", index_span(index))
-                    })?
-                } else {
-                    BigUint::from_bytes_le(term.as_bytes())
+                // Hoon's constant spellings: `%&` and `%.y` are yes (0), `%|`
+                // and `%.n` are no (1), and `%$` is the empty term, 0.
+                let token = match term.as_str() {
+                    "&" | ".y" => Token::Loobean(true),
+                    "|" | ".n" => Token::Loobean(false),
+                    "$" => Token::Term(BigUint::default()),
+                    _ if term.starts_with(|character: char| character.is_ascii_digit()) => {
+                        Token::Term(
+                            BigUint::parse_bytes(term.replace('.', "").as_bytes(), 10).ok_or_else(
+                                || Diagnostic::at("invalid Hoon numeric term", index_span(index)),
+                            )?,
+                        )
+                    }
+                    _ if term.is_empty()
+                        || !term.bytes().all(|byte| {
+                            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-'
+                        }) =>
+                    {
+                        return Err(Diagnostic::at(
+                            format!("unsupported Hoon term `%{term}`"),
+                            index_span(index),
+                        ));
+                    }
+                    _ => Token::Term(BigUint::from_bytes_le(term.as_bytes())),
                 };
-                tokens.push(Token::Term(value));
+                tokens.push(token);
             }
             _ => {
                 let mut word = String::from(character);
@@ -224,15 +249,42 @@ impl Parser<'_> {
         })
     }
 
+    /// A mark's type is the mold of the `++  noun` arm of its `++  grab` core.
     fn mark_mold(&mut self) -> Result<crate::ast::Definition, Diagnostic> {
-        while self.position < self.tokens.len() {
-            if self.peek_word() == Some("noun") {
-                self.position += 1;
-                return self.definition_named("noun".to_string());
+        let missing = || Diagnostic::at("Hoon mark has no `++ noun` arm in `++ grab`", self.span);
+        let is_word = |token: Option<&Token>, word: &str| matches!(token, Some(Token::Word(found)) if found == word);
+        let grab = (0..self.tokens.len())
+            .find(|&index| {
+                is_word(self.tokens.get(index), "++") && is_word(self.tokens.get(index + 1), "grab")
+            })
+            .ok_or_else(missing)?;
+        let mut depth = 0usize;
+        let mut index = grab + 2;
+        while index < self.tokens.len() {
+            match &self.tokens[index] {
+                Token::Word(word) if matches!(word.as_str(), "|%" | "|_" | "|^" | "|@") => {
+                    depth += 1;
+                }
+                Token::Word(word) if word == "--" => {
+                    if depth <= 1 {
+                        break;
+                    }
+                    depth -= 1;
+                }
+                Token::Word(word)
+                    if word == "++"
+                        && depth == 1
+                        && is_word(self.tokens.get(index + 1), "noun") =>
+                {
+                    self.position = index + 2;
+                    return self.definition_named("noun".to_string());
+                }
+                Token::Word(word) if word == "++" && depth == 0 => break,
+                _ => {}
             }
-            self.position += 1;
+            index += 1;
         }
-        Err(Diagnostic::at("Hoon mark has no `++ noun` mold", self.span))
+        Err(missing())
     }
 
     fn definition_named(&mut self, name: String) -> Result<crate::ast::Definition, Diagnostic> {
@@ -271,6 +323,7 @@ impl Parser<'_> {
                 value,
                 kind: crate::ast::TermKind::Named,
             }),
+            Some(Token::Loobean(yes)) => MoldKind::Loobean(yes),
             Some(Token::Word(word))
                 if word == "$%" || word == "$?" || word == "$^" || word == "$@" =>
             {

@@ -112,27 +112,50 @@ fn evaluates_higher_order_gates() {
     );
 }
 
+fn primitives(source: &str) -> Result<Value, jibb::Diagnostic> {
+    let source = format!("/= core /lib/jibb/primitives\n{source}");
+    jibb::loader::evaluate_source(
+        &source,
+        std::path::Path::new("primitives.jibb"),
+        "main",
+        &[],
+        None,
+    )
+}
+
+fn primitive_noun(source: &str) -> Rc<Noun> {
+    match primitives(source).unwrap_or_else(|error| panic!("evaluation failed: {error}")) {
+        Value::Noun(noun) => noun,
+        other => panic!("expected noun, got {other}"),
+    }
+}
+
 #[test]
 fn evaluates_private_native_primitives() {
-    assert_eq!(noun("++ main (raw-add.core 40 2)\n"), atom(42));
-    assert_eq!(noun("++ main (raw-dec.core 42)\n"), atom(41));
-    assert_eq!(noun("++ main (raw-gth.core 2 1)\n"), atom(0));
-    assert_eq!(noun("++ main (raw-eq.core [1 2] [1 2])\n"), atom(0));
+    assert_eq!(primitive_noun("++ main (raw-add.core 40 2)\n"), atom(42));
+    assert_eq!(primitive_noun("++ main (raw-dec.core 42)\n"), atom(41));
+    assert_eq!(primitive_noun("++ main (raw-gth.core 2 1)\n"), atom(0));
+    assert_eq!(
+        primitive_noun("++ main (raw-eq.core [1 2] [1 2])\n"),
+        atom(0)
+    );
 
     let source =
         "+$ list |$ [A]\n  ~\n  [i=A t=(list A)]\n++ main (raw-tuba.core (raw-trip.core \"hi\"))\n";
-    assert_eq!(noun(source), cell(atom(104), cell(atom(105), atom(0))));
     assert_eq!(
-        noun("++ main (raw-crip.core (raw-trip.core \"hi\"))\n"),
+        primitive_noun(source),
+        cell(atom(104), cell(atom(105), atom(0)))
+    );
+    assert_eq!(
+        primitive_noun("++ main (raw-crip.core (raw-trip.core \"hi\"))\n"),
         Rc::new(Noun::Atom(BigUint::from_bytes_le(b"hi")))
     );
     assert_eq!(
-        noun("++ main (raw-tufa.core (raw-tuba.core (raw-trip.core \"hé\")))\n"),
-        noun("++ main (raw-trip.core \"hé\")\n")
+        primitive_noun("++ main (raw-tufa.core (raw-tuba.core (raw-trip.core \"hé\")))\n"),
+        primitive_noun("++ main (raw-trip.core \"hé\")\n")
     );
 
-    let module = parse_ast("++ main (raw-dec.core 0)\n").unwrap();
-    assert!(evaluate(&module, "main").is_err());
+    assert!(primitives("++ main (raw-dec.core 0)\n").is_err());
 }
 
 #[test]

@@ -129,6 +129,17 @@ impl RunStatus {
 }
 
 fn main() -> ExitCode {
+    // Commands recurse along source nesting and evaluation, and dropping a
+    // long result recurses along it, so they run on a large stack.
+    std::thread::Builder::new()
+        .stack_size(512 << 20)
+        .spawn(run)
+        .expect("start the command thread")
+        .join()
+        .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+}
+
+fn run() -> ExitCode {
     let cli = Cli::parse();
     match cli.command {
         Command::Fmt { check, diff, files } => run_fmt(&files, check, diff),
@@ -237,6 +248,19 @@ fn run_docs(
 }
 
 fn write_documentation_file(output: &Path, relative: &Path, contents: &str) -> io::Result<()> {
+    // Every generated page stays under the output directory.
+    if !relative
+        .components()
+        .all(|component| matches!(component, std::path::Component::Normal(_)))
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!(
+                "documentation path {} leaves the output directory",
+                relative.display()
+            ),
+        ));
+    }
     let path = output.join(relative);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
@@ -421,7 +445,9 @@ fn process_input(
         match path {
             None => output.push_str(&formatted),
             Some(path) if changed => {
-                if let Err(error) = atomic_write(path, formatted.as_bytes()) {
+                // Format a link's target in place and keep the link.
+                let target = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+                if let Err(error) = atomic_write(&target, formatted.as_bytes()) {
                     eprintln!("jibb fmt: {label}: failed to write: {error}");
                     status.tool_error = true;
                 }

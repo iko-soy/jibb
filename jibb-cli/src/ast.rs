@@ -27,6 +27,12 @@ impl Module {
     pub fn normalized(&self) -> Self {
         Normalize::normalized(self)
     }
+
+    /// Marks every span as belonging to `source`, the file this module was
+    /// read from.
+    pub fn set_source(&mut self, source: SourceId) {
+        self.visit_spans(&mut |span| span.source = source);
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -117,6 +123,10 @@ pub enum ExprKind {
     },
     Unit(Box<Expr>),
     Crash,
+    /// A private primitive from `/lib/jibb/primitives`. Only the module loader
+    /// creates this node, when it links that module under an import face, so
+    /// a primitive is found through the scope that imported it.
+    Native(crate::native::NativeFunction),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -277,27 +287,31 @@ pub trait Normalize: Sized {
 }
 
 trait EraseSpans {
-    fn erase_spans(&mut self);
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span));
+
+    fn erase_spans(&mut self) {
+        self.visit_spans(&mut |span| *span = Span::default());
+    }
 }
 
 impl<T: EraseSpans + ?Sized> EraseSpans for Box<T> {
-    fn erase_spans(&mut self) {
-        (**self).erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        (**self).visit_spans(visit);
     }
 }
 
 impl<T: EraseSpans> EraseSpans for Vec<T> {
-    fn erase_spans(&mut self) {
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
         for value in self {
-            value.erase_spans();
+            value.visit_spans(visit);
         }
     }
 }
 
 impl<T: EraseSpans> EraseSpans for Option<T> {
-    fn erase_spans(&mut self) {
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
         if let Some(value) = self {
-            value.erase_spans();
+            value.visit_spans(visit);
         }
     }
 }
@@ -321,142 +335,143 @@ normalized!(
 );
 
 impl EraseSpans for Span {
-    fn erase_spans(&mut self) {
-        *self = Self::default();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        visit(self);
     }
 }
 
 impl EraseSpans for Module {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
-        self.imports.erase_spans();
-        self.definitions.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
+        self.imports.visit_spans(visit);
+        self.definitions.visit_spans(visit);
     }
 }
 
 impl EraseSpans for Import {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
     }
 }
 
 impl EraseSpans for Definition {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
         match &mut self.kind {
-            DefinitionKind::Value(value) => value.erase_spans(),
+            DefinitionKind::Value(value) => value.visit_spans(visit),
             DefinitionKind::Mold(definition) => {
-                definition.generic.erase_spans();
-                definition.cases.erase_spans();
+                definition.generic.visit_spans(visit);
+                definition.cases.visit_spans(visit);
             }
         }
     }
 }
 
 impl EraseSpans for Generic {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
     }
 }
 
 impl EraseSpans for Expr {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
         match &mut self.kind {
             ExprKind::Literal(_)
             | ExprKind::Path(_)
             | ExprKind::Reference(_)
             | ExprKind::Constructor(_)
-            | ExprKind::Crash => {}
-            ExprKind::String(parts) => parts.erase_spans(),
-            ExprKind::ApplicationPath(parts) => parts.erase_spans(),
+            | ExprKind::Crash
+            | ExprKind::Native(_) => {}
+            ExprKind::String(parts) => parts.visit_spans(visit),
+            ExprKind::ApplicationPath(parts) => parts.visit_spans(visit),
             ExprKind::Call { head, arguments } => {
-                head.erase_spans();
-                arguments.erase_spans();
+                head.visit_spans(visit);
+                arguments.visit_spans(visit);
             }
             ExprKind::Gate { sample, body } => {
-                sample.erase_spans();
-                body.erase_spans();
+                sample.visit_spans(visit);
+                body.visit_spans(visit);
             }
             ExprKind::Cast { mold, value } => {
-                mold.erase_spans();
-                value.erase_spans();
+                mold.visit_spans(visit);
+                value.visit_spans(visit);
             }
             ExprKind::Trace { value, body } => {
-                value.erase_spans();
-                body.erase_spans();
+                value.visit_spans(visit);
+                body.visit_spans(visit);
             }
             ExprKind::Branch { subject, arms } => {
-                subject.erase_spans();
-                arms.erase_spans();
+                subject.visit_spans(visit);
+                arms.visit_spans(visit);
             }
             ExprKind::Body {
                 definitions,
                 result,
             } => {
-                definitions.erase_spans();
-                result.erase_spans();
+                definitions.visit_spans(visit);
+                result.visit_spans(visit);
             }
-            ExprKind::List(items) => items.erase_spans(),
-            ExprKind::Tuple(items) => items.erase_spans(),
-            ExprKind::Change { target: _, edits } => edits.erase_spans(),
-            ExprKind::Pair { tag: _, value } | ExprKind::Unit(value) => value.erase_spans(),
+            ExprKind::List(items) => items.visit_spans(visit),
+            ExprKind::Tuple(items) => items.visit_spans(visit),
+            ExprKind::Change { target: _, edits } => edits.visit_spans(visit),
+            ExprKind::Pair { tag: _, value } | ExprKind::Unit(value) => value.visit_spans(visit),
         }
     }
 }
 
 impl EraseSpans for StringPart {
-    fn erase_spans(&mut self) {
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
         if let Self::Expr(expr) = self {
-            expr.erase_spans();
+            expr.visit_spans(visit);
         }
     }
 }
 
 impl EraseSpans for ApplicationSegment {
-    fn erase_spans(&mut self) {
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
         if let Self::Expr(expr) = self {
-            expr.erase_spans();
+            expr.visit_spans(visit);
         }
     }
 }
 
 impl EraseSpans for Item {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
-        self.value.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
+        self.value.visit_spans(visit);
     }
 }
 
 impl EraseSpans for Edit {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
-        self.value.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
+        self.value.visit_spans(visit);
     }
 }
 
 impl EraseSpans for Arm {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
-        self.pattern.erase_spans();
-        self.body.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
+        self.pattern.visit_spans(visit);
+        self.body.visit_spans(visit);
     }
 }
 
 impl EraseSpans for Sample {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
         match &mut self.kind {
             SampleKind::Binding(_) | SampleKind::Pun(_) => {}
-            SampleKind::Face { name: _, mold } | SampleKind::Mold(mold) => mold.erase_spans(),
-            SampleKind::Cell(samples) => samples.erase_spans(),
+            SampleKind::Face { name: _, mold } | SampleKind::Mold(mold) => mold.visit_spans(visit),
+            SampleKind::Cell(samples) => samples.visit_spans(visit),
         }
     }
 }
 
 impl EraseSpans for Mold {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
         match &mut self.kind {
             MoldKind::Aura(_)
             | MoldKind::Hole
@@ -473,30 +488,30 @@ impl EraseSpans for Mold {
                 constructor: _,
                 arguments,
             } => {
-                arguments.erase_spans();
+                arguments.visit_spans(visit);
             }
-            MoldKind::Cell(fields) => fields.erase_spans(),
+            MoldKind::Cell(fields) => fields.visit_spans(visit),
             MoldKind::Function { sample, product } => {
-                sample.erase_spans();
-                product.erase_spans();
+                sample.visit_spans(visit);
+                product.visit_spans(visit);
             }
-            MoldKind::Union(cases) => cases.erase_spans(),
+            MoldKind::Union(cases) => cases.visit_spans(visit),
         }
     }
 }
 
 impl EraseSpans for MoldField {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
-        self.mold.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
+        self.mold.visit_spans(visit);
     }
 }
 
 impl EraseSpans for Pattern {
-    fn erase_spans(&mut self) {
-        self.span.erase_spans();
+    fn visit_spans(&mut self, visit: &mut dyn FnMut(&mut Span)) {
+        self.span.visit_spans(visit);
         if let PatternKind::Cell(patterns) = &mut self.kind {
-            patterns.erase_spans();
+            patterns.visit_spans(visit);
         }
     }
 }

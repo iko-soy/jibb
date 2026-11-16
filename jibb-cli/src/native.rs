@@ -2,9 +2,10 @@ use crate::{
     Diagnostic,
     ast::{SourceId, Span},
     types::{Aura, Constraint, ConstraintKind, QuantifiedVariable, Type, TypeField, TypeScheme},
-    value::{Noun, TypedValue, Value},
+    value::{Runtime, Val, atom, atom_bytes, list, loobean},
 };
 use num_bigint::BigUint;
+use std::rc::Rc;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NativeFunction {
@@ -28,28 +29,25 @@ pub enum NativeFunction {
 }
 
 impl NativeFunction {
-    pub fn from_field(name: &str) -> Option<Self> {
-        match name {
-            "raw-gth" => Some(Self::Gth),
-            "raw-eq" => Some(Self::Eq),
-            "raw-add" => Some(Self::Add),
-            "raw-dec" => Some(Self::Dec),
-            "raw-trip" => Some(Self::Trip),
-            "raw-tuba" => Some(Self::Tuba),
-            "raw-crip" => Some(Self::Crip),
-            "raw-tufa" => Some(Self::Tufa),
-            "raw-date-pack" => Some(Self::DatePack),
-            "raw-date-unpack" => Some(Self::DateUnpack),
-            "raw-format-knot" => Some(Self::FormatKnot),
-            "raw-format-tape" => Some(Self::FormatTape),
-            "raw-parse-atom" => Some(Self::ParseAtom),
-            "raw-map-get" => Some(Self::MapGet),
-            "raw-map-put" => Some(Self::MapPut),
-            "raw-seal" => Some(Self::Seal),
-            "raw-bit-not" => Some(Self::BitNot),
-            _ => None,
-        }
-    }
+    pub(crate) const ALL: [Self; 17] = [
+        Self::Gth,
+        Self::Eq,
+        Self::Add,
+        Self::Dec,
+        Self::Trip,
+        Self::Tuba,
+        Self::Crip,
+        Self::Tufa,
+        Self::DatePack,
+        Self::DateUnpack,
+        Self::FormatKnot,
+        Self::FormatTape,
+        Self::ParseAtom,
+        Self::MapGet,
+        Self::MapPut,
+        Self::Seal,
+        Self::BitNot,
+    ];
 
     pub fn field(self) -> &'static str {
         match self {
@@ -105,7 +103,7 @@ pub(crate) fn scheme(native: NativeFunction, source: SourceId) -> TypeScheme {
     let dime = faced_cell(vec![("p", atom("ta")), ("q", Type::AnyAtom)]);
     let map = named(source, "map", vec![a.clone(), b.clone()]);
     let unit = named(source, "unit", vec![b.clone()]);
-    let opaque = named(source, "core__opaque", vec![a.clone()]);
+    let opaque = named(source, crate::loader::PRIMITIVE_OPAQUE, vec![a.clone()]);
     let (typ, variables, constraints) = match native {
         NativeFunction::Gth => (
             gate(cell(vec![a.clone(), a]), Type::Flag),
@@ -230,97 +228,60 @@ fn faced_cell(fields: Vec<(&str, Type)>) -> Type {
     )
 }
 
-pub(crate) fn apply(
+pub(crate) fn apply<'a>(
     native: NativeFunction,
-    sample: &TypedValue,
+    sample: &Val<'a>,
     span: Span,
-) -> Result<TypedValue, Diagnostic> {
+) -> Result<Val<'a>, Diagnostic> {
     match native {
         NativeFunction::Gth => {
             let (left, right) = atom_pair(sample, span)?;
-            Ok(TypedValue {
-                value: Value::Noun(Noun::loobean(left > right)),
-                typ: Type::Flag,
-            })
+            Ok(loobean(left > right))
         }
         NativeFunction::Eq => {
-            let (left, right) = value_pair(sample, span)?;
-            Ok(TypedValue {
-                value: Value::Noun(Noun::loobean(value_equal(&left, &right)?)),
-                typ: Type::Flag,
-            })
+            let (left, right) = pair(sample, span)?;
+            Ok(loobean(equal(left, right, span)?))
         }
         NativeFunction::Add => {
             let (left, right) = atom_pair(sample, span)?;
-            Ok(TypedValue {
-                value: Value::Noun(Noun::atom(left + right)),
-                typ: sample_field_type(sample, 0),
-            })
+            Ok(atom(left + right))
         }
         NativeFunction::Dec => {
-            let atom = single_atom(sample, span)?;
-            if atom == BigUint::default() {
+            let value = single_atom(sample, span)?;
+            if value.bits() == 0 {
                 return Err(Diagnostic::at("decrement underflow", span));
             }
-            let value = atom - BigUint::from(1u8);
-            Ok(TypedValue {
-                value: Value::Noun(Noun::atom(value)),
-                typ: sample.typ.clone(),
-            })
+            Ok(atom(value - 1u8))
         }
         NativeFunction::Trip => {
-            let atom = single_atom(sample, span)?;
-            let bytes = atom.to_bytes_le();
-            Ok(TypedValue {
-                value: Value::Noun(Noun::list(
-                    bytes
-                        .into_iter()
-                        .map(|byte| Noun::atom(BigUint::from(byte)))
-                        .collect(),
-                )),
-                typ: Type::Noun,
-            })
+            let bytes = atom_bytes(single_atom(sample, span)?);
+            Ok(list(bytes.into_iter().map(atom)))
         }
         NativeFunction::Tuba => {
-            let bytes = byte_list(&sample.value, "tuba", span)?;
+            let bytes = byte_list(sample, "tuba", span)?;
             let text = String::from_utf8(bytes)
                 .map_err(|_| Diagnostic::at("tuba expects valid UTF-8", span))?;
-            Ok(TypedValue {
-                value: Value::Noun(Noun::list(
-                    text.chars()
-                        .map(|character| Noun::atom(BigUint::from(character as u32)))
-                        .collect(),
-                )),
-                typ: Type::Noun,
-            })
+            Ok(list(
+                text.chars()
+                    .map(|character| atom(u32::from(character)))
+                    .collect::<Vec<_>>()
+                    .into_iter(),
+            ))
         }
-        NativeFunction::Crip => Ok(TypedValue {
-            value: Value::Noun(Noun::atom(BigUint::from_bytes_le(&byte_list(
-                &sample.value,
-                "crip",
-                span,
-            )?))),
-            typ: Type::Atom(Aura::new("t")),
-        }),
+        NativeFunction::Crip => Ok(atom(BigUint::from_bytes_le(&byte_list(
+            sample, "crip", span,
+        )?))),
         NativeFunction::Tufa => {
             let mut bytes = Vec::new();
-            for codepoint in atom_list(&sample.value, "tufa", span)? {
-                let codepoint = u32::try_from(codepoint)
+            for codepoint in atom_list(sample, "tufa", span)? {
+                let codepoint = u32::try_from(&codepoint)
                     .ok()
                     .and_then(char::from_u32)
                     .ok_or_else(|| Diagnostic::at("tufa expects valid codepoints", span))?;
                 let mut encoded = [0; 4];
                 bytes.extend_from_slice(codepoint.encode_utf8(&mut encoded).as_bytes());
             }
-            Ok(TypedValue {
-                value: Value::Noun(Noun::list(
-                    bytes
-                        .into_iter()
-                        .map(|byte| Noun::atom(BigUint::from(byte)))
-                        .collect(),
-                )),
-                typ: Type::Noun,
-            })
+            Ok(list(bytes.into_iter().map(atom)))
         }
         NativeFunction::Seal => Ok(sample.clone()),
         NativeFunction::DatePack
@@ -337,24 +298,21 @@ pub(crate) fn apply(
     }
 }
 
-fn atom_list(value: &Value, operation: &str, span: Span) -> Result<Vec<BigUint>, Diagnostic> {
-    let Value::Noun(noun) = value else {
-        return Err(Diagnostic::at(format!("{operation} expects a list"), span));
-    };
+fn atom_list(value: &Val<'_>, operation: &str, span: Span) -> Result<Vec<BigUint>, Diagnostic> {
     let mut atoms = Vec::new();
-    let mut current = noun.clone();
+    let mut current = value.clone();
     loop {
-        match current.as_ref() {
-            Noun::Atom(value) if *value == BigUint::default() => return Ok(atoms),
-            Noun::Cell(head, tail) => {
-                let Noun::Atom(value) = head.as_ref() else {
+        let next = match current.as_ref() {
+            Runtime::Atom(value) if value.bits() == 0 => return Ok(atoms),
+            Runtime::Cell(head, tail) => {
+                let Runtime::Atom(value) = head.as_ref() else {
                     return Err(Diagnostic::at(
                         format!("{operation} expects an atom list"),
                         span,
                     ));
                 };
                 atoms.push(value.clone());
-                current = tail.clone();
+                tail.clone()
             }
             _ => {
                 return Err(Diagnostic::at(
@@ -362,89 +320,69 @@ fn atom_list(value: &Value, operation: &str, span: Span) -> Result<Vec<BigUint>,
                     span,
                 ));
             }
-        }
+        };
+        current = next;
     }
 }
 
-fn byte_list(value: &Value, operation: &str, span: Span) -> Result<Vec<u8>, Diagnostic> {
+fn byte_list(value: &Val<'_>, operation: &str, span: Span) -> Result<Vec<u8>, Diagnostic> {
     atom_list(value, operation, span)?
         .into_iter()
         .map(|atom| {
-            u8::try_from(atom)
+            u8::try_from(&atom)
                 .map_err(|_| Diagnostic::at(format!("{operation} expects bytes"), span))
         })
         .collect()
 }
 
-fn atom_pair(sample: &TypedValue, span: Span) -> Result<(BigUint, BigUint), Diagnostic> {
-    let (left, right) = value_pair(sample, span)?;
-    let (Value::Noun(left), Value::Noun(right)) = (left, right) else {
-        return Err(Diagnostic::at("native expects two atoms", span));
-    };
-    let (Noun::Atom(left), Noun::Atom(right)) = (left.as_ref(), right.as_ref()) else {
-        return Err(Diagnostic::at("native expects two atoms", span));
-    };
-    Ok((left.clone(), right.clone()))
-}
-
-fn value_pair(sample: &TypedValue, span: Span) -> Result<(Value, Value), Diagnostic> {
-    match &sample.value {
-        Value::Noun(noun) => match noun.as_ref() {
-            Noun::Cell(left, right) => Ok((Value::Noun(left.clone()), Value::Noun(right.clone()))),
-            _ => Err(Diagnostic::at("native expects a two-item sample", span)),
-        },
-        Value::Cell(items) if items.len() == 2 => Ok((items[0].clone(), items[1].clone())),
+fn pair<'v, 'a>(sample: &'v Val<'a>, span: Span) -> Result<(&'v Val<'a>, &'v Val<'a>), Diagnostic> {
+    match sample.as_ref() {
+        Runtime::Cell(left, right) => Ok((left, right)),
         _ => Err(Diagnostic::at("native expects a two-item sample", span)),
     }
 }
 
-fn single_atom(sample: &TypedValue, span: Span) -> Result<BigUint, Diagnostic> {
-    let Value::Noun(noun) = &sample.value else {
-        return Err(Diagnostic::at("native expects an atom", span));
-    };
-    let Noun::Atom(value) = noun.as_ref() else {
-        return Err(Diagnostic::at("native expects an atom", span));
-    };
-    Ok(value.clone())
-}
-
-fn sample_field_type(sample: &TypedValue, index: usize) -> Type {
-    match &sample.typ {
-        Type::Cell(fields) => fields
-            .get(index)
-            .map_or(Type::Noun, |field| field.typ.clone()),
-        _ => sample.typ.clone(),
+fn atom_pair<'v>(
+    sample: &'v Val<'_>,
+    span: Span,
+) -> Result<(&'v BigUint, &'v BigUint), Diagnostic> {
+    let (left, right) = pair(sample, span)?;
+    match (left.as_ref(), right.as_ref()) {
+        (Runtime::Atom(left), Runtime::Atom(right)) => Ok((left, right)),
+        _ => Err(Diagnostic::at("native expects two atoms", span)),
     }
 }
 
-fn value_equal(left: &Value, right: &Value) -> Result<bool, Diagnostic> {
-    match (left, right) {
-        (Value::Noun(left), Value::Noun(right)) => Ok(noun_equal(left, right)),
-        (Value::Cell(left), Value::Cell(right)) => {
-            if left.len() != right.len() {
-                return Ok(false);
-            }
-            for (left, right) in left.iter().zip(right) {
-                if !value_equal(left, right)? {
+fn single_atom<'v>(sample: &'v Val<'_>, span: Span) -> Result<&'v BigUint, Diagnostic> {
+    match sample.as_ref() {
+        Runtime::Atom(value) => Ok(value),
+        _ => Err(Diagnostic::at("native expects an atom", span)),
+    }
+}
+
+/// Noun equality, as Nock 5. The checker keeps gates out of `eq`'s
+/// arguments, so meeting one is an internal error rather than an answer.
+pub(crate) fn equal<'a>(left: &Val<'a>, right: &Val<'a>, span: Span) -> Result<bool, Diagnostic> {
+    let mut pending = vec![(left.clone(), right.clone())];
+    while let Some((left, right)) = pending.pop() {
+        if Rc::ptr_eq(&left, &right) {
+            continue;
+        }
+        match (left.as_ref(), right.as_ref()) {
+            (Runtime::Atom(left), Runtime::Atom(right)) => {
+                if left != right {
                     return Ok(false);
                 }
             }
-            Ok(true)
-        }
-        (Value::Noun(_), Value::Cell(_)) | (Value::Cell(_), Value::Noun(_)) => Ok(false),
-        (Value::Gate(_), _) | (Value::Constructor(_), _) | (Value::Native(_), _) => {
-            Err(Diagnostic::new("equality cannot inspect gates"))
-        }
-        (_, Value::Gate(_)) | (_, Value::Constructor(_)) | (_, Value::Native(_)) => {
-            Err(Diagnostic::new("equality cannot inspect gates"))
+            (Runtime::Cell(left_head, left_tail), Runtime::Cell(right_head, right_tail)) => {
+                pending.push((left_tail.clone(), right_tail.clone()));
+                pending.push((left_head.clone(), right_head.clone()));
+            }
+            (Runtime::Atom(_), Runtime::Cell(..)) | (Runtime::Cell(..), Runtime::Atom(_)) => {
+                return Ok(false);
+            }
+            _ => return Err(Diagnostic::at("equality cannot inspect gates", span)),
         }
     }
-}
-
-fn noun_equal(left: &Noun, right: &Noun) -> bool {
-    match (left, right) {
-        (Noun::Atom(left), Noun::Atom(right)) => left == right,
-        (Noun::Cell(lh, lt), Noun::Cell(rh, rt)) => noun_equal(lh, rh) && noun_equal(lt, rt),
-        _ => false,
-    }
+    Ok(true)
 }

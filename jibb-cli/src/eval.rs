@@ -1,283 +1,232 @@
+//! Evaluation of checked modules.
+//!
+//! The evaluator is untyped, as Core is: values are atoms, cells and
+//! functions, and a cell holds a function as it holds any other value. What the
+//! types decide, the axes of wings, changes and projections and the printers
+//! of interpolations and traces, comes from the checker's elaboration of this
+//! same module.
+
 use crate::{
     Diagnostic,
     ast::{
-        DefinitionKind, Expr, ExprKind, Literal, Module, Mold, MoldDefinition, NumberAura, Pattern,
-        PatternKind, Sample, SampleKind, Span, StringPart,
+        DefinitionKind, Expr, ExprKind, Literal, Module, Pattern, PatternKind, Sample, SampleKind,
+        Span, StringPart,
     },
-    check::{self},
-    types::{Aura, PathSegmentType, Type, TypeField, TypeVar},
-    value::{GateValue, Noun, Scope, Slot, TypedValue, Value},
+    check::{self, Elaboration, Printer, Step, expression_key},
+    native::NativeFunction,
+    value::{
+        Closure, GateValue, Noun, Runtime, Scope, Slot, Val, Value, atom, atom_bytes, cell, list,
+        loobean,
+    },
 };
 use num_bigint::BigUint;
-use std::{collections::BTreeMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc};
+
+/// Stack the evaluator may use before it stops with a diagnostic, well inside
+/// the large stack it runs on: its recursion follows the program's, and a
+/// frame's size depends on the build.
+const STACK_BUDGET: usize = crate::STACK_SIZE - (64 << 20);
+
+/// The address of a local, which moves down the stack as calls nest.
+fn stack_position() -> usize {
+    let marker = 0u8;
+    std::hint::black_box(&marker) as *const u8 as usize
+}
 
 pub fn evaluate(module: &Module, entry: &str) -> Result<Value, Diagnostic> {
-    let _checked = check::check(module)?;
-    let mut evaluator = Evaluator { module };
-    let scope = evaluator.module_scope();
-    let span = module
-        .definitions
-        .iter()
-        .find(|definition| definition.name == entry)
-        .map_or(module.span, |definition| definition.span);
-    let value = evaluator.force(&scope, entry, span)?;
-    match value.value {
-        Value::Noun(_) | Value::Cell(_) => Ok(value.value),
-        Value::Gate(_) | Value::Constructor(_) | Value::Native(_) => Err(Diagnostic::at(
-            format!("entry point `{entry}` requires arguments"),
-            span,
-        )),
-    }
-}
-
-struct Evaluator<'a> {
-    module: &'a Module,
-}
-
-impl Evaluator<'_> {
-    fn module_scope(&self) -> Rc<Scope> {
-        let scope = Rc::new(Scope::new(None));
-        for definition in &self.module.definitions {
-            if let DefinitionKind::Value(expression) = &definition.kind {
-                scope.slots.borrow_mut().insert(
-                    definition.name.clone(),
-                    Slot::Unevaluated(expression.clone()),
-                );
-            }
+    let plain = crate::on_large_stack(|| -> Result<Plain, Diagnostic> {
+        let (_checked, elaboration) = check::check_for_evaluation(module)?;
+        let mut evaluator = Evaluator {
+            elaboration: &elaboration,
+            stack_base: stack_position(),
+        };
+        let scope = module_scope(module);
+        let span = module
+            .definitions
+            .iter()
+            .find(|definition| definition.name == entry)
+            .map_or(module.span, |definition| definition.span);
+        let value = evaluator.lookup(&scope, entry, span)?;
+        if matches!(
+            value.as_ref(),
+            Runtime::Gate(_) | Runtime::Constructor(_) | Runtime::Native(_)
+        ) {
+            return Err(Diagnostic::at(
+                format!("entry point `{entry}` requires arguments"),
+                span,
+            ));
         }
-        scope
-    }
+        Ok(Plain::new(&value))
+    })?;
+    Ok(plain.into_value())
+}
 
-    fn force(
+fn module_scope(module: &Module) -> Rc<Scope<'_>> {
+    let scope = Rc::new(Scope::new(None));
+    for definition in &module.definitions {
+        if let DefinitionKind::Value(expression) = &definition.kind {
+            scope
+                .slots
+                .borrow_mut()
+                .insert(definition.name.as_str(), Slot::Lazy(expression));
+        }
+    }
+    scope
+}
+
+struct Evaluator<'e> {
+    elaboration: &'e Elaboration,
+    stack_base: usize,
+}
+
+impl<'a> Evaluator<'_> {
+    /// Finds a name in the innermost scope that binds it and forces it there.
+    fn lookup(
         &mut self,
-        scope: &Rc<Scope>,
+        scope: &Rc<Scope<'a>>,
         name: &str,
         span: Span,
-    ) -> Result<TypedValue, Diagnostic> {
-        let previous = scope
-            .slots
-            .borrow_mut()
-            .insert(name.to_string(), Slot::Evaluating);
-        match previous {
-            Some(Slot::Evaluated(value)) => {
-                scope
-                    .slots
-                    .borrow_mut()
-                    .insert(name.to_string(), Slot::Evaluated(value.clone()));
-                Ok(value)
-            }
-            Some(Slot::Eager(value)) => {
-                scope
-                    .slots
-                    .borrow_mut()
-                    .insert(name.to_string(), Slot::Eager(value.clone()));
-                Ok(value)
-            }
-            Some(Slot::Unevaluated(expression)) => {
-                let result = self.eval(&expression, scope, None);
-                match result {
-                    Ok(value) => {
-                        scope
-                            .slots
-                            .borrow_mut()
-                            .insert(name.to_string(), Slot::Evaluated(value.clone()));
-                        Ok(value)
-                    }
-                    Err(error) => {
-                        scope
-                            .slots
-                            .borrow_mut()
-                            .insert(name.to_string(), Slot::Unevaluated(expression));
-                        Err(error)
-                    }
+    ) -> Result<Val<'a>, Diagnostic> {
+        let mut current = scope.clone();
+        loop {
+            let found = current
+                .slots
+                .borrow()
+                .get_key_value(name)
+                .map(|(key, slot)| (*key, slot.clone()));
+            match found {
+                Some((_, Slot::Done(value))) => return Ok(value),
+                Some((_, Slot::Evaluating)) => {
+                    return Err(Diagnostic::at(
+                        format!("value dependency cycle at `{name}`"),
+                        span,
+                    ));
                 }
-            }
-            Some(Slot::Evaluating) => {
-                scope
-                    .slots
-                    .borrow_mut()
-                    .insert(name.to_string(), Slot::Evaluating);
-                Err(Diagnostic::at(
-                    format!("value dependency cycle at `{name}`"),
-                    span,
-                ))
-            }
-            None => {
-                if let Some(parent) = &scope.parent {
-                    self.force(parent, name, span)
-                } else {
-                    Err(Diagnostic::at(format!("unknown value `{name}`"), span))
+                Some((key, Slot::Lazy(expression))) => {
+                    current.slots.borrow_mut().insert(key, Slot::Evaluating);
+                    let result = self.eval(expression, &current);
+                    let slot = match &result {
+                        Ok(value) => Slot::Done(value.clone()),
+                        Err(_) => Slot::Lazy(expression),
+                    };
+                    current.slots.borrow_mut().insert(key, slot);
+                    return result;
+                }
+                None => {
+                    let Some(parent) = current.parent.clone() else {
+                        return Err(Diagnostic::at(format!("unknown value `{name}`"), span));
+                    };
+                    current = parent;
                 }
             }
         }
     }
 
-    fn eval(
-        &mut self,
+    fn eval(&mut self, expression: &'a Expr, scope: &Rc<Scope<'a>>) -> Result<Val<'a>, Diagnostic> {
+        if stack_position().abs_diff(self.stack_base) > STACK_BUDGET {
+            return Err(Diagnostic::at(
+                "evaluation recursed too deeply for the evaluator's stack",
+                expression.span,
+            ));
+        }
+        self.eval_inner(expression, scope)
+    }
+
+    fn checked<'m, T>(
+        &self,
+        table: &'m HashMap<usize, T>,
         expression: &Expr,
-        scope: &Rc<Scope>,
-        expected: Option<&Type>,
-    ) -> Result<TypedValue, Diagnostic> {
+    ) -> Result<&'m T, Diagnostic> {
+        table.get(&expression_key(expression)).ok_or_else(|| {
+            Diagnostic::at(
+                "internal error: the checker left this expression unelaborated",
+                expression.span,
+            )
+        })
+    }
+
+    fn eval_inner(
+        &mut self,
+        expression: &'a Expr,
+        scope: &Rc<Scope<'a>>,
+    ) -> Result<Val<'a>, Diagnostic> {
+        let span = expression.span;
         match &expression.kind {
-            ExprKind::Literal(literal) => self.eval_literal(literal, expression.span),
+            ExprKind::Literal(literal) => literal_value(literal, span),
+            ExprKind::Native(native) => Ok(Rc::new(Runtime::Native(*native))),
+            ExprKind::Constructor(tag) => Ok(Rc::new(Runtime::Constructor(tag.clone()))),
             ExprKind::Reference(names) => {
-                if names.len() == 2
-                    && names.last().is_some_and(|name| name == "core")
-                    && let Some(native) = crate::native::NativeFunction::from_field(&names[0])
-                {
-                    return Ok(TypedValue {
-                        value: Value::Native(native),
-                        typ: crate::native::scheme(native, self.module.span.source).typ,
-                    });
-                }
                 let Some(base) = names.last() else {
-                    return Err(Diagnostic::at("empty wing", expression.span));
+                    return Err(Diagnostic::at("empty wing", span));
                 };
-                let mut value = self.force(scope, base, expression.span)?;
-                for field in &names[..names.len() - 1] {
-                    value = self.record_field(&value, field, scope, expression.span)?;
+                let value = self.lookup(scope, base, span)?;
+                if names.len() == 1 {
+                    return Ok(value);
                 }
-                Ok(value)
+                walk(
+                    &value,
+                    self.checked(&self.elaboration.wings, expression)?,
+                    span,
+                )
             }
-            ExprKind::Gate { sample, body } => {
-                let sample_type = expected
-                    .and_then(|typ| match typ {
-                        Type::Gate { sample, .. } => Some(sample.as_ref().clone()),
-                        _ => None,
-                    })
-                    .unwrap_or_else(|| self.sample_type(sample, scope));
-                let product = expected
-                    .and_then(|typ| match typ {
-                        Type::Gate { product, .. } => Some(product.as_ref().clone()),
-                        _ => None,
-                    })
-                    .unwrap_or(Type::Noun);
-                Ok(TypedValue {
-                    value: Value::Gate(Rc::new(GateValue {
-                        sample: sample.clone(),
-                        body: body.as_ref().clone(),
-                        environment: scope.clone(),
-                    })),
-                    typ: Type::Gate {
-                        sample: Box::new(sample_type),
-                        product: Box::new(product),
-                    },
-                })
-            }
-            ExprKind::Constructor(tag) => Ok(TypedValue {
-                value: Value::Constructor(tag.clone()),
-                typ: expected.cloned().unwrap_or(Type::Noun),
-            }),
+            ExprKind::Gate { sample, body } => Ok(Rc::new(Runtime::Gate(Closure {
+                sample,
+                body,
+                environment: scope.clone(),
+            }))),
             ExprKind::Call { head, arguments } => {
                 if let ExprKind::Reference(names) = &head.kind
                     && names.len() == 1
                     && matches!(names[0].as_str(), "proj" | "unface")
                 {
-                    return self.eval_type_directed(
-                        &names[0],
-                        &arguments[0],
-                        scope,
-                        expected,
-                        expression.span,
-                    );
-                }
-                let head_expected = if matches!(head.kind, ExprKind::Constructor(_)) {
-                    expected.map(|product| Type::Gate {
-                        sample: Box::new(Type::Noun),
-                        product: Box::new(product.clone()),
-                    })
-                } else {
-                    None
-                };
-                let head = self.eval(head, scope, head_expected.as_ref())?;
-                let sample_type = self.gate_sample_type(&head, scope);
-                let expected_fields = match &sample_type {
-                    Type::Cell(fields) if fields.len() == arguments.len() => {
-                        Some(fields.as_slice())
+                    let source = self.eval(&arguments[0], scope)?;
+                    if names[0] == "unface" {
+                        return Ok(source);
                     }
-                    _ => None,
-                };
-                let mut values = Vec::new();
-                for (index, argument) in arguments.iter().enumerate() {
-                    let expected = expected_fields.map(|fields| &fields[index].typ);
-                    values.push(self.eval(argument, scope, expected)?);
+                    let fields = self.checked(&self.elaboration.projections, expression)?;
+                    let values = fields
+                        .iter()
+                        .map(|steps| walk(&source, steps, span))
+                        .collect::<Result<Vec<_>, _>>()?;
+                    return right_nested(values, span);
                 }
-                let sample = typed_sample(values);
-                self.apply(head, sample, expression.span)
+                let head = self.eval(head, scope)?;
+                let mut values = Vec::with_capacity(arguments.len());
+                for argument in arguments {
+                    values.push(self.eval(argument, scope)?);
+                }
+                let sample = right_nested(values, span)?;
+                self.apply(&head, sample, span)
             }
-            ExprKind::Cast { mold, value } => {
-                let target = self.resolve_mold(mold, scope)?;
-                let mut value = self.eval(value, scope, Some(&target))?;
-                value.typ = target;
-                Ok(value)
-            }
+            ExprKind::Cast { value, .. } => self.eval(value, scope),
             ExprKind::Tuple(items) => {
-                let expected_fields = expected.and_then(|typ| match typ {
-                    Type::Cell(fields) if fields.len() == items.len() => Some(fields.as_slice()),
-                    _ => None,
-                });
-                let mut values = Vec::new();
-                let mut fields = Vec::new();
-                for (index, item) in items.iter().enumerate() {
-                    let expected = expected_fields.map(|fields| &fields[index].typ);
-                    let value = self.eval(&item.value, scope, expected)?;
-                    values.push(value.value);
-                    fields.push(TypeField {
-                        face: item.face.clone(),
-                        typ: value.typ,
-                    });
+                let mut values = Vec::with_capacity(items.len());
+                for item in items {
+                    values.push(self.eval(&item.value, scope)?);
                 }
-                if fields.len() == 1 && fields[0].face.is_none() {
-                    return Ok(TypedValue {
-                        value: values.remove(0),
-                        typ: fields.remove(0).typ,
-                    });
-                }
-                Ok(TypedValue {
-                    value: make_cell(values),
-                    typ: Type::Cell(fields),
-                })
+                right_nested(values, span)
             }
             ExprKind::List(items) => {
-                let element = expected.and_then(|typ| self.container_element(typ, "list", scope));
-                let mut values = Vec::new();
+                let mut values = Vec::with_capacity(items.len());
                 for item in items {
-                    let value = self.eval(item, scope, element.as_ref())?;
-                    values.push(value.value);
+                    values.push(self.eval(item, scope)?);
                 }
-                Ok(TypedValue {
-                    value: make_list(values),
-                    typ: expected.cloned().unwrap_or(Type::Noun),
-                })
+                Ok(list(values.into_iter()))
             }
-            ExprKind::Unit(value) => {
-                let payload = expected.and_then(|typ| self.container_element(typ, "unit", scope));
-                let value = self.eval(value, scope, payload.as_ref())?;
-                Ok(TypedValue {
-                    value: make_cell(vec![Value::Noun(Noun::null()), value.value]),
-                    typ: expected.cloned().unwrap_or(Type::Noun),
-                })
-            }
-            ExprKind::Pair { tag, value } => {
-                let tag_value = BigUint::from_bytes_le(tag.as_bytes());
-                let tag = Noun::bytes(tag.as_bytes());
-                let payload =
-                    expected.and_then(|typ| self.pair_payload_type(&tag_value, typ, scope));
-                let value = self.eval(value, scope, payload.as_ref())?;
-                Ok(TypedValue {
-                    value: make_cell(vec![Value::Noun(tag), value.value]),
-                    typ: expected.cloned().unwrap_or(Type::Noun),
-                })
-            }
+            ExprKind::Unit(value) => Ok(cell(atom(0u8), self.eval(value, scope)?)),
+            ExprKind::Pair { tag, value } => Ok(cell(
+                atom(BigUint::from_bytes_le(tag.as_bytes())),
+                self.eval(value, scope)?,
+            )),
             ExprKind::Branch { subject, arms } => {
-                let subject = self.eval(subject, scope, None)?;
+                let subject = self.eval(subject, scope)?;
                 for arm in arms {
                     let child = Rc::new(Scope::new(Some(scope.clone())));
                     if self.match_pattern(&arm.pattern, &subject, &child)? {
-                        return self.eval(&arm.body, &child, expected);
+                        return self.eval(&arm.body, &child);
                     }
                 }
-                Err(Diagnostic::at("no branch pattern matched", expression.span))
+                Err(Diagnostic::at("no branch pattern matched", span))
             }
             ExprKind::Body {
                 definitions,
@@ -285,61 +234,41 @@ impl Evaluator<'_> {
             } => {
                 let child = Rc::new(Scope::new(Some(scope.clone())));
                 for definition in definitions {
-                    match &definition.kind {
-                        DefinitionKind::Value(value) => {
-                            child
-                                .slots
-                                .borrow_mut()
-                                .insert(definition.name.clone(), Slot::Unevaluated(value.clone()));
-                        }
-                        DefinitionKind::Mold(mold) => {
-                            child
-                                .molds
-                                .borrow_mut()
-                                .insert(definition.name.clone(), (*mold).clone());
-                        }
+                    if let DefinitionKind::Value(value) = &definition.kind {
+                        child
+                            .slots
+                            .borrow_mut()
+                            .insert(definition.name.as_str(), Slot::Lazy(value));
                     }
                 }
-                self.eval(result, &child, expected)
+                self.eval(result, &child)
             }
             ExprKind::Change { target, edits } => {
-                let original = self.eval(
-                    &Expr {
-                        kind: ExprKind::Reference(target.clone()),
-                        span: expression.span,
-                    },
-                    scope,
-                    None,
-                )?;
-                let mut noun = match &original.value {
-                    Value::Noun(noun) => noun.clone(),
-                    _ => {
-                        return Err(Diagnostic::at(
-                            "change target is not a noun",
-                            expression.span,
-                        ));
-                    }
+                let (target_steps, edit_steps) =
+                    self.checked(&self.elaboration.changes, expression)?;
+                let Some(base) = target.last() else {
+                    return Err(Diagnostic::at("empty wing", span));
                 };
+                let base = self.lookup(scope, base, span)?;
+                let original = walk(&base, target_steps, span)?;
+                // Every value is computed before any field changes, from the
+                // original record.
+                let mut values = Vec::with_capacity(edits.len());
                 for edit in edits {
-                    let (_, steps) =
-                        self.record_wing_location(&original.typ, &edit.field, scope, edit.span)?;
-                    let expected =
-                        self.record_wing_type(&original.typ, &edit.field, scope, edit.span)?;
-                    let replacement = self.eval(&edit.value, scope, Some(&expected))?;
-                    let Value::Noun(replacement) = replacement.value else {
-                        return Err(Diagnostic::at("replacement is not a noun", edit.span));
-                    };
-                    noun = update_noun(&noun, &steps, replacement);
+                    values.push(self.eval(&edit.value, scope)?);
                 }
-                Ok(TypedValue {
-                    value: Value::Noun(noun),
-                    typ: original.typ,
-                })
+                let mut result = original;
+                for (steps, value) in edit_steps.iter().zip(values) {
+                    result = replace(&result, steps, value, span)?;
+                }
+                Ok(result)
             }
             ExprKind::Trace { value, body } => {
-                let value = self.eval(value, scope, None)?;
-                eprintln!("{}", value.value);
-                self.eval(body, scope, expected)
+                let traced = self.eval(value, scope)?;
+                let printer = self.checked(&self.elaboration.printers, value)?;
+                let text = print(&traced, printer, value.span)?;
+                eprintln!("{}", String::from_utf8_lossy(&text));
+                self.eval(body, scope)
             }
             ExprKind::String(parts) => {
                 let mut bytes = Vec::new();
@@ -347,235 +276,54 @@ impl Evaluator<'_> {
                     match part {
                         StringPart::Text(text) => bytes.extend(text),
                         StringPart::Expr(value) => {
-                            let span = value.span;
-                            let value = self.eval(value, scope, None)?;
-                            bytes.extend(self.print_atom(&value, scope, span)?);
+                            let printed = self.eval(value, scope)?;
+                            let printer = self.checked(&self.elaboration.printers, value)?;
+                            bytes.extend(print(&printed, printer, value.span)?);
                         }
                     }
                 }
-                Ok(TypedValue {
-                    value: Value::Noun(Noun::bytes(&bytes)),
-                    typ: Type::Atom(Aura::new("t")),
-                })
+                Ok(atom(BigUint::from_bytes_le(&bytes)))
             }
-            ExprKind::Path(segments) => Ok(TypedValue {
-                value: Value::Noun(Noun::list(
-                    segments
-                        .iter()
-                        .map(|segment| Noun::bytes(segment.as_bytes()))
-                        .collect(),
-                )),
-                typ: Type::Path(
-                    segments
-                        .iter()
-                        .map(|segment| PathSegmentType::Knot(segment.clone()))
-                        .collect(),
-                ),
-            }),
-            ExprKind::Crash => Err(Diagnostic::at("Jibb crash", expression.span)),
+            ExprKind::Path(segments) => Ok(list(
+                segments
+                    .iter()
+                    .map(|segment| atom(BigUint::from_bytes_le(segment.as_bytes())))
+                    .collect::<Vec<_>>()
+                    .into_iter(),
+            )),
+            ExprKind::Crash => Err(Diagnostic::at("Jibb crash", span)),
             ExprKind::ApplicationPath(_) => Err(Diagnostic::at(
                 "application paths are not available to the evaluator",
-                expression.span,
-            )),
-        }
-    }
-
-    fn print_atom(
-        &self,
-        value: &TypedValue,
-        scope: &Rc<Scope>,
-        span: Span,
-    ) -> Result<Vec<u8>, Diagnostic> {
-        let Value::Noun(noun) = &value.value else {
-            return Err(Diagnostic::at("interpolation expects an atom", span));
-        };
-        let Noun::Atom(atom) = noun.as_ref() else {
-            return Err(Diagnostic::at("interpolation expects an atom", span));
-        };
-        match &value.typ {
-            Type::Atom(aura) => format_aura_atom(atom, aura, span),
-            Type::AnyAtom => Ok(format_radix(atom, 10, 3, "").into_bytes()),
-            Type::Flag | Type::LoobeanConstant(_) => {
-                if *atom == BigUint::default() {
-                    Ok(b"%.y".to_vec())
-                } else if *atom == BigUint::from(1u8) {
-                    Ok(b"%.n".to_vec())
-                } else {
-                    Err(Diagnostic::at("invalid loobean atom", span))
-                }
-            }
-            Type::Constant(_) => {
-                if *atom == BigUint::default() {
-                    Ok(b"%$".to_vec())
-                } else if *atom == BigUint::from(1u8) {
-                    Ok(b"%|".to_vec())
-                } else {
-                    let bytes = atom.to_bytes_le();
-                    if bytes.first().is_some_and(u8::is_ascii_lowercase)
-                        && bytes.iter().all(|byte| {
-                            byte.is_ascii_lowercase() || byte.is_ascii_digit() || *byte == b'-'
-                        })
-                    {
-                        Ok(format!("%{}", String::from_utf8_lossy(&bytes)).into_bytes())
-                    } else {
-                        Ok(format!("%{}", format_radix(atom, 10, 3, "")).into_bytes())
-                    }
-                }
-            }
-            Type::NumericTerm(_) => Ok(format!("%{}", format_radix(atom, 10, 3, "")).into_bytes()),
-            Type::Named { .. } => {
-                let cases = self.expand_named(&value.typ, scope)?;
-                if cases.len() == 1 {
-                    let mut value = value.clone();
-                    value.typ = cases[0].clone();
-                    self.print_atom(&value, scope, span)
-                } else {
-                    Err(Diagnostic::at("interpolation needs one atom type", span))
-                }
-            }
-            _ => Err(Diagnostic::at(
-                format!(
-                    "interpolation has no printer for {}",
-                    crate::types::TypeScheme::mono(value.typ.clone())
-                ),
                 span,
             )),
         }
     }
 
-    fn eval_literal(&self, literal: &Literal, span: Span) -> Result<TypedValue, Diagnostic> {
-        let (noun, typ) = match literal {
-            Literal::Number(number) => (
-                Noun::atom(number.value.clone()),
-                Type::Atom(Aura::new(match number.aura {
-                    NumberAura::Decimal => "ud",
-                    NumberAura::Hexadecimal => "ux",
-                    NumberAura::Base32 => "uv",
-                })),
-            ),
-            Literal::String(bytes) => (Noun::bytes(bytes), Type::Atom(Aura::new("t"))),
-            Literal::Knot(knot) => (Noun::bytes(knot.as_bytes()), Type::Atom(Aura::new("ta"))),
-            Literal::Term(term) => (
-                Noun::atom(term.value.clone()),
-                match term.kind {
-                    crate::ast::TermKind::Named => Type::Constant(term.value.clone()),
-                    crate::ast::TermKind::Numeric => Type::NumericTerm(term.value.clone()),
-                },
-            ),
-            Literal::Loobean(yes) => (
-                Noun::loobean(*yes),
-                Type::LoobeanConstant(BigUint::from(u8::from(!yes))),
-            ),
-            Literal::Null => (Noun::null(), Type::Constant(BigUint::default())),
-            Literal::Ship(text) => {
-                let value = crate::literal::ship(text)
-                    .ok_or_else(|| Diagnostic::at("invalid ship literal", span))?;
-                (Noun::atom(value), Type::Atom(Aura::new("p")))
-            }
-            Literal::Date(text) => {
-                let value = crate::literal::date(text)
-                    .ok_or_else(|| Diagnostic::at("invalid date literal", span))?;
-                (Noun::atom(value), Type::Atom(Aura::new("da")))
-            }
-            Literal::Duration(text) => {
-                let value = crate::literal::duration(text)
-                    .ok_or_else(|| Diagnostic::at("invalid duration literal", span))?;
-                (Noun::atom(value), Type::Atom(Aura::new("dr")))
-            }
-        };
-        Ok(TypedValue {
-            value: Value::Noun(noun),
-            typ,
-        })
-    }
-
     fn apply(
         &mut self,
-        head: TypedValue,
-        sample: TypedValue,
+        head: &Val<'a>,
+        sample: Val<'a>,
         span: Span,
-    ) -> Result<TypedValue, Diagnostic> {
-        match head.value {
-            Value::Gate(gate) => {
-                let scope = Rc::new(Scope::new(Some(gate.environment.clone())));
-                self.bind_sample(&gate.sample, &sample, &scope)?;
-                let product = match &head.typ {
-                    Type::Gate { product, .. } => Some(product.as_ref().clone()),
-                    _ => None,
-                };
-                self.eval(&gate.body, &scope, product.as_ref())
+    ) -> Result<Val<'a>, Diagnostic> {
+        match head.as_ref() {
+            Runtime::Gate(closure) => {
+                let scope = Rc::new(Scope::new(Some(closure.environment.clone())));
+                bind_sample(closure.sample, &sample, &scope, span)?;
+                self.eval(closure.body, &scope)
             }
-            Value::Constructor(tag) => {
-                let product = match &head.typ {
-                    Type::Gate { product, .. } => product.as_ref().clone(),
-                    _ => Type::Noun,
-                };
-                Ok(TypedValue {
-                    value: make_cell(vec![Value::Noun(Noun::atom(tag)), sample.value]),
-                    typ: product,
-                })
-            }
-            Value::Native(native) => crate::native::apply(native, &sample, span),
-            Value::Noun(_) | Value::Cell(_) => {
+            Runtime::Constructor(tag) => Ok(cell(atom(tag.clone()), sample)),
+            Runtime::Native(native) => crate::native::apply(*native, &sample, span),
+            Runtime::Atom(_) | Runtime::Cell(..) => {
                 Err(Diagnostic::at("attempted to call a noun", span))
-            }
-        }
-    }
-
-    fn bind_sample(
-        &mut self,
-        sample: &Sample,
-        value: &TypedValue,
-        scope: &Rc<Scope>,
-    ) -> Result<(), Diagnostic> {
-        match &sample.kind {
-            SampleKind::Binding(name) => {
-                scope
-                    .slots
-                    .borrow_mut()
-                    .insert(name.clone(), Slot::Eager(value.clone()));
-                Ok(())
-            }
-            SampleKind::Face { name, mold } => {
-                let mut value = value.clone();
-                value.typ = self.resolve_mold(mold, scope)?;
-                scope
-                    .slots
-                    .borrow_mut()
-                    .insert(name.clone(), Slot::Eager(value));
-                Ok(())
-            }
-            SampleKind::Pun(name) => {
-                let mut value = value.clone();
-                value.typ = self.resolve_mold(
-                    &Mold {
-                        kind: crate::ast::MoldKind::Reference(vec![name.clone()]),
-                        span: sample.span,
-                    },
-                    scope,
-                )?;
-                scope
-                    .slots
-                    .borrow_mut()
-                    .insert(name.clone(), Slot::Eager(value));
-                Ok(())
-            }
-            SampleKind::Mold(_) => Ok(()),
-            SampleKind::Cell(samples) => {
-                let components = sample_components(value, samples.len());
-                for (sample, value) in samples.iter().zip(components) {
-                    self.bind_sample(sample, &value, scope)?;
-                }
-                Ok(())
             }
         }
     }
 
     fn match_pattern(
         &mut self,
-        pattern: &Pattern,
-        value: &TypedValue,
-        scope: &Rc<Scope>,
+        pattern: &'a Pattern,
+        value: &Val<'a>,
+        scope: &Rc<Scope<'a>>,
     ) -> Result<bool, Diagnostic> {
         match &pattern.kind {
             PatternKind::Wildcard => Ok(true),
@@ -583,524 +331,207 @@ impl Evaluator<'_> {
                 scope
                     .slots
                     .borrow_mut()
-                    .insert(name.clone(), Slot::Eager(value.clone()));
+                    .insert(name.as_str(), Slot::Done(value.clone()));
                 Ok(true)
             }
             PatternKind::Literal(literal) => {
-                let expected = self.eval_literal(literal, pattern.span)?;
-                let Value::Noun(expected) = expected.value else {
-                    unreachable!()
-                };
-                let Value::Noun(actual) = &value.value else {
-                    return Ok(false);
-                };
-                Ok(noun_equal(actual, &expected))
+                let expected = literal_value(literal, pattern.span)?;
+                match (value.as_ref(), expected.as_ref()) {
+                    (Runtime::Atom(actual), Runtime::Atom(expected)) => Ok(actual == expected),
+                    (Runtime::Cell(..), _) => Ok(false),
+                    _ => Err(Diagnostic::at(
+                        "a pattern cannot test a function",
+                        pattern.span,
+                    )),
+                }
             }
             PatternKind::Cell(patterns) => {
-                let components = value_components(value, patterns.len());
-                let Some(components) = components else {
-                    return Ok(false);
-                };
-                for (pattern, value) in patterns.iter().zip(components) {
-                    if !self.match_pattern(pattern, &value, scope)? {
+                let mut current = value.clone();
+                for (index, pattern) in patterns.iter().enumerate() {
+                    if index + 1 == patterns.len() {
+                        return self.match_pattern(pattern, &current, scope);
+                    }
+                    let (head, tail) = match current.as_ref() {
+                        Runtime::Cell(head, tail) => (head.clone(), tail.clone()),
+                        Runtime::Atom(_) => return Ok(false),
+                        _ => {
+                            return Err(Diagnostic::at(
+                                "a pattern cannot test a function",
+                                pattern.span,
+                            ));
+                        }
+                    };
+                    if !self.match_pattern(pattern, &head, scope)? {
                         return Ok(false);
                     }
+                    current = tail;
                 }
                 Ok(true)
             }
         }
     }
+}
 
-    fn gate_sample_type(&self, head: &TypedValue, scope: &Rc<Scope>) -> Type {
-        if let Type::Gate { sample, .. } = &head.typ {
-            return sample.as_ref().clone();
+fn bind_sample<'a>(
+    sample: &'a Sample,
+    value: &Val<'a>,
+    scope: &Rc<Scope<'a>>,
+    span: Span,
+) -> Result<(), Diagnostic> {
+    match &sample.kind {
+        SampleKind::Binding(name) | SampleKind::Face { name, .. } | SampleKind::Pun(name) => {
+            scope
+                .slots
+                .borrow_mut()
+                .insert(name.as_str(), Slot::Done(value.clone()));
+            Ok(())
         }
-        match &head.value {
-            Value::Gate(gate) => self.sample_type(&gate.sample, scope),
-            _ => Type::Noun,
-        }
-    }
-
-    fn sample_type(&self, sample: &Sample, scope: &Rc<Scope>) -> Type {
-        match &sample.kind {
-            SampleKind::Binding(_) => Type::Noun,
-            SampleKind::Face { mold, .. } | SampleKind::Mold(mold) => {
-                self.resolve_mold(mold, scope).unwrap_or(Type::Noun)
-            }
-            SampleKind::Pun(name) => self
-                .resolve_mold(
-                    &Mold {
-                        kind: crate::ast::MoldKind::Reference(vec![name.clone()]),
-                        span: sample.span,
-                    },
-                    scope,
-                )
-                .unwrap_or(Type::Noun),
-            SampleKind::Cell(samples) => Type::Cell(
-                samples
-                    .iter()
-                    .map(|sample| TypeField {
-                        face: match &sample.kind {
-                            SampleKind::Face { name, .. } | SampleKind::Pun(name) => {
-                                Some(name.clone())
-                            }
-                            _ => None,
-                        },
-                        typ: self.sample_type(sample, scope),
-                    })
-                    .collect(),
-            ),
-        }
-    }
-
-    fn eval_type_directed(
-        &mut self,
-        operation: &str,
-        argument: &Expr,
-        scope: &Rc<Scope>,
-        expected: Option<&Type>,
-        span: Span,
-    ) -> Result<TypedValue, Diagnostic> {
-        let value = self.eval(argument, scope, None)?;
-        if operation == "unface" {
-            return Ok(TypedValue {
-                value: value.value,
-                typ: unface_type(&value.typ),
-            });
-        }
-        let Some(Type::Cell(fields)) = expected else {
-            return Err(Diagnostic::at("`proj` needs an expected record type", span));
-        };
-        let mut values = Vec::new();
-        for field in fields {
-            let Some(face) = &field.face else {
-                return Err(Diagnostic::at("projection fields must be named", span));
-            };
-            let field_value = self.record_field(&value, face, scope, span)?;
-            values.push(field_value.value);
-        }
-        Ok(TypedValue {
-            value: make_cell(values),
-            typ: expected.cloned().unwrap_or(Type::Noun),
-        })
-    }
-
-    fn record_field(
-        &mut self,
-        value: &TypedValue,
-        name: &str,
-        scope: &Rc<Scope>,
-        span: Span,
-    ) -> Result<TypedValue, Diagnostic> {
-        let (typ, steps) =
-            self.record_wing_location(&value.typ, &[name.to_string()], scope, span)?;
-        let value = apply_value_steps(&value.value, &steps)?;
-        Ok(TypedValue { value, typ })
-    }
-
-    fn record_wing_type(
-        &mut self,
-        typ: &Type,
-        names: &[String],
-        scope: &Rc<Scope>,
-        span: Span,
-    ) -> Result<Type, Diagnostic> {
-        Ok(self.record_wing_location(typ, names, scope, span)?.0)
-    }
-
-    fn record_wing_location(
-        &mut self,
-        typ: &Type,
-        names: &[String],
-        scope: &Rc<Scope>,
-        span: Span,
-    ) -> Result<(Type, Vec<Step>), Diagnostic> {
-        let mut typ = typ.clone();
-        let mut steps = Vec::new();
-        for name in names {
-            let (field, mut path) = self.field_location(&typ, name, scope, span)?;
-            typ = field;
-            steps.append(&mut path);
-        }
-        Ok((typ, steps))
-    }
-
-    fn field_location(
-        &self,
-        typ: &Type,
-        name: &str,
-        scope: &Rc<Scope>,
-        span: Span,
-    ) -> Result<(Type, Vec<Step>), Diagnostic> {
-        match typ {
-            Type::Cell(fields) if fields.len() == 1 => {
-                if fields[0].face.as_deref() == Some(name) {
-                    Ok((fields[0].typ.clone(), Vec::new()))
-                } else {
-                    Err(Diagnostic::at(
-                        format!("record has no field `{name}`"),
+        SampleKind::Mold(_) => Ok(()),
+        SampleKind::Cell(samples) => {
+            let mut current = value.clone();
+            for (index, sample) in samples.iter().enumerate() {
+                if index + 1 == samples.len() {
+                    return bind_sample(sample, &current, scope, span);
+                }
+                let Runtime::Cell(head, tail) = current.as_ref() else {
+                    return Err(Diagnostic::at(
+                        "a gate's sample is not the cell it names",
                         span,
-                    ))
-                }
+                    ));
+                };
+                let (head, tail) = (head.clone(), tail.clone());
+                bind_sample(sample, &head, scope, span)?;
+                current = tail;
             }
-            Type::Cell(fields) => {
-                let index = fields
-                    .iter()
-                    .position(|field| field.face.as_deref() == Some(name))
-                    .ok_or_else(|| Diagnostic::at(format!("record has no field `{name}`"), span))?;
-                let mut steps = (0..index).map(|_| Step::Tail).collect::<Vec<_>>();
-                if index + 1 != fields.len() {
-                    steps.push(Step::Head);
-                }
-                Ok((fields[index].typ.clone(), steps))
-            }
-            Type::Named { .. } => {
-                let cases = self.expand_named(typ, scope)?;
-                if cases.len() != 1 {
-                    return Err(Diagnostic::at("field access needs one record type", span));
-                }
-                self.field_location(&cases[0], name, scope, span)
-            }
-            _ => Err(Diagnostic::at("field access needs a record", span)),
+            Ok(())
         }
-    }
-
-    fn expand_named(&self, typ: &Type, scope: &Rc<Scope>) -> Result<Vec<Type>, Diagnostic> {
-        let Type::Named {
-            name, arguments, ..
-        } = typ
-        else {
-            return Ok(vec![typ.clone()]);
-        };
-        let mold = check::resolved_mold_for_evaluation(self.module, name, &local_molds(scope))?;
-        let substitutions = mold
-            .parameters
-            .iter()
-            .zip(arguments)
-            .map(|(parameter, argument)| (parameter.id, argument.clone()))
-            .collect::<BTreeMap<TypeVar, Type>>();
-        Ok(mold
-            .cases
-            .iter()
-            .map(|case| substitute(&case.typ, &substitutions))
-            .collect())
-    }
-
-    fn container_element(&self, typ: &Type, container: &str, scope: &Rc<Scope>) -> Option<Type> {
-        match typ {
-            Type::Named {
-                name, arguments, ..
-            } if name == container && arguments.len() == 1 => arguments.first().cloned(),
-            Type::Named { .. } => {
-                let cases = self.expand_named(typ, scope).ok()?;
-                if cases.len() == 1 {
-                    self.container_element(&cases[0], container, scope)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
-    }
-
-    fn pair_payload_type(&self, tag: &BigUint, typ: &Type, scope: &Rc<Scope>) -> Option<Type> {
-        match typ {
-            Type::Cell(fields) if fields.len() == 2 => {
-                if constant_value(&fields[0].typ) == Some(tag) {
-                    Some(fields[1].typ.clone())
-                } else {
-                    None
-                }
-            }
-            Type::Named { .. } => self
-                .expand_named(typ, scope)
-                .ok()?
-                .iter()
-                .find_map(|case| self.pair_payload_type(tag, case, scope)),
-            _ => None,
-        }
-    }
-
-    fn resolve_mold(&self, mold: &Mold, scope: &Rc<Scope>) -> Result<Type, Diagnostic> {
-        check::resolve_mold_for_evaluation(self.module, mold, &local_molds(scope))
     }
 }
 
-#[derive(Clone, Copy)]
-enum Step {
-    Head,
-    Tail,
+fn literal_value<'a>(literal: &Literal, span: Span) -> Result<Val<'a>, Diagnostic> {
+    let checked =
+        |value: Result<BigUint, String>| value.map_err(|message| Diagnostic::at(message, span));
+    Ok(match literal {
+        Literal::Number(number) => atom(number.value.clone()),
+        Literal::String(bytes) => atom(BigUint::from_bytes_le(bytes)),
+        Literal::Knot(knot) => atom(BigUint::from_bytes_le(knot.as_bytes())),
+        Literal::Term(term) => atom(term.value.clone()),
+        Literal::Loobean(yes) => loobean(*yes),
+        Literal::Null => atom(0u8),
+        Literal::Ship(text) => atom(checked(crate::literal::ship(text))?),
+        Literal::Date(text) => atom(checked(crate::literal::date(text))?),
+        Literal::Duration(text) => atom(checked(crate::literal::duration(text))?),
+    })
 }
 
-fn typed_sample(values: Vec<TypedValue>) -> TypedValue {
-    if values.len() == 1 {
-        return values.into_iter().next().expect("one sample");
-    }
-    let mut fields = Vec::new();
-    let mut items = Vec::new();
+/// `[a b c]` is `[a [b c]]`, and a one-item cell is its item.
+fn right_nested<'a>(values: Vec<Val<'a>>, span: Span) -> Result<Val<'a>, Diagnostic> {
+    let mut values = values.into_iter().rev();
+    let Some(mut result) = values.next() else {
+        return Err(Diagnostic::at("an empty `[]` is not a valid tuple", span));
+    };
     for value in values {
-        fields.push(TypeField {
-            face: None,
-            typ: value.typ,
-        });
-        items.push(value.value);
+        result = cell(value, result);
     }
-    TypedValue {
-        value: make_cell(items),
-        typ: Type::Cell(fields),
-    }
+    Ok(result)
 }
 
-fn make_cell(items: Vec<Value>) -> Value {
-    if items.len() == 1 {
-        return items.into_iter().next().expect("one cell item");
-    }
-    let mut nouns = Vec::new();
-    for item in &items {
-        match item {
-            Value::Noun(noun) => nouns.push(noun.clone()),
-            _ => return Value::Cell(items),
-        }
-    }
-    Value::Noun(Noun::cells(nouns))
-}
-
-fn make_list(mut items: Vec<Value>) -> Value {
-    items.push(Value::Noun(Noun::null()));
-    make_cell(items)
-}
-
-fn sample_components(value: &TypedValue, count: usize) -> Vec<TypedValue> {
-    value_components(value, count).expect("checked sample shape")
-}
-
-fn value_components(value: &TypedValue, count: usize) -> Option<Vec<TypedValue>> {
-    if count == 1 {
-        return Some(vec![value.clone()]);
-    }
-    let fields = match &value.typ {
-        Type::Cell(fields) if fields.len() == count => Some(fields.as_slice()),
-        _ => None,
-    };
-    match &value.value {
-        Value::Noun(noun) => noun_components(noun, &value.typ, count),
-        Value::Cell(items) if items.len() >= count => {
-            let mut values = items
-                .iter()
-                .take(count - 1)
-                .cloned()
-                .enumerate()
-                .map(|(index, value)| TypedValue {
-                    value,
-                    typ: fields.map_or(Type::Noun, |fields| fields[index].typ.clone()),
-                })
-                .collect::<Vec<_>>();
-            let tail = if items.len() == count {
-                items[count - 1].clone()
-            } else {
-                Value::Cell(items[count - 1..].to_vec())
-            };
-            values.push(TypedValue {
-                value: tail,
-                typ: fields.map_or(Type::Noun, |fields| fields[count - 1].typ.clone()),
-            });
-            Some(values)
-        }
-        _ => None,
-    }
-}
-
-fn noun_components(noun: &Rc<Noun>, typ: &Type, count: usize) -> Option<Vec<TypedValue>> {
-    if count == 1 {
-        return Some(vec![TypedValue {
-            value: Value::Noun(noun.clone()),
-            typ: typ.clone(),
-        }]);
-    }
-    let fields = match typ {
-        Type::Cell(fields) if fields.len() == count => Some(fields.as_slice()),
-        _ => None,
-    };
-    let mut values = Vec::new();
-    let mut rest = noun.clone();
-    for index in 0..count - 1 {
-        let Noun::Cell(head, tail) = rest.as_ref() else {
-            return None;
-        };
-        values.push(TypedValue {
-            value: Value::Noun(head.clone()),
-            typ: fields.map_or(Type::Noun, |fields| fields[index].typ.clone()),
-        });
-        rest = tail.clone();
-    }
-    values.push(TypedValue {
-        value: Value::Noun(rest),
-        typ: fields.map_or(Type::Noun, |fields| fields[count - 1].typ.clone()),
-    });
-    Some(values)
-}
-
-fn noun_equal(left: &Noun, right: &Noun) -> bool {
-    match (left, right) {
-        (Noun::Atom(left), Noun::Atom(right)) => left == right,
-        (Noun::Cell(lh, lt), Noun::Cell(rh, rt)) => noun_equal(lh, rh) && noun_equal(lt, rt),
-        _ => false,
-    }
-}
-
-fn apply_value_steps(value: &Value, steps: &[Step]) -> Result<Value, Diagnostic> {
+fn walk<'a>(value: &Val<'a>, steps: &[Step], span: Span) -> Result<Val<'a>, Diagnostic> {
     let mut current = value.clone();
     for step in steps {
-        current = match current {
-            Value::Noun(noun) => Value::Noun(apply_steps(&noun, std::slice::from_ref(step))?),
-            Value::Cell(items) => match step {
-                Step::Head => items
-                    .first()
-                    .cloned()
-                    .ok_or_else(|| Diagnostic::new("empty computational cell"))?,
-                Step::Tail if items.len() == 2 => items[1].clone(),
-                Step::Tail => Value::Cell(items[1..].to_vec()),
-            },
-            Value::Gate(_) | Value::Constructor(_) | Value::Native(_) => {
-                return Err(Diagnostic::new("record field path is not a cell"));
+        let next = match (current.as_ref(), step) {
+            (Runtime::Cell(head, _), Step::Head) => head.clone(),
+            (Runtime::Cell(_, tail), Step::Tail) => tail.clone(),
+            _ => {
+                return Err(Diagnostic::at(
+                    "a record field is missing from its value",
+                    span,
+                ));
             }
         };
+        current = next;
     }
     Ok(current)
 }
 
-fn apply_steps(noun: &Rc<Noun>, steps: &[Step]) -> Result<Rc<Noun>, Diagnostic> {
-    let mut current = noun.clone();
-    for step in steps {
-        let Noun::Cell(head, tail) = current.as_ref() else {
-            return Err(Diagnostic::new("record field path does not match its noun"));
-        };
-        current = match step {
-            Step::Head => head.clone(),
-            Step::Tail => tail.clone(),
-        };
-    }
-    Ok(current)
-}
-
-fn update_noun(noun: &Rc<Noun>, steps: &[Step], replacement: Rc<Noun>) -> Rc<Noun> {
+fn replace<'a>(
+    value: &Val<'a>,
+    steps: &[Step],
+    replacement: Val<'a>,
+    span: Span,
+) -> Result<Val<'a>, Diagnostic> {
     let Some((step, rest)) = steps.split_first() else {
-        return replacement;
+        return Ok(replacement);
     };
-    let Noun::Cell(head, tail) = noun.as_ref() else {
-        panic!("checked record update shape")
-    };
-    match step {
-        Step::Head => Noun::cell(update_noun(head, rest, replacement), tail.clone()),
-        Step::Tail => Noun::cell(head.clone(), update_noun(tail, rest, replacement)),
-    }
-}
-
-fn local_molds(scope: &Rc<Scope>) -> Vec<BTreeMap<String, MoldDefinition>> {
-    let mut scopes = Vec::new();
-    let mut current = Some(scope.clone());
-    while let Some(scope) = current {
-        if !scope.molds.borrow().is_empty() {
-            scopes.push(scope.molds.borrow().clone());
-        }
-        current = scope.parent.clone();
-    }
-    scopes.reverse();
-    scopes
-}
-
-fn substitute(typ: &Type, substitutions: &BTreeMap<TypeVar, Type>) -> Type {
-    match typ {
-        Type::Var(variable) => substitutions
-            .get(variable)
-            .cloned()
-            .unwrap_or_else(|| typ.clone()),
-        Type::Cell(fields) => Type::Cell(
-            fields
-                .iter()
-                .map(|field| TypeField {
-                    face: field.face.clone(),
-                    typ: substitute(&field.typ, substitutions),
-                })
-                .collect(),
-        ),
-        Type::Gate { sample, product } => Type::Gate {
-            sample: Box::new(substitute(sample, substitutions)),
-            product: Box::new(substitute(product, substitutions)),
-        },
-        Type::Named {
-            module,
-            name,
-            arguments,
-        } => Type::Named {
-            module: *module,
-            name: name.clone(),
-            arguments: arguments
-                .iter()
-                .map(|argument| substitute(argument, substitutions))
-                .collect(),
-        },
-        _ => typ.clone(),
-    }
-}
-
-fn unface_type(typ: &Type) -> Type {
-    match typ {
-        Type::Cell(fields) => Type::Cell(
-            fields
-                .iter()
-                .map(|field| TypeField {
-                    face: None,
-                    typ: unface_type(&field.typ),
-                })
-                .collect(),
-        ),
-        Type::Gate { sample, product } => Type::Gate {
-            sample: Box::new(unface_type(sample)),
-            product: Box::new(unface_type(product)),
-        },
-        Type::Named {
-            module,
-            name,
-            arguments,
-        } => Type::Named {
-            module: *module,
-            name: name.clone(),
-            arguments: arguments.iter().map(unface_type).collect(),
-        },
-        _ => typ.clone(),
-    }
-}
-
-fn format_aura_atom(atom: &BigUint, aura: &Aura, span: Span) -> Result<Vec<u8>, Diagnostic> {
-    match aura.0.as_str() {
-        "t" | "ta" | "tas" | "tD" => Ok(atom.to_bytes_le()),
-        "ud" => Ok(format_radix(atom, 10, 3, "").into_bytes()),
-        "ux" => Ok(format_radix(atom, 16, 4, "0x").into_bytes()),
-        "uv" => Ok(format_radix(atom, 32, 5, "0v").into_bytes()),
-        "p" => crate::literal::format_ship(atom)
-            .map(String::into_bytes)
-            .ok_or_else(|| Diagnostic::at("invalid ship atom", span)),
-        "da" => crate::literal::format_date(atom)
-            .map(String::into_bytes)
-            .ok_or_else(|| Diagnostic::at("invalid date atom", span)),
-        "dr" => crate::literal::format_duration(atom)
-            .map(String::into_bytes)
-            .ok_or_else(|| Diagnostic::at("invalid duration atom", span)),
-        "f" => {
-            if *atom == BigUint::default() {
-                Ok(b"%.y".to_vec())
-            } else if *atom == BigUint::from(1u8) {
-                Ok(b"%.n".to_vec())
-            } else {
-                Err(Diagnostic::at("invalid loobean atom", span))
-            }
-        }
-        _ => Err(Diagnostic::at(
-            format!("interpolation has no printer for @{}", aura.0),
+    let Runtime::Cell(head, tail) = value.as_ref() else {
+        return Err(Diagnostic::at(
+            "a changed field is missing from its record",
             span,
-        )),
+        ));
+    };
+    Ok(match step {
+        Step::Head => cell(replace(head, rest, replacement, span)?, tail.clone()),
+        Step::Tail => cell(head.clone(), replace(tail, rest, replacement, span)?),
+    })
+}
+
+fn print(value: &Val<'_>, printer: &Printer, span: Span) -> Result<Vec<u8>, Diagnostic> {
+    if let Printer::Unavailable(typ) = printer {
+        return Err(Diagnostic::at(
+            format!("a trace has no printer for {typ}; trace an atom or a tape"),
+            span,
+        ));
     }
+    if let Printer::Tape = printer {
+        let mut bytes = Vec::new();
+        let mut current = value.clone();
+        loop {
+            let next = match current.as_ref() {
+                Runtime::Atom(end) if end.bits() == 0 => return Ok(bytes),
+                Runtime::Cell(head, tail) => {
+                    let Runtime::Atom(byte) = head.as_ref() else {
+                        return Err(Diagnostic::at("a tape holds a cell", span));
+                    };
+                    bytes.extend(atom_bytes(byte));
+                    tail.clone()
+                }
+                _ => return Err(Diagnostic::at("a tape is not a list", span)),
+            };
+            current = next;
+        }
+    }
+    let Runtime::Atom(value) = value.as_ref() else {
+        return Err(Diagnostic::at("a printed value is not an atom", span));
+    };
+    match printer {
+        Printer::Text => Ok(atom_bytes(value)),
+        Printer::Aura(aura) => format_aura_atom(value, aura, span),
+        Printer::Tape | Printer::Unavailable(_) => unreachable!("handled above"),
+    }
+}
+
+/// An atom as `(scot aura atom)` prints it.
+fn format_aura_atom(value: &BigUint, aura: &str, span: Span) -> Result<Vec<u8>, Diagnostic> {
+    let text = match aura {
+        "ud" | "u" => Some(format_radix(value, 10, 3, "")),
+        "ux" => Some(format_radix(value, 16, 4, "0x")),
+        "uv" => Some(format_radix(value, 32, 5, "0v")),
+        "ub" => Some(format_radix(value, 2, 4, "0b")),
+        "p" => crate::literal::format_ship(value),
+        "da" => crate::literal::format_date(value),
+        "dr" => crate::literal::format_duration(value),
+        "f" if value.bits() == 0 => Some("%.y".to_string()),
+        "f" if *value == BigUint::from(1u8) => Some("%.n".to_string()),
+        "f" => None,
+        _ => {
+            return Err(Diagnostic::at(
+                format!("interpolation has no printer for @{aura}"),
+                span,
+            ));
+        }
+    };
+    text.map(String::into_bytes)
+        .ok_or_else(|| Diagnostic::at(format!("the atom is not a valid @{aura}"), span))
 }
 
 fn format_radix(value: &BigUint, radix: u32, group: usize, prefix: &str) -> String {
@@ -1115,11 +546,94 @@ fn format_radix(value: &BigUint, radix: u32, group: usize, prefix: &str) -> Stri
     result
 }
 
-fn constant_value(typ: &Type) -> Option<&BigUint> {
-    match typ {
-        Type::Constant(value) | Type::NumericTerm(value) | Type::LoobeanConstant(value) => {
-            Some(value)
+/// An evaluated result that can leave the evaluation thread: its nodes in
+/// post-order, sharing as the value shared, so a child comes before its cell.
+struct Plain {
+    nodes: Vec<PlainNode>,
+    root: usize,
+}
+
+enum PlainNode {
+    Atom(BigUint),
+    Cell(usize, usize),
+    Gate,
+    Constructor(BigUint),
+    Native(NativeFunction),
+}
+
+impl Plain {
+    fn new(root: &Val<'_>) -> Self {
+        let mut nodes = Vec::new();
+        let mut indices = HashMap::<*const Runtime<'_>, usize>::new();
+        let mut stack = vec![(root.clone(), false)];
+        while let Some((value, expanded)) = stack.pop() {
+            let key = Rc::as_ptr(&value);
+            if indices.contains_key(&key) {
+                continue;
+            }
+            let node = match value.as_ref() {
+                Runtime::Cell(head, tail) if !expanded => {
+                    stack.push((value.clone(), true));
+                    stack.push((tail.clone(), false));
+                    stack.push((head.clone(), false));
+                    continue;
+                }
+                Runtime::Cell(head, tail) => {
+                    PlainNode::Cell(indices[&Rc::as_ptr(head)], indices[&Rc::as_ptr(tail)])
+                }
+                Runtime::Atom(value) => PlainNode::Atom(value.clone()),
+                Runtime::Gate(_) => PlainNode::Gate,
+                Runtime::Constructor(tag) => PlainNode::Constructor(tag.clone()),
+                Runtime::Native(native) => PlainNode::Native(*native),
+            };
+            indices.insert(key, nodes.len());
+            nodes.push(node);
         }
-        _ => None,
+        let root = indices[&Rc::as_ptr(root)];
+        Self { nodes, root }
+    }
+
+    fn into_value(self) -> Value {
+        let mut functions = Vec::with_capacity(self.nodes.len());
+        let mut nouns: Vec<Option<Rc<Noun>>> = Vec::with_capacity(self.nodes.len());
+        for node in &self.nodes {
+            let (function, noun) = match node {
+                PlainNode::Atom(value) => (false, Some(Noun::atom(value.clone()))),
+                PlainNode::Cell(head, tail) => {
+                    let function = functions[*head] || functions[*tail];
+                    let noun = match (&nouns[*head], &nouns[*tail]) {
+                        (Some(head), Some(tail)) => Some(Noun::cell(head.clone(), tail.clone())),
+                        _ => None,
+                    };
+                    (function, noun)
+                }
+                PlainNode::Gate | PlainNode::Constructor(_) | PlainNode::Native(_) => (true, None),
+            };
+            functions.push(function);
+            nouns.push(noun);
+        }
+        self.value(self.root, &nouns)
+    }
+
+    fn value(&self, index: usize, nouns: &[Option<Rc<Noun>>]) -> Value {
+        if let Some(noun) = &nouns[index] {
+            return Value::Noun(noun.clone());
+        }
+        match &self.nodes[index] {
+            PlainNode::Gate => Value::Gate(Rc::new(GateValue::new())),
+            PlainNode::Constructor(tag) => Value::Constructor(tag.clone()),
+            PlainNode::Native(native) => Value::Native(*native),
+            PlainNode::Atom(_) => unreachable!("atoms are nouns"),
+            PlainNode::Cell(..) => {
+                let mut items = Vec::new();
+                let mut current = index;
+                while let PlainNode::Cell(head, tail) = &self.nodes[current] {
+                    items.push(self.value(*head, nouns));
+                    current = *tail;
+                }
+                items.push(self.value(current, nouns));
+                Value::Cell(items)
+            }
+        }
     }
 }

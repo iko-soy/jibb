@@ -54,13 +54,18 @@ fn ship_tool(explicit: Option<&Path>) -> io::Result<PathBuf> {
         .ok()
         .and_then(|exe| exe.parent().map(Path::to_path_buf))
         .map(|bin| bin.join("../share/jibb/tools/ship"));
-    let candidates = [
+    find_tool(&[
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../tools/ship"),
         installed.unwrap_or_default(),
-        PathBuf::from("tools/ship"),
-    ];
-    for candidate in &candidates {
-        if candidate.is_file() {
+    ])
+}
+
+/// The first candidate that is a file at an absolute path. Only locations tied
+/// to this executable are candidates: a `tools/ship` relative to the working
+/// directory would run whatever the current checkout provides.
+fn find_tool(candidates: &[PathBuf]) -> io::Result<PathBuf> {
+    for candidate in candidates {
+        if candidate.is_absolute() && candidate.is_file() {
             return Ok(candidate.clone());
         }
     }
@@ -78,5 +83,21 @@ fn require_tool(path: &Path) -> io::Result<PathBuf> {
             io::ErrorKind::NotFound,
             format!("no ship tool at {}", path.display()),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_tool_relative_to_the_working_directory_is_not_found() {
+        // The test runs in the package directory, where `src/dev.rs` exists.
+        let relative = PathBuf::from("src/dev.rs");
+        assert!(relative.is_file());
+        let error = find_tool(std::slice::from_ref(&relative)).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::NotFound);
+        let absolute = env::current_dir().unwrap().join("src/dev.rs");
+        assert_eq!(find_tool(&[relative, absolute.clone()]).unwrap(), absolute);
     }
 }

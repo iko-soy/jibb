@@ -6,14 +6,13 @@ use crate::{
         Span, TermKind, TypedSegmentMold,
     },
     infer::Unifier,
-    native::NativeFunction,
     types::{
         Aura, ConstraintKind, PathSegmentType, QuantifiedVariable, Type, TypeField, TypeScheme,
-        TypeVar,
+        TypeVar, spread_cell_fields,
     },
 };
 use num_bigint::BigUint;
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CheckedModule {
@@ -37,7 +36,55 @@ pub struct ResolvedCase {
     pub span: Span,
 }
 
+/// One step into a cell: its head or its tail.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Step {
+    Head,
+    Tail,
+}
+
+/// How a checked value prints, in `{…}` or a trace, as the lowering's printer
+/// natives print it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum Printer {
+    /// An atom whose aura starts with `t`, spliced as its bytes.
+    Text,
+    /// A list of text atoms, spliced as their bytes.
+    Tape,
+    /// An atom printed by `scot` with this aura.
+    Aura(String),
+    /// A traced value of this type has no printer.
+    Unavailable(String),
+}
+
+/// What the evaluator needs from the checked types, keyed by the address of
+/// the expression it belongs to, so evaluation never rebuilds types.
+#[derive(Debug, Default)]
+pub(crate) struct Elaboration {
+    /// The steps from a wing's base value to its field.
+    pub(crate) wings: HashMap<usize, Vec<Step>>,
+    /// A change's target steps, then the steps of each edited field.
+    pub(crate) changes: HashMap<usize, (Vec<Step>, Vec<Vec<Step>>)>,
+    /// The steps of each field `proj` selects, in the expected record's order.
+    pub(crate) projections: HashMap<usize, Vec<Vec<Step>>>,
+    /// The printer of an interpolated or traced expression.
+    pub(crate) printers: HashMap<usize, Printer>,
+}
+
+pub(crate) fn expression_key(expression: &Expr) -> usize {
+    std::ptr::from_ref(expression) as usize
+}
+
 pub fn check(module: &Module) -> Result<CheckedModule, Diagnostic> {
+    crate::on_large_stack(|| Checker::new(module).check().map(|(checked, _)| checked))
+}
+
+/// Checks a module and returns what evaluation needs from its types. The
+/// elaboration is keyed by the module's own expressions, so the caller must
+/// evaluate this same module.
+pub(crate) fn check_for_evaluation(
+    module: &Module,
+) -> Result<(CheckedModule, Elaboration), Diagnostic> {
     Checker::new(module).check()
 }
 
@@ -45,6 +92,50 @@ pub fn check(module: &Module) -> Result<CheckedModule, Diagnostic> {
 enum Binding {
     Monomorphic(Type),
     Polymorphic(TypeScheme),
+    /// A gate of the recursive group being inferred: monomorphic, except that
+    /// the capitals it introduces are instantiated at each reference.
+    Group {
+        typ: Type,
+        capitals: Vec<TypeVar>,
+    },
+}
+
+/// An interpolated or traced expression whose printer is chosen once its
+/// definition's types are known.
+struct PendingPrinter {
+    key: usize,
+    typ: Type,
+    span: Span,
+    trace: bool,
+}
+
+/// A decimal literal waiting for its aura: it is a `@ud` unless its context
+/// fixes another aura it fits, or its `++` is generic over it.
+struct PendingNumber {
+    variable: TypeVar,
+    value: BigUint,
+    span: Span,
+}
+
+/// A tag, `~` or constructor waiting for the union its variable becomes.
+struct PendingTag {
+    variable: TypeVar,
+    kind: PendingTagKind,
+    span: Span,
+}
+
+#[derive(Clone)]
+enum PendingTagKind {
+    Literal(Literal),
+    Constructor { tag: BigUint, sample: Type },
+}
+
+/// Where a definition's pending items begin.
+#[derive(Clone, Copy)]
+struct Marks {
+    numbers: usize,
+    printers: usize,
+    holes: usize,
 }
 
 type Environment = BTreeMap<String, Binding>;
@@ -63,11 +154,19 @@ struct Checker<'a> {
     resolved_molds: BTreeMap<String, ResolvedMold>,
     values: BTreeMap<String, TypeScheme>,
     unifier: Unifier,
-    holes: BTreeMap<TypeVar, Span>,
+    holes: Vec<(TypeVar, Span)>,
     local_scopes: Vec<BTreeSet<String>>,
     local_mold_definitions: Vec<BTreeMap<String, (MoldDefinition, Span)>>,
     local_resolved_molds: Vec<BTreeMap<String, ResolvedMold>>,
-    recursive_products: BTreeSet<TypeVar>,
+    elaboration: Elaboration,
+    pending_printers: Vec<PendingPrinter>,
+    pending_numbers: Vec<PendingNumber>,
+    pending_tags: Vec<PendingTag>,
+    capital_instances: Vec<(TypeVar, TypeVar, Span)>,
+    /// The file the definition being checked came from.
+    origin: SourceId,
+    /// Result variables of branches whose arms join their types.
+    join_variables: HashSet<TypeVar>,
 }
 
 impl<'a> Checker<'a> {
@@ -79,15 +178,35 @@ impl<'a> Checker<'a> {
             resolved_molds: BTreeMap::new(),
             values: BTreeMap::new(),
             unifier: Unifier::default(),
-            holes: BTreeMap::new(),
+            holes: Vec::new(),
             local_scopes: Vec::new(),
             local_mold_definitions: Vec::new(),
             local_resolved_molds: Vec::new(),
-            recursive_products: BTreeSet::new(),
+            elaboration: Elaboration::default(),
+            pending_printers: Vec::new(),
+            pending_numbers: Vec::new(),
+            pending_tags: Vec::new(),
+            capital_instances: Vec::new(),
+            origin: module.span.source,
+            join_variables: HashSet::new(),
         }
     }
 
-    fn check(mut self) -> Result<CheckedModule, Diagnostic> {
+    /// Whether a top-level name defined at `span` is in scope where the
+    /// current definition was written. Every file sees its own names and the
+    /// prelude's; the prelude and imported modules do not see the names of
+    /// the module that imports them.
+    fn global_visible(&self, span: Span) -> bool {
+        span.source != self.module.span.source || self.origin == self.module.span.source
+    }
+
+    fn global_value_visible(&self, name: &str) -> bool {
+        self.value_definitions
+            .get(name)
+            .is_some_and(|span| self.global_visible(*span))
+    }
+
+    fn check(mut self) -> Result<(CheckedModule, Elaboration), Diagnostic> {
         if let Some(import) = self.module.imports.first() {
             return Err(Diagnostic::at(
                 "module imports are not available to the static checker yet",
@@ -108,12 +227,29 @@ impl<'a> Checker<'a> {
         }
         self.validate_unions()?;
         self.check_values()?;
-
-        Ok(CheckedModule {
-            source: self.module.span.source,
-            values: self.values,
-            molds: self.resolved_molds,
-        })
+        self.resolve_pending_tags()?;
+        if let Some(pending) = self.pending_tags.first() {
+            return Err(Diagnostic::at(
+                format!(
+                    "nothing fixes the union of {}; add a `^-`",
+                    pending_tag_text(&pending.kind)
+                ),
+                pending.span,
+            ));
+        }
+        let values = self
+            .values
+            .iter()
+            .map(|(name, scheme)| (name.clone(), self.unifier.normalize_scheme(scheme)))
+            .collect();
+        Ok((
+            CheckedModule {
+                source: self.module.span.source,
+                values,
+                molds: self.resolved_molds,
+            },
+            self.elaboration,
+        ))
     }
 
     fn collect_scope(&mut self) -> Result<(), Diagnostic> {
@@ -152,11 +288,24 @@ impl<'a> Checker<'a> {
         definition: &MoldDefinition,
         span: Span,
     ) -> Result<ResolvedMold, Diagnostic> {
-        let mut variables = BTreeMap::new();
+        self.resolve_scoped_mold_definition(name, definition, span, &BTreeMap::new())
+    }
+
+    /// Resolves a mold definition whose body may also name the capitals of
+    /// the definition it is local to; its own `|$` parameters come first.
+    fn resolve_scoped_mold_definition(
+        &mut self,
+        name: &str,
+        definition: &MoldDefinition,
+        span: Span,
+        enclosing: &BTreeMap<String, TypeVar>,
+    ) -> Result<ResolvedMold, Diagnostic> {
+        let mut own = BTreeSet::new();
+        let mut variables = enclosing.clone();
         let mut parameters = Vec::new();
         if let Some(generic) = &definition.generic {
             for variable in &generic.variables {
-                if variables.contains_key(variable) {
+                if !own.insert(variable.clone()) {
                     return Err(Diagnostic::at(
                         format!("duplicate generic variable `{variable}`"),
                         generic.span,
@@ -205,7 +354,7 @@ impl<'a> Checker<'a> {
             }
             MoldKind::Hole if allow_holes => {
                 let variable = self.fresh_variable();
-                self.holes.insert(variable, mold.span);
+                self.holes.push((variable, mold.span));
                 Ok(Type::Var(variable))
             }
             MoldKind::Hole => Err(Diagnostic::at("unconstrained type hole", mold.span)),
@@ -287,6 +436,12 @@ impl<'a> Checker<'a> {
                 })
             }
             MoldKind::Cell(fields) => {
+                if fields.is_empty() {
+                    return Err(Diagnostic::at(
+                        "an empty `[]` is not a valid mold",
+                        mold.span,
+                    ));
+                }
                 let mut faces = BTreeMap::new();
                 let mut resolved = Vec::new();
                 for field in fields {
@@ -558,16 +713,24 @@ impl<'a> Checker<'a> {
     }
 
     fn check_values(&mut self) -> Result<(), Diagnostic> {
-        let definitions = self
-            .module
+        let module = self.module;
+        let definitions = module
             .definitions
             .iter()
             .filter(|definition| matches!(definition.kind, DefinitionKind::Value(_)))
-            .cloned()
             .collect::<Vec<_>>();
         let dependencies = value_dependencies(&definitions);
         for group in strongly_connected(&dependencies) {
-            self.check_value_group(&group, &definitions, &dependencies)?;
+            self.origin = value_definition(&definitions, &group[0]).span.source;
+            let schemes = self.check_group(
+                &group,
+                &definitions,
+                &dependencies,
+                &BTreeMap::new(),
+                &Environment::new(),
+                true,
+            )?;
+            self.values.extend(schemes);
         }
         Ok(())
     }
@@ -580,225 +743,38 @@ impl<'a> Checker<'a> {
         if let ExprKind::Cast { mold, .. } = &body.kind {
             self.resolve_mold(mold, variables, true, true)
         } else {
-            let variable = self.fresh_variable();
-            self.recursive_products.insert(variable);
-            Ok(Type::Var(variable))
+            Ok(Type::Var(self.fresh_variable()))
         }
     }
 
-    fn check_value_group(
+    fn marks(&self) -> Marks {
+        Marks {
+            numbers: self.pending_numbers.len(),
+            printers: self.pending_printers.len(),
+            holes: self.holes.len(),
+        }
+    }
+
+    /// Infers one dependency group of definitions in `environment`, the scope
+    /// they are defined in, and generalizes them together. A recursive group
+    /// is inferred with monomorphic references, except that each gate's own
+    /// capitals are instantiated where another gate of the group uses it.
+    fn check_group(
         &mut self,
         group: &[String],
-        definitions: &[Definition],
-        dependencies: &BTreeMap<String, BTreeSet<String>>,
-    ) -> Result<(), Diagnostic> {
-        let recursive = group.len() > 1
-            || group.first().is_some_and(|name| {
-                dependencies
-                    .get(name)
-                    .is_some_and(|dependencies| dependencies.contains(name))
-            });
-        if !recursive {
-            let name = &group[0];
-            let definition = value_definition(definitions, name);
-            let DefinitionKind::Value(expression) = &definition.kind else {
-                unreachable!()
-            };
-            let mut variables = BTreeMap::new();
-            let mut environment = Environment::new();
-            let typ = self.infer_expression(expression, None, &mut variables, &mut environment)?;
-            let typ = self.unifier.normalize(&typ);
-            self.ensure_holes_resolved(&typ)?;
-            self.validate_constraints()?;
-            let scheme = self.unifier.generalize(&typ, &BTreeSet::new());
-            self.values.insert(name.clone(), scheme);
-            return Ok(());
-        }
-
-        let mut environment = Environment::new();
-        let mut seeds = Vec::new();
-        for name in group {
-            let definition = value_definition(definitions, name);
-            let DefinitionKind::Value(Expr {
-                kind: ExprKind::Gate { sample, body },
-                ..
-            }) = &definition.kind
-            else {
-                return Err(Diagnostic::at(
-                    format!("non-gate value `{name}` depends on itself"),
-                    definition.span,
-                ));
-            };
-            let mut variables = BTreeMap::new();
-            let mut sample_environment = Environment::new();
-            let sample =
-                self.infer_sample(sample, None, &mut variables, &mut sample_environment)?;
-            let product = self.recursive_product(body, &mut variables)?;
-            let gate = Type::Gate {
-                sample: Box::new(sample),
-                product: Box::new(product.clone()),
-            };
-            environment.insert(name.clone(), Binding::Monomorphic(gate));
-            seeds.push((name.clone(), product, variables, sample_environment));
-        }
-
-        for (name, product, variables, sample_environment) in &seeds {
-            let definition = value_definition(definitions, name);
-            let DefinitionKind::Value(Expr {
-                kind: ExprKind::Gate { body, .. },
-                ..
-            }) = &definition.kind
-            else {
-                unreachable!()
-            };
-            let mut environment = environment.clone();
-            environment.extend(sample_environment.clone());
-            let mut variables = variables.clone();
-            self.infer_expression(body, Some(product), &mut variables, &mut environment)?;
-        }
-
-        for (name, _, _, _) in seeds {
-            let Some(Binding::Monomorphic(typ)) = environment.get(&name).cloned() else {
-                unreachable!()
-            };
-            let typ = self.unifier.normalize(&typ);
-            self.ensure_holes_resolved(&typ)?;
-            self.validate_constraints()?;
-            let scheme = self.unifier.generalize(&typ, &BTreeSet::new());
-            self.values.insert(name, scheme);
-        }
-        Ok(())
-    }
-
-    fn infer_local_definitions(
-        &mut self,
-        definitions: &[Definition],
-        variables: &BTreeMap<String, TypeVar>,
-        environment: &mut Environment,
-    ) -> Result<(), Diagnostic> {
-        let mut value_names = BTreeSet::new();
-        let mut mold_definitions = BTreeMap::new();
-        for definition in definitions {
-            if matches!(definition.name.as_str(), "proj" | "unface") {
-                return Err(Diagnostic::at(
-                    format!("`{}` is reserved", definition.name),
-                    definition.span,
-                ));
-            }
-            match &definition.kind {
-                DefinitionKind::Value(_) => {
-                    if self
-                        .value_definitions
-                        .contains_key(definition.name.as_str())
-                        || environment.contains_key(&definition.name)
-                        || !value_names.insert(definition.name.clone())
-                    {
-                        return Err(Diagnostic::at(
-                            format!("local definition `{}` shadows a name", definition.name),
-                            definition.span,
-                        ));
-                    }
-                }
-                DefinitionKind::Mold(mold) => {
-                    if self.mold_definition(&definition.name).is_some()
-                        || mold_definitions
-                            .insert(definition.name.clone(), ((*mold).clone(), definition.span))
-                            .is_some()
-                    {
-                        return Err(Diagnostic::at(
-                            format!("local mold `{}` shadows a name", definition.name),
-                            definition.span,
-                        ));
-                    }
-                }
-            }
-        }
-
-        self.local_scopes.push(value_names);
-        self.local_mold_definitions.push(mold_definitions);
-        self.local_resolved_molds.push(BTreeMap::new());
-        let value_definitions = definitions
-            .iter()
-            .filter(|definition| matches!(definition.kind, DefinitionKind::Value(_)))
-            .cloned()
-            .collect::<Vec<_>>();
-        let result = (|| {
-            let mold_names = self
-                .local_mold_definitions
-                .last()
-                .into_iter()
-                .flat_map(|scope| scope.keys())
-                .cloned()
-                .collect::<Vec<_>>();
-            for name in mold_names {
-                let (definition, span) = self.mold_definition(&name).expect("local mold exists");
-                let resolved = self.resolve_mold_definition(&name, &definition, span)?;
-                self.local_resolved_molds
-                    .last_mut()
-                    .expect("local mold scope exists")
-                    .insert(name, resolved);
-            }
-            for mold in self
-                .local_resolved_molds
-                .last()
-                .into_iter()
-                .flat_map(|scope| scope.values())
-            {
-                self.validate_union(mold)?;
-            }
-            let dependencies = value_dependencies(&value_definitions);
-            for group in strongly_connected(&dependencies) {
-                self.check_local_group(
-                    &group,
-                    &value_definitions,
-                    &dependencies,
-                    variables,
-                    environment,
-                )?;
-            }
-            Ok(())
-        })();
-        if result.is_err() {
-            self.finish_local_definitions();
-        }
-        result
-    }
-
-    fn finish_local_definitions(&mut self) {
-        self.local_scopes.pop();
-        self.local_mold_definitions.pop();
-        self.local_resolved_molds.pop();
-    }
-
-    fn reject_escaping_local_molds(&mut self, typ: &Type, span: Span) -> Result<(), Diagnostic> {
-        let typ = self.unifier.normalize(typ);
-        let Some(scope) = self.local_resolved_molds.last() else {
-            return Ok(());
-        };
-        if type_mentions_molds(&typ, &scope.keys().cloned().collect::<BTreeSet<_>>()) {
-            return Err(Diagnostic::at(
-                "a local mold cannot escape its lexical scope in an inferred type",
-                span,
-            ));
-        }
-        Ok(())
-    }
-
-    fn check_local_group(
-        &mut self,
-        group: &[String],
-        definitions: &[Definition],
+        definitions: &[&Definition],
         dependencies: &BTreeMap<String, BTreeSet<String>>,
         outer_variables: &BTreeMap<String, TypeVar>,
-        environment: &mut Environment,
-    ) -> Result<(), Diagnostic> {
+        environment: &Environment,
+        top: bool,
+    ) -> Result<Vec<(String, TypeScheme)>, Diagnostic> {
+        let marks = self.marks();
         let recursive = group.len() > 1
             || group.first().is_some_and(|name| {
                 dependencies
                     .get(name)
                     .is_some_and(|dependencies| dependencies.contains(name))
             });
-        let occupied = self.occupied_variables(environment, outer_variables);
         if !recursive {
             let name = &group[0];
             let definition = value_definition(definitions, name);
@@ -809,12 +785,9 @@ impl<'a> Checker<'a> {
             let mut local_environment = environment.clone();
             let typ =
                 self.infer_expression(expression, None, &mut variables, &mut local_environment)?;
-            let typ = self.unifier.normalize(&typ);
-            self.ensure_holes_resolved(&typ)?;
-            self.validate_constraints()?;
-            let scheme = self.unifier.generalize(&typ, &occupied);
-            environment.insert(name.clone(), Binding::Polymorphic(scheme));
-            return Ok(());
+            let mut schemes =
+                self.finish_definitions(&[typ], environment, outer_variables, marks, top)?;
+            return Ok(vec![(name.clone(), schemes.remove(0))]);
         }
 
         let mut group_environment = environment.clone();
@@ -836,15 +809,27 @@ impl<'a> Checker<'a> {
             let sample =
                 self.infer_sample(sample, None, &mut variables, &mut sample_environment)?;
             let product = self.recursive_product(body, &mut variables)?;
+            let capitals = variables
+                .iter()
+                .filter(|(name, _)| !outer_variables.contains_key(*name))
+                .map(|(_, variable)| *variable)
+                .collect();
             let gate = Type::Gate {
                 sample: Box::new(sample),
                 product: Box::new(product.clone()),
             };
-            group_environment.insert(name.clone(), Binding::Monomorphic(gate));
-            seeds.push((name.clone(), product, variables, sample_environment));
+            group_environment.insert(
+                name.clone(),
+                Binding::Group {
+                    typ: gate.clone(),
+                    capitals,
+                },
+            );
+            seeds.push((name.clone(), gate, product, variables, sample_environment));
         }
 
-        for (name, product, variables, sample_environment) in &seeds {
+        let instances = self.capital_instances.len();
+        for (name, gate, product, variables, sample_environment) in &seeds {
             let definition = value_definition(definitions, name);
             let DefinitionKind::Value(Expr {
                 kind: ExprKind::Gate { body, .. },
@@ -853,23 +838,395 @@ impl<'a> Checker<'a> {
             else {
                 unreachable!()
             };
+            // In its own body a gate's capitals are rigid, so it calls itself
+            // at one type; the other gates of its group are instantiated.
             let mut body_environment = group_environment.clone();
+            body_environment.insert(name.clone(), Binding::Monomorphic(gate.clone()));
             body_environment.extend(sample_environment.clone());
             let mut variables = variables.clone();
             self.infer_expression(body, Some(product), &mut variables, &mut body_environment)?;
         }
+        self.validate_capital_instances(instances)?;
 
-        for (name, _, _, _) in seeds {
-            let Some(Binding::Monomorphic(typ)) = group_environment.get(&name).cloned() else {
-                unreachable!()
-            };
-            let typ = self.unifier.normalize(&typ);
-            self.ensure_holes_resolved(&typ)?;
-            self.validate_constraints()?;
-            let scheme = self.unifier.generalize(&typ, &occupied);
-            environment.insert(name, Binding::Polymorphic(scheme));
+        let types = seeds
+            .iter()
+            .map(|(_, gate, ..)| gate.clone())
+            .collect::<Vec<_>>();
+        let schemes = self.finish_definitions(&types, environment, outer_variables, marks, top)?;
+        Ok(seeds
+            .into_iter()
+            .map(|(name, ..)| name)
+            .zip(schemes)
+            .collect())
+    }
+
+    /// A definition boundary: decimals take their default, tags and printers
+    /// are resolved where their types are now known, and the types are
+    /// generalized over the variables the enclosing scope does not share.
+    fn finish_definitions(
+        &mut self,
+        types: &[Type],
+        environment: &Environment,
+        outer_variables: &BTreeMap<String, TypeVar>,
+        marks: Marks,
+        top: bool,
+    ) -> Result<Vec<TypeScheme>, Diagnostic> {
+        let mut occupied = self.occupied_variables(environment, outer_variables);
+        let mut samples = BTreeSet::new();
+        for typ in types {
+            if let Type::Gate { sample, .. } = self.unifier.resolve(typ) {
+                samples.extend(self.unifier.free_variables_of(&sample));
+            }
+        }
+        self.resolve_pending_numbers(marks.numbers, &occupied, &samples, top)?;
+        self.resolve_pending_tags()?;
+        occupied.extend(self.pending_tag_variables());
+        self.resolve_pending_printers(marks.printers, &occupied, top)?;
+        self.resolve_holes(marks.holes, &occupied, top)?;
+        self.validate_constraints()?;
+        let mut schemes = Vec::new();
+        for typ in types {
+            let typ = self.unifier.normalize(typ);
+            schemes.push(self.unifier.generalize(&typ, &occupied));
+        }
+        Ok(schemes)
+    }
+
+    /// A definition determines its own holes: each must have become a type,
+    /// or a capital, once the definition is inferred. A hole the enclosing
+    /// scope shares waits for that scope's boundary.
+    fn resolve_holes(
+        &mut self,
+        mark: usize,
+        occupied: &BTreeSet<TypeVar>,
+        top: bool,
+    ) -> Result<(), Diagnostic> {
+        let holes = self.holes.split_off(mark);
+        for (variable, span) in holes {
+            if let Type::Var(variable) = self.unifier.resolve(&Type::Var(variable))
+                && !self.unifier.is_rigid(variable)
+            {
+                if !top && occupied.contains(&variable) {
+                    self.holes.push((variable, span));
+                    continue;
+                }
+                return Err(Diagnostic::at("unconstrained type hole", span));
+            }
         }
         Ok(())
+    }
+
+    fn resolve_pending_numbers(
+        &mut self,
+        mark: usize,
+        occupied: &BTreeSet<TypeVar>,
+        samples: &BTreeSet<TypeVar>,
+        top: bool,
+    ) -> Result<(), Diagnostic> {
+        let pending = self.pending_numbers.split_off(mark);
+        for number in pending {
+            match self.unifier.resolve(&Type::Var(number.variable)) {
+                Type::Var(variable) if self.unifier.is_rigid(variable) => {
+                    if !top {
+                        self.pending_numbers.push(number);
+                    } else if !self.unifier.has_atom_constraint(variable) {
+                        return Err(Diagnostic::at(
+                            format!(
+                                "capital `{}` cannot be fixed to @ud",
+                                self.unifier.rigid_name(variable)
+                            ),
+                            number.span,
+                        )
+                        .with_note("capital", self.unifier.rigid_span(variable)));
+                    }
+                }
+                Type::Var(variable) => {
+                    if occupied.contains(&variable) && !top {
+                        self.pending_numbers.push(number);
+                    } else if !samples.contains(&variable) {
+                        self.unifier.unify(
+                            &Type::Var(variable),
+                            &Type::Atom(Aura::new("ud")),
+                            number.span,
+                        )?;
+                    }
+                }
+                typ => self.check_number_fits(&number, &typ)?,
+            }
+        }
+        Ok(())
+    }
+
+    fn check_number_fits(&mut self, number: &PendingNumber, typ: &Type) -> Result<(), Diagnostic> {
+        let typ = self.unifier.normalize(typ);
+        if self.types_fit(&Type::Atom(Aura::new("ud")), &typ) {
+            return Ok(());
+        }
+        Err(number_mismatch(&number.value, &typ, number.span))
+    }
+
+    fn pending_tag_variables(&mut self) -> Vec<TypeVar> {
+        let variables = self
+            .pending_tags
+            .iter()
+            .map(|tag| tag.variable)
+            .collect::<Vec<_>>();
+        variables
+            .into_iter()
+            .filter_map(
+                |variable| match self.unifier.resolve(&Type::Var(variable)) {
+                    Type::Var(variable) => Some(variable),
+                    _ => None,
+                },
+            )
+            .collect()
+    }
+
+    /// Checks each waiting tag whose union is now known.
+    fn resolve_pending_tags(&mut self) -> Result<(), Diagnostic> {
+        let pending = std::mem::take(&mut self.pending_tags);
+        for tag in pending {
+            let typ = self.unifier.resolve(&Type::Var(tag.variable));
+            if matches!(typ, Type::Var(_)) {
+                self.pending_tags.push(tag);
+                continue;
+            }
+            match tag.kind {
+                PendingTagKind::Literal(literal) => {
+                    self.infer_literal(&literal, Some(&typ), tag.span)?;
+                }
+                PendingTagKind::Constructor { tag: value, sample } => {
+                    let payload = self.pair_payload_type(&value, &typ).ok_or_else(|| {
+                        Diagnostic::at("constructor tag has no matching union case", tag.span)
+                    })?;
+                    self.fit_or_error(sample, Some(&payload), tag.span)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn resolve_pending_printers(
+        &mut self,
+        mark: usize,
+        occupied: &BTreeSet<TypeVar>,
+        top: bool,
+    ) -> Result<(), Diagnostic> {
+        let pending = self.pending_printers.split_off(mark);
+        for printer in pending {
+            let typ = self.unifier.normalize(&printer.typ);
+            if !top
+                && self
+                    .unifier
+                    .free_variables_of(&typ)
+                    .iter()
+                    .any(|variable| occupied.contains(variable))
+            {
+                self.pending_printers.push(printer);
+                continue;
+            }
+            let selected = match self.printer_for(&typ, &mut BTreeSet::new()) {
+                Some(selected) => selected,
+                None if printer.trace => Printer::Unavailable(TypeScheme::mono(typ).to_string()),
+                None => return Err(interpolation_error(&typ, printer.span)),
+            };
+            self.elaboration.printers.insert(printer.key, selected);
+        }
+        Ok(())
+    }
+
+    /// The printer the lowering would pick for a value of this type.
+    fn printer_for(&self, typ: &Type, visiting: &mut BTreeSet<String>) -> Option<Printer> {
+        match typ {
+            Type::Atom(aura) if aura.0.starts_with('t') => Some(Printer::Text),
+            Type::Atom(aura) => Some(Printer::Aura(aura.0.clone())),
+            Type::AnyAtom | Type::NumericTerm(_) => Some(Printer::Aura("ud".to_string())),
+            Type::Flag | Type::LoobeanConstant(_) => Some(Printer::Aura("f".to_string())),
+            Type::Constant(_) | Type::Void => Some(Printer::Text),
+            Type::Named { name, .. } => {
+                if self.is_text_list(typ) {
+                    return Some(Printer::Tape);
+                }
+                if !visiting.insert(name.clone()) {
+                    return None;
+                }
+                let cases = self.expanded_cases(typ)?;
+                let printer = match cases.as_slice() {
+                    [case] => self.printer_for(case, visiting),
+                    _ => None,
+                };
+                visiting.remove(name);
+                printer
+            }
+            _ => None,
+        }
+    }
+
+    /// A tape, by shape: a union of `~` and a cell of a `@tD` and the same
+    /// list.
+    fn is_text_list(&self, typ: &Type) -> bool {
+        let Some(cases) = self.expanded_cases(typ) else {
+            return false;
+        };
+        let [first, second] = cases.as_slice() else {
+            return false;
+        };
+        let (nil, cell) = if constant_value(first).is_some() {
+            (first, second)
+        } else {
+            (second, first)
+        };
+        if constant_value(nil) != Some(&BigUint::default()) {
+            return false;
+        }
+        let Type::Cell(fields) = cell else {
+            return false;
+        };
+        let [head, tail] = fields.as_slice() else {
+            return false;
+        };
+        matches!(&head.typ, Type::Atom(aura) if aura.0 == "tD") && tail.typ == *typ
+    }
+
+    fn validate_capital_instances(&mut self, start: usize) -> Result<(), Diagnostic> {
+        let instances = self.capital_instances.split_off(start);
+        for (capital, instance, span) in instances {
+            for kind in [
+                ConstraintKind::Atom,
+                ConstraintKind::ArithmeticAtom,
+                ConstraintKind::GateFree,
+            ] {
+                if self.unifier.has_constraint(capital, kind) {
+                    let typ = self.unifier.resolve(&Type::Var(instance));
+                    self.require_constraint(&typ, kind, span)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn infer_local_definitions(
+        &mut self,
+        definitions: &[Definition],
+        variables: &BTreeMap<String, TypeVar>,
+        environment: &mut Environment,
+    ) -> Result<(), Diagnostic> {
+        let mut value_names = BTreeSet::new();
+        let mut mold_definitions = BTreeMap::new();
+        for definition in definitions {
+            if matches!(definition.name.as_str(), "proj" | "unface") {
+                return Err(Diagnostic::at(
+                    format!("`{}` is reserved", definition.name),
+                    definition.span,
+                ));
+            }
+            match &definition.kind {
+                DefinitionKind::Value(_) => {
+                    if self.global_value_visible(&definition.name)
+                        || environment.contains_key(&definition.name)
+                        || !value_names.insert(definition.name.clone())
+                    {
+                        return Err(Diagnostic::at(
+                            format!("local definition `{}` shadows a name", definition.name),
+                            definition.span,
+                        ));
+                    }
+                }
+                DefinitionKind::Mold(mold) => {
+                    if self
+                        .mold_definition(&definition.name)
+                        .is_some_and(|(_, span)| self.global_visible(span))
+                        || mold_definitions
+                            .insert(definition.name.clone(), ((*mold).clone(), definition.span))
+                            .is_some()
+                    {
+                        return Err(Diagnostic::at(
+                            format!("local mold `{}` shadows a name", definition.name),
+                            definition.span,
+                        ));
+                    }
+                }
+            }
+        }
+
+        self.local_scopes.push(value_names);
+        self.local_mold_definitions.push(mold_definitions);
+        self.local_resolved_molds.push(BTreeMap::new());
+        let value_definitions = definitions
+            .iter()
+            .filter(|definition| matches!(definition.kind, DefinitionKind::Value(_)))
+            .collect::<Vec<_>>();
+        let result = (|| {
+            let mold_names = self
+                .local_mold_definitions
+                .last()
+                .into_iter()
+                .flat_map(|scope| scope.keys())
+                .cloned()
+                .collect::<Vec<_>>();
+            for name in mold_names {
+                let (definition, span) = self.mold_definition(&name).expect("local mold exists");
+                let resolved =
+                    self.resolve_scoped_mold_definition(&name, &definition, span, variables)?;
+                self.local_resolved_molds
+                    .last_mut()
+                    .expect("local mold scope exists")
+                    .insert(name, resolved);
+            }
+            for mold in self
+                .local_resolved_molds
+                .last()
+                .into_iter()
+                .flat_map(|scope| scope.values())
+            {
+                self.validate_union(mold)?;
+            }
+            let dependencies = value_dependencies(&value_definitions);
+            for group in strongly_connected(&dependencies) {
+                let schemes = self.check_group(
+                    &group,
+                    &value_definitions,
+                    &dependencies,
+                    variables,
+                    environment,
+                    false,
+                )?;
+                for (name, scheme) in schemes {
+                    environment.insert(name, Binding::Polymorphic(scheme));
+                }
+            }
+            Ok(())
+        })();
+        if result.is_err() {
+            self.finish_local_definitions();
+        }
+        result
+    }
+
+    fn finish_local_definitions(&mut self) {
+        self.local_scopes.pop();
+        self.local_mold_definitions.pop();
+        self.local_resolved_molds.pop();
+    }
+
+    /// A body's result may mention its own local molds; outside the body they
+    /// are written out, as the full checker reports them, since their names
+    /// are out of scope there. A recursive local mold cannot be written out.
+    fn expand_escaping_local_molds(&mut self, typ: &Type, span: Span) -> Result<Type, Diagnostic> {
+        let typ = self.unifier.normalize(typ);
+        let Some(scope) = self.local_resolved_molds.last() else {
+            return Ok(typ);
+        };
+        if !type_mentions_molds(&typ, &scope.keys().cloned().collect::<BTreeSet<_>>()) {
+            return Ok(typ);
+        }
+        let scope = scope.clone();
+        expand_molds(&typ, &scope, &mut Vec::new()).ok_or_else(|| {
+            Diagnostic::at(
+                "a recursive local mold cannot escape its lexical scope in an inferred type",
+                span,
+            )
+        })
     }
 
     fn occupied_variables(
@@ -879,8 +1236,23 @@ impl<'a> Checker<'a> {
     ) -> BTreeSet<TypeVar> {
         let mut occupied = variables.values().copied().collect::<BTreeSet<_>>();
         for binding in environment.values() {
-            if let Binding::Monomorphic(typ) = binding {
-                occupied.extend(self.unifier.free_variables_of(typ));
+            match binding {
+                Binding::Monomorphic(typ) | Binding::Group { typ, .. } => {
+                    occupied.extend(self.unifier.free_variables_of(typ));
+                }
+                Binding::Polymorphic(scheme) => {
+                    let quantified = scheme
+                        .variables
+                        .iter()
+                        .map(|variable| variable.id)
+                        .collect::<BTreeSet<_>>();
+                    occupied.extend(
+                        self.unifier
+                            .free_variables_of(&scheme.typ)
+                            .into_iter()
+                            .filter(|variable| !quantified.contains(variable)),
+                    );
+                }
             }
         }
         occupied
@@ -975,17 +1347,6 @@ impl<'a> Checker<'a> {
         }
     }
 
-    fn ensure_holes_resolved(&mut self, typ: &Type) -> Result<(), Diagnostic> {
-        let typ = self.unifier.normalize(typ);
-        if let Some(variable) = find_hole(&typ, &self.holes) {
-            return Err(Diagnostic::at(
-                "unconstrained type hole",
-                self.holes[&variable],
-            ));
-        }
-        Ok(())
-    }
-
     fn infer_expression(
         &mut self,
         expression: &Expr,
@@ -996,15 +1357,24 @@ impl<'a> Checker<'a> {
         match &expression.kind {
             ExprKind::Literal(literal) => self.infer_literal(literal, expected, expression.span),
             ExprKind::Crash => self.fit_or_error(Type::Void, expected, expression.span),
+            ExprKind::Native(native) => {
+                let scheme = crate::native::scheme(*native, self.module.span.source);
+                let typ = self.unifier.instantiate(&scheme, expression.span);
+                self.fit_or_error(typ, expected, expression.span)
+            }
             ExprKind::Cast { mold, value } => {
                 let target = self.resolve_mold(mold, variables, true, true)?;
                 self.infer_expression(value, Some(&target), variables, environment)?;
                 let target = self.unifier.normalize(&target);
-                self.ensure_holes_resolved(&target)?;
-                Ok(target)
+                self.fit_or_error(target, expected, expression.span)
             }
             ExprKind::Reference(names) => {
-                let typ = self.lookup_wing(names, expression.span, environment)?;
+                let (typ, steps) = self.lookup_wing(names, expression.span, environment)?;
+                if names.len() > 1 {
+                    self.elaboration
+                        .wings
+                        .insert(expression_key(expression), steps);
+                }
                 self.fit_or_error(typ, expected, expression.span)
             }
             ExprKind::Gate { sample, body } => {
@@ -1027,24 +1397,61 @@ impl<'a> Checker<'a> {
                 )
             }
             ExprKind::Constructor(tag) => {
-                let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
-                let Some(Type::Gate { sample, product }) = resolved_expected else {
-                    return Err(Diagnostic::at(
-                        "constructor needs an expected gate type",
-                        expression.span,
-                    ));
+                let resolved_expected = expected.map(|typ| {
+                    let typ = self.unifier.resolve(typ);
+                    self.transparent_case(&typ).unwrap_or(typ)
+                });
+                let (sample, product) = match resolved_expected {
+                    Some(Type::Gate { sample, product }) => (*sample, *product),
+                    Some(Type::Var(variable)) if !self.unifier.is_rigid(variable) => (
+                        Type::Var(self.fresh_variable()),
+                        Type::Var(self.fresh_variable()),
+                    ),
+                    None => (
+                        Type::Var(self.fresh_variable()),
+                        Type::Var(self.fresh_variable()),
+                    ),
+                    Some(_) => {
+                        return Err(Diagnostic::at(
+                            "constructor needs an expected gate type",
+                            expression.span,
+                        ));
+                    }
                 };
-                let payload = self.pair_payload_type(tag, &product).ok_or_else(|| {
-                    Diagnostic::at(
-                        "constructor tag has no matching union case",
+                let resolved_product = self.unifier.resolve(&product);
+                if let Type::Var(variable) = resolved_product
+                    && !self.unifier.is_rigid(variable)
+                {
+                    self.pending_tags.push(PendingTag {
+                        variable,
+                        kind: PendingTagKind::Constructor {
+                            tag: tag.clone(),
+                            sample: sample.clone(),
+                        },
+                        span: expression.span,
+                    });
+                    return self.fit_or_error(
+                        Type::Gate {
+                            sample: Box::new(sample),
+                            product: Box::new(product),
+                        },
+                        expected,
                         expression.span,
-                    )
-                })?;
-                self.fit_or_error(*sample, Some(&payload), expression.span)?;
+                    );
+                }
+                let payload = self
+                    .pair_payload_type(tag, &resolved_product)
+                    .ok_or_else(|| {
+                        Diagnostic::at(
+                            "constructor tag has no matching union case",
+                            expression.span,
+                        )
+                    })?;
+                self.fit_or_error(sample, Some(&payload), expression.span)?;
                 self.fit_or_error(
                     Type::Gate {
                         sample: Box::new(payload),
-                        product,
+                        product: Box::new(product),
                     },
                     expected,
                     expression.span,
@@ -1079,6 +1486,7 @@ impl<'a> Checker<'a> {
                     })?;
                     let source =
                         self.infer_expression(&arguments[0], None, variables, environment)?;
+                    let mut selected = Vec::new();
                     for field in fields {
                         let Some(face) = &field.face else {
                             return Err(Diagnostic::at(
@@ -1086,9 +1494,14 @@ impl<'a> Checker<'a> {
                                 expression.span,
                             ));
                         };
-                        let source_type = self.record_field(&source, face, expression.span)?;
+                        let (source_type, steps) =
+                            self.record_field(&source, face, expression.span)?;
                         self.fit_or_error(source_type, Some(&field.typ), expression.span)?;
+                        selected.push(steps);
                     }
+                    self.elaboration
+                        .projections
+                        .insert(expression_key(expression), selected);
                     return Ok(expected_type);
                 }
                 let head_expected = if matches!(head.kind, ExprKind::Constructor(_)) {
@@ -1104,8 +1517,8 @@ impl<'a> Checker<'a> {
                 let (sample, product) = self.gate_parts(&head_type, head.span)?;
                 let resolved_sample = self.unifier.normalize(&sample);
                 let expected_arguments = match &resolved_sample {
-                    Type::Cell(fields) if fields.len() == arguments.len() => {
-                        Some(fields.as_slice())
+                    Type::Cell(fields) if arguments.len() > 1 => {
+                        align_cell_fields(fields, arguments.len())
                     }
                     _ => None,
                 };
@@ -1114,7 +1527,7 @@ impl<'a> Checker<'a> {
                     let expected = if arguments.len() == 1 {
                         Some(&resolved_sample)
                     } else {
-                        expected_arguments.map(|fields| &fields[index].typ)
+                        expected_arguments.as_ref().map(|fields| &fields[index].typ)
                     };
                     argument_types.push(self.infer_expression(
                         argument,
@@ -1138,7 +1551,9 @@ impl<'a> Checker<'a> {
                 self.fit_or_error(product, expected, expression.span)
             }
             ExprKind::List(items) => {
-                let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
+                let resolved_expected = expected
+                    .map(|typ| self.unifier.resolve(typ))
+                    .filter(|typ| !self.is_flexible(typ));
                 let element = resolved_expected
                     .as_ref()
                     .and_then(|typ| self.container_element(typ, "list"));
@@ -1166,7 +1581,9 @@ impl<'a> Checker<'a> {
                 self.fit_or_error(target, expected, expression.span)
             }
             ExprKind::Unit(value) => {
-                let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
+                let resolved_expected = expected
+                    .map(|typ| self.unifier.resolve(typ))
+                    .filter(|typ| !self.is_flexible(typ));
                 let payload = resolved_expected
                     .as_ref()
                     .and_then(|typ| self.container_element(typ, "unit"));
@@ -1182,7 +1599,7 @@ impl<'a> Checker<'a> {
                         typ: value.clone(),
                     },
                 ]);
-                if expected.is_some() {
+                if resolved_expected.is_some() {
                     return self.fit_or_error(actual, expected, expression.span);
                 }
                 let target = self.local_generic_type("unit", value).ok_or_else(|| {
@@ -1191,7 +1608,7 @@ impl<'a> Checker<'a> {
                         expression.span,
                     )
                 })?;
-                Ok(target)
+                self.fit_or_error(target, expected, expression.span)
             }
             ExprKind::Pair { tag, value } => {
                 let tag = BigUint::from_bytes_le(tag.as_bytes());
@@ -1224,32 +1641,53 @@ impl<'a> Checker<'a> {
                 )
             }
             ExprKind::Change { target, edits } => {
-                let target_type = self.lookup_wing(target, expression.span, environment)?;
+                let (target_type, target_steps) =
+                    self.lookup_wing(target, expression.span, environment)?;
                 if edits.is_empty() {
                     return Err(Diagnostic::at(
-                        "a record change needs an edit",
+                        "a change takes at least one field",
                         expression.span,
                     ));
                 }
-                let mut previous = Vec::<Vec<String>>::new();
+                let mut previous = Vec::<&crate::ast::Edit>::new();
+                let mut edit_steps = Vec::new();
                 for edit in edits {
-                    if previous.iter().any(|field| {
-                        field == &edit.field
-                            || field.starts_with(&edit.field)
-                            || edit.field.starts_with(field)
-                    }) {
-                        return Err(Diagnostic::at(
-                            "record change has duplicate or overlapping edits",
-                            edit.span,
-                        ));
+                    for earlier in &previous {
+                        // A wing reads from its last name inward, so `open.cart` is
+                        // inside `cart`: one field contains the other when its
+                        // wing ends with the other's.
+                        if earlier.field.ends_with(&edit.field)
+                            || edit.field.ends_with(&earlier.field)
+                        {
+                            return Err(Diagnostic::at(
+                                format!(
+                                    "change fields `{}` and `{}` overlap",
+                                    earlier.field.join("."),
+                                    edit.field.join(".")
+                                ),
+                                edit.span,
+                            )
+                            .with_note("first field", earlier.span));
+                        }
                     }
-                    let field_type = self.record_wing(&target_type, &edit.field, edit.span)?;
+                    let (field_type, steps) =
+                        self.record_wing(&target_type, &edit.field, edit.span)?;
                     self.infer_expression(&edit.value, Some(&field_type), variables, environment)?;
-                    previous.push(edit.field.clone());
+                    edit_steps.push(steps);
+                    previous.push(edit);
                 }
+                self.elaboration
+                    .changes
+                    .insert(expression_key(expression), (target_steps, edit_steps));
                 self.fit_or_error(target_type, expected, expression.span)
             }
             ExprKind::Tuple(items) => {
+                if items.is_empty() {
+                    return Err(Diagnostic::at(
+                        "an empty `[]` is not a valid tuple",
+                        expression.span,
+                    ));
+                }
                 let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
                 let expected_fields = resolved_expected
                     .as_ref()
@@ -1285,7 +1723,12 @@ impl<'a> Checker<'a> {
                 for part in parts {
                     if let crate::ast::StringPart::Expr(value) = part {
                         let typ = self.infer_expression(value, None, variables, environment)?;
-                        self.require_printable(&typ, value.span)?;
+                        self.pending_printers.push(PendingPrinter {
+                            key: expression_key(value),
+                            typ,
+                            span: value.span,
+                            trace: false,
+                        });
                     }
                 }
                 self.fit_or_error(Type::Atom(Aura::new("t")), expected, expression.span)
@@ -1309,7 +1752,13 @@ impl<'a> Checker<'a> {
                 expression.span,
             ),
             ExprKind::Trace { value, body } => {
-                self.infer_expression(value, None, variables, environment)?;
+                let typ = self.infer_expression(value, None, variables, environment)?;
+                self.pending_printers.push(PendingPrinter {
+                    key: expression_key(value),
+                    typ,
+                    span: value.span,
+                    trace: true,
+                });
                 self.infer_expression(body, expected, variables, environment)
             }
             ExprKind::Body {
@@ -1321,8 +1770,7 @@ impl<'a> Checker<'a> {
                 let checked = (|| {
                     self.infer_local_definitions(definitions, variables, environment)?;
                     let typ = self.infer_expression(result, expected, variables, environment)?;
-                    self.reject_escaping_local_molds(&typ, result.span)?;
-                    Ok(typ)
+                    self.expand_escaping_local_molds(&typ, result.span)
                 })();
                 if self.local_resolved_molds.len() > scope_depth {
                     self.finish_local_definitions();
@@ -1330,7 +1778,7 @@ impl<'a> Checker<'a> {
                 *environment = outer_environment;
                 checked
             }
-            _ => Err(Diagnostic::at(
+            ExprKind::ApplicationPath(_) => Err(Diagnostic::at(
                 "this expression is not available to the static checker yet",
                 expression.span,
             )),
@@ -1374,9 +1822,16 @@ impl<'a> Checker<'a> {
         };
         let mut remaining = original_cases.clone();
         let mut previous_patterns: Vec<&Pattern> = Vec::new();
-        let result = expected
-            .cloned()
-            .unwrap_or_else(|| Type::Var(self.fresh_variable()));
+        // Without a known result type the arms join: each is checked against
+        // the type so far, and an ancestor aura widens it.
+        let result = match expected {
+            Some(typ) if !self.is_flexible(typ) => typ.clone(),
+            _ => {
+                let join = self.fresh_variable();
+                self.join_variables.insert(join);
+                Type::Var(join)
+            }
+        };
 
         for arm in arms {
             let matching = original_cases
@@ -1658,11 +2113,7 @@ impl<'a> Checker<'a> {
                 let typ = if top {
                     subject_type.clone()
                 } else {
-                    let typ = Type::Var(self.fresh_variable());
-                    for case in cases {
-                        self.fit_or_error(case.clone(), Some(&typ), pattern.span)?;
-                    }
-                    typ
+                    self.binder_type(cases, pattern.span)?
                 };
                 self.bind_pattern_name(name, &typ, pattern.span, environment)
             }
@@ -1689,6 +2140,34 @@ impl<'a> Checker<'a> {
                 Ok(())
             }
         }
+    }
+
+    /// The type a nested binder takes from the cases its arm can match: their
+    /// common type, or the union of the distinct case types at that position.
+    fn binder_type(&mut self, cases: &[Type], span: Span) -> Result<Type, Diagnostic> {
+        let mut distinct = Vec::<Type>::new();
+        for case in cases {
+            let case = self.unifier.normalize(case);
+            if !distinct.contains(&case) {
+                distinct.push(case);
+            }
+        }
+        let concrete = distinct
+            .iter()
+            .all(|case| self.unifier.free_variables_of(case).is_empty());
+        if distinct.len() > 1
+            && concrete
+            && !distinct.iter().all(|case| {
+                self.types_fit(case, &distinct[0]) && self.types_fit(&distinct[0], case)
+            })
+        {
+            return Ok(Type::Union(distinct));
+        }
+        let typ = Type::Var(self.fresh_variable());
+        for case in distinct {
+            self.fit_or_error(case, Some(&typ), span)?;
+        }
+        Ok(typ)
     }
 
     fn reject_tag_binder(&self, name: &str, cases: &[Type], span: Span) -> Result<(), Diagnostic> {
@@ -1722,7 +2201,7 @@ impl<'a> Checker<'a> {
         if matches!(name, "proj" | "unface") {
             return Err(Diagnostic::at(format!("`{name}` is reserved"), span));
         }
-        if self.value_definitions.contains_key(name)
+        if self.global_value_visible(name)
             || environment.contains_key(name)
             || self.local_scopes.iter().any(|scope| scope.contains(name))
         {
@@ -1825,7 +2304,7 @@ impl<'a> Checker<'a> {
         if matches!(name, "proj" | "unface") {
             return Err(Diagnostic::at(format!("`{name}` is reserved"), span));
         }
-        if self.value_definitions.contains_key(name)
+        if self.global_value_visible(name)
             || environment.contains_key(name)
             || self.local_scopes.iter().any(|scope| scope.contains(name))
         {
@@ -1888,23 +2367,20 @@ impl<'a> Checker<'a> {
                 _ => None,
             }
         });
+        let matches_tag = |fields: &[TypeField]| {
+            tag.as_ref()
+                .is_none_or(|tag| constant_value(&fields[0].typ) == Some(tag))
+        };
         match typ {
-            Type::Cell(fields)
-                if fields.len() == count
-                    && tag
-                        .as_ref()
-                        .is_none_or(|tag| constant_value(&fields[0].typ) == Some(tag)) =>
-            {
-                Some(fields.clone())
+            Type::Cell(fields) => {
+                align_cell_fields(fields, count).filter(|fields| matches_tag(fields))
             }
             Type::Named { .. } => self.expanded_cases(typ)?.iter().find_map(|case| {
                 if let Type::Cell(fields) = case
-                    && fields.len() == count
-                    && tag
-                        .as_ref()
-                        .is_none_or(|tag| constant_value(&fields[0].typ) == Some(tag))
+                    && let Some(fields) = align_cell_fields(fields, count)
+                    && matches_tag(&fields)
                 {
-                    Some(fields.clone())
+                    Some(fields)
                 } else {
                     self.expected_cell_fields(case, items)
                 }
@@ -1935,35 +2411,31 @@ impl<'a> Checker<'a> {
         names: &[String],
         span: Span,
         environment: &Environment,
-    ) -> Result<Type, Diagnostic> {
-        if names.len() == 2
-            && names.last().is_some_and(|name| name == "core")
-            && let Some(native) = NativeFunction::from_field(&names[0])
-        {
-            let scheme = crate::native::scheme(native, self.module.span.source);
-            return Ok(self.unifier.instantiate(&scheme, span));
-        }
+    ) -> Result<(Type, Vec<Step>), Diagnostic> {
         let Some(name) = names.last() else {
             return Err(Diagnostic::at("empty wing", span));
         };
-        let mut typ = self.lookup_reference(name, span, environment)?;
-        for name in &names[..names.len() - 1] {
-            typ = self.record_field(&typ, name, span)?;
-        }
-        Ok(typ)
+        let typ = self.lookup_reference(name, span, environment)?;
+        self.record_wing(&typ, &names[..names.len() - 1], span)
     }
 
+    /// Reads a wing of record fields from a value of this type. A wing reads
+    /// from its last name inward, as Hoon's: `a.b.p` is field `a` of field `b`
+    /// of `p`.
     fn record_wing(
         &mut self,
         typ: &Type,
         names: &[String],
         span: Span,
-    ) -> Result<Type, Diagnostic> {
+    ) -> Result<(Type, Vec<Step>), Diagnostic> {
         let mut typ = typ.clone();
-        for name in names {
-            typ = self.record_field(&typ, name, span)?;
+        let mut steps = Vec::new();
+        for name in names.iter().rev() {
+            let (field, mut path) = self.record_field(&typ, name, span)?;
+            typ = field;
+            steps.append(&mut path);
         }
-        Ok(typ)
+        Ok((typ, steps))
     }
 
     fn projection_fields(&self, typ: &Type) -> Option<Vec<TypeField>> {
@@ -1981,14 +2453,28 @@ impl<'a> Checker<'a> {
         }
     }
 
-    fn record_field(&mut self, typ: &Type, name: &str, span: Span) -> Result<Type, Diagnostic> {
+    /// A field's type and the steps from its record to it: the record is
+    /// right-nested, so field `i` of `n` is `i` tails and then, unless it is
+    /// the last, a head.
+    fn record_field(
+        &mut self,
+        typ: &Type,
+        name: &str,
+        span: Span,
+    ) -> Result<(Type, Vec<Step>), Diagnostic> {
         let typ = self.unifier.normalize(typ);
         match &typ {
-            Type::Cell(fields) => fields
-                .iter()
-                .find(|field| field.face.as_deref() == Some(name))
-                .map(|field| field.typ.clone())
-                .ok_or_else(|| Diagnostic::at(format!("record has no field `{name}`"), span)),
+            Type::Cell(fields) => {
+                let index = fields
+                    .iter()
+                    .position(|field| field.face.as_deref() == Some(name))
+                    .ok_or_else(|| Diagnostic::at(format!("record has no field `{name}`"), span))?;
+                let mut steps = vec![Step::Tail; index];
+                if index + 1 != fields.len() {
+                    steps.push(Step::Head);
+                }
+                Ok((fields[index].typ.clone(), steps))
+            }
             Type::Named { .. } => {
                 let cases = self
                     .expanded_cases(&typ)
@@ -2027,6 +2513,16 @@ impl<'a> Checker<'a> {
             return Ok(match binding {
                 Binding::Monomorphic(typ) => self.unifier.normalize(&typ),
                 Binding::Polymorphic(scheme) => self.unifier.instantiate(&scheme, span),
+                Binding::Group { typ, capitals } => {
+                    let mut substitutions = BTreeMap::new();
+                    for capital in capitals {
+                        let instance = self.fresh_variable();
+                        self.capital_instances.push((capital, instance, span));
+                        substitutions.insert(capital, Type::Var(instance));
+                    }
+                    let typ = self.unifier.normalize(&typ);
+                    substitute(&typ, &substitutions)
+                }
             });
         }
         if let Some(scheme) = self.values.get(name).cloned() {
@@ -2068,105 +2564,96 @@ impl<'a> Checker<'a> {
         }
     }
 
-    fn require_printable(&mut self, typ: &Type, span: Span) -> Result<(), Diagnostic> {
-        let typ = self.unifier.normalize(typ);
-        match &typ {
-            Type::Atom(_) | Type::AnyAtom | Type::Flag | Type::Void => Ok(()),
-            Type::Named { .. } => {
-                let cases = self
-                    .expanded_cases(&typ)
-                    .ok_or_else(|| Diagnostic::at("interpolation needs a known printer", span))?;
-                if cases.len() == 1 {
-                    self.require_printable(&cases[0], span)
-                } else {
-                    Err(Diagnostic::at(
-                        "interpolation needs a single atom printer",
-                        span,
-                    ))
-                }
-            }
-            _ if constant_value(&typ).is_some() => Ok(()),
-            _ => Err(Diagnostic::at(
-                format!(
-                    "interpolation needs a printable atom, found {}",
-                    TypeScheme::mono(typ)
-                ),
-                span,
-            )),
-        }
-    }
-
     fn infer_literal(
         &mut self,
         literal: &Literal,
         expected: Option<&Type>,
         span: Span,
     ) -> Result<Type, Diagnostic> {
-        if matches!(literal, Literal::Number(_))
-            && let Some(expected) = expected
-            && let Type::Var(variable) = self.unifier.resolve(expected)
-            && self.recursive_products.contains(&variable)
-        {
-            let variable = self.fresh_variable();
-            self.unifier
-                .constrain_variable(variable, ConstraintKind::Atom, span);
-            return self.fit_or_error(Type::Var(variable), Some(expected), span);
+        let invalid = match literal {
+            Literal::Ship(text) => crate::literal::ship(text).err(),
+            Literal::Date(text) => crate::literal::date(text).err(),
+            Literal::Duration(text) => crate::literal::duration(text).err(),
+            _ => None,
+        };
+        if let Some(message) = invalid {
+            return Err(Diagnostic::at(message, span));
         }
+        let resolved = expected.map(|typ| self.unifier.resolve(typ));
         let actual = match literal {
-            Literal::Number(number) => Type::Atom(Aura::new(match number.aura {
-                NumberAura::Decimal => "ud",
-                NumberAura::Hexadecimal => "ux",
-                NumberAura::Base32 => "uv",
-            })),
+            Literal::Number(number) => {
+                let aura = match number.aura {
+                    NumberAura::Decimal => "ud",
+                    NumberAura::Hexadecimal => "ux",
+                    NumberAura::Base32 => "uv",
+                };
+                if number.aura == NumberAura::Decimal {
+                    // A decimal waits for its context: it is a `@ud` unless the
+                    // context fixes an aura it fits, or its `++` is generic
+                    // over its aura.
+                    if let Some(Type::Var(variable)) = resolved {
+                        if !self.unifier.is_rigid(variable)
+                            && !self.unifier.has_atom_constraint(variable)
+                        {
+                            self.unifier
+                                .constrain_variable(variable, ConstraintKind::Atom, span);
+                        }
+                        self.pending_numbers.push(PendingNumber {
+                            variable,
+                            value: number.value.clone(),
+                            span,
+                        });
+                        return Ok(Type::Var(variable));
+                    }
+                    if let Some(expected) = &resolved {
+                        let expected = self.unifier.normalize(expected);
+                        if let Type::Atom(_) = expected
+                            && !self.types_fit(&Type::Atom(Aura::new("ud")), &expected)
+                        {
+                            return Err(number_mismatch(&number.value, &expected, span));
+                        }
+                    }
+                }
+                Type::Atom(Aura::new(aura))
+            }
             Literal::String(_) => Type::Atom(Aura::new("t")),
             Literal::Ship(_) => Type::Atom(Aura::new("p")),
             Literal::Date(_) => Type::Atom(Aura::new("da")),
             Literal::Duration(_) => Type::Atom(Aura::new("dr")),
             Literal::Knot(_) => Type::Atom(Aura::new("ta")),
             Literal::Loobean(yes) => {
-                if let Some(expected) = expected {
-                    let resolved = self.unifier.resolve(expected);
+                if let Some(resolved) = &resolved {
                     let value = BigUint::from(u8::from(!yes));
-                    if self.loobean_fits_singleton(&value, &resolved) {
-                        return Ok(resolved);
+                    if self.loobean_fits_singleton(&value, resolved) {
+                        return Ok(resolved.clone());
                     }
                 }
                 Type::Flag
             }
-            Literal::Term(term) => {
-                let actual = match term.kind {
-                    TermKind::Named => Type::Constant(term.value.clone()),
-                    TermKind::Numeric => Type::NumericTerm(term.value.clone()),
+            Literal::Term(_) | Literal::Null => {
+                let actual = match literal {
+                    Literal::Term(term) => match term.kind {
+                        TermKind::Named => Type::Constant(term.value.clone()),
+                        TermKind::Numeric => Type::NumericTerm(term.value.clone()),
+                    },
+                    _ => Type::Constant(BigUint::default()),
                 };
-                let Some(expected) = expected else {
-                    return Err(Diagnostic::at(
-                        "tag literal needs an expected type; add a `^-` cast",
-                        span,
-                    ));
+                // A tag waits for its union: its variable must become a union
+                // with a matching case, or an atom type the term fits.
+                let variable = match resolved {
+                    None => Some(self.fresh_variable()),
+                    Some(Type::Var(variable)) if !self.unifier.is_rigid(variable) => Some(variable),
+                    Some(_) => None,
                 };
-                if matches!(self.unifier.resolve(expected), Type::Var(_)) {
-                    return Err(Diagnostic::at(
-                        "tag literal needs a known union or atom type; add a `^-` cast",
+                if let Some(variable) = variable {
+                    self.pending_tags.push(PendingTag {
+                        variable,
+                        kind: PendingTagKind::Literal(literal.clone()),
                         span,
-                    ));
+                    });
+                    return Ok(Type::Var(variable));
                 }
-                return self.fit_or_error(actual, Some(expected), span);
-            }
-            Literal::Null => {
-                let actual = Type::Constant(BigUint::default());
-                let Some(expected) = expected else {
-                    return Err(Diagnostic::at(
-                        "`~` needs an expected type; add a `^-` cast",
-                        span,
-                    ));
-                };
-                if matches!(self.unifier.resolve(expected), Type::Var(_)) {
-                    return Err(Diagnostic::at(
-                        "`~` needs a known union or atom type; add a `^-` cast",
-                        span,
-                    ));
-                }
-                return self.fit_or_error(actual, Some(expected), span);
+                return self.fit_or_error(actual, expected, span);
             }
         };
         self.fit_or_error(actual, expected, span)
@@ -2197,13 +2684,57 @@ impl<'a> Checker<'a> {
         let Some(expected) = expected else {
             return Ok(actual);
         };
+        // A branch's arms join at an ancestor aura: an arm whose atom type is
+        // an ancestor of the type so far widens the branch to it.
+        if let Type::Var(join) = expected
+            && self.join_variables.contains(join)
+        {
+            let current = self.unifier.normalize(expected);
+            if !matches!(current, Type::Var(_))
+                && is_atom_type(&current)
+                && is_atom_type(&actual)
+                && !self.types_fit(&actual, &current)
+                && self.types_fit(&current, &actual)
+            {
+                self.unifier.rebind(*join, actual.clone());
+                return Ok(actual);
+            }
+        }
         let expected = self.unifier.normalize(expected);
+        // A type variable used where an atom is required gains an atom
+        // constraint; it becomes nothing more specific.
+        if let (Type::Var(variable), Type::AnyAtom) = (&actual, &expected) {
+            if !self.unifier.has_atom_constraint(*variable) {
+                self.unifier
+                    .constrain_variable(*variable, ConstraintKind::Atom, span);
+            }
+            return Ok(expected);
+        }
         if self.types_fit(&actual, &expected) {
             return Ok(expected);
         }
+        // A cell still holding unknown parts, such as a waiting tag, takes the
+        // one case of a union its shape and tags can match.
+        if matches!(actual, Type::Cell(_))
+            && let Some(cases) = self.expanded_cases(&expected)
+            && cases.len() > 1
+            && !self.unifier.free_variables_of(&actual).is_empty()
+        {
+            let candidates = cases
+                .iter()
+                .filter(|case| self.may_match_case(&actual, case))
+                .cloned()
+                .collect::<Vec<_>>();
+            if let [case] = candidates.as_slice() {
+                self.fit_or_error(actual, Some(case), span)?;
+                return Ok(expected);
+            }
+        }
+        // A variable takes the named type itself, not its expansion.
+        let variable = matches!(actual, Type::Var(_)) || matches!(expected, Type::Var(_));
         let actual_case = self.transparent_case(&actual);
         let expected_case = self.transparent_case(&expected);
-        if actual_case.is_some() || expected_case.is_some() {
+        if !variable && (actual_case.is_some() || expected_case.is_some()) {
             let expanded_actual = actual_case.unwrap_or_else(|| actual.clone());
             let expanded_expected = expected_case.unwrap_or_else(|| expected.clone());
             if self
@@ -2253,19 +2784,12 @@ impl<'a> Checker<'a> {
             (Type::Var(variable), Type::AnyAtom) if self.unifier.has_atom_constraint(*variable) => {
                 true
             }
-            (Type::Atom(aura), Type::Var(variable))
-                if self.unifier.has_atom_constraint(*variable)
-                    && (aura.0 != "f"
-                        || !self
-                            .unifier
-                            .has_constraint(*variable, ConstraintKind::ArithmeticAtom)) =>
-            {
-                true
-            }
-            (Type::Flag, Type::Var(variable))
-                if self.unifier.has_constraint(*variable, ConstraintKind::Atom) =>
-            {
-                true
+            (Type::Named { .. }, Type::AnyAtom) => {
+                self.expanded_cases(actual).is_some_and(|cases| {
+                    cases
+                        .iter()
+                        .all(|case| self.types_fit_with_visited(case, expected, visiting))
+                })
             }
             (_, Type::AnyAtom) => matches!(
                 actual,
@@ -2286,13 +2810,21 @@ impl<'a> Checker<'a> {
             (actual, Type::Flag) if constant_value(actual).is_some() => constant_value(actual)
                 .is_some_and(|value| *value == BigUint::default() || *value == BigUint::from(1u8)),
             (Type::Cell(actual), Type::Cell(expected)) => {
-                actual.len() == expected.len()
-                    && actual.iter().zip(expected).all(|(actual, expected)| {
-                        (actual.face == expected.face
-                            || actual.face.is_none()
-                            || expected.face.is_none())
-                            && self.types_fit_with_visited(&actual.typ, &expected.typ, visiting)
-                    })
+                let count = actual.len().max(expected.len());
+                match (
+                    spread_cell_fields(actual, count),
+                    spread_cell_fields(expected, count),
+                ) {
+                    (Some(actual), Some(expected)) => {
+                        actual.iter().zip(&expected).all(|(actual, expected)| {
+                            (actual.face == expected.face
+                                || actual.face.is_none()
+                                || expected.face.is_none())
+                                && self.types_fit_with_visited(&actual.typ, &expected.typ, visiting)
+                        })
+                    }
+                    _ => false,
+                }
             }
             (
                 Type::Gate {
@@ -2334,6 +2866,222 @@ impl<'a> Checker<'a> {
     fn fresh_variable(&mut self) -> TypeVar {
         self.unifier.fresh()
     }
+
+    /// Whether a type with unknown parts can still become this union case: an
+    /// unknown part matches anything, except that a waiting tag matches only
+    /// its own constant.
+    fn may_match_case(&mut self, actual: &Type, case: &Type) -> bool {
+        let actual = self.unifier.resolve(actual);
+        match (&actual, case) {
+            (Type::Var(variable), _) if !self.unifier.is_rigid(*variable) => {
+                let tags = self
+                    .pending_tags
+                    .iter()
+                    .filter_map(|pending| match &pending.kind {
+                        PendingTagKind::Literal(Literal::Term(term)) => {
+                            Some((pending.variable, term.value.clone()))
+                        }
+                        PendingTagKind::Literal(Literal::Null) => {
+                            Some((pending.variable, BigUint::default()))
+                        }
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>();
+                let mut constant = None;
+                for (pending, value) in tags {
+                    if self.unifier.resolve(&Type::Var(pending)) == actual {
+                        constant = Some(value);
+                    }
+                }
+                match constant {
+                    Some(value) => constant_value(case).is_none_or(|case| *case == value),
+                    None => true,
+                }
+            }
+            (Type::Cell(actual), Type::Cell(case)) => {
+                let count = actual.len().max(case.len());
+                match (
+                    spread_cell_fields(actual, count),
+                    spread_cell_fields(case, count),
+                ) {
+                    (Some(actual), Some(case)) => actual
+                        .iter()
+                        .zip(&case)
+                        .all(|(actual, case)| self.may_match_case(&actual.typ, &case.typ)),
+                    _ => false,
+                }
+            }
+            (_, Type::Named { .. }) => self
+                .expanded_cases(case)
+                .is_some_and(|cases| cases.iter().any(|case| self.may_match_case(&actual, case))),
+            _ => self.types_fit(&actual, case),
+        }
+    }
+
+    /// An unbound variable that is not a capital: a type still to be found.
+    fn is_flexible(&mut self, typ: &Type) -> bool {
+        matches!(self.unifier.resolve(typ), Type::Var(variable) if !self.unifier.is_rigid(variable))
+    }
+}
+
+/// The expected types of `count` items written against a cell type, as
+/// `[a b c]` is `[a [b c]]`: with fewer items than fields the last item is
+/// expected to be the rest of the cell; with more, an unfaced cell in the last
+/// position supplies them.
+fn align_cell_fields(fields: &[TypeField], count: usize) -> Option<Vec<TypeField>> {
+    if count < 2 || fields.is_empty() {
+        return None;
+    }
+    if fields.len() > count {
+        let mut aligned = fields[..count - 1].to_vec();
+        aligned.push(TypeField {
+            face: None,
+            typ: Type::Cell(fields[count - 1..].to_vec()),
+        });
+        return Some(aligned);
+    }
+    spread_cell_fields(fields, count)
+}
+
+/// Writes out the local molds a type mentions; `None` for a recursive one.
+fn expand_molds(
+    typ: &Type,
+    scope: &BTreeMap<String, ResolvedMold>,
+    visiting: &mut Vec<String>,
+) -> Option<Type> {
+    Some(match typ {
+        Type::Named {
+            module,
+            name,
+            arguments,
+        } => {
+            let arguments = arguments
+                .iter()
+                .map(|argument| expand_molds(argument, scope, visiting))
+                .collect::<Option<Vec<_>>>()?;
+            let Some(mold) = scope.get(name) else {
+                return Some(Type::Named {
+                    module: *module,
+                    name: name.clone(),
+                    arguments,
+                });
+            };
+            if visiting.contains(name) {
+                return None;
+            }
+            visiting.push(name.clone());
+            let substitutions = mold
+                .parameters
+                .iter()
+                .zip(arguments)
+                .map(|(parameter, argument)| (parameter.id, argument))
+                .collect::<BTreeMap<_, _>>();
+            let cases = mold
+                .cases
+                .iter()
+                .map(|case| expand_molds(&substitute(&case.typ, &substitutions), scope, visiting))
+                .collect::<Option<Vec<_>>>()?;
+            visiting.pop();
+            if cases.len() == 1 {
+                cases.into_iter().next().expect("one case")
+            } else {
+                Type::Union(cases)
+            }
+        }
+        Type::Cell(fields) => Type::Cell(
+            fields
+                .iter()
+                .map(|field| {
+                    Some(TypeField {
+                        face: field.face.clone(),
+                        typ: expand_molds(&field.typ, scope, visiting)?,
+                    })
+                })
+                .collect::<Option<Vec<_>>>()?,
+        ),
+        Type::Gate { sample, product } => Type::Gate {
+            sample: Box::new(expand_molds(sample, scope, visiting)?),
+            product: Box::new(expand_molds(product, scope, visiting)?),
+        },
+        Type::Union(cases) => Type::Union(
+            cases
+                .iter()
+                .map(|case| expand_molds(case, scope, visiting))
+                .collect::<Option<Vec<_>>>()?,
+        ),
+        _ => typ.clone(),
+    })
+}
+
+/// Hoon's decimal spelling, with dots between groups of three digits.
+fn decimal_text(value: &BigUint) -> String {
+    let digits = value.to_str_radix(10);
+    let mut text = String::new();
+    for (index, digit) in digits.chars().enumerate() {
+        if index != 0 && (digits.len() - index).is_multiple_of(3) {
+            text.push('.');
+        }
+        text.push(digit);
+    }
+    text
+}
+
+fn number_mismatch(value: &BigUint, expected: &Type, span: Span) -> Diagnostic {
+    let number = decimal_text(value);
+    let Type::Atom(aura) = expected else {
+        return Diagnostic::at(
+            format!(
+                "type mismatch: expected {}, found @ud",
+                TypeScheme::mono(expected.clone())
+            ),
+            span,
+        );
+    };
+    let hint = match aura.0.as_str() {
+        "dr" => format!("; write ~s{number}"),
+        "ux" => format!("; write 0x{}", value.to_str_radix(16)),
+        "t" | "ta" | "tas" => format!("; write \"{number}\""),
+        _ => String::new(),
+    };
+    Diagnostic::at(
+        format!(
+            "type mismatch: `{number}` is a @ud, not a @{}{hint}",
+            aura.0
+        ),
+        span,
+    )
+}
+
+fn interpolation_error(typ: &Type, span: Span) -> Diagnostic {
+    match typ {
+        Type::Var(_) => Diagnostic::at(
+            "interpolation needs an aura to print this atom; its `++` is generic over it, so add a `^-` naming the aura",
+            span,
+        ),
+        _ => Diagnostic::at(
+            format!(
+                "interpolation needs a printable atom, found {}",
+                TypeScheme::mono(typ.clone())
+            ),
+            span,
+        ),
+    }
+}
+
+fn pending_tag_text(kind: &PendingTagKind) -> String {
+    let constant = |value: &BigUint| TypeScheme::mono(Type::Constant(value.clone())).to_string();
+    match kind {
+        PendingTagKind::Literal(Literal::Term(term)) => match term.kind {
+            TermKind::Named => constant(&term.value),
+            TermKind::Numeric => format!("%{}", decimal_text(&term.value)),
+        },
+        PendingTagKind::Literal(_) => "~".to_string(),
+        PendingTagKind::Constructor { tag, .. } => format!("|={}", constant(tag)),
+    }
+}
+
+fn is_atom_type(typ: &Type) -> bool {
+    matches!(typ, Type::Atom(_) | Type::AnyAtom | Type::Noun)
 }
 
 fn duplicate_name(name: &str, span: Span, previous: Span) -> Diagnostic {
@@ -2387,6 +3135,12 @@ fn substitute(typ: &Type, substitutions: &BTreeMap<TypeVar, Type>) -> Type {
                 .map(|argument| substitute(argument, substitutions))
                 .collect(),
         },
+        Type::Union(cases) => Type::Union(
+            cases
+                .iter()
+                .map(|case| substitute(case, substitutions))
+                .collect(),
+        ),
         _ => typ.clone(),
     }
 }
@@ -2469,29 +3223,15 @@ fn type_mentions_molds(typ: &Type, names: &BTreeSet<String>) -> bool {
     }
 }
 
-fn find_hole(typ: &Type, holes: &BTreeMap<TypeVar, Span>) -> Option<TypeVar> {
-    match typ {
-        Type::Var(variable) if holes.contains_key(variable) => Some(*variable),
-        Type::Var(_) => None,
-        Type::Cell(fields) => fields.iter().find_map(|field| find_hole(&field.typ, holes)),
-        Type::Gate { sample, product } => {
-            find_hole(sample, holes).or_else(|| find_hole(product, holes))
-        }
-        Type::Named { arguments, .. } => arguments
-            .iter()
-            .find_map(|argument| find_hole(argument, holes)),
-        _ => None,
-    }
-}
-
-fn value_definition<'a>(definitions: &'a [Definition], name: &str) -> &'a Definition {
+fn value_definition<'a>(definitions: &[&'a Definition], name: &str) -> &'a Definition {
     definitions
         .iter()
+        .copied()
         .find(|definition| definition.name == name)
         .expect("dependency groups contain only value definitions")
 }
 
-fn value_dependencies(definitions: &[Definition]) -> BTreeMap<String, BTreeSet<String>> {
+fn value_dependencies(definitions: &[&Definition]) -> BTreeMap<String, BTreeSet<String>> {
     let names = definitions
         .iter()
         .map(|definition| definition.name.clone())
@@ -2589,7 +3329,11 @@ fn collect_dependencies(
         ExprKind::Pair { value, .. } | ExprKind::Unit(value) => {
             collect_dependencies(value, names, dependencies);
         }
-        ExprKind::Literal(_) | ExprKind::Path(_) | ExprKind::Constructor(_) | ExprKind::Crash => {}
+        ExprKind::Literal(_)
+        | ExprKind::Path(_)
+        | ExprKind::Constructor(_)
+        | ExprKind::Crash
+        | ExprKind::Native(_) => {}
     }
 }
 
@@ -2659,64 +3403,6 @@ impl Tarjan<'_> {
             self.groups.push(group);
         }
     }
-}
-
-pub(crate) fn resolve_mold_for_evaluation(
-    module: &Module,
-    mold: &Mold,
-    local_scopes: &[BTreeMap<String, MoldDefinition>],
-) -> Result<Type, Diagnostic> {
-    let mut checker = evaluation_checker(module, local_scopes)?;
-    let mut variables = BTreeMap::new();
-    checker.resolve_mold(mold, &mut variables, true, true)
-}
-
-pub(crate) fn resolved_mold_for_evaluation(
-    module: &Module,
-    name: &str,
-    local_scopes: &[BTreeMap<String, MoldDefinition>],
-) -> Result<ResolvedMold, Diagnostic> {
-    let checker = evaluation_checker(module, local_scopes)?;
-    checker
-        .resolved_mold(name)
-        .cloned()
-        .ok_or_else(|| Diagnostic::new(format!("unknown mold `{name}` during evaluation")))
-}
-
-fn evaluation_checker<'a>(
-    module: &'a Module,
-    local_scopes: &[BTreeMap<String, MoldDefinition>],
-) -> Result<Checker<'a>, Diagnostic> {
-    let mut checker = Checker::new(module);
-    checker.collect_scope()?;
-    let mold_names = checker
-        .mold_definitions
-        .keys()
-        .map(|name| (*name).to_string())
-        .collect::<Vec<_>>();
-    for name in mold_names {
-        let definition = checker.mold_definitions[name.as_str()].0.clone();
-        let span = checker.mold_definitions[name.as_str()].1;
-        let resolved = checker.resolve_mold_definition(&name, &definition, span)?;
-        checker.resolved_molds.insert(name, resolved);
-    }
-    checker.local_mold_definitions = local_scopes
-        .iter()
-        .map(|scope| {
-            scope
-                .iter()
-                .map(|(name, definition)| (name.clone(), (definition.clone(), module.span)))
-                .collect()
-        })
-        .collect();
-    checker.local_resolved_molds = local_scopes.iter().map(|_| BTreeMap::new()).collect();
-    for (index, scope) in local_scopes.iter().enumerate() {
-        for (name, definition) in scope {
-            let resolved = checker.resolve_mold_definition(name, definition, module.span)?;
-            checker.local_resolved_molds[index].insert(name.clone(), resolved);
-        }
-    }
-    Ok(checker)
 }
 
 #[cfg(test)]
@@ -2810,7 +3496,7 @@ mod tests {
     }
 
     #[test]
-    fn constrained_variables_fit_without_monomorphizing() {
+    fn capitals_take_no_specific_type_while_variables_bind_atoms() {
         let module = Module {
             imports: Vec::new(),
             definitions: Vec::new(),
@@ -2823,37 +3509,51 @@ mod tests {
             ConstraintKind::ArithmeticAtom,
             Span::default(),
         );
+        // A typed `@ud` cannot make a capital more specific; only a decimal
+        // literal takes a generic aura.
+        let error = checker
+            .fit_or_error(
+                Type::Atom(Aura::new("ud")),
+                Some(&Type::Var(arithmetic)),
+                Span::default(),
+            )
+            .unwrap_err();
+        assert_eq!(error.message, "capital `A` cannot be fixed to @ud");
         assert_eq!(
             checker
-                .fit_or_error(
-                    Type::Atom(Aura::new("ud")),
-                    Some(&Type::Var(arithmetic)),
-                    Span::default(),
-                )
-                .unwrap(),
-            Type::Var(arithmetic)
-        );
-        assert_eq!(
-            checker
-                .fit_or_error(Type::Var(arithmetic), Some(&Type::AnyAtom), Span::default(),)
+                .fit_or_error(Type::Var(arithmetic), Some(&Type::AnyAtom), Span::default())
                 .unwrap(),
             Type::AnyAtom
         );
-        assert!(
-            checker
-                .fit_or_error(Type::Flag, Some(&Type::Var(arithmetic)), Span::default(),)
-                .is_err()
-        );
+        let error = checker
+            .fit_or_error(Type::Flag, Some(&Type::Var(arithmetic)), Span::default())
+            .unwrap_err();
+        assert_eq!(error.message, "capital `A` cannot be fixed to ?");
 
-        let comparable = checker.unifier.fresh_rigid("B", Span::default());
+        // A capital used where an atom is expected gains the atom constraint.
+        let plain = checker.unifier.fresh_rigid("B", Span::default());
         checker
-            .unifier
-            .constrain_variable(comparable, ConstraintKind::Atom, Span::default());
+            .fit_or_error(Type::Var(plain), Some(&Type::AnyAtom), Span::default())
+            .unwrap();
+        assert!(checker.unifier.has_constraint(plain, ConstraintKind::Atom));
+
+        // A flexible atom variable binds to the aura that fits it.
+        let flexible = checker.unifier.fresh();
+        checker.unifier.constrain_variable(
+            flexible,
+            ConstraintKind::ArithmeticAtom,
+            Span::default(),
+        );
+        checker
+            .fit_or_error(
+                Type::Atom(Aura::new("dr")),
+                Some(&Type::Var(flexible)),
+                Span::default(),
+            )
+            .unwrap();
         assert_eq!(
-            checker
-                .fit_or_error(Type::Flag, Some(&Type::Var(comparable)), Span::default(),)
-                .unwrap(),
-            Type::Var(comparable)
+            checker.unifier.resolve(&Type::Var(flexible)),
+            Type::Atom(Aura::new("dr"))
         );
     }
 }

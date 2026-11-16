@@ -77,7 +77,11 @@ fn resolves_tags_and_records_from_cast_context() {
     assert_eq!(checked.values["point"].to_string(), "[x=@t y=@ud]");
 
     let error = check_source("++ message %add\n").unwrap_err();
-    assert!(error.message.contains("needs an expected type"));
+    assert_eq!(error.message, "nothing fixes the union of %add; add a `^-`");
+    assert_eq!(
+        error.span.map(|span| (span.start, span.end)),
+        Some((11, 15))
+    );
 
     let error = check_source("+$ msg %add\n++ message ^- msg %stop\n").unwrap_err();
     assert!(error.message.contains("type mismatch"));
@@ -274,7 +278,7 @@ fn rejects_incompatible_patterns_and_branch_results() {
 #[test]
 fn checks_record_wings_and_changes() {
     let checked = check_source(
-        "++ city |= p=[name=@t address=[city=@t zip=@ud]] address.city.p\n++ relocate |= p=[name=@t address=[city=@t zip=@ud]] p(address.city=\"new\")\n++ renamed |= p=[name=@t age=@ud] p(name=\"new\" age=2)\n++ result (city [name=\"n\" address=[city=\"x\" zip=1]])\n",
+        "++ city |= p=[name=@t address=[city=@t zip=@ud]] city.address.p\n++ relocate |= p=[name=@t address=[city=@t zip=@ud]] p(city.address=\"new\")\n++ renamed |= p=[name=@t age=@ud] p(name=\"new\" age=2)\n++ result (city [name=\"n\" address=[city=\"x\" zip=1]])\n",
     )
     .unwrap();
     assert_eq!(
@@ -291,10 +295,20 @@ fn checks_record_wings_and_changes() {
         "++ bad |= p=[x=@ud y=@ud] p(x=1 x=2)\n",
         "++ bad |= p=[name=@t age=@ud] p(name=1)\n",
         "++ bad |= p=[name=@t age=@ud] missing.p\n",
-        "++ bad |= p=[address=[city=@t zip=@ud]] p(address=[city=\"x\" zip=1] address.city=\"y\")\n",
+        "++ bad |= p=[address=[city=@t zip=@ud]] p(address=[city=\"x\" zip=1] city.address=\"y\")\n",
     ] {
         assert!(check_source(source).is_err(), "{source}");
     }
+
+    let error = check_source(
+        "++ bad |= p=[address=[city=@t zip=@ud]] p(address=[city=\"x\" zip=1] city.address=\"y\")\n",
+    )
+    .unwrap_err();
+    assert_eq!(
+        error.message,
+        "change fields `address` and `city.address` overlap"
+    );
+    assert_eq!(error.notes[0].message, "first field");
 }
 
 #[test]
@@ -348,8 +362,17 @@ fn checks_local_molds_and_restores_lexical_scopes() {
     assert_eq!(checked.values["first"].to_string(), "@ud");
     assert_eq!(checked.values["second"].to_string(), "@t");
 
-    let error = check_source("++ bad\n  +$ local @ud\n  ++ x ^- local 1\n  x\n").unwrap_err();
-    assert!(error.message.contains("cannot escape"));
+    // A local mold is written out where the body's type leaves its scope; a
+    // recursive one cannot be.
+    let checked = check_source("++ bad\n  +$ local @ud\n  ++ x ^- local 1\n  x\n").unwrap();
+    assert_eq!(checked.values["bad"].to_string(), "@ud");
+    let error =
+        check_source("++ bad\n  +$ chain\n    ~\n    [@ud chain]\n  ++ x ^- chain ~\n  x\n")
+            .unwrap_err();
+    assert_eq!(
+        error.message,
+        "a recursive local mold cannot escape its lexical scope in an inferred type"
+    );
 
     let error = check_source("++ bad\n  +$ overlap\n    @t\n    @ud\n  1\n").unwrap_err();
     assert!(error.message.contains("overlapping cases"));
@@ -374,9 +397,14 @@ fn selects_generic_union_cases_by_leading_tag() {
     assert_eq!(checked.values["pure"].to_string(), "$-(M (ask M))");
 }
 
+fn check_with_primitives(source: &str) -> Result<jibb::check::CheckedModule, jibb::Diagnostic> {
+    let source = format!("/= core /lib/jibb/primitives\n{source}");
+    jibb::loader::check_source(&source, std::path::Path::new("primitives.jibb"), &[], None)
+}
+
 #[test]
 fn native_primitives_carry_static_constraints() {
-    let checked = check_source(
+    let checked = check_with_primitives(
         "++ inc |= n=A (raw-add.core n 1)\n++ compare |= [a=A b=A] (raw-gth.core a b)\n++ same-atom |= [a=A b=A] (raw-eq.core a b)\n",
     )
     .unwrap();
@@ -393,9 +421,9 @@ fn native_primitives_carry_static_constraints() {
         "$-([a=A b=A] ?) where A contains no gates"
     );
 
-    let error = check_source("++ bad |= x=? (raw-add.core x 1)\n").unwrap_err();
+    let error = check_with_primitives("++ bad |= x=? (raw-add.core x 1)\n").unwrap_err();
     assert!(error.message.contains("type mismatch"), "{error}");
-    let error = check_source("++ bad (raw-eq.core |=(x x) |=(y y))\n").unwrap_err();
+    let error = check_with_primitives("++ bad (raw-eq.core |=(x x) |=(y y))\n").unwrap_err();
     assert!(error.message.contains("containing no gates"), "{error}");
 }
 

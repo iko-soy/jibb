@@ -1,7 +1,10 @@
 use crate::{
     Diagnostic,
     ast::Span,
-    types::{Constraint, ConstraintKind, QuantifiedVariable, Type, TypeField, TypeScheme, TypeVar},
+    types::{
+        Constraint, ConstraintKind, QuantifiedVariable, Type, TypeField, TypeScheme, TypeVar,
+        spread_cell_fields,
+    },
 };
 use num_bigint::BigUint;
 use std::collections::{BTreeMap, BTreeSet};
@@ -81,6 +84,9 @@ impl Unifier {
                     .map(|argument| self.normalize(argument))
                     .collect(),
             },
+            Type::Union(cases) => {
+                Type::Union(cases.iter().map(|case| self.normalize(case)).collect())
+            }
             typ => typ,
         }
     }
@@ -96,6 +102,7 @@ impl Unifier {
         if left == right {
             return Ok(left);
         }
+        let (left_type, right_type) = (left.clone(), right.clone());
         if let (Some(left_value), Some(right_value)) =
             (constant_value(&left), constant_value(&right))
             && left_value == right_value
@@ -125,46 +132,21 @@ impl Unifier {
                     }
                 }
             }
-            (Type::Var(variable), _) if self.rigid.contains_key(variable) => {
+            // A capital stands for any type its `++` is used at, so a body can
+            // make it nothing more specific.
+            (Type::Var(variable), other) | (other, Type::Var(variable))
+                if self.rigid.contains_key(variable) =>
+            {
                 let rigid = self.rigid[variable].clone();
                 Err(Diagnostic::at(
                     format!(
-                        "explicit type variable `{}` cannot become {}",
+                        "capital `{}` cannot be fixed to {}",
                         rigid.name,
-                        TypeScheme::mono(right.clone())
+                        TypeScheme::mono(other.clone())
                     ),
                     span,
                 )
-                .with_note("explicit type variable", rigid.span))
-            }
-            (_, Type::Var(variable)) if self.rigid.contains_key(variable) => {
-                let loobean = matches!(left, Type::Flag | Type::LoobeanConstant(_));
-                if matches!(
-                    left,
-                    Type::Atom(_)
-                        | Type::AnyAtom
-                        | Type::Constant(_)
-                        | Type::NumericTerm(_)
-                        | Type::LoobeanConstant(_)
-                        | Type::Flag
-                ) && (!loobean
-                    || !self.has_constraint(*variable, ConstraintKind::ArithmeticAtom))
-                {
-                    if !self.has_atom_constraint(*variable) {
-                        self.constrain_variable(*variable, ConstraintKind::Atom, span);
-                    }
-                    return Ok(Type::Var(*variable));
-                }
-                let rigid = self.rigid[variable].clone();
-                Err(Diagnostic::at(
-                    format!(
-                        "explicit type variable `{}` cannot become {}",
-                        rigid.name,
-                        TypeScheme::mono(left.clone())
-                    ),
-                    span,
-                )
-                .with_note("explicit type variable", rigid.span))
+                .with_note("capital", rigid.span))
             }
             (Type::Var(variable), _) => {
                 self.bind(*variable, right.clone(), span)?;
@@ -179,9 +161,18 @@ impl Unifier {
             (Type::Noun, Type::Noun) => Ok(Type::Noun),
             (Type::Void, Type::Void) => Ok(Type::Void),
             (Type::Flag, Type::Flag) => Ok(Type::Flag),
-            (Type::Cell(left), Type::Cell(right)) if left.len() == right.len() => {
+            (Type::Cell(left), Type::Cell(right)) => {
+                // `[a [b c]]` is `[a b c]`: spread an unfaced cell in the shorter
+                // one's last position.
+                let count = left.len().max(right.len());
+                let (Some(left), Some(right)) = (
+                    spread_cell_fields(left, count),
+                    spread_cell_fields(right, count),
+                ) else {
+                    return Err(type_mismatch(left_type, right_type, span));
+                };
                 let mut fields = Vec::new();
-                for (left, right) in left.iter().zip(right) {
+                for (left, right) in left.iter().zip(&right) {
                     let face = match (&left.face, &right.face) {
                         (Some(left), Some(right)) if left != right => {
                             return Err(Diagnostic::at(
@@ -239,6 +230,38 @@ impl Unifier {
             }
             (Type::Path(left), Type::Path(right)) if left == right => Ok(Type::Path(left.clone())),
             _ => Err(type_mismatch(left, right, span)),
+        }
+    }
+
+    /// Points a branch's join variable at a wider type. Only the branch
+    /// refers to its join variable, so nothing else sees the earlier type.
+    pub(crate) fn rebind(&mut self, variable: TypeVar, typ: Type) {
+        self.bindings.insert(variable, typ);
+    }
+
+    pub(crate) fn is_rigid(&self, variable: TypeVar) -> bool {
+        self.rigid.contains_key(&variable)
+    }
+
+    pub(crate) fn rigid_name(&self, variable: TypeVar) -> String {
+        self.rigid
+            .get(&variable)
+            .map_or_else(|| "?".to_string(), |rigid| rigid.name.clone())
+    }
+
+    pub(crate) fn rigid_span(&self, variable: TypeVar) -> Span {
+        self.rigid
+            .get(&variable)
+            .map_or_else(Span::default, |rigid| rigid.span)
+    }
+
+    /// A scheme with its free variables resolved: a variable left open by a
+    /// waiting tag may be fixed by a later definition.
+    pub(crate) fn normalize_scheme(&mut self, scheme: &TypeScheme) -> TypeScheme {
+        TypeScheme {
+            variables: scheme.variables.clone(),
+            constraints: scheme.constraints.clone(),
+            typ: self.normalize(&scheme.typ),
         }
     }
 
@@ -389,7 +412,10 @@ impl Unifier {
             Type::Gate { sample, product } => {
                 self.occurs(variable, &sample) || self.occurs(variable, &product)
             }
-            Type::Named { arguments, .. } => arguments
+            Type::Named {
+                arguments: cases, ..
+            }
+            | Type::Union(cases) => cases
                 .into_iter()
                 .any(|argument| self.occurs(variable, &argument)),
             _ => false,
@@ -410,8 +436,11 @@ impl Unifier {
                 self.free_variables(&sample, variables);
                 self.free_variables(&product, variables);
             }
-            Type::Named { arguments, .. } => {
-                for argument in arguments {
+            Type::Named {
+                arguments: cases, ..
+            }
+            | Type::Union(cases) => {
+                for argument in cases {
                     self.free_variables(&argument, variables);
                 }
             }
@@ -483,6 +512,12 @@ fn substitute(typ: &Type, substitutions: &BTreeMap<TypeVar, Type>) -> Type {
                 .map(|argument| substitute(argument, substitutions))
                 .collect(),
         },
+        Type::Union(cases) => Type::Union(
+            cases
+                .iter()
+                .map(|case| substitute(case, substitutions))
+                .collect(),
+        ),
         _ => typ.clone(),
     }
 }

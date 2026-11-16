@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+};
 
 use tree_sitter::Node;
 
@@ -6,6 +9,10 @@ use crate::parse;
 
 const WIDTH: usize = 80;
 const INDENT: usize = 2;
+/// The deepest indentation a broken layout may reach. The layout scanner takes
+/// at most 509 indentation levels, so a form starting deeper stays on one line,
+/// as an unbreakable form may overflow.
+const MAX_LAYOUT_INDENT: usize = 500;
 
 type FResult<T> = Result<T, String>;
 
@@ -150,6 +157,8 @@ enum PathPart<'tree> {
 
 struct ValueItem<'tree> {
     node: Node<'tree>,
+    /// Where the item starts: its face, if it has one, else `node`.
+    first: Node<'tree>,
     face: Option<String>,
     value: Expr<'tree>,
 }
@@ -191,7 +200,7 @@ enum PatternKind<'tree> {
     Cell(Vec<Pattern<'tree>>),
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Position {
     Body,
     Operand,
@@ -540,6 +549,7 @@ impl<'a> Builder<'a> {
             if child.kind() == "edit" {
                 items.push(ValueItem {
                     node: child,
+                    first: child,
                     face: Some(self.text(required_field(child, "field")?)),
                     value: self.expr(required_field(child, "value")?)?,
                 });
@@ -551,6 +561,7 @@ impl<'a> Builder<'a> {
             {
                 items.push(ValueItem {
                     node: children[index + 1],
+                    first: child,
                     face: Some(self.text(child)),
                     value: self.expr(children[index + 1])?,
                 });
@@ -559,6 +570,7 @@ impl<'a> Builder<'a> {
             }
             items.push(ValueItem {
                 node: child,
+                first: child,
                 face: None,
                 value: self.expr(child)?,
             });
@@ -739,6 +751,8 @@ struct Comment {
 
 struct SequenceItem<'tree> {
     node: Node<'tree>,
+    /// Where the item starts in the source, when before `node`, as a face.
+    first: Option<Node<'tree>>,
     doc: Doc,
 }
 
@@ -746,15 +760,137 @@ struct Renderer<'a> {
     source: &'a str,
     lines: Vec<&'a str>,
     handled_comments: HashSet<usize>,
+    /// The byte offset where each row starts.
+    line_starts: Vec<usize>,
+    /// The number of rendered blank rows before each row. A blank row between
+    /// an open group and its head is dropped, since the head joins the `(`,
+    /// so it neither counts as trivia nor renders.
+    blank_prefix: Vec<usize>,
+    /// Nodes that contain a comment.
+    comment_holders: HashSet<usize>,
+    /// Every comment, by its `::`.
+    comments: Vec<Comment>,
+    flat_cache: RefCell<HashMap<(usize, Position), Option<String>>>,
+    syntax_end_cache: RefCell<HashMap<usize, usize>>,
 }
 
 impl<'a> Renderer<'a> {
-    fn new(source: &'a str) -> Self {
-        Self {
+    fn new(source: &'a str, root: Node<'a>) -> Self {
+        let lines = source.split('\n').collect::<Vec<_>>();
+        let mut line_starts = vec![0];
+        line_starts.extend(
+            source
+                .bytes()
+                .enumerate()
+                .filter(|(_, byte)| *byte == b'\n')
+                .map(|(index, _)| index + 1),
+        );
+        let mut renderer = Self {
             source,
-            lines: source.split('\n').collect(),
+            lines,
             handled_comments: HashSet::new(),
+            line_starts,
+            blank_prefix: Vec::new(),
+            comment_holders: HashSet::new(),
+            comments: Vec::new(),
+            flat_cache: RefCell::new(HashMap::new()),
+            syntax_end_cache: RefCell::new(HashMap::new()),
+        };
+        let mut dropped = HashSet::new();
+        renderer.survey(root, &mut dropped);
+        let mut count = 0;
+        renderer.blank_prefix = Vec::with_capacity(renderer.lines.len() + 1);
+        for (row, line) in renderer.lines.iter().enumerate() {
+            renderer.blank_prefix.push(count);
+            if line.trim().is_empty() && !dropped.contains(&row) {
+                count += 1;
+            }
         }
+        renderer.blank_prefix.push(count);
+        renderer
+    }
+
+    /// One pass over the tree, without recursion: which nodes hold comments,
+    /// every comment, and the blank rows open groups drop before their heads.
+    fn survey(&mut self, root: Node<'a>, dropped: &mut HashSet<usize>) {
+        let mut cursor = root.walk();
+        let mut stack = vec![(root.id(), is_comment(root))];
+        self.survey_node(root, dropped);
+        loop {
+            if cursor.goto_first_child() {
+                let node = cursor.node();
+                self.survey_node(node, dropped);
+                stack.push((node.id(), is_comment(node)));
+                continue;
+            }
+            loop {
+                let (id, holds) = stack.pop().expect("survey stack has the current node");
+                if holds {
+                    self.comment_holders.insert(id);
+                    if let Some(parent) = stack.last_mut() {
+                        parent.1 = true;
+                    }
+                }
+                if cursor.goto_next_sibling() {
+                    let node = cursor.node();
+                    self.survey_node(node, dropped);
+                    stack.push((node.id(), is_comment(node)));
+                    break;
+                }
+                if !cursor.goto_parent() {
+                    self.comments.sort_by_key(|comment| comment.anchor);
+                    return;
+                }
+            }
+        }
+    }
+
+    fn survey_node(&mut self, node: Node<'a>, dropped: &mut HashSet<usize>) {
+        if is_comment(node) {
+            if let Some(comment) = self.comment(node) {
+                self.comments.push(comment);
+            }
+            return;
+        }
+        if matches!(
+            node.kind(),
+            "group" | "open_group" | "open_rune_group" | "mold_apply" | "open_mold_apply"
+        ) && let Some(head) = syntax_children(node).first()
+        {
+            dropped.extend(node.start_position().row + 1..head.start_position().row);
+        }
+    }
+
+    fn comment(&self, node: Node<'a>) -> Option<Comment> {
+        let text = &self.source[node.byte_range()];
+        let relative = text.find("::")?;
+        let anchor = node.start_byte() + relative;
+        let row = node.end_position().row;
+        let line = self.lines.get(row).copied().unwrap_or("");
+        let column = anchor - self.line_starts[self.row_of(anchor)];
+        let standalone = line[..column.min(line.len())].trim().is_empty();
+        Some(Comment {
+            id: node.id(),
+            anchor,
+            row,
+            column,
+            text: self.source[anchor..node.end_byte()].trim_end().to_string(),
+            standalone,
+        })
+    }
+
+    fn row_of(&self, byte: usize) -> usize {
+        self.line_starts.partition_point(|start| *start <= byte) - 1
+    }
+
+    /// Whether a rendered blank row lies strictly between two rows.
+    fn blank_rows_between(&self, previous: usize, next: usize) -> bool {
+        if next <= previous + 1 {
+            return false;
+        }
+        let end = next.min(self.lines.len());
+        let start = (previous + 1).min(end);
+        self.blank_prefix[end] > self.blank_prefix[start]
     }
 
     fn module(&mut self, module: &Module<'a>) -> FResult<Doc> {
@@ -766,7 +902,11 @@ impl<'a> Renderer<'a> {
                 Entry::Import(import) => self.import(import)?,
                 Entry::Definition(definition) => self.definition(definition, 0)?,
             };
-            items.push(SequenceItem { node, doc });
+            items.push(SequenceItem {
+                node,
+                first: None,
+                doc,
+            });
         }
         let doc = self.sequence(module.node, None, items, 0, 0, self.source.len())?;
         if let Some(comment) = comments.iter().find(|comment| !self.handled(comment)) {
@@ -830,6 +970,7 @@ impl<'a> Renderer<'a> {
                             let header = Doc::line(indent, prefix);
                             let items = vec![SequenceItem {
                                 node: mold.node,
+                                first: None,
                                 doc: self.mold_doc(mold, indent + INDENT, indent + INDENT)?,
                             }];
                             self.sequence(
@@ -845,6 +986,7 @@ impl<'a> Renderer<'a> {
                         let header = Doc::line(indent, prefix);
                         let items = vec![SequenceItem {
                             node: mold.node,
+                            first: None,
                             doc: self.mold_doc(mold, indent + INDENT, indent + INDENT)?,
                         }];
                         self.sequence(
@@ -862,6 +1004,7 @@ impl<'a> Renderer<'a> {
                     for mold in molds {
                         items.push(SequenceItem {
                             node: mold.node,
+                            first: None,
                             doc: self.mold_doc(mold, indent + INDENT, indent + INDENT)?,
                         });
                     }
@@ -899,14 +1042,51 @@ impl<'a> Renderer<'a> {
         }
 
         if simple {
-            match &body.last.kind {
-                ExprKind::Gate {
+            // Redundant grouping goes, so a second pass sees the same layout.
+            let mut last = body.last.as_ref();
+            loop {
+                match &last.kind {
+                    ExprKind::Call(values) if values.len() == 1 => last = &values[0],
+                    ExprKind::Group(value) => last = value,
+                    _ => break,
+                }
+            }
+            if let ExprKind::Gate {
+                sample,
+                body: gate_body,
+            } = &last.kind
+                && let Some(sample) = self.flat_mold(sample)
+            {
+                let header = Doc::line(start, format!("{prefix}  |=  {sample}"));
+                return self.body_doc(gate_body, indent + INDENT, Some(header));
+            }
+            // A wide gate that cannot stay on one line becomes the tall gate it
+            // formats as.
+            match &last.kind {
+                ExprKind::WideGate {
                     sample,
                     body: gate_body,
                 } => {
                     if let Some(sample) = self.flat_mold(sample) {
                         let header = Doc::line(start, format!("{prefix}  |=  {sample}"));
-                        return self.body_doc(gate_body, indent + INDENT, Some(header));
+                        let value = self.expr_doc(
+                            gate_body,
+                            indent + INDENT,
+                            indent + INDENT,
+                            Position::Body,
+                        )?;
+                        return self.sequence(
+                            last.node,
+                            Some(header),
+                            vec![SequenceItem {
+                                node: gate_body.node,
+                                first: None,
+                                doc: value,
+                            }],
+                            indent + INDENT,
+                            0,
+                            self.source.len(),
+                        );
                     }
                 }
                 ExprKind::Cast {
@@ -937,11 +1117,13 @@ impl<'a> Renderer<'a> {
         for definition in &body.definitions {
             items.push(SequenceItem {
                 node: definition.node,
+                first: None,
                 doc: self.definition(definition, indent)?,
             });
         }
         items.push(SequenceItem {
             node: body.last.node,
+            first: None,
             doc: self.expr_doc(&body.last, indent, indent, Position::Body)?,
         });
         self.sequence(body.owner, header, items, indent, 0, self.source.len())
@@ -956,7 +1138,7 @@ impl<'a> Renderer<'a> {
     ) -> FResult<Doc> {
         let flat = self.flat_expr(expr, position);
         let mut doc = if let Some(flat) = flat.as_ref() {
-            if start + width(flat) <= WIDTH {
+            if start + width(flat) <= WIDTH || indent >= MAX_LAYOUT_INDENT {
                 Doc::line(start, flat)
             } else {
                 self.break_expr(expr, indent, start, position)?
@@ -978,11 +1160,36 @@ impl<'a> Renderer<'a> {
         position: Position,
     ) -> FResult<Doc> {
         match &expr.kind {
-            ExprKind::Atom(_)
-            | ExprKind::String(_)
-            | ExprKind::ApplicationPath(_)
-            | ExprKind::Pair { .. }
-            | ExprKind::Unit(_) => {
+            ExprKind::ApplicationPath(parts) => {
+                if let Some(flat) = self.flat_expr(expr, position) {
+                    return Ok(Doc::line(start, flat));
+                }
+                // Only the last `(…)` segment can continue below, by leaving a
+                // bracket open at the end of the line; its `)` closes with it.
+                let last = parts
+                    .iter()
+                    .rposition(|part| matches!(part, PathPart::Expr(_)))
+                    .ok_or_else(|| "formatter: cannot break application_path".to_string())?;
+                let mut prefix = String::new();
+                for part in &parts[..last] {
+                    match part {
+                        PathPart::Text(text) => prefix.push_str(text),
+                        PathPart::Expr(value) => {
+                            prefix.push_str(&self.flat_expr(value, Position::Body).ok_or_else(
+                                || "formatter: cannot break application_path".to_string(),
+                            )?)
+                        }
+                    }
+                }
+                let PathPart::Expr(value) = &parts[last] else {
+                    unreachable!("the last expression part")
+                };
+                let doc = self
+                    .open_last(value, indent, start + width(&prefix))?
+                    .ok_or_else(|| "formatter: cannot break application_path".to_string())?;
+                Ok(prefixed(doc, start, &prefix))
+            }
+            ExprKind::Atom(_) | ExprKind::String(_) | ExprKind::Pair { .. } | ExprKind::Unit(_) => {
                 let flat = self
                     .flat_expr(expr, position)
                     .ok_or_else(|| format!("formatter: cannot break {}", expr.node.kind()))?;
@@ -1016,6 +1223,7 @@ impl<'a> Renderer<'a> {
                 for value in &values[1..] {
                     items.push(SequenceItem {
                         node: value.node,
+                        first: None,
                         doc: self.expr_doc(
                             value,
                             indent + INDENT,
@@ -1039,6 +1247,7 @@ impl<'a> Renderer<'a> {
                 for value in values {
                     items.push(SequenceItem {
                         node: value.node,
+                        first: None,
                         doc: self.expr_doc(
                             value,
                             indent + INDENT,
@@ -1140,6 +1349,7 @@ impl<'a> Renderer<'a> {
                 for arm in arms {
                     items.push(SequenceItem {
                         node: arm.node,
+                        first: None,
                         doc: self.arm_doc(arm, arm_indent)?,
                     });
                 }
@@ -1182,6 +1392,34 @@ impl<'a> Renderer<'a> {
                 let header = Doc::line(start, text);
                 self.body_doc(body, indent, Some(header))
             }
+        }
+    }
+
+    /// Lays out an expression whose last part is a bracket left open at the
+    /// end of the first line, as `f ~[` with the list's items below: every
+    /// other part stays inline. `None` when the expression has no such form.
+    fn open_last(&mut self, expr: &Expr<'a>, indent: usize, start: usize) -> FResult<Option<Doc>> {
+        match &expr.kind {
+            ExprKind::List(_) | ExprKind::Tuple(_) | ExprKind::Change { .. } => {
+                let doc = self.break_expr(expr, indent, start, Position::Body)?;
+                Ok(Some(self.attach_unhandled(expr.node, doc, indent)?))
+            }
+            ExprKind::Call(values) if values.len() > 1 => {
+                let mut prefix = String::new();
+                for value in &values[..values.len() - 1] {
+                    let Some(flat) = self.flat_expr(value, Position::Operand) else {
+                        return Ok(None);
+                    };
+                    prefix.push_str(&flat);
+                    prefix.push(' ');
+                }
+                let last = values.last().expect("a call has arguments");
+                let Some(doc) = self.open_last(last, indent, start + width(&prefix))? else {
+                    return Ok(None);
+                };
+                Ok(Some(prefixed(doc, start, &prefix)))
+            }
+            _ => Ok(None),
         }
     }
 
@@ -1232,6 +1470,7 @@ impl<'a> Renderer<'a> {
             };
             items.push(SequenceItem {
                 node: item.node,
+                first: Some(item.first),
                 doc,
             });
         }
@@ -1248,7 +1487,7 @@ impl<'a> Renderer<'a> {
     fn mold_doc(&mut self, mold: &Mold<'a>, indent: usize, start: usize) -> FResult<Doc> {
         let flat = self.flat_mold(mold);
         let doc = if let Some(flat) = flat.as_ref() {
-            if start + width(flat) <= WIDTH {
+            if start + width(flat) <= WIDTH || indent >= MAX_LAYOUT_INDENT {
                 Doc::line(start, flat)
             } else {
                 self.break_mold(mold, indent, start)?
@@ -1267,6 +1506,7 @@ impl<'a> Renderer<'a> {
                 for field in fields {
                     items.push(SequenceItem {
                         node: field.node,
+                        first: None,
                         doc: self.mold_doc(field, indent + INDENT, indent + INDENT)?,
                     });
                 }
@@ -1288,6 +1528,7 @@ impl<'a> Renderer<'a> {
                 for argument in arguments {
                     items.push(SequenceItem {
                         node: argument.node,
+                        first: None,
                         doc: self.mold_doc(argument, indent + INDENT, indent + INDENT)?,
                     });
                 }
@@ -1300,6 +1541,39 @@ impl<'a> Renderer<'a> {
                     self.source.len(),
                 )
             }
+            // A faced field breaks as its mold does, after `name=`.
+            MoldKind::Face { name, mold: inner }
+                if matches!(
+                    inner.kind,
+                    MoldKind::Cell {
+                        breakable: true,
+                        ..
+                    } | MoldKind::Apply { .. }
+                        | MoldKind::Function { .. }
+                ) =>
+            {
+                let prefix = format!("{name}=");
+                let doc = self.mold_doc(inner, indent, start + width(&prefix))?;
+                Ok(prefixed(doc, start, &prefix))
+            }
+            // `$-(sample product)` continues below only through its product,
+            // a bracket left open at the end of the line.
+            MoldKind::Function { sample, product }
+                if matches!(
+                    product.kind,
+                    MoldKind::Cell {
+                        breakable: true,
+                        ..
+                    } | MoldKind::Apply { .. }
+                ) =>
+            {
+                let sample = self
+                    .flat_mold(sample)
+                    .ok_or_else(|| format!("formatter: cannot break mold {}", mold.node.kind()))?;
+                let prefix = format!("$-({sample}  ");
+                let doc = self.mold_doc(product, indent, start + width(&prefix))?;
+                Ok(prefixed(doc, start, &prefix))
+            }
             _ => {
                 let flat = self
                     .flat_mold(mold)
@@ -1310,6 +1584,16 @@ impl<'a> Renderer<'a> {
     }
 
     fn flat_expr(&self, expr: &Expr<'a>, position: Position) -> Option<String> {
+        let key = (expr.node.id(), position);
+        if let Some(flat) = self.flat_cache.borrow().get(&key) {
+            return flat.clone();
+        }
+        let flat = self.flat_expr_uncached(expr, position);
+        self.flat_cache.borrow_mut().insert(key, flat.clone());
+        flat
+    }
+
+    fn flat_expr_uncached(&self, expr: &Expr<'a>, position: Position) -> Option<String> {
         if self.has_trivia(expr.node) {
             return None;
         }
@@ -1536,12 +1820,10 @@ impl<'a> Renderer<'a> {
         lower: usize,
         upper: usize,
     ) -> FResult<Doc> {
-        #[derive(Clone)]
         enum EventKind {
-            Item(usize),
+            Item(Doc),
             Comment(Comment),
         }
-        #[derive(Clone)]
         struct Event {
             anchor: usize,
             row: usize,
@@ -1549,28 +1831,27 @@ impl<'a> Renderer<'a> {
             kind: EventKind,
         }
 
+        let first_item = items
+            .first()
+            .map(|item| item.first.unwrap_or(item.node).start_byte());
         let mut events = Vec::new();
-        for (index, item) in items.iter().enumerate() {
+        for item in items {
+            let first = item.first.unwrap_or(item.node);
             events.push(Event {
-                anchor: item.node.start_byte(),
-                row: item.node.start_position().row,
+                anchor: first.start_byte(),
+                row: first.start_position().row,
                 end_row: self.last_code_row(item.node),
-                kind: EventKind::Item(index),
+                kind: EventKind::Item(item.doc),
             });
         }
-        for comment in self.direct_comments(scope) {
+        // The scope's comments, including any its items left for the scope
+        // to place: a standalone comment dedented below an item's indent.
+        let scope_end = self.last_syntax_end(scope);
+        for comment in self.all_comments(scope) {
             if comment.anchor < lower || comment.anchor > upper || self.handled(&comment) {
                 continue;
             }
-            if comment.standalone
-                && comment.anchor >= last_syntax_end(scope)
-                && comment.column < indent
-            {
-                continue;
-            }
-            if items.iter().any(|item| {
-                comment.anchor >= item.node.start_byte() && comment.anchor < item.node.end_byte()
-            }) {
+            if comment.standalone && comment.anchor >= scope_end && comment.column < indent {
                 continue;
             }
             events.push(Event {
@@ -1584,11 +1865,19 @@ impl<'a> Renderer<'a> {
 
         let mut output = Doc::empty();
         let header_row = scope.start_position().row;
+        let had_header = header.is_some();
         if let Some(header) = header {
             output.append(header);
         }
-        let had_header = !output.lines.is_empty();
-        let mut previous: Option<(usize, usize)> = None;
+        // A blank line between the header and the first item renders, as one
+        // between items does.
+        let mut previous: Option<(usize, usize)> = if had_header {
+            let row = self.header_row(scope, first_item);
+            Some((row, row))
+        } else {
+            None
+        };
+        let mut placed_item = false;
 
         for event in events {
             if let Some((_, previous_row)) = previous
@@ -1597,19 +1886,21 @@ impl<'a> Renderer<'a> {
                 output.lines.push(format!("{}::", " ".repeat(indent)));
             }
             match event.kind {
-                EventKind::Item(index) => {
-                    output.append(items[index].doc.clone());
+                EventKind::Item(doc) => {
+                    output.append(doc);
                     previous = Some((event.row, event.end_row));
+                    placed_item = true;
                 }
                 EventKind::Comment(comment) => {
                     let trailing = !comment.standalone
-                        && (previous.map(|(_, row)| row == comment.row).unwrap_or(false)
-                            || (previous.is_none() && had_header && header_row == comment.row));
+                        && ((placed_item
+                            && previous.map(|(_, row)| row == comment.row).unwrap_or(false))
+                            || (!placed_item && had_header && header_row == comment.row));
                     if trailing && !output.lines.is_empty() {
-                        let index = if previous.is_none() {
-                            0
-                        } else {
+                        let index = if placed_item {
                             output.lines.len() - 1
+                        } else {
+                            0
                         };
                         append_trailing(&mut output.lines[index], &comment.text);
                     } else {
@@ -1625,13 +1916,32 @@ impl<'a> Renderer<'a> {
         Ok(output)
     }
 
+    /// The last source row of a scope's header: its syntax before the first
+    /// item, or the scope's first row.
+    fn header_row(&self, scope: Node<'a>, first_item: Option<usize>) -> usize {
+        let mut row = scope.start_position().row;
+        let mut cursor = scope.walk();
+        for child in scope.children(&mut cursor) {
+            if is_comment(child) || first_item.is_some_and(|start| child.start_byte() >= start) {
+                continue;
+            }
+            if matches!(child.kind(), "_indent" | "_dedent" | "_newline") {
+                continue;
+            }
+            if first_item.is_none_or(|start| child.end_byte() <= start) {
+                row = row.max(self.last_code_row(child).min(child.end_position().row));
+            }
+        }
+        row
+    }
+
     fn attach_unhandled(&mut self, node: Node<'a>, mut doc: Doc, indent: usize) -> FResult<Doc> {
         for comment in self.direct_comments(node) {
             if self.handled(&comment) {
                 continue;
             }
             if comment.standalone
-                && comment.anchor >= last_syntax_end(node)
+                && comment.anchor >= self.last_syntax_end(node)
                 && comment.column < indent
             {
                 continue;
@@ -1639,7 +1949,7 @@ impl<'a> Renderer<'a> {
             if comment.standalone {
                 let index = if comment.row <= node.start_position().row || doc.lines.is_empty() {
                     0
-                } else if doc.lines.len() > 1 && comment.row < last_row(node) {
+                } else if doc.lines.len() > 1 && comment.row < self.last_row(node) {
                     1
                 } else {
                     doc.lines.len()
@@ -1665,11 +1975,8 @@ impl<'a> Renderer<'a> {
         mut doc: Doc,
         indent: usize,
     ) -> FResult<Doc> {
-        let last_syntax = last_syntax_end(node);
-        let mut previous_row = self.source[..last_syntax]
-            .bytes()
-            .filter(|byte| *byte == b'\n')
-            .count();
+        let last_syntax = self.last_syntax_end(node);
+        let mut previous_row = self.row_of(last_syntax);
         for comment in self.all_comments(node) {
             if self.handled(&comment) || comment.anchor < last_syntax || comment.column < indent {
                 continue;
@@ -1689,54 +1996,49 @@ impl<'a> Renderer<'a> {
         Ok(doc)
     }
 
+    /// The comments inside a node, in source order.
     fn all_comments(&self, node: Node<'a>) -> Vec<Comment> {
-        let mut comments = self.direct_comments(node);
-        for child in named(node) {
-            if !is_comment(child) {
-                comments.extend(self.all_comments(child));
-            }
-        }
-        comments.sort_by_key(|comment| comment.anchor);
-        comments
+        let first = self
+            .comments
+            .partition_point(|comment| comment.anchor < node.start_byte());
+        self.comments[first..]
+            .iter()
+            .take_while(|comment| comment.anchor < node.end_byte())
+            .cloned()
+            .collect()
     }
 
     fn direct_comments(&self, node: Node<'a>) -> Vec<Comment> {
-        let mut comments = Vec::new();
-        for child in named(node) {
-            if !is_comment(child) {
-                continue;
-            }
-            let text = &self.source[child.byte_range()];
-            let Some(relative) = text.find("::") else {
-                continue;
-            };
-            let anchor = child.start_byte() + relative;
-            let row = child.end_position().row;
-            let line = self.lines.get(row).copied().unwrap_or("");
-            let column = anchor
-                - self.source[..anchor]
-                    .rfind('\n')
-                    .map(|i| i + 1)
-                    .unwrap_or(0);
-            let standalone = line[..column.min(line.len())].trim().is_empty();
-            comments.push(Comment {
-                id: child.id(),
-                anchor,
-                row,
-                column,
-                text: self.source[anchor..child.end_byte()].trim_end().to_string(),
-                standalone,
-            });
-        }
-        comments
+        named(node)
+            .into_iter()
+            .filter(|child| is_comment(*child))
+            .filter_map(|child| self.comment(child))
+            .collect()
     }
 
     fn handled(&self, comment: &Comment) -> bool {
         self.handled_comments.contains(&comment.id)
     }
 
+    /// The last row a node covers. Layout tokens put a node's end at the next
+    /// line's indentation, so a node ending with only spaces before it on its
+    /// row ends on the row above.
+    fn last_row(&self, node: Node<'a>) -> usize {
+        let end = node.end_position();
+        let before_end = self
+            .lines
+            .get(end.row)
+            .and_then(|line| line.get(..end.column.min(line.len())))
+            .unwrap_or("");
+        if end.row > node.start_position().row && before_end.trim().is_empty() {
+            end.row - 1
+        } else {
+            end.row
+        }
+    }
+
     fn last_code_row(&self, node: Node<'a>) -> usize {
-        let mut row = last_row(node);
+        let mut row = self.last_row(node);
         while row > node.start_position().row
             && self
                 .lines
@@ -1750,32 +2052,40 @@ impl<'a> Renderer<'a> {
     }
 
     fn blank_between(&self, previous: usize, next: usize) -> bool {
-        if next <= previous + 1 {
-            return false;
-        }
-        (previous + 1..next).any(|row| {
-            self.lines
-                .get(row)
-                .map(|line| line.trim().is_empty())
-                .unwrap_or(false)
-        })
+        self.blank_rows_between(previous, next)
     }
 
+    /// Comments or rendered blank lines inside a node keep it from being
+    /// joined onto one line.
     fn has_trivia(&self, node: Node<'a>) -> bool {
-        if has_comment(node) {
-            return true;
+        self.comment_holders.contains(&node.id())
+            || self.blank_rows_between(node.start_position().row, self.last_code_row(node))
+    }
+
+    fn last_syntax_end(&self, node: Node<'a>) -> usize {
+        if let Some(end) = self.syntax_end_cache.borrow().get(&node.id()) {
+            return *end;
         }
-        let start = node.start_position().row;
-        let end = self.last_code_row(node);
-        (start..=end).any(|row| {
-            row > start
-                && row < end
-                && self
-                    .lines
-                    .get(row)
-                    .map(|line| line.trim().is_empty())
-                    .unwrap_or(false)
-        })
+        let mut end = node.start_byte();
+        let mut cursor = node.walk();
+        for child in node.children(&mut cursor) {
+            if is_comment(child) || matches!(child.kind(), "_indent" | "_dedent" | "_newline") {
+                continue;
+            }
+            let child_end = if child.is_named() {
+                self.last_syntax_end(child)
+            } else {
+                child.end_byte()
+            };
+            end = end.max(child_end);
+        }
+        let end = if end == node.start_byte() {
+            node.end_byte()
+        } else {
+            end
+        };
+        self.syntax_end_cache.borrow_mut().insert(node.id(), end);
+        end
     }
 
     fn text(&self, node: Node<'_>) -> String {
@@ -1863,51 +2173,18 @@ fn is_comment(node: Node<'_>) -> bool {
     matches!(node.kind(), "comment" | "trailing_comment")
 }
 
-fn has_comment(node: Node<'_>) -> bool {
-    if is_comment(node) {
-        return true;
-    }
-    let mut cursor = node.walk();
-    for child in node.named_children(&mut cursor) {
-        if has_comment(child) {
-            return true;
-        }
-    }
-    false
-}
-
-fn last_syntax_end(node: Node<'_>) -> usize {
-    let mut end = node.start_byte();
-    let mut cursor = node.walk();
-    for child in node.children(&mut cursor) {
-        if is_comment(child) || matches!(child.kind(), "_indent" | "_dedent" | "_newline") {
-            continue;
-        }
-        let child_end = if child.is_named() {
-            last_syntax_end(child)
-        } else {
-            child.end_byte()
-        };
-        end = end.max(child_end);
-    }
-    if end == node.start_byte() {
-        node.end_byte()
-    } else {
-        end
-    }
-}
-
-fn last_row(node: Node<'_>) -> usize {
-    let end = node.end_position();
-    if end.column == 0 && end.row > node.start_position().row {
-        end.row - 1
-    } else {
-        end.row
-    }
-}
-
 fn width(text: &str) -> usize {
     text.chars().count()
+}
+
+/// Puts `prefix` before a doc's first line, which starts at `start` plus the
+/// prefix's width.
+fn prefixed(mut doc: Doc, start: usize, prefix: &str) -> Doc {
+    if let Some(first) = doc.lines.first_mut() {
+        let rest = first.get(start + width(prefix)..).unwrap_or("").to_string();
+        *first = format!("{}{prefix}{rest}", " ".repeat(start));
+    }
+    doc
 }
 
 fn append_trailing(line: &mut String, comment: &str) {
@@ -1918,11 +2195,10 @@ fn append_trailing(line: &mut String, comment: &str) {
     line.push_str(comment);
 }
 
-fn format_once(source: &str) -> FResult<String> {
-    let tree = parse(source)?;
+fn render(source: &str, tree: &tree_sitter::Tree) -> FResult<String> {
     let root = tree.root_node();
     let module = Builder { source }.module(root)?;
-    let doc = Renderer::new(source).module(&module)?;
+    let doc = Renderer::new(source, root).module(&module)?;
     let mut output = doc.lines.join("\n");
     for line in output.lines() {
         debug_assert_eq!(line, line.trim_end());
@@ -1934,12 +2210,17 @@ fn format_once(source: &str) -> FResult<String> {
 }
 
 pub fn format_source(source: &str) -> Result<String, String> {
-    let formatted = format_once(source)?;
+    crate::on_large_stack(|| format_checked(source))
+}
+
+/// Formats, then formats the output again: canonical output must parse and
+/// must not change.
+fn format_checked(source: &str) -> Result<String, String> {
+    let formatted = render(source, &parse(source)?)?;
     let reparsed = parse(&formatted).map_err(|error| {
         format!("formatter: generated invalid Jibb syntax:\n{formatted}\n{error}")
     })?;
-    drop(reparsed);
-    let second = format_once(&formatted)?;
+    let second = render(&formatted, &reparsed)?;
     if second != formatted {
         return Err(format!(
             "formatter: formatting did not converge:\nFIRST:\n{formatted}\nSECOND:\n{second}"

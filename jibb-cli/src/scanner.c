@@ -180,6 +180,10 @@ static bool duration_text(const char *text) {
   }
 }
 
+/* A @p spelling: a galaxy's three letters or six-letter words joined by `-`,
+   with `--` between 64-bit halves, as a comet's
+   ~rolruc-midwyl-hathes-palsym--fotnul-pagpur-nopful-lomtem. The syllables
+   themselves are checked when the literal is read. */
 static bool ship_text(const char *text) {
   const char *at = text;
   unsigned first = 0;
@@ -188,8 +192,10 @@ static bool ship_text(const char *text) {
     ++first;
   }
   if (first != 3u && first != 6u) return false;
+  if (first == 3u) return *at == 0;
   while (*at) {
     if (*at++ != '-') return false;
+    if (*at == '-') ++at;
     for (unsigned letter = 0; letter < 6u; ++letter) {
       if (*at < 'a' || *at > 'z') return false;
       ++at;
@@ -289,7 +295,10 @@ bool tree_sitter_jibb_external_scanner_scan(void *payload, TSLexer *lexer, const
   if (valid_symbols[SPACE] && lexer->lookahead == ' ') {
     while (lexer->lookahead == ' ') lexer->advance(lexer, false);
     if (lexer->lookahead == ':') return scan_comment(scanner, lexer, valid_symbols, false);
-    if (lexer->lookahead == 0) return finish_file(scanner, lexer, valid_symbols);
+    if (lexer->lookahead == 0) {
+      scanner->started = true;
+      return finish_file(scanner, lexer, valid_symbols);
+    }
     if (lexer->lookahead == ')' || lexer->lookahead == ']' || lexer->lookahead == '}') {
       return false;
     }
@@ -313,13 +322,23 @@ bool tree_sitter_jibb_external_scanner_scan(void *payload, TSLexer *lexer, const
   }
 
   if (!scanner->at_line_start || lexer->get_column(lexer) != 0) {
-    if (lexer->lookahead == 0) return finish_file(scanner, lexer, valid_symbols);
+    /* Mid-line, so this line has code. Tree-sitter discards state changed by
+       a call that returns no token, so `started` may not have been kept from
+       the line's first token: a file whose one line has no final newline
+       still ends its last definition. */
+    if (lexer->lookahead == 0) {
+      scanner->started = true;
+      return finish_file(scanner, lexer, valid_symbols);
+    }
 
     while (lexer->lookahead == ' ') lexer->advance(lexer, false);
     if (lexer->lookahead == ':') {
       return scan_comment(scanner, lexer, valid_symbols, false);
     }
-    if (lexer->lookahead == 0) return finish_file(scanner, lexer, valid_symbols);
+    if (lexer->lookahead == 0) {
+      scanner->started = true;
+      return finish_file(scanner, lexer, valid_symbols);
+    }
 
     if (lexer->lookahead != '\n') {
       scanner->started = true;
