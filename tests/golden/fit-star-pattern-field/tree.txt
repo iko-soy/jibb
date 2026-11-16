@@ -1,0 +1,19 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 x
+        (cell 1:11
+          (face 1:12 n (aura 1:14 @ud))
+          (face 1:18 v (noun 1:20))))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 x)
+          (arm 3:3
+            (cell 3:3 (lit 3:4 0) (bind 3:6 v))
+            (lit 3:9 1))
+          (arm 4:3
+            (cell 4:3
+              (bind 4:4 n)
+              (cell 4:6 (bind 4:7 a) (bind 4:9 b)))
+            (lit 4:13 2))
+          (arm 5:3 (any 5:3) (lit 5:5 3)))))))

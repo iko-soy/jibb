@@ -1,0 +1,7 @@
+++ main: island model field `counts` contains a gate
+/tests/golden/fit-island-map-gate/source.jibb:1:11: gate-bearing island type
++$ model [counts=(map @t $-(@ud @ud))]
+          ^
+/tests/golden/fit-island-map-gate/source.jibb:3:10: island main
+++ main (program init update view subs)
+         ^

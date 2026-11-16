@@ -1,0 +1,4 @@
+module kind: library
++$ choice: choice
+++ by-choice: $-(choice (element M))
+++ by-unit: $-((unit @ud) (element M))

@@ -1,0 +1,4 @@
+source: Grammar, Molds: a one-field record such as `[where=qath]` is a mold; the program's gates take the model at a sample position whose binder is a positional label, not a value face
+tests: An island whose model is a record holding the recursive `qath` checks as an island: the update gate's `s=` binder labels its sample position, so the model's `where` face beneath it agrees with the model the program call infers
+expect: parses
+expect-types: island types

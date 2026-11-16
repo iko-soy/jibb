@@ -1,0 +1,4 @@
+source: Decisions, Gates in `*`, and Grammar, Molds: a `*` value can be bound and passed on but not inspected; a literal or cell pattern where the subject's type is `*` is an error
+tests: A gate cast to `*` keeps private evidence of what it is, but its public type is `*`, so a cell pattern on it is still the error
+expect: parses
+expect-types: full checker error at the cell pattern

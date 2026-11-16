@@ -1,0 +1,29 @@
+1:1 glyph ++
+1:4 name f
+1:6 glyph |=
+1:9 glyph [
+1:10 tight name x
+1:11 tight glyph =
+1:12 tight glyph (
+1:13 tight name unit
+1:18 glyph $-(
+1:21 tight aura @ud
+1:25 aura @ud
+1:28 tight glyph )
+1:29 tight glyph )
+1:31 name y
+1:32 tight glyph =
+1:33 tight glyph (
+1:34 tight name unit
+1:39 glyph $-(
+1:42 tight aura @ud
+1:46 aura @ud
+1:49 tight glyph )
+1:50 tight glyph )
+1:51 tight glyph ]
+1:53 glyph (
+1:54 tight name eq
+1:57 name x
+1:59 name y
+1:60 tight glyph )
+1:61 NEWLINE

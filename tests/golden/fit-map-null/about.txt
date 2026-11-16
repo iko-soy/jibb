@@ -1,0 +1,4 @@
+source: Grammar, Literals: `~` is the `~` case of any union with one, such as `(unit A)`, `(list A)`, `(map K V)` or `(set A)`
+tests: `~` fits a map by a cast, as `put.by`'s map, in a record field, on either side of `eq` and in a branch joined with a map
+expect: parses
+expect-types: library types

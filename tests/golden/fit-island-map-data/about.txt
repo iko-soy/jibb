@@ -1,0 +1,4 @@
+source: Overview: island data and models contain no gates; maps and sets of gate-free keys and values contain none
+tests: An island whose data and model hold a map of atoms checks as an island
+expect: parses
+expect-types: island types

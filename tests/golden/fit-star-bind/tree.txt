@@ -1,0 +1,83 @@
+(module
+  (value 1:1 keep
+    (gate 1:9
+      (face 1:12 x (noun 1:14))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 x)
+          (arm 3:3 (bind 3:3 y) (wing 3:5 y))))))
+  (value 4:1 ignore
+    (gate 4:11
+      (face 4:14 x (noun 4:16))
+      (body 5:3
+        (branch 5:3
+          (wing 5:6 x)
+          (arm 6:3 (any 6:3) (lit 6:5 0))))))
+  (value 7:1 star-field
+    (gate 7:15
+      (face 7:18 x
+        (cell 7:20
+          (face 7:21 n (aura 7:23 @ud))
+          (face 7:27 v (noun 7:29))))
+      (body 8:3
+        (branch 8:3
+          (wing 8:6 x)
+          (arm 9:3
+            (cell 9:3 (lit 9:4 0) (bind 9:6 v))
+            (wing 9:9 v))
+          (arm 10:3
+            (cell 10:3 (bind 10:4 n) (bind 10:6 v))
+            (wing 10:9 v))))))
+  (value 11:1 result
+    (gate 11:11
+      (face 11:14 t (ref 11:16 toon))
+      (body 12:3
+        (branch 12:3
+          (wing 12:6 t)
+          (arm 13:3
+            (cell 13:3 (lit 13:4 %0) (bind 13:7 p))
+            (lit 13:10 0))
+          (arm 14:3
+            (cell 14:3 (lit 14:4 %1) (bind 14:7 p))
+            (lit 14:10 1))
+          (arm 15:3
+            (cell 15:3 (lit 15:4 %2) (bind 15:7 p))
+            (lit 15:10 2))))))
+  (value 16:1 maybe
+    (gate 16:10
+      (face 16:13 u
+        (apply 16:15 unit (noun 16:21)))
+      (body 17:3
+        (branch 17:3
+          (wing 17:6 u)
+          (arm 18:3 (lit 18:3 ~) (lit 18:5 0))
+          (arm 19:3
+            (cell 19:3 (lit 19:4 ~) (bind 19:6 v))
+            (lit 19:9 1))))))
+  (value 20:1 items
+    (gate 20:10
+      (face 20:13 xs
+        (apply 20:16 list (noun 20:22)))
+      (body 21:3
+        (branch 21:3
+          (wing 21:6 xs)
+          (arm 22:3 (lit 22:3 ~) (lit 22:5 0))
+          (arm 23:3
+            (cell 23:3 (bind 23:4 i) (bind 23:6 t))
+            (lit 23:9 1))))))
+  (value 24:1 kept-gate
+    (group 24:14
+      (call 24:15 (wing 24:15 keep) (wing 24:20 same))))
+  (value 25:1 kept-view
+    (group 25:14
+      (call 25:15
+        (wing 25:15 keep)
+        (group 25:20
+          (call 25:21 (wing 25:21 text) (str 25:26 "shown"))))))
+  (value 26:1 erased
+    (cast 26:11
+      (noun 26:14)
+      (gate-wide 26:16
+        (face 26:19 n (aura 26:21 @ud))
+        (group 26:25
+          (call 26:26 (wing 26:26 add) (wing 26:30 n) (lit 26:32 1)))))))

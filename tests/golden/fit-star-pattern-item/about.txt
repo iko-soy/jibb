@@ -1,0 +1,4 @@
+source: Decisions, Gates in `*`, and Grammar, Molds: a `*` value can be bound and passed on but not inspected; a literal or cell pattern where the subject's type is `*` is an error
+tests: A cell pattern at the item of a `(list *)` is rejected at the item pattern
+expect: parses
+expect-types: full checker error at the item pattern

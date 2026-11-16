@@ -1,0 +1,5 @@
+source: Decisions, Gates in `*`, and Grammar, Molds: a `*` value can be bound and passed on but not inspected; a literal or cell pattern where the subject's type is `*` is an error; a gate or an element may fit `*`
+tests: Names and `*` wildcards at `*` positions, in samples, record fields, union cases, units and lists, check; a gate and an element fit `*`, and the lowered matches never test the `*` values
+expect: parses
+expect-types: library types and lowered Core
+expect-core: lowered Core

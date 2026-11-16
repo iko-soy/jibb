@@ -1,0 +1,7 @@
++$ choice
+  %a
+  %b
+++ f |= x
+  ++ ok (eq x x)
+  ^- choice x
+++ use (f 5)

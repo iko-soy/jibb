@@ -1,0 +1,4 @@
+source: Grammar, Molds: a one-field record such as `[where=qath]` is a mold; different value faces at one position conflict
+tests: An update gate whose sample and product records name the recursive field `here` conflict with a model whose field is `where`; the record face join still rejects the program call
+expect: parses
+expect-types: rejected at the program call

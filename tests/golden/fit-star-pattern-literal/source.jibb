@@ -1,0 +1,5 @@
+++ inspect |= x=*
+  ?- x
+  0 %.y
+  * %.n
+++ bad (inspect same)

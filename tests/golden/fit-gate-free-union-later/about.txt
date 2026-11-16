@@ -1,0 +1,4 @@
+source: Core language, Values and invariants: `eq`'s arguments and map and set keys are first-order, and a gate never tells a union's cases apart; overview: only gates are excluded
+tests: Once a cast fixes a gate-free sample to a union, a later call with a number is an ordinary argument mismatch rather than an unresolved cast
+expect: parses
+expect-types: full checker error at the call

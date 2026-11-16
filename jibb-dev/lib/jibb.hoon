@@ -916,7 +916,9 @@
 ::  type under the face; joining an unnamed position with a faced one keeps
 ::  the face, independently of the order of the inputs. Different explicit
 ::  faces conflict. No gate may hide inside a gate-free type, including in
-::  a container; propagate the obligation through its arguments.
+::  a container; propagate the obligation through its arguments. A union,
+::  list, unit, map or set is gate-free when its cases or arguments are;
+::  `*` never is, since a gate or an element may fit it.
 ::
 ::  5.2 Work queue. A constraint owns its source span, the types and
 ::  expression shape it depends on, and the information needed to report
@@ -961,7 +963,11 @@
 ::  dead one. Recursive types require memoized specialization and a
 ::  terminating treatment of recursive states. The same matrix can later
 ::  drive lowering. The bare-name/tag spelling rule is checked against the
-::  subject and the cases the rest of the pattern can match.
+::  subject and the cases the rest of the pattern can match. A literal or
+::  cell pattern at a position whose type is `*` is an error at the
+::  pattern: the value may be a gate or an element, so a name or `*` binds
+::  or skips it, but nothing tests or takes it apart (Decisions: Gates in
+::  `*`).
 ::
 ::  Migrate in small stages with eval and ship goldens for every change.
 ::  Keep diagnostics and source sites in the single full result; types.txt
@@ -5610,6 +5616,9 @@
   ?-  -.typ
     %empty  `[%no fuel]
     ?(%atom %any-atom %flag %const %noun %avar %rvar %nvar %rnvar %fn)  `[%yes fuel]
+    ::  A pending tag types a written literal or constructor, whose value
+    ::  exists whichever union later fixes the tag.
+    %tag  `[%yes fuel]
     %fvar  `[%unknown fuel]
     %var
       ?:  (lien caps |=(c=icap (hole-same-variable typ (itype-walk [%var id.c] sub))))  `[%yes fuel]
@@ -5625,8 +5634,9 @@
       ?:  |(=(%unknown result.u.head) =(%unknown result.u.tail))  `[%unknown left.u.tail]
       `[%yes left.u.tail]
     %union  (itype-inhabited-cases-seen cases.typ sub caps fuel | seen)
+    ::  Every such collection has `~` (+null-collection).
     %collection
-      ?.  &(|(=(%list name.typ) =(%unit name.typ)) ?=([* ~] args.typ))  `[%unknown fuel]
+      ?.  (null-collection typ)  `[%unknown fuel]
       `[%yes fuel]
     %mrec
       :: A recursive case may be inconclusive while a later base case is
@@ -5978,6 +5988,7 @@
       =/  checked=(unit igf-form)  $(t view.u.view, sub sub, seen [t seen], fuel left.u.view)
       ?~  checked  ~
       `[(itype-normalize t sub.u.checked) sub.u.checked left.u.checked]
+    %recursive  `[t sub fuel]
     *  ~
   ==
 ++  itype-gate-free-form
@@ -6015,6 +6026,8 @@
       =/  args=(unit igf-forms)  (itype-gate-free-forms args.t sub.u.cases left.u.cases)
       ?~  args  ~
       `[[%union types.u.cases origin.t label.t types.u.args] sub.u.args left.u.args]
+    ::  An imported recursive mold holds no gate (+gate-free-type-seen).
+    %recursive  `[t sub fuel]
     *  ~
   ==
 ::
@@ -6861,6 +6874,23 @@
     *  |
   ==
 ::
+::  +null-collection: a collection whose noun is `~` or a cell
+::
+::    Hoon's list, unit, set, qeu, map, jar, jug and mop are each empty as
+::    `~`, so the syntactic null fits them, and a nonempty one holds a
+::    value of each argument. The arity is checked with the name.
+++  null-collection-name
+  |=  name=term
+  ^-  ?
+  ?=(?(%list %unit %set %qeu %map %jar %jug %mop) name)
+++  null-collection
+  |=  t=itype
+  ^-  ?
+  ?.  ?=(%collection -.t)  |
+  ?:  ?=(?(%list %unit %set %qeu) name.t)  ?=([* ~] args.t)
+  ?:  ?=(?(%map %jar %jug %mop) name.t)  ?=([* * ~] args.t)
+  |
+::
 ++  itype-fit-inner
   |=  [actual=itype expected=itype sub=isub next=@ud skip-width=? spine-proof=?]
   ^-  ifit
@@ -6965,6 +6995,9 @@
     [%ok sub next]
   ::  A positional face does not narrow the noun beneath it.
   ?:  &(?=(%noun -.actual) ?=(?(%face %slot) -.expected))  $(expected body.expected)
+  ::  A `*` may hold a gate (Decisions: Gates in `*`), so it never fits a
+  ::  gate-free type, whatever private evidence it carries.
+  ?:  &(?=(%noun -.actual) ?=(%fvar -.expected))  [%bad ~]
   ::  An arbitrary noun is not known to fit a narrower type.
   ?:  &(?=(%noun -.actual) !?=(%var -.expected))  [%unknown ~]
   ::  Only a value carrying the same private seal can fit a sealed type.
@@ -7019,7 +7052,12 @@
   ?:  &(|(?=(%mrec -.actual) ?=(%mrec -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
   ?:  &(?=(%recursive -.actual) ?=(%recursive -.expected))
     ?:(&(=(module.actual module.expected) =(name.actual name.expected)) [%ok sub next] [%bad ~])
-  ?:  &(|(?=(%recursive -.actual) ?=(%recursive -.expected)) !|(?=(%var -.actual) ?=(%var -.expected)))  [%unknown ~]
+  ::  An imported recursive value keeps its nominal identity under a
+  ::  positional label, as an ordinary named mold does, and meets a
+  ::  gate-free variable as other gate-free data does.
+  ?:  &(!uncertain ?=(%recursive -.actual) ?=(?(%face %slot) -.expected))  $(expected body.expected)
+  ?:  &(!uncertain ?=(?(%face %slot) -.actual) ?=(%recursive -.expected))  $(actual body.actual)
+  ?:  &(|(?=(%recursive -.actual) ?=(%recursive -.expected)) !|(?=(%var -.actual) ?=(%var -.expected) ?=(%fvar -.actual) ?=(%fvar -.expected)))  [%unknown ~]
   ?:  &(?=(%union -.actual) ?=(%union -.expected))
     ?.  =(origin.actual origin.expected)
       ?:(&(?=(^ origin.actual) ?=(^ origin.expected)) [%bad ~] [%unknown ~])
@@ -7036,18 +7074,28 @@
     =/  unified=(unit isub)  (itype-unify actual expected sub)
     ?~  unified  [%unknown ~]
     [%ok u.unified next]
+  ::  A gate-free sample takes such a union when its cases contain no
+  ::  gate, as it takes any other gate-free type; one whose cases hold a
+  ::  reachable gate cannot fit it.
+  ?:  &(?=(%union -.actual) ?=(%fvar -.expected))
+    ?~  origin.actual  [%unknown ~]
+    =/  unified=(unit isub)  (itype-unify actual expected sub)
+    ?^  unified  [%ok u.unified next]
+    ?:  =(%no verdict:(gate-free-type (itype-normalize actual sub) 256 ~))  [%bad ~]
+    [%unknown ~]
   ::  A concrete union value in a tuple may acquire the expected field's
   ::  face. A variable-bound union still needs face propagation support.
   ?:  &(!uncertain ?=(%union -.actual) ?=(?(%face %slot) -.expected))
     $(expected body.expected)
-  ::  An unresolved syntactic null can receive a closed list or unit
-  ::  context from the other direction of an invariant constraint.
+  ::  An unresolved syntactic null can receive a closed list, unit, map,
+  ::  set or other `~`-headed collection context from the other direction
+  ::  of an invariant constraint.
   =/  null-context=(unit itype)
     ?.  &(?=(%tag -.expected) =(%null form.literal.expected) !constructor.expected)  ~
     =/  candidate=itype  (itype-normalize actual sub)
-    =/  list=?  &(?=(%collection -.candidate) =(%list name.candidate) ?=([* ~] args.candidate))
+    =/  collection=?  (null-collection candidate)
     =/  unit=?  ?=(^ (unit-union-payload candidate))
-    ?.  |(list unit)  ~
+    ?.  |(collection unit)  ~
     `candidate
   ?^  null-context
     ?:  (itype-has-tag u.null-context)  [%unknown ~]
@@ -7057,6 +7105,13 @@
   :: unrestricted atom mold; no particular aura needs to be chosen.
   ?:  &(?=(%union -.expected) ?=(?(%avar %rvar %nvar %rnvar) -.actual) (lien cases.expected |=(c=itype ?=(%any-atom -.c))))
     [%ok sub next]
+  ::  A gate-free variable takes a union context whose cases contain no
+  ::  gate, as an unconstrained variable takes any union context below.
+  ?:  &(?=(%union -.expected) ?=(%fvar -.actual) !(itype-has-any-atom expected sub))
+    =/  unified=(unit isub)  (itype-unify actual expected sub)
+    ?^  unified  [%ok u.unified next]
+    ?:  =(%no verdict:(gate-free-type (itype-normalize expected sub) 256 ~))  [%bad ~]
+    [%unknown ~]
   ?:  &(?=(%union -.expected) |(?=(%fvar -.actual) ?=(%avar -.actual) ?=(%rvar -.actual) |(?=(%nvar -.actual) ?=(%rnvar -.actual))))  [%unknown ~]
   ?:  &(?=(%union -.expected) !?=(%var -.actual))
     =/  fit=ifit  (itype-fit-cases actual cases.expected sub next)
@@ -7080,10 +7135,12 @@
       =/  trial=ifit  (itype-fit-ctor-cases literal.actual sample.expected cases sub next)
       ?.  ?=(%ok -.trial)  trial
       [%ok (itype-bind id.actual expected sub.trial) next.trial]
-    ::  Only the syntactic null may acquire a known list context. Keep
-    ::  an open element type pending until another constraint determines it.
-    ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
-      ?.  &(!constructor.actual =(%null form.literal.actual) ?=([* ~] args.expected))  [%bad ~]
+    ::  Only the syntactic null may acquire a known list, map, set or
+    ::  other collection context, since each is `~` or a cell (Grammar:
+    ::  Literals). Keep an open argument type pending until another
+    ::  constraint determines it.
+    ?:  &(?=(%collection -.expected) (null-collection-name name.expected) =(0 val.literal.actual))
+      ?.  &(!constructor.actual =(%null form.literal.actual) (null-collection expected))  [%bad ~]
       =/  candidate=itype  (itype-normalize expected sub)
       ?:  (itype-has-tag candidate)  [%unknown ~]
       [%ok (itype-bind id.actual candidate sub) next]
@@ -7104,7 +7161,7 @@
       [%ok u.u next]
     ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
     ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
-    ?:  &(?=(%collection -.expected) =(%list name.expected) =(0 val.literal.actual))
+    ?:  &(?=(%collection -.expected) (null-collection-name name.expected) =(0 val.literal.actual))
       [%unknown ~]
     ?:  ?=(%const -.expected)
       ?:(=(val.literal.actual val.literal.expected) [%ok sub next] [%bad ~])
@@ -7540,6 +7597,27 @@
   |=  [typ=itype fuel=@ud path=(list igf-segment)]
   ^-  igate-free
   (gate-free-type-seen typ fuel path ~)
+::  +gate-free-pair: the verdict for a value holding both parts
+::
+::    An uninhabited part leaves no value, which is vacuously gate-free;
+::    a gate witness in one part needs an inhabited other part.
+++  gate-free-pair
+  |=  [head=igate-free tail=igate-free]
+  ^-  igate-free
+  =/  inhabited=?  &(inhabited.head inhabited.tail)
+  ?:  |(&(=(%yes verdict.head) !inhabited.head) &(=(%yes verdict.tail) !inhabited.tail))  [%yes | left.tail ~]
+  ?:  &(=(%no verdict.head) inhabited.tail)  head(left left.tail)
+  ?:  &(=(%no verdict.tail) inhabited.head)  tail
+  ?:  |(!=(%yes verdict.head) !=(%yes verdict.tail))  [%unknown inhabited left.tail ~]
+  [%yes inhabited left.tail ~]
+::  +gate-free-args-seen: a nonempty collection's arguments, as one value
+++  gate-free-args-seen
+  |=  [args=(list itype) fuel=@ud path=(list igf-segment) seen=(list itype)]
+  ^-  igate-free
+  ?~  args  [%yes & fuel ~]
+  =/  first=igate-free  (gate-free-type-seen i.args fuel path seen)
+  ?~  t.args  first
+  (gate-free-pair first $(args t.args, fuel left.first))
 ++  gate-free-type-seen
   |=  [typ=itype fuel=@ud path=(list igf-segment) seen=(list itype)]
   ^-  igate-free
@@ -7557,17 +7635,13 @@
     %cell
       =/  head=igate-free  $(typ hed.typ, path [[%head ~] path])
       =/  tail=igate-free  $(typ tal.typ, fuel left.head, path [[%tail ~] path])
-      =/  inhabited=?  &(inhabited.head inhabited.tail)
-      ?:  |(&(=(%yes verdict.head) !inhabited.head) &(=(%yes verdict.tail) !inhabited.tail))  [%yes | left.tail ~]
-      ?:  &(=(%no verdict.head) inhabited.tail)  head(left left.tail)
-      ?:  &(=(%no verdict.tail) inhabited.head)  tail
-      ?:  |(!=(%yes verdict.head) !=(%yes verdict.tail))  [%unknown inhabited left.tail ~]
-      [%yes inhabited left.tail ~]
+      (gate-free-pair head tail)
     %collection
-      ?.  |(=(%list name.typ) =(%unit name.typ))  [%unknown | fuel ~]
-      ?.  ?=([* ~] args.typ)  [%unknown | fuel ~]
-      =/  item=igate-free  $(typ i.args.typ, path [[%item ~] path])
-      item(inhabited &)
+      ::  A list, unit, map, set or other such collection is `~` or holds
+      ::  a value of each argument, so it is gate-free when they are.
+      ?.  (null-collection typ)  [%unknown | fuel ~]
+      =/  items=igate-free  (gate-free-args-seen args.typ fuel [[%item ~] path] seen)
+      items(inhabited &)
     %union
       ?~  cases.typ  [%unknown | fuel ~]
       (gate-free-types-seen cases.typ fuel path 0 seen)
@@ -7589,7 +7663,13 @@
     %nvar       [%yes & fuel ~]
     %rnvar      [%yes & fuel ~]
     %tag        [%unknown | fuel ~]
-    %recursive  [%unknown | fuel ~]
+    ::  An imported recursive mold, such as `json`, becomes %recursive only
+    ::  after +rec-pattern has read every case: atoms, constants, cells,
+    ::  faces, collections and the mold itself, never a gate (the importer
+    ::  rejects cores and gates) or a `*`. None of its values holds a gate.
+    ::  It is not proved inhabited, so claim it is: a gate beside it stays
+    ::  a gate witness rather than becoming vacuously gate-free.
+    %recursive  [%yes & fuel ~]
   ==
 ::
 +$  dgo  [left=itype right=itype at=span context=span]
@@ -10172,8 +10252,10 @@
   =/  start=loc  beg.at(col +(col.beg.at))
   [start [line.start (add col.start (lent (trip name)))]]
 ::
-::  Report only a proven gate in an argument constrained by a checked
-::  standard collection template. Open or opaque types remain unresolved.
+::  Report only a proven gate, or a `*`, in an argument constrained by a
+::  checked standard collection template. A gate or an element may fit
+::  `*` (Decisions: Gates in `*`), so a `*` key is never gate-free. Open
+::  or opaque types remain unresolved.
 ++  collection-key-argument-error
   |=  [sh=shape types=(list itype) state=istate]
   ^-  (unit idiag)
@@ -10205,9 +10287,12 @@
     $(vars t.vars, shapes t.shapes, actual t.actual)
   =/  value=itype  (itype-normalize i.actual sub.state)
   =/  proof=igate-free  (gate-free-type value 256 ~)
-  ?.  =(%no verdict.proof)
+  =/  noun=?  &(!=(%no verdict.proof) (itype-holds-noun value 256))
+  ?.  |(=(%no verdict.proof) noun)
     $(vars t.vars, shapes t.shapes, actual t.actual)
-  =/  message=tape  "{(trip name.u.display)} keys cannot contain gates"
+  =/  message=tape
+    ?.  noun  "{(trip name.u.display)} keys cannot contain gates"
+    "{(trip name.u.display)} keys cannot contain `*`, which a gate or an element may fit"
   =/  direct=(list idsite)  (diagnostic-sample-key-sites sh value state)
   =/  evidence=(list idsite)
     ?.  ?=([* ~] direct)  ~
@@ -10218,6 +10303,23 @@
   =/  declared=(unit idsite)  ?~(t.ref.sh (source-prelude-mold-site n state) ~)
   ?^  declared  `[message [u.declared sites]]
   `[message sites]
+::
+::  +itype-holds-noun: whether a closed type has a `*` position
+::
+::    Faces, cells, union cases and collection arguments are searched; a
+::    cast's retained private evidence still has the public type `*`.
+++  itype-holds-noun
+  |=  [t=itype fuel=@ud]
+  ^-  ?
+  ?:  =(0 fuel)  |
+  =.  fuel  (dec fuel)
+  ?+  -.t  |
+    ?(%noun %refined)  &
+    ?(%face %slot)  $(t body.t)
+    %cell  |($(t hed.t) $(t tal.t))
+    %union  (lien cases.t |=(c=itype (itype-holds-noun c fuel)))
+    %collection  (lien args.t |=(c=itype (itype-holds-noun c fuel)))
+  ==
 ::
 ++  generic-arity-diagnostic
   |=  [sh=shape state=istate]
@@ -12531,6 +12633,8 @@
   ?:  ?=(%unknown -.possible)  [%unknown ~]
   ?:  ?=(%no -.possible)
     [%error ["pattern cannot match the subject" ~[[at.pat.arm "unreachable pattern"] [(span-of subject.e) (site-type-note "subject" subject sub)]]] ~]
+  =/  inspected=(unit pattern)  (coverage-noun-inspection pat.arm subject sub 1.024)
+  ?^  inspected  [%error (coverage-noun-diagnostic u.inspected e subject sub) ~]
   =/  valid=(unit ?)  (coverage-pattern-valid pat.arm subject sub 1.024)
   ?~  valid  [%unknown ~]
   ?.  u.valid
@@ -12635,7 +12739,12 @@
   ?^  bad-decimal  [%error (diagnostic-expected-context u.bad-decimal (span-of subject.e) subject sub) ~]
   =/  initial=coverage-state  [0 ~ ~]
   =/  built=(unit coverage-type-result)  (coverage-type subject sub initial 4.096)
-  ?~  built  [%unknown ~]
+  ?~  built
+    ::  A `*` position is already final while other parts of the subject
+    ::  remain open, so its inspection is an error now.
+    =/  inspected=(unit pattern)  (coverage-noun-arms arms.e subject sub)
+    ?~  inspected  [%unknown ~]
+    [%error (coverage-noun-diagnostic u.inspected e subject sub) ~]
   (coverage-check-arms arms.e ~ ~ domain.u.built graph.state.u.built e subject sub 1.024)
 ::
 ::
@@ -12721,9 +12830,10 @@
   ?:  =(0 fuel)  ~
   =.  fuel  (dec fuel)
   =.  t  (itype-walk t sub)
+  ::  A `*` value is never taken apart (+coverage-noun-inspection), so
+  ::  it has no projection.
   ?+  -.t  ~
     ?(%face %slot)  $(t body.t)
-    %noun  `[[%noun ~] [%noun ~] sub]
     %cell  `[hed.t tal.t sub]
     %collection
       ?.  &(|(=(%list name.t) =(%unit name.t)) ?=([* ~] args.t))  ~
@@ -12974,7 +13084,8 @@
   ?:  |(?=(%any -.p) ?=(%bind -.p))  `&
   ?:  ?=(%union -.t)  (coverage-valid-cases p cases.t sub fuel |)
   ?:  ?=(%cell -.p)  (coverage-valid-items items.p t sub fuel)
-  ?:  ?=(%noun -.t)  `&
+  ::  A literal never tests a `*` value (+coverage-noun-inspection).
+  ?:  ?=(%noun -.t)  ~
   ?:  ?=(%any-atom -.t)  `&
   ?:  ?=(%str -.p)
     ?:  ?=(%atom -.t)  `(aura-prefix aura.t %t)
@@ -13000,6 +13111,80 @@
     $(t view.u.view, fuel left.u.view)
   ?:  |(?=(%cell -.t) ?=(%empty -.t))  `|
   ~
+::
+::  +coverage-noun-inspection: a literal or cell pattern at a `*` position
+::
+::    A gate or an element may fit `*` (Decisions: Gates in `*`), so a
+::    pattern may bind or skip a `*` value but never test or take it
+::    apart: that would give a function to `cell?`, `eq` or `slot`, or
+::    read an element's private representation. Walk the pattern with
+::    its subject type, through faces, cells, lists, recursive molds and
+::    each union case the pattern may match, and return the first literal
+::    or cell pattern at a position whose type is `*`, a cast's retained
+::    private evidence included. An unknown projection proves nothing, and
+::    ordinary coverage then decides the arm as before.
+::
+++  coverage-noun-arms
+  |=  [arms=(list arm) subject=itype sub=isub]
+  ^-  (unit pattern)
+  ?~  arms  ~
+  =/  found=(unit pattern)  (coverage-noun-inspection pat.i.arms subject sub 1.024)
+  ?^  found  found
+  $(arms t.arms)
+::
+++  coverage-noun-inspection
+  |=  [p=pattern t=itype sub=isub fuel=@ud]
+  ^-  (unit pattern)
+  ?:  =(0 fuel)  ~
+  =.  fuel  (dec fuel)
+  ?:  ?=(?(%any %bind) -.p)  ~
+  =.  t  (itype-walk t sub)
+  ?:  ?=(?(%face %slot) -.t)  $(t body.t)
+  ?:  ?=(?(%noun %refined) -.t)  `p
+  ?:  ?=(%mrec -.t)
+    =/  view=(unit [view=itype left=@ud])  (rg-unfold-view t fuel)
+    ?~  view  ~
+    $(t view.u.view, fuel left.u.view)
+  ?:  ?=(%union -.t)  (coverage-noun-cases p cases.t sub fuel)
+  ?.  ?=(%cell -.p)  ~
+  (coverage-noun-items items.p t sub fuel)
+::
+++  coverage-noun-cases
+  |=  [p=pattern cases=(list itype) sub=isub fuel=@ud]
+  ^-  (unit pattern)
+  ?~  cases  ~
+  ?:  =(0 fuel)  ~
+  ?:  =(`| (coverage-possible p i.cases sub fuel))  $(cases t.cases, fuel (dec fuel))
+  =/  found=(unit pattern)  (coverage-noun-inspection p i.cases sub (dec fuel))
+  ?^  found  found
+  $(cases t.cases, fuel (dec fuel))
+::
+::    As in +coverage-valid-items, the last item takes the rest of the
+::    spine; a union or `*` mid-spine is read as the rest of the pattern.
+++  coverage-noun-items
+  |=  [items=(list pattern) t=itype sub=isub fuel=@ud]
+  ^-  (unit pattern)
+  ?~  items  ~
+  ?:  =(0 fuel)  ~
+  ?~  t.items  (coverage-noun-inspection i.items t sub (dec fuel))
+  =/  rest=pattern  [%cell at.i.items items]
+  =.  t  (itype-walk t sub)
+  ?:  ?=(?(%face %slot) -.t)  $(t body.t, fuel (dec fuel))
+  ?:  ?=(?(%noun %refined %mrec %union) -.t)  (coverage-noun-inspection rest t sub (dec fuel))
+  =/  parts=(unit coverage-parts)  (coverage-project rest t sub (dec fuel))
+  ?~  parts  ~
+  =/  head=(unit pattern)  (coverage-noun-inspection i.items head.u.parts sub.u.parts (dec fuel))
+  ?^  head  head
+  $(items t.items, t tail.u.parts, sub sub.u.parts, fuel (dec fuel))
+::
+++  coverage-noun-diagnostic
+  |=  [p=pattern e=expr subject=itype sub=isub]
+  ^-  idiag
+  ?>  ?=(%branch -.e)
+  =/  where=idsite  [(span-of subject.e) (site-type-note "subject" subject sub)]
+  ?:  ?=(%cell -.p)
+    ["a cell pattern cannot take apart a `*` value; bind it to a name or use `*`" ~[[at.p "cell pattern"] where]]
+  ["a literal pattern cannot test a `*` value; bind it to a name or use `*`" ~[[at.p "literal pattern"] where]]
 ::
 ++  change-spine-known
   |=  [t=itype sub=isub]
@@ -17097,6 +17282,30 @@
   ?:  &(?=(%fn -.a) ?=(%fn -.b))  &($(a sample.a, b sample.b) $(a product.a, b product.b))
   &
 ::
+::  +icore-join-faces-compatible: whether a join's value faces agree
+::
+::    As +icore-faces-compatible, but a gate's samples are paired as the
+::    unifier pairs them (+itype-gate-sample-pair): a positional binder on
+::    one side only labels its position, and the value faces beneath it
+::    are compared. So a written `s=[doc=json]` agrees with a position
+::    whose value is `doc=json`, whatever the value's type, while value
+::    faces of different names, or binders of different names on both
+::    sides, still conflict.
+++  icore-join-faces-compatible
+  |=  [a=itype b=itype sub=isub]
+  ^-  ?
+  =.  a  (itype-walk a sub)
+  =.  b  (itype-walk b sub)
+  ?:  &(?=(?(%face %slot) -.a) ?=(?(%face %slot) -.b))
+    &(=(-.a -.b) =(name.a name.b) $(a body.a, b body.b))
+  ?:  ?=(?(%face %slot) -.a)  $(a body.a)
+  ?:  ?=(?(%face %slot) -.b)  $(b body.b)
+  ?:  &(?=(%cell -.a) ?=(%cell -.b))  &($(a hed.a, b hed.b) $(a tal.a, b tal.b))
+  ?:  &(?=(%fn -.a) ?=(%fn -.b))
+    =/  samples=[a=itype b=itype]  (itype-gate-sample-pair (itype-walk sample.a sub) (itype-walk sample.b sub) 1.024)
+    &($(a a.samples, b b.samples) $(a product.a, b product.b))
+  &
+::
 ++  icore-fit-joins
   |=  [left=itype right=itype sub=isub at=span context=span]
   ^-  (list icore-edge)
@@ -17875,7 +18084,7 @@
       =/  open=?  |(?=(^ (itype-vars target)) ?=(^ (itype-vars source)))
       ?:  &(open !=((itype-unface target sub.state) (itype-unface source sub.state)))
         $(todo t.todo, pending [edge pending])
-      ?.  (icore-faces-compatible target source sub.state)  ~
+      ?.  (icore-join-faces-compatible target source sub.state)  ~
       =/  root=(unit @ud)  (icore-bound-root target.edge sub.state)
       ?~  root  $(todo t.todo, pending [edge pending])
       =/  merged=itype  (itype-merge-faces-inner source target sub.state |)

@@ -1,0 +1,7 @@
+++ inspect: a literal pattern cannot test a `*` value; bind it to a name or use `*`
+/tests/golden/fit-star-pattern-literal/source.jibb:3:3: literal pattern
+  0 %.y
+  ^
+/tests/golden/fit-star-pattern-literal/source.jibb:2:6: subject has type *
+  ?- x
+     ^

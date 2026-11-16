@@ -1,0 +1,12 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (cell 1:9
+        (face 1:10 x
+          (apply 1:12 unit
+            (fn 1:18 (aura 1:21 @ud) (aura 1:25 @ud))))
+        (face 1:31 y
+          (apply 1:33 unit
+            (fn 1:39 (aura 1:42 @ud) (aura 1:46 @ud)))))
+      (group 1:53
+        (call 1:54 (wing 1:54 eq) (wing 1:57 x) (wing 1:59 y))))))

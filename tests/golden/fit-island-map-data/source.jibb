@@ -1,0 +1,7 @@
++$ model [counts=(map @t @ud)]
++$ msg %ok
+++ main (program init update view subs)
+++ init |= data=(map @t @ud) ^- model [counts=data]
+++ update |= [m=msg s=model] ^- [model (list (cmd msg))] [s ~]
+++ view |= s=model ^- (element msg) (text "ok")
+++ subs |= s=model ^- (list (sub msg)) ~

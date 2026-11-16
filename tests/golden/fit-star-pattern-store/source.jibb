@@ -1,0 +1,5 @@
+++ s (store 0 |=([a=@ud st=@ud] st))
+++ peek |= z=@ud
+  ?- update.s
+  [a b] %.y
+  * %.n

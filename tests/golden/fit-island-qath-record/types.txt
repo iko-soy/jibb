@@ -1,0 +1,8 @@
+module kind: island
++$ model: [where=qath]
++$ msg: %ok
+++ main: [init=$-(qath [where=qath]) [update=$-([%ok where=qath] [where=qath (list (cmd %ok))]) [view=$-([where=qath] (element %ok)) subs=$-([where=qath] (list (sub %ok)))]]]
+++ init: $-(qath [where=qath])
+++ update: $-([m=%ok s=[where=qath]] [where=qath (list (cmd %ok))])
+++ view: $-([where=qath] (element %ok))
+++ subs: $-([where=qath] (list (sub %ok)))

@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 choice
+    (union 2:3 (const 2:3 %a) (const 3:3 %b)))
+  (value 4:1 f
+    (gate 4:6
+      (bind 4:9 x)
+      (body 5:3
+        (value 5:3 ok
+          (group 5:9
+            (call 5:10 (wing 5:10 eq) (wing 5:13 x) (wing 5:15 x))))
+        (cast 6:3 (ref 6:6 choice) (wing 6:13 x)))))
+  (value 7:1 use
+    (group 7:8
+      (call 7:9 (wing 7:9 f) (lit 7:11 5)))))

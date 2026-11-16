@@ -1,0 +1,33 @@
+1:1 glyph +$
+1:4 name choice
+2:3 INDENT
+2:3 lit %a
+3:3 NEWLINE
+3:3 lit %b
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name f
+4:6 glyph |=
+4:9 name x
+5:3 INDENT
+5:3 glyph ++
+5:6 name ok
+5:9 glyph (
+5:10 tight name eq
+5:13 name x
+5:15 name x
+5:16 tight glyph )
+6:3 NEWLINE
+6:3 glyph ^-
+6:6 name choice
+6:13 name x
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name use
+7:8 glyph (
+7:9 tight name f
+7:11 lit 5
+7:12 tight glyph )
+7:13 NEWLINE

@@ -1,0 +1,4 @@
+source: Overview: island data and models contain no gates; a set of gate-free values contains none
+tests: An island whose model holds an imported `(set @tas)` built from `~` checks as an island
+expect: parses
+expect-types: island types

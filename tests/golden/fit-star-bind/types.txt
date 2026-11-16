@@ -1,0 +1,10 @@
+module kind: library
+++ keep: $-(* *)
+++ ignore: $-(* @ud)
+++ star-field: $-([n=@ud v=*] *)
+++ result: $-(toon @ud)
+++ maybe: $-((unit *) @ud)
+++ items: $-((list *) @ud)
+++ kept-gate: *
+++ kept-view: *
+++ erased: *

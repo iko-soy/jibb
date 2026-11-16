@@ -1,0 +1,8 @@
+module kind: island
++$ model: [body=json]
++$ msg: %ok
+++ main: [init=$-(json [body=json]) [update=$-([%ok body=json] [body=json (list (cmd %ok))]) [view=$-([body=json] (element %ok)) subs=$-([body=json] (list (sub %ok)))]]]
+++ init: $-(json [body=json])
+++ update: $-([m=%ok s=[body=json]] [body=json (list (cmd %ok))])
+++ view: $-([body=json] (element %ok))
+++ subs: $-([body=json] (list (sub %ok)))

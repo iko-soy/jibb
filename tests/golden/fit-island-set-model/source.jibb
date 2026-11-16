@@ -1,0 +1,8 @@
+/- fixture
++$ model [seen=tags.fixture]
++$ msg %ok
+++ main (program init update view subs)
+++ init |= data=@t ^- model [seen=~]
+++ update |= [m=msg s=model] ^- [model (list (cmd msg))] [s ~]
+++ view |= s=model ^- (element msg) (text "ok")
+++ subs |= s=model ^- (list (sub msg)) ~

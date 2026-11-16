@@ -1,0 +1,4 @@
+source: Overview: island data and models contain no gates; an imported recursive mold such as `json`, which holds a map, contains none
+tests: An island whose data and model are imported `json` values checks as an island, and `json` values may be compared with `eq`
+expect: parses
+expect-types: island types

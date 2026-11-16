@@ -1,0 +1,7 @@
+++ f: types do not unify
+/tests/golden/fit-eq-gate-unit/source.jibb:1:54: expected type has type A where A contains no gates
+++ f |= [x=(unit $-(@ud @ud)) y=(unit $-(@ud @ud))] (eq x y)
+                                                     ^
+/tests/golden/fit-eq-gate-unit/source.jibb:1:57: actual type has type (unit $-(@ud @ud))
+++ f |= [x=(unit $-(@ud @ud)) y=(unit $-(@ud @ud))] (eq x y)
+                                                        ^

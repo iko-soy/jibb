@@ -1,0 +1,5 @@
+++ hidden ^- * same
+++ peek |= z=@ud
+  ?- hidden
+  [a b] %.y
+  * %.n

@@ -1,0 +1,41 @@
+(module
+  (sur 1:1 fixture)
+  (mold 2:1 model
+    (cell 2:10
+      (face 2:11 seen (ref 2:16 tags.fixture))))
+  (mold 3:1 msg (const 3:8 %ok))
+  (value 4:1 main
+    (group 4:9
+      (call 4:10 (wing 4:10 program) (wing 4:18 init) (wing 4:23 update) (wing 4:30 view) (wing 4:35 subs))))
+  (value 5:1 init
+    (gate 5:9
+      (face 5:12 data (aura 5:17 @t))
+      (cast 5:20
+        (ref 5:23 model)
+        (tuple 5:29
+          (face 5:30 seen (lit 5:35 ~))))))
+  (value 6:1 update
+    (gate 6:11
+      (cell 6:14
+        (face 6:15 m (ref 6:17 msg))
+        (face 6:21 s (ref 6:23 model)))
+      (cast 6:30
+        (cell 6:33
+          (ref 6:34 model)
+          (apply 6:40 list
+            (apply 6:46 cmd (ref 6:51 msg))))
+        (tuple 6:58 (wing 6:59 s) (lit 6:61 ~)))))
+  (value 7:1 view
+    (gate 7:9
+      (face 7:12 s (ref 7:14 model))
+      (cast 7:20
+        (apply 7:23 element (ref 7:32 msg))
+        (group 7:37
+          (call 7:38 (wing 7:38 text) (str 7:43 "ok"))))))
+  (value 8:1 subs
+    (gate 8:9
+      (face 8:12 s (ref 8:14 model))
+      (cast 8:20
+        (apply 8:23 list
+          (apply 8:29 sub (ref 8:34 msg)))
+        (lit 8:40 ~)))))

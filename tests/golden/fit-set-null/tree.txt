@@ -1,0 +1,14 @@
+(module
+  (sur 1:1 fixture)
+  (value 2:1 none
+    (cast 2:9 (ref 2:12 tags.fixture) (lit 2:25 ~)))
+  (value 3:1 is-none
+    (gate 3:12
+      (face 3:15 x (ref 3:17 tags.fixture))
+      (group 3:30
+        (call 3:31 (wing 3:31 eq) (wing 3:34 x) (lit 3:36 ~)))))
+  (value 4:1 none-is
+    (gate 4:12
+      (face 4:15 x (ref 4:17 tags.fixture))
+      (group 4:30
+        (call 4:31 (wing 4:31 eq) (lit 4:34 ~) (wing 4:36 x))))))

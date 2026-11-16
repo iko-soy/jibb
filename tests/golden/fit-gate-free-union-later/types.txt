@@ -1,0 +1,7 @@
+++ use: call's sample and argument types do not unify
+/tests/golden/fit-gate-free-union-later/source.jibb:7:9: called gate has type $-(choice choice)
+++ use (f 5)
+        ^
+/tests/golden/fit-gate-free-union-later/source.jibb:7:11: argument has type @ud
+++ use (f 5)
+          ^

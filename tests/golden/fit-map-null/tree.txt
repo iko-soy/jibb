@@ -1,0 +1,41 @@
+(module
+  (value 1:1 empty
+    (cast 1:10
+      (apply 1:13 map (aura 1:18 @t) (aura 1:21 @ud))
+      (lit 1:26 ~)))
+  (value 2:1 one
+    (group 2:8
+      (call 2:9 (wing 2:9 put.by) (lit 2:16 ~) (str 2:18 "a") (lit 2:22 1))))
+  (value 3:1 record
+    (cast 3:11
+      (cell 3:14
+        (face 3:15 counts
+          (apply 3:22 map (aura 3:27 @t) (aura 3:30 @ud))))
+      (tuple 3:36
+        (face 3:37 counts (lit 3:44 ~)))))
+  (value 4:1 is-empty
+    (gate 4:13
+      (face 4:16 m
+        (apply 4:18 map (aura 4:23 @t) (aura 4:26 @ud)))
+      (group 4:31
+        (call 4:32 (wing 4:32 eq) (wing 4:35 m) (lit 4:37 ~)))))
+  (value 5:1 empty-is
+    (gate 5:13
+      (face 5:16 m
+        (apply 5:18 map (aura 5:23 @t) (aura 5:26 @ud)))
+      (group 5:31
+        (call 5:32 (wing 5:32 eq) (lit 5:35 ~) (wing 5:37 m)))))
+  (value 6:1 either
+    (gate 6:11
+      (cell 6:14
+        (face 6:15 b (flag 6:17))
+        (face 6:19 m
+          (apply 6:21 map (aura 6:26 @t) (aura 6:29 @ud))))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 b)
+          (arm 8:3 (lit 8:3 %.y) (wing 8:7 m))
+          (arm 9:3 (lit 9:3 %.n) (lit 9:7 ~))))))
+  (value 10:1 missing
+    (group 10:12
+      (call 10:13 (wing 10:13 get.by) (wing 10:20 empty) (str 10:26 "a")))))

@@ -1,0 +1,5 @@
++$ choice
+  %a
+  %b
+++ by-choice |= k=choice (each ~[[key=k el=(text "a")]])
+++ by-unit |= k=(unit @ud) (each ~[[key=k el=(text "a")]])

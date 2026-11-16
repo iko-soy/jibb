@@ -1,0 +1,13 @@
++$ choice
+  %a
+  %b
+++ same-choice |= [x=choice y=choice] (eq x y)
+++ same-unit |= [x=(unit @ud) y=(unit @ud)] (eq x y)
+++ same-record |= [x=[v=choice] y=[v=choice]] (eq x y)
+++ is-a |= x=choice (eq x %a)
+++ a-is |= x=choice (eq %a x)
+++ is-empty |= xs=(list @ud) (eq ~ xs)
+++ done |= s=choice
+  ?- (eq %a s)
+  %.y 1
+  %.n 0

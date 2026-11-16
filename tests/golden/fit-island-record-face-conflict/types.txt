@@ -1,0 +1,7 @@
+++ main: local result `init` does not unify with [where=qath]: [here=qath] versus [where=qath]
+/tests/golden/fit-island-record-face-conflict/source.jibb:4:22: local gate result has type [here=qath]
+++ init |= data=qath ^- model [where=data]
+                     ^
+/tests/golden/fit-island-record-face-conflict/source.jibb:3:10: call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]
+++ main (program init update view subs)
+         ^

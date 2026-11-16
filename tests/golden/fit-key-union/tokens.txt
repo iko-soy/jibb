@@ -1,0 +1,57 @@
+1:1 glyph +$
+1:4 name choice
+2:3 INDENT
+2:3 lit %a
+3:3 NEWLINE
+3:3 lit %b
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name by-choice
+4:14 glyph |=
+4:17 name k
+4:18 tight glyph =
+4:19 tight name choice
+4:26 glyph (
+4:27 tight name each
+4:32 glyph ~[
+4:34 tight glyph [
+4:35 tight name key
+4:38 tight glyph =
+4:39 tight name k
+4:41 name el
+4:43 tight glyph =
+4:44 tight glyph (
+4:45 tight name text
+4:50 str "a"
+4:53 tight glyph )
+4:54 tight glyph ]
+4:55 tight glyph ]
+4:56 tight glyph )
+5:1 NEWLINE
+5:1 glyph ++
+5:4 name by-unit
+5:12 glyph |=
+5:15 name k
+5:16 tight glyph =
+5:17 tight glyph (
+5:18 tight name unit
+5:23 aura @ud
+5:26 tight glyph )
+5:28 glyph (
+5:29 tight name each
+5:34 glyph ~[
+5:36 tight glyph [
+5:37 tight name key
+5:40 tight glyph =
+5:41 tight name k
+5:43 name el
+5:45 tight glyph =
+5:46 tight glyph (
+5:47 tight name text
+5:52 str "a"
+5:55 tight glyph )
+5:56 tight glyph ]
+5:57 tight glyph ]
+5:58 tight glyph )
+5:59 NEWLINE

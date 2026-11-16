@@ -1,0 +1,10 @@
+++ empty ^- (map @t @ud) ~
+++ one (put.by ~ "a" 1)
+++ record ^- [counts=(map @t @ud)] [counts=~]
+++ is-empty |= m=(map @t @ud) (eq m ~)
+++ empty-is |= m=(map @t @ud) (eq ~ m)
+++ either |= [b=? m=(map @t @ud)]
+  ?- b
+  %.y m
+  %.n ~
+++ missing (get.by empty "a")

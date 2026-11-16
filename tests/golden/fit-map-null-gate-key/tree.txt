@@ -1,0 +1,4 @@
+(module
+  (value 1:1 bad
+    (group 1:8
+      (call 1:9 (wing 1:9 put.by) (lit 1:16 ~) (wing 1:18 same) (lit 1:23 1)))))

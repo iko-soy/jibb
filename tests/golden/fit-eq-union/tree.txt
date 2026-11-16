@@ -1,0 +1,55 @@
+(module
+  (mold 1:1 choice
+    (union 2:3 (const 2:3 %a) (const 3:3 %b)))
+  (value 4:1 same-choice
+    (gate 4:16
+      (cell 4:19
+        (face 4:20 x (ref 4:22 choice))
+        (face 4:29 y (ref 4:31 choice)))
+      (group 4:39
+        (call 4:40 (wing 4:40 eq) (wing 4:43 x) (wing 4:45 y)))))
+  (value 5:1 same-unit
+    (gate 5:14
+      (cell 5:17
+        (face 5:18 x
+          (apply 5:20 unit (aura 5:26 @ud)))
+        (face 5:31 y
+          (apply 5:33 unit (aura 5:39 @ud))))
+      (group 5:45
+        (call 5:46 (wing 5:46 eq) (wing 5:49 x) (wing 5:51 y)))))
+  (value 6:1 same-record
+    (gate 6:16
+      (cell 6:19
+        (face 6:20 x
+          (cell 6:22
+            (face 6:23 v (ref 6:25 choice))))
+        (face 6:33 y
+          (cell 6:35
+            (face 6:36 v (ref 6:38 choice)))))
+      (group 6:47
+        (call 6:48 (wing 6:48 eq) (wing 6:51 x) (wing 6:53 y)))))
+  (value 7:1 is-a
+    (gate 7:9
+      (face 7:12 x (ref 7:14 choice))
+      (group 7:21
+        (call 7:22 (wing 7:22 eq) (wing 7:25 x) (lit 7:27 %a)))))
+  (value 8:1 a-is
+    (gate 8:9
+      (face 8:12 x (ref 8:14 choice))
+      (group 8:21
+        (call 8:22 (wing 8:22 eq) (lit 8:25 %a) (wing 8:28 x)))))
+  (value 9:1 is-empty
+    (gate 9:13
+      (face 9:16 xs
+        (apply 9:19 list (aura 9:25 @ud)))
+      (group 9:30
+        (call 9:31 (wing 9:31 eq) (lit 9:34 ~) (wing 9:36 xs)))))
+  (value 10:1 done
+    (gate 10:9
+      (face 10:12 s (ref 10:14 choice))
+      (body 11:3
+        (branch 11:3
+          (group 11:6
+            (call 11:7 (wing 11:7 eq) (lit 11:10 %a) (wing 11:13 s)))
+          (arm 12:3 (lit 12:3 %.y) (lit 12:7 1))
+          (arm 13:3 (lit 13:3 %.n) (lit 13:7 0)))))))

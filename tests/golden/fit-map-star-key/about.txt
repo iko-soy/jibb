@@ -1,0 +1,4 @@
+source: Decisions, Gates in `*`; Core language, Values and invariants: map and set keys are first-order
+tests: A map mold whose key is `*` is rejected at the key, since a gate or an element may fit `*`
+expect: parses
+expect-types: full checker error at the key

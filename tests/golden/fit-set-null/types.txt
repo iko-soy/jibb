@@ -1,0 +1,4 @@
+module kind: library
+++ none: (set @tas)
+++ is-none: $-((set @tas) ?)
+++ none-is: $-((set @tas) ?)

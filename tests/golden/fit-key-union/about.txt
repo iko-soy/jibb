@@ -1,0 +1,4 @@
+source: Core language, Values and invariants: `eq`'s arguments and map and set keys are first-order, and a gate never tells a union's cases apart; overview: only gates are excluded; Overview, each: keys contain no gates
+tests: `each` keys of a named union and of a unit check, since their cases contain no gates
+expect: parses
+expect-types: library types

@@ -1,0 +1,4 @@
+/- fixture
+++ none ^- tags.fixture ~
+++ is-none |= x=tags.fixture (eq x ~)
+++ none-is |= x=tags.fixture (eq ~ x)

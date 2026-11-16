@@ -1,0 +1,4 @@
+source: Grammar, Molds: a one-field record such as `[where=qath]` is a mold; the program's gates take the model at a sample position whose binder is a positional label, not a value face; Overview: imported recursive molds such as `json`
+tests: An island whose model is a record holding imported `json` checks as an island, through the same sample-position pairing as a Jibb recursive mold
+expect: parses
+expect-types: island types

@@ -1,0 +1,6 @@
+(module
+  (value 1:1 f
+    (gate 1:6
+      (face 1:9 m
+        (apply 1:11 map (noun 1:16) (aura 1:18 @ud)))
+      (wing 1:23 m))))

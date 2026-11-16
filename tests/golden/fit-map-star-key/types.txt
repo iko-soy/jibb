@@ -1,0 +1,10 @@
+++ f: map keys cannot contain `*`, which a gate or an element may fit
+/lib/jibb/prelude.jibb:793:4: earlier binding
++$ map |$ [K V] (map.hoon K V)
+   ^
+/tests/golden/fit-map-star-key/source.jibb:1:12: collection has type (map A B) where A contains no gates
+++ f |= m=(map * @ud) m
+           ^
+/tests/golden/fit-map-star-key/source.jibb:1:16: key has type *
+++ f |= m=(map * @ud) m
+               ^

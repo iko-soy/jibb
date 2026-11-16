@@ -1,0 +1,4 @@
+source: Core language, Values and invariants: `eq`'s arguments and map and set keys are first-order, and a gate never tells a union's cases apart; overview: only gates are excluded
+tests: Equality on values of a named union, a unit and a record holding a union checks, with a tag or `~` on either side; the union is proved gate-free from its cases
+expect: parses
+expect-types: library types

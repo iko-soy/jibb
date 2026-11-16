@@ -1,0 +1,28 @@
+(module
+  (mold 1:1 choice
+    (union 2:3 (const 2:3 %a) (const 3:3 %b)))
+  (value 4:1 by-choice
+    (gate 4:14
+      (face 4:17 k (ref 4:19 choice))
+      (group 4:26
+        (call 4:27
+          (wing 4:27 each)
+          (list 4:32
+            (tuple 4:34
+              (face 4:35 key (wing 4:39 k))
+              (face 4:41 el
+                (group 4:44
+                  (call 4:45 (wing 4:45 text) (str 4:50 "a"))))))))))
+  (value 5:1 by-unit
+    (gate 5:12
+      (face 5:15 k
+        (apply 5:17 unit (aura 5:23 @ud)))
+      (group 5:28
+        (call 5:29
+          (wing 5:29 each)
+          (list 5:34
+            (tuple 5:36
+              (face 5:37 key (wing 5:41 k))
+              (face 5:43 el
+                (group 5:46
+                  (call 5:47 (wing 5:47 text) (str 5:52 "a")))))))))))

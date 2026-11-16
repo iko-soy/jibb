@@ -1,0 +1,7 @@
+++ m: cast mold and expression type do not unify
+/tests/golden/fit-map-tag/source.jibb:1:9: cast mold has type (map @t @ud)
+++ m ^- (map @t @ud) %foo
+        ^
+/tests/golden/fit-map-tag/source.jibb:1:22: expression has type A; A remains unresolved for tag `%foo`
+++ m ^- (map @t @ud) %foo
+                     ^

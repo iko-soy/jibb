@@ -1,0 +1,4 @@
+source: Grammar, Molds: a one-field record such as `[where=qath]` is a mold; the program's gates take the model at a sample position whose binder is a positional label, not a value face; different value faces at one position conflict
+tests: A view whose sample record names its recursive field `here` does not fit a model whose field is `where`; the program call is still rejected
+expect: parses
+expect-types: rejected at the program call

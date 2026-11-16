@@ -1,0 +1,10 @@
++$ color
+  %red
+  %blue
+++ paint |= c=color c
+++ cast |= x
+  ++ ok (eq x x)
+  ^- color x
+++ call |= x
+  ++ ok (eq x x)
+  (paint x)

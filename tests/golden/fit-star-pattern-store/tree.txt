@@ -1,0 +1,21 @@
+(module
+  (value 1:1 s
+    (group 1:6
+      (call 1:7
+        (wing 1:7 store)
+        (lit 1:13 0)
+        (gate-wide 1:15
+          (cell 1:18
+            (face 1:19 a (aura 1:21 @ud))
+            (face 1:25 st (aura 1:28 @ud)))
+          (wing 1:33 st)))))
+  (value 2:1 peek
+    (gate 2:9
+      (face 2:12 z (aura 2:14 @ud))
+      (body 3:3
+        (branch 3:3
+          (wing 3:6 update.s)
+          (arm 4:3
+            (cell 4:3 (bind 4:4 a) (bind 4:6 b))
+            (lit 4:9 %.y))
+          (arm 5:3 (any 5:3) (lit 5:5 %.n)))))))

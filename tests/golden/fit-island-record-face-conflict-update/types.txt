@@ -1,0 +1,4 @@
+++ main: expression constraints could not be solved
+/tests/golden/fit-island-record-face-conflict-update/source.jibb:3:10: call
+++ main (program init update view subs)
+         ^

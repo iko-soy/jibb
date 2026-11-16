@@ -1,0 +1,8 @@
+/- fixture
++$ msg %ok
+++ main (program init update view subs)
+++ init |= data=doc.fixture data
+++ update |= [m=msg s=doc.fixture] ^- [doc.fixture (list (cmd msg))] [s ~]
+++ view |= s=doc.fixture ^- (element msg) (text "ok")
+++ subs |= s=doc.fixture ^- (list (sub msg)) ~
+++ same-doc |= [x=doc.fixture y=doc.fixture] (eq x y)

@@ -1,0 +1,9 @@
+module kind: library
++$ choice: choice
+++ same-choice: $-([x=choice y=choice] ?)
+++ same-unit: $-([x=(unit @ud) y=(unit @ud)] ?)
+++ same-record: $-([x=[v=choice] y=[v=choice]] ?)
+++ is-a: $-(choice ?)
+++ a-is: $-(choice ?)
+++ is-empty: $-((list @ud) ?)
+++ done: $-(choice @ud)

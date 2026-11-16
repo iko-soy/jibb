@@ -1,0 +1,42 @@
+(module
+  (sur 1:1 fixture)
+  (mold 2:1 msg (const 2:8 %ok))
+  (value 3:1 main
+    (group 3:9
+      (call 3:10 (wing 3:10 program) (wing 3:18 init) (wing 3:23 update) (wing 3:30 view) (wing 3:35 subs))))
+  (value 4:1 init
+    (gate 4:9
+      (face 4:12 data (ref 4:17 doc.fixture))
+      (wing 4:29 data)))
+  (value 5:1 update
+    (gate 5:11
+      (cell 5:14
+        (face 5:15 m (ref 5:17 msg))
+        (face 5:21 s (ref 5:23 doc.fixture)))
+      (cast 5:36
+        (cell 5:39
+          (ref 5:40 doc.fixture)
+          (apply 5:52 list
+            (apply 5:58 cmd (ref 5:63 msg))))
+        (tuple 5:70 (wing 5:71 s) (lit 5:73 ~)))))
+  (value 6:1 view
+    (gate 6:9
+      (face 6:12 s (ref 6:14 doc.fixture))
+      (cast 6:26
+        (apply 6:29 element (ref 6:38 msg))
+        (group 6:43
+          (call 6:44 (wing 6:44 text) (str 6:49 "ok"))))))
+  (value 7:1 subs
+    (gate 7:9
+      (face 7:12 s (ref 7:14 doc.fixture))
+      (cast 7:26
+        (apply 7:29 list
+          (apply 7:35 sub (ref 7:40 msg)))
+        (lit 7:46 ~))))
+  (value 8:1 same-doc
+    (gate 8:13
+      (cell 8:16
+        (face 8:17 x (ref 8:19 doc.fixture))
+        (face 8:31 y (ref 8:33 doc.fixture)))
+      (group 8:46
+        (call 8:47 (wing 8:47 eq) (wing 8:50 x) (wing 8:52 y))))))

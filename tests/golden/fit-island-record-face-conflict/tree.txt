@@ -1,0 +1,42 @@
+(module
+  (mold 1:1 model
+    (cell 1:10
+      (face 1:11 where (ref 1:17 qath))))
+  (mold 2:1 msg (const 2:8 %ok))
+  (value 3:1 main
+    (group 3:9
+      (call 3:10 (wing 3:10 program) (wing 3:18 init) (wing 3:23 update) (wing 3:30 view) (wing 3:35 subs))))
+  (value 4:1 init
+    (gate 4:9
+      (face 4:12 data (ref 4:17 qath))
+      (cast 4:22
+        (ref 4:25 model)
+        (tuple 4:31
+          (face 4:32 where (wing 4:38 data))))))
+  (value 5:1 update
+    (gate 5:11
+      (cell 5:14
+        (face 5:15 m (ref 5:17 msg))
+        (face 5:21 s (ref 5:23 model)))
+      (cast 5:30
+        (cell 5:33
+          (ref 5:34 model)
+          (apply 5:40 list
+            (apply 5:46 cmd (ref 5:51 msg))))
+        (tuple 5:58 (wing 5:59 s) (lit 5:61 ~)))))
+  (value 6:1 view
+    (gate 6:9
+      (face 6:12 s
+        (cell 6:14
+          (face 6:15 here (ref 6:20 qath))))
+      (cast 6:26
+        (apply 6:29 element (ref 6:38 msg))
+        (group 6:43
+          (call 6:44 (wing 6:44 text) (str 6:49 "ok"))))))
+  (value 7:1 subs
+    (gate 7:9
+      (face 7:12 s (ref 7:14 model))
+      (cast 7:20
+        (apply 7:23 list
+          (apply 7:29 sub (ref 7:34 msg)))
+        (lit 7:40 ~)))))

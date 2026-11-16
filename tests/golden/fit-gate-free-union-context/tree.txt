@@ -1,0 +1,24 @@
+(module
+  (mold 1:1 color
+    (union 2:3 (const 2:3 %red) (const 3:3 %blue)))
+  (value 4:1 paint
+    (gate 4:10
+      (face 4:13 c (ref 4:15 color))
+      (wing 4:21 c)))
+  (value 5:1 cast
+    (gate 5:9
+      (bind 5:12 x)
+      (body 6:3
+        (value 6:3 ok
+          (group 6:9
+            (call 6:10 (wing 6:10 eq) (wing 6:13 x) (wing 6:15 x))))
+        (cast 7:3 (ref 7:6 color) (wing 7:12 x)))))
+  (value 8:1 call
+    (gate 8:9
+      (bind 8:12 x)
+      (body 9:3
+        (value 9:3 ok
+          (group 9:9
+            (call 9:10 (wing 9:10 eq) (wing 9:13 x) (wing 9:15 x))))
+        (group 10:3
+          (call 10:4 (wing 10:4 paint) (wing 10:10 x)))))))

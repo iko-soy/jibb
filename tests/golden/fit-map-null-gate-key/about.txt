@@ -1,0 +1,4 @@
+source: Grammar, Literals: `~` is the `~` case of any union with one, such as `(unit A)`, `(list A)`, `(map K V)` or `(set A)`; map keys contain no gates
+tests: Once `~` is a map, a gate key given to `put.by` is rejected by the gate-free key constraint
+expect: parses
+expect-types: full checker error at the call

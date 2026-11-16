@@ -1,0 +1,4 @@
+source: Core language, Values and invariants: `eq`'s arguments and map and set keys are first-order, and a gate never tells a union's cases apart; overview: only gates are excluded
+tests: A sample constrained gate-free by `eq` takes a union context from a cast and from a call, as an unconstrained sample does
+expect: parses
+expect-types: library types

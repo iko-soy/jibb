@@ -1,0 +1,4 @@
+source: Grammar, Literals: `~` is the `~` case of any union with one, such as `(set A)`
+tests: An imported `(set @tas)` takes `~` by a cast and on either side of `eq`
+expect: parses
+expect-types: library types

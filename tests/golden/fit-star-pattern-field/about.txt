@@ -1,0 +1,4 @@
+source: Decisions, Gates in `*`, and Grammar, Molds: a `*` value can be bound and passed on but not inspected; a literal or cell pattern where the subject's type is `*` is an error
+tests: A cell pattern nested at a record field of type `*` is rejected at the nested pattern; the subject itself is a cell
+expect: parses
+expect-types: full checker error at the nested cell pattern

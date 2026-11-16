@@ -1,0 +1,8 @@
+module kind: island
++$ msg: %ok
+++ main: [init=$-(json json) [update=$-([%ok json] [json (list (cmd %ok))]) [view=$-(json (element %ok)) subs=$-(json (list (sub %ok)))]]]
+++ init: $-(json json)
+++ update: $-([m=%ok s=json] [json (list (cmd %ok))])
+++ view: $-(json (element %ok))
+++ subs: $-(json (list (sub %ok)))
+++ same-doc: $-([x=json y=json] ?)

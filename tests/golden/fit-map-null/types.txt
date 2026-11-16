@@ -1,0 +1,8 @@
+module kind: library
+++ empty: (map @t @ud)
+++ one: (map @t @ud)
+++ record: [counts=(map @t @ud)]
+++ is-empty: $-((map @t @ud) ?)
+++ empty-is: $-((map @t @ud) ?)
+++ either: $-([b=? m=(map @t @ud)] (map @t @ud))
+++ missing: (unit @ud)

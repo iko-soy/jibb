@@ -1,0 +1,7 @@
+++ words: a cell pattern cannot take apart a `*` value; bind it to a name or use `*`
+/tests/golden/fit-star-pattern-element/source.jibb:3:3: cell pattern
+  [s t w] w
+  ^
+/tests/golden/fit-star-pattern-element/source.jibb:2:6: subject has type *
+  ?- x
+     ^

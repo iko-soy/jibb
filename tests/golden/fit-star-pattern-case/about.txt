@@ -1,0 +1,4 @@
+source: Decisions, Gates in `*`, and Grammar, Molds: a `*` value can be bound and passed on but not inspected; a literal or cell pattern where the subject's type is `*` is an error
+tests: A cell pattern at the `*` field of one union case (`toon`'s `%0`) is rejected; the case that cannot match is not consulted
+expect: parses
+expect-types: full checker error at the nested cell pattern

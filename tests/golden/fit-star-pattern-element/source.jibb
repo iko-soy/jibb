@@ -1,0 +1,5 @@
+++ words |= x=* ^- *
+  ?- x
+  [s t w] w
+  * 0
+++ leak (words (text "secret"))

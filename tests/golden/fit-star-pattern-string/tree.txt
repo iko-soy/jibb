@@ -1,0 +1,9 @@
+(module
+  (value 1:1 inspect
+    (gate 1:12
+      (face 1:15 x (noun 1:17))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 x)
+          (arm 3:3 (str 3:3 "a") (lit 3:7 %.y))
+          (arm 4:3 (any 4:3) (lit 4:5 %.n)))))))

@@ -1,0 +1,4 @@
+source: Core language, Values and invariants: `eq`'s arguments and map and set keys are first-order, and a gate never tells a union's cases apart; overview: only gates are excluded
+tests: Equality on units of gates is rejected: the union holds a reachable gate, so it cannot fit `eq`'s gate-free sample
+expect: parses
+expect-types: full checker error at the call

@@ -1,0 +1,13 @@
+(module
+  (value 1:1 hidden
+    (cast 1:11 (noun 1:14) (wing 1:16 same)))
+  (value 2:1 peek
+    (gate 2:9
+      (face 2:12 z (aura 2:14 @ud))
+      (body 3:3
+        (branch 3:3
+          (wing 3:6 hidden)
+          (arm 4:3
+            (cell 4:3 (bind 4:4 a) (bind 4:6 b))
+            (lit 4:9 %.y))
+          (arm 5:3 (any 5:3) (lit 5:5 %.n)))))))

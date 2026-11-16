@@ -1,0 +1,26 @@
+++ keep |= x=*
+  ?- x
+  y y
+++ ignore |= x=*
+  ?- x
+  * 0
+++ star-field |= x=[n=@ud v=*]
+  ?- x
+  [0 v] v
+  [n v] v
+++ result |= t=toon
+  ?- t
+  [%0 p] 0
+  [%1 p] 1
+  [%2 p] 2
+++ maybe |= u=(unit *)
+  ?- u
+  ~ 0
+  [~ v] 1
+++ items |= xs=(list *)
+  ?- xs
+  ~ 0
+  [i t] 1
+++ kept-gate (keep same)
+++ kept-view (keep (text "shown"))
+++ erased ^- * |=(n=@ud (add n 1))

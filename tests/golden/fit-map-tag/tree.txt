@@ -1,0 +1,5 @@
+(module
+  (value 1:1 m
+    (cast 1:6
+      (apply 1:9 map (aura 1:14 @t) (aura 1:17 @ud))
+      (lit 1:22 %foo))))

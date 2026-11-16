@@ -1,0 +1,5 @@
+module kind: library
++$ color: color
+++ paint: $-(color color)
+++ cast: $-(color color)
+++ call: $-(color color)

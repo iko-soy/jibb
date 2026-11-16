@@ -1,0 +1,4 @@
+source: Overview: island data and models contain no gates; maps and sets of gate-free keys and values contain none
+tests: An island model holding a map of gates is rejected at the gate-bearing field
+expect: parses
+expect-types: full checker error at the model field
