@@ -7,6 +7,12 @@ import { rawBitNot, rawDatePack, rawDateUnpack, rawParseAtom, rawSeal } from './
 
 export const loweredNatives = Object.freeze(Object.assign(Object.create(null), {
   add: atom.add,
+  sub: atom.sub,
+  mul: atom.mul,
+  dvr: atom.dvr,
+  div: atom.div,
+  mod: atom.mod,
+  pow: atom.pow,
   dec: atom.dec,
   gth: atom.gth,
   eq: atom.eq,

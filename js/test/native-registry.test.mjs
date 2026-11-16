@@ -6,8 +6,9 @@ import { cord, listToArray } from '../natives/helpers.mjs';
 import { loweredNatives } from '../natives/lowered.mjs';
 
 test('browser native table is immutable, own-only, and matches checked lowering in Node', () => {
-  const names = ['add', 'dec', 'gth', 'eq', 'lent', 'trip', 'tuba', 'crip', 'tufa',
-    'join', 'scot', 'scow', 'year', 'yore', 'parse-atom', 'bit-not', 'map-get', 'map-put', 'raw-seal'];
+  const names = ['add', 'sub', 'mul', 'dvr', 'div', 'mod', 'pow', 'dec', 'gth', 'eq', 'lent',
+    'trip', 'tuba', 'crip', 'tufa', 'join', 'scot', 'scow', 'year', 'yore', 'parse-atom',
+    'bit-not', 'map-get', 'map-put', 'raw-seal'];
   const node = createNativeRegistry(names);
   assert.deepEqual(Object.keys(loweredNatives), names);
   assert.equal(Object.getPrototypeOf(loweredNatives), null);

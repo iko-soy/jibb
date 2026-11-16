@@ -152,6 +152,34 @@ export function mul(sample) {
   return left * right;
 }
 
+// [quotient remainder], crashing on a zero divisor as Hoon's +dvr does.
+function divide(sample, label) {
+  const [left, right] = atomPair(sample, label);
+  if (right === 0n) crash(label, 'divide by zero');
+  return [left / right, left % right];
+}
+
+export function dvr(sample) {
+  return divide(sample, 'dvr');
+}
+
+export function div(sample) {
+  return divide(sample, 'div')[0];
+}
+
+export function mod(sample) {
+  return divide(sample, 'mod')[1];
+}
+
+export function pow(sample) {
+  const [base, exponent] = atomPair(sample, 'pow');
+  try {
+    return base ** exponent;
+  } catch {
+    return crash('pow', 'power too large');
+  }
+}
+
 export function inc(value) {
   return atom(value, 'inc') + 1n;
 }

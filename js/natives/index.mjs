@@ -8,8 +8,6 @@ import { loweredNatives } from './lowered.mjs';
 
 const implementations = {
   ...loweredNatives,
-  sub: atom.sub,
-  mul: atom.mul,
   inc: atom.inc,
   gte: atom.gte,
   lth: atom.lth,

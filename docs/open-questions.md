@@ -26,13 +26,12 @@ None remain open. The typography scale and whether a build that finishes with er
 
 ## Review rulings waiting for @iko
 
-The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language and spec questions. Montelot answered them on 2026-11-02 as proposals. Each waits for @iko to confirm before it goes in [Decisions](spec/decisions.md) and the code changes. Full-checker diagnostics for a proposal's examples do not settle the separate language question.
+The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language and spec questions. Montelot answered them on 2026-11-02 as proposals. Each waits for @iko to confirm before it goes in [Decisions](spec/decisions.md) and the code changes. Question 18 was settled on 2026-11-16 and moved there, as Gates in `*`. Full-checker diagnostics for a proposal's examples do not settle the separate language question.
 
 | # | Question | Proposed answer | Refs |
 | --- | --- | --- | --- |
 | [16](reviews/2026-11-02-questions.md) | Which auras may a term literal fit? Today `^- @tas %1.000` is accepted and `^- @ud %1.000` is rejected | Follow Hoon: `%1.000` is `@ud` and `%&` is `?` | A20 |
 | [17](reviews/2026-11-02-questions.md) | May a name term fit `@t`, as `@tas` nests in `@t` in Hoon? | Yes | A20 |
-| [18](reviews/2026-11-02-questions.md) | May a gate fit `*`? The prelude's `element` erases gates into `*` | Yes, and say in the spec that `*` may hold gates | A23 |
 | [19](reviews/2026-11-02-questions.md) | Where are `[]` and `m()`, both decided errors, rejected? | In the parser, at the closer, with golden cases | A6, A100 |
 | [20](reviews/2026-11-02-questions.md) | Is `[a=@ud [a=@t b=?]]` one record or two scopes? | One record: the duplicate `a` is an error | A30 |
 | [21](reviews/2026-11-02-questions.md) | May `/%  %foo` and `++ foo 1` share a name? | Yes: molds and values have separate namespaces | A25 |

@@ -7,6 +7,10 @@ import {
   add,
   sub,
   mul,
+  dvr,
+  div,
+  mod,
+  pow,
   inc,
   dec,
   gth,
@@ -93,6 +97,28 @@ test('arithmetic crashes on underflow, malformed samples, and non-atoms', () => 
   for (const gate of [inc, dec]) {
     for (const value of [-1n, 0, 1, '1', null, undefined, [], [0n, 0n]]) {
       throwsCore(() => gate(value));
+    }
+  }
+});
+
+test('division, remainder and powers follow Hoon dvr, div, mod and pow', () => {
+  const huge = 2n ** 4096n + 123_456_789n;
+  assert.deepEqual(dvr([17n, 5n]), [3n, 2n]);
+  assert.deepEqual(dvr([4n, 9n]), [0n, 4n]);
+  assert.deepEqual(dvr([0n, 7n]), [0n, 0n]);
+  assert.equal(div([huge, 2n ** 4096n]), 1n);
+  assert.equal(mod([huge, 2n ** 4096n]), 123_456_789n);
+  assert.equal(div([9n, 3n]), 3n);
+  assert.equal(mod([9n, 3n]), 0n);
+  assert.equal(pow([2n, 100n]), 2n ** 100n);
+  assert.equal(pow([0n, 0n]), 1n);
+  assert.equal(pow([7n, 0n]), 1n);
+  assert.equal(pow([0n, 5n]), 0n);
+  for (const gate of [dvr, div, mod]) throwsCore(() => gate([5n, 0n]), /divide by zero/);
+  throwsCore(() => pow([2n, 2n ** 64n]), /too large/);
+  for (const gate of [dvr, div, mod, pow]) {
+    for (const sample of [0n, [0n], [0n, 0], [-1n, 1n], [[1n, 1n], 1n]]) {
+      throwsCore(() => gate(sample));
     }
   }
 });

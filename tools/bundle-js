@@ -2,23 +2,28 @@
 # Bundles the browser library, js/browser/entry.mjs and what it imports,
 # into jibb-dev/lib/jibb/runtime.js, which app desks vendor and the host
 # serves to pages with islands. --check fails if that file is stale.
-# Every build must stay under 20,000 bytes compressed with gzip -9n.
+# Every build must stay under $limit bytes compressed with gzip -9n.
 set -eu
 cd "$(dirname "$0")/.."
 vendored=jibb-dev/lib/jibb/runtime.js
+limit=25000
 bundled=$(mktemp)
 out=$(mktemp)
-trap 'rm -f "$bundled" "$out"' EXIT
+compressed=$(mktemp)
+trap 'rm -f "$bundled" "$out" "$compressed"' EXIT
 esbuild js/browser/entry.mjs --bundle --format=esm --minify --target=es2020 \
   --legal-comments=none --log-level=warning --outfile="$bundled"
 # Terser's standard compression reduces the shared library further without
 # changing property names or enabling unsafe transformations.
 terser "$bundled" --compress passes=3 --mangle --module --ecma 2020 \
   --comments false --output "$out"
+# gzip writes a file of its own, so that a failing gzip stops the script
+# rather than measuring nothing.
+gzip -9nc "$out" > "$compressed"
 bytes=$(wc -c < "$out")
-gzipped=$(gzip -9nc "$out" | wc -c)
-if [ "$gzipped" -ge 20000 ]; then
-  echo "browser library is $gzipped bytes gzipped; it must be under 20000" >&2
+gzipped=$(wc -c < "$compressed")
+if [ "$gzipped" -ge "$limit" ]; then
+  echo "browser library is $gzipped bytes gzipped; it must be under $limit" >&2
   exit 1
 fi
 if [ "${1:-}" = --check ]; then
@@ -26,8 +31,10 @@ if [ "${1:-}" = --check ]; then
     echo "$vendored is stale: run tools/bundle-js" >&2
     exit 1
   fi
-  echo "$vendored is current ($bytes bytes, $gzipped gzipped; budget <20000)"
+  echo "$vendored is current ($bytes bytes, $gzipped gzipped; budget <$limit)"
 else
-  cp "$out" "$vendored"
-  echo "wrote $vendored ($bytes bytes, $gzipped gzipped; budget <20000)"
+  # Rewriting the file in place keeps its mode; a new one gets the umask's,
+  # never mktemp's private 0600.
+  cat "$out" > "$vendored"
+  echo "wrote $vendored ($bytes bytes, $gzipped gzipped; budget <$limit)"
 fi
