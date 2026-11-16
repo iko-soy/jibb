@@ -13,7 +13,7 @@ import { fakeEyre, MockChannel, settle } from './runtime-page.mjs';
 const textElement = value => rawSeal([cord('text'), cord(String(value))]);
 const agentWatch = (agent, receive) => [cord('watch'), [cord('agent'), [cord('api'), [cord('state'),
   [cord(agent), [arrayToList([cord('state')]), [0n, receive]]]]]]];
-const agentPoke = (agent, reply) => [cord('poke'), [[cord('agent'), [cord(agent), [cord('mark'), 1n]]], reply]];
+const agentPoke = (agent, reply, value = 1n) => [cord('poke'), [[cord('agent'), [cord(agent), [cord('mark'), value]]], reply]];
 
 function mount(program, options = {}) {
   const document = options.document ?? createFakeDocument();
@@ -231,6 +231,32 @@ test('a poke whose PUT fails gets an error reply, and a failed subscribe counts 
   } finally {
     process.off('unhandledRejection', onRejection);
   }
+});
+
+test('a gate in a raw agent poke payload fails its reply without crashing or sending', async () => {
+  const eyre = fakeEyre();
+  const channel = new Channel('gate-poke', { fetchImpl: eyre.fetchImpl });
+  const replies = [];
+  const { island, effects, crashes } = mount({
+    update: ([message, model]) => {
+      if (message === 1n) {
+        return [model, arrayToList([agentPoke('ledger', error => [cord('reply'), error], () => 0n)])];
+      }
+      if (Array.isArray(message)) {
+        replies.push(message[1]);
+        return [model, 0n];
+      }
+      return [message, 0n];
+    },
+  }, { channel });
+  island.send(1n);
+  await settle();
+  assert.deepEqual(replies, [[0n, cord('jam: functions are not nouns')]]);
+  assert.equal(eyre.puts.length, 0);
+  assert.equal(effects.pokes.size, 0);
+  assert.deepEqual(crashes, []);
+  island.send(2n);
+  assert.equal(island.model, 2n, 'the island still handles later messages');
 });
 
 test('a hidden page\'s DELETE goes at once, with keepalive, and PUTs still queued then never go', async () => {

@@ -1,0 +1,3 @@
+source: Hoon 135 date reader parity with Hoon 137 under eval.
+tests: normalization does not repair a partially valid zero-padded date.
+expect: error at 1:12 — normalization does not repair the partial date, and the original diagnostic at `x` is retained.

@@ -346,7 +346,7 @@ function decode(sealed, paths) {
     }
     case 'form': {
       const [message, children] = pair(payload, 'form');
-      return element('form', {}, items(children, 'form children').map(child), {
+      return element('div', {}, items(children, 'form children').map(child), {
         type: 'form', message,
       });
     }

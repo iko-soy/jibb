@@ -59,7 +59,7 @@ pub(crate) enum Printer {
 
 /// What the evaluator needs from the checked types, keyed by the address of
 /// the expression it belongs to, so evaluation never rebuilds types.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub(crate) struct Elaboration {
     /// The steps from a wing's base value to its field.
     pub(crate) wings: HashMap<usize, Vec<Step>>,
@@ -102,6 +102,7 @@ enum Binding {
 
 /// An interpolated or traced expression whose printer is chosen once its
 /// definition's types are known.
+#[derive(Clone)]
 struct PendingPrinter {
     key: usize,
     typ: Type,
@@ -111,6 +112,7 @@ struct PendingPrinter {
 
 /// A decimal literal waiting for its aura: it is a `@ud` unless its context
 /// fixes another aura it fits, or its `++` is generic over it.
+#[derive(Clone)]
 struct PendingNumber {
     variable: TypeVar,
     value: BigUint,
@@ -118,6 +120,7 @@ struct PendingNumber {
 }
 
 /// A tag, `~` or constructor waiting for the union its variable becomes.
+#[derive(Clone)]
 struct PendingTag {
     variable: TypeVar,
     kind: PendingTagKind,
@@ -147,6 +150,7 @@ enum PatternMatch {
     None,
 }
 
+#[derive(Clone)]
 struct Checker<'a> {
     module: &'a Module,
     mold_definitions: BTreeMap<&'a str, (&'a MoldDefinition, Span)>,
@@ -1182,18 +1186,38 @@ impl<'a> Checker<'a> {
                 self.validate_union(mold)?;
             }
             let dependencies = value_dependencies(&value_definitions);
-            for group in strongly_connected(&dependencies) {
-                let schemes = self.check_group(
-                    &group,
-                    &value_definitions,
-                    &dependencies,
-                    variables,
-                    environment,
-                    false,
-                )?;
-                for (name, scheme) in schemes {
-                    environment.insert(name, Binding::Polymorphic(scheme));
+            let mut pending = strongly_connected_in_source_order(&dependencies, &value_definitions);
+            while !pending.is_empty() {
+                let mut waiting = Vec::new();
+                let mut progressed = false;
+                for group in pending {
+                    let mut attempt = self.clone();
+                    match attempt.check_group(
+                        &group,
+                        &value_definitions,
+                        &dependencies,
+                        variables,
+                        environment,
+                        false,
+                    ) {
+                        Ok(schemes) => {
+                            *self = attempt;
+                            for (name, scheme) in schemes {
+                                environment.insert(name, Binding::Polymorphic(scheme));
+                            }
+                            progressed = true;
+                        }
+                        Err(error) => waiting.push((group, error)),
+                    }
                 }
+                if waiting.is_empty() {
+                    return Ok(());
+                }
+                if !progressed {
+                    let (_, error) = waiting.remove(0);
+                    return Err(error);
+                }
+                pending = waiting.into_iter().map(|(group, _)| group).collect();
             }
             Ok(())
         })();
@@ -3338,6 +3362,25 @@ fn collect_dependencies(
 }
 
 fn strongly_connected(dependencies: &BTreeMap<String, BTreeSet<String>>) -> Vec<Vec<String>> {
+    strongly_connected_in_order(dependencies, dependencies.keys().map(String::as_str))
+}
+
+fn strongly_connected_in_source_order(
+    dependencies: &BTreeMap<String, BTreeSet<String>>,
+    definitions: &[&Definition],
+) -> Vec<Vec<String>> {
+    strongly_connected_in_order(
+        dependencies,
+        definitions
+            .iter()
+            .map(|definition| definition.name.as_str()),
+    )
+}
+
+fn strongly_connected_in_order<'b>(
+    dependencies: &BTreeMap<String, BTreeSet<String>>,
+    names: impl IntoIterator<Item = &'b str>,
+) -> Vec<Vec<String>> {
     let mut tarjan = Tarjan {
         dependencies,
         next: 0,
@@ -3347,7 +3390,7 @@ fn strongly_connected(dependencies: &BTreeMap<String, BTreeSet<String>>) -> Vec<
         on_stack: BTreeSet::new(),
         groups: Vec::new(),
     };
-    for name in dependencies.keys() {
+    for name in names {
         if !tarjan.indices.contains_key(name) {
             tarjan.visit(name);
         }

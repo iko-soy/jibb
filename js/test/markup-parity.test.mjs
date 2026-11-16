@@ -126,6 +126,11 @@ const cases = {
   'toggle-off': seal('toggle', [no, [cord('Off'), 0n]]),
   field: seal('field', [cord('Name'), [cord('Ann & "Bo"'), 0n]]),
   form: seal('form', [0n, list(seal('field', [cord('Inner'), [0n, 0n]]), seal('button', [cord('Send'), 0n]))]),
+  'form-nested': seal('form', [0n, list(
+    text('before'),
+    seal('form', [0n, list(text('inside'), seal('field', [cord('Nested'), [0n, 0n]]))]),
+    text('after'),
+  )]),
   'para-controls': seal('para', list(
     text('Pick '), seal('button', [cord('b'), 0n]),
     seal('toggle', [yes, [cord('t'), 0n]]), seal('field', [cord('f'), [cord('v'), 0n]]),

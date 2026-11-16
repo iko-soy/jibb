@@ -1734,6 +1734,15 @@
     =/  try=(each (like coin) tang)
       ?.  (is-time run)  [%& (nuck:so [[lin col] run])]
       (mule |.((nuck:so [[lin col] run])))
+    =/  padded=(unit (like coin))  (padded-date lin col run)
+    =.  try
+      ?~  padded  try
+      ?:  ?&  ?=(%& -.try)
+              ?=(^ q.p.try)
+              ?=(~ q.q.u.q.p.try)
+          ==
+        try
+      [%& u.padded]
     ?:  ?=(%| -.try)  (err col "Jibb can't read this literal")
     =/  ed=(like coin)  p.try
     ?~  q.ed  (err q.p.ed (literal-msg run %$))
@@ -1999,6 +2008,54 @@
   =/  rest=tape  (slag (lent ds) tr)
   ?.  ?=([%'-' *] rest)  ~
   `[(add col +((lent ds))) (decimal ds)]
+::
+++  date-field
+  |=  cs=tape
+  ^-  (unit [field=tape rest=tape padded=?])
+  =/  n=@ud  (run-len cs digit-mask)
+  ?:  =(0 n)  ~
+  =/  field=tape  (scag n cs)
+  =/  rest=tape  (slag n cs)
+  ?:  &(=(2 n) ?=([%'0' @ *] field))
+    `[[i.t.field ~] rest &]
+  `[field rest |]
+::
+++  unpad-date
+  |=  run=tape
+  ^-  (unit tape)
+  ?.  ?=([%'~' @ *] run)  ~
+  =/  tr=tape  t.run
+  =/  ny=@ud  (run-len tr digit-mask)
+  ?:  =(0 ny)  ~
+  =/  year=tape  (scag ny tr)
+  =/  rest=tape  (slag ny tr)
+  =/  sign=tape  ?:(?=([%'-' *] rest) "-" "")
+  =/  after=tape  ?:(?=([%'-' *] rest) t.rest rest)
+  ?.  ?=([%'.' *] after)  ~
+  =/  month=(unit [field=tape rest=tape padded=?])  (date-field t.after)
+  ?~  month  ~
+  ?.  ?=([%'.' *] rest.u.month)  ~
+  =/  day=(unit [field=tape rest=tape padded=?])  (date-field t.rest.u.month)
+  ?~  day  ~
+  ?.  |(padded.u.month padded.u.day)  ~
+  =/  out=tape
+    :(weld "~" year sign "." field.u.month "." field.u.day rest.u.day)
+  `out
+::
+++  padded-date
+  |=  [lin=@ud col=@ud run=tape]
+  ^-  (unit (like coin))
+  =/  normalized=(unit tape)  (unpad-date run)
+  ?~  normalized  ~
+  =/  try=(each (like coin) tang)
+    (mule |.((nuck:so [[lin col] u.normalized])))
+  ?:  ?=(%| -.try)  ~
+  =/  ed=(like coin)  p.try
+  ?~  q.ed  ~
+  ?^  q.q.u.q.ed  ~
+  =/  con=coin  p.u.q.ed
+  ?.  &(?=([%$ *] con) =(%da p.p.con))  ~
+  `ed
 ::
 ::  +fifth-group: where in a ~ literal's run, counting from its ~, the
 ::  dot that begins a fifth sub-second group is, if the first four are
@@ -10047,6 +10104,30 @@
   ?.  (levy (itype-vars typ.u.out) |=(n=@ud (lien captured |=(p=@ud =(p n)))))  ~
   `[[(itype-value-root typ.u.out) ~ ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
 ::
+++  imported-collection-key-reason
+  |=  [node=* standard=(unit ischeme)]
+  ^-  (unit tape)
+  ?.  ?=([%apply @ *] node)  ~
+  =/  name=term  (@tas +<.node)
+  ?.  ?=(?(%set %map %mop %jar %jug) name)  ~
+  =/  arity=@ud  ?:(?=(%set name) 1 2)
+  =/  args=*  +>.node
+  ?@  args  ~
+  =/  tail=*  +.args
+  =/  complete=?
+    ?:  =(1 arity)  =(tail ~)
+    ?@  tail  |
+    =(+.tail ~)
+  ?.  complete  ~
+  =/  key=(unit itype)  (import-to-itype-standard -.args standard)
+  ?~  key  ~
+  =/  proof=igate-free  (gate-free-type u.key 256 ~)
+  =/  noun=?  &(!=(%no verdict.proof) (itype-holds-noun u.key 256))
+  ?.  |(=(%no verdict.proof) noun)  ~
+  ?:  noun
+    `"{(trip name)} keys cannot contain `*`, which a gate or an element may fit"
+  `"{(trip name)} keys cannot contain gates"
+::
 ::  A direct imported reference retains definite reader reasons from uniquely
 ::  supplied, declared inputs. Malformed or ambiguous evidence stays generic.
 ++  direct-import-invalid
@@ -10083,8 +10164,14 @@
     =/  why=tape
       ?:(=(0 +.raw) "imported Hoon mold is unsupported" (trip +.raw))
     `[why ~[[at.sh "unsupported imported mold"]]]
-  ?.  ?=([%invalid ?(%aura %core %overlap %vase %face %missing) @] raw)  ~
-  `["{(trip +>.raw)}" ~[[at.sh "invalid imported mold"]]]
+  ?:  ?=([%invalid ?(%aura %core %overlap %vase %face %missing) @] raw)
+    `["{(trip +>.raw)}" ~[[at.sh "invalid imported mold"]]]
+  ?.  ?=([%& *] raw)  ~
+  =/  standard=(unit ischeme)
+    ?~(prelude.state ~ (find-jibb-mold %unit u.prelude.state))
+  =/  key-reason=(unit tape)  (imported-collection-key-reason +.raw standard)
+  ?~  key-reason  ~
+  `[u.key-reason ~[[at.sh "invalid imported mold"]]]
 ::
 :: A bare name is unknown only after checking every mold namespace.
 ++  unbound-mold-name
@@ -17381,6 +17468,18 @@
       [direct (weld (turn (mold-capture-types captures.i.queue) |=(t=itype [t t at.i.queue at.i.queue])) (weld (icore-env-fits env.i.queue at.i.queue) (weld (icore-cap-fits caps.i.queue at.i.queue) $(queue t.queue))))]
   ==
 ::
+++  icore-generalization-fits
+  |=  queue=(list icore-edge)
+  ^-  (list dgo)
+  ?~  queue  ~
+  =/  rest=(list dgo)  $(queue t.queue)
+  ?.  ?=(%match -.i.queue)
+    (weld (icore-pending-fits ~[i.queue]) rest)
+  =/  direct=dgo  [subject.i.queue result.i.queue at.i.queue at.i.queue]
+  =/  captures=(list dgo)
+    (turn (mold-capture-types captures.i.queue) |=(t=itype [t t at.i.queue at.i.queue]))
+  [direct (weld captures rest)]
+::
 ::  Resolved literals remain in the source history for diagnostics, but
 ::  their already-known union does not constrain its generic arguments.
 ::  Only genuinely open literal bindings can block generalization.
@@ -17396,7 +17495,7 @@
 ++  icore-generalize
   |=  [typ=itype enclosing=@ud state=istate]
   ^-  (unit ischeme)
-  =/  pending=(list dgo)  (icore-pending-fits queue.state)
+  =/  pending=(list dgo)  (icore-generalization-fits queue.state)
   =/  blocked=(unit dgscan)  (dg-obligations pending sub.state 32.768 ~)
   ?~  blocked  ~
   =/  tags=(unit dgscan)  (dg-tags (icore-open-tags tags.state sub.state) sub.state fuel.u.blocked ids.u.blocked)
@@ -18302,7 +18401,7 @@
 ++  icore-generalize-preserved
   |=  [raw=itype normalized=itype enclosing=@ud state=istate]
   ^-  (unit ischeme)
-  =/  pending=(list dgo)  (icore-pending-fits queue.state)
+  =/  pending=(list dgo)  (icore-generalization-fits queue.state)
   =/  blocked=(unit dgscan)  (dg-obligations pending sub.state 32.768 ~)
   ?~  blocked  ~
   =/  tags=(unit dgscan)  (dg-tags (icore-open-tags tags.state sub.state) sub.state fuel.u.blocked ids.u.blocked)
@@ -18602,7 +18701,7 @@
 ++  icore-generalizable-ids
   |=  [normalized=itype enclosing=@ud state=istate]
   ^-  (unit (list @ud))
-  =/  pending=(list dgo)  (icore-pending-fits queue.state)
+  =/  pending=(list dgo)  (icore-generalization-fits queue.state)
   =/  blocked=(unit dgscan)  (dg-obligations pending sub.state 32.768 ~)
   ?~  blocked  ~
   =/  tags=(unit dgscan)  (dg-tags (icore-open-tags tags.state sub.state) sub.state fuel.u.blocked ids.u.blocked)

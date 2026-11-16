@@ -1,0 +1,4 @@
+source: Hoon 135 date reader parity with Hoon 137 under eval.
+tests: zero-padded months and days retain source text, including times and fractions; jibb-check-spans checks their exact atom values.
+expect: parses
+expect-types: checks

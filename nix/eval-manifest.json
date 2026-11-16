@@ -1858,6 +1858,7 @@
         "my-app/ui/stores/cart.jibb": "my-app/ui/stores/cart.jibb",
         "my-app/ui/todo-list.jibb": "my-app/ui/todo-list.jibb",
         "sur/jibb-collections.hoon": "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/lex-date-ok-3/source.jibb": "tests/golden/lex-date-ok-3/source.jibb",
         "tests/golden/types-prelude-list-index-sort/source.jibb": "tests/golden/types-prelude-list-index-sort/source.jibb",
         "tests/importer/ford.txt": "tests/importer/ford.txt",
         "tests/importer/mark-gate.txt": "tests/importer/mark-gate.txt",
@@ -1933,6 +1934,7 @@
         "my-app/ui/basket.jibb",
         "my-app/ui/stores/cart.jibb",
         "my-app/ui/todo-list.jibb",
+        "tests/golden/lex-date-ok-3/source.jibb",
         "tests/golden/types-prelude-list-index-sort/source.jibb",
         "tests/importer/ford.txt",
         "tests/importer/mark-gate.txt",
@@ -2077,6 +2079,7 @@
           "sur/jibb-collections.hoon": "jibb-dev/sur/jibb-collections.hoon",
           "sur/spider.hoon": "vendor/base-dev/sur/spider.hoon",
           "sys.kelvin": "jibb/sys.kelvin",
+          "tests/golden/lex-date-ok-3/source.jibb": "tests/golden/lex-date-ok-3/source.jibb",
           "tests/golden/types-prelude-list-index-sort/source.jibb": "tests/golden/types-prelude-list-index-sort/source.jibb",
           "tests/importer/ford.txt": "tests/importer/ford.txt",
           "tests/importer/mark-gate.txt": "tests/importer/mark-gate.txt",
@@ -2203,6 +2206,7 @@
         "my-app/ui/basket.jibb",
         "my-app/ui/stores/cart.jibb",
         "my-app/ui/todo-list.jibb",
+        "tests/golden/lex-date-ok-3/source.jibb",
         "tests/golden/types-prelude-list-index-sort/source.jibb",
         "tests/importer/ford.txt",
         "tests/importer/mark-gate.txt",
@@ -5450,8 +5454,10 @@
         "lex-date-bad-1",
         "lex-date-bad-2",
         "lex-date-bad-3",
+        "lex-date-bad-4",
         "lex-date-ok-1",
         "lex-date-ok-2",
+        "lex-date-ok-3",
         "lex-decimal-bad-1",
         "lex-decimal-bad-2",
         "lex-decimal-ok-1",
@@ -5521,9 +5527,7 @@
         "lex-open-bracket-ok-3",
         "lex-open-bracket-ok-4",
         "lex-open-bracket-ok-5",
-        "lex-open-bracket-ok-6",
-        "lex-open-bracket-ok-7",
-        "lex-open-bracket-ok-8"
+        "lex-open-bracket-ok-6"
       ],
       "name": "golden-4",
       "paths": [
@@ -5564,8 +5568,10 @@
         "tests/golden/lex-date-bad-1",
         "tests/golden/lex-date-bad-2",
         "tests/golden/lex-date-bad-3",
+        "tests/golden/lex-date-bad-4",
         "tests/golden/lex-date-ok-1",
         "tests/golden/lex-date-ok-2",
+        "tests/golden/lex-date-ok-3",
         "tests/golden/lex-decimal-bad-1",
         "tests/golden/lex-decimal-bad-2",
         "tests/golden/lex-decimal-ok-1",
@@ -5636,8 +5642,6 @@
         "tests/golden/lex-open-bracket-ok-4",
         "tests/golden/lex-open-bracket-ok-5",
         "tests/golden/lex-open-bracket-ok-6",
-        "tests/golden/lex-open-bracket-ok-7",
-        "tests/golden/lex-open-bracket-ok-8",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -5647,6 +5651,8 @@
     },
     {
       "cases": [
+        "lex-open-bracket-ok-7",
+        "lex-open-bracket-ok-8",
         "lex-open-bracket-ok-9",
         "lex-open-mold-bad-1",
         "lex-open-mold-bad-10",
@@ -5744,9 +5750,7 @@
         "lex-tight-opener-ok-1",
         "lex-tight-pair-bad-1",
         "lex-tight-pair-bad-2",
-        "lex-tight-pair-bad-3",
-        "lex-tight-pair-ok-1",
-        "lex-tight-qath-bad-1"
+        "lex-tight-pair-bad-3"
       ],
       "name": "golden-5",
       "paths": [
@@ -5761,6 +5765,8 @@
         "jibb-dev/lib/jibb/prelude-groups.txt",
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/lex-open-bracket-ok-7",
+        "tests/golden/lex-open-bracket-ok-8",
         "tests/golden/lex-open-bracket-ok-9",
         "tests/golden/lex-open-mold-bad-1",
         "tests/golden/lex-open-mold-bad-10",
@@ -5859,8 +5865,6 @@
         "tests/golden/lex-tight-pair-bad-1",
         "tests/golden/lex-tight-pair-bad-2",
         "tests/golden/lex-tight-pair-bad-3",
-        "tests/golden/lex-tight-pair-ok-1",
-        "tests/golden/lex-tight-qath-bad-1",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -5870,6 +5874,8 @@
     },
     {
       "cases": [
+        "lex-tight-pair-ok-1",
+        "lex-tight-qath-bad-1",
         "lex-tight-qath-bad-2",
         "lex-tight-qath-bad-3",
         "lex-tight-qath-ok-1",
@@ -5967,9 +5973,7 @@
         "parse-tight-flines-name",
         "parse-tight-fn-product",
         "parse-tight-fn-sample",
-        "parse-tight-generic",
-        "parse-tight-list-name",
-        "parse-tight-list-term"
+        "parse-tight-generic"
       ],
       "name": "golden-6",
       "paths": [
@@ -5987,6 +5991,8 @@
         "my-app/ui/basket.jibb",
         "my-app/ui/stores/cart.jibb",
         "tests/clay-fixtures/desk/mar/label.hoon",
+        "tests/golden/lex-tight-pair-ok-1",
+        "tests/golden/lex-tight-qath-bad-1",
         "tests/golden/lex-tight-qath-bad-2",
         "tests/golden/lex-tight-qath-bad-3",
         "tests/golden/lex-tight-qath-ok-1",
@@ -6085,8 +6091,6 @@
         "tests/golden/parse-tight-fn-product",
         "tests/golden/parse-tight-fn-sample",
         "tests/golden/parse-tight-generic",
-        "tests/golden/parse-tight-list-name",
-        "tests/golden/parse-tight-list-term",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -6096,6 +6100,8 @@
     },
     {
       "cases": [
+        "parse-tight-list-name",
+        "parse-tight-list-term",
         "parse-tight-list-wing",
         "parse-tight-mlines",
         "parse-tight-mold-closer",
@@ -6193,9 +6199,7 @@
         "split-inline-pattern-tag-name-any-arm-first",
         "split-inline-pattern-tag-name-any-arm-grouped",
         "split-inline-pattern-tag-name-any-arm-positive",
-        "split-inline-pattern-tag-name-generic-own-case",
-        "split-inline-pattern-tag-name-generic-own-head",
-        "split-inline-pattern-tag-name-generic-positive"
+        "split-inline-pattern-tag-name-generic-own-case"
       ],
       "name": "golden-7",
       "paths": [
@@ -6210,6 +6214,8 @@
         "jibb-dev/lib/jibb/prelude-groups.txt",
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/parse-tight-list-name",
+        "tests/golden/parse-tight-list-term",
         "tests/golden/parse-tight-list-wing",
         "tests/golden/parse-tight-mlines",
         "tests/golden/parse-tight-mold-closer",
@@ -6308,8 +6314,6 @@
         "tests/golden/split-inline-pattern-tag-name-any-arm-grouped",
         "tests/golden/split-inline-pattern-tag-name-any-arm-positive",
         "tests/golden/split-inline-pattern-tag-name-generic-own-case",
-        "tests/golden/split-inline-pattern-tag-name-generic-own-head",
-        "tests/golden/split-inline-pattern-tag-name-generic-positive",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -6319,6 +6323,8 @@
     },
     {
       "cases": [
+        "split-inline-pattern-tag-name-generic-own-head",
+        "split-inline-pattern-tag-name-generic-positive",
         "split-inline-pattern-tag-name-nested-draft",
         "split-inline-pattern-tag-name-nested-move",
         "split-inline-pattern-tag-name-nested-typed",
@@ -6416,9 +6422,7 @@
         "split-types-import-hoon-flags-bad-no",
         "split-types-import-hoon-flags-bad-yes",
         "split-types-import-hoon-flags-positive",
-        "split-types-list-branch-bad-head",
-        "split-types-list-branch-bad-recursive",
-        "split-types-list-branch-bad-tail"
+        "split-types-list-branch-bad-head"
       ],
       "name": "golden-8",
       "paths": [
@@ -6433,6 +6437,8 @@
         "jibb-dev/lib/jibb/prelude-groups.txt",
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/split-inline-pattern-tag-name-generic-own-head",
+        "tests/golden/split-inline-pattern-tag-name-generic-positive",
         "tests/golden/split-inline-pattern-tag-name-nested-draft",
         "tests/golden/split-inline-pattern-tag-name-nested-move",
         "tests/golden/split-inline-pattern-tag-name-nested-typed",
@@ -6531,8 +6537,6 @@
         "tests/golden/split-types-import-hoon-flags-bad-yes",
         "tests/golden/split-types-import-hoon-flags-positive",
         "tests/golden/split-types-list-branch-bad-head",
-        "tests/golden/split-types-list-branch-bad-recursive",
-        "tests/golden/split-types-list-branch-bad-tail",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -6542,6 +6546,8 @@
     },
     {
       "cases": [
+        "split-types-list-branch-bad-recursive",
+        "split-types-list-branch-bad-tail",
         "split-types-list-branch-duplicate",
         "split-types-list-branch-incomplete",
         "split-types-list-branch-opposite",
@@ -6639,9 +6645,7 @@
         "split-types-nested-shallow-preserve-positive",
         "split-types-nested-shallow-preserve-unknown-target",
         "split-types-pair-context-cross-origin",
-        "split-types-pair-context-mismatch",
-        "split-types-pair-context-missing",
-        "split-types-pair-context-positive"
+        "split-types-pair-context-mismatch"
       ],
       "name": "golden-9",
       "paths": [
@@ -6656,6 +6660,8 @@
         "jibb-dev/lib/jibb/prelude-groups.txt",
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/split-types-list-branch-bad-recursive",
+        "tests/golden/split-types-list-branch-bad-tail",
         "tests/golden/split-types-list-branch-duplicate",
         "tests/golden/split-types-list-branch-incomplete",
         "tests/golden/split-types-list-branch-opposite",
@@ -6754,8 +6760,6 @@
         "tests/golden/split-types-nested-shallow-preserve-unknown-target",
         "tests/golden/split-types-pair-context-cross-origin",
         "tests/golden/split-types-pair-context-mismatch",
-        "tests/golden/split-types-pair-context-missing",
-        "tests/golden/split-types-pair-context-positive",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -6765,6 +6769,8 @@
     },
     {
       "cases": [
+        "split-types-pair-context-missing",
+        "split-types-pair-context-positive",
         "split-types-pair-context-wrong-head",
         "split-types-pair-context-wrong-number",
         "split-types-partial-atom-alias-bad",
@@ -6862,9 +6868,7 @@
         "split-types-record-cast-context-wrong-flag",
         "split-types-record-cast-context-wrong-item",
         "split-types-record-cast-context-wrong-tag",
-        "split-types-record-change-bad-tag",
-        "split-types-record-change-empty",
-        "split-types-record-change-mismatch"
+        "split-types-record-change-bad-tag"
       ],
       "name": "golden-10",
       "paths": [
@@ -6879,6 +6883,8 @@
         "jibb-dev/lib/jibb/prelude-groups.txt",
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/split-types-pair-context-missing",
+        "tests/golden/split-types-pair-context-positive",
         "tests/golden/split-types-pair-context-wrong-head",
         "tests/golden/split-types-pair-context-wrong-number",
         "tests/golden/split-types-partial-atom-alias-bad",
@@ -6977,8 +6983,6 @@
         "tests/golden/split-types-record-cast-context-wrong-item",
         "tests/golden/split-types-record-cast-context-wrong-tag",
         "tests/golden/split-types-record-change-bad-tag",
-        "tests/golden/split-types-record-change-empty",
-        "tests/golden/split-types-record-change-mismatch",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -6988,6 +6992,8 @@
     },
     {
       "cases": [
+        "split-types-record-change-empty",
+        "split-types-record-change-mismatch",
         "split-types-record-change-no-field",
         "split-types-record-change-positive",
         "split-types-record-change-wrong-list",
@@ -7085,9 +7091,7 @@
         "split-types-unit-context-list-bad",
         "split-types-unit-context-mimic-mismatch",
         "split-types-unit-context-mismatch-left",
-        "split-types-unit-context-nested-bad",
-        "split-types-unit-context-nested-units-bad",
-        "split-types-unit-context-no-field-context"
+        "split-types-unit-context-nested-bad"
       ],
       "name": "golden-11",
       "paths": [
@@ -7102,6 +7106,8 @@
         "jibb-dev/lib/jibb/prelude-groups.txt",
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/split-types-record-change-empty",
+        "tests/golden/split-types-record-change-mismatch",
         "tests/golden/split-types-record-change-no-field",
         "tests/golden/split-types-record-change-positive",
         "tests/golden/split-types-record-change-wrong-list",
@@ -7200,8 +7206,6 @@
         "tests/golden/split-types-unit-context-mimic-mismatch",
         "tests/golden/split-types-unit-context-mismatch-left",
         "tests/golden/split-types-unit-context-nested-bad",
-        "tests/golden/split-types-unit-context-nested-units-bad",
-        "tests/golden/split-types-unit-context-no-field-context",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -7211,6 +7215,8 @@
     },
     {
       "cases": [
+        "split-types-unit-context-nested-units-bad",
+        "split-types-unit-context-no-field-context",
         "split-types-unit-context-positive",
         "split-types-unit-context-wrong",
         "split-types-unit-context-wrong-name",
@@ -7308,9 +7314,7 @@
         "types-import-union-external-tagged",
         "types-import-union-external-transitive",
         "types-interpolation-deferred",
-        "types-interpolation-generic-aura",
-        "types-list-branch",
-        "types-list-cons"
+        "types-interpolation-generic-aura"
       ],
       "name": "golden-12",
       "paths": [
@@ -7326,6 +7330,8 @@
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
         "tests/clay-fixtures/desk/mar/label.hoon",
+        "tests/golden/split-types-unit-context-nested-units-bad",
+        "tests/golden/split-types-unit-context-no-field-context",
         "tests/golden/split-types-unit-context-positive",
         "tests/golden/split-types-unit-context-wrong",
         "tests/golden/split-types-unit-context-wrong-name",
@@ -7424,8 +7430,6 @@
         "tests/golden/types-import-union-external-transitive",
         "tests/golden/types-interpolation-deferred",
         "tests/golden/types-interpolation-generic-aura",
-        "tests/golden/types-list-branch",
-        "tests/golden/types-list-cons",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -7435,6 +7439,8 @@
     },
     {
       "cases": [
+        "types-list-branch",
+        "types-list-cons",
         "types-list-context",
         "types-list-imported",
         "types-list-nonzero-literal",
@@ -7532,9 +7538,7 @@
         "types-prelude-generic-alias",
         "types-prelude-groups",
         "types-prelude-helpers",
-        "types-prelude-homo-gate",
-        "types-prelude-interface",
-        "types-prelude-lead-late"
+        "types-prelude-homo-gate"
       ],
       "name": "golden-13",
       "paths": [
@@ -7553,6 +7557,8 @@
         "my-app/ui/blog/index.jibb",
         "my-app/ui/components/card.jibb",
         "tests/clay-fixtures/desk/mar/label.hoon",
+        "tests/golden/types-list-branch",
+        "tests/golden/types-list-cons",
         "tests/golden/types-list-context",
         "tests/golden/types-list-imported",
         "tests/golden/types-list-nonzero-literal",
@@ -7651,8 +7657,6 @@
         "tests/golden/types-prelude-groups",
         "tests/golden/types-prelude-helpers",
         "tests/golden/types-prelude-homo-gate",
-        "tests/golden/types-prelude-interface",
-        "tests/golden/types-prelude-lead-late",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -7662,6 +7666,8 @@
     },
     {
       "cases": [
+        "types-prelude-interface",
+        "types-prelude-lead-late",
         "types-prelude-lent",
         "types-prelude-like",
         "types-prelude-list-alias",
@@ -7759,9 +7765,7 @@
         "types-recursion-scc-order",
         "types-recursion-scc-shadow",
         "types-recursive-branch",
-        "types-recursive-cell-context",
-        "types-recursive-gate",
-        "types-recursive-result-face"
+        "types-recursive-cell-context"
       ],
       "name": "golden-14",
       "paths": [
@@ -7776,6 +7780,8 @@
         "jibb-dev/lib/jibb/prelude-groups.txt",
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
+        "tests/golden/types-prelude-interface",
+        "tests/golden/types-prelude-lead-late",
         "tests/golden/types-prelude-lent",
         "tests/golden/types-prelude-like",
         "tests/golden/types-prelude-list-alias",
@@ -7874,8 +7880,6 @@
         "tests/golden/types-recursion-scc-shadow",
         "tests/golden/types-recursive-branch",
         "tests/golden/types-recursive-cell-context",
-        "tests/golden/types-recursive-gate",
-        "tests/golden/types-recursive-result-face",
         "tools/golden",
         "tools/golden_case.py",
         "tools/noun.py",
@@ -7885,6 +7889,8 @@
     },
     {
       "cases": [
+        "types-recursive-gate",
+        "types-recursive-result-face",
         "types-recursive-result-face-conflict",
         "types-recursive-sample",
         "types-request-normal",
@@ -7989,6 +7995,8 @@
         "jibb-dev/lib/jibb/prelude.jibb",
         "jibb-dev/sur/jibb-collections.hoon",
         "tests/clay-fixtures/desk/mar/label.hoon",
+        "tests/golden/types-recursive-gate",
+        "tests/golden/types-recursive-result-face",
         "tests/golden/types-recursive-result-face-conflict",
         "tests/golden/types-recursive-sample",
         "tests/golden/types-request-normal",

@@ -142,6 +142,13 @@
       ['toggle-off' & (seal [%toggle %.n 'Off' 0])]
       ['field' & (seal [%field 'Name' 'Ann & "Bo"' 0])]
       ['form' & (seal [%form 0 ~[(seal [%field 'Inner' '' 0]) (seal [%button 'Send' 0])]])]
+      :+  'form-nested'  &
+      %-  seal
+      :+  %form  0
+      :~  (text 'before')
+          (seal [%form 0 ~[(text 'inside') (seal [%field 'Nested' '' 0])]])
+          (text 'after')
+      ==
       :+  'para-controls'  &
       %-  seal
       :-  %para

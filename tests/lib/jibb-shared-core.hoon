@@ -113,6 +113,33 @@
     ~[leaf+"the deferred match did not report its missing case" leaf+msg.diag.u.error.detailed]
   ?.  =((lent sites.diag.u.error.detailed) 2)  ~[leaf+"the deferred match did not retain both sites"]
   ~
+++  test-match-capital-generalization
+  ^-  tang
+  =/  at=path  /ui/shared/jibb
+  =/  src=@t
+    (of-wain:format ~['++ choose |= [x=A selector]' '  ?- selector' '    %.y 0' '    %.n 1' '++ ship (choose ~zod %.y)' '++ word (choose "word" %.n)'])
+  =/  checked=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb at src ~ ~ ~ ~[at] ~ ~ ~ ~)
+  ?:  ?=(%| -.checked)  ~[leaf+"a capital held only by match replay did not generalize" leaf+(trip message.p.checked)]
+  =/  choose=(unit ischeme:jibb)  (ienv-lookup:jibb %choose values.iface.p.checked)
+  =/  ship=(unit ischeme:jibb)  (ienv-lookup:jibb %ship values.iface.p.checked)
+  =/  word=(unit ischeme:jibb)  (ienv-lookup:jibb %word values.iface.p.checked)
+  ?~  choose  ~[leaf+"deferred-match gate was not exported"]
+  ?~  ship  ~[leaf+"first deferred-match instantiation was not exported"]
+  ?~  word  ~[leaf+"second deferred-match instantiation was not exported"]
+  ?.  ?=([* ~] vars.u.choose)  ~[leaf+"deferred match kept the written capital monomorphic"]
+  ?.  &(=([%atom %ud] typ.u.ship) =([%atom %ud] typ.u.word))
+    ~[leaf+"generalized match capital did not instantiate independently"]
+  =/  missing=@t
+    (of-wain:format ~['++ choose |= [x=A selector]' '  ?- selector' '    %.y 0' '++ use (choose "word" %.y)'])
+  =/  rejected=jfile-detailed-result:jibb
+    (infer-jibb-file-detailed:jibb at missing ~ ~ ~ ~[at] ~ ~ ~ ~)
+  ?:  ?=(%& -.rejected)  ~[leaf+"generalization discarded the deferred coverage check"]
+  =/  expected=@t
+    (of-wain:format ~['++ choose: missing match case %.n' '/ui/shared.jibb:2:3: non-exhaustive match' '  ?- selector' '  ^' '/ui/shared.jibb:2:6: subject has type ?' '  ?- selector' '     ^'])
+  ?.  =(expected message.p.rejected)
+    ~[leaf+"deferred match diagnostic changed" leaf+"expected:" leaf+(trip expected) leaf+"actual:" leaf+(trip message.p.rejected)]
+  ~
 ++  test-unface-retry
   ^-  tang
   =/  src=@t

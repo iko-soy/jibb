@@ -769,6 +769,7 @@ def main(args):
     compiler = os.path.join('lib', 'jibb-build.hoon')
     good_compiler = None
     host_ready = False
+    host_suspended = False
     passed = False
     try:
         with timed_phase('suspend applications before host installation'):
@@ -1215,6 +1216,37 @@ def main(args):
             expect(got == EXPECTED_TESTS[DESK],
                    '-jibb!test with the older argument gave %r' % (got,))
 
+        with timed_phase('host reload and recovery'):
+            _, _, about_before_reload = owner.request('GET', PAGE)
+            fixture_files_before_reload = published(ship, DESK)
+            app_files_before_reload = published(ship, 'my-app')
+            expect(any(expiry is not None
+                       for expiry in fixture_files_before_reload.values()),
+                   'reload coverage needs a retired file with an expiry timer')
+            host_suspended = True
+            poke(ship, 'kiln-suspend-many', '~[%jibb]')
+            wait_suspended(ship, ('jibb',))
+            poke(ship, 'kiln-revive', '%jibb')
+            host_suspended = False
+            for desk in (DESK, 'my-app'):
+                wait_for('%s rebuild to start after host reload' % desk,
+                         lambda desk=desk: build_state(ship, desk)[1] is not None or None)
+            status, _, body = owner.request('GET', PAGE)
+            expect(status == 200 and body == about_before_reload,
+                   'a saved page did not survive the host reload')
+            expect(BASE in jibb_bindings(ship) and MY_APP_BASE in jibb_bindings(ship),
+                   'the host reload did not restore both Eyre bindings')
+            for desk in (DESK, 'my-app'):
+                wait_built(ship, desk)
+            expect(published(ship, DESK) == fixture_files_before_reload,
+                   'fixture files or retirement times changed across host reload')
+            expect(published(ship, 'my-app') == app_files_before_reload,
+                   'my-app files or retirement times changed across host reload')
+            status, _, body = owner.request('GET', PAGE)
+            expect(status == 200 and body == about_before_reload,
+                   'the rebuilt About page changed across host reload')
+            fetch_public(anonymous, stylesheet, 'text/css; charset=utf-8', css.encode())
+
         with timed_phase('clear cache and republish'):
             # -jibb!clear takes every desk's files out of Eyre's cache; the next
             # build publishes its files again.
@@ -1264,13 +1296,16 @@ def main(args):
         print('check-host: default theme, real Clay imports, page kinds, static files, '
               'stylesheets, pages with data, -jibb!test, -jibb!clear, incremental rebuild, '
               'HTTP, HEAD of published files, owner-only caching, route conflicts, '
-              'import budgets, Eyre bindings and suspend passed')
+              'import budgets, Eyre bindings, host reload and suspend passed')
         passed = True
         return 0
     finally:
         if not (passed and args.leave_suspended):
             with timed_phase('cleanup and revival'):
                 try:
+                    if host_suspended:
+                        poke(ship, 'kiln-revive', '%jibb')
+                        host_suspended = False
                     # Leave the dedicated fixture usable for a subsequent run, including
                     # when an assertion above fails. This revives only our fixture desk.
                     if edited:

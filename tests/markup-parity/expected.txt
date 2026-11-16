@@ -41,6 +41,7 @@ button <button type="button">Go &amp; stop</button>
 toggle-on <input type="checkbox" aria-label="On" checked="">
 toggle-off <input type="checkbox" aria-label="Off">
 field <input type="text" value="Ann &amp; &quot;Bo&quot;" aria-label="Name" readonly="">
-form <form><input type="text" value="" aria-label="Inner" readonly=""><button type="button">Send</button></form>
+form <div><input type="text" value="" aria-label="Inner" readonly=""><button type="button">Send</button></div>
+form-nested <div>before<div>inside<input type="text" value="" aria-label="Nested" readonly=""></div>after</div>
 para-controls <p>Pick <button type="button">b</button><input type="checkbox" aria-label="t" checked=""><input type="text" value="v" aria-label="f" readonly=""></p>
-para-form <div class="j-para"><form>in form</form></div>
+para-form <div class="j-para"><div>in form</div></div>

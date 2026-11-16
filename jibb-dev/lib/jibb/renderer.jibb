@@ -146,7 +146,7 @@
 
 ++ render-form |= [skin=theme kids=(list A)]
   ^- (vnode A)
-  [%node "form" ~ kids]
+  [%node "div" ~ kids]
 
 ++ align-style |= value=align
   ^- (list [name=@t value=@t])

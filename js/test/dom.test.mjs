@@ -182,7 +182,7 @@ test('toVnode decodes media, links, and all control payloads', () => {
   assert.equal(input.control.reply, reply);
 
   const form = toVnode(seal('form', [message, list(textElement('body'))]));
-  assert.equal(form.tag, 'form');
+  assert.equal(form.tag, 'div');
   assert.deepEqual(form.control, { type: 'form', message });
 });
 
@@ -399,14 +399,11 @@ test('form Enter dispatches only the nearest message and prevents reload', () =>
   const document = createFakeDocument();
   const sent = [];
   const options = { document, dispatch: message => sent.push(message) };
-  const inner = toVnode(seal('form', [cord('inner'), list(
-    seal('field', [cord('Draft'), [cord(''), value => [cord('ignored'), value]]]),
+  const outer = toVnode(seal('form', [cord('outer'), list(
+    seal('form', [cord('inner'), list(
+      seal('field', [cord('Draft'), [cord(''), value => [cord('ignored'), value]]]),
+    )]),
   )]));
-  const outer = toVnode(seal('form', [cord('outer'), list(rawSeal([
-    cord('form'), [cord('outer-unused'), 0n],
-  ]))]));
-  // Build the nested forms directly so the test can exercise bubbling and nearest-form behavior.
-  outer.children = [inner];
   const node = createDom(outer, options);
   const input = node.querySelector('input');
   const enter = new FakeEvent('keydown', { key: 'Enter' });

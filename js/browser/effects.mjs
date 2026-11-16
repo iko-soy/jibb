@@ -136,11 +136,9 @@ export class Effects {
   sync(plan) {
     if (!this.active) return;
     const wanted = new Set();
+    let pure = 0;
     for (const entry of plan) {
-      if (entry.kind === 'pure') {
-        this.island.send(entry.message);
-        continue;
-      }
+      if (entry.kind === 'pure') entry.key = `:pure:${pure++}`;
       wanted.add(entry.key);
       const running = entry.kind === 'every' ? this.timers.get(entry.key)
         : entry.kind === 'url' ? this.url : this.watches.get(entry.key);
@@ -153,6 +151,10 @@ export class Effects {
         this.watchUrl(entry);
       } else {
         this.watches.set(entry.key, entry);
+        if (entry.kind === 'pure') {
+          this.island.send(entry.message);
+          continue;
+        }
         entry.state = 0n;
         if (entry.kind === 'store') {
           if (!this.stores) throw new Error('store watches require a store registry');

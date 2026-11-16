@@ -1,0 +1,4 @@
+module kind: library
+++ a: @da
+++ b: @da
+++ c: @da

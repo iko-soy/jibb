@@ -20,11 +20,11 @@ function agentRequest(receive) {
   ];
 }
 
-function setup({ subs, receive, now = () => 42n, navigate, ...options } = {}) {
+function setup({ subs, receive, update = ([message, model]) => [message, 0n], now = () => 42n, navigate, ...options } = {}) {
   const document = createFakeDocument();
   const program = {
     init: () => 0n,
-    update: ([message, model]) => [message, 0n],
+    update,
     view: (model) => textElement(model),
     subs: subs ?? (() => 0n),
   };
@@ -85,6 +85,34 @@ test('watch removal unsubscribes and kicks reseed from first state', () => {
   enabled = false;
   island.send(9n);
   assert.deepEqual(channel.unsubscriptions.map(request => request[1]), [again]);
+});
+
+test('pure watches deliver once per continuous declaration, including reentrant syncs', () => {
+  let enabled = true;
+  const messages = [];
+  const first = cord('first');
+  const second = cord('second');
+  const pure = message => [cord('watch'), [cord('pure'), message]];
+  const { island, effects } = setup({
+    update: ([message, model]) => {
+      messages.push(message);
+      if (messages.length === 8) enabled = false;
+      return [model, 0n];
+    },
+    subs: () => enabled ? arrayToList([pure(first), pure(second)]) : 0n,
+  });
+  assert.deepEqual(messages, [first, second]);
+
+  island.send(cord('changed'));
+  assert.deepEqual(messages, [first, second, cord('changed')]);
+  enabled = false;
+  island.send(cord('stopped'));
+  assert.equal(effects.watches.size, 0);
+  enabled = true;
+  island.send(cord('restarted'));
+  assert.deepEqual(messages, [first, second, cord('changed'), cord('stopped'), cord('restarted'), first, second]);
+  island.send(cord('final'));
+  assert.deepEqual(messages, [first, second, cord('changed'), cord('stopped'), cord('restarted'), first, second, cord('final')]);
 });
 
 test('intervals, one-shot waits, now, who, and go use their transports', () => {

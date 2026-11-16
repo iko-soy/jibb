@@ -202,6 +202,7 @@ fn audited_golden_cases_match_the_full_checker() {
         "types-recursion-scc-groups",
         "split-types-union-finite-positive",
         "split-types-deferred-call-context-positive",
+        "split-types-local-error-cast-positive",
         "inline-decimal-generic",
         "split-types-prelude-arithmetic-positive",
     ] {
