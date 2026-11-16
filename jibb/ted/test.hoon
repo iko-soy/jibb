@@ -1,16 +1,23 @@
 ::  -jibb!test %desk: run the desk's tests, each test- arm of each module
 ::  under /ui/tests, from the host's build of the desk's current revision,
 ::  waiting for that build if it is still running.  It prints one line a
-::  test and gives every outcome.
+::  test and gives every outcome.  A build of that revision that could
+::  not run fails it with the build's error.
 /-  spider
-/+  strandio
+/+  strandio, jibb-host
 =,  strand=strand:spider
 ^-  thread:spider
 |=  arg=vase
 =/  m  (strand ,vase)
 ^-  form:m
-=/  =desk  -:!<([desk ~] arg)
+::  Dojo gives the desk as [~ %desk]; +test-desk takes the older shape too.
+=/  named=(unit desk)  (test-desk:jibb-host arg)
+?~  named  (strand-fail:strandio %jibb-test ~[leaf+"usage: -jibb!test %desk"])
+=/  =desk  u.named
 ;<  =bowl:spider  bind:m  get-bowl:strandio
+=/  host=path  /(scot %p our.bowl)/jibb/(scot %da now.bowl)
+?.  .^(? %gx (weld host /routes/[desk]/noun))
+  (strand-fail:strandio %jibb-test ~[leaf+"the host does not serve %{(trip desk)}"])
 =/  rev=@ud  ud:.^(cass:clay %cw /(scot %p our.bowl)/[desk]/(scot %da now.bowl))
 =/  tries=@ud  600
 |-  ^-  form:m

@@ -50,39 +50,55 @@
   =.  +127.bad-path  [%cell 'tail']
   ?.  ?=(~ (docket-site:jibb-host bad-path))
     ~[leaf+"a malformed site path was cast to a route"]
-  =/  entries=(list docket-entry:jibb-host)
-    :~  [%my-app `doc]
+  ::  Only a desk whose docket names a site is bound.
+  =/  found=site-update:jibb-host
+    %^  update-sites:jibb-host  %jibb  [~ ~ (sy ~[%my-app %ignored %glob])]
+    :~  [%my-app site]
         [%ignored ~]
-        [%glob `glob]
+        [%glob (docket-site:jibb-host glob)]
     ==
-  =/  found=(each (list route:jibb-host) @t)
-    (discover-routes:jibb-host entries)
-  ?:  ?=(%| -.found)  ~[leaf+(trip p.found)]
-  ?.  =(~[[%my-app /apps/my-app]] p.found)
+  ?.  =(~[[%my-app /apps/my-app]] pending.registry.found)
     ~[leaf+"missing, glob and site dockets were not distinguished"]
+  ?.  =(~ refused.found)  ~[leaf+"a desk with no site+ was refused rather than ignored"]
   ~
-++  test-discovery-collisions-are-atomic
+::  A bad claim is refused for its desk alone, with a message naming it;
+::  the other desks are still bound.  (Discovery once refused them all.)
+++  test-discovery-refuses-only-bad-claims
   ^-  tang
-  =/  valid=(each (list route:jibb-host) @t)
-    (validate-routes:jibb-host example-routes)
-  ?:  ?=(%| -.valid)  ~[leaf+(trip p.valid)]
-  =/  duplicate=(each (list route:jibb-host) @t)
-    (validate-routes:jibb-host [[%other /apps/my-app] example-routes])
-  ?.  ?=(%| -.duplicate)  ~[leaf+"duplicate base paths were accepted"]
-  =/  same-desk=(each (list route:jibb-host) @t)
-    (validate-routes:jibb-host [[%my-app /apps/other] example-routes])
-  ?.  ?=(%| -.same-desk)  ~[leaf+"one desk received two base paths"]
-  =/  invalid=(each (list route:jibb-host) @t)
-    (validate-routes:jibb-host [[%my-app ~] ~])
-  ?.  ?=(%| -.invalid)  ~[leaf+"an empty base path was accepted"]
-  =/  entries=(list docket-entry:jibb-host)
-    :~  [%my-app `example-docket]
-        [%other `example-docket]
+  =/  update=site-update:jibb-host
+    %^  update-sites:jibb-host  %jibb  [~ ~ (sy ~[%blog %my-app %other %rootless])]
+    :~  [%blog `/apps/my-app/blog]
+        [%my-app `/apps/my-app]
+        [%other `/apps/my-app]
+        [%rootless `/]
     ==
-  =/  start=(each transition:jibb-host @t)
-    (initialize:jibb-host %jibb entries (sy ~[%my-app %blog %other]))
-  ?.  ?=(%| -.start)
-    ~[leaf+"colliding discovery produced bind cards"]
+  ?.  =(~[[%my-app /apps/my-app] [%blog /apps/my-app/blog]] pending.registry.update)
+    ~[leaf+"a bad claim stopped the other desks' binds"]
+  ?.  =(~ routes.registry.update)  ~[leaf+"an unacknowledged route was published"]
+  =/  binds=(list card:agent:gall)
+    :~  [%pass /bind/blog %arvo %e %connect [~ /apps/my-app/blog] %jibb]
+        [%pass /bind/my-app %arvo %e %connect [~ /apps/my-app] %jibb]
+    ==
+  ?.  =(binds cards.update)  ~[leaf+"the good claims were not each bound once"]
+  =/  refused=(list [desk @t])
+    :~  :-  %other
+        'jibb: %other\'s docket site+ /apps/my-app is %my-app\'s base path, so %other is not served'
+        :-  %rootless
+        'jibb: %rootless\'s docket site+ names no base path, so %rootless is not served'
+    ==
+  ?.  =(refused refused.update)  ~[leaf+"the refused desks and their reasons were not reported"]
+  ::  A claim on a published desk's base is refused; the route stays.
+  =/  routed=registry:jibb-host  [~[[%my-app /apps/my-app]] ~ (sy ~[%my-app %other])]
+  =/  late=site-update:jibb-host
+    (update-sites:jibb-host %jibb routed ~[[%other `/apps/my-app]])
+  ?.  =(routed registry.late)  ~[leaf+"a later claim on a published base changed the routes"]
+  ?.  =(~ cards.late)  ~[leaf+"a refused claim emitted a card"]
+  ?.  =(~[%other] (turn refused.late |=([=desk @t] desk)))
+    ~[leaf+"a later claim on a published base was not refused"]
+  ::  A desk that is not live is not bound.
+  =/  dead=site-update:jibb-host
+    (update-sites:jibb-host %jibb [~ ~ ~] ~[[%my-app `/apps/my-app]])
+  ?.  &(=(~ pending.registry.dead) =(~ cards.dead))  ~[leaf+"a desk that is not live was bound"]
   ~
 ++  test-longest-whole-segment-routing
   ^-  tang
@@ -166,11 +182,11 @@
   ::  A page with data goes to the agent, with its desk, compiler revision
   ::  and the request's site.
   =/  data=served:jibb-host
-    (serve-request:jibb-host example-routes (cache-with [%data 7 %prepared]) ~ & %'HEAD' '/apps/my-app')
+    (serve-request:jibb-host example-routes (cache-with [%data 7 %prepared]) ~ ~ & %'HEAD' '/apps/my-app')
   ?.  =([%data %my-app 7 %prepared ~ &] data)
     ~[leaf+"a page with data was not handed to the agent with its site and HEAD"]
   =/  anonymous=served:jibb-host
-    (serve-request:jibb-host example-routes (cache-with [%data 7 %prepared]) ~ | %'GET' '/apps/my-app')
+    (serve-request:jibb-host example-routes (cache-with [%data 7 %prepared]) ~ ~ | %'GET' '/apps/my-app')
   ?.  ?=(%payload -.anonymous)  ~[leaf+"a logged-out reader reached a page with data"]
   ?.  =(307 (status result.anonymous))  ~[leaf+"a logged-out reader of a page with data was not redirected"]
   ::  The kind is data: a failure that happens to share that text is a 500.
@@ -224,11 +240,10 @@
   ~
 ++  test-binding-admission-and-failure
   ^-  tang
-  =/  entries=(list docket-entry:jibb-host)  ~[[%my-app `example-docket]]
-  =/  start=(each transition:jibb-host @t)
-    (initialize:jibb-host %jibb entries (sy ~[%my-app %blog %other]))
-  ?:  ?=(%| -.start)  ~[leaf+(trip p.start)]
-  =/  made=transition:jibb-host  p.start
+  =/  start=site-update:jibb-host
+    %^  update-sites:jibb-host  %jibb  [~ ~ (sy ~[%my-app %blog %other])]
+    ~[[%my-app (docket-site:jibb-host example-docket)]]
+  =/  made=transition:jibb-host  [registry.start cards.start]
   ?.  =(~ routes.registry.made)  ~[leaf+"an unacknowledged route was published"]
   ?.  =(1 (lent pending.registry.made))  ~[leaf+"discovery did not record its pending bind"]
   ?.  =(1 (lent cards.made))  ~[leaf+"discovery did not emit exactly one bind"]
@@ -236,14 +251,18 @@
     [%pass /bind/my-app %arvo %e %connect [~ /apps/my-app] %jibb]
   ?.  =(~[expected] cards.made)  ~[leaf+"Eyre connect card was malformed"]
   =/  denied=transition:jibb-host
-    (acknowledge-bind:jibb-host registry.made %my-app |)
+    (acknowledge-bind:jibb-host registry.made %my-app | [~ /apps/my-app])
   ?.  =(~ routes.registry.denied)  ~[leaf+"failed binding published a route"]
   ?.  =(~ pending.registry.denied)  ~[leaf+"failed binding remained pending"]
   ?.  =(~ cards.denied)  ~[leaf+"failed binding emitted a lifecycle card"]
   =/  accepted=transition:jibb-host
-    (acknowledge-bind:jibb-host registry.made %my-app &)
+    (acknowledge-bind:jibb-host registry.made %my-app & [~ /apps/my-app])
   ?.  =(1 (lent routes.registry.accepted))  ~[leaf+"accepted binding was not published"]
   ?.  =(~ pending.registry.accepted)  ~[leaf+"accepted binding remained pending"]
+  ::  Eyre's answer for a base the desk no longer claims is not for its bind.
+  =/  stale=transition:jibb-host
+    (acknowledge-bind:jibb-host registry.made %my-app & [~ /apps/old])
+  ?.  =([registry.made ~] stale)  ~[leaf+"an answer for another base acknowledged the pending bind"]
   =/  restored=(list card:agent:gall)
     (restore-cards:jibb-host %jibb registry.made)
   ?.  =(2 (lent restored))  ~[leaf+"load did not resubscribe and retry pending binds"]
@@ -256,8 +275,10 @@
   =/  reg=registry:jibb-host
     [example-routes ~ (sy ~[%my-app %blog])]
   =/  retired=transition:jibb-host  (retire-desk:jibb-host reg %blog)
+  ::  Eyre removes a binding only for the duct that made it: the disconnect
+  ::  goes on the wire the desk's connect used.
   =/  expected=card:agent:gall
-    [%pass /disconnect/blog %arvo %e %disconnect [~ /apps/my-app/blog]]
+    [%pass /bind/blog %arvo %e %disconnect [~ /apps/my-app/blog]]
   ?.  =(~[expected] cards.retired)  ~[leaf+"suspending a desk did not disconnect its route"]
   ?.  ?=(~ (route-for-desk:jibb-host routes.registry.retired %blog))
     ~[leaf+"suspended desk remained routable"]
@@ -267,7 +288,7 @@
     [~ example-routes (sy ~[%my-app %blog])]
   =/  stopped=transition:jibb-host  (retire-desk:jibb-host pending-reg %blog)
   =/  late=transition:jibb-host
-    (acknowledge-bind:jibb-host registry.stopped %blog &)
+    (acknowledge-bind:jibb-host registry.stopped %blog & [~ /apps/my-app/blog])
   ?.  =(~[expected] cards.late)  ~[leaf+"late accepted bind was not disconnected"]
   ?.  =(~ routes.registry.late)  ~[leaf+"late accepted bind republished a suspended desk"]
   =/  revived=registry:jibb-host  (revive-desk:jibb-host registry.late %blog)
@@ -275,7 +296,7 @@
     (add-pending:jibb-host %jibb revived [%blog /apps/my-app/blog])
   ?:  ?=(%| -.rebound)  ~[leaf+(trip p.rebound)]
   =/  accepted=transition:jibb-host
-    (acknowledge-bind:jibb-host registry.p.rebound %blog &)
+    (acknowledge-bind:jibb-host registry.p.rebound %blog & [~ /apps/my-app/blog])
   ?.  =(1 (lent routes.registry.accepted))
     ~[leaf+"resumed desk did not become routable after acknowledgment"]
   =/  reconciled=transition:jibb-host
@@ -458,16 +479,16 @@
   ^-  tang
   ::  The pinned implementation's order, including competing mixed paths.
   =/  wanted=(list path)  ~[/a-b-c /a/b-c /a-b/c /a/b/c]
-  ?.  =(wanted (name-paths:jibb-host %a-b-c))  ~[leaf+"dashed names did not expand in Clay's order"]
+  ?.  =(`wanted (name-paths:jibb-host %a-b-c))  ~[leaf+"dashed names did not expand in Clay's order"]
   =/  longer=(list path)
     ~[/a-b-c-d /a/b-c-d /a-b/c-d /a/b/c-d /a-b-c/d /a/b-c/d /a-b/c/d /a/b/c/d]
-  ?.  =(longer (name-paths:jibb-host %a-b-c-d))
+  ?.  =(`longer (name-paths:jibb-host %a-b-c-d))
     ~[leaf+"four-part names did not expand in Clay's order"]
   =/  competing=(list path)
-    (skim (name-paths:jibb-host %a-b-c) |=(at=path |(=(at /a-b/c) =(at /a/b-c))))
+    (skim (need (name-paths:jibb-host %a-b-c)) |=(at=path |(=(at /a-b/c) =(at /a/b-c))))
   ?.  =(~[/a/b-c /a-b/c] competing)
     ~[leaf+"competing mixed paths would select a different root than Clay"]
-  ?.  =(~[/todo] (name-paths:jibb-host %todo))  ~[leaf+"a plain name did not name one file"]
+  ?.  =(`~[/todo] (name-paths:jibb-host %todo))  ~[leaf+"a plain name did not name one file"]
   ?.  =(`%todo-action (hoon-name:jibb-host %mar /mar/todo/action/hoon))
     ~[leaf+"a nested mark file did not keep its dashed name"]
   ?.  =(`%todo (hoon-name:jibb-host %sur /sur/todo/hoon))  ~[leaf+"a /sur file lost its name"]
@@ -478,21 +499,21 @@
   ^-  tang
   =/  building=(set desk)  (sy ~[%my-app])
   =/  pending=payload:jibb-host
-    (serve:jibb-host example-routes ~ building & %'GET' '/apps/my-app/about')
+    (serve:jibb-host example-routes ~ ~ building & %'GET' '/apps/my-app/about')
   ?.  =(503 (status pending))  ~[leaf+"a desk building its first pages did not say so"]
   ?.  =(`'5' (get-header:http 'retry-after' headers.response-header.pending))
     ~[leaf+"the in-progress response did not ask the reader to retry"]
   =/  head=payload:jibb-host
-    (serve:jibb-host example-routes ~ building & %'HEAD' '/apps/my-app/about')
+    (serve:jibb-host example-routes ~ ~ building & %'HEAD' '/apps/my-app/about')
   ?.  &(=(503 (status head)) =(~ data.head))  ~[leaf+"HEAD of a building desk was wrong"]
   =/  absent=payload:jibb-host
-    (serve:jibb-host example-routes ~ ~ & %'GET' '/apps/my-app/about')
+    (serve:jibb-host example-routes ~ ~ ~ & %'GET' '/apps/my-app/about')
   ?.  =(404 (status absent))  ~[leaf+"a desk with no build reported one in progress"]
   =/  previous=payload:jibb-host
-    (serve:jibb-host example-routes example-cache building & %'GET' '/apps/my-app')
+    (serve:jibb-host example-routes example-cache ~ building & %'GET' '/apps/my-app')
   ?.  =(200 (status previous))  ~[leaf+"a completed build stopped serving while the next one ran"]
   =/  anonymous=payload:jibb-host
-    (serve:jibb-host example-routes ~ building | %'GET' '/apps/my-app/about')
+    (serve:jibb-host example-routes ~ ~ building | %'GET' '/apps/my-app/about')
   ?.  =(307 (status anonymous))  ~[leaf+"a logged-out request skipped the login redirect"]
   ~
 ++  test-static-file-urls

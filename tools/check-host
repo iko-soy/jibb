@@ -72,6 +72,23 @@ DIAGNOSTIC_FILES = {
     os.path.join('ui', 'diagnostics', 'island-page.jibb'): (
         b'/= broken /ui/diagnostics/island\n'
         b'++ main (island main.broken 0)\n'),
+    #  Eleven dashes, past the budget: Clay's search would try 2^11 paths.
+    os.path.join('ui', 'diagnostics', 'dashes.jibb'): (
+        b'/- a-b-c-d-e-f-g-h-i-j-k-l\n'
+        b'++ main (text "never")\n'),
+}
+#  Only pages' routes conflict: an island at the blog index's site and a
+#  library beside the page with a parameter leave both pages served.
+ROUTE_NEIGHBOURS = {
+    os.path.join('ui', 'blog.jibb'): (
+        b'++ main (program init update view subs)\n'
+        b'++ init |= n=@ud n\n'
+        b'++ update |= [msg=@ud model=@ud] [model ~]\n'
+        b'++ subs |= model=@ud ~\n'
+        b'++ view |= model=@ud\n'
+        b'  para ~[(text "An island beside a page")]\n'),
+    os.path.join('ui', 'numbered', '_util.jibb'): (
+        b'++ number |= n=@ud n\n'),
 }
 PASSWORD = 'lidlut-tabwed-pillex-ridrup'
 #  A build step holds the ship's event loop, for minutes on a loaded
@@ -123,19 +140,45 @@ CLEAR = r"""
 ?.  ?=(%thread-done p.cage)  ~|([%clear-failed p.cage] !!)
 (pure:m q.cage)
 """
-#  -jibb!test %DESK, run as dojo runs a thread from the %jibb desk.
+#  -jibb!test %DESK, run as dojo runs a thread from the %jibb desk: dojo
+#  passes one argument as [~ %DESK].  The thread still takes the [%DESK ~]
+#  older callers passed.
 TEST = r"""
 =/  m  (strand ,vase)
 ;<  =bowl:spider  bind:m  get-bowl
 =/  tid  (scot %ta (cat 3 'strand_jibb_test_' (scot %uv (sham %test eny.bowl))))
 =/  start=vase
-  !>(`start-args:spider`[`tid.bowl `tid [our.bowl %jibb da+now.bowl] %test !>([%@@DESK@@ ~])])
+  !>(`start-args:spider`[`tid.bowl `tid [our.bowl %jibb da+now.bowl] %test !>(@@ARG@@)])
 ;<  ~  bind:m  (watch-our /awaiting/[tid] %spider /thread-result/[tid])
 ;<  ~  bind:m  (poke-our %spider %spider-start start)
 ;<  =cage  bind:m  (take-fact /awaiting/[tid])
 ;<  ~  bind:m  (take-kick /awaiting/[tid])
+@@RESULT@@
+"""
+TEST_DONE = r"""
 ?.  ?=(%thread-done p.cage)  ~|([%test-failed p.cage] !!)
 (pure:m q.cage)
+"""
+#  A failed -jibb!test: its term and each line of its message.
+TEST_FAILED = r"""
+?.  ?=(%thread-fail p.cage)  ~|([%test-did-not-fail p.cage] !!)
+=/  [=term =tang]  !<([term tang] q.cage)
+(pure:m !>([term (turn tang |=(=tank (crip ~(ram re tank))))]))
+"""
+#  The paths Eyre binds to %jibb, without a site.
+JIBB_BINDINGS = r"""
+=/  m  (strand ,vase)
+;<  =bowl:spider  bind:m  get-bowl
+=/  all
+  ;;  (list [binding:eyre * *])
+  .^(* %e /(scot %p our.bowl)/bindings/(scot %da now.bowl))
+%-  pure:m
+!>  ^-  (list (list @t))
+%+  murn  all
+|=  [=binding:eyre duct=* action=*]
+?.  =([%app %jibb] action)  ~
+?^  site.binding  ~
+`path.binding
 """
 #  What -jibb!test gives for each desk's test modules, test by test.
 EXPECTED_TESTS = {
@@ -660,9 +703,15 @@ def wait_for(what, probe, timeout=600):
     raise ValueError('timed out waiting for %s: %s' % (what, last))
 
 
-def desk_tests(ship, desk):
+def test_argument(desk, legacy=False):
+    """-jibb!test's argument, as dojo passes it or as older callers did."""
+    return '[%%%s ~]' % desk if legacy else '[~ %%%s]' % desk
+
+
+def desk_tests(ship, desk, legacy=False):
     """-jibb!test's outcomes for a desk: (module, [(arm, ok, message)])."""
-    value = ship.thread(TEST.replace('@@DESK@@', desk), timeout=REPLY)
+    value = ship.thread(shiptool.fill(TEST, ARG=test_argument(desk, legacy),
+                                      RESULT=TEST_DONE), timeout=REPLY)
     modules = []
     for entry in shiptool.items(value):
         at, tests = entry
@@ -670,6 +719,19 @@ def desk_tests(ship, desk):
             (shiptool.text(arm), ok == 0, shiptool.text(message))
             for arm, (ok, message) in shiptool.items(tests)]))
     return modules
+
+
+def desk_test_failure(ship, desk):
+    """How -jibb!test failed for a desk: its term and its message's lines."""
+    term, lines = ship.thread(shiptool.fill(TEST, ARG=test_argument(desk),
+                                            RESULT=TEST_FAILED), timeout=REPLY)
+    return shiptool.text(term), [shiptool.text(line) for line in shiptool.items(lines)]
+
+
+def jibb_bindings(ship):
+    """The paths Eyre binds to %jibb."""
+    value = ship.thread(JIBB_BINDINGS, timeout=REPLY)
+    return {shiptool.path_text(path) for path in shiptool.items(value)}
 
 
 def http_port(pier):
@@ -777,8 +839,9 @@ def main(args):
             expect(status == 200, 'owner About request was HTTP %d: %r' % (status, body))
             expect(headers.get_content_type() == 'text/html',
                    'About content type was %r' % headers.get('content-type'))
-            expect(headers.get('cache-control') is None,
-                   'private About response requested Eyre caching')
+            # A private page tells every cache not to store it.
+            expect(headers.get('cache-control') == 'no-store',
+                   'private About response allowed caching: %r' % headers.get('cache-control'))
             for text in ('About this ship', BASE + '/blog',
                          'Hosted on Urbit. This page ships no JavaScript.'):
                 expect(text.encode() in body, 'rendered About page is missing %r' % text)
@@ -871,6 +934,22 @@ def main(args):
             files = {stylesheet: None, dot_url: None, **{url: None for url in scripts}}
             expect(published(ship, DESK) == files,
                    'the fixture published %r' % published(ship, DESK))
+            # Eyre answers only a GET from its cache.  A HEAD reaches the
+            # host, which gives the GET's status and headers, with no body.
+            for url, media_type in ((stylesheet, 'text/css; charset=utf-8'),
+                                    (dot_url, 'image/png'),
+                                    (library[0], 'text/javascript; charset=utf-8'),
+                                    (modules[0], 'text/javascript; charset=utf-8')):
+                status, headers, body = anonymous.request('HEAD', url)
+                expect(status == 200 and body == b'',
+                       'HEAD of published %s was HTTP %d with %d bytes' % (url, status, len(body)))
+                expect(headers.get('content-type') == media_type,
+                       'HEAD of %s had content type %r' % (url, headers.get('content-type')))
+                expect(headers.get('cache-control') == IMMUTABLE,
+                       'HEAD of %s was not immutable: %r' % (url, headers.get('cache-control')))
+            status, _, _ = anonymous.request('HEAD', BASE + '/static/0v1/img/dot.png')
+            expect(status == 404, 'HEAD of a static file no build made was HTTP %d' % status)
+            expect(BASE in jibb_bindings(ship), 'Eyre does not bind %s to the host' % BASE)
 
         with timed_phase('note library incremental rebuild and restore'):
             before = module_revisions(ship, DESK)
@@ -945,8 +1024,21 @@ def main(args):
             # Host render diagnostics belong to the element's original call, even
             # through imported aliases and outer layouts, not to the page's root.
             diagnostics = True
-            rev = commit_files(ship, DIAGNOSTIC_FILES)
+            rev = commit_files(ship, {**DIAGNOSTIC_FILES, **ROUTE_NEIGHBOURS})
             wait_built(ship, DESK, rev)
+            # A /- name past ten dashes is its importer's error, unsearched.
+            actual = page_error(owner, BASE + '/diagnostics/dashes')
+            expected = ('static build: /ui/diagnostics/dashes.jibb imports /- '
+                        'a-b-c-d-e-f-g-h-i-j-k-l, but a /- or /% name may have at most ten dashes')
+            expect(actual == expected, 'an import past the dash budget gave\n%s' % actual)
+            # An island or library at a page's site is not routed, so the
+            # pages beside them still serve.
+            status, _, body = owner.request('GET', BASE + '/blog')
+            expect(status == 200 and b'Nothing here yet.' in body,
+                   'an island at the blog index\'s site broke it: HTTP %d: %r' % (status, body))
+            status, _, body = owner.request('GET', BASE + '/numbered/12')
+            expect(status == 200 and b'Number 12' in body,
+                   'a library beside a parameter page broke it: HTTP %d: %r' % (status, body))
             expect_render_error(
                 owner, BASE + '/diagnostics/direct', '/ui/diagnostics/direct.jibb', 4, 13,
                 'link to a missing page: %/nowhere',
@@ -973,7 +1065,7 @@ def main(args):
                 owner, BASE + '/diagnostics/unreadable', '/ui/diagnostics/unreadable.jibb', 1, 10,
                 'static image has no size this build can read: /static/img/dot.png',
                 '++ main (image %/static/img/dot.png "Unreadable")')
-            changes = {name: None for name in DIAGNOSTIC_FILES}
+            changes = {name: None for name in {**DIAGNOSTIC_FILES, **ROUTE_NEIGHBOURS}}
             changes[DOT_FILE] = dot
             rev = commit_files(ship, changes)
             diagnostics = False
@@ -1018,6 +1110,13 @@ def main(args):
                    'a build whose compiler does not build replaced About: HTTP %d: %r'
                    % (status, body))
             fetch_public(anonymous, stylesheet, 'text/css; charset=utf-8', css.encode())
+            # -jibb!test gives this revision's failure, not the results of
+            # the build before it.
+            term, lines = desk_test_failure(ship, DESK)
+            wanted = ['%%%s revision %s did not build: static build: '
+                      '/lib/jibb-build.hoon does not build' % (DESK, shiptool.hoon_ud(rev))]
+            expect((term, lines) == ('jibb-test', wanted),
+                   '-jibb!test after a failed build gave %r' % ((term, lines),))
             rev = commit_file(ship, compiler, good_compiler)
             compiler_broken = False
             wait_built(ship, DESK, rev)
@@ -1043,7 +1142,8 @@ def main(args):
             status, headers, body = owner.request('GET', MY_APP_BASE + '/blog')
             expect(status == 200 and b'Hello, Urbit' in body and b'Pages from a scry' in body,
                    'worked example 2 was HTTP %d: %r' % (status, body))
-            expect(headers.get('cache-control') is None, 'a page with data asked to be cached')
+            expect(headers.get('cache-control') == 'no-store',
+                   'a page with data allowed caching: %r' % headers.get('cache-control'))
             status, _, body = owner.request('GET', MY_APP_BASE + '/blog/hello-urbit')
             expect(status == 200 and b'<h1' in body and b'Hello, Urbit' in body
                    and b'address is hello-urbit.' in body,
@@ -1111,6 +1211,9 @@ def main(args):
             for desk, wanted in EXPECTED_TESTS.items():
                 got = desk_tests(ship, desk)
                 expect(got == wanted, '-jibb!test %%%s gave %r, not %r' % (desk, got, wanted))
+            got = desk_tests(ship, DESK, legacy=True)
+            expect(got == EXPECTED_TESTS[DESK],
+                   '-jibb!test with the older argument gave %r' % (got,))
 
         with timed_phase('clear cache and republish'):
             # -jibb!clear takes every desk's files out of Eyre's cache; the next
@@ -1148,16 +1251,20 @@ def main(args):
             suspended = True
             poke(ship, 'kiln-suspend-many', '~[%%%s]' % DESK)
             wait_for('route removal after suspend', lambda: not route_present(ship) or None)
+            # The disconnect goes on the connect's wire, so Eyre lets go.
+            expect(BASE not in jibb_bindings(ship), 'Eyre still binds the suspended %s' % BASE)
             status, _, _ = owner.request('GET', PAGE)
             expect(status == 404, 'suspended desk route was HTTP %d, not 404' % status)
             expect(published(ship, DESK) == {}, 'a suspended desk kept published files')
-            # Out of Eyre's cache, the files fall to Eyre's other bindings, which
-            # send a logged-out reader to the login page: ask as the owner.
+            # Out of Eyre's cache and unbound, the files fall to any shorter
+            # binding, which may send a logged-out reader to the login page,
+            # or to Eyre's own 404: ask as the owner.
             expect_gone(owner, (stylesheet, dot_url), 'after suspending the desk')
 
         print('check-host: default theme, real Clay imports, page kinds, static files, '
               'stylesheets, pages with data, -jibb!test, -jibb!clear, incremental rebuild, '
-              'HTTP and suspend passed')
+              'HTTP, HEAD of published files, owner-only caching, route conflicts, '
+              'import budgets, Eyre bindings and suspend passed')
         passed = True
         return 0
     finally:
@@ -1175,7 +1282,8 @@ def main(args):
                     if compiler_broken:
                         commit_file(ship, compiler, good_compiler)
                     if diagnostics:
-                        commit_files(ship, {name: None for name in DIAGNOSTIC_FILES})
+                        commit_files(ship, {name: None
+                                            for name in {**DIAGNOSTIC_FILES, **ROUTE_NEIGHBOURS}})
                     poke(ship, 'kiln-revive', '%' + DESK)
                     if suspended and host_ready:
                         wait_for('fixture revival after acceptance', lambda: route_present(ship) or None)

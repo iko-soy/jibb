@@ -75,13 +75,18 @@
 |_  =bowl:gall
 +*  this  .
     hc    ~(. +> bowl)
+::  Every desk's docket is read when Clay first answers, and once Behn
+::  wakes the host, Eyre's bindings for it that no route holds are taken
+::  back.
 ++  on-init
   ^-  (quip card _this)
-  [~[tire-card:jibb-host] this]
+  [~[tire-card:jibb-host (sweep-card:jibb-host now.bowl)] this]
 ++  on-save  !>(`saved-5`[%5 registry pages watched built published timer pending])
 ::  Published routes and their pages survive reloads and keep serving while
 ::  every published desk builds again from an empty cache, renewing its
-::  commit subscription.  Pending binds are retried.
+::  commit subscription.  Pending binds are retried, every desk's docket is
+::  read again, and the expiry timer, whose wake Gall drops while the host
+::  is suspended, is set again.
 ++  on-load
   |=  old=vase
   ^-  (quip card _this)
@@ -108,10 +113,11 @@
       %0  [%5 [~ routes.registry.previous live.registry.previous] ~ ~ ~ ~ ~ ~ ~ ~ ~]
     ==
   =^  cards  state  rebuild-published:hc
-  =^  timers  state  schedule:hc
+  =^  timers  state  rearm:hc
   :_  this
   ;:  weld
     (restore-cards:jibb-host dap.bowl registry)
+    ~[(sweep-card:jibb-host now.bowl)]
     cards
     timers
   ==
@@ -129,25 +135,36 @@
   =+  !<([eyre-id=@ta req=inbound-request:eyre] vase)
   =/  answer=served:jibb-host
     %:  serve-request:jibb-host
-      routes.registry  pages  ~(key by builds)
+      routes.registry  pages  published  ~(key by builds)
       authenticated.req  method.request.req  url.request.req
     ==
   ?:  ?=(%payload -.answer)  [(give-payload:jibb-host eyre-id result.answer) this]
   =^  cards  state
     (page-step:hc eyre-id [desk rev page head ~ %$ ~]:answer [%load site.answer])
   [cards this]
+::  Only Eyre watches here, for a request's response: another ship or an
+::  agent watching /http-response/<id> could read someone else's page.
 ++  on-watch
   |=  =path
   ^-  (quip card _this)
-  ?:  ?=([%http-response *] path)  [~ this]
+  =/  id=(unit @ta)  (response-path:jibb-host path sup.bowl)
+  ?~  id
+    ~|  [%jibb-watch-refused src.bowl path]
+    !!
   [~ this]
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
   ?:  ?=([%bind @ ~] wire)
     ?.  ?=([%eyre %bound *] sign-arvo)  [~ this]
-    =^  cards  state  (bound:hc i.t.wire accepted.sign-arvo)
+    =^  cards  state  (bound:hc i.t.wire accepted.sign-arvo binding.sign-arvo)
     [cards this]
+  ::  Eyre's bindings for the host, read once it is running; Eyre answers
+  ::  the sweep's own binds here too.
+  ?:  ?=([%sweep ~] wire)
+    ?.  ?=([%behn %wake *] sign-arvo)  [~ this]
+    =/  bindings=*  .^(* %e /(scot %p our.bowl)/bindings/(scot %da now.bowl))
+    [(stale-bindings:jibb-host dap.bowl registry bindings) this]
   ?:  ?=([%commit @ ~] wire)
     ?.  ?=([%clay %writ *] sign-arvo)  [~ this]
     ::  A cancelled subscription ends with an empty writ.
@@ -168,15 +185,15 @@
     ?~  rev  [~ this]
     =^  cards  state  (built-file:hc i.t.wire u.rev t.t.t.wire ?=(^ p.sign-arvo))
     [cards this]
-  ::  A thread's scry for a page with data: its noun, or a failure, which is
-  ::  that page's 404.
+  ::  A thread's scry for a page with data: the agent's noun, or ~ when the
+  ::  agent did not answer, that page's 404; a failed thread is its 500.
   ?:  ?=([%scry @ ~] wire)
     ?.  ?=([%khan %arow *] sign-arvo)  [~ this]
     =^  cards  state  (scried:hc i.t.wire p.sign-arvo)
     [cards this]
   ?:  ?=([%expire ~] wire)
     ?.  ?=([%behn %wake *] sign-arvo)  [~ this]
-    =.  timer  ~
+    =.  timer  (woken-timer:jibb-host timer now.bowl)
     =^  cards  state  expire:hc
     [cards this]
   ?.  ?=([%desks ~] wire)  [~ this]
@@ -192,7 +209,8 @@
     (revive:hc desk)
   [cards this]
 ::  Eyre leaves a request it no longer waits for; its scry's answer is
-::  then dropped.
+::  then dropped.  Gall calls this only for a watch +on-watch accepted,
+::  which only Eyre's is.
 ++  on-leave
   |=  =path
   ^-  (quip card _this)
@@ -261,6 +279,9 @@
 ::
 ::  Lifecycle
 ::
+::  Clay reads that cannot fail the host's event: %u says whether a file
+::  exists, and %q gives a file as Clay stores it, without building its
+::  mark, so a desk whose docket-0 mark does not build cannot fail it.
 ++  jibb-desk
   |=  [our=@ta now=@ta =desk]
   ^-  ?
@@ -270,55 +291,82 @@
   ^-  (unit noun)
   =/  at=path  /[our]/[desk]/[now]/desk/docket-0
   ?.  .^(? %cu at)  ~
-  `.^(noun %cx at)
-++  discover
-  |=  live=(set desk)
-  ^-  (list docket-entry:jibb-host)
+  `.^(* %cq at)
+::  The base a desk's docket names, if the desk vendors Jibb.
+++  desk-site
+  |=  =desk
+  ^-  (unit path)
   =/  our=@ta  (scot %p our.bowl)
   =/  now=@ta  (scot %da now.bowl)
-  =/  desks=(set desk)  .^((set desk) %cd /[our]/[%$]/[now])
-  =/  ordered=(list desk)  (sort ~(tap in desks) aor)
-  =|  entries=(list docket-entry:jibb-host)
-  |-
-  ?~  ordered  (flop entries)
-  ?.  (~(has in live) i.ordered)  $(ordered t.ordered)
-  ?.  (jibb-desk our now i.ordered)  $(ordered t.ordered)
-  $(ordered t.ordered, entries [[i.ordered (read-docket our now i.ordered)] entries])
+  ?.  (jibb-desk our now desk)  ~
+  =/  doc=(unit noun)  (read-docket our now desk)
+  ?~  doc  ~
+  (docket-site:jibb-host u.doc)
+::  Clay's first answer: desks that are not live go, and every live desk's
+::  docket is read again, since one may have begun to vendor Jibb, or
+::  changed or dropped its site+, while the host was not running.  Every
+::  live desk without a route has its commits watched too.
 ++  initial-rock
   |=  rock=rock:tire
   ^-  (quip card _state)
+  =/  live=(set desk)  (live-desks:jibb-host rock)
   =/  before=(list route:jibb-host)  routes.registry
-  =/  next=transition:jibb-host
-    (reconcile-live:jibb-host registry (live-desks:jibb-host rock))
+  =/  next=transition:jibb-host  (reconcile-live:jibb-host registry live)
   =.  registry  registry.next
   =.  pages  (prune-pages:jibb-host pages live.registry)
-  =/  gone=(list desk)
-    %+  murn  before
-    |=  r=route:jibb-host
-    ?:((~(has in live.registry) desk.r) ~ `desk.r)
-  =/  out=(list card)
-    ;:  weld
-      cards.next
-      (turn gone unwatch-card)
-      (clear-desks gone)
-    ==
+  =/  known=(set desk)
+    (~(uni in ~(key by watched)) (silt (turn before |=(r=route:jibb-host desk.r))))
+  =/  gone=(list desk)  (skip ~(tap in known) |=(d=desk (~(has in live) d)))
+  =/  out=(list card)  (weld cards.next (clear-desks gone))
   =.  state  (forget gone)
-  =/  found=(each (list route:jibb-host) @t)
-    (discover-routes:jibb-host (discover live.registry))
-  ?:  ?=(%| -.found)  ~|(p.found !!)
-  =/  discovered=(list route:jibb-host)  p.found
+  =^  stopped  state  (unwatch gone)
+  =/  desks=(list desk)  (sort ~(tap in live) aor)
+  =^  sited  state  (apply-sites (turn desks |=(d=desk [d (desk-site d)])))
+  =^  watching  state  (watch-unrouted desks)
+  [:(weld out stopped sited watching) state]
+::  Bind, move or drop routes once these desks' dockets have been read.  A
+::  refused claim is printed; a dropped route's files and builds end.
+++  apply-sites
+  |=  sites=(list [=desk site=(unit path)])
+  ^-  (quip card _state)
+  =/  update=site-update:jibb-host  (update-sites:jibb-host dap.bowl registry sites)
+  =.  registry  registry.update
+  =/  gone=(list desk)  (turn dropped.update |=(r=route:jibb-host desk.r))
+  =/  cards=(list card)  (weld cards.update (clear-desks gone))
+  =.  state  (forget gone)
+  %-  (slog (turn refused.update |=([desk why=@t] leaf+(trip why))))
+  [cards state]
+::  A live desk without a route has its commits watched as well, so that
+::  a commit making it a Jibb desk, or giving it a site+, is seen.
+++  watch-unrouted
+  |=  desks=(list desk)
+  ^-  (quip card _state)
+  =|  cards=(list card)
   |-
-  ?~  discovered  [out state]
-  =/  added=(each transition:jibb-host @t)
-    (add-pending:jibb-host dap.bowl registry i.discovered)
-  ?:  ?=(%| -.added)  ~|(p.added !!)
+  ?~  desks  [cards state]
+  ?:  ?=(^ (route-for-desk:jibb-host routes.registry i.desks))
+    $(desks t.desks)
+  =/  rev=@ud  (current-rev i.desks)
   %=  $
-    discovered  t.discovered
-    registry    registry.p.added
-    out         (welp out cards.p.added)
+    desks    t.desks
+    watched  (~(put by watched) i.desks rev)
+    cards    (weld cards ~[(unwatch-card i.desks) (watch-card i.desks rev)])
   ==
-::  A desk's builds, compile cache, commit subscription and static files end
-::  with it; the caller removes the files from Eyre's cache.
+::  These desks' commits stop being watched.
+++  unwatch
+  |=  desks=(list desk)
+  ^-  (quip card _state)
+  =|  cards=(list card)
+  |-
+  ?~  desks  [(flop cards) state]
+  ?.  (~(has by watched) i.desks)  $(desks t.desks)
+  %=  $
+    desks    t.desks
+    cards    [(unwatch-card i.desks) cards]
+    watched  (~(del by watched) i.desks)
+  ==
+::  A desk's route has ended: its builds, compile cache, pages and static
+::  files end with it; the caller removes the files from Eyre's cache.
 ++  forget
   |=  desks=(list desk)
   ^-  _state
@@ -326,7 +374,6 @@
   %=  $
     desks      t.desks
     pages      (~(del by pages) i.desks)
-    watched    (~(del by watched) i.desks)
     builds     (~(del by builds) i.desks)
     stores     (~(del by stores) i.desks)
     built      (~(del by built) i.desks)
@@ -337,13 +384,11 @@
   |=  =desk
   ^-  (quip card _state)
   =/  next=transition:jibb-host  (retire-desk:jibb-host registry desk)
-  =/  cards=(list card)
-    %+  weld
-      ?.  (~(has by watched) desk)  cards.next
-      [(unwatch-card desk) cards.next]
-    (clear-urls:jibb-host (~(gut by published) desk ~))
+  =/  cleared=(list card)  (clear-urls:jibb-host (~(gut by published) desk ~))
   =.  registry  registry.next
-  [cards (forget ~[desk])]
+  =.  state  (forget ~[desk])
+  =^  stopped  state  (unwatch ~[desk])
+  [:(weld stopped cards.next cleared) state]
 ::  Every desk's static files leave Eyre's cache.
 ++  clear-all
   ^-  (quip card _state)
@@ -372,54 +417,36 @@
     cards      (weld cards cards.done)
     published  (~(put by published) desk.i.desks urls.done)
   ==
-::  One timer, for the earliest retired file, if any: a timer set for a
-::  later file is moved, and one no file needs is cancelled.
+::  One timer, for the earliest retired file, if any.
 ++  schedule
   ^-  (quip card _state)
-  =/  times=(list @da)  (murn ~(val by published) next-expiry:jibb-host)
-  =/  soonest=(unit @da)
-    ?~  times  ~
-    =/  low=@da  i.times
-    =/  rest=(list @da)  t.times
-    |-
-    ?~  rest  `low
-    $(rest t.rest, low (min low i.rest))
-  ?:  =(soonest timer)  [~ state]
-  =/  rest=(list card)  ?~(timer ~ ~[[%pass /expire %arvo %b %rest u.timer]])
-  =/  wait=(list card)  ?~(soonest ~ ~[[%pass /expire %arvo %b %wait u.soonest]])
-  [(weld rest wait) state(timer soonest)]
+  =/  next  (timer-plan:jibb-host timer (soonest-expiry:jibb-host ~(val by published)))
+  [cards.next state(timer timer.next)]
+::  A load sets the timer again: Gall dropped its wake if it fired while
+::  the host was suspended.
+++  rearm
+  ^-  (quip card _state)
+  =/  next  (rearm-timer:jibb-host timer (soonest-expiry:jibb-host ~(val by published)))
+  [cards.next state(timer timer.next)]
 ++  revive
   |=  =desk
   ^-  (quip card _state)
   =.  registry  (revive-desk:jibb-host registry desk)
-  ?:  ?|  ?=(^ (route-for-desk:jibb-host routes.registry desk))
-          ?=(^ (route-for-desk:jibb-host pending.registry desk))
-      ==
-    [~ state]
-  =/  our=@ta  (scot %p our.bowl)
-  =/  now=@ta  (scot %da now.bowl)
-  ?.  (jibb-desk our now desk)  [~ state]
-  =/  doc=(unit noun)  (read-docket our now desk)
-  ?~  doc  [~ state]
-  =/  site=(unit path)  (docket-site:jibb-host u.doc)
-  ?~  site  [~ state]
-  =/  next=(each transition:jibb-host @t)
-    (add-pending:jibb-host dap.bowl registry [desk u.site])
-  ?:  ?=(%| -.next)  ~|(p.next !!)
-  [cards.p.next state(registry registry.p.next)]
+  =^  sited  state  (apply-sites ~[[desk (desk-site desk)]])
+  =^  watching  state  (watch-unrouted ~[desk])
+  [(weld sited watching) state]
 ::  Eyre bound a pending route: publish it, watch its commits and build.
 ++  bound
-  |=  [=desk accepted=?]
+  |=  [=desk accepted=? =binding:eyre]
   ^-  (quip card _state)
-  =/  pending=?  ?=(^ (route-for-desk:jibb-host pending.registry desk))
+  =/  before=(unit route:jibb-host)  (route-for-desk:jibb-host routes.registry desk)
   =/  next=transition:jibb-host
-    (acknowledge-bind:jibb-host registry desk accepted)
+    (acknowledge-bind:jibb-host registry desk accepted binding)
   =.  registry  registry.next
-  ?.  pending  [cards.next state]
-  =/  published=(unit route:jibb-host)
-    (route-for-desk:jibb-host routes.registry desk)
-  ?~  published  [cards.next state]
-  =^  cards  state  (watch-and-build u.published)
+  =/  after=(unit route:jibb-host)  (route-for-desk:jibb-host routes.registry desk)
+  ?~  after  [cards.next state]
+  ?:  =(before after)  [cards.next state]
+  =^  cards  state  (watch-and-build u.after)
   [(weld cards.next cards) state]
 ++  watch-and-build
   |=  r=route:jibb-host
@@ -439,21 +466,28 @@
 ::
 ::  Builds
 ::
-::  A commit to a published desk starts a build at its new revision; one
-::  already running for an older revision is abandoned, but what it
-::  computed stays in the desk's store for the new one.
+::  A commit to a watched desk may have changed its docket, or whether it
+::  vendors Jibb: the docket is read again, and a desk whose route stays
+::  builds the new revision.  A build already running for an older
+::  revision is abandoned, but what it computed stays in the desk's store
+::  for the new one.
 ++  commit
   |=  =desk
   ^-  (quip card _state)
-  =/  route=(unit route:jibb-host)  (route-for-desk:jibb-host routes.registry desk)
-  ?~  route  [~ state]
+  ?.  (~(has in live.registry) desk)  [~ state(watched (~(del by watched) desk))]
   =/  rev=@ud  (current-rev desk)
   ::  Duplicate subscriptions report the same revision; only the first
   ::  renews the subscription, so the duplicates end here.
   ?:  (lte rev (~(gut by watched) desk 0))  [~ state]
   =.  watched  (~(put by watched) desk rev)
-  =^  cards  state  (start-build u.route rev)
-  [[(watch-card desk rev) cards] state]
+  =/  before=(unit route:jibb-host)  (route-for-desk:jibb-host routes.registry desk)
+  =^  sited  state  (apply-sites ~[[desk (desk-site desk)]])
+  =/  route=(unit route:jibb-host)  (route-for-desk:jibb-host routes.registry desk)
+  =^  building  state
+    ?~  route  [~ state]
+    ?.  =(before route)  [~ state]
+    (start-build u.route rev)
+  [:(weld ~[(watch-card desk rev)] sited building) state]
 ++  start-build
   |=  [r=route:jibb-host rev=@ud]
   ^-  (quip card _state)
@@ -549,7 +583,7 @@
     ?.  ?=(%& -.result.u.style.b)  ~
     =/  sheet=[url=@t css=@t lang=@t]  p.result.u.style.b
     =/  css=octs  (as-octs:mimes:html css.sheet)
-    ~[[url.sheet (static-payload:jibb-host 'text/css; charset=utf-8' css)]]
+    ~[[url.sheet (static-payload:jibb-host css-type:jibb-host css)]]
   =/  plan=[urls=cached-urls:jibb-host cards=(list card)]
     =/  old=cached-urls:jibb-host  (~(gut by published) desk ~)
     ?^  failure.b  [old ~]
@@ -558,12 +592,14 @@
   =^  timers  state  schedule
   :-  (weld cards.plan timers)
   %-  (slog (build-report desk b s))
+  ::  A build that could not run is the last completed build for its
+  ::  tests too: they report its failure, not an older build's results.
   %=  state
     pages     (~(put by pages) desk served)
     builds    (~(del by builds) desk)
     stores    (~(put by stores) desk kept)
     built     (~(put by built) desk [rev.b checked])
-    finished  ?^(failure.b finished (~(put by finished) desk b))
+    finished  (~(put by finished) desk b)
   ==
 ::  Each island and store module's JavaScript, and the browser library if
 ::  there is any: public, immutable files, as static files are.
@@ -571,7 +607,7 @@
   |=  [b=build:jibb-host s=store:jibb-host]
   ^-  (list [url=@t =payload:jibb-host])
   =/  script=$-(@t payload:jibb-host)
-    |=(js=@t (static-payload:jibb-host 'text/javascript; charset=utf-8' (as-octs:mimes:html js)))
+    |=(js=@t (static-payload:jibb-host js-type:jibb-host (as-octs:mimes:html js)))
   =/  modules=(list [url=@t =payload:jibb-host])
     %+  murn  ~(val by client-keys.b)
     |=  key=@uv
@@ -878,17 +914,21 @@
   [& b s(clients (~(put by clients.s) key entry))]
 ::  The routes a page may link to are the sites of the modules that checked
 ::  as pages, and of those that may be pages but failed, which answer there
-::  with their error; the stylesheet comes from the checked theme.
+::  with their error; only these routes can conflict.  The stylesheet comes
+::  from the checked theme.
 ++  style-step
   |=  [=desk b=build:jibb-host s=store:jibb-host]
   ^-  [work=? b=build:jibb-host s=store:jibb-host]
-  =.  routes.b
-    %+  murn  sites.b
+  =/  routed=(list [at=path site=(list @t)])
+    %-  routed-sites:jibb-host
+    %+  turn  sites.b
     |=  [at=path site=(list @t)]
+    ^-  [at=path site=(list @t) kind=(each @tas ?)]
     =/  result=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s at)
-    ?:  ?=(%| -.result)  ?:(main:(~(got by modules.b) at) `site ~)
-    ?.  ?=(?(%static-page %page) kind.p.result)  ~
-    `site
+    :+  at  site
+    ?:  ?=(%| -.result)  [%| main:(~(got by modules.b) at)]
+    [%& kind.p.result]
+  =.  routes.b  (turn routed |=([at=path site=(list @t)] site))
   =/  theme=(each [kind=@tas interface=* artifact=*] @t)  (check-result b s theme.b)
   =/  urls=(list @t)  (turn assets.b |=(f=static-file:jibb-host url.f))
   =/  key=@uv
@@ -901,7 +941,7 @@
   =/  result=(each [url=@t css=@t lang=@t] @t)
     ?:  ?=(%| -.look)  [%| p.look]
     [%& (stylesheet-url:jibb-host base.b css.p.look) css.p.look lang.p.look]
-  =.  conflicts.b  (route-conflicts:jibb-host sites.b)
+  =.  conflicts.b  (route-conflicts:jibb-host routed)
   :+  ?=(~ cached)
     b(style `[key result])
   s(styles (~(put by styles.s) key look))
@@ -994,12 +1034,21 @@
   ^-  @t
   =/  lines=wall  (zing (turn (flop trace) |=(line=tank (wash [0 80] line))))
   (of-wain:format [message (turn lines crip)])
+::  A text source, as Clay stores it: a %q read builds no mark, so a mark
+::  that does not build cannot fail the event (see +static-bytes).
 ++  read-clay
   |=  [pre=path at=path]
   ^-  (each @t @t)
   ?.  .^(? %cu (weld pre at))
     [%| (crip "static build: cannot read Clay source {(show-file:jibb at)}")]
-  [%& .^(@t %cx (weld pre at))]
+  =/  raw=*  .^(* %cq (weld pre at))
+  ?^  raw  [%| (crip "static build: Clay source {(show-file:jibb at)} is not text")]
+  [%& raw]
+::  A text file's lines, as Clay stores them (see +read-clay).
+++  read-lines
+  |=  at=path
+  ^-  (unit wain)
+  ((soft wain) .^(* %cq at))
 ++  read-all
   |=  [pre=path paths=(list path)]
   ^-  (each (list [at=path source=@t]) @t)
@@ -1042,35 +1091,22 @@
   ?~  pairs  ~
   [-.i.pairs +.i.pairs $(pairs t.pairs)]
 ::  The file each /- or /% name selects, as Clay's fit-path finds it.  A
-::  name with no file is left out; checking an importer reports it.
+::  name with no file, or past the dash budget, is left out; checking an
+::  importer reports it.
 ++  fit-files
   |=  [files=(list path) folder=@ta names=(list term)]
   ^-  (map term path)
   %-  malt
   %+  murn  names
   |=  name=term
+  =/  candidates=(unit (list path))  (name-paths:jibb-host name)
+  ?~  candidates  ~
   =/  found=(list path)
     %+  skim
-      %+  turn  (name-paths:jibb-host name)
+      %+  turn  u.candidates
       |=(segments=path `path`[folder (snoc segments %hoon)])
     |=(at=path (has-file files at))
   ?~(found ~ `[name i.found])
-::  A /- or /% import in the closure that names no file, with its importer.
-++  missing-import
-  |=  [b=build:jibb-host closure=(list path)]
-  ^-  (unit @t)
-  =/  infos=(list module-info:jibb-host)
-    (murn closure |=(p=path (~(get by modules.b) p)))
-  |-
-  ?~  infos  ~
-  =/  file=tape  (show-file:jibb at.i.infos)
-  =/  sur=(list term)  (skip surs.i.infos |=(n=term (~(has by sur-files.b) n)))
-  ?^  sur
-    `(crip "static build: {file} imports /- {(trip i.sur)}, which has no /sur file")
-  =/  mark=(list term)  (skip marks.i.infos |=(n=term (~(has by mark-files.b) n)))
-  ?^  mark
-    `(crip "static build: {file} imports /% %{(trip i.mark)}, which has no /mar file")
-  $(infos t.infos)
 ++  ui-file
   |=  at=path
   ^-  ?
@@ -1118,8 +1154,9 @@
   =/  manifest-at=path  /lib/jibb/prelude-groups/txt
   ?.  .^(? %cu (weld pre manifest-at))
     [%| 'static build: cannot read /lib/jibb/prelude-groups.txt']
-  =/  manifest=(each prelude-manifest @t)
-    (read-manifest .^(wain %cx (weld pre manifest-at)))
+  =/  lines=(unit wain)  (read-lines (weld pre manifest-at))
+  ?~  lines  [%| 'static build: cannot read /lib/jibb/prelude-groups.txt']
+  =/  manifest=(each prelude-manifest @t)  (read-manifest u.lines)
   ?:  ?=(%| -.manifest)  manifest
   =/  paths=(list path)
     (weld sources.p.manifest (turn groups.p.manifest |=([face=term at=path] at)))
@@ -1192,8 +1229,9 @@
   =/  manifest-at=path  /lib/jibb/prelude-groups/txt
   ?.  .^(? %cu (weld pre manifest-at))
     [%| 'static build: cannot read /lib/jibb/prelude-groups.txt']
-  =/  manifest=(each prelude-manifest @t)
-    (read-manifest .^(wain %cx (weld pre manifest-at)))
+  =/  lines=(unit wain)  (read-lines (weld pre manifest-at))
+  ?~  lines  [%| 'static build: cannot read /lib/jibb/prelude-groups.txt']
+  =/  manifest=(each prelude-manifest @t)  (read-manifest u.lines)
   ?:  ?=(%| -.manifest)  manifest
   =/  groups=(each (list iprelude-group-source:jibb) @t)
     =|  out=(list iprelude-group-source:jibb)
@@ -1412,7 +1450,8 @@
   =/  prepared=(each * @t)
     (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
   ?:  ?=(%| -.prepared)  [%| p.prepared]
-  =/  missing=(unit @t)  (missing-import b closure)
+  =/  missing=(unit @t)
+    (missing-import:jibb-host modules.b sur-files.b mark-files.b closure)
   ?^  missing  [%| u.missing]
   =/  sur-values=(list (each (list [module=term name=term result=*]) @t))
     %+  murn  surs
@@ -1600,13 +1639,15 @@
   $(closure t.closure, stores [[(store-name:jibb-host i.closure) hash] stores])
 ::  -jibb!test: each module under /ui/tests in the desk's last completed
 ::  build, with its test- arms' outcomes from the desk's own +run-tests.
-::  A module that failed to check fails with its error.
+::  A module that failed to check fails with its error, and a build that
+::  could not run is the failure of them all.
 ++  desk-tests
   |=  =desk
   ^-  (each (list [at=path tests=(list [arm=term ok=? message=@t])]) @t)
-  =/  done=(unit build:jibb-host)  (~(get by finished) desk)
-  ?~  done  [%| (crip "%{(trip desk)} has no completed build")]
-  =/  b=build:jibb-host  u.done
+  =/  done=(each build:jibb-host @t)
+    (completed-tests:jibb-host desk (~(get by finished) desk))
+  ?:  ?=(%| -.done)  done
+  =/  b=build:jibb-host  p.done
   =/  s=store:jibb-host  (~(gut by stores) desk *store:jibb-host)
   =/  prepared=(each * @t)
     (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
@@ -1639,9 +1680,10 @@
 ++  desk-test-programs
   |=  =desk
   ^-  (each (list [at=path programs=(list [arm=term js=@t nock=*])]) @t)
-  =/  done=(unit build:jibb-host)  (~(get by finished) desk)
-  ?~  done  [%| (crip "%{(trip desk)} has no completed build")]
-  =/  b=build:jibb-host  u.done
+  =/  done=(each build:jibb-host @t)
+    (completed-tests:jibb-host desk (~(get by finished) desk))
+  ?:  ?=(%| -.done)  done
+  =/  b=build:jibb-host  p.done
   =/  s=store:jibb-host  (~(gut by stores) desk *store:jibb-host)
   =/  prepared=(each * @t)
     (~(gut by preludes.s) prelude.b [%| 'static build: checked Clay prelude did not prepare'])
@@ -1732,10 +1774,13 @@
   =/  app=path  (application-asset:jibb-host at)
   `[app (static-url:jibb-host base app u.data) u.type u.data]
 ::  Static marks keep the length with the bytes; text marks keep text.
+::  The file is read as Clay stores it, with %q: a %x read builds its mark,
+::  and a mark that does not build would fail this event, outside +mule,
+::  stalling the build.  A noun of another shape is left out.
 ++  static-bytes
   |=  [pre=path at=path mark=@ta]
   ^-  (unit octs)
-  =/  raw=*  .^(* %cx (weld pre at))
+  =/  raw=*  .^(* %cq (weld pre at))
   ?:  =(%txt mark)
     =/  lines=(unit wain)  ((soft wain) raw)
     ?~  lines  ~
@@ -1775,7 +1820,7 @@
   =/  give
     |=  result=payload:jibb-host
     ^-  (list card)
-    (give-payload:jibb-host eyre-id ?.(head.wait result result(data ~)))
+    (page-response eyre-id head.wait result)
   ?:  ?=(%| -.step)  [(give (text-response:jibb-host 500 p.step)) state]
   ?-  -.p.step
     %done  [(give (html-response:jibb-host html.p.step)) state]
@@ -1788,18 +1833,35 @@
             q.byk.bowl  %scry  %noun  !>([agent.p.step path.p.step])
     ==  ==
   ==
-::  A thread answered a request's scry.
+::  A page with data's response, which only the owner sees: not to be
+::  stored, and with no body for a HEAD.
+++  page-response
+  |=  [eyre-id=@ta head=? result=payload:jibb-host]
+  ^-  (list card)
+  =.  result  (private:jibb-host result)
+  (give-payload:jibb-host eyre-id ?.(head result result(data ~)))
+::  The thread answered a request's scry: the agent's noun, or ~ if the
+::  agent did not answer the path, which is the page's 404.  A thread
+::  that failed did not read at all, which is a 500.
 ++  scried
   |=  [eyre-id=@ta result=(each cage goof)]
   ^-  (quip card _state)
   =/  wait=(unit pending-page)  (~(get by pending) eyre-id)
   ?~  wait  [~ state]
   =.  pending  (~(del by pending) eyre-id)
-  ?:  ?=(%| -.result)
+  =/  answer=(each (unit *) tang)  (scry-answer:jibb-host result)
+  ?:  ?=(%| -.answer)
+    ::  The failure as Khan gave it: +trace-error prints a list backwards.
+    =/  why=@t
+      %+  trace-error
+        (crip "jibb: the host's thread reading {(spud at.u.wait)} from %{(trip agent.u.wait)} failed")
+      (flop p.answer)
+    [(page-response eyre-id head.u.wait (text-response:jibb-host 500 why)) state]
+  ?~  p.answer
     =/  why=@t
       (crip "the agent %{(trip agent.u.wait)} did not answer {(spud at.u.wait)}")
     (page-step eyre-id u.wait [%reject why])
-  (page-step eyre-id u.wait [%receive receive.u.wait %noun q.q.p.result])
+  (page-step eyre-id u.wait [%receive receive.u.wait %noun u.p.answer])
 ::  One call of the desk's +page-request, typed by its own molds.
 ++  run-page
   |=  [wait=pending-page input=*]

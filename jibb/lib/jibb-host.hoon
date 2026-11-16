@@ -8,7 +8,6 @@
 |%
 +$  route  [desk=desk base=path]
 +$  route-match  [route=route remaining=(list @t)]
-+$  docket-entry  [desk=desk docket=(unit noun)]
 +$  payload  simple-payload:http
 ::  A built page: HTML, or an error with its status, to serve as it is; or
 ::  a page with data, prepared by the compiler of the desk at rev, which
@@ -256,11 +255,47 @@
 ::  +name-paths: the paths, under /sur or /mar, a /- or /% name may select
 ::
 ::    Use Clay's implementation rather than duplicating its ordering.
-::    For a-b-c it tries a-b-c, a/b-c, a-b/c, then a/b/c.
+::    For a-b-c it tries a-b-c, a/b-c, a-b/c, then a/b/c.  Each dash
+::    doubles the candidates, so a name with more than ten dashes, the
+::    importer's budget for Ford imports, is not searched: ~.
+++  name-dash-budget  10
+++  name-dashes
+  |=  name=@ta
+  ^-  @ud
+  (lent (skim (trip name) |=(c=@ =(c '-'))))
 ++  name-paths
   |=  name=@ta
-  ^-  (list path)
-  (segments:clay name)
+  ^-  (unit (list path))
+  ?:  (gth (name-dashes name) name-dash-budget)  ~
+  `(segments:clay name)
+::
+::  +missing-import: the first /- or /% import in a closure with no file
+::
+::    With its importer.  A name past the dash budget is that error
+::    instead, since it was never looked for.
+++  missing-import
+  |=  $:  modules=(map path module-info)
+          sur-files=(map term path)
+          mark-files=(map term path)
+          closure=(list path)
+      ==
+  ^-  (unit @t)
+  =/  infos=(list module-info)  (murn closure |=(p=path (~(get by modules) p)))
+  |-
+  ?~  infos  ~
+  =/  file=tape  (file-name at.i.infos)
+  =/  sur=(list term)  (skip surs.i.infos |=(n=term (~(has by sur-files) n)))
+  ?^  sur  `(import-error file "/- " i.sur "/sur")
+  =/  mark=(list term)  (skip marks.i.infos |=(n=term (~(has by mark-files) n)))
+  ?^  mark  `(import-error file "/% %" i.mark "/mar")
+  $(infos t.infos)
+++  import-error
+  |=  [file=tape rune=tape name=term folder=tape]
+  ^-  @t
+  ?:  (gth (name-dashes name) name-dash-budget)
+    %-  crip
+    "static build: {file} imports {rune}{(trip name)}, but a /- or /% name may have at most ten dashes"
+  (crip "static build: {file} imports {rune}{(trip name)}, which has no {folder} file")
 ::  +hoon-name: the /- or /% name of a Hoon file under folder, if any
 ++  hoon-name
   |=  [folder=@ta at=path]
@@ -418,29 +453,76 @@
   ^-  ?
   &(?=(^ base.r) ?=(^ (trip desk.r)))
 ::
-++  validate-routes
-  |=  routes=(list route)
-  ^-  (each (list route) @t)
-  =|  kept=(list route)
-  |-
-  ?~  routes  [%& (flop kept)]
-  ?.  (valid-route i.routes)  [%| 'invalid Jibb host route']
-  ?:  (lien kept |=(r=route =(base.r base.i.routes)))
-    [%| 'duplicate Jibb host base path']
-  ?:  (lien kept |=(r=route =(desk.r desk.i.routes)))
-    [%| 'duplicate Jibb host desk']
-  $(routes t.routes, kept [i.routes kept])
+::  +claim-error: why a desk may not be bound at the base it claims
 ::
-++  discover-routes
-  |=  entries=(list docket-entry)
-  ^-  (each (list route) @t)
-  =|  routes=(list route)
+::    Its base must be a path, and no other desk's, bound or pending.
+++  claim-error
+  |=  [reg=registry r=route]
+  ^-  (unit @t)
+  =/  name=tape  (trip desk.r)
+  ?.  (valid-route r)
+    `(crip "jibb: %{name}'s docket site+ names no base path, so %{name} is not served")
+  =/  others=(list route)  (weld routes.reg pending.reg)
   |-
-  ?~  entries  (validate-routes (flop routes))
-  ?~  docket.i.entries  $(entries t.entries)
-  =/  site=(unit path)  (docket-site u.docket.i.entries)
-  ?~  site  $(entries t.entries)
-  $(entries t.entries, routes [[desk.i.entries u.site] routes])
+  ?~  others  ~
+  ?:  &(=(base.i.others base.r) !=(desk.i.others desk.r))
+    :-  ~
+    %-  crip
+    "jibb: %{name}'s docket site+ {(spud base.r)} is %{(trip desk.i.others)}'s base path, so %{name} is not served"
+  $(others t.others)
+::
+::  +update-sites: what the host binds once it has read desks' dockets
+::
+::    sites gives each desk read and the base its docket's site+ names, ~
+::    when it names none or the desk does not vendor Jibb.  Each route or
+::    pending bind whose base changed or went is disconnected first, so two
+::    desks may swap bases; then each claim without a route is bound, in
+::    order, if its desk is live.  A claim that is invalid, or is another
+::    desk's base, is refused with a message naming the desk; the other
+::    desks go on.  dropped are the routes removed, whose desks' files and
+::    builds end.
++$  site-update
+  $:  =registry
+      cards=(list card:agent:gall)
+      dropped=(list route)
+      refused=(list [=desk why=@t])
+  ==
+++  update-sites
+  |=  [app=term reg=registry sites=(list [=desk site=(unit path)])]
+  ^-  site-update
+  =/  drops=[reg=registry cards=(list card:agent:gall) dropped=(list route)]
+    =|  cards=(list card:agent:gall)
+    =|  dropped=(list route)
+    =/  todo=(list [=desk site=(unit path)])  sites
+    |-
+    ?~  todo  [reg (flop cards) (flop dropped)]
+    =*  site  site.i.todo
+    =/  current=(unit route)  (route-for-desk routes.reg desk.i.todo)
+    =/  waiting=(unit route)  (route-for-desk pending.reg desk.i.todo)
+    =/  moved=?  &(?=(^ current) !=(site `base.u.current))
+    =/  stale=?  &(?=(^ waiting) !=(site `base.u.waiting))
+    %=  $
+      todo         t.todo
+      routes.reg   ?.(moved routes.reg (drop-desk routes.reg desk.i.todo))
+      pending.reg  ?.(stale pending.reg (drop-desk pending.reg desk.i.todo))
+      dropped      ?.(moved dropped [(need current) dropped])
+      cards
+        =?  cards  moved  [(disconnect-card (need current)) cards]
+        ?.(stale cards [(disconnect-card (need waiting)) cards])
+    ==
+  =/  adds=[reg=registry cards=(list card:agent:gall) refused=(list [=desk why=@t])]
+    =|  cards=(list card:agent:gall)
+    =|  refused=(list [=desk why=@t])
+    =/  reg=registry  reg.drops
+    =/  todo=(list [=desk site=(unit path)])  sites
+    |-
+    ?~  todo  [reg (flop cards) (flop refused)]
+    ?~  site.i.todo  $(todo t.todo)
+    ?.  (~(has in live.reg) desk.i.todo)  $(todo t.todo)
+    =/  next=(each transition @t)  (add-pending app reg [desk.i.todo u.site.i.todo])
+    ?:  ?=(%| -.next)  $(todo t.todo, refused [[desk.i.todo p.next] refused])
+    $(todo t.todo, reg registry.p.next, cards (weld (flop cards.p.next) cards))
+  [reg.adds (weld cards.drops cards.adds) dropped.drops refused.adds]
 ::
 ++  live-desks
   |=  rock=rock:tire
@@ -516,10 +598,29 @@
     %ttf    `'font/ttf'
     %otf    `'font/otf'
     %pdf    `'application/pdf'
-    %css    `'text/css; charset=utf-8'
+    %css    `css-type
     %txt    `'text/plain; charset=utf-8'
-    %js     `'text/javascript; charset=utf-8'
+    %js     `js-type
   ==
+::  The stylesheet's type and the scripts', as their URLs' extensions name.
+++  css-type  'text/css; charset=utf-8'
+++  js-type  'text/javascript; charset=utf-8'
+::
+::  +url-type: the media type of a published file, from its URL
+::
+::    Every published URL ends in the extension of the mark its file was
+::    published with: a static file's own, .css for the stylesheet and .js
+::    for island and store modules and the browser library.
+++  url-type
+  |=  url=@t
+  ^-  (unit @t)
+  ::  The last segment, backwards, then its extension.
+  =/  back=tape  (flop (trip url))
+  =/  slash=(unit @ud)  (find "/" back)
+  =?  back  ?=(^ slash)  (scag u.slash back)
+  =/  dot=(unit @ud)  (find "." back)
+  ?~  dot  ~
+  (static-type `@ta``@`(crip (flop (scag u.dot back))))
 ::
 ++  short-hash
   |=  data=*
@@ -554,12 +655,28 @@
   =?  parts  ?=([%ui *] parts)  t.parts
   (crip (slag 1 (spud parts)))
 ::
+++  static-headers
+  |=  type=@t
+  ^-  header-list:http
+  ~[['content-type' type] ['cache-control' 'public, max-age=31536000, immutable']]
+::
 ++  static-payload
   |=  [type=@t data=octs]
   ^-  payload
-  :_  `data
-  :-  200
-  ~[['content-type' type] ['cache-control' 'public, max-age=31536000, immutable']]
+  [[200 (static-headers type)] `data]
+::
+::  +published-head: a HEAD of a file the host put in Eyre's cache
+::
+::    Eyre answers a GET for the exact URL from its cache, but passes any
+::    other method on, so a HEAD reaches the host.  It gets the GET's
+::    status and headers, public as the file is, with no body.
+++  published-head
+  |=  [published=(map desk cached-urls) url=@t]
+  ^-  (unit payload)
+  ?.  (lien ~(val by published) |=(urls=cached-urls (~(has by urls) url)))  ~
+  =/  type=(unit @t)  (url-type url)
+  ?~  type  ~
+  `[[200 (static-headers u.type)] ~]
 ::
 ++  cache-card
   |=  [url=@t entry=(unit payload)]
@@ -609,6 +726,48 @@
   |-
   ?~  rest  `low
   $(rest t.rest, low (min low i.rest))
+::
+::  The one Behn timer, set for the earliest retired file of any desk.
+::
+::    Gall drops the wakes of a dozing agent, so a timer saved across a
+::    suspension may never fire: a load cancels the saved timer, which Behn
+::    ignores if it has gone, and sets the timer again.  A wake before the
+::    timer's time is stray, from a timer set before a reload, and leaves
+::    the timer set; expiring files then finds none whose day is over.
+++  soonest-expiry
+  |=  desks=(list cached-urls)
+  ^-  (unit @da)
+  =/  times=(list @da)  (murn desks next-expiry)
+  ?~  times  ~
+  =/  low=@da  i.times
+  =/  rest=(list @da)  t.times
+  |-
+  ?~  rest  `low
+  $(rest t.rest, low (min low i.rest))
+++  expire-cards
+  |=  [timer=(unit @da) soonest=(unit @da)]
+  ^-  (list card:agent:gall)
+  =/  rest=(list card:agent:gall)
+    ?~(timer ~ ~[[%pass /expire %arvo %b %rest u.timer]])
+  =/  wait=(list card:agent:gall)
+    ?~(soonest ~ ~[[%pass /expire %arvo %b %wait u.soonest]])
+  (weld rest wait)
+::  A timer set for a later file is moved, and one no file needs cancelled.
+++  timer-plan
+  |=  [timer=(unit @da) soonest=(unit @da)]
+  ^-  [timer=(unit @da) cards=(list card:agent:gall)]
+  ?:  =(soonest timer)  [timer ~]
+  [soonest (expire-cards timer soonest)]
+++  rearm-timer
+  |=  [timer=(unit @da) soonest=(unit @da)]
+  ^-  [timer=(unit @da) cards=(list card:agent:gall)]
+  [soonest (expire-cards timer soonest)]
+++  woken-timer
+  |=  [timer=(unit @da) now=@da]
+  ^-  (unit @da)
+  ?~  timer  ~
+  ?:  (gte now u.timer)  ~
+  timer
 ::
 ++  clear-urls
   |=  urls=cached-urls
@@ -660,6 +819,8 @@
   ^-  binding:eyre
   [~ base.r]
 ::
+::  Eyre removes a binding only for the duct that made it, so a desk's
+::  binding is connected and disconnected on the same wire.
 ++  bind-card
   |=  [app=term r=route]
   ^-  card:agent:gall
@@ -668,19 +829,48 @@
 ++  disconnect-card
   |=  r=route
   ^-  card:agent:gall
-  [%pass /disconnect/[desk.r] %arvo %e %disconnect (binding r)]
+  [%pass /bind/[desk.r] %arvo %e %disconnect (binding r)]
 ::
 ++  tire-card
   ^-  card:agent:gall
   [%pass /desks %arvo %c %tire `~]
 ::
-++  initialize
-  |=  [app=term entries=(list docket-entry) live=(set desk)]
-  ^-  (each transition @t)
-  =/  found=(each (list route) @t)  (discover-routes entries)
-  ?:  ?=(%| -.found)  found
-  =/  pending=(list route)  p.found
-  [%& [[~ pending live] (turn pending |=(r=route (bind-card app r)))]]
+::  +stale-bindings: take back the bindings no route holds
+::
+::    Hosts before 2026-11-16 disconnected on another wire than they
+::    connected on, which Eyre ignores, so a retired desk's binding stayed.
+::    bindings is Eyre's list of [binding duct action], as a noun.  Each
+::    binding for app, with no site, at a base no route or pending bind
+::    holds is connected again, which takes it over whatever duct made it,
+::    and disconnected, on /sweep.
+++  sweep-card
+  |=  now=@da
+  ^-  card:agent:gall
+  [%pass /sweep %arvo %b %wait now]
+++  stale-bindings
+  |=  [app=term reg=registry bindings=*]
+  ^-  (list card:agent:gall)
+  =/  held=(set binding:eyre)
+    (silt (turn (weld routes.reg pending.reg) binding))
+  =/  entries=(list [=binding:eyre duct=* action=*])
+    (fall ((soft ,(list [binding:eyre * *])) bindings) ~)
+  =|  cards=(list card:agent:gall)
+  |-
+  ?~  entries  (flop cards)
+  =*  bound  binding.i.entries
+  ?.  ?&  =([%app app] action.i.entries)
+          ?=(~ site.bound)
+          !(~(has in held) bound)
+      ==
+    $(entries t.entries)
+  %=  $
+    entries  t.entries
+    cards
+      :*  [%pass /sweep %arvo %e %disconnect bound]
+          [%pass /sweep %arvo %e %connect bound app]
+          cards
+      ==
+  ==
 ::
 ++  restore-cards
   |=  [app=term reg=registry]
@@ -695,16 +885,18 @@
           ?=(^ (route-for-desk pending.reg desk.r))
       ==
     [%& [reg ~]]
-  =/  checked=(each (list route) @t)
-    (validate-routes [r (welp routes.reg pending.reg)])
-  ?:  ?=(%| -.checked)  checked
+  =/  why=(unit @t)  (claim-error reg r)
+  ?^  why  [%| u.why]
   [%& [reg(pending [r pending.reg]) ~[(bind-card app r)]]]
 ::
+::  Eyre's answer to a pending bind.  An answer for another base than the
+::  pending one is not for it.
 ++  acknowledge-bind
-  |=  [reg=registry =desk accepted=?]
+  |=  [reg=registry =desk accepted=? bound=binding:eyre]
   ^-  transition
   =/  route=(unit route)  (route-for-desk pending.reg desk)
   ?~  route  [reg ~]
+  ?.  =(bound (binding u.route))  [reg ~]
   =.  pending.reg  (drop-desk pending.reg desk)
   ?.  accepted  [reg ~]
   ?.  (~(has in live.reg) desk)
@@ -824,6 +1016,23 @@
   ?:  &(?=(^ best) !(rank-before rank rank.u.best))  $(entries t.entries)
   $(entries t.entries, best `[pattern.i.entries page.i.entries rank])
 ::
+::  +routed-sites: the modules a build serves at their sites
+::
+::    A module that checked as a page is served at its site, as is one that
+::    failed to check but may be a page, with its error; kind is the
+::    checked kind or, for a failed module, whether it may be a page.
+::    Libraries, islands, stores and tests are only imported, so only
+::    routed modules can conflict.
+++  routed-sites
+  |=  modules=(list [at=path site=(list @t) kind=(each @tas ?)])
+  ^-  (list [at=path site=(list @t)])
+  %+  murn  modules
+  |=  m=[at=path site=(list @t) kind=(each @tas ?)]
+  ^-  (unit [at=path site=(list @t)])
+  ?:  ?=(%| -.kind.m)  ?.(p.kind.m ~ `[at.m site.m])
+  ?.  ?=(?(%static-page %page) p.kind.m)  ~
+  `[at.m site.m]
+::
 ::  Routes that cannot both be served: one site from two files, two
 ::  parameters at one level, and a catch-all beside its folder's index.
 ::  Each file of such a pair gets the error.
@@ -919,36 +1128,66 @@
 ++  request-response
   |=  [routes=(list route) cache=page-cache authenticated=? =method:http url=@t]
   ^-  payload
-  (serve routes cache ~ authenticated method url)
+  (serve routes cache ~ ~ authenticated method url)
 ::
 ::  +serve: a request's response when the host can give one itself
 ::
 ::    A page with data needs the desk's compiler, which only the agent can
 ::    run; here it is a 500.
 ++  serve
-  |=  [routes=(list route) cache=page-cache building=(set desk) authenticated=? =method:http url=@t]
+  |=  $:  routes=(list route)
+          cache=page-cache
+          published=(map desk cached-urls)
+          building=(set desk)
+          authenticated=?
+          =method:http
+          url=@t
+      ==
   ^-  payload
-  =/  answer=served  (serve-request routes cache building authenticated method url)
+  =/  answer=served
+    (serve-request routes cache published building authenticated method url)
   ?:  ?=(%payload -.answer)  result.answer
   (text-response 500 'a page with data runs in the agent')
+::
+::  +private: a response only the owner may see, which no cache may keep
+::
+::    Every page, its errors and the host's other answers to the owner
+::    (Decisions: Private pages); not the public, immutable files.
+++  private
+  |=  result=payload
+  ^-  payload
+  %_  result
+    headers.response-header
+      (set-header:http 'cache-control' 'no-store' headers.response-header.result)
+  ==
 ::
 ::  +serve-request: one request, given the desks whose builds are in progress
 ::
 ::    A completed build keeps serving while the next one runs.  Static
-::    files are public and Eyre answers for each one it holds, so a request
-::    that reaches the host for one is a 404, logged in or not.
+::    files are public and Eyre answers a GET for each one it holds, so a
+::    GET that reaches the host for one is a 404, logged in or not; a HEAD
+::    of one gets its headers.  Everything else answers the owner.
 ++  serve-request
-  |=  [routes=(list route) cache=page-cache building=(set desk) authenticated=? =method:http url=@t]
+  |=  $:  routes=(list route)
+          cache=page-cache
+          published=(map desk cached-urls)
+          building=(set desk)
+          authenticated=?
+          =method:http
+          url=@t
+      ==
   ^-  served
+  =/  head=?  ?=(%'HEAD' method)
+  =/  file=(unit payload)  ?.(head ~ (published-head published url))
+  ?^  file  [%payload u.file]
   =/  found=(unit route-match)  (route-request routes (target-site url))
   ?:  &(?=(^ found) (unknown-asset remaining.u.found))  [%payload not-found]
   =/  allowed=(each ~ payload)  (authorize authenticated url)
   ?:  ?=(%| -.allowed)  [%payload p.allowed]
-  ?~  found  [%payload not-found]
-  ?.  ?=(?(%'GET' %'HEAD') method)  [%payload method-not-allowed]
-  =/  head=?  ?=(%'HEAD' method)
-  =/  built=(unit desk-pages)  (~(get by cache) desk.route.u.found)
   =/  answer=served
+    ?~  found  [%payload not-found]
+    ?.  ?=(?(%'GET' %'HEAD') method)  [%payload method-not-allowed]
+    =/  built=(unit desk-pages)  (~(get by cache) desk.route.u.found)
     ?~  built
       ?:  (~(has in building) desk.route.u.found)  [%payload build-in-progress]
       [%payload not-found]
@@ -963,7 +1202,9 @@
     :-  %payload
     ?:  html.static  (html-status-response status.static body.static)
     (text-response status.static body.static)
-  ?.  &(head ?=(%payload -.answer))  answer
+  ?.  ?=(%payload -.answer)  answer
+  =.  result.answer  (private result.answer)
+  ?.  head  answer
   answer(data.result ~)
 ::
 ++  payload-header
@@ -978,4 +1219,71 @@
       [%give %fact ~[/http-response/[eyre-id]] %http-response-data !>(data.result)]
       [%give %kick ~[/http-response/[eyre-id]] ~]
   ==
+::
+::  +response-path: the request whose response Eyre is watching for
+::
+::    Eyre watches each request's /http-response/<id> as whoever sent it:
+::    the owner, a logged-out reader's guest @p or another ship's eauth
+::    session, so the watcher's ship tells nothing.  Its subscription's duct
+::    does: sup has it, and Eyre's starts with Eyre's wire, where another
+::    ship's watch comes through Gall's and an agent's through its own.  No
+::    one else may watch a response.
+++  response-path
+  |=  [at=path sup=bitt:gall]
+  ^-  (unit @ta)
+  ?.  ?=([%http-response @ ~] at)  ~
+  =/  watchers=(list duct)
+    %+  murn  ~(tap by sup)
+    |=  [=duct =ship watched=path]
+    ?.(=(at watched) ~ `duct)
+  ?~  watchers  ~
+  =/  rest=(list duct)  watchers
+  |-
+  ?~  rest  `i.t.at
+  ?~  i.rest  ~
+  ?~  i.i.rest  ~
+  ?.  =(%eyre i.i.i.rest)  ~
+  $(rest t.rest)
+::
+::  +scry-answer: what the host's thread read for a page with data
+::
+::    The thread gives the agent's noun, or ~ when the agent did not
+::    answer the path.  A failed thread did not read at all: its failure.
+++  scry-answer
+  |=  result=(each cage goof)
+  ^-  (each (unit *) tang)
+  ?:  ?=(%| -.result)  [%| [leaf+"%{(trip mote.p.result)}" tang.p.result]]
+  =/  answer=*  q.q.p.result
+  ?:  =(~ answer)  [%& ~]
+  ?:  ?=([~ *] answer)  [%& `+.answer]
+  [%| ~[leaf+"the thread gave something other than an answer"]]
+::
+::  +test-desk: the desk -jibb!test was given
+::
+::    Dojo passes one argument as [~ %desk]; callers before 2026-11-16
+::    passed [%desk ~].  A cord's type fits a desk's, so the name must also
+::    be a term: the thread puts it in scry paths.
+++  test-desk
+  |=  arg=vase
+  ^-  (unit desk)
+  =/  named=(unit desk)
+    ?:  (~(nest ut -:!>(*[~ desk])) | p.arg)  `+:!<([~ desk] arg)
+    ?:  (~(nest ut -:!>(*[desk ~])) | p.arg)  `-:!<([desk ~] arg)
+    ~
+  ?~  named  ~
+  ?.  ((sane %tas) u.named)  ~
+  named
+::
+::  +completed-tests: the build whose tests -jibb!test runs
+::
+::    The desk's last completed build; one that could not run is the
+::    tests' failure, never an older build's results.
+++  completed-tests
+  |=  [=desk done=(unit build)]
+  ^-  (each build @t)
+  ?~  done  [%| (crip "%{(trip desk)} has no completed build")]
+  ?~  failure.u.done  [%& u.done]
+  :-  %|
+  %-  crip
+  "%{(trip desk)} revision {(scow %ud rev.u.done)} did not build: {(trip u.failure.u.done)}"
 --
