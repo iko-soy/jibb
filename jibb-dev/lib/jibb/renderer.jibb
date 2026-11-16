@@ -9,7 +9,9 @@
   [%image-unsafe source=[url=@t width=@ud height=@ud] description=@t]
 
 ::  Style attributes are the theme stylesheet's atomic classes, one family
-::  each, so the last of a family wins. Only chars and fill are inline.
+::  each; the build facade keeps only the last attribute of each family.
+::  A width is a class, and chars and fill carry their number inline, as a
+::  custom property the stylesheet reads along the axis the width is on.
 ++ css-unsigned |= n=@ud
   ^- @t
   ++ dot (snag 0 (trip "."))
@@ -25,9 +27,8 @@
   ^- (list [name=@t value=@t])
   ?- value
   %shrink ~[["class:width" "j-shrink"]]
-  [%chars n] ~[["style:flex" "0 0 {(css-unsigned n)}ch"]]
-  [%fill n]
-    ~[["style:flex" "{(css-unsigned (fill-weight n))} 1 0%"] ["style:min-width" "0"]]
+  [%chars n] ~[["class:width" "j-chars"] ["style:--j-chars" "{(css-unsigned n)}ch"]]
+  [%fill n] ~[["class:width" "j-fill"] ["style:--j-fill" (css-unsigned (fill-weight n))]]
 
 ++ tone-attrs |= value=tone
   ^- (list [name=@t value=@t])
@@ -92,9 +93,14 @@
   ++ all ^- (list [name=@t value=@t]) (weld own attrs.payload)
   [%node "div" all ~[kid.payload]]
 
-++ render-para |= [skin=theme kids=(list A)]
+::  A paragraph of phrasing content alone, which the build facade tells
+::  it, is a <p>; the HTML parser would end a <p> at any other child, so a
+::  paragraph with one is a <div> styled as a paragraph.
+++ render-para |= [skin=theme payload=[phrasing=? kids=(list A)]]
   ^- (vnode A)
-  [%node "p" ~ kids]
+  ?- phrasing.payload
+  %.y [%node "p" ~ kids.payload]
+  %.n [%node "div" ~[["class:layout" "j-para"]] kids.payload]
 
 ++ render-text |= [skin=theme words=@t]
   ^- (vnode !!) [%text words]
@@ -154,3 +160,27 @@
   ++ attrs ^- (list [name=@t value=@t])
     (weld ~[["scope" "col"]] (weld (length-attrs width.payload) (align-style align.payload)))
   [%node "th" attrs ~[[%text header.payload]]]
+
+::  The table's own attributes and each column's body-cell attributes. A
+::  table with a fill column spans its container, the fill columns sharing
+::  it by weight, and a shrink column's cells keep their content's width.
+++ render-table |= [skin=theme columns=(list [header=@t width=length align=align])]
+  ^- [attrs=(list [name=@t value=@t]) cells=(list (list [name=@t value=@t]))]
+  ++ column-weight |= col=[header=@t width=length align=align]
+    ^- @ud
+    ?- width.col
+    [%fill n] (fill-weight n)
+    * 0
+  ++ weights-total ^- @ud (roll (turn columns column-weight) 0 add)
+  ++ table-base ^- (list [name=@t value=@t])
+    ~[["style:border-collapse" "collapse"] ["style:max-width" "100%"]]
+  ++ table-span ^- (list [name=@t value=@t])
+    ?- (eq weights-total 0)
+    %.y ~
+    %.n ~[["style:width" "100%"] ["style:--j-fills" (css-unsigned weights-total)]]
+  ++ column-cell |= col=[header=@t width=length align=align]
+    ^- (list [name=@t value=@t])
+    ?- width.col
+    %shrink ~[["class:width" "j-shrink"]]
+    * ~
+  [attrs=(weld table-base table-span) cells=(turn columns column-cell)]

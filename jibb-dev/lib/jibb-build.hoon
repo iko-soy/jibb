@@ -300,20 +300,34 @@
     [%| (render-failure 'static renderer: malformed rendered node' origin)]
   [%& p.decoded]
 ::
+::  An attribute's family is its tag, as %pad or %width.  The last
+::  attribute of a family replaces everything an earlier one rendered, in
+::  the family's first place, so a later %shrink drops a chars width's
+::  style and a later tone a danger tone's aria-live.
 ++  render-static-attributes
   |=  [ctx=renderer-context origin=(unit render-origin) raw=noun]
   ^-  (each (list vattr) render-error)
-  ?~  raw  [%& ~]
-  ?.  ?=(^ raw)  [%| (render-failure 'static renderer: malformed attributes' origin)]
+  =|  families=(list [family=@ attrs=(list vattr)])
+  |-
+  ?~  raw
+    [%& (zing (turn families |=(f=[family=@ attrs=(list vattr)] attrs.f)))]
+  ?.  ?=([[@ *] *] raw)
+    [%| (render-failure 'static renderer: malformed attributes' origin)]
   =/  first=(each noun @t)
     (apply-linked 'static attribute renderer' attrs.ctx [skin.ctx -.raw])
   ?:  ?=(%| -.first)  [%| (render-failure p.first origin)]
-  =/  rest=(each (list vattr) render-error)  $(raw +.raw)
-  ?:  ?=(%| -.rest)  rest
   =/  decoded=(each (list vattr) tang)  (mule |.(;;((list vattr) p.first)))
   ?:  ?=(%| -.decoded)
     [%| (render-failure 'static renderer: malformed rendered attributes' origin)]
-  [%& (weld p.decoded p.rest)]
+  $(raw +.raw, families (put-family families -<.raw p.decoded))
+::
+++  put-family
+  |=  [families=(list [family=@ attrs=(list vattr)]) family=@ attrs=(list vattr)]
+  ^-  (list [family=@ attrs=(list vattr)])
+  ?.  (lien families |=(f=[family=@ attrs=(list vattr)] =(family family.f)))
+    (snoc families [family attrs])
+  %+  turn  families
+  |=(f=[family=@ attrs=(list vattr)] ?:(=(family family.f) [family attrs] f))
 ::
 ++  render-static-children
   |=  [ctx=renderer-context origin=(unit render-origin) children=noun]
@@ -371,7 +385,7 @@
       =/  kids=(each (list vnode) render-error)
         (render-static-children ctx origin +.raw)
       ?:  ?=(%| -.kids)  kids
-      (render-static-node ctx origin [%para p.kids])
+      (render-static-node ctx origin [%para (phrasing-children +.raw) p.kids])
     %el
       ?.  ?=(^ +.raw)  [%| (render-failure 'static renderer: malformed el payload' origin)]
       =/  attrs=(each (list vattr) render-error)
@@ -381,6 +395,28 @@
       ?:  ?=(%| -.kid)  kid
       (render-static-node ctx origin [%el p.attrs p.kid])
   ==
+::
+::  Phrasing content, which a <p> may hold: the HTML parser closes a <p>
+::  at anything else, as a <div>, a heading or a table.
+++  phrasing-tags
+  ^-  (list @tas)
+  ~[%text %link %link-unsafe %image %image-unsafe %button %toggle %field]
+::
+++  phrasing-children
+  |=  children=noun
+  ^-  ?
+  ?@  children  &
+  ?.  (phrasing-element -.children)  |
+  $(children +.children)
+::
+++  phrasing-element
+  |=  wrapped=noun
+  ^-  ?
+  =/  found=(unit [origin=render-origin sealed=noun])  (read-render-origin wrapped)
+  =/  sealed=noun  ?~(found wrapped sealed.u.found)
+  ?.  ?=([* @ *] sealed)  |
+  =/  tag=@  +<.sealed
+  (lien phrasing-tags |=(phrasing=@tas =(phrasing tag)))
 ::
 ::  A control's message stays in the browser: only what it shows renders.
 ++  render-control
@@ -420,7 +456,8 @@
   $(items +.items, out [p.kid out])
 ::
 ::  A table: each column's head through the renderer, each row's cells in
-::  table cells.
+::  table cells, and the table's and each column's cell attributes from
+::  the renderer too.
 ++  render-table
   |=  [ctx=renderer-context origin=(unit render-origin) payload=noun]
   ^-  (each vnode render-error)
@@ -437,6 +474,8 @@
     ?:  ?=(%| -.head)  head
     $(columns +.columns, out [p.head out])
   ?:  ?=(%| -.heads)  heads
+  =/  frame=(each table-frame render-error)  (render-table-frame ctx origin -.payload)
+  ?:  ?=(%| -.frame)  frame
   =/  rows=(each (list vnode) render-error)
     =|  out=(list vnode)
     =/  raw=noun  +.payload
@@ -447,14 +486,36 @@
     =/  cells=(each (list vnode) render-error)
       (render-static-children ctx origin ->.raw)
     ?:  ?=(%| -.cells)  cells
-    =/  tds=(list vnode)  (turn p.cells |=(c=vnode [%node 'td' ~ ~[c]]))
-    $(raw +.raw, out [[%node 'tr' ~ tds] out])
+    $(raw +.raw, out [[%node 'tr' ~ (table-cells cells.p.frame p.cells)] out])
   ?:  ?=(%| -.rows)  rows
   :-  %&
-  :^  %node  'table'  ~[['style:border-collapse' 'collapse'] ['style:max-width' '100%']]
+  :^  %node  'table'  attrs.p.frame
   :~  [%node 'thead' ~ ~[[%node 'tr' ~ p.heads]]]
       [%node 'tbody' ~ p.rows]
   ==
+::
++$  table-frame  [attrs=(list vattr) cells=(list (list vattr))]
+++  render-table-frame
+  |=  [ctx=renderer-context origin=(unit render-origin) columns=noun]
+  ^-  (each table-frame render-error)
+  =/  found=(unit noun)  (~(get by nodes.ctx) %table)
+  ?~  found  [%| (render-failure 'static renderer: no checked node renderer' origin)]
+  =/  made=(each noun @t)
+    (apply-linked 'static renderer' u.found [skin.ctx columns])
+  ?:  ?=(%| -.made)  [%| (render-failure p.made origin)]
+  =/  decoded=(each table-frame tang)  (mule |.(;;(table-frame p.made)))
+  ?:  ?=(%| -.decoded)
+    [%| (render-failure 'static renderer: malformed rendered table' origin)]
+  [%& p.decoded]
+::
+::  Each cell takes its column's attributes; a cell past the last column
+::  takes none.
+++  table-cells
+  |=  [attrs=(list (list vattr)) cells=(list vnode)]
+  ^-  (list vnode)
+  ?~  cells  ~
+  ?~  attrs  [[%node 'td' ~ ~[i.cells]] $(cells t.cells)]
+  [[%node 'td' i.attrs ~[i.cells]] $(cells t.cells, attrs t.attrs)]
 ::
 ::  An island's first view, rendered with its data at the page's stage, then
 ::  its model, jammed, for the browser to resume from.  Its program came
@@ -553,18 +614,23 @@
   %-  crip
   "theme: {label}.{name.i.low} {(trip value.i.low)} has contrast {(ratio-text ratio)}:1 with {label}.background {(trip background.tones)}; text needs 4.5:1"
 ::
+::  A number, as 16, 1.5 or .5, then a unit: a dot needs a digit after it.
 ++  css-length
   |=  value=@t
   ^-  ?
   =/  text=tape  (trip value)
   ?:  =("0" text)  &
-  =/  digits=@ud  0
+  =/  whole=@ud  0
+  =/  fraction=@ud  0
   =/  dot=?  |
   |-
   ?~  text  |
-  ?:  &((gte i.text '0') (lte i.text '9'))  $(text t.text, digits +(digits))
+  ?:  &((gte i.text '0') (lte i.text '9'))
+    ?:  dot  $(text t.text, fraction +(fraction))
+    $(text t.text, whole +(whole))
   ?:  &(=('.' i.text) !dot)  $(text t.text, dot &)
-  ?:  =(0 digits)  |
+  ?:  =(0 (add whole fraction))  |
+  ?:  &(dot =(0 fraction))  |
   %+  lien  `(list tape)`~["px" "rem" "em" "ch" "ex" "vw" "vh" "vmin" "vmax" "%"]
   |=(unit=tape =(unit `tape`text))
 ::
@@ -684,8 +750,13 @@
 ::
 ::    Tokens become custom properties, wide the breakpoint where stack turns
 ::    into a row, and dark tones a prefers-color-scheme override.  Every
-::    style attribute is an atomic class; [%chars n] and [%fill n] stay
-::    inline.  Heading and role sizes are the Typography decision.
+::    style attribute is an atomic class; [%chars n] and [%fill n] carry
+::    their numbers inline, as --j-chars and --j-fill.  A width is along
+::    the main axis for the children of a row, a wrap, and a stack from
+::    wide up, through each's contents, which --j-in-row marks: there fill
+::    sets flex.  Everywhere else, in a column, a block or a table, a width
+::    is the box's width, and fill takes the whole line.  Heading and role
+::    sizes are the Typography decision.
 ++  theme-stylesheet
   |=  [skin=theme-view font=(unit static-asset)]
   ^-  @t
@@ -720,7 +791,7 @@
       'html{color:var(--j-normal);background:var(--j-background);font-family:'
       family
       ';font-size:100%;line-height:1.5;-webkit-text-size-adjust:100%}'
-      'body{margin:0}main{overflow-wrap:anywhere}h1,h2,h3,h4,h5,h6,p{margin:0}'
+      'body{margin:0}main{overflow-wrap:anywhere}h1,h2,h3,h4,h5,h6,p,.j-para{margin:0}'
       'h1{font-size:2rem;line-height:1.2;font-weight:700}'
       'h2{font-size:1.5rem;line-height:1.25;font-weight:700}'
       'h3{font-size:1.25rem;line-height:1.3;font-weight:600}'
@@ -732,7 +803,14 @@
       '.j-column,.j-stack{display:flex;flex-direction:column}'
       '@media (min-width:'  wide.skin  '){.j-stack{flex-direction:row}}'
       '.j-row>*,.j-column>*,.j-wrap>*,.j-stack>*{min-width:0}'
-      '.j-shrink{flex:0 0 auto;width:auto}'
+      '*{--j-in-row:initial}.j-row>*,.j-wrap>*{--j-in-row: }[data-each]>*{--j-in-row:inherit}'
+      '@media (min-width:'  wide.skin  '){.j-stack>*{--j-in-row: }}'
+      '.j-shrink{flex:0 0 auto;width:fit-content}'
+      '.j-chars{flex:0 0 auto;width:var(--j-chars);max-width:100%}'
+      '.j-fill{flex:var(--j-in-row) var(--j-fill) 1 0%;min-width:0}'
+      'th.j-chars{min-width:var(--j-chars)}'
+      'th.j-fill{width:calc(100% * var(--j-fill) / var(--j-fills))}'
+      'th.j-shrink,td.j-shrink{white-space:nowrap}'
       '.j-pad-s0{padding:0}.j-pad-s1{padding:var(--j-s1)}.j-pad-s2{padding:var(--j-s2)}.j-pad-s3{padding:var(--j-s3)}'
       '.j-gap-s0{gap:0}.j-gap-s1{gap:var(--j-s1)}.j-gap-s2{gap:var(--j-s2)}.j-gap-s3{gap:var(--j-s3)}'
       '.j-align-start{text-align:start;justify-content:flex-start}'
@@ -831,21 +909,18 @@
   ~
 ::
 ::  An SVG's size is its root element's width and height in pixels, or else
-::  the size of its viewBox.
+::  the size of its viewBox.  The root is the first element after the
+::  prolog: a byte-order mark, whitespace, the XML declaration, processing
+::  instructions, comments, and a doctype, with any internal subset.
 ++  svg-size
   |=  data=octs
   ^-  (unit [width=@ud height=@ud])
-  =/  text=tape  (trip q.data)
-  =/  start=(unit @ud)  (find "<svg" text)
-  ?~  start  ~
-  =/  rest=tape  (slag u.start text)
-  =/  close=(unit @ud)  (find ">" rest)
-  ?~  close  ~
-  =/  tag=tape  (scag u.close rest)
-  =/  width=(unit @ud)  (svg-number (svg-attribute tag "width"))
-  =/  height=(unit @ud)  (svg-number (svg-attribute tag "height"))
+  =/  attributes=(unit (list [name=tape value=tape]))  (svg-root (trip q.data))
+  ?~  attributes  ~
+  =/  width=(unit @ud)  (svg-number (svg-attribute u.attributes "width"))
+  =/  height=(unit @ud)  (svg-number (svg-attribute u.attributes "height"))
   ?:  &(?=(^ width) ?=(^ height))  `[u.width u.height]
-  =/  box=(unit tape)  (svg-attribute tag "viewBox")
+  =/  box=(unit tape)  (svg-attribute u.attributes "viewBox")
   ?~  box  ~
   =/  numbers=(list tape)  (svg-words u.box)
   ?.  ?=([* * * * ~] numbers)  ~
@@ -854,23 +929,111 @@
   ?:  &(?=(^ w) ?=(^ h))  `[u.w u.h]
   ~
 ::
-++  svg-attribute
-  |=  [tag=tape name=tape]
-  ^-  (unit tape)
-  =/  key=tape  " {name}=\""
-  =/  at=(unit @ud)  (find key tag)
-  ?~  at  ~
-  =/  rest=tape  (slag (add u.at (lent key)) tag)
-  =/  stop=(unit @ud)  (find "\"" rest)
+++  svg-space
+  |=  c=@tD
+  ^-  ?
+  |(=(' ' c) =('\09' c) =('\0a' c) =('\0d' c))
+::
+++  svg-skip-space
+  |=  text=tape
+  ^-  tape
+  ?~  text  ~
+  ?.  (svg-space i.text)  text
+  $(text t.text)
+::
+::  Dry, so a tape refined by ?~ may pass, as it cannot to the wet +scag
+::  and +slag.
+++  svg-starts
+  |=  [text=tape prefix=tape]
+  ^-  ?
+  =(prefix (scag (lent prefix) text))
+::
+++  svg-drop
+  |=  [n=@ud text=tape]
+  ^-  tape
+  (slag n text)
+::
+::  The root element's attributes, when it is an svg element.
+++  svg-root
+  |=  text=tape
+  ^-  (unit (list [name=tape value=tape]))
+  =?  text  (svg-starts text "\ef\bb\bf")  (svg-drop 3 text)
+  |-
+  ?~  text  ~
+  ?:  (svg-space i.text)  $(text t.text)
+  ?:  (svg-starts text "<!--")
+    =/  end=(unit @ud)  (find "-->" (svg-drop 4 text))
+    ?~  end  ~
+    $(text (svg-drop (add 7 u.end) text))
+  ?:  (svg-starts text "<?")
+    =/  end=(unit @ud)  (find "?>" (svg-drop 2 text))
+    ?~  end  ~
+    $(text (svg-drop (add 4 u.end) text))
+  ?:  (svg-starts text "<!")
+    =/  end=(unit @ud)  (svg-declaration-end text)
+    ?~  end  ~
+    $(text (svg-drop u.end text))
+  ?.  (svg-starts text "<svg")  ~
+  =/  rest=tape  (svg-drop 4 text)
+  ?~  rest  ~
+  ?.  |((svg-space i.rest) =('>' i.rest) =('/' i.rest))  ~
+  (svg-attributes rest)
+::
+::  Just past a <!...> declaration's >, which ignores a > in its [ ].
+++  svg-declaration-end
+  |=  text=tape
+  ^-  (unit @ud)
+  =/  at=@ud  0
+  =/  subset=?  |
+  |-
+  ?~  text  ~
+  ?:  &(!subset =('>' i.text))  `+(at)
+  ?:  =('[' i.text)  $(text t.text, at +(at), subset &)
+  ?:  =(']' i.text)  $(text t.text, at +(at), subset |)
+  $(text t.text, at +(at))
+::
+::  A start tag's attributes, up to its > or />.  Each value is quoted with
+::  " or ', and may hold a >.
+++  svg-attributes
+  |=  text=tape
+  ^-  (unit (list [name=tape value=tape]))
+  =|  out=(list [name=tape value=tape])
+  |-
+  ?~  text  ~
+  ?:  (svg-space i.text)  $(text t.text)
+  ?:  =('>' i.text)  `(flop out)
+  ?:  (svg-starts text "/>")  `(flop out)
+  =/  name=tape  (svg-name text)
+  ?~  name  ~
+  =/  rest=tape  (svg-skip-space (svg-drop (lent name) text))
+  ?.  ?=([%'=' *] rest)  ~
+  =/  quoted=tape  (svg-skip-space t.rest)
+  ?.  ?=([@ *] quoted)  ~
+  ?.  |(=('"' i.quoted) =('\'' i.quoted))  ~
+  =/  stop=(unit @ud)  (find ~[i.quoted] t.quoted)
   ?~  stop  ~
-  `(scag u.stop rest)
+  $(text (slag +(u.stop) t.quoted), out [[name (scag u.stop t.quoted)] out])
+::
+++  svg-name
+  |=  text=tape
+  ^-  tape
+  ?~  text  ~
+  ?:  |((svg-space i.text) =('=' i.text) =('>' i.text) =('/' i.text))  ~
+  [i.text $(text t.text)]
+::
+++  svg-attribute
+  |=  [attributes=(list [name=tape value=tape]) name=tape]
+  ^-  (unit tape)
+  ?~  attributes  ~
+  ?:  =(name name.i.attributes)  `value.i.attributes
+  $(attributes t.attributes)
 ::
 ::  A whole or decimal number of pixels, rounded down.
 ++  svg-number
   |=  value=(unit tape)
   ^-  (unit @ud)
   ?~  value  ~
-  =/  text=tape  u.value
+  =/  text=tape  (flop (svg-skip-space (flop (svg-skip-space u.value))))
   =?  text  &((gth (lent text) 2) =("px" (slag (sub (lent text) 2) text)))
     (scag (sub (lent text) 2) text)
   =/  whole=tape  (scag (fall (find "." text) (lent text)) text)
@@ -888,7 +1051,7 @@
   =|  out=(list tape)
   |-
   ?~  text  (flop ?~(word out [(flop word) out]))
-  ?:  |(=(' ' i.text) =(',' i.text))
+  ?:  |((svg-space i.text) =(',' i.text))
     $(text t.text, word ~, out ?~(word out [(flop word) out]))
   $(text t.text, word [i.text word])
 ::
@@ -1034,8 +1197,9 @@
   $(bytes t.bytes, out (cat 3 out piece))
 ::
 ::  class:<family> and style:<property> attributes keep their last value
-::  and each kind becomes one attribute, so a later pad replaces an earlier
-::  one as the attribute rules say.
+::  and each kind becomes one attribute: classes first, then the other
+::  attributes in order, then the style, as the browser's decoder orders
+::  them.
 ++  serialize-attributes
   |=  attrs=(list vattr)
   ^-  @t
@@ -1056,11 +1220,13 @@
     ~[(rap 3 ~['class="' (escape-html names) '"'])]
   =/  plain=(list @t)
     (turn ordinary |=(a=vattr (rap 3 ~[name.a '="' (escape-html value.a) '"'])))
+  ::  Each declaration ends in ;, as a browser writes an element's style,
+  ::  so the browser's own DOM for the same element serializes the same.
   =/  style=(list @t)
     ?~  styles  ~
     =/  rules=(list @t)
-      (turn styles |=(s=[key=@t value=@t] (rap 3 ~[key.s ': ' value.s])))
-    ~[(rap 3 ~['style="' (escape-html (join-text '; ' rules)) '"'])]
+      (turn styles |=(s=[key=@t value=@t] (rap 3 ~[key.s ': ' value.s ';'])))
+    ~[(rap 3 ~['style="' (escape-html (join-text ' ' rules)) '"'])]
   =/  all=(list @t)  :(weld class plain style)
   ?~  all  ''
   (cat 3 ' ' (join-text ' ' all))
@@ -1249,6 +1415,7 @@
       [%field %render-field]
       [%form %render-form]
       [%table-head %render-table-head]
+      [%table %render-table]
   ==
 ::
 ++  link-renderer-entries
@@ -1867,13 +2034,24 @@
   ?:  =(name name.i.fields)  `i.fields
   $(fields t.fields)
 ::
+::  A segment's value by its aura, as Hoon prints one; a @tD is one byte of
+::  @t, which Hoon prints as a @t, ~~a.  A parse that crashes, as a year
+::  BC zero's does, is no value, so the request is a 404.
 ++  route-value
   |=  [aura=@ta seg=@t]
   ^-  (unit @)
   ?:  =(%ta aura)  ?.(((sane %ta) seg) ~ `seg)
   ?:  =(%tas aura)  ?.(((sane %tas) seg) ~ `seg)
-  ?:  =(%u aura)  (slaw %ud seg)
-  (slaw aura seg)
+  =/  parsed=(each (unit @) tang)
+    %-  mule  |.
+    ?:  =(%u aura)  (slaw %ud seg)
+    ?.  =('tD' aura)  (slaw aura seg)
+    =/  text=(unit @)  (slaw %t seg)
+    ?~  text  ~
+    ?.  (lte (met 3 u.text) 1)  ~
+    text
+  ?:  ?=(%| -.parsed)  ~
+  p.parsed
 ::
 ::  The record of the bound values, in load's field order: one field is
 ::  the value itself, several a cell, and none ~.

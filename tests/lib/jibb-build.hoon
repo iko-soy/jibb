@@ -109,7 +109,7 @@
     :~  '<!doctype html>'  '<title>About this ship</title>'
         '<meta http-equiv="Content-Security-Policy" content="script-src \'self\'">'
         '<link rel="stylesheet" href="/apps/my-app/~jibb/s/0v'
-        '<div class="j-column j-pad-s3 j-gap-s2" style="flex: 1 1 0%; min-width: 0">'
+        '<div class="j-column j-fill j-pad-s3 j-gap-s2" style="--j-fill: 1;">'
         '<h1'  'About this ship'  'Hosted on Urbit. This page ships no JavaScript.'
         '<div class="j-el j-tone-accent"><a href="/apps/my-app/blog">'
     ==
@@ -133,6 +133,10 @@
         '    link-unsafe "//other.example" "Elsewhere"'
         '    link-unsafe "/\\09/tabbed.example" "Tabbed"'
         '    el ~[width+[%chars 20]] (text "Narrow")'
+        '    para ~[(text "Status: ") (el ~[tone+%danger] (text "offline"))]'
+        '    el (weld first-attrs later-attrs) (text "Last")'
+        '++ first-attrs ^- (list attr) ~[width+[%chars 5] tone+%danger]'
+        '++ later-attrs ^- (list attr) ~[width+%shrink tone+%normal]'
     ==
   =/  built=(each static-output:jibb-build @t)
     (build-static:jibb-build (request /ui/escape/jibb source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
@@ -144,7 +148,11 @@
         '<a href="https://urbit.org" target="_blank" rel="noopener">Urbit</a>'
         'Run me'  'Elsewhere'  'Tabbed'
         ::  A width's number is printed as digits, not as a knot.
-        '<div class="j-el" style="flex: 0 0 20ch">Narrow</div>'
+        '<div class="j-el j-chars" style="--j-chars: 20ch;">Narrow</div>'
+        ::  The HTML parser would close a <p> at the el's div.
+        '<div class="j-para">Status: <div class="j-el j-tone-danger" aria-live="polite">offline</div></div>'
+        ::  The later width and tone replace everything the earlier gave.
+        '<div class="j-el j-shrink j-tone-normal">Last</div>'
     ==
   ?^  missing  missing
   ?:  (contains (trip html.p.built) "javascript:")  ~[leaf+"a javascript: URL became a link"]
@@ -178,7 +186,11 @@
         ['1000000' '1000000']
         ['9007199254740993' '9007199254740993']
     ==
-  =/  wanted=(list @t)  ~['Grouped control: 1.000.000']
+  ::  The fill columns' weights, 1 for 0 and 1, then the rest, summed exactly.
+  =/  wanted=(list @t)
+    :~  'Grouped control: 1.000.000'
+        '<table style="border-collapse: collapse; max-width: 100%; width: 100%; --j-fills: 9007199255743995;">'
+    ==
   |-
   ?~  cases  (expect-html html.p.built wanted)
   =/  digits=@t  digits.i.cases
@@ -187,10 +199,10 @@
     cases  t.cases
     wanted
       %+  weld  wanted
-      :~  (crip "<div class=\"j-el\" style=\"flex: 0 0 {(trip digits)}ch\">chars-{(trip digits)}</div>")
-          (crip "<div class=\"j-el\" style=\"flex: {(trip weight)} 1 0%; min-width: 0\">fill-{(trip digits)}</div>")
-          (crip "<th scope=\"col\" style=\"flex: 0 0 {(trip digits)}ch; text-align: start\">table-chars-{(trip digits)}</th>")
-          (crip "<th scope=\"col\" style=\"flex: {(trip weight)} 1 0%; min-width: 0; text-align: start\">table-fill-{(trip digits)}</th>")
+      :~  (crip "<div class=\"j-el j-chars\" style=\"--j-chars: {(trip digits)}ch;\">chars-{(trip digits)}</div>")
+          (crip "<div class=\"j-el j-fill\" style=\"--j-fill: {(trip weight)};\">fill-{(trip digits)}</div>")
+          (crip "<th class=\"j-chars\" scope=\"col\" style=\"--j-chars: {(trip digits)}ch; text-align: start;\">table-chars-{(trip digits)}</th>")
+          (crip "<th class=\"j-fill\" scope=\"col\" style=\"--j-fill: {(trip weight)}; text-align: start;\">table-fill-{(trip digits)}</th>")
       ==
   ==
 ::  The molds a module may use from each /sur face, misspelled ones
@@ -624,6 +636,18 @@
     ~[leaf+"a percentage was accepted as the layout's breakpoint"]
   ?.  =([%& ~] (check-theme:jibb-build skin(s1.space '.25rem', s3.space '5%') ~))
     ~[leaf+"a fractional or percentage space was rejected"]
+  ::  A dot needs a digit after it: 1.rem is no CSS length.
+  =/  dotted=(list @t)  ~['1.rem' '1.px' '1.%' '2.' '.rem' '1..5rem']
+  =/  bad-length=tang
+    |-
+    ?~  dotted  ~
+    =/  wanted=@t  (crip "theme: space.s2 is {(trip i.dotted)}, not a CSS length such as 16px or 1.5rem")
+    ?.  =([%| wanted] (check-theme:jibb-build skin(s2.space i.dotted) ~))
+      ~[leaf+"{(trip i.dotted)} was accepted as a CSS length"]
+    $(dotted t.dotted)
+  ?^  bad-length  bad-length
+  ?.  =([%& ~] (check-theme:jibb-build skin(s2.space '1.5rem', s3.space '.5em', wide '62.25rem') ~))
+    ~[leaf+"a length with a fraction was rejected"]
   =/  lang=theme-view:jibb-build  skin(lang 'en"><script>')
   ?.  =(%| -:(check-theme:jibb-build lang ~))  ~[leaf+"a malformed language tag was accepted"]
   =/  font=path  /static/fonts/[~.inter.woff2]
@@ -644,6 +668,18 @@
         '@font-face{font-family:jibb-theme;src:url("/apps/my-app/static/0v1.abcde/fonts/inter.woff2") format("woff2")'
         '@media (min-width:60rem){.j-stack{flex-direction:row}}'
         '.j-pad-s3{padding:var(--j-s3)}'  '.j-tone-danger{color:var(--j-danger)}'
+        ::  A paragraph that cannot be a <p> still looks like one.
+        'h1,h2,h3,h4,h5,h6,p,.j-para{margin:0}'
+        ::  A width is along the main axis only in a row's, a wrap's or a
+        ::  wide stack's children, through each; elsewhere it is the width.
+        '*{--j-in-row:initial}.j-row>*,.j-wrap>*{--j-in-row: }[data-each]>*{--j-in-row:inherit}'
+        '@media (min-width:60rem){.j-stack>*{--j-in-row: }}'
+        '.j-shrink{flex:0 0 auto;width:fit-content}'
+        '.j-chars{flex:0 0 auto;width:var(--j-chars);max-width:100%}'
+        '.j-fill{flex:var(--j-in-row) var(--j-fill) 1 0%;min-width:0}'
+        'th.j-chars{min-width:var(--j-chars)}'
+        'th.j-fill{width:calc(100% * var(--j-fill) / var(--j-fills))}'
+        'th.j-shrink,td.j-shrink{white-space:nowrap}'
         'h1{font-size:2rem;line-height:1.2;font-weight:700}'
         '.j-role-caption{font-size:.875rem;line-height:1.4;font-weight:400}'
     ==
@@ -663,6 +699,7 @@
     (bytes ~[[4 'RIFF'] [4 22] [4 'WEBP'] [4 'VP8X'] [4 10] [4 0] [3 127] [3 63]])
   =/  svg=octs  [76 '<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="16" class="x">']
   =/  boxed=octs  [52 '<svg viewBox="0 0 48.5 32" xmlns="http://w3.org/x">']
+  =/  svg-octs  |=(t=@t `octs`[(met 3 t) t])
   =/  cases=(list [name=tape type=@t data=octs wanted=(unit [@ud @ud])])
     :~  ["png" 'image/png' (png 640 480) `[640 480]]
         ["gif" 'image/gif' gif `[320 200]]
@@ -672,6 +709,27 @@
         ["viewBox" 'image/svg+xml' boxed `[48 32]]
         ["truncated png" 'image/png' [12 0xa1a.0a0d.474e.5089] ~]
         ["unknown type" 'image/x-thing' (png 1 1) ~]
+        ::  Attributes separated by any whitespace, in either quotes.
+        :+  "newlines"  'image/svg+xml'
+        :_  `[48 48]
+        (svg-octs '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"\0awidth="48"\0aheight="48">')
+        ["tabs" 'image/svg+xml' (svg-octs '<svg\09width="48"\09height="48"\09viewBox="0 0 24 24">') `[48 48]]
+        :+  "single quotes"  'image/svg+xml'
+        [(svg-octs '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height = \'32\'>') `[48 32]]
+        ["> in a value" 'image/svg+xml' (svg-octs '<svg aria-label="a > b" width="48" height="48">') `[48 48]]
+        ["viewBox lines" 'image/svg+xml' (svg-octs '<svg viewBox="0\0a0\0a20\0a10">') `[20 10]]
+        ::  The root is the first element after the prolog, whatever a
+        ::  comment, the declaration or the doctype says.
+        :+  "comment"  'image/svg+xml'
+        [(svg-octs '<!-- based on <svg width="1" height="1"> -->\0a<svg width="48" height="48">') `[48 48]]
+        :+  "prolog"  'image/svg+xml'
+        :_  `[32 16]
+        %-  svg-octs
+        '\ef\bb\bf<?xml version="1.0"?>\0a<!DOCTYPE svg [<!ENTITY a "<svg width=\'1\'>">]>\0a<svg width="32" height="16">'
+        ["prefix of a name" 'image/svg+xml' (svg-octs '<svg stroke-width="2" viewBox="0 0 5 6">') `[5 6]]
+        ["not svg" 'image/svg+xml' (svg-octs '<html><svg width="1" height="1">') ~]
+        ["svgfoo" 'image/svg+xml' (svg-octs '<svgfoo width="1" height="1">') ~]
+        ["unquoted" 'image/svg+xml' (svg-octs '<svg width=48 height=48>') ~]
     ==
   |-
   ?~  cases  ~
@@ -767,6 +825,81 @@
   ?.  &(?=(%done -.none) =('Depth 0' title.none))  ~[leaf+"a catch-all did not match its folder"]
   =/  bad=page-step:jibb-build  (page-request:jibb-build p.rest [%load ~['docs' 'A B']])
   ?.  &(?=(%fail -.bad) =(404 status.bad))  ~[leaf+"a segment of a catch-all that is not a knot was not a 404"]
+  ~
+::  A @tD parameter is one byte of @t, which Hoon prints, and the address
+::  carries, as a @t; a link to the page prints it as the route parses it.
+++  test-markup-byte-route-parameters
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  source=@t
+    %-  text
+    :~  '++ main (page load view)'
+        '++ load |= c=@tD (pure c)'
+        ''
+        '++ view |= c=@tD'
+        '  column ~ ~['
+        '    heading 1 "Letter {c}"'
+    ==
+  =/  made=(each data-page:jibb-build @t)
+    (data-page-for (request /ui/letter/[~._c]/jibb source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.made)  ~[leaf+(trip p.made)]
+  ?.  =(~[[%c 'tD' |]] fields.p.made)  ~[leaf+"load's @tD field was not read from its type"]
+  =/  one=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['letter' '~~a']])
+  ?.  ?=(%done -.one)  ~[leaf+"a one-byte @t did not match the @tD parameter"]
+  ?.  =('Letter a' title.one)  ~[leaf+(trip title.one)]
+  =/  escaped=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['letter' '~~~41.']])
+  ?.  &(?=(%done -.escaped) =('Letter A' title.escaped))
+    ~[leaf+"an escaped byte did not match the @tD parameter"]
+  =/  bad=(list @t)  ~['~~ab' 'a' '~a' '~~~100.']
+  =/  rejected=tang
+    |-
+    ?~  bad  ~
+    =/  step=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['letter' i.bad]])
+    ?.  &(?=(%fail -.step) =(404 status.step))  ~[leaf+"{(trip i.bad)} matched a @tD parameter"]
+    =/  wanted=@t  (crip "the segment {(trip i.bad)} is not a @tD, as the route parameter c needs")
+    ?.  =(wanted message.step)  ~[leaf+(trip message.step)]
+    $(bad t.bad)
+  ?^  rejected  rejected
+  =/  linking=@t
+    %-  text
+    :~  '++ letter (snag 0 (trip "a"))'
+        '++ main (link %/letter/(letter) "A")'
+    ==
+  =/  built=(each static-output:jibb-build @t)
+    %+  build-static:jibb-build
+      (request /ui/letters/jibb linking default-theme-source:jibb-build '/apps/my-app' ~ ~[~['letter' '_c']])
+    u.prep
+  ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
+  (expect-html html.p.built ~['<a href="/apps/my-app/letter/~~a">A</a>'])
+::  A segment whose parse crashes, as a year BC zero's does, is a 404 with
+::  Jibb's error page, not a crashed request.
+++  test-markup-route-parse-crash-is-404
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  source=@t
+    %-  text
+    :~  '++ main (page load view)'
+        '++ load |= d=@da (pure d)'
+        ''
+        '++ view |= d=@da'
+        '  column ~ ~['
+        '    heading 1 "A day"'
+    ==
+  =/  made=(each data-page:jibb-build @t)
+    (data-page-for (request /ui/day/[~._d]/jibb source default-theme-source:jibb-build '/apps/my-app' ~ ~) u.prep)
+  ?:  ?=(%| -.made)  ~[leaf+(trip p.made)]
+  =/  good=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['day' '~2026.1.1']])
+  ?.  &(?=(%done -.good) =('A day' title.good))  ~[leaf+"a date parameter did not render"]
+  =/  crashed=(each page-step:jibb-build tang)
+    (mule |.((page-request:jibb-build p.made [%load ~['day' '~0-.1.1']])))
+  ?:  ?=(%| -.crashed)  ~[leaf+"a date whose parse crashes crashed the request"]
+  =/  step=page-step:jibb-build  p.crashed
+  ?.  &(?=(%fail -.step) =(404 status.step))  ~[leaf+"a date whose parse crashes was not a 404"]
+  ?.  =('the segment ~0-.1.1 is not a @da, as the route parameter d needs' message.step)
+    ~[leaf+(trip message.step)]
+  ?.  (contains (trip html.step) "<h1>Not found</h1>")  ~[leaf+"the 404 was not Jibb's error page"]
   ~
 ++  test-page-scries-an-agent
   ^-  tang

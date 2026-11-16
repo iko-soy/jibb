@@ -223,10 +223,32 @@
       =/  proper=(unit ?)  (proper-list payload 128)
       ?~  proper  ~
       ?.  u.proper  (element-hole axis s)
+      =/  kind=?(%phrasing %block %unknown)  (para-kind payload)
+      ?:  ?=(%unknown kind)  (element-hole axis s)
       =/  kids=(unit rendered)  (children payload at s)
       ?~  kids  ~
-      `[(rap 3 ~['["p",{},' out.u.kids ']']) s.u.kids]
+      ?:  ?=(%phrasing kind)  `[(rap 3 ~['["p",{},' out.u.kids ']']) s.u.kids]
+      `[(rap 3 ~['["div",{"class":"j-para"},' out.u.kids ']']) s.u.kids]
   ==
+::  A paragraph with only phrasing children is a <p> and one with a known
+::  other child the server's div; an unknown child, whose element only the
+::  actual view says, makes the whole paragraph a hole.  Keep in step with
+::  paraKind in js/core/view-template.mjs and the build facade's phrasing.
+++  para-kind
+  |=  v=value
+  ^-  ?(%phrasing %block %unknown)
+  =/  unknown=?  |
+  |-
+  ?.  ?=(%cell -.v)  ?:(unknown %unknown %phrasing)
+  =/  kid=value  hed.v
+  =/  tag=(unit @t)
+    ?.  ?=(%seal -.kid)  ~
+    ?.  ?=(%cell -.body.kid)  ~
+    (ascii hed.body.kid)
+  ?~  tag  $(v tal.v, unknown &)
+  ?.  ?=(?(%text %link %link-unsafe %image %image-unsafe %button %toggle %field) u.tag)
+    %block
+  $(v tal.v)
 ::  Shape bounds are independent of the abstract Core evaluation budget.
 ++  value-template
   |=  value=value

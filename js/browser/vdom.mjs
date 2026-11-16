@@ -1,11 +1,20 @@
 import { CoreCrash, requireLoobean } from '../core/runtime.mjs';
 import { cell, listToArray, text } from '../natives/helpers.mjs';
 import { validateRawSeal } from '../natives/legacy.mjs';
+import { safeUrl } from './safe-url.mjs';
 
 // Style attributes are the theme stylesheet's atomic classes, as the server
-// renders them, so the browser needs no theme tokens of its own.
+// renders them, so the browser needs no theme tokens of its own. Every
+// element's tags, attributes, attribute order and classes are the server's
+// (lib/jibb/renderer.jibb and jibb-build.hoon), so hydration finds the
+// server's DOM equal to the browser's: classes first, then the other
+// attributes, then the style, whose keys are CSS property names.
 const SPACES = new Set(['s0', 's1', 's2', 's3']);
 const TONES = new Set(['normal', 'muted', 'accent', 'danger']);
+// What a <p> may hold; the HTML parser closes a <p> at anything else.
+const PHRASING = new Set([
+  'text', 'link', 'link-unsafe', 'image', 'image-unsafe', 'button', 'toggle', 'field',
+]);
 
 function fail(message) {
   throw new CoreCrash(`toVnode: ${message}`);
@@ -60,65 +69,75 @@ function keyed(key, vnode) {
   return made;
 }
 
-function lengthStyle(value) {
+// A width's kind, as the renderer's fill-weight floors a fill below 1.
+function lengthOf(value) {
   if (typeof value === 'bigint') {
     if (atomText(value, 'width') !== 'shrink') fail('unknown width');
-    return { flex: '0 0 auto', width: 'auto' };
+    return { kind: 'shrink' };
   }
   const [tag, payload] = pair(value, 'width');
-  const name = atomText(tag, 'width');
-  if (name === 'chars') return { flex: `0 0 ${payload}ch` };
-  if (name === 'fill') {
-    const weight = payload < 1n ? 1n : payload;
-    return { flex: `${weight} 1 0%`, minWidth: '0' };
-  }
-  fail(`unknown width %${name}`);
+  const kind = atomText(tag, 'width');
+  if (typeof payload !== 'bigint') fail(`malformed width %${kind}`);
+  if (kind === 'chars') return { kind, n: payload };
+  if (kind === 'fill') return { kind, n: payload < 1n ? 1n : payload };
+  fail(`unknown width %${kind}`);
 }
 
-// A width is a class, except chars and fill, which stay inline.
-function lengthAttrs(value, classes, style) {
-  if (typeof value === 'bigint') {
-    if (atomText(value, 'width') !== 'shrink') fail('unknown width');
-    classes.set('width', 'j-shrink');
-    return;
-  }
-  Object.assign(style, lengthStyle(value));
+// A width is a class; chars and fill carry their number inline, as the
+// custom property the stylesheet reads along the axis the width is on.
+function lengthParts(length) {
+  if (length.kind === 'shrink') return { class: 'j-shrink', style: {} };
+  if (length.kind === 'chars') return { class: 'j-chars', style: { '--j-chars': `${length.n}ch` } };
+  return { class: 'j-fill', style: { '--j-fill': String(length.n) } };
 }
 
-// One class per family, the last of each winning in the family's first
-// place, as the server's serializer does.
+function attributeParts(entry) {
+  const [tag, payload] = pair(entry, 'attribute');
+  const name = atomText(tag, 'attribute');
+  if (name === 'pad' || name === 'gap') {
+    const space = atomText(payload, name);
+    if (!SPACES.has(space)) fail(`unknown ${name} %${space}`);
+    return { name, class: `j-${name}-${space}` };
+  }
+  if (name === 'width') return { name, ...lengthParts(lengthOf(payload)) };
+  if (name === 'align') {
+    const align = atomText(payload, 'align');
+    if (!['start', 'center', 'end'].includes(align)) fail(`unknown align %${align}`);
+    return { name, class: `j-align-${align}` };
+  }
+  if (name === 'role') {
+    const role = atomText(payload, 'role');
+    if (!['body', 'caption', 'label'].includes(role)) fail(`unknown role %${role}`);
+    return { name, class: `j-role-${role}` };
+  }
+  if (name === 'tone') {
+    const tone = atomText(payload, 'tone');
+    if (!TONES.has(tone)) fail(`unknown tone %${tone}`);
+    return {
+      name, class: `j-tone-${tone}`, plain: tone === 'danger' ? { 'aria-live': 'polite' } : {},
+    };
+  }
+  fail(`unknown attribute %${name}`);
+}
+
+// An attribute's family is its tag. The last attribute of a family
+// replaces all an earlier one gave, in the family's first place, as the
+// server's build facade does.
 export function decodeAttrs(raw, layoutClass) {
-  const classes = new Map();
-  if (layoutClass !== undefined) classes.set('layout', layoutClass);
-  const style = {};
-  const attrs = { class: layoutClass };
+  const families = new Map();
   for (const entry of items(raw, 'attributes')) {
-    const [tag, payload] = pair(entry, 'attribute');
-    const name = atomText(tag, 'attribute');
-    if (name === 'pad' || name === 'gap') {
-      const space = atomText(payload, name);
-      if (!SPACES.has(space)) fail(`unknown ${name} %${space}`);
-      classes.set(name, `j-${name}-${space}`);
-    } else if (name === 'width') {
-      lengthAttrs(payload, classes, style);
-    } else if (name === 'align') {
-      const align = atomText(payload, 'align');
-      if (!['start', 'center', 'end'].includes(align)) fail(`unknown align %${align}`);
-      classes.set('align', `j-align-${align}`);
-    } else if (name === 'role') {
-      const role = atomText(payload, 'role');
-      if (!['body', 'caption', 'label'].includes(role)) fail(`unknown role %${role}`);
-      classes.set('role', `j-role-${role}`);
-    } else if (name === 'tone') {
-      const tone = atomText(payload, 'tone');
-      if (!TONES.has(tone)) fail(`unknown tone %${tone}`);
-      classes.set('tone', `j-tone-${tone}`);
-      if (tone === 'danger') attrs['aria-live'] = 'polite';
-    } else {
-      fail(`unknown attribute %${name}`);
-    }
+    const parts = attributeParts(entry);
+    families.set(parts.name, parts);
   }
-  attrs.class = [...classes.values()].join(' ');
+  const classes = layoutClass === undefined ? [] : [layoutClass];
+  const attrs = { class: '' };
+  const style = {};
+  for (const parts of families.values()) {
+    classes.push(parts.class);
+    Object.assign(attrs, parts.plain);
+    Object.assign(style, parts.style);
+  }
+  attrs.class = classes.join(' ');
   attrs.style = style;
   return attrs;
 }
@@ -146,10 +165,9 @@ function decodePath(raw, paths) {
   return `${paths.base}/${parts.map(part => encodeURIComponent(part)).join('/')}`;
 }
 
-function decodeLengthAttribute(raw) {
-  return lengthStyle(raw);
-}
-
+// A table with a fill column spans its container, the fill columns sharing
+// it by weight, and a shrink column's cells keep their content's width, as
+// the renderer's table frame says.
 function decodeTable(raw, paths) {
   const [rawColumns, rawRows] = pair(raw, 'table');
   const columns = items(rawColumns, 'table columns').map(column => {
@@ -157,33 +175,39 @@ function decodeTable(raw, paths) {
     const [width, align] = pair(rest, 'table column');
     const alignment = atomText(align, 'table column align');
     if (!['start', 'center', 'end'].includes(alignment)) fail(`unknown align %${alignment}`);
-    return {
-      header: atomText(header, 'table header'),
-      style: {
-        ...decodeLengthAttribute(width),
-        textAlign: alignment,
-      },
-    };
+    return { header: atomText(header, 'table header'), width: lengthOf(width), alignment };
   });
-  const headings = columns.map(column => element('th', {
-    scope: 'col',
-    style: column.style,
-  }, [wordsFromString(column.header)]));
+  const headings = columns.map(({ header, width, alignment }) => {
+    const parts = lengthParts(width);
+    return element('th', {
+      class: parts.class,
+      scope: 'col',
+      style: { ...parts.style, 'text-align': alignment },
+    }, [wordsFromString(header)]);
+  });
+  const shrinks = columns.map(({ width }) => width.kind === 'shrink');
   const head = element('thead', {}, [element('tr', {}, headings)]);
   const rows = items(rawRows, 'table rows').map(rawRow => {
     const [key, rawCells] = pair(rawRow, 'table row');
-    const cells = items(rawCells, 'table cells').map(rawCell => (
-      element('td', {}, [toVnode(rawCell, paths)])
+    const cells = items(rawCells, 'table cells').map((rawCell, index) => (
+      element('td', shrinks[index] ? { class: 'j-shrink' } : {}, [toVnode(rawCell, paths)])
     ));
     return keyed(key, element('tr', {}, cells));
   });
-  return element('table', {
-    style: { borderCollapse: 'collapse', maxWidth: '100%' },
-  }, [head, element('tbody', {}, rows)]);
+  const fills = columns.reduce((total, { width }) => total + (width.kind === 'fill' ? width.n : 0n), 0n);
+  const style = { 'border-collapse': 'collapse', 'max-width': '100%' };
+  if (fills > 0n) Object.assign(style, { width: '100%', '--j-fills': String(fills) });
+  return element('table', { style }, [head, element('tbody', {}, rows)]);
 }
 
 function wordsFromString(value) {
   return { kind: 'text', text: value };
+}
+
+// An element's tag, from its authenticated seal.
+function elementTag(sealed) {
+  const [rawTag] = pair(validateRawSeal(sealed), 'element');
+  return atomText(rawTag, 'element tag');
 }
 
 /**
@@ -222,8 +246,15 @@ function decode(sealed, paths) {
       const [attrs, inner] = pair(payload, 'el');
       return element('div', decodeAttrs(attrs, 'j-el'), [child(inner)]);
     }
-    case 'para':
-      return element('p', {}, items(payload, 'para children').map(child));
+    case 'para': {
+      // A <p> holds only phrasing content; with any other child the server
+      // renders the paragraph as a div styled as one.
+      const kids = items(payload, 'para children');
+      const children = kids.map(child);
+      return kids.every(kid => PHRASING.has(elementTag(kid)))
+        ? element('p', {}, children)
+        : element('div', { class: 'j-para' }, children);
+    }
     case 'text':
       return words(payload);
     case 'heading': {
@@ -247,13 +278,14 @@ function decode(sealed, paths) {
       const [source, description] = pair(payload, 'image');
       const alt = atomText(description, 'image description');
       if (paths.assets === undefined) {
-        return element('img', { src: decodePath(source, paths), alt, style: { maxWidth: '100%' } });
+        return element('img', { src: decodePath(source, paths), alt });
       }
-      // A page's image is one of its desk's static files, as on the server.
+      // A page's image is one of its desk's static files, as on the server,
+      // where the stylesheet keeps it within its container.
       const at = `/${pathParts(source).join('/')}`;
       const asset = paths.assets.get(at);
       if (asset === undefined) fail(`missing static file ${at}`);
-      const attrs = { src: asset.url, alt, style: { maxWidth: '100%' } };
+      const attrs = { src: asset.url, alt };
       if (asset.width !== undefined) {
         attrs.width = String(asset.width);
         attrs.height = String(asset.height);
@@ -261,26 +293,31 @@ function decode(sealed, paths) {
       return element('img', attrs);
     }
     case 'image-unsafe': {
+      // The server's rule for unchecked URLs: anything else is drawn as its
+      // description, never fetched.
       const [source, description] = pair(payload, 'image-unsafe');
       const [url, size] = pair(source, 'image-unsafe source');
       const [width, height] = pair(size, 'image-unsafe source');
+      const src = atomText(url, 'image URL');
+      const alt = atomText(description, 'image description');
+      if (!safeUrl(src)) return wordsFromString(alt);
       return element('img', {
-        src: atomText(url, 'image URL'),
-        alt: atomText(description, 'image description'),
-        width: String(width),
-        height: String(height),
-        style: {
-          maxWidth: '100%',
-          aspectRatio: `${width} / ${height}`,
-        },
+        src, alt, width: String(width), height: String(height),
       });
     }
-    case 'link':
-    case 'link-unsafe': {
+    case 'link': {
       const [target, label] = pair(payload, tag);
-      return element('a', {
-        href: tag === 'link' ? decodePath(target, paths) : atomText(target, 'link target'),
-      }, [words(label)]);
+      return element('a', { href: decodePath(target, paths) }, [words(label)]);
+    }
+    case 'link-unsafe': {
+      // An unsafe link is drawn as its label, never followed; an https one
+      // opens in a new tab without its opener, as on the server.
+      const [target, label] = pair(payload, tag);
+      const href = atomText(target, 'link target');
+      if (!safeUrl(href)) return words(label);
+      const attrs = { href };
+      if (href.startsWith('https:')) Object.assign(attrs, { target: '_blank', rel: 'noopener' });
+      return element('a', attrs, [words(label)]);
     }
     case 'button': {
       const [label, message] = pair(payload, 'button');

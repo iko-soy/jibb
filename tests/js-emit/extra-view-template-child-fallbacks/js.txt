@@ -7,7 +7,7 @@ const requireNative = (registry, name) => {
   }
 };
 requireNative(natives, "raw-seal");
-return cons(viewTemplate(memo((($0) => apply(natives["raw-seal"], cons(BigInt("7827314"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), slot(3n, $0))))), cons(apply(natives["raw-seal"], cons(BigInt("1885434487"), cons(cons(cons(BigInt("7364967"), slot(2n, $0)), BigInt("0")), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("7827314"))), BigInt("0"))))), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(slot(2n, $0), BigInt("8588042669732815793031778040132")))), cons(apply(natives["raw-seal"], cons(BigInt("1634886000"), cons(slot(3n, $0), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), BigInt("0"))))), BigInt("0")))))))))), ["div",{"class":"j-row"},[-1,-2,-3,["p",{},[-4,4]]]], [30, 62, 126, 2038, 16315], natives, (($model) => {
+return cons(viewTemplate(memo((($0) => apply(natives["raw-seal"], cons(BigInt("7827314"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), slot(3n, $0))))), cons(apply(natives["raw-seal"], cons(BigInt("1885434487"), cons(cons(cons(BigInt("7364967"), slot(2n, $0)), BigInt("0")), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), BigInt("7827314"))), BigInt("0"))))), cons(apply(natives["raw-seal"], cons(BigInt("29113321535923560"), cons(slot(2n, $0), BigInt("8588042669732815793031778040132")))), cons(apply(natives["raw-seal"], cons(BigInt("1634886000"), cons(slot(3n, $0), cons(apply(natives["raw-seal"], cons(BigInt("1954047348"), slot(2n, $0))), BigInt("0"))))), BigInt("0")))))))))), ["div",{"class":"j-row"},[-1,-2,-3,-4]], [30, 62, 126, 254], natives, (($model) => {
 const $v0 = slot(2n, $model);
 checkValue($v0, "cons tail");
 const $v1 = slot(3n, $model);
@@ -37,6 +37,12 @@ const $v19 = apply(natives["raw-seal"], $v18);
 const $v20 = cons($v3, BigInt("8588042669732815793031778040132"));
 const $v21 = cons(BigInt("29113321535923560"), $v20);
 const $v22 = apply(natives["raw-seal"], $v21);
-return [$v11, $v19, $v22, $v4, $v5];
+const $v23 = cons(BigInt("1954047348"), $v5);
+const $v24 = apply(natives["raw-seal"], $v23);
+const $v25 = cons($v24, BigInt("0"));
+const $v26 = cons($v4, $v25);
+const $v27 = cons(BigInt("1634886000"), $v26);
+const $v28 = apply(natives["raw-seal"], $v27);
+return [$v11, $v19, $v22, $v28];
 })), memo((($1) => apply(natives["raw-seal"], cons(BigInt("121416400531299"), cons(BigInt("0"), $1))))));
 }

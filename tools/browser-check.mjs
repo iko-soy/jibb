@@ -339,7 +339,8 @@ async function login(session) {
 
 async function cssNumbers(session) {
   // Decode the same widths with the production client decoder, then compare
-  // its exact strings with real server HTML before a CSS parser can round them.
+  // its exact strings with real server HTML before a CSS parser can round them:
+  // the width's class and the number it carries inline, as --j-chars or --j-fill.
   const values = [0n, 1n, 999n, 1000n, 1001n, 1000000n, 9007199254740993n];
   const expected = [];
   for (const kind of ['chars', 'fill']) {
@@ -353,7 +354,10 @@ async function cssNumbers(session) {
         arrayToList([[cord(`table-${label}`), [width, cord('start')]]]), 0n,
       ]]));
       for (const [name, vnode] of [[label, layout], [`table-${label}`, table.children[0].children[0].children[0]]]) {
-        expected.push({ label: name, style: vnode.attrs.style, compareComputed: value <= 1000000n });
+        expected.push({
+          label: name, kind, className: vnode.attrs.class, style: vnode.attrs.style,
+          property: `--j-${kind}`, compareComputed: value <= 1000000n,
+        });
       }
     }
   }
@@ -365,24 +369,27 @@ async function cssNumbers(session) {
       const wanted = expected.get(label);
       if (!wanted) throw new Error('unexpected CSS number fixture label: ' + label);
       const declarations = (node.getAttribute('style') ?? '').split(';')
-        .map(part => part.trim()).filter(part => part.startsWith('flex:'))
-        .map(part => part.slice('flex:'.length).trim());
+        .map(part => part.trim()).filter(part => part.startsWith(wanted.property + ':'))
+        .map(part => part.slice(wanted.property.length + 1).trim());
+      const classes = node.getAttribute('class');
       let computedEqual = null;
       if (wanted.compareComputed) {
         const client = node.cloneNode(false);
         client.removeAttribute('style');
-        Object.assign(client.style, wanted.style);
+        for (const [name, value] of Object.entries(wanted.style)) client.style.setProperty(name, value);
         node.parentNode.appendChild(client);
         try {
           const serverStyle = getComputedStyle(node);
           const clientStyle = getComputedStyle(client);
-          computedEqual = ['flexGrow', 'flexShrink', 'flexBasis', 'minWidth']
-            .every(name => serverStyle[name] === clientStyle[name]);
+          // Computed, not used, values: a clone is another table column.
+          computedEqual = ['minWidth', 'maxWidth', 'flexGrow', 'flexShrink', 'flexBasis']
+            .every(name => serverStyle[name] === clientStyle[name])
+            && serverStyle.getPropertyValue(wanted.property) === clientStyle.getPropertyValue(wanted.property);
         } finally {
           client.remove();
         }
       }
-      return { label, declarations, computedEqual };
+      return { label, declarations, classes, computedEqual };
     });
     return {
       rows,
@@ -397,8 +404,10 @@ async function cssNumbers(session) {
     const found = actual.rows.filter(row => row.label === wanted.label);
     if (!expect(found.length === 1, `CSS numbers did not render ${wanted.label} exactly once`)) continue;
     const row = found[0];
-    expect(row.declarations.length === 1 && row.declarations[0] === wanted.style.flex,
-      `${wanted.label}: server CSS ${JSON.stringify(row.declarations)} differs from client flex ${wanted.style.flex}`);
+    expect(row.declarations.length === 1 && row.declarations[0] === wanted.style[wanted.property],
+      `${wanted.label}: server CSS ${JSON.stringify(row.declarations)} differs from client ${wanted.property} ${wanted.style[wanted.property]}`);
+    expect(row.classes === wanted.className,
+      `${wanted.label}: server classes ${JSON.stringify(row.classes)} differ from client classes ${wanted.className}`);
     if (wanted.compareComputed) {
       expect(row.computedEqual, `${wanted.label}: browser-parsed server and client CSS differ`);
     }
@@ -523,8 +532,10 @@ async function exampleThree(session) {
     };
     return nodes.column.node.classList.contains('j-gap-s2')
       && nodes.row.node.classList.contains('j-gap-s1')
-      && nodes.fieldFrame.node.style.flex === '1 1 0%'
-      && parseFloat(nodes.fieldFrame.node.style.minWidth) === 0
+      && nodes.fieldFrame.node.classList.contains('j-fill')
+      && nodes.fieldFrame.node.style.getPropertyValue('--j-fill') === '1'
+      && getComputedStyle(nodes.fieldFrame.node).flexGrow === '1'
+      && parseFloat(getComputedStyle(nodes.fieldFrame.node).minWidth) === 0
       && nodes.error.node.getAttribute('aria-live') === 'polite';
   })()`);
   expect(styled, 'the todo template lost its constant gap, width or danger-tone attributes');

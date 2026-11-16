@@ -1,0 +1,46 @@
+text Fish &amp; &lt;ships&gt; &quot;quoted&quot; &apos;single&apos;
+heading <h2 tabindex="-1">Title</h2>
+heading-clamped <div class="j-column"><h1 tabindex="-1">Low</h1><h6 tabindex="-1">High</h6></div>
+para-phrasing <p>Read <a href="/apps/my-app/blog/first-post">the post</a>, <a href="https://urbit.org" target="_blank" rel="noopener">Urbit</a><img src="/apps/my-app/static/0v1.abcde/img/dot.png" alt="A dot" width="4" height="5"><img src="https://urbit.org/a.png" alt="Away" width="10" height="20"></p>
+para-block <div class="j-para">Status: <div class="j-el j-tone-danger" aria-live="polite">offline</div></div>
+para-heading <div class="j-para">Intro<h2 tabindex="-1">Title</h2></div>
+para-empty <p></p>
+para-each <div class="j-para">See <div data-each="" style="display: contents;">a</div></div>
+para-in-para <div class="j-para"><p>inner</p></div>
+para-origins <p>a <a href="/apps/my-app/blog/first-post">b</a></p>
+para-origins-block <div class="j-para"><div class="j-el">b</div></div>
+row-attributes <div class="j-row j-pad-s2 j-gap-s3 j-fill j-align-center j-role-body j-tone-danger" aria-live="polite" style="--j-fill: 1;">all</div>
+column-chars <div class="j-column j-chars j-align-end j-role-caption" style="--j-chars: 20ch;">narrow</div>
+wrap-shrink <div class="j-wrap j-shrink j-gap-s1 j-tone-muted">ab</div>
+stack-fill <div class="j-stack j-fill j-pad-s0 j-role-label j-tone-accent" style="--j-fill: 3;">stacked</div>
+el-last-wins <div class="j-el j-shrink j-tone-normal j-pad-s3">last</div>
+el-back-to-chars <div class="j-el j-chars" style="--j-chars: 7ch;">seven</div>
+every-attribute <div class="j-column"><div class="j-el j-pad-s0">x</div><div class="j-el j-pad-s1">x</div><div class="j-el j-pad-s2">x</div><div class="j-el j-pad-s3">x</div><div class="j-el j-gap-s0">x</div><div class="j-el j-gap-s1">x</div><div class="j-el j-gap-s2">x</div><div class="j-el j-gap-s3">x</div><div class="j-el j-align-start">x</div><div class="j-el j-align-center">x</div><div class="j-el j-align-end">x</div><div class="j-el j-role-body">x</div><div class="j-el j-role-caption">x</div><div class="j-el j-role-label">x</div><div class="j-el j-tone-normal">x</div><div class="j-el j-tone-muted">x</div><div class="j-el j-tone-accent">x</div><div class="j-el j-tone-danger" aria-live="polite">x</div><div class="j-el j-shrink">x</div><div class="j-el j-chars" style="--j-chars: 1ch;">x</div><div class="j-el j-fill" style="--j-fill: 1;">x</div></div>
+link <a href="/apps/my-app/blog/first-post">First &amp; best</a>
+link-static <a href="/apps/my-app/static/0v1.abcde/img/dot.png">Dot file</a>
+link-home <a href="/apps/my-app">Home</a>
+link-unsafe-https <a href="https://urbit.org/?a=1&amp;b=2" target="_blank" rel="noopener">Urbit</a>
+link-unsafe-root <a href="/apps/groups">Groups</a>
+link-unsafe-mailto <a href="mailto:a@b.c">Mail</a>
+link-unsafe-tel <a href="tel:+1555">Call</a>
+link-unsafe-javascript Run &lt;me&gt;
+link-unsafe-protocol-relative Elsewhere
+link-unsafe-backslash Back
+link-unsafe-tab Tabbed
+link-unsafe-http Plain
+image <img src="/apps/my-app/static/0v1.abcde/img/dot.png" alt="A dot" width="4" height="5">
+image-decorative <img src="/apps/my-app/static/0v1.abcde/img/dot.png" alt="" width="4" height="5">
+image-unsafe-https <img src="https://urbit.org/a.png" alt="Away" width="10" height="20">
+image-unsafe-root <img src="/apps/x/a.png" alt="Root" width="3" height="4">
+image-unsafe-data Not &quot;fetched&quot;
+each <div data-each="" style="display: contents;">one<div class="j-el">two</div></div>
+table <table style="border-collapse: collapse; max-width: 100%; width: 100%; --j-fills: 3;"><thead><tr><th class="j-shrink" scope="col" style="text-align: end;">Qty</th><th class="j-fill" scope="col" style="--j-fill: 1; text-align: start;">Name</th><th class="j-fill" scope="col" style="--j-fill: 2; text-align: center;">Notes</th><th class="j-chars" scope="col" style="--j-chars: 10ch; text-align: end;">Code</th></tr></thead><tbody><tr><td class="j-shrink">12</td><td>Ann</td><td>x</td><td>A1</td><td>extra</td></tr><tr><td class="j-shrink">3</td></tr></tbody></table>
+table-plain <table style="border-collapse: collapse; max-width: 100%;"><thead><tr><th class="j-chars" scope="col" style="--j-chars: 0ch; text-align: start;">A</th><th class="j-shrink" scope="col" style="text-align: start;">B</th></tr></thead><tbody></tbody></table>
+table-fill-zero <table style="border-collapse: collapse; max-width: 100%; width: 100%; --j-fills: 1;"><thead><tr><th class="j-fill" scope="col" style="--j-fill: 1; text-align: start;">Z</th></tr></thead><tbody></tbody></table>
+button <button type="button">Go &amp; stop</button>
+toggle-on <input type="checkbox" aria-label="On" checked="">
+toggle-off <input type="checkbox" aria-label="Off">
+field <input type="text" value="Ann &amp; &quot;Bo&quot;" aria-label="Name" readonly="">
+form <form><input type="text" value="" aria-label="Inner" readonly=""><button type="button">Send</button></form>
+para-controls <p>Pick <button type="button">b</button><input type="checkbox" aria-label="t" checked=""><input type="text" value="v" aria-label="f" readonly=""></p>
+para-form <div class="j-para"><form>in form</form></div>

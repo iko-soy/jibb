@@ -107,6 +107,26 @@ function constant(value, remaining = { nodes: NODES }) {
     && constant(value.head, remaining) && constant(value.tail, remaining));
 }
 
+// What a <p> may hold, as js/browser/vdom.mjs and the server decide it.
+const PHRASING = new Set([
+  'text', 'link', 'link-unsafe', 'image', 'image-unsafe', 'button', 'toggle', 'field',
+]);
+
+// A paragraph with only phrasing children is a <p> and one with a known
+// other child the server's div; an unknown child, whose element only the
+// actual view says, makes the whole paragraph a hole. Keep in step with
+// +para-kind in jibb-js-template.hoon.
+function paraKind(value) {
+  let unknown = false;
+  for (; value.kind === 'cell'; value = value.tail) {
+    const kid = value.head;
+    const tag = kid.kind === 'seal' && kid.value.kind === 'cell' ? ascii(kid.value.head) : undefined;
+    if (tag === undefined) unknown = true;
+    else if (!PHRASING.has(tag)) return 'block';
+  }
+  return unknown ? 'unknown' : 'phrasing';
+}
+
 // Discover a fixed child count before recording any descendant hole axes.
 function properList(value) {
   let left = NODES;
@@ -190,9 +210,14 @@ export function valueTemplate(value) {
         // ordinary attribute decoder. The descriptor tag names its layout.
         return empty ? ['div', { class: `j-${tag}` }, kids] : [tag, at * 2, kids];
       }
-      case 'para':
+      case 'para': {
         if (!properList(payload)) return childHole(axis);
-        return ['p', {}, children(payload, at)];
+        const kind = paraKind(payload);
+        if (kind === 'unknown') return childHole(axis);
+        return kind === 'phrasing'
+          ? ['p', {}, children(payload, at)]
+          : ['div', { class: 'j-para' }, children(payload, at)];
+      }
       default:
         return childHole(axis);
     }

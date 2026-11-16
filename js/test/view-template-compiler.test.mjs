@@ -10,6 +10,7 @@ import { rawSeal } from '../natives/legacy.mjs';
 import { toVnode } from '../browser/vdom.mjs';
 import { startIsland } from '../browser/island.mjs';
 import { compiledViewTemplate } from '../browser/template.mjs';
+import { createDom } from '../browser/dom.mjs';
 import { createFakeDocument } from './fake-dom.mjs';
 
 async function compiled(source, natives = loweredNatives, logger = () => {}) {
@@ -150,9 +151,9 @@ test('constant layout attributes and element holes retain exact returned-noun ax
       [cord('gap'), cord('s2')], [cord('width'), [cord('fill'), 1n]], [cord('tone'), cord('danger')],
     ]));
     const vnode = toVnode(noun);
-    assert.equal(vnode.attrs.class, 'j-column j-gap-s2 j-tone-danger');
+    assert.equal(vnode.attrs.class, 'j-column j-gap-s2 j-fill j-tone-danger');
     assert.equal(vnode.attrs['aria-live'], 'polite');
-    assert.equal(vnode.attrs.style.flex, '1 1 0%');
+    assert.deepEqual(vnode.attrs.style, { '--j-fill': '1' });
     assert.deepEqual(vnode.children[1], toVnode(child));
   }
 });
@@ -295,4 +296,38 @@ test('analysis limits preserve ordinary execution and projection results', async
   };
   // Analysis must neither execute that projection early nor change its result.
   assert.deepEqual(outcome(() => projected(words)), outcome(() => runtime.slot(2n ** 53n, ordinary)));
+});
+
+test('a paragraph template follows its children: a p, the paragraph div, or a hole', async () => {
+  // A <p> holds only phrasing content; the server renders any other
+  // paragraph as a div, and a child of unknown kind decides at run time.
+  const link = sealed('link', '(cons ~ words)');
+  const { value: phrasing, plans: phrasingPlans } = await compiled(
+    `(lam words ${sealed('para', coreList(sealed('text', '"Read "'), link))})`);
+  assert.deepEqual(phrasingPlans.get(phrasing).tree, ['p', {}, ['Read ', -1]]);
+  const { value: block, plans: blockPlans } = await compiled(
+    `(lam words ${sealed('para', coreList(sealed('text', 'words'), sealed('heading', '(cons 2 "Title")')))})`);
+  assert.deepEqual(blockPlans.get(block).tree, ['div', { class: 'j-para' }, [0, ['h2', { tabIndex: '-1' }, ['Title']]]]);
+  const { value: unknown, plans: unknownPlans } = await compiled(
+    `(lam child ${layout('column', '~', sealed('para', coreList(sealed('text', '"a"'), 'child')))})`);
+  assert.deepEqual(unknownPlans.get(unknown).tree, ['div', { class: 'j-column' }, [-1]]);
+  // Each mounts the ordinary decoder's DOM, whatever the unknown child is.
+  for (const [view, model] of [
+    [await compiledForBrowser(`(lam words ${sealed('para', coreList(sealed('text', '"Read "'), link))})`), cord('more')],
+    [await compiledForBrowser(`(lam words ${sealed('para', coreList(sealed('text', 'words'), sealed('heading', '(cons 2 "Title")')))})`), cord('Intro')],
+    [await compiledForBrowser(`(lam child ${layout('column', '~', sealed('para', coreList(sealed('text', '"a"'), 'child')))})`),
+      rawSeal([cord('el'), [0n, rawSeal([cord('text'), cord('b')])]])],
+    [await compiledForBrowser(`(lam child ${layout('column', '~', sealed('para', coreList(sealed('text', '"a"'), 'child')))})`),
+      rawSeal([cord('text'), cord('b')])],
+  ]) {
+    const document = createFakeDocument();
+    const island = startIsland({
+      document, container: document.body, model,
+      program: { init: () => model, update: ([message]) => [message, 0n], view },
+      onCrash: error => { throw error; },
+    });
+    assert.ok(island.template);
+    const ordinary = createDom(toVnode(view(model)), { document: createFakeDocument() });
+    assert.equal(island.node.outerHTML, ordinary.outerHTML);
+  }
 });

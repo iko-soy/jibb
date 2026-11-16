@@ -54,18 +54,27 @@ test('toVnode decodes layouts, text, attributes, headings, and authenticates sea
   assert.equal(row.kind, 'element');
   assert.equal(row.tag, 'div');
   assert.deepEqual(row.children, [{ kind: 'text', text: 'hello' }]);
-  // The server's atomic classes, in its order; only fill is inline.
-  assert.equal(row.attrs.class, 'j-row j-pad-s2 j-gap-s3 j-align-center j-role-body j-tone-danger');
-  assert.deepEqual(row.attrs.style, { flex: '1 1 0%', minWidth: '0' });
+  // The server's atomic classes, in its order; fill's weight is inline.
+  assert.equal(row.attrs.class, 'j-row j-pad-s2 j-gap-s3 j-fill j-align-center j-role-body j-tone-danger');
+  assert.deepEqual(row.attrs.style, { '--j-fill': '1' });
   assert.equal(row.attrs['aria-live'], 'polite');
+  // The last attribute of a family replaces everything an earlier one of
+  // that family gave, in the family's first place.
   const later = toVnode(seal('row', [list(
     [cord('pad'), cord('s1')],
     [cord('width'), [cord('chars'), 12n]],
+    [cord('tone'), cord('danger')],
     [cord('pad'), cord('s3')],
     [cord('width'), cord('shrink')],
+    [cord('tone'), cord('muted')],
   ), 0n]));
-  assert.equal(later.attrs.class, 'j-row j-pad-s3 j-shrink');
-  assert.equal(later.attrs.style.flex, '0 0 12ch');
+  assert.equal(later.attrs.class, 'j-row j-pad-s3 j-shrink j-tone-muted');
+  assert.deepEqual(later.attrs, { class: 'j-row j-pad-s3 j-shrink j-tone-muted', style: {} });
+  const back = toVnode(seal('el', [list(
+    [cord('width'), cord('shrink')],
+    [cord('width'), [cord('chars'), 7n]],
+  ), textElement('x')]));
+  assert.deepEqual(back.attrs, { class: 'j-el j-chars', style: { '--j-chars': '7ch' } });
 
   assert.equal(toVnode(seal('column', [0n, 0n])).attrs.class, 'j-column');
   assert.equal(toVnode(seal('wrap', [0n, 0n])).attrs.class, 'j-wrap');
@@ -103,7 +112,9 @@ test('toVnode decodes keyed collections and table rows without dropping duplicat
   assert.equal(table.children[0].tag, 'thead');
   assert.equal(table.children[0].children[0].children[0].tag, 'th');
   assert.equal(table.children[0].children[0].children[0].children[0].text, 'Name');
-  assert.equal(table.children[0].children[0].children[0].attrs.style.textAlign, 'end');
+  assert.deepEqual(table.children[0].children[0].children[0].attrs, {
+    class: 'j-chars', scope: 'col', style: { '--j-chars': '12ch', 'text-align': 'end' },
+  });
   const rows = table.children[1].children;
   assert.equal(table.children[1].tag, 'tbody');
   assert.deepEqual(rows.map(row => row.key), [3n, 3n]);
@@ -121,11 +132,19 @@ test('CSS lengths use exact decimal atoms in layouts and table headings', () => 
         list([cord(label), [width, cord('start')]]), 0n,
       ]));
       const heading = table.children[0].children[0].children[0];
-      const expected = kind === 'chars' ? `0 0 ${digits}ch` : `${digits === '0' ? '1' : digits} 1 0%`;
-      for (const vnode of [layout, heading]) {
-        assert.equal(vnode.attrs.style.flex, expected, label);
-        assert.equal(vnode.attrs.style.minWidth, kind === 'fill' ? '0' : undefined, label);
-      }
+      const expected = kind === 'chars'
+        ? { '--j-chars': `${digits}ch` } : { '--j-fill': digits === '0' ? '1' : digits };
+      assert.equal(layout.attrs.class, `j-el j-${kind}`, label);
+      assert.deepEqual(layout.attrs.style, expected, label);
+      assert.equal(heading.attrs.class, `j-${kind}`, label);
+      assert.deepEqual(heading.attrs.style, { ...expected, 'text-align': 'start' }, label);
+      // The fill columns' total weight, for the stylesheet's shares.
+      assert.deepEqual(table.attrs.style, kind === 'chars'
+        ? { 'border-collapse': 'collapse', 'max-width': '100%' }
+        : {
+          'border-collapse': 'collapse', 'max-width': '100%', width: '100%',
+          '--j-fills': digits === '0' ? '1' : digits,
+        }, label);
     }
   }
 });
@@ -139,12 +158,13 @@ test('toVnode decodes media, links, and all control payloads', () => {
   const unsafeImage = toVnode(seal('image-unsafe', [
     [cord('https://example.com/a.png'), [20n, 10n]], cord('remote'),
   ]));
-  assert.equal(unsafeImage.attrs.width, '20');
-  assert.equal(unsafeImage.attrs.height, '10');
-  assert.equal(unsafeImage.attrs.style.aspectRatio, '20 / 10');
+  // As the server draws it: its size, and no style of its own.
+  assert.deepEqual(unsafeImage.attrs, {
+    src: 'https://example.com/a.png', alt: 'remote', width: '20', height: '10',
+  });
 
   assert.equal(toVnode(seal('link', [list(cord('blog')), cord('Blog')])).attrs.href, '/blog');
-  assert.equal(toVnode(seal('link-unsafe', [cord('/elsewhere'), cord('Away')])).attrs.href, '/elsewhere');
+  assert.deepEqual(toVnode(seal('link-unsafe', [cord('/elsewhere'), cord('Away')])).attrs, { href: '/elsewhere' });
 
   const message = [cord('message'), 42n];
   const buttonVnode = toVnode(seal('button', [cord('Push'), message]));

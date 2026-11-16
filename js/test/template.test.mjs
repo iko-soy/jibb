@@ -223,7 +223,8 @@ test('fixed layout attributes decode at mount and are not revisited by hole upda
   const root = island.node;
   assert.equal(root.localName, 'div');
   assert.equal(root.getAttribute('class'), 'j-column j-pad-s3 j-shrink j-tone-danger');
-  assert.equal(root.style.flex, '0 0 12ch');
+  // The later shrink replaced the chars width's inline number too.
+  assert.equal(root.style['--j-chars'], undefined);
   assert.equal(root.getAttribute('aria-live'), 'polite');
   const keptAttrs = island.vnode.attrs;
   island.vnode.attrs = new Proxy(keptAttrs, {
