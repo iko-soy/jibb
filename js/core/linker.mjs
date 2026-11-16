@@ -1,13 +1,18 @@
 import { compileCore } from './compiler.mjs';
 import { readCore } from './reader.mjs';
 
+// Paths and names are ASCII, so comparing code units orders them by code
+// point, as the Hoon linker's +tape-before orders their bytes, whatever the
+// locale.
+const byCodePoint = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
+
 export function linkCore(inputs, entry, { nativeNames = [] } = {}) {
   const allowedNatives = new Set(nativeNames);
   const modules = inputs.map((input) => {
     const module = typeof input === 'string' ? readCore(input) : input;
     if (module.type !== 'module') throw new Error('linker inputs must be Core modules');
     return module;
-  }).sort((left, right) => pathOf(left).localeCompare(pathOf(right)));
+  }).sort((left, right) => byCodePoint(pathOf(left), pathOf(right)));
 
   const definitions = new Map();
   const paths = new Set();
@@ -124,7 +129,7 @@ function selectEntry(entry) {
 function wholeValue(roots, definitions) {
   const values = roots
     .map((id) => definitions.get(id))
-    .sort((left, right) => left.id.localeCompare(right.id))
+    .sort((left, right) => byCodePoint(left.id, right.id))
     .map((definition) => ({ type: 'name', name: definition.id }));
   if (values.length === 0) throw new Error('cannot use an empty module as a value');
   return values.length === 1

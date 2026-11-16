@@ -15,6 +15,11 @@ export class StoreRegistry {
     this.stores = new Map();
     this.watches = new Map();
     this.nextWatch = 1n;
+    // States wait here for their watchers, in the order the pokes made
+    // them, so a watcher that pokes the store from its own update can't
+    // leave the others with an older state.
+    this.queue = [];
+    this.delivering = false;
   }
 
   register({ name, init, update }) {
@@ -32,11 +37,23 @@ export class StoreRegistry {
     this.nextWatch += 1n;
     const watch = { id, store, notify };
     this.watches.set(id, watch);
-    this.defer(() => {
-      if (this.watches.get(id) !== watch) return;
-      notify({ requestId: id, mark: name, noun: store.state });
-    });
+    this.defer(() => this.deliver([[watch, store.state]]));
     return id;
+  }
+
+  deliver(facts) {
+    this.queue.push(...facts);
+    if (this.delivering) return;
+    this.delivering = true;
+    try {
+      while (this.queue.length !== 0) {
+        const [watch, noun] = this.queue.shift();
+        if (this.watches.get(watch.id) !== watch) continue;
+        watch.notify({ requestId: watch.id, mark: watch.store.name, noun });
+      }
+    } finally {
+      this.delivering = false;
+    }
   }
 
   unwatch(id) {
@@ -55,11 +72,9 @@ export class StoreRegistry {
     }
 
     store.state = next;
-    const watches = [...this.watches.values()];
-    for (const watch of watches) {
-      if (watch.store !== store || this.watches.get(watch.id) !== watch) continue;
-      watch.notify({ requestId: watch.id, mark: name, noun: next });
-    }
+    this.deliver([...this.watches.values()]
+      .filter(watch => watch.store === store)
+      .map(watch => [watch, next]));
     return 0n;
   }
 }

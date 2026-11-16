@@ -22,6 +22,7 @@ export function compileCore(input, { nativeNames = [] } = {}) {
   };
   let body;
   if (ast.type === 'module') {
+    checkModuleOrder(ast.definitions);
     const names = new Scope(context, null);
     context.scopes.push(names);
     const declarations = ast.definitions.map((definition) => {
@@ -47,6 +48,30 @@ export function compileCore(input, { nativeNames = [] } = {}) {
   );
   const slots = context.hoisted.length === 0 ? '' : `let ${context.hoisted.join(', ')};\n`;
   return `// Generated from Jibb Core. Do not edit.\nexport function evaluate(runtime, natives) {\nconst {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;\nconst requireNative = (registry, name) => {\n  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {\n    throw new TypeError(\`missing native \${name}\`);\n  }\n};\n${nativeChecks.join('\n')}\n${slots}${body}\n}\n`;
+}
+
+// A module's definitions run in order, so a value can use only what is
+// defined before it, and only what that uses in turn, gates included: a
+// value that depends on itself, even through a gate, is an error (Core
+// language: Programs and linking). A gate may use any definition.
+function checkModuleOrder(definitions) {
+  const position = new Map(definitions.map((definition, index) => [definition.name, index]));
+  const uses = definitions.map(definition => [...freeNames(definition.expression, new Set(), new Set())]
+    .filter(name => position.has(name)));
+  definitions.forEach((definition, index) => {
+    if (definition.expression.type === 'lam') return;
+    const seen = new Set();
+    const pending = [...uses[index]];
+    while (pending.length !== 0) {
+      const name = pending.pop();
+      if (seen.has(name)) continue;
+      seen.add(name);
+      const used = position.get(name);
+      if (used === index) throw new Error(`Core value ${definition.name} depends on itself`);
+      if (used > index) throw new Error(`Core value ${definition.name} uses ${name} before its definition`);
+      pending.push(...uses[used]);
+    }
+  });
 }
 
 function containsTrace(node) {
@@ -209,12 +234,12 @@ function lambda(node, context, scope, variable, declaration, recursiveName = nul
   }
   const inner = new Scope(context, scope ?? null, depthOf(scope) + 1);
   const parameter = inner.define(node.parameter);
-  if (declaration && containsSelfTail(node.body, recursiveName)) {
+  if (declaration && node.parameter !== recursiveName && containsSelfTail(node.body, recursiveName)) {
     const state = inner.fresh();
     const current = inner.fresh();
     inner.names.set(node.parameter, current);
     inner.abstracts.set(node.parameter, boundValue(UNKNOWN, current));
-    const body = tailExpression(node.body, context, inner, { name: recursiveName, state });
+    const body = tailExpression(node.body, context, inner, { variable, state });
     return `function ${variable}(${parameter}) {\nlet ${state} = ${parameter};\nfor (;;) {\nconst ${current} = ${state};\n${body}\n}\n}`;
   }
   const body = expression(node.body, context, inner);
@@ -223,6 +248,9 @@ function lambda(node, context, scope, variable, declaration, recursiveName = nul
     : `((${parameter}) => ${body})`;
 }
 
+// A call of the function by its own name in tail position, where no
+// binder of that name hides it: a linked program qualifies a module's
+// names, which a local binder may then repeat.
 function containsSelfTail(node, name) {
   if (name === null) return false;
   switch (node.type) {
@@ -231,18 +259,20 @@ function containsSelfTail(node, name) {
     case 'if':
       return containsSelfTail(node.then, name) || containsSelfTail(node.else, name);
     case 'let':
-      return containsSelfTail(node.body, name);
+      return node.name !== name && containsSelfTail(node.body, name);
     case 'rec':
-      return containsSelfTail(node.body, name);
+      return node.bindings.every(binding => binding.name !== name) && containsSelfTail(node.body, name);
     default:
       return false;
   }
 }
 
+// self.variable is the function's own: a call is a self call only if its
+// name resolves to it.
 function tailExpression(node, context, scope, self) {
   switch (node.type) {
     case 'app':
-      if (node.fn.type === 'name' && node.fn.name === self.name) {
+      if (node.fn.type === 'name' && scope.lookup(node.fn.name) === self.variable) {
         return `${self.state} = ${expression(node.argument, context, scope)};\ncontinue;`;
       }
       break;

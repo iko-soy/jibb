@@ -118,7 +118,8 @@ test('date operations crash on malformed samples and Hoon year failures', () => 
     date(1n, 0n, 1n, 1n),
     date(1n, 292_277_024_402n, 1n, 1n),
     date(0n, 1n, 0n, 1n),
-    date(0n, 1n, 13n, 1n),
+    date(0n, 1n, 14n, 1n),
+    date(0n, 1n, 25n, 1n),
     date(0n, 1n, 1n, 0n),
     date(0n, 1n, 1n, 1n, 0n, 0n, 0n, list(1n, 2n, 3n, 4n, 5n)),
     date(0n, 1n, 1n, 1n, 0n, 0n, 0n, [1n, 1n]),
@@ -131,11 +132,24 @@ test('date operations crash on malformed samples and Hoon year failures', () => 
   }
 });
 
+test('date pack rolls month 13 into the next year, as Hoon\'s +yawn does', () => {
+  // (year [[%.y 2.026] 13 [1 0 0 0 ~]]) is ~2027.01.01 on the pinned ship
+  // (Hoon 135) and in urbit eval (137); so are a day past December's end
+  // and month 13 of a leap year.
+  assert.equal(rawDatePack(date(0n, 2_026n, 13n, 1n)), readLiteral('~2027.1.1').value);
+  assert.equal(rawDatePack(date(0n, 2_026n, 13n, 31n)), readLiteral('~2027.1.31').value);
+  assert.equal(rawDatePack(date(0n, 2_026n, 12n, 32n)), readLiteral('~2027.1.1').value);
+  assert.equal(rawDatePack(date(0n, 2_024n, 13n, 1n)), readLiteral('~2025.1.1').value);
+  assert.equal(rawDatePack(date(0n, 2_023n, 2n, 29n)), readLiteral('~2023.3.1').value);
+  assert.equal(rawDatePack(date(0n, 2_026n, 13n, 1n)), 170_141_184_508_333_462_842_319_380_145_609_113_600n);
+});
+
 test('parse-atom accepts every checked numeric, term, knot, and ship printer', () => {
   valid('ud', '0', 0n);
   valid('ud', '12.345.678', 12_345_678n);
   valid('ux', '0x0', 0n);
-  valid('ux', '0xdead.BEEF', 0xdead_beefn);
+  valid('ux', '0xdead.beef', 0xdead_beefn);
+  valid('ux', '0x1F', 31n);
   valid('uv', '0v0', 0n);
   valid('uv', '0vv', 31n);
   valid('uv', '0v5.fdf99', readLiteral('0v5.fdf99').value);
@@ -205,8 +219,12 @@ test('parse-atom decodes Hoon cord escapes to UTF-8 atoms', () => {
   valid('t', '~~~~', cord('~'));
   valid('t', '~~~.', cord('.'));
   valid('t', '~~a.b~~c~.d', cord('a b~c.d'));
-  valid('t', '~~a~0.b', bytesToAtom(new Uint8Array([97, 0, 98])));
+  // A ~0. escape is a NUL, which +rap drops; ~01. is the byte 1.
+  valid('t', '~~a~0.b', cord('ab'));
   valid('t', '~~a~01.b', bytesToAtom(new Uint8Array([97, 1, 98])));
+  // +tuft encodes surrogates and points past U+10FFFF too.
+  valid('t', '~~~d800.', bytesToAtom(new Uint8Array([0xed, 0xa0, 0x80])));
+  valid('t', '~~~110000.', bytesToAtom(new Uint8Array([0xf4, 0x90, 0x80, 0x80])));
 
   const original = cord('hello world.λ🙂~_-');
   valid('t', text(scot([cord('t'), original])), original);
@@ -223,6 +241,8 @@ test('parse-atom rejects bad aura text canonically without throwing', () => {
     ['ux', '0x0.0001'],
     ['ux', '0x0000.0001'],
     ['ux', '0xA'],
+    ['ux', '0xdead.BEEF'],
+    ['ux', '0xFF'],
     ['uv', '0v0000v'],
     ['uv', '0vw'],
     ['tas', ''],
@@ -248,8 +268,6 @@ test('parse-atom rejects bad aura text canonically without throwing', () => {
     ['t', 'hello'],
     ['t', '~~A'],
     ['t', '~~a~'],
-    ['t', '~~~110000.'],
-    ['t', '~~~d800.'],
   ]) {
     invalid(aura, source);
   }

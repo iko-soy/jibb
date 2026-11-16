@@ -61,9 +61,9 @@ export function createViewTemplate(view, value, options) {
   bind(plan.tree, vnode, node);
   return {
     view, vnode, node,
+    // Reads every hole and returns what patches the DOM with them, so a
+    // failed render leaves both the previous model and its view in place.
     update(model) {
-      // Validate every hole before changing any DOM, so a failed render
-      // leaves both the previous model and its complete view in place.
       const direct = plan.holesGate;
       const value = apply(direct ?? view, model);
       if (direct) {
@@ -71,7 +71,8 @@ export function createViewTemplate(view, value, options) {
           throw new TypeError('view template: invalid hole vector');
         }
       } else validateRawSeal(value);
-      holes.map(hole => read(hole.tree, value, direct)).forEach((decoded, index) => {
+      const values = holes.map(hole => read(hole.tree, value, direct));
+      return () => values.forEach((decoded, index) => {
         const hole = holes[index];
         if (hole.tree < 0) {
           hole.node = patchDom(hole.node.parentNode, hole.node, decoded, options);

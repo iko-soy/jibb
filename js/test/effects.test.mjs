@@ -5,21 +5,9 @@ import { startIsland } from '../browser/island.mjs';
 import { dateFromMilliseconds, Effects } from '../browser/effects.mjs';
 import { rawSeal } from '../natives/legacy.mjs';
 import { arrayToList, cord } from '../natives/helpers.mjs';
+import { MockChannel } from './runtime-page.mjs';
 
 const textElement = (value) => rawSeal([cord('text'), cord(String(value))]);
-
-class MockChannel {
-  constructor() {
-    this.subscriptions = [];
-    this.unsubscriptions = [];
-    this.pokes = [];
-    this.acks = [];
-  }
-  subscribe(...args) { this.subscriptions.push(args); }
-  unsubscribe(...args) { this.unsubscriptions.push(args); }
-  poke(...args) { this.pokes.push(args); }
-  ack(id) { this.acks.push(id); }
-}
 
 function agentRequest(receive) {
   return [
@@ -73,20 +61,30 @@ test('watch removal unsubscribes and kicks reseed from first state', () => {
   };
   const watch = [cord('watch'), agentRequest(receive)];
   let enabled = true;
+  const timers = [];
   const { channel, island } = setup({
     subs: () => enabled ? arrayToList([watch]) : 0n,
+    setTimer: (fn, ms) => timers.push([fn, ms]),
   });
   const id = channel.subscriptions[0][0];
   channel.onFact(id, cord('state'), 40n, 1n);
   channel.onFact(id, cord('state'), 2n, 2n);
   assert.equal(island.model, 42n);
   channel.onKick(id, [cord('ok'), 0n]);
-  assert.equal(channel.subscriptions.at(-1)[0], id);
-  channel.onFact(id, cord('state'), 5n, 3n);
+  // The watch starts again a second later, under a fresh request id, and
+  // its receiver starts again from ~.
+  assert.equal(channel.subscriptions.length, 1);
+  assert.deepEqual(timers.map(([, ms]) => ms), [1000]);
+  timers.shift()[0]();
+  const again = channel.subscriptions.at(-1)[0];
+  assert.notEqual(again, id);
+  channel.onFact(id, cord('state'), 7n, 3n);
+  assert.equal(island.model, 42n, 'the kicked subscription has no more facts');
+  channel.onFact(again, cord('state'), 5n, 4n);
   assert.equal(island.model, 5n);
   enabled = false;
   island.send(9n);
-  assert.deepEqual(channel.unsubscriptions.map(request => request[1]), [id]);
+  assert.deepEqual(channel.unsubscriptions.map(request => request[1]), [again]);
 });
 
 test('intervals, one-shot waits, now, who, and go use their transports', () => {
@@ -163,18 +161,30 @@ test('stop unsubscribes watches and clears intervals', () => {
   assert.throws(() => effects.command([cord('who'), (ship) => ship]), /unsupported|stopped/);
 });
 
-test('watch refusal reports its tang and removes the failed watch', () => {
+test('watch refusal reports its tang and is not tried again while declared', () => {
   const receive = ([mark, [state, fact]]) => [state, fact];
   const watch = [cord('watch'), agentRequest(receive)];
+  let enabled = true;
   const errors = [];
-  const { channel, island, effects } = setup({ subs: () => arrayToList([watch]) });
+  const { channel, island, effects } = setup({ subs: () => enabled ? arrayToList([watch]) : 0n });
   island.onCrash = (error, failed) => errors.push([error, failed]);
   const id = channel.subscriptions[0][0];
   const tang = arrayToList([[cord('leaf'), arrayToList([...'refused'].map(character => BigInt(character.charCodeAt(0))))]]);
   channel.onWatchAck(id, [cord('err'), tang]);
-  assert.equal(effects.watches.size, 0);
   assert.equal(errors.length, 1);
   assert.deepEqual(errors[0][0], cord('refused'));
+  assert.equal([...effects.watches.values()][0].refused, true);
+  // Typing in a field, say: every update declares the watch again.
+  for (let keystroke = 1n; keystroke <= 5n; keystroke += 1n) island.send(keystroke);
+  assert.equal(channel.subscriptions.length, 1);
+  // Stopping a refused watch sends nothing; declaring it anew tries again.
+  enabled = false;
+  island.send(6n);
+  assert.equal(effects.watches.size, 0);
+  assert.deepEqual(channel.unsubscriptions, []);
+  enabled = true;
+  island.send(7n);
+  assert.equal(channel.subscriptions.length, 2);
 });
 
 test('dates use the Urbit epoch and binary fractional seconds', () => {

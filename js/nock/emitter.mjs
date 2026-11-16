@@ -1,8 +1,10 @@
 import { readLiteral } from '../core/literal.mjs';
+import { atomToBytes } from '../core/runtime.mjs';
 
 // runNock uses this non-enumerable metadata to add the explicit native-gate
 // environment expected by formulas emitted below. The formula itself remains
-// an ordinary two-element Nock noun.
+// an ordinary two-element Nock noun, but for a trace of a computed message,
+// whose clue calls the JavaScript printer gate below.
 export const NOCK_NATIVES = Symbol('jibb.nock.natives');
 
 const ZERO = 0n;
@@ -24,6 +26,15 @@ function slot(axis) {
 
 function literal(value) {
   return [ONE, value];
+}
+
+// %slog takes a priority and a tank, so a trace's clue makes
+// [0 leaf+(trip m)] of its message m, as jibb-nock.hoon's printer gate does.
+function leaf(message) {
+  let tape = ZERO;
+  const bytes = atomToBytes(message);
+  for (let index = bytes.length - 1; index >= 0; index -= 1) tape = [BigInt(bytes[index]), tape];
+  return [ZERO, [LEAF, tape]];
 }
 
 // Put a subject formerly at axis 1 at parentAxis, preserving all of its axes.
@@ -259,8 +270,11 @@ function expression(node, env) {
     case 'crash':
       return slot(ZERO);
     case 'trace': {
-      // %slog's dynamic clue evaluates to [0 [%leaf message]].
-      const clue = cell(literal(ZERO), cell(literal(LEAF), expression(node.message, env)));
+      // A literal message's clue is a constant; a computed one calls the
+      // printer, an adapter the interpreter applies as it does a native.
+      const clue = node.message.type === 'literal'
+        ? literal(leaf(readLiteral(node.message.text).value))
+        : [9n, [2n, [10n, [[6n, expression(node.message, env)], literal(leaf)]]]];
       return [11n, [[SLOG, clue], expression(node.body, env)]];
     }
     default:

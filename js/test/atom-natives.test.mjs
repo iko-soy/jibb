@@ -213,7 +213,7 @@ test('decimal, hexadecimal, and base32 printers group arbitrary-precision digits
 
   for (const [literal, formatter] of [
     ['12.345.678', formatUd],
-    ['0xdead.BEEF', formatUx],
+    ['0xdead.beef', formatUx],
     ['0v5.fdf99', formatUv],
   ]) {
     const printed = rendered(formatter, readLiteral(literal).value);
@@ -236,7 +236,13 @@ test('textual aura printers retain Hoon scot escaping and prefixes', () => {
   assert.equal(rendered(formatT, cord('~')), '~~~~');
   assert.equal(rendered(formatT, cord('λ')), '~~~3bb.');
   assert.equal(rendered(formatT, 0n), '~~');
-  throwsCore(() => formatT(byteCord([0xff])), /UTF-8/);
+  // As Hoon's +wood reads a cord: a line feed and a surrogate escape, and
+  // bad UTF-8 or another control character crashes, as on the ship.
+  assert.equal(rendered(formatT, byteCord([97, 10, 98])), '~~a~a.b');
+  assert.equal(rendered(formatT, byteCord([0xed, 0xa0, 0x80])), '~~~d800.');
+  for (const bytes of [[0xff], [97, 0, 98], [97, 9, 98], [0xc0, 0xaf], [0x61, 0xc3], [13]]) {
+    throwsCore(() => formatT(byteCord(bytes)), /taft/);
+  }
   throwsCore(() => formatTa(-1n));
   throwsCore(() => formatTas(1));
 });
@@ -271,14 +277,18 @@ test('ship printer matches phonetic vectors and round-trips every address width'
   throwsCore(() => formatP('0'));
 });
 
+// As the pinned ship's Hoon (%135) prints dates: month, day and the time's
+// parts in two digits, then the significant sub-second groups.
 test('date printer implements Hoon 135 epochs, padding, and fractional groups', () => {
   const cases = new Map([
     ['~292277024401-.1.1', '~292277024401-.01.01'],
     ['~1-.1.1', '~1-.01.01'],
     ['~2026.1.1', '~2026.01.01'],
     ['~2026.2.31', '~2026.03.03'],
-    ['~2026.1.1..14.30.00..beef', '~2026.01.01..14.30.00..0000.0000.0000.beef'],
+    ['~2026.1.1..14.30.00..beef', '~2026.01.01..14.30.00..beef'],
+    ['~2026.1.1..00.00.00..8000', '~2026.01.01..00.00.00..8000'],
     ['~2026.1.1..0.0.0..0001.0002.0003.0004', '~2026.01.01..00.00.00..0001.0002.0003.0004'],
+    ['~2000.2.29..23.59.59', '~2000.02.29..23.59.59'],
     ['~999999999999999999999.1.1', '~999999999999999999999.01.01'],
   ]);
   for (const [literal, expected] of cases) {
@@ -287,6 +297,7 @@ test('date printer implements Hoon 135 epochs, padding, and fractional groups', 
     assert.equal(printed, expected);
     assert.equal(readLiteral(printed).value, value);
   }
+  assert.equal(rendered(formatDa, 1n << 64n), '~292277024401-.01.01..00.00.01');
   assert.equal(rendered(formatDa, 1n), '~292277024401-.01.01..00.00.00..0000.0000.0000.0001');
   assert.equal(rendered(formatDa, 0x1_0000n), '~292277024401-.01.01..00.00.00..0000.0000.0001');
   assert.equal(rendered(formatDa, 0x1_0000_0000_0000n), '~292277024401-.01.01..00.00.00..0001');
@@ -299,7 +310,8 @@ test('duration printer omits zero components but preserves significant fractions
     ['~s30', '~s30'],
     ['~h1.m30', '~h1.m30'],
     ['~m0.s0', '~s0'],
-    ['~d1000.h5.m30.s12..beef', '~d1000.h5.m30.s12..0000.0000.0000.beef'],
+    ['~d1000.h5.m30.s12..beef', '~d1000.h5.m30.s12..beef'],
+    ['~s0..8000', '~s0..8000'],
     ['~s1..0001.0002.0003.0004', '~s1..0001.0002.0003.0004'],
     ['~d999999999999999999999', '~d999999999999999999999'],
   ]);
@@ -326,6 +338,10 @@ test('scot dispatches all supported auras and scow returns a byte tape', () => {
     ['p', 0n, '~zod'],
     ['da', 0n, '~292277024401-.01.01'],
     ['dr', 0n, '~s0'],
+    // Hoon's +rend reads only an aura's first letters, and prints any aura
+    // it has no form for in hexadecimal.
+    ['nope', 0n, '~'],
+    ['', 0n, '0x0'],
   ];
   for (const [aura, value, expected] of expectations) {
     const sample = [cord(aura), value];
@@ -335,7 +351,6 @@ test('scot dispatches all supported auras and scow returns a byte tape', () => {
       [...atomToBytes(cord(expected))].map(BigInt),
     );
   }
-  throwsCore(() => scot([cord('nope'), 0n]), /unsupported aura/);
-  throwsCore(() => scot([0n, 0n]), /unsupported aura/);
   throwsCore(() => scot(cord('ud')), /cell/);
+  throwsCore(() => scot([cord('ud'), -1n]), /atom/);
 });

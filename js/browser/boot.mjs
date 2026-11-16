@@ -54,31 +54,33 @@ function showNotice(document, container) {
   container.insertBefore(notice, container.firstChild);
 }
 
-// The event stream reopens when it ends, with its last event id; a channel
-// Eyre no longer has took its watches with it, so the islands stop.
+// The event stream reopens when it ends, with its last event id, after a
+// delay that doubles while it can't be opened and starts over once it has
+// been; a channel Eyre no longer has took its watches with it, so the
+// islands stop (Decisions: Crash notice). A closing ends the loop.
 async function keepConnected(channel, onLost, wait) {
+  const generation = channel.generation;
+  const live = () => channel.generation === generation;
   let delay = 1000;
-  for (;;) {
+  while (live()) {
+    const opened = channel.opened;
     try {
       await channel.connect();
-      delay = 1000;
     } catch (error) {
-      if (channel.closed) return;
-      if (error.status === 404) {
-        onLost(error);
-        return;
-      }
-      await wait(delay);
-      delay = Math.min(delay * 2, 30_000);
+      if (live() && error.status === 404) return onLost(error);
     }
-    if (channel.closed) return;
+    if (!live()) return;
+    if (channel.opened !== opened) delay = 1000;
+    await wait(delay);
+    delay = Math.min(delay * 2, 30_000);
   }
 }
 
 /**
  * Start every island on the page: one store registry and one channel for
  * the page, each island from the model the server rendered its first view
- * with. Resolves to the started islands.
+ * with. Resolves to the started islands. One island's failure, or a store's,
+ * leaves the others running.
  */
 export async function boot({
   document = globalThis.document,
@@ -101,29 +103,40 @@ export async function boot({
   };
   const paths = { base: config.base, assets: config.assets };
 
-  // One store per page, shared by its islands (Decisions: Shared state).
+  // One store per page, shared by its islands (Decisions: Shared state). A
+  // store that can't load is left out, so only the islands using it crash.
   const stores = new StoreRegistry();
-  for (const [module, hash] of Object.entries(config.stores)) {
-    const [init, update] = cell(await evaluate(hash), 'store');
-    stores.register({ name: cord(module), init, update });
-  }
+  await Promise.all(Object.entries(config.stores).map(([module, hash]) => evaluate(hash).then(
+    (main) => {
+      const [init, update] = cell(main, 'store');
+      stores.register({ name: cord(module), init, update });
+    },
+    () => {},
+  )));
 
   const started = [];
-  let streaming = false;
+  // The channel whose event stream is kept open, by generation.
+  let streaming;
   const channel = new Channel(uid, {
     fetchImpl,
     onSent: () => {
-      if (streaming) return;
-      streaming = true;
+      if (streaming === channel.generation) return;
+      streaming = channel.generation;
       keepConnected(channel, () => {
-        for (const { island, container } of started) {
+        channel.close();
+        for (const { island, container, effects } of started) {
+          effects.stop();
           island.stop();
           showNotice(document, container);
         }
       }, wait);
     },
   });
-  installPagehide(channel, window);
+  // A page shown again from the back/forward cache has a fresh channel, on
+  // which each island watches again what it watched.
+  installPagehide(channel, window, () => {
+    for (const { effects } of started) effects.resume();
+  });
   const owner = readShip(config.ship).value;
 
   // A page under a catch-all route is an app: its links and go commands
@@ -163,41 +176,42 @@ export async function boot({
   )));
   containers.forEach((container, index) => {
     const loaded = mains[index];
-    if (loaded.error !== undefined) {
-      showNotice(document, container);
-      return;
-    }
     const state = container.querySelector('script[type="application/x-jibb-state"]');
-    if (state === null) {
+    if (loaded.error !== undefined || state === null) {
       showNotice(document, container);
       return;
     }
-    const island = new Island({
-      program: programOf(loaded.main),
-      packedModel: decodeUw(state.textContent.trim()),
-      checkedInit: true,
-      container,
-      s: container.firstChild,
-      document,
-      paths,
-      // An island that crashes keeps its model and shows the notice
-      // (Decisions: Crashes).
-      onCrash: () => showNotice(document, container),
-    });
-    island.start();
-    if (!island.active) return;
-    state.remove();
-    new Effects({
-      island,
-      channel,
-      owner,
-      stores,
-      window,
-      document,
-      urlRuntime,
-      navigate,
-    });
-    started.push({ island, container });
+    try {
+      const island = new Island({
+        program: programOf(loaded.main),
+        packedModel: decodeUw(state.textContent.trim()),
+        checkedInit: true,
+        container,
+        // The server's view, all of it: the HTML parser may have split it.
+        s: [...container.childNodes].filter(node => node !== state),
+        document,
+        paths,
+        // An island that crashes keeps its model and shows the notice
+        // (Decisions: Crashes).
+        onCrash: () => showNotice(document, container),
+      });
+      island.start();
+      if (!island.active) return;
+      state.remove();
+      const effects = new Effects({
+        island,
+        channel,
+        owner,
+        stores,
+        window,
+        document,
+        urlRuntime,
+        navigate,
+      });
+      started.push({ island, container, effects });
+    } catch {
+      showNotice(document, container);
+    }
   });
   return started.map(({ island }) => island);
 }

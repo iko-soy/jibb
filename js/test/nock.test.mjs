@@ -87,13 +87,20 @@ test('Nock 11 evaluates dynamic clues, ignores other hints, and logs %slog leave
 
   const slog = readLiteral('%slog').value;
   const leaf = readLiteral('%leaf').value;
-  const clue = [[1n, 0n], [[1n, leaf], [1n, cord('hint')]]];
+  // As Hoon's ~& makes it: a priority and a leaf tank of a tape.
+  const tape = text => [...new TextEncoder().encode(text)].reduceRight((rest, byte) => [BigInt(byte), rest], 0n);
+  const clue = [[1n, 0n], [[1n, leaf], [1n, tape('hint λ')]]];
   const lines = [];
-  assert.equal(
-    runNock(0n, [11n, [[slog, clue], [1n, 42n]]], {}, { logger: line => lines.push(line) }),
-    42n,
-  );
-  assert.deepEqual(lines, ['hint']);
+  const logger = line => lines.push(line);
+  assert.equal(runNock(0n, [11n, [[slog, clue], [1n, 42n]]], {}, { logger }), 42n);
+  assert.deepEqual(lines, ['hint λ']);
+  // A hint never changes the result: a clue %slog can't print prints nothing.
+  lines.length = 0;
+  for (const product of [42n, [1n, 42n], [0n, [leaf, cord('a cord')]], [0n, [leaf, [256n, 0n]]],
+    [0n, [leaf, [97n, 5n]]], [0n, [cord('palm'), 0n]], [[1n, 2n], [leaf, 0n]]]) {
+    assert.equal(runNock(0n, [11n, [[slog, [1n, product]], [1n, 7n]]], {}, { logger }), 7n);
+  }
+  assert.deepEqual(lines, ['']);
 });
 
 test('emitter preserves the specified noun-operation formulas', () => {
@@ -244,6 +251,16 @@ test('Core crash and invalid runtime operations remain CoreCrash failures', () =
 test('Core traces emit ordered %slog leaf hints before their bodies', () => {
   const lines = [];
   const logger = line => lines.push(line);
+  // The clue makes [0 leaf+(trip m)], as core-language.md and jibb-nock.hoon
+  // have it, for a literal message and a computed one alike.
+  const leaf = readLiteral('%leaf').value;
+  const hint = compile('(trace "hi" 42)')[1][0];
+  assert.deepEqual(runNock(0n, hint[1]), [0n, [leaf, [104n, [105n, 0n]]]]);
+  const computed = compile('(trace (slot 2 (cons "hé" 0)) 42)')[1][0];
+  assert.deepEqual(runNock(0n, computed[1]), [0n, [leaf, [104n, [0xc3n, [0xa9n, 0n]]]]]);
+  assert.equal(runNock(0n, compile('(trace (slot 2 (cons "hé" 0)) 42)'), {}, { logger }), 42n);
+  assert.deepEqual(lines, ['hé']);
+  lines.length = 0;
   assert.equal(evaluate('(trace "outer" (trace "inner" 42))', { logger }), 42n);
   assert.deepEqual(lines, ['outer', 'inner']);
   lines.length = 0;

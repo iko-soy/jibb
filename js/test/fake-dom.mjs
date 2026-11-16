@@ -41,6 +41,15 @@ class FakeStyle {
   }
 }
 
+// As in a browser, a focused element that leaves the document, even to be
+// inserted again elsewhere, loses focus, and with it the caret.
+function blurWithin(node) {
+  const document = node.ownerDocument;
+  if (document?.activeElement && node.contains(document.activeElement)) {
+    document.activeElement = document.body;
+  }
+}
+
 class FakeNode {
   constructor(document, nodeType, nodeName) {
     this.ownerDocument = document;
@@ -78,7 +87,10 @@ class FakeNode {
       this.nodeValue = String(value);
       return;
     }
-    for (const child of this.childNodes) child.parentNode = null;
+    for (const child of this.childNodes) {
+      blurWithin(child);
+      child.parentNode = null;
+    }
     this.childNodes = [];
     if (value !== '') this.appendChild(this.ownerDocument.createTextNode(String(value)));
   }
@@ -108,6 +120,7 @@ class FakeNode {
   removeChild(node) {
     const index = this.childNodes.indexOf(node);
     if (index < 0) throw new Error('removeChild target is not a child');
+    blurWithin(node);
     this.childNodes.splice(index, 1);
     node.parentNode = null;
     return node;
@@ -126,6 +139,7 @@ class FakeNode {
     if (index < 0) throw new Error('replaceChild target is not a child');
     if (replacement === node) return node;
     if (replacement.parentNode) replacement.parentNode.removeChild(replacement);
+    blurWithin(node);
     this.childNodes[index] = replacement;
     replacement.parentNode = this;
     node.parentNode = null;

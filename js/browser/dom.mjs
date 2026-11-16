@@ -280,16 +280,55 @@ function patchChildren(parent, children, context) {
     return node;
   });
 
-  current.forEach((node, index) => {
-    const atIndex = parent.childNodes[index] ?? null;
-    if (atIndex !== node) parent.insertBefore(node, atIndex);
-  });
+  // Moving a node takes focus and the caret from a field in it, so the
+  // nodes that keep their order, the longest run of them, stay put: deleting
+  // a row moves none of the others. A field that loses focus anyway gets it
+  // back.
+  const active = context.document.activeElement;
+  const focused = active && active !== parent && parent.contains(active)
+    && [active.selectionStart, active.selectionEnd, active.selectionDirection];
   for (const node of oldNodes) {
     if (!used.has(node)) parent.removeChild(node);
   }
+  const at = new Map(oldNodes.map((node, index) => [node, index]));
+  const stay = keptInOrder(current.map(node => at.get(node) ?? -1));
+  for (let index = current.length - 1, next = null; index >= 0; index -= 1) {
+    const node = current[index];
+    if (!stay.has(index)) parent.insertBefore(node, next);
+    next = node;
+  }
+  if (focused && context.document.activeElement !== active && parent.contains(active)) {
+    active.focus?.({ preventScroll: true });
+    try { active.setSelectionRange(...focused); } catch { /* Not a text control. */ }
+  }
 }
 
-export function hydrateDom(node, vnode, options = {}) {
+// The indices of a longest increasing run of old positions (-1 for a new
+// node, which is never kept).
+function keptInOrder(positions) {
+  const ends = [];
+  const before = [];
+  positions.forEach((position, index) => {
+    if (position < 0) return;
+    let low = 0;
+    let high = ends.length;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (positions[ends[middle]] < position) low = middle + 1;
+      else high = middle;
+    }
+    before[index] = low > 0 ? ends[low - 1] : -1;
+    ends[low] = index;
+  });
+  const kept = new Set();
+  for (let index = ends.at(-1) ?? -1; index >= 0; index = before[index]) kept.add(index);
+  return kept;
+}
+
+// nodes are the server's for one view: a lone node it can adopt, or the
+// pieces the HTML parser made of it, which a fresh view replaces.
+export function hydrateDom(nodes, vnode, options = {}) {
+  const [node] = nodes;
   const context = contextFor(node, null, options);
   const fresh = createDom(vnode, context);
   const adopt = (current, vnode, fresh) => {
@@ -311,10 +350,13 @@ export function hydrateDom(node, vnode, options = {}) {
     }
   };
   try {
-    adopt(node, vnode, fresh);
-    if (node.outerHTML == fresh.outerHTML && node.nodeValue == fresh.nodeValue) return node;
+    if (!nodes[1]) {
+      adopt(node, vnode, fresh);
+      if (node.outerHTML == fresh.outerHTML && node.nodeValue == fresh.nodeValue) return node;
+    }
   } catch {}
-  node.replaceWith(fresh);
+  node.parentNode.insertBefore(fresh, node);
+  for (const old of nodes) old.remove();
   return fresh;
 }
 

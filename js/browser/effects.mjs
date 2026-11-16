@@ -1,8 +1,12 @@
 import { apply, atomToText, bytesToAtom } from '../core/runtime.mjs';
-import { cell, cord, listToArray, pair, text } from '../natives/helpers.mjs';
+import { atom, cell, cord, listToArray, pair, text } from '../natives/helpers.mjs';
+import { safeUrl } from './safe-url.mjs';
 import { UrlRuntime } from './url.mjs';
 
 const UNIX_EPOCH_SECONDS = 62_167_219_200n;
+// A browser timer fires at once for a delay of 2^31 ms or more, so a longer
+// one is a chain of shorter ones.
+const LONGEST_TIMER = 2 ** 31 - 1;
 
 export function dateFromMilliseconds(milliseconds) {
   if (!Number.isSafeInteger(milliseconds) || milliseconds < 0) {
@@ -50,6 +54,36 @@ function renderError(error) {
   }
 }
 
+// The text a failed request gives its reply: its HTTP status, if it got one.
+const failure = error => cord(error?.message || 'request failed');
+
+// What an island's subs declares, one entry per subscription. Watches
+// match by agent and path, timers by gap; an entry's reply is the newest.
+function declared(declaration) {
+  const [kind, payload] = tag(declaration, 'subscription');
+  if (kind === 'every') {
+    const [gap, reply] = pair(payload, 'every subscription');
+    return { kind, key: `every:${atom(gap, 'every gap')}`, gap, reply };
+  }
+  if (kind === 'url') return { kind, key: kind, reply: payload };
+  if (kind !== 'watch') throw new Error(`unsupported subscription %${kind}`);
+  const [requestKind, request] = tag(payload, 'watch request');
+  if (requestKind === 'pure') return { kind: requestKind, message: request };
+  if (requestKind === 'store') {
+    const [module, rest] = pair(request, 'store request');
+    const [name, receive] = pair(rest, 'store request');
+    return { kind: requestKind, key: `store:${text(module)}:${text(name)}`, module, receive };
+  }
+  if (requestKind !== 'agent') throw new Error(`unsupported watch request %${requestKind}`);
+  const [, rest] = pair(request, 'agent request');
+  const [, agentRest] = pair(rest, 'agent request');
+  const [agent, pathRest] = pair(agentRest, 'agent request');
+  const [path, scryRest] = pair(pathRest, 'agent request');
+  const [, receive] = pair(scryRest, 'agent request');
+  const key = `${text(agent)}:${listToArray(path, 'watch path').map(text).join('/')}`;
+  return { kind: requestKind, key, agent, path, receive };
+}
+
 export class Effects {
   constructor({
     island,
@@ -69,128 +103,191 @@ export class Effects {
     defer = callback => queueMicrotask(callback),
   }) {
     if (!island || !channel) throw new TypeError('effects need an island and channel');
-    this.island = island;
-    this.channel = channel;
-    this.owner = owner;
-    this.now = now;
-    this.setTimer = setTimer;
-    this.clearTimer = clearTimer;
-    this.setInterval = setInterval;
-    this.clearInterval = clearInterval;
-    this.navigate = navigate;
-    this.stores = stores;
-    this.urlRuntime = urlRuntime;
-    this.window = window;
-    this.document = document;
-    this.defer = defer;
-    this.urlWatches = new Set();
-    this.nextRequest = 1n;
+    Object.assign(this, {
+      island, channel, owner, now, setTimer, clearTimer, setInterval, clearInterval,
+      navigate, stores, urlRuntime, window, document, defer,
+    });
     this.watches = new Map();
-    this.intervals = new Map();
+    this.timers = new Map();
+    this.url = undefined;
     this.pokes = new Map();
     this.active = true;
-    this.channel.onPokeAck = (requestId, sign) => this.pokeAck({ requestId, error: signError(sign) });
-    this.channel.onWatchAck = (requestId, sign) => this.watchAck({ requestId, error: signError(sign) });
-    this.channel.onFact = (requestId, mark, noun, eventId) => this.fact({ requestId, eventId, mark, noun, kind: 'agent' });
-    this.channel.onKick = (requestId) => this.kick({ requestId });
-    this.island.dispatchCommand = (command) => this.command(command);
-    this.island.onUpdate = () => this.sync();
-    this.sync();
+    island.dispatchCommand = command => this.command(command);
+    island.plan = model => this.plan(model);
+    island.onUpdate = (_, plan) => plan && this.sync(plan);
+    // A crash in the first subs is the island's, which goes on without them.
+    if (island.active) {
+      try {
+        this.sync(this.plan(island.model));
+      } catch (error) {
+        island.fail(error);
+      }
+    }
   }
 
-  id() {
-    const id = this.nextRequest;
-    this.nextRequest += 1n;
-    return id;
-  }
-
-  sync() {
-    if (!this.active) return;
-    const declarations = typeof this.island.program.subs === 'function'
-      ? listToArray(apply(this.island.program.subs, this.island.model), 'island subscriptions')
+  plan(model) {
+    const { subs } = this.island.program;
+    return typeof subs === 'function'
+      ? listToArray(apply(subs, model), 'island subscriptions').map(declared)
       : [];
+  }
+
+  // Start what the plan declares that isn't running, stop what it doesn't.
+  sync(plan) {
+    if (!this.active) return;
     const wanted = new Set();
-    for (const declaration of declarations) {
-      const [kind, payload] = tag(declaration, 'subscription');
-      if (kind === 'watch') {
-        const [requestKind, request] = tag(payload, 'watch request');
-        if (requestKind === 'pure') {
-          this.island.send(request);
-          continue;
-        }
-        if (requestKind === 'store') {
-          if (!this.stores) throw new Error('store watches require a store registry');
-          const [module, rest] = pair(request, 'store request');
-          const [name, receive] = pair(rest, 'store request');
-          const key = `store:${text(module)}:${text(name)}`;
-          wanted.add(key);
-          if (!this.watches.has(key)) {
-            const id = this.stores.watch(module, (event) => this.fact({ ...event, eventId: undefined, kind: 'store' }));
-            this.watches.set(key, { id, key, kind: 'store', receive, state: 0n });
-          }
-          continue;
-        }
-        if (requestKind !== 'agent') throw new Error(`unsupported watch request %${requestKind}`);
-        const [api, rest] = pair(request, 'agent request');
-        const [caseName, agentRest] = pair(rest, 'agent request');
-        const [agent, pathRest] = pair(agentRest, 'agent request');
-        const [path, scryRest] = pair(pathRest, 'agent request');
-        const [_scry, receive] = pair(scryRest, 'agent request');
-        const key = `${text(agent)}:${listToArray(path, 'watch path').map(text).join('/')}`;
-        wanted.add(key);
-        if (!this.watches.has(key)) {
-          const id = this.id();
-          this.watches.set(key, {
-            id, key, kind: 'agent', api, caseName, agent, path, receive,
-            state: 0n,
-            first: true,
-          });
-          this.channel.subscribe(id, this.owner, agent, path);
-        }
-      } else if (kind === 'every') {
-        const [gap, reply] = pair(payload, 'every subscription');
-        const key = gap.toString();
-        wanted.add(key);
-        if (!this.intervals.has(key)) {
-          const handle = this.setInterval(() => {
-            if (this.active) this.island.send(apply(reply, this.now()));
-          }, durationMilliseconds(gap));
-          this.intervals.set(key, handle);
-        }
-      } else if (kind === 'url') {
-        wanted.add('url');
-        if (this.urlWatches.size === 0) {
-          if (!this.urlRuntime) {
-            this.urlRuntime = new UrlRuntime({
-              window: this.window,
-              document: this.document,
-              defer: this.defer,
-            });
-          }
-          const id = this.urlRuntime.watch((path) => this.island.send(apply(payload, path)));
-          this.urlWatches.add(id);
-        }
+    for (const entry of plan) {
+      if (entry.kind === 'pure') {
+        this.island.send(entry.message);
+        continue;
+      }
+      wanted.add(entry.key);
+      const running = entry.kind === 'every' ? this.timers.get(entry.key)
+        : entry.kind === 'url' ? this.url : this.watches.get(entry.key);
+      if (running) {
+        running.reply = entry.reply;
+        running.receive = entry.receive;
+      } else if (entry.kind === 'every') {
+        this.timers.set(entry.key, this.every(entry));
+      } else if (entry.kind === 'url') {
+        this.watchUrl(entry);
       } else {
-        throw new Error(`unsupported subscription %${kind}`);
+        this.watches.set(entry.key, entry);
+        entry.state = 0n;
+        if (entry.kind === 'store') {
+          if (!this.stores) throw new Error('store watches require a store registry');
+          entry.id = this.stores.watch(entry.module, event => this.receive(entry, [entry.state, event.noun]));
+        } else {
+          this.subscribe(entry);
+        }
       }
     }
     for (const [key, watch] of this.watches) {
       if (!wanted.has(key)) {
-        if (watch.kind === 'store') this.stores.unwatch(watch.id);
-        else this.channel.unsubscribe(this.id(), watch.id);
+        this.unwatch(watch);
         this.watches.delete(key);
       }
     }
-    for (const [key, handle] of this.intervals) {
+    for (const [key, timer] of this.timers) {
       if (!wanted.has(key)) {
-        this.clearInterval(handle);
-        this.intervals.delete(key);
+        timer.stop();
+        this.timers.delete(key);
       }
     }
-    if (!wanted.has('url')) {
-      for (const id of this.urlWatches) this.urlRuntime.unwatch(id);
-      this.urlWatches.clear();
+    if (this.url && !wanted.has('url')) {
+      this.urlRuntime.unwatch(this.url.id);
+      this.url = undefined;
     }
+  }
+
+  // A reply's message for the island, or the island's crash if the reply
+  // crashes, as a crashed update would.
+  deliver(reply, sample) {
+    if (!this.active || !this.island.active) return;
+    let message;
+    try {
+      message = apply(reply, sample);
+    } catch (error) {
+      this.island.fail(error);
+      return;
+    }
+    this.island.send(message);
+  }
+
+  // Run callback after ms, through as many timers as that takes.
+  after(ms, callback) {
+    if (ms <= LONGEST_TIMER) {
+      this.setTimer(callback, ms);
+      return;
+    }
+    this.setTimer(() => {
+      if (this.active) this.after(ms - LONGEST_TIMER, callback);
+    }, LONGEST_TIMER);
+  }
+
+  every(entry) {
+    const ms = durationMilliseconds(entry.gap);
+    const tick = () => this.deliver(entry.reply, this.now());
+    if (ms <= LONGEST_TIMER) {
+      const handle = this.setInterval(tick, ms);
+      entry.stop = () => this.clearInterval(handle);
+    } else {
+      const next = () => this.after(ms, () => {
+        if (entry.stop === stop) {
+          tick();
+          next();
+        }
+      });
+      const stop = () => { entry.stop = undefined; };
+      entry.stop = stop;
+      next();
+    }
+    return entry;
+  }
+
+  watchUrl(entry) {
+    if (!this.urlRuntime) {
+      this.urlRuntime = new UrlRuntime({ window: this.window, document: this.document, defer: this.defer });
+    }
+    this.url = entry;
+    entry.id = this.urlRuntime.watch(path => this.deliver(entry.reply, path));
+  }
+
+  // An agent watch, under a fresh request id of the page's channel. A
+  // subscription that can't be sent counts as refused, but for one a
+  // closed channel didn't send, which a renewed channel sends again.
+  subscribe(watch) {
+    watch.id = this.channel.take(this);
+    watch.state = 0n;
+    const id = watch.id;
+    Promise.resolve(this.channel.subscribe(id, this.owner, watch.agent, watch.path))
+      .catch(error => this.channel.closed || this.refuse(id, failure(error)));
+  }
+
+  agentWatch(id) {
+    for (const watch of this.watches.values()) {
+      if (watch.kind === 'agent' && watch.id === id) return watch;
+    }
+  }
+
+  // A refused watch shows the crash notice and stays refused, rather than
+  // being tried again on every update, until subs stops declaring it.
+  refuse(id, error) {
+    const watch = this.agentWatch(id);
+    if (!watch || !this.active) return;
+    this.channel.drop(id);
+    watch.id = undefined;
+    watch.refused = true;
+    this.island.fail(error, watch);
+  }
+
+  unwatch(watch) {
+    if (watch.id === undefined) return;
+    if (watch.kind === 'store') {
+      this.stores.unwatch(watch.id);
+    } else {
+      this.channel.drop(watch.id);
+      if (!this.channel.closed) {
+        Promise.resolve(this.channel.unsubscribe(this.channel.take(), watch.id)).catch(() => {});
+      }
+    }
+  }
+
+  // A fact goes to its watch's receiver with the state it returned last;
+  // a bad fact crashes the receiver, which counts as a crashed update.
+  receive(watch, input) {
+    if (!this.active || !this.island.active || this.watches.get(watch.key) !== watch) return;
+    let state;
+    let message;
+    try {
+      [state, message] = pair(apply(watch.receive, input), 'watch reply');
+    } catch (error) {
+      this.island.fail(error, watch);
+      return;
+    }
+    watch.state = [0n, state];
+    watch.kicks = 0;
+    this.island.send(message);
   }
 
   command(command) {
@@ -204,84 +301,100 @@ export class Effects {
         const [module, rest] = pair(markPayload, 'store poke');
         const [action, value] = pair(rest, 'store poke');
         const result = this.stores.poke(module, action, value);
-        this.defer(() => this.island.send(apply(reply, result)));
+        this.defer(() => this.deliver(reply, result));
         return;
       }
       if (agent !== 'agent') throw new Error(`unsupported poke %${agent}`);
       const [app, rest] = pair(markPayload, 'agent poke');
       const [mark, value] = pair(rest, 'agent poke');
-      const id = this.id();
+      const id = this.channel.take(this);
       this.pokes.set(id, reply);
-      this.channel.poke(id, this.owner, app, mark, value);
+      Promise.resolve(this.channel.poke(id, this.owner, app, mark, value))
+        .catch(error => this.answer(id, [0n, failure(error)]));
       return;
     }
     if (kind === 'go') {
-      if (typeof this.navigate === 'function') this.navigate(text(payload));
-      else if (this.urlRuntime) this.urlRuntime.go(text(payload));
+      // Only where the server's links may go: anything else is ignored.
+      const url = text(payload);
+      if (!safeUrl(url)) return;
+      if (typeof this.navigate === 'function') this.navigate(url);
+      else if (this.urlRuntime) this.urlRuntime.go(url);
       else throw new Error('go needs a navigation transport');
       return;
     }
     if (kind === 'wait') {
       const [gap, message] = pair(payload, 'wait command');
-      this.setTimer(() => {
-        if (this.active) this.island.send(message);
-      }, durationMilliseconds(gap));
+      this.after(durationMilliseconds(gap), () => {
+        if (this.active && this.island.active) this.island.send(message);
+      });
       return;
     }
     if (kind === 'now') {
-      this.island.send(apply(payload, this.now()));
+      this.deliver(payload, this.now());
       return;
     }
     if (kind === 'who') {
-      this.island.send(apply(payload, this.owner));
+      this.deliver(payload, this.owner);
       return;
     }
     throw new Error(`unsupported command %${kind}`);
   }
 
-  pokeAck({ requestId, error }) {
-    const reply = this.pokes.get(requestId);
+  answer(id, result) {
+    const reply = this.pokes.get(id);
     if (!reply) return;
-    this.pokes.delete(requestId);
-    this.island.send(apply(reply, error === undefined ? 0n : [0n, renderError(error)]));
+    this.pokes.delete(id);
+    this.channel.drop(id);
+    this.deliver(reply, result);
   }
 
-  watchAck({ requestId, error }) {
-    if (error === undefined) return;
-    for (const watch of this.watches.values()) {
-      if (watch.kind === 'agent' && watch.id === requestId) {
-        this.watches.delete(watch.key);
-        this.island.fail(renderError(error), watch);
-        return;
-      }
+  // The channel's events for this island's requests.
+  onPokeAck(id, sign) {
+    const error = signError(sign);
+    this.answer(id, error === undefined ? 0n : [0n, renderError(error)]);
+  }
+
+  onWatchAck(id, sign) {
+    const error = signError(sign);
+    if (error !== undefined) this.refuse(id, renderError(error));
+  }
+
+  onFact(id, mark, noun, eventId) {
+    const watch = this.agentWatch(id);
+    if (watch) this.receive(watch, [mark, [watch.state, noun]]);
+    if (eventId !== undefined && eventId !== null) {
+      Promise.resolve(this.channel.ack(eventId)).catch(() => {});
     }
   }
 
-  fact({ requestId, eventId, mark, noun, kind = 'agent' }) {
-    for (const watch of this.watches.values()) {
-      if (watch.id !== requestId || watch.kind !== kind) continue;
-      try {
-        // A generated receiver takes its last state as a unit, ~ before the
-        // first fact; an agent's also takes the fact's mark, a store's not.
-        const input = watch.kind === 'store' ? [watch.state, noun] : [mark, [watch.state, noun]];
-        const [state, message] = pair(apply(watch.receive, input), 'watch reply');
-        watch.state = [0n, state];
-        watch.first = false;
-        this.island.send(message);
-      } finally {
-        if (eventId !== undefined) this.channel.ack(eventId);
+  // A kicked watch watches again from its first fact, after a delay that
+  // doubles, from a second up to half a minute, while kicks come without
+  // facts between them.
+  onKick(id) {
+    const watch = this.agentWatch(id);
+    if (!watch) return;
+    this.channel.drop(id);
+    watch.id = undefined;
+    watch.kicks = (watch.kicks ?? 0) + 1;
+    this.after(Math.min(500 * 2 ** watch.kicks, 30_000), () => {
+      if (this.active && this.watches.get(watch.key) === watch && watch.id === undefined && !watch.refused) {
+        this.subscribe(watch);
       }
-      return;
-    }
+    });
   }
 
-  kick({ requestId }) {
+  // After the page comes back from the back/forward cache on a fresh
+  // channel: pokes the old one carried get no ack, and agent watches start
+  // again.
+  resume() {
+    if (!this.active) return;
+    for (const id of [...this.pokes.keys()]) {
+      this.answer(id, [0n, cord('the page was hidden before the poke was acknowledged')]);
+    }
     for (const watch of this.watches.values()) {
-      if (watch.kind === 'agent' && watch.id === requestId) {
-        watch.state = 0n;
-        watch.first = true;
-        this.channel.subscribe(watch.id, this.owner, watch.agent, watch.path);
-        return;
+      if (watch.kind === 'agent' && !watch.refused) {
+        if (watch.id !== undefined) this.channel.drop(watch.id);
+        this.subscribe(watch);
       }
     }
   }
@@ -289,15 +402,13 @@ export class Effects {
   stop() {
     if (!this.active) return;
     this.active = false;
-    for (const watch of this.watches.values()) {
-      if (watch.kind === 'store') this.stores.unwatch(watch.id);
-      else this.channel.unsubscribe(this.id(), watch.id);
-    }
+    for (const watch of this.watches.values()) this.unwatch(watch);
     this.watches.clear();
-    for (const id of this.urlWatches) this.urlRuntime.unwatch(id);
-    this.urlWatches.clear();
-    for (const handle of this.intervals.values()) this.clearInterval(handle);
-    this.intervals.clear();
+    for (const timer of this.timers.values()) timer.stop();
+    this.timers.clear();
+    if (this.url) this.urlRuntime.unwatch(this.url.id);
+    this.url = undefined;
+    for (const id of this.pokes.keys()) this.channel.drop(id);
     this.pokes.clear();
   }
 }

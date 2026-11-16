@@ -248,7 +248,7 @@ test('hydrateDom retains compatible server nodes, removes readonly, and binds ke
   const [one, two] = childElements(node);
   one.setAttribute('readonly', '');
 
-  assert.strictEqual(hydrateDom(node, initial, { document }), node);
+  assert.strictEqual(hydrateDom([node], initial, { document }), node);
   assert.strictEqual(node.firstChild, one);
   assert.strictEqual(node.lastChild, two);
   assert.equal(one.hasAttribute('readonly'), false);
@@ -272,7 +272,7 @@ test('hydrateDom replaces divergent text, attributes, and child shapes', () => {
     if (mismatch === 'text') node.firstChild.nodeValue = 'different';
     if (mismatch === 'attribute') node.setAttribute('data-old', '');
     if (mismatch === 'children') node.appendChild(document.createTextNode('extra'));
-    const hydrated = hydrateDom(node, desired, { document });
+    const hydrated = hydrateDom([node], desired, { document });
     assert.equal(hydrated.textContent, 'wanted');
     assert.notStrictEqual(hydrated, node);
   }

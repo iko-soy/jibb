@@ -54,7 +54,7 @@ test('compiled templates hydrate server DOM before direct updates', () => {
   const dynamic = server.lastChild;
   const view = viewTemplate(model => draw(model), plan, [251], loweredNatives);
   const island = startIsland({
-    document, container: document.body, s: server, model: initial,
+    document, container: document.body, s: [server], model: initial,
     program: { init: () => initial, update: ([message]) => [message, 0n], view },
   });
   assert.ok(island.template);
@@ -75,7 +75,7 @@ test('compiled templates restore empty text holes elided by server HTML', () => 
   server.lastChild.remove();
   const view = viewTemplate(model => draw(model), plan, [251], loweredNatives);
   const island = startIsland({
-    document, container: document.body, s: server, model: initial,
+    document, container: document.body, s: [server], model: initial,
     program: { init: () => initial, update: ([message]) => [message, 0n], view },
   });
   assert.strictEqual(island.node, server);
@@ -94,7 +94,7 @@ test('compiled templates replace non-trailing elided empty text without misbindi
   server.firstChild.remove();
   const view = viewTemplate(model => draw(model), plan, [123], loweredNatives);
   const island = startIsland({
-    document, container: document.body, s: server, model: initial,
+    document, container: document.body, s: [server], model: initial,
     program: { init: () => initial, update: ([message]) => [message, 0n], view },
   });
   assert.notStrictEqual(island.node, server);
@@ -117,7 +117,7 @@ test('compiled templates replace merged adjacent text rather than misbinding hol
   server.lastChild.remove();
   const view = viewTemplate(model => draw(model), plan, [123, 251], loweredNatives);
   const island = startIsland({
-    document, container: document.body, s: server, model: initial,
+    document, container: document.body, s: [server], model: initial,
     program: { init: () => initial, update: ([message]) => [message, 0n], view },
   });
   assert.notStrictEqual(island.node, server);

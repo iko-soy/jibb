@@ -108,6 +108,19 @@ class BitWriter {
   writeBits(value, width) {
     if (width === 0) return;
     this.ensure(width);
+    // A long atom is copied from its bytes, not shifted out of the BigInt a
+    // few bits at a time, which is quadratic in its length.
+    if (width > 64) {
+      const bytes = atomToBytes(value);
+      const offset = this.position & 7;
+      const at = this.position >> 3;
+      for (let index = 0; index < bytes.length; index += 1) {
+        this.bytes[at + index] |= (bytes[index] << offset) & 0xff;
+        if (offset) this.bytes[at + index + 1] |= bytes[index] >> (8 - offset);
+      }
+      this.position += width;
+      return;
+    }
     let remaining = width;
     let source = value;
     while (remaining !== 0) {
@@ -186,6 +199,16 @@ class BitReader {
   readBits(width) {
     if (width > this.length - this.position) {
       fail(`cue: truncated jam at bit ${this.position}`);
+    }
+    // A long atom is its bytes, shifted into place, rather than one BigInt
+    // grown a few bits at a time, which is quadratic in its length.
+    if (width > 64) {
+      const start = this.position >> 3;
+      const end = (this.position + width + 7) >> 3;
+      const value = (bytesToAtom(this.bytes.slice(start, end)) >> BigInt(this.position & 7))
+        & ((1n << BigInt(width)) - 1n);
+      this.position += width;
+      return value;
     }
     let remaining = width;
     let result = 0n;
@@ -309,15 +332,19 @@ export function decodeUw(encoded) {
     fail('@uw decode: non-leading groups must contain five digits');
   }
 
-  let value = 0n;
-  for (const group of groups) {
-    for (const digit of group) {
-      const parsed = UW_DIGITS.get(digit);
-      if (parsed === undefined) fail(`@uw decode: invalid digit ${JSON.stringify(digit)}`);
-      value = (value << 6n) | BigInt(parsed);
+  // Digits become hexadecimal, three for every two, which BigInt reads in
+  // linear time; shifting a growing BigInt by each digit is quadratic.
+  const digits = groups.join('');
+  let hex = digits.length % 2 ? '0' : '';
+  for (let index = digits.length % 2 ? -1 : 0; index < digits.length; index += 2) {
+    const high = index < 0 ? 0 : UW_DIGITS.get(digits[index]);
+    const low = UW_DIGITS.get(digits[index + 1]);
+    if (high === undefined || low === undefined) {
+      fail(`@uw decode: invalid digit ${JSON.stringify(high === undefined ? digits[index] : digits[index + 1])}`);
     }
+    hex += ((high << 6) | low).toString(16).padStart(3, '0');
   }
-  return value;
+  return BigInt(`0x${hex}`);
 }
 
 export { encodeUw as enUw, decodeUw as deUw };

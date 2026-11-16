@@ -1,19 +1,11 @@
-import { shipRound } from './ship-codec.mjs';
-import { PREFIXES, SUFFIXES } from './syllables.mjs';
+import { CoreCrash } from './runtime.mjs';
+import { nuck } from './aura.mjs';
 
-const DECIMAL = /^(?:0|[1-9][0-9]{0,2}(?:\.[0-9]{3})*)$/;
-const HEXADECIMAL = /^0x[0-9a-fA-F]+(?:\.[0-9a-fA-F]+)*$/;
-const BASE32 = /^0v[0-9a-v]+(?:\.[0-9a-v]+)*$/;
 const TERM = /^%(?:[a-z][a-z0-9-]*|[&|$])$/;
-const KNOT = /^~\.[a-z0-9._~-]*$/;
-const DATE = /^~([0-9]+)(-?)\.([0-9]{1,2})\.([0-9]{1,2})(?:\.\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})(?:\.\.([0-9a-f]{4}(?:\.[0-9a-f]{4}){0,3}))?)?$/;
-const DURATION = /^~([dhms][0-9]+(?:\.[dhms][0-9]+)*)(?:\.\.([0-9a-f]{4}(?:\.[0-9a-f]{4}){0,3}))?$/;
-const DATE_OFFSET = 292_277_024_400n;
-const MAX_U32 = 0xffff_ffffn;
-const MAX_U64 = 0xffff_ffff_ffff_ffffn;
-
-const PREFIX_VALUES = new Map(PREFIXES.map((name, value) => [name, value]));
-const SUFFIX_VALUES = new Map(SUFFIXES.map((name, value) => [name, value]));
+// The auras a Core literal may have, as jibb-core.hoon's +literal-aura.
+const AURAS = new Map([
+  ['ud', '@ud'], ['ux', '@ux'], ['uv', '@uv'], ['p', '@p'], ['da', '@da'], ['dr', '@dr'], ['ta', 'knot'], ['n', 'null'],
+]);
 
 function fail(text, reason = 'invalid literal') {
   throw new SyntaxError(`${reason}: ${JSON.stringify(text)}`);
@@ -33,16 +25,6 @@ function cord(bytes) {
 
 function asciiCord(text) {
   return cord(Array.from(text, character => character.charCodeAt(0)));
-}
-
-function base32Value(text) {
-  let value = 0n;
-  for (const character of text.slice(2).replaceAll('.', '')) {
-    const code = character.charCodeAt(0);
-    const digit = code <= 57 ? code - 48 : code - 87;
-    value = value * 32n + BigInt(digit);
-  }
-  return value;
 }
 
 function wellFormed(text) {
@@ -109,152 +91,44 @@ function readTerm(text) {
   if (text === '%.y' || text === '%.n') {
     return result(text, text === '%.y' ? 0n : 1n, '?');
   }
-  if (text === '%&' || text === '%$') return result(text, 0n, '@tas');
+  if (text === '%&' || text === '%$' || text === '%0') return result(text, 0n, '@tas');
   if (text === '%|') return result(text, 1n, '@tas');
 
+  // A numeric term is % and a decimal, as Hoon reads it.
   const body = text.slice(1);
-  if (DECIMAL.test(body)) return result(text, BigInt(body.replaceAll('.', '')), '@tas');
+  if (/^[0-9]/.test(body)) {
+    const number = body[0] === '0' ? undefined : read(body);
+    if (number?.aura !== 'ud') fail(text, 'invalid term literal');
+    return result(text, number.value, '@tas');
+  }
   if (!TERM.test(text)) fail(text, 'invalid term literal');
   return result(text, asciiCord(body), '@tas');
 }
 
-function readFractions(groups) {
-  if (groups === undefined) return 0n;
-  let value = 0n;
-  for (const group of groups.split('.')) value = (value << 16n) | BigInt(`0x${group}`);
-  return value;
-}
-
-function daysFromCivil(year, month, day) {
-  let days = year === 0n
-    ? 0n
-    : year * 365n + (year - 1n) / 4n + 1n - ((year - 1n) / 100n + 1n)
-      + ((year - 1n) / 400n + 1n);
-  const leap = year % 4n === 0n && (year % 100n !== 0n || year % 400n === 0n);
-  const lengths = [31n, leap ? 29n : 28n, 31n, 30n, 31n, 30n, 31n, 31n, 30n, 31n, 30n, 31n];
-  for (let index = 0; index < month - 1; index += 1) {
-    if (index >= lengths.length) return null;
-    days += lengths[index];
+// Hoon's ++nuck of the whole text, as jibb-core.hoon's +read-literal reads
+// it: a literal Hoon can't read, or reads only by crashing, is invalid.
+function read(text) {
+  try {
+    return nuck(text);
+  } catch (error) {
+    if (error instanceof CoreCrash) return undefined;
+    throw error;
   }
-  return days + BigInt(day) - 1n;
 }
 
-function readDate(text, match) {
-  const [, yearText, bc, monthText, dayText, hours = '0', minutes = '0', seconds = '0', groups] = match;
-  const displayYear = BigInt(yearText);
-  const year = bc === '-' ? DATE_OFFSET - (displayYear - 1n) : DATE_OFFSET + displayYear;
-  const days = daysFromCivil(year, Number(monthText), Number(dayText));
-  if (days === null || days < 0n) fail(text, 'invalid date literal');
-  const wholeSeconds = days * 86_400n + BigInt(hours) * 3_600n + BigInt(minutes) * 60n + BigInt(seconds);
-  return result(text, (wholeSeconds << 64n) | readFractions(groups), '@da');
-}
-
-function readDuration(text, match) {
-  const ranks = { d: 4, h: 3, m: 2, s: 1 };
-  const units = { d: 86_400n, h: 3_600n, m: 60n, s: 1n };
-  let seconds = 0n;
-  let previous = 0;
-  for (const segment of match[1].split('.')) {
-    const unit = segment[0];
-    const rank = ranks[unit];
-    if (previous !== 0 && rank >= previous) fail(text, 'duration units must be in d, h, m, s order');
-    previous = rank;
-    seconds += BigInt(segment.slice(1)) * units[unit];
-  }
-  return result(text, (seconds << 64n) | readFractions(match[2]), '@dr');
-}
-
-function inverseFeistel(value) {
-  const a = 65_535;
-  const b = 65_536;
-  const ahh = value % a;
-  const ale = Math.floor(value / a);
-  let ell = ale === a ? ahh : ale;
-  let arr = ale === a ? ale : ahh;
-
-  for (let round = 4; round >= 1; round -= 1) {
-    const effective = shipRound(round - 1, ell);
-    const temporary = round % 2 === 1
-      ? (arr + a - effective % a) % a
-      : (arr + b - effective % b) % b;
-    arr = ell;
-    ell = temporary;
-  }
-  return a * arr + ell;
-}
-
-function tail(value) {
-  const decoded = inverseFeistel(value);
-  return BigInt(decoded < 0xffff_ffff ? decoded : inverseFeistel(decoded));
-}
-
-function fynd(value) {
-  if (value >= 0x1_0000n && value <= MAX_U32) {
-    return 0x1_0000n + tail(Number(value - 0x1_0000n));
-  }
-  if (value >= 0x1_0000_0000n && value <= MAX_U64) {
-    return (value & ~MAX_U32) | fynd(value & MAX_U32);
-  }
-  return value;
-}
-
+// A ship's name, read as Hoon's ++fed:ag reads it.
 export function readShip(text) {
-  const words = text.slice(1).split('-');
-  const bytes = [];
-
-  if (words.length === 1 && words[0].length === 3) {
-    const suffix = SUFFIX_VALUES.get(words[0]);
-    if (suffix === undefined) fail(text, 'invalid ship suffix');
-    bytes.push(suffix);
-  } else {
-    for (let index = 0; index < words.length; index += 1) {
-      const word = words[words.length - index - 1];
-      if (index % 5 === 4) {
-        if (word !== '') fail(text, 'invalid ship separator (expected a double hyphen)');
-      } else if (word === '') {
-        fail(text, 'invalid ship separator');
-      }
-    }
-
-    for (const word of words) {
-      if (word === '') continue;
-      if (word.length !== 6) fail(text, 'ship words after a galaxy must contain six letters');
-      const prefix = PREFIX_VALUES.get(word.slice(0, 3));
-      const suffix = SUFFIX_VALUES.get(word.slice(3));
-      if (prefix === undefined) fail(text, 'invalid ship prefix');
-      if (suffix === undefined) fail(text, 'invalid ship suffix');
-      bytes.push(prefix, suffix);
-    }
-  }
-
-  let encoded = 0n;
-  for (const byte of bytes) encoded = (encoded << 8n) | BigInt(byte);
-  return result(text, fynd(encoded), '@p');
+  const parsed = read(text);
+  if (parsed?.aura !== 'p') fail(text, 'invalid ship');
+  return result(text, parsed.value, '@p');
 }
 
 export function readLiteral(text) {
   if (typeof text !== 'string') throw new SyntaxError(`literal must be a string, received ${typeof text}`);
-  if (text === '~') return result(text, 0n, 'null');
   if (text.startsWith('"')) return readString(text);
   if (text.startsWith('%')) return readTerm(text);
-  if (DECIMAL.test(text)) return result(text, BigInt(text.replaceAll('.', '')), '@ud');
-  if (HEXADECIMAL.test(text)) return result(text, BigInt(text.replaceAll('.', '')), '@ux');
-  if (BASE32.test(text)) return result(text, base32Value(text), '@uv');
-  if (KNOT.test(text)) return result(text, asciiCord(text.slice(2)), 'knot');
-
-  if (text.startsWith('~')) {
-    if (/^~[0-9]/.test(text)) {
-      const match = DATE.exec(text);
-      if (match) return readDate(text, match);
-      fail(text, 'invalid date literal');
-    }
-    if (/^~[dhms][0-9]/.test(text)) {
-      const match = DURATION.exec(text);
-      if (match) return readDuration(text, match);
-      fail(text, 'invalid duration literal');
-    }
-    return readShip(text);
-  }
-
-  return fail(text);
+  const parsed = /^[0-9~]/.test(text) ? read(text) : undefined;
+  if (parsed === undefined) fail(text);
+  if (!AURAS.has(parsed.aura)) fail(text, `unsupported literal aura @${parsed.aura}`);
+  return result(text, parsed.value, AURAS.get(parsed.aura));
 }

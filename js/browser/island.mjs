@@ -62,14 +62,17 @@ export class Island {
         document: this.document,
         dispatch: (message) => this.send(message),
         paths: this.r,
-        s: this.s,
       };
+      // s holds the server's nodes for the first view, which adopts them
+      // or replaces them all.
+      const server = this.s?.length ? this.s : 0;
+      options.s = server;
       this.template = createViewTemplate(this.program.view, value, options);
       this.vnode = this.template?.vnode ?? toVnode(value, this.r);
-      this.node = this.template?.node ?? (this.s
-        ? hydrateDom(this.s, this.vnode, options)
+      this.node = this.template?.node ?? (server
+        ? hydrateDom(server, this.vnode, options)
         : createDom(this.vnode, options));
-      if (!this.s) this.container.appendChild(this.node);
+      if (!server) this.container.appendChild(this.node);
       this.s = 0;
       this.active = true;
       this.onUpdate(this);
@@ -99,44 +102,39 @@ export class Island {
     }
   }
 
+  // The message's model, view and subscriptions are all computed before
+  // anything changes, so a crash in update, view or subs drops the message
+  // and keeps the model, DOM and watches (overview: Errors). Commands then
+  // run in list order.
   update(message) {
     const previous = this.model;
     const result = apply(this.program.update, [message, previous]);
     const [next, commands] = pair(result, 'island update result');
-    if (same(previous, next) === 0n) {
-      this.model = next;
-      syncControls(this.node, this.vnode);
-      this.runCommands(commands);
-      this.onUpdate(this);
-      return;
-    }
-
-    let vnode = this.vnode;
-    let node = this.node;
-    if (this.template?.view === this.program.view) {
-      this.template.update(next);
-    } else {
-      const value = apply(this.program.view, next);
-      vnode = toVnode(value, this.r);
-      node = patchDom(this.container, this.node, vnode, {
-        document: this.document,
-        dispatch: (reply) => this.send(reply),
-      });
-      this.template = null;
-    }
-    this.model = next;
-    this.vnode = vnode;
-    this.node = node;
-    this.runCommands(commands);
-    this.onUpdate(this);
-  }
-
-  runCommands(commands) {
     const items = listToArray(commands, 'island commands');
+    const render = same(previous, next) === 0n ? 0 : this.render(next);
+    const plan = this.plan?.(next);
+    this.model = next;
+    if (render) render();
+    else syncControls(this.node, this.vnode);
+    this.onUpdate(this, plan);
     if (items.length !== 0 && typeof this.dispatchCommand !== 'function') {
       throw new Error('island commands need a dispatchCommand transport');
     }
     for (const command of items) this.dispatchCommand(command, this);
+  }
+
+  // A function that shows next's view, made without touching the DOM.
+  render(next) {
+    if (this.template?.view === this.program.view) return this.template.update(next);
+    const vnode = toVnode(apply(this.program.view, next), this.r);
+    return () => {
+      this.node = patchDom(this.container, this.node, vnode, {
+        document: this.document,
+        dispatch: (reply) => this.send(reply),
+      });
+      this.vnode = vnode;
+      this.template = null;
+    };
   }
 
   fail(error, message) {

@@ -5,6 +5,7 @@ import {
   isCell,
   same,
   atomToText,
+  bytesToAtom,
 } from '../core/runtime.mjs';
 import { readLiteral } from '../core/literal.mjs';
 import { NOCK_NATIVES } from './emitter.mjs';
@@ -76,15 +77,23 @@ function callAdapter(applied, options) {
   return applied.adapter.apply(applied.sample, applyGate);
 }
 
-function handleHint(tag, clue, logger) {
-  if (tag !== SLOG) return;
-  const outer = formulaCell(clue, '%slog clue');
-  const priority = outer[0];
-  const tank = formulaCell(outer[1], '%slog tank');
-  if (typeof priority !== 'bigint' || tank[0] !== LEAF || typeof tank[1] !== 'bigint') {
-    fail('%slog expects [priority [%leaf cord]]');
+// The text of a [%leaf tape] tank, or undefined for any other noun.
+function leafText(tank) {
+  if (!Array.isArray(tank) || tank[0] !== LEAF) return undefined;
+  const bytes = [];
+  for (let rest = tank[1]; rest !== 0n; rest = rest[1]) {
+    if (!Array.isArray(rest) || typeof rest[0] !== 'bigint' || rest[0] > 0xffn) return undefined;
+    bytes.push(Number(rest[0]));
   }
-  logger(atomToText(tank[1]));
+  return atomToText(bytesToAtom(new Uint8Array(bytes)));
+}
+
+// A %slog clue is [priority tank]; a leaf tank is printed. A hint never
+// changes the result, so a clue of any other shape prints nothing.
+function handleHint(tag, clue, logger) {
+  if (tag !== SLOG || !Array.isArray(clue)) return;
+  const text = leafText(clue[1]);
+  if (text !== undefined) logger(text);
 }
 
 /**

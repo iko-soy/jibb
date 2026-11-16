@@ -1,4 +1,6 @@
-import { shipRound } from '../core/ship-codec.mjs';
+import {
+  BASE58, FLOATS, UW, checkPad, check58, fein, fromFloat, taft, tuft,
+} from '../core/aura.mjs';
 import { rawDateUnpack } from './legacy.mjs';
 import {
   CoreCrash,
@@ -14,14 +16,11 @@ import {
   listToArray,
   loob,
   pair,
-  text,
 } from './helpers.mjs';
 import { PREFIXES, SUFFIXES } from '../core/syllables.mjs';
 
 const MAX_CODEPOINT = 0x10ffffn;
-const MAX_U32 = 0xffff_ffffn;
 const MAX_U64 = 0xffff_ffff_ffff_ffffn;
-const SHIP_DOMAIN = 0xffff * 0x1_0000;
 
 function crash(operation, message) {
   throw new CoreCrash(`${operation}: ${message}`);
@@ -49,15 +48,6 @@ function encodeCodepoints(codepoints) {
   return result;
 }
 
-function grouped(value, radix, width, prefix, operation) {
-  const digits = atom(value, operation).toString(radix);
-  const groups = [];
-  for (let end = digits.length; end > 0; end -= width) {
-    groups.unshift(digits.slice(Math.max(0, end - width), end));
-  }
-  return cord(`${prefix}${groups.join('.')}`);
-}
-
 function prefixedAtom(prefix, value, operation) {
   const first = new TextEncoder().encode(prefix);
   const rest = atomToBytes(atom(value, operation));
@@ -65,75 +55,6 @@ function prefixedAtom(prefix, value, operation) {
   bytes.set(first);
   bytes.set(rest, first.length);
   return bytesToAtom(bytes);
-}
-
-// Hoon's generalized four-round Feistel permutation, including its legacy
-// even-round representation and the cycle-walking wrapper used by +feis.
-function shipPermutation(input) {
-  const a = 65_535;
-  const b = 65_536;
-  let ell = input % a;
-  let arr = Math.floor(input / a);
-
-  for (let round = 1; round <= 4; round += 1) {
-    const effective = shipRound(round - 1, arr);
-    const temporary = (effective + ell) % (round % 2 === 1 ? a : b);
-    ell = arr;
-    arr = temporary;
-  }
-
-  return arr === a ? arr * a + ell : ell * a + arr;
-}
-
-function feis(value) {
-  const first = shipPermutation(value);
-  return first < SHIP_DOMAIN ? first : shipPermutation(first);
-}
-
-function fein(value) {
-  if (value >= 0x1_0000n && value <= MAX_U32) {
-    return 0x1_0000n + BigInt(feis(Number(value - 0x1_0000n)));
-  }
-  if (value >= 0x1_0000_0000n && value <= MAX_U64) {
-    return (value & ~MAX_U32) | fein(value & MAX_U32);
-  }
-  return value;
-}
-
-function pad2(value) {
-  return String(value).padStart(2, '0');
-}
-
-function formatFraction(value) {
-  if (value === 0n) return '';
-  const groups = [];
-  for (let shift = 48n; shift >= 0n; shift -= 16n) {
-    groups.push(((value >> shift) & 0xffffn).toString(16).padStart(4, '0'));
-  }
-  while (groups.at(-1) === '0000') groups.pop();
-  return `..${groups.join('.')}`;
-}
-
-function wood(value) {
-  const decoded = decodeUtf8(value, 'formatT');
-  let result = '';
-  for (const character of decoded) {
-    const codepoint = character.codePointAt(0);
-    if ((codepoint >= 97 && codepoint <= 122)
-      || (codepoint >= 48 && codepoint <= 57)
-      || codepoint === 45) {
-      result += character;
-    } else if (codepoint === 32) {
-      result += '.';
-    } else if (codepoint === 46) {
-      result += '~.';
-    } else if (codepoint === 126) {
-      result += '~~';
-    } else {
-      result += `~${codepoint === 0 ? '' : codepoint.toString(16)}.`;
-    }
-  }
-  return result;
 }
 
 export function add(sample) {
@@ -252,30 +173,28 @@ export function tripBytes(value) {
   return arrayToList([...atomToBytes(atom(value, 'trip'))].map(BigInt));
 }
 
+// Hoon's +crip is +rap 3: each element's bytes, as many as it has, so a
+// zero has none and 256 has two.
+function rap(values, operation) {
+  const bytes = [];
+  for (const value of listToArray(values, operation)) bytes.push(...atomToBytes(atom(value, operation)));
+  return bytes;
+}
+
 export function cripBytes(values) {
-  const bytes = listToArray(values, 'crip').map((value) => {
-    const byte = atom(value, 'crip');
-    if (byte > 0xffn) crash('crip', `invalid byte ${byte}`);
-    return Number(byte);
-  });
-  return bytesToAtom(new Uint8Array(bytes));
+  return bytesToAtom(new Uint8Array(rap(values, 'crip')));
 }
 
+// Hoon's +tuba, +taft of those bytes: surrogates and points past U+10FFFF
+// read as Hoon reads them, and a control other than a line feed crashes.
 export function tubaBytes(values) {
-  const packed = cripBytes(values);
-  const decoded = decodeUtf8(packed, 'tuba');
-  return arrayToList(Array.from(decoded, character => BigInt(character.codePointAt(0))));
+  return arrayToList(taft(rap(values, 'tuba')).map(BigInt));
 }
 
+// Hoon's +tufa, +tuft of each point: any 32-bit word encodes, and a zero
+// encodes as nothing.
 export function tufaCodepoints(values) {
-  const codepoints = listToArray(values, 'tufa').map((value) => {
-    const codepoint = atom(value, 'tufa');
-    if (codepoint > MAX_CODEPOINT || (codepoint >= 0xd800n && codepoint <= 0xdfffn)) {
-      crash('tufa', `invalid Unicode scalar value ${codepoint}`);
-    }
-    return Number(codepoint);
-  });
-  return arrayToList([...new TextEncoder().encode(encodeCodepoints(codepoints))].map(BigInt));
+  return arrayToList(listToArray(values, 'tufa').flatMap(value => tuft(atom(value, 'tufa'))).map(BigInt));
 }
 
 export function join(sample) {
@@ -304,16 +223,198 @@ export function join(sample) {
   return bytesToAtom(output);
 }
 
+// ++co's printing, for the auras Jibb shows: Hoon's +rend picks the form
+// by an aura's first two letters, and anything else is hexadecimal.
+
+// ++ox-co: digits in groups of width, the first unpadded.
+function grouped(value, radix, width) {
+  const digits = radix === 64 ? base64(value) : value.toString(radix);
+  let text = digits.slice(0, digits.length % width || width);
+  for (let index = text.length; index < digits.length; index += width) text += `.${digits.slice(index, index + width)}`;
+  return text;
+}
+
+function base64(value) {
+  const bits = value.toString(2);
+  const padded = bits.padStart(Math.ceil(bits.length / 6) * 6, '0');
+  let text = '';
+  for (let index = 0; index < padded.length; index += 6) text += UW[Number.parseInt(padded.slice(index, index + 6), 2)];
+  return text;
+}
+
+function base58(value) {
+  let text = '';
+  for (let rest = value; text === '' || rest > 0n; rest /= 58n) text = BASE58[Number(rest % 58n)] + text;
+  return text;
+}
+
+const two = value => String(value).padStart(2, '0');
+
+// ++s-co: sub-second groups, from the most significant to the last nonzero.
+function fraction(groups) {
+  return groups.map(group => `.${group.toString(16).padStart(4, '0')}`).join('');
+}
+
+function words(value) {
+  return value.toString(16).padStart(Math.ceil(value.toString(16).length / 4) * 4, '0');
+}
+
+// %p: a ship by +fein, words from the top, -- between groups of four
+// counted from the bottom.
+function ship(value) {
+  const scrambled = fein(value);
+  if (scrambled <= 0xffn) return `~${SUFFIXES[Number(scrambled)]}`;
+  const hex = words(scrambled);
+  let text = '';
+  for (let imp = 0; imp < hex.length / 4; imp += 1) {
+    const word = Number.parseInt(hex.slice(hex.length - 4 * imp - 4, hex.length - 4 * imp), 16);
+    text = PREFIXES[word >> 8] + SUFFIXES[word & 0xff] + (imp === 0 ? '' : imp % 4 === 0 ? '--' : '-') + text;
+  }
+  return `~${text}`;
+}
+
+// %q: bytes from the bottom, a suffix then a prefix, words joined by -.
+function phonemic(value) {
+  const bytes = value === 0n ? [0] : [...atomToBytes(value)];
+  let text = '';
+  let suffix = true;
+  for (const byte of bytes) {
+    text = (suffix ? SUFFIXES[byte] : PREFIXES[byte]) + (suffix && text !== '' ? `-${text}` : text);
+    suffix = !suffix;
+  }
+  return `.~${text}`;
+}
+
+// +wood: a cord as a knot, escaping by code point, +taft's way.
+function wood(bytes) {
+  return taft(bytes).map((point) => {
+    if ((point >= 97 && point <= 122) || (point >= 48 && point <= 57) || point === 45) return String.fromCharCode(point);
+    if (point === 32) return '.';
+    if (point === 46) return '~.';
+    if (point === 126) return '~~';
+    return `~${point.toString(16)}.`;
+  }).join('');
+}
+
+// %rd %rh %rq %rs: the shortest decimal, as ++r-co writes it.
+function float(format, bits) {
+  const number = fromFloat(format, bits);
+  if (number.nan) return 'nan';
+  if (number.infinite) return number.sign ? 'inf' : '-inf';
+  const digits = String(number.digits);
+  const scientific = number.exponent + digits.length - 1;
+  let point;
+  let exponent = 0;
+  if (number.exponent >= 3 || scientific < -2) {
+    point = 1;
+    exponent = scientific;
+  } else {
+    point = scientific + 1;
+  }
+  let text;
+  if (point <= 0) text = `0.${'0'.repeat(-point)}${digits}`;
+  else if (point < digits.length) text = `${digits.slice(0, point)}.${digits.slice(point)}`;
+  else text = digits + '0'.repeat(point - digits.length);
+  return (number.sign ? '' : '-') + text + (exponent ? `e${exponent}` : '');
+}
+
+const IPV = { f: [8, 10, 4], s: [16, 16, 8] };
+
+// +rend's text of an aura's atom; yed and hay are the aura's first letters.
+function rend(yed, hay, value) {
+  switch (yed) {
+    case 'c':
+      return `~-${wood(tuft(value))}`;
+    case 'd':
+      if (hay === 'a') return date(value);
+      if (hay === 'r') return span(value);
+      break;
+    case 'f':
+      if (value === 0n) return '.y';
+      if (value === 1n) return '.n';
+      break;
+    case 'n':
+      return '~';
+    case 'i':
+      if (IPV[hay]) {
+        const [bits, radix, count] = IPV[hay];
+        let text = '';
+        for (let index = count - 1; index >= 0; index -= 1) {
+          text += `.${((value >> BigInt(bits * index)) & ((1n << BigInt(bits)) - 1n)).toString(radix)}`;
+        }
+        return text;
+      }
+      break;
+    case 'p':
+      return ship(value);
+    case 'q':
+      return phonemic(value);
+    case 'r': {
+      const format = FLOATS[hay];
+      if (format) return `.${'~'.repeat({ s: 0, d: 1, h: 2, q: 3 }[hay])}${float(format, value)}`;
+      break;
+    }
+    case 'u':
+      if (hay === 'c') return `0c${'1'.repeat(checkPad(value))}${base58((value << 32n) | check58(value))}`;
+      if (value === 0n) return { b: '0b0', i: '0i0', x: '0x0', v: '0v0', w: '0w0' }[hay] ?? '0';
+      switch (hay) {
+        case 'b': return `0b${grouped(value, 2, 4)}`;
+        case 'i': return `0i${value}`;
+        case 'x': return `0x${grouped(value, 16, 4)}`;
+        case 'v': return `0v${grouped(value, 32, 5)}`;
+        case 'w': return `0w${grouped(value, 64, 5)}`;
+        default: return grouped(value, 10, 3);
+      }
+    case 's':
+      // @s is zigzag: even is positive.
+      return (value & 1n ? '-' : '--') + rend('u', hay, (value + (value & 1n)) / 2n);
+    case 't':
+      return `~~${wood([...atomToBytes(value)])}`;
+    default:
+  }
+  return `0x${value.toString(16)}`;
+}
+
+// %da: +yore's date, the month, day and time's parts in two digits, as
+// the pinned ship's Hoon (%135) prints them (y-co), and its sub-second
+// groups.
+function date(value) {
+  const [[ad, year], [month, [day, [hours, [minutes, [seconds, groups]]]]]] = rawDateUnpack(value);
+  const sub = listToArray(groups);
+  let text = `~${year}${ad === 1n ? '-' : ''}.${two(month)}.${two(day)}`;
+  if (sub.length !== 0 || hours !== 0n || minutes !== 0n || seconds !== 0n) {
+    text += `..${two(hours)}.${two(minutes)}.${two(seconds)}${sub.length ? `.${fraction(sub)}` : ''}`;
+  }
+  return text;
+}
+
+// %dr: days, hours, minutes and seconds that aren't zero, or s0.
+function span(value) {
+  const groups = [];
+  for (let low = value & MAX_U64, shift = 48n; low !== 0n; shift -= 16n) {
+    groups.push((low >> shift) & 0xffffn);
+    low &= (1n << shift) - 1n;
+  }
+  let seconds = value >> 64n;
+  const parts = [];
+  for (const [unit, size] of [['d', 86_400n], ['h', 3_600n], ['m', 60n], ['s', 1n]]) {
+    const count = seconds / size;
+    seconds %= size;
+    if (count !== 0n) parts.push(`${unit}${count}`);
+  }
+  return `~${parts.length ? parts.join('.') : 's0'}${groups.length ? `.${fraction(groups)}` : ''}`;
+}
+
 export function formatUd(value) {
-  return grouped(value, 10, 3, '', 'formatUd');
+  return scot([cord('ud'), value]);
 }
 
 export function formatUx(value) {
-  return grouped(value, 16, 4, '0x', 'formatUx');
+  return scot([cord('ux'), value]);
 }
 
 export function formatUv(value) {
-  return grouped(value, 32, 5, '0v', 'formatUv');
+  return scot([cord('uv'), value]);
 }
 
 export function formatTas(value) {
@@ -321,7 +422,7 @@ export function formatTas(value) {
 }
 
 export function formatT(value) {
-  return cord(`~~${wood(value)}`);
+  return scot([cord('t'), value]);
 }
 
 export function formatTa(value) {
@@ -329,71 +430,25 @@ export function formatTa(value) {
 }
 
 export function formatP(value) {
-  const encoded = fein(atom(value, 'formatP'));
-  if (encoded <= 0xffn) return cord(`~${SUFFIXES[Number(encoded)]}`);
-
-  const hexadecimal = encoded.toString(16);
-  const byteLength = Math.ceil(hexadecimal.length / 2);
-  const blockCount = Math.ceil(byteLength / 2);
-  const words = [];
-  for (let index = 0; index < blockCount; index += 1) {
-    const shift = 16n * BigInt(blockCount - index - 1);
-    const word = (encoded >> shift) & 0xffffn;
-    words.push(`${PREFIXES[Number(word >> 8n)]}${SUFFIXES[Number(word & 0xffn)]}`);
-  }
-
-  let rendered = '';
-  for (let index = 0; index < words.length; index += 1) {
-    if (index !== 0) rendered += index % 4 === 0 ? '--' : '-';
-    rendered += words[index];
-  }
-  return cord(`~${rendered}`);
+  return cord(ship(atom(value, 'formatP')));
 }
 
 export function formatDa(value) {
-  const current = atom(value, 'formatDa');
-  const [[ad, year], [month, [day, [hours, [minutes, [seconds]]]]]] = rawDateUnpack(current);
-  const fraction = current & MAX_U64;
-  let rendered = `~${year}${ad === 1n ? '-' : ''}.${pad2(month)}.${pad2(day)}`;
-  if (hours !== 0n || minutes !== 0n || seconds !== 0n || fraction !== 0n) {
-    rendered += `..${pad2(hours)}.${pad2(minutes)}.${pad2(seconds)}${formatFraction(fraction)}`;
-  }
-  return cord(rendered);
+  return cord(date(atom(value, 'formatDa')));
 }
 
 export function formatDr(value) {
-  const current = atom(value, 'formatDr');
-  const fraction = current & MAX_U64;
-  let seconds = current >> 64n;
-  const days = seconds / 86_400n;
-  seconds %= 86_400n;
-  const hours = seconds / 3_600n;
-  seconds %= 3_600n;
-  const minutes = seconds / 60n;
-  seconds %= 60n;
-
-  const parts = [];
-  if (days !== 0n) parts.push(`d${days}`);
-  if (hours !== 0n) parts.push(`h${hours}`);
-  if (minutes !== 0n) parts.push(`m${minutes}`);
-  if (seconds !== 0n || parts.length === 0) parts.push(`s${seconds}`);
-  return cord(`~${parts.join('.')}${formatFraction(fraction)}`);
+  return cord(span(atom(value, 'formatDr')));
 }
 
+// Hoon's +scot of any aura. A knot, %ta, and a term, %tas, keep their
+// bytes as they are.
 export function scot(sample) {
   const [aura, value] = pair(sample, 'scot');
-  switch (text(aura)) {
-    case 'ud': return formatUd(value);
-    case 'ux': return formatUx(value);
-    case 'uv': return formatUv(value);
-    case 'tas': return formatTas(value);
-    case 't': return formatT(value);
-    case 'ta': return formatTa(value);
-    case 'p': return formatP(value);
-    case 'da': return formatDa(value);
-    case 'dr': return formatDr(value);
-    default: return crash('scot', `unsupported aura @${text(aura)}`);
-  }
+  const [yed, hay, third] = [...atomToBytes(atom(aura, 'scot'))].map(code => String.fromCharCode(code));
+  atom(value, 'scot');
+  if (yed === 't' && hay === 'a') return third === 's' ? value : prefixedAtom('~.', value, 'scot');
+  return cord(rend(yed, hay, value));
 }
 
 export function scow(sample) {

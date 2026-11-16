@@ -226,10 +226,18 @@ test('installPagehide sends delete, closes, and can be uninstalled', async () =>
   channel.close = () => { closes += 1; };
   const uninstall = installPagehide(channel, target);
 
+  // A channel that never sent anything isn't Eyre's to delete.
+  listeners.get('pagehide')();
+  assert.equal(calls.length, 0);
+  assert.equal(closes, 1);
+  await channel.ack(1n);
   listeners.get('pagehide')();
   await new Promise(resolve => setImmediate(resolve));
-  assert.equal(closes, 1);
-  assert.deepEqual(putRequests(calls[0]), [[cord('delete'), 0n]]);
+  assert.equal(closes, 2);
+  assert.deepEqual(putRequests(calls[1]), [[cord('delete'), 0n]]);
+  // The DELETE outlives the page that sends it.
+  assert.equal(calls[1].init.keepalive, true);
   uninstall();
   assert.equal(listeners.has('pagehide'), false);
+  assert.equal(listeners.has('pageshow'), false);
 });

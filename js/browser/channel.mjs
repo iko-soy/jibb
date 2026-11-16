@@ -185,6 +185,15 @@ export class Channel {
     // PUTs go one at a time, so Eyre takes requests in the order made.
     this.sending = Promise.resolve();
     this.closed = false;
+    // A page's islands share its channel: request ids are the page's, and
+    // each request's events go to the owner that took its id.
+    this.nextId = 1n;
+    this.owners = new Map();
+    // How many event streams have opened, whether any PUT went out, and a
+    // count of closings, which end the streams kept open before them.
+    this.opened = 0;
+    this.used = false;
+    this.generation = 0;
 
     this.lastEventId = null;
     this.abortController = null;
@@ -193,15 +202,53 @@ export class Channel {
     this.ackScheduled = false;
   }
 
-  async request(requests, ...rest) {
-    const batch = normalizeRequests(requests, rest);
-    const body = encodeUw(jam(arrayToList(batch)));
-    const sent = this.sending.then(() => this.fetchImpl(this.url, {
+  // A fresh request id. An owner, with onPokeAck, onWatchAck, onFact and
+  // onKick as the channel's own callbacks, gets the events of its request.
+  take(owner) {
+    const id = this.nextId;
+    this.nextId += 1n;
+    if (owner) this.owners.set(id, owner);
+    return id;
+  }
+
+  drop(id) {
+    this.owners.delete(id);
+  }
+
+  // A fresh channel, as after Eyre deleted this one: a new uid, no resume id.
+  renew() {
+    this.close();
+    this.connection = null;
+    this.uid = this.freshUid();
+    this.url = `${this.base}/~/channel/${encodeURIComponent(this.uid)}`;
+    this.lastEventId = null;
+    this.closed = false;
+    this.used = false;
+  }
+
+  put(body, keepalive) {
+    return this.fetchImpl(this.url, {
       method: 'PUT',
       credentials: 'include',
       headers: { 'content-type': CHANNEL_FORMAT },
       body,
-    }));
+      keepalive,
+    });
+  }
+
+  async request(requests, ...rest) {
+    // A closed channel sends nothing, nor a request still queued when it
+    // closed: Eyre would make a new channel for a PUT.
+    const { generation } = this;
+    const closed = () => this.closed || this.generation !== generation;
+    if (closed()) throw new Error('Eyre channel is closed');
+    const batch = normalizeRequests(requests, rest);
+    const body = encodeUw(jam(arrayToList(batch)));
+    this.used = true;
+    const sent = this.sending.then(() => {
+      if (closed()) throw new Error('Eyre channel is closed');
+      return this.put(body);
+    });
     this.sending = sent.then(() => {}, () => {});
     requireOk(await sent);
     this.onSent();
@@ -246,8 +293,10 @@ export class Channel {
     }
   }
 
-  delete() {
-    return this.request([cord('delete'), 0n]);
+  // Sent as the page goes away, so outside the queue and with keepalive,
+  // which lets a request outlive its page.
+  async delete() {
+    requireOk(await this.put(encodeUw(jam(arrayToList([[cord('delete'), 0n]]))), true));
   }
 
   connect(lastEventId) {
@@ -284,14 +333,21 @@ export class Channel {
     if (response.body === null || response.body === undefined) {
       throw new Error('Eyre channel response has no readable body');
     }
+    this.opened += 1;
 
     const decoder = new TextDecoder();
     const parser = new EventStreamParser((encoded, id) => {
-      const decoded = cue(decodeUw(encoded));
-      const [requestId, event] = cell(decoded, 'channel SSE packet');
-      atom(requestId, 'channel SSE request-id');
       if (id !== null) this.lastEventId = id;
-      this.dispatchEvent(requestId, event, id);
+      // One bad event, or a failing owner, is reported without ending the
+      // stream the page's other islands share.
+      try {
+        const decoded = cue(decodeUw(encoded));
+        const [requestId, event] = cell(decoded, 'channel SSE packet');
+        atom(requestId, 'channel SSE request-id');
+        this.dispatchEvent(requestId, event, id);
+      } catch (error) {
+        try { this.onError(error); } catch { /* Error callbacks cannot break the stream. */ }
+      }
     }, resumeId);
 
     for await (const chunk of chunks(response.body)) {
@@ -304,22 +360,23 @@ export class Channel {
 
   dispatchEvent(requestId, event, eventId = null) {
     const [tag, payload] = cell(event, 'channel event');
+    const owner = this.owners.get(requestId) ?? this;
     switch (text(tag)) {
       case 'poke-ack':
-        this.onPokeAck(requestId, decodeAck(payload), eventId);
+        owner.onPokeAck(requestId, decodeAck(payload), eventId);
         return;
       case 'watch-ack':
-        this.onWatchAck(requestId, decodeAck(payload), eventId);
+        owner.onWatchAck(requestId, decodeAck(payload), eventId);
         return;
       case 'kick':
         if (payload !== 0n) throw new Error('a channel kick must have a ~ tail');
-        this.onKick(requestId, [cord('ok'), 0n], eventId);
+        owner.onKick(requestId, [cord('ok'), 0n], eventId);
         return;
       case 'fact': {
         // A fact names its agent's desk, then its mark and noun.
         const [, markAndNoun] = cell(payload, 'channel fact');
         const [mark, noun] = cell(markAndNoun, 'channel fact');
-        this.onFact(requestId, mark, noun, eventId);
+        owner.onFact(requestId, mark, noun, eventId);
         return;
       }
       default:
@@ -332,34 +389,46 @@ export class Channel {
       return await this.connect();
     } catch (error) {
       if (error.status !== 404) throw error;
-      this.uid = this.freshUid();
-      this.url = `${this.base}/~/channel/${encodeURIComponent(this.uid)}`;
-      this.lastEventId = null;
+      this.renew();
       return this.connect();
     }
   }
 
   close() {
     this.closed = true;
+    this.generation += 1;
     this.abortController?.abort();
   }
 }
 
-export function installPagehide(channel, target = globalThis) {
+// A hidden page deletes its channel. One the browser keeps to show again
+// (the back/forward cache) gets a fresh channel when it does, and restore
+// renews what the old one carried.
+export function installPagehide(channel, target = globalThis, restore = () => {}) {
   if (typeof target.addEventListener !== 'function') {
     throw new TypeError('installPagehide requires an event target');
   }
+  const report = error => {
+    try { channel.onError?.(error); } catch { /* Pagehide cannot recover. */ }
+  };
   const onPagehide = () => {
     try {
-      Promise.resolve(channel.delete()).catch(error => {
-        try { channel.onError?.(error); } catch { /* Pagehide cannot recover. */ }
-      });
+      if (channel.used && !channel.closed) Promise.resolve(channel.delete()).catch(report);
     } catch (error) {
-      try { channel.onError?.(error); } catch { /* Pagehide cannot recover. */ }
+      report(error);
     } finally {
       channel.close();
     }
   };
+  const onPageshow = (event) => {
+    if (!event?.persisted) return;
+    channel.renew();
+    restore();
+  };
   target.addEventListener('pagehide', onPagehide);
-  return () => target.removeEventListener('pagehide', onPagehide);
+  target.addEventListener('pageshow', onPageshow);
+  return () => {
+    target.removeEventListener('pagehide', onPagehide);
+    target.removeEventListener('pageshow', onPageshow);
+  };
 }
