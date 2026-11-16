@@ -83,6 +83,12 @@ class FakeNode {
     if (value !== '') this.appendChild(this.ownerDocument.createTextNode(String(value)));
   }
 
+  get outerHTML() {
+    if (this.nodeType === 3) return this.nodeValue;
+    const attrs = [...this.attributes].map(([name, value]) => ` ${name}="${value}"`).join('');
+    return `<${this.localName}${attrs}>${this.childNodes.map(node => node.outerHTML).join('')}</${this.localName}>`;
+  }
+
   appendChild(node) {
     return this.insertBefore(node, null);
   }
@@ -105,6 +111,14 @@ class FakeNode {
     this.childNodes.splice(index, 1);
     node.parentNode = null;
     return node;
+  }
+
+  remove() {
+    this.parentNode?.removeChild(this);
+  }
+
+  replaceWith(replacement) {
+    this.parentNode.replaceChild(replacement, this);
   }
 
   replaceChild(replacement, node) {

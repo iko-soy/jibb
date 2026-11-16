@@ -148,6 +148,7 @@ function updateMetadata(node, vnode, context) {
   metadata.dispatch = context.dispatch;
   metadata.vnode = vnode;
   node[METADATA] = metadata;
+  syncControls(node, vnode);
   if (!previous || metadata.controlType !== controlType(vnode)) {
     installListeners(node, metadata);
   }
@@ -192,7 +193,6 @@ export function createDom(vnode, options = {}) {
     for (const child of vnode.children) {
       node.appendChild(createDom(child, context));
     }
-    syncControls(node, vnode);
   } else {
     throw new TypeError(`Unknown vnode kind ${vnode.kind}`);
   }
@@ -289,6 +289,35 @@ function patchChildren(parent, children, context) {
   }
 }
 
+export function hydrateDom(node, vnode, options = {}) {
+  const context = contextFor(node, null, options);
+  const fresh = createDom(vnode, context);
+  const adopt = (current, vnode, fresh) => {
+    const children = vnode.children;
+    if (!current || !fresh || current.nodeType != (children ? 1 : 3)) throw 0;
+    updateMetadata(current, vnode, context);
+    if (children) {
+      current.removeAttribute('readonly');
+      current.style.cssText && current.setAttribute('style', current.style.cssText);
+      children.forEach((child, index) => {
+        const existing = current.childNodes[index];
+        if (child.text === '' && !existing) {
+          current.appendChild(createDom(child, context));
+        } else {
+          adopt(existing, child, fresh.childNodes[index]);
+        }
+      });
+      if (current.childNodes.length - fresh.childNodes.length) throw 0;
+    }
+  };
+  try {
+    adopt(node, vnode, fresh);
+    if (node.outerHTML == fresh.outerHTML && node.nodeValue == fresh.nodeValue) return node;
+  } catch {}
+  node.replaceWith(fresh);
+  return fresh;
+}
+
 /** Patch a managed node in place, replacing it only when its kind or tag changes. */
 export function patchDom(parent, node, vnode, options = {}) {
   const context = contextFor(node, parent, options);
@@ -319,6 +348,5 @@ export function patchDom(parent, node, vnode, options = {}) {
   updateMetadata(node, vnode, context);
   updateAttributes(node, previous.attrs, vnode.attrs);
   patchChildren(node, vnode.children, context);
-  syncControls(node, vnode);
   return node;
 }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { compiledViewTemplate as viewTemplate } from '../browser/template.mjs';
 import { viewTemplate as publicViewTemplate } from '../core/runtime.mjs';
 import { startIsland } from '../browser/island.mjs';
+import { createDom } from '../browser/dom.mjs';
 import { toVnode } from '../browser/vdom.mjs';
 import { rawSeal } from '../natives/legacy.mjs';
 import { loweredNatives } from '../natives/lowered.mjs';
@@ -42,6 +43,88 @@ test('compiled template keeps static DOM and patches text without interpreting m
   assert.equal(dynamic.nodeValue, '<img src=x onerror=bad()>');
   assert.equal(root.children.length, 1);
   assert.deepEqual(island.vnode, toVnode(draw(island.model)));
+});
+
+test('compiled templates hydrate server DOM before direct updates', () => {
+  const document = createFakeDocument();
+  const initial = cord('first');
+  const server = createDom(toVnode(draw(initial)), { document });
+  document.body.appendChild(server);
+  const heading = server.firstChild;
+  const dynamic = server.lastChild;
+  const view = viewTemplate(model => draw(model), plan, [251], loweredNatives);
+  const island = startIsland({
+    document, container: document.body, s: server, model: initial,
+    program: { init: () => initial, update: ([message]) => [message, 0n], view },
+  });
+  assert.ok(island.template);
+  assert.strictEqual(island.node, server);
+  assert.strictEqual(server.firstChild, heading);
+  assert.strictEqual(server.lastChild, dynamic);
+  island.send(cord('second'));
+  assert.equal(server.textContent, 'Titlesecond');
+  assert.strictEqual(server.firstChild, heading);
+  assert.strictEqual(server.lastChild, dynamic);
+});
+
+test('compiled templates restore empty text holes elided by server HTML', () => {
+  const document = createFakeDocument();
+  const initial = cord('');
+  const server = createDom(toVnode(draw(initial)), { document });
+  document.body.appendChild(server);
+  server.lastChild.remove();
+  const view = viewTemplate(model => draw(model), plan, [251], loweredNatives);
+  const island = startIsland({
+    document, container: document.body, s: server, model: initial,
+    program: { init: () => initial, update: ([message]) => [message, 0n], view },
+  });
+  assert.strictEqual(island.node, server);
+  assert.equal(server.lastChild.nodeValue, '');
+  island.send(cord('second'));
+  assert.equal(server.lastChild.nodeValue, 'second');
+});
+
+test('compiled templates replace non-trailing elided empty text without misbinding holes', () => {
+  const document = createFakeDocument();
+  const initial = cord('');
+  const draw = model => column([text(model), seal('heading', [1n, cord('Title')])]);
+  const plan = ['div', attrs, [0, ['h1', { tabIndex: '-1' }, ['Title']]]];
+  const server = createDom(toVnode(draw(initial)), { document });
+  document.body.appendChild(server);
+  server.firstChild.remove();
+  const view = viewTemplate(model => draw(model), plan, [123], loweredNatives);
+  const island = startIsland({
+    document, container: document.body, s: server, model: initial,
+    program: { init: () => initial, update: ([message]) => [message, 0n], view },
+  });
+  assert.notStrictEqual(island.node, server);
+  assert.equal(island.node.childNodes.length, 2);
+  assert.equal(island.node.firstChild.nodeValue, '');
+  assert.equal(island.node.lastChild.localName, 'h1');
+  island.send(cord('second'));
+  assert.equal(island.node.firstChild.nodeValue, 'second');
+  assert.equal(island.node.lastChild.textContent, 'Title');
+});
+
+test('compiled templates replace merged adjacent text rather than misbinding holes', () => {
+  const document = createFakeDocument();
+  const initial = cord('');
+  const draw = model => column([text(model), text(cord('static'))]);
+  const plan = ['div', attrs, [0, 1]];
+  const server = createDom(toVnode(draw(initial)), { document });
+  document.body.appendChild(server);
+  server.firstChild.nodeValue += server.lastChild.nodeValue;
+  server.lastChild.remove();
+  const view = viewTemplate(model => draw(model), plan, [123, 251], loweredNatives);
+  const island = startIsland({
+    document, container: document.body, s: server, model: initial,
+    program: { init: () => initial, update: ([message]) => [message, 0n], view },
+  });
+  assert.notStrictEqual(island.node, server);
+  assert.equal(island.node.textContent, 'static');
+  assert.equal(island.node.childNodes.length, 2);
+  island.send(cord('second'));
+  assert.equal(island.node.textContent, 'secondstatic');
 });
 
 test('template instances share a descriptor but no DOM or model state', () => {

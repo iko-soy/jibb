@@ -172,12 +172,12 @@ export async function boot({
       showNotice(document, container);
       return;
     }
-    const server = [...container.childNodes];
     const island = new Island({
       program: programOf(loaded.main),
       packedModel: decodeUw(state.textContent.trim()),
       checkedInit: true,
       container,
+      s: container.firstChild,
       document,
       paths,
       // An island that crashes keeps its model and shows the notice
@@ -186,10 +186,7 @@ export async function boot({
     });
     island.start();
     if (!island.active) return;
-    // The island's own view replaces the server's.
-    for (const node of server) {
-      if (node.parentNode === container) container.removeChild(node);
-    }
+    state.remove();
     new Effects({
       island,
       channel,

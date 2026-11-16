@@ -1,7 +1,7 @@
 import { apply, slot } from '../core/runtime.mjs';
 import { validateRawSeal } from '../natives/legacy.mjs';
 import { loweredNatives } from '../natives/lowered.mjs';
-import { createDom, patchDom } from './dom.mjs';
+import { createDom, hydrateDom, patchDom } from './dom.mjs';
 import { atomText, decodeAttrs, toVnode } from './vdom.mjs';
 
 const viewTemplates = new WeakMap();
@@ -47,7 +47,9 @@ export function createViewTemplate(view, value, options) {
     };
   };
   const vnode = make(plan.tree);
-  const node = createDom(vnode, options);
+  const node = options.s
+    ? hydrateDom(options.s, vnode, options)
+    : createDom(vnode, options);
   const holes = [];
   const bind = (tree, vnode, node, parent, index) => {
     if (typeof tree === 'number') {

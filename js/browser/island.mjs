@@ -2,7 +2,7 @@ import { apply, same } from '../core/runtime.mjs';
 import { cue } from '../natives/codec.mjs';
 import { pair, listToArray } from '../natives/helpers.mjs';
 import { restoreSealedModel } from '../natives/legacy.mjs';
-import { createDom, patchDom, syncControls } from './dom.mjs';
+import { createDom, hydrateDom, patchDom, syncControls } from './dom.mjs';
 import { toVnode } from './vdom.mjs';
 import { createViewTemplate } from './template.mjs';
 
@@ -14,6 +14,7 @@ export class Island {
     packedModel,
     checkedInit = false,
     container,
+    s,
     document,
     dispatchCommand,
     onUpdate = () => {},
@@ -26,18 +27,19 @@ export class Island {
     }
     if (!container || !document) throw new TypeError('an island needs a container and document');
     this.program = program;
-    this.data = data;
+    this.d = data;
     this.model = model;
-    this.packedModel = packedModel;
-    this.checkedInit = checkedInit;
+    this.p = packedModel;
+    this.c = checkedInit;
     this.container = container;
+    this.s = s;
     this.document = document;
     this.dispatchCommand = dispatchCommand;
     this.onUpdate = onUpdate;
     this.onCrash = onCrash;
-    this.paths = paths;
-    this.queue = [];
-    this.processing = false;
+    this.r = paths;
+    this.q = [];
+    this.b = false;
     this.active = false;
     this.node = null;
     this.vnode = null;
@@ -48,25 +50,28 @@ export class Island {
     if (this.active) return this;
     try {
       if (this.model === undefined) {
-        if (this.packedModel === undefined) {
-          this.model = apply(this.program.init, this.data);
+        if (this.p === undefined) {
+          this.model = apply(this.program.init, this.d);
         } else {
-          const resumed = cue(this.packedModel);
-          this.model = this.checkedInit ? restoreSealedModel(resumed) : resumed;
+          const resumed = cue(this.p);
+          this.model = this.c ? restoreSealedModel(resumed) : resumed;
         }
       }
       const value = apply(this.program.view, this.model);
       const options = {
         document: this.document,
         dispatch: (message) => this.send(message),
-        paths: this.paths,
+        paths: this.r,
+        s: this.s,
       };
       this.template = createViewTemplate(this.program.view, value, options);
-      this.vnode = this.template?.vnode ?? toVnode(value, this.paths);
-      this.node = this.template?.node ?? createDom(this.vnode, options);
-      this.container.appendChild(this.node);
+      this.vnode = this.template?.vnode ?? toVnode(value, this.r);
+      this.node = this.template?.node ?? (this.s
+        ? hydrateDom(this.s, this.vnode, options)
+        : createDom(this.vnode, options));
+      if (!this.s) this.container.appendChild(this.node);
+      this.s = 0;
       this.active = true;
-      syncControls(this.node, this.vnode);
       this.onUpdate(this);
       return this;
     } catch (error) {
@@ -77,12 +82,12 @@ export class Island {
 
   send(message) {
     if (!this.active) throw new Error('cannot send to a stopped island');
-    this.queue.push(message);
-    if (this.processing) return;
-    this.processing = true;
+    this.q.push(message);
+    if (this.b) return;
+    this.b = true;
     try {
-      while (this.queue.length !== 0) {
-        const current = this.queue.shift();
+      while (this.q.length !== 0) {
+        const current = this.q.shift();
         try {
           this.update(current);
         } catch (error) {
@@ -90,7 +95,7 @@ export class Island {
         }
       }
     } finally {
-      this.processing = false;
+      this.b = false;
     }
   }
 
@@ -112,7 +117,7 @@ export class Island {
       this.template.update(next);
     } else {
       const value = apply(this.program.view, next);
-      vnode = toVnode(value, this.paths);
+      vnode = toVnode(value, this.r);
       node = patchDom(this.container, this.node, vnode, {
         document: this.document,
         dispatch: (reply) => this.send(reply),
@@ -141,7 +146,7 @@ export class Island {
   stop() {
     if (!this.active) return;
     this.active = false;
-    this.queue.length = 0;
+    this.q.length = 0;
     if (this.node.parentNode) this.node.parentNode.removeChild(this.node);
     this.node = null;
     this.vnode = null;

@@ -91,7 +91,7 @@ export function decodeAttrs(raw, layoutClass) {
   const classes = new Map();
   if (layoutClass !== undefined) classes.set('layout', layoutClass);
   const style = {};
-  const attrs = { style };
+  const attrs = { class: layoutClass };
   for (const entry of items(raw, 'attributes')) {
     const [tag, payload] = pair(entry, 'attribute');
     const name = atomText(tag, 'attribute');
@@ -118,7 +118,8 @@ export function decodeAttrs(raw, layoutClass) {
       fail(`unknown attribute %${name}`);
     }
   }
-  if (classes.size) attrs.class = [...classes.values()].join(' ');
+  attrs.class = [...classes.values()].join(' ');
+  attrs.style = style;
   return attrs;
 }
 
@@ -290,10 +291,11 @@ function decode(sealed, paths) {
     case 'toggle': {
       const [on, rest] = pair(payload, 'toggle');
       const [label, message] = pair(rest, 'toggle');
+      const checked = requireLoobean(on);
       return element('input', {
         type: 'checkbox',
-        checked: requireLoobean(on),
         'aria-label': atomText(label, 'toggle label'),
+        checked,
       }, [], { type: 'toggle', message });
     }
     case 'field': {

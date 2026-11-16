@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createDom, patchDom, syncControls } from '../browser/dom.mjs';
+import { createDom, hydrateDom, patchDom, syncControls } from '../browser/dom.mjs';
 import { toVnode } from '../browser/vdom.mjs';
 import { CoreCrash } from '../core/runtime.mjs';
 import { arrayToList, cord } from '../natives/helpers.mjs';
@@ -235,6 +235,47 @@ test('keyed reconciliation preserves identity, focus, and caret through moves', 
   assert.equal(two.selectionDirection, 'forward');
   assert.equal(two.value, 'two');
   assert.equal(two.getAttribute('aria-label'), 'TWO');
+});
+
+test('hydrateDom retains compatible server nodes, removes readonly, and binds keys', () => {
+  const initial = element('div', {}, [field(1n, 'one'), field(2n, 'two')]);
+  const { document, node } = render(initial);
+  const clear = current => {
+    delete current.__jibb;
+    current.childNodes.forEach(clear);
+  };
+  clear(node);
+  const [one, two] = childElements(node);
+  one.setAttribute('readonly', '');
+
+  assert.strictEqual(hydrateDom(node, initial, { document }), node);
+  assert.strictEqual(node.firstChild, one);
+  assert.strictEqual(node.lastChild, two);
+  assert.equal(one.hasAttribute('readonly'), false);
+  assert.strictEqual(one.__jibb.vnode, initial.children[0]);
+  assert.strictEqual(two.__jibb.vnode, initial.children[1]);
+
+  two.focus();
+  two.setSelectionRange(1, 2, 'forward');
+  const reordered = element('div', {}, [field(2n, 'two'), field(1n, 'one')]);
+  patchDom(document.body, node, reordered, { document });
+  assert.deepEqual(childElements(node), [two, one]);
+  assert.equal(document.activeElement, two);
+  assert.equal(two.selectionStart, 1);
+  assert.equal(two.selectionEnd, 2);
+});
+
+test('hydrateDom replaces divergent text, attributes, and child shapes', () => {
+  const desired = element('div', { id: 'root' }, [textNode('wanted')]);
+  for (const mismatch of ['text', 'attribute', 'children']) {
+    const { document, node } = render(desired);
+    if (mismatch === 'text') node.firstChild.nodeValue = 'different';
+    if (mismatch === 'attribute') node.setAttribute('data-old', '');
+    if (mismatch === 'children') node.appendChild(document.createTextNode('extra'));
+    const hydrated = hydrateDom(node, desired, { document });
+    assert.equal(hydrated.textContent, 'wanted');
+    assert.notStrictEqual(hydrated, node);
+  }
 });
 
 test('duplicate keys match in occurrence order and compound keys use noun equality', () => {

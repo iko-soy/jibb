@@ -418,6 +418,27 @@ async function checkDirectCoverage(session, label) {
 
 async function exampleThree(session) {
   const page = `${origin}/apps/my-app`;
+  await session.send('Page.addScriptToEvaluateOnNewDocument', {
+    source: `(() => {
+      window.jibbServerNodes = [];
+      const observer = new MutationObserver(() => {
+        for (const container of document.querySelectorAll('[data-jibb-island]')) {
+          if (container.__jibbCaptured
+            || !container.querySelector('script[type="application/x-jibb-state"]')) continue;
+          const root = container.firstChild;
+          const each = root.querySelector('[data-each]');
+          window.jibbServerNodes.push({
+            container, root, each,
+            field: root.querySelector('input[type="text"]'),
+            button: root.querySelector('button'),
+            rows: each ? [...each.children] : [],
+          });
+          container.__jibbCaptured = true;
+        }
+      });
+      observer.observe(document, { childList: true, subtree: true });
+    })()`,
+  });
   await session.navigate(page);
   const server = await session.evaluate('document.documentElement.outerHTML');
   expect(server.includes('>My ship</h1>'), 'worked example 3 lost its heading');
@@ -425,6 +446,22 @@ async function exampleThree(session) {
     await session.evaluate(`fetch(location.href).then(r => r.text())`)),
   'the server rendered the todo field writable before its island started');
   await session.until('the todo island to start', STARTED);
+  const hydrated = await session.evaluate(`(() => {
+    const [server] = window.jibbServerNodes;
+    if (!server) return { captured: false };
+    const container = document.querySelector('[data-jibb-island]');
+    return {
+      captured: true,
+      container: server.container === container,
+      root: server.root === container.firstChild,
+      field: server.field === container.querySelector('input[type="text"]'),
+      button: server.button === container.querySelector('button'),
+      each: server.each === container.querySelector('[data-each]'),
+      rows: server.rows.every((node, index) => node === server.each.children[index]),
+    };
+  })()`);
+  expect(Object.values(hydrated).every(Boolean),
+    `the todo island replaced its server root, controls or keyed rows during hydration: ${JSON.stringify(hydrated)}`);
   const field = '[data-jibb-island] input[type="text"]';
   const add = '[data-jibb-island] button';
   await guardStaticLayout(session, {

@@ -156,4 +156,8 @@ test('stop detaches the island and rejects later messages', () => {
   island.stop();
   assert.equal(document.body.childNodes.length, 0);
   assert.throws(() => island.send(cord('next')), /stopped island/);
+  island.start();
+  assert.equal(document.body.textContent, 'Count: 0');
+  island.send(cord('increment'));
+  assert.equal(document.body.textContent, 'Count: 1');
 });

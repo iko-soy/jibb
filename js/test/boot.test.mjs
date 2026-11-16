@@ -79,11 +79,11 @@ function page({ islands, stores = {}, sources, section }) {
     base: '/apps/test', ship: '~zod', stores, assets: {}, section,
   })));
   document.body.appendChild(config);
-  const containers = islands.map(({ hash, model }) => {
+  const containers = islands.map(({ hash, model, server }) => {
     const container = document.createElement('div');
     container.setAttribute('data-jibb-island', hash);
-    const first = document.createElement('p');
-    first.appendChild(document.createTextNode('server view'));
+    const first = server?.(document, model) ?? document.createElement('p');
+    if (!server) first.appendChild(document.createTextNode('server view'));
     container.appendChild(first);
     const state = document.createElement('script');
     state.setAttribute('type', 'application/x-jibb-state');
@@ -108,20 +108,43 @@ const noFetch = async () => {
 
 test('boot starts each island from the model the server rendered with', async () => {
   const { document, containers, load, loaded } = page({
-    islands: [{ hash: '0vcounter', model: 41n }],
+    islands: [{
+      hash: '0vcounter', model: 41n,
+      server: (document, model) => {
+        const button = document.createElement('button');
+        button.setAttribute('type', 'button');
+        button.appendChild(document.createTextNode(String(model)));
+        return button;
+      },
+    }],
     sources: { '0vcounter': COUNTER },
   });
+  const server = containers[0].firstChild;
   const [island] = await boot({ document, window: fakeWindow(), load, fetchImpl: noFetch, uid: 'u' });
   assert.deepEqual(loaded, ['/apps/test/~jibb/m/0vcounter.js']);
   const [container] = containers;
-  // The island's own view replaced the server's, state script included.
   assert.equal(container.childNodes.length, 1);
   const button = container.childNodes[0];
+  assert.strictEqual(button, server);
   assert.equal(button.localName, 'button');
   assert.equal(button.textContent, '41');
   button.dispatchEvent(new FakeEvent('click', { bubbles: true }));
   assert.equal(island.model, 42n);
+  assert.strictEqual(container.childNodes[0], button);
   assert.equal(container.childNodes[0].textContent, '42');
+});
+
+test('boot replaces a mismatched server subtree', async () => {
+  const { document, containers, load } = page({
+    islands: [{ hash: '0vcounter', model: 41n }],
+    sources: { '0vcounter': COUNTER },
+  });
+  const server = containers[0].firstChild;
+  await boot({ document, window: fakeWindow(), load, fetchImpl: noFetch, uid: 'u' });
+  assert.notStrictEqual(containers[0].firstChild, server);
+  assert.equal(containers[0].childNodes.length, 1);
+  assert.equal(containers[0].firstChild.localName, 'button');
+  assert.equal(containers[0].textContent, '41');
 });
 
 test('boot restores elements retained in a checked init model and renders them again', async () => {
