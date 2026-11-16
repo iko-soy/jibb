@@ -1,0 +1,4 @@
+/% %todos
++$ paths
+  [%live /todos todos]
+  [%peek /watch todos scry=/peek]

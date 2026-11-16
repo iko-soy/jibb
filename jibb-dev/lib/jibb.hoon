@@ -24213,6 +24213,9 @@
 +$  iav-scope  [file=path frames=(list iav-frame)]
 +$  iav-context  [files=(map path ifile) prelude=ifile graph=irequest-graph modules=(map path module)]
 +$  iav-active  (list [file=path at=span closure=* argument=*])
+::  Within one analysis's fixed context, a definition's value depends only
+::  on its scope, the remaining fuel and the active calls.
++$  iav-memo  (map [scope=iav-scope name=term fuel=@ud active=iav-active] iav-value)
 ++  iav-context-new
   |=  [files=(map path ifile) prelude=ifile graph=irequest-graph]
   ^-  iav-context
@@ -24331,30 +24334,36 @@
   ?.  ?=(%cell -.typ)  ~
   (weld $(typ hed.typ, axis (mul 2 axis), fuel (dec fuel)) $(typ tal.typ, axis +((mul 2 axis)), fuel (dec fuel)))
 ++  iav-field
-  |=  [value=iav-value name=term context=iav-context fuel=@ud]
-  ^-  iav-value
-  (iav-carry (iav-field-raw value name context fuel) ~[value] fuel)
+  |=  [value=iav-value name=term context=iav-context fuel=@ud memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  =^  field=iav-value  memo  (iav-field-raw value name context fuel memo)
+  [(iav-carry field ~[value] fuel) memo]
 ++  iav-field-raw
-  |=  [value=iav-value name=term context=iav-context fuel=@ud]
-  ^-  iav-value
-  ?:  =(0 fuel)  (iav-unknown site.value)
+  |=  [value=iav-value name=term context=iav-context fuel=@ud memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  ?:  =(0 fuel)  [(iav-unknown site.value) memo]
   ?-  -.node.value
-    %data  value
+    %data  [value memo]
     %effects  $(value body.node.value, fuel (dec fuel))
-    %module  (iav-member file.node.value name context (dec fuel) ~)
+    %module  (iav-member file.node.value name context (dec fuel) ~ memo)
     %choice
-      (iav-choice site.value (turn values.node.value |=(v=iav-value (iav-field v name context (dec fuel)))))
+      =/  pending=(list iav-value)  values.node.value
+      =/  fields=(list iav-value)  ~
+      |-
+      ?~  pending  [(iav-choice site.value (flop fields)) memo]
+      =^  field=iav-value  memo  (iav-field i.pending name context (dec fuel) memo)
+      $(pending t.pending, fields [field fields])
     %typed
       =/  typ=itype  typ.node.value
       =/  axes=(list @ud)  (iav-type-field typ name 1 fuel)
       =?  axes  &(?=(~ axes) ?=(?(%face %slot) -.typ))
         (iav-type-field body.typ name 1 fuel)
       ?.  ?=([* ~] axes)  $(value body.node.value, fuel (dec fuel))
-      (iav-axis body.node.value i.axes fuel)
+      [(iav-axis body.node.value i.axes fuel) memo]
     *
       =/  fields=(list iav-value)  (iav-value-fields value name fuel)
-      ?.  ?=([* ~] fields)  (iav-unknown site.value)
-      i.fields
+      ?.  ?=([* ~] fields)  [(iav-unknown site.value) memo]
+      [i.fields memo]
   ==
 ++  iav-value-fields
   |=  [value=iav-value name=term fuel=@ud]
@@ -24373,69 +24382,76 @@
   ?~  parsed  ~
   `[file ~[[~ defs.u.parsed]]]
 ++  iav-member
-  |=  [file=path name=term context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
+  |=  [file=path name=term context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
   =/  site=iav-site  [file *span]
-  ?:  =(0 fuel)  [site %limit ~]
+  ?:  =(0 fuel)  [[site %limit ~] memo]
   ?:  &(=(file /lib/jibb/primitives/jibb) =(name %raw-seal))
     =/  primitives=ifile  private-primitive-interface
-    ?~  (ienv-lookup %raw-seal values.primitives)  (iav-unknown site)
-    [site %seal ~]
+    ?~  (ienv-lookup %raw-seal values.primitives)  [(iav-unknown site) memo]
+    [[site %seal ~] memo]
   =/  iface=(unit ifile)  (~(get by files.context) file)
-  ?~  iface  (iav-unknown site)
+  ?~  iface  [(iav-unknown site) memo]
   =/  selected=ijimports  ~[[%selected u.iface]]
   ?:  |(?=(^ (derived-request-member name %selected selected graph.context prelude.context)) ?=(^ (derived-store-request-member name %selected selected graph.context prelude.context)))
-    [site %request-gate file name]
+    [[site %request-gate file name] memo]
   =/  scope=(unit iav-scope)  (iav-module-scope file context)
-  ?~  scope  (iav-unknown site)
-  =/  value=iav-value  (iav-lookup name u.scope context (dec fuel) active |)
+  ?~  scope  [(iav-unknown site) memo]
+  =^  value=iav-value  memo  (iav-lookup name u.scope context (dec fuel) active | memo)
   =/  scheme=(unit ischeme)  (ienv-lookup name values.u.iface)
-  ?~  scheme  value
+  ?~  scheme  [value memo]
   =/  typ=(unit itype)  (scheme-display-type u.scheme)
-  ?~  typ  value
-  [site.value %typed u.typ value]
+  ?~  typ  [value memo]
+  [[site.value %typed u.typ value] memo]
+::  References to a definition with the same memo key share one evaluation
+::  instead of re-evaluating the definition at each reference.
 ++  iav-lookup
-  |=  [name=term scope=iav-scope context=iav-context fuel=@ud active=iav-active fallback=?]
-  ^-  iav-value
+  |=  [name=term scope=iav-scope context=iav-context fuel=@ud active=iav-active fallback=? memo=iav-memo]
+  ^-  [iav-value iav-memo]
   =/  missing=iav-site  [file.scope *span]
-  ?:  =(0 fuel)  [missing %limit ~]
+  ?:  =(0 fuel)  [[missing %limit ~] memo]
   ?^  frames.scope
     =/  frame=iav-frame  i.frames.scope
     =/  binding=(list [name=term value=iav-value])
       (skim bindings.frame |=(b=[name=term value=iav-value] =(name name.b)))
-    ?^  binding  value.i.binding
+    ?^  binding  [value.i.binding memo]
     =/  written=(list def)
       (skim defs.frame |=(d=def &(?=(%value -.d) =(name name.d))))
     ?^  written
       =/  d=def  i.written
       ?>  ?=(%value -.d)
-      (iav-eval val.d scope context (dec fuel) active)
+      =/  key=[scope=iav-scope name=term fuel=@ud active=iav-active]  [scope name fuel active]
+      =/  known=(unit iav-value)  (~(get by memo) key)
+      ?^  known  [u.known memo]
+      =^  value=iav-value  memo  (iav-eval val.d scope context (dec fuel) active memo)
+      [value (~(put by memo) key value)]
     $(scope scope(frames t.frames.scope), fuel (dec fuel))
   =/  parsed=(unit module)  (~(get by modules.context) file.scope)
-  ?~  parsed  (iav-unknown missing)
+  ?~  parsed  [(iav-unknown missing) memo]
   =/  imports=(list import)
     (skim imports.u.parsed |=(i=import &(?=(%jibb -.i) =(name face.i))))
   ?^  imports
     =/  i=import  i.imports
     ?>  ?=(%jibb -.i)
-    [missing %module (weld path.i `path`~[~.jibb])]
+    [[missing %module (weld path.i `path`~[~.jibb])] memo]
   =/  groups=(list iprelude-group)
     (skim groups.prelude.context |=(g=iprelude-group =(name face.g)))
-  ?:  ?=([* ~] groups)  [missing %module at.i.groups]
+  ?:  ?=([* ~] groups)  [[missing %module at.i.groups] memo]
   ?:  &(fallback !=(file.scope at.prelude.context))
-    (iav-member at.prelude.context name context (dec fuel) active)
-  (iav-unknown missing)
+    (iav-member at.prelude.context name context (dec fuel) active memo)
+  [(iav-unknown missing) memo]
 ++  iav-wing
-  |=  [names=(list term) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
-  ?~  names  (iav-unknown site)
+  |=  [names=(list term) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  ?~  names  [(iav-unknown site) memo]
   =/  order=(list term)  (flop names)
-  ?~  order  (iav-unknown site)
-  =/  value=iav-value  (iav-lookup i.order scope context fuel active &)
+  ?~  order  [(iav-unknown site) memo]
+  =^  value=iav-value  memo  (iav-lookup i.order scope context fuel active & memo)
   =/  fields=(list term)  t.order
   |-
-  ?~  fields  value
-  $(value (iav-field value i.fields context fuel), fields t.fields)
+  ?~  fields  [value memo]
+  =^  next=iav-value  memo  (iav-field value i.fields context fuel memo)
+  $(value next, fields t.fields)
 ++  iav-bind-sample
   |=  [sample=sample value=iav-value fuel=@ud]
   ^-  (list [name=term value=iav-value])
@@ -24510,26 +24526,32 @@
   (iav-key-embeds before after 1.024)
 ::
 ++  iav-call
-  |=  [gate=iav-value arg=iav-value site=iav-site context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
-  (iav-carry (iav-call-raw gate arg site context fuel active) ~[gate arg] fuel)
+  |=  [gate=iav-value arg=iav-value site=iav-site context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  =^  result=iav-value  memo  (iav-call-raw gate arg site context fuel active memo)
+  [(iav-carry result ~[gate arg] fuel) memo]
 ++  iav-call-raw
-  |=  [gate=iav-value arg=iav-value site=iav-site context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
-  ?:  =(0 fuel)  [site %limit ~]
+  |=  [gate=iav-value arg=iav-value site=iav-site context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  ?:  =(0 fuel)  [[site %limit ~] memo]
   ?-  -.node.gate
     %typed
       =/  typ=itype  (projection-field-target typ.node.gate)
       ?.  ?=(%fn -.typ)  $(gate body.node.gate, fuel (dec fuel))
       =/  input=iav-value  [site.arg %typed sample.typ arg]
-      =/  output=iav-value  $(gate body.node.gate, arg input, fuel (dec fuel))
-      [site %typed product.typ output]
+      =^  output=iav-value  memo  $(gate body.node.gate, arg input, fuel (dec fuel))
+      [[site %typed product.typ output] memo]
     ?(%face %effects)  $(gate body.node.gate, fuel (dec fuel))
     %choice
-      (iav-choice site (turn values.node.gate |=(g=iav-value (iav-call g arg site context (dec fuel) active))))
-    %seal  (iav-seal arg site fuel)
-    %request-gate  [site %request file.node.gate name.node.gate]
-    %constructor  [site %cell [site %atom tag.node.gate] arg]
+      =/  pending=(list iav-value)  values.node.gate
+      =/  results=(list iav-value)  ~
+      |-
+      ?~  pending  [(iav-choice site (flop results)) memo]
+      =^  result=iav-value  memo  (iav-call i.pending arg site context (dec fuel) active memo)
+      $(pending t.pending, results [result results])
+    %seal  [(iav-seal arg site fuel) memo]
+    %request-gate  [[site %request file.node.gate name.node.gate] memo]
+    %constructor  [[site %cell [site %atom tag.node.gate] arg] memo]
     %closure
       =/  identity=*  [sample.node.gate body.node.gate frames.node.gate]
       =/  current-key=*  (iav-value-key arg 32)
@@ -24542,51 +24564,54 @@
         (iav-carry [site.arg %data ~] ~[arg] fuel)
       =/  key=[file=path at=span closure=* argument=*]
         [file.node.gate at.site.gate identity (iav-value-key arg 32)]
-      ?:  (lien active |=(k=[file=path at=span closure=* argument=*] =(k key)))  (iav-unknown site)
+      ?:  (lien active |=(k=[file=path at=span closure=* argument=*] =(k key)))  [(iav-unknown site) memo]
       =/  outer=iav-scope  [file.node.gate frames.node.gate]
       =/  sampled=isample-result  (infer-sample sample.node.gate ~ (iav-mold-state outer context))
       =?  arg  ?=(%& -.sampled)
         [site.arg %typed (itype-normalize typ.p.sampled sub.state.p.sampled) arg]
       =/  bindings=(list [name=term value=iav-value])  (iav-bind-sample sample.node.gate arg fuel)
       =/  scope=iav-scope  [file.node.gate [[bindings ~] frames.node.gate]]
-      (iav-at-call (iav-eval body.node.gate scope context (dec fuel) [key active]) site)
-    %bottom  [site %bottom ~]
-    *  (iav-unknown site)
+      =^  body=iav-value  memo  (iav-eval body.node.gate scope context (dec fuel) [key active] memo)
+      [(iav-at-call body site) memo]
+    %bottom  [[site %bottom ~] memo]
+    *  [(iav-unknown site) memo]
   ==
 ++  iav-eval-list
-  |=  [items=(list expr) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active tuple=?]
-  ^-  iav-value
-  ?:  =(0 fuel)  [site %limit ~]
-  ?~  items  [site %atom 0]
-  =/  head=iav-value  (iav-eval i.items scope context (dec fuel) active)
-  ?:  &(tuple ?=(~ t.items))  head
-  [site %cell head $(items t.items, fuel (dec fuel))]
+  |=  [items=(list expr) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active tuple=? memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  ?:  =(0 fuel)  [[site %limit ~] memo]
+  ?~  items  [[site %atom 0] memo]
+  =^  head=iav-value  memo  (iav-eval i.items scope context (dec fuel) active memo)
+  ?:  &(tuple ?=(~ t.items))  [head memo]
+  =^  rest=iav-value  memo  $(items t.items, fuel (dec fuel))
+  [[site %cell head rest] memo]
 ++  iav-eval-items
-  |=  [items=(list item) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
-  ?:  |(=(0 fuel) ?=(~ items))  (iav-unknown site)
-  =/  head=iav-value  (iav-eval val.i.items scope context (dec fuel) active)
+  |=  [items=(list item) site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  ?:  |(=(0 fuel) ?=(~ items))  [(iav-unknown site) memo]
+  =^  head=iav-value  memo  (iav-eval val.i.items scope context (dec fuel) active memo)
   =?  head  ?=(^ face.i.items)
     [site.head %face u.face.i.items head]
-  ?~  t.items  head
-  [site %cell head $(items t.items, fuel (dec fuel))]
+  ?~  t.items  [head memo]
+  =^  rest=iav-value  memo  $(items t.items, fuel (dec fuel))
+  [[site %cell head rest] memo]
 ++  iav-projection
-  |=  [e=expr scope=iav-scope context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
+  |=  [e=expr scope=iav-scope context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
   =/  site=iav-site  [file.scope (span-of e)]
   =/  iface=(unit ifile)  (~(get by files.context) file.scope)
-  ?~  iface  (iav-unknown site)
+  ?~  iface  [(iav-unknown site) memo]
   =/  projections=(list iwprojection)
     (zing (turn elaborations.u.iface |=(d=iwidth-definition projections.d)))
   =/  matching=(list iwprojection)
     (skim projections |=(p=iwprojection =(at.p (span-of e))))
-  ?.  ?=([* ~] matching)  (iav-unknown site)
+  ?.  ?=([* ~] matching)  [(iav-unknown site) memo]
   =/  projection=iwprojection  i.matching
-  ?.  ?=(%call -.e)  (iav-unknown site)
-  ?.  ?=([* ~] args.e)  (iav-unknown site)
-  =/  source=iav-value  (iav-eval i.args.e scope context fuel active)
+  ?.  ?=(%call -.e)  [(iav-unknown site) memo]
+  ?.  ?=([* ~] args.e)  [(iav-unknown site) memo]
+  =^  source=iav-value  memo  (iav-eval i.args.e scope context fuel active memo)
   =/  value=iav-value  (iav-project-steps steps.projection source site fuel)
-  [site %typed target.projection value]
+  [[site %typed target.projection value] memo]
 ++  iav-project-steps
   |=  [steps=(list iwstep) source=iav-value site=iav-site fuel=@ud]
   ^-  iav-value
@@ -24667,29 +24692,30 @@
   =/  changed=iav-value  $(value field, names t.names, fuel (dec fuel))
   (iav-set-axis value i.axes changed fuel)
 ++  iav-change
-  |=  [value=iav-value edits=(list edit) scope=iav-scope context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
-  ?:  =(0 fuel)  [site.value %limit ~]
-  ?~  edits  value
-  =/  replacement=iav-value  (iav-eval val.i.edits scope context (dec fuel) active)
+  |=  [value=iav-value edits=(list edit) scope=iav-scope context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  ?:  =(0 fuel)  [[site.value %limit ~] memo]
+  ?~  edits  [value memo]
+  =^  replacement=iav-value  memo  (iav-eval val.i.edits scope context (dec fuel) active memo)
   =/  changed=iav-value  (iav-change-wing value (flop names.i.edits) replacement fuel)
   $(value (iav-carry changed ~[value replacement] fuel), edits t.edits, fuel (dec fuel))
 ++  iav-eval
-  |=  [e=expr scope=iav-scope context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
+  |=  [e=expr scope=iav-scope context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
   =/  site=iav-site  [file.scope (span-of e)]
-  ?:  =(0 fuel)  [site %limit ~]
+  ?:  =(0 fuel)  [[site %limit ~] memo]
   =.  fuel  (dec fuel)
   ?-  -.e
-    %lit  [site %atom val.lit.e]
+    %lit  [[site %atom val.lit.e] memo]
     %str
       ?:  (lien pieces.e |=(p=piece ?=(%expr -.p)))
-        =/  values=(list iav-value)
-          %+  murn  pieces.e
-          |=  p=piece
-          ?.  ?=(%expr -.p)  ~
-          `(iav-eval p.p scope context fuel active)
-        (iav-carry (iav-unknown site) values fuel)
+        =/  pending=(list piece)  pieces.e
+        =/  values=(list iav-value)  ~
+        |-
+        ?~  pending  [(iav-carry (iav-unknown site) (flop values) fuel) memo]
+        ?.  ?=(%expr -.i.pending)  $(pending t.pending)
+        =^  value=iav-value  memo  (iav-eval p.i.pending scope context fuel active memo)
+        $(pending t.pending, values [value values])
       =/  parts=(list @t)
         %+  turn  pieces.e
         |=  p=piece
@@ -24697,38 +24723,52 @@
           %text  p.p
           %expr  ''
         ==
-      [site %atom (rap 3 parts)]
-    %path  (iav-unknown site)
+      [[site %atom (rap 3 parts)] memo]
+    %path  [(iav-unknown site) memo]
     %qath
-      =/  values=(list iav-value)
-        %+  murn  segs.e
-        |=  p=qseg
-        ?.  ?=(%expr -.p)  ~
-        `(iav-eval p.p scope context fuel active)
-      (iav-carry (iav-unknown site) values fuel)
-    %wing  (iav-wing names.e site scope context fuel active)
+      =/  pending=(list qseg)  segs.e
+      =/  values=(list iav-value)  ~
+      |-
+      ?~  pending  [(iav-carry (iav-unknown site) (flop values) fuel) memo]
+      ?.  ?=(%expr -.i.pending)  $(pending t.pending)
+      =^  value=iav-value  memo  (iav-eval p.i.pending scope context fuel active memo)
+      $(pending t.pending, values [value values])
+    %wing  (iav-wing names.e site scope context fuel active memo)
     %group  $(e inner.e)
-    %cast  (iav-cast shape.e $(e val.e) scope context)
-    %trace  (iav-carry $(e then.e) ~[$(e val.e)] fuel)
-    %unit  [site %cell [site %atom 0] $(e val.e)]
-    %pair  [site %cell [site %atom tag.e] $(e val.e)]
-    %list  (iav-eval-list items.e site scope context fuel active |)
-    %tuple  (iav-eval-items items.e site scope context fuel active)
-    ?(%gate %gate-wide)  [site %closure file.scope sample.e body.e frames.scope]
-    %ctor  [site %constructor val.tag.e]
+    %cast
+      =^  value=iav-value  memo  $(e val.e)
+      [(iav-cast shape.e value scope context) memo]
+    %trace
+      =^  then=iav-value  memo  $(e then.e)
+      =^  shown=iav-value  memo  $(e val.e)
+      [(iav-carry then ~[shown] fuel) memo]
+    %unit
+      =^  value=iav-value  memo  $(e val.e)
+      [[site %cell [site %atom 0] value] memo]
+    %pair
+      =^  value=iav-value  memo  $(e val.e)
+      [[site %cell [site %atom tag.e] value] memo]
+    %list  (iav-eval-list items.e site scope context fuel active | memo)
+    %tuple  (iav-eval-items items.e site scope context fuel active memo)
+    ?(%gate %gate-wide)  [[site %closure file.scope sample.e body.e frames.scope] memo]
+    %ctor  [[site %constructor val.tag.e] memo]
     %call
       ?:  &(?=(%wing -.head.e) =(names.head.e ~[%unface]) ?=([* ~] args.e))
         $(e i.args.e)
       ?:  &(?=(%wing -.head.e) =(names.head.e ~[%proj]))
-        (iav-projection e scope context fuel active)
-      =/  gate=iav-value  $(e head.e)
-      =/  arg=iav-value  (iav-eval-list args.e site scope context fuel active &)
-      (iav-call gate arg site context fuel active)
+        (iav-projection e scope context fuel active memo)
+      =^  gate=iav-value  memo  $(e head.e)
+      =^  arg=iav-value  memo  (iav-eval-list args.e site scope context fuel active & memo)
+      (iav-call gate arg site context fuel active memo)
     %body
       $(e final.e, scope scope(frames [[~ defs.e] frames.scope]))
-    %branch  (iav-branch arms.e $(e subject.e) site scope context fuel active)
-    %change  (iav-change (iav-wing target.e site scope context fuel active) edits.e scope context fuel active)
-    %crash  [site %bottom ~]
+    %branch
+      =^  subject=iav-value  memo  $(e subject.e)
+      (iav-branch arms.e subject site scope context fuel active memo)
+    %change
+      =^  target=iav-value  memo  (iav-wing target.e site scope context fuel active memo)
+      (iav-change target edits.e scope context fuel active memo)
+    %crash  [[site %bottom ~] memo]
   ==
 ++  iav-pattern
   |=  [pat=pattern value=iav-value fuel=@ud]
@@ -24746,45 +24786,56 @@
       [& | ~]
     %cell
       ?~  items.pat  [| | ~]
-      ?:  &(?=(^ t.items.pat) ?=(%atom -.node.plain))  [| | ~]
-      =/  parts=[possible=? certain=? bindings=(list [name=term value=iav-value])]
-        (iav-patterns items.pat value 1 (dec fuel))
-      parts(certain &(certain.parts |(?=(~ t.items.pat) ?=(%cell -.node.plain))))
+      (iav-patterns items.pat value 1 (dec fuel))
   ==
+::  A written tuple [p q r] is [p [q r]]: the value at each tuple axis,
+::  including every tail the flat form leaves implicit, must be a cell.
+::  The tuple matches certainly only if each of those values is a known cell
+::  and each item matches certainly, and cannot match where one is an atom.
 ++  iav-patterns
   |=  [patterns=(list pattern) value=iav-value axis=@ud fuel=@ud]
   ^-  [possible=? certain=? bindings=(list [name=term value=iav-value])]
   ?:  |(=(0 fuel) ?=(~ patterns))  [& | ~]
-  =/  at-axis=@ud  ?~(t.patterns axis (mul 2 axis))
+  ?~  t.patterns  (iav-pattern i.patterns (iav-axis value axis fuel) (dec fuel))
+  =/  tuple=iav-value  (iav-plain (iav-axis-raw value axis fuel))
+  ?:  ?=(%atom -.node.tuple)  [| | ~]
   =/  first=[possible=? certain=? bindings=(list [name=term value=iav-value])]
-    (iav-pattern i.patterns (iav-axis value at-axis fuel) (dec fuel))
-  ?:  |(!possible.first ?=(~ t.patterns))  first
+    (iav-pattern i.patterns (iav-axis value (mul 2 axis) fuel) (dec fuel))
+  ?.  possible.first  first
   =/  rest=[possible=? certain=? bindings=(list [name=term value=iav-value])]
     $(patterns t.patterns, axis +((mul 2 axis)), fuel (dec fuel))
-  [&(possible.first possible.rest) &(certain.first certain.rest) (weld bindings.first bindings.rest)]
+  [possible.rest &(?=(%cell -.node.tuple) certain.first certain.rest) (weld bindings.first bindings.rest)]
 ++  iav-branch
-  |=  [arms=(list arm) value=iav-value site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
-  (iav-carry (iav-branch-raw arms value site scope context fuel active) ~[value] fuel)
+  |=  [arms=(list arm) value=iav-value site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  =^  result=iav-value  memo  (iav-branch-raw arms value site scope context fuel active memo)
+  [(iav-carry result ~[value] fuel) memo]
+::  Arms are analysed in order until one certainly matches; any arm that
+::  may run contributes its body.
 ++  iav-branch-raw
-  |=  [arms=(list arm) value=iav-value site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active]
-  ^-  iav-value
-  ?:  =(0 fuel)  [site %limit ~]
+  |=  [arms=(list arm) value=iav-value site=iav-site scope=iav-scope context=iav-context fuel=@ud active=iav-active memo=iav-memo]
+  ^-  [iav-value iav-memo]
+  ?:  =(0 fuel)  [[site %limit ~] memo]
   =/  plain=iav-value  (iav-plain value)
   ?:  ?=(%choice -.node.plain)
-    (iav-choice site (turn values.node.plain |=(v=iav-value (iav-branch arms v site scope context (dec fuel) active))))
-  ?:  ?=(%bottom -.node.plain)  plain
+    =/  pending=(list iav-value)  values.node.plain
+    =/  results=(list iav-value)  ~
+    |-
+    ?~  pending  [(iav-choice site (flop results)) memo]
+    =^  result=iav-value  memo  (iav-branch arms i.pending site scope context (dec fuel) active memo)
+    $(pending t.pending, results [result results])
+  ?:  ?=(%bottom -.node.plain)  [plain memo]
   =/  output=(list iav-value)  ~
   |-
-  ?~  arms  (iav-choice site (flop output))
-  ?:  =(0 fuel)  (iav-choice site [(iav-unknown site) (flop output)])
+  ?~  arms  [(iav-choice site (flop output)) memo]
+  ?:  =(0 fuel)  [(iav-choice site [(iav-unknown site) (flop output)]) memo]
   =/  matching=[possible=? certain=? bindings=(list [name=term value=iav-value])]
     (iav-pattern pat.i.arms value fuel)
   ?.  possible.matching  $(arms t.arms, fuel (dec fuel))
-  =/  body=iav-value
-    (iav-eval val.i.arms scope(frames [[bindings.matching ~] frames.scope]) context (dec fuel) active)
+  =^  body=iav-value  memo
+    (iav-eval val.i.arms scope(frames [[bindings.matching ~] frames.scope]) context (dec fuel) active memo)
   =.  output  [body output]
-  ?:  certain.matching  (iav-choice site (flop output))
+  ?:  certain.matching  [(iav-choice site (flop output)) memo]
   $(arms t.arms, fuel (dec fuel))
 ::  A checked source dependency provides closure bodies, never a capability.
 ++  iav-add-dependencies
@@ -24899,31 +24950,33 @@
       `["cannot prove the contents of this subscription list" ~[(iav-diagnostic-site site.value "subscription list or tail is unresolved" context)]]
   ==
 ++  iav-program-diagnostic
-  |=  [program=iav-value context=iav-context fuel=@ud seen=(list *)]
-  ^-  (unit idiag)
+  |=  [program=iav-value context=iav-context fuel=@ud seen=(list *) memo=iav-memo]
+  ^-  [(unit idiag) iav-memo]
   ?:  =(0 fuel)
-    `["cannot inspect this island program within the analysis budget" ~[(iav-diagnostic-site site.program "island program" context)]]
-  =/  subs=iav-value  (iav-field program %subs context fuel)
+    [`["cannot inspect this island program within the analysis budget" ~[(iav-diagnostic-site site.program "island program" context)]] memo]
+  =^  subs=iav-value  memo  (iav-field program %subs context fuel memo)
   =/  model=iav-value  (iav-unknown site.subs)
-  =/  result=iav-value  (iav-call subs model site.subs context fuel ~)
+  =^  result=iav-value  memo  (iav-call subs model site.subs context fuel ~ memo)
   =/  failure=(unit idiag)  (iav-watch-list result context fuel)
-  ?^  failure  failure
-  =/  view=iav-value  (iav-field program %view context fuel)
-  =/  rendered=iav-value  (iav-call view model site.view context fuel ~)
-  (iav-check-obligations (weld (iav-checks result fuel) (iav-checks rendered fuel)) context (dec fuel) seen)
+  ?^  failure  [failure memo]
+  =^  view=iav-value  memo  (iav-field program %view context fuel memo)
+  =^  rendered=iav-value  memo  (iav-call view model site.view context fuel ~ memo)
+  (iav-check-obligations (weld (iav-checks result fuel) (iav-checks rendered fuel)) context (dec fuel) seen memo)
 ++  iav-check-obligations
-  |=  [pending=(list iav-value) context=iav-context fuel=@ud seen=(list *)]
-  ^-  (unit idiag)
-  ?~  pending  ~
+  |=  [pending=(list iav-value) context=iav-context fuel=@ud seen=(list *) memo=iav-memo]
+  ^-  [(unit idiag) iav-memo]
+  ?~  pending  [~ memo]
   =/  program=iav-value  i.pending
   ?:  |(=(0 fuel) ?=(%limit -.node.program))
-    `["cannot inspect this element's island constructions within the analysis budget" ~[(iav-diagnostic-site site.program "element construction" context)]]
+    [`["cannot inspect this element's island constructions within the analysis budget" ~[(iav-diagnostic-site site.program "element construction" context)]] memo]
   =/  key=*  (iav-value-key program 128)
   ?:  (lien seen |=(prior=* =(prior key)))  $(pending t.pending)
   =.  seen  [key seen]
-  =/  failure=(unit idiag)  (iav-program-diagnostic program context (dec fuel) seen)
-  ?^  failure  failure
+  =^  failure=(unit idiag)  memo  (iav-program-diagnostic program context (dec fuel) seen memo)
+  ?^  failure  [failure memo]
   $(pending t.pending, fuel (dec fuel))
+::  A memo holds values computed under one context, so each analysis
+::  starts its own.
 ++  program-value-watch-diagnostic
   |=  [candidate=ifile cache=jcache imports=ijimports prelude=ifile graph=irequest-graph]
   ^-  (unit idiag)
@@ -24931,18 +24984,19 @@
   =/  selected=(list ifile)  (turn imports |=(i=[face=term interface=ifile] interface.i))
   =/  files=(map path ifile)  (iav-add-files (weld cached (weld selected ~[prelude candidate])) *(map path ifile))
   =/  context=iav-context  (iav-context-new files prelude graph)
-  =/  main=iav-value  (iav-member at.candidate %main context 1.024 ~)
+  =/  memo=iav-memo  ~
+  =^  main=iav-value  memo  (iav-member at.candidate %main context 1.024 ~ memo)
   =/  kind=(unit checked-kind)  (checked-main-kind candidate `prelude)
   ?~  kind  ~
-  =/  root=(unit idiag)
-    ?.  =(%island u.kind)  ~
-    (iav-program-diagnostic main context 1.024 ~)
+  =^  root=(unit idiag)  memo
+    ?.  =(%island u.kind)  [~ memo]
+    (iav-program-diagnostic main context 1.024 ~ memo)
   ?^  root  root
-  =/  rendered=iav-value
-    ?.  =(%page u.kind)  main
-    =/  view=iav-value  (iav-field main %view context 1.024)
-    (iav-call view (iav-unknown site.view) site.view context 1.024 ~)
-  (iav-check-obligations (iav-checks rendered 1.024) context 1.024 ~)
+  =^  rendered=iav-value  memo
+    ?.  =(%page u.kind)  [main memo]
+    =^  view=iav-value  memo  (iav-field main %view context 1.024 memo)
+    (iav-call view (iav-unknown site.view) site.view context 1.024 ~ memo)
+  -:(iav-check-obligations (iav-checks rendered 1.024) context 1.024 ~ memo)
 ::
 ++  derived-request-member
   |=  [case=term face=term imports=ijimports graph=irequest-graph prelude=ifile]

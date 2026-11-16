@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, watch proofs skip arms that run
+tests: a flat pattern whose every tail is a known cell matches certainly, so later arms do not run and the island checks
+expect: parses
+expect-types: full checker result

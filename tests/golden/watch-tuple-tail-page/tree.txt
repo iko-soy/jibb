@@ -1,0 +1,68 @@
+(module
+  (mold 1:1 model (aura 1:10 @ud))
+  (mold 2:1 msg (const 2:8 %ok))
+  (value 3:1 init
+    (gate 3:9
+      (face 3:12 data (aura 3:17 @t))
+      (cast 3:20 (ref 3:23 model) (lit 3:29 0))))
+  (value 4:1 update
+    (gate 4:11
+      (cell 4:14
+        (face 4:15 m (ref 4:17 msg))
+        (face 4:21 s (ref 4:23 model)))
+      (cast 4:30
+        (cell 4:33
+          (ref 4:34 model)
+          (apply 4:40 list
+            (apply 4:46 cmd (ref 4:51 msg))))
+        (tuple 4:58 (wing 4:59 s) (lit 4:61 ~)))))
+  (value 5:1 iview
+    (gate 5:10
+      (face 5:13 s (ref 5:15 model))
+      (cast 5:21
+        (apply 5:24 element (ref 5:33 msg))
+        (group 5:38
+          (call 5:39 (wing 5:39 text) (str 5:44 "ok"))))))
+  (value 6:1 isubs
+    (gate 6:10
+      (face 6:13 s (ref 6:15 model))
+      (cast 6:21
+        (apply 6:24 list
+          (apply 6:30 sub (ref 6:35 msg)))
+        (list 6:41
+          (tuple 6:43
+            (lit 6:44 %watch)
+            (group 6:51
+              (call 6:52 (wing 6:52 pure) (lit 6:57 %ok))))))))
+  (value 7:1 bad-p
+    (group 7:10
+      (call 7:11 (wing 7:11 program) (wing 7:19 init) (wing 7:24 update) (wing 7:31 iview) (wing 7:37 isubs))))
+  (value 8:1 none
+    (cast 8:9
+      (apply 8:12 list (aura 8:18 @ud))
+      (lit 8:23 ~)))
+  (value 9:1 main
+    (group 9:9
+      (call 9:10 (wing 9:10 page) (wing 9:15 load) (wing 9:20 view))))
+  (value 10:1 load
+    (gate 10:9
+      (const 10:12 ~)
+      (group 10:14
+        (call 10:15 (wing 10:15 pure) (wing 10:20 none)))))
+  (value 11:1 view
+    (gate 11:9
+      (face 11:12 xs
+        (apply 11:15 list (aura 11:21 @ud)))
+      (cast 11:26
+        (apply 11:29 element (void 11:38))
+        (body 12:3
+          (branch 12:3
+            (tuple 12:6 (lit 12:7 1) (wing 12:9 xs))
+            (arm 13:3
+              (cell 13:3 (bind 13:4 n) (bind 13:6 i) (bind 13:8 t))
+              (group 13:11
+                (call 13:12 (wing 13:12 text) (str 13:17 "ok"))))
+            (arm 14:3
+              (cell 14:3 (bind 14:4 n) (lit 14:6 ~))
+              (group 14:9
+                (call 14:10 (wing 14:10 island) (wing 14:17 bad-p) (str 14:23 "x"))))))))))

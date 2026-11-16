@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, exponential watch analysis (probe s04, extended)
+tests: a proved watchable request reaches a watch through 30 doubly referenced definitions; the shared values keep its proof
+expect: parses
+expect-types: full checker result

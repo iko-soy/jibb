@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, watch proofs skip arms that run
+tests: a flat pattern needing a cell where the known value has an atom cannot match, so its arm's request is never watched and the island checks
+expect: parses
+expect-types: full checker result

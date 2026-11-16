@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, watch proofs skip arms that run (probe q07)
+tests: a page view arm embedding an island may run when an earlier flat pattern meets an unknown tail, so the embedded program is checked
+expect: parses
+expect-types: exact full-checker error

@@ -1,0 +1,170 @@
+(module
+  (value 1:1 fst
+    (gate 1:8
+      (face 1:11 p
+        (cell 1:13 (tvar 1:14 A) (tvar 1:16 B)))
+      (body 2:3
+        (branch 2:3
+          (wing 2:6 p)
+          (arm 3:3
+            (cell 3:3 (bind 3:4 a) (bind 3:6 b))
+            (wing 3:9 a))))))
+  (value 4:1 a0 (lit 4:7 1))
+  (value 5:1 a1
+    (group 5:7
+      (call 5:8
+        (wing 5:8 fst)
+        (tuple 5:12 (wing 5:13 a0) (wing 5:16 a0)))))
+  (value 6:1 a2
+    (group 6:7
+      (call 6:8
+        (wing 6:8 fst)
+        (tuple 6:12 (wing 6:13 a1) (wing 6:16 a1)))))
+  (value 7:1 a3
+    (group 7:7
+      (call 7:8
+        (wing 7:8 fst)
+        (tuple 7:12 (wing 7:13 a2) (wing 7:16 a2)))))
+  (value 8:1 a4
+    (group 8:7
+      (call 8:8
+        (wing 8:8 fst)
+        (tuple 8:12 (wing 8:13 a3) (wing 8:16 a3)))))
+  (value 9:1 a5
+    (group 9:7
+      (call 9:8
+        (wing 9:8 fst)
+        (tuple 9:12 (wing 9:13 a4) (wing 9:16 a4)))))
+  (value 10:1 a6
+    (group 10:7
+      (call 10:8
+        (wing 10:8 fst)
+        (tuple 10:12 (wing 10:13 a5) (wing 10:16 a5)))))
+  (value 11:1 a7
+    (group 11:7
+      (call 11:8
+        (wing 11:8 fst)
+        (tuple 11:12 (wing 11:13 a6) (wing 11:16 a6)))))
+  (value 12:1 a8
+    (group 12:7
+      (call 12:8
+        (wing 12:8 fst)
+        (tuple 12:12 (wing 12:13 a7) (wing 12:16 a7)))))
+  (value 13:1 a9
+    (group 13:7
+      (call 13:8
+        (wing 13:8 fst)
+        (tuple 13:12 (wing 13:13 a8) (wing 13:16 a8)))))
+  (value 14:1 a10
+    (group 14:8
+      (call 14:9
+        (wing 14:9 fst)
+        (tuple 14:13 (wing 14:14 a9) (wing 14:17 a9)))))
+  (value 15:1 a11
+    (group 15:8
+      (call 15:9
+        (wing 15:9 fst)
+        (tuple 15:13 (wing 15:14 a10) (wing 15:18 a10)))))
+  (value 16:1 a12
+    (group 16:8
+      (call 16:9
+        (wing 16:9 fst)
+        (tuple 16:13 (wing 16:14 a11) (wing 16:18 a11)))))
+  (value 17:1 a13
+    (group 17:8
+      (call 17:9
+        (wing 17:9 fst)
+        (tuple 17:13 (wing 17:14 a12) (wing 17:18 a12)))))
+  (value 18:1 a14
+    (group 18:8
+      (call 18:9
+        (wing 18:9 fst)
+        (tuple 18:13 (wing 18:14 a13) (wing 18:18 a13)))))
+  (value 19:1 a15
+    (group 19:8
+      (call 19:9
+        (wing 19:9 fst)
+        (tuple 19:13 (wing 19:14 a14) (wing 19:18 a14)))))
+  (value 20:1 a16
+    (group 20:8
+      (call 20:9
+        (wing 20:9 fst)
+        (tuple 20:13 (wing 20:14 a15) (wing 20:18 a15)))))
+  (value 21:1 a17
+    (group 21:8
+      (call 21:9
+        (wing 21:9 fst)
+        (tuple 21:13 (wing 21:14 a16) (wing 21:18 a16)))))
+  (value 22:1 a18
+    (group 22:8
+      (call 22:9
+        (wing 22:9 fst)
+        (tuple 22:13 (wing 22:14 a17) (wing 22:18 a17)))))
+  (value 23:1 a19
+    (group 23:8
+      (call 23:9
+        (wing 23:9 fst)
+        (tuple 23:13 (wing 23:14 a18) (wing 23:18 a18)))))
+  (value 24:1 a20
+    (group 24:8
+      (call 24:9
+        (wing 24:9 fst)
+        (tuple 24:13 (wing 24:14 a19) (wing 24:18 a19)))))
+  (value 25:1 a21
+    (group 25:8
+      (call 25:9
+        (wing 25:9 fst)
+        (tuple 25:13 (wing 25:14 a20) (wing 25:18 a20)))))
+  (value 26:1 a22
+    (group 26:8
+      (call 26:9
+        (wing 26:9 fst)
+        (tuple 26:13 (wing 26:14 a21) (wing 26:18 a21)))))
+  (value 27:1 a23
+    (group 27:8
+      (call 27:9
+        (wing 27:9 fst)
+        (tuple 27:13 (wing 27:14 a22) (wing 27:18 a22)))))
+  (value 28:1 a24
+    (group 28:8
+      (call 28:9
+        (wing 28:9 fst)
+        (tuple 28:13 (wing 28:14 a23) (wing 28:18 a23)))))
+  (value 29:1 a25
+    (group 29:8
+      (call 29:9
+        (wing 29:9 fst)
+        (tuple 29:13 (wing 29:14 a24) (wing 29:18 a24)))))
+  (value 30:1 a26
+    (group 30:8
+      (call 30:9
+        (wing 30:9 fst)
+        (tuple 30:13 (wing 30:14 a25) (wing 30:18 a25)))))
+  (value 31:1 a27
+    (group 31:8
+      (call 31:9
+        (wing 31:9 fst)
+        (tuple 31:13 (wing 31:14 a26) (wing 31:18 a26)))))
+  (value 32:1 a28
+    (group 32:8
+      (call 32:9
+        (wing 32:9 fst)
+        (tuple 32:13 (wing 32:14 a27) (wing 32:18 a27)))))
+  (value 33:1 a29
+    (group 33:8
+      (call 33:9
+        (wing 33:9 fst)
+        (tuple 33:13 (wing 33:14 a28) (wing 33:18 a28)))))
+  (value 34:1 a30
+    (group 34:8
+      (call 34:9
+        (wing 34:9 fst)
+        (tuple 34:13 (wing 34:14 a29) (wing 34:18 a29)))))
+  (value 35:1 main
+    (group 35:9
+      (call 35:10
+        (wing 35:10 fst)
+        (tuple 35:14
+          (group 35:15
+            (call 35:16 (wing 35:16 text) (str 35:21 "x")))
+          (wing 35:26 a30))))))

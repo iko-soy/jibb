@@ -1,0 +1,34 @@
+module kind: static-page
+++ fst: $-([A B] A)
+++ a0: @ud
+++ a1: @ud
+++ a2: @ud
+++ a3: @ud
+++ a4: @ud
+++ a5: @ud
+++ a6: @ud
+++ a7: @ud
+++ a8: @ud
+++ a9: @ud
+++ a10: @ud
+++ a11: @ud
+++ a12: @ud
+++ a13: @ud
+++ a14: @ud
+++ a15: @ud
+++ a16: @ud
+++ a17: @ud
+++ a18: @ud
+++ a19: @ud
+++ a20: @ud
+++ a21: @ud
+++ a22: @ud
+++ a23: @ud
+++ a24: @ud
+++ a25: @ud
+++ a26: @ud
+++ a27: @ud
+++ a28: @ud
+++ a29: @ud
+++ a30: @ud
+++ main: (element !!)

@@ -1,0 +1,7 @@
+++ main: an island may watch only a request whose origin is proved watchable
+/ui/watcher.jibb:14:12: watch subscription
+  [i ~] ~[[%watch (peek.demo |=%got)]]
+           ^
+/ui/watcher.jibb:14:20: this request has no watchability proof
+  [i ~] ~[[%watch (peek.demo |=%got)]]
+                   ^

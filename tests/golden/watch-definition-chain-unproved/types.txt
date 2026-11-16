@@ -1,0 +1,7 @@
+++ main: an island may watch only a request whose origin is proved watchable
+/ui/watch-check.jibb:7:43: watch subscription
+++ subs |= s=model ^- (list (sub msg)) ~[[%watch r30]]
+                                          ^
+/ui/watch-check.jibb:41:9: this request has no watchability proof
+++ r30 (fst [r29 r29])
+        ^

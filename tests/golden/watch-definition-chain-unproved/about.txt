@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, exponential watch analysis (probe s04, extended)
+tests: an unproved request reaches a watch through 30 doubly referenced definitions; the shared values keep the diagnostic
+expect: parses
+expect-types: exact full-checker error

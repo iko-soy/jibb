@@ -1,0 +1,41 @@
++$ model @ud
++$ msg %ok
+++ main (program init update view subs)
+++ init |= data=@t ^- model 0
+++ update |= [m=msg s=model] ^- [model (list (cmd msg))] [s ~]
+++ view |= s=model ^- (element msg) (text "ok")
+++ subs |= s=model ^- (list (sub msg)) ~[[%watch r30]]
+++ fst |= p=[A B]
+  ?- p
+  [a b] a
+++ r0 ^- (ask msg) (pure %ok)
+++ r1 (fst [r0 r0])
+++ r2 (fst [r1 r1])
+++ r3 (fst [r2 r2])
+++ r4 (fst [r3 r3])
+++ r5 (fst [r4 r4])
+++ r6 (fst [r5 r5])
+++ r7 (fst [r6 r6])
+++ r8 (fst [r7 r7])
+++ r9 (fst [r8 r8])
+++ r10 (fst [r9 r9])
+++ r11 (fst [r10 r10])
+++ r12 (fst [r11 r11])
+++ r13 (fst [r12 r12])
+++ r14 (fst [r13 r13])
+++ r15 (fst [r14 r14])
+++ r16 (fst [r15 r15])
+++ r17 (fst [r16 r16])
+++ r18 (fst [r17 r17])
+++ r19 (fst [r18 r18])
+++ r20 (fst [r19 r19])
+++ r21 (fst [r20 r20])
+++ r22 (fst [r21 r21])
+++ r23 (fst [r22 r22])
+++ r24 (fst [r23 r23])
+++ r25 (fst [r24 r24])
+++ r26 (fst [r25 r25])
+++ r27 (fst [r26 r26])
+++ r28 (fst [r27 r27])
+++ r29 (fst [r28 r28])
+++ r30 (fst [r29 r29])

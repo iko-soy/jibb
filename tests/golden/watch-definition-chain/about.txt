@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, exponential watch analysis (probe s04, extended)
+tests: each definition references the previous one twice; the watch analysis evaluates each reference once instead of 2^30 times
+expect: parses
+expect-types: full checker result

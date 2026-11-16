@@ -1,0 +1,10 @@
++$ model (list @ud)
++$ msg %ok
+++ main (program init update view subs)
+++ init |= data=@t ^- model ~
+++ update |= [m=msg s=model] ^- [model (list (cmd msg))] [s ~]
+++ view |= s=model ^- (element msg) (text "ok")
+++ subs |= s=model ^- (list (sub msg))
+  ?- [1 s]
+  [n i t] ~
+  [n ~] ~[[%watch (pure %ok)]]

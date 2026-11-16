@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, watch proofs skip arms that run (probe q23)
+tests: the flat pattern [i j k] needs a cell tail, so it cannot match ~[1]; the [i ~] arm runs and its unproved watch is diagnosed
+expect: parses
+expect-types: exact full-checker error

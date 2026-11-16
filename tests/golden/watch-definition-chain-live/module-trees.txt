@@ -1,0 +1,11 @@
+/ui/api/demo.jibb
+(module
+  (mark 1:1 %todos)
+  (mold 2:1 paths
+    (union 3:3
+      (cell 3:3 (const 3:4 %live) (path 3:10 /todos) (ref 3:17 todos))
+      (cell 4:3
+        (const 4:4 %peek)
+        (path 4:10 /watch)
+        (ref 4:17 todos)
+        (face 4:23 scry (path 4:28 /peek))))))

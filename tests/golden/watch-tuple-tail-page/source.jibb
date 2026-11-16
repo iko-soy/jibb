@@ -1,0 +1,14 @@
++$ model @ud
++$ msg %ok
+++ init |= data=@t ^- model 0
+++ update |= [m=msg s=model] ^- [model (list (cmd msg))] [s ~]
+++ iview |= s=model ^- (element msg) (text "ok")
+++ isubs |= s=model ^- (list (sub msg)) ~[[%watch (pure %ok)]]
+++ bad-p (program init update iview isubs)
+++ none ^- (list @ud) ~
+++ main (page load view)
+++ load |= ~ (pure none)
+++ view |= xs=(list @ud) ^- (element !!)
+  ?- [1 xs]
+  [n i t] (text "ok")
+  [n ~] (island bad-p "x")

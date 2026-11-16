@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, watch proofs skip arms that run (probe q04)
+tests: an unknown model tail is not known to be a cell, so the flat pattern [n i t] is uncertain and the later arm's unproved watch is diagnosed
+expect: parses
+expect-types: exact full-checker error

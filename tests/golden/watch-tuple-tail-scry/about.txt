@@ -1,0 +1,4 @@
+source: 2026-11-16 audit section 10, watch proofs skip arms that run (probe u01)
+tests: a request whose case has a separate scry= path is not watchable; the arm watching it runs for ~[1] although an earlier flat pattern looks like a match
+expect: parses
+expect-types: exact full-checker error

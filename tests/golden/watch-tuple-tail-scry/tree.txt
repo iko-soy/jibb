@@ -1,0 +1,62 @@
+(module
+  (jibb 1:1 demo /ui/api/demo)
+  (mold 2:1 model (aura 2:10 @ud))
+  (mold 3:1 msg
+    (union 4:3
+      (cell 4:3
+        (const 4:4 %got)
+        (face 4:9 ts (ref 4:12 todos.demo)))
+      (const 5:3 %idle)))
+  (value 6:1 main
+    (group 6:9
+      (call 6:10 (wing 6:10 program) (wing 6:18 init) (wing 6:23 update) (wing 6:30 view) (wing 6:35 subs))))
+  (value 7:1 init
+    (gate 7:9
+      (face 7:12 data (aura 7:17 @t))
+      (cast 7:20 (ref 7:23 model) (lit 7:29 0))))
+  (value 8:1 update
+    (gate 8:11
+      (cell 8:14
+        (face 8:15 m (ref 8:17 msg))
+        (face 8:21 s (ref 8:23 model)))
+      (cast 8:30
+        (cell 8:33
+          (ref 8:34 model)
+          (apply 8:40 list
+            (apply 8:46 cmd (ref 8:51 msg))))
+        (tuple 8:58 (wing 8:59 s) (lit 8:61 ~)))))
+  (value 9:1 view
+    (gate 9:9
+      (face 9:12 s (ref 9:14 model))
+      (cast 9:20
+        (apply 9:23 element (ref 9:32 msg))
+        (group 9:37
+          (call 9:38 (wing 9:38 text) (str 9:43 "ok"))))))
+  (value 10:1 one
+    (cast 10:8
+      (apply 10:11 list (aura 10:17 @ud))
+      (list 10:22 (lit 10:24 1))))
+  (value 11:1 subs
+    (gate 11:9
+      (face 11:12 s (ref 11:14 model))
+      (cast 11:20
+        (apply 11:23 list
+          (apply 11:29 sub (ref 11:34 msg)))
+        (body 12:3
+          (branch 12:3
+            (wing 12:6 one)
+            (arm 13:3
+              (cell 13:3 (bind 13:4 i) (bind 13:6 j) (bind 13:8 k))
+              (list 13:11
+                (tuple 13:13
+                  (lit 13:14 %watch)
+                  (group 13:21
+                    (call 13:22 (wing 13:22 live.demo) (ctor 13:32 %got))))))
+            (arm 14:3
+              (cell 14:3 (bind 14:4 i) (lit 14:6 ~))
+              (list 14:9
+                (tuple 14:11
+                  (lit 14:12 %watch)
+                  (group 14:19
+                    (call 14:20 (wing 14:20 peek.demo) (ctor 14:30 %got))))))
+            (arm 15:3 (lit 15:3 ~) (lit 15:5 ~))))))))
