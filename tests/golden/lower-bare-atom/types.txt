@@ -1,0 +1,5 @@
+module kind: library
+++ n: @
+++ shown: @t
+++ traced: @t
+++ place: qath

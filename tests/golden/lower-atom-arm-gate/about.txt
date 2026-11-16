@@ -1,0 +1,5 @@
+source: Core language tab, Lowering, the `?- s` row: "a decision tree of `if`, `cell?`, `eq` and `slot`, built by the usual pattern-matrix algorithm; binders become `let`s"
+tests: an atom arm whose body holds a gate: the gate's sample `k` is its own lambda's name, not a `let` of the match subject around the arm, which shadowed it
+expect: parses
+expect-types: full checker result
+expect-core: full checker lowering

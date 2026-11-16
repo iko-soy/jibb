@@ -1,0 +1,1 @@
+(module lower/multi-column (def pick (lam _1 (let m (slot 2 _1) (let on (slot 3 _1) (let _2 (cons m on) (let _3 (slot 2 _2) (if (cell? _3) (let _4 (slot 2 _3) (if (eq _4 %set) (let _5 (slot 3 _2) (if (eq _5 %.y) (let v (slot 5 _2) v) 0)) 0)) (if (eq _3 %inc) (let _6 (slot 3 _2) (if (eq _6 %.y) 1 0)) (if (eq _3 %dec) (let _7 (slot 3 _2) (if (eq _7 %.y) 2 0)) 0))))))))))

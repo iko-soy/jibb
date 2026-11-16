@@ -42,3 +42,4 @@ extra-nested-lets
 extra-trace
 extra-closed-inner-lambda
 extra-checked-recursive-facts
+linked-self-tail-shadowed

@@ -9,6 +9,8 @@
 /*  todo-item  %txt  /my-app/mar/todo-item/hoon
 /*  todo-api  %txt  /my-app/ui/api/todo/jibb
 /*  todo-source  %txt  /my-app/ui/todo-list/jibb
+/*  basket-source  %txt  /my-app/ui/basket/jibb
+/*  cart-source  %txt  /my-app/ui/stores/cart/jibb
 |%
 ++  text
   |=  lines=wain
@@ -520,4 +522,293 @@
   ?.  =(expected (print-expr:jibb-core p.linked))
     ~[leaf+(trip (print-expr:jibb-core p.linked))]
   ~
+::
+::  Core has no shadowing (core-language.md): no binding hides a name in
+::  scope, a module's own definitions included. The first one that does.
+++  shadowed-name
+  |=  [e=expr:jibb-core bound=(list name:jibb-core)]
+  ^-  (unit name:jibb-core)
+  ?-  -.e
+    ?(%lit %var %native %crash)  ~
+    %cons   (shadowed-first ~[hed.e tal.e] bound)
+    %slot   $(e body.e)
+    %edit   (shadowed-first ~[body.e value.e] bound)
+    %cell   $(e body.e)
+    %eq     (shadowed-first ~[left.e right.e] bound)
+    %if     (shadowed-first ~[test.e yes.e no.e] bound)
+    %app    (shadowed-first ~[fun.e sample.e] bound)
+    %trace  (shadowed-first ~[message.e body.e] bound)
+    %let
+      =/  value=(unit name:jibb-core)  $(e value.e)
+      ?^  value  value
+      ?:  (lien bound |=(n=name:jibb-core =(n name.e)))  `name.e
+      $(e body.e, bound [name.e bound])
+    %lam
+      ?:  (lien bound |=(n=name:jibb-core =(n sample.e)))  `sample.e
+      $(e body.e, bound [sample.e bound])
+    %rec
+      =/  names=(list name:jibb-core)  (turn arms.e |=(a=rec-arm:jibb-core name.a))
+      =/  hidden=(list name:jibb-core)
+        (skim names |=(n=name:jibb-core (lien bound |=(b=name:jibb-core =(b n)))))
+      ?^  hidden  `i.hidden
+      =/  inner=(list name:jibb-core)  (weld names bound)
+      =/  in-arms=(unit name:jibb-core)
+        (shadowed-first (turn arms.e |=(a=rec-arm:jibb-core fun.a)) inner)
+      ?^  in-arms  in-arms
+      $(e body.e, bound inner)
+  ==
+++  shadowed-first
+  |=  [es=(list expr:jibb-core) bound=(list name:jibb-core)]
+  ^-  (unit name:jibb-core)
+  ?~  es  ~
+  =/  first=(unit name:jibb-core)  (shadowed-name i.es bound)
+  ?^  first  first
+  $(es t.es)
+++  module-shadowing
+  |=  m=module:jibb-core
+  ^-  (unit @t)
+  =/  names=(list name:jibb-core)  (turn defs.m |=(d=definition:jibb-core name.d))
+  =/  defs=(list definition:jibb-core)  defs.m
+  |-
+  ?~  defs  ~
+  =/  hidden=(unit name:jibb-core)  (shadowed-name value.i.defs names)
+  ?^  hidden
+    `(rap 3 ~[(print-path:jibb-core at.m) ':' (print-name:jibb-core name.i.defs) ' rebinds ' (print-name:jibb-core u.hidden)])
+  $(defs t.defs)
+::
+++  prepared-groups
+  ^-  (unit iprelude:jibb)
+  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+::  Lower with the prepared public prelude's interface and native table.
+++  lower-with-prelude
+  |=  [prepared=iprelude:jibb at=path src=@t]
+  ^-  (each module:jibb-core @t)
+  =/  built=jlowering-result:jibb
+    (check-jibb-file-for-lowering:jibb at src ~ ~ ~ ~[at] values.prepared molds.prepared ~ `iface.prepared)
+  ?:  ?=(%| -.built)  [%| message.p.built]
+  (lower-checked-module:jibb-lower root.p.built)
+++  expect-prelude-source
+  |=  [prepared=iprelude:jibb src=@t expected=@t]
+  ^-  tang
+  =/  built=(each module:jibb-core @t)  (lower-with-prelude prepared /tests/lower/case/jibb src)
+  ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
+  =/  actual=@t  (print-module:jibb-core p.built)
+  ?.  =(expected actual)  ~[leaf+(trip actual)]
+  =/  hidden=(unit @t)  (module-shadowing p.built)
+  ?^  hidden  ~[leaf+(trip u.hidden)]
+  ~
+::
+::  After a failed cell? test, every atom row still tests the column it
+::  is on: %dec once took %inc's arm untested.
+++  test-two-atom-cases-beside-cells
+  ^-  tang
+  =/  src=@t
+    (text ~['+$ msg' '  %inc' '  %dec' '  [%set to=@ud]' '++ step |= m=msg ^- @ud' '  ?- m' '  %inc 1' '  %dec 2' '  [%set v] v'])
+  =/  expected=@t
+    '(module tests/lower/case (def step (lam m (if (cell? m) (let v (slot 3 m) v) (if (eq m %inc) 1 2)))))'
+  (expect-source src expected)
+++  test-atom-cases-wildcard-and-columns
+  ^-  tang
+  =/  wild=@t
+    (text ~['+$ key' '  %up' '  %down' '  %left' '  [%char c=@t]' '++ dir |= k=key ^- @ud' '  ?- k' '  %up 1' '  [%char c] 4' '  %down 2' '  * 0'])
+  =/  wild-expected=@t
+    '(module tests/lower/case (def dir (lam k (if (cell? k) (let _1 (slot 2 k) (if (eq _1 %char) (let c (slot 3 k) 4) 0)) (if (eq k %up) 1 (if (eq k %down) 2 0))))))'
+  =/  first=tang  (expect-source wild wild-expected)
+  ?^  first  first
+  =/  columns=@t
+    (text ~['+$ msg' '  %inc' '  %dec' '  [%set to=@ud]' '++ pick |= [m=msg on=?] ^- @ud' '  ?- [m on]' '  [%inc %.y] 1' '  [%dec %.y] 2' '  [[%set v] %.y] v' '  [* %.n] 0'])
+  =/  columns-expected=@t
+    '(module tests/lower/case (def pick (lam _1 (let m (slot 2 _1) (let on (slot 3 _1) (let _2 (cons m on) (let _3 (slot 2 _2) (if (cell? _3) (let _4 (slot 2 _3) (if (eq _4 %set) (let _5 (slot 3 _2) (if (eq _5 %.y) (let v (slot 5 _2) v) 0)) 0)) (if (eq _3 %inc) (let _6 (slot 3 _2) (if (eq _6 %.y) 1 0)) (if (eq _3 %dec) (let _7 (slot 3 _2) (if (eq _7 %.y) 2 0)) 0))))))))))'
+  (expect-source columns columns-expected)
+::
+::  An arm's span runs to the end of its body. It binds only its own
+::  pattern's names, never those of a match or gate in that body, and a
+::  loobean test, which is never bound, has arms that bind nothing.
+++  test-arms-bind-only-their-patterns
+  ^-  tang
+  =/  prepared=(unit iprelude:jibb)  prepared-groups
+  ?~  prepared  ~[leaf+"real prelude did not prepare"]
+  =/  act=(list @t)  ~['+$ act' '  %reset' '  [%set to=@ud]']
+  =/  nested=@t
+    %-  text
+    (weld act ~['++ apply |= [a=act xs=(list @ud)] ^- @ud' '  ?- a' '  %reset' '    ?- xs' '    ~ 0' '    [first rest] first' '  [%set to] to'])
+  =/  nested-expected=@t
+    '(module tests/lower/case (def apply (lam _1 (let a (slot 2 _1) (let xs (slot 3 _1) (if (cell? a) (let to (slot 3 a) to) (if (cell? xs) (let rest (slot 3 xs) (let first (slot 2 xs) first)) 0)))))))'
+  =/  one=tang  (expect-prelude-source u.prepared nested nested-expected)
+  ?^  one  one
+  =/  gate=@t
+    %-  text
+    (weld act ~['++ bump |= [a=act xs=(list @ud)] ^- (list @ud)' '  ?- a' '  %reset (turn xs |=(k=@ud (add k 1)))' '  [%set to] xs'])
+  =/  gate-expected=@t
+    '(module tests/lower/case (def bump (lam _1 (let a (slot 2 _1) (let xs (slot 3 _1) (if (cell? a) (let to (slot 3 a) xs) (app turn (cons xs (lam k (app (native add) (cons k 1)))))))))))'
+  =/  two=tang  (expect-prelude-source u.prepared gate gate-expected)
+  ?^  two  two
+  =/  loobean=@t
+    %-  text
+    :~  '++ take |= args=[@ud (list @ud)] ^- (list @ud)'
+        '  ?- args'
+        '  [count xs]'
+        '    ?- (eq count 0)'
+        '    %.y ~'
+        '    %.n'
+        '      ?- xs'
+        '      ~ ~'
+        '      [item rest] [item (take (dec count) rest)]'
+    ==
+  =/  loobean-expected=@t
+    '(module tests/lower/case (def take (lam args (let xs (slot 3 args) (let count (slot 2 args) (if (app (native eq) (cons count 0)) ~ (if (cell? xs) (let rest (slot 3 xs) (let item (slot 2 xs) (cons item (app take (cons (app (native dec) count) rest))))) ~)))))))'
+  (expect-prelude-source u.prepared loobean loobean-expected)
+::
+::  The fast path's arms are loobean literals: one claiming a binder must
+::  fail closed rather than bind from a test that was never named.
+++  test-unbound-loobean-test-binds-nothing
+  ^-  tang
+  =/  built=jlowering-result:jibb
+    (check /tests/lower/case/jibb '++ choose |= b=? ?- b\0a  %.y 1\0a  %.n 0\0a' ~)
+  ?:  ?=(%| -.built)  ~[leaf+(trip message.p.built)]
+  =/  root=checked-module:jibb  root.p.built
+  ?.  ?=([* ~] matches.root)  ~[leaf+"loobean match artifact is missing"]
+  =/  match=lowering-match:jibb  i.matches.root
+  ?.  ?=([* * ~] arms.match)  ~[leaf+"loobean match does not have two arms"]
+  =/  claimed=lowering-binder:jibb
+    [pattern.i.arms.match %choose %b [%local %b at.pattern.i.arms.match] [%flag ~] 1]
+  =/  forged=checked-module:jibb
+    root(matches ~[match(refinements ~[claimed])])
+  =/  lowered=(each module:jibb-core @t)  (lower-checked-module:jibb-lower forged)
+  ?.  ?=(%| -.lowered)  ~[leaf+"a loobean arm bound a name from an unbound test"]
+  ?.  =('an unbound match test cannot bind pattern names at 2:3' p.lowered)
+    ~[leaf+(trip p.lowered)]
+  ~
+::
+::  The prelude's own scag, turn, weld and fall once rebound their nested
+::  matches' and gates' names around whole arms.
+++  test-lowered-prelude-has-no-shadowing
+  ^-  tang
+  =/  prepared=(unit iprelude-lowering:jibb)  prepared-for-lowering
+  ?~  prepared  ~[leaf+"real prelude did not prepare for lowering"]
+  =/  modules=jlowering-cache:jibb  cache.u.prepared
+  ?.  ?=(^ (find-jlowering-cache:jibb /lib/jibb/prelude/jibb modules))
+    ~[leaf+"prepared cache lacks the public prelude"]
+  ?.  ?=(^ (find-jlowering-cache:jibb /lib/jibb/internal/jibb modules))
+    ~[leaf+"prepared cache lacks the private internal prelude"]
+  |-
+  ?~  modules  ~
+  =/  lowered=(each module:jibb-core @t)  (lower-checked-module:jibb-lower artifact.i.modules)
+  ?:  ?=(%| -.lowered)  ~[leaf+(trip (rap 3 ~[(crip (spud at.i.modules)) ': ' p.lowered]))]
+  =/  hidden=(unit @t)  (module-shadowing p.lowered)
+  ?^  hidden  ~[leaf+(trip u.hidden)]
+  $(modules t.modules)
+::
+++  test-generated-names-are-undotted
+  ^-  tang
+  =/  state=lowering-state:jibb-lower  [*checked-module:jibb 1.000 |]
+  =/  made=[name=name:jibb-core state=lowering-state:jibb-lower]  (fresh:jibb-lower state)
+  ?.  =([%generated '_1000'] name.made)
+    ~[leaf+(trip (print-name:jibb-core name.made))]
+  ?.  =(1.001 next.state.made)  ~[leaf+"the generated-name counter did not advance"]
+  =/  e=expr:jibb-core  [%lam name.made [%var name.made]]
+  =/  printed=@t  (print-expr:jibb-core e)
+  ?.  =('(lam _1000 _1000)' printed)  ~[leaf+(trip printed)]
+  =/  read=(each expr:jibb-core @t)
+    (read-expr:jibb-core printed *(map name:jibb-core native:jibb-core))
+  ?.  =([%& e] read)  ~[leaf+"the 1000th generated name did not read back"]
+  ~
+::
+::  A bare @ prints as @ud, in {…} and in a (…) path segment.
+++  test-bare-atom-prints-as-ud
+  ^-  tang
+  =/  src=@t
+    (text ~['++ n ^- @ 5' '++ shown "n is {n}"' '++ traced' '  ~& n' '    "done"' '++ place %/posts/(n)'])
+  =/  built=(each [root=checked-module:jibb cache=jlowering-cache:jibb core=module:jibb-core] @t)
+    (lower-with-real-prelude /tests/lower/bare-atom/jibb src)
+  ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
+  =/  expected=@t
+    '(module tests/lower/bare-atom (def n 5) (def shown (app (native join) (cons "" (cons "n is " (cons (app (native scot) (cons %ud n)) ~))))) (def traced (trace (app (native scot) (cons %ud n)) "done")) (def place (cons ~.posts (cons (app (native scot) (cons %ud n)) ~))))'
+  =/  actual=@t  (print-module:jibb-core core.p.built)
+  ?.  =(expected actual)  ~[leaf+(trip actual)]
+  ~
+::
+::  Checked arithmetic calls are the authenticated natives, not the
+::  prelude's unary recursion.
+++  test-arithmetic-natives-from-checked-prelude
+  ^-  tang
+  =/  src=@t
+    %-  text
+    :~  '++ diff |= [a=@ud b=@ud] (sub a b)'
+        '++ times |= [a=@ud b=@ud] (mul a b)'
+        '++ split |= [a=@ud b=@ud] (dvr a b)'
+        '++ quot |= [a=@ud b=@ud] (div a b)'
+        '++ rem |= [a=@ud b=@ud] (mod a b)'
+        '++ power |= [a=@ud b=@ud] (pow a b)'
+    ==
+  =/  built=(each [root=checked-module:jibb cache=jlowering-cache:jibb core=module:jibb-core] @t)
+    (lower-with-real-prelude /tests/lower/arithmetic/jibb src)
+  ?:  ?=(%| -.built)  ~[leaf+(trip p.built)]
+  =/  expected=@t
+    '(module tests/lower/arithmetic (def diff (lam _1 (let a (slot 2 _1) (let b (slot 3 _1) (app (native sub) (cons a b)))))) (def times (lam _1 (let a (slot 2 _1) (let b (slot 3 _1) (app (native mul) (cons a b)))))) (def split (lam _1 (let a (slot 2 _1) (let b (slot 3 _1) (app (native dvr) (cons a b)))))) (def quot (lam _1 (let a (slot 2 _1) (let b (slot 3 _1) (app (native div) (cons a b)))))) (def rem (lam _1 (let a (slot 2 _1) (let b (slot 3 _1) (app (native mod) (cons a b)))))) (def power (lam _1 (let a (slot 2 _1) (let b (slot 3 _1) (app (native pow) (cons a b)))))))'
+  =/  actual=@t  (print-module:jibb-core core.p.built)
+  ?.  =(expected actual)  ~[leaf+(trip actual)]
+  =/  natives=(list term)  natives.root.p.built
+  ?.  (levy `(list term)`~[%sub %mul %dvr %div %mod %pow] |=(n=term (lien natives |=(m=term =(m n)))))
+    ~[leaf+"the arithmetic natives are not available to the checked module"]
+  ~
+::
+::  The Grammar tab's basket: two atom messages beside cell messages, each
+::  poking its own action.
+++  test-basket-update-tests-each-message
+  ^-  tang
+  =/  prepared=(unit iprelude-lowering:jibb)  prepared-for-lowering
+  ?~  prepared  ~[leaf+"real prelude did not prepare for lowering"]
+  =/  cart-at=path  /ui/stores/cart/jibb
+  =/  at=path  /ui/basket/jibb
+  =/  built=jlowering-result:jibb
+    (check-jibb-file-for-lowering-prepared:jibb at (text basket-source) ~ ~ ~[[cart-at (text cart-source)]] ~[at] ~ u.prepared)
+  ?:  ?=(%| -.built)  ~[leaf+(trip message.p.built)]
+  =/  lowered=(each module:jibb-core @t)  (lower-checked-module:jibb-lower root.p.built)
+  ?:  ?=(%| -.lowered)  ~[leaf+(trip p.lowered)]
+  =/  updates=(list definition:jibb-core)
+    (skim defs.p.lowered |=(d=definition:jibb-core =([%own %update] name.d)))
+  ?.  ?=([* ~] updates)  ~[leaf+"lowered basket update is missing"]
+  =/  expected=@t
+    '(def update (lam _1 (let msg (slot 2 _1) (let m (slot 3 _1) (if (cell? msg) (let _2 (slot 2 msg) (if (eq _2 %noted) (let t (slot 3 msg) (cons (edit 3 m t) ~)) (if (eq _2 %got) (let c (slot 3 msg) (cons (edit 2 m c) ~)) (let err (slot 3 msg) (cons m ~))))) (if (eq msg %add) (cons (edit 3 m "") (cons (app stores/cart:poke (cons (cons %add (slot 3 m)) (lam _3 (cons %acked _3)))) ~)) (cons m (cons (app stores/cart:poke (cons %toggle (lam _4 (cons %acked _4)))) ~))))))))'
+  =/  actual=@t  (print-definition:jibb-core i.updates)
+  ?.  =(expected actual)  ~[leaf+(trip actual)]
+  ~
+::
+::  The prelude's calls of its own arithmetic resolve to the same checked
+::  definitions as other modules' calls, so they are the same natives:
+::  sqt, and div and mod through dvr, never reach the unary source.
+++  test-prelude-arithmetic-calls-natives
+  ^-  tang
+  =/  prepared=(unit iprelude-lowering:jibb)  prepared-for-lowering
+  ?~  prepared  ~[leaf+"real prelude did not prepare for lowering"]
+  =/  public=(unit checked-module:jibb)
+    (find-jlowering-cache:jibb /lib/jibb/prelude/jibb cache.u.prepared)
+  ?~  public  ~[leaf+"prepared cache lacks the public prelude"]
+  =/  lowered=(each module:jibb-core @t)  (lower-checked-module:jibb-lower u.public)
+  ?:  ?=(%| -.lowered)  ~[leaf+(trip p.lowered)]
+  =/  expected=(list [name=term core=@t])
+    :~  :-  %sub
+        '(def sub (lam args (let b (slot 3 args) (let a (slot 2 args) (if (app (native eq) (cons b 0)) a (app (native sub) (cons (app (native dec) a) (app (native dec) b))))))))'
+        :-  %mul
+        '(def mul (lam args (let b (slot 3 args) (let a (slot 2 args) (if (app (native eq) (cons a 0)) a (app (native add) (cons b (app (native mul) (cons (app (native dec) a) b)))))))))'
+        :-  %dvr
+        '(def dvr (lam args (let b (slot 3 args) (let a (slot 2 args) (if (app (native eq) (cons b 0)) (crash) (if (app (native gth) (cons b a)) (cons 0 a) (let _1 (app (native dvr) (cons (app (native sub) (cons a b)) b)) (let remainder (slot 3 _1) (let quotient (slot 2 _1) (cons (app (native add) (cons quotient 1)) remainder))))))))))'
+        :-  %div
+        '(def div (lam args (let b (slot 3 args) (let a (slot 2 args) (let result (app (native dvr) (cons a b)) (slot 2 result))))))'
+        :-  %mod
+        '(def mod (lam args (let b (slot 3 args) (let a (slot 2 args) (let result (app (native dvr) (cons a b)) (slot 3 result))))))'
+        :-  %pow
+        '(def pow (lam args (let b (slot 3 args) (let a (slot 2 args) (if (app (native eq) (cons b 0)) 1 (app (native mul) (cons a (app (native pow) (cons a (app (native dec) b))))))))))'
+        :-  %sqt
+        '(def sqt (lam value (rec ((root (lam _1 (let low (slot 2 _1) (let high (slot 3 _1) (if (app lth (cons (app (native add) (cons low 1)) high)) (let middle (app (native div) (cons (app (native add) (cons low high)) 2)) (if (app lte (cons (app (native mul) (cons middle middle)) value)) (app root (cons middle high)) (app root (cons low middle)))) low)))))) (let result (app root (cons 0 (app (native add) (cons value 1)))) (cons result (app (native sub) (cons value (app (native mul) (cons result result)))))))))'
+    ==
+  |-
+  ?~  expected  ~
+  =/  found=(list definition:jibb-core)
+    (skim defs.p.lowered |=(d=definition:jibb-core =([%own name.i.expected] name.d)))
+  ?.  ?=([* ~] found)  ~[leaf+"the lowered prelude lacks {(trip name.i.expected)}"]
+  =/  actual=@t  (print-definition:jibb-core i.found)
+  ?.  =(core.i.expected actual)  ~[leaf+(trip actual)]
+  $(expected t.expected)
 --

@@ -815,18 +815,25 @@
   ?:  ?=(%native -.v)  !!
   (slot-inner axis v)
 ::
-++  edit-value
+::  A function is no edit target, but a cell may hold one where the edit
+::  puts its new value: only the cells on the axis's path are taken apart.
+++  edit-inner
   |=  [axis=@ old=value new=value]
   ^-  value
-  ?:  =(0 axis)  !!
-  ?:  ?=(%closure -.old)  !!
-  ?:  ?=(%native -.old)  !!
   ?:  =(1 axis)  new
   ?.  ?=(%cell -.old)  !!
   ?-  (cap axis)
     %2  [%cell $(axis (mas axis), old hed.old) tal.old]
     %3  [%cell hed.old $(axis (mas axis), old tal.old)]
   ==
+::
+++  edit-value
+  |=  [axis=@ old=value new=value]
+  ^-  value
+  ?:  =(0 axis)  !!
+  ?:  ?=(%closure -.old)  !!
+  ?:  ?=(%native -.old)  !!
+  (edit-inner axis old new)
 ::
 ++  lookup
   |=  [n=name env=environment]

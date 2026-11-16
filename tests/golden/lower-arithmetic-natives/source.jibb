@@ -1,0 +1,7 @@
+++ diff |= [a=@ud b=@ud] (sub a b)
+++ times |= [a=@ud b=@ud] (mul a b)
+++ split |= [a=@ud b=@ud] (dvr a b)
+++ quot |= [a=@ud b=@ud] (div a b)
+++ rem |= [a=@ud b=@ud] (mod a b)
+++ power |= [a=@ud b=@ud] (pow a b)
+++ later |= [a=@da b=@da] (sub a b)

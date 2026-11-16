@@ -140,6 +140,12 @@
     %raw-format-tape  `scow
     %gth              `gth
     %add              `add
+    %sub              `sub
+    %mul              `mul
+    %dvr              `dvr
+    %div              `div
+    %mod              `mod
+    %pow              `pow
     %dec              `dec
     %eq               `|=([a=* b=*] =(a b))
     %lent             `lent

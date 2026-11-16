@@ -1,0 +1,5 @@
+source: Grammar tab, Literals by context: "In `{…}`, an atom prints by its aura: … and a bare `@` as `@ud`", also "here and in a `(…)` segment of an application path"
+tests: a bare `@` printed in an interpolation, a trace and an application-path segment, each through `scot` with `%ud`
+expect: parses
+expect-types: full checker result
+expect-core: full checker lowering

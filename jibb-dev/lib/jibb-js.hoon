@@ -294,7 +294,8 @@
   $(arms t.arms, vars t.vars, out [decl out])
 ::
 ::  A lambda, or a recursive arm's declaration: one whose body calls itself
-::  in a tail position is a loop over its sample.
+::  in a tail position is a loop over its sample. A sample with the arm's
+::  name hides the arm, so the body cannot call it.
 ++  lambda
   |=  $:  e=expr:jibb-core
           sc=scopes
@@ -306,13 +307,13 @@
   ?>  ?=(%lam -.e)
   =/  inner=[var=@t sc=scopes s=state]  (define sample.e (inside sc) s)
   =/  parameter=@t  var.inner
-  ?:  &(declaration ?=(^ self) (self-tail body.e name.u.self))
+  ?:  &(declaration ?=(^ self) !=(sample.e name.u.self) (self-tail body.e name.u.self))
     =^  loop  s.inner  (fresh s.inner)
     =^  current  s.inner  (fresh s.inner)
     ?>  ?=(^ sc.inner)
     =/  looped=scopes
       [i.sc.inner(names (~(put by names.i.sc.inner) sample.e current), known (~(put by known.i.sc.inner) sample.e [%bound current [%unknown ~]])) t.sc.inner]
-    =^  body  s.inner  (tail-expression body.e looped s.inner [loop name.u.self])
+    =^  body  s.inner  (tail-expression body.e looped s.inner [loop var.u.self])
     :_  s.inner
     %+  rap  3
     :~  'function '  var.u.self  '('  parameter  ') {\0alet '  loop  ' = '
@@ -324,22 +325,26 @@
     [(rap 3 ~['function ' var.u.self '(' parameter ') { return ' body '; }']) s.inner]
   [(rap 3 ~['((' parameter ') => ' body ')']) s.inner]
 ::
+::  A call of the arm by its own name in tail position, where no binder of
+::  that name hides it: a let or rec binding the name ends the search.
 ++  self-tail
   |=  [e=expr:jibb-core name=name:jibb-core]
   ^-  ?
   ?+  -.e  |
     %app  &(?=(%var -.fun.e) =(name name.fun.e))
     %if   |($(e yes.e) $(e no.e))
-    %let  $(e body.e)
-    %rec  $(e body.e)
+    %let  &(!=(name name.e) $(e body.e))
+    %rec  &((levy arms.e |=(a=rec-arm:jibb-core !=(name name.a))) $(e body.e))
   ==
 ::
 ::  A recursive arm's body in tail position: a self call sets the loop's
-::  sample and continues; anything else returns.
+::  sample and continues; anything else returns. A call is a self call only
+::  if its name resolves to the arm's own variable, var, not to a binder
+::  that hides it.
 ++  tail-expression
-  |=  [e=expr:jibb-core sc=scopes s=state self=[loop=@t name=name:jibb-core]]
+  |=  [e=expr:jibb-core sc=scopes s=state self=[loop=@t var=@t]]
   ^-  [@t state]
-  ?:  &(?=(%app -.e) ?=(%var -.fun.e) =(name.self name.fun.e))
+  ?:  &(?=(%app -.e) ?=(%var -.fun.e) =(var.self (lookup name.fun.e sc)))
     =^  sample  s  (expression sample.e sc s)
     [(rap 3 ~[loop.self ' = ' sample ';\0acontinue;']) s]
   ?:  ?=(%if -.e)

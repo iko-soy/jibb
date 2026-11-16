@@ -1,0 +1,5 @@
+source: Grammar tab, section "Example: a store and an island", code block 7 of the tab, as my-app holds it
+tests: the basket island lowered: its `update` matches two atom messages, `%add` and `%toggle`, beside three cell messages; each atom arm is tested, so `%toggle` pokes `%toggle` (it once poked `[%add note]`)
+expect: parses
+expect-types: full checker result
+expect-core: full checker lowering

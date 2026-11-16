@@ -159,6 +159,17 @@
       '(let unused 1 42)'
   ==
 ::
+::  The reference interpreter once crashed where Nock replaced a field
+::  holding a function; the edited cell is a canonical noun in both.
+++  test-nock-edit-replaces-function-fields
+  ^-  tang
+  %-  report-agreements
+  :~  '(edit 3 (cons 1 (lam x x)) 2)'
+      '(edit 2 (cons (native inc) 5) 7)'
+      '(edit 6 (cons 1 (cons (lam x x) 3)) 4)'
+      '(edit 7 (cons 1 (cons 2 (rec ((loop (lam n (app loop n)))) loop))) 3)'
+  ==
+::
 ++  test-nock-strictness-if-and-rewrites
   ^-  tang
   =/  sources=(list @t)

@@ -136,6 +136,9 @@
 /*  core-43  %txt  /tests/js-emit/fixture-arbitrary-precision-edit-axis/core/txt
 /*  natives-43  %txt  /tests/js-emit/fixture-arbitrary-precision-edit-axis/natives/txt
 /*  js-43  %txt  /tests/js-emit/fixture-arbitrary-precision-edit-axis/js/txt
+/*  core-44  %txt  /tests/js-emit/linked-self-tail-shadowed/linked/txt
+/*  natives-44  %txt  /tests/js-emit/linked-self-tail-shadowed/natives/txt
+/*  js-44  %txt  /tests/js-emit/linked-self-tail-shadowed/js/txt
 |%
 ++  text
   |=  lines=wain
@@ -155,6 +158,21 @@
   ^-  tang
   =/  read=(each expr:jibb-core @t)  (read-expr:jibb-core (of-wain:format core) (registry natives))
   ?:  ?=(%| -.read)  ~[leaf+"{label}: {(trip p.read)}"]
+  =/  got=@t  (compile:jibb-js p.read)
+  ?:  =((text js) got)  ~
+  ~[leaf+"{label}: the Hoon emitter differs from js/core/compiler.mjs" leaf+(trip got)]
+::  A linked case's program repeats a qualified name inside its binding,
+::  which the readers reject as shadowing: read it without their scope
+::  check, and require that it is one the readers would reject.
+++  check-linked
+  |=  [label=tape core=wain natives=wain js=wain]
+  ^-  tang
+  =/  root=(each tree:jibb-core @t)  (parse-root:jibb-core (of-wain:format core))
+  ?:  ?=(%| -.root)  ~[leaf+"{label}: {(trip p.root)}"]
+  =/  read=(each expr:jibb-core @t)  (expr-tree:jibb-core p.root)
+  ?:  ?=(%| -.read)  ~[leaf+"{label}: {(trip p.read)}"]
+  ?~  (validate-expr:jibb-core p.read (registry natives))
+    ~[leaf+"{label}: the readers accept this program, so it needs no linked case"]
   =/  got=@t  (compile:jibb-js p.read)
   ?:  =((text js) got)  ~
   ~[leaf+"{label}: the Hoon emitter differs from js/core/compiler.mjs" leaf+(trip got)]
@@ -205,5 +223,6 @@
     (check "extra-checked-recursive-facts" core-41 natives-41 js-41)
     (check "fixture-arbitrary-precision-slot-axis" core-42 natives-42 js-42)
     (check "fixture-arbitrary-precision-edit-axis" core-43 natives-43 js-43)
+    (check-linked "linked-self-tail-shadowed" core-44 natives-44 js-44)
   ==
 --

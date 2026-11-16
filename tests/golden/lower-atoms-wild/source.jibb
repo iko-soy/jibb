@@ -1,0 +1,12 @@
++$ key
+  %up
+  %down
+  %left
+  [%char c=@t]
+
+++ dir |= k=key ^- @ud
+  ?- k
+  %up 1
+  [%char c] 4
+  %down 2
+  * 0

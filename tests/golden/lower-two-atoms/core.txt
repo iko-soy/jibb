@@ -1,0 +1,1 @@
+(module lower/two-atoms (def step (lam _1 (let m (slot 2 _1) (let n (slot 3 _1) (if (cell? m) (let v (slot 3 m) v) (if (eq m %inc) (app (native add) (cons n 1)) (app (native dec) n))))))))

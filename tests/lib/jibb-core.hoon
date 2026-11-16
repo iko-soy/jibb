@@ -331,6 +331,28 @@
   ?^  bad-crash  ~[leaf+(trip u.bad-crash)]
   ~
 ::
+::  Nock and JavaScript replace a field that holds a function: only the
+::  cells on the edit's path, and its target, must not be functions.
+++  test-core-edit-replaces-function-fields
+  ^-  tang
+  =/  cases=(list [src=@t expected=noun])
+    :~  ['(edit 3 (cons 1 (lam x x)) 2)' [1 2]]
+        ['(edit 2 (cons (native inc) 5) 7)' [7 5]]
+        ['(edit 6 (cons 1 (cons (lam x x) 3)) 4)' [1 4 3]]
+        ['(edit 7 (cons 1 (cons 2 (rec ((loop (lam n (app loop n)))) loop))) 3)' [1 2 3]]
+        ['(app (slot 3 (edit 3 (cons 1 2) (lam x (app (native inc) x)))) 41)' 42]
+    ==
+  =/  bad  (outcome-error cases registry)
+  ?^  bad  ~[leaf+(trip u.bad)]
+  =/  crashes=(list @t)
+    :~  '(edit 1 (lam x x) 0)'
+        '(edit 2 (native inc) 0)'
+        '(edit 6 (cons 1 (lam x x)) 4)'
+    ==
+  =/  bad-crash  (crash-error crashes registry)
+  ?^  bad-crash  ~[leaf+(trip u.bad-crash)]
+  ~
+::
 ++  test-core-recursion
   ^-  tang
   =/  countdown=@t

@@ -1,0 +1,3 @@
+module kind: library
++$ act: act
+++ apply: $-([a=act xs=(list @ud)] @ud)

@@ -1,0 +1,9 @@
+++ take |= args=[@ud (list @ud)] ^- (list @ud)
+  ?- args
+  [count xs]
+    ?- (eq count 0)
+    %.y ~
+    %.n
+      ?- xs
+      ~ ~
+      [item rest] [item (take (dec count) rest)]

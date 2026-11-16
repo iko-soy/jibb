@@ -88,10 +88,12 @@
   ?:  =(id id.i.projections.root)  `i.projections.root
   $(projections.root t.projections.root)
 ::
+::  Generated names are `_` and undotted decimal digits, as both Core
+::  readers require: the 1000th is _1000, never _1.000.
 ++  fresh
   |=  state=lowering-state
   ^-  [name:jibb-core lowering-state]
-  =/  n=@t  (cat 3 '_' (scot %ud next.state))
+  =/  n=@t  (cat 3 '_' (crip (a-co:co next.state)))
   [[%generated n] state(next +(next.state))]
 ::
 ++  null
@@ -715,16 +717,23 @@
     %collection     &(=(%list name.typ) ?=([* ~] args.typ) (atom-text-type i.args.typ))
     *               |
   ==
+::  The Grammar prints a bare @ as @ud, in {…} and in a (…) path segment.
 ++  printer-aura
   |=  typ=itype:jibb
   ^-  (unit @ta)
   ?-  -.typ
     ?(%face %slot)  $(typ body.typ)
-    %atom           `aura.typ
-    %const          `aura.literal.typ
+    %atom           `(print-aura aura.typ)
+    %any-atom       `%ud
+    %const          `(print-aura aura.literal.typ)
     %flag           `%f
     *               ~
   ==
+++  print-aura
+  |=  aura=@ta
+  ^-  @ta
+  ?:  =(%$ aura)  %ud
+  aura
 ::
 ++  lower-printed
   |=  [e=expr:jibb state=lowering-state]
@@ -1486,21 +1495,37 @@
   ?~  binders  body
   $(binders t.binders, body (wrap-binder i.binders subject body))
 ::
+::  An arm binds only its own pattern's names. Its span runs to the end of
+::  its body, which can hold nested matches and gates with binders of the
+::  same owner; those bind where they occur, never from this subject.
+++  arm-pattern-binders
+  |=  [artifact=lowering-match-arm:jibb match=lowering-match:jibb]
+  ^-  (list lowering-binder:jibb)
+  %+  skim  refinements.match
+  |=  b=lowering-binder:jibb
+  ?&  ?=(%pattern role.id.b)
+      (lowering-span-contains:jibb at.pattern.artifact at.id.b)
+  ==
+::
+::  A subject of ~ is a test that was never bound, as a loobean's; its
+::  literal patterns bind nothing.
 ++  lower-decision-arm
-  |=  [index=@ud match=lowering-match:jibb arms=(list arm:jibb) subject=name:jibb-core state=lowering-state]
+  |=  [index=@ud match=lowering-match:jibb arms=(list arm:jibb) subject=(unit name:jibb-core) state=lowering-state]
   ^-  lowered
   ?:  (gte index (lent arms))  [%| 'checked match arm index is out of range']
   ?:  (gte index (lent arms.match))  [%| 'checked match artifact arm index is out of range']
   =/  arm=arm:jibb  (snag index arms)
   =/  artifact=lowering-match-arm:jibb  (snag index arms.match)
+  ?.  =(pattern.artifact [at.pat.arm %pattern])
+    [%| (fail "checked match arm differs from its source pattern" `at.pat.arm)]
+  =/  binders=(list lowering-binder:jibb)  (arm-pattern-binders artifact match)
+  ?:  &(?=(~ subject) ?=(^ binders))
+    [%| (fail "an unbound match test cannot bind pattern names" `at.pat.arm)]
   =/  body=lowered  (lower-expression val.arm state)
   ?:  ?=(%| -.body)  body
-  =/  binders=(list lowering-binder:jibb)
-    %+  skim  refinements.match
-    |=  b=lowering-binder:jibb
-    (lowering-span-contains:jibb at.artifact at.id.b)
+  ?~  subject  body
   =/  wrapped=expr:jibb-core
-    (wrap-match-binders (flop binders) subject value.p.body)
+    (wrap-match-binders (flop binders) u.subject value.p.body)
   [%& [wrapped state.p.body]]
 ::
 ++  literal-needs-test
@@ -1545,7 +1570,7 @@
   ^-  lowered
   ?~  rows  [%& [[%crash ~] state]]
   ?~  cols
-    (lower-decision-arm arm.i.rows match arms subject state)
+    (lower-decision-arm arm.i.rows match arms `subject state)
   =/  first-wild=?  (decision-all-wild rows)
   ?:  first-wild
     (lower-decision (drop-first-patterns rows) t.cols match arms subject state)
@@ -1581,7 +1606,9 @@
     =/  yes=lowered  (lower-decision cell-rows next match arms subject state)
     ?:  ?=(%| -.yes)  yes
     ?:  ?=(%cell status)  yes
-    =/  no=lowered  (lower-decision atom-rows t.cols match arms subject state.p.yes)
+    ::  The atom rows still test this column: two atom cases, or an atom
+    ::  case before a wildcard, must not take the first arm untested.
+    =/  no=lowered  (lower-decision atom-rows cols-now match arms subject state.p.yes)
     ?:  ?=(%| -.no)  no
     [%& [(make-if [%cell value.current] value.p.yes value.p.no) state.p.no]]
   (lower-atom-decisions (decision-literals rows-now) rows-now cols-now ~ match arms subject state)
@@ -1640,9 +1667,9 @@
   ?:  |(?=(~ yes) ?=(~ no))  (lower-generic-branch e u.match state)
   =/  test=lowered  (lower-expression subject.e state)
   ?:  ?=(%| -.test)  test
-  =/  yes-body=lowered  (lower-decision-arm u.yes u.match arms.e [%generated '_flag'] state.p.test)
+  =/  yes-body=lowered  (lower-decision-arm u.yes u.match arms.e ~ state.p.test)
   ?:  ?=(%| -.yes-body)  yes-body
-  =/  no-body=lowered  (lower-decision-arm u.no u.match arms.e [%generated '_flag'] state.p.yes-body)
+  =/  no-body=lowered  (lower-decision-arm u.no u.match arms.e ~ state.p.yes-body)
   ?:  ?=(%| -.no-body)  no-body
   [%& [(make-if value.p.test value.p.yes-body value.p.no-body) state.p.no-body]]
 ::

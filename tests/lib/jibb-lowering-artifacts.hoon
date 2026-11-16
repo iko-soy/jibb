@@ -146,6 +146,37 @@
   ?.  (lien occurrences.root |=(o=lowering-occurrence:jibb &(?=(%pattern role.id.o) =(typ.o [%atom %t]))))
     ~[leaf+"left pattern refinement did not finalize to text"]
   ~
+::  An arm's span runs to the end of its body; its match refines only the
+::  binders of the arm's own pattern, not those of a nested match or gate.
+++  test-match-refinements-are-pattern-binders
+  ^-  tang
+  =/  src=@t
+    %-  of-wain:format
+    :~  '+$ act'
+        '  %reset'
+        '  [%set to=@t]'
+        '++ apply |= [a=act b=[@t @t]]'
+        '  ?- a'
+        '  %reset'
+        '    ?- b'
+        '    [first rest] |=(k=@t k)'
+        '  [%set to] |=(j=@t to)'
+        ''
+    ==
+  =/  built=jlowering-result:jibb  (check /tests/lowering/refine/jibb src ~)
+  ?:  ?=(%| -.built)  ~[leaf+(trip message.p.built)]
+  =/  root=checked-module:jibb  root.p.built
+  ?.  =(2 (lent matches.root))  ~[leaf+"nested match artifacts are missing"]
+  =/  names
+    |=  m=lowering-match:jibb
+    ^-  (list term)
+    (sort (turn refinements.m |=(b=lowering-binder:jibb name.b)) aor)
+  =/  found=(list (list term))  (sort (turn matches.root names) |=([a=(list term) b=(list term)] (aor a b)))
+  ?.  =(found ~[~[%first %rest] ~[%to]])
+    ~[leaf+"refinements are not exactly each match's pattern binders" (sell !>(found))]
+  ?.  (levy matches.root |=(m=lowering-match:jibb (levy refinements.m |=(b=lowering-binder:jibb ?=(%pattern role.id.b)))))
+    ~[leaf+"a sample binder became a match refinement"]
+  ~
 ++  test-projection-and-value-occurrences
   ^-  tang
   =/  proj-src=@t  '++ exact ^- [a=@t b=@p] (proj [a="hi" b=~zod])\0a'

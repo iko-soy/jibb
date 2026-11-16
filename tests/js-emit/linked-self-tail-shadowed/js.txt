@@ -1,0 +1,46 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+
+let $h0, $h1;
+return (() => {
+const $0 = memo(function $0($1) {
+let $2 = $1;
+for (;;) {
+const $3 = $2;
+if (requireLoobean(same($3, BigInt("0")))) {
+$2 = BigInt("1");
+continue;
+} else {
+const $5 = ($h0 ??= (($4) => cons($4, $4)));
+return apply($5, $3);
+}
+}
+});
+return (() => {
+const $6 = memo(function $6($7) {
+let $8 = $7;
+for (;;) {
+const $9 = $8;
+if (requireLoobean(same($9, BigInt("0")))) {
+$8 = BigInt("1");
+continue;
+} else {
+function $10($11) { return cons($11, $11); }
+return apply($10, $9);
+}
+}
+});
+return (() => {
+const $12 = memo(function $12($14) { return (requireLoobean(same(BigInt("0"), BigInt("1"))) ? apply($13, BigInt("0")) : apply($14, BigInt("7"))); });
+const $13 = memo(function $13($15) { return apply($12, ($h1 ??= (($16) => cons($16, $16)))); });
+return (() => { const $17 = cons(apply($0, BigInt("5")), cons(apply($6, BigInt("6")), apply($13, BigInt("0")))); return $17; })();
+})();
+})();
+})();
+}

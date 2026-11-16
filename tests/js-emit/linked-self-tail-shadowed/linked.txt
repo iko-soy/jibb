@@ -1,0 +1,1 @@
+(rec ((m:f (lam x (if (eq x 0) (app m:f 1) (let m:f (lam y (cons y y)) (app m:f x)))))) (rec ((m:g (lam x (if (eq x 0) (app m:g 1) (rec ((m:g (lam y (cons y y)))) (app m:g x)))))) (rec ((m:h (lam m:h (if (eq 0 1) (app m:k 0) (app m:h 7)))) (m:k (lam y (app m:h (lam z (cons z z)))))) (let m:main (cons (app m:f 5) (cons (app m:g 6) (app m:k 0))) m:main))))

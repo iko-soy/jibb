@@ -1,0 +1,27 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (const 2:3 %inc)
+      (const 3:3 %dec)
+      (cell 4:3
+        (const 4:4 %set)
+        (face 4:9 to (aura 4:12 @ud)))))
+  (value 6:1 step
+    (gate 6:9
+      (cell 6:12
+        (face 6:13 m (ref 6:15 msg))
+        (face 6:19 n (aura 6:21 @ud)))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 m)
+          (arm 8:3
+            (lit 8:3 %inc)
+            (group 8:8
+              (call 8:9 (wing 8:9 add) (wing 8:13 n) (lit 8:15 1))))
+          (arm 9:3
+            (lit 9:3 %dec)
+            (group 9:8
+              (call 9:9 (wing 9:9 dec) (wing 9:13 n))))
+          (arm 10:3
+            (cell 10:3 (lit 10:4 %set) (bind 10:9 v))
+            (wing 10:12 v)))))))

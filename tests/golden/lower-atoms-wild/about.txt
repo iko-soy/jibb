@@ -1,0 +1,5 @@
+source: Core language tab, Lowering, the `?- s` row: "a decision tree of `if`, `cell?`, `eq` and `slot`, built by the usual pattern-matrix algorithm; binders become `let`s"
+tests: three atom cases, one left to a wildcard, beside a cell case: each named atom is tested, the wildcard row reaches both the cell and the atom subtrees
+expect: parses
+expect-types: full checker result
+expect-core: full checker lowering

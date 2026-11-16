@@ -1,0 +1,6 @@
+(module m
+  (def f (lam x (if (eq x 0) (app f 1) (let m:f (lam y (cons y y)) (app m:f x)))))
+  (def g (lam x (if (eq x 0) (app g 1) (rec ((m:g (lam y (cons y y)))) (app m:g x)))))
+  (def h (lam m:h (if (eq 0 1) (app k 0) (app m:h 7))))
+  (def k (lam y (app h (lam z (cons z z)))))
+  (def main (cons (app f 5) (cons (app g 6) (app k 0)))))

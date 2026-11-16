@@ -1,0 +1,1 @@
+(module lower/atoms-wild (def dir (lam k (if (cell? k) (let _1 (slot 2 k) (if (eq _1 %char) (let c (slot 3 k) 4) 0)) (if (eq k %up) 1 (if (eq k %down) 2 0))))))

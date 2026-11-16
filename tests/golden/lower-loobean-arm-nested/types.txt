@@ -1,0 +1,2 @@
+module kind: library
+++ take: $-([@ud (list @ud)] (list @ud))

@@ -1,0 +1,1 @@
+(module lower/bare-atom (def n 5) (def shown (app (native join) (cons "" (cons "n is " (cons (app (native scot) (cons %ud n)) ~))))) (def traced (trace (app (native scot) (cons %ud n)) "done")) (def place (cons ~.posts (cons (app (native scot) (cons %ud n)) ~))))

@@ -171,7 +171,7 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 | `jibb-hoon-reference` | Hoon translations of the Jibb-written `zing`, `lead`, `late` and `succ` against Hoon's own arms, on selected inputs; this does not execute Jibb, test lowering or prove jet recognition | |
 | `jibb-core` | Independent Core reader/printer round trips, malformed inputs, strict reference interpretation, recursion, native registries, traces and crash behavior | |
 | `jibb-nock` | Every Core node's Nock emission, local rewrites, closures, recursive cores, Hoon gate ABI, higher-order natives and differential crash behavior | |
-| `jibb-js` | Exact Hoon/JavaScript emitter parity on 41 fixtures, including direct holes, captures, memo reuse and bounded fallback | `tests/js-emit/` |
+| `jibb-js` | Exact Hoon/JavaScript emitter parity on 45 fixtures, including direct holes, captures, memo reuse and bounded fallback | `tests/js-emit/` |
 | `jibb-js-direct` | Strict direct-hole specialization, removed cell checks and local-recursion fallback | |
 | `jibb-view-template`, `jibb-view-template-source` | Authenticated template shapes and bounds, plus full checking and linking of text and realistic element-hole source views | `tests/view-template/` |
 | `jibb-lowering-artifacts` | Final occurrence/reference/axis/SCC/match/projection capture, prepared dependencies, and failed/provisional nonpublication | |

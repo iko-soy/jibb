@@ -1,0 +1,10 @@
++$ msg
+  %inc
+  %dec
+  [%set to=@ud]
+
+++ step |= [m=msg n=@ud]
+  ?- m
+  %inc (add n 1)
+  %dec (dec n)
+  [%set v] v

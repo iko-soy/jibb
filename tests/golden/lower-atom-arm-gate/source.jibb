@@ -1,0 +1,8 @@
++$ act
+  %reset
+  [%set to=@ud]
+
+++ bump |= [a=act xs=(list @ud)] ^- (list @ud)
+  ?- a
+  %reset (turn xs |=(k=@ud (add k 1)))
+  [%set to] xs

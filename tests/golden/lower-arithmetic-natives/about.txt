@@ -1,0 +1,5 @@
+source: Overview, Prelude: Hoon sections 1a and 2g arithmetic; the lowering's authenticated native table
+tests: checked calls of the prelude's `sub`, `mul`, `dvr`, `div`, `mod` and `pow`, including on dates, lower to their natives rather than the prelude's unary recursion
+expect: parses
+expect-types: full checker result
+expect-core: full checker lowering

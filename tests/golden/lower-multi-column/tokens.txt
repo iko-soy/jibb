@@ -1,0 +1,63 @@
+1:1 glyph +$
+1:4 name msg
+2:3 INDENT
+2:3 lit %inc
+3:3 NEWLINE
+3:3 lit %dec
+4:3 NEWLINE
+4:3 glyph [
+4:4 tight lit %set
+4:9 name to
+4:11 tight glyph =
+4:12 tight aura @ud
+4:15 tight glyph ]
+6:1 DEDENT
+6:1 NEWLINE
+6:1 glyph ++
+6:4 name pick
+6:9 glyph |=
+6:12 glyph [
+6:13 tight name m
+6:14 tight glyph =
+6:15 tight name msg
+6:19 name on
+6:21 tight glyph =
+6:22 tight glyph ?
+6:23 tight glyph ]
+6:25 glyph ^-
+6:28 aura @ud
+7:3 INDENT
+7:3 glyph ?-
+7:6 glyph [
+7:7 tight name m
+7:9 name on
+7:11 tight glyph ]
+8:3 NEWLINE
+8:3 glyph [
+8:4 tight lit %inc
+8:9 lit %.y
+8:12 tight glyph ]
+8:14 lit 1
+9:3 NEWLINE
+9:3 glyph [
+9:4 tight lit %dec
+9:9 lit %.y
+9:12 tight glyph ]
+9:14 lit 2
+10:3 NEWLINE
+10:3 glyph [
+10:4 tight glyph [
+10:5 tight lit %set
+10:10 name v
+10:11 tight glyph ]
+10:13 lit %.y
+10:16 tight glyph ]
+10:18 name v
+11:3 NEWLINE
+11:3 glyph [
+11:4 tight glyph *
+11:6 lit %.n
+11:9 tight glyph ]
+11:11 lit 0
+11:12 DEDENT
+11:12 NEWLINE

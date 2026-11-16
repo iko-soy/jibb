@@ -10,6 +10,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readCore } from '../js/core/reader.mjs';
 import { compileCore } from '../js/core/compiler.mjs';
+import { linkCore } from '../js/core/linker.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, 'tests', 'js-emit');
@@ -204,15 +205,61 @@ for (const [name, source, natives] of extra) {
   cases.push({ name: `extra-${name}`, source, ast: readCore(source, { nativeNames: natives }) });
 }
 
+// Linked programs. Linking qualifies a module's own names, which a local
+// binder may repeat, so the linked program can bind a name its enclosing
+// binding has; the readers reject that as shadowing. Such a case keeps its
+// module and entry, and linked.txt holds the linked program's text, which
+// the Hoon port's suite reads without the readers' scope check.
+const linked = [
+  // Each binder hides the arm's own name from its self-tail loop: a let, a
+  // rec and a sample of that name. Only the unhidden self calls loop.
+  ['self-tail-shadowed', `(module m
+  (def f (lam x (if (eq x 0) (app f 1) (let m:f (lam y (cons y y)) (app m:f x)))))
+  (def g (lam x (if (eq x 0) (app g 1) (rec ((m:g (lam y (cons y y)))) (app m:g x)))))
+  (def h (lam m:h (if (eq 0 1) (app k 0) (app m:h 7))))
+  (def k (lam y (app h (lam z (cons z z)))))
+  (def main (cons (app f 5) (cons (app g 6) (app k 0)))))`, 'm:main', []],
+];
+for (const [name, source, entry, natives] of linked) {
+  const program = linkCore([source], entry, { nativeNames: natives });
+  cases.push({ name: `linked-${name}`, source, ast: program.ast, entry, text: printCore(program.ast) });
+}
+
+function printCore(node) {
+  switch (node.type) {
+    case 'literal': return node.text;
+    case 'name': return node.name;
+    case 'native': return `(native ${node.name})`;
+    case 'crash': return '(crash)';
+    case 'cons': return `(cons ${printCore(node.head)} ${printCore(node.tail)})`;
+    case 'slot': return `(slot ${node.axis} ${printCore(node.value)})`;
+    case 'edit': return `(edit ${node.axis} ${printCore(node.target)} ${printCore(node.value)})`;
+    case 'cell': return `(cell? ${printCore(node.value)})`;
+    case 'eq': return `(eq ${printCore(node.left)} ${printCore(node.right)})`;
+    case 'if': return `(if ${printCore(node.condition)} ${printCore(node.then)} ${printCore(node.else)})`;
+    case 'let': return `(let ${node.name} ${printCore(node.value)} ${printCore(node.body)})`;
+    case 'rec':
+      return `(rec (${node.bindings.map((b) => `(${b.name} ${printCore(b.lambda)})`).join(' ')}) ${printCore(node.body)})`;
+    case 'lam': return `(lam ${node.parameter} ${printCore(node.body)})`;
+    case 'app': return `(app ${printCore(node.fn)} ${printCore(node.argument)})`;
+    case 'trace': return `(trace ${printCore(node.message)} ${printCore(node.body)})`;
+    default: throw new Error(`no Core text for ${node.type}`);
+  }
+}
+
 if (existsSync(out)) rmSync(out, { recursive: true });
 mkdirSync(out, { recursive: true });
 const index = [];
-for (const { name, source, ast } of cases) {
+for (const { name, source, ast, entry, text } of cases) {
   const natives = [...nativeNames(ast)].sort();
   const js = compileCore(ast, { nativeNames: natives });
   const dir = join(out, name);
   mkdirSync(dir);
   writeFileSync(join(dir, 'core.txt'), source + '\n');
+  if (entry !== undefined) {
+    writeFileSync(join(dir, 'entry.txt'), entry + '\n');
+    writeFileSync(join(dir, 'linked.txt'), text + '\n');
+  }
   writeFileSync(join(dir, 'natives.txt'), natives.join('\n') + '\n');
   writeFileSync(join(dir, 'js.txt'), js);
   index.push(name);

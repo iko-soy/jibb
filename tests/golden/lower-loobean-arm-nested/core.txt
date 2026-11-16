@@ -1,0 +1,1 @@
+(module lower/loobean-arm-nested (def take (lam args (let xs (slot 3 args) (let count (slot 2 args) (if (app (native eq) (cons count 0)) ~ (if (cell? xs) (let rest (slot 3 xs) (let item (slot 2 xs) (cons item (app take (cons (app (native dec) count) rest))))) ~)))))))

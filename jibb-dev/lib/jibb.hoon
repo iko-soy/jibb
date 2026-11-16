@@ -20730,13 +20730,17 @@
     ?:  =(i.prior entry)  $(xs t.xs, out out)
     ~
   $(xs t.xs, out [entry out])
+::  A match refines only its arms' own pattern binders. An arm's span runs
+::  to the end of its body, where nested matches and gates of the same
+::  owner have binders of their own.
 ++  lowering-match-refinements
   |=  [entry=lowering-match binders=(list lowering-binder)]
   ^-  (list lowering-binder)
   %+  skim  binders
   |=  binder=lowering-binder
   ?&  =(owner.binder owner.entry)
-      (lien arms.entry |=(a=lowering-match-arm (lowering-span-contains at.a at.id.binder)))
+      ?=(%pattern role.id.binder)
+      (lien arms.entry |=(a=lowering-match-arm (lowering-span-contains at.pattern.a at.id.binder)))
   ==
 ++  lowering-final-matches
   |=  [xs=(list lowering-match) sub=isub binders=(list lowering-binder) out=(list lowering-match)]
@@ -22389,7 +22393,8 @@
   =/  artifact=(unit checked-module)
     ?.  capture  ~
     ?~  lowering.resolution  ~
-    (build-checked-module at mod %library iface js ~ u.lowering.resolution)
+    %+  bind  (build-checked-module at mod %library iface js ~ u.lowering.resolution)
+    lowering-own-natives
   ?:  &(capture ?=(~ artifact))  ~
   =/  cache=jlowering-cache  ?~(artifact ~ ~[[at u.artifact]])
   `[iface artifact cache]
@@ -22773,7 +22778,8 @@
     ?.  capture  ~
     ?^  bootstrap-faces  ~
     ?~  lowering.resolution  ~
-    (build-checked-module at p.parsed %library iface u.private `partial u.lowering.resolution)
+    %+  bind  (build-checked-module at p.parsed %library iface u.private `partial u.lowering.resolution)
+    lowering-own-natives
   ?:  &(capture ?=(~ bootstrap-faces) ?=(~ artifact))  ~
   =/  cache=jlowering-cache  ?~(private-capture ~ lowering-cache.u.private-capture)
   =?  cache  ?=(^ artifact)
@@ -25867,6 +25873,9 @@
   =/  primitive=path  /lib/jibb/primitives/jibb
   :~  [public %gth %gth]       [public %add %add]
       [public %dec %dec]       [public %eq %eq]
+      [public %sub %sub]       [public %mul %mul]
+      [public %dvr %dvr]       [public %div %div]
+      [public %mod %mod]       [public %pow %pow]
       [public %lent %lent]     [public %trip %trip]
       [public %tuba %tuba]     [public %scot %scot]
       [public %crip %crip]
@@ -25913,13 +25922,38 @@
   |=  [definition=lowering-definition imports=ijimports prelude=(unit ifile)]
   ^-  (unit term)
   ?~  (lowering-registered-definition definition imports prelude)  ~
-  =/  table=(list [at=path name=term native=term])  lowering-native-table
   ?.  ?=(?(%prelude %import) -.definition)  ~
+  (lowering-table-native at.definition name.definition)
+::  A native by definition identity: the path and name of the checked
+::  definition a reference resolves to, never a spelling.
+++  lowering-table-native
+  |=  [at=path name=term]
+  ^-  (unit term)
+  =/  table=(list [at=path name=term native=term])  lowering-native-table
   |-  ^-  (unit term)
   ?~  table  ~
-  ?:  &(=(at.i.table at.definition) =(name.i.table name.definition))
+  ?:  &(=(at.i.table at) =(name.i.table name))
     `native.i.table
   $(table t.table)
+::  The trusted preparation of the public and private preludes gives their
+::  own artifacts this: a call of the module's own definition resolves to
+::  the same checked definition that the table authenticates when another
+::  module calls it, so it takes the same native. Only an own definition
+::  registered in the module's checked interface, at its own path, can.
+++  lowering-own-natives
+  |=  artifact=checked-module
+  ^-  checked-module
+  %=  artifact
+    references
+      %+  turn  references.artifact
+      |=  ref=lowering-reference
+      ^-  lowering-reference
+      ?^  native.ref  ref
+      ?.  ?=(%own -.definition.ref)  ref
+      ?.  =(at.definition.ref at.artifact)  ref
+      ?~  (ienv-lookup name.definition.ref values.interface.artifact)  ref
+      ref(native (lowering-table-native at.definition.ref name.definition.ref))
+  ==
 ++  lowering-intrinsic-identity
   |=  [definition=lowering-definition imports=ijimports prelude=(unit ifile)]
   ^-  (unit term)

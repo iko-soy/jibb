@@ -1,0 +1,11 @@
++$ msg
+  %inc
+  %dec
+  [%set to=@ud]
+
+++ pick |= [m=msg on=?] ^- @ud
+  ?- [m on]
+  [%inc %.y] 1
+  [%dec %.y] 2
+  [[%set v] %.y] v
+  [* %.n] 0

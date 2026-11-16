@@ -1,0 +1,5 @@
+source: Core language tab, Lowering, the `?- s` row: "a decision tree of `if`, `cell?`, `eq` and `slot`, built by the usual pattern-matrix algorithm; binders become `let`s"
+tests: the prelude scag's shape: a loobean test, lowered unbound to an `if`, whose `%.n` arm holds a match binding `item` and `rest` from `xs` (they were once bound from an unbound `_flag` and around the outer arm too)
+expect: parses
+expect-types: full checker result
+expect-core: full checker lowering

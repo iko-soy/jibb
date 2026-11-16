@@ -1,0 +1,8 @@
+module kind: library
+++ diff: $-([a=@ud b=@ud] @ud)
+++ times: $-([a=@ud b=@ud] @ud)
+++ split: $-([a=@ud b=@ud] [p=@ud q=@ud])
+++ quot: $-([a=@ud b=@ud] @ud)
+++ rem: $-([a=@ud b=@ud] @ud)
+++ power: $-([a=@ud b=@ud] @ud)
+++ later: $-([a=@da b=@da] @da)

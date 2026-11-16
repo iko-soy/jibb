@@ -1,0 +1,11 @@
++$ act
+  %reset
+  [%set to=@ud]
+
+++ apply |= [a=act xs=(list @ud)] ^- @ud
+  ?- a
+  %reset
+    ?- xs
+    ~ 0
+    [first rest] first
+  [%set to] to

@@ -1,0 +1,23 @@
+(module
+  (mold 1:1 key
+    (union 2:3
+      (const 2:3 %up)
+      (const 3:3 %down)
+      (const 4:3 %left)
+      (cell 5:3
+        (const 5:4 %char)
+        (face 5:10 c (aura 5:12 @t)))))
+  (value 7:1 dir
+    (gate 7:8
+      (face 7:11 k (ref 7:13 key))
+      (cast 7:17
+        (aura 7:20 @ud)
+        (body 8:3
+          (branch 8:3
+            (wing 8:6 k)
+            (arm 9:3 (lit 9:3 %up) (lit 9:7 1))
+            (arm 10:3
+              (cell 10:3 (lit 10:4 %char) (bind 10:10 c))
+              (lit 10:13 4))
+            (arm 11:3 (lit 11:3 %down) (lit 11:9 2))
+            (arm 12:3 (any 12:3) (lit 12:5 0))))))))

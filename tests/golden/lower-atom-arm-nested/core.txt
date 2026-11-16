@@ -1,0 +1,1 @@
+(module lower/atom-arm-nested (def apply (lam _1 (let a (slot 2 _1) (let xs (slot 3 _1) (if (cell? a) (let to (slot 3 a) to) (if (cell? xs) (let rest (slot 3 xs) (let first (slot 2 xs) first)) 0)))))))

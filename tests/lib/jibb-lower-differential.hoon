@@ -52,6 +52,15 @@
   ?.  ?=(%atom -.tal.v)  !!
   [[%atom (operation val.hed.v val.tal.v)] ~]
 ::
+++  dvr-native
+  |=  v=value:jibb-core
+  ^-  evaluation:jibb-core
+  ?.  ?=(%cell -.v)  !!
+  ?.  ?=(%atom -.hed.v)  !!
+  ?.  ?=(%atom -.tal.v)  !!
+  =/  split=[p=@ q=@]  (dvr val.hed.v val.tal.v)
+  [[%cell [%atom p.split] [%atom q.split]] ~]
+::
 ++  apply-reference
   |=  [fun=value:jibb-core sample=value:jibb-core]
   ^-  evaluation:jibb-core
@@ -104,6 +113,10 @@
   =.  r  (~(put by r) [%own %add] |=(v=value:jibb-core (pair-native v add)))
   =.  r  (~(put by r) [%own %sub] |=(v=value:jibb-core (pair-native v sub)))
   =.  r  (~(put by r) [%own %mul] |=(v=value:jibb-core (pair-native v mul)))
+  =.  r  (~(put by r) [%own %dvr] dvr-native)
+  =.  r  (~(put by r) [%own %div] |=(v=value:jibb-core (pair-native v div)))
+  =.  r  (~(put by r) [%own %mod] |=(v=value:jibb-core (pair-native v mod)))
+  =.  r  (~(put by r) [%own %pow] |=(v=value:jibb-core (pair-native v pow)))
   =.  r  (~(put by r) [%own %gth] |=(v=value:jibb-core (pair-native v gth)))
   =.  r  (~(put by r) [%own %dec] |=(v=value:jibb-core (atom-native v dec)))
   =.  r  (~(put by r) [%own %lent] lent-native)
@@ -121,6 +134,10 @@
   =.  r  (~(put by r) [%own %add] add)
   =.  r  (~(put by r) [%own %sub] sub)
   =.  r  (~(put by r) [%own %mul] mul)
+  =.  r  (~(put by r) [%own %dvr] dvr)
+  =.  r  (~(put by r) [%own %div] div)
+  =.  r  (~(put by r) [%own %mod] mod)
+  =.  r  (~(put by r) [%own %pow] pow)
   =.  r  (~(put by r) [%own %gth] gth)
   =.  r  (~(put by r) [%own %dec] dec)
   =.  r  (~(put by r) [%own %lent] lent)
@@ -178,7 +195,7 @@
   ^-  (unit term)
   ?.  ?=(%prelude -.definition)  ~
   ?.  =(at.definition /lib/jibb/prelude/jibb)  ~
-  ?.  (lien `(list term)`~[%add %sub %mul %gth %dec %lent %turn %eq] |=(n=term =(n name.definition)))  ~
+  ?.  (lien `(list term)`~[%add %sub %mul %dvr %div %mod %pow %gth %dec %lent %turn %eq] |=(n=term =(n name.definition)))  ~
   `name.definition
 ::
 ++  authenticate-root
@@ -408,6 +425,114 @@
       '++ result\0a  ?- %.y\0a    %.y 42\0a    %.n !!\0a'
     42
   =.  needs.lazy-match  ~[%match]
+  ::  Two or more atom cases beside a cell case each test their literal.
+  =/  two-atoms=fixture
+    %^  value-case  %two-atom-cases
+      %-  text
+      :~  '+$ msg'
+          '  %inc'
+          '  %dec'
+          '  [%set to=@ud]'
+          '++ step |= [m=msg n=@ud]'
+          '  ?- m'
+          '  %inc (add n 1)'
+          '  %dec (dec n)'
+          '  [%set v] v'
+          '++ result [(step %inc 5) (step %dec 5) (step [%set 9] 5)]'
+      ==
+    [6 4 9]
+  =.  needs.two-atoms  ~[%native %match]
+  =/  atoms-wild=fixture
+    %^  value-case  %atom-cases-and-wildcard
+      %-  text
+      :~  '+$ key'
+          '  %up'
+          '  %down'
+          '  %left'
+          '  [%char c=@t]'
+          '++ dir |= k=key ^- @ud'
+          '  ?- k'
+          '  %up 1'
+          '  [%char c] 4'
+          '  %down 2'
+          '  * 0'
+          '++ result [(dir %up) (dir %down) (dir %left) (dir [%char "x"])]'
+      ==
+    [1 2 0 4]
+  =.  needs.atoms-wild  ~[%match]
+  =/  columns=fixture
+    %^  value-case  %multi-column-atom-cases
+      %-  text
+      :~  '+$ msg'
+          '  %inc'
+          '  %dec'
+          '  [%set to=@ud]'
+          '++ pick |= [m=msg on=?] ^- @ud'
+          '  ?- [m on]'
+          '  [%inc %.y] 1'
+          '  [%dec %.y] 2'
+          '  [[%set v] %.y] v'
+          '  [* %.n] 0'
+          '++ result [(pick %inc %.y) (pick %dec %.y) (pick [%set 9] %.y) (pick %dec %.n) (pick [%set 9] %.n)]'
+      ==
+    [1 2 9 0 0]
+  =.  needs.columns  ~[%match]
+  ::  An arm binds its own pattern's names only, never those of a match or
+  ::  gate in its body: an atom arm has no fields to take apart.
+  =/  nested-arm=fixture
+    %^  value-case  %atom-arm-nested-match
+      %-  text
+      :~  '+$ act'
+          '  %reset'
+          '  [%set to=@ud]'
+          '++ apply |= [a=act xs=(list @ud)] ^- @ud'
+          '  ?- a'
+          '  %reset'
+          '    ?- xs'
+          '    ~ 0'
+          '    [first rest] first'
+          '  [%set to] to'
+          '++ result [(apply %reset ~[3 4]) (apply %reset ~) (apply [%set 7] ~[1])]'
+      ==
+    [3 0 7]
+  =.  needs.nested-arm  ~[%match]
+  =/  gate-arm=fixture
+    %^  value-case  %atom-arm-gate
+      %-  text
+      :~  '+$ act'
+          '  %reset'
+          '  [%set to=@ud]'
+          '++ bump |= [a=act xs=(list @ud)] ^- (list @ud)'
+          '  ?- a'
+          '  %reset (turn xs |=(k=@ud (add k 1)))'
+          '  [%set to] xs'
+          '++ result [(bump %reset ~[1 2]) (bump [%set 0] ~[5])]'
+      ==
+    [[2 3 0] [5 0]]
+  =.  needs.gate-arm  ~[%native %match]
+  ::  The prelude's scag has this shape: a loobean test, whose arms bind
+  ::  nothing, around a match that binds.
+  =/  loobean-arm=fixture
+    %^  value-case  %loobean-arm-nested-match
+      %-  text
+      :~  '++ take |= args=[@ud (list @ud)] ^- (list @ud)'
+          '  ?- args'
+          '  [count xs]'
+          '    ?- (eq count 0)'
+          '    %.y ~'
+          '    %.n'
+          '      ?- xs'
+          '      ~ ~'
+          '      [item rest] [item (take (dec count) rest)]'
+          '++ result [(take 2 ~[7 8 9]) (take 5 ~[1]) (take 0 ~[1])]'
+      ==
+    [[7 8 0] [1 0] 0]
+  =.  needs.loobean-arm  ~[%native %match]
+  =/  arithmetic-natives=fixture
+    %^  value-case  %arithmetic-natives
+      '++ result [(sub 10 3) (mul 6 7) (dvr 17 5) (div 17 5) (mod 17 5) (pow 2 10) (pow 0 0) (div 4 9) (mod 4 9) (sub 9 9)]\0a'
+    [7 42 [3 2] 3 2 1.024 1 0 4 0]
+  =.  needs.arithmetic-natives  ~[%native]
   :~  literals
       data
       arithmetic
@@ -421,6 +546,13 @@
       traced
       imported
       lazy-match
+      two-atoms
+      atoms-wild
+      columns
+      nested-arm
+      gate-arm
+      loobean-arm
+      arithmetic-natives
       :*  %strict-unused-crash  %result
           '++ result\0a  ++ unused !!\0a  42\0a'
           ~  ~  [%crash ~]  ~  ~
@@ -438,7 +570,187 @@
           '++ result (sub 1 2)\0a'
           ~  ~  [%crash ~]  ~  ~[%native]
       ==
+      :*  %native-div-zero-crash  %result
+          '++ result (div 1 0)\0a'
+          ~  ~  [%crash ~]  ~  ~[%native]
+      ==
+      :*  %native-mod-zero-crash  %result
+          '++ result (mod 1 0)\0a'
+          ~  ~  [%crash ~]  ~  ~[%native]
+      ==
+      :*  %native-dvr-zero-crash  %result
+          '++ result (dvr 0 0)\0a'
+          ~  ~  [%crash ~]  ~  ~[%native]
+      ==
   ==
+::
+::  Programs linked against the checked prelude for lowering, with native
+::  identities from its authenticated table only: the prelude's own scag,
+::  slag, oust, swag, snap and into link and run, and checked arithmetic
+::  calls are natives, not the prelude's unary recursion.
+++  prelude-for-lowering
+  ^-  (unit iprelude-lowering:jibb)
+  %:  prepare-prelude-with-group-evidence-for-lowering:jibb
+    prelude
+    internal
+    ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]]
+    (bundle:jibb-prelude-fixture ~)
+    evidence:jibb-prelude-fixture
+  ==
+::
+++  core-natives
+  |=  e=expr:jibb-core
+  ^-  (list name:jibb-core)
+  ?-  -.e
+    ?(%lit %var %crash)  ~
+    %native  ~[name.e]
+    %cons    (weld $(e hed.e) $(e tal.e))
+    %slot    $(e body.e)
+    %edit    (weld $(e body.e) $(e value.e))
+    %cell    $(e body.e)
+    %eq      (weld $(e left.e) $(e right.e))
+    %if      :(weld $(e test.e) $(e yes.e) $(e no.e))
+    %let     (weld $(e value.e) $(e body.e))
+    %rec
+      =/  in-arms=(list name:jibb-core)
+        %-  zing
+        (turn arms.e |=(a=rec-arm:jibb-core ^$(e fun.a)))
+      (weld in-arms $(e body.e))
+    %lam     $(e body.e)
+    %app     (weld $(e fun.e) $(e sample.e))
+    %trace   (weld $(e message.e) $(e body.e))
+  ==
+::
++$  prelude-case
+  [label=term source=@t expected=outcome:jibb-core natives=(list term)]
+::
+::  The names a linked program binds: its definitions and locals.
+++  core-binders
+  |=  e=expr:jibb-core
+  ^-  (list name:jibb-core)
+  ?-  -.e
+    ?(%lit %var %native %crash)  ~
+    %cons    (weld $(e hed.e) $(e tal.e))
+    %slot    $(e body.e)
+    %edit    (weld $(e body.e) $(e value.e))
+    %cell    $(e body.e)
+    %eq      (weld $(e left.e) $(e right.e))
+    %if      :(weld $(e test.e) $(e yes.e) $(e no.e))
+    %let     [name.e (weld $(e value.e) $(e body.e))]
+    %rec
+      =/  in-arms=(list name:jibb-core)
+        %-  zing
+        (turn arms.e |=(a=rec-arm:jibb-core [name.a ^$(e fun.a)]))
+      (weld in-arms $(e body.e))
+    %lam     [sample.e $(e body.e)]
+    %app     (weld $(e fun.e) $(e sample.e))
+    %trace   (weld $(e message.e) $(e body.e))
+  ==
+::
+::  Every checked call of the prelude's arithmetic, from another module or
+::  from the prelude itself, is its native: no linked program contains the
+::  unary source of one.
+++  unary-arithmetic
+  ^-  (list name:jibb-core)
+  %+  turn  `(list term)`~[%sub %mul %dvr %div %mod %pow]
+  |=(n=term [%qualified /lib/jibb/prelude n])
+::
+++  run-prelude-case
+  |=  [c=prelude-case prepared=iprelude-lowering:jibb]
+  ^-  (unit @t)
+  =/  at=path  (weld /tests/lower-differential ~[label.c %jibb])
+  =/  built=jlowering-result:jibb
+    (check-jibb-file-for-lowering-prepared:jibb at source.c ~ ~ ~ ~[at] ~ prepared)
+  ?:  ?=(%| -.built)
+    `(rap 3 ~[label.c ': full check failed: ' message.p.built])
+  =/  linked=(each expr:jibb-core @t)
+    (link-entry:jibb-lower %result root.p.built cache.p.built)
+  ?:  ?=(%| -.linked)
+    `(rap 3 ~[label.c ': linking failed: ' p.linked])
+  =/  bound=(list name:jibb-core)  (core-binders p.linked)
+  =/  unary=(list name:jibb-core)
+    (skim unary-arithmetic |=(n=name:jibb-core (lien bound |=(b=name:jibb-core =(b n)))))
+  ?^  unary
+    `(rap 3 ~[label.c ': the linked program contains the unary ' (print-name:jibb-core i.unary)])
+  =/  used=(list name:jibb-core)  (core-natives p.linked)
+  =/  absent=(list term)
+    (skip natives.c |=(n=term (lien used |=(u=name:jibb-core =(u [%own n])))))
+  ?^  absent
+    `(rap 3 ~[label.c ': a checked call did not lower to the native ' i.absent])
+  =/  unknown=(list name:jibb-core)
+    (skip used |=(u=name:jibb-core (~(has by reference-registry) u)))
+  ?^  unknown
+    `(rap 3 ~[label.c ': no test registry has the native ' (print-name:jibb-core i.unknown)])
+  =/  reference=execution:jibb-core  (reference-execution p.linked ~)
+  ?.  =(expected.c out.reference)
+    `(rap 3 ~[label.c ': reference result differs from source-level expectation'])
+  =/  nock=outcome:jibb-core  (run-nock p.linked ~)
+  ?.  =(expected.c nock)
+    `(rap 3 ~[label.c ': Nock result differs from source-level expectation'])
+  ~
+::
+++  prelude-cases
+  ^-  (list prelude-case)
+  :~  :*  %prelude-list-edits
+          %-  text
+          :~  '++ items ^- (list @ud) ~[10 11 12 13 14]'
+              '++ taken (scag 2 items)'
+              '++ dropped (slag 3 items)'
+              '++ ousted (oust [1 2] items)'
+              '++ swagged (swag [1 3] items)'
+              '++ snapped (snap items 1 99)'
+              '++ inserted (into items 1 99)'
+              '++ result [taken dropped ousted swagged snapped inserted (scag 9 items) (slag 9 items) (snap items 9 7)]'
+          ==
+          :-  %ok
+          :*  [10 11 0]  [13 14 0]  [10 13 14 0]  [11 12 13 0]
+              [10 99 12 13 14 0]  [10 99 11 12 13 14 0]  [10 11 12 13 14 0]  0
+              [10 11 12 13 14 7 0]
+          ==
+          ~
+      ==
+      :*  %prelude-arithmetic-natives
+          %-  text
+          :~  '++ split (dvr 1.000.000.007 1.000)'
+              '++ day (sub ~2026.1.2 ~2026.1.1)'
+              '++ result [(sub 10.000.000 1) (mul 100.000 100.000) split (div 1.000.000.007 1.000) (mod 1.000.000.007 1.000) (pow 2 200) day]'
+          ==
+          :-  %ok
+          :*  9.999.999  10.000.000.000  [1.000.000 7]  1.000.000  7  (pow 2 200)
+              (mul 86.400 (bex 64))
+          ==
+          ~[%sub %mul %dvr %div %mod %pow]
+      ==
+      ::  sqt calls the prelude's own lth, add, div, lte, mul and sub. On a
+      ::  101-bit value the first round of its binary search alone would
+      ::  take about 2^99 unary steps, for the div through dvr's repeated
+      ::  subtraction and again for (mul middle middle); natively the whole
+      ::  search is about a hundred rounds.
+      :*  %prelude-sqt-natives
+          %-  text
+          :~  '++ big (sqt 1.267.650.600.228.229.401.496.703.217.721)'
+              '++ square (sqt 1.000.000.000.000.000.000.000.000.000.000)'
+              '++ result [p.big q.big p.square q.square]'
+          ==
+          [%ok [(bex 50) 12.345 (pow 10 15) 0]]
+          ~[%sub %mul %div %add %gth]
+      ==
+      [%prelude-sub-underflow '++ result (sub 0 1)\0a' [%crash ~] ~[%sub]]
+      [%prelude-div-zero '++ result (div 7 0)\0a' [%crash ~] ~[%div]]
+      [%prelude-mod-zero '++ result (mod 7 0)\0a' [%crash ~] ~[%mod]]
+      [%prelude-dvr-zero '++ result (dvr 7 0)\0a' [%crash ~] ~[%dvr]]
+  ==
+::
+++  test-lower-differential-prelude
+  ^-  tang
+  =/  prepared=(unit iprelude-lowering:jibb)  prelude-for-lowering
+  ?~  prepared  ~[leaf+"the real prelude did not prepare for lowering"]
+  =/  cases=(list prelude-case)  prelude-cases
+  =|  bad=(list @t)
+  |-
+  ?~  cases  (turn (flop bad) |=(reason=@t leaf+(trip reason)))
+  =/  one=(unit @t)  (run-prelude-case i.cases u.prepared)
+  $(cases t.cases, bad ?~(one bad [u.one bad]))
 ::
 ++  test-lower-differential
   ^-  tang
@@ -451,7 +763,7 @@
     ==
   ?:  ?=(%| -.prepared)
     ~[leaf+(trip (cat 3 'feature artifact unavailable: ' p.prepared))]
-  ?.  =(18 (lent fixtures))  ~[leaf+"differential fixture inventory changed"]
+  ?.  =(28 (lent fixtures))  ~[leaf+"differential fixture inventory changed"]
   =/  bad=(list @t)  (run-fixtures fixtures p.prepared)
   (turn bad |=(reason=@t leaf+(trip reason)))
 --

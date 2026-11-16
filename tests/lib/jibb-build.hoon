@@ -1225,6 +1225,46 @@
       leaf+"wanted {<wanted>}"
       leaf+"got {<outcomes>}"
   ==
+::  The prelude's arithmetic runs as the ship's own gates: operands the
+::  unary source would take millions of steps over finish, and an
+::  underflow or a zero divisor crashes its test, as Hoon's gates do.
+++  test-run-tests-runs-arithmetic-natives
+  ^-  tang
+  =/  prep=(unit iprelude-lowering:jibb)  prepared
+  ?~  prep  ~[leaf+"prelude did not prepare for lowering"]
+  =/  at=path  /ui/tests/arithmetic/jibb
+  =/  source=@t
+    %-  text
+    :~  '++ split  (dvr 1.000.000.007 1.000)'
+        '++ test-sub  (eq (sub 10.000.000 1) 9.999.999)'
+        '++ test-mul  (eq (mul 100.000 100.000) 10.000.000.000)'
+        '++ test-dvr  (eq [p.split q.split] [1.000.000 7])'
+        '++ test-div  (eq (div 1.000.000.007 1.000) 1.000.000)'
+        '++ test-mod  (eq (mod 1.000.000.007 1.000) 7)'
+        '++ test-pow  (eq (pow 2 64) 18.446.744.073.709.551.616)'
+        '++ test-sub-underflow  (eq (sub 0 1) 0)'
+        '++ test-div-by-zero  (eq (div 1 0) 0)'
+    ==
+  =/  checked=(each [kind=checked-kind:jibb interface=ifile:jibb artifact=checked-module:jibb] @t)
+    (check-module:jibb-build at source ~ ~ ~[[at source]] ~ ~ u.prep)
+  ?:  ?=(%| -.checked)  ~[leaf+(trip p.checked)]
+  =/  outcomes=(list test-outcome:jibb-build)
+    (run-tests:jibb-build artifact.p.checked ~[[at artifact.p.checked]] u.prep)
+  =/  wanted=(list test-outcome:jibb-build)
+    :~  [%test-div & '']
+        [%test-div-by-zero | 'test-div-by-zero crashed during Nock execution']
+        [%test-dvr & '']
+        [%test-mod & '']
+        [%test-mul & '']
+        [%test-pow & '']
+        [%test-sub & '']
+        [%test-sub-underflow | 'test-sub-underflow crashed during Nock execution']
+    ==
+  ?:  =(wanted outcomes)  ~
+  :~  leaf+"the arithmetic test outcomes differ"
+      leaf+"wanted {<wanted>}"
+      leaf+"got {<outcomes>}"
+  ==
 ::  The Node harness's programs: each test- arm that is a ?, as JavaScript
 ::  and as Nock whose natives are placeholders; the ship runs that Nock
 ::  with its own gates in their place to the same values.

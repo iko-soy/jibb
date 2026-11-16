@@ -1,0 +1,30 @@
+(module
+  (mold 1:1 act
+    (union 2:3
+      (const 2:3 %reset)
+      (cell 3:3
+        (const 3:4 %set)
+        (face 3:9 to (aura 3:12 @ud)))))
+  (value 5:1 apply
+    (gate 5:10
+      (cell 5:13
+        (face 5:14 a (ref 5:16 act))
+        (face 5:20 xs
+          (apply 5:23 list (aura 5:29 @ud))))
+      (cast 5:35
+        (aura 5:38 @ud)
+        (body 6:3
+          (branch 6:3
+            (wing 6:6 a)
+            (arm 7:3
+              (lit 7:3 %reset)
+              (body 8:5
+                (branch 8:5
+                  (wing 8:8 xs)
+                  (arm 9:5 (lit 9:5 ~) (lit 9:7 0))
+                  (arm 10:5
+                    (cell 10:5 (bind 10:6 first) (bind 10:12 rest))
+                    (wing 10:18 first)))))
+            (arm 11:3
+              (cell 11:3 (lit 11:4 %set) (bind 11:9 to))
+              (wing 11:13 to))))))))

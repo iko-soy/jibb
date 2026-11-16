@@ -1,0 +1,6 @@
+++ n ^- @ 5
+++ shown "n is {n}"
+++ traced
+  ~& n
+    "done"
+++ place %/posts/(n)
