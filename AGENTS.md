@@ -4,9 +4,9 @@ Jibb is a UI language for Urbit: a Hoon dialect with indentation layout. Its com
 
 ## Current assignment
 
-Continue milestone 8: polish, including shared island modules, view templates with holes, and browser library size. The owner chose this scope on 2026-11-10. Follow later user instructions when the task changes.
+Milestone 8 (polish: shared island modules, view templates with holes, and the browser library size) is complete; [status.md](docs/status.md) records its acceptance. On 2026-11-16 the owner asked for every finding of a codebase-wide audit to be fixed: checker soundness and completeness, match lowering, the browser runtime's channel, URL and crash handling, host lifecycle, markup parity, tooling and the Rust CLI. Those fixes and the decisions they needed (Gates in `*`, the raised browser library limit, paragraph and width markup) are recorded in status.md and Decisions. Follow later user instructions when the task changes.
 
-The continuation started at `633e0c9`, with a clean checkout and implementation through the browser runtime and tooling. Milestone 2 was implemented in `184cac2` and marked complete after integrated validation in `bc25d08`. Its old `/tmp` checkpoints and scratch patches are historical; compare any candidate with current source before applying it. Read [status.md](docs/status.md) for current capabilities, remaining work, and validation evidence. Milestone 8 is not yet complete.
+Milestone 2 was implemented in `184cac2` and marked complete after integrated validation in `bc25d08`. Old `/tmp` checkpoints and scratch patches are historical; compare any candidate with current source before applying it. Read [status.md](docs/status.md) for current capabilities, remaining work, and validation evidence.
 
 Continue independently; do not make progress depend on contacting another developer. Commit passing work directly to `master`, as the development guide requires, and inspect the remote state before pushing. A focused passing suite is not milestone acceptance.
 
@@ -59,6 +59,8 @@ tools/golden --update --case <name> # generate outputs, then review them
 tools/check                        # all registered eval, native, and ship checks
 nix flake check                    # full checks with a fresh fake ship
 ```
+
+`urbit eval` (vere 4.6) runs Hoon %137, while the pinned fake ship, the flake's fakezod from the brass pill at urbit/urbit `50c7f52`, runs %135; their date printing and parsing differ (135 pads month and day). Behaviour the browser must reproduce, such as aura printing, has to match the ship; check it there, not only under eval.
 
 Register a new standalone check in `tools/check`. Suites in `tests/lib` join the existing test-arm shards. Keep golden behavior consistent between eval and the fake ship. Use the current runners to obtain corpus counts rather than carrying old counts into acceptance claims.
 
