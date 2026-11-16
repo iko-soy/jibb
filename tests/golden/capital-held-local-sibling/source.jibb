@@ -1,0 +1,7 @@
++$ box |$ [X]
+  [%full v=X]
+  %empty
+++ outer |= z=@ud
+  ++ enclose |= x=A [%full x]
+  ++ use |= y=B ^- (box B) (enclose y)
+  (use z)

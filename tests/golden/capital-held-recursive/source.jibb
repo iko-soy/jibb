@@ -1,0 +1,8 @@
++$ box |$ [X]
+  [%full v=X]
+  %empty
+++ enclose |= x=A [%full x]
+++ g |= n=@ud ^- (box @ud)
+  ?- (eq n 0)
+    %.y (enclose n)
+    %.n (g (dec n))

@@ -1,0 +1,10 @@
+++ g: capital `A` cannot be fixed to @ud
+/tests/golden/capital-held-tag-numbers/source.jibb:4:12: capital
+++ f |= [x=A y=B]
+           ^
+/tests/golden/capital-held-tag-numbers/source.jibb:5:3: `f` cannot generalize `A` while this is unresolved
+  [%p x y]
+  ^
+/tests/golden/capital-held-tag-numbers/source.jibb:6:20: forcing expression
+++ g ^- (duo @ud) (f 1 2)
+                   ^

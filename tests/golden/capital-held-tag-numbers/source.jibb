@@ -1,0 +1,6 @@
++$ duo |$ [X]
+  [%p l=X r=X]
+  [%q l=X]
+++ f |= [x=A y=B]
+  [%p x y]
+++ g ^- (duo @ud) (f 1 2)

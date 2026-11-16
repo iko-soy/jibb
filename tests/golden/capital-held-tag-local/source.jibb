@@ -1,0 +1,6 @@
++$ box |$ [X]
+  [%full v=X]
+  %empty
+++ outer |= z=@ud
+  ++ enclose |= x=A [%full x]
+  ^- (box @t) (enclose "s")

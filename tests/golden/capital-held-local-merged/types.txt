@@ -1,0 +1,13 @@
+++ outer: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/capital-held-local-merged/source.jibb:5:19: first type variable
+  ++ enclose |= x=A [%full x]
+                  ^
+/tests/golden/capital-held-local-merged/source.jibb:4:15: second type variable
+++ outer |= z=B
+              ^
+/tests/golden/capital-held-local-merged/source.jibb:5:21: `enclose` cannot generalize `A` while this is unresolved
+  ++ enclose |= x=A [%full x]
+                    ^
+/tests/golden/capital-held-local-merged/source.jibb:6:15: forcing expression
+  ^- (box B) (enclose z)
+              ^

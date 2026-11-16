@@ -1,0 +1,23 @@
+(module
+  (mold 1:1 duo
+    (generic 1:8 X
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %p)
+          (face 2:7 l (tvar 2:9 X))
+          (face 2:11 r (tvar 2:13 X)))
+        (cell 3:3
+          (const 3:4 %q)
+          (face 3:7 l (tvar 3:9 X))))))
+  (value 4:1 f
+    (gate 4:6
+      (cell 4:9
+        (face 4:10 x (tvar 4:12 A))
+        (face 4:14 y (tvar 4:16 B)))
+      (body 5:3
+        (tuple 5:3 (lit 5:4 %p) (wing 5:7 x) (wing 5:9 y)))))
+  (value 6:1 g
+    (cast 6:6
+      (apply 6:9 duo (aura 6:14 @ud))
+      (group 6:19
+        (call 6:20 (wing 6:20 f) (lit 6:22 1) (lit 6:24 2))))))

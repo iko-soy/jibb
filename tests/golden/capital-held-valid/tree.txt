@@ -1,0 +1,135 @@
+(module
+  (mold 1:1 msg
+    (union 2:3
+      (cell 2:3
+        (const 2:4 %go)
+        (face 2:8 n (aura 2:10 @ud)))
+      (const 3:3 %stop)))
+  (mold 4:1 box
+    (generic 4:8 X
+      (union 5:3
+        (cell 5:3
+          (const 5:4 %full)
+          (face 5:10 v (tvar 5:12 X)))
+        (const 6:3 %empty))))
+  (mold 7:1 letter
+    (union 8:3 (const 8:3 %a) (const 9:3 %b)))
+  (value 10:1 make-go
+    (gate 10:12
+      (face 10:15 n (aura 10:17 @ud))
+      (tuple 10:21 (lit 10:22 %go) (wing 10:26 n))))
+  (value 11:1 from-make
+    (cast 11:14
+      (ref 11:17 msg)
+      (group 11:21
+        (call 11:22 (wing 11:22 make-go) (lit 11:30 1)))))
+  (value 12:1 beside
+    (gate 12:11
+      (face 12:14 y (tvar 12:16 A))
+      (tuple 12:18 (wing 12:19 y) (lit 12:21 %stop))))
+  (value 13:1 from-beside
+    (cast 13:16
+      (cell 13:19 (aura 13:20 @ud) (ref 13:24 msg))
+      (group 13:29
+        (call 13:30 (wing 13:30 beside) (lit 13:37 1)))))
+  (value 14:1 cell-beside
+    (gate 14:16
+      (face 14:19 x (tvar 14:21 A))
+      (tuple 14:23
+        (wing 14:24 x)
+        (tuple 14:26 (lit 14:27 %full) (lit 14:33 1)))))
+  (value 15:1 from-cell-beside
+    (cast 15:21
+      (cell 15:24
+        (aura 15:25 @t)
+        (apply 15:28 box (aura 15:33 @ud)))
+      (group 15:39
+        (call 15:40 (wing 15:40 cell-beside) (str 15:52 "s")))))
+  (value 16:1 unit-beside
+    (gate 16:16
+      (face 16:19 x (tvar 16:21 A))
+      (tuple 16:23
+        (wing 16:24 x)
+        (unit 16:26 (lit 16:27 %a)))))
+  (value 17:1 from-unit-beside
+    (cast 17:21
+      (cell 17:24
+        (aura 17:25 @ud)
+        (apply 17:29 unit (ref 17:35 letter)))
+      (group 17:44
+        (call 17:45 (wing 17:45 unit-beside) (lit 17:57 1)))))
+  (value 18:1 enclose
+    (gate 18:12
+      (face 18:15 x (tvar 18:17 A))
+      (cast 18:19
+        (apply 18:22 box (tvar 18:27 A))
+        (tuple 18:30 (lit 18:31 %full) (wing 18:37 x)))))
+  (value 19:1 text-box
+    (cast 19:13
+      (apply 19:16 box (aura 19:21 @t))
+      (group 19:25
+        (call 19:26 (wing 19:26 enclose) (str 19:34 "s")))))
+  (value 20:1 number-box
+    (cast 20:15
+      (apply 20:18 box (aura 20:23 @ud))
+      (group 20:28
+        (call 20:29 (wing 20:29 enclose) (lit 20:37 1)))))
+  (value 21:1 outer
+    (gate 21:10
+      (face 21:13 z (aura 21:15 @ud))
+      (body 22:3
+        (value 22:3 local
+          (gate 22:12
+            (face 22:15 x (tvar 22:17 A))
+            (cast 22:19
+              (apply 22:22 box (tvar 22:27 A))
+              (tuple 22:30 (lit 22:31 %full) (wing 22:37 x)))))
+        (cast 23:3
+          (apply 23:6 box (aura 23:11 @t))
+          (group 23:15
+            (call 23:16 (wing 23:16 local) (str 23:22 "s")))))))
+  (value 24:1 outer-tag
+    (gate 24:14
+      (face 24:17 z (aura 24:19 @ud))
+      (body 25:3
+        (value 25:3 local (lit 25:12 %a))
+        (cast 26:3 (ref 26:6 letter) (wing 26:13 local)))))
+  (value 27:1 outer-make
+    (gate 27:15
+      (face 27:18 z (aura 27:20 @ud))
+      (body 28:3
+        (value 28:3 make
+          (gate 28:11
+            (face 28:14 n (aura 28:16 @ud))
+            (tuple 28:20 (lit 28:21 %go) (wing 28:25 n))))
+        (cast 29:3
+          (ref 29:6 msg)
+          (group 29:10
+            (call 29:11 (wing 29:11 make) (wing 29:16 z)))))))
+  (value 30:1 plain (lit 30:10 %a))
+  (value 31:1 fixed-plain
+    (cast 31:16 (ref 31:19 letter) (wing 31:26 plain)))
+  (value 32:1 asked
+    (group 32:10
+      (call 32:11
+        (wing 32:11 same)
+        (group 32:16
+          (call 32:17 (wing 32:17 pure) (lit 32:22 %b))))))
+  (value 33:1 fixed-asked
+    (cast 33:16
+      (apply 33:19 ask (ref 33:24 letter))
+      (wing 33:32 asked)))
+  (value 34:1 pair-go
+    (gate 34:12
+      (face 34:15 y (tvar 34:17 A))
+      (tuple 34:19
+        (wing 34:20 y)
+        (tuple 34:22 (lit 34:23 %go) (lit 34:27 1)))))
+  (value 35:1 text-go
+    (cast 35:12
+      (cell 35:15 (aura 35:16 @t) (ref 35:19 msg))
+      (group 35:24
+        (call 35:25 (wing 35:25 pair-go) (str 35:33 "s")))))
+  (value 36:1 number-go
+    (group 36:14
+      (call 36:15 (wing 36:15 pair-go) (lit 36:23 2)))))

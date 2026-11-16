@@ -1,0 +1,4 @@
+source: Grammar, Gates: "A body can't force two distinct capitals to be equal"; a capital "can become nothing more specific"; Decisions, Type variables; Grammar, Tag resolution: a tag-constrained variable "and any it mentions, doesn't generalize; it stays open until something in the module fixes it".
+tests: Valid controls for held capitals: tags whose union a later definition determines stay monomorphic, with or without written capitals beside them; capitals that a pending tag does not reach still generalize; a `^-` lets a gate generalize its capital, at the top level and locally; local tags and tagged cells resolved by the enclosing body.
+expect: parses
+expect-types: full checker types

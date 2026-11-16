@@ -1,0 +1,46 @@
+1:1 glyph +$
+1:4 name box
+1:8 glyph |$
+1:11 glyph [
+1:12 tight tvar X
+1:13 tight glyph ]
+2:3 INDENT
+2:3 glyph [
+2:4 tight lit %full
+2:10 name v
+2:11 tight glyph =
+2:12 tight tvar X
+2:13 tight glyph ]
+3:3 NEWLINE
+3:3 lit %empty
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name outer
+4:10 glyph |=
+4:13 name z
+4:14 tight glyph =
+4:15 tight tvar B
+5:3 INDENT
+5:3 glyph ++
+5:6 name enclose
+5:14 glyph |=
+5:17 name x
+5:18 tight glyph =
+5:19 tight tvar A
+5:21 glyph [
+5:22 tight lit %full
+5:28 name x
+5:29 tight glyph ]
+6:3 NEWLINE
+6:3 glyph ^-
+6:6 glyph (
+6:7 tight name box
+6:11 tvar B
+6:12 tight glyph )
+6:14 glyph (
+6:15 tight name enclose
+6:23 name z
+6:24 tight glyph )
+6:25 DEDENT
+6:25 NEWLINE

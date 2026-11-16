@@ -1,0 +1,5 @@
++$ box |$ [X]
+  [%full v=X]
+  %empty
+++ enclose |= x=A [%full x]
+++ g ^- (box @t) (enclose "s")

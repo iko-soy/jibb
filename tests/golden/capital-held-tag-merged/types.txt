@@ -1,0 +1,13 @@
+++ g: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/capital-held-tag-merged/source.jibb:4:17: first type variable
+++ enclose |= x=A [%full x]
+                ^
+/tests/golden/capital-held-tag-merged/source.jibb:5:11: second type variable
+++ g |= y=B ^- (box B) (enclose y)
+          ^
+/tests/golden/capital-held-tag-merged/source.jibb:4:19: `enclose` cannot generalize `A` while this is unresolved
+++ enclose |= x=A [%full x]
+                  ^
+/tests/golden/capital-held-tag-merged/source.jibb:5:25: forcing expression
+++ g |= y=B ^- (box B) (enclose y)
+                        ^

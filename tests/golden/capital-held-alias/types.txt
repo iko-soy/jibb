@@ -1,0 +1,10 @@
+++ g: capital `A` cannot be fixed to @t
+/tests/golden/capital-held-alias/source.jibb:4:17: capital
+++ enclose |= x=A [%full x]
+                ^
+/tests/golden/capital-held-alias/source.jibb:4:19: `enclose` cannot generalize `A` while this is unresolved
+++ enclose |= x=A [%full x]
+                  ^
+/tests/golden/capital-held-alias/source.jibb:6:19: forcing expression
+++ g ^- (box @t) (wrapper "s")
+                  ^

@@ -7617,7 +7617,7 @@
 ::  A fresh inference state starts in the conservative legacy mode. Hoon's
 ::  ordinary ? mold bunts to &, so give opt-in modes an explicit | bunt.
 +$  iflag  $~(| ?)
-+$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) level=@ud levels=(map @ud @ud) registered=@ud globals-imports=iflag general-defer=iflag queue=(list icore-edge) owner=term core-error=(unit [owner=term diag=idiag]) indexed-sub=isub sub-index=(map @ud itype) sub-counts=(map @ud (list @ud)) wake=(unit iwake) diagnostic-sources=(list [at=path source=@t]) local-source=(unit @t) error-tag-site=(unit span) error-display-owner=(unit term) mold-captures=imold-captures tagged-actuals=(map @ud [actual=itype sub=isub]) tagged-sources=(map span [actual=itype sub=isub]) lowering=iflag lowering-own=(list term) lowering-occurrences=(list lowering-occurrence) lowering-binders=(list lowering-binder) lowering-references=(list lowering-reference-request) lowering-wings=(list lowering-wing-request) lowering-edits=(list lowering-edit-request) lowering-components=(list lowering-scc) lowering-matches=(list lowering-match) lowering-suppress=(list lowering-occurrence-id)]
++$  istate  [next=@ud sub=isub caps=icaps binders=(list @ud) molds=imolds globals=(list term) externals=iexternals surs=(list term) mark-externals=imark-externals marks=(list term) jimports=ijimports reserved-molds=(list term) params=iparams active=(list term) tags=(list ipending) in-mold=? at=path top-molds=(list term) prelude=(unit ifile) holes=(list ihole) jrec-fuel=@ud projections=(list iwprojection) level=@ud levels=(map @ud @ud) registered=@ud globals-imports=iflag general-defer=iflag queue=(list icore-edge) owner=term core-error=(unit [owner=term diag=idiag]) indexed-sub=isub sub-index=(map @ud itype) sub-counts=(map @ud (list @ud)) wake=(unit iwake) diagnostic-sources=(list [at=path source=@t]) local-source=(unit @t) error-tag-site=(unit span) error-display-owner=(unit term) mold-captures=imold-captures tagged-actuals=(map @ud [actual=itype sub=isub]) tagged-sources=(map span [actual=itype sub=isub]) lowering=iflag lowering-own=(list term) lowering-occurrences=(list lowering-occurrence) lowering-binders=(list lowering-binder) lowering-references=(list lowering-reference-request) lowering-wings=(list lowering-wing-request) lowering-edits=(list lowering-edit-request) lowering-components=(list lowering-scc) lowering-matches=(list lowering-match) lowering-suppress=(list lowering-occurrence-id) held-caps=(list iheld-cap)]
 ++  lowering-record-occurrence
   |=  [at=span role=lowering-occurrence-role typ=itype state=istate]
   ^-  istate
@@ -11479,6 +11479,9 @@
     [%| ["distinct type variables `{(trip name.first.u.merged)}` and `{(trip name.second.u.merged)}` must not be forced equal; use the same capital for a shared type" ~[[at.first.u.merged "first type variable"] [at.second.u.merged "second type variable"]]]]
   ?:  (constrained-capitals caps.state.p.inferred sub.state.p.inferred)
     [%| ["explicit capital constraints are not supported by partial inference" ~]]
+  =/  held=(unit idiag)
+    (held-capital-error held-caps.state.p.inferred (own-caps caps.state.p.inferred caps.state) sub.state sub.state.p.inferred ~[val.d] env)
+  ?^  held  [%| u.held]
   =/  typ=itype  (itype-normalize typ.p.inferred sub.state.p.inferred)
   ?:  &(!general-defer.state |((pending-tags tags.state.p.inferred sub.state.p.inferred) (itype-has-tag typ)))
     $(ds t.ds, remaining [d remaining], blocked &)
@@ -11512,7 +11515,10 @@
   =?  named  general-defer.state  (icore-generic-number-aura named)
   =?  projections.state.p.inferred  general-defer.state
     (icore-projection-scopes ~[d] ~[[name.d named]] projections.state.p.inferred sub.state.p.inferred)
-  $(ds t.ds, env [[name.d named] env], state state.p.inferred(caps caps.state, holes holes.state, level level.state, owner owner.state), progressed &)
+  =/  kept=(list iheld-cap)
+    ?.  general-defer.state  ~
+    (held-caps (own-caps caps.state.p.inferred caps.state) named state.p.inferred name.d)
+  $(ds t.ds, env [[name.d named] env], state state.p.inferred(caps caps.state, holes holes.state, level level.state, owner owner.state, held-caps (weld kept held-caps.state.p.inferred)), progressed &)
 ::
 ::  Try complete cyclic local groups after individual definitions stall.
 ::  A successful component may fix another component's pending constraints,
@@ -15834,6 +15840,178 @@
   ?:  (cap-id-in u.ident t.caps sub)  &
   $(caps t.caps)
 ::
+::  Tag resolution keeps a tag's variable, and any it mentions, from
+::  generalizing until module context fixes its union. A written capital
+::  that such a constraint reaches therefore stays module-owned after its
+::  ++ leaves scope. Later expressions obey the rule its body did: they
+::  may neither fix it to a type nor force it equal to another written
+::  capital. +numeric records whether it was a decimal variable when its
+::  definition finished; +reason, the open tag or tagged cell that reached
+::  it then. Other pending obligations, such as a deferred match, do not
+::  hold a capital: they are the checker's own deferrals.
++$  iheld-cap  [cap=icap owner=term numeric=? reason=span]
+::
+::  +own-caps: the capitals a definition wrote, without its scope's
+++  own-caps
+  |=  [caps=icaps outer=icaps]
+  ^-  icaps
+  (skip caps |=(c=icap (lien outer |=(o=icap =(id.o id.c)))))
+::
+::  +held-caps: own capitals that a definition's scheme leaves unquantified
+::  because tag resolution still reaches them
+++  held-caps
+  |=  [caps=icaps scheme=ischeme state=istate owner=term]
+  ^-  (list iheld-cap)
+  %+  murn  caps
+  |=  c=icap
+  ^-  (unit iheld-cap)
+  =/  root=itype  (itype-walk [%var id.c] sub.state)
+  ?.  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.root)  ~
+  ?:  (lien vars.scheme |=(v=@ud =((var-count v) (var-count +.root))))  ~
+  =/  reason=(unit span)  (held-reason +.root state)
+  ?~  reason  ~
+  `[c owner ?=(?(%nvar %rnvar) -.root) u.reason]
+::
+::  +held-reason: the first pending tagged cell or open tag reaching id
+++  held-reason
+  |=  [id=@ud state=istate]
+  ^-  (unit span)
+  =/  reaches
+    |=  types=(list itype)
+    ^-  ?
+    =/  found=(unit dgscan)  (dg-scan types sub.state 32.768 ~)
+    ?~  found  |
+    (lien ids.u.found |=(n=@ud =(n id)))
+  =/  edges=(list icore-edge)  (flop queue.state)
+  |-
+  ?^  edges
+    ?.  ?=(%tagged-cell -.i.edges)  $(edges t.edges)
+    ?:  (reaches ~[actual.i.edges result.i.edges])  `at.i.edges
+    $(edges t.edges)
+  =/  tags=(list ipending)  (flop (icore-open-tags tags.state sub.state))
+  |-
+  ?~  tags  ~
+  ?:  (reaches ~[[%var id.i.tags]])  `at.i.tags
+  $(tags t.tags)
+::
+::  +held-open: whether a held capital is still a variable. A decimal
+::  variable takes the @ud default unless its capital already was one.
+++  held-open
+  |=  [held=iheld-cap sub=isub]
+  ^-  ?
+  =/  root=itype  (itype-walk [%var id.cap.held] sub)
+  ?|  ?=(?(%var %fvar %avar %rvar) -.root)
+      &(numeric.held ?=(?(%nvar %rnvar) -.root))
+  ==
+::
+::  +held-capital-violation: a held capital fixed or merged since before
+::
+::    held is newest first. Merges among held capitals come first, so two
+::    capitals of one definition are named in their written order; then a
+::    merge with the current definition's own capitals; then the earliest
+::    held capital fixed to a type. The diagnostic has no forcing site yet;
+::    the culprits are the held capitals it names.
+++  held-capital-violation
+  |=  [held=(list iheld-cap) own=icaps before=isub after=isub]
+  ^-  (unit [culprits=(list iheld-cap) diag=idiag])
+  ?~  held  ~
+  =/  caps=icaps  (turn held |=(h=iheld-cap cap.h))
+  =/  merged=(unit [first=icap second=icap])  (merged-capitals caps after)
+  =?  merged  ?=(~ merged)  (held-own-merge own caps after)
+  ?^  merged
+    =/  first=icap  first.u.merged
+    =/  second=icap  second.u.merged
+    =/  culprits=(list iheld-cap)
+      %+  weld  (skim `(list iheld-cap)`held |=(h=iheld-cap =(id.cap.h id.first)))
+      (skim `(list iheld-cap)`held |=(h=iheld-cap =(id.cap.h id.second)))
+    =/  sites=(list idsite)  ~[[at.first "first type variable"] [at.second "second type variable"]]
+    `[culprits ["distinct type variables `{(trip name.first)}` and `{(trip name.second)}` must not be forced equal; use the same capital for a shared type" (weld sites (held-reason-sites culprits))]]
+  =/  todo=(list iheld-cap)  (flop `(list iheld-cap)`held)
+  |-
+  ?~  todo  ~
+  ?.  &((held-open i.todo before) !(held-open i.todo after))  $(todo t.todo)
+  =/  forced=itype  (itype-normalize (itype-walk [%var id.cap.i.todo] after) after)
+  =.  forced  (default-decimals ?:(?=(?(%nvar %rnvar) -.forced) [%atom %ud] forced))
+  =/  sites=(list idsite)  ~[[at.cap.i.todo "capital"]]
+  `[~[i.todo] ["capital `{(trip name.cap.i.todo)}` cannot be fixed to {(show-itype forced after)}" (weld sites (held-reason-sites ~[i.todo]))]]
+::
+::  +held-own-merge: an own capital forced equal to a held one; merges
+::  among own capitals are their definition's own diagnostics
+++  held-own-merge
+  |=  [own=icaps held=icaps sub=isub]
+  ^-  (unit [first=icap second=icap])
+  ?~  own  ~
+  =/  root=(unit @ud)  (var-of (itype-walk [%var id.i.own] sub))
+  ?~  root  $(own t.own)
+  =/  found=(unit icap)  (cap-with-id u.root held sub)
+  ?^  found  `[u.found i.own]
+  $(own t.own)
+::
+::  +held-reason-sites: why the first culprit was held
+++  held-reason-sites
+  |=  culprits=(list iheld-cap)
+  ^-  (list idsite)
+  ?~  culprits  ~
+  ~[[reason.i.culprits "`{(trip owner.i.culprits)}` cannot generalize `{(trip name.cap.i.culprits)}` while this is unresolved"]]
+::
+::  +held-capital-error: a held capital's violation, with the expression
+::  that forced it among es. A held capital changes only through a
+::  reference to its owner, or to another definition whose type still
+::  shares its variable; a local owner is no longer in env. Without such
+::  a reference, the forcing expression is the first of es, as for a
+::  definition's own capitals.
+++  held-capital-error
+  |=  [held=(list iheld-cap) own=icaps before=isub after=isub es=(list expr) env=ienv]
+  ^-  (unit idiag)
+  =/  found=(unit [culprits=(list iheld-cap) diag=idiag])
+    (held-capital-violation held own before after)
+  ?~  found  ~
+  =/  culprits=(list iheld-cap)  culprits.u.found
+  =/  direct=(unit span)  (held-reference-site (turn culprits |=(h=iheld-cap owner.h)) es)
+  =/  site=(unit span)
+    ?^  direct  direct
+    =/  roots=(list @ud)
+      (murn culprits |=(h=iheld-cap (var-of (itype-walk [%var id.cap.h] before))))
+    =/  sharing=(list term)
+      %+  murn  env
+      |=  entry=[name=term scheme=ischeme]
+      ^-  (unit term)
+      ?.  (lien (free-env-vars ~[entry] before) |=(n=@ud (lien roots |=(r=@ud =(n r)))))  ~
+      `name.entry
+    =/  shared=(unit span)  (held-reference-site sharing es)
+    ?^  shared  shared
+    ?~(es ~ `(span-of i.es))
+  ?~  site  `diag.u.found
+  `diag.u.found(sites (weld sites.diag.u.found `(list idsite)`~[[u.site "forcing expression"]]))
+::
+::  +held-error-owner: the definition holding a held diagnostic's last
+::  site, its forcing expression, or default
+++  held-error-owner
+  |=  [diag=idiag ds=(list def) default=term]
+  ^-  term
+  ?~  sites.diag  default
+  =/  last=idsite  (rear sites.diag)
+  ?:  ?=(%external -.last)  default
+  =/  found=term  (icore-tag-owner at.last ds)
+  ?:(=(%$ found) default found)
+::
+::  +held-reference-site: the first reference to one of names in todo
+++  held-reference-site
+  |=  [names=(list term) todo=(list expr)]
+  ^-  (unit span)
+  ?~  names  ~
+  |-
+  ?~  todo  ~
+  =/  e=expr  i.todo
+  =/  refs=(list term)
+    ?+  -.e  ~
+      %wing  names.e
+      %change  target.e
+    ==
+  ?:  &(?=(^ refs) (lien `(list term)`names |=(n=term =(n (rear refs)))))
+    `(span-of e)
+  $(todo (weld (dependency-children e) t.todo))
+::
 ::  An atom variable may be generalized when an explicit capital, sample
 ::  binder or instantiated constraint resolves to it. Decimal variables need
 ::  defaulting and must not be generalized as arbitrary atom types.
@@ -16564,6 +16742,11 @@
   ?~  solved  [%| ["recursive group constraints need unsupported inference" ~]]
   ?^  core-error.u.solved  [%| diag.u.core-error.u.solved]
   =.  state.p.body  u.solved
+  =/  held=(unit idiag)
+    =/  own=icaps  (zing (turn entries.p.body |=(entry=igate-entry (own-caps caps.entry caps.state))))
+    =/  bodies=(list expr)  (turn entries.p.body |=(entry=igate-entry body.entry))
+    (held-capital-error held-caps.state.p.body own sub.state sub.state.p.body bodies env)
+  ?^  held  [%| u.held]
   ::  Written numeric capitals in a recursive component obey the same
   ::  generalization rule as a single definition. Preserve captured roots
   ::  from the outer environment and promote only the group's own roots.
@@ -16580,7 +16763,20 @@
   ::  Pending constraints may still refer to these result occurrences.
   ::  Keep their provenance until the queue has settled.
   =.  state.p.body  (recursive-result-finish state.p.body sub.state)
-  [%& [(weld p.schemes env) state.p.body(globals globals.state, level level.state, owner owner.state)]]
+  =/  kept=(list iheld-cap)
+    ?.  general-defer.state  ~
+    (group-held-caps entries.p.body p.schemes caps.state state.p.body)
+  [%& [(weld p.schemes env) state.p.body(globals globals.state, level level.state, owner owner.state, held-caps (weld kept held-caps.state.p.body))]]
+::
+::  +group-held-caps: each member's own capitals its scheme leaves
+::  unquantified; group-schemes lists the schemes in member order
+++  group-held-caps
+  |=  [entries=(list igate-entry) schemes=ienv outer=icaps state=istate]
+  ^-  (list iheld-cap)
+  ?~  entries  ~
+  ?~  schemes  ~
+  %+  weld  (held-caps (own-caps caps.i.entries outer) scheme.i.schemes state name.i.entries)
+  $(entries t.entries, schemes t.schemes)
 ::
 ++  width-finalize
   |=  [ps=(list iwprojection) sub=isub visible=(list @ud)]
@@ -18244,6 +18440,11 @@
   ?^  narrowed  `[%| u.narrowed]
   ?:  (constrained-capitals caps.st sub.st)
     `[%| (icore-definition-diagnostic d ["written capitals have incompatible constraints" ~])]
+  ::  Capitals that earlier definitions, or this body's local ++s, could
+  ::  not generalize obey the same rule here.
+  =/  held=(unit idiag)
+    (held-capital-error held-caps.st (own-caps caps.st caps.state) sub.state sub.st ~[val.d] env)
+  ?^  held  `[%| u.held]
   =/  typ=itype  (default-decimals (itype-normalize typ.p.inferred sub.st))
   =/  nums=(list @ud)  (icore-number-candidates typ env st)
   =/  sample-nums=(list @ud)  (icore-sample-number-candidates typ env st)
@@ -18283,7 +18484,10 @@
   ::  exported type. Never put quantified variables behind this shared root.
   =/  anchored=[scheme=ischeme state=istate]  (icore-anchor-result (icore-generic-number-aura u.scheme) st)
   =.  st  state.anchored
-  =.  st  st(caps caps.state, holes holes.state, binders binders.state, level level.state)
+  ::  The scheme leaves a capital module-owned while tag resolution
+  ::  reaches it; hold it once the definition's scope closes.
+  =/  kept=(list iheld-cap)  (held-caps (own-caps caps.st caps.state) scheme.anchored st name.d)
+  =.  st  st(caps caps.state, holes holes.state, binders binders.state, level level.state, held-caps (weld kept held-caps.st))
   ::  The incoming queue already reached a fixed point. An unrelated
   ::  definition cannot wake it unless inference adds a binding or an
   ::  obligation, so avoid rescanning it when both are unchanged.
@@ -18291,6 +18495,8 @@
     ?:  &(=(sub.st sub.state) =(queue.st queue.state))  `st
     (icore-solve st)
   ?~  solved  `[%| (icore-definition-diagnostic d ["definition constraints could not be solved" ~])]
+  =/  late=(unit idiag)  (held-capital-error held-caps.u.solved ~ sub.st sub.u.solved ~[val.d] env)
+  ?^  late  `[%| u.late]
   `[%& [[[name.d scheme.anchored] env] u.solved]]
 ::
 +$  icore-definition  [order=@ud entry=def]
@@ -18362,6 +18568,13 @@
       $(components t.components)
     =/  solved=(unit istate)  (icore-solve state.p.group)
     ?~  solved  ~
+    =/  held=(unit idiag)
+      ?^  core-error.u.solved  ~
+      =/  bodies=(list expr)  (murn members |=(d=def ^-((unit expr) ?:(?=(%value -.d) `val.d ~))))
+      (held-capital-error held-caps.u.solved ~ sub.state sub.u.solved bodies env)
+    ?^  held
+      =?  failure  ?=(~ failure)  `[(held-error-owner u.held members name.i.members) u.held tags.state]
+      $(components t.components)
     $(components t.components, env env.p.group, state u.solved, grouped (weld names grouped))
   ?.  ?=([* ~] members)  ~
   =/  result=(unit (each [env=ienv state=istate] idiag))  (icore-one i.members env state)
@@ -20595,6 +20808,13 @@
   =/  settled=(unit istate)  (icore-settle-defaults u.final)
   ?~  settled  [~ ~]
   ?^  core-error.u.settled  [~ `(icore-core-error-priority u.settled ds graph components)]
+  ::  Each definition checked the capitals held before it; module-level
+  ::  solving and defaults may not fix or merge them either.
+  =/  held=(unit [culprits=(list iheld-cap) diag=idiag])
+    (held-capital-violation held-caps.u.settled ~ ~ sub.u.settled)
+  ?^  held
+    =/  site=span  ?~(culprits.u.held *span at.cap.i.culprits.u.held)
+    [~ `[(icore-tag-owner site ds) diag.u.held]]
   =/  match-error=(unit [owner=term diag=idiag])  (icore-match-error (flop queue.u.settled) u.settled)
   ?^  match-error  [~ match-error]
   =/  branch-error=(unit [owner=term diag=idiag])  (icore-branch-error-with-source (flop queue.u.settled) u.settled ds)

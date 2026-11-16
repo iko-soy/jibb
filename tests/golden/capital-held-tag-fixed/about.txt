@@ -1,0 +1,4 @@
+source: Grammar, Gates: "A body can't force two distinct capitals to be equal"; a capital "can become nothing more specific"; Decisions, Type variables; Grammar, Tag resolution: a tag-constrained variable "and any it mentions, doesn't generalize; it stays open until something in the module fixes it".
+tests: A pending tagged cell keeps the written capital `A` of `enclose` from generalizing. A later definition that fixes the union cannot also fix `A` to @t; the diagnostic names the capital, the unresolved tagged cell and the later call.
+expect: parses
+expect-types: full checker diagnostic with the relevant source sites

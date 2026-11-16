@@ -1,0 +1,25 @@
+(module
+  (mold 1:1 box
+    (generic 1:8 X
+      (union 2:3
+        (cell 2:3
+          (const 2:4 %full)
+          (face 2:10 v (tvar 2:12 X)))
+        (const 3:3 %empty))))
+  (value 4:1 outer
+    (gate 4:10
+      (face 4:13 z (aura 4:15 @ud))
+      (body 5:3
+        (value 5:3 enclose
+          (gate 5:14
+            (face 5:17 x (tvar 5:19 A))
+            (tuple 5:21 (lit 5:22 %full) (wing 5:28 x))))
+        (value 6:3 use
+          (gate 6:10
+            (face 6:13 y (tvar 6:15 B))
+            (cast 6:17
+              (apply 6:20 box (tvar 6:25 B))
+              (group 6:28
+                (call 6:29 (wing 6:29 enclose) (wing 6:37 y))))))
+        (group 7:3
+          (call 7:4 (wing 7:4 use) (wing 7:8 z)))))))

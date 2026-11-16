@@ -1,0 +1,10 @@
+++ g: capital `A` cannot be fixed to @t
+/tests/golden/capital-held-cast-gate/source.jibb:4:17: capital
+++ enclose |= x=A [%full x]
+                ^
+/tests/golden/capital-held-cast-gate/source.jibb:4:19: `enclose` cannot generalize `A` while this is unresolved
+++ enclose |= x=A [%full x]
+                  ^
+/tests/golden/capital-held-cast-gate/source.jibb:5:25: forcing expression
+++ g ^- $-(@t (box @t)) enclose
+                        ^

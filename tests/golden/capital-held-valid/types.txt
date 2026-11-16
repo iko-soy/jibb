@@ -1,0 +1,25 @@
+module kind: library
++$ msg: msg
++$ box: (box A)
++$ letter: letter
+++ make-go: $-(@ud msg)
+++ from-make: msg
+++ beside: $-(A [A msg])
+++ from-beside: [@ud msg]
+++ cell-beside: $-(A [A (box @ud)])
+++ from-cell-beside: [@t (box @ud)]
+++ unit-beside: $-(A [A (unit letter)])
+++ from-unit-beside: [@ud (unit letter)]
+++ enclose: $-(A (box A))
+++ text-box: (box @t)
+++ number-box: (box @ud)
+++ outer: $-(@ud (box @t))
+++ outer-tag: $-(@ud letter)
+++ outer-make: $-(@ud msg)
+++ plain: letter
+++ fixed-plain: letter
+++ asked: (ask letter)
+++ fixed-asked: (ask letter)
+++ pair-go: $-(A [A msg])
+++ text-go: [@t msg]
+++ number-go: [@ud msg]

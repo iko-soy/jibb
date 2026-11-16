@@ -1,0 +1,13 @@
+++ g: distinct type variables `A` and `B` must not be forced equal; use the same capital for a shared type
+/tests/golden/capital-held-same-def-merged/source.jibb:4:12: first type variable
+++ f |= [x=A y=B] [%p x y]
+           ^
+/tests/golden/capital-held-same-def-merged/source.jibb:4:16: second type variable
+++ f |= [x=A y=B] [%p x y]
+               ^
+/tests/golden/capital-held-same-def-merged/source.jibb:4:19: `f` cannot generalize `A` while this is unresolved
+++ f |= [x=A y=B] [%p x y]
+                  ^
+/tests/golden/capital-held-same-def-merged/source.jibb:5:25: forcing expression
+++ g |= z=C ^- (duo C) (f z z)
+                        ^

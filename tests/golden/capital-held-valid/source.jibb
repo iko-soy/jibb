@@ -1,0 +1,36 @@
++$ msg
+  [%go n=@ud]
+  %stop
++$ box |$ [X]
+  [%full v=X]
+  %empty
++$ letter
+  %a
+  %b
+++ make-go |= n=@ud [%go n]
+++ from-make ^- msg (make-go 1)
+++ beside |= y=A [y %stop]
+++ from-beside ^- [@ud msg] (beside 1)
+++ cell-beside |= x=A [x [%full 1]]
+++ from-cell-beside ^- [@t (box @ud)] (cell-beside "s")
+++ unit-beside |= x=A [x `%a]
+++ from-unit-beside ^- [@ud (unit letter)] (unit-beside 1)
+++ enclose |= x=A ^- (box A) [%full x]
+++ text-box ^- (box @t) (enclose "s")
+++ number-box ^- (box @ud) (enclose 1)
+++ outer |= z=@ud
+  ++ local |= x=A ^- (box A) [%full x]
+  ^- (box @t) (local "s")
+++ outer-tag |= z=@ud
+  ++ local %a
+  ^- letter local
+++ outer-make |= z=@ud
+  ++ make |= n=@ud [%go n]
+  ^- msg (make z)
+++ plain %a
+++ fixed-plain ^- letter plain
+++ asked (same (pure %b))
+++ fixed-asked ^- (ask letter) asked
+++ pair-go |= y=A [y [%go 1]]
+++ text-go ^- [@t msg] (pair-go "s")
+++ number-go (pair-go 2)

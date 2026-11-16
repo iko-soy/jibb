@@ -1,0 +1,10 @@
+++ g: capital `A` cannot be fixed to @t
+/tests/golden/capital-held-one-case/source.jibb:2:11: capital
+++ f |= x=A [%go x]
+          ^
+/tests/golden/capital-held-one-case/source.jibb:2:13: `f` cannot generalize `A` while this is unresolved
+++ f |= x=A [%go x]
+            ^
+/tests/golden/capital-held-one-case/source.jibb:3:13: forcing expression
+++ g ^- go (f "x")
+            ^

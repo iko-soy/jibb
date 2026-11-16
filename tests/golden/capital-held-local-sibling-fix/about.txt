@@ -1,0 +1,4 @@
+source: Grammar, Gates: "A body can't force two distinct capitals to be equal"; a capital "can become nothing more specific"; Decisions, Type variables; Grammar, Tag resolution: a tag-constrained variable "and any it mentions, doesn't generalize; it stays open until something in the module fixes it".
+tests: A sibling local definition cannot fix a held capital; the diagnostic names the sibling's call.
+expect: parses
+expect-types: full checker diagnostic with the relevant source sites

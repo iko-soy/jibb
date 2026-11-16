@@ -1,0 +1,14 @@
+(module
+  (mold 1:1 go
+    (cell 1:7
+      (const 1:8 %go)
+      (face 1:12 url (aura 1:16 @t))))
+  (value 2:1 f
+    (gate 2:6
+      (face 2:9 x (tvar 2:11 A))
+      (tuple 2:13 (lit 2:14 %go) (wing 2:18 x))))
+  (value 3:1 g
+    (cast 3:6
+      (ref 3:9 go)
+      (group 3:12
+        (call 3:13 (wing 3:13 f) (str 3:15 "x"))))))

@@ -1,0 +1,10 @@
+++ outer: capital `A` cannot be fixed to @t
+/tests/golden/capital-held-local-sibling-fix/source.jibb:5:19: capital
+  ++ enclose |= x=A [%full x]
+                  ^
+/tests/golden/capital-held-local-sibling-fix/source.jibb:5:21: `enclose` cannot generalize `A` while this is unresolved
+  ++ enclose |= x=A [%full x]
+                    ^
+/tests/golden/capital-held-local-sibling-fix/source.jibb:6:23: forcing expression
+  ++ use ^- (box @t) (enclose "s")
+                      ^
