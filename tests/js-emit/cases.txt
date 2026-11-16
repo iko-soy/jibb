@@ -1,6 +1,8 @@
 fixture-arbitrary-precision-atom
 fixture-cell-construction-and-projection
 fixture-immutable-edit
+fixture-arbitrary-precision-slot-axis
+fixture-arbitrary-precision-edit-axis
 fixture-structural-equality
 fixture-lazy-selected-branch
 fixture-strict-unused-let

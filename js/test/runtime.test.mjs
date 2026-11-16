@@ -191,12 +191,14 @@ test('slot implements every Nock axis through a complete binary tree', () => {
   }
 });
 
-test('slot handles deep safe axes without recursion', () => {
-  let noun = 42n;
-  for (let index = 0; index < 52; index += 1) {
-    noun = [noun, BigInt(index)];
+test('slot handles deep arbitrary-precision axes without recursion', () => {
+  for (const axis of [2n ** 52n, 2n ** 53n, 2n ** 64n]) {
+    let noun = 42n;
+    for (let index = 0; index < axis.toString(2).length - 1; index += 1) {
+      noun = [noun, BigInt(index)];
+    }
+    assert.equal(slot(axis, noun), 42n);
   }
-  assert.equal(slot(2n ** 52n, noun), 42n);
 });
 
 test('slot rejects invalid axes, missing axes, and non-nouns', () => {
@@ -209,7 +211,6 @@ test('slot rejects invalid axes, missing axes, and non-nouns', () => {
     Number.NaN,
     Number.POSITIVE_INFINITY,
     Number.MAX_SAFE_INTEGER + 1,
-    2n ** 53n,
     '1',
     null,
     undefined,
@@ -272,16 +273,17 @@ test('edit accepts frozen cells, cell replacements, and deep axes', () => {
   assert.deepEqual(edit(4, frozen, [8n, 9n]), [[[8n, 9n], 1n], [2n, 3n]]);
 
   let noun = 42n;
-  for (let index = 0; index < 52; index += 1) {
+  for (let index = 0; index < 64; index += 1) {
     noun = [noun, BigInt(index)];
   }
-  const changed = edit(2n ** 52n, noun, 43n);
-  assert.equal(slot(2n ** 52n, changed), 43n);
-  assert.equal(slot(2n ** 52n, noun), 42n);
+  const axis = 2n ** 64n;
+  const changed = edit(axis, noun, 43n);
+  assert.equal(slot(axis, changed), 43n);
+  assert.equal(slot(axis, noun), 42n);
 });
 
 test('edit rejects invalid axes, missing axes, functions, and malformed nouns', () => {
-  for (const axis of [0, 0n, -1n, 1.5, 2n ** 53n, '2', null]) {
+  for (const axis of [0, 0n, -1n, 1.5, '2', null]) {
     throwsCore(() => edit(axis, tree, 0n), /Axis/);
   }
   throwsCore(() => edit(2, 0n, 1n), /does not exist/);

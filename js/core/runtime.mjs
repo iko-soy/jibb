@@ -147,10 +147,10 @@ export function equalNouns(left, right) {
 
 function normalizeAxis(axis) {
   if (typeof axis === 'bigint') {
-    if (axis < 1n || axis > MAX_SAFE) {
-      fail('Axis must be a safe integer greater than or equal to 1');
+    if (axis < 1n) {
+      fail('Axis must be greater than or equal to 1');
     }
-    return Number(axis);
+    return axis > MAX_SAFE ? axis : Number(axis);
   }
 
   if (typeof axis !== 'number' || !Number.isSafeInteger(axis) || axis < 1) {

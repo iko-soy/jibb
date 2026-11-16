@@ -1,0 +1,14 @@
+// Generated from Jibb Core. Do not edit.
+export function evaluate(runtime, natives) {
+const {apply, cons, slot, edit, isCell, same, requireLoobean, crash, traceLazy, memo, viewTemplate, checkValue} = runtime;
+const requireNative = (registry, name) => {
+  if (registry === null || typeof registry !== 'object' || !Object.hasOwn(registry, name) || typeof registry[name] !== 'function') {
+    throw new TypeError(`missing native ${name}`);
+  }
+};
+requireNative(natives, "sub");
+return slot(18446744073709551616n, edit(18446744073709551616n, apply((() => {
+const $0 = memo(function $0($1) { return (requireLoobean(same($1, BigInt("0"))) ? BigInt("42") : cons(apply($0, apply(natives["sub"], cons($1, BigInt("1")))), $1)); });
+return $0;
+})(), BigInt("64")), BigInt("99")));
+}

@@ -130,6 +130,12 @@
 /*  core-41  %txt  /tests/js-emit/extra-checked-recursive-facts/core/txt
 /*  natives-41  %txt  /tests/js-emit/extra-checked-recursive-facts/natives/txt
 /*  js-41  %txt  /tests/js-emit/extra-checked-recursive-facts/js/txt
+/*  core-42  %txt  /tests/js-emit/fixture-arbitrary-precision-slot-axis/core/txt
+/*  natives-42  %txt  /tests/js-emit/fixture-arbitrary-precision-slot-axis/natives/txt
+/*  js-42  %txt  /tests/js-emit/fixture-arbitrary-precision-slot-axis/js/txt
+/*  core-43  %txt  /tests/js-emit/fixture-arbitrary-precision-edit-axis/core/txt
+/*  natives-43  %txt  /tests/js-emit/fixture-arbitrary-precision-edit-axis/natives/txt
+/*  js-43  %txt  /tests/js-emit/fixture-arbitrary-precision-edit-axis/js/txt
 |%
 ++  text
   |=  lines=wain
@@ -197,5 +203,7 @@
     (check "extra-direct-template-capture-order" core-39 natives-39 js-39)
     (check "extra-direct-template-nested-branch-fuel" core-40 natives-40 js-40)
     (check "extra-checked-recursive-facts" core-41 natives-41 js-41)
+    (check "fixture-arbitrary-precision-slot-axis" core-42 natives-42 js-42)
+    (check "fixture-arbitrary-precision-edit-axis" core-43 natives-43 js-43)
   ==
 --

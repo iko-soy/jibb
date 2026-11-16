@@ -20,6 +20,18 @@
       "outcome": {"cell": [{"atom": "1"}, {"cell": [{"atom": "42"}, {"atom": "3"}]}]}
     },
     {
+      "name": "arbitrary-precision slot axis",
+      "source": "(slot 18446744073709551616 (app (rec ((deep (lam n (if (eq n 0) 42 (cons (app deep (app (native sub) (cons n 1))) n))))) deep) 64))",
+      "natives": ["sub"],
+      "outcome": {"atom": "42"}
+    },
+    {
+      "name": "arbitrary-precision edit axis",
+      "source": "(slot 18446744073709551616 (edit 18446744073709551616 (app (rec ((deep (lam n (if (eq n 0) 42 (cons (app deep (app (native sub) (cons n 1))) n))))) deep) 64) 99))",
+      "natives": ["sub"],
+      "outcome": {"atom": "99"}
+    },
+    {
       "name": "structural equality",
       "source": "(eq (cons 1 2) (cons 1 2))",
       "natives": [],

@@ -1,0 +1,1 @@
+(slot 18446744073709551616 (app (rec ((deep (lam n (if (eq n 0) 42 (cons (app deep (app (native sub) (cons n 1))) n))))) deep) 64))

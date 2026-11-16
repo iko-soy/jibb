@@ -279,7 +279,7 @@ test('fixed nested elements give exact axes and oversized templates fall back', 
   assert.doesNotThrow(() => large.value(cord('ordinary Core still runs')));
 });
 
-test('analysis limits preserve ordinary execution and projection diagnostics', async () => {
+test('analysis limits preserve ordinary execution and projection results', async () => {
   const source = readFileSync(new URL('../../tests/js-emit/extra-view-template-limits/core.txt', import.meta.url), 'utf8');
   const { value: [deep, [wide, projected]], plans } = await compiled(source);
   for (const gate of [deep, wide, projected]) assert.equal(plans.has(gate), false);
@@ -293,7 +293,6 @@ test('analysis limits preserve ordinary execution and projection diagnostics', a
     try { return { value: run() }; }
     catch (error) { return { error: error.constructor.name, message: error.message }; }
   };
-  // The existing runtime rejects axes above MAX_SAFE. Analysis must neither
-  // execute that projection early nor hide its ordinary runtime diagnostic.
+  // Analysis must neither execute that projection early nor change its result.
   assert.deepEqual(outcome(() => projected(words)), outcome(() => runtime.slot(2n ** 53n, ordinary)));
 });
